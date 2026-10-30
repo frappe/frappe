@@ -11,7 +11,6 @@ from frappe import _
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 from frappe.model.document import get_controller
 from frappe.permissions import SYSTEM_USER_ROLE
-from frappe.utils.synchronization import LockTimeoutError, filelock
 
 # Code changed without a migrate or `bench clear-cache` is only picked up when the cache expires.
 CACHE_TTL = 24 * 60 * 60
@@ -22,7 +21,6 @@ PYTHON_SEARCH_CACHE_KEY = f"{DISCOVERY_CACHE_PREFIX}:global:methods:python_searc
 DOCTYPE_METHOD_CACHE_KEY = f"{DISCOVERY_CACHE_PREFIX}:global:methods:doctype_nonstandard"
 DOCTYPE_SEARCH_CACHE_KEY = f"{DISCOVERY_CACHE_PREFIX}:global:methods:doctype_nonstandard_search"
 DISCOVERY_BUILD_JOB_ID = "api-v2-discovery-build"
-DISCOVERY_BUILD_LOCK = "api_v2_discovery_build"
 
 
 class DiscoveryCacheUnavailable(frappe.ValidationError):
@@ -116,15 +114,6 @@ def doctype_method(doctype: str, method: str) -> dict[str, Any]:
 
 def clear_cache(user: str | None = None):
 	frappe.cache.delete_keys(f"{DISCOVERY_CACHE_PREFIX}:")
-
-
-def build_cache_in_background() -> None:
-	frappe.enqueue(
-		"frappe.api.discovery.build_cache",
-		queue="default",
-		job_id=DISCOVERY_BUILD_JOB_ID,
-		deduplicate=True,
-	)
 
 
 def build_cache() -> None:
@@ -233,18 +222,21 @@ def _get_cached_doctype_search_entries() -> list[dict[str, Any]]:
 def _get_required_cache_value(key: str) -> Any:
 	value = frappe.cache.get_value(key, expires=True)
 	if value is None:
-		try:
-			with filelock(DISCOVERY_BUILD_LOCK):
-				value = frappe.cache.get_value(key, expires=True)
-				if value is None:
-					build_cache()
-					value = frappe.cache.get_value(key, expires=True)
-		except LockTimeoutError:
-			frappe.throw(
-				_("API discovery cache is being generated. Please try again in 10 seconds."),
-				DiscoveryCacheUnavailable,
-			)
+		build_cache_in_background()
+		frappe.throw(
+			_("API discovery cache is being generated. Please try again in 10 seconds."),
+			DiscoveryCacheUnavailable,
+		)
 	return value
+
+
+def build_cache_in_background() -> None:
+	frappe.enqueue(
+		"frappe.api.discovery.build_cache",
+		queue="default",
+		job_id=DISCOVERY_BUILD_JOB_ID,
+		deduplicate=True,
+	)
 
 
 def _method_summary(fn: Callable) -> dict[str, Any]:

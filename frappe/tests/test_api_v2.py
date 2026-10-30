@@ -1,6 +1,3 @@
-import contextvars
-import threading
-import time
 import typing
 from random import choice
 from unittest.mock import patch
@@ -17,7 +14,6 @@ from frappe.tests.test_api import FrappeAPITestCase, make_request, suppress_stdo
 from frappe.tests.utils import toggle_test_mode, wait_for_job, whitelist_for_tests
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
 from frappe.utils import get_test_client, set_request
-from frappe.utils.synchronization import LockTimeoutError, filelock
 
 authorization_token = None
 
@@ -769,35 +765,10 @@ class TestDiscoveryAPIV2(FrappeAPITestCase):
 			self.discovery_path("doctype", "User", "method", "add_comment"),
 		)
 
-	def test_first_caller_builds_a_cold_cache_v2(self):
-		discovery.clear_cache()
-		response = self.get(self.discovery_path("search"), {"sid": self.sid, "q": "test_api test"})
-		self.assertEqual(response.status_code, 200)
+	def test_after_migrate_warms_the_cache_v2(self):
 		self.assertIn(
-			"frappe.tests.test_api.test", [item.get("path") for item in response.json["data"]["results"]]
-		)
-
-	def test_concurrent_first_callers_build_the_cache_once_v2(self):
-		discovery.clear_cache()
-		holding_lock = threading.Event()
-
-		def build_holding_lock():
-			with filelock(discovery.DISCOVERY_BUILD_LOCK):
-				holding_lock.set()
-				time.sleep(0.5)
-				discovery.build_cache()
-
-		with patch.object(discovery, "build_cache", wraps=discovery.build_cache) as build_cache:
-			thread = threading.Thread(target=contextvars.copy_context().run, args=(build_holding_lock,))
-			thread.start()
-			self.assertTrue(holding_lock.wait(timeout=5))
-			response = self.get(self.discovery_path("search"), {"sid": self.sid, "q": "test_api test"})
-			thread.join(timeout=60)
-
-		self.assertEqual(build_cache.call_count, 1)
-		self.assertEqual(response.status_code, 200)
-		self.assertIn(
-			"frappe.tests.test_api.test", [item.get("path") for item in response.json["data"]["results"]]
+			"frappe.api.discovery.build_cache_in_background",
+			frappe.get_hooks("after_migrate", app_name="frappe"),
 		)
 
 	def test_cache_lasts_a_day_or_an_hour_in_developer_mode_v2(self):
@@ -1029,10 +1000,16 @@ class TestDiscoveryAPIV2(FrappeAPITestCase):
 		with (
 			suppress_stdout(),
 			patch("frappe.utils.error.log_error") as log_error,
-			patch("frappe.api.discovery.filelock", side_effect=LockTimeoutError),
+			patch("frappe.enqueue") as enqueue,
 		):
 			response = self.get(self.discovery_path(), {"sid": self.sid})
 		self.assertEqual(response.status_code, 503)
+		enqueue.assert_any_call(
+			"frappe.api.discovery.build_cache",
+			queue="default",
+			job_id=discovery.DISCOVERY_BUILD_JOB_ID,
+			deduplicate=True,
+		)
 		self.assertNotIn("Retry-After", response.headers)
 		log_error.assert_not_called()
 
