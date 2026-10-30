@@ -41,7 +41,6 @@ frappe.ui.SortSelector = class SortSelector {
 					onclick: () => this.select(fieldname, this.sort_order),
 				})),
 		});
-		this.$field_button.find(".es-button__label").addClass("hidden-sm");
 		$('<div class="sort-selector-group flex items-center hidden-xs"></div>')
 			.append(this.$order_button, this.$field_button)
 			.appendTo(this.wrapper);
