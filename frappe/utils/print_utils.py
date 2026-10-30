@@ -17,11 +17,11 @@ def _print_format_doc_or_none(print_format: str | None, doctype: str | None = No
 	notifications and scheduled jobs that reference a removed format from breaking
 	mid-send — they fall back to the Standard render.
 	"""
-	from frappe.printing.doctype.print_format.print_format import can_print_with
+	from frappe.printing.doctype.print_format.print_format import can_print_with, check_print_format_roles
 
-	requested = print_format
-	if not print_format and doctype:
-		print_format = frappe.get_meta(doctype).default_print_format
+	default = frappe.get_meta(doctype).default_print_format if doctype else None
+	requested = print_format and print_format != default
+	print_format = print_format or default
 	if not print_format or print_format == "Standard":
 		return None
 	try:
@@ -29,7 +29,9 @@ def _print_format_doc_or_none(print_format: str | None, doctype: str | None = No
 	except frappe.DoesNotExistError:
 		frappe.clear_last_message()
 		return None
-	return doc if requested or can_print_with(doc) else None
+	if requested:
+		check_print_format_roles(doc)
+	return doc if can_print_with(doc) else None
 
 
 def get_pdf_generators() -> list[str]:
@@ -108,10 +110,6 @@ def get_print(
 
 	local = frappe.local
 	pf_doc = _print_format_doc_or_none(print_format, doctype)
-	if pf_doc:
-		from frappe.printing.doctype.print_format.print_format import check_print_format_roles
-
-		check_print_format_roles(pf_doc)
 	generator = resolve_pdf_generator(pf_doc, local.form_dict.get("pdf_generator") or pdf_generator)
 
 	settings = settings or local.form_dict.get("settings")

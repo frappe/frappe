@@ -171,10 +171,11 @@ def get_print_format_doc(print_format_name: str, meta: "Meta") -> "PrintFormat" 
 		except frappe.DoesNotExistError:
 			frappe.clear_last_message()
 			return None
-		if name != requested and not can_print_with(doc):
-			return None
-		check_print_format_roles(doc)
-		return doc
+		if can_print_with(doc):
+			return doc
+		if name == requested and name != meta.default_print_format:
+			check_print_format_roles(doc)
+		return None
 
 	# a renamed or deleted format — or a caller interpolating a missing name into
 	# the url — resolves to the doctype's default, like an omitted name does
