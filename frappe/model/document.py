@@ -1,5 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import copy
 import datetime
 import functools
 import hashlib
@@ -1579,6 +1580,16 @@ class Document(_DocumentBase):
 							delattr(child, df.fieldname)
 
 		self.mask_fields()
+
+	def copy_with_fieldlevel_read_permissions(self) -> "Document":
+		"""Return a copy without the values the user is not allowed to read, so that this document stays
+		whole for what is queued on it, such as webhooks and background jobs."""
+		if frappe.session.user == "Administrator":
+			return self
+
+		doc = get_doc(copy.deepcopy(self.as_dict()))
+		doc.apply_fieldlevel_read_permissions()
+		return doc
 
 	def _restore_masked_fields_from_db(self):
 		"""Restore masked field values from DB so that link-field user-permission checks

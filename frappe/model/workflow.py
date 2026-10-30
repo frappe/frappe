@@ -152,9 +152,7 @@ def evaluate_workflow_value(value, evaluate_as_expression, doc):
 @frappe.whitelist()
 def apply_workflow(doc: Document | str | dict, action: str):
 	"""Allow workflow action on the current doc"""
-	doc = run_workflow_transition(doc, action)
-	doc.apply_fieldlevel_read_permissions()
-	return doc
+	return run_workflow_transition(doc, action).copy_with_fieldlevel_read_permissions()
 
 
 def run_workflow_transition(doc: Document | str | dict, action: str) -> Document:

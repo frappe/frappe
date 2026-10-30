@@ -405,11 +405,34 @@ class TestWriteResponsesFieldLevelRead(FrappeAPITestCase):
 		)
 		self.name = frappe.get_doc(doctype=self.doctype, rows=[{}]).insert().name
 		self.row = frappe.db.get_value(self.child, {"parent": self.name})
+		self.webhooks = [
+			frappe.get_doc(
+				doctype="Webhook",
+				name=frappe.generate_hash(),
+				webhook_doctype=self.doctype,
+				webhook_docevent=event,
+				request_url="https://example.com/hook",
+				request_structure="JSON",
+				webhook_json='{"secret": "{{ doc.secret }}", "token": "{{ doc.token }}"}',
+			).insert()
+			for event in ("after_insert", "on_update", "on_submit", "on_cancel")
+		]
 		frappe.db.commit()  # nosemgrep
+		frappe.client_cache.delete_value("webhooks")
+		self.sent = []
+		send = patch(
+			"frappe.integrations.doctype.webhook.webhook.send_webhook_request",
+			side_effect=lambda method, url, headers, data, timeout: self.sent.append(data),
+		)
+		send.start()
+		self.addCleanup(send.stop)
 
 	def tearDown(self):
 		try:
 			frappe.set_user("Administrator")
+			for webhook in self.webhooks:
+				frappe.delete_doc("Webhook", webhook.name, force=True)
+			frappe.client_cache.delete_value("webhooks")
 			frappe.delete_doc("DocType", self.doctype, force=True)
 			frappe.delete_doc("DocType", self.child, force=True)
 			frappe.delete_doc_if_exists("User", self.user)
@@ -425,6 +448,10 @@ class TestWriteResponsesFieldLevelRead(FrappeAPITestCase):
 			site=frappe.local.site,
 		)
 		self.assertEqual(response.status_code, 200, response.text)
+		# Webhooks are queued with the saved document and run after the response is built.
+		self.assertTrue(self.sent)
+		for payload in self.sent:
+			self.assertEqual(payload, {"secret": "hidden", "token": "abc123"})
 		return response.json.get("data") or response.json["message"]
 
 	def assertMasked(self, doc):

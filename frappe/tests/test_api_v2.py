@@ -272,26 +272,60 @@ class TestApiV2CreateFieldLevelRead(FrappeAPITestCase):
 			.insert()
 			.name
 		)
+		self.name = frappe.get_doc(doctype=self.doctype).insert().name
+		self.webhooks = [
+			frappe.get_doc(
+				doctype="Webhook",
+				name=frappe.generate_hash(),
+				webhook_doctype=self.doctype,
+				webhook_docevent=event,
+				request_url="https://example.com/hook",
+				request_structure="JSON",
+				webhook_json='{"secret": "{{ doc.secret }}"}',
+			).insert()
+			for event in ("after_insert", "on_update")
+		]
 		frappe.db.commit()  # nosemgrep
+		frappe.client_cache.delete_value("webhooks")
+		self.sent = []
+		send = patch(
+			"frappe.integrations.doctype.webhook.webhook.send_webhook_request",
+			side_effect=lambda method, url, headers, data, timeout: self.sent.append(data),
+		)
+		send.start()
+		self.addCleanup(send.stop)
 
 	def tearDown(self):
 		try:
 			frappe.set_user("Administrator")
-			frappe.delete_doc("DocType", self.doctype)
+			for webhook in self.webhooks:
+				frappe.delete_doc("Webhook", webhook.name, force=True)
+			frappe.client_cache.delete_value("webhooks")
+			frappe.delete_doc("DocType", self.doctype, force=True)
 			frappe.delete_doc_if_exists("User", self.user)
 			frappe.db.commit()  # nosemgrep
 		finally:
 			super().tearDown()
 
-	def test_create_omits_fields_without_read_permission(self):
+	def request(self, method, *path, data=None):
 		response = make_request(
-			get_test_client(use_cookies=False).post,
-			args=(self.resource(self.doctype),),
-			kwargs={"json": {}, "headers": {"Authorization": self.authorization}},
+			getattr(get_test_client(use_cookies=False), method),
+			args=(self.resource(self.doctype, *path),),
+			kwargs={"json": data or {}, "headers": {"Authorization": self.authorization}},
 			site=frappe.local.site,
 		)
 		self.assertEqual(response.status_code, 200)
-		self.assertIsNone(response.json["data"].get("secret"))
+		# Webhooks are queued with the saved document and must keep the values the user cannot read.
+		self.assertTrue(self.sent)
+		for payload in self.sent:
+			self.assertEqual(payload, {"secret": "hidden"})
+		return response.json["data"]
+
+	def test_create_omits_fields_without_read_permission(self):
+		self.assertIsNone(self.request("post").get("secret"))
+
+	def test_update_omits_fields_without_read_permission(self):
+		self.assertIsNone(self.request("put", self.name).get("secret"))
 
 
 class TestMethodAPIV2(FrappeAPITestCase):
