@@ -285,7 +285,7 @@ def get_versions(doc: "Document") -> list[dict]:
 		return mask_version_data(versions, doc.doctype)
 
 	allowed_parent_fields = {df.fieldname for df in doc.meta.fields if df.permlevel in has_read_permission}
-	allowed_parent_fields |= STANDARD_VERSIONED_FIELDS
+	allowed_parent_fields.update(STANDARD_VERSIONED_FIELDS)
 	allowed_child_fields = {}
 	for table_field in doc.meta.get_table_fields():
 		# The table field's own permlevel gates the whole table, same as apply_fieldlevel_read_permissions
@@ -324,16 +324,28 @@ def get_versions(doc: "Document") -> list[dict]:
 			out.append([log[0], {k: v for k, v in log[1].items() if k in allowed}])
 		return out
 
+	readable_versions = []
 	for version in versions:
-		data = frappe.parse_json(version.data)
+		try:
+			data = frappe.parse_json(version.data or "{}")
+		except ValueError:
+			continue
+		if not isinstance(data, dict):
+			continue
+
 		data["changed"] = filter_changed(data.get("changed"))
 		data["added"] = filter_rows(data.get("added"))
 		data["removed"] = filter_rows(data.get("removed"))
 		data["row_changed"] = filter_row_changed(data.get("row_changed"))
 		version.data = frappe.utils.orjson_dumps(data)
+		readable_versions.append(version)
 
+<<<<<<< HEAD
 	return mask_version_data(versions, doc.doctype)
 >>>>>>> eb3c578 (refactor: Filter versions based on user's permitted fields)
+=======
+	return mask_version_data(readable_versions, doc.doctype)
+>>>>>>> 3a038db (fix: keep version field order and skip unreadable version data)
 
 
 @frappe.whitelist()

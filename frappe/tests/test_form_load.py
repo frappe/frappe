@@ -364,6 +364,20 @@ class TestVersionPermlevelFiltering(IntegrationTestCase):
 		self.assertNotIn("is_primary", self._child_fields(versions, "email_ids"))
 		self.assertNotIn("9999999999", blob)
 
+	def test_versions_with_unreadable_data_are_skipped(self):
+		contact = self._make_contact()
+		for data in ("", "not json", "[]"):
+			frappe.get_doc(doctype="Version", ref_doctype="Contact", docname=contact.name, data=data).insert(
+				ignore_permissions=True
+			)
+
+		with self.set_user(self.RESTRICTED_USER):
+			versions = get_versions(frappe.get_doc("Contact", contact.name))
+
+		self.assertTrue(versions)
+		for version in versions:
+			self.assertIsInstance(frappe.parse_json(version.data), dict)
+
 	def test_administrator_sees_restricted_table_in_versions(self):
 		contact = self._make_contact()
 
