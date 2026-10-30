@@ -12,7 +12,6 @@ from frappe.core.doctype.server_script.server_script_utils import get_server_scr
 from frappe.model.document import get_controller
 from frappe.permissions import SYSTEM_USER_ROLE
 
-# Code changed without a migrate or `bench clear-cache` is only picked up when the cache expires.
 CACHE_TTL = 24 * 60 * 60
 DEVELOPER_MODE_CACHE_TTL = 60 * 60
 DISCOVERY_CACHE_PREFIX = "api:v2:discovery"

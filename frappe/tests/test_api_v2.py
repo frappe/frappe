@@ -783,31 +783,29 @@ class TestDiscoveryAPIV2(FrappeAPITestCase):
 
 	def test_server_script_changes_show_on_a_warm_cache_v2(self):
 		def paths():
+			self.assertIsNotNone(frappe.cache.get_value(discovery.PYTHON_METHOD_CACHE_KEY, expires=True))
 			return [item.get("path") for item in discovery.search("test_discovery_server_script")["results"]]
 
-		with patch.object(discovery, "build_cache") as build_cache:
-			script = frappe.get_doc(
-				doctype="Server Script",
-				name="test_discovery_server_script",
-				script_type="API",
-				api_method="test_discovery_server_script",
-				script="frappe.response['message'] = 'ok'",
-			).insert()
-			self.addCleanup(frappe.delete_doc_if_exists, "Server Script", script.name, force=True)
-			self.assertIn("test_discovery_server_script", paths())
+		script = frappe.get_doc(
+			doctype="Server Script",
+			name="test_discovery_server_script",
+			script_type="API",
+			api_method="test_discovery_server_script",
+			script="frappe.response['message'] = 'ok'",
+		).insert()
+		self.addCleanup(frappe.delete_doc_if_exists, "Server Script", script.name, force=True)
+		self.assertIn("test_discovery_server_script", paths())
 
-			script.disabled = 1
-			script.save()
-			self.assertNotIn("test_discovery_server_script", paths())
+		script.disabled = 1
+		script.save()
+		self.assertNotIn("test_discovery_server_script", paths())
 
-			script.disabled = 0
-			script.save()
-			self.assertIn("test_discovery_server_script", paths())
+		script.disabled = 0
+		script.save()
+		self.assertIn("test_discovery_server_script", paths())
 
-			script.delete()
-			self.assertNotIn("test_discovery_server_script", paths())
-
-		build_cache.assert_not_called()
+		script.delete()
+		self.assertNotIn("test_discovery_server_script", paths())
 
 	def test_search_v2(self):
 		response = self.get(
