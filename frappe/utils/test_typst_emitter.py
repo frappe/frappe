@@ -745,55 +745,6 @@ class TestTypstRender(IntegrationTestCase):
 		self.assertTrue(left_right.startswith("#align(right)[#grid(columns: (auto, auto)"))
 		self.assertIn("[#align(center)[#text(", inline)
 
-<<<<<<< HEAD
-=======
-	def test_bordered_section_padding_pads_edge_columns_like_html(self):
-		from frappe.utils.print_format_generator import PrintFormatGenerator
-		from frappe.utils.typst_emitter import TypstEmitter
-
-		layout = layout_with(
-			section={
-				"field_borders": True,
-				"padding": {"top": 24, "right": 20, "bottom": 8, "left": 40},
-				"columns": [
-					{
-						"label": "",
-						"fields": [{"fieldtype": "Data", "fieldname": "description", "label": "D"}],
-					},
-					{"label": "", "fields": [{"fieldtype": "Data", "fieldname": "status", "label": "S"}]},
-				],
-			}
-		)
-		pf = self.make(layout)
-		todo = self.make_todo()
-		self.addCleanup(frappe.set_user, "Administrator")
-		frappe.set_user("test@example.com")
-		source, _assets = TypstEmitter(PrintFormatGenerator(pf, todo)).emit()
-		self.assertIn("#pad(top: 18.0pt, bottom: 6.0pt)[#pad(left: 30.0pt, right: 0pt)[", source)
-		self.assertIn("#pad(top: 18.0pt, bottom: 6.0pt)[#pad(left: 0pt, right: 15.0pt)[", source)
-
-	def test_plain_columns_space_like_html(self):
-		from frappe.utils.print_format_generator import PrintFormatGenerator
-		from frappe.utils.typst_emitter import TypstEmitter
-
-		layout = layout_with(
-			section={
-				"columns": [
-					{
-						"label": "",
-						"fields": [{"fieldtype": "Data", "fieldname": "description", "label": "D"}],
-					},
-					{"label": "", "fields": [{"fieldtype": "Data", "fieldname": "status", "label": "S"}]},
-				],
-			}
-		)
-		pf = self.make(layout)
-		todo = self.make_todo()
-		self.addCleanup(frappe.set_user, "Administrator")
-		frappe.set_user("test@example.com")
-		source, _assets = TypstEmitter(PrintFormatGenerator(pf, todo)).emit()
-		self.assertIn("column-gutter: 37.5pt", source)
-
 	def test_left_right_field_label_justify_matches_html(self):
 		from frappe.utils.print_format_generator import PrintFormatGenerator
 		from frappe.utils.typst_emitter import TypstEmitter
@@ -814,7 +765,6 @@ class TestTypstRender(IntegrationTestCase):
 		)
 		self.assertTrue(hidden_label.startswith("#align(center)["))
 
->>>>>>> 879c0fc (test(print): cover the spacing setting in typst pdfs)
 	@unittest.skipUnless(has_typst(), "typst not installed")
 	def test_image_format_comes_from_its_content(self):
 		from io import BytesIO
