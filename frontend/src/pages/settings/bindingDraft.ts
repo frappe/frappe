@@ -1,6 +1,6 @@
 // One binding's draft in an open pane: its fresh read, its saves one at a time, and each row's
 // save mark. Every block bound to the same doctype and name shares it.
-import { reactive } from "vue";
+import { reactive, toRef } from "vue";
 import {
 	createDocument,
 	getDocument,
@@ -16,7 +16,8 @@ import type { RawMetaField } from "@framework/ui/FormLayout/types";
 import { useDoctypeMeta, type DoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { __ } from "@/i18n";
 import { fetchNewDocument, fieldDefaults } from "@/newRecordValues";
-import { FieldErrors } from "@/recordPage";
+import { FieldErrors, useFormLayout } from "@/recordPage";
+import type { UseFormLayout } from "@/recordPage/formLayoutSource/useFormLayout";
 import { runAfterSave } from "@/afterSave";
 import type { Confirm } from "../record/discardChanges";
 import { awaitMeta } from "../record/metaSource";
@@ -55,6 +56,8 @@ export class BindingDraft {
 		refusals: {} as Record<string, Refusal>,
 	});
 	readonly fieldErrors = new FieldErrors();
+	/** The Single's Details layout, read with its meta; empty when no row applies. */
+	readonly details: UseFormLayout | null;
 	readonly loaded: Promise<void>;
 	private queued = new Set<string>();
 	/** Each field a save in flight carries, with the value it sent. */
@@ -71,8 +74,12 @@ export class BindingDraft {
 		readonly doctype: string,
 		readonly name: string,
 		private single: boolean,
-		private host: DraftHost
+		private host: DraftHost,
+		readsDetails = false
 	) {
+		this.details = readsDetails
+			? useFormLayout({ doctype, type: "Details", fallback: "none", doc: toRef(this.state, "saved") })
+			: null;
 		this.loaded = this.load();
 	}
 
@@ -148,7 +155,11 @@ export class BindingDraft {
 	private async load() {
 		try {
 			const source = useDoctypeMeta(this.doctype);
-			const [meta, document] = await Promise.all([awaitMeta(source), this.read()]);
+			const [meta, document] = await Promise.all([
+				awaitMeta(source),
+				this.read(),
+				this.details?.settled(),
+			]);
 			this.state.meta = meta;
 			this.state.childMetas = Object.fromEntries(
 				Object.entries(source.metas.value).flatMap(([doctype, child]) =>

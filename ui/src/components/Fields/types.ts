@@ -25,12 +25,10 @@ export interface FieldMeta {
    * carry a `ui` overlay too — back-compatible since `FieldNode extends FieldMeta`.
    */
   childFields?: FieldNode[];
-  /**
-   * Full render-ready layout of the child doctype, for the `Table` row-edit
-   * dialog which shows every field (desk grid-row form), not just the
-   * `in_list_view` columns in `childFields`.
-   */
+  /** Every child field from the meta; the row dialog draws it without a `rowLayout`, and a new row takes its defaults. */
   childLayout?: FormLayoutSchema;
+  /** The row dialog's layout for one row, from the child doctype's Details layouts; absent when it has none. */
+  rowLayout?: (row: Record<string, any>) => FormLayoutSchema;
   /** Whether the field is mandatory. */
   reqd?: boolean;
   /** Raw DocField default, carried verbatim; `newRowValues` resolves it. */

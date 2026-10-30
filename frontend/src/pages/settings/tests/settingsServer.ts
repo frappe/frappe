@@ -47,6 +47,10 @@ export class SettingsServer {
 		"Walk Rule": WALK_RULE,
 	};
 	readonly docs = new Map<string, Values>();
+	/** Each doctype's Details rows, as `get_form_layouts` sends them. */
+	readonly layouts: Record<string, Values[]> = {};
+	/** The `dt` of each `get_form_layouts` read. */
+	readonly layoutReads: string[] = [];
 	/** The next write's reply waits until this resolves. */
 	held: Promise<void> | null = null;
 	/** The next write is refused with this error entry and status. */
@@ -82,6 +86,11 @@ export class SettingsServer {
 		const method = init?.method ?? "GET";
 		const meta = path.match(/^\/api\/v2\/doctype\/(.+)\/meta$/);
 		if (meta) return json({ data: this.metas[meta[1]], children: this.children(meta[1]) });
+		if (path === "/api/v2/method/frappe.desk.doctype.form_layout.form_layout.get_form_layouts") {
+			const dt = new URL(url, "http://x").searchParams.get("dt")!;
+			this.layoutReads.push(dt);
+			return json({ data: { layouts: this.layouts[dt] ?? [], fallback: [], children: {} } });
+		}
 		if (path === "/api/v2/method/frappe.desk.form.load.get_new_doc")
 			return json({ data: { mobile_no: "", extension: "" } });
 		const [, doctype, name] = path.match(/^\/api\/v2\/document\/([^/]+)(?:\/(.+))?$/) ?? [];

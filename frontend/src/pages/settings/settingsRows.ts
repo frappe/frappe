@@ -28,12 +28,15 @@ export function isLong(field: FieldNode): boolean {
 	return LONG.has(field.fieldtype);
 }
 
+/** A block with no field list draws `details`, the Single's Details layout, when a row applies. */
 export function blockLayout(
 	block: SettingsBlock,
 	meta: RawMetaField[],
-	childMetas: Record<string, RawMetaField[]>
+	childMetas: Record<string, RawMetaField[]>,
+	details: FormLayoutSchema = []
 ): FormLayoutSchema {
-	const built = buildLayoutFromMeta(meta, { childMetas });
+	const built =
+		!block.fields?.length && details.length ? details : buildLayoutFromMeta(meta, { childMetas });
 	const readOnly = new Set(block.read_only_fields);
 	const marked = (field: FieldNode) =>
 		block.read_only || readOnly.has(field.fieldname) ? { ...field, readOnly: true } : field;

@@ -14,6 +14,8 @@ from frappe.model.meta import Meta
 
 FORM_LAYOUT_TYPES = ("Details", "Side Panel", "Quick Entry", "New Record")
 CREATE_LAYOUT_TYPES = ("Quick Entry", "New Record")
+CHILD_LAYOUT_TYPES = ("Details",)
+SINGLE_LAYOUT_TYPES = ("Details", "Side Panel")
 LAYOUT_BREAKS = ("Section Break", "Column Break", "Tab Break")
 STANDARD_FIELDS = frozenset(default_fields + child_table_fields + optional_fields)
 
@@ -134,12 +136,14 @@ def get_form_layouts(dt: str, type: str):
 	check_layout_access(dt, type)
 
 	layouts = get_layouts(dt, type)
+	children = get_child_layouts(dt)
 	if type != "Quick Entry":
-		return {"layouts": layouts, "fallback": get_meta_layout(dt)}
+		return {"layouts": layouts, "fallback": get_meta_layout(dt), "children": children}
 	return {
 		"layouts": layouts,
 		"fallback": get_quick_entry_layout(dt),
 		"dialog": opens_in_dialog(dt, layouts),
+		"children": children,
 	}
 
 
@@ -157,6 +161,8 @@ def save_form_layout(
 	if name is not None and not isinstance(name, str):
 		frappe.throw(_("Form Layout name must be a string"))
 	frappe.has_permission("Form Layout", "write", throw=True)
+	if refuse_layout_type(dt, type):
+		return None
 	doc = find_layout_doc(dt, type, name)
 	doc.update({"dt": dt, "type": type, "layout": layout, "condition": condition})
 	if omitted is not None:
@@ -171,11 +177,51 @@ def check_layout_access(dt: str, type: str) -> None:
 	frappe.has_permission(dt, "read", throw=True)
 
 
+def refuse_layout_type(dt: str, type: str) -> bool:
+	"""Tell the person a child DocType has only Details and a Single is never created; return whether refused."""
+	meta = frappe.get_meta(dt)
+	if meta.istable and type not in CHILD_LAYOUT_TYPES:
+		message = _("{0} is a child table, so it has only a Details layout, which its row dialog reads.")
+	elif meta.issingle and type not in SINGLE_LAYOUT_TYPES:
+		message = _("{0} is a Single, which is never created, so it has no {1} layout.")
+	else:
+		return False
+	frappe.msgprint(message.format(frappe.bold(dt), _(type)), title=_("Layout Not Saved"), indicator="orange")
+	return True
+
+
 def get_layouts(dt: str, type: str) -> list[dict]:
-	"""Every site row comes before any app file, and a row with no condition drops the file."""
 	layouts = get_row_layouts(dt, type)
 	if not layouts and type == "New Record":
 		layouts = get_row_layouts(dt, "Details")
+	return with_app_layout(layouts, dt, type)
+
+
+def get_child_layouts(dt: str) -> dict[str, list[dict]]:
+	"""Each `Table` field's child DocType's Details rows, in one query, sent under the parent's access."""
+	children = list(
+		dict.fromkeys(
+			field.options
+			for field in frappe.get_meta(dt).get_table_fields(include_computed=True)
+			if field.fieldtype == "Table"
+		)
+	)
+	if not children:
+		return {}
+	rows = frappe.get_all(
+		"Form Layout",
+		filters={"dt": ("in", children), "type": "Details"},
+		fields=["name", "dt", "condition", "layout", "omitted"],
+		order_by="creation asc",
+	)
+	layouts = {child: [] for child in children}
+	for row in rows:
+		layouts[row.dt].append(layout_of(row))
+	return {child: with_app_layout(found, child, "Details") for child, found in layouts.items()}
+
+
+def with_app_layout(layouts: list[dict], dt: str, type: str) -> list[dict]:
+	"""Every site row comes before any app file, and a row with no condition drops the file."""
 	if any(not layout["condition"] for layout in layouts):
 		return layouts
 	app_layout = read_app_layout(dt, type)
@@ -194,15 +240,16 @@ def get_layouts(dt: str, type: str) -> list[dict]:
 
 
 def get_row_layouts(dt: str, type: str) -> list[dict]:
-	return [
-		{
-			"name": row.name,
-			"condition": row.condition,
-			"layout": parse_layout(row.layout),
-			"omitted": parse_omitted(row.omitted),
-		}
-		for row in get_layout_rows(dt, type)
-	]
+	return [layout_of(row) for row in get_layout_rows(dt, type)]
+
+
+def layout_of(row) -> dict:
+	return {
+		"name": row.name,
+		"condition": row.condition,
+		"layout": parse_layout(row.layout),
+		"omitted": parse_omitted(row.omitted),
+	}
 
 
 def get_layout_rows(dt: str, type: str) -> list:

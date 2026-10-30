@@ -386,6 +386,11 @@ Details rows, and every site row comes before any file. So New Record reads its 
 the Details rows, then the `new_record` file, then the `details` file. A Quick Entry file
 makes Create open a dialog, as a Quick Entry row does.
 
+A child table doctype has only `details`, which shapes its row dialog: each row picks its
+layout with the row as `doc`. A Single has `details` and `side_panel`, and a generated block
+of the Settings dialog that lists no fields draws the Single's Details layout in one column.
+`save_form_layout` refuses the other types for both, with a message.
+
 The server reads the file on each layout call. Its cache key is the file's path, modified
 time and size, so an edit applies on the next call without a build or a migrate. An open
 desk keeps the layout it has until the page loads again.

@@ -50,4 +50,6 @@ export interface FormLayoutsResponse {
 	fallback: LayoutTree;
 	/** `Quick Entry` only: whether Create opens a dialog rather than the full-page new record. */
 	dialog?: boolean;
+	/** Each `Table` field's child doctype → its Details rows, which its row dialog reads; `[]` when it has none. */
+	children?: Record<string, FormLayoutRow[]>;
 }

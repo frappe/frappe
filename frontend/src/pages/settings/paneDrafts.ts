@@ -45,13 +45,23 @@ export class PaneDrafts {
 			closed: () => this.isClosed,
 			lost: () => toast.error(__("{0} did not save", [__(pane.label)])),
 		};
+		const wholeSingles = new Set(
+			pane.blocks.filter(drawsWholeSingle).map((block) => block.binding!.doctype)
+		);
 		const draftOf = (binding: SettingsBinding) => {
 			const name = resolveName(binding, sessionUser);
 			const identity = `${binding.doctype}/${name}`;
+			const single = binding.type === "Single";
 			if (!drafts.has(identity))
 				drafts.set(
 					identity,
-					new BindingDraft(binding.doctype, name, binding.type === "Single", host)
+					new BindingDraft(
+						binding.doctype,
+						name,
+						single,
+						host,
+						single && wholeSingles.has(binding.doctype)
+					)
 				);
 			return drafts.get(identity)!;
 		};
@@ -202,10 +212,22 @@ export class PaneDrafts {
 
 function bind(block: SettingsBlock, draft: BindingDraft): BoundBlock {
 	const layout = computed(() =>
-		draft.state.meta ? blockLayout(block, draft.state.meta.fields ?? [], draft.state.childMetas) : []
+		draft.state.meta
+			? blockLayout(
+					block,
+					draft.state.meta.fields ?? [],
+					draft.state.childMetas,
+					draft.details?.layout.value
+				)
+			: []
 	);
 	const fieldnames = computed(() => layoutFields(layout.value).map((field) => field.fieldname));
 	return { block, draft, layout, fieldnames };
+}
+
+/** A generated block with no field list draws its Single's whole form, so it reads the Details layout. */
+function drawsWholeSingle(block: SettingsBlock): boolean {
+	return block.binding?.type === "Single" && !block.fields?.length;
 }
 
 function sends(bound: BoundBlock, mode: SaveMode, fieldnames: string[]): boolean {

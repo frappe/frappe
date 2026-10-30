@@ -54,8 +54,9 @@ export function requiredRefusal(missing: MissingField[]): string {
 
 // The row dialog's layout when there is one, so a cell its hidden section holds is not demanded.
 function missingCells(table: FieldNode, row: Record<string, any>, doc: Record<string, any>) {
-  const fields = table.childLayout
-    ? shownFields(table.childLayout, row, doc)
+  const layout = table.rowLayout?.(row) ?? table.childLayout;
+  const fields = layout
+    ? shownFields(layout, row, doc)
     : (table.childFields ?? [])
         .map((field) => resolveFieldConditionals(field, row, doc))
         .filter((field) => !field.hidden);
