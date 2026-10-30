@@ -185,6 +185,7 @@ frappe.ui.PrintPages = class PrintPages {
 			}
 			return node;
 		};
+		const flows = new Map();
 		const pages = layout.pages.map(({ start, end, repeat, close }, i) => {
 			const page = doc.createElement("div");
 			page.className = `${sheet.className} preview-page`;
@@ -229,8 +230,7 @@ frappe.ui.PrintPages = class PrintPages {
 				minHeight: `${layout.height}px`,
 				marginTop: `${-start}px`,
 			});
-			content.forEach((node) => flow.append(node.cloneNode(true)));
-			flow.querySelectorAll("script").forEach((el) => el.remove());
+			flows.set(page, flow);
 			close.forEach((t) => page.append(table_part(t, "tFoot")));
 
 			if (i < layout.pages.length - 1 && layout.frame?.tFoot) {
@@ -238,6 +238,22 @@ frappe.ui.PrintPages = class PrintPages {
 			}
 			return container.appendChild(page);
 		});
+
+		const fill = ({ target, isIntersecting }) => {
+			const flow = flows.get(target);
+			if (!isIntersecting) return flow.replaceChildren();
+			if (flow.childNodes.length) return;
+			content.forEach((node) => flow.append(node.cloneNode(true)));
+			flow.querySelectorAll("script").forEach((el) => el.remove());
+			flow.querySelectorAll(":scope > .preview-source").forEach((el) =>
+				el.classList.remove("preview-source")
+			);
+		};
+		const observer = new doc.defaultView.IntersectionObserver(
+			(entries) => entries.forEach(fill),
+			{ root: doc, rootMargin: "100% 0px" }
+		);
+		pages.forEach((page) => observer.observe(page));
 
 		if (sheet === doc.body) {
 			content.forEach(
