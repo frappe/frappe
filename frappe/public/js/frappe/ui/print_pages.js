@@ -58,6 +58,10 @@ frappe.ui.PrintPages = class PrintPages {
 			.map((table) => {
 				const r = table.getBoundingClientRect();
 				const head = table.tHead.getBoundingClientRect();
+				const widths = (part) =>
+					[...(part?.rows || [])].map((row) =>
+						[...row.cells].map((cell) => cell.getBoundingClientRect().width * scale)
+					);
 				atoms.push([
 					y(head.top),
 					y(table.tBodies[0].rows[0].getBoundingClientRect().bottom),
@@ -67,11 +71,10 @@ frappe.ui.PrintPages = class PrintPages {
 					top: y(head.bottom),
 					bottom: y(r.bottom),
 					height: head.height * scale,
+					foot: band(table.tFoot),
 					left: (r.left - rect.left) * scale - parseFloat(style.paddingLeft),
 					width: r.width * scale,
-					cells: [...table.tHead.rows].map((row) =>
-						[...row.cells].map((cell) => cell.getBoundingClientRect().width * scale)
-					),
+					cells: { tHead: widths(table.tHead), tFoot: widths(table.tFoot) },
 				};
 			});
 		const total = Math.max(
@@ -111,12 +114,14 @@ frappe.ui.PrintPages = class PrintPages {
 			const room =
 				height - (pages.length ? head : 0) - repeat.reduce((sum, t) => sum + t.height, 0);
 			const fits = total - start <= room;
+			const open = (at) => tables.filter((t) => t.top < at - 0.5 && t.bottom > at + 0.5);
 			let limit = fits ? total : start + room - foot;
+			if (!fits) limit -= Math.max(0, ...open(limit).map((t) => t.foot));
 			if (limit <= start + 1) limit = start + height;
 			const end =
 				forced.find((at) => at > start + 1 && at < Math.min(limit, total - 1)) ??
 				(fits ? total : fit(start, limit));
-			pages.push({ start, end, repeat });
+			pages.push({ start, end, repeat, close: open(end).filter((t) => t.foot) });
 			start = end;
 		}
 		return {
@@ -152,11 +157,13 @@ frappe.ui.PrintPages = class PrintPages {
 			height: "auto",
 			minHeight: "0",
 		};
-		const table_head = (t) => {
+		const table_part = (t, part) => {
 			const table = t.table.cloneNode(false);
-			const head = table.appendChild(t.table.tHead.cloneNode(true));
+			const head = table.appendChild(t.table[part].cloneNode(true));
 			[...head.rows].forEach((row, r) =>
-				[...row.cells].forEach((cell, c) => (cell.style.width = `${t.cells[r][c]}px`))
+				[...row.cells].forEach(
+					(cell, c) => (cell.style.width = `${t.cells[part][r][c]}px`)
+				)
 			);
 			Object.assign(table.style, {
 				width: `${t.width}px`,
@@ -172,7 +179,7 @@ frappe.ui.PrintPages = class PrintPages {
 			}
 			return node;
 		};
-		const pages = layout.pages.map(({ start, end, repeat }, i) => {
+		const pages = layout.pages.map(({ start, end, repeat, close }, i) => {
 			const page = doc.createElement("div");
 			page.className = `${sheet.className} preview-page`;
 			Object.assign(page.style, {
@@ -188,7 +195,7 @@ frappe.ui.PrintPages = class PrintPages {
 			});
 			if (i && layout.frame?.tHead) page.append(band(layout.frame.tHead));
 
-			repeat.forEach((t) => page.append(table_head(t)));
+			repeat.forEach((t) => page.append(table_part(t, "tHead")));
 
 			const slice = page.appendChild(doc.createElement("div"));
 			Object.assign(slice.style, { height: `${end - start}px`, overflow: "hidden" });
@@ -201,6 +208,7 @@ frappe.ui.PrintPages = class PrintPages {
 			});
 			content.forEach((node) => flow.append(node.cloneNode(true)));
 			flow.querySelectorAll("script").forEach((el) => el.remove());
+			close.forEach((t) => page.append(table_part(t, "tFoot")));
 
 			if (i < layout.pages.length - 1 && layout.frame?.tFoot) {
 				page.append(band(layout.frame.tFoot));
