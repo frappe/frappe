@@ -62,7 +62,6 @@
 			/>
 			<InspectorRow :label="__('Background')">
 				<ImageUploadControl
-					inline
 					:model-value="layout.background?.image || ''"
 					@update:model-value="set_background_image"
 				/>
