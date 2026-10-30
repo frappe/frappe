@@ -51,11 +51,7 @@
   "alignment",
   "no_copy",
   "set_only_once",
-<<<<<<< HEAD
-=======
   "remember_last_selected_value",
-  "ignore_versioning",
->>>>>>> 0660d94 (fix(custom_field): save remember last selected value and include in import template)
   "allow_on_submit",
   "in_list_view",
   "in_standard_filter",
@@ -535,13 +531,9 @@
  "grid_page_length": 50,
  "icon": "fa fa-glass",
  "idx": 1,
- "link_display_mode": "Search",
+ "index_web_pages_for_search": 1,
  "links": [],
-<<<<<<< HEAD
- "modified": "2026-07-17 14:00:00.000000",
-=======
  "modified": "2026-10-28 10:46:40.512837",
->>>>>>> 0660d94 (fix(custom_field): save remember last selected value and include in import template)
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Custom Field",
