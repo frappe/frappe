@@ -129,24 +129,29 @@ frappe.report_utils = {
 				report_name: report_name,
 			})
 			.then((r) => {
-				frappe.dom.eval(r.script);
+				if (!frappe.query_reports[r.custom_report_name || report_name]) {
+					frappe.dom.eval(r.script);
+				}
 				return frappe.after_ajax(() => {
-					if (frappe.query_reports[report_name] && r.validate_filters) {
+					const report_script_name = frappe.query_reports[r.custom_report_name]
+						? r.custom_report_name
+						: report_name;
+					if (frappe.query_reports[report_script_name] && r.validate_filters) {
 						frappe.report_utils.merge_server_filters(
-							frappe.query_reports[report_name],
+							frappe.query_reports[report_script_name],
 							r.filters
 						);
 					}
 					if (
-						frappe.query_reports[report_name] &&
-						!frappe.query_reports[report_name].filters &&
+						frappe.query_reports[report_script_name] &&
+						!frappe.query_reports[report_script_name].filters &&
 						r.filters
 					) {
-						return (frappe.query_reports[report_name].filters = r.filters);
+						return (frappe.query_reports[report_script_name].filters = r.filters);
 					}
 					return (
-						frappe.query_reports[report_name] &&
-						frappe.query_reports[report_name].filters
+						frappe.query_reports[report_script_name] &&
+						frappe.query_reports[report_script_name].filters
 					);
 				});
 			});

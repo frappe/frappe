@@ -516,7 +516,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 						report_name: this.report_name,
 					})
 					.then((settings) => {
-						frappe.dom.eval(settings.script);
+						if (
+							!frappe.query_reports[settings.custom_report_name || this.report_name]
+						) {
+							frappe.dom.eval(settings.script);
+						}
 						frappe.after_ajax(() => {
 							this.report_settings = this.get_local_report_settings(
 								settings.custom_report_name
