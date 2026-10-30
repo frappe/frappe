@@ -696,8 +696,8 @@ class TypstEmitter:
 			else:
 				ruled = 'stroke: (bottom: 1.125pt + rgb("#e2e2e2")), inset: (bottom: 0.35em)'
 				spacing = "0.75em"
-			heading = f"#block(width: 100%, {ruled})[{label}]"
-			body = f"#stack(spacing: {spacing},\n[{heading}],\n[{body}])"
+			heading = f"#block(width: 100%, sticky: true, below: {spacing}, {ruled})[{label}]"
+			body = f"{heading}\n{body}"
 
 		block_args = self._section_block_args(section)
 		if section.get("keep_together"):
