@@ -62,7 +62,10 @@ frappe.ui.form.PrintView = class {
 		);
 		this.preview_bar = new frappe.ui.PrintPreviewBar({
 			parent: this.print_wrapper.find(".preview-beta-wrapper"),
-			get_metrics: (doc) => this.get_page_metrics(doc),
+			get_sheet: (doc) => ({
+				sheet: doc.querySelector(".print-format-gutter > .print-format") || doc.body,
+				breaks: ".print-format > .page-break:not(:last-child)",
+			}),
 		});
 
 		const htmlSkeleton = `
@@ -596,29 +599,6 @@ frappe.ui.form.PrintView = class {
 		if (!doc?.body) return;
 		this.preview_bar.attach(iframe);
 		doc.addEventListener("keydown", (e) => this.handle_print_keys(e));
-	}
-
-	get_page_metrics(doc) {
-		const body = doc.body;
-		const body_rect = body.getBoundingClientRect();
-		const scale = body.offsetHeight / (body_rect.height || 1);
-		const bottom_of = (el) => (el.getBoundingClientRect().bottom - body_rect.top) * scale;
-		const height_of = (el) => (el ? el.getBoundingClientRect().height * scale : 0);
-		const header = doc.querySelector(".document-header-content");
-		const repeated = this.print_settings?.repeat_header_footer
-			? (header ? bottom_of(header) - parseFloat(getComputedStyle(body).paddingTop) : 0) +
-			  height_of(doc.querySelector(".document-footer-content"))
-			: 0;
-		return {
-			top: body.offsetTop,
-			width: body.offsetWidth,
-			starts: frappe.ui.PrintPreviewBar.measure_pages({
-				page: body,
-				page_height: parseFloat(getComputedStyle(body).minHeight) || body.offsetHeight,
-				breaks: ".section.page-break, .print-format > .page-break:not(:last-child)",
-				repeated,
-			}),
-		};
 	}
 
 	handle_print_keys(e) {
