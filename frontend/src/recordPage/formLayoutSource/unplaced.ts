@@ -2,11 +2,12 @@ import { DROPPED_FIELDTYPES } from "@framework/ui/FormLayout";
 import { __ } from "@/i18n";
 import type { RawMetaField } from "@framework/ui/FormLayout/types";
 import type { FieldAccess } from "@framework/ui/useDocPermissions";
+import { withAnchors } from "./anchors";
 import type { LayoutTree, LayoutTreeSection } from "./types";
 
 /** What a row in use does with the fields it neither places nor omits. */
 export interface UnplacedRule {
-	/** `section`: Details and New Record draw them in "More fields" at the end of the first tab.
+	/** `section`: Details and New Record draw them at their anchor, else in "More fields" at the end of the first tab.
 	 *  `mandatory`: Quick Entry adds only the mandatory ones at the end of the dialog. */
 	mode: "section" | "mandatory";
 	/** Fieldnames the row keeps off on purpose; a stale one matches nothing. */
@@ -24,7 +25,10 @@ export function withUnplaced(
 	fieldAccess?: (field: RawMetaField) => FieldAccess
 ): LayoutTree {
 	const unplaced = unplacedFields(tree, fields, rule, fieldAccess);
-	if (rule.mode === "section") return withMoreFieldsSection(tree, unplaced, fields);
+	if (rule.mode === "section") {
+		const anchored = withAnchors(tree, unplaced);
+		return withMoreFieldsSection(anchored.tree, anchored.rest, fields);
+	}
 	return withMandatorySections(tree, unplaced.filter(isMandatory), fields);
 }
 

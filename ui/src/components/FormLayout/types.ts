@@ -118,6 +118,8 @@ export interface RawMetaField {
   depends_on?: string;
   mandatory_depends_on?: string;
   read_only_depends_on?: string;
+  /** A custom field's anchor: the field it follows, or the container it opens. */
+  insert_after?: string;
   filters?: Record<string, unknown>;
   cannot_add_rows?: boolean | 0 | 1;
   cannot_delete_rows?: boolean | 0 | 1;

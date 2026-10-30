@@ -413,3 +413,125 @@ describe("joinLayout unplaced fields", () => {
 		expect(sections(schema).map((section) => section.name)).toEqual(["main"]);
 	});
 });
+
+describe("joinLayout anchors", () => {
+	const meta: RawMetaField[] = [
+		{ fieldname: "title", fieldtype: "Data" },
+		{ fieldname: "status", fieldtype: "Data" },
+		{ fieldname: "code", fieldtype: "Data" },
+		{ fieldname: "plain", fieldtype: "Data" },
+		{ fieldname: "region", fieldtype: "Data", insert_after: "title" },
+		{ fieldname: "zone", fieldtype: "Data", insert_after: "region" },
+		{ fieldname: "district", fieldtype: "Data", insert_after: "title" },
+	];
+	const tree: LayoutTree = [
+		{
+			name: "details_tab",
+			sections: [
+				{
+					name: "main",
+					columns: [
+						{ name: "left", fields: ["title", "status"] },
+						{ name: "right", fields: ["code"] },
+					],
+				},
+			],
+		},
+		{ name: "other_tab", sections: [{ name: "later", columns: [{ name: "later_col", fields: [] }] }] },
+	];
+	const sectionMode = (rest = {}) => ({ unplaced: { mode: "section" as const, ...rest } });
+
+	function columns(schema: ReturnType<typeof joinLayout>) {
+		return Object.fromEntries(
+			schema.flatMap((tab) =>
+				tab.sections.flatMap((section) =>
+					section.columns.map((column) => [
+						column.name ?? section.name,
+						column.fields.map((field) => field.fieldname),
+					])
+				)
+			)
+		);
+	}
+
+	function anchoredTo(anchors: Record<string, string>): RawMetaField[] {
+		return meta.map((field) =>
+			field.fieldname in anchors ? { ...field, insert_after: anchors[field.fieldname] } : field
+		);
+	}
+
+	it("draws a custom field right after its anchor field, in the same column", () => {
+		const fields = anchoredTo({ zone: "code", district: "" });
+		expect(columns(joinLayout(tree, fields, sectionMode()))).toMatchObject({
+			left: ["title", "region", "status"],
+			right: ["code", "zone"],
+		});
+	});
+
+	it("chains anchors in meta order: a field anchored to a custom field follows it", () => {
+		const drawn = columns(joinLayout(tree, meta, sectionMode()));
+		expect(drawn.left).toEqual(["title", "region", "zone", "district", "status"]);
+		expect(drawn.column_1).toEqual(["plain"]);
+	});
+
+	it("draws a field anchored to a container at the top of that container", () => {
+		const fields = anchoredTo({ region: "main", zone: "right", district: "other_tab" });
+		expect(columns(joinLayout(tree, fields, sectionMode()))).toMatchObject({
+			left: ["region", "title", "status"],
+			right: ["zone", "code"],
+			later_col: ["district"],
+		});
+	});
+
+	it("sends a field to More fields when its anchor field is omitted", () => {
+		const drawn = columns(joinLayout(treeWith(["status", "code"]), meta, sectionMode({ omitted: ["title"] })));
+		expect(drawn.col_1).toEqual(["status", "code"]);
+		expect(drawn.column_1).toEqual(["plain", "region", "zone", "district"]);
+	});
+
+	it("sends a field to More fields when its anchor is placed only in the Side Panel", () => {
+		const drawn = columns(
+			joinLayout(treeWith(["status", "code"]), meta, sectionMode({ placedElsewhere: ["title"] }))
+		);
+		expect(drawn.col_1).toEqual(["status", "code"]);
+		expect(drawn.column_1).toEqual(["plain", "region", "zone", "district"]);
+	});
+
+	it("sends a field to More fields when the row does not place its anchor or it names nothing", () => {
+		const fields = anchoredTo({ region: "gone", district: "status" });
+		const drawn = columns(joinLayout(treeWith(["title", "code"]), fields, sectionMode()));
+		expect(drawn.col_1).toEqual(["title", "code"]);
+		expect(drawn.column_1).toEqual(["status", "plain", "region", "zone", "district"]);
+	});
+
+	it("keeps a field the row places, or omits, where the row says", () => {
+		const drawn = columns(
+			joinLayout(treeWith(["zone", "title", "status", "code"]), meta, sectionMode({ omitted: ["district"] }))
+		);
+		expect(drawn.col_1).toEqual(["zone", "title", "region", "status", "code"]);
+		expect(drawn.column_1).toEqual(["plain"]);
+	});
+
+	it("sends an anchor cycle the row never reaches to More fields", () => {
+		const fields = anchoredTo({ region: "zone", zone: "region", district: "" });
+		const drawn = columns(joinLayout(treeWith(["title", "status", "code"]), fields, sectionMode()));
+		expect(drawn.column_1).toEqual(["plain", "region", "zone", "district"]);
+	});
+
+	it("sends a field anchored to a container with no column to More fields", () => {
+		const empty: LayoutTree = [...treeWith(["title", "status", "code"]), { name: "empty_tab", sections: [] }];
+		const fields = anchoredTo({ region: "empty_tab", zone: "", district: "" });
+		expect(columns(joinLayout(empty, fields, sectionMode())).column_1).toEqual([
+			"plain",
+			"region",
+			"zone",
+			"district",
+		]);
+	});
+
+	it("does not anchor on Quick Entry or with no rule", () => {
+		const quick = joinLayout(treeWith(["title"]), meta, { unplaced: { mode: "mandatory" } });
+		expect(columns(quick).col_1).toEqual(["title"]);
+		expect(columns(joinLayout(treeWith(["title"]), meta)).col_1).toEqual(["title"]);
+	});
+});
