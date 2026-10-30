@@ -516,7 +516,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 						report_name: this.report_name,
 					})
 					.then((settings) => {
-						frappe.dom.eval(settings.script);
+						if (
+							!frappe.query_reports[settings.custom_report_name || this.report_name]
+						) {
+							frappe.dom.eval(settings.script);
+						}
 						frappe.after_ajax(() => {
 							this.report_settings = this.get_local_report_settings(
 								settings.custom_report_name
@@ -525,7 +529,12 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 							this.report_settings.execution_time = settings.execution_time || 0;
 							frappe.query_reports[this.report_name] = this.report_settings;
 
-							if (this.report_doc.filters && !this.report_settings.filters) {
+							if (settings.validate_filters) {
+								frappe.report_utils.merge_server_filters(
+									this.report_settings,
+									settings.filters
+								);
+							} else if (this.report_doc.filters && !this.report_settings.filters) {
 								// add configured filters
 								this.report_settings.filters = this.report_doc.filters;
 							}
@@ -628,7 +637,13 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				} else {
 					f = this.page.add_field(df, filter_area);
 				}
-				if (df.default) {
+				if (
+					df.default &&
+					df.fieldtype === "MultiSelectList" &&
+					this.report_settings.validate_filters
+				) {
+					f.set_value(df.default);
+				} else if (df.default) {
 					f.set_input(df.default);
 				}
 
@@ -1106,13 +1121,13 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	get_queued_prepared_reports_warning_message(reports) {
+		const can_read = frappe.model.can_read("Prepared Report");
 		const route = `/desk/List/Prepared Report/List?status=Queued&report_name=${this.report_name}`;
-		const report_link_html =
-			reports.length == 1
-				? `<a class="underline" href="${route}">${__("1 Report")}</a>`
-				: `<a class="underline" href="${route}">${__("{0} Reports", [
-						reports.length,
-				  ])}</a>`;
+		const report_count =
+			reports.length == 1 ? __("1 Report") : __("{0} Reports", [reports.length]);
+		const report_link_html = can_read
+			? `<a class="underline" href="${route}">${report_count}</a>`
+			: report_count;
 
 		const no_of_reports_html =
 			reports.length == 1
@@ -1130,7 +1145,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			</p>`;
 
 		let get_item_html = (item) =>
-			`<a class="underline" href="/desk/prepared-report/${item.name}">${item.name}</a>`;
+			can_read
+				? `<a class="underline" href="/desk/prepared-report/${item.name}">${item.name}</a>`
+				: item.name;
 
 		warning_message += reports.map(get_item_html).join(", ");
 
@@ -1149,7 +1166,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	generate_background_report() {
 		this.toggle_primary_button_disabled(true);
 		let mandatory = this.filters.filter((f) => f.df.reqd);
-		let missing_mandatory = mandatory.filter((f) => !f.get_value());
+		let missing_mandatory = mandatory.filter((f) => {
+			const value = f.get_value();
+			return !value || value.length === 0;
+		});
 		if (!missing_mandatory.length) {
 			let filters = this.get_filter_values(true);
 			return new Promise((resolve) =>
@@ -1593,7 +1613,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		// check for mandatory property for filters added via UI
 		if (raise) {
 			const mandatory = this.filters.filter((f) => f.df.reqd || f.df.mandatory);
-			const missing_mandatory = mandatory.filter((f) => !f.get_value());
+			const missing_mandatory = mandatory.filter((f) => {
+				const value = f.get_value();
+				return !value || value.length === 0;
+			});
 			if (missing_mandatory.length > 0) {
 				let message = __("Please set filters");
 				this.hide_loading_screen();
@@ -1604,14 +1627,16 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 		raise && this.toggle_message(false);
 
+		const send_empty_values = this.report_settings?.validate_filters;
 		return this.filters
-			.filter((f) => f.get_value?.())
+			.filter((f) => f.get_value && (send_empty_values || f.get_value()))
 			.map((f) => {
 				var v = f.get_value();
 				// hidden fields dont have $input
 				if (f.df.hidden) v = f.value;
 				if (v === "%") v = null;
-				if (f.df.wildcard_filter) {
+				if (send_empty_values) v ??= "";
+				if (f.df.wildcard_filter && v !== "") {
 					v = `%${v}%`;
 				}
 				return {

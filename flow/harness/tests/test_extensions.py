@@ -137,7 +137,8 @@ def test_extension_routes_list_tools_and_report_diagnostics(tmp_path):
 		("edit", None, False),
 		("subagent", None, False),
 		("grep", None, True),
-		("suggest_replies", None, True),
+		("web_fetch", None, True),
+		("web_search", None, True),
 	]
 
 	tools = client.get("/tools").json()["tools"]

@@ -34,8 +34,11 @@ def gh(*args):
 
 
 def gate_conclusion(run, gate_job):
-	"""The gate job's result, or None for a run that hasn't finished or was cancelled."""
-	jobs = gh(f"repos/{REPO}/actions/runs/{run['id']}/jobs")["jobs"]
+	"""The gate job's result, or None for a run that hasn't finished or was cancelled. A re-run still going counts as its previous attempt."""
+	path = f"repos/{REPO}/actions/runs/{run['id']}"
+	if run["status"] != "completed" and run["run_attempt"] > 1:
+		path += f"/attempts/{run['run_attempt'] - 1}"
+	jobs = gh(f"{path}/jobs")["jobs"]
 	if any(job["conclusion"] == "cancelled" and job["name"] != STATUS_JOB for job in jobs):
 		return None
 	return next((job["conclusion"] for job in jobs if job["name"] == gate_job), None)

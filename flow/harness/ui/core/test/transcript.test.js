@@ -23,6 +23,7 @@ import {
 	stepSubject,
 	subagentId,
 	subagentTitle,
+	suggestedReplies,
 	userAttachments,
 	userText,
 } from "../src/transcript.js"
@@ -274,13 +275,14 @@ test("a streamed thought and call hand over to the durable message, keeping thei
 	assert.deepEqual(toolGroups(conversation)[0].steps[1].call.display, display)
 
 	// the durable message replaces the preview; a text-less (redacted) thought that never
-	// streamed takes no ordinal, and whitespace-only text renders nothing
+	// streamed takes no ordinal, an omitted one and whitespace-only text render nothing
 	const call = { type: "tool_call", id: "call-1", name: "read", arguments: { path: "src/app.js" }, display }
 	applyEvent(conversation, {
 		type: "assistant_message",
 		seq: 2,
 		content: [
 			{ type: "thinking", thinking: "", redacted: true },
+			{ type: "thinking", thinking: "", thinking_signature: "sig" },
 			{ type: "thinking", thinking: "let me see" },
 			{ type: "text", text: "  " },
 			call,
@@ -584,7 +586,7 @@ test("a turn's last text and all after it stay out of its fold, the copy row clo
 		[closing([]), ["user", "text", "group", "turn-copy"]],
 		[closing([{ type: "text", text: "\n" }]), ["user", "text", "group", "turn-copy"]],
 		[closing([{ type: "thinking", thinking: "Done." }]), ["user", "text", "group", "turn-copy"]],
-		// as does one that only suggests the user's replies, which show under the thread, never as a row
+		// as does one from an older chat that only offered replies through a tool, never a row
 		[
 			closing([{ type: "tool_call", id: "s1", name: "suggest_replies", arguments: { replies: ["Send it", "Not yet"] } }]),
 			["user", "text", "group", "turn-copy"],
@@ -1018,6 +1020,33 @@ test("a summarizer's call belongs to its compaction, never a response or the con
 	assert.equal(rows.find((row) => row.kind === "compaction").usage.input_tokens, 880)
 	assert.equal(rows.find((row) => row.key === "a:7").usage, undefined)
 	assert.equal(conversation.usage.output, 180) // its spend still counts
+})
+
+test("replies offered after a run add no row, no working time and no context", () => {
+	const conversation = initialConversation()
+	for (const event of [
+		{ type: "run_started", seq: 1, ts: 10 },
+		{ type: "user_message", seq: 2, ts: 10, content: "add demo data" },
+		{ type: "assistant_message", seq: 3, ts: 12, content: [{ type: "tool_call", id: "c1", name: "read", arguments: {} }] },
+		{ type: "tool_result", seq: 4, ts: 13, tool_call_id: "c1", content: "ok" },
+		{ type: "assistant_message", seq: 5, ts: 15, content: [{ type: "text", text: "Added 70 leads." }] },
+		{ type: "run_ended", seq: 6, ts: 15, reason: "done" },
+		{ ...usageEvent(7, 900, 20), standalone: true, purpose: "replies" },
+		{ type: "replies_suggested", seq: 8, ts: 40, replies: ["Show the deals", "Add more"] },
+	])
+		applyEvent(conversation, event)
+
+	const items = buildItems(conversation)
+	assert.deepEqual(items.map((item) => item.kind), ["user", "turn-fold", "text", "turn-copy"])
+	assert.equal(items[1].label, "Worked for 5s")
+	assert.deepEqual(suggestedReplies(conversation), { key: "r:8", replies: ["Show the deals", "Add more"], multiSelect: false })
+	assert.equal(conversation.contextTokens, 0)
+	assert.ok(buildTranscriptRows(conversation).every((row) => !row.usage))
+	assert.equal(conversation.usage.output, 20) // its spend still counts
+
+	// gone once the user says something
+	applyEvent(conversation, { type: "user_message", seq: 9, content: "Show the deals" })
+	assert.equal(suggestedReplies(conversation), null)
 })
 
 test("a sub-agent call shows what its own run spent", () => {

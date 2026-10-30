@@ -281,6 +281,11 @@ frappe.ui.form.on("Number Card", {
 						let filters = frm.filter_group.get_filters();
 						frm.set_value("filters_json", JSON.stringify(filters));
 					} else {
+						frappe.report_utils.add_cleared_filter_values(
+							frappe.query_reports[frm.doc.report_name],
+							this,
+							values
+						);
 						frm.set_value("filters_json", JSON.stringify(values));
 					}
 					frm.trigger("render_filters_table");

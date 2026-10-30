@@ -167,26 +167,22 @@ def sanitize_html(html, linkify=False, always_sanitize=False, disallowed_tags=No
 		if not has_html_tags(html):
 			return html
 
-	tags = (
-		acceptable_elements.union(svg_elements)
-		.union(mathml_elements)
-		.union(["html", "head", "meta", "link", "body", "o:p"])
-	)
+	if not disallowed_tags:
+		return _HTML_SANITIZER.clean(html)
 
 	# Allow caller to explicitly disallow some tags
-	if disallowed_tags:
-		if disallowed_tags == "*":
-			tags = set()
-		else:
-			tags.difference_update(disallowed_tags)
+	if disallowed_tags == "*":
+		tags = set()
+	else:
+		tags = _SANITIZE_HTML_TAGS.difference(disallowed_tags)
 
-	attributes = {"*": acceptable_attributes, "svg": svg_attributes}
+	return _build_html_sanitizer(tags).clean(html)
 
-	# returns sanitized HTML with unsafe tags and attributes removed
-	escaped_html = nh3.clean(
-		html,
+
+def _build_html_sanitizer(tags: set[str]) -> nh3.Cleaner:
+	return nh3.Cleaner(
 		tags=tags,
-		attributes=attributes,
+		attributes={"*": acceptable_attributes, "svg": svg_attributes},
 		generic_attribute_prefixes={"data-"},
 		strip_comments=False,
 		# bleach's allowlist has column-gap but not gap/row-gap — add them so
@@ -194,8 +190,6 @@ def sanitize_html(html, linkify=False, always_sanitize=False, disallowed_tags=No
 		filter_style_properties=set(bleach_allowlist.all_styles) | {"gap", "row-gap"},
 		url_schemes=nh3.ALLOWED_URL_SCHEMES.union({"cid"}),
 	)
-
-	return escaped_html
 
 
 # A request argument is a few levels deep at most: a document holding a child table
@@ -857,3 +851,8 @@ svg_attributes = {
 assert REMOVE_CONTENT_TAGS.isdisjoint(acceptable_elements | mathml_elements | svg_elements), (
 	"content-removal tags must never appear in any allowed tag set"
 )
+
+_SANITIZE_HTML_TAGS = (
+	acceptable_elements | svg_elements | mathml_elements | {"html", "head", "meta", "link", "body", "o:p"}
+)
+_HTML_SANITIZER = _build_html_sanitizer(_SANITIZE_HTML_TAGS)

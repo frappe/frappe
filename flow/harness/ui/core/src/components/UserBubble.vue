@@ -51,7 +51,7 @@
 			</button>
 		</div>
 		<span class="absolute bottom-0 right-0.5 flex items-center gap-1">
-			<span v-if="time" class="flow-hover-reveal mr-1 text-xs text-ink-gray-4 md:text-sm">{{ time }}</span>
+			<span v-if="time" class="flow-hover-reveal mr-1 text-ink-gray-4" :class="layout.phone ? 'text-sm' : 'text-xs md:text-sm'">{{ time }}</span>
 			<button
 				v-if="rewindable"
 				title="Rewind to this message"
@@ -73,6 +73,7 @@
 import { computed, inject, onBeforeUnmount, onMounted, ref } from "vue"
 import { dialog } from "frappe-ui/src/utils/dialog"
 
+import { layout } from "../layout.js"
 import {
 	codeRefLabel,
 	formatTime,

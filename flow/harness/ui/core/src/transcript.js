@@ -135,18 +135,17 @@ export function waitingApprovals(conversation) {
 	return asked.sort((a, b) => a.seq - b.seq)
 }
 
-// the tool a reply ends on to offer the user's next messages: chips, never a row
+// the tool older chats offered their next messages with: never a row
 const SUGGEST_REPLIES = "suggest_replies"
 
-// The next messages the latest reply offers, from its suggest_replies result, until the user
-// says something: { key, replies, multiSelect }, else null
+// The next messages offered after the latest run, until the user says something:
+// { key, replies, multiSelect }, else null
 export function suggestedReplies(conversation) {
 	if (conversation.running || conversation.pendingApproval || conversation.sending?.length) return null
 	const entries = conversation.entries ?? []
 	for (let i = entries.length - 1; i >= 0 && entries[i].type !== "user_message"; i--) {
-		const { type, name, is_error, details, tool_call_id } = entries[i]
-		if (type === "tool_result" && name === SUGGEST_REPLIES && !is_error && details?.replies)
-			return { key: tool_call_id, replies: details.replies, multiSelect: !!details.multi_select }
+		const { type, seq, replies, multi_select } = entries[i]
+		if (type === "replies_suggested") return { key: `r:${seq}`, replies, multiSelect: !!multi_select }
 	}
 	return null
 }
@@ -183,6 +182,9 @@ function foldEvent(s, e) {
 				const calls = s.pendingApproval.calls.filter((c) => c.id !== e.tool_call_id)
 				s.pendingApproval = calls.length ? { ...s.pendingApproval, calls } : null
 			}
+			s.entries.push(e)
+			break
+		case "replies_suggested":
 			s.entries.push(e)
 			break
 		case "compaction":
@@ -323,6 +325,8 @@ const STEP_LABELS = {
 	bash: "Running command",
 	edit: "Editing file",
 	write: "Writing file",
+	web_fetch: "Reading web page",
+	web_search: "Searching the web",
 }
 
 export function stepLabel(name) {
@@ -337,7 +341,8 @@ const STEP_ICONS = {
 	bash: "lucide-terminal",
 	edit: "lucide-pen-line",
 	write: "lucide-file-plus",
-	websearch: "lucide-globe",
+	web_fetch: "lucide-globe",
+	web_search: "lucide-globe",
 }
 
 export function stepIcon(name) {
@@ -524,8 +529,8 @@ function deriveTurns(entries, steeredSeqs = []) {
 
 		if (!current) continue
 		turnByEntry.set(entry, current.key)
-		// a compaction joins the turn before it, but a later /compact is no time it worked
-		if (Number.isFinite(entry.ts) && entry.type !== "compaction") {
+		// a compaction or the replies offered after it join the turn before them, but are no time it worked
+		if (Number.isFinite(entry.ts) && !["compaction", "replies_suggested"].includes(entry.type)) {
 			current.endedAt = current.endedAt == null ? entry.ts : Math.max(current.endedAt, entry.ts)
 		}
 		if (entry.type === "run_ended" && entry.reason === "aborted") current.interrupted = true
@@ -626,6 +631,8 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 		// that thought ended: it settles to "Thought" and the status line takes over.
 		const lastLiveIdx = provisional ? blocks.length - 1 : -1
 		for (const [blockIdx, block] of blocks.entries()) {
+			// a provider that omits its thinking (Anthropic) still sends the block: nothing to show
+			if (block.type === "thinking" && !block.thinking && !block.redacted) continue
 			// only a thought with text takes an ordinal: the preview never streams a text-less block
 			const key =
 				block.type === "thinking"
@@ -652,7 +659,7 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 				}
 			} else if (block.type === "tool_call") {
 				if (provisional && block.arguments == null) continue
-				if (block.name === SUGGEST_REPLIES) continue // shown as chips, not a row
+				if (block.name === SUGGEST_REPLIES) continue
 				if (pendingIds.has(block.id) || stepsById.has(block.id)) continue
 				const group = currentGroup(block.id)
 				for (const thought of bufferedThoughts) group.steps.push({ thought: thought.block, id: thought.key })
@@ -865,7 +872,8 @@ export function buildTranscriptRows(conversation) {
 		const until = entries[index + 1]?.seq ?? Infinity
 		while (cursor < requests.length && requests[cursor].seq < until) {
 			const usage = requests[cursor++]
-			if (caller && !caller.usage && (caller.kind === "compaction") === !!usage.standalone)
+			// a title or replies call belongs to no row
+			if (caller && !caller.usage && !usage.purpose && (caller.kind === "compaction") === !!usage.standalone)
 				caller.usage = withoutFlowFields(usage)
 		}
 	}

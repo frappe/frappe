@@ -30,9 +30,11 @@ class DashboardSettings(Document):
 
 @frappe.whitelist()
 def create_dashboard_settings(user: str):
+	doc = frappe.new_doc("Dashboard Settings")
+	doc.name = user
+	doc.check_permission("write")
+
 	if not frappe.db.exists("Dashboard Settings", user):
-		doc = frappe.new_doc("Dashboard Settings")
-		doc.name = user
 		doc.insert(ignore_permissions=True)
 		frappe.db.commit()
 		return doc

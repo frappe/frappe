@@ -2,9 +2,13 @@
 steering, abort at every await point, and typed failure settlement."""
 
 import asyncio
+import json
+import os
+import re
 
 import pytest
 
+from flow_harness.agent import loop
 from flow_harness.agent.client_tools import deliver_result
 from flow_harness.agent.loop import HookDecision
 from flow_harness.events import AssistantMessage, ToolCall, Usage
@@ -48,15 +52,15 @@ def _of(events, t):
 	return [e for e in events if e["type"] == t]
 
 
+def _saved_path(content):
+	return re.search(r"is saved in (\S+): ", content).group(1)
+
+
 def _read_call(cid="c1", path="a.txt"):
 	return AssistantMessage(content=[ToolCall(id=cid, name="read", arguments={"path": path})])
 
 
-def _offer(cid, *replies):
-	return ToolCall(id=cid, name="suggest_replies", arguments={"replies": list(replies)})
-
-
-async def test_a_run_takes_turns_until_the_model_stops_or_calls_only_run_ending_tools(tmp_path):
+async def test_a_run_takes_turns_until_the_model_stops_calling_tools(tmp_path):
 	(tmp_path / "a.txt").write_text("FILE-A")
 	session, events = _session(tmp_path)
 	mock = MockModel(replies=[_read_call(), AssistantMessage(content="hello there")])
@@ -70,16 +74,6 @@ async def test_a_run_takes_turns_until_the_model_stops_or_calls_only_run_ending_
 	assert [e["reason"] for e in _of(events, "run_ended")] == ["done"]
 	assert session.transcript.messages[0].type == "user_message"
 	assert session.transcript.messages[0].content == "hi"
-
-	# offering replies ends the run, unless the turn also called another tool or the offer failed
-	session, events = _session(tmp_path, tools=["read", "suggest_replies"])
-	read, offer = _read_call().tool_calls[0], _offer("c2", "Yes", "No")
-	turns = [[read, offer], [_offer("c3", "Yes")], [_offer("c4", "Yes", "No")], "never asked"]
-	mock = MockModel(replies=[AssistantMessage(content=content) for content in turns])
-	await _run(session, "hi", model=mock)
-	assert [r["is_error"] for r in _of(events, "tool_result")] == [False, False, True, False]
-	assert len(_of(events, "assistant_message")) == 3
-	assert [e["reason"] for e in _of(events, "run_ended")] == ["done"]
 
 
 async def test_the_model_request_carries_the_session_settings(tmp_path, monkeypatch):
@@ -213,9 +207,12 @@ async def _dump(session, events, content):
 async def test_oversized_tool_results_keep_their_start_and_end(tmp_path):
 	session, events = _session(tmp_path)
 	result = await _dump(session, events, "a" * 100_000 + "b" * 100_000)
+	saved = _saved_path(result["content"])
+	assert saved.startswith(f"{session.results_dir}/c1-")
 	assert result["content"] == (
 		"a" * 40_960 + "\n\n[Cut the middle: showing the first 40 KB and the last 10 KB of 195 KB. "
-		"To see more, call again asking for less: fewer fields, filters, a limit or a count. "
+		f"The whole result is saved in {saved}: read it in parts with read's "
+		"offset and limit, or find lines in it with grep. "
 		"Don't repeat a call that changed data.]\n\n" + "b" * 10_240
 	)
 	assert result["details"]["truncation"]["truncated"] is True
@@ -254,6 +251,60 @@ async def test_oversized_tool_results_keep_their_start_and_end(tmp_path):
 	assert content.startswith("z" * 40_960 + "\n\n[Cut the middle") and content.endswith(
 		"]\n\n" + "z" * 10_240
 	)
+
+
+async def test_an_oversized_result_is_saved_whole_for_read(tmp_path, monkeypatch):
+	rows = [{"name": f"INV-{i:05}", "customer": "Acme" if i == 4321 else "Other"} for i in range(6000)]
+	workspace = tmp_path / "work"
+	workspace.mkdir()
+	events: list[dict] = []
+	store = SessionStore(
+		str(tmp_path / "data"),
+		event_sink=lambda _sid, ev: events.append(ev),
+		credential_store=CredentialStore(str(tmp_path / "credentials.json")),
+		allowed_roots=[str(workspace)],  # as deployed: read reaches the saved result, nothing else
+	)
+	session = store.create(SessionConfig(cwd=str(workspace), tools=["read", "grep"]))
+	result = await _dump(session, events, json.dumps(rows))  # one line, as a client tool's JSON arrives
+	saved = _saved_path(result["content"])
+	assert "The whole result is saved in" in result["content"]
+
+	# the saved JSON has one value per line, so read can page it and grep can find a row
+	grep_call = ToolCall(id="c2", name="grep", arguments={"pattern": "Acme", "path": saved})
+	read_call = ToolCall(id="c3", name="read", arguments={"path": saved, "offset": 17286, "limit": 4})
+	calls = AssistantMessage(content=[grep_call, read_call])
+	await _run(session, "find", model=MockModel(replies=[calls, AssistantMessage(content="ok")]))
+	found, page = (r["content"] for r in _of(events, "tool_result")[-2:])
+	assert found.endswith(':17288:  "customer": "Acme"')
+	assert '"name": "INV-04321"' in page
+
+	# a provider that reuses a call id does not overwrite the earlier result
+	again = _saved_path((await _dump(session, events, "y" * 200_000))["content"])
+	assert again != saved
+	assert '"name": "INV-04321"' in open(saved).read()
+
+	# past the size cap, only the start is saved, ending on a whole line
+	monkeypatch.setattr(loop, "MAX_SAVED_BYTES", 100_000)
+	result = await _dump(session, events, "\n".join("z" * 99 for _ in range(3000)))
+	assert "The first 98 KB of the result is saved in" in result["content"]
+	assert open(_saved_path(result["content"])).read() == "\n".join("z" * 99 for _ in range(1000))
+
+	# a folder that cannot be written leaves the plain cut, not a failed run
+	(tmp_path / "taken").write_text("")
+	session.results_dir = str(tmp_path / "taken")
+	result = await _dump(session, events, "x" * 200_000)
+	assert "call again asking for less" in result["content"]
+	assert [e["reason"] for e in _of(events, "run_ended")][-1] == "done"
+	session.results_dir = os.path.dirname(saved)
+
+	# without read there is nothing to open it with, so nothing is saved
+	no_read = store.create(SessionConfig(cwd=str(workspace), tools=["grep"]))
+	result = await _dump(no_read, events, "x" * 200_000)
+	assert "call again asking for less" in result["content"]
+	assert not os.path.exists(no_read.results_dir)
+
+	store.delete(session.id)
+	assert not os.path.exists(session.results_dir)
 
 
 async def test_resume_approves_denies_or_redirects_the_paused_call(tmp_path):
@@ -295,19 +346,6 @@ async def test_resume_approves_denies_or_redirects_the_paused_call(tmp_path):
 	assert "use the other file" in tr["content"]
 	assert mock._turn == 2  # the model got a turn to adjust
 	assert _of(events, "run_ended")[-1]["reason"] == "done"
-
-	# an approved run-ending tool still ends the run; a redirect still gets the model's turn
-	for answer, model_turns in [("Approve", 1), ("shorter ones", 2)]:
-		session, events = _session(tmp_path, tools=["suggest_replies"], confirm_tools=["suggest_replies"])
-		replies = [
-			AssistantMessage(content=[_offer("c1", "Yes", "No")]),
-			AssistantMessage(content="adjusted"),
-		]
-		mock = MockModel(replies=replies)
-		await _run(session, "ask me", model=mock)
-		await _resume(session, {"c1": answer}, model=mock)
-		assert mock._turn == model_turns, answer
-		assert [e["reason"] for e in _of(events, "run_ended")] == ["paused", "done"]
 
 
 async def test_a_paused_session_refuses_runs_and_inexact_answers_until_cancelled(tmp_path):

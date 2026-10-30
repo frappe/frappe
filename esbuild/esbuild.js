@@ -567,12 +567,11 @@ async function update_assets_json_in_cache() {
 	// handle error event to avoid printing stack traces
 	try {
 		await client.connect();
+		await client.del("assets_json");
+		await client.quit();
 	} catch (e) {
 		log_warn("Cannot connect to redis_cache to update assets_json");
 	}
-	client.del("assets_json", (err) => {
-		client.unref();
-	});
 }
 
 function get_assets_json_path(is_rtl) {
@@ -939,13 +938,6 @@ function wait_for_children_exit(children, timeout_ms) {
 
 async function notify_redis({ error, success, changed_files }) {
 	// notify redis which in turns tells socketio to publish this to browser
-	let subscriber = get_redis_subscriber("redis_queue");
-	try {
-		await subscriber.connect();
-	} catch (e) {
-		log_warn("Cannot connect to redis_queue for browser events");
-	}
-
 	let payload = null;
 	if (error) {
 		let formatted = await esbuild.formatMessages(error.errors, {
@@ -967,13 +959,20 @@ async function notify_redis({ error, success, changed_files }) {
 		};
 	}
 
-	await subscriber.publish(
-		"events",
-		JSON.stringify({
-			event: "build_event",
-			message: payload,
-		})
-	);
+	let subscriber = get_redis_subscriber("redis_queue");
+	try {
+		await subscriber.connect();
+		await subscriber.publish(
+			"events",
+			JSON.stringify({
+				event: "build_event",
+				message: payload,
+			})
+		);
+		await subscriber.quit();
+	} catch (e) {
+		log_warn("Cannot connect to redis_queue for browser events");
+	}
 }
 
 async function open_in_editor() {

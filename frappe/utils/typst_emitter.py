@@ -714,7 +714,10 @@ class TypstEmitter:
 		if not columns:
 			return ""
 		shrink = section.get("justify") in SHRINK_JUSTIFY
-		rendered = [self._column(section, c, shrink=shrink) for c in columns]
+		rendered = [
+			self._column(section, c, shrink=shrink, first_column=i == 0, last_column=i == len(columns) - 1)
+			for i, c in enumerate(columns)
+		]
 		rendered_columns = [body for body, _printed in rendered]
 		if not any(rendered_columns):
 			return ""
@@ -735,8 +738,8 @@ class TypstEmitter:
 			else:
 				ruled = 'stroke: (bottom: 1.125pt + rgb("#e2e2e2")), inset: (bottom: 0.35em)'
 				spacing = "0.75em"
-			heading = f"#block(width: 100%, {ruled})[{label}]"
-			body = f"#stack(spacing: {spacing},\n[{heading}],\n[{body}])"
+			heading = f"#block(width: 100%, sticky: true, below: {spacing}, {ruled})[{label}]"
+			body = f"{heading}\n{body}"
 
 		block_args = self._section_block_args(section)
 		if section.get("keep_together"):
@@ -827,29 +830,34 @@ class TypstEmitter:
 
 		if len(cells) == 1:
 			return cells[0][1:-1]
-		if section.get("field_borders") and section.get("grid_borders") != "rows":
+		if section.get("field_borders"):
 			pad = pt(section.get("cell_padding"), 8)
 			# both HTML surfaces force gap to 0 in bordered mode — spacing comes
 			# from the cell padding on either side of the divider
-			gutter = pad
+			rule = "none" if section.get("grid_borders") == "rows" else hairline(section.get("border_color"))
 			divided = [cells[0]]
 			for cell in cells[1:]:
-				rule = hairline(section.get("border_color"))
-				divided.append(f"grid.cell(stroke: (left: {rule}), inset: (left: {pad}pt))" + cell)
+				divided.append(f"grid.cell(stroke: (left: {rule}))" + cell)
 			return (
-				f"#grid(columns: ({', '.join(widths)}), column-gutter: {gutter}pt, align: top,\n"
+				f"#pad(x: -{pad}pt, y: -{pad}pt, grid(columns: ({', '.join(widths)}), inset: {pad}pt, align: top,\n"
 				+ ",\n".join(divided)
-				+ ")"
+				+ "))"
 			)
+		# HTML columns carry 15px of padding on either side of the gap
 		return (
-			f"#grid(columns: ({', '.join(widths)}), column-gutter: {gap_pt}pt, align: top,\n"
+			f"#grid(columns: ({', '.join(widths)}), column-gutter: {gap_pt + pt(30)}pt, align: top,\n"
 			+ ",\n".join(cells)
 			+ ")"
 		)
 
-	def _column(self, section, column, shrink=False) -> str:
+	def _column(self, section, column, shrink=False, first_column=False, last_column=False) -> str:
 		rendered = [(df, self._field(section, df)) for df in column.get("fields") or []]
 		rendered = [(df, body) for df, body in rendered if body]
+		padding = section.get("padding") if section.get("field_borders") else None
+		if padding:
+			left = pt(padding.get("left")) if first_column else 0
+			right = pt(padding.get("right")) if last_column else 0
+			rendered = [(df, f"#pad(left: {left}pt, right: {right}pt)[{body}]") for df, body in rendered]
 		parts = [body for _, body in rendered]
 		if not parts:
 			return "", False
@@ -857,7 +865,7 @@ class TypstEmitter:
 		if section.get("field_borders") and section.get("grid_borders") != "columns" and len(parts) > 1:
 			pad = pt(section.get("cell_padding"), 8)
 			ruled = [
-				f"#block(width: 100%, stroke: (bottom: {hairline(section.get('border_color'))}), inset: (bottom: {pad}pt))[{p}]"
+				f"#block(width: 100%, stroke: (bottom: {hairline(section.get('border_color'))}), inset: (bottom: {pad}pt), outset: (x: {pad}pt))[{p}]"
 				for p in parts[:-1]
 			] + [parts[-1]]
 			body = f"#stack(spacing: {pad}pt,\n" + ",\n".join(f"[{p}]" for p in ruled) + ")"
@@ -865,6 +873,8 @@ class TypstEmitter:
 			body = parts[0]
 		else:
 			body = "#stack(spacing: 8pt,\n" + ",\n".join(f"[{p}]" for p in parts) + ")"
+		if padding:
+			body = f"#pad(top: {pt(padding.get('top'))}pt, bottom: {pt(padding.get('bottom'))}pt)[{body}]"
 		return (self._shrink_to_content(rendered, body) if shrink else body), printed
 
 	def _is_placeholder(self, df) -> bool:
@@ -1033,8 +1043,22 @@ class TypstEmitter:
 			if align in ("center", "right") and section.get("field_orientation") != "left-right":
 				body = f"#grid(columns: (auto, 1fr), column-gutter: {gap_pt}pt, [{label}], [#align({align})[{value_text}]])"
 				return self._text_props(df, body)
+			if section.get("field_orientation") == "left-right" and align not in ("center", "right"):
+				if df.get("label_justify") == "space-between":
+					body = f"#grid(columns: (auto, 1fr), column-gutter: {gap_pt}pt, [{label}], [#align(right)[{value_text}]])"
+					return self._text_props(df, body)
+				if df.get("label_justify") == "space-evenly":
+					body = f"#grid(columns: (1fr, auto, 1fr, auto, 1fr), column-gutter: {gap_pt}pt, [], [{label}], [], [{value_text}], [])"
+					return self._text_props(df, body)
 			body = f"#grid(columns: (auto, auto), column-gutter: {gap_pt}pt, [{label}], [{value_text}])"
 			return _aligned(self._text_props(df, body), align)
+		if (
+			show_label == "hide"
+			and section.get("field_orientation") == "left-right"
+			and align not in ("center", "right")
+			and df.get("label_justify") == "space-evenly"
+		):
+			return _aligned(self._text_props(df, value_text), "center")
 		spacing = gap_effect if gap_effect is not None else 4
 		parts = [f"[{label}]"] if label else []
 		parts.append(f"[{value_text}]")

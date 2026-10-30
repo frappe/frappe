@@ -40,6 +40,8 @@ One daemon can serve many sites (a Frappe bench), each one a folder. `FLOW_TENAN
 - `model`, `credential_id`, and optional `reasoning_effort` (`off` through `max`);
 - `cwd`, `tools`, `extension_tools` (omit it to get every loaded extension tool), `client_tools`, and `auto_approve` (default: `false`);
 - `subagents`, the sub-agents the `subagent` tool may run beside `general`, and `max_concurrent_subagents`, how many may run at once (see [tools.md](tools.md#sub-agents)); an agent's `api_key`, `api_base` and `model_params` are refused wherever the session's own are;
+- `small_model`, a `model` with its own optional `api_key`, `api_base` and `model_params`, used for side jobs such as the title instead of the session's model; its key and params are refused wherever the session's own are;
+- `suggest_replies` (default: `false`): after a run ends normally, one more call on the session's model, prompt and tools, so it reuses the prompt cache, offers the user two to four next messages as a durable `replies_suggested` event. Its `usage`, like the title's, comes with `standalone: true` and a `purpose` (`title` or `replies`): spend, never context;
 - `system_prompt` for a complete prompt override, or `system_preamble`, `system_suffix`, and `system_append` for composition;
 - `skills_enabled`, `skill_paths`, and compaction settings;
 - `preset`, the id of the client's own preset the session was made from, stored and returned but never read.

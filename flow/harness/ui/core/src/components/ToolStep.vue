@@ -211,6 +211,8 @@ const expandable = computed(() => {
 	if (link.value) return false
 	if (failed.value || decision.value) return true
 	if (meta.value.expandable === false) return false
+	// its arguments may still be streaming in: the row opens once the call has ended
+	if (!props.step.result && !props.step.aborted) return false
 	if (meta.value.argsComponent) return true
 	if (!props.step.result) return false
 	if (diffLines.value || resultView.value) return true
