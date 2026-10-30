@@ -521,33 +521,25 @@ frappe.ui.form.PrintView = class {
 		this.update_letterhead_for_print_format().then(() => this.preview());
 	}
 
-	update_letterhead_for_print_format() {
+	async update_letterhead_for_print_format() {
 		const format_name = this.selected_format();
 		if (!format_name || format_name === "Standard") {
 			return this.set_default_letterhead();
 		}
-		return frappe
-			.call({
-				method: "frappe.client.get",
-				args: { doctype: "Print Format", name: format_name },
-			})
-			.then((r) => {
-				let letter_head = null;
-				try {
-					letter_head = r.message?.format_data
-						? JSON.parse(r.message.format_data)?.letter_head
-						: null;
-				} catch (_) {
-					// malformed format_data — fall through to default letterhead
-				}
-				if (letter_head) {
-					this.letterhead_selector.val(letter_head);
-				} else if (letter_head === "") {
-					this.letterhead_selector.val("");
-				} else {
-					return this.set_default_letterhead();
-				}
-			});
+		const { format_data } = this.get_print_format(format_name);
+		let letter_head = null;
+		try {
+			letter_head = format_data ? JSON.parse(format_data)?.letter_head : null;
+		} catch (_) {
+			// malformed format_data — fall through to default letterhead
+		}
+		if (letter_head) {
+			this.letterhead_selector.val(letter_head);
+		} else if (letter_head === "") {
+			this.letterhead_selector.val("");
+		} else {
+			return this.set_default_letterhead();
+		}
 	}
 
 	// bind_events () {
