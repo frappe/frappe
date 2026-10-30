@@ -216,12 +216,12 @@ describe("a header comes from a label", () => {
 describe("a header translates with the DocType as context", () => {
 	afterEach(async () => {
 		catalog.messages = {};
-		await loadTranslations("reset");
+		await loadTranslations("reset", "en");
 	});
 
 	it("draws the label from the catalog, else the text without context", async () => {
 		catalog.messages = { "Organization:Contact": "Organisation" };
-		await loadTranslations("fr");
+		await loadTranslations("test", "fr");
 
 		const contact = await mount(new Surface<PanelSectionItem>(), {}, "Contact");
 		expect(contact.root.textContent).toContain("Organisation");

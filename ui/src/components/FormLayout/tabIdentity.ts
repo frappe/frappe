@@ -19,10 +19,9 @@ function baseIdentity(tab: Pick<Tab, "name" | "label">, index: number): string {
 }
 
 /**
- * What the strip actually shows for a tab. With more than one tab the strip is
- * always on screen, so an unlabelled tab would render a blank button — it reads
- * "Details" instead. Exported because anything that *reports* a tab's label has
- * to agree with the button the reader is looking at.
+ * A tab's label before the strip translates it. With more than one tab the strip is
+ * always on screen, so an unlabelled tab would render a blank button — it reads a
+ * translated "Details" instead. Exported so a report of a tab's label agrees with it.
  */
 export function tabStripLabel(label: string, multipleTabs: boolean): string {
   return label || (multipleTabs ? translate("Details") : "");
