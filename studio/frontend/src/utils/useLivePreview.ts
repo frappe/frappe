@@ -1,31 +1,27 @@
-import { ref, inject, onMounted, onBeforeUnmount } from "vue"
+import { inject, onMounted, onBeforeUnmount } from "vue"
 import { useRouter } from "vue-router"
 import { useDebounceFn } from "@vueuse/core"
 
 import { reloadCustomVueComponents } from "@/utils/customVueComponents"
 import useComponentStore from "@/stores/componentStore"
 
-// Re-render the preview when the open page changes in the DB — an editor save, an AI edit, or a disk
-// edit synced by the watcher (studio_doc_update from studio/realtime.py). Returns a revision that
-// bumps once the page has been re-prepared, so it remounts; debounced so a burst of autosaves
-// coalesces into one reload.
-export function useLivePreview() {
+// Refresh the preview when the open page changes in the DB — an editor save, an AI edit, or a disk
+// edit synced by the watcher (studio_doc_update from studio/realtime.py). Debounced so a burst of
+// autosaves coalesces into one refresh.
+export function useLivePreview(refreshPage: () => Promise<void>) {
 	const socket = inject<any>("socket")
 	const router = useRouter()
-	const revision = ref(0)
 
-	const reloadPage = useDebounceFn(async (pageName: string) => {
-		const { path, query, hash, meta } = router.currentRoute.value
-		if (meta.pageName !== pageName) return
-		const failure = await router.replace({ path, query, hash, force: true })
-		if (!failure) revision.value++
+	const refresh = useDebounceFn(async (pageName: string) => {
+		if (router.currentRoute.value.meta.pageName !== pageName) return
+		await refreshPage()
 	}, 300)
 
 	const onDocUpdate = (info: any) => {
 		if (info?.doctype === "Studio Component") {
 			useComponentStore().reloadComponent(info.name)
 		} else if (info?.doctype === "Studio Page" && info?.name === router.currentRoute.value.meta.pageName) {
-			reloadPage(info.name)
+			refresh(info.name)
 		}
 	}
 
@@ -41,5 +37,4 @@ export function useLivePreview() {
 		socket?.off("studio_doc_update", onDocUpdate)
 		import.meta.hot?.off("studio:custom-components-changed", onCustomComponentsChanged)
 	})
-	return revision
 }

@@ -38,7 +38,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from "vue"
+import { computed, inject, nextTick, ref, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import { onClickOutside, useEventListener } from "@vueuse/core"
 import { Button, call, dialog, toast } from "frappe-ui"
@@ -59,6 +59,7 @@ import {
 // current combination is a link.
 const route = useRoute()
 const router = useRouter()
+const refreshPage = inject("refreshPage") as () => Promise<void>
 const sets = useMountedVariantSets()
 
 // Keep needs a developer bench and write access, so a hosted site without developer mode
@@ -145,7 +146,8 @@ function keepVariant(set: VariantSet) {
 				throw new Error(error?.messages?.join(", ") || "Could not keep the variant")
 			}
 			toast.success(`Kept ${set.options[option]}`)
-			window.location.reload()
+			// the block is gone from the page on the server; re-read it rather than reload the app
+			await refreshPage()
 		},
 	})
 }

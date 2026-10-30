@@ -20,17 +20,29 @@ let latestNavigation = 0
 // beforeResolve guard: load the next page before the navigation completes. The page being left
 // stays untouched meanwhile, and the new page mounts with every binding already resolved.
 export async function loadPage(router: Router, to: RouteLocationNormalized, from: RouteLocationNormalized) {
-	const navigation = ++latestNavigation
 	const pageName = to.meta.pageName as string | undefined
 	if (!pageName) return
-	// same page, new params: the mounted page follows its route. A forced replace (preview reload) loads afresh.
+	// same page, new params: the mounted page follows its route, so nothing is reloaded
 	if (pageName === from.meta.pageName && to.fullPath !== from.fullPath) return
+	return preparePage(router, to)
+}
 
-	const page = await fetchAppPage(window.app_name, pageName, Boolean(window.is_preview))
+/** Read the open page again and leave the fresh copy for the next mount — for a caller that
+ * changed it on the server. The caller remounts the page; see `usePageRefresh`. */
+export async function reloadCurrentPage(router: Router) {
+	const redirect = await preparePage(router, router.currentRoute.value, true)
+	if (redirect) await router.replace(redirect)
+}
+
+async function preparePage(router: Router, route: RouteLocationNormalized, fresh = false) {
+	const navigation = ++latestNavigation
+	const pageName = route.meta.pageName as string
+	// a published definition is cached, so only a refresh pays for a fresh read of it
+	const page = await fetchAppPage(window.app_name, pageName, Boolean(window.is_preview), fresh)
 	if (navigation !== latestNavigation) return
-	if (!page) return redirectToNotFound(router, to)
+	if (!page) return redirectToNotFound(router, route)
 
-	const pageRoute = shallowRef(to)
+	const pageRoute = shallowRef(route)
 	const scope = createPageScope(pageRoute, shallowRef(router))
 	try {
 		await scope.setPageVariables(page, page.variables)
@@ -41,7 +53,7 @@ export async function loadPage(router: Router, to: RouteLocationNormalized, from
 		// before the block tree, so no block fetches its component (Guests can't read Studio Component)
 		useComponentStore().setComponents(page.components || [])
 		const root = getBlockInstance(JSON.parse(page.blocks)[0])
-		loadedPages.set(to.fullPath, { page, scope, pageRoute, root })
+		loadedPages.set(route.fullPath, { page, scope, pageRoute, root })
 	} catch (error) {
 		scope.teardownPage()
 		throw error
