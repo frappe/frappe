@@ -1331,7 +1331,7 @@ from {tables}
 		)
 		for key, value in param_wrapper.get_parameters().items():
 			sql = sql.replace(f"%({key})s", frappe.db.escape(value))
-		return sql
+		return f"({sql})"
 
 	def set_order_by(self, args):
 		if self.order_by and self.order_by != DefaultOrderBy:
