@@ -538,32 +538,7 @@ frappe.ui.form.PrintView = class {
 	refresh_print_format() {
 		this.toggle_style_picker();
 		this.set_default_print_language();
-<<<<<<< HEAD
 		this.preview();
-=======
-		this.update_letterhead_for_print_format().then(() => this.preview());
-	}
-
-	async update_letterhead_for_print_format() {
-		const format_name = this.selected_format();
-		if (!format_name || format_name === "Standard") {
-			return this.set_default_letterhead();
-		}
-		const { format_data } = this.get_print_format(format_name);
-		let letter_head = null;
-		try {
-			letter_head = format_data ? JSON.parse(format_data)?.letter_head : null;
-		} catch (_) {
-			// malformed format_data — fall through to default letterhead
-		}
-		if (letter_head) {
-			this.set_letterhead_value(letter_head);
-		} else if (letter_head === "") {
-			this.set_letterhead_value("");
-		} else {
-			return this.set_default_letterhead();
-		}
->>>>>>> 252cc33 (fix(print): translated print format or letter head breaks the print view)
 	}
 
 	// bind_events () {
