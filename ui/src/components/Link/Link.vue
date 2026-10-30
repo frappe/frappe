@@ -9,6 +9,7 @@
 		:error="error"
 		:required="required"
 		:options="linkOptions"
+		:filterable="!idLabels"
 		:disabled="disabled"
 		:placeholder="placeholder ?? `Search ${doctype.toLowerCase()}`"
 		:loading="options.loading && !options.data"
@@ -75,7 +76,7 @@
 </template>
 
 <script setup lang="ts">
-import { toLinkOption } from "./linkOption";
+import { toIdOption, toLinkOption } from "./linkOption";
 import { computed, ref, useSlots, watch } from "vue";
 import { Combobox, createResource, frappeRequest, debounce } from "frappe-ui";
 import type { ComboboxOption, ComboboxCustomOption } from "frappe-ui";
@@ -112,7 +113,8 @@ const options = createResource({
 	},
 	method: "POST",
 	resourceFetcher: frappeRequest,
-	transform: (data: LinkOption[]): LinkOption[] => data.map(toLinkOption),
+	transform: (data: LinkOption[]): LinkOption[] =>
+		data.map(props.idLabels ? toIdOption : toLinkOption),
 });
 
 const createNewOption: ComboboxCustomOption = {

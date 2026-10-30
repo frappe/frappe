@@ -4,6 +4,7 @@
 		:doctype="field.options ?? ''"
 		:filters="field.filters"
 		:title="title"
+		:idLabels="isName"
 		:label="field.label"
 		:description="field.description"
 		:placeholder="field.placeholder"
@@ -29,8 +30,14 @@ const emit = defineEmits<FieldComponentEmits>();
 
 const titles = inject(LinkTitlesKey, null);
 
+// `name` links to its own doctype and its value is the ID, so it shows the ID, not
+// the title: the picked option then reads the same as the stored filter.
+const isName = computed(() => props.field.fieldname === "name");
+
 const title = computed(() =>
-	props.modelValue ? titles?.value[`${props.field.options}::${props.modelValue}`] : undefined
+	props.modelValue && !isName.value
+		? titles?.value[`${props.field.options}::${props.modelValue}`]
+		: undefined
 );
 
 const value = computed<string | null>({
