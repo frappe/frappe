@@ -262,8 +262,7 @@ def execute_doc_method(doctype: str, name: str, method: str | None = None):
 	)
 	doc.check_permission(PERMISSION_MAP[frappe.request.method])
 	result = doc.run_method(method, **frappe.form_dict)
-	doc.apply_fieldlevel_read_permissions()
-	frappe.response.docs.append(doc.as_dict())
+	frappe.response.docs.append(doc.copy_with_fieldlevel_read_permissions().as_dict())
 	return result
 
 
@@ -460,10 +459,9 @@ def execute_bulk_update_docs(doctype: str, docs: list):
 
 			doc.update(item_copy)
 			doc.save()
-			doc.apply_fieldlevel_read_permissions()
 
 			updated.append(name)
-			frappe.response.docs.append(doc.as_dict())
+			frappe.response.docs.append(doc.copy_with_fieldlevel_read_permissions().as_dict())
 		except Exception as e:
 			frappe.db.rollback(save_point=savepoint)
 			failed.append({"name": name, "error": str(e)})
@@ -543,10 +541,9 @@ def execute_bulk_update(docs: list):
 
 			doc.update(item_copy)
 			doc.save()
-			doc.apply_fieldlevel_read_permissions()
 
 			updated.append({"doctype": doctype, "name": name})
-			frappe.response.docs.append(doc.as_dict())
+			frappe.response.docs.append(doc.copy_with_fieldlevel_read_permissions().as_dict())
 		except Exception as e:
 			frappe.db.rollback(save_point=savepoint)
 			failed.append({"doctype": doctype, "name": name, "error": str(e)})
@@ -603,8 +600,9 @@ def run_doc_method(method: str, document: dict[str, Any] | str, kwargs=None):
 
 	new_kwargs = get_newargs(fn, kwargs)
 	response = doc.run_method(method, **new_kwargs)
-	doc.apply_fieldlevel_read_permissions()
-	frappe.response.docs.append(doc)  # send modified document and result both.
+	frappe.response.docs.append(
+		doc.copy_with_fieldlevel_read_permissions()
+	)  # send modified document and result both.
 	return response
 
 

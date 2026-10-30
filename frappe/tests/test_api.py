@@ -430,7 +430,10 @@ class TestWriteResponsesFieldLevelRead(FrappeAPITestCase):
 	def tearDown(self):
 		try:
 			frappe.set_user("Administrator")
+			frappe.db.rollback()
 			for webhook in self.webhooks:
+				for log in frappe.get_all("Webhook Request Log", {"webhook": webhook.name}, pluck="name"):
+					frappe.delete_doc("Webhook Request Log", log, force=True)
 				frappe.delete_doc("Webhook", webhook.name, force=True)
 			frappe.client_cache.delete_value("webhooks")
 			frappe.delete_doc("DocType", self.doctype, force=True)

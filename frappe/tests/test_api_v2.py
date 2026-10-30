@@ -259,15 +259,19 @@ class TestApiV2CreateFieldLevelRead(FrappeAPITestCase):
 		self.doctype = (
 			new_doctype(
 				fields=[
+					{"fieldname": "title", "fieldtype": "Data", "label": "Title"},
 					{
 						"fieldname": "secret",
 						"fieldtype": "Data",
 						"label": "Secret",
 						"permlevel": 1,
 						"default": "hidden",
-					}
+					},
 				],
-				permissions=[{"role": "Desk User", "read": 1, "write": 1, "create": 1, "permlevel": 0}],
+				is_submittable=1,
+				permissions=[
+					{"role": "Desk User", "read": 1, "write": 1, "create": 1, "submit": 1, "permlevel": 0}
+				],
 			)
 			.insert()
 			.name
@@ -283,7 +287,7 @@ class TestApiV2CreateFieldLevelRead(FrappeAPITestCase):
 				request_structure="JSON",
 				webhook_json='{"secret": "{{ doc.secret }}"}',
 			).insert()
-			for event in ("after_insert", "on_update")
+			for event in ("after_insert", "on_update", "on_submit")
 		]
 		frappe.db.commit()  # nosemgrep
 		frappe.client_cache.delete_value("webhooks")
@@ -298,7 +302,10 @@ class TestApiV2CreateFieldLevelRead(FrappeAPITestCase):
 	def tearDown(self):
 		try:
 			frappe.set_user("Administrator")
+			frappe.db.rollback()
 			for webhook in self.webhooks:
+				for log in frappe.get_all("Webhook Request Log", {"webhook": webhook.name}, pluck="name"):
+					frappe.delete_doc("Webhook Request Log", log, force=True)
 				frappe.delete_doc("Webhook", webhook.name, force=True)
 			frappe.client_cache.delete_value("webhooks")
 			frappe.delete_doc("DocType", self.doctype, force=True)
@@ -307,10 +314,10 @@ class TestApiV2CreateFieldLevelRead(FrappeAPITestCase):
 		finally:
 			super().tearDown()
 
-	def request(self, method, *path, data=None):
+	def request(self, method, *path, data=None, url=None):
 		response = make_request(
 			getattr(get_test_client(use_cookies=False), method),
-			args=(self.resource(self.doctype, *path),),
+			args=(url or self.resource(self.doctype, *path),),
 			kwargs={"json": data or {}, "headers": {"Authorization": self.authorization}},
 			site=frappe.local.site,
 		)
@@ -318,13 +325,36 @@ class TestApiV2CreateFieldLevelRead(FrappeAPITestCase):
 		self.assertTrue(self.sent)
 		for payload in self.sent:
 			self.assertEqual(payload, {"secret": "hidden"})
-		return response.json["data"]
+		return response.json
 
 	def test_create_omits_fields_without_read_permission(self):
-		self.assertIsNone(self.request("post").get("secret"))
+		self.assertIsNone(self.request("post")["data"].get("secret"))
 
 	def test_update_omits_fields_without_read_permission(self):
-		self.assertIsNone(self.request("put", self.name).get("secret"))
+		self.assertIsNone(self.request("put", self.name)["data"].get("secret"))
+
+	def test_execute_doc_method_omits_fields_without_read_permission(self):
+		response = self.request("post", self.name, "method", "submit")
+		self.assertEqual(response["docs"][0]["docstatus"], 1)
+		self.assertIsNone(response["docs"][0].get("secret"))
+
+	def test_bulk_update_docs_omits_fields_without_read_permission(self):
+		response = self.request("post", "bulk_update", data={"docs": [{"name": self.name, "title": "y"}]})
+		self.assertEqual(response["data"]["success_count"], 1)
+		self.assertIsNone(response["docs"][0].get("secret"))
+
+	def test_bulk_update_omits_fields_without_read_permission(self):
+		docs = [{"doctype": self.doctype, "name": self.name, "title": "y"}]
+		response = self.request("post", data={"docs": docs}, url=self.method("bulk_update"))
+		self.assertEqual(response["data"]["success_count"], 1)
+		self.assertIsNone(response["docs"][0].get("secret"))
+
+	def test_run_doc_method_omits_fields_without_read_permission(self):
+		document = frappe.get_doc(self.doctype, self.name).as_dict(convert_dates_to_str=True)
+		response = self.request(
+			"post", data={"document": document, "method": "submit"}, url=self.method("run_doc_method")
+		)
+		self.assertIsNone(response["docs"][0].get("secret"))
 
 
 class TestMethodAPIV2(FrappeAPITestCase):
