@@ -144,8 +144,10 @@ function keepVariant(set: VariantSet) {
 			} catch (error: any) {
 				throw new Error(error?.messages?.join(", ") || "Could not keep the variant")
 			}
-			// the save this raises reaches the preview over the socket, which re-reads the page
 			toast.success(`Kept ${set.options[option]}`)
+			// the preview re-reads the page over the socket, but a published one is cached until
+			// the next publish, so only a reload can show the block going away
+			if (!window.is_preview) window.location.reload()
 		},
 	})
 }
