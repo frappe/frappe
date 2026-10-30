@@ -811,6 +811,48 @@ class TestDiscoveryAPIV2(FrappeAPITestCase):
 			self.discovery_path("doctype", "User", "method", "add_comment"),
 		)
 
+	def test_after_migrate_warms_the_cache_v2(self):
+		self.assertIn(
+			"frappe.api.discovery.build_cache_in_background",
+			frappe.get_hooks("after_migrate", app_name="frappe"),
+		)
+
+	def test_cache_lasts_a_day_or_an_hour_in_developer_mode_v2(self):
+		key = frappe.cache.make_key(discovery.PYTHON_METHOD_CACHE_KEY)
+		for developer_mode, ttl in ((0, discovery.CACHE_TTL), (1, discovery.DEVELOPER_MODE_CACHE_TTL)):
+			with (
+				self.subTest(developer_mode=developer_mode),
+				patch.dict(frappe.conf, developer_mode=developer_mode),
+			):
+				discovery.build_cache()
+				self.assertAlmostEqual(frappe.cache.ttl(key), ttl, delta=60)
+
+	def test_server_script_changes_show_on_a_warm_cache_v2(self):
+		def paths():
+			self.assertIsNotNone(frappe.cache.get_value(discovery.PYTHON_METHOD_CACHE_KEY, expires=True))
+			return [item.get("path") for item in discovery.search("test_discovery_server_script")["results"]]
+
+		script = frappe.get_doc(
+			doctype="Server Script",
+			name="test_discovery_server_script",
+			script_type="API",
+			api_method="test_discovery_server_script",
+			script="frappe.response['message'] = 'ok'",
+		).insert()
+		self.addCleanup(frappe.delete_doc_if_exists, "Server Script", script.name, force=True)
+		self.assertIn("test_discovery_server_script", paths())
+
+		script.disabled = 1
+		script.save()
+		self.assertNotIn("test_discovery_server_script", paths())
+
+		script.disabled = 0
+		script.save()
+		self.assertIn("test_discovery_server_script", paths())
+
+		script.delete()
+		self.assertNotIn("test_discovery_server_script", paths())
+
 	def test_search_v2(self):
 		response = self.get(
 			self.discovery_path("search"),
@@ -999,9 +1041,19 @@ class TestDiscoveryAPIV2(FrappeAPITestCase):
 
 	def test_cold_cache_returns_retryable_response_v2(self):
 		discovery.clear_cache()
-		with suppress_stdout(), patch("frappe.utils.error.log_error") as log_error:
+		with (
+			suppress_stdout(),
+			patch("frappe.utils.error.log_error") as log_error,
+			patch("frappe.enqueue") as enqueue,
+		):
 			response = self.get(self.discovery_path(), {"sid": self.sid})
 		self.assertEqual(response.status_code, 503)
+		enqueue.assert_any_call(
+			"frappe.api.discovery.build_cache",
+			queue="default",
+			job_id=discovery.DISCOVERY_BUILD_JOB_ID,
+			deduplicate=True,
+		)
 		self.assertNotIn("Retry-After", response.headers)
 		log_error.assert_not_called()
 

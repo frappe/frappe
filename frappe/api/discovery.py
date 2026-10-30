@@ -12,7 +12,8 @@ from frappe.core.doctype.server_script.server_script_utils import get_server_scr
 from frappe.model.document import get_controller
 from frappe.permissions import SYSTEM_USER_ROLE
 
-CACHE_TTL = 60 * 60
+CACHE_TTL = 24 * 60 * 60
+DEVELOPER_MODE_CACHE_TTL = 60 * 60
 DISCOVERY_CACHE_PREFIX = "api:v2:discovery"
 PYTHON_METHOD_CACHE_KEY = f"{DISCOVERY_CACHE_PREFIX}:global:methods:python"
 PYTHON_SEARCH_CACHE_KEY = f"{DISCOVERY_CACHE_PREFIX}:global:methods:python_search"
@@ -115,7 +116,8 @@ def clear_cache(user: str | None = None):
 
 
 def build_cache() -> None:
-	"""Build API discovery cache from source in a background job."""
+	"""Build API discovery cache from source."""
+	ttl = DEVELOPER_MODE_CACHE_TTL if frappe.conf.developer_mode else CACHE_TTL
 	items = []
 	search_entries = []
 	for path in _discover_whitelisted_method_paths():
@@ -127,8 +129,8 @@ def build_cache() -> None:
 				{"method": method, "haystack": _method_search_text(entry, inspect.getdoc(fn))}
 			)
 
-	frappe.cache.set_value(PYTHON_METHOD_CACHE_KEY, items, expires_in_sec=CACHE_TTL)
-	frappe.cache.set_value(PYTHON_SEARCH_CACHE_KEY, search_entries, expires_in_sec=CACHE_TTL)
+	frappe.cache.set_value(PYTHON_METHOD_CACHE_KEY, items, expires_in_sec=ttl)
+	frappe.cache.set_value(PYTHON_SEARCH_CACHE_KEY, search_entries, expires_in_sec=ttl)
 
 	doctype_items = []
 	doctype_search_entries = []
@@ -142,8 +144,8 @@ def build_cache() -> None:
 			}
 		)
 
-	frappe.cache.set_value(DOCTYPE_METHOD_CACHE_KEY, doctype_items, expires_in_sec=CACHE_TTL)
-	frappe.cache.set_value(DOCTYPE_SEARCH_CACHE_KEY, doctype_search_entries, expires_in_sec=CACHE_TTL)
+	frappe.cache.set_value(DOCTYPE_METHOD_CACHE_KEY, doctype_items, expires_in_sec=ttl)
+	frappe.cache.set_value(DOCTYPE_SEARCH_CACHE_KEY, doctype_search_entries, expires_in_sec=ttl)
 
 
 def _search_index() -> list[tuple[dict[str, Any], str]]:
@@ -219,7 +221,7 @@ def _get_cached_doctype_search_entries() -> list[dict[str, Any]]:
 def _get_required_cache_value(key: str) -> Any:
 	value = frappe.cache.get_value(key, expires=True)
 	if value is None:
-		_trigger_cache_build()
+		build_cache_in_background()
 		frappe.throw(
 			_("API discovery cache is being generated. Please try again in 10 seconds."),
 			DiscoveryCacheUnavailable,
@@ -227,10 +229,10 @@ def _get_required_cache_value(key: str) -> Any:
 	return value
 
 
-def _trigger_cache_build() -> None:
+def build_cache_in_background() -> None:
 	frappe.enqueue(
 		"frappe.api.discovery.build_cache",
-		queue="long",
+		queue="default",
 		job_id=DISCOVERY_BUILD_JOB_ID,
 		deduplicate=True,
 	)
