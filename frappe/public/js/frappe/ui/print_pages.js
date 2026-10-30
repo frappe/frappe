@@ -16,31 +16,36 @@ frappe.ui.PrintPages = class PrintPages {
 		const avoid_after = [];
 
 		const range = sheet.ownerDocument.createRange();
-		const walker = sheet.ownerDocument.createTreeWalker(sheet, NodeFilter.SHOW_TEXT);
-		while (walker.nextNode()) {
-			if (!walker.currentNode.data.trim()) continue;
-			range.selectNodeContents(walker.currentNode);
-			[...range.getClientRects()].forEach(add);
-		}
 		const is_page = (value) => ["page", "always", "left", "right"].includes(value);
-		sheet.querySelectorAll("*").forEach((el) => {
-			const el_style = getComputedStyle(el);
-			if (el_style.display === "none") return;
-			const r = el.getBoundingClientRect();
-			if (
-				el.matches(
-					"img, svg, canvas, video, iframe, input, textarea, select, tr:not(.print-repeating-frame > * > tr)"
-				) ||
-				el_style.breakInside.startsWith("avoid")
-			) {
-				add(r);
+		const visit = (parent) => {
+			for (const node of parent.childNodes) {
+				if (node.nodeType === Node.TEXT_NODE) {
+					if (!node.data.trim()) continue;
+					range.selectNodeContents(node);
+					[...range.getClientRects()].forEach(add);
+					continue;
+				}
+				if (node.nodeType !== Node.ELEMENT_NODE) continue;
+				const el_style = getComputedStyle(node);
+				if (el_style.display === "none") continue;
+				const r = node.getBoundingClientRect();
+				const row = node.matches("tr:not(.print-repeating-frame > * > tr)");
+				if (
+					row ||
+					node.matches("img, svg, canvas, video, iframe, input, textarea, select") ||
+					el_style.breakInside.startsWith("avoid")
+				) {
+					add(r);
+				}
+				if (is_page(el_style.breakBefore)) forced.push(y(r.top));
+				if (is_page(el_style.breakAfter) || (breaks && node.matches(breaks))) {
+					forced.push(y(r.bottom));
+				}
+				if (el_style.breakAfter.startsWith("avoid")) avoid_after.push(r);
+				if (!row || r.height * scale > height) visit(node);
 			}
-			if (is_page(el_style.breakBefore)) forced.push(y(r.top));
-			if (is_page(el_style.breakAfter) || (breaks && el.matches(breaks))) {
-				forced.push(y(r.bottom));
-			}
-			if (el_style.breakAfter.startsWith("avoid")) avoid_after.push(r);
-		});
+		};
+		visit(sheet);
 		atoms.sort((a, b) => a[0] - b[0]);
 		avoid_after.forEach((r) => {
 			const next = atoms.find(([top]) => top >= y(r.bottom) - 0.5);
@@ -129,9 +134,186 @@ frappe.ui.PrintPages = class PrintPages {
 		return {
 			pages,
 			frame,
+			y,
+			scale,
 			width: rect.width * scale,
 			height: sheet.clientHeight - pad_top - parseFloat(style.paddingBottom),
 		};
+	}
+
+	static measure(sheet, { pages, y, scale }) {
+		const cuts = pages.slice(1).map((page) => page.start);
+		const geometry = new Map();
+		const columns = new Map();
+		const stacked = new Set();
+		const pruned = new Map();
+		const column_widths = (table) => {
+			const rows = [...table.rows];
+			const span = (row) => [...row.cells].reduce((sum, cell) => sum + cell.colSpan, 0);
+			const count = Math.max(0, ...rows.map(span));
+			const row = rows.find((r) => r.cells.length === count);
+			if (!row) return null;
+			const rects = [...row.cells].map((cell) => cell.getBoundingClientRect());
+			if (getComputedStyle(table).borderCollapse !== "collapse") {
+				return rects.map((r) => r.width * scale);
+			}
+			const edges = [...rects.map((r) => r.left), rects.at(-1).right];
+			return rects.map((r, i) => (edges[i + 1] - r.left) * scale);
+		};
+		const prunable = (el, kids) => {
+			if (el.localName === "table") {
+				const widths = column_widths(el);
+				if (widths) {
+					columns.set(el, { widths, width: el.getBoundingClientRect().width * scale });
+				}
+				return !!widths;
+			}
+			if (el.matches("thead, tbody, tfoot, tr")) {
+				return columns.has(el.closest("table"));
+			}
+			return (
+				[...el.childNodes].every(
+					(node) => node.nodeType !== Node.TEXT_NODE || !node.data.trim()
+				) &&
+				kids.every(([, kid_style]) => {
+					const display = kid_style.display;
+					return !display.startsWith("inline") && display !== "contents";
+				})
+			);
+		};
+		const visit = (el) => {
+			const kids = [...el.children]
+				.filter((kid) => !kid.matches("script"))
+				.map((kid) => [kid, getComputedStyle(kid)]);
+			if (!prunable(el, kids)) return;
+			pruned.set(
+				el,
+				kids
+					.map(([kid]) => kid)
+					.filter((kid) => !(columns.has(el) && kid.matches("colgroup, col")))
+			);
+			const style = getComputedStyle(el);
+			const column = style.display.endsWith("flex")
+				? style.flexDirection === "column" && style.flexWrap === "nowrap"
+				: ["block", "flow-root"].includes(style.display);
+			if (
+				el.matches("thead, tbody, tfoot") ||
+				(column &&
+					kids.every(
+						([, kid_style]) =>
+							kid_style.float === "none" &&
+							!["absolute", "fixed"].includes(kid_style.position) &&
+							kid_style.display !== "list-item"
+					))
+			) {
+				stacked.add(el);
+			}
+			kids.forEach(([kid, kid_style]) => {
+				if (kid_style.display === "none") return;
+				const r = kid.getBoundingClientRect();
+				const g = {
+					top: y(r.top),
+					bottom: y(r.bottom),
+					width: r.width * scale,
+					height: r.height * scale,
+					margin_top: kid_style.marginTop,
+					margin_bottom: kid_style.marginBottom,
+				};
+				geometry.set(kid, g);
+				if (cuts.some((at) => g.top < at - 0.5 && g.bottom > at + 0.5)) visit(kid);
+			});
+		};
+		visit(sheet);
+		return { geometry, columns, stacked, pruned };
+	}
+
+	static slice(sheet, { geometry, columns, stacked, pruned }, start, end) {
+		const doc = sheet.ownerDocument;
+		const box = (node) => {
+			const g = geometry.get(node);
+			const el = node.cloneNode(false);
+			Object.assign(el.style, {
+				boxSizing: "border-box",
+				width: `${g.width}px`,
+				height: `${g.height}px`,
+				minHeight: "0",
+				marginTop: g.margin_top,
+				marginBottom: g.margin_bottom,
+				flex: "none",
+			});
+			return el;
+		};
+		const filler = (parent, run) => {
+			const first = geometry.get(run[0]);
+			const height = `${geometry.get(run.at(-1)).bottom - first.top}px`;
+			let el;
+			if (parent.matches("thead, tbody, tfoot")) {
+				el = doc.createElement("tr");
+				const cell = el.appendChild(doc.createElement("td"));
+				cell.colSpan = 1000;
+				Object.assign(cell.style, { height, padding: "0", border: "0" });
+			} else {
+				el = doc.createElement("div");
+				Object.assign(el.style, {
+					height,
+					marginTop: first.margin_top,
+					marginBottom: geometry.get(run.at(-1)).margin_bottom,
+					flex: "none",
+				});
+			}
+			if (run.length % 2 === 0) {
+				const twin = el.cloneNode(false);
+				twin.style.display = "none";
+				return [el, twin];
+			}
+			return [el];
+		};
+		const copy = (el) => {
+			const clone = el.cloneNode(false);
+			const { widths, width } = columns.get(el) || {};
+			if (widths) {
+				Object.assign(clone.style, { width: `${width}px`, tableLayout: "fixed" });
+				const group = clone.appendChild(doc.createElement("colgroup"));
+				widths.forEach((col) => {
+					group.appendChild(doc.createElement("col")).style.width = `${col}px`;
+				});
+			}
+			clone.append(...children(el));
+			return clone;
+		};
+		const children = (parent) => {
+			const out = [];
+			const section = parent.matches("thead, tbody, tfoot");
+			const row = parent.localName === "tr";
+			let run = [];
+			const flush = () => {
+				if (!run.length) return;
+				if (section) out.push(...filler(parent, run));
+				else if (!stacked.has(parent) || run.length < 3) out.push(...run.map(box));
+				else out.push(box(run[0]), ...filler(parent, run.slice(1, -1)), box(run.at(-1)));
+				run = [];
+			};
+			for (const node of pruned.get(parent)) {
+				const g = geometry.get(node);
+				const inside = !g || (g.top >= start - 0.5 && g.bottom <= end + 0.5);
+				const outside = g && (g.bottom <= start + 0.5 || g.top >= end - 0.5);
+				if (outside && !row) {
+					run.push(node);
+					continue;
+				}
+				flush();
+				out.push(inside || !pruned.has(node) ? node.cloneNode(true) : copy(node));
+			}
+			flush();
+			return out;
+		};
+		return pruned.has(sheet)
+			? children(sheet)
+			: [...sheet.childNodes]
+					.filter(
+						(node) => !(node.nodeType === Node.ELEMENT_NODE && node.matches("script"))
+					)
+					.map((node) => node.cloneNode(true));
 	}
 
 	static paginate({ sheet, breaks }) {
@@ -146,6 +328,7 @@ frappe.ui.PrintPages = class PrintPages {
 		const content = [...sheet.childNodes].filter(
 			(node) => !(node.nodeType === Node.ELEMENT_NODE && node.matches("script"))
 		);
+		const measured = this.measure(sheet, layout);
 		const band = (part) => {
 			const table = layout.frame.cloneNode(false);
 			table.append(part.cloneNode(true));
@@ -185,7 +368,6 @@ frappe.ui.PrintPages = class PrintPages {
 			}
 			return node;
 		};
-		const flows = new Map();
 		const pages = layout.pages.map(({ start, end, repeat, close }, i) => {
 			const page = doc.createElement("div");
 			page.className = `${sheet.className} preview-page`;
@@ -198,9 +380,11 @@ frappe.ui.PrintPages = class PrintPages {
 				background: style.backgroundColor,
 				boxShadow: style.boxShadow,
 				borderRadius: style.borderRadius,
-				overflow: "hidden",
+				overflow: "clip",
 				position: "relative",
 				isolation: "isolate",
+				contentVisibility: "auto",
+				containIntrinsicSize: `${layout.width}px ${style.minHeight}`,
 			});
 			layers.forEach((layer) => {
 				const el = page.appendChild(doc.createElement("div"));
@@ -222,7 +406,11 @@ frappe.ui.PrintPages = class PrintPages {
 			repeat.forEach((t) => page.append(table_part(t, "tHead")));
 
 			const slice = page.appendChild(doc.createElement("div"));
-			Object.assign(slice.style, { height: `${end - start}px`, overflow: "hidden" });
+			Object.assign(slice.style, {
+				display: "flow-root",
+				height: `${end - start}px`,
+				overflow: "clip",
+			});
 			const flow = slice.appendChild(doc.createElement("div"));
 			Object.assign(flow.style, {
 				display: style.display === "flex" ? "flex" : "flow-root",
@@ -230,7 +418,8 @@ frappe.ui.PrintPages = class PrintPages {
 				minHeight: `${layout.height}px`,
 				marginTop: `${-start}px`,
 			});
-			flows.set(page, flow);
+			flow.append(...this.slice(sheet, measured, start, end));
+			flow.querySelectorAll("script").forEach((el) => el.remove());
 			close.forEach((t) => page.append(table_part(t, "tFoot")));
 
 			if (i < layout.pages.length - 1 && layout.frame?.tFoot) {
@@ -238,22 +427,6 @@ frappe.ui.PrintPages = class PrintPages {
 			}
 			return container.appendChild(page);
 		});
-
-		const fill = ({ target, isIntersecting }) => {
-			const flow = flows.get(target);
-			if (!isIntersecting) return flow.replaceChildren();
-			if (flow.childNodes.length) return;
-			content.forEach((node) => flow.append(node.cloneNode(true)));
-			flow.querySelectorAll("script").forEach((el) => el.remove());
-			flow.querySelectorAll(":scope > .preview-source").forEach((el) =>
-				el.classList.remove("preview-source")
-			);
-		};
-		const observer = new doc.defaultView.IntersectionObserver(
-			(entries) => entries.forEach(fill),
-			{ root: doc, rootMargin: "100% 0px" }
-		);
-		pages.forEach((page) => observer.observe(page));
 
 		if (sheet === doc.body) {
 			content.forEach(
