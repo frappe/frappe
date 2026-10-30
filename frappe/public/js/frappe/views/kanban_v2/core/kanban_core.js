@@ -54,6 +54,7 @@ export class KanbanCore {
 		this.dropSlotEl = null;
 		this.dropCommitPending = false;
 		this.dragSourceColumn = null;
+		this.dragSourceCard = null;
 		this.dragPreview = null;
 		this.dragGrabOffset = null;
 		this.lastSelected = null;
@@ -176,6 +177,7 @@ export class KanbanCore {
 		this.teardownViews();
 		this.onDragEnd();
 		this.dragSourceColumn = null;
+		this.dragSourceCard = null;
 		this.clearCardsDragging();
 		this.endCardPreview();
 		this.clearDropIndicator();
@@ -387,7 +389,9 @@ export class KanbanCore {
 			topSpacer,
 			bottomSpacer,
 			virtualizer: new ColumnVirtualizer(ordered.length),
-			cardCleanups: [],
+			// card name -> { card, index, el, cleanups } for the cards in the window
+			cardEls: new Map(),
+			measuredWidth: null,
 			renderedRange: { start: 0, end: 0 },
 			loading: false,
 			footer: null,
@@ -410,7 +414,7 @@ export class KanbanCore {
 			view.virtualizer.setCount(ordered.length);
 		}
 		if (ordered.length === 0) {
-			this.flushList(view.cardCleanups);
+			this.dropCardEls(view);
 			view.body.replaceChildren(this.renderEmptyState(view.column));
 			view.renderedRange = { start: 0, end: 0 };
 			return;
@@ -423,21 +427,52 @@ export class KanbanCore {
 			? view.virtualizer.range(view.body.scrollTop, viewport)
 			: { start: 0, end: ordered.length, padTop: 0, padBottom: 0 };
 
-		this.flushList(view.cardCleanups);
-		const nodes = [];
+		// unchanged cards are kept, so a scroll doesn't rebuild the whole window
+		const previous = view.cardEls;
+		const current = new Map();
+		const fresh = [];
 		for (let i = visibleRange.start; i < visibleRange.end; i++) {
-			nodes.push(this.createCardEl(view.column, ordered[i], i, view.cardCleanups));
+			const card = ordered[i];
+			let entry = previous.get(card.name);
+			if (entry && entry.card === card && entry.index === i) {
+				previous.delete(card.name);
+				if (entry.held) {
+					entry.held = false;
+					entry.el.classList.remove("hidden");
+				}
+			} else {
+				const cleanups = [];
+				const el = this.createCardEl(view.column, card, i, cleanups);
+				entry = { card, index: i, el, cleanups };
+				fresh.push(entry);
+			}
+			current.set(card.name, entry);
 		}
+		// the browser ends a drag on the dragged card, so out of the window it stays, hidden
+		const held = previous.get(this.dragSourceCard);
+		if (held && !current.has(this.dragSourceCard)) {
+			previous.delete(this.dragSourceCard);
+			held.held = true;
+			held.el.classList.add("hidden");
+			current.set(this.dragSourceCard, held);
+		}
+		this.dropCardEls(view);
+		view.cardEls = current;
 		view.topSpacer.style.height = `${visibleRange.padTop}px`;
 		view.bottomSpacer.style.height = `${visibleRange.padBottom}px`;
-		view.body.replaceChildren(view.topSpacer, ...nodes, view.bottomSpacer);
+		this.placeCards(view, [...current.values()]);
 		view.renderedRange = { start: visibleRange.start, end: visibleRange.end };
 
 		if (this.options.virtualization) {
+			// new cards; all of them once the width, or something around them (remeasure), changed
+			const width = view.body.clientWidth;
+			const measured = width === view.measuredWidth ? fresh : [...current.values()];
+			view.measuredWidth = width;
 			let changed = false;
-			nodes.forEach((node, k) => {
-				const h = node.getBoundingClientRect().height + CARD_GAP;
-				if (view.virtualizer.measure(visibleRange.start + k, h)) changed = true;
+			measured.forEach((entry) => {
+				if (entry.held) return;
+				const h = entry.el.getBoundingClientRect().height + CARD_GAP;
+				if (view.virtualizer.measure(entry.index, h)) changed = true;
 			});
 			if (changed) {
 				view.virtualizer.rebuild();
@@ -447,6 +482,35 @@ export class KanbanCore {
 				}px`;
 			}
 		}
+	}
+
+	/** Measures every rendered card again, after something outside the board changed their size. */
+	remeasure() {
+		for (const view of this.columnViews.values()) {
+			view.measuredWidth = null;
+			if (view.virtualizer.count > 0) this.renderWindow(view);
+		}
+	}
+
+	/** Moves only the cards that changed place: a card taken out and put back is laid out again. */
+	placeCards(view, entries) {
+		const { body, topSpacer, bottomSpacer } = view;
+		if (topSpacer.parentNode !== body) body.replaceChildren(topSpacer, bottomSpacer);
+		const nodes = entries.map((entry) => entry.el);
+		const wanted = new Set([topSpacer, bottomSpacer, ...nodes]);
+		for (const child of [...body.children]) {
+			if (!wanted.has(child)) child.remove();
+		}
+		let next = topSpacer.nextSibling;
+		for (const node of nodes) {
+			if (node === next) next = node.nextSibling;
+			else body.insertBefore(node, next);
+		}
+	}
+
+	dropCardEls(view) {
+		for (const entry of view.cardEls.values()) this.flushList(entry.cleanups);
+		view.cardEls.clear();
 	}
 
 	renderColumnHeader(column) {
@@ -560,11 +624,13 @@ export class KanbanCore {
 			bindCardDrag(el, dragData, {
 				onStart: (input) => {
 					this.dragSourceColumn = column.id;
+					this.dragSourceCard = card.name;
 					this.markCardsDragging(card.name);
 					this.startCardPreview(el, card.name, input);
 				},
 				onEnd: () => {
 					this.dragSourceColumn = null;
+					this.dragSourceCard = null;
 					this.clearCardsDragging();
 					this.endCardPreview();
 					// close the slot on a cancelled drop; a real drop has claimed it by now
@@ -1317,7 +1383,7 @@ export class KanbanCore {
 		this.flushRendererCleanups();
 		this.flushList(this.dragCleanups);
 		for (const view of this.columnViews.values()) {
-			this.flushList(view.cardCleanups);
+			this.dropCardEls(view);
 		}
 		this.columnViews.clear();
 	}
