@@ -3,7 +3,11 @@
 
 import deep_equal from "fast-deep-equal";
 import number_systems from "./number_systems";
+<<<<<<< HEAD
 import cloneDeepWith from "lodash/cloneDeepWith";
+=======
+import { CHART_PALETTE, has_unsafe_scheme } from "../ui/components/utils.js";
+>>>>>>> c608898 (refactor: reuse existing scheme and fieldtype helpers for URL fields)
 
 frappe.provide("frappe.utils");
 
@@ -256,6 +260,25 @@ Object.assign(frappe.utils, {
 		return String(txt).replace(/[&<>"'`=]/g, (char) => escape_html_mapping[char] || char);
 	},
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+	has_unsafe_url_scheme: function (url) {
+		// browsers ignore control characters and spaces before the scheme
+		const cleaned = String(url ?? "").replace(/[\u0000-\u0020]/g, "");
+		return /^(javascript|vbscript|data):/i.test(cleaned);
+	},
+=======
+	has_unsafe_url_scheme: has_unsafe_scheme,
+>>>>>>> c608898 (refactor: reuse existing scheme and fieldtype helpers for URL fields)
+
+	// Escape text and wrap in <strong> — use this instead of String.prototype.bold()
+	// so user-supplied values are safely escaped before being injected into HTML.
+	bold: function (txt) {
+		return `<strong>${frappe.utils.escape_html(cstr(txt))}</strong>`;
+	},
+
+>>>>>>> e18e4d8 (fix: only link URL field values that have a web-safe scheme)
 	unescape_html: function (txt) {
 		let unescape_html_mapping = {
 			"&amp;": "&",

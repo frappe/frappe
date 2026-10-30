@@ -1494,6 +1494,28 @@ export default class GridRow {
 			this.grid.grid_pagination.go_to_page(new_page);
 		}
 	}
+<<<<<<< HEAD
+=======
+	// Escape plain-text field values before passing to frappe.format(), so the formatted
+	// output is safe to inject via .html(). Mirrors the same pre-escaping in base_input.js.
+	_escape_for_format(value, df) {
+		if (df && frappe.model.plain_text_fieldtypes.includes(df.fieldtype)) {
+			return frappe.utils.escape_html(cstr(value));
+		}
+		return value;
+	}
+
+	// Static cells clip to a single line, so building the full rich-text HTML per cell
+	// is wasted work — show stripped text instead, like the list view does.
+	_format_static_value(value, df, doc) {
+		const RICH_TEXT_FIELDTYPES = ["Text Editor", "HTML Editor", "Markdown Editor"];
+		if (df && RICH_TEXT_FIELDTYPES.includes(df.fieldtype)) {
+			return strip_html(cstr(value));
+		}
+		return frappe.format(this._escape_for_format(value, df), df, null, doc);
+	}
+
+>>>>>>> c608898 (refactor: reuse existing scheme and fieldtype helpers for URL fields)
 	refresh_field(fieldname, txt) {
 		let fields =
 			this.grid.user_defined_columns && this.grid.user_defined_columns.length > 0

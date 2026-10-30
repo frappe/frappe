@@ -30,3 +30,15 @@ class TestEmailGroup(FrappeTestCase):
 
 		email_group.welcome_url = ""
 		self.assertEqual(email_group.get_welcome_url(), None)
+
+	def test_url_field_rejects_script_schemes(self):
+		for url in (
+			"javascript:alert(1)",
+			" JaVaScRiPt:alert(1)",
+			"java\tscript:alert(1)",
+			"data:text/html,x",
+		):
+			email_group = frappe.new_doc("Email Group")
+			email_group.title = "Test"
+			email_group.welcome_url = url
+			self.assertRaises(frappe.ValidationError, email_group.insert)
