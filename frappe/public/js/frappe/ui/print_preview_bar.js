@@ -67,7 +67,26 @@ frappe.ui.PrintPreviewBar = class PrintPreviewBar {
 		const doc = frame.contentDocument;
 		this.frame = frame;
 		this.zoom_style = doc.head.appendChild(doc.createElement("style"));
+		doc.head.appendChild(doc.createElement("style")).textContent = `
+			.preview-page-break {
+				position: absolute;
+				left: 50%;
+				transform: translateX(-50%);
+				border-top: 1px dashed #99a1af;
+				pointer-events: none;
+			}
+			.preview-page-break span {
+				position: absolute;
+				left: calc(100% + 8px);
+				top: -8px;
+				white-space: nowrap;
+				font-size: 11px;
+				color: #6a7282;
+			}
+			@media print { .preview-page-break { display: none; } }
+		`;
 		doc.addEventListener("scroll", () => this.update_page_label());
+		new frame.contentWindow.ResizeObserver(() => this.draw_page_breaks()).observe(doc.body);
 		if (fit && !this.zoom_set_by_user) this.fit(1);
 		this.apply_zoom();
 	}
@@ -91,6 +110,19 @@ frappe.ui.PrintPreviewBar = class PrintPreviewBar {
 		this.$wrapper.find(".page-label").text(__("Page {0} of {1}", [this.current_page, pages]));
 		this.$wrapper.find("[data-action=prev-page]").prop("disabled", this.current_page <= 1);
 		this.$wrapper.find("[data-action=next-page]").prop("disabled", this.current_page >= pages);
+	}
+
+	draw_page_breaks() {
+		const m = this.metrics();
+		if (!m) return;
+		m.doc.querySelectorAll(".preview-page-break").forEach((el) => el.remove());
+		m.starts.slice(1).forEach((start, i) => {
+			const line = m.doc.body.appendChild(m.doc.createElement("div"));
+			line.className = "preview-page-break";
+			line.style.top = `${m.top + start}px`;
+			line.style.width = `${m.width}px`;
+			line.appendChild(m.doc.createElement("span")).textContent = __("Page {0}", [i + 2]);
+		});
 	}
 
 	go_to_page(page) {
