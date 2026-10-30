@@ -39,7 +39,6 @@ frappe.ui.PrintPreviewBar = class PrintPreviewBar {
 		const doc = frame.contentDocument;
 		this.frame = frame;
 		this.pages = [];
-		this.paginate = null;
 		this.zoom_style = doc.head.appendChild(doc.createElement("style"));
 		doc.addEventListener("scroll", () => this.update_page_label());
 		if (fit && !this.zoom_set_by_user) this.fit(1);
@@ -53,28 +52,26 @@ frappe.ui.PrintPreviewBar = class PrintPreviewBar {
 		);
 		await frappe.require("print_pages.bundle.js");
 		if (frame.contentDocument !== doc) return;
-		this.paginate = () => {
-			const sheet = this.get_sheet(doc);
-			this.pages = sheet?.sheet ? frappe.ui.PrintPages.paginate(sheet) : [];
-		};
-		this.paginate();
-		this.update_page_label();
+		const sheet = this.get_sheet(doc);
+		if (!sheet?.sheet) return;
+		this.zoom_style.textContent = "";
+		this.pages = frappe.ui.PrintPages.paginate(sheet);
+		this.apply_zoom();
 	}
 
 	metrics() {
 		const doc = this.frame?.contentDocument;
 		if (!doc?.body) return null;
 		if (this.pages?.length && this.pages[0].ownerDocument === doc) {
-			const top = this.pages[0].offsetTop;
+			const scroll = doc.scrollingElement.scrollTop;
 			return {
 				doc,
-				top,
 				width: this.pages[0].offsetWidth,
-				starts: this.pages.map((page) => page.offsetTop - top),
+				starts: this.pages.map((page) => page.getBoundingClientRect().top + scroll),
 			};
 		}
 		const sheet = this.get_sheet(doc)?.sheet;
-		return sheet ? { doc, top: sheet.offsetTop, width: sheet.offsetWidth, starts: [0] } : null;
+		return sheet ? { doc, width: sheet.offsetWidth, starts: [0] } : null;
 	}
 
 	update_page_label() {
@@ -83,7 +80,7 @@ frappe.ui.PrintPreviewBar = class PrintPreviewBar {
 		const el = m.doc.scrollingElement;
 		const pages = m.starts.length;
 		const at_end = el.scrollTop > 0 && el.scrollTop + el.clientHeight >= el.scrollHeight - 2;
-		const middle = (el.scrollTop + el.clientHeight / 2) / this.zoom - m.top;
+		const middle = el.scrollTop + el.clientHeight / 2;
 		this.current_page = at_end
 			? pages
 			: Math.max(1, m.starts.filter((start) => start <= middle).length);
@@ -97,7 +94,7 @@ frappe.ui.PrintPreviewBar = class PrintPreviewBar {
 		if (!m) return;
 		page = Math.min(m.starts.length, Math.max(1, page));
 		m.doc.scrollingElement.scrollTo({
-			top: (m.top + m.starts[page - 1]) * this.zoom,
+			top: m.starts[page - 1],
 			behavior: "smooth",
 		});
 	}
@@ -108,10 +105,19 @@ frappe.ui.PrintPreviewBar = class PrintPreviewBar {
 	}
 
 	apply_zoom() {
-		if (this.zoom_style) {
+		const container = this.pages?.[0]?.parentElement;
+		if (container) {
+			const width = this.pages[0].offsetWidth;
+			const height = container.offsetHeight;
+			this.zoom_style.textContent = `@media screen { .preview-pages {
+				width: ${width}px;
+				margin: 0 0 ${height * (this.zoom - 1)}px max(0px, calc((100% - ${width * this.zoom}px) / 2));
+				transform: scale(${this.zoom});
+				transform-origin: 0 0;
+			} }`;
+		} else if (this.zoom_style) {
 			this.zoom_style.textContent = `@media screen { :root { zoom: ${this.zoom}; } }`;
 		}
-		this.paginate?.();
 		this.$wrapper.find(".zoom-label").text(`${Math.round(this.zoom * 100)}%`);
 		this.update_page_label();
 	}

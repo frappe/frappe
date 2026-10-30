@@ -6,7 +6,9 @@ frappe.ui.PrintPages = class PrintPages {
 		if (!(height > 0)) return null;
 
 		const rect = sheet.getBoundingClientRect();
-		const scale = sheet.offsetHeight / (rect.height || 1);
+		const scale = sheet.currentCSSZoom
+			? 1 / sheet.currentCSSZoom
+			: sheet.offsetHeight / (rect.height || 1);
 		const y = (top) => (top - rect.top) * scale - pad_top;
 		const atoms = [];
 		const add = (r) => r.height > 0.5 && atoms.push([y(r.top), y(r.bottom)]);
@@ -127,17 +129,13 @@ frappe.ui.PrintPages = class PrintPages {
 		return {
 			pages,
 			frame,
+			width: rect.width * scale,
 			height: sheet.clientHeight - pad_top - parseFloat(style.paddingBottom),
 		};
 	}
 
 	static paginate({ sheet, breaks }) {
 		const doc = sheet.ownerDocument;
-		doc.querySelectorAll(".preview-pages").forEach((el) => el.remove());
-		doc.querySelectorAll(".preview-source").forEach((el) =>
-			el.classList.remove("preview-source")
-		);
-		doc.body.classList.remove("preview-paginated");
 		const layout = this.find_breaks({ sheet, breaks });
 		if (!layout || layout.pages.length < 2) return [];
 
@@ -189,7 +187,7 @@ frappe.ui.PrintPages = class PrintPages {
 			page.className = `${sheet.className} preview-page`;
 			Object.assign(page.style, {
 				boxSizing: "border-box",
-				width: `${sheet.offsetWidth}px`,
+				width: `${layout.width}px`,
 				height: style.minHeight,
 				minHeight: style.minHeight,
 				padding: style.padding,
@@ -232,10 +230,7 @@ frappe.ui.PrintPages = class PrintPages {
 			sheet.classList.add("preview-source");
 			sheet.after(container);
 		}
-		if (doc.getElementById("preview-pages-style")) return pages;
-		const css = doc.head.appendChild(doc.createElement("style"));
-		css.id = "preview-pages-style";
-		css.textContent = `
+		doc.head.appendChild(doc.createElement("style")).textContent = `
 			@media screen {
 				.preview-source { display: none; }
 				body.preview-paginated {
