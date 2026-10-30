@@ -8,6 +8,9 @@ Thus providing a better UI from user perspective
 
 import json
 
+from pypika.functions import Length
+from pypika.terms import Function
+
 import frappe
 import frappe.translate
 from frappe import _
@@ -606,17 +609,10 @@ class CustomizeForm(Document):
 
 	def validate_fieldtype_length(self, df):
 		max_length = cint(df.length) or cint(frappe.db.type_map.get(df.fieldtype)[1])
-		fieldname = df.fieldname
+		field = frappe.qb.DocType(self.doc_type)[df.fieldname]
 		# MariaDB's LENGTH counts bytes; SQLite has no CHAR_LENGTH and its LENGTH counts characters
-		char_length = "LENGTH" if frappe.db.db_type == "sqlite" else "CHAR_LENGTH"
-		docs = frappe.db.sql(
-			f"""
-			SELECT name, `{fieldname}`, {char_length}(`{fieldname}`) AS len
-			FROM `tab{self.doc_type}`
-			WHERE {char_length}(`{fieldname}`) > {max_length}
-		""",
-			as_dict=True,
-		)
+		char_length = Length(field) if frappe.db.db_type == "sqlite" else Function("CHAR_LENGTH", field)
+		docs = frappe.qb.from_(self.doc_type).select("name").where(char_length > max_length).run(as_dict=True)
 		label = df.label
 		links_str = ", ".join(frappe.utils.get_link_to_form(self.doc_type, doc.name) for doc in docs)
 

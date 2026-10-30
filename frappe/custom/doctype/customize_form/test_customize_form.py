@@ -308,7 +308,7 @@ class TestCustomizeForm(IntegrationTestCase):
 		frappe.db.delete("Property Setter", dict(doc_type="Event"))
 		frappe.clear_cache(doctype="Event")
 		frappe.db.updatedb("Event")
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep
 
 	def test_custom_link(self):
 		try:
