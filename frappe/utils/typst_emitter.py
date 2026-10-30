@@ -1052,6 +1052,13 @@ class TypstEmitter:
 					return self._text_props(df, body)
 			body = f"#grid(columns: (auto, auto), column-gutter: {gap_pt}pt, [{label}], [{value_text}])"
 			return _aligned(self._text_props(df, body), align)
+		if (
+			show_label == "hide"
+			and section.get("field_orientation") == "left-right"
+			and align not in ("center", "right")
+			and df.get("label_justify") == "space-evenly"
+		):
+			return _aligned(self._text_props(df, value_text), "center")
 		spacing = gap_effect if gap_effect is not None else 4
 		parts = [f"[{label}]"] if label else []
 		parts.append(f"[{value_text}]")
