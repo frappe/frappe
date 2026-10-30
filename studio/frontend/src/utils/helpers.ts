@@ -294,12 +294,7 @@ async function fetchPage(pageName: string) {
 
 // Fetches the page definition (blocks + resources + variables) in one unprivileged call.
 // Data the page renders stays permission-checked by the endpoints its resources call.
-async function fetchAppPage(
-	appName: string,
-	pageName: string,
-	preview: boolean = false,
-	fresh: boolean = false,
-) {
+async function fetchAppPage(appName: string, pageName: string, preview: boolean = false) {
 	const page = createResource({
 		url: "frappe.studio.doctype.studio_page.studio_page.get_page",
 		method: "GET",
@@ -307,13 +302,8 @@ async function fetchAppPage(
 		// a published page changes only on publish; the preview must see every draft save
 		cache: preview ? undefined : ["studio-page", pageName],
 	})
-	// a cached definition mounts at once and refreshes in the background for the next visit;
-	// a refresh is asking for what the server holds now, so it waits for the read
+	// a cached definition mounts at once and refreshes in the background for the next visit
 	if (page.fetched) {
-		if (fresh) {
-			await page.reload()
-			return page.data
-		}
 		page.reload().catch(() => {})
 		return page.data
 	}

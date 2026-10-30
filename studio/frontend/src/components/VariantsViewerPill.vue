@@ -38,14 +38,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, nextTick, ref, watch } from "vue"
+import { computed, nextTick, ref, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import { onClickOutside, useEventListener } from "@vueuse/core"
 import { Button, call, dialog, toast } from "frappe-ui"
 import BlockOutline from "@/components/BlockOutline.vue"
 import VariantRows from "@/components/VariantRows.vue"
 import { useBlockOutline } from "@/utils/useBlockOutline"
-import { refreshPageKey } from "@/page/pageLoader"
 import {
 	activeVariantIndex,
 	keepDialogText,
@@ -60,8 +59,6 @@ import {
 // current combination is a link.
 const route = useRoute()
 const router = useRouter()
-const refreshPage = inject(refreshPageKey)
-if (!refreshPage) throw new Error("VariantsViewerPill must render inside the app renderer")
 const sets = useMountedVariantSets()
 
 // Keep needs a developer bench and write access, so a hosted site without developer mode
@@ -147,9 +144,8 @@ function keepVariant(set: VariantSet) {
 			} catch (error: any) {
 				throw new Error(error?.messages?.join(", ") || "Could not keep the variant")
 			}
+			// the save this raises reaches the preview over the socket, which re-reads the page
 			toast.success(`Kept ${set.options[option]}`)
-			// the block is gone from the page on the server; re-read it rather than reload the app
-			await refreshPage()
 		},
 	})
 }
