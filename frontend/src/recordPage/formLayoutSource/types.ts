@@ -35,9 +35,12 @@ export interface LayoutTreeTab {
 export type LayoutTree = LayoutTreeTab[];
 
 export interface FormLayoutRow {
-	name: string | number;
+	/** `null` for the app's layout file, which comes last and only when no row is the default. */
+	name: string | number | null;
 	condition?: string | null;
 	layout: LayoutTree;
+	/** The app's layout file only: fields kept off this layout on purpose. */
+	omitted?: string[];
 }
 
 export interface FormLayoutsResponse {
