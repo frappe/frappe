@@ -607,7 +607,7 @@ def set_link_titles(doc):
 def get_link_values_by_doctype(doc) -> dict[str, set]:
 	"""Link and Dynamic Link values of `doc` and its rows, grouped by linked doctypes that show titles."""
 	values_by_doctype = {}
-	for row in get_doc_and_rows(doc):
+	for row in [doc, *doc.get_all_children(include_computed=True)]:
 		meta = frappe.get_meta(row.doctype)
 		for field in meta.get_link_fields() + meta.get_dynamic_link_fields():
 			if not (value := row.get(field.fieldname)):
@@ -619,13 +619,6 @@ def get_link_values_by_doctype(doc) -> dict[str, set]:
 				values_by_doctype.setdefault(doctype, set()).add(value)
 
 	return values_by_doctype
-
-
-def get_doc_and_rows(doc) -> list:
-	rows = [doc]
-	for field in frappe.get_meta(doc.doctype).get_table_fields(include_computed=True):
-		rows.extend(doc.get(field.fieldname) or [])
-	return rows
 
 
 def update_user_info(docinfo, doc=None):
