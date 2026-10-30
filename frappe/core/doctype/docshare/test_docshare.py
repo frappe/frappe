@@ -4,12 +4,8 @@
 import frappe
 import frappe.share
 from frappe.automation.doctype.auto_repeat.test_auto_repeat import create_submittable_doctype
-<<<<<<< HEAD
-from frappe.tests.utils import FrappeTestCase, change_settings
-=======
 from frappe.core.doctype.user.test_user import test_user
-from frappe.tests import IntegrationTestCase
->>>>>>> f9a72cf (fix: honour user permissions on the target when sharing a document)
+from frappe.tests.utils import FrappeTestCase, change_settings
 
 test_dependencies = ["User"]
 
