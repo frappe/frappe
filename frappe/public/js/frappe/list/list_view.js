@@ -2332,6 +2332,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				// the rows were redrawn under the finger, so this one is gone
 				if (!$checkbox[0].isConnected) return;
 				this.long_pressed = true;
+				// before the click swallowing below, which would take the iOS tick's own click
+				frappe.utils.haptic();
 				// the click that ends a long press would open the row, or land on the sheet's scrim
 				const swallow = (event) => {
 					event.preventDefault();
