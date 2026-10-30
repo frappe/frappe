@@ -41,6 +41,8 @@
   "value_color",
   "page_number",
   "show_label_colon",
+  "access_section",
+  "roles",
   "css_section",
   "css",
   "custom_html_help",
