@@ -24,7 +24,6 @@ from frappe.permissions import (
 	validate_desk_user,
 )
 from frappe.utils.data import cstr
-from frappe.utils.user import is_website_user
 
 
 @frappe.whitelist()
@@ -602,8 +601,7 @@ def update_user_info(docinfo, doc=None):
 
 @frappe.whitelist()
 def get_user_info_for_viewers(users: str | list):
-	if is_website_user():
-		frappe.throw(_("Not permitted"), frappe.PermissionError)
+	validate_desk_user()
 
 	user_info = {}
 	for user in frappe.parse_json(users):
