@@ -63,7 +63,7 @@ frappe.ui.form.PrintView = class {
 		this.preview_bar = new frappe.ui.PrintPreviewBar({
 			parent: this.print_wrapper.find(".preview-beta-wrapper"),
 			get_sheet: (doc) => ({
-				sheet: doc.querySelector(".print-format-gutter > .print-format") || doc.body,
+				sheet: doc.body,
 				breaks: ".print-format > .page-break:not(:last-child)",
 			}),
 		});
