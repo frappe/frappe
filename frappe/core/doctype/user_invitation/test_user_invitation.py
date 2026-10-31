@@ -334,6 +334,7 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 			self.assertCountEqual(
 				get_invited_emails("frappe", frappe.as_json(emails[1:5])), [emails[1], emails[2]]
 			)
+			self.assertRaises(frappe.ValidationError, get_invited_emails, "frappe", frappe.as_json(emails[1]))
 
 	def test_reads_refuse_a_user_who_cannot_invite(self):
 		outsider = self.make_user("invitation-outsider@example.com", "Blogger")

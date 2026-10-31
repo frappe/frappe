@@ -304,11 +304,12 @@ Whitelisted methods called:
 - `frappe.core.api.user_invitation.get_pending_invitations` (GET — auto-fetch)
 - `frappe.core.api.user_invitation.get_invited_emails` (GET — already-invited exclusion,
   checked against the found emails)
-- `User Invitation`'s `cancel_invite` and `resend_invite` document methods (POST)
+- `frappe.core.api.user_invitation.cancel_invitation` (POST)
+- `frappe.core.api.user_invitation.resend_invitation` (POST)
 - the `/api/v2` search of `User` (email autocomplete)
 
-Both reads take the inviter's `appName` and are gated by its hook like the invite, so an
-app's inviter needs no `User Invitation` DocPerm to see suggestions and pending invitations.
+Each method takes the inviter's `appName` and is gated by its hook like the invite, so an
+app's inviter needs no `User Invitation` DocPerm.
 
 ## Types
 

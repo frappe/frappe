@@ -19,6 +19,8 @@ import { useInviteUser } from "../useInviteUser";
 const PENDING = "frappe.core.api.user_invitation.get_pending_invitations";
 const INVITED = "frappe.core.api.user_invitation.get_invited_emails";
 const INVITE = "frappe.core.api.user_invitation.invite_by_email";
+const CANCEL = "frappe.core.api.user_invitation.cancel_invitation";
+const RESEND = "frappe.core.api.user_invitation.resend_invitation";
 
 const emptyResult = {
   invited_emails: [],
@@ -35,7 +37,6 @@ function pendingCalls() {
   return callsTo(PENDING);
 }
 
-/** Answer each user_invitation method; `invited` is the already-invited emails. */
 function methodAnswers(pending: unknown[] = [], invited: string[] = ["b@y.com"]) {
   api.runMethod.mockImplementation((method: string) => {
     if (method === PENDING) return Promise.resolve({ data: pending });
@@ -158,28 +159,27 @@ describe("useInviteUser", () => {
     });
   });
 
-  it("cancel() and resend() run the invitation's document methods", async () => {
+  it("cancel() and resend() go through the inviter-gated methods with the app name", async () => {
     const appName = freshApp();
     const store = useInviteUser({ appName });
 
     await store.cancel("inv-1");
-    expect(api.runDocumentMethod).toHaveBeenCalledWith("User Invitation", "inv-1", "cancel_invite");
+    expect(api.runMethod).toHaveBeenCalledWith(CANCEL, { name: "inv-1", app_name: appName });
 
     await store.resend("inv-2");
-    expect(api.runDocumentMethod).toHaveBeenCalledWith(
-      "User Invitation",
-      "inv-2",
-      "resend_invite",
-      {},
-      { nullable: true },
+    expect(api.runMethod).toHaveBeenCalledWith(
+      RESEND,
+      { name: "inv-2", app_name: appName },
+      { nullable: true }
     );
+    expect(api.runDocumentMethod).not.toHaveBeenCalled();
   });
 
   it("cancellingName is the busy row while cancel() is in flight, then null", async () => {
     const appName = freshApp();
     const store = useInviteUser({ appName });
     const call = deferred();
-    api.runDocumentMethod.mockReturnValue(call.promise);
+    api.runMethod.mockReturnValue(call.promise);
 
     const done = store.cancel("inv-1");
     expect(store.cancellingName).toBe("inv-1");
@@ -192,7 +192,7 @@ describe("useInviteUser", () => {
     const appName = freshApp();
     const store = useInviteUser({ appName });
     const call = deferred();
-    api.runDocumentMethod.mockReturnValue(call.promise);
+    api.runMethod.mockReturnValue(call.promise);
 
     const done = store.resend("inv-2");
     expect(store.resendingName).toBe("inv-2");
@@ -297,7 +297,7 @@ describe("useInviteUser", () => {
     const appName = freshApp();
     const store = useInviteUser({ appName });
     const err = { messages: ["gone"] };
-    api.runDocumentMethod.mockRejectedValue(err);
+    api.runMethod.mockRejectedValue(err);
 
     await expect(store.cancel("inv-1")).rejects.toBe(err);
     expect(store.loadError).toEqual(err);

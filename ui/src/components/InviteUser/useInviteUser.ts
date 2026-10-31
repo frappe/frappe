@@ -1,5 +1,5 @@
 import { computed, reactive, ref } from "vue";
-import { runDocumentMethod, runMethod, searchDocuments } from "../../api";
+import { runMethod, searchDocuments } from "../../api";
 import type {
   InviteResult,
   InviteStore,
@@ -9,7 +9,6 @@ import type {
 } from "./types";
 
 const API = "frappe.core.api.user_invitation";
-const DOCTYPE = "User Invitation";
 
 /**
  * Data plugin behind `InviteUser`. Wraps Frappe's `user_invitation` API plus the
@@ -139,7 +138,7 @@ export function useInviteUser(options: UseInviteUserOptions = {}): InviteStore {
   async function cancel(name: string): Promise<void> {
     cancellingName.value = name;
     try {
-      await runDocumentMethod(DOCTYPE, name, "cancel_invite");
+      await runMethod(`${API}.cancel_invitation`, { name, app_name: appName });
       cancelError.value = null;
       void fetchPending();
     } catch (failure) {
@@ -153,7 +152,11 @@ export function useInviteUser(options: UseInviteUserOptions = {}): InviteStore {
   async function resend(name: string): Promise<void> {
     resendingName.value = name;
     try {
-      await runDocumentMethod(DOCTYPE, name, "resend_invite", {}, { nullable: true });
+      await runMethod(
+        `${API}.resend_invitation`,
+        { name, app_name: appName },
+        { nullable: true }
+      );
       resendError.value = null;
     } catch (failure) {
       resendError.value = failure;

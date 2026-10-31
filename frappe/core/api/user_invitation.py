@@ -163,6 +163,8 @@ def get_invited_emails(app_name: str, emails: list[str] | str) -> list[str]:
 	UserInvitation.validate_role(app_name)
 
 	emails = frappe.parse_json(emails)
+	if not isinstance(emails, list) or not all(isinstance(email, str) for email in emails):
+		frappe.throw(title=_("Invalid input"), msg=_("Emails must be a list of email addresses"))
 	if not emails:
 		return []
 	return frappe.db.get_all(
