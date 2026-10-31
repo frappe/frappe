@@ -1,11 +1,16 @@
 <div class="flex justify-between sidebar-image-section sidebar-section hide">
 	<div class="sidebar-image-wrapper">
-		<img class="sidebar-image">
-		<div class="sidebar-standard-image">
-			<div class="standard-image"></div>
+		<div class="sidebar-image-preview">
+			<img class="sidebar-image">
+			<div class="sidebar-standard-image">
+				<div class="standard-image"></div>
+				<span class="sidebar-image-add">
+					{%= frappe.utils.icon("image-plus", "lg") %}
+				</span>
+			</div>
 		</div>
 		{% if can_write %}
-		<span class="sidebar-image-edit"></span>
+		{%= frappe.ui.button.html({ icon: "camera", variant: "outline", size: "xs", css_class: "sidebar-image-edit hide", attrs: { "aria-label": __("Change image") } }) %}
 		{% endif %}
 	</div>
 	{% if image_field %}
