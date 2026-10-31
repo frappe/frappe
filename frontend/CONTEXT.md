@@ -276,6 +276,7 @@ _Avoid_: fork, override, copy.
 **Site layout**: <a id="site-layout"></a>
 A site's `Form Layout` row. A row with no condition replaces the app layout of its type
 whole; a row with a condition is chosen before the app layout when its condition matches.
+A row that names an app applies only there, and replaces the rows naming none.
 _Avoid_: fork, override, copy.
 
 **Fallback layout**: <a id="fallback-layout"></a>

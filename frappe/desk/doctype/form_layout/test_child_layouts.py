@@ -94,10 +94,10 @@ class TestChildLayouts(IntegrationTestCase):
 
 	def test_a_childs_rows_naming_the_app_replace_rows_naming_none(self):
 		everywhere = make_layout(dt=ROW_DT, layout=a_tree("item")).insert()
-		crm = make_layout(dt=ROW_DT, app="crm", layout=a_tree("note")).insert()
+		named = make_layout(dt=ROW_DT, app="frappe", layout=a_tree("note")).insert()
 		with set_user(PARENT_READER):
-			in_crm = get_form_layouts(PARENT_DT, "Details", "crm")["children"]
-		self.assertEqual([row["name"] for row in in_crm[ROW_DT]], [crm.name])
+			in_app = get_form_layouts(PARENT_DT, "Details", "frappe")["children"]
+		self.assertEqual([row["name"] for row in in_app[ROW_DT]], [named.name])
 		self.assertEqual([row["name"] for row in self.children()[ROW_DT]], [everywhere.name])
 
 	def test_a_child_with_no_row_gets_an_empty_list(self):

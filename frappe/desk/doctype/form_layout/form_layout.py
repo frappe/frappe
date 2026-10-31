@@ -22,6 +22,7 @@ STANDARD_FIELDS = frozenset(default_fields + child_table_fields + optional_field
 
 class FormLayout(Document):
 	def validate(self):
+		self.validate_app()
 		self.validate_single_default()
 		self.validate_layout()
 
@@ -107,6 +108,13 @@ class FormLayout(Document):
 		if not isinstance(tree, list):
 			frappe.throw(_("Layout must be a list of containers."), title=_("Invalid Layout"))
 		return tree
+
+	def validate_app(self):
+		self.app = (self.app or "").strip() or None
+		if self.app and self.app not in frappe.get_installed_apps():
+			frappe.throw(
+				_("{0} is not an installed app.").format(frappe.bold(self.app)), title=_("Invalid App")
+			)
 
 	def validate_single_default(self):
 		if self.condition:
