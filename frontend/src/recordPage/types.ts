@@ -275,6 +275,7 @@ export interface PageField extends PageFieldPatch {
  * The fields surface: a render-time overlay on fields authored elsewhere, cleared
  * before every replay. No `add`, `move` or `order`; ordering is the Form Layout's job.
  */
+/** A field is named by its fieldname, a table's column by `<table>.<column>`. */
 export interface PageFields {
   hide(fieldname: string): void;
   show(fieldname: string): void;

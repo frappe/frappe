@@ -9,6 +9,7 @@ import {
 } from "@framework/ui/FormLayout";
 import type { RawMetaField } from "@framework/ui/FormLayout/types";
 import type { FieldAccess } from "@framework/ui/useDocPermissions";
+import { holdsChildRows } from "@framework/ui/fields";
 import { runningSource } from "@/pageEngine/context";
 import { withAccess } from "./formLayoutSource/fieldAccess";
 import type { FieldErrors } from "./fieldErrors";
@@ -79,6 +80,8 @@ export interface FieldsSurfaceHost {
   isSection?: (name: string) => boolean;
   /** The marks `setError` and `clearError` write. */
   errors: FieldErrors;
+  /** A child doctype's meta fields, by doctype name; absent while the metas load. */
+  childFields?: (doctype: string) => RawMetaField[] | undefined;
 }
 
 type Op =
@@ -117,12 +120,14 @@ export class FieldsSurface extends StagedOverlay<Op> implements PageFields {
   }
 
   setError(fieldname: string, message: string) {
+    if (this.refuseColumn(fieldname, "setError")) return new Error(message);
     this.warnIfAbsent(fieldname, "setError");
     this.host.errors.mark(fieldname, message, runningSource());
     return new Error(message);
   }
 
   clearError(fieldname: string) {
+    if (this.refuseColumn(fieldname, "clearError")) return;
     this.warnIfAbsent(fieldname, "clearError");
     this.host.errors.unmark(fieldname);
   }
@@ -139,16 +144,21 @@ export class FieldsSurface extends StagedOverlay<Op> implements PageFields {
     }
     // Over the replay or hold in flight when there is one, as `Surface.has` reads: a
     // source reading back its own work is told about it, not about what is drawn.
-    const resolved = this.resolveField(raw, this.currentOps);
+    const resolved = this.resolveField(fieldname, raw, this.currentOps);
     return readOnly(snapshot(resolved), SNAPSHOT_IS_READ_ONLY);
   }
 
   // Host side, below: not part of what a script may call.
 
+  /** Whether the name is a table's column, `<table>.<column>`, which has a cell per row and no place of its own. */
+  isColumn(name: string) {
+    return splitName(name).column !== undefined;
+  }
+
   /** Whether the field shows in what is drawn, a replay or hold in flight left out. */
   isDrawn(fieldname: string) {
     const raw = this.raw(fieldname);
-    return !!raw && !this.resolveField(raw, this.drawnOps).hidden;
+    return !!raw && !this.resolveField(fieldname, raw, this.drawnOps).hidden;
   }
 
   /** The applied overlay: committed ops only, never a replay or hold in flight. */
@@ -157,14 +167,15 @@ export class FieldsSurface extends StagedOverlay<Op> implements PageFields {
   }
 
   // The same calls the join makes, in the same order, so the reader cannot drift from the renderer.
-  private resolveField(raw: RawMetaField, ops: Op[]) {
+  private resolveField(name: string, raw: RawMetaField, ops: Op[]) {
+    const patch = this.fold(ops)[name];
+    if (this.isColumn(name)) return resolveColumn(raw, patch, this.host.decorate);
     const node = mapField(
       withAccess(raw, (field) => this.host.fieldAccess(field.fieldname)),
       {},
       this.host.decorate,
     );
-    const patched = applyFieldPatch(node, this.fold(ops)[raw.fieldname]);
-    return resolveFieldConditionals(patched, this.host.doc());
+    return resolveFieldConditionals(applyFieldPatch(node, patch), this.host.doc());
   }
 
   /**
@@ -183,11 +194,33 @@ export class FieldsSurface extends StagedOverlay<Op> implements PageFields {
   }
 
   /** `DROPPED_FIELDTYPES` are excluded: `joinLayout` drops them before any patch could apply. */
-  private raw(fieldname: string): RawMetaField | undefined {
-    const field = this.host
-      .fields()
-      ?.find((one) => one.fieldname === fieldname);
-    return field && !DROPPED_FIELDTYPES.has(field.fieldtype) ? field : undefined;
+  private raw(name: string): RawMetaField | undefined {
+    const { field, column } = splitName(name);
+    if (column === undefined) return drawable(this.host.fields(), field);
+    const child = this.childFieldsOf(field);
+    return child && drawable(child, column);
+  }
+
+  private childFieldsOf(table: string): RawMetaField[] | undefined {
+    const field = this.host.fields()?.find((one) => one.fieldname === table);
+    if (!field?.options || !holdsChildRows(field.fieldtype)) return undefined;
+    return this.host.childFields?.(field.options);
+  }
+
+  /** Whether the meta the name would be found in has landed. */
+  private loaded(name: string) {
+    const fields = this.host.fields();
+    const { field, column } = splitName(name);
+    if (!fields || column === undefined) return !!fields;
+    const table = fields.find((one) => one.fieldname === field);
+    return !table || !holdsChildRows(table.fieldtype) || !!this.childFieldsOf(field);
+  }
+
+  private refuseColumn(name: string, verb: string) {
+    if (!this.isColumn(name)) return false;
+    if (import.meta.env.DEV)
+      warnOnce(`page.fields.${verb}("${name}") — a table column; row.${verb} in its row handler is the verb.`);
+    return true;
   }
 
   /**
@@ -195,8 +228,7 @@ export class FieldsSurface extends StagedOverlay<Op> implements PageFields {
    * yet" are indistinguishable, and dropping it would lose it for good.
    */
   private warnIfAbsent(fieldname: string, verb: string) {
-    const fields = this.host.fields();
-    if (!fields || this.raw(fieldname)) return;
+    if (!this.loaded(fieldname) || this.raw(fieldname)) return;
     // One name, one owner: `panelSections` speaks for a section's visibility.
     if (this.host.isSection?.(fieldname)) {
       const owner = verb === "get" ? "has" : verb;
@@ -205,8 +237,32 @@ export class FieldsSurface extends StagedOverlay<Op> implements PageFields {
       );
       return;
     }
-    warnOnce(`page.fields.${verb}("${fieldname}") — no such field.`);
+    const what = this.isColumn(fieldname) ? "table column" : "field";
+    warnOnce(`page.fields.${verb}("${fieldname}") — no such ${what}.`);
   }
+}
+
+/** `products.rate` names the `rate` column of the `products` table, as a field handler key does. */
+function splitName(name: string): { field: string; column?: string } {
+  const dot = name.indexOf(".");
+  return dot < 0 ? { field: name } : { field: name.slice(0, dot), column: name.slice(dot + 1) };
+}
+
+function drawable(fields: RawMetaField[] | undefined, fieldname: string) {
+  const field = fields?.find((one) => one.fieldname === fieldname);
+  return field && !DROPPED_FIELDTYPES.has(field.fieldtype) ? field : undefined;
+}
+
+/** A column's `depends_on` resolves per row, so its read leaves them out and reports the overlay alone. */
+function resolveColumn(raw: RawMetaField, patch: FieldPatch | undefined, decorate?: Decorator) {
+  const node = applyFieldPatch(mapField(raw, {}, decorate), patch);
+  const unconditional = {
+    ...node,
+    dependsOn: undefined,
+    mandatoryDependsOn: undefined,
+    readOnlyDependsOn: undefined,
+  };
+  return resolveFieldConditionals(unconditional, {});
 }
 
 /** Translate the script's vocabulary into the pipeline's, dropping the rest. */

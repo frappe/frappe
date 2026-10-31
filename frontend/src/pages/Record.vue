@@ -778,6 +778,7 @@ function isNewNavigation() {
 
 /** The page's controller with its built-ins, made current. */
 function buildController({ visit, target, pointer, details, panel, view }: Opening) {
+	const { metas } = useDoctypeMeta(target.doctype);
 	const created = createRecordPage({
 		app: boot.app!,
 		doctype: target.doctype,
@@ -801,6 +802,7 @@ function buildController({ visit, target, pointer, details, panel, view }: Openi
 		rename: (name, merge) => renameRecord(created.page, name, merge, visit.current),
 		reload: load,
 		router,
+		childFields: (child) => metas.value[child]?.fields,
 		sourcesReady: () => loadRecordScripts(target.doctype),
 		restoresView: () => view !== null,
 		actFailed,

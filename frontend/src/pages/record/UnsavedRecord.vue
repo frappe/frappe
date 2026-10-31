@@ -274,6 +274,7 @@ function buildController() {
 		onSaved: openSaved,
 		reload: open,
 		router,
+		childFields: (child) => metas.value[child]?.fields,
 		sourcesReady: () => loadRecordScripts(props.doctype),
 		actFailed,
 		openArgument: openArgumentStep,
