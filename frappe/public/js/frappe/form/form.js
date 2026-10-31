@@ -366,8 +366,7 @@ frappe.ui.form.Form = class FrappeForm {
 						field.validate &&
 						field.validate(value);
 
-					me.layout.refresh_dependency();
-					me.layout.refresh_sections();
+					me.layout.schedule_refresh_dependency();
 					return me.script_manager.trigger(fieldname, doc.doctype, doc.name);
 				}
 			}
@@ -486,11 +485,6 @@ frappe.ui.form.Form = class FrappeForm {
 				frappe.show_not_permitted(__(this.doctype) + " " + __(cstr(this.docname)));
 				return;
 			}
-
-			// update grids with new permissions
-			this.grids.forEach((table) => {
-				table.grid.refresh();
-			});
 
 			// read only (workflow)
 			this.read_only = frappe.workflow.is_read_only(this.doctype, this.docname);
@@ -686,7 +680,7 @@ frappe.ui.form.Form = class FrappeForm {
 				() => this._resolve_layout(),
 				() => this.refresh_header(switched),
 				() => $(document).trigger("form-refresh", [this]),
-				() => this.refresh_fields(),
+				() => this.render_fields(),
 				() => this.script_manager.trigger("refresh"),
 				() => this.apply_layout_defaults(),
 				() => {
@@ -869,6 +863,16 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	refresh_fields() {
+		if (this.layout === undefined || this.refresh_fields_frame) {
+			return;
+		}
+
+		this.refresh_fields_frame = requestAnimationFrame(() => this.render_fields());
+	}
+
+	render_fields() {
+		cancelAnimationFrame(this.refresh_fields_frame);
+		this.refresh_fields_frame = null;
 		if (this.layout === undefined) {
 			return;
 		}
@@ -1812,8 +1816,7 @@ frappe.ui.form.Form = class FrappeForm {
 	refresh_field(fname) {
 		if (this.fields_dict[fname] && this.fields_dict[fname].refresh) {
 			this.fields_dict[fname].refresh();
-			this.layout.refresh_dependency();
-			this.layout.refresh_sections();
+			this.layout.schedule_refresh_dependency();
 		}
 	}
 
@@ -2056,8 +2059,11 @@ frappe.ui.form.Form = class FrappeForm {
 			var fieldname = fnames[i];
 			var field = frappe.meta.get_docfield(this.doctype, fieldname, this.docname);
 			if (field) {
+				const before = { ...field };
 				fn(field);
-				this.refresh_field(fieldname);
+				if (Object.keys(field).some((key) => field[key] !== before[key])) {
+					this.refresh_field(fieldname);
+				}
 			}
 		}
 	}
