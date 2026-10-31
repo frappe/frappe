@@ -1,5 +1,6 @@
 // Desk's own settings components, as the build discovers them: the theme, the photo, the language
-// and time zone over the session user's binding, and the session defaults read and saved by method.
+// and time zone over the session user's binding, the session defaults read and saved by method, and
+// the password change.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, nextTick, reactive, type App, type Component } from "vue";
 
@@ -14,8 +15,15 @@ import { getFieldComponent, registerFieldType } from "@framework/ui/FormLayout";
 import { resetSession, setSession } from "@framework/ui/useSession";
 import { settingsComponentFor } from "@/contributions/registry";
 
-const NAMES = ["theme", "profile-photo", "language-and-time-zone", "session-defaults"];
+const NAMES = [
+	"theme",
+	"profile-photo",
+	"language-and-time-zone",
+	"session-defaults",
+	"change-password",
+];
 const SESSION_DEFAULTS = "frappe.core.doctype.session_default_settings.session_default_settings";
+const UPDATE_PASSWORD = "frappe.core.doctype.user.user.update_password";
 
 /** A field control that shows what it was handed and commits a value on click. */
 const drawn: Record<
@@ -59,7 +67,9 @@ beforeEach(() => {
 				return new Response(JSON.stringify({ data: [{ name: "en", language_name: "English" }] }));
 			const method = path.split("/method/")[1];
 			const body = init?.body ? JSON.parse(String(init.body)) : {};
-			return new Response(JSON.stringify({ data: methods[method]?.(body) ?? null }));
+			const reply = methods[method]?.(body);
+			if (reply instanceof Response) return reply;
+			return new Response(JSON.stringify({ data: reply ?? null }));
 		})
 	);
 	fake.toastError.mockReset();
@@ -99,6 +109,12 @@ function userBinding(values: Record<string, unknown>) {
 		error: "",
 		commit: vi.fn(async () => {}),
 	});
+}
+
+function type(fieldname: string, value: string) {
+	const input = document.querySelector<HTMLInputElement>(`[data-fieldname="${fieldname}"] input`)!;
+	input.value = value;
+	input.dispatchEvent(new Event("input", { bubbles: true }));
 }
 
 function button(label: string): HTMLButtonElement {
@@ -244,5 +260,58 @@ describe("desk's settings components", () => {
 		await settle();
 
 		expect(fake.toastError).toHaveBeenCalledWith("Your session defaults did not save");
+	});
+
+	it("change password: sends both passwords, logs out other sessions, and reloads", async () => {
+		const reload = vi.fn();
+		vi.stubGlobal("location", { ...window.location, reload });
+		const changed = vi.fn(() => "/desk");
+		methods[UPDATE_PASSWORD] = changed;
+		await mount("change-password");
+
+		type("current", "old secret");
+		type("next", "Tr1cky horse battery");
+		type("confirm", "Tr1cky horse");
+		await settle();
+		expect(document.body.textContent).toContain("The new passwords do not match");
+		expect(button("Change password").disabled).toBe(true);
+
+		type("confirm", "Tr1cky horse battery");
+		await settle();
+		button("Change password").click();
+		await settle();
+
+		expect(changed).toHaveBeenCalledWith({
+			old_password: "old secret",
+			new_password: "Tr1cky horse battery",
+			logout_all_sessions: 1,
+		});
+		expect(reload).toHaveBeenCalledOnce();
+	});
+
+	it("change password: a refused change shows the server's message and does not reload", async () => {
+		const reload = vi.fn();
+		vi.stubGlobal("location", { ...window.location, reload });
+		methods[UPDATE_PASSWORD] = () =>
+			new Response(
+				JSON.stringify({
+					errors: [{ type: "AuthenticationError", message: "Incorrect User or Password" }],
+				}),
+				{ status: 401 }
+			);
+		await mount("change-password");
+
+		type("current", "wrong");
+		type("next", "Tr1cky horse battery");
+		type("confirm", "Tr1cky horse battery");
+		await settle();
+		button("Change password").click();
+		await settle();
+
+		expect(document.querySelector("[role='alert']")?.textContent).toBe(
+			"Incorrect User or Password"
+		);
+		expect(reload).not.toHaveBeenCalled();
+		expect(button("Change password").disabled).toBe(false);
 	});
 });

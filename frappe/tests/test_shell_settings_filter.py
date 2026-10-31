@@ -37,7 +37,7 @@ WEBSITE_USER = "settings-website@example.com"
 SESSION_USER = {"binding_type": "Record", "document_type": "User", "name_resolver": "session_user"}
 APP_GATE = "frappe.shell.settings_filter.has_app_permission"
 APP_SCREEN = "frappe.shell.settings.app_screen"
-PROFILE_BLOCKS = ["photo", "details", "locale", "appearance", "notifications", "email", "session-defaults"]
+PROFILE_BLOCKS = ["photo", "details", "locale", "appearance", "notifications", "email", "session-defaults", "password"]
 OWN_RECORD = {"binding_type": "Record", "document_type": RECORD, "name_resolver": "session_user"}
 
 
