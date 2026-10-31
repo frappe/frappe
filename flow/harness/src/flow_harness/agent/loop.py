@@ -164,7 +164,6 @@ class LoopInputs:
 	budget: TokenBudget | None = None
 
 
-_DENIED = json.dumps({"status": "denied", "message": "User denied this tool call."})
 _ABORTED = json.dumps(
 	{"status": "aborted", "message": "Tool not executed. The run was aborted before this call ran."}
 )
@@ -210,13 +209,14 @@ async def compact(instructions: str | None, inputs: LoopInputs) -> AsyncIterator
 
 
 async def resume(
-	approval: PendingApproval, answers: dict[str, str], inputs: LoopInputs
+	approval: PendingApproval, answers: dict[str, str], inputs: LoopInputs, *, stop_on_deny: bool = False
 ) -> AsyncIterator[AnyEvent]:
 	"""Continue a paused run by settling its approval batch, then take turns.
 
 	The session validates ``answers`` against the pending batch before calling this.
 	Each answer maps a tool_call_id to a decision: "Approve" runs the tool, "Deny"
-	halts the run, any other text redirects the model.
+	skips it and the model replies to the user, or halts the run with ``stop_on_deny``,
+	any other text redirects the model.
 	"""
 	yield RunStarted(run_id=uuid.uuid4().hex[:12])
 	tools = inputs.server_tools or {}
@@ -235,14 +235,14 @@ async def resume(
 			else:
 				result = await _finished_call(call, tools, ctx, inputs)
 		elif answer == "Deny":
-			result = _result(call, _DENIED, is_error=True)
+			result = _result(call, _denied(pending.prompt), is_error=True)
 			denied = True
 		else:
 			result = _result(call, _redirect(answer))
 		_raise_if_aborted(inputs.abort)
 		yield result
 
-	if denied:  # a rejected action stops the run rather than continuing
+	if denied and stop_on_deny:
 		yield RunEnded(reason="denied")
 		return
 	async for event in _loop(inputs):
@@ -829,6 +829,22 @@ def _drain(next_steering: NextSteering | None) -> Iterator[UserMessage]:
 
 def _blocked(reason: str | None) -> str:
 	return json.dumps({"status": "blocked", "message": reason or "Blocked by an extension."})
+
+
+def _denied(prompt: str) -> str:
+	"""The decision envelope of a denied call. `action` is the first line of its approval
+	prompt, the words the user said no to."""
+	return json.dumps(
+		{
+			"status": "denied",
+			"message": "User denied this tool call. It was not executed.",
+			"action": prompt.split("\n", 1)[0].strip(),
+			"instruction": (
+				"Do not retry it or try another way. In one short reply, say it was not done "
+				"and ask whether they want to change anything."
+			),
+		}
+	)
 
 
 def _redirect(feedback: str) -> str:

@@ -312,7 +312,7 @@ function recordRequest(s, e) {
 
 const END_NOTICES = {
 	aborted: "Interrupted by user",
-	denied: "Tool call denied by user",
+	denied: "You declined this action",
 	max_turns: "Stopped — turn limit reached",
 	budget: "Stopped — token budget reached",
 	length: "Stopped — model hit its length limit",
@@ -687,6 +687,17 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 		} else if (entry.type === "tool_result") {
 			const step = stepsById.get(entry.tool_call_id)
 			if (step) step.result = entry
+			// a denial stays in sight when the work folds, in the words of the card
+			const decision = step ? stepDecision(entry) : null
+			if (decision?.status === "denied" && decision.action) {
+				flushThoughts()
+				items.push({
+					kind: "notice",
+					key: `d:${entry.seq}`,
+					turnKey: currentTurnKey,
+					text: `You declined: ${decision.action}`,
+				})
+			}
 		} else if (entry.type === "compaction") {
 			flushThoughts()
 			items.push({ kind: "compaction", key: `c:${entry.seq}`, turnKey: currentTurnKey, entry })
