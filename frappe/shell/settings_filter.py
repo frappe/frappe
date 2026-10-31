@@ -3,6 +3,8 @@
 # The rail's one role pass and the meta's permlevel rows, never a per-row `has_permission`;
 # DocPerm on the v2 document routes stays the boundary for every read and save.
 
+from functools import cached_property
+
 import frappe
 from frappe.desk.form.activity import readable_permlevels
 from frappe.model import display_fieldtypes
@@ -33,10 +35,24 @@ class SettingsFilter:
 		return {**pane, "blocks": blocks} if blocks else None
 
 	def block(self, pane: dict, block: dict) -> dict | None:
+		"""A block naming roles shows only to a user holding one of them, then as its kind decides."""
+		if not self.holds_a_role(block.get("roles")):
+			return None
+
+		# A copy: `block` is the cached merge every user's request reads.
+		block = {key: value for key, value in block.items() if key != "roles"}
+
 		if "binding" in block:
 			return self.generated_block(pane, block)
 
 		return self.component_block(pane, block)
+
+	def holds_a_role(self, roles: list[str] | None) -> bool:
+		return not roles or not self.roles.isdisjoint(roles)
+
+	@cached_property
+	def roles(self) -> set[str]:
+		return set(frappe.get_roles(self.user))
 
 	def generated_block(self, pane: dict, block: dict) -> dict | None:
 		binding = block["binding"]

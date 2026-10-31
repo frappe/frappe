@@ -27,6 +27,7 @@ class SettingsBlock(Document):
 		parent: DF.Data
 		parentfield: DF.Data
 		parenttype: DF.Data
+		roles: DF.Code | None
 		save_mode: DF.Literal["auto", "button"]
 		settings: DF.Code | None
 	# end: auto-generated types

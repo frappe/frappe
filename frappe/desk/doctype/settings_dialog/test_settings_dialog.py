@@ -181,6 +181,9 @@ class TestSettingsDialog(SettingsDialogTestCase):
 			"anchor target": component("theme", anchors='[{"after": ["system"]}]'),
 			"anchor parent": component("theme", anchors='[{"after": "system", "parent_key": "x"}]'),
 			"binding doctype": component("theme", bindings='{"u": {"type": "Single", "doctype": ["User"]}}'),
+			"roles": component("theme", roles='"System Manager"'),
+			"role name": component("theme", roles='[["System Manager"]]'),
+			"blank role": component("theme", roles='[" "]'),
 		}
 
 		with authoring():
@@ -192,9 +195,20 @@ class TestSettingsDialog(SettingsDialogTestCase):
 				["general"],
 				[
 					single("system", fields='["language", "time_zone"]'),
-					component("theme", settings='[{"label": "Theme", "keywords": "dark light"}]'),
+					component("theme", settings='[{"label": "Theme", "keywords": "dark light"}]', roles="[]"),
 				],
 			)
+
+	def test_a_block_names_roles_the_site_has(self):
+		with authoring():
+			self.assertRaisesRegex(
+				frappe.ValidationError,
+				"Not A Role",
+				ship,
+				["general"],
+				[single("system", roles='["System Manager", "Not A Role"]')],
+			)
+			ship(["general"], [single("system", roles='["System Manager", "Desk User"]')])
 
 	def test_component_blocks_on_one_binding_share_a_save_mode(self):
 		with authoring():

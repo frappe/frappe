@@ -466,6 +466,8 @@ One part of a pane, with one **binding**, or a component's named bindings, or no
 **generated** block draws a doctype's fields: the ones it lists, or else a Single's whole
 Details layout in one column; a **component** block is an app's
 `<module>/frontend/settings/<name>.vue`. Its key is unique in the merged pane, across apps.
+A block that lists `roles` shows only to a user with one of them. This is a display gate:
+DocPerm still decides every read and save.
 
 **Binding**: <a id="binding"></a>
 What a block reads and saves: a **Single**, a **Record** whose name a **name resolver**
@@ -494,7 +496,7 @@ no pane of its own. It ships as `<app>/settings_dialog/<name>/<name>.json`.
 **Settings Pane** and **Settings Block**: <a id="settings-pane"></a><a id="settings-block"></a>
 The two row types of a `Settings Dialog`: `panes` (key, label, icon, description) and
 `blocks` (key, pane, the binding or the component, `fields`, `bindings`, `settings` for
-search, `anchors`, `save_mode`). They share no content field, so they are two tables.
+search, `anchors`, `save_mode`, `roles`). They share no content field, so they are two tables.
 
 ## Words that collide
 

@@ -205,6 +205,7 @@ class TestSettingsMerge(SettingsDialogTestCase):
 						single("nested", fields='[["alpha"]]'),
 						component("unlabelled", settings='[{"keywords": ["dark"]}]'),
 						bound("declared", fields='{"user_image": 1}'),
+						component("gated", roles='"System Manager"'),
 					],
 					insert=False,
 				)
@@ -213,7 +214,7 @@ class TestSettingsMerge(SettingsDialogTestCase):
 		with self.assertLogs(frappe.logger("shell"), "WARNING") as logged:
 			self.assertEqual(block_keys(HOST, HOST), {"general": ["system"]})
 
-		self.assertEqual(len(logged.output), 8)
+		self.assertEqual(len(logged.output), 9)
 
 	def test_an_anchor_whose_target_is_not_a_name_leaves_the_block_in_run_order(self):
 		with authoring():
@@ -300,7 +301,13 @@ class TestSettingsMerge(SettingsDialogTestCase):
 			ship(
 				[pane("general", icon="settings", description="Site-wide settings")],
 				[
-					single("system", label="System", fields='["language"]', save_mode="button"),
+					single(
+						"system",
+						label="System",
+						fields='["language"]',
+						save_mode="button",
+						roles='["System Manager"]',
+					),
 					single("me", binding_type="Record", document_type="User", name_resolver="session_user"),
 					component(
 						"theme",
@@ -326,6 +333,7 @@ class TestSettingsMerge(SettingsDialogTestCase):
 							"app": HOST,
 							"save_mode": "button",
 							"label": "System",
+							"roles": ["System Manager"],
 							"binding": {"type": "Single", "doctype": "System Settings"},
 							"fields": ["language"],
 						},

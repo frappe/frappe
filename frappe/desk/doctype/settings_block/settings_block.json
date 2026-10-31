@@ -11,6 +11,7 @@
   "label",
   "description",
   "save_mode",
+  "roles",
   "binding_section",
   "binding_type",
   "document_type",
@@ -60,6 +61,13 @@
    "fieldtype": "Select",
    "label": "Save Mode",
    "options": "auto\nbutton"
+  },
+  {
+   "description": "JSON list of role names. Only a user with one of them sees the block.",
+   "fieldname": "roles",
+   "fieldtype": "Code",
+   "label": "Roles",
+   "options": "JSON"
   },
   {
    "fieldname": "binding_section",
@@ -152,7 +160,7 @@
  "istable": 1,
  "link_display_mode": "Search",
  "links": [],
- "modified": "2026-10-28 15:42:25.000000",
+ "modified": "2026-10-31 16:47:34.503978",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Settings Block",
