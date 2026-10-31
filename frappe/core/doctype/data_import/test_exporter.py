@@ -1,6 +1,7 @@
 # Copyright (c) 2019, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import frappe
+from frappe.core.doctype.data_import.data_import import get_export_count
 from frappe.core.doctype.data_import.exporter import Exporter
 from frappe.core.doctype.data_import.import_provider import ImportProvider
 from frappe.core.doctype.data_import.importer import build_fields_dict_for_column_matching
@@ -169,6 +170,40 @@ class TestExporter(IntegrationTestCase):
 		self.assertIn("Child Title (Table Field 1)", export[0])
 		self.assertNotIn("Child Description (Table Field 1)", export[0])
 		self.assertNotIn("Restricted Value", str(export))
+
+	def test_owner_only_export_includes_only_own_records(self):
+		own_doc, other_doc = "_Test Own Export", "_Test Other Export"
+		for name in (own_doc, other_doc):
+			frappe.delete_doc_if_exists(doctype_name, name)
+			self.addCleanup(frappe.delete_doc_if_exists, doctype_name, name)
+		self.addCleanup(reset, doctype_name)
+		self.addCleanup(frappe.form_dict.clear)
+		add(doctype_name, "All", 0)
+		update(doctype_name, "All", 0, "export", 0)
+		frappe.get_doc(
+			doctype="Custom DocPerm",
+			parent=doctype_name,
+			parenttype="DocType",
+			parentfield="permissions",
+			role="All",
+			if_owner=1,
+			read=1,
+			export=1,
+		).insert()
+		frappe.clear_cache(doctype=doctype_name)
+
+		frappe.get_doc(doctype=doctype_name, title=other_doc).insert()
+		filters = frappe.as_json({"title": ["in", [own_doc, other_doc]]})
+		with self.set_user("test2@example.com"):
+			frappe.get_doc(doctype=doctype_name, title=own_doc).insert(ignore_permissions=True)
+			exporter = Exporter(
+				doctype_name,
+				export_fields={doctype_name: ["title"]},
+				export_data=True,
+				export_filters=filters,
+			)
+			self.assertEqual([row[0] for row in exporter.get_csv_array()[1:]], [own_doc])
+			self.assertEqual(get_export_count(doctype_name, filters), 1)
 
 	def test_template_includes_import_provider_tables(self):
 		test_doc = "_Test Provider Export"

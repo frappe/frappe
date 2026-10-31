@@ -5,9 +5,20 @@ import frappe
 from frappe import _
 from frappe.model import display_fieldtypes, get_permitted_fields, no_value_fields
 from frappe.model import table_fields as table_fieldtypes
-from frappe.utils import flt, format_duration, groupby_metric
+from frappe.utils import flt, format_duration, groupby_metric, make_filter_tuple
 from frappe.utils.csvutils import build_csv_response
 from frappe.utils.xlsxutils import build_xlsx_response, get_default_xlsx_styles
+
+
+def get_export_filters(doctype, filters=None):
+	if frappe.permissions.can_export(doctype):
+		return filters
+
+	frappe.permissions.can_export(doctype, raise_exception=True, is_owner=True)
+	filters = frappe.parse_json(filters)
+	if isinstance(filters, dict):
+		filters = [make_filter_tuple(doctype, k, v) for k, v in filters.items()]
+	return [*(filters or []), ["owner", "=", frappe.session.user]]
 
 
 class Exporter:
@@ -149,20 +160,7 @@ class Exporter:
 
 	def get_data_to_export(self):
 		table_fields = [f for f in self.exportable_fields if f != self.doctype]
-		data = self.get_data_as_docs()
-
-		if not frappe.permissions.can_export(self.doctype):
-			if frappe.permissions.can_export(self.doctype, is_owner=True):
-				for doc in data:
-					if doc.get("owner") != frappe.session.user:
-						raise frappe.PermissionError(
-							_("You are not allowed to export {} doctype").format(self.doctype)
-						)
-			else:
-				raise frappe.PermissionError(
-					_("You are not allowed to export {} doctype").format(self.doctype)
-				)
-		for doc in data:
+		for doc in self.get_data_as_docs():
 			rows = []
 			rows = self.add_data_row(None, doc, rows, 0)
 			# add child table data
@@ -201,7 +199,7 @@ class Exporter:
 		def format_column_name(df):
 			return f"`tab{df.parent}`.`{df.fieldname}`"
 
-		filters = self.export_filters
+		filters = get_export_filters(self.doctype, self.export_filters)
 
 		if self.meta.is_nested_set():
 			order_by = "lft ASC"
