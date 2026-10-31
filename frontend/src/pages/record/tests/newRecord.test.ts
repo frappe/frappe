@@ -1,5 +1,5 @@
 // The full-page new record at `/<doctype>/new`: what it opens with, the page states it shows,
-// the insert its save sends, the leave warning, and what a script sees before and after the insert.
+// the insert its save sends, the leave warning, what a script sees before and after the insert, and a duplicate.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, nextTick } from "vue";
 import { RouterView, type Router } from "vue-router";
@@ -108,6 +108,10 @@ function noteMeta() {
 
 const server = {
   meta: noteMeta() as Record<string, any>,
+  children: [] as Record<string, any>[],
+  // What `/copy` answers for a record, by name; a missing one is refused.
+  copies: {} as Record<string, Record<string, any>>,
+  copyReads: [] as string[],
   // Set by a test: the meta read throws it, or answers with it.
   metaFailure: null as Error | [unknown, number] | null,
   inserts: [] as Record<string, any>[],
@@ -126,7 +130,13 @@ async function answer(url: URL, init?: RequestInit): Promise<[unknown, number]> 
   const path = decodeURIComponent(url.pathname);
   if (path === "/api/v2/doctype/Note/meta") {
     if (server.metaFailure instanceof Error) throw server.metaFailure;
-    return server.metaFailure ?? [{ data: server.meta }, 200];
+    return server.metaFailure ?? [{ data: server.meta, children: server.children }, 200];
+  }
+  if (path.startsWith("/api/v2/document/Note/") && path.endsWith("/copy")) {
+    const name = path.split("/").at(-2)!;
+    server.copyReads.push(name);
+    if (!server.copies[name]) return [{ errors: [{ type: "DoesNotExistError", message: "Note not found" }] }, 404];
+    return [{ data: server.copies[name] }, 200];
   }
   if (path === `/api/v2/method/${GET_CLIENT_SCRIPTS}`)
     return [{ data: { scripts: [{ name: "Note Script", script: "" }], can_write: false } }, 200];
@@ -194,6 +204,9 @@ const apps: ReturnType<typeof createApp>[] = [];
 
 beforeEach(() => {
   server.meta = noteMeta();
+  server.children = [];
+  server.copies = {};
+  server.copyReads = [];
   server.metaFailure = null;
   server.inserts = [];
   server.layoutTypes = [];
@@ -706,5 +719,104 @@ describe("leaving with typed values", () => {
 
     expect(input(root, "title")!.value).toBe("Hello");
     expect(input(root, "status")!.value).toBe("Open");
+  });
+});
+
+describe("duplicating a record", () => {
+  function captured() {
+    const pages: any[] = [];
+    registerRecordPage("Note", { onRefresh: (page) => void pages.push(page) });
+    return () => pages.at(-1);
+  }
+
+  function withItems() {
+    const meta = noteMeta();
+    server.meta = {
+      ...meta,
+      fields: [
+        ...meta.fields,
+        { fieldname: "code", fieldtype: "Data", label: "Code", no_copy: 1 },
+        { fieldname: "cancel_reason", fieldtype: "Data", label: "Cancel Reason" },
+        { fieldname: "lft", fieldtype: "Int", label: "Left", hidden: 1 },
+        { fieldname: "secret", fieldtype: "Password", label: "Secret" },
+        { fieldname: "items", fieldtype: "Table", label: "Items", options: "Note Item" },
+      ],
+    };
+    server.children = [
+      {
+        name: "Note Item",
+        istable: 1,
+        fields: [
+          { fieldname: "item", fieldtype: "Data", label: "Item" },
+          { fieldname: "batch", fieldtype: "Data", label: "Batch", no_copy: 1, default: "B-0" },
+          { fieldname: "note", fieldtype: "Data", label: "Note", default: "None yet" },
+        ],
+      },
+    ];
+    server.copies["NOTE-9"] = {
+      doctype: "Note",
+      idx: 3,
+      title: "Hello",
+      code: "C-1",
+      cancel_reason: "Typo",
+      lft: 4,
+      secret: "*****",
+      _assign: "[]",
+      items: [{ doctype: "Note Item", parent: "NOTE-9", parentfield: "items", idx: 1, item: "Pen", batch: "B-1" }],
+    };
+  }
+
+  it("offers Duplicate to a reader who may create, and opens the new record page on the record's copy", async () => {
+    const page = captured();
+    server.copies["NOTE-1"] = { doctype: "Note", title: "Copied" };
+    const { root, router } = await mount("/note/NOTE-1");
+
+    expect(page().header.has("duplicate")).toBe(true);
+    await page().run("header.duplicate");
+    await settle();
+
+    expect(router.currentRoute.value.fullPath).toBe("/note/new?__copy_of=NOTE-1");
+    expect(server.copyReads).toEqual(["NOTE-1"]);
+    expect(header(root)).toContain("New Note");
+    expect(input(root, "title")!.value).toBe("Copied");
+  });
+
+  it("offers no Duplicate without the create right, nor on a doctype that hides copies", async () => {
+    const page = captured();
+    server.meta = { ...noteMeta(), permissions: [{ role: "Note Writer", permlevel: 0, read: 1, write: 1 }] };
+    await mount("/note/NOTE-1");
+    expect(page().header.has("duplicate")).toBe(false);
+
+    for (const app of apps.splice(0)) app.unmount();
+    resetDoctypeMeta();
+    server.meta = { ...noteMeta(), allow_copy: 1 };
+    await mount("/note/NOTE-1");
+    expect(page().header.has("duplicate")).toBe(false);
+  });
+
+  it("copies as desk v1 does: rows too, no no-copy or password field, and defaults where the copy has none", async () => {
+    withItems();
+    const { root } = await mount("/note/new?__copy_of=NOTE-9");
+
+    expect(input(root, "title")!.value).toBe("Hello");
+    expect(input(root, "status")!.value).toBe("Open");
+    expect(server.layoutTypes).not.toContain("Quick Entry");
+    await save(root);
+
+    const [inserted] = server.inserts;
+    expect(inserted).toMatchObject({ title: "Hello", status: "Open" });
+    expect(inserted.items).toEqual([expect.objectContaining({ item: "Pen", batch: "B-0", note: "None yet" })]);
+    for (const key of ["code", "secret", "cancel_reason", "lft", "idx", "_assign", "__copy_of", "name"])
+      expect(inserted).not.toHaveProperty(key);
+    for (const key of ["parent", "parentfield", "idx"]) expect(inserted.items[0]).not.toHaveProperty(key);
+  });
+
+  it("shows the not found state when the record to copy is gone", async () => {
+    const { root } = await mount("/note/new?__copy_of=GONE");
+
+    expect(server.copyReads).toEqual(["GONE"]);
+    expect(root.querySelector('[data-page-state="notFound"]')).not.toBeNull();
+    expect(input(root, "title")).toBeNull();
+    expect(server.inserts).toEqual([]);
   });
 });

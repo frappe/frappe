@@ -745,6 +745,7 @@ The generated page seeds these items, in this order:
 | `follow_row` | right | The reader's follow, in the star's band: *Follow* or *Unfollow*, whichever comes next. Seeded only when the doctype tracks changes and the reader's *Document follow* setting is on; the `follow` quick action goes with it. |
 | `copy_url` | right | A row in `⋯`: copies the record's address, as the `copy_link` quick action does. |
 | `copy_id` | right | A row in `⋯`: copies the record's name. |
+| `duplicate` | right | A row in `⋯`, after the copies, only with the create right on a doctype that does not set *Hide Copy*. Opens the new record page at `/<doctype>/new?__copy_of=<name>`, filled from the server's copy of the saved record as desk v1's *Duplicate* fills it: child rows included, no *No Copy* or password field, and a default where the record has no value. Unsaved edits are not copied: leaving the record asks about them first. The doctype's naming rule names the copy on its first save. |
 | `delete` | right | A row in `⋯`, in a band of its own, only with the delete right. Confirms, deletes, and leaves for the list. |
 
 `Save` is **pinned**: it spends one of the right zone's slots and is never demoted into

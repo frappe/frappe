@@ -222,6 +222,7 @@ import { failedState, type PageStateValue } from "@/shell/pageState";
 import { recentVisits } from "@/shell/recentVisits";
 import type { Boot } from "@/boot";
 import type { Addresses } from "@/addresses";
+import { useCreateRight } from "@/createRight";
 
 const boot = inject<Boot>("boot")!;
 const addresses = inject<Addresses>("addresses")!;
@@ -260,6 +261,7 @@ let releaseFresh = () => {};
 
 const doctype = computed(() => addresses.doctypeOf(String(route.params.doctype)));
 const docname = computed(() => String(route.params.name));
+const canCreate = useCreateRight(() => doctype.value ?? "");
 
 const dirty = computed(() => !sameContent(doc.value, saved.value));
 
@@ -411,6 +413,7 @@ function headerBuiltins(): HeaderItem[] {
 				single,
 				follow: follow.value,
 				assign: { assignees: assigneesOf(docinfo.value), assign: assignUser },
+				duplicate: canCreate.value && !meta.value?.allow_copy,
 			}
 		)
 	);

@@ -1,8 +1,8 @@
-// The values a new record starts with and sends: the server defaults, the prompt-name field, the
-// query the full page reads, the values "Edit full form" carries, and the insert body.
+// The values a new record starts with and sends: the server defaults, a duplicate's copy, the prompt-name
+// field, the query the full page reads, the values "Edit full form" carries, and the insert body.
 import { runMethod } from "@framework/ui/api";
-import { mapField, layoutFields, NO_VALUE, fieldsToLayout } from "@framework/ui/FormLayout";
-import type { FormLayoutSchema } from "@framework/ui/FormLayout/types";
+import { mapField, layoutFields, newRowValues, NO_VALUE, fieldsToLayout } from "@framework/ui/FormLayout";
+import type { FormLayoutSchema, RawMetaField } from "@framework/ui/FormLayout/types";
 import type { DoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { isNamedByPrompt, NEW_NAME } from "@framework/ui/utils";
 import type { LocationQuery } from "vue-router";
@@ -16,6 +16,12 @@ const TABLES = new Set(["Table", "Table MultiSelect"]);
 
 const INTEGERS = new Set(["Int", "Long Int", "Check"]);
 const DECIMALS = new Set(["Float", "Currency", "Percent", "Rating", "Duration"]);
+
+/** The query key naming the record a new record duplicates. */
+export const COPY_OF = "__copy_of";
+
+// Desk v1's duplicate leaves these to the new record whatever the doctype marks.
+const NEVER_COPIED = new Set(["amended_from", "amendment_date", "cancel_reason", "lft", "rgt"]);
 
 /** A doctype named by prompt gets a mandatory name field at the top. */
 export function withNameField(
@@ -81,6 +87,30 @@ function number(text: string, fieldtype: string): number | undefined {
 export async function fetchNewDocument(doctype: string): Promise<Values> {
 	const { data } = await runMethod<Values>(GET_NEW_DOC, { doctype }, { http: "GET" });
 	return data;
+}
+
+/** The server's copy of a record as desk v1's duplicate fills a new one: no no-copy or password field. */
+export function duplicateValues(copy: Values, doctype: string, metas: Record<string, DoctypeMeta>): Values {
+	const values: Values = {};
+	for (const field of metas[doctype]?.fields ?? []) {
+		if (!isCopied(field) || !(field.fieldname in copy)) continue;
+		const value = copy[field.fieldname];
+		values[field.fieldname] = TABLES.has(field.fieldtype)
+			? value.map((row: Values) => duplicateRow(row, field.options!, metas))
+			: value;
+	}
+	return values;
+}
+
+/** A copied row over its doctype's new-row defaults. */
+function duplicateRow(row: Values, doctype: string, metas: Record<string, DoctypeMeta>): Values {
+	const fields = (metas[doctype]?.fields ?? []).map((field) => mapField(field, {}));
+	return { ...newRowValues(fields), ...duplicateValues(row, doctype, metas) };
+}
+
+function isCopied(field: RawMetaField): boolean {
+	if (NO_VALUE.has(field.fieldtype) || field.fieldtype === "Password") return false;
+	return !field.no_copy && !NEVER_COPIED.has(field.fieldname);
 }
 
 /** The server's new document, cut to the doctype's own fields. */
