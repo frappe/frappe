@@ -49,11 +49,24 @@ def app_view_settings(doctype: str, key: str) -> dict | None:
 
 def app_defaults(app: str | None = None) -> dict[str, str]:
 	"""`{doctype: key}` of each doctype's app default: `app`'s, else the one its own app ships."""
-	defaults = current_index().defaults_in(app)
+	return {name: view.key for name, view in named(current_index().defaults_in(app))}
+
+
+def app_view_doctypes() -> list[str]:
+	"""The names of the doctypes the site's apps ship views for."""
+	views = current_index().views
+	return [
+		name
+		for name, _view in named([(doctype, next(iter(found.values()))) for doctype, found in views.items()])
+	]
+
+
+def named(views: list[tuple[str, "AppView"]]) -> list[tuple[str, "AppView"]]:
+	"""Each `(scrubbed doctype, view)` as `(doctype name, view)`; a doctype made on the site is named from the database."""
 	names = {}
-	if any(view.doctype is None for _doctype, view in defaults):
+	if any(view.doctype is None for _doctype, view in views):
 		names = {frappe.scrub(name): name for name in frappe.get_all("DocType", pluck="name")}
-	return {name: view.key for doctype, view in defaults if (name := view.doctype or names.get(doctype))}
+	return [(name, view) for doctype, view in views if (name := view.doctype or names.get(doctype))]
 
 
 @request_cache
