@@ -7,6 +7,7 @@ const server = vi.hoisted(() => ({
   tokenUri: "https://oauth2.googleapis.com/token",
   calls: [] as { method: string; args: any; options?: any }[],
   confirm: true as true | null,
+  messages: undefined as { message: string }[] | undefined,
 }));
 
 vi.mock("frappe-ui", () => ({
@@ -17,7 +18,7 @@ vi.mock("frappe-ui", () => ({
 vi.mock("@framework/ui/api", () => ({
   runMethod: vi.fn(async (method: string, args: any, options?: any) => {
     server.calls.push({ method, args, options });
-    return { data: methodReply(method) };
+    return { data: methodReply(method), messages: server.messages };
   }),
   runDocumentMethod: vi.fn(async (doctype: string, name: string, method: string, args: any, options?: any) => {
     server.calls.push({ method: `${doctype}:${name}:${method}`, args, options });
@@ -35,6 +36,7 @@ function methodReply(method: string) {
   return null;
 }
 
+import { toast } from "frappe-ui";
 import { resetDoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { createRecordPage } from "../createRecordPage";
 import { withRegisteringSource } from "@/pageEngine/context";
@@ -101,6 +103,7 @@ async function openAccount(
   });
   controllers.push(controller);
   controller.header.provideBuiltins(() => [{ name: "save", label: "Save", run: () => {} }]);
+  vi.spyOn(controller.page.dialog, "confirm").mockImplementation(async () => server.confirm);
   await controller.refresh();
   await vi.advanceTimersByTimeAsync(0);
   await controller.refresh();
@@ -119,9 +122,8 @@ async function commit(controller: ReturnType<typeof createRecordPage>, fieldname
   await vi.advanceTimersByTimeAsync(0);
 }
 
-function confirmWith(controller: ReturnType<typeof createRecordPage>) {
-  return vi.spyOn(controller.page.dialog, "confirm").mockImplementation(async () => server.confirm);
-}
+const confirmations = (controller: ReturnType<typeof createRecordPage>) =>
+  vi.mocked(controller.page.dialog.confirm);
 
 beforeEach(() => {
   resetRegistry();
@@ -132,6 +134,7 @@ beforeEach(() => {
     tokenUri: "https://oauth2.googleapis.com/token",
     calls: [],
     confirm: true,
+    messages: undefined,
   });
   vi.spyOn(console, "warn").mockImplementation(() => {});
   vi.useFakeTimers();
@@ -197,20 +200,29 @@ describe("Email Account's record page: a new account", () => {
 
   it("turns auto reply off when the reader declines it on an incoming account", async () => {
     const { controller, page } = await openAccount({ enable_incoming: 1 }, { perms: {}, isNew: true });
-    const confirm = confirmWith(controller);
     server.confirm = null;
 
     await commit(controller, "enable_auto_reply", 1);
 
-    expect(confirm).toHaveBeenCalledOnce();
+    expect(confirmations(controller)).toHaveBeenCalledOnce();
+    expect(page.doc.enable_auto_reply).toBe(0);
+  });
+
+  it("warns on open when a new account starts incoming with auto reply", async () => {
+    server.confirm = null;
+    const { controller, page } = await openAccount(
+      { enable_incoming: 1, enable_auto_reply: 1 },
+      { perms: {}, isNew: true },
+    );
+
+    expect(confirmations(controller)).toHaveBeenCalledOnce();
     expect(page.doc.enable_auto_reply).toBe(0);
   });
 });
 
 describe("Email Account's record page: confirmations", () => {
   it("goes back to UNSEEN when the reader declines syncing every email", async () => {
-    const { controller, page } = await openAccount({ use_imap: 1 });
-    confirmWith(controller);
+    const { page, controller } = await openAccount({ use_imap: 1 });
     server.confirm = null;
 
     await commit(controller, "email_sync_option", "ALL");
@@ -223,12 +235,11 @@ describe("Email Account's record page: confirmations", () => {
       email_id: "old@example.com",
       reply_to_addresses: [{ email: "Old@example.com" }, { email: "team@example.com" }],
     });
-    const confirm = confirmWith(controller);
     page.doc.email_id = "new@example.com";
 
     await controller.fireEvent("beforeSave");
 
-    expect(confirm).toHaveBeenCalledOnce();
+    expect(confirmations(controller)).toHaveBeenCalledOnce();
     expect(page.doc.reply_to_addresses.map((row: any) => row.email)).toEqual([
       "new@example.com",
       "team@example.com",
@@ -274,6 +285,14 @@ describe("Email Account's record page: header acts and the OAuth band", () => {
     expect(server.calls.at(-1)?.method).toContain("initiate_mailbox_connect");
   });
 
+  it("offers no relay sign-in on a new account, which has no name to reconnect", async () => {
+    server.tokenUri = "frappe-cloud-relay:google";
+    const { controller } = await openAccount({ ...oauth, connected_user: null }, { perms: {}, isNew: true });
+
+    expect(bandNames(controller)).toContain("oauth_status");
+    expect(headerItem(controller, "authorize_api_access")).toBeUndefined();
+  });
+
   it("checks Frappe Mail settings on a saved, clean account", async () => {
     const { controller } = await openAccount({ service: "Frappe Mail", auth_method: "OAuth" });
 
@@ -295,6 +314,20 @@ describe("Email Account's record page: header acts and the OAuth band", () => {
 
     const dirty = await openAccount({ enable_incoming: 1 }, { dirty: true });
     expect(headerItem(dirty.controller, "pull_emails")).toBeUndefined();
+  });
+
+  it("shows the server's word on a pull it did not start", async () => {
+    server.messages = [{ message: "Emails are already being pulled" }];
+    const { controller, page } = await openAccount({ enable_incoming: 1 });
+    vi.mocked(toast.success).mockClear();
+
+    await page.run("header.pull_emails");
+
+    expect(vi.mocked(toast.success).mock.calls.map(([text]) => text)).toEqual([
+      "Pulling emails...",
+      "Emails are already being pulled",
+    ]);
+    expect(headerItem(controller, "pull_emails")).toBeTruthy();
   });
 
   it("limits Append To to the doctypes that take emails", async () => {
