@@ -201,6 +201,33 @@ class TestDownloadReportPdf(IntegrationTestCase):
 			REPORT_USER, "ToDo", "pdf", b"%PDF", attached_to_name="ToDo"
 		)
 
+	def test_prints_the_value_from_the_report_formatter(self):
+		def formatter(value, column, data, default_formatter):
+			return default_formatter(value, column, data).upper()
+
+		with patch("frappe.desk.report.todo.todo.formatter", formatter, create=True):
+			html = self.printed_html()
+
+		self.assertIn("RENEW THE EXAMPLE.COM DOMAIN", html)
+
+	def test_report_formatter_gets_the_total_row(self):
+		report_run = {
+			"columns": [{"fieldname": "subject"}, {"fieldname": "hours", "fieldtype": "Int"}],
+			"result": [{"subject": "Renew the example.com domain", "hours": 2}, ["", 2]],
+			"add_total_row": 1,
+		}
+
+		def formatter(value, column, data, default_formatter):
+			return f"{value} in total" if data.is_total_row else default_formatter(value, column, data)
+
+		with (
+			patch("frappe.utils.print_format.run", return_value=report_run),
+			patch("frappe.desk.report.todo.todo.formatter", formatter, create=True),
+		):
+			html = self.printed_html()
+
+		self.assertIn("2 in total", html)
+
 
 class TestGetPrintFormatData(IntegrationTestCase):
 	@classmethod
