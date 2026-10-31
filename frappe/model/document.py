@@ -1139,6 +1139,9 @@ class Document(_DocumentBase):
 		self.set_user_and_timestamp()
 		self.set_docstatus()
 		self.check_if_latest()
+		if not self.flags.ignore_permissions:
+			self._doc_before_save.check_permission("write")
+
 		self.set_parent_in_children()
 		self.set_name_in_children()
 
