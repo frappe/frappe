@@ -46,13 +46,20 @@ def get_outgoing_senders() -> dict:
 	if not is_system_user():
 		frappe.throw(_("Only desk users can send email."), frappe.PermissionError)
 
-	senders = frappe.get_all(
+	senders = [row.email_id for row in get_own_email_accounts() if row.enable_outgoing and row.email_id]
+	return {"senders": list(dict.fromkeys(senders)), "default": _default_outgoing_email()}
+
+
+@frappe.desk_v2_only
+@frappe.whitelist(methods=["GET"])
+def get_own_email_accounts() -> list[dict]:
+	"""The session user's own User Email rows, which User's permlevel 1 hides from them."""
+	return frappe.get_all(
 		"User Email",
-		filters={"parent": frappe.session.user, "enable_outgoing": 1, "email_id": ("is", "set")},
-		pluck="email_id",
+		filters={"parent": frappe.session.user},
+		fields=["email_account", "email_id", "enable_outgoing", "awaiting_password"],
 		order_by="idx",
 	)
-	return {"senders": list(dict.fromkeys(senders)), "default": _default_outgoing_email()}
 
 
 @frappe.whitelist()

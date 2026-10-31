@@ -4,7 +4,7 @@
 from unittest.mock import patch
 
 import frappe
-from frappe.email.inbox import create_email_flag_queue, get_outgoing_senders
+from frappe.email.inbox import create_email_flag_queue, get_outgoing_senders, get_own_email_accounts
 from frappe.tests import IntegrationTestCase
 
 
@@ -49,18 +49,18 @@ class TestOutgoingSenders(IntegrationTestCase):
 		self.assertEqual(get_outgoing_senders(), {"senders": [], "default": None})
 
 	def test_one_outgoing_row(self):
-		self.add_user_email("me@example.com", enable_outgoing=1)
+		add_user_email("me@example.com", enable_outgoing=1)
 		self.assertEqual(get_outgoing_senders()["senders"], ["me@example.com"])
 
 	def test_incoming_only_row_is_ignored(self):
-		self.add_user_email("inbox@example.com", enable_outgoing=0)
-		self.add_user_email("me@example.com", enable_outgoing=1)
+		add_user_email("inbox@example.com", enable_outgoing=0)
+		add_user_email("me@example.com", enable_outgoing=1)
 		self.assertEqual(get_outgoing_senders()["senders"], ["me@example.com"])
 
 	def test_senders_keep_row_order_without_repeats(self):
-		self.add_user_email("second@example.com", enable_outgoing=1, idx=2)
-		self.add_user_email("first@example.com", enable_outgoing=1, idx=1)
-		self.add_user_email("second@example.com", enable_outgoing=1, idx=3)
+		add_user_email("second@example.com", enable_outgoing=1, idx=2)
+		add_user_email("first@example.com", enable_outgoing=1, idx=1)
+		add_user_email("second@example.com", enable_outgoing=1, idx=3)
 		self.assertEqual(get_outgoing_senders()["senders"], ["first@example.com", "second@example.com"])
 
 	def test_default_outgoing_account_is_reported(self):
@@ -85,17 +85,67 @@ class TestOutgoingSenders(IntegrationTestCase):
 		self.assertIsNone(get_outgoing_senders()["default"])
 
 	def test_row_with_blank_email_is_skipped(self):
-		self.add_user_email("", enable_outgoing=1, idx=1)
-		self.add_user_email("me@example.com", enable_outgoing=1, idx=2)
+		add_user_email("", enable_outgoing=1, idx=1)
+		add_user_email("me@example.com", enable_outgoing=1, idx=2)
 		self.assertEqual(get_outgoing_senders()["senders"], ["me@example.com"])
 
-	def add_user_email(self, email_id, enable_outgoing, idx=1):
-		frappe.get_doc(
-			doctype="User Email",
-			parent="test@example.com",
-			parenttype="User",
-			parentfield="user_emails",
-			idx=idx,
-			email_id=email_id,
-			enable_outgoing=enable_outgoing,
-		).db_insert()
+
+class TestOwnEmailAccounts(IntegrationTestCase):
+	def setUp(self):
+		super().setUp()
+		frappe.db.savepoint("own_email_accounts")
+		self.addCleanup(lambda: frappe.db.rollback(save_point="own_email_accounts"))
+		frappe.db.delete("User Email", {"parent": ("in", ["test@example.com", "test1@example.com"])})
+		self.enterContext(self.set_user("test@example.com"))
+
+	def test_no_rows(self):
+		self.assertEqual(get_own_email_accounts(), [])
+
+	def test_own_rows_in_order_with_their_flags(self):
+		add_user_email("support@example.com", enable_outgoing=0, idx=2, awaiting_password=1)
+		add_user_email("me@example.com", enable_outgoing=1, idx=1)
+		self.assertEqual(
+			get_own_email_accounts(),
+			[
+				{
+					"email_account": "me@example.com",
+					"email_id": "me@example.com",
+					"enable_outgoing": 1,
+					"awaiting_password": 0,
+				},
+				{
+					"email_account": "support@example.com",
+					"email_id": "support@example.com",
+					"enable_outgoing": 0,
+					"awaiting_password": 1,
+				},
+			],
+		)
+
+	def test_another_users_rows_are_not_returned(self):
+		add_user_email("other@example.com", enable_outgoing=1, parent="test1@example.com")
+		self.assertEqual(get_own_email_accounts(), [])
+
+	def test_desk_user_without_permlevel_1_on_user_reads_their_rows(self):
+		user = frappe.get_doc(
+			doctype="User", email="own-email-accounts@example.com", first_name="Own", send_welcome_email=0
+		).insert(ignore_permissions=True)
+		user.add_roles("Desk User")
+		add_user_email("me@example.com", enable_outgoing=1, parent=user.name)
+		with self.set_user(user.name):
+			self.assertNotIn(1, frappe.get_meta("User").get_permlevel_access("read"))
+			self.assertEqual([row.email_id for row in get_own_email_accounts()], ["me@example.com"])
+
+
+def add_user_email(email_id, enable_outgoing, idx=1, parent="test@example.com", awaiting_password=0):
+	frappe.get_doc(
+		doctype="User Email",
+		parent=parent,
+		parenttype="User",
+		parentfield="user_emails",
+		idx=idx,
+		email_account=email_id or None,
+		email_id=email_id,
+		enable_outgoing=enable_outgoing,
+		awaiting_password=awaiting_password,
+	).db_insert()
