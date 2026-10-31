@@ -30,10 +30,10 @@ class KeySpace:
 		found = find_views([(self.doctype, key)], user)
 		return found.get((self.doctype, key))
 
-	def claim(self, wanted: str) -> str:
-		"""A free key from `wanted` made URL-safe, with a suffix when taken; hold `lock` until the insert commits."""
+	def claim(self, wanted: str, lost: frozenset[str] = frozenset()) -> str:
+		"""A free key from `wanted` made URL-safe, with a suffix when taken or `lost` to another insert."""
 		base = url_safe(wanted) or frappe.generate_hash(length=RANDOM_KEY_LENGTH)
-		taken = self.taken(base)
+		taken = self.taken(base) | lost
 		if base not in taken:
 			return base
 
@@ -45,20 +45,15 @@ class KeySpace:
 	def taken(self, base: str) -> set[str]:
 		"""The keys a new view cannot have that start with `base`: reserved names, every person's, the site's and the apps'."""
 		view = frappe.qb.DocType("Doctype View")
-		# A locking read sees keys committed after this transaction's snapshot; a plain one misses them.
+		# A plain read misses keys committed after this transaction's snapshot; the insert's unique index catches those.
 		keys = (
 			frappe.qb.from_(view)
 			.select(view.key)
 			.where(view.reference_doctype == self.doctype)
 			.where((view.key == base) | view.key.like(f"{base}-%"))
-			.for_update()
 			.run(pluck=True)
 		)
 		return set(keys) | RESERVED_KEYS | set(app_views(self.doctype))
-
-	def lock(self):
-		"""Hold the doctype's own row, so two new views of it cannot claim one key at once."""
-		frappe.db.get_value("DocType", self.doctype, "name", for_update=True)
 
 
 def find_views(

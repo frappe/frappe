@@ -15,6 +15,9 @@ PLAIN_VIEW = ""
 # The types the desk renders; an app's own type arrives with the views map, not here.
 VIEW_TYPES = ("List",)
 
+# Inserts a key may lose to other views of its doctype before the save is refused.
+KEY_CLAIM_ATTEMPTS = 5
+
 # Bytes of stored JSON; a list's columns, sort and quick filters fit in well under one.
 SETTINGS_SIZE_LIMIT = 16 * 1024
 
@@ -35,6 +38,7 @@ class DoctypeView(Document):
 		from frappe.types import DF
 
 		key: DF.Data
+		key_slot: DF.Data | None
 		label: DF.Data
 		reference_doctype: DF.Link
 		settings: DF.JSON | None
@@ -44,6 +48,7 @@ class DoctypeView(Document):
 
 	def before_insert(self):
 		self.key = self.claim_key() if self.label else PLAIN_VIEW
+		self.key_slot = self.key if self.key and not self.overrides_app_view() else None
 
 	def validate(self):
 		self.user = self.user or SITE_ROW
@@ -54,6 +59,46 @@ class DoctypeView(Document):
 		self.validate_settings()
 		self.refuse_a_label_that_moves_the_view()
 		self.refuse_a_second_row_at_this_address()
+
+	def db_insert(self, *args, **kwargs):
+		"""Insert the row; when another view took its key after `claim_key` read, claim the next one."""
+		lost = set()
+		while True:
+			try:
+				return self.insert_row(*args, **kwargs)
+			except frappe.UniqueValidationError:
+				if not self.key_slot:
+					raise
+				lost.add(self.key)
+				self.refuse_a_lost_key(len(lost))
+				self.key = self.key_slot = self.space().claim(self.flags.wanted_key, frozenset(lost))
+
+	def insert_row(self, *args, **kwargs):
+		"""`db_insert` in a savepoint, since Postgres aborts the transaction on a unique error."""
+		# Its own name: a hash-name retry calls `db_insert` again, and MariaDB would reuse one savepoint.
+		savepoint = f"doctype_view_{frappe.generate_hash(length=8)}"
+		frappe.db.savepoint(savepoint)
+		muted = frappe.flags.mute_messages
+		# The unique index's "must be unique" message would reach the person even when a retry succeeds.
+		frappe.flags.mute_messages = muted or bool(self.key_slot)
+		try:
+			super().db_insert(*args, **kwargs)
+		except frappe.UniqueValidationError:
+			frappe.db.rollback(save_point=savepoint)
+			raise
+		finally:
+			frappe.flags.mute_messages = muted
+		frappe.db.release_savepoint(savepoint)
+
+	def refuse_a_lost_key(self, attempts: int):
+		if attempts >= KEY_CLAIM_ATTEMPTS:
+			frappe.throw(
+				_("{0} already has a {1} view at this address.").format(
+					frappe.bold(self.reference_doctype), self.type
+				),
+				title=_("Already Exists"),
+				exc=DuplicateViewError,
+			)
 
 	def on_trash(self):
 		if self.overridden_app_view():
@@ -71,21 +116,20 @@ class DoctypeView(Document):
 
 	def claim_key(self) -> str:
 		"""A key no layer of the doctype uses, from the key given or else the label."""
-		from .key_space import KeySpace
-
-		space = KeySpace(self.reference_doctype)
-		space.lock()
-		if not self.user and self.overridden_app_view():
+		if self.overrides_app_view():
 			self.refuse_a_second_override()
 			return self.key
-		return space.claim(self.key or self.label)
+		self.flags.wanted_key = self.key or self.label
+		return self.space().claim(self.flags.wanted_key)
+
+	def space(self):
+		from .key_space import KeySpace
+
+		return KeySpace(self.reference_doctype)
 
 	def refuse_a_second_override(self):
-		# A locking read: the doctype lock serialises two overrides, and a plain read misses the first's row.
 		existing = frappe.db.get_value(
-			self.doctype,
-			{"reference_doctype": self.reference_doctype, "user": SITE_ROW, "key": self.key},
-			for_update=True,
+			self.doctype, {"reference_doctype": self.reference_doctype, "user": SITE_ROW, "key": self.key}
 		)
 		if existing:
 			frappe.throw(
@@ -95,6 +139,10 @@ class DoctypeView(Document):
 				title=_("Already Exists"),
 				exc=DuplicateViewError,
 			)
+
+	def overrides_app_view(self) -> bool:
+		"""A site row at an app view's key keeps that key unclaimed, so a person's older view may share it."""
+		return not self.user and bool(self.overridden_app_view())
 
 	def overridden_app_view(self):
 		"""The app view at this row's key, which a site row replaces whole and a person's own hides for them."""
@@ -146,7 +194,7 @@ class DoctypeView(Document):
 			)
 
 	def refuse_a_second_row_at_this_address(self):
-		"""Refuse the duplicate here: `db_insert` would read the unique index's refusal as a hash retry."""
+		"""Refuse the duplicate here: `db_insert` would read the unique index's refusal as a lost key and move on."""
 		existing = frappe.db.get_value(self.doctype, self.address())
 
 		if existing and existing != self.name:
@@ -168,12 +216,13 @@ class DoctypeView(Document):
 
 
 def on_doctype_update():
-	"""One row per address, held by the schema so a bulk write cannot bypass it; one person's views by `user`."""
+	"""One row per address and one saved view per key, held by the schema; one person's views by `user`."""
 	frappe.db.add_unique(
 		"Doctype View",
 		("reference_doctype", "type", "user", "key"),
 		constraint_name="unique_view_address",
 	)
+	frappe.db.add_unique("Doctype View", ("reference_doctype", "key_slot"), constraint_name="unique_view_key")
 	frappe.db.add_index("Doctype View", ["user", "reference_doctype"])
 
 
