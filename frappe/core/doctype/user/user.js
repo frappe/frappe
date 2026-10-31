@@ -210,6 +210,10 @@ frappe.ui.form.on("User", {
 											label: __("Logout All Sessions"),
 											fieldtype: "Check",
 											fieldname: "logout_sessions",
+											default: 1,
+											hidden: cint(
+												frappe.sys_defaults.logout_on_password_reset
+											),
 										},
 									],
 									primary_action: (values) => {

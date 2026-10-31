@@ -407,7 +407,12 @@ class User(Document):
 	def set_new_password(self, new_password=None):
 		"""Set New Password for user"""
 		if new_password and not self.flags.in_insert:
-			_update_password(user=self.name, pwd=new_password, logout_all_sessions=self.logout_all_sessions)
+			_update_password(
+				user=self.name,
+				pwd=new_password,
+				logout_all_sessions=self.logout_all_sessions
+				or frappe.get_system_settings("logout_on_password_reset"),
+			)
 			self.last_password_reset_date = today()
 			frappe.db.set_value(
 				"User",

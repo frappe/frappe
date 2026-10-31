@@ -35,10 +35,11 @@ frappe.ui.show_change_password_dialog = function (user, on_success) {
 				reqd: 1,
 			},
 			{
-				label: __("Logout From All Devices After Changing Password"),
+				label: __("Log Out From Other Devices After Changing Password"),
 				fieldtype: "Check",
 				fieldname: "logout_all_sessions",
 				default: 1,
+				hidden: cint(frappe.sys_defaults.logout_on_password_reset),
 			},
 		],
 		primary_action_label: __("Change Password"),

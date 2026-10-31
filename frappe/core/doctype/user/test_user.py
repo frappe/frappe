@@ -804,6 +804,53 @@ class TestUser(IntegrationTestCase):
 
 		self.assertEqual(frappe.db.get_value("User", user, "last_password_reset_date"), getdate())
 
+	def test_update_password_logs_out_when_setting_or_caller_asks(self):
+		from frappe.utils.password import update_password as set_password
+
+		user = "testpassword@example.com"
+		self.set_login_request()
+		for setting, asked, logged_out in ((1, 0, True), (0, 0, False), (0, 1, True)):
+			frappe.set_user(user)
+			set_password(user, "Eastern_43A1W")
+			other_session_exists = self.add_other_session(user)
+			with (
+				self.subTest(setting=setting, asked=asked),
+				change_settings("System Settings", commit=True, logout_on_password_reset=setting),
+			):
+				update_password("Eastern_43A1W_old", logout_all_sessions=asked, old_password="Eastern_43A1W")
+				self.assertEqual(other_session_exists(), not logged_out)
+
+	def test_change_password_logs_out_when_setting_or_user_asks(self):
+		user = "testpassword@example.com"
+		for setting, asked, logged_out in ((1, 0, True), (0, 0, False), (0, 1, True)):
+			other_session_exists = self.add_other_session(user)
+			with (
+				self.subTest(setting=setting, asked=asked),
+				change_settings("System Settings", logout_on_password_reset=setting),
+			):
+				frappe.set_user(user)
+				change_password(user, f"Eastern_43A1W_{setting}{asked}", logout_all_sessions=asked)
+				self.assertEqual(other_session_exists(), not logged_out)
+
+	@staticmethod
+	def set_login_request():
+		from frappe.auth import CookieManager, LoginManager
+		from frappe.utils import set_request
+
+		set_request(path="/random")
+		frappe.local.cookie_manager = CookieManager()
+		frappe.local.login_manager = LoginManager()
+
+	def add_other_session(self, user):
+		sid = frappe.generate_hash()
+		sessions = frappe.qb.DocType("Sessions")
+		frappe.qb.into(sessions).columns(
+			sessions.sid, sessions.user, sessions.status, sessions.lastupdate, sessions.sessiondata
+		).insert(sid, user, "Active", frappe.utils.now(), "{}").run()
+		self.addCleanup(frappe.db.delete, "Sessions", {"sid": sid})
+
+		return lambda: bool(frappe.db.count("Sessions", {"sid": sid}))
+
 	def test_user_onload_modules(self):
 		"""The editor lists custom modules, and keeps a blocked module even after it is deleted"""
 		from frappe.desk.form.load import getdoc
