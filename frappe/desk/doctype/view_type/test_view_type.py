@@ -9,6 +9,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 import frappe
+from frappe import _
 from frappe.desk.doctype.default_view.resolver import DefaultViews
 from frappe.desk.doctype.doctype_view import api as view_api
 from frappe.desk.doctype.doctype_view import app_views as app_views_module
@@ -120,7 +121,7 @@ class TestTheRules(ViewTypeCase):
 		def validate_settings(doctype, settings):
 			seen.append((doctype, settings))
 			if "group_by" not in settings:
-				frappe.throw("Group cards by a field.")
+				frappe.throw(_("Group cards by a field."))
 
 		self.rules.validate_settings = validate_settings
 		with self.assertRaisesRegex(frappe.ValidationError, "Group cards by a field"):
@@ -176,7 +177,7 @@ class TestTheRules(ViewTypeCase):
 
 		def validate_settings(doctype, settings):
 			if "group_by" not in settings:
-				frappe.throw("Group cards by a field.")
+				frappe.throw(_("Group cards by a field."))
 
 		self.rules.validate_settings = validate_settings
 		frappe.local.message_log = []
