@@ -16,8 +16,8 @@ from frappe.desk.doctype.default_view import api as default_view_api
 from frappe.desk.doctype.default_view.resolver import DefaultViews
 from frappe.desk.doctype.doctype_view import app_views as app_views_module
 from frappe.desk.doctype.doctype_view.api import find
-from frappe.desk.doctype.doctype_view.app_views import ViewIndex, app_view_settings, app_views
-from frappe.desk.doctype.doctype_view.doctype_view import SITE_ROW
+from frappe.desk.doctype.doctype_view.app_views import ViewIndex, app_defaults, app_view_settings, app_views
+from frappe.desk.doctype.doctype_view.doctype_view import SITE_ROW, DuplicateViewError
 from frappe.desk.doctype.doctype_view.key_space import KeySpace
 from frappe.desk.doctype.favourite.favourite import toggle_favourite
 from frappe.gettext.extractors.app_view import extract
@@ -25,6 +25,7 @@ from frappe.tests import IntegrationTestCase
 from frappe.tests.classes.context_managers import set_user
 
 APPS = ("frappe", "acme", "zeta")
+CURRENT_INDEX = app_views_module.current_index
 LIST_SETTINGS = {"sort": [{"fieldname": "date", "direction": "asc"}]}
 
 
@@ -44,9 +45,9 @@ class AppFolders:
 	def own_view(self, key: str, **file) -> str:
 		return self.write(self.doctype_folder("frappe", "frontend", "views", f"{key}.json"), a_file(**file))
 
-	def custom_view(self, app: str, key: str, **file) -> str:
+	def custom_view(self, app: str, key: str, doctype: str = "todo", **file) -> str:
 		return self.write(
-			os.path.join(self.root, app, "custom", "todo", "views", f"{key}.json"), a_file(**file)
+			os.path.join(self.root, app, "custom", doctype, "views", f"{key}.json"), a_file(**file)
 		)
 
 	def write(self, path: str, data) -> str:
@@ -130,29 +131,43 @@ class TestTheIndex(AppViewCase):
 		self.folders.own_view("probe-a", default=True)
 		self.folders.own_view("probe-b", default=True)
 		index = self.index()
-		self.assertEqual([view.key for view in index.defaults_in(None)], ["probe-a"])
+		self.assertEqual([view.key for _doctype, view in index.defaults_in(None)], ["probe-a"])
 		self.assertEqual(len(index.refused), 1)
 
 	def test_developer_mode_rebuilds_when_a_views_folder_changes(self):
-		self.enterContext(patch.object(app_views_module, "current_index", app_views_module.current_index))
+		self.use_the_real_index()
 		self.enterContext(patch.dict(frappe.conf, {"developer_mode": 1}))
-		self.enterContext(patch("frappe.get_active_apps", return_value=list(APPS)))
-		frappe.local.request_cache.clear()
-		self.assertEqual(app_views("ToDo"), {})
+		self.assertEqual(self.fresh_views(), {})
 
 		path = self.folders.own_view("probe-new", label="New")
-		frappe.local.request_cache.clear()
-		self.assertEqual(app_views("ToDo")["probe-new"].label, "New")
+		self.assertEqual(self.fresh_views()["probe-new"].label, "New")
 
-		self.folders.own_view("probe-new", label="Renamed")
-		os.utime(path, ns=(os.stat(path).st_mtime_ns + 10**9,) * 2)
-		frappe.local.request_cache.clear()
-		self.assertEqual(app_views("ToDo")["probe-new"].label, "Renamed")
+		self.folders.own_view("probe-new", label="Renamed in a longer label")
+		self.assertEqual(self.fresh_views()["probe-new"].label, "Renamed in a longer label")
 
 		os.remove(path)
+		self.assertEqual(self.fresh_views(), {})
+
+	def test_outside_developer_mode_the_index_is_built_once(self):
+		self.use_the_real_index()
+		self.enterContext(patch.dict(frappe.conf, {"developer_mode": 0}))
+		self.folders.own_view("probe-first")
+		self.assertEqual(list(self.fresh_views()), ["probe-first"])
+
+		self.folders.own_view("probe-later")
+		self.assertEqual(list(self.fresh_views()), ["probe-first"])
+
+	def use_the_real_index(self):
+		self.enterContext(patch.object(app_views_module, "current_index", CURRENT_INDEX))
+		self.enterContext(patch("frappe.get_active_apps", return_value=list(APPS)))
+		for cache in (app_views_module.deployed_index, app_views_module.developer_index):
+			cache.cache_clear()
+			self.addCleanup(cache.cache_clear)
+		self.addCleanup(frappe.local.request_cache.clear)
+
+	def fresh_views(self) -> dict:
 		frappe.local.request_cache.clear()
-		self.assertEqual(app_views("ToDo"), {})
-		frappe.local.request_cache.clear()
+		return app_views("ToDo")
 
 
 class TestTheKeySpace(AppViewCase):
@@ -195,8 +210,28 @@ class TestTheKeySpace(AppViewCase):
 		index = self.index()
 		index.views["todo"]["probe-open"] = index.views["todo"]["probe-open"]._replace(type="Kanban")
 		self.enterContext(patch.object(app_views_module, "current_index", return_value=index))
-		with self.assertRaises(frappe.ValidationError):
+		with self.assertRaisesRegex(frappe.ValidationError, "stays a Kanban view"):
 			site_row("probe-open")
+
+	def test_a_second_site_override_is_refused(self):
+		self.folders.own_view("probe-open")
+		site_row("probe-open")
+		with self.assertRaises(DuplicateViewError):
+			site_row("probe-open")
+
+	def test_a_view_the_person_cannot_read_is_not_found_for_them(self):
+		self.folders.own_view("probe-open")
+		with set_user("Guest"), self.assertRaises(frappe.PermissionError):
+			find("ToDo", "probe-open")
+
+	def test_deleting_a_persons_own_row_at_an_app_key_keeps_their_default(self):
+		own = person_row("Probe Open")  # made before an app release shipped the same key
+		self.folders.own_view("probe-open")
+		frappe.db.delete("Default View", {"reference_doctype": "ToDo"})
+		default_view_api.save("ToDo", "probe-open", "user")
+
+		own.delete(ignore_permissions=True)
+		self.assertEqual(DefaultViews().addresses(["ToDo"]), {"ToDo": "probe-open"})
 
 
 class TestAppDefaults(AppViewCase):
@@ -212,6 +247,17 @@ class TestAppDefaults(AppViewCase):
 	def test_outside_it_the_doctypes_own_app_default_applies(self):
 		self.assertEqual(DefaultViews(app="zeta").addresses(["ToDo"]), {"ToDo": "probe-frappe"})
 		self.assertEqual(DefaultViews().addresses(["ToDo"]), {"ToDo": "probe-frappe"})
+
+	def test_a_doctype_made_on_the_site_is_named_from_the_database(self):
+		self.folders.custom_view("acme", "probe-note", doctype="note", default=True)
+		self.assertEqual(app_defaults("acme")["Note"], "probe-note")
+
+	def test_the_sites_default_may_point_at_an_app_view(self):
+		self.assertEqual(default_view_api.save("ToDo", "probe-acme", "site", app="zeta"), "probe-acme")
+		self.assertEqual(
+			frappe.db.get_value("Default View", {"reference_doctype": "ToDo", "user": SITE_ROW}, "view"),
+			"probe-acme",
+		)
 
 	def test_a_stored_default_beats_the_app_default_and_may_point_at_an_app_view(self):
 		with set_user("Administrator"):

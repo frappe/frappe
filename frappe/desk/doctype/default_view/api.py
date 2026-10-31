@@ -38,8 +38,7 @@ def clear(doctype: str, scope: str, app: str | None = None) -> str | None:
 
 
 def _resolved(doctype: str, app: str | None) -> str | None:
-	"""`app` only picks which app's default file applies, so any other value reads as none."""
-	return DefaultViews(app=app if isinstance(app, str) else None).addresses([doctype]).get(doctype)
+	return DefaultViews(app=app).addresses([doctype]).get(doctype)
 
 
 def _layer(doctype: str, scope: str) -> dict:

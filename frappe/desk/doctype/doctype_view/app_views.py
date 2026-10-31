@@ -18,7 +18,7 @@ FILE_KEYS = frozenset({"label", "type", "default", "settings"})
 
 class AppView(NamedTuple):
 	app: str
-	doctype: str
+	doctype: str | None  # `None` for a doctype made on the site: no folder holds its name
 	key: str
 	label: str
 	type: str
@@ -42,27 +42,37 @@ def app_view_settings(doctype: str, key: str) -> dict | None:
 		return None
 	try:
 		stat = os.stat(view.path)
-	except FileNotFoundError:
+		return json.loads(load_settings(view.path, stat.st_mtime_ns, stat.st_size))
+	except (OSError, ViewFileError):
 		return None
-	return json.loads(load_settings(view.path, stat.st_mtime_ns, stat.st_size))
 
 
-def app_defaults(app: str | None = None) -> list[AppView]:
-	"""Each doctype's app default: `app`'s, else the one its own app ships."""
-	return current_index().defaults_in(app)
+def app_defaults(app: str | None = None) -> dict[str, str]:
+	"""`{doctype: key}` of each doctype's app default: `app`'s, else the one its own app ships."""
+	defaults = current_index().defaults_in(app)
+	names = {}
+	if any(view.doctype is None for _doctype, view in defaults):
+		names = {frappe.scrub(name): name for name in frappe.get_all("DocType", pluck="name")}
+	return {name: view.key for doctype, view in defaults if (name := view.doctype or names.get(doctype))}
 
 
 @request_cache
 def current_index() -> "ViewIndex":
 	apps = tuple(frappe.get_active_apps(_ensure_on_bench=True))
 	if not frappe.conf.developer_mode:
-		return index_of(apps, None)
+		return deployed_index(apps)
 	# A deploy restarts the workers; in developer mode an edited, added or deleted file applies at once.
-	return index_of(apps, tuple((folder.path, *stamp(folder.path)) for folder in view_folders(apps)))
+	return developer_index(apps, tuple((folder.path, *stamp(folder.path)) for folder in view_folders(apps)))
+
+
+@functools.cache
+def deployed_index(apps: tuple[str, ...]) -> "ViewIndex":
+	"""One per set of apps, so the sites of a bench that install different apps never evict each other."""
+	return ViewIndex(apps)
 
 
 @functools.lru_cache(maxsize=8)
-def index_of(apps: tuple[str, ...], _stamp: tuple | None) -> "ViewIndex":
+def developer_index(apps: tuple[str, ...], _stamp: tuple) -> "ViewIndex":
 	return ViewIndex(apps)
 
 
@@ -99,26 +109,26 @@ class ViewIndex:
 		for path in sorted(view_files(folder.path)):
 			try:
 				view = read_view(folder.app, name, path)
-			except ViewFileError as error:
+			except (OSError, ViewFileError) as error:
 				self.refused.append(f"App view file {path} is refused: {error}")
 				continue
 			self.add(folder.doctype, view)
 
-	def doctype_name(self, doctype: str) -> str:
+	def doctype_name(self, doctype: str) -> str | None:
 		"""The doctype's name from its own folder's JSON; a doctype made on the site has no folder."""
 		if doctype not in self.doctype_folders:
-			return frappe.unscrub(doctype)
+			return None
 		path = os.path.join(self.doctype_folders[doctype].path, f"{doctype}.json")
 		try:
-			return load_doctype_name(path, os.stat(path).st_mtime_ns) or frappe.unscrub(doctype)
-		except (FileNotFoundError, ViewFileError):
-			return frappe.unscrub(doctype)
+			return load_doctype_name(path, os.stat(path).st_mtime_ns) or None
+		except (OSError, ViewFileError):
+			return None
 
 	def add(self, doctype: str, view: AppView):
 		views = self.views.setdefault(doctype, {})
 		if winner := views.get(view.key):
 			self.clashes.append(
-				f"App view {view.key!r} of {view.doctype} ships in {winner.app} and {view.app}; {winner.app}'s is used."
+				f"App view {view.key!r} of {doctype} ships in {winner.app} and {view.app}; {winner.app}'s is used."
 			)
 			return
 		views[view.key] = view
@@ -129,18 +139,19 @@ class ViewIndex:
 		address = (view.app, doctype)
 		if first := self.defaults.get(address):
 			self.refused.append(
-				f"App view {view.path} is a second default of {view.doctype} in {view.app}; {first.key!r} is the default."
+				f"App view {view.path} is a second default of {doctype} in {view.app}; {first.key!r} is the default."
 			)
 			return
 		self.defaults[address] = view
 
-	def defaults_in(self, app: str | None) -> list[AppView]:
+	def defaults_in(self, app: str | None) -> list[tuple[str, AppView]]:
+		"""`(scrubbed doctype, view)` of each doctype's default: `app`'s, else its own app's."""
 		doctypes = {doctype for _app, doctype in self.defaults}
 		found = (
-			self.defaults.get((app, doctype)) or self.defaults.get((self.owner(doctype), doctype))
+			(doctype, self.defaults.get((app, doctype)) or self.defaults.get((self.owner(doctype), doctype)))
 			for doctype in doctypes
 		)
-		return [view for view in found if view]
+		return [(doctype, view) for doctype, view in found if view]
 
 
 def read_view(app: str, doctype: str, path: str) -> AppView:
@@ -170,13 +181,19 @@ def load_head(path: str, mtime_ns: int, size: int) -> tuple[str, str, bool]:
 
 @functools.lru_cache(maxsize=256)
 def load_settings(path: str, mtime_ns: int, size: int) -> str:
-	return json.dumps(load_file(path).get("settings") or {})
+	"""The file's settings, checked again: the file may have changed since the index read it."""
+	data = load_file(path)
+	settings = data.get("settings", {}) if isinstance(data, dict) else None
+	check_settings(settings)
+	return json.dumps(settings)
 
 
 def check_key(key: str):
 	# Imported here: `key_space` reads this module's index.
 	from .key_space import RESERVED_KEYS, url_safe
 
+	if not key:
+		raise ViewFileError("a view file needs a name")
 	if key in RESERVED_KEYS:
 		raise ViewFileError(f"{key!r} is a view type's name")
 	if url_safe(key) != key:
@@ -255,4 +272,9 @@ def subfolders(path: str) -> list[str]:
 def stamp(folder: str) -> tuple:
 	"""The folder's and its files' modified times: a new, deleted or edited file changes it."""
 	files = sorted(view_files(folder))
-	return (os.stat(folder).st_mtime_ns, *((path, os.stat(path).st_mtime_ns) for path in files))
+	return (os.stat(folder).st_mtime_ns, *((path, *file_stamp(path)) for path in files))
+
+
+def file_stamp(path: str) -> tuple[int, int]:
+	stat = os.stat(path)
+	return stat.st_mtime_ns, stat.st_size

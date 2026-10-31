@@ -18,6 +18,13 @@
     "fieldname": "allocated_to"
    }
   ],
+  "filters": [
+   [
+    "status",
+    "=",
+    "Open"
+   ]
+  ],
   "sort": [
    {
     "direction": "asc",

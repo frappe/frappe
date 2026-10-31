@@ -449,6 +449,9 @@ The file holds the shape of a `Doctype View` row:
  "default": true,
  "label": "Pipeline",
  "settings": {
+  "filters": [
+   ["status", "=", "Open"]
+  ],
   "sort": [
    {
     "direction": "desc",
@@ -462,9 +465,11 @@ The file holds the shape of a `Doctype View` row:
 
 - `label` names the view. The translation extractor reads it.
 - `type` is a view type.
-- `settings` is the object a `Doctype View` row stores, at most 16 KB.
-- `default` is optional. At most one view of a doctype in one app has it. Inside the app's
-  prefix, that app's default applies. Elsewhere, the default of the doctype's own app applies.
+- `settings` is the object a `Doctype View` row stores, at most 16 KB. The view type reads
+  its keys. The List type does not apply `filters` yet.
+- `default` is optional. At most one view of a doctype in one app has it. A second one is
+  logged, and the first by key stays the default. Inside the app's prefix, that app's default
+  applies. Elsewhere, the default of the doctype's own app applies.
 - A view has no icon. The icon is on the sidebar row that shows the view.
 
 The key is lower-case letters, digits and dashes, and it is never a view type's name

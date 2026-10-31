@@ -5,11 +5,7 @@ from .utils import get_line_number
 
 
 def extract(fileobj, *args, **kwargs):
-	"""Extract the label of an app's view file. To be used by babel extractor.
-
-	:param fileobj: the file-like object the messages should be extracted from
-	:rtype: `iterator`
-	"""
+	"""The label of an app's view file, for the babel extractor."""
 	text = fileobj.read().decode()
 	data = json.loads(text)
 	if not isinstance(data, dict) or not isinstance(label := data.get("label"), str) or not label:

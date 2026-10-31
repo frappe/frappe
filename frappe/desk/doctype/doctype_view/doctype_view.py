@@ -76,8 +76,25 @@ class DoctypeView(Document):
 		space = KeySpace(self.reference_doctype)
 		space.lock()
 		if not self.user and self.overridden_app_view():
+			self.refuse_a_second_override()
 			return self.key
 		return space.claim(self.key or self.label)
+
+	def refuse_a_second_override(self):
+		# A locking read: the doctype lock serialises two overrides, and a plain read misses the first's row.
+		existing = frappe.db.get_value(
+			self.doctype,
+			{"reference_doctype": self.reference_doctype, "user": SITE_ROW, "key": self.key},
+			for_update=True,
+		)
+		if existing:
+			frappe.throw(
+				_("The site already overrides the app view {0}. Edit {1} instead.").format(
+					frappe.bold(self.key), frappe.bold(existing)
+				),
+				title=_("Already Exists"),
+				exc=DuplicateViewError,
+			)
 
 	def overridden_app_view(self):
 		"""The app view at this row's key, which a site row replaces whole and a person's own hides for them."""

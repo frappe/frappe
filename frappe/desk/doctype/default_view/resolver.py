@@ -46,9 +46,9 @@ class DefaultViews:
 	def app_layer(self, doctypes: list[str] | None) -> dict[str, frappe._dict]:
 		"""The defaults apps' view files declare: this app's, else the one the doctype's own app ships."""
 		return {
-			view.doctype: frappe._dict(view=view.key, type=None)
-			for view in app_defaults(self.app)
-			if doctypes is None or view.doctype in doctypes
+			doctype: frappe._dict(view=key, type=None)
+			for doctype, key in app_defaults(self.app).items()
+			if doctypes is None or doctype in doctypes
 		}
 
 	def existing(self, doctypes: set[str]) -> list[str]:

@@ -48,7 +48,7 @@ def reset(doctype: str, type: str, scope: str, key: str) -> dict:
 @frappe.desk_v2_only
 @frappe.whitelist(methods=["GET"])
 def find(doctype: str, key: str) -> dict:
-	"""The saved view at `key` the caller sees, their own before the site's; another person's reads as missing."""
+	"""The saved view at `key` the caller sees, their own before the site's before an app's; another person's reads as missing."""
 	if not isinstance(key, str):
 		frappe.throw(_("A view key is one name."))
 	check_doctype(doctype)
