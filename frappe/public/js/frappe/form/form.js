@@ -104,6 +104,7 @@ frappe.ui.form.Form = class FrappeForm {
 		this.debounced_reload_doc = frappe.utils.debounce(this.reload_doc.bind(this), 1000);
 
 		this.beforeUnloadListener = (event) => {
+			if (frappe.urllib.is_downloading) return;
 			event.preventDefault();
 			// A String is returned for compatability with older Browsers. Return Value has to be truthy to trigger "Leave Site" Dialog
 			return (event.returnValue =

@@ -64,6 +64,17 @@ window.open_url_post = function open_url_post(URL, PARAMS, new_window) {
 		temp.appendChild(opt);
 	}
 	document.body.appendChild(temp);
+	if (new_window) {
+		temp.submit();
+		return temp;
+	}
+
+	// The browser treats the POST as leaving the page, though a download keeps it open.
+	// Forms with unsaved changes skip their "Leave site?" prompt while it starts.
+	frappe.urllib.is_downloading = true;
+	const done = () => (frappe.urllib.is_downloading = false);
+	addEventListener("beforeunload", done, { once: true });
+	setTimeout(done, 1000);
 	temp.submit();
 	return temp;
 };
