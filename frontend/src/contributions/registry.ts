@@ -18,6 +18,9 @@ export const pages: PageContribution[] = contributions.pages
 /** Item kind -> renderer, filled by `registerContributions` in the site's app order. */
 export const itemRenderers: Record<string, ItemRenderer> = {}
 
+/** View type -> its renderer's lazy import, filled by `registerContributions` in the site's app order. */
+export const viewRenderers: Record<string, () => Promise<unknown>> = {}
+
 /** List customizations by doctype; the record-page engine has no registrar for these. */
 const listHandlers = new Map<string, { app: string; handlers: ListHandlers }[]>()
 
@@ -117,6 +120,7 @@ function ordered<T extends { app: string }>(
  */
 export function registerContributions(appOrder: string[]) {
   registerItemTypes(appOrder)
+  registerViewTypes(appOrder)
   registerReplacements(appOrder)
   registerPageScripts(appOrder)
   registerActs(appOrder)
@@ -175,6 +179,25 @@ function registerItemTypes(appOrder: string[]) {
 
     owner[contribution.type] = contribution.app
     itemRenderers[contribution.type] = contribution.renderer
+  }
+}
+
+/** One renderer per view type; the first app in the site's order wins and the collision is logged. */
+function registerViewTypes(appOrder: string[]) {
+  const owner: Record<string, string> = {}
+
+  for (const contribution of ordered(contributions.viewTypes ?? [], appOrder)) {
+    const claimed = owner[contribution.type]
+    if (claimed) {
+      console.error(
+        `[frappe] two apps ship a renderer for view type '${contribution.type}': ` +
+          `'${claimed}' is used and '${contribution.app}' is ignored.`,
+      )
+      continue
+    }
+
+    owner[contribution.type] = contribution.app
+    viewRenderers[contribution.type] = contribution.renderer
   }
 }
 

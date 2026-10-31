@@ -283,6 +283,7 @@ component group, with its main names.
 | List handlers (`listHandlersFor`) | Per-doctype list changes, such as extra columns |
 | Page registrations (`pages`, `replacementFor`, `declaredReplacements`, `reportReplacementClashes`, `registerStandardPages`, `standardPage`, `StandardPages`) | The page for each address. Standard pages are the default registration; an app's page replaces one, in every app or in the apps its entry names. In an app, an entry that names it beats one that names none; among equals the last app wins, and the router logs that clash in the current app once, and none on the index |
 | Item kinds and the item contract (`itemRenderers`, `ItemRenderer`, `Rendering`, `ItemContext`) | What an app's `item.js` implements to draw a navigation item. The last app wins |
+| [View type](./CONTEXT.md#view-type) renderers (`viewRenderers`, `ViewTypeContribution`) | Each view type's renderer, a lazy import from the app's `view.js`, so each type is its own chunk. The first app in the site's order wins, and the clash is logged. Nothing reads it until the list page and its renderers split (#46029) |
 | After-save registry (`registerAfterSave`, `runAfterSave`, `askReload`, `AfterSave`, `SavedBinding`) | What runs after a settings binding of a doctype saves, with the saved record and the fields sent. Apps register their own doctypes only through their shell hook's `afterSave`; a handler that throws is logged and the others still run. `askReload` shows the one "Reload to apply" toast when a save changed any of the fields given |
 | Settings components (`settingsComponentFor`, `SettingsComponentContribution`) | The lazy component a settings block names, by app and name. A name with no file gives nothing and a warning, and the block is dropped |
 | `registerContributions(appOrder)` | Runs once before the first route, in app order. Hands each file script to the script loader |
@@ -468,6 +469,7 @@ the reference for each `page` member.
 | List file (`list.js`) | An app's changes to a doctype's list, such as extra columns |
 | Item file (`item.js`) | An app's renderer for one kind of navigation item |
 | Shell hook file (`shell.js`) | An app's [shell hook](./CONTEXT.md#shell-hook) at `<module>/frontend/shell.js`, one per app: a named `setup(shell)` export |
+| View file (`view.js`) | An app's renderer for one view type at `<module>/view_type/<scrubbed>/frontend/view.js`, beside the `View Type` record: `export default { renderer: () => import(...) }` |
 | Acts file (`acts.js`) | An app's global acts at `<module>/frontend/acts.js`: a default export that lists acts, each run as `run(shell, value)` |
 | Settings component file (`frontend/settings/<name>.vue`) | An app's component for one settings block. Its chunk loads when a pane that holds the block opens. Its one prop, `bindings`, holds per named binding `doc`, `saved`, `meta`, `loading`, `error`, `isNew` and `commit()`; it edits `doc` and never saves a binding itself |
 | Import list | The one list of names that customization code and app pages may import |
@@ -535,6 +537,7 @@ Every way an app, a site admin or a user changes the desk, with the layer that h
 | shell.js shell hook | App | 9 | `<module>/frontend/shell.js`, found by the build | Attaches to the shell on every page and tab: after-save handlers for the app's own settings |  |  |
 | acts.js acts file | App | 9 | `<module>/frontend/acts.js`, found by the build | Global acts on the shell surface, for the palette, keys and `page.run` |  |  |
 | item.js item file | App | 9 | A file in the app's frontend folder | How one kind of navigation item draws | navigation_item_resolvers hook | Winner rule differs today: first app wins the renderer, last app wins the visibility hook |
+| view.js view file | App | 9 | `<module>/view_type/<scrubbed>/frontend/view.js` beside a `View Type` record, found by the build; the build fails on one without the other | How one view type draws a doctype's records |  |  |
 | App page | App | 8 | A page file the build registers | Adds a page under the app's prefix |  |  |
 | Replacement page (pages.json) | App | 8 | pages.json beside a doctype | Replaces the standard list or record page for a doctype, in every app or in the apps an entry names |  |  |
 | @shell import alias | App | build | Vite alias | Desk names an app file may import | import_map hook | Two import lists; the target has one |

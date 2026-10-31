@@ -5,7 +5,7 @@ from frappe import _
 from frappe.desk.doctype.doctype_view.api import check_doctype, check_scope
 from frappe.desk.doctype.doctype_view.app_views import app_views
 from frappe.desk.doctype.doctype_view.doctype_view import PLAIN_VIEW, SITE_ROW
-from frappe.desk.doctype.doctype_view.key_space import TYPE_KEYS
+from frappe.desk.doctype.view_type.view_type import refuse_where_it_does_not_apply, type_keys
 
 from .resolver import DefaultViews
 
@@ -48,7 +48,8 @@ def _layer(doctype: str, scope: str) -> dict:
 
 def _pointer(doctype: str, key: str, user: str) -> dict:
 	"""The row's view and type for `key`, refusing a saved view this layer cannot point at."""
-	if view_type := TYPE_KEYS.get(key):
+	if view_type := type_keys().get(key):
+		refuse_where_it_does_not_apply(view_type, doctype)
 		return {"view": PLAIN_VIEW, "type": view_type}
 
 	if key in app_views(doctype):

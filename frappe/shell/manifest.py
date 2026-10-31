@@ -48,6 +48,10 @@ class ImportMapConflict(Exception):
 	pass
 
 
+class ViewTypeFileError(Exception):
+	pass
+
+
 def page_glob(source_dir: str) -> str:
 	"""An app's pages, `<module>/frontend/pages/<slug>.js`; the file name is the address."""
 	return os.path.join(source_dir, "*", "frontend", "pages", "*.js")
@@ -71,6 +75,8 @@ def contribution_globs(source_dir: str) -> list[str]:
 		page_glob(source_dir),
 		# Beside the `Navigation Item Type` JSON, where the plugin reads the kind's real name.
 		os.path.join(source_dir, "*", "navigation_item_type", "*", "frontend", "item.js"),
+		# Beside the `View Type` JSON, the same way.
+		os.path.join(source_dir, "*", "view_type", "*", "frontend", "view.js"),
 		os.path.join(source_dir, "*", "frontend", "settings", "*.vue"),
 		os.path.join(source_dir, "*", "frontend", "acts.js"),
 		shell_hook_glob(source_dir),
@@ -272,6 +278,29 @@ def enforce_import_map(manifest: list[dict]):
 		raise ImportMapConflict("\n" + "\n".join(f"  {problem}" for problem in problems))
 
 
+def view_type_problems(app: str, source_dir: str) -> list[str]:
+	"""Each of the app's view type folders that lacks its record or its renderer."""
+	problems = []
+	for folder in sorted(glob.glob(os.path.join(source_dir, "*", "view_type", "*"))):
+		scrubbed = os.path.basename(folder)
+		if scrubbed.startswith(("_", ".")) or not os.path.isdir(folder):
+			continue
+		record = os.path.isfile(os.path.join(folder, f"{scrubbed}.json"))
+		renderer = os.path.isfile(os.path.join(folder, "frontend", "view.js"))
+		if record and not renderer:
+			problems.append(f"{app} ships the view type {bench_relative(folder)} with no frontend/view.js")
+		elif renderer and not record:
+			problems.append(f"{app} ships {bench_relative(folder)}/frontend/view.js with no {scrubbed}.json")
+	return problems
+
+
+def enforce_view_types(apps: list[str]):
+	"""Fail the build when a view type ships without its record or its renderer: one alone draws nothing."""
+	problems = [problem for app in apps for problem in view_type_problems(app, frappe.get_app_path(app))]
+	if problems:
+		raise ViewTypeFileError("\n" + "\n".join(f"  {problem}" for problem in problems))
+
+
 def enforce_singletons(manifest: list[dict], frontend: str | None = None):
 	"""Fail the build when an app's range for a shared library excludes the version the framework ships."""
 	# Before vite starts, and not `resolve.dedupe`, which silently picks a winner.
@@ -420,6 +449,7 @@ def write(frontend: str | None = None) -> tuple[list[dict], list[str], bool]:
 	manifest = assemble(apps)
 	enforce_singletons(manifest, frontend)
 	enforce_import_map(manifest)
+	enforce_view_types(apps)
 
 	# `source_dirs` is every app, not just contributors: a `custom/` folder may name a doctype
 	# owned by an app that contributes nothing. Bench-internal path; never request-derived.

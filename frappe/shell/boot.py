@@ -10,6 +10,7 @@ from frappe.core.doctype.installed_applications.installed_applications import (
 )
 from frappe.desk.doctype.default_view.resolver import DefaultViews
 from frappe.desk.doctype.favourite.favourite import readable_views
+from frappe.desk.doctype.view_type.view_type import view_types
 from frappe.integrations.frappe_providers.cloud_settings import is_cloud_settings_enabled
 from frappe.sessions import get_session_info
 from frappe.translate import get_translation_version
@@ -296,6 +297,11 @@ def get_boot(path: str | None = None) -> dict:
 			"navigation": resolve_navigation(app),
 			# Addresses only, never a view's settings.
 			"default_views": DefaultViews(app=app).addresses(),
+			# The records only: each type's renderer is its own chunk, loaded when a view of it opens.
+			"view_types": [
+				{"name": record.name, "label": _(record.label), "icon": record.icon}
+				for record in view_types().values()
+			],
 		}
 
 	# One exit, so the index payload is weighed on the same call site as a prefix's.

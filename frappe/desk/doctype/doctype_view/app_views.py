@@ -8,12 +8,16 @@ import os
 from typing import NamedTuple
 
 import frappe
+from frappe.desk.doctype.view_type.view_type import applies_to, rules, validate_settings, view_types
 from frappe.modules.utils import get_module_list
 from frappe.utils.caching import request_cache
 
-from .doctype_view import SETTINGS_SIZE_LIMIT, VIEW_TYPES
+from .doctype_view import SETTINGS_SIZE_LIMIT
 
 FILE_KEYS = frozenset({"label", "type", "default", "settings"})
+
+# `(site, path, reason)` of each refusal already logged, so a refused file is logged once per worker.
+reported: set[tuple[str, str, str]] = set()
 
 
 class AppView(NamedTuple):
@@ -31,8 +35,35 @@ class ViewFileError(ValueError):
 
 
 def app_views(doctype: str) -> dict[str, AppView]:
-	"""`{key: view}` of the views the site's apps ship for `doctype`, one per key after clashes."""
-	return current_index().views.get(frappe.scrub(doctype), {})
+	"""`{key: view}` of the views the site's apps ship for `doctype`, one per key after clashes, that its view types accept."""
+	views = current_index().views.get(frappe.scrub(doctype), {})
+	return {key: view for key, view in views.items() if accepted(doctype, view)}
+
+
+def accepted(doctype: str, view: AppView) -> bool:
+	"""The site's half of the file check: the index is per set of apps, and `View Type` rows are per site."""
+	from .key_space import reserved_keys
+
+	if view.type not in view_types():
+		return refused(view, f"{view.type!r} is not a view type")
+	if view.key in reserved_keys():
+		return refused(view, f"{view.key!r} is a reserved view key")
+	if not applies_to(view.type, doctype):
+		return refused(view, f"{view.type} views don't apply to {doctype}")
+	if not hasattr(rules(view.type), "validate_settings"):
+		return True
+	try:
+		validate_settings(view.type, doctype, json.loads(load_settings(view.path, *file_stamp(view.path))))
+	except (OSError, ViewFileError, frappe.ValidationError) as error:
+		return refused(view, str(error))
+	return True
+
+
+def refused(view: AppView, reason: str) -> bool:
+	if (frappe.local.site, view.path, reason) not in reported:
+		reported.add((frappe.local.site, view.path, reason))
+		frappe.logger("desk").warning(f"App view file {view.path} is refused: {reason}")
+	return False
 
 
 def app_view_settings(doctype: str, key: str) -> dict | None:
@@ -184,8 +215,8 @@ def load_head(path: str, mtime_ns: int, size: int) -> tuple[str, str, bool]:
 		raise ViewFileError(f"unknown keys {', '.join(unknown)}")
 	if not isinstance(data.get("label"), str) or not data["label"].strip():
 		raise ViewFileError("a view needs a label")
-	if data.get("type") not in VIEW_TYPES:
-		raise ViewFileError(f"{data.get('type')!r} is not a view type")
+	if not isinstance(data.get("type"), str) or not data["type"]:
+		raise ViewFileError("a view needs a type")
 	if not isinstance(data.get("default", False), bool):
 		raise ViewFileError("`default` is true or false")
 	check_settings(data.get("settings", {}))
@@ -203,12 +234,10 @@ def load_settings(path: str, mtime_ns: int, size: int) -> str:
 
 def check_key(key: str):
 	# Imported here: `key_space` reads this module's index.
-	from .key_space import RESERVED_KEYS, url_safe
+	from .key_space import url_safe
 
 	if not key:
 		raise ViewFileError("a view file needs a name")
-	if key in RESERVED_KEYS:
-		raise ViewFileError(f"{key!r} is a view type's name")
 	if url_safe(key) != key:
 		raise ViewFileError(f"{key!r} is not a view key: lower-case letters, digits and dashes")
 

@@ -160,6 +160,7 @@ Only ever this. A navigation item's axis is its **type**, and `Record` appears i
 | `<module>/frontend/settings/<name>.vue` | a settings block's component, loaded lazily |
 | `<module>/frontend/acts.js` | an app's global acts on the **shell surface**, imported at idle |
 | `<module>/frontend/shell.js` | an app's **shell hook**, run at idle |
+| `<module>/view_type/<scrubbed>/frontend/view.js` | a **view type**'s renderer, beside its record |
 
 `frontend/<name>.js` beside `pages/<name>.js`, and `custom/<x>/<name>.js`, are reserved
 handler files: warned about and ignored for now.
@@ -426,7 +427,12 @@ verbs for scripts yet; `run` receives `(shell, value)`.
 
 **View type**: <a id="view-type"></a>
 How a doctype's records are drawn: List, Kanban and so on. Each saved view has one type, and
-the type is read from the view, never from its address.
+the type is read from the view, never from its address. A type is a code-owned `View Type`
+record (`name`, `label`, `icon`) that an app ships at `<module>/view_type/<scrubbed>/`, with its
+**renderer** in `frontend/view.js` beside it and optional server rules in `<scrubbed>.py`:
+`validate_settings(doctype, settings)` checks the type's own settings keys, and
+`applies_to(meta)` says which doctypes it fits. List goes through the same files. Each type's
+name, lower-cased, is the address of its plain view and a reserved view key.
 _Avoid_: view mode, layout (a record page word).
 
 **Saved view**: <a id="saved-view"></a>

@@ -2,8 +2,9 @@
 
 import frappe
 from frappe.desk.doctype.doctype_view.app_views import app_defaults
-from frappe.desk.doctype.doctype_view.doctype_view import SITE_ROW, VIEW_TYPES
+from frappe.desk.doctype.doctype_view.doctype_view import SITE_ROW
 from frappe.desk.doctype.doctype_view.key_space import find_views
+from frappe.desk.doctype.view_type.view_type import applies_to, view_types
 
 
 class DefaultViews:
@@ -67,4 +68,6 @@ def segment(doctype: str, pointer: frappe._dict | None, views: dict) -> str | No
 	if pointer.view:
 		return pointer.view if (doctype, pointer.view) in views else None
 
-	return pointer.type.lower() if pointer.type in VIEW_TYPES else None
+	return (
+		pointer.type.lower() if pointer.type in view_types() and applies_to(pointer.type, doctype) else None
+	)

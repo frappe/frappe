@@ -3,8 +3,9 @@
 import frappe
 from frappe import _
 from frappe.desk.doctype.favourite.favourite import list_favourites
+from frappe.desk.doctype.view_type.view_type import refuse_where_it_does_not_apply, view_types
 
-from .doctype_view import PLAIN_VIEW, SITE_ROW, VIEW_TYPES, DuplicateViewError, is_site_administrator
+from .doctype_view import PLAIN_VIEW, SITE_ROW, DuplicateViewError, is_site_administrator
 from .key_space import KeySpace
 from .view_list import ViewList
 
@@ -78,8 +79,9 @@ def _check(doctype: str, type: str, scope: str = "user"):
 	if not all(isinstance(argument, str) for argument in (type, scope)):
 		frappe.throw(_("A doctype, a view type and a scope are each one name."))
 
-	if type not in VIEW_TYPES:
+	if type not in view_types():
 		frappe.throw(_("{0} is not a view type.").format(frappe.bold(type)))
+	refuse_where_it_does_not_apply(type, doctype)
 
 	check_scope(scope)
 

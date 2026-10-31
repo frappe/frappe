@@ -72,6 +72,15 @@ export type ItemTypeContribution = {
   renderer: ItemRenderer
 }
 
+// A view type's renderer: <module>/view_type/<scrubbed>/frontend/view.js, beside the `View Type`
+// record, exporting `{ renderer: () => import(...) }`. List goes through this too.
+export type ViewTypeContribution = {
+  app: string
+  /** The type record's own `name`, read from the JSON beside the file. */
+  type: string
+  renderer: () => Promise<unknown>
+}
+
 // A settings block's component: <module>/frontend/settings/<name>.vue, loaded when its pane
 // opens. The app's `Settings Dialog` record names it by `name`; nothing else is declared here.
 export type SettingsComponentContribution = {
@@ -98,6 +107,7 @@ export type Contributions = {
   doctypes: DoctypeContribution[]
   pages: PageContribution[]
   itemTypes: ItemTypeContribution[]
+  viewTypes: ViewTypeContribution[]
   settings: SettingsComponentContribution[]
   acts: ActsContribution[]
   shellHooks: ShellHookContribution[]
