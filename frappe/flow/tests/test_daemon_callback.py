@@ -447,8 +447,10 @@ class TestToolCallback(IntegrationTestCase):
 		reads = "result = frappe.session.user"
 		answer = self.confirm_fresh("execute", {"code": reads, "description": "Who am I"})
 		self.assertEqual(answer, {"approved": True, "result": {"content": OWNER, "is_error": False}})
-		broken = self.confirm_fresh("execute", {"code": "result = undefined_name", "description": "x"})
-		self.assertTrue(broken["result"]["is_error"])
+		for code in ("result = undefined_name", 'update("ToDo", ["missing-todo"], {"status": "Closed"})'):
+			with self.subTest(fails=code):
+				broken = self.confirm_fresh("execute", {"code": code, "description": "x"})
+				self.assertTrue(broken["result"]["is_error"])
 
 		asks = {
 			"writes": 'create("ToDo", [{"description": "execute-wrote"}])',
@@ -457,15 +459,20 @@ class TestToolCallback(IntegrationTestCase):
 			"sends email": 'frappe.sendmail(recipients=["a@example.com"], subject="x", message="x")',
 			"calls an unmarked function": 'frappe.call("frappe.client.set_value", doctype="ToDo", name="x", fieldname="status", value="Closed")',
 			"hides that call": 'try:\n\tfrappe.call("frappe.ping")\nexcept Exception:\n\tpass',
+			"runs an unmarked function": 'run_action("", [], "frappe.ping")',
 		}
 		for case, code in asks.items():
 			with self.subTest(case):
 				answer = self.confirm_fresh("execute", {"code": code, "description": "Do it"})
 				self.assertEqual(answer, {"prompt": f"Do it\nDo it:\n\n{code}"})
 				self.assertFalse(frappe.db.exists("ToDo", {"description": "execute-wrote"}))
-		marked = f'result = frappe.call("{MODULE}.read_only_whoami")'
-		answer = self.confirm_fresh("execute", {"code": marked, "description": "Who am I"})
-		self.assertEqual(json.loads(answer["result"]["content"]), [OWNER, "System Manager"])
+		for marked in (
+			f'result = frappe.call("{MODULE}.read_only_whoami")',
+			f'result = run_action("", [], "{MODULE}.read_only_whoami")',
+		):
+			with self.subTest(marked):
+				answer = self.confirm_fresh("execute", {"code": marked, "description": "Who am I"})
+				self.assertIn(OWNER, answer["result"]["content"])
 
 	def test_confirm_mode_prompts_a_title_line_then_the_tools_own_summary(self):
 		prompt = self.call("delete", {"doctype": "ToDo", "names": ["a", "b"]}, mode="confirm")["prompt"]

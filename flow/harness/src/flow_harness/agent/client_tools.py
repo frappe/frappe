@@ -35,7 +35,7 @@ async def call_client(config: SessionConfig, session_id: str, call: ToolCall, *,
 		"user_context": config.user_context,
 		"mode": mode,
 	}
-	if mode == "confirm":  # only fetches the approval prompt
+	if mode == "confirm":  # the approval prompt, or the result of a call that needs none
 		return await _post(config, url, payload)
 	# registered before the callback, so a quick job can't post too early
 	token = secrets.token_urlsafe(16)

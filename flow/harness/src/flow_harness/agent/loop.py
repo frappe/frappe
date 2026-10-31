@@ -563,9 +563,14 @@ async def _run_batch(
 
 
 async def _run_call(
-	call: ToolCall, rewritten: bool, tools: dict[str, Tool], ctx: ToolContext, inputs: LoopInputs
+	call: ToolCall,
+	rewritten: bool,
+	tools: dict[str, Tool],
+	ctx: ToolContext,
+	inputs: LoopInputs,
+	ran: ToolResult | None = None,
 ) -> ToolResult:
-	result = await _finished_call(call, tools, ctx, inputs)
+	result = await _finished_call(call, tools, ctx, inputs, ran)
 	if rewritten:  # the durable ToolCall keeps the model's arguments; record what ran
 		result = result.model_copy(
 			update={"details": {**result.details, "effective_arguments": dict(call.args)}}
@@ -615,7 +620,8 @@ async def _settle_call(
 			runnable.append((call, rewritten))
 			return
 		if isinstance(prompt, dict):  # the client ran it already, as it needed no approval
-			yield _capped(_result(call, prompt.get("content", ""), is_error=bool(prompt.get("is_error"))))
+			ran = _result(call, prompt.get("content", ""), is_error=bool(prompt.get("is_error")))
+			yield await _run_call(call, rewritten, tools, ctx, inputs, ran)
 			return
 		gated.append(PendingCall(id=call.id, name=call.name, args=call.args, prompt=prompt))
 		return
@@ -634,11 +640,16 @@ async def _hook_verdict(call: ToolCall, ctx: ToolContext, inputs: LoopInputs) ->
 
 
 async def _finished_call(
-	call: ToolCall, tools: dict[str, Tool], ctx: ToolContext, inputs: LoopInputs
+	call: ToolCall,
+	tools: dict[str, Tool],
+	ctx: ToolContext,
+	inputs: LoopInputs,
+	ran: ToolResult | None = None,
 ) -> ToolResult:
-	"""Dispatch one approved call, run extension result hooks, give the after-hook its say."""
+	"""Dispatch one approved call, or take the result of one `ran` already, run extension result
+	hooks, give the after-hook its say."""
 	_raise_if_aborted(inputs.abort)
-	result = await await_with_cancellation(_dispatch(call, tools, ctx, inputs), inputs.abort)
+	result = ran or await await_with_cancellation(_dispatch(call, tools, ctx, inputs), inputs.abort)
 	_raise_if_aborted(inputs.abort)
 	dispatched = result.content
 	if inputs.extension_runtime is not None and inputs.extension_runtime.has_tool_hooks:

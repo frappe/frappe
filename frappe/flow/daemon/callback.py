@@ -149,7 +149,9 @@ def _run_unapproved(tool: Tool, args: dict, ctx: ToolContext) -> dict | None:
 		except Exception as exc:
 			if tool.name == "execute" and _needs_approval(exc):
 				return None
-			return _error(refused if _wrote(exc) else str(exc).strip() or type(exc).__name__)
+			# on Postgres a swallowed refusal fails the next query instead
+			wrote = _wrote(exc) or frappe.db.transaction_writes
+			return _error(refused if wrote else str(exc).strip() or type(exc).__name__)
 		# the code may have caught the refusal
 		if frappe.flags.flow_needs_approval or frappe.db.transaction_writes:
 			return None if tool.name == "execute" else _error(refused)
@@ -161,7 +163,6 @@ def _needs_approval(exc: BaseException) -> bool:
 
 	return bool(
 		frappe.flags.flow_needs_approval
-		or frappe.flags.flow_undone_batch
 		or _wrote(exc)
 		or any(isinstance(e, NeedsApproval) for e in _chain(exc))
 	)

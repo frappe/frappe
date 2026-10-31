@@ -987,6 +987,13 @@ async def test_a_client_tool_call_the_callback_approves_runs_without_asking(tmp_
 	assert [r["content"] for r in _of(events, "tool_result")] == ["read without asking"]
 	assert _of(events, "approval_required") == []
 
+	# its result goes through the after-hook as a run one does
+	session, events = _session(tmp_path, **settings)
+	await _run(
+		session, "build the report", model=_report_model(), after_tool_call=lambda call, result: "hooked"
+	)
+	assert [r["content"] for r in _of(events, "tool_result")] == ["hooked"]
+
 	modes.clear()
 	answer.clear()
 	answer.update(prompt="Build the report?")

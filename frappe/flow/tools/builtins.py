@@ -805,6 +805,9 @@ def is_read_only_function(path: Any) -> bool:
 
 def _undo_batch(record: str, error: Exception) -> NoReturn:
 	"""Undo every write since the batch began, then fail naming the record that broke it."""
+	if frappe.flags.read_only and frappe.db.transaction_writes:
+		# the undo forgets the refused write, and the code may catch this error
+		frappe.flags.flow_needs_approval = True
 	try:
 		frappe.db.rollback(save_point=_BATCH_SAVEPOINT)
 		undone = "Nothing was saved."
