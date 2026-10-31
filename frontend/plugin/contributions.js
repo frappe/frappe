@@ -316,7 +316,7 @@ function generate({
 	viewTypes.forEach((entry, index) => {
 		lines.push(
 			`    { app: ${JSON.stringify(entry.app)}, type: ${JSON.stringify(entry.type)}, ` +
-				`handlers: v${index}?.renderer, renderer: v${index}?.renderer, ` +
+				`handlers: v${index}, renderer: v${index}?.renderer, ` +
 				`__file: ${JSON.stringify(entry.file)} },`
 		);
 	});

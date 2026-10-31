@@ -18,6 +18,7 @@ vi.mock('virtual:frappe/contributions', () => ({
       { app: 'crm', type: 'List', renderer: crmList },
       { app: 'frappe', type: 'List', renderer: frappeList },
       { app: 'myapp', type: 'Cards', renderer: cards },
+      { app: 'myapp', type: 'Wall', renderer: undefined as unknown as () => Promise<unknown> },
     ] satisfies ViewTypeContribution[],
   },
 }))
@@ -34,6 +35,9 @@ describe('viewRenderers', () => {
     expect(viewRenderers).toEqual({ List: frappeList, Cards: cards })
     expect(error).toHaveBeenCalledWith(
       "[frappe] two apps ship a renderer for view type 'List': 'frappe' is used and 'crm' is ignored.",
+    )
+    expect(error).toHaveBeenCalledWith(
+      "[frappe] myapp's view.js for view type 'Wall' exports no renderer; it is ignored.",
     )
   })
 })

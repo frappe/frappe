@@ -66,8 +66,11 @@ def segment(doctype: str, pointer: frappe._dict | None, views: dict) -> str | No
 		return None
 
 	if pointer.view:
-		return pointer.view if (doctype, pointer.view) in views else None
+		view = views.get((doctype, pointer.view))
+		return pointer.view if view and fits(view.type, doctype) else None
 
-	return (
-		pointer.type.lower() if pointer.type in view_types() and applies_to(pointer.type, doctype) else None
-	)
+	return pointer.type.lower() if fits(pointer.type, doctype) else None
+
+
+def fits(view_type: str, doctype: str) -> bool:
+	return view_type in view_types() and applies_to(view_type, doctype)

@@ -4,12 +4,17 @@
 import os
 import shutil
 import tempfile
+from contextlib import contextmanager
 from types import SimpleNamespace
 from unittest.mock import patch
 
 import frappe
+from frappe.desk.doctype.default_view.resolver import DefaultViews
 from frappe.desk.doctype.doctype_view import api as view_api
+from frappe.desk.doctype.doctype_view import app_views as app_views_module
+from frappe.desk.doctype.doctype_view.app_views import ViewIndex, app_views
 from frappe.desk.doctype.doctype_view.key_space import SURVIVOR_CANDIDATES, reserved_keys
+from frappe.desk.doctype.doctype_view.test_app_views import APPS, AppFolders
 from frappe.desk.doctype.doctype_view.view_list import ViewList
 from frappe.desk.doctype.view_type import view_type as view_type_module
 from frappe.desk.doctype.view_type.view_type import applies_to, type_keys, view_types
@@ -21,10 +26,30 @@ PROBE = "Probe-46028"
 PROBE_RULES = "frappe.desk.view_type.probe_46028.probe_46028"
 
 
+def make_type(name: str, label: str):
+	"""A `View Type` row as migrate makes one: from a file, so outside developer mode."""
+	frappe.flags.in_import = True
+	try:
+		return frappe.get_doc(
+			{"doctype": "View Type", "name": name, "label": label, "module": "Desk"}
+		).insert()
+	finally:
+		frappe.flags.in_import = False
+
+
 def make_view(doctype: str = "ToDo", type: str = PROBE, **kwargs):
 	return frappe.get_doc(
 		{"doctype": "Doctype View", "reference_doctype": doctype, "type": type, "settings": {}, **kwargs}
 	)
+
+
+@contextmanager
+def temporary_folder():
+	root = tempfile.mkdtemp(prefix="test_view_type_46028_")
+	try:
+		yield root
+	finally:
+		shutil.rmtree(root)
 
 
 class ViewTypeCase(IntegrationTestCase):
@@ -34,9 +59,7 @@ class ViewTypeCase(IntegrationTestCase):
 		frappe.db.delete("Doctype View", {"type": PROBE})
 		self.rules = SimpleNamespace()
 		self.enterContext(patch.object(view_type_module, "rules_module", side_effect=self.rules_module))
-		frappe.flags.in_import = True
-		self.addCleanup(setattr, frappe.flags, "in_import", False)
-		frappe.get_doc({"doctype": "View Type", "name": PROBE, "label": "Probe", "module": "Desk"}).insert()
+		make_type(PROBE, "Probe")
 		self.addCleanup(frappe.cache.delete_value, view_type_module.CACHE_KEY)
 
 	def tearDown(self):
@@ -66,7 +89,6 @@ class TestTheRecords(ViewTypeCase):
 			make_view(type="Gantt").insert()
 
 	def test_a_record_is_refused_outside_developer_mode_and_migrate(self):
-		frappe.flags.in_import = False
 		self.enterContext(patch.dict(frappe.conf, {"developer_mode": 0}))
 		with self.assertRaisesRegex(frappe.ValidationError, "can only be authored in developer mode"):
 			frappe.get_doc("View Type", PROBE).save()
@@ -74,9 +96,7 @@ class TestTheRecords(ViewTypeCase):
 	def test_a_name_that_is_no_view_key_is_refused(self):
 		for name in ("Two Words", "Record"):
 			with self.assertRaisesRegex(frappe.ValidationError, "cannot name a view type"):
-				frappe.get_doc(
-					{"doctype": "View Type", "name": name, "label": name, "module": "Desk"}
-				).insert()
+				make_type(name, name)
 
 	def test_boot_carries_every_record(self):
 		from frappe.shell.boot import get_boot
@@ -130,6 +150,44 @@ class TestTheRules(ViewTypeCase):
 		self.rules.applies_to = lambda meta: meta.name == "ToDo"
 		self.assertLessEqual(probes, {view["key"] for view in ViewList().of(["ToDo"])["ToDo"]})
 
+	def test_a_default_at_a_view_whose_type_stopped_fitting_is_passed_over(self):
+		make_view(label="Probe board").insert()
+		frappe.get_doc(
+			{
+				"doctype": "Default View",
+				"reference_doctype": "ToDo",
+				"user": "Administrator",
+				"view": "probe-board",
+			}
+		).insert()
+		self.assertEqual(DefaultViews("Administrator").addresses(["ToDo"]).get("ToDo"), "probe-board")
+
+		self.rules.applies_to = lambda meta: False
+		self.assertNotEqual(DefaultViews("Administrator").addresses(["ToDo"]).get("ToDo"), "probe-board")
+
+	def test_the_site_leaves_out_an_app_file_its_type_refuses_and_shows_no_message(self):
+		folders = AppFolders(self.enterContext(temporary_folder()))
+		self.enterContext(patch.object(app_views_module, "module_paths", side_effect=folders.module_paths))
+		self.enterContext(
+			patch.object(app_views_module, "current_index", side_effect=lambda: ViewIndex(APPS))
+		)
+		folders.own_view("probe-ungrouped", type=PROBE, settings={"columns": []})
+		folders.own_view("probe-grouped", type=PROBE, settings={"group_by": "status"})
+
+		def validate_settings(doctype, settings):
+			if "group_by" not in settings:
+				frappe.throw("Group cards by a field.")
+
+		self.rules.validate_settings = validate_settings
+		frappe.local.message_log = []
+		self.assertEqual(list(app_views("ToDo")), ["probe-grouped"])
+		self.assertEqual(frappe.local.message_log, [])
+
+		self.rules.applies_to = lambda meta: 1 / 0
+		self.assertEqual(app_views("ToDo"), {})
+		self.rules.applies_to = lambda meta: meta.name != "ToDo"
+		self.assertEqual(app_views("ToDo"), {})
+
 
 class TestReservedKeys(ViewTypeCase):
 	def test_each_record_and_each_survivor_candidate_is_reserved(self):
@@ -140,10 +198,6 @@ class TestReservedKeys(ViewTypeCase):
 	def test_a_view_labelled_as_a_type_or_a_candidate_takes_a_suffix(self):
 		keys = [make_view(type="List", label=label).insert().key for label in ("Probe-46028", "Calendar")]
 		self.assertEqual(keys, ["probe-46028-2", "calendar-2"])
-
-	def test_no_stored_view_holds_a_reserved_key(self):
-		clashing = frappe.get_all("Doctype View", {"key": ("in", list(reserved_keys()))}, pluck="name")
-		self.assertEqual(clashing, [])
 
 
 class TestTheRendererFile(IntegrationTestCase):

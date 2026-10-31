@@ -187,6 +187,12 @@ function registerViewTypes(appOrder: string[]) {
   const owner: Record<string, string> = {}
 
   for (const contribution of ordered(contributions.viewTypes ?? [], appOrder)) {
+    if (typeof contribution.renderer !== 'function') {
+      console.error(
+        `[frappe] ${contribution.app}'s view.js for view type '${contribution.type}' exports no renderer; it is ignored.`,
+      )
+      continue
+    }
     const claimed = owner[contribution.type]
     if (claimed) {
       console.error(

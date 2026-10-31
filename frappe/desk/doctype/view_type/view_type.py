@@ -134,7 +134,8 @@ def read_view_types() -> dict[str, frappe._dict]:
 	rows = frappe.get_all(
 		"View Type", fields=["name", "label", "icon", "module"], order_by="creation asc, name asc"
 	)
-	return {row.name: row for row in rows}
+	# A row whose app left the bench has no files: no renderer and no rules to load.
+	return {row.name: row for row in rows if frappe.scrub(row.module) in frappe.local.module_app}
 
 
 def clear_view_types():

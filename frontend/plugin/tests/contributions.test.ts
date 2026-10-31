@@ -836,7 +836,7 @@ describe("a view type", () => {
     expect(code).toContain(`import v0 from ${JSON.stringify(file)}`);
     expect(code).toContain(
       `  viewTypes: [\n` +
-        `    { app: "myapp", type: "Cards", handlers: v0?.renderer, renderer: v0?.renderer, ` +
+        `    { app: "myapp", type: "Cards", handlers: v0, renderer: v0?.renderer, ` +
         `__file: ${JSON.stringify(file)} },\n` +
         `  ].filter(usable),`,
     );

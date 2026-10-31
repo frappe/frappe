@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 """The app layer of `Doctype View`: one JSON file per saved view, named by its key."""
 
+import contextlib
 import functools
 import json
 import os
@@ -36,27 +37,42 @@ class ViewFileError(ValueError):
 
 def app_views(doctype: str) -> dict[str, AppView]:
 	"""`{key: view}` of the views the site's apps ship for `doctype`, one per key after clashes, that its view types accept."""
+	from .key_space import reserved_keys  # `key_space` reads this module's index
+
 	views = current_index().views.get(frappe.scrub(doctype), {})
-	return {key: view for key, view in views.items() if accepted(doctype, view)}
+	if not views:
+		return {}
+	reserved = reserved_keys()
+	return {key: view for key, view in views.items() if accepted(doctype, view, reserved)}
 
 
-def accepted(doctype: str, view: AppView) -> bool:
+def accepted(doctype: str, view: AppView, reserved: frozenset[str]) -> bool:
 	"""The site's half of the file check: the index is per set of apps, and `View Type` rows are per site."""
-	from .key_space import reserved_keys
-
 	if view.type not in view_types():
 		return refused(view, f"{view.type!r} is not a view type")
-	if view.key in reserved_keys():
+	if view.key in reserved:
 		return refused(view, f"{view.key!r} is a reserved view key")
-	if not applies_to(view.type, doctype):
-		return refused(view, f"{view.type} views don't apply to {doctype}")
-	if not hasattr(rules(view.type), "validate_settings"):
-		return True
+	# Muted, and any error: a refused file is logged, never shown to whoever opened the list.
 	try:
-		validate_settings(view.type, doctype, json.loads(load_settings(view.path, *file_stamp(view.path))))
-	except (OSError, ViewFileError, frappe.ValidationError) as error:
-		return refused(view, str(error))
+		with mute_messages():
+			if not applies_to(view.type, doctype):
+				return refused(view, f"{view.type} views don't apply to {doctype}")
+			if hasattr(rules(view.type), "validate_settings"):
+				settings = json.loads(load_settings(view.path, *file_stamp(view.path)))
+				validate_settings(view.type, doctype, settings)
+	except Exception as error:
+		return refused(view, f"{type(error).__name__}: {error}")
 	return True
+
+
+@contextlib.contextmanager
+def mute_messages():
+	muted = frappe.flags.mute_messages
+	frappe.flags.mute_messages = True
+	try:
+		yield
+	finally:
+		frappe.flags.mute_messages = muted
 
 
 def refused(view: AppView, reason: str) -> bool:

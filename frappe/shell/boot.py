@@ -297,7 +297,6 @@ def get_boot(path: str | None = None) -> dict:
 			"navigation": resolve_navigation(app),
 			# Addresses only, never a view's settings.
 			"default_views": DefaultViews(app=app).addresses(),
-			# The records only: each type's renderer is its own chunk, loaded when a view of it opens.
 			"view_types": [
 				{"name": record.name, "label": _(record.label), "icon": record.icon}
 				for record in view_types().values()
