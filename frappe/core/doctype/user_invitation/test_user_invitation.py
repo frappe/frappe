@@ -9,6 +9,7 @@ import frappe.utils
 from frappe.core.api.user_invitation import (
 	_accept_invitation,
 	cancel_invitation,
+	get_invited_emails,
 	get_pending_invitations,
 	invite_by_email,
 	resend_invitation,
@@ -306,6 +307,45 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 		frappe.get_doc(doctype="Role", role_name=role, desk_access=1).insert(ignore_if_duplicate=True)
 		manager = self.make_user("invitation-manager@example.com", role)
 		invitation = self.insert_invitation_without_mail()
+
+		frappe.set_user(manager)
+		with (
+			self.patch_inviter_role(role),
+			patch.object(UserInvitation, "send_invitation_mail") as send,
+		):
+			resend_invitation(invitation.name, "frappe")
+		send.assert_called_once()
+
+	def test_reads_work_for_an_app_inviter_without_a_docperm(self):
+		role = "Test Invitation Manager"
+		frappe.get_doc(doctype="Role", role_name=role, desk_access=1).insert(ignore_if_duplicate=True)
+		manager = self.make_user("invitation-manager@example.com", role)
+		pending = self.insert_invitation_without_mail(emails[1])
+		self.insert_invitation_without_mail(emails[2]).db_set("status", "Accepted")
+		self.insert_invitation_without_mail(emails[3]).db_set("status", "Cancelled")
+
+		frappe.set_user(manager)
+		with self.patch_inviter_role(role):
+			self.assertFalse(frappe.has_permission("User Invitation", "read"))
+			self.assertEqual(
+				get_pending_invitations("frappe"),
+				[{"name": pending.name, "email": emails[1], "roles": ["System Manager"]}],
+			)
+			self.assertCountEqual(
+				get_invited_emails("frappe", frappe.as_json(emails[1:5])), [emails[1], emails[2]]
+			)
+			self.assertRaises(frappe.ValidationError, get_invited_emails, "frappe", frappe.as_json(emails[1]))
+
+	def test_reads_refuse_a_user_who_cannot_invite(self):
+		outsider = self.make_user("invitation-outsider@example.com", "Blogger")
+		self.insert_invitation_without_mail(emails[1])
+
+		frappe.set_user(outsider)
+		with self.patch_inviter_role("Test Invitation Manager"):
+			self.assertRaises(frappe.PermissionError, get_pending_invitations, "frappe")
+			self.assertRaises(frappe.PermissionError, get_invited_emails, "frappe", [emails[1]])
+
+	def patch_inviter_role(self, role: str):
 		get_hooks = frappe.get_hooks
 
 		def hooks_with_role(hook=None, *args, **kwargs):
@@ -313,13 +353,7 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 				return {"allowed_roles": {role: []}}
 			return get_hooks(hook, *args, **kwargs)
 
-		frappe.set_user(manager)
-		with (
-			patch("frappe.get_hooks", hooks_with_role),
-			patch.object(UserInvitation, "send_invitation_mail") as send,
-		):
-			resend_invitation(invitation.name, "frappe")
-		send.assert_called_once()
+		return patch("frappe.get_hooks", hooks_with_role)
 
 	def make_user(self, email: str, *roles: str) -> str:
 		user = frappe.get_doc(doctype="User", email=email, first_name=email, send_welcome_email=0)
@@ -330,14 +364,14 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 		self.addCleanup(frappe.set_user, "Administrator")
 		return email
 
-	def insert_invitation_without_mail(self):
+	def insert_invitation_without_mail(self, email: str = emails[1]):
 		with patch.object(UserInvitation, "send_invitation_mail"):
-			return self.get_dummy_invitation().insert()
+			return self.get_dummy_invitation(email).insert()
 
-	def get_dummy_invitation(self):
+	def get_dummy_invitation(self, email: str = emails[1]):
 		return frappe.get_doc(
 			doctype="User Invitation",
-			email=emails[1],
+			email=email,
 			roles=[dict(role="System Manager")],
 			redirect_to_path="/abc",
 			app_name="frappe",

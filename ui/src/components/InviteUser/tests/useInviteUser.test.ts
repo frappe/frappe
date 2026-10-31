@@ -16,7 +16,11 @@ vi.mock("../../../api", () => ({
 
 import { useInviteUser } from "../useInviteUser";
 
-const PENDING_FIELDS = ["name", "email", "roles.role"];
+const PENDING = "frappe.core.api.user_invitation.get_pending_invitations";
+const INVITED = "frappe.core.api.user_invitation.get_invited_emails";
+const INVITE = "frappe.core.api.user_invitation.invite_by_email";
+const CANCEL = "frappe.core.api.user_invitation.cancel_invitation";
+const RESEND = "frappe.core.api.user_invitation.resend_invitation";
 
 const emptyResult = {
   invited_emails: [],
@@ -25,21 +29,20 @@ const emptyResult = {
   accepted_invite_emails: [],
 };
 
-/** Calls to listDocuments that read the pending list (as opposed to the invited check). */
-function pendingCalls() {
-  return api.listDocuments.mock.calls.filter(
-    ([, query]) => (query as { fields: string[] }).fields.join() === PENDING_FIELDS.join()
-  );
+function callsTo(method: string) {
+  return api.runMethod.mock.calls.filter(([called]) => called === method);
 }
 
-/** Answer listDocuments differently for the pending read and the invited check. */
-function listAnswers(pending: unknown[], invited: unknown[] = [{ email: "b@y.com" }]) {
-  api.listDocuments.mockImplementation((_doctype, query) =>
-    Promise.resolve({
-      data: query.fields.join() === PENDING_FIELDS.join() ? pending : invited,
-      has_next_page: false,
-    })
-  );
+function pendingCalls() {
+  return callsTo(PENDING);
+}
+
+function methodAnswers(pending: unknown[] = [], invited: string[] = ["b@y.com"]) {
+  api.runMethod.mockImplementation((method: string) => {
+    if (method === PENDING) return Promise.resolve({ data: pending });
+    if (method === INVITED) return Promise.resolve({ data: invited });
+    return Promise.resolve({ data: emptyResult });
+  });
 }
 
 function deferred<T = unknown>() {
@@ -64,70 +67,40 @@ beforeEach(() => {
       { value: "b@y.com", label: "B" },
     ],
   });
-  api.listDocuments.mockReset().mockResolvedValue({ data: [], has_next_page: false });
-  api.runMethod.mockReset().mockResolvedValue({ data: emptyResult });
+  api.listDocuments.mockReset();
+  api.runMethod.mockReset();
+  methodAnswers();
   api.runDocumentMethod.mockReset().mockResolvedValue({ data: null });
 });
 
 describe("useInviteUser", () => {
-  it("reads the app's pending invitations joined with their roles, oldest first", async () => {
+  it("reads the app's pending invitations by GET through its inviter-gated method", async () => {
     const appName = freshApp();
     const store = useInviteUser({ appName });
-    store.load();
-    await vi.waitFor(() => expect(pendingCalls()).toHaveLength(1));
-    expect(api.listDocuments).toHaveBeenCalledWith("User Invitation", {
-      filters: { status: "Pending", app_name: appName },
-      fields: PENDING_FIELDS,
-      order_by: "creation asc",
-      start: 0,
-      limit: 500,
-    });
-  });
-
-  it("groups the joined rows into one invitation per name, roles in row order", async () => {
-    const appName = freshApp();
-    const store = useInviteUser({ appName });
-    listAnswers([
-      { name: "inv-1", email: "a@x.com", role: "Sales User" },
-      { name: "inv-2", email: "b@y.com", role: null },
-      { name: "inv-1", email: "a@x.com", role: "Sales Manager" },
-    ]);
-    store.load();
-    await vi.waitFor(() => expect(store.loading).toBe(false));
-    expect(store.pendingInvites).toEqual([
+    const pending = [
       { name: "inv-1", email: "a@x.com", roles: ["Sales User", "Sales Manager"] },
       { name: "inv-2", email: "b@y.com", roles: [] },
-    ]);
-  });
-
-  it("follows has_next_page to the second page and merges both", async () => {
-    const appName = freshApp();
-    const store = useInviteUser({ appName });
-    api.listDocuments
-      .mockResolvedValueOnce({
-        data: [{ name: "inv-1", email: "a@x.com", role: "Sales User" }],
-        has_next_page: true,
-      })
-      .mockResolvedValueOnce({
-        data: [{ name: "inv-1", email: "a@x.com", role: "Sales Manager" }],
-        has_next_page: false,
-      });
+    ];
+    methodAnswers(pending);
     store.load();
     await vi.waitFor(() => expect(store.loading).toBe(false));
-    expect(pendingCalls().map(([, query]) => query.start)).toEqual([0, 500]);
-    expect(store.pendingInvites).toEqual([
-      { name: "inv-1", email: "a@x.com", roles: ["Sales User", "Sales Manager"] },
-    ]);
+    expect(api.runMethod).toHaveBeenCalledWith(PENDING, { app_name: appName }, { http: "GET" });
+    expect(api.listDocuments).not.toHaveBeenCalled();
+    expect(store.pendingInvites).toEqual(pending);
   });
 
   it("invite() forwards emails/roles/redirect/app_name and refreshes pending on success", async () => {
     const appName = freshApp();
     const store = useInviteUser({ appName, redirectPath: "/crm" });
-    api.runMethod.mockResolvedValue({ data: { ...emptyResult, invited_emails: ["a@x.com"] } });
+    api.runMethod.mockImplementation((method: string) =>
+      Promise.resolve({
+        data: method === PENDING ? [] : { ...emptyResult, invited_emails: ["a@x.com"] },
+      })
+    );
 
     const result = await store.invite("a@x.com", ["Sales User"]);
 
-    expect(api.runMethod).toHaveBeenCalledWith("frappe.core.api.user_invitation.invite_by_email", {
+    expect(api.runMethod).toHaveBeenCalledWith(INVITE, {
       emails: "a@x.com",
       roles: ["Sales User"],
       redirect_to_path: "/crm",
@@ -144,7 +117,7 @@ describe("useInviteUser", () => {
     expect(api.searchDocuments).not.toHaveBeenCalled();
 
     await store.searchUsers("a");
-    listAnswers([], [{ email: "a@x.com" }]);
+    methodAnswers([], ["a@x.com"]);
     await store.invite("a@x.com", ["Sales User"]);
     await vi.waitFor(() => expect(api.searchDocuments).toHaveBeenCalledTimes(2));
     expect(api.searchDocuments).toHaveBeenLastCalledWith("User", expect.objectContaining({ txt: "a" }));
@@ -162,7 +135,7 @@ describe("useInviteUser", () => {
     await store.invite("a@x.com", ["Agent Manager"]);
 
     expect(api.runMethod).toHaveBeenCalledWith(
-      expect.any(String),
+      INVITE,
       expect.objectContaining({ roles: ["Agent", "Agent Manager"], contact: "C-1" })
     );
   });
@@ -177,7 +150,7 @@ describe("useInviteUser", () => {
 
     await store.invite("real@x.com", ["Sales User"]);
 
-    expect(api.runMethod).toHaveBeenCalledWith(expect.any(String), {
+    expect(api.runMethod).toHaveBeenCalledWith(INVITE, {
       contact: "C-9",
       emails: "real@x.com",
       roles: ["Sales User"],
@@ -186,28 +159,27 @@ describe("useInviteUser", () => {
     });
   });
 
-  it("cancel() and resend() run the invitation's document methods", async () => {
+  it("cancel() and resend() go through the inviter-gated methods with the app name", async () => {
     const appName = freshApp();
     const store = useInviteUser({ appName });
 
     await store.cancel("inv-1");
-    expect(api.runDocumentMethod).toHaveBeenCalledWith("User Invitation", "inv-1", "cancel_invite");
+    expect(api.runMethod).toHaveBeenCalledWith(CANCEL, { name: "inv-1", app_name: appName });
 
     await store.resend("inv-2");
-    expect(api.runDocumentMethod).toHaveBeenCalledWith(
-      "User Invitation",
-      "inv-2",
-      "resend_invite",
-      {},
-      { nullable: true },
+    expect(api.runMethod).toHaveBeenCalledWith(
+      RESEND,
+      { name: "inv-2", app_name: appName },
+      { nullable: true }
     );
+    expect(api.runDocumentMethod).not.toHaveBeenCalled();
   });
 
   it("cancellingName is the busy row while cancel() is in flight, then null", async () => {
     const appName = freshApp();
     const store = useInviteUser({ appName });
     const call = deferred();
-    api.runDocumentMethod.mockReturnValue(call.promise);
+    api.runMethod.mockReturnValue(call.promise);
 
     const done = store.cancel("inv-1");
     expect(store.cancellingName).toBe("inv-1");
@@ -220,7 +192,7 @@ describe("useInviteUser", () => {
     const appName = freshApp();
     const store = useInviteUser({ appName });
     const call = deferred();
-    api.runDocumentMethod.mockReturnValue(call.promise);
+    api.runMethod.mockReturnValue(call.promise);
 
     const done = store.resend("inv-2");
     expect(store.resendingName).toBe("inv-2");
@@ -252,20 +224,16 @@ describe("useInviteUser", () => {
     });
   });
 
-  it("checks only the found emails against the app's pending and accepted invitations", async () => {
+  it("checks only the found emails against the app's invitations, through its inviter-gated method", async () => {
     const appName = freshApp();
     const store = useInviteUser({ appName });
-    listAnswers([]);
     await store.searchUsers("");
-    expect(api.listDocuments).toHaveBeenCalledWith("User Invitation", {
-      filters: {
-        app_name: appName,
-        status: ["in", ["Pending", "Accepted"]],
-        email: ["in", ["a@x.com", "b@y.com"]],
-      },
-      fields: ["email"],
-      limit: 2,
-    });
+    expect(api.runMethod).toHaveBeenCalledWith(
+      INVITED,
+      { app_name: appName, emails: ["a@x.com", "b@y.com"] },
+      { http: "GET" }
+    );
+    expect(api.listDocuments).not.toHaveBeenCalled();
     expect(store.users.map((u) => u.value)).toEqual(["a@x.com"]);
   });
 
@@ -274,7 +242,7 @@ describe("useInviteUser", () => {
     const store = useInviteUser({ appName });
     api.searchDocuments.mockResolvedValue({ data: [] });
     await store.searchUsers("zzz");
-    expect(api.listDocuments).not.toHaveBeenCalled();
+    expect(callsTo(INVITED)).toHaveLength(0);
     expect(store.users).toEqual([]);
   });
 
@@ -292,7 +260,7 @@ describe("useInviteUser", () => {
   it("load() lazily fetches the pending invitations exactly once", async () => {
     const appName = freshApp();
     const store = useInviteUser({ appName });
-    expect(api.listDocuments).not.toHaveBeenCalled();
+    expect(api.runMethod).not.toHaveBeenCalled();
 
     store.load();
     expect(pendingCalls()).toHaveLength(1);
@@ -318,7 +286,7 @@ describe("useInviteUser", () => {
     const appName = freshApp();
     const store = useInviteUser({ appName });
     const loadErr = { messages: ["pending read failed"] };
-    api.listDocuments.mockRejectedValue(loadErr);
+    api.runMethod.mockRejectedValue(loadErr);
 
     store.load();
     await vi.waitFor(() => expect(store.loadError).toEqual(loadErr));
@@ -329,7 +297,7 @@ describe("useInviteUser", () => {
     const appName = freshApp();
     const store = useInviteUser({ appName });
     const err = { messages: ["gone"] };
-    api.runDocumentMethod.mockRejectedValue(err);
+    api.runMethod.mockRejectedValue(err);
 
     await expect(store.cancel("inv-1")).rejects.toBe(err);
     expect(store.loadError).toEqual(err);
@@ -345,7 +313,6 @@ describe("useInviteUser", () => {
     ];
     const store = useInviteUser({ appName, roles });
     expect(store.roles).toEqual(roles);
-    expect(api.listDocuments).not.toHaveBeenCalled();
     expect(api.runMethod).not.toHaveBeenCalled();
   });
 });
