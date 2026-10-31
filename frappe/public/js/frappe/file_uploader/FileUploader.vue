@@ -207,6 +207,27 @@
 				/>
 			</div>
 			<div
+				v-if="!show_image_cropper && public_files_count"
+				class="alert alert-warning mt-3 mb-0"
+				role="alert"
+			>
+				<span v-if="files.length === 1">
+					{{
+						__(
+							"This file is public and can be accessed by anyone, even without logging in."
+						)
+					}}
+				</span>
+				<span v-else>
+					{{
+						__(
+							"{0} of {1} files are public and can be accessed by anyone, even without logging in.",
+							[public_files_count, files.length]
+						)
+					}}
+				</span>
+			</div>
+			<div
 				class="flex align-items-center justify-content-end mt-3"
 				v-if="show_upload_button && currently_uploading === -1"
 			>
@@ -796,6 +817,11 @@ function url_to_file(url, filename, mime_type) {
 }
 
 // computed
+let public_files_count = computed(() => {
+	return files.value.filter(
+		(file) => !file.private && !file.error_message && !file.request_succeeded && !file.failed
+	).length;
+});
 let upload_complete = computed(() => {
 	return (
 		files.value.length > 0 &&

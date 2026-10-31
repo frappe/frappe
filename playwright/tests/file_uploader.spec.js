@@ -130,7 +130,7 @@ test.describe("FileUploader", () => {
 			await admin.remove_doc("User", test_user, true);
 		});
 
-		test("should show checkbox and toggle when setting is disabled for System Manager", async ({
+		test("should show visibility button and toggle when setting is disabled for System Manager", async ({
 			page,
 			desk,
 			admin,
@@ -140,8 +140,12 @@ test.describe("FileUploader", () => {
 
 			const dialog = await open_dialog_with_file(page, desk);
 
-			await expect(dialog.locator("#uploader-private-checkbox")).toBeVisible();
-			await expect(dialog.locator("#uploader-private-checkbox input")).toBeEnabled();
+			await expect(dialog.locator("#uploader-visibility-toggle")).toBeVisible();
+			await expect(
+				dialog
+					.locator("#uploader-visibility-toggle")
+					.getByRole("radio", { name: "Public" })
+			).toBeEnabled();
 
 			const toggle_button = dialog.locator(".modal-footer .btn-modal-secondary");
 			await expect(toggle_button).toBeVisible();
@@ -150,7 +154,7 @@ test.describe("FileUploader", () => {
 			await desk.hide_dialog();
 		});
 
-		test("should show checkbox and toggle when setting is disabled for non-System Manager", async ({
+		test("should show visibility button and toggle when setting is disabled for non-System Manager", async ({
 			page,
 			desk,
 			admin,
@@ -162,8 +166,12 @@ test.describe("FileUploader", () => {
 
 			const dialog = await open_dialog_with_file(page, desk);
 
-			await expect(dialog.locator("#uploader-private-checkbox")).toBeVisible();
-			await expect(dialog.locator("#uploader-private-checkbox input")).toBeEnabled();
+			await expect(dialog.locator("#uploader-visibility-toggle")).toBeVisible();
+			await expect(
+				dialog
+					.locator("#uploader-visibility-toggle")
+					.getByRole("radio", { name: "Public" })
+			).toBeEnabled();
 
 			const toggle_button = dialog.locator(".modal-footer .btn-modal-secondary");
 			await expect(toggle_button).toBeVisible();
@@ -172,7 +180,7 @@ test.describe("FileUploader", () => {
 			await desk.hide_dialog();
 		});
 
-		test("should show checkbox and toggle when setting is enabled for System Manager", async ({
+		test("should show visibility button and toggle when setting is enabled for System Manager", async ({
 			page,
 			desk,
 			admin,
@@ -182,8 +190,12 @@ test.describe("FileUploader", () => {
 
 			const dialog = await open_dialog_with_file(page, desk);
 
-			await expect(dialog.locator("#uploader-private-checkbox")).toBeVisible();
-			await expect(dialog.locator("#uploader-private-checkbox input")).toBeEnabled();
+			await expect(dialog.locator("#uploader-visibility-toggle")).toBeVisible();
+			await expect(
+				dialog
+					.locator("#uploader-visibility-toggle")
+					.getByRole("radio", { name: "Public" })
+			).toBeEnabled();
 
 			const toggle_button = dialog.locator(".modal-footer .btn-modal-secondary");
 			await expect(toggle_button).toBeVisible();
@@ -192,7 +204,7 @@ test.describe("FileUploader", () => {
 			await desk.hide_dialog();
 		});
 
-		test("should show disabled checkbox and hide toggle when setting is enabled for non-System Manager", async ({
+		test("should show disabled visibility button and hide toggle when setting is enabled for non-System Manager", async ({
 			page,
 			desk,
 			admin,
@@ -204,8 +216,12 @@ test.describe("FileUploader", () => {
 
 			const dialog = await open_dialog_with_file(page, desk);
 
-			await expect(dialog.locator("#uploader-private-checkbox")).toBeVisible();
-			await expect(dialog.locator("#uploader-private-checkbox input")).toBeDisabled();
+			await expect(dialog.locator("#uploader-visibility-toggle")).toBeVisible();
+			await expect(
+				dialog
+					.locator("#uploader-visibility-toggle")
+					.getByRole("radio", { name: "Public" })
+			).toBeDisabled();
 
 			await expect(dialog.locator(".modal-footer .btn-modal-secondary")).toBeHidden();
 

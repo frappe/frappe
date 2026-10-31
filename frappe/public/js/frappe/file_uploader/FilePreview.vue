@@ -5,7 +5,7 @@
 				<img v-if="is_image" :src="src" :alt="file.name" />
 				<div class="fallback" v-else v-html="frappe.utils.icon('file', 'md')"></div>
 			</div>
-			<div>
+			<div class="file-details">
 				<div>
 					<a class="flex" :href="file.doc.file_url" v-if="file.doc" target="_blank">
 						<span class="file-name">{{ file.name }}</span>
@@ -20,6 +20,27 @@
 				</div>
 
 				<div class="flex config-area">
+					<div
+						class="es-tab-buttons"
+						role="radiogroup"
+						id="uploader-visibility-toggle"
+						:aria-label="__('Visibility')"
+						:title="visibility_title"
+					>
+						<button
+							v-for="option in visibility_options"
+							:key="option.label"
+							type="button"
+							class="es-pill"
+							role="radio"
+							:aria-checked="option.private === is_private"
+							:data-state="option.private === is_private ? 'active' : 'inactive'"
+							:disabled="!can_toggle_visibility"
+							:title="option.title"
+							@click="option.private !== is_private && emit('toggle_private')"
+							v-html="option.html"
+						></button>
+					</div>
 					<label
 						v-if="allow_toggle_optimize"
 						class="frappe-checkbox"
@@ -29,17 +50,6 @@
 							:checked="optimize"
 							@change="emit('toggle_optimize')"
 						/>{{ __("Optimize") }}</label
-					>
-					<label
-						v-if="show_private_checkbox"
-						class="frappe-checkbox"
-						id="uploader-private-checkbox"
-						><input
-							type="checkbox"
-							:checked="file.private"
-							:disabled="!allow_toggle_private"
-							@change="emit('toggle_private')"
-						/>{{ __("Private") }}</label
 					>
 				</div>
 			</div>
@@ -76,17 +86,6 @@
 			<div v-if="file.error_message" class="alert alert-danger mb-0 mt-2" role="alert">
 				{{ file.error_message }}
 			</div>
-			<div
-				v-if="!file.private && !file.error_message && !uploaded && !file.failed"
-				class="alert alert-warning mb-0"
-				role="alert"
-			>
-				{{
-					__(
-						"This file is public and can be accessed by anyone, even without logging in. Mark it private to limit access."
-					)
-				}}
-			</div>
 		</div>
 	</div>
 </template>
@@ -104,9 +103,6 @@ const props = defineProps({
 	allow_toggle_private: {
 		default: true,
 	},
-	show_private_checkbox: {
-		default: true,
-	},
 	allow_toggle_optimize: {
 		default: true,
 	},
@@ -121,7 +117,7 @@ let file_size = computed(() => {
 	return frappe.form.formatters.FileSize(props.file.file_obj.size);
 });
 let is_private = computed(() => {
-	return props.file.doc ? props.file.doc.is_private : props.file.private;
+	return Boolean(props.file.doc ? props.file.doc.is_private : props.file.private);
 });
 let uploaded = computed(() => {
 	return props.file.request_succeeded;
@@ -142,8 +138,46 @@ let allow_toggle_optimize = computed(() => {
 	);
 });
 
-let show_private_checkbox = computed(() => {
-	return !uploaded.value && !props.file.failed;
+let can_toggle_visibility = computed(() => {
+	return (
+		props.allow_toggle_private &&
+		!uploaded.value &&
+		!props.file.uploading &&
+		!props.file.failed
+	);
+});
+let visibility_options = [
+	{
+		private: true,
+		label: __("Restricted"),
+		icon: "building-2",
+		title: __("Only logged-in users with access can see this file"),
+	},
+	{
+		private: false,
+		label: __("Public"),
+		icon: "globe",
+		title: __("Anyone with the link can see this file, even without logging in"),
+	},
+].map((option) => ({
+	...option,
+	html: `${frappe.utils.icon(
+		option.icon,
+		"sm",
+		"",
+		"",
+		"",
+		true
+	)}<span>${frappe.utils.escape_html(option.label)}</span>`,
+}));
+let visibility_title = computed(() => {
+	if (can_toggle_visibility.value) {
+		return null;
+	}
+	if (!uploaded.value && !frappe.utils.can_upload_public_files()) {
+		return __("Only System Managers can upload public files");
+	}
+	return visibility_options.find((option) => option.private === is_private.value).title;
 });
 
 let is_cropable = computed(() => {
@@ -185,7 +219,7 @@ onMounted(() => {
 
 .file-preview {
 	display: flex;
-	align-items: center;
+	align-items: flex-start;
 	flex-direction: row;
 }
 
@@ -274,10 +308,18 @@ onMounted(() => {
 	color: var(--text-light);
 	display: flex;
 	align-items: center;
-	padding-top: 0.25rem;
+	margin-bottom: 0;
+	margin-inline-start: auto;
+}
+
+.file-details {
+	flex: 1;
+	min-width: 0;
 }
 
 .config-area {
-	gap: 0.5rem;
+	align-items: center;
+	gap: 0.75rem;
+	padding-top: 0.25rem;
 }
 </style>
