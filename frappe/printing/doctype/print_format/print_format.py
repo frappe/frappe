@@ -32,7 +32,7 @@ BUILDER_DRAFT_FIELDS = (
 	"pdf_generator",
 )
 
-STORED_RENDERERS = ("Typst", "WeasyPrint")
+STORED_RENDERERS = ("PlutoPrint", "Typst", "WeasyPrint")
 
 
 class PrintFormat(Document):
@@ -68,7 +68,7 @@ class PrintFormat(Document):
 			"Hide", "Top Left", "Top Center", "Top Right", "Bottom Left", "Bottom Center", "Bottom Right"
 		]
 		paper_size: DF.Literal["", "A4", "A5", "A3", "Letter", "Legal", "Receipt 80 mm", "Receipt 58 mm"]
-		pdf_generator: DF.Literal["", "wkhtmltopdf", "chrome", "Typst", "WeasyPrint"]
+		pdf_generator: DF.Literal["", "wkhtmltopdf", "chrome", "PlutoPrint", "Typst", "WeasyPrint"]
 		preview_image: DF.AttachImage | None
 		print_format_builder: DF.Check
 		print_format_builder_beta: DF.Check
@@ -156,6 +156,7 @@ class PrintFormat(Document):
 		self.validate_weasyprint_choice()
 		self.validate_weasyprint_layout()
 		self.validate_typst_renderer()
+		self.validate_plutoprint_renderer()
 
 	def validate_no_classic_layout(self):
 		"""A builder format cannot carry a classic list layout; conversion is explicit."""
@@ -220,6 +221,20 @@ class PrintFormat(Document):
 				", ".join(blockers)
 			),
 			title=_("WeasyPrint renderer unavailable"),
+		)
+
+	def validate_plutoprint_renderer(self):
+		from frappe.utils.pdf_generator.pluto import plutoprint_blockers
+
+		if self.pdf_generator != "PlutoPrint" or not (blockers := plutoprint_blockers(self)):
+			return
+		if self.is_new():
+			self.pdf_generator = "chrome"
+			frappe.msgprint(_("PDF Generator set to Chromium: {0}").format(", ".join(blockers)), alert=True)
+			return
+		frappe.throw(
+			_("This format cannot use the PlutoPrint renderer: {0}").format(", ".join(blockers)),
+			title=_("PlutoPrint renderer unavailable"),
 		)
 
 	def validate_typst_renderer(self):

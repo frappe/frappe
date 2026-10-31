@@ -1,7 +1,9 @@
 # Copyright (c) 2024, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import importlib.util
 import json
+import unittest
 
 import frappe
 from frappe.printing.layout import iter_layout_columns
@@ -412,6 +414,20 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 			for column in iter_layout_columns(generator.layout)
 			for df in column.get("fields", [])
 		]
+
+	@unittest.skipIf(importlib.util.find_spec("plutoprint") is None, "plutoprint is not installed")
+	def test_plutoprint_choice_is_kept_unless_the_format_needs_chrome(self):
+		from frappe.utils.print_utils import resolve_pdf_generator
+
+		pf = self._make_print_format(pdf_generator="PlutoPrint")
+		self.assertEqual(pf.pdf_generator, "PlutoPrint")
+		self.assertEqual(resolve_pdf_generator(pf), "PlutoPrint")
+
+		jinja = frappe._dict(
+			custom_format=1, pdf_generator="PlutoPrint", html="<div onclick='go()'>{{ doc.name }}</div>"
+		)
+		self.assertEqual(resolve_pdf_generator(jinja), "chrome")
+		self.assertEqual(resolve_pdf_generator(None, "PlutoPrint"), "PlutoPrint")
 
 	def test_typst_pdf_skips_the_html_print_view(self):
 		from unittest.mock import patch

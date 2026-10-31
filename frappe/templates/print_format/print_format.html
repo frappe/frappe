@@ -201,7 +201,7 @@
 	{%- endif -%}
 	{%- endif -%}
 	{{ include_script('print.bundle.js') }}
-	<script>document.querySelectorAll("svg[data-barcode-value]").forEach(render_barcode);</script>
+	<script data-frappe-print>document.querySelectorAll("svg[data-barcode-value]").forEach(render_barcode);</script>
 	{{ trigger_print_script or '' }}
 </body>
 </html>

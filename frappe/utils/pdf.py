@@ -204,6 +204,18 @@ def get_chrome_pdf(print_format, html, options, output, pdf_generator=None):
 		generator._close_browser()
 
 
+def get_plutoprint_pdf(print_format, html, options, output, pdf_generator=None):
+	from frappe.utils.pdf_generator.pdf_merge import PDFTransformer
+	from frappe.utils.pdf_generator.pluto import PlutoBrowser, plutoprint_can_render
+
+	if pdf_generator != "PlutoPrint":
+		return
+	options = options or {}
+	if options.get("page-ranges") or not plutoprint_can_render(html):
+		return get_chrome_pdf(print_format, html, options, output, pdf_generator="chrome")
+	return PDFTransformer(PlutoBrowser(print_format, html, options)).transform_pdf(output=output)
+
+
 def get_file_data_from_writer(writer_obj):
 	# https://docs.python.org/3/library/io.html
 	stream = io.BytesIO()
