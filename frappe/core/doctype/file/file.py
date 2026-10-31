@@ -411,11 +411,16 @@ class File(Document):
 		parent_meta = frappe.get_meta(self.attached_to_doctype)
 
 		if parent_meta.issingle:
-			frappe.db.set_single_value(
-				self.attached_to_doctype,
-				self.attached_to_field,
-				self.file_url,
-			)
+			if (
+				parent_meta.has_field(self.attached_to_field)
+				and frappe.db.get_single_value(self.attached_to_doctype, self.attached_to_field)
+				== old_file_url
+			):
+				frappe.db.set_single_value(
+					self.attached_to_doctype,
+					self.attached_to_field,
+					self.file_url,
+				)
 			return
 		if parent_meta.has_field(self.attached_to_field) and frappe.db.exists(
 			self.attached_to_doctype,
