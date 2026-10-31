@@ -1,6 +1,6 @@
 <!--
-  A new record before its first save: the record-page engine with the header row and the New
-  Record form only. The first save inserts it and replaces the address with the saved record's.
+  A new record before its first save, or a duplicate of the record `__copy_of` names: the record-page
+  engine with the header row and the New Record form only. The first save inserts it and replaces the address.
 -->
 <template>
 	<PageFrame :scroll="false" :state="state">
@@ -70,8 +70,9 @@ import {
 	type LocationQuery,
 } from "vue-router";
 import { toast } from "frappe-ui";
-import { createDocument, isApiError } from "@framework/ui/api";
+import { copyDocument, createDocument, isApiError } from "@framework/ui/api";
 import { FormLayout } from "@framework/ui/FormLayout";
+import { useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import {
 	createRecordPage,
 	errorMessage,
@@ -93,6 +94,8 @@ import { openArgumentStep } from "@/shell/palette";
 import { failedState, type PageStateValue } from "@/shell/pageState";
 import type { Boot } from "@/boot";
 import {
+	COPY_OF,
+	duplicateValues,
 	fetchNewDocument,
 	fieldDefaults,
 	insertBody,
@@ -126,6 +129,8 @@ const NO_RIGHTS = {};
 const boot = inject<Boot>("boot")!;
 const router = useRouter();
 const canCreate = useCreateRight(props.doctype);
+const { metas } = useDoctypeMeta(props.doctype);
+const copyOf = [props.query[COPY_OF]].flat()[0];
 
 const doc = ref<Record<string, any>>({});
 const saved = ref<Record<string, any>>({});
@@ -157,7 +162,7 @@ const layout = useFormLayout({
 	tabOverrides: () => controller.value?.form.tabs.resolve() ?? {},
 });
 // Types what "Edit full form" carried from the dialog's inline fields, shown here or not.
-const quickEntry = Object.keys(props.query).length
+const quickEntry = Object.keys(props.query).some((key) => key !== COPY_OF)
 	? useFormLayout({
 			doctype: props.doctype,
 			type: "Quick Entry",
@@ -209,8 +214,10 @@ async function open() {
 	state.value = null;
 	void loadRecordScripts(props.doctype);
 	const newDocument = fetchNewDocument(props.doctype);
+	const copy = copyOf ? copyDocument(props.doctype, copyOf) : null;
 	// Read after the meta and the create right; a page that stops before then drops the failure.
 	newDocument.catch(() => {});
+	copy?.catch(() => {});
 	try {
 		meta.value = await fetchMeta(props.doctype);
 		if (!opening.current()) return;
@@ -221,10 +228,11 @@ async function open() {
 			};
 			return;
 		}
-		const newDoc = await newDocument;
+		const [newDoc, copied] = await Promise.all([newDocument, copy]);
 		if (!opening.current()) return;
 		const values = {
 			...fieldDefaults(newDoc, meta.value),
+			...(copied ? duplicateValues(copied.data, props.doctype, metas.value) : {}),
 			...queryValues(props.query, meta.value),
 		};
 		openingValues.value = values;

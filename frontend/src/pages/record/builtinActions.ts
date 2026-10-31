@@ -3,7 +3,8 @@
 import { deleteDocument } from "@framework/ui/api";
 import type { HeaderItem, QuickAction, RecordPageApi } from "@/recordPage";
 import type { TabCreateAction } from "@/recordPage/types";
-import { routeFor } from "@/router/routeFor";
+import { COPY_OF } from "@/newRecordValues";
+import { routeFor, routeForNew } from "@/router/routeFor";
 import { favouriteWording } from "@/pages/favourite/favouriteWording";
 import { assignItem, type AssignState } from "./assignAct";
 
@@ -51,7 +52,7 @@ function followWording({ following }: FollowState) {
 export function headerMenuBuiltins(
   perms: Record<string, any>,
   favourite: FavouriteState,
-  options: { single?: boolean; follow?: FollowState; assign?: AssignState } = {}
+  options: { single?: boolean; follow?: FollowState; assign?: AssignState; duplicate?: boolean } = {}
 ): HeaderItem[] {
   const items: HeaderItem[] = [
     {
@@ -75,6 +76,8 @@ export function headerMenuBuiltins(
     { name: "copy_url", label: "Copy record URL", icon: "lucide-link", group: "copies", run: copyLink },
     { name: "copy_id", label: "Copy record ID", icon: "lucide-hash", group: "copies", run: copyId }
   );
+  if (options.duplicate)
+    items.push({ name: "duplicate", label: "Duplicate", icon: "lucide-copy", group: "copies", run: duplicate });
   // Deleting a single wipes its settings row and the page reloads it with defaults.
   if (perms.delete && !options.single)
     items.push({ name: "delete", label: "Delete", icon: "lucide-trash-2", group: "danger", run: remove });
@@ -102,6 +105,10 @@ async function copyLink(page: RecordPageApi) {
 
 async function copyId(page: RecordPageApi) {
   await copy(page, page.docname, "ID copied");
+}
+
+function duplicate(page: RecordPageApi) {
+  return page.router.push(routeForNew(page.doctype, { [COPY_OF]: page.docname }));
 }
 
 async function copy(page: RecordPageApi, text: string, confirmation: string) {

@@ -1,7 +1,10 @@
-// The framework's own actions: which ones a right unlocks, where each sits, and what delete does.
+// The framework's own actions: which ones a right unlocks, where each sits, and what delete and duplicate do.
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("@/router/routeFor", () => ({ routeFor: (doctype: string) => ({ name: "list", doctype }) }));
+vi.mock("@/router/routeFor", () => ({
+  routeFor: (doctype: string) => ({ name: "list", doctype }),
+  routeForNew: (doctype: string, values: Record<string, unknown>) => ({ name: "new-record", doctype, values }),
+}));
 
 const { deleteDocument, searchDocuments } = vi.hoisted(() => ({
   deleteDocument: vi.fn(async () => ({ data: "ok" })),
@@ -160,6 +163,30 @@ describe("quickActionBuiltins", () => {
     expect(names({ write: 1 }, true)).toEqual(["comment", "copy_link"]);
     expect(names({}, false)).toEqual(["comment", "copy_link"]);
     expect(quickActionBuiltins({ write: 1 }).at(-1)).toMatchObject({ tagging: true });
+  });
+
+  it("offers Duplicate in the copies band only when told the reader may create", () => {
+    expect(menu({ delete: 1 }).map((item) => item.name)).not.toContain("duplicate");
+    const rows = headerMenuBuiltins({ delete: 1 }, off, { duplicate: true });
+    expect(rows.map((item) => [item.name, item.group])).toEqual([
+      ["favourite_row", "favourite_band"],
+      ["copy_url", "copies"],
+      ["copy_id", "copies"],
+      ["duplicate", "copies"],
+      ["delete", "danger"],
+    ]);
+    expect(rows[3]).toMatchObject({ label: "Duplicate", icon: "lucide-copy" });
+  });
+
+  it("duplicates by opening the new record page on a copy of this record", async () => {
+    const page = fakePage(null);
+    const duplicate = headerMenuBuiltins({}, off, { duplicate: true }).find((item) => item.name === "duplicate")!;
+    await duplicate.run!(page);
+    expect(page.router.push).toHaveBeenCalledWith({
+      name: "new-record",
+      doctype: "CRM Deal",
+      values: { __copy_of: "CRM-DEAL-1" },
+    });
   });
 
   it("deletes after a confirmed danger dialog, then leaves for the list", async () => {

@@ -123,6 +123,8 @@ export interface RawMetaField {
   filters?: Record<string, unknown>;
   cannot_add_rows?: boolean | 0 | 1;
   cannot_delete_rows?: boolean | 0 | 1;
+  /** Left out of a duplicate. */
+  no_copy?: boolean | 0 | 1;
 }
 
 /** A component a host places in the form; `label` frames it, none draws it bare. */
