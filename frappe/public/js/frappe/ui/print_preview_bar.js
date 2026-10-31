@@ -1,34 +1,6 @@
 frappe.ui.PrintPreviewBar = class PrintPreviewBar {
-	static measure_pages({ page, page_height, breaks, repeated = 0 }) {
-		const rect = page.getBoundingClientRect();
-		const scale = page.offsetHeight / (rect.height || 1);
-		const starts = [0];
-		const fill = (start, end) => {
-			const step = () =>
-				starts.length > 1
-					? Math.max(page_height - repeated, page_height / 4)
-					: page_height;
-			while (end - start > step() + 1) {
-				start += step();
-				starts.push(start);
-			}
-			return start;
-		};
-		let start = 0;
-		page.querySelectorAll(breaks).forEach((el) => {
-			const end = (el.getBoundingClientRect().bottom - rect.top) * scale;
-			start = fill(start, end);
-			if (end < page.offsetHeight - 1) {
-				start = end;
-				starts.push(start);
-			}
-		});
-		fill(start, page.offsetHeight);
-		return starts;
-	}
-
-	constructor({ parent, get_metrics }) {
-		this.get_metrics = get_metrics;
+	constructor({ parent, get_sheet }) {
+		this.get_sheet = get_sheet;
 		this.zoom = 1;
 		this.$wrapper = $(`
 			<div class="print-preview-bar">
@@ -63,19 +35,44 @@ frappe.ui.PrintPreviewBar = class PrintPreviewBar {
 		)}</button>`;
 	}
 
-	attach(frame, { fit = false } = {}) {
+	async attach(frame, { fit = false } = {}) {
 		const doc = frame.contentDocument;
 		this.frame = frame;
+		this.pages = [];
 		this.zoom_style = doc.head.appendChild(doc.createElement("style"));
 		doc.addEventListener("scroll", () => this.update_page_label());
+		doc.defaultView.addEventListener("resize", () => this.apply_zoom());
 		if (fit && !this.zoom_set_by_user) this.fit(1);
+		this.apply_zoom();
+
+		await doc.fonts?.ready;
+		await Promise.all(
+			[...doc.images]
+				.filter((img) => !img.complete)
+				.map((img) => new Promise((resolve) => (img.onload = img.onerror = resolve)))
+		);
+		await frappe.require("print_pages.bundle.js");
+		if (frame.contentDocument !== doc) return;
+		const sheet = this.get_sheet(doc);
+		if (!sheet?.sheet) return;
+		this.zoom_style.textContent = "";
+		this.pages = frappe.ui.PrintPages.paginate(sheet);
 		this.apply_zoom();
 	}
 
 	metrics() {
 		const doc = this.frame?.contentDocument;
-		const metrics = doc?.body && this.get_metrics(doc);
-		return metrics ? { ...metrics, doc } : null;
+		if (!doc?.body) return null;
+		if (this.pages?.length && this.pages[0].ownerDocument === doc) {
+			const scroll = doc.scrollingElement.scrollTop;
+			return {
+				doc,
+				width: this.pages[0].offsetWidth,
+				starts: this.pages.map((page) => page.getBoundingClientRect().top + scroll),
+			};
+		}
+		const sheet = this.get_sheet(doc)?.sheet;
+		return sheet ? { doc, width: sheet.offsetWidth, starts: [0] } : null;
 	}
 
 	update_page_label() {
@@ -84,7 +81,7 @@ frappe.ui.PrintPreviewBar = class PrintPreviewBar {
 		const el = m.doc.scrollingElement;
 		const pages = m.starts.length;
 		const at_end = el.scrollTop > 0 && el.scrollTop + el.clientHeight >= el.scrollHeight - 2;
-		const middle = (el.scrollTop + el.clientHeight / 2) / this.zoom - m.top;
+		const middle = el.scrollTop + el.clientHeight / 2;
 		this.current_page = at_end
 			? pages
 			: Math.max(1, m.starts.filter((start) => start <= middle).length);
@@ -98,7 +95,7 @@ frappe.ui.PrintPreviewBar = class PrintPreviewBar {
 		if (!m) return;
 		page = Math.min(m.starts.length, Math.max(1, page));
 		m.doc.scrollingElement.scrollTo({
-			top: (m.top + m.starts[page - 1]) * this.zoom,
+			top: m.starts[page - 1],
 			behavior: "smooth",
 		});
 	}
@@ -109,7 +106,26 @@ frappe.ui.PrintPreviewBar = class PrintPreviewBar {
 	}
 
 	apply_zoom() {
-		if (this.zoom_style) {
+		const container = this.pages?.[0]?.parentElement;
+		if (container) {
+			const doc = container.ownerDocument;
+			const style = getComputedStyle(container);
+			const rect = container.getBoundingClientRect();
+			const rtl = style.direction === "rtl";
+			const width = parseFloat(this.pages[0].style.width);
+			const frame_width = doc.documentElement.clientWidth;
+			const scroll = doc.scrollingElement.scrollLeft;
+			const offset = rtl
+				? frame_width - rect.right - scroll - parseFloat(style.marginRight)
+				: rect.left + scroll - parseFloat(style.marginLeft);
+			const side = `${Math.max(-offset, (frame_width - width * this.zoom) / 2 - offset)}px`;
+			this.zoom_style.textContent = `@media screen { .preview-pages {
+				width: ${width}px;
+				margin: 0 ${rtl ? side : 0} ${container.offsetHeight * (this.zoom - 1)}px ${rtl ? 0 : side};
+				transform: scale(${this.zoom});
+				transform-origin: ${rtl ? "100% 0" : "0 0"};
+			} }`;
+		} else if (this.zoom_style) {
 			this.zoom_style.textContent = `@media screen { :root { zoom: ${this.zoom}; } }`;
 		}
 		this.$wrapper.find(".zoom-label").text(`${Math.round(this.zoom * 100)}%`);
