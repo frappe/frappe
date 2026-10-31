@@ -20,6 +20,7 @@ from frappe.flow.memory import store as memory_store
 from frappe.flow.tests.test_fake_daemon import FakeDaemon, turn
 from frappe.flow.tools.builtins import sync_builtin_tools
 from frappe.tests import IntegrationTestCase
+from frappe.tests.utils import whitelist_for_tests
 from frappe.utils import set_request
 
 SECRET = "callback-secret"
@@ -47,14 +48,14 @@ def write_then_fail(*, ctx: ToolContext) -> None:
 	raise ValueError("after writing")
 
 
-@frappe.whitelist()
+@whitelist_for_tests()
 @frappe.read_only()
 def read_only_open_todos() -> list[str]:
 	"""Reads only."""
 	return frappe.get_all("ToDo", {"description": "callback-read"}, pluck="description")
 
 
-@frappe.whitelist()
+@whitelist_for_tests(methods=["POST"])
 @frappe.read_only()
 def read_only_that_writes() -> str:
 	"""Marked read-only, but inserts a ToDo and tries to commit it."""
@@ -63,7 +64,7 @@ def read_only_that_writes() -> str:
 	return "wrote"
 
 
-@frappe.whitelist()
+@whitelist_for_tests(methods=["POST"])
 @frappe.read_only()
 def read_only_that_hides_its_write() -> str:
 	"""Marked read-only; inserts a ToDo, then a rollback to a later savepoint resets the write count."""

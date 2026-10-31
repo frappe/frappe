@@ -765,6 +765,8 @@ def _call_as_request(method: Any, args: dict[str, Any]) -> Any:
 	form_dict, response = frappe.local.form_dict, frappe.local.response
 	frappe.local.form_dict, frappe.local.response = frappe._dict(args), frappe._dict()
 	try:
+		# the caller resolved `method` and checked that it is whitelisted
+		# nosemgrep: frappe-codeinjection-eval
 		result = frappe.call(method, **args)
 		if frappe.response.get("type"):
 			raise ValueError(
