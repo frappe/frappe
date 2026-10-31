@@ -525,7 +525,8 @@ def search(text: str, start: int = 0, limit: int = 20, doctype: str = ""):
 	results = []
 	sorted_results = []
 
-	allowed_doctypes = set(get_doctypes_for_global_search()) & set(frappe.get_user().get_can_read())
+	can_read = set(frappe.get_user().get_can_read())
+	allowed_doctypes = [d for d in get_doctypes_for_global_search() if d in can_read]
 	if not allowed_doctypes or (doctype and doctype not in allowed_doctypes):
 		return []
 
@@ -540,6 +541,8 @@ def search(text: str, start: int = 0, limit: int = 20, doctype: str = ""):
 			frappe.qb.from_(global_search)
 			.select(global_search.doctype, global_search.name, global_search.content, rank.as_("rank"))
 			.where(rank)
+			# a document whose name is the search text must not fall victim to the limit
+			.orderby(global_search.name == word, order=frappe.qb.desc)
 			.orderby("rank", order=frappe.qb.desc)
 			.limit(limit)
 		)
@@ -556,23 +559,28 @@ def search(text: str, start: int = 0, limit: int = 20, doctype: str = ""):
 
 		results.extend(result)
 
-	# sort results based on allowed_doctype's priority
-	for doctype in allowed_doctypes:
-		for r in results:
-			if r.doctype == doctype and r.rank > 0.0:
-				try:
-					meta = frappe.get_meta(r.doctype)
-					doc = frappe.get_lazy_doc(r.doctype, r.name)
-					if meta.image_field:
-						r.image = doc.get(meta.image_field)
-					if meta.title_field:
-						r.title = doc.get(meta.title_field)
-					if frappe.has_permission(r.doctype, doc=doc):
-						sorted_results.append(r)
-				except Exception:
-					frappe.clear_messages()
+	for r in sort_search_results(results, allowed_doctypes, text):
+		if r.rank > 0.0:
+			try:
+				meta = frappe.get_meta(r.doctype)
+				doc = frappe.get_lazy_doc(r.doctype, r.name)
+				if meta.image_field:
+					r.image = doc.get(meta.image_field)
+				if meta.title_field:
+					r.title = doc.get(meta.title_field)
+				if frappe.has_permission(r.doctype, doc=doc):
+					sorted_results.append(r)
+			except Exception:
+				frappe.clear_messages()
 
 	return sorted_results
+
+
+def sort_search_results(results: list, doctypes: list[str], text: str = "") -> list:
+	"""Order hits by exact name match, then the DocType priority from Global Search Settings, then relevance."""
+	priority = {doctype: idx for idx, doctype in enumerate(doctypes)}
+	query = text.strip().casefold()
+	return sorted(results, key=lambda r: (r.name.casefold() != query, priority[r.doctype], -r.rank))
 
 
 WEB_SEARCH_MAX_SEGMENTS = 5
