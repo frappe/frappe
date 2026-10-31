@@ -75,7 +75,8 @@ class Agent:
 	functions in an installed app, since the flow server calls them back by import path.
 	The model calls them `<app>__<tool name>`, like `crm__read_records`.
 	`sub_agents` are Agents this one may hand a task to; they are synced before it.
-	`skills` are Flow Skill names, like `crm/onboarding` for a skill an app ships.
+	`skills` are this app's skills by folder name, like `onboarding`, or another app's as
+	`<app>/<name>`.
 	The doc is named and titled `<app>/<name>`, after the app whose code builds the Agent.
 	"""
 
@@ -103,7 +104,7 @@ class Agent:
 		self.description = description
 		self.tools = list(tools or [])
 		self.knowledge = list(knowledge or [])
-		self.skills = list(skills or [])
+		self.skills = [with_app_prefix(self.app, skill) for skill in skills or []]
 		self.sub_agents = list(sub_agents or [])
 		self.max_iterations = max_iterations
 		self.auto_approve = auto_approve
@@ -146,6 +147,11 @@ class Agent:
 		"""Start `input` in a new session and return its Running Flow Run without waiting.
 		Once the run ends, Flow calls the function at the dotted path `on_complete` with it."""
 		return self.new_session().chat(input, on_complete=on_complete)
+
+
+def with_app_prefix(app: str, name: str) -> str:
+	"""`<app>/<name>`, unless `name` already has an app prefix like `crm/onboarding`."""
+	return name if "/" in name else f"{app}/{name}"
 
 
 def _ensure_tool(tool: Tool) -> str:

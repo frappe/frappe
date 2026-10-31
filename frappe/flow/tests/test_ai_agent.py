@@ -291,6 +291,12 @@ class TestAgent(IntegrationTestCase):
 			):
 				self.synced(tools=[unimportable])
 
+	def test_skills_are_the_apps_own_unless_named_with_their_app(self):
+		self.assertEqual(
+			self.agent(skills=["onboarding", "crm/onboarding"]).skills,
+			["frappe/onboarding", "crm/onboarding"],
+		)
+
 	def test_sync_agents_writes_every_hooked_agent_once(self):
 		with self.hooked("flow_agents", "hooked_agents"):
 			sync_agents()
@@ -352,7 +358,7 @@ class TestAgent(IntegrationTestCase):
 				"Flow Agent frappe/Missing Skill skipped",
 			),
 			[
-				("Flow Agent frappe/Missing Skill skipped", "Could not find Row #1: Skill: missing"),
+				("Flow Agent frappe/Missing Skill skipped", "Could not find Row #1: Skill: frappe/missing"),
 				(
 					"Flow Agent frappe/Nested Tool skipped",
 					"Tool nested must be exported as a module-level attribute by an installed app.",
