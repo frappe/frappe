@@ -12,6 +12,8 @@ export interface RecordCommitChannel extends CommitChannel {
   pending: (fieldname: string, value: any, row?: RowAddress) => boolean;
   /** Fires the handler of an edit whose commit never arrived, and waits for the handlers already running. */
   flush: () => Promise<void>;
+  /** Fires a field's handler with no value to commit, a Button's click; a save waits for it too. */
+  trigger: (fieldname: string) => void;
 }
 
 interface Edit {
@@ -67,6 +69,7 @@ export function createCommitChannel(
       // A removed row has no address left to hand on; its handle would throw on every access.
       track(host.dispatch(rowEvent(row, change), change === "add" ? row : undefined));
     },
+    trigger: (fieldname) => void track(host.dispatch(fieldname)),
     flush: async () => {
       const edit = pending;
       if (edit) {

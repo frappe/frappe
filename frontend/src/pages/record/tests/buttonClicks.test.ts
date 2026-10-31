@@ -3,15 +3,15 @@ import type { RecordPageController } from "@/recordPage";
 import { buttonClicks } from "../recordCommits";
 
 function controllerWith(fields: Record<string, string>) {
-  const fireEvent = vi.fn();
+  const trigger = vi.fn();
   const controller = {
     fields: {
       has: (fieldname: string) => fieldname in fields,
       get: (fieldname: string) => ({ fieldname, fieldtype: fields[fieldname] }),
     },
-    fireEvent,
+    commits: { trigger },
   } as unknown as RecordPageController;
-  return { controller, fireEvent };
+  return { controller, trigger };
 }
 
 function clickOf(fieldname: string, controller: RecordPageController) {
@@ -21,9 +21,9 @@ function clickOf(fieldname: string, controller: RecordPageController) {
 
 describe("buttonClicks", () => {
   it("fires the doctype's own Button by its fieldname", () => {
-    const { controller, fireEvent } = controllerWith({ ping: "Button" });
+    const { controller, trigger } = controllerWith({ ping: "Button" });
     clickOf("ping", controller)(new MouseEvent("click"));
-    expect(fireEvent).toHaveBeenCalledWith("ping");
+    expect(trigger).toHaveBeenCalledWith("ping");
   });
 
   it("leaves every other fieldtype plain", () => {
@@ -32,10 +32,10 @@ describe("buttonClicks", () => {
   });
 
   it("fires nothing for a child row's Button, in a grid cell or the row dialog", () => {
-    const { controller, fireEvent } = controllerWith({ ping: "Button", status: "Data" });
+    const { controller, trigger } = controllerWith({ ping: "Button", status: "Data" });
     clickOf("ping", controller)(new MouseEvent("click"), { name: "row-1" });
     clickOf("pick_batch", controller)(new MouseEvent("click"));
     clickOf("status", controller)(new MouseEvent("click"));
-    expect(fireEvent).not.toHaveBeenCalled();
+    expect(trigger).not.toHaveBeenCalled();
   });
 });

@@ -41,6 +41,21 @@ describe("createCommitChannel", () => {
     expect(addressed).toEqual([row, undefined]);
   });
 
+  it("triggers a field on every call, and a flush waits for the handler", async () => {
+    const running: (() => void)[] = [];
+    const done: string[] = [];
+    const commits = createCommitChannel({
+      dispatch: (event) =>
+        new Promise<void>((resolve) => running.push(resolve)).then(() => void done.push(event)),
+    });
+    commits.trigger("ping");
+    commits.trigger("ping");
+    const flushed = commits.flush().then(() => done.push("flushed"));
+    for (const finish of running) finish();
+    await flushed;
+    expect(done).toEqual(["ping", "ping", "flushed"]);
+  });
+
   it("fires nothing while an edit is only pending", () => {
     const { commits, fired } = channel();
     commits.pending("qty", 3);

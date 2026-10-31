@@ -1,4 +1,4 @@
-// The engine's commit channel and field marks for a record page's form and panel, forwarded so they follow the controller across loads.
+// The engine's commit channel, field marks and Button clicks for a record page's form and panel, forwarded so they follow the controller across loads.
 import { computed, provide } from "vue";
 import { CommitKey, FieldErrorsKey } from "@framework/ui/fields/types";
 import type { Decorator } from "@framework/ui/FormLayout";
@@ -26,7 +26,7 @@ export function buttonClicks(controller: () => RecordPageController | null): Dec
 				click: (_event: MouseEvent, row?: object) => {
 					const page = controller();
 					if (row || !page?.fields.has(fieldname)) return;
-					if (page.fields.get(fieldname)?.fieldtype === "Button") void page.fireEvent(fieldname);
+					if (page.fields.get(fieldname)?.fieldtype === "Button") page.commits.trigger(fieldname);
 				},
 			},
 		};

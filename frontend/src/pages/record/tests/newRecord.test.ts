@@ -848,6 +848,15 @@ describe("a Button field", () => {
     expect(clicks).toEqual(["NOTE-1", "NOTE-1"]);
   });
 
+  it("is disabled and runs nothing when read-only", async () => {
+    server.meta.fields.at(-1).read_only = 1;
+    const { root } = await mount("/note/NOTE-1");
+    await click(root);
+
+    expect(root.querySelector('.field[data-fieldname="ping"] button')!.hasAttribute("disabled")).toBe(true);
+    expect(clicks).toEqual([]);
+  });
+
   it("runs it on a new record too", async () => {
     const { root } = await mount("/note/new");
     await click(root);
