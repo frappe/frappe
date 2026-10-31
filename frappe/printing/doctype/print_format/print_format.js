@@ -37,7 +37,7 @@ frappe.ui.form.on("Print Format", {
 		if (frm.doc.standard === "Yes" && frappe.session.user !== "Administrator") {
 			frm.set_intro(__("Please duplicate this to make changes"));
 		}
-		frm.trigger("render_buttons");
+		frm.trigger("render_buttons").then(() => frm.trigger("render_convert_button"));
 		frm.toggle_display("standard", frappe.boot.developer_mode);
 		frm.trigger("hide_absolute_value_field");
 	},
@@ -75,6 +75,19 @@ frappe.ui.form.on("Print Format", {
 			}
 		}
 	},
+	render_convert_button: function (frm) {
+		if (frm.is_new() || !frm.doc.print_designer || !frappe.user.has_role("System Manager")) {
+			return;
+		}
+		frm.add_custom_button(__("Convert to Editor Format"), () =>
+			frappe
+				.call(
+					"frappe.printing.doctype.print_format.print_designer_converter.create_editor_format",
+					{ print_format: frm.doc.name }
+				)
+				.then((r) => frappe.set_route("print-format-builder", r.message))
+		);
+	},
 	custom_format: function (frm) {
 		var value = frm.doc.custom_format ? 0 : 1;
 		frm.set_value("align_labels_right", value);
@@ -84,7 +97,7 @@ frappe.ui.form.on("Print Format", {
 		if (frm.doc.custom_format) {
 			frm.set_value("print_format_builder_beta", 0);
 		}
-		frm.trigger("render_buttons");
+		frm.trigger("render_buttons").then(() => frm.trigger("render_convert_button"));
 	},
 	doc_type: function (frm) {
 		frm.trigger("hide_absolute_value_field");
