@@ -100,6 +100,7 @@ import LogoutDialog from "./LogoutDialog.vue";
 import { openArgumentStep, paletteOpen } from "./palette";
 import RailColumn from "./RailColumn.vue";
 import { useShellActs, type OpenSettings } from "./shellActs";
+import { useShellHooks } from "./shellHooks";
 import SidebarPanel from "./SidebarPanel.vue";
 import { useHashDialog } from "./useHashDialog";
 import UserMenu from "./UserMenu.vue";
@@ -121,6 +122,7 @@ const router = useRouter();
 const route = useRoute();
 
 watch(() => route.fullPath, closeCreates);
+useShellHooks(boot.shell_hooks);
 
 const navigation = ref<Navigation>(boot.navigation ?? { rail: [], sidebars: {} });
 

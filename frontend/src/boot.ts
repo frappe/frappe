@@ -49,6 +49,8 @@ export type Boot = {
 	max_file_size: number;
 	translations_version: string;
 	app_order: string[];
+	// The apps whose `shell.js` this person may run, in `app_order`.
+	shell_hooks: string[];
 
 	// --- routing ---
 	//

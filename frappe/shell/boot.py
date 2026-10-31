@@ -25,6 +25,7 @@ from .navigation import NO_HOST, resolve_navigation
 from .permissions import has_app_permission
 from .registry import get_prefix_registry, prefix_map, shell_base, split_shell_path
 from .route_history import Visit, latest_visits
+from .shell_hooks import shell_hooks
 from .titles import app_screen, readable_titles
 
 # Bytes one top-level boot key may reach before boot logs it.
@@ -43,6 +44,7 @@ CLOUD_SETTINGS_ROUTE = "/desk?cloud_settings=1"
 
 def core_boot() -> dict:
 	"""The keys every prefix gets, regardless of which app it belongs to."""
+	app_order = frappe.get_active_apps(_ensure_on_bench=True)
 	return {
 		"frappe_version": frappe.__version__,
 		"site_name": frappe.local.site,
@@ -58,11 +60,12 @@ def core_boot() -> dict:
 		"translations_version": get_translation_version(),
 		# Active, not installed, so a disabled app is neither ordered nor served. Not named
 		# `installed_apps`: client-side that is a permission-filtered list.
-		"app_order": frappe.get_active_apps(_ensure_on_bench=True),
+		"app_order": app_order,
 		# The address table is fetched, not booted; this is the key that invalidates it.
 		"metadata_version": metadata_version(),
 		# Every active app, so a link to a foreign app's doctype knows that app's shape.
 		"prefixes": prefix_map(),
+		"shell_hooks": shell_hooks(app_order),
 	}
 
 

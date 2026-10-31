@@ -9,6 +9,7 @@ import type {
   ListHandlers,
   PageContribution,
   ReplacementContribution,
+  ShellHookContribution,
   StandardPages,
 } from './types'
 
@@ -85,6 +86,9 @@ export function settingsComponentFor(app: string, name: string) {
 /** Each active app's `acts.js`, in the site's app order; filled by `registerContributions`. */
 export const actsFiles: ActsContribution[] = []
 
+/** Each active app's `shell.js`, in the site's app order; filled by `registerContributions`. */
+export const shellHookFiles: ShellHookContribution[] = []
+
 /**
  * Run order per doctype: the owning app first, then the site's `app_order`. Ownership is
  * structural: a file under `custom/` is somebody else's doctype.
@@ -116,6 +120,7 @@ export function registerContributions(appOrder: string[]) {
   registerReplacements(appOrder)
   registerPageScripts(appOrder)
   registerActs(appOrder)
+  registerShellHooks(appOrder)
 
   const byDoctype = new Map<string, DoctypeContribution[]>()
   for (const contribution of contributions.doctypes) {
@@ -144,6 +149,12 @@ function registerActs(appOrder: string[]) {
   const active = contributions.acts.filter((contribution) => appOrder.includes(contribution.app))
   actsFiles.length = 0
   actsFiles.push(...ordered(active, appOrder))
+}
+
+function registerShellHooks(appOrder: string[]) {
+  const active = (contributions.shellHooks ?? []).filter((c) => appOrder.includes(c.app))
+  shellHookFiles.length = 0
+  shellHookFiles.push(...ordered(active, appOrder))
 }
 
 /**

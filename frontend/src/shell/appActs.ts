@@ -3,6 +3,7 @@
 import { onMounted, shallowRef } from "vue";
 import type { ActItem } from "@/acts/dispatcher";
 import { actsFiles } from "@/contributions/registry";
+import { atIdle } from "./atIdle";
 
 interface AppActs {
 	/** Each app act as the shell surface holds it, named `<app>.<item>`. */
@@ -65,14 +66,6 @@ function validAct(app: string, item: unknown): item is ActItem {
 		return false;
 	}
 	return true;
-}
-
-// Safari has no `requestIdleCallback`.
-function atIdle(work: () => unknown) {
-	requestAnimationFrame(() => {
-		if (typeof requestIdleCallback === "function") requestIdleCallback(() => void work());
-		else setTimeout(() => void work());
-	});
 }
 
 function warn(message: string) {
