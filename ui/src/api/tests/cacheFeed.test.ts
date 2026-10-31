@@ -9,6 +9,7 @@ import {
   createDocument,
   deleteDocument,
   getDocument,
+  renameDocument,
   listAggregates,
   listDocuments,
   removeTag,
@@ -190,6 +191,24 @@ describe("writes", () => {
     expect(await deleteDocument("ToDo", "T-1")).toEqual({ data: "ok" });
     expect(cached("T-1")).toBeUndefined();
     expect(readCachedList("ToDo", LIST)).toMatchObject({ names: ["T-2"], count: 1 });
+  });
+
+  it("renameDocument posts to rename_doc and drops the old name as a delete does", async () => {
+    await readList(["T-1", "T-2"], 2);
+    respond({ data: "T-9" });
+    expect(await renameDocument("ToDo", "T-1", "T-9", { merge: true })).toEqual({ data: "T-9" });
+    const [url, init] = fetchMock.mock.calls.at(-1)!;
+    expect(new URL(String(url), "http://x").pathname).toBe("/api/v2/method/frappe.client.rename_doc");
+    expect(JSON.parse(String(init!.body))).toEqual({ doctype: "ToDo", old_name: "T-1", new_name: "T-9", merge: true });
+    expect(cached("T-1")).toBeUndefined();
+    expect(readCachedList("ToDo", LIST)).toMatchObject({ names: ["T-2"], count: 1 });
+  });
+
+  it("renameDocument keeps the record when the server refuses", async () => {
+    await readList(["T-1", "T-2"], 2);
+    respond({ errors: [{ type: "ValidationError", message: "taken" }] }, 417);
+    await expect(renameDocument("ToDo", "T-1", "T-2")).rejects.toThrow("taken");
+    expect(readCachedList("ToDo", LIST)).toMatchObject({ names: ["T-1", "T-2"] });
   });
 
   it("copyDocument feeds nothing: the copy has no name until it is saved", async () => {

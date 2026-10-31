@@ -241,6 +241,19 @@ export function deleteDocument(
   );
 }
 
+/** Renames through `frappe.client.rename_doc`; the old name leaves the cache, as a delete's does. */
+export function renameDocument(
+  doctype: string,
+  name: string,
+  newName: string,
+  { merge = false, signal }: CallOptions & { merge?: boolean } = {}
+): Promise<Envelope<string>> {
+  const body = { doctype, old_name: name, new_name: newName, merge };
+  return fed<string>("POST", "/method/frappe.client.rename_doc", { body, signal }, (ticket) =>
+    feedDelete(ticket, doctype, name)
+  );
+}
+
 export function copyDocument<T extends DocumentRecord = DocumentRecord>(
   doctype: string,
   name: string,

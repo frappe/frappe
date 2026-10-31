@@ -349,6 +349,15 @@ describe("Rename…", () => {
     expect(page.rename).not.toHaveBeenCalled();
   });
 
+  it("does nothing for an empty or unchanged name", async () => {
+    for (const new_name of ["   ", "CRM-DEAL-1", " CRM-DEAL-1 "]) {
+      const page = renamePage({ new_name, merge: 1 });
+      await renameRow()!.run!(page);
+      expect(page.dialog.danger).not.toHaveBeenCalled();
+      expect(page.rename).not.toHaveBeenCalled();
+    }
+  });
+
   it("merges only after the danger confirm", async () => {
     const declined = renamePage({ new_name: "CRM-DEAL-2", merge: 1 }, null);
     await renameRow()!.run!(declined);

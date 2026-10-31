@@ -1,12 +1,11 @@
 // `header.rename`, the `⋯` menu's "Rename…", and the `page.rename` it runs.
 import { toast } from "frappe-ui";
+import { renameDocument } from "@framework/ui/api";
 import { __ } from "@/i18n";
 import { errorMessage, type HeaderItem, type RecordPageApi } from "@/recordPage";
 import { routeFor } from "@/router/routeFor";
 import { runSave } from "./recordSave";
 import { stripTags } from "./saveResponse";
-
-const RENAME_METHOD = "frappe.client.rename_doc";
 
 export function renameItem(): HeaderItem {
   return {
@@ -29,18 +28,16 @@ export async function renameRecord(
   if (!(await runSave(page)) || !onRecord()) return null;
   let renamed: string;
   try {
-    renamed = await page.call(RENAME_METHOD, {
-      doctype: page.doctype,
-      old_name: page.docname,
-      new_name: name,
-      merge,
-    });
+    ({ data: renamed } = await renameDocument(page.doctype, page.docname, name, { merge }));
   } catch (exception) {
     toast.error(stripTags(errorMessage(exception)));
     return null;
   }
-  if (onRecord()) await page.router.replace(routeFor(page.doctype, renamed));
-  toast.success(__("Renamed"));
+  if (!onRecord()) return renamed;
+  // The old name is gone, so a reader who keeps edits made meanwhile is told where the record went.
+  const refused = await page.router.replace(routeFor(page.doctype, renamed));
+  if (refused) toast.error(__("Renamed to {0}; this page still shows the old name", [renamed]));
+  else toast.success(__("Renamed"));
   return renamed;
 }
 
@@ -55,12 +52,12 @@ async function openRename(page: RecordPageApi) {
     submitLabel: __("Rename"),
   });
   if (!values) return;
-  const name = String(values.new_name).trim();
+  const name = String(values.new_name ?? "").trim();
+  if (!name || name === page.docname) return;
   if (values.merge && !(await confirmMerge(page, name))) return;
   await page.rename(name, { merge: Boolean(values.merge) });
 }
 
-// A name set from a field reads as that field, as desk v1's title dialog labels it.
 function newNameLabel(meta: Record<string, any> | null): string {
   const autoname = String(meta?.autoname ?? "");
   if (!autoname.startsWith("field:")) return __("New Name");

@@ -28,6 +28,9 @@ vi.mock("@/recordPage/evaluateClientScript", () => ({
   }),
 }));
 
+const discard = vi.hoisted(() => ({ asked: vi.fn(async () => false) }));
+vi.mock("../discardChanges", () => ({ discardChanges: discard.asked }));
+
 vi.mock("@/pages/List.vue", () => ({ default: { render: () => null } }));
 vi.mock("@/shell/NotFound.vue", () => ({ default: { render: () => null } }));
 
@@ -69,6 +72,8 @@ const LAYOUT = [{ name: "details", label: "Details", sections: [{ columns: [{ fi
 const server = {
   docs: {} as Record<string, Record<string, any>>,
   refusal: "",
+  saveRefusal: "",
+  renaming: null as Promise<void> | null,
   writes: [] as string[],
 };
 
@@ -82,10 +87,14 @@ async function answer(url: URL, init?: RequestInit): Promise<[number, unknown]> 
     return [200, { data: { layouts: [{ name: 1, condition: null, layout: LAYOUT }], fallback: LAYOUT } }];
   }
   if (path.endsWith("/activity")) return [200, { data: { activities: [], next: null } }];
-  if (path === RENAME) return rename(JSON.parse(String(init!.body)));
+  if (path === RENAME) {
+    await server.renaming;
+    return rename(JSON.parse(String(init!.body)));
+  }
   const name = path.split("/").pop()!;
   if (init?.method === "PATCH") {
     server.writes.push(`save ${name}`);
+    if (server.saveRefusal) return [417, { errors: [{ type: "ValidationError", message: server.saveRefusal }] }];
     server.docs[name] = { ...JSON.parse(String(init.body)), modified: "2026-10-31 11:00:00.000000" };
     return [200, { data: server.docs[name] }];
   }
@@ -130,6 +139,8 @@ const apps: ReturnType<typeof createApp>[] = [];
 beforeEach(() => {
   server.docs = { "N-1": { doctype: "Note", name: "N-1", title: "First", modified: "2026-10-31 10:00:00.000000" } };
   server.refusal = "";
+  server.saveRefusal = "";
+  server.renaming = null;
   server.writes = [];
   script.page = null;
   script.veto = "";
@@ -207,7 +218,7 @@ it("saves the dirty draft, renames, and opens the record at its new name with no
 
   expect(server.writes).toEqual(["save N-1", "rename N-1 to N-2"]);
   expect(router.currentRoute.value.path).toBe("/note/N-2");
-  expect(document.body.textContent).not.toContain("Discard");
+  expect(discard.asked).not.toHaveBeenCalled();
   expect(script.page.docname).toBe("N-2");
   expect(script.page.doc.title).toBe("Second");
   expect(toasts.success).toHaveBeenCalledWith("Renamed");
@@ -257,5 +268,51 @@ it("renames from a field handler, to the value the reader just typed", async () 
   expect(script.renamedFromTitle).toBe("Renamed Note");
   expect(server.writes).toEqual(["save N-1", "rename N-1 to Renamed Note"]);
   expect(router.currentRoute.value.path).toBe("/note/Renamed%20Note");
-  expect(document.body.textContent).not.toContain("Discard");
+  expect(discard.asked).not.toHaveBeenCalled();
+});
+
+it("renames nothing when the server refuses the draft's save", async () => {
+  server.saveRefusal = "Description is too long";
+  const { root, router } = await mount();
+  await editTitle(root, "Second");
+
+  expect(await renameTo("N-2")).toBeNull();
+
+  expect(server.writes).toEqual(["save N-1"]);
+  expect(router.currentRoute.value.path).toBe("/note/N-1");
+  expect(toasts.error).toHaveBeenCalledWith("Description is too long");
+});
+
+it("leaves the address alone when the reader moved on during the rename", async () => {
+  let answer!: () => void;
+  server.renaming = new Promise((resolve) => (answer = resolve));
+  const { router } = await mount();
+
+  const renaming = script.page.rename("N-2");
+  await settle();
+  await router.push("/note");
+  answer();
+
+  expect(await renaming).toBe("N-2");
+  await settle();
+  expect(router.currentRoute.value.path).toBe("/note");
+  expect(toasts.success).not.toHaveBeenCalled();
+});
+
+it("names the new record when the reader keeps edits made during the rename", async () => {
+  let answer!: () => void;
+  server.renaming = new Promise((resolve) => (answer = resolve));
+  const { root, router } = await mount();
+
+  const renaming = script.page.rename("N-2");
+  await settle();
+  await editTitle(root, "Typed meanwhile");
+  answer();
+
+  expect(await renaming).toBe("N-2");
+  expect(discard.asked).toHaveBeenCalledOnce();
+  await settle();
+  expect(router.currentRoute.value.path).toBe("/note/N-1");
+  expect(toasts.error).toHaveBeenCalledWith("Renamed to N-2; this page still shows the old name");
+  expect(toasts.success).not.toHaveBeenCalled();
 });

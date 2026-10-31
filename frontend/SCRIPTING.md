@@ -217,12 +217,14 @@ page.header.add({
 })
 ```
 
-`page.rename(name, { merge })` renames the record, as the `rename` row in `⋯` does with no
-dialog. A dirty draft saves first, and a save that fails or is vetoed renames nothing. Then
+`page.rename(name, { merge })` renames the record: it does what the `rename` row in `⋯` does,
+with no dialog. A dirty draft saves first, and a save that fails or is vetoed renames nothing. Then
 `frappe.client.rename_doc` runs, under the reader's write right and the doctype's *Allow
 Rename*, and the page opens the record at its new name. With `merge`, the record merges into
 the existing one of that name. It resolves with the new name, or `null` when the save or the
-server refused, after a toast that says why. On a new record it resolves `null`.
+server refused, after a toast that says why. On a new record it resolves `null`. A reader who
+edits during the rename and keeps those edits when asked stays on the old name, with a toast
+naming the new one.
 
 ```js
 async organization_name(page) {
