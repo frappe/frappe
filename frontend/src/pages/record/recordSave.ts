@@ -7,11 +7,13 @@ import { overlayOf } from "@/shell/overlay";
 import { shownInDialog } from "./saveResponse";
 
 /** Not through an action runner: a failed save keeps the draft on screen and toasts, unless a dialog showed it. */
-export async function runSave(page: RecordPageApi | undefined) {
+export async function runSave(page: RecordPageApi | undefined): Promise<boolean> {
 	try {
 		await page?.save();
+		return true;
 	} catch (exception) {
 		if (!shownInDialog(exception)) toast.error(errorMessage(exception));
+		return false;
 	}
 }
 

@@ -184,6 +184,7 @@ import { formTabMemory } from "./record/formTabMemory";
 import { fetchMeta, metaInMemory } from "./record/metaSource";
 import { PANEL_BUILTINS } from "./record/panel/builtins";
 import { headerMenuBuiltins, quickActionBuiltins } from "./record/builtinActions";
+import { renameRecord } from "./record/renameAct";
 import { favouritesOf, hasFavourited } from "./record/favourites";
 import { canFollow, declinedMessage } from "./record/follow";
 import { useLiveDocinfo, warnDocinfoFailed } from "./record/liveDocinfo";
@@ -414,6 +415,7 @@ function headerBuiltins(): HeaderItem[] {
 				follow: follow.value,
 				assign: { assignees: assigneesOf(docinfo.value), assign: assignUser },
 				duplicate: canCreate.value && !meta.value?.allow_copy,
+				rename: Boolean(meta.value?.allow_rename),
 			}
 		)
 	);
@@ -775,7 +777,7 @@ function isNewNavigation() {
 }
 
 /** The page's controller with its built-ins, made current. */
-function buildController({ target, pointer, details, panel, view }: Opening) {
+function buildController({ visit, target, pointer, details, panel, view }: Opening) {
 	const created = createRecordPage({
 		app: boot.app!,
 		doctype: target.doctype,
@@ -796,6 +798,7 @@ function buildController({ target, pointer, details, panel, view }: Opening) {
 		discloseSection: disclosure.disclose,
 		focusField: (fieldname, cursor) => void focusOnDetails(fieldname, cursor),
 		save: write,
+		rename: (name, merge) => renameRecord(created.page, name, merge, visit.current),
 		reload: load,
 		router,
 		sourcesReady: () => loadRecordScripts(target.doctype),

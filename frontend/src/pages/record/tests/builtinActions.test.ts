@@ -291,3 +291,85 @@ describe("Assign to…", () => {
     expect(page.toast.error).toHaveBeenCalledExactlyOnceWith("Pick a user to assign");
   });
 });
+
+describe("Rename…", () => {
+  const renamePage = (form: Record<string, any> | null, confirmed: true | null = true, meta: any = {}) =>
+    ({
+      ...fakePage(confirmed),
+      meta,
+      dialog: { form: vi.fn().mockResolvedValue(form), danger: vi.fn().mockResolvedValue(confirmed) },
+      rename: vi.fn().mockResolvedValue("CRM-DEAL-2"),
+    }) as any;
+  const renameRow = (options: { single?: boolean; rename?: boolean } = { rename: true }) =>
+    headerMenuBuiltins({ write: 1 }, off, { assign: { assignees: [], assign: vi.fn() }, ...options }).find(
+      (item) => item.name === "rename"
+    );
+
+  it("sits under Assign to in its band, behind the write right, only when the doctype allows it", () => {
+    const rows = headerMenuBuiltins({ write: 1 }, off, { assign: { assignees: [], assign: vi.fn() }, rename: true });
+    expect(rows.map((item) => [item.name, item.group])).toEqual([
+      ["favourite_row", "favourite_band"],
+      ["assign", "assign_band"],
+      ["rename", "assign_band"],
+      ["copy_url", "copies"],
+      ["copy_id", "copies"],
+    ]);
+    expect(rows[2]).toMatchObject({ label: "Rename…", icon: "lucide-pencil", right: "write" });
+    expect(renameRow({})).toBeUndefined();
+    expect(renameRow({ rename: true, single: true })).toBeUndefined();
+  });
+
+  it("asks for the new name and Merge, then renames through page.rename", async () => {
+    const page = renamePage({ new_name: " CRM-DEAL-2 ", merge: 0 });
+
+    await renameRow()!.run!(page);
+
+    expect(page.dialog.form).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: "Rename CRM-DEAL-1",
+        fields: [
+          { fieldname: "new_name", fieldtype: "Data", label: "New Name", reqd: 1 },
+          { fieldname: "merge", fieldtype: "Check", label: "Merge with existing" },
+        ],
+        defaults: { new_name: "CRM-DEAL-1" },
+        submitLabel: "Rename",
+      })
+    );
+    expect(page.dialog.danger).not.toHaveBeenCalled();
+    expect(page.rename).toHaveBeenCalledExactlyOnceWith("CRM-DEAL-2", { merge: false });
+  });
+
+  it("labels the name after the field it is set from", async () => {
+    const meta = { autoname: "field:organization_name", fields: [{ fieldname: "organization_name", label: "Organization Name" }] };
+    const page = renamePage(null, true, meta);
+
+    await renameRow()!.run!(page);
+
+    expect(page.dialog.form.mock.calls[0][0].fields[0].label).toBe("New Organization Name");
+    expect(page.rename).not.toHaveBeenCalled();
+  });
+
+  it("does nothing for an empty or unchanged name", async () => {
+    for (const new_name of ["   ", "CRM-DEAL-1", " CRM-DEAL-1 "]) {
+      const page = renamePage({ new_name, merge: 1 });
+      await renameRow()!.run!(page);
+      expect(page.dialog.danger).not.toHaveBeenCalled();
+      expect(page.rename).not.toHaveBeenCalled();
+    }
+  });
+
+  it("merges only after the danger confirm", async () => {
+    const declined = renamePage({ new_name: "CRM-DEAL-2", merge: 1 }, null);
+    await renameRow()!.run!(declined);
+    expect(declined.dialog.danger).toHaveBeenCalledWith({
+      title: "Merge into CRM-DEAL-2?",
+      message: "CRM-DEAL-1 will be merged into CRM-DEAL-2. This cannot be undone.",
+      confirmLabel: "Merge",
+    });
+    expect(declined.rename).not.toHaveBeenCalled();
+
+    const confirmed = renamePage({ new_name: "CRM-DEAL-2", merge: 1 });
+    await renameRow()!.run!(confirmed);
+    expect(confirmed.rename).toHaveBeenCalledExactlyOnceWith("CRM-DEAL-2", { merge: true });
+  });
+});

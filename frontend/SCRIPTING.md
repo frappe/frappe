@@ -217,6 +217,21 @@ page.header.add({
 })
 ```
 
+`page.rename(name, { merge })` renames the record: it does what the `rename` row in `⋯` does,
+with no dialog. A dirty draft saves first, and a save that fails or is vetoed renames nothing. Then
+`frappe.client.rename_doc` runs, under the reader's write right and the doctype's *Allow
+Rename*, and the page opens the record at its new name. With `merge`, the record merges into
+the existing one of that name. It resolves with the new name, or `null` when the save or the
+server refused, after a toast that says why. On a new record it resolves `null`. A reader who
+edits during the rename and keeps those edits when asked stays on the old name, with a toast
+naming the new one.
+
+```js
+async organization_name(page) {
+  await page.rename(page.doc.organization_name)
+}
+```
+
 `page.openSettings(prefix, pane, block)` opens the settings dialog over the page at
 `#settings/<prefix>/<pane>/<block>`. The arguments are the address's segments in order, each
 one optional: `page.openSettings()` opens the current app's first pane, and a block scrolls
@@ -743,6 +758,8 @@ The generated page seeds these items, in this order:
 | `save` | right | The Save button. Disabled by the host while nothing has changed. Pinned: it spends a slot and is never demoted. |
 | `favourite_row` | right | The star's row in `⋯`: *Add to favourites* or *Remove from favourites*, whichever the star would do next. Hiding the star keeps this row, and the other way round. |
 | `follow_row` | right | The reader's follow, in the star's band: *Follow* or *Unfollow*, whichever comes next. Seeded only when the doctype tracks changes and the reader's *Document follow* setting is on; the `follow` quick action goes with it. |
+| `assign` | right | A row in `⋯`, with the write right: *Assign to…*, which asks for a user. |
+| `rename` | right | A row in `⋯` under `assign`, with the write right, on a doctype with *Allow Rename* and not a single: *Rename…* asks for the new name and Merge, confirms a merge, then runs `page.rename`. |
 | `copy_url` | right | A row in `⋯`: copies the record's address, as the `copy_link` quick action does. |
 | `copy_id` | right | A row in `⋯`: copies the record's name. |
 | `duplicate` | right | A row in `⋯`, after the copies, only with the create right on a doctype that does not set *Hide Copy*. Opens the new record page at `/<doctype>/new?__copy_of=<name>`, filled from the server's copy of the saved record as desk v1's *Duplicate* fills it: child rows included, no *No Copy* or password field, and a default where the record has no value. Unsaved edits are not copied: leaving the record asks about them first. The doctype's naming rule names the copy on its first save. |

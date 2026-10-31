@@ -372,6 +372,8 @@ export interface RecordPageApi extends PageApi {
   /** The child table's rows as handles, in array order; a non-table fieldname answers empty. */
   rows(parentfield: string): PageRow[];
   save(): Promise<void>;
+  /** Saves a dirty draft, renames the record and opens it at its new name; `null` when refused or not on a saved record. */
+  rename(name: string, options?: { merge?: boolean }): Promise<string | null>;
   reload(): Promise<void>;
   /** Opens Create for a doctype; the saved record, or `null` when nothing was saved in the dialog. */
   create(
