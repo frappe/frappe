@@ -64,13 +64,14 @@
    "set_only_once": 1
   },
   {
-   "description": "The key, or blank for the plain view; its unique index with the doctype keeps one view per key.",
+   "description": "The key; blank for the plain view and a site override of an app view.",
    "fieldname": "key_slot",
    "fieldtype": "Data",
    "hidden": 1,
    "label": "Key Slot",
    "no_copy": 1,
-   "read_only": 1
+   "read_only": 1,
+   "set_only_once": 1
   },
   {
    "fieldname": "settings_section",

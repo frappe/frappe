@@ -75,18 +75,20 @@ class DoctypeView(Document):
 
 	def insert_row(self, *args, **kwargs):
 		"""`db_insert` in a savepoint, since Postgres aborts the transaction on a unique error."""
-		frappe.db.savepoint("doctype_view_insert")
+		# Its own name: a hash-name retry calls `db_insert` again, and MariaDB would reuse one savepoint.
+		savepoint = f"doctype_view_{frappe.generate_hash(length=8)}"
+		frappe.db.savepoint(savepoint)
 		muted = frappe.flags.mute_messages
 		# The unique index's "must be unique" message would reach the person even when a retry succeeds.
 		frappe.flags.mute_messages = muted or bool(self.key_slot)
 		try:
 			super().db_insert(*args, **kwargs)
 		except frappe.UniqueValidationError:
-			frappe.db.rollback(save_point="doctype_view_insert")
+			frappe.db.rollback(save_point=savepoint)
 			raise
 		finally:
 			frappe.flags.mute_messages = muted
-		frappe.db.release_savepoint("doctype_view_insert")
+		frappe.db.release_savepoint(savepoint)
 
 	def refuse_a_lost_key(self, attempts: int):
 		if attempts >= KEY_CLAIM_ATTEMPTS:
@@ -192,7 +194,7 @@ class DoctypeView(Document):
 			)
 
 	def refuse_a_second_row_at_this_address(self):
-		"""Refuse the duplicate here: `db_insert` would read the unique index's refusal as a hash retry."""
+		"""Refuse the duplicate here: `db_insert` would read the unique index's refusal as a lost key and move on."""
 		existing = frappe.db.get_value(self.doctype, self.address())
 
 		if existing and existing != self.name:

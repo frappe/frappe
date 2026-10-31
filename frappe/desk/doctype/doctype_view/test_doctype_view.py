@@ -4,6 +4,7 @@
 from unittest.mock import patch
 
 import frappe
+from frappe.desk.doctype.default_view import api as default_view_api
 from frappe.desk.doctype.doctype_view import api
 from frappe.desk.doctype.doctype_view.api import find, get, reset, save
 from frappe.desk.doctype.doctype_view.doctype_view import DoctypeView, DuplicateViewError
@@ -312,6 +313,11 @@ class TestLostKey(DoctypeViewTestCase):
 
 
 class TestFillKeySlots(DoctypeViewTestCase):
+	def setUp(self):
+		super().setUp()
+		frappe.db.delete("Favourite", {"reference_doctype": "DocType", "reference_name": DOCTYPE})
+		frappe.db.delete("Default View", {"reference_doctype": DOCTYPE})
+
 	def run_patch(self):
 		# Adding the index is DDL, which would commit the test's rows.
 		with patch.object(fill_view_key_slots, "add_key_index"):
@@ -329,11 +335,16 @@ class TestFillKeySlots(DoctypeViewTestCase):
 		)
 		self.assertIsNone(frappe.db.get_value("Doctype View", plain.name, "key_slot"))
 
-	def test_of_two_views_sharing_a_key_the_newer_moves_to_the_next_suffix(self):
+	def test_of_two_views_sharing_a_key_the_newer_moves_with_its_owner_s_star_and_default(self):
 		older = make_view(label="Open", settings={}).insert()
 		newer = make_view(label="Shut", user=self.person, settings={}).insert()
 		frappe.db.set_value("Doctype View", older.name, "key_slot", None)
 		frappe.db.set_value("Doctype View", newer.name, {"key": "open", "key_slot": None})
+		for user in (self.person, self.other):
+			with set_user(user):
+				toggle_favourite("DocType", DOCTYPE, add=True, view="open")
+		with set_user(self.person):
+			default_view_api.save(DOCTYPE, "open", "user")
 
 		self.run_patch()
 
@@ -342,6 +353,36 @@ class TestFillKeySlots(DoctypeViewTestCase):
 		)
 		self.assertEqual(
 			frappe.db.get_value("Doctype View", newer.name, ["key", "key_slot"]), ("open-2", "open-2")
+		)
+		stars = frappe.get_all(
+			"Favourite", filters={"reference_name": DOCTYPE, "view": ("!=", "")}, fields=["user", "view"]
+		)
+		self.assertEqual(
+			sorted((star.user, star.view) for star in stars),
+			sorted([(self.person, "open-2"), (self.other, "open")]),
+		)
+		self.assertEqual(
+			frappe.db.get_value("Default View", {"reference_doctype": DOCTYPE, "user": self.person}, "view"),
+			"open-2",
+		)
+
+	def test_a_moved_site_view_takes_every_star_but_the_older_view_s_owner(self):
+		older = make_view(label="Open", user=self.person, settings={}).insert()
+		newer = make_view(label="Shut", settings={}).insert()
+		frappe.db.set_value("Doctype View", older.name, "key_slot", None)
+		frappe.db.set_value("Doctype View", newer.name, {"key": "open", "key_slot": None})
+		for user in (self.person, self.other):
+			with set_user(user):
+				toggle_favourite("DocType", DOCTYPE, add=True, view="open")
+
+		self.run_patch()
+
+		stars = frappe.get_all(
+			"Favourite", filters={"reference_name": DOCTYPE, "view": ("!=", "")}, fields=["user", "view"]
+		)
+		self.assertEqual(
+			sorted((star.user, star.view) for star in stars),
+			sorted([(self.person, "open"), (self.other, "open-2")]),
 		)
 
 
