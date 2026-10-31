@@ -34,6 +34,7 @@ class DoctypeView(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		key: DF.Data
 		label: DF.Data
 		reference_doctype: DF.Link
 		settings: DF.JSON | None
@@ -41,12 +42,32 @@ class DoctypeView(Document):
 		user: DF.Link
 	# end: auto-generated types
 
+	def before_insert(self):
+		self.key = self.claim_key() if self.label else PLAIN_VIEW
+
 	def validate(self):
 		self.user = self.user or SITE_ROW
 		self.label = self.label or PLAIN_VIEW
+		self.key = self.key or PLAIN_VIEW
 		self.validate_type()
 		self.validate_settings()
+		self.refuse_a_label_that_moves_the_view()
 		self.refuse_a_second_row_at_this_address()
+
+	def on_trash(self):
+		if self.key:
+			frappe.db.delete(
+				"Favourite",
+				{"reference_doctype": "DocType", "reference_name": self.reference_doctype, "view": self.key},
+			)
+
+	def claim_key(self) -> str:
+		"""A key no layer of the doctype uses, from the key given or else the label."""
+		from .key_space import KeySpace
+
+		space = KeySpace(self.reference_doctype)
+		space.lock()
+		return space.claim(self.key or self.label)
 
 	def validate_type(self):
 		if self.type not in VIEW_TYPES:
@@ -72,6 +93,14 @@ class DoctypeView(Document):
 		if not isinstance(parsed, dict):
 			frappe.throw(_("The settings of a view are one object."), title=_("Not Settings"))
 
+	def refuse_a_label_that_moves_the_view(self):
+		"""A saved view keeps a label and the plain view has none: the key, set once, says which it is."""
+		if bool(self.label) != bool(self.key):
+			frappe.throw(
+				_("A saved view needs a label, and the plain view cannot have one."),
+				title=_("Label Not Allowed"),
+			)
+
 	def refuse_a_second_row_at_this_address(self):
 		"""Refuse the duplicate here: `db_insert` would read the unique index's refusal as a hash retry."""
 		existing = frappe.db.get_value(self.doctype, self.address())
@@ -90,7 +119,7 @@ class DoctypeView(Document):
 			"reference_doctype": self.reference_doctype,
 			"type": self.type,
 			"user": self.user,
-			"label": self.label,
+			"key": self.key,
 		}
 
 
@@ -98,7 +127,7 @@ def on_doctype_update():
 	"""One row per address, held by the schema so a bulk write cannot bypass it."""
 	frappe.db.add_unique(
 		"Doctype View",
-		("reference_doctype", "type", "user", "label"),
+		("reference_doctype", "type", "user", "key"),
 		constraint_name="unique_view_address",
 	)
 

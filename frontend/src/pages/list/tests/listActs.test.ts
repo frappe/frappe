@@ -10,7 +10,7 @@ import {
   type App,
   type Ref,
 } from "vue";
-import { createMemoryHistory, createRouter } from "vue-router";
+import { createMemoryHistory, createRouter, type Router } from "vue-router";
 
 const page = vi.hoisted(() => ({
   customizing: null as unknown as Ref<boolean>,
@@ -218,20 +218,23 @@ async function settle() {
 }
 
 const shownView = ref<string | null>(null);
+let mounted: Router | null = null;
+const router = () => mounted!;
 
 async function mount(whileLoading?: () => void, view: string | null = null) {
   shownView.value = view;
-  const router = createRouter({
+  const router = (mounted = createRouter({
     history: createMemoryHistory(),
     routes: [
       { path: "/:doctype", name: "list", component: { render: () => null } },
+      { path: "/:doctype/view/:key", name: "saved-view", component: { render: () => null } },
       {
         path: "/:doctype/:name",
         name: "record",
         component: { render: () => null },
       },
     ],
-  });
+  }));
   registerShell({ boot, addresses, router });
   await router.push("/contact");
   const root = document.createElement("div");
@@ -270,12 +273,13 @@ async function denial(name: string) {
 }
 
 describe("the list surface", () => {
-  it("lists the four built-ins by name while rows are selected", async () => {
+  it("lists the five built-ins by name while rows are selected", async () => {
     page.selectedAtMount = ["CONT-0001"];
     await mount();
     expect(listActNames()).toEqual([
       "list.create",
       "list.favourite",
+      "list.open_view",
       "list.customize_quick_filter",
       "list.delete",
     ]);
@@ -329,7 +333,7 @@ describe("the list surface", () => {
       )
     ).not.toContain("Create");
     expect(bulkLabels(root)).toEqual([]);
-    expect(listActNames()).toEqual(["list.favourite", "list.customize_quick_filter"]);
+    expect(listActNames()).toEqual(["list.favourite", "list.open_view", "list.customize_quick_filter"]);
   });
 
   it("runs list.favourite on the plain list, stars the list and draws the star filled", async () => {
@@ -356,8 +360,25 @@ describe("the list surface", () => {
 
     await acts.run("list.favourite");
     await settle();
-    expect(toggles).toEqual([{ doctype: "Doctype View", name: "open-contacts", add: false }]);
+    expect(toggles).toEqual([{ doctype: "DocType", name: "Contact", view: "open-contacts", add: false }]);
     expect(root.querySelector("header [data-favourite]")!.getAttribute("aria-pressed")).toBe("false");
+  });
+
+  it("runs list.open_view to the saved view's address by its key", async () => {
+    await mount();
+
+    await acts.run("list.open_view", { key: "open-contacts" });
+    await settle();
+
+    expect(router().currentRoute.value.fullPath).toBe("/contact/view/open-contacts");
+    expect(acts.available().find((act) => act.name === "list.open_view")?.palette).toBe(false);
+  });
+
+  it("refuses list.open_view without a key and stays on the list", async () => {
+    await mount();
+
+    await expect(acts.run("list.open_view", {})).rejects.toThrow("Name the view to open by its key.");
+    expect(router().currentRoute.value.fullPath).toBe("/contact");
   });
 
   it("toggles twice on two quick clicks, each turn reading the state the one before left", async () => {
@@ -381,7 +402,7 @@ describe("the list surface", () => {
     expect(star().getAttribute("aria-pressed")).toBe("false");
     await acts.run("list.favourite");
     await settle();
-    expect(toggles).toEqual([{ doctype: "Doctype View", name: "closed-contacts", add: true }]);
+    expect(toggles).toEqual([{ doctype: "DocType", name: "Contact", view: "closed-contacts", add: true }]);
   });
 
   it("draws no star until the settings read says what is starred", async () => {

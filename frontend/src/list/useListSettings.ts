@@ -14,7 +14,7 @@ export const WRITE_DEBOUNCE_MS = 500;
 
 export type Scope = "user" | "site";
 
-/** Whether the person starred the list itself, and the names of the saved views they starred. */
+/** Whether the person starred the list itself, and the keys of the saved views they starred. */
 export interface ListFavourites {
 	list: boolean;
 	views: string[];
@@ -38,7 +38,7 @@ export interface ListSettingsHandle {
 	refreshed: () => Promise<void>;
 	/** Null until a settings read succeeds: the star cannot be drawn without it. */
 	favourites: ComputedRef<ListFavourites | null>;
-	/** Stars or unstars the list, or the saved view `view`; rejects with the server's refusal. */
+	/** Stars or unstars the list, or its saved view with the key `view`; rejects with the server's refusal. */
 	toggleFavourite: (view: string | null) => Promise<void>;
 }
 
@@ -210,8 +210,7 @@ export function isFavourite(favourites: ListFavourites | null, view: string | nu
 function toggleFavourite(entry: Entry, doctype: string, view: string | null): Promise<void> {
 	const turn = entry.queue.then(async () => {
 		const adding = !isFavourite(entry.favourites.value, view);
-		const target =
-			view === null ? { doctype: "DocType", name: doctype } : { doctype: "Doctype View", name: view };
+		const target = { doctype: "DocType", name: doctype, ...(view === null ? {} : { view }) };
 		await runMethod(TOGGLE_FAVOURITE, { ...target, add: adding }, { nullable: true });
 		markFavourite(entry, view, adding);
 	});

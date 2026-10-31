@@ -58,7 +58,7 @@ export function createShellRouter(boot: Boot, addresses: Addresses) {
 			// A single has no list to show: its list address is the document, as `routeFor` spells
 			// it. The module segment is checked on the next pass, as for any record.
 			if (addresses.isSingle(doctype) && !RECORD_ROUTES.has(String(to.name))) {
-				// Named params only: a saved view's `viewName` has no slot on the record route.
+				// Named params only: a saved view's `key` has no slot on the record route.
 				const params: Record<string, string> = { doctype: segment, name: doctype };
 				if (typeof to.params.module === "string") params.module = to.params.module;
 				return { name: "record", params, query: to.query, replace: true };

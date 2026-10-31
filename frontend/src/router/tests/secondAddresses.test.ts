@@ -62,19 +62,19 @@ describe.each([
 		expect(route.matched[0].components?.default).toBe(loadedPage(standardPages.record));
 	});
 
-	it("opens a saved view under the list kind", async () => {
-		const router = await open("/sales-invoice/view/list/open-invoices");
+	it("opens a saved view by its key", async () => {
+		const router = await open("/sales-invoice/view/open-invoices");
 		const route = router.currentRoute.value;
 
 		expect(route.name).toBe("saved-view");
 		expect(route.params).toEqual({
 			...module,
 			doctype: "sales-invoice",
-			viewName: "open-invoices",
+			key: "open-invoices",
 		});
 	});
 
-	it.each(["/sales-invoice/view/open-invoices", "/sales-invoice/view/calendar"])(
+	it.each(["/sales-invoice/view/list/open-invoices", "/sales-invoice/view/kanban/open"])(
 		"shows not-found at %s",
 		async (path) => {
 			const router = await open(path);
@@ -123,12 +123,12 @@ describe.each([
 		});
 	});
 
-	it("builds a saved view's address under the list kind", () => {
+	it("builds a saved view's address from its key", () => {
 		const router = createShellRouter(boot(modular), addresses);
 		registerShell({ boot: boot(modular), addresses, router });
 
 		expect(urlFor("Sales Invoice", null, { view: "open" })).toBe(
-			`/apps/erpnext${prefix}/sales-invoice/view/list/open`
+			`/apps/erpnext${prefix}/sales-invoice/view/open`
 		);
 	});
 });

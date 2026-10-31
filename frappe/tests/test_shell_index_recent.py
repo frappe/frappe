@@ -1,4 +1,4 @@
-# The index boot's Recent: the person's last distinct v2 list and record addresses they can still open.
+# The index boot's Recent: the person's last distinct v2 list, view and record addresses they can still open.
 
 from datetime import datetime
 from unittest.mock import patch
@@ -59,6 +59,11 @@ class TestIndexRecent(IntegrationTestCase):
 		doc = frappe.get_doc(doctype="ToDo", description=description, allocated_to=allocated_to)
 		return doc.insert(ignore_permissions=True).name
 
+	def view(self, label: str, user: str = ""):
+		frappe.get_doc(
+			doctype="Doctype View", reference_doctype="ToDo", type="List", label=label, user=user, settings={}
+		).insert(ignore_permissions=True)
+
 	def recent(self, user: str = USER) -> list[dict]:
 		frappe.set_user(user)
 		return get_boot(f"/{SHELL_ROOT}")["recent"]
@@ -104,6 +109,19 @@ class TestIndexRecent(IntegrationTestCase):
 		[row] = self.recent()
 
 		self.assertEqual((row["title"], row["kind"]), ("ToDo", "List"))
+
+	def test_a_saved_view_row_is_titled_by_its_label(self):
+		self.view("Probe open tasks")
+		self.view("Probe their tasks", user=MANAGER)
+		for key in ("probe-open-tasks", "probe-their-tasks", "no-such-view"):
+			self.visit(f"/apps/desk/todo/view/{key}")
+
+		[row] = self.recent()
+
+		self.assertEqual(
+			(row["route"], row["title"], row["kind"]),
+			("/apps/desk/todo/view/probe-open-tasks", "Probe open tasks", "View"),
+		)
 
 	def test_a_single_is_titled_by_its_doctype_with_no_kind(self):
 		self.visit("/apps/desk/system-settings/System%20Settings", user=MANAGER)

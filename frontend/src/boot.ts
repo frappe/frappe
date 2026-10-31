@@ -84,10 +84,11 @@ export type Boot = {
 	}[];
 
 	// Present on the index only: the person's 8 latest favourites, newest first. A list's
-	// `doctype` is "DocType" and a saved view's "Doctype View", as the Favourite row stores them.
+	// `doctype` is "DocType", as the Favourite row stores it, and a saved view adds its key.
 	favourites?: {
 		doctype: string;
 		name: string;
+		view?: string;
 		kind: "record" | "list" | "view";
 		title: string;
 		route: string;
@@ -103,7 +104,7 @@ export type Boot = {
 	recent?: {
 		route: string;
 		title: string;
-		/** The record's doctype, "List" for a list, none for a single. */
+		/** The record's doctype, "List" for a list, "View" for a saved view, none for a single. */
 		kind: string | null;
 		/** On the site's clock, `session.timezone`. */
 		visited: string;

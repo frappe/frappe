@@ -10,6 +10,7 @@
   "type",
   "user",
   "label",
+  "key",
   "settings_section",
   "settings"
  ],
@@ -45,12 +46,21 @@
    "options": "User"
   },
   {
-   "description": "Blank for the doctype's plain view of this type; a saved view carries its name here.",
+   "description": "Blank for the doctype's plain view of this type; a saved view's name, shown to people.",
    "fieldname": "label",
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Label",
    "not_nullable": 1
+  },
+  {
+   "description": "The view's address in its doctype, set once from the label. Blank for the plain view.",
+   "fieldname": "key",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Key",
+   "not_nullable": 1,
+   "set_only_once": 1
   },
   {
    "fieldname": "settings_section",
@@ -67,7 +77,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-10 10:00:00.000000",
+ "modified": "2026-10-30 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Doctype View",

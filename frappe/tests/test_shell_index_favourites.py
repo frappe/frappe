@@ -44,10 +44,10 @@ class TestIndexFavourites(IntegrationTestCase):
 		doc = frappe.get_doc(doctype="ToDo", description=description, allocated_to=allocated_to)
 		return doc.insert(ignore_permissions=True).name
 
-	def favourite(self, doctype: str, name: str, user: str = USER):
-		"""Star the record for `user`, a minute after the previous star."""
+	def favourite(self, doctype: str, name: str, user: str = USER, view: str = ""):
+		"""Star the record, list or view for `user`, a minute after the previous star."""
 		row = frappe.get_doc(
-			doctype="Favourite", user=user, reference_doctype=doctype, reference_name=name
+			doctype="Favourite", user=user, reference_doctype=doctype, reference_name=name, view=view
 		).insert(ignore_permissions=True)
 		self.minutes += 1
 		starred = add_to_date(now_datetime(), minutes=self.minutes)
@@ -68,7 +68,7 @@ class TestIndexFavourites(IntegrationTestCase):
 				settings={},
 			)
 			.insert(ignore_permissions=True)
-			.name
+			.key
 		)
 
 	def test_no_favourites_is_an_empty_list(self):
@@ -124,18 +124,19 @@ class TestIndexFavourites(IntegrationTestCase):
 
 	def test_a_starred_saved_view_is_a_chip_at_its_view_address(self):
 		view = self.view(label="Probe open tasks")
-		self.favourite("Doctype View", view)
+		self.favourite("DocType", "ToDo", view=view)
 
 		[chip] = self.favourites()
 
 		self.assertEqual(
-			{key: chip[key] for key in ("doctype", "name", "kind", "title", "route")},
+			{key: chip[key] for key in ("doctype", "name", "view", "kind", "title", "route")},
 			{
-				"doctype": "Doctype View",
-				"name": view,
+				"doctype": "DocType",
+				"name": "ToDo",
+				"view": "probe-open-tasks",
 				"kind": "view",
 				"title": "Probe open tasks",
-				"route": f"{canonical_path('ToDo')}/view/list/{view}",
+				"route": f"{canonical_path('ToDo')}/view/probe-open-tasks",
 			},
 		)
 
@@ -150,15 +151,16 @@ class TestIndexFavourites(IntegrationTestCase):
 		mine, site = self.view(label="Probe mine", user=USER), self.view(label="Probe site")
 		theirs = self.view(label="Probe theirs", user="Administrator")
 		private = self.view(doctype="Error Log", label="Probe errors")
-		for name in (mine, site, theirs, private):
-			self.favourite("Doctype View", name)
+		for key in (mine, site, theirs):
+			self.favourite("DocType", "ToDo", view=key)
+		self.favourite("DocType", "Error Log", view=private)
 
-		self.assertEqual([chip["name"] for chip in self.favourites()], [site, mine])
+		self.assertEqual([chip["view"] for chip in self.favourites()], [site, mine])
 
 	def test_records_lists_and_views_share_one_newest_first_order(self):
 		todo, view = self.todo("Probe task", allocated_to=USER), self.view()
 		self.favourite("ToDo", todo)
-		self.favourite("Doctype View", view)
+		self.favourite("DocType", "ToDo", view=view)
 		self.favourite("DocType", "Note")
 
 		self.assertEqual([chip["kind"] for chip in self.favourites()], ["list", "view", "record"])
@@ -272,7 +274,7 @@ class TestIndexFavourites(IntegrationTestCase):
 
 	def test_a_list_or_view_in_an_app_the_person_cannot_enter_is_left_out(self):
 		self.favourite("DocType", "ToDo")
-		self.favourite("Doctype View", self.view())
+		self.favourite("DocType", "ToDo", view=self.view())
 		self.favourite("DocType", "Note")
 		frappe.set_user(USER)
 
@@ -299,8 +301,8 @@ class TestIndexFavourites(IntegrationTestCase):
 		self.favourite("ToDo", self.todo("Probe task", allocated_to=USER))
 		self.favourite("DocType", "ToDo")
 		self.favourite("DocType", "Note")
-		self.favourite("Doctype View", self.view(label="Probe one"))
-		self.favourite("Doctype View", self.view(doctype="Note", label="Probe two"))
+		self.favourite("DocType", "ToDo", view=self.view(label="Probe one"))
+		self.favourite("DocType", "Note", view=self.view(doctype="Note", label="Probe two"))
 		frappe.set_user(USER)
 		index_favourites()
 

@@ -28,7 +28,7 @@ export function isModular(boot: Boot): boolean {
 }
 
 export type RouteOptions = {
-	/** A saved view id, `/<doctype>/view/list/<viewName>`. Never a view type. */
+	/** A saved view's key, `/<doctype>/view/<key>`. Never a view type. */
 	view?: string;
 	/** Context, not identity: `?view=`, `?layout=` and friends. */
 	query?: Record<string, string>;
@@ -41,7 +41,7 @@ export type RouteOptions = {
  *
  *   routeFor('CRM Deal')                          -> /crm-deal
  *   routeFor('CRM Deal', 'CRM-DEAL-01')           -> /crm-deal/CRM-DEAL-01
- *   routeFor('CRM Deal', null, { view: 'open' })  -> /crm-deal/view/list/open
+ *   routeFor('CRM Deal', null, { view: 'open' })  -> /crm-deal/view/open
  *   routeFor('System Settings')                   -> /system-settings/System Settings
  *
  * A single has no list, so its list address is the document itself, whatever view was asked
@@ -66,7 +66,7 @@ export function routeFor(
 	if (options.view) {
 		return {
 			name: "saved-view",
-			params: { ...params, viewName: options.view },
+			params: { ...params, key: options.view },
 			query: options.query,
 		};
 	}

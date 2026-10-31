@@ -31,6 +31,7 @@ const RECENT_CAP = 5;
 const RECENT_ICONS: Record<RecentVisit["kind"], string> = {
 	record: "lucide-file-text",
 	list: "lucide-list",
+	view: "lucide-list-filter",
 };
 
 const recent: PaletteGroup = {

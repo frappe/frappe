@@ -2,6 +2,7 @@
 
 import { standardPage } from "@/contributions/registry";
 import type { StandardPages } from "@/contributions/types";
+import type { RouteLocation } from "vue-router";
 import NothingToOpen from "@/shell/NothingToOpen.vue";
 import { loadedPage } from "./mainPage";
 
@@ -22,8 +23,9 @@ function flatRoutes() {
 		// /apps/crm/crm-deal/view/list, the standard list page.
 		{ path: "/:doctype/view/list", name: "standard-list", component: loaded("list") },
 
-		// /apps/crm/crm-deal/view/list/open-deals, a saved view of the list kind.
-		{ path: "/:doctype/view/list/:viewName", name: "saved-view", component: loaded("list") },
+		// /apps/crm/crm-deal/view/open-deals, a saved view by its key; a view type's name is never a key.
+		{ path: "/:doctype/view/:key", name: "saved-view", component: loaded("list") },
+		viewRecord("/:doctype/view/record"),
 
 		// /apps/crm/crm-deal/new?status=Open, the standard page whatever an app declared.
 		{ path: "/:doctype/new", name: "new-record", component: loaded("newRecord") },
@@ -51,10 +53,11 @@ function modularRoutes() {
 			component: loaded("list"),
 		},
 		{
-			path: "/:module/:doctype/view/list/:viewName",
+			path: "/:module/:doctype/view/:key",
 			name: "saved-view",
 			component: loaded("list"),
 		},
+		viewRecord("/:module/:doctype/view/record"),
 		{ path: "/:module/:doctype/new", name: "new-record", component: loaded("newRecord") },
 		{ path: "/:module/:doctype/:name", name: "record", component: standardPage("main") },
 		{
@@ -68,6 +71,19 @@ function modularRoutes() {
 /** The index's one route: it belongs to no app, so it has no doctype to address. */
 export function indexRoutes() {
 	return [{ path: "/", name: "home", component: standardPage("index") }];
+}
+
+/** The standard page of the record named "view", which the saved view's route outranks; `record` is never a key. */
+function viewRecord(path: string) {
+	return {
+		path,
+		redirect: ({ params, query, hash }: RouteLocation) => ({
+			name: "standard-record",
+			params: { ...params, name: "view" },
+			query,
+			hash,
+		}),
+	};
 }
 
 /** A lazy standard page, drawn in the frame while its code loads. */

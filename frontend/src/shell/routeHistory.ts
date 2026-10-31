@@ -1,13 +1,13 @@
-// Writes each list and record visit to `Route History`, as desk v1 does; the index's Recent reads it.
+// Writes each list, saved view and record visit to `Route History`, as desk v1 does; the index's Recent reads it.
 import { debounce } from "frappe-ui";
 import type { NavigationFailure, RouteLocationNormalized, Router } from "vue-router";
 import { runMethod } from "@framework/ui/api";
 
 const INSERT_METHOD = "frappe.desk.doctype.route_history.route_history.deferred_insert";
-const RECORDED_ROUTES = new Set(["list", "record"]);
+const RECORDED_ROUTES = new Set(["list", "saved-view", "record"]);
 const QUIET_MS = 10_000;
 
-/** Queues each list and record address the router lands on; sends after 10 s of quiet, or as the tab hides. */
+/** Queues each list, saved view and record address the router lands on; sends after 10 s of quiet, or as the tab hides. */
 export function recordRouteHistory(router: Router, base: string) {
 	let queue: { route: string }[] = [];
 
@@ -36,7 +36,7 @@ export function recordRouteHistory(router: Router, base: string) {
 	});
 }
 
-/** The address `Route History` keeps for a navigation, or `null` for one that is no list or record visit. */
+/** The address `Route History` keeps for a navigation, or `null` for one that is no list, view or record visit. */
 export function visitedRoute(
 	base: string,
 	to: RouteLocationNormalized,

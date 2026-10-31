@@ -9,15 +9,17 @@ import { __ } from "@/i18n";
 import { canRoute, urlFor } from "@/router/routeFor";
 import { visitedRoute } from "./routeHistory";
 
-/** One list or record visit, as `places` returns it. */
+/** One list, saved view or record visit, as `places` returns it. */
 export interface RecentVisit {
 	/** The address `Route History` keeps: the shell base, then the path. */
 	route: string;
 	doctype: string;
 	/** Unset or null for a list. */
 	name?: string | null;
+	/** A saved view's key; unset or null for anything else. */
+	view?: string | null;
 	title: string;
-	kind: "record" | "list";
+	kind: "record" | "list" | "view";
 	description?: string;
 	/** Milliseconds since the epoch. */
 	visited: number;
@@ -29,7 +31,8 @@ interface TabVisit {
 	doctype: string;
 	/** None for a list. */
 	name?: string;
-	/** A record's title, once its page has read it. */
+	view?: string;
+	/** A record's title or a view's label, once its page has read it. */
 	title?: string;
 	app?: string;
 	visited: number;
@@ -49,7 +52,7 @@ class RecentVisits {
 	private base = "";
 	private router: Router | null = null;
 
-	/** Keeps this tab's list and record visits, the first one too, as `Route History` gets them. */
+	/** Keeps this tab's list, view and record visits, the first one too, as `Route History` gets them. */
 	track(router: Router, boot: Boot, addresses: Addresses) {
 		// No record title may stay in the browser after logout.
 		forgetMemory("recents");
@@ -61,7 +64,7 @@ class RecentVisits {
 			const route = visitedRoute(this.base, to, from, failure);
 			const doctype = route && addresses.doctypeOf(String(to.params.doctype ?? ""));
 			if (route && doctype)
-				this.keep({ route, doctype, name: recordName(to), app, visited: Date.now() });
+				this.keep({ route, doctype, name: recordName(to), view: viewKey(to), app, visited: Date.now() });
 		});
 	}
 
@@ -80,7 +83,7 @@ class RecentVisits {
 		return this.order.value.get(href) ?? Infinity;
 	}
 
-	/** A record's title, known once its page has read it. */
+	/** A record's title or a view's label, known once its page has read it. */
 	retitle(path: string, title: string) {
 		const route = this.base + path;
 		const visit = this.tab.value.find((one) => one.route === route);
@@ -91,7 +94,7 @@ class RecentVisits {
 	/** In an app, its own address for the place; on the index, where the place was visited last. */
 	private addressOf(visit: RecentVisit) {
 		const here = this.router?.hasRoute("record") && canRoute(visit.doctype);
-		return here ? urlFor(visit.doctype, visit.name) : visit.route;
+		return here ? urlFor(visit.doctype, visit.name, visit.view ? { view: visit.view } : {}) : visit.route;
 	}
 
 	private keep(visit: TabVisit) {
@@ -115,15 +118,19 @@ function merge(tab: TabVisit[], server: RecentVisit[]): RecentVisit[] {
 		.slice(0, LIMIT);
 }
 
-/** A list and a record are places; one visited under two prefixes is still one. */
-function placeOf({ doctype, name }: { doctype: string; name?: string | null }) {
-	return JSON.stringify([doctype, name ?? null]);
+/** A list, a view and a record are places; one visited under two prefixes is still one. */
+function placeOf({ doctype, name, view }: { doctype: string; name?: string | null; view?: string | null }) {
+	return JSON.stringify([doctype, name ?? null, view ?? null]);
 }
 
-/** A record says its doctype, a list or a single its app, as the server writes them. */
+/** A record says its doctype, a list, a view or a single its app, as the server writes them. */
 function drawn(visit: TabVisit, heard?: RecentVisit): RecentVisit {
-	const { route, doctype, name, app } = visit;
+	const { route, doctype, name, view, app } = visit;
 	const visited = Math.max(visit.visited, heard?.visited ?? 0);
+	if (view) {
+		const title = visit.title ?? heard?.title ?? view;
+		return { route, doctype, view, title, kind: "view", description: app, visited };
+	}
 	if (!name) return { route, doctype, title: __(doctype), kind: "list", description: app, visited };
 	const title = visit.title ?? (name === doctype ? __(doctype) : heard?.title ?? name);
 	const description = name === doctype ? app : __(doctype);
@@ -132,4 +139,8 @@ function drawn(visit: TabVisit, heard?: RecentVisit): RecentVisit {
 
 function recordName(to: RouteLocationNormalized) {
 	return to.name === "record" ? String(to.params.name) : undefined;
+}
+
+function viewKey(to: RouteLocationNormalized) {
+	return to.name === "saved-view" ? String(to.params.key) : undefined;
 }

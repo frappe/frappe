@@ -409,11 +409,12 @@ const LIST_AND_VIEW: BootFavourite[] = [
 		app_logo: "/assets/crm/logo.svg",
 	},
 	{
-		doctype: "Doctype View",
-		name: "v1",
+		doctype: "DocType",
+		name: "CRM Deal",
+		view: "open-deals",
 		kind: "view",
 		title: "Open deals",
-		route: "/crm/crm-deal/view/list/v1",
+		route: "/crm/crm-deal/view/open-deals",
 		app: "crm",
 		app_title: "CRM",
 		app_logo: "/assets/crm/logo.svg",
@@ -447,7 +448,7 @@ describe("the index's Favourites past the first eight", () => {
 		const host = await mount(APPS, LIST_AND_VIEW);
 		expect(chips(host).map((chip) => [chip.dataset.kind, chip.lastElementChild?.textContent, chip.getAttribute("href")])).toEqual([
 			["list", "CRM Deal", "/crm/crm-deal"],
-			["view", "Open deals", "/crm/crm-deal/view/list/v1"],
+			["view", "Open deals", "/crm/crm-deal/view/open-deals"],
 		]);
 	});
 

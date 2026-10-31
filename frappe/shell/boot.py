@@ -8,6 +8,7 @@ from frappe.core.doctype.installed_applications.installed_applications import (
 	get_setup_wizard_completed_apps,
 	get_setup_wizard_not_required_apps,
 )
+from frappe.desk.doctype.favourite.favourite import readable_views
 from frappe.integrations.frappe_providers.cloud_settings import is_cloud_settings_enabled
 from frappe.sessions import get_session_info
 from frappe.translate import get_translation_version
@@ -171,7 +172,7 @@ def may_link_out(app: str, screen: dict) -> bool:
 
 
 def index_recent() -> list[dict]:
-	"""The person's last distinct list and record addresses, newest first, less those they can no longer open."""
+	"""The person's last distinct list, view and record addresses, newest first, less those they can no longer open."""
 	recent = []
 	for visit, title, subtitle in titled_visits(RECENT_LIMIT):
 		screen = app_screen(visit.app)
@@ -199,11 +200,18 @@ def titled_visits(limit: int) -> list[tuple[Visit, str, str | None]]:
 			names_by_doctype.setdefault(visit.doctype, []).append(visit.name)
 
 	titles = {doctype: readable_titles(doctype, names) for doctype, names in names_by_doctype.items()}
-	return [(visit, *heading) for visit in visits if (heading := visit_heading(visit, titles))]
+	views = readable_views([(visit.doctype, visit.view) for visit in visits if visit.view])
+	return [(visit, *heading) for visit in visits if (heading := visit_heading(visit, titles, views))]
 
 
-def visit_heading(visit: Visit, titles: dict[str, dict[str, str]]) -> tuple[str, str | None] | None:
-	"""A visit's title and kind: the record's title and doctype, or the doctype and "List"; None if unreadable."""
+def visit_heading(
+	visit: Visit, titles: dict[str, dict[str, str]], views: dict[tuple[str, str], frappe._dict]
+) -> tuple[str, str | None] | None:
+	"""A visit's title and kind: a record's title and doctype, a view's label and "View", a list's doctype and "List"."""
+	if visit.view is not None:
+		view = views.get((visit.doctype, visit.view))
+		return (view.label, _("View")) if view else None
+
 	if visit.name is None:
 		return (_(visit.doctype), _("List")) if frappe.has_permission(visit.doctype, "read") else None
 
