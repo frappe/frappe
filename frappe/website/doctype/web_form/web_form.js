@@ -253,13 +253,10 @@ frappe.ui.form.on("Web Form", {
 				title: __("Set Filters"),
 				fields: fields,
 				primary_action: function () {
-					let values = this.get_values();
-					if (values) {
-						this.hide();
-						let filters = frm.filter_group.get_filters();
-						frm.set_value("condition_json", JSON.stringify(filters));
-						frm.trigger("render_condition_table");
-					}
+					this.hide();
+					let filters = frm.filter_group.get_filters();
+					frm.set_value("condition_json", JSON.stringify(filters));
+					frm.trigger("render_condition_table");
 				},
 				primary_action_label: "Set",
 			});
@@ -330,8 +327,7 @@ frappe.ui.form.on("Web Form", {
 			let dialog = new frappe.ui.Dialog({
 				title: __("Set Dynamic Filters"),
 				fields: fields,
-				primary_action: () => {
-					let values = dialog.get_values();
+				primary_action: (values) => {
 					dialog.hide();
 					let dynamic_filters = [];
 					for (let key of Object.keys(values)) {
@@ -891,6 +887,7 @@ function render_form_builder(frm) {
 	frappe
 		.require("form_builder.bundle.js")
 		.then(() => {
+			if (frappe.get_current_page() !== frm.page) return;
 			frappe.web_form_builder = new frappe.ui.FormBuilder({
 				wrapper: wrapper,
 				frm: frm,

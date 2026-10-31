@@ -24,10 +24,10 @@ from frappe.database.utils import (
 )
 from frappe.model import CORE_DOCTYPES as PERMITTED_CORE_DOCTYPES
 from frappe.model import OPTIONAL_FIELDS, get_permitted_fields, numeric_fieldtypes
-from frappe.model.base_document import DOCTYPES_FOR_DOCTYPE
-from frappe.model.document import Document
+from frappe.model.document import DOCTYPES_FOR_DOCTYPE, Document
 from frappe.query_builder import Criterion, Field, Order, functions
 from frappe.query_builder.custom import Month, MonthName, Quarter, Year
+from frappe.query_builder.utils import render_criterion
 
 CORE_DOCTYPES = DOCTYPES_FOR_DOCTYPE | frozenset(
 	(
@@ -1078,6 +1078,17 @@ class Engine:
 		if not meta.get_permissions(parenttype=parent_doctype):
 			return
 
+		if (
+			not meta.has_field(fieldname)
+			and fieldname not in meta.get_valid_columns()
+			and fieldname not in frappe.db.OPTIONAL_COLUMNS
+		):
+			frappe.throw(
+				_("Field not found: {0}").format(frappe.bold(f"{doctype}.{fieldname}")),
+				frappe.ValidationError,
+				title=_("Invalid Field"),
+			)
+
 		# Don't allow querying child table fields if user has only "select" permission
 		permission_type = self.get_permission_type(doctype, parent_doctype)
 		if parent_doctype and permission_type == "select":
@@ -1933,10 +1944,7 @@ class Engine:
 		"""Build permission-based conditions for the doctype."""
 		if as_condition:
 			condition = self.get_permission_conditions(self.doctype, self.table)
-			if condition:
-				quote_char = "`" if self.is_mariadb else '"'
-				return condition.get_sql(with_namespace=True, quote_char=quote_char, subquery=True)
-			return ""
+			return render_criterion(condition) if condition else ""
 
 		if not self.ignore_user_permissions:
 			match_filters = []

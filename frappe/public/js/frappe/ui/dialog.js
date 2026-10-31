@@ -22,6 +22,9 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 				auto_make: true,
 				centered: false,
 				keep_grid_form_open: false,
+				// on a phone, show as a frappe.ui.BottomSheet (static and minimizable dialogs
+				// stay dialogs); set the actions before show()
+				sheet_on_mobile: false,
 			},
 			opts
 		);
@@ -121,16 +124,23 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 				me.onhide && me.onhide();
 				me.on_hide && me.on_hide();
 			})
+			.on("hidden.bs.modal", function () {
+				me.$wrapper.css("z-index", "");
+			})
 			.on("shown.bs.modal", function () {
 				// focus on first input
 				me.display = true;
 				window.cur_dialog = me;
 				frappe.ui.open_dialogs.push(me);
-				me.focus_on_first_input();
+				// dialogs that were still fading in when show() ran are only listed now
+				me.stack_above_open_dialogs();
+				// Bootstrap's focus guard goes before the first focus, so a combobox
+				// panel (mounted in <body>) can take it
+				$(document).off("focusin.modal");
+				if (!me.sheet) me.focus_on_first_input();
 				me.hide_scrollbar(true);
 				me.on_page_show && me.on_page_show();
 				$(document).trigger("frappe.ui.Dialog:shown");
-				$(document).off("focusin.modal");
 			})
 			.on("scroll", function () {
 				var $input = $("input:focus");
@@ -300,6 +310,7 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 
 	set_title(t) {
 		this.$wrapper.find(".modal-title").html(t);
+		this.sheet?.set_title(this.$wrapper.find(".modal-title").text());
 	}
 
 	set_indicator() {
@@ -312,6 +323,10 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 	}
 
 	show() {
+		this.restore_from_sheet?.();
+		if (this.sheet_on_mobile && !this.static && !this.minimizable && frappe.is_mobile())
+			return this.show_as_sheet();
+
 		// show it
 		if (window.location.pathname.startsWith("/desk")) {
 			this.handle_focus();
@@ -322,7 +337,9 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 		} else {
 			this.$wrapper.removeClass("fade");
 		}
+		const opening = !this.display;
 		this.$wrapper.modal("show");
+		if (opening) this.stack_above_open_dialogs();
 
 		this.$wrapper.removeClass("modal-minimize");
 
@@ -339,9 +356,65 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 		return this;
 	}
 
+	show_as_sheet() {
+		this.clear_message();
+		this.primary_action_fulfilled = false;
+		this.is_visible = true;
+		frappe.require(["bottom_sheet.bundle.js", "bottom_sheet.bundle.css"]).then(() => {
+			if (this.is_visible && !this.sheet) this.open_sheet();
+		});
+		return this;
+	}
+
+	open_sheet() {
+		const actions = this.footer.children();
+		const buttons = actions.find(".es-button").attr("data-size", "md");
+		this.sheet = new frappe.ui.BottomSheet({
+			title: this.$wrapper.find(".modal-title").text(),
+			content: this.modal_body.get(0),
+			footer: this.footer.hasClass("hide") ? null : actions.get(),
+			on_close: () => {
+				this.sheet = null;
+				this.is_visible = false;
+				// moved back on the next show: now, the sheet would slide out empty
+				this.restore_from_sheet = () => {
+					this.restore_from_sheet = null;
+					buttons.removeAttr("data-size");
+					this.header.after(this.modal_body);
+					this.footer.append(actions);
+				};
+				this.$wrapper.trigger("hide.bs.modal").trigger("hidden.bs.modal");
+			},
+		});
+		this.$wrapper.trigger("show.bs.modal");
+		this.sheet.open();
+		this.$wrapper.trigger("shown.bs.modal");
+	}
+
 	hide() {
+		if (this.sheet) {
+			this.sheet.close();
+			return;
+		}
 		this.$wrapper.modal("hide");
 		this.is_visible = false;
+	}
+
+	stack_above_open_dialogs() {
+		// messages and progress sit at 2000; stacking over them would put a dialog
+		// above the freeze, toasts and menus
+		const below = frappe.ui.open_dialogs.filter(
+			(d) =>
+				d !== this &&
+				d.display &&
+				!d.is_minimized &&
+				cint(d.$wrapper.css("z-index")) < 2000
+		);
+		if (!below.length) return;
+
+		const top = Math.max(...below.map((d) => cint(d.$wrapper.css("z-index"))));
+		this.$wrapper.css("z-index", Math.max(top + 2, cint(this.$wrapper.css("z-index"))));
+		$(this.$wrapper.data("bs.modal")._backdrop).css("z-index", top + 1);
 	}
 
 	handle_focus() {
@@ -396,10 +469,9 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 		let action_button = frappe.ui.button({
 			label,
 			css_class: css_class || "",
+			onclick: action,
 		});
 		this.custom_actions.append(action_button);
-
-		action && action_button.click(action);
 	}
 
 	add_custom_button() {}

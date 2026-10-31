@@ -57,7 +57,7 @@ def build(
 	using_cached=False,
 ):
 	"Compile JS and CSS source files"
-	from frappe.bundler import bundle
+	from frappe.bundler import build_framework_islands, bundle
 	from frappe.gettext.translate import compile_translations
 	from frappe.utils.synchronization import filelock
 
@@ -87,6 +87,7 @@ def build(
 			using_cached=using_cached,
 			esbuild_target=esbuild_target,
 		)
+		build_framework_islands(production=mode == "production")
 
 		if apps and isinstance(apps, str):
 			apps = apps.split(",")
@@ -665,7 +666,7 @@ def console(context: CliCtxObj, autoreload=False):
 
 	register(_console_cleanup)
 
-	terminal = InteractiveShellEmbed.instance()
+	terminal = InteractiveShellEmbed.instance(user_ns={})
 	if autoreload:
 		terminal.extension_manager.load_extension("autoreload")
 		terminal.run_line_magic("autoreload", "2")
@@ -676,7 +677,7 @@ def console(context: CliCtxObj, autoreload=False):
 
 	for app in list(all_apps):
 		try:
-			locals()[app] = __import__(app)
+			terminal.user_ns[app] = __import__(app)
 		except ModuleNotFoundError:
 			failed_to_import.append(app)
 			all_apps.remove(app)

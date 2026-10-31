@@ -11,10 +11,10 @@ from pypika.queries import (  # nosemgrep: frappe-monkey-patching-not-allowed
 	QueryBuilder,
 	_SetOperation,
 )
-from pypika.terms import PseudoColumn
+from pypika.terms import PseudoColumn, Term
 
 import frappe
-from frappe.query_builder.terms import NamedParameterWrapper
+from frappe.query_builder.terms import EscapedValueWrapper, NamedParameterWrapper, PostgresAwareCriterion
 
 # Frappe's public query-builder helpers are installed on Base below. This is the
 # existing framework extension mechanism rather than an app overriding Frappe.
@@ -251,6 +251,18 @@ def execute_child_queries(queries, result):
 					row[child_query.fieldname].append(d)
 
 
+def render_criterion(criterion: Term) -> str:
+	"""Render a criterion to namespaced SQL with its values escaped and inlined.
+
+	Uses `frappe.db.escape` instead of pypika's quote-doubling, which a backslash
+	breaks out of on MariaDB.
+	"""
+	quote_char = "`" if frappe.db.db_type == "mariadb" else '"'
+	return criterion.get_sql(
+		with_namespace=True, quote_char=quote_char, param_wrapper=EscapedValueWrapper(), subquery=True
+	)
+
+
 def prepare_query(query):
 	from frappe.utils.safe_exec import SERVER_SCRIPT_FILE_PREFIX, check_safe_sql_query
 
@@ -320,19 +332,14 @@ def patch_like_operators():
 	# pypika has no hook for dialect-specific operator rendering, so patch Term.like/not_like the same
 	# way the query-builder patches above (QueryBuilder.run, Base.max, ...) and app.py's
 	# Request.max_form_memory_size do. The rule anchors on the import, so suppress it there too.
+	from pypika.enums import Matching
 	from pypika.terms import Term  # nosemgrep: frappe-monkey-patching-not-allowed
 
-	_like, _not_like = Term.like, Term.not_like
-
 	def like(self, expr: str):
-		if frappe.db and frappe.db.db_type == "postgres":
-			return self.ilike(expr)
-		return _like(self, expr)
+		return PostgresAwareCriterion(Matching.like, Matching.ilike, self, self.wrap_constant(expr))
 
 	def not_like(self, expr: str):
-		if frappe.db and frappe.db.db_type == "postgres":
-			return self.not_ilike(expr)
-		return _not_like(self, expr)
+		return PostgresAwareCriterion(Matching.not_like, Matching.not_ilike, self, self.wrap_constant(expr))
 
 	Term.like = like  # nosemgrep: frappe-monkey-patching-not-allowed
 	Term.not_like = not_like  # nosemgrep: frappe-monkey-patching-not-allowed
@@ -349,16 +356,15 @@ def patch_regex_operator():
 	# pypika has no hook for dialect-specific operator rendering, so patch Term.regex the same way
 	# patch_like_operators above does. The rule anchors on the import, so suppress it there too.
 	from pypika.enums import Comparator, Matching
-	from pypika.terms import BasicCriterion, Term  # nosemgrep: frappe-monkey-patching-not-allowed
+	from pypika.terms import Term  # nosemgrep: frappe-monkey-patching-not-allowed
 
 	class PostgresMatching(Comparator):
 		regex = " ~* "
 
 	def regex(self, pattern: str):
-		comparator = (
-			PostgresMatching.regex if frappe.db and frappe.db.db_type == "postgres" else Matching.regexp
+		return PostgresAwareCriterion(
+			Matching.regexp, PostgresMatching.regex, self, self.wrap_constant(pattern)
 		)
-		return BasicCriterion(comparator, self, self.wrap_constant(pattern))
 
 	Term.regex = regex  # nosemgrep: frappe-monkey-patching-not-allowed
 

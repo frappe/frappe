@@ -1,14 +1,14 @@
 const CHANNEL_COLORS = {
 	Email: "blue",
 	SMS: "green",
-	Slack: "purple",
+	Webhook: "purple",
 	"System Notification": "orange",
 };
 
 const CHANNEL_ICONS = {
 	Email: "mail",
 	SMS: "smartphone",
-	Slack: "slack",
+	Webhook: "webhook",
 	"System Notification": "bell",
 };
 
@@ -24,7 +24,7 @@ frappe.doctype_settings.register("notifications", function (panel, doctype) {
 
 	frappe.doctype_settings.render_list(panel, {
 		title: __("Notifications"),
-		description: __("Send automatic notifications for events on any {0}.", [doctype]),
+		description: __("Send automatic notifications for events on any {0}.", [__(doctype)]),
 		show_header: true,
 		primary_action: { label: __("New"), icon: "plus", onclick: create },
 		load: () =>
@@ -92,7 +92,9 @@ frappe.doctype_settings.register("notifications", function (panel, doctype) {
 		empty_state: {
 			icon: frappe.doctype_settings.tab_icon("notifications"),
 			title: __("No notifications configured"),
-			description: __("Create a notification to alert users about {0} events.", [doctype]),
+			description: __("Create a notification to alert users about {0} events.", [
+				__(doctype),
+			]),
 			action: { label: __("New Notification"), onclick: create },
 		},
 	});

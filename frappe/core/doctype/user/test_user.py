@@ -16,6 +16,9 @@ from frappe.core.doctype.user.user import (
 	User,
 	bulk_add_roles,
 	bulk_remove_roles,
+	change_password,
+	get_all_roles,
+	get_perm_info,
 	handle_password_test_fail,
 	reset_password,
 	rewrite_owner_fields,
@@ -34,7 +37,7 @@ from frappe.tests.test_api import FrappeAPITestCase
 from frappe.tests.test_query_builder import db_type_is, unimplemented_for
 from frappe.tests.utils import toggle_test_mode
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
-from frappe.utils import add_to_date, get_url, now_datetime, sha256_hash
+from frappe.utils import add_days, add_to_date, get_url, getdate, now_datetime, sha256_hash, today
 from frappe.utils.data import orjson_dumps
 from frappe.www.login import sanitize_redirect
 
@@ -48,6 +51,25 @@ class TestUser(IntegrationTestCase):
 		frappe.db.set_single_value("System Settings", "minimum_password_score", "")
 		frappe.db.set_single_value("System Settings", "password_reset_limit", 3)
 		frappe.set_user("Administrator")
+
+	def test_role_listing_requires_role_read(self):
+		desk_user = frappe.get_doc(
+			doctype="User",
+			email="roles_desk_user@example.com",
+			first_name="Desk",
+			roles=[{"role": "_Test Role"}],
+			send_welcome_email=0,
+		).insert(ignore_permissions=True)
+		self.addCleanup(frappe.delete_doc, "User", desk_user.name, force=True)
+
+		# a desk user without read on Role
+		frappe.set_user(desk_user.name)
+		self.assertRaises(frappe.PermissionError, get_all_roles)
+		self.assertRaises(frappe.PermissionError, get_perm_info, "System Manager")
+
+		frappe.set_user("test@example.com")
+		self.assertIn("System Manager", get_all_roles())
+		self.assertTrue(get_perm_info("System Manager"))
 
 	@staticmethod
 	def reset_password(user) -> str:
@@ -123,6 +145,51 @@ class TestUser(IntegrationTestCase):
 
 		delete_contact(new_user.name)
 		frappe.delete_doc("User", new_user.name)
+
+	def test_frappe_social_login_userid_is_immutable(self):
+		user_id = frappe.generate_hash() + "@example.com"
+		user = frappe.get_doc(doctype="User", email=user_id, first_name="Tester").insert()
+		self.addCleanup(frappe.delete_doc, "User", user.name, force=True)
+
+		original_userid = user.get_social_login_userid("frappe")
+		self.assertTrue(original_userid)
+		row_name = user.social_logins[0].name
+
+		# the owner can be granted write on their own record, e.g. through sharing
+		frappe.share.add("User", user.name, user.name, write=1)
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user(user.name)
+
+		# a write cannot change the OIDC `sub`, even though `userid` is only read_only in the form
+		user = frappe.get_doc("User", user.name)
+		user.social_logins[0].userid = "Administrator"
+		user.save()
+		self.assertEqual(frappe.db.get_value("User Social Login", row_name, "userid"), original_userid)
+
+		# nor can it be replaced by dropping the row and appending a crafted one
+		user.social_logins = []
+		user.set_social_login_userid("frappe", "Administrator")
+		user.save()
+		self.assertEqual(
+			frappe.db.get_value("User Social Login", {"parent": user.name, "provider": "frappe"}, "userid"),
+			original_userid,
+		)
+
+		# nor through a direct save of the child row, which skips the parent controller
+		row_name = frappe.db.get_value(
+			"User Social Login", {"parent": user.name, "provider": "frappe"}, "name"
+		)
+		child = frappe.get_doc("User Social Login", row_name)
+		child.userid = "Administrator"
+		self.assertRaises(frappe.ValidationError, child.save)
+		self.assertEqual(frappe.db.get_value("User Social Login", row_name, "userid"), original_userid)
+
+		# nor by relabeling the frappe row as another provider to smuggle a userid back in
+		child = frappe.get_doc("User Social Login", row_name)
+		child.provider = "custom"
+		child.userid = "Administrator"
+		self.assertRaises(frappe.ValidationError, child.save)
+		self.assertEqual(frappe.db.get_value("User Social Login", row_name, "provider"), "frappe")
 
 	def insert_user_as_manager(self, first_name, username=None):
 		if frappe.session.user == "Administrator":
@@ -728,6 +795,15 @@ class TestUser(IntegrationTestCase):
 		self.assertIsNone(reset_password(user="random"))
 		self.assertEqual(frappe.message_log[0].get("message"), _GENERIC_MSG)
 
+	def test_change_password_sets_last_password_reset_date(self):
+		user = "testpassword@example.com"
+		frappe.db.set_value("User", user, "last_password_reset_date", add_days(today(), -2))
+
+		frappe.set_user(user)
+		change_password(user, "Eastern_43A1W")
+
+		self.assertEqual(frappe.db.get_value("User", user, "last_password_reset_date"), getdate())
+
 	def test_user_onload_modules(self):
 		"""The editor lists custom modules, and keeps a blocked module even after it is deleted"""
 		from frappe.desk.form.load import getdoc
@@ -788,6 +864,24 @@ class TestUser(IntegrationTestCase):
 			"The reset password link has been expired",
 		)
 
+	def test_update_password_needs_a_reset_key_or_old_password(self):
+		for user in ("Guest", "testpassword@example.com"):
+			frappe.set_user(user)
+			self.assertRaisesRegex(
+				frappe.ValidationError,
+				"Either a password reset key or old password is required",
+				update_password,
+				"Western_43A1W",
+			)
+			self.assertRaisesRegex(
+				frappe.ValidationError,
+				"Either a password reset key or old password is required",
+				update_password,
+				"Western_43A1W",
+				key="",
+				old_password="",
+			)
+
 	@unimplemented_for(db_type_is.SQLITE)
 	def test_reset_password_key_cannot_be_used_by_a_concurrent_request(self):
 		from frappe.auth import CookieManager, LoginManager
@@ -832,6 +926,52 @@ class TestUser(IntegrationTestCase):
 			with patch.object(user_module, "is_password_reused", side_effect=competing_request) as probe:
 				self.assertEqual(update_password("Eastern_43A1W", key=key), "me")
 			probe.assert_called_once()
+			frappe.set_user("Administrator")
+
+	@contextmanager
+	def outgoing_email_account(self):
+		exists = frappe.db.exists
+
+		def exists_with_outgoing_account(doctype, *args, **kwargs):
+			if doctype == "Email Account":
+				return "Test Outgoing Account"
+			return exists(doctype, *args, **kwargs)
+
+		with patch.object(frappe.db, "exists", side_effect=exists_with_outgoing_account):
+			yield
+
+	def test_second_save_of_new_user_does_not_send_password_changed_alert(self):
+		"""Social login inserts the user through add_roles and saves it again in the same request."""
+		frappe.set_user("Guest")
+		user: User = frappe.new_doc(
+			"User",
+			email="oauth-signup@example.com",
+			first_name="OAuth",
+			user_type="Website User",
+			new_password=frappe.generate_hash(),
+		)
+		user.flags.ignore_permissions = True
+		user.flags.no_welcome_mail = True
+		try:
+			with self.outgoing_email_account(), patch.object(frappe, "sendmail") as sendmail:
+				user.add_roles("_Test Role")
+				user.save()
+
+			sendmail.assert_not_called()
+		finally:
+			frappe.set_user("Administrator")
+			user.delete(force=True, ignore_permissions=True)
+
+	def test_password_change_by_user_still_sends_password_changed_alert(self):
+		with test_user(roles=["_Test Role"]) as created:
+			frappe.set_user(created.name)
+			user: User = frappe.get_doc("User", created.name)
+			user.new_password = "Eastern_43A1W_changed"
+			with self.outgoing_email_account(), patch.object(frappe, "sendmail") as sendmail:
+				user.save()
+
+			sendmail.assert_called_once()
+			self.assertEqual(sendmail.call_args.kwargs["recipients"], [created.email])
 			frappe.set_user("Administrator")
 
 	def test_bulk_add_roles(self):

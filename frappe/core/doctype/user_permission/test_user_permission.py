@@ -6,6 +6,7 @@ from frappe.core.doctype.user_permission.user_permission import (
 	add_user_permissions,
 	get_applicable_for_doctype_list,
 	get_user_permission_list,
+	get_user_permissions,
 	remove_applicable,
 )
 from frappe.permissions import add_permission, has_user_permission
@@ -333,6 +334,16 @@ class TestUserPermission(IntegrationTestCase):
 		frappe.set_user("Administrator")
 		clear_session_defaults()
 		remove_applicable(["Assignment Rule"], "user_default_test@example.com", "DocType", "ToDo")
+
+	def test_user_permission_for_deleted_doctype(self):
+		user = create_user("test_user_perm1@example.com")
+		doctype = new_doctype().insert().name
+		record = frappe.get_doc(doctype=doctype).insert()
+		add_user_permissions(get_params(user, doctype, record.name))
+		frappe.delete_doc("DocType", doctype)
+
+		with self.set_user(user.name):
+			self.assertIn(doctype, get_user_permissions())
 
 
 def create_person_tree_doctype():

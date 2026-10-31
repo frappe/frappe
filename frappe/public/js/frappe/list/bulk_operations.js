@@ -46,6 +46,7 @@ export default class BulkOperations {
 
 		const dialog = new frappe.ui.Dialog({
 			title: __("Print Documents"),
+			sheet_on_mobile: true,
 			fields: [
 				{
 					fieldtype: "Select",
@@ -254,6 +255,7 @@ export default class BulkOperations {
 				callback: done,
 			});
 			assign_to.dialog.clear();
+			assign_to.dialog.sheet_on_mobile = true;
 			assign_to.dialog.show();
 		} else {
 			frappe.msgprint(__("Select records for assignment"));
@@ -295,7 +297,6 @@ export default class BulkOperations {
 	submit_or_cancel(docnames, action = "submit", done = null) {
 		action = action.toLowerCase();
 		const task_id = Math.random().toString(36).slice(-5);
-		frappe.realtime.task_subscribe(task_id);
 		return frappe
 			.xcall("frappe.desk.doctype.bulk_update.bulk_update.submit_cancel_or_update_docs", {
 				doctype: this.doctype,
@@ -321,9 +322,6 @@ export default class BulkOperations {
 					frappe.utils.play_sound(action);
 					if (done) done();
 				}
-			})
-			.finally(() => {
-				frappe.realtime.task_unsubscribe(task_id);
 			});
 	}
 
@@ -345,6 +343,7 @@ export default class BulkOperations {
 
 		const dialog = new frappe.ui.Dialog({
 			title: __("Bulk Edit"),
+			sheet_on_mobile: true,
 			fields: [
 				{
 					fieldtype: "Autocomplete",
@@ -468,6 +467,7 @@ export default class BulkOperations {
 	add_tags(docnames, done) {
 		const dialog = new frappe.ui.Dialog({
 			title: __("Add Tags"),
+			sheet_on_mobile: true,
 			fields: [
 				{
 					fieldtype: "MultiSelectPills",
@@ -480,9 +480,8 @@ export default class BulkOperations {
 				},
 			],
 			primary_action_label: __("Add"),
-			primary_action: () => {
-				let args = dialog.get_values();
-				if (args && args.tags) {
+			primary_action: (args) => {
+				if (args.tags) {
 					return frappe.call({
 						method: "frappe.desk.doctype.tag.tag.add_tags",
 						args: {

@@ -1,13 +1,14 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import base64
+import io
 import os
 import shutil
 import tempfile
 import zipfile
 from contextlib import contextmanager
 from typing import TYPE_CHECKING
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, call, patch
 
 import frappe
 from frappe import _
@@ -18,8 +19,14 @@ from frappe.core.api.file import (
 	move_file,
 	unzip_file,
 )
-from frappe.core.doctype.file.exceptions import FileTypeNotAllowed
-from frappe.core.doctype.file.utils import get_corrupted_image_msg, get_extension, get_web_image
+from frappe.core.doctype.file.exceptions import FileTypeNotAllowed, MaxFileSizeReachedError
+from frappe.core.doctype.file.utils import (
+	find_file_by_url,
+	get_corrupted_image_msg,
+	get_extension,
+	get_web_image,
+	remove_file_by_url,
+)
 from frappe.desk.form.utils import add_comment, remove_attach
 from frappe.exceptions import ValidationError
 from frappe.tests import IntegrationTestCase, UnitTestCase
@@ -898,6 +905,63 @@ class TestFile(IntegrationTestCase):
 		finally:
 			frappe.set_user("Administrator")
 
+	def insert_case_variant_files(self, **attached_to):
+		files = []
+		for owner, file_url in (
+			("test@example.com", "/private/files/CaseCheck.txt"),
+			("test4@example.com", "/private/files/casecheck.txt"),
+		):
+			with self.set_user(owner):
+				file = frappe.new_doc("File")
+				file.update(
+					{
+						"file_name": file_url.split("/")[-1],
+						"file_url": file_url,
+						"is_private": 1,
+						**attached_to,
+					}
+				)
+				file.set_new_name()
+				file.db_insert()
+			self.addCleanup(frappe.delete_doc, "File", file.name, force=True, ignore_permissions=True)
+			files.append(file)
+		return files
+
+	def test_find_file_by_url_ignores_urls_that_differ_in_case(self):
+		self.insert_case_variant_files()
+
+		with self.set_user("test4@example.com"):
+			self.assertIsNone(find_file_by_url("/private/files/CaseCheck.txt"))
+			self.assertEqual(find_file_by_url("/private/files/casecheck.txt").owner, "test4@example.com")
+
+	def test_remove_file_by_url_ignores_urls_that_differ_in_case(self):
+		note = frappe.get_doc(doctype="Note", title="Case check", public=1).insert()
+		self.addCleanup(note.delete)
+		upper, lower = self.insert_case_variant_files(attached_to_doctype="Note", attached_to_name=note.name)
+
+		remove_file_by_url("/private/files/CaseCheck.txt", doctype="Note", name=note.name)
+
+		self.assertFalse(frappe.db.exists("File", upper.name))
+		self.assertTrue(frappe.db.exists("File", lower.name))
+
+	def test_zip_files_adds_a_repeated_file_once(self):
+		from frappe.core.doctype.file.file import File
+
+		frappe.set_user("test@example.com")
+		try:
+			file = frappe.get_doc(
+				doctype="File", file_name="zip_0.txt", content=b"x" * 600, is_private=1
+			).insert()
+			with patch("frappe.get_doc", wraps=frappe.get_doc) as get_doc:
+				content = File.zip_files([file.name] * 3)
+		finally:
+			frappe.set_user("Administrator")
+			file.delete()
+
+		with zipfile.ZipFile(io.BytesIO(content)) as zf:
+			self.assertEqual(zf.namelist(), ["zip_0.txt"])
+		self.assertEqual(get_doc.call_args_list.count(call("File", file.name)), 1)
+
 	def test_file_unzip_rolls_back_children_on_mid_extraction_failure(self):
 		fixture_dir = tempfile.mkdtemp()
 		zip_path = os.path.join(fixture_dir, "corrupt.zip")
@@ -1069,6 +1133,106 @@ class TestFile(IntegrationTestCase):
 				del frappe.local.request
 
 
+class TestChunkedUpload(IntegrationTestCase):
+	def setUp(self):
+		self.enterContext(self.change_settings("System Settings", {"max_file_size": 1}))
+		self.addCleanup(frappe.set_user, "Administrator")
+		self.addCleanup(frappe.local.form_dict.clear)
+		frappe.set_user("test@example.com")
+		self.temp_path = self.use_temp_path()
+
+	def use_temp_path(self, is_private=1):
+		from frappe.handler import get_chunk_temp_path
+
+		path = get_chunk_temp_path("chunked_upload.txt", is_private)
+		self.addCleanup(lambda: os.path.exists(path) and os.remove(path))
+		return path
+
+	def upload_chunk(self, index, size, total_file_size):
+		from io import BytesIO
+
+		from werkzeug.test import EnvironBuilder
+		from werkzeug.wrappers import Request
+
+		from frappe.handler import upload_file
+
+		data = {"file": (BytesIO(b"a" * size), "chunked_upload.txt")}
+		frappe.local.request = Request(EnvironBuilder(method="POST", data=data).get_environ())
+		frappe.form_dict.update(
+			chunk_index=index, total_chunk_count=1000, chunk_byte_offset=0, total_file_size=total_file_size
+		)
+		return upload_file()
+
+	def test_chunk_within_max_file_size_is_kept(self):
+		self.upload_chunk(0, size=10, total_file_size=20)
+		self.assertTrue(os.path.exists(self.temp_path))
+
+	def test_chunks_beyond_max_file_size_are_rejected(self):
+		with self.assertRaises(MaxFileSizeReachedError):
+			for index in range(200):
+				self.upload_chunk(index, size=8000, total_file_size=20)
+		self.assertFalse(os.path.exists(self.temp_path))
+
+	def test_declared_size_beyond_max_file_size_is_rejected(self):
+		with self.assertRaises(MaxFileSizeReachedError):
+			self.upload_chunk(0, size=10, total_file_size=2 * 1024 * 1024)
+		self.assertFalse(os.path.exists(self.temp_path))
+
+	def test_partial_public_upload_is_not_left_in_public_files(self):
+		public_temp_path = get_files_path(".temp-chunked_upload.txt", is_private=0)
+		self.addCleanup(lambda: os.path.exists(public_temp_path) and os.remove(public_temp_path))
+
+		buffer_path = self.use_temp_path(is_private=0)
+
+		frappe.form_dict.is_private = 0
+		self.upload_chunk(0, size=10, total_file_size=20)
+
+		self.assertFalse(os.path.exists(public_temp_path))
+		self.assertTrue(os.path.exists(buffer_path))
+
+	def test_uploads_of_the_same_name_do_not_share_a_buffer(self):
+		self.upload_chunk(0, size=10, total_file_size=20)
+		frappe.set_user("test4@example.com")
+		other_temp_path = self.use_temp_path()
+		self.upload_chunk(1, size=10, total_file_size=20)
+
+		self.assertNotEqual(self.temp_path, other_temp_path)
+		self.assertEqual(os.path.getsize(self.temp_path), 10)
+
+	def test_buffer_name_does_not_depend_on_filename_length(self):
+		from frappe.handler import get_chunk_temp_path
+
+		self.assertEqual(len(get_chunk_temp_path("a", 1).name), len(get_chunk_temp_path("あ" * 200, 1).name))
+
+
+class TestPrivateFileDownload(IntegrationTestCase):
+	def download(self, file_name=None):
+		from frappe.utils.response import download_private_file
+
+		frappe.set_user("test@example.com")
+		file = frappe.get_doc({"doctype": "File", "file_name": "note.txt", "content": "x", "is_private": 1})
+		file.insert()
+		self.addCleanup(frappe.delete_doc, "File", file.name, force=True)
+		self.addCleanup(frappe.set_user, "Administrator")
+		self.addCleanup(frappe.local.form_dict.clear)
+		self.addCleanup(setattr, frappe.local, "request", None)
+
+		if file_name:
+			file.file_name = file_name
+			file.save()
+		set_request(path=file.file_url)
+		frappe.form_dict.fid = file.name
+		return download_private_file(file.file_url)
+
+	def test_file_renamed_to_html_is_downloaded(self):
+		response = self.download("page.html")
+		self.assertTrue(response.headers["Content-Disposition"].startswith("attachment"))
+
+	def test_text_file_is_shown_inline(self):
+		response = self.download()
+		self.assertFalse(response.headers["Content-Disposition"].startswith("attachment"))
+
+
 @contextmanager
 def convert_to_symlink(directory):
 	"""Moves a directory to temp directory and symlinks original path for testing"""
@@ -1159,6 +1323,28 @@ class TestAttachment(IntegrationTestCase):
 		)
 
 		self.assertTrue(exists)
+
+	def test_unchanged_private_attachment_is_not_reattached_on_save(self):
+		file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "test_unchanged.txt",
+				"content": "Unchanged Content",
+				"is_private": 1,
+			}
+		).insert()
+		doc = frappe.get_doc(doctype=self.test_doctype, title="test unchanged private attachment").insert()
+		frappe.db.set_value(self.test_doctype, doc.name, "attachment", file.file_url)
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		frappe.get_doc(self.test_doctype, doc.name).save(ignore_permissions=True)
+
+		self.assertFalse(
+			frappe.get_all(
+				"Error Log", filters={"reference_doctype": self.test_doctype, "reference_name": doc.name}
+			)
+		)
 
 	def test_url_attachment_is_attached_to_duplicated_document(self):
 		doc = frappe.get_doc(doctype=self.test_doctype, title="test url attachment on duplicate")
@@ -1545,6 +1731,64 @@ class TestChildTableAttachments(IntegrationTestCase):
 		other.file_url = file.file_url
 		self.assertRaises(frappe.PermissionError, other.save)
 
+	def test_dot_segment_cannot_bypass_private_file_access(self):
+		# A "./" segment resolves to the same file on disk but reads as a different URL.
+		# It must be normalised before the access check so it still points at the victim's row.
+		frappe.set_user("test@example.com")
+		victim = self.make_unattached_file(b"dot-bypass-bytes", is_private=1)
+		name = victim.file_url.rsplit("/", 1)[1]
+
+		frappe.set_user("test4@example.com")
+		attacker = frappe.get_doc(
+			doctype="File",
+			file_url=f"/private/files/./{name}",
+			file_name=name,
+			is_private=1,
+		)
+		self.assertRaises(frappe.PermissionError, attacker.insert)
+
+	def test_site_url_and_update_cannot_bypass_private_file_access(self):
+		frappe.set_user("test@example.com")
+		victim = self.make_unattached_file(b"site-url-bypass-bytes", is_private=1)
+		name = victim.file_url.rsplit("/", 1)[1]
+
+		frappe.set_user("test4@example.com")
+		own = self.make_unattached_file(b"site-url-own-bytes", is_private=1)
+		site_url = frappe.utils.get_url()
+
+		for url in (
+			f"{site_url}/private/files/{name}",
+			f"{site_url}/private/files/./{name}",
+			f"/private/files/./{name}",
+			f"/private/files/%2e/{name}",
+		):
+			attacker = frappe.get_doc(doctype="File", file_url=url, file_name=name, is_private=1)
+			self.assertRaises(frappe.PermissionError, attacker.insert)
+
+			own.reload()
+			own.file_url = url
+			self.assertRaises(frappe.PermissionError, own.save)
+
+	def test_file_url_is_normalised_on_insert(self):
+		frappe.set_user("Administrator")
+		file = frappe.get_doc(
+			doctype="File", content=b"normalise-bytes", file_name="normalise_me.txt", is_private=1
+		).insert(ignore_permissions=True)
+		name = file.file_url.rsplit("/", 1)[1]
+
+		for messy in (
+			f"/private/files/./{name}",
+			f"/private/files/.//{name}",
+		):
+			candidate = frappe.new_doc("File")
+			candidate.file_url = messy
+			candidate.normalize_file_url()
+			self.assertEqual(candidate.file_url, f"/private/files/{name}")
+
+		candidate = frappe.new_doc("File")
+		candidate.file_url = f"/private/files/foo/../{name}"
+		self.assertRaisesRegex(ValidationError, "File URL", candidate.normalize_file_url)
+
 	def test_batched_attach_does_not_duplicate_already_attached_files(self):
 		file = self.make_unattached_file(b"child-resave-bytes")
 		doc = self.make_parent_doc(cards=[{"image": file.file_url}])
@@ -1916,10 +2160,12 @@ class TestFileUtils(IntegrationTestCase):
 		final_response = MagicMock(is_redirect=False, content=image_bytes)
 		final_response.raise_for_status.return_value = None
 
-		with patch("requests.get", side_effect=[redirect_response, final_response]) as mock_get:
+		session = MagicMock()
+		session.get.side_effect = [redirect_response, final_response]
+		with patch("frappe.utils.safe_exec.get_safe_request_session", return_value=session):
 			_, _, extn = get_web_image("http://8.8.8.8/initial.jpg")
 
-		self.assertEqual(mock_get.call_count, 2)
+		self.assertEqual(session.get.call_count, 2)
 		self.assertEqual(extn, "jpg")
 
 	def test_resolved_file_path_stays_within_files_directory(self):
@@ -1982,7 +2228,9 @@ class TestFileUtils(IntegrationTestCase):
 	def test_get_web_image_rejects_redirect_to_restricted_address(self):
 		redirect_response = MagicMock(is_redirect=True, headers={"Location": "http://127.0.0.1/secret"})
 
-		with patch("requests.get", side_effect=[redirect_response]) as mock_get:
+		session = MagicMock()
+		session.get.side_effect = [redirect_response]
+		with patch("frappe.utils.safe_exec.get_safe_request_session", return_value=session):
 			self.assertRaisesRegex(
 				ValidationError,
 				"restricted address",
@@ -1990,7 +2238,20 @@ class TestFileUtils(IntegrationTestCase):
 				"http://8.8.8.8/initial.jpg",
 			)
 
-		mock_get.assert_called_once()
+		session.get.assert_called_once()
+
+	def test_get_web_image_uses_guarded_session_for_external_urls(self):
+		with self.assertRaises(ValidationError):
+			get_web_image("http://127.0.0.1:6379/x.jpg")
+
+		with patch("requests.get") as plain_get:
+			session = MagicMock()
+			session.get.return_value = MagicMock(is_redirect=False, content=b"not an image")
+			with patch("frappe.utils.safe_exec.get_safe_request_session", return_value=session):
+				with self.assertRaises(Exception):
+					get_web_image("http://8.8.8.8/x.jpg")
+			session.get.assert_called_once()
+			plain_get.assert_not_called()
 
 
 class TestFileOptimization(IntegrationTestCase):
@@ -2049,6 +2310,46 @@ class TestFileOptimization(IntegrationTestCase):
 			# neither the read nor the write side of optimize_file executed
 			self.assertEqual(first_file.get_content(), original_content)
 			self.assertEqual(frappe.get_doc("File", second_file.name).file_url, second_file.file_url)
+
+	def test_optimize_file_writes_to_own_file_url(self):
+		"""optimize_file must write to the record's file_url, not a path built from file_name."""
+		with self.set_user("test@example.com"), make_test_image_file(private=True) as first_file:
+			original_content = first_file.get_content()
+
+			with open(frappe.get_app_path("frappe", "tests/data/exif_sample_image.jpg"), "rb") as f:
+				second_file = frappe.get_doc(
+					{
+						"doctype": "File",
+						"file_name": "second_file.jpg",
+						"content": f.read(),
+						"is_private": 1,
+					}
+				).insert()
+			self.addCleanup(second_file.delete)
+
+			second_file = frappe.get_doc("File", second_file.name)
+			second_url, second_content = second_file.file_url, second_file.get_content()
+			second_file.file_name = first_file.file_name
+			second_file.optimize_file()
+
+			self.assertEqual(first_file.get_content(), original_content)
+			self.assertEqual(second_file.file_url, second_url)
+			self.assertNotEqual(second_file.get_content(), second_content)
+
+	def test_optimize_file_does_not_rewrite_shared_file(self):
+		"""optimize_file on one of two records sharing a file_url must leave the other one's file intact."""
+		with self.set_user("test@example.com"), make_test_image_file(private=True) as source:
+			original_content = source.get_content()
+			doctype, docname = make_test_doc()
+			copy = source.create_attachment_copy(doctype, docname)
+			self.addCleanup(copy.delete)
+
+			copy = frappe.get_doc("File", copy.name)
+			copy.optimize_file()
+
+			self.assertNotEqual(copy.file_url, source.file_url)
+			self.assertEqual(frappe.get_doc("File", source.name).get_content(), original_content)
+			self.assertNotEqual(copy.get_content(), original_content)
 
 	def test_validate_file_url_matches_record_allows_own_url(self):
 		with make_test_image_file() as test_file:

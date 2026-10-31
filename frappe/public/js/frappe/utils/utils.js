@@ -3,11 +3,12 @@
 
 import deep_equal from "fast-deep-equal";
 import number_systems from "./number_systems";
-import { CHART_PALETTE } from "../ui/components/utils.js";
+import { CHART_PALETTE, has_unsafe_scheme } from "../ui/components/utils.js";
 
 frappe.provide("frappe.utils");
 
 const eval_function_cache = new Map();
+let haptic_switch = null;
 
 // Array de duplicate
 if (!Array.prototype.uniqBy) {
@@ -276,6 +277,8 @@ Object.assign(frappe.utils, {
 
 		return String(txt).replace(/[&<>"'`=]/g, (char) => escape_html_mapping[char] || char);
 	},
+
+	has_unsafe_url_scheme: has_unsafe_scheme,
 
 	// Escape text and wrap in <strong> — use this instead of String.prototype.bold()
 	// so user-supplied values are safely escaped before being injected into HTML.
@@ -1171,6 +1174,32 @@ Object.assign(frappe.utils, {
 			input.remove();
 		}
 	},
+	/**
+	 * A light tick on a touch screen. iOS has no vibration, so a hidden switch is flipped; iOS 26.5+
+	 * ignores that from a script, and capture-phase click listeners still see the flip.
+	 */
+	haptic() {
+		if (!window.matchMedia("(hover: none)").matches) return;
+		if (navigator.vibrate) {
+			navigator.vibrate(10);
+			return;
+		}
+		if (!haptic_switch) {
+			haptic_switch = document.createElement("label");
+			haptic_switch.hidden = true;
+			haptic_switch.setAttribute("aria-hidden", "true");
+			const input = document.createElement("input");
+			input.type = "checkbox";
+			input.setAttribute("switch", "");
+			haptic_switch.append(input);
+			// keeps the flip from bubbling to the page's handlers
+			for (const type of ["click", "change"]) {
+				haptic_switch.addEventListener(type, (e) => e.stopPropagation());
+			}
+			document.body.append(haptic_switch);
+		}
+		haptic_switch.click();
+	},
 	is_rtl(lang = null) {
 		// Keep this list in sync with rtl_languages in the Python twin at
 		// frappe/utils/jinja_globals.py:is_rtl.
@@ -1605,12 +1634,7 @@ Object.assign(frappe.utils, {
 		return exists;
 	},
 
-	make_chart(wrapper, custom_options = {}) {
-		// a chart that names no colours of its own gets Espresso's
-		if (!custom_options.colors?.length) {
-			custom_options = { ...custom_options, colors: frappe.utils.get_chart_palette() };
-		}
-
+	get_chart_args(custom_options = {}) {
 		let chart_args = {
 			type: "bar",
 			axisOptions: {
@@ -1629,7 +1653,7 @@ Object.assign(frappe.utils, {
 			}
 		}
 		frappe.utils.set_space_label_ratio(chart_args);
-		return new frappe.Chart(wrapper, chart_args);
+		return chart_args;
 	},
 
 	// Espresso's chart colours (CHART_PALETTE) as the current theme defines them: frappe-charts
@@ -1779,23 +1803,18 @@ Object.assign(frappe.utils, {
 			return x_string;
 		}
 
+		const round = (result) =>
+			this.get_number_of_decimals(result) > max_no_of_decimals
+				? result.toFixed(max_no_of_decimals)
+				: result;
+
 		for (const map of number_system) {
 			if (x >= map.divisor) {
-				let result = number / map.divisor;
-				const no_of_decimals = this.get_number_of_decimals(result);
-				/*
-					If no_of_decimals is greater than max_no_of_decimals,
-					round the number to max_no_of_decimals
-				*/
-				result =
-					no_of_decimals > max_no_of_decimals
-						? result.toFixed(max_no_of_decimals)
-						: result;
-				return result + " " + map.symbol;
+				return round(number / map.divisor) + " " + map.symbol;
 			}
 		}
 
-		return number.toFixed(max_no_of_decimals);
+		return String(round(number));
 	},
 
 	get_number_of_decimals: function (number) {

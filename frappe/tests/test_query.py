@@ -66,7 +66,9 @@ def create_tree_docs():
 
 
 class TestQuery(IntegrationTestCase):
-	def setUp(self):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
 		setup_for_tests()
 
 	def ensure_system_manager(self, user_doc, should_have: bool):
@@ -1388,6 +1390,24 @@ class TestQuery(IntegrationTestCase):
 			names = [d.name for d in query.run(as_dict=True)]
 			self.assertIn(self.user, names)
 
+	def test_match_conditions_escape_hook_values(self):
+		frappe.get_doc(doctype="ToDo", description="_Test Unrelated").insert()
+		self.assertEqual(self.get_todos_matching("frappe.tests.test_query.todo_breakout_hook"), [])
+
+	def test_match_conditions_keep_hook_values(self):
+		todo = frappe.get_doc(doctype="ToDo", description="back\\slash' 100%").insert()
+		self.assertEqual(self.get_todos_matching("frappe.tests.test_query.todo_backslash_hook"), [todo.name])
+
+	def get_todos_matching(self, hook):
+		from frappe.database.query import Engine
+
+		with self.patch_hooks({"permission_query_conditions": {"ToDo": [hook]}}):
+			engine = Engine()
+			engine.get_query("ToDo", user="test@example.com", db_query_compat=True)
+			condition = engine.build_match_conditions()
+
+		return frappe.db.sql(f"select name from `tabToDo` where {condition}", pluck=True)
+
 	def test_link_field_target_permission(self):
 		"""Test that accessing link_field.target_field respects target field's permlevel."""
 		target_dt_name = "TargetDocForLinkPerm"
@@ -1813,6 +1833,20 @@ class TestQuery(IntegrationTestCase):
 			# Cleanup
 			frappe.set_user("Administrator")
 			test_post.delete()
+
+	def test_filter_nonexistent_field_raises_validation_error(self):
+		"""Test that filtering on a nonexistent field raises ValidationError, not PermissionError."""
+		with self.assertRaises(frappe.ValidationError) as cm:
+			frappe.get_list("ToDo", filters={"totally_bogus_xyz": 1})
+		self.assertIn("Field not found", str(cm.exception))
+
+		with self.assertRaises(frappe.ValidationError) as cm:
+			frappe.qb.get_query(
+				"ToDo",
+				filters={"totally_bogus_xyz": 1},
+				ignore_permissions=False,
+			).run()
+		self.assertIn("Field not found", str(cm.exception))
 
 	def test_filter_linked_field_permission(self):
 		"""Test that filtering is only allowed on permitted linked fields."""
@@ -3621,3 +3655,11 @@ def test_deny_all_permission_hook(user, doctype=None):
 # to the aliased link table when fetched via dot-notation.
 def allow_named_target_hook(user, doctype=None):
 	return f"`tab{doctype}`.`value` = 'Allowed tab{doctype} batch'"
+
+
+def todo_breakout_hook(user, doctype=None):
+	return frappe.qb.DocType("ToDo").description.isin(["%(param2)s", "x\\') OR 1=1 -- "])
+
+
+def todo_backslash_hook(user, doctype=None):
+	return frappe.qb.DocType("ToDo").description == "back\\slash' 100%"

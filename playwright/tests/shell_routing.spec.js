@@ -27,9 +27,9 @@ async function on_route(page, route) {
 	await expect.poll(() => page.evaluate(() => window.frappe?.get_route?.())).toEqual(route);
 }
 
-async function pick_todo_in_awesomebar(page) {
+async function pick_todo_in_awesomebar(page, desk) {
 	const search = page.locator("#navbar-search");
-	await page.locator(".body-sidebar .navbar-modal-search-mobile").click();
+	await desk.open_search();
 	await search.pressSequentially("todo");
 	// Through the input, since the list view under the dialog has dropdowns of its own.
 	const listbox = search
@@ -375,11 +375,12 @@ test.describe("Desk URL shell segment", () => {
 
 	test("leaves the shell you are standing in when the awesomebar opens something it does not list", async ({
 		page,
+		desk,
 	}) => {
 		await page.goto("/desk/users/user");
 		await expect_shell(page, "Users");
 
-		await pick_todo_in_awesomebar(page);
+		await pick_todo_in_awesomebar(page, desk);
 
 		await expect.poll(() => pathname(page)).toBe("/desk/build/todo");
 		await expect_shell(page, "Build");
@@ -387,11 +388,12 @@ test.describe("Desk URL shell segment", () => {
 
 	test("chooses the shell again when the awesomebar opens what is already on screen", async ({
 		page,
+		desk,
 	}) => {
 		await page.goto("/desk/users/todo");
 		await expect_shell(page, "Users");
 
-		await pick_todo_in_awesomebar(page);
+		await pick_todo_in_awesomebar(page, desk);
 
 		await expect.poll(() => pathname(page)).toBe("/desk/build/todo");
 		await expect_shell(page, "Build");
@@ -404,6 +406,39 @@ test.describe("Desk URL shell segment", () => {
 
 		await expect.poll(() => pathname(page)).toBe("/desk/build/todo");
 		await expect_shell(page, "Build");
+	});
+
+	test("goes back past a new document once it is saved", async ({ page, desk, api }) => {
+		await page.goto("/desk/build/todo");
+		await on_route(page, ["List", "ToDo", "List"]);
+		await page.evaluate(() =>
+			frappe.model.with_doctype("ToDo", () => {
+				const doc = frappe.model.get_new_doc("ToDo");
+				frappe.set_route("Form", "ToDo", doc.name);
+			})
+		);
+		await expect.poll(() => pathname(page)).toMatch(/^\/desk\/build\/todo\/new-todo-/);
+		await expect(page.locator("body")).toHaveAttribute("data-ajax-state", "complete");
+
+		await page.evaluate(() => cur_frm.set_value("description", "go back past me"));
+		await desk.save();
+		const saved = await page.evaluate(() => cur_frm.doc.name);
+
+		try {
+			await expect.poll(() => pathname(page)).toBe(`/desk/build/todo/${saved}`);
+
+			await page.evaluate(() => frappe.set_route("List", "User"));
+			await on_route(page, ["List", "User", "List"]);
+
+			await page.goBack();
+			await on_route(page, ["Form", "ToDo", saved]);
+
+			await page.goBack();
+			await on_route(page, ["List", "ToDo", "List"]);
+			await expect.poll(() => pathname(page)).toBe("/desk/build/todo");
+		} finally {
+			await api.remove_doc("ToDo", saved, true);
+		}
 	});
 
 	test("opens a system page in no shell", async ({ page }) => {
@@ -734,4 +769,21 @@ test.describe("Desk URL shell segment", () => {
 			expect(result.focus_handed_back, "focus handed back").toBe(true);
 		}
 	);
+
+	test("keeps a collapsed sidebar collapsed when a dock tile is clicked", async ({
+		page,
+		desk,
+	}) => {
+		await open_desk(page, desk);
+		await page.evaluate(() => frappe.app.sidebar.close());
+		const from = pathname(page);
+
+		await page.locator(".dock-items .dock-item:not(.active)").first().click();
+
+		await expect.poll(() => pathname(page)).not.toBe(from);
+		await expect(page.locator("body")).toHaveClass(/(^|\s)sidebar-collapsed(\s|$)/);
+		await page.reload();
+		await desk.ready();
+		await expect(page.locator("body")).toHaveClass(/(^|\s)sidebar-collapsed(\s|$)/);
+	});
 });

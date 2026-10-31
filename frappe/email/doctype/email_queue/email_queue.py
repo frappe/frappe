@@ -10,6 +10,7 @@ import traceback
 from contextlib import suppress
 from email.parser import Parser
 from email.policy import SMTP
+from functools import cached_property
 from typing import TYPE_CHECKING
 
 import frappe
@@ -469,9 +470,17 @@ class SendMailContext:
 
 	def include_attachments(self, message):
 		message_obj = self.get_message_object(message)
-		attachments = self.queue_doc.attachments_list
 
-		for attachment in attachments:
+		for attachment in self.attachments:
+			add_attachment(**attachment, parent=message_obj)
+
+		return safe_encode(message_obj.as_string())
+
+	@cached_property
+	def attachments(self) -> list[dict]:
+		attachments = []
+
+		for attachment in self.queue_doc.attachments_list:
 			if attachment.get("fcontent"):
 				continue
 
@@ -484,19 +493,18 @@ class SendMailContext:
 			if file_filters:
 				_file = frappe.get_doc("File", file_filters)
 				fcontent = _file.get_content()
-				attachment.update({"fname": _file.file_name, "fcontent": fcontent, "parent": message_obj})
+				attachment.update({"fname": _file.file_name, "fcontent": fcontent})
 				attachment.pop("fid", None)
 				attachment.pop("file_url", None)
-				add_attachment(**attachment)
+				attachments.append(attachment)
 
 			elif attachment.get("print_format_attachment") == 1:
 				attachment.pop("print_format_attachment", None)
 				print_format_file = frappe.attach_print(**attachment)
 				self._store_file(print_format_file["fname"], print_format_file["fcontent"])
-				print_format_file.update({"parent": message_obj})
-				add_attachment(**print_format_file)
+				attachments.append(print_format_file)
 
-		return safe_encode(message_obj.as_string())
+		return attachments
 
 	def _store_file(self, file_name, content):
 		if not frappe.get_system_settings("store_attached_pdf_document"):
@@ -821,6 +829,11 @@ class QueueBuilder:
 					attachments.append(att)
 				elif att.get("print_format_attachment") == 1:
 					if not att.get("lang", None):
+						# a background job resolves its user's language only on the first translation
+						job = getattr(frappe.local, "job", None)
+						if job is not None and not job.lang_resolved:
+							frappe.set_user_lang(job.user)
+							job.lang_resolved = True
 						att["lang"] = frappe.local.lang
 					att["print_letterhead"] = self.print_letterhead
 					attachments.append(att)
@@ -907,11 +920,19 @@ class QueueBuilder:
 		"""
 		# This is used to bulk send emails from same sender to multiple recipients separately
 		# This re-uses smtp server instance to minimize the cost of new session creation
+		queue_names = [
+			EmailQueue.new(
+				{**queue_data, **{"recipients": list(set([r, *self.final_cc(), *self.final_bcc()]))}},
+				ignore_permissions=True,
+			).name
+			for r in final_recipients
+		]
+		frappe.db.commit()  # nosemgrep
+
 		frappe_mail_client = None
 		smtp_server_instance = None
-		for r in final_recipients:
-			recipients = list(set([r, *self.final_cc(), *self.final_bcc()]))
-			q = EmailQueue.new({**queue_data, **{"recipients": recipients}}, ignore_permissions=True)
+		for name in queue_names:
+			q = frappe.get_doc("Email Queue", name, for_update=True)
 			if not frappe_mail_client and not smtp_server_instance:
 				email_account = q.get_email_account(raise_error=True)
 

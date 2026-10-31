@@ -11,6 +11,7 @@ from frappe.desk.query_report import (
 	build_xlsx_data,
 	export_query,
 	format_fields,
+	get_script,
 	run,
 )
 from frappe.tests import IntegrationTestCase
@@ -60,6 +61,17 @@ class TestQueryReport(IntegrationTestCase):
 			"unsupported operand type(s) for /: 'int' and 'str'",
 			get_user_facing_error(
 				thrown.format("TypeError: unsupported operand type(s) for /: 'int' and 'str'")
+			),
+		)
+		# postgres adds the query and a caret below the message
+		self.assertEqual(
+			'relation "tabNoSuchTable" does not exist',
+			get_user_facing_error(
+				thrown.format(
+					'psycopg2.errors.UndefinedTable: relation "tabNoSuchTable" does not exist\n'
+					'LINE 1: select * from "tabNoSuchTable"\n'
+					"                      ^"
+				)
 			),
 		)
 		# nothing to say when the exception carried no message
@@ -288,6 +300,28 @@ class TestQueryReport(IntegrationTestCase):
 		custom_report.delete()
 		with self.set_user(owner.name), self.assertRaises(frappe.PermissionError):
 			run(report.name, filters)
+
+	def test_get_script_quotes_report_name(self):
+		from frappe.core.doctype.user_permission.test_user_permission import create_user
+
+		frappe.set_user("Administrator")
+		user = create_user("test_report_script_reader@example.com", "Website Manager")
+		report = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"ref_doctype": "ToDo",
+				"report_name": "Today's ToDos " + frappe.generate_hash(length=6),
+				"report_type": "Query Report",
+				"query": "select name from tabToDo",
+				"is_standard": "No",
+				"roles": [{"role": "Website Manager"}],
+			}
+		).insert(ignore_permissions=True)
+
+		with self.set_user(user.name):
+			script = get_script(report.name)["script"]
+
+		self.assertEqual(script, f'frappe.query_reports["{report.name}"]={{}}')
 
 	def test_xlsx_data_with_multiple_datatypes(self):
 		"""Test exporting report using rows with multiple datatypes (list, dict)"""
@@ -617,6 +651,25 @@ data = columns, result
 			result[0],
 		)
 
+	def test_custom_column_with_clashing_fieldname(self):
+		"""Custom column whose fieldname clashes with a report column keeps both values"""
+		from frappe.core.doctype.user_permission.test_user_permission import create_user
+
+		user = create_user("test_custom_column_clash@example.com")
+		with self.set_user(user.name):
+			todo = frappe.get_doc({"doctype": "ToDo", "description": "Send the signed lease"}).insert()
+			custom_columns = [
+				{
+					"fieldname": "status-todo",
+					"doctype": "ToDo",
+					"link_field": {"fieldname": "todo", "names": []},
+				}
+			]
+
+			result = add_custom_column_data(custom_columns, [{"todo": todo.name, "status": "Overdue"}])
+
+		self.assertDictEqual({"todo": todo.name, "status": "Overdue", "status-todo": "Open"}, result[0])
+
 	def test_xlsx_styles_structure(self):
 		"""build_xlsx_data with build_styles=True returns a well-formed styles dict"""
 		data = create_mock_data()
@@ -641,6 +694,27 @@ data = columns, result
 		for sid in header_style_ids:
 			header_merged.update(registry[sid])
 		self.assertTrue(header_merged.get("bold"))
+
+	def test_xlsx_styles_for_standard_query_report_without_module(self):
+		"""a standard Query Report with no python module exports with the default styles"""
+		frappe.get_doc(
+			{
+				"doctype": "Report",
+				"name": "Pending ToDos",
+				"report_name": "Pending ToDos",
+				"report_type": "Query Report",
+				"is_standard": "Yes",
+				"ref_doctype": "ToDo",
+				"module": "Desk",
+			}
+		).db_insert()
+		data = create_mock_data()
+		data.report_name = "Pending ToDos"
+
+		with self.set_user("test@example.com"):
+			_, _, styles = build_xlsx_data(data, build_styles=True)
+
+		self.assertIsNotNone(styles)
 
 	def test_xlsx_style_builder_fieldtype_column_styles(self):
 		"""XLSXStyleBuilder applies column styles for Float/Percent/Date but not Data"""
@@ -741,6 +815,354 @@ data = columns, result
 
 		frappe.delete_doc("Report", REPORT_NAME, delete_permanently=True)
 		frappe.db.commit()
+
+	def test_validated_filters_are_defaulted_and_cast(self):
+		report, user = self.make_filtered_report()
+
+		with self.set_user(user):
+			result = run(report.name, {"allocated_to": user, "count": "5", "show_all": "1"})["result"]
+
+		self.assertEqual(
+			result, [{"status": "Open", "count": 5, "show_all": 1, "from_date": frappe.utils.getdate()}]
+		)
+		self.assertEqual(report.get_validated_filters({}, user).allocated_to, user)
+
+	def test_validated_filters_keep_cleared_values(self):
+		report, user = self.make_filtered_report()
+
+		with self.set_user(user):
+			result = run(report.name, {"allocated_to": user, "status": "", "from_date": ""})["result"]
+
+		self.assertEqual(result, [{"status": None, "count": None, "show_all": None, "from_date": None}])
+
+	def test_validated_filters_reject_invalid_values(self):
+		report, user = self.make_filtered_report()
+		job_type = frappe.db.get_value("Scheduled Job Type", {})
+
+		with self.set_user(user):
+			with self.assertRaisesRegex(frappe.ValidationError, "Allocated To"):
+				run(report.name, {"allocated_to": "", "count": 1})
+			with self.assertRaisesRegex(frappe.ValidationError, "single value"):
+				run(report.name, {"allocated_to": {}})
+			with self.assertRaisesRegex(frappe.ValidationError, "Pending"):
+				run(report.name, {"allocated_to": user, "status": "Pending"})
+			with self.assertRaises(frappe.PermissionError):
+				run(report.name, {"allocated_to": user, "job_type": job_type})
+			with self.assertRaises(frappe.LinkValidationError):
+				run(report.name, {"allocated_to": user, "job_type": "missing"})
+			with self.assertRaises(frappe.LinkValidationError):
+				run(report.name, {"allocated_to": 0})
+			with self.assertRaisesRegex(frappe.ValidationError, "priority"):
+				run(report.name, {"allocated_to": user, "priority": "High"})
+			for filters in ('[["allocated_to", "=", "x"]]', "5", '"abc"'):
+				with self.assertRaisesRegex(frappe.ValidationError, "Filters must be"):
+					run(report.name, filters)
+
+	def test_validated_filters_reject_invalid_dates(self):
+		report, user = self.make_filtered_report()
+		report.append("filters", dict(fieldname="since", label="Since", fieldtype="Datetime"))
+		report.append("filters", dict(fieldname="at", label="At", fieldtype="Time"))
+
+		filters = report.get_validated_filters(
+			{"allocated_to": user, "since": "2026-01-01 10:30:00", "at": "10:30:00"}, user
+		)
+		self.assertEqual(filters.since, datetime.datetime(2026, 1, 1, 10, 30))
+		self.assertEqual(filters.at, datetime.timedelta(hours=10, minutes=30))
+
+		for fieldname, label, value in (
+			("from_date", "From Date", 5),
+			("from_date", "From Date", 0),
+			("from_date", "From Date", "garbage"),
+			("from_date", "From Date", "0001-01-01"),
+			("since", "Since", "garbage"),
+			("at", "At", "garbage"),
+			("period", "Period", ["0001-01-01", "2026-01-31"]),
+		):
+			with self.assertRaisesRegex(frappe.ValidationError, label):
+				report.get_validated_filters({"allocated_to": user, fieldname: value}, user)
+
+	def test_validated_filters_accept_native_values(self):
+		report, user = self.make_filtered_report()
+		report.append("filters", dict(fieldname="since", label="Since", fieldtype="Datetime"))
+		report.append("filters", dict(fieldname="at", label="At", fieldtype="Time"))
+		report.append("filters", dict(fieldname="level", label="Level", fieldtype="Select", options="1\n2"))
+
+		filters = report.get_validated_filters(
+			{
+				"allocated_to": user,
+				"level": 1,
+				"count": "5",
+				"show_all": "1",
+				"from_date": datetime.datetime(2026, 1, 1, 10, 30),
+				"since": datetime.date(2026, 1, 1),
+				"at": datetime.timedelta(hours=10),
+				"users": (user,),
+				"period": (datetime.date(2026, 1, 1), "2026-01-31"),
+			},
+			user,
+		)
+		self.assertEqual(filters.from_date, datetime.date(2026, 1, 1))
+		self.assertEqual(filters.since, datetime.datetime(2026, 1, 1))
+		self.assertEqual(filters.at, datetime.timedelta(hours=10))
+		self.assertEqual(filters.level, "1")
+		self.assertEqual(filters.users, [user])
+		self.assertEqual(filters.period, [datetime.date(2026, 1, 1), datetime.date(2026, 1, 31)])
+		self.assertEqual(report.get_validated_filters(filters, user), filters)
+
+		with self.assertRaisesRegex(frappe.ValidationError, "At"):
+			report.get_validated_filters({"allocated_to": user, "at": datetime.date(2026, 1, 1)}, user)
+
+	def test_validated_filters_check_numbers(self):
+		report, user = self.make_filtered_report()
+		report.append("filters", dict(fieldname="amount", label="Amount", fieldtype="Float"))
+
+		filters = report.get_validated_filters(
+			{"allocated_to": user, "count": 5, "amount": "1.5", "show_all": "true"}, user
+		)
+		self.assertEqual((filters.count, filters.amount, filters.show_all), (5, 1.5, 1))
+		self.assertEqual(
+			report.get_validated_filters({"allocated_to": user, "show_all": 0}, user).show_all, 0
+		)
+
+		for fieldname, label, value in (
+			("count", "Count", "abc"),
+			("count", "Count", "5.7"),
+			("amount", "Amount", "abc"),
+			("amount", "Amount", "1,5"),
+			("show_all", "Show All", 2),
+			("show_all", "Show All", "yes"),
+			("period", "Period", ["2026-02-01", "2026-01-01"]),
+		):
+			with self.assertRaisesRegex(frappe.ValidationError, label):
+				report.get_validated_filters({"allocated_to": user, fieldname: value}, user)
+
+	def test_validated_filters_resolve_now_defaults(self):
+		report, user = self.make_filtered_report()
+		report.append("filters", dict(fieldname="since", label="Since", fieldtype="Datetime", default="Now"))
+		report.append("filters", dict(fieldname="at", label="At", fieldtype="Time", default="Now"))
+
+		filters = report.get_validated_filters({"allocated_to": user}, user)
+		one_minute = datetime.timedelta(minutes=1)
+		self.assertAlmostEqual(filters.since, frappe.utils.now_datetime(), delta=one_minute)
+		self.assertAlmostEqual(
+			filters.at, frappe.utils.get_timedelta(frappe.utils.nowtime()), delta=one_minute
+		)
+
+	def test_validated_list_filters(self):
+		report, user = self.make_filtered_report()
+
+		filters = report.get_validated_filters(
+			{"allocated_to": user, "users": [user], "period": ["2026-01-01", "2026-01-31"]}, user
+		)
+		self.assertEqual(filters.users, [user])
+		self.assertEqual(filters.period, [datetime.date(2026, 1, 1), datetime.date(2026, 1, 31)])
+		self.assertNotIn("users", report.get_validated_filters({"allocated_to": user, "users": []}, user))
+
+		report.filters[-2].default = user
+		report.filters[-1].default = "2026-01-01,2026-01-31"
+		filters = report.get_validated_filters({"allocated_to": user}, user)
+		self.assertEqual(filters.users, [user])
+		self.assertEqual(filters.period, [datetime.date(2026, 1, 1), datetime.date(2026, 1, 31)])
+
+		report.filters[-1].default = "Today"
+		today = frappe.utils.getdate()
+		self.assertEqual(report.get_validated_filters({"allocated_to": user}, user).period, [today, today])
+
+		report.filters[-2].default = "__user"
+		self.assertEqual(report.get_validated_filters({"allocated_to": user}, user).users, [user])
+
+		with self.assertRaisesRegex(frappe.ValidationError, "list of values"):
+			report.get_validated_filters({"allocated_to": user, "users": user}, user)
+		with self.assertRaisesRegex(frappe.ValidationError, "start and an end date"):
+			report.get_validated_filters({"allocated_to": user, "period": ["2026-01-01"]}, user)
+		with self.assertRaisesRegex(frappe.ValidationError, "start and an end date"):
+			report.get_validated_filters({"allocated_to": user, "period": ["", ""]}, user)
+		with self.assertRaises(frappe.PermissionError):
+			report.get_validated_filters({"allocated_to": user, "users": [user, "Administrator"]}, user)
+		with self.assertRaises(frappe.LinkValidationError):
+			report.get_validated_filters({"allocated_to": user, "users": [user, "missing"]}, user)
+
+	def test_validated_list_filter_with_doctype_from_another_filter(self):
+		report, user = self.make_filtered_report()
+		report.append(
+			"filters",
+			dict(fieldname="documents", label="Documents", fieldtype="MultiSelectList", options="doc_type"),
+		)
+		report.append(
+			"filters", dict(fieldname="doc_type", label="Document Type", fieldtype="Select", options="User")
+		)
+		report.append(
+			"filters",
+			dict(fieldname="document", label="Document", fieldtype="Dynamic Link", options="doc_type"),
+		)
+		report.append("filters", dict(fieldname="tag", label="Tag", fieldtype="Autocomplete"))
+
+		filters = report.get_validated_filters(
+			{
+				"allocated_to": user,
+				"doc_type": "User",
+				"documents": [user],
+				"document": "missing",
+				"tag": "a",
+			},
+			user,
+		)
+		self.assertEqual(filters.documents, [user])
+		self.assertEqual((filters.document, filters.tag), ("missing", "a"))
+
+		with self.assertRaisesRegex(frappe.ValidationError, "Tag"):
+			report.get_validated_filters({"allocated_to": user, "tag": ["a"]}, user)
+
+		with self.assertRaises(frappe.PermissionError):
+			report.get_validated_filters(
+				{"allocated_to": user, "doc_type": "User", "documents": [user, "Administrator"]}, user
+			)
+		with self.assertRaisesRegex(frappe.ValidationError, "Document Type"):
+			report.get_validated_filters({"allocated_to": user, "doc_type": "", "documents": [user]}, user)
+
+	def test_validated_link_filter_user_defaults(self):
+		report, user = self.make_filtered_report()
+		report.append("filters", dict(fieldname="user", label="User", fieldtype="Link", options="User"))
+		report.append(
+			"filters", dict(fieldname="language", label="Language", fieldtype="Link", options="Language")
+		)
+		job_type = frappe.db.get_value("Scheduled Job Type", {})
+		frappe.defaults.set_user_default("job_type", job_type, user)
+		frappe.defaults.set_user_default("language", "de", user)
+		self.addCleanup(frappe.defaults.clear_user_default, "job_type", user)
+		self.addCleanup(frappe.defaults.clear_user_default, "language", user)
+
+		filters = report.get_validated_filters({"allocated_to": user}, user)
+		self.assertNotIn("user", filters)
+		self.assertNotIn("job_type", filters)
+		self.assertEqual(filters.language, "de")
+
+		report.filters[-1].default = "en"
+		self.assertEqual(report.get_validated_filters({"allocated_to": user}, user).language, "en")
+
+		report.filters[-1].default = None
+		frappe.defaults.set_user_default("language", "missing-language", user)
+		self.assertNotIn("language", report.get_validated_filters({"allocated_to": user}, user))
+
+	def test_get_script_resolves_validated_filter_defaults(self):
+		report, user = self.make_filtered_report()
+		report.filters[-2].default = "__user"
+		report.filters[-1].default = "2026-01-01,2026-01-31"
+		report.save()
+
+		with self.set_user(user):
+			filters = get_script(report.name)["filters"]
+
+		defaults = {row["fieldname"]: row["default"] for row in filters}
+		self.assertEqual(defaults["allocated_to"], user)
+		self.assertEqual(defaults["from_date"], frappe.utils.nowdate())
+		self.assertEqual(defaults["users"], [user])
+		self.assertEqual(defaults["period"], ["2026-01-01", "2026-01-31"])
+
+	def test_prepared_report_by_name_validates_its_saved_filters(self):
+		from frappe.core.doctype.prepared_report.prepared_report import create_json_gz_file
+
+		report, user = self.make_filtered_report()
+		report.prepared_report = 1
+		report.filters[0].default = None
+		report.save()
+
+		with self.set_user(user):
+			prepared_report = frappe.get_doc(
+				{
+					"doctype": "Prepared Report",
+					"report_name": report.name,
+					"filters": json.dumps({"allocated_to": user}),
+				}
+			).insert(ignore_permissions=True)
+			create_json_gz_file(
+				{"columns": [], "result": []}, prepared_report.doctype, prepared_report.name, report.name
+			)
+			result = run(report.name, {"prepared_report_name": prepared_report.name})
+
+			prepared_report.db_set("filters", "null")
+			with self.assertRaisesRegex(frappe.ValidationError, "Allocated To"):
+				run(report.name, {"prepared_report_name": prepared_report.name})
+
+		self.assertEqual(result["doc"].name, prepared_report.name)
+
+	def test_filters_without_validation_reach_the_report_unchanged(self):
+		report, user = self.make_filtered_report()
+		report.validate_filters = 0
+		report.filters = [
+			row for row in report.filters if row.fieldtype not in ("MultiSelectList", "DateRange")
+		]
+		report.save()
+
+		with self.set_user(user):
+			result = run(report.name, {"count": "5", "priority": "High"})["result"]
+
+		self.assertEqual(result, [{"status": None, "count": "5", "show_all": None, "from_date": None}])
+
+		report.append("filters", dict(fieldname="users", label="Users", fieldtype="MultiSelectList"))
+		with self.assertRaisesRegex(frappe.ValidationError, "Validate Filters"):
+			report.save()
+
+	def test_validated_filter_rows_are_checked_on_save(self):
+		report, _user = self.make_filtered_report()
+		report.append("filters", dict(fieldname="owner", label="Owner", fieldtype="Link"))
+		with self.assertRaisesRegex(frappe.ValidationError, "Options"):
+			report.save()
+
+		report.reload()
+		report.filters[-1].wildcard_filter = 1
+		with self.assertRaisesRegex(frappe.ValidationError, "Wildcard Filter"):
+			report.save()
+
+	def make_filtered_report(self):
+		from frappe.core.doctype.user_permission.test_user_permission import create_user
+
+		frappe.set_user("Administrator")
+		user = create_user("test_report_filters@example.com", "Website Manager").name
+		report = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"ref_doctype": "ToDo",
+				"report_name": "Filtered ToDos " + frappe.generate_hash(length=6),
+				"report_type": "Script Report",
+				"is_standard": "No",
+				"validate_filters": 1,
+				"roles": [{"role": "Website Manager"}],
+				"filters": [
+					dict(
+						fieldname="allocated_to",
+						label="Allocated To",
+						fieldtype="Link",
+						options="User",
+						mandatory=1,
+						default="__user",
+					),
+					dict(
+						fieldname="status",
+						label="Status",
+						fieldtype="Select",
+						options="Open\nClosed",
+						default="Open",
+					),
+					dict(fieldname="count", label="Count", fieldtype="Int"),
+					dict(fieldname="show_all", label="Show All", fieldtype="Check"),
+					dict(fieldname="from_date", label="From Date", fieldtype="Date", default="Today"),
+					dict(
+						fieldname="job_type", label="Job Type", fieldtype="Link", options="Scheduled Job Type"
+					),
+					dict(fieldname="users", label="Users", fieldtype="MultiSelectList", options="User"),
+					dict(fieldname="period", label="Period", fieldtype="DateRange"),
+				],
+				"columns": [
+					dict(fieldname="status", label="Status", fieldtype="Data"),
+					dict(fieldname="count", label="Count", fieldtype="Data"),
+					dict(fieldname="show_all", label="Show All", fieldtype="Data"),
+					dict(fieldname="from_date", label="From Date", fieldtype="Data"),
+				],
+				"report_script": "result = [{key: filters.get(key) for key in ('status', 'count', 'show_all', 'from_date')}]",
+			}
+		).insert(ignore_permissions=True)
+		return report, user
 
 	def test_run_sends_link_titles(self):
 		report = self.make_link_column_report()

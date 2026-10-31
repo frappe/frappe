@@ -18,6 +18,54 @@ body.modal-open[style^="padding-right"] {
 	}
 }
 
+@mixin dialog-section-edges {
+	.form-layout:first-child > .form-page {
+		.visible-section:first-child {
+			padding-top: 0;
+
+			.section-body {
+				margin-top: 0;
+			}
+		}
+	}
+
+	.form-layout:last-child > .form-page {
+		.visible-section:last-child {
+			padding-bottom: 0;
+		}
+	}
+}
+
+@mixin dialog-sections {
+	.form-section {
+		padding: var(--padding-sm) 0;
+
+		&:not(:first-child) {
+			border-top: 1px solid var(--border-color);
+		}
+
+		&.hide-border {
+			border-top: none !important;
+			padding-top: 0px !important;
+		}
+
+		.form-column {
+			&:first-child {
+				padding-left: 0;
+			}
+
+			&:last-child {
+				padding-right: 0;
+			}
+		}
+
+		.section-head {
+			padding: 0;
+			font-size: var(--text-md);
+		}
+	}
+}
+
 .modal {
 	// Same scrollbar as body
 	scrollbar-width: auto;
@@ -76,22 +124,7 @@ body.modal-open[style^="padding-right"] {
 
 	.modal-body {
 		padding: var(--padding-md) var(--padding-md);
-
-		.form-layout:first-child > .form-page {
-			.visible-section:first-child {
-				padding-top: 0;
-
-				.section-body {
-					margin-top: 0;
-				}
-			}
-		}
-
-		.form-layout:last-child > .form-page {
-			.visible-section:last-child {
-				padding-bottom: 0;
-			}
-		}
+		@include dialog-section-edges;
 	}
 
 	.awesomplete ul,
@@ -122,36 +155,32 @@ body.modal-open[style^="padding-right"] {
 		}
 	}
 
-	.form-section {
-		padding: var(--padding-sm) 0;
-
-		&:not(:first-child) {
-			border-top: 1px solid var(--border-color);
-		}
-
-		&.hide-border {
-			border-top: none !important;
-			padding-top: 0px !important;
-		}
-
-		.form-column {
-			&:first-child {
-				padding-left: 0;
-			}
-
-			&:last-child {
-				padding-right: 0;
-			}
-		}
-
-		.section-head {
-			padding: 0;
-			font-size: var(--text-md);
-		}
-	}
+	@include dialog-sections;
 
 	.hasDatepicker {
 		z-index: 1140;
+	}
+}
+
+.es-bottom-sheet__body .modal-body {
+	padding: 0;
+	@include dialog-section-edges;
+	@include dialog-sections;
+}
+
+.es-bottom-sheet__footer {
+	> .custom-actions:empty {
+		display: none;
+	}
+
+	> .custom-actions,
+	> .standard-actions {
+		display: flex;
+		gap: var(--margin-sm);
+
+		> .es-button {
+			flex: 1;
+		}
 	}
 }
 

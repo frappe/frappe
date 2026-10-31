@@ -124,12 +124,16 @@ def get_web_image(file_url: str) -> tuple["ImageFile", str, str]:
 
 	from frappe.utils.data import validate_egress_url
 	from frappe.utils.image import Image
+	from frappe.utils.safe_exec import SAFE_REQUEST_TIMEOUT, get_safe_request_session
 
 	file_url = frappe.utils.get_url(file_url)
 	site_url = frappe.utils.get_url().rstrip("/")
 
+	def is_site_url(url: str) -> bool:
+		return url == site_url or url.startswith(site_url + "/")
+
 	def validate_external_url(url: str) -> None:
-		if url == site_url or url.startswith(site_url + "/"):
+		if is_site_url(url):
 			return
 		try:
 			validate_egress_url(url)
@@ -143,7 +147,12 @@ def get_web_image(file_url: str) -> tuple["ImageFile", str, str]:
 	# Redirects are followed manually so each hop's destination gets the same
 	# validation as the original URL.
 	for _attempt in range(MAX_WEB_IMAGE_REDIRECTS + 1):
-		r = requests.get(file_url, stream=True, allow_redirects=False)
+		if is_site_url(file_url):
+			r = requests.get(file_url, stream=True, allow_redirects=False)
+		else:
+			# Guarded session validates the connection itself, not just the URL.
+			session = get_safe_request_session()
+			r = session.get(file_url, stream=True, allow_redirects=False, timeout=SAFE_REQUEST_TIMEOUT)
 		if not r.is_redirect:
 			break
 		file_url = urljoin(file_url, r.headers["Location"])
@@ -200,17 +209,19 @@ def delete_file(path: str) -> None:
 
 
 def remove_file_by_url(file_url: str, doctype: str | None = None, name: str | None = None) -> "Document":
+	filters = {"file_url": file_url}
 	if doctype and name:
-		fid = frappe.db.get_value(
-			"File",
-			{
-				"file_url": file_url,
-				"attached_to_doctype": doctype,
-				"attached_to_name": name,
-			},
-		)
-	else:
-		fid = frappe.db.get_value("File", {"file_url": file_url})
+		filters.update({"attached_to_doctype": doctype, "attached_to_name": name})
+
+	# the database collation ignores case, the filesystem does not
+	fid = next(
+		(
+			file.name
+			for file in frappe.get_all("File", filters=filters, fields=["name", "file_url"])
+			if file.file_url == file_url
+		),
+		None,
+	)
 
 	if fid:
 		from frappe.utils.file_manager import remove_file
@@ -354,9 +365,9 @@ def update_existing_file_docs(doc: "File") -> None:
 
 def attach_files_to_document(doc: "Document", event) -> None:
 	"""Runs on on_update hook of all documents.
-	Goes through every file linked with the Attach and Attach Image field and attaches
-	the file to the document if not already attached. If no file is found, a new file
-	is created.
+	Goes through every file set or changed in the Attach and Attach Image fields on this save
+	and attaches the file to the document if not already attached. If no file is found, a
+	new file is created.
 	"""
 	candidates: list[tuple["DocField", Any]] = []
 
@@ -364,7 +375,8 @@ def attach_files_to_document(doc: "Document", event) -> None:
 	# we dont want the update to fail if file cannot be attached for some reason
 	attach_fields = doc.meta.get("fields", {"fieldtype": ["in", ["Attach", "Attach Image"]]})
 	for df in attach_fields:
-		candidates.append((df, doc.get(df.fieldname)))
+		if doc.has_value_changed(df.fieldname):
+			candidates.append((df, doc.get(df.fieldname)))
 
 	table_fields = doc.meta.get("fields", {"fieldtype": "Table"})
 	for table_df in table_fields:
@@ -379,7 +391,8 @@ def attach_files_to_document(doc: "Document", event) -> None:
 
 		for child_row in child_rows:
 			for child_df in child_attach_fields:
-				candidates.append((child_df, child_row.get(child_df.fieldname)))
+				if child_row.has_value_changed(child_df.fieldname):
+					candidates.append((child_df, child_row.get(child_df.fieldname)))
 
 	_attach_field_values(doc, candidates)
 
@@ -542,6 +555,9 @@ def find_file_by_url(path: str, name: str | None = None) -> "File" | None:
 	# if the file is accessible from any one of those documents
 	# then it should be downloadable
 	for file_data in files:
+		# the database collation ignores case, the filesystem does not
+		if file_data.file_url != filters["file_url"]:
+			continue
 		file: File = frappe.get_doc(doctype="File", **file_data)
 		if file.is_downloadable():
 			return file

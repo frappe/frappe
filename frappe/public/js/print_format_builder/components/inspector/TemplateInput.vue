@@ -211,23 +211,6 @@ function remove(i) {
 .pfb-tpl {
 	position: relative;
 }
-.pfb-tpl-menu {
-	position: absolute;
-	top: calc(100% + 4px);
-	left: 0;
-	right: 0;
-	max-height: 200px;
-	overflow-x: hidden;
-	overflow-y: auto;
-}
-.pfb-tpl-menu .dropdown-item {
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-.pfb-tpl-menu .dropdown-item.highlighted {
-	background: var(--surface-gray-2);
-}
 .pfb-tpl-row {
 	width: 100%;
 	box-sizing: border-box;

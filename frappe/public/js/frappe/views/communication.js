@@ -37,6 +37,8 @@ frappe.views.CommunicationComposer = class {
 			size: "large",
 			minimizable: true,
 			keep_open: true,
+			// on a phone a focused To field opens its suggestions and the keyboard over the mail
+			no_focus: frappe.is_mobile(),
 		});
 
 		$(this.dialog.$wrapper.find(".form-section").get(0)).addClass("to_section");

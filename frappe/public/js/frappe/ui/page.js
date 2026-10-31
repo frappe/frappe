@@ -63,13 +63,14 @@ frappe.ui.Page = class Page {
 		// the two are independent, and `hide_sidebar` takes the panel away on a desktop and merely
 		// closes the drawer on a narrow screen (see Sidebar.page_allows_sidebar)
 		if (!Object.keys(opts).includes("hide_dock")) this.hide_dock = false;
+		// and the phone tab bar, the same way (see MobileNav.apply_page_visibility)
+		if (!Object.keys(opts).includes("hide_mobile_nav")) this.hide_mobile_nav = false;
 		frappe.ui.pages[frappe.get_route_str()] = this;
 	}
 
 	make() {
 		this.wrapper = $(this.parent);
 		this.add_main_section();
-		this.setup_main_sidebar_toggle();
 		this.setup_awesomebar();
 	}
 
@@ -190,7 +191,7 @@ frappe.ui.Page = class Page {
 		let menu_btn = this.menu_btn_group.find("button");
 		menu_btn
 			.attr("title", __("Menu"))
-			.tooltip({ delay: { show: 600, hide: 100 } })
+			.tooltip({ delay: { show: 600, hide: 100 }, trigger: "hover" })
 			.on("click mousedown", function () {
 				$(this).tooltip("hide");
 			});
@@ -210,6 +211,8 @@ frappe.ui.Page = class Page {
 			trigger: this.actions_btn_group.find("button"),
 			align: "end",
 			options: () => this.build_dropdown_options(this.actions),
+			sheet_on_mobile: true,
+			sheet_title: () => this.actions_sheet_title?.() || __("Actions"),
 		});
 		// the menus body-portal, so one left open would float over the next
 		// page — the container fires "hide" on the page element on switch
@@ -282,14 +285,6 @@ frappe.ui.Page = class Page {
 			.tooltip({ delay: { show: 600, hide: 100 }, trigger: "hover" });
 
 		return button;
-	}
-
-	setup_main_sidebar_toggle() {
-		this.wrapper.find(".sidebar-toggle-btn.navbar-brand").on("click", (event) => {
-			frappe.app.sidebar.set_height();
-			frappe.app.sidebar.toggle_width();
-			frappe.app.sidebar.prevent_scroll();
-		});
 	}
 
 	clear_indicator() {
@@ -494,21 +489,24 @@ frappe.ui.Page = class Page {
 		this.actions_btn_group.addClass("hide");
 	}
 
-	add_action_item(label, click, standard) {
+	add_action_item(label, click, standard, icon = null) {
 		return this.add_dropdown_item({
 			label,
 			click,
 			standard,
+			icon,
 			parent: this.actions,
 		});
 	}
 
-	add_actions_menu_item(label, click, standard, shortcut) {
+	add_actions_menu_item(label, click, standard, shortcut, icon = null, theme = null) {
 		return this.add_dropdown_item({
 			label,
 			click,
 			standard,
 			shortcut,
+			icon,
+			theme,
 			parent: this.actions,
 			show_parent: false,
 		});
@@ -539,6 +537,7 @@ frappe.ui.Page = class Page {
 		show_parent = true,
 		icon = null,
 		icon_right = null,
+		theme = null,
 	}) {
 		if (show_parent) {
 			parent.parent().removeClass("hide hidden-xl");
@@ -586,6 +585,7 @@ frappe.ui.Page = class Page {
 		$li.data("menu_click", click);
 		if (icon) $li.data("menu_icon", icon);
 		if (icon_right) $li.data("menu_icon_right", icon_right);
+		if (theme) $li.data("menu_theme", theme);
 
 		$link = $li.find("a").on("click", (e) => {
 			if (e.ctrlKey || e.metaKey) {
@@ -623,6 +623,8 @@ frappe.ui.Page = class Page {
 		const responsive_hidden = (el) =>
 			(el.classList.contains("visible-xs") &&
 				window.matchMedia("(min-width: 576px)").matches) ||
+			(el.classList.contains("hidden-xs") &&
+				window.matchMedia("(max-width: 767.98px)").matches) ||
 			(el.classList.contains("hidden-xl") &&
 				window.matchMedia("(min-width: 992px)").matches);
 		const segments = [[]];
@@ -687,6 +689,7 @@ frappe.ui.Page = class Page {
 				label,
 				icon: $li.data("menu_icon") || undefined,
 				icon_right: $li.data("menu_icon_right") || undefined,
+				theme: $li.data("menu_theme") || undefined,
 				shortcut: $li.data("menu_shortcut") || undefined,
 				disabled: a.classList.contains("disabled"),
 				css_class: css_class || undefined,
@@ -1028,7 +1031,10 @@ frappe.ui.Page = class Page {
 			this.$breadcrumbs = $("<ol>").appendTo($nav);
 		}
 		// a page inside a dialog has a head of its own but no business drawing a trail in it
-		const items = this.show_breadcrumbs === false ? [] : this.get_breadcrumbs();
+		const items = this.show_breadcrumbs === false ? [] : this.get_breadcrumbs().slice();
+		// the title (last crumb) becomes a button when something sets an action for it
+		const title_action = items.length && frappe.ui.Page.title_action?.();
+		if (title_action) items.push({ ...items.pop(), onclick: title_action });
 		this.$breadcrumbs
 			.empty()
 			.append(frappe.ui.breadcrumbs({ items }).children("ol").children());

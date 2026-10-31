@@ -1,5 +1,6 @@
 import { validated, is_thenable, icon_html, TABBABLE, resolve_content } from "./utils.js";
 import { normalize_options, build_item } from "./menu.js";
+import { place, VIEWPORT_PAD } from "./position.js";
 
 frappe.provide("frappe.ui");
 
@@ -16,6 +17,8 @@ frappe.provide("frappe.ui");
 
 /**
  * @typedef {BottomSheetStep & Object} BottomSheetOpts
+ * @property {Element|JQuery} [anchor] What the sheet is about, such as a tapped card. Wider than a
+ *   phone, the sheet opens as a popover beside it; height, snap_points and swipes don't apply.
  * @property {Element|JQuery} [trigger] An existing element that opens the sheet.
  * @property {Object} [button] Options for a generated frappe.ui.button trigger (ignored when `trigger` is passed).
  * @property {"auto"|"half"|"full"} [height="auto"] auto fits the content up to 90% of the screen.
@@ -40,6 +43,9 @@ const SETTLE_MS = 250; // keep in sync with the height transition in bottom_shee
 const LAYERS = ".es-bottom-sheet-root, .modal, .datepickers-container, .es-toast-container";
 // the menu layer; a sheet lifted to or past it has to lift what it opens as well
 const MENU_LAYER = 1060;
+// a popover's gap from its anchor, and the least height worth showing when no side fits it
+const POPOVER_GAP = 8;
+const POPOVER_MIN_HEIGHT = 240;
 
 let id_counter = 0;
 const open_sheets = new Set();
@@ -149,6 +155,9 @@ frappe.ui.BottomSheet = class BottomSheet {
 				<div class="es-bottom-sheet__footer flex gap-2"></div>
 			</div>`;
 		this.root = root;
+		const anchor = $(this.opts.anchor)[0];
+		this.popover = !!anchor && anchor.isConnected && !frappe.is_mobile();
+		if (this.popover) root.setAttribute("data-presentation", "popover");
 		this.scrim = root.querySelector(".es-bottom-sheet__scrim");
 		this.panel = root.querySelector(".es-bottom-sheet");
 		this.header = root.querySelector(".es-bottom-sheet__header");
@@ -159,10 +168,11 @@ frappe.ui.BottomSheet = class BottomSheet {
 		// fresh copies per open: content() runs again and nothing built last time is reused
 		this.steps = [{ ...this.opts }];
 		this.render();
-		this.set_height(this.snap_points[0] || this.height);
+		this.set_height(this.popover ? "auto" : this.snap_points[0] || this.height);
 
 		this.lift_layers(layer_above_open_dialogs(root));
 		document.body.appendChild(root);
+		if (this.popover) this.place_popover();
 		root.setAttribute("data-state", "open");
 		if (!open_sheets.size) {
 			const html = document.documentElement;
@@ -278,6 +288,8 @@ frappe.ui.BottomSheet = class BottomSheet {
 			this.render_footer(step);
 		});
 		step.on_show && step.on_show(this);
+		// a step of another height moves the popover to fit
+		if (this.popover && this.root?.isConnected) this.place_popover();
 		if (motion) {
 			// cleared and reflowed first, so a second push or pop replays the slide
 			this.body.removeAttribute("data-motion");
@@ -289,6 +301,33 @@ frappe.ui.BottomSheet = class BottomSheet {
 				{ once: true }
 			);
 		}
+	}
+
+	/** Beside the anchor where the whole panel fits, else above or below it, scrolling. */
+	place_popover() {
+		const anchor = $(this.opts.anchor)[0];
+		if (!anchor || !anchor.isConnected) return;
+		this.panel.style.maxHeight = "";
+		const rect = anchor.getBoundingClientRect();
+		const room = {
+			right: window.innerWidth - rect.right,
+			left: rect.left,
+			bottom: window.innerHeight - rect.bottom,
+			top: rect.top,
+		};
+		const size = (side) =>
+			side === "left" || side === "right" ? this.panel.offsetWidth : this.panel.offsetHeight;
+		// after the card in reading order first
+		const sides = frappe.utils.is_rtl()
+			? ["left", "right", "bottom", "top"]
+			: ["right", "left", "bottom", "top"];
+		let side = sides.find((s) => room[s] >= size(s) + POPOVER_GAP + VIEWPORT_PAD);
+		if (!side) {
+			side = room.bottom >= room.top ? "bottom" : "top";
+			const fits = room[side] - POPOVER_GAP - VIEWPORT_PAD;
+			this.panel.style.maxHeight = `${Math.max(fits, POPOVER_MIN_HEIGHT)}px`;
+		}
+		place(this.panel, rect, side, "start", POPOVER_GAP);
 	}
 
 	render_header(step) {
@@ -540,10 +579,15 @@ frappe.ui.BottomSheet = class BottomSheet {
 		this.scrim.addEventListener("mousedown", this.onscrimpress);
 		this.scrim.addEventListener("click", this.onscrimclick);
 		document.addEventListener("focusin", this.onfocusin);
-		this.root
-			.querySelector(".es-bottom-sheet__grip")
-			.addEventListener("pointerdown", this.ondragstart);
-		this.header.addEventListener("pointerdown", this.ondragstart);
+		if (this.popover) {
+			this.onreposition = () => this.place_popover();
+			window.addEventListener("resize", this.onreposition);
+		} else {
+			this.root
+				.querySelector(".es-bottom-sheet__grip")
+				.addEventListener("pointerdown", this.ondragstart);
+			this.header.addEventListener("pointerdown", this.ondragstart);
+		}
 		window.visualViewport?.addEventListener("resize", this.onviewport);
 		window.visualViewport?.addEventListener("scroll", this.onviewport);
 		// a keyboard already up when the sheet opens
@@ -553,6 +597,7 @@ frappe.ui.BottomSheet = class BottomSheet {
 	unbind() {
 		this.drag_end();
 		document.removeEventListener("focusin", this.onfocusin);
+		window.removeEventListener("resize", this.onreposition);
 		window.visualViewport?.removeEventListener("resize", this.onviewport);
 		window.visualViewport?.removeEventListener("scroll", this.onviewport);
 	}

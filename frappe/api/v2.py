@@ -19,7 +19,9 @@ from frappe import _, cint, cstr, get_newargs, is_whitelisted
 from frappe.api import discovery
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 from frappe.database.utils import DefaultOrderBy
-from frappe.handler import is_valid_http_method, run_server_script, upload_file
+from frappe.handler import is_valid_http_method, resolve_method, run_server_script, upload_file
+from frappe.mcp import handle as handle_mcp
+from frappe.model.utils import is_virtual_doctype
 
 PERMISSION_MAP = {
 	"GET": "read",
@@ -58,12 +60,7 @@ def handle_rpc_call(method: str, doctype: str | None = None):
 	if server_script:
 		return run_server_script(server_script)
 
-	try:
-		method = frappe.get_attr(method)
-	except frappe.AppNotInstalledError:
-		raise
-	except Exception as e:
-		frappe.throw(_("Failed to get method {0} with {1}").format(method, str(e)))
+	method = resolve_method(method)
 
 	is_whitelisted(method)
 	is_valid_http_method(method)
@@ -82,6 +79,17 @@ def logout():
 
 
 def read_doc(doctype: str, name: str):
+	"""
+	GET /api/v2/document/<doctype>/<name>?fields=[...]
+
+	Query Parameters (accessible via frappe.form_dict):
+		fields: JSON string of field names to return; a table field as
+		        {"<table field>": ["<child field>", ...]}, as for the list. Default: all.
+	"""
+	fields: list | None = frappe.parse_json(frappe.form_dict.get("fields", None))
+	if fields and not isinstance(fields, list):
+		raise FrappeValueError("'fields' must be a list")
+
 	doc = frappe.get_doc(doctype, name)
 	doc.check_permission("read")
 	doc.apply_fieldlevel_read_permissions()
@@ -92,7 +100,24 @@ def read_doc(doctype: str, name: str):
 		if df and df.fieldtype == "Link" and isinstance(_doc.get(key), int):
 			_doc[key] = cstr(_doc.get(key))
 
-	return _doc
+	return select_fields(_doc, fields) if fields else _doc
+
+
+def select_fields(doc: dict, fields: list) -> dict:
+	"""Pick `fields` from a document dict. Like the list, fields the dict does not have are left out."""
+	selected = dict(doc) if "*" in fields else {}
+	for field in fields:
+		if isinstance(field, dict):
+			for fieldname, child_fields in field.items():
+				if not isinstance(child_fields, list):
+					raise FrappeValueError(f"Fields for '{fieldname}' must be a list")
+				if isinstance(rows := doc.get(fieldname), list):
+					selected[fieldname] = [select_fields(row, child_fields) for row in rows]
+		elif not isinstance(field, str) or not (field == "*" or field.isidentifier()):
+			raise FrappeValueError(f"Invalid field for a document: {field}")
+		elif field in doc:
+			selected[field] = doc[field]
+	return selected
 
 
 def document_list(doctype: str) -> list[dict[str, Any]]:
@@ -120,6 +145,7 @@ def document_list(doctype: str) -> list[dict[str, Any]]:
 	Controller Customization:
 		Doctype controllers can customize queries by implementing a static get_list(query) method
 		that receives a QueryBuilder object and returns a modified QueryBuilder.
+		Virtual DocTypes are listed through their own get_list, as frappe.get_list does.
 
 		Example:
 			class Project(Document):
@@ -132,7 +158,7 @@ def document_list(doctype: str) -> list[dict[str, Any]]:
 						query = query.where(Project.is_private == 0)
 					return query
 	"""
-	from frappe.model.base_document import get_controller
+	from frappe.model.document import get_controller
 
 	args = frappe.form_dict
 	fields: list | None = frappe.parse_json(args.get("fields", None))
@@ -152,6 +178,20 @@ def document_list(doctype: str) -> list[dict[str, Any]]:
 		raise FrappeValueError("'order_by' must be a string")
 	if group_by and not isinstance(group_by, str):
 		raise FrappeValueError("'group_by' must be a string")
+
+	if is_virtual_doctype(doctype):
+		data = frappe.get_list(
+			doctype,
+			fields=fields,
+			filters=filters,
+			order_by=order_by,
+			start=start,
+			limit=limit + 1,
+			group_by=group_by,
+			as_list=not as_dict,
+		)
+		frappe.response["has_next_page"] = len(data) > limit
+		return data[:limit]
 
 	query = frappe.qb.get_query(
 		table=doctype,
@@ -182,7 +222,7 @@ def document_list(doctype: str) -> list[dict[str, Any]]:
 				query = return_value
 
 		except Exception as e:
-			frappe.throw(_("Error in {0}.get_list: {1}").format(doctype, str(e)))
+			frappe.throw(_("Error in {0}.get_list: {1}").format(doctype, str(e) or type(e).__name__))
 
 	data = query.run(as_dict=as_dict, debug=debug, as_list=not as_dict)
 	frappe.response["has_next_page"] = len(data) > limit
@@ -224,6 +264,7 @@ def update_doc(doctype: str, name: str):
 	data = frappe.form_dict
 
 	doc = frappe.get_doc(doctype, name, for_update=True)
+	doc.check_permission("write")
 	data.pop("flags", None)
 	doc.update(data)
 	doc.save()
@@ -613,6 +654,7 @@ def run_doc_method(method: str, document: dict[str, Any] | str, kwargs=None):
 
 
 url_rules = [
+	Rule("/mcp", methods=["POST", "GET", "DELETE"], endpoint=handle_mcp),
 	# Discovery APIs
 	Rule("/discovery", methods=["GET"], endpoint=discovery.root),
 	Rule(

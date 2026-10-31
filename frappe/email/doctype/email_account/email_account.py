@@ -350,6 +350,10 @@ class EmailAccount(Document):
 			enable_outgoing=self.enable_outgoing,
 			used_oauth=self.auth_method == "OAuth",
 		)
+		if (before := self.get_doc_before_save()) and before.connected_app != self.connected_app:
+			from frappe.integrations.frappe_providers.email_oauth import delete_relay_app
+
+			delete_relay_app(before.connected_app)
 
 	def clear_cache(self):
 		super().clear_cache()
@@ -358,16 +362,8 @@ class EmailAccount(Document):
 	def there_must_be_only_one_default(self):
 		"""If current Email Account is default, un-default all other accounts."""
 		for field in ("default_incoming", "default_outgoing"):
-			if not self.get(field):
-				continue
-
-			for email_account in frappe.get_all("Email Account", filters={field: 1}):
-				if email_account.name == self.name:
-					continue
-
-				email_account = frappe.get_doc("Email Account", email_account.name)
-				email_account.set(field, 0)
-				email_account.save()
+			if self.get(field):
+				frappe.db.set_value("Email Account", {field: 1, "name": ("!=", self.name)}, field, 0)
 
 	@frappe.whitelist()
 	def get_domain_values(self, domain: str):
@@ -445,7 +441,7 @@ class EmailAccount(Document):
 				error_message = _("Email Account Disabled.") + " " + error_message
 				error_message += "<br>" + _("Message from server: {0}").format(cstr(e))
 				self.handle_incoming_connect_error(description=error_message)
-				return None
+				raise
 
 			elif not is_background_receive and any(t in message for t in auth_error_codes):
 				SMTPServer.throw_invalid_credentials_exception()
@@ -459,7 +455,6 @@ class EmailAccount(Document):
 				self.db_set("no_failed", self.no_failed + 1)
 				if self.no_failed > 2:
 					self.handle_incoming_connect_error(description=description)
-				return
 
 			raise
 
@@ -874,6 +869,13 @@ class EmailAccount(Document):
 		).run()
 
 		remove_user_email_inbox(email_account=self.name)
+
+	def after_delete(self):
+		"""Frappe Cloud's mailbox connect makes one Connected App per mailbox; without the mailbox,
+		its refresh token would stay usable through Central."""
+		from frappe.integrations.frappe_providers.email_oauth import delete_relay_app
+
+		delete_relay_app(self.connected_app)
 
 	def after_rename(self, old, new, merge=False):
 		frappe.db.set_value("Email Account", new, "email_account_name", new)

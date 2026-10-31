@@ -8,6 +8,9 @@ Thus providing a better UI from user perspective
 
 import json
 
+from pypika.functions import Length
+from pypika.terms import Function
+
 import frappe
 import frappe.translate
 from frappe import _
@@ -61,6 +64,7 @@ class CustomizeForm(Document):
 		is_calendar_and_gantt: DF.Check
 		istable: DF.Check
 		label: DF.Data | None
+		link_display_mode: DF.Literal["Search", "Select"]
 		link_filters: DF.JSON | None
 		links: DF.Table[DocTypeLink]
 		make_attachments_public: DF.Check
@@ -83,6 +87,7 @@ class CustomizeForm(Document):
 		search_fields: DF.Data | None
 		sender_field: DF.Data | None
 		sender_name_field: DF.Data | None
+		show_image_in_link: DF.Check
 		show_name_in_global_search: DF.Check
 		show_preview_popup: DF.Check
 		show_title_field_in_link: DF.Check
@@ -339,8 +344,7 @@ class CustomizeForm(Document):
 			new_value_length = cint(df.get(prop))
 
 			if new_value_length and (old_value_length > new_value_length):
-				self.check_length_for_fieldtypes.append({"df": df, "old_value": meta_df[0].get(prop)})
-				self.validate_fieldtype_length()
+				self.validate_fieldtype_length(df)
 			else:
 				self.flags.update_db = True
 
@@ -592,8 +596,7 @@ class CustomizeForm(Document):
 			# Ignore fieldtype check validation if new field type has unspecified maxlength
 			# Changes like DATA to TEXT, where new_value_lenth equals 0 will not be validated
 			if new_value_length and (old_value_length > new_value_length):
-				self.check_length_for_fieldtypes.append({"df": df, "old_value": old_value})
-				self.validate_fieldtype_length()
+				self.validate_fieldtype_length(df)
 			else:
 				self.flags.update_db = True
 
@@ -604,30 +607,23 @@ class CustomizeForm(Document):
 				)
 			)
 
-	def validate_fieldtype_length(self):
-		for field in self.check_length_for_fieldtypes:
-			df = field.get("df")
-			max_length = cint(frappe.db.type_map.get(df.fieldtype)[1])
-			fieldname = df.fieldname
-			docs = frappe.db.sql(
-				f"""
-				SELECT name, {fieldname}, LENGTH({fieldname}) AS len
-				FROM `tab{self.doc_type}`
-				WHERE LENGTH({fieldname}) > {max_length}
-			""",
-				as_dict=True,
-			)
-			label = df.label
-			links_str = ", ".join(frappe.utils.get_link_to_form(self.doc_type, doc.name) for doc in docs)
+	def validate_fieldtype_length(self, df):
+		max_length = cint(df.length) or cint(frappe.db.type_map.get(df.fieldtype)[1])
+		field = frappe.qb.DocType(self.doc_type)[df.fieldname]
+		# MariaDB's LENGTH counts bytes; SQLite has no CHAR_LENGTH and its LENGTH counts characters
+		char_length = Length(field) if frappe.db.db_type == "sqlite" else Function("CHAR_LENGTH", field)
+		docs = frappe.qb.from_(self.doc_type).select("name").where(char_length > max_length).run(as_dict=True)
+		label = df.label
+		links_str = ", ".join(frappe.utils.get_link_to_form(self.doc_type, doc.name) for doc in docs)
 
-			if docs:
-				frappe.throw(
-					_(
-						"Value for field {0} is too long in {1}. Length should be lesser than {2} characters"
-					).format(frappe.bold(label), links_str, frappe.bold(max_length)),
-					title=_("Data Too Long"),
-					is_minimizable=len(docs) > 1,
-				)
+		if docs:
+			frappe.throw(
+				_(
+					"Value for field {0} is too long in {1}. Length should be lesser than {2} characters"
+				).format(frappe.bold(label), links_str, frappe.bold(max_length)),
+				title=_("Data Too Long"),
+				is_minimizable=len(docs) > 1,
+			)
 
 		self.flags.update_db = True
 
@@ -763,6 +759,8 @@ doctype_properties = {
 	"default_view": "Select",
 	"force_re_route_to_default_view": "Check",
 	"translated_doctype": "Check",
+	"link_display_mode": "Select",
+	"show_image_in_link": "Check",
 	"grid_page_length": "Int",
 	"rows_threshold_for_grid_search": "Int",
 }
@@ -814,6 +812,7 @@ docfield_properties = {
 	"columns": "Int",
 	"remember_last_selected_value": "Check",
 	"allow_bulk_edit": "Check",
+	"make_attachment_public": "Check",
 	"auto_repeat": "Link",
 	"allow_in_quick_entry": "Check",
 	"hide_border": "Check",

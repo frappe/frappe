@@ -4,7 +4,9 @@ from contextlib import contextmanager
 from contextvars import copy_context
 from unittest.mock import patch
 
+from redis.exceptions import ConnectionError
 from rq import Queue
+from rq.job import Job
 from werkzeug.local import Local
 
 import frappe
@@ -19,6 +21,7 @@ from frappe.utils.background_jobs import (
 	create_job_id,
 	execute_job,
 	generate_qname,
+	get_jobs,
 	get_queue,
 	get_queues_timeout,
 	get_redis_conn,
@@ -90,6 +93,38 @@ class TestBackgroundJobs(IntegrationTestCase):
 
 		# lesser is earlier
 		self.assertTrue(high_priority_job.get_position() < low_priority_job.get_position())
+
+	def test_deduplicated_enqueue_runs_directly_in_migrate_without_redis(self):
+		calls = []
+		with (
+			patch("frappe.utils.background_jobs.get_redis_conn", side_effect=ConnectionError),
+			patch.dict(frappe.local.flags, in_migrate=True),
+			patch("frappe.call", side_effect=lambda method, **kwargs: calls.append(method)),
+		):
+			frappe.enqueue("frappe.ping", job_id="test-dedup-without-redis", deduplicate=True)
+		self.assertEqual(calls, ["frappe.ping"])
+
+		with (
+			patch("frappe.utils.background_jobs.get_redis_conn", side_effect=ConnectionError),
+			self.assertRaises(ConnectionError),
+		):
+			frappe.enqueue("frappe.ping", job_id="test-dedup-without-redis", deduplicate=True)
+
+	def test_enqueue_passes_retry_kwarg_to_method(self):
+		job = frappe.enqueue("frappe.tests.test_background_jobs.echo_retry", queue="short", retry=3)
+		self.assertEqual(job.kwargs["kwargs"]["retry"], 3)
+		self.assertIsNone(job.retries_left)
+
+	def test_get_jobs_skips_job_with_renamed_method(self):
+		job = frappe.enqueue(method=echo_retry, queue="short")
+		stale_job = Job.fetch(job.id, connection=get_redis_conn())
+		with (
+			patch.dict(globals()),
+			patch("frappe.utils.background_jobs.get_running_jobs_in_queue", return_value=[stale_job]),
+		):
+			del globals()["echo_retry"]
+			jobs = get_jobs(site=frappe.local.site, queue="short")
+		self.assertNotIn(echo_retry, jobs[frappe.local.site])
 
 	def test_job_translation_resolves_user_language(self):
 		real_get_cached_value = frappe.get_cached_value
@@ -251,6 +286,22 @@ class TestBackgroundJobs(IntegrationTestCase):
 			is_async=False,
 			retry=1,
 		)
+
+	def test_sync_job_does_not_leave_job_context_behind(self):
+		with self.set_user("test@example.com"):
+			execute_job(frappe.local.site, "frappe.ping", None, "ping", {}, is_async=False)
+			self.assertFalse(hasattr(frappe.local, "job"))
+
+			with (
+				patch("frappe.get_hooks", return_value=["frappe.tests.test_background_jobs.fail_function"]),
+				self.assertRaises(ZeroDivisionError),
+			):
+				execute_job(frappe.local.site, "frappe.ping", None, "ping", {}, is_async=False)
+			self.assertFalse(hasattr(frappe.local, "job"))
+
+
+def echo_retry(retry=None):
+	return retry
 
 
 def fail_function():

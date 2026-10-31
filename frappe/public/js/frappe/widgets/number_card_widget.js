@@ -42,6 +42,7 @@ export default class NumberCardWidget extends Widget {
 				}
 			} else {
 				this.card_doc = card;
+				this.island = card.__onload?.island;
 				this.render_card();
 			}
 
@@ -63,8 +64,10 @@ export default class NumberCardWidget extends Widget {
 	}
 
 	set_events() {
+		// An island handles its own clicks. The list route belongs to desk's number.
+		this.widget.toggleClass("number-widget-island", Boolean(this.island));
 		$(this.body).click(() => {
-			if (this.in_customize_mode) return;
+			if (this.in_customize_mode || this.island) return;
 			this.set_route();
 		});
 	}
@@ -167,10 +170,14 @@ export default class NumberCardWidget extends Widget {
 	}
 
 	async render_card() {
-		this.prepare_actions();
+		// The card may have been claimed or released since it last drew.
+		this.unmount_island();
 		this.set_title();
 		this.card_doc?.background_color &&
 			this.widget.css("background-color", this.card_doc.background_color);
+		if (this.island) return this.make_island();
+
+		this.prepare_actions();
 		this.set_loading_state();
 
 		if (!this.card_doc.type) {
@@ -185,6 +192,11 @@ export default class NumberCardWidget extends Widget {
 	}
 
 	set_loading_state() {
+		if (!this.is_classic) {
+			this.draw_number({ value: null, loading: true });
+			return;
+		}
+
 		$(this.body).html(`<div class="number-card-loading text-muted">
 			${__("Loading...")}
 		</div>`);
@@ -279,7 +291,120 @@ export default class NumberCardWidget extends Widget {
 		return common_doc;
 	}
 
+	get is_classic() {
+		return frappe.ui.chart.is_classic({ type: "number" });
+	}
+
+	draw_number(config) {
+		// the card's data can arrive after the dashboard removed it
+		if (this.destroyed) return;
+		const card = { type: "number", title: "", card: false, ...config };
+		if (this.number_chart) {
+			this.number_chart.update(card);
+		} else {
+			this.number_chart = frappe.ui.chart(this.body, card);
+		}
+	}
+
+	// The number as the classic card prints it, with the whole field and the doc it reads.
+	get_number_config() {
+		return { value: String(this.formatted_number), color: this.card_doc.color || undefined };
+	}
+
+	destroy() {
+		this.destroyed = true;
+		this.release_number_chart();
+		this.unmount_island();
+	}
+
+	release_number_chart() {
+		this.number_chart?.destroy();
+		delete this.number_chart;
+	}
+
+	/**
+	 * Draws a card an app owns. Desk keeps the frame, which is the title and the
+	 * actions, as the chart widget does. The island owns the body alone.
+	 */
+	make_island() {
+		// The document loads after a round trip, by which time the page may have dropped the card.
+		if (this.destroyed) return;
+
+		this.prepare_island_actions([]);
+
+		// The number chart lives on the body, so it goes before the body does.
+		this.release_number_chart();
+		const body = $(`<div class="number-card-island"></div>`);
+		$(this.body).empty().append(body);
+
+		this.island_handle = frappe.ui.mount_island(this.island.name, body, {
+			...this.island.props,
+			onActions: (actions) => this.prepare_island_actions(actions),
+		});
+		this.island_handle.ready.catch((error) => this.show_island_error(error));
+	}
+
+	// the error names a build step: console always, screen only in developer mode
+	show_island_error(error) {
+		console.error(`could not mount the "${this.island.name}" island`, error);
+
+		$(this.body)
+			.empty()
+			.append(
+				frappe.ui.empty_state({
+					icon: "package",
+					title: __("This card has not been built"),
+					description: frappe.boot.developer_mode
+						? error.message
+						: __("Its assets are missing. Build the app that ships it."),
+				})
+			);
+	}
+
+	/**
+	 * The island's own actions, then Edit. Desk's Refresh fetches the number desk
+	 * draws, so the island reports Refresh itself if it means anything to it.
+	 *
+	 * @param {{ label: string, onClick?: Function, href?: string }[]} actions
+	 */
+	prepare_island_actions(actions) {
+		if (this.in_customize_mode) return;
+
+		this.set_card_actions([
+			...(actions || []).map((action, i) => ({
+				label: frappe.utils.escape_html(action.label),
+				action: `island-action-${i}`,
+				handler: action.href
+					? () => window.open(action.href, "_blank")
+					: () => action.onClick(),
+			})),
+			this.edit_action(),
+		]);
+	}
+
+	/** Releases the island the body holds, if any. Safe to call at any time. */
+	unmount_island() {
+		this.island_handle?.unmount();
+		this.island_handle = null;
+	}
+
+	edit_action() {
+		return {
+			label: __("Edit"),
+			action: "action-edit",
+			handler: () => {
+				let number_card = this.number_card_name || this.name;
+				frappe.set_route("Form", "Number Card", number_card);
+			},
+		};
+	}
+
 	render_number() {
+		if (!this.is_classic) {
+			this.draw_number(this.get_number_config());
+			return;
+		}
+
 		const style_attr = this.card_doc.color ? `style="color: ${this.card_doc.color};"` : "";
 
 		$(this.body).html(`<div class="widget-content">
@@ -295,7 +420,18 @@ export default class NumberCardWidget extends Widget {
 		let caret_html = "";
 		let color_class = "";
 
-		return this.get_percentage_stats().then(() => {
+		return this.get_percentage_stats().then((difference) => {
+			if (!this.is_classic) {
+				if (typeof difference !== "number") return;
+				this.draw_number({
+					...this.get_number_config(),
+					delta: difference,
+					deltaSuffix: "%",
+					deltaCaption: this.get_stats_caption(),
+				});
+				return;
+			}
+
 			if (this.percentage_stat == 0 || this.percentage_stat == undefined) {
 				color_class = "grey-stat";
 			} else if (this.percentage_stat > 0) {
@@ -310,13 +446,7 @@ export default class NumberCardWidget extends Widget {
 				color_class = "red-stat";
 			}
 
-			const stats_qualifier_map = {
-				Daily: __("since yesterday"),
-				Weekly: __("since last week"),
-				Monthly: __("since last month"),
-				Yearly: __("since last year"),
-			};
-			const stats_qualifier = stats_qualifier_map[this.card_doc.stats_time_interval];
+			const stats_qualifier = this.get_stats_caption();
 
 			let stat = (() => {
 				if (this.percentage_stat == undefined) return NaN;
@@ -336,6 +466,15 @@ export default class NumberCardWidget extends Widget {
 		});
 	}
 
+	get_stats_caption() {
+		return {
+			Daily: __("since yesterday"),
+			Weekly: __("since last week"),
+			Monthly: __("since last month"),
+			Yearly: __("since last year"),
+		}[this.card_doc.stats_time_interval];
+	}
+
 	get_percentage_stats() {
 		return frappe
 			.xcall("frappe.desk.doctype.number_card.number_card.get_percentage_difference", {
@@ -347,6 +486,7 @@ export default class NumberCardWidget extends Widget {
 				if (res !== undefined) {
 					this.percentage_stat = frappe.utils.shorten_number(res);
 				}
+				return res;
 			});
 	}
 
@@ -361,14 +501,7 @@ export default class NumberCardWidget extends Widget {
 					this.render_card();
 				},
 			},
-			{
-				label: __("Edit"),
-				action: "action-edit",
-				handler: () => {
-					let number_card = this.number_card_name || this.name;
-					frappe.set_route("Form", "Number Card", number_card);
-				},
-			},
+			this.edit_action(),
 		];
 
 		this.set_card_actions(actions);
