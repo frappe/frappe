@@ -200,6 +200,11 @@ test("run_action names its verb and shows what each record did, structured retur
 	assert.equal(presentTool("run_action", submit, submitted).label, "Submitting");
 	assert.equal(presentTool("run_action", submit, submitted).stat, "1 done");
 
+	const count = { doctype: "ToDo", names: [], action: "frappe.desk.reportview.get_count" };
+	const counted = json({ action: count.action, result: 2 });
+	assert.equal(presentTool("run_action", count, counted).label, "Running a Function");
+	assert.equal(presentTool("run_action", count, counted).stat, "");
+
 	const returning = (outcome) =>
 		mount(t, NamesView, {
 			arguments: { doctype: "Sales Invoice", names: ["INV-1"], action: "make_payment" },

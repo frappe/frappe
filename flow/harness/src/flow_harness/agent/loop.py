@@ -611,6 +611,9 @@ async def _settle_call(
 	if _needs_confirmation(inputs, call.name, tools):
 		prompt = await _confirmation_prompt(call, tools, inputs)
 		_raise_if_aborted(inputs.abort)
+		if prompt is None:
+			runnable.append((call, rewritten))
+			return
 		gated.append(PendingCall(id=call.id, name=call.name, args=call.args, prompt=prompt))
 		return
 	runnable.append((call, rewritten))
@@ -745,9 +748,10 @@ def _size(n: int) -> str:
 	return f"{n / 1024**2:.1f} MB" if n >= 1024**2 else f"{max(1, round(n / 1024))} KB"
 
 
-async def _confirmation_prompt(call: ToolCall, tools: dict[str, Tool], inputs: LoopInputs) -> str:
+async def _confirmation_prompt(call: ToolCall, tools: dict[str, Tool], inputs: LoopInputs) -> str | None:
 	"""Build the human-facing approval prompt. Server tools may define their own via
-	`Tool.confirm_prompt`; client tools can supply one over the callback; else generic."""
+	`Tool.confirm_prompt`; client tools can supply one over the callback, or answer
+	`{"approved": true}` for a call that needs no approval (None); else generic."""
 	tool = tools.get(call.name)
 	if tool is not None and tool.confirm_prompt is not None:
 		try:
@@ -759,6 +763,8 @@ async def _confirmation_prompt(call: ToolCall, tools: dict[str, Tool], inputs: L
 			response = await await_with_cancellation(
 				call_client(inputs.config, inputs.session_id, call, mode="confirm"), inputs.abort
 			)
+			if response.get("approved"):
+				return None
 			if response.get("prompt"):
 				return response["prompt"]
 		except ModelCancelled:

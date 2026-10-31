@@ -47,6 +47,37 @@ def write_then_fail(*, ctx: ToolContext) -> None:
 	raise ValueError("after writing")
 
 
+@frappe.whitelist()
+@frappe.read_only()
+def read_only_open_todos() -> list[str]:
+	"""Reads only."""
+	return frappe.get_all("ToDo", {"description": "callback-read"}, pluck="description")
+
+
+@frappe.whitelist()
+@frappe.read_only()
+def read_only_that_writes() -> str:
+	"""Marked read-only, but inserts a ToDo and tries to commit it."""
+	frappe.get_doc({"doctype": "ToDo", "description": "read-only-wrote"}).insert()
+	frappe.db.commit()  # nosemgrep: frappe-manual-commit
+	return "wrote"
+
+
+@frappe.whitelist()
+@frappe.read_only()
+def read_only_that_hides_its_write() -> str:
+	"""Marked read-only; inserts a ToDo, then a rollback to a later savepoint resets the write count."""
+	frappe.get_doc({"doctype": "ToDo", "description": "read-only-hid"}).insert()
+	frappe.db.savepoint("hide")
+	frappe.db.rollback(save_point="hide")
+	return "hid"
+
+
+@frappe.read_only()
+def read_only_not_whitelisted() -> str:
+	return "secret"
+
+
 @tool(background=lambda args: args.get("slow"))
 def maybe_later(slow: bool = False, *, ctx: ToolContext) -> str:
 	"""The user this tool runs as; queued only when slow."""
@@ -87,6 +118,7 @@ class TestToolCallback(IntegrationTestCase):
 		attached = (
 			"frappe/read_records",
 			"frappe/delete",
+			"frappe/run_action",
 			"frappe/execute",
 			"frappe/update_memory",
 			"frappe/search_attachments",
@@ -369,6 +401,47 @@ class TestToolCallback(IntegrationTestCase):
 				run_background_tool(*args, start_by=time.time() + 60)
 		self.assertEqual([call.args[0] for call in sleep.call_args_list], [0, 1, 0, 1, 5])
 
+	def test_a_whitelisted_read_only_function_runs_without_approval_and_others_ask(self):
+		def run(action, mode="execute", names=None):
+			return self.call(
+				"run_action", {"doctype": "ToDo", "names": names or [], "action": action}, mode=mode
+			)
+
+		self.assertEqual(run(f"{MODULE}.read_only_open_todos", mode="confirm"), {"approved": True})
+		self.assertEqual(
+			run("frappe.desk.notifications.get_notifications", mode="confirm"), {"approved": True}
+		)
+		for action, names in (
+			("frappe.client.set_value", None),
+			(f"{MODULE}.read_only_not_whitelisted", None),
+			("submit", ["a"]),
+		):
+			with self.subTest(action=action):
+				self.assertIn("prompt", run(action, mode="confirm", names=names))
+
+		frappe.get_doc({"doctype": "ToDo", "description": "callback-read"}).insert().db_set("owner", OWNER)
+		result = run(f"{MODULE}.read_only_open_todos")
+		self.assertFalse(result["is_error"], result["content"])
+		self.assertEqual(json.loads(result["content"])["result"], ["callback-read"])
+		result = run(f"{MODULE}.read_only_not_whitelisted")
+		self.assertTrue(result["is_error"])
+		self.assertNotIn("secret", result["content"])
+
+	def test_a_read_only_function_that_writes_is_undone_and_refused(self):
+		result = self.call(
+			"run_action", {"doctype": "ToDo", "names": [], "action": f"{MODULE}.read_only_that_writes"}
+		)
+		self.assertTrue(result["is_error"])
+		self.assertIn("not a read and was undone", result["content"])
+		self.assertFalse(frappe.db.exists("ToDo", {"description": "read-only-wrote"}))
+		self.assertFalse(frappe.db._disable_transaction_control)
+
+		self.call(
+			"run_action",
+			{"doctype": "ToDo", "names": [], "action": f"{MODULE}.read_only_that_hides_its_write"},
+		)
+		self.assertFalse(frappe.db.exists("ToDo", {"description": "read-only-hid"}))
+
 	def test_confirm_mode_prompts_a_title_line_then_the_tools_own_summary(self):
 		prompt = self.call("delete", {"doctype": "ToDo", "names": ["a", "b"]}, mode="confirm")["prompt"]
 		self.assertEqual(prompt, "Delete 2 ToDo records\nDelete 2 ToDo: a, b")
@@ -389,6 +462,7 @@ class TestToolCallback(IntegrationTestCase):
 				'Run "Submit" on 2 Sales Order',
 			),
 			("run_action", {"action": "send_sms"}, 'Run "Send sms" on records'),
+			("run_action", {"action": "erpnext.selling.get_sales"}, 'Run "erpnext.selling.get_sales"'),
 			("execute", {"description": "  Count things ", "code": ""}, "Count things"),
 			("execute", {"code": "x"}, "Run Python code"),
 			("create", {"records": []}, "Create"),

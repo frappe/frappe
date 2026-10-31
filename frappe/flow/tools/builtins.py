@@ -13,6 +13,7 @@ from frappe.database.utils import DefaultOrderBy
 from frappe.flow.lib.tool import Tool, ToolContext, tool
 from frappe.flow.utils.safe_exec import safe_exec
 from frappe.model.base_document import get_controller
+from frappe.model.document import Document
 from frappe.query_builder.functions import Count
 
 MAX_READ_LIMIT = 200
@@ -703,7 +704,9 @@ def delete(doctype: str, names: list[str], *, ctx: ToolContext) -> dict[str, Any
 @tool(
 	requires_confirmation=True,
 	confirm_prompt=lambda args: (
-		_("Run '{0}' on {1} {2}: {3}").format(
+		json.dumps(args.get("args") or {}, indent=2, default=str)
+		if is_function_path(args.get("action"))
+		else _("Run '{0}' on {1} {2}: {3}").format(
 			args.get("action"),
 			len(args.get("names") or []),
 			args.get("doctype", "?"),
@@ -721,9 +724,22 @@ def run_action(
 ) -> dict[str, Any]:
 	"""Run a document action found via describe: submit, cancel, amend, rename, a workflow transition, or a whitelisted method.
 
+	A whitelisted function's dotted path runs once with `args` as its arguments, ignoring `names`.
 	If it fails on any record, none are changed.
 	"""
 	args = args or {}
+
+	if is_function_path(action):
+		frappe.db.savepoint(_BATCH_SAVEPOINT)
+		try:
+			method = frappe.get_attr(frappe.override_whitelisted_method(action))
+			frappe.is_whitelisted(method)
+			result = _call_as_request(method, args)
+		except Exception as e:
+			_undo_batch(action, e)
+		if isinstance(result, Document):
+			result = result.as_dict(no_nulls=True)
+		return {"action": action, "result": result}
 
 	if action == "rename":
 		if len(names) != 1:
@@ -741,6 +757,27 @@ def run_action(
 		except Exception as e:
 			_undo_batch(name, e)
 	return {"action": action, "results": results}
+
+
+def _call_as_request(method: Any, args: dict[str, Any]) -> Any:
+	"""Call a whitelisted function as desk's API call does: `args` are the request's form_dict, and
+	what it puts in frappe.response is its reply, which may not be a file."""
+	form_dict, response = frappe.local.form_dict, frappe.local.response
+	frappe.local.form_dict, frappe.local.response = frappe._dict(args), frappe._dict()
+	try:
+		result = frappe.call(method, **args)
+		if frappe.response.get("type"):
+			raise ValueError(
+				f"It replies with a {frappe.response.type} file, not data, so it can't run here."
+			)
+		return frappe.response.get("message") if result is None else result
+	finally:
+		frappe.local.form_dict, frappe.local.response = form_dict, response
+
+
+def is_function_path(action: Any) -> bool:
+	"""Whether a run_action `action` is a function's dotted path rather than a record action."""
+	return isinstance(action, str) and bool(re.fullmatch(r"\w+(\.\w+)+", action))
 
 
 def _undo_batch(record: str, error: Exception) -> NoReturn:

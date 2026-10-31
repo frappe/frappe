@@ -23,6 +23,7 @@ ERROR_LIMIT = 500
 START_WITHIN = 600  # seconds a queued call may wait to start
 JOB_TIMEOUT = 1500  # seconds a background tool may run, unless flow_background_tool_timeout is set
 DELIVERY_RETRY_DELAYS = (0, 1, 5)  # seconds before each try to post a result
+READ_ONLY_SAVEPOINT = "flow_read_only"
 
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])  # nosemgrep: guest-whitelisted-method
@@ -115,13 +116,58 @@ def _dispatch(
 	tool = next((tool for tool in tools if tool.name == name), None)
 	if tool is None:
 		return _error(_("Unknown tool {0}.").format(name))
+	read_only = is_read_only_call(name, args)
 	if mode == "confirm":
-		return {"prompt": confirm_prompt(tool, args)}
+		return {"approved": True} if read_only else {"prompt": confirm_prompt(tool, args)}
 	# the job itself passes no token
 	if result_token and (tool.background(args) if callable(tool.background) else tool.background):
 		return _enqueue(session_id, agent, name, args, result_token)
 	ctx = ToolContext(session_id=session_id, agent=agent, user=frappe.session.user)
-	return {"content": _text(tool(**args, ctx=ctx)), "is_error": False}
+	result = _run_read_only(tool, args, ctx) if read_only else tool(**args, ctx=ctx)
+	return {"content": _text(result), "is_error": False}
+
+
+def is_read_only_call(name: str, args: dict) -> bool:
+	"""Whether a run_action call is to a whitelisted function marked `@frappe.read_only()`, which
+	needs no approval."""
+	from frappe.flow.tools.builtins import is_function_path
+
+	action = args.get("action")
+	if name != "run_action" or not is_function_path(action):
+		return False
+	try:
+		method = frappe.get_attr(frappe.override_whitelisted_method(action))
+	except Exception:
+		return False
+	return method in frappe.whitelisted and getattr(method, "read_only", False)
+
+
+def _run_read_only(tool: Tool, args: dict, ctx: ToolContext) -> Any:
+	"""A call no one approved, so it may not write: commits are off while it runs, whatever it
+	wrote is undone, and if it wrote, it is refused."""
+	writes = frappe.db.transaction_writes
+	frappe.db.savepoint(READ_ONLY_SAVEPOINT)
+	frappe.db._disable_transaction_control += 1
+	try:
+		result = tool(**args, ctx=ctx)
+	finally:
+		frappe.db._disable_transaction_control -= 1
+	wrote = frappe.db.transaction_writes != writes
+	try:
+		frappe.db.rollback(save_point=READ_ONLY_SAVEPOINT)
+	except Exception:  # a commit, such as before a schema change, took the savepoint
+		raise frappe.ValidationError(
+			_("{0} committed changes to the database, so it is not a read. Tell the user.").format(
+				args.get("action")
+			)
+		) from None
+	if wrote:
+		raise frappe.ValidationError(
+			_(
+				"{0} wrote to the database, so it is not a read and was undone. Ask the user before running it another way."
+			).format(args.get("action"))
+		)
+	return result
 
 
 def _enqueue(session_id: str, agent: str, tool: str, args: dict, result_token: str) -> dict:
@@ -197,6 +243,10 @@ def confirm_title(name: str, args: dict) -> str:
 	if name == "delete" and doctype:
 		return _count("Delete 1 {0} record", "Delete {0} {1} records", args.get("names"), doctype)
 	if name == "run_action" and action:
+		from frappe.flow.tools.builtins import is_function_path
+
+		if is_function_path(action):
+			return _('Run "{0}"').format(action)
 		target = f"{_list_count_or_one(args.get('names'))} {doctype}" if doctype else _("records")
 		return _('Run "{0}" on {1}').format(_humanize(action), target)
 	if name == "execute":

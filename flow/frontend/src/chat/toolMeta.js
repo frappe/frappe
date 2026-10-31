@@ -58,11 +58,17 @@ const TOOLS = {
 	},
 	run_action: {
 		icon: "lucide-play",
-		label: (args) => ACTIONS[args.action] ?? "Running Document Actions",
+		label: (args) =>
+			ACTIONS[args.action] ??
+			(/^\w+(\.\w+)+$/.test(args.action ?? "") ? "Running a Function" : "Running Document Actions"),
 		view: NamesView,
 		asks: true,
 		stat: (result) =>
-			result.action === "rename" ? "renamed" : outcome(result.results, "done"),
+			result.action === "rename"
+				? "renamed"
+				: result.results
+				? outcome(result.results, "done")
+				: "",
 	},
 	execute: { icon: "lucide-code", label: "Running Code", view: CodeView, asks: true },
 	search_knowledge: {

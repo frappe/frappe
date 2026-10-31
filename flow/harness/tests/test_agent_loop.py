@@ -957,6 +957,34 @@ async def test_a_pending_client_tool_waits_for_its_posted_result(tmp_path, monke
 	assert not deliver_result(session.id, seen["result_token"], {"content": "late"})
 
 
+async def test_a_client_tool_call_the_callback_approves_runs_without_asking(tmp_path, monkeypatch):
+	modes = []
+	answer = {}
+
+	async def post(config, url, payload):
+		modes.append(payload["mode"])
+		if payload["mode"] == "confirm":
+			return answer
+		return {"content": "report ready"}
+
+	monkeypatch.setattr("flow_harness.agent.client_tools._post", post)
+	settings = {**_REPORT_CLIENT, "auto_approve": False, "confirm_tools": ["report"]}
+
+	answer.update(approved=True)
+	session, events = _session(tmp_path, **settings)
+	await _run(session, "build the report", model=_report_model())
+	assert modes == ["confirm", "execute"]
+	assert [r["content"] for r in _of(events, "tool_result")] == ["report ready"]
+
+	modes.clear()
+	answer.clear()
+	answer.update(prompt="Build the report?")
+	session, events = _session(tmp_path, **settings)
+	await _run(session, "build the report", model=_report_model())
+	assert modes == ["confirm"]
+	assert _of(events, "tool_result") == []
+
+
 class _FailingModel(Model):
 	"""A bare adapter whose failures reach the loop untreated — no retry envelope."""
 
