@@ -10,6 +10,7 @@ import frappe
 from frappe import _, cstr, get_module_path
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.core.doctype.document_share_key.document_share_key import is_expired
+from frappe.printing.doctype.print_format.print_format import can_print_with, check_print_format_roles
 from frappe.utils import cint, escape_html, flt, strip_html
 from frappe.utils.jinja_globals import is_rtl
 from frappe.utils.print_utils import HTML_PDF_GENERATORS, resolve_pdf_generator
@@ -158,18 +159,23 @@ def cast_client_values(document: "Document"):
 
 def get_print_format_doc(print_format_name: str, meta: "Meta") -> "PrintFormat" | None:
 	"""Return print format document."""
-	if not print_format_name:
-		print_format_name = frappe.form_dict.format or meta.default_print_format or "Standard"
+	requested = print_format_name or frappe.form_dict.format
+	print_format_name = requested or meta.default_print_format or "Standard"
 
 	if print_format_name == "Standard":
 		return None
 
 	def fetch(name):
 		try:
-			return frappe.get_doc("Print Format", name)
+			doc = frappe.get_doc("Print Format", name)
 		except frappe.DoesNotExistError:
 			frappe.clear_last_message()
 			return None
+		if can_print_with(doc):
+			return doc
+		if name == requested and name != meta.default_print_format:
+			check_print_format_roles(doc)
+		return None
 
 	# a renamed or deleted format — or a caller interpolating a missing name into
 	# the url — resolves to the doctype's default, like an omitted name does

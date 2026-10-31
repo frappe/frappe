@@ -100,6 +100,11 @@ def make(
 	if letterhead:
 		frappe.has_permission("Letter Head", doc=letterhead, ptype="read", throw=True)
 
+	if print_format and print_format != "Standard" and frappe.db.exists("Print Format", print_format):
+		from frappe.printing.doctype.print_format.print_format import check_print_format_roles
+
+		check_print_format_roles(frappe.get_cached_doc("Print Format", print_format))
+
 	if raw_html and not (
 		email_template and frappe.get_cached_value("Email Template", email_template, "use_html")
 	):

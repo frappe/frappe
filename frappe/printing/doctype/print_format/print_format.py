@@ -34,6 +34,7 @@ BUILDER_DRAFT_FIELDS = (
 	"print_format_builder",
 	"print_format_builder_beta",
 	"pdf_generator",
+	"roles",
 )
 
 
@@ -46,6 +47,7 @@ class PrintFormat(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
+		from frappe.core.doctype.has_role.has_role import HasRole
 		from frappe.types import DF
 
 		absolute_value: DF.Check
@@ -86,6 +88,7 @@ class PrintFormat(Document):
 		raw_commands: DF.Code | None
 		raw_printing: DF.Check
 		report: DF.Link | None
+		roles: DF.TableMultiSelect[HasRole]
 		show_label_colon: DF.Check
 		show_section_headings: DF.Check
 		standard: DF.Literal["No", "Yes"]
@@ -659,3 +662,17 @@ def printable_sample(doctype: str) -> str | None:
 	filters = {"docstatus": 1} if frappe.get_meta(doctype).is_submittable else {}
 	sample = frappe.get_list(doctype, filters=filters, limit=1, order_by="modified desc", pluck="name")
 	return sample[0] if sample else None
+
+
+def can_print_with(print_format: "PrintFormat") -> bool:
+	roles = {row.role for row in print_format.get("roles") or []}
+	return not roles or bool(roles.intersection(frappe.get_roles()))
+
+
+def check_print_format_roles(print_format: "PrintFormat") -> None:
+	if not can_print_with(print_format):
+		frappe.throw(
+			_("You are not allowed to print with {0}").format(frappe.bold(print_format.name)),
+			frappe.PermissionError,
+			title=_("Not Permitted"),
+		)
