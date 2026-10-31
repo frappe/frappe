@@ -21,6 +21,7 @@ import os
 import sys
 from collections.abc import Callable
 from functools import cache, wraps
+from typing import NamedTuple
 
 import frappe
 from frappe.exceptions import ServiceUnavailableError
@@ -31,14 +32,28 @@ from frappe.utils.redis_semaphore import RedisSemaphore
 _DEFAULT_WAIT_TIMEOUT = 10
 
 
+class WebTierSettings(NamedTuple):
+	"""Gunicorn's resolved settings for the web tier this process serves.
+
+	``timeout`` is how long a worker may stay silent before the master kills it, not a
+	request time limit: ``0`` disables it, and a threaded worker keeps notifying the
+	master while its requests run.
+	"""
+
+	workers: int
+	threads: int
+	timeout: int
+	graceful_timeout: int
+
+
 @cache
-def web_tier_concurrency() -> int | None:
-	"""Number of requests this process' web tier serves at once.
+def web_tier_settings() -> WebTierSettings | None:
+	"""Gunicorn settings of the web tier this process serves.
 
 	Returns ``None`` when there is no fixed pool to exhaust: the development
 	server starts a thread per request, and CLI commands and background jobs
 	are not a web tier at all. Also ``None`` when gunicorn's settings cannot be
-	resolved, so that a limit is never derived from a guessed size.
+	resolved, so that nothing is derived from guessed settings.
 
 	Gunicorn sets ``SERVER_SOFTWARE``, and its workers are forked from the master,
 	so ``sys.argv`` and ``os.environ`` in a worker are the master's. Reading the
@@ -52,7 +67,13 @@ def web_tier_concurrency() -> int | None:
 		cfg = _gunicorn_config()
 	except SystemExit:
 		return None
-	return cfg.workers * cfg.threads
+	return WebTierSettings(cfg.workers, cfg.threads, cfg.timeout, cfg.graceful_timeout)
+
+
+def web_tier_concurrency() -> int | None:
+	"""Number of requests this process' web tier serves at once, or ``None`` as in `web_tier_settings`."""
+	settings = web_tier_settings()
+	return settings.workers * settings.threads if settings else None
 
 
 def _gunicorn_config():
@@ -130,6 +151,7 @@ def concurrent_limit(limit: int | None = None, wait_timeout: int = _DEFAULT_WAIT
 					headers.set("Retry-After", str(retry_after))
 				exc = ServiceUnavailableError(frappe._("Server is busy. Please try again in a few seconds."))
 				exc.retry_after = retry_after
+				exc.skip_error_log = True
 				raise exc
 
 			try:
