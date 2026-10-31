@@ -666,4 +666,308 @@ test.describe("Espresso components", () => {
 			await expect(page.locator(".es-toast")).toContainText("Paid");
 		});
 	});
+
+	test.describe("DatePicker", () => {
+		const input = (page, title) =>
+			explorer_group(page, title).locator(".es-date-picker input").first();
+		const panel = (page) => page.locator(".es-date-picker-panel");
+
+		test.beforeEach(async ({ page }) => {
+			await show(page, "DatePicker");
+		});
+
+		test("opens a six-week month with today selected", async ({ page }) => {
+			await input(page, "Basic").click();
+			await expect(panel(page).getByRole("gridcell")).toHaveCount(42);
+			await expect(panel(page).locator("[data-selected]")).toHaveCount(1);
+			await expect(input(page, "Basic")).toBeFocused();
+		});
+
+		test("the arrows move through the grid and Enter picks the date", async ({ page }) => {
+			const field = input(page, "Basic");
+			await field.click();
+			await page.keyboard.press("ArrowDown");
+			await expect(page.locator(".es-date-picker-calendar__day:focus")).toHaveAttribute(
+				"data-selected",
+				""
+			);
+			await page.keyboard.press("ArrowRight");
+			await page.keyboard.press("Enter");
+			await expect(panel(page)).toHaveCount(0);
+			await expect(field).toBeFocused();
+			await expect(field).not.toHaveValue("");
+		});
+
+		test("text that isn't a date goes back to the last value", async ({ page }) => {
+			const field = input(page, "Basic");
+			const before = await field.inputValue();
+			await field.fill("not a date");
+			await field.press("Enter");
+			await expect(field).toHaveValue(before);
+		});
+
+		test("the title switches to months and years", async ({ page }) => {
+			await input(page, "Basic").click();
+			await panel(page).locator(".es-date-picker-calendar__title").click();
+			await expect(panel(page).getByRole("listbox")).toHaveCount(2);
+			await panel(page).getByRole("option", { name: "Jan", exact: true }).click();
+			await expect(panel(page).getByRole("grid")).toBeVisible();
+			await expect(panel(page).locator(".es-date-picker-calendar__title")).toContainText(
+				/Jan/
+			);
+		});
+
+		test("dates past the limits and blocked days can't be picked", async ({ page }) => {
+			await input(page, "Limits and blocked days").click();
+			const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+			const cell = panel(page).locator(`[data-value="${yesterday}"]`);
+			if (await cell.count()) await expect(cell).toBeDisabled();
+			await expect(
+				panel(page).locator(".es-date-picker-calendar__day:disabled").first()
+			).toBeVisible();
+		});
+
+		test("a shortcut sets the date and closes the calendar", async ({ page }) => {
+			const field = input(page, "Shortcuts beside the calendar");
+			await field.click();
+			await panel(page).getByRole("button", { name: "Tomorrow" }).click();
+			await expect(panel(page)).toHaveCount(0);
+			await expect(field).not.toHaveValue("");
+		});
+
+		test("a trigger of your own opens the grid and gets focus back on Escape", async ({
+			page,
+		}) => {
+			const trigger = explorer_group(page, "A trigger of your own").getByRole("button", {
+				name: "Add due date",
+			});
+			await trigger.click();
+			await expect(page.locator(".es-date-picker-calendar__day:focus")).toHaveCount(1);
+			await page.keyboard.press("Escape");
+			await expect(panel(page)).toHaveCount(0);
+			await expect(trigger).toBeFocused();
+		});
+	});
+
+	test.describe("Checklist", () => {
+		const onboarding = (page) => explorer_group(page, "employee onboarding");
+		const row = (group, label) =>
+			group.locator(".es-checklist__item", { hasText: containing(label) }).first();
+		const toggle = (row) => row.locator(".es-checklist__toggle");
+		const count = (group) => group.locator(".es-checklist__count").first();
+
+		test.beforeEach(async ({ page }) => {
+			await show(page, "Checklist");
+		});
+
+		test("the first unfinished row opens first, and one row is open at a time", async ({
+			page,
+		}) => {
+			const group = onboarding(page);
+			const letter = row(group, "Appointment Letter");
+			const employee = row(group, "Create Employee");
+
+			await expect(toggle(letter)).toHaveAttribute("aria-expanded", "true");
+			await expect(toggle(employee)).toHaveAttribute("aria-expanded", "false");
+
+			await toggle(employee).click();
+			await expect(employee).toHaveAttribute("data-open", "");
+			await expect(letter).not.toHaveAttribute("data-open", "");
+		});
+
+		test("an action that finishes the open row checks it and opens the next", async ({
+			page,
+		}) => {
+			const group = onboarding(page);
+			await expect(count(group)).toHaveText("1 of 7 done");
+
+			await row(group, "Appointment Letter").getByRole("button", { name: "Send" }).click();
+			await expect(row(group, "Appointment Letter")).toHaveAttribute("data-status", "done");
+			await expect(count(group)).toHaveText("2 of 7 done");
+			await expect(row(group, "Create Employee")).toHaveAttribute("data-open", "");
+		});
+
+		test("a locked row says why and disables its actions until the caller unlocks it", async ({
+			page,
+		}) => {
+			const group = onboarding(page);
+			const holiday_list = row(group, "Assign Holiday List");
+
+			await expect(holiday_list).toHaveAttribute("data-locked", "");
+			await expect(holiday_list.locator(".es-checklist__lock")).toHaveAttribute(
+				"aria-label",
+				"Needs: Create Employee"
+			);
+			await expect(holiday_list.locator(".es-checklist__meta")).toHaveText("India 2026");
+			await toggle(holiday_list).click();
+			await expect(holiday_list.getByRole("button", { name: "Assign" })).toBeDisabled();
+
+			await toggle(row(group, "Create Employee")).click();
+			await row(group, "Create Employee").getByRole("button", { name: "Create" }).click();
+			await expect(holiday_list).not.toHaveAttribute("data-locked", "");
+			await expect(holiday_list).toHaveAttribute("data-open", "");
+			await expect(holiday_list.getByRole("button", { name: "Assign" })).toBeEnabled();
+		});
+
+		test("a skipped row offers no action, so skipping can't unlock it", async ({ page }) => {
+			const holiday_list = row(onboarding(page), "Assign Holiday List");
+
+			await toggle(holiday_list).click();
+			await holiday_list.getByRole("button", { name: "Skip" }).click();
+			await expect(holiday_list).toHaveAttribute("data-status", "skipped");
+			await expect(holiday_list.locator(".es-checklist__status")).toHaveText("Skipped");
+
+			await toggle(holiday_list).click();
+			await expect(holiday_list.getByRole("button", { name: "Assign" })).toHaveCount(0);
+			await expect(holiday_list.getByRole("button", { name: "Undo skip" })).toBeVisible();
+		});
+
+		test("a past due date is overdue only while the row is unfinished", async ({ page }) => {
+			const group = onboarding(page);
+
+			await expect(row(group, "Appointment Letter")).toHaveAttribute("data-overdue", "");
+			await expect(row(group, "Create User")).not.toHaveAttribute("data-overdue", "");
+		});
+
+		test("skipping the open row fills the bar, and the skip can be undone", async ({
+			page,
+		}) => {
+			const group = explorer_group(page, "Basic");
+			const invite = row(group, "Invite users");
+
+			await expect(invite).toHaveAttribute("data-open", "");
+			await invite.getByRole("button", { name: "Skip" }).click();
+			await expect(invite).toHaveAttribute("data-status", "skipped");
+			await expect(count(group)).toHaveText("1 of 2 done, 1 skipped");
+
+			await toggle(invite).click();
+			await invite.getByRole("button", { name: "Undo skip" }).click();
+			await expect(invite).toHaveAttribute("data-status", "pending");
+			await expect(count(group)).toHaveText("1 of 2 done");
+		});
+
+		test("a row with nothing to show doesn't open", async ({ page }) => {
+			const company = row(explorer_group(page, "Basic"), "Create company");
+
+			await toggle(company).click();
+			await expect(company).toHaveAttribute("data-empty", "");
+			await expect(company).not.toHaveAttribute("data-open", "");
+		});
+
+		test("owners and due dates are editable only when the caller can save them", async ({
+			page,
+		}) => {
+			const editable = row(onboarding(page), "Create Employee");
+			const read_only = row(explorer_group(page, "Read-only owners"), "Create Employee");
+
+			await expect(editable.locator(".es-checklist__owner button")).toHaveCount(1);
+			await expect(editable.locator(".es-checklist__due button")).toHaveCount(1);
+			await expect(read_only.locator(".es-checklist__owner button")).toHaveCount(0);
+			await expect(read_only.locator(".es-checklist__due button")).toHaveCount(0);
+		});
+
+		test("the owner opens a user combobox and the date opens a date picker", async ({
+			page,
+		}) => {
+			const employee = row(onboarding(page), "Create Employee");
+
+			await expect(employee.locator(".es-checklist__owner [role=combobox]")).toContainText(
+				"Select assignee"
+			);
+			await employee.locator(".es-checklist__owner [role=combobox]").click();
+			const users = page.locator(".es-combobox__panel");
+			await expect(users.locator(".es-combobox__search input")).toBeFocused();
+			await page.keyboard.type("administrator");
+			await expect(users.getByRole("option", { name: /Administrator/ })).toBeVisible();
+			await page.keyboard.press("Enter");
+			await expect(users).toHaveCount(0);
+
+			await employee.locator(".es-checklist__due button").click();
+			const calendar = page.locator(".es-date-picker-panel");
+			await expect(calendar.getByRole("grid")).toBeVisible();
+			await page.keyboard.press("ArrowRight");
+			await page.keyboard.press("Enter");
+			await expect(calendar).toHaveCount(0);
+		});
+
+		test("the marker sets an unfinished row In Progress or Stuck, shown as a badge", async ({
+			page,
+		}) => {
+			const group = onboarding(page);
+			const employee = row(group, "Create Employee");
+
+			await expect(employee.locator(".es-checklist__status")).toHaveText("");
+			await employee.locator(".es-checklist__marker button").click();
+			await page.locator(".es-menu__item", { hasText: "Stuck" }).click();
+			await expect(employee).toHaveAttribute("data-status", "stuck");
+			await expect(employee.locator(".es-checklist__status")).toHaveText("Stuck");
+			await expect(employee).not.toHaveAttribute("data-open", "");
+
+			const user = row(group, "Create User");
+			await expect(user.locator(".es-checklist__status")).toHaveText("");
+			await expect(user.locator(".es-checklist__marker button")).toHaveCount(0);
+		});
+
+		test("a card folds its items away but keeps its head and progress", async ({ page }) => {
+			const card = onboarding(page).locator(".es-checklist").first();
+			const head = card.locator(".es-checklist__head");
+
+			await expect(head).toHaveAttribute("aria-expanded", "true");
+			await head.click();
+			await expect(head).toHaveAttribute("aria-expanded", "false");
+			await expect(card.locator(".es-progress")).toBeVisible();
+			await expect(card.locator(".es-checklist__items")).not.toBeInViewport();
+		});
+
+		test("typing a label and pressing Enter adds an item, and Remove deletes it", async ({
+			page,
+		}) => {
+			const group = explorer_group(page, "Adding and removing");
+			const input = group.getByRole("textbox", { name: "Add activity" });
+
+			await input.fill("Order a desk");
+			await input.press("Enter");
+			await expect(row(group, "Order a desk")).toBeVisible();
+			await expect(input).toHaveValue("");
+			await expect(input).toBeFocused();
+
+			await toggle(row(group, "Order a desk")).click();
+			await row(group, "Order a desk").getByRole("button", { name: "Remove" }).click();
+			await expect(
+				group.locator(".es-checklist__item", { hasText: "Order a desk" })
+			).toHaveCount(0);
+		});
+
+		test("leaving the add input with text in it adds the item", async ({ page }) => {
+			const group = explorer_group(page, "Adding and removing");
+			const input = group.getByRole("textbox", { name: "Add activity" });
+
+			await input.fill("Order a chair");
+			await input.blur();
+			await expect(row(group, "Order a chair")).toBeVisible();
+			await expect(input).toHaveValue("");
+			await expect(input).not.toBeFocused();
+		});
+
+		test("the arrow keys on a row's grip move it", async ({ page }) => {
+			const group = explorer_group(page, "Adding and removing");
+			const labels = group.locator(".es-checklist__label");
+
+			await expect(labels).toHaveText(["Welcome lunch", "Book a desk"]);
+			await row(group, "Book a desk").locator(".es-checklist__grip").focus();
+			await page.keyboard.press("ArrowUp");
+			await expect(labels).toHaveText(["Book a desk", "Welcome lunch"]);
+			await expect(row(group, "Book a desk").locator(".es-checklist__grip")).toBeFocused();
+		});
+
+		test("Escape clears the add input without adding an item", async ({ page }) => {
+			const group = explorer_group(page, "Adding and removing");
+			const input = group.getByRole("textbox", { name: "Add activity" });
+
+			await input.fill("Not this one");
+			await input.press("Escape");
+			await expect(input).toHaveValue("");
+			await expect(group.locator(".es-checklist__item")).toHaveCount(2);
+		});
+	});
 });
