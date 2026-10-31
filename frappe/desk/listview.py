@@ -5,6 +5,7 @@ from typing import Any
 
 import frappe
 from frappe.database.query import _cast_autoincrement_name
+from frappe.desk.link_title import get_permitted_link_titles
 from frappe.model import is_default_field
 from frappe.query_builder import Order
 from frappe.query_builder.functions import Count
@@ -93,12 +94,9 @@ def get_group_by_count(doctype: str, current_filters: str | list, field: str) ->
 	else:
 		data = data[0:50]
 
-	# Add in title if it's a link field and `show_title_field_in_link` is set
 	if (field_meta := meta.get_field(field)) and field_meta.fieldtype == "Link":
-		link_meta = frappe.get_meta(field_meta.options)
-		if link_meta.show_title_field_in_link:
-			title_field = link_meta.get_title_field()
-			for item in data:
-				item.title = frappe.get_value(field_meta.options, item.name, title_field)
+		titles = get_permitted_link_titles(field_meta.options, {item.name for item in data if item.name})
+		for item in data:
+			item.title = titles.get(item.name)
 
 	return data

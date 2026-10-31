@@ -35,8 +35,40 @@ def get_link_titles(doctype: str, title_field: str, names: set[str]) -> dict[str
 			fields=["name", title_field],
 			limit=len(names_batch),
 		)
-		titles.update({row.name: row.get(title_field) for row in rows})
+		titles.update({str(row.name): row.get(title_field) for row in rows})
 	return titles
+
+
+def get_permitted_link_titles(doctype: str, names: set[str]) -> dict[str, str]:
+	"""Titles of `names` the user may see, keyed by document name."""
+	title_field = get_link_title_field(doctype)
+	return get_link_titles(doctype, title_field, names) if title_field else {}
+
+
+def get_doc_link_titles(doc) -> dict[str, str]:
+	"""Titles for the Link and Dynamic Link values of `doc` and its rows, keyed `doctype::name`."""
+	link_titles = {}
+	for doctype, names in get_link_values_by_doctype(doc).items():
+		titles = get_permitted_link_titles(doctype, names)
+		link_titles.update({f"{doctype}::{name}": titles.get(name) or name for name in names})
+	return link_titles
+
+
+def get_link_values_by_doctype(doc) -> dict[str, set]:
+	"""Link and Dynamic Link values of `doc` and its rows, grouped by linked doctypes that show titles."""
+	values_by_doctype = {}
+	for row in [doc, *doc.get_all_children(include_computed=True)]:
+		meta = frappe.get_meta(row.doctype)
+		for field in meta.get_link_fields() + meta.get_dynamic_link_fields():
+			if not (value := row.get(field.fieldname)):
+				continue
+
+			doctype = field.options if field.fieldtype == "Link" else row.get(field.options)
+			link_meta = frappe.get_meta(doctype) if doctype else None
+			if link_meta and link_meta.title_field and link_meta.show_title_field_in_link:
+				values_by_doctype.setdefault(doctype, set()).add(value)
+
+	return values_by_doctype
 
 
 def send_link_titles(link_titles: dict[str, str]):
@@ -52,10 +84,7 @@ def get_report_link_titles(columns, rows) -> dict[str, str]:
 	titles = {}
 	names_by_doctype = get_link_names_by_doctype(columns or [], rows or [])
 	for doctype, names in names_by_doctype.items():
-		title_field = get_link_title_field(doctype)
-		if not title_field:
-			continue
-		for name, title in get_link_titles(doctype, title_field, names).items():
+		for name, title in get_permitted_link_titles(doctype, names).items():
 			titles[f"{doctype}::{name}"] = title
 	return titles
 
