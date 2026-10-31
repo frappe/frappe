@@ -142,6 +142,8 @@ export interface RecordPageHost {
   save: () => Promise<void>;
   /** Runs once `afterSave` settles; a new record's host opens the saved record here. */
   onSaved?: () => Promise<void>;
+  /** Saves a dirty draft, renames the record and opens it at its new name; absent while the record has no saved copy. */
+  rename?: (name: string, merge: boolean) => Promise<string | null>;
   reload: () => Promise<void>;
   router: Router;
   /** The host's per-field overlay hook; `page.fields.get` reads it to match what renders. */
@@ -374,6 +376,8 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
       },
       rows: rows.rows,
       save: () => save(),
+      rename: (name: string, options?: { merge?: boolean }) =>
+        engine.hasLeft() || !host.rename ? Promise.resolve(null) : host.rename(name, Boolean(options?.merge)),
       reload: () => (engine.hasLeft() ? Promise.resolve() : host.reload()),
       create: (doctype: string, options?: { values?: Record<string, any> }) => {
         if (engine.hasLeft()) return Promise.resolve(null);

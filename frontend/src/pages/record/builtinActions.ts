@@ -7,6 +7,7 @@ import { COPY_OF } from "@/newRecordValues";
 import { routeFor, routeForNew } from "@/router/routeFor";
 import { favouriteWording } from "@/pages/favourite/favouriteWording";
 import { assignItem, type AssignState } from "./assignAct";
+import { renameItem } from "./renameAct";
 
 export function quickActionBuiltins(
   perms: Record<string, any>,
@@ -47,12 +48,18 @@ function followWording({ following }: FollowState) {
 
 /**
  * The header's `⋯` rows: no `display`, so the projection files them under the menu.
- * Four bands by `group`: the reader's own toggles, Assign to, the record's copies, then Delete.
+ * Four bands by `group`: the reader's own toggles, Assign to and Rename, the record's copies, then Delete.
  */
 export function headerMenuBuiltins(
   perms: Record<string, any>,
   favourite: FavouriteState,
-  options: { single?: boolean; follow?: FollowState; assign?: AssignState; duplicate?: boolean } = {}
+  options: {
+    single?: boolean;
+    follow?: FollowState;
+    assign?: AssignState;
+    rename?: boolean;
+    duplicate?: boolean;
+  } = {}
 ): HeaderItem[] {
   const items: HeaderItem[] = [
     {
@@ -72,6 +79,7 @@ export function headerMenuBuiltins(
       ...followWording(options.follow),
     });
   if (options.assign) items.push(assignItem(options.assign));
+  if (options.rename && !options.single) items.push(renameItem());
   items.push(
     { name: "copy_url", label: "Copy record URL", icon: "lucide-link", group: "copies", run: copyLink },
     { name: "copy_id", label: "Copy record ID", icon: "lucide-hash", group: "copies", run: copyId }
