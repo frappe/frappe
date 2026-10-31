@@ -151,6 +151,7 @@ def concurrent_limit(limit: int | None = None, wait_timeout: int = _DEFAULT_WAIT
 					headers.set("Retry-After", str(retry_after))
 				exc = ServiceUnavailableError(frappe._("Server is busy. Please try again in a few seconds."))
 				exc.retry_after = retry_after
+				exc.skip_error_log = True
 				raise exc
 
 			try:

@@ -22,6 +22,7 @@ from frappe.concurrency_limiter import (
 )
 from frappe.exceptions import ServiceUnavailableError
 from frappe.tests import IntegrationTestCase
+from frappe.utils.error import log_error_snapshot
 
 
 def _key(fn):
@@ -86,6 +87,10 @@ class TestConcurrentLimit(IntegrationTestCase):
 				fn()
 			self.assertEqual(exc_ctx.exception.http_status_code, 503)
 			mock_headers.set.assert_called_once_with("Retry-After", "1")  # max(1, wait_timeout=0)
+
+			with patch("frappe.utils.error.log_error") as log_error:
+				log_error_snapshot(exc_ctx.exception)
+			log_error.assert_not_called()
 		finally:
 			proceed.set()
 			t.join(timeout=5)
