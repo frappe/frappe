@@ -3,9 +3,11 @@
 
 import re
 from unittest.mock import patch
+from urllib.parse import parse_qs, urlparse
 
 import frappe
 import frappe.utils
+from frappe.auth import CookieManager, LoginManager
 from frappe.core.api.user_invitation import (
 	_accept_invitation,
 	cancel_invitation,
@@ -14,9 +16,11 @@ from frappe.core.api.user_invitation import (
 	invite_by_email,
 	resend_invitation,
 )
+from frappe.core.doctype.user.user import update_password
 from frappe.core.doctype.user_invitation.user_invitation import UserInvitation, mark_expired_invitations
 from frappe.handler import run_doc_method
 from frappe.tests import IntegrationTestCase
+from frappe.utils import set_request
 
 emails = [
 	"test_user_invite1@example.com",
@@ -243,6 +247,26 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 		IntegrationTestUserInvitation.delete_invitation(invitation.name)
 		frappe.delete_doc("User", user.name)
 
+	def test_new_invitee_lands_on_redirect_after_setting_password(self):
+		invitation, key = self.accept_as_new_invitee()
+
+		landing = update_password("Eastern_43A1W", key=key)
+
+		self.assertEqual(frappe.db.get_value("User", invitation.email, "user_type"), "System User")
+		self.assertEqual(urlparse(landing).path, "/abc")
+		self.assertFalse(frappe.db.get_value("User", invitation.email, "redirect_url"))
+
+	def test_new_invitee_with_2fa_lands_on_redirect_after_login(self):
+		invitation, key = self.accept_as_new_invitee()
+		self.addCleanup(frappe.cache.hdel, "redirect_after_login", invitation.email)
+
+		with patch("frappe.core.doctype.user.user.should_run_2fa", return_value=True):
+			landing = update_password("Eastern_43A1W", key=key)
+
+		self.assertEqual(landing, "/login")
+		redirect_after_login = frappe.cache.hget("redirect_after_login", invitation.email)
+		self.assertEqual(urlparse(redirect_after_login).path, "/abc")
+
 	def test_get_pending_invitations_api(self):
 		invitation = self.get_dummy_invitation()
 		invitation.insert()
@@ -367,6 +391,18 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 	def insert_invitation_without_mail(self, email: str = emails[1]):
 		with patch.object(UserInvitation, "send_invitation_mail"):
 			return self.get_dummy_invitation(email).insert()
+
+	def accept_as_new_invitee(self):
+		invitation = self.get_dummy_invitation().insert()
+		self.addCleanup(frappe.delete_doc, "User", invitation.email)
+		self.addCleanup(IntegrationTestUserInvitation.delete_invitation, invitation.name)
+		_accept_invitation(invitation.send_invitation_mail(), True)
+		key = parse_qs(urlparse(frappe.local.response.location).query)["key"][0]
+		set_request(path="/update-password")
+		frappe.local.cookie_manager = CookieManager()
+		frappe.local.login_manager = LoginManager()
+		self.addCleanup(frappe.set_user, emails[0])
+		return invitation, key
 
 	def get_dummy_invitation(self, email: str = emails[1]):
 		return frappe.get_doc(
