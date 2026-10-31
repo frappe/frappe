@@ -96,15 +96,14 @@ def sync_builtin_assistant(model: str | None = None) -> None:
 		return
 
 	knowledge = []
-	site_skills = []
 	if frappe.db.exists("Flow Agent", ASSISTANT_AGENT_NAME):
 		doc = frappe.get_doc("Flow Agent", ASSISTANT_AGENT_NAME)
 		if not doc.is_system_generated:
 			return
-		site_skills = [row.skill for row in doc.skills if row.skill not in skills]
+		skills += [row.skill for row in doc.skills if row.skill not in skills]
 		knowledge = [Knowledge(row.knowledge_base) for row in doc.knowledge_bases]
 
-	assistant = Agent(
+	Agent(
 		name=ASSISTANT_AGENT_TITLE,
 		model=model_name,
 		instructions=ASSISTANT_INSTRUCTIONS,
@@ -112,7 +111,4 @@ def sync_builtin_assistant(model: str | None = None) -> None:
 		knowledge=knowledge,
 		skills=skills,
 		max_iterations=ASSISTANT_MAX_ITERATIONS,
-	)
-	# added as named: the site's own skills belong to no app
-	assistant.skills += site_skills
-	assistant.sync()
+	).sync()
