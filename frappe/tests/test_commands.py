@@ -789,22 +789,35 @@ class TestRemoveApp(FrappeTestCase):
 		self.assert_failed_uninstall_can_be_finished(deleting_doctype_times_out("Abc Test Uninstall One"))
 
 	def assert_failed_uninstall_can_be_finished(self, failure):
+<<<<<<< HEAD:frappe/tests/test_commands.py
+=======
+		from frappe.installer import get_app_owned_modules, remove_from_installed_apps
+
+>>>>>>> 5a3b2e3 (test(uninstall): retry a failed uninstall without --force):frappe/commands/test_commands.py
 		app = "abc_test_uninstall_app"
 		module = "Abc Test Uninstall Module"
 		doctypes = ["Abc Test Uninstall One", "Abc Test Uninstall Two"]
 		self.addCleanup(self.delete_uninstall_leftovers, module, doctypes)
+		self.addCleanup(remove_from_installed_apps, app)
 		self.make_app_module(app, module, doctypes)
+		add_to_installed_apps(app)
 
 		with fake_app_without_hooks(app), self.set_user("test@example.com"):
 			with failure, self.assertRaises(frappe.QueryTimeoutError):
-				remove_app(app, yes=True, no_backup=True, force=True)
+				remove_app(app, yes=True, no_backup=True)
 			frappe.db.rollback()
 			frappe.flags.in_uninstall = False
 
+<<<<<<< HEAD:frappe/tests/test_commands.py
 			self.assertEqual(frappe.get_all("Module Def", filters={"app_name": app}, pluck="name"), [module])
+=======
+			self.assertIn(app, frappe.get_installed_apps())
+			self.assertEqual(get_app_owned_modules(app), [module])
+>>>>>>> 5a3b2e3 (test(uninstall): retry a failed uninstall without --force):frappe/commands/test_commands.py
 
-			remove_app(app, yes=True, no_backup=True, force=True)
+			remove_app(app, yes=True, no_backup=True)
 
+		self.assertNotIn(app, frappe.get_installed_apps())
 		for doctype in doctypes:
 			self.assertFalse(frappe.db.exists("DocType", doctype))
 			self.assertFalse(frappe.db.table_exists(doctype, cached=False))
