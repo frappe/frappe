@@ -432,6 +432,67 @@ Limits:
   longer apply on desk v2. They still apply on desk v1. A custom field stays in place through
   its `insert_after` anchor ([#45894](https://github.com/frappe/frappe/issues/45894)).
 
+## An app's views
+
+An app ships a saved view as one JSON file. The file name is the view's key, and the
+view's address is `/<doctype>/view/<key>`.
+
+| Path | For |
+| --- | --- |
+| `<app>/<module>/doctype/<scrubbed>/frontend/views/<key>.json` | A doctype the app owns. |
+| `<app>/<module>/custom/<scrubbed>/views/<key>.json` | Another app's doctype. |
+
+The file holds the shape of a `Doctype View` row:
+
+```json
+{
+ "default": true,
+ "label": "Pipeline",
+ "settings": {
+  "filters": [
+   ["status", "=", "Open"]
+  ],
+  "sort": [
+   {
+    "direction": "desc",
+    "fieldname": "modified"
+   }
+  ]
+ },
+ "type": "List"
+}
+```
+
+- `label` names the view. The translation extractor reads it.
+- `type` is a view type.
+- `settings` is the object a `Doctype View` row stores, at most 16 KB. The view type reads
+  its keys. The List type does not apply `filters` yet.
+- `default` is optional. At most one view of a doctype in one app has it. A second one is
+  logged, and the first by key stays the default. Inside the app's prefix, that app's default
+  applies. Elsewhere, the default of the doctype's own app applies.
+- A view has no icon. The icon is on the sidebar row that shows the view.
+
+The key is lower-case letters, digits and dashes, and it is never a view type's name
+(`list`). A file that fails a check is left out and logged. Frappe's tests check every
+installed app's view files.
+
+An app's views show in every prefix where the doctype's list shows. When two apps ship one
+key for one doctype, the doctype's own app wins, else the first app in app order. The clash
+is logged.
+
+A person's own view and the site's view come before an app's view at the same key. A site
+administrator who saves an app view writes a site row at the same key, of the same type.
+That row replaces the app view for the site. Deleting the row brings the app view back. A new
+view never takes an app view's key.
+
+Never rename a shipped view file. A rename drops one view and adds another, and stars, links
+and sidebar rows name the old key. Ship a new file and delete the old one. When a release
+drops a view that a site overrode, the site row stays as an ordinary site view.
+
+The server reads the files once per worker process, so a deploy applies them. In developer
+mode, a new, edited or deleted file applies on the next request. The frontend never reads the
+files. It gets an app's views through the same server reads as the site's and a person's.
+
 ## Writing a component
 
 Every list takes a Vue component. Write its markup as a `template:` string. The module

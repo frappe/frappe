@@ -299,7 +299,7 @@ def get_boot(path: str | None = None) -> dict:
 			# they ship. It rides boot because boot is already a blocking pre-mount fetch.
 			"navigation": resolve_navigation(app),
 			# Addresses only, never a view's settings.
-			"default_views": DefaultViews().addresses(),
+			"default_views": DefaultViews(app=app).addresses(),
 		}
 
 	# One exit, so the index payload is weighed on the same call site as a prefix's.

@@ -421,7 +421,9 @@ _Avoid_: view mode, layout (a record page word).
 **Saved view**: <a id="saved-view"></a>
 One labelled view of one doctype at one layer: a person's own, the site's, or an app's. It
 holds the type's settings (for List: columns, sort, filters, group by), and the URL query is a
-layer on top of it. A person's views are private until a site administrator publishes them.
+layer on top of it. A person's views are private until a site administrator publishes them. An
+app's views are its **view files**, one JSON file per view named by its key, beside the
+doctype or in the app's `custom/` folder. A site row at an app view's key replaces it.
 _Avoid_: saved filter, list setting, view setting.
 
 **Plain view**: <a id="plain-view"></a>

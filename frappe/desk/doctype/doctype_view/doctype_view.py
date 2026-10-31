@@ -50,11 +50,14 @@ class DoctypeView(Document):
 		self.label = self.label or PLAIN_VIEW
 		self.key = self.key or PLAIN_VIEW
 		self.validate_type()
+		self.refuse_another_type_over_an_app_view()
 		self.validate_settings()
 		self.refuse_a_label_that_moves_the_view()
 		self.refuse_a_second_row_at_this_address()
 
 	def on_trash(self):
+		if self.overridden_app_view():
+			return  # the app view answers at this key again, so its stars and defaults still resolve
 		if self.key:
 			frappe.db.delete(
 				"Favourite",
@@ -72,12 +75,48 @@ class DoctypeView(Document):
 
 		space = KeySpace(self.reference_doctype)
 		space.lock()
+		if not self.user and self.overridden_app_view():
+			self.refuse_a_second_override()
+			return self.key
 		return space.claim(self.key or self.label)
+
+	def refuse_a_second_override(self):
+		# A locking read: the doctype lock serialises two overrides, and a plain read misses the first's row.
+		existing = frappe.db.get_value(
+			self.doctype,
+			{"reference_doctype": self.reference_doctype, "user": SITE_ROW, "key": self.key},
+			for_update=True,
+		)
+		if existing:
+			frappe.throw(
+				_("The site already overrides the app view {0}. Edit {1} instead.").format(
+					frappe.bold(self.key), frappe.bold(existing)
+				),
+				title=_("Already Exists"),
+				exc=DuplicateViewError,
+			)
+
+	def overridden_app_view(self):
+		"""The app view at this row's key, which a site row replaces whole and a person's own hides for them."""
+		from .app_views import app_views
+
+		return app_views(self.reference_doctype).get(self.key) if self.key else None
 
 	def validate_type(self):
 		if self.type not in VIEW_TYPES:
 			frappe.throw(
 				_("{0} is not a view type.").format(frappe.bold(self.type)), title=_("Unknown View Type")
+			)
+
+	def refuse_another_type_over_an_app_view(self):
+		"""A site row at an app view's key replaces it for everyone, so it keeps the app view's type."""
+		app_view = None if self.user else self.overridden_app_view()
+		if app_view and app_view.type != self.type:
+			frappe.throw(
+				_("{0} overrides an app's {1} view, so it stays a {1} view.").format(
+					frappe.bold(self.label), app_view.type
+				),
+				title=_("Wrong View Type"),
 			)
 
 	def validate_settings(self):

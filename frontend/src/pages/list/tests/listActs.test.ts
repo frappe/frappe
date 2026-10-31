@@ -407,7 +407,7 @@ describe("the list surface", () => {
     await acts.run("list.set_default_view", { key: "open-contacts", scope: "site" });
 
     expect(defaultCalls).toEqual([
-      { method: "save", body: { doctype: "Contact", key: "open-contacts", scope: "site" } },
+      { method: "save", body: { doctype: "Contact", key: "open-contacts", scope: "site", app: "crm" } },
     ]);
     expect(boot.default_views).toEqual({ Contact: "open-contacts" });
     expect(acts.available().find((act) => act.name === "list.set_default_view")?.palette).toBe(false);
@@ -424,8 +424,8 @@ describe("the list surface", () => {
     defaultAnswer = null;
     await acts.run("list.clear_default_view", { scope: "site" });
     expect(defaultCalls.map((call) => call.body)).toEqual([
-      { doctype: "Contact", scope: "user" },
-      { doctype: "Contact", scope: "site" },
+      { doctype: "Contact", scope: "user", app: "crm" },
+      { doctype: "Contact", scope: "site", app: "crm" },
     ]);
     expect(boot.default_views).toEqual({});
   });
