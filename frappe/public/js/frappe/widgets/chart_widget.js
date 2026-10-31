@@ -765,6 +765,7 @@ export default class ChartWidget extends Widget {
 		let set_options = (options) => {
 			let custom_options = JSON.parse(options);
 			for (let key in custom_options) {
+				if (key === "__proto__") continue;
 				if (
 					typeof chart_args[key] === "object" &&
 					typeof custom_options[key] === "object"
