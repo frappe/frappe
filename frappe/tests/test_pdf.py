@@ -208,6 +208,7 @@ class TestPdf(IntegrationTestCase):
 		generator = ChromePDFGenerator()
 		if not generator._devtools_url:
 			generator._set_devtools_url()
+		self.addCleanup(generator._close_browser)
 		generator.add_browser("other-render")
 		self.addCleanup(generator.remove_browser, "other-render")
 		session = CDPSocketClient(generator._devtools_url)
