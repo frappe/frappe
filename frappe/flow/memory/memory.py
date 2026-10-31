@@ -18,7 +18,7 @@ from frappe import _
 from frappe.flow.memory import store
 
 MEMORY_TOOL_SLUG = "update_memory"
-# Per (agent, scope, user); past it, adds are refused.
+# Per (agent, scope, user), Active and Pending; past it, the agent's adds are refused.
 MAX_ACTIVE_MEMORIES = 100
 
 _SCOPE_BY_ARG = {"agent": "Agent", "user": "User"}
@@ -87,10 +87,10 @@ def _add(
 	filters: dict[str, Any] = {"agent": agent, "scope": scope, "status": ["in", ("Active", "Pending")]}
 	if scope == "User":
 		filters["user"] = frappe.session.user
-	if frappe.db.count("Flow Agent Memory", filters) >= MAX_ACTIVE_MEMORIES:
+	if source == "Agent" and frappe.db.count("Flow Agent Memory", filters) >= MAX_ACTIVE_MEMORIES:
 		frappe.throw(
 			_(
-				"Memory limit reached — revise or consolidate existing memories (pass memory_id) instead of adding."
+				"Memory limit reached, counting memories waiting for review — revise or consolidate existing memories (pass memory_id) instead of adding."
 			),
 			title=_("Memory Limit"),
 		)

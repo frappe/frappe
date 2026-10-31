@@ -224,6 +224,17 @@ class TestReview(MemoryCase):
 		self.assertEqual(frappe.db.get_value("Flow Agent Memory", from_feedback, "status"), "Pending")
 		self.assertNotIn(from_feedback, self.block("Where do we bill Acme?", user=READER))
 
+	def test_feedback_waiting_for_review_is_kept_past_the_agents_limit(self):
+		session = frappe.get_doc({"doctype": "Flow Session", "agent": self.agent.name}).insert()
+		run = frappe.get_doc(
+			{"doctype": "Flow Run", "session": session.name, "source": "Manual", "status": "Completed"}
+		).insert()
+		with patch("frappe.flow.memory.memory.MAX_ACTIVE_MEMORIES", 1):
+			save_memory(self.agent.name, content=ACME, scope="agent")
+			with self.assertRaises(frappe.ValidationError):
+				save_memory(self.agent.name, content=FISCAL, scope="agent")
+			self.assertTrue(save_feedback_memory(run, WIDGET))
+
 	def test_only_a_system_manager_approves(self):
 		frappe.set_user(_member())
 		pending = save_memory(self.agent.name, content=ACME, scope="agent")["memory_id"]
