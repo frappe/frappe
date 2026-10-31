@@ -653,6 +653,35 @@ class TestFlowSessionModelPermission(IntegrationTestCase):
 			with self.subTest(verb), self.assertRaises(frappe.PermissionError):
 				refused()
 
+	def test_a_user_picks_only_a_model_open_to_their_roles(self):
+		from frappe.flow import api
+
+		role = "Flow Model Perm Tester"
+		if not frappe.db.exists("Role", role):
+			frappe.get_doc({"doctype": "Role", "role_name": role, "desk_access": 1}).insert()
+		self.restricted.append("roles", {"role": role})
+		self.restricted.save()
+		self.agent.db_set("model", self.allowed.name)
+		other = self.model("Other Open Model")
+		saved = self.session(model=self.allowed.name)
+		saved.db_set("owner", self.user.name)
+		frappe.set_user(self.user.name)
+
+		started = api.create_session(self.agent.name, model=other.name)
+		self.assertEqual(frappe.db.get_value("Flow Session", started["name"], "model"), other.name)
+		api.set_model(started["name"], self.allowed.name)
+		self.assertEqual(frappe.db.get_value("Flow Session", started["name"], "model"), self.allowed.name)
+
+		saved.reload()
+		saved.model = self.restricted.name
+		for label, refused in (
+			("create_session", lambda: api.create_session(self.agent.name, model=self.restricted.name)),
+			("set_model", lambda: api.set_model(started["name"], self.restricted.name)),
+			("a saved session", saved.save),
+		):
+			with self.subTest(label), self.assertRaises(frappe.PermissionError):
+				refused()
+
 	def test_chat_rechecks_agent_permission_for_an_existing_session(self):
 		allowed = frappe.get_doc(
 			{
