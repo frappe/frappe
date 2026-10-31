@@ -95,14 +95,14 @@
 				<Composer
 					v-if="!readOnly && !needsSetup"
 					ref="composer"
-					:commands="COMMANDS"
+					:commands="commands"
 					:mentions="false"
 					:images-only="false"
 					:placeholder="placeholder"
 					:modes="MODES"
 				>
-					<template #start="{ insert }">
-						<AgentPicker />
+					<template v-if="startPickers" #start="{ insert }">
+						<AgentPicker v-if="builder" />
 						<SkillPicker @pick="insert" />
 					</template>
 					<template #palette="{ view, query, close, back }">
@@ -186,6 +186,8 @@ const COMMANDS = [
 	"abort",
 	"settings",
 ];
+// what only a builder picks
+const BUILDER_COMMANDS = new Set(["agents", "model", "thinking"]);
 // the approval modes in Flow's terms: its tools act on documents, not files
 const MODES = [
 	{ id: "ask", label: "Ask for approval", desc: "Asks before changing anything." },
@@ -226,6 +228,17 @@ const store = createFlowStore(client, {
 });
 provide("flow", store);
 provide("flowPage", page);
+// a builder picks the agent and the model and opens the Build pages; everyone else chats with
+// the default agent on its model
+const builder = computed(() => Boolean(page.state.boot.builder));
+if (!builder.value && props.boot.default_agent) page.state.agent = props.boot.default_agent;
+// the bar over a new chat's box holds the agent picker and the skills, when there is either
+const startPickers = computed(
+	() => builder.value || store.state.skills?.length || page.can("Flow Skill", "create")
+);
+const commands = computed(() =>
+	builder.value ? COMMANDS : COMMANDS.filter((command) => !BUILDER_COMMANDS.has(command.name ?? command))
+);
 useColorScheme();
 // the store keys a new chat's skills by folder; here they follow the chosen agent
 watch(
@@ -243,7 +256,8 @@ watch(
 	],
 	([draft, , model]) => {
 		const picked = store.state.prefs.lastModel;
-		const kept = onLoad && page.state.boot.models.some((m) => m.name === picked);
+		const kept =
+			onLoad && builder.value && page.state.boot.models.some((m) => m.name === picked);
 		onLoad = false;
 		if (draft && model && !kept) store.selectModel(model);
 	},
@@ -315,7 +329,9 @@ watch(
 const route = useRoute();
 const router = useRouter();
 // the pages beside the chats, each for whoever may read its records
-const pages = computed(() => PAGES.filter((item) => page.can(SPECS[item.key].doctype, "read")));
+const pages = computed(() =>
+	builder.value ? PAGES.filter((item) => page.can(SPECS[item.key].doctype, "read")) : []
+);
 const pageLinks = computed(() =>
 	pages.value.map((item) => ({
 		label: SPECS[item.key].label,

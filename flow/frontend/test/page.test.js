@@ -50,6 +50,7 @@ const boot = {
 		{ name: "reviewer", title: "Reviewer", model: "Opus" },
 	],
 	default_agent: "flow",
+	builder: true,
 };
 const session = {
 	name: "S1",
@@ -277,6 +278,33 @@ test("a new chat's agent is picked over the box from its own list, beside its sk
 	await nextTick();
 	assert.equal(agent(), null, "the agent is fixed once the conversation starts");
 	assert.match(el.querySelector("header div[title]").title, /^Reviewer \/ /);
+});
+
+test("a user who doesn't build chats with the default agent on its model: no agent or model to pick, no Build pages", async (t) => {
+	localStorage.setItem("flow.page.tester@example.com.agent", "reviewer");
+	t.after(() => localStorage.removeItem("flow.page.tester@example.com.agent"));
+	await router.replace("/");
+	const el = mountPage(t, {
+		boot: {
+			...boot,
+			builder: false,
+			permissions: { "Flow Agent": ["read"], "Flow Skill": ["read"] },
+		},
+	});
+	await until(() => called("frappe.flow.api.list_sessions"));
+	await nextTick();
+
+	assert.equal(el.querySelector("textarea").placeholder, "Ask Flow…");
+	assert.equal(el.querySelector("button[title='Agent']"), null);
+	assert.equal(el.querySelector("fieldset button[title^='Sonnet']"), null);
+	assert.deepEqual([...el.querySelectorAll("aside [data-stub=SidebarItem][route]")], []);
+	const box = el.querySelector("textarea");
+	box.value = "/";
+	box.dispatchEvent(new Event("input"));
+	await nextTick();
+	const commands = [...el.querySelectorAll("[data-palette-item]")].map((row) => row.textContent);
+	assert.ok(commands.some((name) => name.includes("New chat")));
+	assert.ok(!commands.some((name) => /Agent|Model|Thinking/.test(name)), commands.join());
 });
 
 test("agents, skills and triggers each have a page in the chat's place, grouped under New chat for whoever may read them; a Flow user reads an agent from its list and starts a chat with it, Back retraces the steps to the chat (in a frame, the frame's own), and a chat picked in the sidebar takes the page's place", async (t) => {

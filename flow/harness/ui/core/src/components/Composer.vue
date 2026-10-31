@@ -352,9 +352,10 @@
 
 					<span class="min-w-2 flex-1" />
 
-					<!-- the pickers, by the send button; a host adds its own around the model button -->
+					<!-- the pickers, by the send button; a host adds its own around the model button, which
+					     shows where the model may be picked -->
 					<slot name="toolbar" :open-palette="openPalette">
-						<ModelButton :providers="has('providers')" @open="openPalette" />
+						<ModelButton v-if="has('model')" :providers="has('providers')" @open="openPalette" />
 					</slot>
 
 					<button
