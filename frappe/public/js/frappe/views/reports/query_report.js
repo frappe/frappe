@@ -1265,6 +1265,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			this.report_settings.after_datatable_render(this.datatable);
 		}
 
+		this.initial_column_widths = Object.fromEntries(
+			this.datatable.datamanager.getColumns(true).map((column) => [column.id, column.width])
+		);
+
 		this.setup_link_side_panel();
 	}
 
@@ -2351,12 +2355,24 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 							},
 						],
 						primary_action: (values) => {
+							const widths = Object.fromEntries(
+								this.datatable.datamanager
+									.getColumns(true)
+									.map((column) => [column.id, column.width])
+							);
 							return frappe.call({
 								method: "frappe.desk.query_report.save_report",
 								args: {
 									reference_report: this.report_name,
 									report_name: values.report_name,
-									columns: this.get_visible_columns(),
+									columns: this.get_visible_columns().map((column) => ({
+										...column,
+										width:
+											widths[column.id] !==
+											this.initial_column_widths[column.id]
+												? parseInt(widths[column.id])
+												: column.width,
+									})),
 									filters: this.get_filter_values(),
 								},
 								callback: function (r) {
