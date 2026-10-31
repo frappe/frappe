@@ -297,221 +297,6 @@ class TestResourceAPI(FrappeAPITestCase):
 			self.assertIsInstance(data[0], dict)
 
 
-class TestWriteResponsesFieldLevelRead(FrappeAPITestCase):
-	def setUp(self):
-		super().setUp()
-		from frappe.core.doctype.doctype.test_doctype import new_doctype
-		from frappe.core.doctype.user.user import generate_keys
-		from frappe.integrations.doctype.webhook.webhook import get_webhook_data
-
-		frappe.set_user("Administrator")
-		self.user = "api.writeresponse@example.com"
-		if not frappe.db.exists("User", self.user):
-			frappe.get_doc(
-				doctype="User",
-				email=self.user,
-				first_name="API Write Response",
-				roles=[{"role": "Desk User"}],
-				send_welcome_email=0,
-			).insert()
-		keys = generate_keys(self.user)
-		self.headers = {"Authorization": f"token {keys['api_key']}:{keys['api_secret']}"}
-
-		fields = [
-			{"fieldname": "title", "fieldtype": "Data", "label": "Title"},
-			{
-				"fieldname": "secret",
-				"fieldtype": "Data",
-				"label": "Secret",
-				"permlevel": 1,
-				"default": "hidden",
-			},
-		]
-		perms = [
-			{
-				"role": "Desk User",
-				"read": 1,
-				"write": 1,
-				"create": 1,
-				"submit": 1,
-				"cancel": 1,
-				"permlevel": 0,
-			}
-		]
-		self.child = new_doctype(fields=fields, istable=1, permissions=[]).insert().name
-		self.doctype = (
-			new_doctype(
-				fields=[
-					*fields,
-					{"fieldname": "rows", "fieldtype": "Table", "label": "Rows", "options": self.child},
-				],
-				is_submittable=1,
-				permissions=perms,
-			)
-			.insert()
-			.name
-		)
-		self.name = frappe.get_doc(doctype=self.doctype, rows=[{}]).insert().name
-		self.row = frappe.db.get_value(self.child, {"parent": self.name})
-		self.webhooks = [
-			frappe.get_doc(
-				doctype="Webhook",
-				name=frappe.generate_hash(),
-				webhook_doctype=self.doctype,
-				webhook_docevent=event,
-				request_url="https://example.com/hook",
-				request_structure="JSON",
-				webhook_json='{"secret": "{{ doc.secret }}"}',
-			).insert()
-			for event in ("after_insert", "on_update", "on_submit", "on_cancel")
-		]
-		frappe.db.commit()  # nosemgrep
-		frappe.cache.delete_value("webhooks")
-
-		# Render each webhook when it is queued, as the queued job sees the document.
-		self.sent = []
-		enqueue = frappe.enqueue
-
-		def capture_webhook(method, *args, **kwargs):
-			if method != "frappe.integrations.doctype.webhook.webhook.enqueue_webhook":
-				return enqueue(method, *args, **kwargs)
-			webhook = frappe.get_doc("Webhook", kwargs["webhook"].name)
-			self.sent.append(get_webhook_data(kwargs["doc"], webhook))
-
-		send = patch.object(frappe, "enqueue", side_effect=capture_webhook)
-		send.start()
-		self.addCleanup(send.stop)
-
-	def tearDown(self):
-		try:
-			frappe.set_user("Administrator")
-			frappe.db.rollback()
-			for webhook in self.webhooks:
-				frappe.delete_doc("Webhook", webhook.name, force=True)
-			frappe.cache.delete_value("webhooks")
-			frappe.delete_doc("DocType", self.doctype, force=True)
-			frappe.delete_doc("DocType", self.child, force=True)
-			frappe.delete_doc_if_exists("User", self.user)
-			frappe.db.commit()  # nosemgrep
-		finally:
-			super().tearDown()
-
-	def request(self, method, path, data):
-		response = make_request(
-			getattr(get_test_client(use_cookies=False), method),
-			args=(path,),
-			kwargs={"json": data, "headers": self.headers},
-			site=frappe.local.site,
-		)
-		self.assertEqual(response.status_code, 200, response.text)
-		self.assertTrue(self.sent)
-		for payload in self.sent:
-			self.assertEqual(payload, {"secret": "hidden"})
-		return response.json.get("data") or response.json["message"]
-
-	def assertMasked(self, doc):
-		for d in (doc, *(doc.get("rows") or [])):
-			self.assertIsNone(d.get("secret"))
-
-	def saved_doc(self):
-		return frappe.get_doc(self.doctype, self.name).as_dict()
-
-	def test_v1_create_doc(self):
-		doc = self.request("post", f"/api/resource/{self.doctype}", {"rows": [{}]})
-		self.assertEqual(len(doc["rows"]), 1)
-		self.assertMasked(doc)
-
-	def test_v2_create_doc(self):
-		doc = self.request("post", f"/api/v2/document/{self.doctype}", {"rows": [{}]})
-		self.assertEqual(len(doc["rows"]), 1)
-		self.assertMasked(doc)
-
-	def test_v1_update_doc(self):
-		doc = self.request("put", f"/api/resource/{self.doctype}/{self.name}", {"title": "x"})
-		self.assertEqual(doc["title"], "x")
-		self.assertMasked(doc)
-
-	def test_v1_update_doc_child_row(self):
-		doc = self.request("put", f"/api/resource/{self.child}/{self.row}", {"title": "x"})
-		self.assertEqual(doc["title"], "x")
-		self.assertMasked(doc)
-
-	def test_client_insert(self):
-		doc = self.request(
-			"post", "/api/method/frappe.client.insert", {"doc": {"doctype": self.doctype, "rows": [{}]}}
-		)
-		self.assertEqual(len(doc["rows"]), 1)
-		self.assertMasked(doc)
-
-	def test_client_insert_child_returns_masked_parent(self):
-		child = {
-			"doctype": self.child,
-			"parenttype": self.doctype,
-			"parent": self.name,
-			"parentfield": "rows",
-		}
-		doc = self.request("post", "/api/method/frappe.client.insert", {"doc": child})
-		self.assertEqual(doc["doctype"], self.doctype)
-		self.assertEqual(len(doc["rows"]), 2)
-		self.assertMasked(doc)
-
-	def test_client_save(self):
-		doc = self.request(
-			"post", "/api/method/frappe.client.save", {"doc": frappe.as_json(self.saved_doc())}
-		)
-		self.assertMasked(doc)
-
-	def test_client_submit(self):
-		doc = self.request(
-			"post", "/api/method/frappe.client.submit", {"doc": frappe.as_json(self.saved_doc())}
-		)
-		self.assertEqual(doc["docstatus"], 1)
-		self.assertMasked(doc)
-
-	def test_client_cancel(self):
-		frappe.get_doc(self.doctype, self.name).submit()
-		frappe.db.commit()  # nosemgrep
-		self.sent.clear()
-		doc = self.request(
-			"post", "/api/method/frappe.client.cancel", {"doctype": self.doctype, "name": self.name}
-		)
-		self.assertEqual(doc["docstatus"], 2)
-		self.assertMasked(doc)
-
-	def test_client_set_value_child_row(self):
-		doc = self.request(
-			"post",
-			"/api/method/frappe.client.set_value",
-			{"doctype": self.child, "name": self.row, "fieldname": "title", "value": "z"},
-		)
-		self.assertEqual(doc["doctype"], self.doctype)
-		self.assertEqual(doc["rows"][0]["title"], "z")
-		self.assertMasked(doc)
-
-	def test_client_set_value(self):
-		doc = self.request(
-			"post",
-			"/api/method/frappe.client.set_value",
-			{"doctype": self.doctype, "name": self.name, "fieldname": "title", "value": "y"},
-		)
-		self.assertEqual(doc["title"], "y")
-		self.assertMasked(doc)
-
-	def test_copy_only_when_fields_are_hidden(self):
-		doc = frappe.get_doc(self.doctype, self.name)
-		frappe.set_user(self.user)
-		masked = doc.copy_with_fieldlevel_read_permissions()
-		self.assertIsNot(masked, doc)
-		self.assertIsNone(masked.get("secret"))
-		self.assertEqual(doc.secret, "hidden")
-
-		with patch.object(type(doc), "get_permlevel_access", return_value=[0, 1]):
-			self.assertIs(doc.copy_with_fieldlevel_read_permissions(), doc)
-
-		todo = frappe.get_doc(doctype="ToDo", description="x")
-		self.assertIs(todo.copy_with_fieldlevel_read_permissions(), todo)
-
-
 class TestMethodAPI(FrappeAPITestCase):
 	def test_ping(self):
 		# test 2: test for /api/method/ping
@@ -769,3 +554,218 @@ def test_array(data: typing.Any):
 @whitelist_for_tests
 def test_unserializable_response():
 	frappe.response["value"] = object()
+
+
+class TestWriteResponsesFieldLevelRead(FrappeAPITestCase):
+	def setUp(self):
+		super().setUp()
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+		from frappe.core.doctype.user.user import generate_keys
+		from frappe.integrations.doctype.webhook.webhook import get_webhook_data
+
+		frappe.set_user("Administrator")
+		self.user = "api.writeresponse@example.com"
+		if not frappe.db.exists("User", self.user):
+			frappe.get_doc(
+				doctype="User",
+				email=self.user,
+				first_name="API Write Response",
+				roles=[{"role": "Desk User"}],
+				send_welcome_email=0,
+			).insert()
+		keys = generate_keys(self.user)
+		self.headers = {"Authorization": f"token {keys['api_key']}:{keys['api_secret']}"}
+
+		fields = [
+			{"fieldname": "title", "fieldtype": "Data", "label": "Title"},
+			{
+				"fieldname": "secret",
+				"fieldtype": "Data",
+				"label": "Secret",
+				"permlevel": 1,
+				"default": "hidden",
+			},
+		]
+		perms = [
+			{
+				"role": "Desk User",
+				"read": 1,
+				"write": 1,
+				"create": 1,
+				"submit": 1,
+				"cancel": 1,
+				"permlevel": 0,
+			}
+		]
+		self.child = new_doctype(fields=fields, istable=1, permissions=[]).insert().name
+		self.doctype = (
+			new_doctype(
+				fields=[
+					*fields,
+					{"fieldname": "rows", "fieldtype": "Table", "label": "Rows", "options": self.child},
+				],
+				is_submittable=1,
+				permissions=perms,
+			)
+			.insert()
+			.name
+		)
+		self.name = frappe.get_doc(doctype=self.doctype, rows=[{}]).insert().name
+		self.row = frappe.db.get_value(self.child, {"parent": self.name})
+		self.webhooks = [
+			frappe.get_doc(
+				doctype="Webhook",
+				name=frappe.generate_hash(),
+				webhook_doctype=self.doctype,
+				webhook_docevent=event,
+				request_url="https://example.com/hook",
+				request_structure="JSON",
+				webhook_json='{"secret": "{{ doc.secret }}"}',
+			).insert()
+			for event in ("after_insert", "on_update", "on_submit", "on_cancel")
+		]
+		frappe.db.commit()  # nosemgrep
+		frappe.cache.delete_value("webhooks")
+
+		# Render each webhook when it is queued, as the queued job sees the document.
+		self.sent = []
+		enqueue = frappe.enqueue
+
+		def capture_webhook(method, *args, **kwargs):
+			if method != "frappe.integrations.doctype.webhook.webhook.enqueue_webhook":
+				return enqueue(method, *args, **kwargs)
+			webhook = frappe.get_doc("Webhook", kwargs["webhook"].name)
+			self.sent.append(get_webhook_data(kwargs["doc"], webhook))
+
+		send = patch.object(frappe, "enqueue", side_effect=capture_webhook)
+		send.start()
+		self.addCleanup(send.stop)
+
+	def tearDown(self):
+		try:
+			frappe.set_user("Administrator")
+			frappe.db.rollback()
+			for webhook in self.webhooks:
+				frappe.delete_doc("Webhook", webhook.name, force=True)
+			frappe.cache.delete_value("webhooks")
+			frappe.delete_doc("DocType", self.doctype, force=True)
+			frappe.delete_doc("DocType", self.child, force=True)
+			frappe.delete_doc_if_exists("User", self.user)
+			frappe.db.commit()  # nosemgrep
+		finally:
+			super().tearDown()
+
+	def request(self, method, path, data):
+		response = make_request(
+			getattr(get_test_client(use_cookies=False), method),
+			args=(path,),
+			kwargs={"json": data, "headers": self.headers},
+			site=frappe.local.site,
+		)
+		self.assertEqual(response.status_code, 200, response.text)
+		self.assertTrue(self.sent)
+		for payload in self.sent:
+			self.assertEqual(payload, {"secret": "hidden"})
+		return response.json.get("data") or response.json["message"]
+
+	def assertMasked(self, doc):
+		for d in (doc, *(doc.get("rows") or [])):
+			self.assertIsNone(d.get("secret"))
+
+	def saved_doc(self):
+		return frappe.get_doc(self.doctype, self.name).as_dict()
+
+	def test_v1_create_doc(self):
+		doc = self.request("post", f"/api/resource/{self.doctype}", {"rows": [{}]})
+		self.assertEqual(len(doc["rows"]), 1)
+		self.assertMasked(doc)
+
+	def test_v2_create_doc(self):
+		doc = self.request("post", f"/api/v2/document/{self.doctype}", {"rows": [{}]})
+		self.assertEqual(len(doc["rows"]), 1)
+		self.assertMasked(doc)
+
+	def test_v1_update_doc(self):
+		doc = self.request("put", f"/api/resource/{self.doctype}/{self.name}", {"title": "x"})
+		self.assertEqual(doc["title"], "x")
+		self.assertMasked(doc)
+
+	def test_v1_update_doc_child_row(self):
+		doc = self.request("put", f"/api/resource/{self.child}/{self.row}", {"title": "x"})
+		self.assertEqual(doc["title"], "x")
+		self.assertMasked(doc)
+
+	def test_client_insert(self):
+		doc = self.request(
+			"post", "/api/method/frappe.client.insert", {"doc": {"doctype": self.doctype, "rows": [{}]}}
+		)
+		self.assertEqual(len(doc["rows"]), 1)
+		self.assertMasked(doc)
+
+	def test_client_insert_child_returns_masked_parent(self):
+		child = {
+			"doctype": self.child,
+			"parenttype": self.doctype,
+			"parent": self.name,
+			"parentfield": "rows",
+		}
+		doc = self.request("post", "/api/method/frappe.client.insert", {"doc": child})
+		self.assertEqual(doc["doctype"], self.doctype)
+		self.assertEqual(len(doc["rows"]), 2)
+		self.assertMasked(doc)
+
+	def test_client_save(self):
+		doc = self.request(
+			"post", "/api/method/frappe.client.save", {"doc": frappe.as_json(self.saved_doc())}
+		)
+		self.assertMasked(doc)
+
+	def test_client_submit(self):
+		doc = self.request(
+			"post", "/api/method/frappe.client.submit", {"doc": frappe.as_json(self.saved_doc())}
+		)
+		self.assertEqual(doc["docstatus"], 1)
+		self.assertMasked(doc)
+
+	def test_client_cancel(self):
+		frappe.get_doc(self.doctype, self.name).submit()
+		frappe.db.commit()  # nosemgrep
+		self.sent.clear()
+		doc = self.request(
+			"post", "/api/method/frappe.client.cancel", {"doctype": self.doctype, "name": self.name}
+		)
+		self.assertEqual(doc["docstatus"], 2)
+		self.assertMasked(doc)
+
+	def test_client_set_value_child_row(self):
+		doc = self.request(
+			"post",
+			"/api/method/frappe.client.set_value",
+			{"doctype": self.child, "name": self.row, "fieldname": "title", "value": "z"},
+		)
+		self.assertEqual(doc["doctype"], self.doctype)
+		self.assertEqual(doc["rows"][0]["title"], "z")
+		self.assertMasked(doc)
+
+	def test_client_set_value(self):
+		doc = self.request(
+			"post",
+			"/api/method/frappe.client.set_value",
+			{"doctype": self.doctype, "name": self.name, "fieldname": "title", "value": "y"},
+		)
+		self.assertEqual(doc["title"], "y")
+		self.assertMasked(doc)
+
+	def test_copy_only_when_fields_are_hidden(self):
+		doc = frappe.get_doc(self.doctype, self.name)
+		frappe.set_user(self.user)
+		masked = doc.copy_with_fieldlevel_read_permissions()
+		self.assertIsNot(masked, doc)
+		self.assertIsNone(masked.get("secret"))
+		self.assertEqual(doc.secret, "hidden")
+
+		with patch.object(type(doc), "get_permlevel_access", return_value=[0, 1]):
+			self.assertIs(doc.copy_with_fieldlevel_read_permissions(), doc)
+
+		todo = frappe.get_doc(doctype="ToDo", description="x")
+		self.assertIs(todo.copy_with_fieldlevel_read_permissions(), todo)
