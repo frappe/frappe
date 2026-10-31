@@ -5,14 +5,14 @@
 
 import frappe
 from frappe import _
+from frappe.desk.doctype.doctype_view.key_space import KeySpace, find_views
 from frappe.model.document import Document
 from frappe.query_builder.functions import Lower
 
-# A list is stored as its DocType record and a saved view as its view row, so these two
-# doctypes' rows are never records: read rights come from the list's doctype instead.
+# A list, and each of its saved views by `view`, is stored as the list's DocType record, which
+# is never a record here: read rights come from the list's doctype instead.
 LIST = "DocType"
-SAVED_VIEW = "Doctype View"
-NOT_RECORDS = (LIST, SAVED_VIEW)
+PLAIN_LIST = ""
 
 
 class Favourite(Document):
@@ -27,6 +27,7 @@ class Favourite(Document):
 		reference_doctype: DF.Link
 		reference_name: DF.DynamicLink
 		user: DF.Link
+		view: DF.Data
 	# end: auto-generated types
 
 	no_feed_on_delete = True
@@ -50,7 +51,7 @@ class Favourite(Document):
 
 def on_doctype_update():
 	# The unique key is what makes two overlapping toggles safe without a row lock.
-	frappe.db.add_unique("Favourite", ["user", "reference_doctype", "reference_name"])
+	frappe.db.add_unique("Favourite", ["user", "reference_doctype", "reference_name", "view"])
 	frappe.db.add_index("Favourite", ["reference_doctype", "reference_name"])
 
 
@@ -75,13 +76,14 @@ def has_permission(doc, ptype="read", user=None):
 
 @frappe.desk_v2_only
 @frappe.whitelist()
-def toggle_favourite(doctype: str, name: str, add: str | bool = False):
-	"""Add or remove the current user's favourite on a record, a list or a saved view; `add` truthy adds."""
+def toggle_favourite(doctype: str, name: str, add: str | bool = False, view: str | None = None):
+	"""Add or remove the current user's favourite on a record, a list, or the list's saved view `view`; `add` truthy adds."""
 	from frappe.utils.data import sbool
 
-	name = readable_target(doctype, name)
+	view = view or PLAIN_LIST
+	name = readable_target(doctype, name, view)
 
-	key = {"user": frappe.session.user, "reference_doctype": doctype, "reference_name": name}
+	key = {"user": frappe.session.user, "reference_doctype": doctype, "reference_name": name, "view": view}
 	if not sbool(add):
 		# A document delete, not a row delete, so `on_trash` announces the change.
 		if name := frappe.db.get_value("Favourite", key):
@@ -99,15 +101,16 @@ def toggle_favourite(doctype: str, name: str, add: str | bool = False):
 		frappe.db.rollback(save_point="favourite")
 
 
-def readable_target(doctype: str, name: str) -> str:
+def readable_target(doctype: str, name: str, view: str = PLAIN_LIST) -> str:
 	"""The name to store for what the row points at; refuses unless the person may read it."""
 	if doctype == LIST:
-		return readable_list(name)
+		stored = readable_list(name)
+		if view and not KeySpace(stored).find(view):
+			raise frappe.DoesNotExistError(_("This view doesn't exist."))
+		return stored
 
-	if doctype == SAVED_VIEW:
-		frappe.has_permission(SAVED_VIEW, "read", doc=name, throw=True)
-		readable_list(frappe.db.get_value(SAVED_VIEW, name, "reference_doctype"))
-		return str(name)
+	if view:
+		frappe.throw(_("Only a list has saved views."))
 
 	frappe.has_permission(doctype, "read", doc=name, throw=True)
 	return str(name)
@@ -143,40 +146,21 @@ def may_read_list(doctype: str) -> bool:
 	return bool(frappe.has_permission(doctype, "read"))
 
 
-def readable_views(names: list[str]) -> dict[str, frappe._dict]:
-	"""`{name: view}` of the saved views the person may read, on a list they may read; one query."""
-	if not names:
-		return {}
-	# `get_list` applies the view's own read rule (its permission query), so this is the toggle's check in bulk.
-	views = frappe.get_list(
-		SAVED_VIEW,
-		filters={"name": ("in", names)},
-		fields=["name", "label", "reference_doctype"],
-		limit_page_length=0,
-	)
-	return {view.name: view for view in views if may_read_list(view.reference_doctype)}
+def readable_views(targets: list[tuple[str, str]]) -> dict[tuple[str, str], frappe._dict]:
+	"""`{(doctype, key): view}` of the saved views the person sees, on a list they may read; the toggle's check in bulk."""
+	views = find_views(targets)
+	return {target: view for target, view in views.items() if may_read_list(target[0])}
 
 
 def list_favourites(doctype: str) -> dict:
-	"""Whether the person starred this doctype's list, and which of its saved views."""
-	view = frappe.qb.DocType(SAVED_VIEW)
-	favourite = frappe.qb.DocType("Favourite")
-	views = frappe.qb.from_(view).select(view.name).where(view.reference_doctype == doctype)
-	rows = (
-		frappe.qb.from_(favourite)
-		.select(favourite.reference_doctype, favourite.reference_name)
-		.where(favourite.user == frappe.session.user)
-		.where(
-			((favourite.reference_doctype == LIST) & (favourite.reference_name == doctype))
-			| ((favourite.reference_doctype == SAVED_VIEW) & favourite.reference_name.isin(views))
-		)
-		.run(as_dict=True)
+	"""Whether the person starred this doctype's list, and the keys of the saved views they starred."""
+	views = frappe.get_all(
+		"Favourite",
+		filters={"user": frappe.session.user, "reference_doctype": LIST, "reference_name": doctype},
+		pluck="view",
 	)
 
-	return {
-		"list": any(row.reference_doctype == LIST for row in rows),
-		"views": sorted(row.reference_name for row in rows if row.reference_doctype == SAVED_VIEW),
-	}
+	return {"list": PLAIN_LIST in views, "views": sorted(view for view in views if view != PLAIN_LIST)}
 
 
 def get_favourites(doctype: str, name: str) -> list[dict]:
@@ -184,6 +168,6 @@ def get_favourites(doctype: str, name: str) -> list[dict]:
 	return frappe.get_all(
 		"Favourite",
 		fields=["user", "creation"],
-		filters={"reference_doctype": doctype, "reference_name": str(name)},
+		filters={"reference_doctype": doctype, "reference_name": str(name), "view": PLAIN_LIST},
 		order_by="creation asc",
 	)

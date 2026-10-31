@@ -1,8 +1,11 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+from unittest.mock import patch
+
 import frappe
 from frappe.desk.doctype.favourite.favourite import get_favourites, list_favourites, toggle_favourite
+from frappe.patches.v17_0 import address_saved_views_by_key
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import queued_docinfo_updates
 
@@ -145,20 +148,19 @@ class TestFavourite(IntegrationTestCase):
 
 
 class TestListAndViewFavourites(IntegrationTestCase):
-	"""A list is stored as its DocType record and a saved view as its view row; read comes from the doctype."""
+	"""A list is stored as its DocType record, and a saved view as the list plus its key; read comes from the doctype."""
 
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
 		make_plain_user()
 
-	def _starred(self, doctype, name, user=DESK_USER):
+	def _starred(self, doctype, name, user=DESK_USER, view=""):
 		return frappe.db.exists(
-			"Favourite", {"user": user, "reference_doctype": doctype, "reference_name": name}
+			"Favourite", {"user": user, "reference_doctype": doctype, "reference_name": name, "view": view}
 		)
 
 	def _view(self, doctype=READABLE, user=""):
-		# A fresh label each time: the class rolls back once, and a label is part of a view's address.
 		label = frappe.generate_hash(length=8)
 		return frappe.get_doc(
 			doctype="Doctype View",
@@ -194,29 +196,117 @@ class TestListAndViewFavourites(IntegrationTestCase):
 		self.assertFalse(self._starred("DocType", READABLE))
 		self.assertFalse(self._starred("DocType", PRIVATE))
 
-	def test_a_plain_user_stars_and_unstars_a_saved_view(self):
-		view = self._view().name
+	def test_a_plain_user_stars_and_unstars_a_saved_view_by_its_key(self):
+		view = self._view()
 
 		with self.set_user(DESK_USER):
-			toggle_favourite("Doctype View", view, add=True)
-			self.assertTrue(self._starred("Doctype View", view))
-			self.assertEqual(list_favourites(READABLE), {"list": False, "views": [view]})
+			toggle_favourite("DocType", READABLE, add=True, view=view.key)
+			self.assertTrue(self._starred("DocType", READABLE, view=view.key))
+			self.assertEqual(list_favourites(READABLE), {"list": False, "views": [view.key]})
 
-			toggle_favourite("Doctype View", view, add=False)
-			self.assertFalse(self._starred("Doctype View", view))
+			toggle_favourite("DocType", READABLE, add=False, view=view.key)
+			self.assertFalse(self._starred("DocType", READABLE, view=view.key))
 
-	def test_a_saved_view_needs_read_on_the_view_and_its_doctype(self):
-		someone_elses = self._view(user="Administrator").name
-		of_a_private_doctype = self._view(doctype=PRIVATE).name
+	def test_a_star_on_a_view_survives_a_new_label_and_goes_with_the_view(self):
+		view = self._view()
+		with self.set_user(DESK_USER):
+			toggle_favourite("DocType", READABLE, add=True, view=view.key)
+
+		view.label = "Renamed"
+		view.save(ignore_permissions=True)
+		with self.set_user(DESK_USER):
+			self.assertEqual(list_favourites(READABLE)["views"], [view.key])
+
+		view.delete(ignore_permissions=True)
+		self.assertFalse(self._starred("DocType", READABLE, view=view.key))
+
+	def test_a_saved_view_must_be_seen_by_the_person_on_a_list_they_read(self):
+		someone_elses = self._view(user="Administrator").key
+		of_a_private_doctype = self._view(doctype=PRIVATE).key
 
 		with self.set_user(DESK_USER):
-			self.assertRaises(frappe.PermissionError, toggle_favourite, "Doctype View", someone_elses, True)
 			self.assertRaises(
-				frappe.PermissionError, toggle_favourite, "Doctype View", of_a_private_doctype, True
+				frappe.DoesNotExistError, toggle_favourite, "DocType", READABLE, True, someone_elses
 			)
 			self.assertRaises(
-				frappe.DoesNotExistError, toggle_favourite, "Doctype View", "no-such-view", True
+				frappe.PermissionError, toggle_favourite, "DocType", PRIVATE, True, of_a_private_doctype
 			)
-		self.assertFalse(
-			frappe.db.exists("Favourite", {"user": DESK_USER, "reference_doctype": "Doctype View"})
+			self.assertRaises(
+				frappe.DoesNotExistError, toggle_favourite, "DocType", READABLE, True, "no-such-view"
+			)
+			self.assertRaises(frappe.ValidationError, toggle_favourite, "ToDo", "anything", True, "a-view")
+		self.assertFalse(frappe.db.exists("Favourite", {"user": DESK_USER, "view": ("!=", "")}))
+
+
+class TestAddressSavedViewsByKey(IntegrationTestCase):
+	"""The patch keys each saved view and moves each star on one to its list and key."""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		make_plain_user()
+
+	def _old_star(self, view_name):
+		return (
+			frappe.get_doc(
+				doctype="Favourite",
+				user=DESK_USER,
+				reference_doctype="Doctype View",
+				reference_name=view_name,
+			)
+			.insert(ignore_permissions=True, ignore_links=True)
+			.name
 		)
+
+	def _unkeyed_view(self, user=""):
+		view = frappe.get_doc(
+			doctype="Doctype View",
+			reference_doctype=READABLE,
+			type="List",
+			label="Probe Patch View",
+			user=user,
+			settings={},
+		).insert(ignore_permissions=True)
+		frappe.db.set_value("Doctype View", view.name, "key", "")
+		return view
+
+	def _patch(self):
+		# The index swap is DDL, which would commit the test's rows.
+		with (
+			patch.object(address_saved_views_by_key, "drop_unique"),
+			patch.object(address_saved_views_by_key, "add_view_address"),
+		):
+			address_saved_views_by_key.execute()
+
+	def test_a_view_gets_a_key_and_its_star_moves_while_a_star_on_a_gone_view_goes(self):
+		view = self._unkeyed_view()
+		self._old_star(view.name)
+		self._old_star("no-such-view-row")
+
+		self._patch()
+
+		key = frappe.db.get_value("Doctype View", view.name, "key")
+		self.assertTrue(key.startswith("probe-patch-view"))
+		self.assertEqual(
+			frappe.get_all(
+				"Favourite",
+				filters={"user": DESK_USER},
+				fields=["reference_doctype", "reference_name", "view"],
+			),
+			[{"reference_doctype": "DocType", "reference_name": READABLE, "view": key}],
+		)
+
+	def test_two_people_s_views_with_one_label_get_two_keys(self):
+		first, second = self._unkeyed_view("Administrator"), self._unkeyed_view(DESK_USER)
+
+		self._patch()
+
+		keys = {frappe.db.get_value("Doctype View", view.name, "key") for view in (first, second)}
+		self.assertEqual(len(keys), 2)
+
+	def test_a_star_on_another_person_s_view_goes(self):
+		star = self._old_star(self._unkeyed_view("Administrator").name)
+
+		self._patch()
+
+		self.assertFalse(frappe.db.exists("Favourite", star))

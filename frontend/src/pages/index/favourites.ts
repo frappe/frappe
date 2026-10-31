@@ -10,7 +10,8 @@ export const MORE_FAVOURITES_KEY = "favourites:more";
 
 /** The favourite's selection key, unique on the page. */
 export function favouriteKey(favourite: IndexFavourite): string {
-	return `favourite:${favourite.doctype}:${favourite.name}`;
+	const view = favourite.view ? `:${favourite.view}` : "";
+	return `favourite:${favourite.doctype}:${favourite.name}${view}`;
 }
 
 export class Favourites {

@@ -120,11 +120,15 @@ import { createdMessage } from "./createdMessage";
 import DeleteDialog from "./DeleteDialog.vue";
 import { useListActs } from "./listActs";
 
-const props = defineProps<{ doctype: string; view?: string | null }>();
+const props = defineProps<{ doctype: string; view?: string | null; viewLabel?: string | null }>();
 
 const router = useRouter();
 
-const crumbs = computed(() => [{ label: props.doctype }]);
+const crumbs = computed(() =>
+	props.viewLabel
+		? [{ label: props.doctype, route: routeFor(props.doctype) }, { label: props.viewLabel }]
+		: [{ label: props.doctype }]
+);
 
 const {
 	filters,
@@ -201,6 +205,7 @@ const listActs = useListActs({
 	starsLoaded: () => settings.favourites.value !== null,
 	favourited: () => favourited.value,
 	toggleFavourite: () => settings.toggleFavourite(props.view ?? null),
+	openView: (key) => router.push(routeFor(props.doctype, null, { view: key })),
 });
 
 const createAct = computed(() => listActs.drawn("create"));

@@ -26,6 +26,8 @@ export interface ListActsHost {
   starsLoaded: () => boolean;
   favourited: () => boolean;
   toggleFavourite: () => unknown;
+  /** Opens the doctype's saved view `key`. */
+  openView: (key: string) => unknown;
 }
 
 export interface ListActs {
@@ -76,6 +78,17 @@ function listEntries(host: ListActsHost): ActEntry[] {
     },
     {
       item: {
+        name: "open_view",
+        label: __("Open View"),
+        icon: "lucide-list",
+        // The palette has no list of views to offer as options yet.
+        palette: false,
+        run: (_context: unknown, value?: { key?: unknown }) => host.openView(viewKey(value)),
+      },
+      hidden: false,
+    },
+    {
+      item: {
         name: "customize_quick_filter",
         label: __("Customize Quick Filter"),
         icon: "lucide-sliders-horizontal",
@@ -96,6 +109,12 @@ function listEntries(host: ListActsHost): ActEntry[] {
       hidden: false,
     });
   return entries;
+}
+
+function viewKey(value?: { key?: unknown }): string {
+  if (typeof value?.key !== "string" || !value.key)
+    throw new Error(__("Name the view to open by its key."));
+  return value.key;
 }
 
 /** A right on the list's doctype; its create right is the list's Create rule. */

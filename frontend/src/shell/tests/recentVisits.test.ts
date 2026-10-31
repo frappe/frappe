@@ -4,7 +4,7 @@ import { createMemoryHistory, createRouter, type Router } from "vue-router";
 
 import { Addresses } from "@/addresses";
 import type { Boot } from "@/boot";
-import { registerShell } from "@/router/routeFor";
+import { registerShell, urlFor } from "@/router/routeFor";
 import { recentVisits } from "../recentVisits";
 
 const boot = {
@@ -28,6 +28,7 @@ beforeEach(() => {
 		history: createMemoryHistory(boot.shell_base),
 		routes: [
 			{ path: "/:doctype", name: "list", component: { render: () => null } },
+			{ path: "/:doctype/view/:key", name: "saved-view", component: { render: () => null } },
 			{ path: "/:doctype/:name", name: "record", component: { render: () => null } },
 		],
 	});
@@ -55,6 +56,17 @@ describe("recent visits", () => {
 		await visit("/crm-deal/DEAL-1");
 
 		expect(titles()).toEqual(["Acme deal", "CRM Deal"]);
+	});
+
+	it("keeps a saved view as its own place, titled by the label its page read", async () => {
+		await visit("/crm-deal");
+		await visit("/crm-deal/view/open-deals");
+		recentVisits.retitle("/crm-deal/view/open-deals", "Open deals");
+
+		expect(recentVisits.list().map(({ title, kind, view, route }) => ({ title, kind, view, route }))).toEqual([
+			{ title: "Open deals", kind: "view", view: "open-deals", route: urlFor("CRM Deal", null, { view: "open-deals" }) },
+			{ title: "CRM Deal", kind: "list", view: undefined, route: urlFor("CRM Deal") },
+		]);
 	});
 
 	it("keeps 20 at most", async () => {

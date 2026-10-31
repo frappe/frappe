@@ -504,7 +504,9 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 			self.commit()
 			self.sql(
 				"""alter table `tab{}`
-					add unique `{}`({})""".format(doctype, constraint_name, ", ".join(fields))
+					add unique `{}`({})""".format(
+					doctype, constraint_name, ", ".join(f"`{field}`" for field in fields)
+				)
 			)
 
 	def updatedb(self, doctype, meta=None):

@@ -27,6 +27,12 @@
 				:route="{ name: 'home' }"
 			/>
 			<Button
+				v-else-if="name === 'viewNotFound' && doctype"
+				class="mt-1"
+				:label="__('Go to {0}', [__(doctype)])"
+				:route="routeFor(doctype)"
+			/>
+			<Button
 				v-else-if="name === 'nothingToOpen'"
 				class="mt-1"
 				:label="__('All apps')"
@@ -42,6 +48,7 @@ import { computed, inject, ref } from "vue";
 import { useRoute } from "vue-router";
 import type { Boot } from "@/boot";
 import { __ } from "@/i18n";
+import { routeFor } from "@/router/routeFor";
 import type { PageStateValue } from "./pageState";
 
 const props = defineProps<PageStateValue>();
@@ -71,6 +78,11 @@ const looks = {
 		icon: "lucide-search-x",
 		title: __("Not found"),
 		description: __("This page does not exist, or it was removed."),
+	},
+	viewNotFound: {
+		icon: "lucide-search-x",
+		title: __("This view doesn't exist"),
+		description: __("It was deleted, or it is someone else's."),
 	},
 	noPermission: {
 		icon: "lucide-lock",

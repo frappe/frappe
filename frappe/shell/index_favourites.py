@@ -4,13 +4,7 @@ from urllib.parse import quote
 
 import frappe
 from frappe import _
-from frappe.desk.doctype.favourite.favourite import (
-	LIST,
-	NOT_RECORDS,
-	SAVED_VIEW,
-	may_read_list,
-	readable_views,
-)
+from frappe.desk.doctype.favourite.favourite import LIST, may_read_list, readable_views
 
 from .doctypes import get_doctype_owners
 from .links import canonical_path
@@ -44,7 +38,7 @@ def favourite_rows(start: int, limit: int) -> list[frappe._dict]:
 	return frappe.get_all(
 		"Favourite",
 		filters={"user": frappe.session.user},
-		fields=["reference_doctype", "reference_name"],
+		fields=["reference_doctype", "reference_name", "view"],
 		# `name` breaks ties, so the More call's offset continues boot's order exactly.
 		order_by="creation desc, name desc",
 		limit_start=start,
@@ -58,7 +52,7 @@ class Chips:
 	def __init__(self, rows: list[frappe._dict]):
 		self.rows = rows
 		self.owners = get_doctype_owners()
-		self.views = readable_views(names_of(rows, SAVED_VIEW))
+		self.views = readable_views([(row.reference_name, row.view) for row in rows if row.view])
 		self.apps: dict[str, bool] = {}
 		self.titles = self.record_titles()
 
@@ -85,10 +79,10 @@ class Chips:
 
 	def target(self, row: frappe._dict) -> tuple[str, dict] | None:
 		"""The doctype whose app the chip belongs to, and its kind, title and route; None if unreadable."""
+		if row.reference_doctype == LIST and row.view:
+			return self.view_chip(row.reference_name, row.view)
 		if row.reference_doctype == LIST:
 			return self.list_chip(row.reference_name)
-		if row.reference_doctype == SAVED_VIEW:
-			return self.view_chip(row.reference_name)
 		return self.record_chip(row.reference_doctype, row.reference_name)
 
 	def record_chip(self, doctype: str, name: str) -> tuple[str, dict] | None:
@@ -102,19 +96,18 @@ class Chips:
 			return None
 		return doctype, {"kind": "list", "title": _(doctype), "route": canonical_path(doctype)}
 
-	def view_chip(self, name: str) -> tuple[str, dict] | None:
-		view = self.views.get(name)
-		if view is None or not self.may_open(view.reference_doctype):
+	def view_chip(self, doctype: str, key: str) -> tuple[str, dict] | None:
+		view = self.views.get((doctype, key))
+		if view is None or not self.may_open(doctype):
 			return None
 
-		doctype = view.reference_doctype
-		route = f"{canonical_path(doctype)}/view/list/{quote(name, safe='')}"
-		return doctype, {"kind": "view", "title": view.label or _(doctype), "route": route}
+		route = f"{canonical_path(doctype)}/view/{quote(key, safe='')}"
+		return doctype, {"view": key, "kind": "view", "title": view.label, "route": route}
 
 	def record_titles(self) -> dict[str, dict[str, str]]:
 		names_by_doctype: dict[str, list[str]] = {}
 		for row in self.rows:
-			if row.reference_doctype not in NOT_RECORDS:
+			if row.reference_doctype != LIST:
 				names_by_doctype.setdefault(row.reference_doctype, []).append(row.reference_name)
 
 		return {
@@ -129,7 +122,3 @@ class Chips:
 		if app and app not in self.apps:
 			self.apps[app] = has_app_permission(app)
 		return bool(app and self.apps[app])
-
-
-def names_of(rows: list[frappe._dict], doctype: str) -> list[str]:
-	return [row.reference_name for row in rows if row.reference_doctype == doctype]

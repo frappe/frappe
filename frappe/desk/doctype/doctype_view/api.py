@@ -1,10 +1,11 @@
-# The three calls a view's settings go through: read both scopes, patch keys, clear one key.
+# The calls a view's settings go through: read both scopes, patch keys, clear one key; and find a saved view by key.
 
 import frappe
 from frappe import _
 from frappe.desk.doctype.favourite.favourite import list_favourites
 
 from .doctype_view import PLAIN_VIEW, SITE_ROW, VIEW_TYPES, DuplicateViewError, is_site_administrator
+from .key_space import KeySpace
 
 SCOPES = ("user", "site")
 
@@ -44,17 +45,26 @@ def reset(doctype: str, type: str, scope: str, key: str) -> dict:
 	return _rows(doctype, type)
 
 
+@frappe.desk_v2_only
+@frappe.whitelist(methods=["GET"])
+def find(doctype: str, key: str) -> dict:
+	"""The saved view at `key` the caller sees, their own before the site's; another person's reads as missing."""
+	if not isinstance(key, str):
+		frappe.throw(_("A view key is one name."))
+	_check_doctype(doctype)
+
+	view = KeySpace(doctype).find(key)
+	if not view:
+		raise frappe.DoesNotExistError(_("This view doesn't exist."))
+
+	return {"key": view.key, "label": view.label, "type": view.type}
+
+
 def _check(doctype: str, type: str, scope: str = "user"):
 	"""Refuse an argument the caller cannot use, and the site scope for anyone but a System Manager."""
-	# Explicit: `validate_argument_types` only runs in a request, and `doctype` goes into a filter.
-	if not all(isinstance(argument, str) for argument in (doctype, type, scope)):
+	_check_doctype(doctype)
+	if not all(isinstance(argument, str) for argument in (type, scope)):
 		frappe.throw(_("A doctype, a view type and a scope are each one name."))
-
-	if not frappe.db.exists("DocType", doctype):
-		frappe.throw(_("{0} is not a doctype.").format(frappe.bold(doctype)))
-
-	if not frappe.has_permission(doctype, "read"):
-		frappe.throw(_("You are not permitted to read {0}.").format(doctype), frappe.PermissionError)
 
 	if type not in VIEW_TYPES:
 		frappe.throw(_("{0} is not a view type.").format(frappe.bold(type)))
@@ -69,13 +79,26 @@ def _check(doctype: str, type: str, scope: str = "user"):
 		)
 
 
+def _check_doctype(doctype: str):
+	"""Refuse a doctype that is not one, or that the caller cannot read."""
+	# Explicit: `validate_argument_types` only runs in a request, and `doctype` goes into a filter.
+	if not isinstance(doctype, str):
+		frappe.throw(_("A doctype is one name."))
+
+	if not frappe.db.exists("DocType", doctype):
+		frappe.throw(_("{0} is not a doctype.").format(frappe.bold(doctype)))
+
+	if not frappe.has_permission(doctype, "read"):
+		frappe.throw(_("You are not permitted to read {0}.").format(doctype), frappe.PermissionError)
+
+
 def _address(doctype: str, type: str, scope: str) -> dict:
 	# No `user` argument anywhere here: the user scope is the session user and nothing else.
 	return {
 		"reference_doctype": doctype,
 		"type": type,
 		"user": frappe.session.user if scope == "user" else SITE_ROW,
-		"label": PLAIN_VIEW,
+		"key": PLAIN_VIEW,
 	}
 
 
@@ -85,7 +108,7 @@ def _rows(doctype: str, type: str) -> dict:
 		filters={
 			"reference_doctype": doctype,
 			"type": type,
-			"label": PLAIN_VIEW,
+			"key": PLAIN_VIEW,
 			"user": ("in", (SITE_ROW, frappe.session.user)),
 		},
 		fields=["user", "settings"],

@@ -227,7 +227,7 @@ describe.each([
 
 	it("keeps the standard list page at the second address and for a saved view", async () => {
 		const standard = await mount(modular, `${prefix}/sales-invoice/view/list`);
-		const saved = await mount(modular, `${prefix}/sales-invoice/view/list/open`);
+		const saved = await mount(modular, `${prefix}/sales-invoice/view/open`);
 
 		expect(shown(standard.root)).toEqual({ page: "list" });
 		expect(shown(saved.root)).toEqual({ page: "list" });

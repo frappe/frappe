@@ -97,20 +97,21 @@ def enterable_owners(doctypes: Iterable[str]) -> dict[str, str]:
 
 
 def recent_places() -> list[dict]:
-	"""The person's last distinct list and record visits they can still open, titled, newest first."""
+	"""The person's last distinct list, view and record visits they can still open, titled, newest first."""
 	zone = ZoneInfo(get_system_timezone())
 	return [recent_place(visit, *heading, zone) for visit, *heading in titled_visits(RECENT_VISITS_LIMIT)]
 
 
 def recent_place(visit: Visit, title: str, subtitle: str | None, zone: ZoneInfo) -> dict:
-	"""A record says its doctype, a list or a single its app; `visited` in ms since the epoch, as the browser counts."""
+	"""A record says its doctype, a list, a view or a single its app; `visited` in ms since the epoch, as the browser counts."""
 	record = visit.name is not None
 	return {
 		"route": visit.route,
 		"doctype": visit.doctype,
 		"name": visit.name,
+		"view": visit.view,
 		"title": title,
-		"kind": "record" if record else "list",
+		"kind": "record" if record else "view" if visit.view else "list",
 		"description": subtitle if record and subtitle else app_screen(visit.app)["title"],
 		"visited": int(get_datetime(visit.visited).replace(tzinfo=zone).timestamp() * 1000),
 	}
