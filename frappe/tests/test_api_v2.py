@@ -1,11 +1,13 @@
+import json
 import typing
 from random import choice
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import requests
 
 import frappe
 from frappe.api import discovery
+from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.core.doctype.user.user import generate_keys
 from frappe.installer import update_site_config
 from frappe.tests.test_api import FrappeAPITestCase, make_request, suppress_stdout
@@ -221,6 +223,112 @@ class TestApiV2UpdatePermissions(FrappeAPITestCase):
 		response = self.update_document(name, {"description": "Permitted API update"})
 		self.assertEqual(response.status_code, 200)
 		self.assertEqual(frappe.db.get_value("ToDo", name, "description"), "Permitted API update")
+
+
+class TestApiV2CreateFieldLevelRead(FrappeAPITestCase):
+	version = "v2"
+
+	def setUp(self):
+		super().setUp()
+		frappe.set_user("Administrator")
+		self.user = "api.fieldlevel@example.com"
+		if not frappe.db.exists("User", self.user):
+			frappe.get_doc(
+				doctype="User",
+				email=self.user,
+				first_name="API Field Level",
+				roles=[{"role": "Desk User"}],
+				send_welcome_email=0,
+			).insert()
+		keys = generate_keys(self.user)
+		self.authorization = f"token {keys['api_key']}:{keys['api_secret']}"
+		self.doctype = (
+			new_doctype(
+				fields=[
+					{"fieldname": "title", "fieldtype": "Data", "label": "Title"},
+					{
+						"fieldname": "secret",
+						"fieldtype": "Data",
+						"label": "Secret",
+						"permlevel": 1,
+						"default": "hidden",
+					},
+				],
+				is_submittable=1,
+				permissions=[
+					{"role": "Desk User", "read": 1, "write": 1, "create": 1, "submit": 1, "permlevel": 0}
+				],
+			)
+			.insert()
+			.name
+		)
+		self.name = frappe.get_doc(doctype=self.doctype).insert().name
+		self.webhooks = [
+			frappe.get_doc(
+				doctype="Webhook",
+				name=frappe.generate_hash(),
+				webhook_doctype=self.doctype,
+				webhook_docevent=event,
+				request_url="https://example.com/hook",
+				request_structure="JSON",
+				webhook_json='{"secret": "{{ doc.secret }}"}',
+			).insert()
+			for event in ("after_insert", "on_update", "on_submit")
+		]
+		frappe.db.commit()  # nosemgrep
+		frappe.client_cache.delete_value("webhooks")
+		self.sent = []
+		send = patch(
+			"frappe.integrations.doctype.webhook.webhook.requests.request",
+			side_effect=lambda **kwargs: self.sent.append(json.loads(kwargs["data"])) or MagicMock(),
+		)
+		send.start()
+		self.addCleanup(send.stop)
+
+	def tearDown(self):
+		try:
+			frappe.set_user("Administrator")
+			frappe.db.rollback()
+			for webhook in self.webhooks:
+				for log in frappe.get_all("Webhook Request Log", {"webhook": webhook.name}, pluck="name"):
+					frappe.delete_doc("Webhook Request Log", log, force=True)
+				frappe.delete_doc("Webhook", webhook.name, force=True)
+			frappe.client_cache.delete_value("webhooks")
+			frappe.delete_doc("DocType", self.doctype, force=True)
+			frappe.delete_doc_if_exists("User", self.user)
+			frappe.db.commit()  # nosemgrep
+		finally:
+			super().tearDown()
+
+	def request(self, method, *path, data=None, url=None):
+		response = make_request(
+			getattr(get_test_client(use_cookies=False), method),
+			args=(url or self.resource(self.doctype, *path),),
+			kwargs={"json": data or {}, "headers": {"Authorization": self.authorization}},
+			site=frappe.local.site,
+		)
+		self.assertEqual(response.status_code, 200)
+		self.assertTrue(self.sent)
+		for payload in self.sent:
+			self.assertEqual(payload, {"secret": "hidden"})
+		return response.json
+
+	def test_create_omits_fields_without_read_permission(self):
+		self.assertIsNone(self.request("post")["data"].get("secret"))
+
+	def test_copy_only_when_fields_are_hidden(self):
+		doc = frappe.get_doc(self.doctype, self.name)
+		frappe.set_user(self.user)
+		masked = doc.copy_with_fieldlevel_read_permissions()
+		self.assertIsNot(masked, doc)
+		self.assertIsNone(masked.get("secret"))
+		self.assertEqual(doc.secret, "hidden")
+
+		with patch.object(type(doc), "get_permlevel_access", return_value=[0, 1]):
+			self.assertIs(doc.copy_with_fieldlevel_read_permissions(), doc)
+
+		todo = frappe.get_doc(doctype="ToDo", description="x")
+		self.assertIs(todo.copy_with_fieldlevel_read_permissions(), todo)
 
 
 class TestMethodAPIV2(FrappeAPITestCase):
@@ -655,7 +763,7 @@ def generate_admin_keys():
 	from frappe.core.doctype.user.user import generate_keys
 
 	generate_keys("Administrator")
-	frappe.db.commit()
+	frappe.db.commit()  # nosemgrep
 
 
 @whitelist_for_tests()
