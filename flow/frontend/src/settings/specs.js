@@ -390,6 +390,7 @@ export const SPECS = {
 				required: true,
 				rename: true,
 				half: true,
+				locked: system,
 			},
 			{
 				name: "agent",
@@ -398,6 +399,7 @@ export const SPECS = {
 				link: "Flow Agent",
 				required: true,
 				half: true,
+				locked: system,
 			},
 			{
 				name: "prompt_template",
@@ -406,6 +408,7 @@ export const SPECS = {
 				language: "jinja",
 				required: true,
 				description: "What to ask the agent. {{ doc.name }} inserts the record's name.",
+				locked: system,
 			},
 			{
 				name: "event",
@@ -413,6 +416,7 @@ export const SPECS = {
 				type: "select",
 				options: ["DocType Event", "Scheduled"],
 				section: "When",
+				locked: system,
 			},
 			{
 				name: "target_doctype",
@@ -421,6 +425,7 @@ export const SPECS = {
 				link: "DocType",
 				when: (doc) => doc.event === "DocType Event",
 				half: true,
+				locked: system,
 			},
 			{
 				name: "doc_event",
@@ -429,6 +434,7 @@ export const SPECS = {
 				options: ["after_insert", "on_update", "on_submit", "on_cancel", "on_trash"],
 				when: (doc) => doc.event === "DocType Event",
 				half: true,
+				locked: system,
 			},
 			{
 				name: "cron_expression",
@@ -436,6 +442,7 @@ export const SPECS = {
 				type: "text",
 				placeholder: "0 9 * * 5",
 				when: (doc) => doc.event === "Scheduled",
+				locked: system,
 			},
 			{
 				name: "last_fired_at",
@@ -450,6 +457,7 @@ export const SPECS = {
 				language: "python",
 				description:
 					'Only run when this is true, for example doc.status == "Open". A multi-line condition must set result to True or False.',
+				locked: system,
 			},
 			{ ...enabled, section: "Access" },
 			{
@@ -459,6 +467,7 @@ export const SPECS = {
 				link: "User",
 				description:
 					"The agent acts as this user. Empty means whoever created the trigger.",
+				locked: system,
 			},
 		],
 	},

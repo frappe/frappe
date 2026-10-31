@@ -75,7 +75,8 @@ class Agent:
 	functions in an installed app, since the flow server calls them back by import path.
 	The model calls them `<app>__<tool name>`, like `crm__read_records`.
 	`sub_agents` are Agents this one may hand a task to; they are synced before it.
-	`skills` are Flow Skill names, like `crm/onboarding` for a skill an app ships.
+	`skills` are Flow Skill names. One without an app prefix, like `onboarding`, is this app's
+	skill if it ships one, else the site's skill of that name.
 	The doc is named and titled `<app>/<name>`, after the app whose code builds the Agent.
 	"""
 
@@ -132,7 +133,7 @@ class Agent:
 		doc.is_system_generated = 1
 		doc.set("tools", [{"tool": _ensure_tool(tool)} for tool in self.tools])
 		doc.set("knowledge_bases", [{"knowledge_base": kb.name} for kb in self.knowledge])
-		doc.set("skills", [{"skill": name} for name in self.skills])
+		doc.set("skills", [{"skill": _skill_name(self.app, name)} for name in self.skills])
 		doc.set("sub_agents", [{"agent": child.name} for child in self.sub_agents])
 		doc.save(ignore_permissions=True)
 
@@ -146,6 +147,17 @@ class Agent:
 		"""Start `input` in a new session and return its Running Flow Run without waiting.
 		Once the run ends, Flow calls the function at the dotted path `on_complete` with it."""
 		return self.new_session().chat(input, on_complete=on_complete)
+
+
+def with_app_prefix(app: str, name: str) -> str:
+	"""`<app>/<name>`, unless `name` already has an app prefix like `crm/onboarding`."""
+	return name if "/" in name else f"{app}/{name}"
+
+
+def _skill_name(app: str, name: str) -> str:
+	"""The skill `app`'s code means by `name`: its own `<app>/<name>` if it ships one, else `name`."""
+	own = with_app_prefix(app, name)
+	return own if frappe.db.exists("Flow Skill", own) else name
 
 
 def _ensure_tool(tool: Tool) -> str:
