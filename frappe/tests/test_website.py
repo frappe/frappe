@@ -157,6 +157,12 @@ class TestWebsite(IntegrationTestCase):
 		response = get_response()
 		self.assertEqual(response.status_code, 404)
 
+	def test_not_found_raised_while_rendering(self):
+		with patch.object(StaticPage, "render", side_effect=frappe.PageDoesNotExistError):
+			set_request(method="GET", path="/_test/assets/image")
+			response = get_response()
+		self.assertEqual(response.status_code, 404)
+
 	def test_redirect(self):
 		import frappe.hooks
 
