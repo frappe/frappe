@@ -1974,6 +1974,25 @@ class TestChildTableAttachments(IntegrationTestCase):
 		file_reloaded = frappe.get_doc("File", file.name)
 		self.assertEqual(doc_reloaded.parent_image, file_reloaded.file_url)
 
+	@IntegrationTestCase.change_settings("Navbar Settings", {"app_logo": "/files/logo.png"})
+	def test_toggle_is_private_leaves_unrelated_single_field_unchanged(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		file = frappe.get_doc(
+			doctype="File",
+			file_name="navbar-logo.png",
+			content=b"navbar-logo-bytes",
+			is_private=1,
+			attached_to_doctype="Navbar Settings",
+			attached_to_name="Navbar Settings",
+			attached_to_field="app_logo",
+		).insert()
+
+		file.is_private = 0
+		file.save()
+
+		self.assertEqual(frappe.db.get_single_value("Navbar Settings", "app_logo"), "/files/logo.png")
+
 
 class TestAttachmentsAccess(IntegrationTestCase):
 	def setUp(self) -> None:
