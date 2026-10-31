@@ -39,10 +39,15 @@ class TestOAuthBearerToken(IntegrationTestCase):
 	def test_empty_refresh_token_is_rejected(self):
 		from frappe.oauth import OAuthWebRequestValidator
 
-		make_bearer_token(frappe.generate_hash(), None)
+		owning_client = make_oauth_client()
+		make_bearer_token(frappe.generate_hash(), None, client=owning_client.name)
 		request = frappe._dict()
 
-		self.assertFalse(OAuthWebRequestValidator().validate_refresh_token("", None, request))
+		self.assertFalse(
+			OAuthWebRequestValidator().validate_refresh_token(
+				"", frappe._dict(client_id=owning_client.name), request
+			)
+		)
 		self.assertNotIn("user", request)
 
 	def test_refresh_token_rejects_missing_client(self):
