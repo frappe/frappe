@@ -39,6 +39,7 @@ function shellCreate(create: (value: unknown) => unknown) {
 
 function makeHost(overrides: Partial<RecordPageHost> = {}): RecordPageHost {
   return {
+    app: "frappe",
     doctype: "CRM Deal",
     docname: "CRM-DEAL-1",
     doc: ref({ status: "Open" }),

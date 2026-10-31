@@ -449,7 +449,7 @@ the reference for each `page` member.
 | Field change handler | A fieldname key runs when that field's value changes |
 | Child [table handlers block](./CONTEXT.md#table-handlers-block) | Handlers under a table fieldname: field keys, `onAdd`, `onRemove` |
 | `SAVE_VETO` | Throwing in `beforeSave` cancels the save and keeps the draft |
-| [Document](./CONTEXT.md#record) (`page.doc`, `page.saved`, `page.isDirty`, `page.isNew`, `page.doctype`, `page.docname`) | `page.isDirty` says whether the draft differs from the saved copy. `page.isNew` is true until the first save, and `page.save()` then inserts, also with no changes |
+| [Document](./CONTEXT.md#record) (`page.doc`, `page.saved`, `page.isDirty`, `page.isNew`, `page.doctype`, `page.docname`, `page.app`) | `page.isDirty` says whether the draft differs from the saved copy. `page.isNew` is true until the first save, and `page.save()` then inserts, also with no changes. `page.app` is the app the reader is in (`frappe` on `/apps/desk`), read-only, so a script can change a doctype in one app only |
 | `page.meta` | The doctype meta, read-only |
 | Rights (`page.perms`, `page.roles`, `page.fieldAccess()`) | The user's rights, roles, and field access |
 | Page acts (`page.save()`, `page.reload()`, `page.refresh()`, `page.call()`, `page.create()`, `page.openSettings()`, `page.run()`, `page.router`, `page.toast`) | Save, re-read, re-run `onRefresh`, call a method, open Create for any doctype, open the settings dialog, run an act by name, navigate, show a toast. `page.create()` and `page.openSettings()` run the shell acts `shell.create` and `shell.open_settings`. `page.create()` gives the saved record, or `null` |

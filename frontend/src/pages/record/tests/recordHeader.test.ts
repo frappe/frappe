@@ -330,6 +330,7 @@ describe("an item's right", () => {
   async function drawn(handlers: AuthoredHandlers, perms: Record<string, number>) {
     await withRegisteringSource("crm", async () => registerRecordPage("CRM Lead", handlers));
     const controller = createRecordPage({
+      app: "frappe",
       doctype: "CRM Lead",
       docname: "CRM-LEAD-1",
       doc: ref({}),

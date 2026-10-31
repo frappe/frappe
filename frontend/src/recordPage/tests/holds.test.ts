@@ -31,6 +31,7 @@ const RECORD_TABS = [
 function makePage(overrides: Partial<RecordPageHost> = {}) {
   const moved: { tab: string; drawn: string[] }[] = [];
   const host: RecordPageHost = {
+    app: "frappe",
     doctype: "CRM Deal",
     docname: "CRM-DEAL-1",
     doc: ref({}),

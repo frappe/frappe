@@ -247,6 +247,7 @@ async function open() {
 
 function buildController() {
 	const created = createRecordPage({
+		app: boot.app!,
 		doctype: props.doctype,
 		docname: "",
 		doc,

@@ -82,6 +82,20 @@ export default {
 }
 ```
 
+A script runs on its doctype in every app, so a `custom/<doctype>/record.js` that changes
+another app's doctype also changes it on `/apps/desk`. `page.app` is the name of the app
+the reader is in: `frappe` on `/apps/desk`, `crm` on `/apps/crm`. It is read-only. Gate a
+change to one app with a plain `if`:
+
+```js
+// crm/fcrm/custom/contact/record.js
+export default {
+  onRefresh(page) {
+    if (page.app === 'crm') page.tabs.add({ name: 'deals', label: 'Deals', component: Deals })
+  },
+}
+```
+
 `page.cached(key, fetcher)` is how `onRefresh` reads server data. It returns at once the
 value it holds for `key`, or `undefined` when it holds none yet. The page runs `fetcher`
 once per visit for each key:

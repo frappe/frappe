@@ -47,6 +47,7 @@ const FILES: FileRow[] = [
 function makePage() {
   const reloads: string[] = [];
   const host: RecordPageHost = {
+    app: "frappe",
     doctype: "CRM Deal",
     docname: "CRM-DEAL-1",
     doc: ref({}),

@@ -45,6 +45,7 @@ function makeHost(overrides: Partial<RecordPageHost> = {}) {
   const moved: string[] = [];
   const movedInForm: string[] = [];
   const host: RecordPageHost = {
+    app: "frappe",
     doctype: "CRM Deal",
     docname: "CRM-DEAL-1",
     doc: ref({ with_products: 0 }),

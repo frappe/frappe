@@ -345,6 +345,8 @@ export interface PageRow {
 
 /** The curated object every handler mutates — a script's whole capability surface. */
 export interface RecordPageApi extends PageApi {
+  /** The app the reader is in, such as `crm` on `/apps/crm`; read-only. */
+  readonly app: string;
   docname: string;
   doc: Record<string, any>;
   /** The document as the server last showed it; read-only, `page.doc` is the draft. */

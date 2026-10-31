@@ -43,6 +43,7 @@ function makePage(overrides: Partial<RecordPageHost> = {}) {
   const moved: string[] = [];
   const doc = ref<Record<string, any>>({ status: "Open" });
   const host: RecordPageHost = {
+    app: "frappe",
     doctype: "CRM Deal",
     docname: "CRM-DEAL-1",
     doc,

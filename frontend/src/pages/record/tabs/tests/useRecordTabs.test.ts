@@ -46,6 +46,7 @@ function makePage(query: Record<string, string> = {}) {
   )!;
   const open = () => {
     controller.value = createRecordPage({
+      app: "frappe",
       doctype: "CRM Deal",
       docname: "CRM-DEAL-1",
       doc: ref({}),

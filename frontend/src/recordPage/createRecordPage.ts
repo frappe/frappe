@@ -111,6 +111,8 @@ const STRIPS: Record<TabStrip, { other: string; sibling: TabStrip }> = {
 };
 
 export interface RecordPageHost {
+  /** The app the reader is in, from the shell's boot: `frappe` on `/apps/desk`. */
+  app: string;
   doctype: string;
   docname: string;
   doc: Ref<Record<string, any>>;
@@ -352,6 +354,9 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   /** The record's own `page` members, over the engine's. */
   function recordMembers() {
     return {
+      get app() {
+        return host.app;
+      },
       docname: host.docname,
       // Exempt from the read-only rule: mutating the document *is* the API.
       get doc() {

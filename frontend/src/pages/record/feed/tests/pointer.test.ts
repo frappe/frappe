@@ -50,6 +50,7 @@ function makePage(query: Record<string, string>) {
 	async function open(docname = "CRM-DEAL-1") {
 		const pointer = feeds.pointerOnOpen("CRM Deal", docname, route.query as any);
 		controller.value = createRecordPage({
+			app: "frappe",
 			doctype: "CRM Deal",
 			docname,
 			doc: ref({}),
