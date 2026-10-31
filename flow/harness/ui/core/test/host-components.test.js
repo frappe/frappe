@@ -223,6 +223,20 @@ test("an approval card names the call and shows what it will do, in a host's own
 	assert.deepEqual([...standalone.el.querySelectorAll("pre")].map((pre) => pre.textContent), ["pwd", "- before+ after"])
 })
 
+test("a host view that answers its card gets the call and replaces the card's buttons", async (t) => {
+	const answers = []
+	const AnswersItself = {
+		props: ["arguments", "call"],
+		setup: (props) => () =>
+			h("button", { "data-test": "own", onClick: () => answers.push([props.call.id, "Approve"]) }, "Save"),
+	}
+	const flow = { options: { presentTool: () => ({ argsComponent: AnswersItself, ownAnswers: true }) } }
+	const { el } = mount(t, ApprovalCard, { call: { id: "c7", name: "request_secret", args } }, flow)
+	assert.deepEqual([...el.querySelectorAll("button")].map((button) => button.textContent), ["Save"])
+	el.querySelector("[data-test=own]").click()
+	assert.deepEqual(answers, [["c7", "Approve"]])
+})
+
 test("a host picks a row's stat and dropdown, but the user's decision and an error outrank it", async (t) => {
 	const presentTool = () => ({ stat: "3 updated" })
 	const step = { call: { id: "c1", name: "update_document", arguments: args }, result: { content: "ok", details: { lines: 12 } } }

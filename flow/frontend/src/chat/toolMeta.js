@@ -5,6 +5,7 @@ import NamesView from "./tools/NamesView.vue";
 import ReadView from "./tools/ReadView.vue";
 import ReportView from "./tools/ReportView.vue";
 import { parseResult } from "./tools/result.js";
+import SecretView from "./tools/SecretView.vue";
 import SnippetView from "./tools/SnippetView.vue";
 
 // How Flow's tools read in the transcript and approval cards: a present-tense label, an
@@ -71,6 +72,14 @@ const TOOLS = {
 				: "",
 	},
 	execute: { icon: "lucide-code", label: "Running Code", view: CodeView, asks: true },
+	// its card is a password box that answers the card itself
+	request_secret: {
+		icon: "lucide-key-round",
+		label: "Saving a Password",
+		argsView: SecretView,
+		asks: true,
+		ownAnswers: true,
+	},
 	search_knowledge: {
 		icon: "lucide-book-open",
 		label: "Searching Knowledge",
@@ -131,7 +140,8 @@ export function presentTool(name, args = {}, result = null) {
 		subject: subject(args),
 		stat: stat ?? "",
 		expandable: tool.view ? undefined : false,
-		argsComponent: tool.asks ? tool.view : undefined,
+		argsComponent: tool.asks ? tool.argsView ?? tool.view : undefined,
+		ownAnswers: tool.ownAnswers,
 		resultComponent: plain ? JsonView : tool.view,
 	};
 }

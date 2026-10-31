@@ -818,6 +818,85 @@ def _undo_batch(record: str, error: Exception) -> NoReturn:
 	raise ValueError(message) from error
 
 
+@tool(
+	requires_confirmation=True,
+	confirm_prompt=lambda args: args.get("reason") or "",
+)
+def request_secret(
+	doctype: str, name: str, fieldname: str, reason: str, *, ctx: ToolContext
+) -> dict[str, Any]:
+	"""Ask the user for a password, API key or token and save it into a Password field of a record.
+
+	The user types it into a password box; it goes straight into the field and never reaches you or
+	the chat, so never ask for one in a message. Create or find the record first, then name the field
+	(see describe). `reason` is one line on what it is for. You learn only that it was saved, or why not.
+	"""
+	if refusal := secret_field_refusal(doctype, name, fieldname):
+		frappe.throw(refusal, title=_("Not Saved"))
+	if frappe.cache.get_value(_secret_key(ctx.session_id, doctype, name, fieldname)):
+		frappe.cache.delete_value(_secret_key(ctx.session_id, doctype, name, fieldname))
+		return {"doctype": doctype, "name": name, "fieldname": fieldname, "saved": True}
+	if frappe.db.get_value("Flow Session", ctx.session_id, "auto_approve"):
+		frappe.throw(
+			_(
+				"This chat approves calls by itself, so it cannot show the password box. Ask the user to switch the chat to Ask for approval, then call this again."
+			),
+			title=_("Not Saved"),
+		)
+	frappe.throw(_("The user entered nothing, so nothing was saved."), title=_("Not Saved"))
+
+
+def secret_field_refusal(doctype: Any, name: Any, fieldname: Any) -> str | None:
+	"""Why the user can't set this Password field; None when they can."""
+	if not all(isinstance(value, str) and value for value in (doctype, name, fieldname)):
+		return _("doctype, name and fieldname are required.")
+	if not frappe.db.exists("DocType", doctype):
+		return _("There is no DocType {0}.").format(doctype)
+	if frappe.get_meta(doctype).istable:
+		return _("{0} is a child table; ask for a Password field on its parent record.").format(doctype)
+	df = frappe.get_meta(doctype).get_field(fieldname)
+	if not df or df.fieldtype != "Password":
+		return _("{0} has no Password field {1}.").format(doctype, fieldname)
+	if not frappe.db.exists(doctype, name):
+		return _("{0} {1} does not exist; create it first.").format(doctype, name)
+	doc = frappe.get_doc(doctype, name)
+	if not doc.has_permission("write") or not doc.has_permlevel_access_to(fieldname, df, "write"):
+		return _("You don't have permission to change {0} on {1} {2}.").format(
+			df.label or fieldname, doctype, name
+		)
+	return None
+
+
+def save_secret(session: str, args: dict, password: str) -> None:
+	"""Save `password` into the field a request_secret call names, as the user, and let the call
+	know it was saved; the value itself goes nowhere else."""
+	doctype, name, fieldname = (args.get(key) for key in ("doctype", "name", "fieldname"))
+	if refusal := secret_field_refusal(doctype, name, fieldname):
+		frappe.throw(refusal, title=_("Not Saved"))
+	doc = frappe.get_doc(doctype, name)
+	doc.set(fieldname, password)
+	doc.save()
+	frappe.cache.set_value(
+		_secret_key(session, doctype, name, fieldname), 1, expires_in_sec=SECRET_SAVED_SECONDS
+	)
+
+
+# the card is answered right after the save; this only covers a slow resume
+SECRET_SAVED_SECONDS = 15 * 60
+
+
+def forget_saved_secret(session: str, args: dict) -> None:
+	"""A new card for the field starts afresh, so an earlier save that was never reported can't
+	pass for this one."""
+	frappe.cache.delete_value(
+		_secret_key(session, args.get("doctype"), args.get("name"), args.get("fieldname"))
+	)
+
+
+def _secret_key(session: str, doctype: str, name: str, fieldname: str) -> str:
+	return f"flow_secret_saved:{session}:{doctype}:{name}:{fieldname}"
+
+
 BUILTIN_TOOLS: list[Tool] = [
 	find_doctypes,
 	describe,
@@ -837,6 +916,7 @@ BUILTIN_TOOLS: list[Tool] = [
 	delete,
 	run_action,
 	execute,
+	request_secret,
 ]
 
 

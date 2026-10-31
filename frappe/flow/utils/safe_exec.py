@@ -187,6 +187,7 @@ _SKIP_BUILTINS = frozenset(
 		"search_attachments",
 		"update_memory",
 		"load_skill",
+		"request_secret",
 	}
 )
 

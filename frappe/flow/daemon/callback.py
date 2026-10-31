@@ -118,6 +118,13 @@ def _dispatch(
 		return _error(_("Unknown tool {0}.").format(name))
 	ctx = ToolContext(session_id=session_id, agent=agent, user=frappe.session.user)
 	if mode == "confirm":
+		if tool.name == "request_secret":
+			from frappe.flow.tools.builtins import forget_saved_secret, secret_field_refusal
+
+			# a password box the user could not save shows no card; the model learns why
+			if refusal := secret_field_refusal(args.get("doctype"), args.get("name"), args.get("fieldname")):
+				return {"approved": True, "result": _error(refusal)}
+			forget_saved_secret(session_id, args)
 		if (result := _run_unapproved(tool, args, ctx)) is not None:
 			return {"approved": True, "result": result}
 		return {"prompt": confirm_prompt(tool, args)}
@@ -276,6 +283,9 @@ def confirm_title(name: str, args: dict) -> str:
 			return _('Run "{0}"').format(action)
 		target = f"{_list_count_or_one(args.get('names'))} {doctype}" if doctype else _("records")
 		return _('Run "{0}" on {1}').format(_humanize(action), target)
+	if name == "request_secret" and doctype and frappe.db.exists("DocType", doctype):
+		label = frappe.get_meta(doctype).get_label(args.get("fieldname"))
+		return _("Enter {0} for {1} {2}").format(_(label), _(doctype), args.get("name"))
 	if name == "execute":
 		description = args.get("description")
 		return (description.strip() if isinstance(description, str) else "") or _("Run Python code")
