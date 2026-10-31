@@ -42,6 +42,7 @@ export default class NumberCardWidget extends Widget {
 				}
 			} else {
 				this.card_doc = card;
+				this.island = card.__onload?.island;
 				this.render_card();
 			}
 
@@ -63,8 +64,10 @@ export default class NumberCardWidget extends Widget {
 	}
 
 	set_events() {
+		// An island handles its own clicks. The list route belongs to desk's number.
+		this.widget.toggleClass("number-widget-island", Boolean(this.island));
 		$(this.body).click(() => {
-			if (this.in_customize_mode) return;
+			if (this.in_customize_mode || this.island) return;
 			this.set_route();
 		});
 	}
@@ -167,10 +170,14 @@ export default class NumberCardWidget extends Widget {
 	}
 
 	async render_card() {
-		this.prepare_actions();
+		// The card may have been claimed or released since it last drew.
+		this.unmount_island();
 		this.set_title();
 		this.card_doc?.background_color &&
 			this.widget.css("background-color", this.card_doc.background_color);
+		if (this.island) return this.make_island();
+
+		this.prepare_actions();
 		this.set_loading_state();
 
 		if (!this.card_doc.type) {
@@ -350,6 +357,86 @@ export default class NumberCardWidget extends Widget {
 			});
 	}
 
+	/**
+	 * Draws a card an app owns. Desk keeps the frame, which is the title and the
+	 * actions, as the chart widget does. The island owns the body alone.
+	 */
+	make_island() {
+		// The document loads after a round trip, by which time the page may have dropped the card.
+		if (this.destroyed) return;
+
+		this.prepare_island_actions([]);
+
+		const body = $(`<div class="number-card-island"></div>`);
+		$(this.body).empty().append(body);
+
+		this.island_handle = frappe.ui.mount_island(this.island.name, body, {
+			...this.island.props,
+			onActions: (actions) => this.prepare_island_actions(actions),
+		});
+		this.island_handle.ready.catch((error) => this.show_island_error(error));
+	}
+
+	// the error names a build step: console always, screen only in developer mode
+	show_island_error(error) {
+		console.error(`could not mount the "${this.island.name}" island`, error);
+
+		$(this.body)
+			.empty()
+			.append(
+				frappe.ui.empty_state({
+					icon: "package",
+					title: __("This card has not been built"),
+					description: frappe.boot.developer_mode
+						? error.message
+						: __("Its assets are missing. Build the app that ships it."),
+				})
+			);
+	}
+
+	/**
+	 * The island's own actions, then Edit. Desk's Refresh fetches the number desk
+	 * draws, so the island reports Refresh itself if it means anything to it.
+	 *
+	 * @param {{ label: string, onClick?: Function, href?: string }[]} actions
+	 */
+	prepare_island_actions(actions) {
+		if (this.in_customize_mode) return;
+
+		this.set_card_actions([
+			...(actions || []).map((action, i) => ({
+				label: frappe.utils.escape_html(action.label),
+				action: `island-action-${i}`,
+				handler: action.href
+					? () => window.open(action.href, "_blank")
+					: () => action.onClick(),
+			})),
+			this.edit_action(),
+		]);
+	}
+
+	/** Releases the island the body holds, if any. Safe to call at any time. */
+	unmount_island() {
+		this.island_handle?.unmount();
+		this.island_handle = null;
+	}
+
+	destroy() {
+		this.destroyed = true;
+		this.unmount_island();
+	}
+
+	edit_action() {
+		return {
+			label: __("Edit"),
+			action: "action-edit",
+			handler: () => {
+				let number_card = this.number_card_name || this.name;
+				frappe.set_route("Form", "Number Card", number_card);
+			},
+		};
+	}
+
 	prepare_actions() {
 		if (this.in_customize_mode) return;
 
@@ -361,14 +448,7 @@ export default class NumberCardWidget extends Widget {
 					this.render_card();
 				},
 			},
-			{
-				label: __("Edit"),
-				action: "action-edit",
-				handler: () => {
-					let number_card = this.number_card_name || this.name;
-					frappe.set_route("Form", "Number Card", number_card);
-				},
-			},
+			this.edit_action(),
 		];
 
 		this.set_card_actions(actions);
