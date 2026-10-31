@@ -25,7 +25,7 @@ export default class LayoutFieldSelector {
 		});
 	}
 
-	/** Default column width when none is saved on the layout. */
+	/** Starting width for a column that is new to the layout. */
 	get_default_column_width(fieldname, idx) {
 		if (idx === 0) return 200;
 		if (fieldname === "status_field") return 150;
@@ -36,7 +36,10 @@ export default class LayoutFieldSelector {
 		if (cint(field.width)) return cint(field.width);
 
 		const preserved = this.preserved_widths.find((col) => col.fieldname === field.fieldname);
-		if (preserved?.width) return cint(preserved.width);
+		if (preserved) return cint(preserved.width);
+
+		const user_width = this.list_view.get_user_column_widths()[field.fieldname];
+		if (cint(user_width)) return cint(user_width);
 
 		const list_col = (this.list_view.columns || []).find(
 			(col) =>
@@ -156,7 +159,7 @@ export default class LayoutFieldSelector {
 								class="form-control text-right layout-column-width"
 								data-fieldname="${field.fieldname}"
 								style="background-color: var(--modal-bg); height: 22px;"
-								value="${width}"
+								value="${width || ""}"
 							>
 						</div>
 						<div class="col-1 flex align-items-center justify-content-center px-0">
@@ -393,12 +396,12 @@ export default class LayoutFieldSelector {
 	get_columns() {
 		this.sync_fields_from_dom();
 
-		return this.fields.map((field, idx) => {
+		return this.fields.map((field) => {
 			const column = {
 				fieldname: field.fieldname,
 				label: __(field.label, null, this.doctype),
-				width: cint(field.width) || this.get_default_column_width(field.fieldname, idx),
 			};
+			if (cint(field.width)) column.width = cint(field.width);
 			if (field.type) column.type = field.type;
 			return column;
 		});
