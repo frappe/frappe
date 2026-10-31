@@ -13,6 +13,7 @@ import { useCreateRight } from "@/createRight";
 import { __ } from "@/i18n";
 import { whenLoaded } from "@/acts/doctypeRight";
 import { favouriteWording } from "@/pages/favourite/favouriteWording";
+import type { DefaultScope } from "./defaultView";
 import { errorMessage } from "@/recordPage/errorMessage";
 
 export interface ListActsHost {
@@ -28,6 +29,9 @@ export interface ListActsHost {
   toggleFavourite: () => unknown;
   /** Opens the doctype's saved view `key`. */
   openView: (key: string) => unknown;
+  /** Points one layer's default at the view `key`, a view type's name for its plain view. */
+  setDefaultView: (key: string, scope: DefaultScope) => unknown;
+  clearDefaultView: (scope: DefaultScope) => unknown;
 }
 
 export interface ListActs {
@@ -89,6 +93,28 @@ function listEntries(host: ListActsHost): ActEntry[] {
     },
     {
       item: {
+        name: "set_default_view",
+        label: __("Set Default View"),
+        icon: "lucide-star",
+        palette: false,
+        run: (_context: unknown, value?: { key?: unknown; scope?: unknown }) =>
+          host.setDefaultView(viewKey(value), defaultScope(value)),
+      },
+      hidden: false,
+    },
+    {
+      item: {
+        name: "clear_default_view",
+        label: __("Clear Default View"),
+        icon: "lucide-star-off",
+        palette: false,
+        run: (_context: unknown, value?: { scope?: unknown }) =>
+          host.clearDefaultView(defaultScope(value)),
+      },
+      hidden: false,
+    },
+    {
+      item: {
         name: "customize_quick_filter",
         label: __("Customize Quick Filter"),
         icon: "lucide-sliders-horizontal",
@@ -115,6 +141,12 @@ function viewKey(value?: { key?: unknown }): string {
   if (typeof value?.key !== "string" || !value.key)
     throw new Error(__("Name the view to open by its key."));
   return value.key;
+}
+
+function defaultScope(value?: { scope?: unknown }): DefaultScope {
+  if (value?.scope !== "user" && value?.scope !== "site")
+    throw new Error(__("Name the default's layer: user or site."));
+  return value.scope;
 }
 
 /** A right on the list's doctype; its create right is the list's Create rule. */

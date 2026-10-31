@@ -1,5 +1,5 @@
-// The list page's act surface: `list.create`, `list.favourite`, `list.customize_quick_filter` and
-// `list.delete` run by name through the dispatcher, are drawn from the same items, and are refused without their right.
+// The list page's act surface: its built-ins run by name through the dispatcher, are drawn from
+// the same items, and are refused without their right.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   createApp,
@@ -160,10 +160,13 @@ const READ_ONLY = { role: "Sales User", permlevel: 0, read: 1 };
 
 const SETTINGS = "frappe.desk.doctype.doctype_view.api.get";
 const TOGGLE = "frappe.desk.doctype.favourite.favourite.toggle_favourite";
+const DEFAULT_VIEW = "frappe.desk.doctype.default_view.api";
 
 let permissions: Record<string, unknown>[];
 let starred: { list: boolean; views: string[] };
 let toggles: Record<string, unknown>[];
+let defaultCalls: { method: string; body: Record<string, unknown> }[];
+let defaultAnswer: string | null;
 const apps: App[] = [];
 
 beforeEach(() => {
@@ -176,6 +179,9 @@ beforeEach(() => {
   page.selectedAtMount = [];
   starred = { list: false, views: [] };
   toggles = [];
+  defaultCalls = [];
+  defaultAnswer = null;
+  boot.default_views = {};
   resetListSettings();
   vi.stubGlobal(
     "fetch",
@@ -185,6 +191,11 @@ beforeEach(() => {
         return new Response(
           JSON.stringify({ data: { site: null, user: null, favourites: starred } })
         );
+      if (path.startsWith(`/api/v2/method/${DEFAULT_VIEW}.`)) {
+        const method = path.split(".").pop()!;
+        defaultCalls.push({ method, body: JSON.parse(String(init?.body)) });
+        return new Response(defaultAnswer ? JSON.stringify({ data: defaultAnswer }) : "{}");
+      }
       if (path === `/api/v2/method/${TOGGLE}`) {
         toggles.push(JSON.parse(String(init?.body)));
         // A whitelisted method that returns nothing answers with no `data` at all.
@@ -280,6 +291,8 @@ describe("the list surface", () => {
       "list.create",
       "list.favourite",
       "list.open_view",
+      "list.set_default_view",
+      "list.clear_default_view",
       "list.customize_quick_filter",
       "list.delete",
     ]);
@@ -333,7 +346,13 @@ describe("the list surface", () => {
       )
     ).not.toContain("Create");
     expect(bulkLabels(root)).toEqual([]);
-    expect(listActNames()).toEqual(["list.favourite", "list.open_view", "list.customize_quick_filter"]);
+    expect(listActNames()).toEqual([
+      "list.favourite",
+      "list.open_view",
+      "list.set_default_view",
+      "list.clear_default_view",
+      "list.customize_quick_filter",
+    ]);
   });
 
   it("runs list.favourite on the plain list, stars the list and draws the star filled", async () => {
@@ -379,6 +398,51 @@ describe("the list surface", () => {
 
     await expect(acts.run("list.open_view", {})).rejects.toThrow("Name the view to open by its key.");
     expect(router().currentRoute.value.fullPath).toBe("/contact");
+  });
+
+  it("runs list.set_default_view on one layer and keeps the person's default in boot for the router", async () => {
+    await mount();
+    defaultAnswer = "open-contacts";
+
+    await acts.run("list.set_default_view", { key: "open-contacts", scope: "site" });
+
+    expect(defaultCalls).toEqual([
+      { method: "save", body: { doctype: "Contact", key: "open-contacts", scope: "site" } },
+    ]);
+    expect(boot.default_views).toEqual({ Contact: "open-contacts" });
+    expect(acts.available().find((act) => act.name === "list.set_default_view")?.palette).toBe(false);
+  });
+
+  it("runs list.clear_default_view and keeps the default of the layer left, or none", async () => {
+    boot.default_views = { Contact: "my-contacts" };
+    await mount();
+    defaultAnswer = "open-contacts";
+
+    await acts.run("list.clear_default_view", { scope: "user" });
+    expect(boot.default_views).toEqual({ Contact: "open-contacts" });
+
+    defaultAnswer = null;
+    await acts.run("list.clear_default_view", { scope: "site" });
+    expect(defaultCalls.map((call) => call.body)).toEqual([
+      { doctype: "Contact", scope: "user" },
+      { doctype: "Contact", scope: "site" },
+    ]);
+    expect(boot.default_views).toEqual({});
+  });
+
+  it("refuses a default view act without a key or a layer, and asks nothing", async () => {
+    await mount();
+
+    await expect(acts.run("list.set_default_view", { scope: "user" })).rejects.toThrow(
+      "Name the view to open by its key."
+    );
+    await expect(acts.run("list.set_default_view", { key: "list", scope: "team" })).rejects.toThrow(
+      "Name the default's layer: user or site."
+    );
+    await expect(acts.run("list.clear_default_view", {})).rejects.toThrow(
+      "Name the default's layer: user or site."
+    );
+    expect(defaultCalls).toEqual([]);
   });
 
   it("toggles twice on two quick clicks, each turn reading the state the one before left", async () => {

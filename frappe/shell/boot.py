@@ -8,6 +8,7 @@ from frappe.core.doctype.installed_applications.installed_applications import (
 	get_setup_wizard_completed_apps,
 	get_setup_wizard_not_required_apps,
 )
+from frappe.desk.doctype.default_view.resolver import DefaultViews
 from frappe.desk.doctype.favourite.favourite import readable_views
 from frappe.integrations.frappe_providers.cloud_settings import is_cloud_settings_enabled
 from frappe.sessions import get_session_info
@@ -297,6 +298,8 @@ def get_boot(path: str | None = None) -> dict:
 			# A framework key, not an `app_boot` contribution: apps shape navigation through the rows
 			# they ship. It rides boot because boot is already a blocking pre-mount fetch.
 			"navigation": resolve_navigation(app),
+			# Addresses only, never a view's settings.
+			"default_views": DefaultViews().addresses(),
 		}
 
 	# One exit, so the index payload is weighed on the same call site as a prefix's.

@@ -104,8 +104,9 @@ import { Filter } from "@framework/ui/Filter";
 import { QuickFilter } from "@framework/ui/QuickFilter";
 import { SortBy } from "@framework/ui/SortBy";
 import { useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
-import { computed, ref } from "vue";
+import { computed, inject, ref } from "vue";
 import { useRouter } from "vue-router";
+import type { Boot } from "@/boot";
 import { __ } from "@/i18n";
 import { routeFor } from "@/router/routeFor";
 import { openCreate } from "@/shell/create";
@@ -118,11 +119,13 @@ import { failedState } from "@/shell/pageState";
 import PageState from "@/shell/PageState.vue";
 import { createdMessage } from "./createdMessage";
 import DeleteDialog from "./DeleteDialog.vue";
+import { clearDefaultView, setDefaultView } from "./defaultView";
 import { useListActs } from "./listActs";
 
 const props = defineProps<{ doctype: string; view?: string | null; viewLabel?: string | null }>();
 
 const router = useRouter();
+const boot = inject<Boot>("boot")!;
 
 const crumbs = computed(() =>
 	props.viewLabel
@@ -206,6 +209,8 @@ const listActs = useListActs({
 	favourited: () => favourited.value,
 	toggleFavourite: () => settings.toggleFavourite(props.view ?? null),
 	openView: (key) => router.push(routeFor(props.doctype, null, { view: key })),
+	setDefaultView: (key, scope) => setDefaultView(boot, props.doctype, key, scope),
+	clearDefaultView: (scope) => clearDefaultView(boot, props.doctype, scope),
 });
 
 const createAct = computed(() => listActs.drawn("create"));
