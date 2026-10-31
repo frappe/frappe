@@ -4,7 +4,7 @@
 		v-model="value"
 		v-model:open="open"
 		:doctype="targetDoctype"
-		:filters="field.filters"
+		:filters="filters"
 		:label="field.label"
 		:description="
 			targetDoctype
@@ -41,6 +41,11 @@ const emit = defineEmits<FieldComponentEmits>();
 // Link field's `options` is the target doctype; its `fieldname` is the key each row stores the value under.
 const linkField = computed(() => props.field.childFields?.find((f) => f.fieldtype === "Link"));
 const targetDoctype = computed(() => linkField.value?.options ?? "");
+const filters = computed(() =>
+	linkField.value?.filters
+		? { ...linkField.value.filters, ...props.field.filters }
+		: props.field.filters
+);
 
 const value = useChildRowModel(
 	() => props.modelValue,
@@ -72,7 +77,7 @@ const titles = computed(() => {
 
 const linkCreate = useLinkCreate({
 	doctype: targetDoctype,
-	filters: () => props.field.filters,
+	filters: () => filters.value,
 	disabled: () => Boolean(props.field.readOnly),
 	open,
 	link: control,

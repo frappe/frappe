@@ -1138,6 +1138,33 @@ both. A part beside a field is `page.form`'s to add, above.
 A key not named here is dropped with a development warning. `get(fieldname)` answers the
 field as it resolves now, post-override and post-`depends_on`, and is read-only.
 
+### A table's column: `'<table>.<column>'`
+
+A column of a Table or Table MultiSelect field is named by its table, as its field handler
+is: `products.rate`. `hide`, `show`, `update`, `has` and `get` take that name, with the keys
+above; the row limits mean nothing on a column. One patch reaches every place the column is
+drawn: the grid, the row dialog's form, and the child's Details row that the dialog picks.
+`hidden` takes the column out of the grid, header and cells. `show` does not add a column
+that the grid does not draw, because the child's `in_list_view` picks the grid's columns; it
+shows the field in the row dialog. A Table MultiSelect draws one picker, so its Link column
+takes `options` and `link_filters`, and the field's own `link_filters` win on a shared key;
+its label and the rest are the field's own. The patch is the same for every row. A change per row is
+the column's `depends_on`, so `get('<table>.<column>')` reads the column without it. `focus`,
+`setError` and `clearError` refuse a column and warn in a development build: an error marks a
+cell, which `row.setError(column, message)` in a row handler does.
+
+```js
+export default {
+  onRefresh(page) {
+    // The lead fields a form question may map to, and only enabled users to assign.
+    page.fields.update('questions.mapped_to', { options: leadFields.join('\n'), label: 'Lead field' })
+    page.fields.update('users.user', { link_filters: { enabled: 1 } })
+  },
+}
+```
+
+A Select's `options` are values only, one a line: the control shows each value as its label.
+
 ### The act: `focus(fieldname)`
 
 `focus` switches the form to the field's tab, scrolls to it and puts the cursor in its

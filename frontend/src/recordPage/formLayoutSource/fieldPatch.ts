@@ -1,5 +1,11 @@
 // One field's per-render property override, split by when each half applies.
-import type { FieldMeta, FieldNode, FieldOverride, FieldUI } from "@framework/ui/FormLayout/types";
+import type {
+	FieldMeta,
+	FieldNode,
+	FieldOverride,
+	FieldUI,
+	FormLayoutSchema,
+} from "@framework/ui/FormLayout/types";
 
 /**
  * The build-time half: properties `mapField` sets once. `options` on a `Table` names
@@ -39,4 +45,39 @@ export function applyFieldPatch(
 		patched.override = { ...node.override, ...patch.override };
 	if (patch.ui) patched.ui = { ...node.ui, ...patch.ui };
 	return patched;
+}
+
+/** A table's column patches by child fieldname, from overrides keyed `<table>.<column>`. */
+export function columnPatches(
+	overrides: Record<string, FieldPatch> | undefined,
+	table: string
+): Map<string, FieldPatch> {
+	const prefix = `${table}.`;
+	const patches = new Map<string, FieldPatch>();
+	for (const [name, patch] of Object.entries(overrides ?? {}))
+		if (name.startsWith(prefix)) patches.set(name.slice(prefix.length), patch);
+	return patches;
+}
+
+/** Apply column patches to a table node's grid columns and its row form. */
+export function applyColumnPatches(node: FieldNode, patches: Map<string, FieldPatch>): FieldNode {
+	if (!patches.size) return node;
+	const patch = (column: FieldNode) => applyFieldPatch(column, patches.get(column.fieldname));
+	const patched: FieldNode = { ...node };
+	if (node.childFields) patched.childFields = node.childFields.map(patch);
+	if (node.childLayout) patched.childLayout = mapFields(node.childLayout, patch);
+	return patched;
+}
+
+function mapFields(
+	layout: FormLayoutSchema,
+	transform: (field: FieldNode) => FieldNode
+): FormLayoutSchema {
+	return layout.map((tab) => ({
+		...tab,
+		sections: tab.sections.map((section) => ({
+			...section,
+			columns: section.columns.map((column) => ({ ...column, fields: column.fields.map(transform) })),
+		})),
+	}));
 }

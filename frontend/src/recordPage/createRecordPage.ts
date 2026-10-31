@@ -241,6 +241,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     decorate: host.decorate,
     isSection: (name) => panelSections.has(name),
     errors: fieldErrors,
+    childFields: host.childFields,
   });
   const formTabs = new FormTabsSurface({
     tabs: () => host.formLayout?.(),
@@ -462,6 +463,10 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   function canFocus(fieldname: string, gone = "no such field") {
     if (!fields.has(fieldname)) {
       warnFocus(fieldname, gone);
+      return false;
+    }
+    if (fields.isColumn(fieldname)) {
+      warnFocus(fieldname, "a table column has a cell per row, not a place of its own");
       return false;
     }
     if (fields.get(fieldname)?.hidden) {
