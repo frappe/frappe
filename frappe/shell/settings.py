@@ -214,6 +214,10 @@ def _block(app: str, row) -> dict | None:
 	if row.description:
 		block["description"] = row.description
 
+	block["roles"] = _json(row.roles, list, str)
+	if block["roles"] is None:
+		return None
+
 	if row.binding_type:
 		block["binding"] = _binding(
 			{"type": row.binding_type, "doctype": row.document_type, "resolver": row.name_resolver}

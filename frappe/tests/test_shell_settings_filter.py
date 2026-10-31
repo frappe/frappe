@@ -274,6 +274,43 @@ class TestSettingsFilter(SettingsDialogTestCase):
 
 		self.assertEqual(blocks_of(visible()), {"general": ["mine"]})
 
+	# Roles
+
+	def test_a_block_naming_roles_shows_only_to_a_user_holding_one(self):
+		creators = json.dumps([CREATOR_ROLE, "System Manager"])
+		with authoring():
+			ship(
+				["general"],
+				[single("mine", doctype=SINGLE, roles=creators), component("theme", roles=creators)],
+			)
+
+		self.assertEqual(blocks_of(visible(READER)), {}, "the reader reads the Single but holds no role")
+		self.assertEqual(blocks_of(visible(CREATOR)), {"general": ["mine", "theme"]})
+		self.assertEqual(blocks_of(visible(READER)), {}, "a holder's request leaves the cached merge gated")
+
+	def test_a_role_does_not_pass_a_block_its_kind_refuses(self):
+		with authoring():
+			readers = json.dumps([READER_ROLE])
+			ship(["general"], [single("system", roles=readers), component("theme", roles=readers)])
+
+		self.assertEqual(blocks_of(visible(READER)), {"general": ["theme"]})
+		self.assertEqual(blocks_of(visible(READER, gate=lambda app: False)), {})
+
+	def test_a_blocks_roles_stay_on_the_server_and_out_of_the_index(self):
+		with authoring():
+			ship(
+				["general"],
+				[
+					component("theme", roles=json.dumps([READER_ROLE]), settings='[{"label": "Theme"}]'),
+					component("dialer", roles=json.dumps([CREATOR_ROLE]), settings='[{"label": "Dialer"}]'),
+				],
+			)
+
+		reply = visible(READER)
+
+		self.assertNotIn("roles", block_named(reply, "theme"))
+		self.assertEqual(indexed(reply), [("general", "theme", "Theme")])
+
 	# Fields
 
 	def test_fields_above_the_readable_permlevel_are_cut_and_unwritable_ones_read_only(self):

@@ -258,6 +258,7 @@ def validate_binding_shape(block):
 		)
 
 	validate_anchors(block)
+	validate_roles(block)
 
 
 def validate_binding(idx: int, binding_type: str, doctype: str, resolver: str | None):
@@ -330,6 +331,23 @@ def validate_anchors(block):
 	for anchor in parse_json(block, "anchors", []):
 		if len(anchor) != 1 or not isinstance(anchor.get("after") or anchor.get("before"), str):
 			refuse_json(block, "anchors")
+
+
+def validate_roles(block):
+	validate_json_list(block, "roles", str)
+	roles = set(parse_json(block, "roles", []))
+	if not all(role.strip() for role in roles):
+		refuse_json(block, "roles")
+	if not roles:
+		return
+
+	if unknown := sorted(
+		roles - set(frappe.get_all("Role", filters={"name": ("in", list(roles))}, pluck="name"))
+	):
+		frappe.throw(
+			_("Block row {0}: no role named {1}.").format(block.idx, frappe.bold(", ".join(unknown))),
+			title=_("Unknown Role"),
+		)
 
 
 def validate_search_settings(block):
