@@ -237,6 +237,10 @@ require_type_annotated_api_methods = True
 
 standard_queries = {"User": "frappe.core.doctype.user.user.user_query"}
 
+additional_timeline_content = {
+	"User": ["frappe.core.doctype.permission_log.permission_log.get_timeline_content"],
+}
+
 doc_events = {
 	"*": {
 		"after_insert": "frappe.flow.triggers.dispatch",
