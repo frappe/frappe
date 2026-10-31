@@ -126,23 +126,51 @@ def resend_invitation(
 
 
 @frappe.whitelist(methods=["GET"])
-def get_pending_invitations(app_name: str):
+def get_pending_invitations(app_name: str) -> list[dict]:
 	UserInvitation.validate_role(app_name)
 
 	pending_invitations = frappe.db.get_all(
-		"User Invitation", fields=["name", "email"], filters={"status": "Pending", "app_name": app_name}
+		"User Invitation",
+		fields=["name", "email"],
+		filters={"status": "Pending", "app_name": app_name},
+		order_by="creation asc",
 	)
-	res = []
-	for pending_invitation in pending_invitations:
-		roles = frappe.db.get_all("User Role", fields=["role"], filters={"parent": pending_invitation.name})
-		res.append(
-			{
-				"name": pending_invitation.name,
-				"email": pending_invitation.email,
-				"roles": [r.role for r in roles],
-			}
-		)
-	return res
+	if not pending_invitations:
+		return []
+	roles_by_invitation: dict[str, list[str]] = {}
+	for row in frappe.db.get_all(
+		"User Role",
+		fields=["parent", "role"],
+		filters={
+			"parenttype": "User Invitation",
+			"parent": ["in", [invitation.name for invitation in pending_invitations]],
+		},
+		order_by="idx asc",
+	):
+		roles_by_invitation.setdefault(row.parent, []).append(row.role)
+	return [
+		{
+			"name": invitation.name,
+			"email": invitation.email,
+			"roles": roles_by_invitation.get(invitation.name, []),
+		}
+		for invitation in pending_invitations
+	]
+
+
+@frappe.whitelist(methods=["GET"])
+def get_invited_emails(app_name: str, emails: list[str] | str) -> list[str]:
+	UserInvitation.validate_role(app_name)
+
+	emails = frappe.parse_json(emails)
+	if not emails:
+		return []
+	return frappe.db.get_all(
+		"User Invitation",
+		filters={"app_name": app_name, "status": ["in", ["Pending", "Accepted"]], "email": ["in", emails]},
+		pluck="email",
+		distinct=True,
+	)
 
 
 def _accept_invitation(key: str, in_test: bool) -> None:

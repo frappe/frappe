@@ -1,5 +1,5 @@
 import { computed, reactive, ref } from "vue";
-import { listDocuments, runDocumentMethod, runMethod, searchDocuments } from "../../api";
+import { runDocumentMethod, runMethod, searchDocuments } from "../../api";
 import type {
   InviteResult,
   InviteStore,
@@ -10,25 +10,6 @@ import type {
 
 const API = "frappe.core.api.user_invitation";
 const DOCTYPE = "User Invitation";
-// the list read joins one row per role, so a page holds fewer invitations than rows
-const PAGE = 500;
-
-interface PendingRow {
-  name: string;
-  email: string;
-  role: string | null;
-}
-
-/** Fold the joined rows back into one invitation per name, roles in row order. */
-function groupPending(rows: PendingRow[]): PendingInvitation[] {
-  const byName = new Map<string, PendingInvitation>();
-  for (const row of rows) {
-    const invitation = byName.get(row.name) ?? { name: row.name, email: row.email, roles: [] };
-    if (row.role) invitation.roles.push(row.role);
-    byName.set(row.name, invitation);
-  }
-  return [...byName.values()];
-}
 
 /**
  * Data plugin behind `InviteUser`. Wraps Frappe's `user_invitation` API plus the
@@ -57,30 +38,20 @@ export function useInviteUser(options: UseInviteUserOptions = {}): InviteStore {
   const loading = ref(false);
   const pendingError = ref<unknown>(null);
 
-  // a later read supersedes an earlier one still paging, so the stale rows never land
+  // a later read supersedes an earlier one still in flight, so the stale rows never land
   let pendingGeneration = 0;
 
   async function fetchPending(): Promise<void> {
     const mine = ++pendingGeneration;
     loading.value = true;
     try {
-      const rows: PendingRow[] = [];
-      let start = 0;
-      let more = true;
-      while (more) {
-        const page = await listDocuments<PendingRow>(DOCTYPE, {
-          filters: { status: "Pending", app_name: appName },
-          fields: ["name", "email", "roles.role"],
-          order_by: "creation asc",
-          start,
-          limit: PAGE,
-        });
-        rows.push(...page.data);
-        more = page.has_next_page;
-        start += PAGE;
-      }
+      const { data } = await runMethod<PendingInvitation[]>(
+        `${API}.get_pending_invitations`,
+        { app_name: appName },
+        { http: "GET" }
+      );
       if (mine !== pendingGeneration) return;
-      pendingInvites.value = groupPending(rows);
+      pendingInvites.value = data;
       pendingError.value = null;
     } catch (failure) {
       if (mine === pendingGeneration) pendingError.value = failure;
@@ -123,16 +94,12 @@ export function useInviteUser(options: UseInviteUserOptions = {}): InviteStore {
 
   async function invitedAmong(emails: string[]): Promise<Set<string>> {
     if (!emails.length) return new Set();
-    const { data } = await listDocuments<{ email: string }>("User Invitation", {
-      filters: {
-        app_name: appName,
-        status: ["in", ["Pending", "Accepted"]],
-        email: ["in", emails],
-      },
-      fields: ["email"],
-      limit: emails.length,
-    });
-    return new Set(data.map((row) => row.email));
+    const { data } = await runMethod<string[]>(
+      `${API}.get_invited_emails`,
+      { app_name: appName, emails },
+      { http: "GET" }
+    );
+    return new Set(data);
   }
 
   const inviting = ref(false);
