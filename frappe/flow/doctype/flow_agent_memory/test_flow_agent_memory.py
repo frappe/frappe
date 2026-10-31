@@ -225,10 +225,15 @@ class TestPersonalByDefault(MemoryCase):
 		_member()
 		written = frappe.get_doc(_memory(self.agent.name, content=FISCAL)).insert().name
 		frappe.db.set_value("Flow Agent Memory", written, "modified_by", MEMBER, update_modified=False)
+		orphan = frappe.get_doc(_memory(self.agent.name, content=WIDGET)).insert().name
+		frappe.db.set_value(
+			"Flow Agent Memory", orphan, "modified_by", "gone@example.com", update_modified=False
+		)
 
 		execute()
 		fields = ["scope", "user"]
 		self.assertEqual(frappe.db.get_value("Flow Agent Memory", managed, fields), ("Agent", None))
+		self.assertEqual(frappe.db.get_value("Flow Agent Memory", orphan, fields), ("Agent", None))
 		self.assertEqual(frappe.db.get_value("Flow Agent Memory", written, fields), ("User", MEMBER))
 		self.assertNotIn(written, self.block("When does the fiscal year start?", user=OTHER_USER))
 		self.assertIn(written, self.block("When does the fiscal year start?", user=MEMBER))

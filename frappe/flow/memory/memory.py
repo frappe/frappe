@@ -18,7 +18,7 @@ from frappe import _
 from frappe.flow.memory import store
 
 MEMORY_TOOL_SLUG = "update_memory"
-# Per (agent, scope, user); past it, adds are refused.
+# The model's own notes per (agent, scope, user); past it, its adds are refused.
 MAX_ACTIVE_MEMORIES = 100
 
 _SCOPE_BY_ARG = {"agent": "Agent", "user": "User"}
@@ -88,7 +88,7 @@ def forget_feedback_memory(run: Any) -> int:
 def _add(
 	agent: str, content: str, scope: str, *, source: str = "Agent", source_run: str | None = None
 ) -> dict[str, Any]:
-	filters: dict[str, Any] = {"agent": agent, "scope": scope, "status": "Active"}
+	filters: dict[str, Any] = {"agent": agent, "scope": scope, "status": "Active", "source": "Agent"}
 	if scope == "User":
 		filters["user"] = frappe.session.user
 	if source == "Agent" and frappe.db.count("Flow Agent Memory", filters) >= MAX_ACTIVE_MEMORIES:
@@ -130,7 +130,10 @@ def _update(agent: str, memory_id: str, content: str) -> dict[str, Any]:
 		)
 	if row.scope == "Agent" and not manages(agent):
 		result = _add(agent, content, "User")
-		result["note"] = "Saved for this user only: only those who manage the agent change shared memory."
+		result["note"] = (
+			"Saved as this user's own memory, used with the shared one, which only those who manage "
+			"the agent change. Revise this one, not the shared one, next time."
+		)
 		return result
 
 	doc = frappe.get_doc("Flow Agent Memory", memory_id)
