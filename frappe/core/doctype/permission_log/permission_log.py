@@ -135,10 +135,16 @@ def describe_log(log, meta) -> list[str]:
 
 	phrases = []
 	for fieldname in dict.fromkeys([*current, *previous]):
+		if shown_by_version(meta.get_field(fieldname)):
+			continue
 		label = escape_html(_(meta.get_label(fieldname)))
 		phrases.extend(describe_change(label, previous.get(fieldname), current.get(fieldname)))
 
 	return phrases
+
+
+def shown_by_version(df) -> bool:
+	return bool(df and (not df.hidden or df.show_on_timeline))
 
 
 def describe_change(label: str, previous, current) -> list[str]:
