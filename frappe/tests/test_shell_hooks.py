@@ -71,6 +71,24 @@ class TestShellHooks(IntegrationTestCase):
 			frappe.set_user("Guest")
 			self.assertEqual(shell_hooks(["frappe"]), [])
 
+	def test_the_hooked_apps_are_cached_outside_developer_mode(self):
+		with (
+			patch.dict(frappe.conf, {"developer_mode": 0}),
+			patch("frappe.shell.shell_hooks.hooked_apps", return_value=[]) as glob,
+		):
+			shell_hooks(["frappe"])
+			shell_hooks(["frappe"])
+		glob.assert_called_once()
+
+	def test_developer_mode_reads_the_disk_on_each_boot(self):
+		with (
+			patch.dict(frappe.conf, {"developer_mode": 1}),
+			patch("frappe.shell.shell_hooks.hooked_apps", return_value=[]) as glob,
+		):
+			shell_hooks(["frappe"])
+			shell_hooks(["frappe"])
+		self.assertEqual(glob.call_count, 2)
+
 	def test_the_key_is_within_the_boot_key_budget(self):
 		with hooked({"frappe": None}):
 			listed = core_boot()["shell_hooks"]
@@ -81,14 +99,14 @@ class TestShellHooks(IntegrationTestCase):
 
 class TestHookedApps(IntegrationTestCase):
 	def test_an_app_ships_a_hook_at_module_frontend_shell_js(self):
-		root = tempfile.mkdtemp(prefix="shell-hooks-46023-")
+		root = tempfile.mkdtemp(prefix="shell-hooks-")
 		self.addCleanup(shutil.rmtree, root)
 		write(root, "hooked/fcrm/frontend/shell.js")
 		write(root, "unhooked/fcrm/frontend/acts.js")
 		write(root, "deep/fcrm/doctype/crm_deal/frontend/shell.js")
 
 		with (
-			patch("frappe.get_all_apps", return_value=["hooked", "unhooked", "deep"]),
+			patch("frappe.get_installed_apps", return_value=["hooked", "unhooked", "deep"]),
 			patch("frappe.get_app_path", side_effect=lambda app: os.path.join(root, app)),
 		):
 			self.assertEqual(hooked_apps(), ["hooked"])

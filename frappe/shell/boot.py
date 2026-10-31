@@ -22,7 +22,7 @@ from .index_layer import arrange, write_layer
 from .index_notices import index_notices
 from .links import canonical_path
 from .navigation import NO_HOST, resolve_navigation
-from .permissions import has_app_permission
+from .permissions import has_app_permission, passes_apps_screen_check
 from .registry import get_prefix_registry, prefix_map, shell_base, split_shell_path
 from .route_history import Visit, latest_visits
 from .shell_hooks import shell_hooks
@@ -165,14 +165,7 @@ def tile_target(app: str, screen: dict, prefix: str | None) -> dict | None:
 def may_link_out(app: str, screen: dict) -> bool:
 	"""The hook's own `has_permission`, which guards the app's own UI; a raising check hides the tile."""
 	check = screen.get("has_permission")
-	if not check:
-		return True
-
-	try:
-		return bool(frappe.get_attr(check)())
-	except Exception:
-		frappe.log_error(title=f"add_to_apps_screen has_permission failed for {app}")
-		return False
+	return passes_apps_screen_check(app, check) if check else True
 
 
 def index_recent() -> list[dict]:
