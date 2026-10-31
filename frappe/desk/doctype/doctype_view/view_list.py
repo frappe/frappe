@@ -5,11 +5,11 @@ from frappe import _
 from frappe.desk.doctype.default_view.resolver import DefaultViews
 
 from .app_views import app_view_doctypes, app_views
-from .doctype_view import PLAIN_VIEW, SITE_ROW, VIEW_TYPES
+from .doctype_view import PLAIN_VIEW, SITE_ROW
 from .key_space import TYPE_KEYS
 
 # A doctype's own address opens its plain List view when no layer's default resolves.
-FALLBACK_DEFAULT = VIEW_TYPES[0].lower()
+FALLBACK_DEFAULT = "list"
 
 
 class ViewList:
@@ -21,13 +21,17 @@ class ViewList:
 
 	def of(self, doctypes: list[str] | None = None) -> dict[str, list[dict]]:
 		"""`{doctype: views}` for each of `doctypes` the person reads, else each they read that has a saved view."""
-		rows = self.stored_rows(doctypes)
+		rows = {}
+		for row in self.stored_rows(doctypes):
+			rows.setdefault(row.reference_doctype, []).append(row)
 		if doctypes is None:
-			doctypes = {row.reference_doctype for row in rows} | set(app_view_doctypes())
+			doctypes = set(rows) | set(app_view_doctypes())
 		names = self.readable(doctypes)
 		defaults = DefaultViews(self.user, self.app).addresses(names)
 
-		return {doctype: self.views(doctype, rows, defaults.get(doctype)) for doctype in names}
+		return {
+			doctype: self.views(doctype, rows.get(doctype, []), defaults.get(doctype)) for doctype in names
+		}
 
 	def stored_rows(self, doctypes: list[str] | None) -> list[frappe._dict]:
 		"""The person's own saved views and the site's, by label, in one query on `Doctype View`."""
@@ -51,7 +55,7 @@ class ViewList:
 		)
 
 	def views(self, doctype: str, rows: list[frappe._dict], default: str | None) -> list[dict]:
-		"""The doctype's views in lookup order, each key once at its first layer, the default marked."""
+		"""The doctype's views from its `rows` in lookup order, each key once at its first layer, the default marked."""
 		listed = {}
 		for view in (*plain_views(), *self.saved_views(doctype, rows)):
 			listed.setdefault(view["key"], view)
@@ -65,7 +69,7 @@ class ViewList:
 			listed_view(row.key, row.label, row.type, layer)
 			for layer, user in (("own", self.user), ("site", SITE_ROW))
 			for row in rows
-			if row.reference_doctype == doctype and row.user == user
+			if row.user == user
 		]
 		shipped = [
 			listed_view(key, _(view.label), view.type, "app") for key, view in app_views(doctype).items()

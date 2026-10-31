@@ -71,8 +71,8 @@ class TestViewList(AppViewCase):
 
 		self.assertEqual(listed(list_views("ToDo")["ToDo"])[1:], [("probe-open", "Site's", "site")])
 
-	def test_an_own_view_at_an_app_key_is_listed_once_as_the_persons(self):
-		todo_view(self.person, "Probe Open")  # made before an app release shipped the same key
+	def test_an_own_view_made_before_an_app_shipped_its_key_is_listed_once_as_the_persons(self):
+		todo_view(self.person, "Probe Open")
 		self.folders.own_view("probe-open", label="Open probe")
 
 		with set_user(self.person):
@@ -110,6 +110,18 @@ class TestViewList(AppViewCase):
 		self.assertEqual(listed(found["ToDo"])[1:], [("probe-open", "Probe", "app")])
 		self.assertEqual([view["label"] for view in found["Note"]], ["List", "Site note"])
 		self.assertNotIn(PRIVATE_DOCTYPE, found)
+
+	def test_without_a_doctype_an_app_view_of_a_doctype_made_on_the_site_is_named_from_the_database(self):
+		self.folders.custom_view("acme", "probe-note", doctype="note", label="Acme's notes")
+
+		self.assertEqual(listed(list_views()["Note"])[1:], [("probe-note", "Acme's notes", "app")])
+
+	def test_without_a_doctype_an_app_view_of_a_doctype_the_person_cannot_read_is_left_out(self):
+		self.folders.custom_view("acme", "probe-settings", doctype="system_settings")
+
+		self.assertIn(PRIVATE_DOCTYPE, list_views())
+		with set_user(self.person):
+			self.assertNotIn(PRIVATE_DOCTYPE, list_views())
 
 	def test_a_doctype_the_person_cannot_read_is_refused(self):
 		with set_user(self.person), self.assertRaises(frappe.PermissionError):
