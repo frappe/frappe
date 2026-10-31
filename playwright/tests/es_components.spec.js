@@ -73,6 +73,25 @@ test.describe("Espresso components", () => {
 			await expect(trigger).toBeFocused();
 		});
 
+		test("a row's highlight clears when the pointer leaves it", async ({ page }) => {
+			const trigger = explorer_group(page, "Basic actions")
+				.locator('[aria-haspopup="menu"]')
+				.first();
+			await trigger.click();
+			const row = page.locator(".es-menu[data-state='open'] .es-menu__item").first();
+
+			await row.hover();
+			await expect(row).toHaveAttribute("data-highlighted", "");
+			const box = await page.locator(".es-menu[data-state='open']").boundingBox();
+			await page.mouse.move(box.x + box.width + 40, box.y + box.height + 40);
+			await expect(page.locator(".es-menu__item[data-highlighted]")).toHaveCount(0);
+
+			const panel = page.locator(".es-menu[data-state='open']");
+			await expect(panel).toBeFocused();
+			await panel.press("ArrowDown");
+			await expect(row).toHaveAttribute("data-highlighted", "");
+		});
+
 		test("renders a disabled option as a real disabled button, never a live row", async ({
 			page,
 		}) => {
