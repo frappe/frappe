@@ -311,6 +311,21 @@ frappe.ui.keys.key_map = {
 	frappe.ui.keys.key_map[65 + i] = letter;
 });
 
+for (let i = 0; i <= 9; i++) {
+	frappe.ui.keys.key_map[96 + i] = "numpad" + i;
+}
+Object.assign(frappe.ui.keys.key_map, {
+	106: "numpad*",
+	107: "numpad+",
+	108: "numpad,",
+	109: "numpad-",
+	110: "numpad.",
+	111: "numpad/",
+});
+for (let i = 6; i <= 12; i++) {
+	frappe.ui.keys.key_map[111 + i] = "f" + i;
+}
+
 // keyCode map
 frappe.ui.keyCode = {
 	ESCAPE: 27,
