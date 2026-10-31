@@ -95,6 +95,8 @@ dependencies = [
     "python-docx~=1.1",
     "rapidocr~=3.0",
     # integration dependencies
+    # S3-compatible backup destinations (frappe.utils.backup_destination)
+    "boto3~=1.43.82",
     "google-api-python-client~=2.201.0",
     "google-auth-oauthlib~=1.5.0",
     "google-auth~=2.62.0",
