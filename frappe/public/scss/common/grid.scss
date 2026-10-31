@@ -3,6 +3,12 @@
 	border: 1px solid var(--gray-400) !important;
 }
 
+// grid_row.js reparents an open Link dropdown here and offsets it from this box,
+// so it has to be the containing block the offsets are resolved against
+.grid-field {
+	position: relative;
+}
+
 .form-grid {
 	border: 1px solid var(--table-border-color);
 	border-radius: var(--radius-md);
