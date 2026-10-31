@@ -173,8 +173,15 @@ def import_controller(doctype):
 
 	module_name = "Core"
 	if doctype not in DOCTYPES_FOR_DOCTYPE:
-		doctype_info = frappe.db.get_value("DocType", doctype, ("module", "custom", "is_tree"), as_dict=True)
+		doctype_info = frappe.db.get_value(
+			"DocType", doctype, ("name", "module", "custom", "is_tree"), as_dict=True
+		)
 		if doctype_info:
+			if doctype_info.name != doctype:
+				frappe.throw(
+					_("{0} {1} not found").format(_("DocType"), doctype),
+					frappe.DoesNotExistError(doctype="DocType"),
+				)
 			if doctype_info.custom:
 				return NestedSet if doctype_info.is_tree else Document
 			module_name = doctype_info.module
