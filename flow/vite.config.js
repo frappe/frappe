@@ -11,9 +11,11 @@ const here = (path) => fileURLToPath(new URL(path, import.meta.url));
 // proxy forwards API and asset paths to the bench (port 8000 → Vite on 8080).
 export default defineConfig({
 	root: here("./frontend"),
+	build: { target: ["es2020", "edge88", "firefox78", "chrome87", "safari14"] },
 	plugins: [
 		frappeui({
 			frappeProxy: true,
+			codeLanguages: false,
 			lucideIcons: true,
 			jinjaBootData: true,
 			buildConfig: {
