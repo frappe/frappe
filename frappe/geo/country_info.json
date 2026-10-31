@@ -596,6 +596,7 @@
   "currency": "CNY",
   "currency_fraction": "Fen",
   "currency_name": "Yuan Renminbi",
+  "currency_symbol": "\u00a5",
   "currency_fraction_units": 100,
   "smallest_currency_fraction_value": 0.01,
   "date_format": "yyyy-mm-dd",
@@ -1297,7 +1298,7 @@
   "currency_fraction": "Fils",
   "currency_fraction_units": 1000,
   "currency_name": "Iraqi Dinar",
-  "currency_symbol": "\u0639.\u062f",
+  "currency_symbol": "\u062f.\u0639",
   "number_format": "#,###.###",
   "timezones": [
    "Asia/Baghdad"
