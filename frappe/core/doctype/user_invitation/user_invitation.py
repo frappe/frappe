@@ -131,12 +131,6 @@ class UserInvitation(Document):
 		return key
 
 	def _accept(self):
-		if self.status == "Accepted":
-			frappe.throw(title=_("Error"), msg=_("Invitation already accepted"))
-		if self.status == "Expired":
-			frappe.throw(title=_("Error"), msg=_("Invitation is expired"))
-		if self.status == "Cancelled":
-			frappe.throw(title=_("Error"), msg=_("Invitation is cancelled"))
 		self.status = "Accepted"
 		self.accepted_at = frappe.utils.now()
 		self.user = self.email

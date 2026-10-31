@@ -153,13 +153,30 @@ def _accept_invitation(key: str, in_test: bool) -> None:
 	if not invitation_name:
 		frappe.throw(title=_("Error"), msg=_("Invalid or expired key"))
 	invitation = frappe.get_doc("User Invitation", invitation_name)
+	if invitation.status == "Accepted":
+		frappe.throw(title=_("Error"), msg=_("Invitation already accepted"))
+	if invitation.status == "Expired":
+		frappe.throw(title=_("Error"), msg=_("Invitation is expired"))
+	if invitation.status == "Cancelled":
+		frappe.throw(title=_("Error"), msg=_("Invitation is cancelled"))
+
+	invitee = invitation.email.strip().lower()
+	if frappe.session.user not in ("Guest", invitee):
+		frappe.throw(
+			_("You are logged in as {0}. Log out and open the invitation link again to join as {1}.").format(
+				frappe.session.user, invitee
+			)
+		)
 
 	# accept invitation
 	invitation.accept(ignore_permissions=True)
 
 	user = frappe.get_doc("User", invitation.email)
-	should_update_password = not user.last_password_reset_date and not bool(
-		frappe.get_system_settings("disable_user_pass_login")
+	already_logged_in = frappe.session.user == user.name
+	should_update_password = (
+		not already_logged_in
+		and not user.last_password_reset_date
+		and not frappe.get_system_settings("disable_user_pass_login")
 	)
 
 	# set redirect_to
@@ -170,7 +187,7 @@ def _accept_invitation(key: str, in_test: bool) -> None:
 	# GET requests do not cause an implicit commit
 	frappe.db.commit()  # nosemgrep
 
-	if not in_test and not should_update_password:
+	if not in_test and not should_update_password and not already_logged_in:
 		frappe.local.login_manager.login_as(invitation.email)
 
 	# set response
