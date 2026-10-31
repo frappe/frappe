@@ -40,6 +40,7 @@ from frappe.shell.registry import (
 	split_shell_path,
 )
 from frappe.shell.route_guard import ReservedRouteError, is_reserved, validate_route
+from frappe.shell.shell_hooks import CACHE_KEY as SHELL_HOOKS_CACHE_KEY
 from frappe.studio.doctype.studio_app.studio_app import StudioAppRenderer
 from frappe.studio.doctype.studio_app.test_studio_app import make_studio_app, make_studio_page
 from frappe.studio.tests.test_permissions import make_studio_user
@@ -100,6 +101,7 @@ def a_second_app(app: str = SECOND_APP, prefix: str | None = SECOND_PREFIX, acti
 	def clear():
 		clear_prefix_registry()
 		frappe.client_cache.delete_value(DOCTYPES_CACHE_KEY)
+		frappe.client_cache.delete_value(SHELL_HOOKS_CACHE_KEY)
 
 	clear()
 	with ExitStack() as stack:
@@ -108,6 +110,8 @@ def a_second_app(app: str = SECOND_APP, prefix: str | None = SECOND_PREFIX, acti
 		if active:
 			stack.enter_context(patch.object(frappe, "get_active_apps", side_effect=with_app(real_active)))
 		stack.enter_context(patch.object(frappe, "get_installed_apps", side_effect=with_app(real_installed)))
+		# The app has no source dir to look for a `shell.js` in.
+		stack.enter_context(patch("frappe.shell.shell_hooks.hooked_apps", return_value=[]))
 		yield app, prefix
 
 

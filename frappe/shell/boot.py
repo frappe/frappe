@@ -22,9 +22,10 @@ from .index_layer import arrange, write_layer
 from .index_notices import index_notices
 from .links import canonical_path
 from .navigation import NO_HOST, resolve_navigation
-from .permissions import has_app_permission
+from .permissions import has_app_permission, passes_apps_screen_check
 from .registry import get_prefix_registry, prefix_map, shell_base, split_shell_path
 from .route_history import Visit, latest_visits
+from .shell_hooks import shell_hooks
 from .titles import app_screen, readable_titles
 
 # Bytes one top-level boot key may reach before boot logs it.
@@ -43,6 +44,7 @@ CLOUD_SETTINGS_ROUTE = "/desk?cloud_settings=1"
 
 def core_boot() -> dict:
 	"""The keys every prefix gets, regardless of which app it belongs to."""
+	app_order = frappe.get_active_apps(_ensure_on_bench=True)
 	return {
 		"frappe_version": frappe.__version__,
 		"site_name": frappe.local.site,
@@ -58,11 +60,12 @@ def core_boot() -> dict:
 		"translations_version": get_translation_version(),
 		# Active, not installed, so a disabled app is neither ordered nor served. Not named
 		# `installed_apps`: client-side that is a permission-filtered list.
-		"app_order": frappe.get_active_apps(_ensure_on_bench=True),
+		"app_order": app_order,
 		# The address table is fetched, not booted; this is the key that invalidates it.
 		"metadata_version": metadata_version(),
 		# Every active app, so a link to a foreign app's doctype knows that app's shape.
 		"prefixes": prefix_map(),
+		"shell_hooks": shell_hooks(app_order),
 	}
 
 
@@ -162,14 +165,7 @@ def tile_target(app: str, screen: dict, prefix: str | None) -> dict | None:
 def may_link_out(app: str, screen: dict) -> bool:
 	"""The hook's own `has_permission`, which guards the app's own UI; a raising check hides the tile."""
 	check = screen.get("has_permission")
-	if not check:
-		return True
-
-	try:
-		return bool(frappe.get_attr(check)())
-	except Exception:
-		frappe.log_error(title=f"add_to_apps_screen has_permission failed for {app}")
-		return False
+	return passes_apps_screen_check(app, check) if check else True
 
 
 def index_recent() -> list[dict]:

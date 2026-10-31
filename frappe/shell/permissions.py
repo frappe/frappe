@@ -31,6 +31,15 @@ def has_app_permission(app: str) -> bool:
 		return False
 
 
+def passes_apps_screen_check(app: str, check: str) -> bool:
+	"""The app's `add_to_apps_screen` `has_permission`; a check that raises refuses and is logged."""
+	try:
+		return bool(frappe.get_attr(check)())
+	except Exception:
+		frappe.log_error(title=f"add_to_apps_screen has_permission failed for {app}")
+		return False
+
+
 def may_enter_any_prefix() -> bool:
 	"""Whether this session may enter at least one prefix: the gate for a reply no single app owns."""
 	return any(has_app_permission(app) for app in set(get_prefix_registry().values()))

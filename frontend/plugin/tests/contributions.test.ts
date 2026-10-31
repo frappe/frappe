@@ -752,3 +752,49 @@ describe("an app's acts", () => {
     expect(code).not.toMatch(/^import .*acts\.js/m);
   });
 });
+
+describe("an app's shell hook", () => {
+  const HOOK = "export function setup() {}";
+
+  it("is found at <module>/frontend/shell.js", () => {
+    const [crm, helpdesk] = bench({
+      crm: {
+        "fcrm/frontend/shell.js": HOOK,
+        "fcrm/doctype/crm_deal/frontend/shell.js": HOOK,
+      },
+      helpdesk: { "helpdesk/frontend/acts.js": "export default []" },
+    });
+
+    expect(discover([crm, helpdesk]).shellHooks).toEqual([
+      { app: "crm", file: join(crm.source_dir, "fcrm/frontend/shell.js") },
+    ]);
+  });
+
+  it("is one per app: two modules that each ship one run neither, with a warning", () => {
+    const [crm] = bench({
+      crm: { "fcrm/frontend/shell.js": HOOK, "telephony/frontend/shell.js": HOOK },
+    });
+
+    const found = discover([crm]);
+
+    expect(found.shellHooks).toEqual([]);
+    expect(found.warnings).toEqual([
+      `[frappe] 'crm' ships more than one shell.js: ` +
+        `${join(crm.source_dir, "fcrm/frontend/shell.js")}, ` +
+        `${join(crm.source_dir, "telephony/frontend/shell.js")}. ` +
+        "An app has one shell hook, so none of them runs.",
+    ]);
+  });
+
+  it("is imported lazily, so the cold load carries none of its code", () => {
+    const [crm] = bench({ crm: { "fcrm/frontend/shell.js": HOOK } });
+    const file = join(crm.source_dir, "fcrm/frontend/shell.js");
+
+    const code = load(contributions([crm]));
+
+    expect(code).toContain(
+      `  shellHooks: [\n` + `    { app: "crm", load: () => import(${JSON.stringify(file)}) },\n` + `  ],`,
+    );
+    expect(code).not.toMatch(/^import .*shell\.js/m);
+  });
+});

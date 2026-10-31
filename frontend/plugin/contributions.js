@@ -49,6 +49,7 @@ export function discover(manifest, allSourceDirs = manifest.map((entry) => entry
 	const itemTypes = [];
 	const settings = [];
 	const acts = [];
+	const shellHooks = [];
 	const replacements = [];
 	const pageScripts = [];
 	const declarations = [];
@@ -139,11 +140,16 @@ export function discover(manifest, allSourceDirs = manifest.map((entry) => entry
 			// An app's global acts: <module>/frontend/acts.js, joined to the shell surface.
 			const actsFile = join(modulePath, "frontend", "acts.js");
 			if (isFile(actsFile)) acts.push({ app, file: actsFile });
+
+			// An app's shell hook: <module>/frontend/shell.js, run once per tab at idle.
+			const shellFile = join(modulePath, "frontend", "shell.js");
+			if (isFile(shellFile)) shellHooks.push({ app, file: shellFile });
 		}
 	}
 
 	warnings.push(...clashes(replacements));
 	warnings.push(...settingsClashes(settings));
+	warnings.push(...shellHookClashes(shellHooks));
 	// Terminal only: the router reports the clashes a site really has, and most sites have none.
 	const pageWarnings = pageClashes(pages, manifest, definitions.values(), allSourceDirs);
 	return {
@@ -152,6 +158,7 @@ export function discover(manifest, allSourceDirs = manifest.map((entry) => entry
 		itemTypes,
 		settings: settings.filter((entry) => !sharesItsName(entry, settings)),
 		acts,
+		shellHooks: shellHooks.filter((entry) => !sharesItsApp(entry, shellHooks)),
 		replacements,
 		pageScripts,
 		declarations,
@@ -188,6 +195,22 @@ function sharesItsName(entry, settings) {
 	);
 }
 
+/** One warning per app that ships more than one `shell.js`; none of them runs. */
+function shellHookClashes(shellHooks) {
+	const clashing = shellHooks.filter((entry) => sharesItsApp(entry, shellHooks));
+	return [...new Set(clashing.map((entry) => entry.app))].map((app) => {
+		const paths = clashing.filter((entry) => entry.app === app).map((entry) => entry.file);
+		return (
+			`[frappe] '${app}' ships more than one shell.js: ${paths.join(", ")}. ` +
+			"An app has one shell hook, so none of them runs."
+		);
+	});
+}
+
+function sharesItsApp(entry, shellHooks) {
+	return shellHooks.some((other) => other !== entry && other.app === entry.app);
+}
+
 /** A record's real name, read from its own JSON. `null` if there is no readable one. */
 function recordName(definition) {
 	if (!isFile(definition)) return null;
@@ -205,6 +228,7 @@ function generate({
 	itemTypes,
 	settings,
 	acts,
+	shellHooks,
 	replacements,
 	pageScripts,
 	warnings,
@@ -285,6 +309,16 @@ function generate({
 	// Lazy: the shell imports these at idle after the first paint.
 	lines.push("  acts: [");
 	for (const entry of acts) {
+		lines.push(
+			`    { app: ${JSON.stringify(entry.app)}, load: () => import(${JSON.stringify(
+				entry.file
+			)}) },`
+		);
+	}
+	lines.push("  ],");
+
+	lines.push("  shellHooks: [");
+	for (const entry of shellHooks) {
 		lines.push(
 			`    { app: ${JSON.stringify(entry.app)}, load: () => import(${JSON.stringify(
 				entry.file

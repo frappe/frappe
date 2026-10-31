@@ -173,7 +173,7 @@ that map before anything else.
 
 ## Where a contribution lives
 
-Nine paths, and nothing is parsed from file *contents* — app, module, doctype and kind all
+Ten paths, and nothing is parsed from file *contents* — app, module, doctype and kind all
 fall out of the path. Enumerated in both languages, in `frappe/shell/manifest.py` and
 `frontend/plugin/contributions.js`:
 
@@ -188,6 +188,7 @@ fall out of the path. Enumerated in both languages, in `frappe/shell/manifest.py
 | `<app>/<module>/custom/<scrubbed>/pages/<name>.js` | a replacement page, *foreign* doctype |
 | `<app>/<module>/frontend/pages/<slug>.js` | a standalone page |
 | `<app>/<module>/navigation_item_type/<scrubbed>/frontend/item.js` | a navigation item kind |
+| `<app>/<module>/frontend/shell.js` | the app's shell hook, one per app; two in one app run neither |
 
 - **A page's route guards are `onBeforeRouteLeave` and `onBeforeRouteUpdate` in `setup`.** The
   router draws a page inside the frame while its code loads, so an options-API `beforeRoute*`

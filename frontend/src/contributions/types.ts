@@ -87,12 +87,20 @@ export type ActsContribution = {
   load: () => Promise<{ default?: unknown }>
 }
 
+// An app's shell hook: <module>/frontend/shell.js, whose `setup(shell)` the shell runs once per
+// tab at idle, for a permitted user.
+export type ShellHookContribution = {
+  app: string
+  load: () => Promise<{ setup?: unknown }>
+}
+
 export type Contributions = {
   doctypes: DoctypeContribution[]
   pages: PageContribution[]
   itemTypes: ItemTypeContribution[]
   settings: SettingsComponentContribution[]
   acts: ActsContribution[]
+  shellHooks: ShellHookContribution[]
   replacements: ReplacementContribution[]
   pageScripts: PageScriptContribution[]
 }

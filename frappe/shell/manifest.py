@@ -53,6 +53,11 @@ def page_glob(source_dir: str) -> str:
 	return os.path.join(source_dir, "*", "frontend", "pages", "*.js")
 
 
+def shell_hook_glob(source_dir: str) -> str:
+	"""An app's shell hook, `<module>/frontend/shell.js`."""
+	return os.path.join(source_dir, "*", "frontend", "shell.js")
+
+
 def contribution_globs(source_dir: str) -> list[str]:
 	"""The contribution kinds, as paths; a file anywhere else is not a contribution."""
 	return [
@@ -68,6 +73,7 @@ def contribution_globs(source_dir: str) -> list[str]:
 		os.path.join(source_dir, "*", "navigation_item_type", "*", "frontend", "item.js"),
 		os.path.join(source_dir, "*", "frontend", "settings", "*.vue"),
 		os.path.join(source_dir, "*", "frontend", "acts.js"),
+		shell_hook_glob(source_dir),
 	]
 
 

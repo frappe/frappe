@@ -21,7 +21,7 @@ page, then the settings dialog.
 **Shell**:
 The single SPA the framework hosts, owning every URL beneath `/apps`. It owns everything
 that must look the same in every app — the rail, the error states — and an app contributes
-only *inside* a routed view. There is no shell-level hook of any kind.
+only *inside* a routed view. An app attaches to the shell only through its shell hook.
 _Avoid_: "the frontend" (ambiguous with the package), "shell story" (`ui/CONTEXT.md`'s
 unrelated Storybook term).
 
@@ -159,9 +159,20 @@ Only ever this. A navigation item's axis is its **type**, and `Record` appears i
 | `<module>/custom/<scrubbed>/pages/<name>.js` | replacement, **foreign** doctype |
 | `<module>/frontend/settings/<name>.vue` | a settings block's component, loaded lazily |
 | `<module>/frontend/acts.js` | an app's global acts on the **shell surface**, imported at idle |
+| `<module>/frontend/shell.js` | an app's **shell hook**, run at idle |
 
 `frontend/<name>.js` beside `pages/<name>.js`, and `custom/<x>/<name>.js`, are reserved
 handler files: warned about and ignored for now.
+
+**Shell hook**: <a id="shell-hook"></a>
+An app's `<module>/frontend/shell.js`, one per app, whose `setup(shell)` export the shell runs
+once per tab, at idle after the first paint, on every page of `/apps` (the index too), in
+`app_order`. It runs only for a user the app's `add_to_apps_screen` `has_permission` admits,
+or, with no such check, the app's prefix gate. `shell` holds `afterSave(doctype, handler)`.
+`setup` cannot change the route, block the first paint, write to the DOM, or replace or hide
+a shell part. A hook that throws, or a file with no `setup`, is logged and skipped. Desk's own
+after-save handlers are the shell's: frappe ships no `shell.js`.
+_Avoid_: plugin, boot hook. Not `acts.js`: acts are asked for by name; a hook attaches.
 
 **Owning app**:
 The app a contribution's doctype belongs to. Structural, needing no registry lookup: a
