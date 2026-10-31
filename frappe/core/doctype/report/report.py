@@ -508,6 +508,9 @@ class Report(Document):
 			frappe.throw(_("Standard reports can only be created in developer mode."))
 
 	def validate_default_print_format(self):
+		if not self.default_print_format:
+			return
+
 		pf = frappe.db.get_value(
 			"Print Format",
 			self.default_print_format,
@@ -518,7 +521,7 @@ class Report(Document):
 		if not pf or pf.report != self.name or pf.print_format_for != "Report" or pf.disabled:
 			frappe.throw(_("Selected Print Format is invalid for this Report."))
 
-	def validate_default_letter_head(self):
+	def validate_default_letter_head(self, standard_only: bool = True):
 		if not self.default_letter_head:
 			return
 
@@ -532,7 +535,7 @@ class Report(Document):
 		if (
 			not letter_head
 			or letter_head.letter_head_for != "Report"
-			or (self.is_standard == "Yes" and letter_head.standard != "Yes")
+			or (standard_only and self.is_standard == "Yes" and letter_head.standard != "Yes")
 			or letter_head.disabled
 		):
 			frappe.throw(
@@ -540,6 +543,19 @@ class Report(Document):
 					self.default_letter_head, self.name
 				)
 			)
+
+	@frappe.whitelist()
+	def set_print_defaults(self, print_format: str | None = None, letter_head: str | None = None):
+		if not self.has_permission("write"):
+			frappe.throw(_("You are not allowed to edit the report."))
+
+		self.default_print_format = print_format
+		self.default_letter_head = letter_head
+		self.validate_default_print_format()
+		self.validate_default_letter_head(standard_only=False)
+		self.db_set(
+			{"default_print_format": print_format, "default_letter_head": letter_head}, update_modified=False
+		)
 
 	@frappe.whitelist()
 	def toggle_disable(self, disable: bool):
