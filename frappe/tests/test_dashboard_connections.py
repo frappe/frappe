@@ -163,6 +163,35 @@ class TestDashboardConnections(IntegrationTestCase):
 			],
 		)
 
+	def test_shared_link_field_names_are_left_out_past_the_cap(self):
+		fieldname = "test_doctype_a_with_test_child_table_with_link_to_doctype_b"
+		jupiter = frappe.get_doc(
+			doctype="Test Doctype A With Child Table With Link To Doctype B", title="Jupiter"
+		).insert()
+
+		for title in ("Voyager 1", "Voyager 2"):
+			voyager = frappe.get_doc(doctype="Test Doctype C With Duplicate Link To Doctype A", title=title)
+			voyager.append("child_table", {"title": title, fieldname: "Jupiter"})
+			voyager.insert()
+
+		dashboard = frappe._dict(
+			fieldname=fieldname,
+			transactions=[
+				{"label": "Reference", "items": ["Test Doctype C With Duplicate Link To Doctype A"]}
+			],
+		)
+
+		with (
+			patch.object(jupiter.meta, "get_dashboard_data", return_value=dashboard),
+			patch("frappe.desk.notifications.LINK_COUNT_LIMIT", 2),
+		):
+			connections = get_open_count("Test Doctype A With Child Table With Link To Doctype B", "Jupiter")[
+				"count"
+			]
+
+		self.assertEqual(connections["external_links_found"][0]["count"], 2)
+		self.assertNotIn("names", connections["external_links_found"][0])
+
 	def test_internal_link_without_external_field_reports_zero(self):
 		venus = frappe.get_doc(
 			{

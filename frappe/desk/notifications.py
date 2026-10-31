@@ -16,6 +16,8 @@ from frappe.desk.doctype.notification_settings.notification_settings import (
 )
 from frappe.utils import get_fullname, unique
 
+LINK_COUNT_LIMIT = 100
+
 
 @frappe.whitelist()
 @frappe.read_only()
@@ -392,13 +394,14 @@ def get_external_links(doctype, name, links, fieldname=None):
 
 def get_external_links_in_child_tables(doctype, name, fieldname, child_doctypes, filters):
 	"""A filter on a fieldname that several child tables share resolves to whichever of them
-	is scanned first, so match the link in any of them and let the client route by name."""
+	is scanned first, so match the link in any of them and let the client route by name.
+	Past the cap the names are left out and the client filters on the field instead."""
 	try:
 		names = frappe.get_list(
 			doctype,
 			filters=filters,
 			or_filters=[[child_doctype, fieldname, "=", name] for child_doctype in child_doctypes],
-			limit=100,
+			limit=LINK_COUNT_LIMIT,
 			distinct=True,
 			ignore_ifnull=True,
 			order_by=None,
@@ -413,13 +416,10 @@ def get_external_links_in_child_tables(doctype, name, fieldname, child_doctypes,
 	if names and (open_count_filters := get_filters_for(doctype)):
 		open_count = get_doc_count(doctype, {"name": ("in", names), **open_count_filters})
 
-	return {
-		"doctype": doctype,
-		"fieldname": fieldname,
-		"count": len(names),
-		"open_count": open_count,
-		"names": names,
-	}
+	data = {"doctype": doctype, "fieldname": fieldname, "count": len(names), "open_count": open_count}
+	if len(names) < LINK_COUNT_LIMIT:
+		data["names"] = names
+	return data
 
 
 def get_doc_count(doctype, filters) -> int | Literal["?"]:
