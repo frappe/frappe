@@ -1114,7 +1114,7 @@ def delete_bulk(doctype, items):
 
 		if task:
 			task.store_result(documents_by_reason)
-			frappe.db.commit()
+			frappe.db.commit()  # nosemgrep: frappe-manual-commit
 			if len(undeleted_items) == len(items):
 				raise frappe.ValidationError(_("Failed to delete {0} documents").format(len(undeleted_items)))
 			raise frappe.PartiallyCompleteError(
