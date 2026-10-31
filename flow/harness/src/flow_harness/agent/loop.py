@@ -614,6 +614,9 @@ async def _settle_call(
 		if prompt is None:
 			runnable.append((call, rewritten))
 			return
+		if isinstance(prompt, dict):  # the client ran it already, as it needed no approval
+			yield _capped(_result(call, prompt.get("content", ""), is_error=bool(prompt.get("is_error"))))
+			return
 		gated.append(PendingCall(id=call.id, name=call.name, args=call.args, prompt=prompt))
 		return
 	runnable.append((call, rewritten))
@@ -748,10 +751,13 @@ def _size(n: int) -> str:
 	return f"{n / 1024**2:.1f} MB" if n >= 1024**2 else f"{max(1, round(n / 1024))} KB"
 
 
-async def _confirmation_prompt(call: ToolCall, tools: dict[str, Tool], inputs: LoopInputs) -> str | None:
+async def _confirmation_prompt(
+	call: ToolCall, tools: dict[str, Tool], inputs: LoopInputs
+) -> str | dict | None:
 	"""Build the human-facing approval prompt. Server tools may define their own via
 	`Tool.confirm_prompt`; client tools can supply one over the callback, or answer
-	`{"approved": true}` for a call that needs no approval (None); else generic."""
+	`{"approved": true}` for a call that needs no approval (None), with its `result` when the
+	client already ran it (that dict); else generic."""
 	tool = tools.get(call.name)
 	if tool is not None and tool.confirm_prompt is not None:
 		try:
@@ -764,7 +770,7 @@ async def _confirmation_prompt(call: ToolCall, tools: dict[str, Tool], inputs: L
 				call_client(inputs.config, inputs.session_id, call, mode="confirm"), inputs.abort
 			)
 			if response.get("approved"):
-				return None
+				return response.get("result")
 			if response.get("prompt"):
 				return response["prompt"]
 		except ModelCancelled:

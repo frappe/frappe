@@ -508,12 +508,21 @@ def execute(code: str, description: str, *, ctx: ToolContext) -> Any:
 	- `str.format()` / `.format_map()` are blocked — use f-strings or `%` formatting.
 	- `print()` output is logged, not returned — put what you want back into `result`.
 
-	The user approves each call before it runs.
+	Code that only reads runs at once. The user approves code that writes, queues a job or sends
+	email before it runs.
 	"""
+	return run_code(code, ctx)
+
+
+def run_code(code: str, ctx: ToolContext, *, unapproved: bool = False) -> Any:
+	"""Run `execute`'s code in the sandbox. `unapproved` takes away what reaches outside the
+	database, for a run the user has not approved."""
 	frappe.flags.flow_undone_batch = None
-	# sandboxed, and the user approves each call
+	# sandboxed; the user approves each call that writes or reaches outside
 	# nosemgrep: frappe-codeinjection-eval
-	exec_globals, _locals = safe_exec(code, script_filename="ai_execute", tool_context=ctx)
+	exec_globals, _locals = safe_exec(
+		code, script_filename="ai_execute", tool_context=ctx, unapproved=unapproved
+	)
 	if frappe.flags.flow_undone_batch:
 		raise ValueError(
 			f"{frappe.flags.flow_undone_batch}\nA failed write fails the whole call, even when caught."
@@ -780,6 +789,17 @@ def _call_as_request(method: Any, args: dict[str, Any]) -> Any:
 def is_function_path(action: Any) -> bool:
 	"""Whether a run_action `action` is a function's dotted path rather than a record action."""
 	return isinstance(action, str) and bool(re.fullmatch(r"\w+(\.\w+)+", action))
+
+
+def is_read_only_function(path: Any) -> bool:
+	"""Whether `path` names a whitelisted function marked `@frappe.read_only()`."""
+	if not is_function_path(path):
+		return False
+	try:
+		method = frappe.get_attr(frappe.override_whitelisted_method(path))
+	except Exception:
+		return False
+	return method in frappe.whitelisted and getattr(method, "read_only", False)
 
 
 def _undo_batch(record: str, error: Exception) -> NoReturn:

@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import json
 import time
+from contextlib import contextmanager
 from hmac import compare_digest
 from typing import TYPE_CHECKING, Any
 
@@ -23,7 +24,6 @@ ERROR_LIMIT = 500
 START_WITHIN = 600  # seconds a queued call may wait to start
 JOB_TIMEOUT = 1500  # seconds a background tool may run, unless flow_background_tool_timeout is set
 DELIVERY_RETRY_DELAYS = (0, 1, 5)  # seconds before each try to post a result
-READ_ONLY_SAVEPOINT = "flow_read_only"
 
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])  # nosemgrep: guest-whitelisted-method
@@ -116,58 +116,84 @@ def _dispatch(
 	tool = next((tool for tool in tools if tool.name == name), None)
 	if tool is None:
 		return _error(_("Unknown tool {0}.").format(name))
-	read_only = is_read_only_call(name, args)
+	ctx = ToolContext(session_id=session_id, agent=agent, user=frappe.session.user)
 	if mode == "confirm":
-		return {"approved": True} if read_only else {"prompt": confirm_prompt(tool, args)}
+		if (result := _run_unapproved(tool, args, ctx)) is not None:
+			return {"approved": True, "result": result}
+		return {"prompt": confirm_prompt(tool, args)}
 	# the job itself passes no token
 	if result_token and (tool.background(args) if callable(tool.background) else tool.background):
 		return _enqueue(session_id, agent, name, args, result_token)
-	ctx = ToolContext(session_id=session_id, agent=agent, user=frappe.session.user)
-	result = _run_read_only(tool, args, ctx) if read_only else tool(**args, ctx=ctx)
-	return {"content": _text(result), "is_error": False}
+	return {"content": _text(tool(**args, ctx=ctx)), "is_error": False}
 
 
-def is_read_only_call(name: str, args: dict) -> bool:
-	"""Whether a run_action call is to a whitelisted function marked `@frappe.read_only()`, which
-	needs no approval."""
-	from frappe.flow.tools.builtins import is_function_path
+def _run_unapproved(tool: Tool, args: dict, ctx: ToolContext) -> dict | None:
+	"""Run a call that needs no approval because it cannot change anything, and return its
+	result: a function marked `@frappe.read_only()` through run_action, or execute's code until
+	it writes or reaches outside the database. None when the call needs the user's approval."""
+	from frappe.flow.tools.builtins import is_read_only_function, run_code
 
-	action = args.get("action")
-	if name != "run_action" or not is_function_path(action):
-		return False
+	if tool.name == "run_action" and is_read_only_function(args.get("action")):
+		run = lambda: tool(**args, ctx=ctx)  # noqa: E731
+	elif tool.name == "execute":
+		run = lambda: run_code(args.get("code") or "", ctx, unapproved=True)  # noqa: E731
+	else:
+		return None
+	refused = _(
+		"{0} tried to write to the database, so it is not a read and was refused. Ask the user before running it another way."
+	).format(args.get("action"))
+	frappe.flags.flow_needs_approval = False
+	with _read_only_transaction():
+		try:
+			result = {"content": _text(run()), "is_error": False}
+		except Exception as exc:
+			if tool.name == "execute" and _needs_approval(exc):
+				return None
+			return _error(refused if _wrote(exc) else str(exc).strip() or type(exc).__name__)
+		# the code may have caught the refusal
+		if frappe.flags.flow_needs_approval or frappe.db.transaction_writes:
+			return None if tool.name == "execute" else _error(refused)
+		return result
+
+
+def _needs_approval(exc: BaseException) -> bool:
+	from frappe.flow.utils.safe_exec import NeedsApproval
+
+	return bool(
+		frappe.flags.flow_needs_approval
+		or frappe.flags.flow_undone_batch
+		or _wrote(exc)
+		or any(isinstance(e, NeedsApproval) for e in _chain(exc))
+	)
+
+
+def _wrote(exc: BaseException) -> bool:
+	return any(isinstance(e, frappe.InReadOnlyMode) for e in _chain(exc))
+
+
+def _chain(exc: BaseException | None):
+	seen = set()
+	while exc is not None and id(exc) not in seen:
+		seen.add(id(exc))
+		yield exc
+		exc = exc.__cause__ or exc.__context__
+
+
+@contextmanager
+def _read_only_transaction():
+	"""The database refuses every write inside, as in the site's read-only mode. The callback has
+	only read before this, so its transaction is rolled back, not committed."""
+	read_only, messages = frappe.flags.read_only, len(frappe.local.message_log)
+	# a commit inside starts another read-only transaction
+	frappe.flags.read_only = True
+	frappe.db.rollback()
 	try:
-		method = frappe.get_attr(frappe.override_whitelisted_method(action))
-	except Exception:
-		return False
-	return method in frappe.whitelisted and getattr(method, "read_only", False)
-
-
-def _run_read_only(tool: Tool, args: dict, ctx: ToolContext) -> Any:
-	"""A call no one approved, so it may not write: commits are off while it runs, whatever it
-	wrote is undone, and if it wrote, it is refused."""
-	writes = frappe.db.transaction_writes
-	frappe.db.savepoint(READ_ONLY_SAVEPOINT)
-	frappe.db._disable_transaction_control += 1
-	try:
-		result = tool(**args, ctx=ctx)
+		yield
 	finally:
-		frappe.db._disable_transaction_control -= 1
-	wrote = frappe.db.transaction_writes != writes
-	try:
-		frappe.db.rollback(save_point=READ_ONLY_SAVEPOINT)
-	except Exception:  # a commit, such as before a schema change, took the savepoint
-		raise frappe.ValidationError(
-			_("{0} committed changes to the database, so it is not a read. Tell the user.").format(
-				args.get("action")
-			)
-		) from None
-	if wrote:
-		raise frappe.ValidationError(
-			_(
-				"{0} wrote to the database, so it is not a read and was undone. Ask the user before running it another way."
-			).format(args.get("action"))
-		)
-	return result
+		frappe.flags.read_only = read_only
+		frappe.db.rollback()
+		# frappe.throw's message for a refused write is not for the callback's caller
+		del frappe.local.message_log[messages:]
 
 
 def _enqueue(session_id: str, agent: str, tool: str, args: dict, result_token: str) -> dict:

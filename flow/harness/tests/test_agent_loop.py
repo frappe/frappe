@@ -978,6 +978,15 @@ async def test_a_client_tool_call_the_callback_approves_runs_without_asking(tmp_
 	assert modes == ["confirm", "execute"]
 	assert [r["content"] for r in _of(events, "tool_result")] == ["report ready"]
 
+	# a client that ran the call already answers with its result
+	modes.clear()
+	answer.update(result={"content": "read without asking", "is_error": False})
+	session, events = _session(tmp_path, **settings)
+	await _run(session, "build the report", model=_report_model())
+	assert modes == ["confirm"]
+	assert [r["content"] for r in _of(events, "tool_result")] == ["read without asking"]
+	assert _of(events, "approval_required") == []
+
 	modes.clear()
 	answer.clear()
 	answer.update(prompt="Build the report?")
