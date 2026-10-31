@@ -37,11 +37,6 @@ export const DROPPED_FIELDTYPES = new Set([
  * App hook to attach per-field presentation/behavior during the build. Called
  * once per data field (and per grid column) with the field's resolved meta;
  * returns a `FieldUI` to overlay onto that node, or nothing to leave it plain.
- *
- * No caller in this repo right now — `useDoctypeLayout` was the last one and it
- * is gone. `joinLayout` (`experimental/FormLayoutSource`) is the incoming one;
- * it is what makes a `Button` field live, so `Decorator`/`compose` are kept
- * deliberately and their tests with them. Not dead code.
  */
 export type Decorator = (field: FieldMeta) => FieldUI | void;
 
