@@ -37,19 +37,56 @@ def web_tier_concurrency() -> int | None:
 
 	Returns ``None`` when there is no fixed pool to exhaust: the development
 	server starts a thread per request, and CLI commands and background jobs
-	are not a web tier at all.
+	are not a web tier at all. Also ``None`` when gunicorn's settings cannot be
+	resolved, so that a limit is never derived from a guessed size.
 
 	Gunicorn sets ``SERVER_SOFTWARE``, and its workers are forked from the master,
-	so ``sys.argv`` in a worker is the master's own command line. Both hold on
-	every platform. Reading the parent's ``/proc/<pid>/cmdline`` instead reports
-	nothing on macOS, where every process then looks like a small gunicorn.
+	so ``sys.argv`` and ``os.environ`` in a worker are the master's. Reading the
+	parent's ``/proc/<pid>/cmdline`` instead reports nothing on macOS, where every
+	process then looks like a small gunicorn.
 	"""
 	if not os.environ.get("SERVER_SOFTWARE", "").startswith("gunicorn"):
 		return None
 
-	workers = _extract_cli_int(sys.argv, "-w", "--workers") or 1
-	threads = _extract_cli_int(sys.argv, "--threads") or 1
-	return workers * threads
+	try:
+		cfg = _gunicorn_config()
+	except SystemExit:
+		return None
+	return cfg.workers * cfg.threads
+
+
+def _gunicorn_config():
+	"""Resolve gunicorn's settings the way its command line runner does.
+
+	Gunicorn does not pass its config to the application, so this reads the same
+	sources in the same order: defaults (including ``WEB_CONCURRENCY``), the config
+	file, ``GUNICORN_CMD_ARGS``, then the command line. A worker reuses the config
+	module the master loaded instead of running the file again. Gunicorn exits on
+	invalid settings, which raises ``SystemExit`` here.
+	"""
+	from gunicorn.app.base import Application
+	from gunicorn.config import get_default_config_file
+
+	class Settings(Application):
+		def get_config_from_filename(self, filename):
+			if config := sys.modules.get("__config__"):
+				return vars(config)
+			return super().get_config_from_filename(filename)
+
+		def load_config(self):
+			parser = self.cfg.parser()
+			args = parser.parse_args(sys.argv[1:])
+			env_args = parser.parse_args(self.cfg.get_cmd_args_from_env())
+
+			if config_file := args.config or env_args.config or get_default_config_file():
+				self.load_config_from_file(config_file)
+
+			for parsed in (env_args, args):
+				for name, value in vars(parsed).items():
+					if value is not None and name != "args":
+						self.cfg.set(name.lower(), value)
+
+	return Settings().cfg
 
 
 def _default_limit() -> int | None:
@@ -58,33 +95,12 @@ def _default_limit() -> int | None:
 	return max(1, capacity // 2) if capacity else None
 
 
-def _extract_cli_int(args: list[str], *flags: str) -> int | None:
-	"""Return the integer value for a CLI flag from a split argument list.
-
-	Handles both ``--flag value`` and ``--flag=value`` forms.
-	"""
-	for i, arg in enumerate(args):
-		for flag in flags:
-			value = None
-			if arg == flag and i + 1 < len(args):
-				value = args[i + 1]
-			elif arg.startswith(f"{flag}="):
-				value = arg.split("=", 1)[1]
-
-			if value is not None:
-				try:
-					return int(value)
-				except ValueError:
-					return None
-	return None
-
-
 def concurrent_limit(limit: int | None = None, wait_timeout: int = _DEFAULT_WAIT_TIMEOUT):
 	"""Decorator that limits simultaneous in-flight executions of the wrapped function.
 
-	:param limit: Maximum number of concurrent executions. Defaults to half of ``workers x threads``
-	    as detected from the gunicorn command line, and to no limit when the process serves
-	    requests without a fixed worker pool.
+	:param limit: Maximum number of concurrent executions. Defaults to half of gunicorn's
+	    ``workers x threads``, and to no limit when the process serves requests without a fixed
+	    worker pool or the pool's size cannot be resolved.
 	:param wait_timeout: Seconds to wait for a free slot before returning 503.
 	    Defaults to 10 s.
 
