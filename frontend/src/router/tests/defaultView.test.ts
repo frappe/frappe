@@ -65,6 +65,14 @@ describe.each([
 		expect(router.currentRoute.value.path).toBe(`${prefix}/sales-invoice/view/list`);
 	});
 
+	it("opens the default from a bare address with a trailing slash", async () => {
+		const router = routerFor({ "Sales Invoice": "open-invoices" });
+
+		await router.push(`${prefix}/sales-invoice/`);
+
+		expect(router.currentRoute.value.path).toBe(`${prefix}/sales-invoice/view/open-invoices`);
+	});
+
 	it("keeps a bare address that carries a query on the plain list", async () => {
 		const router = routerFor({ "Sales Invoice": "open-invoices" });
 

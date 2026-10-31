@@ -69,7 +69,7 @@ export function createShellRouter(boot: Boot, addresses: Addresses) {
 			// Like a landing: a query states its own list, and the bare address never enters history.
 			const view = boot.default_views?.[doctype];
 			if (view && to.name === "list" && !Object.keys(to.query).length)
-				return { path: `${to.path}/view/${view}`, hash: to.hash };
+				return { path: `${to.path.replace(/\/$/, "")}/view/${view}`, hash: to.hash };
 			return true;
 		}
 
