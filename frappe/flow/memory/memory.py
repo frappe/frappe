@@ -5,7 +5,8 @@
 
 Flow Agent Memory rows are shared by the agent's users (scope Agent) or private to one
 (scope User). The `update_memory` tool writes them as the session owner; `memory_block`
-appends the ones relevant to a message to that message.
+appends the Active ones relevant to a message to that message. A shared memory an agent or
+a feedback comment writes stays Pending until a System Manager sets it Active.
 """
 
 from __future__ import annotations
@@ -83,7 +84,7 @@ def forget_feedback_memory(run: Any) -> int:
 def _add(
 	agent: str, content: str, scope: str, *, source: str = "Agent", source_run: str | None = None
 ) -> dict[str, Any]:
-	filters: dict[str, Any] = {"agent": agent, "scope": scope, "status": "Active"}
+	filters: dict[str, Any] = {"agent": agent, "scope": scope, "status": ["in", ("Active", "Pending")]}
 	if scope == "User":
 		filters["user"] = frappe.session.user
 	if frappe.db.count("Flow Agent Memory", filters) >= MAX_ACTIVE_MEMORIES:
@@ -103,10 +104,10 @@ def _add(
 			"content": content,
 			"source": source,
 			"source_run": source_run,
-			"status": "Active",
+			"status": _status_after_write(scope),
 		}
 	).insert(ignore_permissions=True)
-	return {"memory_id": doc.name, "action": "added"}
+	return _result(doc, "added")
 
 
 def _update(agent: str, memory_id: str, content: str) -> dict[str, Any]:
@@ -117,7 +118,7 @@ def _update(agent: str, memory_id: str, content: str) -> dict[str, Any]:
 		not row
 		or row.agent != agent
 		or (row.scope == "User" and row.user != frappe.session.user)
-		or row.status != "Active"
+		or row.status not in ("Active", "Pending")
 	):
 		frappe.throw(
 			_("No editable memory {0} — check the id in <memory>.").format(memory_id),
@@ -126,8 +127,20 @@ def _update(agent: str, memory_id: str, content: str) -> dict[str, Any]:
 
 	doc = frappe.get_doc("Flow Agent Memory", memory_id)
 	doc.content = content
+	doc.status = _status_after_write(doc.scope)
 	doc.save(ignore_permissions=True)
-	return {"memory_id": doc.name, "action": "updated"}
+	return _result(doc, "updated")
+
+
+def _status_after_write(scope: str) -> str:
+	return "Pending" if scope == "Agent" else "Active"
+
+
+def _result(doc: Any, action: str) -> dict[str, Any]:
+	result = {"memory_id": doc.name, "action": action}
+	if doc.status == "Pending":
+		result["note"] = "Pending review: no one gets it until a System Manager approves it."
+	return result
 
 
 def _running_run(session: str | None) -> str | None:

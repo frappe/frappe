@@ -52,11 +52,12 @@
   },
   {
    "default": "Active",
+   "description": "Shared memories an agent saves or a thumbs-down leaves start <code>Pending</code>. Set them <code>Active</code> to give them to everyone who uses the agent.",
    "fieldname": "status",
    "fieldtype": "Select",
    "in_standard_filter": 1,
    "label": "Status",
-   "options": "Active\nArchived"
+   "options": "Active\nPending\nArchived"
   },
   {
    "default": "Manual",
@@ -87,7 +88,7 @@
   }
  ],
  "links": [],
- "modified": "2026-10-09 12:00:00",
+ "modified": "2026-10-31 12:00:00",
  "modified_by": "Administrator",
  "module": "Flow",
  "name": "Flow Agent Memory",

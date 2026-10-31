@@ -184,8 +184,8 @@ class TestSubmitFeedback(IntegrationTestCase):
 		self.assertEqual((doc.feedback_rating, doc.feedback_comment), ("Down", "Widget A maps to WGT-001."))
 		memory = frappe.get_doc("Flow Agent Memory", result["memory"])
 		self.assertEqual(
-			(memory.agent, memory.scope, memory.source, memory.source_run, memory.content),
-			(self.agent.name, "Agent", "Feedback", run, "Widget A maps to WGT-001."),
+			(memory.agent, memory.scope, memory.source, memory.source_run, memory.status, memory.content),
+			(self.agent.name, "Agent", "Feedback", run, "Pending", "Widget A maps to WGT-001."),
 		)
 		self.assertEqual(submit_feedback(run, "None"), {"rating": None, "forgotten": 1})
 		self.assertFalse(frappe.db.exists("Flow Agent Memory", memory.name))

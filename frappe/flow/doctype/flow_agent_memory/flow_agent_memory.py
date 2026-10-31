@@ -24,7 +24,7 @@ class FlowAgentMemory(Document):
 		scope: DF.Literal["Agent", "User"]
 		source: DF.Literal["Agent", "Feedback", "Manual"]
 		source_run: DF.Link | None
-		status: DF.Literal["Active", "Archived"]
+		status: DF.Literal["Active", "Pending", "Archived"]
 		user: DF.Link | None
 	# end: auto-generated types
 
