@@ -288,9 +288,27 @@ class NestedSet(Document):
 		if self.meta.get("nsm_parent_field"):
 			self.nsm_parent_field = self.meta.nsm_parent_field
 
+	def _validate(self):
+		super()._validate()
+		self.validate_parent_is_group()
+
 	def on_update(self):
 		update_nsm(self)
 		self.validate_ledger()
+
+	def validate_parent_is_group(self):
+		parent_field = self.nsm_parent_field or "parent_" + frappe.scrub(self.doctype)
+		parent = self.get(parent_field)
+		if not parent:
+			return
+
+		parent_lft, parent_rgt = frappe.db.get_value(self.doctype, parent, ["lft", "rgt"])
+		validate_loop(self.doctype, self.name, parent_lft, parent_rgt)
+		if self.meta.has_field("is_group") and not frappe.db.get_value(self.doctype, parent, "is_group"):
+			frappe.throw(
+				_("{0} {1} must be a group node").format(_(self.doctype), parent),
+				title=_("Invalid Parent"),
+			)
 
 	def on_trash(self, allow_root_deletion=False):
 		"""
@@ -327,6 +345,17 @@ class NestedSet(Document):
 			)
 
 	def before_rename(self, olddn, newdn, merge=False, group_fname="is_group"):
+		if merge:
+			left = frappe.db.get_value(self.doctype, newdn, "lft")
+			if left is None:
+				return
+			if self.lft < left < self.rgt:
+				frappe.throw(
+					_("Cannot merge a node into its own descendants"),
+					NestedSetInvalidMergeError,
+					title=_("Cannot Merge"),
+				)
+
 		if merge and hasattr(self, group_fname):
 			is_group = frappe.db.get_value(self.doctype, newdn, group_fname)
 			if self.get(group_fname) != is_group:
