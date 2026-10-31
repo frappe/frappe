@@ -9,11 +9,11 @@ from frappe.desk.form.utils import get_pdf_link
 from frappe.desk.notifications import clear_doctype_notifications
 from frappe.model.document import Document
 from frappe.model.workflow import (
-	apply_workflow,
 	get_workflow_name,
 	get_workflow_state_field,
 	has_approval_access,
 	is_transition_condition_satisfied,
+	run_workflow_transition,
 	send_email_alert,
 )
 from frappe.query_builder import DocType
@@ -160,7 +160,7 @@ def confirm_action(doctype: str, docname: str | int, user: str, action: str):
 		return
 
 	doc = frappe.get_doc(doctype, docname)
-	newdoc = apply_workflow(doc, action)
+	newdoc = run_workflow_transition(doc, action)
 	frappe.db.commit()
 	return_success_page(newdoc)
 
