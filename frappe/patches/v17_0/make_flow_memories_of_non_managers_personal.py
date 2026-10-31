@@ -14,10 +14,7 @@ def execute():
 	):
 		key = (row.agent, row.modified_by)
 		if key not in manages:
-			# a writer since deleted can't be asked, so their memories stay shared
-			manages[key] = not frappe.db.exists("User", row.modified_by) or frappe.has_permission(
-				"Flow Agent", "write", row.agent, user=row.modified_by
-			)
+			manages[key] = _manages(*key)
 		if not manages[key]:
 			moved[row.modified_by].append(row.name)
 
@@ -29,3 +26,10 @@ def execute():
 			update_modified=False,
 		)
 		store.make_personal(names, user)
+
+
+def _manages(agent: str, user: str) -> bool:
+	# a writer since deleted can't be asked, so their memories stay shared
+	if not frappe.db.exists("User", user):
+		return True
+	return frappe.has_permission("Flow Agent", "write", agent, user=user)
