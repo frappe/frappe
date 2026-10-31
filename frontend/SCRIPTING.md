@@ -1146,7 +1146,9 @@ above; the row limits mean nothing on a column. One patch reaches every place th
 drawn: the grid, the row dialog's form, and the child's Details row that the dialog picks.
 `hidden` takes the column out of the grid, header and cells. `show` does not add a column
 that the grid does not draw, because the child's `in_list_view` picks the grid's columns; it
-shows the field in the row dialog. The patch is the same for every row. A change per row is
+shows the field in the row dialog. A Table MultiSelect draws one picker, so its Link column
+takes `options` and `link_filters`, and the field's own `link_filters` win on a shared key;
+its label and the rest are the field's own. The patch is the same for every row. A change per row is
 the column's `depends_on`, so `get('<table>.<column>')` reads the column without it. `focus`,
 `setError` and `clearError` refuse a column and warn in a development build: an error marks a
 cell, which `row.setError(column, message)` in a row handler does.

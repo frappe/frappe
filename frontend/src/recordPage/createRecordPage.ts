@@ -461,12 +461,12 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   }
 
   function canFocus(fieldname: string, gone = "no such field") {
-    if (fields.isColumn(fieldname)) {
-      warnFocus(fieldname, "a table column has a cell per row, not a place of its own");
-      return false;
-    }
     if (!fields.has(fieldname)) {
       warnFocus(fieldname, gone);
+      return false;
+    }
+    if (fields.isColumn(fieldname)) {
+      warnFocus(fieldname, "a table column has a cell per row, not a place of its own");
       return false;
     }
     if (fields.get(fieldname)?.hidden) {

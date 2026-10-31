@@ -12,7 +12,7 @@ vi.mock("frappe-ui", () => ({
 import { layoutFields } from "@framework/ui/FormLayout";
 import type { FieldNode, RawMetaField } from "@framework/ui/FormLayout/types";
 import { FieldErrors } from "../fieldErrors";
-import { FieldsSurface, resetFieldWarnings } from "../fields";
+import { FieldsSurface, resetFieldWarnings, type FieldsSurfaceHost } from "../fields";
 import { joinLayout } from "../formLayoutSource/joinLayout";
 import type { FieldPatch } from "../formLayoutSource/fieldPatch";
 import type { FormLayoutRow, LayoutTree } from "../formLayoutSource/types";
@@ -104,13 +104,23 @@ describe("a column patch in the join", () => {
     expect(byName(questions.childFields, "mapped_to")?.label).toBe("Lead field");
   });
 
+  it("leaves a second table of the same child doctype alone", () => {
+    const fields = [...parentFields, { fieldname: "old_questions", fieldtype: "Table", options: QUESTION }];
+    const schema = joinLayout(tree("questions", "old_questions"), fields, { childMetas, overrides: MAPPING });
+    const old = layoutFields(schema).find((field) => field.fieldname === "old_questions")!;
+    expect(byName(old.childFields, "mapped_to")?.label).toBe("Maps to");
+    expect(byName(layoutFields(old.childLayout!), "mapped_to")?.label).toBe("Maps to");
+  });
+
   it("matches the table by its whole name", () => {
     const questions = table("questions", { "questions_old.mapped_to": { meta: { label: "x" } } });
     expect(byName(questions.childFields, "mapped_to")?.label).toBe("Maps to");
   });
 });
 
-function makeSurface(childFields = (doctype: string) => childMetas[doctype]) {
+function makeSurface(
+  childFields: FieldsSurfaceHost["childFields"] = (doctype) => childMetas[doctype],
+) {
   return new FieldsSurface({
     fields: () => parentFields,
     doc: () => ({}),
