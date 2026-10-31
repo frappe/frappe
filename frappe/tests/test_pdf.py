@@ -620,6 +620,11 @@ class TestPdf(IntegrationTestCase):
 	def test_pdf_contains_js_does_not_raise_on_encrypted_pdf(self):
 		self.assertFalse(pdfgen.pdf_contains_js(encrypted_pdf_with_js()))
 
+	def test_pdf_contains_js_refuses_damaged_pdf(self):
+		truncated = blank_pdf().split(b"startxref")[0]
+		with self.assertRaisesRegex(frappe.ValidationError, "This PDF is damaged"):
+			pdfgen.pdf_contains_js(truncated)
+
 
 class TestChromePdfGeometry(IntegrationTestCase):
 	"""Unit tests for Browser paper geometry — no chromium process involved."""
