@@ -527,7 +527,8 @@
    "default": "3",
    "fieldname": "email_retry_limit",
    "fieldtype": "Int",
-   "label": "Email Retry Limit"
+   "label": "Email Retry Limit",
+   "non_negative": 1
   },
   {
    "default": "0",

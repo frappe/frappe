@@ -1,8 +1,14 @@
 frappe.listview_settings["Email Account"] = {
+	add_fields: ["default_incoming", "default_outgoing", "enable_incoming", "enable_outgoing"],
+	primary_action: () =>
+		frappe.user.has_role("System Manager")
+			? open_email_settings({ add: true })
+			: frappe.boot.is_v2_site
+			? add_email_account_dialog()
+			: frappe.new_doc("Email Account"),
 	onload(listview) {
-		// "+ Add" (and the empty-list button) offers one-click provider sign-in on Frappe Cloud
-		if (frappe.boot.is_v2_site) {
-			listview.settings.primary_action = add_email_account_dialog;
+		if (frappe.user.has_role("System Manager")) {
+			listview.page.add_inner_button(__("Email Settings"), () => open_email_settings());
 		}
 
 		// set by the provider sign-in callback; Desk drops it from the URL itself
@@ -16,7 +22,6 @@ frappe.listview_settings["Email Account"] = {
 			show_email_oauth_result(code, mailbox, provider);
 		}
 	},
-	add_fields: ["default_incoming", "default_outgoing", "enable_incoming", "enable_outgoing"],
 	get_indicator: function (doc) {
 		if (doc.default_incoming && doc.default_outgoing) {
 			var color = doc.enable_incoming && doc.enable_outgoing ? "blue" : "gray";
@@ -31,9 +36,18 @@ frappe.listview_settings["Email Account"] = {
 		} else if (doc.default_outgoing) {
 			color = doc.enable_outgoing ? "blue" : "gray";
 			return [__("Default Sending"), color, "default_outgoing,=,Yes"];
+		} else if (doc.enable_incoming && doc.enable_outgoing) {
+			return [
+				__("Sending and Inbox"),
+				"blue",
+				"enable_incoming,=,Yes|enable_outgoing,=,Yes",
+			];
+		} else if (doc.enable_outgoing) {
+			return [__("Sending"), "blue", "enable_outgoing,=,Yes|enable_incoming,=,No"];
+		} else if (doc.enable_incoming) {
+			return [__("Inbox"), "blue", "enable_incoming,=,Yes|enable_outgoing,=,No"];
 		} else {
-			color = doc.enable_incoming ? "blue" : "gray";
-			return [__("Inbox"), color, "default_outgoing,=,No|default_incoming=No"];
+			return [__("Disabled"), "gray", "enable_incoming,=,No|enable_outgoing,=,No"];
 		}
 	},
 };
@@ -245,3 +259,7 @@ function show_email_oauth_result(code, mailbox, provider) {
 }
 
 frappe.help.youtube_id["Email Account"] = "YFYe0DrB95o";
+
+function open_email_settings(opts) {
+	frappe.require("email_settings.bundle.js", () => frappe.email_settings.open(opts));
+}
