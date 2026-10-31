@@ -22,6 +22,7 @@ import {
 	appPageScriptSource,
 	setAppPageScripts,
 	setDrawnProps,
+	setFormLayoutApp,
 	setIconSource,
 	watchClientScripts,
 } from "@/recordPage";
@@ -58,6 +59,7 @@ async function start() {
 	setIconSource(symbolGeometry);
 	setAppPageScripts(appPageScriptSource);
 	setDrawnProps(recordDrawnProps());
+	setFormLayoutApp(boot.app);
 	registerCreateDialog(defineAsyncComponent(() => import("@/pages/create/CreateDialog.vue")));
 	registerSettingsBlocks(() => import("@/pages/settings/SettingsBlocks.vue"));
 	registerDeskAfterSave(boot.session);

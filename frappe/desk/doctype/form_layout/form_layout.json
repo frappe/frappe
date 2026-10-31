@@ -8,6 +8,7 @@
   "dt",
   "column_break_type",
   "type",
+  "app",
   "condition_section",
   "condition",
   "layout_section",
@@ -36,6 +37,15 @@
    "label": "Type",
    "options": "Details\nSide Panel\nQuick Entry\nNew Record",
    "reqd": 1
+  },
+  {
+   "description": "Blank applies in every app. In the named app, its rows replace the blank ones.",
+   "fieldname": "app",
+   "fieldtype": "Autocomplete",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "App",
+   "options": "Installed Applications"
   },
   {
    "fieldname": "condition_section",
@@ -68,7 +78,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-10-30 12:00:00.000000",
+ "modified": "2026-10-31 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Form Layout",

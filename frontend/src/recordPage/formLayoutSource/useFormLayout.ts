@@ -152,12 +152,19 @@ export function markFormLayoutsStale(doctype: string): void {
 	);
 }
 
+/** The shell's app: its `Form Layout` rows replace the rows naming no app. `null` on the `/apps` index. */
+export function setFormLayoutApp(app: string | null): void {
+	layoutApp = app;
+}
+
 /** Drops every memoised fetch, so one test's rows cannot reach the next. */
 export function resetFormLayouts(): void {
 	entries.reset();
 }
 
 const GET_FORM_LAYOUTS = "frappe.desk.doctype.form_layout.form_layout.get_form_layouts";
+
+let layoutApp: string | null = null;
 
 interface LayoutEntry {
 	data: FormLayoutsResponse | null;
@@ -188,7 +195,7 @@ function buildEntry(input: { doctype: string; type: FormLayoutType }, stale?: La
 		try {
 			const { data } = await runMethod<FormLayoutsResponse>(
 				GET_FORM_LAYOUTS,
-				{ dt: input.doctype, type: input.type },
+				{ dt: input.doctype, type: input.type, ...(layoutApp && { app: layoutApp }) },
 				{ http: "GET" }
 			);
 			if (mine !== turn) return;

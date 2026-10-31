@@ -74,6 +74,6 @@ export type {
   WriterItem,
 } from "./types";
 
-export { useFormLayout, resetFormLayouts } from "./formLayoutSource/useFormLayout";
+export { useFormLayout, resetFormLayouts, setFormLayoutApp } from "./formLayoutSource/useFormLayout";
 export type { FormLayoutType } from "./formLayoutSource/types";
 export { sectionName } from "./formLayoutSource/sectionName";
