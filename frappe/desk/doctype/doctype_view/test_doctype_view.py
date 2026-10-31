@@ -6,13 +6,15 @@ from unittest.mock import patch
 import frappe
 from frappe.desk.doctype.doctype_view import api
 from frappe.desk.doctype.doctype_view.api import find, get, reset, save
+from frappe.desk.doctype.doctype_view.doctype_view import DoctypeView, DuplicateViewError
 from frappe.desk.doctype.doctype_view.key_space import KeySpace
 from frappe.desk.doctype.favourite.favourite import toggle_favourite
 from frappe.exceptions import FrappeTypeError
+from frappe.patches.v17_0 import fill_view_key_slots
 from frappe.query_builder.utils import db_type_is
 from frappe.tests import IntegrationTestCase
 from frappe.tests.classes.context_managers import set_user
-from frappe.tests.test_query_builder import run_only_if
+from frappe.tests.test_query_builder import unimplemented_for
 
 # A doctype every Desk User reads, and one only a System Manager reads.
 DOCTYPE = "Note"
@@ -258,11 +260,12 @@ class TestViewKey(DoctypeViewTestCase):
 
 		self.assertEqual(frappe.db.count("Doctype View", {"reference_doctype": DOCTYPE, "label": "Open"}), 2)
 
-	def test_a_new_view_locks_its_doctype_while_it_claims_a_key(self):
-		with patch("frappe.db.get_value", wraps=frappe.db.get_value) as get_value:
-			make_view(label="Open", settings={}).insert()
+	def test_a_saved_view_holds_its_key_in_the_key_slot_and_the_plain_view_holds_none(self):
+		saved = make_view(label="Open", settings={}).insert()
+		plain = make_view(settings={}).insert()
 
-		get_value.assert_any_call("DocType", DOCTYPE, "name", for_update=True)
+		self.assertEqual(frappe.db.get_value("Doctype View", saved.name, "key_slot"), "open")
+		self.assertIsNone(frappe.db.get_value("Doctype View", plain.name, "key_slot"))
 
 	def test_a_label_cannot_turn_the_plain_view_into_a_saved_one_or_back(self):
 		plain = make_view(settings={}).insert()
@@ -274,24 +277,91 @@ class TestViewKey(DoctypeViewTestCase):
 		self.assertRaisesRegex(frappe.ValidationError, "needs a label", saved.save)
 
 
-@run_only_if(db_type_is.MARIADB)
+class TestLostKey(DoctypeViewTestCase):
+	"""The claim's read misses a key another view took; the key index refuses the insert and the claim moves on."""
+
+	def missing_every_key(self):
+		return patch.object(KeySpace, "taken", return_value=set())
+
+	def test_an_insert_that_loses_its_key_takes_the_next_suffix(self):
+		make_view(label="Open", settings={}).insert()
+		frappe.clear_messages()
+
+		with self.missing_every_key():
+			second = make_view(label="Open", user=self.person, settings={}).insert()
+
+		self.assertEqual((second.key, second.key_slot), ("open-2", "open-2"))
+		self.assertEqual(frappe.db.get_value("Doctype View", second.name, "key_slot"), "open-2")
+		self.assertEqual(frappe.get_message_log(), [])
+
+	def test_an_insert_that_loses_every_attempt_is_refused(self):
+		for key in ("open", "open-2", "open-3", "open-4", "open-5"):
+			make_view(label=key, settings={}).insert()
+
+		with self.missing_every_key(), self.assertRaisesRegex(DuplicateViewError, "already has a List view"):
+			make_view(label="Open", user=self.person, settings={}).insert()
+
+	def test_a_plain_view_that_loses_its_address_is_refused_as_before(self):
+		make_view(settings={}).insert()
+
+		with (
+			patch.object(DoctypeView, "refuse_a_second_row_at_this_address"),
+			self.assertRaises(frappe.UniqueValidationError),
+		):
+			make_view(settings={}).insert()
+
+
+class TestFillKeySlots(DoctypeViewTestCase):
+	def run_patch(self):
+		# Adding the index is DDL, which would commit the test's rows.
+		with patch.object(fill_view_key_slots, "add_key_index"):
+			fill_view_key_slots.execute()
+
+	def test_a_saved_view_s_slot_is_its_key_and_the_plain_view_s_stays_empty(self):
+		saved = make_view(label="Open", settings={}).insert()
+		plain = make_view(settings={}).insert()
+		frappe.db.set_value("Doctype View", saved.name, "key_slot", None)
+
+		self.run_patch()
+
+		self.assertEqual(
+			frappe.db.get_value("Doctype View", saved.name, ["key", "key_slot"]), ("open", "open")
+		)
+		self.assertIsNone(frappe.db.get_value("Doctype View", plain.name, "key_slot"))
+
+	def test_of_two_views_sharing_a_key_the_newer_moves_to_the_next_suffix(self):
+		older = make_view(label="Open", settings={}).insert()
+		newer = make_view(label="Shut", user=self.person, settings={}).insert()
+		frappe.db.set_value("Doctype View", older.name, "key_slot", None)
+		frappe.db.set_value("Doctype View", newer.name, {"key": "open", "key_slot": None})
+
+		self.run_patch()
+
+		self.assertEqual(
+			frappe.db.get_value("Doctype View", older.name, ["key", "key_slot"]), ("open", "open")
+		)
+		self.assertEqual(
+			frappe.db.get_value("Doctype View", newer.name, ["key", "key_slot"]), ("open-2", "open-2")
+		)
+
+
+@unimplemented_for(db_type_is.SQLITE)
 class TestKeyRace(IntegrationTestCase):
 	# Its own class: rows the other tests wrote in this transaction hold locks the second connection waits on.
-	def test_a_key_committed_after_this_transaction_began_is_never_claimed_again(self):
+	# Not on SQLite: it refuses the second insert outright ("database is locked"), so the race cannot happen.
+	def test_two_inserts_at_one_key_in_their_own_transactions_get_two_keys(self):
 		frappe.db.get_all("Doctype View", limit=1)
 		mine = frappe.local.db
 		frappe.connect(set_admin_as_user=False)
 		theirs = frappe.local.db
 		try:
-			make_view(label="Race Probe", settings={}).insert()
+			first = make_view(label="Race Probe", settings={}).insert()
 			theirs.commit()
 			frappe.local.db = mine
-			try:
-				claimed = KeySpace(DOCTYPE).claim("Race Probe")
-			except frappe.QueryDeadlockError:
-				claimed = None  # MariaDB 11.6+ refuses a locking read of a row changed since the snapshot.
-			self.assertNotEqual(claimed, "race-probe")
+			second = make_view(label="Race Probe", user="Administrator", settings={}).insert()
+			self.assertEqual([first.key, second.key], ["race-probe", "race-probe-2"])
 		finally:
+			mine.rollback()
 			frappe.local.db = theirs
 			frappe.db.delete("Doctype View", {"reference_doctype": DOCTYPE, "label": "Race Probe"})
 			theirs.commit()

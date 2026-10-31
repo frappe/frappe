@@ -21,6 +21,7 @@ from frappe.desk.doctype.doctype_view.doctype_view import SITE_ROW, DuplicateVie
 from frappe.desk.doctype.doctype_view.key_space import KeySpace
 from frappe.desk.doctype.favourite.favourite import toggle_favourite
 from frappe.gettext.extractors.app_view import extract
+from frappe.patches.v17_0 import fill_view_key_slots
 from frappe.tests import IntegrationTestCase
 from frappe.tests.classes.context_managers import set_user
 
@@ -212,6 +213,16 @@ class TestTheKeySpace(AppViewCase):
 		self.enterContext(patch.object(app_views_module, "current_index", return_value=index))
 		with self.assertRaisesRegex(frappe.ValidationError, "stays a Kanban view"):
 			site_row("probe-open")
+
+	def test_a_site_override_shares_its_key_with_a_person_s_older_view(self):
+		own = person_row("Probe Open")  # made before an app release shipped the same key
+		self.folders.own_view("probe-open")
+		site = site_row("probe-open")
+
+		self.assertEqual([own.key_slot, site.key_slot], ["probe-open", None])
+		with patch.object(fill_view_key_slots, "add_key_index"):
+			fill_view_key_slots.execute()
+		self.assertIsNone(frappe.db.get_value("Doctype View", site.name, "key_slot"))
 
 	def test_a_second_site_override_is_refused(self):
 		self.folders.own_view("probe-open")

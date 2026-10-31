@@ -296,6 +296,7 @@ frappe.patches.v17_0.delete_otp_qr_code_images
 frappe.patches.v17_0.encrypt_indexing_refresh_token
 frappe.patches.v17_0.address_saved_views_by_key
 frappe.patches.v17_0.index_views_by_user
+frappe.patches.v17_0.fill_view_key_slots
 frappe.studio.doctype.studio_page.patches.replace_frappeUI_namespace_references
 frappe.studio.doctype.studio_app.patches.rename_studio_app_based_on_app_title
 frappe.studio.doctype.studio_page.patches.migrate_studio_resource_to_studio_page_resource_child_table
