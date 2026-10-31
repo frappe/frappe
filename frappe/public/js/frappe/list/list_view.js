@@ -78,7 +78,60 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.parent.disable_scroll_to_top = true;
 		this._shown_layout_name =
 			this.list_filter?._initial_layout_restored && this.list_filter.active_layout_name;
-		super.show();
+		return super.show().then(() => this.notify_pending_attachments());
+	}
+
+	notify_pending_attachments() {
+		if (!this.meta.enable_upload_first_workflow || this._attachment_notice_dismissed) {
+			return;
+		}
+
+		return frappe.db
+			.count("Attachment Queue", {
+				filters: { document_type: this.doctype, created_document: ["is", "not set"] },
+			})
+			.then((count) => {
+				if (this._attachment_notice_dismissed) return;
+
+				// Dropped before the count is checked, so a queue that has been worked
+				// through loses the notice the last visit left behind.
+				this.page.main.find(".attachment-queue-notice").remove();
+				if (!count) return;
+
+				const $notice = frappe.ui.alert({
+					icon: "file-text",
+					css_class: "attachment-queue-notice",
+					title:
+						count === 1
+							? __("1 uploaded file is waiting for review")
+							: __("{0} uploaded files are waiting for review", [count]),
+					footer: () => [
+						frappe.ui.button({
+							label: __("View All"),
+							variant: "outline",
+							onclick: () => {
+								// The dialog ships as its own on-demand bundle (kept out
+								// of desk.bundle.js), so load it before opening.
+								frappe.require("attachment_queue_review.bundle.js", () => {
+									frappe.ui.attachment_queue.show_pending(this.doctype);
+								});
+							},
+						}),
+						frappe.ui.button({
+							icon: "x",
+							variant: "ghost",
+							tooltip: __("Dismiss"),
+							// Only the notice goes away; no queue entry is touched.
+							onclick: () => {
+								this._attachment_notice_dismissed = true;
+								$notice.remove();
+							},
+						}),
+					],
+				});
+
+				this.page.main.prepend($notice);
+			});
 	}
 
 	check_permissions() {
@@ -291,6 +344,25 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		super.setup_page_head();
 		this.set_primary_action();
 		this.set_actions_menu_items();
+		this.set_upload_first_action();
+	}
+
+	set_upload_first_action() {
+		if (!this.meta.enable_upload_first_workflow || !this.can_create || frappe.boot.read_only) {
+			return;
+		}
+
+		this.page.set_secondary_action(
+			__("Upload", null, "Button in list view"),
+			() => {
+				// The upload-first workflow ships as its own on-demand bundle
+				// (kept out of desk.bundle.js), so load it before opening.
+				frappe.require("upload_first.bundle.js", () => {
+					frappe.ui.form.upload_first(this.doctype);
+				});
+			},
+			"upload"
+		);
 	}
 
 	open_import_dialog() {

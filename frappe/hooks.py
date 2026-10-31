@@ -166,6 +166,7 @@ permission_query_conditions = {
 	"User Invitation": "frappe.core.doctype.user_invitation.user_invitation.get_permission_query_conditions",
 	"Document Template": "frappe.desk.doctype.document_template.document_template.get_permission_query_conditions",
 	"Tag Link": "frappe.desk.doctype.tag_link.tag_link.get_permission_query_conditions",
+	"Attachment Queue": "frappe.core.doctype.attachment_queue.attachment_queue.get_permission_query_conditions",
 	"Document Follow": "frappe.email.doctype.document_follow.document_follow.get_permission_query_conditions",
 	"Scheduled Job Type": "frappe.core.doctype.scheduled_job_type.scheduled_job_type.get_permission_query_conditions",
 	"Custom Sidebar": "frappe.desk.doctype.custom_sidebar.custom_sidebar.get_permission_query_conditions",
@@ -211,6 +212,7 @@ has_permission = {
 	"Notification Log": "frappe.desk.doctype.notification_log.notification_log.has_permission",
 	"User Invitation": "frappe.core.doctype.user_invitation.user_invitation.has_permission",
 	"Document Template": "frappe.desk.doctype.document_template.document_template.has_permission",
+	"Attachment Queue": "frappe.core.doctype.attachment_queue.attachment_queue.has_permission",
 	"Document Follow": "frappe.email.doctype.document_follow.document_follow.has_permission",
 	"Custom Sidebar": "frappe.desk.doctype.custom_sidebar.custom_sidebar.has_permission",
 	"Dock": "frappe.desk.doctype.dock.dock.has_permission",
@@ -265,6 +267,7 @@ doc_events = {
 			"frappe.desk.notifications.clear_doctype_notifications",
 			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",
 			"frappe.search.sqlite_search.delete_doc_index",
+			"frappe.core.doctype.attachment_queue.attachment_queue.unlink_deleted_document",
 			"frappe.flow.triggers.dispatch",
 		],
 		"on_update_after_submit": [
@@ -518,6 +521,7 @@ override_whitelisted_methods = {
 }
 
 ignore_links_on_delete = [
+	"Attachment Queue",
 	"Communication",
 	"ToDo",
 	"DocShare",
@@ -647,6 +651,7 @@ default_log_clearing_doctypes = {
 	"Email Queue Recipient": 30,  # this is added as a dummy placeholder and clearing is handled by Email Queue itself
 	"DuckDB Sync": 45,
 	"Flow Session": 90,
+	"Attachment Queue": 30,
 }
 
 # These keys will not be erased when doing frappe.clear_cache()
