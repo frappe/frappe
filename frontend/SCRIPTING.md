@@ -83,9 +83,9 @@ export default {
 ```
 
 A script runs on its doctype in every app, so a `custom/<doctype>/record.js` that changes
-another app's doctype also changes it on `/apps/desk`. `page.app` is the name of the app
-the reader is in: `frappe` on `/apps/desk`, `crm` on `/apps/crm`. It is read-only. Gate a
-change to one app with a plain `if`:
+another app's doctype also changes it on `/apps/desk`. The record page's `page.app` is the
+name of the app the reader is in: `frappe` on `/apps/desk`, `crm` on `/apps/crm`. It is
+read-only, and an app page has no `page.app`. Gate a change to one app with a plain `if`:
 
 ```js
 // crm/fcrm/custom/contact/record.js
