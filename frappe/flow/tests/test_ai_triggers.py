@@ -391,6 +391,14 @@ def broken_triggers() -> list[Trigger]:
 	]
 
 
+def duplicated_triggers() -> list[Trigger]:
+	"""Two triggers an app gives one title."""
+	return [
+		Trigger(title="Daily", agent="Researcher", cron="0 8 * * *", prompt="First."),
+		Trigger(title="Daily", agent="Researcher", cron="0 9 * * *", prompt="Second."),
+	]
+
+
 def failing_triggers() -> list[Trigger]:
 	"""An entry that fails before it returns any trigger."""
 	raise frappe.ValidationError("No triggers today.")
@@ -439,6 +447,8 @@ class TestShippedTriggers(IntegrationTestCase):
 			("frappe/Researcher", "frappe", 1, 1, RUNNER, "after_insert"),
 		)
 
+		# switching off works even once its user is gone
+		frappe.db.set_value("User", RUNNER, "enabled", 0)
 		doc.enabled = 0
 		doc.save()
 		for field, value in (("run_as", None), ("prompt_template", "Mine now.")):
@@ -467,19 +477,27 @@ class TestShippedTriggers(IntegrationTestCase):
 			Agent(name="Summariser", model=self.model.name, instructions="Summarise.").sync()
 			sync_triggers()
 		doc = frappe.get_doc("Flow Trigger", "frappe/Morning summary")
-		# without a run_as of its own it runs as its owner, Administrator
 		self.assertEqual(
-			(doc.event, doc.cron_expression, doc.run_as, doc.owner),
-			("Scheduled", "0 8 * * 1-5", None, "Administrator"),
+			(doc.event, doc.cron_expression, doc.run_as),
+			("Scheduled", "0 8 * * 1-5", "Administrator"),
 		)
 
+		session = frappe.get_doc({"doctype": "Flow Session", "agent": doc.agent, "title": "x"}).insert()
+		run = frappe.get_doc(
+			{"doctype": "Flow Run", "source": "Trigger", "session": session.name, "trigger": doc.name}
+		).insert(ignore_permissions=True)
 		with self.hooked("reshipped_triggers"):
 			sync_triggers()
 		self.assertFalse(frappe.db.exists("Flow Trigger", "frappe/Morning summary"))
+		# its runs stay, and can still be saved
+		run.reload()
+		self.assertIsNone(run.trigger)
+		run.save(ignore_permissions=True)
 
 	def test_migrate_skips_a_trigger_it_cannot_write(self):
-		with self.hooked("broken_triggers"):
+		with self.hooked("broken_triggers", "duplicated_triggers"):
 			sync_triggers()
+		self.assertEqual(frappe.db.get_value("Flow Trigger", "frappe/Daily", "prompt_template"), "First.")
 		self.assertTrue(frappe.db.exists("Flow Trigger", "frappe/Research new todo"))
 		self.assertFalse(frappe.db.exists("Flow Trigger", "frappe/Both"))
 		self.assertFalse(frappe.db.exists("Flow Trigger", "frappe/Nobody runs it"))
@@ -491,6 +509,7 @@ class TestShippedTriggers(IntegrationTestCase):
 
 		titles = (
 			"Flow Trigger frappe/Both skipped",
+			"Flow Trigger frappe/Daily skipped",
 			"Flow Trigger frappe/Nobody runs it skipped",
 			f"Flow Triggers of {__name__}.failing_triggers skipped",
 		)
@@ -507,6 +526,10 @@ class TestShippedTriggers(IntegrationTestCase):
 				(
 					"Flow Trigger frappe/Both skipped",
 					"Flow Trigger frappe/Both needs a doctype or a cron, not both.",
+				),
+				(
+					"Flow Trigger frappe/Daily skipped",
+					"Flow Trigger frappe/Daily is declared more than once.",
 				),
 				("Flow Trigger frappe/Nobody runs it skipped", "Could not find Run As: nobody@example.com"),
 				(f"Flow Triggers of {__name__}.failing_triggers skipped", "No triggers today."),

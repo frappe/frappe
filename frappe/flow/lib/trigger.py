@@ -10,7 +10,7 @@ import sys
 import frappe
 from frappe import _
 from frappe.flow.lib.agent import with_app_prefix
-from frappe.flow.utils.system_generated import skip_if_invalid
+from frappe.flow.utils.system_generated import log_skipped, skip_if_invalid
 
 
 def sync_triggers(_app: str | None = None) -> None:
@@ -19,6 +19,7 @@ def sync_triggers(_app: str | None = None) -> None:
 	declared. Runs after migrate and app installs, and once the Assistant exists. A trigger that
 	cannot be written is skipped and logged; one whose agent is missing waits for a later sync."""
 	declared: set[str] = set()
+	synced: set[str] = set()
 	for path in frappe.get_hooks("flow_triggers"):
 		triggers = None
 		with skip_if_invalid(f"Flow Triggers of {path} skipped"):
@@ -32,12 +33,20 @@ def sync_triggers(_app: str | None = None) -> None:
 			continue
 		for trigger in triggers:
 			declared.add(trigger.name)
+			if trigger.name in synced:
+				log_skipped(
+					f"Flow Trigger {trigger.name} skipped",
+					_("Flow Trigger {0} is declared more than once.").format(trigger.name),
+				)
+				continue
+			synced.add(trigger.name)
 			with skip_if_invalid(f"Flow Trigger {trigger.name} skipped"):
 				trigger.sync()
 	for name in frappe.get_all("Flow Trigger", {"is_system_generated": 1}, pluck="name"):
 		if name not in declared:
-			# force: its Flow Runs keep the name
-			frappe.delete_doc("Flow Trigger", name, ignore_permissions=True, force=True)
+			# its runs outlive it
+			frappe.db.set_value("Flow Run", {"trigger": name}, "trigger", None, update_modified=False)
+			frappe.delete_doc("Flow Trigger", name, ignore_permissions=True)
 
 
 class Trigger:
@@ -106,7 +115,7 @@ class Trigger:
 				"cron_expression": self.cron,
 				"condition": self.condition,
 				"prompt_template": self.prompt,
-				"run_as": self.run_as,
+				"run_as": self.run_as or "Administrator",
 			}
 		)
 		doc.save(ignore_permissions=True)

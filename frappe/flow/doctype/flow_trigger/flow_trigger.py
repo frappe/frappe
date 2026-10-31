@@ -78,6 +78,9 @@ class FlowTrigger(Document):
 		clear_trigger_cache()
 
 	def _validate_run_as(self):
+		# checked only while on, so a trigger whose user is gone can still be switched off
+		if not self.enabled:
+			return
 		if self.run_as and (
 			self.run_as == "Guest" or not frappe.db.get_value("User", self.run_as, "enabled")
 		):
