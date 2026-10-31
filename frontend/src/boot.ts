@@ -66,6 +66,10 @@ export type Boot = {
 	// Invalidates the address table, which is fetched separately; see `addresses.ts`.
 	metadata_version: string;
 
+	// Absent on the index. What a bare doctype address opens: `/<doctype>/view/<segment>`, the
+	// segment a saved view's key or a view type's name, for each doctype with a default.
+	default_views?: Record<string, string>;
+
 	// --- navigation ---
 	//
 	// The rail and every sidebar in this prefix, resolved and merged server-side so a rail

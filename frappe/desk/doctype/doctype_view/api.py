@@ -51,7 +51,7 @@ def find(doctype: str, key: str) -> dict:
 	"""The saved view at `key` the caller sees, their own before the site's; another person's reads as missing."""
 	if not isinstance(key, str):
 		frappe.throw(_("A view key is one name."))
-	_check_doctype(doctype)
+	check_doctype(doctype)
 
 	view = KeySpace(doctype).find(key)
 	if not view:
@@ -62,13 +62,18 @@ def find(doctype: str, key: str) -> dict:
 
 def _check(doctype: str, type: str, scope: str = "user"):
 	"""Refuse an argument the caller cannot use, and the site scope for anyone but a System Manager."""
-	_check_doctype(doctype)
+	check_doctype(doctype)
 	if not all(isinstance(argument, str) for argument in (type, scope)):
 		frappe.throw(_("A doctype, a view type and a scope are each one name."))
 
 	if type not in VIEW_TYPES:
 		frappe.throw(_("{0} is not a view type.").format(frappe.bold(type)))
 
+	check_scope(scope)
+
+
+def check_scope(scope: str):
+	"""Refuse a scope that is not one, and the site scope for anyone but a System Manager."""
 	if scope not in SCOPES:
 		frappe.throw(_("{0} is not a settings scope.").format(scope))
 
@@ -79,7 +84,7 @@ def _check(doctype: str, type: str, scope: str = "user"):
 		)
 
 
-def _check_doctype(doctype: str):
+def check_doctype(doctype: str):
 	"""Refuse a doctype that is not one, or that the caller cannot read."""
 	# Explicit: `validate_argument_types` only runs in a request, and `doctype` goes into a filter.
 	if not isinstance(doctype, str):

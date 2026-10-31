@@ -1,0 +1,80 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-10-31 10:00:00.000000",
+ "description": "The view a doctype's own address opens: the site's or one person's pointer to a view.",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "reference_doctype",
+  "user",
+  "view",
+  "type"
+ ],
+ "fields": [
+  {
+   "fieldname": "reference_doctype",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Doctype",
+   "options": "DocType",
+   "reqd": 1
+  },
+  {
+   "description": "Whose default this is. Blank means the site's, which a System Manager sets for everyone.",
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "User",
+   "not_nullable": 1,
+   "options": "User"
+  },
+  {
+   "description": "The saved view's key. Blank for the plain view of the type below.",
+   "fieldname": "view",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "View",
+   "not_nullable": 1
+  },
+  {
+   "depends_on": "eval:!doc.view",
+   "description": "The view type whose plain view opens. Used only when View is blank.",
+   "fieldname": "type",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Type"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-10-31 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Default View",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Desk User"
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

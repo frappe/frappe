@@ -7,9 +7,11 @@ import frappe
 
 from .doctype_view import PLAIN_VIEW, SITE_ROW, VIEW_TYPES
 
-# `/<doctype>/view/<type>` is that type's own page, so a type's name is never a key; Kanban's before it exists.
-# `/<doctype>/view/record` is the standard page of the record named "view".
-RESERVED_KEYS = frozenset({type.lower() for type in VIEW_TYPES} | {"kanban", "record"})
+# `/<doctype>/view/<type>` is the plain view of that type, so a type's name is never a saved view's key.
+TYPE_KEYS = {view_type.lower(): view_type for view_type in VIEW_TYPES}
+
+# Kanban's before it is a type; `/<doctype>/view/record` is the standard page of the record named "view".
+RESERVED_KEYS = frozenset(TYPE_KEYS) | {"kanban", "record"}
 
 KEY_LENGTH_LIMIT = 60
 RANDOM_KEY_LENGTH = 8

@@ -60,6 +60,11 @@ class DoctypeView(Document):
 				"Favourite",
 				{"reference_doctype": "DocType", "reference_name": self.reference_doctype, "view": self.key},
 			)
+		if self.key and self.user:
+			frappe.db.delete(
+				"Default View",
+				{"reference_doctype": self.reference_doctype, "user": self.user, "view": self.key},
+			)
 
 	def claim_key(self) -> str:
 		"""A key no layer of the doctype uses, from the key given or else the label."""
@@ -150,10 +155,10 @@ def has_permission(doc, ptype="read", user=None, debug=False):
 	return bool(doc.user) and doc.user == user
 
 
-def get_permission_query_conditions(user=None):
+def get_permission_query_conditions(user=None, doctype="Doctype View"):
 	"""The list-query half of `has_permission`: reports, the API and export go through this."""
 	user = user or frappe.session.user
 	if is_site_administrator(user):
 		return None
 
-	return frappe.qb.DocType("Doctype View").user.isin([SITE_ROW, user])
+	return frappe.qb.DocType(doctype).user.isin([SITE_ROW, user])

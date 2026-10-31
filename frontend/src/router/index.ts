@@ -63,7 +63,14 @@ export function createShellRouter(boot: Boot, addresses: Addresses) {
 				if (typeof to.params.module === "string") params.module = to.params.module;
 				return { name: "record", params, query: to.query, replace: true };
 			}
-			return modular ? checkModule(to, addresses) : true;
+			const checked = modular ? checkModule(to, addresses) : true;
+			if (checked !== true) return checked;
+
+			// Like a landing: a query states its own list, and the bare address never enters history.
+			const view = boot.default_views?.[doctype];
+			if (view && to.name === "list" && !Object.keys(to.query).length)
+				return { path: `${to.path}/view/${view}`, hash: to.hash };
+			return true;
 		}
 
 		const canonical = addresses.slugOfName(segment);
