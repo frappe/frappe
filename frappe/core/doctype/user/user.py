@@ -1136,6 +1136,7 @@ def update_password(
 	_update_password(user, new_password, logout_all_sessions=cint(logout_all_sessions))
 
 	user_doc, redirect_url = reset_user_data(user)
+	link_redirect = sanitize_redirect(redirect_url) if key else None
 
 	user_doc.validate_reset_password()
 
@@ -1143,6 +1144,8 @@ def update_password(
 	frappe.db.set_value("User", user, "reset_password_key", "")
 
 	if key and should_run_2fa(user):
+		if link_redirect:
+			frappe.cache.hset("redirect_after_login", user, link_redirect)
 		return "/login"
 
 	# get redirect url from cache
@@ -1154,7 +1157,7 @@ def update_password(
 	frappe.local.login_manager.login_as(user)
 
 	if user_doc.user_type == "System User":
-		return get_default_path() or "/desk"
+		return link_redirect or get_default_path() or "/desk"
 	else:
 		return redirect_url or get_default_path() or get_home_page()
 
