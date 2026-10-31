@@ -17,7 +17,9 @@
 						:options="fields"
 						@change="add_new_field"
 						:placeholder="
-							store.is_web_form ? __('Search fields...') : __('Search fieldtypes...')
+							picks_source_fields
+								? __('Search fields...')
+								: __('Search fieldtypes...')
 						"
 					/>
 				</div>
@@ -61,11 +63,13 @@ const selected = computed(() => {
 
 const show = ref(false);
 const autocomplete_value = ref("");
+// a Web Form on an existing doctype offers that doctype's fields, every other builder offers fieldtypes
+const picks_source_fields = computed(() => store.is_web_form && !store.creates_fields);
 const fields = computed(() => {
-	// a Web Form offers the source doctype's own fields, every other builder offers fieldtypes
-	if (store.is_web_form) return unplaced_source_fields();
+	if (picks_source_fields.value) return unplaced_source_fields();
 
-	let fields = frappe.model.all_fieldtypes
+	let fieldtypes = store.is_web_form ? web_form_fieldtypes() : frappe.model.all_fieldtypes;
+	let fields = fieldtypes
 		.filter((df) => {
 			if (in_list(frappe.model.layout_fields, df)) {
 				return false;
@@ -115,7 +119,7 @@ function add_new_field(field) {
 	if (!value) return;
 
 	let df;
-	if (store.is_web_form) {
+	if (picks_source_fields.value) {
 		// the picker offers the source doctype's own fields, so `value` is a fieldname
 		let source_df = store.source_doctype_fields.find((f) => f.fieldname === value);
 		if (!source_df) return;
@@ -155,6 +159,14 @@ function placed_fieldnames() {
 		}
 	}
 	return fieldnames;
+}
+
+// Page Break is a page of the builder, not a field
+function web_form_fieldtypes() {
+	return frappe.meta
+		.get_docfield("Web Form Field", "fieldtype")
+		.options.split("\n")
+		.filter((fieldtype) => fieldtype !== "Page Break");
 }
 
 // the source doctype's fields that are not on the canvas yet
