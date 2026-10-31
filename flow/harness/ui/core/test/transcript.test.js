@@ -711,6 +711,39 @@ test("a turn the user stopped or denied folds all its text with the work", () =>
 	}
 })
 
+test("a denied call shows what the user declined, and the reply after it is the response", () => {
+	const conversation = initialConversation()
+	for (const event of [
+		{ type: "run_started", seq: 1, ts: 10 },
+		{ type: "user_message", seq: 2, ts: 10, content: "Make a sales order" },
+		{
+			type: "assistant_message",
+			seq: 3,
+			ts: 12,
+			content: [{ type: "tool_call", id: "call-1", name: "create", arguments: { doctype: "Sales Order" } }],
+			stop_reason: "tool_use",
+		},
+		{ type: "approval_required", seq: 4, ts: 12, calls: [{ id: "call-1", name: "create", args: {} }] },
+		{ type: "run_ended", seq: 5, ts: 12, reason: "paused" },
+		{ type: "run_started", seq: 6, ts: 15 },
+		{
+			type: "tool_result",
+			seq: 7,
+			ts: 15,
+			tool_call_id: "call-1",
+			content: JSON.stringify({ status: "denied", action: "Create 1 Sales Order record" }),
+			is_error: true,
+		},
+		{ type: "assistant_message", seq: 8, ts: 16, content: [{ type: "text", text: "Not created. Change anything?" }] },
+		{ type: "run_ended", seq: 9, ts: 16, reason: "done" },
+	])
+		applyEvent(conversation, event)
+	const items = buildItems(conversation)
+	assert.deepEqual(items.map((item) => item.kind), ["user", "turn-fold", "notice", "text", "turn-copy"])
+	assert.equal(items[2].text, "You declined: Create 1 Sales Order record")
+	assert.equal(items[3].block.text, "Not created. Change anything?")
+})
+
 test("a settled turn lists the files its successful edits and writes changed", () => {
 	const conversation = initialConversation()
 	applyEvent(conversation, { type: "run_started", seq: 1, ts: 100 })

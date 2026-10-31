@@ -13,6 +13,7 @@ from frappe.database.utils import DefaultOrderBy
 from frappe.flow.lib.tool import Tool, ToolContext, tool
 from frappe.flow.utils.safe_exec import safe_exec
 from frappe.model.base_document import get_controller
+from frappe.model.document import Document
 from frappe.query_builder.functions import Count
 
 MAX_READ_LIMIT = 200
@@ -406,7 +407,8 @@ reading records. Write one short, self-contained, third-person fact per memory; 
 changes, revise the shown memory instead of adding another.
 
 scope:
-- "agent" — true for everyone who uses this agent (mappings, business rules, conventions).
+- "agent" — true for everyone who uses this agent (mappings, business rules, conventions). Saved \
+for the current user only, unless they manage the agent.
 - "user" — specific to the current user (their preferences and defaults)."""
 
 
@@ -507,12 +509,21 @@ def execute(code: str, description: str, *, ctx: ToolContext) -> Any:
 	- `str.format()` / `.format_map()` are blocked — use f-strings or `%` formatting.
 	- `print()` output is logged, not returned — put what you want back into `result`.
 
-	The user approves each call before it runs.
+	Code that only reads runs at once. The user approves code that writes, queues a job or sends
+	email before it runs.
 	"""
+	return run_code(code, ctx)
+
+
+def run_code(code: str, ctx: ToolContext, *, unapproved: bool = False) -> Any:
+	"""Run `execute`'s code in the sandbox. `unapproved` takes away what reaches outside the
+	database, for a run the user has not approved."""
 	frappe.flags.flow_undone_batch = None
-	# sandboxed, and the user approves each call
+	# sandboxed; the user approves each call that writes or reaches outside
 	# nosemgrep: frappe-codeinjection-eval
-	exec_globals, _locals = safe_exec(code, script_filename="ai_execute", tool_context=ctx)
+	exec_globals, _locals = safe_exec(
+		code, script_filename="ai_execute", tool_context=ctx, unapproved=unapproved
+	)
 	if frappe.flags.flow_undone_batch:
 		raise ValueError(
 			f"{frappe.flags.flow_undone_batch}\nA failed write fails the whole call, even when caught."
@@ -703,7 +714,9 @@ def delete(doctype: str, names: list[str], *, ctx: ToolContext) -> dict[str, Any
 @tool(
 	requires_confirmation=True,
 	confirm_prompt=lambda args: (
-		_("Run '{0}' on {1} {2}: {3}").format(
+		json.dumps(args.get("args") or {}, indent=2, default=str)
+		if is_function_path(args.get("action"))
+		else _("Run '{0}' on {1} {2}: {3}").format(
 			args.get("action"),
 			len(args.get("names") or []),
 			args.get("doctype", "?"),
@@ -721,9 +734,22 @@ def run_action(
 ) -> dict[str, Any]:
 	"""Run a document action found via describe: submit, cancel, amend, rename, a workflow transition, or a whitelisted method.
 
+	A whitelisted function's dotted path runs once with `args` as its arguments, ignoring `names`.
 	If it fails on any record, none are changed.
 	"""
 	args = args or {}
+
+	if is_function_path(action):
+		frappe.db.savepoint(_BATCH_SAVEPOINT)
+		try:
+			method = frappe.get_attr(frappe.override_whitelisted_method(action))
+			frappe.is_whitelisted(method)
+			result = _call_as_request(method, args)
+		except Exception as e:
+			_undo_batch(action, e)
+		if isinstance(result, Document):
+			result = result.as_dict(no_nulls=True)
+		return {"action": action, "result": result}
 
 	if action == "rename":
 		if len(names) != 1:
@@ -743,8 +769,45 @@ def run_action(
 	return {"action": action, "results": results}
 
 
+def _call_as_request(method: Any, args: dict[str, Any]) -> Any:
+	"""Call a whitelisted function as desk's API call does: `args` are the request's form_dict, and
+	what it puts in frappe.response is its reply, which may not be a file."""
+	form_dict, response = frappe.local.form_dict, frappe.local.response
+	frappe.local.form_dict, frappe.local.response = frappe._dict(args), frappe._dict()
+	try:
+		# the caller resolved `method` and checked that it is whitelisted
+		# nosemgrep: frappe-codeinjection-eval
+		result = frappe.call(method, **args)
+		if frappe.response.get("type"):
+			raise ValueError(
+				f"It replies with a {frappe.response.type} file, not data, so it can't run here."
+			)
+		return frappe.response.get("message") if result is None else result
+	finally:
+		frappe.local.form_dict, frappe.local.response = form_dict, response
+
+
+def is_function_path(action: Any) -> bool:
+	"""Whether a run_action `action` is a function's dotted path rather than a record action."""
+	return isinstance(action, str) and bool(re.fullmatch(r"\w+(\.\w+)+", action))
+
+
+def is_read_only_function(path: Any) -> bool:
+	"""Whether `path` names a whitelisted function marked `@frappe.read_only()`."""
+	if not is_function_path(path):
+		return False
+	try:
+		method = frappe.get_attr(frappe.override_whitelisted_method(path))
+	except Exception:
+		return False
+	return method in frappe.whitelisted and getattr(method, "read_only", False)
+
+
 def _undo_batch(record: str, error: Exception) -> NoReturn:
 	"""Undo every write since the batch began, then fail naming the record that broke it."""
+	if frappe.flags.read_only and frappe.db.transaction_writes:
+		# the undo forgets the refused write, and the code may catch this error
+		frappe.flags.flow_needs_approval = True
 	try:
 		frappe.db.rollback(save_point=_BATCH_SAVEPOINT)
 		undone = "Nothing was saved."
@@ -753,6 +816,85 @@ def _undo_batch(record: str, error: Exception) -> NoReturn:
 		undone = "Some earlier changes may already be committed; check the records before retrying."
 	frappe.flags.flow_undone_batch = message = f"{record}: {_error_text(error)}\n{undone}"
 	raise ValueError(message) from error
+
+
+@tool(
+	requires_confirmation=True,
+	confirm_prompt=lambda args: args.get("reason") or "",
+)
+def request_secret(
+	doctype: str, name: str, fieldname: str, reason: str, *, ctx: ToolContext
+) -> dict[str, Any]:
+	"""Ask the user for a password, API key or token and save it into a Password field of a record.
+
+	The user types it into a password box; it goes straight into the field and never reaches you or
+	the chat, so never ask for one in a message. Create or find the record first, then name the field
+	(see describe). `reason` is one line on what it is for. You learn only that it was saved, or why not.
+	"""
+	if refusal := secret_field_refusal(doctype, name, fieldname):
+		frappe.throw(refusal, title=_("Not Saved"))
+	if frappe.cache.get_value(_secret_key(ctx.session_id, doctype, name, fieldname)):
+		frappe.cache.delete_value(_secret_key(ctx.session_id, doctype, name, fieldname))
+		return {"doctype": doctype, "name": name, "fieldname": fieldname, "saved": True}
+	if frappe.db.get_value("Flow Session", ctx.session_id, "auto_approve"):
+		frappe.throw(
+			_(
+				"This chat approves calls by itself, so it cannot show the password box. Ask the user to switch the chat to Ask for approval, then call this again."
+			),
+			title=_("Not Saved"),
+		)
+	frappe.throw(_("The user entered nothing, so nothing was saved."), title=_("Not Saved"))
+
+
+def secret_field_refusal(doctype: Any, name: Any, fieldname: Any) -> str | None:
+	"""Why the user can't set this Password field; None when they can."""
+	if not all(isinstance(value, str) and value for value in (doctype, name, fieldname)):
+		return _("doctype, name and fieldname are required.")
+	if not frappe.db.exists("DocType", doctype):
+		return _("There is no DocType {0}.").format(doctype)
+	if frappe.get_meta(doctype).istable:
+		return _("{0} is a child table; ask for a Password field on its parent record.").format(doctype)
+	df = frappe.get_meta(doctype).get_field(fieldname)
+	if not df or df.fieldtype != "Password":
+		return _("{0} has no Password field {1}.").format(doctype, fieldname)
+	if not frappe.db.exists(doctype, name):
+		return _("{0} {1} does not exist; create it first.").format(doctype, name)
+	doc = frappe.get_doc(doctype, name)
+	if not doc.has_permission("write") or not doc.has_permlevel_access_to(fieldname, df, "write"):
+		return _("You don't have permission to change {0} on {1} {2}.").format(
+			df.label or fieldname, doctype, name
+		)
+	return None
+
+
+def save_secret(session: str, args: dict, password: str) -> None:
+	"""Save `password` into the field a request_secret call names, as the user, and let the call
+	know it was saved; the value itself goes nowhere else."""
+	doctype, name, fieldname = (args.get(key) for key in ("doctype", "name", "fieldname"))
+	if refusal := secret_field_refusal(doctype, name, fieldname):
+		frappe.throw(refusal, title=_("Not Saved"))
+	doc = frappe.get_doc(doctype, name)
+	doc.set(fieldname, password)
+	doc.save()
+	frappe.cache.set_value(
+		_secret_key(session, doctype, name, fieldname), 1, expires_in_sec=SECRET_SAVED_SECONDS
+	)
+
+
+# the card is answered right after the save; this only covers a slow resume
+SECRET_SAVED_SECONDS = 15 * 60
+
+
+def forget_saved_secret(session: str, args: dict) -> None:
+	"""A new card for the field starts afresh, so an earlier save that was never reported can't
+	pass for this one."""
+	frappe.cache.delete_value(
+		_secret_key(session, args.get("doctype"), args.get("name"), args.get("fieldname"))
+	)
+
+
+def _secret_key(session: str, doctype: str, name: str, fieldname: str) -> str:
+	return f"flow_secret_saved:{session}:{doctype}:{name}:{fieldname}"
 
 
 BUILTIN_TOOLS: list[Tool] = [
@@ -774,6 +916,7 @@ BUILTIN_TOOLS: list[Tool] = [
 	delete,
 	run_action,
 	execute,
+	request_secret,
 ]
 
 

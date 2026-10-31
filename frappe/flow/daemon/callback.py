@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import json
 import time
+from contextlib import contextmanager
 from hmac import compare_digest
 from typing import TYPE_CHECKING, Any
 
@@ -115,13 +116,92 @@ def _dispatch(
 	tool = next((tool for tool in tools if tool.name == name), None)
 	if tool is None:
 		return _error(_("Unknown tool {0}.").format(name))
+	ctx = ToolContext(session_id=session_id, agent=agent, user=frappe.session.user)
 	if mode == "confirm":
+		if tool.name == "request_secret":
+			from frappe.flow.tools.builtins import forget_saved_secret, secret_field_refusal
+
+			# a password box the user could not save shows no card; the model learns why
+			if refusal := secret_field_refusal(args.get("doctype"), args.get("name"), args.get("fieldname")):
+				return {"approved": True, "result": _error(refusal)}
+			forget_saved_secret(session_id, args)
+		if (result := _run_unapproved(tool, args, ctx)) is not None:
+			return {"approved": True, "result": result}
 		return {"prompt": confirm_prompt(tool, args)}
 	# the job itself passes no token
 	if result_token and (tool.background(args) if callable(tool.background) else tool.background):
 		return _enqueue(session_id, agent, name, args, result_token)
-	ctx = ToolContext(session_id=session_id, agent=agent, user=frappe.session.user)
 	return {"content": _text(tool(**args, ctx=ctx)), "is_error": False}
+
+
+def _run_unapproved(tool: Tool, args: dict, ctx: ToolContext) -> dict | None:
+	"""Run a call that needs no approval because it cannot change anything, and return its
+	result: a function marked `@frappe.read_only()` through run_action, or execute's code until
+	it writes or reaches outside the database. None when the call needs the user's approval."""
+	from frappe.flow.tools.builtins import is_read_only_function, run_code
+
+	if tool.name == "run_action" and is_read_only_function(args.get("action")):
+		run = lambda: tool(**args, ctx=ctx)  # noqa: E731
+	elif tool.name == "execute":
+		run = lambda: run_code(args.get("code") or "", ctx, unapproved=True)  # noqa: E731
+	else:
+		return None
+	refused = _(
+		"{0} tried to write to the database, so it is not a read and was refused. Ask the user before running it another way."
+	).format(args.get("action"))
+	frappe.flags.flow_needs_approval = False
+	with _read_only_transaction():
+		try:
+			result = {"content": _text(run()), "is_error": False}
+		except Exception as exc:
+			if tool.name == "execute" and _needs_approval(exc):
+				return None
+			# on Postgres a swallowed refusal fails the next query instead
+			wrote = _wrote(exc) or frappe.db.transaction_writes
+			return _error(refused if wrote else str(exc).strip() or type(exc).__name__)
+		# the code may have caught the refusal
+		if frappe.flags.flow_needs_approval or frappe.db.transaction_writes:
+			return None if tool.name == "execute" else _error(refused)
+		return result
+
+
+def _needs_approval(exc: BaseException) -> bool:
+	from frappe.flow.utils.safe_exec import NeedsApproval
+
+	return bool(
+		frappe.flags.flow_needs_approval
+		or _wrote(exc)
+		or any(isinstance(e, NeedsApproval) for e in _chain(exc))
+	)
+
+
+def _wrote(exc: BaseException) -> bool:
+	return any(isinstance(e, frappe.InReadOnlyMode) for e in _chain(exc))
+
+
+def _chain(exc: BaseException | None):
+	seen = set()
+	while exc is not None and id(exc) not in seen:
+		seen.add(id(exc))
+		yield exc
+		exc = exc.__cause__ or exc.__context__
+
+
+@contextmanager
+def _read_only_transaction():
+	"""The database refuses every write inside, as in the site's read-only mode. The callback has
+	only read before this, so its transaction is rolled back, not committed."""
+	read_only, messages = frappe.flags.read_only, len(frappe.local.message_log)
+	# a commit inside starts another read-only transaction
+	frappe.flags.read_only = True
+	frappe.db.rollback()
+	try:
+		yield
+	finally:
+		frappe.flags.read_only = read_only
+		frappe.db.rollback()
+		# frappe.throw's message for a refused write is not for the callback's caller
+		del frappe.local.message_log[messages:]
 
 
 def _enqueue(session_id: str, agent: str, tool: str, args: dict, result_token: str) -> dict:
@@ -197,8 +277,15 @@ def confirm_title(name: str, args: dict) -> str:
 	if name == "delete" and doctype:
 		return _count("Delete 1 {0} record", "Delete {0} {1} records", args.get("names"), doctype)
 	if name == "run_action" and action:
+		from frappe.flow.tools.builtins import is_function_path
+
+		if is_function_path(action):
+			return _('Run "{0}"').format(action)
 		target = f"{_list_count_or_one(args.get('names'))} {doctype}" if doctype else _("records")
 		return _('Run "{0}" on {1}').format(_humanize(action), target)
+	if name == "request_secret" and doctype and frappe.db.exists("DocType", doctype):
+		label = frappe.get_meta(doctype).get_label(args.get("fieldname"))
+		return _("Enter {0} for {1} {2}").format(_(label), _(doctype), args.get("name"))
 	if name == "execute":
 		description = args.get("description")
 		return (description.strip() if isinstance(description, str) else "") or _("Run Python code")

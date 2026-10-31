@@ -303,6 +303,11 @@ export class FrappeClient {
 		return this.transport.call("frappe.flow.api.skills", { agent: this.hooks.agent?.() ?? null });
 	}
 
+	// a request_secret card's password box: the value goes to the field it names, never to the flow server
+	saveSecret(sid, callId, password) {
+		return this.transport.call("frappe.flow.api.save_secret", { session: sid, call_id: callId, password });
+	}
+
 	// --- feedback --------------------------------------------------------------
 
 	submitFeedback(run, rating, comment = "") {

@@ -5,7 +5,8 @@
 
 Flow Agent Memory rows are shared by the agent's users (scope Agent) or private to one
 (scope User). The `update_memory` tool writes them as the session owner; `memory_block`
-appends the ones relevant to a message to that message.
+appends the ones relevant to a message to that message. Only those who manage the agent write
+shared memory: what anyone else's chat or thumbs-down saves is theirs alone.
 """
 
 from __future__ import annotations
@@ -17,7 +18,7 @@ from frappe import _
 from frappe.flow.memory import store
 
 MEMORY_TOOL_SLUG = "update_memory"
-# Per (agent, scope, user); past it, adds are refused.
+# The model's own notes per (agent, scope, user); past it, its adds are refused.
 MAX_ACTIVE_MEMORIES = 100
 
 _SCOPE_BY_ARG = {"agent": "Agent", "user": "User"}
@@ -32,7 +33,10 @@ def save_memory(
 		frappe.throw(_("scope must be 'agent' or 'user'."), title=_("Invalid Scope"))
 	if memory_id:
 		return _update(agent, memory_id.strip(), content)
-	return _add(agent, content, scope_value, source_run=_running_run(session))
+	result = _add(agent, content, _scope_for(agent, scope_value), source_run=_running_run(session))
+	if scope_value != result["scope"]:
+		result["note"] = "Saved for this user only: only those who manage the agent save for everyone."
+	return result
 
 
 def memory_block(agent: str, user: str, query: str) -> str:
@@ -62,12 +66,13 @@ def memory_block(agent: str, user: str, query: str) -> str:
 	return f"\n<memory>\n{lead}\n" + "\n".join(lines) + "\n</memory>"
 
 
-def save_feedback_memory(run: Any, comment: str) -> str | None:
-	"""Store a thumbs-down comment as shared agent memory; None when the agent has no memory tool."""
+def save_feedback_memory(run: Any, comment: str) -> dict[str, Any] | None:
+	"""Store a thumbs-down comment as memory, the user's own unless they manage the agent; None
+	when the agent has no memory tool."""
 	agent = frappe.db.get_value("Flow Session", run.session, "agent")
 	if not agent or not _has_memory_tool(agent):
 		return None
-	return _add(agent, comment, "Agent", source="Feedback", source_run=run.name)["memory_id"]
+	return _add(agent, comment, _scope_for(agent, "Agent"), source="Feedback", source_run=run.name)
 
 
 def forget_feedback_memory(run: Any) -> int:
@@ -83,10 +88,10 @@ def forget_feedback_memory(run: Any) -> int:
 def _add(
 	agent: str, content: str, scope: str, *, source: str = "Agent", source_run: str | None = None
 ) -> dict[str, Any]:
-	filters: dict[str, Any] = {"agent": agent, "scope": scope, "status": "Active"}
+	filters: dict[str, Any] = {"agent": agent, "scope": scope, "status": "Active", "source": "Agent"}
 	if scope == "User":
 		filters["user"] = frappe.session.user
-	if frappe.db.count("Flow Agent Memory", filters) >= MAX_ACTIVE_MEMORIES:
+	if source == "Agent" and frappe.db.count("Flow Agent Memory", filters) >= MAX_ACTIVE_MEMORIES:
 		frappe.throw(
 			_(
 				"Memory limit reached — revise or consolidate existing memories (pass memory_id) instead of adding."
@@ -106,7 +111,7 @@ def _add(
 			"status": "Active",
 		}
 	).insert(ignore_permissions=True)
-	return {"memory_id": doc.name, "action": "added"}
+	return {"memory_id": doc.name, "action": "added", "scope": scope}
 
 
 def _update(agent: str, memory_id: str, content: str) -> dict[str, Any]:
@@ -123,11 +128,27 @@ def _update(agent: str, memory_id: str, content: str) -> dict[str, Any]:
 			_("No editable memory {0} — check the id in <memory>.").format(memory_id),
 			title=_("Unknown Memory"),
 		)
+	if row.scope == "Agent" and not manages(agent):
+		result = _add(agent, content, "User")
+		result["note"] = (
+			"Saved as this user's own memory, used with the shared one, which only those who manage "
+			"the agent change. Revise this one, not the shared one, next time."
+		)
+		return result
 
 	doc = frappe.get_doc("Flow Agent Memory", memory_id)
 	doc.content = content
 	doc.save(ignore_permissions=True)
-	return {"memory_id": doc.name, "action": "updated"}
+	return {"memory_id": doc.name, "action": "updated", "scope": doc.scope}
+
+
+def manages(agent: str) -> bool:
+	"""Whether the user may change the agent, and so what it remembers for everyone."""
+	return frappe.has_permission("Flow Agent", "write", agent)
+
+
+def _scope_for(agent: str, scope: str) -> str:
+	return scope if scope == "User" or manages(agent) else "User"
 
 
 def _running_run(session: str | None) -> str | None:

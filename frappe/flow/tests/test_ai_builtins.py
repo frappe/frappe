@@ -428,6 +428,15 @@ class TestWriteTools(IntegrationTestCase):
 					frappe.get_all("ToDo", todos, ["name", "status", "docstatus"], order_by="name"), before
 				)
 
+	def test_run_action_runs_a_whitelisted_function_by_its_dotted_path(self):
+		args = {"doctype": "ToDo", "name": self.todo.name, "fieldname": "status", "value": "Closed"}
+		result = run_action(doctype="ToDo", names=[], action="frappe.client.set_value", args=args, ctx=CTX)
+		self.assertEqual(result["result"]["status"], "Closed")
+		self.assertEqual(frappe.db.get_value("ToDo", self.todo.name, "status"), "Closed")
+
+		with self.assertRaisesRegex(ValueError, "frappe.get_all: .*\nNothing was saved."):
+			run_action(doctype="ToDo", names=[], action="frappe.get_all", args={"doctype": "User"}, ctx=CTX)
+
 	def test_refuses_missing_and_forbidden_records(self):
 		probe = _user("flow-action-probe@example.com")
 		closed = {"values": {"status": "Closed"}}

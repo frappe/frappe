@@ -331,13 +331,17 @@ async def test_resume_approves_denies_or_redirects_the_paused_call(tmp_path):
 	await _run(session, "again", model=MockModel(replies=[AssistantMessage(content="ok")]))
 	assert session._budget is not budget
 
-	session, events, mock = await paused("unreached")
+	session, events, mock = await paused("not read; anything to change?")
+	[approval] = _of(events, "approval_required")
 	await _resume(session, {"c1": "Deny"}, model=mock)
 	tr = _of(events, "tool_result")[0]
 	assert tr["is_error"] is True
-	assert "denied" in tr["content"]
-	assert _of(events, "run_ended")[-1]["reason"] == "denied"
-	assert mock._turn == 1  # the model was NOT called again after denial
+	decision = json.loads(tr["content"])
+	assert decision["status"] == "denied"
+	assert decision["action"] == approval["calls"][0]["prompt"].split("\n")[0]
+	# the model answers the user once, instead of the run ending on the denial
+	assert _of(events, "assistant_message")[-1]["content"][0]["text"] == "not read; anything to change?"
+	assert _of(events, "run_ended")[-1]["reason"] == "done"
 
 	session, events, mock = await paused("adjusted")
 	await _resume(session, {"c1": "use the other file"}, model=mock)
@@ -418,17 +422,17 @@ async def test_steering_joins_the_active_run_and_is_dropped_when_it_ends(tmp_pat
 	assert [e["content"][0]["text"] for e in _of(events, "assistant_message")] == ["reply-1", "reply-2"]
 	assert [e["reason"] for e in _of(events, "run_ended")] == ["done"]
 
-	# a steer waiting on a tool turn reaches the run resumed after an approval
+	# a steer waiting on a tool turn reaches the run resumed after an approval or a denial
 	(tmp_path / "a.txt").write_text("x")
-	session, events = _session(tmp_path, confirm_tools=["read"])
-	await _steer_into_a_tool_turn(session)
-	await _resume(session, {"c1": "Approve"}, model=MockModel(replies=[AssistantMessage(content="ok")]))
-	assert [e["content"] for e in _of(events, "user_message")] == ["start", "steer me"]
+	for answer in ("Approve", "Deny"):
+		session, events = _session(tmp_path, confirm_tools=["read"])
+		await _steer_into_a_tool_turn(session)
+		await _resume(session, {"c1": answer}, model=MockModel(replies=[AssistantMessage(content="ok")]))
+		assert [e["content"] for e in _of(events, "user_message")] == ["start", "steer me"], answer
 
 	# but dies with a run that ends
 	cases = [
 		# session config, how the paused run ends, the run ends seen
-		({"confirm_tools": ["read"]}, "deny", ["paused", "denied"]),
 		({"confirm_tools": ["read"]}, "cancel", ["paused"]),
 		({"max_turns": 1}, None, ["max_turns"]),
 		({"token_budget": 5}, None, ["budget"]),
@@ -436,9 +440,7 @@ async def test_steering_joins_the_active_run_and_is_dropped_when_it_ends(tmp_pat
 	for config, ending, ends in cases:
 		session, events = _session(tmp_path, **config)
 		await _steer_into_a_tool_turn(session)
-		if ending == "deny":
-			await _resume(session, {"c1": "Deny"})
-		elif ending == "cancel":
+		if ending == "cancel":
 			assert await session.cancel_pending() is True
 		assert [e["reason"] for e in _of(events, "run_ended")] == ends, ending
 
@@ -955,6 +957,50 @@ async def test_a_pending_client_tool_waits_for_its_posted_result(tmp_path, monke
 	await asyncio.wait_for(handle.task, timeout=1)
 	assert _of(events, "run_ended")[-1]["reason"] == "aborted"
 	assert not deliver_result(session.id, seen["result_token"], {"content": "late"})
+
+
+async def test_a_client_tool_call_the_callback_approves_runs_without_asking(tmp_path, monkeypatch):
+	modes = []
+	answer = {}
+
+	async def post(config, url, payload):
+		modes.append(payload["mode"])
+		if payload["mode"] == "confirm":
+			return answer
+		return {"content": "report ready"}
+
+	monkeypatch.setattr("flow_harness.agent.client_tools._post", post)
+	settings = {**_REPORT_CLIENT, "auto_approve": False, "confirm_tools": ["report"]}
+
+	answer.update(approved=True)
+	session, events = _session(tmp_path, **settings)
+	await _run(session, "build the report", model=_report_model())
+	assert modes == ["confirm", "execute"]
+	assert [r["content"] for r in _of(events, "tool_result")] == ["report ready"]
+
+	# a client that ran the call already answers with its result
+	modes.clear()
+	answer.update(result={"content": "read without asking", "is_error": False})
+	session, events = _session(tmp_path, **settings)
+	await _run(session, "build the report", model=_report_model())
+	assert modes == ["confirm"]
+	assert [r["content"] for r in _of(events, "tool_result")] == ["read without asking"]
+	assert _of(events, "approval_required") == []
+
+	# its result goes through the after-hook as a run one does
+	session, events = _session(tmp_path, **settings)
+	await _run(
+		session, "build the report", model=_report_model(), after_tool_call=lambda call, result: "hooked"
+	)
+	assert [r["content"] for r in _of(events, "tool_result")] == ["hooked"]
+
+	modes.clear()
+	answer.clear()
+	answer.update(prompt="Build the report?")
+	session, events = _session(tmp_path, **settings)
+	await _run(session, "build the report", model=_report_model())
+	assert modes == ["confirm"]
+	assert _of(events, "tool_result") == []
 
 
 class _FailingModel(Model):

@@ -20,6 +20,7 @@ from frappe.flow.memory import store as memory_store
 from frappe.flow.tests.test_fake_daemon import FakeDaemon, turn
 from frappe.flow.tools.builtins import sync_builtin_tools
 from frappe.tests import IntegrationTestCase
+from frappe.tests.utils import whitelist_for_tests
 from frappe.utils import set_request
 
 SECRET = "callback-secret"
@@ -45,6 +46,38 @@ def write_then_fail(*, ctx: ToolContext) -> None:
 	frappe.get_doc({"doctype": "ToDo", "description": "callback-rollback"}).insert(ignore_permissions=True)
 	frappe.db.after_commit.add(lambda: frappe.flags.update(after_commit_ran=True))
 	raise ValueError("after writing")
+
+
+@whitelist_for_tests()
+@frappe.read_only()
+def read_only_whoami() -> list:
+	"""Reads only."""
+	return [frappe.session.user, frappe.db.exists("Role", "System Manager")]
+
+
+@whitelist_for_tests(methods=["POST"])
+@frappe.read_only()
+def read_only_that_writes() -> str:
+	"""Marked read-only, but inserts a ToDo and tries to commit it."""
+	frappe.get_doc({"doctype": "ToDo", "description": "read-only-wrote"}).insert()
+	frappe.db.commit()  # nosemgrep: frappe-manual-commit
+	return "wrote"
+
+
+@whitelist_for_tests(methods=["POST"])
+@frappe.read_only()
+def read_only_that_hides_its_write() -> str:
+	"""Marked read-only; inserts a ToDo and swallows the refusal."""
+	try:
+		frappe.get_doc({"doctype": "ToDo", "description": "read-only-hid"}).insert()
+	except Exception:
+		pass
+	return "hid"
+
+
+@frappe.read_only()
+def read_only_not_whitelisted() -> str:
+	return "secret"
 
 
 @tool(background=lambda args: args.get("slow"))
@@ -87,6 +120,7 @@ class TestToolCallback(IntegrationTestCase):
 		attached = (
 			"frappe/read_records",
 			"frappe/delete",
+			"frappe/run_action",
 			"frappe/execute",
 			"frappe/update_memory",
 			"frappe/search_attachments",
@@ -369,11 +403,80 @@ class TestToolCallback(IntegrationTestCase):
 				run_background_tool(*args, start_by=time.time() + 60)
 		self.assertEqual([call.args[0] for call in sleep.call_args_list], [0, 1, 0, 1, 5])
 
+	def confirm_fresh(self, name: str, args: dict) -> dict:
+		"""A confirm call that may run the call read-only: that rolls back the callback's
+		transaction, this test's records too, so each gets fresh ones."""
+		frappe.db.rollback()
+		self.setUp()
+		return self.call(name, args, mode="confirm")
+
+	def test_a_whitelisted_read_only_function_runs_at_confirm_without_a_card(self):
+		def run_action(action, names=None):
+			return {"doctype": "ToDo", "names": names or [], "action": action}
+
+		answer = self.confirm_fresh("run_action", run_action(f"{MODULE}.read_only_whoami"))
+		self.assertEqual(answer["result"]["is_error"], False, answer)
+		self.assertEqual(json.loads(answer["result"]["content"])["result"], [OWNER, "System Manager"])
+		self.assertNotIn("prompt", answer)
+
+		for action, names in (
+			("frappe.client.set_value", None),
+			(f"{MODULE}.read_only_not_whitelisted", None),
+			("submit", ["a"]),
+		):
+			with self.subTest(action=action):
+				answer = self.confirm_fresh("run_action", run_action(action, names))
+				self.assertIn("prompt", answer)
+				self.assertNotIn("approved", answer)
+
+	def test_the_database_refuses_a_write_by_a_read_only_function(self):
+		for action in ("read_only_that_writes", "read_only_that_hides_its_write"):
+			with self.subTest(action):
+				answer = self.confirm_fresh(
+					"run_action", {"doctype": "ToDo", "names": [], "action": f"{MODULE}.{action}"}
+				)
+				self.assertTrue(answer["result"]["is_error"])
+				self.assertIn("tried to write to the database", answer["result"]["content"])
+				self.assertFalse(frappe.db.exists("ToDo", {"description": ["like", "read-only-%"]}))
+				self.assertFalse(frappe.flags.read_only)
+				self.assertNotIn("read only mode", json.dumps(frappe.local.message_log))
+		# the request's transaction takes writes again
+		frappe.get_doc({"doctype": "ToDo", "description": "after-read-only"}).insert()
+
+	def test_execute_runs_code_that_only_reads_and_asks_for_the_rest(self):
+		reads = "result = frappe.session.user"
+		answer = self.confirm_fresh("execute", {"code": reads, "description": "Who am I"})
+		self.assertEqual(answer, {"approved": True, "result": {"content": OWNER, "is_error": False}})
+		for code in ("result = undefined_name", 'update("ToDo", ["missing-todo"], {"status": "Closed"})'):
+			with self.subTest(fails=code):
+				broken = self.confirm_fresh("execute", {"code": code, "description": "x"})
+				self.assertTrue(broken["result"]["is_error"])
+
+		asks = {
+			"writes": 'create("ToDo", [{"description": "execute-wrote"}])',
+			"hides its write": 'try:\n\tcreate("ToDo", [{"description": "execute-wrote"}])\nexcept Exception:\n\tpass',
+			"queues a job": 'frappe.enqueue("frappe.ping")',
+			"sends email": 'frappe.sendmail(recipients=["a@example.com"], subject="x", message="x")',
+			"calls an unmarked function": 'frappe.call("frappe.client.set_value", doctype="ToDo", name="x", fieldname="status", value="Closed")',
+			"hides that call": 'try:\n\tfrappe.call("frappe.ping")\nexcept Exception:\n\tpass',
+			"runs an unmarked function": 'run_action("", [], "frappe.ping")',
+		}
+		for case, code in asks.items():
+			with self.subTest(case):
+				answer = self.confirm_fresh("execute", {"code": code, "description": "Do it"})
+				self.assertEqual(answer, {"prompt": f"Do it\nDo it:\n\n{code}"})
+				self.assertFalse(frappe.db.exists("ToDo", {"description": "execute-wrote"}))
+		for marked in (
+			f'result = frappe.call("{MODULE}.read_only_whoami")',
+			f'result = run_action("", [], "{MODULE}.read_only_whoami")',
+		):
+			with self.subTest(marked):
+				answer = self.confirm_fresh("execute", {"code": marked, "description": "Who am I"})
+				self.assertIn(OWNER, answer["result"]["content"])
+
 	def test_confirm_mode_prompts_a_title_line_then_the_tools_own_summary(self):
 		prompt = self.call("delete", {"doctype": "ToDo", "names": ["a", "b"]}, mode="confirm")["prompt"]
 		self.assertEqual(prompt, "Delete 2 ToDo records\nDelete 2 ToDo: a, b")
-		prompt = self.call("execute", {"code": "result = 1", "description": "Count things"}, mode="confirm")
-		self.assertEqual(prompt["prompt"], "Count things\nCount things:\n\nresult = 1")
 		prompt = self.call("boom", {"reason": "x"}, mode="confirm")["prompt"]
 		self.assertEqual(prompt, 'Boom\n{\n  "reason": "x"\n}')
 
@@ -389,6 +492,7 @@ class TestToolCallback(IntegrationTestCase):
 				'Run "Submit" on 2 Sales Order',
 			),
 			("run_action", {"action": "send_sms"}, 'Run "Send sms" on records'),
+			("run_action", {"action": "erpnext.selling.get_sales"}, 'Run "erpnext.selling.get_sales"'),
 			("execute", {"description": "  Count things ", "code": ""}, "Count things"),
 			("execute", {"code": "x"}, "Run Python code"),
 			("create", {"records": []}, "Create"),

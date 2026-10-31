@@ -185,6 +185,39 @@ def resume(
 	return {"run": run.name, "status": "started"}
 
 
+@frappe.whitelist(methods=["POST"])
+def save_secret(session: str, call_id: str, password: str) -> dict[str, bool]:
+	"""Save what the user typed into a request_secret card's password box into the field the
+	waiting call names, as the user. The card is then approved with no value, so the secret
+	never reaches the flow server, the model or the transcript. Named `password` so error logs
+	mask it."""
+	from frappe.flow.tools.builtins import save_secret
+
+	if not password:
+		frappe.throw(_("Enter a value."), title=_("Invalid Value"))
+	doc = _load_session(session, "write")
+	call = _waiting_call(doc, call_id)
+	if not call or call.get("name") != "request_secret":
+		frappe.throw(_("This password box is no longer waiting."), title=_("Not Saved"))
+	save_secret(doc.name, call.get("args") or {}, password)
+	return {"saved": True}
+
+
+def _waiting_call(doc: FlowSession, call_id: str) -> dict[str, Any] | None:
+	"""The call `call_id` still waiting for its card, the run's own or a sub-agent's, from the
+	flow server's log; a sub-agent's batch is not kept on the Flow Run."""
+	rows = doc.entries(path="active")["entries"]
+	answered = {row.get("tool_call_id") for row in rows if row.get("type") == "tool_result"}
+	if call_id in answered:
+		return None
+	for row in rows:
+		if row.get("type") == "approval_required":
+			for call in row.get("calls") or []:
+				if call.get("id") == call_id:
+					return call
+	return None
+
+
 @frappe.whitelist()
 def abort(session: str) -> dict[str, str]:
 	return {"status": _load_session(session, "write").abort()}
@@ -324,8 +357,9 @@ def sync_session(session: str) -> dict[str, Any]:
 @frappe.whitelist()
 def submit_feedback(run_name: str, rating: str, comment: str | None = None) -> dict[str, Any]:
 	"""Record thumbs feedback on a finished run, or clear it with rating "None". A
-	thumbs-down comment is stored as shared agent memory when the agent has memory
-	enabled (a no-op otherwise); clearing the rating drops that memory again."""
+	thumbs-down comment is stored as agent memory when the agent has memory enabled (a no-op
+	otherwise), the user's own unless they manage the agent; clearing the rating drops that
+	memory again."""
 	from frappe.flow.memory.memory import forget_feedback_memory, save_feedback_memory
 
 	if not isinstance(run_name, str) or not run_name.strip():
@@ -359,7 +393,7 @@ def submit_feedback(run_name: str, rating: str, comment: str | None = None) -> d
 
 	result: dict[str, Any] = {"rating": rating}
 	if memory:
-		result["memory"] = memory
+		result.update(memory=memory["memory_id"], memory_scope=memory["scope"])
 	return result
 
 

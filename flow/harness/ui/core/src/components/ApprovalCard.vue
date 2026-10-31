@@ -20,7 +20,11 @@
 
 		<!-- the host's view fills the card body with its own padding, so a table can go edge to edge -->
 		<div v-if="presentation.argsComponent" class="overflow-y-auto border-y border-outline-gray-1">
-			<component :is="presentation.argsComponent" :arguments="args" />
+			<component
+				:is="presentation.argsComponent"
+				:arguments="args"
+				v-bind="presentation.ownAnswers ? { call } : {}"
+			/>
 		</div>
 		<pre
 			v-else-if="body"
@@ -34,12 +38,13 @@
 			</div>
 		</div>
 
-		<div v-if="!asking" class="flex items-center justify-end gap-2 px-3.5 py-2.5">
+		<!-- a host view that answers the card itself brings its own buttons -->
+		<div v-if="!asking && !presentation.ownAnswers" class="flex items-center justify-end gap-2 px-3.5 py-2.5">
 			<button class="flow-btn-ghost" @click="asking = true">Ask for changes</button>
 			<button class="flow-btn-secondary" @click="answer('Deny')">Deny</button>
 			<button class="flow-btn-primary" @click="answer('Approve')">Approve</button>
 		</div>
-		<div v-else class="px-3.5 py-2.5">
+		<div v-else-if="asking" class="px-3.5 py-2.5">
 			<!-- function ref: the field mounts only while asking, so mount-time focus
 			     is exactly "form opened" -->
 			<textarea

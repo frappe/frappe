@@ -55,8 +55,9 @@ def safe_exec(
 	*,
 	script_filename: str | None = None,
 	tool_context: ToolContext | None = None,
+	unapproved: bool = False,
 ):
-	exec_globals = get_flow_safe_globals(tool_context=tool_context)
+	exec_globals = get_flow_safe_globals(tool_context=tool_context, unapproved=unapproved)
 	if _globals:
 		exec_globals.update(_globals)
 
@@ -186,19 +187,53 @@ _SKIP_BUILTINS = frozenset(
 		"search_attachments",
 		"update_memory",
 		"load_skill",
+		"request_secret",
 	}
 )
 
 
-def _flow_builtins(tool_context: ToolContext | None = None) -> dict[str, Any]:
+def _flow_builtins(tool_context: ToolContext | None = None, unapproved: bool = False) -> dict[str, Any]:
 	"""The permission-checked builtins, callable as plain functions inside the sandbox.
 	`execute` and the bound tools are left out."""
 	from frappe.flow.tools.builtins import BUILTIN_TOOLS
 
-	return {t.name: partial(t.func, ctx=tool_context) for t in BUILTIN_TOOLS if t.name not in _SKIP_BUILTINS}
+	out = {t.name: partial(t.func, ctx=tool_context) for t in BUILTIN_TOOLS if t.name not in _SKIP_BUILTINS}
+	if unapproved:
+		out["run_action"] = partial(_run_read_only_action, out["run_action"])
+	return out
 
 
-def get_flow_safe_globals(*, tool_context: ToolContext | None = None) -> NamespaceDict:
+class NeedsApproval(Exception):
+	"""Code the user has not approved tried to reach outside the database."""
+
+
+def _needs_approval(*args: Any, **kwargs: Any) -> None:
+	# the code may catch the exception, so the flag tells the caller
+	frappe.flags.flow_needs_approval = True
+	raise NeedsApproval
+
+
+def _call_read_only(function: str, **kwargs: Any) -> Any:
+	from frappe.flow.tools.builtins import is_read_only_function
+
+	if not is_read_only_function(function):
+		_needs_approval()
+	return call_whitelisted_function(function, **kwargs)
+
+
+def _run_read_only_action(run_action, doctype: str, names: list[str], action: str, args=None) -> Any:
+	from frappe.flow.tools.builtins import is_read_only_function
+
+	if not is_read_only_function(action):
+		_needs_approval()
+	return run_action(doctype, names, action, args)
+
+
+def get_flow_safe_globals(
+	*, tool_context: ToolContext | None = None, unapproved: bool = False
+) -> NamespaceDict:
+	"""`unapproved` swaps what can reach outside the database (jobs, email, functions not marked
+	read-only) for a stop that asks the user first."""
 	user = frappe.session.user
 
 	out = NamespaceDict(
@@ -213,8 +248,8 @@ def get_flow_safe_globals(*, tool_context: ToolContext | None = None) -> Namespa
 		html2text=html2text,
 		guess_mimetype=mimetypes.guess_type,
 		frappe=NamespaceDict(
-			call=call_whitelisted_function,
-			enqueue=safe_enqueue,
+			call=_call_read_only if unapproved else call_whitelisted_function,
+			enqueue=_needs_approval if unapproved else safe_enqueue,
 			is_job_queued=is_job_queued,
 			user=user,
 			session=frappe._dict(user=user),
@@ -224,7 +259,7 @@ def get_flow_safe_globals(*, tool_context: ToolContext | None = None) -> Namespa
 			get_list=_permissioned_get_list,
 			get_print=_gated_get_print,
 			attach_print=_gated_attach_print,
-			sendmail=_gated_sendmail,
+			sendmail=_needs_approval if unapproved else _gated_sendmail,
 			log=frappe.log,
 			log_error=safer_log_error,
 			msgprint=frappe.msgprint,
@@ -247,7 +282,7 @@ def get_flow_safe_globals(*, tool_context: ToolContext | None = None) -> Namespa
 	)
 
 	out.frappe.update(SAFE_EXCEPTIONS)
-	out.update(_flow_builtins(tool_context))
+	out.update(_flow_builtins(tool_context, unapproved))
 
 	out.update(safe_globals)
 	out._write_ = _write

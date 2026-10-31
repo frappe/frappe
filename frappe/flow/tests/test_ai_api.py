@@ -14,7 +14,7 @@ from frappe.flow.doctype.flow_session_attachment.test_flow_session_attachment im
 from frappe.flow.lib.session import new_session
 from frappe.flow.memory import store as memory_store
 from frappe.flow.permissions import FLOW_USER_ROLE
-from frappe.flow.tests.test_fake_daemon import PENDING, FakeDaemon, child_pause, pause
+from frappe.flow.tests.test_fake_daemon import PENDING, FakeDaemon, child_pause, pause, row
 from frappe.flow.tests.test_live_server import LiveServerCase
 from frappe.flow.tools.builtins import sync_builtin_tools
 from frappe.tests import IntegrationTestCase
@@ -273,6 +273,121 @@ class ApiCase(IntegrationTestCase):
 		return frappe.get_doc(
 			{"doctype": "File", "file_name": file_name, "content": content, "is_private": 1}
 		).insert()
+
+
+SECRET = "s3cret-for-the-box-only"
+BOX_USER = "api-password-box@example.com"
+
+
+def secret_pause(args: dict, **child):
+	"""A turn that stops at a request_secret card naming `args`; `subagent_id` puts it in a
+	sub-agent's batch."""
+
+	def answer(seq, run_id, message="connect it"):
+		pending = {"id": "c7", "name": "request_secret", "args": args, "prompt": "Enter it"}
+		asked = {"type": "tool_call", "id": "c7", "name": "request_secret", "arguments": args}
+		return [
+			row(seq, "run_started", run_id=run_id),
+			row(seq + 1, "user_message", content=message),
+			row(seq + 2, "assistant_message", content=[asked], **child),
+			row(seq + 3, "approval_required", calls=[pending], **child),
+			# a sub-agent's pause leaves the run going
+			*([] if child else [row(seq + 4, "run_ended", reason="paused")]),
+		]
+
+	return answer
+
+
+class TestPasswordBox(ApiCase):
+	"""A secret goes from the password box into its field and nowhere else."""
+
+	def setUp(self):
+		super().setUp()
+		frappe.db.set_single_value("Google Settings", "enable", 1)
+		self.agent.append("tools", {"tool": "frappe/request_secret"})
+		self.agent.save()
+		_ensure_user(BOX_USER)
+		frappe.db.set_value("User", BOX_USER, "user_type", "System User")
+		frappe.set_user(BOX_USER)
+		self.contacts = frappe.get_doc({"doctype": "Google Contacts", "email_id": "box@example.com"}).insert()
+
+	def args(self, **overrides) -> dict:
+		args = {"doctype": "Google Contacts", "name": self.contacts.name, "fieldname": "refresh_token"}
+		return {**args, "reason": "To sync your contacts", **overrides}
+
+	def dispatch(self, session: str, args: dict, mode: str) -> dict:
+		from frappe.flow.daemon.callback import _dispatch
+
+		return _dispatch(session, self.agent.name, "request_secret", args, mode, None)
+
+	def test_the_secret_is_saved_into_its_field_and_reaches_nothing_else(self):
+		from frappe.utils.password import get_decrypted_password
+
+		self.daemon.answer = secret_pause(self.args())
+		name = self.create()
+		api.run(name, "connect my contacts")
+		api.sync_session(name)
+		self.assertIn("prompt", self.dispatch(name, self.args(), "confirm"))
+		self.assertEqual(api.save_secret(name, "c7", SECRET), {"saved": True})
+		api.resume(name, '{"c7": "Approve"}')
+		result = self.dispatch(name, self.args(), "execute")
+
+		self.assertIn('"saved": true', result["content"])
+		self.assertEqual(
+			get_decrypted_password("Google Contacts", self.contacts.name, "refresh_token"), SECRET
+		)
+		with self.assertRaisesRegex(frappe.ValidationError, "entered nothing"):
+			self.dispatch(name, self.args(), "execute")
+		seen = [
+			self.daemon.calls,
+			frappe.get_doc("Flow Session", name).as_dict(),
+			frappe.get_all("Flow Run", filters={"session": name}, fields=["*"]),
+			frappe.get_all("Version", filters={"docname": self.contacts.name}, fields=["data"]),
+			frappe.db.get_value("Google Contacts", self.contacts.name, "refresh_token"),
+			result,
+		]
+		self.assertNotIn(SECRET, json.dumps(seen, default=str))
+
+		# a request that fails logs its form, which masks the field by its name
+		frappe.local.form_dict = frappe._dict(session=name, call_id="c7", password=SECRET)
+		log = frappe.log_error("Saving a password failed")
+		self.assertNotIn(SECRET, json.dumps(log.as_dict(), default=str))
+
+	def test_a_sub_agents_password_box_saves_too(self):
+		self.daemon.answer = secret_pause(self.args(), subagent_id="s1")
+		name = self.create()
+		api.run(name, "connect my contacts")
+		self.daemon.running = True
+		api.sync_session(name)
+		self.assertEqual(api.save_secret(name, "c7", SECRET), {"saved": True})
+		self.assertEqual(self.contacts.get_password("refresh_token"), SECRET)
+
+	def test_a_field_the_user_cannot_write_gets_no_box_and_is_not_saved(self):
+		frappe.set_user("Administrator")
+		theirs = frappe.get_doc({"doctype": "Google Contacts", "email_id": "admin-box@example.com"}).insert()
+		frappe.set_user(BOX_USER)
+		refused = {
+			"another user's record": self.args(name=theirs.name),
+			"a field that is not a Password": self.args(fieldname="email_id"),
+			"a record that does not exist": self.args(name="GC-missing@example.com"),
+			"a child table's field": self.args(doctype="Server Script Variable", name="x", fieldname="value"),
+		}
+		for case, args in refused.items():
+			with self.subTest(case):
+				answer = self.dispatch(self.create(), args, "confirm")
+				self.assertTrue(answer["approved"])
+				self.assertTrue(answer["result"]["is_error"])
+
+		self.daemon.answer = secret_pause(self.args(name=theirs.name))
+		name = self.create()
+		api.run(name, "connect it")
+		api.sync_session(name)
+		with self.assertRaisesRegex(frappe.ValidationError, "permission"):
+			api.save_secret(name, "c7", SECRET)
+		with self.assertRaisesRegex(frappe.ValidationError, "no longer waiting"):
+			api.save_secret(name, "c-unknown", SECRET)
+		frappe.set_user("Administrator")
+		self.assertFalse(theirs.get_password("refresh_token", raise_exception=False))
 
 
 class TestSessionEndpoints(ApiCase):

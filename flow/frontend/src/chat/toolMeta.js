@@ -5,6 +5,7 @@ import NamesView from "./tools/NamesView.vue";
 import ReadView from "./tools/ReadView.vue";
 import ReportView from "./tools/ReportView.vue";
 import { parseResult } from "./tools/result.js";
+import SecretView from "./tools/SecretView.vue";
 import SnippetView from "./tools/SnippetView.vue";
 
 // How Flow's tools read in the transcript and approval cards: a present-tense label, an
@@ -58,13 +59,27 @@ const TOOLS = {
 	},
 	run_action: {
 		icon: "lucide-play",
-		label: (args) => ACTIONS[args.action] ?? "Running Document Actions",
+		label: (args) =>
+			ACTIONS[args.action] ??
+			(/^\w+(\.\w+)+$/.test(args.action ?? "") ? "Running a Function" : "Running Document Actions"),
 		view: NamesView,
 		asks: true,
 		stat: (result) =>
-			result.action === "rename" ? "renamed" : outcome(result.results, "done"),
+			result.action === "rename"
+				? "renamed"
+				: result.results
+				? outcome(result.results, "done")
+				: "",
 	},
 	execute: { icon: "lucide-code", label: "Running Code", view: CodeView, asks: true },
+	// its card is a password box that answers the card itself
+	request_secret: {
+		icon: "lucide-key-round",
+		label: "Saving a Password",
+		argsView: SecretView,
+		asks: true,
+		ownAnswers: true,
+	},
 	search_knowledge: {
 		icon: "lucide-book-open",
 		label: "Searching Knowledge",
@@ -125,7 +140,8 @@ export function presentTool(name, args = {}, result = null) {
 		subject: subject(args),
 		stat: stat ?? "",
 		expandable: tool.view ? undefined : false,
-		argsComponent: tool.asks ? tool.view : undefined,
+		argsComponent: tool.asks ? tool.argsView ?? tool.view : undefined,
+		ownAnswers: tool.ownAnswers,
 		resultComponent: plain ? JsonView : tool.view,
 	};
 }
