@@ -601,9 +601,9 @@ def _apply_action(doctype: str, name: str, action: str, args: dict[str, Any]) ->
 		amended.insert()
 		return {"name": amended.name}
 	if action in _workflow_actions(doc):
-		from frappe.model.workflow import apply_workflow
+		from frappe.model.workflow import run_workflow_transition
 
-		apply_workflow(doc, action)
+		run_workflow_transition(doc, action)
 		return {"name": doc.name, "action": action}
 	if _resolve_method(doc, action) is not None:
 		return doc.run_method(action, **args)

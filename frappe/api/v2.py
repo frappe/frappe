@@ -246,7 +246,7 @@ def create_doc(doctype: str):
 	if (name := data.get("name")) and isinstance(name, str | int):
 		doc.flags.name_set = True
 
-	return doc.insert().as_dict()
+	return doc.insert().copy_with_fieldlevel_read_permissions().as_dict()
 
 
 def copy_doc(doctype: str, name: str, ignore_no_copy: bool = True):
@@ -268,13 +268,12 @@ def update_doc(doctype: str, name: str):
 	data.pop("flags", None)
 	doc.update(data)
 	doc.save()
-	doc.apply_fieldlevel_read_permissions()
 
 	# check for child table doctype
 	if doc.get("parenttype"):
 		frappe.get_doc(doc.parenttype, doc.parent).save()
 
-	return doc.as_dict()
+	return doc.copy_with_fieldlevel_read_permissions().as_dict()
 
 
 def delete_doc(doctype: str, name: str):
@@ -286,6 +285,30 @@ def delete_doc(doctype: str, name: str):
 def get_meta(doctype: str):
 	frappe.only_for("All")
 	return frappe.get_meta(doctype)
+
+
+def replace_with_masked(result, doc, masked):
+	"""Swap the document and its child rows in a method's result for those of its masked copy."""
+	if masked is doc:
+		return result
+
+	masked_for = {id(doc): masked}
+	for fieldname in doc._non_computed_table_fieldnames:
+		masked_for.update(
+			(id(row), m)
+			for row, m in zip(doc.get(fieldname) or [], masked.get(fieldname) or [], strict=False)
+		)
+
+	def swap(value):
+		if id(value) in masked_for:
+			return masked_for[id(value)]
+		if type(value) in (list, tuple):
+			return type(value)(swap(v) for v in value)
+		if type(value) in (dict, frappe._dict):
+			return type(value)((k, swap(v)) for k, v in value.items())
+		return value
+
+	return swap(result)
 
 
 def execute_doc_method(doctype: str, name: str, method: str | None = None):
@@ -307,9 +330,9 @@ def execute_doc_method(doctype: str, name: str, method: str | None = None):
 	)
 	doc.check_permission(PERMISSION_MAP[frappe.request.method])
 	result = doc.run_method(method, **frappe.form_dict)
-	doc.apply_fieldlevel_read_permissions()
-	frappe.response.docs.append(doc.as_dict())
-	return result
+	masked = doc.copy_with_fieldlevel_read_permissions()
+	frappe.response.docs.append(masked.as_dict())
+	return replace_with_masked(result, doc, masked)
 
 
 def bulk_delete_docs(doctype: str):
@@ -505,10 +528,9 @@ def execute_bulk_update_docs(doctype: str, docs: list):
 
 			doc.update(item_copy)
 			doc.save()
-			doc.apply_fieldlevel_read_permissions()
 
 			updated.append(name)
-			frappe.response.docs.append(doc.as_dict())
+			frappe.response.docs.append(doc.copy_with_fieldlevel_read_permissions().as_dict())
 		except Exception as e:
 			frappe.db.rollback(save_point=savepoint)
 			failed.append({"name": name, "error": str(e)})
@@ -588,10 +610,9 @@ def execute_bulk_update(docs: list):
 
 			doc.update(item_copy)
 			doc.save()
-			doc.apply_fieldlevel_read_permissions()
 
 			updated.append({"doctype": doctype, "name": name})
-			frappe.response.docs.append(doc.as_dict())
+			frappe.response.docs.append(doc.copy_with_fieldlevel_read_permissions().as_dict())
 		except Exception as e:
 			frappe.db.rollback(save_point=savepoint)
 			failed.append({"doctype": doctype, "name": name, "error": str(e)})
@@ -648,9 +669,9 @@ def run_doc_method(method: str, document: dict[str, Any] | str, kwargs=None):
 
 	new_kwargs = get_newargs(fn, kwargs)
 	response = doc.run_method(method, **new_kwargs)
-	doc.apply_fieldlevel_read_permissions()
-	frappe.response.docs.append(doc)  # send modified document and result both.
-	return response
+	masked = doc.copy_with_fieldlevel_read_permissions()
+	frappe.response.docs.append(masked)  # send modified document and result both.
+	return replace_with_masked(response, doc, masked)
 
 
 url_rules = [
