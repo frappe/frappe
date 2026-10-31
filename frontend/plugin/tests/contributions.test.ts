@@ -798,3 +798,47 @@ describe("an app's shell hook", () => {
     expect(code).not.toMatch(/^import .*shell\.js/m);
   });
 });
+
+describe("a view type", () => {
+  const VIEW = 'export default { renderer: () => import("./CardsView.vue") }';
+  const CARDS = "myapp/view_type/cards";
+
+  it("is found at <module>/view_type/<scrubbed>/frontend/view.js, named by the record beside it", () => {
+    const [myapp] = bench({
+      myapp: {
+        [`${CARDS}/cards.json`]: JSON.stringify({ name: "Cards", label: "Cards" }),
+        [`${CARDS}/frontend/view.js`]: VIEW,
+      },
+    });
+
+    expect(discover([myapp]).viewTypes).toEqual([
+      { app: "myapp", type: "Cards", file: join(myapp.source_dir, CARDS, "frontend/view.js") },
+    ]);
+  });
+
+  it("is skipped with no record, which the manifest has already refused", () => {
+    const [myapp] = bench({ myapp: { [`${CARDS}/frontend/view.js`]: VIEW } });
+
+    expect(discover([myapp]).viewTypes).toEqual([]);
+  });
+
+  it("imports view.js and hands on its lazy renderer", () => {
+    const [myapp] = bench({
+      myapp: {
+        [`${CARDS}/cards.json`]: JSON.stringify({ name: "Cards" }),
+        [`${CARDS}/frontend/view.js`]: VIEW,
+      },
+    });
+    const file = join(myapp.source_dir, CARDS, "frontend/view.js");
+
+    const code = load(contributions([myapp]));
+
+    expect(code).toContain(`import v0 from ${JSON.stringify(file)}`);
+    expect(code).toContain(
+      `  viewTypes: [\n` +
+        `    { app: "myapp", type: "Cards", handlers: v0, renderer: v0?.renderer, ` +
+        `__file: ${JSON.stringify(file)} },\n` +
+        `  ].filter(usable),`,
+    );
+  });
+});

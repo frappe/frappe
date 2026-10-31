@@ -1,0 +1,66 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "Prompt",
+ "creation": "2026-10-31 12:00:00.000000",
+ "description": "The ways a doctype's records can be drawn: List, Kanban and so on. Code-owned: an app ships a row as a file, with its renderer and its optional server rules beside it.",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "label",
+  "icon",
+  "column_break_vtyp",
+  "module"
+ ],
+ "fields": [
+  {
+   "description": "What the view switcher shows.",
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Label",
+   "reqd": 1
+  },
+  {
+   "fieldname": "icon",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Icon"
+  },
+  {
+   "fieldname": "column_break_vtyp",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "The module whose folder this row is exported to and imported from.",
+   "fieldname": "module",
+   "fieldtype": "Link",
+   "label": "Module",
+   "options": "Module Def",
+   "reqd": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-10-31 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "View Type",
+ "naming_rule": "Set by user",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "read": 1,
+   "role": "System Manager"
+  },
+  {
+   "read": 1,
+   "role": "Desk User"
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "ASC",
+ "states": []
+}

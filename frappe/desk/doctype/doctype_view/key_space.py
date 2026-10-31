@@ -5,15 +5,18 @@ import unicodedata
 
 import frappe
 from frappe import _
+from frappe.desk.doctype.view_type.view_type import type_keys
 
 from .app_views import app_views
-from .doctype_view import PLAIN_VIEW, SITE_ROW, VIEW_TYPES
+from .doctype_view import PLAIN_VIEW, SITE_ROW
 
-# `/<doctype>/view/<type>` is the plain view of that type, so a type's name is never a saved view's key.
-TYPE_KEYS = {view_type.lower(): view_type for view_type in VIEW_TYPES}
+# The candidates of "which view types survive" (#45854), held until that grilling rules; a dropped one is released.
+SURVIVOR_CANDIDATES = frozenset(
+	{"report", "calendar", "gantt", "tree", "image", "inbox", "map", "dashboard", "cards"}
+)
 
 # Kanban's before it is a type; `/<doctype>/view/record` is the standard page of the record named "view".
-RESERVED_KEYS = frozenset(TYPE_KEYS) | {"kanban", "record"}
+HELD_KEYS = frozenset({"kanban", "record"})
 
 KEY_LENGTH_LIMIT = 60
 RANDOM_KEY_LENGTH = 8
@@ -53,7 +56,12 @@ class KeySpace:
 			.where((view.key == base) | view.key.like(f"{base}-%"))
 			.run(pluck=True)
 		)
-		return set(keys) | RESERVED_KEYS | set(app_views(self.doctype))
+		return set(keys) | reserved_keys() | set(app_views(self.doctype))
+
+
+def reserved_keys() -> frozenset[str]:
+	"""Keys no saved view may take: `/<doctype>/view/<type>` is the plain view of each `View Type`."""
+	return frozenset(type_keys()) | SURVIVOR_CANDIDATES | HELD_KEYS
 
 
 def find_views(

@@ -38,6 +38,7 @@ global_cache_keys = (
 	"server_script_map",
 	"domain_restricted_doctypes",
 	"domain_restricted_pages",
+	"view_types",
 	# hash of per-module sidebar bases; `on_module_content_changed` busts single fields, this
 	# is the escape hatch for anything that changed a module's contents behind doc_events' back
 	"sidebar_computed_base",

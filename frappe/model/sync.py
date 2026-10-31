@@ -36,6 +36,8 @@ IMPORTABLE_DOCTYPES = [
 	("desk", "sidebar"),
 	# Desk v2's navigation kinds: the record arrives at migrate through this walk, the JS at build.
 	("desk", "navigation_item_type"),
+	# Desk v2's view types, the same way: the record at migrate, `frontend/view.js` at build.
+	("desk", "view_type"),
 	("desk", "onboarding_step"),
 	("desk", "module_onboarding"),
 	("desk", "form_tour"),
@@ -257,6 +259,7 @@ ORPHANABLE_ENTITIES = [
 	"Rail",
 	"Settings Dialog",
 	"Navigation Item Type",
+	"View Type",
 	"List Filter",
 	"Kanban Board",
 ]
@@ -287,7 +290,7 @@ def remove_orphan_entities(entity_types=None):
 		# Desk v2's rail: the app layer is file-backed; the site's and each person's are never candidates.
 		"Rail": {"standard": 1},
 		"Settings Dialog": {"standard": 1},
-		# `Navigation Item Type` has no filter: every kind is app content, so every row is file-backed.
+		# `Navigation Item Type` and `View Type` have no filter: every row is app content, so file-backed.
 		# a user's own or a site-wide layout is never backed by a file
 		"List Filter": {"is_standard": 1},
 		"Kanban Board": {"is_standard": "Yes"},

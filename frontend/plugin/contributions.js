@@ -47,6 +47,7 @@ export function discover(manifest, allSourceDirs = manifest.map((entry) => entry
 	const doctypes = [];
 	const pages = [];
 	const itemTypes = [];
+	const viewTypes = [];
 	const settings = [];
 	const acts = [];
 	const shellHooks = [];
@@ -126,6 +127,15 @@ export function discover(manifest, allSourceDirs = manifest.map((entry) => entry
 				itemTypes.push({ app, type: name, file });
 			}
 
+			// A view type: <module>/view_type/<scrubbed>/frontend/view.js, named by the record beside it.
+			// The manifest refuses a renderer with no record, so this skips only what it already failed.
+			const viewTypeRoot = join(modulePath, "view_type");
+			for (const scrubbed of directories(viewTypeRoot)) {
+				const file = join(viewTypeRoot, scrubbed, "frontend", "view.js");
+				const name = recordName(join(viewTypeRoot, scrubbed, `${scrubbed}.json`));
+				if (isFile(file) && name) viewTypes.push({ app, type: name, file });
+			}
+
 			// A settings block's component: <module>/frontend/settings/<name>.vue. The app's
 			// `Settings Dialog` record names it by <name> alone.
 			const settingsRoot = join(modulePath, "frontend", "settings");
@@ -156,6 +166,7 @@ export function discover(manifest, allSourceDirs = manifest.map((entry) => entry
 		doctypes,
 		pages,
 		itemTypes,
+		viewTypes,
 		settings: settings.filter((entry) => !sharesItsName(entry, settings)),
 		acts,
 		shellHooks: shellHooks.filter((entry) => !sharesItsApp(entry, shellHooks)),
@@ -226,6 +237,7 @@ function generate({
 	doctypes,
 	pages,
 	itemTypes,
+	viewTypes,
 	settings,
 	acts,
 	shellHooks,
@@ -251,6 +263,9 @@ function generate({
 	});
 	itemTypes.forEach((entry, index) => {
 		imports.push(`import i${index} from ${JSON.stringify(entry.file)}`);
+	});
+	viewTypes.forEach((entry, index) => {
+		imports.push(`import v${index} from ${JSON.stringify(entry.file)}`);
 	});
 	replacements.forEach((entry, index) => {
 		imports.push(`import r${index} from ${JSON.stringify(entry.file)}`);
@@ -292,6 +307,17 @@ function generate({
 				`handlers: i${index}, renderer: i${index}, __file: ${JSON.stringify(
 					entry.file
 				)} },`
+		);
+	});
+	lines.push("  ].filter(usable),");
+
+	// `view.js` is eager and small; its `renderer` is the lazy import, one chunk per type.
+	lines.push("  viewTypes: [");
+	viewTypes.forEach((entry, index) => {
+		lines.push(
+			`    { app: ${JSON.stringify(entry.app)}, type: ${JSON.stringify(entry.type)}, ` +
+				`handlers: v${index}, renderer: v${index}?.renderer, ` +
+				`__file: ${JSON.stringify(entry.file)} },`
 		);
 	});
 	lines.push("  ].filter(usable),");

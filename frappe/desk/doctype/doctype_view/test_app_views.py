@@ -111,13 +111,12 @@ class TestTheIndex(AppViewCase):
 
 	def test_a_bad_file_is_refused(self):
 		bad = {
-			"probe-unknown-type": a_file(type="Gantt"),
+			"probe-no-type": a_file(type=""),
 			"probe-no-label": a_file(label=""),
 			"probe-list-settings": a_file(settings=[]),
 			"probe-too-big": a_file(settings={"columns": "x" * 17 * 1024}),
 			"probe-icon": a_file(icon="star"),
 			"probe-default-word": a_file(default="yes"),
-			"list": a_file(),
 			"Probe_Caps": a_file(),
 		}
 		for key, file in bad.items():
@@ -127,6 +126,18 @@ class TestTheIndex(AppViewCase):
 		index = self.index()
 		self.assertEqual(index.views, {})
 		self.assertEqual(len(index.refused), len(bad) + 1)
+
+	def test_the_site_leaves_out_a_file_its_view_types_refuse(self):
+		"""The index is per set of apps; which types exist, and the keys they reserve, are per site."""
+		self.folders.own_view("probe-unknown-type", type="Gantt")
+		self.folders.own_view("list")
+		self.folders.own_view("calendar")
+		self.folders.own_view("probe-fine")
+
+		self.assertEqual(len(self.index().views["todo"]), 4)
+		with self.assertLogs(frappe.logger("desk"), level="WARNING") as logged:
+			self.assertEqual(list(app_views("ToDo")), ["probe-fine"])
+		self.assertEqual(len(logged.output), 3)
 
 	def test_a_second_default_of_one_app_is_refused(self):
 		self.folders.own_view("probe-a", default=True)
@@ -211,6 +222,7 @@ class TestTheKeySpace(AppViewCase):
 		index = self.index()
 		index.views["todo"]["probe-open"] = index.views["todo"]["probe-open"]._replace(type="Kanban")
 		self.enterContext(patch.object(app_views_module, "current_index", return_value=index))
+		self.enterContext(patch.object(app_views_module, "view_types", return_value={"List", "Kanban"}))
 		with self.assertRaisesRegex(frappe.ValidationError, "stays a Kanban view"):
 			site_row("probe-open")
 

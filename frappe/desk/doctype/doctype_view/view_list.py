@@ -3,10 +3,10 @@
 import frappe
 from frappe import _
 from frappe.desk.doctype.default_view.resolver import DefaultViews
+from frappe.desk.doctype.view_type.view_type import applies_to, view_types
 
 from .app_views import app_view_doctypes, app_views
 from .doctype_view import PLAIN_VIEW, SITE_ROW
-from .key_space import TYPE_KEYS
 
 # A doctype's own address opens its plain List view when no layer's default resolves.
 FALLBACK_DEFAULT = "list"
@@ -56,9 +56,11 @@ class ViewList:
 
 	def views(self, doctype: str, rows: list[frappe._dict], default: str | None) -> list[dict]:
 		"""The doctype's views from its `rows` in lookup order, each key once at its first layer, the default marked."""
+		fitting = fitting_types(doctype)
 		listed = {}
-		for view in (*plain_views(), *self.saved_views(doctype, rows)):
-			listed.setdefault(view["key"], view)
+		for view in (*plain_views(fitting), *self.saved_views(doctype, rows)):
+			if view["type"] in fitting:
+				listed.setdefault(view["key"], view)
 
 		default = default or FALLBACK_DEFAULT
 		return [{**view, "default": key == default} for key, view in listed.items()]
@@ -77,9 +79,14 @@ class ViewList:
 		return [*stored, *sorted(shipped, key=lambda view: (view["label"].casefold(), view["key"]))]
 
 
-def plain_views() -> list[dict]:
+def fitting_types(doctype: str) -> dict[str, frappe._dict]:
+	"""The view types that apply to `doctype`; a view of any other type is left out."""
+	return {name: record for name, record in view_types().items() if applies_to(name, doctype)}
+
+
+def plain_views(types: dict[str, frappe._dict]) -> list[dict]:
 	"""Each view type's plain view, at `/<doctype>/view/<type>`; it belongs to no layer."""
-	return [listed_view(key, _(type), type, None) for key, type in TYPE_KEYS.items()]
+	return [listed_view(name.lower(), _(record.label), name, None) for name, record in types.items()]
 
 
 def listed_view(key: str, label: str, type: str, layer: str | None) -> dict:

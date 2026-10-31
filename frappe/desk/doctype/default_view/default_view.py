@@ -3,7 +3,8 @@
 
 import frappe
 from frappe import _
-from frappe.desk.doctype.doctype_view.doctype_view import PLAIN_VIEW, SITE_ROW, VIEW_TYPES
+from frappe.desk.doctype.doctype_view.doctype_view import PLAIN_VIEW, SITE_ROW
+from frappe.desk.doctype.view_type.view_type import view_types
 from frappe.model.document import Document
 
 
@@ -33,7 +34,7 @@ class DefaultView(Document):
 		self.view = self.view or PLAIN_VIEW
 		if self.view:
 			self.type = None
-		elif self.type not in VIEW_TYPES:
+		elif self.type not in view_types():
 			frappe.throw(
 				_("{0} is not a view type.").format(frappe.bold(self.type)), title=_("Unknown View Type")
 			)

@@ -5,15 +5,13 @@ import json
 
 import frappe
 from frappe import _
+from frappe.desk.doctype.view_type import view_type
 from frappe.model.document import Document
 
 # Blank, not `None`: every `NULL` is distinct to the unique index, so a nullable column
 # would let one doctype hold two site rows for one view.
 SITE_ROW = ""
 PLAIN_VIEW = ""
-
-# The types the desk renders; an app's own type arrives with the views map, not here.
-VIEW_TYPES = ("List",)
 
 # Inserts a key may lose to other views of its doctype before the save is refused.
 KEY_CLAIM_ATTEMPTS = 5
@@ -151,10 +149,11 @@ class DoctypeView(Document):
 		return app_views(self.reference_doctype).get(self.key) if self.key else None
 
 	def validate_type(self):
-		if self.type not in VIEW_TYPES:
+		if self.type not in view_type.view_types():
 			frappe.throw(
 				_("{0} is not a view type.").format(frappe.bold(self.type)), title=_("Unknown View Type")
 			)
+		view_type.refuse_where_it_does_not_apply(self.type, self.reference_doctype)
 
 	def refuse_another_type_over_an_app_view(self):
 		"""A site row at an app view's key replaces it for everyone, so it keeps the app view's type."""
@@ -168,7 +167,7 @@ class DoctypeView(Document):
 			)
 
 	def validate_settings(self):
-		"""One JSON object under the size cap; what is inside it is the view type's to check."""
+		"""One JSON object under the size cap, then the view type's own check of what is inside it."""
 		stored = self.settings if isinstance(self.settings, str) else json.dumps(self.settings or {})
 
 		if len(stored.encode()) > SETTINGS_SIZE_LIMIT:
@@ -184,6 +183,8 @@ class DoctypeView(Document):
 
 		if not isinstance(parsed, dict):
 			frappe.throw(_("The settings of a view are one object."), title=_("Not Settings"))
+
+		view_type.validate_settings(self.type, self.reference_doctype, parsed)
 
 	def refuse_a_label_that_moves_the_view(self):
 		"""A saved view keeps a label and the plain view has none: the key, set once, says which it is."""

@@ -5,7 +5,7 @@ from typing import NamedTuple
 from urllib.parse import unquote
 
 import frappe
-from frappe.desk.doctype.doctype_view.key_space import RESERVED_KEYS
+from frappe.desk.doctype.doctype_view.key_space import reserved_keys
 
 from . import SHELL_ROOT
 from .doctypes import get_address_table
@@ -61,6 +61,6 @@ def parse_visit(row, prefixes: dict[str, str], doctypes: dict[str, str]) -> Visi
 def parse_view_visit(row, app: str, segments: list[str], doctypes: dict[str, str]) -> Visit | None:
 	"""A saved view's address, `<doctype>/view/<key>`; a view type's own page is no saved view."""
 	slug, _view, key = segments
-	if slug not in doctypes or not key or key in RESERVED_KEYS:
+	if slug not in doctypes or not key or key in reserved_keys():
 		return None
 	return Visit(row.route, row.visited, app, doctypes[slug], None, key)
