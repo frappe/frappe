@@ -22,6 +22,7 @@ STANDARD_FIELDS = frozenset(default_fields + child_table_fields + optional_field
 
 class FormLayout(Document):
 	def validate(self):
+		self.validate_app()
 		self.validate_single_default()
 		self.validate_layout()
 
@@ -108,35 +109,40 @@ class FormLayout(Document):
 			frappe.throw(_("Layout must be a list of containers."), title=_("Invalid Layout"))
 		return tree
 
+	def validate_app(self):
+		self.app = (self.app or "").strip() or None
+		if self.app and self.app not in frappe.get_installed_apps():
+			frappe.throw(
+				_("{0} is not an installed app.").format(frappe.bold(self.app)), title=_("Invalid App")
+			)
+
 	def validate_single_default(self):
 		if self.condition:
 			return
 		default = frappe.get_all(
 			"Form Layout",
 			filters={
-				"dt": self.dt,
-				"type": self.type,
-				"condition": ("is", "not set"),
+				**default_filters(self.dt, self.type, self.app),
 				"name": ("!=", self.name or ""),
 			},
 			limit=1,
 		)
 		if default:
 			frappe.throw(
-				_("A default Form Layout already exists for {0} ({1}). Add a condition to this one.").format(
-					self.dt, self.type
+				_("A default Form Layout already exists for {0}. Add a condition to this one.").format(
+					layout_scope(self.dt, self.type, self.app)
 				)
 			)
 
 
 @frappe.desk_v2_only
 @frappe.whitelist()
-def get_form_layouts(dt: str, type: str):
+def get_form_layouts(dt: str, type: str, app: str | None = None):
 	validate_target(dt, type)
 	check_layout_access(dt, type)
 
-	layouts = get_layouts(dt, type)
-	children = get_child_layouts(dt)
+	layouts = get_layouts(dt, type, app)
+	children = get_child_layouts(dt, app)
 	if type != "Quick Entry":
 		return {"layouts": layouts, "fallback": get_meta_layout(dt), "children": children}
 	return {
@@ -156,6 +162,7 @@ def save_form_layout(
 	name: str | None = None,
 	condition: str | None = None,
 	omitted: str | None = None,
+	app: str | None = None,
 ):
 	validate_target(dt, type)
 	if name is not None and not isinstance(name, str):
@@ -163,8 +170,8 @@ def save_form_layout(
 	frappe.has_permission("Form Layout", "write", throw=True)
 	if refuse_layout_type(dt, type):
 		return None
-	doc = find_layout_doc(dt, type, name)
-	doc.update({"dt": dt, "type": type, "layout": layout, "condition": condition})
+	doc = find_layout_doc(dt, type, name, app)
+	doc.update({"dt": dt, "type": type, "app": app, "layout": layout, "condition": condition})
 	if omitted is not None:
 		doc.omitted = omitted
 	doc.save()
@@ -190,14 +197,14 @@ def refuse_layout_type(dt: str, type: str) -> bool:
 	return True
 
 
-def get_layouts(dt: str, type: str) -> list[dict]:
-	layouts = get_row_layouts(dt, type)
+def get_layouts(dt: str, type: str, app: str | None) -> list[dict]:
+	layouts = get_row_layouts(dt, type, app)
 	if not layouts and type == "New Record":
-		layouts = get_row_layouts(dt, "Details")
+		layouts = get_row_layouts(dt, "Details", app)
 	return with_app_layout(layouts, dt, type)
 
 
-def get_child_layouts(dt: str) -> dict[str, list[dict]]:
+def get_child_layouts(dt: str, app: str | None) -> dict[str, list[dict]]:
 	"""Each `Table` field's child DocType's Details rows, in one query, sent under the parent's access."""
 	children = list(
 		dict.fromkeys(
@@ -211,13 +218,16 @@ def get_child_layouts(dt: str) -> dict[str, list[dict]]:
 	rows = frappe.get_all(
 		"Form Layout",
 		filters={"dt": ("in", children), "type": "Details"},
-		fields=["name", "dt", "condition", "layout", "omitted"],
+		fields=["name", "dt", "app", "condition", "layout", "omitted"],
 		order_by="creation asc",
 	)
-	layouts = {child: [] for child in children}
+	found = {child: [] for child in children}
 	for row in rows:
-		layouts[row.dt].append(layout_of(row))
-	return {child: with_app_layout(found, child, "Details") for child, found in layouts.items()}
+		found[row.dt].append(row)
+	return {
+		child: with_app_layout([layout_of(row) for row in rows_in_app(own, app)], child, "Details")
+		for child, own in found.items()
+	}
 
 
 def with_app_layout(layouts: list[dict], dt: str, type: str) -> list[dict]:
@@ -239,8 +249,14 @@ def with_app_layout(layouts: list[dict], dt: str, type: str) -> list[dict]:
 	return layouts
 
 
-def get_row_layouts(dt: str, type: str) -> list[dict]:
-	return [layout_of(row) for row in get_layout_rows(dt, type)]
+def get_row_layouts(dt: str, type: str, app: str | None) -> list[dict]:
+	return [layout_of(row) for row in rows_in_app(get_layout_rows(dt, type), app)]
+
+
+def rows_in_app(rows: list, app: str | None) -> list:
+	"""The rows naming `app` when there are any, else the rows naming none; `None` is the `/apps` index."""
+	named = [row for row in rows if app and row.app == app]
+	return named or [row for row in rows if not row.app]
 
 
 def layout_of(row) -> dict:
@@ -256,7 +272,7 @@ def get_layout_rows(dt: str, type: str) -> list:
 	return frappe.get_all(
 		"Form Layout",
 		filters={"dt": dt, "type": type},
-		fields=["name", "condition", "layout", "omitted"],
+		fields=["name", "app", "condition", "layout", "omitted"],
 		order_by="creation asc",
 	)
 
@@ -327,22 +343,29 @@ def validate_target(dt: str, type: str) -> None:
 		frappe.throw(_("Invalid Form Layout type: {0}").format(type))
 
 
-def find_layout_doc(dt: str, type: str, name: str | None):
+def find_layout_doc(dt: str, type: str, name: str | None, app: str | None):
 	if name:
 		doc = frappe.get_doc("Form Layout", name)
-		if doc.dt != dt or doc.type != type:
+		if (doc.dt, doc.type, doc.app or None) != (dt, type, app or None):
 			frappe.throw(
-				_("Form Layout {0} belongs to {1} ({2}), not {3} ({4})").format(
-					name, doc.dt, doc.type, dt, type
+				_("Form Layout {0} belongs to {1}, not {2}").format(
+					name, layout_scope(doc.dt, doc.type, doc.app), layout_scope(dt, type, app)
 				)
 			)
 		return doc
-	default = frappe.get_all(
-		"Form Layout", filters={"dt": dt, "type": type, "condition": ("is", "not set")}, limit=1
-	)
+	default = frappe.get_all("Form Layout", filters=default_filters(dt, type, app), limit=1)
 	if default:
 		return frappe.get_doc("Form Layout", default[0].name)
 	return frappe.new_doc("Form Layout")
+
+
+def default_filters(dt: str, type: str, app: str | None) -> dict:
+	"""The one row of `(dt, type, app)` with no condition."""
+	return {"dt": dt, "type": type, "app": app or ("is", "not set"), "condition": ("is", "not set")}
+
+
+def layout_scope(dt: str, type: str, app: str | None) -> str:
+	return f"{dt} ({type}, {app})" if app else f"{dt} ({type})"
 
 
 def parse_layout(layout: str | None) -> list:
