@@ -23,9 +23,15 @@ dependencies = [
     # We depend on internal attributes,
     # do NOT add loose requirements on PyMySQL versions.
     "PyMySQL==1.1.2",
+<<<<<<< HEAD
     "pypdf==6.19.0",
     "PyPika @ git+https://github.com/frappe/pypika@7ef6e40215d46cd531e8c4e58650b84c11abbd04",
     "mysqlclient==2.2.7",
+=======
+    "pypdf==6.21.4",
+    "PyPika @ git+https://github.com/frappe/pypika@054ffb18a0a60f3c3f472dcce86116fd86db1188",
+    "mysqlclient==2.3.0",
+>>>>>>> de39474 (fix(deps): bump pypdf to 6.21.4)
     "PyQRCode~=1.2.1",
     "PyYAML~=6.0.3",
     "RestrictedPython~=8.5",
@@ -232,7 +238,15 @@ nixpkgs-deps = [
 
 [tool.uv]
 exclude-newer = "7 days"
+<<<<<<< HEAD
 exclude-newer-package = { pypdf = false, filelock = false } # drop filelock after 2026-11-10
+=======
+<<<<<<< HEAD
+exclude-newer-package = { pypdf = false, sqlparse = false } # drop sqlparse after 2026-08-20
+=======
+exclude-newer-package = { sqlparse = false, pyjwt = false, oauthlib = false, frappe-flow = false, pypdf = false } # drop sqlparse after 2026-08-20, pyjwt and oauthlib after 2026-10-06, frappe-flow after 2026-11-05, pypdf after 2026-11-04
+>>>>>>> de39474 (fix(deps): bump pypdf to 6.21.4)
+>>>>>>> cea5c04e56 (fix(deps): bump pypdf to 6.21.4)
 
 [tool.mypy]
 strict = false
