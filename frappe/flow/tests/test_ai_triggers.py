@@ -6,7 +6,10 @@ from typing import Any
 from unittest.mock import patch
 
 import frappe
+from frappe.flow import Agent, Trigger
+from frappe.flow.assistant import ASSISTANT_AGENT_NAME
 from frappe.flow.daemon.client import DaemonClient
+from frappe.flow.lib.trigger import sync_triggers
 from frappe.flow.permissions import FLOW_USER_ROLE
 from frappe.flow.tests.test_fake_daemon import FakeDaemon
 from frappe.flow.tools.builtins import sync_builtin_tools
@@ -325,3 +328,212 @@ class TestFire(IntegrationTestCase):
 				frappe.db.set_value("Flow Trigger", self.trigger.name, values)
 				self.assertIsNone(fire(self.trigger.name, target_doctype="ToDo", target_name=target))
 				self.assertEqual(self.turns(), [])
+
+
+RUNNER = "trigger-runner@example.com"
+
+
+def shipped_triggers() -> list[Trigger]:
+	"""What an app's `flow_triggers` entry returns."""
+	return [
+		Trigger(
+			title="Research new todo",
+			agent="Researcher",
+			doctype="ToDo",
+			doc_event="after_insert",
+			condition="doc.status == 'Open'",
+			prompt="Look into {{ doc.name }}.",
+			run_as=RUNNER,
+		),
+		Trigger(title="Morning summary", agent="Summariser", cron="0 8 * * 1-5", prompt="Summarise."),
+	]
+
+
+def reshipped_triggers() -> list[Trigger]:
+	"""The same app after an update: one trigger changed, the other dropped."""
+	return [
+		Trigger(
+			title="Research new todo",
+			agent="Researcher",
+			doctype="ToDo",
+			doc_event="on_update",
+			prompt="Look again at {{ doc.name }}.",
+			run_as=RUNNER,
+		)
+	]
+
+
+def broken_triggers() -> list[Trigger]:
+	"""Triggers an app defines wrongly, and one it defines right."""
+	return [
+		Trigger(
+			title="Nobody runs it",
+			agent="Researcher",
+			cron="0 8 * * *",
+			prompt="x",
+			run_as="nobody@example.com",
+		),
+		Trigger(
+			title="Both",
+			agent="Researcher",
+			doctype="ToDo",
+			doc_event="after_insert",
+			cron="0 8 * * *",
+			prompt="x",
+		),
+		Trigger(
+			title="Research new todo",
+			agent="Researcher",
+			doctype="ToDo",
+			doc_event="after_insert",
+			prompt="x",
+		),
+	]
+
+
+def failing_triggers() -> list[Trigger]:
+	"""An entry that fails before it returns any trigger."""
+	raise frappe.ValidationError("No triggers today.")
+
+
+class TestShippedTriggers(IntegrationTestCase):
+	"""Triggers apps ship through the `flow_triggers` hook."""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		sync_builtin_tools()
+
+	def setUp(self):
+		self.model = frappe.get_doc(_model()).insert()
+		Agent(name="Researcher", model=self.model.name, instructions="Research.").sync()
+		_user(RUNNER, FLOW_USER_ROLE)
+		self.started = frappe.utils.now()
+
+	def tearDown(self):
+		frappe.db.rollback()
+
+	def hooked(self, *functions: str):
+		"""`flow_triggers` lists these functions of this module."""
+		get_hooks = frappe.get_hooks
+
+		def hooks(name=None, *args, **kwargs):
+			if name == "flow_triggers":
+				return [f"{__name__}.{function}" for function in functions]
+			return get_hooks(name, *args, **kwargs)
+
+		return patch("frappe.get_hooks", side_effect=hooks)
+
+	def test_names_are_the_apps_own_unless_named_with_their_app(self):
+		trigger = Trigger(title="Daily", agent="Researcher", cron="0 8 * * *", prompt="x")
+		self.assertEqual((trigger.name, trigger.agent), ("frappe/Daily", "frappe/Researcher"))
+		trigger = Trigger(title="Daily", agent=ASSISTANT_AGENT_NAME, cron="0 8 * * *", prompt="x")
+		self.assertEqual(trigger.agent, ASSISTANT_AGENT_NAME)
+
+	def test_a_shipped_trigger_arrives_switched_on_and_only_its_switch_changes(self):
+		with self.hooked("shipped_triggers"):
+			sync_triggers()
+		doc = frappe.get_doc("Flow Trigger", "frappe/Research new todo")
+		self.assertEqual(
+			(doc.agent, doc.app, doc.is_system_generated, doc.enabled, doc.run_as, doc.doc_event),
+			("frappe/Researcher", "frappe", 1, 1, RUNNER, "after_insert"),
+		)
+
+		doc.enabled = 0
+		doc.save()
+		for field, value in (("run_as", None), ("prompt_template", "Mine now.")):
+			with self.subTest(field):
+				doc.set(field, value)
+				self.assertRaisesRegex(frappe.ValidationError, "Cannot change", doc.save)
+				doc.reload()
+		self.assertRaisesRegex(
+			frappe.ValidationError, "Cannot delete", frappe.delete_doc, "Flow Trigger", doc.name
+		)
+
+		# an update rewrites the definition, keeps the site's switch, and drops what it no longer ships
+		with self.hooked("reshipped_triggers"):
+			sync_triggers()
+		doc.reload()
+		self.assertEqual(
+			(doc.doc_event, doc.condition, doc.prompt_template, doc.enabled),
+			("on_update", None, "Look again at {{ doc.name }}.", 0),
+		)
+
+	def test_a_trigger_waits_for_its_agent(self):
+		with self.hooked("shipped_triggers"):
+			sync_triggers()
+			self.assertFalse(frappe.db.exists("Flow Trigger", "frappe/Morning summary"))
+
+			Agent(name="Summariser", model=self.model.name, instructions="Summarise.").sync()
+			sync_triggers()
+		doc = frappe.get_doc("Flow Trigger", "frappe/Morning summary")
+		# without a run_as of its own it runs as its owner, Administrator
+		self.assertEqual(
+			(doc.event, doc.cron_expression, doc.run_as, doc.owner),
+			("Scheduled", "0 8 * * 1-5", None, "Administrator"),
+		)
+
+		with self.hooked("reshipped_triggers"):
+			sync_triggers()
+		self.assertFalse(frappe.db.exists("Flow Trigger", "frappe/Morning summary"))
+
+	def test_migrate_skips_a_trigger_it_cannot_write(self):
+		with self.hooked("broken_triggers"):
+			sync_triggers()
+		self.assertTrue(frappe.db.exists("Flow Trigger", "frappe/Research new todo"))
+		self.assertFalse(frappe.db.exists("Flow Trigger", "frappe/Both"))
+		self.assertFalse(frappe.db.exists("Flow Trigger", "frappe/Nobody runs it"))
+
+		# an entry that fails keeps what its app shipped before
+		with self.hooked("failing_triggers"):
+			sync_triggers()
+		self.assertTrue(frappe.db.exists("Flow Trigger", "frappe/Research new todo"))
+
+		titles = (
+			"Flow Trigger frappe/Both skipped",
+			"Flow Trigger frappe/Nobody runs it skipped",
+			f"Flow Triggers of {__name__}.failing_triggers skipped",
+		)
+		self.assertEqual(
+			sorted(
+				frappe.get_all(
+					"Error Log",
+					{"method": ["in", titles], "creation": [">=", self.started]},
+					["method", "error"],
+					as_list=True,
+				)
+			),
+			[
+				(
+					"Flow Trigger frappe/Both skipped",
+					"Flow Trigger frappe/Both needs a doctype or a cron, not both.",
+				),
+				("Flow Trigger frappe/Nobody runs it skipped", "Could not find Run As: nobody@example.com"),
+				(f"Flow Triggers of {__name__}.failing_triggers skipped", "No triggers today."),
+			],
+		)
+
+	def test_the_site_cannot_take_an_apps_name_or_flag(self):
+		agent = "frappe/Researcher"
+		self.assertRaisesRegex(
+			frappe.ValidationError,
+			"cannot contain /",
+			frappe.get_doc(_trigger(agent, title="crm/Mine")).insert,
+		)
+		self.assertRaisesRegex(
+			frappe.ValidationError,
+			"Only an app",
+			frappe.get_doc(_trigger(agent, is_system_generated=1)).insert,
+		)
+
+	def test_the_patch_renames_the_sites_triggers_named_like_an_apps(self):
+		from frappe.patches.v17_0.free_app_names_from_site_flow_triggers import execute
+
+		for name in ("crm/Mine", "crm-Mine"):
+			doc = frappe.get_doc(_trigger("frappe/Researcher", title=name))
+			doc.name = name
+			doc.db_insert()
+
+		execute()
+		self.assertFalse(frappe.db.exists("Flow Trigger", "crm/Mine"))
+		self.assertEqual(frappe.db.get_value("Flow Trigger", "crm-Mine-2", "title"), "crm-Mine-2")

@@ -65,10 +65,14 @@ ASSISTANT_INSTRUCTIONS = (
 def ensure_builtin_assistant(model: str) -> None:
 	"""Give the Assistant its first model, or a new one when its own is gone. Otherwise a
 	new model changes nothing: keeping the Assistant current is migrate's job."""
+	from frappe.flow.lib.trigger import sync_triggers
+
 	current = frappe.db.get_value("Flow Agent", ASSISTANT_AGENT_NAME, "model")
 	if current and frappe.db.exists("Flow Model", current):
 		return
 	sync_builtin_assistant(model=model)
+	# apps' triggers for the Assistant were left out while it did not exist
+	sync_triggers()
 
 
 def sync_assistant_skills(_app: str) -> None:
