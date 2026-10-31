@@ -1050,6 +1050,44 @@ class TestAttachment(IntegrationTestCase):
 			)
 		)
 
+	def test_toggle_is_private_leaves_unrelated_field_unchanged(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc(doctype="ToDo", description="Call Northwind Traders").insert()
+		file = frappe.get_doc(
+			doctype="File",
+			file_name="call-notes.txt",
+			content=b"call-notes-bytes",
+			is_private=1,
+			attached_to_doctype="ToDo",
+			attached_to_name=todo.name,
+			attached_to_field="description",
+		).insert()
+
+		file.is_private = 0
+		file.save()
+
+		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "description"), "Call Northwind Traders")
+
+	@IntegrationTestCase.change_settings("Navbar Settings", {"app_logo": "/files/logo.png"})
+	def test_toggle_is_private_leaves_unrelated_single_field_unchanged(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		file = frappe.get_doc(
+			doctype="File",
+			file_name="navbar-logo.png",
+			content=b"navbar-logo-bytes",
+			is_private=1,
+			attached_to_doctype="Navbar Settings",
+			attached_to_name="Navbar Settings",
+			attached_to_field="app_logo",
+		).insert()
+
+		file.is_private = 0
+		file.save()
+
+		self.assertEqual(frappe.db.get_single_value("Navbar Settings", "app_logo"), "/files/logo.png")
+
 
 class TestCopyAttachmentsFromAmendedFrom(IntegrationTestCase):
 	"""Test that attached_to_field and folder are copied when amending a document."""
