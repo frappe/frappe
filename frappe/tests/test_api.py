@@ -471,6 +471,7 @@ class TestWriteResponsesFieldLevelRead(FrappeAPITestCase):
 	def test_client_cancel(self):
 		frappe.get_doc(self.doctype, self.name).submit()
 		frappe.db.commit()  # nosemgrep
+		self.sent.clear()
 		doc = self.request(
 			"post", "/api/method/frappe.client.cancel", {"doctype": self.doctype, "name": self.name}
 		)
