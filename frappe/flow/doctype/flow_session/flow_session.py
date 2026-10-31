@@ -24,7 +24,6 @@ from frappe.flow.lib.session import (
 	flow_server,
 	sync_with_retry,
 )
-from frappe.flow.permissions import check_pick
 from frappe.model.document import Document
 from frappe.utils.password import get_decrypted_password
 
@@ -62,8 +61,6 @@ class FlowSession(Document):
 	def validate(self):
 		self._validate_agent_unchanged()
 		self._validate_model_enabled()
-		if not self.flags.ignore_permissions and (self.is_new() or self.has_value_changed("model")):
-			check_pick(self.agent, self.model, new=self.is_new())
 		if self.source == "Trigger":
 			self.auto_approve = 1
 

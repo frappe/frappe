@@ -20,12 +20,8 @@ server's callbacks act as the session owner."""
 from __future__ import annotations
 
 import frappe
-from frappe import _
 
 FLOW_USER_ROLE = "Flow User"
-# who builds with Flow: picks the agent and the model, and opens its Build pages. Everyone else
-# chats with the Assistant on its model, which keeps a site's credit to the model set for it
-BUILDER_ROLES = ("System Manager",)
 
 
 def ensure_flow_role() -> None:
@@ -35,32 +31,6 @@ def ensure_flow_role() -> None:
 	frappe.get_doc({"doctype": "Role", "role_name": FLOW_USER_ROLE, "desk_access": 1}).insert(
 		ignore_permissions=True, ignore_if_duplicate=True
 	)
-
-
-def is_builder() -> bool:
-	return not set(BUILDER_ROLES).isdisjoint(frappe.get_roles())
-
-
-def check_pick(agent: str | None, model: str | None, *, new: bool) -> None:
-	"""Only builders pick the agent or the model: anyone else starts with the Assistant and keeps
-	the chat on its agent's model."""
-	from frappe.flow.assistant.assistant import ASSISTANT_AGENT_NAME, ASSISTANT_AGENT_TITLE
-
-	if is_builder():
-		return
-	agent = agent or ASSISTANT_AGENT_NAME
-	if new and agent != ASSISTANT_AGENT_NAME:
-		frappe.throw(
-			_("Only the {0} agent is open to you.").format(ASSISTANT_AGENT_TITLE),
-			frappe.PermissionError,
-			title=_("Agent Not Permitted"),
-		)
-	if model and model != frappe.db.get_value("Flow Agent", agent, "model"):
-		frappe.throw(
-			_("Only the model set for {0} is open to you.").format(agent),
-			frappe.PermissionError,
-			title=_("Model Not Permitted"),
-		)
 
 
 def has_session_permission(doc, ptype: str, user: str) -> bool:

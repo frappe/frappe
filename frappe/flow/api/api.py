@@ -12,7 +12,6 @@ from typing import TYPE_CHECKING, Any
 import frappe
 from frappe import _
 from frappe.flow.lib.session import new_session, sync_with_retry
-from frappe.flow.permissions import check_pick
 from frappe.query_builder.functions import Locate, Lower
 from frappe.utils import cint, escape_html, get_fullname, get_url
 
@@ -45,11 +44,10 @@ SETTINGS_DOCTYPES = (
 def boot() -> dict[str, Any]:
 	"""What a client needs before its first call: agents (with their models) and models to pick
 	from, the default agent, whether a provider is set up, the file types it may attach, who is
-	signed in, what they may manage and whether they build with Flow."""
+	signed in and what they may manage."""
 	frappe.has_permission("Flow Session", "read", throw=True)
 	from frappe.flow.assistant.assistant import ASSISTANT_AGENT_NAME
 	from frappe.flow.knowledge.extract import FILE_EXTENSIONS
-	from frappe.flow.permissions import is_builder
 
 	agents = frappe.get_list("Flow Agent", filters={"enabled": 1}, fields=["name", "title", "model"])
 	# an app's agent shows without its app, unless another app's agent is named the same
@@ -81,7 +79,6 @@ def boot() -> dict[str, Any]:
 			]
 			for doctype in SETTINGS_DOCTYPES
 		},
-		"builder": is_builder(),
 	}
 
 
@@ -94,7 +91,6 @@ def create_session(
 ) -> dict[str, Any]:
 	"""Start a session with `agent` (the Assistant by default)."""
 	frappe.has_permission("Flow Session", "create", throw=True)
-	check_pick(agent or None, model or None, new=True)
 	doc = new_session(
 		agent or None,
 		model=model or None,
@@ -233,9 +229,7 @@ def set_model(session: str, model: str, reasoning_effort: str | None = None) -> 
 			_("Reasoning effort must be one of {0}.").format(", ".join(REASONING_EFFORTS)),
 			title=_("Invalid Reasoning Effort"),
 		)
-	doc = _load_session(session, "write")
-	check_pick(doc.agent, model.strip(), new=False)
-	doc.set_model(model.strip(), reasoning_effort=effort)
+	_load_session(session, "write").set_model(model.strip(), reasoning_effort=effort)
 	return {
 		"model": model.strip(),
 		"reasoning_effort": effort,

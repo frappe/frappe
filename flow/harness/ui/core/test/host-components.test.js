@@ -298,11 +298,8 @@ test("a host fills the composer with its pickers, commands, palette pages and wo
 		}),
 		setMode: (mode) => (flow.state.prefs.mode = mode),
 	}
-	// the model button goes with the command that picks the model
 	const bare = mount(t, Composer, { commands: [], mentions: false }, flow)
-	assert.equal(bare.el.querySelector("button[title^='Choose Model']"), null)
-	const picking = mount(t, Composer, { commands: ["model"], mentions: false }, flow)
-	assert.ok(picking.el.querySelector("button[title^='Choose Model']"))
+	assert.ok(bare.el.querySelector("button[title^='Choose Model']"))
 
 	const commands = [{ name: "agents", label: "Agent", icon: "user", hint: "choose the agent", view: "agents" }, "model"]
 	const modes = [

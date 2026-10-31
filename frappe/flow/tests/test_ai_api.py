@@ -264,15 +264,7 @@ class ApiCase(IntegrationTestCase):
 		frappe.db.rollback()
 
 	def create(self, **fields) -> str:
-		return api.create_session(fields.pop("agent", self.agent.name), **fields)["name"]
-
-	def create_as_user(self, user: str, **fields) -> str:
-		"""A chat by a user who does not build with Flow, so it starts on the Assistant."""
-		from frappe.flow.assistant import sync_builtin_assistant
-
-		sync_builtin_assistant(self.model.name)
-		frappe.set_user(user)
-		return self.create(agent=None, **fields)
+		return api.create_session(self.agent.name, **fields)["name"]
 
 	def run_status(self, run: str) -> str:
 		return frappe.db.get_value("Flow Run", run, "status")
@@ -322,7 +314,6 @@ class TestSessionEndpoints(ApiCase):
 		self.assertEqual(data["user"]["name"], "Administrator")
 		self.assertIn("full_name", data["user"])
 		self.assertEqual(data["permissions"]["Flow Provider"], ["read", "write", "create", "delete"])
-		self.assertTrue(data["builder"])
 		frappe.db.delete("Flow Provider")  # tearDown rolls it back
 		self.assertIsNone(api.boot()["provider"])
 		provider = frappe.get_doc({"doctype": "Flow Provider", "provider": "openai"}).insert()
@@ -332,7 +323,6 @@ class TestSessionEndpoints(ApiCase):
 		self.assertEqual(data["user"]["name"], OTHER)
 		self.assertEqual(data["permissions"]["Flow Provider"], [])
 		self.assertEqual(data["permissions"]["Flow Model"], ["read"])
-		self.assertFalse(data["builder"])
 
 	def test_create_session_names_the_agent_and_keeps_auto_approve(self):
 		data = api.create_session(self.agent.name, model=self.model.name, title=" Hello ", auto_approve="1")
@@ -435,42 +425,10 @@ class TestSessionEndpoints(ApiCase):
 				api.run(name, "hi", attachments=bad)
 		self.assertEqual([c for c in self.daemon.calls if c[0] == "run"], [])
 
-	def test_only_a_builder_picks_the_agent_or_the_model(self):
-		from frappe.flow.assistant import ASSISTANT_AGENT_NAME
-
-		other = frappe.get_doc(_model_doc(title="Endpoint Costly Model")).insert()
-		name = self.create_as_user(_ensure_user(OTHER))
-		default = frappe.db.get_value("Flow Agent", ASSISTANT_AGENT_NAME, "model")
-		for agent, model in (
-			(self.agent.name, None),
-			(None, other.name),
-			(ASSISTANT_AGENT_NAME, other.name),
-		):
-			with self.subTest(agent=agent, model=model), self.assertRaises(frappe.PermissionError):
-				api.create_session(agent, model=model)
-		with self.assertRaises(frappe.PermissionError):
-			frappe.get_doc(
-				{"doctype": "Flow Session", "agent": ASSISTANT_AGENT_NAME, "model": other.name}
-			).insert()
-		self.assertEqual(api.create_session(ASSISTANT_AGENT_NAME, model=default)["model"], default)
-		with self.assertRaises(frappe.PermissionError):
-			api.set_model(name, other.name)
-		session = frappe.get_doc("Flow Session", name)
-		session.model = other.name
-		with self.assertRaises(frappe.PermissionError):
-			session.save()
-		self.assertEqual(api.set_model(name, default)["model"], default)
-		self.assertEqual(frappe.db.get_value("Flow Session", name, "model"), default)
-
-		frappe.set_user("Administrator")
-		frappe.set_user(_ensure_manager())
-		mine = api.create_session(self.agent.name, model=other.name)
-		self.assertEqual(mine["model"], other.name)
-		self.assertEqual(api.set_model(mine["name"], self.model.name)["model"], self.model.name)
-
 	def test_sessions_are_for_their_owner(self):
 		manager, other = _ensure_manager(), _ensure_user(OTHER)
-		chat = self.create_as_user(_ensure_user(SHARER))
+		frappe.set_user(_ensure_user(SHARER))
+		chat = self.create()
 		fired = new_session(self.agent.name, source="Trigger").name
 		self.assertFalse(api.session(fired)["read_only"])
 
@@ -518,7 +476,8 @@ class TestSessionEndpoints(ApiCase):
 		member = _ensure_user("api-share-member@example.com")
 		desk, portal = _desk_user("api-open-desk@example.com"), _portal_user("api-open-portal@example.com")
 		manager = _ensure_manager()
-		name = self.create_as_user(owner, title="Q3 plan")
+		frappe.set_user(owner)
+		name = self.create(title="Q3 plan")
 		for grant in ({"write": 1}, {"share": 1}):
 			with (
 				self.subTest(grant),
@@ -609,7 +568,8 @@ class TestSessionEndpoints(ApiCase):
 		viewer = _ensure_user(OTHER)
 		# Administrator's name is not its email, which is how Frappe finds a recipient
 		frappe.get_doc("User", "Administrator").add_roles(FLOW_USER_ROLE)
-		name = self.create_as_user(_ensure_user(SHARER), title="<b>Q3</b>")
+		frappe.set_user(_ensure_user(SHARER))
+		name = self.create(title="<b>Q3</b>")
 		for user in (viewer, viewer, "Administrator"):
 			api.share_session(name, user)
 		logs = frappe.get_all(
@@ -657,7 +617,7 @@ class TestSessionEndpoints(ApiCase):
 		frappe.set_user(_ensure_user(OTHER))
 		foreign = frappe.get_doc(
 			{"doctype": "Flow Session", "agent": self.agent.name, "title": "Theirs"}
-		).insert(ignore_permissions=True)
+		).insert()
 		frappe.set_user("Administrator")
 
 		rows = api.list_sessions()
