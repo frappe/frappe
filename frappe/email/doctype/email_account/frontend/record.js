@@ -27,6 +27,7 @@ export default {
 			const size = await page.call("frappe.core.api.file.get_max_file_size");
 			page.doc.attachment_limit = Number(size) / (1024 * 1024);
 		}
+		await warnAutoReply(page);
 	},
 	beforeSave: (page) => moveReplyTo(page),
 	service: (page) => {
@@ -46,11 +47,6 @@ export default {
 	connected_user: (page) => page.refresh(),
 	backend_app_flow: (page) => page.refresh(),
 };
-
-function applyService(page) {
-	Object.assign(page.doc, IMAP_DEFAULTS[page.doc.service]);
-	if (!page.doc.use_imap) Object.assign(page.doc, POP_DEFAULTS[page.doc.service]);
-}
 
 function describeSecrets(page) {
 	if (page.doc.service === "GMail")
@@ -79,7 +75,8 @@ function addSignIn(page) {
 	if (!status) return;
 	const signedOut = status.relay && !status.hasToken;
 	if (!status.hasToken) addSignInBand(page, signedOut);
-	if (!connected_user && !signedOut) return;
+	// A relay sign-in reconnects a saved mailbox by its name.
+	if ((!connected_user && !signedOut) || (status.relay && page.isNew)) return;
 	page.header.add(
 		{
 			name: "authorize_api_access",
@@ -110,7 +107,11 @@ function addSignInBand(page, signedOut) {
 		? __("This mailbox was signed out. Reconnect it to sign in again.")
 		: __('OAuth has been enabled but not authorised. Use "Authorize API Access" to do so.');
 	page.frame.add(
-		{ name: "oauth_status", component: Alert, props: { theme: "amber", title } },
+		{
+			name: "oauth_status",
+			component: Alert,
+			props: { theme: "amber", title, class: "my-2" },
+		},
 		{ after: "header" }
 	);
 }
@@ -164,16 +165,23 @@ function addPullEmails(page) {
 			display: "button",
 			right: "read",
 			run: async (page) => {
-				await runMethod(
+				page.toast.success(__("Pulling emails..."));
+				const reply = await runMethod(
 					`${EMAIL_ACCOUNT}.pull_emails`,
 					{ email_account: page.docname },
 					{ nullable: true }
 				);
-				page.toast.success(__("Emails Pulled"));
+				const [message] = reply.messages ?? [];
+				page.toast.success(message?.message ?? __("Emails Pulled"));
 			},
 		},
 		{ before: "save" }
 	);
+}
+
+function applyService(page) {
+	Object.assign(page.doc, IMAP_DEFAULTS[page.doc.service]);
+	if (!page.doc.use_imap) Object.assign(page.doc, POP_DEFAULTS[page.doc.service]);
 }
 
 async function fillFromDomain(page) {
