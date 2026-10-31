@@ -25,6 +25,7 @@ function makeHost(overrides: Partial<RecordPageHost> = {}) {
   const order: string[] = [];
   const doc = ref<Record<string, any>>({ status: "Open", probability: 50 });
   const host: RecordPageHost = {
+    app: "frappe",
     doctype: "CRM Deal",
     docname: "CRM-DEAL-1",
     doc,

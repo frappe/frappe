@@ -47,6 +47,7 @@ function mountKeys(openArgument?: OpenArgument) {
 
 function makePage(host: Partial<RecordPageHost> = {}) {
 	const controller = createRecordPage({
+		app: "frappe",
 		doctype: "CRM Lead",
 		docname: "CRM-LEAD-1",
 		doc: ref({ status: "Open" }),

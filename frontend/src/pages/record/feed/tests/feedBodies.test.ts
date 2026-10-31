@@ -263,6 +263,7 @@ describe("the order a script reads", () => {
 			whileOnRecord: () => () => true,
 		});
 		controller = createRecordPage({
+			app: "frappe",
 			doctype: "CRM Deal",
 			docname: "D-1",
 			doc: ref({}),

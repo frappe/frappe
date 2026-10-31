@@ -34,6 +34,7 @@ import type { AuthoredHandlers, RecordPageApi } from "../types";
 
 function makePage(overrides: Partial<RecordPageHost> = {}) {
   const host: RecordPageHost = {
+    app: "frappe",
     doctype: "CRM Deal",
     docname: "CRM-DEAL-1",
     doc: ref({}),

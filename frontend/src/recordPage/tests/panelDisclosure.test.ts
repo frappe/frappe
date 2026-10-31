@@ -33,6 +33,7 @@ const PANEL: PanelSectionItem[] = [
 function makePage(overrides: Partial<RecordPageHost> = {}) {
   const disclosed: [string, boolean][] = [];
   const host: RecordPageHost = {
+    app: "frappe",
     doctype: "CRM Deal",
     docname: "CRM-DEAL-1",
     doc: ref({}),

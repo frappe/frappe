@@ -76,6 +76,7 @@ async function openPlain(docname: string) {
 	const early = activityReads().length;
 
 	controller.value = createRecordPage({
+		app: "frappe",
 		doctype: "CRM Deal",
 		docname,
 		doc: ref({}),

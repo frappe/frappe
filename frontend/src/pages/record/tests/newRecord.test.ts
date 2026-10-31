@@ -65,7 +65,7 @@ import { Addresses } from "@/addresses";
 import type { Boot } from "@/boot";
 import { resetClientScripts } from "@/recordPage/clientScripts";
 import { resetFormLayouts } from "@/recordPage/formLayoutSource/useFormLayout";
-import { resetRegistry } from "@/recordPage/registry";
+import { registerRecordPage, resetRegistry } from "@/recordPage/registry";
 import { registerStandardPages } from "@/contributions/registry";
 import { standardPages } from "@/pages/standardPages";
 import { createShellRouter } from "@/router";
@@ -290,6 +290,19 @@ function header(root: HTMLElement) {
 }
 
 describe("opening /<doctype>/new", () => {
+  it("gives a script the shell's boot.app as page.app", async () => {
+    const seen: string[] = [];
+    registerRecordPage("Note", { onRefresh: (page) => void seen.push(page.app) });
+    boot.app = "crm";
+    try {
+      await mount("/note/new");
+    } finally {
+      boot.app = "frappe";
+    }
+
+    expect(seen).toContain("crm");
+  });
+
   it("shows New {doctype}, a Not Saved mark and Save, with the server defaults under the query values", async () => {
     const { root } = await mount("/note/new?title=Hello&owner=intruder");
 

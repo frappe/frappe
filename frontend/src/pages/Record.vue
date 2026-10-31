@@ -774,6 +774,7 @@ function isNewNavigation() {
 /** The page's controller with its built-ins, made current. */
 function buildController({ target, pointer, details, panel, view }: Opening) {
 	const created = createRecordPage({
+		app: boot.app!,
 		doctype: target.doctype,
 		docname: target.name,
 		doc,

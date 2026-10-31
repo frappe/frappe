@@ -30,6 +30,7 @@ const controllers: ReturnType<typeof createRecordPage>[] = [];
 
 function makePage(overrides: Partial<RecordPageHost> = {}) {
   const host: RecordPageHost = {
+    app: "frappe",
     doctype: "CRM Lead",
     docname: "CRM-LEAD-1",
     doc: ref({ status: "Open" }),

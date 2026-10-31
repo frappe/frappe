@@ -50,6 +50,7 @@ afterEach(() => {
 function makeHost(): RecordPageHost {
   const doc = ref<Record<string, any>>({ qty: 1, items: [{ name: "r1", item: "Bolt" }] });
   return {
+    app: "frappe",
     doctype: "CRM Deal",
     docname: "CRM-DEAL-1",
     doc,

@@ -59,6 +59,7 @@ function makePage(overrides: Partial<RecordPageHost> = {}) {
   const scrolled: string[] = [];
   const reloads: string[] = [];
   const host: RecordPageHost = {
+    app: "frappe",
     doctype: "CRM Deal",
     docname: "CRM-DEAL-1",
     doc: ref({}),

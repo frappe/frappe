@@ -322,6 +322,22 @@ function activityReads() {
   return server.requests.filter((request) => request.endsWith(`/${name}/activity`)).length;
 }
 
+describe("page.app", () => {
+  it("is the shell's boot.app", async () => {
+    const seen: string[] = [];
+    await register({ onRefresh: (page) => void seen.push(page.app) });
+    boot.app = "crm";
+    try {
+      await mount(`/note/${name}`);
+      await settle();
+    } finally {
+      boot.app = "frappe";
+    }
+
+    expect(seen).toContain("crm");
+  });
+});
+
 describe("a return visit", () => {
   it("draws the page from memory at its first render, with no skeleton at any point", async () => {
     const onRefresh = vi.fn(drawState);

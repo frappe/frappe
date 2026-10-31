@@ -56,6 +56,7 @@ function makePage(start = "details", composer: Partial<RecordPageHost> = {}) {
   const opened: [string, unknown][] = [];
   const activated: string[] = [];
   const host: RecordPageHost = {
+    app: "frappe",
     doctype: "CRM Deal",
     docname: "CRM-DEAL-1",
     doc: ref({}),

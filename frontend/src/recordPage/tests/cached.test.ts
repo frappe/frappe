@@ -47,6 +47,7 @@ async function visit() {
   await loadClientScripts(DOCTYPE);
   const moved: string[] = [];
   const controller = createRecordPage({
+    app: "frappe",
     doctype: DOCTYPE,
     docname: DOCNAME,
     doc: ref({}),
