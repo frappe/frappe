@@ -8,7 +8,7 @@ vi.mock("frappe-ui", () => ({ toast: fake.toast }));
 import type { Session } from "@framework/ui/api";
 import { registerAfterSave, runAfterSave, type SavedBinding } from "@/afterSave";
 import { registerDeskAfterSave } from "../deskAfterSave";
-import { askReload as appAskReload, registerAfterSave as appRegisterAfterSave } from "@/public";
+import * as appImports from "@/public";
 
 const USER = "reader@example.com";
 
@@ -58,14 +58,8 @@ describe("registerAfterSave", () => {
 		error.mockRestore();
 	});
 
-	it("is on the app import list (`@shell`), on the shell's own registry", () => {
-		const run = vi.fn();
-		const remove = appRegisterAfterSave("Probe D", run);
-
-		runAfterSave(saved("Probe D", "Probe D", ["x"]));
-		remove();
-
-		expect(run).toHaveBeenCalledTimes(1);
+	it("is not on the app import list (`@shell`): an app registers through its shell hook", () => {
+		expect(appImports).not.toHaveProperty("registerAfterSave");
 	});
 });
 
@@ -73,10 +67,10 @@ describe("askReload", () => {
 	beforeEach(() => fake.toast.mockReset());
 
 	it("is on the app import list, and toasts only when a listed field changed", () => {
-		appAskReload(saved("Probe E", "Probe E", ["label"]), ["currency"]);
+		appImports.askReload(saved("Probe E", "Probe E", ["label"]), ["currency"]);
 		expect(fake.toast).not.toHaveBeenCalled();
 
-		appAskReload(saved("Probe E", "Probe E", ["label", "currency"]), ["currency"]);
+		appImports.askReload(saved("Probe E", "Probe E", ["label", "currency"]), ["currency"]);
 		expect(fake.toast).toHaveBeenCalledTimes(1);
 		expect(fake.toast.mock.calls[0][1].id).toBe("settings-reload");
 	});
