@@ -114,6 +114,21 @@ describe("three ways to miss", () => {
     ]);
   });
 
+  it("a table column warns and moves nobody", () => {
+    const { host, landed } = makeHost({
+      meta: ref({ fields: [...FIELDS, { fieldname: "items", fieldtype: "Table", options: "Deal Item" }] }),
+      childFields: () => [{ fieldname: "qty", fieldtype: "Int" }],
+    });
+    const { page } = createRecordPage(host);
+
+    page.fields.focus("items.qty");
+
+    expect(landed).toEqual([]);
+    expect(warnings).toEqual([
+      '[record-page] page.fields.focus("items.qty") — a table column has a cell per row, not a place of its own; the reader was not moved.',
+    ]);
+  });
+
   it("a hidden field warns and names the verb that reveals it", () => {
     const { host, landed } = makeHost();
     const { page } = createRecordPage(host);

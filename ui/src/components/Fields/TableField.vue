@@ -284,7 +284,9 @@ function alignFor(fieldtype: string): GridColumn["align"] {
 }
 
 const columns = computed<(FieldNode & Pick<GridColumn, "align">)[]>(() =>
-	(props.field.childFields ?? []).map((c) => ({ ...c, align: alignFor(c.fieldtype) }))
+	(props.field.childFields ?? [])
+		.filter((c) => !c.override?.hidden)
+		.map((c) => ({ ...c, align: alignFor(c.fieldtype) }))
 );
 
 // Label-less copies keyed by fieldname: the header already shows the label, so cells
