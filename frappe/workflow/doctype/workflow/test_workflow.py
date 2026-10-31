@@ -974,6 +974,7 @@ class TestWorkflowFieldLevelRead(IntegrationTestCase):
 
 	def tearDown(self):
 		try:
+			frappe.db.rollback()
 			frappe.set_user("Administrator")
 			for action in frappe.get_all(
 				"Workflow Action", {"reference_doctype": self.doctype}, pluck="name"
