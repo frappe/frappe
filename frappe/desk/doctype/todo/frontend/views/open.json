@@ -1,0 +1,29 @@
+{
+ "label": "Open",
+ "settings": {
+  "columns": [
+   {
+    "fieldname": "description"
+   },
+   {
+    "fieldname": "status"
+   },
+   {
+    "fieldname": "priority"
+   },
+   {
+    "fieldname": "date"
+   },
+   {
+    "fieldname": "allocated_to"
+   }
+  ],
+  "sort": [
+   {
+    "direction": "asc",
+    "fieldname": "date"
+   }
+  ]
+ },
+ "type": "List"
+}

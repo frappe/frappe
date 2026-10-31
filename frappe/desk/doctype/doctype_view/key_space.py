@@ -4,7 +4,9 @@ import re
 import unicodedata
 
 import frappe
+from frappe import _
 
+from .app_views import app_views
 from .doctype_view import PLAIN_VIEW, SITE_ROW, VIEW_TYPES
 
 # `/<doctype>/view/<type>` is the plain view of that type, so a type's name is never a saved view's key.
@@ -24,7 +26,7 @@ class KeySpace:
 		self.doctype = doctype
 
 	def find(self, key: str, user: str | None = None) -> frappe._dict | None:
-		"""The view at `key` that `user` sees: their own, else the site's."""
+		"""The view at `key` that `user` sees: their own, else the site's, else an app's."""
 		found = find_views([(self.doctype, key)], user)
 		return found.get((self.doctype, key))
 
@@ -41,7 +43,7 @@ class KeySpace:
 		return f"{base}-{suffix}"
 
 	def taken(self, base: str) -> set[str]:
-		"""The keys a new view cannot have that start with `base`: reserved names, and every person's and the site's."""
+		"""The keys a new view cannot have that start with `base`: reserved names, every person's, the site's and the apps'."""
 		view = frappe.qb.DocType("Doctype View")
 		# A locking read sees keys committed after this transaction's snapshot; a plain one misses them.
 		keys = (
@@ -52,7 +54,7 @@ class KeySpace:
 			.for_update()
 			.run(pluck=True)
 		)
-		return set(keys) | RESERVED_KEYS
+		return set(keys) | RESERVED_KEYS | set(app_views(self.doctype))
 
 	def lock(self):
 		"""Hold the doctype's own row, so two new views of it cannot claim one key at once."""
@@ -62,7 +64,7 @@ class KeySpace:
 def find_views(
 	targets: list[tuple[str, str]], user: str | None = None
 ) -> dict[tuple[str, str], frappe._dict]:
-	"""`{(doctype, key): view}` for each target `user` sees, their own before the site's; one query."""
+	"""`{(doctype, key): view}` for each target `user` sees, their own before the site's before an app's; one query."""
 	user = user or frappe.session.user
 	keys = {key for _doctype, key in targets if key and key != PLAIN_VIEW}
 	if not keys:
@@ -77,10 +79,24 @@ def find_views(
 		},
 		fields=["name", "reference_doctype", "key", "label", "type", "user"],
 	)
-	found = {}
+	found = {target: app_row(*target) for target in targets if target[1] in app_views(target[0])}
 	for row in sorted(rows, key=lambda row: row.user != SITE_ROW):
 		found[(row.reference_doctype, row.key)] = row  # the site's first, so the person's own overwrites it
 	return {target: found[target] for target in targets if target in found}
+
+
+def app_row(doctype: str, key: str) -> frappe._dict:
+	"""An app view in a row's shape; it has no row name and no user."""
+	view = app_views(doctype)[key]
+	return frappe._dict(
+		name=None,
+		reference_doctype=doctype,
+		key=key,
+		label=_(view.label),
+		type=view.type,
+		user=None,
+		app=view.app,
+	)
 
 
 def url_safe(label: str) -> str:

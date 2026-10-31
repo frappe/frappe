@@ -8,16 +8,24 @@ export type DefaultScope = "user" | "site";
 
 /** Points `scope`'s default at the view `key`, a view type's name for its plain view. */
 export async function setDefaultView(boot: Boot, doctype: string, key: string, scope: DefaultScope) {
-	const { data } = await runMethod<string>(`${API}.save`, { doctype, key, scope }, { nullable: true });
+	const { data } = await runMethod<string>(
+		`${API}.save`,
+		{ doctype, key, scope, app: boot.app },
+		{ nullable: true }
+	);
 	remember(boot, doctype, data);
 }
 
 export async function clearDefaultView(boot: Boot, doctype: string, scope: DefaultScope) {
-	const { data } = await runMethod<string>(`${API}.clear`, { doctype, scope }, { nullable: true });
+	const { data } = await runMethod<string>(
+		`${API}.clear`,
+		{ doctype, scope, app: boot.app },
+		{ nullable: true }
+	);
 	remember(boot, doctype, data);
 }
 
-/** The server answers with the person's default after the change, whichever layer now holds it. */
+/** The server answers with the person's default in this app after the change, whichever layer now holds it. */
 function remember(boot: Boot, doctype: string, view: string | null) {
 	const defaults = (boot.default_views ??= {});
 	if (view) defaults[doctype] = view;
