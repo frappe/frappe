@@ -1,4 +1,4 @@
-# The calls a view's settings go through: read both scopes, patch keys, clear one key; and find a saved view by key.
+# The calls a view's settings go through: read both scopes, patch keys, clear one key; find a saved view by key, and list them.
 
 import frappe
 from frappe import _
@@ -6,6 +6,7 @@ from frappe.desk.doctype.favourite.favourite import list_favourites
 
 from .doctype_view import PLAIN_VIEW, SITE_ROW, VIEW_TYPES, DuplicateViewError, is_site_administrator
 from .key_space import KeySpace
+from .view_list import ViewList
 
 SCOPES = ("user", "site")
 
@@ -58,6 +59,17 @@ def find(doctype: str, key: str) -> dict:
 		raise frappe.DoesNotExistError(_("This view doesn't exist."))
 
 	return {"key": view.key, "label": view.label, "type": view.type}
+
+
+@frappe.desk_v2_only
+@frappe.whitelist(methods=["GET"])
+def list_views(doctype: str | None = None, app: str | None = None) -> dict[str, list[dict]]:
+	"""`{doctype: views}` the caller can open, of `doctype` or else of every doctype they read that has a saved view."""
+	if doctype is None:
+		return ViewList(app=app).of()
+
+	check_doctype(doctype)
+	return ViewList(app=app).of([doctype])
 
 
 def _check(doctype: str, type: str, scope: str = "user"):

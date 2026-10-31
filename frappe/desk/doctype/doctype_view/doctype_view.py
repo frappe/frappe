@@ -168,12 +168,13 @@ class DoctypeView(Document):
 
 
 def on_doctype_update():
-	"""One row per address, held by the schema so a bulk write cannot bypass it."""
+	"""One row per address, held by the schema so a bulk write cannot bypass it; one person's views by `user`."""
 	frappe.db.add_unique(
 		"Doctype View",
 		("reference_doctype", "type", "user", "key"),
 		constraint_name="unique_view_address",
 	)
+	frappe.db.add_index("Doctype View", ["user", "reference_doctype"])
 
 
 def is_site_administrator(user: str | None = None) -> bool:
