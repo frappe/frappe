@@ -8,6 +8,8 @@ from frappe.flow import Agent, ToolContext, tool
 from frappe.flow.assistant import ASSISTANT_AGENT_NAME, ASSISTANT_AGENT_TITLE, sync_builtin_assistant
 from frappe.flow.daemon.callback import tool_callback
 from frappe.flow.daemon.client import DaemonClient
+from frappe.flow.doctype.flow_skill.flow_skill import sync_skills
+from frappe.flow.doctype.flow_skill.test_flow_skill import AppSkills
 from frappe.flow.knowledge import Knowledge
 from frappe.flow.lib.agent import _ensure_tool, sync_agents, sync_tools
 from frappe.flow.tests.test_fake_daemon import FakeDaemon
@@ -290,6 +292,20 @@ class TestAgent(IntegrationTestCase):
 				self.assertRaisesRegex(frappe.ValidationError, "module-level"),
 			):
 				self.synced(tools=[unimportable])
+
+	def test_a_skill_without_an_app_prefix_is_the_apps_own_else_the_sites(self):
+		AppSkills(self).write("onboarding")
+		sync_skills()
+		for title in ("onboarding", "House Style"):
+			frappe.get_doc(
+				{"doctype": "Flow Skill", "title": title, "description": "Any reply.", "instructions": "x"}
+			).insert()
+
+		agent = self.synced(skills=["onboarding", "House Style"])
+		self.assertEqual(
+			[row.skill for row in frappe.get_doc("Flow Agent", agent.name).skills],
+			["frappe/onboarding", "House Style"],
+		)
 
 	def test_sync_agents_writes_every_hooked_agent_once(self):
 		with self.hooked("flow_agents", "hooked_agents"):

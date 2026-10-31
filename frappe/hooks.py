@@ -26,11 +26,13 @@ after_app_install = [
 	"frappe.flow.assistant.sync_assistant_skills",
 	"frappe.flow.lib.agent.sync_agents",
 	"frappe.flow.lib.agent.sync_tools",
+	"frappe.flow.lib.trigger.sync_triggers",
 ]
 before_app_uninstall = "frappe.studio.sync.before_app_uninstall"
 after_app_uninstall = [
 	"frappe.utils.install.delete_desktop_icons_for_app",
 	"frappe.flow.assistant.sync_assistant_skills",
+	"frappe.flow.lib.trigger.sync_triggers",
 ]
 
 page_js = {"setup-wizard": "public/js/frappe/setup_wizard.js"}
@@ -406,6 +408,7 @@ after_migrate = [
 	"frappe.flow.assistant.sync_builtin_assistant",
 	"frappe.flow.lib.agent.sync_agents",
 	"frappe.flow.lib.agent.sync_tools",
+	"frappe.flow.lib.trigger.sync_triggers",
 	"frappe.flow.daemon.lifecycle.after_migrate",
 ]
 
