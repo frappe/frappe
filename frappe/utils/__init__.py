@@ -797,7 +797,7 @@ def get_name_from_email_string(email_string, email_id, name):
 
 def get_installed_apps_info():
 	out = []
-	from frappe.utils.change_log import get_versions
+	from frappe.utils.change_log import get_app_versions
 
 	out.extend(
 		{
@@ -805,7 +805,11 @@ def get_installed_apps_info():
 			"version": version_details.get("branch_version") or version_details.get("version"),
 			"branch": version_details.get("branch"),
 		}
+<<<<<<< HEAD
 		for app, version_details in get_versions().items()
+=======
+		for app, version_details in get_app_versions(include_disabled=True).items()
+>>>>>>> d1c87ed (fix: limit desk metadata endpoints to desk users)
 	)
 	return out
 
