@@ -704,7 +704,12 @@ export const SPECS = {
 				when: (doc) => doc.scope === "User",
 				locked: saved,
 			},
-			{ name: "status", label: "Status", type: "select", options: ["Active", "Archived"] },
+			{
+				name: "status",
+				label: "Status",
+				type: "select",
+				options: ["Active", "Pending", "Archived"],
+			},
 			{ name: "source", label: "Source", type: "readonly", when: saved },
 			{
 				name: "content",
