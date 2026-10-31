@@ -6,7 +6,6 @@ from frappe.desk.doctype.doctype_view.api import check_doctype, check_scope
 from frappe.desk.doctype.doctype_view.doctype_view import PLAIN_VIEW, SITE_ROW
 from frappe.desk.doctype.doctype_view.key_space import TYPE_KEYS
 
-from .default_view import DuplicateDefaultError
 from .resolver import DefaultViews
 
 
@@ -20,14 +19,7 @@ def save(doctype: str, key: str, scope: str) -> str | None:
 		frappe.throw(_("A view key is one name."))
 
 	layer = _layer(doctype, scope)
-	pointer = _pointer(doctype, key, layer["user"])
-
-	frappe.db.savepoint("default_view_write")
-	try:
-		_write(layer, pointer)
-	except (frappe.UniqueValidationError, DuplicateDefaultError):
-		frappe.db.rollback(save_point="default_view_write")
-		_write(layer, pointer)
+	_write(layer, _pointer(doctype, key, layer["user"]))
 
 	return DefaultViews().addresses([doctype]).get(doctype)
 
@@ -65,7 +57,7 @@ def _pointer(doctype: str, key: str, user: str) -> dict:
 
 def _write(layer: dict, pointer: dict):
 	# `ignore_permissions`: the gate is `check_scope`'s; a Desk User has no write on the doctype.
-	name = frappe.db.get_value("Default View", layer, "name", for_update=True)
+	name = frappe.db.get_value("Default View", layer)
 	doc = (
 		frappe.get_doc("Default View", name) if name else frappe.get_doc({"doctype": "Default View", **layer})
 	)

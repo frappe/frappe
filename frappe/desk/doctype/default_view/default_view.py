@@ -40,7 +40,7 @@ class DefaultView(Document):
 		self.refuse_a_second_default()
 
 	def refuse_a_second_default(self):
-		"""Refuse the duplicate here: `db_insert` would read the unique index's refusal as a hash retry."""
+		"""A clearer refusal than the unique index's, which still holds a race between two saves."""
 		existing = frappe.db.get_value(
 			self.doctype, {"reference_doctype": self.reference_doctype, "user": self.user}
 		)
