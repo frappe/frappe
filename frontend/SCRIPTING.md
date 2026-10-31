@@ -1189,6 +1189,10 @@ A field handler runs when the reader commits that field: `status(page)` on a sta
 change, before any save. A child table's fields are addressed by the table, `products.qty`.
 A value a return visit's background read brings in fires no handler.
 
+A Button field holds no value: a click on it runs its handler, `authorize_api_access(page)`
+for a Button named `authorize_api_access`, as desk v1's `frm.trigger` does. A read-only
+Button is disabled. A Button in a child table's row runs nothing yet.
+
 ### The script this design was judged by
 
 The third act of the map's proof walk, on a CRM Deal whose `probability` is a Percent field.

@@ -165,7 +165,7 @@ import { FORM_CLASSES } from "./record/formClasses";
 import { projectRecordHeader } from "./record/recordHeaderProjection";
 import { discardChanges } from "./record/discardChanges";
 import { runSave, useUnloadGuard } from "./record/recordSave";
-import { provideRecordCommits } from "./record/recordCommits";
+import { buttonClicks, provideRecordCommits } from "./record/recordCommits";
 import { landOnField, stopLanding, tabOf } from "./record/landOnField";
 import { useRecordTabs } from "./record/tabs/useRecordTabs";
 import { registerTabRows } from "./record/tabs/tabRows";
@@ -373,6 +373,7 @@ provide(LinkTitlesKey, linkTitles);
 provide(CodeErrorsKey, codeErrors);
 
 provideRecordCommits(() => controller.value);
+const buttonClick = buttonClicks(() => controller.value);
 
 // The row's built-ins, re-read on every resolve so the title crumb tracks the draft.
 function headerBuiltins(): HeaderItem[] {
@@ -549,6 +550,7 @@ async function load({ fromMemory = false } = {}) {
 		type: "Side Panel",
 		doc: saved,
 		fallback: "none",
+		decorate: buttonClick,
 		overrides: () => controller.value?.fields.resolve() ?? {},
 	});
 	const details = useFormLayout({
@@ -556,6 +558,7 @@ async function load({ fromMemory = false } = {}) {
 		type: "Details",
 		doc: saved,
 		fallback: "meta",
+		decorate: buttonClick,
 		overrides: () => controller.value?.fields.resolve() ?? {},
 		tabOverrides: () => controller.value?.form.tabs.resolve() ?? {},
 		placedElsewhere: () => panel.placed.value,

@@ -115,7 +115,7 @@ import { landOnField, stopLanding } from "./landOnField";
 import { openingKey } from "./openingKey";
 import { Visit } from "./visit";
 import { fetchMeta } from "./metaSource";
-import { provideRecordCommits } from "./recordCommits";
+import { buttonClicks, provideRecordCommits } from "./recordCommits";
 import { saveRecord } from "./recordSource";
 import { projectRecordHeader } from "./recordHeaderProjection";
 import { runSave, useUnloadGuard } from "./recordSave";
@@ -158,6 +158,7 @@ const layout = useFormLayout({
 	type: "New Record",
 	doc: openingValues,
 	fallback: "meta",
+	decorate: buttonClicks(() => controller.value),
 	overrides: () => controller.value?.fields.resolve() ?? {},
 	tabOverrides: () => controller.value?.form.tabs.resolve() ?? {},
 });
