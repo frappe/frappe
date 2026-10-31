@@ -324,8 +324,9 @@ def sync_session(session: str) -> dict[str, Any]:
 @frappe.whitelist()
 def submit_feedback(run_name: str, rating: str, comment: str | None = None) -> dict[str, Any]:
 	"""Record thumbs feedback on a finished run, or clear it with rating "None". A
-	thumbs-down comment is stored as shared agent memory when the agent has memory
-	enabled (a no-op otherwise); clearing the rating drops that memory again."""
+	thumbs-down comment is stored as agent memory when the agent has memory enabled (a no-op
+	otherwise), the user's own unless they manage the agent; clearing the rating drops that
+	memory again."""
 	from frappe.flow.memory.memory import forget_feedback_memory, save_feedback_memory
 
 	if not isinstance(run_name, str) or not run_name.strip():
@@ -359,7 +360,7 @@ def submit_feedback(run_name: str, rating: str, comment: str | None = None) -> d
 
 	result: dict[str, Any] = {"rating": rating}
 	if memory:
-		result["memory"] = memory
+		result.update(memory=memory["memory_id"], memory_scope=memory["scope"])
 	return result
 
 

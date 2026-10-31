@@ -6,7 +6,8 @@ from unittest.mock import patch
 
 import frappe
 from frappe.flow.memory import store
-from frappe.flow.memory.memory import memory_block, save_memory
+from frappe.flow.memory.memory import memory_block, save_feedback_memory, save_memory
+from frappe.flow.permissions import FLOW_USER_ROLE, ensure_flow_role
 from frappe.flow.tools.builtins import sync_builtin_tools
 from frappe.tests import IntegrationTestCase
 
@@ -14,6 +15,7 @@ EXTRA_TEST_RECORD_DEPENDENCIES = []
 IGNORE_TEST_RECORD_DEPENDENCIES = []
 
 OTHER_USER = "test@example.com"
+MEMBER = "flow-memory-member@example.com"
 DIM = 4
 ACME = "Acme is billed at its Mumbai branch."
 FISCAL = "Fiscal year starts in April."
@@ -82,8 +84,18 @@ class MemoryCase(IntegrationTestCase):
 			}
 		).insert()
 
-	def block(self, query: str, agent: str | None = None) -> str:
-		return memory_block(agent or self.agent.name, self.user, query)
+	def block(self, query: str, agent: str | None = None, user: str | None = None) -> str:
+		return memory_block(agent or self.agent.name, user or self.user, query)
+
+
+def _member() -> str:
+	ensure_flow_role()
+	if not frappe.db.exists("User", MEMBER):
+		frappe.get_doc(
+			{"doctype": "User", "email": MEMBER, "first_name": "Member", "send_welcome_email": 0}
+		).insert(ignore_permissions=True)
+	frappe.get_doc("User", MEMBER).add_roles(FLOW_USER_ROLE)
+	return MEMBER
 
 
 class TestFlowAgentMemory(MemoryCase):
@@ -129,7 +141,7 @@ class TestSaveMemory(MemoryCase):
 		result = save_memory(
 			self.agent.name, content="Widget A maps to WGT-002.", scope="user", memory_id=added["memory_id"]
 		)
-		self.assertEqual(result, {"memory_id": added["memory_id"], "action": "updated"})
+		self.assertEqual(result, {"memory_id": added["memory_id"], "action": "updated", "scope": "Agent"})
 		doc = frappe.get_doc("Flow Agent Memory", added["memory_id"])
 		self.assertEqual((doc.scope, doc.user, doc.content), ("Agent", None, "Widget A maps to WGT-002."))
 
@@ -157,6 +169,69 @@ class TestSaveMemory(MemoryCase):
 			self.assertRaises(RuntimeError),
 		):
 			save_memory(self.agent.name, content=ACME, scope="agent")
+
+
+class TestPersonalByDefault(MemoryCase):
+	"""Only those who manage the agent write what it remembers for everyone."""
+
+	def test_what_a_plain_user_saves_shapes_only_their_assistant(self):
+		session = frappe.get_doc({"doctype": "Flow Session", "agent": self.agent.name}).insert()
+		run = frappe.get_doc(
+			{"doctype": "Flow Run", "session": session.name, "source": "Manual", "status": "Completed"}
+		).insert()
+		shared = save_memory(self.agent.name, content=ACME, scope="agent")
+		frappe.set_user(_member())
+		saved = save_memory(self.agent.name, content="Acme invoices go to Priya.", scope="agent")
+		from_feedback = save_feedback_memory(run, "Acme is billed in Pune.")
+		revised = save_memory(
+			self.agent.name,
+			content="Acme is billed at its Delhi branch.",
+			scope="agent",
+			memory_id=shared["memory_id"],
+		)
+
+		self.assertIn("note", saved)
+		self.assertIn("note", revised)
+		self.assertNotEqual(revised["memory_id"], shared["memory_id"])
+		for memory in (saved, from_feedback, revised):
+			self.assertEqual(
+				frappe.db.get_value("Flow Agent Memory", memory["memory_id"], ["scope", "user"]),
+				("User", MEMBER),
+			)
+		self.assertEqual(frappe.db.get_value("Flow Agent Memory", shared["memory_id"], "content"), ACME)
+
+		mine = self.block("Where do we bill Acme?", user=MEMBER)
+		others = self.block("Where do we bill Acme?", user=OTHER_USER)
+		for memory in (saved, from_feedback, revised):
+			self.assertIn(memory["memory_id"], mine)
+			self.assertNotIn(memory["memory_id"], others)
+		self.assertIn(shared["memory_id"], others)
+
+	def test_feedback_is_kept_past_the_agents_limit(self):
+		session = frappe.get_doc({"doctype": "Flow Session", "agent": self.agent.name}).insert()
+		run = frappe.get_doc(
+			{"doctype": "Flow Run", "session": session.name, "source": "Manual", "status": "Completed"}
+		).insert()
+		with patch("frappe.flow.memory.memory.MAX_ACTIVE_MEMORIES", 1):
+			save_memory(self.agent.name, content=ACME, scope="agent")
+			with self.assertRaises(frappe.ValidationError):
+				save_memory(self.agent.name, content=FISCAL, scope="agent")
+			self.assertTrue(save_feedback_memory(run, WIDGET))
+
+	def test_the_patch_makes_shared_memories_of_non_managers_personal(self):
+		from frappe.patches.v17_0.make_flow_memories_of_non_managers_personal import execute
+
+		managed = frappe.get_doc(_memory(self.agent.name, content=ACME)).insert().name
+		_member()
+		written = frappe.get_doc(_memory(self.agent.name, content=FISCAL)).insert().name
+		frappe.db.set_value("Flow Agent Memory", written, "modified_by", MEMBER, update_modified=False)
+
+		execute()
+		fields = ["scope", "user"]
+		self.assertEqual(frappe.db.get_value("Flow Agent Memory", managed, fields), ("Agent", None))
+		self.assertEqual(frappe.db.get_value("Flow Agent Memory", written, fields), ("User", MEMBER))
+		self.assertNotIn(written, self.block("When does the fiscal year start?", user=OTHER_USER))
+		self.assertIn(written, self.block("When does the fiscal year start?", user=MEMBER))
 
 
 class TestKeywordRetrieval(MemoryCase):

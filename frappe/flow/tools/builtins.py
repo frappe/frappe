@@ -407,7 +407,8 @@ reading records. Write one short, self-contained, third-person fact per memory; 
 changes, revise the shown memory instead of adding another.
 
 scope:
-- "agent" — true for everyone who uses this agent (mappings, business rules, conventions).
+- "agent" — true for everyone who uses this agent (mappings, business rules, conventions). Saved \
+for the current user only, unless they manage the agent.
 - "user" — specific to the current user (their preferences and defaults)."""
 
 
