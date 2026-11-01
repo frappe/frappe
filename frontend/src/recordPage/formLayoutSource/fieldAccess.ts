@@ -1,4 +1,4 @@
-import { NO_VALUE } from "@framework/ui/FormLayout";
+import { NO_VALUE } from "@framework/ui/FormLayout/noValueFields";
 import type { RawMetaField } from "@framework/ui/FormLayout/types";
 import type { FieldAccess } from "@framework/ui/useDocPermissions";
 

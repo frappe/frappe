@@ -1,23 +1,9 @@
 // What a freshly added child row starts with, from its docfield defaults.
 import { parseLongInt } from "./formatNumber";
+import { NO_VALUE } from "./noValueFields";
 import type { FieldNode, FormLayoutSchema } from "./types";
 
-/**
- * Frappe's own `no_value_fields` (`frappe/model/__init__.py`) minus the two
- * collection types, which DO hold a value in the document even though they have
- * no column of their own — a nested table's empty is `[]`.
- */
-export const NO_VALUE = new Set([
-  "Section Break",
-  "Column Break",
-  "Tab Break",
-  "Heading",
-  "HTML",
-  "Fold",
-  "Button",
-  "Image",
-  "Attachment Gallery",
-]);
+export { NO_VALUE };
 
 const COLLECTIONS = new Set(["Table", "Table MultiSelect"]);
 
