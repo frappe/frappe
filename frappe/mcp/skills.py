@@ -120,7 +120,6 @@ class SkillCatalog:
 		for length in range(1, len(directory.parts) + 1):
 			parent = Path(*directory.parts[:length])
 			if (self.apps[app].root / parent / "SKILL.md").is_file():
-				self.apps[app].frontmatter(parent / "SKILL.md")
 				return parent
 		return None
 

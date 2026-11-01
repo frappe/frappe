@@ -217,6 +217,13 @@ class TestSkillCatalog(SkillFixtures, UnitTestCase):
 			with self.subTest(frontmatter=frontmatter), self.assertRaises(protocol.McpError) as caught:
 				self.catalog.get_skill("skill://frappe/invalid/SKILL.md")
 			self.assertEqual(caught.exception.code, protocol.INTERNAL_ERROR)
+		self.write_skill("frappe", "invalid/child")
+		uri = "skill://frappe/invalid/child/SKILL.md"
+		self.assertEqual(self.catalog.get_skill(uri)["skill"]["frontmatter"]["name"], "child")
+		self.assertIn("name: child", self.catalog.read_resource(uri)["contents"][0]["text"])
+		self.assertEqual(
+			self.catalog.read_directory("skill://frappe/invalid/child")["resources"][0]["uri"], uri
+		)
 
 	def test_skill_size_and_file_count_limits(self):
 		file = self.write_skill("frappe", "limits")
