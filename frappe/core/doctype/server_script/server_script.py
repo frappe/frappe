@@ -113,6 +113,8 @@ class ServerScript(Document):
 			self.get_file_path()
 			self.script = ""
 			return
+		if not self.script:
+			frappe.throw(_("Script is required for Database scripts"), frappe.MandatoryError)
 		self.check_if_compilable_in_restricted_context()
 
 	def onload(self):

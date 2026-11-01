@@ -680,3 +680,19 @@ frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 
 		script.save()
 		self.assertEqual(frappe.db.get_value("Server Script", script.name, "script"), "")
+
+	def test_script_is_required_only_for_database_scripts(self):
+		import os
+
+		args = {
+			"doctype": "Server Script",
+			"script_type": "DocType Event",
+			"reference_doctype": "ToDo",
+			"doctype_event": "Before Insert",
+		}
+		with self.assertRaises(frappe.MandatoryError):
+			frappe.get_doc(**args, name="test_db_no_body", script_source="Database").insert()
+
+		script = frappe.get_doc(**args, name="test_file_no_body", script_source="File").insert()
+		self.addCleanup(script.delete)
+		self.addCleanup(lambda: os.path.exists(script.get_file_path()) and os.remove(script.get_file_path()))

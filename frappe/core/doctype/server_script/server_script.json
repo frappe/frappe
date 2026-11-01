@@ -44,8 +44,8 @@
    "fieldname": "script",
    "fieldtype": "Code",
    "label": "Script",
-   "options": "Python",
-   "reqd": 1
+   "mandatory_depends_on": "eval:doc.script_source !== \"File\"",
+   "options": "Python"
   },
   {
    "depends_on": "eval:['DocType Event', 'Permission Query'].includes(doc.script_type)",
