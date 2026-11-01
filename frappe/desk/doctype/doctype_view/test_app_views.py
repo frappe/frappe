@@ -17,13 +17,15 @@ from frappe.desk.doctype.default_view.resolver import DefaultViews
 from frappe.desk.doctype.doctype_view import app_views as app_views_module
 from frappe.desk.doctype.doctype_view.api import find
 from frappe.desk.doctype.doctype_view.app_views import ViewIndex, app_defaults, app_view_settings, app_views
-from frappe.desk.doctype.doctype_view.doctype_view import SITE_ROW, DuplicateViewError
+from frappe.desk.doctype.doctype_view.doctype_view import SITE_ROW, DoctypeView, DuplicateViewError
 from frappe.desk.doctype.doctype_view.key_space import KeySpace
 from frappe.desk.doctype.favourite.favourite import toggle_favourite
 from frappe.gettext.extractors.app_view import extract
 from frappe.patches.v17_0 import fill_view_key_slots
+from frappe.query_builder.utils import db_type_is
 from frappe.tests import IntegrationTestCase
 from frappe.tests.classes.context_managers import set_user
+from frappe.tests.test_query_builder import unimplemented_for
 
 APPS = ("frappe", "acme", "zeta")
 CURRENT_INDEX = app_views_module.current_index
@@ -311,6 +313,33 @@ class TestInstalledViewFiles(IntegrationTestCase):
 			fileobj = BytesIO(f.read())
 		fileobj.name = path
 		self.assertEqual(list(extract(fileobj)), [(2, "_", "Open", ["Label of the open view"])])
+
+
+@unimplemented_for(db_type_is.SQLITE)  # SQLite refuses the second insert outright, so there is no race
+class TestOverrideRace(AppViewCase):
+	# Its own class: rows the other tests wrote in this transaction hold locks the second connection waits on.
+	def test_the_second_of_two_overrides_saved_at_once_gets_the_override_message(self):
+		self.folders.own_view("probe-race-46070")
+		frappe.db.get_all("Doctype View", limit=1)  # my snapshot, taken before theirs commits
+		mine = frappe.local.db
+		frappe.connect(set_admin_as_user=False)
+		theirs = frappe.local.db
+		try:
+			site_row("probe-race-46070")
+			theirs.commit()
+			frappe.local.db = mine
+			frappe.clear_messages()
+			with patch.object(DoctypeView, "refuse_a_second_override"):  # the read my snapshot misses
+				with self.assertRaisesRegex(DuplicateViewError, "The site already overrides"):
+					site_row("probe-race-46070")
+			self.assertNotIn("must be unique", str(frappe.get_message_log()))
+		finally:
+			mine.rollback()
+			frappe.local.db = theirs
+			frappe.db.delete("Doctype View", {"reference_doctype": "ToDo", "key": "probe-race-46070"})
+			theirs.commit()
+			theirs.close()
+			frappe.local.db = mine
 
 
 def site_row(key: str, label: str = "Probe") -> "frappe.Document":

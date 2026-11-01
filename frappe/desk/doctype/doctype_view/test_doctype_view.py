@@ -7,10 +7,11 @@ import frappe
 from frappe.desk.doctype.default_view import api as default_view_api
 from frappe.desk.doctype.doctype_view import api
 from frappe.desk.doctype.doctype_view.api import find, get, reset, save
-from frappe.desk.doctype.doctype_view.doctype_view import DoctypeView, DuplicateViewError
+from frappe.desk.doctype.doctype_view.doctype_view import DoctypeView, DuplicateViewError, ViewKeyBusyError
 from frappe.desk.doctype.doctype_view.key_space import KeySpace
 from frappe.desk.doctype.favourite.favourite import toggle_favourite
 from frappe.exceptions import FrappeTypeError
+from frappe.model.document import Document
 from frappe.patches.v17_0 import fill_view_key_slots
 from frappe.query_builder.utils import db_type_is
 from frappe.tests import IntegrationTestCase
@@ -408,6 +409,17 @@ class TestKeyRace(IntegrationTestCase):
 			theirs.commit()
 			theirs.close()
 			frappe.local.db = mine
+
+
+class TestKeyRaceErrors(DoctypeViewTestCase):
+	def test_a_deadlocked_save_is_refused_with_a_try_again_message(self):
+		frappe.clear_messages()
+		with patch.object(Document, "db_insert", side_effect=frappe.QueryDeadlockError):
+			with self.assertRaisesRegex(ViewKeyBusyError, "Try again") as raised:
+				make_view(label="Open", settings={}).insert()
+
+		self.assertEqual(raised.exception.http_status_code, 508)
+		self.assertIn("Try again", str(frappe.get_message_log()))
 
 
 class TestFind(DoctypeViewTestCase):
