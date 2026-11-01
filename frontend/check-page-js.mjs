@@ -51,8 +51,9 @@ async function buildManifest(outDir) {
 export function pageJsKb(manifest, read) {
   const entry = chunkFiles(manifest, "index.html");
   return Object.fromEntries(
-    Object.entries(PAGE_CHUNKS).map(([page, source]) => {
-      const files = new Set([...entry, ...chunkFiles(manifest, source)]);
+    Object.entries(PAGE_CHUNKS).map(([page, sources]) => {
+      const files = new Set(entry);
+      for (const source of [sources].flat()) chunkFiles(manifest, source, files);
       const bytes = [...files].reduce(
         (sum, file) => sum + gzipSync(read(file)).length,
         0

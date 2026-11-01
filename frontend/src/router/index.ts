@@ -4,14 +4,20 @@
 import { createRouter, createWebHistory } from "vue-router";
 import type { Boot } from "@/boot";
 import type { Addresses } from "@/addresses";
-import { declaredReplacements, reportReplacementClashes } from "@/contributions/registry";
+import {
+	declaredReplacements,
+	reportReplacementClashes,
+	viewRenderers,
+} from "@/contributions/registry";
 import { generatedRoutes, indexRoutes } from "./generated";
 import { contributedRoutes } from "./contributed";
+import { afterFramePaint } from "./mainPage";
 import { isModular } from "./routeFor";
 import { landingOf } from "@/navigation/landing";
 import NotFound from "@/shell/NotFound.vue";
 
 const RECORD_ROUTES = new Set(["record", "standard-record"]);
+const VIEW_ROUTES = new Set(["list", "standard-list", "saved-view"]);
 
 export function createShellRouter(boot: Boot, addresses: Addresses) {
 	const modular = isModular(boot);
@@ -70,6 +76,7 @@ export function createShellRouter(boot: Boot, addresses: Addresses) {
 			const view = boot.default_views?.[doctype];
 			if (view && to.name === "list" && !Object.keys(to.query).length)
 				return { path: `${to.path.replace(/\/$/, "")}/view/${view}`, hash: to.hash };
+			if (VIEW_ROUTES.has(String(to.name))) preloadRenderer(boot, String(to.params.key ?? "list"));
 			return true;
 		}
 
@@ -144,4 +151,12 @@ function checkModule(to: any, addresses: Addresses) {
 
 	// Not a miss: the record exists and this is the wrong spelling of its address.
 	return { ...to, params: { ...to.params, module: address[1] }, replace: true };
+}
+
+/** Starts loading the renderer of the view type an address segment names, once the frame paints. */
+function preloadRenderer(boot: Boot, segment: string) {
+	const type = boot.view_types?.find((one) => one.name.toLowerCase() === segment)?.name;
+	const load = type && viewRenderers[type];
+	// After the paint: an import in the click's task holds it. The page reports a failed load.
+	if (load) void afterFramePaint().then(load).catch(() => {});
 }

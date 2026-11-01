@@ -3,7 +3,12 @@
 import frappe
 from frappe import _
 from frappe.desk.doctype.favourite.favourite import list_favourites
-from frappe.desk.doctype.view_type.view_type import refuse_where_it_does_not_apply, view_types
+from frappe.desk.doctype.view_type.view_type import (
+	applies_to,
+	refuse_where_it_does_not_apply,
+	type_keys,
+	view_types,
+)
 
 from .doctype_view import PLAIN_VIEW, SITE_ROW, DuplicateViewError, is_site_administrator
 from .key_space import KeySpace
@@ -50,16 +55,19 @@ def reset(doctype: str, type: str, scope: str, key: str) -> dict:
 @frappe.desk_v2_only
 @frappe.whitelist(methods=["GET"])
 def find(doctype: str, key: str) -> dict:
-	"""The saved view at `key` the caller sees, their own before the site's before an app's; another person's reads as missing."""
+	"""The view at `key` the caller sees: a view type's plain view, else their own before the site's before an app's; another person's reads as missing."""
 	if not isinstance(key, str):
 		frappe.throw(_("A view key is one name."))
 	check_doctype(doctype)
+
+	if type := type_keys().get(key):
+		return _found(doctype, key, _(view_types()[type].label), type, None)
 
 	view = KeySpace(doctype).find(key)
 	if not view:
 		raise frappe.DoesNotExistError(_("This view doesn't exist."))
 
-	return {"key": view.key, "label": view.label, "type": view.type}
+	return _found(doctype, view.key, view.label, view.type, _layer(view))
 
 
 @frappe.desk_v2_only
@@ -71,6 +79,17 @@ def list_views(doctype: str | None = None, app: str | None = None) -> dict[str, 
 
 	check_doctype(doctype)
 	return ViewList(app=app).of([doctype])
+
+
+def _found(doctype: str, key: str, label: str, type: str, layer: str | None) -> dict:
+	"""A view as the page opens it; `applies` is false when its type no longer fits the doctype."""
+	return {"key": key, "label": label, "type": type, "layer": layer, "applies": applies_to(type, doctype)}
+
+
+def _layer(view: frappe._dict) -> str:
+	if view.user is None:
+		return "app"
+	return "site" if view.user == SITE_ROW else "own"
 
 
 def _check(doctype: str, type: str, scope: str = "user"):

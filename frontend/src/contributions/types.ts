@@ -36,7 +36,8 @@ export type DoctypeContribution =
 export type ReplacementContribution = {
   app: string
   doctype: string
-  key: 'record' | 'list'
+  /** `record`, or a view type's name in lower case. */
+  key: string
   /** The apps whose shell it applies in; absent means every app. */
   apps?: string[]
   foreign: boolean

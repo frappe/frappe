@@ -30,7 +30,7 @@ const flaky = vi.hoisted(() => ({ failures: 0 }));
 const slow = vi.hoisted(() => ({ load: new Promise<unknown>(() => {}) }));
 
 const DeclaredPage = defineComponent({
-	props: { doctype: String, name: String },
+	props: { doctype: String, name: String, view: Object },
 	setup(props) {
 		setups.count++;
 		setups.attrs.push({ ...useAttrs() });
@@ -39,6 +39,7 @@ const DeclaredPage = defineComponent({
 				"data-page": "declared",
 				"data-doctype": props.doctype,
 				"data-name": props.name,
+				"data-view": props.view && `${(props.view as { key: string }).key}:${(props.view as { type: string }).type}`,
 			});
 	},
 });
@@ -52,7 +53,7 @@ const flakyPage = vi.fn(async () => {
 
 function declared(
 	doctype: string,
-	key: "record" | "list",
+	key: "record" | "list" | "kanban",
 	component: ReplacementContribution["component"] = async () => DeclaredPage
 ): ReplacementContribution {
 	return { app: "erpnext", doctype, key, foreign: false, component };
@@ -70,8 +71,14 @@ vi.mock("virtual:frappe/contributions", () => ({
 	},
 }));
 
-vi.mock("@/pages/List.vue", () => ({
+// The real List.vue chooses between the declared page and the standard one; the standard list's
+// layout and state are the list page's own tests.
+vi.mock("@/pages/list/ListPage.vue", () => ({
 	default: { render: () => h("div", { "data-page": "list" }) },
+}));
+vi.mock("@/list/useListPage", async (importOriginal) => ({
+	...(await importOriginal<typeof import("@/list/useListPage")>()),
+	useListPage: (await import("../../pages/list/tests/fakeListPage")).useListPage,
 }));
 vi.mock("@/pages/Record.vue", async () => {
 	const { onBeforeRouteLeave, onBeforeRouteUpdate } = await import("vue-router");
@@ -128,6 +135,7 @@ beforeAll(async () => {
 	fake.replacements = [
 		declared("Sales Invoice", "record", salesInvoicePage),
 		declared("Sales Invoice", "list"),
+		declared("Sales Invoice", "kanban"),
 		declared("Accounts Settings", "list", singleListPage),
 		declared("Journal Entry", "record", async () => {
 			throw new Error("the page failed to load");
@@ -138,6 +146,8 @@ beforeAll(async () => {
 		{ ...declared("Quotation", "list"), apps: ["erpnext", "crm"] },
 	];
 	await registerContributions(["frappe", "erpnext"]);
+	// The real list page, its code loaded, so a test does not wait for the first transform.
+	await import("@/pages/List.vue");
 });
 
 beforeEach(() => {
@@ -148,12 +158,20 @@ beforeEach(() => {
 	for (const page of [salesInvoicePage, singleListPage, flakyPage]) page.mockClear();
 	clearLoadedPages();
 	warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+	vi.stubGlobal("fetch", async (url: string) => {
+		const key = new URL(String(url), "http://x").searchParams.get("key");
+		const type = key === "board" ? "Kanban" : "List";
+		return new Response(
+			JSON.stringify({ data: { key, label: key, type, layer: "own", applies: true } })
+		);
+	});
 });
 
 afterEach(() => {
 	for (const app of apps.splice(0)) app.unmount();
 	document.body.innerHTML = "";
 	vi.restoreAllMocks();
+	vi.unstubAllGlobals();
 });
 
 async function settle() {
@@ -211,11 +229,11 @@ describe.each([
 		expect(setups.attrs).toEqual([{}]);
 	});
 
-	it("opens the declared list page at the main address, with the doctype only", async () => {
+	it("opens the declared list page at the main address, handing it the doctype and the plain view", async () => {
 		const { root, router } = await mount(modular, `${prefix}/sales-invoice`);
 
 		expect(router.currentRoute.value.name).toBe("list");
-		expect(shown(root)).toEqual({ page: "declared", doctype: "Sales Invoice" });
+		expect(shown(root)).toEqual({ page: "declared", doctype: "Sales Invoice", view: "list:List" });
 		expect(setups.attrs).toEqual([{}]);
 	});
 
@@ -225,12 +243,24 @@ describe.each([
 		expect(shown(root)).toEqual({ page: "record" });
 	});
 
-	it("keeps the standard list page at the second address and for a saved view", async () => {
+	it("opens the declared list page for a saved view of type List too, never at the second address", async () => {
 		const standard = await mount(modular, `${prefix}/sales-invoice/view/list`);
 		const saved = await mount(modular, `${prefix}/sales-invoice/view/open`);
 
 		expect(shown(standard.root)).toEqual({ page: "list" });
-		expect(shown(saved.root)).toEqual({ page: "list" });
+		expect(shown(saved.root)).toEqual({ page: "declared", doctype: "Sales Invoice", view: "open:List" });
+	});
+
+	it("opens the page declared for a view type for a saved view of that type, handing it the view", async () => {
+		const { root } = await mount(modular, `${prefix}/sales-invoice/view/board`);
+
+		expect(shown(root)).toEqual({ page: "declared", doctype: "Sales Invoice", view: "board:Kanban" });
+	});
+
+	it("keeps the standard list page for a saved view whose type has no declared page", async () => {
+		const { root } = await mount(modular, `${prefix}/quotation/view/board`);
+
+		expect(shown(root)).toEqual({ page: "list" });
 	});
 
 	it("opens the standard pages at the main address when nothing is declared", async () => {
@@ -431,7 +461,7 @@ describe.each([
 		const record = await mount(modular, `${prefix}/quotation/Q-001`);
 		const base = `/apps/erpnext${prefix}`;
 
-		expect(shown(list.root)).toEqual({ page: "declared", doctype: "Quotation" });
+		expect(shown(list.root)).toEqual({ page: "declared", doctype: "Quotation", view: "list:List" });
 		expect(shown(record.root)).toEqual({ page: "record" });
 		expect(urlFor("Quotation", null, { standard: true })).toBe(`${base}/quotation/view/list`);
 		expect(urlFor("Quotation", "Q-001", { standard: true })).toBe(`${base}/quotation/Q-001`);

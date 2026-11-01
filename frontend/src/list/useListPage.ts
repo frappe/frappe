@@ -1,11 +1,9 @@
-// One doctype's list: the state the controls edit, seeded from the app default under the site's
-// and the person's stored rows, mirrored to the URL query, and written back on the person's acts.
+// One view of a doctype: the state the list page's controls edit, seeded from the app default under
+// the site's and the person's stored rows, mirrored to the URL query, and written back on the person's acts.
 import { useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { useDocPermissions } from "@framework/ui/useDocPermissions";
-import { applyColumnWidth, clearColumnWidth } from "@framework/ui/ColumnSettings";
-import type { ListColumn } from "@framework/ui/experimental/List";
-import { serializeFilters, type FilterCondition, type FilterField } from "@framework/ui/Filter";
-import { serializeOrderBy, type Sort } from "@framework/ui/SortBy";
+import type { FilterCondition, FilterField } from "@framework/ui/Filter";
+import type { Sort } from "@framework/ui/SortBy";
 import { holdFresh } from "@framework/ui/utils";
 import {
 	computed,
@@ -16,73 +14,46 @@ import {
 	type ComputedRef,
 	type Ref,
 } from "vue";
-import { useRoute, useRouter, type RouteLocationRaw } from "vue-router";
-import { listHandlersFor } from "@/contributions/registry";
-import { routeFor } from "@/router/routeFor";
-import { defaultColumns, defaultSort, fetchFields, sameSort, type ListMeta } from "./defaults";
-import { readListMemory, recallRows, rememberRows, writeListMemory } from "./pageState";
+import { useRoute, useRouter } from "vue-router";
+import { defaultSort, sameSort, type ListMeta } from "./defaults";
+import { addressFromQuery, createValues, ownedKeys, queryFromAddress, sameQuery } from "./query";
+import type { SavedView } from "./savedView";
 import {
-	addressFromQuery,
-	completeFilters,
-	createValues,
-	ownedKeys,
-	queryFromAddress,
-	sameQuery,
-} from "./query";
-import {
-	columnsFrom,
 	quickFilterFieldsFrom,
 	sortFrom,
-	toStoredColumns,
 	toStoredQuickFilterFields,
 	type ListSettings,
 	type ListSettingsKey,
 } from "./storedSettings";
-import { useListRows, type ListRow, type ListRows } from "./useListRows";
 import { useListSettings } from "./useListSettings";
+import type { View } from "./view";
 
-export interface DeleteOutcome {
-	deleted: string[];
-	failed: { name: string; error: string }[];
-}
-
-export interface ListPage extends ListRows {
-	/** Written to the URL query. */
-	filters: Ref<FilterCondition[]>;
-	/** Written to the URL query and, on the person's own change, to their row. */
-	sort: Ref<Sort[]>;
-	/** Written to the person's row. */
-	columns: Ref<ListColumn[]>;
+export interface ListPage {
+	/** What the page hands its renderer, or a replacement page. */
+	view: View;
 	/** Written to the person's row when customizing ends. */
 	quickFilterFields: Ref<FilterField[] | undefined>;
 	customizing: Ref<boolean>;
-	selection: Ref<string[]>;
-	/** Kept in the history entry. */
-	pageSize: Ref<number>;
-	/** The filters and sort the rows belong to, as one string: the session memory's key. */
-	rowsKey: () => string;
 	/** Why the doctype's meta could not be read. */
 	metaError: ComputedRef<unknown>;
 	reloadMeta: () => void;
-	/** True once meta, the stored settings and the URL are read into the state above. */
-	seeded: ComputedRef<boolean>;
-	/** True when the person's own row holds columns. */
-	columnsCustomized: ComputedRef<boolean>;
-	/** Clears the person's columns, so the site's or the app's show. */
-	resetColumns: () => Promise<void>;
-	resizeColumn: (fieldname: string, width: string) => void;
-	resetColumnWidth: (fieldname: string) => void;
 	/** The site's defaults, which everyone without their own inherits; a System Manager's act. */
 	saveForSite: (settings: ListSettings) => Promise<void>;
 	resetForSite: (key: ListSettingsKey) => Promise<void>;
-	rowLink: (row: ListRow) => RouteLocationRaw;
 	/** What a new record from this list starts with. */
 	createValues: ComputedRef<Record<string, unknown>>;
-	/** Deletes the selection one row at a time; the page confirms first. */
-	deleteSelection: () => Promise<DeleteOutcome>;
 }
 
-export function useListPage(doctype: string): ListPage {
+/** The view a list address opens when it names none: the plain List view. */
+export const PLAIN_LIST: SavedView = {
+	key: "list",
+	label: "",
+	type: "List",
+	layer: null,
+	applies: true,
+};
+
+export function useListPage(doctype: string, opened: SavedView = PLAIN_LIST): ListPage {
 	const route = useRoute();
 	const router = useRouter();
 	const { meta, error, refreshing, refreshed, reload: reloadMeta } = useDoctypeMeta(doctype);
@@ -90,15 +61,13 @@ export function useListPage(doctype: string): ListPage {
 	const settings = useListSettings(doctype);
 	const listMeta = computed(() => meta.value as ListMeta | null);
 	const fields = computed(() => listMeta.value?.fields ?? []);
-	const contributed = listHandlersFor(doctype).map(({ handlers }) => handlers);
 
 	const filters = ref<FilterCondition[]>([]);
 	const sort = ref<Sort[]>([]);
-	const columns = ref<ListColumn[]>([]);
 	const quickFilterFields = ref<FilterField[] | undefined>();
 	const customizing = ref(false);
-	const selection = ref<string[]>([]);
-	const pageSize = ref(readListMemory().pageSize ?? 20);
+	// The renderer's keys the person changed; the stored rows show through every other key.
+	const changed = ref<Record<string, unknown>>({});
 	const seeded = ref(false);
 	// What the page last set itself, per key: a change that matches it is not the person's act.
 	const applied: Partial<Record<ListSettingsKey, string>> = {};
@@ -113,16 +82,6 @@ export function useListPage(doctype: string): ListPage {
 		return !field || permissions.fieldAccess(field) !== "none";
 	};
 
-	const defaults = computed(() =>
-		listMeta.value ? defaultColumns(listMeta.value, contributed) : []
-	);
-
-	/** The columns the tiers resolve to: the person's, else the site's, else the app default. */
-	function resolvedColumns(): ListColumn[] {
-		const stored = columnsFrom(settings.stored.value.columns, fields.value, readable);
-		return stored.length ? stored : defaults.value;
-	}
-
 	function resolvedSort(): Sort[] {
 		const stored = sortFrom(settings.stored.value.sort, fields.value, readable);
 		return stored.length ? stored : defaultSort(listMeta.value!);
@@ -135,13 +94,8 @@ export function useListPage(doctype: string): ListPage {
 	}
 
 	function applyStored() {
-		applyColumns();
+		changed.value = {};
 		applyQuickFilterFields();
-	}
-
-	function applyColumns() {
-		columns.value = resolvedColumns();
-		applied.columns = JSON.stringify(toStoredColumns(columns.value));
 	}
 
 	function applyQuickFilterFields() {
@@ -170,9 +124,6 @@ export function useListPage(doctype: string): ListPage {
 			if (!value || seeded.value) return;
 			applyStored();
 			readQuery(listMeta.value!);
-			// A breadcrumb has no history entry; an earlier visit gives the page size.
-			const remembered = recallRows(doctype, stateKey());
-			if (remembered && readListMemory().pageSize == null) pageSize.value = remembered.pageSize;
 			seeded.value = true;
 		},
 		{ immediate: true }
@@ -191,7 +142,6 @@ export function useListPage(doctype: string): ListPage {
 	/** Each setting the page set from stale settings follows the fresh ones, unless the person changed it. */
 	function applyFresh() {
 		if (!seeded.value) return;
-		if (!acted.has("columns")) applyColumns();
 		if (!acted.has("quick_filter_fields")) applyQuickFilterFields();
 		if (!acted.has("sort")) readSort();
 	}
@@ -223,12 +173,7 @@ export function useListPage(doctype: string): ListPage {
 		return { ...kept, ...queryFromAddress({ filters: filters.value, sort: written }) };
 	}
 
-	function stateKey() {
-		return JSON.stringify(queryFromAddress({ filters: filters.value, sort: sort.value }));
-	}
-
 	// The person's own acts write; a value the page set itself, from a row or the URL, does not.
-	watch(columns, (value) => persist("columns", toStoredColumns(value)), { deep: true });
 	watch(sort, (value) => persist("sort", value), { deep: true });
 	watch(customizing, (now, before) => {
 		if (before && !now && quickFilterFields.value) {
@@ -244,105 +189,59 @@ export function useListPage(doctype: string): ListPage {
 		settings.save({ [key]: value });
 	}
 
-	const rows = useListRows(doctype, () => {
-		if (!seeded.value) return null;
-		return {
-			key: stateKey(),
-			fields: fetchFields(columns.value),
-			filters: filtersDict(filters.value),
-			orderBy: serializeOrderBy(sort.value.length ? sort.value : resolvedSort()),
-			limit: pageSize.value,
-		};
-	});
+	const viewSettings = computed(() => ({ ...settings.stored.value, ...changed.value }));
 
-	watch(pageSize, (size) => writeListMemory({ pageSize: size }));
-	// The entry's offset belongs to the query it was scrolled on; a new query on the same entry
-	// starts at the top, or Back would land the old offset on the new rows.
-	watch(rows.loadedKey, (_key, previous) => {
-		if (previous != null) writeListMemory({ scrollTop: 0 });
-	});
-	// Keyed by the rows' own query: while a typed filter waits out its debounce, the state is
-	// already the new query and the rows are still the old one.
-	const rowsKey = () => rows.loadedKey.value ?? stateKey();
-	// Immediate: with meta in memory the first read, and so its key, starts before this watch.
-	watch(
-		[pageSize, rows.loadedKey],
-		([size, key]) => {
-			if (key) rememberRows(doctype, { query: key, pageSize: size });
-		},
-		{ immediate: true }
+	/** A renderer's change to its own keys: kept in page state and written to the person's row. */
+	function update(patch: Record<string, unknown>) {
+		const current = viewSettings.value as Record<string, unknown>;
+		const moved = Object.entries(patch).filter(
+			([key, value]) => JSON.stringify(value) !== JSON.stringify(current[key])
+		);
+		if (!moved.length) return;
+		changed.value = { ...changed.value, ...Object.fromEntries(moved) };
+		for (const [key, value] of moved) persist(key as ListSettingsKey, value as never);
+	}
+
+	const unstored = computed(() =>
+		Object.entries(changed.value).some(
+			([key, value]) =>
+				JSON.stringify(value) !== JSON.stringify(settings.stored.value[key as ListSettingsKey])
+		)
 	);
 
-	// A row that left the page leaves the selection; the rest stay selected across a load-more.
-	watch(rows.rows, (current) => {
-		const present = new Set(current.map((row) => row.name));
-		selection.value = selection.value.filter((name) => present.has(name));
-	});
-
-	async function deleteSelection(): Promise<DeleteOutcome> {
-		const outcome: DeleteOutcome = { deleted: [], failed: [] };
-		for (const name of selection.value) {
-			try {
-				await rows.remove(name);
-				outcome.deleted.push(name);
-			} catch (failure) {
-				outcome.failed.push({ name, error: messageOf(failure) });
-			}
-		}
-		selection.value = [];
-		rows.reload();
-		return outcome;
+	async function afterSettingsWrite(write: Promise<void>) {
+		await write;
+		applyStored();
+		readSort();
 	}
 
-	return {
-		...rows,
+	const view: View = {
+		doctype,
+		key: opened.key,
+		type: opened.type,
+		layer: opened.layer,
+		settings: viewSettings,
 		filters,
 		sort,
-		columns,
+		seeded: computed(() => seeded.value),
+		modified: computed(
+			() =>
+				seeded.value &&
+				(filters.value.length > 0 || !sameSort(sort.value, resolvedSort()) || unstored.value)
+		),
+		update,
+		customized: (key) => settings.has("user", key as ListSettingsKey),
+		reset: (key) => afterSettingsWrite(settings.reset(key as ListSettingsKey)),
+	};
+
+	return {
+		view,
 		quickFilterFields,
 		customizing,
-		selection,
-		pageSize,
-		rowsKey,
 		metaError: error,
 		reloadMeta,
-		seeded: computed(() => seeded.value),
-		columnsCustomized: computed(() => settings.has("user", "columns")),
-		resetColumns: async () => {
-			await settings.reset("columns");
-			applyStored();
-			readSort();
-		},
-		resizeColumn: (fieldname, width) =>
-			(columns.value = applyColumnWidth(columns.value, fieldname, width) as ListColumn[]),
-		resetColumnWidth: (fieldname) =>
-			(columns.value = clearColumnWidth(columns.value, fieldname) as ListColumn[]),
-		saveForSite: async (value) => {
-			await settings.saveForSite(value);
-			applyStored();
-			readSort();
-		},
-		resetForSite: async (key) => {
-			await settings.resetForSite(key);
-			applyStored();
-			readSort();
-		},
-		rowLink: (row) => routeFor(doctype, row.name),
+		saveForSite: (value) => afterSettingsWrite(settings.saveForSite(value)),
+		resetForSite: (key) => afterSettingsWrite(settings.resetForSite(key)),
 		createValues: computed(() => createValues(filters.value, fields.value)),
-		deleteSelection,
 	};
-}
-
-/** The object form `useList` takes; it holds one condition per field, so a second one is lost. */
-function filtersDict(filters: FilterCondition[]): Record<string, unknown> {
-	const dict: Record<string, unknown> = {};
-	for (const [fieldname, operator, value] of serializeFilters(completeFilters(filters))) {
-		dict[fieldname] = [operator, value];
-	}
-	return dict;
-}
-
-function messageOf(failure: unknown): string {
-	if (failure instanceof Error) return failure.message;
-	return String(failure);
 }

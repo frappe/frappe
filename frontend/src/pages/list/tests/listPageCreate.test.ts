@@ -4,10 +4,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, nextTick, type App } from "vue";
 import { createMemoryHistory, createRouter, type Router } from "vue-router";
 
-const page = vi.hoisted(() => ({
-	reload: vi.fn(),
-	createValues: {} as Record<string, unknown>,
-}));
 const toast = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn() }));
 
 function stub(name: string) {
@@ -34,37 +30,13 @@ vi.mock("@framework/ui/experimental/List", () => ({
 	ListFooter: stub("footer"),
 }));
 vi.mock("@/list/useScrollMemory", () => ({ useScrollMemory: () => {} }));
-vi.mock("@/list/useListPage", async () => {
-	const { computed, ref } = await import("vue");
-	return {
-		useListPage: () => {
-			const empty = () => ref([]);
-			return {
-				filters: empty(),
-				sort: empty(),
-				columns: empty(),
-				quickFilterFields: ref(undefined),
-				customizing: ref(false),
-				selection: empty(),
-				pageSize: ref(20),
-				rowsKey: () => "",
-				rows: empty(),
-				loading: ref(false),
-				error: ref(null),
-				metaError: ref(null),
-				seeded: ref(true),
-				rowCount: ref(0),
-				totalCount: ref(0),
-				totalCapped: ref(false),
-				totalUnknown: ref(false),
-				hasCounts: ref(false),
-				hasNextPage: ref(false),
-				createValues: computed(() => page.createValues),
-				reload: page.reload,
-			};
-		},
-	};
-});
+vi.mock("@/list/useListPage", async (importOriginal) => ({
+	...(await importOriginal<typeof import("@/list/useListPage")>()),
+	useListPage: (await import("./fakeListPage")).useListPage,
+}));
+vi.mock("@/list/useListView", async () => ({
+	useListView: (await import("./fakeListPage")).useListView,
+}));
 
 import { Addresses } from "@/addresses";
 import type { Boot } from "@/boot";
@@ -74,7 +46,9 @@ import type { Session } from "@framework/ui/api";
 import { clearDataCache } from "@framework/ui/cache";
 import { resetDoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { resetSession, setSession } from "@framework/ui/useSession";
-import DoctypeList from "../DoctypeList.vue";
+import { PLAIN_LIST } from "@/list/useListPage";
+import ViewPage from "../ViewPage.vue";
+import { fake, installListRenderer, resetFake } from "./fakeListPage";
 
 const fetchMock = vi.fn<typeof fetch>();
 const addresses = new Addresses({ doctypes: { Contact: ["contact", "crm"] }, modules: { crm: "CRM" } });
@@ -96,15 +70,15 @@ function contactMeta(permissions: Record<string, unknown>[]) {
 	return { name: "Contact", fields: [{ fieldname: "first_name", fieldtype: "Data", label: "First Name" }], permissions };
 }
 
-beforeEach(() => {
+beforeEach(async () => {
+	resetFake();
+	await installListRenderer();
 	resetDoctypeMeta();
 	clearDataCache();
 	setSession(SESSION);
 	registerCreateDialog(stub("create-dialog"));
 	closeCreates();
 	toast.success.mockReset();
-	page.reload.mockReset();
-	page.createValues = {};
 	meta = contactMeta([{ role: "Sales User", permlevel: 0, read: 1, write: 1, create: 1 }]);
 	boot = {
 		app: "crm",
@@ -147,7 +121,7 @@ async function mount() {
 	await router.push("/contact");
 	const root = document.createElement("div");
 	document.body.appendChild(root);
-	const app = createApp(defineComponent({ render: () => h(DoctypeList, { doctype: "Contact" }) }));
+	const app = createApp(defineComponent({ render: () => h(ViewPage, { doctype: "Contact", opened: PLAIN_LIST }) }));
 	app.use(router).provide("addresses", addresses).provide("boot", boot);
 	app.mount(root);
 	apps.push(app);
@@ -169,7 +143,7 @@ async function clickCreate(root: HTMLElement) {
 	await settle();
 }
 
-describe("DoctypeList Create button", () => {
+describe("the list page Create button", () => {
 	it("shows for a person whose role may create the doctype, in the header row", async () => {
 		const root = await mount();
 		expect(createButton(root)).toBeTruthy();
@@ -198,7 +172,7 @@ describe("DoctypeList Create button", () => {
 	});
 
 	it("opens Create for the doctype with the list's filter values", async () => {
-		page.createValues = { status: "Open", company: "Acme" };
+		fake.createValues = { status: "Open", company: "Acme" };
 		const root = await mount();
 
 		await clickCreate(root);
@@ -217,7 +191,7 @@ describe("DoctypeList Create button", () => {
 		createRequests.value[0].settle({ name: "CONT-0001" });
 		await settle();
 
-		expect(page.reload).toHaveBeenCalledOnce();
+		expect(fake.reload).toHaveBeenCalledOnce();
 		expect(toast.success).toHaveBeenCalledOnce();
 		const [message, options] = toast.success.mock.calls[0];
 		expect(message).toBe("Contact CONT-0001 created");
@@ -321,7 +295,7 @@ describe("DoctypeList Create button", () => {
 		createRequests.value[0].settle(null);
 		await settle();
 
-		expect(page.reload).not.toHaveBeenCalled();
+		expect(fake.reload).not.toHaveBeenCalled();
 		expect(toast.success).not.toHaveBeenCalled();
 		expect(router.currentRoute.value.path).toBe("/contact");
 	});

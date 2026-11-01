@@ -9,7 +9,7 @@
 		<div class="m-auto flex flex-col items-center gap-3 px-8 py-16 text-center">
 			<span class="size-7 text-ink-gray-4" :class="look.icon" aria-hidden="true" />
 			<div class="flex max-w-md flex-col items-center gap-1.5">
-				<p class="text-lg font-medium text-ink-gray-8">{{ look.title }}</p>
+				<p class="text-lg font-medium text-ink-gray-8">{{ title || look.title }}</p>
 				<p class="text-p-sm text-ink-gray-6">{{ description }}</p>
 				<ErrorMessage v-if="message" :message="escaped(message)" />
 			</div>
@@ -104,6 +104,7 @@ const looks = {
 const look = computed(() => looks[props.name]);
 
 const description = computed(() => {
+	if (props.description) return props.description;
 	if (props.name !== "noPermission" || !props.act) return look.value.description;
 	return __("You do not have permission to create {0}.", [__(props.act.doctype)]);
 });

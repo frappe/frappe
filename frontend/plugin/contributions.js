@@ -5,7 +5,13 @@ import { readFileSync } from "node:fs";
 import { basename, join } from "node:path";
 import { directories, files, isFile } from "./folders.js";
 import { pageClashes } from "./pageClashes.js";
-import { STANDARD_PAGES, clashes, declaredPages } from "./replacements.js";
+import {
+	STANDARD_PAGES,
+	clashes,
+	declaredPages,
+	pageKeys,
+	unknownKeys,
+} from "./replacements.js";
 
 const VIRTUAL_ID = "virtual:frappe/contributions";
 const RESOLVED_ID = "\0" + VIRTUAL_ID;
@@ -51,7 +57,7 @@ export function discover(manifest, allSourceDirs = manifest.map((entry) => entry
 	const settings = [];
 	const acts = [];
 	const shellHooks = [];
-	const replacements = [];
+	let replacements = [];
 	const pageScripts = [];
 	const declarations = [];
 	const warnings = [];
@@ -157,6 +163,10 @@ export function discover(manifest, allSourceDirs = manifest.map((entry) => entry
 		}
 	}
 
+	// A key names a view type, and the types are known only once every app is walked.
+	const keys = pageKeys(viewTypes);
+	warnings.push(...unknownKeys(replacements, keys));
+	replacements = replacements.filter((entry) => keys.has(entry.key));
 	warnings.push(...clashes(replacements));
 	warnings.push(...settingsClashes(settings));
 	warnings.push(...shellHookClashes(shellHooks));

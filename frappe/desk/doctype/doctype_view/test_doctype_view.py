@@ -428,8 +428,18 @@ class TestFind(DoctypeViewTestCase):
 		make_view(label="Shared", settings={}).insert()
 
 		with set_user(self.person):
-			self.assertEqual(find(DOCTYPE, "mine"), {"key": "mine", "label": "Mine", "type": "List"})
-			self.assertEqual(find(DOCTYPE, "shared")["label"], "Shared")
+			self.assertEqual(
+				find(DOCTYPE, "mine"),
+				{"key": "mine", "label": "Mine", "type": "List", "layer": "own", "applies": True},
+			)
+			self.assertEqual(find(DOCTYPE, "shared")["layer"], "site")
+
+	def test_a_view_type_s_name_finds_its_plain_view(self):
+		with set_user(self.person):
+			self.assertEqual(
+				find(DOCTYPE, "list"),
+				{"key": "list", "label": "List", "type": "List", "layer": None, "applies": True},
+			)
 
 	def test_another_person_s_view_reads_as_missing_even_for_a_system_manager(self):
 		make_view(label="Theirs", user=self.other, settings={}).insert()

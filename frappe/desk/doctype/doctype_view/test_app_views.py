@@ -189,7 +189,8 @@ class TestTheKeySpace(AppViewCase):
 		person_row("Probe Open")  # made before an app release shipped the same key
 		self.folders.own_view("probe-open", label="Open probe")
 		self.assertEqual(
-			find("ToDo", "probe-open"), {"key": "probe-open", "label": "Probe Open", "type": "List"}
+			find("ToDo", "probe-open"),
+			{"key": "probe-open", "label": "Probe Open", "type": "List", "layer": "own", "applies": True},
 		)
 		self.assertEqual(KeySpace("ToDo").find("probe-open", "nobody-45985@example.com").label, "Open probe")
 
