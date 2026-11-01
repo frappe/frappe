@@ -81,10 +81,11 @@ frappe.ui.form.on("Print Format", {
 		}
 		frm.add_custom_button(__("Convert to Editor Format"), () =>
 			frappe
-				.call(
-					"frappe.printing.doctype.print_format.print_designer_converter.create_editor_format",
-					{ print_format: frm.doc.name }
-				)
+				.call({
+					method: "frappe.printing.doctype.print_format.print_designer_converter.create_editor_format",
+					args: { print_format: frm.doc.name },
+					freeze: true,
+				})
 				.then((r) => frappe.set_route("print-format-builder", r.message))
 		);
 	},
