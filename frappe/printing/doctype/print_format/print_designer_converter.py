@@ -604,7 +604,7 @@ class PrintDesignerConverter:
 		kind = "QR" if (element.get("barcodeFormat") or "").lower() in ("qrcode", "qr") else "CODE128"
 		size = f"{round(flt(element.get('width')) / PX_PER_MM, 1)}mm"
 		field = re.fullmatch(r"{{\s*doc\.(\w+)\s*}}", value)
-		if field and self.meta.get_field(field.group(1)):
+		if field and (field.group(1) == "name" or self.meta.get_field(field.group(1))):
 			return {
 				"label": "Barcode",
 				"fieldname": self.name("barcode"),
