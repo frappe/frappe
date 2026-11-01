@@ -187,6 +187,9 @@ class TestLoad(IntegrationTestCase):
 			new_doc = get_new_doc("ToDo")
 
 		self.assertEqual(new_doc["description"], "from the controller")
+		self.assertEqual(
+			{**new_doc, "description": None}, {**frappe.new_doc("ToDo", as_dict=True), "description": None}
+		)
 		self.assertEqual(new_doc["doctype"], "ToDo")
 		self.assertEqual(new_doc["owner"], frappe.session.user)
 		self.assertFalse(frappe.db.exists("ToDo", new_doc["name"]))

@@ -66,15 +66,16 @@ def getdoc(doctype: str, name: str | int):
 def get_new_doc(doctype: str) -> dict:
 	"""A new `doctype` document with defaults filled by the insert's own rules; nothing is saved.
 
-	A controller's optional `set_new_doc_defaults(self)` fills its empty fields; it must not write to the database.
+	A controller's optional `set_new_doc_defaults(self)` fills empty fields; it must not write to the DB.
 	"""
 	frappe.has_permission(doctype, "create", throw=True)
+	values = frappe.new_doc(doctype, as_dict=True)
 	if not hasattr(get_controller(doctype), "set_new_doc_defaults"):
-		return frappe.new_doc(doctype, as_dict=True)
+		return values
 
-	doc = frappe.new_doc(doctype)
+	doc = frappe.get_doc(values)
 	doc.set_new_doc_defaults()
-	return doc.as_dict()
+	return {**values, **doc.get_valid_dict(sanitize=False)}
 
 
 @frappe.whitelist()
