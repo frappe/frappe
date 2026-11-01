@@ -1,22 +1,16 @@
 import { call } from "./api/frappe.js";
 
-// Frappe renders the boot data into the page; the Vite dev server has no page template,
-// so it asks the site instead (developer mode only).
-export async function loadBoot() {
-	if (window.flow_boot) {
-		return {
-			csrf_token: window.csrf_token,
-			site_name: window.site_name,
-			socketio_port: window.socketio_port,
-			...window.flow_boot,
-		};
-	}
-	const boot = await call("frappe.www.flow.index.get_context_for_dev");
-	window.csrf_token = boot.csrf_token;
+// /flow renders the boot data into the page; the launcher's panel asks for it on first open,
+// and takes the session's token and the socket's address from the page around it: Desk's boot,
+// or the globals a frappe-ui app renders.
+export async function loadBoot(rendered) {
+	if (rendered) return rendered;
+	const desk = window.frappe?.boot;
+	window.csrf_token ||= window.frappe?.csrf_token;
 	return {
-		csrf_token: boot.csrf_token,
-		site_name: boot.site_name,
-		socketio_port: boot.socketio_port,
-		...boot.flow_boot,
+		csrf_token: window.csrf_token,
+		site_name: desk?.sitename ?? window.site_name,
+		socketio_port: desk?.socketio_port ?? window.socketio_port,
+		...(await call("frappe.flow.api.boot")),
 	};
 }

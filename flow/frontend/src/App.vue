@@ -1,30 +1,50 @@
 <template>
-	<FlowPage v-if="boot" :boot="boot" />
-	<div v-else class="flex h-full items-center justify-center bg-surface-base px-6 text-center">
-		<div v-if="error" class="max-w-md">
-			<div class="text-xl font-medium text-ink-gray-9">Flow could not start</div>
-			<div class="mt-2 text-base text-ink-gray-6">{{ error }}</div>
-			<a href="/app" class="mt-4 inline-block text-base font-medium text-ink-gray-8 underline"
-				>Open the Desk</a
-			>
+	<div class="h-full" :data-panel="inPanel ? '' : null">
+		<FlowPage v-if="boot" :boot="boot" />
+		<div
+			v-else
+			class="flex h-full items-center justify-center bg-surface-base px-6 text-center"
+		>
+			<div v-if="error" class="max-w-md">
+				<div class="text-xl font-medium text-ink-gray-9">Flow could not start</div>
+				<div class="mt-2 text-base text-ink-gray-6">{{ error }}</div>
+				<a
+					href="/desk"
+					class="mt-4 inline-block text-base font-medium text-ink-gray-8 underline"
+					>Open the Desk</a
+				>
+			</div>
+			<LoadingIndicator v-else class="h-5 w-5 text-ink-gray-5" />
 		</div>
-		<LoadingIndicator v-else class="h-5 w-5 text-ink-gray-5" />
 	</div>
 </template>
 
 <script setup>
-import { onMounted, ref } from "vue";
+import { onMounted, provide, ref } from "vue";
 import { LoadingIndicator } from "frappe-ui";
 
 import { loadBoot } from "./boot.js";
 import FlowPage from "./chat/FlowPage.vue";
+import { inPanel } from "./panel.js";
+
+// the island's props; see island.js
+const props = defineProps({
+	boot: { type: Object, default: null },
+	panel: { type: String, default: null },
+	path: { type: String, default: null },
+});
+const emit = defineEmits(["close", "settings", "navigate"]);
+provide("flowHost", {
+	close: () => emit("close"),
+	settings: (open) => emit("settings", open),
+});
 
 const boot = ref(null);
 const error = ref("");
 
 onMounted(async () => {
 	try {
-		boot.value = await loadBoot();
+		boot.value = await loadBoot(props.boot);
 	} catch (err) {
 		error.value = err?.message ?? "Could not load the page.";
 	}

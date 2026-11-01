@@ -8,13 +8,29 @@ const finger = globalThis.matchMedia?.("(pointer: coarse)")
 
 export const layout = reactive({ narrow: false, phone: false })
 
+let box = null // the element whose width decides, for a chat in a panel beside a page
 function measure() {
-	layout.narrow = !!wide && !wide.matches
+	layout.narrow = box ? box.width < 768 : !!wide && !wide.matches
 	layout.phone = layout.narrow && !!finger?.matches
 }
 measure()
 wide?.addEventListener("change", measure)
 finger?.addEventListener("change", measure)
+
+// lays out by `el`'s width instead of the window's, as a chat mounted in a page's panel needs;
+// returns the undo
+export function measureLayoutBy(el) {
+	const observer = new ResizeObserver(([entry]) => {
+		box = { width: entry.contentRect.width }
+		measure()
+	})
+	observer.observe(el)
+	return () => {
+		observer.disconnect()
+		box = null
+		measure()
+	}
+}
 
 // iPhone Safari zooms into a field under 16px unless the page caps its scale; it still pinch-zooms.
 // Only iOS knows -webkit-touch-callout: elsewhere the cap would stop pinch zoom

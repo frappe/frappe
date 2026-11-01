@@ -4,6 +4,7 @@
 	     panel; the launcher's panel keeps it flat at any size. The chat's text and its steps are
 	     the composer's size, the text a size up in a wide frame or on a phone -->
 	<div
+		ref="root"
 		class="flow-sidebar-surface flex h-full min-h-0 overflow-clip text-md text-ink-gray-8 [--flow-step-text:theme(fontSize.base)]"
 		:class="
 			layout.phone
@@ -113,7 +114,7 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, provide, ref, watch } from "vue";
+import { computed, inject, onBeforeUnmount, onMounted, provide, ref, watch } from "vue";
 import { isNavigationFailure, useRoute, useRouter } from "vue-router";
 import { Dialogs, ToastProvider, toast, useColorScheme } from "frappe-ui";
 import BrandMark from "@flow/ui-core/components/BrandMark.vue";
@@ -127,7 +128,7 @@ import { installShortcuts } from "@flow/ui-core/shortcuts.js";
 import { installFocusRings } from "@flow/ui-core/focusRings.js";
 import { installViewport } from "@flow/ui-core/viewport.js";
 import { provideComposerHeight } from "@flow/ui-core/composerHeight.js";
-import { layout } from "@flow/ui-core/layout.js";
+import { layout, measureLayoutBy } from "@flow/ui-core/layout.js";
 import { createFlowStore } from "@flow/ui-core/store.js";
 
 import { FrappeClient } from "../api/client.js";
@@ -213,7 +214,7 @@ socket.on("flow:read_screen", async (message) => {
 		answer.error = "Flow is open in a tab of its own, with no page beside it.";
 	} else {
 		try {
-			answer.screen = readScreen(window.parent);
+			answer.screen = readScreen(window);
 		} catch (error) {
 			answer.error = `The page beside the chat could not be read: ${error?.message ?? error}`;
 		}
@@ -224,7 +225,8 @@ socket.on("flow:read_screen", async (message) => {
 		// another panel on the chat answered first, or the call stopped waiting
 	}
 });
-useColorScheme();
+// the page around the panel owns the theme, which the island follows
+if (!inPanel) useColorScheme();
 // the store keys a new chat's skills by folder; here they follow the chosen agent
 watch(
 	() => page.state.agent,
@@ -290,9 +292,10 @@ const needsSetup = computed(
 );
 
 // the launcher listens for the header's ×; a new tab takes the chat over from the panel
-const closePanel = () => window.dispatchEvent(new CustomEvent("flow-close"));
+const host = inject("flowHost");
+const closePanel = () => host.close();
 function openInTab() {
-	window.open(location.href, "_blank", "noopener");
+	window.open(`/flow${route.fullPath}`, "_blank", "noopener");
 	closePanel();
 }
 
@@ -363,13 +366,19 @@ watch(
 		const { record } = route.params;
 		return record === "new" ? `New ${SPECS[pageKind.value].singular}` : record;
 	},
-	(title) => (document.title = title ? `${title} · Flow` : "Flow")
+	(title) => {
+		if (!inPanel) document.title = title ? `${title} · Flow` : "Flow";
+	}
 );
 
 let uninstallShortcuts = null;
 let uninstallFocusRings = null;
 let uninstallViewport = null;
+let unmeasure = null;
+const root = ref(null);
 onMounted(async () => {
+	// an island lays out by its own box, which a panel narrows; the page's width says nothing
+	unmeasure = measureLayoutBy(root.value);
 	if (!inPanel) uninstallShortcuts = installShortcuts(store);
 	uninstallFocusRings = installFocusRings();
 	uninstallViewport = installViewport();
@@ -393,6 +402,7 @@ onBeforeUnmount(() => {
 	uninstallShortcuts?.();
 	uninstallFocusRings?.();
 	uninstallViewport?.();
+	unmeasure?.();
 	store.detach();
 	socket.disconnect();
 });
