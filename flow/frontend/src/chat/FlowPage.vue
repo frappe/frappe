@@ -171,6 +171,7 @@ import SetupState from "./SetupState.vue";
 import ShareChat from "./ShareChat.vue";
 import SkillPicker from "./SkillPicker.vue";
 import { useAgent } from "./agent.js";
+import { readScreen } from "./screen.js";
 import { presentTool } from "./toolMeta.js";
 
 // the composer commands Flow serves, its own agent picker first; the rest need the
@@ -226,6 +227,28 @@ const store = createFlowStore(client, {
 });
 provide("flow", store);
 provide("flowPage", page);
+// the agent's read_screen: the panel reads the page beside it and answers for the chat it shows. A
+// tab of its own has no page; it answers late, so a panel on the same chat is heard first
+const STANDALONE_DELAY = 1500;
+socket.on("flow:read_screen", async (message) => {
+	if (!message?.token || message.session !== store.state.sessionId) return;
+	const answer = { session: message.session, token: message.token };
+	if (!inPanel) {
+		await new Promise((resolve) => setTimeout(resolve, STANDALONE_DELAY));
+		answer.error = "Flow is open in a tab of its own, with no page beside it.";
+	} else {
+		try {
+			answer.screen = readScreen(window.parent);
+		} catch (error) {
+			answer.error = `The page beside the chat could not be read: ${error?.message ?? error}`;
+		}
+	}
+	try {
+		await transport.call("frappe.flow.api.screen_result", answer);
+	} catch {
+		// another panel on the chat answered first, or the call stopped waiting
+	}
+});
 useColorScheme();
 // the store keys a new chat's skills by folder; here they follow the chosen agent
 watch(

@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Any
 
 import frappe
 from frappe import _
+from frappe.flow.daemon.client import DaemonClient
 from frappe.flow.lib.session import new_session, sync_with_retry
 from frappe.query_builder.functions import Locate, Lower
 from frappe.utils import cint, escape_html, get_fullname, get_url
@@ -183,6 +184,26 @@ def resume(
 	doc = _load_session(session, "write")
 	run = doc.resume(_parse_answers(answers), approval_seq=cint(approval_seq) or None)
 	return {"run": run.name, "status": "started"}
+
+
+@frappe.whitelist(methods=["POST"])
+def screen_result(
+	session: str, token: str, screen: dict[str, Any] | str | None = None, error: str | None = None
+) -> dict[str, bool]:
+	"""Answer the read_screen call waiting on `token` with what the panel saw, or why it saw nothing.
+	Not delivered once another panel on the chat answered or the call stopped waiting."""
+	doc = _load_session(session, "write")
+	if not isinstance(token, str) or not token.strip():
+		frappe.throw(_("Token is required."), title=_("Invalid Token"))
+	if error:
+		result = {"content": str(error), "is_error": True}
+	elif screen is not None:
+		content = screen if isinstance(screen, str) else json.dumps(screen, default=str)
+		result = {"content": content, "is_error": False}
+	else:
+		frappe.throw(_("A screen or an error is required."), title=_("Invalid Screen"))
+	with DaemonClient.for_site() as daemon:
+		return {"delivered": bool(daemon.tool_result(doc.name, token, result).get("delivered"))}
 
 
 @frappe.whitelist()

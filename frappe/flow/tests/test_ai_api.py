@@ -280,6 +280,27 @@ class TestSessionEndpoints(ApiCase):
 		for name in api.__all__:
 			frappe.is_whitelisted(frappe.get_attr(f"frappe.flow.api.{name}"))
 
+	def test_screen_result_hands_the_panels_answer_to_the_call_waiting_on_its_token(self):
+		sid = self.create()
+		self.assertEqual(api.screen_result(sid, "t1", screen={"url": "/app/todo"}), {"delivered": True})
+		self.assertEqual(api.screen_result(sid, "t2", error="No page."), {"delivered": True})
+		self.assertEqual(
+			self.daemon.calls[-2:],
+			[
+				("tool_result", sid, "t1", {"content": '{"url": "/app/todo"}', "is_error": False}),
+				("tool_result", sid, "t2", {"content": "No page.", "is_error": True}),
+			],
+		)
+		self.daemon.waiting = False  # another panel answered first, or the run moved on
+		self.assertEqual(api.screen_result(sid, "t1", screen="{}"), {"delivered": False})
+		with self.assertRaises(frappe.ValidationError):
+			api.screen_result(sid, "t3")
+		viewer = _ensure_user("screen-viewer@example.com")
+		frappe.share.add("Flow Session", sid, viewer)
+		frappe.set_user(viewer)
+		with self.assertRaises(frappe.PermissionError):
+			api.screen_result(sid, "t4", screen={})
+
 	def test_boot_names_an_apps_agent_after_its_app_only_when_another_app_shares_its_name(self):
 		for name in ("crm/Support", "helpdesk/Support", "crm/Sales Coach"):
 			app = name.split("/")[0]

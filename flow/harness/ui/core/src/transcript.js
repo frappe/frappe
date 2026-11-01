@@ -325,7 +325,7 @@ const STEP_LABELS = {
 	bash: "Running command",
 	edit: "Editing file",
 	write: "Writing file",
-	web_fetch: "Reading web page",
+	web_fetch: "Reading page",
 	web_search: "Searching the web",
 }
 
@@ -369,6 +369,16 @@ export function fileName(path) {
 		.pop()
 }
 
+// a web page by its host and path: no scheme, query or trailing slash
+export function pageName(url) {
+	try {
+		const { host, pathname } = new URL(url)
+		return host + pathname.replace(/\/$/, "")
+	} catch {
+		return String(url ?? "")
+	}
+}
+
 export function displayText(display) {
 	return display.map((segment) => segment.text).join("")
 }
@@ -380,6 +390,10 @@ export function stepLiveLabel(call) {
 		if (["read", "write", "edit"].includes(name))
 			return call.display
 				.map((segment) => (segment.arg === "path" ? fileName(segment.text) : segment.text))
+				.join("")
+		if (name === "web_fetch")
+			return call.display
+				.map((segment) => (segment.arg === "url" ? pageName(segment.text) : segment.text))
 				.join("")
 		return displayText(call.display)
 	}
@@ -457,6 +471,7 @@ export function stepStat(step) {
 		return d.agent === "general" ? "" : d.agent
 	}
 	if (d.matches !== undefined) return `${d.matches} matches`
+	if (d.results !== undefined) return `${d.results.length} result${d.results.length === 1 ? "" : "s"}`
 	if (d.lines_added !== undefined || d.lines_removed !== undefined)
 		return `+${d.lines_added ?? 0} -${d.lines_removed ?? 0}`
 	if (d.edits !== undefined) return `${d.edits} edits`

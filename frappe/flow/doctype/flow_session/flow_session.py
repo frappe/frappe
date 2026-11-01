@@ -144,6 +144,7 @@ class FlowSession(Document):
 		from frappe.flow.daemon import lifecycle
 		from frappe.flow.doctype.flow_agent.flow_agent import DEFAULT_MAX_ITERATIONS
 		from frappe.flow.lib.model import model_config
+		from frappe.flow.tools.builtins import SCREEN_TOOL_SLUG
 
 		agent = frappe.get_doc("Flow Agent", self.agent)
 		if not agent.enabled:
@@ -170,7 +171,13 @@ class FlowSession(Document):
 			"user_context": context,
 			"cwd": str(lifecycle.session_root()),
 		}
-		config["suggest_replies"] = self.source != "Trigger"  # nobody is there to tap one
+		if self.source == "Trigger":  # nobody is there to tap a reply, and no page to read
+			config["suggest_replies"] = False
+			config["client_tools"] = [
+				t for t in config["client_tools"] if t["function"]["name"] != SCREEN_TOOL_SLUG
+			]
+		else:
+			config["suggest_replies"] = True
 		search_provider = frappe.db.get_single_value("Flow Settings", "search_provider") or "DuckDuckGo"
 		config["web_search"] = {"provider": search_provider.lower()}
 		if search_provider != "DuckDuckGo":

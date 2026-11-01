@@ -53,7 +53,11 @@ class ServerCase(IntegrationTestCase):
 				"title": "Session Lib Agent",
 				"model": self.model.name,
 				"instructions": "Be terse.",
-				"tools": [{"tool": "frappe/read_records"}, {"tool": "frappe/execute"}],
+				"tools": [
+					{"tool": "frappe/read_records"},
+					{"tool": "frappe/execute"},
+					{"tool": "frappe/read_screen"},
+				],
 				"enabled": 1,
 			}
 		).insert()
@@ -64,6 +68,17 @@ class ServerCase(IntegrationTestCase):
 
 
 class TestNewSession(ServerCase):
+	def test_a_trigger_session_has_no_page_to_read_and_nobody_to_tap_a_reply(self):
+		def tools(session):
+			return [t["function"]["name"] for t in self.daemon.configs[session.name]["client_tools"]]
+
+		trigger = new_session(self.agent, source="Trigger")
+		manual = new_session(self.agent)
+		self.assertNotIn("read_screen", tools(trigger))
+		self.assertFalse(self.daemon.configs[trigger.name]["suggest_replies"])
+		self.assertIn("read_screen", tools(manual))
+		self.assertTrue(self.daemon.configs[manual.name]["suggest_replies"])
+
 	def test_new_session_starts_its_server_twin(self):
 		session = new_session(self.agent, source="Trigger")
 		self.assertEqual((session.title, session.source, session.auto_approve), (None, "Trigger", 1))

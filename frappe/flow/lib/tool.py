@@ -29,6 +29,15 @@ class ToolContext:
 	session_id: str
 	agent: str
 	user: str
+	result_token: str | None = None
+
+
+@dataclass
+class Pending:
+	"""A tool's answer that comes later: the flow server waits `timeout` seconds for a result
+	posted under the context's `result_token`."""
+
+	timeout: int
 
 
 @dataclass

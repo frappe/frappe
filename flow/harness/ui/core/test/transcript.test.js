@@ -14,11 +14,13 @@ import {
 	invokedSkills,
 	modelTitle,
 	normalizeSkillCommand,
+	pageName,
 	quoteBlock,
 	skillSegments,
 	splitCodeRefs,
 	splitQuotes,
 	stepLabel,
+	stepLiveLabel,
 	stepStat,
 	stepSubject,
 	subagentId,
@@ -877,6 +879,15 @@ test("a sub-agent's events fold into a thread of their own that its step carries
 	assert.equal(subagentId(again), "c1")
 	assert.equal(stepStat({ result: { details: { agent: "general", end_reason: "max_turns" } } }), "max turns")
 	assert.equal(stepStat({ result: { details: { agent: "researcher", end_reason: "done" } } }), "researcher")
+})
+
+test("a web search counts its hits and a page reads by its host and path", () => {
+	assert.equal(stepStat({ result: { details: { provider: "duckduckgo", results: [{}, {}] } } }), "2 results")
+	assert.equal(stepStat({ result: { details: { provider: "duckduckgo", results: [{}] } } }), "1 result")
+	assert.equal(pageName("https://frappe.io/framework/?ref=x"), "frappe.io/framework")
+	assert.equal(pageName("not a url"), "not a url")
+	const display = [{ text: "Reading page " }, { text: "https://frappe.io/docs/", arg: "url" }]
+	assert.equal(stepLiveLabel({ name: "web_fetch", display }), "Reading page frappe.io/docs")
 })
 
 test("a sub-agent a crash cut off stops working when its session's run ends", () => {

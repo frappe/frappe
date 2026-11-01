@@ -14,7 +14,7 @@ import frappe
 from frappe import _
 from frappe.flow.daemon.client import DaemonClient, DaemonError
 from frappe.flow.lib.session import call_on_complete, sync_with_retry
-from frappe.flow.lib.tool import ToolContext
+from frappe.flow.lib.tool import Pending, ToolContext
 
 if TYPE_CHECKING:
 	from frappe.flow.lib.tool import Tool
@@ -120,8 +120,11 @@ def _dispatch(
 	# the job itself passes no token
 	if result_token and (tool.background(args) if callable(tool.background) else tool.background):
 		return _enqueue(session_id, agent, name, args, result_token)
-	ctx = ToolContext(session_id=session_id, agent=agent, user=frappe.session.user)
-	return {"content": _text(tool(**args, ctx=ctx)), "is_error": False}
+	ctx = ToolContext(session_id=session_id, agent=agent, user=frappe.session.user, result_token=result_token)
+	result = tool(**args, ctx=ctx)
+	if isinstance(result, Pending):
+		return {"pending": True, "timeout": result.timeout}
+	return {"content": _text(result), "is_error": False}
 
 
 def _enqueue(session_id: str, agent: str, tool: str, args: dict, result_token: str) -> dict:

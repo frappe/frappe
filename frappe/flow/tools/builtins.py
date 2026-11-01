@@ -10,7 +10,7 @@ from typing import Any, Literal, NoReturn
 import frappe
 from frappe import _
 from frappe.database.utils import DefaultOrderBy
-from frappe.flow.lib.tool import Tool, ToolContext, tool
+from frappe.flow.lib.tool import Pending, Tool, ToolContext, tool
 from frappe.flow.utils.safe_exec import safe_exec
 from frappe.model.base_document import get_controller
 from frappe.query_builder.functions import Count
@@ -23,6 +23,9 @@ _BATCH_SAVEPOINT = "flow_batch"
 _LIFECYCLE_BY_DOCSTATUS = {0: "submit", 1: "cancel", 2: "amend"}
 SOURCE_TOOL_SLUGS = frozenset({"read", "grep"})
 SUBAGENT_TOOL_SLUG = "subagent"
+SCREEN_TOOL_SLUG = "read_screen"
+SCREEN_EVENT = "flow:read_screen"
+SCREEN_TIMEOUT = 20  # seconds the user's panel has to answer
 SERVER_TOOL_SLUGS = SOURCE_TOOL_SLUGS | {SUBAGENT_TOOL_SLUG, "web_fetch", "web_search"}
 
 
@@ -742,6 +745,21 @@ def run_action(
 	return {"action": action, "results": results}
 
 
+@tool
+def read_screen(*, ctx: ToolContext) -> Pending:
+	"""The page open beside this chat: its URL, title and on-screen text, with fields as "Label: value",
+	headings as "#" lines and the open tab marked in "Tabs:". A Desk form adds whether it is unsaved and
+	which required fields are empty; a Desk list or report sends only its filters, so read the records
+	yourself. Call it when the user means what is in front of them ("this record", "this page", "why
+	can't I save this"). No answer means the chat is not open beside a page."""
+	if not ctx.result_token:
+		frappe.throw(_("read_screen can only answer a call that waits for a result."))
+	frappe.publish_realtime(
+		SCREEN_EVENT, {"session": ctx.session_id, "token": ctx.result_token}, user=ctx.user
+	)
+	return Pending(timeout=SCREEN_TIMEOUT)
+
+
 def _undo_batch(record: str, error: Exception) -> NoReturn:
 	"""Undo every write since the batch began, then fail naming the record that broke it."""
 	try:
@@ -773,6 +791,7 @@ BUILTIN_TOOLS: list[Tool] = [
 	delete,
 	run_action,
 	execute,
+	read_screen,
 ]
 
 

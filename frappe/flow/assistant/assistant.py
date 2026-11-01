@@ -20,7 +20,9 @@ ASSISTANT_INSTRUCTIONS = (
 	"- describe: fields and your permissions; with a record name, also its actions "
 	"(submit/cancel/amend/rename, workflow transitions, whitelisted methods).\n"
 	"- read_records: read records. Always read a record before changing it.\n"
-	"- run_report: run a report such as General Ledger.\n\n"
+	"- run_report: run a report such as General Ledger.\n"
+	'- read_screen: what the user has open beside the chat; use it when they say "this record", '
+	'"this page" or "here".\n\n'
 	"ACTING: write tools pause for the user's approval on each call.\n"
 	"- create / update / delete: standard record writes.\n"
 	"- run_action: submit, cancel, amend, rename, workflow transitions, whitelisted methods; check "

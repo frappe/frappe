@@ -83,6 +83,11 @@ const TOOLS = {
 		stat: (result) => result.action ?? "",
 	},
 	load_skill: { icon: "lucide-book", label: "Loading Skill" },
+	read_screen: {
+		icon: "lucide-monitor",
+		label: "Reading Screen",
+		stat: (result) => result.title ?? "",
+	},
 	// the flow server's own tool: its row opens the child's thread in the workspace panel
 	subagent: { icon: "lucide-bot", label: "Sub-agent" },
 };
