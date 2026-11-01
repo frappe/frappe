@@ -6,6 +6,7 @@ from cryptography.fernet import Fernet
 import frappe
 from frappe.core.doctype.scheduled_job_type.scheduled_job_type import ScheduledJobType, sync_jobs
 from frappe.core.doctype.server_script.server_script import ServerScript
+from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 from frappe.frappeclient import FrappeClient, FrappeException
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
@@ -867,3 +868,240 @@ frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 			with self.assertRaises(frappe.PermissionError):
 				script.save()
 		self.assertEqual(frappe.db.get_value("Server Script", script.name, "script_source"), "Database")
+
+	def make_file_script(self, name, body="", **fields):
+		script = frappe.get_doc(doctype="Server Script", name=name, script_source="File", **fields).insert()
+		self.addCleanup(script.delete)
+		self.write_file_script(script, body)
+		return script
+
+	def write_file_script(self, script, body):
+		import os
+
+		path = script.get_file_path()
+		with open(path, "w") as f:
+			f.write(body)
+		os.utime(path, ns=(1, os.stat(path).st_mtime_ns + 1_000_000))
+		frappe.client_cache.delete_value("server_script_map")
+
+	def test_file_api_script_over_http(self):
+		self.addCleanup(frappe.db.commit)
+		script = self.make_file_script(
+			"test_file_api",
+			"frappe.flags = 'hello from file'\n",
+			script_type="API",
+			api_method="test_file_api",
+			allow_guest=1,
+		)
+		self.assertEqual(script.execute_method(), "hello from file")
+		frappe.db.commit()
+
+		response = requests.post(get_site_url(frappe.local.site) + "/api/method/test_file_api")
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response.json()["message"], "hello from file")
+
+	def test_file_api_script_guest_access(self):
+		self.addCleanup(frappe.db.commit)
+		script = self.make_file_script(
+			"test_file_api_private",
+			"frappe.flags = 'private'\n",
+			script_type="API",
+			api_method="test_file_api_private",
+			allow_guest=0,
+		)
+		frappe.db.commit()
+		url = get_site_url(frappe.local.site) + "/api/method/test_file_api_private"
+		self.assertEqual(requests.post(url).status_code, 403)
+
+		script.allow_guest = 1
+		script.save()
+		frappe.db.commit()
+		self.assertEqual(requests.post(url).json()["message"], "private")
+
+	def test_file_api_script_rate_limit(self):
+		self.addCleanup(frappe.db.commit)
+		script = self.make_file_script(
+			"test_file_rate_limited",
+			"frappe.flags = 'ok'\n",
+			script_type="API",
+			api_method="test_file_rate_limited",
+			allow_guest=1,
+			enable_rate_limit=1,
+			rate_limit_count=2,
+			rate_limit_seconds=60,
+		)
+		counter_prefix = f"rl:server_script:{script.name}:"
+		frappe.cache.delete_keys(counter_prefix)
+		self.addCleanup(frappe.cache.delete_keys, counter_prefix)
+		frappe.db.commit()
+
+		client = FrappeClient(get_site_url(frappe.local.site))
+		for _ in range(2):
+			client.get_api(script.api_method)
+		self.assertRaises(FrappeException, client.get_api, script.api_method)
+
+	def test_file_scheduler_script_runs_through_its_job(self):
+		description = "scheduled from file"
+		body = f'frappe.get_doc({{"doctype": "ToDo", "description": "{description}"}}).insert()\n'
+		script = self.make_file_script(
+			"test_file_scheduled", body, script_type="Scheduler Event", event_frequency="Hourly"
+		)
+		self.addCleanup(frappe.db.delete, "ToDo", {"description": description})
+		sync_jobs()
+		job_name = frappe.db.get_value("Scheduled Job Type", {"server_script": script.name})
+		self.assertTrue(job_name)
+
+		frappe.get_doc("Scheduled Job Type", job_name).execute()
+		self.assertTrue(frappe.db.exists("ToDo", {"description": description}))
+		log = frappe.get_all(
+			"Scheduled Job Log",
+			filters={"scheduled_job_type": job_name},
+			fields=["status"],
+			order_by="creation desc",
+			limit=1,
+		)
+		self.assertEqual(log[0].status, "Complete")
+
+	def test_file_scheduler_script_every_frequency(self):
+		frequencies = [
+			"All",
+			"Hourly",
+			"Daily",
+			"Weekly",
+			"Monthly",
+			"Yearly",
+			"Hourly Long",
+			"Daily Long",
+			"Weekly Long",
+			"Monthly Long",
+			"Cron",
+		]
+		scripts = {}
+		for index, frequency in enumerate(frequencies):
+			fields = {"cron_format": "0 0 1 1 *"} if frequency == "Cron" else {}
+			scripts[frequency] = self.make_file_script(
+				f"test_file_freq_{index}",
+				"",
+				script_type="Scheduler Event",
+				event_frequency=frequency,
+				**fields,
+			)
+		sync_jobs()
+
+		for frequency, script in scripts.items():
+			with self.subTest(frequency=frequency):
+				job_name = frappe.db.get_value("Scheduled Job Type", {"server_script": script.name})
+				self.assertTrue(job_name)
+				job = frappe.get_doc("Scheduled Job Type", job_name)
+				self.assertEqual(job.frequency, frequency)
+				if frequency == "Cron":
+					self.assertEqual((job.next_execution.day, job.next_execution.month), (1, 1))
+
+	def test_file_permission_query_script(self):
+		self.make_file_script(
+			"test_file_perm_query",
+			'conditions = "(1 = 2)"\n',
+			script_type="Permission Query",
+			reference_doctype="Note",
+		)
+		self.assertIn("(1 = 2)", frappe.db.get_list("Note", run=False).get_sql())
+		self.assertEqual(frappe.db.get_list("Note"), [])
+
+	def test_file_workflow_task_script(self):
+		script = self.make_file_script(
+			"test_file_workflow_task",
+			'doc.description = "set by file workflow task"\n',
+			script_type="Workflow Task",
+		)
+		todo = frappe.new_doc("ToDo")
+		script.execute_workflow_task(todo)
+		self.assertEqual(todo.description, "set by file workflow task")
+
+	def test_file_doctype_events(self):
+		events = ["Before Insert", "Before Validate", "Before Save", "After Insert", "After Save"]
+		delete_events = ["Before Delete", "After Delete"]
+		save_body = 'doc.flags.fired = (doc.flags.fired or []) + ["{}"]\n'
+		# delete hooks run on a fresh document, so they leave a mark in the database instead
+		delete_body = 'frappe.get_doc({{"doctype": "ToDo", "description": "fired {}"}}).insert()\n'
+		for index, event in enumerate(events + delete_events):
+			body = delete_body if event in delete_events else save_body
+			self.make_file_script(
+				f"test_file_event_{index}",
+				body.format(event),
+				script_type="DocType Event",
+				reference_doctype="ToDo",
+				doctype_event=event,
+			)
+		self.addCleanup(frappe.db.delete, "ToDo", {"description": ("like", "fired %")})
+
+		todo = frappe.get_doc(doctype="ToDo", description="events from file").insert()
+		self.assertEqual(set(todo.flags.fired), set(events))
+
+		todo.delete()
+		for event in delete_events:
+			self.assertTrue(frappe.db.exists("ToDo", {"description": f"fired {event}"}), event)
+
+	def test_file_doctype_event_cannot_commit(self):
+		self.make_file_script(
+			"test_file_commit",
+			"frappe.db.commit()\n",
+			script_type="DocType Event",
+			reference_doctype="ToDo",
+			doctype_event="Before Insert",
+		)
+		self.assertRaises(AttributeError, frappe.get_doc(doctype="ToDo", description="commit me").insert)
+
+	def test_disabled_file_script_is_never_dispatched(self):
+		import os
+
+		script = self.make_file_script(
+			"test_file_disabled",
+			"frappe.throw('should not run')\n",
+			script_type="DocType Event",
+			reference_doctype="ToDo",
+			doctype_event="Before Insert",
+			disabled=1,
+		)
+		os.remove(script.get_file_path())
+		frappe.get_doc(doctype="ToDo", description="disabled file script").insert()
+		self.assertNotIn(script.name, get_server_script_map().get("ToDo", {}).get("Before Insert", []))
+
+	def test_every_script_type_fails_loudly_on_bad_file(self):
+		import os
+
+		cases = {
+			"API": (
+				{"script_type": "API", "api_method": "test_file_loud_api"},
+				lambda script: script.execute_method(),
+			),
+			"Scheduler Event": (
+				{"script_type": "Scheduler Event", "event_frequency": "Hourly"},
+				lambda script: script.execute_scheduled_method(),
+			),
+			"Workflow Task": (
+				{"script_type": "Workflow Task"},
+				lambda script: script.execute_workflow_task(frappe.new_doc("ToDo")),
+			),
+			"Permission Query": (
+				{"script_type": "Permission Query", "reference_doctype": "Note"},
+				lambda script: script.get_permission_query_conditions("Administrator"),
+			),
+			"DocType Event": (
+				{
+					"script_type": "DocType Event",
+					"reference_doctype": "ToDo",
+					"doctype_event": "Before Insert",
+				},
+				lambda script: script.execute_doc(frappe.new_doc("ToDo")),
+			),
+		}
+		for index, (script_type, (fields, run)) in enumerate(cases.items()):
+			with self.subTest(script_type=script_type):
+				script = self.make_file_script(f"test_file_loud_{index}", "", **fields)
+				self.write_file_script(script, "def broken(:\n")
+				with self.assertRaises(frappe.ValidationError):
+					run(script)
+
+				os.remove(script.get_file_path())
+				with self.assertRaises(frappe.DoesNotExistError):
+					run(script)
