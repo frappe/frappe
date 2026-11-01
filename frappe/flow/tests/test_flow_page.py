@@ -63,4 +63,3 @@ class TestFlowPage(IntegrationTestCase):
 		for user in (outsider, "Guest"):
 			frappe.set_user(user)
 			self.assertNotIn("flow_launcher", page("/desk/user"))
-

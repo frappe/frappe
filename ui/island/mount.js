@@ -53,8 +53,15 @@ const styleSheets = new Map();
  * @returns {Promise<{ app: any, shadow_root: ShadowRoot, update: (props: Object) => void, unmount: () => void }>}
  */
 export async function mountVueIsland(el, options) {
-	const { component, host = {}, props = {}, styles = [], configure, routes, history } =
-		options || {};
+	const {
+		component,
+		host = {},
+		props = {},
+		styles = [],
+		configure,
+		routes,
+		history,
+	} = options || {};
 
 	if (!component) {
 		throw new Error("mountVueIsland: no component given");
@@ -165,9 +172,7 @@ export async function mountVueIsland(el, options) {
 		// frappe-ui components such as Button and MultiSelect always call
 		// useRouter(). A memory router keeps that inject resolvable. An island that
 		// wants navigation of its own passes real routes.
-		app.use(
-			createRouter({ history: history || createMemoryHistory(), routes: routes || [] })
-		);
+		app.use(createRouter({ history: history || createMemoryHistory(), routes: routes || [] }));
 
 		app.provide(portalTargetKey, portal);
 		app.provide(hostKey, context);
