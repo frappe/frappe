@@ -10,7 +10,6 @@ import DurationField from "./DurationField.vue";
 import DynamicLinkField from "./DynamicLinkField.vue";
 import AttachField from "./AttachField.vue";
 import ImageField from "./ImageField.vue";
-import GeolocationField from "./GeolocationField.vue";
 import HeadingField from "./HeadingField.vue";
 import HtmlField from "./HtmlField.vue";
 import LinkField from "./LinkField.vue";
@@ -114,6 +113,9 @@ registerFieldType("Dynamic Link", DynamicLinkField);
 registerFieldType("Attach", AttachField);
 registerFieldType("Attach Image", AttachField);
 registerFieldType("Image", ImageField);
+
+// Lazy: its inlined map images would bloat every record page.
+const GeolocationField = defineAsyncComponent(() => import("./GeolocationField.vue"));
 
 registerFieldType("Geolocation", GeolocationField);
 

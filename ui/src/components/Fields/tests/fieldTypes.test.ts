@@ -86,8 +86,11 @@ describe("fieldTypes registry", () => {
     expect(getFieldComponent("Table MultiSelect")).toBe(TableMultiSelectField);
   });
 
-  it("resolves Geolocation to its component", () => {
-    expect(getFieldComponent("Geolocation")).toBe(GeolocationField);
+  it("resolves Geolocation to its component, loaded lazily", async () => {
+    const lazyGeolocationField = getFieldComponent("Geolocation") as {
+      __asyncLoader: () => Promise<unknown>;
+    };
+    expect(await lazyGeolocationField.__asyncLoader()).toBe(GeolocationField);
   });
 
   it("resolves Attach and Attach Image to the shared AttachField", () => {
