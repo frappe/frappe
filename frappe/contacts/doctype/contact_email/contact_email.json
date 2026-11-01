@@ -1,6 +1,5 @@
 {
  "actions": [],
- "allow_bulk_edit": 1,
  "creation": "2019-08-02 13:08:59.291097",
  "doctype": "DocType",
  "editable_grid": 1,
@@ -31,7 +30,7 @@
  "istable": 1,
  "link_display_mode": "Search",
  "links": [],
- "modified": "2026-11-01 20:35:48.277117",
+ "modified": "2026-11-01 21:12:07.724042",
  "modified_by": "Administrator",
  "module": "Contacts",
  "name": "Contact Email",
