@@ -714,6 +714,99 @@ class TestUser(IntegrationTestCase):
 			update_password("Strong_New_45948", old_password="not-the-password")
 		self.assertIs(type(raised.exception), frappe.AuthenticationError)
 
+	def start_password_session(self, user="testpassword@example.com"):
+		from frappe.auth import CookieManager, LoginManager, get_login_attempt_tracker
+		from frappe.utils import set_request
+
+		set_request(path="/random")
+		frappe.local.cookie_manager = CookieManager()
+		frappe.local.login_manager = LoginManager()
+		frappe.local.request_ip = "127.0.0.69"
+		frappe.set_user(user)
+		tracker = get_login_attempt_tracker(user, raise_locked_exception=False)
+		tracker.add_success_attempt()
+		self.addCleanup(tracker.add_success_attempt)
+		response = frappe.local.response
+		frappe.local.response = frappe._dict()
+		self.addCleanup(setattr, frappe.local, "response", response)
+		return tracker
+
+	def fail_current_password(self, times):
+		for _ in range(times):
+			with self.assertRaisesRegex(frappe.ValidationError, "Incorrect password"):
+				update_password("Strong_New_45948", old_password="not-the-password")
+
+	@IntegrationTestCase.change_settings(
+		"System Settings", allow_consecutive_login_attempts=2, allow_login_after_fail=60
+	)
+	def test_wrong_current_passwords_lock_the_user_out(self):
+		from frappe.auth import get_login_attempt_tracker
+
+		tracker = self.start_password_session()
+
+		# the attempt that passes the limit still reads as a wrong password, as at login
+		self.fail_current_password(3)
+		self.assertFalse(tracker.is_user_allowed())
+		with self.assertRaisesRegex(frappe.SecurityException, "Too many failed login attempts"):
+			update_password("Strong_New_45948", old_password="Eastern_43A1W")
+
+		with self.assertRaises(frappe.SecurityException):
+			get_login_attempt_tracker("testpassword@example.com")
+		self.assertEqual(
+			check_password("testpassword@example.com", "Eastern_43A1W"), "testpassword@example.com"
+		)
+
+	@IntegrationTestCase.change_settings(
+		"System Settings", allow_consecutive_login_attempts=1, allow_login_after_fail=1
+	)
+	def test_current_password_lockout_ends_after_the_lock_interval(self):
+		tracker = self.start_password_session()
+		self.fail_current_password(2)
+		with self.assertRaises(frappe.SecurityException):
+			update_password("Strong_New_45948", old_password="Eastern_43A1W")
+
+		time.sleep(1.1)
+		self.assertEqual(update_password("Strong_New_45948", old_password="Eastern_43A1W"), "/desk")
+		self.assertEqual(tracker.login_failed_count, 0)
+		update_password("Eastern_43A1W", old_password="Strong_New_45948")
+
+	@IntegrationTestCase.change_settings(
+		"System Settings", allow_consecutive_login_attempts=3, allow_login_after_fail=60
+	)
+	def test_correct_current_password_resets_the_failure_count(self):
+		tracker = self.start_password_session()
+		self.fail_current_password(2)
+		self.assertEqual(tracker.login_failed_count, 2)
+
+		update_password("Strong_New_45948", old_password="Eastern_43A1W")
+		self.assertEqual(tracker.login_failed_count, 0)
+		self.fail_current_password(3)
+		self.assertTrue(tracker.is_user_allowed())
+		update_password("Eastern_43A1W", old_password="Strong_New_45948")
+
+	@IntegrationTestCase.change_settings("System Settings", allow_consecutive_login_attempts=0)
+	def test_current_password_is_not_limited_without_a_login_limit(self):
+		self.start_password_session()
+		self.fail_current_password(10)
+		self.assertEqual(update_password("Strong_New_45948", old_password="Eastern_43A1W"), "/desk")
+		update_password("Eastern_43A1W", old_password="Strong_New_45948")
+
+	@IntegrationTestCase.change_settings(
+		"System Settings",
+		allow_consecutive_login_attempts=1,
+		allow_login_after_fail=60,
+		password_reset_limit=6,
+	)
+	def test_reset_key_ignores_the_current_password_lockout(self):
+		tracker = self.start_password_session()
+		self.fail_current_password(2)
+		self.assertFalse(tracker.is_user_allowed())
+
+		key = self.reset_password(frappe.get_doc("User", "testpassword@example.com"))
+		self.assertEqual(update_password("Strong_New_45948", key=key), "/desk")
+		tracker.add_success_attempt()
+		update_password("Eastern_43A1W", old_password="Strong_New_45948")
+
 	@IntegrationTestCase.change_settings("System Settings", password_reset_limit=6)
 	def test_reset_password(self):
 		from frappe.auth import CookieManager, LoginManager
