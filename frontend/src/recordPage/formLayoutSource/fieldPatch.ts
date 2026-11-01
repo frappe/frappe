@@ -15,6 +15,7 @@ export type FieldMetaPatch = Pick<
 	FieldMeta,
 	| "label"
 	| "options"
+	| "choices"
 	| "placeholder"
 	| "description"
 	| "precision"

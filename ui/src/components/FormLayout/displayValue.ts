@@ -95,6 +95,9 @@ function formatValue(
       return formatDatetime(String(value));
     case "Password":
       return PASSWORD_MASK;
+    case "Select":
+    case "Autocomplete":
+      return field.choices?.find((one) => one.value === String(value))?.label ?? String(value);
     case "Data":
       return field.options === "IBAN" ? groupIban(String(value)) : String(value);
     default:

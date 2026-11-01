@@ -16,7 +16,7 @@ import type { FieldErrors } from "./fieldErrors";
 import { applyFieldPatch, type FieldPatch } from "./formLayoutSource/fieldPatch";
 import { readOnly, type ReadOnlyAdvice } from "./readOnly";
 import { StagedOverlay } from "@/pageEngine/staging";
-import type { PageField, PageFieldPatch, PageFields } from "./types";
+import type { PageChoice, PageField, PageFieldPatch, PageFields } from "./types";
 
 const SNAPSHOT_IS_READ_ONLY: ReadOnlyAdvice = {
   path: "page.fields.get()",
@@ -31,11 +31,39 @@ interface Landing {
   /** Its name there — the pipeline is camelCase, the script vocabulary is not. */
   as: string;
   coerce?: (value: any) => any;
+  /** Further node properties the same key sets, from the value as written. */
+  also?: (value: any) => Record<string, any>;
   /** Handed back as itself, not a read-only view: comparing and re-feeding it is the point. */
   opaque?: boolean;
 }
 
 const asBoolean = (value: any) => !!value;
+
+/** `options` is a newline-joined string, or a list of values and `{ value, label }` pairs. */
+function asOptions(value: any): string | null | undefined {
+  if (value == null || typeof value === "string") return value;
+  if (Array.isArray(value)) return toChoices(value).map((one) => one.value).join("\n");
+  warnOnce(`page.fields.update({ options }) — a string or a list of values and { value, label } pairs, not ${typeof value}; emptied.`);
+  return "";
+}
+
+/** The labelled pairs behind a list; a plain string clears the pairs a script set before it. */
+function choicesOf(value: any): { choices: PageChoice[] | undefined } {
+  return { choices: Array.isArray(value) ? toChoices(value) : undefined };
+}
+
+/** Each value once, first label wins; a value with no text or a newline (the join's separator) is dropped. */
+function toChoices(list: any[]): PageChoice[] {
+  const seen = new Map<string, PageChoice>();
+  for (const one of list) {
+    const raw = one !== null && typeof one === "object" ? one.value : one;
+    if (typeof raw !== "string" && typeof raw !== "number") continue;
+    const value = String(raw);
+    if (value.includes("\n") || seen.has(value)) continue;
+    seen.set(value, { value, label: String(one.label ?? value) });
+  }
+  return [...seen.values()];
+}
 
 /** Meta writes `precision` as a number; a script may reasonably say `"2"`. */
 function asPrecision(value: any): number | undefined {
@@ -55,7 +83,7 @@ const PATCH_KEYS: Record<string, Landing> = {
   label: { on: "meta", as: "label" },
   placeholder: { on: "meta", as: "placeholder" },
   description: { on: "meta", as: "description" },
-  options: { on: "meta", as: "options" },
+  options: { on: "meta", as: "options", coerce: asOptions, also: choicesOf },
   link_filters: { on: "meta", as: "filters" },
   precision: { on: "meta", as: "precision", coerce: asPrecision },
   cannot_add_rows: { on: "meta", as: "cannotAddRows", coerce: asBoolean },
@@ -279,6 +307,7 @@ function translate(fieldname: string, patch: PageFieldPatch): FieldPatch {
     }
     const slot = (translated[landing.on] ??= {}) as Record<string, any>;
     slot[landing.as] = landing.coerce ? landing.coerce(value) : value;
+    Object.assign(slot, landing.also?.(value));
   }
   return translated;
 }
@@ -302,6 +331,8 @@ function snapshot(resolved: Record<string, any>): PageField {
     // A decorator's component arrives unstamped; stamp it so the wrapper leaves it alone.
     (field as Record<string, any>)[key] = opaque ? markRaw(value) : value;
   }
+  // Read back as it was written: the pairs, not the values joined for the controls that need none.
+  if (resolved.choices) field.options = resolved.choices;
   return field;
 }
 

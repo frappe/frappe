@@ -243,8 +243,8 @@ export interface PageFieldPatch {
   label?: string;
   placeholder?: string;
   description?: string;
-  /** Link target, or a `Select`'s newline-separated choices. */
-  options?: string;
+  /** Link target, or a `Select` or `Autocomplete`'s choices: newline-separated, or a list of values and `{ value, label }` pairs. */
+  options?: string | Array<string | PageChoice>;
   /** Search filters for a `Link` field. v1 spells it this way; so do we. */
   link_filters?: Record<string, unknown>;
   /** Decimal places for a numeric field. */
@@ -258,6 +258,9 @@ export interface PageFieldPatch {
   /** Props bound onto whichever component renders the field. */
   props?: Record<string, any>;
 }
+
+/** One choice of a `Select` or `Autocomplete`: the value saved and the label shown. */
+export type PageChoice = { value: string | number; label?: string };
 
 /** What `get` hands back: the keys `update` writes, resolved, plus the two that identify the field. */
 export interface PageField extends PageFieldPatch {
