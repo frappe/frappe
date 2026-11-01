@@ -1,8 +1,12 @@
-// Flow's launcher: opens /flow in a panel beside the page, on Cmd/Ctrl+I or a click on any element
-// marked data-flow-toggle, which each app places itself (added by frappe/flow/launcher.py)
+// Flow's launcher: opens Flow's chat in a panel beside the page, on Cmd/Ctrl+I or a click on any
+// element marked data-flow-toggle, which each app places itself (added by frappe/flow/launcher.py,
+// which names the chat's island files on the script tag)
+
+import { mountIsland } from "@framework/ui/island/host";
 
 const STORE_KEY = "flow_launcher";
-const FLOW_PATH = /^\/flow(\/|\?|$)/;
+const ISLAND = "frappe.flow.chat";
+const SCRIPT = document.currentScript;
 const PANEL_WIDTH = 420;
 const MIN_WIDTH = 320;
 // the page beside the panel keeps room for Desk's sidebar and a form with its side column, which
@@ -12,12 +16,6 @@ const PHONE_WIDTH = 640; // narrower windows show the panel full screen
 const SLIDE_TIME = 200; // ms the panel takes to slide in or out
 // under the page's dialogs and toasts, which start at 1040 on Desk and 50 in frappe-ui apps
 const LAYER = location.pathname.startsWith("/desk") ? 1035 : 45;
-// Cmd/Ctrl keys a text box uses, kept in the chat; other shortcuts go to the page
-const TEXT_KEYS = new Set([
-	...["a", "b", "c", "i", "u", "v", "x", "y", "z"],
-	...["backspace", "delete", "enter", "home", "end"],
-	...["arrowleft", "arrowright", "arrowup", "arrowdown"],
-]);
 
 class FlowLauncher {
 	constructor() {
@@ -53,20 +51,9 @@ class FlowLauncher {
 		document.addEventListener("click", (event) => {
 			if (event.target.closest?.("[data-flow-toggle]")) this.toggle();
 		});
-		// a chat loading behind the closed panel takes the keyboard: give it back where it was
-		const stolen = () =>
-			!this.state.open && this.host.shadowRoot.activeElement === this.iframe;
 		// where the keyboard was on the page as it went into the panel; none from the page itself
 		document.addEventListener("focusin", (event) => {
 			if (event.target === this.host) this.page_focus = event.relatedTarget;
-		});
-		window.addEventListener("blur", () => {
-			if (!stolen()) return;
-			// a task later: taken back sooner, the frame keeps it
-			setTimeout(() => {
-				this.chat_focus = this.iframe.contentDocument?.activeElement; // for the next open
-				this.focus_page();
-			});
 		});
 		this.panel
 			.querySelector(".edge")
@@ -78,20 +65,27 @@ class FlowLauncher {
 	open({ focus = true, slide = true } = {}) {
 		if (slide) this.slide();
 		this.state.open = true;
-		if (!this.iframe) this.make_iframe();
+		if (!this.island) this.make_island();
 		this.panel.inert = false;
 		this.place();
 		this.save();
-		if (focus) {
-			this.iframe.focus();
-			this.chat_focus?.focus();
-		}
+		if (focus) this.island.ready.then(() => this.focus_chat());
+	}
+
+	// where the keyboard was in the chat, or its message box
+	focus_chat() {
+		if (!this.state.open) return;
+		const chat = this.window.querySelector(".frappe-island")?.shadowRoot;
+		const target = this.chat_focus?.isConnected
+			? this.chat_focus
+			: chat?.querySelector("[contenteditable=true], textarea");
+		target?.focus({ preventScroll: true });
 	}
 
 	// hidden, not removed, so the chat doesn't lay itself out and animate in again
 	minimize() {
 		const focused = document.activeElement === this.host;
-		this.chat_focus = null;
+		this.chat_focus = focused ? deep_active_element() : null;
 		this.slide();
 		this.state.open = false;
 		this.panel.inert = true;
@@ -103,7 +97,7 @@ class FlowLauncher {
 	// out of the hidden chat, so the next keys, Cmd/Ctrl+I among them, reach the page: back where
 	// they were, without scrolling to it
 	focus_page() {
-		this.iframe.blur();
+		deep_active_element()?.blur();
 		if (this.page_focus?.isConnected) this.page_focus.focus({ preventScroll: true });
 	}
 
@@ -112,79 +106,49 @@ class FlowLauncher {
 		else this.open();
 	}
 
-	// Cmd/Ctrl+I anywhere on the page; rich text keeps it for italics
+	// Cmd/Ctrl+I anywhere on the page and in the chat; the page's rich text keeps it for italics
 	toggle_by_key(event) {
-		if (!is_toggle_key(event) || event.composedPath()[0].isContentEditable) return;
+		const path = event.composedPath();
+		if (!is_toggle_key(event) || (path[0].isContentEditable && !path.includes(this.host)))
+			return;
 		event.preventDefault();
 		event.stopPropagation();
 		this.toggle();
 	}
 
-	make_iframe() {
-		this.iframe = document.createElement("iframe");
-		this.iframe.title = "Flow";
-		// the chat open on the last page
-		this.iframe.src = FLOW_PATH.test(this.state.src) ? this.state.src : "/flow";
-		this.iframe.addEventListener("load", (event) => {
-			this.cover(false); // a page just loaded has no settings open
-			const chat = event.target.contentDocument?.defaultView;
-			if (!chat) return; // an error page, which the page can't reach into
-			// /flow applies its own saved theme as it loads; the page's wins
-			on_theme_change(chat.document.documentElement, () => this.sync_theme());
-			this.handle_keys(chat);
-			chat.addEventListener("flow-settings", (e) => this.cover(e.detail.open));
-			// the chat header's ×, which puts the panel away with its chat kept for the next open
-			chat.addEventListener("flow-close", () => this.minimize());
+	make_island() {
+		const desk = Boolean(window.frappe?.set_route);
+		this.island = mountIsland(ISLAND, this.window, {
+			resolve: () => ({ js: SCRIPT.dataset.island, css: SCRIPT.dataset.islandCss }),
+			host: {
+				locale: window.frappe?.boot?.lang || document.documentElement.lang || "en",
+				user: window.frappe?.session?.user || null,
+				base_url: location.origin,
+				navigate: (route) => (desk ? frappe.set_route(route) : location.assign(route)),
+			},
+			props: {
+				panel: desk ? "desk" : "app",
+				path: this.state.path,
+				onClose: () => this.minimize(),
+				onSettings: (open) => this.cover(open),
+				onNavigate: (path) => {
+					this.state.path = path;
+					this.save();
+				},
+			},
 		});
-		this.window.append(this.iframe);
+		this.island.ready.catch((error) => console.error("Flow could not start", error));
 	}
 
-	// Cmd/Ctrl+I in the chat minimizes; other shortcuts the chat leaves go to the page
-	handle_keys(chat) {
-		chat.addEventListener("keydown", (event) => {
-			if (event.defaultPrevented || !(event.metaKey || event.ctrlKey)) return;
-			if (is_toggle_key(event)) {
-				event.preventDefault();
-				this.minimize();
-				this.chat_focus = event.target;
-				return;
-			}
-			if (TEXT_KEYS.has(event.key.toLowerCase())) return;
-			const copy = new KeyboardEvent("keydown", {
-				key: event.key,
-				code: event.code,
-				location: event.location,
-				repeat: event.repeat,
-				metaKey: event.metaKey,
-				ctrlKey: event.ctrlKey,
-				altKey: event.altKey,
-				shiftKey: event.shiftKey,
-				bubbles: true,
-				cancelable: true,
-			});
-			// Desk reads the legacy key codes, which a made event leaves at 0
-			Object.defineProperties(copy, {
-				keyCode: { value: event.keyCode },
-				which: { value: event.which },
-			});
-			this.host.dispatchEvent(copy);
-			if (copy.defaultPrevented) event.preventDefault();
-		});
-	}
-
-	// the panel and the chat in it take the page's light or dark theme
+	// the panel takes the page's light or dark theme; the island follows it by itself
 	sync_theme() {
 		const theme = document.documentElement.getAttribute("data-theme");
 		if (theme !== "light" && theme !== "dark") return;
 		this.host.dataset.theme = theme;
-		const chat = this.iframe?.contentDocument?.documentElement;
-		if (chat && chat.getAttribute("data-theme") !== theme) {
-			chat.setAttribute("data-theme", theme);
-		}
 	}
 
 	place() {
-		if (!this.iframe) return;
+		if (!this.island) return;
 
 		// docked on the right, or over the whole window while /flow's settings are open
 		const width = this.covered ? innerWidth : this.dock_width();
@@ -270,12 +234,8 @@ class FlowLauncher {
 		return clamp(this.state.width || PANEL_WIDTH, MIN_WIDTH, max_width());
 	}
 
+	// the layout, and the chat open in the panel for the next page to open
 	save() {
-		// the chat open in the panel, for the next page to open
-		const location = this.iframe?.contentDocument?.location;
-		if (location && FLOW_PATH.test(location.pathname)) {
-			this.state.src = location.pathname + location.search;
-		}
 		try {
 			localStorage.setItem(STORE_KEY, JSON.stringify(this.state));
 		} catch {
@@ -288,6 +248,13 @@ class FlowLauncher {
 function is_toggle_key(event) {
 	if (!(event.metaKey || event.ctrlKey) || event.altKey || event.shiftKey) return false;
 	return /^[!-~]$/.test(event.key) ? event.key.toLowerCase() === "i" : event.code === "KeyI";
+}
+
+// the element that has the keyboard, inside shadow roots too
+function deep_active_element() {
+	let element = document.activeElement;
+	while (element?.shadowRoot?.activeElement) element = element.shadowRoot.activeElement;
+	return element;
 }
 
 // Calls back now and whenever an <html>'s data-theme changes.
@@ -368,7 +335,7 @@ const STYLE = `
 }
 /* filling the window, it has no edge toward the page */
 .panel[data-covered] .window { border-width: 0; }
-iframe { display: block; flex: 1; width: 100%; min-height: 0; border: 0; }
+.window > .frappe-island { flex: 1; min-height: 0; }
 .shield { position: absolute; inset: 0; display: none; }
 .busy .shield { display: block; }
 .edge { position: absolute; top: 0; bottom: 0; left: -4px; width: 8px; cursor: ew-resize; touch-action: none; }
@@ -380,7 +347,7 @@ iframe { display: block; flex: 1; width: 100%; min-height: 0; border: 0; }
 }
 `;
 
-// not inside frames, such as a Desk page opened in the panel; window.flow.toggle() is for an app's
+// not inside frames; window.flow.toggle() is for an app's
 // code, as data-flow-toggle is for its markup
 if (window.top === window) {
 	const launcher = new FlowLauncher();
