@@ -470,4 +470,74 @@ describe("the row", () => {
 		expect(row().style.right).toBe(`${innerWidth - 24 - 280}px`);
 		release();
 	});
+
+	/** The Flow launcher: a custom element whose shadow root holds the button, 44px by default at the bottom right. */
+	const launcher = (rect: Partial<DOMRect> = {}) => {
+		const host = document.body.appendChild(document.createElement("flow-launcher"));
+		const icon = host.attachShadow({ mode: "open" }).appendChild(document.createElement("button"));
+		icon.className = "icon";
+		const { left = innerWidth - 60, top = innerHeight - 60, width = 44, height = 44 } = rect;
+		const box = { left, top, width, height, right: left + width, bottom: top + height };
+		icon.getBoundingClientRect = () => box as DOMRect;
+		return { host, icon };
+	};
+
+	it("sits 12px left of the Flow launcher, on the same bottom line", async () => {
+		const { host, icon } = launcher();
+		await attached();
+		expect(row().style.right).toBe("72px");
+		expect(row().style.bottom).toBe("24px");
+
+		icon.hidden = true;
+		icon.getBoundingClientRect = () => ({ left: 0, top: 0, right: 0, bottom: 0, width: 0 }) as DOMRect;
+		await flush();
+		expect(row().style.right).toBe("24px");
+		host.remove();
+	});
+
+	it("finds a launcher that loads after the shell and follows its drag", async () => {
+		await attached();
+		expect(row().style.right).toBe("24px");
+		const { host, icon } = launcher();
+		await flush();
+		expect(row().style.right).toBe("72px");
+
+		icon.getBoundingClientRect = () =>
+			({ left: 16, right: 60, top: innerHeight - 60, bottom: innerHeight - 16, width: 44 }) as DOMRect;
+		icon.style.left = "16px";
+		await flush();
+		expect(row().style.right).toBe("24px");
+		host.remove();
+	});
+
+	it("sits left of the launcher when it is further left than a floating composer", async () => {
+		const { host } = launcher({ left: innerWidth - 700 });
+		await attached();
+		row().getBoundingClientRect = () => ({ left: innerWidth - 776, width: 280, height: 36 }) as DOMRect;
+		window.dispatchEvent(new Event("resize"));
+		const release = registerFloatingComposer(at({ left: innerWidth - 484, top: 100 }));
+		await flush();
+		expect(row().style.right).toBe("712px");
+
+		release();
+		host.remove();
+	});
+
+	it("sits left of a floating composer when it is further left than the launcher", async () => {
+		const { host } = launcher();
+		await attached();
+		const release = registerFloatingComposer(at({ left: innerWidth - 484, top: 100 }));
+		await flush();
+		expect(row().style.right).toBe("496px");
+
+		release();
+		host.remove();
+	});
+
+	it("ignores a launcher that is not on the row's line", async () => {
+		const { host } = launcher({ top: 100 });
+		await attached();
+		expect(row().style.right).toBe("24px");
+		host.remove();
+	});
 });
