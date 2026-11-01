@@ -1225,3 +1225,38 @@ async def test_model_retries_inside_the_adapter_never_rerun_completed_tools(tmp_
 	assert [event["tool_call_id"] for event in _of(events, "tool_result")] == ["count-1"]
 	assert [event["status"] for event in _of(events, "retry")] == ["scheduled", "started"]
 	assert _of(events, "run_ended")[-1]["reason"] == "done"
+
+
+async def test_a_client_tool_that_needs_no_approval_runs_once_with_no_card(tmp_path, monkeypatch):
+	posts = []
+
+	async def post(config, url, payload):
+		posts.append(payload)
+		if payload["mode"] == "confirm":
+			return {"requires_confirmation": not payload["args"].get("read_only")}
+		return {"content": "ran"}
+
+	monkeypatch.setattr("flow_harness.agent.client_tools._post", post)
+	gated = {**_REPORT_CLIENT, "auto_approve": False, "confirm_tools": ["report"]}
+
+	# the client says this call needs no approval: no card, and it runs once
+	session, events = _session(tmp_path, **gated)
+	model = MockModel(
+		replies=[
+			AssistantMessage(content=[ToolCall(id="c1", name="report", arguments={"read_only": True})]),
+			AssistantMessage(content="done"),
+		]
+	)
+	await _run(session, "build the report", model=model)
+	assert [p["mode"] for p in posts] == ["confirm", "execute"]
+	assert not _of(events, "approval_required")
+	assert [r["content"] for r in _of(events, "tool_result")] == ["ran"]
+	assert _of(events, "run_ended")[-1]["reason"] == "done"
+
+	# any other answer still asks, and nothing runs before the user does
+	posts.clear()
+	session, events = _session(tmp_path, **gated)
+	await _run(session, "build the report", model=_report_model())
+	assert [p["mode"] for p in posts] == ["confirm"]
+	assert len(_of(events, "approval_required")) == 1
+	assert _of(events, "run_ended")[-1]["reason"] == "paused"
