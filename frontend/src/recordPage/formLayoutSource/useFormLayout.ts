@@ -5,7 +5,7 @@ import type { FormLayoutSchema, RawMetaField, TabOverride } from "@framework/ui/
 import type { Decorator } from "@framework/ui/FormLayout";
 import type { FieldPatch } from "./fieldPatch";
 import { useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
-import { useDocPermissions } from "@framework/ui/useDocPermissions";
+import { useDocPermissions, type FieldAccess } from "@framework/ui/useDocPermissions";
 import { landFresh, memoizedState } from "@framework/ui/utils";
 import { chooseRow } from "./chooseLayout";
 import { joinLayout } from "./joinLayout";
@@ -29,6 +29,8 @@ export interface UseFormLayoutOptions {
 	tabOverrides?: MaybeRefOrGetter<Record<string, TabOverride>>;
 	/** Fieldnames another layout on the page places, so "More fields" does not draw them twice. */
 	placedElsewhere?: MaybeRefOrGetter<string[]>;
+	/** A saved record: the `field:` autoname field reads only, since the server resets an edit to the name. */
+	lockAutoname?: boolean;
 }
 
 export interface UseFormLayout {
@@ -62,7 +64,7 @@ const entries = memoizedState(
  */
 export function useFormLayout(options: UseFormLayoutOptions): UseFormLayout {
 	const { meta, metas, loading, refreshing, error, refreshed } = useDoctypeMeta(options.doctype);
-	const { fieldAccess } = useDocPermissions(options.doctype);
+	const permissions = useDocPermissions(options.doctype);
 	// Built at call time and held until the input moves, so a later stale mark cannot swap it.
 	const inputNow = () => ({ doctype: toValue(options.doctype), type: options.type });
 	const first = inputNow();
@@ -94,7 +96,9 @@ export function useFormLayout(options: UseFormLayoutOptions): UseFormLayout {
 		return joinLayout(tree, fields, {
 			childMetas,
 			childLayouts: response.value.children,
-			fieldAccess,
+			fieldAccess: options.lockAutoname
+				? lockingAutoname(permissions.fieldAccess, autonameField(meta.value?.autoname))
+				: permissions.fieldAccess,
 			decorate: options.decorate,
 			overrides: toValue(options.overrides),
 			tabOverrides: toValue(options.tabOverrides),
@@ -116,6 +120,22 @@ export function useFormLayout(options: UseFormLayoutOptions): UseFormLayout {
 		reload: () => entry.value.reload(),
 		settled: () => whenSettled(stale),
 		refreshed: () => Promise.all([refreshed(), entry.value.refreshed]).then(() => {}),
+	};
+}
+
+/** The field a `field:` autoname rule names records from. */
+function autonameField(autoname: string | undefined): string | null {
+	if (!autoname?.toLowerCase().startsWith("field:")) return null;
+	return autoname.slice("field:".length).trim() || null;
+}
+
+function lockingAutoname(
+	fieldAccess: (field: RawMetaField) => FieldAccess,
+	locked: string | null
+): (field: RawMetaField) => FieldAccess {
+	return (field) => {
+		const access = fieldAccess(field);
+		return access === "write" && field.fieldname === locked ? "read" : access;
 	};
 }
 
