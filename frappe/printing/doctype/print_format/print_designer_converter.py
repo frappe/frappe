@@ -1,6 +1,7 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
+import html
 import json
 import re
 
@@ -463,7 +464,7 @@ class PrintDesignerConverter:
 
 	def static_text_node(self, element) -> dict | None:
 		text = re.sub(r"<br\s*/?>", "\n", element.get("content") or "")
-		text = re.sub(r"<[^>]+>", "", text).replace("&nbsp;", " ").strip()
+		text = html.unescape(re.sub(r"<[^>]+>", "", text)).replace("\xa0", " ").strip()
 		if not text:
 			return None
 		node = {
