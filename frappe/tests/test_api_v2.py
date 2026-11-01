@@ -1319,6 +1319,48 @@ class TestIncludePartsV2(FrappeAPITestCase):
 		self.assertIn("Has Role", children)
 		self.assertEqual(children["Has Role"]["masked_fields"], [])
 
+	def test_meta_names_the_workflow_state_field(self):
+		path = self.doctype_path("ToDo", "meta")
+		response = self.get(path, {"sid": self.user_sid})
+		self.assertIsNone(response.json["data"]["workflow_state_field"])
+
+		self.addCleanup(frappe.set_user, frappe.session.user)
+		frappe.set_user("Administrator")
+		for state in ("Pending", "Done"):
+			if not frappe.db.exists("Workflow State", state):
+				frappe.get_doc({"doctype": "Workflow State", "workflow_state_name": state}).insert(
+					ignore_permissions=True
+				)
+		if not frappe.db.exists("Workflow Action Master", "Finish"):
+			frappe.get_doc({"doctype": "Workflow Action Master", "workflow_action_name": "Finish"}).insert(
+				ignore_permissions=True
+			)
+		had_field = frappe.db.exists("Custom Field", "ToDo-workflow_state")
+		workflow = frappe.get_doc(
+			{
+				"doctype": "Workflow",
+				"workflow_name": "API v2 Meta Workflow",
+				"document_type": "ToDo",
+				"workflow_state_field": "workflow_state",
+				"is_active": 1,
+				"states": [{"state": "Pending", "allow_edit": "All"}, {"state": "Done", "allow_edit": "All"}],
+				"transitions": [
+					{"state": "Pending", "action": "Finish", "next_state": "Done", "allowed": "All"}
+				],
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(self.drop_workflow, workflow, had_field)
+		frappe.db.commit()
+		response = self.get(path, {"sid": self.user_sid})
+		self.assertEqual(response.json["data"]["workflow_state_field"], "workflow_state")
+
+	@staticmethod
+	def drop_workflow(workflow, had_field):
+		frappe.delete_doc("Workflow", workflow.name, force=True)
+		if not had_field:
+			frappe.delete_doc("Custom Field", "ToDo-workflow_state", force=True, ignore_missing=True)
+		frappe.db.commit()
+
 	def test_meta_unknown_part_is_an_error(self):
 		with suppress_stdout():
 			response = self.get(
