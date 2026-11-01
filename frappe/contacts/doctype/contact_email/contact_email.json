@@ -1,4 +1,9 @@
 {
+<<<<<<< HEAD
+=======
+ "actions": [],
+ "allow_bulk_edit": 1,
+>>>>>>> 1961bd5 (perf(contacts): email lookups scan the whole contact email table)
  "creation": "2019-08-02 13:08:59.291097",
  "doctype": "DocType",
  "editable_grid": 1,
@@ -14,7 +19,8 @@
    "in_list_view": 1,
    "label": "Email ID",
    "options": "Email",
-   "reqd": 1
+   "reqd": 1,
+   "search_index": 1
   },
   {
    "columns": 2,
@@ -26,14 +32,25 @@
   }
  ],
  "istable": 1,
+<<<<<<< HEAD
  "modified": "2019-09-24 17:47:30.565805",
+=======
+ "link_display_mode": "Search",
+ "links": [],
+ "modified": "2026-11-01 20:35:48.277117",
+>>>>>>> 1961bd5 (perf(contacts): email lookups scan the whole contact email table)
  "modified_by": "Administrator",
  "module": "Contacts",
  "name": "Contact Email",
  "owner": "Administrator",
  "permissions": [],
  "quick_entry": 1,
+<<<<<<< HEAD
  "sort_field": "modified",
+=======
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+>>>>>>> 1961bd5 (perf(contacts): email lookups scan the whole contact email table)
  "sort_order": "DESC",
  "track_changes": 1
 }
