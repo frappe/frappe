@@ -41,7 +41,6 @@ const revisions = reactive(new Map<string, number>());
 const docks = shallowReactive(new Map<string, HTMLElement>());
 const records = shallowReactive(new Map<string, WriterContext>());
 const kept = shallowReactive(new Map<string, KeptRecord>());
-// Where the composer sits on screen, for the standing windows to keep clear of.
 const onScreen = shallowReactive({
 	band: null as HTMLElement | null,
 	card: null as HTMLElement | null,
@@ -196,17 +195,17 @@ export function clearComposerDraft(doctype: string, name: string, writer: string
 }
 
 // A page that mounts again registers before the old one unmounts; the old one must not take it back.
-function show(place: keyof typeof onScreen, el: HTMLElement) {
-	onScreen[place] = el;
-	return () => {
-		if (onScreen[place] === el) onScreen[place] = null;
-	};
-}
-
 function register<T>(map: Map<string, T>, key: string, value: T) {
 	map.set(key, value);
 	return () => {
 		if (map.get(key) === value) map.delete(key);
+	};
+}
+
+function show(place: keyof typeof onScreen, el: HTMLElement) {
+	onScreen[place] = el;
+	return () => {
+		if (onScreen[place] === el) onScreen[place] = null;
 	};
 }
 

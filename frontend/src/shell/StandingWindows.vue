@@ -18,7 +18,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { useElementBounding, useWindowSize } from "@vueuse/core";
+import { useElementBounding, useResizeObserver, useWindowSize } from "@vueuse/core";
 import { composerBand, floatingComposer } from "./composer";
 import type { Shell } from "./shellActs";
 import StandingWindowFrame from "./StandingWindowFrame.vue";
@@ -31,6 +31,11 @@ const GAP = 12;
 
 const viewport = useWindowSize();
 const band = useElementBounding(composerBand);
+// The lane is centred in its band, so it moves sideways with no resize of its own.
+useResizeObserver(
+	() => composerBand()?.parentElement ?? null,
+	() => band.update()
+);
 // Also follows the card's `style`, which is all a drag changes.
 const card = useElementBounding(floatingComposer);
 

@@ -33,8 +33,8 @@
 					</Tooltip>
 					<div class="ml-auto flex shrink-0 items-center">
 						<Button
-							v-for="action in entry.actions"
-							:key="action.label"
+							v-for="(action, index) in entry.actions"
+							:key="index"
 							:icon="action.icon"
 							variant="ghost"
 							:theme="action.theme ?? 'gray'"
@@ -101,8 +101,8 @@
 		</Tooltip>
 		<div v-if="entry.actions.length" class="flex shrink-0 items-center" @click.stop>
 			<Button
-				v-for="action in entry.actions"
-				:key="action.label"
+				v-for="(action, index) in entry.actions"
+				:key="index"
 				:icon="action.icon"
 				variant="ghost"
 				:theme="action.theme ?? 'gray'"
@@ -127,7 +127,6 @@ import type { StandingWindow, StandingWindowAction } from "./standingWindows";
 
 const props = defineProps<{ entry: StandingWindow; shell: Shell; maxHeight: number }>();
 
-// Narrower frames give the divider's width back to the title.
 const DIVIDER_WIDTH = 280;
 
 const titleId = `standing-window-title-${props.entry.app}`;

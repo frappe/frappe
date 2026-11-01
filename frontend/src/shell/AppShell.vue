@@ -58,7 +58,7 @@
 
 		<!-- The open writer, here so a floating one outlives the page it was opened on. -->
 		<ComposerWindow :user="boot.session.user" />
-		<StandingWindows :windows="standingWindows" :shell="shell" />
+		<StandingWindows v-if="standingWindows.length" :windows="standingWindows" :shell="shell" />
 
 		<component
 			:is="createDialog()"

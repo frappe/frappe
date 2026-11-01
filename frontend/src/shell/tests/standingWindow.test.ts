@@ -448,7 +448,7 @@ describe("the row", () => {
 		expect(row().style.bottom).toBe("24px");
 	});
 
-	it("stays above the band's line when the band lies wholly to its left", async () => {
+	it("stays on the bottom line when the band lies wholly to its left", async () => {
 		await attached();
 		row().getBoundingClientRect = () => ({ left: innerWidth - 304, width: 280 }) as DOMRect;
 		window.dispatchEvent(new Event("resize"));
