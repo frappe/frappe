@@ -82,6 +82,9 @@ export default {
 }
 ```
 
+A `record.js` is fetched when its doctype's record or new-record page opens, and runs before the
+page draws. No other page downloads it.
+
 A script runs on its doctype in every app, so a `custom/<doctype>/record.js` that changes
 another app's doctype also changes it on `/apps/desk`. The record page's `page.app` is the
 name of the app the reader is in: `frappe` on `/apps/desk`, `crm` on `/apps/crm`. It is

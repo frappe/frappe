@@ -4,9 +4,9 @@ The compatibility policy for the Record page customization API — the `page` ob
 every handler receives. Two audiences program against it, and they carry very
 different risk:
 
-- **File scripts** are contributions compiled into the shell's own bundle. They are
-  rebuilt with the host, so a break is caught at build time by the person who caused
-  it. Cheapest to break.
+- **File scripts** are contributions the build compiles into a chunk per script, fetched
+  when the doctype's page opens. They are rebuilt with the host, so a break is caught at
+  build time by the person who caused it. Cheapest to break.
 - **Client Scripts** are text stored in a site's database, as `Client Script` rows with
   `view = Record`. Nobody rebuilds them. They survive every upgrade, on sites with no
   developer watching. The audience that pays for a break.

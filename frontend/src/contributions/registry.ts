@@ -143,7 +143,7 @@ export function registerContributions(appOrder: string[]) {
         continue
       }
 
-      addFileScript(doctype, { app: contribution.app, handlers: contribution.handlers })
+      addFileScript(doctype, { app: contribution.app, load: contribution.load })
     }
   }
 }

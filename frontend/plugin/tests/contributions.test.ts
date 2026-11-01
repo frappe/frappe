@@ -529,6 +529,36 @@ describe("the generated module", () => {
     );
   });
 
+  it("fetches a record script when its page opens, and bundles only a list script", () => {
+    const manifest = bench({
+      helpdesk: owner(
+        { record: "runner" },
+        { [`${TICKET}/frontend/list.js`]: "export default {}" },
+      ),
+      crm: { "fcrm/custom/hd_ticket/record.js": "export default {}" },
+    });
+    const [helpdesk, crm] = manifest.map((entry) => entry.source_dir);
+    const record = join(helpdesk, TICKET, "frontend/record.js");
+    const list = join(helpdesk, TICKET, "frontend/list.js");
+    const custom = join(crm, "fcrm/custom/hd_ticket/record.js");
+
+    const code = load(contributions(manifest));
+    expect(code).not.toContain(`import d0 from`);
+    expect(code).toContain(`import d1 from ${JSON.stringify(list)}`);
+    expect(code).toContain(
+      `{ kind: "record", app: "helpdesk", doctype: "HD Ticket", ` +
+        `load: () => import(${JSON.stringify(record)}), __file: ${JSON.stringify(record)} },`,
+    );
+    expect(code).toContain(
+      `{ kind: "list", app: "helpdesk", doctype: "HD Ticket", ` +
+        `handlers: d1, __file: ${JSON.stringify(list)} },`,
+    );
+    expect(code).toContain(
+      `{ kind: "custom", app: "crm", doctype: "HD Ticket", ` +
+        `load: () => import(${JSON.stringify(custom)}), __file: ${JSON.stringify(custom)} },`,
+    );
+  });
+
   it("imports each page's handler file and drops one with no default export at runtime", () => {
     const manifest = bench({
       helpdesk: owner(

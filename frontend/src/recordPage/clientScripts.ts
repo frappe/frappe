@@ -77,13 +77,17 @@ export function clientScriptWait(doctype: string, page?: string): string | null 
 }
 
 /** Resolves when the fresh tier has registered; one fetch per tier until it goes stale. */
-export function loadClientScripts(doctype: string, page?: string): Promise<void> {
+export function loadClientScripts(
+  doctype: string,
+  page?: string,
+  registerAfter?: Promise<unknown>,
+): Promise<void> {
   const key = tierKey(doctype, page);
   const current = tiers.get(key);
   if (current && !stale.has(key)) return current;
   stale.delete(key);
   const tier = { key, doctype, page };
-  const loading: Promise<void> = buildTier(tier, () => tiers.get(key) === loading);
+  const loading: Promise<void> = buildTier(tier, () => tiers.get(key) === loading, registerAfter);
   tiers.set(key, loading);
   return loading;
 }
@@ -125,7 +129,7 @@ interface CompiledScript {
 }
 
 // Every script compiles before any registers, so a replay meets the old tier or the new one, never a mix.
-async function buildTier(tier: Tier, current: () => boolean) {
+async function buildTier(tier: Tier, current: () => boolean, registerAfter?: Promise<unknown>) {
   const { key, doctype } = tier;
   waits.set(key, `the Client Script list for ${tierLabel(tier)}`);
   const response = await fetchScripts(tier);
@@ -146,6 +150,7 @@ async function buildTier(tier: Tier, current: () => boolean) {
     const handlers = await compileScript(doctype, row, response!.can_write);
     if (handlers) compiled.push({ row, handlers });
   }
+  await registerAfter;
   if (!current()) return;
   swapTier(tier, compiled, response?.can_write ?? false);
   waits.delete(key);
