@@ -289,16 +289,10 @@ describe("desk's settings components", () => {
 		expect(reload).toHaveBeenCalledOnce();
 	});
 
-	it("change password: a refused change shows the server's message and does not reload", async () => {
+	async function refuse(reply: Record<string, unknown>, status: number) {
 		const reload = vi.fn();
 		vi.stubGlobal("location", { ...window.location, reload });
-		methods[UPDATE_PASSWORD] = () =>
-			new Response(
-				JSON.stringify({
-					errors: [{ type: "AuthenticationError", message: "Incorrect User or Password" }],
-				}),
-				{ status: 401 }
-			);
+		methods[UPDATE_PASSWORD] = () => new Response(JSON.stringify(reply), { status });
 		await mount("change-password");
 
 		type("current", "wrong");
@@ -307,11 +301,30 @@ describe("desk's settings components", () => {
 		await settle();
 		button("Change password").click();
 		await settle();
+		return reload;
+	}
 
-		expect(document.querySelector("[role='alert']")?.textContent).toBe(
-			"Incorrect User or Password"
+	it("change password: a wrong current password shows the server's message and does not reload", async () => {
+		const reload = await refuse(
+			{
+				errors: [
+					{ type: "ValidationError", title: "Invalid Password", message: "Incorrect password" },
+				],
+			},
+			417
 		);
+
+		expect(document.querySelector("[role='alert']")?.textContent).toBe("Incorrect password");
 		expect(reload).not.toHaveBeenCalled();
 		expect(button("Change password").disabled).toBe(false);
+	});
+
+	it("change password: a 401 with no message says the user is signed out", async () => {
+		const reload = await refuse({ errors: [{ type: "AuthenticationError" }] }, 401);
+
+		expect(document.querySelector("[role='alert']")?.textContent).toBe(
+			"You are signed out. Reload the page and sign in again."
+		);
+		expect(reload).not.toHaveBeenCalled();
 	});
 });

@@ -33,7 +33,7 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from "vue";
 import { Button, ErrorMessage, Password, SettingsRow } from "frappe-ui";
-import { runMethod } from "@framework/ui/api";
+import { isApiError, runMethod } from "@framework/ui/api";
 import { __ } from "frappe/i18n";
 
 /** A block with no binding is handed an empty `bindings`. */
@@ -69,11 +69,18 @@ async function change() {
 			logout_all_sessions: 1,
 		});
 	} catch (error) {
-		failure.value = error instanceof Error ? error.message : String(error);
+		failure.value = failureMessage(error);
 		changing.value = false;
 		return;
 	}
 	// The server starts a new session, so this page's CSRF token is stale until it loads again.
 	window.location.reload();
+}
+
+function failureMessage(error: unknown): string {
+	// A bare AuthenticationError has no message, and its reply has already cleared the sid cookie.
+	if (isApiError(error) && error.status === 401 && error.message === error.type)
+		return __("You are signed out. Reload the page and sign in again.");
+	return error instanceof Error ? error.message : String(error);
 }
 </script>
