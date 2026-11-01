@@ -22,6 +22,7 @@ from frappe.api.include import (
 	add_document_parts,
 	add_list_parts,
 	add_meta_parts,
+	get_doctype_state_field,
 	parse_include,
 	serialize_meta,
 )
@@ -348,7 +349,8 @@ def delete_doc(doctype: str, name: str):
 def get_meta(doctype: str):
 	frappe.only_for("All")
 	add_meta_parts(doctype, parse_include(frappe.form_dict.get("include")))
-	return serialize_meta(frappe.get_meta(doctype))
+	meta = serialize_meta(frappe.get_meta(doctype))
+	return {**meta, "workflow_state_field": get_doctype_state_field(doctype)}
 
 
 def execute_doc_method(doctype: str, name: str, method: str | None = None):

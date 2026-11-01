@@ -19,6 +19,7 @@ from frappe.desk.form.load import (
 	get_title_values_for_table_and_multiselect_fields,
 )
 from frappe.model.document import Document
+from frappe.model.workflow import get_workflow_name, get_workflow_state_field
 from frappe.permissions import get_doc_permissions
 from frappe.share import _get_users as get_shares
 
@@ -196,6 +197,12 @@ def serialize_meta(meta, parenttype: str | None = None) -> dict:
 	d = meta.as_dict(no_nulls=True)
 	d["masked_fields"] = [df.fieldname for df in meta.get_masked_fields(parenttype=parenttype)]
 	return d
+
+
+def get_doctype_state_field(doctype: str) -> str | None:
+	"""The field holding the state under the doctype's active workflow, or None."""
+	name = get_workflow_name(doctype)
+	return get_workflow_state_field(name) if name else None
 
 
 META_PARTS = {"children": get_children}

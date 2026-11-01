@@ -187,6 +187,7 @@ import { PANEL_BUILTINS } from "./record/panel/builtins";
 import { amendable, amendItem, amendmentOf } from "./record/amendAct";
 import { headerMenuBuiltins, quickActionBuiltins } from "./record/builtinActions";
 import { renameRecord } from "./record/renameAct";
+import { statusItems } from "./record/recordStatus";
 import { favouritesOf, hasFavourited } from "./record/favourites";
 import { canFollow, declinedMessage } from "./record/follow";
 import { useLiveDocinfo, warnDocinfoFailed } from "./record/liveDocinfo";
@@ -426,6 +427,7 @@ function headerBuiltins(): HeaderItem[] {
 			display: "button",
 			run: toggleFavourite,
 		},
+		...statusItems(meta.value, doc.value),
 		{
 			name: "save",
 			label: "Save",
