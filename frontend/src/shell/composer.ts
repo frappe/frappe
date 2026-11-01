@@ -41,6 +41,11 @@ const revisions = reactive(new Map<string, number>());
 const docks = shallowReactive(new Map<string, HTMLElement>());
 const records = shallowReactive(new Map<string, WriterContext>());
 const kept = shallowReactive(new Map<string, KeptRecord>());
+// Where the composer sits on screen, for the standing windows to keep clear of.
+const onScreen = shallowReactive({
+	band: null as HTMLElement | null,
+	card: null as HTMLElement | null,
+});
 
 export const composerState = readonly(state);
 
@@ -110,6 +115,26 @@ export function composerDock(): HTMLElement | null {
 	return docks.get(recordKey(state.doctype, state.name)) ?? null;
 }
 
+/** The band at the foot of the record on screen offers itself while shown; returns its release. */
+export function registerComposerBand(el: HTMLElement) {
+	return show("band", markRaw(el));
+}
+
+/** The band at the foot of the record on screen, or null. */
+export function composerBand(): HTMLElement | null {
+	return onScreen.band;
+}
+
+/** The composer card offers itself while it floats; the returned function takes it back. */
+export function registerFloatingComposer(el: HTMLElement) {
+	return show("card", markRaw(el));
+}
+
+/** The floating composer card, or null while it is docked or closed. */
+export function floatingComposer(): HTMLElement | null {
+	return onScreen.card;
+}
+
 /** The record page's context for its writers, while that page is mounted. */
 export function registerComposerRecord(doctype: string, name: string, context: WriterContext) {
 	keep(doctype, name, context);
@@ -171,6 +196,13 @@ export function clearComposerDraft(doctype: string, name: string, writer: string
 }
 
 // A page that mounts again registers before the old one unmounts; the old one must not take it back.
+function show(place: keyof typeof onScreen, el: HTMLElement) {
+	onScreen[place] = el;
+	return () => {
+		if (onScreen[place] === el) onScreen[place] = null;
+	};
+}
+
 function register<T>(map: Map<string, T>, key: string, value: T) {
 	map.set(key, value);
 	return () => {

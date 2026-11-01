@@ -34,6 +34,9 @@ export type Navigation = {
 	sidebars: Record<string, NavigationItem[]>;
 };
 
+/** An app whose shell hook this person may run, with its `add_to_apps_screen` title. */
+export type ShellHook = { app: string; title: string };
+
 export type Boot = {
 	// --- framework core ---
 	frappe_version: string;
@@ -50,7 +53,7 @@ export type Boot = {
 	translations_version: string;
 	app_order: string[];
 	// The apps whose `shell.js` this person may run, in `app_order`.
-	shell_hooks: string[];
+	shell_hooks: ShellHook[];
 
 	// --- routing ---
 	//

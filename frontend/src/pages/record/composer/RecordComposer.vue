@@ -30,7 +30,12 @@ import { useElementSize } from "@vueuse/core";
 import type { SessionUser } from "@framework/ui/api";
 import { isComposerTab, type RecordPageController } from "@/recordPage";
 import type { TabItem } from "@/recordPage/types";
-import { activeWriter, composerState, registerComposerDock } from "@/shell/composer";
+import {
+	activeWriter,
+	composerState,
+	registerComposerBand,
+	registerComposerDock,
+} from "@/shell/composer";
 import { RecordFeedsKey } from "../feed/recordFeeds";
 import { COMMENT_WRITER } from "./commentDraft";
 import { EMAIL_WRITER } from "./emailDraft";
@@ -79,6 +84,10 @@ onUnmounted(() => measured(0));
 // Offered while the band is shown, so docking moves the open writer in without drawing it anew.
 watch([dock, page], ([element, { doctype, docname }], _old, onCleanup) => {
 	if (element) onCleanup(registerComposerDock(doctype, docname, element));
+});
+
+watch(band, (element, _old, onCleanup) => {
+	if (element) onCleanup(registerComposerBand(element));
 });
 
 function measured(pixels: number) {

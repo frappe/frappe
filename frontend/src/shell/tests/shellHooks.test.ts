@@ -56,7 +56,8 @@ async function paint() {
 }
 
 async function mount(shellHooks: string[], boot: Boot = appBoot) {
-	const booted = { ...boot, shell_hooks: shellHooks } as Boot;
+	const hooks = shellHooks.map((app) => ({ app, title: app }));
+	const booted = { ...boot, shell_hooks: hooks } as Boot;
 	const router = createRouter({
 		history: createMemoryHistory(booted.shell_base),
 		routes: [{ path: "/", name: "home", component: { render: () => null } }],
@@ -177,14 +178,14 @@ describe("the shell hook", () => {
 		expect(setup).toHaveBeenCalledOnce();
 	});
 
-	it("hands setup a frozen shell that holds only afterSave", async () => {
+	it("hands setup a frozen shell that holds only afterSave and window", async () => {
 		let shell: Record<string, unknown> | undefined;
 		ship("crm", { setup: (given: Record<string, unknown>) => (shell = given) });
 
 		await mount(["crm"]);
 		await paint();
 
-		expect(Object.keys(shell!)).toEqual(["afterSave"]);
+		expect(Object.keys(shell!)).toEqual(["afterSave", "window"]);
 		expect(Object.isFrozen(shell)).toBe(true);
 	});
 

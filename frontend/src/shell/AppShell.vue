@@ -58,6 +58,7 @@
 
 		<!-- The open writer, here so a floating one outlives the page it was opened on. -->
 		<ComposerWindow :user="boot.session.user" />
+		<StandingWindows :windows="standingWindows" :shell="shell" />
 
 		<component
 			:is="createDialog()"
@@ -102,6 +103,7 @@ import RailColumn from "./RailColumn.vue";
 import { useShellActs, type OpenSettings } from "./shellActs";
 import { useShellHooks } from "./shellHooks";
 import SidebarPanel from "./SidebarPanel.vue";
+import StandingWindows from "./StandingWindows.vue";
 import { useHashDialog } from "./useHashDialog";
 import UserMenu from "./UserMenu.vue";
 
@@ -122,7 +124,7 @@ const router = useRouter();
 const route = useRoute();
 
 watch(() => route.fullPath, closeCreates);
-useShellHooks(boot.shell_hooks);
+const standingWindows = useShellHooks(boot.shell_hooks);
 
 const navigation = ref<Navigation>(boot.navigation ?? { rail: [], sidebars: {} });
 
@@ -297,7 +299,7 @@ watch(sidebarCollapsed, collapsedMemory.remember);
 
 const confirmingLogout = ref(false);
 
-const { appActsPending } = useShellActs({
+const { appActsPending, shell } = useShellActs({
 	boot,
 	router,
 	openSettings,

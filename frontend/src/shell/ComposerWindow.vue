@@ -72,7 +72,7 @@
 				</div>
 			</template>
 
-			<div class="flex h-full min-h-0 flex-col">
+			<div ref="body" class="flex h-full min-h-0 flex-col">
 				<component
 					:is="writer.component"
 					v-if="writer.component"
@@ -113,6 +113,7 @@ import {
 	composerState,
 	composerUser,
 	draftRevision,
+	registerFloatingComposer,
 	setComposerWindow,
 	type ComposerWindow,
 } from "./composer";
@@ -120,6 +121,7 @@ import {
 defineProps<{ user: SessionUser }>();
 
 const shellSlot = ref<HTMLElement | null>(null);
+const body = ref<HTMLElement | null>(null);
 // The store's user, so every key the composer keeps belongs to one reader.
 const reader = composerUser();
 const dock = useDockHeight(reader);
@@ -150,6 +152,15 @@ const mode = computed({
 		if (value === "docked" || value === "floating") setComposerWindow(value);
 	},
 });
+
+watch(
+	[body, docked],
+	([element, isDocked], _old, onCleanup) => {
+		const card = element?.closest<HTMLElement>("[data-composer-window]");
+		if (card && !isDocked) onCleanup(registerFloatingComposer(card));
+	},
+	{ flush: "post" }
+);
 
 // The window takes its place from storage when it mounts; the store's, maybe one open's, must win.
 watch(() => (target.value && writer.value ? recordKey.value : ""), storeWindow, {
