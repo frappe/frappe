@@ -17,7 +17,7 @@ export interface RendererHost {
 	onCreate: (callback: () => void) => void;
 }
 
-// List is imported, not loaded: every list address needs it, so a chunk of its own only adds cost.
+// Imported, not lazy: List stays in the list page's chunk.
 const renderers = new Map<string, Component>([["List", ListView]]);
 
 export function rendererFor(type: string): Component {

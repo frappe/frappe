@@ -73,7 +73,7 @@ The list and record routes open the replacement page that applies in the current
 (`boot.app`), else the standard page. A `pages.json` key takes a page name (every app), one
 `{ "page", "apps" }` entry, or a list of them; an entry with no `apps` applies in every app.
 The key is `record`, `list` or a view type's key (its lowercase name, such as `cards`): a saved
-view of that type opens that page. `standard-list` and `/view/<type>` open the standard page.
+view of that type opens that page. `standard-list` (`/view/list`) opens the standard page.
 _Avoid_: default route, implicit route.
 
 **Index**: <a id="index"></a>

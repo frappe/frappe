@@ -2,7 +2,7 @@
 // sweep every app on the bench and lose the app name. Everything falls out of the path.
 
 import { readFileSync } from "node:fs";
-import { basename, join } from "node:path";
+import { basename, dirname, join } from "node:path";
 import { directories, files, isFile } from "./folders.js";
 import { pageClashes } from "./pageClashes.js";
 import {
@@ -58,7 +58,7 @@ export function discover(manifest, allSourceDirs = manifest.map((entry) => entry
 	const acts = [];
 	const shellHooks = [];
 	let replacements = [];
-	const pageScripts = [];
+	let pageScripts = [];
 	const declarations = [];
 	const warnings = [];
 	// Every app on the bench, not just the manifest: a `custom/` folder can name a doctype
@@ -163,10 +163,14 @@ export function discover(manifest, allSourceDirs = manifest.map((entry) => entry
 		}
 	}
 
-	// A key names a view type, and the types are known only once every app is walked.
 	const keys = pageKeys(viewTypes);
 	warnings.push(...unknownKeys(replacements, keys));
 	replacements = replacements.filter((entry) => keys.has(entry.key));
+	pageScripts = pageScripts.filter((script) =>
+		replacements.some(
+			(entry) => entry.page === script.page && dirname(dirname(entry.file)) === dirname(script.file)
+		)
+	);
 	warnings.push(...clashes(replacements));
 	warnings.push(...settingsClashes(settings));
 	warnings.push(...shellHookClashes(shellHooks));

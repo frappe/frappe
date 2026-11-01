@@ -166,6 +166,18 @@ describe("a pages.json key that cannot be used", () => {
     ]);
   });
 
+  it("ships no handler file for a page declared only under an unknown key", () => {
+    const manifest = bench({
+      helpdesk: owner(
+        { form: "runner" },
+        { [`${TICKET}/frontend/runner.js`]: "export default {}" },
+      ),
+    });
+    const { pageScripts } = discover(manifest);
+
+    expect(pageScripts).toEqual([]);
+  });
+
   it("keeps a key that names a view type in lower case, from any app", () => {
     const manifest = bench({
       helpdesk: owner({ cards: "runner", kanban: "runner" }),
