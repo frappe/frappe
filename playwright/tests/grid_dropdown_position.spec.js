@@ -54,6 +54,12 @@ test.describe("Grid dropdown position", () => {
 		await expect(parked).toHaveCount(1);
 		await expect(page.locator(".awesomplete > ul:visible")).toHaveCount(0);
 
+		await input.fill("a");
+		await expect(parked.locator("ul li")).toHaveCount(3);
+		await input.press("Escape");
+		await input.fill("c");
+		await expect(parked.locator("ul li").first()).toBeVisible();
+
 		await input.blur();
 		await expect(parked).toHaveCount(0);
 		await expect(cell.locator(".awesomplete > ul")).toHaveCount(1);
