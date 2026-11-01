@@ -11,6 +11,7 @@ from frappe.flow.permissions import FLOW_USER_ROLE, ensure_flow_role
 from frappe.flow.tests.test_permissions import _user
 from frappe.tests import IntegrationTestCase
 from frappe.utils import set_request
+from frappe.www.flow import index
 
 
 class TestFlowPage(IntegrationTestCase):
