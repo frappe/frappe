@@ -1231,6 +1231,8 @@ def ask_pass_update():
 
 
 def _get_user_for_update_password(key, old_password):
+	from frappe.auth import get_login_attempt_tracker
+
 	# verify old password
 	result = frappe._dict()
 	if key:
@@ -1258,14 +1260,16 @@ def _get_user_for_update_password(key, old_password):
 		else:
 			result.message = _("The reset password link has either been used before or is invalid")
 	elif old_password:
+		user = frappe.session.user
+		tracker = None if user == "Guest" else get_login_attempt_tracker(user)
 		# a 417, not the 401 that makes handle_exception clear the caller's sid cookie
 		try:
-			frappe.local.login_manager.check_password(frappe.session.user, old_password)
+			frappe.local.login_manager.check_password(user, old_password)
 		except frappe.AuthenticationError:
-			if frappe.session.user == "Guest":
+			if not tracker:
 				raise
+			tracker.add_failure_attempt()
 			frappe.throw(_("Incorrect password"), title=_("Invalid Password"))
-		user = frappe.session.user
 		result.user = user
 	return result
 
