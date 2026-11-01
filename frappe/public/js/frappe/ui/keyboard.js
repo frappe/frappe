@@ -48,7 +48,9 @@ frappe.ui.keys.add_shortcut = ({
 		condition = () => true;
 	}
 	let handler = (e) => {
-		let $focused_element = $(document.activeElement);
+		// the key's own target: an input in an island's shadow root leaves document.activeElement
+		// on the island's host
+		let $focused_element = $(e.originalEvent?.composedPath()[0] || document.activeElement);
 		let is_input_focused = $focused_element.is(
 			"input, select, textarea, [contenteditable=true]"
 		);
