@@ -11,6 +11,7 @@ from frappe.desk.form.load import (
 	add_comments,
 	get_document_email,
 	get_filtered_attachments,
+	get_new_doc,
 	get_user_info_for_viewers,
 )
 from frappe.tests import IntegrationTestCase
@@ -175,3 +176,24 @@ class TestLoad(IntegrationTestCase):
 		self.assertEqual(
 			[("Purchase Order", "PO/2026/002")], list(parse_email([address_with_separator_in_name]))
 		)
+
+	def test_get_new_doc_runs_the_controller_defaults(self):
+		from frappe.desk.doctype.todo.todo import ToDo
+
+		def set_new_doc_defaults(doc):
+			doc.description = doc.description or "from the controller"
+
+		with patch.object(ToDo, "set_new_doc_defaults", set_new_doc_defaults, create=True):
+			new_doc = get_new_doc("ToDo")
+
+		self.assertEqual(new_doc["description"], "from the controller")
+		self.assertEqual(
+			{**new_doc, "description": None}, {**frappe.new_doc("ToDo", as_dict=True), "description": None}
+		)
+		self.assertEqual(new_doc["doctype"], "ToDo")
+		self.assertEqual(new_doc["owner"], frappe.session.user)
+		self.assertFalse(frappe.db.exists("ToDo", new_doc["name"]))
+
+	def test_get_new_doc_without_the_controller_method_is_unchanged(self):
+		self.assertEqual(get_new_doc("ToDo"), frappe.new_doc("ToDo", as_dict=True))
+		self.assertFalse(get_new_doc("ToDo").get("description"))
