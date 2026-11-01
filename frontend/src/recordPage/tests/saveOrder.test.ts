@@ -2,6 +2,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ref } from "vue";
 import { fieldsToLayout } from "@framework/ui/FormLayout";
+import type { FormLayoutSchema } from "@framework/ui/FormLayout/types";
 
 vi.mock("frappe-ui", () => ({
   call: vi.fn(),
@@ -234,7 +235,7 @@ describe("page.save()", () => {
       ]);
 
     it("asks for it after the form is complete, merges the values, then writes", async () => {
-      const askRequired = vi.fn(async () => ({ batch: "B1" }));
+      const askRequired = vi.fn(async (_layout: FormLayoutSchema) => ({ batch: "B1" }));
       const { host, order, doc } = makeHost({
         offLayout,
         askRequired,

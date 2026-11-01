@@ -84,7 +84,7 @@ describe("the row dialog's layout", () => {
 	});
 
 	it("adds a mandatory cell the row does not place at the end, even when it is omitted", () => {
-		const added = [...childFields, { fieldname: "batch", fieldtype: "Data", label: "Batch", reqd: 1 }];
+		const added = [...childFields, { fieldname: "batch", fieldtype: "Data", label: "Batch", reqd: 1 as const }];
 		const schema = joinLayout(tree({ name: "main", fields: ["title", "items"] }), parentFields, {
 			childMetas: { [CHILD]: added },
 			childLayouts: { [CHILD]: [{ ...defaultRow, omitted: ["qty", "batch"] }] },
