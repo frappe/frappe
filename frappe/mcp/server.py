@@ -17,7 +17,7 @@ def dispatch(method: str, params: dict[str, Any], version: str) -> dict:
 	if method == "server/discover" and version == protocol.LATEST_VERSION:
 		return {
 			"supportedVersions": list(protocol.SUPPORTED_VERSIONS),
-			"capabilities": capabilities(version),
+			"capabilities": capabilities(),
 			**server_configuration(),
 			"ttlMs": 3600000,
 			"cacheScope": "private",
@@ -62,7 +62,7 @@ def initialize(params: dict[str, Any]) -> dict:
 	# Modern revisions cannot be negotiated through the legacy handshake.
 	return {
 		"protocolVersion": protocol.LEGACY_VERSION,
-		"capabilities": capabilities(protocol.LEGACY_VERSION),
+		"capabilities": capabilities(),
 		**server_configuration(),
 	}
 
@@ -71,9 +71,9 @@ def server_configuration() -> dict:
 	return {"serverInfo": protocol.server_info(), "instructions": protocol.server_instructions()}
 
 
-def capabilities(version: str) -> dict:
+def capabilities() -> dict:
 	return {
-		"tools": {"listChanged": False} if version == protocol.LEGACY_VERSION else {},
+		"tools": {"listChanged": False},
 		"resources": {},
 		"extensions": {EXTENSION: {"directoryRead": True}},
 	}

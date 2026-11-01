@@ -57,6 +57,7 @@ class TestSkillTransport(SkillFixtures, McpTestCase):
 					modern=modern,
 				).json["result"]
 				self.assertIn("resources", discovery["capabilities"])
+				self.assertEqual(discovery["capabilities"]["tools"], {"listChanged": False})
 				self.assertEqual(discovery["capabilities"]["extensions"][EXTENSION], {"directoryRead": True})
 				listing = self.rpc("skills/list", modern=modern).json["result"]
 				self.assertEqual(len(listing["skills"]), 2)
