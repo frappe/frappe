@@ -32,12 +32,15 @@ class FlowLauncher {
 		const root = this.host.attachShadow({ mode: "open" });
 		root.innerHTML = `<style>${STYLE}</style>
 			<div class="panel" role="dialog" aria-label="Flow" inert>
-				<div class="window"></div>
+				<div class="window"><slot></slot></div>
 				<div class="shield"></div>
 				<div class="edge"></div>
 			</div>`;
 		this.panel = root.querySelector(".panel");
-		this.window = root.querySelector(".window");
+		// the chat mounts in the page's tree, slotted into the panel: in this shadow root it would
+		// sit two roots deep, where frappe-ui's patched overlays take a click on it for one outside
+		this.chat = document.createElement("div");
+		this.host.append(this.chat);
 		document.body.append(this.host);
 		const page_style = document.createElement("style");
 		page_style.textContent = PAGE_STYLE;
@@ -53,7 +56,8 @@ class FlowLauncher {
 		});
 		// where the keyboard was on the page as it went into the panel; none from the page itself
 		document.addEventListener("focusin", (event) => {
-			if (event.target === this.host) this.page_focus = event.relatedTarget;
+			if (this.host.contains(event.target) && !this.host.contains(event.relatedTarget))
+				this.page_focus = event.relatedTarget;
 		});
 		this.panel
 			.querySelector(".edge")
@@ -75,7 +79,7 @@ class FlowLauncher {
 	// where the keyboard was in the chat, or its message box
 	focus_chat() {
 		if (!this.state.open) return;
-		const chat = this.window.querySelector(".frappe-island")?.shadowRoot;
+		const chat = this.chat.querySelector(".frappe-island")?.shadowRoot;
 		const target = this.chat_focus?.isConnected
 			? this.chat_focus
 			: chat?.querySelector("[contenteditable=true], textarea");
@@ -84,7 +88,7 @@ class FlowLauncher {
 
 	// hidden, not removed, so the chat doesn't lay itself out and animate in again
 	minimize() {
-		const focused = document.activeElement === this.host;
+		const focused = this.host.contains(document.activeElement);
 		this.chat_focus = focused ? deep_active_element() : null;
 		this.slide();
 		this.state.open = false;
@@ -118,7 +122,7 @@ class FlowLauncher {
 
 	make_island() {
 		const desk = Boolean(window.frappe?.set_route);
-		this.island = mountIsland(ISLAND, this.window, {
+		this.island = mountIsland(ISLAND, this.chat, {
 			resolve: () => ({ js: SCRIPT.dataset.island, css: SCRIPT.dataset.islandCss }),
 			host: {
 				locale: window.frappe?.boot?.lang || document.documentElement.lang || "en",
@@ -297,7 +301,9 @@ html:is([data-flow-docked], [data-flow-sliding]) .w-screen { width: 100%; }
 
 const STYLE = `
 /* var(--*) are the page's design tokens; the fallbacks serve apps that lack them */
-:host { all: initial; }
+/* a modal overlay in the chat (a menu, a dialog) turns the page's pointer events off; the panel
+   follows the page, as the chat's own layer turns them back on */
+:host { all: initial; pointer-events: inherit; }
 @media print { :host { display: none; } }
 .panel { position: fixed; z-index: ${LAYER}; box-sizing: border-box; }
 .panel { left: var(--left); top: var(--top); width: var(--width); height: var(--height); }
@@ -335,7 +341,7 @@ const STYLE = `
 }
 /* filling the window, it has no edge toward the page */
 .panel[data-covered] .window { border-width: 0; }
-.window > .frappe-island { flex: 1; min-height: 0; }
+::slotted(div) { flex: 1; min-height: 0; }
 .shield { position: absolute; inset: 0; display: none; }
 .busy .shield { display: block; }
 .edge { position: absolute; top: 0; bottom: 0; left: -4px; width: 8px; cursor: ew-resize; touch-action: none; }
