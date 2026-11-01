@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_bulk_edit": 1,
  "creation": "2019-08-02 13:08:59.291097",
  "doctype": "DocType",
  "editable_grid": 1,
@@ -15,7 +16,8 @@
    "in_list_view": 1,
    "label": "Email ID",
    "options": "Email",
-   "reqd": 1
+   "reqd": 1,
+   "search_index": 1
   },
   {
    "columns": 2,
@@ -27,14 +29,16 @@
   }
  ],
  "istable": 1,
+ "link_display_mode": "Search",
  "links": [],
- "modified": "2024-03-23 16:01:31.173691",
+ "modified": "2026-11-01 20:35:48.277117",
  "modified_by": "Administrator",
  "module": "Contacts",
  "name": "Contact Email",
  "owner": "Administrator",
  "permissions": [],
  "quick_entry": 1,
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
