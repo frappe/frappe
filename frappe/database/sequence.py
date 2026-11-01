@@ -160,7 +160,6 @@ def set_next_val(
 def create_missing_sequences() -> list[str]:
 	"""Recreate sequences for autoincrement doctypes whose sequence object is missing."""
 	import frappe
-	from frappe.query_builder.functions import Max
 
 	if db.db_type == "sqlite":
 		return []
@@ -182,15 +181,40 @@ def create_missing_sequences() -> list[str]:
 
 		# align past existing rows to avoid name collisions; empty tables fall
 		# back to the default start (1), same as normal sequence creation
-		table = frappe.qb.DocType(doctype)
-		max_name = frappe.qb.from_(table).select(Max(table["name"])).run()[0][0]
-		create_sequence(doctype, check_not_exists=True, start_value=int(max_name) + 1 if max_name else 0)
+		max_name = _get_max_name(doctype)
+		create_sequence(doctype, check_not_exists=True, start_value=max_name + 1 if max_name else 0)
 		created.append(doctype)
 
 	return created
 
 
 # --- helpers ---------------------------------------------------------------
+
+
+def _get_max_name(doctype: str) -> int:
+	"""Largest numeric `name` of a doctype, or 0 if there is none."""
+	import frappe
+	from frappe.query_builder.functions import Max
+
+	table = frappe.qb.DocType(doctype)
+	max_name = frappe.qb.from_(table).select(Max(table["name"])).run()[0][0]
+	if not max_name:
+		return 0
+	if str(max_name).isdigit():
+		return int(max_name)
+
+	# legacy non-numeric names (e.g. hashes) exist; consider only the numeric ones
+	return _get_max_numeric_name(doctype)
+
+
+def _get_max_numeric_name(doctype: str) -> int:
+	if db.db_type == "postgres":
+		query = f"""SELECT MAX(CASE WHEN "name" ~ '^[0-9]+$' THEN CAST("name" AS BIGINT) END)
+			FROM "tab{doctype}" """
+	else:
+		query = f"""SELECT MAX(CASE WHEN `name` REGEXP '^[0-9]+$' THEN CAST(`name` AS UNSIGNED) END)
+			FROM `tab{doctype}`"""
+	return db.sql(query)[0][0] or 0
 
 
 def _sqlite_get_next_val(doctype_name: str, slug: str) -> int:
