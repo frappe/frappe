@@ -24,6 +24,10 @@ class DuplicateViewError(frappe.ValidationError):
 	pass
 
 
+class ViewKeyBusyError(frappe.ValidationError):
+	http_status_code = 508  # frappe's "retry later"
+
+
 class DoctypeView(Document):
 	"""One view of one doctype at one scope; `settings` is the view type's own shape."""
 
@@ -64,8 +68,11 @@ class DoctypeView(Document):
 		while True:
 			try:
 				return self.insert_row(*args, **kwargs)
+			except frappe.QueryDeadlockError:
+				self.refuse_a_deadlocked_key()
 			except frappe.UniqueValidationError:
 				if not self.key_slot:
+					self.refuse_an_override_that_lost_the_race()
 					raise
 				lost.add(self.key)
 				self.refuse_a_lost_key(len(lost))
@@ -78,7 +85,7 @@ class DoctypeView(Document):
 		frappe.db.savepoint(savepoint)
 		muted = frappe.flags.mute_messages
 		# The unique index's "must be unique" message would reach the person even when a retry succeeds.
-		frappe.flags.mute_messages = muted or bool(self.key_slot)
+		frappe.flags.mute_messages = muted or bool(self.key_slot) or self.overrides_app_view()
 		try:
 			super().db_insert(*args, **kwargs)
 		except frappe.UniqueValidationError:
@@ -87,6 +94,15 @@ class DoctypeView(Document):
 		finally:
 			frappe.flags.mute_messages = muted
 		frappe.db.release_savepoint(savepoint)
+
+	def refuse_a_deadlocked_key(self):
+		"""Three saves racing for one key can deadlock; the database has rolled the whole transaction back."""
+		# Not retried here: the rollback took the request's earlier writes too, which only the caller can redo.
+		frappe.throw(
+			_("Another view was saving at the same time. Try again."),
+			title=_("Try Again"),
+			exc=ViewKeyBusyError,
+		)
 
 	def refuse_a_lost_key(self, attempts: int):
 		if attempts >= KEY_CLAIM_ATTEMPTS:
@@ -130,13 +146,25 @@ class DoctypeView(Document):
 			self.doctype, {"reference_doctype": self.reference_doctype, "user": SITE_ROW, "key": self.key}
 		)
 		if existing:
-			frappe.throw(
-				_("The site already overrides the app view {0}. Edit {1} instead.").format(
-					frappe.bold(self.key), frappe.bold(existing)
-				),
-				title=_("Already Exists"),
-				exc=DuplicateViewError,
+			self.refuse_an_override(existing)
+
+	def refuse_an_override_that_lost_the_race(self):
+		"""Two site overrides of one app view saved at once: the address index refused the second."""
+		if self.overrides_app_view():
+			self.refuse_a_second_override()
+			self.refuse_an_override(None)
+
+	def refuse_an_override(self, existing: str | None):
+		# A twin committed after this transaction's snapshot has no name to show yet.
+		key = frappe.bold(self.key)
+		message = (
+			_("The site already overrides the app view {0}. Edit {1} instead.").format(
+				key, frappe.bold(existing)
 			)
+			if existing
+			else _("The site already overrides the app view {0}.").format(key)
+		)
+		frappe.throw(message, title=_("Already Exists"), exc=DuplicateViewError)
 
 	def overrides_app_view(self) -> bool:
 		"""A site row at an app view's key keeps that key unclaimed, so a person's older view may share it."""
