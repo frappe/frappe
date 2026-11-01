@@ -93,6 +93,8 @@ export interface RawMetaField {
   max_height?: string;
   hidden?: boolean | 0 | 1;
   read_only?: boolean | 0 | 1;
+  /** The field stays editable on a submitted record. */
+  allow_on_submit?: boolean | 0 | 1;
   /** Field-level permission level; access is DocPerm rows × user roles. */
   permlevel?: number;
   /**

@@ -377,6 +377,7 @@ component group, with its main names.
 | [Commit](./CONTEXT.md#commit) channel | Turns a field change into a handler key (`qty`, `items.qty`, `items.onAdd`) and runs it |
 | [Field](./CONTEXT.md#field-overlay) and form tab overlays | Changes keyed by fieldname or tab identity |
 | Form join | Joins the Details layout with the parts a script adds |
+| Field access at a docstatus (`accessAtDocstatus`) | The one rule for a submitted or cancelled record: on docstatus 1 only the `allow_on_submit` fields a person can write stay editable, on 2 none. The form and `page.fieldAccess` both call it, and a script cannot lift it, as it cannot lift a permlevel denial |
 | Form layout source (`useFormLayout`, `markFormLayoutsStale`, `setFormLayoutApp`) | One fetch per doctype and layout type, sent with the shell's app, whose rows replace the rows naming no app; picks the matching row. On `doctype_update` it keeps the old rows on show and reads fresh ones |
 | Script loader (`loadRecordScripts`, `addFileScript`) | One loader per doctype for file scripts and stored scripts. When a stored script changes, it keeps the old scripts until the new ones have all compiled, then swaps them in one step |
 | App page script registry (`addPageFile`, `appPageScriptSource`) | Page handler files by app, doctype and page, and stored scripts by doctype and page. The stored-script loader loads an app page's scripts per doctype and page, as it loads a record page's per doctype |

@@ -8,6 +8,7 @@ import { useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { useDocPermissions, type FieldAccess } from "@framework/ui/useDocPermissions";
 import { landFresh, memoizedState } from "@framework/ui/utils";
 import { chooseRow } from "./chooseLayout";
+import { accessAtDocstatus, withAccess } from "./fieldAccess";
 import { joinLayout } from "./joinLayout";
 import type { FormLayoutRow, FormLayoutsResponse, FormLayoutType } from "./types";
 import { placedFieldnames, requiredOffLayout, type UnplacedRule } from "./unplaced";
@@ -106,23 +107,40 @@ export function useFormLayout(options: UseFormLayoutOptions): UseFormLayout {
 		if (!row.value || !fields || options.type === "Side Panel" || options.type === "Quick Entry")
 			return [];
 		const shown = [...layoutFieldnames(layout.value), ...(toValue(options.placedElsewhere) ?? [])];
-		const required = requiredOffLayout(shown, fields, permissions.fieldAccess);
+		const required = requiredOffLayout(shown, fields, fieldAccess());
 		if (!required.length) return [];
 		const column = { name: "column_1", fields: required.map((field) => field.fieldname) };
 		const tree = [{ name: "required", sections: [{ name: "required", columns: [column] }] }];
 		return joinLayout(tree, fields, joinOptions());
 	});
 
+	// A saved record's docstatus locks its fields; a New Record's opening values never do.
+	function docstatus(): number | undefined {
+		const saved = options.type === "Details" || options.type === "Side Panel";
+		return saved ? options.doc?.value?.docstatus : undefined;
+	}
+
+	function fieldAccess() {
+		const base = options.lockAutoname
+			? lockingAutoname(permissions.fieldAccess, autonameField(meta.value?.autoname))
+			: permissions.fieldAccess;
+		return lockingSubmitted(base, docstatus());
+	}
+
 	function joinOptions() {
+		const locked = docstatus();
 		const childMetas: Record<string, RawMetaField[]> = {};
 		for (const [name, m] of Object.entries(metas.value))
-			if (m.fields) childMetas[name] = m.fields;
+			if (m.fields)
+				childMetas[name] = locked
+					? m.fields.map((field) =>
+							withAccess(field, (one) => accessAtDocstatus("write", one, locked))
+					  )
+					: m.fields;
 		return {
 			childMetas,
 			childLayouts: response.value?.children,
-			fieldAccess: options.lockAutoname
-				? lockingAutoname(permissions.fieldAccess, autonameField(meta.value?.autoname))
-				: permissions.fieldAccess,
+			fieldAccess: fieldAccess(),
 			decorate: options.decorate,
 			overrides: toValue(options.overrides),
 		};
@@ -147,6 +165,13 @@ export function useFormLayout(options: UseFormLayoutOptions): UseFormLayout {
 /** The field `Document._sync_autoname_field` resets on save, so only the literal `field:` rule. */
 function autonameField(autoname: string | undefined): string | null {
 	return autoname?.startsWith("field:") ? autoname.slice("field:".length) || null : null;
+}
+
+function lockingSubmitted(
+	fieldAccess: (field: RawMetaField) => FieldAccess,
+	docstatus: number | undefined
+): (field: RawMetaField) => FieldAccess {
+	return (field) => accessAtDocstatus(fieldAccess(field), field, docstatus);
 }
 
 function lockingAutoname(
