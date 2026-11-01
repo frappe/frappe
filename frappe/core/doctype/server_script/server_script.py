@@ -108,6 +108,7 @@ class ServerScript(Document):
 
 	def validate(self):
 		frappe.only_for("Script Manager", True)
+		self.validate_script_source_change()
 		self.validate_variables()
 		if self.script_source == "File":
 			self.get_file_path()
@@ -116,6 +117,27 @@ class ServerScript(Document):
 		if not self.script:
 			frappe.throw(_("Script is required for Database scripts"), frappe.MandatoryError)
 		self.check_if_compilable_in_restricted_context()
+
+	def after_delete(self):
+		if self.script_source != "File":
+			return
+		path = self.get_file_path()
+		if os.path.exists(path):
+			os.remove(path)
+
+	def validate_script_source_change(self):
+		"""File is one-way: Database -> File moves the body to disk, never back."""
+		before = self.get_doc_before_save()
+		if not before:
+			return
+		was_file = before.script_source == "File"
+		if was_file and self.script_source != "File":
+			frappe.throw(_("A File script cannot be switched back to Database"))
+		if not was_file and self.script_source == "File":
+			path = self.get_file_path()
+			if os.path.exists(path):
+				frappe.throw(_("{0} already exists. Remove it before switching to File").format(path))
+			self.flags.body_to_migrate = self.script or before.script
 
 	def onload(self):
 		"""Show a File script's body read-only; `validate` blanks it again on save."""
@@ -153,7 +175,7 @@ class ServerScript(Document):
 			return
 		os.makedirs(os.path.dirname(path), exist_ok=True)
 		with open(path, "w") as f:
-			f.write(self.get_file_stub_content())
+			f.write(self.flags.body_to_migrate or self.get_file_stub_content())
 
 	def get_compiled_file_code(self):
 		"""Compile the backing file, recompiling only when its mtime changes."""
@@ -462,3 +484,16 @@ class ServerScriptEnv:
 			),
 			title=_("Missing Environment Variable"),
 		)
+
+
+def delete_file_script(name: str):
+	"""Delete a File Server Script's record and file, or just an orphaned file. Not whitelisted."""
+	if frappe.db.exists("Server Script", name):
+		script = frappe.get_doc("Server Script", name)
+		if script.script_source != "File":
+			frappe.throw(_("Server Script {0} is not File-sourced").format(name))
+		script.delete()
+		return
+	path = frappe.get_doc({"doctype": "Server Script", "name": name}).get_file_path()
+	if os.path.exists(path):
+		os.remove(path)

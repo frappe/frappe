@@ -696,3 +696,153 @@ frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 		script = frappe.get_doc(**args, name="test_file_no_body", script_source="File").insert()
 		self.addCleanup(script.delete)
 		self.addCleanup(lambda: os.path.exists(script.get_file_path()) and os.remove(script.get_file_path()))
+
+	def test_file_script_cannot_switch_back_to_database(self):
+		import os
+
+		script = frappe.get_doc(
+			doctype="Server Script",
+			name="test_file_no_switch_back",
+			script_type="DocType Event",
+			script_source="File",
+			reference_doctype="ToDo",
+			doctype_event="Before Insert",
+		).insert()
+		self.addCleanup(script.delete)
+		self.addCleanup(lambda: os.path.exists(script.get_file_path()) and os.remove(script.get_file_path()))
+
+		script.script_source = "Database"
+		script.script = "doc.status = 'Closed'"
+		with self.assertRaises(frappe.ValidationError):
+			script.save()
+
+	def test_database_script_body_moves_to_file_on_switch(self):
+		import os
+
+		body = "doc.status = 'Closed'\n"
+		script = frappe.get_doc(
+			doctype="Server Script",
+			name="test_db_to_file_switch",
+			script_type="DocType Event",
+			script_source="Database",
+			reference_doctype="ToDo",
+			doctype_event="Before Insert",
+			script=body,
+		).insert()
+		self.addCleanup(script.delete)
+		path = script.get_file_path()
+		self.addCleanup(lambda: os.path.exists(path) and os.remove(path))
+
+		script.script_source = "File"
+		script.save()
+		self.assertEqual(open(path).read(), body)
+		self.assertEqual(frappe.db.get_value("Server Script", script.name, "script"), "")
+
+	def test_switch_to_file_refuses_to_overwrite_existing_file(self):
+		import os
+
+		script = frappe.get_doc(
+			doctype="Server Script",
+			name="test_db_to_file_existing",
+			script_type="DocType Event",
+			script_source="Database",
+			reference_doctype="ToDo",
+			doctype_event="Before Insert",
+			script="doc.status = 'Closed'",
+		).insert()
+		self.addCleanup(script.delete)
+		path = script.get_file_path()
+		os.makedirs(os.path.dirname(path), exist_ok=True)
+		with open(path, "w") as f:
+			f.write("# existing\n")
+		self.addCleanup(lambda: os.path.exists(path) and os.remove(path))
+
+		script.script_source = "File"
+		with self.assertRaises(frappe.ValidationError):
+			script.save()
+		self.assertEqual(open(path).read(), "# existing\n")
+
+	def test_deleting_file_script_removes_its_file(self):
+		import os
+
+		script = frappe.get_doc(
+			doctype="Server Script",
+			name="test_file_delete",
+			script_type="DocType Event",
+			script_source="File",
+			reference_doctype="ToDo",
+			doctype_event="Before Insert",
+		).insert()
+		path = script.get_file_path()
+		self.assertTrue(os.path.exists(path))
+
+		script.delete()
+		self.assertFalse(os.path.exists(path))
+
+	def test_deleting_database_script_leaves_files_alone(self):
+		import os
+
+		script = frappe.get_doc(
+			doctype="Server Script",
+			name="test_db_delete",
+			script_type="DocType Event",
+			script_source="Database",
+			reference_doctype="ToDo",
+			doctype_event="Before Insert",
+			script="doc.status = 'Closed'",
+		).insert()
+		path = script.get_file_path()
+		os.makedirs(os.path.dirname(path), exist_ok=True)
+		with open(path, "w") as f:
+			f.write("# unrelated\n")
+		self.addCleanup(lambda: os.path.exists(path) and os.remove(path))
+
+		script.delete()
+		self.assertTrue(os.path.exists(path))
+
+	def test_delete_file_script_helper(self):
+		import os
+
+		from frappe.core.doctype.server_script.server_script import delete_file_script
+
+		script = frappe.get_doc(
+			doctype="Server Script",
+			name="test_delete_helper_file",
+			script_type="DocType Event",
+			script_source="File",
+			reference_doctype="ToDo",
+			doctype_event="Before Insert",
+		).insert()
+		path = script.get_file_path()
+		delete_file_script(script.name)
+		self.assertFalse(frappe.db.exists("Server Script", script.name))
+		self.assertFalse(os.path.exists(path))
+
+	def test_delete_file_script_helper_refuses_database_script(self):
+		from frappe.core.doctype.server_script.server_script import delete_file_script
+
+		script = frappe.get_doc(
+			doctype="Server Script",
+			name="test_delete_helper_db",
+			script_type="DocType Event",
+			script_source="Database",
+			reference_doctype="ToDo",
+			doctype_event="Before Insert",
+			script="doc.status = 'Closed'",
+		).insert()
+		self.addCleanup(script.delete)
+		with self.assertRaises(frappe.ValidationError):
+			delete_file_script(script.name)
+		self.assertTrue(frappe.db.exists("Server Script", script.name))
+
+	def test_delete_file_script_helper_removes_orphan_file(self):
+		import os
+
+		from frappe.core.doctype.server_script.server_script import delete_file_script
+
+		path = frappe.get_site_path("server_scripts", "test_orphan_file.py")
+		os.makedirs(os.path.dirname(path), exist_ok=True)
+		with open(path, "w") as f:
+			f.write("# orphan\n")
+		delete_file_script("test_orphan_file")
+		self.assertFalse(os.path.exists(path))
