@@ -48,13 +48,13 @@ const launcher = useFlowLauncherBox();
 const besideComposer = computed(() =>
 	floatingComposer() ? viewport.width.value - card.left.value + GAP : MARGIN
 );
-// A launcher dragged into the row's way sits at the row's right end like a composer.
+// A launcher dragged into the row's way, or within a gap of its end, sits at the row's right end like a composer.
 const besideLauncher = computed(() => {
 	const box = launcher.value;
 	const rowRight = viewport.width.value - besideComposer.value;
 	const lineBottom = viewport.height.value - MARGIN;
 	const onLine = box && box.top < lineBottom && box.bottom > lineBottom - row.height.value;
-	const inWay = box && box.right > rowRight - row.width.value && box.left < rowRight;
+	const inWay = box && box.right > rowRight - row.width.value && box.left < rowRight + GAP;
 	return onLine && inWay ? viewport.width.value - box.left + GAP : 0;
 });
 
