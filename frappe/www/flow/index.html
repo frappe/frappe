@@ -26,8 +26,6 @@
 		<script type="module">
 			const boot = {{ boot | tojson }};
 			const { mount } = await import({{ island_js | tojson }});
-			// the island's routes are the address after /flow; Back stays the browser's
-			const path = location.pathname.replace(/^\/flow/, "") || "/";
 			mount(document.getElementById("app"), {
 				host: {
 					locale: document.documentElement.lang,
@@ -38,8 +36,6 @@
 				styles: [{{ island_css | tojson }}],
 				props: {
 					boot: { ...boot.flow_boot, ...boot, flow_boot: undefined },
-					path: path + location.search,
-					onNavigate: (to) => history.replaceState(null, "", "/flow" + (to === "/" ? "" : to)),
 				},
 			});
 		</script>
