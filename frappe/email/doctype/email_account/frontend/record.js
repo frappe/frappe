@@ -23,11 +23,11 @@ export default {
 		if (!page.isNew) return;
 		if (!page.doc.imap_folder?.length) page.doc.imap_folder = [{ folder_name: "INBOX" }];
 		if (page.doc.service) applyService(page);
+		await warnAutoReply(page);
 		if (!page.doc.attachment_limit) {
 			const size = await page.call("frappe.core.api.file.get_max_file_size");
 			page.doc.attachment_limit = Number(size) / (1024 * 1024);
 		}
-		await warnAutoReply(page);
 	},
 	beforeSave: (page) => moveReplyTo(page),
 	service: (page) => {
@@ -75,8 +75,8 @@ function addSignIn(page) {
 	if (!status) return;
 	const signedOut = status.relay && !status.hasToken;
 	if (!status.hasToken) addSignInBand(page, signedOut);
-	// A relay sign-in reconnects a saved mailbox by its name.
-	if ((!connected_user && !signedOut) || (status.relay && page.isNew)) return;
+	const reconnectsByName = status.relay && page.isNew;
+	if ((!connected_user && !signedOut) || reconnectsByName) return;
 	page.header.add(
 		{
 			name: "authorize_api_access",
@@ -188,7 +188,7 @@ async function fillFromDomain(page) {
 	if (!page.doc.domain) return;
 	const values = await page.call("run_doc_method", {
 		method: "get_domain_values",
-		// The server tells a new document by `__islocal`, as desk v1 sends it.
+		// The server tells a new document by `__islocal`.
 		document: { ...page.doc, doctype: page.doctype, __islocal: page.isNew ? 1 : 0 },
 		kwargs: { domain: page.doc.domain },
 	});

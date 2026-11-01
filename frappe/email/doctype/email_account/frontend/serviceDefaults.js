@@ -1,4 +1,3 @@
-// The server settings each Email Account service fills in, as desk v1's form script fills them.
 export const IMAP_DEFAULTS = {
 	"Frappe Mail": {
 		domain: null,

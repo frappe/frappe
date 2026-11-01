@@ -283,6 +283,21 @@ describe("Email Account's record page: header acts and the OAuth band", () => {
     expect(headerItem(controller, "authorize_api_access")?.label).toBe("Reconnect");
     await controller.page.run("header.authorize_api_access");
     expect(server.calls.at(-1)?.method).toContain("initiate_mailbox_connect");
+    expect(server.calls.at(-1)?.args).toMatchObject({ email_account: "Support" });
+  });
+
+  it("offers Authorize on a new account, which has no record rights before its insert", async () => {
+    const { controller } = await openAccount(oauth, { perms: {}, isNew: true });
+
+    expect(headerItem(controller, "authorize_api_access")).toBeTruthy();
+  });
+
+  it("asks the right to write for the account's sign-in and checks, not for a new account's", async () => {
+    server.tokenUri = "google";
+    const { controller } = await openAccount({ ...oauth, service: "Frappe Mail" });
+
+    expect(headerItem(controller, "authorize_api_access")).toMatchObject({ right: "write" });
+    expect(headerItem(controller, "validate_frappe_mail_settings")).toMatchObject({ right: "write" });
   });
 
   it("offers no relay sign-in on a new account, which has no name to reconnect", async () => {
