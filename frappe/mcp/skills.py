@@ -12,7 +12,7 @@ from urllib.parse import quote, unquote, urlsplit
 
 import frappe
 from frappe.mcp.protocol import INTERNAL_ERROR, INVALID_PARAMS, McpError
-from frappe.mcp.skill_files import MAX_SKILL_BYTES, MAX_SKILL_FILES, SkillFiles
+from frappe.mcp.skill_files import MAX_SKILL_BYTES, MAX_SKILL_FILES, SkillFiles, is_hidden
 
 SKILLS_EXTENSION = "io.modelcontextprotocol/skills"
 PAGE_SIZE = 50
@@ -142,6 +142,8 @@ class SkillCatalog:
 		):
 			raise McpError(INVALID_PARAMS, "Invalid skill URI")
 		relative = Path(*parts)
+		if is_hidden(relative):
+			raise McpError(INVALID_PARAMS, "Unknown skill resource")
 		if resource_uri(parsed.netloc, relative) != uri:
 			raise McpError(INVALID_PARAMS, "Skill URI must use its canonical encoding")
 		root = self.apps[parsed.netloc].root

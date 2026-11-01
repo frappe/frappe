@@ -94,6 +94,7 @@ class TestSkillTransport(SkillFixtures, McpTestCase):
 			("skills/get", {"uri": "skill://frappe/billing/refunds"}),
 			("skills/get", {"uri": "skill://frappe/missing/SKILL.md"}),
 			("resources/read", {"uri": "skill://frappe/private.txt"}),
+			("resources/read", {"uri": "skill://frappe/billing/refunds/.env"}),
 			("resources/directory/read", {"uri": "skill://frappe/billing/refunds/SKILL.md"}),
 			("skills/list", {"cursor": 42}),
 		):

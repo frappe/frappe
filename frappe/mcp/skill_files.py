@@ -46,6 +46,8 @@ class SkillFiles:
 				directory = self._directory(stack, relative)
 				children = []
 				for name in os.listdir(directory):
+					if is_hidden(Path(name)):
+						continue
 					mode = os.stat(name, dir_fd=directory, follow_symlinks=False).st_mode
 					if stat.S_ISREG(mode) or stat.S_ISDIR(mode):
 						children.append((relative / name, stat.S_ISDIR(mode)))
@@ -59,11 +61,17 @@ class SkillFiles:
 		if folder.is_symlink():
 			return paths
 		for directory, directories, files in folder.walk(follow_symlinks=False):
-			directories[:] = sorted(name for name in directories if not (directory / name).is_symlink())
+			directories[:] = sorted(
+				name
+				for name in directories
+				if not is_hidden(Path(name)) and not (directory / name).is_symlink()
+			)
 			paths.extend(
 				(directory / name).relative_to(self.root)
 				for name in sorted(files)
-				if (directory / name).is_file() and not (directory / name).is_symlink()
+				if not is_hidden(Path(name))
+				and (directory / name).is_file()
+				and not (directory / name).is_symlink()
 			)
 		return sorted(paths)
 
@@ -91,6 +99,10 @@ class SkillFiles:
 		descriptor = os.open(path, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=parent)
 		stack.callback(os.close, descriptor)
 		return descriptor
+
+
+def is_hidden(path: Path) -> bool:
+	return any(part.startswith(".") for part in path.parts)
 
 
 def validate_frontmatter(metadata: dict, directory_name: str) -> None:

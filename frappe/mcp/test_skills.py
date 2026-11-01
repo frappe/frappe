@@ -22,6 +22,8 @@ class SkillFixtures:
 		self.write_file("frappe", "billing/refunds/references/rules one.md", "Refund café.\r\n".encode())
 		self.write_file("frappe", "billing/refunds/assets/sample.bin", b"\x00\xff\x80")
 		self.write_file("frappe", "private.txt", b"Outside any skill")
+		self.write_file("frappe", "billing/refunds/.env", b"SECRET=fixture-only")
+		self.write_skill("frappe", "billing/refunds/.cache/hidden")
 
 	def write_skill(self, app, path, frontmatter=""):
 		name = Path(path).name
@@ -140,10 +142,19 @@ class TestSkillCatalog(SkillFixtures, UnitTestCase):
 			"skill://frappe/billing/refunds/%00",
 			"skill://frappe/billing/refunds/missing.md",
 			"skill://frappe/private.txt",
+			"skill://frappe/billing/refunds/.env",
+			"skill://frappe/billing/refunds/.cache/hidden/SKILL.md",
 		)
 		for uri in uris:
 			with self.subTest(uri=uri), self.assertRaises(protocol.McpError) as caught:
 				self.catalog.read_resource(uri)
+			self.assertEqual(caught.exception.code, protocol.INVALID_PARAMS)
+		for operation, uri in (
+			(self.catalog.get_skill, "skill://frappe/billing/refunds/.cache/hidden/SKILL.md"),
+			(self.catalog.read_directory, "skill://frappe/billing/refunds/.cache"),
+		):
+			with self.subTest(uri=uri), self.assertRaises(protocol.McpError) as caught:
+				operation(uri)
 			self.assertEqual(caught.exception.code, protocol.INVALID_PARAMS)
 
 	def test_symlinks_cannot_expose_files_or_directory_contents(self):
