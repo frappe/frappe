@@ -105,7 +105,7 @@ describe("options as pairs", () => {
   it("drops what is no choice: no value, a newline, a repeat", () => {
     const fields = makeSurface();
     fields.update("status", {
-      options: [null, undefined, { label: "x" }, { value: null }, { value: "a\nb" }, { value: 1, label: "One" }, "Open", { value: "Open", label: "Again" }, ""],
+      options: [null, undefined, { label: "x" }, { value: null }, { value: "a\nb" }, { value: 1, label: "One" }, "Open", { value: "Open", label: "Again" }, ""] as any,
     });
     const meta = fields.resolve().status.meta;
     expect(meta?.choices).toEqual([
