@@ -17,6 +17,12 @@ frappe.ui.PrintPages = class PrintPages {
 
 		const range = sheet.ownerDocument.createRange();
 		const is_page = (value) => ["page", "always", "left", "right"].includes(value);
+		const group = (row, r) => {
+			const span = Math.max(1, ...[...row.cells].map((cell) => cell.rowSpan));
+			const rows = row.parentElement.rows;
+			const last = rows[Math.min(rows.length, row.sectionRowIndex + span) - 1];
+			return { top: r.top, bottom: last.getBoundingClientRect().bottom, height: r.height };
+		};
 		const visit = (parent) => {
 			for (const node of parent.childNodes) {
 				if (node.nodeType === Node.TEXT_NODE) {
@@ -35,7 +41,7 @@ frappe.ui.PrintPages = class PrintPages {
 					node.matches("img, svg, canvas, video, iframe, input, textarea, select") ||
 					el_style.breakInside.startsWith("avoid")
 				) {
-					add(r);
+					add(row ? group(node, r) : r);
 				}
 				if (is_page(el_style.breakBefore)) forced.push(y(r.top));
 				if (is_page(el_style.breakAfter) || (breaks && node.matches(breaks))) {
