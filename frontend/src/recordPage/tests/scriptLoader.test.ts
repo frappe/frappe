@@ -91,7 +91,7 @@ describe("the record page's script loader", () => {
   });
 
   it("registers in the order added however the fetches finish", async () => {
-    const slow = new Promise<{ default: object }>((resolve) =>
+    const slow = new Promise<{ default: { onRefresh: () => void } }>((resolve) =>
       setTimeout(() => resolve({ default: { onRefresh: () => {} } }), 10),
     );
     addFileScript("CRM Slow", { app: "crm", load: () => slow });
@@ -123,7 +123,7 @@ describe("the record page's script loader", () => {
 
   it("asks for the Client Scripts while the file scripts are still downloading", async () => {
     let arrive!: () => void;
-    const slow = new Promise<{ default: object }>((resolve) => {
+    const slow = new Promise<{ default: { onRefresh: () => void } }>((resolve) => {
       arrive = () => resolve({ default: { onRefresh: () => {} } });
     });
     addFileScript("CRM Beside", { app: "crm", load: () => slow });
