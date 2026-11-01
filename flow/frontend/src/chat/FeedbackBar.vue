@@ -89,7 +89,12 @@ async function rate(value, comment = "") {
 			feedback_rating: result.rating ?? "",
 			feedback_comment: value === "Down" ? comment : "",
 		});
-		if (result.memory) toast.success("Saved to agent memory.");
+		if (result.memory)
+			toast.success(
+				result.memory_scope === "User"
+					? "Saved to your memory: the assistant uses it in your chats."
+					: "Saved to agent memory for everyone."
+			);
 		else if (result.forgotten) toast.success("Removed from agent memory.");
 	} catch (error) {
 		toast.error(error?.message ?? "Could not save feedback.");
