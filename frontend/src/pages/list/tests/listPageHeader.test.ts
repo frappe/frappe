@@ -4,8 +4,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, nextTick, type App } from "vue";
 import { createMemoryHistory, createRouter } from "vue-router";
 
-const page = vi.hoisted(() => ({ seeded: null as unknown as { value: boolean } }));
-
 /** A stand-in that draws a marker, so the test sees which controls are on the page. */
 function stub(name: string) {
 	return defineComponent({ setup: () => () => h("div", { [`data-stub-${name}`]: "" }) });
@@ -30,43 +28,25 @@ vi.mock("@framework/ui/experimental/List", () => ({
 	ListFooter: stub("footer"),
 }));
 vi.mock("@/list/useScrollMemory", () => ({ useScrollMemory: () => {} }));
-vi.mock("@/list/useListPage", async () => {
-	const { ref } = await import("vue");
-	return {
-		useListPage: () => {
-			page.seeded = ref(false);
-			const empty = () => ref([]);
-			return {
-				filters: empty(),
-				sort: empty(),
-				columns: empty(),
-				quickFilterFields: ref(undefined),
-				customizing: ref(false),
-				selection: empty(),
-				pageSize: ref(20),
-				rowsKey: () => "",
-				rows: empty(),
-				loading: ref(true),
-				error: ref(null),
-				metaError: ref(null),
-				seeded: page.seeded,
-				rowCount: ref(0),
-				totalCount: ref(0),
-				totalCapped: ref(false),
-				totalUnknown: ref(false),
-				hasCounts: ref(false),
-				hasNextPage: ref(false),
-			};
-		},
-	};
-});
+vi.mock("@/list/useListPage", async (importOriginal) => ({
+	...(await importOriginal<typeof import("@/list/useListPage")>()),
+	useListPage: (await import("./fakeListPage")).useListPage,
+}));
+vi.mock("@/list/useListView", async () => ({
+	useListView: (await import("./fakeListPage")).useListView,
+}));
 
-import DoctypeList from "../DoctypeList.vue";
+import { PLAIN_LIST } from "@/list/useListPage";
+import ViewPage from "../ViewPage.vue";
+import { fake, installListRenderer, resetFake } from "./fakeListPage";
 
 const apps: App[] = [];
 
 // The Create button reads meta and the session; no server answers here.
-beforeEach(() => {
+beforeEach(async () => {
+	resetFake();
+	fake.seeded = false;
+	await installListRenderer();
 	vi.stubGlobal("fetch", async () => new Response(JSON.stringify({ errors: [{ type: "NotFound" }] }), { status: 404 }));
 });
 
@@ -76,6 +56,13 @@ afterEach(() => {
 	vi.unstubAllGlobals();
 });
 
+async function settle() {
+	for (let turn = 0; turn < 3; turn++) {
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		await nextTick();
+	}
+}
+
 async function mount() {
 	const router = createRouter({
 		history: createMemoryHistory(),
@@ -84,15 +71,15 @@ async function mount() {
 	await router.push("/contact");
 	const root = document.createElement("div");
 	document.body.appendChild(root);
-	const app = createApp(defineComponent({ render: () => h(DoctypeList, { doctype: "Contact" }) }));
+	const app = createApp(defineComponent({ render: () => h(ViewPage, { doctype: "Contact", opened: PLAIN_LIST }) }));
 	app.use(router).provide("addresses", { moduleName: () => null });
 	app.mount(root);
 	apps.push(app);
-	await nextTick();
+	await settle();
 	return root;
 }
 
-describe("DoctypeList controls row", () => {
+describe("the list page controls row", () => {
 	it("draws the Sort control as a skeleton of its size until the page is seeded", async () => {
 		const root = await mount();
 		const skeleton = root.querySelector("[data-sort-skeleton]");
@@ -100,7 +87,7 @@ describe("DoctypeList controls row", () => {
 		expect(skeleton?.className).toContain("h-7 w-36 shrink-0 rounded-4");
 		expect(root.querySelector("[data-stub-sort]")).toBeNull();
 
-		page.seeded.value = true;
+		fake.state.seeded.value = true;
 		await nextTick();
 		expect(root.querySelector("[data-sort-skeleton]")).toBeNull();
 		expect(root.querySelector("[data-stub-sort]")).not.toBeNull();

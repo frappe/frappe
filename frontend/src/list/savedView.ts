@@ -1,13 +1,20 @@
-// The saved view a list address names, looked up by its doctype and key as the person sees it.
+// The view a list address names, looked up by its doctype and key as the person sees it: a saved
+// view, or a view type's plain view at its type's name.
 import { isApiError, runMethod } from "@framework/ui/api";
 import { onScopeDispose, shallowRef, watch, type ShallowRef } from "vue";
 
 const FIND = "frappe.desk.doctype.doctype_view.api.find";
 
+export type ViewLayer = "own" | "site" | "app";
+
 export interface SavedView {
 	key: string;
 	label: string;
 	type: string;
+	/** Null for a view type's plain view. */
+	layer: ViewLayer | null;
+	/** False when the view's type does not fit the doctype. */
+	applies: boolean;
 }
 
 export interface SavedViewHandle {

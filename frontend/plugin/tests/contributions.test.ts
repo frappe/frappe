@@ -162,7 +162,35 @@ describe("a pages.json key that cannot be used", () => {
       "record",
     ]);
     expect(warnings).toEqual([
-      `[frappe] ${path(manifest)}: unknown key "form", only "record" and "list" are read; that key is ignored.`,
+      `[frappe] ${path(manifest)}: unknown key "form", only "record" and a view type's name in lower case are read; that key is ignored.`,
+    ]);
+  });
+
+  it("ships no handler file for a page declared only under an unknown key", () => {
+    const manifest = bench({
+      helpdesk: owner(
+        { form: "runner" },
+        { [`${TICKET}/frontend/runner.js`]: "export default {}" },
+      ),
+    });
+    const { pageScripts } = discover(manifest);
+
+    expect(pageScripts).toEqual([]);
+  });
+
+  it("keeps a key that names a view type in lower case, from any app", () => {
+    const manifest = bench({
+      helpdesk: owner({ cards: "runner", kanban: "runner" }),
+      myapp: {
+        "myapp/view_type/cards/cards.json": JSON.stringify({ name: "Cards" }),
+        "myapp/view_type/cards/frontend/view.js": "export default {}",
+      },
+    });
+    const { replacements, warnings } = discover(manifest);
+
+    expect(replacements.map((entry: Replacement) => entry.key)).toEqual(["cards"]);
+    expect(warnings).toEqual([
+      `[frappe] ${path(manifest)}: unknown key "kanban", only "record" and a view type's name in lower case are read; that key is ignored.`,
     ]);
   });
 

@@ -1,6 +1,7 @@
-// The list page's one act surface, `list`: its built-ins as named acts, which its buttons and menu draw.
+// The list page's act surface, `list`: its built-ins as named acts, which its buttons and menu draw.
+// A renderer's acts join as `<type>.<act>`, so List's own land on `list` too.
 import { toast } from "frappe-ui";
-import { onScopeDispose } from "vue";
+import { onScopeDispose, shallowRef } from "vue";
 import { useDocPermissions } from "@framework/ui/useDocPermissions";
 import { useSession } from "@framework/ui/useSession";
 import {
@@ -15,14 +16,13 @@ import { whenLoaded } from "@/acts/doctypeRight";
 import { favouriteWording } from "@/pages/favourite/favouriteWording";
 import type { DefaultScope } from "./defaultView";
 import { errorMessage } from "@/recordPage/errorMessage";
+import { typeKey } from "@/list/view";
 
 export interface ListActsHost {
   doctype: string;
   create: () => unknown;
   customizeQuickFilter: () => void;
-  confirmDelete: () => void;
   customizing: () => boolean;
-  selected: () => number;
   /** False until a list settings read says what is starred. */
   starsLoaded: () => boolean;
   favourited: () => boolean;
@@ -40,12 +40,22 @@ export interface ListActs {
   perform: (act: AvailableAct) => void;
 }
 
+export interface PageActs extends ListActs {
+  /** Puts a renderer's acts on its type's surface, under the page's rights; they draw from the result. */
+  renderer: (entries: () => ActEntry[]) => ListActs;
+}
+
 /** Registers the `list` surface for the page's life; the page draws its controls from `drawn`. */
-export function useListActs(host: ListActsHost): ListActs {
+export function useListActs(host: ListActsHost, type = "List"): PageActs {
   const passes = useListRight(host.doctype);
   const { loading } = useDocPermissions(host.doctype);
+  const surface = typeKey(type);
+  const rendered = shallowRef<() => ActEntry[]>(() => []);
+  const surfaces: Record<string, () => ActEntry[]> = { list: () => listEntries(host) };
+  if (surface === "list") surfaces.list = () => [...listEntries(host), ...rendered.value()];
+  else surfaces[surface] = () => rendered.value();
   const release = acts.register({
-    surfaces: { list: () => listEntries(host) },
+    surfaces,
     context: () => undefined,
     passes,
     settled: () => (loading.value ? whenLoaded(loading) : undefined),
@@ -55,13 +65,23 @@ export function useListActs(host: ListActsHost): ListActs {
   onScopeDispose(release);
 
   return {
-    drawn: (name) => acts.find(`list.${name}`),
+    ...surfaceActs("list"),
+    renderer: (entries) => {
+      rendered.value = entries;
+      return surfaceActs(surface);
+    },
+  };
+}
+
+function surfaceActs(surface: string): ListActs {
+  return {
+    drawn: (name) => acts.find(`${surface}.${name}`),
     perform: (act) => void acts.perform(act.name),
   };
 }
 
 function listEntries(host: ListActsHost): ActEntry[] {
-  const entries: ActEntry[] = [
+  return [
     {
       item: {
         name: "create",
@@ -123,18 +143,6 @@ function listEntries(host: ListActsHost): ActEntry[] {
       hidden: host.customizing(),
     },
   ];
-  if (host.selected() > 0)
-    entries.push({
-      item: {
-        name: "delete",
-        label: __("Delete"),
-        icon: "lucide-trash-2",
-        right: "delete",
-        run: () => host.confirmDelete(),
-      },
-      hidden: false,
-    });
-  return entries;
 }
 
 function viewKey(value?: { key?: unknown }): string {

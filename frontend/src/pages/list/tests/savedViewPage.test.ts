@@ -17,12 +17,12 @@ vi.mock("@/shell/PageFrame.vue", async () => {
 		pageGutter: "",
 	};
 });
-vi.mock("@/pages/list/DoctypeList.vue", async () => {
+vi.mock("@/pages/list/ViewPage.vue", async () => {
 	const { defineComponent, h } = await import("vue");
 	return {
 		default: defineComponent({
-			props: ["doctype", "view", "viewLabel"],
-			setup: (props) => () => h("div", { "data-list": props.viewLabel ?? "" }),
+			props: ["doctype", "opened", "replacement"],
+			setup: (props) => () => h("div", { "data-list": props.opened.label, "data-type": props.opened.type }),
 		}),
 	};
 });
@@ -58,6 +58,8 @@ async function flush() {
 	for (let i = 0; i < 5; i++) await new Promise((resolve) => setTimeout(resolve));
 }
 
+const view_types = [{ name: "Kanban", label: "Kanban" }];
+
 async function mount(path: string) {
 	const router = createRouter({
 		history: createMemoryHistory("/apps/desk"),
@@ -71,7 +73,7 @@ async function mount(path: string) {
 	const root = document.createElement("div");
 	document.body.appendChild(root);
 	const app = createApp(defineComponent({ render: () => h(List) }));
-	app.use(router).provide("boot", { app: "desk", app_title: "Desk" }).provide("addresses", {
+	app.use(router).provide("boot", { app: "desk", app_title: "Desk", view_types }).provide("addresses", {
 		moduleName: () => null,
 		doctypeOf: () => "ToDo",
 		slugOf: () => "todo",
@@ -80,6 +82,7 @@ async function mount(path: string) {
 	apps.push(app);
 	await nextTick();
 	return {
+		type: () => root.querySelector<HTMLElement>("[data-list]")?.dataset.type,
 		list: () => root.querySelector<HTMLElement>("[data-list]"),
 		state: () => root.querySelector<HTMLElement>("[data-page-state]")?.dataset.pageState,
 		text: () => root.textContent ?? "",
@@ -90,7 +93,7 @@ async function mount(path: string) {
 
 describe("a saved view's address", () => {
 	it("draws no list until the view is found, then the list with the view's label", async () => {
-		const server = answer(200, { data: { key: "open", label: "Open todos", type: "List" } });
+		const server = answer(200, { data: { key: "open", label: "Open todos", type: "List", layer: "own", applies: true } });
 		const page = await mount("/todo/view/open");
 
 		expect(page.list()).toBeNull();
@@ -119,5 +122,29 @@ describe("a saved view's address", () => {
 
 		expect(server.asked).toEqual([]);
 		expect(page.list()?.dataset.list).toBe("");
+		expect(page.type()).toBe("List");
+	});
+
+	it("draws the views don't apply state, never the list, for a view whose type does not fit the doctype", async () => {
+		const server = answer(200, {
+			data: { key: "board", label: "Board", type: "Kanban", layer: "own", applies: false },
+		});
+		const page = await mount("/todo/view/board");
+		await server.send();
+
+		expect(page.state()).toBe("viewNotFound");
+		expect(page.list()).toBeNull();
+		expect(page.text()).toContain("Kanban views don't apply to ToDo");
+		expect(page.action()?.getAttribute("href")).toBe(page.listHref);
+	});
+
+	it("hands the page the type of the view found", async () => {
+		const server = answer(200, {
+			data: { key: "board", label: "Board", type: "Kanban", layer: "own", applies: true },
+		});
+		const page = await mount("/todo/view/board");
+		await server.send();
+
+		expect(page.type()).toBe("Kanban");
 	});
 });

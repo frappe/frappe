@@ -2,8 +2,8 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { ViewTypeContribution } from '../types'
 
-const frappeList = async () => ({ default: 'frappe list' })
-const crmList = async () => ({ default: 'crm list' })
+const frappeTable = async () => ({ default: 'frappe table' })
+const crmTable = async () => ({ default: 'crm table' })
 const cards = async () => ({ default: 'cards' })
 
 vi.mock('virtual:frappe/contributions', () => ({
@@ -15,8 +15,9 @@ vi.mock('virtual:frappe/contributions', () => ({
     settings: [],
     acts: [],
     viewTypes: [
-      { app: 'crm', type: 'List', renderer: crmList },
-      { app: 'frappe', type: 'List', renderer: frappeList },
+      { app: 'crm', type: 'Table', renderer: crmTable },
+      { app: 'frappe', type: 'Table', renderer: frappeTable },
+      { app: 'frappe', type: 'List', renderer: undefined as unknown as () => Promise<unknown> },
       { app: 'myapp', type: 'Cards', renderer: cards },
       { app: 'myapp', type: 'Wall', renderer: undefined as unknown as () => Promise<unknown> },
     ] satisfies ViewTypeContribution[],
@@ -32,10 +33,12 @@ describe('viewRenderers', () => {
 
     registerContributions(['frappe', 'crm', 'myapp'])
 
-    expect(viewRenderers).toEqual({ List: frappeList, Cards: cards })
+    expect(viewRenderers).toEqual({ Table: frappeTable, Cards: cards })
     expect(error).toHaveBeenCalledWith(
-      "[frappe] two apps ship a renderer for view type 'List': 'frappe' is used and 'crm' is ignored.",
+      "[frappe] two apps ship a renderer for view type 'Table': 'frappe' is used and 'crm' is ignored.",
     )
+    expect(viewRenderers).not.toHaveProperty('List')
+    expect(error).not.toHaveBeenCalledWith(expect.stringContaining("view type 'List'"))
     expect(error).toHaveBeenCalledWith(
       "[frappe] myapp's view.js for view type 'Wall' exports no renderer; it is ignored.",
     )

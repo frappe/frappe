@@ -1,15 +1,9 @@
 // The list page's states: a failed meta read takes the whole page, a failed or empty rows read the
 // table's place under the controls, and an address with no doctype is not found.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createApp, defineComponent, h, nextTick, type App } from "vue";
+import { createApp, defineComponent, h, nextTick, type App, type Component } from "vue";
 import { createMemoryHistory, createRouter } from "vue-router";
 import { ApiError } from "@framework/ui/api";
-
-const page = vi.hoisted(() => ({
-	state: null as unknown as Record<string, { value: unknown }>,
-	reload: vi.fn(),
-	reloadMeta: vi.fn(),
-}));
 
 function stub(name: string) {
 	return defineComponent({ setup: () => () => h("div", { [`data-stub-${name}`]: "" }) });
@@ -45,48 +39,25 @@ vi.mock("@framework/ui/experimental/List", async () => {
 	};
 });
 vi.mock("@/list/useScrollMemory", () => ({ useScrollMemory: () => {} }));
-vi.mock("@/list/useListPage", async () => {
-	const { ref } = await import("vue");
-	return {
-		useListPage: () => {
-			const empty = () => ref([]);
-			page.state = {
-				filters: empty(),
-				rows: empty(),
-				error: ref(null),
-				metaError: ref(null),
-			};
-			return {
-				...page.state,
-				sort: empty(),
-				columns: empty(),
-				quickFilterFields: ref(undefined),
-				customizing: ref(false),
-				selection: empty(),
-				pageSize: ref(20),
-				rowsKey: () => "",
-				loading: ref(false),
-				seeded: ref(true),
-				rowCount: ref(0),
-				totalCount: ref(0),
-				totalCapped: ref(false),
-				totalUnknown: ref(false),
-				hasCounts: ref(true),
-				hasNextPage: ref(false),
-				reload: page.reload,
-				reloadMeta: page.reloadMeta,
-			};
-		},
-	};
-});
+vi.mock("@/list/useListPage", async (importOriginal) => ({
+	...(await importOriginal<typeof import("@/list/useListPage")>()),
+	useListPage: (await import("./fakeListPage")).useListPage,
+}));
+vi.mock("@/list/useListView", async () => ({
+	useListView: (await import("./fakeListPage")).useListView,
+}));
 
 import List from "../../List.vue";
-import DoctypeList from "../DoctypeList.vue";
+import { PLAIN_LIST } from "@/list/useListPage";
+import ViewPage from "../ViewPage.vue";
+import { fake, installListRenderer, resetFake } from "./fakeListPage";
 
 const apps: App[] = [];
 
 // The Create button reads meta and the session; no server answers here.
-beforeEach(() => {
+beforeEach(async () => {
+	resetFake();
+	await installListRenderer();
 	vi.stubGlobal(
 		"fetch",
 		async () =>
@@ -98,13 +69,18 @@ afterEach(() => {
 	for (const app of apps.splice(0)) app.unmount();
 	document.body.innerHTML = "";
 	vi.unstubAllGlobals();
-	page.reload.mockReset();
-	page.reloadMeta.mockReset();
 });
 
 const BASE = "/apps/crm";
 
-async function mount(component = DoctypeList, doctype: string | null = "Contact") {
+async function settle() {
+	for (let turn = 0; turn < 3; turn++) {
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		await nextTick();
+	}
+}
+
+async function mount(component: Component = ViewPage, doctype: string | null = "Contact") {
 	const router = createRouter({
 		history: createMemoryHistory(BASE),
 		routes: [
@@ -115,14 +91,14 @@ async function mount(component = DoctypeList, doctype: string | null = "Contact"
 	await router.push("/contact");
 	const root = document.createElement("div");
 	document.body.appendChild(root);
-	const app = createApp(defineComponent({ render: () => h(component, { doctype }) }));
+	const app = createApp(defineComponent({ render: () => h(component, { doctype, opened: PLAIN_LIST }) }));
 	app.use(router).provide("boot", { app: "crm", app_title: "CRM" }).provide("addresses", {
 		moduleName: () => null,
 		doctypeOf: () => doctype,
 	});
 	app.mount(root);
 	apps.push(app);
-	await nextTick();
+	await settle();
 	return {
 		state: () => root.querySelector<HTMLElement>("[data-page-state]")?.dataset.pageState,
 		text: () => root.textContent ?? "",
@@ -136,7 +112,7 @@ async function mount(component = DoctypeList, doctype: string | null = "Contact"
 }
 
 async function set(key: string, value: unknown) {
-	page.state[key].value = value;
+	fake.state[key].value = value;
 	await nextTick();
 }
 
@@ -166,7 +142,7 @@ describe("a failed meta read", () => {
 
 		expect(list.state()).toBe("offline");
 		list.tryAgain();
-		expect(page.reloadMeta).toHaveBeenCalledOnce();
+		expect(fake.reloadMeta).toHaveBeenCalledOnce();
 	});
 });
 
@@ -181,7 +157,7 @@ describe("a rows read", () => {
 		expect(list.has("[data-stub-filter]")).toBe(true);
 
 		list.tryAgain();
-		expect(page.reload).toHaveBeenCalledOnce();
+		expect(fake.reload).toHaveBeenCalledOnce();
 	});
 
 	it("that failed past rows on show draws the failed state in the table's place", async () => {

@@ -1,4 +1,4 @@
-// The router opens the registered standard pages, and a declared replacement wins over them.
+// The router opens the registered standard pages, and a declared record page wins over them. A declared list page is the list page's to open.
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, nextTick } from "vue";
 import { RouterView } from "vue-router";
@@ -75,8 +75,8 @@ describe("the standard pages", () => {
 		expect(await shownAt(path)).toBe(expected);
 	});
 
-	it("give way to a declared page at the main address", async () => {
-		expect(await shownAt("/accounts/sales-invoice")).toBe("declared list");
+	it("leave a declared list page to the list page, which opens it for a view", async () => {
+		expect(await shownAt("/accounts/sales-invoice")).toBe("registered list");
 	});
 });
 

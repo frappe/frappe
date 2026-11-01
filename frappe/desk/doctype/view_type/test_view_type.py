@@ -139,6 +139,17 @@ class TestTheRules(ViewTypeCase):
 		with self.assertRaisesRegex(frappe.ValidationError, "Probe views don't apply to Note"):
 			view_api.get("Note", PROBE)
 
+	def test_the_view_lookup_says_whether_the_type_applies(self):
+		make_view(label="Probe board").insert()
+		self.rules.applies_to = lambda meta: meta.name != "ToDo"
+
+		self.assertEqual(
+			view_api.find("ToDo", "probe-46028"),
+			{"key": "probe-46028", "label": "Probe", "type": PROBE, "layer": None, "applies": False},
+		)
+		self.assertEqual(view_api.find("ToDo", "probe-board")["applies"], False)
+		self.assertEqual(view_api.find("Note", "probe-46028")["applies"], True)
+
 	def test_applies_to_filters_the_views_read(self):
 		make_view(label="Probe board").insert()
 		probes = {"probe-46028", "probe-board"}

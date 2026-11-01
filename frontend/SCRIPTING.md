@@ -36,6 +36,9 @@ An app page also gives the builder its `app` and its `pageName`, the name of its
    `page` set to its name, in `run_order`. When one is saved, reordered or deleted, an open
    page re-runs its handlers.
 
+A `pages.json` key is `record`, `list`, or a view type's key (`cards` for the Cards type): a saved
+view of that type opens the page.
+
 ```js
 // helpdesk/support/doctype/hd_ticket/frontend/pages.json: { "list": "inbox" }
 // helpdesk/support/doctype/hd_ticket/frontend/pages/inbox.js builds the page:

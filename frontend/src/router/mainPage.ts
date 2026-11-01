@@ -20,10 +20,10 @@ export function mainPageFor(route: Route, addresses: Addresses, app: string | nu
 	const doctype = addresses.doctypeOf(String(route.params.doctype));
 	if ((key !== "list" && key !== "record") || !doctype) return null;
 
-	const declared = replacementFor(doctype, key, app);
+	// The list page picks its view's replacement itself: the view is known only there.
+	const declared = key === "record" && replacementFor(doctype, key, app);
 	if (!declared) return { loader: standardPage(key), props: null };
-	const props = key === "record" ? { doctype, name: String(route.params.name) } : { doctype };
-	return { loader: declared.component, props };
+	return { loader: declared.component, props: { doctype, name: String(route.params.name) } };
 }
 
 /** The page a loader gives: its loading state at once, then the page once its code is in. */
@@ -75,7 +75,7 @@ function framed(loader: Loader, loading: Component): Component {
 }
 
 /** Resolves once the frame has painted; at once when nothing paints first. */
-function afterFramePaint(): Promise<void> {
+export function afterFramePaint(): Promise<void> {
 	// In the click's task, vite's preload helper holds the frame's paint. A cold load, or a tab that is
 	// or goes hidden, does not wait: the paint comes late or never, and the page would arrive that late.
 	const painted = performance.getEntriesByName("first-contentful-paint").length > 0;

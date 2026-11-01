@@ -1,22 +1,8 @@
 // The list page's act surface: its built-ins run by name through the dispatcher, are drawn from
 // the same items, and are refused without their right.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  createApp,
-  defineComponent,
-  h,
-  nextTick,
-  ref,
-  type App,
-  type Ref,
-} from "vue";
+import { createApp, defineComponent, h, nextTick, ref, type App } from "vue";
 import { createMemoryHistory, createRouter, type Router } from "vue-router";
-
-const page = vi.hoisted(() => ({
-  customizing: null as unknown as Ref<boolean>,
-  selection: null as unknown as Ref<string[]>,
-  selectedAtMount: [] as string[],
-}));
 
 function stub(name: string) {
   return defineComponent({
@@ -73,39 +59,13 @@ vi.mock("../DeleteDialog.vue", async () => {
   };
 });
 vi.mock("@/list/useScrollMemory", () => ({ useScrollMemory: () => {} }));
-vi.mock("@/list/useListPage", async () => {
-  const { computed, ref } = await import("vue");
-  return {
-    useListPage: () => {
-      const empty = () => ref([]);
-      page.customizing = ref(false);
-      page.selection = ref([...page.selectedAtMount]);
-      return {
-        filters: empty(),
-        sort: empty(),
-        columns: empty(),
-        quickFilterFields: ref(undefined),
-        customizing: page.customizing,
-        selection: page.selection,
-        pageSize: ref(20),
-        rowsKey: () => "",
-        rows: empty(),
-        loading: ref(false),
-        error: ref(null),
-        metaError: ref(null),
-        seeded: ref(true),
-        rowCount: ref(0),
-        totalCount: ref(0),
-        totalCapped: ref(false),
-        totalUnknown: ref(false),
-        hasCounts: ref(false),
-        hasNextPage: ref(false),
-        createValues: computed(() => ({})),
-        reload: () => {},
-      };
-    },
-  };
-});
+vi.mock("@/list/useListPage", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/list/useListPage")>()),
+  useListPage: (await import("./fakeListPage")).useListPage,
+}));
+vi.mock("@/list/useListView", async () => ({
+  useListView: (await import("./fakeListPage")).useListView,
+}));
 
 import { Addresses } from "@/addresses";
 import { acts, ActDenied } from "@/acts/dispatcher";
@@ -121,7 +81,14 @@ import { clearDataCache } from "@framework/ui/cache";
 import { resetDoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { resetSession, setSession } from "@framework/ui/useSession";
 import { resetListSettings } from "@/list/useListSettings";
-import DoctypeList from "../DoctypeList.vue";
+import { PLAIN_LIST } from "@/list/useListPage";
+import { useListActs } from "../listActs";
+import ViewPage from "../ViewPage.vue";
+import {
+  fake,
+  installListRenderer,
+  resetFake,
+} from "./fakeListPage";
 
 const addresses = new Addresses({
   doctypes: { Contact: ["contact", "crm"] },
@@ -169,14 +136,15 @@ let defaultCalls: { method: string; body: Record<string, unknown> }[];
 let defaultAnswer: string | null;
 const apps: App[] = [];
 
-beforeEach(() => {
+beforeEach(async () => {
+  resetFake();
+  await installListRenderer();
   resetDoctypeMeta();
   clearDataCache();
   setSession(SESSION);
   registerCreateDialog(stub("create-dialog"));
   closeCreates();
   permissions = [ALL_RIGHTS];
-  page.selectedAtMount = [];
   starred = { list: false, views: [] };
   toggles = [];
   defaultCalls = [];
@@ -252,7 +220,15 @@ async function mount(whileLoading?: () => void, view: string | null = null) {
   document.body.appendChild(root);
   const app = createApp(
     defineComponent({
-      render: () => h(DoctypeList, { doctype: "Contact", view: shownView.value }),
+      render: () =>
+        h(ViewPage, {
+          // As List.vue keys it: another view is another page state.
+          key: `Contact/${shownView.value ?? "list"}`,
+          doctype: "Contact",
+          opened: shownView.value
+            ? { ...PLAIN_LIST, key: shownView.value, label: shownView.value, layer: "user" }
+            : PLAIN_LIST,
+        }),
     })
   );
   app.use(router).provide("addresses", addresses).provide("boot", boot);
@@ -285,7 +261,7 @@ async function denial(name: string) {
 
 describe("the list surface", () => {
   it("lists the five built-ins by name while rows are selected", async () => {
-    page.selectedAtMount = ["CONT-0001"];
+    fake.selectedAtMount = ["CONT-0001"];
     await mount();
     expect(listActNames()).toEqual([
       "list.create",
@@ -310,7 +286,7 @@ describe("the list surface", () => {
     await mount();
     await acts.run("list.customize_quick_filter");
     await nextTick();
-    expect(page.customizing.value).toBe(true);
+    expect(fake.state.customizing.value).toBe(true);
     expect(await denial("list.customize_quick_filter")).toMatchObject({
       reason: "hidden",
     });
@@ -320,7 +296,7 @@ describe("the list surface", () => {
     const root = await mount();
     expect(await denial("list.delete")).toMatchObject({ reason: "missing" });
 
-    page.selection.value = ["CONT-0001"];
+    fake.state.selection.value = ["CONT-0001"];
     await nextTick();
     expect(bulkLabels(root)).toEqual(["Delete"]);
     await acts.run("list.delete");
@@ -330,7 +306,7 @@ describe("the list surface", () => {
 
   it("refuses list.create and list.delete with ActDenied for a user without the rights, and draws neither", async () => {
     permissions = [READ_ONLY];
-    page.selectedAtMount = ["CONT-0001"];
+    fake.selectedAtMount = ["CONT-0001"];
     const root = await mount();
 
     for (const name of ["list.create", "list.delete"]) {
@@ -455,7 +431,7 @@ describe("the list surface", () => {
     expect(star.getAttribute("aria-pressed")).toBe("false");
   });
 
-  it("follows the address from one saved view to the next without a remount", async () => {
+  it("gives the next saved view its own page state, with its own star", async () => {
     starred = { list: false, views: ["open-contacts"] };
     const root = await mount(undefined, "open-contacts");
     const star = () => root.querySelector("header [data-favourite]")!;
@@ -526,5 +502,61 @@ describe("the list surface", () => {
     await mount();
     for (const app of apps.splice(0)) app.unmount();
     expect(listActNames()).toEqual([]);
+  });
+});
+
+describe("a renderer's acts", () => {
+  const moveCard = {
+    item: { name: "move_card", label: "Move card", run: () => {} },
+    hidden: false,
+  };
+
+  async function mountActs(type?: string) {
+    const host = {
+      doctype: "Contact",
+      create: () => {},
+      customizeQuickFilter: () => {},
+      customizing: () => false,
+      starsLoaded: () => true,
+      favourited: () => false,
+      toggleFavourite: () => {},
+      openView: () => {},
+      setDefaultView: () => {},
+      clearDefaultView: () => {},
+    };
+    const app = createApp(
+      defineComponent({
+        setup() {
+          useListActs(host, type).renderer(() => [moveCard]);
+          return () => null;
+        },
+      })
+    );
+    app.provide("boot", boot).provide("addresses", addresses);
+    app.mount(document.body.appendChild(document.createElement("div")));
+    apps.push(app);
+    await settle();
+  }
+
+  const namesWith = (act: string) =>
+    acts
+      .available()
+      .map((one) => one.name)
+      .filter((name) => name.endsWith(`.${act}`));
+
+  it("land on the type's own surface, not on list", async () => {
+    await mountActs("Kanban");
+    expect(namesWith("move_card")).toEqual(["kanban.move_card"]);
+    expect(listActNames()).toContain("list.create");
+  });
+
+  it("land on list for the List type", async () => {
+    await mountActs("List");
+    expect(namesWith("move_card")).toEqual(["list.move_card"]);
+  });
+
+  it("land on list when no type is named, as the List type's do", async () => {
+    await mountActs();
+    expect(namesWith("move_card")).toEqual(["list.move_card"]);
   });
 });

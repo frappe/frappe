@@ -1,12 +1,30 @@
 // Reads a folder's `pages.json` and `pages/` into replacement pages for a doctype's record or
-// list address, and each page's handler file, with a warning for each broken declaration, each
+// a view type's address, and each page's handler file, with a warning for each broken declaration, each
 // stray handler file and each clash across apps.
 
 import { readFileSync } from "node:fs";
-import { basename, join } from "node:path";
+import { basename, dirname, join } from "node:path";
 import { files, isFile } from "./folders.js";
 
 export const STANDARD_PAGES = ["record", "list"];
+
+/** The keys a `pages.json` may use: the standard pages, and each view type's name in lower case. */
+export function pageKeys(viewTypes) {
+	return new Set([...STANDARD_PAGES, ...viewTypes.map((entry) => entry.type.toLowerCase())]);
+}
+
+/** One warning per `pages.json` and key that `keys` does not hold. */
+export function unknownKeys(replacements, keys) {
+	const warnings = new Set();
+	for (const { key, file } of replacements.filter((entry) => !keys.has(entry.key)))
+		warnings.add(
+			`[frappe] ${join(dirname(dirname(file)), "pages.json")}: unknown key ${JSON.stringify(
+				key
+			)}, ` +
+				`only "record" and a view type's name in lower case are read; that key is ignored.`
+		);
+	return [...warnings];
+}
 
 /** The pages a folder's `pages.json` names from the `pages/` folder beside it, and their handler files. */
 export function declaredPages(folder, declarer, benchApps) {
@@ -91,8 +109,6 @@ function keyEntries(key, value, pageNames, benchApps) {
 }
 
 function keyProblem(key, value, entries, pageNames) {
-	if (!STANDARD_PAGES.includes(key))
-		return `unknown key ${JSON.stringify(key)}, only "record" and "list" are read`;
 	if (!entries.length) return `"${key}" is an empty list`;
 	for (const entry of entries) {
 		const problem = entryProblem(key, entry, pageNames);

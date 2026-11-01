@@ -42,7 +42,9 @@ import { resetUserRoles } from "@framework/ui/useUserRoles";
 import type { Session } from "@framework/ui/api";
 import { clearDataCache, feedListRead, settleTicket, takeTicket } from "@framework/ui/cache";
 import { readListMemory, recallRows, rememberRows, writeListMemory } from "../pageState";
-import { useListPage, type ListPage } from "../useListPage";
+import type { SavedView } from "../savedView";
+import { useListPage } from "../useListPage";
+import { useListView } from "../useListView";
 import { markListSettingsStale, resetListSettings, useListSettings } from "../useListSettings";
 
 const SETTINGS_API = "frappe.desk.doctype.doctype_view.api";
@@ -58,7 +60,9 @@ const boot = { app: "crm", shell_base: "/apps/crm", prefixes: { crm: { app: "crm
 
 let router: Router;
 let app: App | null = null;
-let page: ListPage;
+let page: ReturnType<typeof composed>;
+// The view the page opens, when a test opens one; else the plain List view.
+let opened: SavedView | undefined;
 
 /** One list read, answered when a test assigns `data`; `count` is 42 unless a test says otherwise. */
 function fakeList(doctype: string, query: Record<string, unknown>, options?: { include?: string[] }) {
@@ -101,7 +105,7 @@ async function mount(path: string) {
 	app = createApp(
 		defineComponent({
 			setup() {
-				page = useListPage("Lead");
+				page = composed();
 				return () => null;
 			},
 		})
@@ -109,6 +113,13 @@ async function mount(path: string) {
 	app.use(router);
 	app.mount(root);
 	await settle();
+}
+
+/** The page state and the List renderer's, read as one object as the page and renderer see them. */
+function composed() {
+	const listPage = useListPage("Lead", opened);
+	const { filters, sort, seeded } = listPage.view;
+	return { ...listPage, ...useListView(listPage.view), filters, sort, seeded };
 }
 
 async function settle() {
@@ -160,6 +171,7 @@ beforeEach(() => {
 	clearDataCache();
 	history.replaceState(null, "");
 	fake.meta = { name: "Lead", title_field: "title", sort_field: "amount", sort_order: "ASC", fields: FIELDS };
+	opened = undefined;
 	fake.contributed = [];
 	fake.lists = [];
 	fake.tiers = { site: null, user: null };
@@ -222,6 +234,46 @@ describe("seeding", () => {
 		expect(page.totalCount.value).toBe(42);
 		expect(page.totalCapped.value).toBe(false);
 		expect(page.hasCounts.value).toBe(true);
+	});
+});
+
+describe("the view", () => {
+	it("is the view opened, with the stored settings, the page's changes on top and the URL's filters and sort", async () => {
+		opened = { key: "board", label: "Board", type: "Kanban", layer: "own", applies: true };
+		fake.tiers = { site: null, user: { sort: [{ fieldname: "title", direction: "asc" }], lane: "status" } };
+		await mount("/lead?status=Open&_sort=amount%20desc");
+		const { view } = page;
+
+		expect([view.doctype, view.key, view.type, view.layer]).toEqual(["Lead", "board", "Kanban", "own"]);
+		expect(view.settings.value).toMatchObject({ lane: "status" });
+		expect(view.filters.value[0]).toMatchObject({ fieldname: "status", value: "Open" });
+		expect(view.sort.value).toEqual([{ fieldname: "amount", direction: "desc" }]);
+
+		view.update({ lane: "title", cards: 3 });
+		expect(view.settings.value).toMatchObject({ lane: "title", cards: 3 });
+		expect(view.settings.value.sort).toEqual([{ fieldname: "title", direction: "asc" }]);
+	});
+
+	it("is the plain List view when no view is opened", async () => {
+		await mount("/lead");
+		expect([page.view.key, page.view.type, page.view.layer]).toEqual(["list", "List", null]);
+	});
+
+	it("keeps a type's own keys in page state, marks the view modified, and writes none of them to the URL", async () => {
+		await mount("/lead");
+		const { view } = page;
+		expect(view.modified.value).toBe(false);
+
+		view.update({ some_key: 1 });
+		await nextTick();
+		expect(view.settings.value).toMatchObject({ some_key: 1 });
+		expect(view.modified.value).toBe(true);
+		await settle();
+		expect(router.currentRoute.value.query).toEqual({});
+
+		page.filters.value = [{ fieldname: "status", operator: "equals", value: "Open" } as never];
+		await settle();
+		expect(router.currentRoute.value.query).toEqual({ status: "Open" });
 	});
 });
 
