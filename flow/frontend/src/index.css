@@ -54,6 +54,6 @@ div {
 }
 
 /* the panel's dialogs take the chat's narrow scale; frappe-ui titles them 2xl */
-[data-panel] .dialog-content header h3 {
+:host([data-panel]) .dialog-content header h3 {
 	@apply text-lg-semibold;
 }

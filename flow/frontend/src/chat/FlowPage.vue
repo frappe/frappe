@@ -292,8 +292,8 @@ const needsSetup = computed(
 );
 
 // the launcher listens for the header's ×; a new tab takes the chat over from the panel
-const host = inject("flowHost");
-const closePanel = () => host.close();
+const host = inject("flowHost", null);
+const closePanel = () => host?.close();
 function openInTab() {
 	window.open(`/flow${route.fullPath}`, "_blank", "noopener");
 	closePanel();
@@ -380,8 +380,9 @@ onMounted(async () => {
 	// an island lays out by its own box, which a panel narrows; the page's width says nothing
 	unmeasure = measureLayoutBy(root.value);
 	if (!inPanel) uninstallShortcuts = installShortcuts(store);
-	uninstallFocusRings = installFocusRings();
-	uninstallViewport = installViewport();
+	uninstallFocusRings = installFocusRings(root.value);
+	// the page around the panel owns the window's viewport
+	if (!inPanel) uninstallViewport = installViewport();
 	store.refreshModels();
 	await store.refreshSessions();
 	// the route watcher, a click or a first message may have moved on while the list loaded,

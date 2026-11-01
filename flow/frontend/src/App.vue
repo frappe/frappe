@@ -1,5 +1,5 @@
 <template>
-	<div class="h-full" :data-panel="inPanel ? '' : null">
+	<div class="h-full">
 		<FlowPage v-if="boot" :boot="boot" />
 		<div
 			v-else
@@ -25,7 +25,6 @@ import { LoadingIndicator } from "frappe-ui";
 
 import { loadBoot } from "./boot.js";
 import FlowPage from "./chat/FlowPage.vue";
-import { inPanel } from "./panel.js";
 
 // the island's props; see island.js
 const props = defineProps({

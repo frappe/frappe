@@ -42,7 +42,7 @@ const ICONS = {
 
 const page = inject("flowPage");
 const flow = inject("flow");
-const host = inject("flowHost");
+const host = inject("flowHost", null);
 const docKeys = ["agents", "skills", "tools", "triggers", "models", "providers", "memories"];
 const docSpecs = computed(() =>
 	docKeys.map((key) => SPECS[key]).filter((spec) => page.can(spec.doctype, "read"))
@@ -77,7 +77,7 @@ watch(
 	(open) => {
 		if (!inPanel) return;
 		clearTimeout(restore);
-		const tell = () => host.settings(open);
+		const tell = () => host?.settings(open);
 		if (open) tell();
 		else restore = setTimeout(tell, 150);
 	}

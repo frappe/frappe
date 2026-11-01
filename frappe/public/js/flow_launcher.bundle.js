@@ -40,6 +40,7 @@ class FlowLauncher {
 		// the chat mounts in the page's tree, slotted into the panel: in this shadow root it would
 		// sit two roots deep, where frappe-ui's patched overlays take a click on it for one outside
 		this.chat = document.createElement("div");
+		this.chat.inert = true;
 		this.host.append(this.chat);
 		document.body.append(this.host);
 		const page_style = document.createElement("style");
@@ -70,7 +71,7 @@ class FlowLauncher {
 		if (slide) this.slide();
 		this.state.open = true;
 		if (!this.island) this.make_island();
-		this.panel.inert = false;
+		this.panel.inert = this.chat.inert = false;
 		this.place();
 		this.save();
 		if (focus) this.island.ready.then(() => this.focus_chat());
@@ -92,7 +93,7 @@ class FlowLauncher {
 		this.chat_focus = focused ? deep_active_element() : null;
 		this.slide();
 		this.state.open = false;
-		this.panel.inert = true;
+		this.panel.inert = this.chat.inert = true;
 		this.squeeze();
 		if (focused) this.focus_page();
 		this.save();
