@@ -1,5 +1,5 @@
 // The standing windows apps attach through their shell hooks: one per app, kept for the tab.
-import { markRaw, reactive, shallowReactive, type Component } from "vue";
+import { markRaw, reactive, type Component } from "vue";
 
 export type StandingWindowState = "closed" | "open" | "minimised";
 
@@ -51,43 +51,34 @@ const MAX_WIDTH = 400;
 const DEFAULT_WIDTH = 280;
 const MAX_ACTIONS = 3;
 
-/** The tab's standing windows, kept in `order`, the hooked apps' app order. */
-export function standingWindows(order: () => string[]) {
-	const windows = shallowReactive<StandingWindow[]>([]);
-
-	function attach(
-		app: string,
-		title: string,
-		component: Component,
-		options: StandingWindowOptions = {}
-	): StandingWindowHandle | undefined {
-		if (windows.some((entry) => entry.app === app)) {
-			console.warn(`[frappe] ${app}'s shell.js asked for a second window; it is ignored.`);
-			return undefined;
-		}
-		const entry = reactive({
-			app,
-			icon: options.icon,
-			width: clampWidth(options.width),
-			component: markRaw(component),
-			state: "closed",
-			title,
-			actions: [],
-			closable: true,
-		}) as unknown as StandingWindow;
-		entry.handle = handleFor(entry, title);
-		windows.splice(placeOf(app), 0, entry);
-		return entry.handle;
+/** Adds `app`'s window to `windows`, kept in `order`, the hooked apps' app order. */
+export function attachWindow(
+	windows: StandingWindow[],
+	order: string[],
+	app: string,
+	title: string,
+	component: Component,
+	options: StandingWindowOptions = {}
+): StandingWindowHandle | undefined {
+	if (windows.some((entry) => entry.app === app)) {
+		console.warn(`[frappe] ${app}'s shell.js asked for a second window; it is ignored.`);
+		return undefined;
 	}
-
-	function placeOf(app: string) {
-		const apps = order();
-		const rank = apps.indexOf(app);
-		const after = windows.findIndex((entry) => apps.indexOf(entry.app) > rank);
-		return after === -1 ? windows.length : after;
-	}
-
-	return { windows, attach };
+	const entry = reactive({
+		app,
+		icon: options.icon,
+		width: clampWidth(options.width),
+		component: markRaw(component),
+		state: "closed",
+		title,
+		actions: [],
+		closable: true,
+	}) as unknown as StandingWindow;
+	entry.handle = handleFor(entry, title);
+	const rank = order.indexOf(app);
+	const after = windows.findIndex((other) => order.indexOf(other.app) > rank);
+	windows.splice(after === -1 ? windows.length : after, 0, entry);
+	return entry.handle;
 }
 
 // Frozen, so `reactive` leaves it raw; `state` reads through to the entry and stays reactive.

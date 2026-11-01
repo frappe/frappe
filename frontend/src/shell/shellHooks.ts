@@ -1,15 +1,11 @@
 // Each permitted app's shell hook, `<module>/frontend/shell.js`: its `setup(shell)` runs once per
 // tab at idle after the shell's first paint, in the site's app order.
-import { onMounted, type Component } from "vue";
+import { onMounted, shallowReactive, type Component } from "vue";
 import { registerAfterSave, type AfterSave } from "@/afterSave";
 import type { ShellHook } from "@/boot";
 import { shellHookFiles } from "@/contributions/registry";
 import { atIdle } from "./atIdle";
-import {
-	standingWindows,
-	type StandingWindowHandle,
-	type StandingWindowOptions,
-} from "./standingWindows";
+import type { StandingWindow, StandingWindowHandle, StandingWindowOptions } from "./standingWindows";
 
 /** All a shell hook attaches through. */
 export interface ShellHookApi {
@@ -20,18 +16,28 @@ export interface ShellHookApi {
 }
 
 type Setup = (shell: ShellHookApi) => unknown;
-type Attach = ReturnType<typeof standingWindows>["attach"];
+type Attach = (
+	app: string,
+	title: string,
+	component: Component,
+	options?: StandingWindowOptions
+) => StandingWindowHandle | undefined;
 
 /** Runs the `permitted` apps' hooks once, at idle after the shell mounts; gives their windows. */
 export function useShellHooks(permitted: ShellHook[]) {
-	const { windows, attach } = standingWindows(() => permitted.map((hook) => hook.app));
+	const windows = shallowReactive<StandingWindow[]>([]);
 	const files = shellHookFiles.filter((file) => permitted.some((hook) => hook.app === file.app));
-	if (files.length) onMounted(() => atIdle(() => runAll(files, permitted, attach)));
+	if (files.length) onMounted(() => atIdle(() => runAll(files, permitted, windows)));
 	return windows;
 }
 
-async function runAll(files: typeof shellHookFiles, permitted: ShellHook[], attach: Attach) {
-	const results = await Promise.allSettled(files.map((file) => file.load()));
+async function runAll(files: typeof shellHookFiles, permitted: ShellHook[], windows: StandingWindow[]) {
+	// The window code loads here, so pages without a shell hook never carry it.
+	const [results, { attachWindow }] = await Promise.all([
+		Promise.allSettled(files.map((file) => file.load())),
+		import("./standingWindows"),
+	]);
+	const order = permitted.map((hook) => hook.app);
 	results.forEach((result, index) => {
 		const { app } = files[index];
 		if (result.status === "rejected") {
@@ -44,6 +50,7 @@ async function runAll(files: typeof shellHookFiles, permitted: ShellHook[], atta
 			return;
 		}
 		const title = permitted.find((hook) => hook.app === app)!.title;
+		const attach: Attach = (...args) => attachWindow(windows, order, ...args);
 		run(app, setup as Setup, shellFor(app, title, attach));
 	});
 }
