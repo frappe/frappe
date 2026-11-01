@@ -291,15 +291,34 @@ def create_doc(doctype: str):
 	return doc.insert().as_dict()
 
 
-def copy_doc(doctype: str, name: str, ignore_no_copy: bool = True):
-	"""Return a clean copy of the given document that can be modified and posted as a new document."""
+def copy_doc(doctype: str, name: str, ignore_no_copy: bool = True, amend: bool = False):
+	"""Return a clean copy of the given document that can be modified and posted as a new document.
+
+	With `amend`, the copy is the draft amendment of a cancelled document, as desk v1 builds it.
+	"""
 	doc = frappe.get_doc(doctype, name)
 	doc.check_permission("read")
 	doc.apply_fieldlevel_read_permissions()
 
 	copy = frappe.copy_doc(doc, ignore_no_copy=ignore_no_copy)
+	if amend:
+		check_amendable(doc)
+		copy.amended_from = doc.name
+		if frappe.get_meta(doctype).has_field("amendment_date"):
+			copy.amendment_date = frappe.utils.today()
 
 	return copy.as_dict(no_private_properties=True, no_nulls=True)
+
+
+def check_amendable(doc):
+	doc.check_permission("amend")
+	title = _("Amendment Not Allowed")
+	if not frappe.get_meta(doc.doctype).has_field("amended_from"):
+		frappe.throw(_('"amended_from" field must be present to do an amendment.'), title=title)
+	if doc.docstatus != 2:
+		frappe.throw(_("{0} cannot be amended because it is not cancelled.").format(doc.name), title=title)
+	if frappe.client.is_document_amended(doc.doctype, doc.name):
+		frappe.throw(_("This document is already amended, you cannot amend it again"), title=title)
 
 
 def update_doc(doctype: str, name: str):

@@ -184,6 +184,7 @@ import RecordUploadDialog from "./record/feed/RecordUploadDialog.vue";
 import { formTabMemory } from "./record/formTabMemory";
 import { fetchMeta, metaInMemory } from "./record/metaSource";
 import { PANEL_BUILTINS } from "./record/panel/builtins";
+import { amendable, amendItem, amendmentOf } from "./record/amendAct";
 import { headerMenuBuiltins, quickActionBuiltins } from "./record/builtinActions";
 import { renameRecord } from "./record/renameAct";
 import { favouritesOf, hasFavourited } from "./record/favourites";
@@ -266,6 +267,27 @@ const docname = computed(() => String(route.params.name));
 const canCreate = useCreateRight(() => doctype.value ?? "");
 
 const dirty = computed(() => !sameContent(doc.value, saved.value));
+
+// The record amending this one: undefined until the lookup answers, so the act never shows a wrong label.
+const amendment = ref<string | null | undefined>(undefined);
+const amendOpen = computed(
+	() => saved.value.name === docname.value && amendable(saved.value, meta.value)
+);
+
+watch(
+	[doctype, docname, amendOpen],
+	([type, name, open], _, onCleanup) => {
+		amendment.value = undefined;
+		if (!open || !type) return;
+		let stale = false;
+		onCleanup(() => (stale = true));
+		amendmentOf(type, name).then(
+			(found) => !stale && (amendment.value = found),
+			() => {}
+		);
+	},
+	{ immediate: true }
+);
 
 watch(controller, (created, _, onCleanup) => created && onCleanup(registerTabRows(created)));
 
@@ -409,6 +431,7 @@ function headerBuiltins(): HeaderItem[] {
 			key: "Mod+S",
 			run: saveFromHeader,
 		},
+		...(amendOpen.value && amendment.value !== undefined ? [amendItem(amendment.value)] : []),
 		...headerMenuBuiltins(
 			docinfo.value?.permissions ?? {},
 			{ favourited: favourited.value, toggle: toggleFavourite },
