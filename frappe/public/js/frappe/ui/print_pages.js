@@ -154,11 +154,13 @@ frappe.ui.PrintPages = class PrintPages {
 			const row = rows.find((r) => r.cells.length === count);
 			if (!row) return null;
 			const rects = [...row.cells].map((cell) => cell.getBoundingClientRect());
-			if (getComputedStyle(table).borderCollapse !== "collapse") {
+			const table_style = getComputedStyle(table);
+			if (table_style.borderCollapse !== "collapse") {
 				return rects.map((r) => r.width * scale);
 			}
-			const edges = [...rects.map((r) => r.left), rects.at(-1).right];
-			return rects.map((r, i) => (edges[i + 1] - r.left) * scale);
+			const edge = table_style.direction === "rtl" ? (r) => -r.right : (r) => r.left;
+			const edges = [...rects.map(edge), edge(rects.at(-1)) + rects.at(-1).width];
+			return rects.map((r, i) => (edges[i + 1] - edges[i]) * scale);
 		};
 		const prunable = (el, kids) => {
 			if (el.localName === "table") {
