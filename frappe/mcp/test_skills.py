@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import base64
+import errno
 import hashlib
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -244,3 +245,15 @@ class TestSkillCatalog(SkillFixtures, UnitTestCase):
 			catalog = SkillCatalog()
 		self.assertEqual(catalog.list_skills()["skills"], [])
 		self.assertEqual(catalog.list_resources()["resources"], [])
+
+	def test_filesystem_failures_propagate(self):
+		uri = "skill://frappe/billing/refunds/SKILL.md"
+		for operation in (self.catalog.list_skills, lambda: self.catalog.get_skill(uri)):
+			failure = PermissionError(errno.EACCES, "Cannot scan skill directory")
+			with (
+				self.subTest(operation=operation),
+				patch("os.scandir", side_effect=failure),
+				self.assertRaises(PermissionError) as caught,
+			):
+				operation()
+			self.assertIs(caught.exception, failure)
