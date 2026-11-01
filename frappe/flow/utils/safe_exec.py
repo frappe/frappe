@@ -23,6 +23,7 @@ import frappe
 from frappe import _
 from frappe.core.doctype.file.utils import find_file_by_url
 from frappe.core.utils import html2text
+from frappe.printing.doctype.print_format.print_format import check_print_format_roles_by_name
 from frappe.utils.inplacevar import protected_inplacevar
 from frappe.utils.safe_exec import (
 	SAFE_DATA_UTILS,
@@ -125,6 +126,7 @@ def _readable_attachment(attachment: dict) -> dict:
 			and frappe.has_permission(doctype, "read", name)
 		):
 			raise frappe.PermissionError(_("No permission to read {0} {1}").format(doctype, name))
+		check_print_format_roles_by_name(attachment.get("print_format"))
 		attachment.pop("doc", None)  # print the checked record itself
 	return attachment
 
