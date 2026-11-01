@@ -302,7 +302,7 @@ class TestOmittedFields(IntegrationTestCase):
 		super().setUpClass()
 		fields = [
 			data("title", reqd=1),
-			{"label": "Notes", "fieldname": "notes", "fieldtype": "Small Text"},
+			{"label": "Notes", "fieldname": "notes", "fieldtype": "Small Text", "read_only": 1},
 			{
 				"label": "Status",
 				"fieldname": "status",
@@ -356,7 +356,7 @@ class TestOmittedFields(IntegrationTestCase):
 	def test_a_resave_writes_the_list_again(self):
 		name = self.save(["notes"])
 		frappe.db.set_value("Form Layout", name, "omitted", json.dumps(["gone", "notes"]))
-		self.save(["title", "notes"], name=name)
+		self.save(["title", "notes"], name=str(name))
 		self.assertEqual(self.stored(name), ["status"])
 
 	def test_other_types_omit_nothing(self):

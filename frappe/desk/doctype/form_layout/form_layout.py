@@ -34,6 +34,7 @@ class FormLayout(Document):
 	def validate_layout(self):
 		self.name_layout()
 		tabs = parse_layout(self.layout)
+		self.validate_entries(tabs)
 		self.validate_inline_fields(tabs)
 		self.validate_names_are_not_fields(tabs)
 		self.validate_omitted()
@@ -76,6 +77,13 @@ class FormLayout(Document):
 		if not isinstance(omitted, list) or not all(isinstance(entry, str) for entry in omitted):
 			frappe.throw(_("Omitted Fields must be a list of fieldnames."), title=_("Invalid Layout"))
 		return list(dict.fromkeys(omitted))
+
+	def validate_entries(self, tabs: list):
+		if any(not isinstance(entry, str | dict) for entry in layout_entries(tabs)):
+			frappe.throw(
+				_("A column holds fieldnames and fields the layout defines, nothing else."),
+				title=_("Invalid Layout"),
+			)
 
 	def validate_inline_fields(self, tabs: list):
 		fields = inline_fields(tabs)
