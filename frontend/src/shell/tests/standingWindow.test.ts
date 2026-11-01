@@ -407,7 +407,10 @@ describe("the row", () => {
 	}
 
 	beforeEach(() => vi.stubGlobal("ResizeObserver", ReportingResizeObserver));
-	afterEach(() => vi.unstubAllGlobals());
+	afterEach(() => {
+		vi.unstubAllGlobals();
+		document.querySelectorAll("flow-launcher").forEach((host) => host.remove());
+	});
 
 	const row = () => document.querySelector<HTMLElement>("[data-standing-row]")!;
 	const at = (rect: Partial<DOMRect>) => {
@@ -468,6 +471,111 @@ describe("the row", () => {
 		const release = registerFloatingComposer(at({ left: 40, width: 460, top: 100 }));
 		await flush();
 		expect(row().style.right).toBe(`${innerWidth - 24 - 280}px`);
+		release();
+	});
+
+	/** The Flow launcher: a custom element whose shadow root holds the button, 44px by default at the bottom right. */
+	const launcher = (rect: Partial<DOMRect> = {}) => {
+		const host = document.body.appendChild(document.createElement("flow-launcher"));
+		const icon = host.attachShadow({ mode: "open" }).appendChild(document.createElement("button"));
+		icon.className = "icon";
+		const { left = innerWidth - 60, top = innerHeight - 60, width = 44, height = 44 } = rect;
+		const box = { left, top, width, height, right: left + width, bottom: top + height };
+		icon.getBoundingClientRect = () => box as DOMRect;
+		return { host, icon };
+	};
+
+	it("sits 12px left of the Flow launcher, on the same bottom line", async () => {
+		const { icon } = launcher();
+		await attached();
+		expect(row().style.right).toBe("72px");
+		expect(row().style.bottom).toBe("24px");
+
+		icon.hidden = true;
+		icon.getBoundingClientRect = () => ({ left: 0, top: 0, right: 0, bottom: 0, width: 0 }) as DOMRect;
+		await flush();
+		expect(row().style.right).toBe("24px");
+	});
+
+	it("finds a launcher that loads after the shell and follows its drag", async () => {
+		await attached();
+		row().getBoundingClientRect = () => ({ left: innerWidth - 304, width: 280, height: 36 }) as DOMRect;
+		window.dispatchEvent(new Event("resize"));
+		await flush();
+		expect(row().style.right).toBe("24px");
+		const { icon } = launcher();
+		await flush();
+		expect(row().style.right).toBe("72px");
+
+		icon.getBoundingClientRect = () =>
+			({ left: 16, right: 60, top: innerHeight - 60, bottom: innerHeight - 16, width: 44 }) as DOMRect;
+		icon.style.left = "16px";
+		await flush();
+		expect(row().style.right).toBe("24px");
+	});
+
+	it("sits left of the launcher when it is further left than a floating composer", async () => {
+		launcher({ left: innerWidth - 700 });
+		await attached();
+		row().getBoundingClientRect = () => ({ left: innerWidth - 776, width: 280, height: 36 }) as DOMRect;
+		window.dispatchEvent(new Event("resize"));
+		const release = registerFloatingComposer(at({ left: innerWidth - 484, top: 100 }));
+		await flush();
+		expect(row().style.right).toBe("712px");
+
+		release();
+	});
+
+	it("sits left of a floating composer when it is further left than the launcher", async () => {
+		launcher();
+		await attached();
+		const release = registerFloatingComposer(at({ left: innerWidth - 484, top: 100 }));
+		await flush();
+		expect(row().style.right).toBe("496px");
+
+		release();
+	});
+
+	it("ignores a launcher above a pill, but not one beside an open frame", async () => {
+		launcher({ top: 300 });
+		await attached();
+		row().getBoundingClientRect = () => ({ left: innerWidth - 304, width: 280, height: 36 }) as DOMRect;
+		window.dispatchEvent(new Event("resize"));
+		await flush();
+		expect(row().style.right).toBe("24px");
+
+		row().getBoundingClientRect = () => ({ left: innerWidth - 304, width: 280, height: 600 }) as DOMRect;
+		window.dispatchEvent(new Event("resize"));
+		await flush();
+		expect(row().style.right).toBe(`${innerWidth - (innerWidth - 60) + 12}px`);
+	});
+
+	it("ignores a launcher wholly left of the row", async () => {
+		launcher({ left: 100 });
+		await attached();
+		row().getBoundingClientRect = () => ({ left: innerWidth - 304, width: 280, height: 36 }) as DOMRect;
+		window.dispatchEvent(new Event("resize"));
+		await flush();
+		expect(row().style.right).toBe("24px");
+	});
+
+	it("stops at the shell's left margin when the launcher is dragged far left", async () => {
+		launcher({ left: 40 });
+		await attached();
+		row().getBoundingClientRect = () => ({ left: 0, width: 1000, height: 36 }) as DOMRect;
+		window.dispatchEvent(new Event("resize"));
+		await flush();
+		expect(row().style.right).toBe(`${innerWidth - 24 - 1000}px`);
+	});
+
+	it("keeps 12px from a launcher that starts just left of a composer's edge", async () => {
+		launcher({ left: innerWidth - 490 });
+		await attached();
+		row().getBoundingClientRect = () => ({ left: innerWidth - 776, width: 280, height: 36 }) as DOMRect;
+		window.dispatchEvent(new Event("resize"));
+		const release = registerFloatingComposer(at({ left: innerWidth - 484, top: 100 }));
+		await flush();
+		expect(row().style.right).toBe("502px");
 		release();
 	});
 });
