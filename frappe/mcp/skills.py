@@ -99,10 +99,11 @@ class SkillCatalog:
 		return {"uri": resource_uri(app, path), "frontmatter": frontmatter, "resources": resources}
 
 	def skill_paths(self, app: str | None = None) -> Iterator[tuple[str, Path]]:
-		for name in sorted([app] if app else self.apps):
-			for path in self.apps[name].paths():
+		app_names = [app] if app else self.apps
+		for app_name in sorted(app_names):
+			for path in self.apps[app_name].paths():
 				if path.name == "SKILL.md" and len(path.parts) >= 2:
-					yield name, path
+					yield app_name, path
 
 	def metadata(self, app: str, path: Path, is_directory: bool = False) -> dict:
 		resource = {"uri": resource_uri(app, path), "name": path.name}
