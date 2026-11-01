@@ -551,6 +551,7 @@ async function load({ fromMemory = false } = {}) {
 		doc: saved,
 		fallback: "none",
 		decorate: buttonClick,
+		lockAutoname: true,
 		overrides: () => controller.value?.fields.resolve() ?? {},
 	});
 	const details = useFormLayout({
@@ -559,6 +560,7 @@ async function load({ fromMemory = false } = {}) {
 		doc: saved,
 		fallback: "meta",
 		decorate: buttonClick,
+		lockAutoname: true,
 		overrides: () => controller.value?.fields.resolve() ?? {},
 		tabOverrides: () => controller.value?.form.tabs.resolve() ?? {},
 		placedElsewhere: () => panel.placed.value,

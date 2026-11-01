@@ -78,7 +78,13 @@ export class BindingDraft {
 		readsDetails = false
 	) {
 		this.details = readsDetails
-			? useFormLayout({ doctype, type: "Details", fallback: "none", doc: toRef(this.state, "saved") })
+			? useFormLayout({
+					doctype,
+					type: "Details",
+					fallback: "none",
+					doc: toRef(this.state, "saved"),
+					lockAutoname: true,
+				})
 			: null;
 		this.loaded = this.load();
 	}
