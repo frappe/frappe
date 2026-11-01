@@ -88,7 +88,7 @@ runs:
       # lists, so only the pgdg list needs a refresh; the runner image already
       # has the Ubuntu lists.
       sudo install -d /usr/share/postgresql-common/pgdg
-      sudo curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
+      sudo curl -fsSL --retry 3 --retry-all-errors -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
       echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
       sudo apt-get -qq update \
         -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/pgdg.list \
