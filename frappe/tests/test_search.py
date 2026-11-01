@@ -350,6 +350,21 @@ class TestSearch(IntegrationTestCase):
 				"Search results for 'nutzer' in German should include 'User' ('Nutzer')",
 			)
 
+	def test_custom_query_respects_override_whitelisted_methods(self):
+		original_query = "frappe.tests.test_search.original_query"
+		replacement_query = "frappe.tests.test_search.replacement_query"
+		real_get_hooks = frappe.get_hooks
+
+		def get_hooks(hook=None, *args, **kwargs):
+			if hook == "override_whitelisted_methods":
+				return {original_query: [replacement_query]}
+			return real_get_hooks(hook, *args, **kwargs)
+
+		with patch.object(frappe, "get_hooks", side_effect=get_hooks):
+			results = search_widget("User", "", query=original_query)
+
+		self.assertEqual(results, [("replacement",)])
+
 	def test_translated_doctype_search_pagination(self):
 		# non matching records are stored first, so an offset applied before the translated
 		# filtering would eat into them instead of into the matches
@@ -1375,6 +1390,16 @@ def _awesomebar_bad_items(txt):
 @frappe.validate_and_sanitize_search_inputs
 def get_data(doctype, txt, searchfield, start, page_len, filters):
 	return [doctype, txt, searchfield, start, page_len, filters]
+
+
+@whitelist_for_tests()
+def original_query(doctype, txt, searchfield, start, page_len, filters, **kwargs):
+	return [("original",)]
+
+
+@whitelist_for_tests()
+def replacement_query(doctype, txt, searchfield, start, page_len, filters, **kwargs):
+	return [("replacement",)]
 
 
 @whitelist_for_tests()

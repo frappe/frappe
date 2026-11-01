@@ -205,6 +205,7 @@ def search_widget(
 		filters = {}
 
 	if query:  # Query = custom search query i.e. python function
+		query = frappe.override_whitelisted_method(query)
 		meta = frappe.get_meta(doctype)
 		# For translated doctypes, pass empty txt, no offset and a large page_length so the custom
 		# query returns all records without SQL-level text filtering or paging; Python-level
