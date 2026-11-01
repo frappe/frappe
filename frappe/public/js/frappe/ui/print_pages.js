@@ -80,6 +80,7 @@ frappe.ui.PrintPages = class PrintPages {
 					height: head.height * scale,
 					foot: band(table.tFoot),
 					left: (r.left - rect.left) * scale - parseFloat(style.paddingLeft),
+					right: (rect.right - r.right) * scale - parseFloat(style.paddingRight),
 					width: r.width * scale,
 					cells: { tHead: widths(table.tHead), tFoot: widths(table.tFoot) },
 				};
@@ -359,7 +360,7 @@ frappe.ui.PrintPages = class PrintPages {
 			Object.assign(table.style, {
 				width: `${t.width}px`,
 				tableLayout: "fixed",
-				margin: `0 0 0 ${t.left}px`,
+				margin: `0 ${t.right}px 0 ${t.left}px`,
 			});
 			let node = table;
 			for (let el = t.table.parentElement; el && el !== sheet; el = el.parentElement) {
