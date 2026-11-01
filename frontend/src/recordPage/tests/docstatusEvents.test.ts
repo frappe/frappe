@@ -47,7 +47,7 @@ function makePage(overrides: Partial<RecordPageHost> = {}, docstatus = 0) {
   const controller = createRecordPage(host);
   controllers.push(controller);
   controller.header.provideBuiltins(() =>
-    docstatusItems({ meta, saved: host.saved.value, dirty: false }, (act) => controller[act]()),
+    docstatusItems({ meta, saved: host.saved.value, dirty: false, canWrite: true }, (act) => controller[act]()),
   );
   return { controller, page: controller.page, order };
 }
@@ -163,6 +163,19 @@ describe("Submit", () => {
     await Promise.all([first, second]);
 
     expect(submit).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("page.doc.docstatus", () => {
+  it("refuses a script write, so the docstatus moves only through the acts", () => {
+    const { page } = makePage();
+    const doc = page.doc as Record<string, any>;
+
+    expect(() => (doc.docstatus = 1)).toThrow(/page\.doc\.docstatus is read-only/);
+    expect(() => delete doc.docstatus).toThrow(/read-only/);
+    expect(doc.docstatus).toBe(0);
+    expect(() => (doc.title = "Draft")).not.toThrow();
+    expect(page.doc).toBe(page.doc);
   });
 });
 

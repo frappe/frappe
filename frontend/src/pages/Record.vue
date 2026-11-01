@@ -461,7 +461,12 @@ function headerBuiltins(): HeaderItem[] {
 			),
 			saved.value.name === docname.value
 				? docstatusItems(
-						{ meta: meta.value, saved: saved.value, dirty: dirty.value },
+						{
+							meta: meta.value,
+							saved: saved.value,
+							dirty: dirty.value,
+							canWrite: Boolean(docinfo.value?.permissions?.write),
+						},
 						runDocstatus
 				  )
 				: []

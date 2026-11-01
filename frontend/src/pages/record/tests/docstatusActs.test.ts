@@ -30,43 +30,47 @@ beforeEach(() => {
 
 describe("docstatusItems", () => {
   it("offers Submit on a clean saved draft of a submittable doctype", () => {
-    const [submit] = docstatusItems({ meta: submittable, saved: { docstatus: 0 }, dirty: false }, vi.fn());
+    const [submit] = docstatusItems({ meta: submittable, saved: { docstatus: 0 }, dirty: false, canWrite: true }, vi.fn());
 
     expect(submit).toMatchObject({ name: "submit", right: "submit", display: "button" });
   });
 
   it("offers neither on a draft with unsaved changes", () => {
-    expect(names({ meta: submittable, saved: { docstatus: 0 }, dirty: true })).toEqual([]);
+    expect(names({ meta: submittable, saved: { docstatus: 0 }, dirty: true, canWrite: true })).toEqual([]);
   });
 
-  it("offers Cancel in the danger group of a submitted record, with unsaved changes or without", () => {
-    for (const dirty of [false, true]) {
-      const [cancel, ...rest] = docstatusItems({ meta: submittable, saved: { docstatus: 1 }, dirty }, vi.fn());
+  it("offers Cancel in the danger group of a clean submitted record, and not with unsaved changes", () => {
+    const [cancel, ...rest] = docstatusItems({ meta: submittable, saved: { docstatus: 1 }, dirty: false, canWrite: true }, vi.fn());
 
-      expect(cancel).toMatchObject({ name: "cancel", right: "cancel", group: "danger" });
-      expect(rest).toEqual([]);
-    }
+    expect(cancel).toMatchObject({ name: "cancel", right: "cancel", group: "danger" });
+    expect(rest).toEqual([]);
+    expect(names({ meta: submittable, saved: { docstatus: 1 }, dirty: true, canWrite: true })).toEqual([]);
+  });
+
+  it("offers neither without the write right, which the server's call also needs", () => {
+    expect(names({ meta: submittable, saved: { docstatus: 0 }, dirty: false, canWrite: false })).toEqual([]);
+    expect(names({ meta: submittable, saved: { docstatus: 1 }, dirty: false, canWrite: false })).toEqual([]);
   });
 
   it("offers neither on a cancelled record", () => {
-    expect(names({ meta: submittable, saved: { docstatus: 2 }, dirty: false })).toEqual([]);
+    expect(names({ meta: submittable, saved: { docstatus: 2 }, dirty: false, canWrite: true })).toEqual([]);
   });
 
   it("offers neither on a doctype that cannot submit", () => {
-    expect(names({ meta: { is_submittable: 0 }, saved: { docstatus: 0 }, dirty: false })).toEqual([]);
-    expect(names({ meta: null, saved: { docstatus: 0 }, dirty: false })).toEqual([]);
+    expect(names({ meta: { is_submittable: 0 }, saved: { docstatus: 0 }, dirty: false, canWrite: true })).toEqual([]);
+    expect(names({ meta: null, saved: { docstatus: 0 }, dirty: false, canWrite: true })).toEqual([]);
   });
 
   it("offers neither under an active workflow", () => {
     const meta = { ...submittable, workflow_state_field: "workflow_state" };
-    expect(names({ meta, saved: { docstatus: 0 }, dirty: false })).toEqual([]);
-    expect(names({ meta, saved: { docstatus: 1 }, dirty: false })).toEqual([]);
+    expect(names({ meta, saved: { docstatus: 0 }, dirty: false, canWrite: true })).toEqual([]);
+    expect(names({ meta, saved: { docstatus: 1 }, dirty: false, canWrite: true })).toEqual([]);
   });
 
   it("runs its act when the item runs", () => {
     const run = vi.fn();
-    const [submit] = docstatusItems({ meta: submittable, saved: { docstatus: 0 }, dirty: false }, run);
-    const [cancel] = docstatusItems({ meta: submittable, saved: { docstatus: 1 }, dirty: false }, run);
+    const [submit] = docstatusItems({ meta: submittable, saved: { docstatus: 0 }, dirty: false, canWrite: true }, run);
+    const [cancel] = docstatusItems({ meta: submittable, saved: { docstatus: 1 }, dirty: false, canWrite: true }, run);
 
     submit.run!({} as any);
     cancel.run!({} as any);

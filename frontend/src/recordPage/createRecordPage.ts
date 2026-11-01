@@ -26,7 +26,7 @@ import type { HeaderSurface } from "@/pageEngine/headerRenderings";
 import { ROW_EVENTS } from "./flattenHandlers";
 import { registerPageActs } from "./pageActs";
 import { createPagePermissions } from "./pagePermissions";
-import { readOnly, type ReadOnlyAdvice } from "./readOnly";
+import { lockFields, readOnly, type ReadOnlyAdvice } from "./readOnly";
 import { registrationsFor } from "./registry";
 import { reportCustomizationError } from "./reportError";
 import { createRows, warnRowIssue } from "./rows";
@@ -104,6 +104,11 @@ const ROLES_ARE_READ_ONLY: ReadOnlyAdvice = {
 const SAVED_IS_READ_ONLY: ReadOnlyAdvice = {
   path: "page.saved",
   instead: "page.doc, which is the draft this is the saved counterpart of",
+};
+
+const DOCSTATUS_IS_LOCKED: ReadOnlyAdvice = {
+  path: "page.doc",
+  instead: "page.run('header.submit') or page.run('header.cancel')",
 };
 
 /** The two tab strips, by the member each is reached through. */
@@ -380,9 +385,9 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
         return host.app;
       },
       docname: host.docname,
-      // Exempt from the read-only rule: mutating the document *is* the API.
+      // Exempt from the read-only rule, bar `docstatus`: only Submit and Cancel move it.
       get doc() {
-        return host.doc.value;
+        return lockFields(host.doc.value, ["docstatus"], DOCSTATUS_IS_LOCKED);
       },
       get saved() {
         return readOnly(host.saved.value, SAVED_IS_READ_ONLY);

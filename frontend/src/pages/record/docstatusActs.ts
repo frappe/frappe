@@ -14,14 +14,16 @@ export interface DocstatusState {
   meta: { is_submittable?: number; workflow_state_field?: string | null } | null;
   saved: Record<string, any>;
   dirty: boolean;
+  /** The server runs both calls under the `write` right as well as `submit` or `cancel`. */
+  canWrite: boolean;
 }
 
 export function docstatusItems(
-  { meta, saved, dirty }: DocstatusState,
+  { meta, saved, dirty, canWrite }: DocstatusState,
   run: (act: DocstatusAct) => Promise<void>
 ): HeaderItem[] {
-  if (!meta?.is_submittable || meta.workflow_state_field) return [];
-  if (saved.docstatus === DRAFT && !dirty)
+  if (!meta?.is_submittable || meta.workflow_state_field || !canWrite || dirty) return [];
+  if (saved.docstatus === DRAFT)
     return [
       {
         name: "submit",

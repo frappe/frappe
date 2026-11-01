@@ -71,6 +71,25 @@ function wrap(value: unknown, path: string, member: ReadOnlyAdvice): unknown {
   return wrapper;
 }
 
+const lockers = new WeakMap<object, any>();
+
+/** `doc` with writes to `locked` throwing, as in `readOnly`; every other member passes through and stays reactive. */
+export function lockFields<T extends object>(doc: T, locked: string[], advice: ReadOnlyAdvice): T {
+  if (typeof doc !== "object" || doc === null) return doc;
+  const existing = lockers.get(doc);
+  if (existing) return existing;
+  const refusal = (key: string | symbol) => ({ path: `${advice.path}.${String(key)}`, member: advice });
+  const guard = (key: string | symbol) => locked.includes(key as string);
+  const locker = new Proxy(doc, {
+    set: (owner, key, value, receiver) => (guard(key) ? refuse(refusal(key)) : Reflect.set(owner, key, value, receiver)),
+    defineProperty: (owner, key, descriptor) =>
+      guard(key) ? refuse(refusal(key)) : Reflect.defineProperty(owner, key, descriptor),
+    deleteProperty: (owner, key) => (guard(key) ? refuse(refusal(key)) : Reflect.deleteProperty(owner, key)),
+  });
+  lockers.set(doc, locker);
+  return locker;
+}
+
 function fixed(target: object, key: string | symbol) {
   const descriptor = Object.getOwnPropertyDescriptor(target, key);
   return !!descriptor && !descriptor.configurable && !descriptor.writable;

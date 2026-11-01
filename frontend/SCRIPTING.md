@@ -618,12 +618,14 @@ per band on a cold load.
 
 ### Submitting and cancelling
 
-`header.submit` shows on a saved draft with no unsaved changes, for a submittable doctype the
-reader may submit. `header.cancel` sits in the `⋯` menu's danger group on a submitted record.
+`header.submit` shows on a saved draft with no unsaved changes, and `header.cancel` sits in the `⋯`
+menu's danger group on a submitted record with none, for a submittable doctype. Each needs its
+own right (`submit` or `cancel`) and the `write` right, which the server's call also checks.
 Neither shows on a doctype with a workflow. `page.run('header.submit')` rejects as hidden while
 those conditions fail, so a script saves first. Both acts ask the reader to confirm, whoever
 runs them: `page.run('header.submit')` from a script resolves only after the reader confirms,
-and resolves without submitting when they decline.
+and resolves without submitting when they decline. `page.doc.docstatus` is read-only to a
+script, like a locked field: it moves only through these acts.
 
 Each act fires a pair of events: `beforeSubmit` and `afterSubmit`, `beforeCancel` and
 `afterCancel`. `before*` fires first, before the confirm, so a veto shows no dialog and a
