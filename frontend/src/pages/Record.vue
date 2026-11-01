@@ -271,7 +271,10 @@ const dirty = computed(() => !sameContent(doc.value, saved.value));
 // The record amending this one: undefined until the lookup answers, so the act never shows a wrong label.
 const amendment = ref<string | null | undefined>(undefined);
 const amendOpen = computed(
-	() => saved.value.name === docname.value && amendable(saved.value, meta.value)
+	() =>
+		saved.value.name === docname.value &&
+		Boolean(docinfo.value?.permissions?.amend) &&
+		amendable(saved.value, meta.value)
 );
 
 watch(

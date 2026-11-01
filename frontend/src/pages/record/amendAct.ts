@@ -15,7 +15,12 @@ export function amendable(doc: Record<string, any>, meta: { fields?: { fieldname
 
 /** The record amending this one, or `null`. */
 export async function amendmentOf(doctype: string, name: string): Promise<string | null> {
-  const { data } = await runMethod<string | false>(IS_AMENDED, { doctype, docname: name }, { http: "GET" });
+  // `nullable`: the server answers an unamended record with an empty body.
+  const { data } = await runMethod<string | false>(
+    IS_AMENDED,
+    { doctype, docname: name },
+    { http: "GET", nullable: true }
+  );
   return data || null;
 }
 

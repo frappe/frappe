@@ -56,13 +56,15 @@ describe("amendItem", () => {
 describe("amendmentOf", () => {
   it("asks the server and reads a name, or false, as the amending record or null", async () => {
     runMethod.mockResolvedValueOnce({ data: "INV-1-1" }).mockResolvedValueOnce({ data: false });
+    runMethod.mockResolvedValueOnce({ data: null });
 
     expect(await amendmentOf("Invoice", "INV-1")).toBe("INV-1-1");
     expect(await amendmentOf("Invoice", "INV-2")).toBeNull();
+    expect(await amendmentOf("Invoice", "INV-3")).toBeNull();
     expect(runMethod).toHaveBeenCalledWith(
       "frappe.client.is_document_amended",
       { doctype: "Invoice", docname: "INV-1" },
-      { http: "GET" }
+      { http: "GET", nullable: true }
     );
   });
 });
