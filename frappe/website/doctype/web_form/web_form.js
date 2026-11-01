@@ -589,22 +589,34 @@ class GetFieldsDialog {
 	}
 
 	// a new field sits where the DocType would put it, relative to the fields the form
-	// already has; breaks are never consulted, so the form's own layout is left alone
+	// already has; the form's own breaks are never consulted, so its layout is left alone
 	get_insert_index(df) {
 		const rows = this.frm.doc.web_form_fields;
-		const position = this.fields.indexOf(df);
-		const row_index = (fieldname) => rows.findIndex((d) => d.fieldname === fieldname);
+		const position = this.doctype_fields.indexOf(df);
 		const nearest = (step) => {
-			for (let i = position + step; i >= 0 && i < this.fields.length; i += step) {
-				const at = row_index(this.fields[i].fieldname);
-				if (at !== -1) return { at, distance: Math.abs(i - position) };
+			let pages_away = 0;
+			let sections_away = 0;
+			for (let i = position + step; i >= 0 && i < this.doctype_fields.length; i += step) {
+				const neighbour = this.doctype_fields[i];
+				if (is_layout_field(neighbour)) {
+					if (get_web_form_fieldtype(neighbour) === "Page Break") pages_away++;
+					else if (neighbour.fieldtype !== "Column Break") sections_away++;
+					continue;
+				}
+				const at = rows.findIndex((d) => d.fieldname === neighbour.fieldname);
+				if (at !== -1) return { at, pages_away, sections_away };
 			}
 		};
 		const before = nearest(-1);
 		const after = nearest(1);
+		const after_is_nearer =
+			before &&
+			after &&
+			(after.pages_away - before.pages_away || after.sections_away - before.sections_away) <
+				0;
 
-		// with a break between the two neighbours, the closer one decides the page
-		if (before && after && after.distance < before.distance) return after.at;
+		// follow the neighbour on the nearer page, then in the nearer section
+		if (after_is_nearer) return after.at;
 		if (before) return before.at + 1;
 		return after ? after.at : rows.length;
 	}
@@ -621,7 +633,7 @@ class GetFieldsDialog {
 		this.frm.dirty();
 	}
 
-	// only field rows are reused: breaks have no fieldname to match. An empty break is kept anyway:
+	// only field rows are reused: existing_rows has no breaks. An empty break is kept anyway:
 	// the portal skips the empty page and the save says so
 	get_ordered_rows(selected) {
 		const rows = this.doctype_fields
