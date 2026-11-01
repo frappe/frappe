@@ -38,6 +38,7 @@ from frappe.tests.utils.test_capabilities import TestService, requires_test_serv
 from frappe.utils import add_days, add_to_date, get_url, getdate, now_datetime, sha256_hash, today
 from frappe.utils.data import orjson_dumps
 from frappe.utils.logging import get_log_db
+from frappe.utils.password import check_password
 from frappe.www.login import sanitize_redirect
 
 user_module = frappe.core.doctype.user.user
@@ -692,6 +693,9 @@ class TestUser(IntegrationTestCase):
 		frappe.set_user("testpassword@example.com")
 		failed = {"user": "testpassword@example.com", "status": "Failed", "operation": "Login"}
 		failed_logs = get_log_db().count("Activity Log", failed)
+		response = frappe.local.response
+		frappe.local.response = frappe._dict()
+		self.addCleanup(setattr, frappe.local, "response", response)
 
 		with self.assertRaises(frappe.ValidationError) as raised:
 			update_password("Strong_New_45948", old_password="not-the-password")
@@ -700,6 +704,9 @@ class TestUser(IntegrationTestCase):
 		self.assertNotIsInstance(raised.exception, frappe.AuthenticationError)
 		self.assertEqual(str(raised.exception), "Incorrect password")
 		self.assertEqual(get_log_db().count("Activity Log", failed), failed_logs + 1)
+		self.assertEqual(
+			check_password("testpassword@example.com", "Eastern_43A1W"), "testpassword@example.com"
+		)
 
 		# a session that expired runs as Guest and still gets the bare 401 that says so
 		frappe.set_user("Guest")

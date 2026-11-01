@@ -8,8 +8,9 @@
 			class="border-b border-outline-gray-1 last:border-b-0"
 		>
 			<SettingsRow :title="row.title">
-				<Password
+				<TextInput
 					v-model="values[row.key]"
+					type="password"
 					class="w-56"
 					:autocomplete="row.autocomplete"
 					:error="row.key === 'confirm' ? mismatch : undefined"
@@ -32,7 +33,7 @@
 
 <script setup lang="ts">
 import { computed, reactive, ref } from "vue";
-import { Button, ErrorMessage, Password, SettingsRow } from "frappe-ui";
+import { Button, ErrorMessage, SettingsRow, TextInput } from "frappe-ui";
 import { isApiError, runMethod } from "@framework/ui/api";
 import { __ } from "frappe/i18n";
 
@@ -78,8 +79,8 @@ async function change() {
 }
 
 function failureMessage(error: unknown): string {
-	// A bare AuthenticationError has no message, and its reply has already cleared the sid cookie.
-	if (isApiError(error) && error.status === 401 && error.message === error.type)
+	// A signed-in caller gets a 417 for a wrong password, so a 401 means the session has expired.
+	if (isApiError(error) && error.status === 401)
 		return __("You are signed out. Reload the page and sign in again.");
 	return error instanceof Error ? error.message : String(error);
 }
