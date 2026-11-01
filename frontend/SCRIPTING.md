@@ -56,8 +56,8 @@ export default {
 
 A record-page script is a `Client Script` row with `view = Record` and `dt` set to the
 doctype. Its body is an ES module whose default export is an object of handlers, keyed by
-event (`onRefresh`, `onOpen`, `beforeSave`, `afterSave`, `onTabChange`, `onFormTabChange`,
-`onPost`) or by a fieldname. Every handler receives `page`. An app ships the same module as a **file
+event (`onRefresh`, `onOpen`, `beforeSave`, `afterSave`, `beforeSubmit`, `afterSubmit`, `beforeCancel`, `afterCancel`,
+`onTabChange`, `onFormTabChange`, `onPost`) or by a fieldname. Every handler receives `page`. An app ships the same module as a **file
 script** in its own tree; it is built into the bundle and runs before the site's Client
 Scripts. The record tabs' section below shows one.
 
@@ -185,7 +185,7 @@ return visit. Keep a one-time move in `onOpen`, and read what belongs to a recor
 `page`.
 
 Every handler other than `onRefresh` and `onOpen` runs in a **hold** and paints once, when it finishes:
-a field handler, `onTabChange`, `onPost`, `beforeSave`, `afterSave`, a header or quick
+a field handler, `onTabChange`, `onPost`, `beforeSave`, `afterSave`, the Submit and Cancel events, a header or quick
 action's `run` and a dialog's callbacks show all their changes together at the end. A
 handler that must show progress while it runs uses `page.toast.success` or
 `page.toast.error`. The first paint waits at most 500 ms for the page's scripts and
@@ -615,6 +615,23 @@ Places inside the body are not the frame's: a column beside the form is `page.bo
 and a place above the tab strip or above the panel belongs to the form and panel lists. A band costs no new server call, cache key or
 permission check, since it comes from the scripts already loaded, and one wrapper element
 per band on a cold load.
+
+### Submitting and cancelling
+
+`header.submit` shows on a saved draft with no unsaved changes, for a submittable doctype the
+reader may submit. `header.cancel` sits in the `⋯` menu's danger group on a submitted record.
+Neither shows on a doctype with a workflow. `page.run('header.submit')` rejects as hidden while
+those conditions fail, so a script saves first. Both acts ask the reader to confirm, whoever
+runs them: `page.run('header.submit')` from a script resolves only after the reader confirms,
+and resolves without submitting when they decline.
+
+Each act fires a pair of events: `beforeSubmit` and `afterSubmit`, `beforeCancel` and
+`afterCancel`. `before*` fires first, before the confirm, so a veto shows no dialog and a
+declined confirm leaves a `before*` with no `after*`. A throw in a `before*` event is a veto, as in
+`beforeSave`: nothing is sent, and a click shows the message while `page.run` rejects with it. A
+`before*` handler that leaves unsaved edits also stops the act, because the server acts on the
+saved row: save inside the handler with `await page.save()`. The `after*` event fires only when
+the server accepted.
 
 ### The script this design was judged by
 

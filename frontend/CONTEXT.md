@@ -358,7 +358,7 @@ _Avoid_: batch, transaction.
 
 **Handler**: <a id="handler"></a>
 One named function in the object a script exports — an event (`onRefresh`, `onOpen`,
-`beforeSave`, `afterSave`, `onTabChange`, `onFormTabChange`) or a **fieldname**. The event vocabulary is
+`beforeSave`, `afterSave`, `beforeSubmit`, `afterSubmit`, `beforeCancel`, `afterCancel`, `onTabChange`, `onFormTabChange`) or a **fieldname**. The event vocabulary is
 closed; every other key is a fieldname, in one flat keyspace. A handler's arguments are
 determined by its key: a top-level key gets `(page)`, one nested under a child table gets
 `(page, row)`.

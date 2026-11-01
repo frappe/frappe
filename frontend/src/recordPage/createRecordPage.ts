@@ -73,6 +73,10 @@ export const RECORD_PAGE_EVENTS = [
   "onOpen",
   "beforeSave",
   "afterSave",
+  "beforeSubmit",
+  "afterSubmit",
+  "beforeCancel",
+  "afterCancel",
   "onTabChange",
   "onFormTabChange",
   "onPost",
@@ -147,6 +151,10 @@ export interface RecordPageHost {
   focusField?: (fieldname: string, cursor: boolean) => void;
   /** Writes the draft; the engine flushes and fires `beforeSave` before it, `afterSave` after. */
   save: () => Promise<void>;
+  /** Asks the reader to confirm, then submits the saved draft; false when the reader declines. */
+  submit?: () => Promise<boolean>;
+  /** Asks the reader to confirm, then cancels the submitted record; false when the reader declines. */
+  cancel?: () => Promise<boolean>;
   /** Runs once `afterSave` settles; a new record's host opens the saved record here. */
   onSaved?: () => Promise<void>;
   /** Saves a dirty draft, renames the record and opens it at its new name; absent while the record has no saved copy. */
@@ -210,6 +218,10 @@ export interface RecordPageController {
   paintNow: () => boolean;
   /** `row` addresses the child row a dotted event happened to; see `Handler`. */
   fireEvent: (event: string, row?: RowAddress) => Promise<void>;
+  /** The Submit act: `beforeSubmit` (a throw vetoes), the host's confirm and call, then `afterSubmit`. */
+  submit: () => Promise<void>;
+  /** The Cancel act: `beforeCancel` (a throw vetoes), the host's confirm and call, then `afterCancel`. */
+  cancel: () => Promise<void>;
   /** Fires `onPost` with the posted row's key, once the server has answered the built-in writer. */
   firePost: (key: string) => Promise<void>;
   /** Fetches the `page.cached` keys `paintNow` read, for the host's background reads; answers when they land or at the late limit. */
@@ -347,7 +359,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     lateLabel: () => clientScriptWait(host.doctype) ?? "the page's scripts",
     openView: (view) => (host.restoresView?.() ? restoredView(view) : view),
     warnUnknownHandlers: () => warnUnknownHandlers(),
-    vetoes: ["beforeSave"],
+    vetoes: ["beforeSave", "beforeSubmit", "beforeCancel"],
     // No `route`: the reporter reads `location`, the URL an admin can paste;
     // `router.fullPath` drops the app's base.
     report: (error, source, event) =>
@@ -418,6 +430,28 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
       .then(() => (engine.hasLeft() ? undefined : host.onSaved?.()))
       .finally(() => (saving.value = null));
     return saving.value;
+  }
+
+  // One Submit or Cancel at a time: a second click while the confirm or the call is open joins it.
+  const moving = shallowRef<Promise<void> | null>(null);
+
+  function moveDocstatus(act: "Submit" | "Cancel", call: (() => Promise<boolean>) | undefined) {
+    if (engine.hasLeft() || !call) return Promise.resolve();
+    moving.value ??= hold(async () => {
+      const wasDirty = host.isDirty();
+      try {
+        await fireEvent(`before${act}`);
+        await commits.flush();
+      } catch (error) {
+        throw asVeto(error);
+      }
+      // The server acts on the saved row, so an edit made here would be lost without a word.
+      if (!wasDirty && host.isDirty())
+        throw asVeto(new Error(`before${act} changed the record. Save it, then ${act.toLowerCase()} again.`));
+      if (engine.hasLeft() || !(await call()) || engine.hasLeft()) return;
+      await fireEvent(`after${act}`);
+    }).finally(() => (moving.value = null));
+    return moving.value;
   }
 
   async function runSave() {
@@ -843,6 +877,8 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     refresh: engine.refresh,
     paintNow: engine.paintNow,
     fireEvent,
+    submit: () => moveDocstatus("Submit", host.submit),
+    cancel: () => moveDocstatus("Cancel", host.cancel),
     firePost,
     fetchCached: engine.fetchCached,
     perform: (name, value) => {
