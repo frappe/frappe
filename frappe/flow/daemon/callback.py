@@ -218,6 +218,9 @@ def confirm_title(name: str, args: dict) -> str:
 			return function_title(action)
 		target = f"{_list_count_or_one(args.get('names'))} {doctype}" if doctype else _("records")
 		return _('Run "{0}" on {1}').format(_humanize(action), target)
+	if name == "request_secret" and doctype and frappe.db.exists("DocType", doctype):
+		label = frappe.get_meta(doctype).get_label(args.get("fieldname"))
+		return _("Enter {0} for {1} {2}").format(_(label), _(doctype), args.get("name"))
 	if name == "execute":
 		description = args.get("description")
 		return (description.strip() if isinstance(description, str) else "") or _("Run Python code")

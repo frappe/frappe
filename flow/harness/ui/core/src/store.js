@@ -85,7 +85,8 @@ const COLOR_SCHEMES = ["system", "light", "dark"]
 //                  body, argsComponent, resultComponent }, any subset, describing the host's
 //                  own tools in rows, approvals and expanded output. Both components fill
 //                  their panel and carry their own padding; resultComponent takes the panel
-//                  over from the text dump, and expandable: false drops the dropdown
+//                  over from the text dump, and expandable: false drops the dropdown.
+//                  ownAnswers: the argsComponent answers the card itself, given the `call`
 //   turnActions    a component rendered after each finished turn's copy button, with
 //                  the turn's key, response text and timestamp as props
 //   listedModel    true when a session-list row's `model` is the chat's current one, so a
