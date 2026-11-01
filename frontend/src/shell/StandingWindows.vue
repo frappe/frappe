@@ -1,4 +1,4 @@
-<!-- The apps' standing windows: one row on the shell's bottom line, left of a floating composer and the Flow launcher. -->
+<!-- The apps' standing windows: one row on the shell's bottom line, left of a floating composer and the Flow launcher or panel. -->
 <template>
 	<div
 		ref="rowEl"
@@ -20,7 +20,7 @@
 import { computed, ref } from "vue";
 import { useElementBounding, useResizeObserver, useWindowSize } from "@vueuse/core";
 import { composerBand, floatingComposer } from "./composer";
-import { useFlowLauncherBox } from "./flowLauncher";
+import { useFlowLauncher } from "./flowLauncher";
 import type { Shell } from "./shellActs";
 import StandingWindowFrame from "./StandingWindowFrame.vue";
 import type { StandingWindow } from "./standingWindows";
@@ -43,7 +43,7 @@ const card = useElementBounding(floatingComposer);
 const rowEl = ref<HTMLElement | null>(null);
 const row = useElementBounding(rowEl);
 
-const launcher = useFlowLauncherBox();
+const { box: launcher, dockedLeft } = useFlowLauncher();
 
 const besideComposer = computed(() =>
 	floatingComposer() ? viewport.width.value - card.left.value + GAP : MARGIN
@@ -58,9 +58,14 @@ const besideLauncher = computed(() => {
 	return onLine && inWay ? viewport.width.value - box.left + GAP : 0;
 });
 
+// The Flow panel docked on the right covers the whole edge, so the row sits left of it at any height.
+const besideDock = computed(() =>
+	dockedLeft.value === null ? 0 : viewport.width.value - dockedLeft.value + GAP
+);
+
 // A composer dragged far left may be overlapped: the row never leaves the screen.
 const right = computed(() => {
-	const beside = Math.max(besideComposer.value, besideLauncher.value);
+	const beside = Math.max(besideComposer.value, besideLauncher.value, besideDock.value);
 	return Math.min(beside, viewport.width.value - MARGIN - row.width.value);
 });
 const overlapsBand = computed(() => {

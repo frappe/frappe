@@ -474,15 +474,27 @@ describe("the row", () => {
 		release();
 	});
 
-	/** The Flow launcher: a custom element whose shadow root holds the button, 44px by default at the bottom right. */
+	/** The Flow launcher: its shadow root holds the button, 44px at the bottom right, and the closed panel. */
 	const launcher = (rect: Partial<DOMRect> = {}) => {
 		const host = document.body.appendChild(document.createElement("flow-launcher"));
-		const icon = host.attachShadow({ mode: "open" }).appendChild(document.createElement("button"));
+		const root = host.attachShadow({ mode: "open" });
+		const icon = root.appendChild(document.createElement("button"));
 		icon.className = "icon";
 		const { left = innerWidth - 60, top = innerHeight - 60, width = 44, height = 44 } = rect;
 		const box = { left, top, width, height, right: left + width, bottom: top + height };
 		icon.getBoundingClientRect = () => box as DOMRect;
-		return { host, icon };
+		const panel = root.appendChild(document.createElement("div"));
+		panel.className = "panel";
+		panel.setAttribute("inert", "");
+		panel.dataset.mode = "float";
+		return { host, icon, panel };
+	};
+	const dockRight = (panel: HTMLElement, icon: HTMLElement, width = 420) => {
+		panel.getBoundingClientRect = () => ({ left: innerWidth - width, right: innerWidth, width }) as DOMRect;
+		icon.hidden = true;
+		icon.getBoundingClientRect = () => ({ left: 0, top: 0, right: 0, bottom: 0, width: 0 }) as DOMRect;
+		panel.dataset.mode = "right";
+		panel.removeAttribute("inert");
 	};
 
 	it("sits 12px left of the Flow launcher, on the same bottom line", async () => {
@@ -577,5 +589,84 @@ describe("the row", () => {
 		await flush();
 		expect(row().style.right).toBe("502px");
 		release();
+	});
+
+	it("sits 12px left of the Flow panel docked on the right, and goes back when it undocks or closes", async () => {
+		const { icon, panel } = launcher();
+		await attached();
+		expect(row().style.right).toBe("72px");
+
+		dockRight(panel, icon);
+		await flush();
+		expect(row().style.right).toBe("432px");
+		expect(row().style.bottom).toBe("24px");
+
+		panel.getBoundingClientRect = () => ({ left: innerWidth - 500, width: 500 }) as DOMRect;
+		panel.style.setProperty("--width", "500px");
+		await flush();
+		expect(row().style.right).toBe("512px");
+
+		panel.dataset.mode = "float";
+		await flush();
+		expect(row().style.right).toBe("24px");
+
+		panel.dataset.mode = "right";
+		await flush();
+		expect(row().style.right).toBe("512px");
+
+		panel.setAttribute("inert", "");
+		icon.hidden = false;
+		icon.getBoundingClientRect = () =>
+			({
+				left: innerWidth - 60,
+				right: innerWidth - 16,
+				top: innerHeight - 60,
+				bottom: innerHeight - 16,
+				width: 44,
+			}) as DOMRect;
+		await flush();
+		expect(row().style.right).toBe("72px");
+	});
+
+	it("follows a window resize while the panel is docked", async () => {
+		const { icon, panel } = launcher();
+		dockRight(panel, icon);
+		await attached();
+		expect(row().style.right).toBe("432px");
+
+		panel.getBoundingClientRect = () => ({ left: innerWidth - 640, width: 640 }) as DOMRect;
+		window.dispatchEvent(new Event("resize"));
+		await flush();
+		expect(row().style.right).toBe("652px");
+	});
+
+	it("sits left of a floating composer that is further left than the docked panel", async () => {
+		const { icon, panel } = launcher();
+		dockRight(panel, icon);
+		await attached();
+		row().getBoundingClientRect = () => ({ left: innerWidth - 776, width: 280, height: 36 }) as DOMRect;
+		window.dispatchEvent(new Event("resize"));
+		const release = registerFloatingComposer(at({ left: innerWidth - 600, top: 100 }));
+		await flush();
+		expect(row().style.right).toBe("612px");
+		release();
+	});
+
+	it("leaves a panel docked on the left or full screen to the row's own place", async () => {
+		const { icon, panel } = launcher();
+		dockRight(panel, icon);
+		panel.dataset.mode = "left";
+		await attached();
+		expect(row().style.right).toBe("24px");
+		panel.dataset.mode = "full";
+		await flush();
+		expect(row().style.right).toBe("24px");
+	});
+
+	it("finds a panel that is already docked when the shell loads", async () => {
+		const { icon, panel } = launcher();
+		dockRight(panel, icon);
+		await attached();
+		expect(row().style.right).toBe("432px");
 	});
 });
