@@ -1,4 +1,4 @@
-// A mounted saved record shows its `field:` autoname field read-only, and Save sends no edit of it.
+// A mounted saved record shows its `field:` autoname field read-only.
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, nextTick } from "vue";
 import { RouterView, type Router } from "vue-router";

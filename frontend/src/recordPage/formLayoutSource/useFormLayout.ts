@@ -29,7 +29,7 @@ export interface UseFormLayoutOptions {
 	tabOverrides?: MaybeRefOrGetter<Record<string, TabOverride>>;
 	/** Fieldnames another layout on the page places, so "More fields" does not draw them twice. */
 	placedElsewhere?: MaybeRefOrGetter<string[]>;
-	/** A saved record: the `field:` autoname field reads only, since the server resets an edit to the name. */
+	/** A saved record: the `field:` autoname field reads only; the server resets an edit to the name. */
 	lockAutoname?: boolean;
 }
 
@@ -123,10 +123,9 @@ export function useFormLayout(options: UseFormLayoutOptions): UseFormLayout {
 	};
 }
 
-/** The field a `field:` autoname rule names records from. */
+/** The field `Document._sync_autoname_field` resets on save, so only the literal `field:` rule. */
 function autonameField(autoname: string | undefined): string | null {
-	if (!autoname?.toLowerCase().startsWith("field:")) return null;
-	return autoname.slice("field:".length).trim() || null;
+	return autoname?.startsWith("field:") ? autoname.slice("field:".length) || null : null;
 }
 
 function lockingAutoname(

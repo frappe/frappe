@@ -53,15 +53,11 @@ describe("lockAutoname", () => {
 		expect(await readOnlyFields("field:salutation", true)).toEqual({ salutation: true, title: false });
 	});
 
-	it("reads the rule without case or padding", async () => {
-		expect(await readOnlyFields("Field: salutation ", true)).toEqual({ salutation: true, title: false });
-	});
-
 	it("leaves it editable on a new record", async () => {
 		expect(await readOnlyFields("field:salutation", undefined)).toEqual({ salutation: false, title: false });
 	});
 
-	it.each([undefined, "prompt", "hash", "field:", "format:SAL-{####}"])("locks nothing under autoname %s", async (autoname) => {
+	it.each([undefined, "prompt", "hash", "field:", "Field:salutation", "format:SAL-{####}"])("locks nothing under autoname %s", async (autoname) => {
 		expect(await readOnlyFields(autoname, true)).toEqual({ salutation: false, title: false });
 	});
 });
