@@ -748,16 +748,61 @@ def delete(doctype: str, names: list[str], *, ctx: ToolContext) -> dict[str, Any
 def _run_action_prompt(call: dict[str, Any]) -> str:
 	action = call.get("action")
 	if is_function_path(action):
-		return "\n".join(
-			f"{frappe.unscrub(key)}: {', '.join(str(v) for v in value) if isinstance(value, list) else value}"
-			for key, value in (call.get("args") or {}).items()
-		)
+		args = dict(call.get("args") or {})
+		lines = []
+		doctype, name = args.get("doctype"), args.get("name")
+		if isinstance(doctype, str) and isinstance(name, str) and frappe.db.exists("DocType", doctype):
+			del args["doctype"], args["name"]
+			lines.append(f"{_(doctype)}: {_record_title(doctype, name)}")
+			lines.extend(_field_lines(doctype, args))
+		lines.extend(f"{_(frappe.unscrub(key))}: {_in_words(value)}" for key, value in args.items())
+		return "\n".join(lines)
 	return _("Run '{0}' on {1} {2}: {3}").format(
 		action,
 		len(call.get("names") or []),
 		call.get("doctype", "?"),
 		_summarize_names(call.get("names")),
 	)
+
+
+def _field_lines(doctype: str, args: dict) -> list[str]:
+	"""set_value's `fieldname` and `value` as the field's label and its formatted value; pops them."""
+	fieldname = args.get("fieldname")
+	if isinstance(fieldname, str) and "value" in args:
+		values = {fieldname: args["value"]}
+		del args["fieldname"], args["value"]
+	elif isinstance(fieldname, dict):
+		values = args.pop("fieldname")
+	else:
+		return []
+	meta = frappe.get_meta(doctype)
+	lines = []
+	for field, value in values.items():
+		df = meta.get_field(field)
+		label = _(df.label) if df and df.label else _(frappe.unscrub(field))
+		shown = frappe.format_value(value, df) if df and not isinstance(value, list | dict) else value
+		lines.append(f"{label}: {_in_words(shown)}")
+	return lines
+
+
+def _record_title(doctype: str, name: str) -> str:
+	"""The record's title, when the user may read it; else its name."""
+	meta = frappe.get_meta(doctype)
+	title_field = meta.get_title_field()
+	if meta.issingle or title_field == "name" or not frappe.db.exists(doctype, name):
+		return name
+	if not frappe.has_permission(doctype, "read", name):
+		return name
+	return _in_words(frappe.db.get_value(doctype, name, title_field)) or name
+
+
+def _in_words(value: Any) -> str:
+	if isinstance(value, list):
+		return ", ".join(_in_words(v) for v in value)
+	if isinstance(value, dict):
+		return ", ".join(f"{_(frappe.unscrub(k))}: {_in_words(v)}" for k, v in value.items())
+	text = " ".join(frappe.utils.strip_html_tags(str(value if value is not None else "")).split())
+	return text[:_CONFIRM_STR_LIMIT] + "…" if len(text) > _CONFIRM_STR_LIMIT else text
 
 
 @tool(

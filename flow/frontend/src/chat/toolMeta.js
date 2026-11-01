@@ -1,10 +1,12 @@
+import CodeCard from "./tools/CodeCard.vue";
 import CodeView from "./tools/CodeView.vue";
 import CreateView from "./tools/CreateView.vue";
+import FunctionCard from "./tools/FunctionCard.vue";
 import JsonView from "./tools/JsonView.vue";
 import NamesView from "./tools/NamesView.vue";
 import ReadView from "./tools/ReadView.vue";
 import ReportView from "./tools/ReportView.vue";
-import { parseResult } from "./tools/result.js";
+import { humanize, parseResult } from "./tools/result.js";
 import SecretView from "./tools/SecretView.vue";
 import SnippetView from "./tools/SnippetView.vue";
 
@@ -59,13 +61,29 @@ const TOOLS = {
 	},
 	run_action: {
 		icon: "lucide-play",
-		label: (args) => ACTIONS[args.action] ?? "Running Document Actions",
+		label: (args) =>
+			ACTIONS[args.action] ??
+			(isFunction(args) ? "Running a Function" : "Running Document Actions"),
 		view: NamesView,
+		argsView: (args) => (isFunction(args) ? FunctionCard : NamesView),
 		asks: true,
 		stat: (result) =>
-			result.action === "rename" ? "renamed" : outcome(result.results, "done"),
+			result.action === "rename"
+				? "renamed"
+				: result.results
+				? outcome(result.results, "done")
+				: "",
+		// a function's dotted path is code: its result names it in words
+		subject: (args, result) =>
+			isFunction(args) ? parseResult(result)?.title ?? functionTitle(args.action) : null,
 	},
-	execute: { icon: "lucide-code", label: "Running Code", view: CodeView, asks: true },
+	execute: {
+		icon: "lucide-code",
+		label: "Running Code",
+		view: CodeView,
+		argsView: CodeCard,
+		asks: true,
+	},
 	// its card is a password box that answers the card itself
 	request_secret: {
 		icon: "lucide-key-round",
@@ -136,10 +154,10 @@ export function presentTool(name, args = {}, result = null) {
 	return {
 		icon: tool.icon,
 		label: typeof tool.label === "function" ? tool.label(args) : tool.label,
-		subject: subject(args),
+		subject: tool.subject?.(args, result) ?? subject(args),
 		stat: stat ?? "",
 		expandable: tool.view ? undefined : false,
-		argsComponent: tool.asks ? tool.argsView ?? tool.view : undefined,
+		argsComponent: tool.asks ? argsView(tool, args) : undefined,
 		ownAnswers: tool.ownAnswers,
 		resultComponent: plain ? JsonView : tool.view,
 	};
@@ -152,6 +170,20 @@ function readStat(tool, parsed) {
 	} catch {
 		return null;
 	}
+}
+
+// a whitelisted function is named by its dotted path, as the server reads it (is_function_path)
+function isFunction(args) {
+	return typeof args?.action === "string" && /^\w+(\.\w+)+$/.test(args.action);
+}
+
+function argsView(tool, args) {
+	return typeof tool.argsView === "function" ? tool.argsView(args) : tool.argsView ?? tool.view;
+}
+
+// as the server names it (function_title): the last two parts of its path, in words
+function functionTitle(path) {
+	return path.split(".").slice(-2).map(humanize).join(": ");
 }
 
 function subject(args) {

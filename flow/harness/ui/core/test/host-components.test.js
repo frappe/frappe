@@ -237,6 +237,14 @@ test("a host view that answers its card gets the call and replaces the card's bu
 	assert.deepEqual(answers, [["c7", "Approve"]])
 })
 
+test("a host view that declares a call prop reads the call and keeps the card's buttons", async (t) => {
+	const ReadsPrompt = { props: { arguments: Object, call: Object }, setup: (props) => () => h("p", props.call.prompt) }
+	const flow = { options: { presentTool: () => ({ argsComponent: ReadsPrompt }) } }
+	const { el } = mount(t, ApprovalCard, { call: { id: "c8", name: "run_action", args, prompt: "Assign To: Add\nToDo: Call the courier" } }, flow)
+	assert.ok(el.querySelector("p").textContent.includes("ToDo: Call the courier"))
+	assert.deepEqual([...el.querySelectorAll("button")].map((button) => button.textContent), ["Ask for changes", "Deny", "Approve"])
+})
+
 test("a host picks a row's stat and dropdown, but the user's decision and an error outrank it", async (t) => {
 	const presentTool = () => ({ stat: "3 updated" })
 	const step = { call: { id: "c1", name: "update_document", arguments: args }, result: { content: "ok", details: { lines: 12 } } }

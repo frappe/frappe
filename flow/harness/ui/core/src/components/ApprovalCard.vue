@@ -23,7 +23,7 @@
 			<component
 				:is="presentation.argsComponent"
 				:arguments="args"
-				v-bind="presentation.ownAnswers ? { call } : {}"
+				v-bind="takesCall ? { call } : {}"
 			/>
 		</div>
 		<pre
@@ -107,6 +107,12 @@ const args = computed(() => props.call.args ?? props.call.arguments ?? {})
 
 // a host's own tools may name the action better than the server prompt does
 const presentation = computed(() => flow.options?.presentTool?.(props.call.name, args.value) ?? {})
+
+// a view that declares a `call` prop reads the call itself, such as the server's prompt
+const takesCall = computed(() => {
+	const declared = presentation.value.argsComponent?.props
+	return Array.isArray(declared) ? declared.includes("call") : !!declared?.call
+})
 
 const title = computed(() => {
 	const a = args.value

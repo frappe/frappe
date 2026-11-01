@@ -418,6 +418,48 @@ class TestToolCallback(IntegrationTestCase):
 				self.assertIn("prompt", self.call(name, args, mode="confirm"))
 		self.assertFalse(frappe.db.exists("ToDo", {"description": "ran at confirm"}))
 
+	def test_a_function_card_names_its_record_by_title_the_user_may_read(self):
+		def todo(description, assigned_by):
+			return frappe.get_doc(
+				{"doctype": "ToDo", "description": description, "assigned_by": assigned_by}
+			).insert(ignore_permissions=True)
+
+		mine = todo("<p>Call the courier about the delayed Pune shipment</p>", OWNER)
+		hidden = todo("Someone else's task", "Administrator")
+		for record, shown in (
+			(mine, "Call the courier about the delayed Pune shipment"),
+			(hidden, hidden.name),
+		):
+			with self.subTest(shown):
+				args = {"doctype": "ToDo", "name": record.name, "assign_to": ["Administrator"]}
+				prompt = self.call(
+					"run_action",
+					{"doctype": "", "names": [], "action": "frappe.desk.form.assign_to.add", "args": args},
+					mode="confirm",
+				)["prompt"]
+				self.assertEqual(prompt, f"Assign To: Add\nToDo: {shown}\nAssign To: Administrator")
+
+	def test_a_set_value_card_names_the_field_by_label_with_its_formatted_value(self):
+		todo = frappe.get_doc(
+			{"doctype": "ToDo", "description": "Renew the Delhivery contract", "assigned_by": OWNER}
+		).insert(ignore_permissions=True)
+		cases = (
+			({"fieldname": "priority", "value": "High"}, "Priority: High"),
+			(
+				{"fieldname": {"date": "2026-11-05", "priority": "Low"}},
+				f"Due Date: {frappe.utils.formatdate('2026-11-05')}\nPriority: Low",
+			),
+		)
+		for values, shown in cases:
+			with self.subTest(shown):
+				args = {"doctype": "ToDo", "name": todo.name, **values}
+				prompt = self.call(
+					"run_action",
+					{"doctype": "", "names": [], "action": "frappe.client.set_value", "args": args},
+					mode="confirm",
+				)["prompt"]
+				self.assertEqual(prompt, f"Client: Set Value\nToDo: Renew the Delhivery contract\n{shown}")
+
 	def test_confirm_mode_prompts_a_title_line_then_the_tools_own_summary(self):
 		prompt = self.call("delete", {"doctype": "ToDo", "names": ["a", "b"]}, mode="confirm")["prompt"]
 		self.assertEqual(prompt, "Delete 2 ToDo records\nDelete 2 ToDo: a, b")
