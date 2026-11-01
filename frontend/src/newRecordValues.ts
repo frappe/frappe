@@ -20,8 +20,12 @@ const DECIMALS = new Set(["Float", "Currency", "Percent", "Rating", "Duration"])
 /** The query key naming the record a new record duplicates. */
 export const COPY_OF = "__copy_of";
 
+/** The query key naming the cancelled record a new record amends. */
+export const AMEND_OF = "__amend_of";
+
 // Desk v1's duplicate leaves these to the new record whatever the doctype marks.
 const NEVER_COPIED = new Set(["amended_from", "amendment_date", "cancel_reason", "lft", "rgt"]);
+const AMEND_BLOCKED = new Set(["cancel_reason", "lft", "rgt"]);
 
 /** A doctype named by prompt gets a mandatory name field at the top. */
 export function withNameField(
@@ -90,26 +94,38 @@ export async function fetchNewDocument(doctype: string): Promise<Values> {
 }
 
 /** The server's copy of a record as desk v1's duplicate fills a new one: no no-copy or password field. */
-export function duplicateValues(copy: Values, doctype: string, metas: Record<string, DoctypeMeta>): Values {
+export function duplicateValues(
+	copy: Values,
+	doctype: string,
+	metas: Record<string, DoctypeMeta>,
+	amend = false
+): Values {
 	const values: Values = {};
 	for (const field of metas[doctype]?.fields ?? []) {
-		if (!isCopied(field) || !(field.fieldname in copy)) continue;
+		if (!isCopied(field, amend) || !(field.fieldname in copy)) continue;
 		const value = copy[field.fieldname];
 		values[field.fieldname] = TABLES.has(field.fieldtype)
-			? value.map((row: Values) => duplicateRow(row, field.options!, metas))
+			? value.map((row: Values) => duplicateRow(row, field.options!, metas, amend))
 			: value;
 	}
 	return values;
 }
 
 /** A copied row over its doctype's new-row defaults. */
-function duplicateRow(row: Values, doctype: string, metas: Record<string, DoctypeMeta>): Values {
+function duplicateRow(
+	row: Values,
+	doctype: string,
+	metas: Record<string, DoctypeMeta>,
+	amend: boolean
+): Values {
 	const fields = (metas[doctype]?.fields ?? []).map((field) => mapField(field, {}));
-	return { ...newRowValues(fields), ...duplicateValues(row, doctype, metas) };
+	return { ...newRowValues(fields), ...duplicateValues(row, doctype, metas, amend) };
 }
 
-function isCopied(field: RawMetaField): boolean {
+// An amendment keeps no-copy fields and takes `amended_from` and `amendment_date` from the server's copy.
+function isCopied(field: RawMetaField, amend: boolean): boolean {
 	if (NO_VALUE.has(field.fieldtype) || field.fieldtype === "Password") return false;
+	if (amend) return !AMEND_BLOCKED.has(field.fieldname);
 	return !field.no_copy && !NEVER_COPIED.has(field.fieldname);
 }
 

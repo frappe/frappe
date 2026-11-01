@@ -199,6 +199,12 @@ describe("create, delete and copy", () => {
     await copyDocument("ToDo", "T-1");
     expect(lastCall()).toMatchObject({ url: "/api/v2/document/ToDo/T-1/copy", method: "GET" });
   });
+
+  it("asks the copy route for an amendment", async () => {
+    respond({ data: { amended_from: "T-1" } });
+    await copyDocument("ToDo", "T-1", { amend: true });
+    expect(lastCall()).toMatchObject({ url: "/api/v2/document/ToDo/T-1/copy?amend=1", method: "GET" });
+  });
 });
 
 describe("methods and meta", () => {

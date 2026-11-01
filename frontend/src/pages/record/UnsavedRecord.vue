@@ -94,6 +94,7 @@ import { openArgumentStep } from "@/shell/palette";
 import { failedState, type PageStateValue } from "@/shell/pageState";
 import type { Boot } from "@/boot";
 import {
+	AMEND_OF,
 	COPY_OF,
 	duplicateValues,
 	fetchNewDocument,
@@ -131,7 +132,8 @@ const boot = inject<Boot>("boot")!;
 const router = useRouter();
 const canCreate = useCreateRight(props.doctype);
 const { metas } = useDoctypeMeta(props.doctype);
-const copyOf = [props.query[COPY_OF]].flat()[0];
+const amendOf = [props.query[AMEND_OF]].flat()[0];
+const copyOf = amendOf ?? [props.query[COPY_OF]].flat()[0];
 
 const doc = ref<Record<string, any>>({});
 const saved = ref<Record<string, any>>({});
@@ -164,7 +166,7 @@ const layout = useFormLayout({
 	tabOverrides: () => controller.value?.form.tabs.resolve() ?? {},
 });
 // Types what "Edit full form" carried from the dialog's inline fields, shown here or not.
-const quickEntry = Object.keys(props.query).some((key) => key !== COPY_OF)
+const quickEntry = Object.keys(props.query).some((key) => key !== COPY_OF && key !== AMEND_OF)
 	? useFormLayout({
 			doctype: props.doctype,
 			type: "Quick Entry",
@@ -216,7 +218,7 @@ async function open() {
 	state.value = null;
 	void loadRecordScripts(props.doctype);
 	const newDocument = fetchNewDocument(props.doctype);
-	const copy = copyOf ? copyDocument(props.doctype, copyOf) : null;
+	const copy = copyOf ? copyDocument(props.doctype, copyOf, { amend: Boolean(amendOf) }) : null;
 	// Read after the meta and the create right; a page that stops before then drops the failure.
 	newDocument.catch(() => {});
 	copy?.catch(() => {});
@@ -234,7 +236,9 @@ async function open() {
 		if (!opening.current()) return;
 		const values = {
 			...fieldDefaults(newDoc, meta.value),
-			...(copied ? duplicateValues(copied.data, props.doctype, metas.value) : {}),
+			...(copied
+				? duplicateValues(copied.data, props.doctype, metas.value, Boolean(amendOf))
+				: {}),
 			...queryValues(props.query, meta.value),
 		};
 		openingValues.value = values;

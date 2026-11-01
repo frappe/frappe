@@ -254,12 +254,20 @@ export function renameDocument(
   );
 }
 
+export interface CopyOptions extends CallOptions {
+  /** The draft amendment of a cancelled record: it keeps no-copy fields and names the record it amends. */
+  amend?: boolean;
+}
+
 export function copyDocument<T extends DocumentRecord = DocumentRecord>(
   doctype: string,
   name: string,
-  { signal }: CallOptions = {}
+  { signal, amend }: CopyOptions = {}
 ): Promise<Envelope<Partial<T>>> {
-  return request<Partial<T>>("GET", `${documentPath(doctype, name)}/copy`, { signal });
+  return request<Partial<T>>("GET", `${documentPath(doctype, name)}/copy`, {
+    signal,
+    ...(amend ? { query: { amend: 1 } } : {}),
+  });
 }
 
 export interface MethodOptions extends CallOptions {

@@ -13,7 +13,7 @@ import frappe
 import frappe.defaults
 import frappe.share
 from frappe.api import discovery
-from frappe.api.v2 import run_doc_method
+from frappe.api.v2 import copy_doc, run_doc_method
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.core.doctype.user.user import generate_keys
 from frappe.core.doctype.user_invitation.user_invitation import UserInvitation
@@ -701,6 +701,106 @@ class TestBulkOperationsV2(FrappeAPITestCase):
 		self.assertEqual(response.status_code, 202)
 		self.assertIn("job_id", response.json["data"])
 		job_id = response.json["data"]["job_id"]
+
+
+class TestAmendCopyV2(FrappeAPITestCase):
+	version = "v2"
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.doctype_name = "Test Amend Copy V2"
+		frappe.delete_doc_if_exists("DocType", cls.doctype_name, force=True)
+		cls.doctype = new_doctype(
+			cls.doctype_name,
+			is_submittable=1,
+			fields=[
+				{"label": "Title", "fieldname": "title_text", "fieldtype": "Data", "no_copy": 1},
+				{
+					"label": "Amended From",
+					"fieldname": "amended_from",
+					"fieldtype": "Link",
+					"options": cls.doctype_name,
+				},
+				{"label": "Amendment Date", "fieldname": "amendment_date", "fieldtype": "Date"},
+			],
+			permissions=[
+				{"role": "System Manager", "read": 1, "write": 1, "create": 1, "submit": 1, "cancel": 1},
+				{"role": "Desk User", "read": 1},
+			],
+		).insert()
+		cls.reader = "amend.reader@example.com"
+		if not frappe.db.exists("User", cls.reader):
+			user = frappe.get_doc(
+				doctype="User", email=cls.reader, first_name="Amend Reader", send_welcome_email=0
+			).insert()
+			user.add_roles("Desk User")
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.set_user("Administrator")
+		frappe.delete_doc("DocType", cls.doctype_name, force=True)
+		frappe.delete_doc_if_exists("User", cls.reader)
+		frappe.db.commit()  # nosemgrep
+
+	def new_record(self, status: int):
+		doc = frappe.get_doc(doctype=self.doctype_name, title_text="Amend me").insert()
+		for step, target in ((doc.submit, 1), (doc.cancel, 2)):
+			if status >= target:
+				step()
+		frappe.db.commit()  # nosemgrep
+		return doc
+
+	def amend_copy(self, name, amend=1):
+		toggle_test_mode(False)
+		try:
+			return self.get(self.resource(self.doctype_name, name, "copy"), {"amend": amend, "sid": self.sid})
+		finally:
+			toggle_test_mode(True)
+
+	def test_amend_copy_of_cancelled_record(self):
+		doc = self.new_record(status=2)
+		response = self.amend_copy(doc.name)
+		self.assertEqual(response.status_code, 200)
+		data = response.json["data"]
+		self.assertEqual(data["amended_from"], doc.name)
+		self.assertEqual(data["amendment_date"], frappe.utils.today())
+		self.assertEqual(data["title_text"], "Amend me")
+		self.assertNotIn("name", data)
+		self.assertFalse(data.get("docstatus"))
+
+	def test_amended_copy_is_named_with_suffix_on_insert(self):
+		doc = self.new_record(status=2)
+		data = self.amend_copy(doc.name).json["data"]
+		data.pop("docstatus", None)
+		amended = self.post(self.resource(self.doctype_name), {**data, "sid": self.sid})
+		self.assertEqual(amended.json["data"]["name"], f"{doc.name}-1")
+
+	def test_copy_without_amend_flag_does_not_amend(self):
+		doc = self.new_record(status=2)
+		data = self.amend_copy(doc.name, amend=0).json["data"]
+		self.assertNotIn("amended_from", data)
+
+	def test_amend_refuses_records_that_are_not_cancelled(self):
+		for status in (0, 1):
+			with self.subTest(status=status):
+				doc = self.new_record(status=status)
+				self.assertEqual(self.amend_copy(doc.name).status_code, 417)
+
+	def test_amend_refuses_an_already_amended_record(self):
+		doc = self.new_record(status=2)
+		frappe.get_doc(doctype=self.doctype_name, amended_from=doc.name).insert()
+		frappe.db.commit()  # nosemgrep
+		self.assertEqual(self.amend_copy(doc.name).status_code, 417)
+
+	def test_amend_needs_the_amend_right(self):
+		doc = self.new_record(status=2)
+		frappe.set_user(self.reader)
+		try:
+			with self.assertRaises(frappe.PermissionError):
+				copy_doc(self.doctype_name, doc.name, amend=True)
+		finally:
+			frappe.set_user("Administrator")
 
 
 class TestDocTypeAPIV2(FrappeAPITestCase):

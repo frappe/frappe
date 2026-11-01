@@ -6,6 +6,7 @@ import type { DoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { NEW_NAME } from "@framework/ui/utils";
 import { layoutFromFields } from "@/recordPage/formDialogLayout";
 import {
+	duplicateValues,
 	fieldDefaults,
 	fillEmpty,
 	insertBody,
@@ -209,5 +210,31 @@ describe("queryValues with the layout", () => {
 
 		expect(queryValues(query, meta, layout)).toEqual({ customer_name: "Acme", address_line1: "1 Main St", credit_days: 30 });
 		expect(queryValues(query, meta)).toEqual({ customer_name: "Acme", credit_days: "30" });
+	});
+});
+
+describe("duplicateValues", () => {
+	const metas = {
+		Invoice: {
+			fields: [
+				{ fieldname: "customer", fieldtype: "Data" },
+				{ fieldname: "series", fieldtype: "Data", no_copy: 1 },
+				{ fieldname: "amended_from", fieldtype: "Link", options: "Invoice" },
+				{ fieldname: "cancel_reason", fieldtype: "Data" },
+			],
+		},
+	} as unknown as Record<string, DoctypeMeta>;
+	const copy = { customer: "Acme", series: "INV-1", amended_from: "INV-1", cancel_reason: "typo" };
+
+	it("leaves out no-copy fields and the amendment link of a duplicate", () => {
+		expect(duplicateValues(copy, "Invoice", metas)).toEqual({ customer: "Acme" });
+	});
+
+	it("keeps no-copy fields and the server's amendment link of an amendment", () => {
+		expect(duplicateValues(copy, "Invoice", metas, true)).toEqual({
+			customer: "Acme",
+			series: "INV-1",
+			amended_from: "INV-1",
+		});
 	});
 });
