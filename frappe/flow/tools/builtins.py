@@ -13,6 +13,7 @@ from frappe.database.utils import DefaultOrderBy
 from frappe.flow.lib.tool import Pending, Tool, ToolContext, tool
 from frappe.flow.utils.safe_exec import safe_exec
 from frappe.model.base_document import get_controller
+from frappe.model.document import Document
 from frappe.query_builder.functions import Count
 
 MAX_READ_LIMIT = 200
@@ -471,16 +472,18 @@ load_skill = bind_load_skill(None)
 
 
 @tool(
-	requires_confirmation=True,
-	confirm_prompt=lambda args: (
-		f"{args.get('description') or _('Run Python code')}:\n\n{args.get('code', '')}"
-	),
+	requires_confirmation=lambda args: not args.get("read_only"),
+	confirm_prompt=lambda args: args.get("description") or _("Run Python code"),
 )
-def execute(code: str, description: str, *, ctx: ToolContext) -> Any:
+def execute(code: str, description: str, read_only: bool = False, *, ctx: ToolContext) -> Any:
 	"""Run Python in a permission-respecting sandbox for computation, emails, or multi-record work.
 
 	`description` is one short, plain-English sentence stating what this code does, for a
 	non-technical user who approves it — e.g. "Count open ToDos". Describe the intent, not the code.
+
+	Set `read_only` to true when the code only reads: it runs at once, without asking the user, in a
+	read-only transaction. A write, a job, an email or a function that is not a declared read fails
+	there; call it again without `read_only`, and the user approves it before it runs.
 
 	Do NOT write `import` statements — imports are blocked and the whole script fails. `frappe`
 	and `frappe.utils` are already in scope; everything you can use is listed below, so never
@@ -510,17 +513,55 @@ def execute(code: str, description: str, *, ctx: ToolContext) -> Any:
 	- `str.format()` / `.format_map()` are blocked — use f-strings or `%` formatting.
 	- `print()` output is logged, not returned — put what you want back into `result`.
 
-	The user approves each call before it runs.
+	Without `read_only`, the user approves each call before it runs.
 	"""
-	frappe.flags.flow_undone_batch = None
-	# sandboxed, and the user approves each call
+	if not read_only:
+		return _run_code(code, ctx)
+	ctx.read_only = True
+	try:
+		with frappe.db.read_only():
+			result = _run_code(code, ctx)
+			# a function the code called caught the database's refusal
+			if frappe.db.transaction_writes:
+				raise frappe.InReadOnlyMode(_("It tried to write."))
+			return result
+	except Exception as e:
+		if not _needs_approval(e):
+			raise
+		raise ValueError(
+			_error_text(e)
+			+ "\n"
+			+ _(
+				"This code changes something, so it can't run as read_only. Call execute again without read_only; the user approves it before it runs."
+			)
+		) from e
+	finally:
+		ctx.read_only = False
+
+
+def _run_code(code: str, ctx: ToolContext) -> Any:
+	ctx.failure = None
+	# sandboxed; the user approves each call that is not read-only
 	# nosemgrep: frappe-codeinjection-eval
 	exec_globals, _locals = safe_exec(code, script_filename="ai_execute", tool_context=ctx)
-	if frappe.flags.flow_undone_batch:
-		raise ValueError(
-			f"{frappe.flags.flow_undone_batch}\nA failed write fails the whole call, even when caught."
+	if ctx.failure:
+		raise ValueError(f"{ctx.failure}\nA failure fails the whole call, even when caught.") from (
+			ctx.failure
 		)
 	return exec_globals.get("result")
+
+
+def _needs_approval(error: BaseException) -> bool:
+	"""Whether read-only code failed for writing or reaching outside the database."""
+	from frappe.flow.utils.safe_exec import NeedsApproval
+
+	seen = set()
+	while error is not None and id(error) not in seen:
+		if isinstance(error, frappe.InReadOnlyMode | NeedsApproval):
+			return True
+		seen.add(id(error))
+		error = error.__cause__ or error.__context__
+	return False
 
 
 def _error_text(e: Exception) -> str:
@@ -640,7 +681,7 @@ def create(doctype: str, records: list[dict[str, Any]], *, ctx: ToolContext) -> 
 			doc.insert()
 			created.append(doc.name)
 		except Exception as e:
-			_undo_batch(f"Record {row + 1} of {len(records)}", e)
+			_undo_batch(f"Record {row + 1} of {len(records)}", e, ctx)
 	return {"doctype": doctype, "created": created}
 
 
@@ -671,7 +712,7 @@ def update(doctype: str, names: list[str], values: dict[str, Any], *, ctx: ToolC
 			doc.save()
 			updated.append(doc.name)
 		except Exception as e:
-			_undo_batch(name, e)
+			_undo_batch(name, e, ctx)
 	return {"doctype": doctype, "updated": updated}
 
 
@@ -699,20 +740,28 @@ def delete(doctype: str, names: list[str], *, ctx: ToolContext) -> dict[str, Any
 			frappe.delete_doc(doctype, name, ignore_missing=False)
 			deleted.append(name)
 		except Exception as e:
-			_undo_batch(name, e)
+			_undo_batch(name, e, ctx)
 	return {"doctype": doctype, "deleted": deleted}
 
 
-@tool(
-	requires_confirmation=True,
-	confirm_prompt=lambda args: (
-		_("Run '{0}' on {1} {2}: {3}").format(
-			args.get("action"),
-			len(args.get("names") or []),
-			args.get("doctype", "?"),
-			_summarize_names(args.get("names")),
+def _run_action_prompt(call: dict[str, Any]) -> str:
+	action = call.get("action")
+	if is_function_path(action):
+		return "\n".join(
+			f"{frappe.unscrub(key)}: {', '.join(str(v) for v in value) if isinstance(value, list) else value}"
+			for key, value in (call.get("args") or {}).items()
 		)
-	),
+	return _("Run '{0}' on {1} {2}: {3}").format(
+		action,
+		len(call.get("names") or []),
+		call.get("doctype", "?"),
+		_summarize_names(call.get("names")),
+	)
+
+
+@tool(
+	requires_confirmation=lambda args: not is_read_function(args.get("action")),
+	confirm_prompt=_run_action_prompt,
 )
 def run_action(
 	doctype: str,
@@ -724,9 +773,40 @@ def run_action(
 ) -> dict[str, Any]:
 	"""Run a document action found via describe: submit, cancel, amend, rename, a workflow transition, or a whitelisted method.
 
+	A whitelisted function's dotted path runs once with `args` as its arguments, ignoring `doctype`
+	and `names`; one its developer marked a read runs without asking the user.
 	If it fails on any record, none are changed.
 	"""
+	if not is_read_function(action):
+		return _run_action(doctype, names, action, args, ctx=ctx)
+	with frappe.db.read_only():
+		result = _run_action(doctype, names, action, args, ctx=ctx)
+		# the function caught the database's refusal
+		if frappe.db.transaction_writes:
+			raise ValueError(
+				_("{0} tried to write, so it is not a read. Nothing was saved.").format(
+					function_title(action)
+				)
+			)
+		return result
+
+
+def _run_action(
+	doctype: str, names: list[str], action: str, args: dict[str, Any] | None = None, *, ctx: ToolContext
+) -> dict[str, Any]:
 	args = args or {}
+
+	if is_function_path(action):
+		frappe.db.savepoint(_BATCH_SAVEPOINT)
+		try:
+			method = frappe.get_attr(frappe.override_whitelisted_method(action))
+			frappe.is_whitelisted(method)
+			result = _call_as_request(method, args)
+		except Exception as e:
+			_undo_batch(function_title(action), e, ctx)
+		if isinstance(result, Document):
+			result = result.as_dict(no_nulls=True)
+		return {"action": action, "title": function_title(action), "result": result}
 
 	if action == "rename":
 		if len(names) != 1:
@@ -742,7 +822,7 @@ def run_action(
 		try:
 			results.append({"name": name, "result": _apply_action(doctype, name, action, args)})
 		except Exception as e:
-			_undo_batch(name, e)
+			_undo_batch(name, e, ctx)
 	return {"action": action, "results": results}
 
 
@@ -761,7 +841,7 @@ def read_screen(*, ctx: ToolContext) -> Pending:
 	return Pending(timeout=SCREEN_TIMEOUT)
 
 
-def _undo_batch(record: str, error: Exception) -> NoReturn:
+def _undo_batch(record: str, error: Exception, ctx: ToolContext) -> NoReturn:
 	"""Undo every write since the batch began, then fail naming the record that broke it."""
 	try:
 		frappe.db.rollback(save_point=_BATCH_SAVEPOINT)
@@ -769,8 +849,49 @@ def _undo_batch(record: str, error: Exception) -> NoReturn:
 	except Exception:  # a commit in the batch, such as before a schema change, took the savepoint
 		frappe.db.rollback()
 		undone = "Some earlier changes may already be committed; check the records before retrying."
-	frappe.flags.flow_undone_batch = message = f"{record}: {_error_text(error)}\n{undone}"
-	raise ValueError(message) from error
+	failure = ValueError(f"{record}: {_error_text(error)}\n{undone}")
+	failure.__cause__ = error
+	ctx.failure = failure
+	raise failure
+
+
+def _call_as_request(method: Any, args: dict[str, Any]) -> Any:
+	"""Call a whitelisted function as desk's API call does: `args` are the request's form_dict, and
+	what it puts in frappe.response is its reply, which may not be a file."""
+	form_dict, response = frappe.local.form_dict, frappe.local.response
+	frappe.local.form_dict, frappe.local.response = frappe._dict(args), frappe._dict()
+	try:
+		# the caller resolved `method` and checked that it is whitelisted
+		# nosemgrep: frappe-codeinjection-eval
+		result = frappe.call(method, **args)
+		if frappe.response.get("type"):
+			raise ValueError(
+				f"It replies with a {frappe.response.type} file, not data, so it can't run here."
+			)
+		return frappe.response.get("message") if result is None else result
+	finally:
+		frappe.local.form_dict, frappe.local.response = form_dict, response
+
+
+def is_function_path(action: Any) -> bool:
+	"""Whether a run_action `action` is a function's dotted path rather than a record action."""
+	return isinstance(action, str) and bool(re.fullmatch(r"\w+(\.\w+)+", action))
+
+
+def is_read_function(path: Any) -> bool:
+	"""Whether `path` names a whitelisted function its developer marked `@frappe.read_only()`."""
+	if not is_function_path(path):
+		return False
+	try:
+		method = frappe.get_attr(frappe.override_whitelisted_method(path))
+	except Exception:
+		return False
+	return method in frappe.whitelisted and getattr(method, "read_only", False)
+
+
+def function_title(path: str) -> str:
+	"""A function's name in words, from the last two parts of its path: "Assign To: Add"."""
+	return ": ".join(_(frappe.unscrub(part)) for part in path.split(".")[-2:])
 
 
 BUILTIN_TOOLS: list[Tool] = [

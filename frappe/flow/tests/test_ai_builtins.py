@@ -23,8 +23,51 @@ from frappe.flow.tools.builtins import (
 	update,
 )
 from frappe.tests import IntegrationTestCase
+from frappe.tests.utils import whitelist_for_tests
 
 CTX = ToolContext(session_id="test", agent="Test Agent", user="Administrator")
+MODULE = "frappe.flow.tests.test_ai_builtins"
+
+
+@whitelist_for_tests()
+@frappe.read_only()
+def read_only_whoami() -> list:
+	return [frappe.session.user, frappe.db.exists("Role", "System Manager")]
+
+
+@whitelist_for_tests(methods=["POST"])
+@frappe.read_only()
+def read_only_that_commits_then_writes() -> str:
+	frappe.db.commit()  # nosemgrep: frappe-manual-commit
+	frappe.get_doc({"doctype": "ToDo", "description": "read-only-wrote"}).insert()
+	return "wrote"
+
+
+@whitelist_for_tests(methods=["POST"])
+@frappe.read_only()
+def read_only_that_hides_its_write() -> str:
+	try:
+		frappe.get_doc({"doctype": "ToDo", "description": "read-only-wrote"}).insert()
+	except Exception:
+		pass
+	return "hid"
+
+
+@whitelist_for_tests()
+@frappe.read_only()
+def read_only_that_fails() -> None:
+	frappe.throw(frappe._("No such report"))
+
+
+@frappe.read_only()
+def read_only_not_whitelisted() -> str:
+	return "secret"
+
+
+@whitelist_for_tests(methods=["GET"])
+def get_only() -> str:
+	return "get"
+
 
 REPORT_SCRIPT = """
 if not filters.company:
@@ -383,6 +426,124 @@ result = "done"
 			self.assertRaisesRegex(ValueError, "Record 2 of 2: hook failed"),
 		):
 			execute(code=code, description="Create two ToDos", ctx=CTX)
+
+
+class TestReadOnlyCalls(IntegrationTestCase):
+	"""Calls that need no card run once, in a read-only transaction. Each test starts with no open
+	writes, as a tool callback does."""
+
+	@classmethod
+	def setUpClass(cls):
+		cls.enterClassContext(patch("frappe.utils.safe_exec.is_safe_exec_enabled", return_value=True))
+		super().setUpClass()
+
+	def setUp(self):
+		frappe.db.rollback()
+		self.enterContext(self.set_user("test@example.com"))
+		self.ctx = ToolContext(session_id="test", agent="Test Agent", user="test@example.com")
+
+	def tearDown(self):
+		frappe.db.rollback()
+
+	def run_function(self, name: str, **args):
+		return run_action(doctype="", names=[], action=f"{MODULE}.{name}", args=args, ctx=self.ctx)
+
+	def assert_nothing_written(self):
+		self.assertFalse(frappe.db.in_read_only_transaction)
+		self.assertFalse(frappe.db.exists("ToDo", {"description": ["like", "%-wrote"]}))
+		frappe.get_doc({"doctype": "ToDo", "description": "after a read"}).insert()
+
+	def test_only_a_function_marked_read_only_skips_the_card(self):
+		needs_card = run_action.requires_confirmation
+		self.assertFalse(needs_card({"action": f"{MODULE}.read_only_whoami"}))
+		for action in (
+			f"{MODULE}.get_only",
+			"frappe.core.doctype.access_log.access_log.make_access_log",
+			f"{MODULE}.read_only_not_whitelisted",
+			"frappe.client.set_value",
+			"submit",
+			None,
+		):
+			with self.subTest(action):
+				self.assertTrue(needs_card({"action": action}))
+		self.assertFalse(execute.requires_confirmation({"code": "", "read_only": True}))
+		self.assertTrue(execute.requires_confirmation({"code": ""}))
+
+	def test_a_read_function_runs_once_and_the_database_refuses_its_writes(self):
+		result = self.run_function("read_only_whoami")
+		self.assertEqual(result["result"], ["test@example.com", "System Manager"])
+		self.assertEqual(result["title"], "Test Ai Builtins: Read Only Whoami")
+		for name, error in (
+			("read_only_that_commits_then_writes", "read-only transaction"),
+			("read_only_that_hides_its_write", "tried to write, so it is not a read"),
+		):
+			with self.subTest(name):
+				self.assertRaisesRegex(ValueError, error, self.run_function, name)
+				self.assert_nothing_written()
+				frappe.db.rollback()
+
+	def test_read_only_code_runs_without_a_card_and_stops_at_the_rest(self):
+		run = lambda code: execute(code=code, description="Look", read_only=True, ctx=self.ctx)  # noqa: E731
+		self.assertEqual(run("result = frappe.session.user"), "test@example.com")
+		self.assertEqual(run(f'result = frappe.call("{MODULE}.read_only_whoami")')[0], "test@example.com")
+		self.assertEqual(
+			run(f'result = run_action("", [], "{MODULE}.read_only_whoami")')["result"][1], "System Manager"
+		)
+		self.assertRaisesRegex(NameError, "undefined_name", run, "result = undefined_name")
+		# a read that fails says why, not that the code needs approval
+		with self.assertRaisesRegex(ValueError, "No such report") as failed:
+			run(f'run_action("", [], "{MODULE}.read_only_that_fails")')
+		self.assertNotIn("without read_only", str(failed.exception))
+
+		stopped = {
+			"writes": 'create("ToDo", [{"description": "code-wrote"}])',
+			"hides its write": 'try:\n\tcreate("ToDo", [{"description": "code-wrote"}])\nexcept Exception:\n\tpass',
+			"queues a job": 'frappe.enqueue("frappe.ping")',
+			"sends email": 'frappe.sendmail(recipients=["a@example.com"], subject="x", message="x")',
+			"calls an unmarked function": 'frappe.call("frappe.ping")',
+			"hides that call": 'try:\n\tfrappe.call("frappe.ping")\nexcept Exception:\n\tpass',
+			"runs an unmarked function": 'run_action("", [], "frappe.ping")',
+			"runs a record action": 'run_action("ToDo", ["x"], "submit")',
+			"calls a read that hides its write": f'frappe.call("{MODULE}.read_only_that_hides_its_write")',
+		}
+		for case, code in stopped.items():
+			with self.subTest(case):
+				self.assertRaisesRegex(ValueError, "Call execute again without read_only", run, code)
+				self.assertFalse(self.ctx.read_only)
+				self.assert_nothing_written()
+				frappe.db.rollback()
+
+	def test_approved_code_runs_read_functions_in_its_own_transaction(self):
+		code = f"""
+create("ToDo", [{{"description": "approved code"}}])
+seen = run_action("", [], "{MODULE}.read_only_whoami")
+frappe.call("{MODULE}.read_only_whoami")
+create("ToDo", [{{"description": "approved code, after the read"}}])
+result = seen["result"][0]
+"""
+		self.assertEqual(execute(code=code, description="Write and read", ctx=self.ctx), "test@example.com")
+		self.assertEqual(frappe.db.count("ToDo", {"description": ["like", "approved code%"]}), 2)
+
+	def test_read_only_code_reaches_nothing_outside_the_database(self):
+		from frappe.flow.utils.safe_exec import get_flow_safe_globals
+
+		# what read-only code may call as is; anything else in frappe's namespace must be a stop,
+		# so a new global that reaches outside fails here first
+		pure = {
+			"is_job_queued", "get_doc", "get_last_doc", "get_meta", "get_list", "get_print",
+			"attach_print", "log", "log_error", "msgprint", "throw", "errprint", "bold",
+			"sanitize_html", "get_fullname", "format", "format_value",
+		}  # fmt: skip
+		self.ctx.read_only = True
+		frappe_ns = get_flow_safe_globals(tool_context=self.ctx).frappe
+		for name, value in frappe_ns.items():
+			if not callable(value) or isinstance(value, type) or name in pure:
+				continue
+			with self.subTest(name):
+				self.assertEqual(
+					getattr(value, "func", None).__name__,
+					"_stop" if name != "call" else "_call_read_function",
+				)
 
 
 class TestWriteTools(IntegrationTestCase):
