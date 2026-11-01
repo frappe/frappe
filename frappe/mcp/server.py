@@ -6,7 +6,7 @@ from typing import Any
 
 from frappe.mcp import protocol
 from frappe.mcp.protocol import INVALID_PARAMS, METHOD_NOT_FOUND, McpError
-from frappe.mcp.skills import EXTENSION, SkillCatalog, page
+from frappe.mcp.skills import SKILLS_EXTENSION, SkillCatalog, page
 
 
 def dispatch(method: str, params: dict[str, Any], version: str) -> dict:
@@ -75,7 +75,7 @@ def capabilities() -> dict:
 	return {
 		"tools": {"listChanged": False},
 		"resources": {},
-		"extensions": {EXTENSION: {"directoryRead": True}},
+		"extensions": {SKILLS_EXTENSION: {"directoryRead": True}},
 	}
 
 

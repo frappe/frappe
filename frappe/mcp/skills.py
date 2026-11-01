@@ -14,7 +14,7 @@ import frappe
 from frappe.mcp.protocol import INTERNAL_ERROR, INVALID_PARAMS, McpError
 from frappe.mcp.skill_files import MAX_SKILL_BYTES, MAX_SKILL_FILES, SkillFiles
 
-EXTENSION = "io.modelcontextprotocol/skills"
+SKILLS_EXTENSION = "io.modelcontextprotocol/skills"
 PAGE_SIZE = 50
 
 

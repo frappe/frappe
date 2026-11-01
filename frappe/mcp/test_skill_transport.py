@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 import frappe
 from frappe.mcp import protocol
-from frappe.mcp.skills import EXTENSION
+from frappe.mcp.skills import SKILLS_EXTENSION
 from frappe.mcp.test_skills import SkillFixtures
 from frappe.mcp.test_utils import McpTestCase
 
@@ -32,7 +32,7 @@ class TestSkillTransport(SkillFixtures, McpTestCase):
 		if modern:
 			params["_meta"] = {
 				protocol.META_VERSION: protocol.LATEST_VERSION,
-				protocol.META_CAPABILITIES: {"extensions": {EXTENSION: {}}},
+				protocol.META_CAPABILITIES: {"extensions": {SKILLS_EXTENSION: {}}},
 				protocol.META_CLIENT: {"name": "test", "version": "1"},
 			}
 			request_headers = {"MCP-Protocol-Version": protocol.LATEST_VERSION, "Mcp-Method": method}
@@ -58,7 +58,9 @@ class TestSkillTransport(SkillFixtures, McpTestCase):
 				).json["result"]
 				self.assertIn("resources", discovery["capabilities"])
 				self.assertEqual(discovery["capabilities"]["tools"], {"listChanged": False})
-				self.assertEqual(discovery["capabilities"]["extensions"][EXTENSION], {"directoryRead": True})
+				self.assertEqual(
+					discovery["capabilities"]["extensions"][SKILLS_EXTENSION], {"directoryRead": True}
+				)
 				listing = self.rpc("skills/list", modern=modern).json["result"]
 				self.assertEqual(len(listing["skills"]), 2)
 				uri = "skill://frappe/billing/refunds/review/SKILL.md"
