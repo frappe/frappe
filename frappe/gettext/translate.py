@@ -209,7 +209,7 @@ def get_is_gitignored_function_for_app(app: str | None):
 	Used to check if a directory is gitignored or not.
 	Can NOT be used to check if a file is gitignored or not.
 	"""
-	import git
+	from frappe.utils import git
 
 	if not app:
 		return lambda d: "public/dist" in d

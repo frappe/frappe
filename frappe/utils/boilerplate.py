@@ -11,10 +11,10 @@ import textwrap
 from pathlib import Path
 
 import click
-import git
 import requests
 
 import frappe
+from frappe.utils import git
 from frappe.utils.change_log import get_app_branch
 
 APP_TITLE_PATTERN = re.compile(r"^(?![\W])[^\d_\s][\w -]+$", flags=re.UNICODE)

@@ -162,32 +162,20 @@ def get_app_versions(include_disabled: bool = False):
 def get_app_branch(app):
 	"""Return branch of an app."""
 	try:
-		with open(os.devnull, "wb") as null_stream:
-			result = subprocess.check_output(
-				["git", "-C", f"../apps/{app}", "rev-parse", "--abbrev-ref", "HEAD"],
-				shell=False,
-				stdin=null_stream,
-				stderr=null_stream,
-			)
-		result = safe_decode(result)
-		result = result.strip()
-		return result
+		from frappe.utils.git import Repo
+
+		app_path = frappe.get_app_source_path(app)
+		return Repo(app_path).active_branch.name
 	except Exception:
 		return ""
 
 
 def get_app_last_commit_ref(app):
 	try:
-		with open(os.devnull, "wb") as null_stream:
-			result = subprocess.check_output(
-				["git", "-C", f"../apps/{app}", "rev-parse", "--short=7", "HEAD"],
-				shell=False,
-				stdin=null_stream,
-				stderr=null_stream,
-			)
-		result = safe_decode(result)
-		result = result.strip()
-		return result
+		from frappe.utils.git import Repo
+
+		app_path = frappe.get_app_source_path(app)
+		return Repo(app_path).head.commit.hexsha[:7]
 	except Exception:
 		return ""
 

@@ -8,11 +8,11 @@ import unittest
 from io import StringIO
 from unittest.mock import patch
 
-import git
 import yaml
 
 import frappe
 from frappe.modules.patch_handler import get_all_patches, parse_as_configfile
+from frappe.utils import git
 from frappe.utils.boilerplate import (
 	PatchCreator,
 	_create_app_boilerplate,

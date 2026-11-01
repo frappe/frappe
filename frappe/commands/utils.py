@@ -963,11 +963,9 @@ def set_config(context: CliCtxObj, key, value, global_=False, parse=False):
 )
 def get_version(output):
 	"""Show the versions of all the installed apps."""
-	from git import Repo
-	from git.exc import InvalidGitRepositoryError
-
 	from frappe.utils.change_log import get_app_branch
 	from frappe.utils.commands import render_table
+	from frappe.utils.git import InvalidGitRepositoryError, Repo
 
 	frappe.init("")
 	data = []
