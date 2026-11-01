@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import base64
+import errno
 from unittest.mock import patch
 
 import frappe
@@ -88,7 +89,7 @@ class TestSkillTransport(SkillFixtures, McpTestCase):
 			directory.json["result"]["resources"][0]["uri"], "skill://frappe/billing/refunds/review/SKILL.md"
 		)
 
-	def test_invalid_params_use_protocol_errors(self):
+	def test_failures_use_protocol_errors(self):
 		for method, params in (
 			("skills/get", {}),
 			("skills/get", {"uri": "skill://frappe/billing/refunds"}),
@@ -102,6 +103,19 @@ class TestSkillTransport(SkillFixtures, McpTestCase):
 				response = self.rpc(method, params)
 				self.assertEqual(response.status_code, 400)
 				self.assertEqual(response.json["error"]["code"], protocol.INVALID_PARAMS)
+		for method, uri in (
+			("resources/read", "skill://frappe/billing/refunds/SKILL.md"),
+			("resources/directory/read", "skill://frappe/billing/refunds"),
+		):
+			with (
+				self.subTest(method=method),
+				patch("frappe.mcp.skill_files.os.open", side_effect=OSError(errno.EIO, "disk failure")),
+			):
+				response = self.rpc(method, {"uri": uri})
+			self.assertEqual(response.status_code, 500)
+			self.assertEqual(
+				response.json["error"], {"code": protocol.INTERNAL_ERROR, "message": "Internal error"}
+			)
 
 	def test_skill_reads_require_authentication(self):
 		for method in (

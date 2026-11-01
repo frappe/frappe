@@ -6,13 +6,14 @@ import base64
 import binascii
 import hashlib
 import mimetypes
+import stat
 from collections.abc import Iterator
 from pathlib import Path
 from urllib.parse import quote, unquote, urlsplit
 
 import frappe
 from frappe.mcp.protocol import INTERNAL_ERROR, INVALID_PARAMS, McpError
-from frappe.mcp.skill_files import MAX_SKILL_BYTES, MAX_SKILL_FILES, SkillFiles, is_hidden
+from frappe.mcp.skill_files import MAX_SKILL_BYTES, MAX_SKILL_FILES, SkillFiles, is_hidden, path_mode
 
 SKILLS_EXTENSION = "io.modelcontextprotocol/skills"
 PAGE_SIZE = 50
@@ -58,7 +59,7 @@ class SkillCatalog:
 	def read_directory(self, uri: str, cursor: str | None = None) -> dict:
 		app, path = self.location(uri)
 		folder = self.apps[app].root / path
-		if not folder.is_dir() or folder.is_symlink():
+		if not stat.S_ISDIR(path_mode(folder)):
 			raise McpError(INVALID_PARAMS, "Unknown skill directory")
 		if self.owner(app, path):
 			resources = [
@@ -119,7 +120,7 @@ class SkillCatalog:
 	def owner(self, app: str, directory: Path) -> Path | None:
 		for length in range(1, len(directory.parts) + 1):
 			parent = Path(*directory.parts[:length])
-			if (self.apps[app].root / parent / "SKILL.md").is_file():
+			if stat.S_ISREG(path_mode(self.apps[app].root / parent / "SKILL.md")):
 				return parent
 		return None
 
@@ -146,8 +147,8 @@ class SkillCatalog:
 		if resource_uri(parsed.netloc, relative) != uri:
 			raise McpError(INVALID_PARAMS, "Skill URI must use its canonical encoding")
 		root = self.apps[parsed.netloc].root
-		if root.is_symlink() or any(
-			(root / Path(*parts[:end])).is_symlink() for end in range(1, len(parts) + 1)
+		if stat.S_ISLNK(path_mode(root)) or any(
+			stat.S_ISLNK(path_mode(root / Path(*parts[:end]))) for end in range(1, len(parts) + 1)
 		):
 			raise McpError(INVALID_PARAMS, "Unknown skill resource")
 		return parsed.netloc, relative

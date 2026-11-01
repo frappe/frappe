@@ -1,6 +1,7 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import errno
 import json
 import os
 import re
@@ -16,6 +17,7 @@ MAX_SKILL_FILES = 512
 MAX_SKILL_BYTES = 16 * 1024 * 1024
 FRONTMATTER = re.compile(r"\A---[ \t]*\r?\n(.*?)\r?\n---[ \t]*(?:\r?\n|\Z)", re.DOTALL)
 SKILL_NAME = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*\Z")
+_UNKNOWN_PATH_ERRORS = (errno.ENOENT, errno.ENOTDIR, errno.ELOOP)
 
 
 class SkillFiles:
@@ -34,7 +36,9 @@ class SkillFiles:
 					if not stat.S_ISREG(os.fstat(file.fileno()).st_mode):
 						raise McpError(INVALID_PARAMS, "Unknown skill resource")
 					content = file.read(limit + 1)
-		except OSError:
+		except OSError as error:
+			if error.errno not in _UNKNOWN_PATH_ERRORS:
+				raise
 			raise McpError(INVALID_PARAMS, "Unknown skill resource") from None
 		if len(content) > limit:
 			raise McpError(INTERNAL_ERROR, "Skill exceeds the 16 MiB size limit", status=500)
@@ -52,7 +56,9 @@ class SkillFiles:
 					if stat.S_ISREG(mode) or stat.S_ISDIR(mode):
 						children.append((relative / name, stat.S_ISDIR(mode)))
 				return children
-		except OSError:
+		except OSError as error:
+			if error.errno not in _UNKNOWN_PATH_ERRORS:
+				raise
 			raise McpError(INVALID_PARAMS, "Unknown skill directory") from None
 
 	def paths(self, relative: Path = Path()) -> list[Path]:
@@ -111,6 +117,15 @@ def raise_scan_error(error: OSError) -> None:
 
 def is_hidden(path: Path) -> bool:
 	return any(part.startswith(".") for part in path.parts)
+
+
+def path_mode(path: Path) -> int:
+	try:
+		return path.lstat().st_mode
+	except OSError as error:
+		if error.errno not in _UNKNOWN_PATH_ERRORS:
+			raise
+		return 0
 
 
 def validate_frontmatter(metadata: dict, directory_name: str) -> None:

@@ -264,3 +264,16 @@ class TestSkillCatalog(SkillFixtures, UnitTestCase):
 			):
 				operation()
 			self.assertIs(caught.exception, failure)
+		for operation in (
+			lambda: self.catalog.read_resource(uri),
+			lambda: self.catalog.read_directory("skill://frappe/billing/refunds"),
+		):
+			for target in ("frappe.mcp.skill_files.os.open", "pathlib.Path.lstat"):
+				failure = OSError(errno.EIO, "Cannot read skill files")
+				with (
+					self.subTest(target=target),
+					patch(target, side_effect=failure),
+					self.assertRaises(OSError) as caught,
+				):
+					operation()
+				self.assertIs(caught.exception, failure)
