@@ -70,6 +70,7 @@ class BackupGenerator:
 		backup_path_db=None,
 		backup_path_files=None,
 		backup_path_private_files=None,
+		backup_path_server_scripts=None,
 		db_socket=None,
 		db_host=None,
 		db_port=None,
@@ -97,6 +98,8 @@ class BackupGenerator:
 		self.backup_path_db = backup_path_db
 		self.backup_path_files = backup_path_files
 		self.backup_path_private_files = backup_path_private_files
+		self.backup_path_server_scripts = backup_path_server_scripts
+		self.has_own_db_path_only = bool(backup_path_db) and not backup_path_server_scripts
 		self.ignore_conf = ignore_conf
 		self.include_doctypes = include_doctypes
 		self.exclude_doctypes = exclude_doctypes
@@ -117,6 +120,7 @@ class BackupGenerator:
 			or self.backup_path_db
 			or self.backup_path_files
 			or self.backup_path_private_files
+			or self.backup_path_server_scripts
 			or self.backup_path_conf
 		)
 
@@ -132,6 +136,7 @@ class BackupGenerator:
 				self.backup_path_files,
 				self.backup_path_db,
 				self.backup_path_private_files,
+				self.backup_path_server_scripts,
 				self.backup_path_conf,
 			}:
 				if file_path:
@@ -232,6 +237,7 @@ class BackupGenerator:
 			and self.backup_path_db
 			and self.backup_path_files
 			and self.backup_path_private_files
+			and self.backup_path_server_scripts
 		):
 			self.set_backup_file_name()
 
@@ -242,6 +248,8 @@ class BackupGenerator:
 				self.delete_if_step_fails(
 					self.backup_files, self.backup_path_files, self.backup_path_private_files
 				)
+			if not (self.has_own_db_path_only and ignore_files):
+				self.delete_if_step_fails(self.backup_server_scripts, self.backup_path_server_scripts)
 
 			if frappe.get_system_settings("encrypt_backup"):
 				self.backup_encryption()
@@ -250,6 +258,7 @@ class BackupGenerator:
 			self.backup_path_files = last_file
 			self.backup_path_db = last_db
 			self.backup_path_private_files = last_private_file
+			self.backup_path_server_scripts = self.get_recent_server_scripts_backup()
 			self.backup_path_conf = site_config_backup_path
 
 	def set_backup_file_name(self):
@@ -262,6 +271,7 @@ class BackupGenerator:
 		for_db = f"{self.todays_date}-{self.site_slug}{partial}-database{enc}.sql.gz"
 		for_public_files = f"{self.todays_date}-{self.site_slug}-files{enc}.{ext}"
 		for_private_files = f"{self.todays_date}-{self.site_slug}-private-files{enc}.{ext}"
+		for_server_scripts = f"{self.todays_date}-{self.site_slug}-server-scripts{enc}.{ext}"
 		backup_path = self.backup_path or get_backup_path()
 
 		if not self.backup_path_conf:
@@ -272,6 +282,8 @@ class BackupGenerator:
 			self.backup_path_files = os.path.join(backup_path, for_public_files)
 		if not self.backup_path_private_files:
 			self.backup_path_private_files = os.path.join(backup_path, for_private_files)
+		if not self.backup_path_server_scripts:
+			self.backup_path_server_scripts = os.path.join(backup_path, for_server_scripts)
 
 	def backup_encryption(self):
 		"""
@@ -280,9 +292,14 @@ class BackupGenerator:
 		if which("gpg") is None:
 			click.secho("Please install `gpg` and ensure its available in your PATH", fg="red")
 			sys.exit(1)
-		paths = (self.backup_path_db, self.backup_path_files, self.backup_path_private_files)
+		paths = (
+			self.backup_path_db,
+			self.backup_path_files,
+			self.backup_path_private_files,
+			self.backup_path_server_scripts,
+		)
 		for path in paths:
-			if os.path.exists(path):
+			if path and os.path.exists(path):
 				cmd_string = "gpg --yes --passphrase {passphrase} --pinentry-mode loopback -c {filelocation}"
 				try:
 					command = cmd_string.format(
@@ -344,6 +361,12 @@ class BackupGenerator:
 			recent_backups.get("config"),
 		)
 
+	def get_recent_server_scripts_backup(self):
+		suffix = "-enc" if frappe.get_system_settings("encrypt_backup") else ""
+		pattern = os.path.join(get_backup_path(), f"*-{self.site_slug}-server-scripts{suffix}.tar")
+		backups = glob(pattern)
+		return max(backups, key=os.path.getmtime) if backups else None
+
 	def zip_files(self):
 		# For backwards compatibility - pre v13
 		click.secho(
@@ -378,6 +401,12 @@ class BackupGenerator:
 				}
 			)
 
+		if self.backup_path_server_scripts and os.path.exists(self.backup_path_server_scripts):
+			summary["server_scripts"] = {
+				"path": self.backup_path_server_scripts,
+				"size": get_file_size(self.backup_path_server_scripts, format=True),
+			}
+
 		return summary
 
 	def print_summary(self):
@@ -395,27 +424,34 @@ class BackupGenerator:
 		for folder in ("public", "private"):
 			files_path = frappe.get_site_path(folder, "files")
 			backup_path = self.backup_path_files if folder == "public" else self.backup_path_private_files
+			self.archive_folder(files_path, backup_path)
 
-			if self.compress_files:
-				cmd_string = "set -o pipefail; tar cf - {1} | gzip > {0}"
-			else:
-				cmd_string = "tar -cf {0} {1}"
+	def backup_server_scripts(self):
+		scripts_path = frappe.get_site_path("server_scripts")
+		if os.path.isdir(scripts_path):
+			self.archive_folder(scripts_path, self.backup_path_server_scripts)
 
-			try:
-				frappe.utils.execute_in_shell(
-					cmd_string.format(backup_path, files_path),
-					verbose=self.verbose,
-					low_priority=True,
-					check_exit_code=True,
+	def archive_folder(self, folder_path, backup_path):
+		if self.compress_files:
+			cmd_string = "set -o pipefail; tar cf - {1} | gzip > {0}"
+		else:
+			cmd_string = "tar -cf {0} {1}"
+
+		try:
+			frappe.utils.execute_in_shell(
+				cmd_string.format(backup_path, folder_path),
+				verbose=self.verbose,
+				low_priority=True,
+				check_exit_code=True,
+			)
+		except frappe.CommandFailedError as e:
+			if e.err and "file changed as we read it" in e.err:
+				click.secho(
+					"Ignoring `tar: file changed as we read it` to prevent backup failure",
+					fg="red",
 				)
-			except frappe.CommandFailedError as e:
-				if e.err and "file changed as we read it" in e.err:
-					click.secho(
-						"Ignoring `tar: file changed as we read it` to prevent backup failure",
-						fg="red",
-					)
-				else:
-					raise e
+			else:
+				raise e
 
 	def copy_site_config(self):
 		site_config_backup_path = self.backup_path_conf
@@ -859,4 +895,5 @@ def backup(
 		"backup_path_db": odb.backup_path_db,
 		"backup_path_files": odb.backup_path_files,
 		"backup_path_private_files": odb.backup_path_private_files,
+		"backup_path_server_scripts": odb.backup_path_server_scripts,
 	}
