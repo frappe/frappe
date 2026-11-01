@@ -846,3 +846,24 @@ frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 			f.write("# orphan\n")
 		delete_file_script("test_orphan_file")
 		self.assertFalse(os.path.exists(path))
+
+	def test_only_administrator_can_switch_script_to_file(self):
+		user = frappe.get_doc("User", "test@example.com")
+		user.add_roles("Script Manager")
+		self.addCleanup(user.remove_roles, "Script Manager")
+		script = frappe.get_doc(
+			doctype="Server Script",
+			name="test_switch_needs_admin",
+			script_type="DocType Event",
+			script_source="Database",
+			reference_doctype="ToDo",
+			doctype_event="Before Insert",
+			script="doc.status = 'Closed'",
+		).insert()
+		self.addCleanup(script.delete)
+
+		with self.set_user("test@example.com"):
+			script.script_source = "File"
+			with self.assertRaises(frappe.PermissionError):
+				script.save()
+		self.assertEqual(frappe.db.get_value("Server Script", script.name, "script_source"), "Database")

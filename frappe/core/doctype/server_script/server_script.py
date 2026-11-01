@@ -134,6 +134,8 @@ class ServerScript(Document):
 		if was_file and self.script_source != "File":
 			frappe.throw(_("A File script cannot be switched back to Database"))
 		if not was_file and self.script_source == "File":
+			if frappe.session.user != "Administrator":
+				frappe.throw(_("Only Administrator can switch a script to File"), frappe.PermissionError)
 			path = self.get_file_path()
 			if os.path.exists(path):
 				frappe.throw(_("{0} already exists. Remove it before switching to File").format(path))
