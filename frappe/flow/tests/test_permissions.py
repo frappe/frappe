@@ -80,6 +80,7 @@ class TestFlowAccess(IntegrationTestCase):
 			"list_sessions": {},
 			"run": {"session": session.name, "message": "hi"},
 			"resume": {"session": session.name, "answers": "{}"},
+			"screen_result": {"session": session.name, "token": "t", "error": "x"},
 			"abort": {"session": session.name},
 			"cancel_pending": {"session": session.name},
 			"rewind": {"session": session.name, "target_seq": 0},

@@ -12,10 +12,10 @@
 	>
 		<template v-if="!sidebarOpen && !history">
 			<button class="flow-icon-btn" title="Show sidebar" @click="emit('open-sidebar')">
-				<span class="lucide-panel-left size-3.5" aria-hidden="true" />
+				<span class="lucide-panel-left size-4" aria-hidden="true" />
 			</button>
 			<button v-if="started" class="flow-icon-btn" title="New chat" @click="flow.startNewChat()">
-				<span class="lucide-plus size-3.5" aria-hidden="true" />
+				<span class="lucide-plus size-4" aria-hidden="true" />
 			</button>
 		</template>
 
@@ -30,8 +30,9 @@
 			<span class="min-w-0 truncate font-medium text-ink-gray-9" :class="layout.phone ? 'text-md' : 'text-base'">{{ title }}</span>
 		</div>
 
+		<!-- by the title in a narrow frame; a wide one keeps it with the buttons at the end -->
 		<ChatMenu
-			v-if="menu || menuActions.length"
+			v-if="hasMenu && layout.narrow"
 			:session-id="menu ? flow.state.sessionId : null"
 			:title="title"
 			:actions="menuActions"
@@ -73,22 +74,33 @@
 
 			<ChatHistory v-if="history" />
 			<button v-if="history && started" class="flow-icon-btn" title="New chat" @click="flow.startNewChat()">
-				<span class="lucide-plus size-3.5" aria-hidden="true" />
+				<span class="lucide-plus size-4" aria-hidden="true" />
 			</button>
 			<Dropdown v-if="history && manage" align="end" :options="manageOptions">
 				<template #trigger>
 					<button class="flow-icon-btn" title="Manage">
-						<span class="lucide-settings size-3.5" aria-hidden="true" />
+						<span class="lucide-settings size-4" aria-hidden="true" />
 					</button>
 				</template>
 			</Dropdown>
+			<ChatMenu
+				v-if="hasMenu && !layout.narrow"
+				:session-id="menu ? flow.state.sessionId : null"
+				:title="title"
+				:actions="menuActions"
+				align="end"
+			>
+				<button class="flow-icon-btn flex-none" title="Chat options">
+					<span class="lucide-ellipsis size-4" aria-hidden="true" />
+				</button>
+			</ChatMenu>
 			<button
 				v-if="workspace && !workspaceOpen"
 				class="flow-icon-btn ml-2"
 				title="Open panel"
 				@click="flow.setWorkspaceOpen(true)"
 			>
-				<span class="lucide-panel-left size-3.5 -scale-x-100" aria-hidden="true" />
+				<span class="lucide-panel-left size-4 -scale-x-100" aria-hidden="true" />
 			</button>
 			<slot name="end" />
 		</span>
@@ -163,6 +175,7 @@ const menuActions = computed(() => [
 		: []),
 	...props.actions,
 ])
+const hasMenu = computed(() => menu.value || menuActions.value.length > 0)
 const manageOptions = computed(() => [
 	...(props.nav.length ? [{ group: "nav", hideLabel: true, options: props.nav }] : []),
 	{

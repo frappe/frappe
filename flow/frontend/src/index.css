@@ -42,8 +42,8 @@ body {
 }
 
 /* frappe-ui's base asks Inter's variable face for its display cut ("opsz" 24) on these
-   elements; the harness web app loads a static Inter without that axis, so pin the text
-   cut to render the shared components alike (the display cut is ~5% narrower) */
+   elements; pin the text cut, as the harness web app does, so the shared components
+   render alike (the display cut is ~5% narrower) */
 html,
 body,
 button,

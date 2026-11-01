@@ -3,7 +3,7 @@ import test from "node:test"
 import { ref } from "vue"
 
 import { FlowAPIError } from "../src/client.js"
-import { layout } from "../src/layout.js"
+import { chatFontWeight, layout } from "../src/layout.js"
 import { createFlowStore, MAX_ATTACHMENTS } from "../src/store.js"
 import { applyEvent } from "../src/transcript.js"
 
@@ -1071,7 +1071,7 @@ test("saved state lives under the host's storage key and keeps only what differs
 
 		// a change the daemon missed goes to it at the next load, over the copy it has
 		daemon.away = true
-		other.setChatFontWeight(300)
+		other.setChatFontWeight(360)
 		t.mock.timers.tick(500)
 		await settled()
 		daemon.away = false
@@ -1080,18 +1080,18 @@ test("saved state lives under the host's storage key and keeps only what differs
 		await settled()
 		const reloaded = createFlowStore(client, { storageKey: "flow.ui:other", colorScheme: otherScheme })
 		await settled()
-		assert.deepEqual([reloaded.state.prefs.chatFontWeight, reloaded.state.prefs.chatFontSize], [300, 20])
-		assert.equal(daemon.settings.chatFontWeight, 300)
+		assert.deepEqual([reloaded.state.prefs.chatFontWeight, reloaded.state.prefs.chatFontSize], [360, 20])
+		assert.equal(daemon.settings.chatFontWeight, 360)
 
 		// a setting put back to its default goes as null, so every browser follows the default again
-		reloaded.setChatFontWeight(450)
+		reloaded.setChatFontWeight(420)
 		t.mock.timers.tick(500)
 		await settled()
 		assert.equal(daemon.settings.chatFontWeight, null)
 		assert.equal("chatFontWeight" in JSON.parse(backing.get("flow.ui:other.prefs")), false)
 		const firstAgain = createFlowStore(client, { storageKey: "flow.ui:site:user", colorScheme: scheme("dark") })
 		await settled()
-		assert.equal(firstAgain.state.prefs.chatFontWeight, 450)
+		assert.equal(firstAgain.state.prefs.chatFontWeight, 420)
 		assert.equal("chatFontWeight" in JSON.parse(backing.get("flow.ui:site:user.prefs")), false)
 	} finally {
 		globalThis.localStorage = previousStorage
@@ -1796,4 +1796,8 @@ test("a compaction takes steering away as soon as it's asked for; a refused one 
 	await asked
 	assert.equal(flow.state.conversation.compacting, false)
 	flow.detach()
+})
+
+test("a chat font weight saved before the choices changed takes the nearest one, and none the default", () => {
+	assert.deepEqual([300, 450, 500, 360, undefined].map(chatFontWeight), [360, 420, 500, 360, 420])
 })

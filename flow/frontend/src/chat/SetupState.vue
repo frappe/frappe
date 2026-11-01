@@ -20,12 +20,7 @@
 					<template #prefix><span :class="ring">2</span></template>
 				</Button>
 			</template>
-			<Button
-				v-else
-				variant="solid"
-				label="Enable an agent"
-				@click="router.push('/agents')"
-			/>
+			<Button v-else variant="solid" label="Enable an agent" @click="open('agents')" />
 		</div>
 		<div v-else class="text-sm text-ink-gray-5">Ask an administrator to finish the setup.</div>
 	</div>
@@ -51,9 +46,9 @@ const canManage = computed(() =>
 	hasModels.value ? page.can("Flow Agent", "write") : page.can("Flow Model", "create")
 );
 
-// the done step opens the providers; the launcher's panel opens its provider's form instead
+// settings on a tab; the launcher's panel opens its provider's form in place of the providers
 function open(tab) {
-	if (inPanel) return router.push(`/providers/${page.state.boot.provider}`);
+	if (inPanel && tab === "providers") return router.push(`/providers/${page.state.boot.provider}`);
 	page.state.settingsTab = tab;
 	flow.setSettingsOpen(true);
 }

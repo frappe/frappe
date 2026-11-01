@@ -39,10 +39,16 @@ export function useSlide(open) {
 export const CHAT_FONT_SIZE = { min: 12, max: 22, default: 15 }
 // the chat's text weight; markdown headings are 600, so the choices stop under it
 export const CHAT_FONT_WEIGHT = {
-	default: 450,
+	default: 420,
 	options: [
-		{ label: "Light", value: 300 },
-		{ label: "Regular", value: 450 },
+		{ label: "Light", value: 360 },
+		{ label: "Regular", value: 420 },
 		{ label: "Medium", value: 500 },
 	],
+}
+// a weight saved before the choices changed takes the nearest of them
+export function chatFontWeight(weight) {
+	if (typeof weight !== "number") return CHAT_FONT_WEIGHT.default
+	const off = (option) => Math.abs(option.value - weight)
+	return CHAT_FONT_WEIGHT.options.reduce((best, option) => (off(option) < off(best) ? option : best)).value
 }

@@ -2776,12 +2776,19 @@ test("a header with its sidebar hidden leads with its button and, once the chat 
 	await nextTick()
 	assert.deepEqual([rows(), done], [[], ["settings:true", "s2"]])
 
-	// an open chat's menu, by its title, holds its own items alone
+	// an open chat's menu ends a wide frame's header and sits by the title in a narrow one; it holds
+	// its own items alone
 	flow.state.sessionId = "s2"
 	flow.state.session = { title: "Expense claims" }
 	await nextTick()
 	assert.deepEqual(buttons(hidden), ["Show sidebar", "New chat", "Chat options"])
+	assert.deepEqual(buttons(el), ["Recent chats", "New chat", "Manage", "Chat options"])
+	layout.narrow = true
+	t.after(() => (layout.narrow = false))
+	await nextTick()
 	assert.deepEqual(buttons(el), ["Chat options", "Recent chats", "New chat", "Manage"])
+	layout.narrow = false
+	await nextTick()
 	el.querySelector("button[title='Chat options']").click()
 	await nextTick()
 	assert.deepEqual(items().map((item) => item.textContent), ["Rename", "Delete"])

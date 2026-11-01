@@ -12,7 +12,6 @@ const moduleURL = (code) => `data:text/javascript;base64,${Buffer.from(code).toS
 const real = new Set([
 	"FlowPage.vue",
 	"RecordPage.vue",
-	"RecordList.vue",
 	"RecordForm.vue",
 	"PageHeader.vue",
 	"AgentPicker.vue",

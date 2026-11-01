@@ -17,30 +17,7 @@
 			:chat-in-view="!pageKind"
 			:before-switch="leavePage"
 			@close="store.setSidebarOpen(false)"
-		>
-			<!-- a group under its own heading, spaced as the chats' heading is under it -->
-			<template #nav>
-				<h3
-					v-if="pages.length"
-					class="mt-[7px] flex h-8 items-center pl-2 text-sm font-medium text-ink-gray-5"
-				>
-					Build
-				</h3>
-				<SidebarItem
-					v-for="item in pages"
-					:key="item.key"
-					:icon="item.icon"
-					:route="`/${item.key}`"
-					:active="pageKind === item.key"
-					class="h-8 data-[state=active]:bg-surface-gray-3 data-[state=active]:shadow-none"
-					@click="layout.narrow && store.setSidebarOpen(false)"
-				>
-					<span class="truncate text-base text-ink-gray-8">{{
-						SPECS[item.key].label
-					}}</span>
-				</SidebarItem>
-			</template>
-		</SessionSidebar>
+		/>
 		<div
 			class="flex min-w-0 flex-1 overflow-clip bg-surface-base"
 			:class="inPanel ? '' : 'md:m-1 md:rounded-5 md:shadow-sm'"
@@ -59,7 +36,6 @@
 					:actions="chatActions"
 					:crumb="agentCrumb"
 					:history="noSidebar"
-					:nav="pageLinks"
 					:manage="!inPanel"
 					:beside-navbar="panelHost"
 					:transcript="!inPanel"
@@ -67,10 +43,10 @@
 				>
 					<template v-if="inPanel" #end>
 						<button class="flow-icon-btn" title="Open in new tab" @click="openInTab">
-							<span class="lucide-external-link size-3.5" aria-hidden="true" />
+							<span class="lucide-external-link size-4" aria-hidden="true" />
 						</button>
 						<button class="flow-icon-btn" title="Close" @click="closePanel">
-							<span class="lucide-x size-3.5" aria-hidden="true" />
+							<span class="lucide-x size-4" aria-hidden="true" />
 						</button>
 					</template>
 				</ChatHeader>
@@ -140,7 +116,6 @@
 import { computed, onBeforeUnmount, onMounted, provide, ref, watch } from "vue";
 import { isNavigationFailure, useRoute, useRouter } from "vue-router";
 import { Dialogs, ToastProvider, toast, useColorScheme } from "frappe-ui";
-import SidebarItem from "frappe-ui/src/components/Sidebar/SidebarItem.vue";
 import BrandMark from "@flow/ui-core/components/BrandMark.vue";
 import ChatHeader from "@flow/ui-core/components/ChatHeader.vue";
 import Composer from "@flow/ui-core/components/Composer.vue";
@@ -161,7 +136,7 @@ import { connectSocket } from "../api/socket.js";
 import { createPage } from "../page.js";
 import { inPanel, panelHost } from "../panel.js";
 import RecordPage from "../pages/RecordPage.vue";
-import { FORMS, PAGES } from "../pages/pages.js";
+import { FORMS } from "../pages/pages.js";
 import FlowSettings from "../settings/FlowSettings.vue";
 import { SPECS } from "../settings/specs.js";
 import AgentPalette from "./AgentPalette.vue";
@@ -274,8 +249,8 @@ watch(
 );
 
 // the launcher's panel, and a narrow frame worked by a mouse, have no sidebar: the chat's menu
-// lists the chats, and a narrow tab's gear leads to the pages and settings, which the panel leaves
-// to Desk and the /flow tab. A phone keeps the sidebar as a drawer
+// lists the chats, and a narrow tab's gear leads to settings, which the panel leaves to Desk and
+// the /flow tab. A phone keeps the sidebar as a drawer
 const noSidebar = computed(() => !layout.phone && (layout.narrow || inPanel));
 provide("noSidebar", noSidebar);
 const sidebarOpen = computed(() => !noSidebar.value && store.state.sidebarOpen);
@@ -337,21 +312,11 @@ watch(
 // the route names the open conversation, so links and reloads keep it
 const route = useRoute();
 const router = useRouter();
-// the pages beside the chats, each for whoever may read its records
-const pages = computed(() => PAGES.filter((item) => page.can(SPECS[item.key].doctype, "read")));
-const pageLinks = computed(() =>
-	pages.value.map((item) => ({
-		label: SPECS[item.key].label,
-		icon: item.icon,
-		onClick: () => router.push(`/${item.key}`),
-	}))
-);
-// a setup form has a record's page alone, no list
+// a setup form's record in the chat's place, for whoever may read its records
 const forms = computed(() => FORMS.filter((item) => page.can(SPECS[item.key].doctype, "read")));
 const pageKind = computed(() => {
-	const { kind, record } = route.params;
-	const shown = pages.value.some((item) => item.key === kind);
-	return shown || (record && forms.value.some((item) => item.key === kind)) ? kind : null;
+	const { kind } = route.params;
+	return forms.value.some((item) => item.key === kind) ? kind : null;
 });
 watch(
 	() => store.state.sessionId,
@@ -395,9 +360,8 @@ provide("leavePage", leavePage);
 watch(
 	() => {
 		if (!pageKind.value) return store.state.session?.title;
-		const spec = SPECS[pageKind.value];
 		const { record } = route.params;
-		return !record ? spec.label : record === "new" ? `New ${spec.singular}` : record;
+		return record === "new" ? `New ${SPECS[pageKind.value].singular}` : record;
 	},
 	(title) => (document.title = title ? `${title} · Flow` : "Flow")
 );
