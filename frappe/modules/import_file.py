@@ -169,10 +169,6 @@ def import_file_by_path(
 
 			new_modified_timestamp = doc.get("modified")
 
-			# if db timestamp is newer, hash must have changed, must update db timestamp
-			if is_db_timestamp_latest and doc["doctype"] == "DocType":
-				new_modified_timestamp = now()
-
 			if new_modified_timestamp:
 				update_modified(new_modified_timestamp, doc)
 
