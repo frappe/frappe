@@ -25,6 +25,7 @@ from frappe.utils.safe_exec import (
 	get_safe_globals,
 	is_safe_exec_enabled,
 	safe_exec,
+	safe_exec_flags,
 )
 
 if TYPE_CHECKING:
@@ -108,9 +109,20 @@ class ServerScript(Document):
 	def validate(self):
 		frappe.only_for("Script Manager", True)
 		self.validate_variables()
-		self.check_if_compilable_in_restricted_context()
 		if self.script_source == "File":
 			self.get_file_path()
+			self.script = ""
+			return
+		self.check_if_compilable_in_restricted_context()
+
+	def onload(self):
+		"""Show a File script's body read-only; `validate` blanks it again on save."""
+		if self.script_source != "File":
+			return
+		path = self.get_file_path()
+		self.set_onload("file_path", path)
+		if "Script Manager" in frappe.get_roles() and os.path.exists(path):
+			self.script = Path(path).read_text()
 
 	def on_update(self):
 		self.sync_scheduled_job_type()
@@ -131,8 +143,7 @@ class ServerScript(Document):
 		return frappe.get_site_path("server_scripts", f"{self.name}.py")
 
 	def ensure_file_stub(self):
-		"""Scaffold the backing file on first save. Never overwrites an existing
-		file — this is the only DB-to-filesystem write PoC code makes."""
+		"""Scaffold the backing file on first save. Never overwrites an existing file."""
 		if self.script_source != "File":
 			return
 		path = self.get_file_path()
@@ -156,14 +167,21 @@ class ServerScript(Document):
 		if cached and cached[0] == mtime:
 			return cached[1]
 		with open(path) as f:
-			code = compile(f.read(), f"<server_script_file: {frappe.scrub(self.name)}>", "exec")
+			source = f.read()
+		try:
+			code = compile(source, f"<server_script_file: {frappe.scrub(self.name)}>", "exec")
+		except SyntaxError as e:
+			frappe.throw(
+				_("Server Script {0} has a syntax error in {1}: {2}").format(self.name, path, e),
+				frappe.ValidationError,
+			)
 		_compiled_file_cache[path] = (mtime, code)
 		return code
 
 	def run_script(self, _locals: dict | None = None, restrict_commit_rollback: bool = False):
 		"""Run the body from the DB (restricted) or from its file (raw exec)."""
 		env = ServerScriptEnv(self.variables)
-		if self.script_source == "Database":
+		if self.script_source != "File":
 			# nosemgrep: frappe-codeinjection-eval
 			return safe_exec(
 				self.script,
@@ -179,7 +197,8 @@ class ServerScript(Document):
 		if restrict_commit_rollback:
 			for name in ("commit", "rollback", "add_index"):
 				exec_globals.frappe.db.pop(name, None)
-		exec(self.get_compiled_file_code(), exec_globals, _locals)
+		with safe_exec_flags():
+			exec(self.get_compiled_file_code(), exec_globals, _locals)
 		return exec_globals, _locals
 
 	def get_file_stub_content(self) -> str:

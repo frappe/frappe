@@ -612,3 +612,71 @@ frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 		os.remove(path)
 		with self.assertRaises(frappe.DoesNotExistError):
 			frappe.get_doc(doctype="ToDo", description="file three").insert()
+
+	def test_file_sourced_script_body_is_never_stored_in_db(self):
+		import os
+
+		script = frappe.get_doc(
+			doctype="Server Script",
+			name="test_file_sourced_nodb",
+			script_type="DocType Event",
+			script_source="File",
+			reference_doctype="ToDo",
+			doctype_event="Before Insert",
+			script="frappe.throw('from db')",
+		).insert()
+		self.addCleanup(script.delete)
+		path = script.get_file_path()
+		self.addCleanup(lambda: os.path.exists(path) and os.remove(path))
+		self.assertEqual(script.script, "")
+
+		frappe.db.set_value("Server Script", script.name, "script", "frappe.throw('from db')")
+		script.reload().save()
+		self.assertEqual(script.script, "")
+		self.assertNotIn("from db", open(path).read())
+
+	def test_file_sourced_script_syntax_error_is_reported(self):
+		import os
+
+		script = frappe.get_doc(
+			doctype="Server Script",
+			name="test_file_sourced_syntax",
+			script_type="DocType Event",
+			script_source="File",
+			reference_doctype="ToDo",
+			doctype_event="Before Insert",
+		).insert()
+		self.addCleanup(script.delete)
+		path = script.get_file_path()
+		self.addCleanup(lambda: os.path.exists(path) and os.remove(path))
+		frappe.client_cache.delete_value("server_script_map")
+
+		with open(path, "w") as f:
+			f.write("def broken(:\n")
+		with self.assertRaises(frappe.ValidationError):
+			script.get_compiled_file_code()
+
+	def test_file_sourced_script_onload_shows_file_body(self):
+		import os
+
+		script = frappe.get_doc(
+			doctype="Server Script",
+			name="test_file_sourced_onload",
+			script_type="DocType Event",
+			script_source="File",
+			reference_doctype="ToDo",
+			doctype_event="Before Insert",
+		).insert()
+		self.addCleanup(script.delete)
+		path = script.get_file_path()
+		self.addCleanup(lambda: os.path.exists(path) and os.remove(path))
+
+		with open(path, "w") as f:
+			f.write("doc.status = 'Closed'\n")
+		script = frappe.get_doc("Server Script", script.name)
+		script.run_method("onload")
+		self.assertEqual(script.script, "doc.status = 'Closed'\n")
+		self.assertEqual(script.get_onload("file_path"), path)
+
+		script.save()
+		self.assertEqual(frappe.db.get_value("Server Script", script.name, "script"), "")

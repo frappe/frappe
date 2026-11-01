@@ -26,6 +26,24 @@ frappe.ui.form.on("Server Script", {
 		}, 100);
 
 		frm.trigger("check_safe_exec");
+		frm.trigger("toggle_file_source");
+	},
+
+	script_source(frm) {
+		frm.trigger("toggle_file_source");
+	},
+
+	toggle_file_source(frm) {
+		const is_file = frm.doc.script_source === "File";
+		frm.set_df_property("script", "read_only", is_file ? 1 : 0);
+		if (is_file && frm.doc.__onload?.file_path) {
+			frm.set_intro(
+				__("This script's code lives on the server at {0}. Edit it there.", [
+					frm.doc.__onload.file_path,
+				]),
+				"blue"
+			);
+		}
 	},
 
 	check_safe_exec(frm) {
