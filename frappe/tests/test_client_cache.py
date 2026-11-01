@@ -1,4 +1,8 @@
+import ssl
 import time
+from unittest.mock import patch
+
+import redis
 
 import frappe
 from frappe.tests import IntegrationTestCase
@@ -11,6 +15,30 @@ class TestClientCache(IntegrationTestCase):
 	def setUp(self) -> None:
 		frappe.client_cache.delete_value(TEST_KEY)
 		return super().setUp()
+
+	def test_tls_connection_preserves_client_tracking(self):
+		with (
+			self.set_user("test@example.com"),
+			patch.dict(
+				frappe.conf,
+				{"redis_cache": "rediss://redis.example.com:6380/0?ssl_cert_reqs=required"},
+			),
+			patch.object(frappe.cache, "client_id", return_value=123),
+			patch.object(ClientCache, "run_invalidator_thread"),
+		):
+			cache = ClientCache()
+			self.addCleanup(cache.redis.connection_pool.disconnect)
+			connection = cache.redis.connection_pool.make_connection()
+			self.assertIsInstance(connection, redis.SSLConnection)
+			self.assertEqual(connection.cert_reqs, ssl.CERT_REQUIRED)
+			self.assertEqual(connection.host, "redis.example.com")
+			self.assertEqual(connection.port, 6380)
+			with (
+				patch.object(connection, "send_command") as send_command,
+				patch.object(connection, "read_response", return_value=b"OK"),
+			):
+				connection._enable_client_tracking(connection)
+				send_command.assert_called_once_with("CLIENT", "TRACKING", "ON", "redirect", 123, "NOLOOP")
 
 	def test_client_cache_is_used(self):
 		frappe.client_cache.set_value(TEST_KEY, 42)

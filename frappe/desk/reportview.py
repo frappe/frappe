@@ -52,7 +52,10 @@ def send_compressed_link_titles(args, data):
 	# field to its bare fieldname, so pair the requested fields back up with its key order.
 	if not isinstance(data, dict):
 		return
-	field_info = {info.get("fieldname"): info for info in get_field_info(args.fields, args.doctype)}
+	field_info = {
+		get_result_key(field, info): info
+		for field, info in zip(args.fields, get_field_info(args.fields, args.doctype), strict=True)
+	}
 	columns = [field_info.get(key) for key in data["keys"]]
 	send_link_titles(get_report_link_titles(columns, data["values"]))
 
@@ -349,6 +352,13 @@ def get_parenttype_and_fieldname(field, data):
 		fieldname = field.strip("`")
 
 	return parenttype, fieldname
+
+
+def get_result_key(field: str | dict, info: dict) -> str:
+	"""Return the key a requested field gets in the result: its alias, else its fieldname."""
+	if isinstance(field, str) and " as " in field:
+		return field.split(" as ", 1)[1].strip(" '`\"")
+	return info.get("fieldname")
 
 
 def compress(data, args=None):

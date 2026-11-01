@@ -24,7 +24,7 @@ from frappe.model import OPTIONAL_FIELDS, get_permitted_fields
 from frappe.model.meta import get_table_columns
 from frappe.model.utils import is_virtual_doctype
 from frappe.model.utils.user_settings import get_user_settings, update_user_settings
-from frappe.query_builder.utils import Column
+from frappe.query_builder.utils import Column, render_criterion
 from frappe.types import Filters, FilterSignature, FilterTuple
 from frappe.utils import (
 	cint,
@@ -1176,6 +1176,11 @@ from {tables}
 		condition_methods = hooks.get(self.doctype, []) + hooks.get("*", [])
 		for method in condition_methods:
 			if c := frappe.call(frappe.get_attr(method), self.user, doctype=self.doctype):
+				# Hooks may return a raw SQL string or a pypika term. This path builds a
+				# string WHERE clause, so render any term to namespaced SQL using the
+				# active dialect's identifier quote char.
+				if not isinstance(c, str):
+					c = self._render_permission_criterion(c)
 				conditions.append(c)
 
 		active_child_tables = []
@@ -1194,6 +1199,10 @@ from {tables}
 				conditions.append(condition)
 
 		return " and ".join(conditions) if conditions else ""
+
+	def _render_permission_criterion(self, criterion) -> str:
+		"""Render a pypika permission criterion to a namespaced SQL string."""
+		return f"({render_criterion(criterion)})"
 
 	def set_order_by(self, args):
 		if self.order_by and self.order_by != DefaultOrderBy:

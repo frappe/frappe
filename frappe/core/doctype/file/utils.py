@@ -320,9 +320,9 @@ def update_existing_file_docs(doc: "File") -> None:
 
 def attach_files_to_document(doc: "Document", event) -> None:
 	"""Runs on on_update hook of all documents.
-	Goes through every file linked with the Attach and Attach Image field and attaches
-	the file to the document if not already attached. If no file is found, a new file
-	is created.
+	Goes through every file set or changed in the Attach and Attach Image fields on this save
+	and attaches the file to the document if not already attached. If no file is found, a
+	new file is created.
 	"""
 
 	attach_fields = doc.meta.get("fields", {"fieldtype": ["in", ["Attach", "Attach Image"]]})
@@ -330,6 +330,9 @@ def attach_files_to_document(doc: "Document", event) -> None:
 	for df in attach_fields:
 		# this method runs in on_update hook of all documents
 		# we dont want the update to fail if file cannot be attached for some reason
+		if not doc.has_value_changed(df.fieldname):
+			continue
+
 		value = doc.get(df.fieldname)
 		if not (value or "").startswith(("/files", "/private/files", "http://", "https://")):
 			continue

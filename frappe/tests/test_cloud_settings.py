@@ -158,6 +158,9 @@ class TestCloudSettings(_CloudTestCase):
 			bundle = get_boot_context()["bundle"]
 
 		self.assertEqual(bundle["js"], "https://pilot.example.com/embed/cloud-settings/cloud-settings.js")
+		self.assertEqual(
+			bundle["module"], "https://pilot.example.com/embed/cloud-settings/esm/cloud-settings.js"
+		)
 
 	def test_bundle_embed_url_overrides_with_version(self):
 		conf = {
@@ -175,8 +178,12 @@ class TestCloudSettings(_CloudTestCase):
 			bundle["js"],
 			"https://cdn.example.com/embed/cloud-settings/cloud-settings.js?v=16.0.1",
 		)
+		self.assertEqual(
+			bundle["module"],
+			"https://cdn.example.com/embed/cloud-settings/esm/cloud-settings.js?v=16.0.1",
+		)
 		# The embed renders in a shadow root and adopts its own styles, so the
-		# bundle is one script with no stylesheet for desk to link.
+		# bundle has no stylesheet for desk to link.
 		self.assertNotIn("css", bundle)
 
 	def test_disabled_without_system_manager_role(self):

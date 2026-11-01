@@ -32,6 +32,7 @@ def add(
 	**kwargs,
 ):
 	"""Expose function without flags to the client-side"""
+	validate_user_access(user, _("User"))
 	return add_docshare(
 		doctype,
 		name,
@@ -44,6 +45,16 @@ def add(
 		notify=notify,
 		**kwargs,
 	)
+
+
+def validate_user_access(user: str | None, label: str):
+	"""Raise the same error as for a missing user when User Permissions hide `user` from the caller."""
+	from frappe.core.doctype.user_permission.user_permission import get_user_permissions
+	from frappe.permissions import get_allowed_docs_for_doctype
+
+	allowed = get_allowed_docs_for_doctype(get_user_permissions().get("User", []), "User")
+	if user and allowed and user not in allowed:
+		frappe.throw(_("Could not find {0}").format(f"{label}: {user}"), frappe.LinkValidationError)
 
 
 def add_docshare(
@@ -107,6 +118,8 @@ def set_permission(
 	everyone: str | bool | int = 0,
 ):
 	"""Expose function without flags to the client-side"""
+	if cint(value):
+		validate_user_access(user, _("User"))
 	return set_docshare_permission(doctype, name, user, permission_to, value=value, everyone=everyone)
 
 

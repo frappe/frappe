@@ -1,0 +1,30 @@
+.email-provider-tiles {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: calc(var(--spacing) * 2);
+
+	.es-button {
+		--es-bt-h: calc(var(--spacing) * 11);
+		--es-bt-icon: calc(var(--spacing) * 6);
+		--bt-border-hover: var(--outline-gray-4);
+		justify-content: flex-start;
+
+		img {
+			width: var(--es-bt-icon);
+			height: var(--es-bt-icon);
+			object-fit: contain;
+		}
+
+		svg {
+			margin: 0;
+		}
+
+		&[aria-pressed="true"] {
+			border-color: var(--outline-gray-6);
+		}
+	}
+
+	@media (max-width: 575.98px) {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}

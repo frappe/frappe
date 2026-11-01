@@ -265,7 +265,7 @@ export default class GridRow {
 		} else if (this.show_search) {
 			this.row_check = $(`
 				<div class="row-check col search">
-					<input type="text" class="form-control input-xs text-center invisible">
+					<input type="checkbox" class="invisible" tabindex="-1">
 				</div>`).appendTo(this.row);
 
 			this.row_index = $(
@@ -757,8 +757,12 @@ export default class GridRow {
 		this.columns_list[this.columns_list.length - 1]?.addClass("grid-data-last");
 
 		if (this.show_search) {
-			// last empty column
-			$(`<div class="col grid-static-col search"></div>`).appendTo(this.row);
+			Object.values(this.search_columns).at(-1)?.addClass("grid-data-last");
+
+			// last empty column, matching the header's column configure button
+			if (!(this.grid.df.in_place_edit && !this.frm)) {
+				$(`<div class="col grid-static-col search"></div>`).appendTo(this.row);
+			}
 		}
 
 		// Button has no stored value; static_area stays empty while field_area is hidden until the row

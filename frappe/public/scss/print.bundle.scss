@@ -60,6 +60,14 @@ svg[data-barcode-value] {
 .filter-row div {
 	display: inline-block;
 }
+
+.print-format .table.print-grid {
+	> thead > tr > th,
+	> tbody > tr > td {
+		padding: 4px;
+	}
+}
+
 // prevent <ol> numbering conflicts
 .ql-editor {
 	counter-reset: none;

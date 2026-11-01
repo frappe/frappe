@@ -12,6 +12,7 @@ from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.model.document import Document
 from frappe.translate import print_language
+from frappe.utils import get_link_to_form
 from frappe.utils.jinja import render_template
 from frappe.utils.pdf import get_pdf
 
@@ -63,6 +64,7 @@ def _get_multi_pdf_doc_count(doctype: str | dict[str, list[str]], name: str | li
 
 
 @frappe.whitelist()
+@frappe.concurrent_limit()
 def download_multi_pdf(
 	doctype: str | dict[str, list[str]],
 	name: str | list[str],
@@ -214,6 +216,7 @@ def _download_multi_pdf(
 	from pypdf import PdfWriter
 
 	pdf_writer = PdfWriter()
+	failed = []
 
 	if isinstance(options, str):
 		options = json.loads(options)
@@ -225,7 +228,11 @@ def _download_multi_pdf(
 			return _print_into_writer(print_doctype, print_name)
 
 	def _print_into_writer(print_doctype, print_name):
-		from frappe.utils.print_utils import _print_format_doc_or_none, renders_through_generator
+		from frappe.utils.print_utils import (
+			_print_format_doc_or_none,
+			_run_print_pdf_hooks,
+			renders_through_generator,
+		)
 
 		pf_doc = _print_format_doc_or_none(format)
 		if not renders_through_generator(pf_doc):
@@ -248,6 +255,7 @@ def _download_multi_pdf(
 
 		doc = frappe.get_doc(print_doctype, print_name)
 		validate_print(doc)
+		_run_print_pdf_hooks(print_doctype, print_name, format)
 		if uses_legacy_weasyprint(pf_doc):
 			from frappe.utils.weasyprint import legacy_generator
 
@@ -258,6 +266,13 @@ def _download_multi_pdf(
 				pf_doc, doc, letterhead, no_letterhead=no_letterhead, settings=page_settings(options)
 			)
 			pdf = generator.render_pdf()
+		make_access_log(
+			doctype=doc.doctype,
+			document=doc.name,
+			file_type="PDF",
+			method="Print",
+			page=f"Print Format: {pf_doc.name}",
+		)
 		for page in PdfReader(BytesIO(pdf)).pages:
 			pdf_writer.add_page(page)
 		return pdf_writer
@@ -280,10 +295,7 @@ def _download_multi_pdf(
 					reference_doctype=doctype,
 					reference_name=ss,
 				)
-				if task_id:
-					frappe.publish_realtime(
-						task_id=task_id, message={"message": "Failed"}, user=frappe.session.user
-					)
+				failed.append(get_link_to_form(doctype, ss))
 
 			# Publish progress
 			if task_id:
@@ -313,15 +325,12 @@ def _download_multi_pdf(
 					publish_failure(task_id, e)
 					raise
 				except Exception:
-					if task_id:
-						frappe.publish_realtime(
-							task_id=task_id, message={"message": "Failed"}, user=frappe.session.user
-						)
 					frappe.log_error(
 						title="Error in Multi PDF download",
 						reference_doctype=doctype_name,
 						reference_name=doc_name,
 					)
+					failed.append(get_link_to_form(doctype_name, doc_name))
 
 				count += 1
 
@@ -361,6 +370,15 @@ def _download_multi_pdf(
 			frappe.local.response.filecontent = merged_pdf.getvalue()
 			frappe.local.response.type = "pdf"
 
+	if failed:
+		frappe.msgprint(
+			failed,
+			as_list=True,
+			indicator="red",
+			realtime=True,
+			title=_("Failed to print {0} documents").format(len(failed)),
+		)
+
 
 from frappe.deprecation_dumpster import read_multi_pdf
 
@@ -376,13 +394,10 @@ def download_pdf(
 	no_letterhead: bool | int = 0,
 	language: str | None = None,
 	letterhead: str | None = None,
-	pdf_generator: Literal["wkhtmltopdf", "chrome", "Typst", "WeasyPrint"] | None = None,
+	pdf_generator: Literal["wkhtmltopdf", "chrome", "PlutoPrint", "Typst", "WeasyPrint"] | None = None,
 	style: str | None = None,
 	settings: str | None = None,
 ):
-	if pdf_generator is None:
-		pdf_generator = "wkhtmltopdf"
-
 	doc = doc or frappe.get_doc(doctype, name)
 	validate_print_permission(doc)
 

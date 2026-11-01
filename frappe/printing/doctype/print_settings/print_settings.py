@@ -26,7 +26,7 @@ class PrintSettings(Document):
 		font_size: DF.Float
 		max_bulk_print_docs: DF.Int
 		max_concurrent_bulk_exports: DF.Int
-		pdf_generator: DF.Literal["wkhtmltopdf", "chrome"]
+		pdf_generator: DF.Literal["wkhtmltopdf", "chrome", "PlutoPrint"]
 		pdf_page_height: DF.Float
 		pdf_page_size: DF.Literal[
 			"A0",
@@ -62,6 +62,7 @@ class PrintSettings(Document):
 			"Custom",
 		]
 		pdf_page_width: DF.Float
+		print_generated_pdf: DF.Check
 		print_style: DF.Link | None
 		repeat_header_footer: DF.Check
 		send_print_as_pdf: DF.Check

@@ -20,3 +20,48 @@ test.describe("Dashboard Chart", () => {
 		await page.locator(".modal-actions .btn-modal-close").click();
 	});
 });
+
+test.describe("Dashboard Chart custom options", () => {
+	const CHART = "TEST-CUSTOM-OPTIONS";
+	const DASHBOARD = "TEST-CUSTOM-OPTIONS-DASHBOARD";
+
+	test.beforeAll(async ({ admin }) => {
+		await admin.create_records({ doctype: "ToDo", description: "custom options" });
+		await admin.insert_doc(
+			"Dashboard Chart",
+			{
+				is_standard: 0,
+				chart_name: CHART,
+				chart_type: "Count",
+				document_type: "ToDo",
+				based_on: "creation",
+				filters_json: "[]",
+				custom_options: '{"__proto__": {"valuesOverPoints": 1}}',
+			},
+			true
+		);
+		await admin.insert_doc(
+			"Dashboard",
+			{
+				name: DASHBOARD,
+				dashboard_name: DASHBOARD,
+				is_standard: 0,
+				charts: [{ chart: CHART }],
+			},
+			true
+		);
+	});
+
+	test("custom options leave other objects untouched", async ({ page }) => {
+		await page.goto(`/desk/dashboard-view/${DASHBOARD}`);
+		await expect(
+			page
+				.locator(".dashboard-widget-box")
+				.filter({ hasText: CHART })
+				.locator(".frappe-island canvas, .frappe-island svg, svg.frappe-chart")
+				.first()
+		).toBeVisible();
+
+		expect(await page.evaluate(() => ({}.valuesOverPoints))).toBeUndefined();
+	});
+});

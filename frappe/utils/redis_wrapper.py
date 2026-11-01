@@ -458,6 +458,10 @@ class _TrackedConnection(_ClientTrackingMixin, redis.Connection):
 	pass
 
 
+class _TrackedSSLConnection(_ClientTrackingMixin, redis.SSLConnection):
+	pass
+
+
 class _TrackedUnixDomainSocketConnection(_ClientTrackingMixin, redis.UnixDomainSocketConnection):
 	pass
 
@@ -539,9 +543,12 @@ class ClientCache:
 			return
 
 		redis_url = frappe.conf.get("redis_cache") or ""
-		connection_class = (
-			_TrackedUnixDomainSocketConnection if redis_url.startswith("unix://") else _TrackedConnection
-		)
+		if redis_url.startswith("unix://"):
+			connection_class = _TrackedUnixDomainSocketConnection
+		elif redis_url.startswith("rediss://"):
+			connection_class = _TrackedSSLConnection
+		else:
+			connection_class = _TrackedConnection
 		self.redis: RedisWrapper = RedisWrapper.from_url(
 			redis_url,
 			connection_class=connection_class,

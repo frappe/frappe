@@ -85,7 +85,7 @@ def get_settings_map(doctype: str) -> list[dict]:
 		fields = []
 		for fieldname in fieldnames:
 			df = single_meta.get_field(fieldname)
-			if not df:
+			if not df or df.fieldtype in no_value_fields:
 				continue
 			permlevel = df.permlevel or 0
 			# Skip fields the user can't read at their permlevel.

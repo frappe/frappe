@@ -1937,7 +1937,7 @@ def update_doc_index(doc: Document, method=None):
 		search = SearchClass()
 
 		if not (search.is_search_enabled() and search.index_exists()):
-			return
+			continue
 
 		for doctype, config in search.doc_configs.items():
 			if doc.doctype == doctype:
@@ -1963,7 +1963,7 @@ def delete_doc_index(doc: Document, method=None):
 		search = SearchClass()
 
 		if not (search.is_search_enabled() and search.index_exists()):
-			return
+			continue
 
 		for doctype, config in search.doc_configs.items():
 			if doc.doctype == doctype:
