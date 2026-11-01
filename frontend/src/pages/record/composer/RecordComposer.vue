@@ -9,7 +9,7 @@
 		class="pointer-events-none absolute inset-x-0 bottom-4 z-10 px-6"
 		data-record-composer
 	>
-		<div class="mx-auto w-full max-w-3xl">
+		<div ref="lane" class="mx-auto w-full max-w-3xl">
 			<div ref="dock" data-composer-dock />
 			<ComposerPill
 				v-if="!docked"
@@ -53,6 +53,7 @@ const props = defineProps<{
 
 const feeds = inject(RecordFeedsKey, null);
 const band = ref<HTMLElement | null>(null);
+const lane = ref<HTMLElement | null>(null);
 const dock = ref<HTMLElement | null>(null);
 const { height } = useElementSize(band, undefined, { box: "border-box" });
 
@@ -86,7 +87,8 @@ watch([dock, page], ([element, { doctype, docname }], _old, onCleanup) => {
 	if (element) onCleanup(registerComposerDock(doctype, docname, element));
 });
 
-watch(band, (element, _old, onCleanup) => {
+// The lane, not the full-width band: the standing windows rise only over what it draws.
+watch(lane, (element, _old, onCleanup) => {
 	if (element) onCleanup(registerComposerBand(element));
 });
 

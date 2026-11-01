@@ -55,7 +55,7 @@
 							:label="__('Minimise')"
 							:tooltip="__('Minimise')"
 							data-standing-minimise
-							@click="entry.handle.minimise()"
+							@click="minimise"
 						/>
 						<Button
 							v-if="entry.closable"
@@ -80,7 +80,7 @@
 		v-show="entry.state === 'minimised'"
 		class="pointer-events-auto flex h-10 max-w-[400px] cursor-pointer items-center gap-2 rounded-full border border-outline-gray-2 bg-surface-elevation-1 pl-3.5 pr-1.5 shadow-2xl"
 		:data-standing-minimised="entry.app"
-		@click="entry.handle.open()"
+		@click="restore"
 	>
 		<span
 			v-if="entry.icon"
@@ -90,6 +90,7 @@
 		/>
 		<Tooltip :text="entry.title">
 			<button
+				ref="restoreButton"
 				type="button"
 				class="min-w-0 truncate rounded-2 text-base font-medium text-ink-gray-8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
 				:aria-label="__('Restore {0}', [entry.title])"
@@ -117,6 +118,7 @@
 </template>
 
 <script setup lang="ts">
+import { nextTick, ref } from "vue";
 import { Button, Tooltip } from "frappe-ui";
 import { FloatingWindow } from "frappe-ui/experimental";
 import { __ } from "@/i18n";
@@ -129,6 +131,24 @@ const props = defineProps<{ entry: StandingWindow; shell: Shell; maxHeight: numb
 const DIVIDER_WIDTH = 280;
 
 const titleId = `standing-window-title-${props.entry.app}`;
+const restoreButton = ref<HTMLButtonElement | null>(null);
+
+// Focus follows only the user's own click; the app's open() and minimise() never move it.
+async function minimise() {
+	props.entry.handle.minimise();
+	await nextTick();
+	restoreButton.value?.focus();
+}
+
+async function restore() {
+	props.entry.handle.open();
+	await nextTick();
+	document
+		.querySelector<HTMLElement>(
+			`[data-standing-window="${props.entry.app}"] [data-standing-minimise]`
+		)
+		?.focus();
+}
 
 async function run(action: StandingWindowAction) {
 	try {

@@ -331,6 +331,28 @@ describe("shell.window", () => {
 		expect(document.activeElement).toBe(note);
 	});
 
+	it("moves focus to the pill or the frame only after the user's own click", async () => {
+		const handle = await attached();
+		handle.open();
+		await nextTick();
+
+		frame().querySelector<HTMLElement>("[data-standing-minimise]")!.click();
+		await flush();
+		expect(document.activeElement).toBe(pill().querySelector("[data-standing-restore]"));
+
+		pill().click();
+		await flush();
+		expect(document.activeElement).toBe(frame().querySelector("[data-standing-minimise]"));
+
+		const field = document.body.appendChild(document.createElement("input"));
+		field.focus();
+		handle.minimise();
+		await flush();
+		handle.open();
+		await flush();
+		expect(document.activeElement).toBe(field);
+	});
+
 	it("warns at a second call from the same app and ignores it", async () => {
 		const handles: unknown[] = [];
 		ship("crm", (shell) => {
@@ -389,7 +411,9 @@ describe("the row", () => {
 	const row = () => document.querySelector<HTMLElement>("[data-standing-row]")!;
 	const at = (rect: Partial<DOMRect>) => {
 		const element = document.body.appendChild(document.createElement("div"));
-		element.getBoundingClientRect = () => ({ left: 0, top: 0, width: 0, height: 0, ...rect }) as DOMRect;
+		const { left = 0, top = 0, width = 0, height = 0 } = rect;
+		const box = { left, top, width, height, right: left + width, bottom: top + height };
+		element.getBoundingClientRect = () => box as DOMRect;
 		return element;
 	};
 
@@ -413,12 +437,36 @@ describe("the row", () => {
 
 	it("rises 12px above the page's composer band", async () => {
 		await attached();
-		const release = registerComposerBand(at({ top: innerHeight - 76, height: 60 }));
+		const release = registerComposerBand(
+			at({ left: 0, width: innerWidth, top: innerHeight - 76, height: 60 })
+		);
 		await flush();
 		expect(row().style.bottom).toBe("88px");
 
 		release();
 		await flush();
 		expect(row().style.bottom).toBe("24px");
+	});
+
+	it("stays above the band's line when the band lies wholly to its left", async () => {
+		await attached();
+		row().getBoundingClientRect = () => ({ left: innerWidth - 304, width: 280 }) as DOMRect;
+		window.dispatchEvent(new Event("resize"));
+		const release = registerComposerBand(
+			at({ left: 100, width: 600, top: innerHeight - 76, height: 60 })
+		);
+		await flush();
+		expect(row().style.bottom).toBe("24px");
+		release();
+	});
+
+	it("stops at the shell's left margin when the composer is dragged far left", async () => {
+		await attached();
+		row().getBoundingClientRect = () => ({ left: 0, width: 280 }) as DOMRect;
+		window.dispatchEvent(new Event("resize"));
+		const release = registerFloatingComposer(at({ left: 40, width: 460, top: 100 }));
+		await flush();
+		expect(row().style.right).toBe(`${innerWidth - 24 - 280}px`);
+		release();
 	});
 });
