@@ -709,11 +709,19 @@ class TestAmendCopyV2(FrappeAPITestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
+		cls.doctype_name = "Test Amend Copy V2"
+		frappe.delete_doc_if_exists("DocType", cls.doctype_name, force=True)
 		cls.doctype = new_doctype(
+			cls.doctype_name,
 			is_submittable=1,
 			fields=[
 				{"label": "Title", "fieldname": "title_text", "fieldtype": "Data", "no_copy": 1},
-				{"label": "Amended From", "fieldname": "amended_from", "fieldtype": "Link", "options": "self"},
+				{
+					"label": "Amended From",
+					"fieldname": "amended_from",
+					"fieldtype": "Link",
+					"options": cls.doctype_name,
+				},
 				{"label": "Amendment Date", "fieldname": "amendment_date", "fieldtype": "Date"},
 			],
 			permissions=[
@@ -721,7 +729,6 @@ class TestAmendCopyV2(FrappeAPITestCase):
 				{"role": "Desk User", "read": 1},
 			],
 		).insert()
-		cls.doctype_name = cls.doctype.name
 		cls.reader = "amend.reader@example.com"
 		if not frappe.db.exists("User", cls.reader):
 			user = frappe.get_doc(

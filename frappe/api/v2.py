@@ -772,7 +772,13 @@ url_rules = [
 	Rule("/document/<doctype>/bulk_delete", methods=["POST"], endpoint=bulk_delete_docs),
 	Rule("/document/<doctype>/bulk_update", methods=["POST"], endpoint=bulk_update_docs),
 	Rule("/document/<doctype>/<path:name>/", methods=["GET"], endpoint=read_doc),
-	Rule("/document/<doctype>/<path:name>/copy", methods=["GET"], endpoint=copy_doc),
+	Rule(
+		"/document/<doctype>/<path:name>/copy",
+		methods=["GET"],
+		endpoint=lambda doctype, name: copy_doc(
+			doctype, name, amend=bool(cint(frappe.form_dict.get("amend")))
+		),
+	),
 	Rule("/document/<doctype>/<path:name>/", methods=["PATCH", "PUT"], endpoint=update_doc),
 	Rule("/document/<doctype>/<path:name>/", methods=["DELETE"], endpoint=delete_doc),
 	Rule(
