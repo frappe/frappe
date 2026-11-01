@@ -474,10 +474,7 @@ describe("the row", () => {
 		release();
 	});
 
-	/**
-	 * The Flow launcher: a custom element whose shadow root holds the button, 44px by default at the bottom
-	 * right, and the panel, closed (inert) and floating until a test docks it.
-	 */
+	/** The Flow launcher: its shadow root holds the button, 44px at the bottom right, and the closed panel. */
 	const launcher = (rect: Partial<DOMRect> = {}) => {
 		const host = document.body.appendChild(document.createElement("flow-launcher"));
 		const root = host.attachShadow({ mode: "open" });
@@ -492,7 +489,6 @@ describe("the row", () => {
 		panel.dataset.mode = "float";
 		return { host, icon, panel };
 	};
-	/** Opens the panel docked on the right, `width` wide, as the launcher does, and hides the button. */
 	const dockRight = (panel: HTMLElement, icon: HTMLElement, width = 420) => {
 		panel.getBoundingClientRect = () => ({ left: innerWidth - width, right: innerWidth, width }) as DOMRect;
 		icon.hidden = true;
@@ -630,6 +626,18 @@ describe("the row", () => {
 			}) as DOMRect;
 		await flush();
 		expect(row().style.right).toBe("72px");
+	});
+
+	it("follows a window resize while the panel is docked", async () => {
+		const { icon, panel } = launcher();
+		dockRight(panel, icon);
+		await attached();
+		expect(row().style.right).toBe("432px");
+
+		panel.getBoundingClientRect = () => ({ left: innerWidth - 640, width: 640 }) as DOMRect;
+		window.dispatchEvent(new Event("resize"));
+		await flush();
+		expect(row().style.right).toBe("652px");
 	});
 
 	it("sits left of a floating composer that is further left than the docked panel", async () => {

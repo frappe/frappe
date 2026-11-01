@@ -1,6 +1,4 @@
-// The Flow launcher's round button and docked side panel. It is not shell code: a custom element in
-// `document.body` whose shadow root holds the button, which a drag moves by its `style`, and the panel,
-// which marks its dock by `data-mode` and its closed or minimised state by `inert`.
+// The Flow launcher's button and docked panel: a custom element in `document.body` whose shadow root holds both.
 import { onBeforeUnmount, onMounted, shallowRef, type Ref } from "vue";
 import { useEventListener } from "@vueuse/core";
 
