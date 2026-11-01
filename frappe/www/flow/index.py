@@ -7,7 +7,6 @@ into it."""
 from urllib.parse import urlencode
 
 import frappe
-from frappe import _
 
 no_cache = 1
 
@@ -25,14 +24,6 @@ def get_context(context):
 	context.island_css = assets.get(f"{ISLAND}.island.css")
 	context.boot = get_boot()
 	return context
-
-
-@frappe.whitelist(methods=["POST"], allow_guest=True)  # nosemgrep: guest-whitelisted-method
-def get_context_for_dev():
-	"""The same boot data for the Vite dev server, which cannot render the page template."""
-	if not frappe.conf.developer_mode:
-		frappe.throw(_("Only available in developer mode."), frappe.PermissionError)
-	return get_boot()
 
 
 def get_boot() -> dict:

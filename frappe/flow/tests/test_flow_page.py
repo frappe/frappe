@@ -11,7 +11,6 @@ from frappe.flow.permissions import FLOW_USER_ROLE, ensure_flow_role
 from frappe.flow.tests.test_permissions import _user
 from frappe.tests import IntegrationTestCase
 from frappe.utils import set_request
-from frappe.www.flow import index
 
 
 class TestFlowPage(IntegrationTestCase):
@@ -54,7 +53,7 @@ class TestFlowPage(IntegrationTestCase):
 		frappe.set_user(member)
 		self.assertRegex(
 			page("/desk/user"),
-			r'<p>page</p><script src="[^"]+flow_launcher\.bundle[^"]*" defer></script></body>',
+			r'<p>page</p><script src="[^"]+flow_launcher\.bundle[^"]*" defer data-island="[^"]*" data-island-css="[^"]*"></script></body>',
 		)
 		# not on the website, nor on /flow itself
 		self.assertNotIn("flow_launcher", page("/about"))
@@ -64,9 +63,3 @@ class TestFlowPage(IntegrationTestCase):
 			frappe.set_user(user)
 			self.assertNotIn("flow_launcher", page("/desk/user"))
 
-	def test_the_dev_boot_needs_developer_mode(self):
-		with patch.dict(frappe.local.conf, {"developer_mode": 0}):
-			with self.assertRaises(frappe.PermissionError):
-				index.get_context_for_dev()
-		with patch.dict(frappe.local.conf, {"developer_mode": 1}):
-			self.assertIn("flow_boot", index.get_context_for_dev())

@@ -39,7 +39,7 @@ await buildIslands({
 	// framework's own islands own frappe/dist/island
 	subdir: "flow",
 	entries: { "frappe.flow.chat": "frontend/src/island.js" },
-	budget: 3 * 1024 * 1024,
+	budget: 1.5 * 1024 * 1024,
 	plugins: [sourceImports, containerQueries],
 	production: process.argv.includes("--production"),
 	watch: process.argv.includes("--watch"),
