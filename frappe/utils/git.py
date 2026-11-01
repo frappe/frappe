@@ -16,16 +16,19 @@ import rusty_git
 
 class InvalidGitRepositoryError(rusty_git.GitRepositoryError):
 	"""Raised when a directory does not appear to be a valid git repository."""
+
 	pass
 
 
 class NoSuchPathError(Exception):
 	"""Raised when a specified repository path does not exist."""
+
 	pass
 
 
 class GitCommandError(Exception):
 	"""Raised when a git command or operation fails."""
+
 	def __init__(self, command, status=1, stderr=None, stdout=None):
 		self.command = command
 		self.status = status
