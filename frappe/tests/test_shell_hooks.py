@@ -48,11 +48,18 @@ class TestShellHooks(IntegrationTestCase):
 	def test_the_apps_screen_check_decides(self):
 		screens = {"allowed": ALLOW, "refused": REFUSE}
 		with hooked(screens):
-			self.assertEqual(shell_hooks(["frappe", "refused", "allowed"]), ["allowed"])
+			self.assertEqual(apps(shell_hooks(["frappe", "refused", "allowed"])), ["allowed"])
 
 	def test_the_list_follows_the_app_order(self):
 		with hooked({"first": ALLOW, "second": ALLOW}):
-			self.assertEqual(shell_hooks(["second", "first"]), ["second", "first"])
+			self.assertEqual(apps(shell_hooks(["second", "first"])), ["second", "first"])
+
+	def test_each_app_carries_its_apps_screen_title(self):
+		with hooked({"titled": ALLOW, "untitled_app": ALLOW}, titles={"titled": "Sales Desk"}):
+			self.assertEqual(
+				shell_hooks(["titled", "untitled_app"]),
+				[{"app": "titled", "title": "Sales Desk"}, {"app": "untitled_app", "title": "Untitled App"}],
+			)
 
 	def test_a_hooked_app_the_site_lacks_is_not_listed(self):
 		with hooked({"elsewhere": ALLOW}):
@@ -66,7 +73,7 @@ class TestShellHooks(IntegrationTestCase):
 
 	def test_no_apps_screen_check_falls_back_to_the_prefix_gate(self):
 		with hooked({"frappe": None}):
-			self.assertEqual(shell_hooks(["frappe"]), ["frappe"])
+			self.assertEqual(apps(shell_hooks(["frappe"])), ["frappe"])
 
 			frappe.set_user("Guest")
 			self.assertEqual(shell_hooks(["frappe"]), [])
@@ -93,7 +100,7 @@ class TestShellHooks(IntegrationTestCase):
 		with hooked({"frappe": None}):
 			listed = core_boot()["shell_hooks"]
 
-		self.assertEqual(listed, ["frappe"])
+		self.assertEqual(listed, [{"app": "frappe", "title": "Frappe"}])
 		self.assertLess(len(orjson_dumps(listed, decode=False)), KEY_BUDGET)
 
 
@@ -113,15 +120,17 @@ class TestHookedApps(IntegrationTestCase):
 
 
 @contextmanager
-def hooked(screens: dict[str, str | None]):
+def hooked(screens: dict[str, str | None], titles: dict[str, str] | None = None):
 	"""`screens` as the hooked apps, each with that `has_permission`, or no apps-screen entry for None."""
 	get_hooks = frappe.get_hooks
+	titles = titles or {}
 
 	def fake_hooks(hook=None, *args, **kwargs):
 		app = kwargs.get("app_name")
 		if hook == "add_to_apps_screen" and app in screens:
 			check = screens[app]
-			return [{"name": app, "has_permission": check}] if check else []
+			screen = {"name": app, "has_permission": check, "title": titles.get(app)}
+			return [screen] if check else []
 		return get_hooks(hook, *args, **kwargs)
 
 	with (
@@ -129,6 +138,10 @@ def hooked(screens: dict[str, str | None]):
 		patch("frappe.get_hooks", side_effect=fake_hooks),
 	):
 		yield
+
+
+def apps(hooks: list[dict]) -> list[str]:
+	return [hook["app"] for hook in hooks]
 
 
 def write(root: str, path: str):

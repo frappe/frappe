@@ -9,7 +9,7 @@
 		class="pointer-events-none absolute inset-x-0 bottom-4 z-10 px-6"
 		data-record-composer
 	>
-		<div class="mx-auto w-full max-w-3xl">
+		<div ref="lane" class="mx-auto w-full max-w-3xl">
 			<div ref="dock" data-composer-dock />
 			<ComposerPill
 				v-if="!docked"
@@ -30,7 +30,12 @@ import { useElementSize } from "@vueuse/core";
 import type { SessionUser } from "@framework/ui/api";
 import { isComposerTab, type RecordPageController } from "@/recordPage";
 import type { TabItem } from "@/recordPage/types";
-import { activeWriter, composerState, registerComposerDock } from "@/shell/composer";
+import {
+	activeWriter,
+	composerState,
+	registerComposerBand,
+	registerComposerDock,
+} from "@/shell/composer";
 import { RecordFeedsKey } from "../feed/recordFeeds";
 import { COMMENT_WRITER } from "./commentDraft";
 import { EMAIL_WRITER } from "./emailDraft";
@@ -48,6 +53,7 @@ const props = defineProps<{
 
 const feeds = inject(RecordFeedsKey, null);
 const band = ref<HTMLElement | null>(null);
+const lane = ref<HTMLElement | null>(null);
 const dock = ref<HTMLElement | null>(null);
 const { height } = useElementSize(band, undefined, { box: "border-box" });
 
@@ -79,6 +85,11 @@ onUnmounted(() => measured(0));
 // Offered while the band is shown, so docking moves the open writer in without drawing it anew.
 watch([dock, page], ([element, { doctype, docname }], _old, onCleanup) => {
 	if (element) onCleanup(registerComposerDock(doctype, docname, element));
+});
+
+// The lane, not the full-width band: the standing windows rise only over what it draws.
+watch(lane, (element, _old, onCleanup) => {
+	if (element) onCleanup(registerComposerBand(element));
 });
 
 function measured(pixels: number) {

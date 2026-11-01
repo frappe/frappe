@@ -1,27 +1,43 @@
 // Each permitted app's shell hook, `<module>/frontend/shell.js`: its `setup(shell)` runs once per
 // tab at idle after the shell's first paint, in the site's app order.
-import { onMounted } from "vue";
+import { onMounted, shallowReactive, type Component } from "vue";
 import { registerAfterSave, type AfterSave } from "@/afterSave";
+import type { ShellHook } from "@/boot";
 import { shellHookFiles } from "@/contributions/registry";
 import { atIdle } from "./atIdle";
+import type { StandingWindow, StandingWindowHandle, StandingWindowOptions } from "./standingWindows";
 
 /** All a shell hook attaches through. */
 export interface ShellHookApi {
 	/** Runs `handler` after each save of a settings binding of `doctype`. */
 	afterSave(doctype: string, handler: AfterSave): void;
+	/** Mounts the app's one standing window, closed; a second call warns and returns nothing. */
+	window(component: Component, options?: StandingWindowOptions): StandingWindowHandle | undefined;
 }
 
 type Setup = (shell: ShellHookApi) => unknown;
+type Attach = (
+	app: string,
+	title: string,
+	component: Component,
+	options?: StandingWindowOptions
+) => StandingWindowHandle | undefined;
 
-/** Runs the hooks of the `permitted` apps once, at idle after the shell mounts. */
-export function useShellHooks(permitted: string[]) {
-	const files = shellHookFiles.filter((file) => permitted.includes(file.app));
-	if (!files.length) return;
-	onMounted(() => atIdle(() => runAll(files)));
+/** Runs the `permitted` apps' hooks once, at idle after the shell mounts; gives their windows. */
+export function useShellHooks(permitted: ShellHook[]) {
+	const windows = shallowReactive<StandingWindow[]>([]);
+	const files = shellHookFiles.filter((file) => permitted.some((hook) => hook.app === file.app));
+	if (files.length) onMounted(() => atIdle(() => runAll(files, permitted, windows)));
+	return windows;
 }
 
-async function runAll(files: typeof shellHookFiles) {
-	const results = await Promise.allSettled(files.map((file) => file.load()));
+async function runAll(files: typeof shellHookFiles, permitted: ShellHook[], windows: StandingWindow[]) {
+	// The window code loads here, so pages without a shell hook never carry it.
+	const [results, { attachWindow }] = await Promise.all([
+		Promise.allSettled(files.map((file) => file.load())),
+		import("./standingWindows"),
+	]);
+	const order = permitted.map((hook) => hook.app);
 	results.forEach((result, index) => {
 		const { app } = files[index];
 		if (result.status === "rejected") {
@@ -33,22 +49,26 @@ async function runAll(files: typeof shellHookFiles) {
 			console.error(`[frappe] ${app}'s shell.js exports no setup function; it is skipped.`);
 			return;
 		}
-		run(app, setup as Setup);
+		const title = permitted.find((hook) => hook.app === app)!.title;
+		const attach: Attach = (...args) => attachWindow(windows, order, ...args);
+		run(app, setup as Setup, shellFor(app, title, attach));
 	});
 }
 
-function run(app: string, setup: Setup) {
+function run(app: string, setup: Setup, shell: ShellHookApi) {
 	const failed = (error: unknown) =>
 		console.error(`[frappe] ${app}'s shell.js setup failed; it is skipped.`, error);
 	try {
-		Promise.resolve(setup(shellFor())).catch(failed);
+		Promise.resolve(setup(shell)).catch(failed);
 	} catch (error) {
 		failed(error);
 	}
 }
 
-function shellFor(): ShellHookApi {
+function shellFor(app: string, title: string, attach: Attach): ShellHookApi {
 	return Object.freeze({
 		afterSave: (doctype: string, handler: AfterSave) => void registerAfterSave(doctype, handler),
+		window: (component: Component, options?: StandingWindowOptions) =>
+			attach(app, title, component, options),
 	});
 }

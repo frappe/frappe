@@ -84,7 +84,7 @@ export function useShellActs(host: ShellActsHost) {
 		failed: (error) => void toast.error(error instanceof Error ? error.message : String(error)),
 	});
 	onScopeDispose(release);
-	return { appActsPending: appActs.pending };
+	return { appActsPending: appActs.pending, shell };
 }
 
 /** The shell act `name` while a menu draws it: the one rule for whether a shell entry is drawn. */
