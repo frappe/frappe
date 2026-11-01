@@ -211,9 +211,9 @@ frappe.pages["dashboard-view"].on_page_load = function (wrapper) {
 
 	/**
 	 * An `Action` is `{ label, icon? }` plus either `onClick` or `href`. An `href`
-	 * leads out of the app, and desk opens it in a new tab. Desk's menu rows carry
-	 * no icon, so the icon goes unread. It names a lucide icon the island ships,
-	 * and desk resolves a name against its own sprite.
+	 * leads out of the app, and desk opens it in a new tab. The icon names a lucide
+	 * icon the island ships, and desk resolves a name against its own sprite. A name
+	 * the sprite lacks draws an empty box, so that row goes without an icon.
 	 *
 	 * A desk menu row is a click handler, not a link, because `add_dropdown_item`
 	 * writes `href="#"` itself. So the new tab is `window.open`, not a `target`.
@@ -224,7 +224,14 @@ frappe.pages["dashboard-view"].on_page_load = function (wrapper) {
 		page.clear_menu();
 		(actions || []).forEach((action) => {
 			const click = action.href ? () => window.open(action.href, "_blank") : action.onClick;
-			page.add_menu_item(frappe.utils.escape_html(action.label), click);
+			const icon =
+				action.icon && document.getElementById(`icon-${action.icon}`) ? action.icon : null;
+			page.add_dropdown_item({
+				label: frappe.utils.escape_html(action.label),
+				click,
+				parent: page.menu,
+				icon,
+			});
 		});
 	}
 
