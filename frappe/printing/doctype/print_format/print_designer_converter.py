@@ -161,11 +161,12 @@ class PrintDesignerConverter:
 
 	def page_settings(self) -> dict | None:
 		page = {}
-		size = (self.settings.get("currentPageSize") or "").upper()
-		if size in ("A4", "A5", "A3"):
-			page["size"] = size
-		elif size in ("LETTER", "LEGAL", "TABLOID"):
-			page["size"] = size.title()
+		size = (self.settings.get("currentPageSize") or "").lower()
+		sizes = frappe.get_meta("Print Settings").get_field("pdf_page_size").options.split("\n")
+		if match := next((s for s in sizes if s.lower() == size and s != "Custom"), None):
+			page["size"] = match
+		elif size == "custom":
+			self.notes.append(_("The custom paper size was not kept; set the paper size in the editor."))
 		width, height = flt(self.page.get("width")), flt(self.page.get("height"))
 		if width and height and width > height:
 			page["orientation"] = "Landscape"
