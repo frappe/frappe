@@ -10,12 +10,20 @@ import type { CodeError } from "../../api/envelope";
  * both `FormLayout` (form fields) and the ListView `Filter` / `Quick Filter`
  * controls. `FieldNode` (FormLayout's layout node) extends this with a `ui` overlay.
  */
+/** One choice of a `Select` or `Autocomplete`: the stored value and what the reader sees. */
+export interface OptionChoice {
+  value: string;
+  label: string;
+}
+
 export interface FieldMeta {
   fieldname: string;
   fieldtype: string;
   label?: string;
   /** Target doctype for `Link` fields, or child doctype for `Table` (Frappe `options`). */
   options?: string;
+  /** A `Select` or `Autocomplete`'s choices with labels, when a script set them; `options` then holds their values. */
+  choices?: OptionChoice[];
   /** Link search filters. */
   filters?: Record<string, unknown>;
   /**

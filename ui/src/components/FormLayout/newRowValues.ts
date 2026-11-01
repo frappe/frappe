@@ -97,6 +97,7 @@ function emptyValue(field: FieldNode): any {
 /** A Select with no default lands on its first option, as desk does. */
 function firstOption(field: FieldNode): string | undefined {
   if (field.fieldtype !== "Select") return undefined;
+  if (field.choices) return field.choices[0]?.value || undefined;
   const options = typeof field.options === "string" ? field.options : "";
   return options.split("\n")[0] || undefined;
 }

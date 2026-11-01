@@ -1132,7 +1132,7 @@ both. A part beside a field is `page.form`'s to add, above.
 | --- | --- |
 | `label`, `placeholder`, `description` | The text drawn. |
 | `hidden`, `read_only`, `reqd` | Booleans, or `0`/`1` as a DocField spells them. Win over `depends_on`; never lift a permission floor. |
-| `options` | A Link target, or a Select's newline-separated choices. |
+| `options` | A Link target, or the choices of a Select or Autocomplete: newline-separated, or a list of values and `{ value, label }` pairs. |
 | `link_filters` | Search filters for a Link field. |
 | `precision` | Decimal places for a numeric field. |
 | `cannot_add_rows`, `cannot_delete_rows` | Booleans, or `0`/`1`. A Table field's grid hides every way to add a row (Add Row, insert, duplicate, a paste past the last row), or to delete one. A script can still add or remove rows. |
@@ -1166,7 +1166,15 @@ export default {
 }
 ```
 
-A Select's `options` are values only, one a line: the control shows each value as its label.
+A Select's or Autocomplete's `options` are values one a line, and the control shows each value as its label. A list of
+`{ value, label }` pairs shows the label instead (a bare string in the list is both) while the saved value stays the
+`value`; the grid cell, the row form and a read-only field show the label too. `get` reads the list back.
+
+```js
+page.fields.update('questions.mapped_to', {
+  options: leadFields.map((df) => ({ value: df.fieldname, label: df.label })),
+})
+```
 
 ### The act: `focus(fieldname)`
 
