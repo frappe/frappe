@@ -2,7 +2,10 @@
 import { loadClientScripts } from "./clientScripts";
 import { withRegisteringSource } from "@/pageEngine/context";
 import { registerRecordPage } from "./registry";
+import { reportCustomizationError } from "./reportError";
 import type { AuthoredHandlers } from "./types";
+
+const FILE_SCRIPTS_SOURCE = "file-scripts";
 
 export interface FileScript {
   app: string;
@@ -21,7 +24,12 @@ export function addFileScript(doctype: string, script: FileScript) {
 
 /** Resolves when the doctype's file scripts and its fresh Client Script tier have registered. */
 export function loadRecordScripts(doctype: string): Promise<void> {
-  return loadFileScripts(doctype).then(() => loadClientScripts(doctype));
+  // The tier is fetched beside the file scripts and registers after them; a failed fetch skips only them.
+  const files = loadFileScripts(doctype).catch((error) => {
+    console.error(`[frappe] the record scripts of ${doctype} failed to load, skipped`, error);
+    reportCustomizationError(error, { source: FILE_SCRIPTS_SOURCE, event: "load", doctype, tier: "file_script" });
+  });
+  return loadClientScripts(doctype, undefined, files);
 }
 
 function loadFileScripts(doctype: string): Promise<void> {

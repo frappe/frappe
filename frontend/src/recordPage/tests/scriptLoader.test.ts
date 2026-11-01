@@ -103,19 +103,39 @@ describe("the record page's script loader", () => {
     expect(sources("CRM Slow")).toEqual(["crm", "erpnext"]);
   });
 
-  it("tries a failed fetch again on the next load, registering nothing from the failure", async () => {
+  it("tries a failed fetch again on the next load, and still loads the Client Scripts", async () => {
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
     const load = vi
       .fn()
       .mockRejectedValueOnce(new Error("chunk failed"))
       .mockResolvedValue({ default: { onRefresh: () => {} } });
     addFileScript("CRM Retry", { app: "crm", load });
-    respond([]);
-
-    await expect(loadRecordScripts("CRM Retry")).rejects.toThrow("chunk failed");
-    expect(sources("CRM Retry")).toEqual([]);
+    respond(["stored"]);
 
     await loadRecordScripts("CRM Retry");
-    expect(sources("CRM Retry")).toEqual(["crm"]);
+    expect(sources("CRM Retry")).toEqual(["client-script:stored"]);
+    expect(error).toHaveBeenCalled();
+
+    invalidateClientScripts("CRM Retry");
+    await loadRecordScripts("CRM Retry");
+    expect(sources("CRM Retry")).toEqual(["crm", "client-script:stored"]);
+  });
+
+  it("asks for the Client Scripts while the file scripts are still downloading", async () => {
+    let arrive!: () => void;
+    const slow = new Promise<{ default: object }>((resolve) => {
+      arrive = () => resolve({ default: { onRefresh: () => {} } });
+    });
+    addFileScript("CRM Beside", { app: "crm", load: () => slow });
+    respond(["stored"]);
+
+    const loading = loadRecordScripts("CRM Beside");
+    await vi.waitFor(() => expect(call).toHaveBeenCalled());
+    expect(sources("CRM Beside")).toEqual([]);
+
+    arrive();
+    await loading;
+    expect(sources("CRM Beside")).toEqual(["crm", "client-script:stored"]);
   });
 
   it("skips a script with no default export and warns", async () => {
