@@ -75,6 +75,17 @@
    "settings": "[{\"label\": \"Session defaults\", \"keywords\": [\"default company\", \"defaults\"]}]"
   },
   {
+   "binding_type": "",
+   "component": "change-password",
+   "description": "Never set a password because you sign in another way? Use “Forgot password” on the login page.",
+   "key": "password",
+   "label": "Password",
+   "name_resolver": "",
+   "pane": "profile",
+   "save_mode": "auto",
+   "settings": "[{\"label\": \"Change password\", \"keywords\": [\"password\", \"reset password\"]}]"
+  },
+  {
    "binding_type": "Single",
    "document_type": "System Settings",
    "fields": "[\"country\", \"language\", \"currency\", \"date_format\", \"time_format\", \"number_format\", \"use_number_format_from_currency\", \"first_day_of_the_week\", \"float_precision\", \"currency_precision\"]",
