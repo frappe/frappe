@@ -54,7 +54,10 @@ const viewState = computed((): PageStateValue | null => {
 	return {
 		name: "viewNotFound",
 		doctype: doctype.value!,
-		title: __("{0} views don't apply to {1}", [typeLabel(opened.value.type), __(doctype.value!)]),
+		title: __("{0} views don't apply to {1}", [
+			typeLabel(opened.value.type),
+			__(doctype.value!),
+		]),
 		description: __("Open its list, or another view of it."),
 	};
 });

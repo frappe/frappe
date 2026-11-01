@@ -18,7 +18,9 @@ export function unknownKeys(replacements, keys) {
 	const warnings = new Set();
 	for (const { key, file } of replacements.filter((entry) => !keys.has(entry.key)))
 		warnings.add(
-			`[frappe] ${join(dirname(dirname(file)), "pages.json")}: unknown key ${JSON.stringify(key)}, ` +
+			`[frappe] ${join(dirname(dirname(file)), "pages.json")}: unknown key ${JSON.stringify(
+				key
+			)}, ` +
 				`only "record" and a view type's name in lower case are read; that key is ignored.`
 		);
 	return [...warnings];

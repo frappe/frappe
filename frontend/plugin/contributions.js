@@ -5,13 +5,7 @@ import { readFileSync } from "node:fs";
 import { basename, dirname, join } from "node:path";
 import { directories, files, isFile } from "./folders.js";
 import { pageClashes } from "./pageClashes.js";
-import {
-	STANDARD_PAGES,
-	clashes,
-	declaredPages,
-	pageKeys,
-	unknownKeys,
-} from "./replacements.js";
+import { STANDARD_PAGES, clashes, declaredPages, pageKeys, unknownKeys } from "./replacements.js";
 
 const VIRTUAL_ID = "virtual:frappe/contributions";
 const RESOLVED_ID = "\0" + VIRTUAL_ID;
@@ -168,7 +162,8 @@ export function discover(manifest, allSourceDirs = manifest.map((entry) => entry
 	replacements = replacements.filter((entry) => keys.has(entry.key));
 	pageScripts = pageScripts.filter((script) =>
 		replacements.some(
-			(entry) => entry.page === script.page && dirname(dirname(entry.file)) === dirname(script.file)
+			(entry) =>
+				entry.page === script.page && dirname(dirname(entry.file)) === dirname(script.file)
 		)
 	);
 	warnings.push(...clashes(replacements));

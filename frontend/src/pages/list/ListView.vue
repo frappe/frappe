@@ -114,7 +114,7 @@ const listActs = props.host.acts(() =>
 					},
 					hidden: false,
 				},
-			]
+		  ]
 		: []
 );
 
