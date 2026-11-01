@@ -29,14 +29,15 @@ class SkillCatalog:
 	def list_skills(self, cursor: str | None = None) -> dict:
 		paths = {resource_uri(app, path): (app, path) for app, path in self.skill_paths()}
 		result = page([{"uri": uri} for uri in paths], "skills", cursor, "skills/list")
-		result["skills"] = [self.entry(*paths[item["uri"]]) for item in result["skills"]]
+		manifest = _SkillManifest(self.apps)
+		result["skills"] = [manifest.entry(*paths[item["uri"]]) for item in result["skills"]]
 		return result
 
 	def get_skill(self, uri: str) -> dict:
 		app, path = self.location(uri)
 		if path.name != "SKILL.md" or len(path.parts) < 2:
 			raise McpError(INVALID_PARAMS, "Expected a skill's SKILL.md URI")
-		return {"skill": self.entry(app, path), **cache_policy()}
+		return {"skill": _SkillManifest(self.apps).entry(app, path), **cache_policy()}
 
 	def list_resources(self, cursor: str | None = None) -> dict:
 		paths = {resource_uri(app, path): (app, path) for app, path in self.skill_paths()}
@@ -75,29 +76,6 @@ class SkillCatalog:
 				raise McpError(INVALID_PARAMS, "Unknown skill directory")
 			resources = [self.metadata(app, child, True) for child in children]
 		return page(resources, "resources", cursor, uri)
-
-	def entry(self, app: str, path: Path) -> dict:
-		files = self.apps[app]
-		skill_content = files.read(path)
-		frontmatter = files.frontmatter(path, skill_content)
-		paths = sorted(set(files.paths(path.parent)) | {path})
-		if len(paths) > MAX_SKILL_FILES:
-			raise McpError(INTERNAL_ERROR, "Skill exceeds the 512 file limit", status=500)
-		resources = []
-		total = 0
-		for resource in paths:
-			content = skill_content if resource == path else files.read(resource, MAX_SKILL_BYTES - total)
-			total += len(content)
-			if total > MAX_SKILL_BYTES:
-				raise McpError(INTERNAL_ERROR, "Skill exceeds the 16 MiB size limit", status=500)
-			resources.append(
-				{
-					"uri": resource_uri(app, resource),
-					"digest": "sha256:" + hashlib.sha256(content).hexdigest(),
-					"size": len(content),
-				}
-			)
-		return {"uri": resource_uri(app, path), "frontmatter": frontmatter, "resources": resources}
 
 	def skill_paths(self, app: str | None = None) -> Iterator[tuple[str, Path]]:
 		app_names = [app] if app else self.apps
@@ -152,6 +130,39 @@ class SkillCatalog:
 		):
 			raise McpError(INVALID_PARAMS, "Unknown skill resource")
 		return parsed.netloc, relative
+
+
+class _SkillManifest:
+	"""Share file records within one catalog operation without retaining file contents."""
+
+	def __init__(self, apps: dict[str, SkillFiles]) -> None:
+		self.apps = apps
+		self.file_records: dict[tuple[str, Path], dict] = {}
+
+	def entry(self, app: str, path: Path) -> dict:
+		files = self.apps[app]
+		skill_content = files.read(path)
+		frontmatter = files.frontmatter(path, skill_content)
+		paths = sorted(set(files.paths(path.parent)) | {path})
+		if len(paths) > MAX_SKILL_FILES:
+			raise McpError(INTERNAL_ERROR, "Skill exceeds the 512 file limit", status=500)
+		resources = []
+		total = 0
+		for resource in paths:
+			key = (app, resource)
+			if key not in self.file_records:
+				content = skill_content if resource == path else files.read(resource, MAX_SKILL_BYTES - total)
+				self.file_records[key] = {
+					"uri": resource_uri(app, resource),
+					"digest": "sha256:" + hashlib.sha256(content).hexdigest(),
+					"size": len(content),
+				}
+			record = self.file_records[key]
+			total += record["size"]
+			if total > MAX_SKILL_BYTES:
+				raise McpError(INTERNAL_ERROR, "Skill exceeds the 16 MiB size limit", status=500)
+			resources.append(record)
+		return {"uri": resource_uri(app, path), "frontmatter": frontmatter, "resources": resources}
 
 
 def resource_uri(app: str, path: Path) -> str:

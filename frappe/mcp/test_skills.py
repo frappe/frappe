@@ -56,7 +56,18 @@ class TestSkillCatalog(SkillFixtures, UnitTestCase):
 		self.catalog = SkillCatalog()
 
 	def test_nested_skills_have_flat_entries_and_overlapping_manifests(self):
-		entries = {entry["uri"]: entry for entry in self.catalog.list_skills()["skills"]}
+		reference = Path("billing/refunds/review/check.md")
+		self.write_file("frappe", reference, b"Rules")
+		files = self.catalog.apps["frappe"]
+		with (
+			patch.object(files, "read", wraps=files.read) as read,
+			patch("frappe.mcp.skills.hashlib.sha256", wraps=hashlib.sha256) as digest,
+		):
+			entries = {entry["uri"]: entry for entry in self.catalog.list_skills()["skills"]}
+		self.assertEqual(sum(call.args[0] == reference for call in read.call_args_list), 1)
+		self.assertEqual(
+			digest.call_count, len({item["uri"] for entry in entries.values() for item in entry["resources"]})
+		)
 		self.assertEqual(
 			set(entries),
 			{
@@ -69,12 +80,13 @@ class TestSkillCatalog(SkillFixtures, UnitTestCase):
 		child = entries["skill://frappe/billing/refunds/review/SKILL.md"]
 		self.assertIn(child["resources"][0], parent["resources"])
 		self.assertEqual(self.catalog.get_skill(child["uri"])["skill"], child)
-		self.assertEqual(len(parent["resources"]), 4)
+		self.assertEqual(len(parent["resources"]), 5)
 		self.write_file("frappe", "billing/refunds/review/check.md", b"New rules")
 		updated_parent = self.catalog.get_skill(parent["uri"])["skill"]
 		updated_child = self.catalog.get_skill(child["uri"])["skill"]
 		self.assertEqual(len(updated_parent["resources"]), 5)
 		self.assertEqual(len(updated_child["resources"]), 2)
+		self.assertNotEqual(child["resources"], updated_child["resources"])
 		self.assertTrue(
 			all(resource in updated_parent["resources"] for resource in updated_child["resources"])
 		)
