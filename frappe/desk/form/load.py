@@ -15,7 +15,7 @@ from frappe import _, _dict
 from frappe.core.doctype.comment.comment import get_document_comments
 from frappe.desk.form.document_follow import is_document_followed
 from frappe.desk.link_title import send_link_titles
-from frappe.model.document import Document
+from frappe.model.document import Document, get_controller
 from frappe.model.utils.user_settings import get_user_settings
 from frappe.permissions import check_doctype_permission, get_doc_permissions, has_permission
 from frappe.utils.data import cstr
@@ -64,9 +64,17 @@ def getdoc(doctype: str, name: str | int):
 @frappe.desk_v2_only
 @frappe.whitelist(methods=["GET"])
 def get_new_doc(doctype: str) -> dict:
-	"""A new `doctype` document with defaults filled by the insert's own rules; nothing is saved."""
+	"""A new `doctype` document with defaults filled by the insert's own rules; nothing is saved.
+
+	A controller's optional `set_new_doc_defaults(self)` fills its empty fields; it must not write to the database.
+	"""
 	frappe.has_permission(doctype, "create", throw=True)
-	return frappe.new_doc(doctype, as_dict=True)
+	if not hasattr(get_controller(doctype), "set_new_doc_defaults"):
+		return frappe.new_doc(doctype, as_dict=True)
+
+	doc = frappe.new_doc(doctype)
+	doc.set_new_doc_defaults()
+	return doc.as_dict()
 
 
 @frappe.whitelist()
