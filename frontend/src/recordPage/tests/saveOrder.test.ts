@@ -1,6 +1,8 @@
 // `page.save()` as executable claims: one path, CRM's order, and a clean doc that sends nothing.
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ref } from "vue";
+import { fieldsToLayout } from "@framework/ui/FormLayout";
+import type { FormLayoutSchema } from "@framework/ui/FormLayout/types";
 
 vi.mock("frappe-ui", () => ({
   call: vi.fn(),
@@ -20,6 +22,7 @@ vi.mock("@framework/ui/api", () => ({
 
 import { createRecordPage, SAVE_VETO, type RecordPageHost } from "../createRecordPage";
 import { registerRecordPage, resetRegistry } from "../registry";
+import { cancelledError } from "@/pages/record/saveResponse";
 
 function makeHost(overrides: Partial<RecordPageHost> = {}) {
   const order: string[] = [];
@@ -222,5 +225,74 @@ describe("page.save()", () => {
     await controller.page.save();
 
     expect(order).toEqual(["status", "write"]);
+  });
+
+  describe("with a mandatory field the layout does not show", () => {
+    const offLayout = () =>
+      fieldsToLayout([
+        { fieldname: "batch", fieldtype: "Data", label: "Batch", reqd: true },
+        { fieldname: "note", fieldtype: "Data", label: "Note" },
+      ]);
+
+    it("asks for it after the form is complete, merges the values, then writes", async () => {
+      const askRequired = vi.fn(async (_layout: FormLayoutSchema) => ({ batch: "B1" }));
+      const { host, order, doc } = makeHost({
+        offLayout,
+        askRequired,
+        save: async () => void order.push("write"),
+      });
+      const controller = createRecordPage(host);
+
+      await controller.page.save();
+
+      const asked = askRequired.mock.calls[0][0];
+      expect(asked[0].sections[0].columns[0].fields.map((one: any) => one.fieldname)).toEqual(["batch"]);
+      expect(doc.value.batch).toBe("B1");
+      expect(order).toEqual(["write"]);
+    });
+
+    it("writes nothing when the reader cancels, and the draft stays as it is", async () => {
+      const cancelled = cancelledError();
+      const { host, order, doc } = makeHost({
+        offLayout,
+        askRequired: async () => {
+          throw cancelled;
+        },
+      });
+      const controller = createRecordPage(host);
+
+      await expect(controller.page.save()).rejects.toBe(cancelled);
+      expect(order).toEqual([]);
+      expect(doc.value.batch).toBeUndefined();
+    });
+
+    it("asks again for a field that the first answer made mandatory", async () => {
+      const chained = () =>
+        fieldsToLayout([
+          { fieldname: "kind", fieldtype: "Data", label: "Kind", reqd: true },
+          { fieldname: "detail", fieldtype: "Data", label: "Detail", mandatoryDependsOn: "eval:doc.kind == 'A'" },
+        ]);
+      const answers = [{ kind: "A" }, { detail: "d" }];
+      const askRequired = vi.fn(async () => answers.shift()!);
+      const { host, doc } = makeHost({ offLayout: chained, askRequired });
+      const controller = createRecordPage(host);
+
+      await controller.page.save();
+
+      expect(askRequired).toHaveBeenCalledTimes(2);
+      expect(doc.value).toMatchObject({ kind: "A", detail: "d" });
+    });
+
+    it("does not ask when the field already has a value", async () => {
+      const askRequired = vi.fn(async () => ({}));
+      const { host, order, doc } = makeHost({ offLayout, askRequired });
+      doc.value.batch = "B0";
+      const controller = createRecordPage(host);
+
+      await controller.page.save();
+
+      expect(askRequired).not.toHaveBeenCalled();
+      expect(order).toEqual(["write"]);
+    });
   });
 });

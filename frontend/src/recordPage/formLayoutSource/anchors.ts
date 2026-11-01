@@ -1,21 +1,14 @@
 import type { RawMetaField } from "@framework/ui/FormLayout/types";
 import type { InlineField, LayoutTree, LayoutTreeColumn, LayoutTreeSection, LayoutTreeTab } from "./types";
 
-export interface Anchored {
-	tree: LayoutTree;
-	/** The unplaced fields no anchor took, in meta order. */
-	rest: RawMetaField[];
-}
-
 /** Draws each unplaced custom field after its anchor field, or atop the container it names; a chain runs through `loose`. */
-export function withAnchors(tree: LayoutTree, unplaced: RawMetaField[], loose: RawMetaField[]): Anchored {
+export function withAnchors(tree: LayoutTree, unplaced: RawMetaField[], loose: RawMetaField[]): LayoutTree {
 	const anchors = new AnchorIndex(unplaced, loose);
-	const anchored = tree.map((tab) => anchors.placeInTab(tab));
-	return { tree: anchored, rest: unplaced.filter((field) => !anchors.taken.has(field.fieldname)) };
+	return tree.map((tab) => anchors.placeInTab(tab));
 }
 
 class AnchorIndex {
-	readonly taken = new Set<string>();
+	private taken = new Set<string>();
 	private followers = new Map<string, string[]>();
 	private drawn: Set<string>;
 

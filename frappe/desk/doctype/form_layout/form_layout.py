@@ -13,10 +13,13 @@ from frappe.model.document import Document
 from frappe.model.meta import Meta
 
 FORM_LAYOUT_TYPES = ("Details", "Side Panel", "Quick Entry", "New Record")
+OMITTING_LAYOUT_TYPES = ("Details", "New Record")
 CREATE_LAYOUT_TYPES = ("Quick Entry", "New Record")
 CHILD_LAYOUT_TYPES = ("Details",)
 SINGLE_LAYOUT_TYPES = ("Details", "Side Panel")
 LAYOUT_BREAKS = ("Section Break", "Column Break", "Tab Break")
+# Mirrors `DROPPED_FIELDTYPES` in `ui/src/components/FormLayout/buildLayoutFromMeta.ts`.
+DROPPED_FIELDTYPES = (*LAYOUT_BREAKS, "Fold", "Attachment Gallery")
 STANDARD_FIELDS = frozenset(default_fields + child_table_fields + optional_fields)
 
 
@@ -25,6 +28,8 @@ class FormLayout(Document):
 		self.validate_app()
 		self.validate_single_default()
 		self.validate_layout()
+		if self.flags.writes_omitted:
+			self.omitted = frappe.as_json(omitted_fieldnames(self.dt, parse_layout(self.layout)))
 
 	def validate_layout(self):
 		self.name_layout()
@@ -53,7 +58,7 @@ class FormLayout(Document):
 				refuse_field_name(_("Section"), section["name"], fieldnames, self.dt)
 
 	def validate_omitted(self):
-		"""Drop each new entry that names no field or a mandatory one, with a message; old entries stay."""
+		"""Drop each new entry that names no field, with a message; old entries stay."""
 		omitted = self.omitted_fields()
 		previous = self.get_doc_before_save()
 		kept = set(parse_omitted(previous.omitted)) if previous and previous.dt == self.dt else set()
@@ -161,7 +166,6 @@ def save_form_layout(
 	layout: str,
 	name: str | None = None,
 	condition: str | None = None,
-	omitted: str | None = None,
 	app: str | None = None,
 ):
 	validate_target(dt, type)
@@ -172,8 +176,8 @@ def save_form_layout(
 		return None
 	doc = find_layout_doc(dt, type, name, app)
 	doc.update({"dt": dt, "type": type, "app": app, "layout": layout, "condition": condition})
-	if omitted is not None:
-		doc.omitted = omitted
+	# `validate` computes it, once the layout has passed the checks that refuse a malformed one.
+	doc.flags.writes_omitted = type in OMITTING_LAYOUT_TYPES
 	doc.save()
 	return doc.name
 
@@ -392,14 +396,24 @@ def refuse_omitted(fieldname: str, meta: Meta) -> bool:
 	field = meta.get_field(fieldname)
 	if not field or field.fieldtype in LAYOUT_BREAKS:
 		message = _("{0} is not a field of {1}, so this layout cannot omit it.")
-	elif field.reqd and not field.default:
-		message = _("{0} is mandatory with no default in {1}, so every layout must show it.")
 	else:
 		return False
 	frappe.msgprint(
 		message.format(frappe.bold(fieldname), meta.name), title=_("Field Not Omitted"), indicator="orange"
 	)
 	return True
+
+
+def omitted_fieldnames(dt: str, tabs: list, custom: bool = True) -> list[str]:
+	"""Every drawable field of `dt` the layout does not place, in meta order; an app file skips custom fields."""
+	placed = {entry if isinstance(entry, str) else entry.get("fieldname") for entry in layout_entries(tabs)}
+	return [
+		field.fieldname
+		for field in frappe.get_meta(dt).fields
+		if field.fieldtype not in DROPPED_FIELDTYPES
+		and field.fieldname not in placed
+		and (custom or not field.is_custom_field)
+	]
 
 
 def wrap_tabless(tree: list) -> list:

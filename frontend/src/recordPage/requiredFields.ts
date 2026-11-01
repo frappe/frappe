@@ -16,20 +16,28 @@ export interface MissingField {
   message: string;
   /** The field's own label, or its table's for a row cell. */
   shownIn: string;
+  /** False for a field the layout does not show, which the required-fields dialog asks for. */
+  onForm: boolean;
 }
 
+/** `offLayout`: the mandatory fields the layout does not show, as `useFormLayout` joins them. */
 export function missingRequired(
   layout: FormLayoutSchema,
   doc: Record<string, any>,
+  offLayout: FormLayoutSchema = [],
 ): MissingField[] {
+  return [...missingIn(layout, doc, true), ...missingIn(offLayout, doc, false)];
+}
+
+function missingIn(layout: FormLayoutSchema, doc: Record<string, any>, onForm: boolean): MissingField[] {
   const missing: MissingField[] = [];
   for (const field of shownFields(layout, doc)) {
     const label = labelOf(field);
     if (field.reqd && isEmpty(doc[field.fieldname]))
-      missing.push({ address: field.fieldname, message: requiredMessage(label), shownIn: label });
+      missing.push({ address: field.fieldname, message: requiredMessage(label), shownIn: label, onForm });
     if (field.fieldtype === "Table" && Array.isArray(doc[field.fieldname]))
       for (const row of doc[field.fieldname])
-        for (const cell of missingCells(field, row, doc)) missing.push({ ...cell, shownIn: label });
+        for (const cell of missingCells(field, row, doc)) missing.push({ ...cell, shownIn: label, onForm });
   }
   return missing;
 }

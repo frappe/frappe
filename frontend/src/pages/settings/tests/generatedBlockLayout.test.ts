@@ -62,7 +62,7 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals());
 
 describe("a generated block with no field list", () => {
-	it("draws the Details row's tabs and sections in one column, with More fields as one more heading", async () => {
+	it("draws the Details row's tabs and sections in one column, with no heading for a field the row leaves out", async () => {
 		server.layouts["System Settings"] = [DETAILS_ROW];
 		const drafts = await opened(
 			block("whole", { left_out_fields: ["enable_onboarding"], read_only_fields: ["app_name"] })
@@ -72,7 +72,6 @@ describe("a generated block with no field list", () => {
 				"General",
 				[
 					["Region", [["country", "time_zone"]]],
-					["More fields", [["rules"]]],
 				],
 			],
 			["Brand", [["Branding", [["app_name (read only)"]]]]],

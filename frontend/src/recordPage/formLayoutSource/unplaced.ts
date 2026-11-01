@@ -1,17 +1,17 @@
 import { DROPPED_FIELDTYPES } from "@framework/ui/FormLayout";
-import { __ } from "@/i18n";
 import type { RawMetaField } from "@framework/ui/FormLayout/types";
 import type { FieldAccess } from "@framework/ui/useDocPermissions";
 import { withAnchors } from "./anchors";
 import type { LayoutTree, LayoutTreeSection } from "./types";
 
-/** What a row in use does with the fields it neither places nor omits. */
+/** What a row in use does with the fields it does not place. */
 export interface UnplacedRule {
-	/** `section`: Details and New Record draw them at their anchor, else in "More fields" at the end of the first tab.
-	 *  `mandatory`: Quick Entry adds only the mandatory ones at the end of the dialog. */
-	mode: "section" | "mandatory";
-	/** Fieldnames the row keeps off on purpose; a stale one matches nothing. */
+	/** Fieldnames the row did not place at its save; any other field it does not place is new since then. */
 	omitted?: string[];
+	/** Draw each new field at its anchor, else nowhere: Details, New Record and the row dialog. */
+	anchors?: boolean;
+	/** Add each mandatory field still not drawn at the end: Quick Entry and the row dialog. */
+	mandatoryAtEnd?: boolean;
 	/** Fieldnames another layout on the same page places, such as the Side Panel row in use. */
 	placedElsewhere?: Iterable<string>;
 }
@@ -24,30 +24,45 @@ export function withUnplaced(
 	rule: UnplacedRule,
 	fieldAccess?: (field: RawMetaField) => FieldAccess
 ): LayoutTree {
-	const loose = looseFields(tree, fields, rule);
-	const unplaced = loose.filter((field) => isDrawn(field, fieldAccess));
-	if (rule.mode === "section") {
-		const anchored = withAnchors(tree, unplaced, loose);
-		return withMoreFieldsSection(anchored.tree, anchored.rest, fields);
-	}
-	return withMandatorySections(tree, unplaced.filter(isMandatory), fields);
+	const anchored = rule.anchors ? withNewFields(tree, fields, rule, fieldAccess) : tree;
+	if (!rule.mandatoryAtEnd) return anchored;
+	const mandatory = notShown(anchored, fields, rule).filter(
+		(field) => isDrawn(field, fieldAccess) && isMandatory(field)
+	);
+	return withMandatorySections(anchored, mandatory, fields);
 }
 
-/** Meta fields, in meta (`idx`) order, that the row neither places nor omits and the person can see. */
-export function unplacedFields(
+/** The mandatory fields, in meta (`idx`) order, that the page does not show and the person can write. */
+export function requiredOffLayout(
+	shown: Iterable<string>,
+	fields: RawMetaField[],
+	fieldAccess?: (field: RawMetaField) => FieldAccess
+): RawMetaField[] {
+	const drawn = new Set(shown);
+	return fields.filter(
+		(field) =>
+			!drawn.has(field.fieldname) &&
+			isDrawn(field, fieldAccess) &&
+			Boolean(field.reqd || field.mandatory_depends_on) &&
+			!field.read_only &&
+			(fieldAccess?.(field) ?? "write") === "write"
+	);
+}
+
+/** A field new since the row's save renders at its anchor; with none it is not drawn. */
+function withNewFields(
 	tree: LayoutTree,
 	fields: RawMetaField[],
 	rule: UnplacedRule,
 	fieldAccess?: (field: RawMetaField) => FieldAccess
-): RawMetaField[] {
-	return looseFields(tree, fields, rule).filter((field) => isDrawn(field, fieldAccess));
+): LayoutTree {
+	const omitted = new Set(rule.omitted ?? []);
+	const fresh = notShown(tree, fields, rule).filter((field) => !omitted.has(field.fieldname));
+	return withAnchors(tree, fresh.filter((field) => isDrawn(field, fieldAccess)), fresh);
 }
 
-/** Meta fields the row neither places nor omits, drawable or not. */
-function looseFields(tree: LayoutTree, fields: RawMetaField[], rule: UnplacedRule): RawMetaField[] {
+function notShown(tree: LayoutTree, fields: RawMetaField[], rule: Pick<UnplacedRule, "placedElsewhere">) {
 	const placed = new Set([...placedFieldnames(tree), ...(rule.placedElsewhere ?? [])]);
-	if (rule.mode === "section")
-		for (const fieldname of omittable(rule.omitted, fields)) placed.add(fieldname);
 	return fields.filter((field) => !placed.has(field.fieldname));
 }
 
@@ -66,21 +81,6 @@ export function placedFieldnames(tree: LayoutTree | null): string[] {
 			)
 		)
 	);
-}
-
-function withMoreFieldsSection(
-	tree: LayoutTree,
-	unplaced: RawMetaField[],
-	fields: RawMetaField[]
-): LayoutTree {
-	if (!unplaced.length) return tree;
-	const section: LayoutTreeSection = {
-		name: freeSectionName(takenNames(tree, fields)),
-		label: __("More fields"),
-		columns: [{ name: "column_1", fields: unplaced.map((field) => field.fieldname) }],
-	};
-	const [first, ...rest] = withTab(tree);
-	return [{ ...first, sections: [...(first.sections ?? []), section] }, ...rest];
 }
 
 /** Sectioned as the server's Quick Entry fallback is: a conditional field gets a section of its own. */
@@ -121,12 +121,6 @@ function alwaysMandatory(field: RawMetaField): boolean {
 
 function mandatoryCondition(field: RawMetaField): string | undefined {
 	return alwaysMandatory(field) ? undefined : field.mandatory_depends_on;
-}
-
-/** A field that became mandatory after the row omitted it renders anyway: no row may omit one. */
-function omittable(omitted: string[] = [], fields: RawMetaField[]): string[] {
-	const mandatory = new Set(fields.filter(alwaysMandatory).map((field) => field.fieldname));
-	return omitted.filter((fieldname) => !mandatory.has(fieldname));
 }
 
 function withTab(tree: LayoutTree): LayoutTree {

@@ -28,7 +28,7 @@ describe("missingRequired", () => {
 
   it("marks each empty mandatory field with its label", () => {
     expect(missingRequired(layout, {})).toEqual([
-      { address: "summary", message: "Summary is required", shownIn: "Summary" },
+      { address: "summary", message: "Summary is required", shownIn: "Summary", onForm: true },
     ]);
   });
 
@@ -50,11 +50,13 @@ describe("missingRequired", () => {
         address: { parentfield: "items", key: "name:row-a", fieldname: "item" },
         message: "Item is required",
         shownIn: "Items",
+        onForm: true,
       },
       {
         address: { parentfield: "items", key: "name:row-b", fieldname: "note" },
         message: "Note is required",
         shownIn: "Items",
+        onForm: true,
       },
     ]);
   });
@@ -91,6 +93,37 @@ describe("missingRequired", () => {
     ];
 
     expect(missingRequired(layout, { summary: "lost" })).toEqual([]);
+  });
+
+  describe("with a mandatory field the layout does not show", () => {
+    const batch: FieldNode = { fieldname: "batch", fieldtype: "Data", label: "Batch", reqd: true };
+    const region: FieldNode = {
+      fieldname: "region",
+      fieldtype: "Data",
+      label: "Region",
+      mandatoryDependsOn: "eval:doc.summary == 'lost'",
+    };
+    const offLayout = fieldsToLayout([batch, region]);
+
+    it("returns it after the form's own, marked as not on the form", () => {
+      const missing = missingRequired(fieldsToLayout([summary]), {}, offLayout);
+
+      expect(missing.map((one) => [one.address, one.onForm])).toEqual([
+        ["summary", true],
+        ["batch", false],
+      ]);
+    });
+
+    it("skips it once it has a value", () => {
+      expect(missingRequired(fieldsToLayout([summary]), { summary: "x", batch: "B1" }, offLayout)).toEqual([]);
+    });
+
+    it("asks for a conditionally mandatory field only while its condition holds", () => {
+      const doc = { summary: "lost", batch: "B1" };
+
+      expect(missingRequired([], doc, offLayout).map((one) => one.address)).toEqual(["region"]);
+      expect(missingRequired([], { ...doc, summary: "won" }, offLayout)).toEqual([]);
+    });
   });
 });
 

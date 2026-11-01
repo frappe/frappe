@@ -17,8 +17,10 @@ from frappe.desk.doctype.form_layout.app_layout import app_layout_key, app_layou
 from frappe.desk.doctype.form_layout.form_layout import (
 	FORM_LAYOUT_TYPES,
 	LAYOUT_BREAKS,
+	OMITTING_LAYOUT_TYPES,
 	get_form_layouts,
 	layout_entries,
+	omitted_fieldnames,
 )
 from frappe.desk.doctype.form_layout.test_form_layout import a_manager, make_layout
 from frappe.gettext.extractors.form_layout import extract
@@ -172,6 +174,8 @@ class TestEveryAppLayoutFile(IntegrationTestCase):
 		row = make_layout(dt=dt, type=type, layout=json.dumps(data["layout"]))
 		row.validate_layout()
 		self.assertEqual(json.loads(row.layout), data["layout"], "a container has no name")
+		if type in OMITTING_LAYOUT_TYPES:
+			self.assertEqual(data["omitted"], omitted_fieldnames(dt, data["layout"], custom=False))
 
 
 def installed_layout_files() -> list[tuple[str, str, str]]:

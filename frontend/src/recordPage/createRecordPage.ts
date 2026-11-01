@@ -110,6 +110,9 @@ const STRIPS: Record<TabStrip, { other: string; sibling: TabStrip }> = {
   "form.tabs": { other: "record's", sibling: "tabs" },
 };
 
+/** The most rounds a save asks for off-layout fields; the server refuses what is still missing. */
+const MAX_ASK_ROUNDS = 3;
+
 export interface RecordPageHost {
   /** The app the reader is in, from the shell's boot: `frappe` on `/apps/desk`. */
   app: string;
@@ -130,6 +133,10 @@ export interface RecordPageHost {
   activateTab: (name: string) => void;
   /** The record's Details layout, which `page.form` addresses; absent for a host with no form. */
   formLayout?: () => FormLayoutSchema | undefined;
+  /** The mandatory fields the Details layout does not show; a save asks for the empty ones. */
+  offLayout?: () => FormLayoutSchema | undefined;
+  /** Asks for the empty fields of `layout` and resolves their values; throws when the reader cancels. */
+  askRequired?: (layout: FormLayoutSchema) => Promise<Record<string, any>>;
   /** The identity of the Form Layout tab the reader is on, or `''` outside the form. */
   activeFormTab?: () => string;
   /** Moves the reader to a tab of the form, by identity; absent for a host with no form. */
@@ -424,6 +431,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
       }
       if (engine.hasLeft()) return;
       refuseMissing();
+      await askOffLayout();
       await host.save();
     } catch (error) {
       focusFirstMarked();
@@ -437,6 +445,38 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     if (!missing.length) return;
     for (const { address, message } of missing) fieldErrors.mark(address, message);
     throw asVeto(new Error(requiredRefusal(missing)));
+  }
+
+  // Asked only once the form itself is complete, so the reader fixes what they can see first.
+  function offLayoutToAsk(): FormLayoutSchema | null {
+    const offLayout = host.offLayout?.() ?? [];
+    const missing = missingRequired([], host.doc.value, offLayout);
+    if (!missing.length || !host.askRequired) return null;
+    // A cell of a Table with rows is addressed through its table.
+    const asked = new Set(
+      missing.map((one) => (typeof one.address === "string" ? one.address : one.address.parentfield)),
+    );
+    return offLayout.map((tab) => ({
+      ...tab,
+      sections: tab.sections.map((section) => ({
+        ...section,
+        columns: section.columns.map((column) => ({
+          ...column,
+          fields: column.fields.filter((field) => asked.has(field.fieldname)),
+        })),
+      })),
+    }));
+  }
+
+  // A value the reader gives can make another off-layout field mandatory, so it asks again until none is left.
+  async function askOffLayout() {
+    for (let round = 0; round < MAX_ASK_ROUNDS; round++) {
+      const toAsk = offLayoutToAsk();
+      if (!toAsk) return;
+      const values = await host.askRequired!(toAsk);
+      if (engine.hasLeft()) return;
+      host.doc.value = { ...host.doc.value, ...values };
+    }
   }
 
   function focusFirstMarked() {

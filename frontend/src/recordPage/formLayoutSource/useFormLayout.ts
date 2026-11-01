@@ -10,7 +10,7 @@ import { landFresh, memoizedState } from "@framework/ui/utils";
 import { chooseRow } from "./chooseLayout";
 import { joinLayout } from "./joinLayout";
 import type { FormLayoutRow, FormLayoutsResponse, FormLayoutType } from "./types";
-import { placedFieldnames, type UnplacedRule } from "./unplaced";
+import { placedFieldnames, requiredOffLayout, type UnplacedRule } from "./unplaced";
 
 export interface UseFormLayoutOptions {
 	doctype: MaybeRefOrGetter<string>;
@@ -27,7 +27,7 @@ export interface UseFormLayoutOptions {
 	overrides?: MaybeRefOrGetter<Record<string, FieldPatch>>;
 	/** Per-render tab overrides by identity; reactive on `overrides`' terms. */
 	tabOverrides?: MaybeRefOrGetter<Record<string, TabOverride>>;
-	/** Fieldnames another layout on the page places, so "More fields" does not draw them twice. */
+	/** Fieldnames another layout on the page places, so an anchor does not draw them twice. */
 	placedElsewhere?: MaybeRefOrGetter<string[]>;
 	/** A saved record: the `field:` autoname field reads only; the server resets an edit to the name. */
 	lockAutoname?: boolean;
@@ -36,6 +36,8 @@ export interface UseFormLayoutOptions {
 export interface UseFormLayout {
 	/** Render-ready schema; empty until the rows and the meta both load. */
 	layout: ComputedRef<FormLayoutSchema>;
+	/** Details and New Record: the mandatory fields the row does not show, which a save asks for. */
+	offLayout: ComputedRef<FormLayoutSchema>;
 	/** True while nothing is there to show; stale rows or meta show while fresh ones are read. */
 	loading: ComputedRef<boolean>;
 	error: ComputedRef<unknown>;
@@ -89,18 +91,8 @@ export function useFormLayout(options: UseFormLayoutOptions): UseFormLayout {
 			row.value?.layout ?? (options.fallback === "none" ? null : response.value.fallback);
 		if (!tree) return [];
 
-		const childMetas: Record<string, RawMetaField[]> = {};
-		for (const [name, m] of Object.entries(metas.value))
-			if (m.fields) childMetas[name] = m.fields;
-
 		return joinLayout(tree, fields, {
-			childMetas,
-			childLayouts: response.value.children,
-			fieldAccess: options.lockAutoname
-				? lockingAutoname(permissions.fieldAccess, autonameField(meta.value?.autoname))
-				: permissions.fieldAccess,
-			decorate: options.decorate,
-			overrides: toValue(options.overrides),
+			...joinOptions(),
 			tabOverrides: toValue(options.tabOverrides),
 			unplaced: row.value
 				? unplacedRule(options.type, row.value, toValue(options.placedElsewhere))
@@ -108,11 +100,40 @@ export function useFormLayout(options: UseFormLayoutOptions): UseFormLayout {
 		});
 	});
 
+	// Only a row leaves fields out: the fallback draws them all, and Quick Entry adds its own.
+	const offLayout = computed<FormLayoutSchema>(() => {
+		const fields = meta.value?.fields;
+		if (!row.value || !fields || options.type === "Side Panel" || options.type === "Quick Entry")
+			return [];
+		const shown = [...layoutFieldnames(layout.value), ...(toValue(options.placedElsewhere) ?? [])];
+		const required = requiredOffLayout(shown, fields, permissions.fieldAccess);
+		if (!required.length) return [];
+		const column = { name: "column_1", fields: required.map((field) => field.fieldname) };
+		const tree = [{ name: "required", sections: [{ name: "required", columns: [column] }] }];
+		return joinLayout(tree, fields, joinOptions());
+	});
+
+	function joinOptions() {
+		const childMetas: Record<string, RawMetaField[]> = {};
+		for (const [name, m] of Object.entries(metas.value))
+			if (m.fields) childMetas[name] = m.fields;
+		return {
+			childMetas,
+			childLayouts: response.value?.children,
+			fieldAccess: options.lockAutoname
+				? lockingAutoname(permissions.fieldAccess, autonameField(meta.value?.autoname))
+				: permissions.fieldAccess,
+			decorate: options.decorate,
+			overrides: toValue(options.overrides),
+		};
+	}
+
 	const busy = computed(() => loading.value || entry.value.loading);
 	const stale = computed(() => busy.value || refreshing.value || entry.value.refreshing);
 
 	return {
 		layout,
+		offLayout,
 		loading: busy,
 		error: computed(() => error.value ?? entry.value.error),
 		dialog: computed(() => Boolean(response.value?.dialog)),
@@ -144,9 +165,9 @@ function unplacedRule(
 	row: FormLayoutRow,
 	placedElsewhere?: string[]
 ): UnplacedRule | undefined {
-	if (type === "Quick Entry") return { mode: "mandatory" };
+	if (type === "Quick Entry") return { mandatoryAtEnd: true };
 	if (type === "Side Panel") return undefined;
-	return { mode: "section", omitted: row.omitted, placedElsewhere };
+	return { anchors: true, omitted: row.omitted, placedElsewhere };
 }
 
 /** Answers now when nothing is loading; the entry raises its flag synchronously at fetch, so this cannot miss it. */
@@ -247,4 +268,10 @@ function buildEntry(input: { doctype: string; type: FormLayoutType }, stale?: La
 
 	reload();
 	return entry;
+}
+
+function layoutFieldnames(layout: FormLayoutSchema): string[] {
+	return layout.flatMap((tab) =>
+		tab.sections.flatMap((section) => section.columns.flatMap((column) => column.fields.map((field) => field.fieldname)))
+	);
 }
