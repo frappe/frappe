@@ -64,7 +64,7 @@ describe("amendmentOf", () => {
     expect(runMethod).toHaveBeenCalledWith(
       "frappe.client.is_document_amended",
       { doctype: "Invoice", docname: "INV-1" },
-      { http: "GET", nullable: true }
+      { nullable: true }
     );
   });
 });
