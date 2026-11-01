@@ -629,8 +629,8 @@ class PrintDesignerConverter:
 			return None
 		return self.html_node(
 			"{%- set qr_value -%}" + value + "{%- endset -%}"
-			"{%- if qr_value | trim and get_qr_code is defined -%}"
-			f'<img src="data:image/png;base64,{{{{ get_qr_code(qr_value | trim) }}}}" style="width: {size};">'
+			"{%- if qr_value | trim -%}"
+			f'<img src="{{{{ get_qr_code(qr_value | trim) }}}}" style="width: {size};">'
 			"{%- endif -%}"
 		)
 
