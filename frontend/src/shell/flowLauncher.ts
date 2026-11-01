@@ -1,5 +1,6 @@
-// The Flow launcher's round button. It is not shell code: a custom element in `document.body` whose
-// shadow root holds the button, which a drag moves by its `style`.
+// The Flow launcher's round button and docked side panel. It is not shell code: a custom element in
+// `document.body` whose shadow root holds the button, which a drag moves by its `style`, and the panel,
+// which marks its dock by `data-mode` and its closed or minimised state by `inert`.
 import { onBeforeUnmount, onMounted, shallowRef, type Ref } from "vue";
 import { useEventListener } from "@vueuse/core";
 
@@ -10,32 +11,43 @@ export interface LauncherBox {
 	bottom: number;
 }
 
-/** The button's box, or null while there is no launcher or its button is hidden. */
-export function useFlowLauncherBox(): Readonly<Ref<LauncherBox | null>> {
+export interface FlowLauncher {
+	/** The button's box, or null while there is no launcher or its button is hidden. */
+	box: Readonly<Ref<LauncherBox | null>>;
+	/** The left edge of the panel while it is open and docked on the right, else null. */
+	dockedLeft: Readonly<Ref<number | null>>;
+}
+
+export function useFlowLauncher(): FlowLauncher {
 	const box = shallowRef<LauncherBox | null>(null);
-	let icon: HTMLElement | null = null;
+	const dockedLeft = shallowRef<number | null>(null);
+	let parts: LauncherParts | null = null;
 	const watchers: MutationObserver[] = [];
 
 	function measure() {
-		const rect = icon?.getBoundingClientRect();
+		const rect = parts?.icon.getBoundingClientRect();
 		const { left = 0, right = 0, top = 0, bottom = 0, width = 0 } = rect ?? {};
 		box.value = width ? { left, right, top, bottom } : null;
+		const panel = parts?.panel;
+		const docked = panel && panel.dataset.mode === "right" && !panel.hasAttribute("inert");
+		dockedLeft.value = docked ? panel.getBoundingClientRect().left : null;
 	}
 
-	function follow(found: HTMLElement) {
-		icon = found;
+	function follow(found: LauncherParts) {
+		parts = found;
 		const watcher = new MutationObserver(measure);
-		watcher.observe(icon, { attributes: true, attributeFilter: ["style", "hidden"] });
+		watcher.observe(found.icon, { attributes: true, attributeFilter: ["style", "hidden"] });
+		watcher.observe(found.panel, { attributes: true, attributeFilter: ["style", "data-mode", "inert"] });
 		watchers.push(watcher);
 		measure();
 	}
 
 	onMounted(() => {
-		const found = findIcon();
+		const found = findParts();
 		if (found) return follow(found);
 		// The launcher's bundle may load after the shell.
 		const arrival = new MutationObserver(() => {
-			const late = findIcon();
+			const late = findParts();
 			if (!late) return;
 			arrival.disconnect();
 			follow(late);
@@ -46,9 +58,17 @@ export function useFlowLauncherBox(): Readonly<Ref<LauncherBox | null>> {
 	onBeforeUnmount(() => watchers.forEach((watcher) => watcher.disconnect()));
 	useEventListener(window, "resize", measure);
 
-	return box;
+	return { box, dockedLeft };
 }
 
-function findIcon(): HTMLElement | null {
-	return document.querySelector("flow-launcher")?.shadowRoot?.querySelector<HTMLElement>(".icon") ?? null;
+interface LauncherParts {
+	icon: HTMLElement;
+	panel: HTMLElement;
+}
+
+function findParts(): LauncherParts | null {
+	const root = document.querySelector("flow-launcher")?.shadowRoot;
+	const icon = root?.querySelector<HTMLElement>(".icon");
+	const panel = root?.querySelector<HTMLElement>(".panel");
+	return icon && panel ? { icon, panel } : null;
 }
