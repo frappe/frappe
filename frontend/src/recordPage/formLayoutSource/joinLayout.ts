@@ -15,7 +15,12 @@ import type {
 } from "@framework/ui/FormLayout/types";
 import type { FieldAccess } from "@framework/ui/useDocPermissions";
 import { withAccess } from "./fieldAccess";
-import { applyFieldPatch, type FieldPatch } from "./fieldPatch";
+import {
+	applyColumnPatches,
+	applyFieldPatch,
+	columnPatches,
+	type FieldPatch,
+} from "./fieldPatch";
 import { chooseRow } from "./chooseLayout";
 import { buildColumn, buildSection } from "./section";
 import type {
@@ -36,7 +41,7 @@ export interface JoinLayoutOptions {
 	fieldAccess?: (field: RawMetaField) => FieldAccess;
 	/** Per-field UI overlay hook, inherited by nested grid columns; an undecorated `Button` field has no handler. */
 	decorate?: Decorator;
-	/** Per-render field overrides by fieldname; the `override` half beats `depends_on`, never a permlevel denial. */
+	/** Per-render field overrides by fieldname, or `<table>.<column>` for a column; the `override` half beats `depends_on`, never a permlevel denial. */
 	overrides?: Record<string, FieldPatch>;
 	/** Per-render tab overrides by identity; carried, not applied, since `FormLayout` draws the strip. */
 	tabOverrides?: Record<string, TabOverride>;
@@ -106,22 +111,30 @@ function joinField(
 		options.decorate
 	);
 	const patch = options.overrides?.[raw.fieldname];
-	return [applyFieldPatch(withRowLayout(node, raw, options), patch)];
+	const columns = columnPatches(options.overrides, raw.fieldname);
+	const table = withRowLayout(applyColumnPatches(node, columns), raw, options, columns);
+	return [applyFieldPatch(table, patch)];
 }
 
-function withRowLayout(node: FieldNode, raw: RawMetaField, options: JoinLayoutOptions): FieldNode {
+function withRowLayout(
+	node: FieldNode,
+	raw: RawMetaField,
+	options: JoinLayoutOptions,
+	columns: Map<string, FieldPatch>
+): FieldNode {
 	if (raw.fieldtype !== "Table" || !raw.options) return node;
 	const rows = options.childLayouts?.[raw.options];
 	const fields = options.childMetas?.[raw.options];
 	if (!rows?.length || !fields) return node;
-	return { ...node, rowLayout: rowLayoutOf(rows, fields, options, node.childLayout ?? []) };
+	const childOptions = { childMetas: options.childMetas, decorate: options.decorate, columns };
+	return { ...node, rowLayout: rowLayoutOf(rows, fields, childOptions, node.childLayout ?? []) };
 }
 
 /** Each row is joined once, so the dialog keeps its form while the row it edits stays on one layout. */
 function rowLayoutOf(
 	rows: FormLayoutRow[],
 	fields: RawMetaField[],
-	options: JoinLayoutOptions,
+	options: Pick<JoinLayoutOptions, "childMetas" | "decorate"> & { columns: Map<string, FieldPatch> },
 	fallback: FormLayoutSchema
 ): (row: Record<string, any>) => FormLayoutSchema {
 	const joined = new Map<FormLayoutRow, FormLayoutSchema>();
@@ -135,6 +148,7 @@ function rowLayoutOf(
 					childMetas: options.childMetas,
 					decorate: options.decorate,
 					unplaced: { mode: "section", omitted: chosen.omitted },
+					overrides: Object.fromEntries(options.columns),
 				})
 			);
 		return joined.get(chosen)!;
