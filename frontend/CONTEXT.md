@@ -260,19 +260,30 @@ properties (label, `reqd`, `depends_on` and the rest) live on the field, never o
 _Avoid_: break (the meta field that encoded a container in desk v1), layout field property.
 
 **Unplaced field**: <a id="unplaced-field"></a>
-A data field that the Form Layout row in use neither places nor omits. On Details and New
-Record it renders at its **anchor** when the anchor resolves, otherwise in the automatic
-"More fields" section, the last section of the first tab; on Quick Entry only a mandatory one
-renders, at the end of the dialog. A field the Side Panel row in use places is placed. A
-break, a `hidden` field and a field the person cannot read are never unplaced. With no row,
-the fallback places every field.
-_Avoid_: missing field, orphan field.
+A data field that the Form Layout row in use does not place. On Details, New Record and the
+row dialog it renders only at its **anchor**, and only when it is new since the row's save
+(not in `omitted`); without a resolved anchor it is not drawn, and the editor shows it. On
+Quick Entry and in the row dialog, a mandatory one is added at the end. A field the Side Panel
+row in use places is placed. A break, a `hidden` field and a field the person cannot read are
+never unplaced. With no row, the fallback places every field. A mandatory unplaced field
+reaches the person through the **required-fields dialog**.
+_Avoid_: missing field, orphan field, More fields (the section is gone).
 
 **Omitted field**: <a id="omitted-field"></a>
-A field that a row keeps off its layout on purpose, listed in the row's `omitted`. A
-mandatory field with no default cannot be omitted. Omitting places nothing and changes no
-field property: `hidden` stays on the field.
+A field the row knew about at its save and did not place, listed in the row's `omitted`. The
+server writes the list from the meta on every Details and New Record save, and a patch fills
+it for older rows; the person never edits it. It holds every field the row does not place,
+mandatory ones too, except breaks and dropped field types. Omitting places nothing and changes
+no field property: `hidden` stays on the field.
 _Avoid_: missing field, orphan field, hidden field (a field property, not a placement).
+
+**Required-fields dialog**: <a id="required-fields-dialog"></a>
+The dialog a save opens for each mandatory field that the layout does not show: `reqd` or
+`mandatory_depends_on` is true, the value is empty and the person can write it. It lists them
+in meta (`idx`) order with their normal controls (a `Table` as the table control). Its primary
+button sets the values and continues the save; Cancel leaves the record dirty. A System
+Manager with `Customize Form` write also sees a note to add the fields to the Details layout.
+_Avoid_: "More fields" section, mandatory section.
 
 **Row dialog**: <a id="row-dialog"></a>
 The dialog that edits one child-table row, built from the child DocType's Details layout. Its
@@ -287,7 +298,7 @@ Record. An unplaced custom field renders right after its anchor field, in the sa
 or at the top of the container whose `name` its anchor is. Anchors chain in meta order, also
 through a hidden field or one the person cannot read. The
 anchor does not resolve when the row omits that field, does not place it, or places it only
-in the Side Panel; the field then goes to "More fields". A row that places or omits the
+in the Side Panel; the field is then not drawn. A row that places or omits the
 field wins over its anchor.
 
 **App layout**: <a id="app-layout"></a>

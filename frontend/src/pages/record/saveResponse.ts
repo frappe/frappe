@@ -11,10 +11,13 @@ export const SAVE_CONFLICT = "SaveConflict";
 /** The name a save rejected for compile errors throws under; the dialog has listed them. */
 export const SAVE_CODE_ERRORS = "SaveCodeErrors";
 
+/** The name a save throws under when the reader cancels the required-fields dialog. */
+export const SAVE_CANCELLED = "SaveCancelled";
+
 /** Whether a dialog has already told the reader why the save failed. */
 export function shownInDialog(error: unknown): boolean {
   const name = (error as Error | null)?.name;
-  return name === SAVE_CONFLICT || name === SAVE_CODE_ERRORS;
+  return name === SAVE_CONFLICT || name === SAVE_CODE_ERRORS || name === SAVE_CANCELLED;
 }
 
 // A msgprint is often HTML; the page renders it as text, so the tags go and a break becomes a space.
@@ -80,5 +83,11 @@ export function conflictError(): Error {
 export function codeErrorsError(message: string): Error {
   const error = new Error(message);
   error.name = SAVE_CODE_ERRORS;
+  return error;
+}
+
+export function cancelledError(): Error {
+  const error = new Error("Required fields were not filled in.");
+  error.name = SAVE_CANCELLED;
   return error;
 }

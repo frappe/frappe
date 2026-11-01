@@ -177,6 +177,7 @@ import {
 	RecordFeedsKey,
 	withFeedRead,
 } from "./record/feed/recordFeeds";
+import { askRequired } from "./record/askRequired";
 import CodeErrorsDialog from "./record/dialogs/CodeErrorsDialog.vue";
 import PageDialogs from "./record/dialogs/PageDialogs.vue";
 import RecordUploadDialog from "./record/feed/RecordUploadDialog.vue";
@@ -800,6 +801,9 @@ function buildController({ visit, target, pointer, details, panel, view }: Openi
 			userEmail: boot.session.user.email,
 		}),
 		formLayout: () => detailsForm.value,
+		offLayout: () => detailsLayout.value?.offLayout.value,
+		askRequired: (layout) =>
+			askRequired(controller.value!.page.dialog, layout, doc.value, target.doctype),
 		activateFormTab: (identity) => void (formTab.value = identity),
 		discloseSection: disclosure.disclose,
 		focusField: (fieldname, cursor) => void focusOnDetails(fieldname, cursor),

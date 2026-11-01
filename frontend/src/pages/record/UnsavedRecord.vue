@@ -102,6 +102,7 @@ import {
 	queryValues,
 	withNameField,
 } from "@/newRecordValues";
+import { askRequired } from "./askRequired";
 import BodyColumns from "./body/BodyColumns.vue";
 import PageDialogs from "./dialogs/PageDialogs.vue";
 import FrameBands from "./FrameBands.vue";
@@ -268,6 +269,9 @@ function buildController() {
 		activeTab: () => "details",
 		activateTab: () => {},
 		formLayout: () => detailsForm.value,
+		offLayout: () => layout.offLayout.value,
+		askRequired: (asked) =>
+			askRequired(controller.value!.page.dialog, asked, doc.value, props.doctype),
 		activeFormTab: () => activeFormTab.value,
 		activateFormTab: (identity) => void (formTab.value = identity),
 		focusField: (fieldname, cursor) => void landOnField(landing, fieldname, cursor),

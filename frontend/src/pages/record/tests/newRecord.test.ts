@@ -435,17 +435,15 @@ function tryAgain(root: HTMLElement) {
 }
 
 describe("unplaced fields", () => {
-  it("draws the fields a New Record row neither places nor omits in More fields, and inserts them", async () => {
+  it("draws only the fields a New Record row places: no More fields for one it neither places nor omits", async () => {
     server.rows["New Record"] = [{ sections: [{ columns: [{ fields: ["title"] }] }] }];
     server.omitted["New Record"] = ["status"];
     const { root } = await mount("/note/new");
 
-    expect(root.textContent).toContain("More fields");
+    expect(root.textContent).not.toContain("More fields");
     expect(input(root, "status")).toBeNull();
-    await type(root, "priority", "High");
-    await save(root);
-
-    expect(server.inserts[0]).toMatchObject({ priority: "High" });
+    expect(input(root, "priority")).toBeNull();
+    expect(input(root, "title")).not.toBeNull();
   });
 });
 

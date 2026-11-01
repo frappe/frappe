@@ -147,7 +147,7 @@ function rowLayoutOf(
 				joinLayout(chosen.layout, fields, {
 					childMetas: options.childMetas,
 					decorate: options.decorate,
-					unplaced: { mode: "section", omitted: chosen.omitted },
+					unplaced: { anchors: true, mandatoryAtEnd: true, omitted: chosen.omitted },
 					overrides: Object.fromEntries(options.columns),
 				})
 			);

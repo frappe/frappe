@@ -330,54 +330,71 @@ class TestOmittedFields(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.rollback()
 
-	def save(self, omitted: list | None, name: str | int | None = None) -> str:
-		return save_form_layout(
-			OMITTED_DT,
-			"Details",
-			"[]",
-			name=None if name is None else str(name),
-			omitted=None if omitted is None else json.dumps(omitted),
-		)
+	def save(self, placed: list[str], type: str = "Details", name: str | None = None, **kwargs) -> str:
+		layout = [{"name": "main", "sections": [{"name": "s", "columns": [{"name": "c", "fields": placed}]}]}]
+		return save_form_layout(OMITTED_DT, type, json.dumps(layout), name=name, **kwargs)
 
 	def stored(self, name: str) -> list:
 		return json.loads(frappe.db.get_value("Form Layout", name, "omitted") or "[]")
 
-	def test_omits_optional_fields_and_mandatory_fields_with_a_default(self):
-		name = self.save(["notes", "status"])
-		self.assertEqual(self.stored(name), ["notes", "status"])
+	def test_omits_every_field_the_row_does_not_place_mandatory_ones_too(self):
+		name = self.save(["notes"])
+		self.assertEqual(self.stored(name), ["title", "status"])
 		self.assertEqual(
-			get_form_layouts(OMITTED_DT, "Details")["layouts"][0]["omitted"], ["notes", "status"]
+			get_form_layouts(OMITTED_DT, "Details")["layouts"][0]["omitted"], ["title", "status"]
 		)
 		self.assertFalse(frappe.message_log)
 
-	def test_refuses_a_mandatory_field_with_no_default_with_a_message(self):
-		name = self.save(["title", "notes"])
-		self.assertEqual(self.stored(name), ["notes"])
-		self.assertIn("title", frappe.message_log[0]["message"])
+	def test_ignores_the_omitted_list_a_caller_sends(self):
+		name = frappe.call(save_form_layout, dt=OMITTED_DT, type="Details", layout="[]", omitted='["notes"]')
+		self.assertEqual(self.stored(name), ["title", "notes", "status"])
+
+	def test_a_new_record_row_omits_and_counts_an_inline_field_as_placed(self):
+		inline = {"fieldname": "notes", "fieldtype": "Small Text", "label": "Notes"}
+		self.assertEqual(self.stored(self.save([inline], type="New Record")), ["title", "status"])
+
+	def test_a_resave_writes_the_list_again(self):
+		name = self.save(["notes"])
+		frappe.db.set_value("Form Layout", name, "omitted", json.dumps(["gone", "notes"]))
+		self.save(["title", "notes"], name=name)
+		self.assertEqual(self.stored(name), ["status"])
+
+	def test_other_types_omit_nothing(self):
+		self.assertEqual(self.stored(self.save(["title"], type="Side Panel")), [])
 
 	def test_refuses_an_entry_that_is_not_a_data_field(self):
-		name = self.save(["gone", "notes"])
+		name = self.save(["title", "notes", "status"])
+		frappe.db.set_value("Form Layout", name, "omitted", None)
+		doc = frappe.get_doc("Form Layout", name)
+		doc.omitted = json.dumps(["gone", "notes"])
+		doc.save()
 		self.assertEqual(self.stored(name), ["notes"])
 		self.assertEqual(len(frappe.message_log), 1)
 
-	def test_a_stale_entry_is_kept(self):
-		name = self.save(["notes"])
-		frappe.db.set_value("Form Layout", name, "omitted", json.dumps(["gone", "notes"]))
-		self.save(["gone", "notes", "status"], name=name)
-		self.assertEqual(self.stored(name), ["gone", "notes", "status"])
-		self.assertFalse(frappe.message_log)
+	def test_the_patch_fills_omitted_and_keeps_the_entries_a_row_has(self):
+		from frappe.patches.v17_0.fill_form_layout_omitted import execute
 
-	def test_a_save_without_omitted_keeps_the_stored_list(self):
-		name = self.save(["notes"])
-		self.save(None, name=name)
-		self.assertEqual(self.stored(name), ["notes"])
-		self.save([], name=name)
-		self.assertEqual(self.stored(name), [])
+		details = self.save(["title"])
+		side = self.save(["title"], type="Side Panel")
+		frappe.db.set_value("Form Layout", details, "omitted", json.dumps(["gone"]))
+		execute()
+		self.assertEqual(self.stored(details), ["gone", "notes", "status"])
+		self.assertEqual(self.stored(side), [])
 
-	def test_refuses_an_omitted_list_that_is_not_fieldnames(self):
-		for omitted in ("{", '{"notes": 1}', "[1]"):
-			with self.assertRaises(frappe.ValidationError):
-				save_form_layout(OMITTED_DT, "Details", "[]", omitted=omitted)
+	def test_the_patch_skips_a_row_it_cannot_read(self):
+		from frappe.patches.v17_0.fill_form_layout_omitted import execute
+
+		broken = self.save(["title"])
+		fine = self.save(["title"], type="New Record")
+		frappe.db.set_value("Form Layout", broken, "layout", "{not json")
+		execute()
+		self.assertEqual(self.stored(fine), ["notes", "status"])
+		self.assertEqual(frappe.db.get_value("Form Layout", broken, "layout"), "{not json")
+
+	def test_a_malformed_layout_gets_a_validation_error_not_a_crash(self):
+		for layout in ("{not json", '{"a": 1}', '[{"sections": [{"columns": [{"fields": [5]}]}]}]'):
+			with self.subTest(layout=layout), self.assertRaises(frappe.ValidationError):
+				save_form_layout(OMITTED_DT, "Details", layout)
 
 
 class TestInlineFields(IntegrationTestCase):

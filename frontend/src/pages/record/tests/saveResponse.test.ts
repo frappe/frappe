@@ -2,6 +2,7 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   changedFields,
+  cancelledError,
   codeErrorsError,
   confirmConflict,
   conflictError,
@@ -78,6 +79,7 @@ describe("shownInDialog", () => {
   it("is true for a conflict and for code errors, which a dialog has told the reader", () => {
     expect(shownInDialog(conflictError())).toBe(true);
     expect(shownInDialog(codeErrorsError("Line 3"))).toBe(true);
+    expect(shownInDialog(cancelledError())).toBe(true);
     expect(shownInDialog(new Error("Amount is required"))).toBe(false);
     expect(shownInDialog(null)).toBe(false);
   });

@@ -62,12 +62,35 @@ function sectionsOf(layout: FormLayoutSchema) {
 }
 
 describe("the row dialog's layout", () => {
-	it("draws the child's default Details row, with its unplaced fields in More fields", () => {
+	it("draws no More fields: a new cell with no anchor is not drawn", () => {
 		const items = itemsField([{ ...defaultRow, omitted: [] }]);
 		expect(sectionsOf(items.rowLayout!({ item: "Pen" }))).toEqual([
 			["Goods", ["item", "kind", "hours"]],
-			["More fields", ["qty"]],
 		]);
+	});
+
+	it("draws a new cell at its anchor", () => {
+		const anchored = childFields.map((field) =>
+			field.fieldname === "qty" ? { ...field, insert_after: "kind" } : field
+		);
+		const schema = joinLayout(tree({ name: "main", fields: ["title", "items"] }), parentFields, {
+			childMetas: { [CHILD]: anchored },
+			childLayouts: { [CHILD]: [{ ...defaultRow, omitted: [] }] },
+		});
+		const items = layoutFields(schema).find((field) => field.fieldname === "items")!;
+		expect(sectionsOf(items.rowLayout!({ item: "Pen" }))).toEqual([
+			["Goods", ["item", "kind", "qty", "hours"]],
+		]);
+	});
+
+	it("adds a mandatory cell the row does not place at the end, even when it is omitted", () => {
+		const added = [...childFields, { fieldname: "batch", fieldtype: "Data", label: "Batch", reqd: 1 }];
+		const schema = joinLayout(tree({ name: "main", fields: ["title", "items"] }), parentFields, {
+			childMetas: { [CHILD]: added },
+			childLayouts: { [CHILD]: [{ ...defaultRow, omitted: ["qty", "batch"] }] },
+		});
+		const items = layoutFields(schema).find((field) => field.fieldname === "items")!;
+		expect(sectionsOf(items.rowLayout!({ item: "Pen" })).at(-1)![1]).toEqual(["batch"]);
 	});
 
 	it("keeps a field the row omits off the dialog", () => {

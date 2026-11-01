@@ -37,6 +37,7 @@ vi.mock("@/recordPage", async (importOriginal) => {
       const loading = ref(load.layoutsLoading);
       return {
         layout: computed(() => []),
+        offLayout: computed(() => []),
         loading: computed(() => loading.value),
         error: computed(() => null),
         placed: computed(() => []),
