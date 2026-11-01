@@ -103,11 +103,11 @@ import RailColumn from "./RailColumn.vue";
 import { useShellActs, type OpenSettings } from "./shellActs";
 import { useShellHooks } from "./shellHooks";
 import SidebarPanel from "./SidebarPanel.vue";
-import StandingWindows from "./StandingWindows.vue";
 import { useHashDialog } from "./useHashDialog";
 import UserMenu from "./UserMenu.vue";
 
 const ShellSettingsDialog = defineAsyncComponent(() => import("./ShellSettingsDialog.vue"));
+const StandingWindows = defineAsyncComponent(() => import("./StandingWindows.vue"));
 // Keys wait for no paint, so their code stays out of the cold-load chunk.
 const ActKeys = defineAsyncComponent(() => import("./actKeys").then((module) => module.ActKeys));
 const PaletteKey = defineAsyncComponent(() =>

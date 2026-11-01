@@ -77,7 +77,7 @@ function ship(app: string, attach: (shell: ShellHookApi) => unknown) {
 	shellHookFiles.push({ app, load: async () => ({ setup: attach }) });
 }
 
-/** Ships `app` with one window of `component`, and gives back its handle once the hook ran. */
+/** Ships `app` with one window of `component`, and gives back its handle once the hook ran and the lazy row drew it. */
 async function attached(
 	component: Component = Body,
 	options: StandingWindowOptions = { icon: "lucide-phone", width: 280 }
@@ -85,6 +85,7 @@ async function attached(
 	let handle: StandingWindowHandle | undefined;
 	ship("crm", (shell) => (handle = shell.window(component, options)));
 	await mount();
+	await vi.waitFor(() => expect(document.querySelector("[data-standing-window]")).not.toBeNull());
 	return handle!;
 }
 
