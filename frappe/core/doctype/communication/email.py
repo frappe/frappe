@@ -94,6 +94,8 @@ def make(
 
 	if doctype and name:
 		frappe.has_permission(doctype, doc=name, ptype="email", throw=True)
+	else:
+		frappe.has_permission("Communication", ptype="create", throw=True)
 
 	if letterhead:
 		frappe.has_permission("Letter Head", doc=letterhead, ptype="read", throw=True)

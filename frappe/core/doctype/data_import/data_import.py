@@ -288,6 +288,7 @@ def stop_data_import(doc_name: str):
 		{"data_import": data_import.name},
 		doctype="Data Import",
 		docname=data_import.name,
+		after_commit=True,
 	)
 
 	if not job_was_running:
@@ -320,11 +321,13 @@ def start_import(data_import):
 
 	# A blocked run already sent `data_import_blocked`; a refresh too would reload twice.
 	if not (i and i.blocked_by_warnings):
+		# After the commit, so a reload reads the final status and not In Progress.
 		frappe.publish_realtime(
 			"data_import_refresh",
 			{"data_import": data_import.name},
 			doctype="Data Import",
 			docname=data_import.name,
+			after_commit=True,
 		)
 
 		# list_update is muted while in_import, so send one for the list once the import ends.

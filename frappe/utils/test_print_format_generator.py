@@ -1,7 +1,9 @@
 # Copyright (c) 2024, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import importlib.util
 import json
+import unittest
 
 import frappe
 from frappe.printing.layout import iter_layout_columns
@@ -336,6 +338,44 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 			generator.render_pdf()
 		self.assertNotIn("password", chrome_pdf.call_args.kwargs["options"])
 
+	def test_bulk_typst_pdf_with_password_is_encrypted(self):
+		import io
+
+		from pypdf import PdfReader
+
+		from frappe.utils.print_format import _download_multi_pdf
+
+		print_format = self._make_print_format(pdf_generator="Typst")
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc(
+			{"doctype": "ToDo", "description": "Send the Q3 price list to Contoso"}
+		).insert()
+
+		_download_multi_pdf(
+			"ToDo", json.dumps([todo.name]), format=print_format.name, options=json.dumps({"password": "qwe"})
+		)
+
+		reader = PdfReader(io.BytesIO(frappe.local.response.filecontent))
+		self.assertTrue(reader.decrypt("qwe"))
+		self.assertEqual(len(reader.pages), 1)
+
+	def test_typst_pdf_with_password_is_encrypted(self):
+		import io
+
+		from pypdf import PdfReader
+
+		print_format = self._make_print_format(pdf_generator="Typst")
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc(
+			{"doctype": "ToDo", "description": "Send the Q3 price list to Contoso"}
+		).insert()
+
+		pdf = frappe.get_print("ToDo", todo.name, print_format=print_format.name, as_pdf=True, password="qwe")
+
+		self.assertTrue(PdfReader(io.BytesIO(pdf)).decrypt("qwe"))
+
 	def test_permlevel_restricted_fields_are_dropped(self):
 		"""A layout may reference permlevel-restricted fields; readers without access
 		to that permlevel must not get them in the print output."""
@@ -375,6 +415,37 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 			for df in column.get("fields", [])
 		]
 
+	@unittest.skipIf(importlib.util.find_spec("plutoprint") is None, "plutoprint is not installed")
+	def test_plutoprint_choice_is_kept_unless_the_format_needs_chrome(self):
+		from frappe.utils.print_utils import resolve_pdf_generator
+
+		pf = self._make_print_format(pdf_generator="PlutoPrint")
+		self.assertEqual(pf.pdf_generator, "PlutoPrint")
+		self.assertEqual(resolve_pdf_generator(pf), "PlutoPrint")
+
+		jinja = frappe._dict(
+			custom_format=1, pdf_generator="PlutoPrint", html="<div onclick='go()'>{{ doc.name }}</div>"
+		)
+		self.assertEqual(resolve_pdf_generator(jinja), "chrome")
+		self.assertEqual(resolve_pdf_generator(None, "PlutoPrint"), "PlutoPrint")
+
+	def test_typst_pdf_skips_the_html_print_view(self):
+		from unittest.mock import patch
+
+		from frappe.www import printview
+
+		print_format = self._make_print_format(pdf_generator="Typst")
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc(
+			{"doctype": "ToDo", "description": "Send the Q3 price list to Contoso"}
+		).insert()
+
+		with patch.object(printview, "get_context", wraps=printview.get_context) as get_context:
+			frappe.get_print("ToDo", todo.name, print_format.name, as_pdf=True)
+
+		get_context.assert_not_called()
+
 	def test_get_print_degrades_for_deleted_format(self):
 		"""A print_format name that no longer exists must not raise DoesNotExistError
 		during pdf_generator resolution — it degrades to the Standard render, so
@@ -386,15 +457,32 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		self.assertIsNone(_print_format_doc_or_none(None))
 
 	def test_pdf_generator_resolution_keeps_the_stored_choice(self):
-		"""A plain format prints with its own engine (wkhtmltopdf by default), while a
+		"""A plain format prints with its own engine, while a
 		beta format stays pinned to chrome — wkhtmltopdf cannot lay out its flexbox columns."""
 		from frappe.utils.print_utils import resolve_pdf_generator
 
 		beta = self._make_print_format()
-		self.assertEqual(resolve_pdf_generator(None), "wkhtmltopdf")
+		self.assertEqual(resolve_pdf_generator(None, "wkhtmltopdf"), "wkhtmltopdf")
 		self.assertEqual(resolve_pdf_generator(None, "chrome"), "chrome")
 		self.assertEqual(resolve_pdf_generator(beta), "chrome")
 		self.assertEqual(resolve_pdf_generator(beta, "wkhtmltopdf"), "chrome")
+
+	def test_standard_print_follows_print_settings_pdf_generator(self):
+		"""Standard (no print format) must honour Print Settings, while a beta format
+		stays pinned to chrome — wkhtmltopdf cannot lay out its flexbox columns."""
+		from frappe.utils.print_utils import resolve_pdf_generator
+
+		beta = self._make_print_format()
+		original = frappe.db.get_single_value("Print Settings", "pdf_generator")
+		self.addCleanup(frappe.db.set_single_value, "Print Settings", "pdf_generator", original)
+
+		for setting in ("wkhtmltopdf", "chrome"):
+			frappe.db.set_single_value("Print Settings", "pdf_generator", setting)
+			self.assertEqual(resolve_pdf_generator(None), setting)
+			self.assertEqual(resolve_pdf_generator(beta), "chrome")
+
+		frappe.db.set_single_value("Print Settings", "pdf_generator", "wkhtmltopdf")
+		self.assertEqual(resolve_pdf_generator(None, "chrome"), "chrome")
 
 	# ------------------------------------------------------------------ #
 	# render_jinja_template: whitelisted endpoint

@@ -191,7 +191,7 @@ function _profile_tab(user_data) {
 			const email = frappe.session.user_email || user;
 
 			panel.body.html(`
-				<div class="flex items-center gap-3 pt-4 pb-5">
+				<div class="flex flex-wrap items-center gap-3 pt-4 pb-5">
 					<div class="profile-avatar-upload relative flex shrink-0 rounded-full overflow-hidden cursor-pointer" title="${__(
 						"Upload Photo"
 					)}">

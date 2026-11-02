@@ -263,8 +263,7 @@ class User(Document):
 		if self.default_app and self.default_app not in frappe.get_installed_apps():
 			self.default_app = ""
 
-		if (self.name not in ["Administrator", "Guest"]) and (not self.get_social_login_userid("frappe")):
-			self.set_social_login_userid("frappe", frappe.generate_hash(length=39))
+		self.set_frappe_social_login_userid()
 
 	def disable_email_fields_if_user_disabled(self):
 		if not self.enabled:
@@ -397,6 +396,26 @@ class User(Document):
 		"""Set New Password for user"""
 		if new_password and not self.flags.in_insert:
 			_update_password(user=self.name, pwd=new_password, logout_all_sessions=self.logout_all_sessions)
+
+			if frappe.session.user != self.name:
+				from frappe.desk.doctype.notification_log.notification_log import (
+					enqueue_create_notification,
+				)
+				from frappe.utils import get_fullname
+
+				enqueue_create_notification(
+					[self.name],
+					{
+						"type": "Alert",
+						"document_type": "User",
+						"document_name": self.name,
+						"from_user": frappe.session.user,
+						"subject": _("Your password was changed by {0}").format(
+							get_fullname(frappe.session.user)
+						),
+					},
+				)
+
 			outgoing_email_exists = frappe.db.exists(
 				"Email Account", {"default_outgoing": 1, "awaiting_password": 0}
 			)
@@ -885,6 +904,32 @@ class User(Document):
 
 		self.append("social_logins", social_logins)
 
+	def set_frappe_social_login_userid(self):
+		"""The `frappe` provider userid is this site's OIDC `sub` claim, so it must stay
+		server-controlled: generated once and never changed by a later write."""
+		if self.name in STANDARD_USERS:
+			return
+
+		stored_userid = None
+		if not self.is_new():
+			stored_userid = frappe.db.get_value(
+				"User Social Login",
+				{"parent": self.name, "provider": "frappe"},
+				"userid",
+			)
+
+		frappe_logins = [d for d in self.social_logins if d.provider == "frappe"]
+
+		if stored_userid:
+			if frappe_logins:
+				frappe_logins[0].userid = stored_userid
+				for extra in frappe_logins[1:]:
+					self.social_logins.remove(extra)
+			else:
+				self.set_social_login_userid("frappe", stored_userid)
+		elif not frappe_logins:
+			self.set_social_login_userid("frappe", frappe.generate_hash(length=39))
+
 	def get_restricted_ip_list(self):
 		return get_restricted_ip_list(self)
 
@@ -938,7 +983,8 @@ class User(Document):
 			indicator="orange",
 			primary_action={
 				"label": _("Add Roles"),
-				"client_action": "frappe.scroll_to_user_roles_field",
+				"client_action": "frappe.set_route",
+				"args": f"{self.get_url()}?scroll_to=roles_html",
 			},
 		)
 

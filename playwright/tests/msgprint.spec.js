@@ -37,4 +37,26 @@ test.describe("Msgprint", () => {
 		await expect(page.locator(".msgprint")).toContainText("server message");
 		await expect(page.locator(".msgprint")).not.toContainText("client message");
 	});
+
+	test("keeps the primary action of an earlier message in the same response", async ({
+		page,
+	}) => {
+		await page.evaluate(() => {
+			frappe.request.cleanup(
+				{},
+				{
+					_server_messages: JSON.stringify([
+						JSON.stringify({
+							message: "Newly created user has no roles enabled.",
+							primary_action: { label: "Add Roles" },
+						}),
+						JSON.stringify({ message: "Welcome email sent" }),
+					]),
+				}
+			);
+		});
+		await expect(
+			page.locator(".msgprint-dialog").getByRole("button", { name: "Add Roles" })
+		).toBeVisible();
+	});
 });

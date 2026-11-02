@@ -190,7 +190,7 @@ frappe.ui.Page = class Page {
 		let menu_btn = this.menu_btn_group.find("button");
 		menu_btn
 			.attr("title", __("Menu"))
-			.tooltip({ delay: { show: 600, hide: 100 } })
+			.tooltip({ delay: { show: 600, hide: 100 }, trigger: "hover" })
 			.on("click mousedown", function () {
 				$(this).tooltip("hide");
 			});

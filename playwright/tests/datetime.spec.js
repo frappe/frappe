@@ -3,8 +3,6 @@ import datetime_doctype from "../fixtures/datetime_doctype";
 
 const doctype_name = datetime_doctype.name;
 
-// the picker rewrites the input from its own selection once its show transition ends,
-// so anything typed before that is lost
 async function open_picker(page, input) {
 	await input.click();
 	await expect(page.locator(".datepickers-container .datepicker.active")).toHaveCSS(
@@ -77,6 +75,22 @@ test.describe("Control Date, Time and DateTime", () => {
 					.toBe(d.length);
 			});
 		}
+
+		test("keeps a date typed right after the field is focused", async ({
+			page,
+			desk,
+			admin,
+		}) => {
+			await admin.set_value("System Settings", "System Settings", {
+				date_format: "dd-mm-yyyy",
+			});
+			await desk.new_form(doctype_name);
+			const input = desk.get_field("date", "Date");
+			await input.focus();
+			await input.pressSequentially("25-10-2026", { delay: 100 });
+			await input.blur();
+			await expect.poll(() => page.evaluate(() => cur_frm.doc.date)).toBe("2026-10-25");
+		});
 	});
 
 	test.describe("Time formats", () => {

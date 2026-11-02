@@ -10,10 +10,10 @@ from typing import TYPE_CHECKING, Any
 import frappe
 from frappe import _
 from frappe.model.docstatus import DocStatus
+from frappe.model.document import Document
 from frappe.utils import cint
 
 if TYPE_CHECKING:
-	from frappe.model.document import Document
 	from frappe.workflow.doctype.workflow.workflow import Workflow
 
 
@@ -119,6 +119,11 @@ def evaluate_workflow_value(value, evaluate_as_expression, doc):
 @frappe.whitelist()
 def apply_workflow(doc: Document | str | dict, action: str):
 	"""Allow workflow action on the current doc"""
+	return run_workflow_transition(doc, action).copy_with_fieldlevel_read_permissions()
+
+
+def run_workflow_transition(doc: Document | str | dict, action: str) -> Document:
+	"""Apply `action` to `doc` and return the document, without masking fields the user cannot read."""
 	doc = frappe.get_doc(frappe.parse_json(doc))
 	doc.load_from_db()
 	workflow = get_workflow(doc.doctype)
@@ -212,7 +217,7 @@ def apply_workflow(doc: Document | str | dict, action: str):
 	elif doc.docstatus.is_draft() and new_docstatus.is_submitted():
 		if doc.meta.queue_in_background and not is_scheduler_inactive():
 			queue_submission(doc, "Submit")
-			return
+			return doc
 
 		doc.submit()
 	elif doc.docstatus.is_submitted() and new_docstatus.is_submitted():
@@ -220,7 +225,7 @@ def apply_workflow(doc: Document | str | dict, action: str):
 	elif doc.docstatus.is_submitted() and new_docstatus.is_cancelled():
 		if doc.meta.queue_in_background and not is_scheduler_inactive():
 			queue_submission(doc, "Cancel")
-			return
+			return doc
 
 		doc.cancel()
 	else:
@@ -345,7 +350,7 @@ def _bulk_workflow_action(docnames, doctype, action):
 		message_dict = {}
 		try:
 			show_progress(docnames, _("Applying: {0}").format(action), idx, docname)
-			apply_workflow(frappe.get_doc(doctype, docname), action)
+			run_workflow_transition(frappe.get_doc(doctype, docname), action)
 			frappe.db.commit()
 		except Exception as e:
 			if not frappe.message_log:

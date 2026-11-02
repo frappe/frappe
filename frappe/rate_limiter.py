@@ -107,6 +107,8 @@ def rate_limit(
 	seconds: int = 24 * 60 * 60,
 	methods: str | list = "ALL",
 	ip_based: bool = True,
+	endpoint: str | None = None,
+	user_based: bool = False,
 ):
 	"""Decorator to rate limit an endpoint.
 
@@ -121,12 +123,19 @@ def rate_limit(
 	        `ALL` is a wildcard that applies rate limit on all methods.
 	:type methods: string or list or tuple
 	:param ip_based: flag to allow ip based rate-limiting
+	:param user_based: flag to allow authenticated user based rate-limiting
 	:type ip_based: Boolean
+	:param endpoint: name of the counter, required when the decorated callable has no stable
+	        dotted path of its own, e.g. a `functools.partial`.
 
 	Return: a decorator function that limit the number of requests per endpoint
 	"""
 
 	def ratelimit_decorator(fn):
+		# `cmd` is only set by the v1 API, deriving the counter from the function keeps a single
+		# counter per endpoint no matter which API version was used to reach it.
+		counter = endpoint or f"{fn.__module__}.{fn.__qualname__}"
+
 		@wraps(fn)
 		def wrapper(*args, **kwargs):
 			# Do not apply rate limits if method is not opted to check
@@ -138,20 +147,30 @@ def rate_limit(
 			_limit = limit() if callable(limit) else limit
 
 			ip = frappe.local.request_ip if ip_based is True else None
+			user_key = frappe.form_dict.get(key, "") if key else None
 
-			user_key = frappe.form_dict.get(key, "")
+			if user_based:
+				user = frappe.session.user
+				if user and user != "Guest":
+					identity = user
+				elif ip:
+					identity = ip
+				else:
+					identity = getattr(frappe.local, "request_ip", None) or "Guest"
 
-			identity = None
+				if key and user_key:
+					identity = f"{identity}:{user_key}"
 
-			if key and ip_based:
-				identity = ":".join([ip, user_key])
-
-			identity = identity or ip or user_key
+			else:
+				identity = None
+				if key and ip_based:
+					identity = ":".join([ip, user_key])
+				identity = identity or ip or user_key
 
 			if not identity:
-				frappe.throw(_("Either key or IP flag is required."))
+				frappe.throw(_("Either key, IP flag, or User flag is required."))
 
-			cache_key = frappe.cache.make_key(f"rl:{frappe.form_dict.cmd}:{identity}")
+			cache_key = frappe.cache.make_key(f"rl:{counter}:{identity}")
 
 			if not callable(seconds):
 				cache_key += f":{seconds}".encode()

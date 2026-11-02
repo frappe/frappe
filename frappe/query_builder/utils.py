@@ -5,10 +5,10 @@ from importlib import import_module
 from typing import Any, get_type_hints
 
 from pypika.queries import Column, QueryBuilder, _SetOperation
-from pypika.terms import PseudoColumn
+from pypika.terms import PseudoColumn, Term
 
 import frappe
-from frappe.query_builder.terms import NamedParameterWrapper
+from frappe.query_builder.terms import EscapedValueWrapper, NamedParameterWrapper
 
 from .builder import Base, MariaDB, Postgres, SQLite
 
@@ -201,6 +201,18 @@ def execute_child_queries(queries, result):
 					if "parentfield" not in child_query.fields:
 						del d["parentfield"]
 					row[child_query.fieldname].append(d)
+
+
+def render_criterion(criterion: Term) -> str:
+	"""Render a criterion to namespaced SQL with its values escaped and inlined.
+
+	Uses `frappe.db.escape` instead of pypika's quote-doubling, which a backslash
+	breaks out of on MariaDB.
+	"""
+	quote_char = "`" if frappe.db.db_type == "mariadb" else '"'
+	return criterion.get_sql(
+		with_namespace=True, quote_char=quote_char, param_wrapper=EscapedValueWrapper(), subquery=True
+	)
 
 
 def prepare_query(query):

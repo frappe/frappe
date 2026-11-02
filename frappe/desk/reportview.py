@@ -9,15 +9,13 @@ from collections import deque
 from functools import lru_cache
 from typing import Any
 
-from sql_metadata import Parser
-
 import frappe
 import frappe.permissions
 from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.desk.link_title import get_report_link_titles, send_link_titles
 from frappe.model import child_table_fields, default_fields, get_permitted_fields, optional_fields
-from frappe.model.base_document import get_controller
+from frappe.model.document import get_controller
 from frappe.model.qb_query import DatabaseQuery
 from frappe.model.utils import is_virtual_doctype
 from frappe.utils import add_user_info, cint, format_duration
@@ -54,7 +52,10 @@ def send_compressed_link_titles(args, data):
 	# field to its bare fieldname, so pair the requested fields back up with its key order.
 	if not isinstance(data, dict):
 		return
-	field_info = {info.get("fieldname"): info for info in get_field_info(args.fields, args.doctype)}
+	field_info = {
+		get_result_key(field, info): info
+		for field, info in zip(args.fields, get_field_info(args.fields, args.doctype), strict=True)
+	}
 	columns = [field_info.get(key) for key in data["keys"]]
 	send_link_titles(get_report_link_titles(columns, data["values"]))
 
@@ -272,6 +273,8 @@ def is_standard(fieldname):
 
 @lru_cache(maxsize=1024)
 def extract_fieldnames(field):
+	from sql_metadata import Parser
+
 	from frappe.database.schema import SPECIAL_CHAR_PATTERN
 
 	if not SPECIAL_CHAR_PATTERN.findall(field):
@@ -349,6 +352,13 @@ def get_parenttype_and_fieldname(field, data):
 		fieldname = field.strip("`")
 
 	return parenttype, fieldname
+
+
+def get_result_key(field: str | dict, info: dict) -> str:
+	"""Return the key a requested field gets in the result: its alias, else its fieldname."""
+	if isinstance(field, str) and " as " in field:
+		return field.split(" as ", 1)[1].strip(" '`\"")
+	return info.get("fieldname")
 
 
 def compress(data, args=None):

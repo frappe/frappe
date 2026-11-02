@@ -2,8 +2,8 @@
 
 The reusable DocType list-view experience, extracted from CRM into `@framework/ui`.
 It is a set of **controlled, meta-driven** controls — **SortBy**, **Filter**,
-**QuickFilter**, **ColumnSettings** — plus two composables that join them
-(`useListView`) and optionally fetch rows (`useListData`).
+**QuickFilter**, **ColumnSettings**, **GroupBy** — plus two composables that join
+them (`useListView`) and optionally fetch rows (`useListData`).
 
 This guide covers what each piece exports, how the pieces fit together, and a full
 copy-paste integration. For the vocabulary (Sort, Filter, Column, Field Options,
@@ -163,8 +163,9 @@ A column with no `width` flexes to fill; only a resized column carries a fixed
 ## `useListView(doctype)` — the state owner
 
 Composes the four per-control composables into one namespaced surface so you can see
-at a glance which member drives which control. It owns no state itself; each slice
-lives in its co-located composable and reads Meta itself (cached).
+at a glance which member drives which control. Each of those slices lives in its
+co-located composable and reads Meta itself (cached). The one exception is
+`groupBy`: a plain ref that `useListView` owns itself.
 
 ```ts
 const view = useListView(doctype);
@@ -173,6 +174,7 @@ view.filters; // UseFilters    — { conditions: Ref<FilterCondition[]>, wire }
 view.sort; // UseSort       — { by: Ref<Sort[]>, orderBy }
 view.quickFilter; // UseQuickFilter— { fields, customizing, canCustomize }
 view.columns; // UseColumns    — { shown, isCustomized, reset, wire, setWidth, resetWidth }
+view.groupBy; // Ref<GroupBySettings | null> — the GroupBy control's model, `null` when ungrouped
 
 view.snapshot; // ComputedRef<ListViewSnapshot>  (the whole view as one JSON object)
 view.restore(snapshot); // seed from a (possibly partial) snapshot
@@ -185,7 +187,7 @@ list and `order_by` string you query with. The controls bind the _state_ members
 ### Saving changes — read this first
 
 **You do not save controls individually.** There is no "save the Filter", "save the
-SortBy", or "save the Columns". All four controls write into one object,
+SortBy", or "save the Columns". All the controls write into one object,
 `view.snapshot`, and **any** change replaces it with a new value. So you wire **one**
 watcher and it persists everything:
 
@@ -195,14 +197,31 @@ watch(view.snapshot, (snap) => saveView(snap)); // saves ALL of the below
 
 Every one of these triggers that single watcher — there is nothing else to wire:
 
-| The user…                           | …mutates                           | …so `view.snapshot` changes and your watcher saves |
-| ----------------------------------- | ---------------------------------- | -------------------------------------------------- |
-| edits a **Filter**                  | `view.filters.conditions`          | ✅                                                 |
-| reorders/changes **SortBy**         | `view.sort.by`                     | ✅                                                 |
-| **adds / removes** a column         | `view.columns.shown`               | ✅                                                 |
-| **resizes** a column (drag header)  | `view.columns.shown` (width)       | ✅                                                 |
-| edits a **Quick Filter** value      | `view.filters.conditions` (shared) | ✅                                                 |
-| customizes which quick filters show | `view.quickFilter.fields`          | ✅                                                 |
+| The user…                                                    | …mutates                           | …so `view.snapshot` changes and your watcher saves |
+| ------------------------------------------------------------ | ---------------------------------- | -------------------------------------------------- |
+| edits a **Filter**                                           | `view.filters.conditions`          | ✅                                                 |
+| reorders/changes **SortBy**                                  | `view.sort.by`                     | ✅                                                 |
+| **adds / removes** a column                                  | `view.columns.shown`               | ✅                                                 |
+| **resizes** a column (drag header)                           | `view.columns.shown` (width)       | ✅                                                 |
+| groups with **GroupBy**, or sorts/resizes a **GroupByTable** | `view.groupBy`                     | ✅                                                 |
+| edits a **Quick Filter** value                               | `view.filters.conditions` (shared) | ✅                                                 |
+| customizes which quick filters show                          | `view.quickFilter.fields`          | ✅                                                 |
+
+The Group By row holds when both components bind `view.groupBy` — the control
+v-models it, and the table writes header sorts and column widths back through
+`v-model:groupBy`:
+
+```vue
+<GroupBy v-model="view.groupBy.value" :doctype="doctype" />
+<GroupByTable
+  v-if="view.groupBy.value"
+  v-model:groupBy="view.groupBy.value"
+  :doctype="doctype"
+  :rows="groups.rows.value"
+/>
+```
+
+`groups` here is `useGroupByData(doctype, view.groupBy, view.filters.wire)`.
 
 > `snapshot` is a fresh object **only when a control's state actually changes**, so
 > the watcher fires once per real edit — no `deep: true`, no spurious saves. Resize
@@ -282,8 +301,8 @@ view.restore({ filters: parseFilters(fields, saved.filters) }); // only filters
 Because each control is controlled and v-models its own slice, you can equally assign
 the ref directly — `view.columns.shown.value = parseColumns(saved.columns)` — without
 going through `restore` at all. The slice (filters / sort / columns /
-quickFilterFields) is the atom on both sides: `snapshot` saves them all, `restore`
-loads any subset.
+quickFilterFields / groupBy) is the atom on both sides: `snapshot` saves them all,
+`restore` loads any subset.
 
 > Saving to `localStorage` instead? Skip the helpers entirely — the snapshot is
 > plain JSON: `localStorage.setItem(key, JSON.stringify(view.snapshot.value))` /
@@ -314,8 +333,9 @@ data.reload(); // refetch page 1
 
 A complete toolbar: Filter + QuickFilter sharing one filter list, ColumnSettings
 synced with the table's drag-resize, live rows via `useListData`, and **autosave via
-a single `watch(view.snapshot, …)`** — which covers filter, sort, and every column
-add/remove/resize, not just quick filters. (This mirrors the `ListViewToolbar` story.)
+a single `watch(view.snapshot, …)`** — which covers filter, sort, group by, and every
+column add/remove/resize, not just quick filters. (This mirrors the `ListViewToolbar`
+story.)
 
 ```vue
 <template>

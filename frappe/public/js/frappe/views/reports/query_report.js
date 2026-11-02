@@ -5,6 +5,8 @@ import DataTable from "frappe-datatable";
 // Expose DataTable globally to allow customizations.
 window.DataTable = DataTable;
 
+const ONE_MINUTE = 60000;
+
 frappe.provide("frappe.widget.utils");
 frappe.provide("frappe.views");
 frappe.provide("frappe.query_reports");
@@ -107,7 +109,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	setup_events() {
-		frappe.realtime.on("report_generated", (data) => {
+		frappe.realtime.on("report_processed", (data) => {
 			this.toggle_primary_button_disabled(false);
 			if (data.report_name) {
 				// If generated report and currently active Prepared Report has same fiters
@@ -795,6 +797,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			.every((res) => res === true);
 
 		this.show_loading_screen();
+		clearInterval(this.stale_report_interval);
 
 		// only one refresh at a time
 		if (this.last_ajax) {
@@ -837,6 +840,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				this.snapshot_at = data.snapshot_at;
 				this.refreshed_at = frappe.datetime.now_datetime();
 				this.execution_time = data.execution_time || 0.1;
+				const report_failed = data.doc?.status === "Error";
 
 				const check_if_report_is_stale = () => {
 					let generated_at =
@@ -866,6 +870,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					}
 				};
 
+				const show_error_message = () =>
+					this.toggle_message(true, this.get_prepared_report_error_message(data.doc));
+
 				if (this.snapshot_report) {
 					if (data.result.length > 0) {
 						let diff = frappe.datetime.comment_when(this.snapshot_at);
@@ -878,8 +885,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 						</div>
 					`);
 					}
+				} else if (report_failed) {
+					this.stale_report_interval = setInterval(show_error_message, ONE_MINUTE);
 				} else {
-					this.stale_report_interval = setInterval(check_if_report_is_stale, 60000);
+					this.stale_report_interval = setInterval(check_if_report_is_stale, ONE_MINUTE);
 				}
 
 				if (data.custom_filters) {
@@ -890,6 +899,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				if (data.prepared_report) {
 					this.prepared_report = true;
 					this.prepared_report_document = data.doc;
+					this.prepared_report_error = data.error;
 					// If query_string contains prepared_report_name then set filters
 					// to match the mentioned prepared report doc and disable editing
 					if (this.prepared_report_name) {
@@ -904,7 +914,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 						});
 					}
 					this.add_prepared_report_buttons(data.doc);
-					check_if_report_is_stale();
+					// the error message already shows when it failed
+					if (!report_failed) check_if_report_is_stale();
 				}
 
 				if (data.report_summary) {
@@ -969,7 +980,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	add_prepared_report_buttons(doc) {
-		if (doc && frappe.model.can_read("Prepared Report")) {
+		if (doc && doc.status !== "Error" && frappe.model.can_read("Prepared Report")) {
 			this.page.add_inner_button(
 				__("Download Report"),
 				function () {
@@ -1076,13 +1087,13 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	get_queued_prepared_reports_warning_message(reports) {
+		const can_read = frappe.model.can_read("Prepared Report");
 		const route = `/desk/List/Prepared Report/List?status=Queued&report_name=${this.report_name}`;
-		const report_link_html =
-			reports.length == 1
-				? `<a class="underline" href="${route}">${__("1 Report")}</a>`
-				: `<a class="underline" href="${route}">${__("{0} Reports", [
-						reports.length,
-				  ])}</a>`;
+		const report_count =
+			reports.length == 1 ? __("1 Report") : __("{0} Reports", [reports.length]);
+		const report_link_html = can_read
+			? `<a class="underline" href="${route}">${report_count}</a>`
+			: report_count;
 
 		const no_of_reports_html =
 			reports.length == 1
@@ -1100,7 +1111,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			</p>`;
 
 		let get_item_html = (item) =>
-			`<a class="underline" href="/desk/prepared-report/${item.name}">${item.name}</a>`;
+			can_read
+				? `<a class="underline" href="/desk/prepared-report/${item.name}">${item.name}</a>`
+				: item.name;
 
 		warning_message += reports.map(get_item_html).join(", ");
 
@@ -1135,10 +1148,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				const data = r.message;
 				// Rememeber the name of Prepared Report doc
 				this.prepared_report_doc_name = data.name;
-				let alert_message =
-					`<a href='/desk/prepared-report/${data.name}'>` +
-					__("Report initiated, click to view status") +
-					`</a>`;
+				let alert_message = frappe.model.can_read("Prepared Report")
+					? `<a href='/desk/prepared-report/${data.name}'>` +
+					  __("Report initiated, click to view status") +
+					  `</a>`
+					: __("Queued");
 				frappe.show_alert({ message: alert_message, indicator: "orange" }, 10);
 				this.toggle_nothing_to_show(true);
 			});
@@ -1654,7 +1668,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			});
 		}
 
-		return visible_idx;
+		const visible = new Set(visible_idx);
+		return this.datatable.datamanager.rowViewOrder.filter((idx) => visible.has(idx));
 	}
 
 	async print_report(print_settings) {
@@ -2094,7 +2109,12 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 								label: __("From Document Type"),
 								reqd: 1,
 								options: this.linked_doctypes?.map((df) => ({
-									label: df.doctype + " (" + frappe.unscrub(df.fieldname) + ")",
+									label:
+										__(df.doctype) +
+										" (" +
+										(this.columns.find((col) => col.fieldname === df.fieldname)
+											?.name || __(frappe.unscrub(df.fieldname))) +
+										")",
 									value: JSON.stringify({
 										doctype: df.doctype,
 										fieldname: df.fieldname,
@@ -2162,7 +2182,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 									? df.fieldname + "-" + frappe.scrub(values.doctype)
 									: df.fieldname,
 								fieldtype: df.fieldtype,
-								label: df.label,
+								label: __(df.label, null, df.parent),
 								insert_after_index: insert_after_index,
 								link_field: {
 									fieldname: values.fieldname,
@@ -2463,12 +2483,14 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	toggle_nothing_to_show(flag) {
-		let message =
-			this.prepared_report && !this.prepared_report_document
-				? __(
-						"This is a background report. Please set the appropriate filters and then generate a new one."
-				  )
-				: this.get_no_result_message();
+		let message;
+		if (this.prepared_report_document?.status === "Error") {
+			message = this.get_prepared_report_error_message(this.prepared_report_document);
+		} else if (this.prepared_report && !this.prepared_report_document) {
+			message = this.get_background_report_message();
+		} else {
+			message = this.get_no_result_message();
+		}
 
 		this.toggle_message(flag, message);
 
@@ -2477,6 +2499,42 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				this.add_prepared_report_buttons();
 			}
 		}
+	}
+
+	get_background_report_message() {
+		return frappe.ui.empty_state({
+			icon: "clock",
+			title: __("This is a background report"),
+			description: __("Set the filters and generate a new one."),
+		})[0].outerHTML;
+	}
+
+	get_prepared_report_error_message(doc) {
+		const can_read = frappe.model.can_read("Prepared Report");
+		const actions = can_read
+			? [
+					{
+						label: __("View Details"),
+						href: frappe.utils.get_form_link(doc.doctype, doc.name),
+					},
+			  ]
+			: [];
+
+		// say when, so a failure from yesterday does not read as one from just now
+		const title = doc.report_end_time
+			? __("Report generation failed {0}", [frappe.datetime.prettyDate(doc.report_end_time)])
+			: __("Report generation failed");
+
+		const description =
+			this.prepared_report_error ||
+			(can_read ? "" : __("Something went wrong. Contact your System Manager."));
+
+		return frappe.ui.empty_state({
+			icon: "triangle-alert",
+			title,
+			description,
+			actions,
+		})[0].outerHTML;
 	}
 
 	toggle_message(flag, message) {

@@ -23,8 +23,11 @@ from frappe.email.inbox import get_email_accounts
 from frappe.integrations.frappe_providers.cloud_settings import (
 	get_boot_context as get_cloud_settings_boot_context,
 )
+from frappe.integrations.frappe_providers.cloud_settings import (
+	is_v2_site,
+)
 from frappe.integrations.frappe_providers.frappecloud_billing import current_site_info, is_fc_site
-from frappe.model.base_document import get_controller
+from frappe.model.document import get_controller
 from frappe.utils import add_user_info, get_system_timezone
 from frappe.utils.caching import redis_cache
 from frappe.utils.change_log import get_versions
@@ -84,9 +87,6 @@ def get_bootinfo():
 	bootinfo.home_folder = frappe.db.get_value("File", {"is_home_folder": 1})
 	bootinfo.navbar_settings = get_navbar_settings()
 	bootinfo.notification_settings = get_notification_settings()
-	bootinfo.notification_unread_count = frappe.db.count(
-		"Notification Log", {"read": 0, "for_user": frappe.session.user}
-	)
 	bootinfo.onboarding_tours = get_onboarding_ui_tours()
 	set_time_zone(bootinfo)
 
@@ -125,6 +125,7 @@ def get_bootinfo():
 	bootinfo.subscription_conf = add_subscription_conf()
 	bootinfo.is_fc_site = is_fc_site()
 	bootinfo.cloud_settings = get_cloud_settings_boot_context()
+	bootinfo.is_v2_site = is_v2_site()
 	bootinfo.enable_address_autocompletion = frappe.db.get_single_value(
 		"Geolocation Settings", "enable_address_autocompletion"
 	)
@@ -166,7 +167,7 @@ def load_conf_settings(bootinfo):
 
 	bootinfo.max_file_size = get_max_file_size()
 	bootinfo.file_chunk_size = get_file_chunk_size()
-	for key in ("developer_mode", "socketio_port", "file_watcher_port"):
+	for key in ("developer_mode", "socketio_port", "socketio_backend", "file_watcher_port"):
 		if key in frappe.conf:
 			bootinfo[key] = frappe.conf.get(key)
 

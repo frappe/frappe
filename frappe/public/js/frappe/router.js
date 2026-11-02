@@ -193,6 +193,7 @@ frappe.router = {
 		this.current_route = await this.parse();
 		this.respell_private_workspace();
 		this.write_shell_into_url();
+		this.current_sub_path = this.get_sub_path(this.path_on_screen());
 
 		this.set_history(sub_path);
 		this.render();
@@ -494,7 +495,7 @@ frappe.router = {
 			if (re_route_val === this.current_sub_path) {
 				window.history.back();
 			} else {
-				frappe.set_route(re_route_val);
+				frappe.set_route(frappe.re_route[sub_path]);
 			}
 
 			return true;

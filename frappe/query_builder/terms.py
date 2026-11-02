@@ -36,6 +36,13 @@ class NamedParameterWrapper:
 		return self.parameters
 
 
+class EscapedValueWrapper:
+	"""Parameter wrapper that inlines each value as an escaped SQL literal."""
+
+	def get_sql(self, param_value: Any, **kwargs) -> str:
+		return frappe.db.escape(param_value, percent=False)
+
+
 class ParameterizedValueWrapper(ValueWrapper):
 	"""
 	Class to monkey patch ValueWrapper

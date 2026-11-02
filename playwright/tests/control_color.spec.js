@@ -53,4 +53,31 @@ test.describe("Control Color", () => {
 		await input.clear();
 		await expect(input).toHaveAttribute("placeholder", /Choose a color/);
 	});
+
+	test("closes the picker when tabbing to the next field", async ({ page, desk }) => {
+		await page.goto("/desk/website");
+		await desk.ready();
+
+		await desk.dialog({
+			title: "Color",
+			fields: [
+				{
+					label: "Color",
+					fieldname: "color",
+					fieldtype: "Color",
+				},
+				{
+					label: "Title",
+					fieldname: "title",
+					fieldtype: "Data",
+				},
+			],
+		});
+		const popover = page.locator(".color-picker-popover");
+
+		await page.getByPlaceholder("Choose a color").click();
+		await expect(popover).toBeVisible();
+		await page.keyboard.press("Tab");
+		await expect(popover).toBeHidden();
+	});
 });

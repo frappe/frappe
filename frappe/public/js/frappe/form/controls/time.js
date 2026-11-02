@@ -33,7 +33,8 @@ frappe.ui.form.ControlTime = class ControlTime extends frappe.ui.form.ControlDat
 					this.$input.trigger("change");
 				}
 			},
-			onShow: () => {
+			onShow: (_, animation_completed) => {
+				if (animation_completed) return;
 				$(".datepicker--button:visible").text(__("Now"));
 
 				this.update_datepicker_position();

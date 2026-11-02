@@ -191,6 +191,24 @@
   --text-md: var(--text-base);
 }
 
+/* DEPRECATED radius aliases: old --border-radius-* names -> Espresso --radius-*
+   (same pixel values). Migrate usages to Espresso names. */
+:root {
+  --border-radius-tiny: var(--radius-sm);
+  --border-radius-sm: var(--radius);
+  --border-radius: var(--radius);
+  --border-radius-md: var(--radius-md);
+  --border-radius-lg: var(--radius-lg);
+  --border-radius-xl: var(--radius-xl);
+  --border-radius-2xl: var(--radius-2xl);
+  --border-radius-full: var(--radius-full);
+}
+
+/* DEPRECATED: was black in light, white in dark. Use --ink-gray-9. */
+:root {
+  --invert-neutral: var(--ink-gray-9);
+}
+
 /* Espresso theme names added to the indicator color-pair system (alongside the
    retained legacy colors above) — so Framework's migrated indicator defs and the
    .indicator dot render amber/violet. Map to Espresso. */

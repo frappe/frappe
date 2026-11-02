@@ -303,11 +303,9 @@ if (frappe.views.KanbanView) {
 						},
 						callback: (r) => {
 							var board = r.message[0];
-							var updated_cards = r.message[1];
-							var cards = update_cards_column(updated_cards);
 							var columns = prepare_columns(board.columns);
 							store.update_state({
-								cards: cards,
+								cards: store.cards,
 								columns: columns,
 							});
 						},

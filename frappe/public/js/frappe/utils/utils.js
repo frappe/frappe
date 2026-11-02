@@ -1589,6 +1589,7 @@ Object.assign(frappe.utils, {
 		};
 
 		for (let key in custom_options) {
+			if (key === "__proto__") continue;
 			if (typeof chart_args[key] === "object" && typeof custom_options[key] === "object") {
 				chart_args[key] = Object.assign(chart_args[key], custom_options[key]);
 			} else {

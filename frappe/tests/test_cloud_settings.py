@@ -158,6 +158,9 @@ class TestCloudSettings(_CloudTestCase):
 			bundle = get_boot_context()["bundle"]
 
 		self.assertEqual(bundle["js"], "https://pilot.example.com/embed/cloud-settings/cloud-settings.js")
+		self.assertEqual(
+			bundle["module"], "https://pilot.example.com/embed/cloud-settings/esm/cloud-settings.js"
+		)
 
 	def test_bundle_embed_url_overrides_with_version(self):
 		conf = {
@@ -175,8 +178,12 @@ class TestCloudSettings(_CloudTestCase):
 			bundle["js"],
 			"https://cdn.example.com/embed/cloud-settings/cloud-settings.js?v=16.0.1",
 		)
+		self.assertEqual(
+			bundle["module"],
+			"https://cdn.example.com/embed/cloud-settings/esm/cloud-settings.js?v=16.0.1",
+		)
 		# The embed renders in a shadow root and adopts its own styles, so the
-		# bundle is one script with no stylesheet for desk to link.
+		# bundle has no stylesheet for desk to link.
 		self.assertNotIn("css", bundle)
 
 	def test_disabled_without_system_manager_role(self):
@@ -254,7 +261,7 @@ class TestCloudSettings(_CloudTestCase):
 			patch.dict(frappe.conf, PILOT_CONF),
 			patch("frappe.get_roles", return_value=["System Manager"]),
 			patch(
-				"frappe.integrations.frappe_providers.cloud_settings.requests.request",
+				"requests.request",
 				return_value=Response({"url": "http://central.localhost:8001"}),
 			) as request,
 		):
@@ -290,7 +297,7 @@ class TestCloudSettings(_CloudTestCase):
 			patch.dict(frappe.conf, PILOT_CONF),
 			patch("frappe.get_roles", return_value=["System Manager"]),
 			patch(
-				"frappe.integrations.frappe_providers.cloud_settings.requests.request",
+				"requests.request",
 				return_value=Response({"domains": ["shop.example.com"], "primary": "shop.example.com"}),
 			) as request,
 		):
@@ -333,7 +340,7 @@ class TestCloudSettings(_CloudTestCase):
 			patch.dict(frappe.conf, PILOT_CONF),
 			patch("frappe.get_roles", return_value=["System Manager"]),
 			patch(
-				"frappe.integrations.frappe_providers.cloud_settings.requests.request",
+				"requests.request",
 				return_value=Response({"ok": True, "task_id": "task-1"}),
 			) as request,
 		):
@@ -351,7 +358,7 @@ class TestCloudSettings(_CloudTestCase):
 			patch.dict(frappe.conf, PILOT_CONF),
 			patch("frappe.get_roles", return_value=["System Manager"]),
 			patch(
-				"frappe.integrations.frappe_providers.cloud_settings.requests.request",
+				"requests.request",
 				return_value=Response(payload, ok=False),
 			),
 			self.assertRaises(CloudMigrationConflictError),
@@ -364,7 +371,7 @@ class TestCloudSettings(_CloudTestCase):
 			patch.dict(frappe.conf, PILOT_CONF),
 			patch("frappe.get_roles", return_value=["System Manager"]),
 			patch(
-				"frappe.integrations.frappe_providers.cloud_settings.requests.request",
+				"requests.request",
 				return_value=Response(payload, ok=False),
 			),
 			self.assertRaises(frappe.ValidationError) as caught,
@@ -381,7 +388,7 @@ class TestCloudSettings(_CloudTestCase):
 			patch.dict(frappe.conf, PILOT_CONF),
 			patch("frappe.get_roles", return_value=["System Manager"]),
 			patch(
-				"frappe.integrations.frappe_providers.cloud_settings.requests.request",
+				"requests.request",
 				return_value=Response(payload),
 			) as request,
 		):
@@ -528,7 +535,7 @@ class TestCloudTask(_CloudTestCase):
 			patch.dict(frappe.conf, PILOT_CONF),
 			patch("frappe.get_roles", return_value=["System Manager"]),
 			patch(
-				"frappe.integrations.frappe_providers.cloud_settings.requests.request",
+				"requests.request",
 				# The bench nests task metadata under "task" alongside the log output.
 				return_value=Response(
 					{"output": ["…"], "task": {"task_id": "task-1", "status": "success", "exit_code": 0}}

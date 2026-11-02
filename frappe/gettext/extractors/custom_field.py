@@ -10,7 +10,8 @@ def extract(fileobj, *args, **kwargs):
 	:param fileobj: the file-like object the messages should be extracted from
 	:rtype: `iterator`
 	"""
-	data = json.load(fileobj)
+	text = fileobj.read().decode()
+	data = json.loads(text)
 
 	if not isinstance(data, list):
 		return
@@ -19,6 +20,6 @@ def extract(fileobj, *args, **kwargs):
 
 	for custom_field in data:
 		doctype = custom_field.get("dt")
-		messages.extend(extract_messages_from_docfield(doctype, custom_field))
+		messages.extend(extract_messages_from_docfield(doctype, custom_field, text))
 
-	yield from ((None, "_", message, [comment]) for message, comment in messages)
+	yield from ((lineno, "_", message, [comment]) for lineno, message, comment in messages)

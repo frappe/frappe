@@ -611,6 +611,7 @@ frappe.ui.Sidebar = class Sidebar {
 		if (this.wrapper.find(".sidebar-items")[0]) {
 			this.wrapper.find(".sidebar-items").html("");
 		}
+		this.items = [];
 	}
 	make_sidebar() {
 		this.empty();
@@ -1027,7 +1028,6 @@ frappe.ui.Sidebar = class Sidebar {
 
 		// Select the shell first, so the sidebar is right when the route lands.
 		if (entry.module) this.select_shell(entry.module);
-		this.open();
 
 		const route = this.dock_entry_route(entry);
 		if (route) frappe.set_route(route);

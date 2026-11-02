@@ -378,10 +378,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 		let doctype = $link.attr("data-doctype"),
 			names = $link.attr("data-names") || [];
 
-		const fieldname =
-			$link.find(".document-link-badge").attr("data-fieldname") ||
-			(this.data.non_standard_fieldnames && this.data.non_standard_fieldnames[doctype]) ||
-			this.data.fieldname;
+		const fieldname = this.get_document_link_fieldname($link);
 
 		if (names.length) {
 			frappe.route_options = { name: ["in", names] };
@@ -399,6 +396,15 @@ frappe.ui.form.Dashboard = class FormDashboard {
 		}
 
 		frappe.set_route("List", doctype, "List");
+	}
+
+	get_document_link_fieldname($link) {
+		return (
+			$link.find(".document-link-badge").attr("data-fieldname") ||
+			(this.data.non_standard_fieldnames &&
+				this.data.non_standard_fieldnames[$link.attr("data-doctype")]) ||
+			this.data.fieldname
+		);
 	}
 
 	get_document_filter(doctype, fieldname) {
@@ -478,15 +484,18 @@ frappe.ui.form.Dashboard = class FormDashboard {
 				d.doctype,
 				d.open_count,
 				d.count,
-				d.names
+				d.names,
+				d.fieldname
 			);
 		});
 	}
 
-	set_badge_count_for_external_link(doctype, open_count, count, names) {
-		let $link = $(this.transactions_area).find(
-			'.document-link[data-doctype="' + doctype + '"]'
-		);
+	set_badge_count_for_external_link(doctype, open_count, count, names, fieldname) {
+		let $link = $(this.transactions_area)
+			.find('.document-link[data-doctype="' + doctype + '"]')
+			.filter(
+				(i, link) => !fieldname || this.get_document_link_fieldname($(link)) === fieldname
+			);
 
 		this.set_badge_count_common(open_count, count, $link);
 		$link.attr("data-names", names ? names.join(",") : "");

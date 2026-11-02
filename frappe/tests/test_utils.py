@@ -960,7 +960,8 @@ class TestDateUtils(IntegrationTestCase):
 		if is_invalid_date_string(str(original)):
 			return
 		parsed = get_datetime(str(original))
-		self.assertEqual(parsed, original)
+		self.assertEqual(parsed.replace(tzinfo=None), original.replace(tzinfo=None))
+		self.assertEqual(parsed.utcoffset(), original.utcoffset())
 
 	def test_pretty_date(self):
 		from frappe import _
@@ -2043,3 +2044,17 @@ class TestMsgPrint(UnitTestCase):
 		frappe.msgprint("<ul><li>abc<li></ul>")
 		message = frappe.get_message_log()[-1]
 		self.assertIn("<ul><li>", message.message)
+
+	def test_raised_message_keeps_html_in_a_terminal(self):
+		with (
+			patch("sys.stdin") as stdin,
+			patch.dict(frappe.local.flags, {"print_messages": True}),
+			patch("builtins.print") as printed,
+		):
+			stdin.isatty.return_value = True
+			with self.assertRaises(frappe.ValidationError) as raised:
+				frappe.throw("first<br>second")  # nosemgrep: frappe-missing-translate-function-python
+
+		self.assertEqual(str(raised.exception), "first<br>second")
+		printed.assert_called_once()
+		self.assertNotIn("<br>", printed.call_args.args[0])

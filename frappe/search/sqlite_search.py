@@ -13,8 +13,6 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
-from bs4 import BeautifulSoup
-
 import frappe
 from frappe.model.document import Document
 from frappe.utils import convert_utc_to_system_timezone, get_datetime, now_datetime, update_progress_bar
@@ -1663,6 +1661,8 @@ class SQLiteSearch(ABC):
 		if not content:
 			return ""
 
+		from bs4 import BeautifulSoup
+
 		# Convert to string in case it's a Mock object or other type
 		content = str(content)
 
@@ -1937,7 +1937,7 @@ def update_doc_index(doc: Document, method=None):
 		search = SearchClass()
 
 		if not (search.is_search_enabled() and search.index_exists()):
-			return
+			continue
 
 		for doctype, config in search.doc_configs.items():
 			if doc.doctype == doctype:
@@ -1963,7 +1963,7 @@ def delete_doc_index(doc: Document, method=None):
 		search = SearchClass()
 
 		if not (search.is_search_enabled() and search.index_exists()):
-			return
+			continue
 
 		for doctype, config in search.doc_configs.items():
 			if doc.doctype == doctype:

@@ -81,6 +81,12 @@ frappe.ui.form.ControlColor = class ControlColor extends frappe.ui.form.ControlD
 					this.$wrapper.popover("hide");
 				});
 			});
+
+		this.$input.on("blur", (e) => {
+			if (e.relatedTarget && !$(e.relatedTarget).parents().is(".popover")) {
+				this.$wrapper.popover("hide");
+			}
+		});
 	}
 
 	refresh() {

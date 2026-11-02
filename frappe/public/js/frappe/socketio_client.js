@@ -178,10 +178,10 @@ class RealTimeClient {
 		this.emit("doc_close", doctype, docname);
 	}
 	setup_listeners() {
-		this.socket.on("task_status_change", function (data) {
+		this.socket.on("task_status_change", (data) => {
 			this.process_response(data, data.status.toLowerCase());
 		});
-		this.socket.on("task_progress", function (data) {
+		this.socket.on("task_progress", (data) => {
 			this.process_response(data, "progress");
 		});
 	}
@@ -192,6 +192,9 @@ class RealTimeClient {
 
 		// success
 		let opts = this.open_tasks[data.task_id];
+		if (!opts) {
+			return;
+		}
 		if (opts[method]) {
 			opts[method](data);
 		}

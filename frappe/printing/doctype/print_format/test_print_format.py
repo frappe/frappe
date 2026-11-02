@@ -40,7 +40,9 @@ class TestPrintFormat(IntegrationTestCase):
 			{"doctype": "Print Format", "doc_type": "ToDo", "print_format_builder": 1, "pdf_generator": None}
 		)
 		classic.onload()
-		self.assertEqual(classic.get_onload("pdf_generator"), "wkhtmltopdf")
+		self.assertEqual(
+			classic.get_onload("pdf_generator"), frappe.db.get_single_value("Print Settings", "pdf_generator")
+		)
 
 		beta = frappe.get_doc(
 			{
@@ -52,6 +54,25 @@ class TestPrintFormat(IntegrationTestCase):
 		)
 		beta.onload()
 		self.assertEqual(beta.get_onload("pdf_generator"), "chrome")
+
+	def test_builder_format_switched_to_custom_format_saves(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		doc = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": "_Test Custom Builder Format",
+				"doc_type": "ToDo",
+				"standard": "No",
+				"print_format_builder_beta": 1,
+				"format_data": frappe.as_json(beta_layout()),
+			}
+		).insert()
+		self.addCleanup(doc.delete)
+
+		doc.update({"custom_format": 1, "print_format_builder_beta": 0, "html": "<p>{{ doc.name }}</p>"})
+		doc.save()
+		self.assertEqual(frappe.parse_json(doc.format_data), beta_layout())
 
 	@unittest.skipUnless(
 		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
@@ -1253,7 +1274,9 @@ class TestWeasyPrintEngine(IntegrationTestCase):
 		self.assertEqual(resolve_pdf_generator(self.make_beta("WeasyPrint")), "WeasyPrint")
 		self.assertEqual(resolve_pdf_generator(self.make_beta("Typst")), "Typst")
 		self.assertEqual(resolve_pdf_generator(self.make_beta(), "wkhtmltopdf"), "chrome")
-		self.assertEqual(resolve_pdf_generator(None), "wkhtmltopdf")
+		self.assertEqual(
+			resolve_pdf_generator(None), frappe.db.get_single_value("Print Settings", "pdf_generator")
+		)
 		self.assertEqual(resolve_pdf_generator(None, "chrome"), "chrome")
 		self.assertEqual(resolve_pdf_generator(frappe._dict(pdf_generator="chrome")), "chrome")
 		self.assertEqual(

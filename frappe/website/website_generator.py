@@ -4,7 +4,6 @@
 import frappe
 from frappe.model.document import Document
 from frappe.modules import get_module_name
-from frappe.search.website_search import remove_document_from_index, update_index_for_path
 from frappe.website.utils import cleanup_page_name, clear_cache
 
 
@@ -94,6 +93,8 @@ class WebsiteGenerator(Document):
 		self.send_indexing_request("URL_DELETED")
 		# On deleting the doc, remove the page from the web_routes index
 		if self.allow_website_search_indexing():
+			from frappe.search.website_search import remove_document_from_index
+
 			frappe.enqueue(remove_document_from_index, path=self.route, enqueue_after_commit=True)
 
 	def is_website_published(self):
@@ -160,6 +161,8 @@ class WebsiteGenerator(Document):
 		old_doc = self.get_doc_before_save()
 		# Check if the route is changed
 		if old_doc and old_doc.route != self.route:
+			from frappe.search.website_search import remove_document_from_index
+
 			# Remove the route from index if the route has changed
 			remove_document_from_index(old_doc.route)
 
@@ -171,6 +174,8 @@ class WebsiteGenerator(Document):
 		"""
 		if not self.allow_website_search_indexing() or frappe.in_test:
 			return
+
+		from frappe.search.website_search import remove_document_from_index, update_index_for_path
 
 		if self.is_website_published():
 			frappe.enqueue(update_index_for_path, path=self.route, enqueue_after_commit=True)

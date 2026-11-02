@@ -1,7 +1,7 @@
 # Copyright (c) 2025, Frappe Technologies and Contributors
 # See license.txt
 
-from frappe.model.base_document import get_controller
+from frappe.model.document import get_controller
 from frappe.tests import IntegrationTestCase
 
 

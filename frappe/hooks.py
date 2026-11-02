@@ -108,6 +108,7 @@ pdf_body_html = "frappe.utils.pdf.pdf_body_html"
 pdf_footer_html = "frappe.utils.pdf.pdf_footer_html"
 pdf_generator = [
 	"frappe.utils.pdf.get_chrome_pdf",
+	"frappe.utils.pdf.get_plutoprint_pdf",
 	"frappe.utils.print_format_generator.get_typst_pdf",
 	"frappe.utils.weasyprint.get_weasyprint_pdf",
 ]
@@ -570,6 +571,10 @@ user_invitation = {
 		"System Manager": [],
 	},
 }
+
+# Expose method source code through the API discovery endpoints. Safe for open
+# source apps and helps API clients understand what a method does.
+expose_discovery_source = True
 
 
 add_to_apps_screen = [

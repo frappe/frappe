@@ -1,5 +1,3 @@
-from google.oauth2.credentials import Credentials
-from googleapiclient.discovery import build
 from requests import get, post
 
 import frappe
@@ -145,6 +143,8 @@ class GoogleOAuth:
 
 	def get_google_service_object(self, access_token: str, refresh_token: str):
 		"""Return Google service object."""
+		from google.oauth2.credentials import Credentials
+		from googleapiclient.discovery import build
 
 		credentials_dict = {
 			"token": access_token,

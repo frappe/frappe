@@ -69,6 +69,9 @@ class Webhook(Document):
 	def on_update(self):
 		frappe.client_cache.delete_value("webhooks")
 
+	def after_delete(self):
+		frappe.client_cache.delete_value("webhooks")
+
 	def execute_for_doc(self, doc: Document):
 		enqueue_webhook(doc, self)
 

@@ -66,6 +66,7 @@
     font-size: var(--text-base);
     font-weight: var(--font-weight-regular);
     line-height: 1;
+    vertical-align: middle;
     outline: none;
     transition: background-color 120ms, border-color 120ms, color 120ms;
 
@@ -281,8 +282,8 @@ a.es-button:focus {
 }
 
 .es-button.btn-danger {
-    --bt-bg: var(--surface-red-5);
-    --bt-fg: var(--ink-white);
-    --bt-hover-bg: var(--surface-red-6);
-    --bt-active-bg: var(--surface-red-7);
+    --bt-solid-bg: var(--surface-red-7);
+    --bt-solid-bg-hover: var(--surface-red-8);
+    --bt-solid-bg-active: var(--surface-red-9);
+    --bt-solid-fg: var(--ink-red-1);
 }
