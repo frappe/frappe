@@ -1,5 +1,6 @@
 import datetime
 import json
+from pathlib import Path
 from typing import Literal, cast
 from urllib.parse import quote, urlencode
 
@@ -346,6 +347,17 @@ def handle_wellknown(path: str):
 	if path.startswith("/.well-known/oauth-protected-resource") and is_oauth_metadata_enabled("resource"):
 		return get_protected_resource_metadata()
 
+	return get_app_wellknown_file(path)
+
+
+def get_app_wellknown_file(path: str):
+	"""Serve a file an app ships in `www/.well-known/`, e.g. a domain verification token."""
+	name = path.removeprefix("/.well-known/")
+	for app in frappe.get_installed_apps():
+		folder = Path(frappe.get_app_path(app, "www", ".well-known")).resolve()
+		file = (folder / name).resolve()
+		if file.is_relative_to(folder) and file.is_file():
+			return Response(file.read_bytes(), content_type="text/plain")
 	raise NotFound
 
 
