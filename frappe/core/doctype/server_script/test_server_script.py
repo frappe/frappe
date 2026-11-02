@@ -1105,3 +1105,37 @@ frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 				os.remove(script.get_file_path())
 				with self.assertRaises(frappe.DoesNotExistError):
 					run(script)
+
+	def test_file_script_reads_environment_variables(self):
+		script = self.make_file_script(
+			"test_file_env",
+			"frappe.flags = frappe.env.API_TOKEN\n",
+			script_type="API",
+			api_method="test_file_env",
+			variables=[{"key": "API_TOKEN", "value": "s3cr3t"}],
+		)
+
+		with self.set_user("test@example.com"):
+			self.assertEqual(frappe.get_doc("Server Script", script.name).execute_method(), "s3cr3t")
+
+		self.write_file_script(script, "frappe.flags = frappe.env.MISSING\n")
+		with self.set_user("test@example.com"):
+			self.assertRaisesRegex(frappe.ValidationError, "MISSING", script.execute_method)
+
+	def test_file_script_cannot_read_variable_values_directly(self):
+		owner = self.make_file_script(
+			"test_file_env_owner",
+			"pass\n",
+			script_type="API",
+			api_method="test_file_env_owner",
+			variables=[{"key": "API_TOKEN", "value": "s3cr3t"}],
+		)
+		reader = self.make_file_script(
+			"test_file_env_reader",
+			f'frappe.flags = frappe.get_doc("Server Script Variable", "{owner.variables[0].name}").get_password("value")\n',
+			script_type="API",
+			api_method="test_file_env_reader",
+		)
+
+		with self.set_user("test@example.com"):
+			self.assertRaises(frappe.PermissionError, reader.execute_method)
