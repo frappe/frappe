@@ -319,7 +319,7 @@ function load_state() {
 
 // the panel's header and message box, drawn at once while the chat loads
 const SKELETON = `<div class="skeleton" aria-hidden="true">
-	<div class="bar"><i style="width: 40%"></i><b></b><b></b><b></b><b></b></div>
+	<div class="bar"><i style="width: 40%"></i><b></b><b></b><b></b></div>
 	<div class="composer"><i style="width: 25%"></i></div>
 	<p>Flow could not start. Reload the page to try again.</p>
 </div>`;
@@ -378,9 +378,12 @@ const STYLE = `
 /* the chat's own fixed layers, its toasts, place against the panel and not the page; its
    overlays sit in the top layer, above any containment */
 .window { position: relative; contain: layout; }
+/* after 300 ms, as Desk's island pages: a chat that is quicker never flashes it */
 .skeleton { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: space-between; }
+.panel:not([inert]) .skeleton { animation: skeleton-in 150ms ease-out 300ms backwards; }
+@keyframes skeleton-in { from { opacity: 0; } }
 :host([data-ready]) .skeleton { display: none; }
-.skeleton i, .skeleton b { display: block; height: 12px; border-radius: 6px; background: var(--surface-gray-3, rgba(128, 128, 128, 0.16)); }
+.skeleton i, .skeleton b { display: block; height: 12px; border-radius: 6px; background: var(--skeleton-bg, var(--surface-gray-3, rgba(128, 128, 128, 0.16))); }
 .skeleton b { width: 16px; height: 16px; border-radius: 4px; }
 .skeleton .bar { display: flex; align-items: center; gap: 16px; height: 48px; padding: 0 12px; box-sizing: border-box; }
 .skeleton .bar i { margin-right: auto; }
