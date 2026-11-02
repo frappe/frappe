@@ -565,6 +565,7 @@ def get_context(context):
 					web_form_request_key,
 					docname,
 					field.allow_read_on_all_link_options,
+					field.apply_user_permissions,
 				)
 
 			if field.fieldtype == "Link":
@@ -815,7 +816,7 @@ def process_link_field(field, web_form_name, web_form_request_key=None, docname=
 		getattr(field, "allow_read_on_all_link_options", False),
 		web_form_request_key=web_form_request_key,
 		docname=docname,
-		ignore_user_permissions=ignore_user_permissions,
+		apply_user_permissions=field.get("apply_user_permissions") and not ignore_user_permissions,
 	)
 	return field
 
@@ -1151,6 +1152,7 @@ def get_form_data(
 				web_form_request_key,
 				docname,
 				field.allow_read_on_all_link_options,
+				field.apply_user_permissions,
 			)
 			out.update({field.fieldname: field.fields})
 
@@ -1176,7 +1178,12 @@ def get_web_form_list_fields(web_form_doc: "WebForm", web_form_request_key: str 
 
 
 def get_in_list_view_fields(
-	doctype, web_form_name=None, web_form_request_key=None, docname=None, allow_read_on_all_link_options=False
+	doctype,
+	web_form_name=None,
+	web_form_request_key=None,
+	docname=None,
+	allow_read_on_all_link_options=False,
+	apply_user_permissions=False,
 ):
 	meta = frappe.get_meta(doctype)
 	fields = []
@@ -1198,6 +1205,7 @@ def get_in_list_view_fields(
 		df = meta.get_field(fieldname).as_dict()
 		if df.get("options") and df.get("fieldtype") == "Link":
 			df.allow_read_on_all_link_options = allow_read_on_all_link_options
+			df.apply_user_permissions = apply_user_permissions
 			process_link_field(df, web_form_name, web_form_request_key, docname)
 		return df
 
@@ -1243,7 +1251,7 @@ def get_link_options(
 	allow_read_on_all_link_options=False,
 	web_form_request_key=None,
 	docname=None,
-	ignore_user_permissions=False,
+	apply_user_permissions=False,
 ):
 	web_form: WebForm = frappe.get_cached_doc("Web Form", web_form_name)
 
@@ -1268,7 +1276,7 @@ def get_link_options(
 	link_options, filters = [], []
 	if web_form.login_required and not allow_read_on_all_link_options:
 		filters.append(["owner", "=", frappe.session.user])
-	if not ignore_user_permissions and (
+	if apply_user_permissions and (
 		allowed_docs := get_allowed_docs_for_doctype(
 			get_user_permissions(frappe.session.user).get(doctype, []), web_form.doc_type
 		)

@@ -1217,7 +1217,7 @@ class TestWebForm(IntegrationTestCase):
 		web_form.save(ignore_permissions=True)
 		self.assertIn("Event", child_link_options())
 
-	def test_link_field_options_respect_user_permissions(self):
+	def test_link_field_options_apply_user_permissions(self):
 		web_form = self.make_temp_web_form(
 			web_form_fields=[
 				{"fieldname": "subject", "fieldtype": "Data", "label": "Title", "reqd": 1},
@@ -1245,6 +1245,10 @@ class TestWebForm(IntegrationTestCase):
 			)
 			return [option["value"] for option in child_link_field["options"]]
 
+		self.assertIn("Event", child_link_options())
+
+		web_form.web_form_fields[1].apply_user_permissions = 1
+		web_form.save(ignore_permissions=True)
 		self.assertEqual(child_link_options(), ["ToDo"])
 
 		property_setter = make_property_setter(
