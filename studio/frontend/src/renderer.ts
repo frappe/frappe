@@ -3,12 +3,13 @@ import "@/index.css"
 import { createApp } from "vue"
 import { createPinia } from "pinia"
 import "@/setupFrappeUIResource"
-import { createAppRouter } from "@/router/app_router"
+import { createAppRouter, type RouterConfig } from "@/router/app_router"
 import ErrorPage from "@/pages/ErrorPage.vue"
 import AppRenderer from "@/AppRenderer.vue"
 import { resourcesPlugin } from "frappe-ui"
 import { registerGlobalComponents } from "@/globals"
-import { registerCustomVueComponents } from "@/utils/customVueComponents"
+import { registerCustomVueComponents, registerAppVueComponents } from "@/utils/customVueComponents"
+import { loadAppRuntime, loadAppRouterConfig } from "@/runtime/appRuntime"
 import { registerStudioPageScripts } from "@/data/studioPageScripts"
 import { initSocket } from "@/socket"
 
@@ -25,6 +26,7 @@ window.__APP_COMPONENTS__ = app._context.components
 declare global {
 	interface Window {
 		is_preview?: boolean
+		uses_db_files?: boolean
 		can_edit_app?: boolean
 		__APP_COMPONENTS__: any
 		[key: string]: string
@@ -36,12 +38,22 @@ if (window.is_preview && typeof window.is_preview === "string") {
 }
 
 const frappeApp = (window as any).frappe_app
-const componentsReady = frappeApp
-	? Promise.all([registerCustomVueComponents(frappeApp), registerStudioPageScripts(frappeApp)])
-	: Promise.resolve()
 
-componentsReady
-	.then(() => createAppRouter())
+// A database app's files compile in the browser: load them (components, router.ts) before routing.
+async function prepareApp(): Promise<RouterConfig | undefined> {
+	if (window.uses_db_files) {
+		await loadAppRuntime(window.app_name)
+		await registerAppVueComponents(window.app_name)
+		return loadAppRouterConfig()
+	}
+	if (frappeApp) {
+		await Promise.all([registerCustomVueComponents(frappeApp), registerStudioPageScripts(frappeApp)])
+	}
+	return undefined
+}
+
+prepareApp()
+	.then((routerConfig) => createAppRouter(routerConfig))
 	.then((router) => app.use(router).mount("#app"))
 	.catch((error) => {
 		console.error(error)

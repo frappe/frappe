@@ -12,9 +12,10 @@ import { studioVariables } from "@/data/studioVariables"
 import Block from "@/utils/block"
 import useCanvasStore from "@/stores/canvasStore"
 import useCodeStore, { usePageScope } from "@/stores/codeStore"
-import { reloadCustomVueComponents } from "@/utils/customVueComponents"
+import { registerAppVueComponents, reloadCustomVueComponents } from "@/utils/customVueComponents"
 import { registerStudioPageScripts, unregisterStudioPageScripts } from "@/data/studioPageScripts"
-import { registerCustomComponentPaths } from "@/utils/components"
+import { reloadAppRuntime, unloadAppRuntime } from "@/runtime/appRuntime"
+import { registerCustomComponentPaths, invalidateComponentCache } from "@/utils/components"
 import type { CustomVueComponentMeta } from "@/types/vue"
 
 import type { StudioApp } from "@/types/Studio/StudioApp"
@@ -107,6 +108,10 @@ const useStudioStore = defineStore("store", () => {
 	}
 
 	const showRouterEditor = ref(false)
+	// a database app opens the page-script dock from the file explorer, beside its other files
+	const showPageScriptEditor = ref(false)
+	// a database app's source files live in Studio App File and compile in the browser
+	const usesDbFiles = computed(() => !activeApp.value?.is_standard)
 
 	async function setApp(appName: string) {
 		const appDoc = await fetchApp(appName)
@@ -262,7 +267,7 @@ const useStudioStore = defineStore("store", () => {
 		activePage.value = page
 		loadRouteVariables(page)
 		await setPageData(page)
-		await pageScope.setPageScript(page, Boolean(page.is_standard))
+		await pageScope.setPageScript(page)
 
 		const blocks = JSON.parse(page.draft_blocks || page.blocks || "[]")
 		if (blocks.length === 0) {
@@ -399,18 +404,12 @@ const useStudioStore = defineStore("store", () => {
 
 	// A server tool (AI) wrote the page script straight to the DB / code file, so re-fetch the
 	// page and re-run setup() on the canvas. (Standard pages update only after their app rebuilds.)
-	async function reloadActiveAppRouterScript() {
-		if (!activeApp.value) return
-		const app = await fetchApp(activeApp.value.name)
-		if (app && activeApp.value?.name === app.name) activeApp.value.router_script = app.router_script
-	}
-
 	async function reloadActivePageScript() {
 		if (!activePage.value) return
 		const page = await fetchPage(activePage.value.name)
 		if (!page) return
 		activePage.value = page
-		await pageScope.setPageScript(page, Boolean(page.is_standard))
+		await pageScope.setPageScript(page)
 	}
 
 	async function publishPage() {
@@ -626,9 +625,26 @@ const useStudioStore = defineStore("store", () => {
 	}
 
 	async function loadCustomVueComponents() {
-		const frappeApp = activeApp.value?.is_standard ? activeApp.value.frappe_app! : ""
-		customVueComponents.value = await reloadCustomVueComponents(frappeApp)
+		if (usesDbFiles.value) {
+			customVueComponents.value = await registerAppVueComponents(activeApp.value!.name)
+			return
+		}
+		await unloadAppRuntime()
+		customVueComponents.value = await reloadCustomVueComponents(activeApp.value!.frappe_app!)
 	}
+
+	// A file changed (an editor save, an agent write): refetch the sources, recompile the
+	// components, and re-run the open page's script so the canvas follows. Debounced to coalesce
+	// the editor's own save with its realtime echo.
+	const refreshAppFiles = useDebounceFn(async () => {
+		if (!usesDbFiles.value) return
+		await reloadAppRuntime()
+		await setCustomComponents()
+		for (const component of customVueComponents.value) {
+			invalidateComponentCache(component.component_name)
+		}
+		if (activePage.value) await pageScope.setPageScript(activePage.value)
+	}, 300)
 
 	// Register per-page code scripts (<page>.ts) for exported apps so the editor can load them.
 	async function setupPageScripts() {
@@ -742,7 +758,7 @@ const useStudioStore = defineStore("store", () => {
 		// re-resolve data sources with the new value, then re-run the page script so bindings that
 		// derive from a resource (e.g. refs seeded from note.doc via a watcher) re-bind to the new doc.
 		await pageScope.setPageResources(page, true)
-		await pageScope.setPageScript(page, Boolean(page.is_standard))
+		await pageScope.setPageScript(page)
 	}, 300)
 
 	const codeStore = useCodeStore()
@@ -821,6 +837,9 @@ const useStudioStore = defineStore("store", () => {
 		showPageOptions,
 		// studio app
 		activeApp,
+		usesDbFiles,
+		refreshAppFiles,
+		showPageScriptEditor,
 		setApp,
 		deleteApp,
 		updateActiveApp,
@@ -857,7 +876,6 @@ const useStudioStore = defineStore("store", () => {
 		syncPageModified,
 		refreshActivePageModified,
 		reloadActivePageScript,
-		reloadActiveAppRouterScript,
 		publishPage,
 		unpublishPage,
 		revertPage,

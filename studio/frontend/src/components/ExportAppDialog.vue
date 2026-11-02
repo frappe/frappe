@@ -124,11 +124,10 @@ async function exportApp() {
 }
 
 async function disableAppExport() {
-	const data = await studioApps.runDocMethod.submit({
+	await studioApps.runDocMethod.submit({
 		name: store.activeApp?.app_name,
 		method: "disable_app_export",
 	})
-	if (data?.message) toast.warning("App export disabled", { description: data.message, duration: Infinity })
-	else toast.success("App export disabled")
+	toast.success("App export disabled")
 }
 </script>

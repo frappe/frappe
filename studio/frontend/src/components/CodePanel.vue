@@ -1,9 +1,10 @@
 <template>
 	<div class="flex flex-col gap-3">
-		<!-- Exported apps live in code: browse/edit the on-disk studio/<app>/ files.
-		     Non-exported apps keep their page scripts in the DB. -->
-		<FileExplorer v-if="store.activeApp?.is_standard" />
-		<PageScript v-else />
+		<!-- Every app browses its own source files: on disk for a repository app, in the file store
+		     for a database app. A database app keeps its page scripts on the page doc rather than
+		     in that store, so they open in the script dock from the explorer instead. -->
+		<FileExplorer />
+		<PageScript v-if="store.usesDbFiles && store.showPageScriptEditor" />
 	</div>
 </template>
 

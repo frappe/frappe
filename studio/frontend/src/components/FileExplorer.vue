@@ -176,7 +176,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from "vue"
+import { ref, computed, inject, watch, nextTick, onMounted, onBeforeUnmount } from "vue"
 import { useStorage } from "@vueuse/core"
 import { Button, Dialog, ErrorMessage, FormControl, Tree, toast, Tooltip } from "frappe-ui"
 import CodeEditorDock from "@/components/CodeEditorDock.vue"
@@ -196,6 +196,7 @@ import {
 	type StudioFileNode,
 } from "@/data/studioFiles"
 import { confirm } from "@/utils/helpers"
+import { PAGE_SCRIPT_BOILERPLATE } from "@/utils/constants"
 import { pageScriptCompletions } from "@/utils/completions/pageScriptCompletions"
 import type { ContextMenuOption } from "@/types"
 
@@ -261,9 +262,17 @@ function findNode(path: string | null, nodes: StudioFileNode[] = tree.value): St
 	return null
 }
 
-const activePageHasScript = computed(() => Boolean(findNode(activePagePaths.value?.script ?? null)))
+const activePageHasScript = computed(() => {
+	// a database app's page script is not a file: it lives on the page doc and opens in its own dock
+	if (store.usesDbFiles) return Boolean(activePage.value?.script)
+	return Boolean(findNode(activePagePaths.value?.script ?? null))
+})
 
 function openActivePageScript() {
+	if (store.usesDbFiles) {
+		store.showPageScriptEditor = true
+		return
+	}
 	const scriptPath = activePagePaths.value?.script
 	if (scriptPath) openOrCreateFile(scriptPath)
 }
@@ -372,6 +381,8 @@ async function save() {
 		openFile.value.hash = result.hash
 		savedContent.value = editorContent.value
 		toast.success("Saved")
+		// files in the store compile in the browser: refresh the canvas without waiting for realtime
+		if (store.usesDbFiles) store.refreshAppFiles()
 	} catch (error: any) {
 		toast.error("Failed to save", { description: error?.messages?.join(", ") })
 	} finally {
@@ -417,15 +428,6 @@ function focusFormInput(formRef: { value: any }, start?: number, end?: number) {
 		})
 	})
 }
-
-// A page's script (studio_page/<stem>/<stem>.ts) gets a setup() skeleton instead of an empty file.
-const PAGE_SCRIPT_BOILERPLATE = `export default function setup(context) {
-	// Reactive state, computed values, watchers and functions for this page.
-	// Read this page's data sources and variables from context, e.g. context.todos
-
-	return {}
-}
-`
 
 function isPageScriptPath(path: string): boolean {
 	const match = path.match(/^studio_page\/([^/]+)\/([^/]+)\.ts$/)
@@ -674,12 +676,27 @@ async function onStudioFileChanged({ path }: { path: string }) {
 	}
 }
 
+// The file store has no Vite watcher, so its changes arrive over realtime: refresh the tree, and
+// re-read the open file when it is the one that changed.
+const socket = inject<any>("socket")
+
+async function onAppFileChange(info: { doctype: string; name: string; studio_app: string }) {
+	if (info?.doctype !== "Studio App File" || !store.usesDbFiles) return
+	if (info.studio_app !== location.value.studio_app) return
+	await onStudioFilesChanged()
+	if (openFile.value && info.name === openFile.value.path) {
+		await onStudioFileChanged({ path: `${info.studio_app}/${info.name}` })
+	}
+}
+
 onMounted(() => {
 	import.meta.hot?.on("studio:files-changed", onStudioFilesChanged)
 	import.meta.hot?.on("studio:file-changed", onStudioFileChanged)
+	socket?.on("studio_doc_update", onAppFileChange)
 })
 onBeforeUnmount(() => {
 	import.meta.hot?.off("studio:files-changed", onStudioFilesChanged)
 	import.meta.hot?.off("studio:file-changed", onStudioFileChanged)
+	socket?.off("studio_doc_update", onAppFileChange)
 })
 </script>
