@@ -207,12 +207,6 @@ runs:
       # build it in the background while the site is being created)
       start_time=$(date +%s)
 
-      build_pid=""
-      if [ "$BUILD_ASSETS" == "true" ]; then
-        CI=Yes bench build --force --production &> ${GITHUB_WORKSPACE}/build_assets.log &
-        build_pid=$!
-      fi
-
       if [ "$DB" == "postgres" ]; then
         DB_ROOT_USER="postgres"
         DB_ROOT_PWD="travis"
@@ -235,6 +229,12 @@ runs:
       bench set-config -g admin_password admin
       if [ "$ENABLE_SERVER_SCRIPTS" == "true" ]; then
         bench set-config -g server_script_enabled 1 --parse
+      fi
+
+      build_pid=""
+      if [ "$BUILD_ASSETS" == "true" ]; then
+        CI=Yes bench build --force --production &> ${GITHUB_WORKSPACE}/build_assets.log &
+        build_pid=$!
       fi
 
       bench new-site test_site \
