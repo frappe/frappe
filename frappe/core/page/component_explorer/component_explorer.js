@@ -2148,6 +2148,71 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 				},
 			],
 		},
+		"Segmented Button": {
+			helper: "frappe.ui.segmented_button",
+			groups: [
+				{
+					title: __("Main action with more ways to do it"),
+					items: [
+						{
+							label: "Add Invoice",
+							icon: "plus",
+							variant: "solid",
+							onclick: () => frappe.ui.toast({ message: "Add Invoice" }),
+							options: [
+								{
+									group: "Create",
+									hide_label: true,
+									options: [
+										{
+											label: "Add manually",
+											icon: "plus",
+											description: "Fill in a blank form",
+											onclick: () =>
+												frappe.ui.toast({ message: "Add Invoice" }),
+										},
+										{
+											label: "Upload",
+											icon: "upload",
+											description: "Create invoices from PDFs or images",
+											onclick: () => frappe.ui.toast({ message: "Upload" }),
+										},
+									],
+								},
+								{
+									group: "Import",
+									hide_label: true,
+									options: [
+										{
+											label: "Import",
+											icon: "import",
+											description: "Add many invoices from a spreadsheet",
+											onclick: () => frappe.ui.toast({ message: "Import" }),
+										},
+									],
+								},
+							],
+						},
+					],
+				},
+				{
+					title: __("Variants"),
+					items: ["solid", "subtle", "outline", "ghost"].map((variant) => ({
+						label: "Save",
+						variant,
+						options: [{ label: "Save and New" }, { label: "Save as Draft" }],
+					})),
+				},
+				{
+					title: __("Sizes"),
+					items: ["xs", "sm", "md", "lg"].map((size) => ({
+						label: "Save",
+						size,
+						options: [{ label: "Save and New" }, { label: "Save as Draft" }],
+					})),
+				},
+			],
+		},
 		Avatar: {
 			helper: "frappe.ui.avatar",
 			html: (opts) => frappe.ui.avatar.html(opts),
