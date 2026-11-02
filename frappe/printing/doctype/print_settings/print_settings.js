@@ -33,14 +33,15 @@ frappe.ui.form.on("Print Settings", {
 
 		const generator =
 			frm.doc.pdf_generator.charAt(0).toUpperCase() + frm.doc.pdf_generator.slice(1);
+		const formats = (n) => (n === 1 ? __("1 print format") : __("{0} print formats", [n]));
+		const link = `<a href="/app/print-format?pdf_generator=wkhtmltopdf">${formats(count)}</a>`;
+		const message =
+			count === 1
+				? __("{0} still uses wkhtmltopdf.", [link])
+				: __("{0} still use wkhtmltopdf.", [link]);
 		const $headline = frm.dashboard.set_headline(
 			`<div class="flex justify-between align-center">
-				<span>${__("{0} still use wkhtmltopdf.", [
-					`<a href="/app/print-format?pdf_generator=wkhtmltopdf">${__(
-						"{0} print formats",
-						[count]
-					)}</a>`,
-				])}</span>
+				<span>${message}</span>
 				<button class="es-button" data-size="sm">
 					<span class="es-button__label">${__("Use {0} for all", [generator])}</span>
 				</button>
@@ -49,14 +50,14 @@ frappe.ui.form.on("Print Settings", {
 			true
 		);
 		$headline.find("button").on("click", () => {
-			frappe.confirm(__("Switch {0} print formats to {1}?", [count, generator]), () =>
+			frappe.confirm(__("Switch {0} to {1}?", [formats(count), generator]), () =>
 				frappe
 					.xcall(
 						"frappe.printing.doctype.print_settings.print_settings.follow_print_settings_pdf_generator"
 					)
 					.then((switched) => {
 						frappe.show_alert({
-							message: __("{0} print formats switched", [switched]),
+							message: __("{0} switched", [formats(switched)]),
 							indicator: "green",
 						});
 						frm.reload_doc();
