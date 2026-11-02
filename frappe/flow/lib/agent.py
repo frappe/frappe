@@ -168,7 +168,7 @@ def _ensure_tool(tool: Tool) -> str:
 	definition = {
 		"import_path": import_path,
 		"description": tool.description,
-		"requires_confirmation": int(tool.requires_confirmation),
+		"requires_confirmation": int(tool.requires_confirmation is not False),
 		"background": int(tool.background is True),
 		"is_system_generated": 1,
 	}

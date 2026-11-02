@@ -57,6 +57,7 @@ def _resolve_module(doc: FlowTool) -> Tool:
 			doc,
 			obj.parameters,
 			obj.func,
+			requires_confirmation=obj.requires_confirmation,
 			confirm_prompt=obj.confirm_prompt,
 			background=obj.background,
 			display_template=obj.display_template,
@@ -79,6 +80,7 @@ def _build_tool(
 	parameters: dict[str, Any],
 	func: Any,
 	*,
+	requires_confirmation: Any = None,
 	confirm_prompt: Any = None,
 	background: Any = None,
 	display_template: str | None = None,
@@ -88,7 +90,9 @@ def _build_tool(
 		description=doc.description,
 		parameters=parameters,
 		func=func,
-		requires_confirmation=bool(doc.requires_confirmation),
+		requires_confirmation=requires_confirmation
+		if callable(requires_confirmation) and doc.requires_confirmation
+		else bool(doc.requires_confirmation),
 		confirm_prompt=confirm_prompt,
 		background=background if callable(background) else bool(doc.background),
 		display_template=display_template,
