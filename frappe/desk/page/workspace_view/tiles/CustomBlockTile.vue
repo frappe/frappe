@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref } from "vue";
+import { onBeforeUnmount, onMounted, ref } from "vue";
 
 // A site's Custom HTML Block, in its own shadow root so its styles stay in and the page's stay
 // out. Desk's CSS variables still inherit. The script runs with the viewer's authority, as it
@@ -9,10 +9,11 @@ const props = defineProps({
 });
 
 const host = ref(null);
+let root = null;
 
 onMounted(() => {
 	if (!host.value) return;
-	const root = host.value.attachShadow({ mode: "open" });
+	root = host.value.attachShadow({ mode: "open" });
 
 	const body = document.createElement("div");
 	body.innerHTML = window.frappe.dom.remove_script_and_style(props.widget.html || "");
@@ -25,6 +26,11 @@ onMounted(() => {
 	} catch (e) {
 		console.error(`custom block "${props.widget.label}" failed`, e);
 	}
+});
+
+// A script that mounted an island never gets a hook to unmount it, so the tile does.
+onBeforeUnmount(() => {
+	for (const el of root?.querySelectorAll("*") || []) window.frappe.ui.unmount_island(el);
 });
 </script>
 
