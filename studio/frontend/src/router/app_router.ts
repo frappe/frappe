@@ -9,7 +9,6 @@ import { toast } from "frappe-ui"
 import AppPage from "@/pages/AppPage.vue"
 import { loadPage, discardPage } from "@/page/pageLoader"
 import NotFound from "@/pages/NotFound.vue"
-import * as globalUtils from "@/utils/globalUtils"
 
 export type RouterConfig = {
 	routerOptions?: Omit<RouterOptions, "history" | "routes">
@@ -32,7 +31,6 @@ declare global {
 		app_pages: Page[]
 		app_home?: string
 		router_file?: string | null
-		router_script?: string | null
 		boot?: Record<string, unknown>
 		is_guest?: boolean
 	}
@@ -63,17 +61,12 @@ export async function createAppRouter(config?: RouterConfig): Promise<Router> {
 	return router
 }
 
-// custom app: the Studio App's router script; standard app: router.ts
+// The dev server serves router.ts for a repository app; a database app's is compiled in the
+// browser and handed to createAppRouter, and a built app imports it in its own entry.
 async function loadRouterConfig(): Promise<RouterConfig> {
-	if (window.router_script) return runHook("router script", () => compileRouterScript(window.router_script!))
 	if (!window.router_file) return {}
 	const mod = await runHook("router.ts", () => import(/* @vite-ignore */ window.router_file!))
 	return mod.default || {}
-}
-
-function compileRouterScript(source: string): RouterConfig {
-	const factory = new Function("context", `with (context) { return (\n${source}\n) }`)
-	return factory({ ...globalUtils }) || {}
 }
 
 function getPageRoutes(pages: Page[] = []): RouteRecordRaw[] {

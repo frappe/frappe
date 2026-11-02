@@ -8,7 +8,7 @@
 		@save="save"
 	>
 		<template #title>
-			<span class="truncate text-sm text-ink-gray-8">{{ source.title }}</span>
+			<span class="truncate text-sm text-ink-gray-8">{{ ROUTER_FILE }}</span>
 			<Badge v-if="dirty" theme="amber" variant="subtle" label="Unsaved" />
 		</template>
 		<template #actions>
@@ -49,7 +49,6 @@ import { toast, Badge, Button, Popover, ErrorMessage } from "frappe-ui"
 import CodeEditorDock from "@/components/CodeEditorDock.vue"
 import RouterScriptHelp from "@/components/RouterScriptHelp.vue"
 import { deleteStudioFile, readStudioFileIfExists, writeStudioFile } from "@/data/studioFiles"
-import { getScriptError } from "@/utils/parseCode"
 import { routerScriptCompletions } from "@/utils/completions/routerScriptCompletions"
 import { confirm } from "@/utils/helpers"
 import useStudioStore from "@/stores/studioStore"
@@ -78,58 +77,34 @@ const location = computed(() => ({
 	studio_app: store.activeApp?.name ?? "",
 }))
 
-// standard apps keep the router config in studio/<app>/router.ts, custom apps in the app doc
-const fileSource = {
-	title: ROUTER_FILE,
-	async load() {
-		const file = await readStudioFileIfExists(location.value, ROUTER_FILE)
-		setLoaded(file.content ?? "", file.hash ?? undefined)
-		if (file.content === null) script.value = `export default ${BOILERPLATE}\n`
-	},
-	async save(source: string) {
-		const result = await writeStudioFile(location.value, ROUTER_FILE, source, fileHash.value)
-		fileHash.value = result.hash
-	},
-	remove: () => deleteStudioFile(location.value, ROUTER_FILE),
+// every app keeps its router config in router.ts, on disk or in its file store
+async function load() {
+	const file = await readStudioFileIfExists(location.value, ROUTER_FILE)
+	setLoaded(file.content ?? "", file.hash ?? undefined)
+	if (file.content === null) script.value = `export default ${BOILERPLATE}\n`
 }
 
-const fieldSource = {
-	title: "Router Script",
-	async load() {
-		const saved = store.activeApp?.router_script || ""
-		setLoaded(saved)
-		if (!saved) script.value = BOILERPLATE
-	},
-	async save(source: string) {
-		// an object literal only parses as an expression
-		const syntaxError = source.trim() ? getScriptError(`(\n${source}\n)`) : null
-		if (syntaxError) throw new Error(syntaxError.message)
-		await store.updateActiveApp("router_script", source)
-	},
-	remove: () => store.updateActiveApp("router_script", ""),
+async function saveFile(source: string) {
+	const result = await writeStudioFile(location.value, ROUTER_FILE, source, fileHash.value)
+	fileHash.value = result.hash
+	if (store.usesDbFiles) store.refreshAppFiles()
 }
 
-const source = computed(() => (store.activeApp?.is_standard ? fileSource : fieldSource))
+async function removeFile() {
+	await deleteStudioFile(location.value, ROUTER_FILE)
+	if (store.usesDbFiles) store.refreshAppFiles()
+}
+
 function complete(context: CompletionContext) {
 	return routerScriptCompletions(context, Object.values(store.appPages))
 }
-
-// follow the saved script, like the page script editor does
-watch(
-	() => store.activeApp?.router_script || "",
-	(saved) => {
-		if (store.showRouterEditor && !store.activeApp?.is_standard && saved !== savedScript.value) {
-			fieldSource.load()
-		}
-	},
-)
 
 watch(
 	() => store.showRouterEditor && store.activeApp?.name,
 	async (openForApp) => {
 		if (!openForApp) return
 		try {
-			await source.value.load()
+			await load()
 		} catch (loadError: any) {
 			store.showRouterEditor = false
 			toast.error("Failed to open the router script", { description: loadError?.messages?.join(", ") })
@@ -155,7 +130,7 @@ async function save() {
 	if (!dirty.value) return
 	saving.value = true
 	try {
-		await source.value.save(script.value)
+		await saveFile(script.value)
 		savedScript.value = script.value
 		toast.success("Saved the router script")
 	} catch (saveError: any) {
@@ -168,7 +143,7 @@ async function save() {
 async function remove() {
 	if (!(await confirm("The app goes back to Studio's default routing.", "Delete router script?"))) return
 	try {
-		await source.value.remove()
+		await removeFile()
 		store.showRouterEditor = false
 		toast.success("Deleted the router script")
 	} catch (removeError: any) {
