@@ -66,7 +66,8 @@ frappe.ui.form.on("Print Settings", {
 							message: __("{0} switched", [formats(switched)]),
 							indicator: "green",
 						});
-						frm.reload_doc();
+						frm.doc.__onload.wkhtmltopdf_print_formats = 0;
+						frm.trigger("show_wkhtmltopdf_formats");
 					})
 			);
 		});
