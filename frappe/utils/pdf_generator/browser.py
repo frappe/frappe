@@ -215,11 +215,6 @@ class Browser:
 			if not self.header_height:
 				self.header_page.close()
 				self.header_page = None
-		if not self.header_page:
-			# Fallback only when the caller did not explicitly pass margin-top.
-			# If margin-top is already set (e.g. from PrintFormatGenerator), keep it.
-			if "margin-top" not in options:
-				options["margin-top"] = "15mm"
 
 		if self.footer_page:
 			self.footer_page.wait_for_set_content()
@@ -229,10 +224,6 @@ class Browser:
 			if not self.footer_height:
 				self.footer_page.close()
 				self.footer_page = None
-		if not self.footer_page:
-			# Fallback only when the caller did not explicitly pass margin-bottom.
-			if "margin-bottom" not in options:
-				options["margin-bottom"] = "15mm"
 
 		# Remove instances of them from main content for render_template
 		for html_id in ["header-html", "footer-html"]:
@@ -417,6 +408,14 @@ class Browser:
 			options["page-width"], options["page-height"] = options["page-height"], options["page-width"]
 
 		updated_options["paperWidth"] = convert_uom(options["page-width"], "px", "in", only_number=True)
+
+		default_margin = (
+			"15mm" if options["page-height"] >= convert_uom(100, "mm", "px", only_number=True) else "0mm"
+		)
+		if not self.header_page:
+			options.setdefault("margin-top", default_margin)
+		if not self.footer_page:
+			options.setdefault("margin-bottom", default_margin)
 
 		if options.get("margin-left"):
 			updated_options["marginLeft"] = convert_uom(
