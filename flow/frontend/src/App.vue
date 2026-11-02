@@ -8,7 +8,13 @@
 			<div v-if="error" class="max-w-md">
 				<div class="text-xl font-medium text-ink-gray-9">Flow could not start</div>
 				<div class="mt-2 text-base text-ink-gray-6">{{ error }}</div>
+				<!-- in a panel the Desk is already the page around it -->
+				<div v-if="panel" class="mt-4 flex justify-center gap-2">
+					<Button label="Reload" variant="solid" @click="reload" />
+					<Button label="Close" @click="emit('close')" />
+				</div>
 				<a
+					v-else
 					href="/desk"
 					class="mt-4 inline-block text-base font-medium text-ink-gray-8 underline"
 					>Open the Desk</a
@@ -21,7 +27,7 @@
 
 <script setup>
 import { onMounted, provide, ref } from "vue";
-import { LoadingIndicator } from "frappe-ui";
+import { Button, LoadingIndicator } from "frappe-ui";
 
 import { loadBoot } from "./boot.js";
 import FlowPage from "./chat/FlowPage.vue";
@@ -39,6 +45,7 @@ provide("flowHost", {
 });
 
 const boot = ref(null);
+const reload = () => window.location.reload();
 const error = ref("");
 
 onMounted(async () => {
