@@ -12,6 +12,8 @@
 @import "frappe/public/css/espresso/components/badge-legacy-colors.css";
 
 @import "frappe/public/css/espresso/components/button.css";
+/* Joins two .es-button halves — must load after button.css. */
+@import "frappe/public/css/espresso/components/segmented_button.css";
 
 @import "frappe/public/css/espresso/components/spinner.css";
 
