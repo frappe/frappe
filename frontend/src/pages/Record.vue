@@ -188,7 +188,10 @@ import { amendable, amendItem, amendmentOf } from "./record/amendAct";
 import {
 	confirmDocstatus,
 	docstatusItems,
+	isQueued,
+	queuedMessage,
 	sendDocstatus,
+	whenRecordUpdated,
 	type DocstatusAct,
 } from "./record/docstatusActs";
 import { headerMenuBuiltins, quickActionBuiltins } from "./record/builtinActions";
@@ -393,7 +396,8 @@ provide(RecordFeedsKey, feeds);
 useComposerRecord(() => controller.value, feeds);
 
 // The record's realtime room, joined per load; the panel's rows follow another tab's assign or comment.
-const live = useLiveDocinfo({ socket: getSocketInstance(), docinfo, reload: reloadDocinfo });
+const socket = getSocketInstance();
+const live = useLiveDocinfo({ socket, docinfo, reload: reloadDocinfo });
 useLiveClientScripts({
 	doctype,
 	dirty: () => dirty.value,
@@ -583,6 +587,7 @@ async function load({ fromMemory = false } = {}) {
 		return;
 	}
 	currentVisit = currentVisit.next();
+	stopQueuedWait();
 	const target = { doctype: doctype.value, name: docname.value };
 	const pointed = feeds.pointerOnOpen(target.doctype, target.name, route.query);
 	// Read before this load writes a view of its own.
@@ -912,26 +917,31 @@ function runDocstatus(act: DocstatusAct) {
 	return controller.value![act]();
 }
 
+let stopQueuedWait = () => {};
+
+// An unsaved edit is kept, and a reload that finds the record unmoved (another save) waits again.
+function waitForQueued(act: DocstatusAct, doctype: string, name: string) {
+	stopQueuedWait();
+	stopQueuedWait = whenRecordUpdated(socket, doctype, name, async () => {
+		if (dirty.value) return;
+		await load();
+		if (isQueued(saved.value, act)) waitForQueued(act, doctype, name);
+	});
+}
+
 async function moveDocstatus(act: DocstatusAct) {
 	const visit = currentVisit;
 	const page = controller.value!.page;
-	const document = await sendDocstatus(page.doctype, page.docname, act);
-	if (visit.current()) await takeWritten(document);
-}
-
-async function write() {
-	// Refuse to write the wrong record if the route moved while an action ran.
-	if (doc.value.name !== docname.value || doctype.value === null) {
-		throw new Error("The record changed while saving; nothing was written.");
-	}
-	const visit = currentVisit;
-	const sent = { ...doc.value };
-	codeErrors.value = [];
-	const document = await saveRecord(doctype.value!, doc.value).catch((e) =>
-		rethrowSaveError(e, visit, sent)
+	const document = await sendDocstatus(
+		page.doctype,
+		page.docname,
+		act,
+		!!meta.value?.queue_in_background
 	);
 	if (!visit.current()) return;
-	await takeWritten(document);
+	if (!isQueued(document, act)) return takeWritten(document);
+	toast.info(queuedMessage(act));
+	waitForQueued(act, page.doctype, page.docname);
 }
 
 async function takeWritten(document: Record<string, any>) {
@@ -1042,6 +1052,7 @@ useUnloadGuard(() => dirty.value);
 onUnmounted(() => {
 	stopLanding();
 	currentVisit.end();
+	stopQueuedWait();
 	controller.value?.leave();
 	live.dispose();
 	feeds.endKeptRead();

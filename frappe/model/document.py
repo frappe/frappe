@@ -2112,6 +2112,29 @@ class Document(_DocumentBase):
 		return self._cancel()
 
 	@frappe.whitelist()
+	def queue_submit(self):
+		"""Submit through the Submission Queue when the DocType has `queue_in_background`."""
+		return self._queue_or_run("submit")
+
+	@frappe.whitelist()
+	def queue_cancel(self):
+		"""Cancel through the Submission Queue when the DocType has `queue_in_background`."""
+		return self._queue_or_run("cancel")
+
+	def _queue_or_run(self, action: Literal["submit", "cancel"]):
+		from frappe.core.doctype.submission_queue.submission_queue import queue_submission
+		from frappe.utils.scheduler import is_scheduler_inactive
+
+		self.check_permission(action)
+		from_docstatus = DocStatus.DRAFT if action == "submit" else DocStatus.SUBMITTED
+		if self.docstatus != from_docstatus:
+			frappe.throw(_("Cannot {0} a document with docstatus {1}").format(action, self.docstatus), frappe.DocstatusTransitionError)
+		if self.meta.queue_in_background and not is_scheduler_inactive():
+			queue_submission(self, action.title())
+			return self
+		return getattr(self, action)()
+
+	@frappe.whitelist()
 	def discard(self):
 		"""Discard the draft document. Sets `docstatus` = 2 with db_set."""
 		self._action = "discard"
