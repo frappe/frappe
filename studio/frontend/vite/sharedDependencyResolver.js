@@ -9,7 +9,18 @@ import path from "path"
 // `extensions` built from @tiptap/core, @tiptap/pm, @tiptap/vue-3, @tiptap/extension-*
 // etc., and an app has no copies of its own to build them with — nor should it, since
 // an extension made from a second copy never registers against the editor's schema.
-const STUDIO_SHARED_DEPS = ["vue", "vue-router", "pinia", "frappe-ui", "reka-ui", "@tiptap"]
+// Every specifier a database app may import (src/runtime/importableModules.ts) has to be in
+// here too: the browser runtime hands the app Studio's copy, so a build of the same sources
+// must resolve the same one, from a staged temp folder that has no node_modules of its own.
+const STUDIO_SHARED_DEPS = [
+	"vue",
+	"vue-router",
+	"pinia",
+	"@vueuse/core",
+	"frappe-ui",
+	"reka-ui",
+	"@tiptap",
+]
 /**
  * Vite plugin to redirect shared dependency imports from files outside the Studio
  * project (custom Vue components and @framework/ui source) to Studio's own
@@ -40,4 +51,5 @@ function sharedDependencyResolver(STUDIO_ROOT) {
 	}
 }
 
+export { STUDIO_SHARED_DEPS }
 export default sharedDependencyResolver

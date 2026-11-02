@@ -330,7 +330,15 @@ async function buildWithVite(
 			frameworkui(),
 		],
 		resolve: {
-			alias: [...frameworkUIAlias(APPS_DIR), { find: "@", replacement: path.resolve(__dirname, "../") }],
+			alias: [
+				...frameworkUIAlias(APPS_DIR),
+				// a built app compiles nothing in the browser, so the runtime stays out of its bundle
+				{
+					find: /^@\/runtime\/appRuntime$/,
+					replacement: path.resolve(__dirname, "../runtime/noBrowserRuntime.ts"),
+				},
+				{ find: "@", replacement: path.resolve(__dirname, "../") },
+			],
 			// keep vue/pinia/etc as single instances so studio modules (composables/stores)
 			// share the app's runtime — Pinia breaks with duplicate copies
 			dedupe: [

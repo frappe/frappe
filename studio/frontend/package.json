@@ -35,6 +35,7 @@
 		"marked": "^15.0.6",
 		"pinia": "^2.2.1",
 		"reka-ui": "^2.9.9",
+		"sucrase": "^3.35.0",
 		"thememirror": "^2.0.1",
 		"typescript": "^5.8.3",
 		"vite": "8.0.13",
