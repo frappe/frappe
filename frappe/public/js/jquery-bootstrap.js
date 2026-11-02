@@ -1,4 +1,3 @@
-import jQuery from "jquery";
 import Alert from "bootstrap/js/dist/alert";
 import Button from "bootstrap/js/dist/button";
 import Carousel from "bootstrap/js/dist/carousel";
@@ -11,9 +10,6 @@ import Tab from "bootstrap/js/dist/tab";
 import Toast from "bootstrap/js/dist/toast";
 import Tooltip from "bootstrap/js/dist/tooltip";
 import Util from "bootstrap/js/dist/util";
-
-window.jQuery = jQuery;
-window.$ = jQuery;
 
 export {
 	Util,
