@@ -375,14 +375,6 @@ class Browser:
 			"generateOutline": options.get("generate-outline", False),
 		}
 
-		# bad implicit setting of margin #backwards-compatibility
-		if not self.is_print_designer:
-			if not options.get("margin-right"):
-				options["margin-right"] = "15mm"
-
-			if not options.get("margin-left"):
-				options["margin-left"] = "15mm"
-
 		if not options.get("page-height") or not options.get("page-width"):
 			if not (page_size := self.options.get("page-size")):
 				raise frappe.ValidationError("Page size is required")
@@ -409,13 +401,21 @@ class Browser:
 
 		updated_options["paperWidth"] = convert_uom(options["page-width"], "px", "in", only_number=True)
 
-		default_margin = (
-			"15mm" if options["page-height"] > convert_uom(30, "mm", "px", only_number=True) else "0mm"
-		)
+		min_size = convert_uom(30, "mm", "px", only_number=True)
+		default_margin = "15mm" if options["page-height"] > min_size else "0mm"
 		if not self.header_page:
 			options.setdefault("margin-top", default_margin)
 		if not self.footer_page:
 			options.setdefault("margin-bottom", default_margin)
+
+		# bad implicit setting of margin #backwards-compatibility
+		if not self.is_print_designer:
+			side_margin = "15mm" if options["page-width"] > min_size else "0mm"
+			if not options.get("margin-right"):
+				options["margin-right"] = side_margin
+
+			if not options.get("margin-left"):
+				options["margin-left"] = side_margin
 
 		if options.get("margin-left"):
 			updated_options["marginLeft"] = convert_uom(
