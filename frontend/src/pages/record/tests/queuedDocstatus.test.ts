@@ -9,11 +9,14 @@ vi.mock("@/i18n", () => ({
 const server = vi.hoisted(() => ({
   answer: {} as Record<string, any>,
   failure: undefined as Error | undefined,
+  sent: [] as unknown[],
 }));
 vi.mock("@framework/ui/api", () => ({
   runMethod: async () => ({ data: { queued: true } }),
   getDocument: async () => ({ data: server.answer }),
-  runDocumentMethod: async () => {
+  isApiError: (error: unknown) => error instanceof Error && "isTimestampMismatch" in error,
+  runDocumentMethod: async (...call: unknown[]) => {
+    server.sent.push(call);
     if (server.failure) throw server.failure;
     return { data: server.answer };
   },
@@ -290,6 +293,22 @@ describe("moving a record through the Submission Queue", () => {
       "Insufficient stock",
     );
 
+    expect(live.count()).toBe(0);
+  });
+
+  it("sends the modified the reader saw and, on a stale one, stops listening and hands the conflict back", async () => {
+    const mismatch = Object.assign(new Error("Stale"), { isTimestampMismatch: true });
+    server.failure = mismatch;
+    server.sent = [];
+    const { live, mover } = makeMover({ queueing: () => true });
+
+    await expect(
+      mover.move("submit", "Invoice", "INV-1", undefined, "2026-11-02 10:00:00.000000"),
+    ).rejects.toBe(mismatch);
+
+    expect(server.sent).toEqual([
+      ["Invoice", "INV-1", "queue_submit", { modified: "2026-11-02 10:00:00.000000" }],
+    ]);
     expect(live.count()).toBe(0);
   });
 

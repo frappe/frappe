@@ -21,6 +21,7 @@ vi.mock("@framework/ui/api", () => ({
     const answer = server.methods[method];
     return { data: typeof answer === "function" ? answer(args) : answer };
   },
+  isApiError: (error: unknown) => error instanceof Error && "isTimestampMismatch" in error,
   getDocument: async (...call: unknown[]) => {
     server.calls.push(["get", ...call]);
     return { data: server.answer };
@@ -219,8 +220,29 @@ describe("sendDocstatus", () => {
 
     const record = await sendDocstatus("Invoice", "INV-1", "submit");
 
-    expect(server.calls).toEqual([["Invoice", "INV-1", "submit"]]);
+    expect(server.calls).toEqual([["Invoice", "INV-1", "submit", undefined]]);
     expect(record).toEqual({ name: "INV-1", docstatus: 1 });
+  });
+
+  it("sends the modified the reader saw, on the plain and the queue method", async () => {
+    server.answer = { name: "INV-1", docstatus: 0 };
+
+    await sendDocstatus("Invoice", "INV-1", "submit", false, { all: false }, "2026-11-02 10:00:00.000000");
+    await sendDocstatus("Invoice", "INV-1", "cancel", true, { all: false }, "2026-11-02 10:00:00.000000");
+
+    expect(server.calls).toEqual([
+      ["Invoice", "INV-1", "submit", { modified: "2026-11-02 10:00:00.000000" }],
+      ["Invoice", "INV-1", "queue_cancel", { modified: "2026-11-02 10:00:00.000000" }],
+    ]);
+  });
+
+  it("hands a timestamp mismatch back as it is, for the page's conflict dialog", async () => {
+    const mismatch = Object.assign(new Error("<b>Stale</b>"), { isTimestampMismatch: true });
+    server.failure = mismatch;
+
+    await expect(sendDocstatus("Invoice", "INV-1", "submit", false, { all: false }, "2026-01-01")).rejects.toBe(
+      mismatch
+    );
   });
 
   it("rejects with the server's message as text, tags removed", async () => {
@@ -241,6 +263,18 @@ describe("sendDocstatus", () => {
       { root_doctype: "Invoice", root_name: "INV-1", docs },
     ]);
     expect(record).toEqual({ name: "INV-1", docstatus: 2 });
+  });
+
+  it("names the root's modified when it cancels with the linked records", async () => {
+    server.methods["frappe.desk.form.linked_with.cancel_all_linked_docs"] = null;
+    server.answer = { name: "INV-1", docstatus: 2 };
+
+    await sendDocstatus("Invoice", "INV-1", "cancel", false, { all: true, docs: [] }, "2026-11-02 10:00:00.000000");
+
+    expect(server.calls[0]).toEqual([
+      "frappe.desk.form.linked_with.cancel_all_linked_docs",
+      { root_doctype: "Invoice", root_name: "INV-1", docs: [], root_modified: "2026-11-02 10:00:00.000000" },
+    ]);
   });
 
   it("sends no list past the cap, and gives null when the server queued the job", async () => {

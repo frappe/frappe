@@ -56,6 +56,7 @@ export class DocstatusMover {
     doctype: string,
     name: string,
     choice?: DocstatusChoice,
+    modified?: string,
   ) {
     // Cancel all queues the root itself, so it never goes through the Submission Queue.
     const queue = this.host.queueing() && !choice?.all;
@@ -68,7 +69,7 @@ export class DocstatusMover {
     const stops = this.stops;
     let document: Record<string, any> | null;
     try {
-      document = await sendDocstatus(doctype, name, act, queue, choice);
+      document = await sendDocstatus(doctype, name, act, queue, choice, modified);
     } catch (error) {
       this.stop();
       throw error;

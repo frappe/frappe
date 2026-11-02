@@ -204,6 +204,23 @@ class TestLinkedWith(IntegrationTestCase):
 		self.assertEqual(frappe.db.get_value("Parent DocType", doc.name, "docstatus"), 2)
 		doc.reload().delete()
 
+	def test_cancel_all_linked_docs_refuses_a_stale_root(self):
+		doc = frappe.get_doc({"doctype": "Parent DocType"}).insert()
+		doc.submit()
+		docs = [{"doctype": "Parent DocType", "name": doc.name, "docstatus": 1}]
+		args = {"docs": docs, "root_doctype": "Parent DocType", "root_name": doc.name}
+
+		with self.assertRaises(frappe.TimestampMismatchError):
+			linked_with.cancel_all_linked_docs(**args, root_modified="2000-01-01 00:00:00.000000")
+		self.assertEqual(frappe.db.get_value("Parent DocType", doc.name, "docstatus"), 1)
+
+		with self.assertRaises(frappe.ValidationError):
+			linked_with.cancel_all_linked_docs(docs=docs, root_modified=str(doc.modified))
+
+		linked_with.cancel_all_linked_docs(**args, root_modified=str(doc.modified))
+		self.assertEqual(frappe.db.get_value("Parent DocType", doc.name, "docstatus"), 2)
+		doc.reload().delete()
+
 	def test_get_submitted_linked_docs_deepest_first(self):
 		parent = frappe.get_doc({"doctype": "Parent DocType"}).insert().submit()
 		child1 = (
