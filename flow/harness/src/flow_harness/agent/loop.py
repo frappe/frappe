@@ -248,12 +248,16 @@ async def resume(
 				result = _result(call, _blocked(verdict.reason), is_error=True)
 			else:
 				result = await _run_call(_CallToRun(call, pending.rewritten), tools, ctx, inputs)
-		# the reviewer trusts the answer in details, never content a tool could fake
-		elif answer == "Deny":
-			result = _result(call, _denied(pending.prompt), is_error=True, details={"user_answer": answer})
-			denied = True
 		else:
-			result = _result(call, _redirect(answer), details={"user_answer": answer})
+			# the reviewer trusts the answer in details, never content a tool could fake
+			details: dict[str, object] = {"user_answer": answer}
+			if pending.rewritten:
+				details["effective_arguments"] = dict(call.args)
+			if answer == "Deny":
+				result = _result(call, _denied(pending.prompt), is_error=True, details=details)
+				denied = True
+			else:
+				result = _result(call, _redirect(answer), details=details)
 		_raise_if_aborted(inputs.abort)
 		yield result
 

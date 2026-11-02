@@ -372,6 +372,26 @@ async def test_hooks_settle_a_call_before_the_approval_gate(tmp_path):
 	assert [json.loads(row["content"])["message"] for row in results[1:]] == ["blocked", "blocked"]
 
 
+async def test_a_denied_card_records_the_arguments_a_hook_rewrote(tmp_path):
+	_, session = _hook_session(
+		tmp_path,
+		"tool_call",
+		"def handler(event):\n    return PreToolUseDecision(arguments={'who': 'Rewritten'})\n",
+		approval_mode="ask",
+		confirm_tools=["hello"],
+	)
+	model = MockModel(replies=[_hello_call("c1"), _DONE])
+	handle = await session.run("go", model=model)
+	assert handle.task is not None
+	await handle.task
+	handle = await session.resume({"c1": "Deny"}, model=model)
+	assert handle.task is not None
+	await handle.task
+
+	result = next(row for row in session.log.read_since(0) if row["type"] == "tool_result")
+	assert result["details"] == {"user_answer": "Deny", "effective_arguments": {"who": "Rewritten"}}
+
+
 def _hook_session(tmp_path, event: str, handler: str, **cfg):
 	"""One store with the hello tool plus a hook extension that subscribes `handler` to `event`."""
 	tool_path = _write_extension(tmp_path / "extensions", "hello", HELLO_EXTENSION)
