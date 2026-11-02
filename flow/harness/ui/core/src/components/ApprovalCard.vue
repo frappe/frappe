@@ -156,7 +156,6 @@ function sendAsk() {
 	askText.value = ""
 }
 
-// the keyboard goes back to the button that opened the form, not to the page
 function cancelAsk() {
 	asking.value = false
 	askText.value = ""

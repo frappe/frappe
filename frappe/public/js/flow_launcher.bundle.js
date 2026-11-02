@@ -154,6 +154,7 @@ class FlowLauncher {
 			() => this.host.toggleAttribute("data-ready", true),
 			(error) => {
 				this.host.toggleAttribute("data-failed", true);
+				if (this.state.open) this.panel.querySelector(".retry").focus();
 				console.error("Flow could not start", error);
 			}
 		);
@@ -410,7 +411,7 @@ const STYLE = `
 .failed div { display: flex; gap: 8px; }
 .failed button { height: 28px; padding: 0 12px; border: 0; border-radius: var(--radius-2, 8px); font: inherit; cursor: pointer; background: var(--surface-gray-2, rgba(128, 128, 128, 0.12)); color: var(--ink-gray-8, #383838); }
 .failed button:hover { background: var(--surface-gray-3, rgba(128, 128, 128, 0.2)); }
-.failed .retry { background: var(--surface-gray-9, #171717); color: var(--ink-white, #fff); }
+.failed .retry { background: var(--surface-gray-9, #171717); color: var(--ink-base, #fff); }
 .failed .retry:hover { background: var(--surface-gray-8, #383838); }
 :host([data-failed]) .skeleton { display: none; }
 :host([data-failed]) .failed { display: flex; }
