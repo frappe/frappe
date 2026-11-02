@@ -159,6 +159,15 @@ class TestFSRollbacks(IntegrationTestCase):
 		frappe.db.rollback()
 		self.assertFalse(file.exists_on_disk())
 
+	def test_delete_keeps_file_on_disk_until_commit(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		file_name = content = frappe.generate_hash()
+		file = frappe.new_doc("File", file_name=file_name, content=content).insert()
+
+		file.delete()
+		self.assertTrue(file.exists_on_disk())
+
 
 class TestWriteFileContainment(IntegrationTestCase):
 	def test_write_file_rejects_target_outside_files_dir(self):
@@ -2590,6 +2599,7 @@ class TestGuestFileAndAttachments(IntegrationTestCase):
 
 		# Deleting a public File should not delete the private File's disk file
 		doc_pub.delete()
+		frappe.db.after_commit.run()
 		self.assertTrue(os.path.exists(doc_pri.get_full_path()))
 
 		# TODO: Migrate existing Files that have a mismatch between `is_private` and `file_url` prefix?
@@ -2597,6 +2607,7 @@ class TestGuestFileAndAttachments(IntegrationTestCase):
 
 		self.assertEqual(doc_pri.get_content(), content)
 		doc_pri.delete()
+		frappe.db.after_commit.run()
 		self.assertFalse(os.path.exists(doc_pri.get_full_path()))
 
 	def test_toggling_is_private_does_not_leak_shared_file(self):
@@ -2656,6 +2667,7 @@ class TestGuestFileAndAttachments(IntegrationTestCase):
 		# B's private copy must survive because B still references it.
 		doc_a_path = doc_a.get_full_path()
 		doc_a.delete()
+		frappe.db.after_commit.run()
 		self.assertFalse(
 			os.path.exists(doc_a_path),
 			"Public copy not cleaned up after A's deletion",
@@ -2669,6 +2681,7 @@ class TestGuestFileAndAttachments(IntegrationTestCase):
 		# Deleting B removes the last reference to the private copy.
 		doc_b_path = doc_b.get_full_path()
 		doc_b.delete()
+		frappe.db.after_commit.run()
 		self.assertFalse(
 			os.path.exists(doc_b_path),
 			"Private copy not cleaned up after B's deletion",
