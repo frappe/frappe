@@ -3,6 +3,7 @@ from contextlib import contextmanager
 from unittest.mock import patch
 
 from rq import Queue
+from rq.job import Job
 
 import frappe
 from frappe.core.doctype.rq_job.rq_job import remove_failed_jobs
@@ -13,6 +14,7 @@ from frappe.utils.background_jobs import (
 	create_job_id,
 	execute_job,
 	generate_qname,
+	get_jobs,
 	get_redis_conn,
 )
 
@@ -52,6 +54,17 @@ class TestBackgroundJobs(FrappeTestCase):
 
 		# lesser is earlier
 		self.assertTrue(high_priority_job.get_position() < low_priority_job.get_position())
+
+	def test_get_jobs_skips_job_with_renamed_method(self):
+		job = frappe.enqueue(method=fail_function, queue="short")
+		stale_job = Job.fetch(job.id, connection=get_redis_conn())
+		with (
+			patch.dict(globals()),
+			patch("frappe.utils.background_jobs.get_running_jobs_in_queue", return_value=[stale_job]),
+		):
+			del globals()["fail_function"]
+			jobs = get_jobs(site=frappe.local.site, queue="short")
+		self.assertNotIn(fail_function, jobs[frappe.local.site])
 
 	def test_job_hooks(self):
 		self.addCleanup(lambda: _test_JOB_HOOK.clear())

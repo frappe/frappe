@@ -1089,6 +1089,7 @@ def set_user_password(site, user, password, logout_all_sessions=False):
 			sys.exit(1)
 
 		update_password(user=user, pwd=password, logout_all_sessions=logout_all_sessions)
+		frappe.db.set_value("User", user, "last_password_reset_date", frappe.utils.today())
 		frappe.db.commit()
 	finally:
 		frappe.destroy()

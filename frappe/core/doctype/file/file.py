@@ -4,6 +4,7 @@
 import io
 import mimetypes
 import os
+import posixpath
 import re
 import shutil
 import zipfile
@@ -101,6 +102,7 @@ class File(Document):
 	def before_insert(self):
 		# Ensure correct formatting and type
 		self.file_url = unquote(self.file_url) if self.file_url else ""
+		self.normalize_file_url()
 
 		self.set_folder_name()
 		self.set_is_private()
@@ -176,6 +178,10 @@ class File(Document):
 		self.validate_attachment_references()
 		self.enforce_public_file_restrictions()
 
+		# must run before handle_is_private_changed, which legitimately rewrites file_url
+		if not self.is_new() and self.has_value_changed("file_url"):
+			self.validate_private_file_access()
+
 		# when dict is passed to get_doc for creation of new_doc, is_new returns None
 		# this case is handled inside handle_is_private_changed
 		if not self.is_new() and self.has_value_changed("is_private"):
@@ -195,35 +201,58 @@ class File(Document):
 			except PermissionError:
 				frappe.throw(_("Only System Managers can make this file public."))
 
+	def normalize_file_url(self):
+		"""Collapse `.` and `//` segments in a local file URL; reject `..`.
+
+		The private-file access check matches `file_url` literally, but the path is
+		resolved on disk after normalization. Without this, `/private/files/./secret.pdf`
+		slips past the check as a new URL while still reading `secret.pdf` from disk.
+		Pinning every row to the canonical URL keeps the two views in step.
+		"""
+		if not self.file_url or self.is_remote_file:
+			return
+
+		if ".." in self.file_url.split("/"):
+			frappe.throw(_("The File URL you've entered is incorrect"), title=_("Invalid File URL"))
+
+		for prefix in ("/private/files/", "/files/"):
+			if not self.file_url.startswith(prefix):
+				continue
+			name = posixpath.normpath("/" + self.file_url[len(prefix) :].lstrip("/")).lstrip("/")
+			if not name or name == ".":
+				frappe.throw(_("The File URL you've entered is incorrect"), title=_("Invalid File URL"))
+			self.file_url = prefix + name
+			return
+
 	def validate_private_file_access(self):
 		"""Validate that the user has permission to access an existing private file."""
 		if not self.file_url:
 			return
 
-		existing_files = frappe.get_all(
-			"File",
-			filters={"file_url": self.file_url},
-			fields=["name", "owner", "is_private"],
-			limit=1,
-		)
+		filters = {"file_url": self.file_url, "is_private": 1}
+		if not self.is_new():
+			filters["name"] = ["!=", self.name]
 
-		if not existing_files:
+		private_files = frappe.get_all("File", filters=filters, fields=["name", "owner"])
+		if not private_files:
 			return
 
-		existing_file = existing_files[0]
+		user = frappe.session.user
+		if user == "Administrator":
+			return
 
-		if existing_file.is_private:
-			user = frappe.session.user
-
-			if user == existing_file.owner or user == "Administrator":
+		# a file can be attached to multiple documents; access to any one of them is enough
+		for private_file in private_files:
+			if user == private_file.owner:
 				return
 
-			existing_doc = frappe.get_doc("File", existing_file.name)
-			if not has_permission(existing_doc, "read", user=user):
-				frappe.throw(
-					_("You do not have permission to access this file"),
-					frappe.PermissionError,
-				)
+			if has_permission(frappe.get_doc("File", private_file.name), "read", user=user):
+				return
+
+		frappe.throw(
+			_("You do not have permission to access this file"),
+			frappe.PermissionError,
+		)
 
 	def validate_attachment_references(self):
 		if not self.attached_to_doctype:
@@ -375,13 +404,23 @@ class File(Document):
 		):
 			return
 
-		if frappe.get_meta(self.attached_to_doctype).issingle:
-			frappe.db.set_single_value(
-				self.attached_to_doctype,
-				self.attached_to_field,
-				self.file_url,
-			)
-		else:
+		parent_meta = frappe.get_meta(self.attached_to_doctype)
+
+		if parent_meta.issingle:
+			if (
+				parent_meta.has_field(self.attached_to_field)
+				and frappe.db.get_single_value(self.attached_to_doctype, self.attached_to_field)
+				== old_file_url
+			):
+				frappe.db.set_single_value(
+					self.attached_to_doctype,
+					self.attached_to_field,
+					self.file_url,
+				)
+		elif parent_meta.has_field(self.attached_to_field) and frappe.db.exists(
+			self.attached_to_doctype,
+			{"name": self.attached_to_name, self.attached_to_field: old_file_url},
+		):
 			frappe.db.set_value(
 				self.attached_to_doctype,
 				self.attached_to_name,
@@ -836,7 +875,13 @@ class File(Document):
 				file_exists = True
 
 		if not file_exists:
-			if not overwrite:
+			# rewrite in place only the file this record alone points to; file_name can differ from file_url
+			in_place = (
+				overwrite
+				and self.file_url
+				and not frappe.db.exists("File", {"file_url": self.file_url, "name": ("!=", self.name)})
+			)
+			if not in_place:
 				self.file_name = generate_file_name(
 					name=self.file_name,
 					suffix=self.content_hash[-6:],
@@ -846,6 +891,9 @@ class File(Document):
 			write_file_method = get_hook_method("write_file")
 			if write_file_method:
 				return write_file_method(self)
+			if in_place:
+				self.write_file()
+				return {"file_name": self.file_name, "file_url": self.file_url}
 			return self.save_file_on_filesystem()
 
 	def save_file_on_filesystem(self):

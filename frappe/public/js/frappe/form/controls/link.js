@@ -302,7 +302,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 					no_spinner: true,
 					args: args,
 					callback: function (r) {
-						if (!window.Cypress && !me.$input.is(":focus")) {
+						if (!window.Cypress && !navigator.webdriver && !me.$input.is(":focus")) {
 							return;
 						}
 						r.message = me.merge_duplicates(r.message);

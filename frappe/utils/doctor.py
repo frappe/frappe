@@ -3,7 +3,7 @@ from collections import defaultdict
 from rq import Connection, Worker
 
 import frappe.utils
-from frappe.utils.background_jobs import get_queue, get_queue_list, get_redis_conn
+from frappe.utils.background_jobs import get_queue, get_queue_args, get_queue_list, get_redis_conn
 from frappe.utils.scheduler import is_scheduler_disabled, is_scheduler_inactive
 
 
@@ -22,16 +22,17 @@ def purge_pending_jobs(event=None, site=None, queue=None):
 	for _queue in get_queue_list(queue):
 		q = get_queue(_queue)
 		for job in q.jobs:
+			queue_args = get_queue_args(job)
 			if site and event:
-				if job.kwargs["site"] == site and job.kwargs["event"] == event:
+				if queue_args.get("site") == site and queue_args.get("event") == event:
 					job.delete()
 					purged_task_count += 1
 			elif site:
-				if job.kwargs["site"] == site:
+				if queue_args.get("site") == site:
 					job.delete()
 					purged_task_count += 1
 			elif event:
-				if job.kwargs["event"] == event:
+				if queue_args.get("event") == event:
 					job.delete()
 					purged_task_count += 1
 			else:
@@ -47,10 +48,11 @@ def get_jobs_by_queue(site=None):
 	for queue in get_queue_list():
 		q = get_queue(queue)
 		for job in q.jobs:
+			queue_args = get_queue_args(job)
 			if not site:
-				jobs_per_queue[queue].append(job.kwargs.get("method") or job.description)
-			elif job.kwargs["site"] == site:
-				jobs_per_queue[queue].append(job.kwargs.get("method") or job.description)
+				jobs_per_queue[queue].append(queue_args.get("method") or job.description)
+			elif queue_args.get("site") == site:
+				jobs_per_queue[queue].append(queue_args.get("method") or job.description)
 
 		consolidated_methods = {}
 
@@ -71,9 +73,10 @@ def get_pending_jobs(site=None):
 	for queue in get_queue_list():
 		q = get_queue(queue)
 		for job in q.jobs:
-			method_kwargs = job.kwargs["kwargs"] if job.kwargs["kwargs"] else ""
-			if job.kwargs["site"] == site:
-				jobs_per_queue[queue].append("{} {}".format(job.kwargs["method"], method_kwargs))
+			queue_args = get_queue_args(job)
+			method_kwargs = queue_args.get("kwargs") or ""
+			if queue_args.get("site") == site:
+				jobs_per_queue[queue].append("{} {}".format(queue_args.get("method"), method_kwargs))
 
 	return jobs_per_queue
 
