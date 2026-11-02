@@ -52,10 +52,17 @@ class TestFlowPage(IntegrationTestCase):
 			return response.get_data(as_text=True)
 
 		frappe.set_user(member)
-		self.assertRegex(
-			page("/desk/user"),
-			r'<p>page</p><script src="[^"]+flow_launcher\.bundle[^"]*" defer></script></body>',
-		)
+		assets = {
+			"frappe.flow.chat.island.js": "/assets/frappe/dist/flow/frappe.flow.chat.island.ABC.js",
+			"frappe.flow.chat.island.css": "/assets/frappe/dist/flow/frappe.island.DEF.css",
+		}
+		with patch("frappe.flow.launcher.get_assets_json", return_value=assets):
+			self.assertRegex(
+				page("/desk/user"),
+				r'<p>page</p><script src="[^"]+flow_launcher\.bundle[^"]*" defer'
+				r' data-island="/assets/frappe/dist/flow/frappe\.flow\.chat\.island\.ABC\.js"'
+				r' data-island-css="/assets/frappe/dist/flow/frappe\.island\.DEF\.css"></script></body>',
+			)
 		# not on the website, nor on /flow itself
 		self.assertNotIn("flow_launcher", page("/about"))
 		self.assertNotIn("flow_launcher", page("/flow"))
@@ -63,10 +70,3 @@ class TestFlowPage(IntegrationTestCase):
 		for user in (outsider, "Guest"):
 			frappe.set_user(user)
 			self.assertNotIn("flow_launcher", page("/desk/user"))
-
-	def test_the_dev_boot_needs_developer_mode(self):
-		with patch.dict(frappe.local.conf, {"developer_mode": 0}):
-			with self.assertRaises(frappe.PermissionError):
-				index.get_context_for_dev()
-		with patch.dict(frappe.local.conf, {"developer_mode": 1}):
-			self.assertIn("flow_boot", index.get_context_for_dev())

@@ -4,6 +4,7 @@
 	     panel; the launcher's panel keeps it flat at any size. The chat's text and its steps are
 	     the composer's size, the text a size up in a wide frame or on a phone -->
 	<div
+		ref="root"
 		class="flow-sidebar-surface flex h-full min-h-0 overflow-clip text-md text-ink-gray-8 [--flow-step-text:theme(fontSize.base)]"
 		:class="
 			layout.phone
@@ -113,7 +114,7 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, provide, ref, watch } from "vue";
+import { computed, inject, onBeforeUnmount, onMounted, provide, ref, watch } from "vue";
 import { isNavigationFailure, useRoute, useRouter } from "vue-router";
 import { Dialogs, ToastProvider, toast, useColorScheme } from "frappe-ui";
 import BrandMark from "@flow/ui-core/components/BrandMark.vue";
@@ -127,7 +128,7 @@ import { installShortcuts } from "@flow/ui-core/shortcuts.js";
 import { installFocusRings } from "@flow/ui-core/focusRings.js";
 import { installViewport } from "@flow/ui-core/viewport.js";
 import { provideComposerHeight } from "@flow/ui-core/composerHeight.js";
-import { layout } from "@flow/ui-core/layout.js";
+import { layout, measureLayoutBy } from "@flow/ui-core/layout.js";
 import { createFlowStore } from "@flow/ui-core/store.js";
 
 import { FrappeClient } from "../api/client.js";
@@ -202,6 +203,8 @@ const store = createFlowStore(client, {
 });
 provide("flow", store);
 provide("flowPage", page);
+// in the launcher's panel the window's history is the page's around it
+provide("flowBesidePage", inPanel);
 // the agent's read_screen: the panel reads the page beside it and answers for the chat it shows. A
 // tab of its own has no page; it answers late, so a panel on the same chat is heard first
 const STANDALONE_DELAY = 1500;
@@ -213,7 +216,7 @@ socket.on("flow:read_screen", async (message) => {
 		answer.error = "Flow is open in a tab of its own, with no page beside it.";
 	} else {
 		try {
-			answer.screen = readScreen(window.parent);
+			answer.screen = readScreen(window, root.value?.getRootNode().host);
 		} catch (error) {
 			answer.error = `The page beside the chat could not be read: ${error?.message ?? error}`;
 		}
@@ -224,7 +227,8 @@ socket.on("flow:read_screen", async (message) => {
 		// another panel on the chat answered first, or the call stopped waiting
 	}
 });
-useColorScheme();
+// the page around the panel owns the theme, which the island follows
+if (!inPanel) useColorScheme();
 // the store keys a new chat's skills by folder; here they follow the chosen agent
 watch(
 	() => page.state.agent,
@@ -290,9 +294,10 @@ const needsSetup = computed(
 );
 
 // the launcher listens for the header's ×; a new tab takes the chat over from the panel
-const closePanel = () => window.dispatchEvent(new CustomEvent("flow-close"));
+const host = inject("flowHost", null);
+const closePanel = () => host?.close();
 function openInTab() {
-	window.open(location.href, "_blank", "noopener");
+	window.open(`/flow${route.fullPath}`, "_blank", "noopener");
 	closePanel();
 }
 
@@ -363,16 +368,25 @@ watch(
 		const { record } = route.params;
 		return record === "new" ? `New ${SPECS[pageKind.value].singular}` : record;
 	},
-	(title) => (document.title = title ? `${title} · Flow` : "Flow")
+	(title) => {
+		if (!inPanel) document.title = title ? `${title} · Flow` : "Flow";
+	}
 );
 
 let uninstallShortcuts = null;
 let uninstallFocusRings = null;
 let uninstallViewport = null;
+let unmeasure = null;
+const root = ref(null);
 onMounted(async () => {
+	// an island lays out by its own box, which a panel narrows; the page's width says nothing
+	unmeasure = measureLayoutBy(root.value);
 	if (!inPanel) uninstallShortcuts = installShortcuts(store);
-	uninstallFocusRings = installFocusRings();
-	uninstallViewport = installViewport();
+	uninstallFocusRings = installFocusRings(
+		...[root.value, root.value.getRootNode().host].filter(Boolean)
+	);
+	// the page around the panel owns the window's viewport
+	if (!inPanel) uninstallViewport = installViewport();
 	store.refreshModels();
 	await store.refreshSessions();
 	// the route watcher, a click or a first message may have moved on while the list loaded,
@@ -393,6 +407,7 @@ onBeforeUnmount(() => {
 	uninstallShortcuts?.();
 	uninstallFocusRings?.();
 	uninstallViewport?.();
+	unmeasure?.();
 	store.detach();
 	socket.disconnect();
 });

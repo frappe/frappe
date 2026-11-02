@@ -1,45 +1,12 @@
-import { createMemoryHistory, createRouter, createWebHistory } from "vue-router";
-
 import { FORMS } from "./pages/pages.js";
 
 // One page; the route names the open conversation, or the record shown in its place (a record,
-// or "new" for a blank one), so links and reloads keep it.
+// or "new" for a blank one), so links and reloads keep it. The island runs them on a memory
+// history; /flow mirrors it into the address bar.
 const kinds = FORMS.map((page) => page.key).join("|");
-export const router = createRouter({
-	history: window.top === window ? createWebHistory("/flow") : framedHistory("/flow"),
-	routes: [
-		{ path: "/", name: "new", component: { render: () => null } },
-		{ path: "/s/:session", name: "session", component: { render: () => null } },
-		{ path: `/:kind(${kinds})/:record`, name: "records", component: { render: () => null } },
-		{ path: "/:rest(.*)", redirect: "/" },
-	],
-});
-
-// In a frame (the launcher's panel), Back and Forward are the page's; the address still follows
-export function framedHistory(base) {
-	const memory = createMemoryHistory(base);
-	const backs = [null]; // the step before each, a record's way back to its list
-	let at = 0;
-	const { push, replace, go } = memory;
-	const follow = () =>
-		window.history.replaceState(window.history.state, "", base + memory.location);
-	Object.assign(memory, {
-		push(to, data) {
-			backs.splice(++at, backs.length, memory.location);
-			push(to, data);
-			follow();
-		},
-		replace(to, data) {
-			replace(to, data);
-			follow();
-		},
-		go(delta, trigger) {
-			at = Math.max(0, Math.min(at + delta, backs.length - 1));
-			go.call(memory, delta, trigger);
-			follow();
-		},
-	});
-	Object.defineProperty(memory, "state", { get: () => ({ back: backs[at] }) });
-	replace((location.pathname.slice(base.length) || "/") + location.search);
-	return memory;
-}
+export const routes = [
+	{ path: "/", name: "new", component: { render: () => null } },
+	{ path: "/s/:session", name: "session", component: { render: () => null } },
+	{ path: `/:kind(${kinds})/:record`, name: "records", component: { render: () => null } },
+	{ path: "/:rest(.*)", redirect: "/" },
+];

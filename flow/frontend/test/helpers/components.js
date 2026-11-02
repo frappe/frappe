@@ -66,6 +66,9 @@ const fakes = {
 		export const Switch = stub("Switch")
 		export const ErrorMessage = { props: ["message"], render() { return h("p", this.message) } }
 		export const Avatar = stub("Avatar")
+		export function frappeRequest() {}
+		export const config = {}
+		export function setConfig(key, value) { config[key] = value }
 		export const Dialog = {
 			props: ["open", "title"],
 			render() { return this.open ? h("div", { role: "dialog", "aria-label": this.title }, [this.$slots.default?.(), this.$slots.actions?.()]) : null }
@@ -148,7 +151,22 @@ const fakes = {
 		}
 		export function connectSocket() { return socket }
 	`),
+	// the island's entry: the mount records what it was given and runs its configure
+	"@framework/ui/island": moduleURL(`
+		import { createMemoryHistory, createRouter } from ${JSON.stringify(import.meta.resolve("vue-router"))}
+		export const mounts = []
+		export async function mountVueIsland(el, options) {
+			const router = createRouter({ history: options.history ?? createMemoryHistory(), routes: options.routes })
+			options.configure?.({ config: { globalProperties: { $router: router } } })
+			mounts.push({ el, options, router })
+			return { shadow_root: { host: el } }
+		}
+	`),
+	"./index.css": moduleURL(""),
 };
+// the app's root modules reach the site through the same fake
+fakes["./api/frappe.js"] = fakes["../api/frappe.js"];
+export const island = await import(fakes["@framework/ui/island"]);
 export const transport = await import(fakes["../api/frappe.js"]);
 export const { toast, dialog } = await import(fakes["frappe-ui"]);
 
@@ -161,8 +179,8 @@ async function componentURL(url) {
 		const { descriptor } = parse(source, { filename: url.pathname });
 		content = compileScript(descriptor, { id: url.pathname, inlineTemplate: true }).content;
 	}
-	// static imports and lazy import("…") calls
-	const imports = [...content.matchAll(/\b(from\s+|import\(\s*)["']([^"']+)["']/g)];
+	// static imports, bare ones (a stylesheet) and lazy import("…") calls
+	const imports = [...content.matchAll(/\b(from\s+|import\(\s*|import\s+)["']([^"']+)["']/g)];
 	for (const match of imports.reverse()) {
 		const specifier = match[2];
 		let resolved;

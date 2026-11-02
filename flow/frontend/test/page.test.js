@@ -19,14 +19,24 @@ for (const name of [...globals, ...types]) {
 	globalThis[name] = dom.window[name];
 }
 dom.window.HTMLElement.prototype.scrollIntoView = () => {};
+// jsdom lays nothing out: the page keeps the window's width
+globalThis.ResizeObserver = class {
+	observe() {}
+	disconnect() {}
+};
 // jsdom has no matchMedia: the page mounts at desktop width
 dom.window.matchMedia = (query) => ({
 	matches: query === "(min-width: 768px)",
 	addEventListener() {},
 });
 const { createApp, nextTick, reactive } = await import("vue");
-const { framedHistory, router } = await import("../src/router.js");
-const { loadComponent, transport } = await import("./helpers/components.js");
+const { createRouter, createWebHistory } = await import("vue-router");
+const { routes } = await import("../src/router.js");
+// as the island on /flow runs them
+const router = createRouter({ history: createWebHistory("/flow"), routes });
+const { loadComponent, loadModule, transport } = await import("./helpers/components.js");
+// the copy the compiled components import
+const { setPanel } = await loadModule("panel.js");
 const FlowPage = await loadComponent("chat/FlowPage.vue");
 const ShareChat = await loadComponent("chat/ShareChat.vue");
 const SetupState = await loadComponent("chat/SetupState.vue");
@@ -319,10 +329,10 @@ test("a setup form's record page creates a record at its new address, Cmd+S savi
 		target.dispatchEvent(
 			new dom.window.KeyboardEvent("keydown", { key: "s", metaKey: true, bubbles: true })
 		);
-	// in a frame (the launcher's panel) it is left to the page around it
-	globalThis.window = Object.create(dom.window, { top: { value: null } });
+	// in the launcher's panel it is left to the page around it
+	setPanel("desk");
 	pressSave(title());
-	globalThis.window = dom.window;
+	setPanel(null);
 	await nextTick();
 	assert.ok(!called("frappe.client.insert"));
 	const over = document.body.appendChild(document.createElement("div"));

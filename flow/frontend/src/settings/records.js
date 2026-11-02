@@ -3,6 +3,7 @@ import { dialog, toast } from "frappe-ui";
 import { useDebouncedValue } from "@flow/ui-core/debounce.js";
 
 import { call } from "../api/frappe.js";
+import { inPanel } from "../panel.js";
 import { newDoc } from "./specs.js";
 
 // What a list of records and a record's form do, for settings and for the setup forms in the
@@ -141,7 +142,7 @@ export function useRecord(props, emit) {
 	// pressed in the form's own dialog, or outside any for a form in none
 	function onKey(event) {
 		// in the launcher's panel, Cmd+S is the page's around it
-		if (window.top !== window) return;
+		if (inPanel) return;
 		if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "s") {
 			event.preventDefault();
 			const dialogOf = (el) => el?.closest?.("[role=dialog]") ?? null;

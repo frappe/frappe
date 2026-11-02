@@ -13,6 +13,7 @@ import { computed, inject, watch } from "vue";
 import SettingsDialog from "@flow/ui-core/components/SettingsDialog.vue";
 import { layout } from "@flow/ui-core/layout.js";
 
+import { inPanel } from "../panel.js";
 import DocPanel from "./DocPanel.vue";
 import GeneralPanel from "./GeneralPanel.vue";
 import KnowledgePanel from "./KnowledgePanel.vue";
@@ -41,6 +42,7 @@ const ICONS = {
 
 const page = inject("flowPage");
 const flow = inject("flow");
+const host = inject("flowHost", null);
 const docKeys = ["agents", "skills", "tools", "triggers", "models", "providers", "memories"];
 const docSpecs = computed(() =>
 	docKeys.map((key) => SPECS[key]).filter((spec) => page.can(spec.doctype, "read"))
@@ -73,10 +75,9 @@ let restore = null;
 watch(
 	() => flow.state.settingsOpen && !layout.phone,
 	(open) => {
-		if (window.top === window) return;
+		if (!inPanel) return;
 		clearTimeout(restore);
-		const tell = () =>
-			window.dispatchEvent(new CustomEvent("flow-settings", { detail: { open } }));
+		const tell = () => host?.settings(open);
 		if (open) tell();
 		else restore = setTimeout(tell, 150);
 	}

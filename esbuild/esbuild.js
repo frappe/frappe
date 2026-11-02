@@ -566,16 +566,15 @@ function run_build_command_for_apps(apps) {
 // the build.
 function run_frontend_build(name, frontend_path) {
 	let { execSync } = require("child_process");
-	let node_modules = path.resolve(frontend_path, "node_modules");
 
-	if (!fs.existsSync(node_modules)) {
-		log(`\nInstalling dependencies for ${chalk.bold(name)} (because node_modules not found)`);
-		execSync("yarn install --frozen-lockfile", {
-			cwd: frontend_path,
-			encoding: "utf8",
-			stdio: "inherit",
-		});
-	}
+	// every build, not only on a fresh checkout: an install made before an update lacks what the
+	// new lockfile adds. Yarn returns in under a second when the install is current
+	log("\nInstalling dependencies for", chalk.bold(name));
+	execSync("yarn install --frozen-lockfile", {
+		cwd: frontend_path,
+		encoding: "utf8",
+		stdio: "inherit",
+	});
 
 	log("\nRunning build command for", chalk.bold(name));
 	execSync("yarn build", { cwd: frontend_path, encoding: "utf8", stdio: "inherit" });

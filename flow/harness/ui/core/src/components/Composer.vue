@@ -396,6 +396,7 @@
 import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { dialogs as frappeDialogs } from "frappe-ui/src/utils/dialog"
 
+import { isInert, isPageEvent } from "../inert.js"
 import { layout } from "../layout.js"
 import {
 	APPROVAL_MODES,
@@ -970,8 +971,11 @@ function anyMenuOpen() {
 // e.repeat: a held key must not spam abort requests.
 function onWindowKey(e) {
 	if (e.key !== "Escape" || e.repeat || e.defaultPrevented || composing(e) || anyMenuOpen()) return
-	if (box.value?.closest("[inert]")) return // a box the host hides stops nothing
-	if (e.target?.closest?.('input, textarea, select, [contenteditable], [role="dialog"], [role="menu"]')) return
+	if (isInert(box.value)) return // a box the host hides stops nothing
+	if (isPageEvent(e, box.value)) return // Escape on the page beside the panel is the page's
+	// the key's own target, which a shadow root retargets at the window
+	const target = e.composedPath()[0]
+	if (target?.closest?.('input, textarea, select, [contenteditable], [role="dialog"], [role="menu"]')) return
 	if (running.value) flow.abort()
 }
 

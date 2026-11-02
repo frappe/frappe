@@ -4,7 +4,10 @@
 """Adds Flow's launcher to the pages of Desk and the apps-screen apps, which share no script."""
 
 import frappe
+from frappe.utils import get_assets_json
 from frappe.utils.jinja_globals import bundled_asset
+
+ISLAND = "frappe.flow.chat"
 
 
 def add_to_page(response, request):
@@ -20,7 +23,12 @@ def add_to_page(response, request):
 
 	head, body_end, tail = response.get_data(as_text=True).rpartition("</body>")
 	if body_end:
-		script = f'<script src="{bundled_asset("flow_launcher.bundle.js")}" defer></script>'
+		assets = get_assets_json()
+		script = (
+			f'<script src="{bundled_asset("flow_launcher.bundle.js")}" defer'
+			f' data-island="{assets.get(f"{ISLAND}.island.js", "")}"'
+			f' data-island-css="{assets.get(f"{ISLAND}.island.css", "")}"></script>'
+		)
 		response.set_data(head + script + body_end + tail)
 
 
