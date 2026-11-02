@@ -26,7 +26,7 @@ async def rename(path: str, to: str, *, ctx: ToolContext) -> ToolResult:
 
 ## Confirmation
 
-Set `requires_confirmation=True` for a tool's default gate. A session also gates names in `confirm_tools`. `auto_approve: true` skips every confirmation gate.
+Set `requires_confirmation=True` for a tool's default gate. A session also gates names in `confirm_tools`. `approval_mode: "auto_approve"` skips every confirmation gate. `approval_mode: "auto"` keeps the gates but lets the small model answer them first: it sees the user's words (messages and approval answers), the agent's tool calls, and the call's full arguments with its tool's schema, allows what the user's own words cover, and anything else (an oversized call, or any failure) still pauses for the user, with the reviewer's reason in the prompt. A `subagent` call is reviewed too, even though it is not gated, so a brief is judged before the sub-agent takes it as its instruction.
 
 When Flow reaches a gated call, it saves `approval_required` and ends the run with reason `paused`. Resume by answering every pending call: `Approve` executes it, `Deny` returns a denial and ends the run, and any other text redirects the model. This state is durable across reconnects and restarts.
 

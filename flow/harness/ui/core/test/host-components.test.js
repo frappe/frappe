@@ -326,7 +326,7 @@ test("a host fills the composer with its pickers, commands, palette pages and wo
 	const commands = [{ name: "agents", label: "Agent", icon: "user", hint: "choose the agent", view: "agents" }, "model"]
 	const modes = [
 		{ id: "ask", label: "Ask first", desc: "Pauses before documents change." },
-		{ id: "auto", label: "Just do it", desc: "Never asks." },
+		{ id: "auto_approve", label: "Just do it", desc: "Never asks." },
 	]
 	const host = reactive({ disabled: false })
 	const { el, vm } = mount(t, {

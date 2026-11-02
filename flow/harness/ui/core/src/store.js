@@ -4,6 +4,7 @@ import { FlowAPIError } from "./client.js"
 import { CHAT_FONT_SIZE, CHAT_FONT_WEIGHT, chatFontWeight, layout } from "./layout.js"
 import {
 	applyEvent,
+	approvalConfig,
 	approvalToAnswer,
 	conversationTitle,
 	initialConversation,
@@ -116,7 +117,7 @@ export function createFlowStore(client, options = {}) {
 	// theme lives in frappe-ui's useColorScheme (localStorage "theme"), not here; a host whose
 	// daemon keeps settings passes it in (options.colorScheme) to save and restore it with them
 	const defaults = {
-		mode: "ask", // "ask" | "auto" — applied at session create
+		mode: "auto", // "auto" | "ask" | "auto_approve" — applied at session create, patched on the current one
 		customInstructions: "", // sent as system_suffix at session create
 		activePreset: null, // id of the agent preset applied to new chats
 		defaultPreset: null, // { tools, extensionTools } ticked for the Default preset on top of the core tools
@@ -745,7 +746,7 @@ export function createFlowStore(client, options = {}) {
 		const preset = activePreset()
 		const picked = preset ?? defaultPreset()
 		const config = {
-			auto_approve: state.prefs.mode === "auto",
+			...approvalConfig(state.prefs.mode),
 			suggest_replies: true,
 		}
 		if (state.prefs.smallModel) config.small_model = { model: state.prefs.smallModel }
@@ -1258,11 +1259,11 @@ export function createFlowStore(client, options = {}) {
 		savePrefs()
 		const sid = state.sessionId
 		if (!sid) return
-		const data = await guard(() => client.patchConfig(sid, { auto_approve: mode === "auto" }))
+		const data = await guard(() => client.patchConfig(sid, approvalConfig(mode)))
 		// the server never switched, or the user moved to another chat meanwhile: don't act on it here
 		if (!data || state.sessionId !== sid) return
 		if (state.session) state.session.config = data.config
-		if (mode !== "auto") return
+		if (mode !== "auto_approve") return
 		// the batches already waiting at the gate are covered by the new mode: approve
 		// whatever the user hasn't decided yet (their explicit answers stand)
 		for (const pending of waitingApprovals(state.conversation)) {
