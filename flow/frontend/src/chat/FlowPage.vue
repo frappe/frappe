@@ -382,7 +382,9 @@ onMounted(async () => {
 	// an island lays out by its own box, which a panel narrows; the page's width says nothing
 	unmeasure = measureLayoutBy(root.value);
 	if (!inPanel) uninstallShortcuts = installShortcuts(store);
-	uninstallFocusRings = installFocusRings(root.value);
+	uninstallFocusRings = installFocusRings(
+		...[root.value, root.value.getRootNode().host].filter(Boolean)
+	);
 	// the page around the panel owns the window's viewport
 	if (!inPanel) uninstallViewport = installViewport();
 	store.refreshModels();
