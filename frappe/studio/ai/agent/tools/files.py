@@ -1,11 +1,11 @@
-"""File tools — read and write an exported app's code files (stores, composables, utils, components).
+"""File tools — read and write an app's code files (stores, composables, utils, components).
 
-Only for STANDARD (exported) apps: their frontend is a real TypeScript project on disk under
-`<frappe_app>/studio/<studio_app>/`. These server tools wrap the jailed studio-file API in
-frappe.studio.api, which already enforces the path jail, the editable-extension allowlist, developer mode
-and the System Manager role — so the model never touches anything outside the app folder. A page
-edits its own logic with set_page_script; these tools are for the SHARED code around it, imported
-into page scripts via the app's `@app/*` alias.
+An app's frontend is a real TypeScript project, on disk under `<frappe_app>/studio/<studio_app>/`
+for a repository app and in the DB file store for a database app. These server tools wrap the
+jailed studio-file API in frappe.studio.api, which already enforces the path jail, the
+editable-extension allowlist, the role, and developer mode for the files on disk — so the model
+never touches anything outside the app. A page edits its own logic with set_page_script; these
+tools are for the SHARED code around it, imported into page scripts via the app's `@app/*` alias.
 """
 
 import frappe
@@ -61,10 +61,12 @@ def run_write_app_file(ctx, args: dict) -> str:
 		api.write_studio_file(*ref, path, content)
 	except Exception as error:
 		return _fail(error)
-	return (
-		f"Wrote {path}. Import it from a page script via '@app/{path.rsplit('.', 1)[0]}'. "
-		"Run trigger_app_build once your files are ready so the running app picks them up."
+	build_hint = (
+		" Run trigger_app_build once your files are ready so the running app picks them up."
+		if frappe.db.get_value("Studio App", ref[1], "is_standard")
+		else ""
 	)
+	return f"Wrote {path}. Import it from a page script via '@app/{path.rsplit('.', 1)[0]}'.{build_hint}"
 
 
 def run_delete_app_file(ctx, args: dict) -> str:
@@ -88,6 +90,8 @@ def run_trigger_app_build(ctx, args: dict) -> str:
 	if isinstance(ref, str):
 		return ref
 	_, studio_app = ref
+	if not frappe.get_cached_doc("Studio App", studio_app).builds_bundle():
+		return "This app has no build — its files compile in the browser and are already live."
 	frappe.enqueue_doc("Studio App", studio_app, "build_app_bundle", queue="long", timeout=1200)
 	return (
 		"Started an app rebuild. The file changes appear in the running app only after it finishes — "
@@ -99,13 +103,12 @@ def run_trigger_app_build(ctx, args: dict) -> str:
 
 
 def _app_ref(ctx) -> tuple[str, str] | str:
-	"""(frappe_app, studio_app) for the page in context, or a FAILED string if it isn't an exported app."""
+	"""(frappe_app, studio_app) for the page in context. frappe_app is empty for a database app,
+	whose files the API reads from the store instead of the folder."""
 	page = load_page(ctx)
 	if page is None:
 		return "FAILED: no page in context."
-	if not page.is_standard:
-		return "FAILED: this app isn't exported — it has no code files. Use variables and set_page_script instead."
-	return page.frappe_app, page.studio_app
+	return page.frappe_app or "", page.studio_app
 
 
 def _flatten(nodes: list[dict]) -> list[str]:
@@ -131,8 +134,8 @@ list_app_files = Tool(
 	side="server",
 	handler=run_list_app_files,
 	description=(
-		"List the exported app's editable code files (stores, composables, utils, components, page "
-		"scripts). Use before read_app_file / write_app_file to see what already exists and reuse it."
+		"List the app's editable code files (stores, composables, utils, components, page scripts). "
+		"Use before read_app_file / write_app_file to see what already exists and reuse it."
 	),
 	parameters={"type": "object", "properties": {}},
 )
