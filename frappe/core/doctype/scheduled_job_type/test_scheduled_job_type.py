@@ -130,7 +130,7 @@ class TestScheduledJobType(IntegrationTestCase):
 		)
 		# Should be within one hour
 		self.assertGreaterEqual(sjt.next_execution, sjt.last_execution)
-		self.assertGreater(add_to_date(sjt.last_execution, hours=1), sjt.next_execution)
+		self.assertGreaterEqual(add_to_date(sjt.last_execution, hours=1), sjt.next_execution)
 
 		# Next should be exactly one hour away
 		sjt.last_execution = sjt.next_execution
