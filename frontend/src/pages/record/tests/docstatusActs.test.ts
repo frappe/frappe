@@ -33,7 +33,6 @@ import {
   isQueued,
   queuedMessage,
   sendDocstatus,
-  whenRecordUpdated,
 } from "../docstatusActs";
 
 const submittable = { is_submittable: 1 };
@@ -282,46 +281,5 @@ describe("the Submission Queue route", () => {
   it("names the queued act", () => {
     expect(queuedMessage("submit")).toContain("Queued for Submit");
     expect(queuedMessage("cancel")).toContain("Queued for Cancel");
-  });
-});
-
-describe("whenRecordUpdated", () => {
-  function socket() {
-    const handlers = new Set<(...args: unknown[]) => void>();
-    return {
-      handlers,
-      emit: vi.fn(),
-      on: (_event: string, handler: (...args: unknown[]) => void) => void handlers.add(handler),
-      off: (_event: string, handler: (...args: unknown[]) => void) => void handlers.delete(handler),
-      send: (event: unknown) => handlers.forEach((handler) => handler(event)),
-    };
-  }
-
-  it("calls back once, at the update of this record, and stops listening", () => {
-    const live = socket();
-    const done = vi.fn();
-    whenRecordUpdated(live, "Invoice", "INV-1", done);
-
-    live.send({ doctype: "Invoice", name: "INV-2" });
-    expect(done).not.toHaveBeenCalled();
-    live.send({ doctype: "Invoice", name: "INV-1" });
-    live.send({ doctype: "Invoice", name: "INV-1" });
-
-    expect(done).toHaveBeenCalledTimes(1);
-    expect(live.handlers.size).toBe(0);
-  });
-
-  it("does nothing after the stop", () => {
-    const live = socket();
-    const done = vi.fn();
-    whenRecordUpdated(live, "Invoice", "INV-1", done)();
-
-    live.send({ doctype: "Invoice", name: "INV-1" });
-
-    expect(done).not.toHaveBeenCalled();
-  });
-
-  it("is inert without a socket", () => {
-    expect(() => whenRecordUpdated(undefined, "Invoice", "INV-1", vi.fn())()).not.toThrow();
   });
 });

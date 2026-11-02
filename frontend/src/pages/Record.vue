@@ -188,13 +188,10 @@ import { amendable, amendItem, amendmentOf } from "./record/amendAct";
 import {
 	confirmDocstatus,
 	docstatusItems,
-	isQueued,
-	queuedMessage,
-	sendDocstatus,
-	whenRecordUpdated,
 	type DocstatusAct,
 	type DocstatusChoice,
 } from "./record/docstatusActs";
+import { DocstatusMover, queueFailureMessage, type QueueFailure } from "./record/queuedDocstatus";
 import { headerMenuBuiltins, quickActionBuiltins } from "./record/builtinActions";
 import { renameRecord } from "./record/renameAct";
 import { statusItems } from "./record/recordStatus";
@@ -285,7 +282,7 @@ const amendOpen = computed(
 	() =>
 		saved.value.name === docname.value &&
 		Boolean(docinfo.value?.permissions?.amend) &&
-		amendable(saved.value, meta.value)
+		amendable(saved.value, meta.value),
 );
 
 watch(
@@ -297,17 +294,17 @@ watch(
 		onCleanup(() => (stale = true));
 		amendmentOf(type, name).then(
 			(found) => !stale && (amendment.value = found),
-			() => {}
+			() => {},
 		);
 	},
-	{ immediate: true }
+	{ immediate: true },
 );
 
 watch(controller, (created, _, onCleanup) => created && onCleanup(registerTabRows(created)));
 
 watch(
 	() => saved.value.name === docname.value && saved.value[meta.value?.title_field],
-	(title) => title && recentVisits.retitle(route.path, String(title))
+	(title) => title && recentVisits.retitle(route.path, String(title)),
 );
 
 // Off the sidecar, like the people rows: a favourite is never part of the draft.
@@ -318,7 +315,7 @@ const following = computed(() => Boolean(docinfo.value?.follows));
 const follow = computed(() =>
 	canFollow(meta.value, boot.session)
 		? { following: following.value, toggle: toggleFollow }
-		: undefined
+		: undefined,
 );
 
 const header = computed(() => {
@@ -363,7 +360,7 @@ const disclosure = useDisclosure(
 	() =>
 		(controller.value?.panelSections.visible() ?? [])
 			.filter((item) => item.label)
-			.map((item) => ({ name: item.name, opened: item.opened !== false }))
+			.map((item) => ({ name: item.name, opened: item.opened !== false })),
 );
 
 const {
@@ -380,7 +377,7 @@ const {
 
 // What the composer band reads: the strip's tabs as drawn, in strip order.
 const stripTabs = computed(() =>
-	tabEntries.value.filter((entry) => !entry.hidden).map((entry) => entry.item)
+	tabEntries.value.filter((entry) => !entry.hidden).map((entry) => entry.item),
 );
 
 const tabMemory = computed(() => formTabMemory(boot.session.user.name, doctype.value ?? ""));
@@ -463,7 +460,7 @@ function headerBuiltins(): HeaderItem[] {
 					duplicate: canCreate.value && !meta.value?.allow_copy,
 					rename: Boolean(meta.value?.allow_rename),
 					submitted: saved.value.docstatus === 1,
-				}
+				},
 			),
 			saved.value.name === docname.value
 				? docstatusItems(
@@ -473,10 +470,10 @@ function headerBuiltins(): HeaderItem[] {
 							dirty: dirty.value,
 							canWrite: Boolean(docinfo.value?.permissions?.write),
 						},
-						runDocstatus
-				  )
-				: []
-		)
+						runDocstatus,
+					)
+				: [],
+		),
 	);
 	return items;
 }
@@ -502,7 +499,7 @@ function inPageTurn(page: RecordPageApi, run: () => Promise<void>) {
 function toggleOnSidecar(
 	page: RecordPageApi,
 	write: () => Promise<Envelope<Partial<DocInfo>>>,
-	after?: (answer: Envelope<Partial<DocInfo>>) => void
+	after?: (answer: Envelope<Partial<DocInfo>>) => void,
 ) {
 	return inPageTurn(page, async () => {
 		const visit = currentVisit;
@@ -525,7 +522,7 @@ function saveFromHeader(page: RecordPageApi) {
 
 function toggleFavourite(page: RecordPageApi) {
 	return toggleOnSidecar(page, () =>
-		(favourited.value ? removeFavourite : addFavourite)(page.doctype, page.docname)
+		(favourited.value ? removeFavourite : addFavourite)(page.doctype, page.docname),
 	);
 }
 
@@ -552,7 +549,7 @@ function toggleFollow(page: RecordPageApi) {
 		(answer) => {
 			const message = declinedMessage(answer, adding);
 			if (message) toast.error(message);
-		}
+		},
 	);
 }
 
@@ -576,12 +573,12 @@ function reloadDocinfo(): Promise<void> {
 	if (!shown) return Promise.resolve();
 	return currentVisit.readNewest(
 		(signal) => loadParts(shown, docname.value, signal),
-		(fresh) => void (docinfo.value = fresh)
+		(fresh) => void (docinfo.value = fresh),
 	);
 }
 
 // Only the route's load may paint from memory: a reload, a conflict or a failed action reads the server.
-async function load({ fromMemory = false } = {}) {
+async function load({ fromMemory = false, keepWatch = false } = {}) {
 	feeds.endKeptRead();
 	releaseFresh();
 	if (!doctype.value) {
@@ -589,7 +586,7 @@ async function load({ fromMemory = false } = {}) {
 		return;
 	}
 	currentVisit = currentVisit.next();
-	stopQueuedWait();
+	if (!keepWatch) docstatusMover.stop();
 	const target = { doctype: doctype.value, name: docname.value };
 	const pointed = feeds.pointerOnOpen(target.doctype, target.name, route.query);
 	// Read before this load writes a view of its own.
@@ -636,7 +633,7 @@ async function load({ fromMemory = false } = {}) {
 	const fromCache = fromMemory ? openFromMemory(opening) : null;
 	if (fromCache) return fromCache;
 	await withFeedRead(target.doctype, target.name, openedQuery.value, (feedRead) =>
-		openRecord({ ...opening, feedRead })
+		openRecord({ ...opening, feedRead }),
 	);
 }
 
@@ -698,7 +695,7 @@ function backgroundReads(opening: Opening, created: RecordPageController): Backg
 	const reads: BackgroundRead[] = [
 		loadRecord(target.doctype, target.name, visit.signal).then(
 			(fresh) => () => takeRefetch(fresh, before),
-			(failure) => () => takeReadFailure(failure)
+			(failure) => () => takeReadFailure(failure),
 		),
 		freshVersion(opening),
 	];
@@ -730,7 +727,7 @@ async function applyInBackground(
 	visit: Visit,
 	created: RecordPageController,
 	reads: BackgroundRead[],
-	release: () => void
+	release: () => void,
 ) {
 	try {
 		const settled = await Promise.allSettled(reads);
@@ -738,7 +735,7 @@ async function applyInBackground(
 		// Fresh meta and layouts land with the appliers, so the page changes in one step.
 		release();
 		const rereads = settled.map((read) =>
-			read.status === "fulfilled" ? read.value() : undefined
+			read.status === "fulfilled" ? read.value() : undefined,
 		);
 		await Promise.all(rereads);
 		if (!visit.current() || state.value) return;
@@ -900,15 +897,15 @@ function buildController({ visit, target, pointer, details, panel, view }: Openi
 			docinfo.value?.permissions ?? {},
 			tagsOf(docinfo.value).length > 0,
 			follow.value,
-			stripTabs.value.find((tab) => tab.name === FILES_TAB)?.create
-		)
+			stripTabs.value.find((tab) => tab.name === FILES_TAB)?.create,
+		),
 	);
 	created.tabs.provideBuiltins(() =>
 		recordTabBuiltins({
 			requestUpload: docinfo.value?.permissions?.write
 				? () => feeds.requestUpload()
 				: undefined,
-		})
+		}),
 	);
 	created.composer.provideBuiltins(() => composerBuiltins(docinfo.value?.permissions ?? {}));
 	created.panelSections.provideBuiltins(panelBuiltins);
@@ -926,52 +923,35 @@ function runDocstatus(act: DocstatusAct) {
 	return controller.value![act]();
 }
 
-let stopQueuedWait = () => {};
+const docstatusMover = new DocstatusMover({
+	socket,
+	queueing: () => !!meta.value?.queue_in_background,
+	isDirty: () => dirty.value,
+	load: async () => (await load({ keepWatch: true }), saved.value),
+	take: takeWritten,
+	fire: (event) => controller.value!.fireEvent(event),
+	info: (message) => toast.info(message),
+	failed: reportQueueFailure,
+	error: (e) => toast.error(errorMessage(e)),
+});
 
-// An unsaved edit is kept, and a reload that finds the record unmoved (another save) waits again.
-function waitForQueued(act: DocstatusAct, doctype: string, name: string) {
-	stopQueuedWait();
-	stopQueuedWait = whenRecordUpdated(socket, doctype, name, async () => {
-		if (dirty.value) return;
-		await load();
-		if (isQueued(saved.value, act)) waitForQueued(act, doctype, name);
+function reportQueueFailure(act: DocstatusAct, failure: QueueFailure) {
+	toast.error(queueFailureMessage(act, failure), {
+		action: {
+			label: __("Open"),
+			onClick: () => router.push(routeFor("Submission Queue", failure.name)),
+		},
 	});
 }
 
 // What the person agreed to in the confirm that opened this Submit or Cancel.
 let docstatusChoice: DocstatusChoice | null = null;
 
-async function moveDocstatus(act: DocstatusAct) {
-	const visit = currentVisit;
+function moveDocstatus(act: DocstatusAct) {
 	const page = controller.value!.page;
 	const choice = docstatusChoice ?? undefined;
 	docstatusChoice = null;
-	// Cancel all queues the root itself, so it never goes through the Submission Queue.
-	const queueing = !!meta.value?.queue_in_background && !choice?.all;
-	// Listen before the request: a fast job can publish its `doc_update` before the answer arrives.
-	if (queueing) waitForQueued(act, page.doctype, page.docname);
-	let document: Record<string, any> | null;
-	try {
-		document = await sendDocstatus(page.doctype, page.docname, act, queueing, choice);
-	} catch (e) {
-		stopQueuedWait();
-		throw e;
-	}
-	if (document === null) {
-		toast.info(
-			__(
-				"The linked records are being cancelled in the background. You will be told when it finishes."
-			)
-		);
-		return { queued: true as const };
-	}
-	if (!visit.current() || !isQueued(document, act)) {
-		stopQueuedWait();
-		if (visit.current()) await takeWritten(document);
-		return;
-	}
-	toast.info(queuedMessage(act));
-	return { queued: true as const };
+	return docstatusMover.move(act, page.doctype, page.docname, choice);
 }
 
 async function write() {
@@ -983,7 +963,7 @@ async function write() {
 	const sent = { ...doc.value };
 	codeErrors.value = [];
 	const document = await saveRecord(doctype.value!, doc.value).catch((e) =>
-		rethrowSaveError(e, visit, sent)
+		rethrowSaveError(e, visit, sent),
 	);
 	if (!visit.current()) return;
 	await takeWritten(document);
@@ -1003,7 +983,7 @@ async function takeWritten(document: Record<string, any>) {
 async function rethrowSaveError(
 	e: unknown,
 	visit: Visit,
-	sent: Record<string, any>
+	sent: Record<string, any>,
 ): Promise<never> {
 	if (isApiError(e) && e.isTimestampMismatch) {
 		await resolveConflict();
@@ -1024,7 +1004,7 @@ function showCodeErrors(errors: CodeError[], sent: Record<string, any>, title?: 
 	void controller.value?.page.dialog.open(
 		CodeErrorsDialog,
 		{ frames: codeErrorFrames(errors, sent, meta.value?.fields) },
-		{ title: title || __("This code does not compile"), size: "2xl" }
+		{ title: title || __("This code does not compile"), size: "2xl" },
 	);
 }
 
@@ -1067,7 +1047,7 @@ async function focusOnDetails(fieldname: string, cursor: boolean) {
 	if (!(await tabsHost.showDetails(fieldname))) return;
 	if (!(await landOnField(landing, fieldname, cursor)) && import.meta.env.DEV)
 		console.warn(
-			`[record-page] page.fields.focus("${fieldname}") — not on the form; the reader was not moved.`
+			`[record-page] page.fields.focus("${fieldname}") — not on the form; the reader was not moved.`,
 		);
 }
 
@@ -1097,7 +1077,7 @@ useUnloadGuard(() => dirty.value);
 onUnmounted(() => {
 	stopLanding();
 	currentVisit.end();
-	stopQueuedWait();
+	docstatusMover.stop();
 	controller.value?.leave();
 	live.dispose();
 	feeds.endKeptRead();
@@ -1106,7 +1086,7 @@ onUnmounted(() => {
 
 watch(
 	() => [shownTab.value, activeFormTab.value, formSections.value, disclosure.shown()],
-	() => keep()
+	() => keep(),
 );
 watch(bodyRoot, (root, _previous, onCleanup) => {
 	if (root) onCleanup(onScrollSettled(root, keep));
@@ -1115,6 +1095,6 @@ watch([doctype, docname], () => load({ fromMemory: true }), { immediate: true })
 // The page's own `?tab=` replace keeps the key, so only a new pointer on the same record moves the reader.
 watch(
 	() => activityPointer(route.query),
-	() => feeds.followPointer(doctype.value ?? "", docname.value, route.query)
+	() => feeds.followPointer(doctype.value ?? "", docname.value, route.query),
 );
 </script>
