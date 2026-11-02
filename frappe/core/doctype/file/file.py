@@ -421,8 +421,7 @@ class File(Document):
 					self.attached_to_field,
 					self.file_url,
 				)
-			return
-		if parent_meta.has_field(self.attached_to_field) and frappe.db.exists(
+		elif parent_meta.has_field(self.attached_to_field) and frappe.db.exists(
 			self.attached_to_doctype,
 			{"name": self.attached_to_name, self.attached_to_field: old_file_url},
 		):
