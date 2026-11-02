@@ -44,6 +44,7 @@ export default class BulkOperations {
 			return;
 		}
 
+		const print_formats = frappe.meta.get_print_formats(this.doctype);
 		const dialog = new frappe.ui.Dialog({
 			title: __("Print Documents"),
 			sheet_on_mobile: true,
@@ -59,8 +60,8 @@ export default class BulkOperations {
 					fieldtype: "Select",
 					label: __("Print Format"),
 					fieldname: "print_sel",
-					options: frappe.meta.get_print_formats(this.doctype),
-					default: frappe.get_meta(this.doctype).default_print_format,
+					options: print_formats,
+					default: print_formats[0],
 				},
 				{
 					fieldtype: "Select",
@@ -95,9 +96,8 @@ export default class BulkOperations {
 
 		dialog.set_primary_action(__("Print"), (args) => {
 			if (!args) return;
-			const default_print_format = frappe.get_meta(this.doctype).default_print_format;
 			const with_letterhead = args.letter_sel == __("No Letterhead") ? 0 : 1;
-			const print_format = args.print_sel ? args.print_sel : default_print_format;
+			const print_format = args.print_sel || print_formats[0];
 			const json_string = JSON.stringify(valid_docs);
 			const letterhead = args.letter_sel;
 

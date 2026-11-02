@@ -123,10 +123,12 @@ frappe.ui.form.PrintView = class {
 			options: "Print Format",
 			label: __("Print Format"),
 			get_query: () => {
+				const restricted = frappe.meta.get_restricted_print_formats(this.frm.doctype);
 				return {
 					filters: {
 						doc_type: this.frm.doctype,
 						print_format_for: ["in", ["DocType", ""]],
+						...(restricted.length && { name: ["not in", restricted] }),
 					},
 				};
 			},
@@ -1238,7 +1240,8 @@ frappe.ui.form.PrintView = class {
 	set_default_print_format() {
 		const default_format =
 			this.frm._layout_print_format || this.frm.meta.default_print_format || "";
-		this.set_print_format_value(default_format);
+		const restricted = frappe.meta.get_restricted_print_formats(this.frm.doctype);
+		this.set_print_format_value(restricted.includes(default_format) ? "" : default_format);
 	}
 
 	// apps like Print Designer replace setup_sidebar and only provide
