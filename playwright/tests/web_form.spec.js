@@ -73,9 +73,14 @@ test.describe("Web Form", () => {
 		await desk.fill_field("doc_type", "Note", "Link");
 		await desk.fill_field("module", "Website", "Link");
 		await desk.click_custom_action_button("Get Fields");
+		await desk.get_open_dialog().locator('[data-action="select_all"]').click();
+		await desk.click_modal_primary_button("Update");
 		await expect(page.locator('[data-fieldname="web_form_fields"] .grid-row')).not.toHaveCount(
 			0
 		);
+
+		// Update lands on the Form tab, and route lives on Details
+		await page.getByRole("tab", { name: "Details", exact: true }).click();
 		const saved = page.waitForResponse(
 			(res) =>
 				res.request().method() === "POST" &&
