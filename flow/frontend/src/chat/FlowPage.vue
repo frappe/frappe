@@ -132,8 +132,13 @@
 			</WorkspacePanel>
 		</div>
 		<Dialogs />
-		<!-- a narrow frame's toasts drop from the top, off the composer, as the harness's do -->
-		<ToastProvider :position="layout.narrow ? 'top-center' : 'bottom-right'" />
+		<!-- a narrow frame's toasts drop from the top, off the composer, as the harness's do, and
+		     below the header, off its buttons -->
+		<ToastProvider
+			:position="layout.narrow ? 'top-center' : 'bottom-right'"
+			:offset="toastOffset"
+			:mobile-offset="toastOffset"
+		/>
 		<FlowSettings />
 		<TranscriptDialog />
 		<ShareChat v-if="canShare" ref="share" />
@@ -372,6 +377,8 @@ function openInTab() {
 	closePanel();
 }
 
+const toastOffset = computed(() => (layout.narrow ? { top: 56 } : undefined));
+
 // the composer floats over the list, which pads by its measured height
 const composer = ref(null);
 provideComposerHeight(composer);
@@ -428,7 +435,9 @@ watch(
 	() => route.params.session,
 	(id) => {
 		if (pageKind.value) return; // the chat waits behind a page as it was, its box and all
-		if (id && id !== store.state.sessionId) store.openSession(id);
+		// in the panel, a route the user didn't pick: the chat it last showed, or Back to one,
+		// either of which may since be gone
+		if (id && id !== store.state.sessionId) store.openSession(id, { quiet: inPanel });
 		else if (!id && store.state.sessionId) store.startNewChat();
 	}
 );
