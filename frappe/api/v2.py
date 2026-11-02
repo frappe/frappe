@@ -26,13 +26,17 @@ from frappe.api.include import (
 	parse_include,
 	serialize_meta,
 )
+from frappe.apps import get_disabled_apps
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 from frappe.database.utils import DefaultOrderBy
+from frappe.exceptions import AppDisabledError
 from frappe.handler import is_valid_http_method, resolve_method, run_server_script, upload_file
 from frappe.mcp import handle as handle_mcp
+from frappe.model.document import Document
 from frappe.utils.data import is_desk_v2_enabled
 
 SEARCH_PAGE_LENGTH = 10
+OVERRIDABLE_WHITELISTED_METHODS = ("submit", "cancel")
 
 PERMISSION_MAP = {
 	"GET": "read",
@@ -362,9 +366,7 @@ def execute_doc_method(doctype: str, name: str, method: str | None = None):
 	"""
 	method = method or frappe.form_dict.pop("run_method")
 	doc = frappe.get_doc(doctype, name)
-	doc.is_whitelisted(method)
-	method_obj = getattr(doc, method)
-	fn = getattr(method_obj, "__func__", method_obj)
+	fn = whitelisted_doc_function(doc, method)
 	is_valid_http_method(fn)
 
 	assert frappe.request.method in PERMISSION_MAP, (
@@ -375,6 +377,25 @@ def execute_doc_method(doctype: str, name: str, method: str | None = None):
 	doc.apply_fieldlevel_read_permissions()
 	frappe.response.docs.append(doc.as_dict())
 	return result
+
+
+def whitelisted_doc_function(doc: Document, method: str):
+	"""Return the function whose whitelist entry covers `method`, or raise.
+
+	An override of `Document.submit`/`cancel` shares the base method's entry, so the override runs.
+	"""
+	fn = getattr(getattr(doc, method, None), "__func__", None)
+	if method in OVERRIDABLE_WHITELISTED_METHODS and fn and fn is getattr(type(doc), method):
+		base = getattr(Document, method)
+		is_whitelisted(base)
+		app_name = fn.__module__.split(".", 1)[0]
+		if app_name in get_disabled_apps():
+			frappe.throw(_("App {0} is disabled on this site").format(app_name), AppDisabledError)
+		return base
+
+	doc.is_whitelisted(method)
+	method_obj = getattr(doc, method)
+	return getattr(method_obj, "__func__", method_obj)
 
 
 def bulk_delete_docs(doctype: str):
