@@ -217,6 +217,7 @@ class PendingCall(BaseModel):
 	name: str
 	args: dict
 	prompt: str = ""  # human-facing approval prompt, resolved by the client
+	rewritten: bool = False  # a hook changed the arguments; `args` is what will run
 
 
 class ApprovalRequired(_Event):

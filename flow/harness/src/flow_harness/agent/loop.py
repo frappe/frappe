@@ -247,7 +247,7 @@ async def resume(
 			if verdict.block:
 				result = _result(call, _blocked(verdict.reason), is_error=True)
 			else:
-				result = await _finished_call(call, tools, ctx, inputs)
+				result = await _run_call(_CallToRun(call, pending.rewritten), tools, ctx, inputs)
 		# the reviewer trusts the answer in details, never content a tool could fake
 		elif answer == "Deny":
 			result = _result(call, _denied(pending.prompt), is_error=True, details={"user_answer": answer})
@@ -649,7 +649,9 @@ async def _settle_call(
 				runnable.append(_CallToRun(call, rewritten, verdict))
 				return
 			prompt = f"{prompt}\n\nNot auto-approved: {verdict.reason}"
-		gated.append(PendingCall(id=call.id, name=call.name, args=call.args, prompt=prompt))
+		gated.append(
+			PendingCall(id=call.id, name=call.name, args=call.args, prompt=prompt, rewritten=rewritten)
+		)
 		return
 	runnable.append(_CallToRun(call, rewritten))
 
