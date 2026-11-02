@@ -370,7 +370,9 @@ const STYLE = `
 	border-radius: 0;
 	box-shadow: none;
 }
-.window { position: relative; }
+/* the chat's own fixed layers, its toasts, place against the panel and not the page; its
+   overlays sit in the top layer, above any containment */
+.window { position: relative; contain: layout; }
 .skeleton { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: space-between; }
 :host([data-ready]) .skeleton { display: none; }
 .skeleton i, .skeleton b { display: block; height: 12px; border-radius: 6px; background: var(--surface-gray-3, rgba(128, 128, 128, 0.16)); }
