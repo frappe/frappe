@@ -1993,6 +1993,24 @@ class TestChildTableAttachments(IntegrationTestCase):
 
 		self.assertEqual(frappe.db.get_single_value("Navbar Settings", "app_logo"), "/files/logo.png")
 
+	def test_toggle_is_private_updates_single_doctype_child_row(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		file = self.make_unattached_file(b"team-member-bytes")
+		settings = frappe.get_single("About Us Settings")
+		row = settings.append(
+			"team_members", {"full_name": "Test Member", "image_link": file.file_url, "bio": "Test"}
+		)
+		settings.save(ignore_permissions=True)
+
+		attached = frappe.get_doc("File", file.name)
+		attached.is_private = 0
+		attached.save(ignore_permissions=True)
+
+		self.assertEqual(
+			frappe.db.get_value("About Us Team Member", row.name, "image_link"), attached.file_url
+		)
+
 
 class TestAttachmentsAccess(IntegrationTestCase):
 	def setUp(self) -> None:
