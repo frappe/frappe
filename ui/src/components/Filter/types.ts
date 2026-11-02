@@ -57,4 +57,7 @@ export interface FilterProps {
   /** Which edge of the button the popover lines up with. Defaults to `end`,
    *  for a button in a right-hand toolbar. */
   align?: "start" | "end";
+  /** An icon button with the count instead of the labelled button and its clear
+   *  button, for a narrow toolbar. The popover still clears all filters. */
+  compact?: boolean;
 }
