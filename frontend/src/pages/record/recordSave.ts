@@ -2,9 +2,12 @@
 // question before a reload or a tab close loses unsaved changes.
 import { onMounted, onUnmounted } from "vue";
 import { toast } from "frappe-ui";
-import { errorMessage, type RecordPageApi } from "@/recordPage";
+import { errorMessage, reportOnce, type RecordPageApi } from "@/recordPage";
 import { overlayOf } from "@/shell/overlay";
 import { shownInDialog } from "./saveResponse";
+
+// Two clicks mid-save join one save and get one error: it toasts once.
+const toastFailure = reportOnce((exception: unknown) => toast.error(errorMessage(exception)));
 
 /** Not through an action runner: a failed save keeps the draft on screen and toasts, unless a dialog showed it. */
 export async function runSave(page: RecordPageApi | undefined): Promise<boolean> {
@@ -12,7 +15,7 @@ export async function runSave(page: RecordPageApi | undefined): Promise<boolean>
 		await page?.save();
 		return true;
 	} catch (exception) {
-		if (!shownInDialog(exception)) toast.error(errorMessage(exception));
+		if (!shownInDialog(exception)) toastFailure(exception);
 		return false;
 	}
 }

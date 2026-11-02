@@ -371,6 +371,7 @@ component group, with its main names.
 | Concept | What it is |
 | --- | --- |
 | `createRecordPage` | Builds the record's `page` on `createPageEngine`: its own lists, events and members over the engine's. A click on a drawn act that takes an `argument` opens the palette at its argument step, as its key does, through the host's `openArgument` |
+| `reportOnce` | *New.* Callers that joined one running Submit, Cancel or Save get the same error; wraps a reporter so that error toasts once. The act dispatcher's `failed` and the header Save use it |
 | `RecordPageHost` | *Changed.* The contract a page fills: document, save, tabs, feeds, composer, what a failed act does, and whether it restored the reader's view. A new record's host adds `isNew` and `onSaved`, which runs after `afterSave`. The engine draws nothing |
 | Script registry | The registered handlers per doctype and source |
 | Cached reads | *New.* The engine behind `page.cached`: one fetch per key per visit, and a value kept while the record's complete entry stays in the data cache, up to 20 keys for each record and script |
