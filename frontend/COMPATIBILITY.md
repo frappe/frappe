@@ -188,8 +188,8 @@ What `page` is _for_ is a small, closed vocabulary:
   with no anchor appends after it; `add(item, { before: 'save' })` is how a button sits
   to its left. It is ordered and demoted by the fitting rule with no exception, and the
   host alone decides that it is disabled while nothing has changed.
-- **A closed event list** — `onRefresh`, `onOpen`, `beforeSave`, `afterSave`, `onTabChange`,
-  `onFormTabChange`, `onPost`, `<fieldname>`, and a child table's own family, written **nested under
+- **A closed event list** — `onRefresh`, `onOpen`, `beforeSave`, `afterSave`, `beforeSubmit`, `afterSubmit`,
+  `beforeCancel`, `afterCancel`, `onTabChange`, `onFormTabChange`, `onPost`, `<fieldname>`, and a child table's own family, written **nested under
   the table's fieldname**: a handler per child field, plus `onAdd` and `onRemove`.
 
   ```js
@@ -236,7 +236,7 @@ What `page` is _for_ is a small, closed vocabulary:
   dismissed the dialog, so `if (!result) return` is always the idiom; `page.create`
   resolves `null` when nothing was saved in its dialog, so `if (!doc) return` is its
   idiom; `page.isNew` is true until the first save, and `page.save()` then inserts;
-  a throw in `beforeSave` blocks the save; a handler that throws is isolated,
+  a throw in `beforeSave` blocks the save, in `beforeSubmit` or `beforeCancel` that act; a handler that throws is isolated,
   half-applied, and does not take other scripts down with it.
 
 These are deliberately small, closed, and shaped like frappe rather than like the

@@ -185,6 +185,12 @@ import { formTabMemory } from "./record/formTabMemory";
 import { fetchMeta, metaInMemory } from "./record/metaSource";
 import { PANEL_BUILTINS } from "./record/panel/builtins";
 import { amendable, amendItem, amendmentOf } from "./record/amendAct";
+import {
+	confirmDocstatus,
+	docstatusItems,
+	sendDocstatus,
+	type DocstatusAct,
+} from "./record/docstatusActs";
 import { headerMenuBuiltins, quickActionBuiltins } from "./record/builtinActions";
 import { renameRecord } from "./record/renameAct";
 import { statusItems } from "./record/recordStatus";
@@ -402,9 +408,13 @@ provide(CodeErrorsKey, codeErrors);
 provideRecordCommits(() => controller.value);
 const buttonClick = buttonClicks(() => controller.value);
 
+function recordTitle(): string {
+	return String(doc.value[meta.value?.title_field] || docname.value);
+}
+
 // The row's built-ins, re-read on every resolve so the title crumb tracks the draft.
 function headerBuiltins(): HeaderItem[] {
-	const title = doc.value[meta.value?.title_field] || docname.value;
+	const title = recordTitle();
 	const single = addresses.isSingle(doctype.value!);
 	const items: HeaderItem[] = [
 		// A single is its own list: one crumb, no link.
@@ -437,19 +447,40 @@ function headerBuiltins(): HeaderItem[] {
 			run: saveFromHeader,
 		},
 		...(amendOpen.value && amendment.value !== undefined ? [amendItem(amendment.value)] : []),
-		...headerMenuBuiltins(
-			docinfo.value?.permissions ?? {},
-			{ favourited: favourited.value, toggle: toggleFavourite },
-			{
-				single,
-				follow: follow.value,
-				assign: { assignees: assigneesOf(docinfo.value), assign: assignUser },
-				duplicate: canCreate.value && !meta.value?.allow_copy,
-				rename: Boolean(meta.value?.allow_rename),
-			}
+		...beforeDelete(
+			headerMenuBuiltins(
+				docinfo.value?.permissions ?? {},
+				{ favourited: favourited.value, toggle: toggleFavourite },
+				{
+					single,
+					follow: follow.value,
+					assign: { assignees: assigneesOf(docinfo.value), assign: assignUser },
+					duplicate: canCreate.value && !meta.value?.allow_copy,
+					rename: Boolean(meta.value?.allow_rename),
+				}
+			),
+			saved.value.name === docname.value
+				? docstatusItems(
+						{
+							meta: meta.value,
+							saved: saved.value,
+							dirty: dirty.value,
+							canWrite: Boolean(docinfo.value?.permissions?.write),
+						},
+						runDocstatus
+				  )
+				: []
 		)
 	);
 	return items;
+}
+
+// The menu merges only consecutive rows of one group, so Cancel goes next to Delete in the danger band.
+function beforeDelete(builtins: HeaderItem[], extra: HeaderItem[]) {
+	const at = builtins.findIndex((item) => item.name === "delete");
+	return at < 0
+		? [...builtins, ...extra]
+		: [...builtins.slice(0, at), ...extra, ...builtins.slice(at)];
 }
 
 // Turns run in the order queued, so each reads the state the one before it left (two quick
@@ -836,6 +867,10 @@ function buildController({ visit, target, pointer, details, panel, view }: Openi
 		discloseSection: disclosure.disclose,
 		focusField: (fieldname, cursor) => void focusOnDetails(fieldname, cursor),
 		save: write,
+		confirmDocstatus: async (act) =>
+			!!(await confirmDocstatus(controller.value!.page, act, recordTitle())),
+		submit: () => moveDocstatus("submit"),
+		cancel: () => moveDocstatus("cancel"),
 		rename: (name, merge) => renameRecord(created.page, name, merge, visit.current),
 		reload: load,
 		router,
@@ -873,6 +908,17 @@ function buildController({ visit, target, pointer, details, panel, view }: Openi
 	return created;
 }
 
+function runDocstatus(act: DocstatusAct) {
+	return controller.value![act]();
+}
+
+async function moveDocstatus(act: DocstatusAct) {
+	const visit = currentVisit;
+	const page = controller.value!.page;
+	const document = await sendDocstatus(page.doctype, page.docname, act);
+	if (visit.current()) await takeWritten(document);
+}
+
 async function write() {
 	// Refuse to write the wrong record if the route moved while an action ran.
 	if (doc.value.name !== docname.value || doctype.value === null) {
@@ -885,9 +931,13 @@ async function write() {
 		rethrowSaveError(e, visit, sent)
 	);
 	if (!visit.current()) return;
+	await takeWritten(document);
+}
+
+async function takeWritten(document: Record<string, any>) {
 	saved.value = { ...document };
 	doc.value = JSON.parse(JSON.stringify(document));
-	// A save writes a version row and its hooks may assign.
+	// A write adds a version row and its hooks may assign.
 	live.reloadQuietly();
 	await controller.value?.refresh();
 	actionsVersion.value++;

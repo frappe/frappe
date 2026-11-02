@@ -26,7 +26,7 @@ import type { HeaderSurface } from "@/pageEngine/headerRenderings";
 import { ROW_EVENTS } from "./flattenHandlers";
 import { registerPageActs } from "./pageActs";
 import { createPagePermissions } from "./pagePermissions";
-import { readOnly, type ReadOnlyAdvice } from "./readOnly";
+import { lockFields, readOnly, type ReadOnlyAdvice } from "./readOnly";
 import { registrationsFor } from "./registry";
 import { reportCustomizationError } from "./reportError";
 import { createRows, warnRowIssue } from "./rows";
@@ -73,6 +73,10 @@ export const RECORD_PAGE_EVENTS = [
   "onOpen",
   "beforeSave",
   "afterSave",
+  "beforeSubmit",
+  "afterSubmit",
+  "beforeCancel",
+  "afterCancel",
   "onTabChange",
   "onFormTabChange",
   "onPost",
@@ -100,6 +104,11 @@ const ROLES_ARE_READ_ONLY: ReadOnlyAdvice = {
 const SAVED_IS_READ_ONLY: ReadOnlyAdvice = {
   path: "page.saved",
   instead: "page.doc, which is the draft this is the saved counterpart of",
+};
+
+const DOCSTATUS_IS_LOCKED: ReadOnlyAdvice = {
+  path: "page.doc",
+  instead: "page.run('header.submit') or page.run('header.cancel')",
 };
 
 /** The two tab strips, by the member each is reached through. */
@@ -147,6 +156,12 @@ export interface RecordPageHost {
   focusField?: (fieldname: string, cursor: boolean) => void;
   /** Writes the draft; the engine flushes and fires `beforeSave` before it, `afterSave` after. */
   save: () => Promise<void>;
+  /** Asks the reader to confirm a Submit or Cancel; false when the reader declines. */
+  confirmDocstatus?: (act: "submit" | "cancel") => Promise<boolean>;
+  /** Submits the saved draft; the engine has already confirmed and fired `beforeSubmit`. */
+  submit?: () => Promise<void>;
+  /** Cancels the submitted record; the engine has already confirmed and fired `beforeCancel`. */
+  cancel?: () => Promise<void>;
   /** Runs once `afterSave` settles; a new record's host opens the saved record here. */
   onSaved?: () => Promise<void>;
   /** Saves a dirty draft, renames the record and opens it at its new name; absent while the record has no saved copy. */
@@ -210,6 +225,10 @@ export interface RecordPageController {
   paintNow: () => boolean;
   /** `row` addresses the child row a dotted event happened to; see `Handler`. */
   fireEvent: (event: string, row?: RowAddress) => Promise<void>;
+  /** The Submit act: `beforeSubmit` (a throw vetoes), the host's confirm and call, then `afterSubmit`. */
+  submit: () => Promise<void>;
+  /** The Cancel act: `beforeCancel` (a throw vetoes), the host's confirm and call, then `afterCancel`. */
+  cancel: () => Promise<void>;
   /** Fires `onPost` with the posted row's key, once the server has answered the built-in writer. */
   firePost: (key: string) => Promise<void>;
   /** Fetches the `page.cached` keys `paintNow` read, for the host's background reads; answers when they land or at the late limit. */
@@ -347,7 +366,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     lateLabel: () => clientScriptWait(host.doctype) ?? "the page's scripts",
     openView: (view) => (host.restoresView?.() ? restoredView(view) : view),
     warnUnknownHandlers: () => warnUnknownHandlers(),
-    vetoes: ["beforeSave"],
+    vetoes: ["beforeSave", "beforeSubmit", "beforeCancel"],
     // No `route`: the reporter reads `location`, the URL an admin can paste;
     // `router.fullPath` drops the app's base.
     report: (error, source, event) =>
@@ -368,9 +387,9 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
         return host.app;
       },
       docname: host.docname,
-      // Exempt from the read-only rule: mutating the document *is* the API.
+      // Exempt from the read-only rule, bar `docstatus`: only Submit and Cancel move it.
       get doc() {
-        return host.doc.value;
+        return lockFields(host.doc.value, ["docstatus"], DOCSTATUS_IS_LOCKED);
       },
       get saved() {
         return readOnly(host.saved.value, SAVED_IS_READ_ONLY);
@@ -418,6 +437,32 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
       .then(() => (engine.hasLeft() ? undefined : host.onSaved?.()))
       .finally(() => (saving.value = null));
     return saving.value;
+  }
+
+  // One Submit or Cancel at a time: a second click while the confirm or the call is open joins it.
+  const moving = shallowRef<Promise<void> | null>(null);
+
+  function moveDocstatus(act: "Submit" | "Cancel", call: (() => Promise<void>) | undefined) {
+    if (engine.hasLeft() || !call) return Promise.resolve();
+    moving.value ??= hold(async () => {
+      const lower = act.toLowerCase() as "submit" | "cancel";
+      if (!(await host.confirmDocstatus?.(lower)) || engine.hasLeft()) return;
+      const wasDirty = host.isDirty();
+      try {
+        await fireEvent(`before${act}`);
+        await commits.flush();
+      } catch (error) {
+        throw asVeto(error);
+      }
+      // The server acts on the saved row, so an edit made here would be lost without a word.
+      if (!wasDirty && host.isDirty())
+        throw asVeto(new Error(`before${act} changed the record. Save it, then ${lower} again.`));
+      if (engine.hasLeft()) return;
+      await call();
+      if (engine.hasLeft()) return;
+      await fireEvent(`after${act}`);
+    }).finally(() => (moving.value = null));
+    return moving.value;
   }
 
   async function runSave() {
@@ -843,6 +888,8 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     refresh: engine.refresh,
     paintNow: engine.paintNow,
     fireEvent,
+    submit: () => moveDocstatus("Submit", host.submit),
+    cancel: () => moveDocstatus("Cancel", host.cancel),
     firePost,
     fetchCached: engine.fetchCached,
     perform: (name, value) => {
