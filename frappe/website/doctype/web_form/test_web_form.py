@@ -14,6 +14,7 @@ from frappe.website.doctype.web_form.web_form import (
 	delete_multiple,
 	get_form_data,
 	get_link_options,
+	get_table_multiselect_fields,
 	get_web_form_list,
 	process_link_field,
 )
@@ -1423,10 +1424,7 @@ class TestWebForm(IntegrationTestCase):
 				},
 			],
 		)
-		user = self.create_website_user("_test_web_form_user_permissions@example.com")
-		add_user_permission("DocType", "ToDo", user, ignore_permissions=True)
-		user_permission = frappe.db.get_value("User Permission", {"user": user, "allow": "DocType"})
-		self.addCleanup(frappe.delete_doc, "User Permission", user_permission, force=True)
+		user = self.create_user_allowed_only_todo_doctype()
 
 		def child_link_options():
 			frappe.set_user(user)
@@ -1449,6 +1447,72 @@ class TestWebForm(IntegrationTestCase):
 		)
 		self.addCleanup(frappe.delete_doc, "Property Setter", property_setter.name, force=True)
 		self.assertIn("Event", child_link_options())
+
+	def test_link_field_apply_user_permissions(self):
+		web_form = self.make_temp_web_form(
+			web_form_fields=[
+				{"fieldname": "subject", "fieldtype": "Data", "label": "Title", "reqd": 1},
+				{
+					"fieldname": "reference_doctype",
+					"fieldtype": "Link",
+					"label": "Reference Document Type",
+					"options": "DocType",
+					"allow_read_on_all_link_options": 1,
+					"apply_user_permissions": 1,
+				},
+			],
+		)
+		user = self.create_user_allowed_only_todo_doctype()
+
+		frappe.set_user(user)
+		result = get_form_data(doctype="Event", web_form_name=web_form.name)
+		link_field = next(f for f in result.web_form.web_form_fields if f.fieldname == "reference_doctype")
+		self.assertEqual([option["value"] for option in link_field.options], ["ToDo"])
+
+		doc = {"doctype": "Event", "subject": "_Test User Permitted Link", "starts_on": "2014-09-09"}
+		self.assertRaises(
+			frappe.PermissionError,
+			accept,
+			web_form=web_form.name,
+			data=json.dumps({**doc, "reference_doctype": "Event"}),
+		)
+		accept(web_form=web_form.name, data=json.dumps({**doc, "reference_doctype": "ToDo"}))
+		frappe.set_user("Administrator")
+		self.assertTrue(frappe.db.exists("Event", {"subject": doc["subject"], "reference_doctype": "ToDo"}))
+
+	def test_table_multiselect_apply_user_permissions(self):
+		web_form = self.make_temp_web_form(
+			web_form_fields=[
+				{"fieldname": "subject", "fieldtype": "Data", "label": "Title", "reqd": 1},
+				{
+					"fieldname": "event_participants",
+					"fieldtype": "Table",
+					"label": "Event Participants",
+					"options": "Event Participants",
+				},
+			],
+		)
+		frappe.set_user(self.create_user_allowed_only_todo_doctype())
+
+		def multiselect_options(apply_user_permissions):
+			(df,) = get_table_multiselect_fields(
+				"Event Participants",
+				web_form.name,
+				allow_read_on_all=True,
+				apply_user_permissions=apply_user_permissions,
+			)
+			return [option["value"] for option in df.link_options]
+
+		self.assertIn("Event", multiselect_options(False))
+		self.assertEqual(multiselect_options(True), ["ToDo"])
+		frappe.set_user("Administrator")
+
+	def create_user_allowed_only_todo_doctype(self):
+		user = self.create_website_user("_test_web_form_user_permissions@example.com")
+		add_user_permission("DocType", "ToDo", user, ignore_permissions=True)
+		user_permission = frappe.db.get_value("User Permission", {"user": user, "allow": "DocType"})
+		self.addCleanup(frappe.delete_doc, "User Permission", user_permission, force=True)
+		return user
 
 	def test_link_field_options_skip_link_filters_of_another_doctype(self):
 		property_setter = make_property_setter(
