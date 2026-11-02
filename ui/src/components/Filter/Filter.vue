@@ -27,14 +27,26 @@
 		@update:selectedOption="addFilter"
 	>
 		<template #trigger>
-			<Button label="Filter" iconLeft="lucide-list-filter" />
+			<Button
+				v-if="compact"
+				icon="lucide-list-filter"
+				tooltip="Filter"
+				aria-label="Filter"
+			/>
+			<Button v-else label="Filter" iconLeft="lucide-list-filter" />
 		</template>
 	</Combobox>
 
 	<!-- Non-empty: the filter popover with its condition rows. -->
 	<Popover v-else ref="popoverRef" side="bottom" :align="align ?? 'end'">
 		<template #trigger="{ close }">
-			<div class="flex items-center">
+			<Button
+				v-if="compact"
+				:label="String(model.length)"
+				iconLeft="lucide-list-filter"
+				tooltip="Filter"
+			/>
+			<div v-else class="flex items-center">
 				<Button
 					label="Filter"
 					class="relative rounded-r-none focus-visible:z-10"
