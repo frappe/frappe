@@ -29,7 +29,13 @@ frappe.ui.form.on("Print Settings", {
 	show_wkhtmltopdf_formats: function (frm) {
 		frm.dashboard.clear_headline();
 		const count = frm.doc.__onload?.wkhtmltopdf_print_formats;
-		if (!count || frm.doc.pdf_generator === "wkhtmltopdf" || frm.is_dirty()) return;
+		if (
+			!count ||
+			!frm.doc.pdf_generator ||
+			frm.doc.pdf_generator === "wkhtmltopdf" ||
+			frm.is_dirty()
+		)
+			return;
 
 		const generator =
 			frm.doc.pdf_generator.charAt(0).toUpperCase() + frm.doc.pdf_generator.slice(1);
