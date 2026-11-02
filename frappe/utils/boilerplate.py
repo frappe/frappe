@@ -647,6 +647,10 @@ use_json_request_body = True
 #
 # auto_cancel_exempted_doctypes = ["Auto Repeat"]
 
+# DocTypes that "Cancel All" leaves alone, keyed by the DocType being cancelled
+#
+# ignore_doctypes_on_cancel_all = {{"Journal Entry": ["Sales Invoice"]}}
+
 # Ignore links to specified DocTypes when deleting documents
 # -----------------------------------------------------------
 
