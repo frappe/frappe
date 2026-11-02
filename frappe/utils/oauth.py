@@ -256,6 +256,9 @@ def login_oauth_user(
 			http_status_code=403,
 		)
 
+	for method in frappe.get_hooks("on_social_login"):
+		frappe.get_attr(method)(user=user, provider=provider, claims=data)
+
 	frappe.local.login_manager.login_as(user)
 
 	# because of a GET request!
