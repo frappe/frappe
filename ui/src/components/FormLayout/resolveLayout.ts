@@ -37,7 +37,7 @@ function warnRefused(f: FieldMeta, key: string, wanted: boolean): void {
   warned.add(once);
   console.warn(
     `[FormLayout] ignored override.${key} = ${wanted} on "${f.fieldname}": ` +
-      `permlevel ${f.permlevel ?? "?"} denies access, which an override cannot lift.`
+      "the reader's access is denied here, which an override cannot lift."
   );
 }
 

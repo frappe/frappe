@@ -2,6 +2,7 @@
 import type { Ref } from "vue";
 import { useDocPermissions, type FieldAccess } from "@framework/ui/useDocPermissions";
 import { useUserRoles } from "@framework/ui/useUserRoles";
+import { accessAtDocstatus } from "./formLayoutSource/fieldAccess";
 import type { ActRight } from "@/acts/dispatcher";
 import { doctypeRight, whenLoaded } from "@/acts/doctypeRight";
 
@@ -12,6 +13,8 @@ const NON_RIGHTS = ["if_owner", "has_if_owner_enabled"];
 export interface PagePermissionsHost {
   doctype: string;
   meta: Ref<any>;
+  /** The saved record, whose `docstatus` locks its fields. */
+  saved: Ref<Record<string, any>>;
   perms: () => Record<string, any>;
 }
 
@@ -93,7 +96,8 @@ export function createPagePermissions(
     const fields = host.meta.value?.fields;
     if (!fields) return "write";
     const field = fields.find((one: any) => one.fieldname === fieldname);
-    if (field) return fieldAccess(field);
+    if (field)
+      return accessAtDocstatus(fieldAccess(field), field, host.saved.value?.docstatus);
     warn(
       `page.fieldAccess("${fieldname}") — no such field on ${host.doctype}.`,
     );
