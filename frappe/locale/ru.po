@@ -1088,7 +1088,7 @@ msgstr "Доступ с этого IP-адреса запрещен"
 #. Label of a Section Break field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json:568
 msgid "Account"
-msgstr "Счет"
+msgstr "Учётная запись"
 
 #. Label of a Section Break field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json:406
@@ -8894,7 +8894,7 @@ msgstr "Дата выполнения На основании"
 #: frappe/public/js/frappe/views/workspace/workspace.js:853
 #: frappe/public/js/frappe/views/workspace/workspace.js:1020
 msgid "Duplicate"
-msgstr "Дубликат"
+msgstr "Дублировать"
 
 #: frappe/printing/doctype/print_format_field_template/print_format_field_template.py:53
 msgid "Duplicate Entry"
@@ -31688,7 +31688,7 @@ msgstr "Рабочее пространство {0} Отредактирован
 #. Option for the 'View' (Select) field in DocType 'Form Tour'
 #: frappe/desk/doctype/form_tour/form_tour.json:126
 msgid "Workspaces"
-msgstr "Рабочие места"
+msgstr "Рабочие пространства"
 
 #: frappe/public/js/frappe/form/footer/form_timeline.js:739
 msgid "Would you like to publish this comment? This means it will become visible to website/portal users."
