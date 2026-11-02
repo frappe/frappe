@@ -209,7 +209,7 @@ class Usage(_Event):
 	# the summarizer's own call: count its tokens as spend, not as the context size
 	standalone: bool = False
 	# a side call, such as the title, outside the conversation
-	purpose: Literal["title", "replies"] | None = None
+	purpose: Literal["title", "replies", "review"] | None = None
 
 
 class PendingCall(BaseModel):

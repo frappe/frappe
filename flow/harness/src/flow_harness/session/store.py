@@ -491,7 +491,7 @@ class SessionStore:
 
 	def save_meta(self, session: Session) -> None:
 		"""Write the session's config to its meta file (called at create and on config
-		patches like `auto_approve`; model changes live in the log instead)."""
+		patches like `approval_mode`; model changes live in the log instead)."""
 		paths = _session_paths(os.path.dirname(session.log.path), session.id)
 		path = paths.meta
 		fd, tmp = mkstemp(prefix=f".{os.path.basename(path)}.", dir=paths.directory)

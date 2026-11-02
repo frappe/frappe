@@ -67,7 +67,7 @@ class ScriptedModel(MockModel):
 def _session(tmp_path, **cfg):
 	events: list[dict] = []
 	store = SessionStore(str(tmp_path / "data"), event_sink=lambda _sid, ev: events.append(ev))
-	session = store.create(SessionConfig(cwd=str(tmp_path), **cfg))
+	session = store.create(SessionConfig(cwd=str(tmp_path), **{"approval_mode": "ask", **cfg}))
 	return session, events
 
 
@@ -509,7 +509,7 @@ async def test_abort_ends_every_child_running_paused_or_waiting_for_a_slot(tmp_p
 
 async def test_a_child_that_stops_short_is_an_error_result_and_the_session_carries_on(tmp_path):
 	quick = SubagentConfig(name="Quick", max_turns=1)
-	session, events = _session(tmp_path, auto_approve=True, subagents=[quick])
+	session, events = _session(tmp_path, approval_mode="auto_approve", subagents=[quick])
 	error = ProviderError(kind="auth", retryable=False, status_code=401, provider="mock", detail="bad key")
 	model = ScriptedModel(
 		{
@@ -580,10 +580,10 @@ async def test_a_child_approval_pauses_only_the_child_and_takes_one_answer(tmp_p
 
 
 async def test_an_approval_mode_change_reaches_a_running_childs_next_gate(tmp_path):
-	for initial_auto_approve in (True, False):
-		cwd = tmp_path / str(initial_auto_approve)
+	for initial_mode in ("auto_approve", "ask"):
+		cwd = tmp_path / initial_mode
 		cwd.mkdir()
-		session, events = _session(cwd, auto_approve=initial_auto_approve)
+		session, events = _session(cwd, approval_mode=initial_mode)
 		model = ScriptedModel(
 			{
 				"go": [AssistantMessage(content=[_spawn("c1", "risky")]), AssistantMessage(content="done")],
@@ -594,17 +594,19 @@ async def test_an_approval_mode_change_reaches_a_running_childs_next_gate(tmp_pa
 
 		handle = await session.run("go", model=model)
 		await model.started["risky"].wait()  # the child is running, its tool call still to come
-		session.config.auto_approve = not initial_auto_approve  # PATCH /config mutates this object
+		session.config.approval_mode = (
+			"ask" if initial_mode == "auto_approve" else "auto_approve"
+		)  # PATCH /config mutates this object
 		gate.set()
 
-		if initial_auto_approve:
+		if initial_mode == "auto_approve":
 			await _until(lambda: _of(events, "approval_required", subagent="c1"))
 			approval = _of(events, "approval_required", subagent="c1")[0]
 			await session.resume({"c2": "Approve"}, approval_seq=approval["seq"])
 		assert handle.task is not None
 		await asyncio.wait_for(handle.task, timeout=5)
-		assert bool(_of(events, "approval_required", subagent="c1")) is initial_auto_approve
-		assert _of(events, "tool_result")[0]["content"] == "ran it\n\n[subagent_id: c1]", initial_auto_approve
+		assert bool(_of(events, "approval_required", subagent="c1")) is (initial_mode == "auto_approve")
+		assert _of(events, "tool_result")[0]["content"] == "ran it\n\n[subagent_id: c1]", initial_mode
 
 
 async def test_a_denied_or_cancelled_child_is_an_error_result(tmp_path):

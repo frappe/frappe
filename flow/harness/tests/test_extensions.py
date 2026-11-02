@@ -110,7 +110,9 @@ async def test_extension_tools_join_the_sessions_that_select_them(tmp_path):
 	every = store.create(SessionConfig(cwd=str(tmp_path), tools=["grep"]))
 	none = store.create(SessionConfig(cwd=str(tmp_path), tools=["grep"], extension_tools=[]))
 	named = store.create(
-		SessionConfig(cwd=str(tmp_path), tools=[], extension_tools=["hello", "gone"], auto_approve=True)
+		SessionConfig(
+			cwd=str(tmp_path), tools=[], extension_tools=["hello", "gone"], approval_mode="auto_approve"
+		)
 	)
 
 	assert list(every.server_tools) == ["grep", "hello"]
@@ -342,7 +344,7 @@ async def test_hooks_settle_a_call_before_the_approval_gate(tmp_path):
 		"        return PreToolUseDecision(block=True, reason='blocked')\n"
 		"    if event.arguments['who'] == 'Flow':\n"
 		"        return PreToolUseDecision(arguments={'who': 'Rewritten'})\n",
-		auto_approve=False,
+		approval_mode="ask",
 		confirm_tools=["hello"],
 	)
 	model = MockModel(replies=[_hello_call("c1"), _DONE, _hello_call("c2"), _DONE, _hello_call("c3"), _DONE])
@@ -382,7 +384,9 @@ def _hook_session(tmp_path, event: str, handler: str, **cfg):
 	)
 	store = SessionStore(str(tmp_path / "data"), extension_paths=[str(tool_path), str(hook_path)])
 	session = store.create(
-		SessionConfig(cwd=str(tmp_path), tools=[], auto_approve=cfg.pop("auto_approve", True), **cfg)
+		SessionConfig(
+			cwd=str(tmp_path), tools=[], approval_mode=cfg.pop("approval_mode", "auto_approve"), **cfg
+		)
 	)
 	return store, session
 

@@ -519,7 +519,7 @@ async def test_resume_takes_the_exact_current_approval_batch_once(tmp_path, monk
 		sid = (
 			await client.post(
 				"/sessions",
-				json={"cwd": str(tmp_path), "confirm_tools": ["read"]},
+				json={"cwd": str(tmp_path), "confirm_tools": ["read"], "approval_mode": "ask"},
 			)
 		).json()["session_id"]
 		paused = (
@@ -574,7 +574,7 @@ def test_a_paused_run_survives_a_restart_until_cancelled(tmp_path, monkeypatch):
 	c = _client(tmp_path)
 	sid = c.post(
 		"/sessions",
-		json={"cwd": str(tmp_path), "confirm_tools": ["read"]},
+		json={"cwd": str(tmp_path), "confirm_tools": ["read"], "approval_mode": "ask"},
 	).json()["session_id"]
 	paused = c.post(f"/sessions/{sid}/run", params={"wait": "true"}, json={"message": "read"}).json()
 	assert paused["reason"] == "paused"
@@ -629,8 +629,12 @@ async def test_a_running_session_steers_runs_and_refuses_state_changes(tmp_path,
 		assert (await c.post(f"/sessions/{sid}/rewind", json={"target_seq": 1})).status_code == 409
 		assert (await c.delete(f"/sessions/{sid}")).status_code == 409
 		# the loop shares the config object, so the next tool gate skips approval
-		assert (await c.patch(f"/sessions/{sid}/config", json={"auto_approve": True})).status_code == 200
-		assert store.get(sid).config.auto_approve is True
+		assert (
+			await c.patch(f"/sessions/{sid}/config", json={"approval_mode": "auto_approve"})
+		).status_code == 200
+		assert store.get(sid).config.approval_mode == "auto_approve"
+		assert (await c.patch(f"/sessions/{sid}/config", json={"approval_mode": "auto"})).status_code == 200
+		assert store.get(sid).config.approval_mode == "auto"
 
 		model.release.set()
 		assert (await first).json()["reason"] == "done"
@@ -705,7 +709,7 @@ async def test_http_abort_kills_active_bash_process_tree_and_repairs_transcript(
 		sid = (
 			await client.post(
 				"/sessions",
-				json={"cwd": str(tmp_path), "tools": ["bash"], "auto_approve": True},
+				json={"cwd": str(tmp_path), "tools": ["bash"], "approval_mode": "auto_approve"},
 			)
 		).json()["session_id"]
 		run_request = asyncio.create_task(
@@ -856,7 +860,7 @@ async def test_a_posted_tool_result_reaches_the_client_tool_waiting_on_it(tmp_pa
 				}
 			],
 			"callback_url": "https://client.invalid/tools",
-			"auto_approve": True,
+			"approval_mode": "auto_approve",
 		}
 		sid = (await client.post("/sessions", json=config)).json()["session_id"]
 		run = asyncio.create_task(

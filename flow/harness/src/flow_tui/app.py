@@ -333,7 +333,7 @@ def run_app(
 	(`flow tui -c`, `flow attach --session`); otherwise it creates a fresh one. The
 	server composes the system prompt (preamble + AGENTS.md); the TUI only adds its
 	client suffix and the user's `append_system_prompt`, which lands at the very end.
-	`auto_approve=True` is the permanent default for TUI sessions;
+	`approval_mode="auto_approve"` is the permanent default for TUI sessions;
 	a `--confirm` flag lands with the approvals UI (phase 12).
 	"""
 	if (url is None) == (uds is None):
@@ -341,7 +341,7 @@ def run_app(
 	config = SessionConfig(
 		model=model,
 		cwd=os.getcwd(),
-		auto_approve=True,
+		approval_mode="auto_approve",
 		system_suffix=TUI_SYSTEM_SUFFIX,
 		system_append=append_system_prompt,
 	)
