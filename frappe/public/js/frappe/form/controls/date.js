@@ -247,7 +247,19 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 	}
 };
 
+let positioned_datepicker;
+document.addEventListener(
+	"scroll",
+	() => {
+		if (positioned_datepicker?.$datepicker.classList.contains("-active-")) {
+			frappe.ui.form.position_datepicker(positioned_datepicker);
+		}
+	},
+	{ capture: true, passive: true }
+);
+
 frappe.ui.form.position_datepicker = ({ $datepicker, $target }) => {
+	positioned_datepicker = { $datepicker, $target };
 	const offset = 4;
 	const input = $target.getBoundingClientRect();
 	const picker = $datepicker.getBoundingClientRect();
