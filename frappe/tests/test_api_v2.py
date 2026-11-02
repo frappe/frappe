@@ -703,6 +703,119 @@ class TestBulkOperationsV2(FrappeAPITestCase):
 		job_id = response.json["data"]["job_id"]
 
 
+class TestQueueSubmitV2(FrappeAPITestCase):
+	version = "v2"
+	queue_submission = "frappe.core.doctype.submission_queue.submission_queue.queue_submission"
+	scheduler_inactive = "frappe.utils.scheduler.is_scheduler_inactive"
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.doctype_name = "Test Queue Submit V2"
+		frappe.delete_doc_if_exists("DocType", cls.doctype_name, force=True)
+		cls.doctype = new_doctype(
+			cls.doctype_name,
+			is_submittable=1,
+			queue_in_background=1,
+			permissions=[
+				{"role": "System Manager", "read": 1, "write": 1, "create": 1, "submit": 1, "cancel": 1},
+				{"role": "Desk User", "read": 1, "write": 1},
+			],
+		).insert()
+		cls.writer = "queue.writer@example.com"
+		if not frappe.db.exists("User", cls.writer):
+			user = frappe.get_doc(
+				doctype="User", email=cls.writer, first_name="Queue Writer", send_welcome_email=0
+			).insert()
+			user.add_roles("Desk User")
+		keys = generate_keys(cls.writer)
+		cls.writer_authorization = f"token {keys['api_key']}:{keys['api_secret']}"
+		keys = generate_keys("Administrator")
+		cls.admin_authorization = f"token {keys['api_key']}:{keys['api_secret']}"
+		frappe.db.commit()  # nosemgrep
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.set_user("Administrator")
+		frappe.delete_doc("DocType", cls.doctype_name, force=True)
+		frappe.delete_doc_if_exists("User", cls.writer)
+		frappe.db.commit()  # nosemgrep
+
+	def new_record(self, status: int = 0):
+		doc = frappe.get_doc(doctype=self.doctype_name, some_fieldname="Queue me").insert()
+		if status:
+			doc.submit()
+		frappe.db.commit()  # nosemgrep
+		return doc
+
+	def call(self, method, name, headers=None):
+		return make_request(
+			get_test_client(use_cookies=False).post,
+			args=(self.resource(self.doctype_name, name, "method", method),),
+			kwargs={"headers": headers or {"Authorization": self.admin_authorization}},
+			site=frappe.local.site,
+		)
+
+	def test_queue_submit_queues_and_leaves_the_draft(self):
+		doc = self.new_record()
+		with patch(self.queue_submission) as queue, patch(self.scheduler_inactive, return_value=False):
+			response = self.call("queue_submit", doc.name)
+
+		self.assertEqual(response.status_code, 200, response.get_data(as_text=True)[-2000:])
+		queue.assert_called_once()
+		self.assertEqual(queue.call_args.args[1], "Submit")
+		self.assertEqual(response.json["data"]["docstatus"], 0)
+		self.assertEqual(frappe.db.get_value(self.doctype_name, doc.name, "docstatus"), 0)
+
+	def test_queue_cancel_queues_and_leaves_the_submitted_record(self):
+		doc = self.new_record(status=1)
+		with patch(self.queue_submission) as queue, patch(self.scheduler_inactive, return_value=False):
+			response = self.call("queue_cancel", doc.name)
+
+		self.assertEqual(response.status_code, 200, response.get_data(as_text=True)[-2000:])
+		self.assertEqual(queue.call_args.args[1], "Cancel")
+		self.assertEqual(frappe.db.get_value(self.doctype_name, doc.name, "docstatus"), 1)
+
+	def test_queue_methods_act_directly_when_the_scheduler_is_inactive(self):
+		draft, submitted = self.new_record(), self.new_record(status=1)
+		with patch(self.queue_submission) as queue, patch(self.scheduler_inactive, return_value=True):
+			submit = self.call("queue_submit", draft.name)
+			cancel = self.call("queue_cancel", submitted.name)
+
+		queue.assert_not_called()
+		self.assertEqual(submit.json["data"]["docstatus"], 1)
+		self.assertEqual(cancel.json["data"]["docstatus"], 2)
+
+	def test_queue_methods_need_the_submit_and_cancel_rights(self):
+		draft, submitted = self.new_record(), self.new_record(status=1)
+		headers = {"Authorization": self.writer_authorization}
+		with patch(self.queue_submission) as queue, patch(self.scheduler_inactive, return_value=False):
+			submit = self.call("queue_submit", draft.name, headers)
+			cancel = self.call("queue_cancel", submitted.name, headers)
+
+		queue.assert_not_called()
+		self.assertEqual(submit.status_code, 403)
+		self.assertEqual(cancel.status_code, 403)
+
+	def test_queue_methods_refuse_a_wrong_docstatus_before_queueing(self):
+		draft, submitted = self.new_record(), self.new_record(status=1)
+		with patch(self.queue_submission) as queue, patch(self.scheduler_inactive, return_value=False):
+			cancel = self.call("queue_cancel", draft.name)
+			submit = self.call("queue_submit", submitted.name)
+
+		queue.assert_not_called()
+		self.assertEqual(cancel.status_code, 417)
+		self.assertEqual(submit.status_code, 417)
+
+	def test_plain_submit_never_queues(self):
+		doc = self.new_record()
+		with patch(self.queue_submission) as queue, patch(self.scheduler_inactive, return_value=False):
+			response = self.call("submit", doc.name)
+
+		queue.assert_not_called()
+		self.assertEqual(response.json["data"]["docstatus"], 1)
+
+
 class TestAmendCopyV2(FrappeAPITestCase):
 	version = "v2"
 

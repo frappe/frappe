@@ -17,7 +17,14 @@ vi.mock("@framework/ui/api", () => ({
   },
 }));
 
-import { confirmDocstatus, docstatusItems, sendDocstatus } from "../docstatusActs";
+import {
+  confirmDocstatus,
+  docstatusItems,
+  isQueued,
+  queuedMessage,
+  sendDocstatus,
+  whenRecordUpdated,
+} from "../docstatusActs";
 
 const submittable = { is_submittable: 1 };
 const names = (state: Parameters<typeof docstatusItems>[0]) =>
@@ -120,5 +127,75 @@ describe("sendDocstatus", () => {
     server.failure = new Error("<b>Insufficient</b> stock<br>for SKU010");
 
     await expect(sendDocstatus("Invoice", "INV-1", "cancel")).rejects.toThrow("Insufficient stock for SKU010");
+  });
+});
+
+describe("the Submission Queue route", () => {
+  it("posts the queue method when the DocType queues in the background", async () => {
+    server.answer = { name: "INV-1", docstatus: 0 };
+
+    await sendDocstatus("Invoice", "INV-1", "submit", true);
+    await sendDocstatus("Invoice", "INV-1", "cancel", true);
+
+    expect(server.calls.map((call) => call[2])).toEqual(["queue_submit", "queue_cancel"]);
+  });
+
+  it("posts the plain method otherwise", async () => {
+    await sendDocstatus("Invoice", "INV-1", "submit", false);
+
+    expect(server.calls.map((call) => call[2])).toEqual(["submit"]);
+  });
+
+  it("reads a record that did not move as queued", () => {
+    expect(isQueued({ docstatus: 0 }, "submit")).toBe(true);
+    expect(isQueued({ docstatus: 1 }, "submit")).toBe(false);
+    expect(isQueued({ docstatus: 1 }, "cancel")).toBe(true);
+    expect(isQueued({ docstatus: 2 }, "cancel")).toBe(false);
+  });
+
+  it("names the queued act", () => {
+    expect(queuedMessage("submit")).toContain("Queued for Submit");
+    expect(queuedMessage("cancel")).toContain("Queued for Cancel");
+  });
+});
+
+describe("whenRecordUpdated", () => {
+  function socket() {
+    const handlers = new Set<(...args: unknown[]) => void>();
+    return {
+      handlers,
+      emit: vi.fn(),
+      on: (_event: string, handler: (...args: unknown[]) => void) => void handlers.add(handler),
+      off: (_event: string, handler: (...args: unknown[]) => void) => void handlers.delete(handler),
+      send: (event: unknown) => handlers.forEach((handler) => handler(event)),
+    };
+  }
+
+  it("calls back once, at the update of this record, and stops listening", () => {
+    const live = socket();
+    const done = vi.fn();
+    whenRecordUpdated(live, "Invoice", "INV-1", done);
+
+    live.send({ doctype: "Invoice", name: "INV-2" });
+    expect(done).not.toHaveBeenCalled();
+    live.send({ doctype: "Invoice", name: "INV-1" });
+    live.send({ doctype: "Invoice", name: "INV-1" });
+
+    expect(done).toHaveBeenCalledTimes(1);
+    expect(live.handlers.size).toBe(0);
+  });
+
+  it("does nothing after the stop", () => {
+    const live = socket();
+    const done = vi.fn();
+    whenRecordUpdated(live, "Invoice", "INV-1", done)();
+
+    live.send({ doctype: "Invoice", name: "INV-1" });
+
+    expect(done).not.toHaveBeenCalled();
+  });
+
+  it("is inert without a socket", () => {
+    expect(() => whenRecordUpdated(undefined, "Invoice", "INV-1", vi.fn())()).not.toThrow();
   });
 });

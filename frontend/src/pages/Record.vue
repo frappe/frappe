@@ -188,7 +188,10 @@ import { amendable, amendItem, amendmentOf } from "./record/amendAct";
 import {
 	confirmDocstatus,
 	docstatusItems,
+	isQueued,
+	queuedMessage,
 	sendDocstatus,
+	whenRecordUpdated,
 	type DocstatusAct,
 } from "./record/docstatusActs";
 import { headerMenuBuiltins, quickActionBuiltins } from "./record/builtinActions";
@@ -393,7 +396,8 @@ provide(RecordFeedsKey, feeds);
 useComposerRecord(() => controller.value, feeds);
 
 // The record's realtime room, joined per load; the panel's rows follow another tab's assign or comment.
-const live = useLiveDocinfo({ socket: getSocketInstance(), docinfo, reload: reloadDocinfo });
+const socket = getSocketInstance();
+const live = useLiveDocinfo({ socket, docinfo, reload: reloadDocinfo });
 useLiveClientScripts({
 	doctype,
 	dirty: () => dirty.value,
@@ -583,6 +587,7 @@ async function load({ fromMemory = false } = {}) {
 		return;
 	}
 	currentVisit = currentVisit.next();
+	stopQueuedWait();
 	const target = { doctype: doctype.value, name: docname.value };
 	const pointed = feeds.pointerOnOpen(target.doctype, target.name, route.query);
 	// Read before this load writes a view of its own.
@@ -912,11 +917,38 @@ function runDocstatus(act: DocstatusAct) {
 	return controller.value![act]();
 }
 
+let stopQueuedWait = () => {};
+
+// An unsaved edit is kept, and a reload that finds the record unmoved (another save) waits again.
+function waitForQueued(act: DocstatusAct, doctype: string, name: string) {
+	stopQueuedWait();
+	stopQueuedWait = whenRecordUpdated(socket, doctype, name, async () => {
+		if (dirty.value) return;
+		await load();
+		if (isQueued(saved.value, act)) waitForQueued(act, doctype, name);
+	});
+}
+
 async function moveDocstatus(act: DocstatusAct) {
 	const visit = currentVisit;
 	const page = controller.value!.page;
-	const document = await sendDocstatus(page.doctype, page.docname, act);
-	if (visit.current()) await takeWritten(document);
+	const queueing = !!meta.value?.queue_in_background;
+	// Listen before the request: a fast job can publish its `doc_update` before the answer arrives.
+	if (queueing) waitForQueued(act, page.doctype, page.docname);
+	let document: Record<string, any>;
+	try {
+		document = await sendDocstatus(page.doctype, page.docname, act, queueing);
+	} catch (e) {
+		stopQueuedWait();
+		throw e;
+	}
+	if (!visit.current() || !isQueued(document, act)) {
+		stopQueuedWait();
+		if (visit.current()) await takeWritten(document);
+		return;
+	}
+	toast.info(queuedMessage(act));
+	return { queued: true as const };
 }
 
 async function write() {
@@ -1042,6 +1074,7 @@ useUnloadGuard(() => dirty.value);
 onUnmounted(() => {
 	stopLanding();
 	currentVisit.end();
+	stopQueuedWait();
 	controller.value?.leave();
 	live.dispose();
 	feeds.endKeptRead();
