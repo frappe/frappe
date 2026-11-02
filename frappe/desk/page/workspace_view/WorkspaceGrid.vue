@@ -211,9 +211,14 @@ const TILES = {
 };
 
 const sections = computed(() =>
-	split_sections(props.content).map(({ heading, blocks }) => ({
+	split_sections(props.content).map(({ heading, divider, blocks }) => ({
 		heading,
-		tiles: blocks.map((block) => ({ block, size: block_size(block), tile: tile_for(block) })),
+		divider,
+		tiles: blocks.map((block) => ({
+			block,
+			size: block_size(block),
+			tile: tile_for(block),
+		})),
 	}))
 );
 
@@ -248,6 +253,23 @@ function tile_for(block) {
 					:class="{ 'ws-picked': selected === section.heading.id }"
 					@click="emit('select', section.heading)"
 					@pointerdown="press($event, section.heading)"
+				/>
+			</div>
+			<div v-else-if="section.divider && !editing" class="h-6" aria-hidden="true" />
+			<div
+				v-else-if="section.divider"
+				class="ws-frame relative -mx-3 -my-1.5 flex items-center gap-3 px-3 py-1.5"
+				:data-block="section.divider.id"
+				:class="held === section.divider.id && 'ws-held'"
+			>
+				<span class="h-px flex-1 border-t border-dashed border-outline-gray-3" />
+				<span class="text-sm text-ink-gray-5">{{ __("Section break") }}</span>
+				<span class="h-px flex-1 border-t border-dashed border-outline-gray-3" />
+				<div
+					class="ws-pick"
+					:class="{ 'ws-picked': selected === section.divider.id }"
+					@click="emit('select', section.divider)"
+					@pointerdown="press($event, section.divider)"
 				/>
 			</div>
 			<div v-if="section.tiles.length" class="ws-grid">

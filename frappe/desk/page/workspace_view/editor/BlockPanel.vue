@@ -36,6 +36,7 @@ const TITLES = {
 	custom_block: __("Custom Block"),
 	header: __("Text"),
 	paragraph: __("Text"),
+	spacer: __("Section break"),
 };
 
 const LINK_TYPES = ["DocType", "Report", "Page"];
@@ -212,6 +213,14 @@ function remove_link(index) {
 				<span class="text-sm text-ink-gray-6">{{ __("Text size") }}</span>
 				<TabButtons v-model="current_text_size" :options="text_options" />
 			</template>
+
+			<p v-if="block.type === 'spacer'" class="col-span-2 text-p-sm text-ink-gray-5">
+				{{
+					__(
+						"Leaves a gap here. Blocks after it start on a new row, below everything above."
+					)
+				}}
+			</p>
 
 			<template v-if="block.type === 'onboarding'">
 				<span class="text-sm text-ink-gray-6">{{ __("Onboarding") }}</span>

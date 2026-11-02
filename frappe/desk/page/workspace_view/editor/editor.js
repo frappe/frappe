@@ -141,6 +141,10 @@ export function new_text() {
 	return { id: new_id(), type: "header", data: { text: heading_html(4, ""), col: 12 } };
 }
 
+export function new_section_break() {
+	return { id: new_id(), type: "spacer", data: { col: 12 } };
+}
+
 export function text_size(block) {
 	if (block.type === "paragraph") return "Body";
 	const level = Number(/class="h(\d)"/.exec(block.data.text || "")?.[1] || 4);
