@@ -214,7 +214,7 @@ socket.on("flow:read_screen", async (message) => {
 		answer.error = "Flow is open in a tab of its own, with no page beside it.";
 	} else {
 		try {
-			answer.screen = readScreen(window);
+			answer.screen = readScreen(window, root.value?.getRootNode().host);
 		} catch (error) {
 			answer.error = `The page beside the chat could not be read: ${error?.message ?? error}`;
 		}
