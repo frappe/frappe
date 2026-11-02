@@ -33,8 +33,9 @@ function makePage(overrides: Partial<RecordPageHost> = {}, docstatus = 0) {
     activeTab: () => "details",
     activateTab: () => {},
     save: async () => {},
-    submit: async () => (order.push("submit call"), true),
-    cancel: async () => (order.push("cancel call"), true),
+    confirmDocstatus: async (act) => (order.push(`confirm ${act}`), true),
+    submit: async () => void order.push("submit call"),
+    cancel: async () => void order.push("cancel call"),
     reload: async () => {},
     router: {} as any,
     activityRows: () => [],
@@ -63,7 +64,7 @@ afterEach(() => {
 });
 
 describe("Submit", () => {
-  it("fires beforeSubmit, the host's call, then afterSubmit", async () => {
+  it("confirms first, then fires beforeSubmit, the host's call, then afterSubmit", async () => {
     const { controller, order } = makePage();
     registerRecordPage("Invoice", {
       beforeSubmit: () => void order.push("beforeSubmit"),
@@ -72,10 +73,10 @@ describe("Submit", () => {
 
     await controller.submit();
 
-    expect(order).toEqual(["beforeSubmit", "submit call", "afterSubmit"]);
+    expect(order).toEqual(["confirm submit", "beforeSubmit", "submit call", "afterSubmit"]);
   });
 
-  it("a beforeSubmit throw vetoes: nothing is sent and afterSubmit never fires", async () => {
+  it("a beforeSubmit throw vetoes after the confirm: nothing is sent and afterSubmit never fires", async () => {
     const { controller, order } = makePage();
     registerRecordPage("Invoice", {
       beforeSubmit: () => {
@@ -87,7 +88,7 @@ describe("Submit", () => {
     const refused = await controller.submit().catch((error) => error);
 
     expect(refused).toMatchObject({ name: SAVE_VETO, message: "Customer is on hold" });
-    expect(order).toEqual([]);
+    expect(order).toEqual(["confirm submit"]);
   });
 
   it("refuses when beforeSubmit left unsaved edits, rather than submitting without them", async () => {
@@ -98,7 +99,7 @@ describe("Submit", () => {
     const refused = await controller.submit().catch((error) => error);
 
     expect(refused).toMatchObject({ name: SAVE_VETO, message: expect.stringContaining("Save it") });
-    expect(order).toEqual([]);
+    expect(order).toEqual(["confirm submit"]);
   });
 
   it("lets beforeSubmit save its edits first", async () => {
@@ -116,53 +117,67 @@ describe("Submit", () => {
 
     await controller.submit();
 
-    expect(order).toEqual(["submit call"]);
+    expect(order).toEqual(["confirm submit", "submit call"]);
   });
 
-  it("fires no afterSubmit when the reader declines the confirm or the call fails", async () => {
-    const declined = makePage({ submit: async () => false });
-    registerRecordPage("Invoice", { afterSubmit: () => void declined.order.push("afterSubmit") });
-    await declined.controller.submit();
-    expect(declined.order).toEqual([]);
+  it("a declined confirm fires no event and sends nothing", async () => {
+    const declined = makePage({ confirmDocstatus: async () => false });
+    registerRecordPage("Invoice", {
+      beforeSubmit: () => void declined.order.push("beforeSubmit"),
+      afterSubmit: () => void declined.order.push("afterSubmit"),
+    });
 
+    await declined.controller.submit();
+
+    expect(declined.order).toEqual([]);
+  });
+
+  it("fires no afterSubmit when the call fails", async () => {
     const failed = makePage({
       submit: async () => {
         throw new Error("Insufficient stock");
       },
     });
+    registerRecordPage("Invoice", { afterSubmit: () => void failed.order.push("afterSubmit") });
+
     await expect(failed.controller.submit()).rejects.toThrow("Insufficient stock");
-    expect(failed.order).toEqual([]);
+
+    expect(failed.order).toEqual(["confirm submit"]);
   });
 
-  it("page.run waits for the confirm: it resolves only once the reader answers", async () => {
+  it("page.run waits for the confirm: no event fires and it resolves only once the reader answers", async () => {
     let answer!: (confirmed: boolean) => void;
     const asked = new Promise<boolean>((resolve) => (answer = resolve));
-    const { controller, page, order } = makePage({ submit: () => asked });
-    registerRecordPage("Invoice", { afterSubmit: () => void order.push("afterSubmit") });
+    const { controller, page, order } = makePage({ confirmDocstatus: () => asked });
+    registerRecordPage("Invoice", {
+      beforeSubmit: () => void order.push("beforeSubmit"),
+      afterSubmit: () => void order.push("afterSubmit"),
+    });
     await controller.refresh();
 
     const done = vi.fn();
     const running = page.run("header.submit").then(done);
     await new Promise((resolve) => setTimeout(resolve, 20));
     expect(done).not.toHaveBeenCalled();
+    expect(order).toEqual([]);
 
     answer(true);
     await running;
-    expect(order).toEqual(["afterSubmit"]);
+    expect(order).toEqual(["beforeSubmit", "submit call", "afterSubmit"]);
   });
 
   it("a second Submit while the first is open joins it", async () => {
     let answer!: (confirmed: boolean) => void;
-    const submit = vi.fn(() => new Promise<boolean>((resolve) => (answer = resolve)));
-    const { controller } = makePage({ submit });
+    const confirmDocstatus = vi.fn(() => new Promise<boolean>((resolve) => (answer = resolve)));
+    const { controller } = makePage({ confirmDocstatus });
 
     const first = controller.submit();
     const second = controller.submit();
-    await vi.waitFor(() => expect(submit).toHaveBeenCalled());
+    await vi.waitFor(() => expect(confirmDocstatus).toHaveBeenCalled());
     answer(true);
     await Promise.all([first, second]);
 
-    expect(submit).toHaveBeenCalledTimes(1);
+    expect(confirmDocstatus).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -180,7 +195,7 @@ describe("page.doc.docstatus", () => {
 });
 
 describe("Cancel", () => {
-  it("fires beforeCancel, the host's call, then afterCancel", async () => {
+  it("confirms first, then fires beforeCancel, the host's call, then afterCancel", async () => {
     const { controller, order } = makePage({}, 1);
     registerRecordPage("Invoice", {
       beforeCancel: () => void order.push("beforeCancel"),
@@ -189,7 +204,7 @@ describe("Cancel", () => {
 
     await controller.cancel();
 
-    expect(order).toEqual(["beforeCancel", "cancel call", "afterCancel"]);
+    expect(order).toEqual(["confirm cancel", "beforeCancel", "cancel call", "afterCancel"]);
   });
 
   it("a beforeCancel throw vetoes: nothing is sent and afterCancel never fires", async () => {
@@ -204,7 +219,7 @@ describe("Cancel", () => {
     const refused = await controller.cancel().catch((error) => error);
 
     expect(refused).toMatchObject({ name: SAVE_VETO, message: "Paid invoices stay" });
-    expect(order).toEqual([]);
+    expect(order).toEqual(["confirm cancel"]);
   });
 
   it("page.run reaches header.cancel on a submitted record and header.submit is absent", async () => {
@@ -214,7 +229,7 @@ describe("Cancel", () => {
     await page.run("header.cancel");
     const missing = await page.run("header.submit").catch((error) => error);
 
-    expect(order).toEqual(["cancel call"]);
+    expect(order).toEqual(["confirm cancel", "cancel call"]);
     expect(missing).toMatchObject({ reason: "missing" });
   });
 

@@ -156,10 +156,12 @@ export interface RecordPageHost {
   focusField?: (fieldname: string, cursor: boolean) => void;
   /** Writes the draft; the engine flushes and fires `beforeSave` before it, `afterSave` after. */
   save: () => Promise<void>;
-  /** Asks the reader to confirm, then submits the saved draft; false when the reader declines. */
-  submit?: () => Promise<boolean>;
-  /** Asks the reader to confirm, then cancels the submitted record; false when the reader declines. */
-  cancel?: () => Promise<boolean>;
+  /** Asks the reader to confirm a Submit or Cancel; false when the reader declines. */
+  confirmDocstatus?: (act: "submit" | "cancel") => Promise<boolean>;
+  /** Submits the saved draft; the engine has already confirmed and fired `beforeSubmit`. */
+  submit?: () => Promise<void>;
+  /** Cancels the submitted record; the engine has already confirmed and fired `beforeCancel`. */
+  cancel?: () => Promise<void>;
   /** Runs once `afterSave` settles; a new record's host opens the saved record here. */
   onSaved?: () => Promise<void>;
   /** Saves a dirty draft, renames the record and opens it at its new name; absent while the record has no saved copy. */
@@ -440,9 +442,11 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   // One Submit or Cancel at a time: a second click while the confirm or the call is open joins it.
   const moving = shallowRef<Promise<void> | null>(null);
 
-  function moveDocstatus(act: "Submit" | "Cancel", call: (() => Promise<boolean>) | undefined) {
+  function moveDocstatus(act: "Submit" | "Cancel", call: (() => Promise<void>) | undefined) {
     if (engine.hasLeft() || !call) return Promise.resolve();
     moving.value ??= hold(async () => {
+      const lower = act.toLowerCase() as "submit" | "cancel";
+      if (!(await host.confirmDocstatus?.(lower)) || engine.hasLeft()) return;
       const wasDirty = host.isDirty();
       try {
         await fireEvent(`before${act}`);
@@ -452,8 +456,10 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
       }
       // The server acts on the saved row, so an edit made here would be lost without a word.
       if (!wasDirty && host.isDirty())
-        throw asVeto(new Error(`before${act} changed the record. Save it, then ${act.toLowerCase()} again.`));
-      if (engine.hasLeft() || !(await call()) || engine.hasLeft()) return;
+        throw asVeto(new Error(`before${act} changed the record. Save it, then ${lower} again.`));
+      if (engine.hasLeft()) return;
+      await call();
+      if (engine.hasLeft()) return;
       await fireEvent(`after${act}`);
     }).finally(() => (moving.value = null));
     return moving.value;

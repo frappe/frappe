@@ -628,8 +628,8 @@ and resolves without submitting when they decline. `page.doc.docstatus` is read-
 script, like a locked field: it moves only through these acts.
 
 Each act fires a pair of events: `beforeSubmit` and `afterSubmit`, `beforeCancel` and
-`afterCancel`. `before*` fires first, before the confirm, so a veto shows no dialog and a
-declined confirm leaves a `before*` with no `after*`. A throw in a `before*` event is a veto, as in
+`afterCancel`. The confirm comes first, as in desk v1, and `before*` fires only after the reader
+confirms; a declined confirm fires no event. A throw in a `before*` event is a veto, as in
 `beforeSave`: nothing is sent, and a click shows the message while `page.run` rejects with it. A
 `before*` handler that leaves unsaved edits also stops the act, because the server acts on the
 saved row: save inside the handler with `await page.save()`. The `after*` event fires only when

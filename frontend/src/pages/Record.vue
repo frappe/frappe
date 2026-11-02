@@ -867,6 +867,8 @@ function buildController({ visit, target, pointer, details, panel, view }: Openi
 		discloseSection: disclosure.disclose,
 		focusField: (fieldname, cursor) => void focusOnDetails(fieldname, cursor),
 		save: write,
+		confirmDocstatus: async (act) =>
+			!!(await confirmDocstatus(controller.value!.page, act, recordTitle())),
 		submit: () => moveDocstatus("submit"),
 		cancel: () => moveDocstatus("cancel"),
 		rename: (name, merge) => renameRecord(created.page, name, merge, visit.current),
@@ -910,14 +912,11 @@ function runDocstatus(act: DocstatusAct) {
 	return controller.value![act]();
 }
 
-async function moveDocstatus(act: DocstatusAct): Promise<boolean> {
+async function moveDocstatus(act: DocstatusAct) {
 	const visit = currentVisit;
 	const page = controller.value!.page;
-	if (!(await confirmDocstatus(page, act, recordTitle()))) return false;
-	if (!visit.current()) return false;
 	const document = await sendDocstatus(page.doctype, page.docname, act);
 	if (visit.current()) await takeWritten(document);
-	return true;
 }
 
 async function write() {
