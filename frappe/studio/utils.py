@@ -56,6 +56,22 @@ def has_page_write_perm(message: str | None = None):
 	return decorator
 
 
+def validate_app_viewer_access(app_name: str, allow_guest_pages: bool = False) -> None:
+	"""Whether the session may read an app's source files. Editors (Studio Page read) always pass;
+	other logged-in users once the app has a published page; guests only when `allow_guest_pages`
+	and a published guest page exists."""
+	if frappe.has_permission("Studio Page", ptype="read"):
+		return
+	is_guest = frappe.session.user == "Guest"
+	if is_guest and not allow_guest_pages:
+		frappe.throw(frappe._("Not permitted"), frappe.PermissionError)
+	page_filters = {"studio_app": app_name, "published": 1}
+	if is_guest:
+		page_filters["allow_guest"] = 1
+	if not frappe.db.exists("Studio Page", page_filters):
+		frappe.throw(frappe._("Not permitted"), frappe.PermissionError)
+
+
 def get_studio_folder(frappe_app: str) -> str:
 	return frappe.get_app_source_path(frappe_app, "studio")
 
