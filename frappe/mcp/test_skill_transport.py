@@ -82,7 +82,6 @@ class TestSkillTransport(SkillFixtures, McpTestCase):
 		listing = self.rpc("resources/list").json["result"]["resources"]
 		self.assertEqual(len(listing), 2)
 		self.assertTrue(all(resource["mimeType"] == "text/markdown" for resource in listing))
-		self.assertEqual(self.rpc("resources/templates/list").json["result"]["resourceTemplates"], [])
 		directory = self.rpc("resources/directory/read", {"uri": "skill://frappe/billing/refunds/review"})
 		self.assertEqual(directory.status_code, 200)
 		self.assertEqual(

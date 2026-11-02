@@ -6,7 +6,7 @@ from typing import Any
 
 from frappe.mcp import protocol
 from frappe.mcp.protocol import INVALID_PARAMS, METHOD_NOT_FOUND, McpError
-from frappe.mcp.skills import SKILLS_EXTENSION, SkillCatalog, page
+from frappe.mcp.skills import SKILLS_EXTENSION, SkillCatalog
 
 
 def dispatch(method: str, params: dict[str, Any], version: str) -> dict:
@@ -45,9 +45,6 @@ def dispatch(method: str, params: dict[str, Any], version: str) -> dict:
 		if method == "resources/read":
 			return catalog.read_resource(params.get("uri"))
 		return catalog.read_directory(params.get("uri"), params.get("cursor"))
-	if method == "resources/templates/list":
-		return page([], "resourceTemplates", params.get("cursor"), method)
-
 	raise McpError(METHOD_NOT_FOUND, "Unknown MCP method: {0}".format(method), status=404)
 
 
