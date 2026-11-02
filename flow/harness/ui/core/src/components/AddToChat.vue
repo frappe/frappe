@@ -34,12 +34,28 @@ let resizeObserver = null
 
 // the selection, when it is a non-empty one inside the thread
 function selected() {
-	const selection = document.getSelection()
-	if (!selection?.rangeCount || selection.isCollapsed) return null
-	const range = selection.getRangeAt(0)
-	if (!props.within?.contains(range.commonAncestorContainer)) return null
-	const text = selection.toString().trim()
+	const range = selectedRange()
+	if (!range || range.collapsed || !props.within?.contains(range.commonAncestorContainer)) return null
+	const text = range.toString().trim()
 	return text ? { range, text } : null
+}
+
+// In an island the thread sits in a shadow root, where the document's selection reads as
+// collapsed on the host: Chrome keeps the real one on the root, Safari and Firefox give it
+// through getComposedRanges
+function selectedRange() {
+	const root = props.within?.getRootNode()
+	const own = root?.getSelection?.()
+	if (own) return own.rangeCount ? own.getRangeAt(0) : null
+	const selection = document.getSelection()
+	if (!selection?.rangeCount) return null
+	if (!(root instanceof ShadowRoot) || !selection.getComposedRanges) return selection.getRangeAt(0)
+	const [found] = selection.getComposedRanges({ shadowRoots: [root] })
+	if (!found) return null
+	const range = document.createRange()
+	range.setStart(found.startContainer, found.startOffset)
+	range.setEnd(found.endContainer, found.endOffset)
+	return range
 }
 
 // the selection's first (or last) line, measured from its text: the range's own
@@ -100,7 +116,8 @@ function onSelectionChange() {
 
 function add() {
 	flow.addQuote(pill.value.text)
-	document.getSelection()?.removeAllRanges()
+	const selection = props.within?.getRootNode().getSelection?.() ?? document.getSelection()
+	selection?.removeAllRanges()
 	pill.value = null
 }
 
