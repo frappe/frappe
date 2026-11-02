@@ -420,10 +420,17 @@ def check_conditions(doctype: str, name: str, conditions: list[str] | str):
 	out = {}
 	for condition in conditions:
 		try:
-			out[condition] = {"visible": bool(frappe.safe_eval(condition, None, eval_locals))}
+			out[condition] = {"visible": eval_print_condition(condition, eval_locals)}
 		except Exception as e:
 			out[condition] = {"error": str(e)[:200]}
 	return out
+
+
+def eval_print_condition(condition: str, eval_locals: dict) -> bool:
+	from frappe.utils.jinja import safe_render_flags
+
+	with safe_render_flags():
+		return bool(frappe.safe_eval(condition, None, eval_locals))
 
 
 class PrintFormatGenerator:
@@ -1085,7 +1092,7 @@ class PrintFormatGenerator:
 		if not isinstance(condition, str):
 			return True
 		try:
-			return bool(frappe.safe_eval(condition, None, eval_locals))
+			return eval_print_condition(condition, eval_locals)
 		except Exception:
 			if condition not in self._logged_conditions:
 				self._logged_conditions.add(condition)
