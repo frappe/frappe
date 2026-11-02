@@ -57,12 +57,19 @@ def get_submitted_linked_docs(
 	return {"docs": docs, "count": len(docs), "truncated": truncated}
 
 
+def with_hooked_ignore_doctypes(root_doctype, ignore_doctypes_on_cancel_all=None) -> list[str]:
+	"""The caller's list plus the `ignore_doctypes_on_cancel_all` hook entries of all apps for the root."""
+	ignored = frappe.parse_json(ignore_doctypes_on_cancel_all) or []
+	hooked = frappe.get_hooks("ignore_doctypes_on_cancel_all", {}).get(root_doctype) or []
+	return [*ignored, *(dt for dt in hooked if dt not in ignored)]
+
+
 def collect_cancellation_blockers(
 	doctype: str, name: str, ignore_doctypes_on_cancel_all=None, limit: int | None = None
 ) -> tuple[list, bool]:
 	"""Walk the submitted linked documents, deepest documents first in the
 	result; past `limit` discovered documents, give up and report truncated."""
-	ignore_doctypes_on_cancel_all = frappe.parse_json(ignore_doctypes_on_cancel_all) or []
+	ignore_doctypes_on_cancel_all = with_hooked_ignore_doctypes(doctype, ignore_doctypes_on_cancel_all)
 
 	tree = SubmittableDocumentTree(doctype, name)
 	visited_documents = tree.get_all_children(ignore_doctypes_on_cancel_all, limit=limit)
@@ -437,7 +444,7 @@ def cancel_all_linked_docs(
 	"""Cancel the linked documents in dependency order, then the root, all or
 	nothing; large sets, roots that queue their cancellations, and docs=None
 	past the listing cap move to a job instead."""
-	ignore_doctypes_on_cancel_all = frappe.parse_json(ignore_doctypes_on_cancel_all) or []
+	ignore_doctypes_on_cancel_all = with_hooked_ignore_doctypes(root_doctype, ignore_doctypes_on_cancel_all)
 	if docs is None:
 		return enqueue_discovery("cancel", root_doctype, root_name, ignore_doctypes_on_cancel_all)
 

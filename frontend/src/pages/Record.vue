@@ -193,6 +193,7 @@ import {
 	sendDocstatus,
 	whenRecordUpdated,
 	type DocstatusAct,
+	type DocstatusChoice,
 } from "./record/docstatusActs";
 import { headerMenuBuiltins, quickActionBuiltins } from "./record/builtinActions";
 import { renameRecord } from "./record/renameAct";
@@ -461,6 +462,7 @@ function headerBuiltins(): HeaderItem[] {
 					assign: { assignees: assigneesOf(docinfo.value), assign: assignUser },
 					duplicate: canCreate.value && !meta.value?.allow_copy,
 					rename: Boolean(meta.value?.allow_rename),
+					submitted: saved.value.docstatus === 1,
 				}
 			),
 			saved.value.name === docname.value
@@ -872,8 +874,15 @@ function buildController({ visit, target, pointer, details, panel, view }: Openi
 		discloseSection: disclosure.disclose,
 		focusField: (fieldname, cursor) => void focusOnDetails(fieldname, cursor),
 		save: write,
-		confirmDocstatus: async (act) =>
-			!!(await confirmDocstatus(controller.value!.page, act, recordTitle())),
+		confirmDocstatus: async (act) => {
+			const page = controller.value!.page;
+			docstatusChoice = await confirmDocstatus(page, act, {
+				doctype: page.doctype,
+				name: page.docname,
+				title: recordTitle(),
+			});
+			return docstatusChoice !== null;
+		},
 		submit: () => moveDocstatus("submit"),
 		cancel: () => moveDocstatus("cancel"),
 		rename: (name, merge) => renameRecord(created.page, name, merge, visit.current),
@@ -929,18 +938,32 @@ function waitForQueued(act: DocstatusAct, doctype: string, name: string) {
 	});
 }
 
+// What the person agreed to in the confirm that opened this Submit or Cancel.
+let docstatusChoice: DocstatusChoice | null = null;
+
 async function moveDocstatus(act: DocstatusAct) {
 	const visit = currentVisit;
 	const page = controller.value!.page;
-	const queueing = !!meta.value?.queue_in_background;
+	const choice = docstatusChoice ?? undefined;
+	docstatusChoice = null;
+	// Cancel all queues the root itself, so it never goes through the Submission Queue.
+	const queueing = !!meta.value?.queue_in_background && !choice?.all;
 	// Listen before the request: a fast job can publish its `doc_update` before the answer arrives.
 	if (queueing) waitForQueued(act, page.doctype, page.docname);
-	let document: Record<string, any>;
+	let document: Record<string, any> | null;
 	try {
-		document = await sendDocstatus(page.doctype, page.docname, act, queueing);
+		document = await sendDocstatus(page.doctype, page.docname, act, queueing, choice);
 	} catch (e) {
 		stopQueuedWait();
 		throw e;
+	}
+	if (document === null) {
+		toast.info(
+			__(
+				"The linked records are being cancelled in the background. You will be told when it finishes."
+			)
+		);
+		return { queued: true as const };
 	}
 	if (!visit.current() || !isQueued(document, act)) {
 		stopQueuedWait();
