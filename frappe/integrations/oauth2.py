@@ -1,5 +1,6 @@
 import datetime
 import json
+import mimetypes
 from pathlib import Path
 from typing import Literal, cast
 from urllib.parse import quote, urlencode
@@ -357,7 +358,7 @@ def get_app_wellknown_file(path: str):
 		folder = Path(frappe.get_app_path(app, "www", ".well-known")).resolve()
 		file = (folder / name).resolve()
 		if file.is_relative_to(folder) and file.is_file():
-			return Response(file.read_bytes(), content_type="text/plain")
+			return Response(file.read_bytes(), content_type=mimetypes.guess_type(file)[0] or "text/plain")
 	raise NotFound
 
 
