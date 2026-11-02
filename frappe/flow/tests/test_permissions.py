@@ -80,6 +80,7 @@ class TestFlowAccess(IntegrationTestCase):
 			"list_sessions": {},
 			"run": {"session": session.name, "message": "hi"},
 			"resume": {"session": session.name, "answers": "{}"},
+			"screen_result": {"session": session.name, "token": "t", "error": "x"},
 			"abort": {"session": session.name},
 			"cancel_pending": {"session": session.name},
 			"rewind": {"session": session.name, "target_seq": 0},
@@ -99,6 +100,7 @@ class TestFlowAccess(IntegrationTestCase):
 			"attach_file": {"file": "x"},
 			"cleanup_attachments": {"session": session.name},
 			"skills": {"session": session.name},
+			"save_secret": {"session": session.name, "call_id": "c1", "password": "x"},
 		}
 		self.assertEqual(set(calls), set(api.__all__))
 		frappe.set_user(outsider)

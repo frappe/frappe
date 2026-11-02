@@ -164,7 +164,6 @@ class LoopInputs:
 	budget: TokenBudget | None = None
 
 
-_DENIED = json.dumps({"status": "denied", "message": "User denied this tool call."})
 _ABORTED = json.dumps(
 	{"status": "aborted", "message": "Tool not executed. The run was aborted before this call ran."}
 )
@@ -210,13 +209,14 @@ async def compact(instructions: str | None, inputs: LoopInputs) -> AsyncIterator
 
 
 async def resume(
-	approval: PendingApproval, answers: dict[str, str], inputs: LoopInputs
+	approval: PendingApproval, answers: dict[str, str], inputs: LoopInputs, *, stop_on_deny: bool = False
 ) -> AsyncIterator[AnyEvent]:
 	"""Continue a paused run by settling its approval batch, then take turns.
 
 	The session validates ``answers`` against the pending batch before calling this.
 	Each answer maps a tool_call_id to a decision: "Approve" runs the tool, "Deny"
-	halts the run, any other text redirects the model.
+	skips it and the model replies to the user, or halts the run with ``stop_on_deny``,
+	any other text redirects the model.
 	"""
 	yield RunStarted(run_id=uuid.uuid4().hex[:12])
 	tools = inputs.server_tools or {}
@@ -235,14 +235,14 @@ async def resume(
 			else:
 				result = await _finished_call(call, tools, ctx, inputs)
 		elif answer == "Deny":
-			result = _result(call, _DENIED, is_error=True)
+			result = _result(call, _denied(pending.prompt), is_error=True)
 			denied = True
 		else:
 			result = _result(call, _redirect(answer))
 		_raise_if_aborted(inputs.abort)
 		yield result
 
-	if denied:  # a rejected action stops the run rather than continuing
+	if denied and stop_on_deny:
 		yield RunEnded(reason="denied")
 		return
 	async for event in _loop(inputs):
@@ -611,6 +611,9 @@ async def _settle_call(
 	if _needs_confirmation(inputs, call.name, tools):
 		prompt = await _confirmation_prompt(call, tools, inputs)
 		_raise_if_aborted(inputs.abort)
+		if prompt is None:
+			runnable.append((call, rewritten))
+			return
 		gated.append(PendingCall(id=call.id, name=call.name, args=call.args, prompt=prompt))
 		return
 	runnable.append((call, rewritten))
@@ -745,9 +748,10 @@ def _size(n: int) -> str:
 	return f"{n / 1024**2:.1f} MB" if n >= 1024**2 else f"{max(1, round(n / 1024))} KB"
 
 
-async def _confirmation_prompt(call: ToolCall, tools: dict[str, Tool], inputs: LoopInputs) -> str:
+async def _confirmation_prompt(call: ToolCall, tools: dict[str, Tool], inputs: LoopInputs) -> str | None:
 	"""Build the human-facing approval prompt. Server tools may define their own via
-	`Tool.confirm_prompt`; client tools can supply one over the callback; else generic."""
+	`Tool.confirm_prompt`; client tools can supply one over the callback, or answer
+	`{"requires_confirmation": false}` for a call that needs no approval (None); else generic."""
 	tool = tools.get(call.name)
 	if tool is not None and tool.confirm_prompt is not None:
 		try:
@@ -759,6 +763,8 @@ async def _confirmation_prompt(call: ToolCall, tools: dict[str, Tool], inputs: L
 			response = await await_with_cancellation(
 				call_client(inputs.config, inputs.session_id, call, mode="confirm"), inputs.abort
 			)
+			if response.get("requires_confirmation") is False:
+				return None
 			if response.get("prompt"):
 				return response["prompt"]
 		except ModelCancelled:
@@ -823,6 +829,23 @@ def _drain(next_steering: NextSteering | None) -> Iterator[UserMessage]:
 
 def _blocked(reason: str | None) -> str:
 	return json.dumps({"status": "blocked", "message": reason or "Blocked by an extension."})
+
+
+def _denied(prompt: str) -> str:
+	"""The decision envelope of a denied call. `action` is the first line of its approval
+	prompt, the words the user said no to."""
+	return json.dumps(
+		{
+			"status": "denied",
+			"message": "User denied this tool call. It was not executed.",
+			"action": prompt.split("\n", 1)[0].strip(),
+			"instruction": (
+				"Do not retry it or try another way. In one short reply, say in the user's words "
+				"what was not done, without naming tools, functions or code, and ask whether "
+				"they want to change anything."
+			),
+		}
+	)
 
 
 def _redirect(feedback: str) -> str:

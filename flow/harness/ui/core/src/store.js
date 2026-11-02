@@ -1,7 +1,7 @@
 import { reactive, watch } from "vue"
 
 import { FlowAPIError } from "./client.js"
-import { CHAT_FONT_SIZE, CHAT_FONT_WEIGHT, layout } from "./layout.js"
+import { CHAT_FONT_SIZE, CHAT_FONT_WEIGHT, chatFontWeight, layout } from "./layout.js"
 import {
 	applyEvent,
 	approvalToAnswer,
@@ -85,7 +85,9 @@ const COLOR_SCHEMES = ["system", "light", "dark"]
 //                  body, argsComponent, resultComponent }, any subset, describing the host's
 //                  own tools in rows, approvals and expanded output. Both components fill
 //                  their panel and carry their own padding; resultComponent takes the panel
-//                  over from the text dump, and expandable: false drops the dropdown
+//                  over from the text dump, and expandable: false drops the dropdown.
+//                  An argsComponent that declares a `call` prop is given the call.
+//                  ownAnswers: the argsComponent answers the card itself
 //   turnActions    a component rendered after each finished turn's copy button, with
 //                  the turn's key, response text and timestamp as props
 //   listedModel    true when a session-list row's `model` is the chat's current one, so a
@@ -138,6 +140,7 @@ export function createFlowStore(client, options = {}) {
 	// only what differs from these is saved, so a setting left alone follows a new default
 	const prefs = { ...copy(defaults), ...readJSON(keys.prefs, {}) }
 	if (typeof prefs.customInstructions !== "string") prefs.customInstructions = ""
+	prefs.chatFontWeight = chatFontWeight(prefs.chatFontWeight)
 
 	// the docked sidebar follows the saved preference; a drawer starts closed and is never saved
 	const sidebarFromPrefs = () => !layout.narrow && prefs.sidebarOpen !== false
@@ -257,6 +260,7 @@ export function createFlowStore(client, options = {}) {
 			} else state.prefs[key] = copy(value ?? defaults[key])
 		}
 		if (typeof state.prefs.customInstructions !== "string") state.prefs.customInstructions = ""
+		state.prefs.chatFontWeight = chatFontWeight(state.prefs.chatFontWeight)
 		agreed = saved
 		settingsLoaded = true
 		localStorage.setItem(keys.prefs, JSON.stringify(changedPrefs()))

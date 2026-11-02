@@ -67,7 +67,6 @@
 
 <script setup>
 import { computed, inject, nextTick, onMounted, ref } from "vue";
-import { useRouter } from "vue-router";
 import PalettePanel from "@flow/ui-core/components/PalettePanel.vue";
 import { layout } from "@flow/ui-core/layout.js";
 
@@ -76,7 +75,6 @@ import { layout } from "@flow/ui-core/layout.js";
 const emit = defineEmits(["pick"]); // "/skill:<name> ", for the composer to put in the draft
 const flow = inject("flow");
 const page = inject("flowPage");
-const router = useRouter();
 const open = ref(false);
 const search = ref("");
 const trigger = ref(null);
@@ -113,9 +111,10 @@ function pick(name) {
 	emit("pick", `/skill:${name} `);
 }
 
-// the skills page, on a blank skill
+// settings, on a blank skill; the dialog takes the focus
 function create() {
 	open.value = false;
-	router.push("/skills/new");
+	page.createRecord("skills");
+	flow.setSettingsOpen(true);
 }
 </script>

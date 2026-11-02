@@ -23,12 +23,13 @@
 		:style="{ '--sidebar-w': layout.phone ? 'min(85vw, 360px)' : width + 'px' }"
 		:inert="!open"
 	>
-		<div class="flex h-12 flex-none items-center gap-2.5 pl-3.5 pr-2">
-			<BrandMark :size="22" />
-			<span class="text-base font-semibold text-ink-gray-9">Flow</span>
+		<!-- the mark and title in the rows' icon and label columns -->
+		<div class="flex h-12 flex-none items-center gap-2 pl-4 pr-2">
+			<BrandMark line :size="16" class="!text-ink-gray-8" />
+			<span class="text-base font-medium text-ink-gray-8">Flow</span>
 			<span class="flex-1" />
 			<button class="flow-icon-btn" title="Hide sidebar" @click="emit('close')">
-				<span class="lucide-panel-left size-3.5" aria-hidden="true" />
+				<span class="lucide-panel-left size-4" aria-hidden="true" />
 			</button>
 		</div>
 

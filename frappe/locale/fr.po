@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-10-25 09:37+0000\n"
-"PO-Revision-Date: 2026-10-26 04:19\n"
+"PO-Revision-Date: 2026-11-02 04:13\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -2567,7 +2567,7 @@ msgstr ""
 #: frappe/flow/sidebar/flow/flow.json:50
 #: frappe/flow/workspace/flow/flow.json:19
 msgid "Agents"
-msgstr "Agents"
+msgstr ""
 
 #. Description of the 'Sub-agents' (Table MultiSelect) field in DocType 'Flow
 #. Agent'
@@ -18536,12 +18536,12 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/filters/filter_list.js:280
 msgid "Hours"
-msgstr "Heures"
+msgstr ""
 
 #: frappe/public/js/frappe/form/controls/duration.js:29
 msgctxt "Duration"
 msgid "Hours"
-msgstr "Heures"
+msgstr ""
 
 #: frappe/core/page/component_explorer/component_explorer.js:2366
 msgid "Hover card (rest the pointer on an avatar)"
@@ -24581,12 +24581,12 @@ msgstr "Mineur"
 
 #: frappe/public/js/frappe/ui/filters/filter_list.js:280
 msgid "Minutes"
-msgstr "Procès-verbal"
+msgstr ""
 
 #: frappe/public/js/frappe/form/controls/duration.js:30
 msgctxt "Duration"
 msgid "Minutes"
-msgstr "Procès-verbal"
+msgstr ""
 
 #. Option for the 'Send Alert On' (Select) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json:131

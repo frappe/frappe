@@ -110,7 +110,7 @@
 				title="Close panel"
 				@click="flow.setWorkspaceOpen(false)"
 			>
-				<span class="lucide-panel-left size-3.5 -scale-x-100" aria-hidden="true" />
+				<span class="lucide-panel-left size-4 -scale-x-100" aria-hidden="true" />
 			</button>
 		</div>
 
@@ -138,7 +138,7 @@
 					/>
 				</button>
 				<button class="flow-icon-btn" title="Close panel" @click="flow.setWorkspaceOpen(false)">
-					<span class="lucide-panel-left size-3.5 -scale-x-100" aria-hidden="true" />
+					<span class="lucide-panel-left size-4 -scale-x-100" aria-hidden="true" />
 				</button>
 			</span>
 			<slot name="empty" />

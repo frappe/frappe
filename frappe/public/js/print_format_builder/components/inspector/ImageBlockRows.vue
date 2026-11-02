@@ -1,7 +1,6 @@
 <template>
 	<ImageUploadControl
 		:model-value="selected_field.image_url"
-		:alt="selected_field.label"
 		@update:model-value="set_image_url"
 	/>
 	<SizeRow

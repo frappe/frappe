@@ -1,10 +1,5 @@
 <template>
-	<PageHeader
-		:icon="info.icon"
-		:title="name ?? `New ${spec.singular}`"
-		:list="list"
-		@back="toList(false)"
-	>
+	<PageHeader :icon="info.icon" :title="name ?? `New ${spec.singular}`">
 		<template #actions>
 			<span v-if="doc && !canWrite" class="text-sm text-ink-gray-5">View only</span>
 			<span v-if="canWrite && dirty" class="text-sm text-ink-gray-5 max-sm:hidden"
@@ -18,19 +13,6 @@
 				:disabled="dirty"
 				:title="dirty ? 'Save first' : ''"
 				@click="runAction(action)"
-			/>
-			<!-- a phone's bar keeps room for the title: the button keeps its icon -->
-			<Button
-				v-if="canChat && layout.narrow"
-				icon="lucide-message-square"
-				title="Start chat"
-				@click="chat"
-			/>
-			<Button
-				v-else-if="canChat"
-				icon-left="lucide-message-square"
-				label="Start chat"
-				@click="chat"
 			/>
 			<Dropdown v-if="canDelete" align="end" :options="menu">
 				<template #trigger>
@@ -62,54 +44,40 @@
 			>
 				Comes with an app, so greyed-out fields can't be changed.
 			</p>
-			<!-- each section under its heading; two short fields share a line on a wide frame -->
-			<section v-for="(group, i) in groups" :key="i">
-				<h2
-					v-if="group.title"
-					class="mb-5 mt-10 border-t border-outline-gray-1 pt-8 text-xl font-semibold text-ink-gray-9"
-				>
-					{{ group.title }}
-				</h2>
-				<div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-					<div
-						v-for="field in group.fields"
-						:key="field.name"
-						class="min-w-0"
-						:class="field.half ? '' : 'sm:col-span-2'"
-					>
-						<FieldControl
-							v-if="canWrite"
-							:field="field"
-							:doc="doc"
-							:disabled="isLocked(field)"
-						/>
-						<!-- one who may only read it sees its values, not disabled inputs -->
-						<div v-else class="flex flex-col gap-1.5">
-							<span class="text-sm text-ink-gray-5">{{ field.label }}</span>
+			<div class="flex flex-col gap-5">
+				<div v-for="field in fields" :key="field.name" class="min-w-0">
+					<FieldControl
+						v-if="canWrite"
+						:field="field"
+						:doc="doc"
+						:disabled="isLocked(field)"
+					/>
+					<!-- one who may only read it sees its values, not disabled inputs -->
+					<div v-else class="flex flex-col gap-1.5">
+						<span class="text-sm text-ink-gray-5">{{ field.label }}</span>
+						<span
+							v-if="field.type === 'multilink' && doc[field.name]?.length"
+							class="flex flex-wrap gap-1.5"
+						>
 							<span
-								v-if="field.type === 'multilink' && doc[field.name]?.length"
-								class="flex flex-wrap gap-1.5"
+								v-for="item in doc[field.name]"
+								:key="item"
+								class="rounded-4 bg-surface-gray-2 px-2 py-0.5 text-base text-ink-gray-8"
+								>{{ item }}</span
 							>
-								<span
-									v-for="item in doc[field.name]"
-									:key="item"
-									class="rounded-4 bg-surface-gray-2 px-2 py-0.5 text-base text-ink-gray-8"
-									>{{ item }}</span
-								>
-							</span>
-							<span
-								v-else
-								class="whitespace-pre-wrap break-words text-base leading-6"
-								:class="[
-									shown(field) ? 'text-ink-gray-8' : 'text-ink-gray-4',
-									field.type === 'code' && 'font-mono text-sm',
-								]"
-								>{{ shown(field) || "None" }}</span
-							>
-						</div>
+						</span>
+						<span
+							v-else
+							class="whitespace-pre-wrap break-words text-base leading-6"
+							:class="[
+								shown(field) ? 'text-ink-gray-8' : 'text-ink-gray-4',
+								field.type === 'code' && 'font-mono text-sm',
+							]"
+							>{{ shown(field) || "None" }}</span
+						>
 					</div>
 				</div>
-			</section>
+			</div>
 		</form>
 		<p v-else-if="error" class="px-6 py-16 text-center text-base text-ink-gray-5">{{ error }}</p>
 		<LoadingState v-else class="h-full justify-center text-sm text-ink-gray-5" />
@@ -122,31 +90,20 @@ import { useRouter } from "vue-router";
 import { Button, dialog, toast } from "frappe-ui";
 import Dropdown from "frappe-ui/src/components/Dropdown/Dropdown.vue";
 import LoadingState from "@flow/ui-core/components/LoadingState.vue";
-import { layout } from "@flow/ui-core/layout.js";
 
 import FieldControl from "../settings/FieldControl.vue";
 import { useRecord } from "../settings/records.js";
 import PageHeader from "./PageHeader.vue";
-import { PAGES } from "./pages.js";
 
-// A record's page: its fields in the column, by section, its actions in the bar. Leaving it
+// A record's page: its fields in the column, its actions in the bar. Leaving it
 // with edits unsaved asks first.
 const props = defineProps({
 	spec: { type: Object, required: true },
-	info: { type: Object, required: true }, // the page's entry in PAGES or FORMS
+	info: { type: Object, required: true }, // the page's entry in FORMS
 	name: { type: String, default: null }, // null for a new record
 });
-const flow = inject("flow");
-const page = inject("flowPage");
 const leavePage = inject("leavePage");
 const router = useRouter();
-// the list it was opened from, with its search and filters; a setup form has none, and leads
-// back to the chat
-const listPath = `/${props.spec.key}`;
-const opener = router.options.history.state.back;
-const list = PAGES.some((item) => item.key === props.spec.key)
-	? { to: opener?.split("?")[0] === listPath ? opener : listPath, label: props.spec.label }
-	: null;
 
 let leaving = false; // a deleted record's page goes without asking
 const {
@@ -171,22 +128,15 @@ const {
 		router.replace({ name: "records", params: { kind: props.spec.key, record: saved.name } });
 	if (event === "deleted") {
 		leaving = true;
-		toList();
+		leavePage();
 	}
 });
 // the bar has no room for a failure's reason: it pops up instead, unless the record never loaded
 watch(error, (message) => message && doc.value && toast.error(message));
 
-// the fields cut into sections where one starts its own; a reader's leave out the name, which the
-// bar shows
-const groups = computed(() =>
-	visibleFields.value
-		.filter((field) => canWrite.value || !field.rename)
-		.reduce((groups, field) => {
-			if (field.section || !groups.length) groups.push({ title: field.section, fields: [] });
-			groups.at(-1).fields.push(field);
-			return groups;
-		}, [])
+// a reader's fields leave out the name, which the bar shows
+const fields = computed(() =>
+	visibleFields.value.filter((field) => canWrite.value || !field.rename)
 );
 
 // a field's value as read: numbers with separators, an unset number its placeholder ("No limit")
@@ -200,29 +150,6 @@ function shown(field) {
 const menu = computed(() => [
 	{ label: "Delete", icon: "lucide-trash-2", theme: "red", onClick: remove },
 ]);
-
-// an agent the user may chat with starts a new chat from its page, in place of the one waiting
-// behind it, once the page lets go
-const canChat = computed(
-	() =>
-		props.spec.doctype === "Flow Agent" &&
-		page.state.boot.agents.some((agent) => agent.name === props.name)
-);
-async function chat() {
-	if (!(await leavePage())) return;
-	flow.startNewChat();
-	page.state.agent = props.name;
-}
-
-// back to the list it came from, its filters and all; else to the list, in a deleted record's
-// place (`replace`) so Back doesn't return to it
-function toList(replace = true) {
-	if (!list) return leavePage();
-	const back = router.options.history.state.back;
-	if (back?.split("?")[0] === listPath) router.back();
-	else if (replace) router.replace(listPath);
-	else router.push(listPath);
-}
 
 function discard() {
 	return new Promise((resolve) => {

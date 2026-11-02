@@ -23,18 +23,29 @@ const DESK_SKIP = `${SKIP}, .body-sidebar-container, .tooltip-content`;
 // own lists are read from its globals, and its link fields hold links too
 const RUN = 5;
 
-export function readScreen(page) {
+// `chat` is the chat's own element when it shares the page's document, as the launcher's island
+// does. Its text sits in a shadow root, out of the walk below, but a selection in it reads as the
+// page's, anchored on the element holding the chat
+export function readScreen(page, chat = null) {
 	const screen = {
 		url: page.location.pathname + page.location.search,
 		title: page.document.title,
 	};
-	const selection = page.getSelection?.()?.toString().trim();
+	const range = page.getSelection?.();
+	const selection = !inChat(range, chat) && range?.toString().trim();
 	if (selection) screen.selection = clip(selection, SELECTION);
 	const onDesk = typeof page.frappe?.get_route === "function";
 	const desk = onDesk ? readDesk(page) : {};
 	Object.assign(screen, desk);
 	if (!desk.list && !desk.report) screen.text = clip(readPage(page.document, onDesk), TEXT);
 	return screen;
+}
+
+function inChat(range, chat) {
+	if (!chat || !range) return false;
+	return [range.anchorNode, range.focusNode].some(
+		(node) => node && (chat.contains(node) || chat.parentElement?.contains(node))
+	);
 }
 
 function readDesk(page) {

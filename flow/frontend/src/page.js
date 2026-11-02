@@ -96,7 +96,8 @@ export function createPage(
 		if (doctype === "Flow Skill" || doctype === "Flow Agent") reloadSkills();
 	}
 
-	// a setup step's "Add a model": settings on that tab, on a blank record its panel takes once
+	// "Add a skill" or a setup step's "Add a model": settings on that tab, on a blank record its
+	// panel takes once
 	let newRecord = null;
 	function createRecord(key) {
 		newRecord = key;

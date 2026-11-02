@@ -1,53 +1,26 @@
 <template>
 	<header class="flex h-11 flex-none items-center gap-2 px-3">
-		<!-- set apart from a list's icon, which would otherwise read as one more button -->
-		<div
-			v-if="noSidebar ? !list : !flow.state.sidebarOpen"
-			:class="list ? 'max-md:hidden' : 'md:mr-1.5'"
-			class="flex items-center gap-2"
-		>
-			<!-- with no sidebar to show, a list leads back to the chat; a record, to its list alone -->
+		<!-- set apart from the page's icon, which would otherwise read as one more button -->
+		<div v-if="noSidebar || !flow.state.sidebarOpen" class="flex items-center gap-2 md:mr-1.5">
+			<!-- with no sidebar to show, the page leads back to the chat -->
 			<button v-if="noSidebar" class="flow-icon-btn" title="Back to chat" @click="leavePage()">
 				<span class="lucide-arrow-left size-4" aria-hidden="true" />
 			</button>
 			<button v-else class="flow-icon-btn" title="Show sidebar" @click="flow.setSidebarOpen(true)">
-				<span class="lucide-panel-left size-3.5" aria-hidden="true" />
+				<span class="lucide-panel-left size-4" aria-hidden="true" />
 			</button>
 			<button class="flow-icon-btn max-md:hidden" title="New chat" @click="newChat">
-				<span class="lucide-plus size-3.5" aria-hidden="true" />
+				<span class="lucide-plus size-4" aria-hidden="true" />
 			</button>
 		</div>
-		<!-- a record leads with the way back to its list, a list with its page's icon -->
-		<button
-			v-if="list"
-			class="flow-icon-btn"
-			:title="`Back to ${list.label.toLowerCase()}`"
-			@click="emit('back')"
-		>
-			<span class="lucide-arrow-left size-4" aria-hidden="true" />
-		</button>
-		<!-- where the page sits: a record follows its list, which it links to. A narrow frame's bar
-		     keeps the name alone, for the room its actions leave -->
+		<!-- the page's icon and name; a narrow frame's bar keeps the name alone, for the room its
+		     actions leave -->
 		<nav
-			:class="{ 'ml-2': !list && !noSidebar && flow.state.sidebarOpen }"
+			:class="{ 'ml-2': !noSidebar && flow.state.sidebarOpen }"
 			class="flex min-w-0 items-center gap-2 text-base"
 			aria-label="Breadcrumb"
 		>
-			<span
-				v-if="!list"
-				:class="icon"
-				class="size-4 flex-none text-ink-gray-5 max-md:hidden"
-				aria-hidden="true"
-			/>
-			<RouterLink
-				v-if="list"
-				:to="list.to"
-				class="flex-none rounded-4 text-ink-gray-5 hover:text-ink-gray-8 max-md:hidden"
-				>{{ list.label }}</RouterLink
-			>
-			<span v-if="list" aria-hidden="true" class="flex-none text-ink-gray-3 max-md:hidden"
-				>/</span
-			>
+			<span :class="icon" class="size-4 flex-none text-ink-gray-5 max-md:hidden" aria-hidden="true" />
 			<h1 class="min-w-0 truncate font-medium text-ink-gray-9">{{ title }}</h1>
 		</nav>
 		<span class="min-w-2 flex-1" />
@@ -65,9 +38,7 @@ import { inject } from "vue";
 defineProps({
 	icon: { type: String, required: true }, // a lucide-* class
 	title: { type: String, required: true },
-	list: { type: Object, default: null }, // { to, label }: the list a record belongs to
 });
-const emit = defineEmits(["back"]); // the back button, on a record's page
 const flow = inject("flow");
 const leavePage = inject("leavePage");
 const noSidebar = inject("noSidebar");

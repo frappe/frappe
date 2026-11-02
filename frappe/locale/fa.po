@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-10-25 09:37+0000\n"
-"PO-Revision-Date: 2026-10-26 04:19\n"
+"PO-Revision-Date: 2026-11-02 04:13\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -2542,7 +2542,7 @@ msgstr "پس از ارسال"
 #: frappe/flow/doctype/flow_session/flow_session.json:35
 #: frappe/flow/doctype/flow_trigger/flow_trigger.json:53
 msgid "Agent"
-msgstr "عامل"
+msgstr ""
 
 #: frappe/flow/lib/agent.py:37 frappe/flow/lib/agent.py:106
 msgid "Agent Conflict"
@@ -2567,7 +2567,7 @@ msgstr ""
 #: frappe/flow/sidebar/flow/flow.json:50
 #: frappe/flow/workspace/flow/flow.json:19
 msgid "Agents"
-msgstr "عوامل"
+msgstr ""
 
 #. Description of the 'Sub-agents' (Table MultiSelect) field in DocType 'Flow
 #. Agent'
@@ -18536,12 +18536,12 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/filters/filter_list.js:280
 msgid "Hours"
-msgstr "ساعت ها"
+msgstr ""
 
 #: frappe/public/js/frappe/form/controls/duration.js:29
 msgctxt "Duration"
 msgid "Hours"
-msgstr "ساعت ها"
+msgstr ""
 
 #: frappe/core/page/component_explorer/component_explorer.js:2366
 msgid "Hover card (rest the pointer on an avatar)"
@@ -24581,12 +24581,12 @@ msgstr "جزئی"
 
 #: frappe/public/js/frappe/ui/filters/filter_list.js:280
 msgid "Minutes"
-msgstr "دقایق"
+msgstr ""
 
 #: frappe/public/js/frappe/form/controls/duration.js:30
 msgctxt "Duration"
 msgid "Minutes"
-msgstr "دقایق"
+msgstr ""
 
 #. Option for the 'Send Alert On' (Select) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json:131
@@ -38200,7 +38200,7 @@ msgstr "متن منبع"
 #. Label of the source_type (Select) field in DocType 'Flow Knowledge Source'
 #: frappe/flow/doctype/flow_knowledge_source/flow_knowledge_source.json:61
 msgid "Source Type"
-msgstr "نوع منبع"
+msgstr ""
 
 #: frappe/flow/doctype/flow_knowledge_base/flow_knowledge_base.py:43
 msgid "Sources Processing"
@@ -47610,7 +47610,7 @@ msgstr "چت"
 #: frappe/printing/doctype/print_format/print_format.json:314
 #: frappe/printing/doctype/print_settings/print_settings.json:62
 msgid "chrome"
-msgstr "کروم"
+msgstr "chrome"
 
 #. Option for the 'Message Type' (Select) field in DocType 'Studio AI Message'
 #: frappe/studio/doctype/studio_ai_message/studio_ai_message.json:43

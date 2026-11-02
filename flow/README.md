@@ -1,5 +1,5 @@
 <div align="center">
-    <img src="./frontend/public/flow.png" alt="Flow Logo" height="80px" width="80px"/>
+    <img src="../frappe/public/images/flow.png" alt="Flow Logo" height="80px" width="80px"/>
     <h2>Flow</h2>
     <p>AI agents for Frappe.</p>
 
