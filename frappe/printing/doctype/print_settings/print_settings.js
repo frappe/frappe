@@ -23,7 +23,11 @@ frappe.ui.form.on("Print Settings", {
 	refresh: function (frm) {
 		frm.trigger("show_wkhtmltopdf_formats");
 	},
+	pdf_generator: function (frm) {
+		frm.trigger("show_wkhtmltopdf_formats");
+	},
 	show_wkhtmltopdf_formats: function (frm) {
+		frm.dashboard.clear_headline();
 		const count = frm.doc.__onload?.wkhtmltopdf_print_formats;
 		if (!count || frm.doc.pdf_generator === "wkhtmltopdf" || frm.is_dirty()) return;
 
