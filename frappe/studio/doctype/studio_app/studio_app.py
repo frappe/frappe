@@ -16,6 +16,7 @@ from frappe.studio.export import (
 	validate_standard_app_change,
 	write_document_file,
 )
+from frappe.studio.files import export_store_to_disk, restore_store_from_disk
 from frappe.studio.realtime import publish_doc_change
 from frappe.studio.utils import get_app_file_path, get_export_folder, validate_installed_app, walk_blocks
 from frappe.utils import get_files_path
@@ -81,8 +82,10 @@ class StudioAppRenderer(DocumentPage):
 				self.context.stylesheets = manifest.get("stylesheets", [])
 				self.context.script = manifest.get("script")
 			else:
+				# an app that ships no bundle renders through the editor's renderer, which compiles
+				# its files in the browser; one that should have a bundle is missing its build
 				self.use_studio_renderer()
-				self.context.assets_not_found = True
+				self.context.assets_not_found = self.context.doc.builds_bundle()
 
 	def use_studio_renderer(self):
 		"""Serve the app with the editor's own renderer instead of its published build."""
@@ -105,11 +108,11 @@ class StudioApp(WebsiteGenerator):
 		app_home: DF.Link | None
 		app_name: DF.Data | None
 		app_title: DF.Data
+		build_on_publish: DF.Check
 		favicon: DF.AttachImage | None
 		frappe_app: DF.Literal[None]
 		is_standard: DF.Check
 		route: DF.Data | None
-		router_script: DF.Code | None
 	# end: auto-generated types
 
 	website = frappe._dict(
@@ -142,8 +145,8 @@ class StudioApp(WebsiteGenerator):
 		context.can_edit_app = bool(
 			(context.is_developer_mode or not self.is_standard) and check_app_permission()
 		)
+		context.uses_db_files = self.uses_db_files()
 		context.router_file = self.get_router_file() if context.is_developer_mode else None
-		context.router_script = self.get_router_script()
 
 		context.base_url = frappe.utils.get_url(self.route)
 		context.boot = self.get_boot()
@@ -156,11 +159,9 @@ class StudioApp(WebsiteGenerator):
 
 		return get_router_file(self.frappe_app, self.name)
 
-	def get_router_script(self) -> str | None:
-		"""A custom app's router config, kept in the DB; a standard app has it in router.ts"""
-		if self.is_standard:
-			return None
-		return self.router_script or None
+	def uses_db_files(self) -> bool:
+		"""Whether the app's source files live in the DB store and compile in the browser."""
+		return not self.is_standard
 
 	def get_boot(self) -> dict:
 		"""Get the boot data for this Studio app"""
@@ -212,12 +213,16 @@ class StudioApp(WebsiteGenerator):
 		self.export_app()
 		if not self.flags.in_insert and self.has_value_changed("is_standard") and not self.is_standard:
 			self.delete_app_folder()
+		if self.has_value_changed("build_on_publish") and not self.builds_bundle():
+			self.delete_app_build()
 		publish_doc_change("Studio App", self.name, self.name)
 
 	def on_trash(self):
 		validate_standard_app_change(self)
 		for page in self.pages:
 			frappe.delete_doc("Studio Page", page, force=True)
+		frappe.db.delete("Studio App File", {"studio_app": self.name})
+		self.delete_app_build()
 
 		if can_export(self):
 			self.delete_app_folder()
@@ -225,6 +230,19 @@ class StudioApp(WebsiteGenerator):
 	def delete_app_folder(self):
 		path = self.get_folder_path()
 		delete_folder(path)
+
+	def delete_app_build(self):
+		"""Drop the built bundle so the app falls back to the renderer, which compiles its files
+		in the browser. A stale bundle would otherwise keep serving the pages it was built from."""
+		if path := self.get_build_path():
+			delete_folder(path)
+
+	def get_build_path(self) -> str | None:
+		if not self.is_standard:
+			return os.path.abspath(get_files_path("app_builds", self.name))
+		if not self.frappe_app:
+			return None
+		return frappe.get_app_path(self.frappe_app, "public", "app_builds", self.name)
 
 	def before_rename(self, old, new, merge=False):
 		validate_app_name(new)
@@ -255,12 +273,19 @@ class StudioApp(WebsiteGenerator):
 			frappe.throw(_("Folder {0} already exists.").format(new_path))
 		move_folder(old_path, new_path)
 
+	def builds_bundle(self) -> bool:
+		"""Whether the app ships a Vite bundle. A repository app always does; a database app only
+		when asked for one — otherwise the browser compiles its files and publishing needs no Node."""
+		return bool(self.is_standard or self.build_on_publish)
+
 	@frappe.whitelist()
 	def generate_app_build(self) -> dict:
 		"""Build the app bundle. Failures are logged to an Error Log and returned as
 		`build_error` instead of raised, so callers can surface them in the UI."""
 		if not frappe.has_permission("Studio App", ptype="write"):
 			frappe.throw(_("You do not have permission to generate the app build"), frappe.PermissionError)
+		if not self.builds_bundle():
+			return {"build_error": None}
 
 		try:
 			self.build_app_bundle()
@@ -311,22 +336,13 @@ class StudioApp(WebsiteGenerator):
 		"""
 		try:
 			if self.is_standard:
-				manifest_path = os.path.join(
-					frappe.get_app_path(self.frappe_app),
-					"public",
-					"app_builds",
-					self.name,
-					".vite",
-					"manifest.json",
-				)
 				base_path = f"/assets/{self.frappe_app}/app_builds/{self.name}/"
 			else:
-				manifest_path = os.path.join(
-					get_files_path("app_builds", self.name),
-					".vite",
-					"manifest.json",
-				)
 				base_path = f"/files/app_builds/{self.name}/"
+			build_path = self.get_build_path()
+			if not build_path:
+				return None
+			manifest_path = os.path.join(build_path, ".vite", "manifest.json")
 
 			if not os.path.exists(manifest_path):
 				return None
@@ -376,24 +392,19 @@ class StudioApp(WebsiteGenerator):
 
 		for page_name in self.standard_pages:
 			frappe.get_doc("Studio Page", page_name).export_script_to_file()
-		self.export_router_script_to_file()
+		export_store_to_disk(self)
 
 	@frappe.whitelist()
-	def disable_app_export(self) -> str | None:
-		"""Returns a notice for the user when router.ts was copied back, since it may not run as a script"""
+	def disable_app_export(self):
 		for page_name in self.standard_pages:
 			frappe.get_doc("Studio Page", page_name).restore_script_from_file()
-		router_restored = self.restore_router_script_from_file()
+		# before the save below deletes the folder: the files move back into the DB store
+		restore_store_from_disk(self)
 
 		frappe.db.set_value("Studio Page", {"studio_app": self.name}, "is_standard", 0)
 
 		self.is_standard = 0
 		self.save()
-
-		if router_restored:
-			return _(
-				"Router Script restored from router.ts. Custom apps run it as plain JavaScript object. Remove import statements and TypeScript types if present."
-			)
 
 	def export_app(self):
 		if not can_export(self):
@@ -410,8 +421,8 @@ class StudioApp(WebsiteGenerator):
 		if os.path.isdir(app_path) and not os.path.isfile(get_app_file_path(app_path)):
 			frappe.throw(_("Folder {0} exists and is not a Studio app.").format(app_path))
 		frappe.create_folder(app_path)
-		# the router config lives in router.ts, so keep it out of the JSON
-		write_document_file(self, folder=app_path, exclude_fields=["router_script"])
+		# build_on_publish only decides how a database app is served; a repository app always builds
+		write_document_file(self, folder=app_path, exclude_fields=["build_on_publish"])
 		self.write_tsconfig(app_path)
 		return app_path
 
@@ -442,28 +453,6 @@ class StudioApp(WebsiteGenerator):
 		for page in self.pages:
 			page_doc = frappe.get_doc("Studio Page", page)
 			page_doc.export_page()
-
-	def get_router_file_path(self) -> str:
-		return os.path.join(self.get_folder_path(), "router.ts")
-
-	def export_router_script_to_file(self):
-		"""Move the router script into router.ts and clear the DB field. Called on enabling exports"""
-		if not self.router_script:
-			return
-		if not os.path.exists(self.get_router_file_path()):
-			# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
-			with open(self.get_router_file_path(), "w") as f:
-				f.write(f"export default {self.router_script.strip()}\n")
-		self.db_set("router_script", None, update_modified=False)
-
-	def restore_router_script_from_file(self) -> bool:
-		"""Load router.ts back into the `router_script` field, so the config survives in DB-only
-		mode (called before the export folder is deleted on un-export)."""
-		if not os.path.exists(self.get_router_file_path()):
-			return False
-		source = frappe.read_file(self.get_router_file_path())
-		self.router_script = re.sub(r"^\s*export\s+default\s+", "", source, count=1).strip()
-		return True
 
 	def collect_files(self, script: str, script_dir: str, blocks) -> list[dict]:
 		"""The custom Vue components `blocks` use and everything the script and those files import."""

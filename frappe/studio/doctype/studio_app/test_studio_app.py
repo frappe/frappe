@@ -17,6 +17,7 @@ from frappe.studio.build import (
 	get_router_file,
 )
 from frappe.studio.doctype.studio_app.studio_app import StudioApp
+from frappe.studio.files import read_store_file, write_store_file
 from frappe.studio.utils import get_exported_app_name
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import get_files_path, set_request
@@ -29,36 +30,50 @@ class TestStudioApp(FrappeTestCase):
 		self.assertEqual(app.app_title, "My Build App")
 		self.assertEqual(app.route, "my-build-app")
 
-	def test_export_router_script(self):
+	def test_router_file_moves_between_the_store_and_the_repository(self):
 		with exports_in_tempdir():
 			app = make_studio_app(app_title="Routed Custom App", app_name="routed-custom-app")
-			app.router_script = ROUTER_SCRIPT
-			app.save()
+			write_store_file(app.name, "router.ts", ROUTER_FILE_SOURCE)
 			context = get_renderer_context(app)
-			self.assertEqual(context.router_script, ROUTER_SCRIPT)
+			self.assertTrue(context.uses_db_files)
 			self.assertIsNone(context.router_file)
 
 			app.enable_app_export("frappe")
 			app.reload()
-			self.assertFalse(app.router_script)
-			self.assertEqual(
-				frappe.read_file(app.get_router_file_path()),
-				f"export default {ROUTER_SCRIPT}\n",
-			)
-			app.router_script = ROUTER_SCRIPT
+			router_path = os.path.join(app.get_folder_path(), "router.ts")
+			self.assertEqual(frappe.read_file(router_path), ROUTER_FILE_SOURCE)
+			self.assertEqual(read_store_file(app.name, "router.ts"), None)
+
 			context = get_renderer_context(app)
-			self.assertEqual(context.router_file, app.get_router_file_path())
-			self.assertIsNone(context.router_script)
+			self.assertFalse(context.uses_db_files)
+			self.assertEqual(context.router_file, router_path)
 			with patch.dict(frappe.conf, {"developer_mode": 0}):
 				self.assertIsNone(get_renderer_context(app).router_file)
-			app.router_script = None
-			exported = json.loads(
-				frappe.read_file(os.path.join(app.get_folder_path(), "routed_custom_app.json"))
-			)
-			self.assertNotIn("router_script", exported)
 
 			app.disable_app_export()
-			self.assertEqual(app.reload().router_script, ROUTER_SCRIPT)
+			self.assertEqual(read_store_file(app.name, "router.ts"), ROUTER_FILE_SOURCE)
+
+	def test_a_database_app_renders_through_the_browser_runtime(self):
+		from frappe.studio.files import write_store_file
+
+		app = make_studio_app(app_title="Shop Demo", app_name="shop-demo")
+		make_studio_page(app.name, page_title="Board", route="/board", published=1)
+		write_store_file(app.name, "components/Price.vue", "<template><span /></template>")
+
+		app.reload()
+		self.assertTrue(app.uses_db_files())
+		self.assertFalse(app.builds_bundle() and app.get_assets_from_manifest())
+
+		html = get_website_response("shop-demo/board").get_data(as_text=True)
+		# no bundle to serve, so the shared renderer takes over and compiles the files in the browser
+		self.assertIn("window.uses_db_files = true", html)
+		self.assertIn("/assets/frappe/studio/", html)
+
+		app.build_on_publish = 0
+		app.save()
+		html = get_website_response("shop-demo/board").get_data(as_text=True)
+		# an app that ships no bundle is not a broken build, so it gets no warning
+		self.assertNotIn("Could not find app assets", html)
 
 	def test_app_favicon(self):
 		app = make_studio_app(app_title="Favicon App", app_name="favicon-app")
@@ -98,7 +113,8 @@ class TestStudioApp(FrappeTestCase):
 			self.assert_exported_files_kept(app, page)
 
 	def assert_exported_files_kept(self, app, page):
-		self.assertEqual(frappe.read_file(app.get_router_file_path()), f"export default {ROUTER_SCRIPT}\n")
+		router_path = os.path.join(app.get_folder_path(), "router.ts")
+		self.assertEqual(frappe.read_file(router_path), ROUTER_FILE_SOURCE)
 		self.assertEqual(frappe.read_file(page.get_script_file_path()), "console.log('kept')")
 		extra_file = os.path.join(app.get_folder_path(), "Extra.vue")
 		self.assertEqual(frappe.read_file(extra_file), "<template>kept</template>")
@@ -201,7 +217,7 @@ class TestStudioAppBuilder(FrappeTestCase):
 			folder = app.get_folder_path()
 			self.assertEqual(os.path.basename(folder), "dashed_build")
 			self.assertEqual(get_exported_app_name(folder), "dashed-build")
-			self.assertEqual(get_router_file("frappe", app.name), app.get_router_file_path())
+			self.assertEqual(get_router_file("frappe", app.name), os.path.join(folder, "router.ts"))
 
 	def test_build_fails_when_the_export_folder_is_missing(self):
 		with exports_in_tempdir():
@@ -497,21 +513,74 @@ class TestStudioAppBuilder(FrappeTestCase):
 		page_sources = {}
 
 		def read_content_file(command, **kwargs):
-			content_path = argument(command, "--tailwind-content")
+			# the app folder's globs come first; the page blocks and scripts are in the listed file
+			content_path = arguments(command, "--tailwind-content")[-1]
 			with open(content_path) as f:
 				page_sources["text"] = f.read()
 			return run.return_value
 
 		builder = StudioAppBuilder(app.name, is_standard=False)
-		with (
-			patch("frappe.studio.build.subprocess.run", side_effect=read_content_file) as run,
-			patch("frappe.studio.build.os.makedirs"),
-		):
+		builder.out_dir = tempfile.mkdtemp()
+		self.addCleanup(shutil.rmtree, builder.out_dir)
+		with patch("frappe.studio.build.subprocess.run", side_effect=read_content_file) as run:
 			run.return_value.returncode = 0
 			builder.build()
 
 		for css_class in ("bg-page-only", "bg-component-only", "text-script-only"):
 			self.assertIn(css_class, page_sources["text"])
+
+	def test_builds_a_database_app_from_its_stored_files(self):
+		from frappe.studio.files import write_store_file
+
+		app = make_studio_app(app_title="Stored App", app_name="stored-app")
+		blocks = json.dumps([{"componentName": "StoredCard", "isCustomVueComponent": True, "children": []}])
+		page = make_studio_page(
+			app.name, blocks=blocks, script="export default function setup() {}", published=1
+		)
+		write_store_file(app.name, "components/StoredCard.vue", "<template><b/></template>")
+		write_store_file(app.name, "router.ts", "export default {}\n")
+		write_store_file(app.name, "utils.ts", "export const one = 1\n")
+
+		builder = StudioAppBuilder(app.name, is_standard=False)
+		builder.out_dir = tempfile.mkdtemp()
+		self.addCleanup(shutil.rmtree, builder.out_dir)
+		staged = {}
+		with patch("frappe.studio.build.subprocess.run") as run:
+			run.return_value.returncode = 0
+			# the staged tree is a temp directory that build() removes on the way out, so read it here
+			run.side_effect = (
+				lambda *a, **kw: staged.update(
+					folder=builder.app_folder,
+					utils=os.path.isfile(os.path.join(builder.app_folder, "utils.ts")),
+				)
+				or run.return_value
+			)
+			builder.build()
+
+		command = run.call_args.args[0]
+		# the stored sources reach vite as real files, so it builds what the browser compiles
+		custom = json.loads(argument(command, "--custom-components"))
+		self.assertTrue(custom["StoredCard"].endswith("/components/StoredCard.vue"))
+		self.assertEqual(argument(command, "--router-file"), os.path.join(builder.app_folder, "router.ts"))
+		scripts = json.loads(argument(command, "--page-scripts"))
+		self.assertEqual(scripts[0]["page_name"], page.name)
+		self.assertTrue(scripts[0]["file_path"].endswith("/studio_page/test_page/test_page.ts"))
+		# `@app/utils` resolves off the `studio/<app>/` segment of the importer's path, so the
+		# staged tree has to sit at the depth an export does
+		self.assertTrue(staged["folder"].endswith(f"/studio/{frappe.scrub(app.name)}"))
+		self.assertTrue(staged["utils"])
+
+	def test_a_database_app_that_opts_out_of_the_build_is_not_built(self):
+		app = make_studio_app(app_title="No Build App", app_name="no-build-app")
+		make_studio_page(app.name, published=1)
+		self.assertIn(app.name, get_published_custom_apps())
+
+		app.reload()  # the first page became the app home
+		app.build_on_publish = 0
+		app.save()
+		self.assertNotIn(app.name, get_published_custom_apps())
+		self.assertFalse(app.builds_bundle())
+		self.assertIsNone(app.generate_app_build()["build_error"])
 
 	def test_passes_the_app_folder_to_tailwind(self):
 		builder = StudioAppBuilder("folder-app", is_standard=True, frappe_app="frappe")
@@ -658,11 +727,12 @@ class TestStudioAppBuilder(FrappeTestCase):
 		self.assertTrue(bundled & dependencies.keys(), f"no @framework/ui dependency in {bundled}")
 
 
-ROUTER_SCRIPT = """{
+ROUTER_FILE_SOURCE = """export default {
 	extendRoute(route) {
 		if (route.name === "Board") route.alias = "/tasks"
 	},
-}"""
+}
+"""
 
 
 @contextmanager
@@ -700,8 +770,7 @@ def make_exported_app_with_files(app_name):
 	app = make_studio_app(app_title=app_name.title(), app_name=app_name)
 	page = make_studio_page(app.name, page_title=f"{app.app_title} Page", script="console.log('kept')")
 	app.reload()  # the first page becomes the app home
-	app.router_script = ROUTER_SCRIPT
-	app.save()
+	write_store_file(app.name, "router.ts", ROUTER_FILE_SOURCE)
 	app.enable_app_export("frappe")
 	with open(os.path.join(app.get_folder_path(), "Extra.vue"), "w") as f:
 		f.write("<template>kept</template>")
@@ -807,6 +876,11 @@ def get_bundled_packages(out_dir: str) -> set[str]:
 def argument(command: list[str], flag: str) -> str | None:
 	"""The value that follows `flag` in a build command."""
 	return command[command.index(flag) + 1] if flag in command else None
+
+
+def arguments(command: list[str], flag: str) -> list[str]:
+	"""Every value that follows `flag` in a build command, for flags passed more than once."""
+	return [value for index, value in enumerate(command) if index and command[index - 1] == flag]
 
 
 @contextmanager

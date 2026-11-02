@@ -43,6 +43,8 @@ class StudioAppBuilder:
 		self.custom_vue_components: dict[str, str] = {}  # {ComponentName: absolute_path}
 		self.page_scripts: list[dict] = []  # [{page_name, file_path}]
 		self.router_file: str | None = None
+		# the folder the build reads: a repository app's export folder, or the temp folder build()
+		# lays a database app's sources out in
 		self.app_folder: str | None = None
 		self.icons: set[str] = set()
 		self.tailwind_content: list[str] = []
@@ -77,13 +79,17 @@ class StudioAppBuilder:
 			self.tailwind_content = get_tailwind_content(self.app_folder)
 			self._run_vite_build()
 		else:
-			self.get_app_components()
-			with self._write_page_sources() as page_sources:
-				self.tailwind_content = [page_sources.name]
-				self._run_vite_build()
+			with tempfile.TemporaryDirectory() as temp_root:
+				self.app_folder = temp_export_folder(temp_root, self.app_name)
+				self.page_scripts = write_db_files_to_folder(self.app_name, self.app_folder)
+				self.get_app_components()
+				self.router_file = find_router_file(self.app_folder)
+				with self._write_page_sources() as page_sources:
+					self.tailwind_content = [*get_tailwind_content(self.app_folder), page_sources.name]
+					self._run_vite_build()
 
 	def _write_page_sources(self):
-		"""DB pages aren't on disk, so write them to a file for Tailwind to scan."""
+		"""Page blocks aren't files, so write them to one for Tailwind to scan."""
 		page_sources = tempfile.NamedTemporaryFile("w", suffix=".txt")
 		page_sources.write("\n".join(self.page_sources))
 		page_sources.flush()
@@ -95,7 +101,7 @@ class StudioAppBuilder:
 	def get_page_scripts_from_files(self):
 		"""Collect the <page>.ts code files for the app's published pages, so the build bundles a
 		`setup()` module per page (code mode)."""
-		page_folder = os.path.join(self.get_app_folder(), "studio_page")
+		page_folder = os.path.join(self.app_folder, "studio_page")
 		if not page_folder or not os.path.isdir(page_folder):
 			return
 
@@ -208,7 +214,8 @@ class StudioAppBuilder:
 		"""Extract component names from exported JSON files on disk instead of DB records,
 		used during `bench build` when there's no DB access.
 		"""
-		app_folder = self.get_app_folder()
+		# resolved here too: this is an entry point of its own during `bench build`
+		app_folder = self.app_folder = self.app_folder or self.get_app_folder()
 		page_folder = os.path.join(app_folder, "studio_page")
 		if not os.path.exists(page_folder):
 			return self.components
@@ -311,11 +318,10 @@ class StudioAppBuilder:
 				continue
 
 	def _add_custom_vue_component(self, componentName: str):
-		if not componentName or not self.frappe_app:
+		if not componentName or not self.app_folder:
 			return
 
-		app_dir = self.get_app_folder()
-		for dirpath, _dirnames, filenames in os.walk(app_dir):
+		for dirpath, _dirnames, filenames in os.walk(self.app_folder):
 			if f"{componentName}.vue" in filenames:
 				self.custom_vue_components[componentName] = os.path.join(dirpath, f"{componentName}.vue")
 				break
@@ -369,6 +375,7 @@ def get_published_custom_apps() -> list[str]:
 			.on(StudioPage.studio_app == StudioApp.name)
 			.select(StudioApp.name)
 			.where(StudioApp.is_standard == 0)
+			.where(StudioApp.build_on_publish == 1)
 			.where(StudioPage.published == 1)
 		)
 		.distinct()
@@ -380,8 +387,49 @@ def get_published_custom_apps() -> list[str]:
 
 def get_router_file(frappe_app: str, studio_app: str) -> str | None:
 	"""Path of the app's studio/<app>/router.ts, if it ships one."""
-	path = os.path.join(get_export_folder(frappe_app, studio_app), "router.ts")
+	return find_router_file(get_export_folder(frappe_app, studio_app))
+
+
+def find_router_file(app_folder: str) -> str | None:
+	path = os.path.join(app_folder, "router.ts")
 	return path if os.path.exists(path) else None
+
+
+def temp_export_folder(root: str, app_name: str) -> str:
+	"""Where a database app's sources are staged for a build. `@app/x` resolves against the
+	`studio/<studio_app>/` segment of the importing file's path, so the staged tree has to sit at
+	the same depth an export does or every `@app/` import fails to resolve."""
+	return os.path.join(root, "studio", frappe.scrub(app_name))
+
+
+def write_db_files_to_folder(studio_app: str, app_folder: str) -> list[dict]:
+	"""Lay a database app's sources out on disk the way an exported app stores them, so Vite builds
+	the same files the browser compiles: the file store at the app root, and each published page's
+	script as studio_page/<stem>/<stem>.ts. Returns the page scripts written."""
+	from frappe.studio.files import get_store_files
+
+	for file in get_store_files(studio_app):
+		write_build_file(os.path.join(app_folder, file["path"]), file["content"])
+
+	pages = frappe.get_all(
+		"Studio Page",
+		filters={"studio_app": studio_app, "published": 1, "script": ("is", "set")},
+		fields=["name", "page_title", "script"],
+	)
+	page_scripts = []
+	for page in pages:
+		stem = frappe.scrub(page.page_title)
+		path = os.path.join(app_folder, "studio_page", stem, f"{stem}.ts")
+		write_build_file(path, page.script)
+		page_scripts.append({"page_name": page.name, "file_path": path})
+	return page_scripts
+
+
+def write_build_file(path: str, content: str) -> None:
+	frappe.create_folder(os.path.dirname(path))
+	# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
+	with open(path, "w", encoding="utf-8") as f:
+		f.write(content)
 
 
 def get_tailwind_content(folder: str) -> list[str]:
