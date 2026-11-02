@@ -159,12 +159,13 @@ def delete_doc(
 			# Lock the doc without waiting
 			try:
 				frappe.db.get_value(doctype, name, for_update=True, wait=False)
-			except frappe.QueryTimeoutError, frappe.QueryDeadlockError:
+			except (frappe.QueryTimeoutError, frappe.QueryDeadlockError) as error:
+				# keep the type: a deadlock has already rolled the transaction back
 				frappe.throw(
 					_(
 						"This document can not be deleted right now as it's being modified by another user. Please try again after some time."
 					),
-					exc=frappe.QueryTimeoutError,
+					exc=type(error),
 				)
 			doc = frappe.get_doc(doctype, name)
 
@@ -456,11 +457,8 @@ def get_dynamic_linked_docs(doc, method="Delete", limit: int | None = None) -> l
 				.where(RefDoc[df.options] == doc.doctype)
 				.where(RefDoc[df.fieldname] == doc.name)
 			)
-<<<<<<< HEAD
 			if df.parent == "Submission Queue" and method == "Delete":
 				query = query.where(RefDoc.status == "Queued")
-			for refdoc in query.run(as_dict=True):
-=======
 			# filter before limiting, or irrelevant rows could fill the limit
 			if method == "Delete":
 				query = query.where(RefDoc.docstatus != DocStatus.cancelled())
@@ -473,7 +471,6 @@ def get_dynamic_linked_docs(doc, method="Delete", limit: int | None = None) -> l
 				# rows dropped below could hide blockers beyond the limit
 				raise LinkedDocumentsOverflow
 			for refdoc in rows:
->>>>>>> 39d66d2 (Merge pull request #42175 from frappe/background-linked-docs-processing)
 				# linked to an non-cancelled doc when deleting
 				# or linked to a submitted doc when cancelling
 				if (method == "Delete" and not DocStatus(refdoc.docstatus).is_cancelled()) or (

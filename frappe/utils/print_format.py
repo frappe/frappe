@@ -394,7 +394,7 @@ def download_pdf(
 	no_letterhead: bool | int = 0,
 	language: str | None = None,
 	letterhead: str | None = None,
-	pdf_generator: Literal["wkhtmltopdf", "chrome", "Typst", "WeasyPrint"] | None = None,
+	pdf_generator: Literal["wkhtmltopdf", "chrome", "PlutoPrint", "Typst", "WeasyPrint"] | None = None,
 	style: str | None = None,
 	settings: str | None = None,
 ):

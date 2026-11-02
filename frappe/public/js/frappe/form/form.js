@@ -1003,8 +1003,6 @@ frappe.ui.form.Form = class FrappeForm {
 			});
 	}
 
-<<<<<<< HEAD
-=======
 	_linked_docs_list_html(links) {
 		// never render an absurdly long list; the count carries the scale
 		const max_names_per_doctype = 10;
@@ -1031,7 +1029,7 @@ frappe.ui.form.Form = class FrappeForm {
 			__("Confirm"),
 			__(
 				"{0} {1} is linked with too many submitted documents to list. Cancel all of them in the background along with {1}? You will be notified when it completes.",
-				[__(me.doc.doctype).bold(), cstr(me.doc.name).bold()]
+				[__(me.doc.doctype).bold(), frappe.utils.escape_html(cstr(me.doc.name)).bold()]
 			),
 			() => me._cancel_with_linked_docs(null, btn, null, on_error),
 			__("Cancel All")
@@ -1043,31 +1041,21 @@ frappe.ui.form.Form = class FrappeForm {
 		};
 	}
 
->>>>>>> 39d66d2 (Merge pull request #42175 from frappe/background-linked-docs-processing)
 	_cancel_all(r, btn, callback, on_error) {
 		const me = this;
 
 		// add confirmation message for cancelling all linked docs
-		let links_text = "";
 		let links = r.message.docs;
-		const doctypes = Array.from(new Set(links.map((link) => link.doctype)));
 
 		me.ignore_doctypes_on_cancel_all = me.ignore_doctypes_on_cancel_all || [];
 
-		for (let doctype of doctypes) {
-			if (!me.ignore_doctypes_on_cancel_all.includes(doctype)) {
-				let docnames = links
-					.filter((link) => link.doctype == doctype)
-					.map((link) => frappe.utils.get_form_link(link.doctype, link.name, true))
-					.join(", ");
-				links_text += `<li><strong>${__(doctype)}</strong>: ${docnames}</li>`;
-			}
-		}
-		links_text = `<ul>${links_text}</ul>`;
+		let links_text = me._linked_docs_list_html(
+			links.filter((link) => !me.ignore_doctypes_on_cancel_all.includes(link.doctype))
+		);
 
 		let confirm_message = __("{0} {1} is linked with the following submitted documents: {2}", [
 			__(me.doc.doctype).bold(),
-			me.doc.name,
+			frappe.utils.escape_html(cstr(me.doc.name)),
 			links_text,
 		]);
 
@@ -1082,14 +1070,13 @@ frappe.ui.form.Form = class FrappeForm {
 		let d = new frappe.ui.Dialog(
 			{
 				title: __("Cancel All Documents"),
-				fields: [
-					{
-						fieldtype: "HTML",
-						options: `<p class="frappe-confirm-message">${confirm_message}</p>`,
-					},
-				],
+				fields: [{ fieldtype: "HTML", fieldname: "message" }],
 			},
 			() => me.handle_save_fail(btn, on_error)
+		);
+		// set directly: HTML field options get template-rendered, and names are user input
+		d.fields_dict.message.$wrapper.html(
+			`<p class="frappe-confirm-message">${confirm_message}</p>`
 		);
 
 		// if user can cancel all linked docs, add action to the dialog
@@ -1131,7 +1118,7 @@ frappe.ui.form.Form = class FrappeForm {
 						frappe.msgprint(
 							__(
 								"The linked documents will be cancelled in the background along with {0}. You will be notified when it completes.",
-								[cstr(me.doc.name).bold()]
+								[frappe.utils.escape_html(cstr(me.doc.name)).bold()]
 							)
 						);
 						return;
@@ -1240,12 +1227,8 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	savetrash() {
+		const me = this;
 		this.validate_form_action("Delete");
-<<<<<<< HEAD
-		frappe.model.delete_doc(this.doctype, this.docname, function () {
-			window.history.back();
-		});
-=======
 		frappe
 			.call({
 				method: "frappe.desk.form.linked_with.get_linked_docs_to_delete",
@@ -1278,7 +1261,7 @@ frappe.ui.form.Form = class FrappeForm {
 			__("Confirm"),
 			__(
 				"{0} {1} is linked with too many documents to list. Delete all of them in the background along with {1}? You will be notified when it completes.",
-				[__(me.doctype).bold(), cstr(me.docname).bold()]
+				[__(me.doctype).bold(), frappe.utils.escape_html(cstr(me.docname)).bold()]
 			),
 			() => me._delete_with_linked_docs(null),
 			__("Delete All")
@@ -1305,7 +1288,7 @@ frappe.ui.form.Form = class FrappeForm {
 					frappe.msgprint(
 						__(
 							"The linked documents will be deleted in the background along with {0}. You will be notified when it completes.",
-							[cstr(me.docname).bold()]
+							[frappe.utils.escape_html(cstr(me.docname)).bold()]
 						)
 					);
 					return;
@@ -1324,11 +1307,11 @@ frappe.ui.form.Form = class FrappeForm {
 
 		let confirm_message = __("{0} {1} is linked with the following documents: {2}", [
 			__(me.doctype).bold(),
-			me.docname,
+			frappe.utils.escape_html(cstr(me.docname)),
 			me._linked_docs_list_html(links),
 		]);
 		confirm_message += __("Do you want to delete {0} along with all linked documents?", [
-			cstr(me.docname).bold(),
+			frappe.utils.escape_html(cstr(me.docname)).bold(),
 		]);
 
 		const d = new frappe.ui.Dialog({
@@ -1346,7 +1329,6 @@ frappe.ui.form.Form = class FrappeForm {
 		});
 
 		d.show();
->>>>>>> 39d66d2 (Merge pull request #42175 from frappe/background-linked-docs-processing)
 	}
 
 	amend_doc() {

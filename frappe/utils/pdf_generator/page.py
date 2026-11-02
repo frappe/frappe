@@ -12,6 +12,53 @@ https://chromedevtools.github.io/devtools-protocol/
 """
 
 
+def read_local_resource(url: str) -> tuple[str, str | None] | None:
+	"""Return the base64 body and Content-Type of a site URL the session user may
+	read from disk, else None."""
+	import os
+
+	parsed = urllib.parse.urlparse(url)
+	clean_path = urllib.parse.unquote(parsed.path).lstrip("/")
+	query_params = urllib.parse.parse_qs(parsed.query)
+
+	bench_sites = os.path.abspath(os.path.join(frappe.utils.get_bench_path(), "sites"))
+	asset_path = os.path.abspath(os.path.join(bench_sites, "assets"))
+	site_public_root = os.path.realpath(frappe.utils.get_site_path("public"))
+	site_private_files_root = os.path.realpath(frappe.utils.get_site_path("private/files"))
+
+	if clean_path.startswith("assets/"):
+		final_system_path = os.path.abspath(os.path.join(bench_sites, clean_path))
+		is_safe = os.path.commonpath([final_system_path, asset_path]) == asset_path
+	elif clean_path.startswith("private/files/"):
+		can_read = False
+		if frappe.session.user == "Administrator":
+			can_read = True
+		elif frappe.session.user != "Guest":
+			fid: str | None = query_params.get("fid", [None])[0]
+			if find_file_by_url("/" + clean_path, name=fid):
+				can_read = True
+
+		file_path = clean_path.removeprefix("private/files/")
+		final_system_path = os.path.realpath(os.path.join(site_private_files_root, file_path))
+		is_safe = can_read and (
+			os.path.commonpath([final_system_path, site_private_files_root]) == site_private_files_root
+		)
+	else:
+		# Covers files/, builder_assets/, etc... under public root.
+		final_system_path = os.path.realpath(os.path.join(site_public_root, clean_path))
+		is_safe = os.path.commonpath([final_system_path, site_public_root]) == site_public_root
+
+	if is_safe and os.path.isfile(final_system_path):
+		if content := frappe.read_file(final_system_path, as_base64=True):
+			return content, "image/svg+xml" if clean_path.endswith(".svg") else None
+	elif clean_path:
+		frappe.log_error(
+			title="Attempted Unauthorized File Access in PDF Generator",
+			message=f"Blocked access to: {clean_path} \nResolved Path to: {final_system_path}",
+		)
+	return None
+
+
 class Page:
 	def __init__(self, session, browser_context_id, page_type):
 		self.session = session
@@ -102,11 +149,11 @@ class Page:
 		)
 
 		# Enable request interception for the specified URL pattern
-		self.session.send("Fetch.enable", {"patterns": [{"urlPattern": url_pattern}]})
+		self.send("Fetch.enable", {"patterns": [{"urlPattern": url_pattern}]})
 
 		def intercept_and_fulfill():
 			self.session.wait_for_event(event)
-			self.session.send(
+			self.send(
 				"Fetch.fulfillRequest",
 				{"requestId": event[1].result(), "responseCode": 200},
 				return_future=True,
@@ -117,14 +164,7 @@ class Page:
 
 	def intercept_request_for_local_resources(self, url_pattern="*"):
 		"""Starts intercepting network requests for the given target_id and URL pattern."""
-		import os
-
 		data = {}
-
-		bench_sites = os.path.abspath(os.path.join(frappe.utils.get_bench_path(), "sites"))
-		asset_path = os.path.abspath(os.path.join(bench_sites, "assets"))
-		site_public_root = os.path.realpath(frappe.utils.get_site_path("public"))
-		site_private_files_root = os.path.realpath(frappe.utils.get_site_path("private/files"))
 
 		def on_request_paused_event(future, response):
 			"""Callback for when a request is paused (intercepted)."""
@@ -134,65 +174,29 @@ class Page:
 				url = params["request"]["url"]
 
 				if isinstance(url, str) and url.startswith(get_host_url()):
-					parsed = urllib.parse.urlparse(url)
-					clean_path = urllib.parse.unquote(parsed.path).lstrip("/")
-					query_params = urllib.parse.parse_qs(parsed.query)
-
-					if clean_path.startswith("assets/"):
-						final_system_path = os.path.abspath(os.path.join(bench_sites, clean_path))
-						is_safe = os.path.commonpath([final_system_path, asset_path]) == asset_path
-					elif clean_path.startswith("private/files/"):
-						can_read = False
-						if frappe.session.user == "Administrator":
-							can_read = True
-						elif frappe.session.user != "Guest":
-							fid: str | None = query_params.get("fid", [None])[0]
-							if find_file_by_url("/" + clean_path, name=fid):
-								can_read = True
-
-						file_path = clean_path.removeprefix("private/files/")
-						final_system_path = os.path.realpath(os.path.join(site_private_files_root, file_path))
-						is_safe = can_read and (
-							os.path.commonpath([final_system_path, site_private_files_root])
-							== site_private_files_root
+					if resource := read_local_resource(url):
+						content, content_type = resource
+						self.send(
+							"Fetch.fulfillRequest",
+							{
+								"requestId": data["request_id"],
+								"responseCode": 200,
+								"responseHeaders": [{"name": "Content-Type", "value": content_type}]
+								if content_type
+								else [],
+								"body": content,
+							},
+							return_future=True,
 						)
-					else:
-						# Covers files/, builder_assets/, etc... under public root.
-						final_system_path = os.path.realpath(os.path.join(site_public_root, clean_path))
-						is_safe = (
-							os.path.commonpath([final_system_path, site_public_root]) == site_public_root
-						)
-
-					if is_safe and os.path.isfile(final_system_path):
-						content = frappe.read_file(final_system_path, as_base64=True)
-						response_headers = []
-						# write logic to handle all file types as required
-						if clean_path.endswith(".svg"):
-							response_headers.append({"name": "Content-Type", "value": "image/svg+xml"})
-						if content:
-							self.session.send(
-								"Fetch.fulfillRequest",
-								{
-									"requestId": data["request_id"],
-									"responseCode": 200,  # actually hande the response code from the request
-									"responseHeaders": response_headers,
-									"body": content,
-								},
-								return_future=True,
-							)
-							return
-					elif clean_path:
-						self.session.send(
+						return
+					elif urllib.parse.urlparse(url).path.lstrip("/"):
+						self.send(
 							"Fetch.failRequest",
 							{"requestId": data["request_id"], "errorReason": "AccessDenied"},
 							return_future=True,
 						)
-						frappe.log_error(
-							title="Attempted Unauthorized File Access in PDF Generator",
-							message=f"Blocked access to: {clean_path} \nResolved Path to: {final_system_path}",
-						)
 						return
-				self.session.send(
+				self.send(
 					"Fetch.continueRequest",
 					{"requestId": data["request_id"]},
 					return_future=True,
@@ -204,7 +208,7 @@ class Page:
 		)
 
 		# Enable request interception for the specified URL pattern
-		self.session.send("Fetch.enable", {"patterns": [{"urlPattern": url_pattern}]})
+		self.send("Fetch.enable", {"patterns": [{"urlPattern": url_pattern}]})
 
 	def set_tab_url(self, url):
 		"""Navigate to a URL and fulfill the request with status code 200."""
@@ -452,7 +456,7 @@ class Page:
 		return PdfReader(BytesIO(pdf_data))
 
 	def close(self):
-		self.session.send("Fetch.disable")
+		self.send("Fetch.disable")
 		_result, error = self.send("Target.closeTarget", {"targetId": self.target_id})
 		if error:
 			raise RuntimeError(f"Error closing target: {error}")

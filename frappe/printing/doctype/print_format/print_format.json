@@ -320,10 +320,10 @@
    "fieldname": "pdf_generator",
    "fieldtype": "Select",
    "label": "PDF Generator",
-   "options": "\nwkhtmltopdf\nchrome\nTypst\nWeasyPrint"
+   "options": "\nwkhtmltopdf\nchrome\nPlutoPrint\nTypst\nWeasyPrint"
   },
   {
-   "depends_on": "eval:!doc.print_format_builder_beta && !doc.raw_printing && (doc.pdf_generator || doc.__onload?.pdf_generator) === 'chrome'",
+   "depends_on": "eval:!doc.print_format_builder_beta && !doc.raw_printing && ['chrome', 'PlutoPrint'].includes(doc.pdf_generator || doc.__onload?.pdf_generator)",
    "description": "Empty uses the size in Print Settings. A receipt size prints one page as tall as the content.",
    "fieldname": "paper_size",
    "fieldtype": "Select",

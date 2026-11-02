@@ -312,7 +312,7 @@ class Browser:
 			not print_format
 			or not print_format.css
 			or uses_beta_renderer(print_format)
-			or (print_format.pdf_generator or resolve_pdf_generator()) != "chrome"
+			or (print_format.pdf_generator or resolve_pdf_generator()) not in ("chrome", "PlutoPrint")
 		):
 			return {}
 		return get_page_rule_margins(print_format.css)

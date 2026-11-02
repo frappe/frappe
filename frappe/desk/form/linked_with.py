@@ -4,19 +4,15 @@
 import hashlib
 import itertools
 import json
-from collections import defaultdict
+from collections import defaultdict, deque
 
 import frappe
 import frappe.desk.form.load
 import frappe.desk.form.meta
 from frappe import _
-<<<<<<< HEAD
-from frappe.model.dynamic_links import get_dynamic_link_map
-=======
 from frappe.model.delete_doc import LinkedDocumentsOverflow, get_dynamic_linked_docs
 from frappe.model.delete_doc import get_linked_docs as get_statically_linked_docs
-from frappe.model.meta import is_single
->>>>>>> 39d66d2 (Merge pull request #42175 from frappe/background-linked-docs-processing)
+from frappe.model.dynamic_links import get_dynamic_link_map
 from frappe.modules import load_doctype_module
 from frappe.utils.scheduler import is_scheduler_inactive
 
@@ -51,10 +47,6 @@ def get_submitted_linked_docs(
 	Past MAX_LINKED_DOCUMENTS_LISTED the result is empty and marked truncated.
 	"""
 
-<<<<<<< HEAD
-	if isinstance(ignore_doctypes_on_cancel_all, str):
-		ignore_doctypes_on_cancel_all = json.loads(ignore_doctypes_on_cancel_all)
-=======
 	frappe.has_permission(doctype, doc=name, throw=True)
 	docs, truncated = collect_cancellation_blockers(
 		doctype, name, ignore_doctypes_on_cancel_all, limit=MAX_LINKED_DOCUMENTS_LISTED
@@ -68,7 +60,6 @@ def collect_cancellation_blockers(
 	"""Walk the submitted linked documents, deepest documents first in the
 	result; past `limit` discovered documents, give up and report truncated."""
 	ignore_doctypes_on_cancel_all = frappe.parse_json(ignore_doctypes_on_cancel_all) or []
->>>>>>> 39d66d2 (Merge pull request #42175 from frappe/background-linked-docs-processing)
 
 	tree = SubmittableDocumentTree(doctype, name)
 	visited_documents = tree.get_all_children(ignore_doctypes_on_cancel_all, limit=limit)
@@ -431,17 +422,6 @@ MAX_SYNCHRONOUS_LINKED_DOCS = 50
 
 
 @frappe.whitelist()
-<<<<<<< HEAD
-def cancel_all_linked_docs(docs: str, ignore_doctypes_on_cancel_all: str | list[str] | None = None):
-	"""Cancel the linked documents, deferring blocked ones so callers need not
-	order them; doctypes in ignore_doctypes_on_cancel_all are skipped."""
-	if ignore_doctypes_on_cancel_all is None:
-		ignore_doctypes_on_cancel_all = []
-
-	docs = json.loads(docs)
-	if isinstance(ignore_doctypes_on_cancel_all, str):
-		ignore_doctypes_on_cancel_all = json.loads(ignore_doctypes_on_cancel_all)
-=======
 def cancel_all_linked_docs(
 	docs: str | list | None = None,
 	ignore_doctypes_on_cancel_all: str | list[str] | None = None,
@@ -461,7 +441,6 @@ def cancel_all_linked_docs(
 		return enqueue_linked_docs_processing(
 			to_cancel, "cancel", root_doctype, root_name, ignore_doctypes_on_cancel_all
 		)
->>>>>>> 39d66d2 (Merge pull request #42175 from frappe/background-linked-docs-processing)
 
 	if root_doctype and root_name:
 		try:
@@ -487,8 +466,6 @@ def cancel_linked_doc(docinfo):
 		doc.cancel()
 
 
-<<<<<<< HEAD
-=======
 def is_cancelled_in_background(doctype):
 	"""Whether the doctype queues its cancellations, as the form's own Cancel honours."""
 	return bool(doctype and frappe.get_meta(doctype).queue_in_background and not is_scheduler_inactive())
@@ -682,7 +659,6 @@ def notify_linked_docs_processed(message):
 	enqueue_create_notification([frappe.session.user], {"type": "Alert", "subject": message})
 
 
->>>>>>> 39d66d2 (Merge pull request #42175 from frappe/background-linked-docs-processing)
 def deduplicated(docs):
 	"""Preserve order, dropping repeated (doctype, name) entries."""
 	seen = set()
@@ -695,11 +671,6 @@ def deduplicated(docs):
 	return unique
 
 
-<<<<<<< HEAD
-def process_linked_docs_in_dependency_order(docs, process, progress_title):
-	"""Run process over docs, deferring a document blocked by a linked document
-	to a later pass, until a full pass makes no progress."""
-=======
 # a document blocked by another one, or by a lock, may go through on a later pass;
 # not a deadlocked one: the database has already rolled the whole transaction back
 DEFERRABLE_ERRORS = (frappe.ValidationError, frappe.PermissionError, frappe.QueryTimeoutError)
@@ -708,10 +679,16 @@ DEFERRABLE_ERRORS = (frappe.ValidationError, frappe.PermissionError, frappe.Quer
 def process_linked_docs_in_dependency_order(docs, process, progress_title=None):
 	"""Run process over docs, deferring blocked ones to later passes until a
 	pass makes no progress, then raise the first blocker's error."""
->>>>>>> 39d66d2 (Merge pull request #42175 from frappe/background-linked-docs-processing)
 	total = len(docs)
 	processed = 0
 	save_point = "process_linked_doc"
+
+	def mark_processed():
+		nonlocal processed
+		processed += 1
+		if progress_title:
+			frappe.publish_progress(percent=processed / total * 100, title=progress_title)
+
 	while docs:
 		deferred = []
 		for doc in docs:
@@ -719,24 +696,20 @@ def process_linked_docs_in_dependency_order(docs, process, progress_title=None):
 			frappe.db.savepoint(save_point)
 			try:
 				process(doc)
-<<<<<<< HEAD
-			except frappe.LinkExistsError:
-				# hooks ran before the link check; undo their writes and side effects
-=======
 			except DEFERRABLE_ERRORS:
 				# hooks ran before the failing check; undo their writes and side effects
->>>>>>> 39d66d2 (Merge pull request #42175 from frappe/background-linked-docs-processing)
 				frappe.db.rollback(save_point=save_point)
 				discard_side_effects_since(side_effect_counts)
 				deferred.append(doc)
 				continue
 			frappe.db.release_savepoint(save_point)
-			processed += 1
-			frappe.publish_progress(percent=processed / total * 100, title=progress_title)
+			mark_processed()
 
 		if len(deferred) == len(docs):
-			# nothing progressed: a document outside the set blocks it; surface the error
+			# surface the blocker's error; a success means the block was transient
 			process(deferred[0])
+			mark_processed()
+			deferred = deferred[1:]
 		docs = deferred
 
 

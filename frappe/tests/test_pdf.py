@@ -197,6 +197,31 @@ class TestPdf(IntegrationTestCase):
 		file = frappe.get_doc("File", {"file_name": f"ToDo_{task_id}.pdf"})
 		self.assertEqual(len(PdfReader(io.BytesIO(file.get_content())).pages), 1)
 
+	def test_pdf_renders_while_another_render_has_a_tab_open(self):
+		from frappe.utils.pdf import get_host_url
+		from frappe.utils.pdf_generator.cdp_connection import CDPSocketClient
+		from frappe.utils.pdf_generator.chrome_pdf_generator import ChromePDFGenerator
+		from frappe.utils.pdf_generator.page import Page
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		generator = ChromePDFGenerator()
+		if not generator._devtools_url:
+			generator._set_devtools_url()
+		self.addCleanup(generator._close_browser)
+		generator.add_browser("other-render")
+		self.addCleanup(generator.remove_browser, "other-render")
+		session = CDPSocketClient(generator._devtools_url)
+		session.connect()
+		self.addCleanup(session.disconnect)
+		context, _error = session.send("Target.createBrowserContext", {"disposeOnDetach": True})
+		page = Page(session, context["browserContextId"], "body")
+		page.set_tab_url(get_host_url())
+		page.wait_for_navigate()
+
+		pdf = pdfgen.get_chrome_pdf(None, "<p>body text</p>", {}, None, pdf_generator="chrome")
+		self.assertIn("body text", PdfReader(io.BytesIO(pdf)).pages[0].extract_text())
+
 	def test_pages_merged_with_header_and_footer_are_compressed(self):
 		self.addCleanup(frappe.set_user, "Administrator")
 		frappe.set_user("test@example.com")

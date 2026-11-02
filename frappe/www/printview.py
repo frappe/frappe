@@ -828,7 +828,7 @@ def get_page_margin(print_format: "PrintFormat" | None = None) -> str:
 	if (
 		not print_format
 		or not print_format.css
-		or (print_format.pdf_generator or resolve_pdf_generator()) != "chrome"
+		or (print_format.pdf_generator or resolve_pdf_generator()) not in ("chrome", "PlutoPrint")
 	):
 		return " ".join(["15mm"] * 4)
 

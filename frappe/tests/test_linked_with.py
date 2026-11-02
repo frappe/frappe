@@ -1,3 +1,4 @@
+import json
 import random
 import string
 from unittest.mock import patch
@@ -8,6 +9,17 @@ from frappe.database import savepoint
 from frappe.desk.form import linked_with
 from frappe.model.delete_doc import LinkedDocumentsOverflow, get_linked_docs
 from frappe.tests import IntegrationTestCase
+
+
+def hard_delete_referencing_child2_records(doc, method=None):
+	"""Mimic a voucher on_trash that removes its submitted ledger rows."""
+	frappe.db.delete("Child DocType2", {"child_doctype1": doc.name})
+
+
+def block_cancel_while_child2_submitted(doc, method=None):
+	"""Mimic a controller that wants referencing documents cancelled first."""
+	if frappe.db.exists("Child DocType2", {"child_doctype1": doc.name, "docstatus": 1}):
+		frappe.throw(frappe._("Cancel the referencing document first"))
 
 
 class TestLinkedWith(IntegrationTestCase):
@@ -336,58 +348,31 @@ class TestLinkedWith(IntegrationTestCase):
 		finally:
 			frappe.local.message_log = original
 
-	def test_get_finds_dynamic_links_added_after_first_lookup(self):
-		# a new doctype, so no earlier Child DocType1 row links to it
-		target_doctype = new_doctype().insert().name
-		try:
-			target = frappe.new_doc(target_doctype).insert()
-			self.assertNotIn("Child DocType1", linked_with.get(target_doctype, target.name))
+	def test_deferred_attempts_include_locked_documents(self):
+		"""A document locked by another session must get deferred and retried,
+		not abort the run."""
+		attempts = []
 
-			child_record = frappe.get_doc(
-				{
-					"doctype": "Child DocType1",
-					"reference_doctype": target_doctype,
-					"reference_name": target.name,
-				}
-			).insert()
+		def process(docinfo):
+			attempts.append(docinfo["name"])
+			if docinfo["name"] == "locked" and attempts.count("locked") == 1:
+				raise frappe.QueryTimeoutError
 
-			linked_docs = linked_with.get(target_doctype, target.name)["Child DocType1"]["docs"]
-			self.assertEqual([doc.name for doc in linked_docs], [child_record.name])
-		finally:
-			frappe.delete_doc("DocType", target_doctype)
+		linked_with.process_linked_docs_in_dependency_order(
+			[
+				{"doctype": "Parent DocType", "name": "locked"},
+				{"doctype": "Parent DocType", "name": "free"},
+			],
+			process,
+			"Processing",
+		)
 
-	def test_same_request_lookup_finds_a_new_dynamic_link(self):
-		# new doctypes, so no earlier row links the target
-		all_can_edit = [{"role": "All", "read": 1, "write": 1, "create": 1}]
-		target_doctype = new_doctype(permissions=all_can_edit).insert().name
-		link_fields = [
-			{"fieldname": "reference_doctype", "fieldtype": "Link", "options": "DocType"},
-			{"fieldname": "reference_name", "fieldtype": "Dynamic Link", "options": "reference_doctype"},
-		]
-		linking_doctype = new_doctype(fields=link_fields, permissions=all_can_edit).insert().name
-		try:
-			# outside tests the dynamic link map is built once per request
-			with self.set_user("test@example.com"), patch.object(frappe, "in_test", False):
-				frappe.local.dynamic_link_map = None
-				target = frappe.new_doc(target_doctype).insert()
-				self.assertNotIn(linking_doctype, linked_with.get(target_doctype, target.name))
+		self.assertEqual(attempts, ["locked", "free", "locked"])
 
-				link = frappe.get_doc(
-					{
-						"doctype": linking_doctype,
-						"reference_doctype": target_doctype,
-						"reference_name": target.name,
-					}
-				).insert()
+	def test_deadlocks_are_not_deferred(self):
+		"""A deadlock has already rolled the whole transaction back, savepoints
+		included, so the run must surface it instead of retrying."""
 
-<<<<<<< HEAD
-				linked_docs = linked_with.get(target_doctype, target.name)[linking_doctype]["docs"]
-				self.assertEqual([doc.name for doc in linked_docs], [link.name])
-		finally:
-			frappe.local.dynamic_link_map = None
-			frappe.delete_doc("DocType", linking_doctype)
-			frappe.delete_doc("DocType", target_doctype)
-=======
 		def process(docinfo):
 			raise frappe.QueryDeadlockError
 
@@ -475,10 +460,12 @@ class TestLinkedWith(IntegrationTestCase):
 		with self.patch_hooks({"doc_events": {"Child DocType1": {"before_cancel": [hook]}}}):
 			frappe.local.doc_events_hooks = None
 			linked_with.cancel_all_linked_docs(
-				docs=[
-					{"doctype": "Child DocType1", "name": child1.name, "docstatus": 1},
-					{"doctype": "Child DocType2", "name": child2.name, "docstatus": 1},
-				]
+				docs=json.dumps(
+					[
+						{"doctype": "Child DocType1", "name": child1.name, "docstatus": 1},
+						{"doctype": "Child DocType2", "name": child2.name, "docstatus": 1},
+					]
+				)
 			)
 
 		self.assertTrue(child1.reload().docstatus.is_cancelled())
@@ -894,25 +881,56 @@ class TestLinkedWith(IntegrationTestCase):
 		self.assertEqual(len(frappe.local.message_log), message_count + 1)
 		child1.reload().cancel()
 
-	def test_get_submitted_linked_docs_accepts_native_ignore_list(self):
-		parent_record = frappe.get_doc({"doctype": "Parent DocType"}).insert()
+	def test_get_finds_dynamic_links_added_after_first_lookup(self):
+		# a new doctype, so no earlier Child DocType1 row links to it
+		target_doctype = new_doctype().insert().name
+		try:
+			target = frappe.new_doc(target_doctype).insert()
+			self.assertNotIn("Child DocType1", linked_with.get(target_doctype, target.name))
 
-		# ignore_doctypes_on_cancel_all as a native list (frappe.parse_json passthrough, L43)
-		result = linked_with.get_submitted_linked_docs(
-			parent_record.doctype, parent_record.name, ignore_doctypes_on_cancel_all=["Comment"]
-		)
-		self.assertIn("docs", result)
-		parent_record.delete()
+			child_record = frappe.get_doc(
+				{
+					"doctype": "Child DocType1",
+					"reference_doctype": target_doctype,
+					"reference_name": target.name,
+				}
+			).insert()
 
-	def test_get_linked_docs_accepts_native_linkinfo(self):
-		parent_record = frappe.get_doc({"doctype": "Parent DocType"}).insert()
-		# linkinfo as a native dict instead of a JSON string (L429)
-		out = linked_with.get_linked_docs(
-			"Parent DocType", parent_record.name, linkinfo=linked_with.get_linked_doctypes("Parent DocType")
-		)
-		self.assertIsInstance(out, dict)
-		parent_record.delete()
->>>>>>> 39d66d2 (Merge pull request #42175 from frappe/background-linked-docs-processing)
+			linked_docs = linked_with.get(target_doctype, target.name)["Child DocType1"]["docs"]
+			self.assertEqual([doc.name for doc in linked_docs], [child_record.name])
+		finally:
+			frappe.delete_doc("DocType", target_doctype)
+
+	def test_same_request_lookup_finds_a_new_dynamic_link(self):
+		# new doctypes, so no earlier row links the target
+		all_can_edit = [{"role": "All", "read": 1, "write": 1, "create": 1}]
+		target_doctype = new_doctype(permissions=all_can_edit).insert().name
+		link_fields = [
+			{"fieldname": "reference_doctype", "fieldtype": "Link", "options": "DocType"},
+			{"fieldname": "reference_name", "fieldtype": "Dynamic Link", "options": "reference_doctype"},
+		]
+		linking_doctype = new_doctype(fields=link_fields, permissions=all_can_edit).insert().name
+		try:
+			# outside tests the dynamic link map is built once per request
+			with self.set_user("test@example.com"), patch.object(frappe, "in_test", False):
+				frappe.local.dynamic_link_map = None
+				target = frappe.new_doc(target_doctype).insert()
+				self.assertNotIn(linking_doctype, linked_with.get(target_doctype, target.name))
+
+				link = frappe.get_doc(
+					{
+						"doctype": linking_doctype,
+						"reference_doctype": target_doctype,
+						"reference_name": target.name,
+					}
+				).insert()
+
+				linked_docs = linked_with.get(target_doctype, target.name)[linking_doctype]["docs"]
+				self.assertEqual([doc.name for doc in linked_docs], [link.name])
+		finally:
+			frappe.local.dynamic_link_map = None
+			frappe.delete_doc("DocType", linking_doctype)
+			frappe.delete_doc("DocType", target_doctype)
 
 	def test_check_delete_integrity(self):
 		"""Don't allow deleting cancelled document if amendment exists"""

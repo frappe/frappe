@@ -296,6 +296,17 @@ def font_family(font: str | None) -> str:
 	return font if font and font != "Default" else DEFAULT_FONT
 
 
+def _font_cache_path(family: str) -> str | None:
+	"""The cache directory for a family once it holds something."""
+	import os
+
+	safe_family = re.sub(r"[^A-Za-z0-9 _-]", "", family).replace(" ", "_")
+	if not safe_family:
+		return None
+	path = os.path.join(frappe.get_site_path("private", "files", "typst_fonts"), safe_family)
+	return path if os.path.isdir(path) and os.listdir(path) else None
+
+
 def ensure_typst_fonts(family: str | None):
 	"""Fetch the format's Google Font as TTFs into the site's font cache.
 
