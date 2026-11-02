@@ -655,6 +655,19 @@ async def test_a_delegation_is_reviewed_and_a_child_is_reviewed_against_its_task
 	assert _of(events, "tool_result")[0]["content"] == "ran it\n\n[subagent_id: c1]"
 
 
+async def test_a_delegation_to_a_missing_subagent_tool_is_not_reviewed(tmp_path, monkeypatch):
+	reviewer = ScriptedModel({})
+	monkeypatch.setattr("flow_harness.agent.loop.get_model", lambda name, **kwargs: reviewer)
+	session, events = _session(tmp_path, approval_mode="auto", tools=["read"], small_model={"model": "mock"})
+	model = MockModel(
+		replies=[AssistantMessage(content=[_spawn("c1", "run true")]), AssistantMessage(content="done")]
+	)
+
+	await _run(session, "go", model)
+	assert not reviewer.requests and not _of(events, "approval_required")
+	assert _of(events, "tool_result")[0]["content"] == "[unknown tool: subagent]"
+
+
 async def test_a_denied_or_cancelled_child_is_an_error_result(tmp_path):
 	for how in ("deny", "cancel"):
 		cwd = tmp_path / how

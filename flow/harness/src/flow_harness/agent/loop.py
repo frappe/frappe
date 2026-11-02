@@ -637,7 +637,7 @@ async def _settle_call(
 
 	# A delegation is reviewed in auto mode though it is not gated: its task text is judged
 	# against the user's words here, and the child then takes that task as its instruction.
-	delegating = _approval_mode(inputs) == "auto" and call.name == subagent.name
+	delegating = _approval_mode(inputs) == "auto" and call.name == subagent.name and call.name in tools
 	if delegating or _needs_confirmation(inputs, call.name, tools):
 		prompt = await _confirmation_prompt(call, tools, inputs)
 		_raise_if_aborted(inputs.abort)
