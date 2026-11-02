@@ -14,8 +14,7 @@ from frappe.utils import sbool
 
 @frappe.whitelist()
 def get_app_boot(app_name: str) -> dict:
-	app = frappe.get_doc("Studio App", app_name)
-	app.check_permission("read")
+	app = frappe.read_doc("Studio App", app_name)
 	return app.get_boot()
 
 

@@ -73,8 +73,7 @@ class EmailTemplate(Document):
 def get_email_template(template_name: str, doc: str | dict[str, Any], sender: str | None = None):
 	"""Return the processed HTML of a email template with the given doc"""
 
-	email_template = frappe.get_doc("Email Template", template_name)
-	email_template.check_permission("read")
+	email_template = frappe.read_doc("Email Template", template_name)
 	return {**email_template.get_formatted_email(doc, sender=sender), "use_html": email_template.use_html}
 
 

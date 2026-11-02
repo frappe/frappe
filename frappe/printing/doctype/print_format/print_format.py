@@ -412,8 +412,7 @@ def create_custom_format(doctype: str, name: str | int, based_on: str = "Standar
 
 	source = None
 	if based_on and based_on != "Standard":
-		source = frappe.get_doc("Print Format", based_on)
-		source.check_permission("read")
+		source = frappe.read_doc("Print Format", based_on)
 		if renders_from_file(source):
 			# "Based On" is fixed to the selected format in the print view, so a
 			# refusal here would be a dead end

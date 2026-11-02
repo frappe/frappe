@@ -69,7 +69,7 @@ def _add(args: dict[str, Any] | None = None, *, ignore_permissions: bool | int =
 			"allocated_to": assign_to,
 		}
 		if not ignore_permissions:
-			frappe.get_doc(args["doctype"], args["name"]).check_permission()
+			frappe.read_doc(args["doctype"], args["name"])
 
 		if frappe.get_all("ToDo", filters=filters):
 			users_with_duplicate_todo.append(assign_to)
@@ -217,7 +217,7 @@ def set_status(doctype, name, todo=None, assign_to=None, status="Cancelled", ign
 	"""remove from todo"""
 
 	if not ignore_permissions:
-		frappe.get_doc(doctype, name).check_permission()
+		frappe.read_doc(doctype, name)
 	try:
 		if not todo:
 			todo = frappe.db.get_value(

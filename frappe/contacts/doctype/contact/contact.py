@@ -345,8 +345,7 @@ def get_default_contact(doctype, name):
 
 @frappe.whitelist()
 def invite_user(contact: str):
-	contact = frappe.get_doc("Contact", contact)
-	contact.check_permission()
+	contact = frappe.read_doc("Contact", contact)
 
 	if not contact.email_id:
 		frappe.throw(_("Please set Email Address"))

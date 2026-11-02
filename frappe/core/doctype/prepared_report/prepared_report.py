@@ -366,9 +366,7 @@ def create_json_gz_file(data, dt, dn, report_name):
 
 @frappe.whitelist()
 def download_attachment(dn: str, format: str):
-	pr = frappe.get_doc("Prepared Report", dn)
-	if not pr.has_permission("read"):
-		frappe.throw(frappe._("Cannot Download Report due to insufficient permissions"))
+	pr = frappe.read_doc("Prepared Report", dn)
 
 	data, file_name = pr.get_prepared_data(with_file_name=True, format=format)
 	frappe.local.response.filename = file_name[:-3]
@@ -416,7 +414,7 @@ def has_permission(doc, user):
 @frappe.whitelist()
 def enqueue_json_to_csv_conversion(prepared_report_name: str):
 	"""Call this to enqueue the conversion in background."""
-	frappe.get_doc("Prepared Report", prepared_report_name).check_permission("read")
+	frappe.read_doc("Prepared Report", prepared_report_name)
 	_enqueue_json_to_csv_conversion(prepared_report_name)
 
 

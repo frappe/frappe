@@ -256,7 +256,7 @@ def get_permlevel_restricted_fieldnames(dt) -> set:
 
 @frappe.whitelist()
 def get_filtered_attachments(dt: str, dn: str | int, filters: str):
-	frappe.get_doc(dt, dn).check_permission("read")
+	frappe.read_doc(dt, dn)
 	filters = frappe.parse_json(filters)
 	if not isinstance(filters, list) or any(
 		not isinstance(filter_row, list)

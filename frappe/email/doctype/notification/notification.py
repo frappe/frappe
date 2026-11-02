@@ -845,8 +845,7 @@ def clear_notification_cache():
 
 @frappe.whitelist()
 def get_documents_for_today(notification: str):
-	notification = frappe.get_doc("Notification", notification)
-	notification.check_permission("read")
+	notification = frappe.read_doc("Notification", notification)
 	return [d.name for d in notification.get_documents_for_today()]
 
 

@@ -36,8 +36,7 @@ COMPONENT_INPUT_FIELDS = ("input_name", "type", "required", "default", "descript
 
 @frappe.whitelist(methods=["POST"])
 def duplicate_page(page_name: str, app_name: str | None):
-	page = frappe.get_doc("Studio Page", page_name)
-	page.check_permission("read")
+	page = frappe.read_doc("Studio Page", page_name)
 	blocks = parse_json(page.draft_blocks or page.blocks) or []
 	return paste_page(app_name or page.studio_app, {**page.get_copy(blocks), "blocks": blocks})
 
