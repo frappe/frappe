@@ -384,7 +384,7 @@ class File(Document):
 		self.validate_empty_folder()
 		self.validate_protected_file()
 		self.validate_not_referenced_in_attach_field()
-		self._delete_file_on_disk()
+		frappe.db.after_commit.add(self._delete_file_on_disk)
 		if not self.is_folder:
 			fieldname = escape_html(self.attached_to_field or "")
 			file_name = escape_html(self.file_name)
