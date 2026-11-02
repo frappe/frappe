@@ -187,13 +187,13 @@
 .navbar.bg-dark {
 	.dropdown-menu {
 		font-size: 0.75rem;
-		background-color: $dark;
+		background-color: $gray-800;
 		border-radius: 0;
 	}
 
 	.nav-link {
 		white-space: nowrap;
-		color: $light;
+		color: $gray-100;
 
 		&:hover {
 			color: $primary;
