@@ -958,6 +958,22 @@ class TestLinkedWith(IntegrationTestCase):
 		)
 		child.reload().cancel()
 
+	def test_background_cancel_ignores_doctypes_from_the_hook(self):
+		parent = frappe.get_doc({"doctype": "Parent DocType"}).insert().submit()
+		child = frappe.get_doc({"doctype": "Child DocType1", "parent_doctype": parent.name}).insert().submit()
+		hooks = {"ignore_doctypes_on_cancel_all": {"Parent DocType": ["Child DocType1"]}}
+
+		with (
+			self.patch_hooks(hooks),
+			patch.object(linked_with, "process_linked_docs_in_dependency_order") as process,
+		):
+			linked_with.cancel_all_linked_docs(root_doctype=parent.doctype, root_name=parent.name)
+
+		self.assertEqual(
+			[(doc.doctype, doc.name) for doc in process.call_args.args[0]], [(parent.doctype, parent.name)]
+		)
+		child.reload().cancel()
+
 	def test_hook_ignore_list_merges_with_the_passed_list_and_all_apps(self):
 		hooks = {"ignore_doctypes_on_cancel_all": {"Parent DocType": ["Comment"], "Other DocType": ["ToDo"]}}
 
