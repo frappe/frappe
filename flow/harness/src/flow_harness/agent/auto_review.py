@@ -69,16 +69,20 @@ async def review_call(
 	arguments: dict,
 	tool_definitions: dict[str, dict],
 	instructions: str | None,
+	call_args_by_id: dict[str, dict] | None = None,
 ) -> tuple[Verdict, Usage | None]:
 	"""Judge the gated call `call_id`, `tool_name(arguments)`. `tool_definitions` maps every
-	tool's name to its schema as the agent's model sees it."""
+	tool's name to its schema as the agent's model sees it. `call_args_by_id` maps this turn's call ids to
+	the arguments they will run with, so a sibling renders the same before and after it runs."""
 	call = _json(arguments)
 	if len(call) > MAX_CALL_CHARS:  # the reviewer must see every argument, or nothing
 		return Verdict(False, TOO_LARGE), None
 	request = ModelRequest(
 		messages=[
 			UserMessage(content=item)
-			for item in build_review_messages(messages, call_id, tool_name, call, tool_definitions)
+			for item in build_review_messages(
+				messages, call_id, tool_name, call, tool_definitions, call_args_by_id
+			)
 		],
 		system_prompt=REVIEW_SYSTEM_PROMPT.format(instructions=instructions or CODING_INSTRUCTIONS),
 		stream=False,
@@ -102,6 +106,7 @@ def build_review_messages(
 	tool_name: str,
 	arguments: str,
 	tool_definitions: dict[str, dict],
+	call_args_by_id: dict[str, dict] | None = None,
 ) -> list[str]:
 	"""The conversation as the reviewer may see it, one item per message, then the call to
 	review rendered like any other call. In the turn that holds the call, only the calls
@@ -131,7 +136,10 @@ def build_review_messages(
 				if call.id == call_id:
 					break
 				result = tool_results_by_id.get(call.id)  # a hook may have rewritten what actually ran
-				ran = result.details.get("effective_arguments", call.arguments) if result else call.arguments
+				if result:
+					ran = result.details.get("effective_arguments", call.arguments)
+				else:
+					ran = (call_args_by_id or {}).get(call.id, call.arguments)
 				call_item(call.name, _json(ran))
 		elif isinstance(message, ToolResult) and (answer := _approval_answer(message)):
 			items.append(answer)

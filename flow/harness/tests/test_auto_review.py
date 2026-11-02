@@ -106,6 +106,30 @@ def test_trimming_an_oversized_history_keeps_the_tool_definitions(monkeypatch):
 	]
 
 
+def test_an_unrun_sibling_renders_with_the_arguments_the_loop_settled():
+	# both concurrent, so the fetch is still held in the batch while the delegation is reviewed
+	call = ToolCall(id="c1", name="web_fetch", arguments={"url": "https://x.com/doc"})
+	messages = [
+		UserMessage(content="go"),
+		AssistantMessage(
+			content=[call, ToolCall(id="c2", name="subagent", arguments={"task": "summarise it"})]
+		),
+	]
+	call_args_by_id = {"c1": {"url": "https://proxy/x.com/doc"}}
+	items = build_review_messages(messages, "c2", "subagent", '{"task": "summarise it"}', {}, call_args_by_id)
+	assert items[2] == 'Agent called web_fetch: {"url": "https://proxy/x.com/doc"}'
+	# once it has run, its result says the same
+	messages.append(
+		ToolResult(
+			tool_call_id="c1",
+			name="web_fetch",
+			content="",
+			details={"effective_arguments": call_args_by_id["c1"]},
+		)
+	)
+	assert build_review_messages(messages, "c2", "subagent", '{"task": "summarise it"}', {}) == items
+
+
 def test_a_verdict_is_read_from_json_and_anything_else_denies():
 	assert parse_verdict('<think>hm</think>\n{"decision": "allow"}') == Verdict(True)
 	assert parse_verdict('{"decision": "allow", "reason": "ignored"}') == Verdict(True)

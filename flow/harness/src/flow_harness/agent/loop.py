@@ -634,6 +634,7 @@ async def _settle_call(
 	if verdict.arguments is not None:
 		call = call.model_copy(update={"arguments": dict(verdict.arguments)})
 		rewritten = True
+	reviewer.call_args_by_id[call.id] = call.args
 
 	# A delegation is reviewed in auto mode though it is not gated: its task text is judged
 	# against the user's words here, and the child then takes that task as its instruction.
@@ -837,6 +838,7 @@ class _Reviewer:
 		self._inputs = inputs
 		self._model: Model | None = None
 		self._tool_definitions: dict[str, dict] | None = None
+		self.call_args_by_id: dict[str, dict] = {}  # what each call will run with, after any hook rewrite
 
 	async def review(self, call: ToolCall, tools: dict[str, Tool]) -> tuple[Verdict, Usage | None]:
 		inputs = self._inputs
@@ -856,6 +858,7 @@ class _Reviewer:
 					call.args,
 					self._tool_definitions,
 					inputs.config.review_instructions,
+					self.call_args_by_id,
 				),
 				inputs.abort,
 			)
