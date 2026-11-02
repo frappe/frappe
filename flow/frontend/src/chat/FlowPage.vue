@@ -203,6 +203,8 @@ const store = createFlowStore(client, {
 });
 provide("flow", store);
 provide("flowPage", page);
+// in the launcher's panel the window's history is the page's around it
+provide("flowBesidePage", inPanel);
 // the agent's read_screen: the panel reads the page beside it and answers for the chat it shows. A
 // tab of its own has no page; it answers late, so a panel on the same chat is heard first
 const STANDALONE_DELAY = 1500;
