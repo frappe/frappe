@@ -276,8 +276,9 @@ frappe.ui.FilterGroup = class {
 				apply(dates);
 			},
 		});
+		frappe.ui.form.add_seconds_slider(picker);
 		// the sliders don't say which is which
-		const units = { hours: __("Hours"), minutes: __("Minutes") };
+		const units = { hours: __("Hours"), minutes: __("Minutes"), seconds: __("Seconds") };
 		$(calendar)
 			.find(".air-datepicker-time--row input")
 			.each((i, input) => input.parentElement.setAttribute("data-label", units[input.name]));

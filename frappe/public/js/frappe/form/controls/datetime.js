@@ -25,6 +25,11 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 		this.datepicker.setViewDate(date);
 	}
 
+	set_datepicker() {
+		super.set_datepicker();
+		frappe.ui.form.add_seconds_slider(this.datepicker);
+	}
+
 	get_start_date() {
 		this.value = this.value == null || this.value == "" ? undefined : this.value;
 		let value = frappe.datetime.convert_to_user_tz(this.value);

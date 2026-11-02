@@ -247,6 +247,62 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 	}
 };
 
+frappe.ui.form.add_seconds_slider = (datepicker) => {
+	const time_format = frappe.boot.sysdefaults?.time_format || "HH:mm:ss";
+	if (!datepicker.opts.timepicker || !time_format.includes("ss")) return;
+
+	let render;
+	const add_slider = () => {
+		const { timepicker } = datepicker;
+		if (!timepicker || timepicker.$el.querySelector('[name="seconds"]')) return;
+
+		const minutes_text = timepicker.$minutesText;
+		const colon = minutes_text.previousElementSibling.cloneNode(true);
+		const seconds_text = minutes_text.cloneNode();
+		minutes_text.after(colon, seconds_text);
+
+		const row = timepicker.$minutes.parentElement.cloneNode(true);
+		const slider = row.querySelector("input");
+		Object.assign(slider, { name: "seconds", min: 0, max: 59, step: 1 });
+		timepicker.$minutes.parentElement.after(row);
+
+		const change_time = () =>
+			datepicker.trigger("changeTime", {
+				hours: timepicker.hours,
+				minutes: timepicker.minutes,
+			});
+		slider.addEventListener("input", () => {
+			const seconds = Number(slider.value);
+			if (!datepicker.lastSelectedDate) change_time();
+			datepicker.lastSelectedDate.setSeconds(seconds);
+			change_time();
+			render(datepicker.lastSelectedDate);
+		});
+		for (const event of ["mousedown", "focus"]) {
+			slider.addEventListener(event, () => (datepicker.timepickerIsActive = true));
+		}
+		slider.addEventListener("blur", () => (datepicker.timepickerIsActive = false));
+		for (const event of ["mouseenter", "mouseleave"]) {
+			slider.addEventListener(event, () => seconds_text.classList.toggle("-focus-"));
+		}
+
+		render = (date) => {
+			const seconds = date ? date.getSeconds() : 0;
+			slider.value = seconds;
+			seconds_text.textContent = String(seconds).padStart(2, "0");
+		};
+		render(datepicker.lastSelectedDate);
+	};
+
+	datepicker.on("changeLastSelectedDate", (date) => render?.(date));
+	const show = datepicker.show.bind(datepicker);
+	datepicker.show = () => {
+		show();
+		add_slider();
+	};
+	add_slider();
+};
+
 let positioned_datepicker;
 document.addEventListener(
 	"scroll",

@@ -31,6 +31,10 @@ frappe.ui.form.ControlTime = class ControlTime extends frappe.ui.form.ControlDat
 			buttons: [this.get_today_button()],
 		};
 	}
+	set_datepicker() {
+		super.set_datepicker();
+		frappe.ui.form.add_seconds_slider(this.datepicker);
+	}
 	get_now_date() {
 		return frappe.datetime.now_time(true);
 	}

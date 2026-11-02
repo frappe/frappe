@@ -49,6 +49,10 @@
 	&.-only-timepicker- {
 		border-top: 1px solid var(--adp-border-color);
 	}
+
+	.air-datepicker-time--row:not(:last-child) {
+		margin-bottom: 4px;
+	}
 }
 
 .air-datepicker-cell {
