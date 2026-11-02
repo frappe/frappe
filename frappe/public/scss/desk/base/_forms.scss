@@ -17,7 +17,7 @@ $form-feedback-icon-inset: calc(0.375em + 0.1875rem);
 		background-color: var(--control-bg);
 		border-color: var(--gray-500);
 		outline: 0;
-		box-shadow: 0 0 0 2px rgba($gray-600, 0.25);
+		box-shadow: $input-focus-box-shadow;
 	}
 
 	&::placeholder {
@@ -51,7 +51,7 @@ select.form-control {
 .form-control-sm {
 	height: calc(1.5em + 0.5rem + 2px);
 	padding: 0.25rem 0.5rem;
-	font-size: 0.75rem;
+	font-size: var(--text-xs);
 	line-height: 1.5;
 	border-radius: var(--radius);
 }

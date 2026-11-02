@@ -1,32 +1,7 @@
-$alert-variants: (
-	"primary": $primary,
-	"secondary": $gray-600,
-	"success": #28a745,
-	"info": #17a2b8,
-	"warning": #ffc107,
-	"danger": $danger,
-	"light": $gray-100,
-	"dark": $gray-800,
-);
-
 .alert {
 	position: relative;
 	padding: 0.75rem 1.25rem;
 	margin-bottom: 1rem;
 	border: 1px solid transparent;
 	border-radius: var(--radius);
-}
-
-@each $name, $color in $alert-variants {
-	$border: mix(#fff, $color, 72%);
-
-	.alert-#{$name} {
-		color: mix(#000, $color, 48%);
-		background-color: mix(#fff, $color, 80%);
-		border-color: $border;
-
-		hr {
-			border-top-color: darken($border, 5%);
-		}
-	}
 }

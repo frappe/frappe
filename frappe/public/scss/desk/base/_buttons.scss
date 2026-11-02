@@ -1,40 +1,4 @@
 $button-shadow: inset 0 1px 0 rgba(#fff, 0.15), 0 1px 1px rgba(#000, 0.075);
-$button-focus-shadow: 0 0 0 2px rgba($gray-600, 0.25);
-
-$button-variants: (
-	"primary": (
-		$primary,
-		#fff,
-	),
-	"secondary": (
-		$gray-600,
-		#fff,
-	),
-	"success": (
-		#28a745,
-		#fff,
-	),
-	"info": (
-		#17a2b8,
-		#fff,
-	),
-	"warning": (
-		#ffc107,
-		$gray-900,
-	),
-	"danger": (
-		$danger,
-		#fff,
-	),
-	"light": (
-		$gray-100,
-		$gray-900,
-	),
-	"dark": (
-		$gray-800,
-		#fff,
-	),
-);
 
 .btn {
 	display: inline-block;
@@ -45,6 +9,7 @@ $button-variants: (
 	background-color: transparent;
 	padding: 0.5rem 1rem;
 	line-height: 1.5;
+	outline: 0;
 	transition: none;
 
 	&:hover {
@@ -55,7 +20,7 @@ $button-variants: (
 	&:focus,
 	&.focus {
 		outline: 0;
-		box-shadow: $button-focus-shadow;
+		box-shadow: $input-focus-box-shadow;
 	}
 
 	&.disabled,
@@ -72,7 +37,7 @@ $button-variants: (
 			box-shadow: var(--shadow-inset);
 
 			&:focus {
-				box-shadow: $button-focus-shadow, var(--shadow-inset);
+				box-shadow: $input-focus-box-shadow, var(--shadow-inset);
 			}
 		}
 	}
@@ -83,12 +48,12 @@ fieldset:disabled a.btn {
 	pointer-events: none;
 }
 
-@each $name, $colors in $button-variants {
-	$color: nth($colors, 1);
-	$text: nth($colors, 2);
+@each $name in primary, secondary, success, info, warning, danger, light {
+	$color: map-get($desk-colors, $name);
+	$text: desk-color-text($name);
 	$ring: 0 0 0 2px rgba(mix($text, $color, 15%), 0.5);
 
-	.btn-#{$name} {
+	.btn-#{if($name == light, default, $name)} {
 		color: $text;
 		background-color: $color;
 		border-color: $color;
@@ -129,45 +94,6 @@ fieldset:disabled a.btn {
 	}
 }
 
-@each $name, $colors in $button-variants {
-	$color: nth($colors, 1);
-	$text: nth($colors, 2);
-	$ring: 0 0 0 2px rgba($color, 0.5);
-
-	.btn-outline-#{$name} {
-		color: $color;
-		border-color: $color;
-
-		&:hover {
-			color: $text;
-			background-color: $color;
-			border-color: $color;
-		}
-
-		&:focus,
-		&.focus {
-			box-shadow: $ring;
-		}
-
-		&.disabled,
-		&:disabled {
-			color: $color;
-			background-color: transparent;
-		}
-
-		&:not(:disabled):not(.disabled):active,
-		&:not(:disabled):not(.disabled).active,
-		.show > &.dropdown-toggle {
-			color: $text;
-			background-color: $color;
-			border-color: $color;
-
-			&:focus {
-				box-shadow: var(--shadow-inset), $ring;
-			}
-		}
-	}
-}
 .btn-link {
 	font-weight: 400;
 	color: var(--text-color);
@@ -187,12 +113,6 @@ fieldset:disabled a.btn {
 		color: $gray-600;
 		pointer-events: none;
 	}
-}
-
-.btn-sm,
-.btn-group-sm > .btn {
-	line-height: 1.5;
-	border-radius: var(--radius);
 }
 
 .btn-block {

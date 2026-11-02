@@ -1,7 +1,7 @@
 @use "sass:math";
 
 $grid-columns: 12;
-$grid-column-breakpoints: xs, sm, md, lg, xl;
+$grid-column-breakpoints: xs, sm, md, lg;
 
 .container {
 	width: 100%;
@@ -41,7 +41,6 @@ $all-columns: ();
 @each $bp in $grid-column-breakpoints {
 	$infix: grid-infix($bp);
 	$all-columns: append($all-columns, ".col#{$infix}", comma);
-	$all-columns: append($all-columns, ".col#{$infix}-auto", comma);
 	@for $i from 1 through $grid-columns {
 		$all-columns: append($all-columns, ".col#{$infix}-#{$i}", comma);
 	}
@@ -64,12 +63,6 @@ $all-columns: ();
 			max-width: 100%;
 		}
 
-		.col#{$infix}-auto {
-			flex: 0 0 auto;
-			width: auto;
-			max-width: 100%;
-		}
-
 		@for $i from 1 through $grid-columns {
 			.col#{$infix}-#{$i} {
 				flex: 0 0 column-width($i);
@@ -78,23 +71,9 @@ $all-columns: ();
 		}
 
 		@if $bp == xs {
-			.order-first {
-				order: -1;
-			}
-
-			.order-last {
-				order: $grid-columns + 1;
-			}
-
-			.order-1 {
-				order: 1;
-			}
-		}
-
-		@for $i from 0 through $grid-columns - 1 {
-			@if not($bp == xs and $i == 0) {
-				.offset#{$infix}-#{$i} {
-					margin-left: if($i == 0, 0, column-width($i));
+			@for $i from 1 through $grid-columns - 1 {
+				.offset-#{$i} {
+					margin-left: column-width($i);
 				}
 			}
 		}

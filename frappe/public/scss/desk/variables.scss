@@ -16,6 +16,21 @@ $border-radius: var(--radius);
 $navbar-height: 48px;
 
 $component-active-color: var(--fg-color);
+
+$desk-colors: (
+	primary: $primary,
+	secondary: $gray-600,
+	success: #28a745,
+	info: #17a2b8,
+	warning: #ffc107,
+	danger: $danger,
+	light: $gray-100,
+	dark: $gray-800,
+);
+
+@function desk-color-text($name) {
+	@return if(index((warning, light), $name), $gray-900, #fff);
+}
 $modal-content-box-shadow-sm-up: 0px 5px 10px rgba(0, 0, 0, 0.100661);
 $modal-md: 575px;
 $modal-sm: 450px;

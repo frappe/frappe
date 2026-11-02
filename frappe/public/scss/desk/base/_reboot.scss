@@ -24,21 +24,8 @@ section {
 	display: block;
 }
 
-body {
-	font-family: var(--font-stack);
-	font-size: 0.875rem;
-	line-height: 1.5;
-	text-align: left;
-}
-
 [tabindex="-1"]:focus:not(:focus-visible) {
 	outline: 0 !important;
-}
-
-hr {
-	box-sizing: content-box;
-	height: 0;
-	overflow: visible;
 }
 
 h1,
@@ -81,7 +68,7 @@ ul ol {
 }
 
 dt {
-	font-weight: 700;
+	font-weight: var(--font-weight-bold);
 }
 
 dd {
@@ -114,16 +101,6 @@ sup {
 	top: -0.5em;
 }
 
-a {
-	text-decoration: none;
-	background-color: transparent;
-
-	&:hover {
-		color: var(--text-color);
-		text-decoration: underline;
-	}
-}
-
 a:not([href]):not([class]) {
 	&,
 	&:hover {
@@ -135,18 +112,11 @@ a:not([href]):not([class]) {
 pre,
 code,
 samp {
-	font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New",
-		monospace;
+	font-family: var(--font-family-monospace);
 }
 
 samp {
 	font-size: 1em;
-}
-
-pre {
-	margin-top: 0;
-	margin-bottom: 1rem;
-	overflow: auto;
 }
 
 figure {
@@ -262,7 +232,7 @@ legend {
 	max-width: 100%;
 	padding: 0;
 	margin-bottom: 0.5rem;
-	font-size: 1.5rem;
+	font-size: var(--text-4xl);
 	line-height: inherit;
 	color: inherit;
 	white-space: normal;

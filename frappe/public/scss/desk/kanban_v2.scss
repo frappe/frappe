@@ -139,7 +139,7 @@
 .kn-drag-stack {
 	position: absolute;
 	inset: 0;
-	background: var(--card-bg, #fff);
+	background: var(--card-bg, var(--white));
 	border: 1px solid var(--outline-gray-2, #e2e2e2);
 	border-radius: var(--card-border-radius, 8px);
 	box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
@@ -205,7 +205,7 @@
 }
 
 .kn-assign-group {
-	--es-ag-ring: var(--card-bg, #fff);
+	--es-ag-ring: var(--card-bg, var(--white));
 }
 .kn-assignee-card {
 	min-width: 180px;

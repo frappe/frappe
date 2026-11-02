@@ -33,21 +33,6 @@
 	}
 }
 
-.dropdown-toggle-split {
-	padding-right: 0.75rem;
-	padding-left: 0.75rem;
-
-	&::after {
-		margin-left: 0;
-	}
-}
-
-.btn-sm + .dropdown-toggle-split,
-.btn-group-sm > .btn + .dropdown-toggle-split {
-	padding-right: 0.375rem;
-	padding-left: 0.375rem;
-}
-
 .btn-group.show .dropdown-toggle {
 	box-shadow: var(--shadow-inset);
 

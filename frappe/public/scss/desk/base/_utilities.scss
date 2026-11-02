@@ -1,28 +1,5 @@
-$utility-colors: (
-	primary: $primary,
-	secondary: $gray-600,
-	success: #28a745,
-	info: #17a2b8,
-	warning: #ffc107,
-	danger: $danger,
-	light: $gray-100,
-	dark: $gray-800,
-);
-
-.align-baseline {
-	vertical-align: baseline !important;
-}
-
-.align-top {
-	vertical-align: top !important;
-}
-
-.align-middle {
-	vertical-align: middle !important;
-}
-
-@each $name, $color in $utility-colors {
-	@if $name != info {
+@each $name, $color in $desk-colors {
+	@if index((light, dark), $name) {
 		.bg-#{$name} {
 			background-color: $color !important;
 		}
@@ -37,51 +14,20 @@ $utility-colors: (
 	}
 }
 
-.bg-white {
-	background-color: var(--white) !important;
-}
-
 .bg-transparent {
 	background-color: transparent !important;
-}
-
-.border-top {
-	border-top: 1px solid var(--border-color) !important;
-}
-
-.border-right {
-	border-right: 1px solid var(--border-color) !important;
 }
 
 .border-bottom {
 	border-bottom: 1px solid var(--border-color) !important;
 }
 
-.border-left {
-	border-left: 1px solid var(--border-color) !important;
+.border-primary {
+	border-color: $primary !important;
 }
 
-@each $name,
-	$color
-		in map-merge(
-			$utility-colors,
-			(
-				"white": #fff,
-			)
-		)
-{
-	.border-#{$name} {
-		border-color: $color !important;
-	}
-}
-
-.rounded-sm,
-.rounded {
+.rounded-sm {
 	border-radius: var(--radius) !important;
-}
-
-.rounded-lg {
-	border-radius: var(--radius-lg) !important;
 }
 
 .clearfix::after {
@@ -104,18 +50,6 @@ $utility-colors: (
 
 .d-inline-flex {
 	display: inline-flex !important;
-}
-
-@include media-breakpoint-up(sm) {
-	.d-sm-block {
-		display: block !important;
-	}
-}
-
-@include media-breakpoint-up(lg) {
-	.d-lg-block {
-		display: block !important;
-	}
 }
 
 .embed-responsive {
@@ -153,32 +87,12 @@ $utility-colors: (
 	flex-direction: row !important;
 }
 
-.flex-column {
-	flex-direction: column !important;
-}
-
-.flex-row-reverse {
-	flex-direction: row-reverse !important;
-}
-
-.flex-wrap {
-	flex-wrap: wrap !important;
-}
-
-.flex-nowrap {
-	flex-wrap: nowrap !important;
-}
-
 .flex-fill {
 	flex: 1 1 auto !important;
 }
 
 .flex-grow-1 {
 	flex-grow: 1 !important;
-}
-
-.flex-shrink-0 {
-	flex-shrink: 0 !important;
 }
 
 .justify-content-end {
@@ -203,29 +117,6 @@ $utility-colors: (
 
 .align-items-baseline {
 	align-items: baseline !important;
-}
-
-.float-left {
-	float: left !important;
-}
-
-.float-right {
-	float: right !important;
-}
-
-.overflow-auto {
-	overflow: auto !important;
-}
-
-.overflow-hidden {
-	overflow: hidden !important;
-}
-
-@supports (position: sticky) {
-	.sticky-top {
-		position: sticky;
-		top: 0;
-	}
 }
 
 .sr-only {
@@ -266,24 +157,12 @@ $utility-colors: (
 	box-shadow: none !important;
 }
 
-.w-75 {
-	width: 75% !important;
-}
-
 .w-100 {
 	width: 100% !important;
 }
 
-.w-auto {
-	width: auto !important;
-}
-
 .h-100 {
 	height: 100% !important;
-}
-
-.h-auto {
-	height: auto !important;
 }
 
 .mw-100 {
@@ -387,10 +266,6 @@ $margin-sides: (
 	@include spacing-class(m, margin, $side, auto, auto);
 }
 
-.text-justify {
-	text-align: justify !important;
-}
-
 .text-wrap {
 	white-space: normal !important;
 }
@@ -413,36 +288,33 @@ $margin-sides: (
 	text-align: right !important;
 }
 
-.text-center {
-	text-align: center !important;
-}
-
 .text-uppercase {
 	text-transform: uppercase !important;
 }
 
 .font-weight-bold {
-	font-weight: 700 !important;
+	font-weight: var(--font-weight-bold) !important;
 }
 
 .text-white {
 	color: var(--white) !important;
 }
 
-@each $name, $color in $utility-colors {
-	.text-#{$name} {
-		color: $color !important;
-	}
+@each $name, $color in $desk-colors {
+	@if not index((primary, info, light), $name) {
+		.text-#{$name} {
+			color: $color !important;
+		}
 
-	a.text-#{$name} {
-		&:hover,
-		&:focus {
-			color: darken($color, 15%) !important;
+		a.text-#{$name} {
+			&:hover,
+			&:focus {
+				color: darken($color, 15%) !important;
+			}
 		}
 	}
 }
 
-.text-body,
 .text-muted {
 	color: var(--text-muted) !important;
 }
@@ -450,12 +322,4 @@ $margin-sides: (
 .text-break {
 	word-break: break-word !important;
 	word-wrap: break-word !important;
-}
-
-.visible {
-	visibility: visible !important;
-}
-
-.invisible {
-	visibility: hidden !important;
 }

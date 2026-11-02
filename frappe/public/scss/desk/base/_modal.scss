@@ -41,7 +41,6 @@ $modal-inner-radius: calc(var(--radius-lg) - 1px);
 .modal-dialog-centered {
 	&::before {
 		display: block;
-		height: calc(100vh - 1rem);
 		height: min-content;
 		content: "";
 	}
@@ -69,7 +68,7 @@ $modal-inner-radius: calc(var(--radius-lg) - 1px);
 	pointer-events: auto;
 	background-color: var(--modal-bg);
 	background-clip: padding-box;
-	border: 1px solid rgba(0, 0, 0, 0.2);
+	border: 1px solid;
 	border-radius: var(--radius-lg);
 	box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.5);
 	outline: 0;
@@ -91,17 +90,9 @@ $modal-inner-radius: calc(var(--radius-lg) - 1px);
 
 .modal-header {
 	display: flex;
-	align-items: flex-start;
 	justify-content: space-between;
-	padding: 1rem 1rem;
-	border-bottom: 1px solid var(--border-color);
 	border-top-left-radius: $modal-inner-radius;
 	border-top-right-radius: $modal-inner-radius;
-
-	.close {
-		padding: 1rem 1rem;
-		margin: -1rem -1rem -1rem auto;
-	}
 }
 
 .modal-title {
@@ -112,22 +103,15 @@ $modal-inner-radius: calc(var(--radius-lg) - 1px);
 .modal-body {
 	position: relative;
 	flex: 1 1 auto;
-	padding: 1rem;
 }
 
 .modal-footer {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
-	justify-content: flex-end;
-	padding: 0.75rem;
 	border-top: 1px solid var(--border-color);
 	border-bottom-right-radius: $modal-inner-radius;
 	border-bottom-left-radius: $modal-inner-radius;
-
-	> * {
-		margin: 0.25rem;
-	}
 }
 
 @include media-breakpoint-up(sm) {
@@ -142,11 +126,6 @@ $modal-inner-radius: calc(var(--radius-lg) - 1px);
 		.modal-content {
 			max-height: calc(100vh - 3.5rem);
 		}
-	}
-
-	.modal-dialog-centered::before {
-		height: calc(100vh - 3.5rem);
-		height: min-content;
 	}
 
 	.modal-content {

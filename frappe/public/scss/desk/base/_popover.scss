@@ -3,38 +3,12 @@ $popover-arrow-height: 0.5rem;
 $popover-arrow-offset: calc(-#{$popover-arrow-height} - 1px);
 
 .popover {
-	position: absolute;
-	top: 0;
-	left: 0;
-	z-index: 1060;
-	display: block;
-	max-width: 276px;
-	font-family: var(--font-stack);
-	font-style: normal;
-	font-weight: 400;
-	line-height: 1.5;
-	text-align: left;
-	text-align: start;
-	text-decoration: none;
-	text-shadow: none;
-	text-transform: none;
-	letter-spacing: normal;
-	word-break: normal;
-	white-space: normal;
-	word-spacing: normal;
-	line-break: auto;
-	font-size: 0.75rem;
-	word-wrap: break-word;
-	background-clip: padding-box;
-	border-radius: $popover-border-radius;
-	box-shadow: $popover-box-shadow;
-
 	.arrow {
 		position: absolute;
 		display: block;
 		width: $popover-arrow-width;
 		height: $popover-arrow-height;
-		margin: 0 $popover-border-radius;
+		margin: 0 var(--radius-lg);
 
 		&::before,
 		&::after {
@@ -79,7 +53,7 @@ $popover-arrow-offset: calc(-#{$popover-arrow-height} - 1px);
 		left: $popover-arrow-offset;
 		width: $popover-arrow-height;
 		height: $popover-arrow-width;
-		margin: $popover-border-radius 0;
+		margin: var(--radius-lg) 0;
 
 		&::before,
 		&::after {
@@ -143,7 +117,7 @@ $popover-arrow-offset: calc(-#{$popover-arrow-height} - 1px);
 		right: $popover-arrow-offset;
 		width: $popover-arrow-height;
 		height: $popover-arrow-width;
-		margin: $popover-border-radius 0;
+		margin: var(--radius-lg) 0;
 
 		&::before,
 		&::after {
@@ -166,10 +140,10 @@ $popover-arrow-offset: calc(-#{$popover-arrow-height} - 1px);
 .popover-header {
 	padding: 0.5rem 0.75rem;
 	margin-bottom: 0;
-	font-size: 0.875rem;
+	font-size: var(--text-base);
 	border-bottom: 1px solid #f2f2f2;
-	border-top-left-radius: $popover-border-radius - 1px;
-	border-top-right-radius: $popover-border-radius - 1px;
+	border-top-left-radius: calc(var(--radius-lg) - 1px);
+	border-top-right-radius: calc(var(--radius-lg) - 1px);
 
 	&:empty {
 		display: none;

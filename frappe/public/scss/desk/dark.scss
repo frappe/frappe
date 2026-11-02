@@ -116,7 +116,7 @@ $check-icon-dark: url("data:image/svg+xml, <svg viewBox='0 0 8 7' fill='none' xm
 		--charts-axis-line-color: var(--subtle-fg);
 
 		--charts-stroke-width: 5px;
-		--charts-dataset-circle-stroke: #ffffff;
+		--charts-dataset-circle-stroke: var(--white);
 		--charts-dataset-circle-stroke-width: var(--charts-stroke-width);
 
 		--charts-tooltip-title: var(--charts-label-color);

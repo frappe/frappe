@@ -1,11 +1,8 @@
 $tooltip-arrow-width: 0.8rem;
 $tooltip-arrow-height: 0.4rem;
 
-.tooltip {
-	position: absolute;
-	z-index: 1070;
-	display: block;
-	margin: 0;
+.tooltip,
+.popover {
 	font-family: var(--font-stack);
 	font-style: normal;
 	font-weight: 400;
@@ -20,8 +17,15 @@ $tooltip-arrow-height: 0.4rem;
 	white-space: normal;
 	word-spacing: normal;
 	line-break: auto;
-	font-size: 0.75rem;
+	font-size: var(--text-xs);
 	word-wrap: break-word;
+}
+
+.tooltip {
+	position: absolute;
+	z-index: 1070;
+	display: block;
+	margin: 0;
 	opacity: 0;
 
 	&.show {
@@ -43,8 +47,7 @@ $tooltip-arrow-height: 0.4rem;
 	}
 }
 
-.bs-tooltip-top,
-.bs-tooltip-auto[x-placement^="top"] {
+.bs-tooltip-top {
 	padding: $tooltip-arrow-height 0;
 
 	.arrow {
@@ -53,13 +56,12 @@ $tooltip-arrow-height: 0.4rem;
 		&::before {
 			top: 0;
 			border-width: $tooltip-arrow-height ($tooltip-arrow-width * 0.5) 0;
-			border-top-color: #000;
+			border-top-color: var(--black);
 		}
 	}
 }
 
-.bs-tooltip-right,
-.bs-tooltip-auto[x-placement^="right"] {
+.bs-tooltip-right {
 	padding: 0 $tooltip-arrow-height;
 
 	.arrow {
@@ -71,13 +73,12 @@ $tooltip-arrow-height: 0.4rem;
 			right: 0;
 			border-width: ($tooltip-arrow-width * 0.5) $tooltip-arrow-height
 				($tooltip-arrow-width * 0.5) 0;
-			border-right-color: #000;
+			border-right-color: var(--black);
 		}
 	}
 }
 
-.bs-tooltip-bottom,
-.bs-tooltip-auto[x-placement^="bottom"] {
+.bs-tooltip-bottom {
 	padding: $tooltip-arrow-height 0;
 
 	.arrow {
@@ -86,13 +87,12 @@ $tooltip-arrow-height: 0.4rem;
 		&::before {
 			bottom: 0;
 			border-width: 0 ($tooltip-arrow-width * 0.5) $tooltip-arrow-height;
-			border-bottom-color: #000;
+			border-bottom-color: var(--black);
 		}
 	}
 }
 
-.bs-tooltip-left,
-.bs-tooltip-auto[x-placement^="left"] {
+.bs-tooltip-left {
 	padding: 0 $tooltip-arrow-height;
 
 	.arrow {
@@ -104,7 +104,7 @@ $tooltip-arrow-height: 0.4rem;
 			left: 0;
 			border-width: ($tooltip-arrow-width * 0.5) 0 ($tooltip-arrow-width * 0.5)
 				$tooltip-arrow-height;
-			border-left-color: #000;
+			border-left-color: var(--black);
 		}
 	}
 }
@@ -114,6 +114,6 @@ $tooltip-arrow-height: 0.4rem;
 	padding: 0.25rem 0.5rem;
 	color: var(--white);
 	text-align: center;
-	background-color: #000;
+	background-color: var(--black);
 	border-radius: var(--radius);
 }
