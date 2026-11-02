@@ -2800,6 +2800,14 @@ class OverridingController(Document):
 		self.calls.append("touch")
 
 
+class PostOnlyController(Document):
+	"""A controller that whitelists its own `submit` for POST only."""
+
+	@frappe.whitelist(methods=["POST"])
+	def submit(self):
+		return super().submit()
+
+
 class TestSubmitCancelOverrideV2(FrappeAPITestCase):
 	"""`execute_doc_method` runs a subclass override of the whitelisted `Document.submit`/`cancel`."""
 
@@ -2888,13 +2896,25 @@ class TestSubmitCancelOverrideV2(FrappeAPITestCase):
 	def test_submit_needs_the_submit_right(self):
 		response = self.call("submit", sid_of(self.NO_SUBMIT_USER))
 		self.assertEqual(response.status_code, 403, response.json)
+		self.assertEqual(OverridingController.calls, [])
 		self.assertEqual(self.docstatus(), 0)
 
 	def test_cancel_needs_the_cancel_right(self):
 		self.call("submit")
+		OverridingController.calls = []
 		response = self.call("cancel", sid_of(self.NO_SUBMIT_USER))
 		self.assertEqual(response.status_code, 403, response.json)
+		self.assertEqual(OverridingController.calls, [])
 		self.assertEqual(self.docstatus(), 1)
+
+	def test_a_whitelisted_override_keeps_its_own_http_methods(self):
+		with patch.dict(frappe.controllers[frappe.local.site], {self.DOCTYPE: PostOnlyController}):
+			response = self.get(
+				self.resource(self.DOCTYPE, self.doc.name, "method", "submit"), {"sid": self.sid}
+			)
+			self.assertEqual(response.status_code, 403, response.json)
+			self.assertEqual(self.docstatus(), 0)
+			self.assertEqual(self.call("submit").status_code, 200)
 
 
 class TestFieldErrorsEntryV2(FrappeAPITestCase):

@@ -36,7 +36,7 @@ from frappe.model.document import Document
 from frappe.utils.data import is_desk_v2_enabled
 
 SEARCH_PAGE_LENGTH = 10
-OVERRIDABLE_WHITELISTED_METHODS = ("submit", "cancel")
+OVERRIDABLE_METHODS = ("submit", "cancel")
 
 PERMISSION_MAP = {
 	"GET": "read",
@@ -382,15 +382,17 @@ def execute_doc_method(doctype: str, name: str, method: str | None = None):
 def whitelisted_doc_function(doc: Document, method: str):
 	"""Return the function whose whitelist entry covers `method`, or raise.
 
-	An override of `Document.submit`/`cancel` shares the base method's entry, so the override runs.
+	An undecorated override of `Document.submit`/`cancel` shares the base method's entry, so the override runs.
 	"""
-	fn = getattr(getattr(doc, method, None), "__func__", None)
-	if method in OVERRIDABLE_WHITELISTED_METHODS and fn and fn is getattr(type(doc), method):
+	fn = getattr(getattr(doc, method, None), "__func__", None) if method in OVERRIDABLE_METHODS else None
+	if fn and fn is getattr(type(doc), method) and fn not in frappe.whitelisted:
 		base = getattr(Document, method)
 		is_whitelisted(base)
 		app_name = fn.__module__.split(".", 1)[0]
 		if app_name in get_disabled_apps():
 			frappe.throw(_("App {0} is disabled on this site").format(app_name), AppDisabledError)
+		# The override runs before save() checks this right, and ERPNext's locks and queues the document first.
+		doc.check_permission(method)
 		return base
 
 	doc.is_whitelisted(method)
