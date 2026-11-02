@@ -6,7 +6,6 @@ import { errorMessage, reportOnce, type RecordPageApi } from "@/recordPage";
 import { overlayOf } from "@/shell/overlay";
 import { shownInDialog } from "./saveResponse";
 
-// Two clicks mid-save join one save and get one error: it toasts once.
 const toastFailure = reportOnce((exception: unknown) => toast.error(errorMessage(exception)));
 
 /** Not through an action runner: a failed save keeps the draft on screen and toasts, unless a dialog showed it. */
