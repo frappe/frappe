@@ -1,0 +1,20 @@
+.breadcrumb {
+	padding: 8px 15px;
+	margin-bottom: 20px;
+	list-style: none;
+	background-color: #f5f5f5;
+	border-radius: $print-radius;
+
+	> li {
+		display: inline-block;
+
+		+ li:before {
+			padding: 0 5px;
+			color: #ccc;
+			content: "/\00a0";
+		}
+	}
+	> .active {
+		color: $print-gray-light;
+	}
+}

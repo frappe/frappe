@@ -1,0 +1,35 @@
+.pager {
+	padding-left: 0;
+	margin: 20px 0;
+	text-align: center;
+	list-style: none;
+	@extend %clearfix;
+
+	li {
+		display: inline;
+
+		> a,
+		> span {
+			display: inline-block;
+			padding: 5px 14px;
+			background-color: #fff;
+			border: 1px solid #ddd;
+			border-radius: 15px;
+		}
+	}
+	@each $item, $side in (next: right, previous: left) {
+		.#{$item} {
+			> a,
+			> span {
+				float: $side;
+			}
+		}
+	}
+	.disabled {
+		> a,
+		> span {
+			color: $print-gray-light;
+			background-color: #fff;
+		}
+	}
+}

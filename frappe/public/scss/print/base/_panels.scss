@@ -1,59 +1,85 @@
-$panel-variants: (
+$print-panel-radius: 3px;
+$print-panel-variants: (
 	default: (
 		#ced5db,
 		#333,
 		#f7fafc,
+		#ced5db,
 	),
 	primary: (
-		#5e64ff,
+		$print-primary,
 		#fff,
-		#5e64ff,
+		$print-primary,
+		$print-primary,
 	),
 	success: (
 		rgba(0, 0, 0, 0),
-		#98d85b,
+		print-state(success),
 		transparent,
+		rgba(0, 0, 0, 0),
 	),
 	info: (
 		rgba(0, 0, 0, 0),
-		#935eff,
+		print-state(info),
 		transparent,
+		rgba(0, 0, 0, 0),
 	),
 	warning: (
 		rgba(0, 0, 0, 0),
-		#ffa00a,
+		print-state(warning),
 		transparent,
+		rgba(0, 0, 0, 0),
 	),
 	danger: (
 		rgba(0, 0, 0, 0),
-		#ff5858,
+		print-state(danger),
 		transparent,
+		rgba(0, 0, 0, 0),
 	),
 );
+
+@mixin print-panel-variant($border, $heading-color, $heading-background, $heading-border) {
+	border-color: $border;
+
+	> .panel-heading {
+		color: $heading-color;
+		background-color: $heading-background;
+		border-color: $heading-border;
+
+		+ .panel-collapse > .panel-body {
+			border-top-color: $border;
+		}
+		.badge {
+			color: $heading-background;
+			background-color: $heading-color;
+		}
+	}
+	> .panel-footer + .panel-collapse > .panel-body {
+		border-bottom-color: $border;
+	}
+}
 
 .panel {
 	margin-bottom: 20px;
 	background-color: #fff;
 	border: 1px solid transparent;
-	border-radius: 4px;
+	border-radius: $print-radius;
 	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
 }
-
 .panel-body {
 	padding: 15px;
+	@extend %clearfix;
 }
-
 .panel-heading {
 	padding: 10px 15px;
 	border-bottom: 1px solid transparent;
-	border-top-left-radius: 3px;
-	border-top-right-radius: 3px;
+	border-top-left-radius: $print-panel-radius;
+	border-top-right-radius: $print-panel-radius;
 
 	> .dropdown .dropdown-toggle {
 		color: inherit;
 	}
 }
-
 .panel-title {
 	margin-top: 0;
 	margin-bottom: 0;
@@ -64,133 +90,117 @@ $panel-variants: (
 		color: inherit;
 	}
 }
-
 .panel-footer {
 	padding: 10px 15px;
 	background-color: #f5f5f5;
 	border-top: 1px solid #ddd;
-	border-bottom-right-radius: 3px;
-	border-bottom-left-radius: 3px;
+	border-bottom-right-radius: $print-panel-radius;
+	border-bottom-left-radius: $print-panel-radius;
 }
 
-.panel {
-	> .table,
-	> .table-responsive > .table {
-		margin-bottom: 0;
+.panel > .list-group,
+.panel > .panel-collapse > .list-group {
+	margin-bottom: 0;
 
-		caption {
-			padding-right: 15px;
-			padding-left: 15px;
-		}
+	.list-group-item {
+		border-width: 1px 0;
+		border-radius: 0;
 	}
+	&:first-child .list-group-item:first-child {
+		border-top: 0;
+		border-top-left-radius: $print-panel-radius;
+		border-top-right-radius: $print-panel-radius;
+	}
+	&:last-child .list-group-item:last-child {
+		border-bottom: 0;
+		border-bottom-right-radius: $print-panel-radius;
+		border-bottom-left-radius: $print-panel-radius;
+	}
+}
+.panel-heading + .list-group .list-group-item:first-child {
+	border-top-width: 0;
+}
+.list-group + .panel-footer {
+	border-top-width: 0;
+}
 
-	> .table:first-child,
-	> .table-responsive:first-child > .table:first-child {
-		border-top-left-radius: 3px;
-		border-top-right-radius: 3px;
+.panel > .table,
+.panel > .table-responsive > .table,
+.panel > .panel-collapse > .table {
+	margin-bottom: 0;
 
-		> thead:first-child,
-		> tbody:first-child {
-			> tr:first-child {
-				border-top-left-radius: 3px;
-				border-top-right-radius: 3px;
+	caption {
+		padding-right: 15px;
+		padding-left: 15px;
+	}
+}
+@each $edge, $y, $sections in (first, top, (thead, tbody)), (last, bottom, (tbody, tfoot)) {
+	.panel > .table:#{$edge}-child,
+	.panel > .table-responsive:#{$edge}-child > .table:#{$edge}-child {
+		border-#{$y}-left-radius: $print-panel-radius;
+		border-#{$y}-right-radius: $print-panel-radius;
+
+		@each $section in $sections {
+			> #{$section}:#{$edge}-child > tr:#{$edge}-child {
+				border-#{$y}-left-radius: $print-panel-radius;
+				border-#{$y}-right-radius: $print-panel-radius;
 
 				td:first-child,
 				th:first-child {
-					border-top-left-radius: 3px;
+					border-#{$y}-left-radius: $print-panel-radius;
 				}
-
 				td:last-child,
 				th:last-child {
-					border-top-right-radius: 3px;
+					border-#{$y}-right-radius: $print-panel-radius;
 				}
 			}
 		}
 	}
+}
+.panel > .panel-body + .table,
+.panel > .panel-body + .table-responsive,
+.panel > .table + .panel-body,
+.panel > .table-responsive + .panel-body {
+	border-top: 1px solid $print-border-color;
+}
+.panel > .table > tbody:first-child > tr:first-child {
+	th,
+	td {
+		border-top: 0;
+	}
+}
+.panel > .table-bordered,
+.panel > .table-responsive > .table-bordered {
+	border: 0;
 
-	> .table:last-child,
-	> .table-responsive:last-child > .table:last-child {
-		border-bottom-right-radius: 3px;
-		border-bottom-left-radius: 3px;
-
-		> tbody:last-child,
-		> tfoot:last-child {
-			> tr:last-child {
-				border-bottom-right-radius: 3px;
-				border-bottom-left-radius: 3px;
-
-				td:first-child,
-				th:first-child {
-					border-bottom-left-radius: 3px;
-				}
-
-				td:last-child,
-				th:last-child {
-					border-bottom-right-radius: 3px;
-				}
-			}
+	@include print-table-cells {
+		&:first-child {
+			border-left: 0;
 		}
 	}
-
-	> .panel-body + .table,
-	> .panel-body + .table-responsive,
-	> .table + .panel-body,
-	> .table-responsive + .panel-body {
-		border-top: 1px solid #d1d8dd;
-	}
-
-	> .table > tbody:first-child > tr:first-child {
-		th,
-		td {
-			border-top: 0;
+	@include print-table-cells {
+		&:last-child {
+			border-right: 0;
 		}
 	}
-
-	> .table-bordered,
-	> .table-responsive > .table-bordered {
-		border: 0;
-
-		> thead,
-		> tbody,
-		> tfoot {
-			> tr {
-				> th:first-child,
-				> td:first-child {
-					border-left: 0;
-				}
-
-				> th:last-child,
-				> td:last-child {
-					border-right: 0;
-				}
-			}
-		}
-
-		> thead,
-		> tbody {
-			> tr:first-child {
-				> td,
-				> th {
-					border-bottom: 0;
-				}
-			}
-		}
-
-		> tbody,
-		> tfoot {
-			> tr:last-child {
-				> td,
-				> th {
-					border-bottom: 0;
-				}
-			}
+	> thead > tr:first-child,
+	> tbody > tr:first-child {
+		> td,
+		> th {
+			border-bottom: 0;
 		}
 	}
-
-	> .table-responsive {
-		margin-bottom: 0;
-		border: 0;
+	> tbody > tr:last-child,
+	> tfoot > tr:last-child {
+		> td,
+		> th {
+			border-bottom: 0;
+		}
 	}
+}
+.panel > .table-responsive {
+	margin-bottom: 0;
+	border: 0;
 }
 
 .panel-group {
@@ -198,39 +208,31 @@ $panel-variants: (
 
 	.panel {
 		margin-bottom: 0;
-		border-radius: 4px;
+		border-radius: $print-radius;
 
 		+ .panel {
 			margin-top: 5px;
 		}
 	}
-
 	.panel-heading {
 		border-bottom: 0;
-	}
 
+		+ .panel-collapse > .panel-body,
+		+ .panel-collapse > .list-group {
+			border-top: 1px solid #ddd;
+		}
+	}
 	.panel-footer {
 		border-top: 0;
+
+		+ .panel-collapse .panel-body {
+			border-bottom: 1px solid #ddd;
+		}
 	}
 }
 
-@each $variant, $colors in $panel-variants {
-	$border: nth($colors, 1);
-	$color: nth($colors, 2);
-	$background: nth($colors, 3);
-
+@each $variant, $colors in $print-panel-variants {
 	.panel-#{$variant} {
-		border-color: $border;
-
-		> .panel-heading {
-			color: $color;
-			background-color: $background;
-			border-color: $border;
-
-			.badge {
-				color: $background;
-				background-color: $color;
-			}
-		}
+		@include print-panel-variant($colors...);
 	}
 }

@@ -1,0 +1,22 @@
+.fade {
+	opacity: 0;
+
+	&.in {
+		opacity: 1;
+	}
+}
+.collapse {
+	display: none;
+	visibility: hidden;
+
+	&.in {
+		display: block;
+		visibility: visible;
+	}
+}
+tr.collapse.in {
+	display: table-row;
+}
+tbody.collapse.in {
+	display: table-row-group;
+}

@@ -1,22 +1,45 @@
+@mixin print-table-cells(
+	$sections: (
+		thead,
+		tbody,
+		tfoot,
+	)
+) {
+	@each $section in $sections {
+		> #{$section} > tr > th,
+		> #{$section} > tr > td {
+			@content;
+		}
+	}
+}
+
+table {
+	background-color: transparent;
+}
+caption {
+	padding-top: 8px;
+	padding-bottom: 8px;
+	color: $print-text-muted;
+	text-align: left;
+}
+th {
+	text-align: left;
+}
+
 .table {
 	width: 100%;
 	max-width: 100%;
 	margin-bottom: 20px;
 
-	> thead,
-	> tbody,
-	> tfoot {
-		> tr > th,
-		> tr > td {
-			padding: 8px;
-			line-height: 1.42857143;
-			vertical-align: top;
-			border-top: 1px solid #d1d8dd;
-		}
+	@include print-table-cells {
+		padding: 8px;
+		line-height: $print-line-height;
+		vertical-align: top;
+		border-top: 1px solid $print-border-color;
 	}
 	> thead > tr > th {
 		vertical-align: bottom;
-		border-bottom: 2px solid #d1d8dd;
+		border-bottom: 2px solid $print-border-color;
 	}
 	> caption + thead,
 	> colgroup + thead,
@@ -27,7 +50,7 @@
 		}
 	}
 	> tbody + tbody {
-		border-top: 2px solid #d1d8dd;
+		border-top: 2px solid $print-border-color;
 	}
 	.table {
 		background-color: #fff;
@@ -35,29 +58,18 @@
 }
 
 .table-condensed {
-	> thead,
-	> tbody,
-	> tfoot {
-		> tr > th,
-		> tr > td {
-			padding: 5px;
-		}
+	@include print-table-cells {
+		padding: 5px;
 	}
 }
 
 .table-bordered {
-	border: 1px solid #d1d8dd;
+	border: 1px solid $print-border-color;
 
-	> thead,
-	> tbody,
-	> tfoot {
-		> tr > th,
-		> tr > td {
-			border: 1px solid #d1d8dd;
-		}
+	@include print-table-cells {
+		border: 1px solid $print-border-color;
 	}
-	> thead > tr > th,
-	> thead > tr > td {
+	@include print-table-cells(thead) {
 		border-bottom-width: 2px;
 	}
 }
@@ -66,39 +78,36 @@
 	background-color: #f9f9f9;
 }
 
-.table-hover > tbody > tr:hover {
-	background-color: #f5f5f5;
+table col[class*="col-"] {
+	position: static;
+	display: table-column;
+	float: none;
+}
+table td[class*="col-"],
+table th[class*="col-"] {
+	position: static;
+	display: table-cell;
+	float: none;
 }
 
-@each $state, $background,
-	$hover-background
+@each $state,
+	$background
 		in (
-			active #f5f5f5 #e8e8e8,
-			success transparent rgba(0, 0, 0, 0),
-			info transparent rgba(0, 0, 0, 0),
-			warning transparent rgba(0, 0, 0, 0)
+			active: #f5f5f5,
+			success: transparent,
+			info: transparent,
+			warning: transparent,
+			danger: transparent
 		)
 {
-	.table {
-		> thead,
-		> tbody,
-		> tfoot {
-			> tr > td.#{$state},
-			> tr > th.#{$state},
-			> tr.#{$state} > td,
-			> tr.#{$state} > th {
-				background-color: $background;
-			}
-		}
-	}
-
-	.table-hover > tbody {
-		> tr > td.#{$state}:hover,
-		> tr > th.#{$state}:hover,
-		> tr.#{$state}:hover > td,
-		> tr:hover > .#{$state},
-		> tr.#{$state}:hover > th {
-			background-color: $hover-background;
+	.table > thead,
+	.table > tbody,
+	.table > tfoot {
+		> tr > td.#{$state},
+		> tr > th.#{$state},
+		> tr.#{$state} > td,
+		> tr.#{$state} > th {
+			background-color: $background;
 		}
 	}
 }
@@ -112,39 +121,32 @@
 		width: 100%;
 		margin-bottom: 15px;
 		overflow-y: hidden;
-		border: 1px solid #d1d8dd;
+		border: 1px solid $print-border-color;
 
 		> .table {
 			margin-bottom: 0;
 
-			> thead,
-			> tbody,
-			> tfoot {
-				> tr > th,
-				> tr > td {
-					white-space: nowrap;
-				}
+			@include print-table-cells {
+				white-space: nowrap;
 			}
 		}
 		> .table-bordered {
 			border: 0;
 
-			> thead,
-			> tbody,
-			> tfoot {
-				> tr > th:first-child,
-				> tr > td:first-child {
+			@include print-table-cells {
+				&:first-child {
 					border-left: 0;
 				}
-				> tr > th:last-child,
-				> tr > td:last-child {
+			}
+			@include print-table-cells {
+				&:last-child {
 					border-right: 0;
 				}
 			}
-			> tbody,
-			> tfoot {
-				> tr:last-child > th,
-				> tr:last-child > td {
+			> tbody > tr:last-child,
+			> tfoot > tr:last-child {
+				> th,
+				> td {
 					border-bottom: 0;
 				}
 			}

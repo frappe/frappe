@@ -1,0 +1,28 @@
+body {
+	text-rendering: optimizeLegibility;
+}
+.list-group-item {
+	padding: 8px 15px;
+}
+ul.with-margin li,
+ol.with-margin li {
+	margin: 7px auto;
+}
+.form-control,
+.btn.active {
+	box-shadow: none;
+}
+.navbar-inverse {
+	.form-control {
+		color: #b8c2cb;
+		background-color: #475765;
+		border: 1px solid #475765;
+
+		&::placeholder {
+			color: #b8c2cb;
+		}
+	}
+}
+.navbar-search-icon {
+	color: #b8c2cb;
+}

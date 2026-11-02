@@ -8,109 +8,14 @@
 	border-right: 4px solid transparent;
 	border-left: 4px solid transparent;
 }
-
 .dropdown {
 	position: relative;
 }
-
-.dropdown-toggle:focus {
-	outline: 0;
-}
-
 .dropdown-menu {
-	position: absolute;
-	top: 100%;
-	left: 0;
-	z-index: 1000;
 	display: none;
-	float: left;
-	min-width: 160px;
-	padding: 5px 0;
-	margin: 2px 0 0;
-	font-size: 14px;
-	text-align: left;
-	list-style: none;
-	background-color: #fff;
-	background-clip: padding-box;
-	border: 1px solid #ccc;
-	border: 1px solid rgba(0, 0, 0, 0.15);
-	border-radius: 4px;
-	box-shadow: 0px 0px 1px rgba(0, 0, 0, 0.2), 0px 1px 3px rgba(0, 0, 0, 0.05),
-		0px 10px 24px -3px rgba(0, 0, 0, 0.1);
-
-	&.pull-right {
-		right: 0;
-		left: auto;
-	}
-
-	.divider {
-		height: 1px;
-		margin: 9px 0;
-		overflow: hidden;
-		background-color: #d8dfe5;
-	}
-
-	> li > a {
-		display: block;
-		padding: 3px 20px;
-		clear: both;
-		font-weight: normal;
-		line-height: 1.42857143;
-		color: #333;
-		white-space: nowrap;
-
-		&:hover,
-		&:focus {
-			color: #262626;
-			text-decoration: none;
-			background-color: #f0f4f7;
-		}
-	}
-
-	> .active > a {
-		&,
-		&:hover,
-		&:focus {
-			color: inherit;
-			text-decoration: none;
-			background-color: #f0f4f7;
-			outline: 0;
-		}
-	}
-
-	> .disabled > a {
-		&,
-		&:hover,
-		&:focus {
-			color: #777;
-		}
-
-		&:hover,
-		&:focus {
-			text-decoration: none;
-			cursor: not-allowed;
-			background-color: transparent;
-			background-image: none;
-		}
-	}
 }
-
-.open {
-	> .dropdown-menu {
-		display: block;
-	}
-
-	> a {
-		outline: 0;
-	}
-}
-
-.dropdown-menu-right {
-	right: 0;
-	left: auto;
-}
-
-.pull-right > .dropdown-menu {
-	right: 0;
-	left: auto;
+.dropup .caret {
+	content: "";
+	border-top: 0;
+	border-bottom: 4px solid;
 }

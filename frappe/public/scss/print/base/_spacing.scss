@@ -14,43 +14,34 @@ $spacing-sides: (
 	),
 );
 
-@mixin spacing($abbr, $property, $side, $size, $value, $infix: "") {
-	.#{$abbr}#{$side}#{$infix}-#{$size} {
-		@if map-get($spacing-sides, $side) {
-			@each $edge in map-get($spacing-sides, $side) {
-				#{$property}-#{$edge}: $value !important;
+@mixin spacing($abbr, $property, $size, $value, $infix) {
+	@each $side, $edges in $spacing-sides {
+		.#{$abbr}#{$side}#{$infix}-#{$size} {
+			@if $edges {
+				@each $edge in $edges {
+					#{$property}-#{$edge}: $value !important;
+				}
+			} @else {
+				#{$property}: $value !important;
 			}
-		} @else {
-			#{$property}: $value !important;
 		}
 	}
 }
 
-@each $size, $length in $spacers {
-	@each $side, $edges in $spacing-sides {
-		@include spacing(m, margin, $side, $size, $length);
-	}
-	@each $side, $edges in $spacing-sides {
-		@include spacing(p, padding, $side, $size, $length);
-	}
-}
+@each $breakpoint in map-keys($grid-breakpoints) {
+	@include media-breakpoint-up($breakpoint) {
+		$infix: if(breakpoint-min($breakpoint), "-#{$breakpoint}", "");
 
-@each $size, $length in $spacers {
-	@if $size != 0 {
-		@each $side, $edges in $spacing-sides {
-			@include spacing(m, margin, $side, n#{$size}, -$length);
+		@each $abbr, $property in (m: margin, p: padding) {
+			@each $size, $length in $spacers {
+				@include spacing($abbr, $property, $size, $length, $infix);
+			}
 		}
-	}
-}
-
-@each $side, $edges in $spacing-sides {
-	@include spacing(m, margin, $side, auto, auto);
-}
-
-@media (min-width: 768px) {
-	@each $abbr, $property, $side,
-		$size in (m margin b 3, m margin b 4, m margin b 8, m margin x 0, p padding "" 4)
-	{
-		@include spacing($abbr, $property, $side, $size, map-get($spacers, $size), -md);
+		@each $size, $length in $spacers {
+			@if $size != 0 {
+				@include spacing(m, margin, n#{$size}, -$length, $infix);
+			}
+		}
+		@include spacing(m, margin, auto, auto, $infix);
 	}
 }

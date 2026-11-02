@@ -1,14 +1,12 @@
-@use "sass:list";
-
-$visibility-breakpoints: (
+$print-visibility-queries: (
 	xs: "(max-width: 767px)",
 	sm: "(min-width: 768px) and (max-width: 991px)",
 	md: "(min-width: 992px) and (max-width: 1199px)",
 	lg: "(min-width: 1200px)",
 );
-$visibility-displays: block, inline, inline-block;
+$print-visibility-displays: block, inline, inline-block;
 
-@mixin visible($class) {
+@mixin print-visible($class) {
 	.#{$class} {
 		display: block !important;
 	}
@@ -24,34 +22,31 @@ $visibility-displays: block, inline, inline-block;
 	}
 }
 
-$visible: ();
-$visible-displays: ();
-@each $size, $query in $visibility-breakpoints {
-	$visible: list.append($visible, ".visible-#{$size}", comma);
-	@each $display in $visibility-displays {
-		$visible-displays: list.append($visible-displays, ".visible-#{$size}-#{$display}", comma);
+@each $size, $query in $print-visibility-queries {
+	.visible-#{$size} {
+		display: none !important;
 	}
 }
-
-#{$visible},
-#{$visible-displays} {
-	display: none !important;
+@each $size, $query in $print-visibility-queries {
+	@each $display in $print-visibility-displays {
+		.visible-#{$size}-#{$display} {
+			display: none !important;
+		}
+	}
 }
+@each $size, $query in $print-visibility-queries {
+	@media #{unquote($query)} {
+		@include print-visible(visible-#{$size});
 
-@each $size, $query in $visibility-breakpoints {
-	@media #{$query} {
-		@include visible(visible-#{$size});
-
-		@each $display in $visibility-displays {
+		@each $display in $print-visibility-displays {
 			.visible-#{$size}-#{$display} {
 				display: $display !important;
 			}
 		}
 	}
 }
-
-@each $size, $query in $visibility-breakpoints {
-	@media #{$query} {
+@each $size, $query in $print-visibility-queries {
+	@media #{unquote($query)} {
 		.hidden-#{$size} {
 			display: none !important;
 		}
@@ -62,10 +57,9 @@ $visible-displays: ();
 	display: none !important;
 }
 @media print {
-	@include visible(visible-print);
+	@include print-visible(visible-print);
 }
-
-@each $display in $visibility-displays {
+@each $display in $print-visibility-displays {
 	.visible-print-#{$display} {
 		display: none !important;
 	}
@@ -75,7 +69,6 @@ $visible-displays: ();
 		}
 	}
 }
-
 @media print {
 	.hidden-print {
 		display: none !important;

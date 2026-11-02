@@ -45,11 +45,13 @@ $print-grid-columns: 12;
 	}
 }
 
-.container {
+.container,
+.container-fluid {
 	padding-right: 15px;
 	padding-left: 15px;
 	margin-right: auto;
 	margin-left: auto;
+	@extend %clearfix;
 }
 @each $size, $width in $print-container-widths {
 	@media (min-width: map-get($print-grid-breakpoints, $size)) {
@@ -58,15 +60,10 @@ $print-grid-columns: 12;
 		}
 	}
 }
-.container-fluid {
-	padding-right: 15px;
-	padding-left: 15px;
-	margin-right: auto;
-	margin-left: auto;
-}
 .row {
 	margin-right: -15px;
 	margin-left: -15px;
+	@extend %clearfix;
 }
 
 $all-columns: ();
@@ -89,53 +86,5 @@ $all-columns: ();
 		@media (min-width: $min) {
 			@include grid-columns-for($size);
 		}
-	}
-}
-
-.container,
-.container-fluid {
-	> .navbar-header,
-	> .navbar-collapse {
-		margin-right: -15px;
-		margin-left: -15px;
-	}
-}
-@media (min-width: 768px) {
-	.container,
-	.container-fluid {
-		> .navbar-header,
-		> .navbar-collapse {
-			margin-right: 0;
-			margin-left: 0;
-		}
-	}
-}
-
-.container,
-.container-fluid {
-	.jumbotron {
-		border-radius: 6px;
-	}
-}
-@media screen and (min-width: 768px) {
-	.container,
-	.container-fluid {
-		.jumbotron {
-			padding-right: 60px;
-			padding-left: 60px;
-		}
-	}
-}
-
-.container,
-.container-fluid,
-.row {
-	&:before,
-	&:after {
-		display: table;
-		content: " ";
-	}
-	&:after {
-		clear: both;
 	}
 }

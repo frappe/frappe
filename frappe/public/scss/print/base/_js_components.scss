@@ -1,0 +1,16 @@
+.modal,
+.popover {
+	display: none;
+}
+.tooltip {
+	position: absolute;
+	opacity: 0;
+}
+.carousel-inner {
+	> .item {
+		display: none;
+	}
+	> .active {
+		display: block;
+	}
+}
