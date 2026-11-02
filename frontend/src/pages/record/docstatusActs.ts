@@ -1,6 +1,5 @@
 // `header.submit` and `header.cancel`: when each shows, the confirm before it and the call it sends.
 import { getDocument, runDocumentMethod, runMethod } from "@framework/ui/api";
-import type { RealtimeSocket } from "@framework/ui/socket";
 import { __ } from "@/i18n";
 import { errorMessage, type HeaderItem, type RecordPageApi } from "@/recordPage";
 import { stripTags } from "./saveResponse";
@@ -186,25 +185,6 @@ export function queuedMessage(act: DocstatusAct): string {
   return act === "submit"
     ? __("Queued for Submit. The record reloads when it is done.")
     : __("Queued for Cancel. The record reloads when it is done.");
-}
-
-/** Calls `onDone` at the record's next `doc_update`, which the queued job's save publishes; returns a stop. */
-export function whenRecordUpdated(
-  socket: RealtimeSocket | undefined,
-  doctype: string,
-  name: string,
-  onDone: () => void
-): () => void {
-  if (!socket) return () => {};
-  const listener = (...args: unknown[]) => {
-    const event = args[0] as { doctype?: string; name?: string } | undefined;
-    if (event?.doctype !== doctype || event.name !== name) return;
-    stop();
-    onDone();
-  };
-  const stop = () => socket.off("doc_update", listener);
-  socket.on("doc_update", listener);
-  return stop;
 }
 
 async function cancelWithLinks(doctype: string, name: string, docs: LinkedDoc[] | null) {

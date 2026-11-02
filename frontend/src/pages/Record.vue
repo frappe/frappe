@@ -188,13 +188,10 @@ import { amendable, amendItem, amendmentOf } from "./record/amendAct";
 import {
 	confirmDocstatus,
 	docstatusItems,
-	isQueued,
-	queuedMessage,
-	sendDocstatus,
-	whenRecordUpdated,
 	type DocstatusAct,
 	type DocstatusChoice,
 } from "./record/docstatusActs";
+import { DocstatusMover, queueFailureMessage, type QueueFailure } from "./record/queuedDocstatus";
 import { headerMenuBuiltins, quickActionBuiltins } from "./record/builtinActions";
 import { renameRecord } from "./record/renameAct";
 import { statusItems } from "./record/recordStatus";
@@ -581,7 +578,7 @@ function reloadDocinfo(): Promise<void> {
 }
 
 // Only the route's load may paint from memory: a reload, a conflict or a failed action reads the server.
-async function load({ fromMemory = false } = {}) {
+async function load({ fromMemory = false, keepWatch = false } = {}) {
 	feeds.endKeptRead();
 	releaseFresh();
 	if (!doctype.value) {
@@ -589,7 +586,7 @@ async function load({ fromMemory = false } = {}) {
 		return;
 	}
 	currentVisit = currentVisit.next();
-	stopQueuedWait();
+	if (!keepWatch) docstatusMover.stop();
 	const target = { doctype: doctype.value, name: docname.value };
 	const pointed = feeds.pointerOnOpen(target.doctype, target.name, route.query);
 	// Read before this load writes a view of its own.
@@ -932,52 +929,35 @@ function runDocstatus(act: DocstatusAct) {
 	return controller.value![act]();
 }
 
-let stopQueuedWait = () => {};
+const docstatusMover = new DocstatusMover({
+	socket,
+	queueing: () => !!meta.value?.queue_in_background,
+	isDirty: () => dirty.value,
+	load: async () => (await load({ keepWatch: true }), saved.value),
+	take: takeWritten,
+	fire: (event) => controller.value!.fireEvent(event),
+	info: (message) => toast.info(message),
+	failed: reportQueueFailure,
+	error: (e) => toast.error(errorMessage(e)),
+});
 
-// An unsaved edit is kept, and a reload that finds the record unmoved (another save) waits again.
-function waitForQueued(act: DocstatusAct, doctype: string, name: string) {
-	stopQueuedWait();
-	stopQueuedWait = whenRecordUpdated(socket, doctype, name, async () => {
-		if (dirty.value) return;
-		await load();
-		if (isQueued(saved.value, act)) waitForQueued(act, doctype, name);
+function reportQueueFailure(act: DocstatusAct, failure: QueueFailure) {
+	toast.error(queueFailureMessage(act, failure), {
+		action: {
+			label: __("Open"),
+			onClick: () => router.push(routeFor("Submission Queue", failure.name)),
+		},
 	});
 }
 
 // What the person agreed to in the confirm that opened this Submit or Cancel.
 let docstatusChoice: DocstatusChoice | null = null;
 
-async function moveDocstatus(act: DocstatusAct) {
-	const visit = currentVisit;
+function moveDocstatus(act: DocstatusAct) {
 	const page = controller.value!.page;
 	const choice = docstatusChoice ?? undefined;
 	docstatusChoice = null;
-	// Cancel all queues the root itself, so it never goes through the Submission Queue.
-	const queueing = !!meta.value?.queue_in_background && !choice?.all;
-	// Listen before the request: a fast job can publish its `doc_update` before the answer arrives.
-	if (queueing) waitForQueued(act, page.doctype, page.docname);
-	let document: Record<string, any> | null;
-	try {
-		document = await sendDocstatus(page.doctype, page.docname, act, queueing, choice);
-	} catch (e) {
-		stopQueuedWait();
-		throw e;
-	}
-	if (document === null) {
-		toast.info(
-			__(
-				"The linked records are being cancelled in the background. You will be told when it finishes."
-			)
-		);
-		return { queued: true as const };
-	}
-	if (!visit.current() || !isQueued(document, act)) {
-		stopQueuedWait();
-		if (visit.current()) await takeWritten(document);
-		return;
-	}
-	toast.info(queuedMessage(act));
-	return { queued: true as const };
+	return docstatusMover.move(act, page.doctype, page.docname, choice);
 }
 
 async function write() {
@@ -1103,7 +1083,7 @@ useUnloadGuard(() => dirty.value);
 onUnmounted(() => {
 	stopLanding();
 	currentVisit.end();
-	stopQueuedWait();
+	docstatusMover.stop();
 	controller.value?.leave();
 	live.dispose();
 	feeds.endKeptRead();

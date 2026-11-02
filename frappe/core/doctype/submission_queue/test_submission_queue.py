@@ -3,6 +3,7 @@
 
 import time
 import typing
+from unittest.mock import MagicMock, patch
 
 import frappe
 from frappe.tests import IntegrationTestCase, timeout
@@ -147,3 +148,70 @@ class TestSubmissionQueue(IntegrationTestCase):
 
 		existing.delete(ignore_permissions=True)
 		frappe.db.commit()
+
+
+class TestSubmissionQueueFailure(IntegrationTestCase):
+	def test_failed_job_tells_the_enqueuing_user(self):
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+
+		if not frappe.db.table_exists("Test Submission Queue", cached=False):
+			new_doctype("Test Submission Queue", is_submittable=True, queue_in_background=True).insert()
+
+		record = frappe.get_doc(doctype="Test Submission Queue", some_fieldname="Random").insert()
+		record.submit()
+		record.cancel()
+		row = frappe.get_doc(
+			doctype="Submission Queue",
+			ref_doctype=record.doctype,
+			ref_docname=record.name,
+			status="Queued",
+		)
+		row.db_insert()
+		frappe.db.set_value("Submission Queue", row.name, "owner", "test@example.com", update_modified=False)
+		row.reload()
+		self.addCleanup(lambda: frappe.delete_doc("Submission Queue", row.name, force=True))
+		self.addCleanup(lambda: frappe.delete_doc(record.doctype, record.name, force=True))
+
+		with (
+			patch("frappe.core.doctype.submission_queue.submission_queue.get_current_job") as job,
+			patch("frappe.publish_realtime") as publish,
+		):
+			job.return_value = MagicMock(id="job-1")
+			row.background_submission(record, "Submit")
+
+		self.assertEqual(frappe.db.get_value("Submission Queue", row.name, "status"), "Failed")
+		failure = next(call for call in publish.call_args_list if call.args[0] == "submission_failed")
+		self.assertEqual(failure.kwargs["user"], "test@example.com")
+		self.assertEqual(
+			failure.args[1],
+			{
+				"name": row.name,
+				"ref_doctype": record.doctype,
+				"ref_docname": record.name,
+				"exception": "frappe.exceptions.ValidationError: Cannot edit cancelled document",
+			},
+		)
+
+	def test_finished_job_publishes_no_failure(self):
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+
+		if not frappe.db.table_exists("Test Submission Queue", cached=False):
+			new_doctype("Test Submission Queue", is_submittable=True, queue_in_background=True).insert()
+
+		record = frappe.get_doc(doctype="Test Submission Queue", some_fieldname="Random").insert()
+		row = frappe.get_doc(
+			doctype="Submission Queue", ref_doctype=record.doctype, ref_docname=record.name, status="Queued"
+		)
+		row.db_insert()
+		self.addCleanup(lambda: frappe.delete_doc("Submission Queue", row.name, force=True))
+		self.addCleanup(lambda: frappe.db.delete(record.doctype, {"name": record.name}))
+
+		with (
+			patch("frappe.core.doctype.submission_queue.submission_queue.get_current_job") as job,
+			patch("frappe.publish_realtime") as publish,
+		):
+			job.return_value = MagicMock(id="job-2")
+			row.background_submission(record, "Submit")
+
+		self.assertEqual(frappe.db.get_value("Submission Queue", row.name, "status"), "Finished")
+		self.assertNotIn("submission_failed", [call.args[0] for call in publish.call_args_list])
