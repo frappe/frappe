@@ -959,7 +959,7 @@ def request_secret(
 	if refusal := secret_field_refusal(doctype, name, fieldname):
 		frappe.throw(refusal, title=_("Not Saved"))
 	# before the saved flag: a chat that showed no box can't take one left by an earlier card
-	if frappe.db.get_value("Flow Session", ctx.session_id, "auto_approve"):
+	if frappe.db.get_value("Flow Session", ctx.session_id, "approval_mode") == "Auto-approve":
 		frappe.throw(
 			_(
 				"This chat approves calls by itself, so it cannot show the password box. Ask the user to switch the chat to Ask for approval, then call this again."

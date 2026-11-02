@@ -462,27 +462,30 @@ class TestSessionEndpoints(ApiCase):
 		self.assertEqual(data["permissions"]["Flow Provider"], [])
 		self.assertEqual(data["permissions"]["Flow Model"], ["read"])
 
-	def test_create_session_names_the_agent_and_keeps_auto_approve(self):
-		data = api.create_session(self.agent.name, model=self.model.name, title=" Hello ", auto_approve="1")
+	def test_create_session_names_the_agent_and_keeps_the_approval_mode(self):
+		data = api.create_session(
+			self.agent.name, model=self.model.name, title=" Hello ", approval_mode="Auto-approve"
+		)
 		self.assertEqual(
 			(
 				data["agent"],
 				data["model"],
 				data["title"],
 				data["source"],
-				data["auto_approve"],
+				data["approval_mode"],
 				data["owner"],
 				data["runs"],
 			),
-			(self.agent.name, self.model.name, "Hello", "Manual", True, "Administrator", []),
+			(self.agent.name, self.model.name, "Hello", "Manual", "Auto-approve", "Administrator", []),
 		)
 		config = self.daemon.configs[data["name"]]
 		self.assertEqual(
-			(config["session_id"], config["title"], config["model"], config["auto_approve"]),
-			(data["name"], "Hello", "openai/gpt-4o-mini", True),
+			(config["session_id"], config["title"], config["model"], config["approval_mode"]),
+			(data["name"], "Hello", "openai/gpt-4o-mini", "auto_approve"),
 		)
 		plain = api.create_session(self.agent.name)
-		self.assertFalse(plain["auto_approve"])
+		self.assertEqual(plain["approval_mode"], "Auto")
+		self.assertEqual(self.daemon.configs[plain["name"]]["approval_mode"], "auto")
 		# no pick: the chat keeps the agent's model it started on, as the flow server does
 		self.assertEqual(frappe.db.get_value("Flow Session", plain["name"], "model"), self.model.name)
 		self.agent.db_set("model", frappe.get_doc(_model_doc(title="Next Agent Model")).insert().name)
@@ -597,7 +600,7 @@ class TestSessionEndpoints(ApiCase):
 			lambda: api.compact(fired),
 			lambda: api.set_model(fired, self.model.name),
 			lambda: api.set_title(fired, "x"),
-			lambda: api.set_auto_approve(fired, 1),
+			lambda: api.set_approval_mode(fired, "Ask"),
 			lambda: api.cleanup_attachments(fired),
 		):
 			with self.assertRaises(frappe.PermissionError):
@@ -991,32 +994,37 @@ class TestSessionEndpoints(ApiCase):
 			api.set_model(name, other.name)
 		self.assertEqual(len([c for c in self.daemon.calls if c[0] == "set_model"]), 3)
 
-	def test_title_and_auto_approve_persist_on_both_sides(self):
+	def test_title_and_approval_mode_persist_on_both_sides(self):
 		name = self.create()
 		self.assertEqual(api.set_title(name, "  Renamed  "), {"title": "Renamed"})
-		self.assertEqual(api.set_auto_approve(name, "1"), {"auto_approve": True})
+		self.assertEqual(api.set_approval_mode(name, "Auto-approve"), {"approval_mode": "Auto-approve"})
 		doc = frappe.get_doc("Flow Session", name)
-		self.assertEqual((doc.title, doc.auto_approve), ("Renamed", 1))
-		self.assertEqual(api.set_auto_approve(name, 0), {"auto_approve": False})
-		self.assertEqual(api.session(name)["auto_approve"], False)
+		self.assertEqual((doc.title, doc.approval_mode), ("Renamed", "Auto-approve"))
+		self.assertEqual(api.set_approval_mode(name, "Ask"), {"approval_mode": "Ask"})
+		self.assertEqual(api.session(name)["approval_mode"], "Ask")
+		self.assertEqual(api.set_approval_mode(name, "Auto"), {"approval_mode": "Auto"})
 		self.assertEqual(
 			[c for c in self.daemon.calls if c[0] == "patch_config"],
 			[
 				("patch_config", name, {"title": "Renamed"}),
-				("patch_config", name, {"auto_approve": True}),
-				("patch_config", name, {"auto_approve": False}),
+				("patch_config", name, {"approval_mode": "auto_approve"}),
+				("patch_config", name, {"approval_mode": "ask"}),
+				("patch_config", name, {"approval_mode": "auto"}),
 			],
 		)
-		self.assertEqual(self.daemon.configs[name]["auto_approve"], False)
+		self.assertEqual(self.daemon.configs[name]["approval_mode"], "auto")
+		with self.assertRaisesRegex(frappe.ValidationError, "Ask, Auto or Auto-approve"):
+			api.set_approval_mode(name, "Maybe")
 
 		# a trigger session always auto-approves
 		fired = frappe.get_doc(
-			{"doctype": "Flow Session", "agent": self.agent.name, "source": "Trigger", "auto_approve": 0}
+			{"doctype": "Flow Session", "agent": self.agent.name, "source": "Trigger", "approval_mode": "Ask"}
 		).insert()
-		self.assertTrue(fired.auto_approve)
-		with self.assertRaisesRegex(frappe.ValidationError, "always auto-approve"):
-			api.set_auto_approve(fired.name, 0)
-		self.assertEqual(api.set_auto_approve(fired.name, 1), {"auto_approve": True})
+		self.assertEqual(fired.approval_mode, "Auto-approve")
+		for mode in ("Ask", "Auto"):
+			with self.assertRaisesRegex(frappe.ValidationError, "always auto-approve"):
+				api.set_approval_mode(fired.name, mode)
+		self.assertEqual(api.set_approval_mode(fired.name, "Auto-approve"), {"approval_mode": "Auto-approve"})
 
 	def test_skills_lists_what_a_user_may_start_in_a_session_or_with_an_agent(self):
 		frappe.get_doc(

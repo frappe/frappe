@@ -81,10 +81,12 @@ class TestNewSession(ServerCase):
 
 	def test_new_session_starts_its_server_twin(self):
 		session = new_session(self.agent, source="Trigger")
-		self.assertEqual((session.title, session.source, session.auto_approve), (None, "Trigger", 1))
+		self.assertEqual(
+			(session.title, session.source, session.approval_mode), (None, "Trigger", "Auto-approve")
+		)
 		# an untitled session is left for the server to title
 		self.assertIsNone(self.daemon.configs[session.name]["title"])
-		self.assertTrue(self.daemon.configs[session.name]["auto_approve"])
+		self.assertEqual(self.daemon.configs[session.name]["approval_mode"], "auto_approve")
 		# outside tests the twin's row is committed before returning, for the server's callbacks
 		with (
 			patch.dict(frappe.flags, {"in_test": False}),
@@ -264,7 +266,7 @@ class TestLiveSession(LiveServerCase):
 		session.sync()
 		self.assertEqual(len(session.messages), 2)
 
-		session.set_auto_approve(True)
+		session.set_approval_mode("Auto-approve")
 		second = self.agent.run("and again", session=session.name)
 		self.assertEqual((second.status, second.input), ("Running", "and again"))
 		self.settle(session, second)
@@ -272,7 +274,7 @@ class TestLiveSession(LiveServerCase):
 			(second.session, second.status, second.input), (session.name, "Completed", "and again")
 		)
 		self.assertEqual(frappe.db.count("Flow Run", {"session": session.name}), 2)
-		self.assertTrue(self.client.get_session(session.name)["config"]["auto_approve"])
+		self.assertEqual(self.client.get_session(session.name)["config"]["approval_mode"], "auto_approve")
 		session.set_title("Renamed")
 		self.assertEqual(self.client.get_session(session.name)["title"], "Renamed")
 		self.assertEqual((session.abort(), session.cancel_pending()), ("idle", "idle"))
