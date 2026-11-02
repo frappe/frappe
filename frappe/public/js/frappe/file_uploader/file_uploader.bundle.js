@@ -35,8 +35,15 @@ class FileUploader {
 			allow_toggle_private = true;
 		}
 
+		const force_private = Boolean(
+			doctype && frappe.get_meta(doctype)?.force_private_attachments
+		);
+		if (force_private) {
+			make_attachments_public = 0;
+		}
+
 		allow_toggle_private = Boolean(
-			allow_toggle_private && frappe.utils.can_upload_public_files()
+			allow_toggle_private && !force_private && frappe.utils.can_upload_public_files()
 		);
 		this.can_toggle_private = allow_toggle_private;
 
@@ -74,6 +81,7 @@ class FileUploader {
 			allow_web_link,
 			allow_take_photo,
 			allow_toggle_private,
+			force_private,
 			allow_toggle_optimize,
 			allow_google_drive,
 			additional_upload_handlers: this.constructor.UploadOptions.map((k) => ({

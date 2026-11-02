@@ -41,6 +41,9 @@
 							@change="emit('toggle_private')"
 						/>{{ __("Private") }}</label
 					>
+					<span v-if="show_private_checkbox && private_hint" class="text-muted small">
+						{{ private_hint }}
+					</span>
 				</div>
 			</div>
 			<div class="file-actions">
@@ -106,6 +109,9 @@ const props = defineProps({
 	},
 	show_private_checkbox: {
 		default: true,
+	},
+	private_hint: {
+		default: null,
 	},
 	allow_toggle_optimize: {
 		default: true,
