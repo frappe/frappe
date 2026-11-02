@@ -1,6 +1,6 @@
 import { reactive, ref, watch } from "vue"
 
-// Under Tailwind's md the frame is narrow: a phone, or a Desk panel's iframe. It shows one pane at
+// Under Tailwind's md the frame is narrow: a phone, or a panel beside a Desk page. It shows one pane at
 // a time, so the sidebar slides over the chat and settings open as pages. A narrow frame worked by
 // a finger is a phone, which drops hover-only buttons and takes swipes and bigger rows.
 const wide = globalThis.matchMedia?.("(min-width: 768px)")
