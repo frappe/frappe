@@ -1024,24 +1024,39 @@ def delete_items():
 	doctype = frappe.form_dict.get("doctype")
 
 	if len(items) > 10:
-		frappe.enqueue("frappe.desk.reportview.delete_bulk", doctype=doctype, items=items, queue="long")
+		frappe.enqueue_task(
+			method="frappe.desk.reportview.delete_bulk",
+			doctype=doctype,
+			items=items,
+			task_name=_("Bulk Deletion"),
+			queue="long",
+			enqueue_after_commit=True,
+		)
 		return None
 
 	return delete_bulk(doctype, items)
 
 
-def delete_bulk(doctype, items, error_logs=None):
+def delete_bulk(doctype, items):
 	"""Delete documents one by one. Returns names that could not be deleted."""
-	if error_logs is None:
-		error_logs = {}
+	error_logs = {}
+	task = frappe.get_current_task()
 	undeleted_items = {}
 	linked_with = {}
+
 	for i, d in enumerate(items):
 		message_count = len(frappe.message_log)
 		try:
 			frappe.flags.in_bulk_delete = True
 			frappe.delete_doc(doctype, d)
-			if len(items) >= 5:
+			if task:
+				task.publish_progress(
+					percent=(i + 1) / len(items) * 100,
+					stage=_("Deleting {0} of {1} ({2} failed)").format(
+						i + 1, len(items), len(undeleted_items)
+					),
+				)
+			elif len(items) >= 5:
 				frappe.publish_realtime(
 					"progress",
 					dict(
@@ -1090,14 +1105,21 @@ def delete_bulk(doctype, items, error_logs=None):
 					else _("An unexpected error occurred. Please contact your System Manager.")
 				]
 			undeleted_items[d] = reasons
-	if undeleted_items and len(items) != len(undeleted_items):
-		frappe.clear_messages()
-		return delete_bulk(doctype, list(undeleted_items), error_logs)
-	elif undeleted_items:
+
+	if undeleted_items:
 		documents_by_reason = {}
 		for name, reasons in undeleted_items.items():
 			for reason in reasons:
 				documents_by_reason.setdefault(reason, []).append(name)
+
+		if task:
+			task.store_result(documents_by_reason)
+			frappe.db.commit()  # nosemgrep: frappe-manual-commit
+			if len(undeleted_items) == len(items):
+				raise frappe.ValidationError(_("Failed to delete {0} documents").format(len(undeleted_items)))
+			raise frappe.PartiallyCompleteError(
+				_("{0} of {1} documents could not be deleted").format(len(undeleted_items), len(items))
+			)
 
 		links = {name: clean_html(get_link_to_form(doctype, name)) for name in undeleted_items}
 		already_shown = set(linked_with)
@@ -1126,11 +1148,12 @@ def delete_bulk(doctype, items, error_logs=None):
 		)
 		return list(undeleted_items)
 
-	frappe.msgprint(
-		_("Deleted {0} records from {1} doctype").format(len(items), doctype),
-		realtime=True,
-		title=_("Bulk Operation Successful"),
-	)
+	if not task:
+		frappe.msgprint(
+			_("Deleted {0} records from {1} doctype").format(len(items), doctype),
+			realtime=True,
+			title=_("Bulk Operation Successful"),
+		)
 	return []
 
 
