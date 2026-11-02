@@ -154,6 +154,26 @@ const widgets = moduleURL(`
 		},
 	}
 	export const Select = { ...text("select"), props: ["modelValue", "options"] }
+	// its trigger, and while open its search box, its options and its footer
+	export const Combobox = {
+		props: ["modelValue", "options", "open", "query", "placeholder", "emptyText"],
+		emits: ["update:modelValue", "update:open", "update:query"],
+		render() {
+			const options = (this.options ?? []).filter((o) => o.label.toLowerCase().includes((this.query ?? "").toLowerCase()))
+			return h("div", { "data-stub": "Combobox" }, [
+				h("div", { onClick: () => this.$emit("update:open", !this.open) }, this.$slots.trigger?.()),
+				...(this.open
+					? [
+							h("input", { placeholder: this.placeholder, value: this.query, onInput: (e) => this.$emit("update:query", e.target.value) }),
+							...options.map((o) =>
+								h("button", { role: "option", "aria-selected": String(o.value === this.modelValue), onClick: () => this.$emit("update:modelValue", o.value) }, o.label)),
+							options.length ? null : h("div", { "data-empty": "" }, this.emptyText),
+							this.$slots.footer?.(),
+						]
+					: []),
+			])
+		},
+	}
 `)
 const components = new Set([
 	"Composer.vue", "ToolStep.vue", "ToolGroup.vue", "ApprovalCard.vue", "MessageList.vue", "ModelButton.vue",
