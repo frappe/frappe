@@ -12,15 +12,20 @@ or restyling a page. For available components, check
 `studio/src/data/components.ts` and `studio/src/data/componentFamilies.ts`.
 Read [ROUTING.md](ROUTING.md) for navigation, redirects, guards or `boot` data.
 
-## Standard vs custom apps
+## Database vs repository apps
 
-| Mode | Where edits live | Page script | Local workflow |
+An app's source files live in one of two places. Both hold the same files in
+the same layout and author the same page scripts, so moving between them is a
+file copy.
+
+| Mode | Where the files live | Compiled by | Local workflow |
 | --- | --- | --- | --- |
-| Custom | Studio documents in the site database | Bare body in `Studio Page.script` | Edit and preview in Studio |
-| Standard | Exported files under a linked Frappe app, synced to Studio documents | Companion `.ts` module with `setup(context)` | Edit files, run `watch-studio`, check `/dev/<app_route>` |
+| Database | `Studio App File` records in the site database | The browser | Edit and preview in Studio, on any site |
+| Repository (`is_standard`) | Exported files under a linked Frappe app | Vite | Edit files, run `watch-studio`, check `/dev/<app_route>` |
 
-Use the mode already set on the `Studio App`. The script forms and editing
-workflows are not interchangeable.
+A database app can import `vue`, `vue-router`, `pinia`, `@vueuse/core`,
+`frappe-ui`, `frappe-ui/list`, `frappe-ui/charts` and its own files — there is
+no npm. Needing anything else is the signal to export the app to a repository.
 
 ## Establish the app
 
@@ -69,17 +74,27 @@ workflows are not interchangeable.
 
 ## Page code and components
 
-- A custom (database-only) page uses a bare script body in
-  `Studio Page.script`: no imports or export. Page resources and variables
-  are already in scope; variables are refs.
-- A standard page uses a sibling `.ts` module with
+- Every page script is a module with
   `export default function setup(context) { ... }`. Import Vue and Frappe UI
   APIs explicitly. `context` supplies page resources, variables, `route`,
-  `router`, `call`, `toast` and `socket` (the app's socket.io connection). Return every state value or handler used by bindings and events;
-  keep state in code rather than Studio variables. Never mix the two script
-  forms.
-- Shared code for a standard app belongs under its Studio app folder and can
-  be imported via `@app/...`.
+  `router`, `call`, `toast` and `socket` (the app's socket.io connection).
+  Return every state value or handler used by bindings and events; keep state
+  in code rather than Studio variables. `setup()` runs outside a component
+  instance, so `onMounted` and the other lifecycle hooks do nothing, and a
+  built app strips the warning that says so. Load data with an auto-fetching
+  `createResource` and return it, so the page paints before the data lands;
+  `await` in setup only when the page cannot render without it, and then
+  declare `watch` and `computed` before the first `await` so the page scope
+  owns them and disposes them on navigation. A database app
+  stores the module in `Studio Page.script`; a repository app in a sibling
+  `.ts` file.
+- Shared code (stores, composables, `.vue` components) lives in the app's own
+  files and is imported via `@app/...`, wherever those files are stored.
+- Tailwind runs at build time. A database app that keeps `build_on_publish`
+  on is built like any other app; one that turns it off renders through the
+  shared Studio renderer, which only carries the classes that stylesheet was
+  built with. Stay close to the classes the editor already uses there, or keep
+  the build on.
 - Tailwind only scans files inside the `studio/` app folder. If the app imports
   code from outside that folder (for example a `shared/` package that the
   Frappe app's frontend also uses), Tailwind classes used in that code will not
@@ -100,19 +115,20 @@ workflows are not interchangeable.
 
 ## Custom Vue components
 
-Standard apps can use their own Vue components as blocks. Reach for one when
+An app can use its own Vue components as blocks. Reach for one when
 built-in components and block compositions can't express the UI cleanly: a
 stateful widget (rating input, drag-and-drop board, canvas or SVG drawing), a
 third-party library, or markup a page would otherwise rebuild from dozens of
 blocks with heavy script glue. Don't use one to restyle something a built-in
 component already does. For reusable layouts made of ordinary blocks, use a
-Studio Component (`studio_components/*.json`) instead. Custom (database-only)
-apps can't use `.vue` files.
+Studio Component (`studio_components/*.json`) instead.
 
-- Put a single-file component at
-  `<frappe_app>/studio/<studio_app>/components/<ComponentName>.vue`. Studio
-  finds any `.vue` file under the Studio app folder, and the file name is the
-  block's `componentName`.
+- Put a single-file component at `components/<ComponentName>.vue` — in the
+  file store for a database app, under `<frappe_app>/studio/<studio_app>/`
+  for a repository app. Studio finds any `.vue` file in the app, and the file
+  name is the block's `componentName`. A database app compiles it in the
+  browser, which has no preprocessors: `<style lang="scss">` and `lang="tsx"`
+  are rejected, plain CSS and `lang="ts"` work.
 - Write it like any vue single-file component. Style
   with Tailwind classes and espresso tokens per [DESIGN.md](DESIGN.md), and
   try to keep one root element (or bind `$attrs` onto it) so block styles apply.
