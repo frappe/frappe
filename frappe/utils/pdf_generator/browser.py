@@ -504,7 +504,8 @@ class Browser:
 			header_with_spacing_top_margin + footer_with_bottom_margin
 		)
 
-		if body_height <= 0:
+		body_margins = 96 * (self.body_page.options["marginTop"] + self.body_page.options["marginBottom"])
+		if body_height - body_margins <= 0:
 			frappe.throw(
 				frappe._(
 					"Header, footer and margins leave no room for content on a {0}px tall page. Reduce their height or use a larger page size."
