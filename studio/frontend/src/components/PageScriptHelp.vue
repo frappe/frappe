@@ -1,31 +1,43 @@
 <template>
 	<div class="text-sm leading-relaxed text-ink-gray-5">
 		<p>
-			Write this page's logic like a Vue
-			<code class="rounded-4 bg-surface-gray-2 px-1 text-xs">&lt;script setup&gt;</code>
-			. Anything you declare is exposed to this page's bindings and events.
+			A page script is a TypeScript module. Import what you use, and return the values and handlers
+			this page's bindings and events need.
 		</p>
 		<ul class="my-2 list-disc space-y-0.5 pl-4">
 			<li>
-				Reactive state with
-				<code class="rounded-4 bg-surface-gray-2 px-1 text-xs">ref</code>
-				/
-				<code class="rounded-4 bg-surface-gray-2 px-1 text-xs">reactive</code>
-				, derived values with
-				<code class="rounded-4 bg-surface-gray-2 px-1 text-xs">computed</code>
-				, side effects with
-				<code class="rounded-4 bg-surface-gray-2 px-1 text-xs">watch</code>
+				Export a default
+				<code class="rounded-4 bg-surface-gray-2 px-1 text-xs">setup(context)</code>
+				function.
+			</li>
+			<li>
+				Import from
+				<code class="rounded-4 bg-surface-gray-2 px-1 text-xs">vue</code>
+				,
+				<code class="rounded-4 bg-surface-gray-2 px-1 text-xs">frappe-ui</code>
+				, or this app's own files with
+				<code class="rounded-4 bg-surface-gray-2 px-1 text-xs">@app/…</code>
 				.
 			</li>
-			<li>Functions to wire to component events (e.g. a button's click).</li>
-			<li>Read this page's variables, data sources and attached modules directly by name.</li>
+			<li>
+				<code class="rounded-4 bg-surface-gray-2 px-1 text-xs">context</code>
+				holds this page's data sources and variables, plus
+				<code class="rounded-4 bg-surface-gray-2 px-1 text-xs">route</code>
+				and
+				<code class="rounded-4 bg-surface-gray-2 px-1 text-xs">router</code>
+				.
+			</li>
+			<li>Only what you return is available to props and events.</li>
 		</ul>
 		<pre class="overflow-x-auto rounded-4 bg-surface-gray-2 p-2 text-xs leading-snug text-ink-gray-7">
-const count = ref(0)
-const doubled = computed(() => count.value * 2)
+import { ref, computed } from "vue"
 
-function increment() {
-  count.value++
+export default function setup(context) {
+  const count = ref(0)
+  const doubled = computed(() => count.value * 2)
+  const rows = computed(() => context.todos.data || [])
+
+  return { count, doubled, rows }
 }</pre
 		>
 		<p class="mt-2">

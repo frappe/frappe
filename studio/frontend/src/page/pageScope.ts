@@ -7,13 +7,14 @@ import { watchDebounced } from "@vueuse/core"
 import { createDocumentResource, createListResource, createResource, call } from "frappe-ui"
 import { studioPageResources } from "@/data/studioResources"
 import { studioVariables } from "@/data/studioVariables"
-import { loadPageScriptModule } from "@/data/studioPageScripts"
+import { hasPageScript, loadPageScriptModule } from "@/data/studioPageScripts"
+import { loadAppPageScriptModule } from "@/runtime/appRuntime"
 import * as globalUtils from "@/utils/globalUtils"
 import { useSocket } from "@/socket"
 import { getInitialVariableValue, getValueFromObject, setValueInObject } from "@/utils/helpers"
 import { isDynamicValue, normalizeDynamicValue } from "@/utils/code"
 import { DYNAMIC_EXPRESSION_CONTENT_REGEX } from "@/utils/constants"
-import { isFunctionExpression, toOptionalChaining, getTopLevelBindings } from "@/utils/parseCode"
+import { isFunctionExpression, toOptionalChaining } from "@/utils/parseCode"
 import type {
 	Filters,
 	Resource,
@@ -377,32 +378,31 @@ export function createPageScope(
 	}
 
 	// PAGE SCRIPT
-	async function setPageScript(page: StudioPage, isStandardPage: boolean = false) {
+	// Every page script is a `setup(context)` module. A build compiles it ahead of time and the
+	// runtime loads it by page name; without one it compiles in the browser from page.script.
+	async function setPageScript(page: StudioPage) {
 		disposePageScriptScope()
 		pageScriptBindings.value = {}
 		pageScriptError.value = null
 		currentPageName.value = page.name
 
-		if (isStandardPage) {
-			pageScriptBindings.value = await loadCodePageScript(page.name)
-			return
+		try {
+			const module = await loadPageSetupModule(page)
+			pageScriptBindings.value = await runPageScriptSetup(module?.default)
+		} catch (error) {
+			reportPageScriptError(error)
 		}
+	}
 
-		// Non-exported app: interpret the page.script field (live, no imports).
-		const source = page.script || ""
-		if (!source.trim()) return
-		const bindingNames = getTopLevelBindings(source)
-		pageScriptBindings.value = compilePageScript(source, bindingNames)
+	async function loadPageSetupModule(page: StudioPage): Promise<Record<string, any> | null> {
+		if (hasPageScript(page.name)) return loadPageScriptModule(page.name)
+		if (!page.script?.trim()) return null
+		return loadAppPageScriptModule(page)
 	}
 
 	function disposePageScriptScope() {
 		pageScriptScope?.stop()
 		pageScriptScope = null
-	}
-
-	async function loadCodePageScript(pageName: string): Promise<Record<string, any>> {
-		const mod = await loadPageScriptModule(pageName)
-		return runPageScriptSetup(mod?.default)
 	}
 
 	// Run a compiled page setup() in a fresh effect scope and return its top-level bindings. Shared
@@ -437,37 +437,6 @@ export function createPageScope(
 			}
 		})
 		return result
-	}
-
-	function compilePageScript(source: string, bindingNames: string[]) {
-		// Run the page script source once, like a Vue `<script setup>`, and return every top-level
-		// binding (refs/reactive/computed/functions/classes). Free identifiers resolve through a
-		// proxy over the LIVE execution context, so the script sees the Vue reactivity APIs and
-		// variables/resources/modules — including ones registered a tick later. The source is
-		// always run (even with no named bindings) so watcher-only scripts still take effect.
-		const liveContext = new Proxy(
-			{},
-			{
-				has(_target, key) {
-					// let globals (console, Function, …) fall through to the outer scope
-					if (key === Symbol.unscopables) return false
-					return key in interpretedScriptContext.value
-				},
-				get(_target, key) {
-					return (interpretedScriptContext.value as Record<string | symbol, any>)[key]
-				},
-			},
-		)
-		return runInPageScriptScope(() => {
-			const factory = new Function(
-				"context",
-				`with (context) {
-					${source}
-					return { ${bindingNames.join(", ")} };
-				}`,
-			)
-			return factory(liveContext)
-		}) || {}
 	}
 
 	function reportPageScriptError(error: unknown) {
@@ -509,14 +478,6 @@ export function createPageScope(
 			socket: useSocket(),
 			route: currentRoute,
 			router: routerObject.value,
-		}
-	})
-
-	// for non-standard pages: scriptContext + vueReactivityApis since it can't import them
-	const interpretedScriptContext = computed(() => {
-		return {
-			...vueReactivityApis,
-			...scriptContext.value,
 		}
 	})
 
@@ -773,7 +734,6 @@ export function createPageScope(
 		// code execution
 		evalContext,
 		scriptContext,
-		interpretedScriptContext,
 		getDynamicValue,
 		evaluateDynamicValues,
 		executeUserScript,

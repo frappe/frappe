@@ -1,6 +1,6 @@
 <template>
-	<!-- Non-exported apps keep their page scripts in the DB. The editor replaces the panel content
-	     and opens directly against the icon rail. -->
+	<!-- A database app keeps its page scripts on the page doc rather than in its file store, so
+	     they open in their own dock against the icon rail instead of in the file explorer. -->
 	<CodeEditorDock
 		:open="true"
 		railLeft
@@ -28,7 +28,7 @@
 				variant="ghost"
 				icon="lucide-x"
 				title="Close editor"
-				@click="store.studioLayout.showLeftPanel = false"
+				@click="store.showPageScriptEditor = false"
 			/>
 		</template>
 
@@ -47,25 +47,29 @@ import { ref, computed, watch } from "vue"
 import { toast, Button, Popover, ErrorMessage } from "frappe-ui"
 import CodeEditorDock from "@/components/CodeEditorDock.vue"
 import PageScriptHelp from "@/components/PageScriptHelp.vue"
-import { getScriptError } from "@/utils/parseCode"
-import { useStudioCompletions } from "@/utils/completions/useStudioCompletions"
+import { checkAppScript } from "@/runtime/appRuntime"
+import { pageScriptCompletions } from "@/utils/completions/pageScriptCompletions"
+import { PAGE_SCRIPT_BOILERPLATE } from "@/utils/constants"
 import { usePageScope } from "@/stores/codeStore"
 import useStudioStore from "@/stores/studioStore"
 
 const store = useStudioStore()
 const pageScope = usePageScope()
-const completions = useStudioCompletions(true, true)
+const completions = pageScriptCompletions
 
 const savedScript = computed(() => store.activePage?.script || "")
 
-const script = ref(savedScript.value)
+// a page authors the module dialect from the first keystroke
+const startingScript = () => savedScript.value || PAGE_SCRIPT_BOILERPLATE
+
+const script = ref(startingScript())
 const saving = ref(false)
 const scriptError = ref<string | null>(null)
 const dirty = computed(() => script.value !== savedScript.value)
 
 // Reset when switching pages.
 watch([() => store.activePage?.name, savedScript], () => {
-	script.value = savedScript.value
+	script.value = startingScript()
 	scriptError.value = null
 })
 
@@ -77,12 +81,12 @@ function onChange(value: string) {
 
 async function saveScript() {
 	// A broken script fails to compile and takes down every binding on the page, so block it.
-	const syntaxError = getScriptError(script.value)
+	const syntaxError = await checkAppScript(script.value)
 	if (syntaxError) {
 		const hint = script.value.includes("{{")
-			? " Scripts are plain JavaScript — use expressions directly, not {{ }} interpolation."
+			? " Scripts are plain TypeScript — use expressions directly, not {{ }} interpolation."
 			: ""
-		scriptError.value = `${syntaxError.message}.${hint}`
+		scriptError.value = `${syntaxError}.${hint}`
 		return
 	}
 	saving.value = true
