@@ -430,6 +430,12 @@ class Browser:
 		self.printable_width = 96 * (
 			updated_options["paperWidth"] - updated_options["marginLeft"] - updated_options["marginRight"]
 		)
+		if self.printable_width < 0:
+			frappe.throw(
+				frappe._(
+					"Margins leave no room for content on a {0}px wide page. Reduce them or use a larger page size."
+				).format(options.get("page-width"))
+			)
 		if self.header_page:
 			self.header_page.set_device_metrics(width=int(self.printable_width))
 			self.header_height = self.header_page.get_element_height()
