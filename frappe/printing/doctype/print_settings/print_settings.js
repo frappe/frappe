@@ -35,7 +35,12 @@ frappe.ui.form.on("Print Settings", {
 			frm.doc.pdf_generator.charAt(0).toUpperCase() + frm.doc.pdf_generator.slice(1);
 		const $headline = frm.dashboard.set_headline(
 			`<div class="flex justify-between align-center">
-				<span>${__("{0} print formats still use wkhtmltopdf.", [count])}</span>
+				<span>${__("{0} still use wkhtmltopdf.", [
+					`<a href="/app/print-format?pdf_generator=wkhtmltopdf">${__(
+						"{0} print formats",
+						[count]
+					)}</a>`,
+				])}</span>
 				<button class="es-button" data-size="sm">
 					<span class="es-button__label">${__("Use {0} for all", [generator])}</span>
 				</button>
