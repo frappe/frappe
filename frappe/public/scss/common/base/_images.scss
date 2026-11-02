@@ -1,0 +1,27 @@
+.img-fluid {
+	@include img-fluid();
+}
+
+.img-thumbnail {
+	padding: $thumbnail-padding;
+	background-color: $thumbnail-bg;
+	border: $thumbnail-border-width solid $thumbnail-border-color;
+	@include border-radius($thumbnail-border-radius);
+	@include box-shadow($thumbnail-box-shadow);
+
+	@include img-fluid();
+}
+
+.figure {
+	display: inline-block;
+}
+
+.figure-img {
+	margin-bottom: $spacer * 0.5;
+	line-height: 1;
+}
+
+.figure-caption {
+	@include font-size($figure-caption-font-size);
+	color: $figure-caption-color;
+}

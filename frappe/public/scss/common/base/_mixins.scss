@@ -1,0 +1,1083 @@
+@mixin font-size($fs, $important: false) {
+	font-size: $fs if($important, !important, null);
+}
+
+@function breakpoint-next(
+	$name,
+	$breakpoints: $grid-breakpoints,
+	$breakpoint-names: map-keys($breakpoints)
+) {
+	$n: index($breakpoint-names, $name);
+	@return if(
+		$n != null and $n < length($breakpoint-names),
+		nth($breakpoint-names, $n + 1),
+		null
+	);
+}
+
+@function breakpoint-min($name, $breakpoints: $grid-breakpoints) {
+	$min: map-get($breakpoints, $name);
+	@return if($min != 0, $min, null);
+}
+
+@function breakpoint-max($name, $breakpoints: $grid-breakpoints) {
+	$next: breakpoint-next($name, $breakpoints);
+	@return if($next, breakpoint-min($next, $breakpoints) - 0.02, null);
+}
+
+@function breakpoint-infix($name, $breakpoints: $grid-breakpoints) {
+	@return if(breakpoint-min($name, $breakpoints) == null, "", "-#{$name}");
+}
+
+@mixin media-breakpoint-up($name, $breakpoints: $grid-breakpoints) {
+	$min: breakpoint-min($name, $breakpoints);
+	@if $min {
+		@media (min-width: $min) {
+			@content;
+		}
+	} @else {
+		@content;
+	}
+}
+
+@mixin media-breakpoint-down($name, $breakpoints: $grid-breakpoints) {
+	$max: breakpoint-max($name, $breakpoints);
+	@if $max {
+		@media (max-width: $max) {
+			@content;
+		}
+	} @else {
+		@content;
+	}
+}
+
+@mixin media-breakpoint-between($lower, $upper, $breakpoints: $grid-breakpoints) {
+	$min: breakpoint-min($lower, $breakpoints);
+	$max: breakpoint-max($upper, $breakpoints);
+
+	@if $min != null and $max != null {
+		@media (min-width: $min) and (max-width: $max) {
+			@content;
+		}
+	} @else if $max == null {
+		@include media-breakpoint-up($lower, $breakpoints) {
+			@content;
+		}
+	} @else if $min == null {
+		@include media-breakpoint-down($upper, $breakpoints) {
+			@content;
+		}
+	}
+}
+
+@mixin media-breakpoint-only($name, $breakpoints: $grid-breakpoints) {
+	$min: breakpoint-min($name, $breakpoints);
+	$max: breakpoint-max($name, $breakpoints);
+
+	@if $min != null and $max != null {
+		@media (min-width: $min) and (max-width: $max) {
+			@content;
+		}
+	} @else if $max == null {
+		@include media-breakpoint-up($name, $breakpoints) {
+			@content;
+		}
+	} @else if $min == null {
+		@include media-breakpoint-down($name, $breakpoints) {
+			@content;
+		}
+	}
+}
+
+@mixin hover() {
+	&:hover {
+		@content;
+	}
+}
+
+@mixin hover-focus() {
+	&:hover,
+	&:focus {
+		@content;
+	}
+}
+
+@mixin plain-hover-focus() {
+	&,
+	&:hover,
+	&:focus {
+		@content;
+	}
+}
+
+@mixin hover-focus-active() {
+	&:hover,
+	&:focus,
+	&:active {
+		@content;
+	}
+}
+
+@mixin img-fluid() {
+	max-width: 100%;
+	height: auto;
+}
+
+@mixin img-retina($file-1x, $file-2x, $width-1x, $height-1x) {
+	background-image: url($file-1x);
+
+	@media only screen and (min-resolution: 192dpi), only screen and (min-resolution: 2dppx) {
+		background-image: url($file-2x);
+		background-size: $width-1x $height-1x;
+	}
+}
+
+@mixin badge-variant($bg) {
+	color: color-yiq($bg);
+	background-color: $bg;
+
+	@at-root a#{&} {
+		@include hover-focus() {
+			color: color-yiq($bg);
+			background-color: darken($bg, 10%);
+		}
+
+		&:focus,
+		&.focus {
+			outline: 0;
+			box-shadow: 0 0 0 $badge-focus-width rgba($bg, 0.5);
+		}
+	}
+}
+
+@mixin resizable($direction) {
+	overflow: auto;
+	resize: $direction;
+}
+
+@mixin sr-only() {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+@mixin sr-only-focusable() {
+	&:active,
+	&:focus {
+		position: static;
+		width: auto;
+		height: auto;
+		overflow: visible;
+		clip: auto;
+		white-space: normal;
+	}
+}
+
+@mixin size($width, $height: $width) {
+	width: $width;
+	height: $height;
+}
+
+@mixin reset-text() {
+	font-family: $font-family-base;
+	font-style: normal;
+	font-weight: $font-weight-normal;
+	line-height: $line-height-base;
+	text-align: left;
+	text-align: start;
+	text-decoration: none;
+	text-shadow: none;
+	text-transform: none;
+	letter-spacing: normal;
+	word-break: normal;
+	white-space: normal;
+	word-spacing: normal;
+	line-break: auto;
+}
+
+@mixin text-emphasis-variant($parent, $color, $ignore-warning: false) {
+	#{$parent} {
+		color: $color !important;
+	}
+	@if $emphasized-link-hover-darken-percentage != 0 {
+		a#{$parent} {
+			@include hover-focus() {
+				color: darken($color, $emphasized-link-hover-darken-percentage) !important;
+			}
+		}
+	}
+}
+
+@mixin text-hide($ignore-warning: false) {
+	font: 0/0 a;
+	color: transparent;
+	text-shadow: none;
+	background-color: transparent;
+	border: 0;
+}
+
+@mixin text-truncate() {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+@mixin invisible($visibility) {
+	visibility: $visibility !important;
+}
+
+@mixin alert-variant($background, $border, $color) {
+	color: $color;
+	@include gradient-bg($background);
+	border-color: $border;
+
+	hr {
+		border-top-color: darken($border, 5%);
+	}
+
+	.alert-link {
+		color: darken($color, 10%);
+	}
+}
+
+@mixin button-variant(
+	$background,
+	$border,
+	$hover-background: darken($background, 7.5%),
+	$hover-border: darken($border, 10%),
+	$active-background: darken($background, 10%),
+	$active-border: darken($border, 12.5%)
+) {
+	color: color-yiq($background);
+	@include gradient-bg($background);
+	border-color: $border;
+	@include box-shadow($btn-box-shadow);
+
+	@include hover() {
+		color: color-yiq($hover-background);
+		@include gradient-bg($hover-background);
+		border-color: $hover-border;
+	}
+
+	&:focus,
+	&.focus {
+		color: color-yiq($hover-background);
+		@include gradient-bg($hover-background);
+		border-color: $hover-border;
+		@if $enable-shadows {
+			@include box-shadow(
+				$btn-box-shadow,
+				0 0 0 $btn-focus-width rgba(mix(color-yiq($background), $border, 15%), 0.5)
+			);
+		} @else {
+			box-shadow: 0
+				0
+				0
+				$btn-focus-width
+				rgba(mix(color-yiq($background), $border, 15%), 0.5);
+		}
+	}
+
+	&.disabled,
+	&:disabled {
+		color: color-yiq($background);
+		background-color: $background;
+		border-color: $border;
+		@if $enable-gradients {
+			background-image: none;
+		}
+	}
+
+	&:not(:disabled):not(.disabled):active,
+	&:not(:disabled):not(.disabled).active,
+	.show > &.dropdown-toggle {
+		color: color-yiq($active-background);
+		background-color: $active-background;
+		@if $enable-gradients {
+			background-image: none;
+		}
+		border-color: $active-border;
+
+		&:focus {
+			@if $enable-shadows and $btn-active-box-shadow != none {
+				@include box-shadow(
+					$btn-active-box-shadow,
+					0 0 0 $btn-focus-width rgba(mix(color-yiq($background), $border, 15%), 0.5)
+				);
+			} @else {
+				box-shadow: 0
+					0
+					0
+					$btn-focus-width
+					rgba(mix(color-yiq($background), $border, 15%), 0.5);
+			}
+		}
+	}
+}
+
+@mixin button-outline-variant(
+	$color,
+	$color-hover: color-yiq($color),
+	$active-background: $color,
+	$active-border: $color
+) {
+	color: $color;
+	border-color: $color;
+
+	@include hover() {
+		color: $color-hover;
+		background-color: $active-background;
+		border-color: $active-border;
+	}
+
+	&:focus,
+	&.focus {
+		box-shadow: 0 0 0 $btn-focus-width rgba($color, 0.5);
+	}
+
+	&.disabled,
+	&:disabled {
+		color: $color;
+		background-color: transparent;
+	}
+
+	&:not(:disabled):not(.disabled):active,
+	&:not(:disabled):not(.disabled).active,
+	.show > &.dropdown-toggle {
+		color: color-yiq($active-background);
+		background-color: $active-background;
+		border-color: $active-border;
+
+		&:focus {
+			@if $enable-shadows and $btn-active-box-shadow != none {
+				@include box-shadow(
+					$btn-active-box-shadow,
+					0 0 0 $btn-focus-width rgba($color, 0.5)
+				);
+			} @else {
+				box-shadow: 0 0 0 $btn-focus-width rgba($color, 0.5);
+			}
+		}
+	}
+}
+
+@mixin button-size($padding-y, $padding-x, $font-size, $line-height, $border-radius) {
+	padding: $padding-y $padding-x;
+	@include font-size($font-size);
+	line-height: $line-height;
+	@include border-radius($border-radius, 0);
+}
+
+@mixin caret-down() {
+	border-top: $caret-width solid;
+	border-right: $caret-width solid transparent;
+	border-bottom: 0;
+	border-left: $caret-width solid transparent;
+}
+
+@mixin caret-up() {
+	border-top: 0;
+	border-right: $caret-width solid transparent;
+	border-bottom: $caret-width solid;
+	border-left: $caret-width solid transparent;
+}
+
+@mixin caret-right() {
+	border-top: $caret-width solid transparent;
+	border-right: 0;
+	border-bottom: $caret-width solid transparent;
+	border-left: $caret-width solid;
+}
+
+@mixin caret-left() {
+	border-top: $caret-width solid transparent;
+	border-right: $caret-width solid;
+	border-bottom: $caret-width solid transparent;
+}
+
+@mixin caret($direction: down) {
+	@if $enable-caret {
+		&::after {
+			display: inline-block;
+			margin-left: $caret-spacing;
+			vertical-align: $caret-vertical-align;
+			content: "";
+			@if $direction == down {
+				@include caret-down();
+			} @else if $direction == up {
+				@include caret-up();
+			} @else if $direction == right {
+				@include caret-right();
+			}
+		}
+
+		@if $direction == left {
+			&::after {
+				display: none;
+			}
+
+			&::before {
+				display: inline-block;
+				margin-right: $caret-spacing;
+				vertical-align: $caret-vertical-align;
+				content: "";
+				@include caret-left();
+			}
+		}
+
+		&:empty::after {
+			margin-left: 0;
+		}
+	}
+}
+
+@mixin pagination-size($padding-y, $padding-x, $font-size, $line-height, $border-radius) {
+	.page-link {
+		padding: $padding-y $padding-x;
+		@include font-size($font-size);
+		line-height: $line-height;
+	}
+
+	.page-item {
+		&:first-child {
+			.page-link {
+				@include border-left-radius($border-radius);
+			}
+		}
+		&:last-child {
+			.page-link {
+				@include border-right-radius($border-radius);
+			}
+		}
+	}
+}
+
+@mixin list-unstyled() {
+	padding-left: 0;
+	list-style: none;
+}
+
+@mixin list-group-item-variant($state, $background, $color) {
+	.list-group-item-#{$state} {
+		color: $color;
+		background-color: $background;
+
+		&.list-group-item-action {
+			@include hover-focus() {
+				color: $color;
+				background-color: darken($background, 5%);
+			}
+
+			&.active {
+				color: $white;
+				background-color: $color;
+				border-color: $color;
+			}
+		}
+	}
+}
+
+@mixin nav-divider(
+	$color: $nav-divider-color,
+	$margin-y: $nav-divider-margin-y,
+	$ignore-warning: false
+) {
+	height: 0;
+	margin: $margin-y 0;
+	overflow: hidden;
+	border-top: 1px solid $color;
+}
+
+@mixin form-control-focus($ignore-warning: false) {
+	&:focus {
+		color: $input-focus-color;
+		background-color: $input-focus-bg;
+		border-color: $input-focus-border-color;
+		outline: 0;
+		@if $enable-shadows {
+			@include box-shadow($input-box-shadow, $input-focus-box-shadow);
+		} @else {
+			box-shadow: $input-focus-box-shadow;
+		}
+	}
+}
+
+@mixin form-validation-state-selector($state) {
+	@if ($state == "valid" or $state == "invalid") {
+		.was-validated #{if(&, "&", "")}:#{$state},
+		#{if(&, "&", "")}.is-#{$state} {
+			@content;
+		}
+	} @else {
+		#{if(&, "&", "")}.is-#{$state} {
+			@content;
+		}
+	}
+}
+
+@mixin form-validation-state($state, $color, $icon) {
+	.#{$state}-feedback {
+		display: none;
+		width: 100%;
+		margin-top: $form-feedback-margin-top;
+		@include font-size($form-feedback-font-size);
+		color: $color;
+	}
+
+	.#{$state}-tooltip {
+		position: absolute;
+		top: 100%;
+		left: 0;
+		z-index: 5;
+		display: none;
+		max-width: 100%;
+		padding: $form-feedback-tooltip-padding-y $form-feedback-tooltip-padding-x;
+		margin-top: 0.1rem;
+		@include font-size($form-feedback-tooltip-font-size);
+		line-height: $form-feedback-tooltip-line-height;
+		color: color-yiq($color);
+		background-color: rgba($color, $form-feedback-tooltip-opacity);
+		@include border-radius($form-feedback-tooltip-border-radius);
+
+		.form-row > .col > &,
+		.form-row > [class*="col-"] > & {
+			left: $form-grid-gutter-width * 0.5;
+		}
+	}
+
+	@include form-validation-state-selector($state) {
+		~ .#{$state}-feedback,
+		~ .#{$state}-tooltip {
+			display: block;
+		}
+	}
+
+	.form-control {
+		@include form-validation-state-selector($state) {
+			border-color: $color;
+
+			@if $enable-validation-icons {
+				padding-right: $input-height-inner !important;
+				background-image: escape-svg($icon);
+				background-repeat: no-repeat;
+				background-position: right $input-height-inner-quarter center;
+				background-size: $input-height-inner-half $input-height-inner-half;
+			}
+
+			&:focus {
+				border-color: $color;
+				box-shadow: 0 0 0 $input-focus-width rgba($color, 0.25);
+			}
+		}
+	}
+
+	select.form-control {
+		@include form-validation-state-selector($state) {
+			@if $enable-validation-icons {
+				padding-right: $input-padding-x * 4 !important;
+				background-position: right $input-padding-x * 2 center;
+			}
+		}
+	}
+
+	textarea.form-control {
+		@include form-validation-state-selector($state) {
+			@if $enable-validation-icons {
+				padding-right: $input-height-inner;
+				background-position: top
+					$input-height-inner-quarter
+					right
+					$input-height-inner-quarter;
+			}
+		}
+	}
+
+	.custom-select {
+		@include form-validation-state-selector($state) {
+			border-color: $color;
+
+			@if $enable-validation-icons {
+				padding-right: $custom-select-feedback-icon-padding-right !important;
+				background: $custom-select-background,
+					$custom-select-bg
+						escape-svg($icon)
+						$custom-select-feedback-icon-position /
+						$custom-select-feedback-icon-size
+						no-repeat;
+			}
+
+			&:focus {
+				border-color: $color;
+				box-shadow: 0 0 0 $input-focus-width rgba($color, 0.25);
+			}
+		}
+	}
+
+	.form-check-input {
+		@include form-validation-state-selector($state) {
+			~ .form-check-label {
+				color: $color;
+			}
+
+			~ .#{$state}-feedback,
+			~ .#{$state}-tooltip {
+				display: block;
+			}
+		}
+	}
+
+	.custom-control-input {
+		@include form-validation-state-selector($state) {
+			~ .custom-control-label {
+				color: $color;
+
+				&::before {
+					border-color: $color;
+				}
+			}
+
+			&:checked {
+				~ .custom-control-label::before {
+					border-color: lighten($color, 10%);
+					@include gradient-bg(lighten($color, 10%));
+				}
+			}
+
+			&:focus {
+				~ .custom-control-label::before {
+					box-shadow: 0 0 0 $input-focus-width rgba($color, 0.25);
+				}
+
+				&:not(:checked) ~ .custom-control-label::before {
+					border-color: $color;
+				}
+			}
+		}
+	}
+
+	.custom-file-input {
+		@include form-validation-state-selector($state) {
+			~ .custom-file-label {
+				border-color: $color;
+			}
+
+			&:focus {
+				~ .custom-file-label {
+					border-color: $color;
+					box-shadow: 0 0 0 $input-focus-width rgba($color, 0.25);
+				}
+			}
+		}
+	}
+}
+
+@mixin table-row-variant($state, $background, $border: null) {
+	.table-#{$state} {
+		&,
+		> th,
+		> td {
+			background-color: $background;
+		}
+
+		@if $border != null {
+			th,
+			td,
+			thead th,
+			tbody + tbody {
+				border-color: $border;
+			}
+		}
+	}
+
+	.table-hover {
+		$hover-background: darken($background, 5%);
+
+		.table-#{$state} {
+			@include hover() {
+				background-color: $hover-background;
+
+				> td,
+				> th {
+					background-color: $hover-background;
+				}
+			}
+		}
+	}
+}
+
+@mixin bg-variant($parent, $color, $ignore-warning: false) {
+	#{$parent} {
+		background-color: $color !important;
+	}
+	a#{$parent},
+	button#{$parent} {
+		@include hover-focus() {
+			background-color: darken($color, 10%) !important;
+		}
+	}
+}
+
+@mixin bg-gradient-variant($parent, $color, $ignore-warning: false) {
+	#{$parent} {
+		background: $color linear-gradient(180deg, mix($body-bg, $color, 15%), $color) repeat-x !important;
+	}
+}
+
+@function valid-radius($radius) {
+	$return: ();
+	@each $value in $radius {
+		@if type-of($value) == number {
+			$return: append($return, max($value, 0));
+		} @else {
+			$return: append($return, $value);
+		}
+	}
+	@return $return;
+}
+
+@mixin border-radius($radius: $border-radius, $fallback-border-radius: false) {
+	@if $enable-rounded {
+		border-radius: valid-radius($radius);
+	} @else if $fallback-border-radius != false {
+		border-radius: $fallback-border-radius;
+	}
+}
+
+@mixin border-top-radius($radius) {
+	@if $enable-rounded {
+		border-top-left-radius: valid-radius($radius);
+		border-top-right-radius: valid-radius($radius);
+	}
+}
+
+@mixin border-right-radius($radius) {
+	@if $enable-rounded {
+		border-top-right-radius: valid-radius($radius);
+		border-bottom-right-radius: valid-radius($radius);
+	}
+}
+
+@mixin border-bottom-radius($radius) {
+	@if $enable-rounded {
+		border-bottom-right-radius: valid-radius($radius);
+		border-bottom-left-radius: valid-radius($radius);
+	}
+}
+
+@mixin border-left-radius($radius) {
+	@if $enable-rounded {
+		border-top-left-radius: valid-radius($radius);
+		border-bottom-left-radius: valid-radius($radius);
+	}
+}
+
+@mixin border-top-left-radius($radius) {
+	@if $enable-rounded {
+		border-top-left-radius: valid-radius($radius);
+	}
+}
+
+@mixin border-top-right-radius($radius) {
+	@if $enable-rounded {
+		border-top-right-radius: valid-radius($radius);
+	}
+}
+
+@mixin border-bottom-right-radius($radius) {
+	@if $enable-rounded {
+		border-bottom-right-radius: valid-radius($radius);
+	}
+}
+
+@mixin border-bottom-left-radius($radius) {
+	@if $enable-rounded {
+		border-bottom-left-radius: valid-radius($radius);
+	}
+}
+
+@mixin box-shadow($shadow...) {
+	@if $enable-shadows {
+		$result: ();
+
+		@if (length($shadow) == 1) {
+			$result: $shadow;
+		} @else {
+			@for $i from 1 through length($shadow) {
+				@if nth($shadow, $i) != "none" {
+					$result: append($result, nth($shadow, $i), "comma");
+				}
+			}
+		}
+		@if (length($result) > 0) {
+			box-shadow: $result;
+		}
+	}
+}
+
+@mixin gradient-bg($color) {
+	@if $enable-gradients {
+		background: $color linear-gradient(180deg, mix($body-bg, $color, 15%), $color) repeat-x;
+	} @else {
+		background-color: $color;
+	}
+}
+
+@mixin gradient-x(
+	$start-color: $gray-700,
+	$end-color: $gray-800,
+	$start-percent: 0%,
+	$end-percent: 100%
+) {
+	background-image: linear-gradient(
+		to right,
+		$start-color $start-percent,
+		$end-color $end-percent
+	);
+	background-repeat: repeat-x;
+}
+
+@mixin gradient-y(
+	$start-color: $gray-700,
+	$end-color: $gray-800,
+	$start-percent: 0%,
+	$end-percent: 100%
+) {
+	background-image: linear-gradient(
+		to bottom,
+		$start-color $start-percent,
+		$end-color $end-percent
+	);
+	background-repeat: repeat-x;
+}
+
+@mixin gradient-directional($start-color: $gray-700, $end-color: $gray-800, $deg: 45deg) {
+	background-image: linear-gradient($deg, $start-color, $end-color);
+	background-repeat: repeat-x;
+}
+@mixin gradient-x-three-colors(
+	$start-color: $blue,
+	$mid-color: $purple,
+	$color-stop: 50%,
+	$end-color: $red
+) {
+	background-image: linear-gradient(to right, $start-color, $mid-color $color-stop, $end-color);
+	background-repeat: no-repeat;
+}
+@mixin gradient-y-three-colors(
+	$start-color: $blue,
+	$mid-color: $purple,
+	$color-stop: 50%,
+	$end-color: $red
+) {
+	background-image: linear-gradient($start-color, $mid-color $color-stop, $end-color);
+	background-repeat: no-repeat;
+}
+@mixin gradient-radial($inner-color: $gray-700, $outer-color: $gray-800) {
+	background-image: radial-gradient(circle, $inner-color, $outer-color);
+	background-repeat: no-repeat;
+}
+@mixin gradient-striped($color: rgba($white, 0.15), $angle: 45deg) {
+	background-image: linear-gradient(
+		$angle,
+		$color 25%,
+		transparent 25%,
+		transparent 50%,
+		$color 50%,
+		$color 75%,
+		transparent 75%,
+		transparent
+	);
+}
+
+@mixin component-transition($transition...) {
+	@if length($transition) == 0 {
+		$transition: $transition-base;
+	}
+
+	@if length($transition) > 1 {
+		@each $value in $transition {
+			@if $value == null or $value == none {
+				@warn "The keyword 'none' or 'null' must be used as a single argument.";
+			}
+		}
+	}
+
+	@if $enable-transitions {
+		@if nth($transition, 1) != null {
+			transition: $transition;
+		}
+
+		@if $enable-prefers-reduced-motion-media-query and
+			nth($transition, 1) !=
+			null and
+			nth($transition, 1) !=
+			none
+		{
+			@media (prefers-reduced-motion: reduce) {
+				transition: none;
+			}
+		}
+	}
+}
+
+@mixin clearfix() {
+	&::after {
+		display: block;
+		clear: both;
+		content: "";
+	}
+}
+
+@mixin make-grid-columns(
+	$columns: $grid-columns,
+	$gutter: $grid-gutter-width,
+	$breakpoints: $grid-breakpoints
+) {
+	%grid-column {
+		position: relative;
+		width: 100%;
+		padding-right: $gutter * 0.5;
+		padding-left: $gutter * 0.5;
+	}
+
+	@each $breakpoint in map-keys($breakpoints) {
+		$infix: breakpoint-infix($breakpoint, $breakpoints);
+
+		@if $columns > 0 {
+			@for $i from 1 through $columns {
+				.col#{$infix}-#{$i} {
+					@extend %grid-column;
+				}
+			}
+		}
+
+		.col#{$infix},
+		.col#{$infix}-auto {
+			@extend %grid-column;
+		}
+
+		@include media-breakpoint-up($breakpoint, $breakpoints) {
+			.col#{$infix} {
+				flex-basis: 0;
+				flex-grow: 1;
+				max-width: 100%;
+			}
+
+			@if $grid-row-columns > 0 {
+				@for $i from 1 through $grid-row-columns {
+					.row-cols#{$infix}-#{$i} {
+						@include row-cols($i);
+					}
+				}
+			}
+
+			.col#{$infix}-auto {
+				@include make-col-auto();
+			}
+
+			@if $columns > 0 {
+				@for $i from 1 through $columns {
+					.col#{$infix}-#{$i} {
+						@include make-col($i, $columns);
+					}
+				}
+			}
+
+			.order#{$infix}-first {
+				order: -1;
+			}
+
+			.order#{$infix}-last {
+				order: $columns + 1;
+			}
+
+			@for $i from 0 through $columns {
+				.order#{$infix}-#{$i} {
+					order: $i;
+				}
+			}
+
+			@if $columns > 0 {
+				@for $i from 0 through ($columns - 1) {
+					@if not($infix == "" and $i == 0) {
+						.offset#{$infix}-#{$i} {
+							@include make-col-offset($i, $columns);
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+@mixin make-container($gutter: $grid-gutter-width) {
+	width: 100%;
+	padding-right: $gutter * 0.5;
+	padding-left: $gutter * 0.5;
+	margin-right: auto;
+	margin-left: auto;
+}
+
+@mixin make-row($gutter: $grid-gutter-width) {
+	display: flex;
+	flex-wrap: wrap;
+	margin-right: -$gutter * 0.5;
+	margin-left: -$gutter * 0.5;
+}
+
+@mixin make-container-max-widths(
+	$max-widths: $container-max-widths,
+	$breakpoints: $grid-breakpoints
+) {
+	@each $breakpoint, $container-max-width in $max-widths {
+		@include media-breakpoint-up($breakpoint, $breakpoints) {
+			max-width: $container-max-width;
+		}
+	}
+}
+
+@mixin make-col-ready($gutter: $grid-gutter-width) {
+	position: relative;
+	width: 100%;
+	padding-right: $gutter * 0.5;
+	padding-left: $gutter * 0.5;
+}
+
+@mixin make-col($size, $columns: $grid-columns) {
+	flex: 0 0 percentage(divide($size, $columns));
+	max-width: percentage(divide($size, $columns));
+}
+
+@mixin make-col-auto() {
+	flex: 0 0 auto;
+	width: auto;
+	max-width: 100%;
+}
+
+@mixin make-col-offset($size, $columns: $grid-columns) {
+	$num: divide($size, $columns);
+	margin-left: if($num == 0, 0, percentage($num));
+}
+
+@mixin row-cols($count) {
+	> * {
+		flex: 0 0 divide(100%, $count);
+		max-width: divide(100%, $count);
+	}
+}
+
+@mixin float-left() {
+	float: left !important;
+}
+@mixin float-right() {
+	float: right !important;
+}
+@mixin float-none() {
+	float: none !important;
+}

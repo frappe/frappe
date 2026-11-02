@@ -1,0 +1,39 @@
+.badge {
+	display: inline-block;
+	padding: $badge-padding-y $badge-padding-x;
+	@include font-size($badge-font-size);
+	font-weight: $badge-font-weight;
+	line-height: 1;
+	text-align: center;
+	white-space: nowrap;
+	vertical-align: baseline;
+	@include border-radius($badge-border-radius);
+	@include component-transition($badge-transition);
+
+	@at-root a#{&} {
+		@include hover-focus() {
+			text-decoration: none;
+		}
+	}
+
+	&:empty {
+		display: none;
+	}
+}
+
+.btn .badge {
+	position: relative;
+	top: -1px;
+}
+
+.badge-pill {
+	padding-right: $badge-pill-padding-x;
+	padding-left: $badge-pill-padding-x;
+	@include border-radius($badge-pill-border-radius);
+}
+
+@each $color, $value in $theme-colors {
+	.badge-#{$color} {
+		@include badge-variant($value);
+	}
+}

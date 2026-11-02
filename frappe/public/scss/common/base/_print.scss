@@ -1,0 +1,95 @@
+@if $enable-print-styles {
+	@media print {
+		*,
+		*::before,
+		*::after {
+			text-shadow: none !important;
+			box-shadow: none !important;
+		}
+
+		a {
+			&:not(.btn) {
+				text-decoration: underline;
+			}
+		}
+
+		abbr[title]::after {
+			content: " (" attr(title) ")";
+		}
+
+		pre {
+			white-space: pre-wrap !important;
+		}
+		pre,
+		blockquote {
+			border: $border-width solid $gray-500;
+			page-break-inside: avoid;
+		}
+
+		tr,
+		img {
+			page-break-inside: avoid;
+		}
+
+		p,
+		h2,
+		h3 {
+			orphans: 3;
+			widows: 3;
+		}
+
+		h2,
+		h3 {
+			page-break-after: avoid;
+		}
+
+		@page {
+			size: $print-page-size;
+		}
+		body {
+			min-width: $print-body-min-width !important;
+		}
+		.container {
+			min-width: $print-body-min-width !important;
+		}
+
+		.navbar {
+			display: none;
+		}
+		.badge {
+			border: $border-width solid $black;
+		}
+
+		.table {
+			border-collapse: collapse !important;
+
+			td,
+			th {
+				background-color: $white !important;
+			}
+		}
+
+		.table-bordered {
+			th,
+			td {
+				border: 1px solid $gray-300 !important;
+			}
+		}
+
+		.table-dark {
+			color: inherit;
+
+			th,
+			td,
+			thead th,
+			tbody + tbody {
+				border-color: $table-border-color;
+			}
+		}
+
+		.table .thead-dark th {
+			color: inherit;
+			border-color: $table-border-color;
+		}
+	}
+}

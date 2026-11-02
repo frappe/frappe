@@ -1,0 +1,26 @@
+.fade {
+	@include component-transition($transition-fade);
+
+	&:not(.show) {
+		opacity: 0;
+	}
+}
+
+.collapse {
+	&:not(.show) {
+		display: none;
+	}
+}
+
+.collapsing {
+	position: relative;
+	height: 0;
+	overflow: hidden;
+	@include component-transition($transition-collapse);
+
+	&.width {
+		width: 0;
+		height: auto;
+		@include component-transition($transition-collapse-width);
+	}
+}
