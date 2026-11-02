@@ -253,7 +253,11 @@ nixpkgs-deps = [
 
 [tool.uv]
 exclude-newer = "7 days"
-exclude-newer-package = { pypdf = false, filelock = false, frappe-flow = false } # drop pypdf after 2026-11-04, filelock after 2026-11-10, frappe-flow after 2026-11-05
+exclude-newer-package = { pypdf = false, filelock = false } # drop pypdf after 2026-11-04, filelock after 2026-11-10
+
+[tool.uv.sources]
+# Installs through uv (bench, Pilot) take the harness from this checkout, so it ships with frappe. pip installs and frappe's wheel still take the PyPI pin above.
+frappe-flow = { path = "flow/harness", editable = true }
 
 [tool.mypy]
 strict = false
