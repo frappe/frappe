@@ -2803,7 +2803,7 @@ class OverridingController(Document):
 class PostOnlyController(Document):
 	"""A controller that whitelists its own `submit` for POST only."""
 
-	@frappe.whitelist(methods=["POST"])
+	@whitelist_for_tests(methods=["POST"])
 	def submit(self):
 		return super().submit()
 
