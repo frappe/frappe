@@ -298,7 +298,7 @@ test.describe("Grid", () => {
 		await expect(table.locator(".grid-add-row")).not.toHaveClass(/(^|\s)hidden(\s|$)/);
 	});
 
-	test("parks the Link dropdown on the grid and puts it back when it closes", async ({
+	test("parks the Link dropdown on the grid and puts it back when focus leaves", async ({
 		page,
 	}) => {
 		const table = get_table(page, "links");
@@ -328,7 +328,7 @@ test.describe("Grid", () => {
 		expect(parked_box.top - cell_box.top).toBeLessThanOrEqual(100);
 		expect(Math.abs(parked_box.left - cell_box.left)).toBeLessThanOrEqual(5);
 
-		await cell.press("Escape");
+		await cell.blur();
 
 		await expect(table.locator(".grid-field > .awesomplete")).toHaveCount(0);
 	});
