@@ -206,7 +206,7 @@ frappe.search.utils = {
 			return {
 				type: type,
 				label: label,
-				value: __(`{0} ${type}`, [target]),
+				value: __(`{0} ${type}`, [__(target)]),
 				index: score + order,
 				match: target,
 				route: route,
