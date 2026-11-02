@@ -93,7 +93,7 @@ def follow_print_settings_pdf_generator():
 	filters = {"pdf_generator": "wkhtmltopdf"}
 	count = frappe.db.count("Print Format", filters)
 	doctypes = frappe.get_all("Print Format", filters, pluck="doc_type", distinct=True)
-	frappe.db.set_value("Print Format", filters, "pdf_generator", "")
+	frappe.db.set_value("Print Format", filters, "pdf_generator", "", update_modified=False)
 	for doctype in filter(None, doctypes):
 		frappe.clear_cache(doctype=doctype)
 	return count
