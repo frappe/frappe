@@ -42,6 +42,13 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 			timeFormat: time_format.replace(":ss", ""),
 			dateFormat: (date) =>
 				frappe.datetime.obj_to_user(date) + " " + moment(date).format(time_format),
+			onBeforeSelect: ({ date, datepicker }) => {
+				const last = datepicker.lastSelectedDate;
+				if (last && date.getTime() === moment(date).startOf("day").valueOf()) {
+					date.setSeconds(last.getSeconds());
+				}
+				return true;
+			},
 		});
 	}
 	get_now_date() {
