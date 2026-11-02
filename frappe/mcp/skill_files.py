@@ -73,17 +73,17 @@ class SkillFiles:
 		if stat.S_ISLNK(mode):
 			return paths
 		for directory, directories, files in folder.walk(follow_symlinks=False, on_error=raise_scan_error):
-			directories[:] = sorted(
+			directories[:] = [
 				name
 				for name in directories
 				if not is_hidden(Path(name)) and not stat.S_ISLNK((directory / name).lstat().st_mode)
-			)
+			]
 			paths.extend(
 				(directory / name).relative_to(self.root)
-				for name in sorted(files)
+				for name in files
 				if not is_hidden(Path(name)) and stat.S_ISREG((directory / name).lstat().st_mode)
 			)
-		return sorted(paths)
+		return paths
 
 	def frontmatter(self, relative: Path, content: bytes | None = None) -> dict:
 		try:
@@ -99,16 +99,11 @@ class SkillFiles:
 		return metadata
 
 	def _directory(self, stack: ExitStack, relative: Path) -> int:
-		directory = self._open_directory(stack, self.root)
-		for part in relative.parts:
-			directory = self._open_directory(stack, part, directory)
+		directory = None
+		for part in (self.root, *relative.parts):
+			directory = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=directory)
+			stack.callback(os.close, directory)
 		return directory
-
-	@staticmethod
-	def _open_directory(stack: ExitStack, path: str | Path, parent: int | None = None) -> int:
-		descriptor = os.open(path, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=parent)
-		stack.callback(os.close, descriptor)
-		return descriptor
 
 
 def raise_scan_error(error: OSError) -> None:
