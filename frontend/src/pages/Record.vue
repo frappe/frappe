@@ -948,6 +948,7 @@ async function moveDocstatus(act: DocstatusAct) {
 		return;
 	}
 	toast.info(queuedMessage(act));
+	return { queued: true as const };
 }
 
 async function write() {

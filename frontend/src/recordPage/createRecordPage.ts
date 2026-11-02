@@ -122,6 +122,9 @@ const STRIPS: Record<TabStrip, { other: string; sibling: TabStrip }> = {
 /** The most rounds a save asks for off-layout fields; the server refuses what is still missing. */
 const MAX_ASK_ROUNDS = 3;
 
+/** What a host's Submit or Cancel call resolves with. */
+type DocstatusResult = void | { queued: true };
+
 export interface RecordPageHost {
   /** The app the reader is in, from the shell's boot: `frappe` on `/apps/desk`. */
   app: string;
@@ -158,10 +161,10 @@ export interface RecordPageHost {
   save: () => Promise<void>;
   /** Asks the reader to confirm a Submit or Cancel; false when the reader declines. */
   confirmDocstatus?: (act: "submit" | "cancel") => Promise<boolean>;
-  /** Submits the saved draft; the engine has already confirmed and fired `beforeSubmit`. */
-  submit?: () => Promise<void>;
-  /** Cancels the submitted record; the engine has already confirmed and fired `beforeCancel`. */
-  cancel?: () => Promise<void>;
+  /** Submits the saved draft; the engine has already confirmed and fired `beforeSubmit`. Resolves `{ queued: true }` when a job will act, which skips `afterSubmit`. */
+  submit?: () => Promise<DocstatusResult>;
+  /** Cancels the submitted record; the engine has already confirmed and fired `beforeCancel`. Resolves `{ queued: true }` when a job will act, which skips `afterCancel`. */
+  cancel?: () => Promise<DocstatusResult>;
   /** Runs once `afterSave` settles; a new record's host opens the saved record here. */
   onSaved?: () => Promise<void>;
   /** Saves a dirty draft, renames the record and opens it at its new name; absent while the record has no saved copy. */
@@ -225,9 +228,9 @@ export interface RecordPageController {
   paintNow: () => boolean;
   /** `row` addresses the child row a dotted event happened to; see `Handler`. */
   fireEvent: (event: string, row?: RowAddress) => Promise<void>;
-  /** The Submit act: `beforeSubmit` (a throw vetoes), the host's confirm and call, then `afterSubmit`. */
+  /** The Submit act: `beforeSubmit` (a throw vetoes), the host's confirm and call, then `afterSubmit` (skipped when the call queued). */
   submit: () => Promise<void>;
-  /** The Cancel act: `beforeCancel` (a throw vetoes), the host's confirm and call, then `afterCancel`. */
+  /** The Cancel act: `beforeCancel` (a throw vetoes), the host's confirm and call, then `afterCancel` (skipped when the call queued). */
   cancel: () => Promise<void>;
   /** Fires `onPost` with the posted row's key, once the server has answered the built-in writer. */
   firePost: (key: string) => Promise<void>;
@@ -442,7 +445,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   // One Submit or Cancel at a time: a second click while the confirm or the call is open joins it.
   const moving = shallowRef<Promise<void> | null>(null);
 
-  function moveDocstatus(act: "Submit" | "Cancel", call: (() => Promise<void>) | undefined) {
+  function moveDocstatus(act: "Submit" | "Cancel", call: (() => Promise<DocstatusResult>) | undefined) {
     if (engine.hasLeft() || !call) return Promise.resolve();
     moving.value ??= hold(async () => {
       const lower = act.toLowerCase() as "submit" | "cancel";
@@ -458,8 +461,8 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
       if (!wasDirty && host.isDirty())
         throw asVeto(new Error(`before${act} changed the record. Save it, then ${lower} again.`));
       if (engine.hasLeft()) return;
-      await call();
-      if (engine.hasLeft()) return;
+      const result = await call();
+      if (engine.hasLeft() || result?.queued) return;
       await fireEvent(`after${act}`);
     }).finally(() => (moving.value = null));
     return moving.value;

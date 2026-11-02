@@ -132,6 +132,20 @@ describe("Submit", () => {
     expect(declined.order).toEqual([]);
   });
 
+  it("fires no afterSubmit when the call was queued, but still fires beforeSubmit", async () => {
+    const queued = makePage({
+      submit: async () => (queued.order.push("submit call"), { queued: true }),
+    });
+    registerRecordPage("Invoice", {
+      beforeSubmit: () => void queued.order.push("beforeSubmit"),
+      afterSubmit: () => void queued.order.push("afterSubmit"),
+    });
+
+    await queued.controller.submit();
+
+    expect(queued.order).toEqual(["confirm submit", "beforeSubmit", "submit call"]);
+  });
+
   it("fires no afterSubmit when the call fails", async () => {
     const failed = makePage({
       submit: async () => {
@@ -205,6 +219,18 @@ describe("Cancel", () => {
     await controller.cancel();
 
     expect(order).toEqual(["confirm cancel", "beforeCancel", "cancel call", "afterCancel"]);
+  });
+
+  it("fires no afterCancel when the call was queued, but still fires beforeCancel", async () => {
+    const queued = makePage({ cancel: async () => (queued.order.push("cancel call"), { queued: true }) }, 1);
+    registerRecordPage("Invoice", {
+      beforeCancel: () => void queued.order.push("beforeCancel"),
+      afterCancel: () => void queued.order.push("afterCancel"),
+    });
+
+    await queued.controller.cancel();
+
+    expect(queued.order).toEqual(["confirm cancel", "beforeCancel", "cancel call"]);
   });
 
   it("a beforeCancel throw vetoes: nothing is sent and afterCancel never fires", async () => {
