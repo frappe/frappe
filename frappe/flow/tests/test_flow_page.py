@@ -52,10 +52,17 @@ class TestFlowPage(IntegrationTestCase):
 			return response.get_data(as_text=True)
 
 		frappe.set_user(member)
-		self.assertRegex(
-			page("/desk/user"),
-			r'<p>page</p><script src="[^"]+flow_launcher\.bundle[^"]*" defer data-island="[^"]*" data-island-css="[^"]*"></script></body>',
-		)
+		assets = {
+			"frappe.flow.chat.island.js": "/assets/frappe/dist/flow/frappe.flow.chat.island.ABC.js",
+			"frappe.flow.chat.island.css": "/assets/frappe/dist/flow/frappe.island.DEF.css",
+		}
+		with patch("frappe.flow.launcher.get_assets_json", return_value=assets):
+			self.assertRegex(
+				page("/desk/user"),
+				r'<p>page</p><script src="[^"]+flow_launcher\.bundle[^"]*" defer'
+				r' data-island="/assets/frappe/dist/flow/frappe\.flow\.chat\.island\.ABC\.js"'
+				r' data-island-css="/assets/frappe/dist/flow/frappe\.island\.DEF\.css"></script></body>',
+			)
 		# not on the website, nor on /flow itself
 		self.assertNotIn("flow_launcher", page("/about"))
 		self.assertNotIn("flow_launcher", page("/flow"))
