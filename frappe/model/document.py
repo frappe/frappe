@@ -1716,6 +1716,29 @@ class Document(_DocumentBase):
 		if not self.meta.issingle and self._action != "discard":
 			self.check_docstatus_transition(previous.docstatus)
 
+	def check_not_stale(self, modified: str | None):
+		"""Raise `TimestampMismatchError` when the saved row is not the version the caller read.
+
+		`modified` is what the caller read; none skips the check, as `submit()` in Python does.
+		"""
+		if not modified:
+			return
+		try:
+			read = get_datetime(modified) if isinstance(modified, str) else None
+		except (ValueError, OverflowError):
+			read = None
+		if read is None:
+			frappe.throw(_("{0} is not a valid modified timestamp").format(frappe.bold(modified)))
+		if read != get_datetime(self.modified):
+			frappe.msgprint(
+				_("Error: {0} ({1}) has been modified after you have opened it.").format(
+					self.name, self.doctype
+				)
+				+ " "
+				+ _("Please refresh to get the latest document."),
+				raise_exception=frappe.TimestampMismatchError,
+			)
+
 	def check_docstatus_transition(self, from_docstatus):
 		"""Ensures valid `docstatus` transition.
 		Valid transitions are (number in brackets is `docstatus`):

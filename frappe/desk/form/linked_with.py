@@ -440,10 +440,16 @@ def cancel_all_linked_docs(
 	ignore_doctypes_on_cancel_all: str | list[str] | None = None,
 	root_doctype: str | None = None,
 	root_name: str | None = None,
+	root_modified: str | None = None,
 ):
 	"""Cancel the linked documents in dependency order, then the root, all or
 	nothing; large sets, roots that queue their cancellations, and docs=None
-	past the listing cap move to a job instead."""
+	past the listing cap move to a job instead. `root_modified` is the root's
+	`modified` the caller read: a newer saved row refuses the call."""
+	if root_modified and root_doctype and root_name:
+		root = frappe.get_doc(root_doctype, root_name)
+		root.check_permission("cancel")
+		root.check_not_stale(root_modified)
 	ignore_doctypes_on_cancel_all = with_hooked_ignore_doctypes(root_doctype, ignore_doctypes_on_cancel_all)
 	if docs is None:
 		return enqueue_discovery("cancel", root_doctype, root_name, ignore_doctypes_on_cancel_all)

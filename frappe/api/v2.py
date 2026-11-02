@@ -37,6 +37,8 @@ from frappe.utils.data import is_desk_v2_enabled
 
 SEARCH_PAGE_LENGTH = 10
 OVERRIDABLE_METHODS = ("submit", "cancel")
+# These act on the saved row, so the desk sends the `modified` it read and the route compares it first.
+STALE_CHECKED_METHODS = (*OVERRIDABLE_METHODS, "queue_submit", "queue_cancel")
 
 PERMISSION_MAP = {
 	"GET": "read",
@@ -373,6 +375,8 @@ def execute_doc_method(doctype: str, name: str, method: str | None = None):
 		"execute_doc_method route is only mounted for GET/POST/QUERY"
 	)
 	doc.check_permission(PERMISSION_MAP[frappe.request.method])
+	if method in STALE_CHECKED_METHODS:
+		doc.check_not_stale(frappe.form_dict.pop("modified", None))
 	result = doc.run_method(method, **frappe.form_dict)
 	doc.apply_fieldlevel_read_permissions()
 	frappe.response.docs.append(doc.as_dict())

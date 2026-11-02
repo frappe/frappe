@@ -748,13 +748,67 @@ class TestQueueSubmitV2(FrappeAPITestCase):
 		frappe.db.commit()  # nosemgrep
 		return doc
 
-	def call(self, method, name, headers=None):
+	def call(self, method, name, headers=None, modified=None):
 		return make_request(
 			get_test_client(use_cookies=False).post,
 			args=(self.resource(self.doctype_name, name, "method", method),),
-			kwargs={"headers": headers or {"Authorization": self.admin_authorization}},
+			kwargs={
+				"headers": headers or {"Authorization": self.admin_authorization},
+				**({"json": {"modified": modified}} if modified else {}),
+			},
 			site=frappe.local.site,
 		)
+
+	def saved_modified(self, name):
+		frappe.db.rollback()
+		return str(frappe.db.get_value(self.doctype_name, name, "modified"))
+
+	def test_stale_modified_refuses_every_act_and_changes_nothing(self):
+		stale = "2000-01-01 00:00:00.000000"
+		draft, submitted = self.new_record(), self.new_record(status=1)
+		with patch(self.queue_submission) as queue, patch(self.scheduler_inactive, return_value=False):
+			responses = [
+				self.call("submit", draft.name, modified=stale),
+				self.call("queue_submit", draft.name, modified=stale),
+				self.call("cancel", submitted.name, modified=stale),
+				self.call("queue_cancel", submitted.name, modified=stale),
+			]
+
+		queue.assert_not_called()
+		for response in responses:
+			self.assertEqual(response.json["errors"][0]["type"], "TimestampMismatchError", response.json)
+		frappe.db.rollback()
+		self.assertEqual(frappe.db.get_value(self.doctype_name, draft.name, "docstatus"), 0)
+		self.assertEqual(frappe.db.get_value(self.doctype_name, submitted.name, "docstatus"), 1)
+
+	def test_malformed_modified_is_refused_not_a_server_error(self):
+		doc = self.new_record()
+		for modified in ("garbage", "2026-13-45"):
+			response = self.call("submit", doc.name, modified=modified)
+			self.assertEqual(response.status_code, 417, response.json)
+		self.assertEqual(frappe.db.get_value(self.doctype_name, doc.name, "docstatus"), 0)
+
+	def test_current_modified_acts(self):
+		draft, submitted = self.new_record(), self.new_record(status=1)
+		with patch(self.scheduler_inactive, return_value=True):
+			submit = self.call("submit", draft.name, modified=self.saved_modified(draft.name))
+			cancel = self.call("queue_cancel", submitted.name, modified=self.saved_modified(submitted.name))
+
+		self.assertEqual(submit.json["data"]["docstatus"], 1, submit.json)
+		self.assertEqual(cancel.json["data"]["docstatus"], 2, cancel.json)
+
+	def test_a_save_after_the_read_makes_the_act_stale(self):
+		doc = self.new_record()
+		read = self.saved_modified(doc.name)
+		doc.reload()
+		doc.some_fieldname = "Saved by someone else"
+		doc.save()
+		frappe.db.commit()  # nosemgrep
+
+		response = self.call("submit", doc.name, modified=read)
+
+		self.assertEqual(response.json["errors"][0]["type"], "TimestampMismatchError", response.json)
+		self.assertEqual(frappe.db.get_value(self.doctype_name, doc.name, "docstatus"), 0)
 
 	def test_queue_submit_queues_and_leaves_the_draft(self):
 		doc = self.new_record()
@@ -2976,6 +3030,25 @@ class TestSubmitCancelOverrideV2(FrappeAPITestCase):
 		return self.post(
 			self.resource(self.DOCTYPE, self.doc.name, "method", method), {"sid": sid or self.sid}
 		)
+
+	def test_stale_modified_stops_the_override_before_it_runs(self):
+		response = self.post(
+			self.resource(self.DOCTYPE, self.doc.name, "method", "submit"),
+			{"sid": self.sid, "modified": "2000-01-01 00:00:00.000000"},
+		)
+		self.assertEqual(response.json["errors"][0]["type"], "TimestampMismatchError", response.json)
+		self.assertEqual(OverridingController.calls, [])
+		self.assertEqual(self.docstatus(), 0)
+
+	def test_current_modified_lets_the_override_run(self):
+		frappe.db.rollback()
+		modified = str(frappe.db.get_value(self.DOCTYPE, self.doc.name, "modified"))
+		response = self.post(
+			self.resource(self.DOCTYPE, self.doc.name, "method", "submit"),
+			{"sid": self.sid, "modified": modified},
+		)
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(OverridingController.calls, ["submit"])
 
 	def docstatus(self) -> int:
 		frappe.db.rollback()

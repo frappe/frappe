@@ -1,5 +1,5 @@
 // `header.submit` and `header.cancel`: when each shows, the confirm before it and the call it sends.
-import { getDocument, runDocumentMethod, runMethod } from "@framework/ui/api";
+import { getDocument, isApiError, runDocumentMethod, runMethod } from "@framework/ui/api";
 import { __ } from "@/i18n";
 import { errorMessage, type HeaderItem, type RecordPageApi } from "@/recordPage";
 import { stripTags } from "./saveResponse";
@@ -159,19 +159,26 @@ async function submittedLinks({ doctype, name }: DocstatusRecord) {
   return call<{ docs: LinkedDoc[]; truncated: boolean }>(LINKED_DOCS, { doctype, name });
 }
 
-/** `queue` picks the Submission Queue's method, which acts directly when the scheduler is off. `choice.all` cancels the linked records too; null comes back when they were handed to a background job. */
+/** `queue` picks the Submission Queue's method, which acts directly when the scheduler is off. `choice.all` cancels the linked records too; null comes back when they were handed to a background job. `modified` is the version the reader saw: a newer saved row refuses the call with a timestamp mismatch, left as an `ApiError` for the page's conflict dialog. */
 export async function sendDocstatus(
   doctype: string,
   name: string,
   act: DocstatusAct,
   queue = false,
-  choice: DocstatusChoice = { all: false }
+  choice: DocstatusChoice = { all: false },
+  modified?: string
 ): Promise<Record<string, any> | null> {
   try {
-    if (choice.all) return await cancelWithLinks(doctype, name, choice.docs);
-    const { data } = await runDocumentMethod<Record<string, any>>(doctype, name, queue ? `queue_${act}` : act);
+    if (choice.all) return await cancelWithLinks(doctype, name, choice.docs, modified);
+    const { data } = await runDocumentMethod<Record<string, any>>(
+      doctype,
+      name,
+      queue ? `queue_${act}` : act,
+      modified ? { modified } : undefined
+    );
     return data;
   } catch (exception) {
+    if (isApiError(exception) && exception.isTimestampMismatch) throw exception;
     throw new Error(stripTags(errorMessage(exception)));
   }
 }
@@ -187,8 +194,8 @@ export function queuedMessage(act: DocstatusAct): string {
     : __("Queued for Cancel. The record reloads when it is done.");
 }
 
-async function cancelWithLinks(doctype: string, name: string, docs: LinkedDoc[] | null) {
-  const args = { root_doctype: doctype, root_name: name, ...(docs && { docs }) };
+async function cancelWithLinks(doctype: string, name: string, docs: LinkedDoc[] | null, modified?: string) {
+  const args = { root_doctype: doctype, root_name: name, ...(docs && { docs }), ...(modified && { root_modified: modified }) };
   const { data } = await runMethod<{ queued?: boolean }>(CANCEL_ALL, args, { nullable: true });
   if (data?.queued) return null;
   return (await getDocument(doctype, name)).data;

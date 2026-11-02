@@ -953,11 +953,23 @@ function reportQueueFailure(act: DocstatusAct, failure: QueueFailure) {
 // What the person agreed to in the confirm that opened this Submit or Cancel.
 let docstatusChoice: DocstatusChoice | null = null;
 
-function moveDocstatus(act: DocstatusAct) {
+async function moveDocstatus(act: DocstatusAct) {
 	const page = controller.value!.page;
 	const choice = docstatusChoice ?? undefined;
 	docstatusChoice = null;
-	return docstatusMover.move(act, page.doctype, page.docname, choice);
+	try {
+		return await docstatusMover.move(
+			act,
+			page.doctype,
+			page.docname,
+			choice,
+			saved.value.modified
+		);
+	} catch (e) {
+		if (!(isApiError(e) && e.isTimestampMismatch)) throw e;
+		await resolveConflict();
+		throw conflictError();
+	}
 }
 
 async function write() {
