@@ -154,21 +154,14 @@ def parse_verdict(text: str) -> Verdict:
 
 
 def _approval_answer(result: ToolResult) -> str | None:
-	"""What the user typed at an approval prompt, or that they denied the call: their words,
-	which the loop stores as the call's result (see `_redirect` and `_DENIED` in the loop)."""
-	if not result.content.startswith("{"):
+	"""What the user answered at an approval prompt, from the marker the loop's `resume` puts
+	in the result's details. Content is never trusted: a tool's output may look like one."""
+	answer = result.details.get("user_answer")
+	if not isinstance(answer, str):
 		return None
-	try:
-		data = json.loads(result.content)
-	except ValueError:
-		return None
-	if not isinstance(data, dict):
-		return None
-	if data.get("status") == "redirect" and (feedback := str(data.get("user_feedback") or "").strip()):
-		return f"User (answering an approval for {result.name}): {feedback}"
-	if data.get("status") == "denied":
+	if answer == "Deny":
 		return f"User denied the call to {result.name}."
-	return None
+	return f"User (answering an approval for {result.name}): {answer}"
 
 
 def _json(arguments: dict) -> str:

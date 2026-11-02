@@ -17,7 +17,8 @@ A tool call can be intercepted three ways, and they do different jobs:
     The pause is in the log, so `resume` can arrive later, from any client, even
     after a restart. In approval mode `auto`, the reviewer (`agent/auto_review.py`) gets the
     gated call first: allowed, it runs and its result records the verdict; else it
-    pauses as usual, with the reason in its prompt. Sub-agents are never reviewed.
+    pauses as usual, with the reason in its prompt. A `subagent` call is reviewed too,
+    though it is not gated, so a task is judged before the child takes it as its own.
 
 Order per call: bad arguments, before hook, extension hooks, confirm gate, then run it,
 before the next call is looked at. Consecutive calls of tools marked `concurrent` are the
@@ -247,6 +248,7 @@ async def resume(
 				result = _result(call, _blocked(verdict.reason), is_error=True)
 			else:
 				result = await _finished_call(call, tools, ctx, inputs)
+		# the reviewer trusts the answer in details, never content a tool could fake
 		elif answer == "Deny":
 			result = _result(call, _denied(pending.prompt), is_error=True, details={"user_answer": answer})
 			denied = True
