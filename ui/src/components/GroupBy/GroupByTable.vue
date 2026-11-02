@@ -128,6 +128,7 @@ import {
 	columnId,
 	effectiveSort,
 	findGroupByField,
+	formatRating,
 } from "./groupBy";
 import { directionFor, nextSort } from "../../experimental/List/headerSort";
 import { useColumnResize } from "../../experimental/List/useColumnResize";
@@ -252,6 +253,9 @@ const numberFormat = new Intl.NumberFormat(undefined, { maximumFractionDigits: 2
 
 function cellText(row: Record<string, unknown>, column: GroupByColumn): string {
 	const value = row[column.key];
+	if (column.fieldtype === "Rating" && typeof value === "number") {
+		return formatRating(value, column.options);
+	}
 	if (column.kind === "aggregate") {
 		if (value === null || value === undefined) return "—";
 		return typeof value === "number" ? numberFormat.format(value) : String(value);
