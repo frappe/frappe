@@ -128,6 +128,7 @@ class DocType(Document):
 		enable_upload_first_workflow: DF.Check
 		engine: DF.Literal["InnoDB", "MyISAM"]
 		fields: DF.Table[DocField]
+		force_private_attachments: DF.Check
 		force_re_route_to_default_view: DF.Check
 		grid_page_length: DF.Int
 		has_web_view: DF.Check

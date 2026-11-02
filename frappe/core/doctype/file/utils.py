@@ -272,7 +272,7 @@ def get_file_name(fname: str, optional_suffix: str | None = None) -> str:
 
 def extract_images_from_doc(doc: "Document", fieldname: str, is_private=True):
 	content = doc.get(fieldname)
-	if doc.meta.make_attachments_public:
+	if doc.meta.make_attachments_public and not doc.meta.force_private_attachments:
 		is_private = False
 	content = extract_images_from_html(doc, content, is_private=is_private)
 	if frappe.flags.has_dataurl:

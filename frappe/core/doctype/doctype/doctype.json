@@ -61,6 +61,7 @@
   "allow_auto_repeat",
   "make_attachments_public",
   "enable_upload_first_workflow",
+  "force_private_attachments",
   "view_settings",
   "show_title_field_in_link",
   "translated_doctype",
@@ -618,6 +619,7 @@
   },
   {
    "default": "0",
+   "depends_on": "eval:!doc.force_private_attachments",
    "fieldname": "make_attachments_public",
    "fieldtype": "Check",
    "label": "Make Attachments Public by Default"
@@ -629,6 +631,13 @@
    "fieldname": "enable_upload_first_workflow",
    "fieldtype": "Check",
    "label": "Allow documents to be created from an uploaded file"
+  },
+  {
+   "default": "0",
+   "description": "All files attached to this DocType must be private",
+   "fieldname": "force_private_attachments",
+   "fieldtype": "Check",
+   "label": "Force Private Attachments"
   },
   {
    "default": "0",
@@ -826,7 +835,7 @@
    "link_fieldname": "document_type"
   }
  ],
- "modified": "2026-10-14 10:00:00.000000",
+ "modified": "2026-11-02 09:54:18.575551",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
