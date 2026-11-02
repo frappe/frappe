@@ -25,6 +25,7 @@ class FlowLauncher {
 		this.bind();
 		this.place();
 		if (this.state.open) this.open({ focus: false, slide: false });
+		else prefetch_island();
 	}
 
 	make() {
@@ -32,7 +33,7 @@ class FlowLauncher {
 		const root = this.host.attachShadow({ mode: "open" });
 		root.innerHTML = `<style>${STYLE}</style>
 			<div class="panel" role="dialog" aria-label="Flow" inert>
-				<div class="window"><slot></slot></div>
+				<div class="window"><slot></slot>${SKELETON}</div>
 				<div class="shield"></div>
 				<div class="edge"></div>
 			</div>`;
@@ -142,7 +143,13 @@ class FlowLauncher {
 				},
 			},
 		});
-		this.island.ready.catch((error) => console.error("Flow could not start", error));
+		this.island.ready.then(
+			() => this.host.toggleAttribute("data-ready", true),
+			(error) => {
+				this.host.toggleAttribute("data-failed", true);
+				console.error("Flow could not start", error);
+			}
+		);
 	}
 
 	// the panel takes the page's light or dark theme; the island follows it by itself
@@ -249,6 +256,22 @@ class FlowLauncher {
 	}
 }
 
+// the chat's files, fetched once the page has loaded and gone idle, so the panel opens without
+// waiting for them. The launcher is only on pages of users who may use Flow
+function prefetch_island() {
+	const idle = window.requestIdleCallback || ((callback) => setTimeout(callback, 2000));
+	const fetch_files = () => {
+		for (const href of [SCRIPT.dataset.island, SCRIPT.dataset.islandCss]) {
+			if (!href) continue;
+			const link = document.createElement("link");
+			Object.assign(link, { rel: "prefetch", href });
+			document.head.append(link);
+		}
+	};
+	if (document.readyState === "complete") idle(fetch_files);
+	else window.addEventListener("load", () => idle(fetch_files), { once: true });
+}
+
 // Cmd/Ctrl+I, by the letter typed, or by the key's place on layouts with no Latin letters
 function is_toggle_key(event) {
 	if (!(event.metaKey || event.ctrlKey) || event.altKey || event.shiftKey) return false;
@@ -288,6 +311,13 @@ function load_state() {
 		return {};
 	}
 }
+
+// the panel's header and message box, drawn at once while the chat loads
+const SKELETON = `<div class="skeleton" aria-hidden="true">
+	<div class="bar"><i style="width: 40%"></i><b></b><b></b><b></b><b></b></div>
+	<div class="composer"><i style="width: 25%"></i></div>
+	<p>Flow could not start. Reload the page to try again.</p>
+</div>`;
 
 const SLIDE = `${SLIDE_TIME}ms cubic-bezier(0.2, 0, 0, 1)`;
 // the page's room beside the panel, on screen only, so a printout keeps the page's width. The apps
@@ -340,6 +370,22 @@ const STYLE = `
 	border-radius: 0;
 	box-shadow: none;
 }
+.window { position: relative; }
+.skeleton { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: space-between; }
+:host([data-ready]) .skeleton { display: none; }
+.skeleton i, .skeleton b { display: block; height: 12px; border-radius: 6px; background: var(--surface-gray-3, rgba(128, 128, 128, 0.16)); }
+.skeleton b { width: 16px; height: 16px; border-radius: 4px; }
+.skeleton .bar { display: flex; align-items: center; gap: 16px; height: 48px; padding: 0 12px; box-sizing: border-box; }
+.skeleton .bar i { margin-right: auto; }
+.skeleton .composer { height: 124px; margin: 20px; padding: 22px 14px; box-sizing: border-box; border: 1px solid var(--outline-gray-2, rgba(128, 128, 128, 0.25)); border-radius: var(--radius-6, 12px); }
+.skeleton p { display: none; margin: 0 20px; color: var(--ink-gray-6, #7c7c7c); line-height: 1.5; }
+:host([data-failed]) .skeleton :is(.bar, .composer) { display: none; }
+:host([data-failed]) .skeleton { justify-content: center; text-align: center; }
+:host([data-failed]) .skeleton p { display: block; }
+@media (prefers-reduced-motion: no-preference) {
+	.skeleton :is(i, b) { animation: pulse 1.5s ease-in-out infinite; }
+}
+@keyframes pulse { 50% { opacity: 0.5; } }
 /* filling the window, it has no edge toward the page */
 .panel[data-covered] .window { border-width: 0; }
 ::slotted(div) { flex: 1; min-height: 0; }

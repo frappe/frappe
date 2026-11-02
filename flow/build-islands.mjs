@@ -33,6 +33,14 @@ const containerQueries = {
 	},
 };
 
+// the island's one entry holds its code, and CodeField, loaded later, imports from it. Without
+// this, Rollup moves the code into a chunk behind a stub entry, which the launcher's prefetch of
+// the entry would miss
+const wholeEntry = {
+	name: "island-whole-entry",
+	config: () => ({ build: { rollupOptions: { preserveEntrySignatures: "allow-extension" } } }),
+};
+
 await buildIslands({
 	app: "frappe",
 	root: import.meta.dirname,
@@ -40,7 +48,7 @@ await buildIslands({
 	subdir: "flow",
 	entries: { "frappe.flow.chat": "frontend/src/island.js" },
 	budget: 1.5 * 1024 * 1024,
-	plugins: [sourceImports, containerQueries],
+	plugins: [sourceImports, containerQueries, wholeEntry],
 	production: process.argv.includes("--production"),
 	watch: process.argv.includes("--watch"),
 });

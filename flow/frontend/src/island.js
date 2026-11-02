@@ -3,6 +3,7 @@ import { mountVueIsland } from "@framework/ui/island";
 import { frappeRequest, setConfig } from "frappe-ui";
 
 import App from "./App.vue";
+import { loadBoot } from "./boot.js";
 import { setPanel } from "./panel.js";
 import { routes } from "./router.js";
 import "./index.css";
@@ -18,8 +19,12 @@ setConfig("resourceFetcher", frappeRequest);
 export async function mount(el, context) {
 	const panel = context.props?.panel;
 	setPanel(panel);
+	// the launcher's skeleton shows until the mount resolves, so the panel loads boot first and
+	// the chat draws at once; a failed load leaves App to try again and say why
+	const boot = panel ? await loadBoot().catch(() => null) : context.props?.boot;
 	const island = await mountVueIsland(el, {
 		...context,
+		props: { ...context.props, boot },
 		component: App,
 		routes,
 		history: panel ? null : createWebHistory("/flow"),
