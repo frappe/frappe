@@ -421,8 +421,8 @@ def check_conditions(doctype: str, name: str, conditions: list[str] | str):
 	for condition in conditions:
 		try:
 			out[condition] = {"visible": eval_print_condition(condition, eval_locals)}
-		except Exception as e:
-			out[condition] = {"error": str(e)[:200]}
+		except Exception:
+			out[condition] = {"error": _("This condition could not be evaluated")}
 	return out
 
 
