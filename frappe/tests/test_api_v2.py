@@ -2892,6 +2892,144 @@ class TestDocumentMethodRoutesV2(FrappeAPITestCase):
 		self.assertEqual(response.status_code, 403, response.json)
 
 
+class OverridingController(Document):
+	"""A controller that overrides `submit`/`cancel`/`discard` without `@frappe.whitelist()`, like ERPNext's."""
+
+	calls: typing.ClassVar[list[str]] = []
+
+	def submit(self):
+		self.calls.append("submit")
+		return super().submit()
+
+	def cancel(self):
+		self.calls.append("cancel")
+		return super().cancel()
+
+	def discard(self):
+		self.calls.append("discard")
+		return super().discard()
+
+	def touch(self):
+		self.calls.append("touch")
+
+
+class PostOnlyController(Document):
+	"""A controller that whitelists its own `submit` for POST only."""
+
+	@whitelist_for_tests(methods=["POST"])
+	def submit(self):
+		return super().submit()
+
+
+class TestSubmitCancelOverrideV2(FrappeAPITestCase):
+	"""`execute_doc_method` runs a subclass override of the whitelisted `Document.submit`/`cancel`."""
+
+	version = "v2"
+	DOCTYPE = "Test Submit Override V2"
+	NO_SUBMIT_USER = "submit.override.reader@example.com"
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		frappe.set_user("Administrator")
+		frappe.delete_doc_if_exists("DocType", cls.DOCTYPE, force=True)
+		new_doctype(
+			cls.DOCTYPE,
+			is_submittable=1,
+			permissions=[
+				{"role": "System Manager", "read": 1, "write": 1, "create": 1, "submit": 1, "cancel": 1},
+				{"role": "Desk User", "read": 1, "write": 1},
+			],
+		).insert()
+		if not frappe.db.exists("User", cls.NO_SUBMIT_USER):
+			user = frappe.get_doc(
+				doctype="User", email=cls.NO_SUBMIT_USER, first_name="Submit Reader", send_welcome_email=0
+			).insert()
+			user.add_roles("Desk User")
+		frappe.db.commit()  # nosemgrep
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.set_user("Administrator")
+		frappe.delete_doc_if_exists("DocType", cls.DOCTYPE, force=True)
+		frappe.delete_doc_if_exists("User", cls.NO_SUBMIT_USER, force=True)
+		frappe.db.commit()  # nosemgrep
+		super().tearDownClass()
+
+	def setUp(self):
+		super().setUp()
+		OverridingController.calls = []
+		controllers = frappe.controllers.setdefault(frappe.local.site, {})
+		patcher = patch.dict(controllers, {self.DOCTYPE: OverridingController})
+		patcher.start()
+		self.addCleanup(patcher.stop)
+		self.doc = frappe.get_doc(doctype=self.DOCTYPE, some_fieldname="override me").insert()
+		frappe.db.commit()  # nosemgrep
+		self.addCleanup(self.delete_doc)
+
+	def delete_doc(self):
+		frappe.set_user("Administrator")
+		frappe.db.delete(self.DOCTYPE, {"name": self.doc.name})
+		frappe.db.commit()  # nosemgrep
+
+	def call(self, method: str, sid: str | None = None) -> TestResponse:
+		return self.post(
+			self.resource(self.DOCTYPE, self.doc.name, "method", method), {"sid": sid or self.sid}
+		)
+
+	def docstatus(self) -> int:
+		frappe.db.rollback()
+		return frappe.db.get_value(self.DOCTYPE, self.doc.name, "docstatus")
+
+	def test_override_of_submit_and_cancel_runs(self):
+		response = self.call("submit")
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(OverridingController.calls, ["submit"])
+		self.assertEqual(self.docstatus(), 1)
+
+		response = self.call("cancel")
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(OverridingController.calls, ["submit", "cancel"])
+		self.assertEqual(self.docstatus(), 2)
+
+	def test_controller_without_an_override_still_submits(self):
+		with patch.dict(frappe.controllers[frappe.local.site], {self.DOCTYPE: Document}):
+			response = self.call("submit")
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(self.docstatus(), 1)
+
+	def test_other_methods_are_not_widened(self):
+		for method in ("touch", "discard", "_submit", "run_method", "save"):
+			with self.subTest(method=method):
+				response = self.call(method)
+				self.assertEqual(response.status_code, 403, (method, response.json))
+		self.assertEqual(OverridingController.calls, [])
+		self.assertEqual(self.docstatus(), 0)
+
+	def test_submit_needs_the_submit_right(self):
+		response = self.call("submit", sid_of(self.NO_SUBMIT_USER))
+		self.assertEqual(response.status_code, 403, response.json)
+		self.assertEqual(OverridingController.calls, [])
+		self.assertEqual(self.docstatus(), 0)
+
+	def test_cancel_needs_the_cancel_right(self):
+		self.call("submit")
+		OverridingController.calls = []
+		response = self.call("cancel", sid_of(self.NO_SUBMIT_USER))
+		self.assertEqual(response.status_code, 403, response.json)
+		self.assertEqual(OverridingController.calls, [])
+		self.assertEqual(self.docstatus(), 1)
+
+	def test_a_whitelisted_override_keeps_its_own_http_methods(self):
+		with patch.dict(frappe.controllers[frappe.local.site], {self.DOCTYPE: PostOnlyController}):
+			response = self.get(
+				self.resource(self.DOCTYPE, self.doc.name, "method", "submit"), {"sid": self.sid}
+			)
+			self.assertEqual(response.status_code, 403, response.json)
+			self.assertEqual(self.docstatus(), 0)
+			self.assertEqual(self.call("submit").status_code, 200)
+
+
 class TestFieldErrorsEntryV2(FrappeAPITestCase):
 	version = "v2"
 	ROLE = "Field Errors Tester"
