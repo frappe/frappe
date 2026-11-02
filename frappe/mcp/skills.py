@@ -39,12 +39,6 @@ class SkillCatalog:
 			raise McpError(INVALID_PARAMS, "Expected a skill's SKILL.md URI")
 		return {"skill": _SkillManifest(self.apps).entry(app, path), **cache_policy()}
 
-	def list_resources(self, cursor: str | None = None) -> dict:
-		paths = {resource_uri(app, path): (app, path) for app, path in self.skill_paths()}
-		result = page([{"uri": uri} for uri in paths], "resources", cursor, "resources/list")
-		result["resources"] = [self.metadata(*paths[item["uri"]]) for item in result["resources"]]
-		return result
-
 	def read_resource(self, uri: str) -> dict:
 		app, path = self.location(uri)
 		if not self.owner(app, path.parent):

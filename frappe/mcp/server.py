@@ -28,10 +28,11 @@ def dispatch(method: str, params: dict[str, Any], version: str) -> dict:
 		if method == "tools/list":
 			return {"tools": tools.definitions(), "ttlMs": 3600000, "cacheScope": "private"}
 		return tools.call(params)
+	if method == "resources/list":
+		return {"resources": []}
 	if method in (
 		"skills/list",
 		"skills/get",
-		"resources/list",
 		"resources/read",
 		"resources/directory/read",
 	):
@@ -40,8 +41,6 @@ def dispatch(method: str, params: dict[str, Any], version: str) -> dict:
 			return catalog.list_skills(params.get("cursor"))
 		if method == "skills/get":
 			return catalog.get_skill(params.get("uri"))
-		if method == "resources/list":
-			return catalog.list_resources(params.get("cursor"))
 		if method == "resources/read":
 			return catalog.read_resource(params.get("uri"))
 		return catalog.read_directory(params.get("uri"), params.get("cursor"))

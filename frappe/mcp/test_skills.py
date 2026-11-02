@@ -186,7 +186,6 @@ class TestSkillCatalog(SkillFixtures, UnitTestCase):
 	def test_pagination_returns_complete_entries_and_rejects_foreign_cursors(self):
 		operations = (
 			(self.catalog.list_skills, "skills"),
-			(self.catalog.list_resources, "resources"),
 			(
 				lambda cursor=None: self.catalog.read_directory("skill://frappe/billing/refunds", cursor),
 				"resources",
@@ -207,7 +206,7 @@ class TestSkillCatalog(SkillFixtures, UnitTestCase):
 			with self.subTest(cursor=cursor), self.assertRaises(protocol.McpError) as caught:
 				operation(cursor)
 			self.assertEqual(caught.exception.code, protocol.INVALID_PARAMS)
-		for cursor in (1, "bad", "", cursors[2]):
+		for cursor in (1, "bad", "", cursors[1]):
 			with self.subTest(cursor=cursor), self.assertRaises(protocol.McpError) as caught:
 				self.catalog.read_directory("skill://frappe", cursor)
 			self.assertEqual(caught.exception.code, protocol.INVALID_PARAMS)
@@ -263,7 +262,6 @@ class TestSkillCatalog(SkillFixtures, UnitTestCase):
 		with patch("frappe.get_installed_apps", return_value=["empty"]):
 			catalog = SkillCatalog()
 		self.assertEqual(catalog.list_skills()["skills"], [])
-		self.assertEqual(catalog.list_resources()["resources"], [])
 
 	def test_filesystem_failures_propagate(self):
 		uri = "skill://frappe/billing/refunds/SKILL.md"

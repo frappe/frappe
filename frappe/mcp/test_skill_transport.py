@@ -46,6 +46,7 @@ class TestSkillTransport(SkillFixtures, McpTestCase):
 		)
 
 	def test_normal_desk_user_can_discover_and_read_skills_in_both_protocol_versions(self):
+		self.assertEqual(self.rpc("resources/list").json["result"]["resources"], [])
 		for modern in (True, False):
 			with self.subTest(modern=modern):
 				discovery = self.rpc(
@@ -78,10 +79,7 @@ class TestSkillTransport(SkillFixtures, McpTestCase):
 				else:
 					self.assertNotIn("ttlMs", listing)
 
-	def test_resource_routes(self):
-		listing = self.rpc("resources/list").json["result"]["resources"]
-		self.assertEqual(len(listing), 2)
-		self.assertTrue(all(resource["mimeType"] == "text/markdown" for resource in listing))
+	def test_directory_reading(self):
 		directory = self.rpc("resources/directory/read", {"uri": "skill://frappe/billing/refunds/review"})
 		self.assertEqual(directory.status_code, 200)
 		self.assertEqual(
