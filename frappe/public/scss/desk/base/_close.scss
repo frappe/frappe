@@ -1,0 +1,31 @@
+.close {
+	float: right;
+	font-size: 1.3125rem;
+	font-weight: 700;
+	line-height: 1;
+	color: #000;
+	text-shadow: 0 1px 0 #fff;
+	opacity: 0.5;
+
+	&:hover {
+		color: #000;
+		text-decoration: none;
+	}
+
+	&:not(:disabled):not(.disabled) {
+		&:hover,
+		&:focus {
+			opacity: 0.75;
+		}
+	}
+}
+
+button.close {
+	padding: 0;
+	background-color: transparent;
+	border: 0;
+}
+
+a.close.disabled {
+	pointer-events: none;
+}

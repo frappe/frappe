@@ -1,0 +1,57 @@
+.btn-group {
+	position: relative;
+	display: inline-flex;
+	vertical-align: middle;
+
+	> .btn {
+		position: relative;
+		flex: 1 1 auto;
+
+		&:hover,
+		&:focus,
+		&:active,
+		&.active {
+			z-index: 1;
+		}
+	}
+
+	> .btn:not(:first-child),
+	> .btn-group:not(:first-child) {
+		margin-left: -1px;
+	}
+
+	> .btn:not(:last-child):not(.dropdown-toggle),
+	> .btn-group:not(:last-child) > .btn {
+		border-top-right-radius: 0;
+		border-bottom-right-radius: 0;
+	}
+
+	> .btn:not(:first-child),
+	> .btn-group:not(:first-child) > .btn {
+		border-top-left-radius: 0;
+		border-bottom-left-radius: 0;
+	}
+}
+
+.dropdown-toggle-split {
+	padding-right: 0.75rem;
+	padding-left: 0.75rem;
+
+	&::after {
+		margin-left: 0;
+	}
+}
+
+.btn-sm + .dropdown-toggle-split,
+.btn-group-sm > .btn + .dropdown-toggle-split {
+	padding-right: 0.375rem;
+	padding-left: 0.375rem;
+}
+
+.btn-group.show .dropdown-toggle {
+	box-shadow: var(--shadow-inset);
+
+	&.btn-link {
+		box-shadow: none;
+	}
+}

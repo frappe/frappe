@@ -1,0 +1,85 @@
+$badge-variants: (
+	"secondary": (
+		$gray-600,
+		#fff,
+	),
+	"info": (
+		#17a2b8,
+		#fff,
+	),
+	"warning": (
+		#ffc107,
+		$gray-900,
+	),
+	"danger": (
+		$danger,
+		#fff,
+	),
+	"light": (
+		$gray-100,
+		$gray-900,
+	),
+	"dark": (
+		$gray-800,
+		#fff,
+	),
+);
+
+.badge {
+	display: inline-block;
+	padding: 0.25em 0.4em;
+	font-size: 75%;
+	font-weight: 700;
+	line-height: 1;
+	text-align: center;
+	white-space: nowrap;
+	vertical-align: baseline;
+	border-radius: var(--radius);
+	transition: none;
+
+	&:empty {
+		display: none;
+	}
+}
+
+a.badge {
+	&:hover,
+	&:focus {
+		text-decoration: none;
+	}
+}
+
+.btn .badge {
+	position: relative;
+	top: -1px;
+}
+
+.badge-pill {
+	padding-right: 0.6em;
+	padding-left: 0.6em;
+	border-radius: 10rem;
+}
+
+@each $name, $colors in $badge-variants {
+	$color: nth($colors, 1);
+	$text: nth($colors, 2);
+
+	.badge-#{$name} {
+		color: $text;
+		background-color: $color;
+	}
+
+	a.badge-#{$name} {
+		&:hover,
+		&:focus {
+			color: $text;
+			background-color: darken($color, 10%);
+		}
+
+		&:focus,
+		&.focus {
+			outline: 0;
+			box-shadow: 0 0 0 2px rgba($color, 0.5);
+		}
+	}
+}

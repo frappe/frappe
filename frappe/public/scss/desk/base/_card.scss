@@ -1,0 +1,54 @@
+$card-inner-radius: calc(0.75rem - 1px);
+
+.card {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	word-wrap: break-word;
+	background-color: var(--white);
+	background-clip: border-box;
+	border: 1px solid rgba(0, 0, 0, 0.125);
+	border-radius: 0.75rem;
+
+	> hr {
+		margin-right: 0;
+		margin-left: 0;
+	}
+
+	> .list-group {
+		border-top: inherit;
+		border-bottom: inherit;
+
+		&:first-child {
+			border-top-width: 0;
+			border-top-left-radius: $card-inner-radius;
+			border-top-right-radius: $card-inner-radius;
+		}
+
+		&:last-child {
+			border-bottom-width: 0;
+			border-bottom-right-radius: $card-inner-radius;
+			border-bottom-left-radius: $card-inner-radius;
+		}
+	}
+
+	> .card-header + .list-group {
+		border-top: 0;
+	}
+}
+
+.card-title {
+	margin-bottom: 0.5rem;
+}
+
+.card-header {
+	padding: 0.5rem 1.25rem;
+	margin-bottom: 0;
+	background-color: rgba(0, 0, 0, 0.03);
+	border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+
+	&:first-child {
+		border-radius: $card-inner-radius $card-inner-radius 0 0;
+	}
+}
