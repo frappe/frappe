@@ -52,10 +52,10 @@ import RequiredFieldsDialog from "../dialogs/RequiredFieldsDialog.vue";
 
 const layout = fieldsToLayout([{ fieldname: "batch", fieldtype: "Data", label: "Batch", reqd: true }]);
 
-function render(close = vi.fn()) {
+function render(close = vi.fn(), submitting = false) {
   const root = document.createElement("div");
   document.body.appendChild(root);
-  createApp(RequiredFieldsDialog, { layout, doc: { name: "D-1" }, doctype: "Deal", close }).mount(root);
+  createApp(RequiredFieldsDialog, { layout, doc: { name: "D-1" }, doctype: "Deal", close, submitting }).mount(root);
   return { root, close };
 }
 
@@ -114,6 +114,13 @@ describe("the required-fields dialog", () => {
     await settle();
 
     expect(close).toHaveBeenCalledWith(expect.objectContaining({ batch: "B1" }));
+  });
+
+  it("names its primary button Save and submit when a Submit asked", () => {
+    const { root } = render(vi.fn(), true);
+
+    expect(button(root, "Save and submit")).toBeDefined();
+    expect(button(root, "Continue")).toBeUndefined();
   });
 
   it("closes with nothing on Cancel", async () => {

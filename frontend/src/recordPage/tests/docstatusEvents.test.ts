@@ -257,6 +257,21 @@ describe("Submit with a mandatory field the layout does not show", () => {
     expect(declined.order).toEqual([]);
   });
 
+  it("refuses when afterSave left unsaved edits, rather than submitting without them", async () => {
+    let dirty = false;
+    const { controller, order } = makePage({
+      doc: ref({ docstatus: 0 }),
+      isDirty: () => dirty,
+      offLayout: () => hidden,
+      askRequired: async () => ({ batch: "B1" }),
+    });
+    registerRecordPage("Invoice", { afterSave: () => void (dirty = true) });
+
+    await expect(controller.submit()).rejects.toMatchObject({ name: SAVE_VETO });
+
+    expect(order).toEqual(["confirm submit"]);
+  });
+
   it("a clean draft with every mandatory value saves nothing and skips the dialog", async () => {
     const { controller, order, askRequired } = makeDraft({ batch: "B1" }, { batch: "B0" });
 

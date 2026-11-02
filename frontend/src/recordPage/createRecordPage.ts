@@ -454,10 +454,10 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     moving.value ??= hold(async () => {
       const lower = act.toLowerCase() as "submit" | "cancel";
       if (!(await host.confirmDocstatus?.(lower)) || engine.hasLeft()) return;
+      const wasDirty = host.isDirty();
       // "Save and submit" is the consent: a clean draft saves only to give the dialog's values.
       if (act === "Submit" && offLayoutToAsk()) await saveNow(true);
       if (engine.hasLeft()) return;
-      const wasDirty = host.isDirty();
       try {
         await fireEvent(`before${act}`);
         await commits.flush();
