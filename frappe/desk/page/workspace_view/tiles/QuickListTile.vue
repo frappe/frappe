@@ -80,6 +80,7 @@ const card = ref(null);
 const list = ref(null);
 const fit = ref(4);
 const max_height = inject("tile_max_height", ref(null));
+const tile_size = inject("tile_size", ref(null));
 let observer = null;
 
 // as many whole rows as the tile's largest height holds, so the tile ends at its last row
@@ -189,6 +190,7 @@ function text(value) {
 						:key="doctype"
 						:doctype="doctype"
 						:filters="filters"
+						:compact="tile_size === 'M'"
 						@change="set_filters"
 					/>
 					<Button

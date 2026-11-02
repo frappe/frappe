@@ -7,6 +7,7 @@ import { Filter, getFilterableFields, parseFilters, serializeFilters } from "@fr
 const props = defineProps({
 	doctype: { type: String, required: true },
 	filters: { type: Array, default: null },
+	compact: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(["change"]);
@@ -34,5 +35,5 @@ const model = computed({
 </script>
 
 <template>
-	<Filter v-model="model" :doctype="doctype" />
+	<Filter v-model="model" :doctype="doctype" :compact="compact" />
 </template>
