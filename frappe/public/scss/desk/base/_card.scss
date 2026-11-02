@@ -6,7 +6,7 @@ $card-inner-radius: calc(0.75rem - 1px);
 	flex-direction: column;
 	min-width: 0;
 	word-wrap: break-word;
-	background-color: #fff;
+	background-color: var(--white);
 	background-clip: border-box;
 	border: 1px solid rgba(0, 0, 0, 0.125);
 	border-radius: 0.75rem;

@@ -38,7 +38,7 @@ $utility-colors: (
 }
 
 .bg-white {
-	background-color: #fff !important;
+	background-color: var(--white) !important;
 }
 
 .bg-transparent {
@@ -426,7 +426,7 @@ $margin-sides: (
 }
 
 .text-white {
-	color: #fff !important;
+	color: var(--white) !important;
 }
 
 @each $name, $color in $utility-colors {

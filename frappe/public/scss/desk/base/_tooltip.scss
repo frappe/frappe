@@ -112,7 +112,7 @@ $tooltip-arrow-height: 0.4rem;
 .tooltip-inner {
 	max-width: 200px;
 	padding: 0.25rem 0.5rem;
-	color: #fff;
+	color: var(--white);
 	text-align: center;
 	background-color: #000;
 	border-radius: var(--radius);
