@@ -6,3 +6,11 @@ export function isInert(el) {
 	}
 	return false
 }
+
+// Whether an event belongs to the page around the chat: an island in a page's panel (its host
+// marked data-panel) shares the page's window, where it hears keys and touches meant for the
+// page. Anything from outside the island's shadow root is the page's
+export function isPageEvent(event, el) {
+	const host = el?.getRootNode?.().host
+	return Boolean(host?.hasAttribute?.("data-panel")) && !event.composedPath().includes(host)
+}

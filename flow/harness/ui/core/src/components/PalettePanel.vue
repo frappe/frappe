@@ -51,7 +51,7 @@
 <script setup>
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
 
-import { isInert } from "../inert.js"
+import { isInert, isPageEvent } from "../inert.js"
 import { nextNavigationIndex } from "../paletteNav.js"
 
 const props = defineProps({
@@ -141,6 +141,8 @@ function onPointerMove(event) {
 function onKey(event) {
 	// put away with a view the host hides (inert), it answers no keys
 	if (isInert(panel.value)) return
+	// in a page's panel, keys typed into the page are the page's
+	if (isPageEvent(event, panel.value)) return
 	// an IME's Enter picks its candidate, not a row
 	if (event.isComposing || event.keyCode === 229) return
 	if (event.key === "Escape") {
