@@ -3,6 +3,7 @@ import type { ComponentProp, ComponentProps } from "@/types"
 import type { VueProp, VuePropType } from "@/types/vue"
 
 import * as jsonTypes from "@/json_types"
+import { getAppSource } from "@/runtime/appRuntime"
 import { isObjectEmpty } from "@/utils/helpers"
 import { ConcreteComponent, reactive } from "vue"
 import type { CustomVueComponentMeta } from "@/types/vue"
@@ -228,12 +229,12 @@ const frameworkUIComponentPaths: Record<string, string> = {
 
 const templateCache = new Map<string, string>()
 
-const customComponentFilePaths = new Map<string, string>()
+const customComponentMetas = new Map<string, CustomVueComponentMeta>()
 
 async function registerCustomComponentPaths(components: CustomVueComponentMeta[]) {
-	customComponentFilePaths.clear()
+	customComponentMetas.clear()
 	for (const comp of components) {
-		customComponentFilePaths.set(comp.component_name, comp.file_path)
+		customComponentMetas.set(comp.component_name, comp)
 	}
 	await Promise.all(components.map((comp) => getComponentSlots(comp.component_name, true)))
 }
@@ -298,9 +299,17 @@ async function fetchCustomComponentTemplate(componentName: string): Promise<stri
 		return templateCache.get(componentName) || ""
 	}
 
-	const filePath = customComponentFilePaths.get(componentName)
-	if (!filePath) return ""
+	const meta = customComponentMetas.get(componentName)
+	if (!meta) return ""
 
+	// a component in the file store has no served file: its source is already loaded in the runtime
+	if (!meta.file_path) {
+		const storedSource = (await getAppSource(meta.studio_file_path)) || ""
+		if (storedSource) templateCache.set(componentName, storedSource)
+		return storedSource
+	}
+
+	const filePath = meta.file_path
 	try {
 		// Use Vite's ?raw import to get unprocessed file content as a string. In dev, a unique
 		// query busts the browser's ES-module cache so a re-fetch after invalidateComponentCache

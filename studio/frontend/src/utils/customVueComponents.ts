@@ -1,5 +1,6 @@
 import { defineAsyncComponent, shallowRef } from "vue"
 import { vueComponents } from "@/data/vueComponents"
+import { loadAppRuntime, loadAppModule } from "@/runtime/appRuntime"
 import type { CustomVueComponentMeta } from "@/types/vue"
 
 export const customVueComponentsRegistry = shallowRef<Record<string, any>>({})
@@ -14,8 +15,10 @@ export async function registerCustomVueComponents(frappeApp: string): Promise<Cu
 
 		const registry = { ...customVueComponentsRegistry.value }
 		for (const comp of components) {
+			const filePath = comp.file_path
+			if (!filePath) continue
 			try {
-				const asyncComp = defineAsyncComponent(() => import(/* @vite-ignore */ comp.file_path))
+				const asyncComp = defineAsyncComponent(() => import(/* @vite-ignore */ filePath))
 				registry[comp.component_name] = asyncComp
 				if (window.__APP_COMPONENTS__) {
 					window.__APP_COMPONENTS__[comp.component_name] = asyncComp
@@ -53,6 +56,34 @@ export function unregisterCustomVueComponents(components: CustomVueComponentMeta
 export async function reloadCustomVueComponents(frappeApp: string): Promise<CustomVueComponentMeta[]> {
 	const before = Object.keys(customVueComponentsRegistry.value)
 	const components = await registerCustomVueComponents(frappeApp)
+
+	const current = new Set(components.map((comp) => comp.component_name))
+	const removed = before.filter((name) => !current.has(name)).map((name) => ({ component_name: name }))
+	if (removed.length) unregisterCustomVueComponents(removed as CustomVueComponentMeta[])
+
+	return components
+}
+
+/**
+ * Sync the registry to a database app's .vue files: each component compiles in the browser from
+ * the file store instead of importing a served file. Shared by the editor and the renderer.
+ */
+export async function registerAppVueComponents(studioApp: string): Promise<CustomVueComponentMeta[]> {
+	await loadAppRuntime(studioApp)
+	const components: CustomVueComponentMeta[] = await vueComponents.reload({ studio_app: studioApp })
+
+	const before = Object.keys(customVueComponentsRegistry.value)
+	const registry = { ...customVueComponentsRegistry.value }
+	for (const comp of components) {
+		const asyncComp = defineAsyncComponent(() =>
+			loadAppModule(comp.studio_file_path).then((module) => module.default),
+		)
+		registry[comp.component_name] = asyncComp
+		if (window.__APP_COMPONENTS__) {
+			window.__APP_COMPONENTS__[comp.component_name] = asyncComp
+		}
+	}
+	customVueComponentsRegistry.value = registry
 
 	const current = new Set(components.map((comp) => comp.component_name))
 	const removed = before.filter((name) => !current.has(name)).map((name) => ({ component_name: name }))

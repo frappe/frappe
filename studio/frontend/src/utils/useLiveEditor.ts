@@ -16,6 +16,13 @@ export function useLiveEditor() {
 	// 1. JSON changed on disk and was synced to the DB. Only external (disk) edits refresh the
 	// editor — its own saves are already live on the canvas, and rebuilding would drop selection.
 	async function onDiskSync({ doctype, name, studio_app, source }: DiskSyncInfo) {
+		// a write to the file store (an editor save, an agent edit) recompiles the canvas; `name` is
+		// the file path. The store debounces, so the editor's own save and its echo coalesce.
+		if (doctype === "Studio App File") {
+			if (studio_app === store.activeApp?.name) store.refreshAppFiles()
+			return
+		}
+
 		if (source !== "disk") return
 
 		// components are global (no app scope), so react regardless of which app is open. Re-fetching
