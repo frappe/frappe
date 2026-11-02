@@ -78,9 +78,7 @@ def logout():
 
 
 def read_doc(doctype: str, name: str):
-	doc = frappe.get_doc(doctype, name)
-	doc.check_permission("read")
-	doc.apply_fieldlevel_read_permissions()
+	doc = frappe.read_doc(doctype, name)
 	_doc = doc.as_dict()
 
 	for key in _doc:
@@ -207,9 +205,7 @@ def create_doc(doctype: str):
 
 def copy_doc(doctype: str, name: str, ignore_no_copy: bool = True):
 	"""Return a clean copy of the given document that can be modified and posted as a new document."""
-	doc = frappe.get_doc(doctype, name)
-	doc.check_permission("read")
-	doc.apply_fieldlevel_read_permissions()
+	doc = frappe.read_doc(doctype, name)
 
 	copy = frappe.copy_doc(doc, ignore_no_copy=ignore_no_copy)
 

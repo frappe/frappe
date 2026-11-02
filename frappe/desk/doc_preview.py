@@ -9,9 +9,7 @@ from frappe.desk.form.load import set_link_titles
 def get_preview(doctype: str, name: str):
 	"""Doc for a read-only preview: read and field-level permissions applied, link titles set,
 	no View Log written. The meta comes from the client's own cache."""
-	doc = frappe.get_doc(doctype, name)
-	doc.check_permission("read")
-	doc.apply_fieldlevel_read_permissions()
+	doc = frappe.read_doc(doctype, name)
 	set_link_titles(doc)
 
 	return {

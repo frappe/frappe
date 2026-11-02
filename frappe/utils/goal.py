@@ -92,8 +92,7 @@ def get_monthly_goal_graph_data(
 
 	:return: dict of graph data
 	"""
-	doc = frappe.get_doc(doctype, docname)
-	doc.check_permission()
+	doc = frappe.read_doc(doctype, docname)
 
 	meta = doc.meta
 	goal = doc.get(goal_value_field)

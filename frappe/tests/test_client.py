@@ -46,6 +46,36 @@ class TestClient(IntegrationTestCase):
 		self.assertRaises(frappe.DoesNotExistError, delete, "Note", note.name)
 		self.assertRaises(frappe.DoesNotExistError, delete, "Note Seen By", child_row_name)
 
+	def test_get_single_value_hides_fields_without_permlevel_access(self):
+		from frappe.client import get_single_value
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+		from frappe.core.doctype.user_permission.test_user_permission import create_user
+
+		role = "Test Single Value Role"
+		if not frappe.db.exists("Role", role):
+			frappe.get_doc({"doctype": "Role", "role_name": role}).insert()
+		user = create_user("test_single_value@example.com", role).name
+
+		doctype = new_doctype(
+			issingle=1,
+			fields=[
+				{"fieldname": "public_info", "fieldtype": "Data", "label": "Public Info"},
+				{"fieldname": "secret_info", "fieldtype": "Data", "label": "Secret Info", "permlevel": 1},
+			],
+			permissions=[
+				{"role": "System Manager", "read": 1, "write": 1, "permlevel": 0},
+				{"role": "System Manager", "read": 1, "write": 1, "permlevel": 1},
+				{"role": role, "read": 1, "permlevel": 0},
+			],
+		).insert()
+		settings = frappe.get_doc(doctype.name)
+		settings.update({"public_info": "public", "secret_info": "secret"})
+		settings.save()
+
+		with self.set_user(user):
+			self.assertEqual(get_single_value(doctype.name, "public_info"), "public")
+			self.assertIsNone(get_single_value(doctype.name, "secret_info"))
+
 	def test_http_valid_method_access(self):
 		from frappe.client import delete
 		from frappe.handler import execute_cmd

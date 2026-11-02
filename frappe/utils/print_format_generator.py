@@ -158,8 +158,7 @@ def get_formatted_field_values(doctype: str, name: str) -> dict:
 	from frappe.model import table_fields
 	from frappe.www.printview import set_link_titles
 
-	doc = frappe.get_doc(doctype, name)
-	doc.check_permission("read")
+	doc = frappe.read_doc(doctype, name)
 	set_link_titles(doc)
 
 	def has_access(d, df):
@@ -344,8 +343,7 @@ def check_conditions(doctype: str, name: str, conditions: list[str] | str):
 	if not all(isinstance(v, str) for v in (doctype, name)) or not isinstance(conditions, list):
 		frappe.throw(_("Invalid arguments"), frappe.ValidationError)
 	conditions = list(dict.fromkeys(c for c in conditions if c.strip() and len(c) <= 2000))[:MAX_CONDITIONS]
-	doc = frappe.get_doc(doctype, name)
-	doc.check_permission("read")
+	doc = frappe.read_doc(doctype, name)
 	eval_locals = {"doc": doc, "print_settings": frappe.get_cached_doc("Print Settings")}
 	out = {}
 	for condition in conditions:
