@@ -9,6 +9,7 @@ import {
 	move,
 	name_key,
 	new_block,
+	new_section_break,
 	new_text,
 	set_size,
 	to_save,
@@ -87,6 +88,7 @@ const TITLES = {
 	onboarding: __("Onboarding"),
 	custom_block: __("Custom Block"),
 	text: __("Text"),
+	spacer: __("Section break"),
 };
 
 const ICONS = {
@@ -98,6 +100,7 @@ const ICONS = {
 	onboarding: "lucide-list-checks",
 	custom_block: "lucide-code",
 	text: "lucide-type",
+	spacer: "lucide-separator-horizontal",
 };
 
 // A new block goes after the selected one, or last, and is selected.
@@ -118,6 +121,12 @@ function add_block(type) {
 
 function add_text() {
 	insert(new_text());
+}
+
+function add(type) {
+	if (type === "text") add_text();
+	else if (type === "spacer") insert(new_section_break());
+	else add_block(type);
 }
 
 function remove() {
@@ -350,11 +359,11 @@ defineExpose({ blocks, widgets, selected_id, previewing, variant, on_move, add_t
 			</div>
 			<div class="grid grid-cols-4 gap-1">
 				<button
-					v-for="type in [...BLOCK_TYPES, 'text']"
+					v-for="type in [...BLOCK_TYPES, 'text', 'spacer']"
 					:key="type"
 					type="button"
 					class="flex w-full flex-col items-center gap-1 rounded-4 px-0.5 py-2 text-ink-gray-6 hover:bg-surface-gray-2 hover:text-ink-gray-8"
-					@click="type === 'text' ? add_text() : add_block(type)"
+					@click="add(type)"
 				>
 					<span :class="ICONS[type]" class="size-4" aria-hidden="true" />
 					<span class="whitespace-nowrap text-2xs">{{ TITLES[type] }}</span>
