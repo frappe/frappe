@@ -409,6 +409,7 @@ def check_conditions(doctype: str, name: str, conditions: list[str] | str):
 	"""Evaluate visibility conditions against a document the way the print does.
 	Returns {condition: {"visible": bool} | {"error": str}}; at most MAX_CONDITIONS
 	distinct expressions are evaluated per call."""
+	frappe.has_permission("Print Format", "write", throw=True)
 	conditions = frappe.parse_json(conditions) if isinstance(conditions, str) else conditions
 	if not all(isinstance(v, str) for v in (doctype, name)) or not isinstance(conditions, list):
 		frappe.throw(_("Invalid arguments"), frappe.ValidationError)
