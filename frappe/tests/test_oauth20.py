@@ -364,6 +364,11 @@ class TestOAuth20(FrappeRequestTestCase):
 		response = self.get("/.well-known/test-challenge")
 		self.assertEqual(response.status_code, 200)
 		self.assertEqual(response.get_data(as_text=True), "token-123")
+		self.assertEqual(response.mimetype, "text/plain")
+
+		(folder / "mcp").mkdir()
+		(folder / "mcp" / "server-card.json").write_text("{}")
+		self.assertEqual(self.get("/.well-known/mcp/server-card.json").mimetype, "application/json")
 		self.assertEqual(self.get("/.well-known/missing").status_code, 404)
 		self.assertEqual(self.get("/.well-known/../hooks.py").status_code, 404)
 
