@@ -12,9 +12,10 @@ export async function askRequired(
 	dialog: RecordPageApi["dialog"],
 	layout: FormLayoutSchema,
 	doc: Record<string, any>,
-	doctype: string
+	doctype: string,
+	submitting = false
 ): Promise<Record<string, any>> {
-	const values = await dialog.open(RequiredFieldsDialog, { layout, doc, doctype }, { title: __("Required fields") });
+	const values = await dialog.open(RequiredFieldsDialog, { layout, doc, doctype, submitting }, { title: __("Required fields") });
 	if (!values) throw cancelledError();
 	return values;
 }

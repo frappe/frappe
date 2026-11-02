@@ -12,6 +12,14 @@ describe("askRequired", () => {
     await expect(askRequired(dialog, layout, {}, "Deal")).resolves.toEqual({ batch: "B1" });
   });
 
+  it("tells the dialog a Submit asked, so its primary button reads Save and submit", async () => {
+    const dialog = { open: vi.fn(async () => ({ batch: "B1" })) } as any;
+
+    await askRequired(dialog, layout, {}, "Deal", true);
+
+    expect(dialog.open.mock.calls[0][1]).toMatchObject({ submitting: true });
+  });
+
   it("throws the cancelled error when the dialog closes with nothing", async () => {
     const dialog = { open: vi.fn(async () => undefined) } as any;
 

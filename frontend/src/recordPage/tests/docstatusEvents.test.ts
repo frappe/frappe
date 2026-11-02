@@ -13,7 +13,9 @@ vi.mock("@framework/ui/api", () => ({
 vi.mock("@/i18n", () => ({ __: (text: string) => text }));
 
 import { createRecordPage, SAVE_VETO, type RecordPageHost } from "../createRecordPage";
+import { fieldsToLayout } from "@framework/ui/FormLayout";
 import { registerRecordPage, resetRegistry } from "../registry";
+import { cancelledError, SAVE_CANCELLED } from "@/pages/record/saveResponse";
 import { docstatusItems } from "@/pages/record/docstatusActs";
 
 const controllers: ReturnType<typeof createRecordPage>[] = [];
@@ -192,6 +194,76 @@ describe("Submit", () => {
     await Promise.all([first, second]);
 
     expect(confirmDocstatus).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("Submit with a mandatory field the layout does not show", () => {
+  const hidden = fieldsToLayout([{ fieldname: "batch", fieldtype: "Data", label: "Batch", reqd: true }]);
+
+  function makeDraft(asked: Record<string, any> | null, values: Record<string, any> = {}) {
+    const doc = ref<Record<string, any>>({ docstatus: 0, ...values });
+    const askRequired = vi.fn(async (_layout: unknown, submitting: boolean) => {
+      order.push(`dialog ${submitting ? "save and submit" : "continue"}`);
+      if (!asked) throw cancelledError();
+      return asked;
+    });
+    const { controller, order } = makePage({
+      doc,
+      offLayout: () => hidden,
+      askRequired,
+      save: async () => void order.push(`save ${doc.value.batch}`),
+    });
+    registerRecordPage("Invoice", {
+      beforeSave: () => void order.push("beforeSave"),
+      afterSave: () => void order.push("afterSave"),
+      beforeSubmit: () => void order.push("beforeSubmit"),
+      afterSubmit: () => void order.push("afterSubmit"),
+    });
+    return { controller, order, askRequired };
+  }
+
+  it("confirms, asks, saves through beforeSave and afterSave, then submits with no second confirm", async () => {
+    const { controller, order } = makeDraft({ batch: "B1" });
+
+    await controller.submit();
+
+    expect(order).toEqual([
+      "confirm submit",
+      "beforeSave",
+      "dialog save and submit",
+      "save B1",
+      "afterSave",
+      "beforeSubmit",
+      "submit call",
+      "afterSubmit",
+    ]);
+  });
+
+  it("a cancelled dialog sends nothing and fires no beforeSubmit or afterSubmit", async () => {
+    const { controller, order } = makeDraft(null);
+
+    await expect(controller.submit()).rejects.toMatchObject({ name: SAVE_CANCELLED });
+
+    expect(order).toEqual(["confirm submit", "beforeSave", "dialog save and submit"]);
+  });
+
+  it("a declined confirm never opens the dialog", async () => {
+    const askRequired = vi.fn(async () => ({ batch: "B1" }));
+    const declined = makePage({ confirmDocstatus: async () => false, offLayout: () => hidden, askRequired });
+
+    await declined.controller.submit();
+
+    expect(askRequired).not.toHaveBeenCalled();
+    expect(declined.order).toEqual([]);
+  });
+
+  it("a clean draft with every mandatory value saves nothing and skips the dialog", async () => {
+    const { controller, order, askRequired } = makeDraft({ batch: "B1" }, { batch: "B0" });
+
+    await controller.submit();
+
+    expect(askRequired).not.toHaveBeenCalled();
+    expect(order).toEqual(["confirm submit", "beforeSubmit", "submit call", "afterSubmit"]);
   });
 });
 
