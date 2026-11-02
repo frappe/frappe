@@ -251,9 +251,14 @@ let positioned_datepicker;
 document.addEventListener(
 	"scroll",
 	() => {
-		if (positioned_datepicker?.$datepicker.classList.contains("-active-")) {
-			frappe.ui.form.position_datepicker(positioned_datepicker);
+		if (!positioned_datepicker?.$datepicker.classList.contains("-active-")) return;
+		const { $target } = positioned_datepicker;
+		const input = $target.getBoundingClientRect();
+		if (document.elementFromPoint(input.left + 1, input.top + input.height / 2) !== $target) {
+			$target.blur();
+			return;
 		}
+		frappe.ui.form.position_datepicker(positioned_datepicker);
 	},
 	{ capture: true, passive: true }
 );
@@ -263,8 +268,10 @@ frappe.ui.form.position_datepicker = ({ $datepicker, $target }) => {
 	const offset = 4;
 	const input = $target.getBoundingClientRect();
 	const picker = $datepicker.getBoundingClientRect();
+	const visible_top = document.querySelector(".page-head")?.getBoundingClientRect().bottom || 0;
 	const space_below = window.innerHeight - input.bottom;
-	const above = space_below < picker.height + offset && input.top > picker.height + offset;
+	const space_above = input.top - Math.max(visible_top, 0);
+	const above = space_below < picker.height + offset && space_above > picker.height + offset;
 	const top = above ? input.top - picker.height - offset : input.bottom + offset;
 	const left = frappe.utils.is_rtl() ? input.right - picker.width : input.left;
 	$datepicker.style.top = `${top + window.scrollY}px`;
