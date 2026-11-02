@@ -209,11 +209,6 @@
 		} @else {
 			box-shadow: $custom-select-focus-box-shadow;
 		}
-
-		&::-ms-value {
-			color: $input-color;
-			background-color: $input-bg;
-		}
 	}
 
 	&[multiple],
@@ -226,10 +221,6 @@
 	&:disabled {
 		color: $custom-select-disabled-color;
 		background-color: $custom-select-disabled-bg;
-	}
-
-	&::-ms-expand {
-		display: none;
 	}
 
 	&:-moz-focusring {
@@ -344,9 +335,6 @@
 		&::-moz-range-thumb {
 			box-shadow: $custom-range-thumb-focus-box-shadow;
 		}
-		&::-ms-thumb {
-			box-shadow: $custom-range-thumb-focus-box-shadow;
-		}
 	}
 
 	&::-moz-focus-outer {
@@ -406,46 +394,6 @@
 		@include box-shadow($custom-range-track-box-shadow);
 	}
 
-	&::-ms-thumb {
-		width: $custom-range-thumb-width;
-		height: $custom-range-thumb-height;
-		margin-top: 0;
-		margin-right: $custom-range-thumb-focus-box-shadow-width;
-		margin-left: $custom-range-thumb-focus-box-shadow-width;
-		@include gradient-bg($custom-range-thumb-bg);
-		border: $custom-range-thumb-border;
-		@include border-radius($custom-range-thumb-border-radius);
-		@include box-shadow($custom-range-thumb-box-shadow);
-		@include component-transition($custom-forms-transition);
-		appearance: none;
-
-		&:active {
-			@include gradient-bg($custom-range-thumb-active-bg);
-		}
-	}
-
-	&::-ms-track {
-		width: $custom-range-track-width;
-		height: $custom-range-track-height;
-		color: transparent;
-		cursor: $custom-range-track-cursor;
-		background-color: transparent;
-		border-color: transparent;
-		border-width: $custom-range-thumb-height * 0.5;
-		@include box-shadow($custom-range-track-box-shadow);
-	}
-
-	&::-ms-fill-lower {
-		background-color: $custom-range-track-bg;
-		@include border-radius($custom-range-track-border-radius);
-	}
-
-	&::-ms-fill-upper {
-		margin-right: 15px;
-		background-color: $custom-range-track-bg;
-		@include border-radius($custom-range-track-border-radius);
-	}
-
 	&:disabled {
 		&::-webkit-slider-thumb {
 			background-color: $custom-range-thumb-disabled-bg;
@@ -461,10 +409,6 @@
 
 		&::-moz-range-track {
 			cursor: default;
-		}
-
-		&::-ms-thumb {
-			background-color: $custom-range-thumb-disabled-bg;
 		}
 	}
 }

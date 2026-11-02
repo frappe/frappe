@@ -17,11 +17,6 @@
 	@include box-shadow($input-box-shadow);
 	@include component-transition($input-transition);
 
-	&::-ms-expand {
-		background-color: transparent;
-		border: 0;
-	}
-
 	@include form-control-focus($ignore-warning: true);
 
 	&::placeholder {
@@ -49,11 +44,6 @@ select.form-control {
 	&:-moz-focusring {
 		color: transparent;
 		text-shadow: 0 0 0 $input-color;
-	}
-
-	&:focus::-ms-value {
-		color: $input-color;
-		background-color: $input-bg;
 	}
 }
 
