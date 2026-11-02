@@ -2799,6 +2799,10 @@ test("a header with its sidebar hidden leads with its button and, once the chat 
 	const rows = () => [...el.querySelectorAll("[role=option]")].map((row) => row.textContent.trim())
 	assert.deepEqual(rows(), ["Quarterly report", "Expense claims"])
 	const field = el.querySelector("input[placeholder='Search chats…']")
+	field.value = "s2" // a chat's id is not its title
+	field.dispatchEvent(new window.Event("input"))
+	await nextTick()
+	assert.deepEqual(rows(), [])
 	field.value = "exp"
 	field.dispatchEvent(new window.Event("input"))
 	await nextTick()

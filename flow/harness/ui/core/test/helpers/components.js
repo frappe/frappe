@@ -156,10 +156,13 @@ const widgets = moduleURL(`
 	export const Select = { ...text("select"), props: ["modelValue", "options"] }
 	// its trigger, and while open its search box, its options and its footer
 	export const Combobox = {
-		props: ["modelValue", "options", "open", "query", "placeholder", "emptyText"],
+		props: ["modelValue", "options", "open", "query", "placeholder", "emptyText", "filterable"],
 		emits: ["update:modelValue", "update:open", "update:query"],
+		methods: { focus() {} },
 		render() {
-			const options = (this.options ?? []).filter((o) => o.label.toLowerCase().includes((this.query ?? "").toLowerCase()))
+			// as frappe-ui filters, on the label or the value, unless the caller filters
+			const q = (this.query ?? "").toLowerCase()
+			const options = (this.options ?? []).filter((o) => this.filterable === false || !q || o.label.toLowerCase().includes(q) || String(o.value).toLowerCase().includes(q))
 			return h("div", { "data-stub": "Combobox" }, [
 				h("div", { onClick: () => this.$emit("update:open", !this.open) }, this.$slots.trigger?.()),
 				...(this.open
