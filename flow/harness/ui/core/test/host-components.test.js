@@ -2773,6 +2773,15 @@ test("a header with its sidebar hidden leads with its button and, once the chat 
 	const hidden = mount(t, ChatHeader, { sidebarOpen: false, workspace: false }, flow).el
 	assert.deepEqual(buttons(hidden), ["Show sidebar"])
 
+	// a user with no chats yet has no clock
+	const chats = flow.state.sessions
+	flow.state.sessions = []
+	const first = mount(t, ChatHeader, { sidebarOpen: false, workspace: false, history: true }, flow).el
+	assert.deepEqual(buttons(first), ["Manage"])
+	flow.state.sessions = chats
+	await nextTick()
+	assert.deepEqual(buttons(first), ["Recent chats", "Manage"])
+
 	const nav = [{ label: "Agents", onClick: () => done.push("agents") }]
 	const { el } = mount(t, ChatHeader, { sidebarOpen: false, workspace: false, history: true, nav }, flow)
 	assert.deepEqual(buttons(el), ["Recent chats", "Manage"])
@@ -2787,16 +2796,22 @@ test("a header with its sidebar hidden leads with its button and, once the chat 
 	// the clock's list narrows as a search is typed, and a pick opens that chat and puts the list away
 	el.querySelector("button[title='Recent chats']").click()
 	await nextTick()
-	const rows = () => [...el.querySelectorAll("[data-palette-item]")].map((row) => row.textContent.trim())
+	const rows = () => [...el.querySelectorAll("[role=option]")].map((row) => row.textContent.trim())
 	assert.deepEqual(rows(), ["Quarterly report", "Expense claims"])
-	const field = el.querySelector("input[aria-label='Search chats']")
+	const field = el.querySelector("input[placeholder='Search chats…']")
 	field.value = "exp"
 	field.dispatchEvent(new window.Event("input"))
 	await nextTick()
 	assert.deepEqual(rows(), ["Expense claims"])
-	el.querySelector("[data-palette-item]").click()
+	el.querySelector("[role=option]").click()
 	await nextTick()
 	assert.deepEqual([rows(), done], [[], ["settings:true", "s2"]])
+	// reopened, the search is gone
+	el.querySelector("button[title='Recent chats']").click()
+	await nextTick()
+	assert.deepEqual([field.isConnected, el.querySelector("input[placeholder='Search chats…']").value], [false, ""])
+	el.querySelector("button[title='Recent chats']").click()
+	await nextTick()
 
 	// an open chat's menu ends a wide frame's header and sits by the title in a narrow one; it holds
 	// its own items alone
@@ -2921,6 +2936,17 @@ test("the ask-for-changes field takes focus and leaves an IME's Enter and Escape
 	assert.ok(el.querySelector("textarea"))
 	keydown(field, { key: "Enter" })
 	assert.deepEqual(answers, [["c1", "use 日本"]])
+
+	// Escape puts the form away and the keyboard back on the button that opened it
+	const ask = () => [...el.querySelectorAll("button")].find((b) => b.textContent === "Ask for changes")
+	await nextTick()
+	ask().click()
+	await nextTick()
+	await nextTick()
+	keydown(el.querySelector("textarea"), { key: "Escape" })
+	await nextTick()
+	await nextTick()
+	assert.equal(document.activeElement, ask())
 })
 
 test("a spreadsheet range pastes as its text, a screenshot as a picture", async (t) => {

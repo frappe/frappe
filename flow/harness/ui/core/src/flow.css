@@ -189,41 +189,19 @@ body {
 	}
 }
 
-.flow-btn-primary,
-.flow-btn-secondary,
-.flow-btn-ghost {
+.flow-btn-secondary {
 	flex: none;
 	height: 30px;
 	border-radius: 7px;
 	cursor: pointer;
 	font-size: theme(fontSize.sm);
 	font-weight: 500;
-	border: 0;
-}
-.flow-btn-primary {
-	padding: 0 15px;
-	background: var(--surface-gray-10);
-	color: var(--ink-base);
-}
-.flow-btn-primary:hover {
-	opacity: 0.88;
-}
-.flow-btn-secondary {
 	padding: 0 13px;
 	border: 1px solid var(--outline-gray-2);
 	background: var(--surface-base);
 	color: var(--ink-gray-7);
 }
 .flow-btn-secondary:hover {
-	background: var(--surface-gray-2);
-	color: var(--ink-gray-9);
-}
-.flow-btn-ghost {
-	padding: 0 10px;
-	background: transparent;
-	color: var(--ink-gray-6);
-}
-.flow-btn-ghost:hover {
 	background: var(--surface-gray-2);
 	color: var(--ink-gray-9);
 }

@@ -40,9 +40,9 @@
 
 		<!-- a host view that answers the card itself brings its own buttons -->
 		<div v-if="!asking && !presentation.ownAnswers" class="flex items-center justify-end gap-2 px-3.5 py-2.5">
-			<button class="flow-btn-ghost" @click="asking = true">Ask for changes</button>
-			<button class="flow-btn-secondary" @click="answer('Deny')">Deny</button>
-			<button class="flow-btn-primary" @click="answer('Approve')">Approve</button>
+			<Button ref="askButton" variant="ghost" label="Ask for changes" @click="asking = true" />
+			<Button variant="subtle" label="Deny" @click="answer('Deny')" />
+			<Button variant="solid" label="Approve" @click="answer('Approve')" />
 		</div>
 		<div v-else-if="asking" class="px-3.5 py-2.5">
 			<!-- function ref: the field mounts only while asking, so mount-time focus
@@ -57,14 +57,8 @@
 			/>
 			<div class="mt-2 flex items-center gap-2">
 				<span class="min-w-0 flex-1 truncate text-xs text-ink-gray-4">⏎ send · esc cancel</span>
-				<button class="flow-btn-ghost" @click="cancelAsk">Cancel</button>
-				<button
-					class="flow-btn-primary"
-					:class="askText.trim() ? '' : 'pointer-events-none opacity-50'"
-					@click="sendAsk"
-				>
-					Send
-				</button>
+				<Button variant="ghost" label="Cancel" @click="cancelAsk" />
+				<Button variant="solid" label="Send" :disabled="!askText.trim()" @click="sendAsk" />
 			</div>
 		</div>
 	</div>
@@ -72,6 +66,7 @@
 
 <script setup>
 import { computed, inject, nextTick, ref } from "vue"
+import { Button } from "frappe-ui/src/components/Button"
 
 import { layout } from "../layout.js"
 
@@ -88,6 +83,7 @@ const flow = inject("flow")
 
 const asking = ref(false)
 const askText = ref("")
+const askButton = ref(null)
 
 // On a phone the card comes up under a finger that was going somewhere else, or takes the
 // place of the call just answered: a tap in its first moment answers nothing.
@@ -160,9 +156,11 @@ function sendAsk() {
 	askText.value = ""
 }
 
+// the keyboard goes back to the button that opened the form, not to the page
 function cancelAsk() {
 	asking.value = false
 	askText.value = ""
+	nextTick(() => askButton.value?.$el?.focus())
 }
 
 // an IME's Enter and Escape pick or drop a candidate (Safari marks its closing key by keyCode 229)
