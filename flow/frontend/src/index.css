@@ -57,3 +57,8 @@ div {
 :host([data-panel]) .dialog-content header h3 {
 	@apply text-lg-semibold;
 }
+
+/* sonner gives its toasts the system font; they take the chat's */
+:host [data-sonner-toaster] {
+	font-family: inherit;
+}
