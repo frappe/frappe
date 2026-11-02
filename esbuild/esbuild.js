@@ -982,6 +982,9 @@ async function open_in_editor() {
 	} catch (e) {
 		log_warn("Cannot connect to redis_queue for open_in_editor events");
 	}
+	subscriber.on("error", () =>
+		log_warn("Cannot connect to redis_queue for open_in_editor events")
+	);
 	subscriber.subscribe("open_in_editor", (file) => {
 		file = JSON.parse(file);
 		let file_path = path.resolve(file.file);
