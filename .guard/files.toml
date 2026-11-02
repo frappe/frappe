@@ -1,0 +1,18 @@
+[[files]]
+path = "code_review.md"
+description = "What maintainers check in a frappe/frappe PR, in order: before reviewing, what to look for, verdict, how to write the review."
+
+[[files]]
+path = "hooks.md"
+description = "Every hook the framework exposes; check a new hook against this list before accepting it."
+scope = ["**/hooks.py"]
+
+[[files]]
+path = "ui/PHILOSOPHY.md"
+description = "Design rules for the @framework/ui workspace; cite principles by id."
+scope = ["ui/**"]
+
+[[files]]
+path = "ui/CONTEXT.md"
+description = "Shared API vocabulary for @framework/ui components."
+scope = ["ui/**"]

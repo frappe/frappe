@@ -65,6 +65,19 @@ class NamespaceDict(frappe._dict):
 		return ret
 
 
+class UnavailableEnv:
+	"""`frappe.env` outside a Server Script. Raises on attribute access."""
+
+	def __getattr__(self, key: str):
+		if key.startswith("_"):
+			raise AttributeError(key)
+
+		frappe.throw(
+			_("Environment variables are only available in Server Scripts"),
+			title=_("Environment Variables Unavailable"),
+		)
+
+
 class FrappeTransformer(RestrictingNodeTransformer):
 	def check_name(self, node, name, *args, **kwargs):
 		if name == "_dict":
@@ -99,6 +112,7 @@ def safe_exec(
 	*,
 	restrict_commit_rollback: bool = False,
 	script_filename: str | None = None,
+	env: object | None = None,
 ):
 	if not is_safe_exec_enabled():
 		msg = _("Server Scripts are disabled. Please enable server scripts from bench configuration.")
@@ -116,6 +130,8 @@ def safe_exec(
 		exec_globals.frappe.db.pop("commit", None)
 		exec_globals.frappe.db.pop("rollback", None)
 		exec_globals.frappe.db.pop("add_index", None)
+
+	exec_globals.frappe.env = UnavailableEnv() if env is None else env
 
 	filename = SERVER_SCRIPT_FILE_PREFIX
 	if script_filename:
@@ -863,7 +879,10 @@ def check_safe_sql_query(query: str, throw: bool = True) -> bool:
 	query = query.strip().lower()
 	whitelisted_statements = ("select", "explain")
 
-	if re.search(r"\binto\s+(outfile|dumpfile)\b", query):
+	uncommented = re.sub(r"/\*.*?\*/|--[^\n]*|#[^\n]*", " ", query, flags=re.DOTALL)
+	export_pattern = r"\binto\s+(outfile|dumpfile)\b"
+
+	if re.search(export_pattern, query) or re.search(export_pattern, uncommented):
 		if throw:
 			frappe.throw(
 				_("Read-Only queries are allowed"),

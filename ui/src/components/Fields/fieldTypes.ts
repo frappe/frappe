@@ -3,6 +3,7 @@ import { setScoped } from "../../utils/scopedRegistry";
 import AutocompleteField from "./AutocompleteField.vue";
 import ButtonField from "./ButtonField.vue";
 import CheckField from "./CheckField.vue";
+import ColorField from "./ColorField.vue";
 import DateField from "./DateField.vue";
 import DatetimeField from "./DatetimeField.vue";
 import DurationField from "./DurationField.vue";
@@ -71,7 +72,7 @@ registerFieldType("Time", TimeField);
 
 // One numeric control formats per fieldtype with lib defaults; apps register
 // their own for site-accurate settings (see formatNumber.ts).
-for (const t of ["Int", "Float", "Currency", "Percent"]) {
+for (const t of ["Int", "Long Int", "Float", "Currency", "Percent"]) {
   registerFieldType(t, NumberField);
 }
 
@@ -96,8 +97,7 @@ registerFieldType("HTML", HtmlField);
 
 registerFieldType("Password", PasswordField);
 
-// `Color` is intentionally absent — falls back to a text box until frappe-ui
-// ships a color primitive (see plans/fieldtypes-remaining.md).
+registerFieldType("Color", ColorField);
 registerFieldType("Autocomplete", AutocompleteField);
 registerFieldType("Rating", RatingField);
 registerFieldType("Duration", DurationField);

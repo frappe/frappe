@@ -11,7 +11,7 @@ from frappe.automation_engine.api import trial_run
 from frappe.automation_engine.registry import clear_automation_cache
 from frappe.automation_engine.runner import RUN, _failure_key
 from frappe.automation_engine.tests.test_actions import public_dns
-from frappe.automation_engine.tests.test_runner import (
+from frappe.automation_engine.tests.test_automation_runner import (
 	AutomationRunnerTestCase,
 	branch,
 	if_step,

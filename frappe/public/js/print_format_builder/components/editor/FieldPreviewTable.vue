@@ -14,7 +14,7 @@
 					:data-fieldname="col.fieldname"
 					:style="(col.width ? `width: ${col.width}%; ` : '') + cell_style(df)"
 				>
-					{{ col.label || col.fieldname }}
+					{{ col.label || (col.fieldtype === "Blank" ? "" : col.fieldname) }}
 					<span
 						v-if="ci < df.table_columns.length - 1"
 						class="col-resize-handle"

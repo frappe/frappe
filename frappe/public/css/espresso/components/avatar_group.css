@@ -142,7 +142,7 @@ button.es-avatar-group__list-item:focus-visible {
 
 .es-avatar-group__name {
     min-width: 0;
-    overflow: hidden;
+    overflow-x: clip;
     text-overflow: ellipsis;
     white-space: nowrap;
 }

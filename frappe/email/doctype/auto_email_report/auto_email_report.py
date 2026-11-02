@@ -8,7 +8,7 @@ from email.utils import formataddr
 
 import frappe
 from frappe import _
-from frappe.desk.query_report import build_xlsx_data
+from frappe.desk.query_report import build_xlsx_data, get_reference_report
 from frappe.email.email_body import get_formatted_html
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
@@ -124,6 +124,11 @@ class AutoEmailReport(Document):
 	def validate_mandatory_fields(self):
 		# Check if all Mandatory Report Filters are filled by the User
 		filters = frappe.parse_json(self.filters) if self.filters else {}
+		report = get_reference_report(frappe.get_doc("Report", self.report))
+		if report.validate_filters:
+			report.get_validated_filters(filters, self.user)
+			return
+
 		filter_meta = frappe.parse_json(self.filter_meta) if self.filter_meta else {}
 		throw_list = [
 			meta["label"]

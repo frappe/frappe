@@ -81,8 +81,6 @@ class TestPatches(IntegrationTestCase):
 		all_patches = patch_handler.get_patches_from_app("frappe")
 		self.assertGreater(len(pre), 0)
 		self.assertGreater(len(post), 0)
-		# frappe's own patches.txt doesn't (yet) use this optional section
-		self.assertEqual(post_fixture, [])
 
 		self.assertEqual(len(all_patches), len(pre) + len(post) + len(post_fixture))
 

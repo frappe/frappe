@@ -1,0 +1,161 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-05-26 00:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "agent",
+  "model",
+  "source",
+  "auto_approve",
+  "general_access",
+  "last_synced_seq",
+  "section_break_transcript",
+  "transcript_html",
+  "messages",
+  "attachments"
+ ],
+ "fields": [
+  {
+   "description": "Short label for this conversation. The flow server titles it from the first message if left blank.",
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Title",
+   "length": 200
+  },
+  {
+   "description": "Saved Flow Agent driving this conversation.",
+   "fieldname": "agent",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Agent",
+   "options": "Flow Agent",
+   "reqd": 1
+  },
+  {
+   "description": "Override the agent's default model for this conversation. Empty falls back to the agent's model.",
+   "fieldname": "model",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Model",
+   "options": "Flow Model"
+  },
+  {
+   "default": "Manual",
+   "description": "How this conversation was started. Trigger sessions are hidden from the chat panel's recent list.",
+   "fieldname": "source",
+   "fieldtype": "Select",
+   "in_standard_filter": 1,
+   "label": "Source",
+   "options": "Manual\nTrigger",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "description": "Run confirmation-gated tools without pausing. Always enabled for Trigger sessions.",
+   "fieldname": "auto_approve",
+   "fieldtype": "Check",
+   "label": "Auto Approve Tool Calls",
+   "read_only": 1
+  },
+  {
+   "default": "Restricted",
+   "description": "Who else may view this conversation: only the people it is shared with, or every Flow user. Set from its Share dialog.",
+   "fieldname": "general_access",
+   "fieldtype": "Select",
+   "label": "General Access",
+   "options": "Restricted\nEveryone",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "description": "How far the flow server's log has been mirrored into this session.",
+   "fieldname": "last_synced_seq",
+   "fieldtype": "Int",
+   "hidden": 1,
+   "label": "Last Synced Seq",
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_transcript",
+   "fieldtype": "Section Break",
+   "label": "Transcript"
+  },
+  {
+   "fieldname": "transcript_html",
+   "fieldtype": "HTML",
+   "label": "Transcript"
+  },
+  {
+   "description": "Full chat transcript across all runs in this conversation.",
+   "fieldname": "messages",
+   "fieldtype": "Table",
+   "hidden": 1,
+   "label": "Messages",
+   "options": "Flow Session Message",
+   "read_only": 1
+  },
+  {
+   "description": "Files attached across all runs in this conversation.",
+   "fieldname": "attachments",
+   "fieldtype": "Table",
+   "label": "Attachments",
+   "options": "Flow Session Attachment",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [
+  {
+   "group": "Runs",
+   "link_doctype": "Flow Run",
+   "link_fieldname": "session"
+  }
+ ],
+ "modified": "2026-10-16 20:41:00",
+ "modified_by": "Administrator",
+ "module": "Flow",
+ "name": "Flow Session",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "delete": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1
+  },
+  {
+   "create": 1,
+   "if_owner": 1,
+   "role": "System Manager",
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "if_owner": 1,
+   "read": 1,
+   "role": "Flow User",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Flow User"
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "title",
+ "track_changes": 0
+}

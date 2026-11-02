@@ -144,10 +144,11 @@ def watch(apps=None):
 		click.secho("The island toolchain did not install, so islands are not watched.", fg="yellow")
 	else:
 		islands = [watch_islands(script) for script in ("build-framework.js", "build-pages.js")]
+	watchers = [*islands, watch_studio_editor()]
 	try:
 		frappe.commands.popen(command, cwd=frappe_app_path, env=get_node_env())
 	finally:
-		for process in islands:
+		for process in watchers:
 			if process:
 				process.terminate()
 
@@ -203,6 +204,35 @@ def build_page_islands(built_apps: list[str] | None = None):
 		)
 
 
+def watch_studio_editor():
+	"""Start the studio editor's vite dev server, or `None` if it cannot start.
+
+	Runs beside the esbuild watcher like the island watchers below, but only in
+	developer mode: that is the only mode in which exported apps can be edited and
+	the preview renderer loads from this server. The editor itself is then served by
+	vite on its own port; `/studio` keeps serving the last build.
+	"""
+	# The same reading `bench build` uses to pick its own mode.
+	if not (frappe.local.conf.developer_mode or frappe._dev_server):
+		return None
+
+	studio_path = frappe.get_app_source_path("frappe", "studio", "frontend")
+	if not os.path.exists(os.path.join(studio_path, "node_modules")):
+		click.secho("Studio editor dependencies are not installed; run `bench build` once.", fg="yellow")
+		return None
+
+	try:
+		return subprocess.Popen(
+			"yarn dev",
+			shell=True,
+			cwd=studio_path,
+			env=dict(os.environ, **get_node_env()),
+		)
+	except OSError as e:
+		click.secho(f"Could not watch the studio editor: {e}", fg="yellow")
+		return None
+
+
 def watch_islands(script: str):
 	"""Start the watcher of an island build, or `None` if it cannot start.
 
@@ -235,7 +265,10 @@ def check_node_executable():
 
 
 def get_node_env():
-	return {"NODE_OPTIONS": f"--max_old_space_size={get_safe_max_old_space_size()}"}
+	node_options = os.environ.get("NODE_OPTIONS", "")
+	if "--max-old-space-size" not in node_options and "--max_old_space_size" not in node_options:
+		node_options = f"{node_options} --max_old_space_size={get_safe_max_old_space_size()}".strip()
+	return {"NODE_OPTIONS": node_options}
 
 
 def get_safe_max_old_space_size():

@@ -509,6 +509,12 @@ def get_doctypes_with_read(user: str | None = None):
 	return list({cstr(p.parent) for p in get_valid_perms(user=user) if p.parent and p.read})
 
 
+@frappe.request_cache
+def get_cached_doctypes_with_read(user: str) -> list[str]:
+	"""`get_doctypes_with_read`, computed once per request for `user`. Do not mutate the result."""
+	return get_doctypes_with_read(user)
+
+
 def get_valid_perms(doctype=None, user=None, roles=None):
 	"""Get valid permissions for the current user from DocPerm and Custom DocPerm"""
 	roles = roles or get_roles(user)
@@ -918,6 +924,14 @@ def has_child_permission(
 
 def is_system_user(user: str | None = None) -> bool:
 	return frappe.get_cached_value("User", user or frappe.session.user, "user_type") == "System User"
+
+
+def validate_desk_user() -> None:
+	"""Raise PermissionError for Website Users and Guest; custom user types may have desk access."""
+	from frappe.utils.user import is_website_user
+
+	if is_website_user():
+		frappe.throw(_("Not permitted"), frappe.PermissionError)
 
 
 def check_doctype_permission(doctype: str, ptype: str = "read") -> None:

@@ -34,6 +34,7 @@ BUILDER_DRAFT_FIELDS = (
 	"print_format_builder",
 	"print_format_builder_beta",
 	"pdf_generator",
+	"roles",
 )
 
 
@@ -46,6 +47,7 @@ class PrintFormat(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
+		from frappe.core.doctype.has_role.has_role import HasRole
 		from frappe.types import DF
 
 		absolute_value: DF.Check
@@ -71,7 +73,12 @@ class PrintFormat(Document):
 		page_number: DF.Literal[
 			"Hide", "Top Left", "Top Center", "Top Right", "Bottom Left", "Bottom Center", "Bottom Right"
 		]
-		pdf_generator: DF.Literal["chrome", "Typst"]
+		paper_height: DF.Float
+		paper_size: DF.Literal[
+			"", "A4", "A5", "A3", "Letter", "Legal", "Receipt 80 mm", "Receipt 58 mm", "Custom"
+		]
+		paper_width: DF.Float
+		pdf_generator: DF.Literal["chrome", "PlutoPrint", "Typst"]
 		print_format_builder: DF.Check
 		print_format_builder_beta: DF.Check
 		print_format_for: DF.Literal["DocType", "Report"]
@@ -81,6 +88,7 @@ class PrintFormat(Document):
 		raw_commands: DF.Code | None
 		raw_printing: DF.Check
 		report: DF.Link | None
+		roles: DF.TableMultiSelect[HasRole]
 		show_label_colon: DF.Check
 		show_section_headings: DF.Check
 		standard: DF.Literal["No", "Yes"]
@@ -117,9 +125,6 @@ class PrintFormat(Document):
 		):
 			self.print_format_builder_beta = 1
 
-		if self.print_format_builder_beta and not self.custom_format and self.pdf_generator != "Typst":
-			self.pdf_generator = "chrome"
-
 		self.published_on = self.modified
 		self.published_by = self.modified_by
 
@@ -130,9 +135,14 @@ class PrintFormat(Document):
 		return download_pdf(self.doc_type, docname, self.name, letterhead)
 
 	def validate(self):
-		from frappe.utils.print_utils import get_pdf_generators
+		from frappe.utils.print_utils import get_pdf_generators, resolve_pdf_generator
 
-		if self.pdf_generator not in get_pdf_generators():
+		known = get_pdf_generators()
+		if not self.pdf_generator:
+			generator = resolve_pdf_generator(self)
+			if generator in known:
+				self.pdf_generator = generator
+		elif self.pdf_generator not in known:
 			self.pdf_generator = "chrome"
 
 		if (
@@ -155,6 +165,8 @@ class PrintFormat(Document):
 		if self.html and self.print_format_type != "JS":
 			validate_template(self.html)
 
+		self.validate_paper_size()
+
 		if self.custom_format and self.raw_printing and not self.raw_commands:
 			frappe.throw(_("{0} are required").format(frappe.bold(_("Raw Commands"))), frappe.MandatoryError)
 
@@ -167,6 +179,30 @@ class PrintFormat(Document):
 		self.validate_colors()
 		self.validate_conditions()
 		self.validate_typst_renderer()
+		self.validate_plutoprint_renderer()
+
+	def validate_paper_size(self):
+		if self.paper_size != "Custom" or self.print_format_builder_beta or self.raw_printing:
+			return
+		if frappe.utils.flt(self.paper_width) <= 0 or frappe.utils.flt(self.paper_height) <= 0:
+			frappe.throw(
+				_("Enter a Paper Width and Paper Height above 0 for a Custom paper size."),
+				title=_("Invalid Paper Size"),
+			)
+
+	def validate_plutoprint_renderer(self):
+		from frappe.utils.pdf_generator.pluto import plutoprint_blockers
+
+		if self.pdf_generator != "PlutoPrint" or not (blockers := plutoprint_blockers(self)):
+			return
+		if self.is_new():
+			self.pdf_generator = "chrome"
+			frappe.msgprint(_("PDF Generator set to Chromium: {0}").format(", ".join(blockers)), alert=True)
+			return
+		frappe.throw(
+			_("This format cannot use the PlutoPrint renderer: {0}").format(", ".join(blockers)),
+			title=_("PlutoPrint renderer unavailable"),
+		)
 
 	def validate_typst_renderer(self):
 		"""Refuse to save a Typst-flagged format that Typst cannot render — the
@@ -626,3 +662,22 @@ def printable_sample(doctype: str) -> str | None:
 	filters = {"docstatus": 1} if frappe.get_meta(doctype).is_submittable else {}
 	sample = frappe.get_list(doctype, filters=filters, limit=1, order_by="modified desc", pluck="name")
 	return sample[0] if sample else None
+
+
+def can_print_with(print_format: "PrintFormat") -> bool:
+	roles = {row.role for row in print_format.get("roles") or []}
+	return not roles or bool(roles.intersection(frappe.get_roles()))
+
+
+def check_print_format_roles(print_format: "PrintFormat") -> None:
+	if not can_print_with(print_format):
+		frappe.throw(
+			_("You are not allowed to print with {0}").format(frappe.bold(print_format.name)),
+			frappe.PermissionError,
+			title=_("Not Permitted"),
+		)
+
+
+def check_print_format_roles_by_name(print_format: str | None) -> None:
+	if print_format and print_format != "Standard" and frappe.db.exists("Print Format", print_format):
+		check_print_format_roles(frappe.get_cached_doc("Print Format", print_format))

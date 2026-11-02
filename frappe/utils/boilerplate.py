@@ -888,7 +888,7 @@ patches_template = """[pre_model_sync]
 # (Custom Field, Property Setter, etc) are synced"""
 
 
-precommit_template = """exclude: 'node_modules|.git'
+precommit_template = """exclude: 'node_modules'
 default_stages: [pre-commit]
 fail_fast: false
 

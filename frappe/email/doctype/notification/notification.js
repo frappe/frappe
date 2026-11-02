@@ -139,7 +139,7 @@ Last comment: {{ comments[-1].comment }} by {{ comments[-1].by }}
 &lt;/ul&gt;
 </code></pre>
 			`;
-		} else if (["Slack", "System Notification", "SMS"].includes(frm.doc.channel)) {
+		} else if (["Webhook", "System Notification", "SMS"].includes(frm.doc.channel)) {
 			template = `<h5>Message Example</h5>
 
 <pre>*Order Overdue*

@@ -142,6 +142,33 @@ REGEXP_PATTERN = re.compile(
 	""",
 	flags=re.IGNORECASE | re.DOTALL | re.VERBOSE,
 )
+# A string continued on a new line keeps its type.
+STRING_CONTINUATION_REGEX = r"'[ \t\f\v]*(?:--[^\n\r]*)?[\n\r](?:[ \t\n\r\f\v]|--[^\n\r]*[\n\r])*'"
+# Lexes a query the way postgres does to find statement separators.
+SQL_TOKEN_REGEX = r"""
+	  (?P<space>[ \t\n\r\f\v]+|--[^\n\r]*)
+	| (?P<comment>/\*)
+	| (?P<separator>;)
+	| [bBxX]'[^']*(?:{continuation}[^']*)*'?                             # bit or hex string: no escapes
+	| {escape_prefix}'(?:[^'\\]|''|\\.)*(?:{continuation}(?:[^'\\]|''|\\.)*)*'?  # escape string: a \' does not end it
+	| '(?:[^']|'')*'?                                                    # string literal (only '' escapes a quote)
+	| "(?:[^"]|"")*"?                                                    # quoted identifier
+	| \$(?P<tag>(?:[A-Za-z_\x80-\U0010ffff][A-Za-z_0-9\x80-\U0010ffff]*)?)\$
+	  .*?(?:\$(?P=tag)\$|\Z)                                             # dollar-quoted string
+	| \$[0-9]+                                                           # positional parameter
+	| [A-Za-z_\x80-\U0010ffff][A-Za-z_0-9$\x80-\U0010ffff]*              # identifier: a $ inside it is not a quote
+	| .
+"""
+SQL_TOKEN_PATTERN = re.compile(
+	SQL_TOKEN_REGEX.format(escape_prefix="[eE]", continuation=STRING_CONTINUATION_REGEX),
+	flags=re.DOTALL | re.VERBOSE,
+)
+# with standard_conforming_strings off, a backslash escapes in every string
+NONSTANDARD_SQL_TOKEN_PATTERN = re.compile(
+	SQL_TOKEN_REGEX.format(escape_prefix="[eE]?", continuation=STRING_CONTINUATION_REGEX),
+	flags=re.DOTALL | re.VERBOSE,
+)
+COMMENT_DELIMITER_PATTERN = re.compile(r"/\*|\*/")
 
 
 def _replace_regexp_operator(match: re.Match) -> str:
@@ -428,6 +455,9 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			len(values) > MAX_BOUND_PARAMETERS or get_query_type(query) not in SERVER_BOUND_QUERY_TYPES
 		):
 			query, values = self.mogrify(query, values), None
+		if not values and isinstance(query, str):
+			standard_strings = self._conn.info.parameter_status("standard_conforming_strings") == "on"
+			check_single_statement(query, standard_strings)
 		return self._cursor.execute(query, values)
 
 	def mogrify(self, query, values):
@@ -1063,6 +1093,34 @@ def modify_query(query):
 	# 	"c='abcd' , a >= '45', b = '-45', c = '40', d= '4500', e=3500.53, f=40psdfsd, g= '9092094312', h=12.00023
 
 	return PG_TRANSFORM_PATTERN.sub(r"\1 '\2'", query)
+
+
+def check_single_statement(query: str, standard_strings: bool) -> None:
+	"""Raise if the query has more than one statement, as the simple query protocol runs them all."""
+	if ";" not in query.rstrip().rstrip(";"):
+		return
+
+	pattern = SQL_TOKEN_PATTERN if standard_strings else NONSTANDARD_SQL_TOKEN_PATTERN
+	position, after_separator = 0, False
+	while position < len(query):
+		token = pattern.match(query, position)
+		position = token.end()
+		if token.lastgroup == "comment":
+			position = skip_block_comment(query, position)
+		elif token.lastgroup == "separator":
+			after_separator = True
+		elif token.lastgroup != "space" and after_separator:
+			raise psycopg.ProgrammingError(frappe._("Multiple SQL statements in one query are not allowed"))
+
+
+def skip_block_comment(query: str, position: int) -> int:
+	"""Return the position after the block comment opened before `position`; they can nest."""
+	depth = 1
+	for delimiter in COMMENT_DELIMITER_PATTERN.finditer(query, position):
+		depth += 1 if delimiter.group() == "/*" else -1
+		if not depth:
+			return delimiter.end()
+	return len(query)
 
 
 def bind_values(query, values):

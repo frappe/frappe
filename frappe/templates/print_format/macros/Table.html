@@ -30,7 +30,7 @@
 				{% for column in columns %}
 				{%- set _merged_col = column.merged_fields and column.merged_fields|length > 0 -%}
 				<th class="column-header{% if _merged_col %} column-value--merged{% endif %}" width="{{ column.width }}%"{% if _cell_style %} style="{{ _cell_style|e }}"{% endif %} {{ field_attributes(column) }}>
-					{{ _(column.label or column.fieldname)|e }}
+					{{ _(column.label or ("" if column.fieldtype == "Blank" else column.fieldname))|e }}
 				</th>
 				{% endfor %}
 			</tr>
@@ -45,7 +45,8 @@
 				{%- set _words = ((row.get(column.fieldname) or "")|string|striptags).split() -%}
 				{%- set _td_style = _cell_style ~ (";overflow-wrap:anywhere" if _words and (_words|map("length")|max) > 20 else "") -%}
 				<td class="column-value{% if _merged %} column-value--merged{% endif %}" width="{{ column.width }}%"{% if _td_style %} style="{{ _td_style|e }}"{% endif %} {{ field_attributes(column) }}>
-					{%- if _merged -%}
+					{%- if column.fieldtype == "Blank" -%}
+					{%- elif _merged -%}
 						{# Merged cell: an image field (if any) floats left, the rest stack as text lines (first = primary). #}
 						{%- set ns = namespace(img_fn=None, first_txt="") -%}
 						{%- for mf in _merged -%}

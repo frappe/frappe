@@ -2,7 +2,7 @@
 # License: MIT. See LICENSE
 
 import frappe
-from frappe import _
+from frappe.handler import resolve_method
 from frappe.query_builder import functions
 
 
@@ -13,11 +13,8 @@ def get_all_nodes(doctype: str, label: str, parent: str, tree_method: str | None
 	filters.pop("cmd", None)
 	filters.pop("data", None)
 
-	try:
-		tree_method = frappe.override_whitelisted_method(tree_method)
-		callable_tree_method = frappe.get_attr(tree_method)
-	except Exception as e:
-		frappe.throw(_("Failed to get method for command {0} with {1}").format(tree_method, str(e)))
+	tree_method = frappe.override_whitelisted_method(tree_method)
+	callable_tree_method = resolve_method(tree_method)
 
 	frappe.is_whitelisted(callable_tree_method)
 

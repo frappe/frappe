@@ -78,6 +78,21 @@ describe("buildLayoutFromMeta", () => {
     ]);
   });
 
+  it("drops Fold and Attachment Gallery, which have no control", () => {
+    const layout = buildLayoutFromMeta([
+      field({ fieldname: "a" }),
+      field({ fieldname: "fold", fieldtype: "Fold" }),
+      field({ fieldname: "gallery", fieldtype: "Attachment Gallery" }),
+      field({ fieldname: "b" }),
+    ]);
+
+    expect(layout).toHaveLength(1);
+    expect(layout[0].sections).toHaveLength(1);
+    expect(
+      layout[0].sections[0].columns[0].fields.map((f) => f.fieldname)
+    ).toEqual(["a", "b"]);
+  });
+
   it("maps section-break attributes (hideBorder, collapsible, opened)", () => {
     const layout = buildLayoutFromMeta([
       field({
@@ -205,6 +220,22 @@ describe("buildLayoutFromMeta", () => {
       expect(f.childFields?.[0].options).toBe("Item");
     });
 
+    it("never makes a grid column of Fold or Attachment Gallery", () => {
+      const layout = buildLayoutFromMeta([tableField()], {
+        childMetas: {
+          "Order Item": [
+            field({ fieldname: "item" }),
+            field({ fieldname: "fold", fieldtype: "Fold" }),
+            field({ fieldname: "gallery", fieldtype: "Attachment Gallery" }),
+          ],
+        },
+      });
+
+      expect(tableFieldOf(layout).childFields?.map((f) => f.fieldname)).toEqual([
+        "item",
+      ]);
+    });
+
     it("falls back to all visible data fields when none are flagged in_list_view", () => {
       const layout = buildLayoutFromMeta([tableField()], {
         childMetas: {
@@ -266,6 +297,17 @@ describe("buildLayoutFromMeta", () => {
     it("leaves childLayout undefined when the child meta is absent", () => {
       const layout = buildLayoutFromMeta([tableField()], { childMetas: {} });
       expect(tableFieldOf(layout).childLayout).toBeUndefined();
+    });
+
+    it("maps cannot_add_rows and cannot_delete_rows to camelCase", () => {
+      const layout = buildLayoutFromMeta(
+        [tableField({ cannot_add_rows: 1, cannot_delete_rows: 1 })],
+        { childMetas: {} }
+      );
+      expect(tableFieldOf(layout)).toMatchObject({
+        cannotAddRows: true,
+        cannotDeleteRows: true,
+      });
     });
 
     it("does not attach childLayout to Table MultiSelect (it has no row dialog)", () => {

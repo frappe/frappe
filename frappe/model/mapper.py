@@ -4,6 +4,7 @@ import json
 
 import frappe
 from frappe import _
+from frappe.handler import resolve_method
 from frappe.model import child_table_fields, default_fields, table_fields
 from frappe.model.document import Document
 from frappe.utils import cstr
@@ -21,7 +22,7 @@ def make_mapped_doc(
 
 	Called from `open_mapped_doc` from create_new.js"""
 	resolved_method_path = frappe.override_whitelisted_method(method)
-	method = frappe.get_attr(resolved_method_path)
+	method = resolve_method(resolved_method_path)
 
 	frappe.is_whitelisted(method)
 
@@ -47,7 +48,7 @@ def map_docs(
 	e.g. args: "{ 'supplier': 'XYZ' }"
 	"""
 	resolved_method_path = frappe.override_whitelisted_method(method)
-	method = frappe.get_attr(resolved_method_path)
+	method = resolve_method(resolved_method_path)
 
 	frappe.is_whitelisted(method)
 

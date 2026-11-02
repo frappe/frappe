@@ -13,7 +13,6 @@ from pydantic import AfterValidator, BaseModel, ConfigDict, Field, ValidationErr
 from pydantic.json_schema import GenerateJsonSchema
 
 import frappe
-from frappe import _
 from frappe.mcp.protocol import INVALID_PARAMS, METHOD_NOT_FOUND, McpError
 from frappe.monitor import add_data_to_monitor
 from frappe.utils import strip_html
@@ -85,7 +84,6 @@ class Tool:
 def registry() -> tuple[Tool, ...]:
 	from frappe.mcp.tools.discover import (
 		GET_DOCTYPE_SCHEMA,
-		GET_DOCUMENT_METHOD_SCHEMA,
 		GET_METHOD_SCHEMA,
 		LIST_DOCUMENT_METHODS,
 		SEARCH_DOCTYPES,
@@ -107,7 +105,6 @@ def registry() -> tuple[Tool, ...]:
 		SEARCH_METHODS,
 		GET_METHOD_SCHEMA,
 		LIST_DOCUMENT_METHODS,
-		GET_DOCUMENT_METHOD_SCHEMA,
 		LIST_DOCUMENTS,
 		GET_DOCUMENT,
 		COUNT_DOCUMENTS,
@@ -126,10 +123,10 @@ def definitions() -> list[dict]:
 def call(params: dict) -> dict:
 	name = params.get("name")
 	if not isinstance(name, str):
-		raise McpError(INVALID_PARAMS, _("Tool name must be a string"))
+		raise McpError(INVALID_PARAMS, "Tool name must be a string")
 	tool = next((tool for tool in registry() if tool.name == name), None)
 	if tool is None:
-		raise McpError(METHOD_NOT_FOUND, _("Unknown MCP tool: {0}").format(name), status=404)
+		raise McpError(METHOD_NOT_FOUND, "Unknown MCP tool: {0}".format(name), status=404)
 
 	add_data_to_monitor(mcp_tool=name)
 	try:
@@ -171,7 +168,7 @@ def validation_message(error: ValidationError) -> str:
 	for issue in error.errors(include_input=False, include_url=False, include_context=False):
 		location = ".".join(str(part) for part in issue["loc"]) or "arguments"
 		issues.append(f"{location}: {issue['msg']}")
-	return _("Invalid tool arguments: {0}").format("; ".join(issues))
+	return "Invalid tool arguments: {0}".format("; ".join(issues))
 
 
 def error_result(message: str) -> dict:

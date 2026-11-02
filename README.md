@@ -41,7 +41,7 @@ The first application built on Framework was ERPNext, a beast with more than 700
 
 - **REST API**: Automatically generated RESTful API for all models, enabling easy integration with other systems and services.
 
-- **[MCP Server](frappe/mcp/README.md)**: Gives agents tools to discover schemas, read and change documents, and call existing methods as a site user.
+- **MCP Server**: Gives agents tools to discover schemas, read and change documents, and call existing methods as a site user.
 
 - **Customizable Forms and Views**: Flexible form and view customization using server-side scripting and client-side JavaScript.
 

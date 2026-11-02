@@ -11,14 +11,15 @@ from frappe.tests import IntegrationTestCase
 from frappe.twofactor import (
 	ExpiredLoginException,
 	authenticate_for_2factor,
+	clear_default,
 	confirm_otp_token,
 	get_cached_user_pass,
 	get_default,
 	get_email_body_for_2fa,
-	get_email_body_for_qr_code,
 	get_otpsecret_for_,
 	get_verification_obj,
 	process_2fa_for_email,
+	set_default,
 	should_run_2fa,
 	two_factor_is_enabled_for_,
 )
@@ -30,6 +31,7 @@ class TestTwoFactor(IntegrationTestCase):
 		self.http_requests = create_http_request()
 		self.login_manager = frappe.local.login_manager
 		self.user = self.login_manager.user
+		clear_default(self.user + "_otplogin")
 		self.enterContext(self.change_settings("System Settings", {"allow_consecutive_login_attempts": 2}))
 
 	def tearDown(self):
@@ -53,9 +55,6 @@ class TestTwoFactor(IntegrationTestCase):
 	def test_2fa_email_bodies_render(self):
 		code_body = get_email_body_for_2fa({"otp": "123456", "otp_issuer": "Frappe"})
 		self.assertIn("123456", code_body)
-
-		qr_body = get_email_body_for_qr_code({"qrcode_link": "https://example.com/qrcode/abc"})
-		self.assertIn("https://example.com/qrcode/abc", qr_body)
 
 	def test_2fa_email_delivery_status(self):
 		"""Verification object should report failure when the mail is never queued."""
@@ -83,7 +82,9 @@ class TestTwoFactor(IntegrationTestCase):
 		self.assertTrue(verification_obj)
 		self.assertTrue(tmp_id)
 		for k in ["_usr", "_pwd", "_otp_secret"]:
-			self.assertTrue(frappe.cache.get(f"{tmp_id}{k}"), f"{k} not available")
+			self.assertTrue(
+				frappe.cache.get_value(f"{tmp_id}{k}", use_local_cache=False), f"{k} not available"
+			)
 
 	def test_two_factor_is_enabled(self):
 		"""
@@ -137,6 +138,7 @@ class TestTwoFactor(IntegrationTestCase):
 
 	def test_confirm_otp_token(self):
 		"""Ensure otp is confirmed"""
+		set_default(self.user + "_otplogin", 1)
 		frappe.flags.otp_expiry = 2
 		authenticate_for_2factor(self.user)
 		tmp_id = frappe.local.response["tmp_id"]
@@ -161,26 +163,44 @@ class TestTwoFactor(IntegrationTestCase):
 		token = int(pyotp.TOTP(otp_secret).now())
 		self.assertTrue(get_verification_obj(self.user, token, otp_secret))
 
-	def test_get_user_svg_from_cache_returns_otp_secret_in_tuple(self):
-		"""get_user_svg_from_cache should return a 3-tuple including otp_secret (line 41 in qrcode.py)."""
-		from frappe.www.qrcode import get_user_svg_from_cache
+	def test_otp_app_setup_on_login_screen(self):
+		"""Email code returns the QR code, then the first TOTP completes the setup."""
+		authenticate_for_2factor(self.user)
+		tmp_id = frappe.local.response["tmp_id"]
+		self.assertEqual(frappe.local.response["verification"]["method"], "Email")
 
-		key = frappe.generate_hash(length=20)
 		otp_secret = get_otpsecret_for_(self.user)
-		totp_uri = pyotp.TOTP(otp_secret).provisioning_uri(self.user, issuer_name="Frappe")
+		email_code = pyotp.HOTP(otp_secret).at(
+			frappe.cache.get_value(tmp_id + "_token", use_local_cache=False)
+		)
+		frappe.local.response["verification"] = None
+		self.assertFalse(confirm_otp_token(self.login_manager, otp=email_code, tmp_id=tmp_id))
 
-		frappe.cache.set_value(f"{key}_uri", totp_uri)
-		frappe.cache.set_value(f"{key}_user", self.user)
-		frappe.cache.set_value(f"{key}_secret", otp_secret)
+		verification = frappe.local.response["verification"]
+		self.assertEqual(verification["method"], "OTP App")
+		self.assertTrue(verification["qrcode"])
+		self.assertEqual(verification["otp_secret"], otp_secret)
+		self.assertFalse(get_default(self.user + "_otplogin"))
 
-		set_request(method="GET", path="/qrcode", query_string=f"k={key}")
-		result = get_user_svg_from_cache()
+		with self.freeze_time(datetime.datetime.now()):
+			self.assertTrue(confirm_otp_token(self.login_manager, otp=get_otp(self.user), tmp_id=tmp_id))
+		self.assertTrue(get_default(self.user + "_otplogin"))
 
-		self.assertEqual(len(result), 3)
-		user_doc, svg, returned_secret = result
-		self.assertEqual(user_doc.name, self.user)
-		self.assertIsInstance(svg, str)
-		self.assertEqual(returned_secret, otp_secret)
+	def test_otp_app_setup_requires_email_code(self):
+		"""TOTP is rejected for a user without OTP App setup until the email code is verified.
+
+		The second attempt removes the cached email token to check the guard after the email step."""
+		authenticate_for_2factor(self.user)
+		tmp_id = frappe.local.response["tmp_id"]
+
+		with self.freeze_time(datetime.datetime.now()):
+			with self.assertRaises(frappe.AuthenticationError):
+				confirm_otp_token(self.login_manager, otp=get_otp(self.user), tmp_id=tmp_id)
+
+			frappe.cache.delete_value(tmp_id + "_token")
+			with self.assertRaises(frappe.AuthenticationError):
+				confirm_otp_token(self.login_manager, otp=get_otp(self.user), tmp_id=tmp_id)
+		self.assertFalse(get_default(self.user + "_otplogin"))
 
 	def test_render_string_template(self):
 		"""String template renders as expected with variables."""
@@ -218,6 +238,7 @@ class TestTwoFactor(IntegrationTestCase):
 
 	def test_otp_attempt_tracker(self):
 		"""Check that OTP login attempts are tracked."""
+		set_default(self.user + "_otplogin", 1)
 		authenticate_for_2factor(self.user)
 		tmp_id = frappe.local.response["tmp_id"]
 		otp = "wrongotp"

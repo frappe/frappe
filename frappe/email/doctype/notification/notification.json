@@ -13,7 +13,7 @@
   "module",
   "column_break_2",
   "channel",
-  "slack_webhook_url",
+  "notification_webhook_url",
   "filters_section",
   "event",
   "document_type",
@@ -73,18 +73,18 @@
    "fieldname": "channel",
    "fieldtype": "Select",
    "label": "Channel",
-   "options": "Email\nSlack\nSystem Notification\nSMS",
+   "options": "Email\nWebhook\nSystem Notification\nSMS",
    "reqd": 1,
    "set_only_once": 1
   },
   {
-   "depends_on": "eval:doc.channel=='Slack'",
-   "description": "To use Slack Channel, add a <a href=\"#List/Slack%20Webhook%20URL/List\" rel=\"noopener noreferrer\">Slack Webhook URL</a>.",
-   "fieldname": "slack_webhook_url",
+   "depends_on": "eval:doc.channel=='Webhook'",
+   "description": "Add a <a href=\"/desk/notification-webhook-url\">Notification Webhook URL</a> provided by your notification service.",
+   "fieldname": "notification_webhook_url",
    "fieldtype": "Link",
-   "label": "Slack Channel",
-   "mandatory_depends_on": "eval:doc.channel=='Slack'",
-   "options": "Slack Webhook URL"
+   "label": "Notification Webhook URL",
+   "mandatory_depends_on": "eval:doc.channel=='Webhook'",
+   "options": "Notification Webhook URL"
   },
   {
    "fieldname": "filters",
@@ -215,7 +215,7 @@
    "label": "Value To Be Set"
   },
   {
-   "depends_on": "eval:doc.channel !=\"Slack\"",
+   "depends_on": "eval:doc.channel !=\"Webhook\"",
    "fieldname": "column_break_5",
    "fieldtype": "Section Break",
    "label": "Recipients"
@@ -224,7 +224,7 @@
    "fieldname": "recipients",
    "fieldtype": "Table",
    "label": "Recipients",
-   "mandatory_depends_on": "eval:doc.channel!=='Slack' && !doc.send_to_all_assignees",
+   "mandatory_depends_on": "eval:doc.channel!=='Webhook' && !doc.send_to_all_assignees",
    "options": "Notification Recipient"
   },
   {
@@ -241,14 +241,14 @@
    "options": "Email Template"
   },
   {
-   "depends_on": "eval: in_list(['Email', 'Slack', 'System Notification'], doc.channel) && !doc.email_template",
+   "depends_on": "eval: in_list(['Email', 'Webhook', 'System Notification'], doc.channel) && !doc.email_template",
    "description": "For a dynamic subject, use Jinja tags like this: <code>{{ doc.name }} Delivered</code>",
    "fieldname": "subject",
    "fieldtype": "Data",
    "ignore_xss_filter": 1,
    "in_list_view": 1,
    "label": "Subject",
-   "mandatory_depends_on": "eval: in_list(['Email', 'Slack', 'System Notification'], doc.channel) && !doc.email_template"
+   "mandatory_depends_on": "eval: in_list(['Email', 'Webhook', 'System Notification'], doc.channel) && !doc.email_template"
   },
   {
    "default": "Add your message here",
@@ -384,7 +384,7 @@
  "icon": "bell-dot",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-16 15:32:23.104030",
+ "modified": "2026-10-07 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Notification",

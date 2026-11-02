@@ -242,9 +242,9 @@ class TestPrintSurfaceMarkupContract(UnitTestCase):
 	def _assert_df_props_mirrored(self, macro_path):
 		# properties that are server-render concerns, not canvas inputs
 		# (allow_page_break flips break-inside — pagination only, no canvas effect)
-		skip = {"get", "renderer", "section", "html", "allow_page_break"}
+		skip = {"get", "renderer", "section", "html", "allow_page_break", "_text"}
 		macro = macro_path.read_text()
-		props = set(re.findall(r"df\.([a-z_]+)", macro)) - skip
+		props = {p for p in re.findall(r"df\.([a-z_]+)", macro) if not p.startswith("_")} - skip
 		missing = sorted(p for p in props if f"df.{p}" not in _canvas_logic_text())
 		self.assertFalse(
 			missing,

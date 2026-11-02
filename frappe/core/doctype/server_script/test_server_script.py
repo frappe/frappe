@@ -1,6 +1,7 @@
 # Copyright (c) 2019, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import requests
+from cryptography.fernet import Fernet
 
 import frappe
 from frappe.core.doctype.scheduled_job_type.scheduled_job_type import ScheduledJobType, sync_jobs
@@ -9,6 +10,8 @@ from frappe.frappeclient import FrappeClient, FrappeException
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
 from frappe.utils import get_site_url
+from frappe.utils.password import Auth, encrypt, get_decrypted_password
+from frappe.utils.safe_exec import get_safe_globals, safe_exec
 
 scripts = [
 	dict(
@@ -125,8 +128,10 @@ class TestServerScript(IntegrationTestCase):
 
 	@classmethod
 	def tearDownClass(cls):
+		frappe.db.delete("__Auth", {"doctype": "Server Script Variable"})
 		frappe.db.commit()
 		frappe.db.truncate("Server Script")
+		frappe.db.truncate("Server Script Variable")
 		frappe.client_cache.delete_value("server_script_map")
 
 	def setUp(self):
@@ -402,3 +407,174 @@ frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 		script.disabled = 0
 		script.save()
 		self.assertFalse(job.reload().stopped)
+
+	def test_env_variables(self):
+		script = frappe.get_doc(
+			doctype="Server Script",
+			name="test_env_variables",
+			script_type="API",
+			api_method="test_env_variables",
+			script="frappe.flags = frappe.env.API_TOKEN",
+			variables=[{"key": "API_TOKEN", "value": "s3cr3t"}],
+		).insert()
+
+		stored_value = frappe.db.get_value("Server Script Variable", script.variables[0].name, "value")
+		self.assertNotIn("s3cr3t", stored_value)
+		self.assertNotIn("env", get_safe_globals().frappe)
+
+		with self.set_user("test@example.com"):
+			self.assertEqual(frappe.get_doc("Server Script", script.name).execute_method(), "s3cr3t")
+
+	def test_env_variable_get_password_is_refused(self):
+		script = frappe.get_doc(
+			doctype="Server Script",
+			name="test_env_variables_owner",
+			script_type="API",
+			api_method="test_env_variables_owner",
+			script="frappe.flags = frappe.env.API_TOKEN",
+			variables=[{"key": "API_TOKEN", "value": "s3cr3t"}],
+		).insert()
+		other_script = frappe.get_doc(
+			doctype="Server Script",
+			name="test_env_variables_reader",
+			script_type="API",
+			api_method="test_env_variables_reader",
+			script=f'frappe.flags = frappe.get_doc("Server Script", "{script.name}").variables[0].get_password("value")',
+		).insert()
+
+		with self.set_user("test@example.com"):
+			self.assertRaises(frappe.PermissionError, other_script.execute_method)
+			self.assertRaises(
+				frappe.PermissionError,
+				safe_exec,
+				f'frappe.get_doc("Server Script Variable", "{script.variables[0].name}").get_password("value")',
+			)
+			self.assertEqual(script.execute_method(), "s3cr3t")
+
+	def test_env_variables_with_prompt_name(self):
+		script = frappe.get_doc(
+			{
+				"doctype": "Server Script",
+				"__newname": "test_env_variables_with_prompt_name",
+				"script_type": "API",
+				"api_method": "test_env_variables_with_prompt_name",
+				"script": "frappe.flags = frappe.env.API_TOKEN",
+				"variables": [{"key": "API_TOKEN", "value": "s3cr3t"}],
+			}
+		).insert()
+
+		self.assertEqual(script.name, "test_env_variables_with_prompt_name")
+		with self.set_user("test@example.com"):
+			self.assertEqual(script.execute_method(), "s3cr3t")
+
+	def test_env_variables_with_name_set(self):
+		script = frappe.get_doc(
+			doctype="Server Script",
+			name="test_env_variables_with_name_set",
+			script_type="API",
+			api_method="test_env_variables_with_name_set",
+			script="frappe.flags = frappe.env.API_TOKEN + frappe.env.API_SECRET",
+			variables=[
+				{"key": "API_TOKEN", "value": "s3cr3t"},
+				{"name": "test_env_variables_with_name_set_row", "key": "API_SECRET", "value": "p4ss"},
+			],
+		)
+		script.flags.name_set = True
+		script.insert()
+
+		self.assertEqual(script.name, "test_env_variables_with_name_set")
+		self.assertEqual(script.variables[1].name, "test_env_variables_with_name_set_row")
+		with self.set_user("test@example.com"):
+			self.assertEqual(frappe.get_doc("Server Script", script.name).execute_method(), "s3cr3tp4ss")
+
+	def test_missing_env_variable(self):
+		script = frappe.get_doc(
+			doctype="Server Script",
+			name="test_missing_env_variable",
+			script_type="API",
+			api_method="test_missing_env_variable",
+			script="frappe.flags = frappe.env.API_TOKEN",
+		).insert()
+
+		with self.set_user("test@example.com"):
+			self.assertRaisesRegex(frappe.ValidationError, "API_TOKEN", script.execute_method)
+
+	def test_env_variable_without_saved_value(self):
+		script = frappe.get_doc(
+			doctype="Server Script",
+			name="test_env_variable_without_saved_value",
+			script_type="API",
+			api_method="test_env_variable_without_saved_value",
+			script="frappe.flags = frappe.env.API_TOKEN",
+			variables=[{"key": "API_TOKEN", "value": "s3cr3t"}],
+		).insert()
+		frappe.db.delete("__Auth", {"doctype": "Server Script Variable", "name": script.variables[0].name})
+
+		with self.set_user("test@example.com"):
+			self.assertRaisesRegex(frappe.ValidationError, "API_TOKEN", script.execute_method)
+
+	def test_env_variable_that_cannot_be_decrypted(self):
+		script = frappe.get_doc(
+			doctype="Server Script",
+			name="test_env_variable_that_cannot_be_decrypted",
+			script_type="API",
+			api_method="test_env_variable_that_cannot_be_decrypted",
+			script="frappe.flags = frappe.env.API_TOKEN",
+			variables=[{"key": "API_TOKEN", "value": "s3cr3t"}],
+		).insert()
+		(
+			frappe.qb.update(Auth)
+			.set(Auth.password, encrypt("s3cr3t", encryption_key=Fernet.generate_key().decode()))
+			.where((Auth.doctype == "Server Script Variable") & (Auth.name == script.variables[0].name))
+		).run()
+
+		with self.set_user("test@example.com"):
+			self.assertRaisesRegex(frappe.ValidationError, "Encryption key is invalid", script.execute_method)
+
+	def test_env_variable_key_validation(self):
+		invalid_variables = [
+			[{"key": "API TOKEN", "value": "s3cr3t"}],
+			[{"key": "1_TOKEN", "value": "s3cr3t"}],
+			[{"key": "_TOKEN", "value": "s3cr3t"}],
+			[{"key": "class", "value": "s3cr3t"}],
+			[{"key": "format", "value": "s3cr3t"}],
+			[{"key": "f_code", "value": "s3cr3t"}],
+			[{"key": "co_code", "value": "s3cr3t"}],
+			[{"key": "TOKEN__roles__", "value": "s3cr3t"}],
+			[{"key": "TOKEN\n", "value": "s3cr3t"}],
+			[{"key": "TOKEN", "value": "a"}, {"key": "TOKEN", "value": "b"}],
+		]
+		for variables in invalid_variables:
+			script = frappe.get_doc(
+				doctype="Server Script",
+				name="test_env_variable_key_validation",
+				script_type="API",
+				api_method="test_env_variable_key_validation",
+				script="pass",
+				variables=variables,
+			)
+			with self.subTest(variables=variables):
+				self.assertRaises(frappe.ValidationError, script.insert)
+
+	def test_env_variable_values_are_deleted(self):
+		script = frappe.get_doc(
+			doctype="Server Script",
+			name="test_env_variable_values_are_deleted",
+			script_type="API",
+			api_method="test_env_variable_values_are_deleted",
+			script="pass",
+			variables=[{"key": "OLD_TOKEN", "value": "old"}, {"key": "NEW_TOKEN", "value": "new"}],
+		).insert()
+		old_row, new_row = script.variables
+
+		script.remove(old_row)
+		script.save()
+		self.assertIsNone(
+			get_decrypted_password(old_row.doctype, old_row.name, "value", raise_exception=False)
+		)
+		self.assertEqual(get_decrypted_password(new_row.doctype, new_row.name, "value"), "new")
+
+		script.delete()
+		self.assertIsNone(
+			get_decrypted_password(new_row.doctype, new_row.name, "value", raise_exception=False)
+		)

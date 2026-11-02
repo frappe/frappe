@@ -209,6 +209,27 @@ def sync_customizations_for_doctype(data: dict, folder: str, filename: str = "")
 					# Property setter implement their own deduplication, we can just sync them as is
 					for d in data[key]:
 						if d.get("doc_type") == doc_type:
+							current = frappe.db.get_value(
+								"Property Setter",
+								{
+									"doc_type": doc_type,
+									"field_name": d.get("field_name"),
+									"row_name": d.get("row_name"),
+									"property": d.get("property"),
+								},
+								[
+									"doctype_or_field",
+									"value",
+									"property_type",
+									"default_value",
+									"module",
+									"is_system_generated",
+								],
+								as_dict=True,
+							)
+							if current and all(current[f] == d[f] for f in current if f in d):
+								continue
+
 							d["doctype"] = "Property Setter"
 							doc = frappe.get_doc(d)
 							doc.flags.validate_fields_for_doctype = False

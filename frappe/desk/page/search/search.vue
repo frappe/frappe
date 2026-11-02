@@ -48,6 +48,11 @@ function search() {
 	}
 }
 
+function open(option, event) {
+	awesome_bar.open_option(option, event);
+	text.value = "";
+}
+
 // the modal's own debounce
 watch(text, () => {
 	clearTimeout(timer);
@@ -123,10 +128,7 @@ function content(option, text) {
 		>
 			<List :row-height="52">
 				<ListRows :items="options" :row-key="(_, index) => index" v-slot="{ item, value }">
-					<ListRow
-						:value="value"
-						@click="(event) => awesome_bar.open_option(item, event)"
-					>
+					<ListRow :value="value" @click="(event) => open(item, event)">
 						<ListCell>
 							<span
 								:class="icon(item)"

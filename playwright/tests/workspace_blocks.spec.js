@@ -83,10 +83,7 @@ test.describe("Workspace Blocks", () => {
 		await expect(dialog.locator(".filter-edit-area")).toContainText("No filters selected");
 		await dialog.locator(".filter-area .add-filter").click();
 
-		const fieldname_input = dialog.locator(".fieldname-select-area input");
-		await fieldname_input.pressSequentially("Workflow State");
-		await fieldname_input.press("Enter");
-		await fieldname_input.blur();
+		await desk.pick_filter_field("Workflow State");
 		await dialog.locator(".filter-field .input-with-feedback").pressSequentially("Pending");
 
 		await dialog.locator(".modal-header").click();

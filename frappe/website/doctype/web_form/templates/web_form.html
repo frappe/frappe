@@ -46,7 +46,6 @@
 {% macro action_buttons() %}
 	{% block actions_buttons %}
 	<div class="left-area"></div>
-	<div class="center-area paging"></div>
 	<div class="right-area">
 		{% if not in_view_mode %}
 			<!-- discard button -->
@@ -107,6 +106,7 @@
 
 		<!-- main card -->
 		<form role="form" class="web-form">
+			<div class="web-form-stepper"></div>
 			<div class="web-form-body">
 				<div class="web-form-wrapper">
 					{% include "website/doctype/web_form/templates/web_form_skeleton.html" %}

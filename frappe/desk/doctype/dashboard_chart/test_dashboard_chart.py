@@ -10,7 +10,8 @@ from dateutil.relativedelta import relativedelta
 
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
-from frappe.desk.doctype.dashboard_chart.dashboard_chart import get
+from frappe.core.doctype.user.test_user import test_user
+from frappe.desk.doctype.dashboard_chart.dashboard_chart import create_dashboard_chart, get
 from frappe.tests import IntegrationTestCase
 from frappe.utils import formatdate, get_first_day, get_last_day, getdate, now_datetime
 from frappe.utils.dateutils import get_period, get_period_ending
@@ -430,6 +431,36 @@ class TestDashboardChart(IntegrationTestCase):
 
 		self.assertTrue(result.get("labels"))
 		self.assertIsNone(frappe.db.get_value("Dashboard Chart", chart_name, "last_synced_on"))
+
+	def test_create_dashboard_chart_is_private_without_create_permission(self):
+		args = {
+			"chart_name": "Test Private Chart",
+			"chart_type": "Count",
+			"document_type": "ToDo",
+			"based_on": "creation",
+			"time_interval": "Monthly",
+			"timespan": "Last Year",
+			"type": "Bar",
+			"filters_json": "[]",
+			"is_public": 1,
+			"roles": [{"role": "System Manager"}],
+		}
+
+		with test_user(roles=["Desk User"]) as user, self.set_user(user.name):
+			chart = create_dashboard_chart(args)
+		self.addCleanup(frappe.delete_doc, "Dashboard Chart", chart.name, force=True)
+		self.assertEqual((chart.is_public, len(chart.roles)), (0, 0))
+
+		args["chart_name"] = "Test Public Chart"
+		chart = create_dashboard_chart(args)
+		self.addCleanup(frappe.delete_doc, "Dashboard Chart", chart.name, force=True)
+		self.assertEqual((chart.is_public, len(chart.roles)), (1, 1))
+
+	def test_create_dashboard_chart_requires_desk_user(self):
+		args = {"chart_name": "Test Web Chart", "chart_type": "Count", "document_type": "ToDo"}
+
+		with test_user(roles=[], user_type="Website User") as user, self.set_user(user.name):
+			self.assertRaises(frappe.PermissionError, create_dashboard_chart, args)
 
 
 def insert_test_records(doctype_name):

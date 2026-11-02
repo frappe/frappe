@@ -15,53 +15,99 @@ frappe.ui.SortSelector = class SortSelector {
 	make() {
 		this.prepare_args();
 		this.parent.find(".sort-selector").remove();
-		this.wrapper = $(
-			frappe.render_template("sort_selector", { ...this.args, doctype: this.doctype })
-		).appendTo(this.parent);
-		this.bind_events();
+		this.wrapper = $('<div class="sort-selector flex items-center"></div>').appendTo(
+			this.parent
+		);
+
+		const { title, icon } = this.get_order(this.sort_order);
+		this.$order_button = frappe.ui.button({
+			icon,
+			title,
+			css_class: "btn-order rounded-se-none rounded-ee-none",
+			attrs: { "data-value": this.sort_order },
+			onclick: () => this.select(this.sort_by, this.sort_order === "desc" ? "asc" : "desc"),
+		});
+		this.$field_button = frappe.ui.dropdown({
+			button: {
+				label: __(this.args.sort_by_label, null, this.doctype),
+				icon_right: "chevron-down",
+				css_class: "sort-selector-button border-s rounded-ss-none rounded-es-none",
+			},
+			align: "end",
+			options: () =>
+				this.args.options.map(({ fieldname, label }) => ({
+					label: __(label, null, this.doctype),
+					selected: fieldname === this.sort_by,
+					onclick: () => this.select(fieldname, this.sort_order),
+				})),
+		});
+		$('<div class="sort-selector-group flex items-center hidden-xs"></div>')
+			.append(this.$order_button, this.$field_button)
+			.appendTo(this.wrapper);
+
+		this.$sheet_button = frappe.ui.button({
+			icon,
+			title: __("Sort"),
+			css_class: "hidden-lg ms-1",
+			onclick: () => this.open_sheet(),
+		});
+		this.wrapper.append(this.$sheet_button);
 	}
-	bind_events() {
-		var me = this;
-
-		// order
-		this.wrapper.find(".btn-order").on("click", function () {
-			const order = $(this).attr("data-value") === "desc" ? "asc" : "desc";
-			me.set_value(me.sort_by, order);
-			(me.onchange || me.change)(me.sort_by, me.sort_order);
-		});
-
-		// select field
-		this.wrapper.find(".dropdown-menu a.option").on("click", function () {
-			me.set_value($(this).attr("data-value"), me.sort_order);
-			(me.onchange || me.change)(me.sort_by, me.sort_order);
-		});
+	select(sort_by, sort_order) {
+		this.set_value(sort_by, sort_order);
+		(this.onchange || this.change)(this.sort_by, this.sort_order);
+	}
+	async open_sheet() {
+		// a second tap while the sheet's bundle loads opens nothing
+		if (this.opening_sheet) return;
+		this.opening_sheet = true;
+		await frappe
+			.require(["bottom_sheet.bundle.js", "bottom_sheet.bundle.css"])
+			.finally(() => (this.opening_sheet = false));
+		const select = (sort_by, sort_order) => {
+			if (sort_by === this.sort_by && sort_order === this.sort_order) return;
+			this.select(sort_by, sort_order);
+		};
+		new frappe.ui.BottomSheet({
+			title: __("Sort by"),
+			options: [
+				...["desc", "asc"].map((order) => ({
+					label: this.get_order(order).label,
+					icon: this.get_order(order).icon,
+					selected: order === this.sort_order,
+					onclick: () => select(this.sort_by, order),
+				})),
+				{
+					group: __("Field"),
+					hide_label: true,
+					options: this.args.options.map(({ fieldname, label }) => ({
+						label: __(label, null, this.doctype),
+						selected: fieldname === this.sort_by,
+						onclick: () => select(fieldname, this.sort_order),
+					})),
+				},
+			],
+		}).open();
 	}
 	set_value(sort_by, sort_order) {
-		const $btn = this.wrapper.find(".btn-order");
-		const $icon = $btn.find(".sort-order");
-		const $text = this.wrapper.find(".dropdown-text");
-
 		if (this.sort_by !== sort_by) {
 			this.sort_by = sort_by;
-			$text.html(__(this.get_label(sort_by), null, this.doctype));
+			this.$field_button
+				.find(".es-button__label")
+				.text(__(this.get_label(sort_by), null, this.doctype));
 		}
 		if (this.sort_order !== sort_order) {
 			this.sort_order = sort_order;
-			const SORT_TITLE_AND_ICON = {
-				desc: {
-					title: __("descending"),
-					icon: "arrow-down-wide-narrow",
-				},
-				asc: {
-					title: __("ascending"),
-					icon: "arrow-up-narrow-wide",
-				},
-			};
-			const { title, icon } = SORT_TITLE_AND_ICON[sort_order];
-			$btn.attr("data-value", sort_order);
-			$btn.attr("title", title);
-			$icon.html(frappe.utils.icon(icon, "sm"));
+			const { title, icon } = this.get_order(sort_order);
+			this.$order_button.attr({ "data-value": sort_order, title, "aria-label": title });
+			frappe.ui.button.dress(this.$order_button, { icon });
+			frappe.ui.button.dress(this.$sheet_button, { icon });
 		}
+	}
+	get_order(sort_order) {
+		return sort_order === "asc"
+			? { label: __("Ascending"), title: __("ascending"), icon: "arrow-up-narrow-wide" }
+			: { label: __("Descending"), title: __("descending"), icon: "arrow-down-wide-narrow" };
 	}
 	prepare_args() {
 		var me = this;
@@ -101,6 +147,8 @@ frappe.ui.SortSelector = class SortSelector {
 		}
 
 		this.setup_from_doctype();
+		this.sort_by = this.args.sort_by;
+		this.sort_order = this.args.sort_order = this.args.sort_order?.toLowerCase();
 
 		// if label is missing, add from options
 		if (this.args.sort_by && !this.args.sort_by_label) {
@@ -177,10 +225,6 @@ frappe.ui.SortSelector = class SortSelector {
 				return obj.fieldname;
 			});
 		}
-
-		// set default
-		this.sort_by = this.args.sort_by;
-		this.sort_order = this.args.sort_order = this.args.sort_order.toLowerCase();
 	}
 	get_meta_sort_field() {
 		var meta = frappe.get_meta(this.doctype);

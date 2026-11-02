@@ -6,6 +6,7 @@
 		:description="field.description"
 		:placeholder="field.placeholder"
 		:required="field.reqd"
+		:error="error"
 		:disabled="field.readOnly"
 		:openOnClick="true"
 	/>

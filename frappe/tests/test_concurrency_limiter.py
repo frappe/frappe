@@ -5,13 +5,24 @@ import contextlib
 import contextvars
 import os
 import sys
+import tempfile
 import threading
+import types
 from unittest.mock import MagicMock, patch
 
+from gunicorn.config import Workers
+
 import frappe
-from frappe.concurrency_limiter import _default_limit, concurrent_limit, web_tier_concurrency
+from frappe.concurrency_limiter import (
+	WebTierSettings,
+	_default_limit,
+	concurrent_limit,
+	web_tier_concurrency,
+	web_tier_settings,
+)
 from frappe.exceptions import ServiceUnavailableError
 from frappe.tests import IntegrationTestCase
+from frappe.utils.error import log_error_snapshot
 
 
 def _key(fn):
@@ -76,6 +87,10 @@ class TestConcurrentLimit(IntegrationTestCase):
 				fn()
 			self.assertEqual(exc_ctx.exception.http_status_code, 503)
 			mock_headers.set.assert_called_once_with("Retry-After", "1")  # max(1, wait_timeout=0)
+
+			with patch("frappe.utils.error.log_error") as log_error:
+				log_error_snapshot(exc_ctx.exception)
+			log_error.assert_not_called()
 		finally:
 			proceed.set()
 			t.join(timeout=5)
@@ -168,17 +183,38 @@ class TestConcurrentLimit(IntegrationTestCase):
 
 class TestWebTierConcurrency(IntegrationTestCase):
 	@contextlib.contextmanager
-	def _server(self, argv, server_software="gunicorn/23.0.0"):
-		"""Run the body as if this process were a gunicorn worker started with *argv*."""
+	def _server(self, argv, server_software="gunicorn/23.0.0", cwd=None):
+		"""Run the body as if this process were a gunicorn worker started with *argv* in *cwd*."""
 		env = {"SERVER_SOFTWARE": server_software} if server_software else {}
-		web_tier_concurrency.cache_clear()
+		saved_cwd, saved_config = os.getcwd(), sys.modules.pop("__config__", None)
+		web_tier_settings.cache_clear()
 		try:
-			with patch.object(sys, "argv", argv), patch.dict(os.environ, env, clear=False):
+			with (
+				tempfile.TemporaryDirectory() as empty_dir,
+				patch.object(sys, "argv", argv),
+				patch.dict(os.environ, env, clear=False),
+			):
+				os.environ.pop("GUNICORN_CMD_ARGS", None)
 				if not server_software:
 					os.environ.pop("SERVER_SOFTWARE", None)
-				yield
+				os.chdir(cwd or empty_dir)
+				try:
+					yield
+				finally:
+					os.chdir(saved_cwd)
 		finally:
-			web_tier_concurrency.cache_clear()
+			sys.modules.pop("__config__", None)
+			if saved_config:
+				sys.modules["__config__"] = saved_config
+			web_tier_settings.cache_clear()
+
+	@contextlib.contextmanager
+	def _config_file(self, content):
+		with tempfile.TemporaryDirectory() as tmp:
+			path = os.path.join(tmp, "gunicorn.conf.py")
+			with open(path, "w") as f:
+				f.write(content)
+			yield path
 
 	def test_no_limit_without_a_worker_pool(self):
 		"""The development server starts a thread per request, so there is no pool to protect."""
@@ -205,9 +241,80 @@ class TestWebTierConcurrency(IntegrationTestCase):
 		with self._server(["gunicorn", "-w", "1", "frappe.app:application"]):
 			self.assertEqual(_default_limit(), 1)
 
-	def test_unparseable_flag_falls_back_to_one(self):
-		with self._server(["gunicorn", "-w", "auto", "frappe.app:application"]):
-			self.assertEqual(web_tier_concurrency(), 1)
+	def test_reads_the_config_file(self):
+		"""Frappe Cloud starts gunicorn with ``-c gunicorn.conf.py`` and no ``-w`` or ``--threads``."""
+		with self._config_file("workers = 8\nthreads = 4\n") as path:
+			with self._server(["gunicorn", "-c", path, "frappe.app:application"]):
+				self.assertEqual(web_tier_concurrency(), 32)
+				self.assertEqual(_default_limit(), 16)
+
+	def test_reads_the_default_config_file(self):
+		"""Gunicorn loads ./gunicorn.conf.py when no config file is named."""
+		with self._config_file("workers = 3\nthreads = 2\n") as path:
+			with self._server(["gunicorn", "frappe.app:application"], cwd=os.path.dirname(path)):
+				self.assertEqual(web_tier_concurrency(), 6)
+
+	def test_reuses_the_config_module_the_master_loaded(self):
+		"""A worker must not run the config file again, nor fail when the master's chdir moved it."""
+		master_config = types.ModuleType("__config__")
+		master_config.workers, master_config.threads = 8, 4
+		with self._config_file("raise RuntimeError\n") as path:
+			with self._server(["gunicorn", "-c", path, "frappe.app:application"]):
+				sys.modules["__config__"] = master_config
+				self.assertEqual(web_tier_concurrency(), 32)
+
+	def test_reads_gunicorn_cmd_args(self):
+		env = {"GUNICORN_CMD_ARGS": "--workers 3 --threads 3"}
+		with self._server(["gunicorn", "frappe.app:application"]), patch.dict(os.environ, env):
+			self.assertEqual(web_tier_concurrency(), 9)
+
+	def test_reads_the_config_file_named_in_gunicorn_cmd_args(self):
+		with self._config_file("workers = 5\nthreads = 2\n") as path:
+			env = {"GUNICORN_CMD_ARGS": f"-c {path}"}
+			with self._server(["gunicorn", "frappe.app:application"]), patch.dict(os.environ, env):
+				self.assertEqual(web_tier_concurrency(), 10)
+
+	def test_settings_override_in_gunicorn_order(self):
+		"""The command line beats GUNICORN_CMD_ARGS, which beats the config file."""
+		with self._config_file("workers = 8\nthreads = 4\n") as path:
+			env = {"GUNICORN_CMD_ARGS": "--threads 2"}
+			with (
+				self._server(["gunicorn", "-c", path, "-w", "3", "frappe.app:application"]),
+				patch.dict(os.environ, env),
+			):
+				self.assertEqual(web_tier_concurrency(), 6)
+
+	def test_uses_gunicorn_defaults(self):
+		"""Gunicorn's default worker count is WEB_CONCURRENCY, read when gunicorn.config is imported."""
+		with self._server(["gunicorn", "frappe.app:application"]), patch.object(Workers, "default", 4):
+			self.assertEqual(web_tier_concurrency(), 4)
+
+	def test_no_limit_when_settings_cannot_be_resolved(self):
+		"""A launcher whose own command line is not gunicorn's, so no size is guessed."""
+		with self._server(["run_server.py", "--port", "8000"]):
+			self.assertIsNone(web_tier_concurrency())
+			self.assertIsNone(_default_limit())
+
+		with self._config_file("raise RuntimeError\n") as path:
+			with self._server(["gunicorn", "-c", path, "frappe.app:application"]):
+				self.assertIsNone(web_tier_concurrency())
+
+	def test_reads_timeouts(self):
+		with self._config_file("timeout = 120\n") as path:
+			with self._server(["gunicorn", "-c", path, "--graceful-timeout", "45", "frappe.app:application"]):
+				settings = web_tier_settings()
+				self.assertEqual((settings.timeout, settings.graceful_timeout), (120, 45))
+
+	def test_settings_default_to_gunicorn_defaults(self):
+		with self._server(["gunicorn", "frappe.app:application"]), patch.object(Workers, "default", 1):
+			self.assertEqual(web_tier_settings(), WebTierSettings(1, 1, 30, 30))
+
+	def test_no_settings_outside_gunicorn(self):
+		with self._server(["bench", "serve"], server_software=None):
+			self.assertIsNone(web_tier_settings())
+
+		with self._server(["run_server.py", "--port", "8000"]):
+			self.assertIsNone(web_tier_settings())
 
 	def test_pool_is_skipped_when_there_is_no_limit(self):
 		"""A request on the development server must not touch the semaphore."""

@@ -49,8 +49,15 @@ def check_pull_request(number: str) -> "tuple[int, str]":
 	title = (payload.get("title") or "").lower().strip()
 	head_sha = (payload.get("head") or {}).get("sha")
 	body = (payload.get("body") or "").lower()
+	labels = {label["name"] for label in payload.get("labels") or []}
 
-	if not title.startswith("feat") or not head_sha or "no-docs" in body or "backport" in body:
+	if (
+		not title.startswith("feat")
+		or not head_sha
+		or "no-docs" in labels
+		or "no-docs" in body
+		or "backport" in body
+	):
 		return 0, "Skipping documentation checks... 🏃"
 
 	if contains_documentation_link(body):

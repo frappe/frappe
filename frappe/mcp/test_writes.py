@@ -4,7 +4,6 @@
 from unittest.mock import Mock, patch
 
 import frappe
-from frappe import _
 from frappe.api import v2
 from frappe.desk.doctype.todo.todo import ToDo
 from frappe.mcp.test_utils import McpTestCase
@@ -62,6 +61,23 @@ class TestWriteDocument(McpTestCase):
 		)
 		self.assertEqual(result["name"], self.own)
 		self.assertEqual(frappe.db.get_value("ToDo", self.own, "description"), "Updated through MCP")
+
+	def test_create_and_update_fields(self):
+		result = self.result(
+			tool="create_document",
+			doctype="ToDo",
+			data={"description": "Picked fields"},
+			fields=["name", "owner"],
+		)
+		self.assertEqual(result, {"name": result["name"], "owner": self.user})
+		result = self.result(
+			tool="update_document",
+			doctype="ToDo",
+			name=self.own,
+			data={"status": "Closed"},
+			fields=["status"],
+		)
+		self.assertEqual(result, {"status": "Closed"})
 
 	def test_delete(self):
 		result = self.result(tool="delete_document", doctype="ToDo", name=self.own)
@@ -136,6 +152,14 @@ class TestWriteDocument(McpTestCase):
 			{"tool": "create_document", "doctype": "ToDo", "name": self.own, "data": {}},
 			{"tool": "delete_document", "doctype": "ToDo", "name": self.own, "data": {}},
 			{"tool": "delete_document", "doctype": "ToDo", "name": self.own, "ignore_permissions": True},
+			{"tool": "create_document", "doctype": "ToDo", "data": {}, "fields": "name"},
+			{
+				"tool": "update_document",
+				"doctype": "ToDo",
+				"name": self.own,
+				"data": {},
+				"fields": [{"x": "y"}],
+			},
 		)
 		with (
 			patch("frappe.api.v2.create_doc") as create,
@@ -158,7 +182,7 @@ class TestWriteDocument(McpTestCase):
 			original_on_update(doc)
 			frappe.db.after_commit.add(callback)
 			frappe.db.after_rollback.add(cleanup)
-			frappe.throw(_("Update hook failed"))
+			frappe.throw("Update hook failed")
 
 		with patch.object(ToDo, "on_update", on_update):
 			response = self.write(
@@ -224,7 +248,7 @@ class TestWriteDocument(McpTestCase):
 
 		def after_insert(doc):
 			frappe.db.after_commit.add(callback)
-			frappe.throw(_("Create hook failed"))
+			frappe.throw("Create hook failed")
 
 		with patch.object(ToDo, "after_insert", after_insert, create=True):
 			response = self.write(

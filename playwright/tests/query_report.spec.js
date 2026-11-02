@@ -161,4 +161,68 @@ test.describe("Query Report", () => {
 			'"Renew the example.com domain"',
 		]);
 	});
+
+	test.describe("Custom Report", () => {
+		test.beforeAll(async ({ admin }) => {
+			await admin.insert_doc(
+				"Report",
+				{
+					report_name: "Test ToDo Shared Filters Report",
+					ref_doctype: "ToDo",
+					report_type: "Query Report",
+					is_standard: "No",
+					query: "select name from tabToDo",
+					javascript: `
+						window.shared_todo_report ??= { filters: [] };
+						frappe.query_reports["Test ToDo Shared Filters Report"] = $.extend({}, window.shared_todo_report);
+						frappe.query_reports["Test ToDo Shared Filters Report"].filters.push({
+							fieldname: "status",
+							label: "Status",
+							fieldtype: "Data",
+						});
+					`,
+				},
+				true
+			);
+			await admin.insert_doc(
+				"Report",
+				{
+					report_name: "Test ToDo Shared Filters Report 1",
+					ref_doctype: "ToDo",
+					report_type: "Custom Report",
+					is_standard: "No",
+					reference_report: "Test ToDo Shared Filters Report",
+				},
+				true
+			);
+		});
+
+		test("shows filters once after the reference report script ran", async ({ page }) => {
+			await page.goto("/desk/todo");
+			await page.evaluate(() =>
+				frappe.report_utils.get_report_filters("Test ToDo Shared Filters Report")
+			);
+			await page.evaluate(() =>
+				frappe.set_route("query-report", "Test ToDo Shared Filters Report 1")
+			);
+
+			await expect(page.locator(`${REPORT_PAGE} .datatable`)).toBeAttached();
+			await expect(
+				page.locator(`${REPORT_PAGE} .page-form .frappe-control[data-fieldname="status"]`)
+			).toHaveCount(1);
+		});
+
+		test("gets filters from the reference report script", async ({ page }) => {
+			await page.goto("/desk/todo");
+			const fieldnames = await page.evaluate(async () => {
+				await frappe.report_utils.get_report_filters("Test ToDo Shared Filters Report");
+				const filters = await frappe.report_utils.get_report_filters(
+					"Test ToDo Shared Filters Report 1"
+				);
+				return filters?.map((filter) => filter.fieldname);
+			});
+
+			expect(fieldnames).toEqual(["status"]);
+		});
+	});
 });

@@ -123,10 +123,15 @@ class PilotClient:
 # --- access control -------------------------------------------------------
 
 
+def is_v2_site() -> bool:
+	"""A site is cloud-managed (Frappe Cloud V2) when its bench wrote pilot credentials into
+	the site config. Self-hosted and V1 sites never have these."""
+	return bool(frappe.conf.get("pilot_endpoint") and frappe.conf.get("pilot_auth_token"))
+
+
 def is_cloud_settings_enabled() -> bool:
-	"""A site is cloud-managed when its bench wrote pilot credentials into the
-	site config. Self-hosted sites never have these, so the modal stays hidden."""
-	if not (frappe.conf.get("pilot_endpoint") and frappe.conf.get("pilot_auth_token")):
+	"""Self-hosted sites aren't V2 sites, so the modal stays hidden."""
+	if not is_v2_site():
 		return False
 	if frappe.session.user == "Guest":
 		return False
@@ -162,16 +167,18 @@ def _safe_context() -> dict:
 
 
 def _embed_bundle() -> dict:
-	"""Browser-reachable URL for pilot's Cloud Settings embed bundle.
+	"""Browser-reachable URLs for pilot's Cloud Settings UI.
 
-	Pilot builds and serves this bundle from its admin backend; the framework only
+	Pilot builds and serves the UI from its admin backend; the framework only
 	points at it. By default we load it from `pilot_endpoint` — the admin's public
 	URL the site already talks to, which also serves `/embed/cloud-settings/`. Set
 	`cloud_settings_embed_url` only to override that (e.g. a CDN). `embed_version`
 	busts the browser cache when pilot ships an update.
 
-	One script and no stylesheet: the dialog renders inside a shadow root and
-	adopts its own styles, so there is nothing for desk to link."""
+	`module` is the ES runtime, which loads each panel on first use. `js` is the
+	classic script that desk falls back to when pilot does not serve the module.
+	Neither has a stylesheet: the dialog renders inside a shadow root and adopts
+	its own styles, so there is nothing for desk to link."""
 	base = (frappe.conf.get("cloud_settings_embed_url") or frappe.conf.get("pilot_endpoint") or "").rstrip(
 		"/"
 	)
@@ -179,7 +186,10 @@ def _embed_bundle() -> dict:
 		return {}
 	version = frappe.conf.get("cloud_settings_embed_version")
 	query = f"?v={quote(str(version), safe='')}" if version else ""
-	return {"js": f"{base}/embed/cloud-settings/cloud-settings.js{query}"}
+	return {
+		"js": f"{base}/embed/cloud-settings/cloud-settings.js{query}",
+		"module": f"{base}/embed/cloud-settings/esm/cloud-settings.js{query}",
+	}
 
 
 # --- whitelisted endpoints ------------------------------------------------

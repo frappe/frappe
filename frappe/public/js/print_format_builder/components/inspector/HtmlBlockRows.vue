@@ -22,6 +22,7 @@ function edit() {
 		initial_html: selected_field.value?.html || "",
 		doctype: store.meta.value?.name,
 		docname: store.preview_doc_name.value,
+		global_variables: store.layout.value?.global_variables,
 		on_save: (html) => (selected_field.value.html = html),
 	});
 }

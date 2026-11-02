@@ -1,0 +1,248 @@
+import { pinia } from "../support/component"
+
+import { h } from "vue"
+import { setActivePinia } from "pinia"
+import { createMemoryHistory, createRouter } from "vue-router"
+// @ts-ignore
+import { FrappeUIProvider, resourcesPlugin } from "frappe-ui"
+
+import "@/setupFrappeUIResource"
+import SettingsDialog from "@/components/Settings/SettingsDialog.vue"
+import useStudioStore from "@/stores/studioStore"
+import type { StudioPage } from "@/types/Studio/StudioPage"
+
+const APP_NAME = "cypress-settings"
+const RENAMED_APP = "cypress-settings-renamed"
+const PRE_LOGIN_FETCHES = ["frappe.client.get_list", "frappe.client.get"]
+// a 1x1 transparent PNG
+const FAVICON = Cypress.Buffer.from(
+	"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
+	"base64",
+)
+
+describe("settings dialog", () => {
+	let store: ReturnType<typeof useStudioStore>
+	let aboutPage: StudioPage
+	let contactPage: StudioPage
+	let router: ReturnType<typeof editorRouter>
+
+	// the app's auto-loaded resources fetch on import, before the spec has logged in
+	before(() => {
+		Cypress.on("uncaught:exception", (error) => !PRE_LOGIN_FETCHES.some((url) => error.message.includes(url)))
+	})
+
+	after(() => {
+		cy.login()
+		cy.remove_doc("Studio App", APP_NAME, true)
+		cy.remove_doc("Studio App", RENAMED_APP, true)
+	})
+
+	afterEach(() => {
+		cy.window().then((win) => delete win.is_developer_mode)
+	})
+
+	beforeEach(() => {
+		setActivePinia(pinia)
+		cy.viewport(1400, 900)
+		store = useStudioStore()
+		store.showSettingsDialog = false
+		cy.login()
+		cy.intercept("/api/method/frappe.client.set_value").as("save")
+		cy.intercept("/api/method/run_doc_method").as("docMethod")
+		cy.intercept("/api/method/frappe.client.rename_doc").as("rename")
+		cy.remove_doc("Studio App", APP_NAME, true)
+		cy.remove_doc("Studio App", RENAMED_APP, true)
+		cy.insert_doc("Studio App", { app_name: APP_NAME, app_title: "Cypress Settings" })
+		cy.insert_doc("Studio Page", { studio_app: APP_NAME, page_title: "About" }).then((page) => (aboutPage = page))
+		cy.insert_doc("Studio Page", { studio_app: APP_NAME, page_title: "Contact" }).then((page) => (contactPage = page))
+		cy.wrap(null).then(() => store.setApp(APP_NAME))
+		cy.wrap(null).then(() => {
+			router = editorRouter()
+			return router.push({ name: "StudioPage", params: { appID: APP_NAME, pageID: aboutPage.name } })
+		})
+		// the provider renders confirm dialogs, as App.vue does
+		const WithProvider = { render: () => h(FrappeUIProvider, null, () => h(SettingsDialog)) }
+		cy.then(() => cy.mount(WithProvider, { global: { plugins: [pinia, resourcesPlugin, router] } }))
+	})
+
+	it("saves the title when it changes", () => {
+		cy.wrap(null).then(() => store.openSettings("app"))
+		cy.contains("label", "Title").parent().find("input").clear().type("Renamed App").blur()
+		cy.wait("@save")
+		cy.get_doc("Studio App", APP_NAME).its("data.app_title").should("eq", "Renamed App")
+	})
+
+	it("saves the favicon on upload", () => {
+		cy.wrap(null).then(() => store.openSettings("app"))
+		cy.get("input[type=file]").selectFile(
+			{ contents: FAVICON, fileName: "cypress-favicon.png", mimeType: "image/png" },
+			{ force: true },
+		)
+		cy.wait("@save")
+		cy.get_doc("Studio App", APP_NAME).its("data.favicon").should("include", "cypress-favicon")
+		cy.get("img[alt='App Favicon']").should("have.attr", "src").and("include", "cypress-favicon")
+	})
+
+	it("removes the favicon", () => {
+		cy.update_doc("Studio App", APP_NAME, { favicon: "/files/old-favicon.png" })
+		cy.wrap(null).then(() => store.setApp(APP_NAME))
+		cy.wrap(null).then(() => store.openSettings("app"))
+		cy.contains("button", "Remove").click()
+		cy.wait("@save")
+		cy.get_doc("Studio App", APP_NAME).its("data.favicon").should("not.be.ok")
+		cy.get("img[alt='App Favicon']").should("have.attr", "src").and("include", "favicon.png")
+	})
+
+	it("sets the app home", () => {
+		cy.wrap(null).then(() => store.openSettings("app"))
+		cy.contains("label", "App Home").parent().find("button").click()
+		cy.contains("[role=option]", "Contact").click()
+		cy.wait("@save")
+		cy.get_doc("Studio App", APP_NAME).its("data.app_home").should("eq", contactPage.name)
+	})
+
+	it("allows guests on a page that isn't open", () => {
+		cy.wrap(null).then(() => store.openSettings("pages"))
+		guestSwitch("About").click()
+		cy.wait("@docMethod")
+		cy.get_doc("Studio Page", aboutPage.name).its("data.allow_guest").should("eq", 1)
+		guestSwitch("Contact").should("have.attr", "aria-checked", "false")
+	})
+
+	it("edits a page's title, route and guest access from its row", () => {
+		cy.wrap(null).then(() => store.openSettings("pages"))
+		editButton("About").click()
+		cy.contains("label", "Title").parent().find("input").clear().type("About Us")
+		cy.contains("label", "Route").parent().find("input").clear().type("about-us")
+		cy.contains("[role=dialog]", "Edit Page").find("[role=switch]").click()
+		cy.contains("button", "Save").click()
+		cy.wait("@docMethod")
+		cy.get("@docMethod.all").should("have.length", 1)
+		cy.get_doc("Studio Page", aboutPage.name).then(({ data }) => {
+			expect(data.page_title).to.eq("About Us")
+			expect(data.route).to.eq("/about-us")
+			expect(data.allow_guest).to.eq(1)
+		})
+		guestSwitch("About Us").should("have.attr", "aria-checked", "true")
+		cy.contains("h2", "Pages").should("be.visible")
+		cy.get("[role=cell]").should("contain.text", "About Us").and("contain.text", "/about-us")
+	})
+
+	it("doesn't overwrite a page that changed after the list loaded", () => {
+		cy.wrap(null).then(() => store.openSettings("pages"))
+		cy.update_doc("Studio Page", aboutPage.name, { page_title: "About (changed elsewhere)" })
+		guestSwitch("About").click()
+		cy.wait("@docMethod")
+		cy.get_doc("Studio Page", aboutPage.name).its("data.allow_guest").should("eq", 0)
+		guestSwitch("About (changed elsewhere)").should("have.attr", "aria-checked", "false")
+	})
+
+	it("keeps the page editor open when the open page changed elsewhere", () => {
+		// loading a page sets up its script and data sources, which can outlast the default timeout
+		cy.wrap(null).then({ timeout: 15000 }, () => store.setPage(aboutPage.name))
+		cy.wrap(null).then(() => store.openSettings("pages"))
+		cy.update_doc("Studio Page", aboutPage.name, { allow_guest: 1 })
+		editButton("About").click()
+		cy.contains("label", "Title").parent().find("input").clear().type("About Us")
+		cy.contains("button", "Save").click()
+		// the editor's own conflict prompt offers a refresh; dismiss it to look at the dialog behind
+		cy.contains("[role=dialog]", "Page changed outside the editor").contains("button", "Cancel").click()
+		cy.contains("[role=dialog]", "Edit Page").should("contain.text", "changed outside the editor")
+		cy.get_doc("Studio Page", aboutPage.name).its("data.page_title").should("eq", "About")
+	})
+
+	it("shows export settings only in developer mode", () => {
+		cy.wrap(null).then(() => store.openSettings("app"))
+		cy.contains("Not exported to any Frappe App").should("not.exist")
+		cy.contains("button", "AI").click()
+		cy.window().then((win) => (win.is_developer_mode = true))
+		cy.contains("button", "App").click()
+		cy.contains("Not exported to any Frappe App").should("be.visible")
+		cy.contains("button", "Edit").click()
+		exportSwitch().click()
+		// nothing to export until a Frappe App is picked
+		cy.contains("span", /^Frappe App$/).should("be.visible")
+		cy.contains("[role=dialog]", "Export Settings").contains("button", "Update").should("be.disabled")
+	})
+
+	it("asks before disabling export and keeps it on when cancelled", () => {
+		cy.window().then((win) => (win.is_developer_mode = true))
+		cy.wrap(null).then(() => {
+			store.activeApp!.is_standard = 1
+			store.activeApp!.frappe_app = "studio"
+			store.openSettings("app")
+		})
+		cy.contains("code", "studio/studio/cypress_settings").should("be.visible")
+		cy.contains("button", "Edit").click()
+		exportSwitch().should("have.attr", "aria-checked", "true").click()
+		cy.contains("[role=dialog]", "Export Settings").contains("button", "Update").click()
+		cy.contains("[role=dialog]", "Disable App Export").contains("button", "Cancel").click()
+		cy.contains("[role=dialog]", "Export Settings").should("be.visible")
+		cy.get("@docMethod.all").should("have.length", 0)
+	})
+
+	it("renames the app and moves the editor to its new URL", () => {
+		cy.wrap(null).then(() => store.openSettings("app"))
+		cy.contains("button", "Rename").click()
+		cy.contains("[role=dialog]", "Rename App").find("input").clear().type(RENAMED_APP)
+		cy.contains("[role=dialog]", "Rename App").contains("button", "Rename").click()
+		cy.wait("@rename")
+		// the dialog closes once the renamed app has fully loaded
+		cy.contains("[role=dialog]", "Rename App").should("not.exist")
+		cy.get_doc("Studio App", RENAMED_APP).its("data.app_name").should("eq", RENAMED_APP)
+		cy.wrap(null).should(() => {
+			expect(router.currentRoute.value.params.appID).to.eq(RENAMED_APP)
+			expect(router.currentRoute.value.params.pageID).to.eq(aboutPage.name)
+			expect(store.activeApp?.name).to.eq(RENAMED_APP)
+		})
+	})
+
+	it("shows why a rename was refused", () => {
+		cy.wrap(null).then(() => store.openSettings("app"))
+		cy.contains("button", "Rename").click()
+		cy.contains("[role=dialog]", "Rename App").find("input").clear().type("Not Valid")
+		cy.contains("[role=dialog]", "Rename App").contains("button", "Rename").click()
+		cy.contains("App Name must be lowercase").should("be.visible")
+		cy.wrap(null).should(() => expect(router.currentRoute.value.params.appID).to.eq(APP_NAME))
+		// the prompt lives in the shared provider, so close it before the next test mounts
+		cy.contains("[role=dialog]", "Rename App").contains("button", "Cancel").click()
+	})
+
+	it("only renames an exported app in developer mode", () => {
+		cy.wrap(null).then(() => {
+			store.activeApp!.is_standard = 1
+			store.openSettings("app")
+		})
+		cy.contains("button", "Rename").should("be.disabled")
+		cy.window().then((win) => (win.is_developer_mode = true))
+		cy.contains("button", "AI").click()
+		cy.contains("button", "App").click()
+		cy.contains("button", "Rename").should("not.be.disabled")
+	})
+
+	it("opens on the requested tab", () => {
+		cy.wrap(null).then(() => store.openSettings("ai"))
+		cy.contains("label", "OpenRouter API Key").should("be.visible")
+		cy.contains("button", "App").click()
+		cy.contains("label", "Route").should("be.visible")
+	})
+
+	function editButton(pageTitle: string) {
+		return cy.contains("[role=row]", pageTitle).contains("button", "Edit")
+	}
+
+	function exportSwitch() {
+		return cy.contains("Enable App Export").parents(".justify-between").first().find("[role=switch]")
+	}
+
+	function guestSwitch(pageTitle: string) {
+		return cy.get(`[role=switch][aria-label="Allow guest access to ${pageTitle}"]`)
+	}
+})
+
+function editorRouter() {
+	return createRouter({
+		history: createMemoryHistory(),
+		routes: [{ path: "/app/:appID/:pageID", name: "StudioPage", component: { render: () => null } }],
+	})
+}

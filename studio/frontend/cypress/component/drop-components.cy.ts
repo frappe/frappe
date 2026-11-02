@@ -1,0 +1,110 @@
+import { pinia } from "../support/component"
+
+import { setActivePinia } from "pinia"
+import { createRouter, createMemoryHistory } from "vue-router"
+// @ts-ignore
+import { resourcesPlugin } from "frappe-ui"
+
+import StudioCanvas from "@/components/StudioCanvas.vue"
+import Block from "@/utils/block"
+import componentsData, { COMPONENTS } from "@/data/components"
+import { getBlockInstance, getComponentBlock } from "@/utils/serializer"
+import getBlockTemplate from "@/utils/blockTemplate"
+import { registerGlobalComponents } from "@/globals"
+import useCanvasStore from "@/stores/canvasStore"
+import type { FrappeUIComponent } from "@/types"
+
+// These fetch a doctype from the server: the rejected request fails whichever test is
+// running when it lands. Every other component renders from its initialState or
+// blockTemplate, charts and ListView included.
+const DATA_DEPENDENT = ["Link", "Filter", "QuickFilter", "ListViewShell"]
+const FLOATING = ["Dialog", "Tooltip", "ContextMenu"]
+// These need fixes in frappe-ui before they can render or select reliably in isolation.
+const KNOWN_COMPONENT_FAILURES = [
+	"MultiSelect",
+	"TableMultiSelect",
+	"SortBy",
+	"ColumnSettings",
+	"FileUploadDialog",
+	"UploadTray",
+	"ListRows",
+	"ListCell",
+	"ListHeader",
+	"ListHeaderCell",
+	"ListHeaderCellSort",
+	"SettingsDialog",
+	// roots a Tooltip, so the data-component-id never reaches its button
+]
+const SKIP = new Set([...DATA_DEPENDENT, ...FLOATING, ...KNOWN_COMPONENT_FAILURES])
+
+const componentsToTest = componentsData.list.filter((component) => !SKIP.has(component.name))
+
+// Mirrors the drop branching in useCanvasDropZone.onDrop
+function createBlock(component: FrappeUIComponent): Block {
+	return component.blockTemplate
+		? getBlockInstance(getBlockTemplate(component.blockTemplate as any))
+		: getComponentBlock(component.name)
+}
+
+describe("dropping frappe-ui components on the canvas", () => {
+	// exposed StudioCanvas instance (defineExpose) used as canvasStore.activeCanvas
+	let canvas: any
+
+	beforeEach(() => {
+		// block prop/slot init reads Block.components (done in main.ts in the real app)
+		Block.setComponents(COMPONENTS)
+
+		setActivePinia(pinia)
+		const router = createRouter({
+			history: createMemoryHistory(),
+			routes: [{ path: "/", component: { template: "<div />" } }],
+		})
+
+		const rootBlock = getBlockInstance(getBlockTemplate("body"))
+
+		cy.viewport(1440, 900)
+		cy.mount(StudioCanvas as any, {
+			props: { componentTree: rootBlock },
+			global: {
+				plugins: [pinia, router, resourcesPlugin, { install: registerGlobalComponents }],
+			},
+		}).then(({ wrapper }) => {
+			canvas = wrapper.vm
+			useCanvasStore().activeCanvas = canvas
+		})
+
+		cy.then(() => {
+			canvas.canvasProps.scale = 1
+			canvas.canvasProps.translateX = 0
+			canvas.canvasProps.translateY = 0
+		})
+	})
+
+	componentsToTest.forEach((component) => {
+		it(`renders ${component.name} with a data-component-id and selects it on click`, () => {
+			let block: Block
+
+			cy.then(() => {
+				// same call the drop performs; addChild returns the rendered block
+				block = canvas.rootComponent.addChild(createBlock(component))
+				// addChild auto-selects; clear so the click below is what selects the block
+				canvas.clearSelection()
+			})
+
+			// (a) the dropped component is rendered and carries a data-component-id
+			cy.then(() => {
+				cy.get(`[data-component-id="${block.componentId}"]`)
+					.should("exist")
+					// (b) clicking the element selects the block. Near the corner, not the
+					// center: a family template's child can fill the middle (SidebarRail),
+					// leaving only the parent's own padding to click.
+					.first()
+					.click(3, 3, { force: true })
+			})
+
+			cy.then(() => {
+				expect([...canvas.selectedBlockIds]).to.include(block.componentId)
+			})
+		})
+	})
+})

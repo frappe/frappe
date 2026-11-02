@@ -197,10 +197,7 @@ class WebForm(WebsiteGenerator):
 
 	# export
 	def on_update(self):
-		"""
-		Writes the .txt for this page and if write_content is checked,
-		it will write out a .html file
-		"""
+		"""In developer mode, export a standard Web Form's JSON and create its .js and .py stubs."""
 		path = export_module_json(self, self.is_standard, self.module)
 
 		if path:
@@ -208,9 +205,10 @@ class WebForm(WebsiteGenerator):
 			if not os.path.exists(path + ".js"):
 				with open(path + ".js", "w") as f:
 					f.write(
-						"""frappe.ready(function() {
+						"""frappe.ready(function () {
 	// bind events here
-})"""
+});
+"""
 					)
 
 			# py
@@ -218,6 +216,7 @@ class WebForm(WebsiteGenerator):
 				with open(path + ".py", "w") as f:
 					f.write(
 						"""import frappe
+
 
 def get_context(context):
 	# do your magic here
@@ -736,6 +735,7 @@ def get_context(context):
 		get the check their DocType counterpart would get, not one merged check.
 		"""
 		from frappe.utils import (
+			has_unsafe_url_scheme,
 			split_emails,
 			validate_email_address,
 			validate_name,
@@ -776,6 +776,10 @@ def get_context(context):
 
 			elif field.options == "URL":
 				validate_url(value, throw=True)
+				if has_unsafe_url_scheme(value):
+					frappe.throw(
+						_("'{0}' is not a valid URL").format(frappe.bold(value)), title=_("Invalid URL")
+					)
 
 	def has_web_form_permission(self, doctype, name, ptype="read"):
 		if frappe.session.user == "Guest":
@@ -1376,7 +1380,7 @@ def get_link_options(
 
 
 @redis_cache(ttl=60 * 60)
-def get_published_web_forms() -> dict[str, str]:
+def get_published_web_forms() -> list[dict]:
 	return frappe.get_all(
 		"Web Form",
 		["name", "title", "route", "modified", "module", "doc_type", "key_required", "allow_edit"],

@@ -4,7 +4,6 @@ import "./frappe/model/indicator.js";
 import "./frappe/ui/filters/filter.js";
 import "./frappe/ui/filters/filter_list.js";
 import "./frappe/ui/filters/field_select.js";
-import "./frappe/ui/filters/edit_filter.html";
 import "./frappe/ui/tags.js";
 import "./frappe/ui/tag_editor.js";
 import "./frappe/ui/like.js";

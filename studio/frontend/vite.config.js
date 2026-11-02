@@ -1,0 +1,138 @@
+import fs from "fs"
+import vue from "@vitejs/plugin-vue"
+import frappeui from "frappe-ui/vite"
+import path from "path"
+import { defineConfig } from "vite"
+import { getViteDevServerPort } from "./vite/utils"
+import sharedDependencyResolver from "./vite/sharedDependencyResolver"
+import studioFolderWatcher from "./vite/studioFolderWatcher"
+import studioRootAlias from "./vite/studioRootAlias"
+import frameworkUIAlias from "./vite/frameworkUIAlias"
+import lucideStaticAlias from "./vite/lucideStaticAlias"
+import frameworkui from "@framework/ui/vite"
+
+const viteDevServerPort = getViteDevServerPort()
+const appsDir = path.resolve(__dirname, "../../../")
+// Apps can be symlinked into apps/ from elsewhere (e.g. git worktrees under bench/.worktrees).
+// For those, allow only the checkout's studio/ folder
+const appSymlinkedSources = fs.readdirSync(appsDir).flatMap((entry) => {
+	try {
+		const realPath = fs.realpathSync(path.join(appsDir, entry))
+		if (realPath.startsWith(appsDir + path.sep)) return []
+		const studioDir = path.join(realPath, "studio")
+		return fs.existsSync(studioDir) ? [studioDir] : []
+	} catch {
+		return []
+	}
+})
+// Each exported studio app carries a tsconfig.json (for the @app/ alias). Ignore changes to these files to avoid unnecessary HMR reloads.
+const isStudioAppTsconfig = (file) =>
+	/^[^/]+\/studio\/[^/]+\/tsconfig\.json$/.test(path.relative(appsDir, file).replace(/\\/g, "/"))
+
+// https://vitejs.dev/config/
+export default defineConfig(({ command }) => {
+	return {
+		// the built editor is served from frappe's assets; the dev server stays at the root
+		base: command === "build" ? "/assets/frappe/studio/" : "/",
+		define: {
+			__VUE_PROD_HYDRATION_MISMATCH_DETAILS__: false,
+			__VUE_PROD_DEVTOOLS__: true,
+		},
+		server: {
+			// explicitly set origin of generated assets (images, fonts, etc) during development.
+			// Required for the app renderer running on webserver port
+			// https://vite.dev/guide/backend-integration
+			origin: `http://127.0.0.1:${viteDevServerPort}`,
+			// the backend and the preview renderer address this port; failing beats drifting to another
+			strictPort: true,
+			allowedHosts: true,
+			// Allow cross-origin requests from the renderer running on webserver port to Vite dev server.
+			cors: true,
+			fs: {
+				// Allow serving custom Vue components and page scripts from any app, including ones
+				// symlinked from outside apps/
+				allow: [appsDir, ...appSymlinkedSources],
+			},
+			watch: {
+				// unplugin-vue-components generates this file which causes HMR while building other studio apps
+				ignored: ["**/components.d.ts", "**/auto-imports.d.ts", isStudioAppTsconfig],
+			},
+		},
+		plugins: [
+			vue(),
+			frappeui({
+				frappeProxy: true,
+				lucideIcons: true,
+				buildConfig: false,
+				// Avoid the plugin's incompatible esbuild adapter on Vite 8.
+				// Vite's pre-bundler already handles frappe-ui's missing optional peers
+				// with an error that loadLanguage catches and adds an install hint to.
+				codeLanguages: false,
+				jinjaBootData: false,
+			}),
+			frameworkui(),
+			studioRootAlias(),
+			// Root must be the frontend dir
+			sharedDependencyResolver(path.resolve(__dirname)),
+			studioFolderWatcher(appsDir),
+		],
+		resolve: {
+			alias: [
+				...frameworkUIAlias(appsDir),
+				lucideStaticAlias(__dirname),
+				{ find: "@", replacement: path.resolve(__dirname, "src") },
+			],
+			// frappe-ui's code editor rejects extensions built from a second copy of these
+			// (e.g. a language package resolved from a linked frappe-ui checkout).
+			dedupe: [
+				"@codemirror/state",
+				"@codemirror/view",
+				"@codemirror/language",
+				"@lezer/common",
+				"@lezer/highlight",
+				"@lezer/lr",
+			],
+		},
+		build: {
+			rolldownOptions: {
+				onwarn(warning, warn) {
+					if (warning.code === "INVALID_ANNOTATION") return
+					warn(warning)
+				},
+				input: {
+					studio: path.resolve(__dirname, "index.html"),
+					renderer: path.resolve(__dirname, "renderer.html"),
+				},
+			},
+			outDir: "../../frappe/public/studio",
+			emptyOutDir: true,
+			// www/studio.html and the renderer template read the entry assets from here
+			manifest: true,
+			target: "es2015",
+			sourcemap: true,
+			chunkSizeWarningLimit: 1000,
+		},
+		optimizeDeps: {
+			include: [
+				"engine.io-client",
+				"highlight.js/lib/core",
+				"debug",
+				// Pre-bundle all prosemirror packages. This makes sure that the editor loads only one copy.
+				// Two copies cause the error "Duplicate use of selection JSON ID gapcursor".
+				"prosemirror-changeset",
+				"prosemirror-commands",
+				"prosemirror-dropcursor",
+				"prosemirror-gapcursor",
+				"prosemirror-history",
+				"prosemirror-inputrules",
+				"prosemirror-keymap",
+				"prosemirror-model",
+				"prosemirror-schema-list",
+				"prosemirror-state",
+				"prosemirror-tables",
+				"prosemirror-transform",
+				"prosemirror-view",
+			],
+		},
+	}
+})

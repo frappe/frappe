@@ -1,0 +1,195 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:page_name",
+ "beta": 1,
+ "creation": "2024-08-15 13:44:56.050342",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "studio_app",
+  "page_name",
+  "page_title",
+  "tab_title",
+  "route",
+  "column_break_zpqw",
+  "published",
+  "allow_guest",
+  "section_break_qtyt",
+  "blocks",
+  "draft_blocks",
+  "data_tab",
+  "resources",
+  "variables",
+  "scripts_tab",
+  "script",
+  "export_tab",
+  "is_standard",
+  "frappe_app"
+ ],
+ "fields": [
+  {
+   "fieldname": "page_name",
+   "fieldtype": "Data",
+   "label": "Page Name",
+   "unique": 1
+  },
+  {
+   "fieldname": "page_title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Title"
+  },
+  {
+   "description": "Defaults to the page title. Use {{ }} for dynamic data",
+   "fieldname": "tab_title",
+   "fieldtype": "Data",
+   "ignore_xss_filter": 1,
+   "label": "Tab Title"
+  },
+  {
+   "fieldname": "column_break_zpqw",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "route",
+   "fieldtype": "Data",
+   "ignore_xss_filter": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Route"
+  },
+  {
+   "fieldname": "section_break_qtyt",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "blocks",
+   "fieldtype": "Long Text",
+   "ignore_xss_filter": 1,
+   "label": "Blocks"
+  },
+  {
+   "default": "0",
+   "fieldname": "published",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Published"
+  },
+  {
+   "default": "0",
+   "description": "Render this page for logged-out visitors. Its layout and script become publicly readable; data it fetches depends on the data source permissions",
+   "fieldname": "allow_guest",
+   "fieldtype": "Check",
+   "in_standard_filter": 1,
+   "label": "Allow Guest Access"
+  },
+  {
+   "fieldname": "draft_blocks",
+   "fieldtype": "Long Text",
+   "ignore_xss_filter": 1,
+   "label": "Draft Blocks"
+  },
+  {
+   "fieldname": "data_tab",
+   "fieldtype": "Tab Break",
+   "label": "Data"
+  },
+  {
+   "fieldname": "resources",
+   "fieldtype": "Table",
+   "label": "Resources",
+   "options": "Studio Page Resource"
+  },
+  {
+   "fieldname": "variables",
+   "fieldtype": "Table",
+   "label": "Variables",
+   "options": "Studio Page Variable"
+  },
+  {
+   "fieldname": "studio_app",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Studio App",
+   "options": "Studio App",
+   "search_index": 1
+  },
+  {
+   "fieldname": "scripts_tab",
+   "fieldtype": "Tab Break",
+   "label": "Scripts"
+  },
+  {
+   "fieldname": "script",
+   "fieldtype": "Code",
+   "label": "Page Script",
+   "options": "JS"
+  },
+  {
+   "fieldname": "export_tab",
+   "fieldtype": "Tab Break",
+   "label": "Export"
+  },
+  {
+   "default": "0",
+   "fetch_from": "studio_app.is_standard",
+   "fieldname": "is_standard",
+   "fieldtype": "Check",
+   "label": "Is Standard",
+   "read_only": 1
+  },
+  {
+   "depends_on": "is_standard",
+   "fetch_from": "studio_app.frappe_app",
+   "fieldname": "frappe_app",
+   "fieldtype": "Select",
+   "label": "Frappe App (for export)",
+   "mandatory_depends_on": "is_standard",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-10-19 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Studio",
+ "name": "Studio Page",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Studio User",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "page_title",
+ "track_changes": 1
+}

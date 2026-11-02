@@ -1,6 +1,6 @@
 <template>
 	<div class="pfb-settings">
-		<InspectorSection :label="__('Typography')">
+		<InspectorSection :label="__('Text')">
 			<InspectorRow :label="__('Font')">
 				<Autocomplete
 					:options="font_options"
@@ -18,9 +18,6 @@
 					@change="(e) => (print_format.font_size = parseFloat(e.target.value) || 14)"
 				/>
 			</InspectorRow>
-		</InspectorSection>
-
-		<InspectorSection :label="__('Style')">
 			<InspectorRow v-for="c in color_settings" :key="c.fieldname" :label="c.label">
 				<ColorInput
 					:fieldname="c.fieldname"
@@ -58,21 +55,17 @@
 					<option value="Landscape">{{ __("Landscape") }}</option>
 				</select>
 			</InspectorRow>
-		</InspectorSection>
-
-		<InspectorSection :label="__('Spacing (mm)')">
 			<SpacingRow
-				:label="__('Margins')"
+				:label="__('Margins (mm)')"
 				:model-value="page_margins"
 				@update:model-value="set_margins"
 			/>
-		</InspectorSection>
-
-		<InspectorSection :label="__('Page background')">
-			<ImageUploadControl
-				:model-value="layout.background?.image || ''"
-				@update:model-value="set_background_image"
-			/>
+			<InspectorRow :label="__('Background')">
+				<ImageUploadControl
+					:model-value="layout.background?.image || ''"
+					@update:model-value="set_background_image"
+				/>
+			</InspectorRow>
 			<SliderRow
 				v-if="layout.background?.image"
 				:label="__('Opacity')"
@@ -87,7 +80,7 @@
 			</SliderRow>
 		</InspectorSection>
 
-		<InspectorSection :label="__('Document')">
+		<InspectorSection :label="__('Output')">
 			<InspectorRow :label="__('PDF renderer')">
 				<template #label>
 					<span class="pfb-label-with-hint">
@@ -107,6 +100,9 @@
 				>
 					<option value="chrome" :disabled="has_typst_block">
 						{{ __("Chromium") }}
+					</option>
+					<option value="PlutoPrint" :disabled="has_typst_block">
+						{{ __("PlutoPrint (light)") }}
 					</option>
 					<option value="Typst" :disabled="typst_blockers.length > 0">
 						{{ __("Typst (fast)") }}
@@ -130,6 +126,35 @@
 					</option>
 				</select>
 			</InspectorRow>
+		</InspectorSection>
+
+		<InspectorSection :label="__('Access')">
+			<DeskControl
+				:df="roles_df"
+				:model-value="print_format.roles || []"
+				@update:model-value="set_roles"
+			/>
+			<span class="pfb-insp-hint text-muted">
+				{{ __("If set, only users with one of these roles can print with this format.") }}
+			</span>
+		</InspectorSection>
+
+		<InspectorSection :label="__('Global variables')" :init-open="!!layout.global_variables">
+			<textarea
+				class="form-control form-control-sm pfb-css-input"
+				:placeholder="__('{% set total_qty = doc.items | sum(attribute=\'qty\') %}')"
+				spellcheck="false"
+				rows="8"
+				:value="layout.global_variables || ''"
+				@input="(e) => (layout.global_variables = e.target.value)"
+			></textarea>
+			<div class="pfb-insp-hint text-muted">
+				{{
+					__("Set them with {0}. Every HTML block in this format can use them.", [
+						"{% set %}",
+					])
+				}}
+			</div>
 		</InspectorSection>
 
 		<InspectorSection :label="__('Custom CSS')" :init-open="false">
@@ -163,9 +188,7 @@ let { typst_blockers, has_typst_block } = store;
 
 let google_fonts = ref([]);
 
-let renderer = computed(() =>
-	print_format.value?.pdf_generator === "Typst" ? "Typst" : "chrome"
-);
+let renderer = computed(() => print_format.value?.pdf_generator || "PlutoPrint");
 let hint_icon = ref(null);
 let renderer_hint = computed(() => {
 	if (typst_blockers.value.length) {
@@ -175,7 +198,7 @@ let renderer_hint = computed(() => {
 	if (has_typst_block.value) {
 		return __("Chromium unavailable: this format uses a Typst block.");
 	}
-	return renderer.value === "Typst" ? __("Experimental") : "";
+	return ["Typst", "PlutoPrint"].includes(renderer.value) ? __("Experimental") : "";
 });
 let hint_tooltip = null;
 watch(
@@ -214,7 +237,7 @@ function set_background_image(image) {
 
 function set_renderer(value) {
 	if (value !== "Typst" && has_typst_block.value) return;
-	print_format.value.pdf_generator = value === "Typst" ? "Typst" : "chrome";
+	print_format.value.pdf_generator = value;
 }
 let font_options = computed(() => [
 	{ label: __("Default"), value: "" },
@@ -250,8 +273,8 @@ let page_number_positions = computed(() => [
 
 // ── colors ─────────────────────────────────────────────────
 const color_settings = [
-	{ fieldname: "label_color", label: __("Label") },
-	{ fieldname: "value_color", label: __("Value") },
+	{ fieldname: "label_color", label: __("Label color") },
+	{ fieldname: "value_color", label: __("Value color") },
 ];
 const letterhead_df = {
 	fieldname: "letter_head",
@@ -259,6 +282,17 @@ const letterhead_df = {
 	options: "Letter Head",
 	placeholder: __("No letter head"),
 };
+const roles_df = {
+	fieldname: "roles",
+	fieldtype: "Table MultiSelect",
+	options: "Has Role",
+};
+function set_roles(rows) {
+	const roles = (rows || []).map((row) => row.role).filter(Boolean);
+	const current = (print_format.value.roles || []).map((row) => row.role);
+	if (roles.join("\n") === current.join("\n")) return;
+	print_format.value.roles = roles.map((role) => ({ role }));
+}
 function set_letterhead(name) {
 	if (name === (letterhead.value?.name || "")) return;
 	name ? store.change_letterhead(name) : store.remove_letterhead();

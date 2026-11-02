@@ -2,7 +2,10 @@
 // The framework page-island build: one build for every Frappe UI page on the
 // bench.
 //
-//     node ui/vite/island/build-pages.js [--production] [--watch]
+//     node ui/vite/island/build-pages.js [--production] [--watch] [--force]
+//
+// A build whose inputs match the last one reuses its output. `--force` builds
+// anyway, and `--watch` always builds. See ./inputs.js.
 //
 // It is one build and not one per app, so every page island on the bench shares
 // a chunk for vue and a chunk for frappe-ui, and the Tailwind discovery pass
@@ -19,6 +22,7 @@ import fs from "node:fs";
 
 import { benchPaths, findBenchRoot, loadFrappeBuildUtils, writeIslandAssets } from "./assets.js";
 import { buildIslands } from "./index.js";
+import { islandsUnchanged } from "./inputs.js";
 import { PAGE_ISLAND_SUBDIR, discoverPageIslands } from "./pages.js";
 import { TOOLCHAIN_ROOT as root, installToolchain, toolchainResolver } from "./toolchain.js";
 
@@ -43,16 +47,23 @@ if (!Object.keys(entries).length) {
 	process.exit(0);
 }
 
-installToolchain();
-
-await buildIslands({
+const options = {
 	// The output belongs to framework, which runs the build, and not to any one
 	// app whose pages it happens to hold.
 	app: "frappe",
 	root,
 	subdir: PAGE_ISLAND_SUBDIR,
 	entries,
-	plugins: [toolchainResolver(dirs)],
 	production: process.argv.includes("--production"),
 	watch: process.argv.includes("--watch"),
-});
+	stampInputs: true,
+};
+
+if (!options.watch && !process.argv.includes("--force") && islandsUnchanged(options)) {
+	console.log("[island] page islands are unchanged since the last build, so reusing them");
+	process.exit(0);
+}
+
+installToolchain();
+
+await buildIslands({ ...options, plugins: [toolchainResolver(dirs)] });

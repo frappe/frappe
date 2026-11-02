@@ -30,8 +30,10 @@ unrelated actions.
 - Blocking, not a nit: a new crash or uncaught exception, leftover no-op code,
   the same bug in a sibling file, a missing permission check, a breaking
   change without `!` and a migration path.
-- New behaviour and bug fixes need a test that fails without the fix, run as a
-  normal user with `example.com` data. Do not ask for one on a presentation-only
+- New features need a test that fails without the change, run as a normal
+  user with `example.com` data. Ask for a test on a bug fix only when the fix is
+  non-trivial or the bug has come back before; do not ask on a small, obvious
+  fix or a CI or tooling change. Do not ask for one on a presentation-only
   change; ask for a before and after screenshot. Text or markup a caller or a
   user depends on is behaviour, and still needs the test.
 - Leave formatting to pre-commit. Do not comment on style.

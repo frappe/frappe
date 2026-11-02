@@ -381,5 +381,8 @@ class DatabaseQuery:
 			"doctype": self.doctype,
 		}
 
+		if order_by == DefaultOrderBy:
+			del kwargs["order_by"]
+
 		# Use frappe.call to filter kwargs and call controller
 		return frappe.call(controller.get_list, args=kwargs, **kwargs)

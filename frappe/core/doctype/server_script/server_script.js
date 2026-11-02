@@ -144,6 +144,19 @@ customer = frappe.new_doc("Customer")
 customer.customer_name = doc.first_name + " " + doc.last_name # we get this doc from the workflow action
 customer.customer_type = "Company"
 customer.save()
+</code></pre>
+
+<hr>
+
+<h4>Environment Variables</h4>
+<p>Store credentials like API keys in the <i>Environment Variables</i> table instead of the script. Values are stored encrypted and never shown in the form, exports or the REST API.</p>
+<p>Any code that runs server-side scripts can still read them, so only give script-writing roles such as Script Manager to trusted users.</p>
+<p>Read a variable as <code>frappe.env.KEY</code>. Keys must start with a letter and contain only letters, digits and underscores, and cannot be a reserved name.</p>
+<pre><code class="language-python">
+response = frappe.make_get_request(
+	"https://api.example.com/orders",
+	headers={"Authorization": f"Bearer {frappe.env.API_TOKEN}"},
+)
 </code></pre>`);
 		frappe.utils.highlight_pre(help_field.$wrapper);
 	},

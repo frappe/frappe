@@ -4,9 +4,9 @@
 from unittest.mock import Mock, patch
 
 import frappe
-from frappe import _
 from frappe.core.doctype.user.user import User
 from frappe.desk.doctype.todo.todo import ToDo
+from frappe.email.doctype.email_template.email_template import EmailTemplate
 from frappe.mcp.test_utils import McpTestCase
 from frappe.tests.utils import whitelist_for_tests
 
@@ -124,16 +124,41 @@ class TestCallMethod(McpTestCase):
 				response = self.invoke(method=f"{__name__}.typed_method", args=args)
 				self.assertTrue(response.json["result"]["isError"])
 
-	def test_non_post_methods_are_denied(self):
-		for method in ("get_method", "delete_method"):
-			with self.subTest(method=method):
-				response = self.invoke(method=f"{__name__}.{method}")
-				self.assertEqual(response.json["result"]["content"][0]["text"], "Not permitted")
-		with patch.object(ToDo, "mcp_get", get_document_method, create=True):
-			response = self.invoke(
-				tool="call_document_method", doctype="ToDo", name=self.own, method="mcp_get"
-			)
+	def test_methods_without_get_or_post_are_denied(self):
+		response = self.invoke(method=f"{__name__}.delete_method")
 		self.assertEqual(response.json["result"]["content"][0]["text"], "Not permitted")
+
+	def test_get_only_method_runs_as_get(self):
+		result = self.result(method=f"{__name__}.get_method")
+		self.assertEqual(result["result"], "GET")
+
+	def test_get_only_document_method_needs_read_permission(self):
+		# Desk User reads Email Template but cannot write it.
+		template = frappe.get_doc(
+			doctype="Email Template", name=f"MCP {frappe.generate_hash(length=10)}", subject="MCP"
+		).insert()
+		self.addCleanup(frappe.delete_doc_if_exists, "Email Template", template.name)
+		for method, expected in (("mcp_get", "GET"), ("mcp_post", None)):
+			with self.subTest(method=method):
+				with (
+					patch.object(EmailTemplate, "mcp_get", get_document_method, create=True),
+					patch.object(EmailTemplate, "mcp_post", post_document_method, create=True),
+				):
+					response = self.invoke(
+						tool="call_document_method",
+						doctype="Email Template",
+						name=template.name,
+						method=method,
+					)
+				result = response.json["result"]
+				self.assertEqual(result["isError"], expected is None, result)
+				if expected:
+					self.assertEqual(result["structuredContent"]["result"], expected)
+
+	def test_get_only_method_writes_roll_back(self):
+		result = self.result(method=f"{__name__}.get_write_method", args={"name": self.own})
+		self.assertEqual(result["result"], "Written in GET")
+		self.assertEqual(frappe.db.get_value("ToDo", self.own, "description"), "MCP method fixture")
 
 	def test_document_method_needs_write_permission(self):
 		frappe.share.add("ToDo", self.private, user=self.user, read=1, write=0, notify=0)
@@ -267,7 +292,15 @@ def post_method():
 
 @whitelist_for_tests(methods=["GET"])
 def get_method():
-	raise AssertionError("GET-only method must never run")
+	return frappe.request.method
+
+
+@whitelist_for_tests(methods=["GET"])
+def get_write_method(name: str):
+	doc = frappe.get_doc("ToDo", name)
+	doc.description = "Written in GET"
+	doc.save()
+	return doc.description
 
 
 @whitelist_for_tests(methods=["DELETE"])
@@ -277,7 +310,7 @@ def delete_method():
 
 @whitelist_for_tests(methods=["GET"])
 def get_document_method(self):
-	raise AssertionError("GET-only document method must never run")
+	return frappe.request.method
 
 
 @whitelist_for_tests(methods=["POST"])
@@ -291,7 +324,7 @@ def failing_method(name: str):
 	doc.description = "Failed MCP method"
 	doc.save()
 	frappe.db.after_commit.add(commit_callback)
-	frappe.throw(_("Method failed"))
+	frappe.throw("Method failed")
 
 
 def commit_callback():
@@ -328,5 +361,5 @@ def transaction_method(name: str, operation: str = "commit", fail: bool = False)
 		doc.description = "Pending after transaction"
 		doc.save()
 		frappe.db.after_commit.add(commit_callback)
-		frappe.throw(_("Failure after transaction"))
+		frappe.throw("Failure after transaction")
 	return operation

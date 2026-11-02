@@ -665,7 +665,7 @@ class Email:
 						"content": attachment["fcontent"],
 					}
 				)
-				_file.save()
+				_file.save(ignore_permissions=True)
 				saved_attachments.append(_file)
 
 				if attachment["fname"] in self.cid_map:

@@ -37,4 +37,37 @@ test.describe("Filter Group", () => {
 
 		expect(filters).toEqual([["Currency", "smallest_currency_fraction_value", "=", 7.95]]);
 	});
+
+	test("applies a combobox MultiSelect pick in a filter row", async ({ page, desk }) => {
+		await page.goto("/desk/website");
+		await desk.ready();
+		await page.evaluate(async () => {
+			// the combobox for this page only: other tests run with the setting as it is
+			frappe.sys_defaults.enable_combobox_link_field = 1;
+			await frappe.model.with_doctype("ToDo");
+			const $parent = $('<div class="test-filter-group">').appendTo(
+				".page-container:visible .page-body"
+			);
+			window.test_filter_group = new frappe.ui.FilterGroup({
+				parent: $parent,
+				doctype: "ToDo",
+				on_change: () => window.test_filter_changes++,
+			});
+			await window.test_filter_group.add_filter("ToDo", "priority", "in", ["High"]);
+		});
+		// only the pick counts, not the row being added
+		await page.waitForFunction(() => frappe.request.ajax_count === 0);
+		await page.evaluate(() => (window.test_filter_changes = 0));
+
+		await page.locator(".test-filter-group .filter-field .es-combobox").click();
+		await page
+			.locator(".es-combobox__panel[data-state='open']")
+			.getByRole("option", { name: "Medium", exact: true })
+			.click();
+
+		await expect.poll(() => page.evaluate(() => window.test_filter_changes)).toBe(1);
+		expect(await page.evaluate(() => window.test_filter_group.get_filters())).toEqual([
+			["ToDo", "priority", "in", ["High", "Medium"]],
+		]);
+	});
 });

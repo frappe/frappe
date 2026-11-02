@@ -6,5 +6,3 @@ from frappe.model.document import *
 
 # pickles of extended doctypes made before the merge reference this path
 from frappe.model.document import _reconstruct_extended_instance
-
-BaseDocument = Document
