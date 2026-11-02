@@ -4,7 +4,8 @@ import json
 
 import frappe
 from frappe.core.doctype.doctype.doctype import clear_permissions_cache
-from frappe.permissions import add_permission, reset_perms
+from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+from frappe.permissions import add_permission, add_user_permission, reset_perms
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_to_date, set_request
 from frappe.website.doctype.web_form.web_form import (
@@ -1214,6 +1215,42 @@ class TestWebForm(IntegrationTestCase):
 
 		web_form.web_form_fields[1].allow_read_on_all_link_options = 1
 		web_form.save(ignore_permissions=True)
+		self.assertIn("Event", child_link_options())
+
+	def test_link_field_options_respect_user_permissions(self):
+		web_form = self.make_temp_web_form(
+			web_form_fields=[
+				{"fieldname": "subject", "fieldtype": "Data", "label": "Title", "reqd": 1},
+				{
+					"fieldname": "event_participants",
+					"fieldtype": "Table",
+					"label": "Event Participants",
+					"options": "Event Participants",
+					"allow_read_on_all_link_options": 1,
+				},
+			],
+		)
+		user = self.create_website_user("_test_web_form_user_permissions@example.com")
+		add_user_permission("DocType", "ToDo", user, ignore_permissions=True)
+		user_permission = frappe.db.get_value("User Permission", {"user": user, "allow": "DocType"})
+		self.addCleanup(frappe.delete_doc, "User Permission", user_permission, force=True)
+
+		def child_link_options():
+			frappe.set_user(user)
+			result = get_form_data(doctype="Event", web_form_name=web_form.name)
+			frappe.set_user("Administrator")
+
+			child_link_field = next(
+				f for f in result.event_participants if f["fieldname"] == "reference_doctype"
+			)
+			return [option["value"] for option in child_link_field["options"]]
+
+		self.assertEqual(child_link_options(), ["ToDo"])
+
+		property_setter = make_property_setter(
+			"Event Participants", "reference_doctype", "ignore_user_permissions", 1, "Check"
+		)
+		self.addCleanup(frappe.delete_doc, "Property Setter", property_setter.name, force=True)
 		self.assertIn("Event", child_link_options())
 
 	def test_get_link_options_blocked_for_unauthorized_link_on_guest_key_form(self):
