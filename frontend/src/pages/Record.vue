@@ -932,16 +932,37 @@ function waitForQueued(act: DocstatusAct, doctype: string, name: string) {
 async function moveDocstatus(act: DocstatusAct) {
 	const visit = currentVisit;
 	const page = controller.value!.page;
-	const document = await sendDocstatus(
-		page.doctype,
-		page.docname,
-		act,
-		!!meta.value?.queue_in_background
+	const queueing = !!meta.value?.queue_in_background;
+	// Listen before the request: a fast job can publish its `doc_update` before the answer arrives.
+	if (queueing) waitForQueued(act, page.doctype, page.docname);
+	let document: Record<string, any>;
+	try {
+		document = await sendDocstatus(page.doctype, page.docname, act, queueing);
+	} catch (e) {
+		stopQueuedWait();
+		throw e;
+	}
+	if (!visit.current() || !isQueued(document, act)) {
+		stopQueuedWait();
+		if (visit.current()) await takeWritten(document);
+		return;
+	}
+	toast.info(queuedMessage(act));
+}
+
+async function write() {
+	// Refuse to write the wrong record if the route moved while an action ran.
+	if (doc.value.name !== docname.value || doctype.value === null) {
+		throw new Error("The record changed while saving; nothing was written.");
+	}
+	const visit = currentVisit;
+	const sent = { ...doc.value };
+	codeErrors.value = [];
+	const document = await saveRecord(doctype.value!, doc.value).catch((e) =>
+		rethrowSaveError(e, visit, sent)
 	);
 	if (!visit.current()) return;
-	if (!isQueued(document, act)) return takeWritten(document);
-	toast.info(queuedMessage(act));
-	waitForQueued(act, page.doctype, page.docname);
+	await takeWritten(document);
 }
 
 async function takeWritten(document: Record<string, any>) {

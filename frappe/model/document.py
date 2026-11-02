@@ -2128,8 +2128,11 @@ class Document(_DocumentBase):
 		self.check_permission(action)
 		from_docstatus = DocStatus.DRAFT if action == "submit" else DocStatus.SUBMITTED
 		if self.docstatus != from_docstatus:
-			frappe.throw(_("Cannot {0} a document with docstatus {1}").format(action, self.docstatus), frappe.DocstatusTransitionError)
-		if self.meta.queue_in_background and not is_scheduler_inactive():
+			frappe.throw(
+				_("Cannot {0} a document with docstatus {1}").format(action, self.docstatus),
+				frappe.DocstatusTransitionError,
+			)
+		if self.meta.queue_in_background and self.meta.is_submittable and not is_scheduler_inactive():
 			queue_submission(self, action.title())
 			return self
 		return getattr(self, action)()
