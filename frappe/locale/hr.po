@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-10-25 09:36+0000\n"
-"PO-Revision-Date: 2026-10-26 04:19\n"
+"PO-Revision-Date: 2026-11-02 04:13\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Croatian\n"
 "MIME-Version: 1.0\n"
@@ -1296,7 +1296,7 @@ msgstr "Dodaj Novo Pravilo"
 
 #: ui/src/components/GroupBy/GroupBy.vue:102
 msgid "Add Aggregate"
-msgstr ""
+msgstr "Dodaj Zbir"
 
 #: frappe/public/js/frappe/views/communication.js:613
 #: frappe/public/js/frappe/views/interaction.js:159
@@ -1380,7 +1380,7 @@ msgstr "Dodaj Grupu"
 
 #: ui/src/components/GroupBy/GroupBy.vue:65
 msgid "Add Group By"
-msgstr ""
+msgstr "Dodaj Grupiraj Po"
 
 #: frappe/core/doctype/recorder/recorder.js:30
 msgid "Add Indexes"
@@ -1795,7 +1795,7 @@ msgstr "Nakon podnošenja"
 
 #: ui/src/components/GroupBy/GroupBy.vue:70
 msgid "Aggregate"
-msgstr ""
+msgstr "Zbira"
 
 #: frappe/desk/doctype/number_card/number_card.py:66
 msgid "Aggregate Field is required to create a number card"
@@ -1884,7 +1884,7 @@ msgstr "Svi Zapisi"
 
 #: frappe/public/js/frappe/ui/toolbar/search.js:259
 msgid "All Results"
-msgstr ""
+msgstr "Svi Rezultati"
 
 #: frappe/public/js/frappe/form/form.js:2177
 msgid "All Submissions"
@@ -5123,7 +5123,7 @@ msgstr "Obriši filtere"
 
 #: ui/src/components/GroupBy/GroupBy.vue:111
 msgid "Clear Grouping"
-msgstr ""
+msgstr "Obriši Grupiranje"
 
 #: frappe/public/js/frappe/form/controls/link.js:17
 msgid "Clear Link"
@@ -5144,7 +5144,7 @@ msgstr "Obriši sve filtere"
 
 #: ui/src/components/GroupBy/GroupBy.vue:29
 msgid "Clear grouping"
-msgstr ""
+msgstr "Obriši grupiranje"
 
 #: frappe/public/js/frappe/views/communication.js:443
 msgid "Clear the email message and add the template"
@@ -12474,7 +12474,7 @@ msgstr "Grupirano po <span style='font-weight:600;'>{0}</b>"
 #: ui/src/components/GroupBy/GroupBy.vue:22
 #, python-brace-format
 msgid "Grouped by {0}"
-msgstr ""
+msgstr "Grupirano po {0}"
 
 #: frappe/handler.py:187
 #, python-brace-format
@@ -14376,7 +14376,7 @@ msgstr "Nevažeća tajna webhooka"
 #: frappe/website/doctype/website_theme/website_theme.py:109
 #: frappe/website/doctype/website_theme/website_theme.py:119
 msgid "Invalid Website Theme Name"
-msgstr ""
+msgstr "Nevažeći naziv Teme Web Stranice"
 
 #: frappe/utils/legacy_gravatar_cleanup.py:82
 msgid "Invalid action"
@@ -14389,7 +14389,7 @@ msgstr "Nevažeća agregatna funkcija"
 #: frappe/desk/reportview.py:210 frappe/desk/reportview.py:213
 #, python-brace-format
 msgid "Invalid aggregate function: {0}"
-msgstr "Nevažeća agregatna funkcija: {0}"
+msgstr "Nevažeća zbirna funkcija: {0}"
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:194
 msgid "Invalid app"
@@ -18375,7 +18375,7 @@ msgstr "Nema dozvole za {0} {1} {2}"
 
 #: ui/src/components/GroupBy/GroupByTable.vue:105
 msgid "No records"
-msgstr ""
+msgstr "Nema zapisa"
 
 #: frappe/core/doctype/user_permission/user_permission_list.js:175
 msgid "No records deleted"
@@ -24806,7 +24806,7 @@ msgstr "Odaberite najmanje 2 radnje"
 #: ui/src/components/GroupBy/GroupBy.vue:51
 #: ui/src/components/GroupBy/GroupBy.vue:87
 msgid "Select field"
-msgstr ""
+msgstr "Odaberi polje"
 
 #: frappe/public/js/frappe/list/list_view.js:1256
 msgctxt "Description of a list view shortcut"
@@ -25980,7 +25980,7 @@ msgstr "Prikaži naslov u prozoru pretraživača kao \"Prefiks - naslov\""
 
 #: ui/src/components/GroupBy/GroupBy.vue:109
 msgid "Show totals"
-msgstr ""
+msgstr "Prikaži ukupno"
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:150
 #, python-brace-format
@@ -28124,7 +28124,7 @@ msgstr "URL teme"
 #: frappe/website/doctype/website_theme/website_theme.py:108
 #: frappe/website/doctype/website_theme/website_theme.py:118
 msgid "Theme name cannot contain '/' or path separators"
-msgstr ""
+msgstr "Naziv teme ne može sadržavati '/' ili razdjelnike putanje"
 
 #: frappe/workflow/doctype/workflow/workflow.js:129
 msgid "There are documents which have workflow states that do not exist in this Workflow. It is recommended that you add these states to the Workflow and change their states before removing these states."
