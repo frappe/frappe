@@ -8,13 +8,11 @@ frappe.ui.keys.setup = function () {
 		var key = frappe.ui.keys.get_key(e);
 		if (frappe.ui.keys.handlers[key]) {
 			var out = null;
-			// a key typed into an island's input is the island's: Escape there must not close a
-			// Desk dialog. Shortcuts check their own target
-			const target = key_target(e);
-			const island_input = is_input(target) && target.getRootNode() instanceof ShadowRoot;
+			// shortcuts check their own target
+			const island_key = is_island_key(e);
 			for (var i = 0, l = frappe.ui.keys.handlers[key].length; i < l; i++) {
 				var handler = frappe.ui.keys.handlers[key][i];
-				if (island_input && !handler.is_shortcut) continue;
+				if (island_key && !handler.is_shortcut) continue;
 				var _out = handler.apply(this, [e]);
 				if (_out === false) {
 					out = _out;
@@ -87,6 +85,16 @@ frappe.ui.keys.add_shortcut = ({
 // island's host
 function key_target(e) {
 	return e.originalEvent?.composedPath()[0] || document.activeElement;
+}
+
+// a key typed into an island's input is the island's, unless the island sits in the dialog or
+// grid row that Desk's Escape, Enter and Ctrl+Up/Down act on: Escape in a chat beside the page
+// must not close the page's dialog
+function is_island_key(e) {
+	const target = key_target(e);
+	const root = target?.getRootNode?.();
+	if (!is_input(target) || !(root instanceof ShadowRoot)) return false;
+	return !root.host.closest(".modal, .grid-row-open");
 }
 
 function is_input(element) {
