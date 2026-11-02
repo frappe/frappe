@@ -94,6 +94,17 @@
 		display: inline-flex;
 	}
 
+	// the group takes the spacing its buttons had, and only while one shows
+	.primary-action-group {
+		> .es-button {
+			margin-left: 0;
+		}
+
+		&:has(> .es-button:not(.hide, [hidden])) {
+			margin-left: var(--margin-sm, 8px);
+		}
+	}
+
 	.custom-actions {
 		display: flex;
 		align-items: center;

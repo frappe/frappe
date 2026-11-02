@@ -1,0 +1,41 @@
+/**
+ * Espresso SegmentedButton — a main button and a chevron that opens its menu,
+ * drawn as one control. Both halves are plain .es-button (sized, colored and
+ * focused by button.css); this file only joins them: the inner corners are
+ * squared and a hairline seam is left between them.
+ */
+
+.es-segmented-button {
+    display: inline-flex;
+    align-items: stretch;
+    gap: 0.5px;
+}
+
+/* framework-neutral hiding — the desk's .hide class is not part of the contract */
+.es-segmented-button > [hidden] {
+    display: none;
+}
+
+.es-segmented-button > .es-button:has(+ .es-button:not([hidden])) {
+    border-start-end-radius: 0;
+    border-end-end-radius: 0;
+}
+
+.es-segmented-button > .es-button + .es-button {
+    border-start-start-radius: 0;
+    border-end-start-radius: 0;
+}
+
+/* outlined halves share one border line instead of leaving a gap between two */
+.es-segmented-button:has(> .es-button[data-variant="outline"]) {
+    gap: 0;
+}
+
+.es-segmented-button > .es-button[data-variant="outline"] + .es-button {
+    margin-inline-start: -1px;
+}
+
+.es-segmented-button > .es-button[data-variant="outline"]:is(:hover, :focus-visible) {
+    position: relative;
+    z-index: 1;
+}

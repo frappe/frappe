@@ -45,7 +45,16 @@
 							<ul class="dropdown-menu dropdown-menu-right" role="presentation">
 							</ul>
 						</div>
-						{%= frappe.ui.button.html({ variant: "solid", css_class: "primary-action hide" }) %}
+						<div class="es-segmented-button primary-action-group" role="group">
+							{%= frappe.ui.button.html({ variant: "solid", css_class: "primary-action hide" }) %}
+							{%= frappe.ui.button.html({
+								icon: "chevron-down",
+								variant: "solid",
+								title: __("More Options"),
+								css_class: "primary-action-menu",
+								attrs: { hidden: true },
+							}) %}
+						</div>
 					</div>
 				</div>
 			</div>

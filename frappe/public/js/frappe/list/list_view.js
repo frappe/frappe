@@ -78,7 +78,60 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.parent.disable_scroll_to_top = true;
 		this._shown_layout_name =
 			this.list_filter?._initial_layout_restored && this.list_filter.active_layout_name;
-		super.show();
+		return super.show().then(() => this.notify_pending_attachments());
+	}
+
+	notify_pending_attachments() {
+		if (!this.meta.enable_upload_first_workflow || this._attachment_notice_dismissed) {
+			return;
+		}
+
+		return frappe.db
+			.count("Attachment Queue", {
+				filters: { document_type: this.doctype, created_document: ["is", "not set"] },
+			})
+			.then((count) => {
+				if (this._attachment_notice_dismissed) return;
+
+				// Dropped before the count is checked, so a queue that has been worked
+				// through loses the notice the last visit left behind.
+				this.page.main.find(".attachment-queue-notice").remove();
+				if (!count) return;
+
+				const $notice = frappe.ui.alert({
+					icon: "file-text",
+					css_class: "attachment-queue-notice mx-4 mt-4",
+					title:
+						count === 1
+							? __("1 uploaded file is waiting for review.")
+							: __("{0} uploaded files are waiting for review.", [count]),
+					footer: () => [
+						frappe.ui.button({
+							label: __("View All"),
+							variant: "outline",
+							onclick: () => {
+								// The dialog ships as its own on-demand bundle (kept out
+								// of desk.bundle.js), so load it before opening.
+								frappe.require("attachment_queue_review.bundle.js", () => {
+									frappe.ui.attachment_queue.show_pending(this.doctype);
+								});
+							},
+						}),
+						frappe.ui.button({
+							icon: "x",
+							variant: "ghost",
+							tooltip: __("Dismiss"),
+							// Only the notice goes away; no queue entry is touched.
+							onclick: () => {
+								this._attachment_notice_dismissed = true;
+								$notice.remove();
+							},
+						}),
+					],
+				});
+
+				this.page.main.prepend($notice);
+			});
 	}
 
 	check_permissions() {
@@ -451,10 +504,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					this.make_new_doc();
 				}
 			};
+			const options = this.get_create_options(primary_action);
 			const create_button = this.page.set_primary_action(
 				// CSS swaps to the short label below the md breakpoint, so the
 				// button stays right when the window is resized
-				{ label: add_button_label, short_label: __("Add") },
+				{ label: add_button_label, short_label: __("Add"), options },
 				primary_action,
 				"plus"
 			);
@@ -471,7 +525,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				),
 				page: this.page,
 			});
-			this._trim_primary_action_if_overflow(create_button, add_button_label, primary_action);
+			this._trim_primary_action_if_overflow(
+				create_button,
+				add_button_label,
+				primary_action,
+				options
+			);
 		} else {
 			frappe.ui.keys.off("ctrl+b", this.page);
 			this.page.clear_primary_action();
@@ -482,17 +541,59 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	// doctype names), re-render it with the short label at every width. Done
 	// through set_primary_action, never by writing into the button's DOM, so
 	// the icon, responsive spans and shortcut wiring stay coherent.
-	_trim_primary_action_if_overflow(btn, add_button_label, primary_action) {
+	_trim_primary_action_if_overflow(btn, add_button_label, primary_action, options) {
 		const container = this.page.wrapper.find(".page-head-content")[0];
 		if (!container || !btn[0]) return;
 		const containerRect = container.getBoundingClientRect();
 		const btnRect = btn[0].getBoundingClientRect();
 		if (btnRect.right > containerRect.right) {
 			this.page
-				.set_primary_action({ label: __("Add") }, primary_action, "plus")
+				.set_primary_action({ label: __("Add"), options }, primary_action, "plus")
 				.attr("title", add_button_label)
 				.tooltip();
 		}
+	}
+
+	// The other ways this DocType can be created, offered on the Add button's chevron.
+	// Without one, the Add button stays a plain button.
+	get_create_options(primary_action) {
+		const create = [
+			{
+				label: __("Add manually"),
+				icon: "plus",
+				description: __("Fill in a blank form"),
+				onclick: primary_action,
+			},
+		];
+		if (this.meta.enable_upload_first_workflow) {
+			create.push({
+				label: __("Upload"),
+				icon: "upload",
+				description: __("Create from PDFs or images"),
+				onclick: () =>
+					frappe.require("upload_first.bundle.js", () =>
+						frappe.ui.form.upload_first(this.doctype)
+					),
+			});
+		}
+
+		const groups = [{ group: __("Create"), hide_label: true, options: create }];
+		if (frappe.model.can_import(this.doctype, null, this.meta)) {
+			groups.push({
+				group: __("Import"),
+				hide_label: true,
+				options: [
+					{
+						label: __("Import"),
+						icon: "import",
+						description: __("Add many from a spreadsheet"),
+						onclick: () => this.open_import_dialog(),
+					},
+				],
+			});
+		}
+
+		if (create.length > 1 || groups.length > 1) return groups;
 	}
 
 	make_new_doc() {
@@ -2580,6 +2681,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			this.pending_document_refreshes.push(data);
 			this.debounced_refresh();
 		});
+		if (this.meta.enable_upload_first_workflow && !this.attachment_queue_listener) {
+			this.attachment_queue_listener = (data) => {
+				if (data?.document_type === this.doctype) this.notify_pending_attachments();
+			};
+			frappe.realtime.on("attachment_queue_update", this.attachment_queue_listener);
+		}
 		this.realtime_events_setup = true;
 	}
 
@@ -2789,14 +2896,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	get_menu_items() {
 		const doctype = this.doctype;
 		const items = [];
-
-		if (frappe.model.can_import(doctype, null, this.meta)) {
-			items.push({
-				label: __("Import", null, "Button in list view menu"),
-				action: () => this.open_import_dialog(),
-				standard: true,
-			});
-		}
 
 		if (frappe.user_roles.includes("System Manager")) {
 			items.push({
