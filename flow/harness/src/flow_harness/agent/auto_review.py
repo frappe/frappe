@@ -107,7 +107,8 @@ def build_review_messages(
 	review rendered like any other call. In the turn that holds the call, only the calls
 	before it count as history: it and its later siblings have not run. `arguments` is the
 	call's effective arguments, already serialized. Only when the whole thing outgrows
-	MAX_CONTEXT_CHARS are the oldest items dropped, at the cost of the cache."""
+	MAX_CONTEXT_CHARS are the oldest items dropped, at the cost of the cache; tool
+	definitions stay, so every remaining call keeps its schema."""
 	tool_results_by_id = {m.tool_call_id: m for m in messages if isinstance(m, ToolResult)}
 	items: list[str] = []
 	defined: set[str] = set()
@@ -135,8 +136,14 @@ def build_review_messages(
 		elif isinstance(message, ToolResult) and (answer := _approval_answer(message)):
 			items.append(answer)
 	call_item(tool_name, arguments)
-	while sum(map(len, items)) > MAX_CONTEXT_CHARS and len(items) > 1:
-		items.pop(0)
+	total = sum(map(len, items))
+	kept = []
+	for item in items[:-1]:  # the call under review always stays
+		if total > MAX_CONTEXT_CHARS and not item.startswith("Tool definition: "):
+			total -= len(item)
+		else:
+			kept.append(item)
+	items = [*kept, items[-1]]
 	return ["The conversation so far, one item per message; the last message is the call to review.", *items]
 
 

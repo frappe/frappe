@@ -88,6 +88,24 @@ def test_the_reviewer_sees_the_users_words_and_the_agents_calls_only():
 	assert items[3:] == ['Agent called list: {"doctype": "ToDo"}', 'Agent called delete: {"name": "TODO-1"}']
 
 
+def test_trimming_an_oversized_history_keeps_the_tool_definitions(monkeypatch):
+	monkeypatch.setattr("flow_harness.agent.auto_review.MAX_CONTEXT_CHARS", 300)
+	schema = {"type": "function", "function": {"name": "bash", "description": "Runs a command"}}
+	messages = [
+		UserMessage(content="first"),
+		AssistantMessage(content=[ToolCall(id="c1", name="bash", arguments={"command": "ls"})]),
+		ToolResult(tool_call_id="c1", name="bash", content="ok"),
+		UserMessage(content="x" * 150),
+	]
+	items = build_review_messages(messages, "c2", "bash", '{"command": "pwd"}', {"bash": schema})
+	# the oldest conversation items go; the definition stays where it was
+	assert items[1:] == [
+		"Tool definition: " + json.dumps(schema),
+		"User: " + "x" * 150,
+		'Agent called bash: {"command": "pwd"}',
+	]
+
+
 def test_a_verdict_is_read_from_json_and_anything_else_denies():
 	assert parse_verdict('<think>hm</think>\n{"decision": "allow"}') == Verdict(True)
 	assert parse_verdict('{"decision": "allow", "reason": "ignored"}') == Verdict(True)
