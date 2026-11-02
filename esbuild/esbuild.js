@@ -724,14 +724,13 @@ async function run_frontend_build(name, frontend_path) {
 
 async function run_app_build(app, root_app_path) {
 	const started = Date.now();
-	let node_modules = path.resolve(root_app_path, "node_modules");
-	if (!fs.existsSync(node_modules)) {
-		await run_command("yarn install --frozen-lockfile", {
-			cwd: root_app_path,
-			app,
-			step: "install",
-		});
-	}
+	// every build, not only on a fresh checkout: an install made before an update lacks what the
+	// new lockfile adds. Yarn returns in under a second when the install is current
+	await run_command("yarn install --frozen-lockfile", {
+		cwd: root_app_path,
+		app,
+		step: "install",
+	});
 
 	await run_command("yarn build", { cwd: root_app_path, app, step: "build" });
 

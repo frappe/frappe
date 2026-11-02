@@ -8,8 +8,11 @@ frappe.ui.keys.setup = function () {
 		var key = frappe.ui.keys.get_key(e);
 		if (frappe.ui.keys.handlers[key]) {
 			var out = null;
+			// shortcuts check their own target
+			const island_key = is_island_key(e);
 			for (var i = 0, l = frappe.ui.keys.handlers[key].length; i < l; i++) {
 				var handler = frappe.ui.keys.handlers[key][i];
+				if (island_key && !handler.is_shortcut) continue;
 				var _out = handler.apply(this, [e]);
 				if (_out === false) {
 					out = _out;
@@ -48,11 +51,7 @@ frappe.ui.keys.add_shortcut = ({
 		condition = () => true;
 	}
 	let handler = (e) => {
-		let $focused_element = $(document.activeElement);
-		let is_input_focused = $focused_element.is(
-			"input, select, textarea, [contenteditable=true]"
-		);
-		if (is_input_focused && !ignore_inputs) return;
+		if (is_input(key_target(e)) && !ignore_inputs) return;
 		if (!condition()) return;
 
 		if (action && (!page || page.wrapper.is(":visible"))) {
@@ -66,6 +65,7 @@ frappe.ui.keys.add_shortcut = ({
 	};
 	// monkey patch page to handler
 	handler.page = page;
+	handler.is_shortcut = true;
 	// remove handler with the same page attached to it
 	frappe.ui.keys.off(shortcut, page);
 	// attach new handler
@@ -80,6 +80,26 @@ frappe.ui.keys.add_shortcut = ({
 		standard_shortcuts[existing_shortcut_index] = new_shortcut;
 	}
 };
+
+// the key's own target: an input in an island's shadow root leaves document.activeElement on the
+// island's host
+function key_target(e) {
+	return e.originalEvent?.composedPath()[0] || document.activeElement;
+}
+
+// a key typed into an island's input is the island's, unless the island sits in the dialog or
+// grid row that Desk's Escape, Enter and Ctrl+Up/Down act on: Escape in a chat beside the page
+// must not close the page's dialog
+function is_island_key(e) {
+	const target = key_target(e);
+	const root = target?.getRootNode?.();
+	if (!is_input(target) || !(root instanceof ShadowRoot)) return false;
+	return !root.host.closest(".modal, .grid-row-open");
+}
+
+function is_input(element) {
+	return $(element).is("input, select, textarea, [contenteditable=true]");
+}
 
 frappe.ui.keys.get_shortcut_groups = () => {
 	const page_name = window.cur_page?.page?.page;

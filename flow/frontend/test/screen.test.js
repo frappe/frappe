@@ -446,3 +446,20 @@ test("a page's <main> is read in place of its body, with any dialog open beside 
 		text: "Courses\nERPNext Essentials\nEnroll?\nYes",
 	});
 });
+
+test("a selection in the chat, sharing the page's document, is not the page's; one around it is", () => {
+	const chat = el("What can I help you with?");
+	const holder = el("", [chat]);
+	const deskText = text("the total");
+	const body = el("Sales Invoice", [el("Sales Invoice"), holder]);
+	const selected = (anchorNode, words) =>
+		readScreen(
+			page({ body }, { getSelection: () => ({ anchorNode, focusNode: anchorNode, toString: () => words }) }),
+			chat
+		).selection;
+	assert.equal(selected(holder, "What can I help you with?"), undefined);
+	assert.equal(selected(chat, "What can I help you with?"), undefined);
+	assert.equal(selected(deskText, "the total"), "the total");
+	// Ctrl+A on Desk anchors on the body, around the chat too
+	assert.equal(selected(body, "Sales Invoice"), "Sales Invoice");
+});

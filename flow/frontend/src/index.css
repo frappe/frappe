@@ -1,9 +1,5 @@
 @import "@flow/ui-core/flow.css";
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 /* The same theme tuning as the harness web app, so the shared components look alike. */
 :root {
 	--outline-gray-1: #e6e6e6;
@@ -28,11 +24,10 @@
 	--outline-gray-3: #424242;
 }
 
-html,
-body,
-#app {
-	height: 100%;
-	margin: 0;
+/* the island lays out by its own width (build-islands.mjs turns width media queries into
+   container queries), so a narrow panel beside a page gets the narrow layout */
+:host {
+	container-type: inline-size;
 }
 
 body {
@@ -59,6 +54,6 @@ div {
 }
 
 /* the panel's dialogs take the chat's narrow scale; frappe-ui titles them 2xl */
-[data-panel] .dialog-content header h3 {
+:host([data-panel]) .dialog-content header h3 {
 	@apply text-lg-semibold;
 }

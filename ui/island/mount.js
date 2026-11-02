@@ -39,6 +39,9 @@ const styleSheets = new Map();
  * @property {(app: any) => void} [configure]  Called with the Vue app before
  *                                      mount, for plugins and global components.
  * @property {Array} [routes]           vue-router routes. Default none.
+ * @property {Object} [history]          vue-router history for those routes, such
+ *                                      as a web history for an island that fills
+ *                                      its page. Default a memory history.
  */
 
 /**
@@ -50,7 +53,15 @@ const styleSheets = new Map();
  * @returns {Promise<{ app: any, shadow_root: ShadowRoot, update: (props: Object) => void, unmount: () => void }>}
  */
 export async function mountVueIsland(el, options) {
-	const { component, host = {}, props = {}, styles = [], configure, routes } = options || {};
+	const {
+		component,
+		host = {},
+		props = {},
+		styles = [],
+		configure,
+		routes,
+		history,
+	} = options || {};
 
 	if (!component) {
 		throw new Error("mountVueIsland: no component given");
@@ -161,7 +172,7 @@ export async function mountVueIsland(el, options) {
 		// frappe-ui components such as Button and MultiSelect always call
 		// useRouter(). A memory router keeps that inject resolvable. An island that
 		// wants navigation of its own passes real routes.
-		app.use(createRouter({ history: createMemoryHistory(), routes: routes || [] }));
+		app.use(createRouter({ history: history || createMemoryHistory(), routes: routes || [] }));
 
 		app.provide(portalTargetKey, portal);
 		app.provide(hostKey, context);
