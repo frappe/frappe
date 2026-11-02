@@ -118,9 +118,10 @@ def get_timeline_content(doctype: str, docname: str) -> list[dict]:
 	)
 
 	meta = frappe.get_meta(doctype)
+	tracked_fields = frappe.get_doc(doctype, docname).get_permission_log_options().get("fields") or ()
 	timeline_content = []
 	for log in logs:
-		if phrases := describe_log(log, meta):
+		if phrases := describe_log(log, meta, tracked_fields):
 			timeline_content.append(
 				{"icon": "lock", "creation": log.creation, "content": format_timeline_text(log, phrases)}
 			)
@@ -128,14 +129,14 @@ def get_timeline_content(doctype: str, docname: str) -> list[dict]:
 	return timeline_content
 
 
-def describe_log(log, meta) -> list[str]:
+def describe_log(log, meta, tracked_fields) -> list[str]:
 	changes = json.loads(log.changes or "{}")
 	previous = changes.get("from") or {}
 	current = changes.get("to") or {}
 
 	phrases = []
 	for fieldname in dict.fromkeys([*current, *previous]):
-		if shown_by_version(meta.get_field(fieldname)):
+		if fieldname not in tracked_fields or shown_by_version(meta.get_field(fieldname)):
 			continue
 		label = escape_html(_(meta.get_label(fieldname)))
 		phrases.extend(describe_change(label, previous.get(fieldname), current.get(fieldname)))

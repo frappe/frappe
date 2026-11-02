@@ -2,7 +2,7 @@
 # See license.txt
 
 import frappe
-from frappe.core.doctype.permission_log.permission_log import get_timeline_content
+from frappe.core.doctype.permission_log.permission_log import get_timeline_content, insert_perm_log
 from frappe.tests import IntegrationTestCase
 
 
@@ -29,3 +29,20 @@ class TestPermissionLog(IntegrationTestCase):
 
 		content = " ".join(item["content"] for item in get_timeline_content("User", user.name))
 		self.assertNotIn("Module Profile", content)
+
+	def test_user_timeline_skips_role_profile_changes(self):
+		for name in ("Perm Log RP A", "Perm Log RP B"):
+			frappe.get_doc(doctype="Role Profile", role_profile=name).insert()
+		user = frappe.get_doc(doctype="User", email="perm-log-rp@example.com", first_name="Perm Log").insert()
+		user.append("role_profiles", {"role_profile": "Perm Log RP A"})
+		user.append("role_profiles", {"role_profile": "Perm Log RP B"})
+		user.save()
+		user.role_profiles = [row for row in user.role_profiles if row.role_profile == "Perm Log RP B"]
+		user.save()
+		insert_perm_log(
+			user,
+			custom_changes={"from": {"role_profile_name": ""}, "to": {"role_profile_name": "Perm Log RP A"}},
+		)
+
+		content = " ".join(item["content"] for item in get_timeline_content("User", user.name))
+		self.assertNotIn("Role Profile", content)
