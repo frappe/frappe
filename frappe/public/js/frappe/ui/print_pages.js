@@ -19,9 +19,13 @@ frappe.ui.PrintPages = class PrintPages {
 		const is_page = (value) => ["page", "always", "left", "right"].includes(value);
 		const group = (row, r) => {
 			const span = Math.max(1, ...[...row.cells].map((cell) => cell.rowSpan));
+			if (span < 2) return r;
 			const rows = row.parentElement.rows;
 			const last = rows[Math.min(rows.length, row.sectionRowIndex + span) - 1];
-			return { top: r.top, bottom: last.getBoundingClientRect().bottom, height: r.height };
+			const bottom = last.getBoundingClientRect().bottom;
+			return (bottom - r.top) * scale > height
+				? r
+				: { top: r.top, bottom, height: r.height };
 		};
 		const visit = (parent) => {
 			for (const node of parent.childNodes) {
@@ -154,6 +158,7 @@ frappe.ui.PrintPages = class PrintPages {
 		const columns = new Map();
 		const stacked = new Set();
 		const pruned = new Map();
+		const spans = new Map();
 		const column_widths = (table) => {
 			const rows = [...table.rows];
 			const span = (row) => [...row.cells].reduce((sum, cell) => sum + cell.colSpan, 0);
@@ -217,7 +222,11 @@ frappe.ui.PrintPages = class PrintPages {
 			) {
 				stacked.add(el);
 			}
-			kids.forEach(([kid, kid_style]) => {
+			kids.forEach(([kid, kid_style], i) => {
+				if (el.matches("thead, tbody, tfoot")) {
+					const span = Math.max(1, ...[...kid.cells].map((cell) => cell.rowSpan));
+					if (span > 1) spans.set(kid, kids[Math.min(kids.length, i + span) - 1][0]);
+				}
 				if (kid_style.display === "none") return;
 				const r = kid.getBoundingClientRect();
 				const g = {
@@ -233,10 +242,10 @@ frappe.ui.PrintPages = class PrintPages {
 			});
 		};
 		visit(sheet);
-		return { geometry, columns, stacked, pruned };
+		return { geometry, columns, stacked, pruned, spans };
 	}
 
-	static slice(sheet, { geometry, columns, stacked, pruned }, start, end) {
+	static slice(sheet, { geometry, columns, stacked, pruned, spans }, start, end) {
 		const doc = sheet.ownerDocument;
 		const box = (node) => {
 			const g = geometry.get(node);
@@ -295,6 +304,7 @@ frappe.ui.PrintPages = class PrintPages {
 			const section = parent.matches("thead, tbody, tfoot");
 			const row = parent.localName === "tr";
 			let run = [];
+			let carry = null;
 			const flush = () => {
 				if (!run.length) return;
 				if (section) out.push(...filler(parent, run));
@@ -306,6 +316,22 @@ frappe.ui.PrintPages = class PrintPages {
 				const g = geometry.get(node);
 				const inside = !g || (g.top >= start - 0.5 && g.bottom <= end + 0.5);
 				const outside = g && (g.bottom <= start + 0.5 || g.top >= end - 0.5);
+				if (section && outside && g.bottom <= start + 0.5) {
+					const last = spans.get(node);
+					const reach = (el) => geometry.get(el)?.bottom ?? -Infinity;
+					if (last && reach(last) > start + 0.5) {
+						flush();
+						out.push(node.cloneNode(true));
+						if (reach(last) > reach(carry)) carry = last;
+						continue;
+					}
+					if (carry) {
+						flush();
+						out.push(box(node));
+						if (node === carry) carry = null;
+						continue;
+					}
+				}
 				if (outside && !row) {
 					run.push(node);
 					continue;
