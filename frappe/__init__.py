@@ -63,6 +63,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
 	"get_doc": ("frappe.model.document", "get_doc"),
 	"get_docs": ("frappe.model.document", "get_docs"),
 	"get_lazy_doc": ("frappe.model.document", "get_lazy_doc"),
+	"read_doc": ("frappe.model.document", "read_doc"),
 	"copy_doc": ("frappe.model.document", "copy_doc"),
 	"new_doc": ("frappe.model.document", "new_doc"),
 	"get_cached_doc": ("frappe.model.document", "get_cached_doc"),
@@ -177,6 +178,7 @@ if TYPE_CHECKING:  # pragma: no cover
 		get_single,
 		get_single_value,
 		new_doc,
+		read_doc,
 	)
 	from frappe.model.meta import get_meta
 	from frappe.modules.utils import (

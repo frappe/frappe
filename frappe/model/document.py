@@ -436,6 +436,22 @@ def get_doc_from_dict(data: dict[str, Any], **kwargs) -> "Document":
 	raise ImportError(data["doctype"])
 
 
+def read_doc(doctype: str, name: str | int | dict | None = None, /) -> "Document":
+	"""Return a document as the current user is allowed to see it.
+
+	Raises `frappe.PermissionError` without read permission, then removes the fields the user can't
+	read and masks masked fields. Use it for documents sent to the user. The returned document can't
+	be saved; use `frappe.get_doc` for documents you change.
+
+	:param doctype: DocType of the document.
+	:param name: Name of the document, or filters to find it. Omit it for a Single DocType.
+	"""
+	doc = get_doc(doctype) if name is None else get_doc(doctype, name)
+	doc.check_permission("read")
+	doc.apply_fieldlevel_read_permissions()
+	return doc
+
+
 def get_lazy_doc(
 	doctype: str, name: str, *, for_update=None, check_permission: str | bool | None = None
 ) -> "Document":
@@ -850,6 +866,7 @@ class Document(_DocumentBase):
 
 			self.init_from_dict(d)
 		self.flags.pop("ignore_children", None)
+		self.flags.pop("read_permissions_applied", None)
 
 		assert self.name, "document must have a name after loading from db"
 
@@ -1130,6 +1147,14 @@ class Document(_DocumentBase):
 
 		if self.get("__islocal") or not self.get("name"):
 			return self.insert()
+
+		if self.flags.read_permissions_applied:
+			frappe.throw(
+				_("{0} {1} has fields removed for reading and can't be saved.").format(
+					_(self.doctype), self.name
+				),
+				title=_("Not Allowed"),
+			)
 
 		self.check_if_locked()
 		self._set_defaults()
@@ -1559,6 +1584,7 @@ class Document(_DocumentBase):
 		if frappe.session.user == "Administrator":
 			return
 
+		self.flags.read_permissions_applied = True
 		all_fields = self.meta.fields.copy()
 		for table_field in self.meta.get_table_fields(include_computed=True):
 			all_fields += frappe.get_meta(table_field.options).fields or []

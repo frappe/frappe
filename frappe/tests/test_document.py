@@ -1481,6 +1481,56 @@ class TestDocsCollection(IntegrationTestCase):
 			todo.docs
 
 
+class TestReadDoc(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		role = "Test Read Doc Role"
+		if not frappe.db.exists("Role", role):
+			frappe.get_doc({"doctype": "Role", "role_name": role}).insert()
+		cls.reader = create_user("test_read_doc@example.com", role).name
+
+		cls.doctype = new_doctype(
+			fields=[
+				{"fieldname": "public_info", "fieldtype": "Data", "label": "Public Info"},
+				{"fieldname": "secret_info", "fieldtype": "Data", "label": "Secret Info", "permlevel": 1},
+			],
+			permissions=[
+				{"role": "System Manager", "read": 1, "write": 1, "create": 1, "permlevel": 0},
+				{"role": "System Manager", "read": 1, "write": 1, "permlevel": 1},
+				{"role": role, "read": 1, "write": 1, "permlevel": 0},
+			],
+		).insert()
+
+	def setUp(self):
+		self.docname = (
+			frappe.new_doc(self.doctype.name, public_info="public", secret_info="secret").insert().name
+		)
+
+	def test_removes_fields_without_permlevel_access(self):
+		with self.set_user(self.reader):
+			doc = frappe.read_doc(self.doctype.name, self.docname)
+			self.assertEqual(doc.public_info, "public")
+			self.assertIsNone(doc.get("secret_info"))
+			self.assertIsNone(doc.as_dict()["secret_info"])
+
+	def test_raises_without_read_permission(self):
+		with self.set_user(create_user("test_read_doc_no_access@example.com", "Blogger").name):
+			self.assertRaises(frappe.PermissionError, frappe.read_doc, self.doctype.name, self.docname)
+
+	def test_document_can_not_be_saved(self):
+		with self.set_user(self.reader):
+			doc = frappe.read_doc(self.doctype.name, self.docname)
+			doc.public_info = "changed"
+			self.assertRaises(frappe.ValidationError, doc.save, ignore_permissions=True)
+
+			doc.reload()
+			doc.public_info = "changed"
+			doc.save()
+
+		self.assertEqual(frappe.db.get_value(self.doctype.name, self.docname, "secret_info"), "secret")
+
+
 def clear_todo_controller_cache():
 	"""Helper method to clear controller cache for ToDo"""
 	if hasattr(frappe, "controllers") and frappe.local.site in frappe.controllers:
