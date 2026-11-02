@@ -90,11 +90,25 @@ async function compileSFC(filename: string, source: string): Promise<CompiledFil
 	const hasTS = descriptor.script?.lang === "ts" || descriptor.scriptSetup?.lang === "ts"
 	const hasScopedStyle = descriptor.styles.some((style) => style.scoped)
 
+	// compileScript inlines the template only for <script setup>, and throws on an SFC with no
+	// script at all, so every other shape compiles its template separately
+	const inlineTemplate = Boolean(descriptor.scriptSetup)
+
 	let code: string
-	if (!descriptor.script && !descriptor.scriptSetup) {
-		// template-only SFC: compileScript throws on it
+	if (descriptor.script || descriptor.scriptSetup) {
+		try {
+			code = sfc.compileScript(descriptor, { id, inlineTemplate, genDefaultAs: "__sfc__" }).content
+		} catch (error) {
+			return { code: "", css: "", errors: [formatError(filename, error)] }
+		}
+	} else {
+		code = "const __sfc__ = {}\n"
+	}
+
+	// no <template> means the script is the whole component: it may carry its own render option
+	if (!inlineTemplate && descriptor.template) {
 		const template = sfc.compileTemplate({
-			source: descriptor.template?.content ?? "",
+			source: descriptor.template.content,
 			filename,
 			id,
 			scoped: hasScopedStyle,
@@ -102,13 +116,7 @@ async function compileSFC(filename: string, source: string): Promise<CompiledFil
 		if (template.errors.length) {
 			return { code: "", css: "", errors: template.errors.map((error) => formatError(filename, error)) }
 		}
-		code = template.code + "\nconst __sfc__ = { render }\n"
-	} else {
-		try {
-			code = sfc.compileScript(descriptor, { id, inlineTemplate: true, genDefaultAs: "__sfc__" }).content
-		} catch (error) {
-			return { code: "", css: "", errors: [formatError(filename, error)] }
-		}
+		code += `\n${template.code}\n__sfc__.render = render\n`
 	}
 	if (hasTS) {
 		// one pass over the whole output also strips the TS casts inline templates leave in render code

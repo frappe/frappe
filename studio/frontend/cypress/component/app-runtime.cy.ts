@@ -10,6 +10,10 @@ import { fmt } from "../utils/format"
 const count = ref(42)
 </script>
 <style scoped>.stat { color: rgb(200, 0, 0) }</style>`,
+	"components/OptionsCard.vue": `<template><div class="options">{{ label }}</div></template>
+<script>
+export default { data() { return { label: "from options" } } }
+</script>`,
 	"styles/extra.css": ".extra { color: blue }",
 	"theme.json": `{"accent": "teal"}`,
 	"side-effect.ts": `import "./styles/extra.css"\nimport theme from "./theme.json"\nexport const accent: string = theme.accent`,
@@ -39,6 +43,11 @@ describe("AppModuleRegistry", () => {
 			cy.mount(card.default).get(".stat").should("contain.text", "#42")
 			// the scoped style landed in the document and applies to the mounted component
 			cy.get(".stat").should("have.css", "color", "rgb(200, 0, 0)")
+		})
+
+		cy.wrap(registry.loadModule("components/OptionsCard.vue")).then((card: any) => {
+			// no <script setup> to inline into, so the template has to compile on its own
+			cy.mount(card.default).get(".options").should("contain.text", "from options")
 		})
 
 		cy.wrap(registry.loadModule("side-effect.ts")).then((sideEffect: any) => {
