@@ -21,7 +21,9 @@ class Collapse {
 			}
 		}
 
-		this.mark_triggers(element.classList.contains("show"), this.triggers);
+		this.parent = config.parent ? $(config.parent)[0] : null;
+		this.parent_selector = typeof config.parent === "string" ? config.parent : null;
+		if (!this.parent) this.mark_triggers(element.classList.contains("show"), this.triggers);
 		if (config.toggle) this.toggle();
 	}
 
@@ -36,7 +38,19 @@ class Collapse {
 
 	show() {
 		if (this.is_transitioning || this.element.classList.contains("show")) return;
+
+		const actives = this.parent
+			? $(this.parent.querySelectorAll(".show, .collapsing"))
+					.filter((_, el) =>
+						this.parent_selector
+							? el.getAttribute("data-parent") === this.parent_selector
+							: el.classList.contains("collapse")
+					)
+					.not(this.selector || this.element)
+			: $();
+		if (actives.toArray().some((el) => $(el).data(DATA_KEY)?.is_transitioning)) return;
 		if (trigger(this.element, `show${EVENT_KEY}`).isDefaultPrevented()) return;
+		if (actives.length) $.fn.collapse.call(actives, "hide");
 
 		const dimension = this.dimension;
 		this.element.classList.remove("collapse");
