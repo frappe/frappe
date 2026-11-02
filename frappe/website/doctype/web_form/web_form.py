@@ -12,7 +12,7 @@ from frappe.core.doctype.doctype.doctype import HiddenAndMandatoryWithoutDefault
 from frappe.core.doctype.file.utils import remove_file_by_url
 from frappe.desk.form.meta import get_code_files_via_hooks
 from frappe.modules.utils import export_module_json, get_doc_module
-from frappe.permissions import check_doctype_permission
+from frappe.permissions import check_doctype_permission, get_allowed_docs_for_doctype, get_user_permissions
 from frappe.rate_limiter import rate_limit
 from frappe.utils import cint, cstr, dict_with_keys, now_datetime, strip_html
 from frappe.utils.caching import redis_cache
@@ -853,10 +853,12 @@ def get_context(context):
 
 def process_link_field(field, web_form_name, web_form_request_key=None, docname=None):
 	link_filters = field.get("link_filters")
+	ignore_user_permissions = field.get("ignore_user_permissions")
 	if field.get("doctype") == "Web Form Field":
 		web_form_doctype = frappe.get_cached_doc("Web Form", web_form_name).doc_type
 		docfield = frappe.get_meta(web_form_doctype).get_field(field.fieldname)
 		link_filters = docfield.link_filters if docfield else None
+		ignore_user_permissions = docfield.ignore_user_permissions if docfield else None
 
 	field.fieldtype = "Autocomplete"
 	field.options = get_link_options(
@@ -866,6 +868,7 @@ def process_link_field(field, web_form_name, web_form_request_key=None, docname=
 		web_form_request_key=web_form_request_key,
 		docname=docname,
 		link_filters=link_filters,
+		ignore_user_permissions=ignore_user_permissions,
 	)
 	return field
 
@@ -1283,7 +1286,12 @@ def get_table_multiselect_fields(
 	df = link_field.as_dict()
 	if web_form_name:
 		df.link_options = get_link_options(
-			web_form_name, df.options, allow_read_on_all, web_form_request_key, docname
+			web_form_name,
+			df.options,
+			allow_read_on_all,
+			web_form_request_key,
+			docname,
+			ignore_user_permissions=df.ignore_user_permissions,
 		)
 	return [df]
 
@@ -1328,6 +1336,7 @@ def get_link_options(
 	web_form_request_key=None,
 	docname=None,
 	link_filters=None,
+	ignore_user_permissions=False,
 ):
 	web_form: WebForm = frappe.get_cached_doc("Web Form", web_form_name)
 
@@ -1357,6 +1366,12 @@ def get_link_options(
 	]
 	if web_form.login_required and not allow_read_on_all_link_options:
 		filters.append(["owner", "=", frappe.session.user])
+	if not ignore_user_permissions and (
+		allowed_docs := get_allowed_docs_for_doctype(
+			get_user_permissions(frappe.session.user).get(doctype, []), web_form.doc_type
+		)
+	):
+		filters.append(["name", "in", allowed_docs])
 
 	fields = ["name as value"]
 
