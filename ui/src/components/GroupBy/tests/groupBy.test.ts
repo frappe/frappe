@@ -3,6 +3,7 @@ import {
   columnId,
   effectiveSort,
   findGroupByField,
+  formatRating,
   getAggregateFields,
   getGroupByFields,
   isAggregateTaken,
@@ -62,6 +63,17 @@ describe("getGroupByFields", () => {
       )
     ).toEqual(["region", "owner", "modified_by", "_user_tags", "docstatus"]);
   });
+
+  it("leaves out excluded fields, standard ones included", () => {
+    expect(names(getGroupByFields(FIELDS, ["sales_person", "owner"]))).toEqual([
+      "status",
+      "close_date",
+      "secret",
+      "modified_by",
+      "_user_tags",
+      "docstatus",
+    ]);
+  });
 });
 
 describe("getAggregateFields", () => {
@@ -103,6 +115,15 @@ describe("getAggregateFields", () => {
         )
       )
     ).toEqual(["cost"]);
+  });
+
+  it("leaves out excluded fields, standard ones included", () => {
+    expect(names(getAggregateFields(FIELDS, "sum", ["probability"]))).toEqual([
+      "grand_total",
+    ]);
+    expect(
+      names(getAggregateFields(FIELDS, "max", ["close_date", "modified"]))
+    ).toEqual(["grand_total", "probability", "creation"]);
   });
 
   it("also offers dates and the standard timestamps to min and max", () => {
@@ -423,5 +444,33 @@ describe("parseGroupBy sort and totals", () => {
         showTotals: "yes",
       })
     ).toEqual({ fields: ["status"], aggregates: [] });
+  });
+});
+
+describe("Rating fields", () => {
+  const RATED: RawMetaField[] = [
+    { fieldname: "rating", fieldtype: "Rating", label: "Rating" },
+    { fieldname: "grand_total", fieldtype: "Currency", label: "Grand Total" },
+  ];
+  const names = (fields: { fieldname: string }[]) =>
+    fields.map((f) => f.fieldname);
+
+  it("can be grouped by", () => {
+    expect(names(getGroupByFields(RATED))).toContain("rating");
+  });
+
+  it("can be averaged and ranged but not summed", () => {
+    expect(names(getAggregateFields(RATED, "avg"))).toEqual([
+      "rating",
+      "grand_total",
+    ]);
+    expect(names(getAggregateFields(RATED, "max"))).toContain("rating");
+    expect(names(getAggregateFields(RATED, "sum"))).toEqual(["grand_total"]);
+  });
+
+  it("shows a rating on its star scale", () => {
+    expect(formatRating(0.6)).toBe("3 / 5");
+    expect(formatRating(0.54)).toBe("2.7 / 5");
+    expect(formatRating(0.5, "10")).toBe("5 / 10");
   });
 });
