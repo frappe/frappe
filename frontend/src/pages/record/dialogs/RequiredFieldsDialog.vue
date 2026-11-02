@@ -16,7 +16,11 @@
 		/>
 	</div>
 	<div class="mt-5 flex flex-row-reverse gap-2">
-		<Button variant="solid" :label="__('Continue')" @click="submit" />
+		<Button
+			variant="solid"
+			:label="submitting ? __('Save and submit') : __('Continue')"
+			@click="submit"
+		/>
 		<Button variant="outline" :label="__('Cancel')" @click="close()" />
 	</div>
 </template>
@@ -40,6 +44,8 @@ const props = defineProps<{
 	/** The record, so `depends_on` and `fetch_from` read what the reader has filled. */
 	doc: Record<string, any>;
 	doctype: string;
+	/** A Submit asked it: the primary button then saves and submits. */
+	submitting?: boolean;
 	close: (value?: any) => void;
 }>();
 

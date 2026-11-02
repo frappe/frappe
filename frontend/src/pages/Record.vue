@@ -868,8 +868,14 @@ function buildController({ visit, target, pointer, details, panel, view }: Openi
 		}),
 		formLayout: () => detailsForm.value,
 		offLayout: () => detailsLayout.value?.offLayout.value,
-		askRequired: (layout) =>
-			askRequired(controller.value!.page.dialog, layout, doc.value, target.doctype),
+		askRequired: (layout, submitting) =>
+			askRequired(
+				controller.value!.page.dialog,
+				layout,
+				doc.value,
+				target.doctype,
+				submitting
+			),
 		activateFormTab: (identity) => void (formTab.value = identity),
 		discloseSection: disclosure.disclose,
 		focusField: (fieldname, cursor) => void focusOnDetails(fieldname, cursor),

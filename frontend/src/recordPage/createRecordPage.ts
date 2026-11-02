@@ -148,7 +148,7 @@ export interface RecordPageHost {
   /** The mandatory fields the Details layout does not show; a save asks for the empty ones. */
   offLayout?: () => FormLayoutSchema | undefined;
   /** Asks for the empty fields of `layout` and resolves their values; throws when the reader cancels. */
-  askRequired?: (layout: FormLayoutSchema) => Promise<Record<string, any>>;
+  askRequired?: (layout: FormLayoutSchema, submitting: boolean) => Promise<Record<string, any>>;
   /** The identity of the Form Layout tab the reader is on, or `''` outside the form. */
   activeFormTab?: () => string;
   /** Moves the reader to a tab of the form, by identity; absent for a host with no form. */
@@ -436,7 +436,11 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   /** The one save path: a clean saved doc resolves at once, a `beforeSave` throw sends nothing, and it paints once. */
   function save() {
     if (engine.hasLeft() || (!page.isNew && !host.isDirty())) return Promise.resolve();
-    saving.value ??= hold(runSave)
+    return saveNow();
+  }
+
+  function saveNow(submitting = false) {
+    saving.value ??= hold(() => runSave(submitting))
       .then(() => (engine.hasLeft() ? undefined : host.onSaved?.()))
       .finally(() => (saving.value = null));
     return saving.value;
@@ -451,6 +455,9 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
       const lower = act.toLowerCase() as "submit" | "cancel";
       if (!(await host.confirmDocstatus?.(lower)) || engine.hasLeft()) return;
       const wasDirty = host.isDirty();
+      // "Save and submit" is the consent: a clean draft saves only to give the dialog's values.
+      if (act === "Submit" && offLayoutToAsk()) await saveNow(true);
+      if (engine.hasLeft()) return;
       try {
         await fireEvent(`before${act}`);
         await commits.flush();
@@ -468,7 +475,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     return moving.value;
   }
 
-  async function runSave() {
+  async function runSave(submitting: boolean) {
     fieldErrors.clearAll();
     try {
       await commits.flush();
@@ -479,7 +486,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
       }
       if (engine.hasLeft()) return;
       refuseMissing();
-      await askOffLayout();
+      await askOffLayout(submitting);
       await host.save();
     } catch (error) {
       focusFirstMarked();
@@ -517,11 +524,11 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   }
 
   // A value the reader gives can make another off-layout field mandatory, so it asks again until none is left.
-  async function askOffLayout() {
+  async function askOffLayout(submitting: boolean) {
     for (let round = 0; round < MAX_ASK_ROUNDS; round++) {
       const toAsk = offLayoutToAsk();
       if (!toAsk) return;
-      const values = await host.askRequired!(toAsk);
+      const values = await host.askRequired!(toAsk, submitting);
       if (engine.hasLeft()) return;
       host.doc.value = { ...host.doc.value, ...values };
     }
