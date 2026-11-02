@@ -20,6 +20,7 @@ export { createRecordPage, SAVE_VETO } from "./createRecordPage";
 export { createCommitChannel } from "./commitChannel";
 export type { RecordCommitChannel } from "./commitChannel";
 export { errorMessage } from "./errorMessage";
+export { reportOnce } from "./reportOnce";
 export { FieldErrors } from "./fieldErrors";
 export { missingRequired } from "./requiredFields";
 export { setAppPageScripts, setIconSource } from "@/pageEngine";

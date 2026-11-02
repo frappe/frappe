@@ -12,6 +12,7 @@ vi.mock("@framework/ui/api", () => ({
 }));
 vi.mock("@/i18n", () => ({ __: (text: string) => text }));
 
+import { toast } from "frappe-ui";
 import { createRecordPage, SAVE_VETO, type RecordPageHost } from "../createRecordPage";
 import { fieldsToLayout } from "@framework/ui/FormLayout";
 import { registerRecordPage, resetRegistry } from "../registry";
@@ -49,13 +50,15 @@ function makePage(overrides: Partial<RecordPageHost> = {}, docstatus = 0) {
   };
   const controller = createRecordPage(host);
   controllers.push(controller);
-  controller.header.provideBuiltins(() =>
-    docstatusItems({ meta, saved: host.saved.value, dirty: false, canWrite: true }, (act) => controller[act]()),
-  );
+  controller.header.provideBuiltins(() => [
+    { name: "save", label: "Save", run: (page) => page.save() },
+    ...docstatusItems({ meta, saved: host.saved.value, dirty: false, canWrite: true }, (act) => controller[act]()),
+  ]);
   return { controller, page: controller.page, order };
 }
 
 beforeEach(() => {
+  vi.mocked(toast.error).mockClear();
   resetRegistry();
   vi.spyOn(console, "warn").mockImplementation(() => {});
 });
@@ -354,5 +357,66 @@ describe("Cancel", () => {
 
     expect(denied).toMatchObject({ reason: "right" });
     expect(order).toEqual([]);
+  });
+});
+
+describe("a failing act toasts once, however many callers joined it", () => {
+  const failure = () => {
+    throw new Error("Insufficient stock");
+  };
+
+  it.each([
+    ["Submit", "header.submit", { submit: failure }, 0],
+    ["Cancel", "header.cancel", { cancel: failure }, 1],
+    ["Save", "header.save", { isDirty: () => true }, 0],
+  ] as const)("%s: two clicks give one toast", async (_act, name, overrides, docstatus) => {
+    let open!: () => void;
+    const gate = new Promise<void>((resolve) => (open = resolve));
+    const { controller } = makePage(
+      {
+        ...overrides,
+        confirmDocstatus: async () => (await gate, true),
+        save: async () => (await gate, failure()),
+      },
+      docstatus,
+    );
+
+    const clicks = Promise.all([controller.perform(name), controller.perform(name)]);
+    await new Promise((resolve) => setTimeout(resolve));
+    open();
+    await clicks;
+
+    expect(toast.error).toHaveBeenCalledExactlyOnceWith("Insufficient stock");
+  });
+
+  it.each([
+    ["Submit", "header.submit", { submit: failure }, 0],
+    ["Cancel", "header.cancel", { cancel: failure }, 1],
+    ["Save", "header.save", { save: async () => failure(), isDirty: () => true }, 0],
+  ] as const)("%s: every caller still gets the rejection", async (_act, name, overrides, docstatus) => {
+    const { page } = makePage({ ...overrides }, docstatus);
+
+    const both = await Promise.allSettled([page.run(name), page.run(name)]);
+
+    expect(both.map((one) => one.status)).toEqual(["rejected", "rejected"]);
+    expect(toast.error).not.toHaveBeenCalled();
+  });
+
+  it("a later failure of the same act toasts again", async () => {
+    const { controller } = makePage({ submit: failure });
+
+    await controller.perform("header.submit");
+    await controller.perform("header.submit");
+
+    expect(toast.error).toHaveBeenCalledTimes(2);
+  });
+
+  it("hands the host's actFailed one call for two joined callers", async () => {
+    const actFailed = vi.fn();
+    const { controller } = makePage({ submit: failure, actFailed });
+
+    await Promise.all([controller.perform("header.submit"), controller.perform("header.submit")]);
+
+    expect(actFailed).toHaveBeenCalledTimes(1);
   });
 });

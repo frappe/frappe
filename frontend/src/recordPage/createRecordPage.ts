@@ -8,6 +8,7 @@ import { CachedReads } from "./cachedReads";
 import { createCommitChannel, type RecordCommitChannel } from "./commitChannel";
 import { ComposerSurface, composerTab, type ComposerHost } from "./composer";
 import type { PageDialogEntry } from "@/pageEngine/dialog";
+import { reportOnce } from "./reportOnce";
 import { errorMessage } from "./errorMessage";
 import type { HeldAct, TakeResult } from "@/pageEngine/heldActs";
 import { acts, passesRight, type ActFields } from "@/acts/dispatcher";
@@ -427,7 +428,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     tabs,
     permissions,
     hold,
-    failed: (error) => (host.actFailed ? host.actFailed(error) : void toast.error(errorMessage(error))),
+    failed: reportOnce((error) => (host.actFailed ? host.actFailed(error) : void toast.error(errorMessage(error)))),
   });
 
   // One sequence at a time: a second `page.save()` mid-flight joins it, so no handler fires twice.
