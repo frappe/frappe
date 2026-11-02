@@ -446,7 +446,9 @@ def cancel_all_linked_docs(
 	nothing; large sets, roots that queue their cancellations, and docs=None
 	past the listing cap move to a job instead. `root_modified` is the root's
 	`modified` the caller read: a newer saved row refuses the call."""
-	if root_modified and root_doctype and root_name:
+	if root_modified:
+		if not (root_doctype and root_name):
+			frappe.throw(_("Cancel all needs the root document to check its timestamp"))
 		root = frappe.get_doc(root_doctype, root_name)
 		root.check_permission("cancel")
 		root.check_not_stale(root_modified)

@@ -783,7 +783,7 @@ class TestQueueSubmitV2(FrappeAPITestCase):
 
 	def test_malformed_modified_is_refused_not_a_server_error(self):
 		doc = self.new_record()
-		for modified in ("garbage", "2026-13-45"):
+		for modified in ("garbage", "2026-13-45", "2026-11-02T10:00:00Z"):
 			response = self.call("submit", doc.name, modified=modified)
 			self.assertEqual(response.status_code, 417, response.json)
 		self.assertEqual(frappe.db.get_value(self.doctype_name, doc.name, "docstatus"), 0)

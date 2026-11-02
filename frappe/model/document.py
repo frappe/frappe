@@ -72,7 +72,7 @@ from frappe.utils import (
 	strip_html,
 	strip_html_tags,
 )
-from frappe.utils.data import get_absolute_url, get_datetime, get_timedelta, getdate
+from frappe.utils.data import escape_html, get_absolute_url, get_datetime, get_timedelta, getdate
 from frappe.utils.defaults import get_not_null_defaults
 from frappe.utils.html_utils import has_html_tags, unescape_html
 
@@ -1727,8 +1727,10 @@ class Document(_DocumentBase):
 			read = get_datetime(modified) if isinstance(modified, str) else None
 		except (ValueError, OverflowError):
 			read = None
-		if read is None:
-			frappe.throw(_("{0} is not a valid modified timestamp").format(frappe.bold(modified)))
+		if read is None or read.tzinfo:
+			frappe.throw(
+				_("{0} is not a valid modified timestamp").format(frappe.bold(escape_html(str(modified))))
+			)
 		if read != get_datetime(self.modified):
 			frappe.msgprint(
 				_("Error: {0} ({1}) has been modified after you have opened it.").format(

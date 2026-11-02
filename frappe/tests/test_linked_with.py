@@ -214,6 +214,9 @@ class TestLinkedWith(IntegrationTestCase):
 			linked_with.cancel_all_linked_docs(**args, root_modified="2000-01-01 00:00:00.000000")
 		self.assertEqual(frappe.db.get_value("Parent DocType", doc.name, "docstatus"), 1)
 
+		with self.assertRaises(frappe.ValidationError):
+			linked_with.cancel_all_linked_docs(docs=docs, root_modified=str(doc.modified))
+
 		linked_with.cancel_all_linked_docs(**args, root_modified=str(doc.modified))
 		self.assertEqual(frappe.db.get_value("Parent DocType", doc.name, "docstatus"), 2)
 		doc.reload().delete()
