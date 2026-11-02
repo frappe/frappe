@@ -112,12 +112,10 @@
 		overflow-y: auto;
 		position: static;
 		font-size: var(--text-base);
-		@include transition(all, 0.3s, cubic-bezier(0.4, 0, 0.2, 1));
 
 		// transition: width 200ms;
 		.sidebar-items {
 			width: 100%;
-			@include transition(all, 0.3s, cubic-bezier(0.4, 0, 0.2, 1));
 		}
 	}
 
@@ -144,7 +142,6 @@
 	.standard-sidebar-item {
 		display: flex;
 		position: relative;
-		@include transition(all, 0.3s, cubic-bezier(0.4, 0, 0.2, 1));
 
 		margin-bottom: 2px;
 		-webkit-user-select: none;
@@ -181,7 +178,6 @@
 			display: block;
 			flex: 1 1 auto;
 			align-items: center;
-			@include transition(all, 0.3s, cubic-bezier(0.4, 0, 0.2, 1));
 			cursor: pointer;
 			// `ml-2` from the glyph; `flex: 1` above is what pushes a suffix to the row's far end
 			margin-left: 8px;
@@ -208,7 +204,6 @@
 			border-radius: var(--radius);
 			color: var(--ink-gray-6);
 			text-decoration: none;
-			@include transition(all, 0.3s, cubic-bezier(0.4, 0, 0.2, 1));
 
 			// no colour of its own: the glyph is the row's ink through currentColor, so it darkens
 			// with the label when the row goes active
