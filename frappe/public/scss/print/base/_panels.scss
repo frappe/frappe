@@ -1,0 +1,236 @@
+$panel-variants: (
+	default: (
+		#ced5db,
+		#333,
+		#f7fafc,
+	),
+	primary: (
+		#5e64ff,
+		#fff,
+		#5e64ff,
+	),
+	success: (
+		rgba(0, 0, 0, 0),
+		#98d85b,
+		transparent,
+	),
+	info: (
+		rgba(0, 0, 0, 0),
+		#935eff,
+		transparent,
+	),
+	warning: (
+		rgba(0, 0, 0, 0),
+		#ffa00a,
+		transparent,
+	),
+	danger: (
+		rgba(0, 0, 0, 0),
+		#ff5858,
+		transparent,
+	),
+);
+
+.panel {
+	margin-bottom: 20px;
+	background-color: #fff;
+	border: 1px solid transparent;
+	border-radius: 4px;
+	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+}
+
+.panel-body {
+	padding: 15px;
+}
+
+.panel-heading {
+	padding: 10px 15px;
+	border-bottom: 1px solid transparent;
+	border-top-left-radius: 3px;
+	border-top-right-radius: 3px;
+
+	> .dropdown .dropdown-toggle {
+		color: inherit;
+	}
+}
+
+.panel-title {
+	margin-top: 0;
+	margin-bottom: 0;
+	font-size: 16px;
+	color: inherit;
+
+	> a {
+		color: inherit;
+	}
+}
+
+.panel-footer {
+	padding: 10px 15px;
+	background-color: #f5f5f5;
+	border-top: 1px solid #ddd;
+	border-bottom-right-radius: 3px;
+	border-bottom-left-radius: 3px;
+}
+
+.panel {
+	> .table,
+	> .table-responsive > .table {
+		margin-bottom: 0;
+
+		caption {
+			padding-right: 15px;
+			padding-left: 15px;
+		}
+	}
+
+	> .table:first-child,
+	> .table-responsive:first-child > .table:first-child {
+		border-top-left-radius: 3px;
+		border-top-right-radius: 3px;
+
+		> thead:first-child,
+		> tbody:first-child {
+			> tr:first-child {
+				border-top-left-radius: 3px;
+				border-top-right-radius: 3px;
+
+				td:first-child,
+				th:first-child {
+					border-top-left-radius: 3px;
+				}
+
+				td:last-child,
+				th:last-child {
+					border-top-right-radius: 3px;
+				}
+			}
+		}
+	}
+
+	> .table:last-child,
+	> .table-responsive:last-child > .table:last-child {
+		border-bottom-right-radius: 3px;
+		border-bottom-left-radius: 3px;
+
+		> tbody:last-child,
+		> tfoot:last-child {
+			> tr:last-child {
+				border-bottom-right-radius: 3px;
+				border-bottom-left-radius: 3px;
+
+				td:first-child,
+				th:first-child {
+					border-bottom-left-radius: 3px;
+				}
+
+				td:last-child,
+				th:last-child {
+					border-bottom-right-radius: 3px;
+				}
+			}
+		}
+	}
+
+	> .panel-body + .table,
+	> .panel-body + .table-responsive,
+	> .table + .panel-body,
+	> .table-responsive + .panel-body {
+		border-top: 1px solid #d1d8dd;
+	}
+
+	> .table > tbody:first-child > tr:first-child {
+		th,
+		td {
+			border-top: 0;
+		}
+	}
+
+	> .table-bordered,
+	> .table-responsive > .table-bordered {
+		border: 0;
+
+		> thead,
+		> tbody,
+		> tfoot {
+			> tr {
+				> th:first-child,
+				> td:first-child {
+					border-left: 0;
+				}
+
+				> th:last-child,
+				> td:last-child {
+					border-right: 0;
+				}
+			}
+		}
+
+		> thead,
+		> tbody {
+			> tr:first-child {
+				> td,
+				> th {
+					border-bottom: 0;
+				}
+			}
+		}
+
+		> tbody,
+		> tfoot {
+			> tr:last-child {
+				> td,
+				> th {
+					border-bottom: 0;
+				}
+			}
+		}
+	}
+
+	> .table-responsive {
+		margin-bottom: 0;
+		border: 0;
+	}
+}
+
+.panel-group {
+	margin-bottom: 20px;
+
+	.panel {
+		margin-bottom: 0;
+		border-radius: 4px;
+
+		+ .panel {
+			margin-top: 5px;
+		}
+	}
+
+	.panel-heading {
+		border-bottom: 0;
+	}
+
+	.panel-footer {
+		border-top: 0;
+	}
+}
+
+@each $variant, $colors in $panel-variants {
+	$border: nth($colors, 1);
+	$color: nth($colors, 2);
+	$background: nth($colors, 3);
+
+	.panel-#{$variant} {
+		border-color: $border;
+
+		> .panel-heading {
+			color: $color;
+			background-color: $background;
+			border-color: $border;
+
+			.badge {
+				color: $background;
+				background-color: $color;
+			}
+		}
+	}
+}

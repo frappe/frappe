@@ -1,0 +1,285 @@
+.modal {
+	position: fixed;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	z-index: 1040;
+	display: none;
+	overflow: hidden;
+	outline: 0;
+
+	&.fade .modal-dialog {
+		transition: transform 0.3s ease-out;
+		transform: translate(0, -25%);
+	}
+
+	&.in .modal-dialog {
+		transform: translate(0, 0);
+	}
+}
+
+.modal-dialog {
+	position: relative;
+	width: auto;
+	margin: 10px;
+}
+
+.modal-content {
+	position: relative;
+	background-color: #fff;
+	background-clip: padding-box;
+	border: 1px solid #999;
+	border: 1px solid rgba(0, 0, 0, 0.2);
+	border-radius: 6px;
+	outline: 0;
+	box-shadow: 0 3px 9px rgba(0, 0, 0, 0.5);
+}
+
+.modal-header {
+	min-height: 16.42857143px;
+	padding: 15px;
+	border-bottom: 1px solid #e5e5e5;
+
+	.close {
+		margin-top: -2px;
+	}
+}
+
+.modal-body {
+	position: relative;
+	padding: 15px;
+}
+
+@media (min-width: 768px) {
+	.modal-dialog {
+		width: 600px;
+		margin: 30px auto;
+	}
+
+	.modal-content {
+		box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+	}
+}
+
+.tooltip {
+	position: absolute;
+	z-index: 1070;
+	display: block;
+	font-family: "Helvetica Neue", Helvetica, Arial, "Open Sans", sans-serif;
+	font-size: 12px;
+	font-weight: normal;
+	line-height: 1.4;
+	visibility: visible;
+	opacity: 0;
+
+	&.in {
+		opacity: 0.9;
+	}
+
+	&.top {
+		padding: 5px 0;
+		margin-top: -3px;
+	}
+
+	&.right {
+		padding: 0 5px;
+		margin-left: 3px;
+	}
+
+	&.bottom {
+		padding: 5px 0;
+		margin-top: 3px;
+	}
+
+	&.left {
+		padding: 0 5px;
+		margin-left: -3px;
+	}
+}
+
+.popover {
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: 1060;
+	display: none;
+	max-width: 276px;
+	padding: 1px;
+	font-family: "Helvetica Neue", Helvetica, Arial, "Open Sans", sans-serif;
+	font-size: 14px;
+	font-weight: normal;
+	line-height: 1.42857143;
+	text-align: left;
+	white-space: normal;
+	background-color: #fff;
+	background-clip: padding-box;
+	border: 1px solid #ccc;
+	border: 1px solid rgba(0, 0, 0, 0.2);
+	border-radius: 6px;
+	box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+
+	&.top {
+		margin-top: -10px;
+	}
+
+	&.right {
+		margin-left: 10px;
+	}
+
+	&.bottom {
+		margin-top: 10px;
+	}
+
+	&.left {
+		margin-left: -10px;
+	}
+}
+
+.carousel {
+	position: relative;
+}
+
+.carousel-inner {
+	position: relative;
+	width: 100%;
+	overflow: hidden;
+
+	> .item {
+		position: relative;
+		display: none;
+		transition: 0.6s ease-in-out left;
+
+		> img,
+		> a > img {
+			line-height: 1;
+		}
+	}
+}
+
+@media all and (transform-3d), (-webkit-transform-3d) {
+	.carousel-inner > .item {
+		transition: transform 0.6s ease-in-out;
+		backface-visibility: hidden;
+		perspective: 1000;
+
+		&.next,
+		&.active.right {
+			left: 0;
+			transform: translate3d(100%, 0, 0);
+		}
+
+		&.prev,
+		&.active.left {
+			left: 0;
+			transform: translate3d(-100%, 0, 0);
+		}
+
+		&.next.left,
+		&.prev.right,
+		&.active {
+			left: 0;
+			transform: translate3d(0, 0, 0);
+		}
+	}
+}
+
+.carousel-inner {
+	> .active,
+	> .next,
+	> .prev {
+		display: block;
+	}
+
+	> .active {
+		left: 0;
+	}
+
+	> .next,
+	> .prev {
+		position: absolute;
+		top: 0;
+		width: 100%;
+	}
+
+	> .next {
+		left: 100%;
+	}
+
+	> .prev {
+		left: -100%;
+	}
+
+	> .next.left,
+	> .prev.right {
+		left: 0;
+	}
+
+	> .active.left {
+		left: -100%;
+	}
+
+	> .active.right {
+		left: 100%;
+	}
+}
+
+.carousel-indicators {
+	position: absolute;
+	bottom: 10px;
+	left: 50%;
+	z-index: 15;
+	width: 60%;
+	padding-left: 0;
+	margin-left: -30%;
+	text-align: center;
+	list-style: none;
+
+	li {
+		display: inline-block;
+		width: 10px;
+		height: 10px;
+		margin: 1px;
+		text-indent: -999px;
+		cursor: pointer;
+		background-color: rgba(0, 0, 0, 0);
+		border: 1px solid #fff;
+		border-radius: 10px;
+	}
+
+	.active {
+		width: 12px;
+		height: 12px;
+		margin: 0;
+		background-color: #fff;
+	}
+}
+
+.carousel-caption {
+	position: absolute;
+	right: 15%;
+	bottom: 20px;
+	left: 15%;
+	z-index: 10;
+	padding-top: 20px;
+	padding-bottom: 20px;
+	color: #fff;
+	text-align: center;
+	text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+
+	.btn {
+		text-shadow: none;
+	}
+}
+
+@media screen and (min-width: 768px) {
+	.carousel-caption {
+		right: 20%;
+		left: 20%;
+		padding-bottom: 30px;
+	}
+
+	.carousel-indicators {
+		bottom: 20px;
+	}
+}

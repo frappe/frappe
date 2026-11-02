@@ -1,0 +1,56 @@
+$spacing-sides: (
+	"": null,
+	"t": top,
+	"r": right,
+	"b": bottom,
+	"l": left,
+	"x": (
+		right,
+		left,
+	),
+	"y": (
+		top,
+		bottom,
+	),
+);
+
+@mixin spacing($abbr, $property, $side, $size, $value, $infix: "") {
+	.#{$abbr}#{$side}#{$infix}-#{$size} {
+		@if map-get($spacing-sides, $side) {
+			@each $edge in map-get($spacing-sides, $side) {
+				#{$property}-#{$edge}: $value !important;
+			}
+		} @else {
+			#{$property}: $value !important;
+		}
+	}
+}
+
+@each $size, $length in $spacers {
+	@each $side, $edges in $spacing-sides {
+		@include spacing(m, margin, $side, $size, $length);
+	}
+	@each $side, $edges in $spacing-sides {
+		@include spacing(p, padding, $side, $size, $length);
+	}
+}
+
+@each $size, $length in $spacers {
+	@if $size != 0 {
+		@each $side, $edges in $spacing-sides {
+			@include spacing(m, margin, $side, n#{$size}, -$length);
+		}
+	}
+}
+
+@each $side, $edges in $spacing-sides {
+	@include spacing(m, margin, $side, auto, auto);
+}
+
+@media (min-width: 768px) {
+	@each $abbr, $property, $side,
+		$size in (m margin b 3, m margin b 4, m margin b 8, m margin x 0, p padding "" 4)
+	{
+		@include spacing($abbr, $property, $side, $size, map-get($spacers, $size), -md);
+	}
+}

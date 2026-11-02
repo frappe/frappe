@@ -1,0 +1,257 @@
+.nav {
+	padding-left: 0;
+	margin-bottom: 0;
+	list-style: none;
+
+	> li {
+		position: relative;
+		display: block;
+
+		> a {
+			position: relative;
+			display: block;
+			padding: 10px 15px;
+
+			&:hover,
+			&:focus {
+				text-decoration: none;
+				background-color: #f7fafc;
+			}
+		}
+
+		&.disabled > a {
+			color: #777;
+
+			&:hover,
+			&:focus {
+				color: #777;
+				text-decoration: none;
+				cursor: not-allowed;
+				background-color: transparent;
+			}
+		}
+	}
+
+	.open > a {
+		&,
+		&:hover,
+		&:focus {
+			background-color: #f7fafc;
+			border-color: #36414c;
+		}
+	}
+
+	> li > a > img {
+		max-width: none;
+	}
+}
+
+.navbar {
+	position: relative;
+	min-height: 40px;
+	margin-bottom: 20px;
+	border: 1px solid transparent;
+}
+
+@media (min-width: 768px) {
+	.navbar {
+		border-radius: 4px;
+	}
+}
+
+@media (min-width: 768px) {
+	.navbar-header {
+		float: left;
+	}
+}
+
+.navbar-collapse {
+	padding-right: 15px;
+	padding-left: 15px;
+	overflow-x: visible;
+	border-top: 1px solid transparent;
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+
+	&.in {
+		overflow-y: auto;
+	}
+}
+
+@media (min-width: 768px) {
+	.navbar-collapse {
+		width: auto;
+		border-top: 0;
+		box-shadow: none;
+
+		&.collapse {
+			display: block !important;
+			height: auto !important;
+			padding-bottom: 0;
+			overflow: visible !important;
+			visibility: visible !important;
+		}
+
+		&.in {
+			overflow-y: visible;
+		}
+	}
+
+	.navbar-fixed-top .navbar-collapse,
+	.navbar-static-top .navbar-collapse {
+		padding-right: 0;
+		padding-left: 0;
+	}
+}
+
+.navbar-fixed-top .navbar-collapse {
+	max-height: 340px;
+}
+
+@media (max-device-width: 480px) and (orientation: landscape) {
+	.navbar-fixed-top .navbar-collapse {
+		max-height: 200px;
+	}
+}
+
+.navbar-static-top {
+	z-index: 1000;
+	border-width: 0 0 1px;
+}
+
+@media (min-width: 768px) {
+	.navbar-static-top {
+		border-radius: 0;
+	}
+}
+
+.navbar-fixed-top {
+	position: fixed;
+	right: 0;
+	left: 0;
+	z-index: 1030;
+}
+
+@media (min-width: 768px) {
+	.navbar-fixed-top {
+		border-radius: 0;
+	}
+}
+
+.navbar-fixed-top {
+	top: 0;
+	border-width: 0 0 1px;
+}
+
+.navbar-brand {
+	float: left;
+	height: 40px;
+	padding: 10px 15px;
+	font-size: 18px;
+	line-height: 20px;
+
+	&:hover,
+	&:focus {
+		text-decoration: none;
+	}
+
+	> img {
+		display: block;
+	}
+}
+
+@media (min-width: 768px) {
+	.navbar > .container .navbar-brand,
+	.navbar > .container-fluid .navbar-brand {
+		margin-left: -15px;
+	}
+}
+
+.navbar-toggle {
+	position: relative;
+	float: right;
+	padding: 9px 10px;
+	margin-top: 3px;
+	margin-right: 15px;
+	margin-bottom: 3px;
+	background-color: transparent;
+	background-image: none;
+	border: 1px solid transparent;
+	border-radius: 4px;
+
+	&:focus {
+		outline: 0;
+	}
+}
+
+@media (min-width: 768px) {
+	.navbar-toggle {
+		display: none;
+	}
+}
+
+.navbar-nav {
+	margin: 5px -15px;
+
+	> li > a {
+		padding-top: 10px;
+		padding-bottom: 10px;
+		line-height: 20px;
+	}
+}
+
+@media (max-width: 767px) {
+	.navbar-nav .open .dropdown-menu {
+		position: static;
+		float: none;
+		width: auto;
+		margin-top: 0;
+		background-color: transparent;
+		border: 0;
+		box-shadow: none;
+
+		> li > a {
+			padding: 5px 15px 5px 25px;
+			line-height: 20px;
+
+			&:hover,
+			&:focus {
+				background-image: none;
+			}
+		}
+	}
+}
+
+@media (min-width: 768px) {
+	.navbar-nav {
+		float: left;
+		margin: 0;
+
+		> li {
+			float: left;
+
+			> a {
+				padding-top: 10px;
+				padding-bottom: 10px;
+			}
+		}
+	}
+}
+
+.navbar-nav > li > .dropdown-menu {
+	margin-top: 0;
+	border-top-left-radius: 0;
+	border-top-right-radius: 0;
+}
+
+.navbar-text {
+	margin-top: 10px;
+	margin-bottom: 10px;
+}
+
+@media (min-width: 768px) {
+	.navbar-text {
+		float: left;
+		margin-right: 15px;
+		margin-left: 15px;
+	}
+}

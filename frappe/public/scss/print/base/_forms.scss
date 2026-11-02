@@ -1,0 +1,125 @@
+.form-control {
+	display: block;
+	width: 100%;
+	height: 30px;
+	padding: 4px 10px;
+	font-size: 14px;
+	line-height: 1.42857143;
+	color: #555;
+	background-color: #fff;
+	background-image: none;
+	border: 1px solid #d1d8dd;
+	border-radius: 4px;
+	box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+	transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+
+	&:focus {
+		border-color: #ced5db;
+		outline: 0;
+		box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 3px rgba(206, 213, 219, 0.6);
+	}
+	&::-moz-placeholder {
+		color: #d1d8dd;
+		opacity: 1;
+	}
+	&::-webkit-input-placeholder {
+		color: #d1d8dd;
+	}
+	&[disabled],
+	&[readonly] {
+		cursor: not-allowed;
+		background-color: #eee;
+		opacity: 1;
+	}
+}
+
+.form-group {
+	margin-bottom: 15px;
+}
+
+.checkbox {
+	position: relative;
+	display: block;
+	margin-top: 10px;
+	margin-bottom: 10px;
+
+	label {
+		min-height: 20px;
+		padding-left: 20px;
+		margin-bottom: 0;
+		font-weight: normal;
+		cursor: pointer;
+	}
+	input[type="checkbox"] {
+		position: absolute;
+		margin-left: -20px;
+	}
+	+ .checkbox {
+		margin-top: -5px;
+	}
+	&.disabled label {
+		cursor: not-allowed;
+	}
+}
+
+.input-sm {
+	height: 30px;
+	padding: 5px 10px;
+	font-size: 12px;
+	line-height: 1.5;
+	border-radius: 3px;
+}
+
+select.input-sm {
+	height: 30px;
+	line-height: 30px;
+}
+
+textarea.input-sm,
+select[multiple].input-sm {
+	height: auto;
+}
+
+@media (min-width: 768px) {
+	.form-inline {
+		.form-group {
+			display: inline-block;
+			margin-bottom: 0;
+			vertical-align: middle;
+		}
+		.form-control {
+			display: inline-block;
+			width: auto;
+			vertical-align: middle;
+		}
+		.input-group {
+			display: inline-table;
+			vertical-align: middle;
+
+			.form-control {
+				width: auto;
+			}
+			> .form-control {
+				width: 100%;
+			}
+		}
+		.control-label {
+			margin-bottom: 0;
+			vertical-align: middle;
+		}
+		.checkbox {
+			display: inline-block;
+			margin-top: 0;
+			margin-bottom: 0;
+			vertical-align: middle;
+
+			label {
+				padding-left: 0;
+			}
+			input[type="checkbox"] {
+				position: relative;
+				margin-left: 0;
+			}
+		}
+	}
+}

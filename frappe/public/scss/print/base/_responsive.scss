@@ -1,0 +1,83 @@
+@use "sass:list";
+
+$visibility-breakpoints: (
+	xs: "(max-width: 767px)",
+	sm: "(min-width: 768px) and (max-width: 991px)",
+	md: "(min-width: 992px) and (max-width: 1199px)",
+	lg: "(min-width: 1200px)",
+);
+$visibility-displays: block, inline, inline-block;
+
+@mixin visible($class) {
+	.#{$class} {
+		display: block !important;
+	}
+	table.#{$class} {
+		display: table;
+	}
+	tr.#{$class} {
+		display: table-row !important;
+	}
+	th.#{$class},
+	td.#{$class} {
+		display: table-cell !important;
+	}
+}
+
+$visible: ();
+$visible-displays: ();
+@each $size, $query in $visibility-breakpoints {
+	$visible: list.append($visible, ".visible-#{$size}", comma);
+	@each $display in $visibility-displays {
+		$visible-displays: list.append($visible-displays, ".visible-#{$size}-#{$display}", comma);
+	}
+}
+
+#{$visible},
+#{$visible-displays} {
+	display: none !important;
+}
+
+@each $size, $query in $visibility-breakpoints {
+	@media #{$query} {
+		@include visible(visible-#{$size});
+
+		@each $display in $visibility-displays {
+			.visible-#{$size}-#{$display} {
+				display: $display !important;
+			}
+		}
+	}
+}
+
+@each $size, $query in $visibility-breakpoints {
+	@media #{$query} {
+		.hidden-#{$size} {
+			display: none !important;
+		}
+	}
+}
+
+.visible-print {
+	display: none !important;
+}
+@media print {
+	@include visible(visible-print);
+}
+
+@each $display in $visibility-displays {
+	.visible-print-#{$display} {
+		display: none !important;
+	}
+	@media print {
+		.visible-print-#{$display} {
+			display: $display !important;
+		}
+	}
+}
+
+@media print {
+	.hidden-print {
+		display: none !important;
+	}
+}

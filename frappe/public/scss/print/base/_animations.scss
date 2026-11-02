@@ -1,0 +1,71 @@
+.fade {
+	opacity: 0;
+	transition: opacity 0.15s linear;
+
+	&.in {
+		opacity: 1;
+	}
+}
+
+.collapse {
+	display: none;
+	visibility: hidden;
+
+	&.in {
+		display: block;
+		visibility: visible;
+	}
+}
+
+tr.collapse.in {
+	display: table-row;
+}
+
+tbody.collapse.in {
+	display: table-row-group;
+}
+
+[data-toggle="buttons"] {
+	> .btn,
+	> .btn-group > .btn {
+		input[type="radio"],
+		input[type="checkbox"] {
+			position: absolute;
+			clip: rect(0, 0, 0, 0);
+			pointer-events: none;
+		}
+	}
+}
+
+a.badge:hover,
+a.badge:focus {
+	color: #fff;
+	text-decoration: none;
+	cursor: pointer;
+}
+
+.close {
+	float: right;
+	font-size: 21px;
+	font-weight: bold;
+	line-height: 1;
+	color: #000;
+	text-shadow: 0 1px 0 #fff;
+	opacity: 0.2;
+
+	&:hover,
+	&:focus {
+		color: #000;
+		text-decoration: none;
+		cursor: pointer;
+		opacity: 0.5;
+	}
+}
+
+button.close {
+	-webkit-appearance: none;
+	padding: 0;
+	cursor: pointer;
+	background: transparent;
+	border: 0;
+}
