@@ -98,9 +98,8 @@ frappe.ui.BackgroundTasks = class BackgroundTasks {
 						let $task = this.body.find(`[data-task-id="${data.task_id}"]`);
 						if (data.progress !== undefined) {
 							$task
-								.find(".progress-bar")
-								.css("width", `${data.progress}%`)
-								.attr("aria-valuenow", data.progress);
+								.find(".es-progress")
+								.replaceWith(this.get_progress_html(data.progress));
 						}
 						if (data.stage !== undefined) {
 							$task.find(".bg-task-stage").text(data.stage);
@@ -195,16 +194,20 @@ frappe.ui.BackgroundTasks = class BackgroundTasks {
 		`);
 	}
 
+	get_progress_html(value) {
+		return frappe.ui.progress.html({ value: flt(value), size: "md", css_class: "mt-2" });
+	}
+
 	get_task_html(task) {
 		const status_colors = {
-			Running: { bg: "bg-primary", color: "blue" },
-			Completed: { bg: "bg-success", color: "green" },
-			Failed: { bg: "bg-danger", color: "red" },
-			Queued: { bg: "bg-warning", color: "amber" },
-			Cancelled: { bg: "bg-secondary", color: "gray" },
+			Running: "blue",
+			Completed: "green",
+			Failed: "red",
+			Queued: "amber",
+			Cancelled: "gray",
 		};
 
-		const { bg: bg_class, color } = status_colors[task.status] || status_colors["Running"];
+		const color = status_colors[task.status] || status_colors["Running"];
 		let progress = task.progress || 0;
 
 		let progress_bar = "";
@@ -215,9 +218,7 @@ frappe.ui.BackgroundTasks = class BackgroundTasks {
 
 			let bar_html = "";
 			if (task.show_progress_bar !== 0) {
-				bar_html = `<div class="progress">
-					<div class="progress-bar ${bg_class}" role="progressbar" style="width: ${progress}%;" aria-valuenow="${progress}" aria-valuemin="0" aria-valuemax="100"></div>
-				</div>`;
+				bar_html = this.get_progress_html(progress);
 			}
 
 			progress_bar = `

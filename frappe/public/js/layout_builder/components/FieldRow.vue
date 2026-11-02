@@ -68,22 +68,17 @@ function toggle(prop, event) {
 				field.label || base.label || field.fieldname
 			}}</span>
 			<span class="text-muted small ms-1">({{ field.fieldname }})</span>
-			<span v-if="is_hidden" class="badge badge-muted ms-1" style="font-size: 0.7em">{{
-				__("Hidden")
-			}}</span>
-			<span v-if="field.reqd" class="badge badge-danger ms-1" style="font-size: 0.7em">{{
+			<span v-if="is_hidden" class="es-badge ms-1" data-size="sm">{{ __("Hidden") }}</span>
+			<span v-if="field.reqd" class="es-badge ms-1" data-size="sm" data-theme="red">{{
 				__("Req")
 			}}</span>
-			<span
-				v-if="field.read_only"
-				class="badge badge-warning ms-1"
-				style="font-size: 0.7em"
-				>{{ __("RO") }}</span
-			>
+			<span v-if="field.read_only" class="es-badge ms-1" data-size="sm" data-theme="amber">{{
+				__("RO")
+			}}</span>
 		</span>
 
 		<!-- fieldtype badge -->
-		<span class="badge badge-secondary lb-field-type">{{ fieldtype }}</span>
+		<span class="es-badge lb-field-type" data-size="sm">{{ fieldtype }}</span>
 
 		<!-- quick toggles (non-structural only) -->
 		<template v-if="!is_structural">
@@ -174,7 +169,6 @@ function toggle(prop, event) {
 }
 
 .lb-field-type {
-	font-size: 0.7em;
 	flex-shrink: 0;
 }
 

@@ -9,12 +9,19 @@ frappe.ui.form.on("Security Settings", {
 		$(wrapper)
 			.find(".section-body")
 			.prepend(
-				`<div class="alert alert-warning border d-flex justify-content-between align-items-center security-txt-banner" style="flex: 0 0 100%; max-width: 100%; border-color: var(--border-color);">
-					<span>${__("Security.txt will be served only under HTTPS.")}</span>
-					<a href="https://tools.ietf.org/html/rfc9116#section-6.7" target="_blank" class="btn btn-xs btn-secondary">${__(
-						"Learn more"
-					)}</a>
-				</div>`
+				frappe.ui.alert({
+					theme: "yellow",
+					title: __("Security.txt will be served only under HTTPS."),
+					css_class: "security-txt-banner",
+					attrs: { style: "flex: 0 0 100%; max-width: 100%;" },
+					footer: frappe.ui.button({
+						label: __("Learn more"),
+						variant: "outline",
+						size: "xs",
+						href: "https://tools.ietf.org/html/rfc9116#section-6.7",
+						attrs: { target: "_blank", rel: "noopener noreferrer" },
+					}),
+				})
 			);
 	},
 });

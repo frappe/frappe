@@ -225,9 +225,19 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 
 	set_alert(text, alert_class = "info") {
 		this.clear_alert();
-		this.$alert = $(`<div class="alert alert-${alert_class}">${text}</div>`).prependTo(
-			this.body
-		);
+		const theme = {
+			info: "blue",
+			blue: "blue",
+			warning: "yellow",
+			yellow: "yellow",
+			orange: "yellow",
+			danger: "red",
+			red: "red",
+			success: "green",
+			green: "green",
+		}[alert_class];
+		this.$alert = frappe.ui.alert({ theme }).prependTo(this.body);
+		this.$alert.find(".es-alert__title").html(text);
 		this.$message.text(text);
 	}
 

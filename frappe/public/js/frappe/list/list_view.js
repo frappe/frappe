@@ -1730,12 +1730,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		const format = () => {
 			if (df.fieldtype === "Percent") {
-				return `<div class="progress" style="margin: 0px;">
-						<div class="progress-bar progress-bar-success" role="progressbar"
-							aria-valuenow="${value}"
-							aria-valuemin="0" aria-valuemax="100" style="width: ${Math.round(value)}%;">
-						</div>
-					</div>`;
+				return frappe.ui.progress.html({ value: flt(value), size: "md" });
 			} else if (df.fieldtype === "Data") {
 				return frappe.format(frappe.utils.escape_html(value), df, null, doc);
 			} else {

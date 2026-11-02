@@ -284,9 +284,17 @@ frappe.ui.form.on("Customize Form", {
 								fieldtype: "Check",
 								fieldname: "apply_module_export_filter",
 								label: __("Apply Module Export Filter"),
-								description: __(
-									"Export only customizations assigned to the selected module.<br><span class='text-muted'><strong>Note:</strong> You must set the <em>Module (for export)</em> field on Custom Field and Property Setter records before applying this filter.</span><p class='alert alert-warning'> <strong>Warning:</strong> Customizations from other modules will be excluded.</p>"
-								),
+								description:
+									__(
+										"Export only customizations assigned to the selected module.<br><span class='text-muted'><strong>Note:</strong> You must set the <em>Module (for export)</em> field on Custom Field and Property Setter records before applying this filter.</span>"
+									) +
+									frappe.ui.alert.html({
+										theme: "yellow",
+										title: __(
+											"Customizations from other modules will be excluded."
+										),
+										css_class: "mt-2",
+									}),
 								default: 0,
 							},
 						],
