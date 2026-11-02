@@ -68,7 +68,7 @@ $dropdown-item-padding-x: var(--padding-sm);
 $spacer: 14px;
 // bootstrap derives its control heights before frappe's 28px input height applies
 $input-height: null;
-@import "~bootstrap/scss/functions";
-@import "~bootstrap/scss/variables";
-@import "~bootstrap/scss/mixins";
+@import "../website/foundation/functions";
+@import "../website/foundation/variables";
+@import "../website/foundation/mixins";
 $input-height: 28px;
