@@ -75,7 +75,12 @@ class FlowLauncher {
 		this.panel.inert = this.chat.inert = false;
 		this.place();
 		this.save();
-		if (focus) this.island.ready.then(() => this.focus_chat());
+		// a failed start is logged once, where the island is made
+		if (focus)
+			this.island.ready.then(
+				() => this.focus_chat(),
+				() => {}
+			);
 	}
 
 	// where the keyboard was in the chat, or its message box

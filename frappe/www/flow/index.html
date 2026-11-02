@@ -25,8 +25,12 @@
 		</script>
 		<script type="module">
 			const boot = {{ boot | tojson }};
-			const { mount } = await import({{ island_js | tojson }});
-			mount(document.getElementById("app"), {
+			const app = document.getElementById("app");
+			const { mount } = await import({{ island_js | tojson }}).catch((error) => {
+				app.textContent = "Flow could not start. Reload the page to try again.";
+				throw error;
+			});
+			mount(app, {
 				host: {
 					locale: document.documentElement.lang,
 					user: boot.flow_boot.user?.name ?? null,
