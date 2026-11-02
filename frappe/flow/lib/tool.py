@@ -30,6 +30,10 @@ class ToolContext:
 	agent: str
 	user: str
 	result_token: str | None = None
+	# the call runs unapproved in a read-only transaction: what reaches outside it is stopped
+	read_only: bool = False
+	# a failed write undone, or a call stopped, in this call, so code that catches it still fails
+	failure: Exception | None = None
 
 
 @dataclass
@@ -46,7 +50,7 @@ class Tool:
 	description: str
 	parameters: dict[str, Any]
 	func: Callable[..., Any]
-	requires_confirmation: bool = False
+	requires_confirmation: bool | Callable[[dict[str, Any]], bool] = False
 	confirm_prompt: Callable[[dict[str, Any]], str] | None = None
 	background: bool | Callable[[dict[str, Any]], bool] = False
 	display_template: str | None = None
@@ -87,7 +91,7 @@ def tool(
 	*,
 	name: str | None = None,
 	description: str | None = None,
-	requires_confirmation: bool = False,
+	requires_confirmation: bool | Callable[[dict[str, Any]], bool] = False,
 	confirm_prompt: Callable[[dict[str, Any]], str] | None = None,
 	background: bool | Callable[[dict[str, Any]], bool] = False,
 	display_template: str | None = None,

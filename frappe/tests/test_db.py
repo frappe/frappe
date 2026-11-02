@@ -1092,6 +1092,54 @@ class TestTransactionManagement(IntegrationTestCase):
 		self.assertEqual(_get_transaction_id(), _get_transaction_id())
 
 
+class TestReadOnlyTransaction(IntegrationTestCase):
+	def setUp(self):
+		frappe.db.rollback()
+
+	def test_reads_work_and_every_write_is_refused(self):
+		with frappe.db.read_only():
+			self.assertTrue(frappe.db.exists("User", "Administrator"))
+			self.assertRaises(frappe.InReadOnlyMode, frappe.get_doc(doctype="ToDo", description="x").insert)
+			# a commit inside begins another read-only transaction, and runs no after-commit callback
+			ran = []
+			frappe.db.after_commit.add(lambda: ran.append(1))
+			frappe.db.commit()
+			self.assertRaises(frappe.InReadOnlyMode, frappe.db.set_value, "User", "Guest", "bio", "x")
+			frappe.db.rollback()
+			self.assertRaises(frappe.InReadOnlyMode, frappe.db.set_value, "User", "Guest", "bio", "x")
+			self.assertEqual(ran, [])
+		self.assertFalse(frappe.db.in_read_only_transaction)
+		todo = frappe.get_doc(doctype="ToDo", description="after").insert()
+		self.assertTrue(frappe.db.exists("ToDo", todo.name))
+
+	@run_only_if(db_type_is.MARIADB)
+	def test_ddl_cannot_leave_it(self):
+		with frappe.db.read_only():
+			self.assertRaises(frappe.InReadOnlyMode, frappe.db.sql, "create table `_read_only_t` (a int)")
+			frappe.db.sql("commit")
+			self.assertRaises(frappe.InReadOnlyMode, frappe.db.set_value, "User", "Guest", "bio", "x")
+
+	def test_nested_use_keeps_the_outer_one(self):
+		with frappe.db.read_only():
+			with frappe.db.read_only():
+				pass
+			self.assertTrue(frappe.db.in_read_only_transaction)
+			self.assertRaises(frappe.InReadOnlyMode, frappe.db.set_value, "User", "Guest", "bio", "x")
+
+	def test_an_open_transaction_with_writes_must_end_first(self):
+		frappe.db.set_value("User", "Guest", "bio", "before")
+		with self.assertRaises(frappe.ValidationError):
+			with frappe.db.read_only():
+				pass
+		self.assertFalse(frappe.db.in_read_only_transaction)
+		self.assertEqual(frappe.db.get_value("User", "Guest", "bio"), "before")
+
+	def test_an_error_log_inside_is_deferred(self):
+		with frappe.db.read_only():
+			frappe.log_error("read-only scope")
+			self.assertEqual(frappe.db.transaction_writes, 0)
+
+
 # Treat same DB as replica for tests, a separate connection will be opened
 class TestReplicaConnections(IntegrationTestCase):
 	def test_switching_to_replica(self):

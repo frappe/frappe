@@ -14,7 +14,7 @@ from __future__ import annotations
 import json
 import mimetypes
 from functools import partial
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, NoReturn
 
 import RestrictedPython.Guards
 from RestrictedPython import safe_globals
@@ -186,6 +186,7 @@ _SKIP_BUILTINS = frozenset(
 		"search_attachments",
 		"update_memory",
 		"load_skill",
+		"request_secret",
 	}
 )
 
@@ -195,11 +196,45 @@ def _flow_builtins(tool_context: ToolContext | None = None) -> dict[str, Any]:
 	`execute` and the bound tools are left out."""
 	from frappe.flow.tools.builtins import BUILTIN_TOOLS
 
-	return {t.name: partial(t.func, ctx=tool_context) for t in BUILTIN_TOOLS if t.name not in _SKIP_BUILTINS}
+	out = {t.name: partial(t.func, ctx=tool_context) for t in BUILTIN_TOOLS if t.name not in _SKIP_BUILTINS}
+	# the code's own transaction holds its calls, read-only or approved
+	out["run_action"] = partial(_sandbox_run_action, ctx=tool_context)
+	return out
+
+
+class NeedsApproval(Exception):
+	"""Read-only code tried to reach outside the database."""
+
+
+def _stop(what: str, ctx: ToolContext | None, *args: Any, **kwargs: Any) -> NoReturn:
+	stop = NeedsApproval(_("{0} can't run in read-only code.").format(what))
+	# the code may catch the exception
+	if ctx is not None:
+		ctx.failure = stop
+	raise stop
+
+
+def _sandbox_run_action(doctype: str, names: list[str], action: str, args=None, *, ctx: ToolContext | None):
+	from frappe.flow.tools.builtins import _run_action, function_title, is_function_path, is_read_function
+
+	if ctx is not None and ctx.read_only and not is_read_function(action):
+		_stop(function_title(action) if is_function_path(action) else action, ctx)
+	return _run_action(doctype, names, action, args, ctx=ctx)
+
+
+def _call_read_function(ctx: ToolContext, function: str, **kwargs: Any) -> Any:
+	from frappe.flow.tools.builtins import is_read_function
+
+	if not is_read_function(function):
+		_stop(function, ctx)
+	return call_whitelisted_function(function, **kwargs)
 
 
 def get_flow_safe_globals(*, tool_context: ToolContext | None = None) -> NamespaceDict:
+	"""Code that runs as `read_only` (`tool_context.read_only`) gets a stop instead of what reaches
+	outside the database: jobs, email, and functions not marked read-only."""
 	user = frappe.session.user
+	read_only = tool_context is not None and tool_context.read_only
 
 	out = NamespaceDict(
 		json=NamespaceDict(loads=json.loads, dumps=json.dumps),
@@ -213,8 +248,8 @@ def get_flow_safe_globals(*, tool_context: ToolContext | None = None) -> Namespa
 		html2text=html2text,
 		guess_mimetype=mimetypes.guess_type,
 		frappe=NamespaceDict(
-			call=call_whitelisted_function,
-			enqueue=safe_enqueue,
+			call=partial(_call_read_function, tool_context) if read_only else call_whitelisted_function,
+			enqueue=partial(_stop, "frappe.enqueue", tool_context) if read_only else safe_enqueue,
 			is_job_queued=is_job_queued,
 			user=user,
 			session=frappe._dict(user=user),
@@ -224,7 +259,7 @@ def get_flow_safe_globals(*, tool_context: ToolContext | None = None) -> Namespa
 			get_list=_permissioned_get_list,
 			get_print=_gated_get_print,
 			attach_print=_gated_attach_print,
-			sendmail=_gated_sendmail,
+			sendmail=partial(_stop, "frappe.sendmail", tool_context) if read_only else _gated_sendmail,
 			log=frappe.log,
 			log_error=safer_log_error,
 			msgprint=frappe.msgprint,

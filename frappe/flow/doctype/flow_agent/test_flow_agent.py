@@ -277,6 +277,13 @@ class TestFlowAgentClientTools(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.rollback()
 
+	def test_reading_the_page_needs_no_card(self):
+		self.agent_doc.append("tools", {"tool": "frappe/read_screen"})
+		self.agent_doc.save()
+		config = self.agent_doc.session_tool_config()
+		self.assertIn("read_screen", [tool["function"]["name"] for tool in config["client_tools"]])
+		self.assertEqual(config["confirm_tools"], ["execute"])
+
 	def test_each_enabled_tool_travels_as_its_kind(self):
 		frappe.get_doc(
 			{

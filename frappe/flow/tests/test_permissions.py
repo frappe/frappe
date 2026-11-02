@@ -100,7 +100,7 @@ class TestFlowAccess(IntegrationTestCase):
 			"attach_file": {"file": "x"},
 			"cleanup_attachments": {"session": session.name},
 			"skills": {"session": session.name},
-			"screen_result": {"session": session.name, "token": "t", "error": "x"},
+			"save_secret": {"session": session.name, "call_id": "c1", "password": "x"},
 		}
 		self.assertEqual(set(calls), set(api.__all__))
 		frappe.set_user(outsider)

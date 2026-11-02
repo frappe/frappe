@@ -116,6 +116,8 @@ def _dispatch(
 	if tool is None:
 		return _error(_("Unknown tool {0}.").format(name))
 	if mode == "confirm":
+		if not _requires_confirmation(tool, args):
+			return {"requires_confirmation": False}
 		return {"prompt": confirm_prompt(tool, args)}
 	# the job itself passes no token
 	if result_token and (tool.background(args) if callable(tool.background) else tool.background):
@@ -183,6 +185,16 @@ def _text(result: Any) -> str:
 	return json.dumps(result, default=str)
 
 
+def _requires_confirmation(tool: Tool, args: dict) -> bool:
+	"""The tool's own answer for this call; a card when it has none per call or can't give one."""
+	if not callable(tool.requires_confirmation):
+		return True
+	try:
+		return bool(tool.requires_confirmation(args))
+	except Exception:
+		return True
+
+
 def confirm_prompt(tool: Tool, args: dict) -> str:
 	"""First line: what is being approved, in plain English. Then the tool's own summary,
 	else its arguments."""
@@ -200,8 +212,15 @@ def confirm_title(name: str, args: dict) -> str:
 	if name == "delete" and doctype:
 		return _count("Delete 1 {0} record", "Delete {0} {1} records", args.get("names"), doctype)
 	if name == "run_action" and action:
+		from frappe.flow.tools.builtins import function_title, is_function_path
+
+		if is_function_path(action):
+			return function_title(action)
 		target = f"{_list_count_or_one(args.get('names'))} {doctype}" if doctype else _("records")
 		return _('Run "{0}" on {1}').format(_humanize(action), target)
+	if name == "request_secret" and doctype and frappe.db.exists("DocType", doctype):
+		label = frappe.get_meta(doctype).get_label(args.get("fieldname"))
+		return _("Enter {0} for {1} {2}").format(_(label), _(doctype), args.get("name"))
 	if name == "execute":
 		description = args.get("description")
 		return (description.strip() if isinstance(description, str) else "") or _("Run Python code")

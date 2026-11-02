@@ -94,6 +94,7 @@ class TestToolCallback(IntegrationTestCase):
 		attached = (
 			"frappe/read_records",
 			"frappe/delete",
+			"frappe/run_action",
 			"frappe/execute",
 			"frappe/update_memory",
 			"frappe/search_attachments",
@@ -395,11 +396,86 @@ class TestToolCallback(IntegrationTestCase):
 				run_background_tool(*args, start_by=time.time() + 60)
 		self.assertEqual([call.args[0] for call in sleep.call_args_list], [0, 1, 0, 1, 5])
 
+	def test_confirm_mode_answers_that_a_read_needs_no_card_and_runs_nothing(self):
+		creates = 'create("ToDo", [{"description": "ran at confirm"}])'
+		reads = {
+			"run_action": {
+				"doctype": "",
+				"names": [],
+				"action": "frappe.flow.tests.test_ai_builtins.read_only_whoami",
+			},
+			"execute": {"code": creates, "description": "Look", "read_only": True},
+		}
+		for name, args in reads.items():
+			with self.subTest(name):
+				self.assertEqual(self.call(name, args, mode="confirm"), {"requires_confirmation": False})
+		asks = {
+			"run_action": {"doctype": "", "names": [], "action": "frappe.client.set_value"},
+			"execute": {"code": creates, "description": "Look"},
+		}
+		for name, args in asks.items():
+			with self.subTest(name):
+				self.assertIn("prompt", self.call(name, args, mode="confirm"))
+		self.assertFalse(frappe.db.exists("ToDo", {"description": "ran at confirm"}))
+
+	def test_a_function_card_names_its_record_by_title_the_user_may_read(self):
+		def todo(description, assigned_by):
+			return frappe.get_doc(
+				{"doctype": "ToDo", "description": description, "assigned_by": assigned_by}
+			).insert(ignore_permissions=True)
+
+		mine = todo("<p>Call the courier about the delayed Pune shipment</p>", OWNER)
+		hidden = todo("Someone else's task", "Administrator")
+		for record, shown in (
+			(mine, "Call the courier about the delayed Pune shipment"),
+			(hidden, hidden.name),
+		):
+			with self.subTest(shown):
+				args = {"doctype": "ToDo", "name": record.name, "assign_to": ["Administrator"]}
+				prompt = self.call(
+					"run_action",
+					{"doctype": "", "names": [], "action": "frappe.desk.form.assign_to.add", "args": args},
+					mode="confirm",
+				)["prompt"]
+				self.assertEqual(prompt, f"Assign To: Add\nToDo: {shown}\nAssign To: Administrator")
+
+	def test_a_set_value_card_names_the_field_by_label_with_its_formatted_value(self):
+		todo = frappe.get_doc(
+			{"doctype": "ToDo", "description": "Renew the Delhivery contract", "assigned_by": OWNER}
+		).insert(ignore_permissions=True)
+		cases = (
+			({"fieldname": "priority", "value": "High"}, "Priority: High"),
+			(
+				{"fieldname": {"date": "2026-11-05", "priority": "Low"}},
+				f"Due Date: {frappe.utils.formatdate('2026-11-05')}\nPriority: Low",
+			),
+		)
+		for values, shown in cases:
+			with self.subTest(shown):
+				args = {"doctype": "ToDo", "name": todo.name, **values}
+				prompt = self.call(
+					"run_action",
+					{"doctype": "", "names": [], "action": "frappe.client.set_value", "args": args},
+					mode="confirm",
+				)["prompt"]
+				self.assertEqual(prompt, f"Client: Set Value\nToDo: Renew the Delhivery contract\n{shown}")
+
 	def test_confirm_mode_prompts_a_title_line_then_the_tools_own_summary(self):
 		prompt = self.call("delete", {"doctype": "ToDo", "names": ["a", "b"]}, mode="confirm")["prompt"]
 		self.assertEqual(prompt, "Delete 2 ToDo records\nDelete 2 ToDo: a, b")
 		prompt = self.call("execute", {"code": "result = 1", "description": "Count things"}, mode="confirm")
-		self.assertEqual(prompt["prompt"], "Count things\nCount things:\n\nresult = 1")
+		self.assertEqual(prompt["prompt"], "Count things\nCount things")
+		prompt = self.call(
+			"run_action",
+			{
+				"doctype": "",
+				"names": [],
+				"action": "frappe.desk.form.assign_to.add",
+				"args": {"assign_to": ["a"]},
+			},
+			mode="confirm",
+		)["prompt"]
+		self.assertEqual(prompt, "Assign To: Add\nAssign To: a")
 		prompt = self.call("boom", {"reason": "x"}, mode="confirm")["prompt"]
 		self.assertEqual(prompt, 'Boom\n{\n  "reason": "x"\n}')
 
@@ -415,6 +491,7 @@ class TestToolCallback(IntegrationTestCase):
 				'Run "Submit" on 2 Sales Order',
 			),
 			("run_action", {"action": "send_sms"}, 'Run "Send sms" on records'),
+			("run_action", {"action": "erpnext.selling.get_sales"}, "Selling: Get Sales"),
 			("execute", {"description": "  Count things ", "code": ""}, "Count things"),
 			("execute", {"code": "x"}, "Run Python code"),
 			("create", {"records": []}, "Create"),
