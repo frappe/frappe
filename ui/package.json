@@ -53,6 +53,10 @@
       "import": "./src/components/ColumnSettings/index.ts",
       "types": "./src/components/ColumnSettings/index.ts"
     },
+    "./GroupBy": {
+      "import": "./src/components/GroupBy/index.ts",
+      "types": "./src/components/GroupBy/index.ts"
+    },
     "./fields": {
       "import": "./src/components/Fields/index.ts",
       "types": "./src/components/Fields/index.ts"

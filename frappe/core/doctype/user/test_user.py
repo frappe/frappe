@@ -71,6 +71,106 @@ class TestUser(FrappeTestCase):
 		delete_contact(new_user.name)
 		frappe.delete_doc("User", new_user.name)
 
+	def test_frappe_social_login_userid_is_immutable(self):
+		user_id = frappe.generate_hash() + "@example.com"
+		user = frappe.get_doc(doctype="User", email=user_id, first_name="Tester").insert()
+		self.addCleanup(frappe.delete_doc, "User", user.name, force=True)
+
+		original_userid = user.get_social_login_userid("frappe")
+		self.assertTrue(original_userid)
+		row_name = user.social_logins[0].name
+
+		# the owner can be granted write on their own record, e.g. through sharing
+		frappe.share.add("User", user.name, user.name, write=1)
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user(user.name)
+
+		# a write cannot change the OIDC `sub`, even though `userid` is only read_only in the form
+		user = frappe.get_doc("User", user.name)
+		user.social_logins[0].userid = "Administrator"
+		user.save()
+		self.assertEqual(frappe.db.get_value("User Social Login", row_name, "userid"), original_userid)
+
+		# nor can it be replaced by dropping the row and appending a crafted one
+		user.social_logins = []
+		user.set_social_login_userid("frappe", "Administrator")
+		user.save()
+		self.assertEqual(
+			frappe.db.get_value("User Social Login", {"parent": user.name, "provider": "frappe"}, "userid"),
+			original_userid,
+		)
+
+		# nor through a direct save of the child row, which skips the parent controller
+		row_name = frappe.db.get_value(
+			"User Social Login", {"parent": user.name, "provider": "frappe"}, "name"
+		)
+		child = frappe.get_doc("User Social Login", row_name)
+		child.userid = "Administrator"
+		self.assertRaises(frappe.ValidationError, child.save)
+		self.assertEqual(frappe.db.get_value("User Social Login", row_name, "userid"), original_userid)
+
+		# nor by relabeling the frappe row as another provider to smuggle a userid back in
+		child = frappe.get_doc("User Social Login", row_name)
+		child.provider = "custom"
+		child.userid = "Administrator"
+		self.assertRaises(frappe.ValidationError, child.save)
+		self.assertEqual(frappe.db.get_value("User Social Login", row_name, "provider"), "frappe")
+
+	def insert_user_as_manager(self, first_name, username=None):
+		if frappe.session.user == "Administrator":
+			manager = frappe.get_doc(
+				doctype="User",
+				email=f"{frappe.generate_hash()}@example.com",
+				first_name="Manager",
+				roles=[{"role": "System Manager"}],
+			).insert()
+			self.addCleanup(delete_user, manager.name)
+			frappe.set_user(manager.name)
+
+		user = frappe.get_doc(
+			doctype="User",
+			email=f"{frappe.generate_hash()}@example.com",
+			first_name=first_name,
+			username=username,
+		).insert()
+		self.addCleanup(delete_user, user.name)
+		return user
+
+	def test_username_from_a_taken_first_name(self):
+		first_name = f"Tester {frappe.generate_hash(length=8)}"
+		base = frappe.scrub(first_name)
+		first = self.insert_user_as_manager(first_name)
+		self.insert_user_as_manager("Decoy", username=f"{base}-\u00b2")
+		second = self.insert_user_as_manager(first_name)
+
+		self.assertEqual(first.username, base)
+		self.assertEqual(second.username, f"{base}-1")
+
+	def test_username_from_a_first_name_taken_with_accents(self):
+		suffix = frappe.generate_hash(length=8)
+		self.insert_user_as_manager("Accented", username=f"jos\u00e9{suffix}")
+		self.insert_user_as_manager("Accented", username=f"jos\u00e9{suffix}-1")
+		user = self.insert_user_as_manager(f"Jose{suffix}")
+
+		self.assertTrue(user.username)
+
+	def test_username_taken_while_the_user_is_saved(self):
+		first_name = f"Tester {frappe.generate_hash(length=8)}"
+		base = frappe.scrub(first_name)
+		self.insert_user_as_manager(first_name)
+		other = self.insert_user_as_manager("Other")
+		validate_username = User.validate_username
+
+		def taken_meanwhile(user):
+			validate_username(user)
+			frappe.db.set_value("User", other.name, "username", user.username)
+
+		with patch.object(User, "validate_username", taken_meanwhile):
+			second = self.insert_user_as_manager(first_name)
+
+		self.assertEqual(second.username, f"{base}-2")
+		self.assertFalse([m for m in frappe.message_log if "unique" in str(m)])
+
 	def test_delete(self):
 		frappe.get_doc("User", "test@example.com").add_roles("_Test Role 2")
 		self.assertRaises(frappe.LinkExistsError, delete_doc, "Role", "_Test Role 2")
@@ -494,6 +594,52 @@ class TestUser(FrappeTestCase):
 			"The reset password link has been expired",
 		)
 
+	@contextmanager
+	def outgoing_email_account(self):
+		exists = frappe.db.exists
+
+		def exists_with_outgoing_account(doctype, *args, **kwargs):
+			if doctype == "Email Account":
+				return "Test Outgoing Account"
+			return exists(doctype, *args, **kwargs)
+
+		with patch.object(frappe.db, "exists", side_effect=exists_with_outgoing_account):
+			yield
+
+	def test_second_save_of_new_user_does_not_send_password_changed_alert(self):
+		"""Social login inserts the user through add_roles and saves it again in the same request."""
+		frappe.set_user("Guest")
+		user: User = frappe.new_doc(
+			"User",
+			email="oauth-signup@example.com",
+			first_name="OAuth",
+			user_type="Website User",
+			new_password=frappe.generate_hash(),
+		)
+		user.flags.ignore_permissions = True
+		user.flags.no_welcome_mail = True
+		try:
+			with self.outgoing_email_account(), patch.object(frappe, "sendmail") as sendmail:
+				user.add_roles("_Test Role")
+				user.save()
+
+			sendmail.assert_not_called()
+		finally:
+			frappe.set_user("Administrator")
+			user.delete(force=True, ignore_permissions=True)
+
+	def test_password_change_by_user_still_sends_password_changed_alert(self):
+		with test_user(roles=["_Test Role"]) as created:
+			frappe.set_user(created.name)
+			user: User = frappe.get_doc("User", created.name)
+			user.new_password = "Eastern_43A1W_changed"
+			with self.outgoing_email_account(), patch.object(frappe, "sendmail") as sendmail:
+				user.save()
+
+			sendmail.assert_called_once()
+			self.assertEqual(sendmail.call_args.kwargs["recipients"], [created.email])
+			frappe.set_user("Administrator")
+
 
 class TestImpersonation(FrappeAPITestCase):
 	def test_impersonation(self):
@@ -527,6 +673,13 @@ def test_user(
 	finally:
 		user.delete(force=True, ignore_permissions=True)
 		commit and frappe.db.commit()
+
+
+def delete_user(user):
+	frappe.delete_doc("User", user, force=True, ignore_permissions=True)
+	# a user that outlives the class rollback keeps counting against throttle_user_creation
+	# for every module that runs later
+	frappe.db.commit()  # nosemgrep
 
 
 def delete_contact(user):

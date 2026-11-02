@@ -221,7 +221,7 @@ def set_value(doctype: str, name: str | int, fieldname: str | dict[str, Any], va
 
 	doc.save()
 
-	return doc.as_dict()
+	return doc.copy_with_fieldlevel_read_permissions().as_dict()
 
 
 @frappe.whitelist(methods=["POST", "PUT"])
@@ -232,7 +232,7 @@ def insert(doc: str | dict[str, Any] | None = None):
 	if isinstance(doc, str):
 		doc = json.loads(doc)
 
-	return insert_doc(doc).as_dict()
+	return insert_doc(doc).copy_with_fieldlevel_read_permissions().as_dict()
 
 
 @frappe.whitelist(methods=["POST", "PUT"])
@@ -260,7 +260,7 @@ def save(doc: str | dict[str, Any]):
 	doc = frappe.get_doc(doc)
 	doc.save()
 
-	return doc.as_dict()
+	return doc.copy_with_fieldlevel_read_permissions().as_dict()
 
 
 @frappe.whitelist(methods=["POST", "PUT"])
@@ -285,7 +285,7 @@ def submit(doc: str | dict[str, Any]):
 	doc = frappe.get_doc(doc)
 	doc.submit()
 
-	return doc.as_dict()
+	return doc.copy_with_fieldlevel_read_permissions().as_dict()
 
 
 @frappe.whitelist(methods=["POST", "PUT"])
@@ -297,7 +297,7 @@ def cancel(doctype: str, name: str | int):
 	wrapper = frappe.get_doc(doctype, name)
 	wrapper.cancel()
 
-	return wrapper.as_dict()
+	return wrapper.copy_with_fieldlevel_read_permissions().as_dict()
 
 
 @frappe.whitelist(methods=["DELETE", "POST"])

@@ -1,3 +1,4 @@
+import json
 import re
 
 import frappe
@@ -82,3 +83,9 @@ def add_line_number(messages, code):
 			newline_i += 1
 		ret.append([line, message, context])
 	return ret
+
+
+def get_line_number(text: str, key: str, value: str) -> int | None:
+	"""Return the line number of `"key": "value"` in JSON text written by `frappe.as_json`."""
+	index = text.find(f"{json.dumps(key)}: {json.dumps(value)}")
+	return text.count("\n", 0, index) + 1 if index >= 0 else None

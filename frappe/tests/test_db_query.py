@@ -1461,6 +1461,11 @@ def _dn_hook_subquery(user, doctype=None, **kwargs):
 	return f"`tab{doctype}`.`name` in (select name from `tab{doctype}` where 1=0)"
 
 
+def _dn_hook_or(user, doctype=None, **kwargs):
+	"""Returns a condition with a top-level `or` — must not escape the JOIN's `and`."""
+	return f"`tab{doctype}`.`name` = '__no_match__' or `tab{doctype}`.`secret` = 'up_a'"
+
+
 class TestDotNotationPermission(FrappeTestCase):
 	"""dot-notation link field queries must respect row-level restrictions on the linked DocType."""
 
@@ -1628,6 +1633,24 @@ class TestDotNotationPermission(FrappeTestCase):
 			frappe.set_user(self.USER)
 			# hook returns "name = '__no_match__'" → JOIN matches nothing → null
 			self.assertIsNone(self._get(self.p_up_a.name, "up_link.secret"))
+
+	def test_permission_hook_with_or_is_parenthesised(self):
+		"""A hook returning `a or b` must be grouped, otherwise the JOIN ON becomes
+		`(name = link and a) or b` and matches rows unrelated to the link field."""
+		hook_path = "frappe.tests.test_db_query._dn_hook_or"
+		orig = frappe.get_hooks
+
+		def patched(*args, **kw):
+			key = args[0] if args else kw.get("hook")
+			if key == "permission_query_conditions":
+				return {self.CHILD_UP: [hook_path]}
+			return orig(*args, **kw)
+
+		with patch.object(frappe, "get_hooks", side_effect=patched):
+			frappe.set_user(self.USER)
+			# linked doc "up_b" fails the hook; it must not borrow "up_a" via the `or` branch
+			self.assertIsNone(self._get(self.p_up_b.name, "up_link.secret"))
+			self.assertEqual(self._get(self.p_up_a.name, "up_link.secret"), "up_a")
 
 	def test_real_user_permission_query_condition_hook_is_aliased(self):
 		frappe.set_user(self.USER)

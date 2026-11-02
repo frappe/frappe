@@ -868,7 +868,8 @@ class TestDateUtils(FrappeTestCase):
 	@given(st.datetimes(timezones=st.timezones()))
 	def test_get_datetime_tz_aware(self, original):
 		parsed = get_datetime(str(original))
-		self.assertEqual(parsed, original)
+		self.assertEqual(parsed.replace(tzinfo=None), original.replace(tzinfo=None))
+		self.assertEqual(parsed.utcoffset(), original.utcoffset())
 
 	def test_pretty_date(self):
 		from frappe import _

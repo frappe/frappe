@@ -51,7 +51,7 @@ from .utils.jinja import (
 )
 from .utils.lazy_loader import lazy_import
 
-__version__ = "15.116.0"
+__version__ = "15.123.1"
 __title__ = "Frappe Framework"
 
 # This if block is never executed when running the code. It is only used for
@@ -213,7 +213,6 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 			"currently_saving": [],
 			"redirect_location": "",
 			"in_install_db": False,
-			"in_install_app": False,
 			"in_import": False,
 			"in_test": False,
 			"mute_messages": False,
@@ -1605,10 +1604,6 @@ def _load_app_hooks(app_name: str | None = None):
 		try:
 			app_hooks = get_module(f"{app}.hooks")
 		except ImportError as e:
-			if local.flags.in_install_app:
-				# if app is not installed while restoring
-				# ignore it
-				pass
 			print(f'Could not find app "{app}": \n{e}')
 			raise
 

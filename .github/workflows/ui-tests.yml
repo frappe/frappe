@@ -87,6 +87,7 @@ jobs:
       - name: Add to Hosts
         run: |
           echo "127.0.0.1 test_site" | sudo tee -a /etc/hosts
+          echo "127.0.0.1 test_site_2" | sudo tee -a /etc/hosts
 
       - name: Cache pip
         uses: actions/cache@v3
@@ -109,11 +110,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-ui-
 
-      - name: Cache cypress binary
+      - name: Cache Playwright browsers
         uses: actions/cache@v3
         with:
-          path: ~/.cache/Cypress
-          key: ${{ runner.os }}-cypress
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('frappe/commands/utils.py') }}
 
       - name: Install Dependencies
         run: |
@@ -136,13 +137,34 @@ jobs:
       - name: Site Setup
         run: |
           cd ~/frappe-bench/
-          bench --site test_site execute frappe.utils.install.complete_setup_wizard
-          bench --site test_site execute frappe.tests.ui_test_helpers.create_test_user
+          # a second site, so the shard can run two workers without sharing data
+          mkdir sites/test_site_2
+          jq '. + {db_name: "test_frappe_2", host_name: "http://test_site_2:8000"}' \
+            sites/test_site/site_config.json > sites/test_site_2/site_config.json
+          bench --site test_site_2 reinstall --yes
+
+          for site in test_site test_site_2; do
+            bench --site $site execute frappe.utils.install.complete_setup_wizard
+            bench --site $site execute frappe.tests.ui_test_helpers.create_test_user
+          done
 
       - name: UI Tests
-        run: cd ~/frappe-bench/ && bench --site test_site run-ui-tests frappe --headless --parallel --ci-build-id $GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT
-        env:
-          CYPRESS_RECORD_KEY: 4a48f41c-11b3-425b-aa88-c58048fa69eb
+        id: ui-tests
+        run: |
+          cd ~/frappe-bench/
+          bench --site test_site run-ui-tests frappe \
+            --headless \
+            --parallel-site test_site_2 \
+            --shard=${{ matrix.container }}/3
+
+      - name: Upload Playwright Report
+        if: always() && steps.ui-tests.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ matrix.container }}
+          path: |
+            ~/frappe-bench/apps/frappe/playwright-report
+            ~/frappe-bench/apps/frappe/test-results
 
       - name: Show bench output
         if: ${{ always() }}

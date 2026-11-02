@@ -1,0 +1,29 @@
+strictness = 2
+comment_types = ["logic", "syntax"]
+auto_review = ["open", "push", "rebase"]
+review_drafts = false
+disabled_labels = ["conflicts", "skip-guard"]
+exclude_authors = ["mergify[bot]", "dependabot[bot]", "github-actions[bot]"]
+ignore_keywords = ["WIP", "[skip review]"]
+ignore_patterns = [
+	"yarn.lock",
+	"**/yarn.lock",
+	"frappe/locale/*.po",
+	"frappe/locale/*.pot",
+	"**/*.min.js",
+	"**/*.min.css",
+	"ui/components.d.ts",
+]
+status_check = true
+update_description = false
+
+[sections.summary]
+included = true
+collapsible = true
+default_open = false
+
+[sections.issues_table]
+included = false
+
+[sections.diagram]
+included = false
