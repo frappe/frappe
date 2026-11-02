@@ -410,7 +410,7 @@ class Browser:
 		updated_options["paperWidth"] = convert_uom(options["page-width"], "px", "in", only_number=True)
 
 		default_margin = (
-			"15mm" if options["page-height"] >= convert_uom(100, "mm", "px", only_number=True) else "0mm"
+			"15mm" if options["page-height"] > convert_uom(30, "mm", "px", only_number=True) else "0mm"
 		)
 		if not self.header_page:
 			options.setdefault("margin-top", default_margin)
