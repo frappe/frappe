@@ -125,7 +125,7 @@ frappe.ui.PrintPages = class PrintPages {
 
 		const pages = [];
 		let start = 0;
-		while (start < total - 1 && pages.length < 500) {
+		while (start < total - 1) {
 			const repeat = pages.length
 				? tables.filter((t) => t.top < start - 0.5 && t.bottom > start + 0.5)
 				: [];
