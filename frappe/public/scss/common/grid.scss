@@ -1036,6 +1036,10 @@ body.grid-col-resizing {
 	min-height: 0;
 }
 
+.grid-import-upload-tabs > .es-tabs__list {
+	flex-shrink: 0;
+}
+
 .grid-import-upload-tabs > .es-tabs__panel {
 	flex: 1 1 auto;
 	min-height: 0;
