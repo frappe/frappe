@@ -44,7 +44,7 @@ export function readScreen(page, chat = null) {
 function inChat(range, chat) {
 	if (!chat || !range) return false;
 	return [range.anchorNode, range.focusNode].some(
-		(node) => node && (chat.contains(node) || node.contains?.(chat))
+		(node) => node && (chat.contains(node) || chat.parentElement?.contains(node))
 	);
 }
 
