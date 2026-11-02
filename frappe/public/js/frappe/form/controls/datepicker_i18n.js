@@ -1,226 +1,72 @@
-import "air-datepicker/dist/js/i18n/datepicker.cs.js";
-import "air-datepicker/dist/js/i18n/datepicker.da.js";
-import "air-datepicker/dist/js/i18n/datepicker.de.js";
-import "air-datepicker/dist/js/i18n/datepicker.en.js";
-import "air-datepicker/dist/js/i18n/datepicker.es.js";
-import "air-datepicker/dist/js/i18n/datepicker.fi.js";
-import "air-datepicker/dist/js/i18n/datepicker.fr.js";
-import "air-datepicker/dist/js/i18n/datepicker.hu.js";
-import "air-datepicker/dist/js/i18n/datepicker.nl.js";
-import "air-datepicker/dist/js/i18n/datepicker.pl.js";
-import "air-datepicker/dist/js/i18n/datepicker.pt-BR.js";
-import "air-datepicker/dist/js/i18n/datepicker.pt.js";
-import "air-datepicker/dist/js/i18n/datepicker.ro.js";
-import "air-datepicker/dist/js/i18n/datepicker.sk.js";
-import "air-datepicker/dist/js/i18n/datepicker.zh.js";
+import ar from "air-datepicker/locale/ar";
+import bg from "air-datepicker/locale/bg";
+import ca from "air-datepicker/locale/ca";
+import cs from "air-datepicker/locale/cs";
+import da from "air-datepicker/locale/da";
+import de from "air-datepicker/locale/de";
+import el from "air-datepicker/locale/el";
+import en from "air-datepicker/locale/en";
+import es from "air-datepicker/locale/es";
+import eu from "air-datepicker/locale/eu";
+import fi from "air-datepicker/locale/fi";
+import fr from "air-datepicker/locale/fr";
+import hr from "air-datepicker/locale/hr";
+import hu from "air-datepicker/locale/hu";
+import id from "air-datepicker/locale/id";
+import it from "air-datepicker/locale/it";
+import ja from "air-datepicker/locale/ja";
+import ko from "air-datepicker/locale/ko";
+import nb from "air-datepicker/locale/nb";
+import nl from "air-datepicker/locale/nl";
+import pl from "air-datepicker/locale/pl";
+import pt from "air-datepicker/locale/pt";
+import pt_BR from "air-datepicker/locale/pt-BR";
+import ro from "air-datepicker/locale/ro";
+import ru from "air-datepicker/locale/ru";
+import si from "air-datepicker/locale/si";
+import sk from "air-datepicker/locale/sk";
+import sl from "air-datepicker/locale/sl";
+import sv from "air-datepicker/locale/sv";
+import th from "air-datepicker/locale/th";
+import tr from "air-datepicker/locale/tr";
+import uk from "air-datepicker/locale/uk";
+import zh from "air-datepicker/locale/zh";
 
-(function ($) {
-	$.fn.datepicker.language["ar"] = {
-		days: ["الأحد", "الأثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعه", "السبت"],
-		daysShort: ["الأحد", "الأثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعه", "السبت"],
-		daysMin: ["الأحد", "الأثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعه", "السبت"],
-		months: [
-			"يناير",
-			"فبراير",
-			"مارس",
-			"أبريل",
-			"مايو",
-			"يونيو",
-			"يوليو",
-			"أغسطس",
-			"سبتمبر",
-			"اكتوبر",
-			"نوفمبر",
-			"ديسمبر",
-		],
-		monthsShort: [
-			"يناير",
-			"فبراير",
-			"مارس",
-			"أبريل",
-			"مايو",
-			"يونيو",
-			"يوليو",
-			"أغسطس",
-			"سبتمبر",
-			"اكتوبر",
-			"نوفمبر",
-			"ديسمبر",
-		],
-		today: "اليوم",
-		clear: "حذف",
-		dateFormat: "dd/mm/yyyy",
-		timeFormat: "hh:ii aa",
-		firstDay: 6,
-	};
-})(jQuery);
-
-(function ($) {
-	$.fn.datepicker.language["gr"] = {
-		days: ["Κυριακή", "Δευτέρα", "Τρίτη", "Τετάρτη", "Πέμπτη", "Παρασκευή", "Σάββατο"],
-		daysShort: ["Κυρ", "Δευ", "Τρι", "Τετ", "Πεμ", "Παρ", "Σαβ"],
-		daysMin: ["Κυ", "Δε", "Τρ", "Τε", "Πε", "Πα", "Σα"],
-		months: [
-			"Ιανουάριος",
-			"Φεβρουάριος",
-			"Μάρτιος",
-			"Απρίλιος",
-			"Μάιος",
-			"Ιούνιος",
-			"Ιούλιος",
-			"Αύγουστος",
-			"Σεπτέμβριος",
-			"Οκτώβριος",
-			"Νοέμβριος",
-			"Δεκέμβριος",
-		],
-		monthsShort: [
-			"Ιαν",
-			"Φεβ",
-			"Μαρ",
-			"Απρ",
-			"Μάι",
-			"Ι/ν",
-			"Ι/λ",
-			"Αυγ",
-			"Σεπ",
-			"Οκτ",
-			"Νοε",
-			"Δεκ",
-		],
-		today: "Σήμερα",
-		clear: "Καθαρισμός",
-		dateFormat: "dd/mm/yyyy",
-		timeFormat: "hh:ii aa",
-		firstDay: 0,
-	};
-})(jQuery);
-
-(function ($) {
-	$.fn.datepicker.language["it"] = {
-		days: ["Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"],
-		daysShort: ["Dom", "Lun", "Mar", "Mer", "Gio", "Ven", "Sab"],
-		daysMin: ["Do", "Lu", "Ma", "Me", "Gi", "Ve", "Sa"],
-		months: [
-			"Gennaio",
-			"Febbraio",
-			"Marzo",
-			"Aprile",
-			"Maggio",
-			"Giugno",
-			"Luglio",
-			"Agosto",
-			"Settembre",
-			"Ottobre",
-			"Novembre",
-			"Dicembre",
-		],
-		monthsShort: [
-			"Gen",
-			"Feb",
-			"Mar",
-			"Apr",
-			"Mag",
-			"Giu",
-			"Lug",
-			"Ago",
-			"Set",
-			"Ott",
-			"Nov",
-			"Dic",
-		],
-		today: "Oggi",
-		clear: "Reset",
-		dateFormat: "dd/mm/yyyy",
-		timeFormat: "hh:ii",
-		firstDay: 1,
-	};
-})(jQuery);
-
-(function ($) {
-	$.fn.datepicker.language["tr"] = {
-		days: ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"],
-		daysShort: ["Paz", "Pzt", "Sal", "Çar", "Per", "Cum", "Cmt"],
-		daysMin: ["Pz", "Pt", "Sa", "Ça", "Pe", "Cu", "Ct"],
-		months: [
-			"Ocak",
-			"Şubat",
-			"Mart",
-			"Nisan",
-			"Mayıs",
-			"Haziran",
-			"Temmuz",
-			"Ağustos",
-			"Eylül",
-			"Ekim",
-			"Kasım",
-			"Aralık",
-		],
-		monthsShort: [
-			"Oca",
-			"Şub",
-			"Mar",
-			"Nis",
-			"May",
-			"Haz",
-			"Tem",
-			"Ağu",
-			"Eyl",
-			"Eki",
-			"Kas",
-			"Ara",
-		],
-		today: "Bugün",
-		clear: "Temizle",
-		dateFormat: "dd.mm.yyyy",
-		timeFormat: "hh:ii",
-		firstDay: 1,
-	};
-})(jQuery);
-
-(function ($) {
-	$.fn.datepicker.language["sv"] = {
-		days: ["Söndag", "Måndag", "Tisdag", "Onsdag", "Torsdag", "Fredag", "Lördag"],
-		daysShort: ["Sön", "Mån", "Tis", "Ons", "Tor", "Fre", "Lör"],
-		daysMin: ["Sö", "Må", "Ti", "On", "To", "Fr", "Lö"],
-		months: [
-			"Januari",
-			"Februari",
-			"Mars",
-			"April",
-			"Maj",
-			"Juni",
-			"Juli",
-			"Augusti",
-			"September",
-			"Oktober",
-			"November",
-			"December",
-		],
-		monthsShort: [
-			"Jan",
-			"Feb",
-			"Mar",
-			"Apr",
-			"Maj",
-			"Jun",
-			"Jul",
-			"Aug",
-			"Sep",
-			"Okt",
-			"Nov",
-			"Dec",
-		],
-		today: "Idag",
-		clear: "Återställ",
-		dateFormat: "yyyy-mm-dd",
-		timeFormat: "hh:ii",
-		firstDay: 1,
-	};
-})(jQuery);
-
-(function ($) {
-	$.fn.datepicker.language["bs"] = {
+const locales = {
+	ar,
+	bg,
+	ca,
+	cs,
+	da,
+	de,
+	el,
+	en,
+	es,
+	eu,
+	fi,
+	fr,
+	hr,
+	hu,
+	id,
+	it,
+	ja,
+	ko,
+	nb,
+	nl,
+	pl,
+	pt,
+	"pt-BR": pt_BR,
+	ro,
+	ru,
+	si,
+	sk,
+	sl,
+	sv,
+	th,
+	tr,
+	uk,
+	zh,
+	bs: {
 		days: ["Nedjelja", "Ponedjeljak", "Utorak", "Srijeda", "Četvrtak", "Petak", "Subota"],
 		daysShort: ["Ned", "Pon", "Uto", "Sri", "Čet", "Pet", "Sub"],
 		daysMin: ["Ne", "Po", "Ut", "Sr", "Če", "Pe", "Su"],
@@ -254,96 +100,11 @@ import "air-datepicker/dist/js/i18n/datepicker.zh.js";
 		],
 		today: "Danas",
 		clear: "Resetiraj",
-		dateFormat: "dd/mm/yyyy",
-		timeFormat: "hh:ii",
+		dateFormat: "dd/MM/yyyy",
+		timeFormat: "HH:mm",
 		firstDay: 1,
-	};
-})(jQuery);
-
-(function ($) {
-	$.fn.datepicker.language["hr"] = {
-		days: ["Nedjelja", "Ponedjeljak", "Utorak", "Srijeda", "Četvrtak", "Petak", "Subota"],
-		daysShort: ["Ned", "Pon", "Uto", "Sri", "Čet", "Pet", "Sub"],
-		daysMin: ["Ne", "Po", "Ut", "Sr", "Če", "Pe", "Su"],
-		months: [
-			"Sječanj",
-			"Veljača",
-			"Ožujak",
-			"Travanj",
-			"Svibanj",
-			"Lipanj",
-			"Srpanj",
-			"Kolovoz",
-			"Rujan",
-			"Listopad",
-			"Studeni",
-			"Prosinac",
-		],
-		monthsShort: [
-			"Sje",
-			"Velj",
-			"Ožu",
-			"Tra",
-			"Svi",
-			"Lip",
-			"Srp",
-			"Kol",
-			"Ruj",
-			"Lis",
-			"Stu",
-			"Pro",
-		],
-		today: "Danas",
-		clear: "Resetiraj",
-		dateFormat: "dd/mm/yyyy",
-		timeFormat: "hh:ii",
-		firstDay: 1,
-	};
-})(jQuery);
-
-(function ($) {
-	$.fn.datepicker.language["th"] = {
-		days: ["อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "ศุกร์", "เสาร์"],
-		daysShort: ["อา.", "จ.", "อ.", "พ.", "พฤ.", "ศ.", "ส."],
-		daysMin: ["อา.", "จ.", "อ.", "พ.", "พฤ.", "ศ.", "ส."],
-		months: [
-			"มกราคม",
-			"กุมภาพันธ์",
-			"มีนาคม",
-			"เมษายน",
-			"พฤษภาคม",
-			"มิถุนายน",
-			"กรกฎาคม",
-			"สิงหาคม",
-			"กันยายน",
-			"ตุลาคม",
-			"พฤศจิกายน",
-			"ธันวาคม",
-		],
-		monthsShort: [
-			"ม.ค.",
-			"ก.พ.",
-			"มี.ค.",
-			"เม.ย.",
-			"พ.ค.",
-			"มิ.ย.",
-			"ก.ค.",
-			"ส.ค.",
-			"ก.ย.",
-			"ต.ค.",
-			"พ.ย.",
-			"ธ.ค.",
-		],
-		today: "ในวันนี้",
-		clear: "เคลียร์",
-		dateFormat: "dd/mm/yyyy",
-		timeFormat: "hh:ii aa",
-		firstDay: 0,
-	};
-})(jQuery);
-
-(function ($) {
-	$.fn.datepicker.language["sr"] = {
+	},
+	sr: {
 		days: ["Недеља", "Понедељак", "Уторак", "Среда", "Четвртак", "Петак", "Субота"],
 		daysShort: ["Нед", "Пон", "Уто", "Сре", "Чет", "Пет", "Суб"],
 		daysMin: ["Не", "По", "Ут", "Ср", "Че", "Пе", "Су"],
@@ -377,14 +138,11 @@ import "air-datepicker/dist/js/i18n/datepicker.zh.js";
 		],
 		today: "Данас",
 		clear: "Ресетуј",
-		dateFormat: "dd/mm/yyyy",
-		timeFormat: "hh:ii",
+		dateFormat: "dd/MM/yyyy",
+		timeFormat: "HH:mm",
 		firstDay: 1,
-	};
-})(jQuery);
-
-(function ($) {
-	$.fn.datepicker.language["sr-CS"] = {
+	},
+	"sr-CS": {
 		days: ["Nedelja", "Ponedeljak", "Utorak", "Sreda", "Četvrtak", "Petak", "Subota"],
 		daysShort: ["Ned", "Pon", "Uto", "Sre", "Čet", "Pet", "Sub"],
 		daysMin: ["Ne", "Po", "Ut", "Sr", "Če", "Pe", "Su"],
@@ -418,8 +176,13 @@ import "air-datepicker/dist/js/i18n/datepicker.zh.js";
 		],
 		today: "Danas",
 		clear: "Resetuj",
-		dateFormat: "dd/mm/yyyy",
-		timeFormat: "hh:ii",
+		dateFormat: "dd/MM/yyyy",
+		timeFormat: "HH:mm",
 		firstDay: 1,
-	};
-})(jQuery);
+	},
+};
+
+frappe.ui.form.get_datepicker_locale = (lang) => {
+	lang = lang || frappe.boot?.user?.language || "en";
+	return locales[lang] || locales[lang.split("-")[0]] || locales.en;
+};

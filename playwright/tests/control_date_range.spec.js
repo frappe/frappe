@@ -16,21 +16,13 @@ test.describe("Date Range Control", () => {
 			],
 		});
 		await desk.get_field("date_range", "Date Range").click();
-		await page.locator(".datepicker--nav-title").click();
-		await page.locator(".datepicker--nav-title").click();
+		await page.locator(".air-datepicker-nav--title").click();
+		await page.locator(".air-datepicker-nav--title").click();
 
-		await page
-			.locator(
-				'.datepicker--years > .datepicker--cells > .datepicker--cell[data-year="2020"]'
-			)
-			.click();
-		await page
-			.locator(
-				'.datepicker--months > .datepicker--cells > .datepicker--cell[data-month="0"]'
-			)
-			.click();
-		await page.locator('.datepicker--cell[data-date="1"]').first().click();
-		await page.locator('.datepicker--cell[data-date="15"]').first().click();
+		await page.locator('.air-datepicker-cell.-year-[data-year="2020"]').click();
+		await page.locator('.air-datepicker-cell.-month-[data-month="0"]').click();
+		await page.locator('.air-datepicker-cell.-day-[data-date="1"]').first().click();
+		await page.locator('.air-datepicker-cell.-day-[data-date="15"]').first().click();
 
 		await expect
 			.poll(() => page.evaluate(() => cur_dialog.get_value("date_range")))

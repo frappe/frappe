@@ -5,10 +5,9 @@ const doctype_name = datetime_doctype.name;
 
 async function open_picker(page, input) {
 	await input.click();
-	await expect(page.locator(".datepickers-container .datepicker.active")).toHaveCSS(
-		"opacity",
-		"1"
-	);
+	await expect(
+		page.locator(".air-datepicker-global-container .air-datepicker.-active-")
+	).toHaveCSS("opacity", "1");
 }
 
 async function fill_picker_field(page, desk, fieldname, value, fieldtype) {
@@ -61,9 +60,11 @@ test.describe("Control Date, Time and DateTime", () => {
 
 				await desk.new_form(doctype_name);
 				await page.locator(".form-control[data-fieldname=date]").focus();
-				const datepicker = page.locator(".datepickers-container .datepicker.active");
+				const datepicker = page.locator(
+					".air-datepicker-global-container .air-datepicker.-active-"
+				);
 				await expect(datepicker).toBeVisible();
-				await datepicker.locator(".datepicker--cell-day.-current-").click();
+				await datepicker.locator(".air-datepicker-cell.-day-.-current-").click();
 
 				await expect
 					.poll(async () => {
@@ -218,16 +219,11 @@ test.describe("Control Date, Time and DateTime", () => {
 				const state = {
 					expected: {
 						time: expected_date.getTime(),
-						hours: expected_date.getHours(),
-						minutes: expected_date.getMinutes(),
-						seconds: expected_date.getSeconds(),
+						month: expected_date.getMonth(),
 					},
 					selected_date: control.datepicker.selectedDates[0].getTime(),
 					last_selected_date: control.datepicker.lastSelectedDate.getTime(),
-					date: control.datepicker.date.getTime(),
-					hours: Number(control.datepicker.timepicker.hours),
-					minutes: Number(control.datepicker.timepicker.minutes),
-					seconds: Number(control.datepicker.timepicker.seconds),
+					view_month: control.datepicker.viewDate.getMonth(),
 				};
 
 				dialog.hide();
@@ -236,10 +232,7 @@ test.describe("Control Date, Time and DateTime", () => {
 
 			expect(state.selected_date).toBe(state.expected.time);
 			expect(state.last_selected_date).toBe(state.expected.time);
-			expect(state.date).toBe(state.expected.time);
-			expect(state.hours).toBe(state.expected.hours);
-			expect(state.minutes).toBe(state.expected.minutes);
-			expect(state.seconds).toBe(state.expected.seconds);
+			expect(state.view_month).toBe(state.expected.month);
 		});
 	});
 
