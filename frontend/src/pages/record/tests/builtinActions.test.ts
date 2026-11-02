@@ -49,6 +49,11 @@ describe("quickActionBuiltins", () => {
     expect(remove.display).toBeUndefined();
   });
 
+  it("hides delete on a submitted record, whatever the right says", () => {
+    const rows = headerMenuBuiltins({ delete: 1 }, off, { submitted: true }).map((item) => item.name);
+    expect(rows).toEqual(["favourite_row", "copy_url", "copy_id"]);
+  });
+
   it("never offers delete on a single, whatever the right says", () => {
     const rows = headerMenuBuiltins({ delete: 1 }, off, { single: true }).map((item) => item.name);
     expect(rows).toEqual(["favourite_row", "copy_url", "copy_id"]);

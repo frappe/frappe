@@ -59,6 +59,7 @@ export function headerMenuBuiltins(
     assign?: AssignState;
     rename?: boolean;
     duplicate?: boolean;
+    submitted?: boolean;
   } = {}
 ): HeaderItem[] {
   const items: HeaderItem[] = [
@@ -87,7 +88,7 @@ export function headerMenuBuiltins(
   if (options.duplicate)
     items.push({ name: "duplicate", label: "Duplicate", icon: "lucide-copy", group: "copies", run: duplicate });
   // Deleting a single wipes its settings row and the page reloads it with defaults.
-  if (perms.delete && !options.single)
+  if (perms.delete && !options.single && !options.submitted)
     items.push({ name: "delete", label: "Delete", icon: "lucide-trash-2", group: "danger", run: remove });
   return items;
 }
