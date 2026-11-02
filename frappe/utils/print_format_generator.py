@@ -416,21 +416,18 @@ def check_conditions(doctype: str, name: str, conditions: list[str] | str):
 	conditions = list(dict.fromkeys(c for c in conditions if c.strip() and len(c) <= 2000))[:MAX_CONDITIONS]
 	doc = frappe.get_doc(doctype, name)
 	doc.check_permission("read")
-	eval_locals = {"doc": doc, "print_settings": frappe.get_cached_doc("Print Settings")}
+	eval_locals = condition_locals(doc, frappe.get_cached_doc("Print Settings"))
 	out = {}
 	for condition in conditions:
 		try:
-			out[condition] = {"visible": eval_print_condition(condition, eval_locals)}
+			out[condition] = {"visible": bool(frappe.safe_eval(condition, None, eval_locals))}
 		except Exception:
 			out[condition] = {"error": _("This condition could not be evaluated")}
 	return out
 
 
-def eval_print_condition(condition: str, eval_locals: dict) -> bool:
-	from frappe.utils.jinja import safe_render_flags
-
-	with safe_render_flags():
-		return bool(frappe.safe_eval(condition, None, eval_locals))
+def condition_locals(doc, print_settings) -> dict:
+	return {"doc": doc.as_dict(), "print_settings": print_settings.as_dict()}
 
 
 class PrintFormatGenerator:
@@ -897,7 +894,7 @@ class PrintFormatGenerator:
 
 	def _render_zone_section(self, section: dict, doc, zone_class: str = "") -> str:
 		"""Render a header/footer zone section dict to HTML for the Chrome overlay."""
-		eval_locals = {"doc": doc, "print_settings": self.print_settings}
+		eval_locals = condition_locals(doc, self.print_settings)
 		for column in section.get("columns", []):
 			for df in column.get("fields", []):
 				if "renderer" not in df:
@@ -1059,7 +1056,7 @@ class PrintFormatGenerator:
 		empty across all rows, then renormalize widths. A bad condition fails open."""
 		from frappe.www.printview import column_has_value
 
-		eval_locals = {"doc": self.doc, "print_settings": self.print_settings}
+		eval_locals = condition_locals(self.doc, self.print_settings)
 		for column in iter_layout_columns(layout):
 			for df in column.get("fields", []):
 				if df.get("fieldtype") != "Table" or not df.get("table_columns"):
@@ -1092,7 +1089,7 @@ class PrintFormatGenerator:
 		if not isinstance(condition, str):
 			return True
 		try:
-			return eval_print_condition(condition, eval_locals)
+			return bool(frappe.safe_eval(condition, None, eval_locals))
 		except Exception:
 			if condition not in self._logged_conditions:
 				self._logged_conditions.add(condition)
@@ -1124,7 +1121,15 @@ class PrintFormatGenerator:
 		self.filter_conditional_rows(df)
 
 	def set_field_renderers(self, layout):
+<<<<<<< HEAD
 		eval_locals = {"doc": self.doc, "print_settings": self.print_settings}
+=======
+		eval_locals = condition_locals(self.doc, self.print_settings)
+		self.jinja_context = {
+			**global_variables_context(layout.get("global_variables"), self.doc),
+			"doc": self.doc,
+		}
+>>>>>>> 6cc9f81 (fix(print): evaluate conditions against document values)
 		for section in layout["sections"]:
 			if section.get("visible_if"):
 				section["_hidden"] = not self.eval_condition(
@@ -1148,10 +1153,10 @@ class PrintFormatGenerator:
 		if not df.get("row_condition") or not source:
 			return
 		condition = df["row_condition"]
-		eval_locals = {"doc": self.doc, "print_settings": self.print_settings}
+		eval_locals = condition_locals(self.doc, self.print_settings)
 		kept = []
 		for row in self.doc.get(source) or []:
-			if self.eval_condition(condition, {**eval_locals, "row": row}, f"rows of {source}"):
+			if self.eval_condition(condition, {**eval_locals, "row": row.as_dict()}, f"rows of {source}"):
 				kept.append(row)
 		df["_rows"] = kept
 
