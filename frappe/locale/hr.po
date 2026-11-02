@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-10-25 09:36+0000\n"
-"PO-Revision-Date: 2026-10-26 04:19\n"
+"PO-Revision-Date: 2026-11-02 04:13\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Croatian\n"
 "MIME-Version: 1.0\n"
@@ -51,7 +51,7 @@ msgstr "Polje \"amended_from\" mora biti prisutno da bi se izvršila izmjena."
 #: frappe/core/doctype/data_import/importer.py:1933
 #, python-brace-format
 msgid "\"{0}\" does not match any field. Map it in the Preview step, otherwise it will be ignored."
-msgstr ""
+msgstr "\"{0}\" ne odgovara nijednom polju. Poveži ga u koraku Pregleda, inače će biti zanemaren."
 
 #: frappe/utils/csvutils.py:281
 #, python-brace-format
@@ -171,21 +171,21 @@ msgstr "+ Dodaj / Ukloni polja"
 #: frappe/public/js/frappe/views/communication.js:1059
 #, python-brace-format
 msgid "+{0} more"
-msgstr ""
+msgstr "+{0} i više"
 
 #: frappe/core/doctype/data_import/data_import.js:44
 msgid "-"
-msgstr ""
+msgstr "-"
 
 #: frappe/core/doctype/data_import/data_import.js:959
 msgid ".csv, .xlsx"
-msgstr ""
+msgstr ".csv, .xlsx"
 
 #: frappe/core/doctype/data_import/data_import.js:959
 #: frappe/public/js/data_import_wizard.bundle.js:86
 #, python-brace-format
 msgid ".csv, .xlsx up to {0} MB"
-msgstr ""
+msgstr ".csv, .xlsx do {0} MB"
 
 #: frappe/public/js/print_format_builder/components/PrintSettingsPanel.vue:146
 #, python-brace-format
@@ -312,7 +312,7 @@ msgstr "prije 1 sekundu"
 
 #: frappe/public/js/frappe/data_import/import_tree_preview.js:138
 msgid "1 warning found."
-msgstr ""
+msgstr "1 upozorenje pronađeno."
 
 #: frappe/public/js/frappe/utils/pretty_date.js:64
 #: frappe/tests/test_utils.py:979
@@ -991,19 +991,19 @@ msgstr "Isječak nazvan {0} već postoji za {1}."
 
 #: frappe/desk/doctype/kanban_board/kanban_board.py:71
 msgid "A standard Kanban Board cannot be private"
-msgstr ""
+msgstr "Standardna Oglasna Tabla ne može biti privatna"
 
 #: frappe/desk/doctype/kanban_board/kanban_board.py:114
 msgid "A standard Kanban Board cannot be renamed"
-msgstr ""
+msgstr "Standardna Oglasna Tabla se ne može preimenovati"
 
 #: frappe/desk/doctype/kanban_board/kanban_board.py:75
 msgid "A standard Kanban Board must use Kanban v2"
-msgstr ""
+msgstr "Standardna Oglasna Tabla mora koristiti Kanban v2"
 
 #: frappe/desk/doctype/list_filter/list_filter.py:81
 msgid "A standard list layout cannot belong to a user"
-msgstr ""
+msgstr "Standardni izgled popisa ne može pripadati korisniku"
 
 #: frappe/core/doctype/doctype_settings_map/doctype_settings_map.py:133
 #, python-brace-format
@@ -1110,7 +1110,7 @@ msgstr "A9"
 #. Label of the ai_agents_tab (Tab Break) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json:866
 msgid "AI Agents"
-msgstr ""
+msgstr "AI Agenti"
 
 #. Option for the 'Email Sync Option' (Select) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json:265
@@ -1452,7 +1452,7 @@ msgstr "Radnje"
 #. Label of the actions_snapshot (JSON) field in DocType 'Automation Run'
 #: frappe/automation/doctype/automation_run/automation_run.json:141
 msgid "Actions Snapshot"
-msgstr ""
+msgstr "Snimka Radnji"
 
 #. Label of the activate (Check) field in DocType 'Package Import'
 #: frappe/core/doctype/package_import/package_import.json:26
@@ -1553,7 +1553,7 @@ msgstr "Dodaj Novo Pravilo"
 
 #: ui/src/components/GroupBy/GroupBy.vue:102
 msgid "Add Aggregate"
-msgstr ""
+msgstr "Dodaj Zbir"
 
 #: frappe/public/js/frappe/views/interaction.js:159
 msgid "Add Attachment"
@@ -1634,7 +1634,7 @@ msgstr "Dodaj Grupu"
 
 #: ui/src/components/GroupBy/GroupBy.vue:65
 msgid "Add Group By"
-msgstr ""
+msgstr "Dodaj Grupiraj Po"
 
 #: frappe/core/doctype/recorder/recorder.js:33
 msgid "Add Indexes"
@@ -1642,7 +1642,7 @@ msgstr "Dodaj Indekse"
 
 #: frappe/public/js/frappe/ui/slides.js:37
 msgid "Add More"
-msgstr ""
+msgstr "Dodaj Više"
 
 #: frappe/public/js/frappe/widgets/quick_list_widget.js:32
 msgid "Add New"
@@ -1845,7 +1845,7 @@ msgstr "Dodaj privitak"
 
 #: frappe/public/js/frappe/views/kanban_v2/core/kanban_core.js:478
 msgid "Add card"
-msgstr ""
+msgstr "Dodaj karticu"
 
 #: frappe/public/js/form_builder/components/Section.vue:271
 #: frappe/public/js/print_format_builder/components/inspector/RepeaterFieldInspector.vue:87
@@ -1875,7 +1875,7 @@ msgstr "Dodaj više"
 
 #: frappe/public/js/frappe/views/communication.js:434
 msgid "Add new attachments"
-msgstr ""
+msgstr "Dodaj nove privitke"
 
 #: frappe/public/js/form_builder/components/Sidebar.vue:46
 #: frappe/public/js/form_builder/components/Tabs.vue:153
@@ -2238,15 +2238,15 @@ msgstr "Nakon Podnošenja"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json:889
 msgid "Agent Instructions"
-msgstr ""
+msgstr "Upute Agenta"
 
 #: ui/src/components/GroupBy/GroupBy.vue:70
 msgid "Aggregate"
-msgstr ""
+msgstr "Zbira"
 
 #: frappe/desk/doctype/number_card/number_card.py:66
 msgid "Aggregate Field is required to create a number card"
-msgstr "Agregatno Polje je obavezno za Izradu kartice sa brojevima"
+msgstr "Zbirno Polje je obavezno za izradu kartice sa brojevima"
 
 #. Label of the aggregate_function_based_on (Select) field in DocType
 #. 'Dashboard Chart'
@@ -2255,11 +2255,11 @@ msgstr "Agregatno Polje je obavezno za Izradu kartice sa brojevima"
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json:185
 #: frappe/desk/doctype/number_card/number_card.json:61
 msgid "Aggregate Function Based On"
-msgstr "Agregatna Funkcija na osnovu"
+msgstr "Zbirna Funkcija na osnovu"
 
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.py:418
 msgid "Aggregate Function field is required to create a dashboard chart"
-msgstr "Polje agregatne funkcije potrebno je za izradu grafikona nadzorne ploče"
+msgstr "Polje zbirne funkcije potrebno je za izradu grafikona nadzorne table"
 
 #: frappe/core/page/component_explorer/component_explorer.js:1222
 msgid "Alert dismissed"
@@ -2348,7 +2348,7 @@ msgstr "Svi"
 #: frappe/core/doctype/data_import/data_import.js:2914
 #, python-brace-format
 msgid "All ({0})"
-msgstr ""
+msgstr "Svih ({0})"
 
 #. Label of the all_day (Check) field in DocType 'Calendar View'
 #. Label of the all_day (Check) field in DocType 'Event'
@@ -2372,7 +2372,7 @@ msgstr "Svi Zapisi"
 
 #: frappe/public/js/frappe/ui/toolbar/search.js:438
 msgid "All Results"
-msgstr ""
+msgstr "Svi Rezultati"
 
 #: frappe/public/js/frappe/form/form.js:2402
 msgid "All Submissions"
@@ -2403,7 +2403,7 @@ msgstr "Sva moguća stanja radnog toka i uloge radnog toka. Opcije statusa dokum
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:370
 msgid "All set! Opening your workspace"
-msgstr ""
+msgstr "Sve je spremno! Otvaranje vašeg radnog prostora"
 
 #: frappe/utils/password_strength.py:183
 msgid "All-uppercase is almost as easy to guess as all-lowercase."
@@ -2878,7 +2878,7 @@ msgstr "Omogućuje korisnicima omogućavanje svojstva maske za bilo koje polje o
 
 #: frappe/desk/page/setup_wizard/setup_wizard.py:43
 msgid "Almost done"
-msgstr ""
+msgstr "Skoro gotovo"
 
 #: frappe/core/doctype/user/user.py:1200
 msgid "Already Registered"
@@ -2892,7 +2892,7 @@ msgstr "Već izmijenjeno kao {0}"
 #: frappe/core/doctype/data_import/importer.py:297
 #, python-brace-format
 msgid "Already imported row {0}"
-msgstr ""
+msgstr "Već je uvezen red {0}"
 
 #: frappe/desk/form/assign_to.py:142
 #, python-brace-format
@@ -3756,13 +3756,13 @@ msgstr "Priloži Sliku"
 
 #: frappe/public/js/frappe/views/kanban_v2/kanban_settings.bundle.js:169
 msgid "Attach Image field for card thumbnail."
-msgstr ""
+msgstr "Priloži polje za sliku za sličicu kartice."
 
 #. Description of the 'Image Field' (Autocomplete) field in DocType 'Kanban
 #. Board'
 #: frappe/desk/doctype/kanban_board/kanban_board.json:176
 msgid "Attach Image field shown as a thumbnail before the card title."
-msgstr ""
+msgstr "Polje Priloži sliku prikazano kao minijatura prije naslova kartice."
 
 #. Label of the attach_package (Attach) field in DocType 'Package Import'
 #: frappe/core/doctype/package_import/package_import.json:20
@@ -3780,15 +3780,15 @@ msgstr "Priloži Web Vezu"
 
 #: frappe/public/js/data_import_wizard.bundle.js:999
 msgid "Attach an import file to validate rows and mappings."
-msgstr ""
+msgstr "Priložite datoteku za uvoz kako biste provjerili valjanost redaka i mapiranja."
 
 #: frappe/public/js/frappe/views/communication.js:397
 msgid "Attach document print"
-msgstr ""
+msgstr "Priloži ispis dokumenta"
 
 #: frappe/public/js/frappe/views/communication.js:425
 msgid "Attach files"
-msgstr ""
+msgstr "Priloži datoteke"
 
 #: frappe/website/doctype/website_slideshow/website_slideshow.js:8
 msgid "Attach files / urls and add in table."
@@ -4242,7 +4242,7 @@ msgstr "Tijek Automatizacije"
 #. Label of the automation_title (Data) field in DocType 'Automation Run'
 #: frappe/automation/doctype/automation_run/automation_run.json:45
 msgid "Automation Flow Title"
-msgstr ""
+msgstr "Naslov Toka Automatizacije"
 
 #: frappe/automation/doctype/automation_flow/automation_flow.py:185
 #, python-brace-format
@@ -4257,12 +4257,12 @@ msgstr "Tijek Automatizacije {0} je automatski onemogućen"
 #. Name of a DocType
 #: frappe/automation/doctype/automation_run/automation_run.json:165
 msgid "Automation Run"
-msgstr ""
+msgstr "Izvršavanje Automatizacije"
 
 #. Name of a DocType
 #: frappe/automation/doctype/automation_run_step/automation_run_step.json:104
 msgid "Automation Run Step"
-msgstr ""
+msgstr "Korak Izvršavanja Automatizacije"
 
 #. Name of a DocType
 #: frappe/automation/doctype/automation_settings/automation_settings.json:147
@@ -4452,7 +4452,7 @@ msgstr "Povratak na prijavu"
 
 #: frappe/public/js/print_format_builder/print_format_builder.bundle.js:120
 msgid "Back to the editor"
-msgstr ""
+msgstr "Nazad u uređivač"
 
 #: frappe/public/js/print_format_builder/components/inspector/SectionPropertiesPanel.vue:45
 msgid "Background"
@@ -4526,7 +4526,7 @@ msgstr "Boja pozadine"
 #: frappe/public/js/print_format_builder/utils.js:115
 #: frappe/utils/typst_emitter.py:157
 msgid "Background image loaded from a web address"
-msgstr ""
+msgstr "Pozadinska slika učitana s web adrese"
 
 #: frappe/desk/page/backups/backups.js:28
 msgid "Backup Encryption Key"
@@ -4659,7 +4659,7 @@ msgstr "Osnovni"
 
 #: frappe/core/page/component_explorer/component_explorer.js:782
 msgid "Basic (active + completed states)"
-msgstr ""
+msgstr "Osnovno (aktivno + završeno stanje)"
 
 #: frappe/core/page/component_explorer/component_explorer.js:423
 msgid "Basic (hover, or focus with Tab)"
@@ -4833,11 +4833,11 @@ msgstr "Plavo"
 
 #: frappe/public/js/frappe/views/kanban_v2/kanban_settings.bundle.js:140
 msgid "Board Name"
-msgstr ""
+msgstr "Naziv Oglasne Table"
 
 #: frappe/public/js/frappe/views/kanban_v2/kanban_settings.bundle.js:51
 msgid "Board Settings"
-msgstr ""
+msgstr "Postavke Oglasne Table"
 
 #: frappe/desk/doctype/kanban_board/kanban_board.py:301
 msgid "Board name is required"
@@ -4845,7 +4845,7 @@ msgstr "Naziv ploče je obavezan"
 
 #: frappe/public/js/frappe/views/kanban_v2/kanban_settings.bundle.js:420
 msgid "Board settings saved"
-msgstr ""
+msgstr "Postavke Oglasne Table spremljene"
 
 #. Label of the bold (Check) field in DocType 'DocField'
 #. Label of the bold (Check) field in DocType 'Custom Field'
@@ -5311,7 +5311,7 @@ msgstr "Opis Kampanje (Opcija)"
 #. Label of the can_create (Check) field in DocType 'Data Import Value Mapping'
 #: frappe/core/doctype/data_import_value_mapping/data_import_value_mapping.json:71
 msgid "Can Create"
-msgstr ""
+msgstr "Može Izraditi"
 
 #: frappe/custom/doctype/custom_field/custom_field.py:418
 #, python-brace-format
@@ -5720,7 +5720,7 @@ msgstr "Prijelom Kartice"
 #: frappe/desk/doctype/kanban_board/kanban_board.json:72
 #: frappe/public/js/frappe/views/kanban_v2/kanban_settings.bundle.js:257
 msgid "Card Fields"
-msgstr ""
+msgstr "Polja Kartice"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:335
 msgid "Card Label"
@@ -5734,11 +5734,11 @@ msgstr "Veze Kartice"
 #. DocType 'Kanban Board'
 #: frappe/desk/doctype/kanban_board/kanban_board.json:193
 msgid "Card and Preview Fields"
-msgstr ""
+msgstr "Polja Kartice i Pregleda"
 
 #: frappe/public/js/frappe/views/kanban_v2/core/kanban_core.js:294
 msgid "Card title…"
-msgstr ""
+msgstr "Naslov kartice…"
 
 #. Label of the cards (Table) field in DocType 'Dashboard'
 #: frappe/desk/doctype/dashboard/dashboard.json:51
@@ -5825,7 +5825,7 @@ msgstr "Promjeni Vremensku Zonu"
 
 #: frappe/public/js/frappe/views/communication.js:357
 msgid "Change print settings"
-msgstr ""
+msgstr "Promijeni postavke ispisa"
 
 #. Description of the 'Update Series Counter' (Section Break) field in DocType
 #. 'Document Naming Settings'
@@ -5977,7 +5977,7 @@ msgstr "Označite za prikaz pune numeričke vrijednosti (npr. 1.234.567 umjesto 
 
 #: frappe/public/js/data_import_wizard.bundle.js:984
 msgid "Checking import file for issues..."
-msgstr ""
+msgstr "Provjera uvezene datoteke za probleme..."
 
 #: frappe/public/js/frappe/desk.js:253
 msgid "Checking one moment"
@@ -6035,7 +6035,7 @@ msgstr "Podređena polja upita za '{0}' moraju biti popis ili torka."
 
 #: frappe/database/query.py:363
 msgid "Child table fields need 'name' in `fields` when using distinct or aggregate queries."
-msgstr "Podređena polja tabele trebaju 'naziv' u `poljima` kada se koriste različiti ili agregirani upiti."
+msgstr "Podređena polja tabele trebaju 'naziv' u `poljima` kada se koriste različiti ili zbirni upiti."
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:490
 msgid "Child table rows laid out with your own template"
@@ -6147,7 +6147,7 @@ msgstr "Obriši Filtere"
 
 #: ui/src/components/GroupBy/GroupBy.vue:111
 msgid "Clear Grouping"
-msgstr ""
+msgstr "Obriši Grupiranje"
 
 #: frappe/public/js/frappe/form/controls/link.js:18
 msgid "Clear Link"
@@ -6173,11 +6173,11 @@ msgstr "Očistite predmemoriju i ponovno učitajte"
 
 #: ui/src/components/GroupBy/GroupBy.vue:29
 msgid "Clear grouping"
-msgstr ""
+msgstr "Obriši grupiranje"
 
 #: frappe/public/js/frappe/views/kanban_v2/kanban_page.js:168
 msgid "Clear selection"
-msgstr ""
+msgstr "Obriši odabir"
 
 #: frappe/public/js/frappe/list/list_view.js:727
 msgid "Clear the filters to see all records."
@@ -6259,7 +6259,7 @@ msgstr "Klikni da Postavite Filtere"
 
 #: frappe/core/page/component_explorer/component_explorer.js:810
 msgid "Click to navigate"
-msgstr ""
+msgstr "Klikni za navigaciju"
 
 #: frappe/public/js/frappe/list/list_view.js:1265
 #: frappe/public/js/frappe/list/list_view.js:1284
@@ -6376,7 +6376,7 @@ msgstr "Metode rješavanja koje je naveo klijent nisu dopuštene"
 #: frappe/core/doctype/system_settings/system_settings.js:107
 #, python-brace-format
 msgid "Clients sign in with OAuth: they open this site's login and ask you to allow access. Configure this in {0}."
-msgstr ""
+msgstr "Klijenti se prijavljuju putem OAuth-a: otvaraju prijavu ove stranice i traže od vas da dopustite pristup. Konfiguriraj u {0}."
 
 #: frappe/core/doctype/communication/communication.js:39
 #: frappe/desk/doctype/todo/todo.js:23 frappe/public/js/frappe/dom.js:360
@@ -6475,7 +6475,7 @@ msgstr "Sklopi Sve"
 
 #: frappe/public/js/frappe/data_import/import_tree_preview.js:76
 msgid "Collapse all"
-msgstr ""
+msgstr "Sažmi sve"
 
 #: frappe/public/js/frappe/ui/sidebar/sidebar.js:769
 msgid "Collapse sidebar"
@@ -6632,7 +6632,7 @@ msgstr "Postavke stupaca"
 
 #: frappe/core/doctype/data_import/data_import.js:2499
 msgid "Column warnings"
-msgstr ""
+msgstr "Upozorenja stupaca"
 
 #: frappe/core/doctype/data_import/data_import.js:178
 #: frappe/core/doctype/data_import/data_import.js:2391
@@ -6680,7 +6680,7 @@ msgstr "Kolone zasnovane na"
 
 #: frappe/public/js/data_import_wizard.bundle.js:1044
 msgid "Columns matched"
-msgstr ""
+msgstr "Podudarni stupci"
 
 #: frappe/integrations/doctype/oauth_client/oauth_client.py:58
 #, python-brace-format
@@ -6814,7 +6814,7 @@ msgstr "Kompaktno"
 
 #: frappe/core/page/component_explorer/component_explorer.js:836
 msgid "Compact (narrow layouts)"
-msgstr ""
+msgstr "Kompaktni (uski rasporedi)"
 
 #: frappe/public/js/frappe/ui/naming_series.js:116
 msgid "Company Abbreviation (requires ERPNext to be installed)"
@@ -6864,7 +6864,7 @@ msgstr "Završeno Do"
 #. Option for the 'Action' (Select) field in DocType 'Onboarding Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json:67
 msgid "Complete Onboarding"
-msgstr ""
+msgstr "Završi Introdukciju"
 
 #: frappe/core/doctype/user/user.py:568
 msgid "Complete Registration"
@@ -6881,7 +6881,7 @@ msgstr "Dovrši registraciju"
 
 #: frappe/public/js/data_import_wizard.bundle.js:1190
 msgid "Complete the earlier steps before continuing."
-msgstr ""
+msgstr "Završi prethodne korake prije nego što nastavite."
 
 #. Option for the 'Status' (Select) field in DocType 'Auto Repeat'
 #. Option for the 'Status' (Select) field in DocType 'Prepared Report'
@@ -6966,7 +6966,7 @@ msgstr "Tip Uvjeta"
 #. Label of the condition_values (JSON) field in DocType 'Automation Run Step'
 #: frappe/automation/doctype/automation_run_step/automation_run_step.json:88
 msgid "Condition Values"
-msgstr ""
+msgstr "Vrijednosti Uvjeta"
 
 #: frappe/public/js/frappe/form/controls/multicheck.js:169
 msgid "Condition based field"
@@ -7140,7 +7140,7 @@ msgstr "Potvrđeno"
 #: frappe/core/doctype/system_settings/system_settings.js:103
 #, python-brace-format
 msgid "Connect MCP clients to {0}."
-msgstr ""
+msgstr "Poveži MCP klijente sa {0}."
 
 #: frappe/integrations/doctype/connected_app/connected_app.js:20
 #, python-brace-format
@@ -7442,7 +7442,7 @@ msgstr "Kopiraj URL datoteke u međuspremnik"
 
 #: frappe/public/js/frappe/views/kanban_v2/kanban_page.js:823
 msgid "Copy this board to change its setup"
-msgstr ""
+msgstr "Kopiraj ovu Oglasnu Tablu da biste promijenili njena podešavanja."
 
 #: frappe/public/js/frappe/form/controls/code.js:32
 #: frappe/public/js/frappe/form/toolbar.js:558
@@ -7497,11 +7497,11 @@ msgstr "Nije moguće stvoriti PDF"
 
 #: frappe/public/js/frappe/views/kanban_v2/kanban_page.js:1132
 msgid "Could not load groups."
-msgstr ""
+msgstr "Nije moguće učitati grupe."
 
 #: frappe/core/doctype/data_import/data_import.js:557
 msgid "Could not load import file"
-msgstr ""
+msgstr "Nije moguće učitati datoteku za uvoz"
 
 #: frappe/public/js/frappe/ui/sidebar/dock_manager.js:95
 msgid "Could not load the dock. Please try again."
@@ -7540,12 +7540,12 @@ msgstr "Nije moguće mapirati kolonu {0} na polje {1}"
 #: frappe/public/js/frappe/views/kanban_v2/kanban_page.js:1074
 #, python-brace-format
 msgid "Could not move {0}"
-msgstr ""
+msgstr "Nije moguće premjestiti {0}"
 
 #: frappe/public/js/frappe/views/kanban_v2/kanban_page.js:1073
 #, python-brace-format
 msgid "Could not move {0} cards"
-msgstr ""
+msgstr "Nije moguće premjestiti {0} kartica"
 
 #: frappe/public/js/frappe/ui/sidebar/sidebar.js:451
 msgid "Could not open Settings. Please refresh the page."
@@ -7831,7 +7831,7 @@ msgstr "Izradite format ispisa kako biste prilagodili način ispisa {0}."
 #. Mapping'
 #: frappe/core/doctype/data_import_value_mapping/data_import_value_mapping.json:60
 msgid "Create a record named after the file's value when the import runs."
-msgstr ""
+msgstr "Izradi zapis nazvan po vrijednosti datoteke kada se uvoz izvršava."
 
 #: frappe/public/js/frappe/form/doctype_settings/tabs/email_template.js:73
 #, python-brace-format
@@ -7851,7 +7851,7 @@ msgstr "Izradi dokument {0} kako biste pregledali ovaj format ispisa."
 #: frappe/desk/doctype/onboarding_step/onboarding_step.py:153
 #, python-brace-format
 msgid "Create a {0} to finish this step."
-msgstr ""
+msgstr "Izradi {0} da biste završili ovaj korak."
 
 #: frappe/public/js/frappe/form/print_utils.js:300
 msgid "Create copy"
@@ -7867,7 +7867,7 @@ msgstr "Izradi ili Uredi Tijek  Rada"
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:616
 msgid "Create your account"
-msgstr ""
+msgstr "Izradite svoj račun"
 
 #: frappe/public/js/frappe/list/list_view.js:731
 #, python-brace-format
@@ -9149,7 +9149,7 @@ msgstr "Standard je uklonjen"
 #: frappe/public/js/frappe/views/communication.js:727
 #, python-brace-format
 msgid "Default template: {0}"
-msgstr ""
+msgstr "Standard Predložak: {0}"
 
 #: frappe/public/js/frappe/form/doctype_settings/registry.js:161
 msgid "Default updated"
@@ -9524,7 +9524,7 @@ msgstr "Tip Obavijesti Statusu Isporuke"
 #. 'Automation Run'
 #: frappe/automation/doctype/automation_run/automation_run.json:41
 msgid "Denormalized so the run survives deletion of its Automation Flow."
-msgstr ""
+msgstr "Denormalizirano tako da izvođenje preživi brisanje svog toka automatizacije."
 
 #. Option for the 'Sign ups' (Select) field in DocType 'Social Login Key'
 #: frappe/integrations/doctype/social_login_key/social_login_key.json:176
@@ -10942,7 +10942,7 @@ msgstr "Gotovo"
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:433
 #, python-brace-format
 msgid "Done: {0}"
-msgstr ""
+msgstr "Završeno: {0}"
 
 #. Option for the 'Type' (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json:144
@@ -10974,7 +10974,7 @@ msgstr "Preuzmi Podatke"
 
 #: frappe/core/doctype/data_import/data_import.js:2840
 msgid "Download Failed Rows"
-msgstr ""
+msgstr "Preuzmi Neuspješne Redove"
 
 #: frappe/desk/page/backups/backups.js:14
 msgid "Download Files Backup"
@@ -11058,7 +11058,7 @@ msgstr "Povuci i Ispusti sekciju ovdje sa druge kartice"
 
 #: frappe/public/js/data_import_wizard.bundle.js:725
 msgid "Drag a CSV or Excel file here, or click to browse"
-msgstr ""
+msgstr "Prevuci CSV ili Excel datoteku ovdje ili klikni za pregledavanje"
 
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:14
 msgid "Drag and drop files here or upload from"
@@ -11181,7 +11181,7 @@ msgstr "ID duplikata {0} u redovima {1}"
 
 #: frappe/public/js/frappe/views/kanban_v2/kanban_page.js:1015
 msgid "Duplicate Kanban Board"
-msgstr ""
+msgstr "Dupliciraj Oglasnu Tablu"
 
 #: frappe/desk/doctype/workspace/workspace.py:245
 #: frappe/public/js/frappe/widgets/widget_dialog.js:156
@@ -11574,7 +11574,7 @@ msgstr "Uređivanje Mreže"
 
 #: frappe/public/js/frappe/data_import/import_tree_preview.js:296
 msgid "Edited"
-msgstr ""
+msgstr "Uređeno"
 
 #: frappe/public/js/frappe/form/grid_row_form.js:47
 msgid "Editing Row"
@@ -12011,7 +12011,7 @@ msgstr "Prazno = bilo koja vrijednost."
 #. Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json:314
 msgid "Empty State Message"
-msgstr ""
+msgstr "Poruka Praznog Stanja"
 
 #: frappe/public/js/print_format_builder/components/editor/FieldPreview.vue:12
 msgid "Empty Typst block"
@@ -12117,7 +12117,7 @@ msgstr "Omogući Dolaznu"
 #. Label of the enable_mcp (Check) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json:877
 msgid "Enable MCP"
-msgstr ""
+msgstr "Omogući MCP"
 
 #. Label of the enable_onboarding (Check) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json:457
@@ -12588,7 +12588,7 @@ msgstr "Poruka Greške"
 #. Label of the error_summary (Small Text) field in DocType 'Automation Run'
 #: frappe/automation/doctype/automation_run/automation_run.json:116
 msgid "Error Summary"
-msgstr ""
+msgstr "Sažetak Pogrešaka"
 
 #: frappe/public/js/frappe/form/print_utils.js:187
 msgid "Error connecting to QZ Tray Application...<br><br> You need to have QZ Tray application installed and running, to use the Raw Print feature.<br><br><a target=\"_blank\" href=\"https://qz.io/download/\">Click here to Download and install QZ Tray</a>.<br> <a target=\"_blank\" href=\"https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing\">Click here to learn more about Raw Printing</a>."
@@ -12906,7 +12906,7 @@ msgstr "Rasklopi Sve"
 
 #: frappe/public/js/frappe/data_import/import_tree_preview.js:71
 msgid "Expand all"
-msgstr ""
+msgstr "Proširi sve"
 
 #: frappe/public/js/frappe/ui/sidebar/sidebar.js:769
 msgid "Expand sidebar"
@@ -13109,7 +13109,7 @@ msgstr "Izvezeno u aplikaciju"
 
 #: frappe/public/js/frappe/list/list_filter/layout_dialog.js:50
 msgid "Exported to the module and shipped with its app"
-msgstr ""
+msgstr "Izvezeno u modul i isporučeno sa njegovom aplikacijom"
 
 #. Label of the expose_recipients (Data) field in DocType 'Email Queue'
 #: frappe/email/doctype/email_queue/email_queue.json:127
@@ -13195,7 +13195,7 @@ msgstr "Neuspješno"
 #: frappe/core/doctype/data_import/data_import.js:2922
 #, python-brace-format
 msgid "Failed ({0})"
-msgstr ""
+msgstr "Neuspjelo ({0})"
 
 #. Label of the failed_emails (Int) field in DocType 'System Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json:146
@@ -13331,7 +13331,7 @@ msgstr "Učitavanje podataka nije uspjelo."
 #: frappe/core/doctype/data_import/data_import.js:1949
 #: frappe/core/doctype/data_import/data_import.js:2042
 msgid "Failed to load import file"
-msgstr ""
+msgstr "Učitavanje uvozne datoteke nije uspjelo"
 
 #: frappe/public/js/frappe/ui/user_settings_dialog.js:55
 msgid "Failed to load settings"
@@ -13339,11 +13339,11 @@ msgstr "Nije uspjelo učitavanje postavki"
 
 #: frappe/core/doctype/data_import/data_import.js:1149
 msgid "Failed to load the import wizard bundle."
-msgstr ""
+msgstr "Učitavanje paketa čarobnjaka za uvoz nije uspjelo."
 
 #: frappe/core/doctype/data_import/data_import.js:1125
 msgid "Failed to load the import wizard. Please hard-refresh and try again."
-msgstr ""
+msgstr "Učitavanje čarobnjaka za uvoz nije uspjelo. Osvježi stranicu i pokušajte ponovo."
 
 #: frappe/utils/image.py:76
 #, python-brace-format
@@ -13484,7 +13484,7 @@ msgstr "Preuzimanje polja iz {0}..."
 
 #: frappe/core/doctype/data_import/data_import.js:1052
 msgid "Fetching latest status..."
-msgstr ""
+msgstr "Preuzimanje najnovijeg statusa..."
 
 #. Label of the field (Select) field in DocType 'Assignment Rule'
 #. Label of the field (Select) field in DocType 'Document Naming Rule
@@ -13606,7 +13606,7 @@ msgstr "Polje nije dozvoljeno u upitu"
 #. Field'
 #: frappe/desk/doctype/kanban_board_field/kanban_board_field.json:15
 msgid "Field of the board's reference doctype to show on the card."
-msgstr ""
+msgstr "Polje referentnog dokumenta ploče koje će se prikazati na kartici."
 
 #: frappe/public/js/print_format_builder/composables/useSnippets.js:142
 msgid "Field saved as snippet"
@@ -13616,7 +13616,7 @@ msgstr "Polje spremljeno kao isječak"
 #. Board'
 #: frappe/desk/doctype/kanban_board/kanban_board.json:152
 msgid "Field shown as the card title: ID or a text field."
-msgstr ""
+msgstr "Polje prikazano kao naslov kartice: ID ili tekstualno polje."
 
 #. Description of the 'Workflow State Field' (Data) field in DocType 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json:101
@@ -13781,25 +13781,25 @@ msgstr "Polja razdvojena zarezom (,) biće uključena u listu „Pretraži po“
 #. Description of the 'Preview Fields' (Table) field in DocType 'Kanban Board'
 #: frappe/desk/doctype/kanban_board/kanban_board.json:76
 msgid "Fields shown in the card hover preview, in order. Icon and Label behave the same as Card Fields. Leave empty to use the doctype's preview fields, then card fields."
-msgstr ""
+msgstr "Polja prikazana u pregledu kartice prilikom zadržavanja miša iznad nje, redom. Ikona i oznaka ponašaju se isto kao i polja kartice. Ostavite prazno da biste koristili polja pregleda tipa dokumenta, a zatim polja kartice."
 
 #: frappe/public/js/frappe/views/kanban_v2/kanban_settings.bundle.js:252
 msgid "Fields shown on cards and in the hover preview."
-msgstr ""
+msgstr "Polja prikazana na karticama i u pregledu pri prelasku mišem."
 
 #. Description of the 'Card Fields' (Table) field in DocType 'Kanban Board'
 #: frappe/desk/doctype/kanban_board/kanban_board.json:69
 msgid "Fields shown on each card, in order. Set an Icon to show it on the card (label on hover); leave Icon empty to show the Label text. Leave the table empty to auto-pick."
-msgstr ""
+msgstr "Polja prikazana na svakoj kartici, redom. Postavite ikonu da se prikaže na kartici (oznaka pri zadržavanju pokazivača miša); ostavite ikonu praznu da bi se prikazao tekst oznake. Ostavite tablicu praznu za automatski odabir."
 
 #. Description of the 'Swimlanes' (Table) field in DocType 'Kanban Board'
 #: frappe/desk/doctype/kanban_board/kanban_board.json:83
 msgid "Fields the board can group cards by (swimlanes). New boards are pre-filled with the doctype's Select fields (except the column field). Add Link fields to offer more groupings; leave empty to hide the Group button."
-msgstr ""
+msgstr "Polja po kojima ploča može grupirati kartice (trake za plivanje). Nove ploče su unaprijed popunjene poljima za odabir tipa dokumenta (osim polja stupca). Dodajte polja za povezivanje kako biste ponudili više grupiranja; ostavite prazno da biste sakrili gumb Grupiraj."
 
 #: frappe/public/js/frappe/views/kanban_v2/kanban_settings.bundle.js:293
 msgid "Fields the board can group cards into swimlanes by."
-msgstr ""
+msgstr "Polja po kojima ploča može grupirati karte u plivačke staze."
 
 #. Label of the fieldtype (Select) field in DocType 'Data Import Value Mapping'
 #. Label of the fieldtype (Select) field in DocType 'Report Column'
@@ -13923,7 +13923,7 @@ msgstr "Tip datoteke {0} nije dozvoljen"
 
 #: frappe/public/js/data_import_wizard.bundle.js:520
 msgid "File upload"
-msgstr ""
+msgstr "Otpremanje datoteke"
 
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:666
 msgid "File upload failed."
@@ -13988,7 +13988,7 @@ msgstr "Filter nazivi"
 
 #: frappe/desk/doctype/list_filter/list_filter.py:85
 msgid "Filter Name, Reference Document Type and Module are required for a standard list layout"
-msgstr ""
+msgstr "Naziv filtra, vrsta referentnog dokumenta i modul su obavezni za standardni izgled popisa."
 
 #. Label of the filter_values (HTML) field in DocType 'Prepared Report'
 #: frappe/core/doctype/prepared_report/prepared_report.json:84
@@ -14007,11 +14007,11 @@ msgstr "Polja filtra imaju nevažeću notaciju povratnog naznaku: {0}"
 
 #: frappe/core/doctype/data_import/data_import.js:2910
 msgid "Filter import log"
-msgstr ""
+msgstr "Filtriraj zapisnik uvoza"
 
 #: frappe/public/js/frappe/data_import/import_tree_preview.js:55
 msgid "Filter nodes"
-msgstr ""
+msgstr "Čvorovi filtera"
 
 #: frappe/printing/page/print_format_builder/print_format_builder_sidebar.html:3
 msgid "Filter..."
@@ -14170,7 +14170,7 @@ msgstr "Statistika Otisaka"
 #: frappe/desk/doctype/onboarding_step/onboarding_step.py:144
 #, python-brace-format
 msgid "Finish {0} to finish this step."
-msgstr ""
+msgstr "Završi {0} kako biste dovršili ovaj korak."
 
 #. Option for the 'Status' (Select) field in DocType 'Submission Queue'
 #: frappe/core/doctype/submission_queue/submission_queue.json:52
@@ -14184,7 +14184,7 @@ msgstr "Završeno"
 
 #: frappe/core/doctype/data_import/data_import.js:907
 msgid "Finishing up..."
-msgstr ""
+msgstr "Završava..."
 
 #: frappe/public/js/frappe/form/grid_pagination.js:123
 msgid "First"
@@ -14243,11 +14243,11 @@ msgstr "Upaši"
 
 #: frappe/public/js/data_import_wizard.bundle.js:6
 msgid "Fix issues"
-msgstr ""
+msgstr "Ispravi probleme"
 
 #: frappe/public/js/data_import_wizard.bundle.js:1041
 msgid "Fix issues summary"
-msgstr ""
+msgstr "Sažetak Ispravljanja Problema"
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:503
 msgid "Fixed text like a title or a note"
@@ -14282,7 +14282,7 @@ msgstr "Decimalna Preciznost"
 #: frappe/core/doctype/user/user.json:820
 #: frappe/public/js/frappe/ui/user_settings_dialog.js:421
 msgid "Floating"
-msgstr ""
+msgstr "Plutajući"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Fieldtype' (Select) field in DocType 'Report Column'
@@ -14438,7 +14438,7 @@ msgstr "Sadržaj Podnožja"
 #: frappe/desk/doctype/kanban_board/kanban_board.json:186
 #: frappe/public/js/frappe/views/kanban_v2/kanban_settings.bundle.js:148
 msgid "Footer Date"
-msgstr ""
+msgstr "Datum Podnožja"
 
 #. Label of the footer_details_section (Section Break) field in DocType
 #. 'Website Settings'
@@ -14583,7 +14583,7 @@ msgstr "Za pomoć pogledajte <a href=\"https://frappeframework.com/docs/user/en/
 #: frappe/core/doctype/system_settings/system_settings.js:130
 #, python-brace-format
 msgid "For more information, see {0}."
-msgstr ""
+msgstr "Za više informacija pogledaj {0}."
 
 #: frappe/integrations/doctype/google_settings/google_settings.js:7
 #, python-brace-format
@@ -14735,7 +14735,7 @@ msgstr "Format Podataka"
 
 #: frappe/public/js/frappe/views/communication.js:382
 msgid "Formatting options"
-msgstr ""
+msgstr "Opcije formatiranja"
 
 #: frappe/public/js/frappe/ui/user_settings_dialog.js:692
 #: frappe/public/js/frappe/ui/user_settings_dialog.js:694
@@ -15149,7 +15149,7 @@ msgstr "Brzo se snalazite u sustavu pomoću tipkovničkih prečaca."
 
 #: frappe/public/js/frappe/ui/user_settings_dialog.js:308
 msgid "Get notified when a recipient opens an email you send."
-msgstr ""
+msgstr "Primi obavijesti kada primatelj otvori e-poštu koju pošaljete."
 
 #. Description of the 'Email Threads on Assigned Document' (Check) field in
 #. DocType 'Notification Settings'
@@ -15169,7 +15169,7 @@ msgstr "Preuzmi vaš globalno priznati avatar sa Gravatar.com"
 #: frappe/desk/page/setup_wizard/setup_wizard.js:359
 #: frappe/desk/page/setup_wizard/setup_wizard.js:484
 msgid "Getting started"
-msgstr ""
+msgstr "Započni"
 
 #. Label of the git_branch (Data) field in DocType 'Installed Application'
 #: frappe/core/doctype/installed_application/installed_application.json:19
@@ -15265,7 +15265,7 @@ msgstr "Idite na Radni Prostor"
 
 #: frappe/core/doctype/data_import/data_import.js:2813
 msgid "Go to list"
-msgstr ""
+msgstr "Idi na popis"
 
 #: frappe/public/js/frappe/form/form.js:192
 msgid "Go to next record"
@@ -15317,30 +15317,30 @@ msgstr "Dobra"
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:60
 msgid "Good afternoon"
-msgstr ""
+msgstr "Dobar dan"
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:60
 #, python-brace-format
 msgid "Good afternoon, {0}"
-msgstr ""
+msgstr "Dobar dan, {0}"
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:62
 msgid "Good evening"
-msgstr ""
+msgstr "Dobra večer"
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:62
 #, python-brace-format
 msgid "Good evening, {0}"
-msgstr ""
+msgstr "Dobra večer, {0}"
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:58
 msgid "Good morning"
-msgstr ""
+msgstr "Dobro jutro"
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:58
 #, python-brace-format
 msgid "Good morning, {0}"
-msgstr ""
+msgstr "Dobro jutro, {0}"
 
 #. Option for the 'Social Login Provider' (Select) field in DocType 'Social
 #. Login Key'
@@ -15500,7 +15500,7 @@ msgstr "Google Postavke"
 
 #: frappe/public/js/data_import_wizard.bundle.js:525
 msgid "Google Sheet"
-msgstr ""
+msgstr "Google Sheet"
 
 #: frappe/utils/csvutils.py:261
 msgid "Google Sheets URL is invalid or not publicly accessible."
@@ -15639,7 +15639,7 @@ msgstr "Grupirano po <span style='font-weight:600;'>{0}</b>"
 #: ui/src/components/GroupBy/GroupBy.vue:22
 #, python-brace-format
 msgid "Grouped by {0}"
-msgstr ""
+msgstr "Grupirano po {0}"
 
 #: frappe/core/page/component_explorer/component_explorer.js:307
 msgid "Groups and submenus"
@@ -15994,7 +15994,7 @@ msgstr "Pozdrav {0}, izrađen vam je račun na {1}. Prije nego što se prijavite
 #: frappe/desk/page/setup_wizard/setup_wizard.js:530
 #, python-brace-format
 msgid "Hi {0}, let's get the basics right"
-msgstr ""
+msgstr "Bok {0}, idemo shvatiti osnove"
 
 #. Label of the hidden (Check) field in DocType 'DocField'
 #. Label of the hidden (Check) field in DocType 'DocType Action'
@@ -16308,7 +16308,7 @@ msgstr "Zadržite me"
 
 #: frappe/public/js/frappe/views/kanban_v2/kanban_settings.bundle.js:134
 msgid "How cards look in the new Kanban experience."
-msgstr ""
+msgstr "Kako kartice izgledaju u novom iskustvu Oglasne Table."
 
 #: frappe/public/js/print_format_builder/components/editor/PrintFormatSetup.vue:4
 msgid "How do you want to start?"
@@ -16395,7 +16395,7 @@ msgstr "ID (naziv) entiteta čije svojstvo treba postaviti"
 
 #: frappe/public/js/frappe/views/kanban_v2/kanban_settings.bundle.js:160
 msgid "ID or a text field."
-msgstr ""
+msgstr "ID ili tekstualno polje."
 
 #. Description of the 'Section ID' (Data) field in DocType 'Web Page Block'
 #: frappe/website/doctype/web_page_block/web_page_block.json:109
@@ -17052,7 +17052,7 @@ msgstr "Uvoz nije mogao započeti. Ispravi pogreške u datoteci za uvoz."
 #: frappe/core/doctype/data_import/data_import.js:2697
 #: frappe/core/doctype/data_import/data_import.js:2703
 msgid "Import failed"
-msgstr ""
+msgstr "Uvoz nije uspio"
 
 #. Label of the google_sheets_url (Data) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json:206
@@ -17062,20 +17062,20 @@ msgstr "Uvezi iz Google Sheet"
 #: frappe/core/doctype/data_import/data_import.js:1051
 #: frappe/core/doctype/data_import/data_import.js:3004
 msgid "Import is running. Progress updates will appear shortly."
-msgstr ""
+msgstr "Uvoz je u tijeku. Ažuriranja napretka uskoro će se pojaviti."
 
 #: frappe/core/doctype/data_import/data_import.js:3197
 msgid "Import log"
-msgstr ""
+msgstr "Zapisnik uvoza"
 
 #: frappe/public/js/data_import_wizard.bundle.js:448
 msgid "Import settings"
-msgstr ""
+msgstr "Postavke Uvoza"
 
 #: frappe/public/js/data_import_wizard.bundle.js:373
 #: frappe/public/js/data_import_wizard.bundle.js:399
 msgid "Import steps"
-msgstr ""
+msgstr "Koraci uvoza"
 
 #: frappe/core/doctype/data_import/importer.py:1102
 msgid "Import template should be of type .csv, .xlsx or .xls"
@@ -17092,11 +17092,11 @@ msgstr "Uvoz je istekao, pokušaj ponovo."
 #: frappe/public/js/frappe/data_import/data_import_dialog.js:33
 #, python-brace-format
 msgid "Import {0}"
-msgstr ""
+msgstr "Uvezi {0}"
 
 #: frappe/core/doctype/data_import/importer.py:508
 msgid "Imported"
-msgstr ""
+msgstr "Uvezeno"
 
 #: frappe/core/doctype/data_import/data_import.js:94
 #, python-brace-format
@@ -17106,14 +17106,14 @@ msgstr "Uvoženje ili ažuriranje {0} {1}-a, {2}"
 #: frappe/core/doctype/data_import/data_import.js:3013
 #, python-brace-format
 msgid "Importing row {0} of {1}"
-msgstr ""
+msgstr "Uvoz reda {0} od {1}"
 
 #: frappe/core/doctype/data_import/data_import.js:897
 #: frappe/core/doctype/data_import/data_import.js:1046
 #: frappe/core/doctype/data_import/data_import.js:1380
 #: frappe/core/doctype/data_import/data_import.js:2996
 msgid "Importing your data"
-msgstr ""
+msgstr "Uvoz vaših podataka"
 
 #: frappe/core/doctype/data_import/data_import.py:167
 #, python-brace-format
@@ -17572,11 +17572,11 @@ msgstr "Umetni video"
 #: frappe/core/doctype/data_import/data_import.js:3035
 #: frappe/core/doctype/data_import/importer.py:504
 msgid "Inserted"
-msgstr ""
+msgstr "Umetnuto"
 
 #: frappe/core/doctype/system_settings/system_settings.js:122
 msgid "Install it:"
-msgstr ""
+msgstr "Instaliraj:"
 
 #. Name of a DocType
 #: frappe/core/doctype/installed_application/installed_application.json:62
@@ -17983,7 +17983,7 @@ msgstr "Nevažeća Tajna Webhooka"
 #: frappe/website/doctype/website_theme/website_theme.py:111
 #: frappe/website/doctype/website_theme/website_theme.py:121
 msgid "Invalid Website Theme Name"
-msgstr ""
+msgstr "Nevažeći naziv Teme Web Stranice"
 
 #: frappe/utils/legacy_gravatar_cleanup.py:82
 #: frappe/utils/new_navigation_nudge.py:80
@@ -17992,12 +17992,12 @@ msgstr "Nevažeća radnja"
 
 #: frappe/desk/reportview.py:215
 msgid "Invalid aggregate function"
-msgstr "Nevažeća agregatna funkcija"
+msgstr "Nevažeća zbirna funkcija"
 
 #: frappe/desk/reportview.py:254 frappe/desk/reportview.py:257
 #, python-brace-format
 msgid "Invalid aggregate function: {0}"
-msgstr "Nevažeća agregatna funkcija: {0}"
+msgstr "Nevažeća zbirna funkcija: {0}"
 
 #: frappe/database/query.py:2551
 #, python-brace-format
@@ -18146,7 +18146,7 @@ msgstr "Nevažeći tip argumenta funkcije: {0}. Dozvoljeni su samo nizovi, broje
 #: frappe/desk/doctype/kanban_board/kanban_board.py:435
 #: frappe/desk/doctype/kanban_board/kanban_board.py:440
 msgid "Invalid group field"
-msgstr ""
+msgstr "Nevažeće polje grupe"
 
 #: frappe/core/api/user_invitation.py:17
 msgid "Invalid input"
@@ -18421,7 +18421,7 @@ msgstr "Je Obavezno Polje"
 #. Label of the is_optional (Check) field in DocType 'Onboarding Step Map'
 #: frappe/desk/doctype/onboarding_step_map/onboarding_step_map.json:25
 msgid "Is Optional"
-msgstr ""
+msgstr "Je Opciono"
 
 #. Label of the is_optional_state (Check) field in DocType 'Workflow Document
 #. State'
@@ -18766,7 +18766,7 @@ msgstr "Posao je uspješno zaustavljen"
 #: frappe/core/doctype/data_import/data_import.js:1531
 #: frappe/core/doctype/data_import/data_import.py:295
 msgid "Job was not running; status updated."
-msgstr ""
+msgstr "Posao se nije izvršavao; status je ažuriran."
 
 #. Label of a Sidebar Item
 #: frappe/system/sidebar/system/system.json:82
@@ -18826,12 +18826,12 @@ msgstr "Kolona Oglasne Table"
 #. Name of a DocType
 #: frappe/desk/doctype/kanban_board_field/kanban_board_field.json:44
 msgid "Kanban Board Field"
-msgstr ""
+msgstr "Polje Oglasne Table"
 
 #. Name of a DocType
 #: frappe/desk/doctype/kanban_board_group_field/kanban_board_group_field.json:35
 msgid "Kanban Board Group Field"
-msgstr ""
+msgstr "Polje Grupe Oglasne Table"
 
 #. Label of the kanban_board_name (Data) field in DocType 'Kanban Board'
 #: frappe/desk/doctype/kanban_board/kanban_board.json:40
@@ -18843,7 +18843,7 @@ msgstr "Naziv Oglasne Table"
 #: frappe/public/js/frappe/views/kanban_v2/kanban_page.js:339
 #, python-brace-format
 msgid "Kanban Board {0} not found."
-msgstr ""
+msgstr "Oglasna Tabla {0} nije pronađena."
 
 #: frappe/public/js/frappe/views/kanban_v2/kanban_settings.bundle.js:113
 msgid "Kanban Settings"
@@ -18872,7 +18872,7 @@ msgstr "Zadrži Gravatar URL-ove"
 #: frappe/core/doctype/data_import/data_import.js:2450
 #, python-brace-format
 msgid "Keep Row {0}, Skip Rest"
-msgstr ""
+msgstr "Zadrži red {0}, Preskoči Ostalo"
 
 #: frappe/public/js/frappe/scanner/index.js:197
 msgid "Keep scanner open after scan"
@@ -18880,7 +18880,7 @@ msgstr "Ostavi skener otvoren nakon skeniranja"
 
 #: frappe/public/js/frappe/ui/user_settings_dialog.js:365
 msgid "Keep the app dock beside the sidebar, or let it slide in from the left edge."
-msgstr ""
+msgstr "Držite dok aplikacije pokraj bočne trake ili ga pustite da se uvuče s lijevog ruba."
 
 #: frappe/public/js/print_format_builder/components/inspector/SectionPropertiesPanel.vue:96
 msgid "Keep together"
@@ -19436,11 +19436,11 @@ msgstr "Prošle Godine"
 
 #: frappe/core/doctype/data_import/data_import.js:2866
 msgid "Last modified by"
-msgstr ""
+msgstr "Posljednji put izmijenio/la"
 
 #: frappe/core/doctype/data_import/data_import.js:2867
 msgid "Last modified on"
-msgstr ""
+msgstr "Posljednja izmjena"
 
 #: frappe/public/js/frappe/widgets/chart_widget.js:845
 #, python-brace-format
@@ -19477,7 +19477,7 @@ msgstr "Raspored <b>{0}</b> ažuriran"
 #. Label of the layout_order (Int) field in DocType 'List Filter'
 #: frappe/desk/doctype/list_filter/list_filter.json:101
 msgid "Layout Order"
-msgstr ""
+msgstr "Redoslijed Izgleda"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:207
 msgid "Layout Reset"
@@ -19487,7 +19487,7 @@ msgstr "Poništi Izgled"
 #. Board'
 #: frappe/desk/doctype/kanban_board/kanban_board.json:146
 msgid "Layout and fields used by the new Kanban experience for this board."
-msgstr ""
+msgstr "Izgled i polja koja koristi novo iskustvo Oglasne Table."
 
 #: frappe/public/js/frappe/list/list_filter/layout_dialog.js:27
 msgid "Layout name"
@@ -19503,7 +19503,7 @@ msgstr "Izgled će biti vraćen na standardni izgled, jeste li sigurni da želit
 
 #: frappe/public/js/frappe/list/list_filter/manage_layouts_dialog.js:39
 msgid "Layouts you create will show up here."
-msgstr ""
+msgstr "Izgledi koje izradite prikazat će se ovdje."
 
 #: frappe/core/doctype/security_settings/security_settings.js:14
 #: frappe/public/js/frappe/legacy_gravatar_cleanup.js:20
@@ -19657,11 +19657,11 @@ msgstr "Hajde da izbjegnemo ponavljane riječi i znakova"
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:531
 msgid "Let's get the basics right"
-msgstr ""
+msgstr "Prvo da razjasnimo osnove"
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:129
 msgid "Let's get your workspace ready. It only takes a few minutes."
-msgstr ""
+msgstr "Pripremimo vaš radni prostor. Treba samo nekoliko minuta."
 
 #: frappe/www/login.html:140
 msgid "Let's setup your account."
@@ -20154,7 +20154,7 @@ msgstr "Liste"
 
 #: frappe/core/page/component_explorer/component_explorer.js:851
 msgid "Live (next / previous on the first stepper above)"
-msgstr ""
+msgstr "Uživo (sljedeći / prethodni na prvom gornjem koraku)"
 
 #: frappe/core/page/component_explorer/component_explorer.js:918
 msgid "Live (updates via set_value)"
@@ -20162,7 +20162,7 @@ msgstr "Uživo (ažuriranja putem set_value)"
 
 #: frappe/core/doctype/data_import/data_import.js:3098
 msgid "Live activity updates will appear here."
-msgstr ""
+msgstr "Ažuriranja aktivnosti uživo pojavit će se ovdje."
 
 #. Option for the 'Rule' (Select) field in DocType 'Assignment Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json:103
@@ -20222,15 +20222,15 @@ msgstr "Učitavanje cijelog stabla..."
 
 #: frappe/public/js/frappe/views/kanban_v2/kanban_page.js:1116
 msgid "Loading groups…"
-msgstr ""
+msgstr "Učitavanje grupa…"
 
 #: frappe/core/doctype/data_import/data_import.js:663
 msgid "Loading import log"
-msgstr ""
+msgstr "Učitavanje zapisnika uvoza"
 
 #: frappe/core/doctype/data_import/data_import.js:692
 msgid "Loading import preview..."
-msgstr ""
+msgstr "Učitavanje pregleda uvoza..."
 
 #: frappe/public/js/data_import_wizard.bundle.js:1096
 #: frappe/public/js/frappe/form/sidebar/attachments.js:202
@@ -20239,7 +20239,7 @@ msgstr "Učitavanje pregleda..."
 
 #: frappe/core/doctype/data_import/data_import.js:707
 msgid "Loading tree preview..."
-msgstr ""
+msgstr "Učitavanje pregleda stabla..."
 
 #: frappe/public/js/frappe/file_uploader/TreeNode.vue:45
 #: frappe/public/js/frappe/form/sidebar/share.js:62
@@ -20270,7 +20270,7 @@ msgstr "Lokacija"
 
 #: frappe/core/page/component_explorer/component_explorer.js:796
 msgid "Locked steps"
-msgstr ""
+msgstr "Zaključani koraci"
 
 #. Label of the log (Code) field in DocType 'Package Import'
 #: frappe/core/doctype/package_import/package_import.json:31
@@ -20549,7 +20549,7 @@ msgstr "M"
 #. Label of the mcp_section (Section Break) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json:871
 msgid "MCP Settings"
-msgstr ""
+msgstr "MCP Postavke"
 
 #. Option for the 'License Type' (Select) field in DocType 'Package'
 #: frappe/core/doctype/package/package.json:34
@@ -20755,7 +20755,7 @@ msgstr "Prikaz Karte"
 
 #: frappe/public/js/frappe/data_import/import_preview.js:770
 msgid "Map each file column to a field. Save to apply changes."
-msgstr ""
+msgstr "Mapiraj svaki stupac datoteke u polje. Spremite da biste primijenili promjene."
 
 #. Description of the 'Dynamic Route' (Check) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json:295
@@ -20764,7 +20764,7 @@ msgstr "Mapirajte parametre rute u varijable obrasca. Primjer <code>/project/&lt
 
 #: frappe/core/doctype/data_import/data_import.js:2495
 msgid "Mapping warnings"
-msgstr ""
+msgstr "Upozorenja Mapiranja"
 
 #. Label of the mappings (Table) field in DocType 'DocType Settings Map'
 #: frappe/core/doctype/doctype_settings_map/doctype_settings_map.json:58
@@ -20829,11 +20829,11 @@ msgstr "Označi kao Nepročitano"
 
 #: frappe/public/js/frappe/data_import/import_tree_preview.js:504
 msgid "Mark as group"
-msgstr ""
+msgstr "Odaberi kao grupu"
 
 #: frappe/public/js/frappe/data_import/import_tree_preview.js:511
 msgid "Mark as leaf"
-msgstr ""
+msgstr "Označi kao krajnje"
 
 #. Option for the 'Message Type' (Select) field in DocType 'Notification'
 #. Option for the 'Content Type' (Select) field in DocType 'Web Page'
@@ -21591,7 +21591,7 @@ msgstr "Modul promijenjen na {0}. Datoteke u prethodnom modulu nisu premještene
 
 #: frappe/desk/doctype/kanban_board/kanban_board.py:68
 msgid "Module is required for a standard Kanban Board"
-msgstr ""
+msgstr "Modul je obavezan za standardnu Oglasnu Tablu"
 
 #: frappe/printing/doctype/print_format_snippet/print_format_snippet.py:34
 msgid "Module is required for a standard Print Format Snippet"
@@ -21603,7 +21603,7 @@ msgstr "Modul je obavezan za standardni Predložak Ispisa"
 
 #: frappe/public/js/frappe/list/list_filter/layout_dialog.js:271
 msgid "Module is required for a standard layout"
-msgstr ""
+msgstr "Modul je obavezan za standardni izgled."
 
 #: frappe/desk/doctype/module_onboarding/module_onboarding.py:78
 msgid "Module onboarding progress reset"
@@ -21756,11 +21756,11 @@ msgstr "Više sadržaja na dnu stranice."
 #: frappe/public/js/frappe/views/communication.js:157
 #: frappe/public/js/frappe/views/communication.js:473
 msgid "More options"
-msgstr ""
+msgstr "Više opcija"
 
 #: frappe/public/js/frappe/views/communication.js:236
 msgid "More send options"
-msgstr ""
+msgstr "Više opcija slanja"
 
 #: frappe/public/js/frappe/list/list_filter/layout_dialog.js:204
 #: frappe/public/js/frappe/ui/sort_selector.js:208
@@ -21831,7 +21831,7 @@ msgstr "Premjesti u..."
 
 #: frappe/public/js/frappe/data_import/import_tree_preview.js:497
 msgid "Move to…"
-msgstr ""
+msgstr "Premjesti u…"
 
 #: frappe/public/js/frappe/views/treeview.js:648
 #, python-brace-format
@@ -22004,7 +22004,7 @@ msgstr "Naziv {0} ne može biti {1}"
 #. Description of the 'Server Name' (Data) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json:880
 msgid "Name shown to AI clients. Defaults to the site's host name."
-msgstr ""
+msgstr "Naziv prikazan AI klijentima. Po standardu je to naziv domaćina stranice."
 
 #. Description of the 'Target' (Data) field in DocType 'Automation Action'
 #: frappe/automation/doctype/automation_action/automation_action.json:42
@@ -22241,7 +22241,7 @@ msgstr "Novi naziv formata"
 #. 'Kanban Board'
 #: frappe/desk/doctype/kanban_board/kanban_board.json:149
 msgid "New Kanban"
-msgstr ""
+msgstr "Nova Oglasna Tabla"
 
 #: frappe/public/js/frappe/views/kanban/kanban_view.js:642
 msgid "New Kanban Board"
@@ -22567,7 +22567,7 @@ msgstr "Sljedeća stranica"
 
 #: frappe/core/page/component_explorer/component_explorer.js:854
 msgid "Next step"
-msgstr ""
+msgstr "Sljedeći korak"
 
 #: frappe/public/js/frappe/form/doctype_settings/tabs/naming.js:129
 #, python-brace-format
@@ -22693,7 +22693,7 @@ msgstr "Nema Slika"
 
 #: frappe/public/js/frappe/views/kanban_v2/kanban_page.js:324
 msgid "No Kanban Board specified."
-msgstr ""
+msgstr "Nije navedena Oglasna Tabla."
 
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.py:366
 #, python-brace-format
@@ -22796,7 +22796,7 @@ msgstr "Nema pristupa"
 
 #: frappe/public/js/frappe/data_import/import_tree_preview.js:524
 msgid "No actions available"
-msgstr ""
+msgstr "Nema dostupnih radnji"
 
 #: frappe/www/login.py:177
 #, python-brace-format
@@ -22825,7 +22825,7 @@ msgstr "Nema dostupnih prijedloga za automatsku optimizaciju."
 
 #: frappe/public/js/frappe/data_import/import_tree_preview.js:554
 msgid "No available parents"
-msgstr ""
+msgstr "Nema dostupnih nadređenih"
 
 #: frappe/public/js/print_format_builder/components/editor/FieldPreviewBarcode.vue:20
 msgid "No barcode value — set one in the panel"
@@ -22833,7 +22833,7 @@ msgstr "Nema vrijednosti barkoda — postavite je u panelu"
 
 #: frappe/public/js/frappe/views/kanban_v2/kanban_page.js:1148
 msgid "No cards to group."
-msgstr ""
+msgstr "Nema kartica za grupiranje."
 
 #: frappe/public/js/frappe/form/save.js:40
 msgid "No changes in document"
@@ -22894,7 +22894,7 @@ msgstr "Nema podataka za izvođenje ove radnje"
 
 #: frappe/public/js/frappe/widgets/chart_widget.js:688
 msgid "No data yet"
-msgstr ""
+msgstr "Još nema podataka"
 
 #: frappe/contacts/doctype/address/address.py:268
 msgid "No default Address Template found. Please create a new one from Setup > Printing and Branding > Address Template."
@@ -22939,7 +22939,7 @@ msgstr "Nema adresa e-pošte za pozivnice"
 
 #: frappe/core/doctype/data_import/data_import.js:2781
 msgid "No failed log entries"
-msgstr ""
+msgstr "Nema neuspjelih zapisa dnevnika"
 
 #: frappe/public/js/frappe/views/kanban/kanban_view.js:672
 msgid "No fields found that can be used as a Kanban Column. Use the Customize Form to add a Custom Field of type \"Select\"."
@@ -22976,7 +22976,7 @@ msgstr "Nema slike — postavite je u panelu"
 
 #: frappe/public/js/data_import_wizard.bundle.js:1023
 msgid "No issues to fix"
-msgstr ""
+msgstr "Nema problema za rješavanje"
 
 #: frappe/public/js/print_format_builder/components/PrintSettingsPanel.vue:281
 msgid "No letter head"
@@ -23097,7 +23097,7 @@ msgstr "Za {0} nije zabilježena izmjena rasporeda prije nadogradnje."
 
 #: frappe/core/doctype/data_import/data_import.js:171
 msgid "No preview data for this row"
-msgstr ""
+msgstr "Nema podataka pregleda za ovaj red"
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:67
 msgid "No printable fields"
@@ -23117,7 +23117,7 @@ msgstr "Nema primalaca za obavještavanje"
 
 #: ui/src/components/GroupBy/GroupByTable.vue:105
 msgid "No records"
-msgstr ""
+msgstr "Nema zapisa"
 
 #: frappe/core/doctype/user_permission/user_permission_list.js:175
 msgid "No records deleted"
@@ -23174,7 +23174,7 @@ msgstr "Nije odabran nijedan red"
 
 #: frappe/core/doctype/data_import/data_import.js:2784
 msgid "No rows were imported"
-msgstr ""
+msgstr "Nijedan red nije uvezen"
 
 #: frappe/public/js/frappe/form/doctype_settings/tabs/naming.js:275
 msgid "No rules found."
@@ -23209,7 +23209,7 @@ msgstr "Nema predmeta"
 
 #: frappe/core/doctype/data_import/data_import.js:2783
 msgid "No successful log entries"
-msgstr ""
+msgstr "Nema uspješnih unosa u dnevnik"
 
 #: frappe/www/printview.py:629
 #, python-brace-format
@@ -23218,7 +23218,7 @@ msgstr "Nije pronađen prodložak na putu: {0}"
 
 #: frappe/public/js/frappe/views/communication.js:497
 msgid "No templates"
-msgstr ""
+msgstr "Nema predložaka"
 
 #: frappe/public/js/frappe/new_navigation_nudge.js:63
 msgid "No thanks"
@@ -23252,7 +23252,7 @@ msgstr "Nema vrijednosti za prikaz"
 
 #: frappe/public/js/data_import_wizard.bundle.js:1005
 msgid "No warnings or mapping issues were found. You can continue to import."
-msgstr ""
+msgstr "Nisu pronađena upozorenja ili problemi s mapiranjem. Možete nastaviti s uvozom."
 
 #: frappe/core/doctype/role/role.js:747
 msgid "No workspaces found."
@@ -23334,7 +23334,7 @@ msgstr "Nijedan"
 #: frappe/core/doctype/data_import/data_import.py:124
 #, python-brace-format
 msgid "None of the columns in your file match {0}. Check that it is the right file; if it is, map its columns to {0} fields in the next step."
-msgstr ""
+msgstr "Nijedna od stupaca u vašoj datoteci ne odgovara {0}. Provjerite je li to ispravna datoteka; ako jest, mapirajte njezine stupce na polja {0} u sljedećem koraku."
 
 #: frappe/public/js/frappe/form/workflow.js:36
 msgid "None: End of Workflow"
@@ -23510,7 +23510,7 @@ msgstr "Nije pronađeno"
 
 #: frappe/public/js/frappe/data_import/import_preview.js:379
 msgid "Not imported:"
-msgstr ""
+msgstr "Nije uvezeno:"
 
 #: frappe/core/doctype/page/page.py:61
 msgid "Not in Developer Mode"
@@ -23528,7 +23528,7 @@ msgstr "Nije ni u jednoj aplikaciji"
 #: frappe/public/js/print_format_builder/utils.js:162
 #: frappe/utils/typst_emitter.py:135 frappe/utils/weasyprint_legacy.py:34
 msgid "Not made in the Print Format Editor"
-msgstr ""
+msgstr "Nije napravljeno u Uređivaču Formata Ispisa"
 
 #: frappe/core/doctype/system_settings/system_settings.py:252
 #: frappe/public/js/frappe/data_import/data_import_dialog.js:58
@@ -23562,7 +23562,7 @@ msgstr "Nije ispisano: nema vrijednosti za ovaj zapis"
 #: frappe/public/js/frappe/views/kanban_v2/kanban_page.js:1142
 #: frappe/public/js/frappe/views/kanban_v2/kanban_page.js:1167
 msgid "Not set"
-msgstr ""
+msgstr "Nije postavljeno"
 
 #: frappe/desk/page/workspace_restore/workspace_restore.js:18
 msgid "Not yet overwritten"
@@ -24284,11 +24284,11 @@ msgstr "Samo Upravitelj Sustava može napisati korak skripte"
 
 #: frappe/desk/doctype/kanban_board/kanban_board.py:65
 msgid "Only a new Kanban Board can be made standard"
-msgstr ""
+msgstr "Samo nova Oglasna Tabla može biti standardna"
 
 #: frappe/desk/doctype/list_filter/list_filter.py:78
 msgid "Only a new list layout can be made standard"
-msgstr ""
+msgstr "Samo novi izgled popisa može se učiniti standardnim"
 
 #. Label of the only_allow_system_managers_to_upload_public_files (Check) field
 #. in DocType 'System Settings'
@@ -24543,7 +24543,7 @@ msgstr "Otvori dok aplikacija"
 #. 'Kanban Board'
 #: frappe/desk/doctype/kanban_board/kanban_board.json:139
 msgid "Open this board in the new Kanban experience. When off, the classic Kanban is used. Same List / Kanban route either way."
-msgstr ""
+msgstr "Otvorite ovu novom iskustvu Oglasne Table. Kada je isključeno, koristi se klasična Oglasna Table. U oba slučaja se koristi ista lista / Oglasna Tabla."
 
 #: frappe/www/qrcode.html:13
 msgid "Open your authentication app on your mobile phone."
@@ -24675,7 +24675,7 @@ msgstr "Neobavezno. Korak se izvršava samo ako je ovaj izraz istinit."
 #. Description of the 'Icon' (Icon) field in DocType 'Kanban Board Field'
 #: frappe/desk/doctype/kanban_board_field/kanban_board_field.json:24
 msgid "Optional. When set, the card shows this icon and the label on hover; when empty, the label is shown directly."
-msgstr ""
+msgstr "Neobavezno. Kada je postavljeno, kartica prikazuje ovu ikonu i oznaku prilikom zadržavanja pokazivača miša; kada je prazno, oznaka se prikazuje izravno."
 
 #. Description of the 'CC' (Code) field in DocType 'Notification Recipient'
 #: frappe/email/doctype/notification_recipient/notification_recipient.json:17
@@ -24755,7 +24755,7 @@ msgstr "Ili kopiraj i zalijepi:"
 
 #: frappe/core/doctype/data_import/data_import.js:259
 msgid "Or skip rows instead"
-msgstr ""
+msgstr "Ili preskoči redove umjesto toga"
 
 #. Option for the 'Color' (Select) field in DocType 'DocType State'
 #. Option for the 'Indicator' (Select) field in DocType 'Kanban Board Column'
@@ -25154,7 +25154,7 @@ msgstr "Širina Stranice (u mm)"
 
 #: frappe/public/js/print_format_builder/components/PrintSettingsPanel.vue:71
 msgid "Page background"
-msgstr ""
+msgstr "Pozadina stranice"
 
 #: frappe/public/js/print_format_builder/components/editor/PrintFormat.vue:187
 msgid "Page break must follow a section"
@@ -25208,11 +25208,11 @@ msgstr "Stranice kojima ova uloga može pristupiti."
 
 #: frappe/printing/page/print/print.js:214
 msgid "Paper Size"
-msgstr ""
+msgstr "Veličina Papira"
 
 #: frappe/public/js/print_format_builder/components/PrintSettingsPanel.vue:40
 msgid "Paper size"
-msgstr ""
+msgstr "Veličina papira"
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:244
 msgid "Paragraph"
@@ -25340,7 +25340,7 @@ msgstr "Djelimičan Uspjeh"
 #. Option for the 'Status' (Select) field in DocType 'Automation Run'
 #: frappe/automation/doctype/automation_run/automation_run.json:54
 msgid "Partially Failed"
-msgstr ""
+msgstr "Djelomično Neuspješno"
 
 #. Option for the 'Status' (Select) field in DocType 'Email Queue'
 #: frappe/email/doctype/email_queue/email_queue.json:64
@@ -25362,7 +25362,7 @@ msgstr "Uspješno"
 #: frappe/public/js/frappe/data_import/data_import_dialog.js:15
 #, python-brace-format
 msgid "Pass either an existing {0} name or a {1} to import into."
-msgstr ""
+msgstr "Proslijedi ili postojeći naziv {0} ili {1} za uvoz."
 
 #. Option for the 'Status' (Select) field in DocType 'Contact'
 #: frappe/contacts/doctype/contact/contact.json:103
@@ -25580,7 +25580,7 @@ msgstr "Čeka se Verifikacija"
 #. Import'
 #: frappe/core/doctype/data_import/data_import.json:106
 msgid "Per-row parent / is_group overrides for tree DocType imports, keyed by sheet row number. Applied at import time."
-msgstr ""
+msgstr "Nadređeni po redu / is_group preusmjeravanja za uvoze DocType-a u stablu, indeksirano po broju reda lista. Primjenjuje se pri uvozu."
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -25921,7 +25921,7 @@ msgstr "Prikačeno"
 #. Description of the 'Dock' (Select) field in DocType 'User'
 #: frappe/core/doctype/user/user.json:816
 msgid "Pinned sits beside the sidebar. Floating slides in from the left edge."
-msgstr ""
+msgstr "Prikvačeno se nalazi pored bočne trake. Plutajuće se uvlači s lijevog ruba."
 
 #. Label of the placeholder (Data) field in DocType 'DocField'
 #. Label of the placeholder (Data) field in DocType 'Custom Field'
@@ -25963,7 +25963,7 @@ msgstr "Pogon"
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:237
 msgid "Play video"
-msgstr ""
+msgstr "Pusti video"
 
 #: frappe/email/doctype/email_account/email_account.py:648
 #, python-brace-format
@@ -26026,7 +26026,7 @@ msgstr "Priloži datoteku slike da postavite HTML za Zaglavlje."
 #: frappe/core/doctype/data_import/data_import.js:1287
 #: frappe/core/doctype/data_import/data_import.js:1294
 msgid "Please attach an import file or provide a Google Sheets URL."
-msgstr ""
+msgstr "Priloži datoteku za uvoz ili navedite URL za Google Sheet."
 
 #: frappe/core/doctype/package_import/package_import.py:41
 msgid "Please attach the package"
@@ -26245,7 +26245,7 @@ msgstr "Odaberi DocType"
 
 #: frappe/core/doctype/data_import/data_import.js:1280
 msgid "Please select Document Type and Import Type."
-msgstr ""
+msgstr "Odaberi Dokument Tip i Tip Uvoza."
 
 #: frappe/desk/doctype/global_search_settings/global_search_settings.js:119
 msgid "Please select Document Type first."
@@ -26640,7 +26640,7 @@ msgstr "Priprema Izvještaja"
 
 #: frappe/core/doctype/data_import/data_import.js:1386
 msgid "Preparing import..."
-msgstr ""
+msgstr "Priprema uvoza..."
 
 #: frappe/public/js/frappe/ui/keyboard.js:157
 #: frappe/public/js/frappe/ui/user_settings_dialog.js:869
@@ -26679,7 +26679,7 @@ msgstr "Pregled"
 #: frappe/desk/doctype/kanban_board/kanban_board.json:79
 #: frappe/public/js/frappe/views/kanban_v2/kanban_settings.bundle.js:268
 msgid "Preview Fields"
-msgstr ""
+msgstr "Pregled Polja"
 
 #. Label of the preview_html (HTML) field in DocType 'File'
 #: frappe/core/doctype/file/file.json:61
@@ -26749,7 +26749,7 @@ msgstr "Prethodna stranica"
 
 #: frappe/core/page/component_explorer/component_explorer.js:864
 msgid "Previous step"
-msgstr ""
+msgstr "Prethodni korak"
 
 #. Option for the 'Button Color' (Select) field in DocType 'DocField'
 #. Option for the 'Button Color' (Select) field in DocType 'Custom Field'
@@ -26859,7 +26859,7 @@ msgstr "Izrađivač formata za štampanje"
 #: frappe/printing/page/print_format_builder_beta/print_format_builder_beta.js:25
 #: frappe/printing/sidebar/printing/printing.json:66
 msgid "Print Format Editor"
-msgstr ""
+msgstr "Uređivač Formata Ispisa"
 
 #: frappe/utils/pdf.py:84
 msgid "Print Format Error"
@@ -27004,7 +27004,7 @@ msgstr "Ispiši Dokument"
 
 #: frappe/public/js/frappe/views/communication.js:1367
 msgid "Print format"
-msgstr ""
+msgstr "Format ispisa"
 
 #: frappe/public/js/print_format_builder/components/inspector/field_properties.js:263
 msgid "Print if empty"
@@ -27147,7 +27147,7 @@ msgstr "Napredak"
 
 #: frappe/core/doctype/data_import/data_import.js:3113
 msgid "Progress summary"
-msgstr ""
+msgstr "Sažetak Napretka"
 
 #: frappe/public/js/frappe/views/kanban/kanban_view.js:706
 msgid "Project"
@@ -27876,7 +27876,7 @@ msgstr "Parametar prijemnika"
 
 #: frappe/core/doctype/data_import/data_import.js:3120
 msgid "Recent activity"
-msgstr ""
+msgstr "Nedavna aktivnost"
 
 #: frappe/utils/password_strength.py:123
 msgid "Recent years are easy to guess."
@@ -28393,7 +28393,7 @@ msgstr "Odnosi"
 #. Label of the relationships (JSON) field in DocType 'Automation Run'
 #: frappe/automation/doctype/automation_run/automation_run.json:147
 msgid "Relationships Snapshot"
-msgstr ""
+msgstr "Pregled Odnosa"
 
 #: frappe/automation_engine/relationships.py:198
 msgid "Relationships must be a JSON list"
@@ -28938,12 +28938,12 @@ msgstr "Izvještaj se ne može postaviti za pojedinačne vrste"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:2518
 msgid "Report generation failed"
-msgstr ""
+msgstr "Izrada izvješća nije uspjela"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:2517
 #, python-brace-format
 msgid "Report generation failed {0}"
-msgstr ""
+msgstr "Izrada izvješća nije uspjela {0}"
 
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.js:208
 #: frappe/desk/doctype/number_card/number_card.js:189
@@ -28993,7 +28993,7 @@ msgstr "Izvještaj {0} izbrisan"
 #: frappe/core/doctype/prepared_report/prepared_report.py:157
 #, python-brace-format
 msgid "Report {0} failed to generate."
-msgstr ""
+msgstr "Izrada izvješća {0} nije uspjelo."
 
 #: frappe/desk/query_report.py:61
 #, python-brace-format
@@ -29003,7 +29003,7 @@ msgstr "Izvještaj {0} je onemogućen"
 #: frappe/core/doctype/prepared_report/prepared_report.py:155
 #, python-brace-format
 msgid "Report {0} is ready."
-msgstr ""
+msgstr "Izvješće {0} je spremno."
 
 #: frappe/desk/reportview.py:415
 #, python-brace-format
@@ -29119,7 +29119,7 @@ msgstr "Zahtjev za Brisanje Računa"
 
 #: frappe/public/js/frappe/ui/user_settings_dialog.js:307
 msgid "Request read receipts for outgoing emails"
-msgstr ""
+msgstr "Zahtjev za potvrdu čitanja za odlaznu e-poštu"
 
 #: frappe/integrations/frappe_providers/cloud_settings.py:90
 msgid "Request to your server failed."
@@ -29241,7 +29241,7 @@ msgstr "Vrati na Standard"
 
 #: frappe/public/js/frappe/data_import/import_tree_preview.js:63
 msgid "Reset all"
-msgstr ""
+msgstr "Poništi sve"
 
 #: frappe/public/js/frappe/ui/sidebar/dock_manager.js:265
 msgid "Reset for everyone"
@@ -29253,7 +29253,7 @@ msgstr "Poveznica za poništenje poslana e-poštom"
 
 #: frappe/public/js/frappe/data_import/import_tree_preview.js:518
 msgid "Reset node"
-msgstr ""
+msgstr "Poništi čvor"
 
 #: frappe/templates/emails/password_reset.html:5
 msgid "Reset password"
@@ -29507,11 +29507,11 @@ msgstr "Vraćanje dužine na {0} za '{1}' u '{2}'. Postavljanje dužine kao {3} 
 
 #: frappe/public/js/data_import_wizard.bundle.js:593
 msgid "Review pending imports"
-msgstr ""
+msgstr "Pregled uvoza na čekanju"
 
 #: frappe/core/page/component_explorer/component_explorer.js:822
 msgid "Revisiting a finished flow (factual completion)"
-msgstr ""
+msgstr "Ponovni pregled završenog toka (činjenično dovršetak)"
 
 #. Label of the revocation_uri (Data) field in DocType 'Connected App'
 #: frappe/integrations/doctype/connected_app/connected_app.json:112
@@ -29920,11 +29920,11 @@ msgstr "Vrijednosti Reda Promijenjene"
 
 #: frappe/core/doctype/data_import/data_import.js:2491
 msgid "Row errors"
-msgstr ""
+msgstr "Pogreške u redu"
 
 #: frappe/core/doctype/data_import/importer.py:529
 msgid "Row validation failed"
-msgstr ""
+msgstr "Validacija reda nije uspjela"
 
 #: frappe/core/doctype/data_import/data_import.js:2367
 #: frappe/core/doctype/data_import/data_import.js:3083
@@ -29935,7 +29935,7 @@ msgstr "Red {0}"
 #: frappe/core/doctype/data_import/importer.py:529
 #, python-brace-format
 msgid "Row {0} failed"
-msgstr ""
+msgstr "Red {0} nije uspio"
 
 #: frappe/automation/doctype/automation_flow/automation_flow.py:140
 #, python-brace-format
@@ -30037,11 +30037,11 @@ msgstr "Redovi koje pražnjenje prolazi između izvršenja."
 
 #: frappe/public/js/data_import_wizard.bundle.js:1043
 msgid "Rows checked"
-msgstr ""
+msgstr "Odabrani Redovi"
 
 #: frappe/public/js/data_import_wizard.bundle.js:1045
 msgid "Rows skipped"
-msgstr ""
+msgstr "Preskočeni redovi"
 
 #. Label of the rule (Select) field in DocType 'Assignment Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json:102
@@ -30116,7 +30116,7 @@ msgstr "Pokreni poslove samo dnevno ako su neaktivni (dana)"
 #. Label of the run_state (JSON) field in DocType 'Automation Run'
 #: frappe/automation/doctype/automation_run/automation_run.json:154
 msgid "Run State"
-msgstr ""
+msgstr "Stanje Izvršenja"
 
 #: frappe/automation/doctype/automation_flow/automation_flow.js:150
 msgid "Run against"
@@ -30389,7 +30389,7 @@ msgstr "Spremi Polje kao Isječak"
 
 #: frappe/public/js/frappe/views/kanban_v2/kanban_page.js:600
 msgid "Save Filters"
-msgstr ""
+msgstr "Spremi Filtere"
 
 #: frappe/public/js/frappe/views/workspace/workspace.js:1086
 msgid "Save Layout"
@@ -30445,7 +30445,7 @@ msgstr "Spremi verziju"
 #: frappe/core/doctype/data_import/data_import.js:1354
 #: frappe/public/js/data_import_wizard.bundle.js:1256
 msgid "Save your changes before importing."
-msgstr ""
+msgstr "Spremite promjene prije uvoza."
 
 #: frappe/model/rename_doc.py:95
 #: frappe/printing/page/print_format_builder/print_format_builder.js:805
@@ -30496,7 +30496,7 @@ msgstr "Spremanjem ovoga izvest ćete ovaj dokument kao i korake povezane ovdje 
 
 #: frappe/desk/page/setup_wizard/setup_wizard.py:25
 msgid "Saving your language and region"
-msgstr ""
+msgstr "Spremanje vašeg jezika i regije"
 
 #: frappe/public/js/form_builder/store.js:256
 #: frappe/public/js/frappe/ui/components/button.js:33
@@ -30528,7 +30528,7 @@ msgstr "Raspored"
 
 #: frappe/public/js/frappe/views/communication.js:256
 msgid "Schedule Send"
-msgstr ""
+msgstr "Zakaži Slanje"
 
 #: frappe/public/js/frappe/views/communication.js:246
 #: frappe/public/js/frappe/views/communication.js:553
@@ -30537,7 +30537,7 @@ msgstr "Raspored Slanja"
 
 #: frappe/public/js/frappe/views/communication.js:241
 msgid "Schedule email"
-msgstr ""
+msgstr "Zakaži e-poštu"
 
 #. Option for the 'Trigger Type' (Select) field in DocType 'Automation Flow'
 #. Option for the 'Status' (Select) field in DocType 'Automation Trigger Queue'
@@ -31238,7 +31238,7 @@ msgstr "Odaberi Tip Dokumenta za dodavanje pravila polja."
 
 #: frappe/public/js/data_import_wizard.bundle.js:491
 msgid "Select a Document Type to upload a file or Google Sheet."
-msgstr ""
+msgstr "Odaberi Dokument Tip za otpremanje datoteke ili Google Sheet datoteke."
 
 #: frappe/public/js/print_format_builder/components/inspector/LinkedFieldRows.vue:14
 msgid "Select a field"
@@ -31290,25 +31290,25 @@ msgstr "Odaberi najmanje dvije radnje"
 #: frappe/public/js/frappe/views/communication.js:428
 #: frappe/public/js/frappe/views/communication.js:1552
 msgid "Select attachments"
-msgstr ""
+msgstr "Odaberi privitke"
 
 #: frappe/public/js/frappe/data_import/import_preview.js:718
 #: frappe/public/js/frappe/data_import/import_preview.js:743
 msgid "Select date format"
-msgstr ""
+msgstr "Odaberi format datuma"
 
 #: ui/src/components/GroupBy/GroupBy.vue:51
 #: ui/src/components/GroupBy/GroupBy.vue:87
 msgid "Select field"
-msgstr ""
+msgstr "Odaberi polje"
 
 #: frappe/public/js/frappe/views/kanban_v2/kanban_settings.bundle.js:205
 msgid "Select field whose options become the board columns."
-msgstr ""
+msgstr "Odaberite polje čije opcije postaju stupci ploče."
 
 #: frappe/public/js/frappe/data_import/import_preview.js:712
 msgid "Select format"
-msgstr ""
+msgstr "Odaberi format"
 
 #: frappe/public/js/frappe/list/list_view.js:2049
 msgctxt "Description of a list view shortcut"
@@ -31325,7 +31325,7 @@ msgstr "Odaberi artikle više listi"
 #. Group Field'
 #: frappe/desk/doctype/kanban_board_group_field/kanban_board_group_field.json:14
 msgid "Select or Link field of the board's reference doctype to group cards by (swimlanes)."
-msgstr ""
+msgstr "Odaberite ili povežite polje referentnog dokument tipa ploče za grupiranje kartica po (swimlanes)."
 
 #: frappe/public/js/frappe/views/calendar/calendar.js:178
 msgid "Select or drag across time slots to create a new event."
@@ -31577,7 +31577,7 @@ msgstr "Pošaljite sirove ESC/POS naredbe na pisač naljepnica ili termalni pisa
 
 #: frappe/public/js/frappe/views/communication.js:163
 msgid "Send read receipt"
-msgstr ""
+msgstr "Pošalji potvrdu o čitanju"
 
 #. Description of the 'Email Template' (Link) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json:247
@@ -31765,7 +31765,7 @@ msgstr "IP Servera"
 #. Label of the server_name (Data) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json:883
 msgid "Server Name"
-msgstr ""
+msgstr "Naziv Poslužitelja"
 
 #. Label of a Sidebar Item
 #. Label of a Link in the Build Workspace
@@ -31990,7 +31990,7 @@ msgstr "Postavi kao Standard"
 
 #: frappe/printing/page/print/print.js:382
 msgid "Set as Default Format"
-msgstr ""
+msgstr "Postavi kao Standard Format"
 
 #: frappe/website/doctype/website_theme/website_theme.js:33
 msgid "Set as Default Theme"
@@ -32058,7 +32058,7 @@ msgstr "Postavi veličinu u MB"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:2500
 msgid "Set the filters and generate a new one."
-msgstr ""
+msgstr "Postavi filtere i izradi novi."
 
 #. Description of the 'Filters Configuration' (Code) field in DocType 'Number
 #. Card'
@@ -32124,7 +32124,7 @@ msgstr "Postavi put do funkcije s popisa dozvoljenih koja će vratiti podatke za
 #. Description of the 'Layout Order' (Int) field in DocType 'List Filter'
 #: frappe/desk/doctype/list_filter/list_filter.json:98
 msgid "Set this to decide which position a layout appears in the dropdown"
-msgstr ""
+msgstr "Postavite ovo kako biste odredili na kojoj će se poziciji izgled prikazivati u padajućem izborniku"
 
 #: frappe/templates/emails/two_factor_setup.html:2
 msgid "Set up your authenticator app"
@@ -32138,12 +32138,12 @@ msgstr "Postavi {0}"
 #: frappe/desk/doctype/onboarding_step/onboarding_step.py:149
 #, python-brace-format
 msgid "Set {0} in {1} to finish this step."
-msgstr ""
+msgstr "Postavi {0} u {1} da biste dovršili ovaj korak."
 
 #: frappe/public/js/frappe/views/kanban_v2/kanban_page.js:1392
 #, python-brace-format
 msgid "Set {0}…"
-msgstr ""
+msgstr "Postavi {0}…"
 
 #: frappe/public/js/frappe/views/workspace/blocks/block.js:201
 msgid "Setting"
@@ -32157,7 +32157,7 @@ msgstr "Polje Postavke"
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:447
 msgid "Setting things up"
-msgstr ""
+msgstr "Postavljanje stvari"
 
 #: frappe/contacts/doctype/address_template/address_template.py:33
 msgid "Setting this Address Template as default as there is no other default"
@@ -32169,7 +32169,7 @@ msgstr "Postavljanje dokumenata Globalne pretrage."
 
 #: frappe/desk/page/setup_wizard/setup_wizard.py:258
 msgid "Setting up your apps"
-msgstr ""
+msgstr "Postavljanje aplikacija"
 
 #. Label of the settings_section (Section Break) field in DocType 'Automation
 #. Flow'
@@ -32300,7 +32300,7 @@ msgstr "Podijeli ovaj dokument sa"
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:566
 msgid "Share usage data to help us improve"
-msgstr ""
+msgstr "Podijeli podatke o korištenju kako biste nam pomogli da se poboljšamo"
 
 #: frappe/public/js/frappe/form/sidebar/share.js:56
 #, python-brace-format
@@ -32398,7 +32398,7 @@ msgstr "Prikaži Strelicu"
 #: frappe/desk/doctype/kanban_board/kanban_board.json:162
 #: frappe/public/js/frappe/views/kanban_v2/kanban_settings.bundle.js:175
 msgid "Show Assigned To"
-msgstr ""
+msgstr "Prikaži Dodijeljeno"
 
 #. Label of the show_auth_server_metadata (Check) field in DocType 'OAuth
 #. Settings'
@@ -32583,7 +32583,7 @@ msgstr "Prikaži Oznake"
 #: frappe/desk/doctype/kanban_board/kanban_board.json:169
 #: frappe/public/js/frappe/views/kanban_v2/kanban_settings.bundle.js:182
 msgid "Show Tags on Cards"
-msgstr ""
+msgstr "Prikaži Oznake na Karticama"
 
 #. Label of the show_title (Check) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json:105
@@ -32678,7 +32678,7 @@ msgstr "Prikaži obavijesti na radnoj površini i u aplikaciji za aktivnosti na 
 #. Board'
 #: frappe/desk/doctype/kanban_board/kanban_board.json:166
 msgid "Show document tags on cards (left of footer date), using the standard colored tag style."
-msgstr ""
+msgstr "Prikaži oznake dokumenata na karticama (lijevo od datuma u podnožju) koristeći standardni stil oznaka u boji."
 
 #. Label of the show_footer_on_login (Check) field in DocType 'Website
 #. Settings'
@@ -32780,7 +32780,7 @@ msgstr "Prikažite vremensku crtu aktivnosti s komentarima, e-poštom i poviješ
 #. Board'
 #: frappe/desk/doctype/kanban_board/kanban_board.json:159
 msgid "Show the assignee stack and Assign control on cards and in the hover preview."
-msgstr ""
+msgstr "Prikaži stog dodijeljenih osoba i kontrolu Dodijeli na karticama i u pregledu prilikom zadržavanja pokazivača miša."
 
 #: frappe/public/js/frappe/ui/user_settings_dialog.js:709
 msgid "Show timeline"
@@ -32799,7 +32799,7 @@ msgstr "Prikaži naziv u prozoru pretraživača kao \"Prefiks - naziv\""
 
 #: ui/src/components/GroupBy/GroupBy.vue:109
 msgid "Show totals"
-msgstr ""
+msgstr "Prikaži ukupno"
 
 #: frappe/public/js/frappe/ui/user_settings_dialog.js:674
 msgid "Show view switcher"
@@ -32821,7 +32821,7 @@ msgstr "Prikazano je svih {0} redova"
 #: frappe/public/js/frappe/data_import/import_preview.js:491
 #, python-brace-format
 msgid "Showing first {0} rows of {1}"
-msgstr ""
+msgstr "Prikazuju se {0} prvih redovi od {1}"
 
 #: frappe/public/js/frappe/views/reports/report_view.js:561
 msgid "Showing only Numeric fields from Report"
@@ -32855,13 +32855,13 @@ msgstr "Prikazano je {0} od {1} redova."
 #. Description of the 'Label' (Data) field in DocType 'Kanban Board Field'
 #: frappe/desk/doctype/kanban_board_field/kanban_board_field.json:32
 msgid "Shown as the field label, or as the icon tooltip when an icon is set. Auto-filled from the field; edit to override."
-msgstr ""
+msgstr "Prikazuje se kao oznaka polja ili kao opis ikone kada je ikona postavljena. Automatski se popunjava iz polja; uredite za poništavanje."
 
 #. Description of the 'Label' (Data) field in DocType 'Kanban Board Group
 #. Field'
 #: frappe/desk/doctype/kanban_board_group_field/kanban_board_group_field.json:23
 msgid "Shown as the group option's name. Auto-filled from the field; edit to override."
-msgstr ""
+msgstr "Prikazuje se kao naziv grupne opcije. Automatski se popunjava iz polja; uredite za poništavanje."
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:324
 #, python-brace-format
@@ -32990,7 +32990,7 @@ msgstr "Prijava je onemogućena"
 
 #: frappe/core/doctype/system_settings/system_settings.js:124
 msgid "Sign in to this site:"
-msgstr ""
+msgstr "Prijavite se na ovu stranicu:"
 
 #: frappe/www/login.html:116 frappe/www/login.html:132
 #: frappe/www/login.html:209
@@ -33123,7 +33123,7 @@ msgstr "Preskoči red"
 
 #: frappe/core/doctype/data_import/data_import.js:260
 msgid "Skip every row that has one of these values. Skipped rows are not imported."
-msgstr ""
+msgstr "Preskoči svaki red koji ima jednu od ovih vrijednosti. Preskočeni redovi se ne uvoze."
 
 #. Option for the 'Status' (Select) field in DocType 'Automation Run'
 #. Option for the 'Status' (Select) field in DocType 'Automation Run Step'
@@ -33148,7 +33148,7 @@ msgstr "Preskočeni Redovi"
 #: frappe/core/doctype/data_import/importer.py:285
 #, python-brace-format
 msgid "Skipped row {0}"
-msgstr ""
+msgstr "Preskočen red {0}"
 
 #: frappe/core/doctype/data_import/importer.py:1911
 #, python-brace-format
@@ -33251,7 +33251,7 @@ msgstr "Mali Tekst"
 #. Description of the 'Output' (JSON) field in DocType 'Automation Run Step'
 #: frappe/automation/doctype/automation_run_step/automation_run_step.json:91
 msgid "Small structured result returned by the action."
-msgstr ""
+msgstr "Mali strukturirani rezultat vraćen radnjom."
 
 #. Label of the smallest_currency_fraction_value (Currency) field in DocType
 #. 'Currency'
@@ -33269,7 +33269,7 @@ msgstr "Jedinica najmanjih frakcija u opticaju (kovanica). Za npr. 1 cent za USD
 #. Run'
 #: frappe/automation/doctype/automation_run/automation_run.json:135
 msgid "Snapshot"
-msgstr ""
+msgstr "Snimak"
 
 #. Label of the snapshot_report (Check) field in DocType 'Report'
 #: frappe/core/doctype/report/report.json:241
@@ -33361,12 +33361,12 @@ msgstr "Solid"
 
 #: frappe/public/js/frappe/views/kanban_v2/core/kanban_core.js:1003
 msgid "Some cards were saved in another column"
-msgstr ""
+msgstr "Neke su kartice spremljene u drugi stupac"
 
 #: frappe/core/doctype/data_import/data_import.js:2401
 #, python-brace-format
 msgid "Some columns have invalid values. Map them to valid values below, or skip the rows that have them. Affected columns: {0}."
-msgstr ""
+msgstr "Neki stupci imaju nevažeće vrijednosti. Mapirajte ih na valjane vrijednosti u nastavku ili preskočite redove koji ih sadrže. Zahvaćeni stupci: {0}."
 
 #: frappe/printing/page/print_format_builder/print_format_builder_column_selector.html:4
 msgid "Some columns might get cut off when printing to PDF. Try to keep number of columns under 10."
@@ -33407,7 +33407,7 @@ msgstr "Nešto je pošlo po zlu."
 
 #: frappe/public/js/frappe/views/reports/query_report.js:2522
 msgid "Something went wrong. Contact your System Manager."
-msgstr ""
+msgstr "Nešto nije u redu. Obratite se svom upravitelju sustava."
 
 #: frappe/public/js/frappe/views/pageview.js:116
 msgid "Sorry! I could not find what you were looking for."
@@ -33650,11 +33650,11 @@ msgstr "Standardni DocType ne može imati standard ormat za ispise, koristi Pril
 
 #: frappe/desk/doctype/kanban_board/kanban_board.py:58
 msgid "Standard Kanban Boards can only be changed in developer mode"
-msgstr ""
+msgstr "Standardne Oglasne Table mogu se mijenjati samo u režimu za razvojne programere"
 
 #: frappe/desk/doctype/kanban_board/kanban_board.py:101
 msgid "Standard Kanban Boards can only be deleted in developer mode"
-msgstr ""
+msgstr "Standardne Oglasne Table mogu se izbrisati samo u načinu rada za razvojne programere."
 
 #: frappe/desk/doctype/dashboard/dashboard.py:65
 msgid "Standard Not Set"
@@ -33696,20 +33696,20 @@ msgstr "Standardni Web Obrasci ne mogu se mijenjati, umjesto toga kopiraj web ob
 
 #: frappe/printing/page/print/print.js:247
 msgid "Standard is used when no default is set"
-msgstr ""
+msgstr "Standard se koristi kada nije postavljena nikakva standardna vrijednost."
 
 #: frappe/desk/doctype/list_filter/list_filter.py:101
 #, python-brace-format
 msgid "Standard list layout {0} already exists with a similar name"
-msgstr ""
+msgstr "Standardni izgled popisa {0} već postoji sa sličnim nazivom"
 
 #: frappe/desk/doctype/list_filter/list_filter.py:71
 msgid "Standard list layouts can only be changed in developer mode"
-msgstr ""
+msgstr "Standardni izgledi popisa mogu se mijenjati samo u načinu rada za razvojne programere"
 
 #: frappe/desk/doctype/list_filter/list_filter.py:148
 msgid "Standard list layouts can only be deleted in developer mode"
-msgstr ""
+msgstr "Standardni izgledi popisa mogu se izbrisati samo u načinu rada za razvojne programere"
 
 #. Description of the 'Is Standard' (Check) field in DocType 'DocType Settings
 #. Map'
@@ -33809,7 +33809,7 @@ msgstr "Počni od zadanih"
 #: frappe/core/doctype/data_import/data_import.js:1332
 #: frappe/public/js/data_import_wizard.bundle.js:1189
 msgid "Start the import before opening the Import step."
-msgstr ""
+msgstr "Započni uvoz prije otvaranja koraka uvoza."
 
 #: frappe/printing/doctype/print_format/print_format_list.js:57
 msgid "Start with"
@@ -33817,7 +33817,7 @@ msgstr "Počni s"
 
 #: frappe/public/js/frappe/ui/toolbar/search.js:149
 msgid "Start with # to search by tag"
-msgstr ""
+msgstr "Započni s # za pretraživanje po oznaci"
 
 #. Option for the 'SSL/TLS Mode' (Select) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json:149
@@ -33838,11 +33838,11 @@ msgstr "Počelo u"
 
 #: frappe/core/doctype/data_import/data_import.js:2864
 msgid "Started by"
-msgstr ""
+msgstr "Započeo/la"
 
 #: frappe/core/doctype/data_import/data_import.js:2865
 msgid "Started on"
-msgstr ""
+msgstr "Započeto"
 
 #: frappe/public/js/print_format_builder/stores/index.js:205
 msgid "Starting from the default layout instead."
@@ -33851,7 +33851,7 @@ msgstr "Umjesto toga, počevši od standard izgleda."
 #: frappe/core/doctype/data_import/data_import.js:1385
 #: frappe/core/doctype/data_import/data_import.js:1391
 msgid "Starting import..."
-msgstr ""
+msgstr "Početak uvoza..."
 
 #. Label of the starts_on (Datetime) field in DocType 'Event'
 #: frappe/desk/doctype/event/event.json:113
@@ -34040,7 +34040,7 @@ msgstr "Uvjet koraka nije zadovoljen"
 #. Description of the 'Run State' (JSON) field in DocType 'Automation Run'
 #: frappe/automation/doctype/automation_run/automation_run.json:151
 msgid "Step outputs, record aliases and branch choices a resumed run picks up."
-msgstr ""
+msgstr "Izlazi koraka, aliasi zapisa i izbori grana koje nastavlja nastavljeno izvođenje."
 
 #: frappe/automation_engine/api.py:262
 #, python-brace-format
@@ -34311,7 +34311,7 @@ msgstr "Rezerviši Nakon Uvoza"
 #: frappe/desk/doctype/onboarding_step/onboarding_step.py:151
 #, python-brace-format
 msgid "Submit a {0} to finish this step."
-msgstr ""
+msgstr "Podnesi {0} da biste dovršili ovaj korak."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:106
 msgid "Submit an Issue"
@@ -34329,7 +34329,7 @@ msgstr "Oznaka Dugmeta"
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:381
 msgid "Submit it to finish this step."
-msgstr ""
+msgstr "Podnesi da se završi ovaj korak."
 
 #. Label of the submit_on_creation (Check) field in DocType 'Auto Repeat'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json:200
@@ -34429,7 +34429,7 @@ msgstr "Uspjeh"
 #: frappe/core/doctype/data_import/data_import.js:2918
 #, python-brace-format
 msgid "Success ({0})"
-msgstr ""
+msgstr "Uspjeh ({0})"
 
 #. Name of a DocType
 #: frappe/core/doctype/success_action/success_action.json:64
@@ -34589,11 +34589,11 @@ msgstr "Obustavi Slanje"
 #: frappe/public/js/frappe/views/kanban_v2/kanban_settings.bundle.js:290
 #: frappe/public/js/frappe/views/kanban_v2/kanban_settings.bundle.js:292
 msgid "Swimlanes"
-msgstr ""
+msgstr "Trake"
 
 #: frappe/public/js/frappe/views/kanban_v2/kanban_settings.bundle.js:299
 msgid "Swimlanes (Group By)"
-msgstr ""
+msgstr "Trake (Grupiraj po)"
 
 #: frappe/public/js/frappe/ui/capture.js:282
 msgid "Switch Camera"
@@ -35209,7 +35209,7 @@ msgstr "Telemetrija"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json:886
 msgid "Tell AI agents what this site is for and how your team uses it. Agents receive this text when they connect."
-msgstr ""
+msgstr "Recite AI agentima čemu služi ova stranica i kako je vaš tim koristi. Agenti primaju ovu poruku kada se povežu."
 
 #. Label of the template (Link) field in DocType 'Auto Repeat'
 #. Label of the template (Code) field in DocType 'Address Template'
@@ -35418,7 +35418,7 @@ msgstr "Sljedeći zakazani datum ne može biti kasniji od datuma završetka."
 
 #: frappe/printing/doctype/print_format/print_format_list.js:63
 msgid "The Print Format Editor is visual. HTML is hand-written."
-msgstr ""
+msgstr "Uređivač Formata Ispisa je vizualan. HTML je napisan rukom."
 
 #: frappe/integrations/doctype/push_notification_settings/push_notification_settings.py:29
 msgid "The Push Relay Server URL key (`push_relay_server_url`) is missing in your site config"
@@ -35442,7 +35442,7 @@ msgstr "Typst blok {0} ima pogrešku predloška: {1}"
 #: frappe/utils/typst_emitter.py:626
 #, python-brace-format
 msgid "The Typst renderer cannot embed this background image: {0}"
-msgstr ""
+msgstr "Typst renderer ne može ugraditi ovu pozadinsku sliku: {0}"
 
 #: frappe/utils/typst_emitter.py:1060
 #, python-brace-format
@@ -35503,7 +35503,7 @@ msgstr "API ključ pretraživača preuzet sa Google Cloud Console pod <a href=\"
 
 #: frappe/public/js/frappe/views/kanban_v2/core/kanban_core.js:877
 msgid "The card was saved in another column"
-msgstr ""
+msgstr "Kartica je spremljena u drugom stupcu"
 
 #: frappe/desk/page/workspace_restore/workspace_restore.py:191
 #, python-brace-format
@@ -35591,7 +35591,7 @@ msgstr "Gumb e-pošte omogućen je za korisnika u dokumentu."
 
 #: frappe/public/js/frappe/views/kanban_v2/kanban_settings.bundle.js:195
 msgid "The field cards are grouped into columns by, and the column list."
-msgstr ""
+msgstr "Kartice polja su grupirane u stupce prema popisu stupaca."
 
 #: frappe/desk/search.py:388
 #, python-brace-format
@@ -35615,7 +35615,7 @@ msgstr "Tok se zaista pokreće protiv ovog dokumenta, a zatim se sve što je uč
 #. Run'
 #: frappe/automation/doctype/automation_run/automation_run.json:138
 msgid "The flow's steps as they were when the run started. A resumed run executes these, not the current flow."
-msgstr ""
+msgstr "Koraci toka kakvi su bili kada je izvođenje započelo. Nastavljeno izvođenje izvršava ove korake, a ne trenutni tok."
 
 #: frappe/automation/doctype/assignment_rule/assignment_rule.py:62
 #, python-brace-format
@@ -35785,7 +35785,7 @@ msgstr "Izgled blokova editor.js stranice za ovaj radni prostor, prikazan doslov
 #. Description of the 'Condition' (Code) field in DocType 'Automation Run Step'
 #: frappe/automation/doctype/automation_run_step/automation_run_step.json:80
 msgid "The step condition that skipped this step."
-msgstr ""
+msgstr "Uvjet koraka koji je preskočio ovaj korak."
 
 #: frappe/utils/response.py:366
 msgid "The system is being updated. Please refresh again after a few moments."
@@ -35891,7 +35891,7 @@ msgstr "Postavke Teme i Izgleda."
 #: frappe/website/doctype/website_theme/website_theme.py:110
 #: frappe/website/doctype/website_theme/website_theme.py:120
 msgid "Theme name cannot contain '/' or path separators"
-msgstr ""
+msgstr "Naziv teme ne može sadržavati '/' ili razdjelnike putanje"
 
 #: frappe/core/page/component_explorer/component_explorer.js:1183
 #: frappe/core/page/component_explorer/component_explorer.js:1461
@@ -35900,7 +35900,7 @@ msgstr "Teme"
 
 #: frappe/core/doctype/system_settings/system_settings.js:126
 msgid "Then use it:"
-msgstr ""
+msgstr "Zatim koristi:"
 
 #: frappe/workflow/doctype/workflow/workflow.js:157
 msgid "There are documents which have workflow states that do not exist in this Workflow. It is recommended that you add these states to the Workflow and change their states before removing these states."
@@ -36014,7 +36014,7 @@ msgstr "Ova polja više ne postoje u DocType-u i uklonjena su iz izgleda: {0}"
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:532
 msgid "These set how dates, numbers and money look across the app."
-msgstr ""
+msgstr "Oni postavljaju kako datumi, brojevi i novac izgledaju u aplikaciji."
 
 #. Description of the 'LDAP Custom Settings' (Section Break) field in DocType
 #. 'LDAP Settings'
@@ -36100,7 +36100,7 @@ msgstr "Ova aplikacija nema šta da organizuje"
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:448
 msgid "This can take a minute. Please keep this page open."
-msgstr ""
+msgstr "Ovo može potrajati minutu. Ostavite ovu stranicu otvorenu."
 
 #: frappe/public/js/print_format_builder/stores/index.js:412
 #, python-brace-format
@@ -36124,7 +36124,7 @@ msgstr "Ova kartica će biti dostupna svim korisnicima ako je ovo podešeno"
 
 #: frappe/public/js/frappe/widgets/chart_widget.js:597
 msgid "This chart couldn't load"
-msgstr ""
+msgstr "Ovaj grafikon se nije mogao učitati"
 
 #. Description of the 'Is Public' (Check) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json:238
@@ -36278,7 +36278,7 @@ msgstr "Ovo ide iznad projekcije slajdova."
 
 #: frappe/public/js/data_import_wizard.bundle.js:1001
 msgid "This import is complete. There are no pending warnings or mapping issues."
-msgstr ""
+msgstr "Ovaj je uvoz dovršen. Nema neriješenih upozorenja ili problema s mapiranjem."
 
 #: frappe/templates/emails/user_invitation.html:4
 msgid "This invitation expires in 1 day."
@@ -36295,7 +36295,7 @@ msgstr "Ova je pozivnica istekla"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:2499
 msgid "This is a background report"
-msgstr ""
+msgstr "Ovo je pozadinsko izvješće"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:883
 #, python-brace-format
@@ -37104,7 +37104,7 @@ msgstr "Vrh Desno"
 
 #: frappe/public/js/frappe/data_import/import_tree_preview.js:548
 msgid "Top level"
-msgstr ""
+msgstr "Najviši nivo"
 
 #. Label of the topic (Link) field in DocType 'Discussion Reply'
 #: frappe/website/doctype/discussion_reply/discussion_reply.json:25
@@ -37163,7 +37163,7 @@ msgstr "Ukupan broj e-poruka za sinhronizaciju u početnom procesu sinhronizacij
 
 #: frappe/core/doctype/data_import/data_import.js:2846
 msgid "Total rows"
-msgstr ""
+msgstr "Ukupno redova"
 
 #: frappe/public/js/frappe/views/reports/report_view.js:1322
 msgid "Totals"
@@ -37340,7 +37340,7 @@ msgstr "Stablo"
 #. Label of the tree_parent_overrides (Code) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json:110
 msgid "Tree Parent Overrides"
-msgstr ""
+msgstr "Stablo koje Nadređeni Nadjačava"
 
 #. Label of the section_import_tree_preview (Section Break) field in DocType
 #. 'Data Import'
@@ -37387,7 +37387,7 @@ msgstr "Metoda Okidača"
 #. Label of the queue_row (Data) field in DocType 'Automation Run'
 #: frappe/automation/doctype/automation_run/automation_run.json:89
 msgid "Trigger Queue Row"
-msgstr ""
+msgstr "Okidač reda Reda Ćekanja"
 
 #. Label of the trigger_type (Select) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json:88
@@ -37431,7 +37431,7 @@ msgstr "Optimirajj Tabelu"
 #. Step'
 #: frappe/automation/doctype/automation_run_step/automation_run_step.json:58
 msgid "Truncated to 5k characters."
-msgstr ""
+msgstr "Skraćeno na 5 tisuća znakova."
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:459
 msgid "Try Again"
@@ -37865,7 +37865,7 @@ msgstr "Poništi preskakanje"
 
 #: frappe/core/doctype/data_import/data_import.js:2449
 msgid "Undo Skip Duplicates"
-msgstr ""
+msgstr "Poništi Preskakanje Duplikata"
 
 #: frappe/public/js/frappe/form/toolbar.js:577
 msgid "Undo last action"
@@ -37873,7 +37873,7 @@ msgstr "Poništi posljednju radnju"
 
 #: frappe/core/doctype/data_import/data_import.js:240
 msgid "Undo skip"
-msgstr ""
+msgstr "Poništi preskakanje"
 
 #: frappe/public/js/frappe/form/toolbar.js:1054
 msgid "Unfollow"
@@ -38377,11 +38377,11 @@ msgstr "Koristi % za bilo koju vrijednost koja nije prazna."
 
 #: frappe/core/doctype/data_import/data_import.js:1496
 msgid "Use 'Download Failed Rows' on the Failed metric, fix the errors and import again."
-msgstr ""
+msgstr "Koristi 'Preuzmi Neuspjele Redove' na metrici Neuspjeli, ispravite greške i ponovo uvezi."
 
 #: frappe/core/doctype/data_import/data_import.js:1504
 msgid "Use 'Download Skipped Rows' on the Skipped metric to export the skipped rows."
-msgstr ""
+msgstr "Koristi 'Preuzmi Preskočene Redove' na metrici Preskočeno da biste izvezli preskočene redove."
 
 #. Label of the ascii_encode_password (Check) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json:152
@@ -38401,7 +38401,7 @@ msgstr "Koristi HTML"
 
 #: frappe/public/js/frappe/views/communication.js:595
 msgid "Use HTML editor"
-msgstr ""
+msgstr "Koristi HTML uređivač"
 
 #. Label of the use_imap (Check) field in DocType 'Email Account'
 #. Label of the use_imap (Check) field in DocType 'Email Domain'
@@ -38413,7 +38413,7 @@ msgstr "Koristi IMAP"
 #. Label of the use_kanban_v2 (Check) field in DocType 'Kanban Board'
 #: frappe/desk/doctype/kanban_board/kanban_board.json:142
 msgid "Use Kanban v2 (New Experience)"
-msgstr ""
+msgstr "Koristi Kanban v2 (Novo Iskustvo)"
 
 #. Label of the use_number_format_from_currency (Check) field in DocType
 #. 'System Settings'
@@ -39302,7 +39302,7 @@ msgstr "Prikaži Povijest Izmjena"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:2509
 msgid "View Details"
-msgstr ""
+msgstr "Prikaži Detalje"
 
 #. Option for the 'Action' (Select) field in DocType 'Onboarding Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json:67
@@ -39599,17 +39599,17 @@ msgstr "Je li ovaj članak bio od pomoći?"
 #: frappe/desk/page/setup_wizard/setup_wizard.py:49
 #: frappe/desk/page/setup_wizard/setup_wizard.py:134
 msgid "We couldn't finish setting things up"
-msgstr ""
+msgstr "Nismo uspjeli završiti postavljanje"
 
 #: frappe/desk/page/setup_wizard/setup_wizard.py:259
 #: frappe/desk/page/setup_wizard/setup_wizard.py:264
 msgid "We couldn't finish setting up your apps"
-msgstr ""
+msgstr "Nismo uspjeli završiti postavljanje vaših aplikacija"
 
 #: frappe/desk/page/setup_wizard/setup_wizard.py:26
 #: frappe/desk/page/setup_wizard/setup_wizard.py:31
 msgid "We couldn't save your language and region"
-msgstr ""
+msgstr "Nismo mogli spremiti vaš jezik i regiju"
 
 #: frappe/desk/doctype/workspace/workspace.js:39
 msgid "We do not allow editing of this document."
@@ -40101,7 +40101,7 @@ msgstr "Što se sada ispisuje"
 #. Step'
 #: frappe/automation/doctype/automation_run_step/automation_run_step.json:64
 msgid "What the action threw as a message, if it failed."
-msgstr ""
+msgstr "Šta je radnja izbacila kao poruku, ako nije uspjela."
 
 #. Description of the 'Icon' (Icon) field in DocType 'Dock Item'
 #: frappe/desk/doctype/dock_item/dock_item.json:44
@@ -40158,7 +40158,7 @@ msgstr "U bočnoj traci kojeg modula se pojavljuje ovaj radni prostor"
 #: frappe/desk/doctype/kanban_board/kanban_board.json:183
 #: frappe/public/js/frappe/views/kanban_v2/kanban_settings.bundle.js:151
 msgid "Which timestamp to show in the card footer."
-msgstr ""
+msgstr "Koju vremensku oznaku prikazati u podnožju kartice."
 
 #. Description of the 'DocType View' (Select) field in DocType 'Workspace
 #. Shortcut'
@@ -40852,7 +40852,7 @@ msgstr "Nije vam dozvoljeno da ispišete ovaj izveštaj"
 
 #: frappe/desk/doctype/onboarding_step/onboarding_step.py:169
 msgid "You are not allowed to see this onboarding step"
-msgstr ""
+msgstr "Nije vam dopušteno vidjeti ovaj korak introdukcije"
 
 #: frappe/public/js/frappe/views/communication.js:1717
 msgid "You are not allowed to send emails related to this document"
@@ -40877,7 +40877,7 @@ msgstr "Nije vam dopušteno ažuriranje ovog rasporeda"
 
 #: frappe/desk/desktop.py:728
 msgid "You are not allowed to update this onboarding step"
-msgstr ""
+msgstr "Nije vam dopušteno ažuriranje ovog koraka introdukcije"
 
 #: frappe/core/doctype/communication/email.py:360
 msgid "You are not authorized to undo this email"
@@ -40965,7 +40965,7 @@ msgstr "Pravila zadržavanja možete promijeniti u {0}."
 #: frappe/core/doctype/data_import/data_import.js:1381
 #: frappe/core/doctype/data_import/data_import.js:2999
 msgid "You can continue other work while this runs. Progress updates will appear here."
-msgstr ""
+msgstr "Možete nastaviti s drugim radom dok se ovo izvršava. Ovdje će se prikazivati novosti o napretku."
 
 #: frappe/model/delete_doc.py:188
 #, python-brace-format
@@ -41199,7 +41199,7 @@ msgstr "Nemate dozvole za pristup ovom dokumentu"
 #: frappe/public/js/data_import_wizard.bundle.js:587
 #, python-brace-format
 msgid "You have 1 pending {0} import with a file attached."
-msgstr ""
+msgstr "Imate 1 uvoz {0} na čekanju s priloženom datotekom."
 
 #: frappe/templates/emails/new_message.html:1
 msgid "You have a new message from:"
@@ -41239,7 +41239,7 @@ msgstr "Niste vidjeli {0}"
 #: frappe/public/js/data_import_wizard.bundle.js:588
 #, python-brace-format
 msgid "You have {0} pending {1} imports with files attached."
-msgstr ""
+msgstr "Imate {0} na čekanju {1} uvoza s priloženim datotekama."
 
 #: frappe/rate_limiter.py:185 frappe/utils/print_format.py:54
 msgid "You hit the rate limit because of too many requests. Please try after sometime."
@@ -41456,23 +41456,23 @@ msgstr "Bit ćete preusmjereni na:"
 
 #: frappe/public/js/frappe/views/communication.js:293
 msgid "You will receive a copy of this email"
-msgstr ""
+msgstr "Primit ćete kopiju ove e-pošte"
 
 #: frappe/public/js/frappe/views/communication.js:291
 msgid "You will receive a copy of this email and a read receipt"
-msgstr ""
+msgstr "Primit ćete kopiju ove e-pošte i potvrdu o čitanju"
 
 #: frappe/public/js/frappe/views/communication.js:295
 msgid "You will receive a read receipt"
-msgstr ""
+msgstr "Primit ćete potvrdu o čitanju"
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:617
 msgid "You'll use these details to sign in."
-msgstr ""
+msgstr "Ove podatke ćete koristiti za prijavu."
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:471
 msgid "You're all set."
-msgstr ""
+msgstr "Sve je spremno."
 
 #: frappe/templates/emails/user_invitation.html:1
 #, python-brace-format
@@ -41490,7 +41490,7 @@ msgstr "Prijavili ste se kao drugi korisnik sa druge kartice. Osvježite ovu str
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:255
 msgid "YouTube video player"
-msgstr ""
+msgstr "YouTube video plejer"
 
 #: frappe/core/doctype/prepared_report/prepared_report.js:57
 msgid "Your CSV file is being generated and will appear in the Attachments section once ready. Additionally, you will get notified when the file is available for download."
@@ -41608,7 +41608,7 @@ msgstr "Vaša lozinka je istekla. Postavite novu lozinku."
 #: frappe/core/doctype/user/user.py:414
 #, python-brace-format
 msgid "Your password was changed by {0}"
-msgstr ""
+msgstr "Vašu lozinku je promijenio/la {0}"
 
 #: frappe/templates/emails/auto_reply.html:2
 msgid "Your query has been received. We will reply back shortly. If you have any additional information, please reply to this mail."
@@ -41707,7 +41707,7 @@ msgstr "aplikacija ovo isporučuje isključeno"
 
 #: frappe/printing/doctype/print_format/print_format.py:589
 msgid "applied the editor draft"
-msgstr ""
+msgstr "primijenio nacrt uređivača"
 
 #: frappe/public/js/frappe/ui/sort_selector.html:5
 #: frappe/public/js/frappe/ui/sort_selector.js:54
@@ -41999,11 +41999,11 @@ msgstr "pronađeno"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json:894
 msgid "frappectl"
-msgstr ""
+msgstr "frappectl"
 
 #: frappe/core/doctype/system_settings/system_settings.js:119
 msgid "frappectl is a command-line client for Frappe sites, built for people and AI agents."
-msgstr ""
+msgstr "frappectl je klijent naredbenog reda za Frappe stranice, izgrađen za ljude i AI agente."
 
 #. Option for the 'Indicator Color' (Select) field in DocType 'Custom
 #. Workspace'
@@ -42077,7 +42077,7 @@ msgstr "je omogućeno"
 
 #: frappe/desk/doctype/sidebar/sidebar.js:37
 msgid "its app"
-msgstr ""
+msgstr "njegova aplikacija"
 
 #: frappe/templates/signup.html:15 frappe/www/login.html:16
 #: frappe/www/login.html:164 frappe/www/login.html:191
@@ -42394,7 +42394,7 @@ msgstr "postavi {0} na {1} u retku #{2}"
 
 #: frappe/apps.py:66
 msgid "setup_wizard_text"
-msgstr ""
+msgstr "setup_wizard_text"
 
 #. Option for the 'Permission Type' (Select) field in DocType 'Permission
 #. Inspector'
@@ -42689,7 +42689,7 @@ msgstr "{0} ${type}"
 #: frappe/public/js/frappe/views/kanban_v2/kanban_page.js:1001
 #, python-brace-format
 msgid "{0} (Copy)"
-msgstr ""
+msgstr "{0} (Kopija)"
 
 #: frappe/public/js/frappe/form/print_utils.js:282
 #, python-brace-format
@@ -42704,7 +42704,7 @@ msgstr "{0} (od {1})"
 #: frappe/public/js/frappe/data_import/import_preview.js:745
 #, python-brace-format
 msgid "{0} (detected)"
-msgstr ""
+msgstr "{0} (otkriveno)"
 
 #: frappe/automation_engine/schema_relationships.py:186
 #: frappe/public/js/frappe/data_import/data_exporter.js:312
@@ -42751,7 +42751,7 @@ msgstr "{0} Nadzorna Tabla"
 #, python-brace-format
 msgctxt "Prepared Report Notification"
 msgid "{0} Error: {1}"
-msgstr ""
+msgstr "{0} Pogreška: {1}"
 
 #: frappe/public/js/frappe/form/grid_row.js:469
 #: frappe/public/js/frappe/list/list_filter/layout_field_selector.js:248
@@ -43504,7 +43504,7 @@ msgstr "{0} se prikazuje iz HTML datoteke i ne može se pretvoriti"
 #: frappe/printing/page/print_format_builder_beta/print_format_builder_beta.js:78
 #, python-brace-format
 msgid "{0} is rendered from an HTML file and cannot be edited in the Print Format Editor."
-msgstr ""
+msgstr "{0} se iscrtava iz HTML datoteke i ne može se uređivati u Uređivaču Formata Ispisa."
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:17
 #, python-brace-format
@@ -43733,12 +43733,12 @@ msgstr "{0} od {1} ({2} redovi sa potomcima)"
 #: frappe/public/js/frappe/views/kanban_v2/core/kanban_core.js:982
 #, python-brace-format
 msgid "{0} of {1} cards could not be moved"
-msgstr ""
+msgstr "{0} od {1} kartica nije moguće premjestiti"
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:82
 #, python-brace-format
 msgid "{0} of {1} done · {2} skipped"
-msgstr ""
+msgstr "{0} od {1} gotovo · {2} preskočeno"
 
 #: frappe/public/js/frappe/views/reports/report_view.js:472
 #, python-brace-format
@@ -43748,7 +43748,7 @@ msgstr "{0} od {1} zapisa se podudara (filtrirano samo po vidljivim retcima)"
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:83
 #, python-brace-format
 msgid "{0} of {1} steps done"
-msgstr ""
+msgstr "{0} od {1} koraka završeno"
 
 #: frappe/utils/data.py:1601
 #, python-brace-format
@@ -43851,7 +43851,7 @@ msgstr "{0} red #{1}:"
 #: frappe/public/js/data_import_wizard.bundle.js:124
 #, python-brace-format
 msgid "{0} rows"
-msgstr ""
+msgstr "{0} redova"
 
 #: frappe/public/js/frappe/form/footer/version_timeline_content_builder.js:301
 #, python-brace-format
@@ -43989,7 +43989,7 @@ msgstr "{0} w"
 #: frappe/public/js/frappe/data_import/import_tree_preview.js:139
 #, python-brace-format
 msgid "{0} warnings found."
-msgstr ""
+msgstr "{0} upozorenja pronađeno."
 
 #: frappe/public/js/frappe/ui/sidebar/sidebar_manager.js:436
 #, python-brace-format
