@@ -14,6 +14,13 @@ SETUP_SCRIPT = (
 )
 
 
+def write_export_file(folder, *parts, content="x"):
+	path = os.path.join(folder, *parts)
+	frappe.create_folder(os.path.dirname(path))
+	with open(path, "w") as handle:
+		handle.write(content)
+
+
 def make_db_app(**kwargs):
 	kwargs.setdefault("app_name", "db-app-" + frappe.generate_hash(length=8))
 	kwargs.setdefault("app_title", kwargs["app_name"].title())
@@ -129,6 +136,39 @@ class TestFiles(IntegrationTestCase):
 			)
 			self.assertEqual(files.read_store_file(app.name, "router.ts"), "export default {}\n")
 			self.assertEqual(frappe.db.get_value("Studio Page", page.name, "script"), SETUP_SCRIPT)
+
+	def test_disabling_export_refuses_to_delete_files_the_store_cannot_hold(self):
+		with exports_in_tempdir():
+			app = make_db_app()
+			make_studio_page(app.name, page_title="Board", script=SETUP_SCRIPT)
+			files.write_store_file(app.name, "components/Card.vue", "<template><b>hi</b></template>\n")
+
+			app.reload()
+			app.enable_app_export("frappe")
+
+			folder = app.get_folder_path()
+			# a repository app collects files the store has no home for
+			write_export_file(folder, "assets", "icon.svg", content="<svg />")
+			write_export_file(folder, "studio_page", "board", "Card.vue")
+			write_export_file(folder, "tailwind.config.js")
+
+			app.reload()
+			with self.assertRaises(frappe.ValidationError) as refused:
+				app.disable_app_export()
+			for path in ("assets/icon.svg", "studio_page/board/Card.vue", "tailwind.config.js"):
+				self.assertIn(path, str(refused.exception))
+			# the refusal changed nothing
+			self.assertTrue(os.path.isdir(folder))
+			self.assertEqual(frappe.db.get_value("Studio App", app.name, "is_standard"), 1)
+
+			app.reload()
+			app.disable_app_export(confirm_discarded=True)
+			self.assertEqual(
+				files.read_store_file(app.name, "components/Card.vue"), "<template><b>hi</b></template>\n"
+			)
+			self.assertEqual(
+				frappe.db.get_value("Studio Page", {"studio_app": app.name}, "script"), SETUP_SCRIPT
+			)
 
 	def test_deleting_app_deletes_store(self):
 		app = make_db_app()

@@ -16,10 +16,10 @@ from frappe.studio.export import (
 	validate_standard_app_change,
 	write_document_file,
 )
-from frappe.studio.files import export_store_to_disk, restore_store_from_disk
+from frappe.studio.files import discarded_export_files, export_store_to_disk, restore_store_from_disk
 from frappe.studio.realtime import publish_doc_change
 from frappe.studio.utils import get_app_file_path, get_export_folder, validate_installed_app, walk_blocks
-from frappe.utils import get_files_path
+from frappe.utils import get_files_path, sbool
 from frappe.website.page_renderers.document_page import DocumentPage
 from frappe.website.utils import cleanup_page_name
 from frappe.website.website_generator import WebsiteGenerator
@@ -395,7 +395,21 @@ class StudioApp(WebsiteGenerator):
 		export_store_to_disk(self)
 
 	@frappe.whitelist()
-	def disable_app_export(self):
+	def get_discarded_export_files(self) -> list[str]:
+		"""Export-folder files that disabling export would delete instead of storing."""
+		self.check_permission("write")
+		return discarded_export_files(self)
+
+	@frappe.whitelist()
+	def disable_app_export(self, confirm_discarded: bool = False):
+		discarded = discarded_export_files(self)
+		if discarded and not sbool(confirm_discarded):
+			frappe.throw(
+				_("The database cannot store these files, so they would be deleted with {0}: {1}").format(
+					self.get_folder_path(), ", ".join(discarded)
+				)
+			)
+
 		for page_name in self.standard_pages:
 			frappe.get_doc("Studio Page", page_name).restore_script_from_file()
 		# before the save below deletes the folder: the files move back into the DB store

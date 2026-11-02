@@ -221,14 +221,7 @@ def restore_store_from_disk(app) -> None:
 	root = app.get_folder_path()
 	if not os.path.isdir(root):
 		return
-	for dirpath, dirnames, filenames in os.walk(root):
-		dirnames[:] = [
-			name
-			for name in dirnames
-			if not name.startswith(".") and name not in ("node_modules", "__pycache__")
-		]
-		folder = os.path.relpath(dirpath, root).replace(os.sep, "/")
-		folder = "" if folder == "." else folder
+	for dirpath, dirnames, filenames, folder in walk_export_folder(root):
 		if folder.startswith("studio_page"):
 			continue
 		if folder and not dirnames and not filenames and not store_path_exists(app.name, folder):
@@ -238,6 +231,44 @@ def restore_store_from_disk(app) -> None:
 			if not is_storable_file(app.name, path):
 				continue
 			write_store_file(app.name, path, frappe.read_file(os.path.join(dirpath, filename)) or "")
+
+
+def walk_export_folder(root: str):
+	"""Walk an export folder past dot and dependency directories, yielding each directory with
+	its path relative to the root ("" at the top)."""
+	for dirpath, dirnames, filenames in os.walk(root):
+		dirnames[:] = [
+			name
+			for name in dirnames
+			if not name.startswith(".") and name not in ("node_modules", "__pycache__")
+		]
+		folder = os.path.relpath(dirpath, root).replace(os.sep, "/")
+		yield dirpath, dirnames, filenames, "" if folder == "." else folder
+
+
+def discarded_export_files(app) -> list[str]:
+	"""Export-folder files that disabling export would delete rather than store. The store takes
+	only a few extensions and nothing under `studio_page/`, so assets, the Tailwind config and
+	anything an author keeps beside a page have no home in the database."""
+	root = app.get_folder_path()
+	if not os.path.isdir(root):
+		return []
+	discarded = []
+	for _dirpath, _dirnames, filenames, folder in walk_export_folder(root):
+		for filename in filenames:
+			path = f"{folder}/{filename}" if folder else filename
+			if not is_storable_file(app.name, path) and not is_regenerated_file(app.name, path):
+				discarded.append(path)
+	return sorted(discarded)
+
+
+def is_regenerated_file(studio_app: str, path: str) -> bool:
+	"""A file the next export writes again from the database, so dropping it loses no work."""
+	name = posixpath.basename(path)
+	if name.startswith(".") or name == "tsconfig.json" or is_export_doc_file(studio_app, path):
+		return True
+	# studio_page/<stem>/<stem>.ts goes back into its page doc, see Studio Page.restore_script_from_file
+	return bool(re.fullmatch(r"studio_page/([^/]+)/\1\.ts", path))
 
 
 def is_storable_file(studio_app: str, path: str) -> bool:
