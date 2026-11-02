@@ -76,19 +76,12 @@ class TestPreparedReport(IntegrationTestCase):
 			self.assertNotIn("Traceback", result["error"])
 			self.assertIsNone(result["doc"].error_message)
 
-<<<<<<< HEAD
-=======
 	def test_deleting_unreadable_report_raises(self):
 		doc = self.create_prepared_report(commit=False)
 		self.addCleanup(frappe.set_user, "Administrator")
 		frappe.set_user("test1@example.com")
 		self.assertRaises(frappe.PermissionError, delete_prepared_reports, [{"name": doc.name}])
 
-	@unittest.skipIf(
-		frappe.conf.db_type == "sqlite",
-		"This test needs a database sleep function, which SQLite does not provide.",
-	)
->>>>>>> ac9905e (test: deleting an unreadable prepared report raises)
 	def test_start_status_and_kill_jobs(self):
 		if frappe.db.db_type == "postgres":
 			query = "select pg_sleep(5)"
