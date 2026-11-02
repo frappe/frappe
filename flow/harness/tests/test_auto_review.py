@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from flow_harness.agent.review import (
+from flow_harness.agent.auto_review import (
 	NO_VERDICT,
 	TOO_LARGE,
 	Verdict,

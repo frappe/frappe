@@ -15,7 +15,7 @@ A tool call can be intercepted three ways, and they do different jobs:
   - the confirm gate: the durable pause. A gated call is not run — the loop finishes
     the turn, yields `ApprovalRequired` + `RunEnded(reason="paused")`, and returns.
     The pause is in the log, so `resume` can arrive later, from any client, even
-    after a restart. In approval mode `auto`, the reviewer (`agent/review.py`) gets the
+    after a restart. In approval mode `auto`, the reviewer (`agent/auto_review.py`) gets the
     gated call first: allowed, it runs and its result records the verdict; else it
     pauses as usual, with the reason in its prompt. Sub-agents are never reviewed.
 
@@ -39,6 +39,7 @@ from dataclasses import dataclass, replace
 from functools import partial
 from typing import TYPE_CHECKING, Any
 
+from flow_harness.agent.auto_review import REVIEW_FAILED, Verdict, review_call
 from flow_harness.agent.client_tools import call_client
 from flow_harness.agent.compaction import (
 	KEEP_RECENT_TOKENS,
@@ -50,7 +51,6 @@ from flow_harness.agent.compaction import (
 	plan_all,
 	plan_keep_recent,
 )
-from flow_harness.agent.review import REVIEW_FAILED, Verdict, review_call
 from flow_harness.events import (
 	AnyEvent,
 	ApprovalRequired,
@@ -79,6 +79,7 @@ from flow_harness.session.config import SessionConfig
 from flow_harness.session.transcript import PendingApproval
 from flow_harness.tools import SubagentOutcome, Tool, ToolContext
 from flow_harness.tools.builtins.common import DEFAULT_MAX_BYTES, DEFAULT_MAX_LINES, truncate
+from flow_harness.tools.builtins.subagent import subagent
 from flow_harness.tools.tool import display_template_variables
 
 if TYPE_CHECKING:
@@ -602,8 +603,8 @@ async def _settle_call(
 	reviewer: _Reviewer,
 ) -> AsyncIterator[AnyEvent]:
 	"""Take one tool call up to its run: bad-args feedback, before-hook, extension hooks,
-	confirm gate, and in auto mode the reviewer. A call that may run lands in `runnable`;
-	one waiting for the user in `gated`."""
+	confirm gate, and in auto mode the reviewer, which also judges every delegation. A call
+	that may run lands in `runnable`; one waiting for the user in `gated`."""
 	if call.error:  # model emitted malformed args — feed the error back so it can retry
 		yield _result(call, call.error, is_error=True)
 		return
@@ -628,15 +629,16 @@ async def _settle_call(
 		call = call.model_copy(update={"arguments": dict(verdict.arguments)})
 		rewritten = True
 
-	if _needs_confirmation(inputs, call.name, tools):
+	# A delegation is reviewed in auto mode though it is not gated: its task text is judged
+	# against the user's words here, and the child then takes that task as its instruction.
+	delegating = _approval_mode(inputs) == "auto" and call.name == subagent.name
+	if delegating or _needs_confirmation(inputs, call.name, tools):
 		prompt = await _confirmation_prompt(call, tools, inputs)
 		_raise_if_aborted(inputs.abort)
 		if prompt is None:
 			runnable.append(_CallToRun(call, rewritten))
 			return
-		# A child's transcript opens with the parent's task, not the user's words, so there
-		# is nothing to judge a child's call against: its gates pause as in Ask mode.
-		if inputs.approval_config is None and inputs.config.approval_mode == "auto":
+		if _approval_mode(inputs) == "auto":
 			verdict, usage = await reviewer.review(call, tools)
 			_raise_if_aborted(inputs.abort)
 			if usage is not None:
@@ -808,12 +810,16 @@ async def _confirmation_prompt(call: ToolCall, tools: dict[str, Tool], inputs: L
 
 def _needs_confirmation(inputs: LoopInputs, name: str, tools: dict[str, Tool]) -> bool:
 	"""Approval mode is the session's live setting; the confirm list is the run's own."""
-	if (inputs.approval_config or inputs.config).approval_mode == "auto_approve":
+	if _approval_mode(inputs) == "auto_approve":
 		return False
 	if name in inputs.config.confirm_tools:
 		return True
 	tool = tools.get(name)
 	return bool(tool and tool.requires_confirmation)
+
+
+def _approval_mode(inputs: LoopInputs) -> str:
+	return (inputs.approval_config or inputs.config).approval_mode
 
 
 class _Reviewer:
