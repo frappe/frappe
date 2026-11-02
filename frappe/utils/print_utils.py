@@ -63,7 +63,9 @@ def resolve_pdf_generator(print_format=None, pdf_generator: str | None = None) -
 		None,
 	)
 	generator = generator or frappe.db.get_single_value("Print Settings", "pdf_generator") or "PlutoPrint"
-	if generator == "PlutoPrint" and plutoprint_blockers(print_format):
+	if generator == "PlutoPrint" and (
+		plutoprint_blockers(print_format) or (print_format and print_format.get("print_designer"))
+	):
 		return "chrome"
 	return generator
 
