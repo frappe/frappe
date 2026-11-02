@@ -925,6 +925,7 @@ export default class GridImport {
 				filename,
 				dataurl: file.dataurl,
 				file_url: file.file_url,
+				library_file_name: file.file_url ? file.name : undefined,
 			},
 			freeze: true,
 			freeze_message: __("Reading {0}", [filename]),
