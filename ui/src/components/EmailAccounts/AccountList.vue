@@ -157,7 +157,10 @@
 								>
 									{{ account.email_account_name }}
 								</span>
-								<span class="truncate text-sm text-ink-gray-5" :title="account.email_id">
+								<span
+									class="truncate text-sm text-ink-gray-5"
+									:title="account.email_id"
+								>
 									{{ account.email_id }}
 								</span>
 							</span>
@@ -180,8 +183,13 @@
 							class="flex min-h-11 flex-wrap items-center gap-x-5 gap-y-2 border-t border-outline-gray-2 px-3 py-2"
 						>
 							<template v-if="account.status === 'needs-reconnect'">
-								<span class="flex min-w-0 flex-1 items-center gap-1.5 text-sm text-ink-amber-8">
-									<span class="lucide-triangle-alert size-4 shrink-0" aria-hidden="true" />
+								<span
+									class="flex min-w-0 flex-1 items-center gap-1.5 text-sm text-ink-amber-8"
+								>
+									<span
+										class="lucide-triangle-alert size-4 shrink-0"
+										aria-hidden="true"
+									/>
 									<span class="truncate">{{ __("Mail has stopped") }}</span>
 								</span>
 								<Button
@@ -208,8 +216,13 @@
 								<Switch
 									control-position="start"
 									:label="__('Receive')"
-									:model-value="saving.get(account.name)?.enable_incoming ?? Boolean(account.enable_incoming)"
-									:disabled="serviceOf(account).outgoingOnly || saving.has(account.name)"
+									:model-value="
+										saving.get(account.name)?.enable_incoming ??
+										Boolean(account.enable_incoming)
+									"
+									:disabled="
+										serviceOf(account).outgoingOnly || saving.has(account.name)
+									"
 									@update:model-value="
 										(on) => toggle(account, 'enable_incoming', on)
 									"
@@ -217,7 +230,10 @@
 								<Switch
 									control-position="start"
 									:label="__('Send')"
-									:model-value="saving.get(account.name)?.enable_outgoing ?? Boolean(account.enable_outgoing)"
+									:model-value="
+										saving.get(account.name)?.enable_outgoing ??
+										Boolean(account.enable_outgoing)
+									"
 									:disabled="saving.has(account.name)"
 									@update:model-value="
 										(on) => toggle(account, 'enable_outgoing', on)
@@ -290,7 +306,9 @@ const focusIndex = props.controller.accounts.findIndex((a) => a.name === props.f
 const shown = ref(Math.ceil((focusIndex + 1) / PAGE) * PAGE || PAGE);
 onMounted(() => {
 	if (props.focus === undefined) return;
-	(rows.value?.querySelectorAll<HTMLElement>("[data-open]")[focusIndex] ?? newOrRetry())?.focus();
+	(
+		rows.value?.querySelectorAll<HTMLElement>("[data-open]")[focusIndex] ?? newOrRetry()
+	)?.focus();
 });
 
 async function showMore() {
