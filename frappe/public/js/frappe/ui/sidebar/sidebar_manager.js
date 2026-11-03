@@ -152,7 +152,7 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 	// being edited and wins. Saying so matters most to the person least likely to suspect it:
 	// on this layer they think of themselves as editing the real thing, and the arrangement
 	// shadowing them is quite often their own.
-	pane_note() {
+	layer_note() {
 		if (this.layer !== "app" || !this.is_customized()) return "";
 
 		return __(
@@ -162,28 +162,17 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 
 	// Reset to Standard discards the site's arrangement and every user's own, so it is offered only
 	// to users who may curate for everyone. On the app's layer you *are* what the app ships, so it
-	// has nothing left to say there, and the way out of what `pane_note` reports is offered instead
+	// has nothing left to say there, and the way out of what `layer_note` reports is offered instead
 	// under another name: Clear Customizations, the same action.
 	extra_menu_items() {
 		if (!this.can_curate_site) return [];
-
-		if (this.layer !== "app") {
-			return [
-				{
-					label: __("Reset to Standard"),
-					icon: "history",
-					theme: "red",
-					description: __("Removes site and personal changes."),
-					onclick: () => this.reset_to_standard(),
-				},
-			];
-		}
-		if (!this.is_customized()) return [];
+		const on_app = this.layer === "app";
+		if (on_app && !this.is_customized()) return [];
 
 		return [
 			{
-				label: __("Clear Customizations"),
-				icon: "eraser",
+				label: on_app ? __("Clear Customizations") : __("Reset to Standard"),
+				icon: on_app ? "eraser" : "history",
 				theme: "red",
 				description: __("Removes site and personal changes."),
 				onclick: () => this.reset_to_standard(),
@@ -548,12 +537,20 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 	}
 
 	// Folding is for getting around a long list while editing, and is not saved. Each section
-	// starts the way the sidebar starts it. `read` clears it, so a layer starts its own way.
+	// starts the way the sidebar on screen shows it, or, when it shows no such section, the way
+	// the sidebar starts it. `read` clears it, so a layer starts its own way.
 	folded_sections() {
 		this.folded ??= new Set(
-			this.order.filter((k) => this.is_section(k) && this.entries.get(k).keep_closed)
+			this.order.filter((k) => this.is_section(k) && this.starts_folded(this.entries.get(k)))
 		);
 		return this.folded;
+	}
+
+	starts_folded(entry) {
+		const shown = frappe.app.sidebar.items.find(
+			(item) => item.item.type === "Section Break" && item.item.label === entry.label
+		);
+		return shown ? !!shown.collapsed : !!entry.keep_closed;
 	}
 
 	is_folded(key) {
@@ -946,11 +943,8 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 	// Every write here returns the desk state it invalidated, so the shell is redrawn in place
 	// rather than reloaded.
 	apply(payload) {
-		if (payload.module_sidebars) frappe.boot.module_sidebars = payload.module_sidebars;
-		if (payload.entity_module) frappe.boot.entity_module = payload.entity_module;
-
 		const sidebar = frappe.app.sidebar;
-		sidebar.all_sidebar_items = frappe.boot.module_sidebars;
+		sidebar.take_desk_state(payload);
 
 		// A module can disappear between opening this and saving, if someone deleted its last
 		// report or the site layer hid it while this was open. `save` refuses to cause that, but

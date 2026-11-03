@@ -20,7 +20,7 @@
 //
 // A surface supplies little: what its layers read, save and reset through, what its entries are
 // and what keys them, how an entry draws, and any per-entry fields a user may set. The layer
-// switch, the list, the eye, the panel and the persistence live here.
+// switch, the list, the panel and the persistence live here.
 
 // The anchor the Add form opens against, which is the "+ Add" row rather than an entry.
 const ADD_ANCHOR = "__add";
@@ -138,7 +138,7 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 
 	// Plain text for the layer switch's tooltip, for reporting rather than for acting on. Empty by
 	// default, because most surfaces have nothing to report.
-	pane_note() {
+	layer_note() {
 		return "";
 	}
 
@@ -336,9 +336,9 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 		this.$layer_switch.find(".ws-layer-phrase").text(this.layer_config.phrase());
 	}
 
-	// What the layer switch says on hover: `pane_note`, read again with each layer.
+	// What the layer switch says on hover, read again with each layer.
 	render_layer_note() {
-		const note = this.pane_note();
+		const note = this.layer_note();
 		this.layer_tooltip?.destroy();
 		this.layer_tooltip = null;
 		if (!note || !this.$layer_switch) return;
@@ -471,7 +471,7 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 		this.hidden = new Set([...hidden, ...unnamed].filter((key) => this.entries.has(key)));
 	}
 
-	// What is on the surface, in order: the arrangement minus what the eye has taken off. Every
+	// What is on the surface, in order: the arrangement minus what has been taken off. Every
 	// surface uses this rather than reading `order`, because it is the arrangement as it renders.
 	get selection() {
 		return this.order.filter((key) => !this.hidden.has(key));
@@ -499,9 +499,7 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 		$row.append($(`<div class="ws-row-body"></div>`).append(this.row_content(key)));
 
 		const $controls = $(`<span class="ws-row-controls"></span>`);
-		if (this.is_own_add(key)) {
-			$controls.append(this.remove_button(key));
-		} else if (!this.is_pinned(key) && this.can_remove(key)) {
+		if (this.is_own_add(key) || (!this.is_pinned(key) && this.can_remove(key))) {
 			$controls.append(this.remove_button(key));
 		}
 		$row.append($controls);
@@ -595,7 +593,7 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 	}
 
 	// The arrangement on screen as stored rows: every entry, in the order the list holds it, each
-	// carrying whether the eye has it off. An entry taken off is stored as hidden rather than
+	// carrying whether it was taken off. An entry taken off is stored as hidden rather than
 	// omitted, because an omitted row would keep whatever the layer below said about it and keep
 	// rendering.
 	//
@@ -807,11 +805,13 @@ frappe.ui.ArrangementPanel = class ArrangementPanel {
 			})
 		);
 
-		// Changes are passed on only once the panel has settled. A field group sets its defaults
-		// after it is made, a tick at a time, and a value read in between is missing the fields not
-		// set yet, which would read as those fields having been cleared.
+		// Changes are passed on only once the defaults are in. They are set a field at a time, and
+		// a value read in between is missing the fields not set yet, which would read as those
+		// fields having been cleared.
 		this.ready = false;
-		const fields = this.fields.map((df) => {
+		const defaults = {};
+		const fields = this.fields.map(({ default: value, ...df }) => {
+			if (df.fieldname && value !== undefined) defaults[df.fieldname] = value;
 			if (this.choice && df.fieldname === this.choice) return { ...df, hidden: 1 };
 			return this.on_change && df.fieldname
 				? { ...df, change: () => this.ready && this.changed() }
@@ -823,7 +823,10 @@ frappe.ui.ArrangementPanel = class ArrangementPanel {
 			no_submit_on_enter: true,
 		});
 		this.field_group.make();
-		setTimeout(() => (this.ready = true), 200);
+		this.field_group.set_values(defaults).then(() => {
+			this.field_group.refresh_dependency();
+			this.ready = true;
+		});
 		if (this.choice) this.make_choice();
 
 		if (this.primary) {
