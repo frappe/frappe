@@ -33,6 +33,8 @@ export interface StandingWindowHandle {
 	setClosable(closable: boolean): void;
 	/** While on, the shell opens other pages in a new tab and asks before a reload; off until set. */
 	setKeepAlive(on: boolean): void;
+	/** While on, the pill pulses a soft ring for something that waits on the user; off until set. */
+	setAttention(attention: boolean): void;
 }
 
 /** One app's window as the row draws it. */
@@ -46,6 +48,7 @@ export interface StandingWindow {
 	actions: StandingWindowAction[];
 	closable: boolean;
 	keepAlive: boolean;
+	attention: boolean;
 	handle: StandingWindowHandle;
 }
 
@@ -77,6 +80,7 @@ export function attachWindow(
 		actions: [],
 		closable: true,
 		keepAlive: false,
+		attention: false,
 	}) as unknown as StandingWindow;
 	entry.handle = handleFor(entry, title);
 	const rank = order.indexOf(app);
@@ -102,6 +106,7 @@ function handleFor(entry: StandingWindow, appTitle: string): StandingWindowHandl
 		},
 		setClosable: (closable: boolean) => void (entry.closable = Boolean(closable)),
 		setKeepAlive: (on: boolean) => void (entry.keepAlive = Boolean(on)),
+		setAttention: (attention: boolean) => void (entry.attention = Boolean(attention)),
 	});
 }
 

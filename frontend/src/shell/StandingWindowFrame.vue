@@ -5,7 +5,7 @@
 <template>
 	<div
 		v-show="entry.state === 'open'"
-		class="pointer-events-auto min-w-[min(240px,calc(100vw-48px))] shrink-[1000]"
+		class="standing-enter pointer-events-auto min-w-[min(240px,calc(100vw-48px))] shrink-[1000]"
 		:style="{ width: `${entry.width}px` }"
 	>
 		<FloatingWindow
@@ -83,8 +83,11 @@
 	<div
 		v-show="entry.state === 'minimised'"
 		ref="pill"
-		class="pointer-events-auto flex h-10 min-w-0 max-w-[400px] cursor-pointer items-center gap-2 rounded-full border border-outline-gray-2 bg-surface-elevation-1 pl-3.5 shadow-2xl"
-		:class="entry.actions.length ? 'pr-1.5' : 'pr-3.5'"
+		class="standing-enter pointer-events-auto flex h-10 min-w-0 max-w-[400px] cursor-pointer items-center gap-2 rounded-full border border-outline-gray-2 bg-surface-elevation-1 pl-3.5 shadow-2xl"
+		:class="[
+			entry.actions.length ? 'pr-1.5' : 'pr-3.5',
+			{ 'standing-attention': entry.attention },
+		]"
 		:style="{ minWidth: `min(${pillWidth}px, calc(100vw - 48px))` }"
 		:data-standing-minimised="entry.app"
 		@click="restore"
@@ -175,3 +178,36 @@ async function run(action: StandingWindowAction) {
 	}
 }
 </script>
+
+<style scoped>
+/* v-show's display none→shown restarts the animation: keep v-show, with no leave transition. */
+@media (prefers-reduced-motion: no-preference) {
+	.standing-enter {
+		transform-origin: bottom right;
+		animation: standing-enter 150ms ease-out;
+	}
+	.standing-attention {
+		animation-name: standing-enter, standing-attention;
+		animation-duration: 150ms, 1.6s;
+		animation-iteration-count: 1, infinite;
+	}
+}
+/* Reduced motion keeps the cue as a steady ring. */
+.standing-attention {
+	box-shadow: 0 0 0 3px var(--outline-gray-3), var(--tw-shadow);
+}
+@keyframes standing-enter {
+	from {
+		opacity: 0;
+		transform: scale(0.98);
+	}
+}
+@keyframes standing-attention {
+	from {
+		box-shadow: 0 0 0 0 var(--outline-gray-3), var(--tw-shadow);
+	}
+	to {
+		box-shadow: 0 0 0 10px transparent, var(--tw-shadow);
+	}
+}
+</style>
