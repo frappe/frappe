@@ -5,7 +5,7 @@
 
 Bench-wide state: <bench>/sites/flow-server/. Each site's secret: <site>/site_config.json.
 Each site's sessions: <site>/private/flow/.
-Extensions an admin adds by hand: <site>/private/flow/extensions/, loaded for that site at start.
+Extensions an admin adds by hand: <site>/private/flow/extensions/, loaded by the daemon for that site.
 Runtime files: <bench>/flow-server/. Logs: the bench's logs directory.
 """
 
@@ -249,12 +249,10 @@ def _prepare() -> tuple[list[str], dict[str, str]]:
 	runtime_dir().mkdir(parents=True, exist_ok=True)
 	env = {name: os.environ[name] for name in INHERITED_ENV if name in os.environ}
 	env["FLOW_TENANTS"] = json.dumps(tenant_template())
-	allowed = ["read", "grep", "subagent", "web_fetch", "web_search"]
-	for folder in _extension_folders():
-		for row in extension_tools([folder]):
-			if row["name"] not in allowed:
-				allowed.append(row["name"])
-	env["FLOW_POLICY"] = json.dumps({"tool_allowlist": allowed})
+	# extension tools pass the daemon's cap on their own
+	env["FLOW_POLICY"] = json.dumps(
+		{"tool_allowlist": ["read", "grep", "subagent", "web_fetch", "web_search"]}
+	)
 	if redis_url := _redis_url():
 		env["FLOW_REDIS_URL"] = redis_url
 	command = [
@@ -385,11 +383,6 @@ def extension_tools(folders: list[Path]) -> list[dict]:
 	if proc.returncode != 0:
 		raise RuntimeError("flow extension-tools failed; see the messages above")
 	return json.loads(proc.stdout)["tools"]
-
-
-def _extension_folders() -> list[Path]:
-	"""Every site's extensions folder that exists."""
-	return sorted(path for path in _sites_dir().glob(f"*/private/flow/{EXTENSIONS_DIR}") if path.is_dir())
 
 
 def _is_daemon(pid: int) -> bool:

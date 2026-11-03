@@ -115,14 +115,8 @@ class TestDaemonLifecycle(UnitTestCase):
 		self.assertIn("Use grep", prompt)
 		self.assertIn("custom_app: /apps/custom", prompt)
 
-	def test_start_launches_a_scrubbed_server_that_allows_every_sites_extension_tools(self):
+	def test_start_launches_a_scrubbed_server(self):
 		self.install_flow_bin()
-		folder = self.sites / "a.localhost" / "private" / "flow" / "extensions"
-		folder.mkdir(parents=True)
-		other = self.sites / "b.localhost" / "private" / "flow" / "extensions"
-		other.mkdir(parents=True)
-		(self.sites / "c.localhost" / "private" / "flow").mkdir(parents=True)
-		rows = [{"name": "helpdesk_ticket", "description": "Fetch a ticket.", "extension": "helpdesk"}]
 		environ = {
 			"PATH": "/usr/bin",
 			"FLOW_AUTH_TOKEN": "x",
@@ -132,7 +126,6 @@ class TestDaemonLifecycle(UnitTestCase):
 		with (
 			patch.dict(os.environ, environ, clear=True),
 			patch.object(lifecycle, "healthy", side_effect=[False, True]),
-			patch.object(lifecycle, "extension_tools", return_value=rows) as listing,
 			patch.object(subprocess, "Popen", return_value=FakeProcess()) as popen,
 			patch.object(
 				frappe, "get_common_site_config", return_value=frappe._dict(redis_queue="redis://q")
@@ -140,8 +133,6 @@ class TestDaemonLifecycle(UnitTestCase):
 		):
 			lifecycle.start()
 			template = lifecycle.tenant_template()
-		# one listing per folder that exists, like the daemon loads them
-		self.assertCountEqual([c.args[0] for c in listing.call_args_list], [[folder], [other]])
 		command, kwargs = popen.call_args.args[0], popen.call_args.kwargs
 		self.assertEqual(command[:2], [str(self.flow_bin), "serve"])
 		self.assertEqual(  # each site's extensions folder comes from the template
@@ -160,8 +151,7 @@ class TestDaemonLifecycle(UnitTestCase):
 			{
 				"PATH": "/usr/bin",
 				"FLOW_TENANTS": json.dumps(template),
-				# the same tool in two sites is allowed once
-				"FLOW_POLICY": '{"tool_allowlist": ["read", "grep", "subagent", "web_fetch", "web_search", "helpdesk_ticket"]}',
+				"FLOW_POLICY": '{"tool_allowlist": ["read", "grep", "subagent", "web_fetch", "web_search"]}',
 				"FLOW_REDIS_URL": "redis://q",
 			},
 		)
