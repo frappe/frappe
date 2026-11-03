@@ -14,6 +14,9 @@
 				@toggle="emit('toggle', entry.name)"
 				@expand="emit('expand', $event)"
 			>
+				<template v-if="entry.actions" #actions>
+					<component :is="entry.actions" v-bind="actionBindings(entry)" />
+				</template>
 				<component :is="entry.component" v-if="entry.component" v-bind="bindings(entry)">
 					<template v-if="entry.embedded" #default>
 						<component
@@ -89,6 +92,11 @@ const numbered = computed(() => {
 
 function bindings(entry: PanelEntry) {
 	return scripted.value.has(entry.name) ? { ...entry.props, page: props.page } : entry.props;
+}
+
+// Only a script sets `actions`, so they get the page also on a layout section it updated.
+function actionBindings(entry: PanelEntry) {
+	return { ...entry.props, page: props.page };
 }
 
 function update(fieldname: string, value: any) {

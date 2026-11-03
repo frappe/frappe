@@ -934,6 +934,7 @@ the width.
 | `component` | Rendered for any name the layout does not carry, with `props` and a `page` prop. |
 | `props` | Bound onto `component`. |
 | `opened` | Whether a section with a header starts open. Meaningless without a `label`, and a dev warning there. |
+| `actions` | A component drawn at the right end of the header, with `props` and a `page` prop, whether the section is open or shut. A click on it does not toggle the section. Also on a layout section, through `update`, where it gets only `page`. Meaningless without a `label`, and a dev warning there. |
 | any other key | Not read: dropped from the item on `add` and `update`, and a development build warns once, naming the item and the key. |
 
 A name the Side Panel layout carries renders that section's fields, one column, click to

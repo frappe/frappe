@@ -98,6 +98,8 @@ export interface PanelSectionItem extends SurfaceItem {
   props?: Record<string, any>;
   /** Whether a section with a header starts open; meaningless without one. */
   opened?: boolean;
+  /** Drawn at the right of the header, open or shut, with `props` (none on a layout section) and `page`; needs a `label`. */
+  actions?: Component;
 }
 
 export const PANEL_SECTION_KEYS: readonly string[] = [
@@ -107,6 +109,7 @@ export const PANEL_SECTION_KEYS: readonly string[] = [
   "component",
   "props",
   "opened",
+  "actions",
 ];
 
 /** One item of the Details form: a section the layout stores, or a part a script adds. */

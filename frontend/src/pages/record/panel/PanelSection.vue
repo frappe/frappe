@@ -22,6 +22,13 @@
 				aria-hidden="true"
 			/>
 		</button>
+		<div
+			v-if="$slots.actions"
+			class="ml-auto flex cursor-default items-center gap-1"
+			@click.stop
+		>
+			<slot name="actions" />
+		</div>
 	</div>
 
 	<div
