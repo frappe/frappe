@@ -50,11 +50,11 @@
 			<!-- the essentials together at the top: start a chat, or find one, each with its keys on
 			     hover; search opens in a palette over the page -->
 			<SidebarItem icon="lucide-square-pen" @click="startNewChat()">
-				<span class="truncate text-sm text-ink-gray-8">New chat</span>
+				<span class="truncate text-sm">New chat</span>
 				<KeyboardShortcut v-if="!layout.phone" combo="Mod+Shift+O" :class="HINT" />
 			</SidebarItem>
 			<SidebarItem icon="lucide-search" @click="searchOpen = true">
-				<span class="truncate text-sm text-ink-gray-8">Search</span>
+				<span class="truncate text-sm">Search</span>
 				<KeyboardShortcut v-if="!layout.phone" combo="Mod+K" :class="HINT" />
 			</SidebarItem>
 			<!-- the host's own rows, like links to its pages -->
@@ -144,26 +144,28 @@
 							>
 								<template #trigger>
 									<span v-if="layout.phone" class="row-action absolute right-1 top-1/2 size-5 -translate-y-1/2" />
-									<button
+									<Button
 										v-else
-										class="row-action absolute right-8 top-1/2 grid size-6 -translate-y-1/2 place-items-center rounded-4 text-ink-gray-5 hover:bg-surface-gray-4 hover:text-ink-gray-8"
-										:class="menuFor === group.cwd ? 'text-ink-gray-7' : 'flow-hover-reveal'"
+										variant="ghost"
+										size="xs"
+										icon="lucide-ellipsis"
 										title="Workspace options"
+										class="row-action absolute right-8 top-1/2 -translate-y-1/2"
+										:class="menuFor !== group.cwd && 'flow-hover-reveal'"
 										@pointerdown.stop
-									>
-										<span class="lucide-ellipsis size-4" aria-hidden="true" />
-									</button>
+									/>
 								</template>
 							</Dropdown>
-							<button
+							<Button
 								v-if="!layout.phone"
-								class="row-action flow-hover-reveal absolute right-0.5 top-1/2 grid size-6 -translate-y-1/2 place-items-center rounded-4 text-ink-gray-5 hover:bg-surface-gray-4 hover:text-ink-gray-8"
+								variant="ghost"
+								size="xs"
+								icon="lucide-square-pen"
 								:title="`New chat in ${group.name}`"
+								class="row-action flow-hover-reveal absolute right-0.5 top-1/2 -translate-y-1/2"
 								@click="startNewChat(group.cwd)"
 								@pointerdown.stop
-							>
-								<span class="lucide-square-pen size-4" aria-hidden="true" />
-							</button>
+							/>
 						</template>
 					</SidebarItem>
 					<h3 v-else-if="grouped" class="flex h-7 items-center pl-2 text-sm-medium text-ink-gray-5">
@@ -172,16 +174,13 @@
 					<!-- while a workspace is dragged only the workspaces show, so it drops between them -->
 					<Transition name="flow-fold">
 						<div v-if="group.open && dragging?.scope !== 'folder'" class="flow-fold" :class="group.cwd && '-mt-px'">
-							<!-- chats sit 30px apart, the first 31px under its workspace's name; 34px
-							     apart in one list, which has no names to space against. A phone's
-							     taller rows keep the 2px gaps -->
-							<div class="grid min-h-0 grid-cols-1" :class="grouped || layout.phone ? 'gap-0.5' : 'gap-1.5'">
+							<div class="grid min-h-0 grid-cols-1 gap-0.5">
 								<SidebarItem
 									v-for="s in group.chats"
 									:key="s.session_id"
 									:label="flow.sessionTitle(s)"
-									class="group relative h-7 select-none data-[state=inactive]:text-ink-gray-8"
-									:class="[!grouped && 'quiet', menuFor === s.session_id && 'menu-open bg-surface-gray-2', dragClass(s.session_id)]"
+									class="group relative h-7 select-none"
+									:class="[menuFor === s.session_id && 'menu-open bg-surface-gray-2', dragClass(s.session_id)]"
 									:active="chatInView && s.session_id === flow.state.sessionId"
 									:data-reorder="canReorder ? `chat:${group.cwd ?? ''}` : null"
 									:data-key="s.session_id"
@@ -193,8 +192,8 @@
 									@pointerenter="crawlTitle"
 									@pointerleave="pressEnd(); restTitle($event); releaseCard(s.session_id)"
 								>
-									<!-- an empty icon lane lines a workspace's chats up under its name; loose chats line up with the label -->
-									<template v-if="group.cwd" #prefix><span class="size-4" /></template>
+									<!-- an empty icon lane lines the titles up under the labels and names above -->
+									<template #prefix><span class="size-4" /></template>
 									<HoverCard
 										side="right"
 										:offset="12"
@@ -204,10 +203,7 @@
 										@update:open="(open) => showCard(s.session_id, open)"
 									>
 										<template #trigger>
-											<span
-												class="row-title min-w-0 flex-1 overflow-hidden whitespace-nowrap text-sm leading-snug"
-												:class="!group.cwd && '-ml-2'"
-											>
+											<span class="row-title min-w-0 flex-1 overflow-hidden whitespace-nowrap text-sm leading-snug">
 												<span class="inline-block">{{ flow.sessionTitle(s) }}</span>
 											</span>
 										</template>
@@ -236,14 +232,15 @@
 											@update:open="(open) => setMenu(s.session_id, open)"
 											@rename="renaming = s.session_id"
 										>
-											<button
-												class="row-action chat-options absolute right-0.5 top-1/2 z-10 grid size-6 -translate-y-1/2 place-items-center rounded-4 text-ink-gray-5 transition-[color,opacity] hover:bg-surface-gray-4 hover:text-ink-gray-8"
-												:class="menuFor === s.session_id ? 'text-ink-gray-7 opacity-100' : 'opacity-0 group-hover:opacity-100'"
-												title="Session options"
+											<Button
+												variant="ghost"
+												size="xs"
+												icon="lucide-ellipsis"
+												title="Chat options"
+												class="row-action chat-options absolute right-0.5 top-1/2 z-10 -translate-y-1/2 transition-opacity"
+												:class="menuFor === s.session_id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'"
 												@pointerdown.stop
-											>
-												<span class="lucide-ellipsis size-4" aria-hidden="true" />
-											</button>
+											/>
 										</ChatMenu>
 									</template>
 								</SidebarItem>
@@ -802,12 +799,6 @@ const emptyMessage = computed(() => {
 	}
 }
 
-/* in one list, chats rest half a step quieter, so the long column reads calmer; the one
-   under the pointer and the open one keep full ink */
-.quiet[data-state="inactive"]:not(:hover, .menu-open) {
-	color: color-mix(in srgb, var(--ink-gray-7) 50%, var(--ink-gray-8));
-}
-
 /* a long chat or workspace name fades out at the row's end */
 .row-title {
 	-webkit-mask-image: linear-gradient(to right, #000 calc(100% - 1.5rem), transparent);
@@ -900,15 +891,6 @@ const emptyMessage = computed(() => {
 }
 .drop-after::after {
 	bottom: -2px;
-}
-/* one list's 6px gaps, all but a phone's: the line keeps to their middle */
-@media not all and (max-width: 767px) and (pointer: coarse) {
-	.quiet.drop-before::before {
-		top: -4px;
-	}
-	.quiet.drop-after::after {
-		bottom: -4px;
-	}
 }
 .flow-reordering :deep(*) {
 	cursor: grabbing !important;

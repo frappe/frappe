@@ -2357,7 +2357,7 @@ test("the chat list groups chats by their folder, and says it is loading, not th
 
 	// a row's own buttons act alone and start no drag: the new-chat button leaves its workspace
 	// folded, and a chat's ••• doesn't open the chat
-	for (const [label, title] of [["app", "New chat in app"], ["Api work", "Session options"]]) {
+	for (const [label, title] of [["app", "New chat in app"], ["Api work", "Chat options"]]) {
 		const own = row(label).querySelector(`button[title='${title}']`)
 		pointer("pointerdown", own)
 		pointer("pointermove", window)
