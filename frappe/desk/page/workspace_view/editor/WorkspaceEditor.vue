@@ -135,6 +135,7 @@ function remove() {
 }
 
 async function save() {
+	if (!dirty.value) return emit("done");
 	try {
 		const { blocks: saved, new_widgets } = to_save(blocks.value, widgets.value, touched.value);
 		await post("frappe.desk.doctype.workspace.workspace.save_page", {
@@ -145,14 +146,13 @@ async function save() {
 			variant: variant.value || DEFAULT_LAYOUT,
 		});
 		frappe.show_alert({ message: __("Saved"), indicator: "green" });
-		emit("saved", variant.value);
+		emit("done");
 	} catch (e) {
 		frappe.msgprint(frappe.utils.escape_html(e.message));
 	}
 }
 
-function done() {
-	if (!dirty.value) return emit("done");
+function discard() {
 	frappe.confirm(__("Discard your unsaved changes?"), () => emit("done"));
 }
 
@@ -290,12 +290,15 @@ function delete_workspace() {
 }
 
 const menu = computed(() => {
+	const items = dirty.value
+		? [{ label: __("Discard changes"), icon: "lucide-x", onClick: discard }]
+		: [];
 	if (!props.workspace.public) {
 		return [
+			...items,
 			{ label: __("Delete workspace"), icon: "lucide-trash-2", onClick: delete_workspace },
 		];
 	}
-	const items = [];
 	if (layout.value?.source === "Site copy") {
 		items.push({
 			label: __("Reset this layout"),
@@ -329,7 +332,6 @@ watch(
 			  ]
 			: []),
 		...menu.value,
-		{ label: __("Done"), placement: "secondary", onClick: done },
 		{ label: __("Save"), placement: "primary", onClick: save },
 	],
 	(actions) => emit("actions", actions),

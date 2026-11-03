@@ -435,7 +435,7 @@ test.describe("Workspace island", () => {
 		await expect(page.getByText(`Previewing the ${LAYOUT_ROLE} layout`)).toBeVisible();
 		await expect(page.getByText("Only for the role")).toBeVisible();
 
-		await page.getByRole("button", { name: "More" }).click();
+		await page.getByRole("button", { name: "Menu", exact: true }).click();
 		await page.getByRole("menuitem", { name: "Delete layout" }).click();
 		await page.locator(".modal.show").getByRole("button", { name: "Yes" }).click();
 		await expect(page.getByRole("button", { name: "Default" })).toBeVisible();
@@ -489,7 +489,7 @@ test.describe("Switching renderer", () => {
 		await admin.remove_doc("Workspace", SWITCH, true);
 	});
 
-	test("from either editor to the other", async ({ page }) => {
+	test("from the old editor to the new one", async ({ page }) => {
 		await page.goto("/desk/playwright-switch");
 		await page.waitForFunction(() => frappe.workspace?.editor);
 		await expect(page.locator(".editor-js-container")).toBeVisible();
@@ -499,10 +499,9 @@ test.describe("Switching renderer", () => {
 		await page.locator(".modal.show").getByRole("button", { name: "Yes" }).click();
 		await expect(page).toHaveTitle(/Editing/);
 		await expect(page.getByRole("button", { name: "Save" })).toBeVisible();
-
-		await page.getByRole("button", { name: "More" }).click();
-		await page.getByRole("menuitem", { name: "Switch to old layout" }).click();
-		await expect(page.getByRole("button", { name: "Switch to new layout" })).toBeVisible();
+		await page.getByRole("button", { name: "Menu", exact: true }).click();
+		await expect(page.getByRole("menuitem").first()).toBeVisible();
+		await expect(page.getByRole("menuitem", { name: "Switch to old layout" })).toHaveCount(0);
 	});
 });
 
