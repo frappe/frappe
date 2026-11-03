@@ -12,13 +12,19 @@ from frappe.core.doctype.server_script.server_script_utils import get_server_scr
 from frappe.model.document import get_controller
 from frappe.permissions import SYSTEM_USER_ROLE
 
-CACHE_TTL = 6 * 60 * 60
+CACHE_TTL = 24 * 60 * 60
 DEVELOPER_MODE_CACHE_TTL = 60 * 60
 DISCOVERY_CACHE_PREFIX = "api:v2:discovery"
 PYTHON_METHOD_CACHE_KEY = f"{DISCOVERY_CACHE_PREFIX}:global:methods:python"
 PYTHON_SEARCH_CACHE_KEY = f"{DISCOVERY_CACHE_PREFIX}:global:methods:python_search"
 DOCTYPE_METHOD_CACHE_KEY = f"{DISCOVERY_CACHE_PREFIX}:global:methods:doctype_nonstandard"
 DOCTYPE_SEARCH_CACHE_KEY = f"{DISCOVERY_CACHE_PREFIX}:global:methods:doctype_nonstandard_search"
+CACHE_KEYS = (
+	PYTHON_METHOD_CACHE_KEY,
+	PYTHON_SEARCH_CACHE_KEY,
+	DOCTYPE_METHOD_CACHE_KEY,
+	DOCTYPE_SEARCH_CACHE_KEY,
+)
 DISCOVERY_BUILD_JOB_ID = "api-v2-discovery-build"
 
 
@@ -143,6 +149,11 @@ def build_cache() -> None:
 
 	frappe.cache.set_value(DOCTYPE_METHOD_CACHE_KEY, doctype_items, expires_in_sec=ttl)
 	frappe.cache.set_value(DOCTYPE_SEARCH_CACHE_KEY, doctype_search_entries, expires_in_sec=ttl)
+
+
+def build_cache_if_missing() -> None:
+	if frappe.cache.exists(*CACHE_KEYS) < len(CACHE_KEYS):
+		build_cache()
 
 
 def _search_index() -> list[tuple[dict[str, Any], str]]:
