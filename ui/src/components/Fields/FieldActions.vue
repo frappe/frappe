@@ -35,7 +35,7 @@ import type { FieldMeta } from "./types";
 const props = defineProps<{ field: FieldMeta; value: unknown }>();
 
 const buttonClass =
-	"grid size-4 shrink-0 place-items-center rounded-1 text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-7 focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3";
+	"grid size-4 shrink-0 place-items-center rounded-1 text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-7 focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3 data-[state=open]:bg-surface-gray-3 data-[state=open]:text-ink-gray-7";
 
 const host = inject(FieldActionsKey, null);
 
