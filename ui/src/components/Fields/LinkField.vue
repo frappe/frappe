@@ -8,7 +8,16 @@
 		:required="field.reqd"
 		:error="error"
 		@open="record.open"
-	/>
+	>
+		<template #prefix>
+			<LinkMark
+				class="me-1.5"
+				:source="field.linkMark"
+				:value="mark"
+				:text="title ?? value"
+			/>
+		</template>
+	</LinkValue>
 	<Link
 		v-else
 		ref="link"
@@ -27,6 +36,14 @@
 		@create="linkCreate.create"
 		@redirect="record.open"
 	>
+		<template #prefix>
+			<LinkMark
+				class="me-1.5"
+				:source="field.linkMark"
+				:value="mark"
+				:text="title ?? value"
+			/>
+		</template>
 		<!-- Forward any slots (e.g. a #prefix affordance) on to the Link control. -->
 		<template v-for="(_, name) in $slots" #[name]="slotProps" :key="name">
 			<slot :name="name" v-bind="slotProps" />
@@ -44,7 +61,9 @@ import type { LinkExposed } from "../Link";
 import { LinkTitlesKey } from "./types";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
 import { useLinkCreate } from "./useLinkCreate";
+import { useLinkMark } from "./useLinkMark";
 import { useRecordLink } from "./useRecordLink";
+import LinkMark from "./LinkMark.vue";
 import LinkValue from "./LinkValue.vue";
 
 const props = defineProps<FieldComponentProps>();
@@ -75,6 +94,11 @@ const linkCreate = useLinkCreate({
 const record = useRecordLink(
 	() => props.field.options ?? "",
 	() => value.value
+);
+
+const mark = useLinkMark(
+	() => props.field,
+	() => props.modelValue
 );
 
 const title = computed(

@@ -41,7 +41,7 @@ vi.mock("../recordSource", () => ({
           });
       }),
   ),
-  loadParts: vi.fn(async () => ({})),
+  loadParts: vi.fn(async () => ({ docinfo: {}, linkMarks: {} })),
   readCachedRecord: vi.fn(() => null),
   saveRecord: vi.fn(),
 }));

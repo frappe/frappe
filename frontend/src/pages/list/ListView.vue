@@ -39,6 +39,15 @@
 				:field="phoneFields.get(column.fieldname)!"
 				:value="value"
 			/>
+			<div v-else-if="markOf(column.fieldname)" class="flex min-w-0 items-center">
+				<LinkMark
+					class="me-1.5"
+					:source="markOf(column.fieldname)!.source"
+					:value="row[markOf(column.fieldname)!.key]"
+					:text="value"
+				/>
+				<div class="truncate text-base text-ink-gray-8">{{ value }}</div>
+			</div>
 			<div v-else class="truncate text-base text-ink-gray-8">{{ value }}</div>
 		</template>
 		<template v-if="rowActions.length" #rowMenu="{ row }">
@@ -68,7 +77,7 @@
 
 <script setup lang="ts">
 import { ColumnSettings } from "@framework/ui/ColumnSettings";
-import { isEmailField, isPhoneField } from "@framework/ui/fields";
+import { LinkMark, isEmailField, isPhoneField } from "@framework/ui/fields";
 import type { RawMetaField } from "@framework/ui/FormLayout";
 import { List, ListBulkBar, ListFooter, type BulkAction } from "@framework/ui/experimental/List";
 import { computed, ref } from "vue";
@@ -93,6 +102,7 @@ const {
 	columns,
 	rowActions,
 	fieldOf,
+	markOf,
 	selection,
 	pageSize,
 	rowsKey,

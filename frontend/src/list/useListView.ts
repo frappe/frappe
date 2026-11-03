@@ -12,7 +12,7 @@ import type { RouteLocationRaw } from "vue-router";
 import { listHandlersFor } from "@/contributions/registry";
 import type { RowAction } from "@/contributions/types";
 import { routeFor } from "@/router/routeFor";
-import { contributedRowActions, defaultColumns, fetchFields, type ListMeta } from "./defaults";
+import { cellMark, type CellMark, contributedRowActions, defaultColumns, fetchFields, type ListMeta } from "./defaults";
 import { readListMemory, recallRows, rememberRows, writeListMemory } from "./pageState";
 import { completeFilters, queryFromAddress } from "./query";
 import { columnsFrom, toStoredColumns } from "./storedSettings";
@@ -31,6 +31,8 @@ export interface ListView extends ListRows {
 	rowActions: RowAction[];
 	/** The meta field a column shows; a column the meta does not hold has none. */
 	fieldOf: (fieldname: string) => RawMetaField | undefined;
+	/** What a column's cell shows before its text; see `cellMark`. */
+	markOf: (fieldname: string) => CellMark | undefined;
 	selection: Ref<string[]>;
 	/** Kept in the history entry. */
 	pageSize: Ref<number>;
@@ -103,7 +105,7 @@ export function useListView(view: View): ListView {
 		if (!view.seeded.value) return null;
 		return {
 			key: stateKey(),
-			fields: fetchFields(columns.value, readableActions()),
+			fields: fetchFields(columns.value, readableActions(), listMeta.value ?? {}),
 			filters: filtersDict(view.filters.value),
 			orderBy: serializeOrderBy(view.sort.value),
 			limit: pageSize.value,
@@ -154,6 +156,7 @@ export function useListView(view: View): ListView {
 		columns,
 		rowActions,
 		fieldOf: (fieldname) => fields.value.find((one) => one.fieldname === fieldname),
+		markOf: (fieldname) => cellMark(fieldname, listMeta.value ?? {}),
 		selection,
 		pageSize,
 		rowsKey,

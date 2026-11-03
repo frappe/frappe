@@ -10,6 +10,7 @@ from collections.abc import Iterable
 
 import frappe
 from frappe import _
+from frappe.api.link_marks import get_link_marks, mark_link_fields
 from frappe.desk.doctype.favourite.favourite import get_favourites as get_favourite_rows
 from frappe.desk.form.document_follow import is_document_followed
 from frappe.desk.form.load import (
@@ -182,6 +183,7 @@ DOCUMENT_PARTS = {
 	"comments": lambda doc: get_comments(doc.doctype, doc.name),
 	"seen": mark_seen,
 	"link_titles": get_link_titles,
+	"link_marks": get_link_marks,
 }
 
 
@@ -195,6 +197,8 @@ def get_children(doctype: str) -> list[dict]:
 def serialize_meta(meta, parenttype: str | None = None) -> dict:
 	"""The meta as the route sends it, with the fields masked for the caller."""
 	d = meta.as_dict(no_nulls=True)
+	if parenttype is None:
+		mark_link_fields(d["fields"])
 	d["masked_fields"] = [df.fieldname for df in meta.get_masked_fields(parenttype=parenttype)]
 	return d
 
