@@ -4,9 +4,14 @@ from typing import ClassVar
 from bs4 import BeautifulSoup
 
 import frappe
-from frappe.utils.data import cint, cstr
+from frappe.utils.data import cint, cstr, flt
 from frappe.utils.pdf import get_host_url
-from frappe.utils.print_utils import _print_format_doc_or_none, convert_uom, parse_float_and_unit
+from frappe.utils.print_utils import (
+	_print_format_doc_or_none,
+	convert_uom,
+	parse_float_and_unit,
+	resolve_pdf_generator,
+)
 
 RECEIPT_WIDTHS = {"Receipt 80 mm": "80mm", "Receipt 58 mm": "58mm"}
 
@@ -21,7 +26,7 @@ class Browser:
 		try:
 			# sets soup from html
 			self.set_html(html)
-			# sets pdf options
+			# sets wkhtmltopdf options
 			self.set_options(options)
 			# start cdp connection and create browser context ( kind of like new window / incognito mode)
 			self.open(generator)
@@ -37,7 +42,6 @@ class Browser:
 			self.try_async_header_footer_pdf()
 			# now wait for page to load as we need DOM to generate pdf
 			self.body_page.wait_for_set_content()
-			self.fit_body_to_page()
 			self.fit_body_height()
 			self.body_pdf = self.body_page.generate_pdf(raw=not self.header_page and not self.footer_page)
 			self.update_header_footer_page()
@@ -76,7 +80,7 @@ class Browser:
 			generator.detach_debug_browser()
 
 	def open(self, generator):
-		from frappe.utils.chromium import CDPSocketClient
+		from frappe.utils.pdf_generator.cdp_connection import CDPSocketClient
 
 		# checking because if we share browser accross request _devtools_url will already be set for subsequent requests.
 		if not generator._devtools_url:
@@ -91,7 +95,7 @@ class Browser:
 		# create browser context
 		result, error = self.session.send("Target.createBrowserContext", {"disposeOnDetach": True})
 		if error:
-			raise RuntimeError(f"Error creating browser context: {error}")
+			frappe.log_error(title="Error creating browser context:", message=f"{error}")
 		self.browser_context_id = result["browserContextId"]
 
 	def set_html(self, html):
@@ -110,32 +114,18 @@ class Browser:
 		NOTE: In theory this will make it faster but more importantly use less cpu, ram etc.
 		"""
 
-		from frappe.utils.chromium import Page
+		from frappe.utils.pdf_generator.page import Page
 
 		page = Page(self.session, self.browser_context_id, page_type)
 		page.is_print_designer = self.is_print_designer
-		page.block_external_requests = bool(self.options.get("block-external-requests"))
 
 		return page
 
 	def setup_body_page(self):
-		from frappe.utils.pdf import toggle_visible_pdf
-
-		toggle_visible_pdf(self.soup)
 		self.body_page = self.new_page("body")
-		if self.options.get("block-external-requests"):
-			self.body_page.send("Emulation.setScriptExecutionDisabled", {"value": True})
 		self.body_page.set_tab_url(get_host_url())
 		self.body_page.wait_for_navigate()
 		self.body_page.set_content(str(self.soup))
-
-	def fit_body_to_page(self):
-		if not self.options.get("shrink-to-fit"):
-			return
-		self.body_page.set_device_metrics(width=int(self.printable_width), height=1000)
-		content_width = self.body_page.get_content_width()
-		if content_width > self.printable_width:
-			self.body_page.options["scale"] = max(0.1, self.printable_width / content_width)
 
 	def fit_body_height(self):
 		if not self.options.get("fit-height"):
@@ -173,39 +163,27 @@ class Browser:
 	def prepare_header_footer(self):
 		# code is structured like this to improve performance by running commands in chrome as soon as possible.
 		soup = self.soup
-		options = self.options
-		if options.get("block-external-requests"):
-			for script in soup.find_all("script"):
-				script.decompose()
-			for tag in soup.find_all(True):
-				for attr in [attr for attr in tag.attrs if attr.lower().startswith("on")]:
-					del tag[attr]
 		self._add_page_number(soup)
 		# open header and footer pages
 		self._open_header_footer_pages()
 
-		# Inject clone_and_update into <head> so it's available in the header /
-		# footer page contexts that the template renders via {% for tag in head %}.
 		self._inject_page_no_script(soup)
 
 		# get tags to pass to header template.
 		head = soup.find("head").contents
 		styles = soup.find_all("style")
 
+		# set header and footer content ( not waiting for it to load yet).
 		if self.header_page:
 			self.header_page.wait_for_navigate()
 			self.header_page.set_content(
-				self.with_layout_classes(
-					self.get_rendered_header_footer(self.header_content, "header", head, styles, css=[])
-				)
+				self.get_rendered_header_footer(self.header_content, "header", head, styles, css=[])
 			)
 
 		if self.footer_page:
 			self.footer_page.wait_for_navigate()
 			self.footer_page.set_content(
-				self.with_layout_classes(
-					self.get_rendered_header_footer(self.footer_content, "footer", head, styles, css=[])
-				)
+				self.get_rendered_header_footer(self.footer_content, "footer", head, styles, css=[])
 			)
 		if self.header_page:
 			self.header_page.wait_for_set_content()
@@ -251,9 +229,8 @@ class Browser:
 		target.append(BeautifulSoup(page_number_html(position), "html.parser"))
 
 	def _inject_page_no_script(self, soup):
-		"""Inject update_page_no.js into <head> so clone_and_update() is available
-		to the body page and to the header/footer pages (which pick up <head>
-		contents via the chrome_pdf_header_footer template)."""
+		"""Make clone_and_update available to the header and footer pages, which take
+		their <head> contents from the body document."""
 		path = frappe.get_app_path("frappe", "utils", "pdf_generator", "update_page_no.js")
 		tag = soup.new_tag("script")
 		tag.append(soup.new_string(frappe.read_file(path)))
@@ -303,14 +280,9 @@ class Browser:
 			return
 		if not self.print_format or not frappe.db.exists("Print Format", self.print_format):
 			return
-		paper_size, width, height = frappe.get_cached_value(
-			"Print Format", self.print_format, ["paper_size", "paper_width", "paper_height"]
-		)
+		paper_size = frappe.get_cached_value("Print Format", self.print_format, "paper_size")
 		if receipt_width := RECEIPT_WIDTHS.get(paper_size):
 			self.options |= {"page-width": receipt_width, "page-height": "297mm", "fit-height": True}
-		elif paper_size == "Custom":
-			if width and height:
-				self.options |= {"page-width": f"{width}mm", "page-height": f"{height}mm"}
 		elif paper_size:
 			self.options["page-size"] = paper_size
 
@@ -329,7 +301,12 @@ class Browser:
 		from frappe.www.printview import get_page_rule_margins
 
 		print_format = _print_format_doc_or_none(self.print_format)
-		if not print_format or not print_format.css or uses_beta_renderer(print_format):
+		if (
+			not print_format
+			or not print_format.css
+			or uses_beta_renderer(print_format)
+			or (print_format.pdf_generator or resolve_pdf_generator()) not in ("chrome", "PlutoPrint")
+		):
 			return {}
 		return get_page_rule_margins(print_format.css)
 
@@ -340,17 +317,10 @@ class Browser:
 		)
 
 		if pdf_page_size == "Custom":
-			options["page-size"] = pdf_page_size
-			# Print Settings stores these in mm; downstream expects px like the
-			# named-size branch in prepare_options_for_pdf.
-			for dimension, fieldname in (
-				("page-height", "pdf_page_height"),
-				("page-width", "pdf_page_width"),
-			):
-				if not options.get(dimension):
-					value = frappe.db.get_single_value("Print Settings", fieldname)
-					if value:
-						options[dimension] = convert_uom(value, "mm", "px", only_number=True)
+			for option, field in (("page-height", "pdf_page_height"), ("page-width", "pdf_page_width")):
+				if not options.get(option):
+					value = frappe.db.get_single_value("Print Settings", field)
+					options[option] = f"{flt(value)}mm" if value else None
 		else:
 			options["page-size"] = pdf_page_size
 
@@ -378,7 +348,7 @@ class Browser:
 		if not options.get("page-height") or not options.get("page-width"):
 			if not (page_size := self.options.get("page-size")):
 				raise frappe.ValidationError("Page size is required")
-			if page_size == "Custom":
+			if page_size == "CUSTOM":
 				raise frappe.ValidationError("Custom page size requires page-height and page-width")
 			size = PageSize.get(page_size)
 			if not size:
@@ -404,9 +374,9 @@ class Browser:
 		min_size = convert_uom(30, "mm", "px", only_number=True)
 		default_margin = "15mm" if options["page-height"] > min_size else "0mm"
 		if not self.header_page:
-			options.setdefault("margin-top", default_margin)
+			options["margin-top"] = default_margin
 		if not self.footer_page:
-			options.setdefault("margin-bottom", default_margin)
+			options["margin-bottom"] = default_margin
 
 		# bad implicit setting of margin #backwards-compatibility
 		if not self.is_print_designer:
@@ -458,21 +428,11 @@ class Browser:
 		footer_with_bottom_margin = 0
 		footer_height = 0
 
-		# When the caller already reserved the top margin inside the header markup
-		# (so a page number can sit flush to the page edge), the measured header
-		# height covers it and Chrome must not add it a second time.
 		header_owns_top_margin = bool(options.get("header-includes-top-margin"))
 
 		if self.header_page:
 			header_with_top_margin = self.header_height + (0 if header_owns_top_margin else margin_top)
-			# comes from print CSS as a string; unitless values are mm (wkhtmltopdf's
-			# --header-spacing unit) and must land in px like everything else here
-			header_spacing = options.get("header-spacing") or 0
-			if header_spacing:
-				parsed = parse_float_and_unit(header_spacing, default_unit="mm")
-				header_spacing = (
-					convert_uom(parsed["value"], parsed["unit"], "px", only_number=True) if parsed else 0
-				)
+			header_spacing = options.get("header-spacing", 0)
 			header_with_spacing_top_margin = header_with_top_margin + header_spacing
 			self.header_page.options["paperHeight"] = (
 				convert_uom(header_with_spacing_top_margin, "px", "in", only_number=True)
@@ -489,9 +449,6 @@ class Browser:
 
 		if self.footer_page:
 			footer_height = self.footer_height
-			# Mirror header: paperHeight must include the margin so Chrome has room
-			# to render content above the marginBottom gap. Without this, marginBottom
-			# clips content because the page isn't tall enough to hold both.
 			footer_with_bottom_margin = footer_height + margin_bottom
 			self.footer_page.options["paperHeight"] = (
 				convert_uom(footer_with_bottom_margin, "px", "in", only_number=True)
@@ -509,14 +466,6 @@ class Browser:
 		body_height = options.get("page-height") - (
 			header_with_spacing_top_margin + footer_with_bottom_margin
 		)
-
-		body_margins = 96 * (self.body_page.options["marginTop"] + self.body_page.options["marginBottom"])
-		if body_height - body_margins <= 0:
-			frappe.throw(
-				frappe._(
-					"Header, footer and margins leave no room for content on a {0}px tall page. Reduce their height or use a larger page size."
-				).format(options.get("page-height"))
-			)
 
 		"""
 		matching scale for some old formats is 1.46 #backwards-compatibility ( scale 1 is better in my opinion)
@@ -544,45 +493,22 @@ class Browser:
 			path="templates/print_formats/chrome_pdf_header_footer.html",
 		)
 
-	def with_layout_classes(self, html):
-		body_class = self.soup.body.get("class") if self.soup.body else None
-		if not body_class:
-			return html
-		rendered = BeautifulSoup(html, "html5lib")
-		if wrapper := rendered.select_one(".wrapper.print-format-doc"):
-			wrapper["class"] = list(dict.fromkeys(wrapper["class"] + body_class))
-		return str(rendered)
-
 	def update_header_footer_page(self):
 		if not self.header_page and not self.footer_page:
 			return
 		total_pages = len(self.body_pdf.pages)
-
-		if self.header_page and self.is_header_dynamic:
-			if self.is_print_designer:
+		# function is added to html from update_page_no.js
+		if self.header_page:
+			if self.is_header_dynamic:
 				self.header_page.evaluate(
-					f"clone_and_update('#header-render-container', {total_pages}, 1, 'Header', 1);",
-					await_promise=True,
-				)
-			else:
-				# Use the same JS clone_and_update approach as print_designer.
-				# The script was injected into <head> in prepare_header_footer so
-				# clone_and_update is already available in the header page context.
-				# This avoids page-break-after:always artifacts from Python cloning.
-				self.header_page.evaluate(
-					f"clone_and_update('.wrapper', {total_pages}, 0, 'Header', 1);",
+					f"clone_and_update('{'#header-render-container' if self.is_print_designer else '.wrapper'}', {total_pages}, {1 if self.is_print_designer else 0}, 'Header', 1);",
 					await_promise=True,
 				)
 
-		if self.footer_page and self.is_footer_dynamic:
-			if self.is_print_designer:
+		if self.footer_page:
+			if self.is_footer_dynamic:
 				self.footer_page.evaluate(
-					f"clone_and_update('#footer-render-container', {total_pages}, 1, 'Footer', 1);",
-					await_promise=True,
-				)
-			else:
-				self.footer_page.evaluate(
-					f"clone_and_update('.wrapper', {total_pages}, 0, 'Footer', 1);",
+					f"clone_and_update('{'#footer-render-container' if self.is_print_designer else '.wrapper'}', {total_pages}, {1 if self.is_print_designer else 0}, 'Footer', 1);",
 					await_promise=True,
 				)
 
@@ -666,16 +592,16 @@ class PageSize:
 		"Letter": (216, 279),
 		"Tabloid": (279, 432),
 		"Ledger": (432, 279),
-		"C5E": (163, 229),
-		"Comm10E": (105, 241),
-		"DLE": (110, 220),
-		"Executive": (191, 254),
-		"Folio": (210, 330),
 		"ANSI C": (432, 559),
 		"ANSI A (letter)": (216, 279),
 		"ANSI B (ledger & tabloid)": (279, 432),
 		"ANSI E": (864, 1118),
 		"ANSI D": (559, 864),
+		"C5E": (163, 229),
+		"Comm10E": (105, 241),
+		"DLE": (110, 220),
+		"Executive": (191, 254),
+		"Folio": (210, 330),
 	}
 
 	@classmethod
