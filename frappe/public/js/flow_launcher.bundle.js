@@ -405,7 +405,7 @@ const STYLE = `
 .skeleton b { width: 16px; height: 16px; border-radius: 4px; }
 .skeleton .bar { display: flex; align-items: center; gap: 16px; height: 48px; padding: 0 12px; box-sizing: border-box; }
 .skeleton .bar i { margin-right: auto; }
-.skeleton .composer { height: 124px; margin: 20px; padding: 22px 14px; box-sizing: border-box; border: 1px solid var(--outline-gray-2, rgba(128, 128, 128, 0.25)); border-radius: var(--radius-6, 12px); }
+.skeleton .composer { height: 124px; margin: 20px; padding: 22px 14px; box-sizing: border-box; border-radius: var(--radius-7, 16px); background: var(--surface-gray-1, rgba(128, 128, 128, 0.06)); }
 .failed { position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 0 20px; color: var(--ink-gray-6, #7c7c7c); line-height: 1.5; }
 .failed p { margin: 0; }
 .failed div { display: flex; gap: 8px; }
