@@ -42,7 +42,7 @@ export function sameSort(a: Sort[], b: Sort[]): boolean {
 	return JSON.stringify(a) === JSON.stringify(b);
 }
 
-/** The fields a page of rows needs: `name`, the columns, their marks, currencies and titles, then the row actions'. */
+/** The fields a page of rows needs: `name`, the columns, their marks, currencies, titles and doctypes, then the row actions'. */
 export function fetchFields(
 	columns: Column[],
 	rowActions: RowAction[] = [],
@@ -54,11 +54,15 @@ export function fetchFields(
 		(column) => cellCurrency(column.fieldname, meta, readable)?.select ?? []
 	);
 	const titles = columns.flatMap((column) => cellTitle(column.fieldname, meta)?.select ?? []);
+	const doctypes = columns.flatMap(
+		(column) => cellDoctype(column.fieldname, meta, readable)?.select ?? []
+	);
 	const wanted = [
 		...columns.map((column) => column.fieldname),
 		...marks,
 		...currencies,
 		...titles,
+		...doctypes,
 		...rowActions.flatMap((a) => a.fields),
 	];
 	return [...new Set(["name", ...wanted])];
@@ -84,7 +88,7 @@ export function cellMark(fieldname: string, meta: ListMeta): CellMark | undefine
 	}
 }
 
-/** Where a cell finds a value it reads beside its own: a Currency's currency, a Link's title. */
+/** Where a cell finds a value it reads beside its own: a Currency's currency, a Link's title, a Dynamic Link's doctype. */
 export interface RowValue {
 	/** The row key holding the value. */
 	key: string;
@@ -115,6 +119,20 @@ export function cellTitle(fieldname: string, meta: ListMeta): RowValue | undefin
 	if (field?.fieldtype !== "Link" || !field.link_title) return undefined;
 	const key = `${fieldname}__title`;
 	return { key, select: `${fieldname}.${field.link_title} as ${key}` };
+}
+
+/** A Dynamic Link cell's target doctype: the sibling field its `options` names, so the cell can open the record. */
+export function cellDoctype(
+	fieldname: string,
+	meta: ListMeta,
+	readable: (fieldname: string) => boolean = () => true
+): RowValue | undefined {
+	const fields = meta.fields ?? [];
+	const field = fields.find((one) => one.fieldname === fieldname);
+	if (field?.fieldtype !== "Dynamic Link" || !field.options) return undefined;
+	const source = field.options;
+	if (!fields.some((one) => one.fieldname === source) || !readable(source)) return undefined;
+	return { key: source, select: source };
 }
 
 /** Every contributing app's row actions in run order; an act named twice is listed once, and a `list` act is refused. */

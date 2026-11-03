@@ -2,7 +2,7 @@
 import { describe, expect, it } from "vitest";
 import type { RawMetaField } from "@framework/ui/FormLayout";
 
-import { DEFAULT_SORT, cellCurrency, contributedRowActions, defaultColumns, defaultSort, fetchFields, cellMark, cellTitle } from "../defaults";
+import { DEFAULT_SORT, cellCurrency, contributedRowActions, defaultColumns, defaultSort, fetchFields, cellMark, cellTitle, cellDoctype } from "../defaults";
 
 const FIELDS: RawMetaField[] = [
 	{ fieldname: "title", label: "Title", fieldtype: "Data", in_list_view: 1 },
@@ -217,5 +217,31 @@ describe("cell titles", () => {
 			"owner_user",
 			"deal.organization as deal__title",
 		]);
+	});
+});
+
+describe("cell doctypes", () => {
+	const meta = {
+		fields: [
+			{ fieldname: "reference_doctype", fieldtype: "Link", options: "DocType" },
+			{ fieldname: "reference", fieldtype: "Dynamic Link", options: "reference_doctype" },
+			{ fieldname: "orphan", fieldtype: "Dynamic Link", options: "gone_doctype" },
+			{ fieldname: "deal", fieldtype: "Link", options: "CRM Deal" },
+		],
+	};
+
+	it("reads a Dynamic Link column's doctype from the sibling field its options name", () => {
+		expect(cellDoctype("reference", meta)).toEqual({ key: "reference_doctype", select: "reference_doctype" });
+	});
+
+	it("has none for a sibling meta lacks or the person may not read, or for a Link", () => {
+		expect(cellDoctype("orphan", meta)).toBeUndefined();
+		expect(cellDoctype("reference", meta, (fieldname) => fieldname !== "reference_doctype")).toBeUndefined();
+		expect(cellDoctype("deal", meta)).toBeUndefined();
+	});
+
+	it("asks for the doctype beside the columns", () => {
+		const columns = ["reference", "deal"].map((fieldname) => ({ fieldname, label: fieldname }));
+		expect(fetchFields(columns, [], meta)).toEqual(["name", "reference", "deal", "reference_doctype"]);
 	});
 });
