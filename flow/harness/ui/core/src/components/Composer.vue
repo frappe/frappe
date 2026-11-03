@@ -346,12 +346,13 @@
 								variant="ghost"
 								:size="inline ? 'sm' : 'md'"
 								:icon="layout.narrow ? (MODE_ICONS[currentMode] ?? 'lucide-lock') : undefined"
-								:label="layout.narrow ? undefined : modeLabel"
 								:data-state="modeMenu ? 'active' : undefined"
 								:aria-label="`Approval mode: ${modeLabel}`"
 								:aria-expanded="modeMenu"
 								@click="modeMenu ? closeModeMenu() : (modeMenu = true)"
-							/>
+							>
+								<template v-if="!layout.narrow">{{ modeLabel }}</template>
+							</Button>
 						</Tooltip>
 						<!-- a row a mode, what it does under its name and the tick centred beside both; wide
 						     enough for a description to keep to one line by the tick -->
