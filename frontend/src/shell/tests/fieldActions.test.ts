@@ -18,7 +18,7 @@ function shipping(app: string, ...items: unknown[]) {
 }
 
 async function actionsFor(field: object, value: unknown) {
-	const host = fieldActions(new FieldActionItems());
+	const host = fieldActions({ openAway() {}, addRecipients() {} }, new FieldActionItems());
 	host.for(field as never, value);
 	await new Promise((resolve) => setTimeout(resolve));
 	return host.for(field as never, value);
@@ -106,6 +106,6 @@ describe("field actions", () => {
 	});
 
 	it("import nothing when no app ships the file", () => {
-		expect(fieldActions(new FieldActionItems()).for(phone as never, "1")).toEqual([]);
+		expect(fieldActions({ openAway() {}, addRecipients() {} }, new FieldActionItems()).for(phone as never, "1")).toEqual([]);
 	});
 });

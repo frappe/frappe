@@ -22,6 +22,11 @@ export function isPhoneField(field: FieldMeta): boolean {
   );
 }
 
+/** A Data field whose options say Email: the field the shell's email action reaches. */
+export function isEmailField(field: FieldMeta): boolean {
+  return field.fieldtype === "Data" && field.options === "Email";
+}
+
 /** The input's `type` and `inputmode` for a Data option; the browser checks nothing. */
 export function dataInputAttrs(option: string | undefined): {
   type: "text" | "tel";

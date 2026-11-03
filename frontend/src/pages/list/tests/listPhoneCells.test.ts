@@ -7,11 +7,13 @@ const columns = [
 	{ fieldname: "mobile_no", label: "Mobile No" },
 	{ fieldname: "phone", label: "Phone" },
 	{ fieldname: "status", label: "Status" },
+	{ fieldname: "email_id", label: "Email" },
 ];
 const metaFields = [
 	{ fieldname: "mobile_no", fieldtype: "Phone" },
 	{ fieldname: "phone", fieldtype: "Data", options: "Phone" },
 	{ fieldname: "status", fieldtype: "Data" },
+	{ fieldname: "email_id", fieldtype: "Data", options: "Email" },
 ];
 
 vi.mock("@/list/useListView", () => ({
@@ -50,7 +52,7 @@ vi.mock("@framework/ui/experimental/List", async () => {
 					h(
 						"div",
 						props.columns.map((column: { fieldname: string }) =>
-							h("div", { "data-column": column.fieldname }, slots.cell?.({ column, value: "555" }))
+							h("div", { "data-column": column.fieldname }, slots.cell?.({ row: { name: "L1" }, column, value: "555" }))
 						)
 					),
 		}),
@@ -77,7 +79,9 @@ describe("a list's Phone columns", () => {
 			defineComponent({ render: () => h(ListView, { view: { doctype: "CRM Lead", filters: ref([]), sort: ref([]) } as never, host: host as never }) })
 		);
 		app.provide(FieldActionsKey, {
-			for: (field, value) => [{ act: "a", label: `Call ${field.fieldname} ${value}`, run: vi.fn() }],
+			for: (field, value, record) => [
+				{ act: "a", label: `Call ${field.fieldname} ${value} ${JSON.stringify(record ?? null)}`, run: vi.fn() },
+			],
 		});
 		app.mount(root);
 		mounted.push(app);
@@ -85,8 +89,14 @@ describe("a list's Phone columns", () => {
 
 		const labelIn = (column: string) =>
 			root.querySelector(`[data-column='${column}'] [data-slot='field-action']`)?.getAttribute("aria-label");
-		expect(labelIn("mobile_no")).toBe("Call mobile_no 555");
-		expect(labelIn("phone")).toBe("Call phone 555");
+		expect(labelIn("mobile_no")).toBe("Call mobile_no 555 null");
+		expect(labelIn("phone")).toBe("Call phone 555 null");
+		// An Email cell tells the host which row it sits on, and draws its button before the address.
+		expect(labelIn("email_id")).toBe(
+			'Call email_id 555 {"doctype":"CRM Lead","name":"L1","surface":"list"}'
+		);
+		const cell = root.querySelector("[data-column='email_id'] > div")!;
+		expect(cell.firstElementChild?.getAttribute("data-slot")).toBe("email-cell-actions");
 		expect(labelIn("status")).toBeUndefined();
 		expect(root.querySelector("[data-column='status']")?.textContent).toBe("555");
 	});

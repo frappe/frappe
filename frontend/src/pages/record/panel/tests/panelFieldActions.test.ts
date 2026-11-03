@@ -30,6 +30,7 @@ import type { FieldNode } from "@framework/ui/FormLayout/types";
 import { FieldActionsKey } from "@framework/ui/fields/types";
 import type { FieldAction } from "@framework/ui/fields/types";
 import PanelField from "../PanelField.vue";
+import { PanelContextKey } from "../context";
 
 const Control = defineComponent({
 	render: () => h("input", { "data-control": "" }),
@@ -46,7 +47,12 @@ function action(label: string, run = vi.fn()): FieldAction {
 	return { act: `shell.crm.${label}`, label, icon: "lucide-phone", run };
 }
 
-async function mount(field: Partial<FieldNode>, value: string, actions: FieldAction[] | null) {
+async function mount(
+	field: Partial<FieldNode>,
+	value: string,
+	actions: FieldAction[] | null,
+	forRecord?: (record: unknown) => void
+) {
 	const node = {
 		fieldname: "mobile_no",
 		label: "Mobile",
@@ -59,9 +65,13 @@ async function mount(field: Partial<FieldNode>, value: string, actions: FieldAct
 	app.provide(UpdateKey, vi.fn());
 	app.provide(CommitKey, NO_COMMIT);
 	app.provide(ResolveFieldKey, () => Control);
+	app.provide(PanelContextKey, { doctype: "Lead", docname: "L1" } as never);
 	if (actions)
 		app.provide(FieldActionsKey, {
-			for: (_field, current) => (current ? actions : []),
+			for: (_field, current, record) => {
+				forRecord?.(record);
+				return current ? actions : [];
+			},
 		});
 	app.mount(root);
 	mounted.push(app);
@@ -93,6 +103,18 @@ describe("field actions on a panel row", () => {
 		expect(root.querySelector("[data-control]")).toBeNull();
 	});
 
+	it("draws an Email field's action and names the record it sits on", async () => {
+		let named: unknown;
+		const root = await mount(
+			{ fieldtype: "Data", options: "Email" },
+			"a@x.com",
+			[action("Email")],
+			(record) => (named = record)
+		);
+		expect(root.querySelector("[data-slot='field-action']")?.getAttribute("aria-label")).toBe("Email");
+		expect(named).toEqual({ doctype: "Lead", name: "L1", surface: "record" });
+	});
+
 	it("draws nothing for an empty value", async () => {
 		const root = await mount(phone, "", [action("Call")]);
 		expect(root.querySelector("button")).toBeNull();
@@ -109,7 +131,7 @@ describe("field actions on a panel row", () => {
 	});
 
 	it("draws none on another Data option", async () => {
-		const root = await mount({ fieldtype: "Data", options: "Email" }, "a@x.com", [action("Call")]);
+		const root = await mount({ fieldtype: "Data", options: "URL" }, "a@x.com", [action("Call")]);
 		expect(root.querySelector("[data-slot='field-action']")).toBeNull();
 	});
 

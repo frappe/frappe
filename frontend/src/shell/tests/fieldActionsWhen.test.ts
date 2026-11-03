@@ -24,7 +24,7 @@ describe("field actions and the act's when", () => {
 			failed: () => {},
 		});
 		files.push({ app: "crm", load: async () => ({ default: [{ fieldtype: "Phone", act: "shell.crm.call" }] }) });
-		const host = fieldActions(new FieldActionItems());
+		const host = fieldActions({ openAway() {}, addRecipients() {} }, new FieldActionItems());
 		const phone = { fieldname: "mobile_no", fieldtype: "Phone" } as never;
 		host.for(phone, "123");
 		await new Promise((resolve) => setTimeout(resolve));
