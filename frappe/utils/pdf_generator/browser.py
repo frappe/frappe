@@ -374,9 +374,9 @@ class Browser:
 		min_size = convert_uom(30, "mm", "px", only_number=True)
 		default_margin = "15mm" if options["page-height"] > min_size else "0mm"
 		if not self.header_page:
-			options["margin-top"] = default_margin
+			options.setdefault("margin-top", default_margin)
 		if not self.footer_page:
-			options["margin-bottom"] = default_margin
+			options.setdefault("margin-bottom", default_margin)
 
 		# bad implicit setting of margin #backwards-compatibility
 		if not self.is_print_designer:
