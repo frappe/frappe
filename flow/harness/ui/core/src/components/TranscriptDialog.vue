@@ -6,7 +6,7 @@
 	<Dialog :open="flow.state.transcriptOpen" size="7xl" @update:open="(open) => open || close()">
 		<template #title>
 			<div class="flex flex-wrap items-start gap-x-4 gap-y-3 pr-8">
-				<div class="min-w-0 flex-1">
+				<div class="min-w-[12rem] flex-1">
 					<h2 class="text-2xl-semibold leading-6 text-ink-gray-8">Transcript</h2>
 					<div v-if="title" class="mt-1.5 truncate text-base text-ink-gray-6">{{ title }}</div>
 				</div>
