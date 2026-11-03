@@ -85,7 +85,7 @@ export function getCountryFromCode(code?: string | null): Country | null {
 }
 
 export function getFlagUrl(country: Country): string {
-	return get_country_flag_url(country.code);
+  return get_country_flag_url(country.code);
 }
 
 function getBrowserTimezone(): string {
