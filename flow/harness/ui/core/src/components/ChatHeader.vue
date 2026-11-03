@@ -61,7 +61,7 @@
 			<!-- the readout opens the transcript: the same totals, step by step. A narrow frame leaves
 			     the title the room: its chat menu opens the transcript instead -->
 			<button
-				v-if="transcript && !layout.narrow && (contextTokens > 0 || spent > 0)"
+				v-if="!layout.narrow && (contextTokens > 0 || spent > 0)"
 				class="mr-2 flex items-center gap-2 whitespace-nowrap rounded-4 px-1.5 py-1 text-sm font-normal tabular-nums text-ink-gray-5 hover:bg-surface-gray-2"
 				title="Tokens, step by step"
 				@click="flow.setTranscriptOpen(true)"
@@ -141,7 +141,6 @@ const props = defineProps({
 	// "desk" or "app", beside that page's head: as tall, and always ruled in its color, so the two
 	// lines meet. Desk's head is 48px, a frappe-ui app's 42px
 	besideNavbar: { type: String, default: null },
-	transcript: { type: Boolean, default: true }, // false: no token readout or Transcript item
 	appMenu: { type: Array, default: () => [] }, // the host's items after Settings, as in the sidebar's app menu
 	beforeSwitch: { type: Function, default: null }, // a host's say before the open chat changes
 })
@@ -185,7 +184,7 @@ const contextWindow = computed(() => flow.state.conversation.contextWindow ?? nu
 
 // a narrow frame's chat menu opens the transcript in the readout's place
 const menuActions = computed(() => [
-	...(props.transcript && layout.narrow && (contextTokens.value > 0 || spent.value > 0)
+	...(layout.narrow && (contextTokens.value > 0 || spent.value > 0)
 		? [{ label: "Transcript", icon: "lucide-list", onClick: () => flow.setTranscriptOpen(true) }]
 		: []),
 	...props.actions,

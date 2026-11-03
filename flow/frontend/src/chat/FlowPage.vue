@@ -36,7 +36,6 @@
 					:history="noSidebar"
 					:manage="!inPanel"
 					:beside-navbar="panelHost"
-					:transcript="!inPanel"
 					:app-menu="APP_MENU"
 					:before-switch="leavePage"
 					@open-sidebar="store.setSidebarOpen(true)"
