@@ -1,4 +1,5 @@
 import os
+from unittest.mock import patch
 
 import frappe
 from frappe.studio import files
@@ -7,6 +8,7 @@ from frappe.studio.doctype.studio_app.test_studio_app import (
 	make_studio_app,
 	make_studio_page,
 )
+from frappe.studio.doctype.studio_app_file.studio_app_file import StudioAppFile
 from frappe.tests import IntegrationTestCase
 
 SETUP_SCRIPT = (
@@ -78,6 +80,16 @@ class TestFiles(IntegrationTestCase):
 			files.write_store_file(app.name, "a.ts", "let x = 2\n", known_hash=stale_hash)
 		files.write_store_file(app.name, "a.ts", "let x = 2\n", known_hash=files.file_hash("let x = 1\n"))
 		self.assertEqual(files.read_store_file(app.name, "a.ts"), "let x = 2\n")
+
+	def test_the_file_path_index_catches_a_duplicate_the_app_check_misses(self):
+		app = make_db_app()
+		files.create_store_file(app.name, "a.ts")
+
+		frappe.db.savepoint("duplicate_path")
+		with patch.object(StudioAppFile, "validate_unique_path"):
+			with self.assertRaises(frappe.UniqueValidationError):
+				files.insert_store_row(app.name, "a.ts", "")
+		frappe.db.rollback(save_point="duplicate_path")
 
 	def test_rename_and_delete_folders_move_subtrees(self):
 		app = make_db_app()

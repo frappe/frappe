@@ -52,3 +52,11 @@ class StudioAppFile(Document):
 
 	def after_delete(self):
 		publish_doc_change("Studio App File", self.file_path, self.studio_app)
+
+
+def on_doctype_update():
+	# validate_unique_path is a check followed by an insert, so two concurrent requests both pass
+	# it. The index is what makes one of them fail.
+	frappe.db.add_unique(
+		"Studio App File", ("studio_app", "file_path"), constraint_name="unique_app_file_path"
+	)
