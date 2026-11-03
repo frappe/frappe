@@ -34,16 +34,6 @@ body {
 	-webkit-font-smoothing: antialiased;
 }
 
-/* frappe-ui's base asks for Inter's display cut ("opsz" 24); pin the text cut, as Flow in Frappe does */
-html,
-body,
-button,
-p,
-span,
-div {
-	font-variation-settings: "opsz" 14;
-}
-
 * {
 	scrollbar-width: thin;
 	scrollbar-color: var(--surface-gray-4) transparent;
