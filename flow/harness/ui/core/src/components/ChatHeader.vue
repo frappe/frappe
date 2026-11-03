@@ -25,7 +25,22 @@
 				<span class="max-w-[220px] truncate">{{ lead.label }}</span>
 			</span>
 			<span v-if="lead" aria-hidden="true" class="hidden flex-none text-base text-ink-gray-3 sm:inline">/</span>
-			<span class="min-w-0 truncate text-ink-gray-9" :class="layout.phone ? 'text-md-medium' : 'text-base-medium'">{{ title }}</span>
+			<TitleField
+				v-if="renaming && renaming === flow.state.sessionId"
+				:value="title"
+				label="Chat name"
+				class="w-[min(400px,100%)] min-w-0"
+				@save="(name) => rename(renaming, name)"
+				@cancel="renaming = null"
+			/>
+			<!-- a double click renames the chat in place, as its menu's Rename does -->
+			<span
+				v-else
+				class="min-w-0 truncate text-ink-gray-9"
+				:class="layout.phone ? 'text-md-medium' : 'text-base-medium'"
+				@dblclick="menu && (renaming = flow.state.sessionId)"
+				>{{ title }}</span
+			>
 		</div>
 
 		<!-- by the title in a narrow frame; a wide one keeps it with the buttons at the end -->
@@ -34,6 +49,7 @@
 			:session-id="menu ? flow.state.sessionId : null"
 			:title="title"
 			:actions="menuActions"
+			@rename="renaming = flow.state.sessionId"
 			align="start"
 		>
 			<Button variant="ghost" icon="lucide-ellipsis" class="flex-none" title="Chat options" />
@@ -80,6 +96,7 @@
 				:session-id="menu ? flow.state.sessionId : null"
 				:title="title"
 				:actions="menuActions"
+				@rename="renaming = flow.state.sessionId"
 				align="end"
 			>
 				<Button variant="ghost" icon="lucide-ellipsis" class="flex-none" title="Chat options" />
@@ -101,7 +118,7 @@
 </template>
 
 <script setup>
-import { computed, inject } from "vue"
+import { computed, inject, ref } from "vue"
 import { Button } from "frappe-ui/src/components/Button"
 import Dropdown from "frappe-ui/src/components/Dropdown/Dropdown.vue"
 
@@ -110,6 +127,7 @@ import { conversationTitle, formatTokens } from "../transcript.js"
 import ChatHistory from "./ChatHistory.vue"
 import ChatMenu from "./ChatMenu.vue"
 import SidebarPeek from "./SidebarPeek.vue"
+import TitleField from "./TitleField.vue"
 
 const props = defineProps({
 	sidebarOpen: { type: Boolean, default: true },
@@ -183,4 +201,11 @@ const manageOptions = computed(() => [
 ])
 
 const workspaceOpen = computed(() => flow.state.workspace.open)
+
+// the chat whose name is being edited; another chat opening ends the edit
+const renaming = ref(null)
+function rename(sid, name) {
+	renaming.value = null
+	void flow.renameSession(sid, name)
+}
 </script>

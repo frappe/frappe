@@ -2678,7 +2678,7 @@ test("the skills settings say they are loading until the folders are read, and a
 	assert.deepEqual(writes, ["/g/fresh/SKILL.md"])
 })
 
-test("the header says nothing in a new chat until its first message goes out, nor while a chat loads, and its menu renames or deletes the open chat, under the host's own items", async (t) => {
+test("the header says nothing in a new chat until its first message goes out, nor while a chat loads, and its menu renames the open chat in place or deletes it, under the host's own items", async (t) => {
 	const asked = []
 	dialog.prompt = dialog.confirm = (options) => asked.push(options)
 	t.after(() => {
@@ -2737,16 +2737,30 @@ test("the header says nothing in a new chat until its first message goes out, no
 	menu().click()
 	await nextTick()
 	assert.deepEqual(items().map((item) => item.textContent), ["Share", "Rename", "Delete"])
+	// Rename turns the title into a field holding it: Escape keeps the old name, Enter saves the new one
+	const field = () => host.el.querySelector("header input")
+	const key = (name) => field().dispatchEvent(new window.KeyboardEvent("keydown", { key: name }))
 	items()[1].click()
+	await nextTick()
+	assert.equal(field().value, "Quarterly report")
+	key("Escape")
+	await nextTick()
+	assert.equal(field(), null)
+	// as does a double click on the title
+	;[...host.el.querySelectorAll("header span")].find((span) => span.textContent === "Quarterly report").dispatchEvent(new window.MouseEvent("dblclick"))
+	await nextTick()
+	field().value = " Q3 report "
+	field().dispatchEvent(new window.Event("input"))
+	key("Enter")
+	await nextTick()
+	assert.equal(field(), null)
 	items()[2].click()
-	assert.equal(asked[0].fields[0].defaultValue, "Quarterly report")
-	assert.ok(asked[1].message.includes("Quarterly report"))
-	// another chat opening meanwhile: each dialog still acts on the chat it was opened for
+	assert.ok(asked[0].message.includes("Quarterly report"))
+	// another chat opening meanwhile: the dialog still acts on the chat it was opened for
 	flow.state.sessionId = "s2"
 	flow.state.session = { title: "Notes" }
 	await nextTick()
-	asked[0].onConfirm({ values: { title: " Q3 report " } })
-	asked[1].actions.at(-1).onClick()
+	asked[0].actions.at(-1).onClick()
 	assert.deepEqual(done, [["rename", "s1", "Q3 report"], ["delete", "s1"]])
 
 	// a chat the user may only view has no Rename or Delete: its menu holds the host's items alone

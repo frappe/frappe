@@ -21,6 +21,7 @@ const real = new Set([
 	"SidebarPeek.vue",
 	"ChatHeader.vue",
 	"ChatMenu.vue",
+	"TitleField.vue",
 	"ShareChat.vue",
 	"MessageList.vue",
 	"LoadingState.vue",
@@ -71,6 +72,15 @@ const button = moduleURL(`
 
 const fakes = {
 	"frappe-ui/src/components/Button": button,
+	"frappe-ui/src/components/TextInput": moduleURL(`
+		import { h } from ${JSON.stringify(vue)}
+		export const TextInput = {
+			props: ["modelValue"],
+			emits: ["update:modelValue"],
+			methods: { focus() { this.$el.focus() } },
+			render() { return h("input", { value: this.modelValue, onInput: (e) => this.$emit("update:modelValue", e.target.value) }) },
+		}
+	`),
 	"frappe-ui": moduleURL(`
 		import { h } from ${JSON.stringify(vue)}
 		const stub = (name) => ({ render() { return h("div", { "data-stub": name }) } })

@@ -220,11 +220,21 @@
 										</div>
 									</HoverCard>
 									<template #suffix>
+										<!-- over the row, which is a button: a field cannot sit inside it -->
+										<div v-if="renaming === s.session_id" class="absolute inset-0 z-20">
+											<TitleField
+												:value="flow.sessionTitle(s)"
+												label="Chat name"
+												@save="(name) => rename(s.session_id, name)"
+												@cancel="renaming = null"
+											/>
+										</div>
 										<ChatMenu
 											:session-id="s.session_id"
 											:title="flow.sessionTitle(s)"
 											:open="menuFor === s.session_id"
 											@update:open="(open) => setMenu(s.session_id, open)"
+											@rename="renaming = s.session_id"
 										>
 											<button
 												class="row-action chat-options absolute right-0.5 top-1/2 z-10 grid size-6 -translate-y-1/2 place-items-center rounded-4 text-ink-gray-5 transition-[color,opacity] hover:bg-surface-gray-4 hover:text-ink-gray-8"
@@ -293,6 +303,7 @@ import BrandMark from "./BrandMark.vue"
 import ChatMenu from "./ChatMenu.vue"
 import ChatSearch from "./ChatSearch.vue"
 import LoadingState from "./LoadingState.vue"
+import TitleField from "./TitleField.vue"
 
 // chatInView: false while a host shows a page in the open chat's place, so no chat row is marked.
 // beforeSwitch: such a host's say before a pick changes the open chat, resolving false to keep it
@@ -363,6 +374,13 @@ function holdCard(key) {
 function releaseCard(key) {
 	if (cardHeld === key) cardHeld = null
 }
+// the chat whose row is a field for its name
+const renaming = ref(null)
+function rename(sid, name) {
+	renaming.value = null
+	void flow.renameSession(sid, name)
+}
+
 function setMenu(key, open) {
 	menuFor.value = open ? key : null
 	cardFor.value = null
