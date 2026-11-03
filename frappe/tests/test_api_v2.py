@@ -3252,3 +3252,123 @@ class TestFieldErrorsEntryV2(FrappeAPITestCase):
 		self.assertEqual(response.status_code, 417, response.json)
 		self.assertEqual(response.json["errors"][0]["type"], error_type)
 		return response.json["errors"]
+
+
+class StaleLinkedController(Document):
+	"""A controller whose hook saves another record from an older read, as a hook that edits a linked one."""
+
+	linked: typing.ClassVar[str] = ""
+
+	def before_submit(self):
+		linked = frappe.get_doc(TestStaleLinkedRecordV2.LINKED, self.linked)
+		linked.modified = "2000-01-01 00:00:00.000000"
+		linked.save(ignore_permissions=True)
+
+
+class TestStaleLinkedRecordV2(FrappeAPITestCase):
+	"""A mismatch on another record names it to a user who can read it, and only says "hidden" to one who cannot."""
+
+	version = "v2"
+	DOCTYPE = "Test Stale Linked V2"
+	LINKED = "Test Stale Linked Target V2"
+	WRITER = "stale.linked.writer@example.com"
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		frappe.set_user("Administrator")
+		for name in (cls.DOCTYPE, cls.LINKED):
+			frappe.delete_doc_if_exists("DocType", name, force=True)
+		new_doctype(
+			cls.DOCTYPE,
+			is_submittable=1,
+			permissions=[
+				{"role": "System Manager", "read": 1, "write": 1, "create": 1, "submit": 1},
+				{"role": "Desk User", "read": 1, "write": 1, "submit": 1},
+			],
+		).insert()
+		new_doctype(
+			cls.LINKED,
+			permissions=[{"role": "System Manager", "read": 1, "write": 1, "create": 1}],
+		).insert()
+		if not frappe.db.exists("User", cls.WRITER):
+			user = frappe.get_doc(
+				doctype="User", email=cls.WRITER, first_name="Stale Writer", send_welcome_email=0
+			).insert()
+			user.add_roles("Desk User")
+		keys = generate_keys(cls.WRITER)
+		cls.writer_authorization = f"token {keys['api_key']}:{keys['api_secret']}"
+		keys = generate_keys("Administrator")
+		cls.admin_authorization = f"token {keys['api_key']}:{keys['api_secret']}"
+		frappe.db.commit()  # nosemgrep
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.set_user("Administrator")
+		for name in (cls.DOCTYPE, cls.LINKED):
+			frappe.delete_doc_if_exists("DocType", name, force=True)
+		frappe.delete_doc_if_exists("User", cls.WRITER, force=True)
+		frappe.db.commit()  # nosemgrep
+		super().tearDownClass()
+
+	def setUp(self):
+		super().setUp()
+		frappe.set_user("Administrator")
+		self.linked = frappe.get_doc(doctype=self.LINKED, some_fieldname="Linked").insert()
+		self.record = frappe.get_doc(doctype=self.DOCTYPE, some_fieldname="Draft").insert()
+		frappe.db.commit()  # nosemgrep
+		controllers = frappe.controllers.setdefault(frappe.local.site, {})
+		patcher = patch.dict(controllers, {self.DOCTYPE: StaleLinkedController})
+		patcher.start()
+		self.addCleanup(patcher.stop)
+		patcher = patch.object(StaleLinkedController, "linked", self.linked.name)
+		patcher.start()
+		self.addCleanup(patcher.stop)
+
+	def submit(self, authorization, modified=None):
+		return make_request(
+			get_test_client(use_cookies=False).post,
+			args=(self.resource(self.DOCTYPE, self.record.name, "method", "submit"),),
+			kwargs={
+				"headers": {"Authorization": authorization},
+				**({"json": {"modified": modified}} if modified else {}),
+			},
+			site=frappe.local.site,
+		)
+
+	def mismatch(self, response) -> dict:
+		self.assertIn("errors", response.json, response.json)
+		error = response.json["errors"][0]
+		self.assertEqual(error["type"], "TimestampMismatchError", response.json)
+		return error
+
+	def test_the_page_own_record_names_itself(self):
+		response = self.submit(self.admin_authorization, modified="2000-01-01 00:00:00.000000")
+
+		error = self.mismatch(response)
+		self.assertEqual(error["stale_doc"], {"doctype": self.DOCTYPE, "name": self.record.name})
+
+	def test_a_readable_linked_record_is_named(self):
+		response = self.submit(self.admin_authorization)
+
+		error = self.mismatch(response)
+		self.assertEqual(error["stale_doc"], {"doctype": self.LINKED, "name": self.linked.name})
+
+	def test_a_normal_user_who_can_read_the_linked_record_gets_its_name(self):
+		user = frappe.get_doc("User", self.WRITER)
+		user.add_roles("System Manager")
+		self.addCleanup(lambda: (user.remove_roles("System Manager"), frappe.db.commit()))  # nosemgrep
+		frappe.db.commit()  # nosemgrep
+
+		response = self.submit(self.writer_authorization)
+
+		error = self.mismatch(response)
+		self.assertEqual(error["stale_doc"], {"doctype": self.LINKED, "name": self.linked.name})
+
+	def test_an_unreadable_linked_record_is_not_named(self):
+		response = self.submit(self.writer_authorization)
+
+		error = self.mismatch(response)
+		self.assertEqual(error["stale_doc"], {"hidden": True})
+		self.assertNotIn(self.linked.name, response.get_data(as_text=True))
+		self.assertNotIn(self.LINKED, response.get_data(as_text=True))

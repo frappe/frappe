@@ -7,7 +7,14 @@ export interface ErrorEntry {
   indicator?: string;
   code_errors?: CodeError[];
   field_errors?: FieldError[];
+  stale_doc?: StaleDoc;
 }
+
+/**
+ * The record a `TimestampMismatchError` is about. `hidden` stands in for a record the user
+ * cannot read, so the response does not name it.
+ */
+export type StaleDoc = { doctype: string; name: string } | { hidden: true };
 
 /** A compile error in a Code field's text; line and column count from 1. */
 export interface CodeError {
@@ -39,6 +46,7 @@ export class ApiError extends Error {
   readonly indicator?: string;
   readonly codeErrors?: CodeError[];
   readonly fieldErrors?: FieldError[];
+  readonly staleDoc?: StaleDoc;
   readonly status: number;
 
   constructor(entry: ErrorEntry, status: number) {
@@ -50,6 +58,7 @@ export class ApiError extends Error {
     this.indicator = entry.indicator;
     this.codeErrors = entry.code_errors;
     this.fieldErrors = entry.field_errors;
+    this.staleDoc = entry.stale_doc;
     this.status = status;
   }
 
