@@ -46,9 +46,11 @@ export function fetchFields(columns: Column[], rowActions: RowAction[] = []): st
 	return [...new Set(["name", ...wanted])];
 }
 
-/** Every contributing app's row actions in run order; an act named twice is listed once. */
+/** Every contributing app's row actions in run order; an act named twice is listed once, and a `list` act is refused. */
 export function contributedRowActions(contributed: ListHandlers[]): RowAction[] {
-	const actions = contributed.flatMap((handlers) => handlers.rowActions ?? []);
+	const actions = contributed
+		.flatMap((handlers) => handlers.rowActions ?? [])
+		.filter((action) => !action.act.startsWith("list."));
 	return actions.filter((action, index) => actions.findIndex((one) => one.act === action.act) === index);
 }
 

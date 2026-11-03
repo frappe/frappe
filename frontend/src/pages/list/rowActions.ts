@@ -34,11 +34,20 @@ export function rowActionEntries(actions: RowAction[]): ActEntry[] {
 export function rowMenuOptions(row: Row, actions: RowAction[], listActs: ListActs): RowMenuOption[] {
 	return actions.flatMap((action) => {
 		const drawn = listActs.drawn(itemName(action));
-		if (!drawn || action.when?.(row) === false) return [];
+		if (!drawn || !applies(action, row)) return [];
 		return [{ label: drawn.label!, icon: drawn.icon, onClick: () => listActs.perform(drawn, row) }];
 	});
 }
 
 function itemName(action: RowAction) {
 	return `row_${action.act}`;
+}
+
+// A `when` that throws on a row hides the action there; it must not break the list's render.
+function applies(action: RowAction, row: Row) {
+	try {
+		return action.when?.(row) !== false;
+	} catch {
+		return false;
+	}
 }

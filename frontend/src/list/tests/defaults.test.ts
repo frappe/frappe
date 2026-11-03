@@ -92,4 +92,9 @@ describe("contributedRowActions", () => {
 			mail,
 		]);
 	});
+
+	it("refuses an act on the list surface, which would ask itself whether it is available", () => {
+		const own = { act: "list.create", fields: [] };
+		expect(contributedRowActions([{ rowActions: [own] }])).toEqual([]);
+	});
 });

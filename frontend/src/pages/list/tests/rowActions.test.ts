@@ -91,6 +91,17 @@ describe("row actions", () => {
 		expect(rowMenuOptions({ name: "B" }, [action], listActs)).toEqual([]);
 	});
 
+	it("hides the action on a row whose when throws", () => {
+		register("shell", () => [callAct([])]);
+		const action = {
+			...call,
+			when: () => {
+				throw new Error("no field");
+			},
+		};
+		expect(rowMenuOptions({ name: "L" }, [action], listSurface([action]))).toEqual([]);
+	});
+
 	it("keeps the actions off the palette", () => {
 		register("shell", () => [callAct([])]);
 		const [entry] = rowActionEntries([call]);

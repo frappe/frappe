@@ -58,6 +58,9 @@ export function useListView(view: View): ListView {
 		return !field || permissions.fieldAccess(field) !== "none";
 	};
 
+	const readableActions = () =>
+		rowActions.map((action) => ({ ...action, fields: action.fields.filter(readable) }));
+
 	const defaults = computed(() =>
 		listMeta.value ? defaultColumns(listMeta.value, contributed) : []
 	);
@@ -97,7 +100,7 @@ export function useListView(view: View): ListView {
 		if (!view.seeded.value) return null;
 		return {
 			key: stateKey(),
-			fields: fetchFields(columns.value, rowActions),
+			fields: fetchFields(columns.value, readableActions()),
 			filters: filtersDict(view.filters.value),
 			orderBy: serializeOrderBy(view.sort.value),
 			limit: pageSize.value,
