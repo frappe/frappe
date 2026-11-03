@@ -47,12 +47,13 @@
 		<div v-else-if="asking" class="px-3.5 py-2.5">
 			<!-- function ref: the field mounts only while asking, so mount-time focus
 			     is exactly "form opened" -->
-			<textarea
+			<Textarea
 				:ref="focusAsk"
 				v-model="askText"
-				rows="2"
+				variant="outline"
+				:rows="2"
 				placeholder="Describe what you want instead…"
-				class="w-full resize-none rounded-6 border border-outline-gray-2 bg-surface-base px-2.5 py-2 text-sm leading-normal text-ink-gray-9 outline-none focus:border-outline-gray-3 focus:ring-0"
+				class="resize-none"
 				@keydown="onAskKey"
 			/>
 			<div class="mt-2 flex items-center gap-2">
@@ -67,6 +68,7 @@
 <script setup>
 import { computed, inject, nextTick, ref } from "vue"
 import { Button } from "frappe-ui/src/components/Button"
+import { Textarea } from "frappe-ui/src/components/Textarea"
 
 import { layout } from "../layout.js"
 

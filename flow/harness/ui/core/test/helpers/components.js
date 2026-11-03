@@ -123,6 +123,8 @@ const widgets = moduleURL(`
 	const text = (tag) => ({
 		props: ["modelValue"],
 		emits: ["update:modelValue"],
+		// as frappe-ui's fields expose it
+		methods: { focus() { this.$el.focus() } },
 		render() {
 			return h(tag, { value: this.modelValue, onInput: (e) => this.$emit("update:modelValue", e.target.value) })
 		},
