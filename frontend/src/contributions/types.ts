@@ -7,8 +7,21 @@ type RecordHandler = (page: object, row?: object) => unknown
 
 export type RecordHandlers = Record<string, RecordHandler | Record<string, RecordHandler>>
 
+/** An app's item that runs the act `act` with `value(context)`; drawn while `when(context)` holds. */
+export type ActionItem<Context = unknown> = {
+  act: string
+  label?: string
+  icon?: string
+  value?: (context: Context) => unknown
+  when?: (context: Context) => boolean
+}
+
+/** A list row's action; `fields` are read into the list query so `value` finds them on the row. */
+export type RowAction = ActionItem<Record<string, unknown>> & { fields: string[] }
+
 export type ListHandlers = {
   columns?: { fieldname: string; width?: number }[]
+  rowActions?: RowAction[]
   [key: string]: unknown
 }
 

@@ -2,7 +2,7 @@
 import { describe, expect, it } from "vitest";
 import type { RawMetaField } from "@framework/ui/FormLayout";
 
-import { DEFAULT_SORT, defaultColumns, defaultSort, fetchFields } from "../defaults";
+import { DEFAULT_SORT, contributedRowActions, defaultColumns, defaultSort, fetchFields } from "../defaults";
 
 const FIELDS: RawMetaField[] = [
 	{ fieldname: "title", label: "Title", fieldtype: "Data", in_list_view: 1 },
@@ -70,5 +70,26 @@ describe("fetchFields", () => {
 				{ fieldname: "name", label: "Name" },
 			])
 		).toEqual(["name", "status"]);
+	});
+
+	it("adds each row action's fields after the columns, once", () => {
+		const columns = [{ fieldname: "status", label: "Status" }];
+		const actions = [
+			{ act: "shell.crm.call", fields: ["mobile_no", "status"] },
+			{ act: "shell.crm.mail", fields: ["mobile_no", "email_id"] },
+		];
+		expect(fetchFields(columns, actions)).toEqual(["name", "status", "mobile_no", "email_id"]);
+	});
+});
+
+describe("contributedRowActions", () => {
+	it("joins every app's row actions in run order and lists an act named twice once", () => {
+		const call = { act: "shell.crm.call", fields: ["mobile_no"] };
+		const mail = { act: "shell.crm.mail", fields: ["email_id"] };
+		const again = { act: "shell.crm.call", fields: ["phone"] };
+		expect(contributedRowActions([{ rowActions: [call] }, {}, { rowActions: [mail, again] }])).toEqual([
+			call,
+			mail,
+		]);
 	});
 });

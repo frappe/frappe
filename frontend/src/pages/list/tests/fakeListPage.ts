@@ -93,6 +93,7 @@ export function useListView(): ListView {
     totalUnknown: ref(false),
     hasCounts: ref(true),
     hasNextPage: ref(false),
+    rowActions: [],
     columnsCustomized: computed(() => false),
     resetColumns: async () => {},
     resizeColumn: () => {},

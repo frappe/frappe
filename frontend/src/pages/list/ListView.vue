@@ -21,10 +21,14 @@
 		:rows="rows"
 		:loading="loading"
 		:rowLink="rowLink"
+		:rowMenu="rowActions.length > 0"
 		gutter="var(--page-gutter)"
 		@column-resize="resizeColumn($event.fieldname, $event.width)"
 		@column-reset="resetColumnWidth($event.fieldname)"
 	>
+		<template v-if="rowActions.length" #rowMenu="{ row }">
+			<RowMenu :options="rowMenuOptions(row, rowActions, listActs)" />
+		</template>
 		<template #empty>
 			<PageState :name="filters.length ? 'filtered' : 'empty'" />
 		</template>
@@ -60,12 +64,15 @@ import { failedState } from "@/shell/pageState";
 import PageState from "@/shell/PageState.vue";
 import DeleteDialog from "./DeleteDialog.vue";
 import type { RendererHost } from "./renderer";
+import RowMenu from "./RowMenu.vue";
+import { rowActionEntries, rowMenuOptions } from "./rowActions";
 
 const props = defineProps<{ view: View; host: RendererHost }>();
 const { filters, sort } = props.view;
 
 const {
 	columns,
+	rowActions,
 	selection,
 	pageSize,
 	rowsKey,
@@ -101,22 +108,23 @@ useScrollMemory(
 	{ doctype: props.view.doctype, query: rowsKey }
 );
 
-const listActs = props.host.acts(() =>
-	selection.value.length
-		? [
-				{
-					item: {
-						name: "delete",
-						label: __("Delete"),
-						icon: "lucide-trash-2",
-						right: "delete",
-						run: () => (confirmingDelete.value = true),
-					},
-					hidden: false,
-				},
-		  ]
-		: []
-);
+const listActs = props.host.acts(() => [
+	...(selection.value.length ? [deleteEntry()] : []),
+	...rowActionEntries(rowActions),
+]);
+
+function deleteEntry() {
+	return {
+		item: {
+			name: "delete",
+			label: __("Delete"),
+			icon: "lucide-trash-2",
+			right: "delete",
+			run: () => (confirmingDelete.value = true),
+		},
+		hidden: false,
+	};
+}
 
 const deleteAct = computed(() => listActs.drawn("delete"));
 

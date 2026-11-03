@@ -74,6 +74,7 @@
 						/>
 					</span>
 				</div>
+				<div v-if="rowMenu" role="columnheader" aria-hidden="true" />
 			</ListHeader>
 
 			<div v-if="rows.length" v-bind="wrapperProps" role="presentation">
@@ -119,6 +120,12 @@
 								{{ cellText(row, column) }}
 							</div>
 						</slot>
+					</ListCell>
+					<!-- The row is a link: a click in this cell must not follow it, as the checkbox's. -->
+					<ListCell v-if="rowMenu">
+						<div class="flex w-full justify-end" @click.stop.prevent>
+							<slot name="rowMenu" :row="row" />
+						</div>
 					</ListCell>
 				</ListRow>
 			</div>
@@ -178,6 +185,7 @@ const emit = defineEmits<{
 
 defineSlots<{
 	cell?: (props: { row: ListRowData; column: ListColumn; value: string }) => unknown;
+	rowMenu?: (props: { row: ListRowData }) => unknown;
 	empty?: () => unknown;
 }>();
 
@@ -242,7 +250,7 @@ const skeletonColumns = computed<ListColumn[]>(() => {
 });
 
 const tracks = computed(() =>
-	columnTracks(props.loading ? skeletonColumns.value : columns.value, drafts)
+	columnTracks(props.loading ? skeletonColumns.value : columns.value, drafts, props.rowMenu)
 );
 
 function cellText(row: ListRowData, column: ListColumn): string {

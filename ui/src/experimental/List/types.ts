@@ -20,6 +20,8 @@ export interface ListProps {
   rowLink?: (row: ListRowData) => RouteLocationRaw;
   /** Where the checkbox and the last cell's text land, as a CSS length; the row bleeds past it. */
   gutter?: string;
+  /** Draws one more cell at the end of each row, filled by the `rowMenu` slot. */
+  rowMenu?: boolean;
 }
 
 /** A drag-resize result: the column and the fixed width it now has. */

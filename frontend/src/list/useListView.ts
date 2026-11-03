@@ -9,8 +9,9 @@ import { useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { computed, ref, watch, type ComputedRef, type Ref, type WritableComputedRef } from "vue";
 import type { RouteLocationRaw } from "vue-router";
 import { listHandlersFor } from "@/contributions/registry";
+import type { RowAction } from "@/contributions/types";
 import { routeFor } from "@/router/routeFor";
-import { defaultColumns, fetchFields, type ListMeta } from "./defaults";
+import { contributedRowActions, defaultColumns, fetchFields, type ListMeta } from "./defaults";
 import { readListMemory, recallRows, rememberRows, writeListMemory } from "./pageState";
 import { completeFilters, queryFromAddress } from "./query";
 import { columnsFrom, toStoredColumns } from "./storedSettings";
@@ -25,6 +26,8 @@ export interface DeleteOutcome {
 export interface ListView extends ListRows {
 	/** The view's `columns` key, else the app default; a change is written to the view. */
 	columns: WritableComputedRef<ListColumn[]>;
+	/** The row actions the apps contributed for this doctype. */
+	rowActions: RowAction[];
 	selection: Ref<string[]>;
 	/** Kept in the history entry. */
 	pageSize: Ref<number>;
@@ -48,6 +51,7 @@ export function useListView(view: View): ListView {
 	const listMeta = computed(() => meta.value as ListMeta | null);
 	const fields = computed(() => listMeta.value?.fields ?? []);
 	const contributed = listHandlersFor(doctype).map(({ handlers }) => handlers);
+	const rowActions = contributedRowActions(contributed);
 
 	const readable = (fieldname: string) => {
 		const field = fields.value.find((one) => one.fieldname === fieldname);
@@ -93,7 +97,7 @@ export function useListView(view: View): ListView {
 		if (!view.seeded.value) return null;
 		return {
 			key: stateKey(),
-			fields: fetchFields(columns.value),
+			fields: fetchFields(columns.value, rowActions),
 			filters: filtersDict(view.filters.value),
 			orderBy: serializeOrderBy(view.sort.value),
 			limit: pageSize.value,
@@ -142,6 +146,7 @@ export function useListView(view: View): ListView {
 	return {
 		...rows,
 		columns,
+		rowActions,
 		selection,
 		pageSize,
 		rowsKey,
