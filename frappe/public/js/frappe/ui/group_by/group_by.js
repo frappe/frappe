@@ -15,7 +15,6 @@ frappe.ui.GroupBy = class {
 	make() {
 		this.make_group_by_button();
 		this.init_group_by_popover();
-		this.set_popover_events();
 	}
 
 	init_group_by_popover() {
@@ -24,21 +23,24 @@ frappe.ui.GroupBy = class {
 		this.render_group_by_area();
 		this.set_group_by_events();
 
-		this.group_by_button.popover({
-			content: this.$group_by_area,
-			template: `
-				<div class="group-by-popover popover">
-					<div class="arrow"></div>
-					<div class="popover-body popover-content">
-					</div>
-				</div>
-			`,
-			html: true,
-			trigger: "manual",
-			container: "body",
-			placement: "bottom",
-			offset: "-100px, 0",
+		this.popover = new frappe.ui.Popover({
+			trigger: this.group_by_button,
+			content: () => this.$group_by_area[0],
+			align: "end",
+			css_class: "group-by-popover",
+			on_open: (popover) => {
+				this.wrapper = $(popover.panel);
+				if (!this.get_group_bys().length) this.focus_last_group_by();
+			},
+			on_close: () => {
+				// hiding detaches the popover, keep keyboard focus on the button
+				if (this.wrapper[0].contains(document.activeElement)) {
+					this.group_by_button.trigger("focus");
+				}
+				this.update_group_by_button();
+			},
 		});
+		frappe.router.on("change", () => this.popover.close());
 	}
 
 	render_group_by_area() {
@@ -134,65 +136,6 @@ frappe.ui.GroupBy = class {
 		this.apply_group_by_and_refresh();
 	}
 
-	// TODO: make common with filter popover
-	set_popover_events() {
-		$(document.body).on("click", (e) => {
-			if (this.wrapper && this.wrapper.is(":visible")) {
-				if (
-					// re-rendering the popover detaches the clicked element
-					document.body.contains(e.target) &&
-					$(e.target).parents(".group-by-popover").length === 0 &&
-					// the field picker's list opens in <body>
-					$(e.target).closest(".es-menu").length === 0 &&
-					$(e.target).parents(".group-by-box").length === 0 &&
-					$(e.target).parents(".group-by-button").length === 0 &&
-					!$(e.target).is(this.group_by_button)
-				) {
-					this.wrapper && this.group_by_button.popover("hide");
-				}
-			}
-		});
-
-		this.group_by_button.on("click", () => {
-			this.group_by_button.popover("toggle");
-		});
-
-		this.group_by_button.on("shown.bs.popover", () => {
-			if (!this.wrapper) {
-				// set here because the popover template sanitizer drops tabindex
-				this.wrapper = $(".group-by-popover").attr("tabindex", "-1");
-				// fields keep their own Escape handling
-				this.wrapper.on("keydown", (e) => {
-					if (e.key !== "Escape" || $(e.target).is("input, select, textarea")) return;
-					// the global Escape handler would blur the button again
-					e.stopPropagation();
-					this.group_by_button.popover("hide");
-				});
-			}
-			if (this.get_group_bys().length) {
-				// the popover lives at the end of body, focus it so Tab reaches the rows
-				this.wrapper.trigger("focus");
-			} else {
-				this.focus_last_group_by();
-			}
-		});
-
-		this.group_by_button.on("hide.bs.popover", () => {
-			// hiding detaches the popover, keep keyboard focus on the button
-			if (this.wrapper?.[0].contains(document.activeElement)) {
-				this.group_by_button.trigger("focus");
-			}
-		});
-
-		this.group_by_button.on("hidden.bs.popover", () => {
-			this.update_group_by_button();
-		});
-
-		frappe.router.on("change", () => {
-			this.group_by_button.popover("hide");
-		});
-	}
-
 	set_group_by_events() {
 		const get_idx = (e) => cint($(e.target).closest("[data-idx]").attr("data-idx"));
 
@@ -248,12 +191,12 @@ frappe.ui.GroupBy = class {
 
 		this.$group_by_area.on("click", ".clear-group-by", () => {
 			// hide first, re-rendering would drop the focus that hiding returns to the button
-			this.group_by_button.popover("hide");
+			this.popover.close();
 			this.remove_group_by();
 		});
 
 		this.$group_by_area.on("click", ".apply-group-by", () => {
-			this.group_by_button.popover("hide");
+			this.popover.close();
 		});
 	}
 
