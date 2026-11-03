@@ -468,6 +468,7 @@ class TestFile(IntegrationTestCase):
 		)
 		for f in test_file_data:
 			frappe.delete_doc("File", f)
+		frappe.db.after_commit.run()
 
 	def upload_file(self):
 		_file = frappe.get_doc(
