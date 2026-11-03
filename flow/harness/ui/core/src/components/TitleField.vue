@@ -6,9 +6,9 @@
 		size="sm"
 		variant="outline"
 		:aria-label="label"
-		@keydown.enter.prevent="save"
-		@keydown.esc.prevent.stop="cancel"
-		@blur="save"
+		@keydown.enter.prevent="(e) => composing(e) || save(true)"
+		@keydown.esc.prevent.stop="(e) => composing(e) || cancel()"
+		@blur="save(false)"
 		@click.stop
 		@pointerdown.stop
 	/>
@@ -27,23 +27,34 @@ const emit = defineEmits(["save", "cancel"])
 const draft = ref(props.value)
 const field = ref(null)
 let done = false
+// where the focus was, a menu's trigger once it has handed it back: Enter and Escape return it there
+let from = null
+
+// an IME's Enter picks a candidate and its Escape drops one; Safari marks its closing key only by keyCode 229
+const composing = (e) => e.isComposing || e.keyCode === 229
 
 onMounted(() => {
+	const active = field.value?.inputElement?.getRootNode().activeElement
+	from = active && active !== document.body ? active : null
 	field.value?.focus()
 	field.value?.inputElement?.select()
 })
 
-function save() {
+function finish(event, title, back) {
 	if (done) return
 	done = true
+	if (back && from) setTimeout(() => from.isConnected && from.focus())
+	emit(event, title)
+}
+
+// leaving the field saves too, and leaves the focus where it went
+function save(back) {
 	const title = draft.value.trim()
-	if (title && title !== props.value) emit("save", title)
-	else emit("cancel")
+	if (title && title !== props.value) finish("save", title, back)
+	else finish("cancel", undefined, back)
 }
 
 function cancel() {
-	if (done) return
-	done = true
-	emit("cancel")
+	finish("cancel", undefined, true)
 }
 </script>

@@ -2850,13 +2850,20 @@ test("the header says nothing in a new chat until its first message goes out, no
 	const field = () => host.el.querySelector("header input")
 	const key = (name) => field().dispatchEvent(new window.KeyboardEvent("keydown", { key: name }))
 	const menuClosed = () => new Promise((resolve) => setTimeout(() => setTimeout(resolve)))
+	menu().focus() // reka hands the focus back to the trigger as the menu closes
 	items()[1].click()
 	await menuClosed()
 	await nextTick()
 	assert.equal(field().value, "Quarterly report")
-	key("Escape")
+	// an IME's Enter and Escape stay with it
+	field().dispatchEvent(new window.KeyboardEvent("keydown", { key: "Enter", isComposing: true }))
+	field().dispatchEvent(new window.KeyboardEvent("keydown", { key: "Escape", keyCode: 229 }))
 	await nextTick()
+	assert.ok(field())
+	key("Escape")
+	await menuClosed()
 	assert.equal(field(), null)
+	assert.equal(document.activeElement, menu()) // the keyboard is back where it started
 	// as does a double click on the title
 	;[...host.el.querySelectorAll("header span")].find((span) => span.textContent === "Quarterly report").dispatchEvent(new window.MouseEvent("dblclick"))
 	await nextTick()

@@ -118,7 +118,7 @@
 </template>
 
 <script setup>
-import { computed, inject, ref } from "vue"
+import { computed, inject, ref, watch } from "vue"
 import { Button } from "frappe-ui/src/components/Button"
 import Dropdown from "frappe-ui/src/components/Dropdown/Dropdown.vue"
 
@@ -203,6 +203,10 @@ const workspaceOpen = computed(() => flow.state.workspace.open)
 
 // the chat whose name is being edited; another chat opening ends the edit
 const renaming = ref(null)
+watch(
+	() => flow.state.sessionId,
+	() => (renaming.value = null),
+)
 function rename(sid, name) {
 	renaming.value = null
 	void flow.renameSession(sid, name)
