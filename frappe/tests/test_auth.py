@@ -2,39 +2,28 @@
 # License: MIT. See LICENSE
 import datetime
 import time
+from unittest.mock import patch
 
 import requests
 from werkzeug.test import EnvironBuilder
 from werkzeug.wrappers import Request
 
 import frappe
-<<<<<<< HEAD
-from frappe.auth import CookieManager, LoginAttemptTracker, validate_auth
-from frappe.core.doctype.user.user import generate_keys
-=======
 from frappe.auth import (
 	CookieManager,
 	LoginAttemptTracker,
 	LoginManager,
 	get_login_attempt_tracker,
-	validate_api_key_secret,
 	validate_auth,
-	validate_ip_address,
 )
 from frappe.core.doctype.user.user import User, generate_keys
->>>>>>> ced1d97 (fix(login): respond uniformly for unknown and locked accounts)
 from frappe.frappeclient import AuthError, FrappeClient
 from frappe.sessions import Session, get_expired_sessions, get_expiry_in_seconds
 from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.tests.test_api import FrappeAPITestCase
 from frappe.utils import get_datetime, get_site_url, now
-<<<<<<< HEAD
 from frappe.utils.data import add_to_date
-=======
-from frappe.utils.data import add_to_date, sha256_hash
-from frappe.utils.logging import get_log_db, log_table
-from frappe.utils.password import check_password
->>>>>>> 4d4a99f (fix(login): hash a placeholder when a user has no saved password)
+from frappe.utils.password import check_password, passlibctx
 from frappe.www.login import _generate_temporary_login_link
 
 
@@ -80,31 +69,6 @@ class TestAuth(IntegrationTestCase):
 		frappe.db.set_single_value("System Settings", k, v)
 		frappe.clear_cache()
 		frappe.db.commit()
-
-<<<<<<< HEAD
-=======
-	def test_validate_ip_address_without_a_request(self):
-		with (
-			patch.object(frappe.local, "request", None, create=True),
-			patch(
-				"frappe.auth.frappe.get_cached_doc",
-				return_value=Mock(get_restricted_ip_list=lambda: []),
-			),
-		):
-			self.assertIsNone(validate_ip_address("Administrator"))
-
-	def test_session_without_a_request_uses_guest_sid(self):
-		original_session = frappe.local.session
-		self.addCleanup(setattr, frappe.local, "session", original_session)
-
-		with patch.object(frappe.local, "request", None, create=True):
-			self.assertEqual(Session(user="").sid, "Guest")
-
-	def test_cookie_manager_without_a_request_uses_non_secure_cookie(self):
-		with patch.object(frappe.local, "request", None, create=True):
-			cookies = CookieManager()
-			cookies.set_cookie("sid", "test")
-			self.assertFalse(cookies.cookies["sid"]["secure"])
 
 	def test_locked_account_response_matches_unknown_account(self):
 		self.addCleanup(frappe.form_dict.clear)
@@ -155,7 +119,7 @@ class TestAuth(IntegrationTestCase):
 		self.assertEqual(frappe.local.response.get("message"), "Invalid login credentials")
 
 	def test_unknown_account_checks_a_password_hash(self):
-		with patch("frappe.utils.password.verify_password", return_value=(False, False)) as verify:
+		with patch.object(passlibctx, "verify", wraps=passlibctx.verify) as verify:
 			self.assertIsNone(User.find_by_credentials("unknown_auth@example.com", "wrong_pwd_012"))
 		verify.assert_called_once()
 
@@ -165,13 +129,11 @@ class TestAuth(IntegrationTestCase):
 		frappe.get_doc(doctype="User", email=email, first_name="No Password", send_welcome_email=0).insert()
 		self.addCleanup(frappe.delete_doc, "User", email, force=True)
 
-		with patch("frappe.utils.password.verify_password", return_value=(False, False)) as verify:
+		with patch.object(passlibctx, "verify", wraps=passlibctx.verify) as verify:
 			with self.assertRaises(frappe.AuthenticationError):
 				check_password(email, "wrong_pwd_012")
 		verify.assert_called_once()
 
-	@requires_test_service(TestService.WEB_SERVER)
->>>>>>> ced1d97 (fix(login): respond uniformly for unknown and locked accounts)
 	def test_allow_login_using_mobile(self):
 		self.set_system_settings("allow_login_using_mobile_number", 1)
 		self.set_system_settings("allow_login_using_user_name", 0)

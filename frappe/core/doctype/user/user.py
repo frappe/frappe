@@ -36,16 +36,7 @@ from frappe.utils import (
 )
 from frappe.utils.data import sha256_hash
 from frappe.utils.html_utils import sanitize_html
-<<<<<<< HEAD
-from frappe.utils.password import check_password, get_password_reset_limit
-=======
-from frappe.utils.password import (
-	check_password,
-	get_password_reset_limit,
-	is_password_reused,
-	verify_against_placeholder,
-)
->>>>>>> ced1d97 (fix(login): respond uniformly for unknown and locked accounts)
+from frappe.utils.password import check_password, get_password_reset_limit, verify_against_placeholder
 from frappe.utils.password import update_password as _update_password
 from frappe.utils.user import get_system_managers
 from frappe.website.utils import get_home_page, is_signup_disabled
