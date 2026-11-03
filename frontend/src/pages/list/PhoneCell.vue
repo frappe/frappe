@@ -1,14 +1,14 @@
-<!-- A Phone column's cell: the number, and the apps' field actions at its end (a call button). -->
+<!-- A Phone column's cell: the apps' field actions before the number (a call button), then the number. -->
 <template>
 	<div class="flex min-w-0 items-center gap-2">
-		<span class="truncate text-base text-ink-gray-8">{{ value }}</span>
 		<span
 			data-slot="phone-cell-actions"
-			class="flex shrink-0 items-center"
+			class="flex shrink-0 items-center empty:hidden"
 			@click.capture.prevent
 		>
 			<FieldActionButtons :field="field" :value="value" />
 		</span>
+		<span class="truncate text-base text-ink-gray-8">{{ value }}</span>
 	</div>
 </template>
 
