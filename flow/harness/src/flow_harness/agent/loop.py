@@ -235,10 +235,10 @@ async def resume(
 			else:
 				result = await _finished_call(call, tools, ctx, inputs)
 		elif answer == "Deny":
-			result = _result(call, _denied(pending.prompt), is_error=True)
+			result = _result(call, _denied(pending.prompt), is_error=True, details={"user_answer": answer})
 			denied = True
 		else:
-			result = _result(call, _redirect(answer))
+			result = _result(call, _redirect(answer), details={"user_answer": answer})
 		_raise_if_aborted(inputs.abort)
 		yield result
 
@@ -755,7 +755,8 @@ async def _confirmation_prompt(call: ToolCall, tools: dict[str, Tool], inputs: L
 	tool = tools.get(call.name)
 	if tool is not None and tool.confirm_prompt is not None:
 		try:
-			return tool.confirm_prompt(call.args)
+			if prompt := tool.confirm_prompt(call.args):  # only a client may say no card is needed
+				return prompt
 		except Exception:
 			pass
 	if inputs.config.callback_url and call.name not in tools:
