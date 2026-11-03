@@ -33,7 +33,7 @@ import ReadValue from "./ReadValue.vue";
 import ColorSwatch from "./ColorSwatch.vue";
 import DataOpenLink from "./DataOpenLink.vue";
 import FieldActions from "./FieldActions.vue";
-import { dataHref, dataOption } from "./dataOptions";
+import { dataHref, isPhoneField } from "./dataOptions";
 import { DocKey, ParentDocKey } from "./types";
 import { NUMBER_FIELDTYPES } from "../FormLayout/formatNumber";
 import { useFieldDisplay } from "../FormLayout/useFieldDisplay";
@@ -57,9 +57,5 @@ const text = computed(() => {
 });
 
 const address = computed(() => dataHref(props.field, props.modelValue));
-const phone = computed(
-	() =>
-		props.field.fieldtype === "Phone" ||
-		(props.field.fieldtype === "Data" && dataOption(props.field) === "Phone")
-);
+const phone = computed(() => isPhoneField(props.field));
 </script>

@@ -71,6 +71,9 @@
 				:address="address"
 				class="ml-auto grid shrink-0 opacity-0 focus-visible:opacity-100 group-hover:opacity-100"
 			/>
+			<span v-if="phone" class="-my-1 flex shrink-0 items-center" @click.stop>
+				<FieldActionButtons :field="field" :value="doc[field.fieldname]" />
+			</span>
 			<span v-if="message" class="w-full truncate text-sm text-ink-red-4" :title="message">
 				{{ message }}
 			</span>
@@ -94,8 +97,10 @@ import { RecordAnchor } from "@framework/ui/Link";
 import {
 	ColorSwatch,
 	DataOpenLink,
+	FieldActionButtons,
 	dataHref,
 	focusField,
+	isPhoneField,
 	useRecordLink,
 } from "@framework/ui/fields";
 import { isSummaryField, useFieldDisplay } from "@framework/ui/FormLayout";
@@ -157,6 +162,7 @@ const display = computed(() =>
 	displayField(props.field, doc.value[props.field.fieldname], { doc: doc.value })
 );
 
+const phone = computed(() => isPhoneField(props.field));
 const address = computed(() => dataHref(props.field, doc.value[props.field.fieldname]));
 
 const record = useRecordLink(linkedDoctype, () => doc.value[props.field.fieldname] || null);
