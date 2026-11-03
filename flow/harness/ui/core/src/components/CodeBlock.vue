@@ -1,7 +1,7 @@
 <template>
 	<div
 		class="flow-code overflow-hidden"
-		:class="bare ? '' : 'rounded-6 border border-outline-gray-1 bg-surface-gray-1'"
+		:class="bare ? '' : 'rounded-6 border border-outline-gray-2 bg-surface-gray-1'"
 	>
 		<div
 			class="flex items-center justify-between gap-2 border-b border-outline-gray-1 py-1 pl-3 pr-1"

@@ -346,13 +346,17 @@ body {
 	/* frappe-ui's base layer pins bare <p> to 1.5; take the prose leading back */
 	line-height: inherit;
 }
+/* headings on frappe-ui's prose-v3 scale: a section break above, close to their content below */
 .flow-md h1,
 .flow-md h2,
 .flow-md h3,
 .flow-md h4 {
-	margin: 1em 0 0.4em;
+	margin: 24px 0 8px;
 	font-weight: 600;
 	color: var(--ink-gray-9);
+}
+.flow-md :is(h1, h2, h3, h4) + * {
+	margin-top: 0;
 }
 /* bold as the headings, not the browser's 700 */
 .flow-md strong,
@@ -360,14 +364,22 @@ body {
 	font-weight: 600;
 }
 .flow-md h1 {
-	font-size: 1.25em;
+	margin-top: 32px;
+	font-size: 1.4286em;
+	line-height: 1.3;
 }
 .flow-md h2 {
-	font-size: 1.15em;
+	margin-top: 32px;
+	font-size: 1.2857em;
+	line-height: 1.35;
 }
-.flow-md h3,
+.flow-md h3 {
+	font-size: 1.1429em;
+	line-height: 1.4;
+}
 .flow-md h4 {
 	font-size: 1em;
+	line-height: 1.45;
 }
 /* Tailwind's preflight strips list markers; restore them for rendered markdown */
 .flow-md ul,
@@ -390,18 +402,18 @@ body {
 .flow-md code {
 	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 	/* monospace reads optically larger; hold it under the surrounding text */
-	font-size: 0.875em;
+	font-size: 0.857em;
 	letter-spacing: 0;
 	padding: 1px 5px;
-	border-radius: 5px;
+	border-radius: 4px;
 	background: var(--surface-gray-2);
 	color: var(--ink-gray-8);
 }
 .flow-md pre {
 	margin: 0.6em 0;
 	padding: 10px 12px;
-	border-radius: 8px;
-	border: 1px solid var(--outline-gray-1);
+	border-radius: 12px;
+	border: 1px solid var(--outline-gray-2);
 	background: var(--surface-gray-1);
 	overflow-x: auto;
 	font-size: 0.85em;
@@ -413,17 +425,19 @@ body {
 	color: var(--ink-gray-7);
 }
 .flow-md blockquote {
-	margin: 0.6em 0;
-	padding-left: 12px;
-	border-left: 3px solid var(--outline-gray-2);
+	margin: 16px 0;
+	padding-left: 1em;
+	border-left: 2px solid var(--ink-gray-3);
 	color: var(--ink-gray-6);
 }
 .flow-md a {
-	color: var(--ink-gray-8);
-	text-decoration: underline;
+	color: inherit;
+	text-decoration: none;
+	border-bottom: 1px solid var(--ink-gray-4);
+	transition: border-color 0.08s ease;
 }
 .flow-md a:hover {
-	color: var(--ink-gray-9);
+	border-bottom-color: var(--ink-gray-6);
 }
 /* table wrapper from markdown.js or MarkdownContent.vue — a wide table scrolls here, not the thread */
 .flow-md-table {
@@ -438,16 +452,16 @@ body {
 	border-collapse: collapse;
 	/* the wrapper draws the outer edge; `hidden` wins the collapse against cell borders */
 	border: hidden;
-	font-size: 0.9em;
+	font-size: 0.857em;
 }
 .flow-md th,
 .flow-md td {
 	border: 1px solid var(--outline-gray-2);
-	padding: 4px 10px;
+	padding: 0.5em;
 	text-align: left;
 }
 .flow-md th {
-	background: var(--surface-gray-1);
+	background: var(--surface-gray-2);
 	font-weight: 500;
 }
 .flow-md hr {
