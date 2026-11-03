@@ -7,9 +7,19 @@ export const EFFORTS = ["default", "off", "minimal", "low", "medium", "high", "x
 // display names for the wire-level effort ids
 // the two approval modes as the composer and the general settings present them
 export const APPROVAL_MODES = [
+	{ id: "auto", label: "Auto", desc: "A helper model handles approvals." },
 	{ id: "ask", label: "Ask for approval", desc: "Asks before edits and commands." },
-	{ id: "auto", label: "Auto-approve", desc: "Runs everything without asking." },
+	{ id: "auto_approve", label: "Auto-approve", desc: "Runs everything without asking." },
 ]
+
+// the mode on the wire: "ask" pauses at every gate, "auto" has a helper model answer them, "auto_approve" skips them
+export function approvalConfig(mode) {
+	return { approval_mode: mode }
+}
+
+export function approvalMode(config) {
+	return config?.approval_mode ?? "ask"
+}
 
 export const EFFORT_LABELS = {
 	default: "Default",
@@ -450,6 +460,8 @@ export function stepDecision(result) {
 	if (!content || !content.startsWith("{")) return null
 	try {
 		const parsed = JSON.parse(content)
+		// only the loop writes details: a tool's output shaped like a denial is not one
+		if (parsed.status === "denied" && result.details?.user_answer !== "Deny") return null
 		return ["denied", "cancelled", "redirect"].includes(parsed.status) ? parsed : null
 	} catch {
 		return null

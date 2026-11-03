@@ -42,6 +42,9 @@
 						/>{{ __("Private") }}</label
 					>
 				</div>
+				<div v-if="show_private_checkbox && private_hint" class="private-hint">
+					{{ private_hint }}
+				</div>
 			</div>
 			<div class="file-actions">
 				<ProgressRing
@@ -108,6 +111,9 @@ const props = defineProps({
 	},
 	show_private_checkbox: {
 		default: true,
+	},
+	private_hint: {
+		default: null,
 	},
 	allow_toggle_optimize: {
 		default: true,
@@ -281,5 +287,11 @@ onMounted(() => {
 
 .config-area {
 	gap: 0.5rem;
+}
+
+.private-hint {
+	font-size: var(--text-sm);
+	color: var(--text-light);
+	padding-top: 0.25rem;
 }
 </style>

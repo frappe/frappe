@@ -695,6 +695,8 @@ use_json_request_body = True
 # 	"{app_name}.auth.validate"
 # ]
 
+# on_social_login = "{app_name}.auth.on_social_login"
+
 # Automatically update python controller files with type annotations for this app.
 export_python_type_annotations = True
 

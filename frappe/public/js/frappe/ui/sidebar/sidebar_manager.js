@@ -358,7 +358,7 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 				{
 					fieldtype: "Dynamic Link",
 					fieldname: "link_to",
-					label: __("Item"),
+					label: __("Item", null, "Workspace Sidebar"),
 					options: "link_type",
 					depends_on: 'eval:doc.kind == "Link" && doc.link_type != "URL"',
 					mandatory_depends_on: 'eval:doc.kind == "Link" && doc.link_type != "URL"',

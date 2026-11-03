@@ -418,6 +418,11 @@ class TestFlowSessionServerConfig(IntegrationTestCase):
 		self.assertEqual(config["model"], "openai/gpt-4o-mini")
 		self.assertEqual(config["api_key"], "sk-model")
 		self.assertEqual(config["api_base"], "https://llm.example.com/v1")
+		# Auto by default: the reviewer answers the gates, with a brief about records, not files
+		self.assertEqual(config["approval_mode"], "auto")
+		self.assertIn("Frappe site", config["review_instructions"])
+		self.assertEqual(self.config(approval_mode="Ask")["approval_mode"], "ask")
+		self.assertEqual(self.config(approval_mode="Auto-approve")["approval_mode"], "auto_approve")
 		prompt = config["system_prompt"]
 		self.assertTrue(prompt.startswith("Be terse."))
 		# the agent's skills are indexed after its instructions; load_skill fetches a body on demand
@@ -434,7 +439,7 @@ class TestFlowSessionServerConfig(IntegrationTestCase):
 			["read_records", "execute", "load_skill"],
 		)
 		self.assertEqual(config["confirm_tools"], ["execute"])
-		self.assertFalse(config["auto_approve"])
+		self.assertEqual(config["approval_mode"], "auto")
 		self.assertTrue(config["auto_compact"])
 		self.assertEqual(config["max_turns"], 7)
 		self.assertEqual(config["callback_token"], "site-token")

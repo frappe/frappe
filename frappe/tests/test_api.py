@@ -788,7 +788,6 @@ class TestReadOnlyMode(FrappeAPITestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
-		update_site_config("allow_reads_during_maintenance", 1)
 		cls.addClassCleanup(update_site_config, "maintenance_mode", 0)
 		# XXX: this has potential to crumble rest of the test suite.
 		update_site_config("maintenance_mode", 1)

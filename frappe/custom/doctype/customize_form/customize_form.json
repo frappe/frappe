@@ -37,6 +37,7 @@
   "hide_toolbar",
   "allow_copy",
   "make_attachments_public",
+  "force_private_attachments",
   "protect_attached_files",
   "enable_upload_first_workflow",
   "view_settings_section",
@@ -384,9 +385,17 @@
   },
   {
    "default": "0",
+   "depends_on": "eval:!doc.force_private_attachments",
    "fieldname": "make_attachments_public",
    "fieldtype": "Check",
    "label": "Make Attachments Public by Default"
+  },
+  {
+   "default": "0",
+   "description": "All files attached to this DocType must be private",
+   "fieldname": "force_private_attachments",
+   "fieldtype": "Check",
+   "label": "Force Private Attachments"
   },
   {
    "default": "0",
@@ -489,7 +498,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-10-14 10:00:00.000000",
+ "modified": "2026-11-02 09:54:18.575551",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",

@@ -253,7 +253,7 @@ test("a host picks a row's stat and dropdown, but the user's decision and an err
 	assert.ok(el.textContent.includes("3 updated"))
 	assert.ok(!el.textContent.includes("12 lines"))
 
-	const denied = { call: { id: "c2", name: "update_document", arguments: args }, result: { content: '{"status": "denied"}' } }
+	const denied = { call: { id: "c2", name: "update_document", arguments: args }, result: { content: '{"status": "denied"}', details: { user_answer: "Deny" } } }
 	const card = mount(t, ToolGroup, { steps: [denied] }, { options: { presentTool }, state: {} })
 	await nextTick()
 	assert.ok(card.el.textContent.includes("denied"))
@@ -326,7 +326,7 @@ test("a host fills the composer with its pickers, commands, palette pages and wo
 	const commands = [{ name: "agents", label: "Agent", icon: "user", hint: "choose the agent", view: "agents" }, "model"]
 	const modes = [
 		{ id: "ask", label: "Ask first", desc: "Pauses before documents change." },
-		{ id: "auto", label: "Just do it", desc: "Never asks." },
+		{ id: "auto_approve", label: "Just do it", desc: "Never asks." },
 	]
 	const host = reactive({ disabled: false })
 	const { el, vm } = mount(t, {

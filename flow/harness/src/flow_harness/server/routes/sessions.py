@@ -99,7 +99,7 @@ class CompactRequest(BaseModel):
 class ConfigPatchRequest(BaseModel):
 	model_config = ConfigDict(extra="forbid")
 
-	auto_approve: bool | None = None
+	approval_mode: Literal["ask", "auto", "auto_approve"] | None = None
 	tools: list[str] | None = None
 	client_tools: list[dict] | None = None
 	confirm_tools: list[str] | None = None
@@ -362,8 +362,8 @@ def create_sessions_router(
 		if req.client_tools is not None:
 			changes["client_tools"] = req.client_tools
 			changes["confirm_tools"] = req.confirm_tools or []
-		if req.auto_approve is not None:
-			changes["auto_approve"] = req.auto_approve
+		if req.approval_mode is not None:
+			changes["approval_mode"] = req.approval_mode
 		if req.title is not None:
 			changes["title"] = req.title.strip()
 			if not changes["title"]:

@@ -120,7 +120,7 @@ body {
 .flow-palette-row {
 	display: flex;
 	width: 100%;
-	height: 32px;
+	min-height: 32px; /* a row with a description grows past it */
 	align-items: center;
 	gap: 8px;
 	padding: 0 11px;

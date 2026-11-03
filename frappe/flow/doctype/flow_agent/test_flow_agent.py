@@ -144,25 +144,31 @@ class TestFlowAgentRun(IntegrationTestCase):
 		frappe.db.rollback()
 
 	def test_a_new_run_starts_a_session_approved_by_its_source(self):
-		for kwargs, source, auto_approve in (({}, "Manual", 0), ({"source": "Trigger"}, "Trigger", 1)):
+		for kwargs, source, mode in (
+			({}, "Manual", "Auto"),
+			({"source": "Trigger"}, "Trigger", "Auto-approve"),
+		):
 			with self.subTest(source=source):
 				run = self.agent_doc.run("hi", **kwargs)
 
 				session = frappe.get_doc("Flow Session", run.session)
 				self.assertEqual(
-					(session.agent, session.source, session.auto_approve),
-					(self.agent_doc.name, source, auto_approve),
+					(session.agent, session.source, session.approval_mode),
+					(self.agent_doc.name, source, mode),
 				)
 				self.assertEqual(
 					(run.status, run.source, run.output, run.input), ("Running", source, None, "hi")
 				)
-				self.assertEqual(self.daemon.configs[session.name]["auto_approve"], bool(auto_approve))
+				self.assertEqual(
+					self.daemon.configs[session.name]["approval_mode"],
+					"auto_approve" if mode == "Auto-approve" else "auto",
+				)
 
 	def test_a_run_continues_only_its_own_agents_session(self):
 		first = self.agent_doc.run("hi")
 		session = frappe.get_doc("Flow Session", first.session)
 		session.sync()
-		session.set_auto_approve(True)
+		session.set_approval_mode("Auto-approve")
 		self.daemon.calls.clear()
 		second = self.agent_doc.run("again", session=first.session)
 

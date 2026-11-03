@@ -115,14 +115,8 @@ class TestDaemonLifecycle(UnitTestCase):
 		self.assertIn("Use grep", prompt)
 		self.assertIn("custom_app: /apps/custom", prompt)
 
-	def test_start_launches_a_scrubbed_server_that_allows_every_sites_extension_tools(self):
+	def test_start_launches_a_scrubbed_server(self):
 		self.install_flow_bin()
-		folder = self.sites / "a.localhost" / "private" / "flow" / "extensions"
-		folder.mkdir(parents=True)
-		other = self.sites / "b.localhost" / "private" / "flow" / "extensions"
-		other.mkdir(parents=True)
-		(self.sites / "c.localhost" / "private" / "flow").mkdir(parents=True)
-		rows = [{"name": "helpdesk_ticket", "description": "Fetch a ticket.", "extension": "helpdesk"}]
 		environ = {
 			"PATH": "/usr/bin",
 			"FLOW_AUTH_TOKEN": "x",
@@ -132,7 +126,6 @@ class TestDaemonLifecycle(UnitTestCase):
 		with (
 			patch.dict(os.environ, environ, clear=True),
 			patch.object(lifecycle, "healthy", side_effect=[False, True]),
-			patch.object(lifecycle, "extension_tools", return_value=rows) as listing,
 			patch.object(subprocess, "Popen", return_value=FakeProcess()) as popen,
 			patch.object(
 				frappe, "get_common_site_config", return_value=frappe._dict(redis_queue="redis://q")
@@ -140,8 +133,6 @@ class TestDaemonLifecycle(UnitTestCase):
 		):
 			lifecycle.start()
 			template = lifecycle.tenant_template()
-		# one listing per folder that exists, like the daemon loads them
-		self.assertCountEqual([c.args[0] for c in listing.call_args_list], [[folder], [other]])
 		command, kwargs = popen.call_args.args[0], popen.call_args.kwargs
 		self.assertEqual(command[:2], [str(self.flow_bin), "serve"])
 		self.assertEqual(  # each site's extensions folder comes from the template
@@ -160,8 +151,7 @@ class TestDaemonLifecycle(UnitTestCase):
 			{
 				"PATH": "/usr/bin",
 				"FLOW_TENANTS": json.dumps(template),
-				# the same tool in two sites is allowed once
-				"FLOW_POLICY": '{"tool_allowlist": ["read", "grep", "subagent", "web_fetch", "web_search", "helpdesk_ticket"]}',
+				"FLOW_POLICY": '{"tool_allowlist": ["read", "grep", "subagent", "web_fetch", "web_search"]}',
 				"FLOW_REDIS_URL": "redis://q",
 			},
 		)
@@ -203,16 +193,15 @@ class TestDaemonLifecycle(UnitTestCase):
 			popen.assert_not_called()
 			sync.assert_called_once()
 
-	def test_migrate_restarts_unless_supervised_and_the_site_has_no_extensions(self):
-		for supervised, extensions, restarts in ((False, False, 1), (True, False, 0), (True, True, 1)):
+	def test_migrate_restarts_only_a_daemon_flow_runs_itself(self):
+		(self.partition / "extensions").mkdir(parents=True)  # new extensions wait for the manager too
+		for supervised, restarts in ((False, 1), (True, 0)):
 			with (
-				self.subTest(supervised=supervised, extensions=extensions),
+				self.subTest(supervised=supervised),
 				patch.object(lifecycle, "supervised", return_value=supervised),
 				patch.object(lifecycle, "restart") as restart,
 				patch.object(lifecycle, "sync_server_tools") as sync,
 			):
-				if extensions:
-					(self.partition / "extensions").mkdir(parents=True)
 				lifecycle.after_migrate()
 			self.assertEqual(restart.call_count, restarts)
 			sync.assert_called_once()
@@ -278,14 +267,6 @@ class TestDaemonLifecycle(UnitTestCase):
 		kill.assert_not_called()
 		self.assertFalse(lifecycle.pid_file().exists())
 
-	def test_keep_alive_restarts_a_dead_daemon_only_once_the_harness_is_installed(self):
-		with patch.object(lifecycle, "ensure_running") as ensure_running:
-			lifecycle.keep_alive()
-			ensure_running.assert_not_called()
-			self.install_flow_bin()
-			lifecycle.keep_alive()
-			ensure_running.assert_called_once()
-
 	def test_ownership_comes_from_bench_config_not_site_config_or_a_stale_marker(self):
 		self.runtime.mkdir(parents=True)
 		(self.runtime / "supervised").touch()
@@ -303,31 +284,35 @@ class TestDaemonLifecycle(UnitTestCase):
 			):
 				self.assertEqual(self.supervised(), expected)
 
-	def test_a_supervised_daemon_is_waited_for_but_never_spawned(self):
-		# two calls each: once supervisor brings it up, once it never does
-		for entrypoint, stops in (("start", 0), ("ensure_running", 0), ("restart", 2)):
-			with (
-				self.subTest(entrypoint=entrypoint),
-				patch.object(lifecycle, "supervised", return_value=True),
-				patch.object(lifecycle, "healthy", side_effect=[False, True]) as healthy,
-				patch.object(lifecycle.time, "sleep"),
-				patch.object(lifecycle, "filelock") as lock,
-				patch.object(lifecycle, "_stop") as stop,
-				patch.object(lifecycle, "_start") as start,
-				patch.object(subprocess, "Popen") as popen,
-			):
-				self.assertFalse(getattr(lifecycle, entrypoint)())
-				self.assertEqual(healthy.call_count, 2)
+	def test_a_supervised_daemon_is_waited_for_but_never_spawned_or_stopped(self):
+		with (
+			patch.object(lifecycle, "supervised", return_value=True),
+			patch.object(lifecycle.time, "sleep"),
+			patch.object(lifecycle, "filelock") as lock,
+			patch.object(lifecycle, "_stop") as stop,
+			patch.object(lifecycle, "_start") as start,
+			patch.object(subprocess, "Popen") as popen,
+		):
+			# two calls each: once supervisor brings it up, once it never does
+			for entrypoint in ("start", "ensure_running"):
 				with (
-					patch.object(lifecycle, "START_TIMEOUT", 0),
-					self.assertRaisesRegex(RuntimeError, "did not become ready under supervisor"),
+					self.subTest(entrypoint=entrypoint),
+					patch.object(lifecycle, "healthy", side_effect=[False, True]) as healthy,
 				):
-					getattr(lifecycle, entrypoint)()
-			# restart stops it for supervisor to start again; only that takes the launch lock
-			self.assertEqual(stop.call_count, stops)
-			self.assertEqual(lock.call_count, stops)
-			start.assert_not_called()
-			popen.assert_not_called()
+					self.assertFalse(getattr(lifecycle, entrypoint)())
+					self.assertEqual(healthy.call_count, 2)
+					with (
+						patch.object(lifecycle, "START_TIMEOUT", 0),
+						self.assertRaisesRegex(RuntimeError, "did not become ready under supervisor"),
+					):
+						getattr(lifecycle, entrypoint)()
+			# a restart is the manager's to do: stopping it here would leave it down
+			with self.assertRaisesRegex(RuntimeError, "process manager restarts"):
+				lifecycle.restart()
+		lock.assert_not_called()
+		stop.assert_not_called()
+		start.assert_not_called()
+		popen.assert_not_called()
 
 	def test_install_waits_for_supervisor_before_syncing_tools(self):
 		self.install_flow_bin()
@@ -338,7 +323,6 @@ class TestDaemonLifecycle(UnitTestCase):
 			patch.object(lifecycle, "sync_server_tools", side_effect=lambda: events.append("sync")),
 			patch.object(subprocess, "Popen") as popen,
 		):
-			lifecycle.keep_alive()
 			lifecycle.after_install()
 		self.assertEqual(events, ["ready", "sync"])
 		popen.assert_not_called()

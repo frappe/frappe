@@ -6,7 +6,7 @@ from unittest.mock import patch
 from werkzeug.wrappers import Response
 
 import frappe
-from frappe.flow.launcher import add_to_page
+from frappe.flow.launcher import add_to_page, get_app_roots
 from frappe.flow.permissions import FLOW_USER_ROLE, ensure_flow_role
 from frappe.flow.tests.test_permissions import _user
 from frappe.tests import IntegrationTestCase
@@ -66,6 +66,10 @@ class TestFlowPage(IntegrationTestCase):
 		# not on the website, nor on /flow itself
 		self.assertNotIn("flow_launcher", page("/about"))
 		self.assertNotIn("flow_launcher", page("/flow"))
+		# nor in Raven, which has an integration of its own
+		with patch("frappe.get_hooks", return_value=[{"route": "/desk"}, {"route": "/raven"}]):
+			self.assertEqual(get_app_roots(), {"desk"})
+			self.assertNotIn("flow_launcher", page("/raven/channel/general"))
 		# nor for anyone who may not use Flow
 		for user in (outsider, "Guest"):
 			frappe.set_user(user)
