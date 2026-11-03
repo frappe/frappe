@@ -194,6 +194,12 @@ const widgets = moduleURL(`
 		},
 	}
 `)
+// the frappe-ui root's pieces ui-core takes from it: a tooltip as its trigger alone, and shortcuts
+// that a test presses through the component's own handlers
+const frappeUI = moduleURL(`
+	export const Tooltip = { inheritAttrs: false, render() { return this.$slots.default?.() } }
+	export function useKeyboardShortcut() {}
+`)
 const components = new Set([
 	"Composer.vue", "ToolStep.vue", "ToolGroup.vue", "ApprovalCard.vue", "MessageList.vue", "ModelButton.vue",
 	"SettingsDialog.vue", "SettingsPage.vue", "UserBubble.vue", "TurnFold.vue", "ThinkingBlock.vue", "ThoughtStep.vue",
@@ -232,6 +238,8 @@ async function componentURL(url) {
 			resolved = settingsPieces
 		} else if (specifier.startsWith("frappe-ui/src/components/")) {
 			resolved = widgets
+		} else if (specifier === "frappe-ui") {
+			resolved = frappeUI
 		} else if (specifier === "@flow/ui-core") {
 			resolved = uiCore
 		} else {

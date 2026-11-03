@@ -5,7 +5,7 @@ import { JSDOM } from "jsdom"
 
 // Vue's DOM runtime captures document at import time.
 const dom = new JSDOM("<body></body>", { url: "http://localhost" })
-for (const name of ["window", "document", "Document", "Element", "SVGElement", "HTMLElement", "Node", "NodeFilter"]) {
+for (const name of ["window", "document", "Document", "Element", "SVGElement", "HTMLElement", "Node", "NodeFilter", "getComputedStyle"]) {
 	globalThis[name] = dom.window[name]
 }
 dom.window.HTMLElement.prototype.scrollIntoView = () => {}
