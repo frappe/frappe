@@ -115,6 +115,11 @@ export class ActDispatcher {
 		};
 	}
 
+	/** What the scope holding `surface` hands its acts, or undefined while no scope holds it. */
+	contextOf(surface: string): unknown {
+		return this.scopes.get(surface)?.context();
+	}
+
 	/** Every act present, not hidden and allowed now, `palette: false` ones too; `only` narrows them before a right is read. */
 	available(only: (item: ActItem) => boolean = () => true): AvailableAct[] {
 		const listed: AvailableAct[] = [];
