@@ -1,5 +1,6 @@
 // The standing windows apps attach through their shell hooks: one per app, kept for the tab.
 import { markRaw, reactive, type Component } from "vue";
+import type { Placement } from "./windowDrag";
 
 export type StandingWindowState = "closed" | "open" | "minimised";
 
@@ -49,6 +50,8 @@ export interface StandingWindow {
 	closable: boolean;
 	keepAlive: boolean;
 	attention: boolean;
+	/** Where the user dragged it, for this tab; null while it stands in the row. */
+	placed: Placement | null;
 	handle: StandingWindowHandle;
 }
 
@@ -81,6 +84,7 @@ export function attachWindow(
 		closable: true,
 		keepAlive: false,
 		attention: false,
+		placed: null,
 	}) as unknown as StandingWindow;
 	entry.handle = handleFor(entry, title);
 	const rank = order.indexOf(app);

@@ -25,11 +25,11 @@ import type { Shell } from "./shellActs";
 import StandingWindowFrame from "./StandingWindowFrame.vue";
 import type { StandingWindow } from "./standingWindows";
 import { useTabKeepAlive } from "./tabKeepAlive";
+import { MARGIN } from "./windowDrag";
 
 const props = defineProps<{ windows: readonly StandingWindow[]; shell: Shell }>();
 useTabKeepAlive(() => props.windows);
 
-const MARGIN = 24;
 const GAP = 12;
 
 const viewport = useWindowSize();
@@ -114,7 +114,7 @@ async function minimiseUntilFit() {
 	}
 }
 
-const openWindows = () => props.windows.filter((entry) => entry.state === "open");
+const openWindows = () => props.windows.filter((entry) => entry.state === "open" && !entry.placed);
 watch(() => [props.windows.map((entry) => entry.state).join(), room.value, row.width.value], fit, {
 	flush: "post",
 });
