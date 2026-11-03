@@ -1,5 +1,6 @@
 import { isOptionField } from "./operators";
 import type { Filter, FilterField } from "./types";
+import { dateTimeFormats } from "../FormLayout/formatDefaults";
 import type { FieldMeta } from "../Fields/types";
 
 // Type groups are declared here rather than imported from `operators.ts` so that
@@ -142,7 +143,7 @@ export function valueControl(f: Filter): ValueControlSpec {
     };
   }
   if (DATE_TYPES.includes(fieldtype) && operator === "between") {
-    return { control: "dateRange", props: { iconLeft: "" } };
+    return { control: "dateRange", props: { iconLeft: "", format: dateTimeFormats().date } };
   }
   if (DURATION_TYPES.includes(fieldtype)) {
     return {

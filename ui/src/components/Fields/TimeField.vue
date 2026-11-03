@@ -1,6 +1,7 @@
 <template>
 	<TimePicker
 		v-model="value"
+		:format="formats.time"
 		:label="field.label"
 		:description="field.description"
 		:placeholder="field.placeholder"
@@ -17,11 +18,14 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { TimePicker } from "frappe-ui";
+import { dateTimeFormats } from "../FormLayout/formatDefaults";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
 import FieldDescription from "./FieldDescription.vue";
 
 const props = defineProps<FieldComponentProps>();
 const emit = defineEmits<FieldComponentEmits>();
+
+const formats = computed(dateTimeFormats);
 
 const value = computed<string | null>({
 	get: () => props.modelValue ?? null,

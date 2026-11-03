@@ -20,6 +20,7 @@ export function parsePastedText(fieldtype: string, text: string, options?: strin
   if (fieldtype === "Rating") return ratingValue(text, options);
   if (fieldtype === "Check") return checkValue(text);
   if (fieldtype === "Date") return isoDate(text);
+  if (fieldtype === "Datetime") return isoDatetime(text);
   return text;
 }
 
@@ -40,7 +41,7 @@ function checkValue(text: string): 0 | 1 {
 function isoDate(text: string): string {
   const value = text.trim();
   const parts = value.split(/\D+/);
-  const order = (getFormatDefaults().date_format ?? "dd-mm-yyyy").toLowerCase().split(/[^a-z]+/);
+  const order = getFormatDefaults().date_format.toLowerCase().split(/[^a-z]+/);
   if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(value) || parts.length !== 3 || order.length !== 3) {
     return value;
   }
@@ -48,4 +49,10 @@ function isoDate(text: string): string {
   const [year, month, day] = [part("y"), part("m"), part("d")];
   if (!year || year.length !== 4 || !month || !day) return value;
   return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+}
+
+/** A date-time gets the same date conversion; the time after it is kept. */
+function isoDatetime(text: string): string {
+  const [date, ...time] = text.trim().split(/\s+/);
+  return [isoDate(date), ...time].join(" ");
 }

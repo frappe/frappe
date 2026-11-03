@@ -249,8 +249,8 @@ describe("a list's cells", () => {
 		expect(text("done")).toBe("42.50%");
 		expect(text("taken")).toBe("1d 2h 3m 4s");
 		expect(text("spent")).toBe("26h 3m");
-		expect(text("at")).toBe("09:15");
-		expect(text("closed_on")).toBe("2026-11-04 00:44:09");
+		expect(text("at")).toBe("09:15:30");
+		expect(text("closed_on")).toBe("04-11-2026 00:44:09");
 		expect(text("notes")).toBe("Hello bold world");
 		expect(text("file")).toBe("/files/report.pdf");
 		expect(text("script")).toBe("def f():\n    return 1");
@@ -270,11 +270,11 @@ describe("a list's cells", () => {
 
 		const cell = (column: string) => root.querySelector(`[data-column='${column}'] [data-tooltip]`);
 		expect(cell("modified")?.textContent).toBe("3 minutes ago");
-		expect(cell("modified")?.getAttribute("data-tooltip")).toBe("2026-11-04 10:00:00");
+		expect(cell("modified")?.getAttribute("data-tooltip")).toBe("04-11-2026 10:00:00");
 		expect(cell("creation")?.textContent).toBe("3 days ago");
-		expect(cell("creation")?.getAttribute("data-tooltip")).toBe("2026-11-01 10:00:00");
+		expect(cell("creation")?.getAttribute("data-tooltip")).toBe("01-11-2026 10:00:00");
 		// Another Datetime field keeps its absolute value.
-		expect(root.querySelector("[data-column='closed_on']")?.textContent?.trim()).toBe("2026-11-04 00:44:09");
+		expect(root.querySelector("[data-column='closed_on']")?.textContent?.trim()).toBe("04-11-2026 00:44:09");
 		expect(cell("closed_on")).toBeNull();
 	});
 
@@ -289,14 +289,14 @@ describe("a list's cells", () => {
 		const plain = (column: string) => root.querySelector(`[data-column='${column}']`)?.textContent?.trim();
 		// 08:00 in Asia/Kolkata is 02:30 UTC, two hours back; 12:00 is 06:30 UTC, two hours ahead.
 		expect(cell("last_active")?.textContent).toBe("2 hours ago");
-		expect(cell("last_active")?.getAttribute("data-tooltip")).toBe("2026-11-04 08:00:00");
+		expect(cell("last_active")?.getAttribute("data-tooltip")).toBe("04-11-2026 08:00:00");
 		expect(cell("response_by")?.textContent).toBe("in 2 hours");
 		// A field made read-only only by read_only_depends_on is editable in meta.
 		expect(cell("locked_on")).toBeNull();
-		expect(plain("locked_on")).toBe("2026-11-04 08:00:00");
+		expect(plain("locked_on")).toBe("04-11-2026 08:00:00");
 		expect(cell("closed_on")).toBeNull();
 		expect(cell("seen_date")).toBeNull();
-		expect(plain("seen_date")).toBe("2026-11-04");
+		expect(plain("seen_date")).toBe("04-11-2026");
 	});
 
 	it("keep the absolute value without a site zone, draw a bad or empty stamp as it is, and read clock skew under a minute as a few seconds ago", async () => {
@@ -307,8 +307,8 @@ describe("a list's cells", () => {
 			await nextTick();
 			return root.querySelector(`[data-column='${column}']`)?.textContent?.trim();
 		};
-		expect(await cell("modified")).toBe("2026-11-04 10:00:00");
-		expect(await cell("last_active")).toBe("2026-11-04 08:00:00");
+		expect(await cell("modified")).toBe("04-11-2026 10:00:00");
+		expect(await cell("last_active")).toBe("04-11-2026 08:00:00");
 
 		setSession({ user: {}, roles: [], lang: "en", timezone: "Asia/Kolkata", defaults: {} } as never);
 		Object.assign(row, { modified: "garbage", creation: "" });
