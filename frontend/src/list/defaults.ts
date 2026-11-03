@@ -42,7 +42,7 @@ export function sameSort(a: Sort[], b: Sort[]): boolean {
 	return JSON.stringify(a) === JSON.stringify(b);
 }
 
-/** The fields a page of rows needs: `name`, the columns, their marks and currencies, then the row actions'. */
+/** The fields a page of rows needs: `name`, the columns, their marks, currencies and titles, then the row actions'. */
 export function fetchFields(
 	columns: Column[],
 	rowActions: RowAction[] = [],
@@ -53,10 +53,12 @@ export function fetchFields(
 	const currencies = columns.flatMap(
 		(column) => cellCurrency(column.fieldname, meta, readable)?.select ?? []
 	);
+	const titles = columns.flatMap((column) => cellTitle(column.fieldname, meta)?.select ?? []);
 	const wanted = [
 		...columns.map((column) => column.fieldname),
 		...marks,
 		...currencies,
+		...titles,
 		...rowActions.flatMap((a) => a.fields),
 	];
 	return [...new Set(["name", ...wanted])];
@@ -82,11 +84,11 @@ export function cellMark(fieldname: string, meta: ListMeta): CellMark | undefine
 	}
 }
 
-/** Where a Currency cell finds its currency in the row: a field it names, or a linked record's under an alias. */
-export interface CellCurrency {
-	/** The row key holding the currency code. */
+/** Where a cell finds a value it reads beside its own: a Currency's currency, a Link's title. */
+export interface RowValue {
+	/** The row key holding the value. */
 	key: string;
-	/** The field the page asks for. */
+	/** The field the page asks for; a linked record's is read through the link, under an alias. */
 	select: string;
 }
 
@@ -95,7 +97,7 @@ export function cellCurrency(
 	fieldname: string,
 	meta: ListMeta,
 	readable: (fieldname: string) => boolean = () => true
-): CellCurrency | undefined {
+): RowValue | undefined {
 	const fields = meta.fields ?? [];
 	const field = fields.find((one) => one.fieldname === fieldname);
 	if (field?.fieldtype !== "Currency" || !field.options) return undefined;
@@ -105,6 +107,14 @@ export function cellCurrency(
 	if (!currencyField || !holds(link)) return undefined;
 	const key = `${fieldname}__currency`;
 	return { key, select: `${link}.${currencyField} as ${key}` };
+}
+
+/** A Link cell's target title, read through the link as v1 does, so the cell shows it for the name. */
+export function cellTitle(fieldname: string, meta: ListMeta): RowValue | undefined {
+	const field = meta.fields?.find((one) => one.fieldname === fieldname);
+	if (field?.fieldtype !== "Link" || !field.link_title) return undefined;
+	const key = `${fieldname}__title`;
+	return { key, select: `${fieldname}.${field.link_title} as ${key}` };
 }
 
 /** Every contributing app's row actions in run order; an act named twice is listed once, and a `list` act is refused. */

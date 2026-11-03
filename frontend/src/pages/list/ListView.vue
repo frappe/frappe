@@ -44,9 +44,11 @@
 					class="me-1.5"
 					:source="markOf(column.fieldname)!.source"
 					:value="row[markOf(column.fieldname)!.key]"
-					:text="value"
+					:text="markedText(row, column.fieldname)"
 				/>
-				<div class="truncate text-base text-ink-gray-8">{{ value }}</div>
+				<div class="truncate text-base text-ink-gray-8">
+					{{ markedText(row, column.fieldname) }}
+				</div>
 			</div>
 			<FieldCell
 				v-else-if="cellFields.has(column.fieldname)"
@@ -82,11 +84,11 @@
 
 <script setup lang="ts">
 import { ColumnSettings } from "@framework/ui/ColumnSettings";
-import { LinkMark, isEmailField, isPhoneField } from "@framework/ui/fields";
+import { LinkMark, LinkTitlesKey, isEmailField, isPhoneField } from "@framework/ui/fields";
 import type { FieldMeta } from "@framework/ui/fields/types";
 import { mapField, type RawMetaField } from "@framework/ui/FormLayout";
 import { List, ListBulkBar, ListFooter, type BulkAction } from "@framework/ui/experimental/List";
-import { computed, ref } from "vue";
+import { computed, provide, ref } from "vue";
 import { __ } from "@/i18n";
 import { useListView } from "@/list/useListView";
 import { useScrollMemory } from "@/list/useScrollMemory";
@@ -111,6 +113,7 @@ const {
 	fieldOf,
 	markOf,
 	currencyOf,
+	linkTitles,
 	selection,
 	pageSize,
 	rowsKey,
@@ -137,6 +140,9 @@ const {
 
 props.host.onCreate(reload);
 
+// A Link cell shows its target's title for the name, as the record's read-only field does.
+provide(LinkTitlesKey, linkTitles);
+
 const table = ref<{ viewportElement: HTMLElement | null } | null>(null);
 const confirmingDelete = ref(false);
 
@@ -159,6 +165,13 @@ const cellFields = computed(() => {
 	}
 	return fields;
 });
+
+function markedText(row: Record<string, unknown>, fieldname: string): string {
+	const value = String(row[fieldname] ?? "");
+	const field = fieldOf(fieldname);
+	if (field?.fieldtype !== "Link") return value;
+	return linkTitles.value[`${field.options}::${value}`] || value;
+}
 
 function columnFields(matches: (field: RawMetaField) => boolean) {
 	const fields = new Map<string, RawMetaField>();

@@ -1,6 +1,7 @@
-"""The mark a Link value shows before it, read from the target doctype's meta.
+"""The mark a Link value shows before it, and the title it shows for the name, read from the target doctype's meta.
 
 A target with a `color` field gives a dot; otherwise its `image_field` gives an avatar.
+A target that sets `show_title_field_in_link` gives its `title_field`.
 """
 
 import frappe
@@ -11,15 +12,18 @@ COLOR_FIELDTYPES = ("Select", "Color", "Data")
 
 
 def mark_link_fields(fields: list[dict]) -> None:
-	"""Add `link_mark: {kind, field}` to each Link field whose target gives the caller a mark."""
-	marks = {}
+	"""Add `link_mark: {kind, field}` and `link_title: fieldname` to each Link field whose target gives the caller one."""
+	marks, titles = {}, {}
 	for df in fields:
 		if df.get("fieldtype") != "Link" or not df.get("options"):
 			continue
 		if df["options"] not in marks:
 			marks[df["options"]] = readable_mark(df["options"])
+			titles[df["options"]] = readable_title(df["options"])
 		if mark := marks[df["options"]]:
 			df["link_mark"] = mark
+		if title := titles[df["options"]]:
+			df["link_title"] = title
 
 
 def get_link_marks(doc: Document) -> dict:
@@ -48,6 +52,15 @@ def readable_mark(target: str) -> dict | None:
 	for mark in marks_of(frappe.get_meta(target)):
 		if mark["field"] in readable:
 			return mark
+
+
+def readable_title(target: str) -> str | None:
+	"""The target's title field, when its links show the title and the caller may read it."""
+	meta = frappe.get_meta(target)
+	if not (meta.show_title_field_in_link and meta.title_field and meta.has_field(meta.title_field)):
+		return None
+	if meta.title_field in get_permitted_fields(target, ignore_virtual=True):
+		return meta.title_field
 
 
 def mark_of(meta) -> dict | None:
