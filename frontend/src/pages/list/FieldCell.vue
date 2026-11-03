@@ -47,6 +47,9 @@ const starCount = computed(() => Number(props.field.options) || 5);
 const text = computed(() => {
 	if (value.value == null || value.value === "") return "";
 	if (STORED_VALUE_FIELDTYPES.has(props.field.fieldtype)) return String(value.value);
+	// The list reads no titles for a Dynamic Link, whose target varies per row; the page's Link titles
+	// would name some rows and not others.
+	if (props.field.fieldtype === "Dynamic Link") return String(value.value);
 	return display(props.field, value.value, { row: props.row });
 });
 </script>

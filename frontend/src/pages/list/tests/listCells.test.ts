@@ -26,6 +26,8 @@ const metaFields = [
 	{ fieldname: "deal", fieldtype: "Link", options: "CRM Deal" },
 	{ fieldname: "agent", fieldtype: "Link", options: "User" },
 	{ fieldname: "lead_owner", fieldtype: "Link", options: "User" },
+	{ fieldname: "ref_doctype", fieldtype: "Link", options: "DocType" },
+	{ fieldname: "reference", fieldtype: "Dynamic Link", options: "ref_doctype" },
 ];
 const columns = [
 	...metaFields.map(({ fieldname }) => ({ fieldname, label: fieldname })),
@@ -57,6 +59,8 @@ const row = {
 	agent: "ann@example.com",
 	agent__mark: "/files/ann.png",
 	lead_owner: "bob@example.com",
+	ref_doctype: "User",
+	reference: "ann@example.com",
 	_extra: "as sent",
 };
 
@@ -187,6 +191,8 @@ describe("a list's cells", () => {
 		expect(text("agent")).toBe("Ann Lee");
 		expect(root.querySelector("[data-column='agent'] img")?.getAttribute("alt")).toBe("Ann Lee");
 		expect(text("lead_owner")).toBe("bob@example.com");
+		// A Dynamic Link's title is never read, so a Link column's title for the same record is not borrowed.
+		expect(text("reference")).toBe("ann@example.com");
 	});
 
 	it("draw a Check as a checkbox and a Rating as stars", async () => {

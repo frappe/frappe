@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 import frappe
 from frappe.api.include import DOCUMENT_PARTS, serialize_meta
-from frappe.api.link_marks import mark_of, readable_mark, readable_title
+from frappe.api.link_marks import mark_of, readable_mark
 from frappe.tests import IntegrationTestCase
 
 
@@ -50,7 +50,7 @@ class TestLinkMarks(IntegrationTestCase):
 		todo = {df["fieldname"]: df for df in serialize_meta(frappe.get_meta("ToDo"))["fields"]}
 		self.assertNotIn("link_title", todo["allocated_to"])
 
-	def test_title_field_the_reader_cannot_read_gives_no_title(self):
-		with patch("frappe.api.link_marks.get_permitted_fields", return_value=["name"]):
-			self.assertIsNone(readable_title("Language"))
-		self.assertEqual(readable_title("Language"), "language_name")
+	def test_meta_names_no_title_the_reader_cannot_read(self):
+		with patch("frappe.desk.link_title.get_permitted_fields", return_value=["name"]):
+			fields = {df["fieldname"]: df for df in serialize_meta(frappe.get_meta("User"))["fields"]}
+		self.assertNotIn("link_title", fields["language"])
