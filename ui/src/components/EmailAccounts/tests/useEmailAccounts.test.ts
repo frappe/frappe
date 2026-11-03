@@ -12,7 +12,9 @@ vi.mock("frappe-ui", async (importOriginal) => {
 });
 
 const { useEmailAccounts } = await import("../useEmailAccounts");
-const { emptyForm, services, takeSignInStarted } = await import("../services");
+const { emptyForm, markSignInStarted, services, takeSignInStarted } = await import(
+  "../services"
+);
 
 const CONNECT =
   "frappe.integrations.frappe_providers.email_oauth.initiate_mailbox_connect";
@@ -264,7 +266,7 @@ describe("useEmailAccounts", () => {
     const assign = vi.fn();
     vi.stubGlobal("location", {
       ...window.location,
-      href: "https://example.com/helpdesk?tab=email&email_oauth=cancelled&email_oauth_mailbox=support%40example.com",
+      href: `${window.location.origin}/helpdesk?tab=email&email_oauth=cancelled&email_oauth_mailbox=support%40example.com`,
       assign,
     });
     return assign;
@@ -347,5 +349,75 @@ describe("useEmailAccounts", () => {
     ]);
     expect(assign).toHaveBeenCalledWith("https://login.example.com/own-app");
     vi.unstubAllGlobals();
+  });
+});
+
+describe("sign-in return", () => {
+  function land(query: string) {
+    window.history.replaceState(null, "", `/helpdesk/tickets?status=Open&${query}#inbox`);
+  }
+
+  const settle = () => new Promise((resolve) => setTimeout(resolve));
+
+  // every account has an address, and none is a default yet
+  function noDefaults() {
+    const listed = call.getMockImplementation()!;
+    call.mockImplementation(async (method: string, args: Record<string, any>) =>
+      method === "frappe.client.get_list"
+        ? ACCOUNTS.map((a) => ({
+            ...a,
+            email_id: `${a.name.toLowerCase()}@example.com`,
+            enable_incoming: 1,
+            enable_outgoing: 1,
+            default_incoming: 0,
+            default_outgoing: 0,
+          }))
+        : listed(method, args),
+    );
+  }
+
+  it("reads the sign-in result and takes it out of the URL", () => {
+    land("email_oauth=cancelled&email_oauth_mailbox=sales%40example.com&email_oauth_provider=google");
+    const c = useEmailAccounts("HD Ticket");
+
+    expect(c.signIn).toEqual({
+      result: "cancelled",
+      mailbox: "sales@example.com",
+      provider: "google",
+    });
+    expect(window.location.pathname + window.location.search + window.location.hash).toBe(
+      "/helpdesk/tickets?status=Open#inbox",
+    );
+  });
+
+  it("has no sign-in when the URL carries none", () => {
+    window.history.replaceState(null, "", "/helpdesk/tickets");
+    expect(useEmailAccounts("HD Ticket").signIn).toBeNull();
+  });
+
+  it("finds a new mailbox's account and makes it the default where none is", async () => {
+    markSignInStarted();
+    land("email_oauth=connected&email_oauth_mailbox=sales%40example.com");
+    noDefaults();
+    const c = useEmailAccounts("HD Ticket");
+    await c.load();
+    await settle();
+
+    expect(c.signIn?.account?.name).toBe("Sales");
+    expect(calls("frappe.client.set_value").map((a) => [a.name, a.fieldname])).toEqual([
+      ["Sales", { default_incoming: 1 }],
+      ["Sales", { default_outgoing: 1 }],
+    ]);
+  });
+
+  it("changes no default for a sign-in this tab did not start", async () => {
+    land("email_oauth=connected&email_oauth_mailbox=sales%40example.com");
+    noDefaults();
+    const c = useEmailAccounts("HD Ticket");
+    await c.load();
+    await settle();
+
+    expect(c.signIn?.account?.name).toBe("Sales");
+    expect(calls("frappe.client.set_value")).toEqual([]);
   });
 });

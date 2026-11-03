@@ -74,8 +74,27 @@ export interface FieldError {
   message: string;
 }
 
+/** A one-click sign-in this page landed back from, read from its URL. */
+export interface SignInReturn {
+  /** `email_oauth`: `connected`, `reconnected`, or the code of why it failed. */
+  result: string;
+  /** `email_oauth_mailbox`, when it is an email address. */
+  mailbox: string | null;
+  /** `email_oauth_provider`, the provider that picks the wording of a failure. */
+  provider: string | null;
+  /** The new mailbox's account, once the list holds it after a `connected` sign-in. */
+  account?: EmailAccount;
+  /** Why making that account the default failed. */
+  error?: unknown;
+}
+
 export interface EmailAccountsController {
   accounts: EmailAccount[];
+  /**
+   * The sign-in this page landed back from, or null. Reading it takes the result out of the URL;
+   * a new mailbox becomes the default incoming and outgoing account where none is.
+   */
+  signIn: SignInReturn | null;
   loading: boolean;
   /** Why the last `load()` failed, until one succeeds. */
   error: unknown;

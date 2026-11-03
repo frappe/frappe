@@ -33,7 +33,7 @@ import { translate as __ } from "../../utils/translate";
 import AccountAdd from "./AccountAdd.vue";
 import AccountEdit from "./AccountEdit.vue";
 import AccountList from "./AccountList.vue";
-import { errorText, mailboxAddress, missingDefaults, takeSignInStarted } from "./services";
+import { errorText } from "./services";
 import type { EmailAccount } from "./types";
 import { useEmailAccounts } from "./useEmailAccounts";
 
@@ -55,17 +55,9 @@ const dirty = defineModel<boolean>("dirty", { default: false });
 
 const controller = useEmailAccounts(props.doctype);
 
-const landing = new URL(window.location.href);
-const oauthResult = ref(landing.searchParams.get("email_oauth"));
-const mailbox = mailboxAddress(landing.searchParams.get("email_oauth_mailbox"));
-const provider = landing.searchParams.get("email_oauth_provider");
-const signInStarted = Boolean(oauthResult.value) && takeSignInStarted();
-if (oauthResult.value) {
-	landing.searchParams.delete("email_oauth");
-	landing.searchParams.delete("email_oauth_mailbox");
-	landing.searchParams.delete("email_oauth_provider");
-	window.history.replaceState(window.history.state, "", landing);
-}
+const oauthResult = ref(controller.signIn?.result ?? null);
+const mailbox = controller.signIn?.mailbox ?? null;
+const provider = controller.signIn?.provider ?? null;
 
 const view = ref<"list" | "add">("list");
 const editing = shallowRef<EmailAccount>();
@@ -103,27 +95,14 @@ if (connected || oauthResult.value === "reconnected") {
 	oauthResult.value = null;
 }
 
-if (connected) {
-	const stop = watch(
-		() => controller.accounts,
-		async (accounts) => {
-			const account = accounts.find(
-				(a) => a.email_id.toLowerCase() === mailbox?.toLowerCase()
-			);
-			if (!account) return;
-			stop();
-			emit("created", account.service);
-			if (!signInStarted) return;
-			try {
-				for (const kind of missingDefaults(accounts, account)) {
-					await controller.setDefault(kind, account.name);
-				}
-			} catch (e) {
-				toast.error(errorText(e) || __("Couldn't change the default account"));
-			}
-		}
-	);
-}
+watch(
+	() => controller.signIn?.account,
+	(account) => account && emit("created", account.service)
+);
+watch(
+	() => controller.signIn?.error,
+	(e) => e && toast.error(errorText(e) || __("Couldn't change the default account"))
+);
 
 onMounted(() => controller.load());
 onBeforeUnmount(() => (dirty.value = false));

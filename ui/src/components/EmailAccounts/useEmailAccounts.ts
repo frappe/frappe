@@ -1,16 +1,21 @@
-import { reactive } from "vue";
+import { reactive, watch } from "vue";
 import { call, createListResource, createResource } from "frappe-ui";
 import {
   authKind,
+  mailboxAddress,
   markSignInStarted,
   missingDefaults,
   newAccount,
+  takeSignInStarted,
 } from "./services";
 import type {
   EmailAccount,
   EmailAccountDoc,
   EmailAccountsController,
+  SignInReturn,
 } from "./types";
+
+const SIGN_IN_PARAMS = ["email_oauth", "email_oauth_mailbox", "email_oauth_provider"];
 
 const FIELDS = [
   "name",
@@ -72,10 +77,22 @@ export function useEmailAccounts(doctype: string): EmailAccountsController {
 
   function here() {
     const url = new URL(window.location.href);
-    url.searchParams.delete("email_oauth");
-    url.searchParams.delete("email_oauth_mailbox");
-    url.searchParams.delete("email_oauth_provider");
+    SIGN_IN_PARAMS.forEach((param) => url.searchParams.delete(param));
     return url.pathname + url.search;
+  }
+
+  function takeSignIn(): SignInReturn | null {
+    const url = new URL(window.location.href);
+    const result = url.searchParams.get("email_oauth");
+    if (!result) return null;
+    const signIn = {
+      result,
+      mailbox: mailboxAddress(url.searchParams.get("email_oauth_mailbox")),
+      provider: url.searchParams.get("email_oauth_provider"),
+    };
+    SIGN_IN_PARAMS.forEach((param) => url.searchParams.delete(param));
+    window.history.replaceState(window.history.state, "", url);
+    return signIn;
   }
 
   function initiate(args: Record<string, string>): Promise<string | null> {
@@ -130,6 +147,7 @@ export function useEmailAccounts(doctype: string): EmailAccountsController {
 
   const controller: EmailAccountsController = reactive({
     accounts: [] as EmailAccount[],
+    signIn: takeSignIn(),
     loading: true,
     error: null,
     load,
@@ -212,6 +230,30 @@ export function useEmailAccounts(doctype: string): EmailAccountsController {
       );
     },
   });
+
+  const started = Boolean(controller.signIn) && takeSignInStarted();
+  if (controller.signIn?.result === "connected") {
+    const signIn = controller.signIn;
+    const stop = watch(
+      () => controller.accounts,
+      async (accounts) => {
+        const account = accounts.find(
+          (a) => a.email_id.toLowerCase() === signIn.mailbox?.toLowerCase(),
+        );
+        if (!account) return;
+        stop();
+        signIn.account = account;
+        if (!started) return;
+        try {
+          for (const kind of missingDefaults(accounts, account)) {
+            await controller.setDefault(kind, account.name);
+          }
+        } catch (e) {
+          signIn.error = e;
+        }
+      },
+    );
+  }
 
   return controller;
 }

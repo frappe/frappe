@@ -53,6 +53,29 @@ const unsaved = ref(false);
   its own wording for a code, and a help link; any other provider gets the general wording.
 - The panel saves and reloads by itself. When loading fails, the list shows the error with Retry.
 
+## Your own UI
+
+`<EmailAccounts>` needs nothing else. To render the accounts your own way, use the composable it
+is built on:
+
+```vue
+<script setup lang="ts">
+import { useEmailAccounts } from "@framework/ui/EmailAccounts";
+
+const accounts = useEmailAccounts("HD Ticket");
+onMounted(accounts.load);
+</script>
+
+<template>
+  <MyRow v-for="a in accounts.accounts" :key="a.name" :account="a" @reconnect="accounts.reconnect(a)" />
+</template>
+```
+
+It loads and saves Email Account, starts one-click sign-in and reconnects. When the page lands back
+from a sign-in, `signIn` holds the result and the URL no longer does; a new mailbox becomes the
+default where none is. Showing the result is up to you. `useOneClick()` gives the services that can
+sign in in one click.
+
 ## Account states
 
 See `CONTEXT.md` (**Auth kind**, **Account status**, **Reconnect**).
