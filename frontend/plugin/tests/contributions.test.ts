@@ -811,6 +811,39 @@ describe("an app's acts", () => {
   });
 });
 
+describe("an app's field actions", () => {
+  const ACTIONS = "export default []";
+
+  it("are found at <module>/frontend/field-actions.js, one file per module", () => {
+    const [crm] = bench({
+      crm: {
+        "fcrm/frontend/field-actions.js": ACTIONS,
+        "telephony/frontend/field-actions.js": ACTIONS,
+        "fcrm/doctype/crm_deal/frontend/field-actions.js": ACTIONS,
+      },
+    });
+
+    expect(discover([crm]).fieldActions).toEqual([
+      { app: "crm", file: join(crm.source_dir, "fcrm/frontend/field-actions.js") },
+      { app: "crm", file: join(crm.source_dir, "telephony/frontend/field-actions.js") },
+    ]);
+  });
+
+  it("are imported lazily, so the cold load carries none of their code", () => {
+    const [crm] = bench({ crm: { "fcrm/frontend/field-actions.js": ACTIONS } });
+    const file = join(crm.source_dir, "fcrm/frontend/field-actions.js");
+
+    const code = load(contributions([crm]));
+
+    expect(code).toContain(
+      `  fieldActions: [\n` +
+        `    { app: "crm", load: () => import(${JSON.stringify(file)}) },\n` +
+        `  ],`,
+    );
+    expect(code).not.toMatch(/^import .*field-actions\.js/m);
+  });
+});
+
 describe("an app's shell hook", () => {
   const HOOK = "export function setup() {}";
 

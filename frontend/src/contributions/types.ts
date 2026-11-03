@@ -113,6 +113,18 @@ export type ActsContribution = {
   load: () => Promise<{ default?: unknown }>
 }
 
+// An app's field actions: <module>/frontend/field-actions.js, whose default export is a list of
+// `FieldActionItem`. The record page imports it when a field that could hold an action draws.
+export type FieldActionItem = ActionItem<string> & {
+  /** Only `Phone` draws actions today. */
+  fieldtype: string
+}
+
+export type FieldActionsContribution = {
+  app: string
+  load: () => Promise<{ default?: unknown }>
+}
+
 // An app's shell hook: <module>/frontend/shell.js, whose `setup(shell)` the shell runs once per
 // tab at idle, for a permitted user.
 export type ShellHookContribution = {
@@ -127,6 +139,7 @@ export type Contributions = {
   viewTypes: ViewTypeContribution[]
   settings: SettingsComponentContribution[]
   acts: ActsContribution[]
+  fieldActions: FieldActionsContribution[]
   shellHooks: ShellHookContribution[]
   replacements: ReplacementContribution[]
   pageScripts: PageScriptContribution[]
