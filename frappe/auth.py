@@ -2,13 +2,8 @@
 # MIT License. See LICENSE
 import base64
 import binascii
-<<<<<<< HEAD
-from urllib.parse import quote, urlencode, urlparse
-=======
-import hmac
 from typing import NoReturn
-from urllib.parse import quote, unquote, urlencode, urlparse
->>>>>>> 009b715 (fix(auth): log failed API key authentication)
+from urllib.parse import quote, urlencode, urlparse
 
 from werkzeug.wrappers import Response
 
