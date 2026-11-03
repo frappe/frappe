@@ -91,11 +91,10 @@ no npm. Needing anything else is the signal to export the app to a repository.
   `.ts` file.
 - Shared code (stores, composables, `.vue` components) lives in the app's own
   files and is imported via `@app/...`, wherever those files are stored.
-- Tailwind runs at build time. A database app that keeps `build_on_publish`
-  on is built like any other app; one that turns it off renders through the
-  shared Studio renderer, which only carries the classes that stylesheet was
-  built with. Stay close to the classes the editor already uses there, or keep
-  the build on.
+- Tailwind runs at build time, and every app is built on publish, so the built
+  CSS carries the app's own classes. An app whose build failed or has not run
+  yet falls back to the shared Studio renderer, which only carries the classes
+  that stylesheet was built with. Publish the app again to get its own CSS.
 - Tailwind only scans files inside the `studio/` app folder. If the app imports
   code from outside that folder (for example a `shared/` package that the
   Frappe app's frontend also uses), Tailwind classes used in that code will not

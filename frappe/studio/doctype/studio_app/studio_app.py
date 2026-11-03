@@ -82,10 +82,10 @@ class StudioAppRenderer(DocumentPage):
 				self.context.stylesheets = manifest.get("stylesheets", [])
 				self.context.script = manifest.get("script")
 			else:
-				# an app that ships no bundle renders through the editor's renderer, which compiles
-				# its files in the browser; one that should have a bundle is missing its build
+				# the build is missing or failed, so the editor's renderer takes over and compiles
+				# the app's files in the browser
 				self.use_studio_renderer()
-				self.context.assets_not_found = self.context.doc.builds_bundle()
+				self.context.assets_not_found = True
 
 	def use_studio_renderer(self):
 		"""Serve the app with the editor's own renderer instead of its published build."""
@@ -108,7 +108,6 @@ class StudioApp(WebsiteGenerator):
 		app_home: DF.Link | None
 		app_name: DF.Data | None
 		app_title: DF.Data
-		build_on_publish: DF.Check
 		favicon: DF.AttachImage | None
 		frappe_app: DF.Literal[None]
 		is_standard: DF.Check
@@ -213,8 +212,6 @@ class StudioApp(WebsiteGenerator):
 		self.export_app()
 		if not self.flags.in_insert and self.has_value_changed("is_standard") and not self.is_standard:
 			self.delete_app_folder()
-		if self.has_value_changed("build_on_publish") and not self.builds_bundle():
-			self.delete_app_build()
 		publish_doc_change("Studio App", self.name, self.name)
 
 	def on_trash(self):
@@ -273,19 +270,12 @@ class StudioApp(WebsiteGenerator):
 			frappe.throw(_("Folder {0} already exists.").format(new_path))
 		move_folder(old_path, new_path)
 
-	def builds_bundle(self) -> bool:
-		"""Whether the app ships a Vite bundle. A repository app always does; a database app only
-		when asked for one — otherwise the browser compiles its files and publishing needs no Node."""
-		return bool(self.is_standard or self.build_on_publish)
-
 	@frappe.whitelist()
 	def generate_app_build(self) -> dict:
 		"""Build the app bundle. Failures are logged to an Error Log and returned as
 		`build_error` instead of raised, so callers can surface them in the UI."""
 		if not frappe.has_permission("Studio App", ptype="write"):
 			frappe.throw(_("You do not have permission to generate the app build"), frappe.PermissionError)
-		if not self.builds_bundle():
-			return {"build_error": None}
 
 		try:
 			self.build_app_bundle()
@@ -435,8 +425,7 @@ class StudioApp(WebsiteGenerator):
 		if os.path.isdir(app_path) and not os.path.isfile(get_app_file_path(app_path)):
 			frappe.throw(_("Folder {0} exists and is not a Studio app.").format(app_path))
 		frappe.create_folder(app_path)
-		# build_on_publish only decides how a database app is served; a repository app always builds
-		write_document_file(self, folder=app_path, exclude_fields=["build_on_publish"])
+		write_document_file(self, folder=app_path)
 		self.write_tsconfig(app_path)
 		return app_path
 

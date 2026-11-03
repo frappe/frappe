@@ -375,7 +375,6 @@ def get_published_custom_apps() -> list[str]:
 			.on(StudioPage.studio_app == StudioApp.name)
 			.select(StudioApp.name)
 			.where(StudioApp.is_standard == 0)
-			.where(StudioApp.build_on_publish == 1)
 			.where(StudioPage.published == 1)
 		)
 		.distinct()

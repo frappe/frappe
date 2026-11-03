@@ -61,12 +61,10 @@ def run_write_app_file(ctx, args: dict) -> str:
 		api.write_studio_file(*ref, path, content)
 	except Exception as error:
 		return _fail(error)
-	build_hint = (
-		" Run trigger_app_build once your files are ready so the running app picks them up."
-		if frappe.get_cached_doc("Studio App", ref[1]).builds_bundle()
-		else ""
+	return (
+		f"Wrote {path}. Import it from a page script via '@app/{path.rsplit('.', 1)[0]}'. "
+		"Run trigger_app_build once your files are ready so the running app picks them up."
 	)
-	return f"Wrote {path}. Import it from a page script via '@app/{path.rsplit('.', 1)[0]}'.{build_hint}"
 
 
 def run_delete_app_file(ctx, args: dict) -> str:
@@ -90,8 +88,6 @@ def run_trigger_app_build(ctx, args: dict) -> str:
 	if isinstance(ref, str):
 		return ref
 	_, studio_app = ref
-	if not frappe.get_cached_doc("Studio App", studio_app).builds_bundle():
-		return "This app has no build — its files compile in the browser and are already live."
 	frappe.enqueue_doc("Studio App", studio_app, "build_app_bundle", queue="long", timeout=1200)
 	return (
 		"Started an app rebuild. The file changes appear in the running app only after it finishes — "

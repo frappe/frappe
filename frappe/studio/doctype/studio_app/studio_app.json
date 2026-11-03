@@ -15,8 +15,7 @@
   "favicon",
   "export_section",
   "is_standard",
-  "frappe_app",
-  "build_on_publish"
+  "frappe_app"
  ],
  "fields": [
   {
@@ -71,14 +70,6 @@
    "fieldtype": "Select",
    "label": "Frappe App (for export)",
    "mandatory_depends_on": "is_standard"
-  },
-  {
-   "default": "1",
-   "depends_on": "eval:!doc.is_standard",
-   "description": "Build an optimised bundle with Vite when the app is published. Needs Node on the server. When off, the browser compiles the app's files and publishing is instant.",
-   "fieldname": "build_on_publish",
-   "fieldtype": "Check",
-   "label": "Build Bundle on Publish"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -92,7 +83,7 @@
    "link_fieldname": "studio_app"
   }
  ],
- "modified": "2026-10-30 12:00:00.000000",
+ "modified": "2026-11-03 19:07:51.344105",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio App",

@@ -62,18 +62,14 @@ class TestStudioApp(FrappeTestCase):
 
 		app.reload()
 		self.assertTrue(app.uses_db_files())
-		self.assertFalse(app.builds_bundle() and app.get_assets_from_manifest())
+		self.assertIsNone(app.get_assets_from_manifest())
 
 		html = get_website_response("shop-demo/board").get_data(as_text=True)
 		# no bundle to serve, so the shared renderer takes over and compiles the files in the browser
 		self.assertIn("window.uses_db_files = true", html)
 		self.assertIn("/assets/frappe/studio/", html)
-
-		app.build_on_publish = 0
-		app.save()
-		html = get_website_response("shop-demo/board").get_data(as_text=True)
-		# an app that ships no bundle is not a broken build, so it gets no warning
-		self.assertNotIn("Could not find app assets", html)
+		# every app is built on publish, so a missing bundle means the build failed or has not run
+		self.assertIn("Could not find app assets", html)
 
 	def test_app_favicon(self):
 		app = make_studio_app(app_title="Favicon App", app_name="favicon-app")
@@ -569,18 +565,6 @@ class TestStudioAppBuilder(FrappeTestCase):
 		# staged tree has to sit at the depth an export does
 		self.assertTrue(staged["folder"].endswith(f"/studio/{frappe.scrub(app.name)}"))
 		self.assertTrue(staged["utils"])
-
-	def test_a_database_app_that_opts_out_of_the_build_is_not_built(self):
-		app = make_studio_app(app_title="No Build App", app_name="no-build-app")
-		make_studio_page(app.name, published=1)
-		self.assertIn(app.name, get_published_custom_apps())
-
-		app.reload()  # the first page became the app home
-		app.build_on_publish = 0
-		app.save()
-		self.assertNotIn(app.name, get_published_custom_apps())
-		self.assertFalse(app.builds_bundle())
-		self.assertIsNone(app.generate_app_build()["build_error"])
 
 	def test_passes_the_app_folder_to_tailwind(self):
 		builder = StudioAppBuilder("folder-app", is_standard=True, frappe_app="frappe")

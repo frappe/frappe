@@ -20,9 +20,6 @@ export interface StudioApp {
 	is_standard: 0 | 1
 	/**	Frappe App : Target Frappe App for export */
 	frappe_app?: string
-	/**	Build Bundle on Publish : Check — a database app can be built with Vite instead of
-	 * compiled in the browser */
-	build_on_publish?: 0 | 1
 }
 
 export type NewStudioApp = Pick<StudioApp, "app_title" | "route" | "app_name"> & {
