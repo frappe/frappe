@@ -18,19 +18,9 @@ from frappe.core.api.file import (
 	move_file,
 	unzip_file,
 )
-<<<<<<< HEAD
-from frappe.core.doctype.file.exceptions import FileTypeNotAllowed
+from frappe.core.doctype.file.exceptions import FileTypeNotAllowed, MaxFileSizeReachedError
 from frappe.core.doctype.file.utils import get_corrupted_image_msg, get_extension
 from frappe.desk.form.utils import add_comment
-=======
-from frappe.core.doctype.file.exceptions import FileTypeNotAllowed, MaxFileSizeReachedError
-from frappe.core.doctype.file.utils import (
-	get_corrupted_image_msg,
-	get_extension,
-	get_web_image,
-)
-from frappe.desk.form.utils import add_comment, remove_attach
->>>>>>> 21e3a29 (fix: enforce max file size on chunked uploads)
 from frappe.exceptions import ValidationError
 from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.utils import get_files_path, set_request
