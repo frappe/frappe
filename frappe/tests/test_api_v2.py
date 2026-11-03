@@ -1007,7 +1007,7 @@ class TestDiscoveryAPIV2(FrappeAPITestCase):
 			frappe.get_hooks("after_migrate", app_name="frappe"),
 		)
 
-	def test_cache_lasts_a_day_or_an_hour_in_developer_mode_v2(self):
+	def test_cache_lasts_six_hours_or_an_hour_in_developer_mode_v2(self):
 		key = frappe.cache.make_key(discovery.PYTHON_METHOD_CACHE_KEY)
 		for developer_mode, ttl in ((0, discovery.CACHE_TTL), (1, discovery.DEVELOPER_MODE_CACHE_TTL)):
 			with (

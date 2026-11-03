@@ -12,7 +12,7 @@ from frappe.core.doctype.server_script.server_script_utils import get_server_scr
 from frappe.model.document import get_controller
 from frappe.permissions import SYSTEM_USER_ROLE
 
-CACHE_TTL = 24 * 60 * 60
+CACHE_TTL = 6 * 60 * 60
 DEVELOPER_MODE_CACHE_TTL = 60 * 60
 DISCOVERY_CACHE_PREFIX = "api:v2:discovery"
 PYTHON_METHOD_CACHE_KEY = f"{DISCOVERY_CACHE_PREFIX}:global:methods:python"
