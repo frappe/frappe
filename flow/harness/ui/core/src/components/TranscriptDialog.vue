@@ -65,6 +65,21 @@
 			<div class="col-span-2 min-w-0 space-y-2 text-base leading-6 text-ink-gray-8 sm:col-span-1 sm:col-start-2"
 				:class="turns[row.key] ? 'sm:row-start-2' : 'sm:row-start-1'">
 				<p v-if="row.body" class="whitespace-pre-wrap break-words">{{ row.body }}</p>
+				<template v-else-if="row.prompt">
+					<button
+						type="button"
+						class="flex items-center gap-1 rounded text-sm text-ink-gray-6 hover:text-ink-gray-8"
+						:aria-expanded="opened.has(row.key)"
+						@click="toggle(row.key)"
+					>
+						<span class="lucide-chevron-right size-3.5 flex-none transition-transform" :class="{ 'rotate-90': opened.has(row.key) }" aria-hidden="true" />
+						System prompt
+					</button>
+					<pre
+						v-if="opened.has(row.key)"
+						class="overflow-auto whitespace-pre-wrap break-words rounded-4 border border-outline-gray-1 bg-surface-gray-1 px-3 py-2 font-mono text-xs leading-5 text-ink-gray-7 sm:max-h-[360px]"
+					>{{ row.prompt }}</pre>
+				</template>
 				<template v-else-if="row.kind === 'user'">
 					<p class="whitespace-pre-wrap break-words">{{ userText(row.entry) }}</p>
 					<p v-if="userAttachments(row.entry).length" class="text-sm text-ink-gray-5">
@@ -130,7 +145,7 @@
 </template>
 
 <script setup>
-import { computed, inject, reactive } from "vue"
+import { computed, inject, reactive, ref, watch } from "vue"
 import { Button } from "frappe-ui/src/components/Button"
 import { Dialog } from "frappe-ui/src/components/Dialog"
 
@@ -152,7 +167,22 @@ const flow = inject("flow")
 
 const conversation = computed(() => flow.state.conversation)
 const title = computed(() => flow.state.session?.title ?? "")
-const rows = computed(() => buildTranscriptRows(conversation.value))
+// the real system prompt where the host sends it, else the stand-in
+const prompt = ref(null)
+watch(
+	() => flow.state.transcriptOpen && flow.state.sessionId,
+	async (sid) => {
+		prompt.value = null
+		const text = sid ? await flow.systemPrompt?.(sid) : null
+		if (flow.state.transcriptOpen && flow.state.sessionId === sid) prompt.value = text ?? null
+	},
+	{ immediate: true },
+)
+const rows = computed(() =>
+	buildTranscriptRows(conversation.value).map((row) =>
+		row.kind === "system" && prompt.value ? { key: row.key, kind: row.kind, prompt: prompt.value } : row,
+	),
+)
 
 const stats = computed(() => {
 	const { usage, requests, subagents, contextTokens, contextWindow } = conversation.value

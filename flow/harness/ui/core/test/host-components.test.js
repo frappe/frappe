@@ -2124,6 +2124,32 @@ test("the transcript reads each step as text, a tool by its name with its argume
 	assert.equal(flow.state.transcriptOpen, false)
 })
 
+test("the transcript shows the real system prompt, folded, where the host sends it, and the stand-in where it does not", async (t) => {
+	const conversation = initialConversation()
+	applyEvent(conversation, { type: "user_message", seq: 2, content: "hi" })
+	const asked = []
+	const flow = {
+		state: reactive({ transcriptOpen: true, sessionId: "s1", conversation, session: null }),
+		systemPrompt: async (sid) => (asked.push(sid), sid === "s1" ? "Be brief." : null),
+		setTranscriptOpen() {},
+	}
+	mount(t, TranscriptDialog, {}, flow)
+	await new Promise((resolve) => setTimeout(resolve))
+	await nextTick()
+	const panel = document.querySelector("[role=dialog]")
+	const fold = [...panel.querySelectorAll("button[aria-expanded]")].find((button) => button.textContent.trim() === "System prompt")
+	assert.deepEqual(asked, ["s1"])
+	assert.doesNotMatch(panel.textContent, /Be brief\./)
+	fold.click()
+	await nextTick()
+	assert.match(panel.textContent, /Be brief\./)
+
+	flow.state.sessionId = "s2"
+	await new Promise((resolve) => setTimeout(resolve))
+	await nextTick()
+	assert.match(panel.textContent, /System prompt\./)
+})
+
 test("the chat list groups chats by their folder, and says it is loading, not that there are no chats or matches", async (t) => {
 	t.mock.timers.enable({ apis: ["setTimeout"] })
 	const opened = [] // what the rows' buttons asked for
