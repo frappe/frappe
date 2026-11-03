@@ -262,6 +262,18 @@ class File(Document):
 			except PermissionError:
 				frappe.throw(_("Only System Managers can make this file public."))
 
+		if (
+			not self.is_private
+			and not self.is_remote_file
+			and self.attached_to_doctype
+			and (self.has_value_changed("is_private") or self.has_value_changed("attached_to_doctype"))
+			and frappe.get_meta(self.attached_to_doctype).force_private_attachments
+		):
+			frappe.throw(
+				_("Files attached to {0} must be private.").format(_(self.attached_to_doctype)),
+				title=_("Public File Not Allowed"),
+			)
+
 	def normalize_file_url(self):
 		"""Collapse `.` and `//` segments in a local file URL; reject `..`.
 

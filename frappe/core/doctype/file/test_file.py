@@ -2800,6 +2800,66 @@ class TestPublicFileRestriction(IntegrationTestCase):
 		self.assertFalse(file_doc.is_private)
 
 
+class TestForcePrivateAttachments(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+
+		cls.test_doctype = "Test Force Private Attachments"
+		new_doctype(
+			cls.test_doctype,
+			force_private_attachments=1,
+			permissions=[{"role": "Website Manager", "read": 1, "write": 1, "create": 1}],
+		).insert(ignore_if_duplicate=True)
+
+		cls.user = "test_force_private@example.com"
+		if not frappe.db.exists("User", cls.user):
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": cls.user,
+					"first_name": "Test Force Private",
+					"roles": [{"role": "Website Manager"}],
+				}
+			).insert(ignore_permissions=True)
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.db.rollback()
+		frappe.delete_doc_if_exists("DocType", cls.test_doctype)
+
+	def setUp(self):
+		frappe.set_user(self.user)
+		self.doc = frappe.get_doc(doctype=self.test_doctype).insert()
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+
+	def attach(self, is_private):
+		return frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "force_private.txt",
+				"content": "Test content",
+				"is_private": is_private,
+				"attached_to_doctype": self.test_doctype,
+				"attached_to_name": self.doc.name,
+			}
+		)
+
+	def test_public_attachment_is_rejected(self):
+		self.assertRaises(frappe.ValidationError, self.attach(is_private=0).insert)
+
+	def test_private_attachment_is_allowed(self):
+		self.assertTrue(self.attach(is_private=1).insert().is_private)
+
+	def test_private_attachment_cannot_be_made_public(self):
+		file = self.attach(is_private=1).insert()
+		file.is_private = 0
+		self.assertRaises(frappe.ValidationError, file.save)
+
+
 class TestFileListOwnerRestriction(IntegrationTestCase):
 	"""Test file list owner restriction."""
 
