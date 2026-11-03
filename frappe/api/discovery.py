@@ -120,14 +120,11 @@ def build_cache() -> None:
 	ttl = DEVELOPER_MODE_CACHE_TTL if frappe.conf.developer_mode else CACHE_TTL
 	items = []
 	search_entries = []
-	for path in _discover_whitelisted_method_paths():
-		if fn := _get_whitelisted_method(path, ignore_cache=True):
-			method = _method_summary(fn)
-			items.append(method)
-			entry = {"type": "method", **method}
-			search_entries.append(
-				{"method": method, "haystack": _method_search_text(entry, inspect.getdoc(fn))}
-			)
+	for path, docstring in _discover_whitelisted_methods():
+		method = _method_summary(path, docstring)
+		items.append(method)
+		entry = {"type": "method", **method}
+		search_entries.append({"method": method, "haystack": _method_search_text(entry, docstring)})
 
 	frappe.cache.set_value(PYTHON_METHOD_CACHE_KEY, items, expires_in_sec=ttl)
 	frappe.cache.set_value(PYTHON_SEARCH_CACHE_KEY, search_entries, expires_in_sec=ttl)
@@ -238,12 +235,11 @@ def build_cache_in_background() -> None:
 	)
 
 
-def _method_summary(fn: Callable) -> dict[str, Any]:
-	docstring = inspect.getdoc(fn)
+def _method_summary(path: str, docstring: str | None) -> dict[str, Any]:
 	return _without_none(
 		{
 			"kind": "rpc",
-			"path": f"{fn.__module__}.{fn.__name__}",
+			"path": path,
 			"description": docstring.splitlines()[0] if docstring else None,
 		}
 	)
@@ -355,8 +351,8 @@ def _get_api_server_scripts() -> dict[str, str]:
 	}
 
 
-def _get_whitelisted_method(path: str, ignore_cache: bool = False) -> Callable | None:
-	if not ignore_cache and path not in {method["path"] for method in _get_cached_python_methods()}:
+def _get_whitelisted_method(path: str) -> Callable | None:
+	if path not in {method["path"] for method in _get_cached_python_methods()}:
 		return None
 
 	try:
@@ -438,8 +434,9 @@ def _doctype_method_applies(meta: Any, method: str) -> bool:
 	return True
 
 
-def _discover_whitelisted_method_paths() -> list[str]:
-	methods = set()
+def _discover_whitelisted_methods() -> list[tuple[str, str | None]]:
+	"""Find whitelisted functions by parsing source files, without importing them."""
+	methods = {}
 	for app in frappe.get_installed_apps(_ensure_on_bench=True):
 		app_path = Path(frappe.get_app_path(app))
 		if not app_path.exists():
@@ -450,10 +447,10 @@ def _discover_whitelisted_method_paths() -> list[str]:
 				continue
 
 			module = _module_path_from_file(app, app_path, file_path)
-			for method in _get_module_level_whitelisted_functions(file_path):
-				methods.add(f"{module}.{method}")
+			for method, docstring in _get_module_level_whitelisted_functions(file_path):
+				methods[f"{module}.{method}"] = docstring
 
-	return sorted(methods)
+	return sorted(methods.items())
 
 
 def _module_path_from_file(app: str, app_path: Path, file_path: Path) -> str:
@@ -462,7 +459,7 @@ def _module_path_from_file(app: str, app_path: Path, file_path: Path) -> str:
 	return ".".join((app, *parts))
 
 
-def _get_module_level_whitelisted_functions(file_path: Path) -> list[str]:
+def _get_module_level_whitelisted_functions(file_path: Path) -> list[tuple[str, str | None]]:
 	try:
 		source = file_path.read_text()
 	except OSError:
@@ -480,7 +477,7 @@ def _get_module_level_whitelisted_functions(file_path: Path) -> list[str]:
 	methods = []
 	for node in tree.body:
 		if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and _has_whitelist_decorator(node):
-			methods.append(node.name)
+			methods.append((node.name, ast.get_docstring(node)))
 
 	return methods
 
