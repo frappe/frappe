@@ -492,11 +492,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
-<<<<<<< HEAD
- "modified": "2024-01-08 11:50:34.750809",
-=======
  "modified": "2026-10-22 08:58:40.925592",
->>>>>>> 2689983 (fix(website_settings): update description of deprecated field)
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Settings",
