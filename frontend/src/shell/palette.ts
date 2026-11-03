@@ -33,6 +33,8 @@ export interface PaletteRow {
 	run: () => unknown;
 }
 
+export const DEFAULT_ACT_ICON = "lucide-zap";
+
 export const paletteOpen = ref(false);
 
 /** The act whose argument step the palette shows, by its full name; `null` on the first step. */

@@ -47,7 +47,7 @@
 					:disabled="index < labelled"
 				>
 					<Button
-						:icon="index < labelled ? undefined : action.icon || 'lucide-zap'"
+						:icon="index < labelled ? undefined : action.icon || DEFAULT_ACT_ICON"
 						:icon-left="index < labelled ? action.icon : undefined"
 						:label="action.label"
 						:variant="vertical ? 'ghost' : 'subtle'"
@@ -89,6 +89,7 @@
 import { computed, inject, ref, useTemplateRef, watch } from "vue";
 import { Button, Dropdown, Tooltip, TooltipProvider } from "frappe-ui";
 import type { QuickAction } from "@/recordPage";
+import { DEFAULT_ACT_ICON } from "@/shell/palette";
 import { PanelContextKey } from "./context";
 import { useFittedActions } from "./fittedActions";
 import { tagsOf } from "./people";
@@ -119,7 +120,7 @@ const picking = ref(false);
 const overflow = computed(() =>
 	actions.value.slice(visible.value).map((action: QuickAction) => ({
 		label: action.label,
-		icon: action.icon || "lucide-zap",
+		icon: action.icon || DEFAULT_ACT_ICON,
 		onClick: () => (action.tagging ? (picking.value = true) : context.run(action)),
 	}))
 );
