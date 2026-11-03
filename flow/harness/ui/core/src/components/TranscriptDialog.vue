@@ -5,9 +5,16 @@
 	     and brings the overlay, Escape, the focus trap and focus return -->
 	<Dialog :open="flow.state.transcriptOpen" size="7xl" @update:open="(open) => open || close()">
 		<template #title>
-			<div class="min-w-0 pr-8">
-				<h2 class="text-2xl-semibold leading-6 text-ink-gray-8">Transcript</h2>
-				<div v-if="title" class="mt-1.5 truncate text-base text-ink-gray-6">{{ title }}</div>
+			<div class="flex flex-wrap items-start gap-x-4 gap-y-3 pr-8">
+				<div class="min-w-0 flex-1">
+					<h2 class="text-2xl-semibold leading-6 text-ink-gray-8">Transcript</h2>
+					<div v-if="title" class="mt-1.5 truncate text-base text-ink-gray-6">{{ title }}</div>
+				</div>
+				<!-- for an issue or another chat: the steps as they show, as JSON -->
+				<div v-if="rows.length" class="flex flex-none gap-2">
+					<CopyButton :text="json" title="Copy JSON" variant="subtle" size="sm">Copy JSON</CopyButton>
+					<Button variant="subtle" size="sm" icon-left="lucide-download" label="Download .json" @click="download" />
+				</div>
 			</div>
 		</template>
 		<div class="-mt-2 flex flex-wrap gap-2 border-b border-outline-gray-1 pb-5">
@@ -47,9 +54,11 @@
 
 <script setup>
 import { computed, inject } from "vue"
+import { Button } from "frappe-ui/src/components/Button"
 import { Dialog } from "frappe-ui/src/components/Dialog"
 
 import { buildTranscriptRows, formatTokens } from "../transcript.js"
+import CopyButton from "./CopyButton.vue"
 
 const ROLES = {
 	system: "system",
@@ -89,6 +98,17 @@ const stats = computed(() => {
 	if (usage.cost) stats.push({ label: "Cost", value: `$${usage.cost.toFixed(usage.cost < 1 ? 3 : 2)}` })
 	return stats
 })
+
+const json = computed(() =>
+	JSON.stringify({ session: flow.state.sessionId, title: title.value, rows: rows.value.map(({ key, ...row }) => row) }, null, 2),
+)
+
+function download() {
+	const url = URL.createObjectURL(new Blob([json.value], { type: "application/json" }))
+	const link = Object.assign(document.createElement("a"), { href: url, download: `transcript-${flow.state.sessionId ?? "chat"}.json` })
+	link.click()
+	setTimeout(() => URL.revokeObjectURL(url))
+}
 
 function close() {
 	flow.setTranscriptOpen(false)

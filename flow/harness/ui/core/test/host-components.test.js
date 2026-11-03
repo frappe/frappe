@@ -2081,7 +2081,20 @@ test("the transcript shows each step as raw JSON, with usage under its request",
 	assert.match(panel.textContent, /tool\s*input\s*\{\s*"type": "tool_call".*"path": "server\.py".*output\s*\{\s*"type": "tool_result".*"content": "leaky line"/s)
 	assert.doesNotMatch(panel.textContent, /"seq"|"context_window"/) // Flow's own fields stay out
 	assert.doesNotMatch(panel.textContent, /estimated|reported|~4|prompt & tool definitions/)
-	assert.equal(panel.querySelectorAll("button").length, 1) // only the close button
+	// beside Close, the steps go out as JSON: copied, or downloaded as a file
+	assert.deepEqual([...panel.querySelectorAll("button")].map((button) => button.title || button.textContent), ["Download .json", "Close"])
+	assert.ok(panel.querySelector("[data-stub=CopyButton]"))
+	const saved = []
+	t.mock.method(URL, "createObjectURL", (blob) => (saved.push(blob), "blob:transcript"))
+	t.mock.method(URL, "revokeObjectURL", () => {})
+	t.mock.method(window.HTMLAnchorElement.prototype, "click", function () {
+		saved.push(this.download)
+	})
+	panel.querySelector("button").click()
+	assert.equal(saved[1], "transcript-chat.json")
+	const file = JSON.parse(await saved[0].text())
+	assert.deepEqual(file.rows.map((row) => row.kind), ["system", "user", "assistant", "tool"])
+	assert.equal(file.rows[3].output.content, "leaky line")
 	panel.querySelector("button[title=Close]").click()
 	assert.equal(flow.state.transcriptOpen, false)
 })
