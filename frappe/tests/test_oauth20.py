@@ -242,6 +242,25 @@ class TestOAuth20(FrappeRequestTestCase):
 		self.assertTrue(response.json.get("active"))
 		self.assertEqual(response.json.get("client_id"), self.client_id)
 
+	def test_introspect_unknown_token_is_inactive(self):
+		self._make_bearer_token()
+		cases = (
+			(frappe.generate_hash(), "access_token"),
+			(frappe.generate_hash(), "refresh_token"),
+			("", "refresh_token"),
+		)
+
+		for token, token_type_hint in cases:
+			with self.subTest(token=token, token_type_hint=token_type_hint):
+				response = self.introspect(
+					token,
+					headers=self.get_client_auth_headers(),
+					token_type_hint=token_type_hint,
+				)
+
+				self.assertEqual(response.status_code, 200)
+				self.assertEqual(response.json, {"active": False})
+
 	def test_introspect_token_rejects_missing_credentials(self):
 		access_token, _token = self._make_bearer_token()
 
