@@ -1,9 +1,9 @@
 <template>
 	<div
-		class="flex max-h-[min(500px,72vh)] flex-col overflow-hidden rounded-6 border border-outline-gray-2 bg-surface-base shadow-[0_1px_2px_rgba(0,0,0,0.06),0_8px_24px_-10px_rgba(0,0,0,0.18)]"
+		class="flex max-h-[min(500px,72vh)] flex-col overflow-hidden rounded-6 border border-outline-gray-2 bg-surface-base"
 	>
 		<div class="flex items-start gap-3 px-3.5 py-2.5">
-			<div class="min-w-0 flex-1 text-md leading-snug text-ink-gray-9">{{ title }}</div>
+			<div class="min-w-0 flex-1 text-base-medium leading-snug text-ink-gray-8">{{ title }}</div>
 			<span
 				v-if="subagent != null"
 				class="max-w-[45%] flex-none truncate rounded-full bg-surface-gray-2 px-2 py-0.5 text-xs font-medium text-ink-gray-6"

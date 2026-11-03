@@ -82,7 +82,7 @@
 				:position="approval.position"
 				:total="approval.total"
 				:subagent="approval.subagent"
-				class="mb-2"
+				class="mb-3"
 			/>
 
 			<!-- the queue: messages waiting for the run to end -->
