@@ -347,7 +347,7 @@
    "fieldname": "logout_all_sessions",
    "fieldtype": "Check",
    "hidden": 1,
-   "label": "Logout From All Devices After Changing Password"
+   "label": "Log Out From Other Devices After Changing Password"
   },
   {
    "fieldname": "reset_password_key",
@@ -952,7 +952,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2026-10-01 00:45:05.600707",
+ "modified": "2026-10-30 02:19:13.281887",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
