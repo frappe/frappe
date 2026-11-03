@@ -158,9 +158,12 @@ frappe.data_import.DataExporter = class DataExporter {
 		let section_title = for_insert
 			? __("Select Fields To Insert")
 			: __("Select Fields To Update");
+		let section_heading = this.exporting_for
+			? `<h6 class="form-section-heading uppercase">${section_title}</h6>`
+			: "";
 		let $select_all_buttons = $(`
 			<div class="mb-3">
-				<h6 class="form-section-heading uppercase">${section_title}</h6>
+				${section_heading}
 				<button class="btn btn-default btn-xs" data-action="select_all">
 					${__("Select All")}
 				</button>
@@ -423,7 +426,11 @@ frappe.data_import.DataExporter = class DataExporter {
 
 	setup_on_page_show() {
 		frappe.utils.setup_search(this.dialog.$body, ".unit-checkbox", ".label-area");
-		this.select_mandatory();
+		if (this.exporting_for) {
+			this.select_mandatory();
+		} else {
+			this.select_all();
+		}
 	}
 };
 

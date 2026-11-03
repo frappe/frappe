@@ -1,6 +1,8 @@
 import fs from "fs";
 import { test, expect } from "../support";
 import { drop_file } from "../support/drop_file";
+import grid_export_doctype from "../fixtures/grid_export_doctype";
+import grid_export_item_doctype from "../fixtures/grid_export_item_doctype";
 
 const HEADER = "Number (phone),Is Primary Phone (is_primary_phone)";
 const PARSE_FILE = "/api/method/frappe.desk.form.grid_import.parse_file";
@@ -204,5 +206,94 @@ test.describe("Child Table Data Import", () => {
 		await click_primary(page, "Skip Invalid and Continue");
 		await expect(hint(page)).toContainText("2 rows will be inserted.");
 		await expect(dialog(page).locator(".grid-import-skip-cell")).toHaveCount(0);
+	});
+});
+
+test.describe("Child Table Data Export", () => {
+	const doctype = grid_export_doctype.name;
+	const items = [
+		{ item_name: "Bolt", qty: 4, rate: 12.5, internal_note: "fragile" },
+		{ item_name: "Nut", qty: 9, rate: 3, internal_note: "spare" },
+	];
+	let submitted;
+	let draft;
+
+	test.beforeAll(async ({ admin }) => {
+		await admin.insert_doc("DocType", grid_export_item_doctype, true);
+		await admin.insert_doc("DocType", grid_export_doctype, true);
+		submitted = (await admin.insert_doc(doctype, { title: "Submitted", items, docstatus: 1 }))
+			.name;
+		draft = (await admin.insert_doc(doctype, { title: "Draft", items })).name;
+	});
+
+	test.afterAll(async ({ admin }) => {
+		await admin.call("frappe.client.cancel", { doctype, name: submitted });
+		await admin.remove_doc(doctype, submitted, true);
+		await admin.remove_doc(doctype, draft, true);
+	});
+
+	const open_form = async (page, name) => {
+		await page.goto(`/desk/grid-export-doctype/${name}`);
+		await page.waitForFunction(
+			(name) => window.cur_frm?.doc.name === name && cur_frm.get_field("items"),
+			name
+		);
+		return page.locator('.frappe-control[data-fieldname="items"]');
+	};
+
+	const export_dialog = (page) =>
+		page.locator(".modal:visible").filter({ hasText: "Export Data" }).last();
+	const field_option = (exporter, label) =>
+		exporter.locator(".unit-checkbox").filter({ hasText: label });
+
+	const read_csv = async (download) =>
+		fs
+			.readFileSync(await download.path(), "utf8")
+			.trim()
+			.split(/\r?\n/)
+			.map((line) => line.split(",").map((value) => value.replace(/^"|"$/g, "")));
+
+	test("downloads every row of a submitted document with the readable fields", async ({
+		page,
+	}) => {
+		const grid = await open_form(page, submitted);
+		await expect(grid.locator(".grid-upload")).toBeHidden();
+		await grid.locator(".grid-download").click();
+
+		const exporter = export_dialog(page);
+		await expect(exporter).not.toContainText("Select Fields To");
+		await expect(exporter.locator('select[data-fieldname="export_records"]')).toHaveValue(
+			"all"
+		);
+		await expect(field_option(exporter, "Rate").locator("input")).toBeChecked();
+		await expect(field_option(exporter, "Internal Note")).toHaveCount(0);
+		await expect(exporter.locator(".unit-checkbox input:not(:checked)")).toHaveCount(0);
+
+		const download = page.waitForEvent("download");
+		await exporter.locator(".btn-modal-primary").click();
+		const names = await page.evaluate(() => cur_frm.doc.items.map((row) => row.name));
+		expect(await read_csv(await download)).toEqual([
+			["ID", "Item Name (item_name)", "Qty (qty)", "Rate (rate)"],
+			[names[0], "Bolt", "4", "12.5"],
+			[names[1], "Nut", "9", "3"],
+		]);
+	});
+
+	test("keeps Upload and the import template on a draft document", async ({ page }) => {
+		const grid = await open_form(page, draft);
+		await expect(grid.locator(".grid-download")).toBeHidden();
+		await grid.locator(".grid-upload").click();
+		await page
+			.locator(".grid-import-dialog:visible")
+			.getByRole("button", { name: "Download Template" })
+			.click();
+
+		const exporter = export_dialog(page);
+		await expect(exporter).toContainText("Select Fields To Insert");
+		await expect(exporter.locator('select[data-fieldname="export_records"]')).toHaveValue(
+			"blank_template"
+		);
+		await expect(field_option(exporter, "Item Name")).toHaveCount(1);
+		await expect(field_option(exporter, "Rate")).toHaveCount(0);
 	});
 });
