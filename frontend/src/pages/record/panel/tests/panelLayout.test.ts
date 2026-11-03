@@ -49,6 +49,12 @@ const QuickActions = defineComponent({
 	render: () => h("div", { "data-builtin": "quick_actions" }),
 });
 const People = defineComponent({ render: () => h("div", { "data-builtin": "people" }) });
+const Note = defineComponent({
+	props: { text: String },
+	render() {
+		return h("p", { "data-note": this.text });
+	},
+});
 
 const mounted: ReturnType<typeof createApp>[] = [];
 
@@ -210,6 +216,58 @@ describe("a header comes from a label", () => {
 		surface.update("people", { label: "People" });
 		const { root } = await mount(surface);
 		expect(root.querySelectorAll("button[aria-expanded]")).toHaveLength(2);
+	});
+});
+
+describe("a header can carry actions", () => {
+	const Actions = defineComponent({
+		props: { page: Object, text: String },
+		render() {
+			return h("button", { "data-actions": this.text ?? "" }, this.page?.doc?.organization);
+		},
+	});
+
+	function withActions(surface = new Surface<PanelSectionItem>()) {
+		surface.add(
+			{ name: "note", label: "Note", component: Note, props: { text: "hi" }, actions: Actions },
+			{ before: "people" }
+		);
+		return surface;
+	}
+
+	it("draws them in the header with the section's props and the page, open or shut", async () => {
+		for (const open of [true, false]) {
+			const { root } = await mount(withActions(), { note: open });
+			const header = root.querySelector<HTMLElement>("[data-section='note']")!;
+			const actions = header.querySelector<HTMLElement>("[data-actions]")!;
+			expect(actions.dataset.actions).toBe("hi");
+			expect(actions.textContent).toBe("Frappe");
+			expect(header.querySelector("button[aria-expanded]")!.getAttribute("aria-expanded")).toBe(
+				String(open)
+			);
+		}
+	});
+
+	it("does not toggle the section on a click on them, as the header around them does", async () => {
+		const { root, toggled } = await mount(withActions());
+		root.querySelector<HTMLElement>("[data-actions]")!.click();
+		expect(toggled).toEqual([]);
+		root.querySelector<HTMLElement>("[data-section='note']")!.click();
+		expect(toggled).toEqual(["note"]);
+	});
+
+	it("draws them on a layout section a script updates, with the page", async () => {
+		const surface = new Surface<PanelSectionItem>();
+		surface.update("organization_section", { actions: Actions });
+		const { root } = await mount(surface);
+		const header = root.querySelector<HTMLElement>("[data-section='organization_section']")!;
+		expect(header.querySelector("[data-actions]")!.textContent).toBe("Frappe");
+	});
+
+	it("draws no actions slot on a header without them", async () => {
+		const { root } = await mount(new Surface<PanelSectionItem>());
+		const header = root.querySelector<HTMLElement>("[data-section='organization_section']")!;
+		expect(header.children).toHaveLength(1);
 	});
 });
 

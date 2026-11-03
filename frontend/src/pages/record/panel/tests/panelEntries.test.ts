@@ -106,7 +106,23 @@ describe("panelEntries", () => {
 		expect(entries.map((e) => e.opened)).toEqual([false, true, true]);
 		panelEntries([{ name: "identity", opened: false }], sections);
 		expect(warnings).toEqual([
-			"[record-page] panel section 'identity' sets opened but has no label, so no header to open or shut; opened is ignored.",
+			"[record-page] panel section 'identity' sets opened but has no label, so no header to draw it in; opened is ignored.",
+		]);
+	});
+
+	it("keeps `actions` beside a label, on a script's item or a layout section, and warns where there is no header", () => {
+		const Actions = { render: () => null };
+		const entries = panelEntries(
+			[
+				{ name: "note", label: "Note", actions: Actions },
+				{ name: "organization_section", label: "Organization", actions: Actions },
+				{ name: "identity", actions: Actions },
+			],
+			sections
+		);
+		expect(entries.map((e) => e.actions)).toEqual([Actions, Actions, undefined]);
+		expect(warnings).toEqual([
+			"[record-page] panel section 'identity' sets actions but has no label, so no header to draw it in; actions is ignored.",
 		]);
 	});
 });

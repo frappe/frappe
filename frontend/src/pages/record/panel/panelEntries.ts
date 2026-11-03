@@ -15,6 +15,8 @@ export interface PanelEntry {
 	fields: FieldNode[];
 	component?: Component;
 	props?: Record<string, any>;
+	/** Drawn at the right of the header; present only beside a label. */
+	actions?: Component;
 	/** An item drawn inside this one's component instead of as a section of its own. */
 	embedded?: PanelEntry;
 }
@@ -57,13 +59,14 @@ export function layoutItems(sections: LayoutSection[]): PanelSectionItem[] {
 }
 
 /**
- * The surface's visible items, each resolved to what it renders. `opened` is read only
- * beside a label: a section with no header has nothing to open, so it is a dev warning.
+ * The surface's visible items, each resolved to what it renders. `opened` and `actions`
+ * are read only beside a label: a section with no header has no place for them, so each is
+ * a dev warning.
  */
 export function panelEntries(items: PanelSectionItem[], sections: LayoutSection[]): PanelEntry[] {
 	const byName = new Map(sections.map((section) => [section.name, section]));
 	return items.map((item) => {
-		if (item.opened !== undefined && !item.label) warnOpenedWithoutHeader(item.name);
+		if (!item.label) warnHeaderKeys(item);
 		const section = byName.get(item.name);
 		return {
 			name: item.name,
@@ -72,6 +75,7 @@ export function panelEntries(items: PanelSectionItem[], sections: LayoutSection[
 			fields: section?.fields ?? [],
 			component: section ? undefined : item.component,
 			props: section ? undefined : item.props,
+			actions: item.label ? item.actions : undefined,
 		};
 	});
 }
@@ -100,11 +104,20 @@ function visibleFields(section: Section) {
 
 const warned = new Set<string>();
 
-function warnOpenedWithoutHeader(name: string) {
-	if (!import.meta.env.DEV || warned.has(name)) return;
-	warned.add(name);
+const HEADER_KEYS = ["opened", "actions"] as const;
+
+function warnHeaderKeys(item: PanelSectionItem) {
+	for (const key of HEADER_KEYS) {
+		if (item[key] !== undefined) warnWithoutHeader(item.name, key);
+	}
+}
+
+function warnWithoutHeader(name: string, key: string) {
+	const id = `${name}:${key}`;
+	if (!import.meta.env.DEV || warned.has(id)) return;
+	warned.add(id);
 	console.warn(
-		`[record-page] panel section '${name}' sets opened but has no label, so no header to open or shut; opened is ignored.`
+		`[record-page] panel section '${name}' sets ${key} but has no label, so no header to draw it in; ${key} is ignored.`
 	);
 }
 
