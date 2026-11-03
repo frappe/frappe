@@ -248,6 +248,51 @@ describe("shell.window", () => {
 		expect(handle.state).toBe("minimised");
 	});
 
+	it("pads the pill's right edge like its left unless actions sit there, and the frame 16px", async () => {
+		const handle = await attached();
+		expect(pill().classList).toContain("pr-3.5");
+		expect(pill().classList).not.toContain("pr-1.5");
+		handle.setActions([{ label: "Mute", icon: "lucide-mic-off", run: vi.fn() }]);
+		await nextTick();
+		expect(pill().classList).toContain("pr-1.5");
+		expect(pill().classList).not.toContain("pr-3.5");
+
+		expect(header().classList).toContain("px-4");
+		expect(header().classList).toContain("pt-4");
+		expect(frame().querySelector("[data-call-note]")!.parentElement!.classList).toContain("p-4");
+	});
+
+	it("never narrows the pill while the title changes", async () => {
+		const reports: ResizeObserverCallback[] = [];
+		vi.stubGlobal(
+			"ResizeObserver",
+			class {
+				constructor(report: ResizeObserverCallback) {
+					reports.push(report);
+				}
+				observe() {}
+				unobserve() {}
+				disconnect() {}
+			}
+		);
+		await attached();
+		const widthNow = async (width: number) => {
+			const entry = { target: pill(), borderBoxSize: [{ inlineSize: width }] };
+			reports.forEach((report) =>
+				report([entry as unknown as ResizeObserverEntry], {} as ResizeObserver)
+			);
+			await nextTick();
+		};
+
+		await widthNow(121);
+		expect(pill().style.minWidth).toBe("min(121px, calc(100vw - 48px))");
+		await widthNow(120);
+		expect(pill().style.minWidth).toBe("min(121px, calc(100vw - 48px))");
+		await widthNow(130);
+		expect(pill().style.minWidth).toBe("min(130px, calc(100vw - 48px))");
+		vi.unstubAllGlobals();
+	});
+
 	it("draws at most three actions and warns about the rest", async () => {
 		const handle = await attached();
 		const action = (label: string) => ({ label, icon: "lucide-circle", run: vi.fn() });
