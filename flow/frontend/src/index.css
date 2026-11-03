@@ -1,29 +1,5 @@
 @import "@flow/ui-core/flow.css";
 
-/* The same theme tuning as the harness web app, so the shared components look alike. */
-:root {
-	--outline-gray-1: #e6e6e6;
-	--outline-gray-2: #d6d6d6;
-	--outline-gray-3: #bdbdbd;
-}
-
-[data-theme="dark"] {
-	--surface-base: #171717;
-	--surface-sidebar: #141414;
-	--surface-gray-1: #1f1f1f;
-	--surface-gray-2: #292929;
-	--surface-gray-3: #383838;
-	--surface-gray-4: #424242;
-	--surface-elevation-1: #1f1f1f;
-	--surface-elevation-2: #292929;
-	--surface-elevation-3: #383838;
-	--outline-base: #242424;
-	--outline-elevation-2: #383838;
-	--outline-gray-1: #242424;
-	--outline-gray-2: #383838;
-	--outline-gray-3: #424242;
-}
-
 /* the island lays out by its own width (build-islands.mjs turns width media queries into
    container queries), so a narrow panel beside a page gets the narrow layout */
 :host {
