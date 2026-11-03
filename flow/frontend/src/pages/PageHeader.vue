@@ -1,5 +1,5 @@
 <template>
-	<header class="flex h-11 flex-none items-center gap-2 px-3">
+	<header class="flex h-12 flex-none items-center gap-2 px-3">
 		<!-- set apart from the page's icon, which would otherwise read as one more button -->
 		<div v-if="noSidebar || !flow.state.sidebarOpen" class="flex items-center gap-2 md:mr-1.5">
 			<!-- with no sidebar to show, the page leads back to the chat -->

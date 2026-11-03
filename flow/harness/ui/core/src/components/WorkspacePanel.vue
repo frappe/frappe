@@ -36,7 +36,7 @@
 		     The view picker (nothing open) renders without it. -->
 		<div
 			v-if="viewActive"
-			class="flex h-11 flex-none items-stretch border-b border-outline-gray-1 bg-surface-base"
+			class="flex h-12 flex-none items-stretch border-b border-outline-gray-1 bg-surface-base"
 		>
 			<!-- flex-1 makes the strip's width definite (the whole row minus the window
 			     controls), so tabs hold their basis cap and shrink together only once

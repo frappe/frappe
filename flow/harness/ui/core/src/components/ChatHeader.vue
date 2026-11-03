@@ -4,10 +4,10 @@
 		:class="
 			besideNavbar
 				? [
-						'box-content border-gray-200 dark:border-outline-gray-1',
+						'box-content border-outline-gray-1',
 						besideNavbar === 'desk' ? 'h-12' : 'h-10.5',
 					]
-				: ['h-11', started ? 'border-outline-gray-1' : 'border-transparent']
+				: ['h-12', started ? 'border-outline-gray-1' : 'border-transparent']
 		"
 	>
 		<template v-if="!sidebarOpen && !history">
