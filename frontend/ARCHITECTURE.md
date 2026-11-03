@@ -252,7 +252,7 @@ component group, with its main names.
 | `FileUpload` (`@framework/ui/FileUpload`: `FileUploadDialog`, also its own subpath to load it apart, `AttachmentsList`, `UploadTray`, `useUploader`, `defaultTransport`, `registerUploadSource`, `UploadLimitsKey`) | Upload dialog, attachment list and tray, with a swappable transport and limits that have a default |
 | `Filter`, `QuickFilter`, `ConditionBuilder` | Edit list filters, and their address and wire format |
 | `SortBy` | The list sort control and its `order_by` string |
-| `ColumnSettings` | Pick, order and size list columns |
+| `ColumnSettings` (`isColumnFieldtype`) | Pick, order and size list columns. `isColumnFieldtype` tells which fieldtypes can be a column |
 | `experimental/List` (`List`, `ListFooter`, `ListBulkBar`) | A virtual-scroll list with selection, a bulk bar and an optional end-of-row menu cell (`rowMenu` prop and slot) |
 | `ListView` and `usePagedList` | An app's own paged list: rows a page at a time |
 | `useLinkSearch` | The server's matches for a link picker; the last answer wins. A fresh search skips the browser's cached answer |
