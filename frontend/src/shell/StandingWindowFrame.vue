@@ -3,15 +3,19 @@
   stays mounted in the frame's body whatever the state, so hiding is `v-show`, never `v-if`.
 -->
 <template>
-	<div v-show="entry.state === 'open'" class="pointer-events-auto">
+	<div
+		v-show="entry.state === 'open'"
+		class="pointer-events-auto min-w-[min(240px,calc(100vw-48px))] shrink-[1000]"
+		:style="{ width: `${entry.width}px` }"
+	>
 		<FloatingWindow
 			mode="docked"
 			:minimizable="false"
 			role="dialog"
 			aria-modal="false"
 			:aria-labelledby="titleId"
-			class="border border-outline-gray-2 shadow-2xl"
-			:style="{ width: `${entry.width}px`, maxHeight: `${maxHeight}px` }"
+			class="w-full border border-outline-gray-2 shadow-2xl"
+			:style="{ maxHeight: `${maxHeight}px` }"
 			:data-standing-window="entry.app"
 		>
 			<template #header>
@@ -78,7 +82,7 @@
 
 	<div
 		v-show="entry.state === 'minimised'"
-		class="pointer-events-auto flex h-10 max-w-[400px] cursor-pointer items-center gap-2 rounded-full border border-outline-gray-2 bg-surface-elevation-1 pl-3.5 pr-1.5 shadow-2xl"
+		class="pointer-events-auto flex h-10 min-w-0 max-w-[400px] cursor-pointer items-center gap-2 rounded-full border border-outline-gray-2 bg-surface-elevation-1 pl-3.5 pr-1.5 shadow-2xl"
 		:data-standing-minimised="entry.app"
 		@click="restore"
 	>

@@ -297,7 +297,7 @@ describe("shell.window", () => {
 		[undefined, "280px"],
 	])("clamps a width of %s to %s", async (width, drawn) => {
 		await attached(Body, { icon: "lucide-phone", width });
-		expect(frame().style.width).toBe(drawn);
+		expect(frame().parentElement!.style.width).toBe(drawn);
 	});
 
 	it("drops the divider below 280px wide", async () => {
@@ -472,6 +472,107 @@ describe("the row", () => {
 		await flush();
 		expect(row().style.right).toBe(`${innerWidth - 24 - 280}px`);
 		release();
+	});
+
+	describe("on a narrow screen", () => {
+		const APPS = [CRM, HELPDESK, { app: "hr", title: "HR" }];
+		const FRAME = 400;
+		const PILL = 150;
+		const GAP = 12;
+
+		/** Each app's window at `FRAME` wide when open and `PILL` when minimised, as a browser would lay out the row. */
+		async function threeApps(width: number) {
+			const handles: Record<string, StandingWindowHandle | undefined> = {};
+			for (const { app } of APPS)
+				ship(app, (shell) => (handles[app] = shell.window(Body, { width: FRAME })));
+			vi.stubGlobal("innerWidth", width);
+			await mount(APPS);
+			await vi.waitFor(() => expect(document.querySelector("[data-standing-row]")).not.toBeNull());
+			const sizes = () =>
+				APPS.map(({ app }) => {
+					const open = shown(frame(app));
+					return { app, open, pill: shown(pill(app)) && !open, wide: open ? FRAME : PILL };
+				}).filter((entry) => entry.open || entry.pill);
+			const total = () => sizes().reduce((sum, { wide }) => sum + wide + GAP, -GAP);
+			row().getBoundingClientRect = () => ({ width: total() }) as DOMRect;
+			return { handles, sizes, total };
+		}
+
+		it("minimises the open windows from the left until the row fits, so no frame leaves the screen", async () => {
+			const { handles, sizes, total } = await threeApps(1024);
+			for (const { app } of APPS) handles[app]!.open();
+			await flush();
+
+			expect(sizes().map(({ app, open }) => [app, open])).toEqual([
+				["crm", false],
+				["helpdesk", true],
+				["hr", true],
+			]);
+			expect(total()).toBeLessThanOrEqual(1024 - 48);
+			expect(1024 - parseFloat(row().style.right) - total()).toBeGreaterThanOrEqual(24);
+			expect(parseFloat(row().style.right)).toBeGreaterThanOrEqual(24);
+			expect(handles.crm!.state).toBe("minimised");
+		});
+
+		it("spares the window just opened, even the leftmost", async () => {
+			const { handles, sizes } = await threeApps(1024);
+			handles.helpdesk!.open();
+			handles.hr!.open();
+			await flush();
+			handles.crm!.open();
+			await flush();
+
+			expect(sizes().map(({ app, open }) => [app, open])).toEqual([
+				["crm", true],
+				["helpdesk", false],
+				["hr", true],
+			]);
+		});
+
+		it("minimises one window after another while the row still does not fit", async () => {
+			const { handles, sizes } = await threeApps(800);
+			for (const { app } of APPS) handles[app]!.open();
+			await flush();
+			expect(sizes().map(({ app, open }) => [app, open])).toEqual([
+				["crm", false],
+				["helpdesk", false],
+				["hr", true],
+			]);
+		});
+
+		it("keeps the last open frame when the pills alone still overflow", async () => {
+			const { handles, sizes } = await threeApps(700);
+			for (const { app } of APPS) handles[app]!.open();
+			await flush();
+			expect(sizes().filter(({ open }) => open).map(({ app }) => app)).toEqual(["hr"]);
+			expect(handles.hr!.state).toBe("open");
+		});
+
+		it("minimises from the left, sparing the rightmost, when the window shrinks", async () => {
+			const { handles, sizes } = await threeApps(1440);
+			for (const { app } of APPS) handles[app]!.open();
+			await flush();
+			vi.stubGlobal("innerWidth", 1024);
+			window.dispatchEvent(new Event("resize"));
+			await flush();
+			expect(sizes().map(({ app, open }) => [app, open])).toEqual([
+				["crm", false],
+				["helpdesk", true],
+				["hr", true],
+			]);
+		});
+
+		it("leaves the row alone while it fits", async () => {
+			const { handles, sizes } = await threeApps(1440);
+			for (const { app } of APPS) handles[app]!.open();
+			await flush();
+			expect(sizes().every(({ open }) => open)).toBe(true);
+		});
+
+		it("caps the row at the viewport less the margins", async () => {
+			await threeApps(390);
+			expect(row().style.maxWidth).toBe("342px");
+		});
 	});
 
 	/** The Flow launcher: its shadow root holds the button, 44px at the bottom right, and the closed panel. */
