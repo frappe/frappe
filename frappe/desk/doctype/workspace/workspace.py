@@ -18,6 +18,7 @@ from frappe.desk.utils import validate_route_conflict
 from frappe.model.document import Document
 from frappe.model.rename_doc import rename_doc
 from frappe.modules.export_file import delete_folder, export_to_files
+from frappe.query_builder.functions import IfNull
 from frappe.utils import strip_html
 from frappe.utils.html_utils import sanitize_html
 
@@ -153,20 +154,21 @@ class Workspace(Document, DeskViews):
 	def validate_private_page_is_yours(self):
 		"""A private page belongs to the person named in `for_user`, and only they may write one.
 
-		A Workspace Manager may write anyone's, which is what the manager dialog does and what
-		`new_page` and `update_page` have always allowed. This says the same thing in the model,
-		because those are endpoints and a document API call reaches neither: anyone holding
-		`Desk User` could insert a Workspace naming somebody else in `for_user`, and the page then
-		wrote a row into that person's own sidebar (`add_private_to_sidebar`), which is one user
-		changing another user's navigation.
+		Not a Workspace Manager either: they curate shared pages, not anyone's own. This says it in
+		the model because a document API call reaches no endpoint: anyone holding `Desk User` could
+		insert a Workspace naming somebody else in `for_user`, which wrote a row into that person's
+		sidebar (`add_private_to_sidebar`), or take a page over by setting its `for_user` to
+		themselves. So the owner before the save counts as well as the owner after it.
 
-		System writes are left alone. An install, a migration, a patch or a fixture import is the
-		site building itself rather than a user acting, and they run as Administrator in any case.
+		System writes are left alone: Administrator, and an install, a migration, a patch or a
+		fixture import, which is the site building itself rather than a user acting.
 		"""
-		if self.public or not self.for_user:
-			return
-
-		if self.for_user == frappe.session.user or is_workspace_manager():
+		owners = {
+			doc.for_user
+			for doc in (self, self.get_doc_before_save())
+			if doc and not doc.public and doc.for_user
+		}
+		if not owners or owners == {frappe.session.user} or frappe.session.user == "Administrator":
 			return
 
 		if any(
@@ -731,11 +733,40 @@ def workspace_payload(**extra):
 def can_edit_workspace(doc):
 	"""Whether the session user may change this workspace's settings (including its app mount).
 
-	A Workspace Manager may edit any workspace; anyone may edit their own private one. The desk
-	mirrors this predicate to decide whether to offer the "mount to app" action or tell the
+	A Workspace Manager may edit any shared workspace; a private one only its owner may edit. The
+	desk mirrors this predicate to decide whether to offer the "mount to app" action or tell the
 	viewer to ask a Workspace Manager, so keep the two in step.
 	"""
-	return is_workspace_manager() or (not doc.public and doc.for_user == frappe.session.user)
+	if not doc.public and doc.for_user:
+		return doc.for_user == frappe.session.user
+	return is_workspace_manager()
+
+
+def has_permission(doc, ptype="read", user=None, debug=False):
+	"""A private workspace is its owner's alone, whatever roles the reader holds.
+
+	`Desk User` holds every right on Workspace, so without this any desk user could read, change or
+	delete someone else's private page through the document API. Pairs with
+	`get_permission_query_conditions`, which keeps those pages out of list reads.
+	"""
+	user = user or frappe.session.user
+	if user == "Administrator" or doc.public or not doc.for_user:
+		return True
+	return doc.for_user == user
+
+
+def get_permission_query_conditions(user=None, doctype=None):
+	"""List reads show shared pages and the reader's own private ones, in modules still enabled."""
+	from frappe.app_state import get_module_permission_query_conditions
+
+	user = user or frappe.session.user
+	condition = get_module_permission_query_conditions(user, "Workspace")
+	if user == "Administrator":
+		return condition
+
+	workspace = frappe.qb.DocType("Workspace")
+	visible = (workspace.public == 1) | (IfNull(workspace.for_user, "") == "") | (workspace.for_user == user)
+	return visible if condition is None else condition & visible
 
 
 def get_link_type(key):
@@ -772,7 +803,9 @@ def new_page(new_page: dict):
 			frappe.PermissionError,
 		)
 	elif (
-		not page.get("public") and page.get("for_user") != frappe.session.user and not is_workspace_manager()
+		not page.get("public")
+		and page.get("for_user") != frappe.session.user
+		and (page.get("for_user") or not is_workspace_manager())
 	):
 		frappe.throw(_("Cannot create private workspace of other users"), frappe.PermissionError)
 
@@ -1089,11 +1122,8 @@ def update_page(name: str, title: str, icon: str, indicator_color: str, parent: 
 
 	if doc.get("public") and not is_workspace_manager():
 		frappe.throw(_("Need Workspace Manager role to edit public workspaces."), frappe.PermissionError)
-	elif not doc.get("public") and doc.get("for_user") != frappe.session.user and not is_workspace_manager():
-		frappe.throw(
-			_("Need Workspace Manager role to edit private workspace of other users."),
-			frappe.PermissionError,
-		)
+	elif not can_edit_workspace(doc):
+		frappe.throw(_("You can only edit your own private workspace."), frappe.PermissionError)
 
 	# A standard workspace keeps its app-owned title/route; on a site only the appearance
 	# overrides (icon / colour) are captured as a delta. In developer mode the app author
@@ -1150,21 +1180,25 @@ def update_page(name: str, title: str, icon: str, indicator_color: str, parent: 
 def get_manageable_workspaces():
 	"""Workspaces the current user may manage in the Manage Workspaces dialog.
 
-	The desk bootinfo only carries the user's *own* private workspaces, so it can't back the
-	manager for a Workspace Manager (who should see every workspace, including other users'
-	private ones). Everyone else sees only their own private workspaces.
+	The desk bootinfo only carries the shared workspaces the user may open, so it can't back the
+	manager for a Workspace Manager, who manages every shared workspace. Other users' private
+	workspaces are theirs alone, so everyone sees only their own.
 	"""
 	# `app` comes along so the dialog can group the workspaces whose module belongs to no app
 	# (and which therefore appear on no rail) into their own list.
 	fields = ["name", "title", "icon", "public", "for_user", "standard", "module"]
+	user = frappe.session.user
 	if is_workspace_manager():
-		filters = {}
+		filters = None
+		or_filters = [["public", "=", 1], ["for_user", "=", user], ["for_user", "is", "not set"]]
 	else:
-		filters = {"public": 0, "for_user": frappe.session.user}
+		filters = {"public": 0, "for_user": user}
+		or_filters = None
 	return frappe.get_all(
 		"Workspace",
 		fields=fields,
 		filters=filters,
+		or_filters=or_filters,
 		order_by="public desc, sequence_id asc",
 		ignore_permissions=True,
 	)

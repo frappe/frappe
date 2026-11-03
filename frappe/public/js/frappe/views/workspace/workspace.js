@@ -556,8 +556,8 @@ frappe.views.Workspace = class Workspace {
 		// about where a workspace appears.
 		//
 		// The list comes from the server, not `frappe.boot.workspaces`: the bootinfo only
-		// carries the user's *own* private workspaces, but a Workspace Manager manages every
-		// workspace (including other users' private ones).
+		// carries the shared workspaces the user may open, but a Workspace Manager manages every
+		// shared workspace.
 		// `EmbeddedList` is a separate lazy bundle, so it has to be loaded before a module panel
 		// renders. It loads alongside the two reads rather than after them, and all three are
 		// awaited together so the first panel builds synchronously when the dialog opens.

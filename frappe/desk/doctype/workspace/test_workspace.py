@@ -316,6 +316,57 @@ class TestWorkspaceAccessLevels(IntegrationTestCase):
 
 		self.assertEqual(frappe.db.get_value("Workspace", "Test Manager Public Page", "public"), 1)
 
+	def private_page_of(self, user):
+		from frappe.desk.doctype.workspace.workspace import new_page
+
+		frappe.set_user(user)
+		name = f"Test Owned Page-{user}"
+		new_page(self.page("Test Owned Page", label=name, for_user=user))
+		return name
+
+	def test_someone_elses_private_page_is_out_of_reach_of_the_document_api(self):
+		name = self.private_page_of(self.MANAGER)
+
+		frappe.set_user(self.DESK_USER)
+		for ptype in ("read", "write", "delete"):
+			self.assertFalse(frappe.has_permission("Workspace", ptype, doc=name), ptype)
+		self.assertNotIn(name, frappe.get_list("Workspace", pluck="name", limit=0))
+
+		frappe.set_user(self.MANAGER)
+		self.assertIn(name, frappe.get_list("Workspace", pluck="name", limit=0))
+
+	def test_a_private_page_cannot_be_taken_over_by_renaming_its_owner(self):
+		name = self.private_page_of(self.MANAGER)
+
+		frappe.set_user(self.DESK_USER)
+		doc = frappe.get_doc("Workspace", name)
+		doc.for_user = self.DESK_USER
+		with self.assertRaises(frappe.PermissionError):
+			doc.save(ignore_permissions=True)
+
+		self.assertEqual(frappe.db.get_value("Workspace", name, "for_user"), self.MANAGER)
+
+	def test_a_workspace_manager_cannot_edit_someone_elses_private_page(self):
+		from frappe.desk.doctype.workspace.workspace import (
+			delete_page,
+			get_manageable_workspaces,
+			new_page,
+			update_workspace_settings,
+		)
+
+		name = self.private_page_of(self.DESK_USER)
+
+		frappe.set_user(self.MANAGER)
+		self.assertNotIn(name, [page.name for page in get_manageable_workspaces()])
+		with self.assertRaises(frappe.PermissionError):
+			update_workspace_settings(name, title="Stolen", access="private")
+		with self.assertRaises(frappe.PermissionError):
+			delete_page(name)
+		with self.assertRaises(frappe.PermissionError):
+			new_page(self.page("Test Planted Page", for_user=self.DESK_USER))
+
+		self.assertEqual(frappe.db.get_value("Workspace", name, "title"), "Test Owned Page")
+
 	def test_a_workspace_manager_creates_both_shared_levels(self):
 		"""Group and public are one field apart: a shared page with roles is the group, a
 		shared page without them is everyone."""

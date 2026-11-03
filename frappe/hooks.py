@@ -173,7 +173,7 @@ permission_query_conditions = {
 	"Dock": "frappe.desk.doctype.dock.dock.get_permission_query_conditions",
 	"DocType": "frappe.app_state.get_module_permission_query_conditions",
 	"Page": "frappe.app_state.get_module_permission_query_conditions",
-	"Workspace": "frappe.app_state.get_module_permission_query_conditions",
+	"Workspace": "frappe.desk.doctype.workspace.workspace.get_permission_query_conditions",
 	"Workspace Sidebar": "frappe.app_state.get_module_permission_query_conditions",
 	"Print Format": "frappe.app_state.get_module_permission_query_conditions",
 	"Notification": "frappe.app_state.get_module_permission_query_conditions",
@@ -192,6 +192,7 @@ permission_query_conditions = {
 }
 
 has_permission = {
+	"Workspace": "frappe.desk.doctype.workspace.workspace.has_permission",
 	"Report": "frappe.core.doctype.report.report.has_permission",
 	"Event": "frappe.desk.doctype.event.event.has_permission",
 	"ToDo": "frappe.desk.doctype.todo.todo.has_permission",
