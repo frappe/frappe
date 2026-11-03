@@ -1706,11 +1706,10 @@ class Document(_DocumentBase):
 		previous_modified = get_datetime(previous.modified) if previous.modified else None
 		original_modified = get_datetime(self._original_modified) if self._original_modified else None
 		if previous_modified != original_modified:
-			frappe.msgprint(
+			self._raise_timestamp_mismatch(
 				_(f"Error: {self.name} ({self.doctype}) has been modified after you have opened it")
 				+ (f" ({previous.modified}, {self.modified}). ")
-				+ _("Please refresh to get the latest document."),
-				raise_exception=frappe.TimestampMismatchError,
+				+ _("Please refresh to get the latest document.")
 			)
 
 		if not self.meta.issingle and self._action != "discard":
@@ -1732,14 +1731,19 @@ class Document(_DocumentBase):
 				_("{0} is not a valid modified timestamp").format(frappe.bold(escape_html(str(modified))))
 			)
 		if read != get_datetime(self.modified):
-			frappe.msgprint(
+			self._raise_timestamp_mismatch(
 				_("Error: {0} ({1}) has been modified after you have opened it.").format(
 					self.name, self.doctype
 				)
 				+ " "
-				+ _("Please refresh to get the latest document."),
-				raise_exception=frappe.TimestampMismatchError,
+				+ _("Please refresh to get the latest document.")
 			)
+
+	def _raise_timestamp_mismatch(self, message: str):
+		"""The v2 error entry names `stale_doc`, so a page can tell its own record from another."""
+		error = frappe.TimestampMismatchError()
+		error.stale_doc = {"doctype": self.doctype, "name": self.name}
+		frappe.msgprint(message, raise_exception=error)
 
 	def check_docstatus_transition(self, from_docstatus):
 		"""Ensures valid `docstatus` transition.

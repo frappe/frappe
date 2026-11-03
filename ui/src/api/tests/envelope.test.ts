@@ -96,3 +96,14 @@ describe("readEnvelope", () => {
     );
   });
 });
+
+describe("stale_doc", () => {
+  it("carries the entry's stale_doc as staleDoc", () => {
+    const stale = { doctype: "Sales Invoice", name: "SINV-1" };
+    const body = { errors: [{ type: TIMESTAMP_MISMATCH, stale_doc: stale }] };
+    expect(() => readEnvelope(body, 409)).toThrow(expect.objectContaining({ staleDoc: stale }));
+    expect(() => readEnvelope({ errors: [{ type: TIMESTAMP_MISMATCH }] }, 409)).toThrow(
+      expect.objectContaining({ staleDoc: undefined })
+    );
+  });
+});

@@ -65,6 +65,8 @@ def report_error(status_code):
 			# Each entry is `{ fieldname, parentfield?, row?, idx?, message }`.
 			if isinstance(exc_value, frappe.ValidationError) and getattr(exc_value, "field_errors", None):
 				error_log["field_errors"] = exc_value.field_errors
+			if stale_doc := getattr(exc_value, "stale_doc", None):
+				_add_stale_doc(error_log, stale_doc)
 			frappe.local.response.errors = [error_log]
 
 	response = build_response("json")
@@ -84,6 +86,23 @@ def is_traceback_allowed():
 			and is_system_user()
 		)
 	)
+
+
+def _add_stale_doc(error_log, stale_doc):
+	"""Name the stale record when the user can read it; else say only that a record is hidden.
+
+	A hook may save a record the user cannot read, and the message and traceback carry its name too.
+	"""
+	try:
+		readable = frappe.has_permission(stale_doc["doctype"], "read", doc=stale_doc["name"])
+	except frappe.DoesNotExistError:
+		readable = False
+	if readable:
+		error_log["stale_doc"] = stale_doc
+		return
+	error_log["stale_doc"] = {"hidden": True}
+	error_log.pop("exception", None)
+	error_log["message"] = _("A record changed after you read it. Please refresh to get the latest version.")
 
 
 def _link_error_with_message_log(error_log, exception, message_logs):

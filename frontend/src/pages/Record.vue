@@ -124,6 +124,7 @@ import {
 	isApiError,
 	removeFavourite,
 	removeFollow,
+	type ApiError,
 	type CodeError,
 	type Envelope,
 } from "@framework/ui/api";
@@ -227,6 +228,7 @@ import {
 	shownInDialog,
 	stripTags,
 } from "./record/saveResponse";
+import { otherStaleRecord, showStaleRecord } from "./record/staleRecord";
 import PageFrame from "@/shell/PageFrame.vue";
 import { openArgumentStep } from "@/shell/palette";
 import { failedState, type PageStateValue } from "@/shell/pageState";
@@ -967,7 +969,7 @@ async function moveDocstatus(act: DocstatusAct) {
 		);
 	} catch (e) {
 		if (!(isApiError(e) && e.isTimestampMismatch)) throw e;
-		await resolveConflict(act);
+		await resolveConflict(e, act);
 		throw conflictError();
 	}
 }
@@ -1004,7 +1006,7 @@ async function rethrowSaveError(
 	sent: Record<string, any>
 ): Promise<never> {
 	if (isApiError(e) && e.isTimestampMismatch) {
-		await resolveConflict();
+		await resolveConflict(e);
 		throw conflictError();
 	}
 	if (isApiError(e) && e.codeErrors?.length) {
@@ -1027,7 +1029,14 @@ function showCodeErrors(errors: CodeError[], sent: Record<string, any>, title?: 
 }
 
 // Nothing is re-applied: the reader sees who saved and what they changed, and chooses.
-async function resolveConflict(act?: DocstatusAct) {
+async function resolveConflict(e: ApiError, act?: DocstatusAct) {
+	const other = otherStaleRecord(e.staleDoc, doctype.value!, docname.value);
+	if (other) {
+		await showStaleRecord(controller.value!.page.dialog.confirm, other, (dt, name) =>
+			router.push(routeFor(dt, name))
+		);
+		return;
+	}
 	const visit = currentVisit;
 	const latest = await loadRecord(doctype.value!, docname.value, visit.signal).catch(() => null);
 	if (!visit.current()) return;

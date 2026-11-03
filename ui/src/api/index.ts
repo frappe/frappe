@@ -25,6 +25,7 @@ export {
   type Envelope,
   type ErrorEntry,
   type FieldError,
+  type StaleDoc,
 } from "./envelope";
 export { apiUrl, request, requestHeaders, type HttpMethod, type Query } from "./request";
 export {
