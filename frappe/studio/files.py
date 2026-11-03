@@ -250,6 +250,9 @@ def discarded_export_files(app) -> list[str]:
 	"""Export-folder files that disabling export would delete rather than store. The store takes
 	only a few extensions and nothing under `studio_page/`, so assets, the Tailwind config and
 	anything an author keeps beside a page have no home in the database."""
+	# an app with no frappe_app has no folder path to compute, so isdir below never gets a chance
+	if not app.frappe_app:
+		return []
 	root = app.get_folder_path()
 	if not os.path.isdir(root):
 		return []

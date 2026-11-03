@@ -115,6 +115,9 @@ class TestFiles(IntegrationTestCase):
 		# a missing app falls through to the disk jail, which rejects it
 		self.assertFalse(files.uses_db_files("no-such-app"))
 
+	def test_an_app_that_was_never_exported_discards_nothing(self):
+		self.assertEqual(files.discarded_export_files(make_db_app()), [])
+
 	def test_export_round_trip(self):
 		with exports_in_tempdir():
 			app = make_db_app()
