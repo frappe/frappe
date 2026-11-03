@@ -14,6 +14,7 @@
 		<template #default="{ active }">
 			<CommandPaletteInput
 				:placeholder="step?.placeholder ?? __('Search or run an action')"
+				@keydown.capture="(event: KeyboardEvent) => onShiftEnter(event, active as Row | undefined)"
 				@keydown="(event: KeyboardEvent) => onKeydown(event, active as Row | undefined)"
 			>
 				<template v-if="step" #prefix>
@@ -73,25 +74,33 @@
 				}}
 			</CommandPaletteEmpty>
 
-			<CommandPaletteFooter>
-				<span class="flex items-center gap-1.5">
+			<CommandPaletteFooter class="flex-wrap gap-y-1">
+				<span class="flex items-center gap-1.5 whitespace-nowrap">
 					<KeyboardShortcut combo="ArrowUp" bg class="[&_kbd]:leading-none" />
 					<KeyboardShortcut combo="ArrowDown" bg class="[&_kbd]:leading-none" />
 					{{ __("to move") }}
 				</span>
-				<span class="flex items-center gap-1.5">
+				<span class="flex items-center gap-1.5 whitespace-nowrap">
 					<KeyboardShortcut combo="Enter" bg class="[&_kbd]:leading-none" />
 					{{ __("to run") }}
 				</span>
 				<span
 					v-if="narrowable(active as Row | undefined)"
 					data-slot="palette-tab-hint"
-					class="flex items-center gap-1.5"
+					class="flex items-center gap-1.5 whitespace-nowrap"
 				>
 					<KeyboardShortcut combo="Tab" bg class="[&_kbd]:leading-none" />
 					{{ __("to search in {0}", [__((active as Row).doctype!)]) }}
 				</span>
-				<span class="ml-auto flex items-center gap-1.5">
+				<span
+					v-if="(active as Row | undefined)?.elsewhere"
+					data-slot="palette-elsewhere-hint"
+					class="flex items-center gap-1.5 whitespace-nowrap"
+				>
+					<KeyboardShortcut combo="Shift+Enter" bg class="[&_kbd]:leading-none" />
+					{{ __("Open in {0}", [(active as Row).elsewhere!.label]) }}
+				</span>
+				<span class="ml-auto flex items-center gap-1.5 whitespace-nowrap">
 					<KeyboardShortcut combo="Escape" bg class="[&_kbd]:leading-none" />
 					{{ step ? __("back") : __("to close") }}
 				</span>
@@ -121,6 +130,7 @@ import { usePaletteArgument } from "./paletteArgument";
 import { PaletteSearch, type PaletteContext } from "./paletteGroups";
 import { usePaletteScope } from "./paletteScope";
 import { PaletteHighlight } from "./paletteHighlight";
+import { loadDocument } from "./tabKeepAlive";
 import PaletteRow from "./PaletteRow.vue";
 
 const context: PaletteContext = {
@@ -201,6 +211,16 @@ function select(value: unknown, event: CommandPaletteSelectEvent) {
 
 function narrowable(row: Row | undefined): row is Row & { doctype: string } {
 	return !step.value && !!row?.doctype;
+}
+
+// Caught before the list's own Enter handler, which would pick the row as Enter does.
+function onShiftEnter(event: KeyboardEvent, active: Row | undefined) {
+	if (event.isComposing || event.key !== "Enter" || !event.shiftKey || !active?.elsewhere)
+		return;
+	event.preventDefault();
+	event.stopPropagation();
+	paletteOpen.value = false;
+	loadDocument(active.elsewhere.href);
 }
 
 // Tab, Esc and Backspace are stopped here, or the dialog moves the focus out or closes.

@@ -145,15 +145,15 @@ describe("a sidebar row and a doctype row", () => {
 		]);
 	});
 
-	it("names the app that owns the place on a sidebar row to another app's doctype here", () => {
+	it("names this app on a sidebar row to another app's doctype, which Enter opens here", () => {
 		const todo: NavigationItem = { key: "todo", item_type: "DocType", link_to: "ToDo", label: "My ToDos" };
-		expect(goToRows([todo], "todo")).toEqual([[`sidebar:${boot.shell_base}/todo`, "My ToDos", "Desk"]]);
+		expect(goToRows([todo], "todo")).toEqual([[`sidebar:${boot.shell_base}/todo`, "My ToDos", "CRM"]]);
 	});
 
 	it("keeps a link row to the owner's address apart from the doctype row here, naming the app it opens", () => {
 		const todo: NavigationItem = { key: "todo", item_type: "Link", label: "My ToDos", url: `${deskBase}/todo` };
 		expect(goToRows([todo], "todo")).toEqual([
-			["doctype:ToDo", "ToDo", "Desk"],
+			["doctype:ToDo", "ToDo", "CRM"],
 			[`sidebar:${todo.url}`, "My ToDos", "Desk"],
 		]);
 	});
@@ -219,6 +219,30 @@ describe("a place another app owns", () => {
 		registerShell(modular);
 
 		expect(goTo.rows("todo", modular).map((row) => [row.href, row.doctype])).toEqual([[`${deskBase}/todo`, undefined]]);
+	});
+
+	it("offers the owner's address on another app's doctype, and none on this app's own", () => {
+		const [todo] = goTo.rows("todo", context);
+		const [deal] = goTo.rows("crm deal", context);
+
+		expect([todo.description, todo.elsewhere]).toEqual(["CRM", { label: "Desk", href: `${deskBase}/todo` }]);
+		expect([deal.description, deal.elsewhere]).toEqual(["CRM", undefined]);
+	});
+
+	it("keeps the owner's address on the sidebar row that stands in for the doctype", () => {
+		const link: NavigationItem = { key: "todo", item_type: "DocType", link_to: "ToDo", label: "My ToDos" };
+		const withSidebar = { ...context, boot: { ...boot, navigation: { rail: [link], sidebars: {} } } };
+		registerShell(withSidebar);
+		const [todo] = goTo.rows("todo", withSidebar);
+
+		expect([todo.id, todo.elsewhere?.href]).toEqual([`sidebar:${boot.shell_base}/todo`, `${deskBase}/todo`]);
+	});
+
+	it("offers no second address on the index, and names the owner there", () => {
+		registerShell(index);
+		const [todo] = goTo.rows("todo", index);
+
+		expect([todo.description, todo.elsewhere]).toEqual(["Desk", undefined]);
 	});
 
 	it("is one Recent row when visited under two prefixes, and opens here", async () => {

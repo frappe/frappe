@@ -8,7 +8,7 @@ import { __ } from "@/i18n";
 import { routeFor, urlFor } from "@/router/routeFor";
 import type { PaletteRow } from "./palette";
 import type { PaletteContext, PaletteGroup } from "./paletteGroups";
-import { openPlace } from "./palettePlaces";
+import { openPlace, recordElsewhere } from "./palettePlaces";
 
 export interface FoundRecord {
 	doctype: string;
@@ -125,6 +125,7 @@ function recordRow(record: FoundRecord, context: PaletteContext): PaletteRow {
 		description: [nameUnlessTitle(record), __(record.doctype)].filter(Boolean).join(" · "),
 		icon: "lucide-file-text",
 		href,
+		elsewhere: href === record.route ? undefined : recordElsewhere(record.doctype, record.route, context),
 		run: () => openPlace(href, context),
 	};
 }
