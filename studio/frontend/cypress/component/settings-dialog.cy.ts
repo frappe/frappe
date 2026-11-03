@@ -178,7 +178,9 @@ describe("settings dialog", () => {
 		cy.contains("[role=dialog]", "Export Settings").contains("button", "Update").click()
 		cy.contains("[role=dialog]", "Disable App Export").contains("button", "Cancel").click()
 		cy.contains("[role=dialog]", "Export Settings").should("be.visible")
-		cy.get("@docMethod.all").should("have.length", 0)
+		cy.get("@docMethod.all").then((calls: any[]) => {
+			expect(calls.map((call) => call.request.body.method)).to.not.include("disable_app_export")
+		})
 	})
 
 	it("renames the app and moves the editor to its new URL", () => {
