@@ -303,20 +303,44 @@ import LoadingState from "./LoadingState.vue"
 import TitleField from "./TitleField.vue"
 
 // chatInView: false while a host shows a page in the open chat's place, so no chat row is marked.
-// beforeSwitch: such a host's say before a pick changes the open chat, resolving false to keep it
+// beforeSwitch: such a host's say before a pick changes the open chat, resolving false to keep it.
+// apps ({ title, route, logo }) and logout: the host's ways out of the page, which its menu offers
+// beside Settings
 const props = defineProps({
 	open: { type: Boolean, default: true },
 	chatInView: { type: Boolean, default: true },
 	beforeSwitch: { type: Function, default: null },
 	menu: { type: Array, default: () => [] }, // the host's items in the app menu, after Settings
+	apps: { type: Array, default: () => [] },
+	logout: { type: Function, default: null },
 })
 const emit = defineEmits(["close"])
 const flow = inject("flow")
 
+// a menu hands the focus back to its trigger on a timer as it unmounts: what an item opens
+// waits for that, so it keeps the focus
+const afterMenu = (run) => () => setTimeout(() => setTimeout(run))
 const appMenu = computed(() => [
-	{ label: "Settings", icon: "lucide-settings", onClick: () => flow.setSettingsOpen(true) },
-	...props.menu,
+	{
+		group: "page",
+		hideLabel: true,
+		options: [
+			...(props.apps.length ? [{ label: "Apps", icon: "lucide-layout-grid", submenu: props.apps.map(appOption) }] : []),
+			{
+				label: "Settings",
+				icon: "lucide-settings",
+				slots: { suffix: () => h(KeyboardShortcut, { combo: "Mod+,", showPlus: false }) },
+				onClick: afterMenu(() => flow.setSettingsOpen(true)),
+			},
+			...props.menu,
+		],
+	},
+	...(props.logout ? [{ group: "session", hideLabel: true, options: [{ label: "Log out", icon: "lucide-log-out", onClick: props.logout }] }] : []),
 ])
+function appOption(app) {
+	const logo = () => h("img", { src: app.logo, alt: "", class: "size-4 flex-none rounded-[3px] object-contain" })
+	return { label: app.title, slots: app.logo ? { prefix: logo } : {}, onClick: () => window.location.assign(app.route) }
+}
 
 const query = ref("")
 const debouncedQuery = useDebouncedValue(query, 150)

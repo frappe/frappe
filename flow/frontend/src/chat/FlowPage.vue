@@ -12,7 +12,8 @@
 			:open="sidebarOpen"
 			:chat-in-view="!pageKind"
 			:before-switch="leavePage"
-			:menu="APP_MENU"
+			:apps="apps"
+			:logout="logout"
 			@close="store.setSidebarOpen(false)"
 		>
 			<template #brand><Badge label="Beta" size="sm" /></template>
@@ -198,7 +199,8 @@ const COMMANDS = [
 	"abort",
 	"settings",
 ];
-// the way back to the rest of the site, in the sidebar's app menu
+// the way back to the rest of the site, in the floating sidebar's menu; the sidebar's own menu
+// lists Desk under Apps
 const APP_MENU = [
 	{ label: "Go to Desk", icon: "lucide-external-link", onClick: () => (window.location.href = "/app") },
 ];
@@ -338,6 +340,21 @@ watch(
 const noSidebar = computed(() => !layout.phone && (layout.narrow || inPanel));
 provide("noSidebar", noSidebar);
 const sidebarOpen = computed(() => !noSidebar.value && store.state.sidebarOpen);
+// the sidebar menu's way to Desk and the other apps, asked for once a sidebar shows
+const apps = ref([]);
+watch(
+	noSidebar,
+	async (none) => {
+		if (none || apps.value.length) return;
+		const installed = await transport.call("frappe.apps.get_apps").catch(() => []);
+		apps.value = [{ title: "Desk", route: "/desk", logo: "/assets/frappe/images/frappe-framework-logo.svg" }, ...installed];
+	},
+	{ immediate: true }
+);
+async function logout() {
+	await transport.call("logout");
+	window.location.assign("/login");
+}
 // the composer asks in the name of the agent that answers
 const placeholder = computed(() => {
 	const name = store.state.session?.agent ?? page.state.agent;
