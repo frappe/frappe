@@ -55,11 +55,18 @@ jobs:
   deps-vulnerable-check:
     name: 'Vulnerable Dependency Check'
     runs-on: ubuntu-latest
+    # Some dependencies (Pillow, filelock) publish security fixes only for Python 3.11+.
+    # Report the alerts on 3.10, but do not fail the workflow for them.
+    continue-on-error: ${{ matrix.python-version == '3.10' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.10', '3.11']
 
     steps:
       - uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
+          python-version: ${{ matrix.python-version }}
 
       - uses: actions/checkout@v4
 
@@ -67,10 +74,9 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/*requirements.txt', '**/pyproject.toml', '**/setup.py') }}
+          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('**/*requirements.txt', '**/pyproject.toml', '**/setup.py') }}
           restore-keys: |
-            ${{ runner.os }}-pip-
-            ${{ runner.os }}-
+            ${{ runner.os }}-pip-${{ matrix.python-version }}-
 
       - name: Install and run pip-audit
         # CVE-2025-26240: no fix available upstream, but vulnerable `_find_options_in_meta` is monkey-patched in frappe (b828efe)
