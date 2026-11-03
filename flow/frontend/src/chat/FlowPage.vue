@@ -152,7 +152,7 @@
 import { computed, inject, onBeforeUnmount, onMounted, provide, ref, watch } from "vue";
 import { isNavigationFailure, useRoute, useRouter } from "vue-router";
 import { Badge, Button, Dialogs, ToastProvider, toast, useColorScheme } from "frappe-ui";
-import { checked } from "@flow/ui-core/menu.js";
+import { afterMenu, checked } from "@flow/ui-core/menu.js";
 import BrandMark from "@flow/ui-core/components/BrandMark.vue";
 import ChatHeader from "@flow/ui-core/components/ChatHeader.vue";
 import Composer from "@flow/ui-core/components/Composer.vue";
@@ -214,7 +214,7 @@ const plusItems = computed(() => {
 		onClick: ({ insert }) => insert(`/skill:${skill.name} `),
 	}));
 	const canAdd = page.can("Flow Skill", "create");
-	const add = { label: "Add a skill", icon: "lucide-plus", onClick: () => (page.createRecord("skills"), store.setSettingsOpen(true)) };
+	const add = { label: "Add a skill", icon: "lucide-plus", onClick: afterMenu(() => (page.createRecord("skills"), store.setSettingsOpen(true))) };
 	const items = [];
 	// a new chat's agent, for a box too narrow for its own button (a started chat keeps its agent)
 	if (!store.state.sessionId && page.state.boot.agents.length > 1)

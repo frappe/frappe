@@ -11,6 +11,12 @@ export function checked(option, isCurrent) {
 	}
 }
 
+// a menu hands the focus back to its trigger on a timer as it unmounts: an item that opens a
+// dialog or a field runs after that, so what it opens keeps the focus
+export function afterMenu(run) {
+	return (...args) => setTimeout(() => setTimeout(() => run(...args)))
+}
+
 // frappe-ui's Dropdown opens on the press and swallows the click that ends it, matching that click
 // to its trigger by `event.target`. Flow runs in a shadow root, where a window listener sees the
 // click retargeted to the host, so the click goes through and shuts the menu it just opened. This

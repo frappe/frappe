@@ -11,6 +11,8 @@ import Dropdown from "frappe-ui/src/components/Dropdown/Dropdown.vue"
 
 import { dialog } from "frappe-ui/src/utils/dialog"
 
+import { afterMenu } from "../menu.js"
+
 // A chat's menu, for its sidebar row and the header: the host's own items, then Rename and Delete
 // once there is a chat to rename. Rename asks the row or header it came from to edit the name in place
 const props = defineProps({
@@ -31,13 +33,8 @@ const own = computed(() =>
 		: [],
 )
 
-// an item acts once the menu has closed and handed focus back to its trigger, which reka does on a
-// timer as the menu unmounts: a dialog or field it opens then keeps the focus
 const options = computed(() =>
-	[...props.actions, ...own.value].map((item) => ({
-		...item,
-		onClick: (...args) => setTimeout(() => setTimeout(() => item.onClick?.(...args))),
-	})),
+	[...props.actions, ...own.value].map((item) => ({ ...item, onClick: afterMenu((...args) => item.onClick?.(...args)) })),
 )
 
 // the dialog keeps the chat it was opened for, even if another one opens meanwhile.

@@ -150,6 +150,7 @@
 import { computed, inject, onBeforeUnmount, reactive, ref, watch } from "vue"
 
 import { useDebouncedValue } from "../debounce.js"
+import { afterMenu } from "../menu.js"
 import { fileName } from "../transcript.js"
 import FileTree from "./FileTree.vue"
 import LoadingState from "./LoadingState.vue"
@@ -233,14 +234,14 @@ watch(
 // the query falls back to the normal lazy tree with its manual expansion.
 const fileQuery = ref("")
 const searchInput = ref(null)
-// the Files view opened by hand puts the caret in its search, a restored one leaves it be.
-// Two timeouts: a menu it was opened from hands the focus back to its trigger in one, set as it closes
+// the Files view opened by hand puts the caret in its search, a restored one leaves it be, after
+// the menu it was opened from has handed the focus back
 watch(
 	() => props.open && props.mode === "files" && flow.state.workspace.focusSearch,
 	(asked) => {
 		if (!asked) return
 		flow.state.workspace.focusSearch = false
-		setTimeout(() => setTimeout(() => searchInput.value?.focus({ preventScroll: true })))
+		afterMenu(() => searchInput.value?.focus({ preventScroll: true }))()
 	},
 	{ immediate: true },
 )

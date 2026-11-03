@@ -296,6 +296,7 @@ import { dialog } from "frappe-ui/src/utils/dialog"
 
 import { useDebouncedValue } from "../debounce.js"
 import { SIDEBAR_WIDTH, layout, useSlide } from "../layout.js"
+import { afterMenu } from "../menu.js"
 import BrandMark from "./BrandMark.vue"
 import ChatMenu from "./ChatMenu.vue"
 import ChatSearch from "./ChatSearch.vue"
@@ -316,9 +317,6 @@ const props = defineProps({
 const emit = defineEmits(["close"])
 const flow = inject("flow")
 
-// a menu hands the focus back to its trigger on a timer as it unmounts: what an item opens
-// waits for that, so it keeps the focus
-const afterMenu = (run) => () => setTimeout(() => setTimeout(run))
 const appMenu = computed(() => [
 	{
 		group: "page",
