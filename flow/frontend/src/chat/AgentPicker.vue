@@ -27,7 +27,7 @@
 					ref="field"
 					v-model="search"
 					placeholder="Search agents…"
-					class="h-8 min-w-0 flex-1 border-0 bg-transparent px-[11px] text-base text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:ring-0"
+					class="h-8 min-w-0 flex-1 border-0 bg-transparent px-2 text-base text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:ring-0"
 				/>
 			</div>
 			<div class="flow-palette-list min-h-0 flex-1 overflow-y-auto p-1">

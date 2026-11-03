@@ -11,17 +11,6 @@ body {
 	cursor: auto;
 }
 
-/* the composer, and the lists that open over it */
-.flow-composer-surface {
-	background: color-mix(in srgb, var(--surface-base) 90%, var(--surface-gray-1));
-}
-[data-theme="dark"] .flow-composer-surface {
-	background: var(--surface-gray-1);
-}
-/* a list hung from a button on the composer covers the box: in dark mode a step lighter than it */
-[data-theme="dark"] .flow-composer-surface.flow-dropdown {
-	background: var(--surface-gray-2);
-}
 @media (prefers-reduced-motion: no-preference) {
 	.flow-composer-glide {
 		transition: bottom 300ms ease-out;
@@ -108,23 +97,20 @@ body {
 	background: var(--surface-gray-3);
 }
 
-/* A row of the lists over the composer (PalettePanel): text-base on 32px, 2px apart, the active
-   row rounded as a frappe-ui menu's item. The pointer and the keyboard share that one highlight
-   (PalettePanel), so a row has no hover color. A description or other aside takes flow-palette-hint. */
+/* A row of the lists over the composer (PalettePanel), as a frappe-ui menu's item: text-base on
+   28px. The pointer and the keyboard share one highlight (PalettePanel), so a row has no hover
+   color. A description or other aside takes flow-palette-hint. */
 .flow-palette-row {
 	display: flex;
 	width: 100%;
-	min-height: 32px; /* a row with a description grows past it */
+	height: 28px;
 	align-items: center;
 	gap: 8px;
-	padding: 0 11px;
+	padding: 0 8px;
 	border-radius: theme(borderRadius.4);
 	font-size: theme(fontSize.base);
-	color: var(--ink-gray-8);
+	color: var(--ink-gray-7);
 	text-align: left;
-}
-.flow-palette-row + .flow-palette-row {
-	margin-top: 2px;
 }
 /* a phone's menus and lists at the chat's text size */
 @media (max-width: 767px) and (pointer: coarse) {
@@ -139,9 +125,9 @@ body {
 /* a list with nothing to show says so in one muted line, a row's height */
 .flow-palette-empty {
 	display: flex;
-	height: 32px;
+	height: 28px;
 	align-items: center;
-	padding: 0 11px;
+	padding: 0 8px;
 	font-size: theme(fontSize.base);
 	color: var(--ink-gray-5);
 }

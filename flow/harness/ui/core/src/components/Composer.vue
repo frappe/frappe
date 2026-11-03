@@ -36,7 +36,7 @@
 					<template v-for="(m, i) in menuItems" :key="m.name">
 						<!-- a heading takes a row's height, and a gap above it sets its section off; the
 						     first sits in the list's top padding -->
-						<div v-if="m.section" class="flex h-8 items-center px-[11px] text-base font-medium text-ink-gray-5" :class="i ? 'mt-2' : '-mt-1'">
+						<div v-if="m.section" class="flex h-7 items-center px-2 text-sm-medium text-ink-gray-4" :class="i ? 'mt-2' : '-mt-1'">
 							{{ m.section }}
 						</div>
 						<button data-palette-item class="flow-palette-row" @click="pick(m)">
