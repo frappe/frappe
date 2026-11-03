@@ -363,11 +363,7 @@ def _get_whitelisted_method(path: str, ignore_cache: bool = False) -> Callable |
 		fn = frappe.get_attr(path)
 	except Exception:
 		return None
-	if ignore_cache and fn in frappe.whitelisted:
-		return fn
-	if not ignore_cache and fn in frappe.whitelisted:
-		return fn
-	return None
+	return fn if fn in frappe.whitelisted else None
 
 
 def _discover_doctype_methods() -> list[tuple[str, str, Callable, type]]:
@@ -375,16 +371,16 @@ def _discover_doctype_methods() -> list[tuple[str, str, Callable, type]]:
 	doctypes = frappe.get_all(
 		"DocType",
 		filters={"istable": 0},
-		pluck="name",
+		fields=["name", "is_submittable", "allow_rename"],
 		order_by="name",
 	)
 	for doctype in doctypes:
 		try:
-			doctype_methods = _get_doctype_methods(doctype)
+			doctype_methods = _get_controller_methods(doctype.name, doctype)
 		except Exception:
 			continue
 		methods.extend(
-			(doctype, method_name, fn, defining_class)
+			(doctype.name, method_name, fn, defining_class)
 			for method_name, fn, defining_class in doctype_methods
 			if not _is_standard_doctype_method(defining_class)
 		)
@@ -399,6 +395,10 @@ def _get_doctype_methods(doctype: str) -> list[tuple[str, Callable, type]]:
 			_("DocType {0} is not available for discovery").format(doctype), frappe.DoesNotExistError
 		)
 
+	return _get_controller_methods(doctype, meta)
+
+
+def _get_controller_methods(doctype: str, meta: Any) -> list[tuple[str, Callable, type]]:
 	controller = get_controller(doctype)
 	methods = []
 	for method_name in dir(controller):
@@ -464,8 +464,17 @@ def _module_path_from_file(app: str, app_path: Path, file_path: Path) -> str:
 
 def _get_module_level_whitelisted_functions(file_path: Path) -> list[str]:
 	try:
-		tree = ast.parse(file_path.read_text(), filename=str(file_path))
-	except (OSError, SyntaxError):
+		source = file_path.read_text()
+	except OSError:
+		return []
+
+	# Most files have no whitelisted functions, and parsing is the slow part of the build.
+	if "whitelist" not in source:
+		return []
+
+	try:
+		tree = ast.parse(source, filename=str(file_path))
+	except SyntaxError:
 		return []
 
 	methods = []
