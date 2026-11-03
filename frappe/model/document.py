@@ -3896,12 +3896,7 @@ class Document(_DocumentBase):
 		if frappe.flags.in_install:
 			return
 
-		# submitted values can still change when update after submit checks are skipped
-		parent = self.parent_doc
-		skip_submitted = not (
-			self.flags.ignore_validate_update_after_submit
-			or (parent and parent.flags.ignore_validate_update_after_submit)
-		)
+		locked_after_submit = self._is_locked_after_submit()
 
 		for fieldname, value in self.get_valid_dict(ignore_virtual=True).items():
 			if not value or not isinstance(value, str):
@@ -3926,7 +3921,7 @@ class Document(_DocumentBase):
 				or df.get("fieldtype") in ("Attach", "Attach Image", "Barcode", "Code", "JSON")
 				# cancelled and submit but not update after submit should be ignored
 				or self.docstatus.is_cancelled()
-				or (skip_submitted and self.docstatus.is_submitted() and not df.get("allow_on_submit"))
+				or (locked_after_submit and not df.get("allow_on_submit"))
 			):
 				continue
 
@@ -3934,6 +3929,18 @@ class Document(_DocumentBase):
 				sanitized_value = sanitize_html(value, linkify=df and df.fieldtype == "Text Editor")
 
 			self.set(fieldname, sanitized_value)
+
+	def _is_locked_after_submit(self) -> bool:
+		"""Whether `validate_update_after_submit` rejects changes to this document's fields."""
+		parent = self.parent_doc or self
+		if (
+			getattr(parent, "_action", None) != "update_after_submit"
+			or parent.flags.ignore_validate_update_after_submit
+		):
+			return False
+
+		# new rows of an allow on submit table are not checked
+		return not (self.is_new() and parent.meta.get_field(self.parentfield).allow_on_submit)
 
 	def _save_passwords(self):
 		"""Save password field values in __Auth table"""
