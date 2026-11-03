@@ -18,7 +18,6 @@ export function quickActionBuiltins(
 ): QuickAction[] {
   const actions: QuickAction[] = [];
   if (perms.email) actions.push({ name: "email", label: "Email", icon: "lucide-mail", run: openEmail });
-  // Right after Email: the apps' field actions, such as a call.
   actions.push(...fieldActions);
   // No right gates it: a comment needs only read.
   actions.push({ name: "comment", label: "Comment", icon: "lucide-message-square", run: openComment });

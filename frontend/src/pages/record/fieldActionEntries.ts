@@ -12,7 +12,7 @@ interface FieldValue {
   fields: string;
 }
 
-export const FIELD_ACTION_GROUP = "field_actions";
+const FIELD_ACTION_GROUP = "field_actions";
 
 export function fieldActionRows(items: FieldActionItem[]): HeaderItem[] {
   return items.flatMap((item) =>
@@ -26,7 +26,6 @@ export function fieldActionQuickActions(items: FieldActionItem[]): QuickAction[]
   );
 }
 
-/** Two entries per item, at most one drawn: `when` counts the values. */
 function entries(item: FieldActionItem, label: string | undefined) {
   const name = item.act.replace(/\W/g, "_");
   const shown = acts.find(item.act);
@@ -55,7 +54,7 @@ function entries(item: FieldActionItem, label: string | undefined) {
   ];
 }
 
-/** The act's own gate, read live: a medium that arrives after the first paint opens it then. */
+/** Read live, so a gate that opens after the first paint shows the entry then. */
 const hasAct = (item: FieldActionItem) => acts.find(item.act) !== undefined;
 
 /** The saved record's distinct non-empty values in fields of the item's type, in field order. */
@@ -63,7 +62,7 @@ function valuesOf(page: RecordPageApi, item: FieldActionItem): FieldValue[] {
   if (page.isNew) return [];
   const byValue = new Map<string, string[]>();
   for (const field of page.meta?.fields ?? []) {
-    if (kindOf(field) !== item.fieldtype) continue;
+    if (field.hidden || kindOf(field) !== item.fieldtype) continue;
     const value = String(page.doc?.[field.fieldname] ?? "").trim();
     if (!value || (item.when && !item.when(value))) continue;
     byValue.set(value, [...(byValue.get(value) ?? []), field.label ?? field.fieldname]);
