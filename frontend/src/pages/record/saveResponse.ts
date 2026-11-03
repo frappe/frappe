@@ -73,7 +73,7 @@ export async function confirmConflict(
   );
 }
 
-/** The record page's conflict: a Submit or Cancel on a record with no unsaved changes gets its own text, since nothing of the reader's is at stake. */
+/** The record page's conflict; a Submit or Cancel on a record with no unsaved changes gets its own text. */
 export async function confirmRecordConflict(
   confirm: Confirm,
   editor: string,
