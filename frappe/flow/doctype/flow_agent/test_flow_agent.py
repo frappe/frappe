@@ -429,12 +429,20 @@ class TestFlowAgentAttachmentSearch(IntegrationTestCase):
 		self.agent = frappe.get_doc(
 			_agent(self.model_doc.name, tools=[{"tool": "frappe/search_attachments"}])
 		).insert()
+		frappe.db.set_single_value("Flow Knowledge Settings", "embedding_model", self.model_doc.name)
+		frappe.clear_document_cache("Flow Knowledge Settings", "Flow Knowledge Settings")
 
 	def tearDown(self):
 		frappe.db.rollback()
+		frappe.clear_document_cache("Flow Knowledge Settings", "Flow Knowledge Settings")
 
 	def _search_tool(self, session=None):
 		return next(t for t in self.agent.client_tools(session) if t.name == "search_attachments")
+
+	def test_search_is_offered_only_with_an_embedding_model(self):
+		frappe.db.set_single_value("Flow Knowledge Settings", "embedding_model", None)
+		frappe.clear_document_cache("Flow Knowledge Settings", "Flow Knowledge Settings")
+		self.assertNotIn("search_attachments", [t.name for t in self.agent.client_tools("S1")])
 
 	def test_search_is_scoped_to_the_session_and_names_the_file(self):
 		with patch("frappe.flow.knowledge.retriever.retrieve_attachments") as retrieve:

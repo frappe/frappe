@@ -186,7 +186,11 @@ class FlowAgent(Document):
 		}
 
 	def client_tools(self, session: str | None = None) -> list[Tool]:
-		"""This agent's enabled tools, bound to `session` where needed."""
+		"""This agent's enabled tools, bound to `session` where needed. Attachment search is left
+		out until an embedding model is set, since nothing is indexed without one."""
+		from frappe.flow.doctype.flow_knowledge_settings.flow_knowledge_settings import (
+			embeddings_configured,
+		)
 		from frappe.flow.memory.memory import MEMORY_TOOL_SLUG
 		from frappe.flow.tools.builtins import (
 			ATTACHMENT_READ_SLUG,
@@ -210,7 +214,8 @@ class FlowAgent(Document):
 			if tool_doc.name == builtin_name(KNOWLEDGE_SEARCH_SLUG):
 				resolved.append(bind_search_knowledge([kb.knowledge_base for kb in self.knowledge_bases]))
 			elif tool_doc.name == builtin_name(ATTACHMENT_SEARCH_SLUG):
-				resolved.append(bind_search_attachments(session))
+				if embeddings_configured():
+					resolved.append(bind_search_attachments(session))
 			elif tool_doc.name == builtin_name(ATTACHMENT_READ_SLUG):
 				resolved.append(bind_read_attachment(session))
 			elif tool_doc.name == builtin_name(MEMORY_TOOL_SLUG):

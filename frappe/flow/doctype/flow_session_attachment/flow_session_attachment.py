@@ -19,6 +19,7 @@ from flow_harness.session.attachments import MAX_ATTACHMENTS_PER_MESSAGE
 
 import frappe
 from frappe import _
+from frappe.flow.doctype.flow_knowledge_settings.flow_knowledge_settings import embeddings_configured
 from frappe.flow.knowledge.extract import FILE_EXTENSIONS, IMAGE_EXTENSIONS, extract_file
 from frappe.model.document import Document
 from frappe.utils import cint
@@ -104,7 +105,7 @@ def build_turn(session: FlowSession, input: str, files: list[str]) -> Turn:
 	readable = frappe.get_cached_doc("Flow Agent", session.agent).has_tool(builtin_name(ATTACHMENT_READ_SLUG))
 	paste_budget = min(PASTE_LIMIT, budget) if readable else budget
 	vision = _model_sees_images(_session_model(session))
-	embeddings_on = _embeddings_configured()
+	embeddings_on = embeddings_configured()
 	turn = Turn(message=input)
 	text_files: list[tuple[dict[str, Any], str]] = []
 	file_docs: dict[str, Document] = {}
@@ -244,12 +245,6 @@ def _model_sees_images(model: str | None) -> bool:
 
 def _session_model(session: FlowSession) -> str:
 	return session.model or frappe.db.get_value("Flow Agent", session.agent, "model")
-
-
-def _embeddings_configured() -> bool:
-	return bool(
-		frappe.get_cached_value("Flow Knowledge Settings", "Flow Knowledge Settings", "embedding_model")
-	)
 
 
 def _pasted_files(

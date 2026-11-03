@@ -258,6 +258,9 @@ class TestToolCallback(IntegrationTestCase):
 			(self.agent.name, "User", OWNER, run.name),
 		)
 
+		frappe.db.set_single_value("Flow Knowledge Settings", "embedding_model", self.agent.model)
+		frappe.clear_document_cache("Flow Knowledge Settings", "Flow Knowledge Settings")
+		self.addCleanup(frappe.clear_document_cache, "Flow Knowledge Settings", "Flow Knowledge Settings")
 		hit = {"attachment": "F1", "content": "refunds within thirty days", "score": 0.9}
 		with patch("frappe.flow.knowledge.retriever.retrieve_attachments", return_value=[hit]) as retrieve:
 			result = self.call("search_attachments", {"query": "refund"})
