@@ -409,7 +409,7 @@ const STYLE = `
 .failed { position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 0 20px; color: var(--ink-gray-6, #7c7c7c); line-height: 1.5; }
 .failed p { margin: 0; }
 .failed div { display: flex; gap: 8px; }
-.failed button { height: 28px; padding: 0 12px; border: 0; border-radius: var(--radius-2, 8px); font: inherit; cursor: pointer; background: var(--surface-gray-2, rgba(128, 128, 128, 0.12)); color: var(--ink-gray-8, #383838); }
+.failed button { height: 28px; padding: 0 12px; border: 0; border-radius: var(--radius, 8px); font: inherit; cursor: pointer; background: var(--surface-gray-2, rgba(128, 128, 128, 0.12)); color: var(--ink-gray-8, #383838); }
 .failed button:hover { background: var(--surface-gray-3, rgba(128, 128, 128, 0.2)); }
 .failed .retry { background: var(--surface-gray-9, #171717); color: var(--ink-base, #fff); }
 .failed .retry:hover { background: var(--surface-gray-8, #383838); }
