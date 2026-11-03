@@ -521,7 +521,8 @@ class TestSessionEndpoints(ApiCase):
 		name = self.create()
 		run = api.run(name, "read", attachments=json.dumps([notes.name]))["run"]
 		self.assertEqual(
-			self.daemon.calls[-1], ("run", name, 'read\n<file name="notes.txt">\nthe body\n</file>')
+			self.daemon.calls[-1],
+			("run", name, f'read\n<file name="notes.txt" {_file_attrs(notes)}>\nthe body\n</file>'),
 		)
 		self.assertEqual(frappe.db.get_value("Flow Run", run, "input"), "read")
 		[row] = frappe.get_doc("Flow Session", name).attachments
@@ -541,7 +542,10 @@ class TestSessionEndpoints(ApiCase):
 		# a file may go without a message
 		gone = self.upload("gone.txt", "gone")
 		self.assertEqual(api.run(name, "", attachments=[gone.name])["status"], "started")
-		self.assertEqual(self.daemon.calls[-1], ("run", name, '\n<file name="gone.txt">\ngone\n</file>'))
+		self.assertEqual(
+			self.daemon.calls[-1],
+			("run", name, f'\n<file name="gone.txt" {_file_attrs(gone)}>\ngone\n</file>'),
+		)
 		# a sync drops the row of a file deleted since
 		frappe.db.delete("File", {"name": gone.name})
 		api.sync_session(name)
@@ -1127,3 +1131,7 @@ class TestLiveEndpoints(LiveServerCase):
 				("assistant", "Mock reply to: two"),
 			],
 		)
+
+
+def _file_attrs(file_doc) -> str:
+	return f'file="{file_doc.name}" url="{file_doc.file_url}" size="1 KB"'

@@ -189,11 +189,13 @@ class FlowAgent(Document):
 		"""This agent's enabled tools, bound to `session` where needed."""
 		from frappe.flow.memory.memory import MEMORY_TOOL_SLUG
 		from frappe.flow.tools.builtins import (
+			ATTACHMENT_READ_SLUG,
 			ATTACHMENT_SEARCH_SLUG,
 			KNOWLEDGE_SEARCH_SLUG,
 			SERVER_TOOL_SLUGS,
 			SKILL_TOOL_SLUG,
 			bind_load_skill,
+			bind_read_attachment,
 			bind_search_attachments,
 			bind_search_knowledge,
 			bind_update_memory,
@@ -209,6 +211,8 @@ class FlowAgent(Document):
 				resolved.append(bind_search_knowledge([kb.knowledge_base for kb in self.knowledge_bases]))
 			elif tool_doc.name == builtin_name(ATTACHMENT_SEARCH_SLUG):
 				resolved.append(bind_search_attachments(session))
+			elif tool_doc.name == builtin_name(ATTACHMENT_READ_SLUG):
+				resolved.append(bind_read_attachment(session))
 			elif tool_doc.name == builtin_name(MEMORY_TOOL_SLUG):
 				resolved.append(bind_update_memory(self.name, session))
 			elif tool_doc.name == builtin_name(SKILL_TOOL_SLUG):
@@ -289,6 +293,10 @@ class FlowAgent(Document):
 	def extension_tools(self) -> list[str]:
 		"""Enabled flow server extension tools selected for this agent."""
 		return [tool.name for tool in self._enabled_tool_docs() if tool.type == "Server"]
+
+	def has_tool(self, name: str) -> bool:
+		"""Whether the Flow Tool `name` is among this agent's enabled tools."""
+		return any(tool_doc.name == name for tool_doc in self._enabled_tool_docs())
 
 	def _enabled_tool_docs(self):
 		for row in self.tools:
