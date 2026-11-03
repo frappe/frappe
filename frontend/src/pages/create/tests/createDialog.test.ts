@@ -10,6 +10,7 @@ vi.mock("frappe-ui", () => ({
 		props: {
 			open: { type: Boolean, default: true },
 			title: String,
+			size: String,
 			showCloseButton: { type: Boolean, default: true },
 		},
 		emits: ["update:open", "after-leave"],
@@ -20,7 +21,7 @@ vi.mock("frappe-ui", () => ({
 			);
 			return () =>
 				props.open
-					? h("div", { "data-dialog": "", role: "dialog" }, [
+					? h("div", { "data-dialog": "", "data-size": props.size, role: "dialog" }, [
 							h("h2", props.title),
 							props.showCloseButton
 								? h("button", { onClick: () => emit("update:open", false) }, "Close")
@@ -281,6 +282,20 @@ describe("dialog or full page", () => {
 		expect(button(root, "Edit full form")).toBeTruthy();
 		expect(answer.settled).toBe(false);
 		expect(createRequests.value).toHaveLength(1);
+	});
+
+	it("opens at xl when no row applies", async () => {
+		const { root } = await open("Lead");
+
+		expect(root.querySelector("[data-dialog]")!.getAttribute("data-size")).toBe("xl");
+	});
+
+	it("opens at the size the row in use gives", async () => {
+		const row = { name: 1, condition: null, layout: server.layouts.fallback, size: "3xl" };
+		server.layouts = { ...server.layouts, layouts: [row] };
+		const { root } = await open("Lead");
+
+		expect(root.querySelector("[data-dialog]")!.getAttribute("data-size")).toBe("3xl");
 	});
 
 	it("goes to the full-page new record with the caller's values when the server says no dialog", async () => {

@@ -14,6 +14,7 @@ from frappe.modules.utils import get_doc_path
 class AppLayout(NamedTuple):
 	layout: str
 	omitted: tuple[str, ...]
+	size: str | None
 
 
 def read_app_layout(dt: str, type: str) -> AppLayout | None:
@@ -48,4 +49,8 @@ def load_app_layout(path: str, mtime_ns: int, size: int) -> AppLayout:
 	# App source path from the DocType's module; never request-derived.
 	with open(path) as f:  # nosemgrep
 		data = json.load(f)
-	return AppLayout(layout=json.dumps(data.get("layout") or []), omitted=tuple(data.get("omitted") or []))
+	return AppLayout(
+		layout=json.dumps(data.get("layout") or []),
+		omitted=tuple(data.get("omitted") or []),
+		size=data.get("size"),
+	)

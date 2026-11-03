@@ -1,5 +1,6 @@
 // The `Form Layout` doctype's wire shapes: `get_form_layouts` returns rows as
 // authored — fieldnames stay strings, inline fields stay dicts; the meta join happens client-side.
+import type { DialogSize } from "frappe-ui";
 import type { RawMetaField } from "@framework/ui/FormLayout/types";
 
 export type FormLayoutType = "Details" | "Side Panel" | "Quick Entry" | "New Record";
@@ -41,6 +42,8 @@ export interface FormLayoutRow {
 	layout: LayoutTree;
 	/** Fieldnames the row keeps off its layout on purpose; Details and New Record read it. */
 	omitted?: string[];
+	/** `Quick Entry` only: the Create dialog's size; `null` means xl. */
+	size?: DialogSize | null;
 }
 
 export interface FormLayoutsResponse {
