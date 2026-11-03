@@ -776,7 +776,7 @@ describe("the row", () => {
 });
 
 describe("keep-alive", () => {
-	const away = (href = "/apps/desk/todo") => {
+	const away = (href = "/elsewhere/todo") => {
 		const link = document.body.appendChild(document.createElement("a"));
 		link.href = href;
 		return link;
@@ -821,7 +821,7 @@ describe("keep-alive", () => {
 		handle.setKeepAlive(true);
 		await flush();
 		expect(prevented(away())).toBe(true);
-		expect(opened).toHaveBeenCalledWith(`${location.origin}/apps/desk/todo`, "_blank", "noopener");
+		expect(opened).toHaveBeenCalledWith(`${location.origin}/elsewhere/todo`, "_blank", "noopener");
 	});
 
 	it("asks before a reload or a tab close while it is on", async () => {
@@ -844,7 +844,7 @@ describe("keep-alive", () => {
 		const handle = await attached();
 		handle.setKeepAlive(true);
 		await flush();
-		const routed = away("/apps/crm/leads");
+		const routed = away("/elsewhere/leads");
 		routed.addEventListener("click", (event) => event.preventDefault());
 		const blank = away();
 		blank.target = "_blank";
@@ -890,7 +890,7 @@ describe("keep-alive", () => {
 		const handle = await attached();
 		handle.setKeepAlive(true);
 		await flush();
-		const link = away("/apps/desk/top");
+		const link = away("/elsewhere/top");
 		link.target = "_top";
 		expect(prevented(link)).toBe(true);
 		expect(opened).toHaveBeenCalledTimes(1);
@@ -900,8 +900,8 @@ describe("keep-alive", () => {
 		const handle = await attached();
 		handle.setKeepAlive(true);
 		await flush();
-		openPlace("/apps/desk/todo", { boot, router: { push: vi.fn() } } as unknown as PaletteContext);
-		expect(opened).toHaveBeenCalledWith("/apps/desk/todo", "_blank", "noopener");
+		openPlace("/elsewhere/todo", { boot, router: { push: vi.fn() } } as unknown as PaletteContext);
+		expect(opened).toHaveBeenCalledWith("/elsewhere/todo", "_blank", "noopener");
 		expect(assigned).not.toHaveBeenCalled();
 	});
 
