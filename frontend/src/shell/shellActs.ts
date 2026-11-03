@@ -4,11 +4,13 @@ import { onScopeDispose } from "vue";
 import type { Router } from "vue-router";
 import { toast, useColorScheme, type ColorScheme } from "frappe-ui";
 import { runMethod } from "@framework/ui/api";
+import type { FieldMeta } from "@framework/ui/fields/types";
 import { acts, type ActItem, type AvailableAct } from "@/acts/dispatcher";
 import { doctypeRight } from "@/acts/doctypeRight";
 import type { Boot } from "@/boot";
 import { __ } from "@/i18n";
 import { useAppActs } from "./appActs";
+import { kindOf } from "./fieldActions";
 import { openCreate, type CreatedDoc, type CreateOptions } from "./create";
 import { shellDialog, type ShellDialog } from "./dialog";
 import { loadDocument } from "./tabKeepAlive";
@@ -16,7 +18,15 @@ import { loadDocument } from "./tabKeepAlive";
 /** Opens `#settings/<prefix>/<pane>/<block>`; each segment is optional, in order. */
 export type OpenSettings = (prefix?: string, pane?: string, block?: string) => void;
 
-/** What a shell act's `run` receives. Nothing in it needs a record. */
+/** The record page the reader is on: its doctype and name, the draft, and its fields' labels and types (a Data field of Phone options reads Phone). */
+export interface ShellRecord {
+	doctype: string;
+	name: string;
+	doc: Record<string, any>;
+	fields: { fieldname: string; label: string; fieldtype: string }[];
+}
+
+/** What a shell act's `run` and `argument.options` receive. */
 export interface Shell {
 	router: Router;
 	toast: { success: (message: string) => void; error: (message: string) => void };
@@ -25,6 +35,8 @@ export interface Shell {
 	create: (doctype: string, options?: CreateOptions) => Promise<CreatedDoc | null>;
 	openSettings: OpenSettings;
 	dialog: ShellDialog;
+	/** The saved record open on the page, else `null`: a list, a new record or no page. */
+	record: () => ShellRecord | null;
 }
 
 /** `shell.create`'s value: a doctype, or a doctype with the values its record starts with. */
@@ -124,7 +136,29 @@ function shellFor(host: ShellActsHost): Shell {
 		create: (doctype, options) => openCreate(doctype, options),
 		openSettings: host.openSettings,
 		dialog: shellDialog(),
+		record: openRecord,
 	};
+}
+
+/** The parts of the record page's `page` that `shell.record` reads. */
+interface OpenPage {
+	doctype: string;
+	docname: string;
+	doc: Record<string, any>;
+	isNew: boolean;
+	meta: { fields?: FieldMeta[] } | null;
+}
+
+// The record page registers its acts on the `header` surface, with the page as their context.
+export function openRecord(): ShellRecord | null {
+	const page = acts.contextOf("header") as OpenPage | undefined;
+	if (!page?.doc || page.isNew) return null;
+	const fields = (page.meta?.fields ?? []).map((field) => ({
+		fieldname: field.fieldname,
+		label: field.label,
+		fieldtype: kindOf(field),
+	}));
+	return { doctype: page.doctype, name: page.docname, doc: page.doc, fields };
 }
 
 function shellItems(

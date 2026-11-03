@@ -22,7 +22,7 @@ export function fieldActions(): FieldActions {
 }
 
 /** A Data field whose options say Phone is a Phone to the apps. */
-function kindOf(field: FieldMeta) {
+export function kindOf(field: FieldMeta) {
 	return field.fieldtype === "Data" && field.options === "Phone" ? "Phone" : field.fieldtype;
 }
 

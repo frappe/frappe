@@ -446,7 +446,7 @@ empty query, and the index shows its own.
 **Shell surface**: <a id="shell-surface"></a>
 The surface for acts that outlive a page: the shell's own acts, named `shell.<item>`, and an
 app's global acts from its `acts.js`, named `shell.<app>.<item>`. Same item shape as a page surface, with no
-verbs for scripts yet; `run` receives `(shell, value)`.
+verbs for scripts yet; `run` receives `(shell, value)`, and `shell.record()` is the saved record open on the page, if any.
 
 ### Views
 
