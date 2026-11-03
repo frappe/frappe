@@ -5,6 +5,7 @@ import type { FieldAction, FieldActions, FieldMeta } from "@framework/ui/fields/
 import { fieldActionFiles } from "@/contributions/registry";
 import type { FieldActionItem } from "@/contributions/types";
 import { acts } from "@/acts/dispatcher";
+import { emailFieldAction, type EmailOpeners } from "./emailFieldAction";
 
 /** The apps' field action items, imported once when the first reader asks. */
 export class FieldActionItems {
@@ -22,11 +23,12 @@ export class FieldActionItems {
 export const fieldActionItems = new FieldActionItems();
 
 /** The shell side of field actions: apps' files are imported when the first control asks. */
-export function fieldActions(items: FieldActionItems = fieldActionItems): FieldActions {
+export function fieldActions(emailOpeners: EmailOpeners, items: FieldActionItems = fieldActionItems): FieldActions {
 	return {
-		for(field, value) {
+		for(field, value, record) {
 			if (!hasValue(value)) return [];
-			return items.list().filter((item) => item.fieldtype === kindOf(field)).flatMap((item) => button(item, value));
+			const own = emailFieldAction(field, value, record, emailOpeners);
+			return [...own, ...items.list().filter((item) => item.fieldtype === kindOf(field)).flatMap((item) => button(item, value))];
 		},
 	};
 }

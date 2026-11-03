@@ -70,6 +70,13 @@ export function keepComposerRecord(context: WriterContext) {
 	keep(context.doctype, context.docname, context);
 }
 
+/** Keeps what a window needs of a record whose page is not mounted, as a list row's; what a page kept wins. */
+export function keepRecordAway(doctype: string, name: string, record: Partial<KeptRecord>) {
+	const key = recordKey(doctype, name);
+	if (composerRecordFor(doctype, name) || kept.has(key)) return;
+	kept.set(key, { title: name, perms: {}, ...record });
+}
+
 /** Collapses the band; the record's drafts stay. */
 export function closeComposer() {
 	state.active = "";
@@ -83,6 +90,11 @@ export function activeWriter(doctype: string, name: string): string {
 /** The store's record as its page last showed it, for the window away from it; the docname before. */
 export function composerKept(): KeptRecord {
 	return kept.get(recordKey(state.doctype, state.name)) ?? { title: state.name, perms: {} };
+}
+
+/** The plain writers a record's page last showed, or undefined for a record no page showed. */
+export function keptWriters(doctype: string, name: string) {
+	return kept.get(recordKey(doctype, name))?.writers;
 }
 
 /** The reader the composer's stored choices belong to. */

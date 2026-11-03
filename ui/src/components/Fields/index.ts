@@ -12,7 +12,7 @@ export { useRecordLink } from "./useRecordLink";
 export { drawsReadValue } from "./readView";
 export { default as ReadOnlyField } from "./ReadOnlyField.vue";
 export { default as ReadValue } from "./ReadValue.vue";
-export { dataHref, groupIban, isPhoneField } from "./dataOptions";
+export { dataHref, groupIban, isEmailField, isPhoneField } from "./dataOptions";
 export type { DataHref } from "./dataOptions";
 export { default as DataOpenLink } from "./DataOpenLink.vue";
 export { default as FieldActionButtons } from "./FieldActions.vue";
@@ -23,6 +23,7 @@ export { default as ColorSwatch } from "./ColorSwatch.vue";
 export type {
   FieldAction,
   FieldActions,
+  FieldRecord,
   FieldMeta,
   FieldComponentProps,
   FieldComponentEmits,

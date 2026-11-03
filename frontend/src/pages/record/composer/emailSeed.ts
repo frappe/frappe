@@ -3,6 +3,7 @@ import { activityTimelineRows, type EmailActivity } from "@framework/ui/Activity
 import type { ActivityItem, RecordPageApi } from "@/recordPage";
 import {
 	composerDraft,
+	keepRecordAway,
 	openComposer,
 	replaceComposerDraft,
 	type ComposerWindow,
@@ -10,6 +11,7 @@ import {
 import { EMAIL_TYPES } from "../feed/recordFeeds";
 import {
 	EMAIL_WRITER,
+	addressList,
 	emailFields,
 	emptyEmailDraft,
 	isFreshEmailDraft,
@@ -42,6 +44,27 @@ export function openEmail(
 	if (!composerDraft(doctype, docname, EMAIL_WRITER)) seed(doctype, docname, reader, reply, draft);
 	else if (reply) readdress(doctype, docname, reply, draft.replyAll === true);
 	openComposer(doctype, docname, EMAIL_WRITER, undefined, placement);
+}
+
+/** Opens the email writer floating on a record whose page is not on screen, as a list row's. */
+export function openEmailAway(
+	doctype: string,
+	docname: string,
+	to: string[],
+	perms: Record<string, unknown>
+) {
+	keepRecordAway(doctype, docname, { perms });
+	addRecipients(doctype, docname, to);
+	openEmail(doctype, docname, undefined, { to }, "floating");
+}
+
+/** Adds the addresses to the To of an unsent draft the record already holds; the rest of it stays. */
+export function addRecipients(doctype: string, docname: string, to: string[]) {
+	if (!composerDraft(doctype, docname, EMAIL_WRITER)) return;
+	const stored = readEmailDraft(doctype, docname);
+	const next = addressList([...stored.to, ...to]);
+	if (next.length > stored.to.length)
+		replaceComposerDraft(doctype, docname, EMAIL_WRITER, { ...stored, to: next });
 }
 
 /** What a plain open of the email writer on this record starts with. */

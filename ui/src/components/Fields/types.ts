@@ -151,10 +151,17 @@ export interface FieldAction {
   run: () => void;
 }
 
-/** The host's field actions, which a Phone control draws; absent or null, it draws none. */
+/** The record a field sits on, and whether the control draws on its page or in a list row. */
+export interface FieldRecord {
+  doctype: string;
+  name: string;
+  surface: "record" | "list";
+}
+
+/** The host's field actions, which a Phone or Email control draws; absent or null, it draws none. */
 export interface FieldActions {
   /** The actions for this field and value, in the order the apps gave them. */
-  for: (field: FieldMeta, value: unknown) => FieldAction[];
+  for: (field: FieldMeta, value: unknown, record?: FieldRecord) => FieldAction[];
 }
 
 export const FieldActionsKey: InjectionKey<FieldActions | null> = Symbol("FieldActions");

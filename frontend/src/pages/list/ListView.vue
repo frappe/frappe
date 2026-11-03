@@ -26,9 +26,16 @@
 		@column-resize="resizeColumn($event.fieldname, $event.width)"
 		@column-reset="resetColumnWidth($event.fieldname)"
 	>
-		<template #cell="{ column, value }">
+		<template #cell="{ row, column, value }">
+			<EmailCell
+				v-if="emailFields.has(column.fieldname)"
+				:field="emailFields.get(column.fieldname)!"
+				:value="value"
+				:doctype="view.doctype"
+				:name="row.name"
+			/>
 			<PhoneCell
-				v-if="phoneFields.has(column.fieldname)"
+				v-else-if="phoneFields.has(column.fieldname)"
 				:field="phoneFields.get(column.fieldname)!"
 				:value="value"
 			/>
@@ -61,7 +68,7 @@
 
 <script setup lang="ts">
 import { ColumnSettings } from "@framework/ui/ColumnSettings";
-import { isPhoneField } from "@framework/ui/fields";
+import { isEmailField, isPhoneField } from "@framework/ui/fields";
 import type { RawMetaField } from "@framework/ui/FormLayout";
 import { List, ListBulkBar, ListFooter, type BulkAction } from "@framework/ui/experimental/List";
 import { computed, ref } from "vue";
@@ -74,6 +81,7 @@ import { failedState } from "@/shell/pageState";
 import PageState from "@/shell/PageState.vue";
 import DeleteDialog from "./DeleteDialog.vue";
 import type { RendererHost } from "./renderer";
+import EmailCell from "./EmailCell.vue";
 import PhoneCell from "./PhoneCell.vue";
 import RowMenu from "./RowMenu.vue";
 import { rowActionEntries, rowMenuOptions } from "./rowActions";
@@ -120,14 +128,17 @@ useScrollMemory(
 	{ doctype: props.view.doctype, query: rowsKey }
 );
 
-const phoneFields = computed(() => {
+const phoneFields = computed(() => columnFields(isPhoneField));
+const emailFields = computed(() => columnFields(isEmailField));
+
+function columnFields(matches: (field: RawMetaField) => boolean) {
 	const fields = new Map<string, RawMetaField>();
 	for (const { fieldname } of columns.value) {
 		const field = fieldOf(fieldname);
-		if (field && isPhoneField(field)) fields.set(fieldname, field);
+		if (field && matches(field)) fields.set(fieldname, field);
 	}
 	return fields;
-});
+}
 
 const listActs = props.host.acts(() => [
 	...(selection.value.length ? [deleteEntry()] : []),

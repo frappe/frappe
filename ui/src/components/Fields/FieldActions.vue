@@ -1,4 +1,4 @@
-<!-- The actions an app placed on a field, at the end of its control: one is an icon button, two or more a menu. -->
+<!-- The actions the shell and the apps placed on a field, at the end of its control: one is an icon button, two or more a menu. -->
 <template>
 	<button
 		v-if="actions.length === 1"
@@ -30,16 +30,16 @@ import { computed, inject } from "vue";
 import { Dropdown } from "frappe-ui";
 import { translate as __ } from "../../utils/translate";
 import { FieldActionsKey } from "./types";
-import type { FieldMeta } from "./types";
+import type { FieldMeta, FieldRecord } from "./types";
 
-const props = defineProps<{ field: FieldMeta; value: unknown }>();
+const props = defineProps<{ field: FieldMeta; value: unknown; record?: FieldRecord }>();
 
 const buttonClass =
 	"grid size-4 shrink-0 place-items-center rounded-1 text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-7 focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3 data-[state=open]:bg-surface-gray-3 data-[state=open]:text-ink-gray-7";
 
 const host = inject(FieldActionsKey, null);
 
-const actions = computed(() => host?.for(props.field, props.value) ?? []);
+const actions = computed(() => host?.for(props.field, props.value, props.record) ?? []);
 const menu = computed(() =>
 	actions.value.map((action) => ({
 		label: action.label,

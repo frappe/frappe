@@ -71,8 +71,12 @@
 				:address="address"
 				class="ml-auto grid shrink-0 opacity-0 focus-visible:opacity-100 group-hover:opacity-100"
 			/>
-			<span v-if="phone" class="-my-1 flex shrink-0 items-center" @click.stop>
-				<FieldActionButtons :field="field" :value="doc[field.fieldname]" />
+			<span v-if="phone || email" class="-my-1 flex shrink-0 items-center" @click.stop>
+				<FieldActionButtons
+					:field="field"
+					:value="doc[field.fieldname]"
+					:record="actionRecord"
+				/>
 			</span>
 			<span v-if="message" class="w-full truncate text-sm text-ink-red-4" :title="message">
 				{{ message }}
@@ -100,6 +104,7 @@ import {
 	FieldActionButtons,
 	dataHref,
 	focusField,
+	isEmailField,
 	isPhoneField,
 	useRecordLink,
 } from "@framework/ui/fields";
@@ -163,6 +168,12 @@ const display = computed(() =>
 );
 
 const phone = computed(() => isPhoneField(props.field));
+const email = computed(() => isEmailField(props.field));
+const actionRecord = computed(() =>
+	context
+		? { doctype: context.doctype, name: context.docname, surface: "record" as const }
+		: undefined
+);
 const address = computed(() => dataHref(props.field, doc.value[props.field.fieldname]));
 
 const record = useRecordLink(linkedDoctype, () => doc.value[props.field.fieldname] || null);
