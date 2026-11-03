@@ -160,6 +160,22 @@ class TestSocialLoginKey(IntegrationTestCase):
 			login_via_oauth2("github", "iwriu", create_oauth_state(None))
 		self.assertEqual(frappe.session.user, "Guest")
 
+	def test_disabled_social_login_key_is_refused(self):
+		github_social_login_setup()
+		self.addCleanup(frappe.db.set_value, "Social Login Key", "github", "enable_social_login", 1)
+		frappe.db.set_value("Social Login Key", "github", "enable_social_login", 0)
+
+		mock_session = MagicMock()
+		mock_session.get.side_effect = github_response_for_login
+
+		state = create_oauth_state(None)
+		simulate_oauth_browser_roundtrip()
+		with patch.object(OAuth2Service, "get_auth_session", return_value=mock_session):
+			self.assertRaises(frappe.PermissionError, login_via_oauth2, "github", "iwriu", state)
+
+		mock_session.get.assert_not_called()
+		self.assertEqual(frappe.session.user, "Guest")
+
 	@IntegrationTestCase.change_settings("Website Settings", disable_signup=1)
 	def test_force_enabled_signups(self):
 		"""Social login key can override website settings for disabled signups."""
