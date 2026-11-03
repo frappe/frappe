@@ -29,6 +29,8 @@ const metaFields = [
 	{ fieldname: "lead_owner", fieldtype: "Link", options: "User" },
 	{ fieldname: "ref_doctype", fieldtype: "Link", options: "DocType" },
 	{ fieldname: "reference", fieldtype: "Dynamic Link", options: "ref_doctype" },
+	{ fieldname: "other_doctype", fieldtype: "Link", options: "DocType" },
+	{ fieldname: "other", fieldtype: "Dynamic Link", options: "other_doctype" },
 ];
 const columns = [
 	...metaFields.map(({ fieldname }) => ({ fieldname, label: fieldname })),
@@ -62,6 +64,8 @@ const row = {
 	lead_owner: "bob@example.com",
 	ref_doctype: "User",
 	reference: "ann@example.com",
+	other_doctype: "",
+	other: "orphan",
 	_extra: "as sent",
 };
 
@@ -213,8 +217,10 @@ describe("a list's cells", () => {
 		expect(anchor("agent")?.textContent?.trim()).toBe("Ann Lee");
 		// A Dynamic Link opens a record of the doctype its sibling field names.
 		expect(anchor("reference")?.getAttribute("href")).toBe("/r/User/ann@example.com");
-		// A doctype with no record page draws the text alone.
+		// A doctype with no record page, or a Dynamic Link with no doctype, draws the text alone.
 		expect(anchor("ref_doctype")).toBeNull();
+		expect(anchor("other")).toBeNull();
+		expect(root.querySelector("[data-column='other']")?.textContent?.trim()).toBe("orphan");
 		expect(anchor("status")).toBeNull();
 	});
 

@@ -178,7 +178,7 @@ function markedText(row: Record<string, unknown>, fieldname: string): string {
 	return linkTitles.value[`${field.options}::${value}`] || value;
 }
 
-// A title's own image marks the name column too, which the row's link already opens.
+// A marked cell links its text to the record only for a Link; the title's image mark has no target.
 function linkTarget(fieldname: string): string {
 	const field = fieldOf(fieldname);
 	return field?.fieldtype === "Link" ? field.options ?? "" : "";
