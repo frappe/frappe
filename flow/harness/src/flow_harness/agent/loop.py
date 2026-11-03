@@ -755,7 +755,8 @@ async def _confirmation_prompt(call: ToolCall, tools: dict[str, Tool], inputs: L
 	tool = tools.get(call.name)
 	if tool is not None and tool.confirm_prompt is not None:
 		try:
-			return tool.confirm_prompt(call.args)
+			if prompt := tool.confirm_prompt(call.args):  # only a client may say no card is needed
+				return prompt
 		except Exception:
 			pass
 	if inputs.config.callback_url and call.name not in tools:

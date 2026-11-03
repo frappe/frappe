@@ -1260,3 +1260,20 @@ async def test_a_client_tool_that_needs_no_approval_runs_once_with_no_card(tmp_p
 	assert [p["mode"] for p in posts] == ["confirm"]
 	assert len(_of(events, "approval_required")) == 1
 	assert _of(events, "run_ended")[-1]["reason"] == "paused"
+
+
+async def test_a_server_tools_empty_prompt_still_shows_a_card():
+	@tool(requires_confirmation=True, confirm_prompt=lambda args: args.get("description"))
+	def deploy(description: str = "", *, ctx=None):
+		return "deployed"
+
+	inputs = loop.LoopInputs(
+		config=SessionConfig(cwd="/tmp"),
+		model_name="mock",
+		messages=[],
+		credential_store=None,
+		abort=asyncio.Event(),
+	)
+	call = ToolCall(id="c1", name="deploy", arguments={})
+	# None is the client's "no approval needed"; a tool's own empty prompt means the generic card
+	assert (await loop._confirmation_prompt(call, {"deploy": deploy}, inputs)).startswith("Approve `deploy`?")
