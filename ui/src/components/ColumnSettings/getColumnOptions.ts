@@ -1,20 +1,12 @@
+import { holdsChildRows } from "../Fields/rowIdentity";
+import { NO_VALUE } from "../FormLayout/noValueFields";
 import type { RawMetaField } from "../FormLayout/types";
 import type { ColumnOption, SyntheticColumn } from "./types";
 
-/** Fieldtypes that hold no list-renderable value — layout/presentation breaks and
- *  child tables. A column can't be shown for any of these, so they're dropped from
- *  the add-column options. Mirrors CRM ColumnSettings' field filter. */
-const NON_COLUMN_FIELDTYPES = new Set([
-  "Section Break",
-  "Column Break",
-  "Tab Break",
-  "HTML",
-  "Heading",
-  "Button",
-  "Fold",
-  "Table",
-  "Table MultiSelect",
-]);
+/** A list column can't show a no-value field or a child table. */
+export function isColumnFieldtype(fieldtype: string): boolean {
+  return !NO_VALUE.has(fieldtype) && !holdsChildRows(fieldtype);
+}
 
 /** Standard fields every doctype can show as a column, appended after the meta
  *  fields. */
@@ -47,7 +39,7 @@ export function getColumnOptions(
 ): ColumnOption[] {
   const fieldOptions = fields
     .filter(
-      (f) => !NON_COLUMN_FIELDTYPES.has(f.fieldtype) && f.label && f.fieldname
+      (f) => isColumnFieldtype(f.fieldtype) && f.label && f.fieldname
     )
     .map((f) => toOption(f.label as string, f.fieldname));
   const standard = STANDARD_FIELDS.map((f) => toOption(f.label, f.fieldname));

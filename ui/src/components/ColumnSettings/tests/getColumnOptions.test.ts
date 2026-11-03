@@ -21,7 +21,7 @@ describe("getColumnOptions", () => {
     ]);
   });
 
-  it("excludes layout/no-data fieldtypes and child tables", () => {
+  it("excludes layout/no-data fieldtypes, child tables and Image/Attachment Gallery", () => {
     const result = getColumnOptions([
       { fieldname: "sb", fieldtype: "Section Break", label: "Sec" },
       { fieldname: "cb", fieldtype: "Column Break" },
@@ -32,6 +32,8 @@ describe("getColumnOptions", () => {
       { fieldname: "fold", fieldtype: "Fold" },
       { fieldname: "items", fieldtype: "Table", label: "Items" },
       { fieldname: "tags", fieldtype: "Table MultiSelect", label: "Tags" },
+      { fieldname: "photo", fieldtype: "Image", label: "Photo" },
+      { fieldname: "gallery", fieldtype: "Attachment Gallery", label: "Gallery" },
       { fieldname: "title", fieldtype: "Data", label: "Title" },
     ]);
     expect(result).toEqual([

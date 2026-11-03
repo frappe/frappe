@@ -38,6 +38,16 @@ describe("columnsFrom", () => {
 		expect(columnsFrom(stored, FIELDS, readable).map((c) => c.fieldname)).toEqual(["modified", "title"]);
 	});
 
+	it("drops a stored Image or Attachment Gallery column", () => {
+		const fields = [
+			...FIELDS,
+			{ fieldname: "photo", label: "Photo", fieldtype: "Image" },
+			{ fieldname: "gallery", label: "Gallery", fieldtype: "Attachment Gallery" },
+		];
+		const stored = [{ fieldname: "photo" }, { fieldname: "gallery" }, { fieldname: "title" }];
+		expect(columnsFrom(stored, fields, readable).map((c) => c.fieldname)).toEqual(["title"]);
+	});
+
 	it("reads a shape that is not a list of columns as nothing", () => {
 		expect(columnsFrom("title", FIELDS, readable)).toEqual([]);
 		expect(columnsFrom([{ width: "1px" }, null, 3], FIELDS, readable)).toEqual([]);

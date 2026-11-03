@@ -1,6 +1,6 @@
 // What the list shows before anyone touches it: columns from a contributed `list.js`, else from
 // meta's `in_list_view`; sort from meta's `sort_field`, else `modified desc`.
-import { getColumnAlign, getDefaultColumns, type Column } from "@framework/ui/ColumnSettings";
+import { getColumnAlign, getDefaultColumns, isColumnFieldtype, type Column } from "@framework/ui/ColumnSettings";
 import type { ListColumn } from "@framework/ui/experimental/List";
 import type { RawMetaField } from "@framework/ui/FormLayout";
 import { parseOrderBy, type Sort } from "@framework/ui/SortBy";
@@ -132,7 +132,7 @@ function contributedColumns(fields: RawMetaField[], contributed: ListHandlers[])
 }
 
 function metaColumns(fields: RawMetaField[], titleField?: string): Column[] {
-	if (!fields.some((field) => field.in_list_view)) return GENERIC_COLUMNS.map((c) => ({ ...c }));
+	if (!fields.some((field) => field.in_list_view && isColumnFieldtype(field.fieldtype))) return GENERIC_COLUMNS.map((c) => ({ ...c }));
 	return getDefaultColumns(fields, titleField);
 }
 
