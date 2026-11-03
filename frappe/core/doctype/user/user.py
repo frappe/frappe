@@ -1104,6 +1104,9 @@ def update_password(
 	Args:
 	    new_password (str): New password.
 	    logout_all_sessions (int, optional): If set to 1, all other sessions will be logged out. Defaults to 0.
+	        Ignored when System Settings "Log Out From Other Devices After Changing Password" is on: other
+	        sessions are then always logged out. The /update-password page always sends 1 with a
+	        reset key.
 	    key (str, optional): Password reset key. Defaults to None.
 	    old_password (str, optional): Old password. Defaults to None.
 	"""

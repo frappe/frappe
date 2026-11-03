@@ -441,7 +441,7 @@
    "default": "1",
    "fieldname": "logout_on_password_reset",
    "fieldtype": "Check",
-   "label": "Logout All Sessions on Password Reset"
+   "label": "Log Out From Other Devices After Changing Password"
   },
   {
    "default": "0",
@@ -908,7 +908,7 @@
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2026-10-22 12:00:00.000000",
+ "modified": "2026-11-03 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

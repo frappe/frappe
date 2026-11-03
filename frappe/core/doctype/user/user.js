@@ -207,7 +207,9 @@ frappe.ui.form.on("User", {
 											reqd: 1,
 										},
 										{
-											label: __("Logout All Sessions"),
+											label: __(
+												"Log Out From Other Devices After Changing Password"
+											),
 											fieldtype: "Check",
 											fieldname: "logout_sessions",
 											default: 1,
