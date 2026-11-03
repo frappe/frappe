@@ -378,3 +378,21 @@ describe("Rename…", () => {
     expect(confirmed.rename).toHaveBeenCalledExactlyOnceWith("CRM-DEAL-2", { merge: true });
   });
 });
+
+describe("the apps' field actions", () => {
+  const call = { name: "call", label: "Call" };
+  const row = { name: "call_row", label: "Make a call" };
+
+  it("put the quick action right after Email, and none before the framework's own", () => {
+    const withEmail = quickActionBuiltins({ email: 1, print: 1 }, false, undefined, undefined, [call]);
+    expect(withEmail.slice(0, 2).map((a) => a.name)).toEqual(["email", "call"]);
+    expect(quickActionBuiltins({}, false, undefined, undefined, [call])[0].name).toBe("call");
+  });
+
+  it("put the rows between the rename band and the copies", () => {
+    const items = headerMenuBuiltins({}, off, { rename: true, fieldActions: [row] });
+    const order = items.map((item) => item.name);
+    expect(order.indexOf("call_row")).toBeGreaterThan(order.indexOf("rename"));
+    expect(order.indexOf("call_row")).toBeLessThan(order.indexOf("copy_url"));
+  });
+});

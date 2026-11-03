@@ -194,6 +194,8 @@ import {
 } from "./record/docstatusActs";
 import { DocstatusMover, queueFailureMessage, type QueueFailure } from "./record/queuedDocstatus";
 import { headerMenuBuiltins, quickActionBuiltins } from "./record/builtinActions";
+import { fieldActionQuickActions, fieldActionRows } from "./record/fieldActionEntries";
+import { fieldActionItems } from "@/shell/fieldActions";
 import { renameRecord } from "./record/renameAct";
 import { statusItems } from "./record/recordStatus";
 import { favouritesOf, hasFavourited } from "./record/favourites";
@@ -462,6 +464,7 @@ function headerBuiltins(): HeaderItem[] {
 					duplicate: canCreate.value && !meta.value?.allow_copy,
 					rename: Boolean(meta.value?.allow_rename),
 					submitted: saved.value.docstatus === 1,
+					fieldActions: fieldActionRows(fieldActionItems.list()),
 				}
 			),
 			saved.value.name === docname.value
@@ -905,7 +908,8 @@ function buildController({ visit, target, pointer, details, panel, view }: Openi
 			docinfo.value?.permissions ?? {},
 			tagsOf(docinfo.value).length > 0,
 			follow.value,
-			stripTabs.value.find((tab) => tab.name === FILES_TAB)?.create
+			stripTabs.value.find((tab) => tab.name === FILES_TAB)?.create,
+			fieldActionQuickActions(fieldActionItems.list())
 		)
 	);
 	created.tabs.provideBuiltins(() =>

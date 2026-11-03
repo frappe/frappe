@@ -116,8 +116,9 @@ export type ActsContribution = {
 // An app's field actions: <module>/frontend/field-actions.js, whose default export is a list of
 // `FieldActionItem`. The record page imports it when a field that could hold an action draws.
 export type FieldActionItem = ActionItem<string> & {
-  /** Only `Phone` draws actions today. */
   fieldtype: string
+  /** The record's quick action label; read at each build, so a getter can translate late. `label` is the field button's and the `⋯` row's. */
+  quickActionLabel?: string
 }
 
 export type FieldActionsContribution = {

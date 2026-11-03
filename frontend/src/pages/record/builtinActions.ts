@@ -13,10 +13,12 @@ export function quickActionBuiltins(
   perms: Record<string, any>,
   tagged = false,
   follow?: FollowState,
-  attach?: TabCreateAction
+  attach?: TabCreateAction,
+  fieldActions: QuickAction[] = []
 ): QuickAction[] {
   const actions: QuickAction[] = [];
   if (perms.email) actions.push({ name: "email", label: "Email", icon: "lucide-mail", run: openEmail });
+  actions.push(...fieldActions);
   // No right gates it: a comment needs only read.
   actions.push({ name: "comment", label: "Comment", icon: "lucide-message-square", run: openComment });
   // The Files tab's own `+` entry, so it goes when that entry goes: no write right, or the tab hidden.
@@ -60,6 +62,7 @@ export function headerMenuBuiltins(
     rename?: boolean;
     duplicate?: boolean;
     submitted?: boolean;
+    fieldActions?: HeaderItem[];
   } = {}
 ): HeaderItem[] {
   const items: HeaderItem[] = [
@@ -81,6 +84,7 @@ export function headerMenuBuiltins(
     });
   if (options.assign) items.push(assignItem(options.assign));
   if (options.rename && !options.single) items.push(renameItem());
+  items.push(...(options.fieldActions ?? []));
   items.push(
     { name: "copy_url", label: "Copy record URL", icon: "lucide-link", group: "copies", run: copyLink },
     { name: "copy_id", label: "Copy record ID", icon: "lucide-hash", group: "copies", run: copyId }

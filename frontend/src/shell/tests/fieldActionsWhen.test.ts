@@ -8,7 +8,7 @@ vi.mock("frappe-ui", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 vi.mock("@framework/ui/api", () => ({ getTranslations: vi.fn() }));
 
 import { acts } from "@/acts/dispatcher";
-import { fieldActions } from "../fieldActions";
+import { FieldActionItems, fieldActions } from "../fieldActions";
 
 describe("field actions and the act's when", () => {
 	it("draw only while the act's when holds", async () => {
@@ -24,7 +24,7 @@ describe("field actions and the act's when", () => {
 			failed: () => {},
 		});
 		files.push({ app: "crm", load: async () => ({ default: [{ fieldtype: "Phone", act: "shell.crm.call" }] }) });
-		const host = fieldActions();
+		const host = fieldActions(new FieldActionItems());
 		const phone = { fieldname: "mobile_no", fieldtype: "Phone" } as never;
 		host.for(phone, "123");
 		await new Promise((resolve) => setTimeout(resolve));
