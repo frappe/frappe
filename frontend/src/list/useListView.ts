@@ -3,6 +3,7 @@
 import { applyColumnWidth, clearColumnWidth } from "@framework/ui/ColumnSettings";
 import type { ListColumn } from "@framework/ui/experimental/List";
 import { serializeFilters, type FilterCondition } from "@framework/ui/Filter";
+import type { RawMetaField } from "@framework/ui/FormLayout";
 import { serializeOrderBy } from "@framework/ui/SortBy";
 import { useDocPermissions } from "@framework/ui/useDocPermissions";
 import { useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
@@ -28,6 +29,8 @@ export interface ListView extends ListRows {
 	columns: WritableComputedRef<ListColumn[]>;
 	/** The row actions the apps contributed for this doctype. */
 	rowActions: RowAction[];
+	/** The meta field a column shows; a column the meta does not hold has none. */
+	fieldOf: (fieldname: string) => RawMetaField | undefined;
 	selection: Ref<string[]>;
 	/** Kept in the history entry. */
 	pageSize: Ref<number>;
@@ -150,6 +153,7 @@ export function useListView(view: View): ListView {
 		...rows,
 		columns,
 		rowActions,
+		fieldOf: (fieldname) => fields.value.find((one) => one.fieldname === fieldname),
 		selection,
 		pageSize,
 		rowsKey,
