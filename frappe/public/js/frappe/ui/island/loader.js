@@ -23,7 +23,12 @@
  * ui/island/decisions/0001-an-app-bundles-its-own-island.md.
  */
 
-import { mountIsland, reloadChangedIslands, unmountIsland } from "@framework/ui/island/host";
+import {
+	mountIsland,
+	preloadIsland,
+	reloadChangedIslands,
+	unmountIsland,
+} from "@framework/ui/island/host";
 
 const ISLAND_JS_SUFFIX = ".island.js";
 const ISLAND_CSS_SUFFIX = ".island.css";
@@ -40,6 +45,11 @@ function mount_island(name, el, props = {}) {
 		host: build_desk_context(),
 		props,
 	});
+}
+
+/** Starts downloading an island this site has, so a mount soon after finds it loaded. */
+export function preload_island(name) {
+	if (frappe.boot?.ui_islands?.includes(name)) preloadIsland(resolve_island(name));
 }
 
 function resolve_island(name) {
