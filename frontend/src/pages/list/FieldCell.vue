@@ -14,7 +14,8 @@
 			:field="field"
 			:value="value"
 			class="me-1.5"
-		/>{{ text }}
+		/><RecordText v-if="target && text" :doctype="target" :name="String(value)" :text="text" />
+		<template v-else>{{ text }}</template>
 	</div>
 </template>
 
@@ -24,6 +25,7 @@ import type { FieldMeta } from "@framework/ui/fields/types";
 import { useFieldDisplay } from "@framework/ui/FormLayout";
 import { Checkbox, Rating } from "frappe-ui";
 import { computed } from "vue";
+import RecordText from "./RecordText.vue";
 
 // The form sums these up as "Set" or a first line; a cell shows the stored value.
 const STORED_VALUE_FIELDTYPES = new Set([
@@ -43,6 +45,14 @@ const display = useFieldDisplay();
 
 const value = computed(() => props.row[props.field.fieldname]);
 const starCount = computed(() => Number(props.field.options) || 5);
+
+// A Dynamic Link's doctype is the sibling field its `options` names, which the list reads too.
+const target = computed(() => {
+	if (props.field.fieldtype === "Link") return props.field.options;
+	if (props.field.fieldtype === "Dynamic Link")
+		return String(props.row[props.field.options ?? ""] ?? "");
+	return "";
+});
 
 const text = computed(() => {
 	if (value.value == null || value.value === "") return "";

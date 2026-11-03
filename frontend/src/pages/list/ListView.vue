@@ -47,7 +47,11 @@
 					:text="markedText(row, column.fieldname)"
 				/>
 				<div class="truncate text-base text-ink-gray-8">
-					{{ markedText(row, column.fieldname) }}
+					<RecordText
+						:doctype="linkTarget(column.fieldname)"
+						:name="String(row[column.fieldname] ?? '')"
+						:text="markedText(row, column.fieldname)"
+					/>
 				</div>
 			</div>
 			<FieldCell
@@ -101,6 +105,7 @@ import EmailCell from "./EmailCell.vue";
 import FieldCell from "./FieldCell.vue";
 import PhoneCell from "./PhoneCell.vue";
 import type { RendererHost } from "./renderer";
+import RecordText from "./RecordText.vue";
 import RowMenu from "./RowMenu.vue";
 import { rowActionEntries, rowMenuOptions } from "./rowActions";
 
@@ -171,6 +176,12 @@ function markedText(row: Record<string, unknown>, fieldname: string): string {
 	const field = fieldOf(fieldname);
 	if (field?.fieldtype !== "Link") return value;
 	return linkTitles.value[`${field.options}::${value}`] || value;
+}
+
+// A marked cell links its text to the record only for a Link; the title's image mark has no target.
+function linkTarget(fieldname: string): string {
+	const field = fieldOf(fieldname);
+	return field?.fieldtype === "Link" ? field.options ?? "" : "";
 }
 
 function columnFields(matches: (field: RawMetaField) => boolean) {
