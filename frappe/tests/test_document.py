@@ -409,6 +409,20 @@ class TestDocument(IntegrationTestCase):
 		self.assertTrue(xss not in d.subject)
 		self.assertTrue(escaped_xss in d.subject)
 
+	def test_xss_filter_on_submitted_doc_with_update_after_submit_skipped(self):
+		child = new_doctype(istable=1).insert().name
+		parent = new_doctype(
+			is_submittable=1, fields=[{"fieldtype": "Table", "options": child, "fieldname": "items"}]
+		).insert()
+		doc = frappe.get_doc({"doctype": parent.name, "items": [{"some_fieldname": "row"}]}).insert()
+		doc.submit()
+
+		doc.items[0].some_fieldname = '<img src=x onerror="alert(1)">'
+		doc.flags.ignore_validate_update_after_submit = True
+		doc.save()
+
+		self.assertNotIn("onerror", doc.items[0].some_fieldname)
+
 	def test_naming_series(self):
 		data = ["TEST-", "TEST/17-18/.test_data./.####", "TEST.YYYY.MM.####"]
 

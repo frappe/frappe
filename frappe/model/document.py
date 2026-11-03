@@ -3896,6 +3896,13 @@ class Document(_DocumentBase):
 		if frappe.flags.in_install:
 			return
 
+		# submitted values can still change when update after submit checks are skipped
+		parent = self.parent_doc
+		skip_submitted = not (
+			self.flags.ignore_validate_update_after_submit
+			or (parent and parent.flags.ignore_validate_update_after_submit)
+		)
+
 		for fieldname, value in self.get_valid_dict(ignore_virtual=True).items():
 			if not value or not isinstance(value, str):
 				continue
@@ -3919,7 +3926,7 @@ class Document(_DocumentBase):
 				or df.get("fieldtype") in ("Attach", "Attach Image", "Barcode", "Code", "JSON")
 				# cancelled and submit but not update after submit should be ignored
 				or self.docstatus.is_cancelled()
-				or (self.docstatus.is_submitted() and not df.get("allow_on_submit"))
+				or (skip_submitted and self.docstatus.is_submitted() and not df.get("allow_on_submit"))
 			):
 				continue
 
