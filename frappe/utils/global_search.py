@@ -526,16 +526,12 @@ def search(text: str, start: int = 0, limit: int = 20, doctype: str = ""):
 	return sorted_results
 
 
-<<<<<<< HEAD
-@frappe.whitelist(allow_guest=True)
-=======
 WEB_SEARCH_MAX_SEGMENTS = 5
 WEB_SEARCH_MAX_LIMIT = 100
 WEB_SEARCH_MAX_TEXT_LENGTH = 1000
 
 
-@frappe.whitelist(allow_guest=True)  # nosemgrep
->>>>>>> 29411c1 (fix(global_search): sanitize and bound web_search inputs)
+@frappe.whitelist(allow_guest=True)
 def web_search(text: str, scope: str | None = None, start: int = 0, limit: int = 20):
 	"""
 	Search for given text in __global_search where published = 1
@@ -546,21 +542,13 @@ def web_search(text: str, scope: str | None = None, start: int = 0, limit: int =
 	:return: Array of result objects
 	"""
 
-<<<<<<< HEAD
-	results = []
-	texts = text.split("&")
-	for text in texts:
-=======
-	from frappe.query_builder.custom import build_fts5_prefix_query
-
 	limit = max(0, min(cint(limit), WEB_SEARCH_MAX_LIMIT))
 	start = max(0, cint(start))
 	text = (text or "")[:WEB_SEARCH_MAX_TEXT_LENGTH]
 
 	results = []
 	texts = list(dict.fromkeys(t for t in text.split("&") if t.strip()))[:WEB_SEARCH_MAX_SEGMENTS]
-	for search_text in texts:
->>>>>>> 29411c1 (fix(global_search): sanitize and bound web_search inputs)
+	for text in texts:
 		common_query = """ SELECT `doctype`, `name`, `content`, `title`, `route`
 			FROM `__global_search`
 			WHERE {conditions}
