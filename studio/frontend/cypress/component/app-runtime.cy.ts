@@ -79,6 +79,23 @@ export default function setup(context: any) { return { label: ref(fmt(7) + fmt2(
 		})
 	})
 
+	it("reads imports from the syntax tree, not from import-like text", () => {
+		const sources = {
+			"a.ts": `import { ref as count } from "vue"
+// import { Gone } from "./deleted.vue"
+/** usage: import { Doc } from "./doc-only" */
+export const help = 'add import "./theme.css" to the page'
+export const sample = \`import { ref } from "vue"\`
+export const value = count("ok")`,
+		}
+
+		cy.wrap(new AppModuleRegistry(sources).loadModule("a.ts")).then((module: any) => {
+			// the alias is checked against "ref", the name vue actually exports, not "count"
+			expect(module.value.value).to.equal("ok")
+			expect(module.help).to.include('import "./theme.css"')
+		})
+	})
+
 	it("reports unresolvable and invalid imports with the file in the message", () => {
 		cy.wrap(
 			(async () => {
@@ -90,6 +107,12 @@ export default function setup(context: any) { return { label: ref(fmt(7) + fmt2(
 				)
 				await expectCompileError(
 					{ "a.ts": `import y from "./missing"\nexport const z = y` },
+					"a.ts",
+					"Cannot resolve",
+				)
+				// a literal import() is prefetched too, so it has to resolve like any other import
+				await expectCompileError(
+					{ "a.ts": `export const lazy = () => import("./missing.vue")` },
 					"a.ts",
 					"Cannot resolve",
 				)

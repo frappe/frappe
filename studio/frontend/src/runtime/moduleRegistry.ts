@@ -9,13 +9,10 @@
  * move to a repository.
  */
 
-import { compileFile, describeError, toCommonJS, type CompileError } from "@/runtime/compiler"
+import { compileFile, describeError, parseImports, toCommonJS, type CompileError } from "@/runtime/compiler"
 import { loadImportableModule } from "@/runtime/importableModules"
 
 const EXTENSION_CANDIDATES = ["", ".ts", ".js", ".json", "/index.ts", "/index.js"]
-// Matches `from '…'`, `import '…'`, `import('…')`, `export … from '…'`.
-const SPECIFIER_REGEX = /(\bfrom\s+|\bimport\s*\(\s*|\bimport\s+)(['"])([^'"\n]+)\2/g
-const NAMED_IMPORT_REGEX = /\bimport\s+([^'";]+?)\s+from\s*(['"])([^'"\n]+)\2/g
 
 type ModuleFactory = (exports: any, require: (specifier: string) => any, module: any) => void
 
@@ -105,24 +102,25 @@ export class AppModuleRegistry {
 	/** Resolve every import up front: bare ones load from the renderer's modules, relative ones
 	 * must exist in the app, and named imports from bare modules must actually be exported. */
 	private async linkImports(path: string, code: string): Promise<CompileError[]> {
-		const errors: CompileError[] = []
-		for (const match of code.matchAll(SPECIFIER_REGEX)) {
-			const specifier = match[3]
+		const { imports, errors } = await parseImports(path, code)
+		if (errors.length) return errors
+
+		for (const { specifier, names } of imports) {
 			if (isLocalSpecifier(specifier)) {
 				if (!this.resolve(path, specifier)) {
 					errors.push(importError(path, `Cannot resolve "${specifier}"`))
 				}
-			} else if (!this.bare.has(specifier)) {
+				continue
+			}
+			if (!this.bare.has(specifier)) {
 				try {
 					this.bare.set(specifier, await loadImportableModule(specifier))
 				} catch (error: any) {
 					errors.push(importError(path, error?.message || String(error)))
+					continue
 				}
 			}
-		}
-		for (const { specifier, names } of namedImports(code)) {
 			const namespace = this.bare.get(specifier)
-			if (!namespace) continue
 			for (const name of names) {
 				if (!(name in namespace)) {
 					errors.push(importError(path, `"${specifier}" has no export named "${name}"`))
@@ -208,25 +206,6 @@ function parseJSONModule(source: string): any {
 
 function importError(path: string, message: string): CompileError {
 	return { file: path, line: null, column: null, message }
-}
-
-function namedImports(code: string): { specifier: string; names: string[] }[] {
-	const imports: { specifier: string; names: string[] }[] = []
-	for (const match of code.matchAll(NAMED_IMPORT_REGEX)) {
-		const braced = match[1].match(/\{([^}]*)\}/)
-		if (!braced) continue
-		const names = braced[1]
-			.split(",")
-			.map((part) =>
-				part
-					.trim()
-					.split(/\s+as\s+/)[0]
-					.trim(),
-			)
-			.filter((name) => name && !name.startsWith("type "))
-		imports.push({ specifier: match[3], names })
-	}
-	return imports
 }
 
 // Styles are keyed by file path in the document head, shared across runtime rebuilds so a

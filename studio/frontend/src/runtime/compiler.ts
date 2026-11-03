@@ -19,6 +19,12 @@ export interface CompiledFile {
 	errors: CompileError[]
 }
 
+export interface ModuleImport {
+	specifier: string
+	/** The names a static import takes, for the export check; empty for a re-export or `import()`. */
+	names: string[]
+}
+
 export function describeError(error: CompileError): string {
 	const place = error.file ? `${error.file}${error.line ? `:${error.line}` : ""}: ` : ""
 	return `${place}${error.message}`
@@ -30,6 +36,8 @@ const TS_OPTIONS: SucraseOptions = { transforms: ["typescript"], disableESTransf
 const CJS_OPTIONS: SucraseOptions = { transforms: ["imports"], disableESTransforms: true }
 
 type SucraseOptions = import("sucrase").Options
+type BabelProgram = ReturnType<typeof import("vue/compiler-sfc").babelParse>["program"]
+type ImportDeclaration = Extract<BabelProgram["body"][number], { type: "ImportDeclaration" }>
 
 let compilerModules: Promise<[typeof import("vue/compiler-sfc"), typeof import("sucrase")]> | null = null
 
@@ -69,6 +77,65 @@ export async function toCommonJS(filename: string, source: string): Promise<Comp
 		return { code, css: "", errors: [] }
 	} catch (error) {
 		return { code: "", css: "", errors: [formatError(filename, error)] }
+	}
+}
+
+/**
+ * Every import in compiled module code, with the names each one takes. The registry needs these
+ * before any module body runs, because its require is synchronous while loading a bare module is
+ * not. A computed `import()` carries no specifier to read, so it falls through to that require.
+ */
+export async function parseImports(
+	filename: string,
+	code: string,
+): Promise<{ imports: ModuleImport[]; errors: CompileError[] }> {
+	const [sfc] = await loadCompilers()
+	try {
+		const { program } = sfc.babelParse(code, { sourceType: "module" })
+		return { imports: [...staticImports(program), ...dynamicImports(program)], errors: [] }
+	} catch (error) {
+		return { imports: [], errors: [formatError(filename, error)] }
+	}
+}
+
+function* staticImports(program: BabelProgram): Generator<ModuleImport> {
+	for (const node of program.body) {
+		if (node.type === "ImportDeclaration") {
+			if (node.importKind === "type") continue
+			yield { specifier: node.source.value, names: importedNames(node) }
+		} else if ("source" in node && node.source) {
+			// `export … from "…"` pulls the module in without naming what it takes
+			yield { specifier: node.source.value, names: [] }
+		}
+	}
+}
+
+function importedNames(node: ImportDeclaration): string[] {
+	const names: string[] = []
+	for (const specifier of node.specifiers) {
+		if (specifier.type !== "ImportSpecifier" || specifier.importKind === "type") continue
+		const { imported } = specifier
+		names.push(imported.type === "Identifier" ? imported.name : imported.value)
+	}
+	return names
+}
+
+/** `import("…")` sits in an expression, so it takes a walk to find. */
+function* dynamicImports(node: unknown): Generator<ModuleImport> {
+	if (!node || typeof node !== "object") return
+	if (Array.isArray(node)) {
+		for (const item of node) yield* dynamicImports(item)
+		return
+	}
+	const fields = node as Record<string, any>
+	if (fields.type === "CallExpression" && fields.callee?.type === "Import") {
+		const [argument] = fields.arguments
+		if (argument?.type === "StringLiteral") yield { specifier: argument.value, names: [] }
+	}
+	for (const key in fields) {
+		if (key !== "loc" && key !== "leadingComments" && key !== "trailingComments") {
+			yield* dynamicImports(fields[key])
+		}
 	}
 }
 
