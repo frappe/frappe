@@ -25,7 +25,7 @@ describe("defaultColumns", () => {
 	});
 
 	it("falls back to name and modified when only an Image field is flagged", () => {
-		const photo = { fieldname: "photo", label: "Photo", fieldtype: "Image", in_list_view: 1 };
+		const photo: RawMetaField = { fieldname: "photo", label: "Photo", fieldtype: "Image", in_list_view: 1 };
 		const columns = defaultColumns({ fields: [photo] }, []);
 		expect(columns.map((c) => c.fieldname)).toEqual(["name", "modified"]);
 	});
