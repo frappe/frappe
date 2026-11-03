@@ -155,7 +155,7 @@ export function openRecord(): ShellRecord | null {
 	if (!page?.doc || page.isNew || !page.docname) return null;
 	const fields = (page.meta?.fields ?? []).map((field) => ({
 		fieldname: field.fieldname,
-		label: field.label,
+		label: field.label ?? field.fieldname,
 		fieldtype: kindOf(field),
 	}));
 	return { doctype: page.doctype, name: page.docname, doc: page.doc, fields };
