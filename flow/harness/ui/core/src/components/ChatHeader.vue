@@ -25,7 +25,7 @@
 				<span class="max-w-[220px] truncate">{{ lead.label }}</span>
 			</span>
 			<span v-if="lead" aria-hidden="true" class="hidden flex-none text-base text-ink-gray-3 sm:inline">/</span>
-			<span class="min-w-0 truncate font-medium text-ink-gray-9" :class="layout.phone ? 'text-md' : 'text-base'">{{ title }}</span>
+			<span class="min-w-0 truncate text-ink-gray-9" :class="layout.phone ? 'text-md-medium' : 'text-base-medium'">{{ title }}</span>
 		</div>
 
 		<!-- by the title in a narrow frame; a wide one keeps it with the buttons at the end -->

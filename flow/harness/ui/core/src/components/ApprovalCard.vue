@@ -6,13 +6,13 @@
 			<div class="min-w-0 flex-1 text-base-medium leading-snug text-ink-gray-8">{{ title }}</div>
 			<span
 				v-if="subagent != null"
-				class="max-w-[45%] flex-none truncate rounded-full bg-surface-gray-2 px-2 py-0.5 text-xs font-medium text-ink-gray-6"
+				class="max-w-[45%] flex-none truncate rounded-full bg-surface-gray-2 px-2 py-0.5 text-xs-medium text-ink-gray-6"
 			>
 				Sub-agent{{ subagent ? `: ${subagent}` : "" }}
 			</span>
 			<span
 				v-if="total > 1"
-				class="flex-none rounded-full bg-surface-gray-2 px-2 py-0.5 text-xs font-medium text-ink-gray-6"
+				class="flex-none rounded-full bg-surface-gray-2 px-2 py-0.5 text-xs-medium text-ink-gray-6"
 			>
 				{{ position }} of {{ total }}
 			</span>

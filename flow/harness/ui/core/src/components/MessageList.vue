@@ -131,7 +131,7 @@
 			     exactly where the upcoming tool row will render. -->
 			<div
 				v-if="showStandaloneStatus"
-				class="flex items-center gap-2 py-2 text-base font-medium md:py-2.5"
+				class="flex items-center gap-2 py-2 text-base-medium md:py-2.5"
 				:class="lastItem?.kind === 'thinking' ? '-mt-5' : ''"
 			>
 				<BrandMark line :size="16" :state="/think/i.test(liveLabel) ? 'thinking' : 'working'" />

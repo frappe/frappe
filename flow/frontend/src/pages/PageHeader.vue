@@ -17,7 +17,7 @@
 			aria-label="Breadcrumb"
 		>
 			<span :class="icon" class="size-4 flex-none text-ink-gray-5 max-md:hidden" aria-hidden="true" />
-			<h1 class="min-w-0 truncate font-medium text-ink-gray-9">{{ title }}</h1>
+			<h1 class="min-w-0 truncate text-base-medium text-ink-gray-9">{{ title }}</h1>
 		</nav>
 		<span class="min-w-2 flex-1" />
 		<div class="flex flex-none items-center gap-2 [&_button]:text-base">

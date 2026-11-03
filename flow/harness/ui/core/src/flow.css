@@ -316,7 +316,7 @@ body {
 }
 /* the thread's step rows (tools, thinking, folds) sit one step under the chat text, or at
    --flow-step-text where a host sets it */
-.flow-thread .text-base {
+.flow-thread :is(.text-base, .text-base-medium) {
 	font-size: var(--flow-step-text, calc(var(--flow-chat-text, 15px) - 1px));
 }
 /* the draft (its box and the highlight under it) follows too, its size only from 640px */

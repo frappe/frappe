@@ -34,7 +34,7 @@
 				<span class="min-w-0 flex-1 truncate">{{ p.name }}</span>
 				<span
 					v-if="p.configured"
-					class="flex items-center gap-1 text-xs font-medium text-ink-green-7"
+					class="flex items-center gap-1 text-xs-medium text-ink-green-7"
 				>
 					<span class="h-1.5 w-1.5 rounded-full bg-surface-green-7" />
 					Connected
@@ -80,7 +80,7 @@
 					<ProviderIcon :provider-id="selected.id" :icon="selected.icon" :size="28" />
 				</span>
 				<div class="min-w-0">
-					<div class="truncate text-base font-semibold text-ink-gray-9">{{ selected.name }}</div>
+					<div class="truncate text-base-semibold text-ink-gray-9">{{ selected.name }}</div>
 					<div class="truncate text-sm text-ink-gray-5">{{ selected.source || "Not connected" }}</div>
 				</div>
 			</div>
@@ -88,15 +88,15 @@
 			<!-- custom endpoint setup: adds a new one, or edits the selected one in place -->
 			<form v-if="selected.custom_setup || selected.custom" class="flex flex-col gap-3" @submit.prevent="saveCustom">
 				<label class="block">
-					<span class="mb-1.5 block text-sm font-medium text-ink-gray-7">Name</span>
+					<span class="mb-1.5 block text-sm-medium text-ink-gray-7">Name</span>
 					<input v-model="customName" :class="FIELD" placeholder="Local Ollama" />
 				</label>
 				<label class="block">
-					<span class="mb-1.5 block text-sm font-medium text-ink-gray-7">Base URL</span>
+					<span class="mb-1.5 block text-sm-medium text-ink-gray-7">Base URL</span>
 					<input v-model="customBaseUrl" :class="FIELD" placeholder="http://localhost:11434/v1" />
 				</label>
 				<label class="block">
-					<span class="mb-1.5 block text-sm font-medium text-ink-gray-7">Models</span>
+					<span class="mb-1.5 block text-sm-medium text-ink-gray-7">Models</span>
 					<textarea
 						v-model="customModelIds"
 						rows="3"
@@ -109,7 +109,7 @@
 					</span>
 				</label>
 				<label class="block">
-					<span class="mb-1.5 block text-sm font-medium text-ink-gray-7">
+					<span class="mb-1.5 block text-sm-medium text-ink-gray-7">
 						API key <span class="font-normal text-ink-gray-4">(optional)</span>
 					</span>
 					<input
@@ -163,7 +163,7 @@
 			</div>
 
 			<form v-else-if="selected.auth_methods.includes('api_key')" class="mt-5" @submit.prevent="saveKey">
-				<label class="mb-1.5 block text-sm font-medium text-ink-gray-7">API key</label>
+				<label class="mb-1.5 block text-sm-medium text-ink-gray-7">API key</label>
 				<input
 					v-model="apiKey"
 					type="password"

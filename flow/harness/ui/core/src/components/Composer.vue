@@ -91,12 +91,12 @@
 				class="mx-3.5 -mb-1.5 flex flex-col divide-y divide-outline-gray-2 rounded-t-[10px] border border-b-0 border-outline-gray-2 bg-surface-gray-2 px-3 pb-2.5 pt-1"
 			>
 				<div v-for="item in flow.state.queued" :key="item.key" class="flex min-h-5 items-center gap-2 py-1">
-					<span class="flex-none text-base font-medium text-ink-gray-6">Queued</span>
+					<span class="flex-none text-base-medium text-ink-gray-6">Queued</span>
 					<span class="min-w-0 flex-1 truncate text-base text-ink-gray-7">{{ item.label }}</span>
 					<!-- a compaction takes no steering: the queue waits for it to end -->
 					<button
 						v-if="!compacting"
-						class="flex h-6 flex-none items-center gap-1 rounded-4 px-2 text-base font-medium text-ink-gray-7 hover:bg-surface-gray-3 hover:text-ink-gray-9"
+						class="flex h-6 flex-none items-center gap-1 rounded-4 px-2 text-base-medium text-ink-gray-7 hover:bg-surface-gray-3 hover:text-ink-gray-9"
 						:title="running ? 'Add it to the running turn' : 'Send it now'"
 						:disabled="disabled"
 						@click="steerQueued(item)"
@@ -170,8 +170,8 @@
 						class="lucide-folder size-3.5 flex-none text-ink-gray-5"
 						aria-hidden="true"
 					/>
-					<span class="min-w-0 flex-1 text-base font-medium leading-4 text-ink-gray-9">Choose a project folder to start</span>
-					<span class="flex-none text-base font-medium text-ink-gray-6">Browse…</span>
+					<span class="min-w-0 flex-1 text-base-medium leading-4 text-ink-gray-9">Choose a project folder to start</span>
+					<span class="flex-none text-base-medium text-ink-gray-6">Browse…</span>
 				</button>
 				<div v-if="imageTiles.length" class="flex flex-wrap gap-1.5 px-1 pt-0.5">
 					<figure
@@ -208,12 +208,12 @@
 						:title="`${ref.rel}:${ref.start}-${ref.end}`"
 					>
 						<span :class="chipIconClass"><span class="lucide-code size-3.5" aria-hidden="true" /></span>
-						<span class="min-w-0 truncate text-base font-medium text-ink-gray-8">{{ codeRefLabel(ref) }}</span>
+						<span class="min-w-0 truncate text-base-medium text-ink-gray-8">{{ codeRefLabel(ref) }}</span>
 						<Button variant="ghost" size="xs" icon="lucide-x" title="Remove reference" :disabled="locked" @click="flow.removeCodeRef(i)" />
 					</span>
 					<span v-for="(quote, i) in quotes" :key="`quote:${i}`" :class="chipClass" :title="quote">
 						<span :class="chipIconClass"><span class="lucide-align-left size-3.5" aria-hidden="true" /></span>
-						<span class="min-w-0 truncate text-base font-medium text-ink-gray-8">{{ quoteLabel(quote) }}</span>
+						<span class="min-w-0 truncate text-base-medium text-ink-gray-8">{{ quoteLabel(quote) }}</span>
 						<Button variant="ghost" size="xs" icon="lucide-x" title="Remove quote" :disabled="locked" @click="flow.removeQuote(i)" />
 					</span>
 					<span v-for="{ item, i } in fileChips" :key="item.key" :class="chipClass" :title="item.name">
@@ -230,7 +230,7 @@
 								aria-hidden="true"
 							/>
 						</span>
-						<span class="min-w-0 flex-1 truncate text-base font-medium text-ink-gray-8">{{ item.name }}</span>
+						<span class="min-w-0 flex-1 truncate text-base-medium text-ink-gray-8">{{ item.name }}</span>
 						<Button
 							variant="ghost"
 							size="xs"

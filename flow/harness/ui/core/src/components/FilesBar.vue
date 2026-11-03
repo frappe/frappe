@@ -12,7 +12,7 @@
 		>
 			<div
 				v-if="mode === 'diff'"
-				class="flex h-9 flex-none items-center border-b border-outline-gray-1 px-3 text-sm font-medium text-ink-gray-5"
+				class="flex h-9 flex-none items-center border-b border-outline-gray-1 px-3 text-sm-medium text-ink-gray-5"
 			>
 				{{ gitFiles.length }} {{ gitFiles.length === 1 ? "file" : "files" }} changed
 			</div>

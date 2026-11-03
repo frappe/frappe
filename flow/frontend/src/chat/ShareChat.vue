@@ -33,7 +33,7 @@
 			<li v-for="user in members" :key="user.name" class="flex items-center gap-2.5">
 				<Avatar :image="user.user_image" :label="nameOf(user)" size="xl" />
 				<div class="min-w-0 flex-1">
-					<p class="truncate text-base font-medium text-ink-gray-9">{{ nameOf(user) }}</p>
+					<p class="truncate text-base-medium text-ink-gray-9">{{ nameOf(user) }}</p>
 					<p
 						v-if="nameOf(user) !== user.name"
 						class="mt-1 truncate text-xs text-ink-gray-5"

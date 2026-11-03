@@ -8,7 +8,7 @@
 	>
 		<div class="flex items-center gap-2">
 			<Button v-if="!headerBack" variant="ghost" icon="lucide-arrow-left" class="-my-1 -ml-1.5" title="Back to skills" @click="back" />
-			<h2 class="text-md font-semibold text-ink-gray-9">{{ editing.isNew ? "New skill" : editing.name }}</h2>
+			<h2 class="text-md-semibold text-ink-gray-9">{{ editing.isNew ? "New skill" : editing.name }}</h2>
 			<Badge v-if="!editing.isNew" :label="SCOPE_LABELS[editing.scope]" variant="subtle" theme="gray" />
 		</div>
 		<template v-if="editing.isNew">
@@ -42,7 +42,7 @@
 	<div v-else class="min-h-0 flex-1 overflow-y-auto px-4 pb-10 pt-3 sm:px-8 md:pt-8">
 		<div class="flex items-start justify-between gap-4">
 			<div>
-				<h2 class="text-md font-semibold text-ink-gray-9">Skills</h2>
+				<h2 class="text-md-semibold text-ink-gray-9">Skills</h2>
 				<p class="mt-1 text-sm leading-5 text-ink-gray-6">Reusable instructions the agent can load.</p>
 			</div>
 			<Button v-if="!disabled && !layout.narrow" variant="solid" label="New skill" :disabled="!roots.global" @click="startNew" />
@@ -55,7 +55,7 @@
 		<template v-else>
 			<section v-for="scope in scopes" :key="scope.id" class="mt-8">
 				<div class="flex items-center justify-between gap-4">
-					<div class="text-base font-medium text-ink-gray-9">{{ scope.title }}</div>
+					<div class="text-base-medium text-ink-gray-9">{{ scope.title }}</div>
 					<Select
 						v-if="scope.id === 'project' && projects.length"
 						:model-value="projectCwd ?? ''"
@@ -72,7 +72,7 @@
 						@click="open(row)"
 					>
 						<div class="min-w-0 flex-1">
-							<div class="text-base font-medium text-ink-gray-9">{{ row.name }}</div>
+							<div class="text-base-medium text-ink-gray-9">{{ row.name }}</div>
 							<p v-if="row.error" class="mt-1 flex items-center gap-1.5 truncate text-sm text-ink-red-6">
 								<span
 									class="lucide-circle-alert size-3.5 flex-none"

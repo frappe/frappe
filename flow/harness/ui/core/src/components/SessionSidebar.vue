@@ -34,7 +34,7 @@
 						title="Flow menu"
 					>
 						<BrandMark line :size="16" class="!text-ink-gray-8" />
-						<span class="text-base font-semibold text-ink-gray-9">Flow</span>
+						<span class="text-base-semibold text-ink-gray-9">Flow</span>
 						<span class="lucide-chevron-down size-3.5 flex-none text-ink-gray-5" aria-hidden="true" />
 					</button>
 				</template>
@@ -61,7 +61,7 @@
 
 		<!-- outside the scroller, so the heading stays in place down a long list -->
 		<div v-if="flow.state.sessions.length || flow.state.folders?.length" class="list-head mt-[9px] flex h-8 flex-none items-center gap-0.5 px-2">
-			<h3 class="min-w-0 flex-1 truncate pl-2 text-sm font-medium text-ink-gray-5">
+			<h3 class="min-w-0 flex-1 truncate pl-2 text-sm-medium text-ink-gray-5">
 				{{ grouped ? "Workspaces" : "Chats" }}
 			</h3>
 			<Dropdown v-if="hasWorkspaces" align="end" :options="viewOptions">
@@ -170,7 +170,7 @@
 							</button>
 						</template>
 					</SidebarItem>
-					<h3 v-else-if="grouped" class="flex h-7 items-center pl-2 text-sm font-medium text-ink-gray-5">
+					<h3 v-else-if="grouped" class="flex h-7 items-center pl-2 text-sm-medium text-ink-gray-5">
 						Ungrouped
 					</h3>
 					<!-- while a workspace is dragged only the workspaces show, so it drops between them -->
