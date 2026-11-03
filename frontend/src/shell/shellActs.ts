@@ -152,7 +152,7 @@ interface OpenPage {
 // The record page registers its acts on the `header` surface, with the page as their context.
 export function openRecord(): ShellRecord | null {
 	const page = acts.contextOf("header") as OpenPage | undefined;
-	if (!page?.doc || page.isNew) return null;
+	if (!page?.doc || page.isNew || !page.docname) return null;
 	const fields = (page.meta?.fields ?? []).map((field) => ({
 		fieldname: field.fieldname,
 		label: field.label,

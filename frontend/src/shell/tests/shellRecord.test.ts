@@ -59,6 +59,19 @@ describe("shell.record", () => {
 		});
 	});
 
+	it("is null on a page that registers no header surface, and once the record page lets go", () => {
+		openPage({ doctype: "Contact", docname: "C-1", isNew: false, doc: {}, meta: null }, "list");
+		expect(openRecord()).toBeNull();
+		expect(acts.contextOf("list")).toMatchObject({ docname: "C-1" });
+		releases.splice(0).forEach((release) => release());
+		expect(acts.contextOf("list")).toBeUndefined();
+	});
+
+	it("is null while a saved-looking page has no name yet", () => {
+		openPage({ doctype: "Contact", docname: "", isNew: false, doc: {}, meta: null });
+		expect(openRecord()).toBeNull();
+	});
+
 	it("is null on a new record, and a page with no meta has no fields", () => {
 		openPage({
 			doctype: "Contact",
