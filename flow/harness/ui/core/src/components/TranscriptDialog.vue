@@ -243,7 +243,7 @@ function rawJson(row) {
 	return JSON.stringify(raw, null, 2)
 }
 
-const PURPOSES = { title: "title", replies: "suggestions" }
+const PURPOSES = { title: "title", replies: "suggestions", review: "approval review" }
 const background = computed(() => {
 	const calls = (conversation.value.requests ?? []).filter((usage) => usage.purpose)
 	if (!calls.length) return ""
