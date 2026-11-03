@@ -1,7 +1,7 @@
 // An app's global acts: imported from its `acts.js` at idle after the first paint, named
 // `shell.<app>.<item>`, checked by their right, and waited for by an early dispatch or palette.
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import { createApp, nextTick } from "vue";
+import { createApp, nextTick, ref } from "vue";
 import { createMemoryHistory, createRouter } from "vue-router";
 import type { Session } from "@framework/ui/api";
 
@@ -283,6 +283,34 @@ describe("an app's acts", () => {
 		expect(console.warn).toHaveBeenCalledWith(
 			"[frappe] shell.crm.bare is ignored: a shell act's right is { doctype, ptype }."
 		);
+	});
+
+	it("hide an act whose when is false, from the palette's list and from a run, until it holds", async () => {
+		const medium = ref<string | null>(null);
+		const run = vi.fn();
+		ship("crm", [{ ...logACall(run), when: () => !!medium.value }]);
+		await shell();
+		await paint();
+
+		expect(appActNames()).toEqual([]);
+		expect(acts.find("shell.crm.log_a_call")).toBeUndefined();
+		await expect(acts.run("shell.crm.log_a_call")).rejects.toMatchObject({ reason: "hidden" });
+
+		medium.value = "twilio";
+		expect(appActNames()).toEqual(["shell.crm.log_a_call"]);
+		await acts.run("shell.crm.log_a_call");
+		expect(run).toHaveBeenCalledOnce();
+	});
+
+	it("pass the shell to when, and ignore an act whose when is no function", async () => {
+		const when = vi.fn((_shell: any) => true);
+		ship("crm", [{ ...logACall(), when }, { ...logACall(), name: "bad", when: "yes" }]);
+		const router = await shell();
+		await paint();
+
+		expect(appActNames()).toEqual(["shell.crm.log_a_call"]);
+		expect(when.mock.calls[0][0].router).toBe(router);
+		expect(console.warn).toHaveBeenCalledWith("[frappe] shell.crm.bad is ignored: its when is not a function.");
 	});
 
 	it("skip what is no act, and lose only a broken app's acts", async () => {

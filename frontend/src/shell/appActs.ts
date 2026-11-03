@@ -54,7 +54,7 @@ function actsOf(app: string, exported: unknown): ActItem[] {
 	return exported.filter((item) => validAct(app, item));
 }
 
-/** A named item with `run`, whose right, if any, is `{ doctype, ptype }`. */
+/** A named item with `run`, whose right, if any, is `{ doctype, ptype }` and whose `when`, if any, is a function. */
 function validAct(app: string, item: unknown): item is ActItem {
 	const act = item as Partial<ActItem> | null;
 	if (typeof act?.name !== "string" || typeof act.run !== "function") {
@@ -63,6 +63,10 @@ function validAct(app: string, item: unknown): item is ActItem {
 	}
 	if (typeof act.right === "string") {
 		warn(`shell.${app}.${act.name} is ignored: a shell act's right is { doctype, ptype }.`);
+		return false;
+	}
+	if (act.when !== undefined && typeof act.when !== "function") {
+		warn(`shell.${app}.${act.name} is ignored: its when is not a function.`);
 		return false;
 	}
 	return true;

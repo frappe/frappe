@@ -162,6 +162,55 @@ describe("page.run", () => {
     expect(run).not.toHaveBeenCalled();
   });
 
+  it("hides an act whose when is false from the dispatcher and from the page's drawing check", async () => {
+    const run = vi.fn();
+    const medium = ref(false);
+    const seen: unknown[] = [];
+    const hasMedium = (page: unknown) => (seen.push(page), medium.value);
+    await register("crm", {
+      onRefresh: (page) => {
+        page.header.add([
+          { name: "more", label: "More", display: "dropdown" },
+          { name: "call", label: "Call", group: "more", when: hasMedium, run },
+        ]);
+        page.quickActions.add({ name: "call", label: "Call", when: hasMedium, run });
+      },
+    });
+    const { controller, page } = makePage();
+    await controller.refresh();
+    const names = () => acts.available().map((act) => act.name);
+
+    expect(names()).not.toContain("header.call");
+    expect(names()).not.toContain("quickActions.call");
+    expect(controller.allows(page.header.resolve().find((e) => e.item.name === "call")!.item)).toBe(false);
+    expect(await denial(page.run("header.call"))).toMatchObject({ reason: "hidden" });
+    expect(await denial(page.run("quickActions.call"))).toMatchObject({ reason: "hidden" });
+    expect(seen[0]).toBe(page);
+
+    medium.value = true;
+    await page.run("header.call");
+    expect(names()).toContain("quickActions.call");
+    expect(run).toHaveBeenCalledOnce();
+  });
+
+  it("hides a container whose when is false with its members, and an item whose when is no function", async () => {
+    await register("crm", {
+      onRefresh: (page) => {
+        page.header.add([
+          { name: "more", label: "More", display: "dropdown", when: () => false },
+          { name: "archive", label: "Archive", group: "more", run: () => {} },
+          { name: "off", label: "Off", when: false as any, run: () => {} },
+        ]);
+      },
+    });
+    const { controller, page } = makePage();
+    await controller.refresh();
+
+    expect(acts.available().map((act) => act.name)).toEqual(["header.save"]);
+    expect(await denial(page.run("header.archive"))).toMatchObject({ reason: "hidden" });
+    expect(await denial(page.run("header.off"))).toMatchObject({ reason: "hidden" });
+  });
+
   it("rejects with right when the page's doctype right is not held", async () => {
     const run = vi.fn();
     await register("crm", {
