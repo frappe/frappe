@@ -159,6 +159,13 @@
 				class="relative flex min-w-0 flex-col gap-2 rounded-7 bg-surface-gray-1"
 				:class="oneRow ? 'p-2' : 'p-3'"
 			>
+				<div
+					v-if="fileDragging"
+					class="pointer-events-none absolute inset-0 z-30 flex items-center justify-center gap-2 rounded-7 border border-dashed border-outline-gray-4 bg-surface-gray-1 text-base font-medium text-ink-gray-7"
+				>
+					<span class="lucide-paperclip size-4" aria-hidden="true" />
+					Drop files to attach
+				</div>
 				<button
 					v-if="needsCwd"
 					class="flex w-full items-center gap-2.5 rounded-6 border border-dashed border-outline-gray-3 bg-surface-gray-1 px-2.5 py-2 text-left hover:bg-surface-gray-2"
@@ -497,6 +504,7 @@ const attachments = ref([])
 const viewer = ref(null)
 const submitting = ref(false)
 const locked = ref(false) // the box still holds the message going out
+const fileDragging = inject("fileDragging", ref(false))
 const textScrollTop = ref(0)
 const caretPos = ref(0)
 const mentionDismissed = ref(false)
@@ -1257,5 +1265,11 @@ function prefill(value) {
 	nextTick(() => box.value?.focus())
 }
 
-defineExpose({ prefill, startRow, text }) // the draft, for a host whose page answers it
+function addFiles(files) {
+	addLocalFiles(files)
+	nextTick(() => box.value?.focus())
+}
+
+// text: the draft, for a host whose page answers it
+defineExpose({ prefill, startRow, text, addFiles, canAttach: () => !locked.value && !props.disabled })
 </script>

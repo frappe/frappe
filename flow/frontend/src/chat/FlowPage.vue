@@ -23,6 +23,7 @@
 			<!-- hidden under a page, not taken away: the chat waits as it was, its box's draft and
 			     files too, and inert, so nothing in it answers keys meanwhile -->
 			<main
+				ref="chat"
 				v-show="!pageKind"
 				:inert="pageKind ? true : null"
 				class="relative flex min-w-0 flex-1 flex-col bg-surface-base"
@@ -156,6 +157,7 @@ import { installShortcuts } from "@flow/ui-core/shortcuts.js";
 import { installFocusRings } from "@flow/ui-core/focusRings.js";
 import { installViewport } from "@flow/ui-core/viewport.js";
 import { provideComposerHeight } from "@flow/ui-core/composerHeight.js";
+import { provideFileDrop } from "@flow/ui-core/fileDrop.js";
 import { layout, measureLayoutBy } from "@flow/ui-core/layout.js";
 import { createFlowStore } from "@flow/ui-core/store.js";
 
@@ -374,7 +376,9 @@ function openInTab() {
 
 // the composer floats over the list, which pads by its measured height
 const composer = ref(null);
+const chat = ref(null);
 provideComposerHeight(composer);
+provideFileDrop(chat, composer);
 // the new chat's mark, by the draft: at rest it watches the pointer, it reads while keys go,
 // and a draft that rests a moment has it look up, ready. A "/" opens commands, not a message
 const MOOD = {
