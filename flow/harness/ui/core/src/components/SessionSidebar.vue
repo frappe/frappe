@@ -35,6 +35,8 @@
 					>
 						<BrandMark line :size="16" class="!text-ink-gray-8" />
 						<span class="text-base-semibold text-ink-gray-9">Flow</span>
+						<!-- the host's mark beside the name, like a release stage -->
+						<slot name="brand" />
 						<span class="lucide-chevron-down size-3.5 flex-none text-ink-gray-5" aria-hidden="true" />
 					</button>
 				</template>

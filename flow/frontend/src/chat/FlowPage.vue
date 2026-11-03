@@ -14,7 +14,9 @@
 			:before-switch="leavePage"
 			:menu="APP_MENU"
 			@close="store.setSidebarOpen(false)"
-		/>
+		>
+			<template #brand><Badge label="Beta" size="sm" /></template>
+		</SessionSidebar>
 		<div
 			class="flex min-w-0 flex-1 overflow-clip bg-surface-base"
 			:class="inPanel ? '' : 'md:m-1 md:rounded-5 md:shadow-sm'"
@@ -101,6 +103,11 @@
 							</button>
 						</div>
 					</template>
+					<template #below="{ starting }">
+						<p v-if="starting" class="mt-2 px-3 text-center text-sm text-ink-gray-5">
+							Flow is in beta and can make mistakes. Check what it shows you before you approve.
+						</p>
+					</template>
 					<template #tools="{ insert, starting }">
 						<AgentPicker v-if="starting" />
 						<SkillPicker @pick="insert" />
@@ -144,7 +151,7 @@
 <script setup>
 import { computed, inject, onBeforeUnmount, onMounted, provide, ref, watch } from "vue";
 import { isNavigationFailure, useRoute, useRouter } from "vue-router";
-import { Button, Dialogs, ToastProvider, toast, useColorScheme } from "frappe-ui";
+import { Badge, Button, Dialogs, ToastProvider, toast, useColorScheme } from "frappe-ui";
 import { checked } from "@flow/ui-core/menu.js";
 import BrandMark from "@flow/ui-core/components/BrandMark.vue";
 import ChatHeader from "@flow/ui-core/components/ChatHeader.vue";

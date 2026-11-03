@@ -424,6 +424,8 @@
 					</Tooltip>
 				</div>
 			</fieldset>
+			<!-- a host's line under the box -->
+			<slot name="below" :starting="starting" />
 			<ImageViewer v-if="viewer" :src="viewer.previewUrl" :alt="viewer.name" @close="viewer = null" />
 		</div>
 	</div>
