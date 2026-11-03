@@ -68,13 +68,11 @@ export default class WebFormList {
 						only_input: field.fieldtype == "Check" ? false : true,
 					});
 
-					$(input.wrapper)
-						.addClass("col-md-2")
-						.attr("title", __(field.label, null, field.parent))
-						.tooltip({
-							delay: { show: 600, hide: 100 },
-							trigger: "hover",
-						});
+					$(input.wrapper).addClass("col-md-2");
+					frappe.ui.tooltip(input.wrapper, {
+						text: __(field.label, null, field.parent),
+						delay: 600,
+					});
 
 					input.$input.attr("placeholder", __(field.label, null, field.parent));
 					this.filter_input.push(input);
