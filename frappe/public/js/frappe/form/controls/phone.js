@@ -201,7 +201,9 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 	}
 
 	set_flag(country_code) {
-		this.selected_icon.find("img").attr("src", `https://flagcdn.com/${country_code}.svg`);
+		this.selected_icon
+			.find("img")
+			.attr("src", frappe.utils.get_country_flag_url(country_code));
 		this.$icon = this.selected_icon.find("img");
 		this.$icon.hasClass("hide") && this.$icon.toggleClass("hide");
 	}

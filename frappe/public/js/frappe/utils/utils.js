@@ -1604,8 +1604,15 @@ Object.assign(frappe.utils, {
 		return $svg;
 	},
 
+	get_country_flag_url(country_code) {
+		const code = String(country_code || "xx").toLowerCase();
+		return `/assets/frappe/images/flags/${encodeURIComponent(code)}.svg`;
+	},
+
 	flag(country_code) {
-		return `<img loading="lazy" src="https://flagcdn.com/${country_code}.svg" width="20" height="15">`;
+		const src = frappe.utils.get_country_flag_url(country_code);
+		const fallback = frappe.utils.get_country_flag_url("xx");
+		return `<img loading="lazy" src="${src}" width="20" height="15" alt="" onerror="this.onerror=null;this.src='${fallback}'">`;
 	},
 
 	is_emoji(str) {
