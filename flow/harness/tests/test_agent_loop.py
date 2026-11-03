@@ -1277,7 +1277,8 @@ async def test_a_server_tools_empty_prompt_still_shows_a_card():
 	)
 	call = ToolCall(id="c1", name="deploy", arguments={})
 	# None is the client's "no approval needed"; a tool's own empty prompt means the generic card
-	assert (await loop._confirmation_prompt(call, {"deploy": deploy}, inputs)).startswith("Approve `deploy`?")
+	prompt, needs_user = await loop._confirmation_prompt(call, {"deploy": deploy}, inputs)
+	assert prompt.startswith("Approve `deploy`?") and needs_user is False
 
 
 def _verdict(decision, reason="because"):
@@ -1392,3 +1393,25 @@ async def test_auto_review_fails_closed_and_is_moot_with_approvals_off(tmp_path,
 	await _run(session, "read", model=MockModel(replies=[_read_call(), AssistantMessage(content="ok")]))
 	[result] = _of(events, "tool_result")
 	assert result["content"] == "FILE-A" and "review" not in result["details"]
+
+
+async def test_a_card_that_takes_the_users_input_is_never_auto_approved(tmp_path, monkeypatch):
+	async def post(config, url, payload):
+		return {"prompt": "Enter the API key", "needs_user": True}
+
+	def never(name, **kwargs):
+		raise AssertionError("no reviewer should be built")
+
+	monkeypatch.setattr("flow_harness.agent.client_tools._post", post)
+	monkeypatch.setattr("flow_harness.agent.loop.get_model", never)
+	gated = {
+		**_REPORT_CLIENT,
+		"approval_mode": "auto",
+		"confirm_tools": ["report"],
+		"small_model": {"model": "mock"},
+	}
+	session, events = _session(tmp_path, **gated)
+	await _run(session, "save the key", model=_report_model())
+	[approval] = _of(events, "approval_required")
+	assert approval["calls"][0]["prompt"] == "Enter the API key"
+	assert _of(events, "run_ended")[-1]["reason"] == "paused"

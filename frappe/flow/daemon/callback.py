@@ -118,7 +118,7 @@ def _dispatch(
 	if mode == "confirm":
 		if not _requires_confirmation(tool, args):
 			return {"requires_confirmation": False}
-		return {"prompt": confirm_prompt(tool, args)}
+		return {"prompt": confirm_prompt(tool, args), **({"needs_user": True} if tool.needs_user else {})}
 	# the job itself passes no token
 	if result_token and (tool.background(args) if callable(tool.background) else tool.background):
 		return _enqueue(session_id, agent, name, args, result_token)

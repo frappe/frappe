@@ -327,7 +327,9 @@ class TestPasswordBox(ApiCase):
 		name = self.create()
 		api.run(name, "connect my contacts")
 		api.sync_session(name)
-		self.assertIn("prompt", self.dispatch(name, self.args(), "confirm"))
+		asked = self.dispatch(name, self.args(), "confirm")
+		self.assertIn("prompt", asked)
+		self.assertTrue(asked["needs_user"])  # the box is the card: no reviewer answers it for the user
 		self.assertEqual(api.save_secret(name, "c7", SECRET), {"saved": True})
 		api.resume(name, '{"c7": "Approve"}')
 		result = self.dispatch(name, self.args(), "execute")

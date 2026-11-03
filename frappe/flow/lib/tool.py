@@ -53,6 +53,7 @@ class Tool:
 	requires_confirmation: bool | Callable[[dict[str, Any]], bool] = False
 	confirm_prompt: Callable[[dict[str, Any]], str] | None = None
 	background: bool | Callable[[dict[str, Any]], bool] = False
+	needs_user: bool = False  # the card takes the user's input, so no reviewer may answer it for them
 	display_template: str | None = None
 
 	def __post_init__(self) -> None:
@@ -94,6 +95,7 @@ def tool(
 	requires_confirmation: bool | Callable[[dict[str, Any]], bool] = False,
 	confirm_prompt: Callable[[dict[str, Any]], str] | None = None,
 	background: bool | Callable[[dict[str, Any]], bool] = False,
+	needs_user: bool = False,
 	display_template: str | None = None,
 ) -> Tool | Callable[[Callable[..., Any]], Tool]:
 	def wrap(f: Callable[..., Any]) -> Tool:
@@ -107,6 +109,7 @@ def tool(
 			requires_confirmation=requires_confirmation,
 			confirm_prompt=confirm_prompt,
 			background=background,
+			needs_user=needs_user,
 			display_template=display_template,
 		)
 

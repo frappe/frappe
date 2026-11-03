@@ -640,12 +640,12 @@ async def _settle_call(
 	# against the user's words here, and the child then takes that task as its instruction.
 	delegating = _approval_mode(inputs) == "auto" and call.name == subagent.name and call.name in tools
 	if delegating or _needs_confirmation(inputs, call.name, tools):
-		prompt = await _confirmation_prompt(call, tools, inputs)
+		prompt, needs_user = await _confirmation_prompt(call, tools, inputs)
 		_raise_if_aborted(inputs.abort)
 		if prompt is None:
 			runnable.append(_CallToRun(call, rewritten))
 			return
-		if _approval_mode(inputs) == "auto":
+		if _approval_mode(inputs) == "auto" and not needs_user:
 			verdict, usage = await reviewer.review(call, tools)
 			_raise_if_aborted(inputs.abort)
 			if usage is not None:
@@ -790,15 +790,19 @@ def _size(n: int) -> str:
 	return f"{n / 1024**2:.1f} MB" if n >= 1024**2 else f"{max(1, round(n / 1024))} KB"
 
 
-async def _confirmation_prompt(call: ToolCall, tools: dict[str, Tool], inputs: LoopInputs) -> str | None:
+async def _confirmation_prompt(
+	call: ToolCall, tools: dict[str, Tool], inputs: LoopInputs
+) -> tuple[str | None, bool]:
 	"""Build the human-facing approval prompt. Server tools may define their own via
 	`Tool.confirm_prompt`; client tools can supply one over the callback, or answer
-	`{"requires_confirmation": false}` for a call that needs no approval (None); else generic."""
+	`{"requires_confirmation": false}` for a call that needs no approval (None); else generic.
+	The second value is the client's `needs_user`: the card itself takes the user's input, so
+	no reviewer may answer it for them."""
 	tool = tools.get(call.name)
 	if tool is not None and tool.confirm_prompt is not None:
 		try:
 			if prompt := tool.confirm_prompt(call.args):  # only a client may say no card is needed
-				return prompt
+				return prompt, False
 		except Exception:
 			pass
 	if inputs.config.callback_url and call.name not in tools:
@@ -807,14 +811,14 @@ async def _confirmation_prompt(call: ToolCall, tools: dict[str, Tool], inputs: L
 				call_client(inputs.config, inputs.session_id, call, mode="confirm"), inputs.abort
 			)
 			if response.get("requires_confirmation") is False:
-				return None
+				return None, False
 			if response.get("prompt"):
-				return response["prompt"]
+				return response["prompt"], bool(response.get("needs_user"))
 		except ModelCancelled:
 			raise
 		except Exception:
 			pass
-	return f"Approve `{call.name}`?\n\n" + json.dumps(call.args, indent=2, default=str)
+	return f"Approve `{call.name}`?\n\n" + json.dumps(call.args, indent=2, default=str), False
 
 
 def _needs_confirmation(inputs: LoopInputs, name: str, tools: dict[str, Tool]) -> bool:

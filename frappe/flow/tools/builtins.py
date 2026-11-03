@@ -946,6 +946,7 @@ def function_title(path: str) -> str:
 		secret_field_refusal(args.get("doctype"), args.get("name"), args.get("fieldname")) is None
 	),
 	confirm_prompt=lambda args: args.get("reason") or "",
+	needs_user=True,
 )
 def request_secret(
 	doctype: str, name: str, fieldname: str, reason: str, *, ctx: ToolContext
