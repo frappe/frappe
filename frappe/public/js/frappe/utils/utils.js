@@ -1605,12 +1605,10 @@ Object.assign(frappe.utils, {
 		return $svg;
 	},
 
-	get_country_flag_url,
-
 	flag(country_code) {
-		const src = get_country_flag_url(country_code);
-		const fallback = get_country_flag_url("xx");
-		return `<img loading="lazy" src="${src}" width="20" height="15" alt="" onerror="this.onerror=null;this.src='${fallback}'">`;
+		return `<img loading="lazy" src="${get_country_flag_url(
+			country_code
+		)}" width="20" height="15" alt="">`;
 	},
 
 	is_emoji(str) {
