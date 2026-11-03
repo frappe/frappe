@@ -4,6 +4,14 @@
 
 Studio is a visual app builder for the Frappe Framework. It allows developers to build modern web applications using a drag & drop layout builder, wire Frappe Framework data sources, edit component props and slots, and create reactive apps with dynamic variables and scripts.
 
+Studio has two halves, and everything here applies to both: the editor, a Vue
+app at [frontend](frontend), and the `frappe.studio` package at
+[frappe/studio](../frappe/studio) — DocTypes, whitelisted APIs, export and sync
+of repository apps, permissions, and the `bench` commands.
+
+Building or editing a Studio app or page, rather than Studio itself: read
+[skills/studio-app-building/SKILL.md](../skills/studio-app-building/SKILL.md).
+
 ## Agent Guidelines & Code Conventions
 
 1. **Guidelines for writing good code for a developer**
@@ -30,7 +38,7 @@ Studio is a visual app builder for the Frappe Framework. It allows developers to
    - Use standard API as much as possible. Studio apps should render, route, and fail like a normal Vue app. Reuse the names and shapes of the library you wrap (for example `createRouter` options, and `extendRoute` from Vue Router's file-based routing).
    - If a fix belongs in frappe-ui or framework-ui, do not patch it in Studio. Suggest or make the fix in the respective project.
 4. **Frontend Development:**
-   - Rely on `frappe-ui` components (e.g., buttons, dialogs, inputs) instead of building them from scratch (local copy in ./frappe-ui/)
+   - Rely on `frappe-ui` components (e.g., buttons, dialogs, inputs) instead of building them from scratch (installed at `frontend/node_modules/frappe-ui`)
    - Use Tailwind CSS for styling. Avoid writing raw CSS (`.css` files or `<style>` blocks) unless absolutely necessary. Use espresso tokens only for colors and check dark mode after every UI change.
    - Use icon classes (`<span class="lucide-name">`) instead of importing icon components.
    - Match the existing editor UI as much as possible for adding new elements: subtle inputs, the same panel header height, small buttons, aligned labels and columns.
@@ -45,7 +53,7 @@ Studio is a visual app builder for the Frappe Framework. It allows developers to
    - Use Pinia for global state if needed, though most component states can be managed locally.
 7. **Data Fetching**
    - Use `createResource`, `createDocumentResource`, `createListResource`, `call` from frappe-ui for data fetching
-   - Look at ./src/data/ for examples of data fetching composables
+   - Look at `frontend/src/data/` for examples of data fetching composables
    - Handle loading, error, and success states explicitly
 8. **Tests**
    - One test class per Python module (`TestSync` for `sync.py`). Add new tests to it.
