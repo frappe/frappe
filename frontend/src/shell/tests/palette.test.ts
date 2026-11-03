@@ -19,7 +19,7 @@ import { standardPages } from "@/pages/standardPages";
 import { registerShell } from "@/router/routeFor";
 import AppShell from "../AppShell.vue";
 import { closeCreates, createRequests, registerCreateDialog } from "../create";
-import { openArgumentStep, paletteOpen, registerPageRows, type PaletteRow } from "../palette";
+import { DEFAULT_ACT_ICON, openArgumentStep, paletteOpen, registerPageRows, type PaletteRow } from "../palette";
 import { pinnedRows } from "../paletteGroups";
 import { recentVisits } from "../recentVisits";
 
@@ -349,6 +349,27 @@ describe("This page on a record page", () => {
 			"Attach",
 			"Copy link",
 		]);
+	});
+});
+
+describe("an act with no icon", () => {
+	it("draws the default icon on its row and on its argument chip", async () => {
+		register({
+			header: [
+				act("convert", "Convert to Deal"),
+				act("assign", "Assign to…", { argument: { label: "Users", options: () => [] }, run: () => {} }),
+			],
+		});
+		await shell();
+		await open();
+
+		const iconOf = (id: string) => row(id)?.querySelector("span[class*='lucide-']")?.className;
+		expect(iconOf("act:header.convert")).toContain(DEFAULT_ACT_ICON);
+		expect(iconOf("act:header.assign")).toContain(DEFAULT_ACT_ICON);
+
+		await type("assign");
+		await press("Enter");
+		expect(document.body.querySelector("[data-slot='palette-chip'] span")?.className).toContain(DEFAULT_ACT_ICON);
 	});
 });
 

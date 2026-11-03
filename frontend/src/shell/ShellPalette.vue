@@ -116,7 +116,7 @@ import {
 import type { Addresses } from "@/addresses";
 import type { Boot } from "@/boot";
 import { __ } from "@/i18n";
-import { paletteOpen, type PaletteRow as Row } from "./palette";
+import { DEFAULT_ACT_ICON, paletteOpen, type PaletteRow as Row } from "./palette";
 import { usePaletteArgument } from "./paletteArgument";
 import { PaletteSearch, type PaletteContext } from "./paletteGroups";
 import { usePaletteScope } from "./paletteScope";
@@ -139,7 +139,7 @@ const step = computed(() => {
 	if (act?.argument)
 		return {
 			chip: act.label ?? act.name,
-			icon: act.icon ?? "lucide-chevron-right",
+			icon: act.icon ?? DEFAULT_ACT_ICON,
 			placeholder: __("Search {0}", [act.argument.label]),
 			heading: act.argument.label,
 			rows: argument.rows.value,

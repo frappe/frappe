@@ -5,7 +5,7 @@ import { acts, type AvailableAct } from "@/acts/dispatcher";
 import type { Addresses } from "@/addresses";
 import type { Boot } from "@/boot";
 import { __ } from "@/i18n";
-import { openArgumentStep, pageRows, type PaletteRow } from "./palette";
+import { DEFAULT_ACT_ICON, openArgumentStep, pageRows, type PaletteRow } from "./palette";
 import { askFlow } from "./paletteFlow";
 import { create, goTo, loadPlaces, openPlace } from "./palettePlaces";
 import { rank } from "./paletteRanking";
@@ -124,7 +124,7 @@ function actRows(where: (act: AvailableAct) => boolean, boot?: Boot): PaletteRow
 			return {
 				id: `act:${act.name}`,
 				label: act.label!,
-				icon: act.icon,
+				icon: act.icon ?? DEFAULT_ACT_ICON,
 				key: act.key,
 				description: app,
 				keywords: app ? [app] : undefined,

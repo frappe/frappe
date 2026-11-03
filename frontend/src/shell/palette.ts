@@ -33,6 +33,9 @@ export interface PaletteRow {
 	run: () => unknown;
 }
 
+/** The icon of an act that registers none, so its row and its argument chip keep the label in line. */
+export const DEFAULT_ACT_ICON = "lucide-zap";
+
 export const paletteOpen = ref(false);
 
 /** The act whose argument step the palette shows, by its full name; `null` on the first step. */
