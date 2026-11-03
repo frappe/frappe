@@ -71,8 +71,8 @@ def after_migrate() -> None:
 
 
 def _restart_if_needed() -> None:
-	"""Supervised benches restart the program after updates."""
-	if not supervised() or site_extensions_dir().is_dir():  # extension tools are allowed only at start
+	"""A process manager restarts its own daemon after updates."""
+	if not supervised():
 		restart()
 
 
@@ -162,10 +162,8 @@ def ensure_running() -> bool:
 
 
 def restart() -> None:
-	if supervised():  # stop it; supervisor starts it, we wait
-		stop()
-		_wait_for_supervisor()
-		return
+	if supervised():
+		raise RuntimeError("the process manager restarts a supervised flow server")
 	with filelock(LOCK, is_global=True):
 		_restart()
 

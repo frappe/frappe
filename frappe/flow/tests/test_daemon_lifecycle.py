@@ -203,16 +203,15 @@ class TestDaemonLifecycle(UnitTestCase):
 			popen.assert_not_called()
 			sync.assert_called_once()
 
-	def test_migrate_restarts_unless_supervised_and_the_site_has_no_extensions(self):
-		for supervised, extensions, restarts in ((False, False, 1), (True, False, 0), (True, True, 1)):
+	def test_migrate_restarts_only_a_daemon_flow_runs_itself(self):
+		(self.partition / "extensions").mkdir(parents=True)  # new extensions wait for the manager too
+		for supervised, restarts in ((False, 1), (True, 0)):
 			with (
-				self.subTest(supervised=supervised, extensions=extensions),
+				self.subTest(supervised=supervised),
 				patch.object(lifecycle, "supervised", return_value=supervised),
 				patch.object(lifecycle, "restart") as restart,
 				patch.object(lifecycle, "sync_server_tools") as sync,
 			):
-				if extensions:
-					(self.partition / "extensions").mkdir(parents=True)
 				lifecycle.after_migrate()
 			self.assertEqual(restart.call_count, restarts)
 			sync.assert_called_once()
@@ -303,31 +302,35 @@ class TestDaemonLifecycle(UnitTestCase):
 			):
 				self.assertEqual(self.supervised(), expected)
 
-	def test_a_supervised_daemon_is_waited_for_but_never_spawned(self):
-		# two calls each: once supervisor brings it up, once it never does
-		for entrypoint, stops in (("start", 0), ("ensure_running", 0), ("restart", 2)):
-			with (
-				self.subTest(entrypoint=entrypoint),
-				patch.object(lifecycle, "supervised", return_value=True),
-				patch.object(lifecycle, "healthy", side_effect=[False, True]) as healthy,
-				patch.object(lifecycle.time, "sleep"),
-				patch.object(lifecycle, "filelock") as lock,
-				patch.object(lifecycle, "_stop") as stop,
-				patch.object(lifecycle, "_start") as start,
-				patch.object(subprocess, "Popen") as popen,
-			):
-				self.assertFalse(getattr(lifecycle, entrypoint)())
-				self.assertEqual(healthy.call_count, 2)
+	def test_a_supervised_daemon_is_waited_for_but_never_spawned_or_stopped(self):
+		with (
+			patch.object(lifecycle, "supervised", return_value=True),
+			patch.object(lifecycle.time, "sleep"),
+			patch.object(lifecycle, "filelock") as lock,
+			patch.object(lifecycle, "_stop") as stop,
+			patch.object(lifecycle, "_start") as start,
+			patch.object(subprocess, "Popen") as popen,
+		):
+			# two calls each: once supervisor brings it up, once it never does
+			for entrypoint in ("start", "ensure_running"):
 				with (
-					patch.object(lifecycle, "START_TIMEOUT", 0),
-					self.assertRaisesRegex(RuntimeError, "did not become ready under supervisor"),
+					self.subTest(entrypoint=entrypoint),
+					patch.object(lifecycle, "healthy", side_effect=[False, True]) as healthy,
 				):
-					getattr(lifecycle, entrypoint)()
-			# restart stops it for supervisor to start again; only that takes the launch lock
-			self.assertEqual(stop.call_count, stops)
-			self.assertEqual(lock.call_count, stops)
-			start.assert_not_called()
-			popen.assert_not_called()
+					self.assertFalse(getattr(lifecycle, entrypoint)())
+					self.assertEqual(healthy.call_count, 2)
+					with (
+						patch.object(lifecycle, "START_TIMEOUT", 0),
+						self.assertRaisesRegex(RuntimeError, "did not become ready under supervisor"),
+					):
+						getattr(lifecycle, entrypoint)()
+			# a restart is the manager's to do: stopping it here would leave it down
+			with self.assertRaisesRegex(RuntimeError, "process manager restarts"):
+				lifecycle.restart()
+		lock.assert_not_called()
+		stop.assert_not_called()
+		start.assert_not_called()
+		popen.assert_not_called()
 
 	def test_install_waits_for_supervisor_before_syncing_tools(self):
 		self.install_flow_bin()
