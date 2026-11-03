@@ -28,16 +28,10 @@ const draft = ref(props.value)
 const field = ref(null)
 let done = false
 
-// a menu that started it hands focus back to its trigger on a timer of its own as it closes: take
-// it after that
-onMounted(() =>
-	setTimeout(() =>
-		setTimeout(() => {
-			field.value?.focus()
-			field.value?.inputElement?.select()
-		}),
-	),
-)
+onMounted(() => {
+	field.value?.focus()
+	field.value?.inputElement?.select()
+})
 
 function save() {
 	if (done) return

@@ -1,6 +1,6 @@
 <template>
 	<!-- open and update:open, when given, pass through to the Dropdown -->
-	<Dropdown :align="align" :options="[...actions, ...own]">
+	<Dropdown :align="align" :options="options">
 		<template #trigger><slot /></template>
 	</Dropdown>
 </template>
@@ -31,9 +31,18 @@ const own = computed(() =>
 		: [],
 )
 
+// an item acts once the menu has closed and handed focus back to its trigger, which reka does on a
+// timer as the menu unmounts: a dialog or field it opens then keeps the focus
+const options = computed(() =>
+	[...props.actions, ...own.value].map((item) => ({
+		...item,
+		onClick: (...args) => setTimeout(() => setTimeout(() => item.onClick?.(...args))),
+	})),
+)
+
+// the dialog keeps the chat it was opened for, even if another one opens meanwhile.
 // dialog.confirm, not dialog.danger: danger's red theme injects a header
 // icon; the destructive styling lives on the action button instead
-// the dialog keeps the chat it was opened for, even if another one opens meanwhile
 function confirmDelete() {
 	const sid = props.sessionId
 	dialog.confirm({

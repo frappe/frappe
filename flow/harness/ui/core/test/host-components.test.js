@@ -2739,10 +2739,13 @@ test("the header says nothing in a new chat until its first message goes out, no
 	menu().click()
 	await nextTick()
 	assert.deepEqual(items().map((item) => item.textContent), ["Share", "Rename", "Delete"])
-	// Rename turns the title into a field holding it: Escape keeps the old name, Enter saves the new one
+	// Rename turns the title into a field holding it: Escape keeps the old name, Enter saves the new one.
+	// An item acts once the menu has handed focus back
 	const field = () => host.el.querySelector("header input")
 	const key = (name) => field().dispatchEvent(new window.KeyboardEvent("keydown", { key: name }))
+	const menuClosed = () => new Promise((resolve) => setTimeout(() => setTimeout(resolve)))
 	items()[1].click()
+	await menuClosed()
 	await nextTick()
 	assert.equal(field().value, "Quarterly report")
 	key("Escape")
@@ -2757,6 +2760,7 @@ test("the header says nothing in a new chat until its first message goes out, no
 	await nextTick()
 	assert.equal(field(), null)
 	items()[2].click()
+	await menuClosed()
 	assert.ok(asked[0].message.includes("Quarterly report"))
 	// another chat opening meanwhile: the dialog still acts on the chat it was opened for
 	flow.state.sessionId = "s2"
