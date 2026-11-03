@@ -137,7 +137,7 @@
 						<span class="min-w-0 flex-1 text-base font-medium text-ink-gray-8">Open the {{ picked.console }}</span>
 						<Button variant="ghost" label="Open" icon-right="lucide-arrow-up-right" @click="openConsole" />
 					</li>
-					<li aria-hidden="true" class="ml-[9.5px] h-4 w-px bg-outline-gray-2" />
+					<li aria-hidden="true" class="ml-[9.5px] h-4 border-l border-outline-gray-3" />
 					<li class="flex min-h-8 items-center gap-3">
 						<span class="lucide-circle-dashed size-5 flex-none text-ink-gray-6" aria-hidden="true" />
 						<span class="text-base font-medium text-ink-gray-8">Add credit, then copy a new API key</span>

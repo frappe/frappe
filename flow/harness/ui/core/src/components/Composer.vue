@@ -267,11 +267,12 @@
 					</template>
 					<!-- a started chat keeps what goes in under +, first in the row: files, the host's own,
 					     the approval mode -->
-					<span v-if="inline" class="flex flex-none">
+					<span v-if="compact" class="flex flex-none">
 						<Dropdown :options="plusOptions" align="start" side="top">
 							<template #trigger>
 								<button
-									class="grid size-7 place-items-center rounded-5 text-ink-gray-7 hover:bg-surface-gray-2 hover:text-ink-gray-9 dark:text-ink-gray-8"
+									class="grid place-items-center rounded-5 text-ink-gray-7 hover:bg-surface-gray-2 hover:text-ink-gray-9 dark:text-ink-gray-8"
+									:class="inline ? 'size-7' : 'size-8'"
 									aria-label="Add to the message"
 									:disabled="locked"
 								>
@@ -315,7 +316,7 @@
 						/>
 					</div>
 					<!-- attach files -->
-					<Tooltip v-if="!inline" :text="imagesOnly ? 'Attach images' : 'Attach files'">
+					<Tooltip v-if="!compact" :text="imagesOnly ? 'Attach images' : 'Attach files'">
 						<button
 							class="grid size-8 flex-none place-items-center rounded-5 text-ink-gray-7 hover:bg-surface-gray-2 hover:text-ink-gray-9 dark:text-ink-gray-8"
 							:aria-label="imagesOnly ? 'Attach images' : 'Attach files'"
@@ -328,7 +329,7 @@
 					<!-- a host's pickers beside it, on the box's own row; `starting` until the first message.
 					     A started chat's row has room for no more buttons: the host's `plusItems` nest in
 					     the + menu instead -->
-					<slot v-if="!inline" name="tools" :insert="replaceSlash" :starting="starting" />
+					<slot v-if="!compact" name="tools" :insert="replaceSlash" :starting="starting" />
 
 					<span v-if="!oneRow" class="min-w-2 flex-1" />
 					<!-- approval mode; its list hangs from it. A narrow frame shows the mode as its icon,
@@ -336,7 +337,7 @@
 					     warning; the + menu changes it -->
 					<span class="relative flex-none">
 						<Tooltip
-							v-if="!inline || currentMode !== modes[0]?.id"
+							v-if="!compact || currentMode !== modes[0]?.id"
 							:text="layout.narrow ? `Approval mode: ${modeLabel}` : 'Approval mode'"
 							:disabled="modeMenu"
 						>
@@ -914,6 +915,9 @@ const MODE_ICONS = { ask: "lucide-lock", auto: "lucide-lock-open" }
 
 // a new chat is the page's one invitation, a full box; once it has started the box keeps to a row
 const inline = computed(() => !starting.value)
+// a narrow frame (a phone, or the panel beside a Desk page) keeps a new chat's tools under + too,
+// so its box holds +, the model and send on one row instead of wrapping them
+const compact = computed(() => inline.value || layout.narrow)
 // the row opens into two as its text wraps, the draft over the whole width and the + under it,
 // so no line of text starts indented past the +
 const wrapped = ref(false)

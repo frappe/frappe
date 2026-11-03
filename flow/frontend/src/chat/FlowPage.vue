@@ -120,6 +120,7 @@
 import { computed, inject, onBeforeUnmount, onMounted, provide, ref, watch } from "vue";
 import { isNavigationFailure, useRoute, useRouter } from "vue-router";
 import { Dialogs, ToastProvider, toast, useColorScheme } from "frappe-ui";
+import { checked } from "@flow/ui-core/menu.js";
 import BrandMark from "@flow/ui-core/components/BrandMark.vue";
 import ChatHeader from "@flow/ui-core/components/ChatHeader.vue";
 import Composer from "@flow/ui-core/components/Composer.vue";
@@ -171,15 +172,28 @@ const APP_MENU = [
 ];
 // a started chat's + menu nests the skills the full box lists from its button: a pick starts the
 // draft with it, and with none yet, the way to a new one
+// the agent a new chat will start with, ticked in the + menu's Agent list
+const agentNow = computed(() => page.state.agent ?? page.state.boot.default_agent);
 const plusItems = computed(() => {
 	const skills = (store.state.skills ?? []).map((skill) => ({
 		label: skill.name,
 		onClick: ({ insert }) => insert(`/skill:${skill.name} `),
 	}));
 	const canAdd = page.can("Flow Skill", "create");
-	if (!skills.length && !canAdd) return [];
 	const add = { label: "Add a skill", icon: "lucide-plus", onClick: () => (page.createRecord("skills"), store.setSettingsOpen(true)) };
-	return [{ label: "Skills", icon: "lucide-book-open", submenu: skills.length ? skills : [add] }];
+	const items = [];
+	// a new chat's agent, for a box too narrow for its own button (a started chat keeps its agent)
+	if (!store.state.sessionId && page.state.boot.agents.length > 1)
+		items.push({
+			label: "Agent",
+			icon: "lucide-brain-cog",
+			submenu: page.state.boot.agents.map((agent) =>
+				checked({ label: agent.title, onClick: () => (page.state.agent = agent.name) }, agent.name === agentNow.value)
+			),
+		});
+	if (skills.length || canAdd)
+		items.push({ label: "Skills", icon: "lucide-book-open", submenu: skills.length ? skills : [add] });
+	return items;
 });
 // the approval modes in Flow's terms: its tools act on documents, not files
 const MODES = [

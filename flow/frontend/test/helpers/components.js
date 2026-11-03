@@ -18,6 +18,7 @@ const real = new Set([
 	"AgentPalette.vue",
 	"SkillPicker.vue",
 	"SessionSidebar.vue",
+	"SidebarPeek.vue",
 	"ChatHeader.vue",
 	"ChatMenu.vue",
 	"ShareChat.vue",
@@ -66,6 +67,10 @@ const fakes = {
 		export const Switch = stub("Switch")
 		export const ErrorMessage = { props: ["message"], render() { return h("p", this.message) } }
 		export const Avatar = stub("Avatar")
+		// a hint around a control: only the control renders
+		export const Tooltip = { inheritAttrs: false, render() { return this.$slots.default?.() } }
+		// the sidebar's shortcuts: nothing to press in a test
+		export function useKeyboardShortcut() {}
 		export function frappeRequest() {}
 		export const config = {}
 		export function setConfig(key, value) { config[key] = value }
@@ -112,9 +117,28 @@ const fakes = {
 			setup(props, { slots }) {
 				const shown = ref(false)
 				return () => h("div", { "data-stub": "Dropdown" }, [
-					h("div", { onClick: () => (shown.value = !shown.value) }, slots.trigger?.()),
+					h("div", { onClick: () => (shown.value = !shown.value) }, slots.trigger?.({ open: props.open ?? shown.value })),
 					...((props.open ?? shown.value) ? props.options ?? [] : []).map((o) =>
 						h("button", { role: "menuitem", onClick: o.onClick }, o.label)),
+				])
+			},
+		}
+	`),
+	// a card over its trigger: the trigger, and the card once hovered or held open
+	"frappe-ui/src/components/HoverCard/HoverCard.vue": moduleURL(`
+		import { h, ref } from ${JSON.stringify(vue)}
+		export default {
+			props: ["open"],
+			emits: ["update:open"],
+			setup(props, { slots, emit }) {
+				const shown = ref(false)
+				const hover = () => {
+					shown.value = true
+					emit("update:open", true)
+				}
+				return () => h("div", { "data-stub": "HoverCard" }, [
+					h("div", { onMouseenter: hover }, slots.trigger?.()),
+					...((props.open ?? shown.value) ? [slots.default?.()] : []),
 				])
 			},
 		}
