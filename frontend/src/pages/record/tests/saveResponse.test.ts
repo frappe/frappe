@@ -103,13 +103,24 @@ describe("confirmRecordConflict", () => {
     }
   });
 
-  it("keeps the dialog's title and buttons", async () => {
-    const options = await ask([], "submit");
-    expect(options).toMatchObject({
-      title: "Saved by someone else",
-      confirmLabel: "Reload and lose my changes",
-      cancelLabel: "Keep editing",
-    });
+  it("labels the button Reload on a clean Submit or Cancel", async () => {
+    for (const act of ["submit", "cancel"] as const) {
+      expect(await ask([], act)).toMatchObject({
+        title: "Saved by someone else",
+        confirmLabel: "Reload",
+        cancelLabel: "Keep editing",
+      });
+    }
+  });
+
+  it("keeps Reload and lose my changes for a save and for an act with unsaved changes", async () => {
+    for (const [changed, act] of [[[], undefined], [["Status"], "submit"], [["Status"], "cancel"]] as const) {
+      expect(await ask([...changed], act)).toMatchObject({
+        title: "Saved by someone else",
+        confirmLabel: "Reload and lose my changes",
+        cancelLabel: "Keep editing",
+      });
+    }
   });
 
   it("returns whether the reader chose to reload", async () => {

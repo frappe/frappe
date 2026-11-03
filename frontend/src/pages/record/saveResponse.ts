@@ -73,7 +73,7 @@ export async function confirmConflict(
   );
 }
 
-/** The record page's conflict; a Submit or Cancel on a record with no unsaved changes gets its own text. */
+/** The record page's conflict; a Submit or Cancel on a record with no unsaved changes gets its own text and a Reload button. */
 export async function confirmRecordConflict(
   confirm: Confirm,
   editor: string,
@@ -85,14 +85,14 @@ export async function confirmRecordConflict(
     act === "submit"
       ? __("{0} saved this record after you opened it. Reload to see their version before you submit.", [editor])
       : __("{0} saved this record after you opened it. Reload to see their version before you cancel.", [editor]);
-  return askConflict(confirm, message);
+  return askConflict(confirm, message, __("Reload"));
 }
 
-async function askConflict(confirm: Confirm, message: string, useTheirs?: string): Promise<boolean> {
+async function askConflict(confirm: Confirm, message: string, confirmLabel?: string): Promise<boolean> {
   const confirmed = await confirm({
     title: __("Saved by someone else"),
     message,
-    confirmLabel: useTheirs ?? __("Reload and lose my changes"),
+    confirmLabel: confirmLabel ?? __("Reload and lose my changes"),
     cancelLabel: __("Keep editing"),
   });
   return !!confirmed;
