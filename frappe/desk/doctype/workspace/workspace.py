@@ -1058,12 +1058,10 @@ def save_page(name: str, public: str | int, new_widgets: dict, blocks: str, vari
 def save_own_layout(name: str, content: list, new_widgets: dict) -> None:
 	"""Save the session user's own layout of a shared workspace they may open, over the layout
 	they were shown."""
-	from frappe.desk.desktop import Workspace
+	from frappe.desk.desktop import open_workspace
 	from frappe.desk.doctype.custom_workspace.custom_workspace import save_user_layout
 
-	workspace = Workspace({"name": name})
-	if not workspace.is_permitted():
-		frappe.throw(_("You are not permitted to open this workspace"), frappe.PermissionError)
+	workspace = open_workspace({"name": name})
 	workspace.use_layout()
 	save_user_layout(workspace.doc, content, new_widgets)
 

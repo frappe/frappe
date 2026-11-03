@@ -427,7 +427,7 @@ def get_desktop_page(page: str | dict):
 	        dict: dictionary of cards, charts and shortcuts to be displayed on website
 	"""
 	try:
-		workspace = Workspace(frappe.parse_json(page))
+		workspace = open_workspace(frappe.parse_json(page))
 		workspace.build_workspace()
 		return {
 			"charts": workspace.charts,
@@ -505,22 +505,10 @@ def get_workspace(name: str, variant: str | None = None) -> dict:
 
 	`variant` asks for one layout, a role or `DEFAULT_LAYOUT`, and only an editor gets it.
 	"""
-	row = frappe.db.get_value("Workspace", name, ["module", "for_user"], as_dict=True)
-	# someone else's private workspace reads as missing, so its name cannot be probed
-	if (
-		not row
-		or (row.for_user and row.for_user != frappe.session.user)
-		or row.module in get_disabled_modules()
-	):
-		raise frappe.DoesNotExistError(_("Workspace {0} not found").format(name))
-
 	from frappe.desk.doctype.workspace.workspace import can_edit_workspace
 
-	workspace = Workspace({"name": name})
+	workspace = open_workspace({"name": name})
 	doc = workspace.doc
-	if not doc.for_user and not workspace.is_permitted():
-		raise frappe.PermissionError(_("You are not permitted to open this workspace"))
-
 	can_edit = can_edit_workspace(doc)
 	workspace.use_layout(variant if can_edit else None)
 	own_layout = not can_edit and workspace.use_user_layout()
@@ -557,6 +545,27 @@ def get_workspace(name: str, variant: str | None = None) -> dict:
 		"is_layout_customized": is_layout_customized(customization, workspace.variant),
 		**context,
 	}
+
+
+def open_workspace(page: dict) -> Workspace:
+	"""The workspace `page` names, as the session user may open it.
+
+	Someone else's private workspace raises as missing, like one in a disabled module, so its name
+	cannot be probed. A shared one the user's roles do not reach raises PermissionError.
+	"""
+	name = page.get("name")
+	row = frappe.db.get_value("Workspace", name, ["module", "for_user"], as_dict=True)
+	if (
+		not row
+		or (row.for_user and row.for_user != frappe.session.user)
+		or row.module in get_disabled_modules()
+	):
+		raise frappe.DoesNotExistError(_("Workspace {0} not found").format(name))
+
+	workspace = Workspace(page)
+	if not workspace.doc.for_user and not workspace.is_permitted():
+		raise frappe.PermissionError(_("You are not permitted to open this workspace"))
+	return workspace
 
 
 def editor_context(doc, customization) -> dict:

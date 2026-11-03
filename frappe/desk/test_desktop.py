@@ -73,6 +73,15 @@ class TestGetWorkspace(IntegrationTestCase):
 		with self.assertRaises(frappe.DoesNotExistError):
 			get_workspace(private.name)
 
+	def test_the_legacy_page_read_has_the_same_gate(self):
+		private = make_workspace("GW Private", public=0, for_user=MANAGER)
+		make_workspace("GW Gated", roles=["System Manager"])
+
+		frappe.set_user(DESK_USER)
+		self.assertEqual(get_desktop_page({"name": private.name}), {})
+		with self.assertRaises(frappe.PermissionError):
+			get_desktop_page({"name": "GW Gated"})
+
 	def test_unreadable_widgets_are_dropped_with_their_blocks(self):
 		frappe.set_user(DESK_USER)
 		payload = get_workspace("GW Test")
