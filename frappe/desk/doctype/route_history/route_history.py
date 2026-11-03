@@ -5,13 +5,8 @@ from typing import Any
 
 import frappe
 from frappe.deferred_insert import deferred_insert as _deferred_insert
-<<<<<<< HEAD
 from frappe.model.document import Document
-=======
 from frappe.utils import cstr
-from frappe.utils.logging import get_log_db, log_cutoff, log_table
-from frappe.utils.sqlite_document import SQLiteLogDocument
->>>>>>> b0823c1 (fix(route-history): limit routes accepted per request)
 
 
 class RouteHistory(Document):

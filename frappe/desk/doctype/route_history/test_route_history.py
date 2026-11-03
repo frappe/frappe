@@ -8,12 +8,12 @@ from frappe.desk.doctype.route_history.route_history import (
 	MAX_ROUTES_PER_REQUEST,
 	deferred_insert,
 )
-from frappe.tests import IntegrationTestCase
+from frappe.tests.utils import FrappeTestCase
 
 EMAIL = "route.history.tester@example.com"
 
 
-class TestRouteHistory(IntegrationTestCase):
+class TestRouteHistory(FrappeTestCase):
 	def setUp(self):
 		if not frappe.db.exists("User", EMAIL):
 			frappe.get_doc(
