@@ -2,8 +2,8 @@
 <template>
 	<div
 		ref="rowEl"
-		class="pointer-events-none fixed z-40 flex items-end gap-3"
-		:style="{ right: `${right}px`, bottom: `${bottom}px` }"
+		class="pointer-events-none fixed z-40 flex w-max items-end gap-3"
+		:style="{ right: `${right}px`, bottom: `${bottom}px`, maxWidth: `${room}px` }"
 		data-standing-row
 	>
 		<StandingWindowFrame
@@ -17,7 +17,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, nextTick, ref, watch } from "vue";
 import { useElementBounding, useResizeObserver, useWindowSize } from "@vueuse/core";
 import { composerBand, floatingComposer } from "./composer";
 import { useFlowLauncher } from "./flowLauncher";
@@ -25,12 +25,14 @@ import type { Shell } from "./shellActs";
 import StandingWindowFrame from "./StandingWindowFrame.vue";
 import type { StandingWindow } from "./standingWindows";
 
-defineProps<{ windows: readonly StandingWindow[]; shell: Shell }>();
+const props = defineProps<{ windows: readonly StandingWindow[]; shell: Shell }>();
 
 const MARGIN = 24;
 const GAP = 12;
 
 const viewport = useWindowSize();
+// The most the row may take; a wider row would leave the screen at its right end.
+const room = computed(() => viewport.width.value - 2 * MARGIN);
 const band = useElementBounding(composerBand);
 // The lane is centred in its band, so it moves sideways with no resize of its own.
 useResizeObserver(
@@ -75,5 +77,45 @@ const overlapsBand = computed(() => {
 const bottom = computed(() =>
 	composerBand() && overlapsBand.value ? viewport.height.value - band.top.value + GAP : MARGIN
 );
+// A row too wide for the room minimises its open windows from the left, sparing the one just
+// opened (else the rightmost), and a pill that still does not fit truncates its title.
+let wasOpen = new Set<string>();
+let fitting = false;
+let refit = false;
+async function fit() {
+	if (fitting) {
+		refit = true;
+		return;
+	}
+	fitting = true;
+	try {
+		do {
+			refit = false;
+			// v-show applies in the same flush's post queue, after this watcher.
+			await nextTick();
+			await minimiseUntilFit();
+			wasOpen = new Set(openWindows().map((entry) => entry.app));
+		} while (refit);
+	} finally {
+		fitting = false;
+	}
+}
+
+async function minimiseUntilFit() {
+	while (rowEl.value && rowEl.value.getBoundingClientRect().width >= room.value) {
+		const open = openWindows();
+		const spared = [...open].reverse().find((entry) => !wasOpen.has(entry.app)) ?? open.at(-1);
+		const next = open.find((entry) => entry !== spared);
+		if (!next) return;
+		next.handle.minimise();
+		await nextTick();
+	}
+}
+
+const openWindows = () => props.windows.filter((entry) => entry.state === "open");
+watch(() => [props.windows.map((entry) => entry.state).join(), room.value, row.width.value], fit, {
+	flush: "post",
+});
+
 const maxHeight = computed(() => viewport.height.value - bottom.value - MARGIN);
 </script>
