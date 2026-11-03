@@ -990,3 +990,154 @@ describe("keep-alive", () => {
 		expect(leaving()).toBe(false);
 	});
 });
+
+describe("dragging", () => {
+	const wrapper = () => frame().parentElement!;
+	const press = (target: Element, x: number, y: number) =>
+		target.dispatchEvent(
+			new PointerEvent("pointerdown", {
+				bubbles: true,
+				button: 0,
+				clientX: x,
+				clientY: y,
+			})
+		);
+	const move = (x: number, y: number) =>
+		window.dispatchEvent(
+			new PointerEvent("pointermove", { clientX: x, clientY: y })
+		);
+	const release = () => window.dispatchEvent(new PointerEvent("pointerup"));
+	/** Gives `element` the box it would have standing in the row, 24px above the bottom at the right. */
+	const standing = (element: HTMLElement, width: number, height: number) => {
+		const left = innerWidth - 24 - width;
+		const bottom = innerHeight - 24;
+		element.getBoundingClientRect = () =>
+			({
+				left,
+				bottom,
+				width,
+				height,
+				right: left + width,
+				top: bottom - height,
+			} as DOMRect);
+	};
+
+	async function open() {
+		const handle = await attached();
+		handle.open();
+		await flush();
+		standing(wrapper(), 280, 200);
+		return handle;
+	}
+
+	it("moves an open window by its header, out of the row", async () => {
+		await open();
+		press(header(), 800, 600);
+		move(700, 500);
+		await flush();
+
+		expect(wrapper().classList.contains("fixed")).toBe(true);
+		expect(wrapper().style.left).toBe(`${innerWidth - 24 - 280 - 100}px`);
+		expect(wrapper().style.bottom).toBe("124px");
+	});
+
+	it("stays in the row for a move under 4px", async () => {
+		await open();
+		press(header(), 800, 600);
+		move(802, 602);
+		release();
+		await flush();
+
+		expect(wrapper().classList.contains("fixed")).toBe(false);
+	});
+
+	it("keeps the window inside the 24px margin", async () => {
+		await open();
+		press(header(), 800, 600);
+		move(-5000, -5000);
+		await flush();
+		expect(wrapper().style.left).toBe("24px");
+		expect(wrapper().style.bottom).toBe(`${innerHeight - 24 - 200}px`);
+
+		move(9000, 9000);
+		await flush();
+		expect(wrapper().style.left).toBe(`${innerWidth - 24 - 280}px`);
+		expect(wrapper().style.bottom).toBe("24px");
+	});
+
+	it("does not start a drag from a header button", async () => {
+		const handle = await open();
+		handle.setActions([{ label: "Mute", icon: "lucide-mic", run: vi.fn() }]);
+		await flush();
+		press(frame().querySelector("[data-standing-action]")!, 800, 600);
+		move(700, 500);
+		await flush();
+
+		expect(wrapper().classList.contains("fixed")).toBe(false);
+	});
+
+	it("puts the window back in the row on a double-click of the header", async () => {
+		await open();
+		press(header(), 800, 600);
+		move(700, 500);
+		release();
+		await flush();
+		header().dispatchEvent(new MouseEvent("dblclick", { bubbles: true }));
+		await flush();
+
+		expect(wrapper().classList.contains("fixed")).toBe(false);
+		expect(wrapper().style.left).toBe("");
+	});
+
+	it("moves a pill by its body without restoring it, and restores on a plain click", async () => {
+		const handle = await open();
+		handle.minimise();
+		await flush();
+		standing(pill(), 120, 40);
+
+		press(pill(), 900, 740);
+		move(800, 640);
+		release();
+		pill().click();
+		await flush();
+		expect(handle.state).toBe("minimised");
+		expect(pill().classList.contains("fixed")).toBe(true);
+		expect(pill().style.left).toBe(`${innerWidth - 24 - 120 - 100}px`);
+		expect(pill().style.bottom).toBe("124px");
+
+		press(pill(), 900, 740);
+		release();
+		pill().click();
+		await flush();
+		expect(handle.state).toBe("open");
+	});
+
+	it("opens a dragged pill's window at the same place", async () => {
+		const handle = await open();
+		handle.minimise();
+		await flush();
+		standing(pill(), 120, 40);
+		press(pill(), 900, 740);
+		move(800, 640);
+		release();
+		handle.open();
+		await flush();
+
+		expect(wrapper().style.bottom).toBe("124px");
+	});
+
+	it("keeps room for a frame above a pill dragged to the top", async () => {
+		const handle = await open();
+		handle.minimise();
+		await flush();
+		standing(pill(), 120, 40);
+		press(pill(), 900, 740);
+		move(900, -5000);
+		release();
+		handle.open();
+		await flush();
+
+		expect(wrapper().style.bottom).toBe(`${innerHeight - 24 - 160}px`);
+		expect(frame().style.maxHeight).toBe("160px");
+	});
+});

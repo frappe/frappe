@@ -4,9 +4,11 @@
 -->
 <template>
 	<div
+		ref="frameEl"
 		v-show="entry.state === 'open'"
 		class="standing-enter pointer-events-auto min-w-[min(240px,calc(100vw-48px))] shrink-[1000]"
-		:style="{ width: `${entry.width}px` }"
+		:class="{ 'fixed max-w-[calc(100vw-48px)]': entry.placed }"
+		:style="{ width: `${entry.width}px`, ...frameAt }"
 	>
 		<FloatingWindow
 			mode="docked"
@@ -15,11 +17,16 @@
 			aria-modal="false"
 			:aria-labelledby="titleId"
 			class="w-full border border-outline-gray-2 shadow-2xl"
-			:style="{ maxHeight: `${maxHeight}px` }"
+			:style="{ maxHeight: `${frameMaxHeight}px` }"
 			:data-standing-window="entry.app"
 		>
 			<template #header>
-				<div class="flex shrink-0 items-center gap-2 px-4 pt-4">
+				<div
+					class="flex shrink-0 cursor-move touch-none items-center gap-2 px-4 pt-4"
+					data-standing-header
+					@pointerdown="drag.start($event, frameEl!, frameWidth)"
+					@dblclick="drag.putBack"
+				>
 					<span
 						v-if="entry.icon"
 						class="size-4 shrink-0 text-ink-gray-5"
@@ -35,7 +42,11 @@
 							{{ entry.title }}
 						</span>
 					</Tooltip>
-					<div class="ml-auto flex shrink-0 items-center">
+					<div
+						class="ml-auto flex shrink-0 cursor-default items-center"
+						@pointerdown.stop
+						@dblclick.stop
+					>
 						<Button
 							v-for="(action, index) in entry.actions"
 							:key="index"
@@ -83,13 +94,14 @@
 	<div
 		v-show="entry.state === 'minimised'"
 		ref="pill"
-		class="standing-enter pointer-events-auto flex h-10 min-w-0 max-w-[400px] cursor-pointer items-center gap-2 rounded-full border border-outline-gray-2 bg-surface-elevation-1 pl-3.5 shadow-2xl"
+		class="standing-enter pointer-events-auto flex h-10 min-w-0 max-w-[400px] cursor-pointer touch-none select-none items-center gap-2 rounded-full border border-outline-gray-2 bg-surface-elevation-1 pl-3.5 shadow-2xl"
 		:class="[
 			entry.actions.length ? 'pr-1.5' : 'pr-3.5',
-			{ 'standing-attention': entry.attention },
+			{ 'standing-attention': entry.attention, fixed: entry.placed },
 		]"
-		:style="{ minWidth: `min(${pillWidth}px, calc(100vw - 48px))` }"
+		:style="{ minWidth: `min(${pillWidth}px, calc(100vw - 48px))`, ...pillAt }"
 		:data-standing-minimised="entry.app"
+		@pointerdown="drag.start($event, pill!)"
 		@click="restore"
 	>
 		<span
@@ -109,7 +121,12 @@
 				{{ entry.title }}
 			</button>
 		</Tooltip>
-		<div v-if="entry.actions.length" class="flex shrink-0 items-center" @click.stop>
+		<div
+			v-if="entry.actions.length"
+			class="flex shrink-0 items-center"
+			@pointerdown.stop
+			@click.stop
+		>
 			<Button
 				v-for="(action, index) in entry.actions"
 				:key="index"
@@ -128,13 +145,14 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, ref } from "vue";
-import { useResizeObserver } from "@vueuse/core";
+import { computed, nextTick, ref } from "vue";
+import { useElementBounding, useResizeObserver, useWindowSize } from "@vueuse/core";
 import { Button, Tooltip } from "frappe-ui";
 import { FloatingWindow } from "frappe-ui/experimental";
 import { __ } from "@/i18n";
 import type { Shell } from "./shellActs";
 import type { StandingWindow, StandingWindowAction } from "./standingWindows";
+import { clampPlacement, MARGIN, useWindowDrag } from "./windowDrag";
 
 const props = defineProps<{ entry: StandingWindow; shell: Shell; maxHeight: number }>();
 
@@ -149,6 +167,32 @@ const pillWidth = ref(0);
 useResizeObserver(pill, ([entry]) => {
 	pillWidth.value = Math.max(pillWidth.value, entry.borderBoxSize?.[0]?.inlineSize ?? 0);
 });
+
+const drag = useWindowDrag(props.entry);
+const frameEl = ref<HTMLElement | null>(null);
+const pillSize = useElementBounding(pill);
+const viewport = useWindowSize();
+
+// The least room kept above a placed window, so its pill opens a frame with a header and some body.
+const PILL_HEIGHT = 40;
+const FRAME_HEIGHT = 160;
+
+const frameWidth = computed(() => Math.min(props.entry.width, viewport.width.value - 2 * MARGIN));
+
+function clampedPlacement(width: number, minHeight: number) {
+	const { placed } = props.entry;
+	if (!placed) return undefined;
+	const viewportBox = { width: viewport.width.value, height: viewport.height.value };
+	const { left, bottom } = clampPlacement(placed, viewportBox, width, minHeight);
+	return { left: `${left}px`, bottom: `${bottom}px` };
+}
+const frameAt = computed(() => clampedPlacement(frameWidth.value, FRAME_HEIGHT));
+const pillAt = computed(() => clampedPlacement(pillSize.width.value, PILL_HEIGHT));
+const frameMaxHeight = computed(() =>
+	frameAt.value
+		? viewport.height.value - parseFloat(frameAt.value.bottom) - MARGIN
+		: props.maxHeight
+);
 
 // Focus follows only the user's own click; the app's open() and minimise() never move it.
 async function minimise() {
