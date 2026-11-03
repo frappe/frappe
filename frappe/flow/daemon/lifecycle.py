@@ -76,13 +76,6 @@ def _restart_if_needed() -> None:
 		restart()
 
 
-def keep_alive() -> None:
-	"""Scheduler: restart a daemon that died, unless supervisor runs it."""
-	if not _flow_bin().exists() or supervised():
-		return
-	ensure_running()
-
-
 def _run_or_warn(step: Callable[[], object]) -> None:
 	"""A daemon that cannot come up must not fail the install or migrate."""
 	try:
