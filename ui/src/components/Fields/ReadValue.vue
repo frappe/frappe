@@ -11,6 +11,9 @@
 			>
 				<slot>{{ text || placeholder }}</slot>
 			</span>
+			<div v-if="$slots.suffix" class="ms-auto flex shrink-0 items-center ps-2 empty:hidden">
+				<slot name="suffix" />
+			</div>
 		</div>
 		<p v-if="description && !error?.length" class="text-p-sm text-ink-gray-6">
 			{{ description }}

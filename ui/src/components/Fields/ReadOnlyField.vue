@@ -18,16 +18,11 @@
 			{{ text }}
 			<DataOpenLink :address="address" class="inline-grid align-middle" />
 		</template>
-		<template v-else-if="phone && !row" #default>
-			{{ text }}
-			<FieldActions
-				:field="field"
-				:value="modelValue"
-				class="-my-1 ms-1 inline-flex align-middle"
-			/>
-		</template>
 		<template v-else-if="field.fieldtype === 'Color'" #default>
 			<ColorSwatch :field="field" :value="modelValue" class="me-2.5" />{{ text }}
+		</template>
+		<template v-if="phone && !row" #suffix>
+			<FieldActions :field="field" :value="modelValue" />
 		</template>
 	</ReadValue>
 </template>
