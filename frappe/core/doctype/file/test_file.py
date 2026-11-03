@@ -8,11 +8,7 @@ import tempfile
 import zipfile
 from contextlib import contextmanager
 from typing import TYPE_CHECKING
-<<<<<<< HEAD
-from unittest.mock import patch
-=======
-from unittest.mock import MagicMock, call, patch
->>>>>>> 80e68c6 (perf(file): skip a repeated file name before loading it when zipping)
+from unittest.mock import call, patch
 
 import frappe
 from frappe import _
