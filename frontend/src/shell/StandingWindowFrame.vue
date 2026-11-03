@@ -33,9 +33,10 @@
 						:class="entry.icon"
 						aria-hidden="true"
 					/>
-					<Tooltip :text="entry.title">
+					<Tooltip :text="entry.title" :disabled="!titleTruncated">
 						<span
 							:id="titleId"
+							ref="titleEl"
 							class="min-w-0 truncate text-base font-medium text-ink-gray-8"
 							data-standing-title
 						>
@@ -110,17 +111,15 @@
 			:class="entry.icon"
 			aria-hidden="true"
 		/>
-		<Tooltip :text="entry.title">
-			<button
-				ref="restoreButton"
-				type="button"
-				class="min-w-0 truncate rounded-2 text-base font-medium text-ink-gray-8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
-				:aria-label="__('Restore {0}', [entry.title])"
-				data-standing-restore
-			>
-				{{ entry.title }}
-			</button>
-		</Tooltip>
+		<button
+			ref="restoreButton"
+			type="button"
+			class="min-w-0 truncate rounded-2 text-base font-medium text-ink-gray-8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
+			:aria-label="__('Restore {0}', [entry.title])"
+			data-standing-restore
+		>
+			{{ entry.title }}
+		</button>
 		<div
 			v-if="entry.actions.length"
 			class="flex shrink-0 items-center"
@@ -145,7 +144,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref } from "vue";
+import { computed, nextTick, ref, watch } from "vue";
 import { useElementBounding, useResizeObserver, useWindowSize } from "@vueuse/core";
 import { Button, Tooltip } from "frappe-ui";
 import { FloatingWindow } from "frappe-ui/experimental";
@@ -160,6 +159,15 @@ const DIVIDER_WIDTH = 280;
 
 const titleId = `standing-window-title-${props.entry.app}`;
 const restoreButton = ref<HTMLButtonElement | null>(null);
+
+const titleEl = ref<HTMLElement | null>(null);
+const titleTruncated = ref(false);
+const measureTitle = () => {
+	titleTruncated.value =
+		!!titleEl.value && titleEl.value.scrollWidth > titleEl.value.clientWidth;
+};
+useResizeObserver(titleEl, measureTitle);
+watch(() => props.entry.title, measureTitle, { flush: "post" });
 
 // A ticking title ("Alice · 00:42") changes width by a pixel as digits change, so the pill only grows.
 const pill = ref<HTMLElement | null>(null);

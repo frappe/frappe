@@ -229,6 +229,91 @@ describe("shell.window", () => {
 		expect(live().textContent).toBe("");
 	});
 
+	describe("title tooltip", () => {
+		const hasTooltip = (element: HTMLElement) => element.hasAttribute("data-slot");
+		const frameTitle = () => frame().querySelector<HTMLElement>("[data-standing-title]")!;
+
+		/** Makes the frame title measure `scroll`px of text in a 100px box. */
+		const measureTitleAs = (scroll: number) =>
+			vi.spyOn(HTMLElement.prototype, "scrollWidth", "get").mockImplementation(function (
+				this: HTMLElement
+			) {
+				return this.hasAttribute("data-standing-title") ? scroll : 0;
+			});
+
+		beforeEach(() => {
+			vi.spyOn(HTMLElement.prototype, "clientWidth", "get").mockReturnValue(100);
+		});
+
+		it("has none on the pill", async () => {
+			const handle = await attached();
+			handle.setTitle("Alice · Calling…");
+			handle.minimise();
+			await nextTick();
+			const restore = pill().querySelector<HTMLElement>("[data-standing-restore]")!;
+			expect(restore.textContent).toContain("Alice · Calling…");
+			expect(hasTooltip(restore)).toBe(false);
+		});
+
+		it("shows on the frame title only while the title is truncated", async () => {
+			const scroll = measureTitleAs(100);
+			const handle = await attached();
+			handle.open();
+			handle.setTitle("Alice");
+			await vi.waitFor(() => expect(frameTitle().textContent!.trim()).toBe("Alice"));
+			expect(hasTooltip(frameTitle())).toBe(false);
+
+			scroll.mockImplementation(() => 180);
+			handle.setTitle("Alice Wonderland-Smith · Calling…");
+			await vi.waitFor(() => expect(hasTooltip(frameTitle())).toBe(true));
+
+			scroll.mockImplementation(() => 100);
+			handle.setTitle("Alice");
+			await vi.waitFor(() => expect(hasTooltip(frameTitle())).toBe(false));
+		});
+
+		it("follows the frame's width, with no change of title", async () => {
+			const reports: ResizeObserverCallback[] = [];
+			vi.stubGlobal(
+				"ResizeObserver",
+				class {
+					constructor(report: ResizeObserverCallback) {
+						reports.push(report);
+					}
+					observe() {}
+					unobserve() {}
+					disconnect() {}
+				}
+			);
+			const scroll = measureTitleAs(100);
+			const handle = await attached();
+			handle.open();
+			await nextTick();
+			expect(hasTooltip(frameTitle())).toBe(false);
+
+			scroll.mockImplementation(() => 180);
+			const entry = { borderBoxSize: [{ inlineSize: 100 }] } as unknown as ResizeObserverEntry;
+			reports.forEach((report) => report([entry], {} as ResizeObserver));
+			await vi.waitFor(() => expect(hasTooltip(frameTitle())).toBe(true));
+			vi.unstubAllGlobals();
+		});
+
+		it("stays while a truncated title ticks", async () => {
+			measureTitleAs(180);
+			const handle = await attached();
+			handle.open();
+			handle.setTitle("Alice Wonderland-Smith · 00:42");
+			await vi.waitFor(() => expect(hasTooltip(frameTitle())).toBe(true));
+			const trigger = frameTitle();
+
+			handle.setTitle("Alice Wonderland-Smith · 00:43");
+			await nextTick();
+			await nextTick();
+			expect(hasTooltip(frameTitle())).toBe(true);
+			expect(frameTitle()).toBe(trigger);
+		});
+	});
+
 	it("draws its actions in the frame and the pill, and an action's click does not restore", async () => {
 		const handle = await attached();
 		const hangUp = vi.fn();
