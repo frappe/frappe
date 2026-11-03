@@ -89,13 +89,11 @@ def is_traceback_allowed():
 
 
 def _add_stale_doc(error_log, stale_doc):
-	"""Name the stale record when the user can read it; else say only that a record is hidden.
-
-	A hook may save a record the user cannot read, and the message and traceback carry its name too.
-	"""
+	"""Name the stale record when the user can read it; else say only that a record is hidden."""
 	try:
 		readable = frappe.has_permission(stale_doc["doctype"], "read", doc=stale_doc["name"])
-	except frappe.DoesNotExistError:
+	except Exception:
+		# A deleted record or a permission hook that raises must not cost the 417 its body.
 		readable = False
 	if readable:
 		error_log["stale_doc"] = stale_doc

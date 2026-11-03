@@ -22,8 +22,8 @@ export async function showStaleRecord(
 ): Promise<void> {
   if ("hidden" in stale) {
     await confirm({
-      title: __("A linked record changed"),
-      message: __("A record linked to this one changed after you read it."),
+      title: __("Another record changed"),
+      message: __("Another record changed after you read it."),
       actions: [{ label: __("Close") }],
     });
     return;

@@ -1742,7 +1742,7 @@ class Document(_DocumentBase):
 	def _raise_timestamp_mismatch(self, message: str):
 		"""The v2 error entry names `stale_doc`, so a page can tell its own record from another."""
 		error = frappe.TimestampMismatchError()
-		error.stale_doc = {"doctype": self.doctype, "name": self.name}
+		error.stale_doc = {"doctype": self.doctype, "name": str(self.name)}  # autoincrement names are int
 		frappe.msgprint(message, raise_exception=error)
 
 	def check_docstatus_transition(self, from_docstatus):

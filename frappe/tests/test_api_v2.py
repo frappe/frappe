@@ -3354,6 +3354,17 @@ class TestStaleLinkedRecordV2(FrappeAPITestCase):
 		error = self.mismatch(response)
 		self.assertEqual(error["stale_doc"], {"doctype": self.LINKED, "name": self.linked.name})
 
+	def test_a_normal_user_who_can_read_the_linked_record_gets_its_name(self):
+		user = frappe.get_doc("User", self.WRITER)
+		user.add_roles("System Manager")
+		self.addCleanup(lambda: (user.remove_roles("System Manager"), frappe.db.commit()))  # nosemgrep
+		frappe.db.commit()  # nosemgrep
+
+		response = self.submit(self.writer_authorization)
+
+		error = self.mismatch(response)
+		self.assertEqual(error["stale_doc"], {"doctype": self.LINKED, "name": self.linked.name})
+
 	def test_an_unreadable_linked_record_is_not_named(self):
 		response = self.submit(self.writer_authorization)
 
