@@ -2,7 +2,7 @@
 import { describe, expect, it } from "vitest";
 import type { RawMetaField } from "@framework/ui/FormLayout";
 
-import { DEFAULT_SORT, cellCurrency, contributedRowActions, defaultColumns, defaultSort, fetchFields, cellMark } from "../defaults";
+import { DEFAULT_SORT, cellCurrency, contributedRowActions, defaultColumns, defaultSort, fetchFields, cellMark, cellTitle } from "../defaults";
 
 const FIELDS: RawMetaField[] = [
 	{ fieldname: "title", label: "Title", fieldtype: "Data", in_list_view: 1 },
@@ -186,6 +186,36 @@ describe("cell marks", () => {
 			"status",
 			"image",
 			"status.color as status__mark",
+		]);
+	});
+});
+
+describe("cell titles", () => {
+	const meta = {
+		fields: [
+			{ fieldname: "deal", fieldtype: "Link", options: "CRM Deal", link_title: "organization" },
+			{ fieldname: "owner_user", fieldtype: "Link", options: "User" },
+			{ fieldname: "reference", fieldtype: "Dynamic Link", options: "reference_doctype", link_title: "title" },
+		],
+	};
+
+	it("reads a Link column's target title through the link, under its own key", () => {
+		expect(cellTitle("deal", meta)).toEqual({ key: "deal__title", select: "deal.organization as deal__title" });
+	});
+
+	it("has none for a Link whose target shows no title, a Dynamic Link, or a field meta lacks", () => {
+		expect(cellTitle("owner_user", meta)).toBeUndefined();
+		expect(cellTitle("reference", meta)).toBeUndefined();
+		expect(cellTitle("gone", meta)).toBeUndefined();
+	});
+
+	it("asks for each title beside the columns", () => {
+		const columns = ["deal", "owner_user"].map((fieldname) => ({ fieldname, label: fieldname }));
+		expect(fetchFields(columns, [], meta)).toEqual([
+			"name",
+			"deal",
+			"owner_user",
+			"deal.organization as deal__title",
 		]);
 	});
 });

@@ -23,6 +23,11 @@ const metaFields = [
 	{ fieldname: "color", fieldtype: "Color" },
 	{ fieldname: "active", fieldtype: "Check" },
 	{ fieldname: "score", fieldtype: "Rating" },
+	{ fieldname: "deal", fieldtype: "Link", options: "CRM Deal" },
+	{ fieldname: "agent", fieldtype: "Link", options: "User" },
+	{ fieldname: "lead_owner", fieldtype: "Link", options: "User" },
+	{ fieldname: "ref_doctype", fieldtype: "Link", options: "DocType" },
+	{ fieldname: "reference", fieldtype: "Dynamic Link", options: "ref_doctype" },
 ];
 const columns = [
 	...metaFields.map(({ fieldname }) => ({ fieldname, label: fieldname })),
@@ -50,6 +55,12 @@ const row = {
 	color: "#E03636",
 	active: 1,
 	score: 0.6,
+	deal: "D-1",
+	agent: "ann@example.com",
+	agent__mark: "/files/ann.png",
+	lead_owner: "bob@example.com",
+	ref_doctype: "User",
+	reference: "ann@example.com",
 	_extra: "as sent",
 };
 
@@ -70,9 +81,11 @@ vi.mock("@/list/useListView", () => ({
 		hasNextPage: ref(false),
 		rowActions: [],
 		fieldOf: (fieldname: string) => metaFields.find((field) => field.fieldname === fieldname),
-		markOf: () => undefined,
+		markOf: (fieldname: string) =>
+			fieldname === "agent" ? { source: { kind: "image", field: "user_image" }, key: "agent__mark" } : undefined,
 		currencyOf: (fieldname: string) =>
 			({ amount: { key: "currency" }, fee: { key: "fee__currency" } })[fieldname],
+		linkTitles: ref({ "CRM Deal::D-1": "Acme", "User::ann@example.com": "Ann Lee" }),
 		columnsCustomized: ref(false),
 		rowLink: () => ({}),
 	}),
@@ -167,6 +180,19 @@ describe("a list's cells", () => {
 		expect(text("color")).toBe("#E03636");
 		expect(root.querySelector("[data-column='color'] [data-slot='swatch']")).not.toBeNull();
 		expect(text("_extra")).toBe("as sent");
+	});
+
+	it("draw a Link value as its target's title, a marked one too, and the name where none is held", async () => {
+		const root = mount();
+		await nextTick();
+
+		const text = (column: string) => root.querySelector(`[data-column='${column}']`)?.textContent?.trim();
+		expect(text("deal")).toBe("Acme");
+		expect(text("agent")).toBe("Ann Lee");
+		expect(root.querySelector("[data-column='agent'] img")?.getAttribute("alt")).toBe("Ann Lee");
+		expect(text("lead_owner")).toBe("bob@example.com");
+		// A Dynamic Link's title is never read, so a Link column's title for the same record is not borrowed.
+		expect(text("reference")).toBe("ann@example.com");
 	});
 
 	it("draw a Check as a checkbox and a Rating as stars", async () => {

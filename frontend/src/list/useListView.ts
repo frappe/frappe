@@ -15,12 +15,13 @@ import { routeFor } from "@/router/routeFor";
 import {
 	cellCurrency,
 	cellMark,
-	type CellCurrency,
+	cellTitle,
 	type CellMark,
 	contributedRowActions,
 	defaultColumns,
 	fetchFields,
 	type ListMeta,
+	type RowValue,
 } from "./defaults";
 import { readListMemory, recallRows, rememberRows, writeListMemory } from "./pageState";
 import { completeFilters, queryFromAddress } from "./query";
@@ -43,7 +44,9 @@ export interface ListView extends ListRows {
 	/** What a column's cell shows before its text; see `cellMark`. */
 	markOf: (fieldname: string) => CellMark | undefined;
 	/** Where a Currency column's cell finds its currency in the row; see `cellCurrency`. */
-	currencyOf: (fieldname: string) => CellCurrency | undefined;
+	currencyOf: (fieldname: string) => RowValue | undefined;
+	/** The titles the rows hold for their Link values, keyed `Target::name` as the form's `link_titles`; see `cellTitle`. */
+	linkTitles: ComputedRef<Record<string, string>>;
 	selection: Ref<string[]>;
 	/** Kept in the history entry. */
 	pageSize: Ref<number>;
@@ -162,6 +165,19 @@ export function useListView(view: View): ListView {
 		return outcome;
 	}
 
+	const linkTitles = computed(() => {
+		const titles: Record<string, string> = {};
+		for (const { fieldname } of columns.value) {
+			const title = cellTitle(fieldname, listMeta.value ?? {});
+			if (!title) continue;
+			const target = fields.value.find((one) => one.fieldname === fieldname)?.options;
+			for (const row of rows.rows.value) {
+				if (row[fieldname] && row[title.key]) titles[`${target}::${row[fieldname]}`] = String(row[title.key]);
+			}
+		}
+		return titles;
+	});
+
 	return {
 		...rows,
 		columns,
@@ -171,6 +187,7 @@ export function useListView(view: View): ListView {
 			getFilterableFields([], doctype).find((one) => one.fieldname === fieldname),
 		markOf: (fieldname) => cellMark(fieldname, listMeta.value ?? {}),
 		currencyOf: (fieldname) => cellCurrency(fieldname, listMeta.value ?? {}, readable),
+		linkTitles,
 		selection,
 		pageSize,
 		rowsKey,

@@ -42,3 +42,15 @@ class TestLinkMarks(IntegrationTestCase):
 		with patch("frappe.api.link_marks.marks_of", return_value=both):
 			with patch("frappe.api.link_marks.get_permitted_fields", return_value=["user_image"]):
 				self.assertEqual(readable_mark("User"), {"kind": "image", "field": "user_image"})
+
+	def test_meta_names_the_title_a_link_shows(self):
+		# Language sets `show_title_field_in_link` with `language_name`; ToDo's User link shows the name
+		fields = {df["fieldname"]: df for df in serialize_meta(frappe.get_meta("User"))["fields"]}
+		self.assertEqual(fields["language"]["link_title"], "language_name")
+		todo = {df["fieldname"]: df for df in serialize_meta(frappe.get_meta("ToDo"))["fields"]}
+		self.assertNotIn("link_title", todo["allocated_to"])
+
+	def test_meta_names_no_title_the_reader_cannot_read(self):
+		with patch("frappe.desk.link_title.get_permitted_fields", return_value=["name"]):
+			fields = {df["fieldname"]: df for df in serialize_meta(frappe.get_meta("User"))["fields"]}
+		self.assertNotIn("link_title", fields["language"])

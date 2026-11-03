@@ -332,6 +332,21 @@ describe("the tiers", () => {
 		expect(page.currencyOf("amount")).toBeUndefined();
 	});
 
+	it("asks for a Link column's target title and keys it the way the form's link titles are", async () => {
+		const deal = { fieldname: "deal", label: "Deal", fieldtype: "Link", options: "CRM Deal", in_list_view: 1, link_title: "organization" };
+		fake.meta!.fields = [FIELDS[0], deal];
+		await mount("/lead");
+		await settle();
+		expect(fake.lists[0].query.fields).toEqual(["name", "title", "deal", "deal.organization as deal__title"]);
+		fake.lists[0].data = [
+			{ name: "LEAD-1", deal: "D-1", deal__title: "Acme" },
+			{ name: "LEAD-2", deal: "D-2", deal__title: null },
+			{ name: "LEAD-3", deal: null },
+		];
+		await settle();
+		expect(page.linkTitles.value).toEqual({ "CRM Deal::D-1": "Acme" });
+	});
+
 	it("writes the person's column change after the debounce, without labels, and not a rename alone", async () => {
 		await mount("/lead");
 		await settle();

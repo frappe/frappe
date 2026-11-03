@@ -4,6 +4,7 @@ A target with a `color` field gives a dot; otherwise its `image_field` gives an 
 """
 
 import frappe
+from frappe.desk.link_title import get_link_title_field
 from frappe.model import get_permitted_fields
 from frappe.model.document import Document
 
@@ -11,15 +12,19 @@ COLOR_FIELDTYPES = ("Select", "Color", "Data")
 
 
 def mark_link_fields(fields: list[dict]) -> None:
-	"""Add `link_mark: {kind, field}` to each Link field whose target gives the caller a mark."""
-	marks = {}
+	"""Add `link_mark: {kind, field}` to each Link field whose target gives the caller a mark, and
+	`link_title: fieldname` to each whose target shows its title in links."""
+	marks, titles = {}, {}
 	for df in fields:
 		if df.get("fieldtype") != "Link" or not df.get("options"):
 			continue
 		if df["options"] not in marks:
 			marks[df["options"]] = readable_mark(df["options"])
+			titles[df["options"]] = get_link_title_field(df["options"])
 		if mark := marks[df["options"]]:
 			df["link_mark"] = mark
+		if title := titles[df["options"]]:
+			df["link_title"] = title
 
 
 def get_link_marks(doc: Document) -> dict:
