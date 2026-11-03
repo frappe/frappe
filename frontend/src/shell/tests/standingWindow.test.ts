@@ -25,6 +25,8 @@ import AppShell from "../AppShell.vue";
 import { registerComposerBand, registerFloatingComposer } from "../composer";
 import type { ShellHookApi } from "../shellHooks";
 import type { StandingWindowHandle, StandingWindowOptions } from "../standingWindows";
+import type { PaletteContext } from "../paletteGroups";
+import { openPlace } from "../palettePlaces";
 import { loadDocument } from "../tabKeepAlive";
 
 const addresses = new Addresses({ doctypes: {}, modules: {} });
@@ -882,6 +884,35 @@ describe("keep-alive", () => {
 		handles.helpdesk!.setKeepAlive(false);
 		await flush();
 		expect(leaving()).toBe(false);
+	});
+
+	it("opens a link that targets the top of this tab in a new tab", async () => {
+		const handle = await attached();
+		handle.setKeepAlive(true);
+		await flush();
+		const link = away("/apps/desk/top");
+		link.target = "_top";
+		expect(prevented(link)).toBe(true);
+		expect(opened).toHaveBeenCalledTimes(1);
+	});
+
+	it("opens a place on another prefix from the palette in a new tab while it is on", async () => {
+		const handle = await attached();
+		handle.setKeepAlive(true);
+		await flush();
+		openPlace("/apps/desk/todo", { boot, router: { push: vi.fn() } } as unknown as PaletteContext);
+		expect(opened).toHaveBeenCalledWith("/apps/desk/todo", "_blank", "noopener");
+		expect(assigned).not.toHaveBeenCalled();
+	});
+
+	it("lets the tab go when the shell unmounts", async () => {
+		const handle = await attached();
+		handle.setKeepAlive(true);
+		await flush();
+		releases.splice(0).forEach((release) => release());
+		expect(leaving()).toBe(false);
+		loadDocument("/apps");
+		expect(assigned).toHaveBeenCalledWith("/apps");
 	});
 
 	it("reads anything but true as off", async () => {

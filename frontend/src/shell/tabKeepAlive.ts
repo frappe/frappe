@@ -2,6 +2,8 @@
 import { computed, onScopeDispose, watch } from "vue";
 import type { StandingWindow } from "./standingWindows";
 
+const THIS_TAB = new Set(["", "_self", "_top", "_parent"]);
+
 let kept = false;
 
 /** Loads `href` as another document: in a new tab while a standing window keeps this one alive. */
@@ -42,7 +44,7 @@ function openInNewTab(event: MouseEvent) {
 	const plain = event.button === 0 && !(event.metaKey || event.ctrlKey || event.shiftKey || event.altKey);
 	const link = event.target instanceof Element ? event.target.closest("a[href]") : null;
 	if (event.defaultPrevented || !plain || !(link instanceof HTMLAnchorElement)) return;
-	if ((link.target && link.target !== "_self") || link.hasAttribute("download")) return;
+	if (!THIS_TAB.has(link.target) || link.hasAttribute("download")) return;
 	const url = new URL(link.href);
 	const moves = /^https?:$/.test(url.protocol);
 	const sameDocument = url.origin === location.origin && url.pathname + url.search === location.pathname + location.search;
