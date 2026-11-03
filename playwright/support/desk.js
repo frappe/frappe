@@ -162,6 +162,7 @@ export class Desk {
 	}
 
 	async hide_dialog() {
+		await this.page.waitForFunction(() => frappe.ui.open_dialogs.at(-1)?.display);
 		await this.get_open_dialog().locator(".btn-modal-close").click();
 		await expect(this.page.locator(".modal:visible")).toHaveCount(0);
 	}
