@@ -1,13 +1,9 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import frappe
-<<<<<<< HEAD
-from frappe.tests.utils import FrappeTestCase
-=======
 from frappe.core.doctype.user.test_user import test_user
 from frappe.model.document import unlock_document
-from frappe.tests import IntegrationTestCase
->>>>>>> 4101866 (fix: require write permission to unlock a document)
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils.data import add_to_date, today
 
 
