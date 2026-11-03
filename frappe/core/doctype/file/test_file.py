@@ -159,6 +159,15 @@ class TestFSRollbacks(IntegrationTestCase):
 		frappe.db.rollback()
 		self.assertFalse(file.exists_on_disk())
 
+	def test_delete_keeps_file_on_disk_until_commit(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		file_name = content = frappe.generate_hash()
+		file = frappe.new_doc("File", file_name=file_name, content=content).insert()
+
+		file.delete()
+		self.assertTrue(file.exists_on_disk())
+
 
 class TestWriteFileContainment(IntegrationTestCase):
 	def test_write_file_rejects_target_outside_files_dir(self):
@@ -1974,6 +1983,43 @@ class TestChildTableAttachments(IntegrationTestCase):
 		file_reloaded = frappe.get_doc("File", file.name)
 		self.assertEqual(doc_reloaded.parent_image, file_reloaded.file_url)
 
+	@IntegrationTestCase.change_settings("Navbar Settings", {"app_logo": "/files/logo.png"})
+	def test_toggle_is_private_leaves_unrelated_single_field_unchanged(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		file = frappe.get_doc(
+			doctype="File",
+			file_name="navbar-logo.png",
+			content=b"navbar-logo-bytes",
+			is_private=1,
+			attached_to_doctype="Navbar Settings",
+			attached_to_name="Navbar Settings",
+			attached_to_field="app_logo",
+		).insert()
+
+		file.is_private = 0
+		file.save()
+
+		self.assertEqual(frappe.db.get_single_value("Navbar Settings", "app_logo"), "/files/logo.png")
+
+	def test_toggle_is_private_updates_single_doctype_child_row(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		file = self.make_unattached_file(b"team-member-bytes")
+		settings = frappe.get_single("About Us Settings")
+		row = settings.append(
+			"team_members", {"full_name": "Test Member", "image_link": file.file_url, "bio": "Test"}
+		)
+		settings.save(ignore_permissions=True)
+
+		attached = frappe.get_doc("File", file.name)
+		attached.is_private = 0
+		attached.save(ignore_permissions=True)
+
+		self.assertEqual(
+			frappe.db.get_value("About Us Team Member", row.name, "image_link"), attached.file_url
+		)
+
 
 class TestAttachmentsAccess(IntegrationTestCase):
 	def setUp(self) -> None:
@@ -2571,6 +2617,7 @@ class TestGuestFileAndAttachments(IntegrationTestCase):
 
 		# Deleting a public File should not delete the private File's disk file
 		doc_pub.delete()
+		frappe.db.after_commit.run()
 		self.assertTrue(os.path.exists(doc_pri.get_full_path()))
 
 		# TODO: Migrate existing Files that have a mismatch between `is_private` and `file_url` prefix?
@@ -2578,6 +2625,7 @@ class TestGuestFileAndAttachments(IntegrationTestCase):
 
 		self.assertEqual(doc_pri.get_content(), content)
 		doc_pri.delete()
+		frappe.db.after_commit.run()
 		self.assertFalse(os.path.exists(doc_pri.get_full_path()))
 
 	def test_toggling_is_private_does_not_leak_shared_file(self):
@@ -2637,6 +2685,7 @@ class TestGuestFileAndAttachments(IntegrationTestCase):
 		# B's private copy must survive because B still references it.
 		doc_a_path = doc_a.get_full_path()
 		doc_a.delete()
+		frappe.db.after_commit.run()
 		self.assertFalse(
 			os.path.exists(doc_a_path),
 			"Public copy not cleaned up after A's deletion",
@@ -2650,6 +2699,7 @@ class TestGuestFileAndAttachments(IntegrationTestCase):
 		# Deleting B removes the last reference to the private copy.
 		doc_b_path = doc_b.get_full_path()
 		doc_b.delete()
+		frappe.db.after_commit.run()
 		self.assertFalse(
 			os.path.exists(doc_b_path),
 			"Private copy not cleaned up after B's deletion",
@@ -2748,6 +2798,66 @@ class TestPublicFileRestriction(IntegrationTestCase):
 
 		file_doc.insert()
 		self.assertFalse(file_doc.is_private)
+
+
+class TestForcePrivateAttachments(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+
+		cls.test_doctype = "Test Force Private Attachments"
+		new_doctype(
+			cls.test_doctype,
+			force_private_attachments=1,
+			permissions=[{"role": "Website Manager", "read": 1, "write": 1, "create": 1}],
+		).insert(ignore_if_duplicate=True)
+
+		cls.user = "test_force_private@example.com"
+		if not frappe.db.exists("User", cls.user):
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": cls.user,
+					"first_name": "Test Force Private",
+					"roles": [{"role": "Website Manager"}],
+				}
+			).insert(ignore_permissions=True)
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.db.rollback()
+		frappe.delete_doc_if_exists("DocType", cls.test_doctype)
+
+	def setUp(self):
+		frappe.set_user(self.user)
+		self.doc = frappe.get_doc(doctype=self.test_doctype).insert()
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+
+	def attach(self, is_private):
+		return frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "force_private.txt",
+				"content": "Test content",
+				"is_private": is_private,
+				"attached_to_doctype": self.test_doctype,
+				"attached_to_name": self.doc.name,
+			}
+		)
+
+	def test_public_attachment_is_rejected(self):
+		self.assertRaises(frappe.ValidationError, self.attach(is_private=0).insert)
+
+	def test_private_attachment_is_allowed(self):
+		self.assertTrue(self.attach(is_private=1).insert().is_private)
+
+	def test_private_attachment_cannot_be_made_public(self):
+		file = self.attach(is_private=1).insert()
+		file.is_private = 0
+		self.assertRaises(frappe.ValidationError, file.save)
 
 
 class TestFileListOwnerRestriction(IntegrationTestCase):

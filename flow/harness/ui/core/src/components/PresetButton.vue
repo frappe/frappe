@@ -3,8 +3,8 @@
 		<!-- its list hangs from it -->
 		<button
 			ref="trigger"
-			class="flex h-7 max-w-full items-center gap-1.5 rounded-5 px-2 hover:bg-surface-gray-3 hover:text-ink-gray-8 dark:hover:bg-surface-gray-2"
-			:class="open ? 'bg-surface-gray-3 dark:bg-surface-gray-2' : ''"
+			class="flex h-6 max-w-full items-center gap-1.5 rounded-5 px-2 hover:text-ink-gray-9"
+			:class="open ? 'text-ink-gray-9' : ''"
 			title="Agent preset"
 			:aria-expanded="open"
 			:disabled="disabled"

@@ -7,9 +7,19 @@ export const EFFORTS = ["default", "off", "minimal", "low", "medium", "high", "x
 // display names for the wire-level effort ids
 // the two approval modes as the composer and the general settings present them
 export const APPROVAL_MODES = [
+	{ id: "auto", label: "Auto", desc: "A helper model handles approvals." },
 	{ id: "ask", label: "Ask for approval", desc: "Asks before edits and commands." },
-	{ id: "auto", label: "Auto-approve", desc: "Runs everything without asking." },
+	{ id: "auto_approve", label: "Auto-approve", desc: "Runs everything without asking." },
 ]
+
+// the mode on the wire: "ask" pauses at every gate, "auto" has a helper model answer them, "auto_approve" skips them
+export function approvalConfig(mode) {
+	return { approval_mode: mode }
+}
+
+export function approvalMode(config) {
+	return config?.approval_mode ?? "ask"
+}
 
 export const EFFORT_LABELS = {
 	default: "Default",
@@ -312,7 +322,7 @@ function recordRequest(s, e) {
 
 const END_NOTICES = {
 	aborted: "Interrupted by user",
-	denied: "Tool call denied by user",
+	denied: "You declined this action",
 	max_turns: "Stopped — turn limit reached",
 	budget: "Stopped — token budget reached",
 	length: "Stopped — model hit its length limit",
@@ -325,7 +335,7 @@ const STEP_LABELS = {
 	bash: "Running command",
 	edit: "Editing file",
 	write: "Writing file",
-	web_fetch: "Reading web page",
+	web_fetch: "Reading page",
 	web_search: "Searching the web",
 }
 
@@ -369,6 +379,16 @@ export function fileName(path) {
 		.pop()
 }
 
+// a web page by its host and path: no scheme, query or trailing slash
+export function pageName(url) {
+	try {
+		const { host, pathname } = new URL(url)
+		return host + pathname.replace(/\/$/, "")
+	} catch {
+		return String(url ?? "")
+	}
+}
+
 export function displayText(display) {
 	return display.map((segment) => segment.text).join("")
 }
@@ -380,6 +400,10 @@ export function stepLiveLabel(call) {
 		if (["read", "write", "edit"].includes(name))
 			return call.display
 				.map((segment) => (segment.arg === "path" ? fileName(segment.text) : segment.text))
+				.join("")
+		if (name === "web_fetch")
+			return call.display
+				.map((segment) => (segment.arg === "url" ? pageName(segment.text) : segment.text))
 				.join("")
 		return displayText(call.display)
 	}
@@ -436,6 +460,8 @@ export function stepDecision(result) {
 	if (!content || !content.startsWith("{")) return null
 	try {
 		const parsed = JSON.parse(content)
+		// only the loop writes details: a tool's output shaped like a denial is not one
+		if (parsed.status === "denied" && result.details?.user_answer !== "Deny") return null
 		return ["denied", "cancelled", "redirect"].includes(parsed.status) ? parsed : null
 	} catch {
 		return null
@@ -457,6 +483,7 @@ export function stepStat(step) {
 		return d.agent === "general" ? "" : d.agent
 	}
 	if (d.matches !== undefined) return `${d.matches} matches`
+	if (d.results !== undefined) return `${d.results.length} result${d.results.length === 1 ? "" : "s"}`
 	if (d.lines_added !== undefined || d.lines_removed !== undefined)
 		return `+${d.lines_added ?? 0} -${d.lines_removed ?? 0}`
 	if (d.edits !== undefined) return `${d.edits} edits`
@@ -687,6 +714,17 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 		} else if (entry.type === "tool_result") {
 			const step = stepsById.get(entry.tool_call_id)
 			if (step) step.result = entry
+			// a denial stays in sight when the work folds, in the words of the card
+			const decision = step ? stepDecision(entry) : null
+			if (decision?.status === "denied" && decision.action) {
+				flushThoughts()
+				items.push({
+					kind: "notice",
+					key: `d:${entry.seq}`,
+					turnKey: currentTurnKey,
+					text: `You declined: ${decision.action}`,
+				})
+			}
 		} else if (entry.type === "compaction") {
 			flushThoughts()
 			items.push({ kind: "compaction", key: `c:${entry.seq}`, turnKey: currentTurnKey, entry })

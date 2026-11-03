@@ -3,7 +3,7 @@ import test from "node:test"
 import { ref } from "vue"
 
 import { FlowAPIError } from "../src/client.js"
-import { layout } from "../src/layout.js"
+import { chatFontWeight, layout } from "../src/layout.js"
 import { createFlowStore, MAX_ATTACHMENTS } from "../src/store.js"
 import { applyEvent } from "../src/transcript.js"
 
@@ -336,7 +336,7 @@ test("a change that answers after a chat switch stays with the chat it was made 
 	flow.state.conversation.pendingApproval = { seq: 2, calls: [{ id: "x" }], answers: {} }
 	models[0]({ model: "m/new" })
 	models[1]({ model: "m/A", reasoning_effort: "high" })
-	modeAnswer({ config: { auto_approve: true, cwd: "/A" } })
+	modeAnswer({ config: { approval_mode: "auto", cwd: "/A" } })
 	rewindAnswer({ status: "rewound" })
 	const rewound = (await Promise.all(changes))[3]
 
@@ -724,7 +724,7 @@ test("the active preset and custom instructions shape new sessions", async () =>
 	assert.equal(configs[1].system_suffix, "Review for risks.\n\nBe brief.")
 	assert.equal("system_preamble" in configs[1], false)
 	// model, thinking, and approval come from the chat, never the preset
-	assert.equal(configs[1].auto_approve, false)
+	assert.equal(configs[1].approval_mode, "auto") // Auto is the default mode
 	assert.equal("model" in configs[1], false)
 	assert.equal("effort" in configs[1], false)
 	assert.equal(configs[1].preset, id) // the chat keeps it, for the settings tab
@@ -1071,7 +1071,7 @@ test("saved state lives under the host's storage key and keeps only what differs
 
 		// a change the daemon missed goes to it at the next load, over the copy it has
 		daemon.away = true
-		other.setChatFontWeight(300)
+		other.setChatFontWeight(360)
 		t.mock.timers.tick(500)
 		await settled()
 		daemon.away = false
@@ -1080,18 +1080,18 @@ test("saved state lives under the host's storage key and keeps only what differs
 		await settled()
 		const reloaded = createFlowStore(client, { storageKey: "flow.ui:other", colorScheme: otherScheme })
 		await settled()
-		assert.deepEqual([reloaded.state.prefs.chatFontWeight, reloaded.state.prefs.chatFontSize], [300, 20])
-		assert.equal(daemon.settings.chatFontWeight, 300)
+		assert.deepEqual([reloaded.state.prefs.chatFontWeight, reloaded.state.prefs.chatFontSize], [360, 20])
+		assert.equal(daemon.settings.chatFontWeight, 360)
 
 		// a setting put back to its default goes as null, so every browser follows the default again
-		reloaded.setChatFontWeight(450)
+		reloaded.setChatFontWeight(420)
 		t.mock.timers.tick(500)
 		await settled()
 		assert.equal(daemon.settings.chatFontWeight, null)
 		assert.equal("chatFontWeight" in JSON.parse(backing.get("flow.ui:other.prefs")), false)
 		const firstAgain = createFlowStore(client, { storageKey: "flow.ui:site:user", colorScheme: scheme("dark") })
 		await settled()
-		assert.equal(firstAgain.state.prefs.chatFontWeight, 450)
+		assert.equal(firstAgain.state.prefs.chatFontWeight, 420)
 		assert.equal("chatFontWeight" in JSON.parse(backing.get("flow.ui:site:user.prefs")), false)
 	} finally {
 		globalThis.localStorage = previousStorage
@@ -1652,7 +1652,7 @@ test("a sub-agent's batch is answered with its own seq, and auto-approve answers
 	const resumes = []
 	const client = {
 		async patchConfig() {
-			return { config: { auto_approve: true } }
+			return { config: { approval_mode: "auto_approve" } }
 		},
 		async resume(sessionId, seq, answers) {
 			resumes.push({ seq, answers })
@@ -1682,7 +1682,7 @@ test("a sub-agent's batch is answered with its own seq, and auto-approve answers
 	assert.deepEqual(resumes, [{ seq: 6, answers: { a1: "Approve" } }])
 
 	// auto-approve answers every one still waiting, not just the oldest
-	await flow.setMode("auto")
+	await flow.setMode("auto_approve")
 	assert.deepEqual(resumes.slice(1), [
 		{ seq: 9, answers: { b1: "Approve" } },
 		{ seq: 11, answers: { d1: "Approve" } },
@@ -1796,4 +1796,8 @@ test("a compaction takes steering away as soon as it's asked for; a refused one 
 	await asked
 	assert.equal(flow.state.conversation.compacting, false)
 	flow.detach()
+})
+
+test("a chat font weight saved before the choices changed takes the nearest one, and none the default", () => {
+	assert.deepEqual([300, 450, 500, 360, undefined].map(chatFontWeight), [360, 420, 500, 360, 420])
 })

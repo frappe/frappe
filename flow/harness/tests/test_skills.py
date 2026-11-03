@@ -395,7 +395,7 @@ async def test_model_can_read_global_skill_without_granting_a_wider_project_root
 	monkeypatch.setenv("HOME", str(home))
 	path = _skill(home / ".agents" / "skills", "testing")
 	store = SessionStore(str(tmp_path / "data"), allowed_roots=[str(project)])
-	session = store.create(SessionConfig(cwd=str(project), auto_approve=True))
+	session = store.create(SessionConfig(cwd=str(project), approval_mode="auto_approve"))
 	model = _ReadsSkillModel(path)
 
 	handle = await session.run("test this", model=model)

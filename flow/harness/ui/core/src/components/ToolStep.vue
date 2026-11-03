@@ -68,6 +68,19 @@
 
 			<component :is="resultView" v-else-if="resultView" :arguments="args" :result="step.result" />
 
+			<div v-else-if="webResults" class="flex max-h-[260px] flex-col gap-3 overflow-auto px-3 py-2.5">
+				<div v-for="(hit, i) in webResults" :key="i" class="min-w-0">
+					<a
+						:href="hit.url"
+						target="_blank"
+						rel="noopener noreferrer"
+						class="block truncate text-sm font-medium text-ink-gray-8 hover:underline"
+					>{{ hit.title || hit.url }}</a>
+					<div class="truncate text-xs text-ink-gray-4">{{ pageName(hit.url) }}</div>
+					<div v-if="hit.snippet" class="mt-0.5 line-clamp-3 text-sm leading-relaxed text-ink-gray-6">{{ hit.snippet }}</div>
+				</div>
+			</div>
+
 			<template v-else-if="step.result">
 				<div class="flex items-center gap-2 border-b border-outline-gray-1 px-3 py-1.5">
 					<span class="min-w-0 flex-1 truncate text-xs text-ink-gray-4">{{ panelNote }}</span>
@@ -106,6 +119,7 @@ import { computed, inject, ref, watch } from "vue"
 import { usePanelOpen } from "../panels.js"
 import {
 	compactDisplayText,
+	pageName,
 	stepDecision,
 	stepIcon,
 	stepLabel,
@@ -126,10 +140,13 @@ const open = usePanelOpen(() => props.step.call.id)
 const flow = inject("flow", null)
 const cwd = computed(() => flow?.state?.session?.config?.cwd ?? null)
 
+// a page reads by its host and path, as a file does by its name
 const displaySegments = computed(() =>
-	(props.step.call.display ?? []).map((segment) =>
-		segment.arg ? { ...segment, text: compactDisplayText(segment.text, cwd.value) } : segment,
-	),
+	(props.step.call.display ?? []).map((segment) => {
+		if (!segment.arg) return segment
+		const page = props.step.call.name === "web_fetch" && segment.arg === "url"
+		return { ...segment, text: page ? pageName(segment.text) : compactDisplayText(segment.text, cwd.value) }
+	}),
 )
 
 // a host describes its own tools; the daemon's have display segments or defaults
@@ -187,6 +204,13 @@ const resultView = computed(() =>
 		: null,
 )
 
+// a search's hits, each a page to open
+const webResults = computed(() =>
+	props.step.call.name === "web_search" && Array.isArray(details.value.results) && details.value.results.length
+		? details.value.results
+		: null,
+)
+
 const diffLines = computed(() =>
 	typeof details.value.diff === "string" && details.value.diff ? details.value.diff.split("\n") : null,
 )
@@ -215,8 +239,8 @@ const expandable = computed(() => {
 	if (!props.step.result && !props.step.aborted) return false
 	if (meta.value.argsComponent) return true
 	if (!props.step.result) return false
-	if (diffLines.value || resultView.value) return true
-	if (["read", "write", "edit"].includes(props.step.call.name)) return false
+	if (diffLines.value || resultView.value || webResults.value) return true
+	if (["read", "write", "edit", "web_fetch"].includes(props.step.call.name)) return false
 	return !!output.value
 })
 

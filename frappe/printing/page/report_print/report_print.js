@@ -430,7 +430,9 @@ frappe.views.ReportPrintView = class ReportPrintView {
 		return (
 			!this.report.tree_report &&
 			(this.format.type === "jinja" ||
-				(this.format.type === "grid" && !this.report.report_settings.formatter))
+				(this.format.type === "grid" &&
+					(!this.report.report_settings.formatter ||
+						this.report.report_settings.has_python_formatter)))
 		);
 	}
 };

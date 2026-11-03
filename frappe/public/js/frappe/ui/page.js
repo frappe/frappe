@@ -167,6 +167,7 @@ frappe.ui.Page = class Page {
 		this.filters = this.wrapper.find(".filters");
 		this.page_head = this.wrapper.find(".page-head");
 		this.btn_primary = this.page_actions.find(".primary-action");
+		this.btn_primary_menu = this.page_actions.find(".primary-action-menu");
 		this.btn_secondary = this.page_actions.find(".secondary-action");
 
 		this.menu = this.page_actions.find(".menu-btn-group .dropdown-menu");
@@ -373,7 +374,25 @@ frappe.ui.Page = class Page {
 			working_label: working_label,
 			variant: "solid",
 		});
+		this.set_primary_action_options(label?.options);
 		return this.btn_primary;
+	}
+
+	// Other ways to do what the primary action does, in a menu on the chevron beside it.
+	// The header keeps its own buttons (callers hold btn_primary), dressed as an
+	// es-segmented-button, so only the menu is wired here.
+	set_primary_action_options(options) {
+		this.primary_action_dropdown?.destroy();
+		this.primary_action_dropdown = null;
+		this.btn_primary_menu.prop("hidden", !options?.length);
+		if (!options?.length) return;
+
+		this.primary_action_dropdown = new frappe.ui.Dropdown({
+			trigger: this.btn_primary_menu,
+			options,
+			align: "end",
+			sheet_on_mobile: true,
+		});
 	}
 
 	set_secondary_action(label, click, icon, working_label) {
@@ -394,6 +413,7 @@ frappe.ui.Page = class Page {
 
 	clear_primary_action() {
 		this.clear_action_of(this.btn_primary);
+		this.set_primary_action_options(null);
 	}
 
 	clear_secondary_action() {

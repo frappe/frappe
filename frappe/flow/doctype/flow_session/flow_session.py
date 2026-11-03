@@ -13,6 +13,7 @@ import frappe
 from frappe import _
 from frappe.flow.daemon.client import DaemonClient, DaemonError
 from frappe.flow.daemon.lifecycle import _redis_url
+from frappe.flow.lib.review import REVIEW_INSTRUCTIONS
 from frappe.flow.lib.session import (
 	ABANDONED,
 	GONE,
@@ -26,6 +27,9 @@ from frappe.flow.lib.session import (
 )
 from frappe.model.document import Document
 from frappe.utils.password import get_decrypted_password
+
+# the session's Approval Mode, as the flow server names it
+APPROVAL_MODES = {"Ask": "ask", "Auto": "auto", "Auto-approve": "auto_approve"}
 
 if TYPE_CHECKING:
 	from frappe.flow.doctype.flow_run.flow_run import FlowRun
@@ -46,7 +50,7 @@ class FlowSession(Document):
 
 		agent: DF.Link
 		attachments: DF.Table[FlowSessionAttachment]
-		auto_approve: DF.Check
+		approval_mode: DF.Literal["Ask", "Auto", "Auto-approve"]
 		last_synced_seq: DF.Int
 		messages: DF.Table[FlowSessionMessage]
 		model: DF.Link | None
@@ -62,7 +66,7 @@ class FlowSession(Document):
 		self._validate_agent_unchanged()
 		self._validate_model_enabled()
 		if self.source == "Trigger":
-			self.auto_approve = 1
+			self.approval_mode = "Auto-approve"
 
 	def on_update(self):
 		# a model saved on the record, as from Desk, must reach the flow server too
@@ -144,6 +148,7 @@ class FlowSession(Document):
 		from frappe.flow.daemon import lifecycle
 		from frappe.flow.doctype.flow_agent.flow_agent import DEFAULT_MAX_ITERATIONS
 		from frappe.flow.lib.model import model_config
+		from frappe.flow.tools.builtins import SCREEN_TOOL_SLUG
 
 		agent = frappe.get_doc("Flow Agent", self.agent)
 		if not agent.enabled:
@@ -161,7 +166,8 @@ class FlowSession(Document):
 			**agent.session_tool_config(self.name),
 			"subagents": agent.subagent_configs(self.name, context),
 			"skills_enabled": False,
-			"auto_approve": bool(self.auto_approve),
+			"approval_mode": APPROVAL_MODES[self.approval_mode],
+			"review_instructions": REVIEW_INSTRUCTIONS,
 			"max_turns": agent.max_iterations or DEFAULT_MAX_ITERATIONS,
 			"auto_compact": True,
 			"callback_url": lifecycle.callback_url(),
@@ -170,7 +176,13 @@ class FlowSession(Document):
 			"user_context": context,
 			"cwd": str(lifecycle.session_root()),
 		}
-		config["suggest_replies"] = self.source != "Trigger"  # nobody is there to tap one
+		if self.source == "Trigger":  # nobody is there to tap a reply, and no page to read
+			config["suggest_replies"] = False
+			config["client_tools"] = [
+				t for t in config["client_tools"] if t["function"]["name"] != SCREEN_TOOL_SLUG
+			]
+		else:
+			config["suggest_replies"] = True
 		search_provider = frappe.db.get_single_value("Flow Settings", "search_provider") or "DuckDuckGo"
 		config["web_search"] = {"provider": search_provider.lower()}
 		if search_provider != "DuckDuckGo":
@@ -341,14 +353,17 @@ class FlowSession(Document):
 			client.patch_config(self.name, title=title)
 		self.db_set("title", title)
 
-	def set_auto_approve(self, auto_approve: bool) -> None:
-		"""Whether confirmation tools run unattended; applies from the next tool call."""
-		auto_approve = bool(auto_approve)
-		if self.source == "Trigger" and not auto_approve:
+	def set_approval_mode(self, mode: str) -> None:
+		"""Ask, Auto (the helper model answers the gates) or Auto-approve; applies from the next tool call."""
+		if mode not in self.meta.get_options("approval_mode").split("\n"):
+			frappe.throw(
+				_("Approval mode must be Ask, Auto or Auto-approve."), title=_("Invalid Approval Mode")
+			)
+		if self.source == "Trigger" and mode != "Auto-approve":
 			frappe.throw(_("Trigger sessions always auto-approve tool calls."))
 		with flow_server() as client:
-			client.patch_config(self.name, auto_approve=auto_approve)
-		self.db_set("auto_approve", auto_approve)
+			client.patch_config(self.name, approval_mode=APPROVAL_MODES[mode])
+		self.db_set("approval_mode", mode)
 
 	def entries(self, *, since: int = 0, path: str = "active") -> dict[str, Any]:
 		"""The flow server's log: a snapshot of the active branch, or every row after `since`."""

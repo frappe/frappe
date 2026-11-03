@@ -1,9 +1,10 @@
 import { reactive, watch } from "vue"
 
 import { FlowAPIError } from "./client.js"
-import { CHAT_FONT_SIZE, CHAT_FONT_WEIGHT, layout } from "./layout.js"
+import { CHAT_FONT_SIZE, CHAT_FONT_WEIGHT, chatFontWeight, layout } from "./layout.js"
 import {
 	applyEvent,
+	approvalConfig,
 	approvalToAnswer,
 	conversationTitle,
 	initialConversation,
@@ -85,7 +86,9 @@ const COLOR_SCHEMES = ["system", "light", "dark"]
 //                  body, argsComponent, resultComponent }, any subset, describing the host's
 //                  own tools in rows, approvals and expanded output. Both components fill
 //                  their panel and carry their own padding; resultComponent takes the panel
-//                  over from the text dump, and expandable: false drops the dropdown
+//                  over from the text dump, and expandable: false drops the dropdown.
+//                  An argsComponent that declares a `call` prop is given the call.
+//                  ownAnswers: the argsComponent answers the card itself
 //   turnActions    a component rendered after each finished turn's copy button, with
 //                  the turn's key, response text and timestamp as props
 //   listedModel    true when a session-list row's `model` is the chat's current one, so a
@@ -114,7 +117,7 @@ export function createFlowStore(client, options = {}) {
 	// theme lives in frappe-ui's useColorScheme (localStorage "theme"), not here; a host whose
 	// daemon keeps settings passes it in (options.colorScheme) to save and restore it with them
 	const defaults = {
-		mode: "ask", // "ask" | "auto" — applied at session create
+		mode: "auto", // "auto" | "ask" | "auto_approve" — applied at session create, patched on the current one
 		customInstructions: "", // sent as system_suffix at session create
 		activePreset: null, // id of the agent preset applied to new chats
 		defaultPreset: null, // { tools, extensionTools } ticked for the Default preset on top of the core tools
@@ -138,6 +141,7 @@ export function createFlowStore(client, options = {}) {
 	// only what differs from these is saved, so a setting left alone follows a new default
 	const prefs = { ...copy(defaults), ...readJSON(keys.prefs, {}) }
 	if (typeof prefs.customInstructions !== "string") prefs.customInstructions = ""
+	prefs.chatFontWeight = chatFontWeight(prefs.chatFontWeight)
 
 	// the docked sidebar follows the saved preference; a drawer starts closed and is never saved
 	const sidebarFromPrefs = () => !layout.narrow && prefs.sidebarOpen !== false
@@ -257,6 +261,7 @@ export function createFlowStore(client, options = {}) {
 			} else state.prefs[key] = copy(value ?? defaults[key])
 		}
 		if (typeof state.prefs.customInstructions !== "string") state.prefs.customInstructions = ""
+		state.prefs.chatFontWeight = chatFontWeight(state.prefs.chatFontWeight)
 		agreed = saved
 		settingsLoaded = true
 		localStorage.setItem(keys.prefs, JSON.stringify(changedPrefs()))
@@ -741,7 +746,7 @@ export function createFlowStore(client, options = {}) {
 		const preset = activePreset()
 		const picked = preset ?? defaultPreset()
 		const config = {
-			auto_approve: state.prefs.mode === "auto",
+			...approvalConfig(state.prefs.mode),
 			suggest_replies: true,
 		}
 		if (state.prefs.smallModel) config.small_model = { model: state.prefs.smallModel }
@@ -1254,11 +1259,11 @@ export function createFlowStore(client, options = {}) {
 		savePrefs()
 		const sid = state.sessionId
 		if (!sid) return
-		const data = await guard(() => client.patchConfig(sid, { auto_approve: mode === "auto" }))
+		const data = await guard(() => client.patchConfig(sid, approvalConfig(mode)))
 		// the server never switched, or the user moved to another chat meanwhile: don't act on it here
 		if (!data || state.sessionId !== sid) return
 		if (state.session) state.session.config = data.config
-		if (mode !== "auto") return
+		if (mode !== "auto_approve") return
 		// the batches already waiting at the gate are covered by the new mode: approve
 		// whatever the user hasn't decided yet (their explicit answers stand)
 		for (const pending of waitingApprovals(state.conversation)) {

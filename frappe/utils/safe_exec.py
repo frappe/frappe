@@ -879,10 +879,8 @@ def check_safe_sql_query(query: str, throw: bool = True) -> bool:
 	query = query.strip().lower()
 	whitelisted_statements = ("select", "explain")
 
-	uncommented = re.sub(r"/\*.*?\*/|--[^\n]*|#[^\n]*", " ", query, flags=re.DOTALL)
-	export_pattern = r"\binto\s+(outfile|dumpfile)\b"
-
-	if re.search(export_pattern, query) or re.search(export_pattern, uncommented):
+	# match the keyword alone: comments and executable comments can separate it from INTO
+	if re.search(r"outfile|dumpfile", query):
 		if throw:
 			frappe.throw(
 				_("Read-Only queries are allowed"),

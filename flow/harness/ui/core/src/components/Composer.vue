@@ -327,7 +327,7 @@
 									:key="m.id"
 									data-palette-item
 									:aria-current="currentMode === m.id ? 'true' : undefined"
-									class="flow-palette-row h-auto py-1.5"
+									class="flow-palette-row !py-1.5"
 									@click="chooseMode(m.id)"
 								>
 									<span
@@ -396,9 +396,11 @@
 import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { dialogs as frappeDialogs } from "frappe-ui/src/utils/dialog"
 
+import { isInert, isPageEvent } from "../inert.js"
 import { layout } from "../layout.js"
 import {
 	APPROVAL_MODES,
+	approvalMode,
 	approvalToAnswer,
 	codeRefLabel,
 	quoteBlock,
@@ -850,11 +852,11 @@ const canSend = computed(
 // preference new chats will be created with
 const currentMode = computed(() => {
 	if (!flow.state.sessionId) return flow.state.prefs.mode
-	return flow.state.session?.config?.auto_approve ? "auto" : "ask"
+	return approvalMode(flow.state.session?.config)
 })
 const modeLabel = computed(() => props.modes.find((m) => m.id === currentMode.value)?.label ?? currentMode.value)
 // a narrow frame's mode button: tools locked behind a yes, or unlocked
-const MODE_ICONS = { ask: "lucide-lock", auto: "lucide-lock-open" }
+const MODE_ICONS = { ask: "lucide-lock", auto: "lucide-shield-check", auto_approve: "lucide-lock-open" }
 
 const currentModel = computed(() => flow.state.conversation.model ?? flow.state.prefs.lastModel)
 const currentImageSupport = computed(() => {
@@ -970,8 +972,11 @@ function anyMenuOpen() {
 // e.repeat: a held key must not spam abort requests.
 function onWindowKey(e) {
 	if (e.key !== "Escape" || e.repeat || e.defaultPrevented || composing(e) || anyMenuOpen()) return
-	if (box.value?.closest("[inert]")) return // a box the host hides stops nothing
-	if (e.target?.closest?.('input, textarea, select, [contenteditable], [role="dialog"], [role="menu"]')) return
+	if (isInert(box.value)) return // a box the host hides stops nothing
+	if (isPageEvent(e, box.value)) return // Escape on the page beside the panel is the page's
+	// the key's own target, which a shadow root retargets at the window
+	const target = e.composedPath()[0]
+	if (target?.closest?.('input, textarea, select, [contenteditable], [role="dialog"], [role="menu"]')) return
 	if (running.value) flow.abort()
 }
 

@@ -32,7 +32,7 @@
 </template>
 
 <script setup>
-import { computed, inject, ref } from "vue";
+import { computed, getCurrentInstance, inject, ref } from "vue";
 import { dialog, toast } from "frappe-ui";
 
 // Rendered by the core's message list after each finished turn (options.turnActions).
@@ -44,6 +44,8 @@ const props = defineProps({
 const flow = inject("flow");
 const page = inject("flowPage");
 const busy = ref(false);
+// the island's shadow root, which a document query does not see into
+const self = getCurrentInstance();
 
 const sid = computed(() => flow.state.sessionId);
 const run = computed(() => (sid.value ? page.runForTurn(sid.value, props.turnKey) : null));
@@ -72,7 +74,8 @@ function askWhy() {
 // the prompt hands focus to the dialog's close button; the comment is what it is for,
 // so claim the field once it mounts
 function focusComment(tries = 20) {
-	const field = [...document.querySelectorAll("[role=dialog] textarea")].at(-1);
+	const root = self.proxy.$el?.getRootNode?.() ?? document;
+	const field = [...root.querySelectorAll("[role=dialog] textarea")].at(-1);
 	if (field) field.focus();
 	else if (tries) requestAnimationFrame(() => focusComment(tries - 1));
 }
@@ -89,7 +92,12 @@ async function rate(value, comment = "") {
 			feedback_rating: result.rating ?? "",
 			feedback_comment: value === "Down" ? comment : "",
 		});
-		if (result.memory) toast.success("Saved to agent memory.");
+		if (result.memory)
+			toast.success(
+				result.memory_scope === "User"
+					? "Saved to your memory: the assistant uses it in your chats."
+					: "Saved to agent memory for everyone."
+			);
 		else if (result.forgotten) toast.success("Removed from agent memory.");
 	} catch (error) {
 		toast.error(error?.message ?? "Could not save feedback.");

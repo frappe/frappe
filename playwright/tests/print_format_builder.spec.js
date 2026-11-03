@@ -414,7 +414,7 @@ test.describe("Print Format Builder — create flow", () => {
 		await expect(inspector).toContainText("Edit HTML");
 
 		await source("Image").click();
-		await expect(inspector).toContainText("Upload Image");
+		await expect(inspector.locator('button[title="Upload Image"]')).toBeVisible();
 		await expect(inspector).not.toContainText("Edit HTML");
 
 		await source("HTML").click();

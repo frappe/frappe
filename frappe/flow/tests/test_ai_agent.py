@@ -8,6 +8,8 @@ from frappe.flow import Agent, ToolContext, tool
 from frappe.flow.assistant import ASSISTANT_AGENT_NAME, ASSISTANT_AGENT_TITLE, sync_builtin_assistant
 from frappe.flow.daemon.callback import tool_callback
 from frappe.flow.daemon.client import DaemonClient
+from frappe.flow.doctype.flow_skill.flow_skill import sync_skills
+from frappe.flow.doctype.flow_skill.test_flow_skill import AppSkills
 from frappe.flow.knowledge import Knowledge
 from frappe.flow.lib.agent import _ensure_tool, sync_agents, sync_tools
 from frappe.flow.tests.test_fake_daemon import FakeDaemon
@@ -291,6 +293,20 @@ class TestAgent(IntegrationTestCase):
 			):
 				self.synced(tools=[unimportable])
 
+	def test_a_skill_without_an_app_prefix_is_the_apps_own_else_the_sites(self):
+		AppSkills(self).write("onboarding")
+		sync_skills()
+		for title in ("onboarding", "House Style"):
+			frappe.get_doc(
+				{"doctype": "Flow Skill", "title": title, "description": "Any reply.", "instructions": "x"}
+			).insert()
+
+		agent = self.synced(skills=["onboarding", "House Style"])
+		self.assertEqual(
+			[row.skill for row in frappe.get_doc("Flow Agent", agent.name).skills],
+			["frappe/onboarding", "House Style"],
+		)
+
 	def test_sync_agents_writes_every_hooked_agent_once(self):
 		with self.hooked("flow_agents", "hooked_agents"):
 			sync_agents()
@@ -440,7 +456,8 @@ class TestAgent(IntegrationTestCase):
 		run = agent.run("how many?")
 
 		self.assertEqual(
-			(session.agent, session.title, session.auto_approve), ("frappe/Todo Helper", "Todos", 1)
+			(session.agent, session.title, session.approval_mode),
+			("frappe/Todo Helper", "Todos", "Auto-approve"),
 		)
 		self.assertEqual((run.status, run.input), ("Running", "how many?"))
 		self.assertNotEqual(run.session, session.name)
@@ -449,7 +466,7 @@ class TestAgent(IntegrationTestCase):
 			[client_tool["function"]["name"] for client_tool in config["client_tools"]],
 			["count_todos", "close_todo", "read_records"],
 		)
-		self.assertEqual((config["confirm_tools"], config["auto_approve"]), (["close_todo"], True))
+		self.assertEqual((config["confirm_tools"], config["approval_mode"]), (["close_todo"], "auto_approve"))
 
 		# the callback runs a code tool as the session's owner
 		reply = tool_callback(session_id=session.name, tool="count_todos", args={"status": "Open"})

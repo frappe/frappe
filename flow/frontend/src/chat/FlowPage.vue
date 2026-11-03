@@ -4,6 +4,7 @@
 	     panel; the launcher's panel keeps it flat at any size. The chat's text and its steps are
 	     the composer's size, the text a size up in a wide frame or on a phone -->
 	<div
+		ref="root"
 		class="flow-sidebar-surface flex h-full min-h-0 overflow-clip text-md text-ink-gray-8 [--flow-step-text:theme(fontSize.base)]"
 		:class="
 			layout.phone
@@ -17,30 +18,7 @@
 			:chat-in-view="!pageKind"
 			:before-switch="leavePage"
 			@close="store.setSidebarOpen(false)"
-		>
-			<!-- a group under its own heading, spaced as the chats' heading is under it -->
-			<template #nav>
-				<h3
-					v-if="pages.length"
-					class="mt-[7px] flex h-8 items-center pl-2 text-sm font-medium text-ink-gray-5"
-				>
-					Build
-				</h3>
-				<SidebarItem
-					v-for="item in pages"
-					:key="item.key"
-					:icon="item.icon"
-					:route="`/${item.key}`"
-					:active="pageKind === item.key"
-					class="h-8 data-[state=active]:bg-surface-gray-3 data-[state=active]:shadow-none"
-					@click="layout.narrow && store.setSidebarOpen(false)"
-				>
-					<span class="truncate text-base text-ink-gray-8">{{
-						SPECS[item.key].label
-					}}</span>
-				</SidebarItem>
-			</template>
-		</SessionSidebar>
+		/>
 		<div
 			class="flex min-w-0 flex-1 overflow-clip bg-surface-base"
 			:class="inPanel ? '' : 'md:m-1 md:rounded-5 md:shadow-sm'"
@@ -59,7 +37,6 @@
 					:actions="chatActions"
 					:crumb="agentCrumb"
 					:history="noSidebar"
-					:nav="pageLinks"
 					:manage="!inPanel"
 					:beside-navbar="panelHost"
 					:transcript="!inPanel"
@@ -67,10 +44,10 @@
 				>
 					<template v-if="inPanel" #end>
 						<button class="flow-icon-btn" title="Open in new tab" @click="openInTab">
-							<span class="lucide-external-link size-3.5" aria-hidden="true" />
+							<span class="lucide-external-link size-4" aria-hidden="true" />
 						</button>
 						<button class="flow-icon-btn" title="Close" @click="closePanel">
-							<span class="lucide-x size-3.5" aria-hidden="true" />
+							<span class="lucide-x size-4" aria-hidden="true" />
 						</button>
 					</template>
 				</ChatHeader>
@@ -137,10 +114,9 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, provide, ref, watch } from "vue";
+import { computed, inject, onBeforeUnmount, onMounted, provide, ref, watch } from "vue";
 import { isNavigationFailure, useRoute, useRouter } from "vue-router";
 import { Dialogs, ToastProvider, toast, useColorScheme } from "frappe-ui";
-import SidebarItem from "frappe-ui/src/components/Sidebar/SidebarItem.vue";
 import BrandMark from "@flow/ui-core/components/BrandMark.vue";
 import ChatHeader from "@flow/ui-core/components/ChatHeader.vue";
 import Composer from "@flow/ui-core/components/Composer.vue";
@@ -152,7 +128,7 @@ import { installShortcuts } from "@flow/ui-core/shortcuts.js";
 import { installFocusRings } from "@flow/ui-core/focusRings.js";
 import { installViewport } from "@flow/ui-core/viewport.js";
 import { provideComposerHeight } from "@flow/ui-core/composerHeight.js";
-import { layout } from "@flow/ui-core/layout.js";
+import { layout, measureLayoutBy } from "@flow/ui-core/layout.js";
 import { createFlowStore } from "@flow/ui-core/store.js";
 
 import { FrappeClient } from "../api/client.js";
@@ -161,7 +137,7 @@ import { connectSocket } from "../api/socket.js";
 import { createPage } from "../page.js";
 import { inPanel, panelHost } from "../panel.js";
 import RecordPage from "../pages/RecordPage.vue";
-import { FORMS, PAGES } from "../pages/pages.js";
+import { FORMS } from "../pages/pages.js";
 import FlowSettings from "../settings/FlowSettings.vue";
 import { SPECS } from "../settings/specs.js";
 import AgentPalette from "./AgentPalette.vue";
@@ -171,6 +147,7 @@ import SetupState from "./SetupState.vue";
 import ShareChat from "./ShareChat.vue";
 import SkillPicker from "./SkillPicker.vue";
 import { useAgent } from "./agent.js";
+import { readScreen } from "./screen.js";
 import { presentTool } from "./toolMeta.js";
 
 // the composer commands Flow serves, its own agent picker first; the rest need the
@@ -188,8 +165,9 @@ const COMMANDS = [
 ];
 // the approval modes in Flow's terms: its tools act on documents, not files
 const MODES = [
+	{ id: "auto", label: "Auto", desc: "A helper model handles approvals." },
 	{ id: "ask", label: "Ask for approval", desc: "Asks before changing anything." },
-	{ id: "auto", label: "Auto-approve", desc: "Runs everything without asking." },
+	{ id: "auto_approve", label: "Auto-approve", desc: "Runs everything without asking." },
 ];
 
 const props = defineProps({ boot: { type: Object, required: true } });
@@ -226,7 +204,32 @@ const store = createFlowStore(client, {
 });
 provide("flow", store);
 provide("flowPage", page);
-useColorScheme();
+// in the launcher's panel the window's history is the page's around it
+provide("flowBesidePage", inPanel);
+// the agent's read_screen: the panel reads the page beside it and answers for the chat it shows. A
+// tab of its own has no page; it answers late, so a panel on the same chat is heard first
+const STANDALONE_DELAY = 1500;
+socket.on("flow:read_screen", async (message) => {
+	if (!message?.token || message.session !== store.state.sessionId) return;
+	const answer = { session: message.session, token: message.token };
+	if (!inPanel) {
+		await new Promise((resolve) => setTimeout(resolve, STANDALONE_DELAY));
+		answer.error = "Flow is open in a tab of its own, with no page beside it.";
+	} else {
+		try {
+			answer.screen = readScreen(window, root.value?.getRootNode().host);
+		} catch (error) {
+			answer.error = `The page beside the chat could not be read: ${error?.message ?? error}`;
+		}
+	}
+	try {
+		await transport.call("frappe.flow.api.screen_result", answer);
+	} catch {
+		// another panel on the chat answered first, or the call stopped waiting
+	}
+});
+// the page around the panel owns the theme, which the island follows
+if (!inPanel) useColorScheme();
 // the store keys a new chat's skills by folder; here they follow the chosen agent
 watch(
 	() => page.state.agent,
@@ -251,8 +254,8 @@ watch(
 );
 
 // the launcher's panel, and a narrow frame worked by a mouse, have no sidebar: the chat's menu
-// lists the chats, and a narrow tab's gear leads to the pages and settings, which the panel leaves
-// to Desk and the /flow tab. A phone keeps the sidebar as a drawer
+// lists the chats, and a narrow tab's gear leads to settings, which the panel leaves to Desk and
+// the /flow tab. A phone keeps the sidebar as a drawer
 const noSidebar = computed(() => !layout.phone && (layout.narrow || inPanel));
 provide("noSidebar", noSidebar);
 const sidebarOpen = computed(() => !noSidebar.value && store.state.sidebarOpen);
@@ -292,9 +295,10 @@ const needsSetup = computed(
 );
 
 // the launcher listens for the header's ×; a new tab takes the chat over from the panel
-const closePanel = () => window.dispatchEvent(new CustomEvent("flow-close"));
+const host = inject("flowHost", null);
+const closePanel = () => host?.close();
 function openInTab() {
-	window.open(location.href, "_blank", "noopener");
+	window.open(`/flow${route.fullPath}`, "_blank", "noopener");
 	closePanel();
 }
 
@@ -314,21 +318,11 @@ watch(
 // the route names the open conversation, so links and reloads keep it
 const route = useRoute();
 const router = useRouter();
-// the pages beside the chats, each for whoever may read its records
-const pages = computed(() => PAGES.filter((item) => page.can(SPECS[item.key].doctype, "read")));
-const pageLinks = computed(() =>
-	pages.value.map((item) => ({
-		label: SPECS[item.key].label,
-		icon: item.icon,
-		onClick: () => router.push(`/${item.key}`),
-	}))
-);
-// a setup form has a record's page alone, no list
+// a setup form's record in the chat's place, for whoever may read its records
 const forms = computed(() => FORMS.filter((item) => page.can(SPECS[item.key].doctype, "read")));
 const pageKind = computed(() => {
-	const { kind, record } = route.params;
-	const shown = pages.value.some((item) => item.key === kind);
-	return shown || (record && forms.value.some((item) => item.key === kind)) ? kind : null;
+	const { kind } = route.params;
+	return forms.value.some((item) => item.key === kind) ? kind : null;
 });
 watch(
 	() => store.state.sessionId,
@@ -372,20 +366,28 @@ provide("leavePage", leavePage);
 watch(
 	() => {
 		if (!pageKind.value) return store.state.session?.title;
-		const spec = SPECS[pageKind.value];
 		const { record } = route.params;
-		return !record ? spec.label : record === "new" ? `New ${spec.singular}` : record;
+		return record === "new" ? `New ${SPECS[pageKind.value].singular}` : record;
 	},
-	(title) => (document.title = title ? `${title} · Flow` : "Flow")
+	(title) => {
+		if (!inPanel) document.title = title ? `${title} · Flow` : "Flow";
+	}
 );
 
 let uninstallShortcuts = null;
 let uninstallFocusRings = null;
 let uninstallViewport = null;
+let unmeasure = null;
+const root = ref(null);
 onMounted(async () => {
+	// an island lays out by its own box, which a panel narrows; the page's width says nothing
+	unmeasure = measureLayoutBy(root.value);
 	if (!inPanel) uninstallShortcuts = installShortcuts(store);
-	uninstallFocusRings = installFocusRings();
-	uninstallViewport = installViewport();
+	uninstallFocusRings = installFocusRings(
+		...[root.value, root.value.getRootNode().host].filter(Boolean)
+	);
+	// the page around the panel owns the window's viewport
+	if (!inPanel) uninstallViewport = installViewport();
 	store.refreshModels();
 	await store.refreshSessions();
 	// the route watcher, a click or a first message may have moved on while the list loaded,
@@ -406,6 +408,7 @@ onBeforeUnmount(() => {
 	uninstallShortcuts?.();
 	uninstallFocusRings?.();
 	uninstallViewport?.();
+	unmeasure?.();
 	store.detach();
 	socket.disconnect();
 });

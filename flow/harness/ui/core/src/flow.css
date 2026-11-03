@@ -120,7 +120,7 @@ body {
 .flow-palette-row {
 	display: flex;
 	width: 100%;
-	height: 32px;
+	min-height: 32px; /* a row with a description grows past it */
 	align-items: center;
 	gap: 8px;
 	padding: 0 11px;
@@ -240,7 +240,8 @@ body {
 /* Focus rings need Tab (focusRings.js marks the root): focus a script moves after a key
    press, like a dialog's first tab or a closed menu's trigger, matches :focus-visible too.
    Text fields keep their own focus look. */
-:root:not([data-flow-tabbing]) :focus-visible:not(input, textarea, [contenteditable]) {
+:root:not([data-flow-tabbing]) :focus-visible:not(input, textarea, [contenteditable]),
+:host(:not([data-flow-tabbing])) :focus-visible:not(input, textarea, [contenteditable]) {
 	outline: none;
 }
 

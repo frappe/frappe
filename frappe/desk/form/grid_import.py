@@ -72,14 +72,14 @@ def parse_file(
 	doctype: str,
 	filename: str | None = None,
 	dataurl: str | None = None,
-	file_url: str | None = None,
 	docname: str | None = None,
+	library_file_name: str | None = None,
 ) -> list[list[str]]:
 	check_permission(doctype, "write", docname)
 
 	file_doc = None
-	if file_url:
-		file_doc = frappe.get_doc("File", {"file_url": file_url})
+	if library_file_name:
+		file_doc = frappe.get_doc("File", library_file_name)
 		file_doc.check_permission("read")
 		filename = filename or file_doc.file_name
 
