@@ -1007,7 +1007,7 @@ describe("keep-alive", () => {
 		const [message, options] = vi.mocked(toast).mock.calls.at(-1)!;
 		expect(message).toBe("Your browser blocked the new tab");
 		expect(assigned).not.toHaveBeenCalled();
-		options!.action!.onClick({} as MouseEvent);
+		(options!.action as { onClick: (event: MouseEvent) => void }).onClick({} as MouseEvent);
 		expect(opened).toHaveBeenLastCalledWith("/app/todo/new", "_blank", "noopener");
 	});
 
