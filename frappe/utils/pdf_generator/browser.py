@@ -215,11 +215,6 @@ class Browser:
 			if not self.header_height:
 				self.header_page.close()
 				self.header_page = None
-		if not self.header_page:
-			# Fallback only when the caller did not explicitly pass margin-top.
-			# If margin-top is already set (e.g. from PrintFormatGenerator), keep it.
-			if "margin-top" not in options:
-				options["margin-top"] = "15mm"
 
 		if self.footer_page:
 			self.footer_page.wait_for_set_content()
@@ -229,10 +224,6 @@ class Browser:
 			if not self.footer_height:
 				self.footer_page.close()
 				self.footer_page = None
-		if not self.footer_page:
-			# Fallback only when the caller did not explicitly pass margin-bottom.
-			if "margin-bottom" not in options:
-				options["margin-bottom"] = "15mm"
 
 		# Remove instances of them from main content for render_template
 		for html_id in ["header-html", "footer-html"]:
@@ -384,14 +375,6 @@ class Browser:
 			"generateOutline": options.get("generate-outline", False),
 		}
 
-		# bad implicit setting of margin #backwards-compatibility
-		if not self.is_print_designer:
-			if not options.get("margin-right"):
-				options["margin-right"] = "15mm"
-
-			if not options.get("margin-left"):
-				options["margin-left"] = "15mm"
-
 		if not options.get("page-height") or not options.get("page-width"):
 			if not (page_size := self.options.get("page-size")):
 				raise frappe.ValidationError("Page size is required")
@@ -418,6 +401,22 @@ class Browser:
 
 		updated_options["paperWidth"] = convert_uom(options["page-width"], "px", "in", only_number=True)
 
+		min_size = convert_uom(30, "mm", "px", only_number=True)
+		default_margin = "15mm" if options["page-height"] > min_size else "0mm"
+		if not self.header_page:
+			options.setdefault("margin-top", default_margin)
+		if not self.footer_page:
+			options.setdefault("margin-bottom", default_margin)
+
+		# bad implicit setting of margin #backwards-compatibility
+		if not self.is_print_designer:
+			side_margin = "15mm" if options["page-width"] > min_size else "0mm"
+			if not options.get("margin-right"):
+				options["margin-right"] = side_margin
+
+			if not options.get("margin-left"):
+				options["margin-left"] = side_margin
+
 		if options.get("margin-left"):
 			updated_options["marginLeft"] = convert_uom(
 				self._get_converted_num(options["margin-left"]), "px", "in", only_number=True
@@ -431,6 +430,12 @@ class Browser:
 		self.printable_width = 96 * (
 			updated_options["paperWidth"] - updated_options["marginLeft"] - updated_options["marginRight"]
 		)
+		if self.printable_width < 0:
+			frappe.throw(
+				frappe._(
+					"Margins leave no room for content on a {0}px wide page. Reduce them or use a larger page size."
+				).format(options.get("page-width"))
+			)
 		if self.header_page:
 			self.header_page.set_device_metrics(width=int(self.printable_width))
 			self.header_height = self.header_page.get_element_height()
@@ -505,7 +510,8 @@ class Browser:
 			header_with_spacing_top_margin + footer_with_bottom_margin
 		)
 
-		if body_height <= 0:
+		body_margins = 96 * (self.body_page.options["marginTop"] + self.body_page.options["marginBottom"])
+		if body_height - body_margins <= 0:
 			frappe.throw(
 				frappe._(
 					"Header, footer and margins leave no room for content on a {0}px tall page. Reduce their height or use a larger page size."
