@@ -64,12 +64,19 @@ class TestStudioApp(FrappeTestCase):
 		self.assertTrue(app.uses_db_files())
 		self.assertIsNone(app.get_assets_from_manifest())
 
-		html = get_website_response("shop-demo/board").get_data(as_text=True)
+		gate = "frappe.studio.doctype.studio_app.studio_app.can_build_bundle"
+		with patch(gate, return_value=True):
+			html = get_website_response("shop-demo/board").get_data(as_text=True)
 		# no bundle to serve, so the shared renderer takes over and compiles the files in the browser
 		self.assertIn("window.uses_db_files = true", html)
 		self.assertIn("/assets/frappe/studio/", html)
-		# every app is built on publish, so a missing bundle means the build failed or has not run
+		# every app is built on publish, so a server that can build and has none failed or never ran
 		self.assertIn("Could not find app assets", html)
+
+		with patch(gate, return_value=False):
+			html = get_website_response("shop-demo/board").get_data(as_text=True)
+		# a server without yarn never builds, so the browser runtime is not a missing build
+		self.assertNotIn("Could not find app assets", html)
 
 	def test_app_favicon(self):
 		app = make_studio_app(app_title="Favicon App", app_name="favicon-app")

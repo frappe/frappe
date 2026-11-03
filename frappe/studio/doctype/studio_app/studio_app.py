@@ -8,7 +8,7 @@ from urllib.parse import quote
 
 import frappe
 from frappe import _
-from frappe.studio.build import get_editor_assets
+from frappe.studio.build import can_build_bundle, get_editor_assets
 from frappe.studio.export import (
 	can_export,
 	delete_folder,
@@ -82,10 +82,10 @@ class StudioAppRenderer(DocumentPage):
 				self.context.stylesheets = manifest.get("stylesheets", [])
 				self.context.script = manifest.get("script")
 			else:
-				# the build is missing or failed, so the editor's renderer takes over and compiles
-				# the app's files in the browser
+				# the editor's renderer compiles the app's files in the browser; a server that
+				# cannot build has no bundle to miss, so only warn where one was expected
 				self.use_studio_renderer()
-				self.context.assets_not_found = True
+				self.context.assets_not_found = can_build_bundle()
 
 	def use_studio_renderer(self):
 		"""Serve the app with the editor's own renderer instead of its published build."""

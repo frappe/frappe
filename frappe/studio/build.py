@@ -3,6 +3,7 @@
 import json
 import os
 import re
+import shutil
 import subprocess
 import tempfile
 import traceback
@@ -23,6 +24,12 @@ from frappe.utils import get_files_path
 ANSI_ESCAPE_REGEX = re.compile(r"\x1b\[[0-9;]*[a-zA-Z]")
 EDITOR_ASSETS_BASE = "/assets/frappe/studio/"
 LUCIDE_ICON_REGEX = re.compile(r"\blucide-[a-z0-9]+(?:-[a-z0-9]+)*")
+
+
+def can_build_bundle() -> bool:
+	"""Whether this server can build an app bundle at all. Without yarn the browser renderer is
+	an app's normal runtime, not the sign of a failed build."""
+	return bool(shutil.which("yarn"))
 
 
 class StudioAppBuildError(RuntimeError):
