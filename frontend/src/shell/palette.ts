@@ -28,6 +28,8 @@ export interface PaletteRow {
 	disabled?: boolean;
 	/** The doctype Tab narrows the search to, on a row that opens its list. */
 	doctype?: string;
+	/** Shift+Enter loads the place in the app that owns it, when `href` keeps it in this one. */
+	elsewhere?: { label: string; href: string };
 	/** Picking it keeps the palette open, as an act's argument step does. */
 	stays?: boolean;
 	run: () => unknown;

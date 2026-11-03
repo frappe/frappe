@@ -114,6 +114,13 @@ function goToGroup(rowsOf: (rows: PlaceRows) => PaletteRow[]): PaletteGroup {
 	};
 }
 
+/** A found record's owner address, for Shift+Enter, where its doctype belongs to another app. */
+export function recordElsewhere(doctype: string, route: string, { boot }: PaletteContext): PaletteRow["elsewhere"] {
+	const reply = places.value.value;
+	const place = reply?.doctypes.find((one) => one.name === doctype);
+	return reply && place ? elsewhereOf(reply, place, route, boot) : undefined;
+}
+
 /** In this prefix the router moves; another prefix is another document. */
 export function openPlace(href: string, { boot, router }: PaletteContext) {
 	const base = boot.shell_base;
@@ -156,20 +163,21 @@ class PlaceRows {
 	private doctypeRows(): PaletteRow[] {
 		const reply = places.value.value;
 		if (!reply) return [];
-		const { addresses } = this.context;
+		const { addresses, boot } = this.context;
 		return reply.doctypes.map((doctype) => {
-			const app = reply.titles[doctype.app] ?? doctype.app;
+			const owner = reply.titles[doctype.app] ?? doctype.app;
 			const single = addresses.isSingle(doctype.name);
 			const here = this.routable(doctype.name);
 			const href = here ? urlFor(doctype.name) : doctype.route;
 			return {
 				id: `doctype:${doctype.name}`,
 				label: __(doctype.name),
-				description: app,
-				keywords: [doctype.name, app],
+				description: here ? boot.app_title ?? owner : owner,
+				keywords: [doctype.name, owner],
 				icon: single ? ROUTE_ICONS.record : ROUTE_ICONS.list,
 				href,
 				doctype: !single && here ? doctype.name : undefined,
+				elsewhere: here ? elsewhereOf(reply, doctype, doctype.route, boot) : undefined,
 				run: () => openPlace(href, this.context),
 			};
 		});
@@ -281,7 +289,13 @@ function joinPlaces(sidebar: PaletteRow[], doctypes: PaletteRow[]): PaletteRow[]
 		if (!same) return row;
 		byAddress.delete(row.href);
 		const keywords = [...new Set([...(row.keywords ?? []), ...(same.keywords ?? [])])];
-		return { ...row, description: same.description, doctype: row.doctype ?? same.doctype, keywords };
+		return {
+			...row,
+			description: same.description,
+			doctype: row.doctype ?? same.doctype,
+			elsewhere: same.elsewhere,
+			keywords,
+		};
 	});
 	const unclaimed = [...byAddress.values()];
 	const looks = new Set(unclaimed.map(looksOf));
@@ -291,6 +305,11 @@ function joinPlaces(sidebar: PaletteRow[], doctypes: PaletteRow[]): PaletteRow[]
 
 function looksOf(row: PaletteRow) {
 	return JSON.stringify([row.label, row.description]);
+}
+
+function elsewhereOf(reply: PlacesReply, place: DoctypePlace, href: string, boot: Boot): PaletteRow["elsewhere"] {
+	if (place.app === boot.app) return undefined;
+	return { label: reply.titles[place.app] ?? place.app, href };
 }
 
 function placesFailed(error: unknown) {

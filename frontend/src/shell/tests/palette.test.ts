@@ -1,7 +1,7 @@
 // The command palette in the shell: Mod+K and the rail open it, its groups read the acts
 // available now, and a picked row runs through the dispatcher.
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import { createApp, nextTick } from "vue";
+import { createApp, effectScope, nextTick } from "vue";
 import { createMemoryHistory, createRouter, type Router } from "vue-router";
 import { getMeta } from "@framework/ui/api";
 import { resetDoctypeMeta, useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
@@ -18,6 +18,8 @@ import { FILES_TAB, recordTabBuiltins } from "@/pages/record/tabs/recordTabs";
 import { standardPages } from "@/pages/standardPages";
 import { registerShell } from "@/router/routeFor";
 import AppShell from "../AppShell.vue";
+import type { StandingWindow } from "../standingWindows";
+import { useTabKeepAlive } from "../tabKeepAlive";
 import { closeCreates, createRequests, registerCreateDialog } from "../create";
 import { DEFAULT_ACT_ICON, openArgumentStep, paletteOpen, registerPageRows, type PaletteRow } from "../palette";
 import { pinnedRows } from "../paletteGroups";
@@ -222,8 +224,8 @@ function drawn() {
 	);
 }
 
-async function press(key: string) {
-	input()!.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true }));
+async function press(key: string, init: KeyboardEventInit = {}) {
+	input()!.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true, ...init }));
 	await flush();
 }
 
@@ -448,7 +450,7 @@ describe("the groups", () => {
 		expect(drawn()).toEqual([
 			["This page", "Save", "Send an email", "Assign to…"],
 			["Desk", "Toggle sidebar"],
-			["Go to", "System Settings Desk", "Users Desk", "Deals CRM", "Desk", "ToDo Desk"],
+			["Go to", "System Settings CRM", "Users Desk", "Deals CRM", "Desk", "ToDo CRM"],
 			["Create", "New ToDo Desk"],
 		]);
 
@@ -592,7 +594,7 @@ describe("places", () => {
 		await type("lead");
 		expect(drawn()).toEqual([["Go to", "CRM Lead CRM"]]);
 		await type("system");
-		expect(drawn()).toEqual([["Go to", "System Settings Desk"]]);
+		expect(drawn()).toEqual([["Go to", "System Settings CRM"]]);
 	});
 
 	it("routes to a doctype under this prefix, one another app owns too", async () => {
@@ -825,6 +827,137 @@ describe("Tab on a doctype row", () => {
 		await flush();
 		await open();
 		expect(chip()).toBeNull();
+	});
+});
+
+describe("Shift+Enter on a place or record another app owns", () => {
+	const todo = { doctype: "ToDo", name: "T-1", label: "Call Acme", route: `${deskBase}/todo/T-1` };
+	const deal = { doctype: "CRM Deal", name: "DEAL-1", label: "Acme Corp", route: `${crmBase}/crm-deal/DEAL-1` };
+	let assign: ReturnType<typeof vi.spyOn>;
+
+	function hint() {
+		return document.body.querySelector("[data-slot='palette-elsewhere-hint']")?.textContent?.replace(/\s+/g, " ").trim();
+	}
+
+	function activeRow() {
+		return document.body.querySelector<HTMLElement>("[data-slot='command-palette-item'][data-state='active']");
+	}
+
+	beforeEach(() => {
+		assign = vi.spyOn(window.location, "assign").mockImplementation(() => {});
+	});
+
+	afterEach(() => assign.mockRestore());
+
+	it("names the owner's address on a doctype row, loads it, and leaves Enter in this app", async () => {
+		const router = await shell();
+		const start = router.currentRoute.value.fullPath;
+		await open();
+		await type("todo");
+
+		expect(description(row("doctype:ToDo")!)).toBe("CRM");
+		expect(hint()).toBe("Shift Open in Desk");
+		await press("Enter", { shiftKey: true });
+		expect(assign).toHaveBeenCalledWith(`${deskBase}/todo`);
+		expect(router.currentRoute.value.fullPath).toBe(start);
+
+		assign.mockClear();
+		await open();
+		await type("todo");
+		await press("Enter");
+		expect(assign).not.toHaveBeenCalled();
+		expect(router.currentRoute.value.fullPath).toBe("/todo");
+	});
+
+	it("offers nothing on a doctype this app owns, where Shift+Enter does what Enter does", async () => {
+		const router = await shell("/todo");
+		await open();
+		await type("deal");
+
+		expect(hint()).toBeUndefined();
+		await press("Enter", { shiftKey: true });
+		await flush();
+		expect(assign).not.toHaveBeenCalled();
+		expect(router.currentRoute.value.fullPath).toBe("/crm-deal");
+	});
+
+	it("follows the highlighted row", async () => {
+		await shell();
+		await open();
+		await type("todo");
+
+		expect([activeRow()?.dataset.row, hint()]).toEqual(["doctype:ToDo", "Shift Open in Desk"]);
+		await press("ArrowDown");
+		expect(activeRow()?.dataset.row).not.toBe("doctype:ToDo");
+		expect(hint()).toBeUndefined();
+		await press("Enter", { shiftKey: true });
+		expect(assign).not.toHaveBeenCalled();
+	});
+
+	it("closes the palette, and opens a new tab while a standing window keeps this one alive", async () => {
+		const scope = effectScope();
+		scope.run(() => useTabKeepAlive(() => [{ keepAlive: true } as StandingWindow]));
+		const tab = {} as Window;
+		const openTab = vi.spyOn(window, "open").mockReturnValue(tab);
+		await shell();
+		await open();
+		await type("todo");
+
+		await press("Enter", { shiftKey: true });
+		expect(openTab).toHaveBeenCalledWith(`${deskBase}/todo`, "_blank");
+		expect(assign).not.toHaveBeenCalled();
+		expect(paletteOpen.value).toBe(false);
+		openTab.mockRestore();
+		scope.stop();
+	});
+
+	it("loads a found record at its owner's address, and keeps Enter in this app", async () => {
+		searchRecords.mockResolvedValue({ data: [todo] });
+		const router = await shell("/");
+		await open();
+		await type("acme");
+
+		expect(hint()).toBe("Shift Open in Desk");
+		await press("Enter", { shiftKey: true });
+		expect(assign).toHaveBeenCalledWith(todo.route);
+		expect(router.currentRoute.value.fullPath).toBe("/");
+	});
+
+	it("offers nothing on a found record this app owns", async () => {
+		searchRecords.mockResolvedValue({ data: [deal] });
+		await shell("/");
+		await open();
+		await type("acme");
+
+		expect(row("record:CRM Deal/DEAL-1")).not.toBeNull();
+		expect(hint()).toBeUndefined();
+	});
+
+	it("offers nothing on the index, whose rows already open at the owner's address", async () => {
+		searchRecords.mockResolvedValue({ data: [todo] });
+		const index = { ...boot, app: null, app_title: undefined, shell_base: "/apps" };
+		await shell("/", index as unknown as Boot);
+		await open();
+		await type("todo");
+
+		expect(hint()).toBeUndefined();
+		await type("acme");
+		expect(row("record:ToDo/T-1")).not.toBeNull();
+		expect(hint()).toBeUndefined();
+	});
+
+	it("loads a record Tab narrowed to at its owner's address", async () => {
+		server.searchDoctypeRecords.mockResolvedValue({ data: [todo] });
+		await shell();
+		await open();
+		await type("todo");
+		await press("Tab");
+		await type("acme", { settle: false });
+
+		await vi.waitFor(() => expect(row("record:ToDo/T-1")).not.toBeNull());
+		expect(hint()).toBe("Shift Open in Desk");
+		await press("Enter", { shiftKey: true });
+		expect(assign).toHaveBeenCalledWith(todo.route);
 	});
 });
 

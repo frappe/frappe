@@ -4,7 +4,7 @@ import { __ } from "@/i18n";
 import { urlFor } from "@/router/routeFor";
 import type { PaletteRow } from "./palette";
 import type { PaletteContext } from "./paletteGroups";
-import { openPlace } from "./palettePlaces";
+import { openPlace, recordElsewhere } from "./palettePlaces";
 import { nameUnlessTitle, RecordSearch } from "./paletteRecords";
 
 const SHORTEST_QUERY = 2;
@@ -31,6 +31,7 @@ export function usePaletteScope(query: Ref<string>, context: PaletteContext) {
 				description: nameUnlessTitle(record),
 				icon: "lucide-file-text",
 				href,
+				elsewhere: recordElsewhere(narrowed, record.route, context),
 				run: () => openPlace(href, context),
 			};
 		});
