@@ -3,14 +3,10 @@
 		<!-- set apart from the page's icon, which would otherwise read as one more button -->
 		<div v-if="noSidebar || !flow.state.sidebarOpen" class="flex items-center gap-2 md:mr-1.5">
 			<!-- with no sidebar to show, the page leads back to the chat -->
-			<button v-if="noSidebar" class="flow-icon-btn" title="Back to chat" @click="leavePage()">
-				<span class="lucide-arrow-left size-4" aria-hidden="true" />
-			</button>
+			<Button v-if="noSidebar" variant="ghost" icon="lucide-arrow-left" title="Back to chat" @click="leavePage()" />
 			<!-- a hover floats the sidebar; a click brings it back -->
 			<SidebarPeek v-else :menu="appMenu" :before-switch="leavePage">
-				<button class="flow-icon-btn" title="Show sidebar" @click="flow.setSidebarOpen(true)">
-					<span class="lucide-panel-left size-4" aria-hidden="true" />
-				</button>
+				<Button variant="ghost" icon="lucide-panel-left" title="Show sidebar" @click="flow.setSidebarOpen(true)" />
 			</SidebarPeek>
 		</div>
 		<!-- the page's icon and name; a narrow frame's bar keeps the name alone, for the room its
@@ -32,6 +28,7 @@
 
 <script setup>
 import { inject } from "vue";
+import { Button } from "frappe-ui";
 import SidebarPeek from "@flow/ui-core/components/SidebarPeek.vue";
 
 // A page's bar, where a chat has its header: the way to the sidebar while it is hidden, where

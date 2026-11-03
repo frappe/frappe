@@ -13,9 +13,7 @@
 		<template v-if="!sidebarOpen && !history">
 			<!-- a hover floats the sidebar, New chat with it; a click brings it back -->
 			<SidebarPeek :menu="appMenu" :before-switch="beforeSwitch">
-				<button class="flow-icon-btn" title="Show sidebar" @click="emit('open-sidebar')">
-					<span class="lucide-panel-left size-4" aria-hidden="true" />
-				</button>
+				<Button variant="ghost" icon="lucide-panel-left" title="Show sidebar" @click="emit('open-sidebar')" />
 			</SidebarPeek>
 		</template>
 
@@ -38,9 +36,7 @@
 			:actions="menuActions"
 			align="start"
 		>
-			<button class="flow-icon-btn flex-none" title="Chat options">
-				<span class="lucide-ellipsis size-4" aria-hidden="true" />
-			</button>
+			<Button variant="ghost" icon="lucide-ellipsis" class="flex-none" title="Chat options" />
 		</ChatMenu>
 
 		<span class="min-w-2 flex-1" />
@@ -73,14 +69,10 @@
 			</button>
 
 			<ChatHistory v-if="history" />
-			<button v-if="history && started" class="flow-icon-btn" title="New chat" @click="flow.startNewChat()">
-				<span class="lucide-plus size-4" aria-hidden="true" />
-			</button>
+			<Button v-if="history && started" variant="ghost" icon="lucide-plus" title="New chat" @click="flow.startNewChat()" />
 			<Dropdown v-if="history && manage" align="end" :options="manageOptions">
 				<template #trigger>
-					<button class="flow-icon-btn" title="Manage">
-						<span class="lucide-settings size-4" aria-hidden="true" />
-					</button>
+					<Button variant="ghost" icon="lucide-settings" title="Manage" />
 				</template>
 			</Dropdown>
 			<ChatMenu
@@ -90,18 +82,19 @@
 				:actions="menuActions"
 				align="end"
 			>
-				<button class="flow-icon-btn flex-none" title="Chat options">
-					<span class="lucide-ellipsis size-4" aria-hidden="true" />
-				</button>
+				<Button variant="ghost" icon="lucide-ellipsis" class="flex-none" title="Chat options" />
 			</ChatMenu>
-			<button
+			<Button
 				v-if="workspace && !workspaceOpen"
-				class="flow-icon-btn ml-2"
+				variant="ghost"
+				class="ml-2"
 				title="Open panel"
 				@click="flow.setWorkspaceOpen(true)"
 			>
-				<span class="lucide-panel-left size-4 -scale-x-100" aria-hidden="true" />
-			</button>
+				<template #icon>
+					<span class="lucide-panel-left size-4 -scale-x-100" aria-hidden="true" />
+				</template>
+			</Button>
 			<slot name="end" />
 		</span>
 	</header>
@@ -109,6 +102,7 @@
 
 <script setup>
 import { computed, inject } from "vue"
+import { Button } from "frappe-ui/src/components/Button"
 import Dropdown from "frappe-ui/src/components/Dropdown/Dropdown.vue"
 
 import { layout } from "../layout.js"

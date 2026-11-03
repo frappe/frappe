@@ -44,14 +44,13 @@
 				<span v-if="user.name === me.name" class="flex-none text-base text-ink-gray-5">
 					Owner (you)
 				</span>
-				<button
+				<Button
 					v-else
-					class="flow-icon-btn"
+					variant="ghost"
+					icon="lucide-x"
 					:title="`Remove ${nameOf(user)}'s access`"
 					@click="remove(user.name)"
-				>
-					<span class="lucide-x size-3.5" aria-hidden="true" />
-				</button>
+				 />
 			</li>
 			<li v-if="loading"><LoadingState class="py-1 text-sm text-ink-gray-5" /></li>
 		</ul>
@@ -72,7 +71,7 @@
 <script setup>
 import { computed, inject, nextTick, ref, watch } from "vue";
 import { useRouter } from "vue-router";
-import { Avatar, Dialog, FormControl, Select, toast } from "frappe-ui";
+import { Avatar, Button, Dialog, FormControl, Select, toast } from "frappe-ui";
 import CopyButton from "@flow/ui-core/components/CopyButton.vue";
 import LoadingState from "@flow/ui-core/components/LoadingState.vue";
 import { useDebouncedValue } from "@flow/ui-core/debounce.js";

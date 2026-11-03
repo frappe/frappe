@@ -108,23 +108,6 @@ body {
 	background: var(--surface-gray-3);
 }
 
-.flow-icon-btn {
-	display: grid;
-	place-items: center;
-	width: 28px;
-	height: 28px;
-	flex: none;
-	border: 0;
-	background: transparent;
-	border-radius: 6px;
-	cursor: pointer;
-	color: var(--ink-gray-7);
-}
-.flow-icon-btn:hover {
-	background: var(--surface-gray-2);
-	color: var(--ink-gray-9);
-}
-
 /* A row of the lists over the composer (PalettePanel): text-base on 32px, 2px apart, the active
    row rounded as a frappe-ui menu's item. The pointer and the keyboard share that one highlight
    (PalettePanel), so a row has no hover color. A description or other aside takes flow-palette-hint. */

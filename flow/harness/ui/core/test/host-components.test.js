@@ -1272,7 +1272,7 @@ test("a settings page takes a way back and actions beside its heading, or after 
 	el.querySelector("button[title='Back to agents']").click()
 	assert.equal(backs, 1)
 	const bare = mount(t, SettingsPage, { title: "General" }, {})
-	assert.equal(bare.el.querySelector(".flow-icon-btn"), null)
+	assert.equal(bare.el.querySelector("button"), null)
 	assert.equal(bare.el.querySelector(".border-t"), null)
 	layout.narrow = true
 	t.after(() => (layout.narrow = false))

@@ -20,9 +20,7 @@
 							<h2 class="text-md font-semibold leading-5 text-ink-gray-9">Transcript</h2>
 							<div v-if="title" class="mt-1.5 truncate text-base text-ink-gray-6">{{ title }}</div>
 						</div>
-						<button ref="closeEl" class="flow-icon-btn flex-none" title="Close" @click="close">
-							<span class="lucide-x size-3.5" aria-hidden="true" />
-						</button>
+						<Button ref="closeEl" variant="ghost" icon="lucide-x" class="flex-none" title="Close" @click="close" />
 					</div>
 				</header>
 				<div class="flex flex-none flex-wrap gap-2 border-b border-outline-gray-1 px-4 pb-4 sm:mt-4 sm:px-6 sm:pb-5">
@@ -67,6 +65,7 @@
 
 <script setup>
 import { computed, inject, nextTick, onBeforeUnmount, ref, watch } from "vue"
+import { Button } from "frappe-ui/src/components/Button"
 
 import { buildTranscriptRows, formatTokens } from "../transcript.js"
 
@@ -130,7 +129,7 @@ watch(
 		if (isOpen) {
 			returnFocus = document.activeElement
 			window.addEventListener("keydown", onKey, true)
-			nextTick(() => closeEl.value?.focus())
+			nextTick(() => closeEl.value?.$el?.focus())
 		} else {
 			window.removeEventListener("keydown", onKey, true)
 			returnFocus?.focus?.()

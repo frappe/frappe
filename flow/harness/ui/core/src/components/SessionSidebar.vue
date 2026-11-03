@@ -40,9 +40,7 @@
 				</template>
 			</Dropdown>
 			<span class="flex-1" />
-			<button class="flow-icon-btn" title="Hide sidebar" @click="emit('close')">
-				<span class="lucide-panel-left size-4" aria-hidden="true" />
-			</button>
+			<Button variant="ghost" icon="lucide-panel-left" title="Hide sidebar" @click="emit('close')" />
 		</div>
 
 		<!-- 7px over, 9px under: the rows sit midway between the brand mark and the list's header -->
@@ -285,6 +283,7 @@
 
 <script setup>
 import { computed, h, inject, onBeforeUnmount, onMounted, ref, watch } from "vue"
+import { Button } from "frappe-ui/src/components/Button"
 import Dropdown from "frappe-ui/src/components/Dropdown/Dropdown.vue"
 import HoverCard from "frappe-ui/src/components/HoverCard/HoverCard.vue"
 import SidebarItem from "frappe-ui/src/components/Sidebar/SidebarItem.vue"

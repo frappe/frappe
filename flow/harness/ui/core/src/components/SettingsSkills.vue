@@ -7,9 +7,7 @@
 		@keydown.ctrl.s.prevent="save"
 	>
 		<div class="flex items-center gap-2">
-			<button v-if="!headerBack" class="flow-icon-btn -my-1 -ml-1.5" title="Back to skills" @click="back">
-				<span class="lucide-arrow-left size-4" aria-hidden="true" />
-			</button>
+			<Button v-if="!headerBack" variant="ghost" icon="lucide-arrow-left" class="-my-1 -ml-1.5" title="Back to skills" @click="back" />
 			<h2 class="text-md font-semibold text-ink-gray-9">{{ editing.isNew ? "New skill" : editing.name }}</h2>
 			<Badge v-if="!editing.isNew" :label="SCOPE_LABELS[editing.scope]" variant="subtle" theme="gray" />
 		</div>

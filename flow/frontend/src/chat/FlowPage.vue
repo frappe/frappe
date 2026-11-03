@@ -40,12 +40,8 @@
 					@open-sidebar="store.setSidebarOpen(true)"
 				>
 					<template v-if="inPanel" #end>
-						<button class="flow-icon-btn" title="Open in new tab" @click="openInTab">
-							<span class="lucide-external-link size-4" aria-hidden="true" />
-						</button>
-						<button class="flow-icon-btn" title="Close" @click="closePanel">
-							<span class="lucide-x size-4" aria-hidden="true" />
-						</button>
+						<Button variant="ghost" icon="lucide-external-link" title="Open in new tab" @click="openInTab" />
+						<Button variant="ghost" icon="lucide-x" title="Close" @click="closePanel" />
 					</template>
 				</ChatHeader>
 				<MessageList :suggestions="!readOnly">
@@ -148,7 +144,7 @@
 <script setup>
 import { computed, inject, onBeforeUnmount, onMounted, provide, ref, watch } from "vue";
 import { isNavigationFailure, useRoute, useRouter } from "vue-router";
-import { Dialogs, ToastProvider, toast, useColorScheme } from "frappe-ui";
+import { Button, Dialogs, ToastProvider, toast, useColorScheme } from "frappe-ui";
 import { checked } from "@flow/ui-core/menu.js";
 import BrandMark from "@flow/ui-core/components/BrandMark.vue";
 import ChatHeader from "@flow/ui-core/components/ChatHeader.vue";

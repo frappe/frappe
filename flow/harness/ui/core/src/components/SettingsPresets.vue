@@ -3,9 +3,7 @@
 	<div v-if="draft" class="flex min-h-0 flex-1 flex-col">
 		<div class="min-h-0 flex-1 overflow-y-auto px-4 pt-3 sm:px-8 md:pt-8">
 			<div class="flex items-center gap-2">
-				<button v-if="!headerBack" class="flow-icon-btn -my-1 -ml-1.5" title="Back to presets" @click="back">
-					<span class="lucide-arrow-left size-4" aria-hidden="true" />
-				</button>
+				<Button v-if="!headerBack" variant="ghost" icon="lucide-arrow-left" class="-my-1 -ml-1.5" title="Back to presets" @click="back" />
 				<h2 class="text-md font-semibold text-ink-gray-9">{{ draft.default ? "Standard preset" : draft.id ? "Edit preset" : "New preset" }}</h2>
 			</div>
 
@@ -99,9 +97,7 @@
 						<span class="mt-1 block truncate text-sm text-ink-gray-6">{{ row.summary }}</span>
 					</span>
 				</button>
-				<button class="flow-icon-btn" title="Edit preset" @click="row.preset ? edit(row.preset) : editDefault()">
-					<span class="lucide-square-pen size-4" aria-hidden="true" />
-				</button>
+				<Button variant="ghost" icon="lucide-square-pen" title="Edit preset" @click="row.preset ? edit(row.preset) : editDefault()" />
 			</div>
 		</div>
 		<!-- a narrow frame has no room beside the heading: the button ends the page -->
