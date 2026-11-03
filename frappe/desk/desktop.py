@@ -439,7 +439,6 @@ def get_desktop_page(page: str | dict):
 			"custom_blocks": workspace.custom_blocks,
 		}
 	except DoesNotExistError:
-		frappe.log_error("Workspace Missing")
 		return {}
 
 

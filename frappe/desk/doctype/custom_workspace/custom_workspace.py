@@ -35,6 +35,9 @@ CARD_LINK_KEYS = (
 	"is_query_report",
 )
 
+# about thirty times the largest layout an app ships, so a person's own copies stay bounded
+USER_LAYOUT_MAX_LENGTH = 100_000
+
 # Cache key for the set of workspaces that have a customization, so the hot render
 # path can skip a DB hit for the (vast) majority of uncustomized workspaces.
 CUSTOMIZED_NAMES_CACHE_KEY = "customized_workspace_names"
@@ -108,6 +111,8 @@ class CustomWorkspace(Document):
 			"Custom Workspace", {"workspace": self.workspace, "user": self.user, "name": ("!=", self.name)}
 		):
 			frappe.throw(_("{0} already has a layout of {1}.").format(self.user, self.workspace))
+		if len(self.content or "") + len(self.widgets or "") > USER_LAYOUT_MAX_LENGTH:
+			frappe.throw(_("This layout is too large to save. Remove some blocks and try again."))
 
 	def on_update(self):
 		self.clear_cache()

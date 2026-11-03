@@ -12,6 +12,7 @@ from frappe.desk.desktop import (
 	get_workspaces,
 )
 from frappe.tests import IntegrationTestCase
+from frappe.utils.logging import get_log_db
 
 DESK_USER = "test-get-workspace-user@example.com"
 MANAGER = "test-get-workspace-manager@example.com"
@@ -154,6 +155,26 @@ class TestGetWorkspace(IntegrationTestCase):
 		shown = get_workspace("GW Test")
 		self.assertFalse(shown["own_layout"])
 		self.assertIn("header", [block["type"] for block in shown["content"]])
+
+	def test_an_own_layout_has_a_size_limit(self):
+		from frappe.desk.doctype.workspace.workspace import save_page
+
+		frappe.set_user(DESK_USER)
+		huge = [block("paragraph", text="x" * 1000) for _ in range(200)]
+		with self.assertRaises(frappe.ValidationError):
+			save_page("GW Test", 1, {}, dumps(huge))
+		self.assertFalse(frappe.db.exists("Custom Workspace", {"workspace": "GW Test", "user": DESK_USER}))
+
+	def test_a_probe_of_the_legacy_read_leaves_no_error_log(self):
+		private = make_workspace("GW Private", public=0, for_user=MANAGER)
+		before = get_log_db().count("Error Log")
+
+		frappe.set_user(DESK_USER)
+		get_desktop_page({"name": private.name})
+		get_desktop_page({"name": "No Such Workspace"})
+
+		frappe.set_user("Administrator")
+		self.assertEqual(get_log_db().count("Error Log"), before)
 
 	def test_no_own_layout_of_a_workspace_the_reader_cannot_open(self):
 		from frappe.desk.doctype.workspace.workspace import save_page
