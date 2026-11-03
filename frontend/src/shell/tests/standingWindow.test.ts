@@ -1,5 +1,7 @@
 // A standing window: what an app's shell hook attaches with `shell.window`, drawn by the shell's row.
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { toast } from "frappe-ui";
+import { logout as endSession } from "@framework/ui/api";
 import { createApp, defineComponent, h, nextTick, onUnmounted, type Component } from "vue";
 import { createMemoryHistory, createRouter } from "vue-router";
 
@@ -7,7 +9,12 @@ vi.mock("@framework/ui/api", async (importOriginal) => ({
 	...(await importOriginal<typeof import("@framework/ui/api")>()),
 	getTranslations: vi.fn(),
 	getMeta: vi.fn(async () => ({ data: null, children: [] })),
+	logout: vi.fn(async () => {}),
 }));
+vi.mock("frappe-ui", async (importOriginal) => {
+	const actual = await importOriginal<typeof import("frappe-ui")>();
+	return { ...actual, toast: Object.assign(vi.fn(), actual.toast) };
+});
 
 vi.mock("@/arrangement", async (importOriginal) => ({
 	...(await importOriginal<typeof import("@/arrangement")>()),
@@ -28,6 +35,7 @@ import type { StandingWindowHandle, StandingWindowOptions } from "../standingWin
 import type { PaletteContext } from "../paletteGroups";
 import { openPlace } from "../palettePlaces";
 import { loadDocument } from "../tabKeepAlive";
+import { logout } from "../session";
 
 const addresses = new Addresses({ doctypes: {}, modules: {} });
 
@@ -870,7 +878,7 @@ describe("keep-alive", () => {
 	let assigned: ReturnType<typeof vi.spyOn>;
 
 	beforeEach(() => {
-		opened = vi.spyOn(window, "open").mockImplementation(() => null);
+		opened = vi.spyOn(window, "open").mockImplementation(() => ({ opener: window }) as Window);
 		assigned = vi.spyOn(window.location, "assign").mockImplementation(() => {});
 	});
 
@@ -903,7 +911,7 @@ describe("keep-alive", () => {
 		handle.setKeepAlive(true);
 		await flush();
 		loadDocument("/apps");
-		expect(opened).toHaveBeenCalledWith("/apps", "_blank", "noopener");
+		expect(opened).toHaveBeenCalledWith("/apps", "_blank");
 		expect(assigned).not.toHaveBeenCalled();
 	});
 
@@ -968,8 +976,62 @@ describe("keep-alive", () => {
 		handle.setKeepAlive(true);
 		await flush();
 		openPlace("/elsewhere/todo", { boot, router: { push: vi.fn() } } as unknown as PaletteContext);
-		expect(opened).toHaveBeenCalledWith("/elsewhere/todo", "_blank", "noopener");
+		expect(opened).toHaveBeenCalledWith("/elsewhere/todo", "_blank");
 		expect(assigned).not.toHaveBeenCalled();
+	});
+
+	it("logs out without the unload prompt while it is on", async () => {
+		const handle = await attached();
+		handle.setKeepAlive(true);
+		await flush();
+		await logout();
+		expect(leaving()).toBe(false);
+		expect(assigned).toHaveBeenCalledWith(expect.stringMatching(/^\/login\?redirect-to=/));
+	});
+
+	it("keeps the unload prompt when the logout call fails", async () => {
+		const handle = await attached();
+		handle.setKeepAlive(true);
+		await flush();
+		vi.mocked(endSession).mockRejectedValueOnce(new Error("offline"));
+		await expect(logout()).rejects.toThrow("offline");
+		expect(leaving()).toBe(true);
+	});
+
+	it("toasts a link that opens the address when the browser blocks the new tab", async () => {
+		const handle = await attached();
+		handle.setKeepAlive(true);
+		await flush();
+		opened.mockImplementationOnce(() => null);
+		loadDocument("/app/todo/new");
+		const [message, options] = vi.mocked(toast).mock.calls.at(-1)!;
+		expect(message).toBe("Your browser blocked the new tab");
+		expect(assigned).not.toHaveBeenCalled();
+		(options!.action as { onClick: (event: MouseEvent) => void }).onClick({} as MouseEvent);
+		expect(opened).toHaveBeenLastCalledWith("/app/todo/new", "_blank", "noopener");
+	});
+
+	it("replaces the blocked-tab toast when a second tab is blocked", async () => {
+		const handle = await attached();
+		handle.setKeepAlive(true);
+		await flush();
+		opened.mockImplementation(() => null);
+		loadDocument("/apps");
+		loadDocument("/app/todo/new");
+		const calls = vi.mocked(toast).mock.calls.slice(-2);
+		expect(calls[0][1]!.id).toBe(calls[1][1]!.id);
+	});
+
+	it("shows no toast when the new tab opened, and cuts its opener", async () => {
+		const handle = await attached();
+		handle.setKeepAlive(true);
+		await flush();
+		const tab = { opener: window } as Window;
+		opened.mockImplementationOnce(() => tab);
+		vi.mocked(toast).mockClear();
+		loadDocument("/apps");
+		expect(toast).not.toHaveBeenCalled();
+		expect(tab.opener).toBeNull();
 	});
 
 	it("lets the tab go when the shell unmounts", async () => {

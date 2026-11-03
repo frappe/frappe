@@ -1,5 +1,7 @@
-// While a standing window asks to keep the tab alive, nothing the shell does unloads this document.
+// While a standing window asks to keep the tab alive, nothing the shell does unloads this document, except logout.
+import { toast } from "frappe-ui";
 import { computed, onScopeDispose, watch } from "vue";
+import { __ } from "@/i18n";
 import type { StandingWindow } from "./standingWindows";
 
 const THIS_TAB = new Set(["", "_self", "_top", "_parent"]);
@@ -8,8 +10,25 @@ let kept = false;
 
 /** Loads `href` as another document: in a new tab while a standing window keeps this one alive. */
 export function loadDocument(href: string) {
-	if (kept) window.open(href, "_blank", "noopener");
-	else window.location.assign(href);
+	if (!kept) return window.location.assign(href);
+	// `noopener` makes `window.open` return null even for a tab that opened, so the opener is cut after.
+	const tab = window.open(href, "_blank");
+	if (tab) tab.opener = null;
+	else offerTab(href);
+}
+
+/** Stops the unload prompt for a document the shell is about to leave on purpose, such as logout. */
+export function allowUnload() {
+	window.removeEventListener("beforeunload", askBeforeUnload);
+}
+
+// The browser blocks a tab opened after an awaited step; a click on the toast is a new gesture.
+function offerTab(href: string) {
+	toast(__("Your browser blocked the new tab"), {
+		id: "blocked-new-tab",
+		duration: Infinity,
+		action: { label: __("Open"), onClick: () => window.open(href, "_blank", "noopener") },
+	});
 }
 
 /** Holds the tab for as long as any of `windows` has keep-alive on. */
