@@ -230,15 +230,7 @@ nixpkgs-deps = [
 
 [tool.uv]
 exclude-newer = "7 days"
-<<<<<<< HEAD
-exclude-newer-package = { pypdf = false, sqlparse = false, filelock = false } # drop sqlparse after 2026-08-20, filelock after 2026-11-10
-=======
-exclude-newer-package = { pypdf = false, filelock = false } # drop pypdf after 2026-11-04, filelock after 2026-11-10
-
-[tool.uv.sources]
-# Installs through uv (bench, Pilot) take the harness from this checkout, so it ships with frappe. pip installs and frappe's wheel still take the PyPI pin above.
-frappe-flow = { path = "flow/harness", editable = true }
->>>>>>> 4b31be6 (chore: drop expired uv exclude-newer-package entries (#46340))
+exclude-newer-package = { pypdf = false, filelock = false } # drop filelock after 2026-11-10
 
 [tool.mypy]
 strict = false
