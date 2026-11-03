@@ -26,6 +26,14 @@
 		@column-resize="resizeColumn($event.fieldname, $event.width)"
 		@column-reset="resetColumnWidth($event.fieldname)"
 	>
+		<template #cell="{ column, value }">
+			<PhoneCell
+				v-if="isPhoneColumn(column.fieldname)"
+				:field="fieldOf(column.fieldname)!"
+				:value="value"
+			/>
+			<div v-else class="truncate text-base text-ink-gray-8">{{ value }}</div>
+		</template>
 		<template v-if="rowActions.length" #rowMenu="{ row }">
 			<RowMenu :options="rowMenuOptions(row, rowActions, listActs)" />
 		</template>
@@ -53,6 +61,7 @@
 
 <script setup lang="ts">
 import { ColumnSettings } from "@framework/ui/ColumnSettings";
+import { isPhoneField } from "@framework/ui/fields";
 import { List, ListBulkBar, ListFooter, type BulkAction } from "@framework/ui/experimental/List";
 import { computed, ref } from "vue";
 import { __ } from "@/i18n";
@@ -64,6 +73,7 @@ import { failedState } from "@/shell/pageState";
 import PageState from "@/shell/PageState.vue";
 import DeleteDialog from "./DeleteDialog.vue";
 import type { RendererHost } from "./renderer";
+import PhoneCell from "./PhoneCell.vue";
 import RowMenu from "./RowMenu.vue";
 import { rowActionEntries, rowMenuOptions } from "./rowActions";
 
@@ -73,6 +83,7 @@ const { filters, sort } = props.view;
 const {
 	columns,
 	rowActions,
+	fieldOf,
 	selection,
 	pageSize,
 	rowsKey,
@@ -107,6 +118,11 @@ useScrollMemory(
 	() => rows.value.length > 0,
 	{ doctype: props.view.doctype, query: rowsKey }
 );
+
+function isPhoneColumn(fieldname: string) {
+	const field = fieldOf(fieldname);
+	return !!field && isPhoneField(field);
+}
 
 const listActs = props.host.acts(() => [
 	...(selection.value.length ? [deleteEntry()] : []),
