@@ -80,7 +80,7 @@
 				<span v-else title="Tokens used so far">{{ formatTokens(spent) }} used</span>
 				<span v-if="cost > 0" class="flex items-center gap-2 text-ink-gray-4">
 					<span aria-hidden="true" class="text-ink-gray-3">·</span>
-					<span>${{ cost.toFixed(cost < 1 ? 3 : 2) }}</span>
+					<span>{{ formatCost(cost) }}</span>
 				</span>
 			</button>
 
@@ -123,7 +123,7 @@ import { Button } from "frappe-ui/src/components/Button"
 import Dropdown from "frappe-ui/src/components/Dropdown/Dropdown.vue"
 
 import { layout } from "../layout.js"
-import { conversationTitle, formatTokens } from "../transcript.js"
+import { conversationTitle, formatCost, formatTokens } from "../transcript.js"
 import ChatHistory from "./ChatHistory.vue"
 import ChatMenu from "./ChatMenu.vue"
 import SidebarPeek from "./SidebarPeek.vue"

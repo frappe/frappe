@@ -1110,6 +1110,12 @@ export function formatTime(ts) {
 	return `${d.toLocaleDateString([], { month: "short", day: "numeric" })}, ${time}`
 }
 
+// a cost under a tenth of a cent would round to $0.000
+export function formatCost(cost) {
+	if (cost < 0.001) return "<$0.001"
+	return `$${cost.toFixed(cost < 1 ? 3 : 2)}`
+}
+
 export function formatTokens(n) {
 	if (!n) return "0"
 	if (n < 1000) return String(n)

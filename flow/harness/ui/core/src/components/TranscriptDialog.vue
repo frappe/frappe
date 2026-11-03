@@ -62,7 +62,7 @@ import { computed, inject } from "vue"
 import { Button } from "frappe-ui/src/components/Button"
 import { Dialog } from "frappe-ui/src/components/Dialog"
 
-import { buildTranscriptRows, formatTokens } from "../transcript.js"
+import { buildTranscriptRows, formatCost, formatTokens } from "../transcript.js"
 import CopyButton from "./CopyButton.vue"
 
 const ROLES = {
@@ -100,7 +100,7 @@ const stats = computed(() => {
 			sub: contextWindow ? `of ${formatTokens(contextWindow)}` : "",
 		})
 	}
-	if (usage.cost) stats.push({ label: "Cost", value: `$${usage.cost.toFixed(usage.cost < 1 ? 3 : 2)}` })
+	if (usage.cost) stats.push({ label: "Cost", value: formatCost(usage.cost) })
 	return stats
 })
 
