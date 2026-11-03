@@ -4280,9 +4280,11 @@ def _document_values_generator(
 		yield tuple(doc_values.get(col) for col in columns)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def unlock_document(doctype: str, name: str):
-	frappe.get_lazy_doc(doctype, name).unlock()
+	doc = frappe.get_lazy_doc(doctype, name)
+	doc.check_permission("write")
+	doc.unlock()
 	frappe.msgprint(frappe._("Document Unlocked"), alert=True)
 
 
