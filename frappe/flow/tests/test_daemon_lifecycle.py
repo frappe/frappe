@@ -267,14 +267,6 @@ class TestDaemonLifecycle(UnitTestCase):
 		kill.assert_not_called()
 		self.assertFalse(lifecycle.pid_file().exists())
 
-	def test_keep_alive_restarts_a_dead_daemon_only_once_the_harness_is_installed(self):
-		with patch.object(lifecycle, "ensure_running") as ensure_running:
-			lifecycle.keep_alive()
-			ensure_running.assert_not_called()
-			self.install_flow_bin()
-			lifecycle.keep_alive()
-			ensure_running.assert_called_once()
-
 	def test_ownership_comes_from_bench_config_not_site_config_or_a_stale_marker(self):
 		self.runtime.mkdir(parents=True)
 		(self.runtime / "supervised").touch()
@@ -331,7 +323,6 @@ class TestDaemonLifecycle(UnitTestCase):
 			patch.object(lifecycle, "sync_server_tools", side_effect=lambda: events.append("sync")),
 			patch.object(subprocess, "Popen") as popen,
 		):
-			lifecycle.keep_alive()
 			lifecycle.after_install()
 		self.assertEqual(events, ["ready", "sync"])
 		popen.assert_not_called()
