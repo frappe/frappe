@@ -66,15 +66,11 @@
 				:class="turns[row.key] ? 'sm:row-start-2' : 'sm:row-start-1'">
 				<p v-if="row.body" class="whitespace-pre-wrap break-words">{{ row.body }}</p>
 				<template v-else-if="row.prompt">
-					<button
-						type="button"
-						class="flex items-center gap-1 rounded text-sm text-ink-gray-6 hover:text-ink-gray-8"
-						:aria-expanded="opened.has(row.key)"
-						@click="toggle(row.key)"
-					>
-						<span class="lucide-chevron-right size-3.5 flex-none transition-transform" :class="{ 'rotate-90': opened.has(row.key) }" aria-hidden="true" />
-						System prompt
-					</button>
+					<Button variant="ghost" size="sm" label="System prompt" :aria-expanded="opened.has(row.key)" @click="toggle(row.key)">
+						<template #prefix>
+							<span class="lucide-chevron-right size-4 transition-transform" :class="{ 'rotate-90': opened.has(row.key) }" aria-hidden="true" />
+						</template>
+					</Button>
 					<pre
 						v-if="opened.has(row.key)"
 						class="overflow-auto whitespace-pre-wrap break-words rounded-4 border border-outline-gray-1 bg-surface-gray-1 px-3 py-2 font-mono text-xs leading-5 text-ink-gray-7 sm:max-h-[360px]"
@@ -93,7 +89,7 @@
 							{{ block.redacted ? "Thinking, not shown by the provider." : block.thinking }}
 						</p>
 					</template>
-					<p v-if="!row.entry.content.some((block) => block.type !== 'tool_call')" class="text-sm text-ink-gray-5">
+					<p v-if="row.entry.content.length && row.entry.content.every((block) => block.type === 'tool_call')" class="text-sm text-ink-gray-5">
 						Calls {{ row.entry.content.map((block) => block.name).join(", ") }}
 					</p>
 					<p v-if="row.entry.error_message" class="whitespace-pre-wrap break-words text-ink-red-4">{{ row.entry.error_message }}</p>
@@ -103,20 +99,18 @@
 						row.input.name
 					}}</code>
 					<div v-for="fold in folds(row)" :key="fold.key">
-						<button
-							type="button"
-							class="flex items-center gap-1 rounded text-sm"
-							:class="fold.error ? 'text-ink-red-4' : 'text-ink-gray-6 hover:text-ink-gray-8'"
+						<Button
+							variant="ghost"
+							size="sm"
+							:theme="fold.error ? 'red' : 'gray'"
+							:label="fold.label"
 							:aria-expanded="opened.has(fold.key)"
 							@click="toggle(fold.key)"
 						>
-							<span
-								class="lucide-chevron-right size-3.5 flex-none transition-transform"
-								:class="{ 'rotate-90': opened.has(fold.key) }"
-								aria-hidden="true"
-							/>
-							{{ fold.label }}
-						</button>
+							<template #prefix>
+								<span class="lucide-chevron-right size-4 transition-transform" :class="{ 'rotate-90': opened.has(fold.key) }" aria-hidden="true" />
+							</template>
+						</Button>
 						<pre
 							v-if="opened.has(fold.key)"
 							class="mt-1.5 overflow-auto whitespace-pre-wrap break-words rounded-4 border bg-surface-gray-1 px-3 py-2 font-mono text-xs leading-5 text-ink-gray-7 sm:max-h-[360px]"
