@@ -30,6 +30,8 @@ dependencies = [
     "PyYAML~=6.0.3",
     "RestrictedPython~=8.5",
     "WeasyPrint==70.0",
+    # WeasyPrint allows fonttools[woff]>=4.59.2, which keeps brotli<1.2.1 (CVE-2026-111497)
+    "fonttools[woff]>=4.68.0",
     "typst~=0.15.0",
     "pydyf==0.12.1",
     "Werkzeug==3.1.9",
