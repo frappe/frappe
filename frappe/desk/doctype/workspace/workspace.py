@@ -394,6 +394,8 @@ class Workspace(Document, DeskViews):
 
 		self.delete_desktop_icon()
 		self.drop_sidebar_rows()
+		# people's own layouts of this page mean nothing without it
+		frappe.db.delete("Custom Workspace", {"workspace": self.name, "user": ("is", "set")})
 
 	def drop_sidebar_rows(self):
 		"""Take this page out of every sidebar that lists it.
@@ -1018,11 +1020,11 @@ def save_page(name: str, public: str | int, new_widgets: dict, blocks: str, vari
 
 	doc = frappe.get_doc("Workspace", name)
 	can_edit = can_edit_workspace(doc)
+	if not can_edit and doc.public:
+		save_own_layout(name, frappe.parse_json(blocks), frappe.parse_json(new_widgets or "{}"))
+		return {"name": name, "public": public, "label": doc.label}
 	if not can_edit:
-		frappe.throw(
-			_("You need the Workspace Manager role to edit this workspace."),
-			frappe.PermissionError,
-		)
+		frappe.throw(_("You are not permitted to edit this workspace."), frappe.PermissionError)
 
 	blocks = dumps(merge_unseen_blocks(name, variant, frappe.parse_json(blocks)))
 
@@ -1051,6 +1053,19 @@ def save_page(name: str, public: str | int, new_widgets: dict, blocks: str, vari
 	save_new_widget(doc, name, blocks, new_widgets)
 
 	return {"name": name, "public": public, "label": doc.label}
+
+
+def save_own_layout(name: str, content: list, new_widgets: dict) -> None:
+	"""Save the session user's own layout of a shared workspace they may open, over the layout
+	they were shown."""
+	from frappe.desk.desktop import Workspace
+	from frappe.desk.doctype.custom_workspace.custom_workspace import save_user_layout
+
+	workspace = Workspace({"name": name})
+	if not workspace.is_permitted():
+		frappe.throw(_("You are not permitted to open this workspace"), frappe.PermissionError)
+	workspace.use_layout()
+	save_user_layout(workspace.doc, content, new_widgets)
 
 
 def merge_unseen_blocks(name: str, variant: str | None, blocks: list) -> list:

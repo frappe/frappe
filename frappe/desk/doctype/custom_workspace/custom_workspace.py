@@ -73,6 +73,7 @@ class CustomWorkspace(Document):
 		removed_roles: DF.Table[HasRole]
 		renderer: DF.Literal["Inherit", "Legacy", "Frappe UI"]
 		sequence_id: DF.Float
+		user: DF.Link | None
 		variants: DF.Table[WorkspaceVariant]
 		visibility: DF.Literal["Inherit", "Visible", "Hidden"]
 		widgets: DF.LongText | None
@@ -88,10 +89,25 @@ class CustomWorkspace(Document):
 		self.widgets = sanitize_content(self.widgets)
 		sanitize_variants(self.variants)
 
+	def autoname(self):
+		# the site's row is named after its workspace, which is how every reader finds it
+		self.name = frappe.generate_hash(length=10) if self.user else self.workspace
+
 	def validate(self):
+		if self.user:
+			self.validate_user_layout()
+			return
 		if not frappe.db.get_value("Workspace", self.workspace, "standard"):
 			frappe.throw(_("Only standard (app-shipped) workspaces can be customized."))
 		validate_variants(self.variants)
+
+	def validate_user_layout(self):
+		if not frappe.db.get_value("Workspace", self.workspace, "public"):
+			frappe.throw(_("A private workspace is already yours to edit directly."))
+		if frappe.db.exists(
+			"Custom Workspace", {"workspace": self.workspace, "user": self.user, "name": ("!=", self.name)}
+		):
+			frappe.throw(_("{0} already has a layout of {1}.").format(self.user, self.workspace))
 
 	def on_update(self):
 		self.clear_cache()
@@ -101,6 +117,8 @@ class CustomWorkspace(Document):
 
 	def clear_cache(self):
 		super().clear_cache()
+		if self.user:
+			return
 		# the customization changes a *public* workspace, so bust the shared bootinfo
 		# cache the same way Workspace.clear_cache does for public pages.
 		frappe.cache.delete_key("bootinfo")
@@ -111,7 +129,7 @@ def get_customized_workspace_names() -> set[str]:
 	"""Cached set of workspace names that have a customization."""
 	names = frappe.cache.get_value(CUSTOMIZED_NAMES_CACHE_KEY)
 	if names is None:
-		names = frappe.get_all("Custom Workspace", pluck="workspace")
+		names = frappe.get_all("Custom Workspace", filters={"user": ("is", "not set")}, pluck="workspace")
 		frappe.cache.set_value(CUSTOMIZED_NAMES_CACHE_KEY, names)
 	return set(names)
 
@@ -126,6 +144,50 @@ def get_customization(workspace: str) -> "CustomWorkspace | None":
 	except frappe.DoesNotExistError:
 		frappe.clear_last_message()
 		return None
+
+
+def get_user_layout(workspace: str) -> "CustomWorkspace | None":
+	"""The session user's own layout of a shared workspace, or None."""
+	name = frappe.db.get_value("Custom Workspace", {"workspace": workspace, "user": frappe.session.user})
+	return frappe.get_doc("Custom Workspace", name) if name else None
+
+
+def save_user_layout(shown, content: list, new_widgets: dict) -> None:
+	"""Persist the session user's own layout of the shared workspace `shown`, as they were shown it.
+
+	The first save copies in the widgets of the layout they were looking at, so the copy keeps every
+	widget it started with. A later save only adds the widgets new in that session.
+	"""
+	row = get_user_layout(shown.name) or frappe.get_doc(
+		{"doctype": "Custom Workspace", "workspace": shown.name, "user": frappe.session.user}
+	)
+	widgets = loads(row.widgets or "{}") if row.content else snapshot_widgets(shown)
+	row.content = dumps(content)
+	row.widgets = dumps(_prune_widgets(merge_widgets(widgets, new_widgets), content))
+	row.save(ignore_permissions=True)
+
+
+@frappe.whitelist(methods=["POST"])
+def reset_my_workspace_layout(workspace: str) -> None:
+	"""Go back to the shared layout of `workspace`, dropping the session user's own."""
+	if row := get_user_layout(workspace):
+		frappe.delete_doc("Custom Workspace", row.name, ignore_permissions=True)
+
+
+def has_permission(doc, ptype="read", user=None, debug=False):
+	"""One person's own layout is theirs alone, whatever roles the reader holds."""
+	user = user or frappe.session.user
+	if not doc.user or user == "Administrator":
+		return True
+	return doc.user == user
+
+
+def get_permission_query_conditions(user=None):
+	"""Keep other people's own layouts out of list reads."""
+	user = user or frappe.session.user
+	if user == "Administrator":
+		return ""
+	return f"(ifnull(`tabCustom Workspace`.`user`, '') = '' or `tabCustom Workspace`.`user` = {frappe.db.escape(user)})"
 
 
 def effective_roles(base_roles: list[str], customization: "CustomWorkspace") -> list[str]:

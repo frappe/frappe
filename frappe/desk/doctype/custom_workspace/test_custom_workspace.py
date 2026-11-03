@@ -121,14 +121,14 @@ class TestCustomWorkspaceUnit(IntegrationTestCase):
 					apply_customization(doc, customization)
 					self.assertEqual(doc.renderer, expected)
 
-	def test_no_user_layer_exists_for_workspaces(self):
-		# a private workspace is already yours to edit directly and a public one is the site's,
-		# so this doctype is site-only: one row per workspace, with nowhere to name a user.
-		meta = frappe.get_meta("Custom Workspace")
-		self.assertEqual(meta.autoname, "field:workspace")
-		fieldnames = {df.fieldname for df in meta.fields}
-		self.assertNotIn("user", fieldnames)
-		self.assertNotIn("for_user", fieldnames)
+	def test_the_site_row_keeps_its_workspace_name_and_a_user_row_never_takes_it(self):
+		site = frappe.get_doc({"doctype": "Custom Workspace", "workspace": "Home"})
+		site.autoname()
+		self.assertEqual(site.name, "Home")
+
+		own = frappe.get_doc({"doctype": "Custom Workspace", "workspace": "Home", "user": "a@example.com"})
+		own.autoname()
+		self.assertNotEqual(own.name, "Home")
 
 
 class TestCustomWorkspaceIntegration(IntegrationTestCase):

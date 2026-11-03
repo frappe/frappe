@@ -120,7 +120,7 @@ function correct_private_segment() {
 
 function actions() {
 	const list = [];
-	if (workspace.value.can_edit) list.push({ label: __("Edit"), onClick: () => edit() });
+	if (can_open_editor.value) list.push({ label: __("Edit"), onClick: () => edit() });
 	list.push({ label: __("New Workspace"), onClick: () => frappe.ui.new_workspace_dialog() });
 	if (workspace.value.can_edit) {
 		list.push({ label: __("Manage"), onClick: () => (managing.value = true) });
@@ -128,7 +128,26 @@ function actions() {
 	if (workspace.value.is_layout_customized && workspace.value.can_edit) {
 		list.push({ label: __("Reset to Standard"), onClick: reset });
 	}
+	if (workspace.value.own_layout) {
+		list.push({ label: __("Reset to Shared Layout"), onClick: reset_own_layout });
+	}
 	return list;
+}
+
+// a reader who cannot edit the shared page edits a layout of their own
+const can_open_editor = computed(() => workspace.value?.can_edit || workspace.value?.can_edit_own);
+
+function reset_own_layout() {
+	frappe.confirm(
+		__("Drop your own layout of this workspace and see the shared one?"),
+		async () => {
+			await post(
+				"frappe.desk.doctype.custom_workspace.custom_workspace.reset_my_workspace_layout",
+				{ workspace: workspace.value.name }
+			);
+			load();
+		}
+	);
 }
 
 // The editor opens on the default layout, whichever layout the reader was shown.
@@ -241,7 +260,7 @@ watch(
 							:editing="canvas.editing"
 							:no_access="canvas.no_access"
 							:title="workspace.title"
-							:can_edit="workspace.can_edit"
+							:can_edit="can_open_editor"
 							@edit="edit()"
 							@add-text="editor.add_text()"
 						/>

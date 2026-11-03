@@ -236,6 +236,12 @@ const hint = computed(() => {
 			text: __("This workspace is private. Your edits reach only you."),
 		};
 	}
+	if (target === "own") {
+		return {
+			icon: "lucide-user",
+			text: __("Your edits make a layout of your own. Everyone else keeps the shared one."),
+		};
+	}
 	if (target && target.includes("/")) {
 		return { icon: "lucide-file-code", text: __("Save writes to {0}", [target]) };
 	}
@@ -260,6 +266,19 @@ function reset_layout() {
 				{ workspace: props.workspace.name, variant: variant.value || DEFAULT_LAYOUT }
 			);
 			emit("saved", variant.value);
+		}
+	);
+}
+
+function reset_own_layout() {
+	frappe.confirm(
+		__("Drop your own layout of this workspace and see the shared one?"),
+		async () => {
+			await post(
+				"frappe.desk.doctype.custom_workspace.custom_workspace.reset_my_workspace_layout",
+				{ workspace: props.workspace.name }
+			);
+			emit("done");
 		}
 	);
 }
@@ -298,6 +317,16 @@ const menu = computed(() => {
 			...items,
 			{ label: __("Delete workspace"), icon: "lucide-trash-2", onClick: delete_workspace },
 		];
+	}
+	if (props.workspace.save_target === "own") {
+		if (props.workspace.own_layout) {
+			items.push({
+				label: __("Reset to shared layout"),
+				icon: "lucide-undo-2",
+				onClick: reset_own_layout,
+			});
+		}
+		return items;
 	}
 	if (layout.value?.source === "Site copy") {
 		items.push({

@@ -1,15 +1,16 @@
 {
  "actions": [],
  "allow_rename": 0,
- "autoname": "field:workspace",
+ "autoname": "hash",
  "creation": "2026-06-28 00:00:00.000000",
- "description": "A site's overrides on a standard (app-shipped) workspace. Site-owned and standard-only: there is no user layer, deliberately -- a private workspace is already yours to edit directly, and a public one is the site's. The merge is split on purpose. Roles, icon, visibility and sequence are a true diff, so an app's later changes to them keep flowing through. Content is a snapshot, so customizing the layout freezes it against app updates: workspace content is nested editor blocks where headings, paragraphs and spacers carry no key at all, and a delta cannot be written against unkeyed prose. Do not \"fix\" this into one or the other; `reset_workspace_customization` is the escape hatch.",
+ "description": "A site's overrides on a standard (app-shipped) workspace, or with `user` set, one person's own layout of a shared workspace. The site row is named after its workspace and only a standard workspace has one. A user row carries only `content` and `widgets`, is drawn for that person alone over whatever the site draws, and only they may read or write it. A private workspace has no user row: it is already its owner's to edit directly. The merge is split on purpose. Roles, icon, visibility and sequence are a true diff, so an app's later changes to them keep flowing through. Content is a snapshot, so customizing the layout freezes it against app updates: workspace content is nested editor blocks where headings, paragraphs and spacers carry no key at all, and a delta cannot be written against unkeyed prose. Do not \"fix\" this into one or the other; `reset_workspace_customization` is the escape hatch.",
  "doctype": "DocType",
  "documentation": "https://docs.frappe.io/framework/user/en/desk/workspace",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
   "workspace",
+  "user",
   "visibility_section",
   "visibility",
   "renderer",
@@ -34,8 +35,16 @@
    "in_list_view": 1,
    "label": "Workspace",
    "options": "Workspace",
-   "reqd": 1,
-   "unique": 1
+   "reqd": 1
+  },
+  {
+   "description": "Set on one person's own layout; empty on the site's row.",
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "label": "User",
+   "options": "User",
+   "search_index": 1,
+   "set_only_once": 1
   },
   {
    "fieldname": "visibility_section",
@@ -140,11 +149,11 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-10-26 06:40:00.000000",
+ "modified": "2026-11-03 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Custom Workspace",
- "naming_rule": "By fieldname",
+ "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [
   {

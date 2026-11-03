@@ -102,6 +102,66 @@ class TestGetWorkspace(IntegrationTestCase):
 		frappe.set_user(MANAGER)
 		self.assertTrue(get_workspace("GW Test")["can_edit"])
 
+	def save_own_layout(self):
+		from frappe.desk.doctype.workspace.workspace import save_page
+
+		frappe.set_user(DESK_USER)
+		charts = [block for block in get_workspace("GW Test")["content"] if block["type"] == "chart"]
+		save_page("GW Test", 1, {}, dumps(charts))
+		return [block["id"] for block in charts]
+
+	def test_a_reader_edits_a_shared_workspace_for_themselves(self):
+		frappe.set_user(DESK_USER)
+		shown = get_workspace("GW Test")
+		self.assertFalse(shown["can_edit"])
+		self.assertTrue(shown["can_edit_own"])
+		self.assertEqual(shown["save_target"], "own")
+
+		ids = self.save_own_layout()
+		mine = get_workspace("GW Test")
+		self.assertTrue(mine["own_layout"])
+		self.assertEqual([block["id"] for block in mine["content"]], ids)
+
+		frappe.set_user(MANAGER)
+		shared = get_workspace("GW Test")
+		self.assertFalse(shared["own_layout"])
+		self.assertIn("header", [block["type"] for block in shared["content"]])
+
+	def test_nobody_else_reaches_a_readers_own_layout(self):
+		self.save_own_layout()
+		name = frappe.db.get_value("Custom Workspace", {"workspace": "GW Test", "user": DESK_USER})
+
+		frappe.set_user(MANAGER)
+		for ptype in ("read", "write", "delete"):
+			self.assertFalse(frappe.has_permission("Custom Workspace", ptype, doc=name), ptype)
+		self.assertNotIn(name, frappe.get_list("Custom Workspace", pluck="name", limit=0))
+
+	def test_reset_brings_back_the_shared_layout(self):
+		from frappe.desk.doctype.custom_workspace.custom_workspace import reset_my_workspace_layout
+
+		self.save_own_layout()
+		reset_my_workspace_layout("GW Test")
+
+		shown = get_workspace("GW Test")
+		self.assertFalse(shown["own_layout"])
+		self.assertIn("header", [block["type"] for block in shown["content"]])
+
+	def test_no_own_layout_of_a_workspace_the_reader_cannot_open(self):
+		from frappe.desk.doctype.workspace.workspace import save_page
+
+		make_workspace("GW Gated", roles=["System Manager"])
+		frappe.set_user(DESK_USER)
+		with self.assertRaises(frappe.PermissionError):
+			save_page("GW Gated", 1, {}, "[]")
+		self.assertFalse(frappe.db.exists("Custom Workspace", {"workspace": "GW Gated"}))
+
+	def test_deleting_a_workspace_drops_the_own_layouts_of_it(self):
+		self.save_own_layout()
+
+		frappe.set_user("Administrator")
+		frappe.delete_doc("Workspace", "GW Test")
+		self.assertFalse(frappe.db.exists("Custom Workspace", {"workspace": "GW Test"}))
+
 	def test_layout_is_customized_only_with_site_content(self):
 		standard = make_workspace("GW Standard", standard=1)
 		frappe.get_doc({"doctype": "Custom Workspace", "workspace": standard.name, "icon": "star"}).insert()

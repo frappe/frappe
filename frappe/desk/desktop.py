@@ -133,10 +133,27 @@ class Workspace(DeskViews):
 
 		if self.doc_is_shared:
 			self.doc = frappe.get_doc("Workspace", self.page_name)
+			self.doc_is_shared = False
 		self.doc.content = rows[role].content or "[]"
 		replace_widgets(self.doc, loads(rows[role].widgets or "{}"))
 		self.onboarding_list = self.get_onboarding_names()
 		self.variant = role
+
+	def use_user_layout(self) -> bool:
+		"""Draw the session user's own layout of a shared workspace, if they saved one."""
+		from frappe.desk.doctype.custom_workspace.custom_workspace import get_user_layout
+
+		row = get_user_layout(self.page_name) if self.doc.public else None
+		if not row:
+			return False
+
+		if self.doc_is_shared:
+			self.doc = frappe.get_doc("Workspace", self.page_name)
+			self.doc_is_shared = False
+		self.doc.content = row.content or "[]"
+		replace_widgets(self.doc, loads(row.widgets or "{}"))
+		self.onboarding_list = self.get_onboarding_names()
+		return True
 
 	def get_cached(self, cache_key, fallback_fn):
 		value = frappe.cache.get_value(cache_key, user=frappe.session.user)
@@ -506,6 +523,7 @@ def get_workspace(name: str, variant: str | None = None) -> dict:
 
 	can_edit = can_edit_workspace(doc)
 	workspace.use_layout(variant if can_edit else None)
+	own_layout = not can_edit and workspace.use_user_layout()
 	doc = workspace.doc
 	widgets = readable_widgets(workspace)
 	_fold_chart_settings(widgets["charts"])
@@ -516,6 +534,12 @@ def get_workspace(name: str, variant: str | None = None) -> dict:
 	stored = loads(doc.content or "[]")
 	content = [block for block in stored if is_drawable(block, widgets)]
 	customization = get_customization(name) if doc.standard else None
+	if can_edit:
+		context = editor_context(doc, customization)
+	elif doc.public:
+		context = {"layouts": [], "save_target": "own"}
+	else:
+		context = {}
 
 	return {
 		"name": doc.name,
@@ -525,11 +549,13 @@ def get_workspace(name: str, variant: str | None = None) -> dict:
 		"content": content,
 		"widgets": widgets,
 		"can_edit": can_edit,
+		"can_edit_own": bool(doc.public) and not can_edit,
+		"own_layout": own_layout,
 		"no_access": has_widget(stored) and not has_widget(content),
 		"is_hidden": bool(doc.is_hidden),
 		"standard": bool(doc.standard),
 		"is_layout_customized": is_layout_customized(customization, workspace.variant),
-		**(editor_context(doc, customization) if can_edit else {}),
+		**context,
 	}
 
 
