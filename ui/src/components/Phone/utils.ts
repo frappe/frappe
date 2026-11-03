@@ -1,8 +1,5 @@
 import countriesJson from "../../../../frappe/geo/country_info.json";
-import {
-	COUNTRY_FLAG_ASSET_BASE,
-	get_country_flag_url,
-} from "../../../../frappe/public/js/frappe/utils/country_flag_url.js";
+import { get_country_flag_url } from "../../../../frappe/public/js/frappe/utils/country_flag_url.js";
 import type { Country } from "./types";
 
 export interface PhoneDetails {
@@ -85,12 +82,6 @@ export function joinPhoneDetails(
 export function getCountryFromCode(code?: string | null): Country | null {
   if (!code) return null;
   return countries.find((c) => c.code === code.toLowerCase()) ?? null;
-}
-
-export { COUNTRY_FLAG_ASSET_BASE, get_country_flag_url };
-
-export function getCountryFlagUrl(countryCode: string): string {
-	return get_country_flag_url(countryCode);
 }
 
 export function getFlagUrl(country: Country): string {
