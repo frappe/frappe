@@ -277,19 +277,19 @@ describe("shell.window", () => {
 		);
 		await attached();
 		const widthNow = async (width: number) => {
-			pill().getBoundingClientRect = () => ({ width }) as DOMRect;
+			const entry = { target: pill(), borderBoxSize: [{ inlineSize: width }] };
 			reports.forEach((report) =>
-				report([{ target: pill() } as ResizeObserverEntry], {} as ResizeObserver)
+				report([entry as unknown as ResizeObserverEntry], {} as ResizeObserver)
 			);
 			await nextTick();
 		};
 
 		await widthNow(121);
-		expect(pill().style.minWidth).toBe("121px");
+		expect(pill().style.minWidth).toBe("min(121px, calc(100vw - 48px))");
 		await widthNow(120);
-		expect(pill().style.minWidth).toBe("121px");
+		expect(pill().style.minWidth).toBe("min(121px, calc(100vw - 48px))");
 		await widthNow(130);
-		expect(pill().style.minWidth).toBe("130px");
+		expect(pill().style.minWidth).toBe("min(130px, calc(100vw - 48px))");
 		vi.unstubAllGlobals();
 	});
 

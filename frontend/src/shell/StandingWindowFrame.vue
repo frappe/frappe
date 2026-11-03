@@ -85,7 +85,7 @@
 		ref="pill"
 		class="pointer-events-auto flex h-10 min-w-0 max-w-[400px] cursor-pointer items-center gap-2 rounded-full border border-outline-gray-2 bg-surface-elevation-1 pl-3.5 shadow-2xl"
 		:class="entry.actions.length ? 'pr-1.5' : 'pr-3.5'"
-		:style="{ minWidth: `${pillWidth}px` }"
+		:style="{ minWidth: `min(${pillWidth}px, calc(100vw - 48px))` }"
 		:data-standing-minimised="entry.app"
 		@click="restore"
 	>
@@ -143,8 +143,8 @@ const restoreButton = ref<HTMLButtonElement | null>(null);
 // A ticking title ("Alice · 00:42") changes width by a pixel as digits change, so the pill only grows.
 const pill = ref<HTMLElement | null>(null);
 const pillWidth = ref(0);
-useResizeObserver(pill, ([{ target }]) => {
-	pillWidth.value = Math.max(pillWidth.value, target.getBoundingClientRect().width);
+useResizeObserver(pill, ([entry]) => {
+	pillWidth.value = Math.max(pillWidth.value, entry.borderBoxSize?.[0]?.inlineSize ?? 0);
 });
 
 // Focus follows only the user's own click; the app's open() and minimise() never move it.
