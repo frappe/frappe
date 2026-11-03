@@ -455,30 +455,16 @@ class OAuthWebRequestValidator(RequestValidator):
 		return get_userinfo(user)
 
 	def validate_id_token(self, token, scopes, request):
-		try:
-			id_token = frappe.get_doc("OAuth Bearer Token", {"access_token": get_oauth_token_hash(token)})
-			if id_token.status == "Active":
-				return True
-		except frappe.DoesNotExistError:
-			frappe.clear_last_message()
-			return False
-		except Exception:
-			return False
-
-		return False
+		status = frappe.db.get_value(
+			"OAuth Bearer Token", {"access_token": get_oauth_token_hash(token)}, "status"
+		)
+		return status == "Active"
 
 	def validate_jwt_bearer_token(self, token, scopes, request):
-		try:
-			jwt = frappe.get_doc("OAuth Bearer Token", {"access_token": get_oauth_token_hash(token)})
-			if jwt.status == "Active":
-				return True
-		except frappe.DoesNotExistError:
-			frappe.clear_last_message()
-			return False
-		except Exception:
-			return False
-
-		return False
+		status = frappe.db.get_value(
+			"OAuth Bearer Token", {"access_token": get_oauth_token_hash(token)}, "status"
+		)
+		return status == "Active"
 
 	def validate_silent_authorization(self, request):
 		"""Ensure the logged in user has authorized silent OpenID authorization.
