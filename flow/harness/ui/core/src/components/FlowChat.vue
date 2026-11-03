@@ -2,7 +2,7 @@
 	<!-- clip, not hidden: a hidden root still scrolls when focus lands in the closed panel.
 	     The root is the sidebar's colour, so the chat stands on it as a raised panel -->
 	<div
-		class="flow-sidebar-surface flex h-full min-h-0 overflow-clip text-md text-ink-gray-8"
+		class="flow-sidebar-surface flex h-full min-h-0 overflow-clip text-base text-ink-gray-8"
 		:style="{
 			'--flow-chat-text': `${store.state.prefs.chatFontSize}px`,
 			'--flow-chat-weight': store.state.prefs.chatFontWeight,

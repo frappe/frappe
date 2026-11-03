@@ -51,11 +51,11 @@
 			<!-- the essentials together at the top: start a chat, or find one, each with its keys on
 			     hover; search opens in a palette over the page -->
 			<SidebarItem icon="lucide-square-pen" class="h-8" @click="startNewChat()">
-				<span class="truncate text-base text-ink-gray-8">New chat</span>
+				<span class="truncate text-sm text-ink-gray-8">New chat</span>
 				<KeyboardShortcut v-if="!layout.phone" combo="Mod+Shift+O" :class="HINT" />
 			</SidebarItem>
 			<SidebarItem icon="lucide-search" class="h-8" @click="searchOpen = true">
-				<span class="truncate text-base text-ink-gray-8">Search</span>
+				<span class="truncate text-sm text-ink-gray-8">Search</span>
 				<KeyboardShortcut v-if="!layout.phone" combo="Mod+K" :class="HINT" />
 			</SidebarItem>
 			<!-- the host's own rows, like links to its pages -->
@@ -126,7 +126,7 @@
 							@update:open="(open) => showCard(group.cwd, open)"
 						>
 							<template #trigger>
-								<span class="row-title folder-name min-w-0 flex-1 overflow-hidden whitespace-nowrap text-base leading-snug text-ink-gray-8">
+								<span class="row-title folder-name min-w-0 flex-1 overflow-hidden whitespace-nowrap text-sm leading-snug text-ink-gray-8">
 									{{ group.name }}
 								</span>
 							</template>
@@ -212,7 +212,7 @@
 									>
 										<template #trigger>
 											<span
-												class="row-title min-w-0 flex-1 overflow-hidden whitespace-nowrap text-base leading-snug"
+												class="row-title min-w-0 flex-1 overflow-hidden whitespace-nowrap text-sm leading-snug"
 												:class="!group.cwd && '-ml-2'"
 											>
 												<span class="inline-block">{{ flow.sessionTitle(s) }}</span>
@@ -785,7 +785,7 @@ const emptyMessage = computed(() => {
 		height: 2.25rem;
 	}
 	.row-title,
-	aside :deep([data-slot="sidebar-item"]) .text-base {
+	aside :deep([data-slot="sidebar-item"]) .text-sm {
 		font-size: theme(fontSize.md);
 	}
 }
