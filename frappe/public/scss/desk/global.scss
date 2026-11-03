@@ -336,20 +336,6 @@ h6,
 			display: none;
 		}
 	}
-
-	.dropdown-item {
-		.tick-icon {
-			visibility: hidden;
-
-			&.selected {
-				visibility: visible;
-			}
-		}
-
-		.item-label {
-			font-weight: var(--font-weight-medium);
-		}
-	}
 }
 
 .btn-xs {

@@ -104,25 +104,6 @@
 					margin-right: 0px;
 				}
 			}
-
-			.column-options {
-				.button-group {
-					display: flex;
-					padding: 8px;
-
-					div.indicator-pill {
-						margin: 0 5px;
-					}
-
-					.btn.indicator {
-						flex: 1;
-					}
-				}
-
-				.indicator::before {
-					margin: 0;
-				}
-			}
 		}
 
 		.kanban-column-title {

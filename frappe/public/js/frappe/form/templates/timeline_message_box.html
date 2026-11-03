@@ -80,25 +80,11 @@
 			{% } %}
 			<div class="custom-actions"></div>
 			<div class="more-actions">
-				<a type="button" class="action-btn"
-					data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+				<a type="button" class="action-btn">
 					<svg class="icon icon-sm">
 						<use href="#icon-ellipsis"></use>
 					</svg>
 				</a>
-
-				<ul class="dropdown-menu small">
-					<li>
-						<a class="dropdown-item" data-action="copy_link">
-							{{ __('Copy Link') }}
-						</a>
-						{% if (frappe.is_mobile()) { %}
-						<a class="dropdown-item" href="{{ doc._url }}" title="{{ __("Open Communication") }}">
-							{{  __("Open Communication") }}
-						</a>
-						{% } %}
-					</li>
-				</ul>
 			</div>
 		</span>
 	</span>
