@@ -1,7 +1,12 @@
 <template>
-	<div class="pointer-events-none absolute inset-x-0 bottom-0 z-10 px-5 pb-3.5 max-md:bg-surface-base">
+	<div
+		class="flow-composer-dock pointer-events-none absolute inset-x-0 bottom-0 z-10 px-5 pb-3.5 max-md:bg-surface-base"
+		:class="[lift ? '' : 'flow-composer-docked', gliding && 'flow-composer-glide']"
+		:style="lift ? { bottom: `${lift}px` } : null"
+	>
 		<!-- the box floats over the thread; a narrow frame's strip around it hides the thread under it -->
-		<div ref="stack" class="pointer-events-auto relative mx-auto max-w-[800px]">
+		<!-- a new chat's box sits narrower under its heading; a started chat's is as wide as the thread -->
+		<div ref="stack" class="pointer-events-auto relative mx-auto" :class="starting ? 'max-w-[648px]' : 'max-w-[800px]'">
 			<ModelPalette
 				v-if="paletteView === 'models'"
 				:providers="has('providers')"
@@ -148,7 +153,8 @@
 			     Positioned, so it covers the start row's foot -->
 			<fieldset
 				:disabled="disabled"
-				class="flow-composer-surface flow-composer-edge relative flex min-w-0 flex-col gap-2 rounded-7 border p-2 shadow-[0_1px_2px_rgba(0,0,0,0.06),0_8px_24px_-10px_rgba(0,0,0,0.18)]"
+				class="relative flex min-w-0 flex-col gap-2 rounded-7 bg-surface-gray-1"
+				:class="oneRow ? 'p-2' : 'p-3'"
 			>
 				<button
 					v-if="needsCwd"
@@ -239,36 +245,6 @@
 					Could not prepare {{ item.name }}: {{ item.error }}
 					<button class="underline" :disabled="locked" :aria-label="`Retry ${item.name}`" @click="prepareAttachment(item)">Retry</button>
 				</div>
-				<!-- the chat's text size in a narrow frame. It rises over an open list's click-catcher, so
-				     clicking back into it keeps the list. -->
-				<div class="flow-draft relative" :class="listOpen ? 'z-20' : ''">
-					<div
-						v-if="skillParts"
-						aria-hidden="true"
-						class="pointer-events-none absolute inset-0 overflow-hidden whitespace-pre-wrap break-words px-1.5 pt-1 text-md leading-relaxed text-transparent max-sm:text-[length:var(--flow-chat-text,15px)]"
-					>
-						<div :style="{ transform: `translateY(-${textScrollTop}px)` }">
-							<span v-for="(part, i) in skillParts" :key="i" :class="part.skill ? 'text-ink-blue-6' : 'text-ink-gray-9'">{{ part.text }}</span>
-						</div>
-					</div>
-					<textarea
-						ref="box"
-						v-model="text"
-						rows="1"
-						:disabled="locked"
-						:placeholder="placeholder"
-						style="caret-color: var(--ink-gray-9)"
-						class="relative max-h-40 min-h-[62px] w-full resize-none border-0 bg-transparent px-1.5 pt-1 text-md leading-relaxed outline-none placeholder:text-ink-gray-4 focus:ring-0 max-sm:text-[length:var(--flow-chat-text,15px)] dark:placeholder:text-ink-gray-6"
-						:class="skillParts ? 'text-transparent' : 'text-ink-gray-9'"
-						@keydown="onKey"
-						@paste="onPaste"
-						@scroll="textScrollTop = $event.currentTarget.scrollTop"
-						@input="syncCaret"
-						@keyup="syncCaret"
-						@click="syncCaret"
-						@select="syncCaret"
-					/>
-				</div>
 				<input
 					ref="fileInput"
 					type="file"
@@ -277,50 +253,113 @@
 					class="hidden"
 					@change="onFilesPicked"
 				/>
-				<div v-if="visionWarning" class="px-1 text-base text-ink-amber-6">
-					The selected model cannot view images. Switch to a vision-capable model before sending.
-				</div>
-				<div v-if="modelWarning" class="px-1 text-base text-ink-gray-5">{{ modelWarning }}</div>
-				<div class="flex min-w-0 items-center gap-1">
-					<!-- attach files -->
-					<button
-						class="grid h-7 w-7 flex-none place-items-center rounded-5 text-ink-gray-6 hover:bg-surface-gray-2 hover:text-ink-gray-9 dark:text-ink-gray-8"
-						:title="imagesOnly ? 'Attach images' : 'Attach files'"
-						:disabled="locked"
-						@click="openFilePicker"
+				<!-- one markup, two shapes. A new chat's full box: the draft, any warning under it, then
+				     the tools on their own row. A started chat's single row, as the text runs: the + menu,
+				     the draft, the model and send, the draft opening upward only as its text wraps -->
+				<template v-if="oneRow">
+					<div v-if="visionWarning" class="px-1 text-base text-ink-amber-6">{{ VISION_WARNING }}</div>
+					<div v-if="modelWarning" class="px-1 text-base text-ink-gray-5">{{ modelWarning }}</div>
+				</template>
+				<div class="flex min-w-0 gap-x-1" :class="oneRow ? 'items-end' : 'flex-wrap items-center gap-y-4'">
+					<template v-if="!oneRow">
+						<div v-if="visionWarning" class="order-[-1] basis-full px-1 text-base text-ink-amber-6">{{ VISION_WARNING }}</div>
+						<div v-if="modelWarning" class="order-[-1] basis-full px-1 text-base text-ink-gray-5">{{ modelWarning }}</div>
+					</template>
+					<!-- a started chat keeps what goes in under +, first in the row: files, the host's own,
+					     the approval mode -->
+					<span v-if="inline" class="flex flex-none">
+						<Dropdown :options="plusOptions" align="start" side="top">
+							<template #trigger>
+								<button
+									class="grid size-7 place-items-center rounded-5 text-ink-gray-7 hover:bg-surface-gray-2 hover:text-ink-gray-9 dark:text-ink-gray-8"
+									aria-label="Add to the message"
+									:disabled="locked"
+								>
+									<span class="lucide-plus size-4" aria-hidden="true" />
+								</button>
+							</template>
+						</Dropdown>
+					</span>
+					<!-- the chat's text size in a narrow frame. It rises over an open list's click-catcher, so
+					     clicking back into it keeps the list. -->
+					<div
+						class="flow-draft relative min-w-0"
+						:class="[listOpen ? 'z-20' : '', oneRow ? 'flex-1' : 'order-[-2] basis-full']"
 					>
-						<span class="lucide-plus size-4" aria-hidden="true" />
-					</button>
-
-					<!-- approval mode; its list hangs from it. A narrow frame shows the mode as its icon,
-					     which its list explains -->
-					<span class="relative flex-none">
-						<button
-							ref="modeButton"
-							class="flex h-7 items-center gap-1.5 whitespace-nowrap rounded-5 text-base text-ink-gray-7 hover:bg-surface-gray-2 dark:text-ink-gray-8"
-							:class="[modeMenu ? 'bg-surface-gray-2' : '', layout.narrow ? 'w-7 justify-center' : 'px-2']"
-							:title="layout.narrow ? `Approval mode: ${modeLabel}` : 'Approval mode'"
-							:aria-expanded="modeMenu"
-							@click="modeMenu ? closeModeMenu() : (modeMenu = true)"
+						<div
+							v-if="skillParts"
+							aria-hidden="true"
+							class="pointer-events-none absolute inset-0 overflow-hidden whitespace-pre-wrap break-words px-1.5 text-md leading-relaxed text-transparent max-sm:text-[length:var(--flow-chat-text,15px)]"
+							:class="oneRow ? 'pt-0.5' : 'pt-1'"
 						>
-							<span
-								v-if="layout.narrow"
-								class="size-4"
-								:class="MODE_ICONS[currentMode] ?? 'lucide-lock'"
-								aria-hidden="true"
-							/>
-							<template v-else>
-								{{ modeLabel }}
+							<div :style="{ transform: `translateY(-${textScrollTop}px)` }">
+								<span v-for="(part, i) in skillParts" :key="i" :class="part.skill ? 'text-ink-blue-6' : 'text-ink-gray-9'">{{ part.text }}</span>
+							</div>
+						</div>
+						<textarea
+							ref="box"
+							v-model="text"
+							rows="1"
+							:disabled="locked"
+							:placeholder="placeholder"
+							style="caret-color: var(--ink-gray-9)"
+							class="relative block max-h-40 w-full resize-none border-0 bg-transparent px-1.5 text-md leading-relaxed outline-none placeholder:text-ink-gray-4 focus:ring-0 max-sm:text-[length:var(--flow-chat-text,15px)] dark:placeholder:text-ink-gray-6"
+							:class="[skillParts ? 'text-transparent' : 'text-ink-gray-9', oneRow ? 'min-h-7 py-0.5' : 'py-1']"
+							@keydown="onKey"
+							@paste="onPaste"
+							@scroll="textScrollTop = $event.currentTarget.scrollTop"
+							@input="syncCaret"
+							@keyup="syncCaret"
+							@click="syncCaret"
+							@select="syncCaret"
+						/>
+					</div>
+					<!-- attach files -->
+					<Tooltip v-if="!inline" :text="imagesOnly ? 'Attach images' : 'Attach files'">
+						<button
+							class="grid size-8 flex-none place-items-center rounded-5 text-ink-gray-7 hover:bg-surface-gray-2 hover:text-ink-gray-9 dark:text-ink-gray-8"
+							:aria-label="imagesOnly ? 'Attach images' : 'Attach files'"
+							:disabled="locked"
+							@click="openFilePicker"
+						>
+							<span class="lucide-paperclip size-4" aria-hidden="true" />
+						</button>
+					</Tooltip>
+					<!-- a host's pickers beside it, on the box's own row; `starting` until the first message.
+					     A started chat's row has room for no more buttons: the host's `plusItems` nest in
+					     the + menu instead -->
+					<slot v-if="!inline" name="tools" :insert="replaceSlash" :starting="starting" />
+
+					<span v-if="!oneRow" class="min-w-2 flex-1" />
+					<!-- approval mode; its list hangs from it. A narrow frame shows the mode as its icon,
+					     which its list explains. A started chat's row shows it only off its safe default, as a
+					     warning; the + menu changes it -->
+					<span class="relative flex-none">
+						<Tooltip
+							v-if="!inline || currentMode !== modes[0]?.id"
+							:text="layout.narrow ? `Approval mode: ${modeLabel}` : 'Approval mode'"
+							:disabled="modeMenu"
+						>
+							<button
+								ref="modeButton"
+								class="flex items-center whitespace-nowrap rounded-5 text-base text-ink-gray-7 hover:bg-surface-gray-2 dark:text-ink-gray-8"
+								:class="[modeMenu ? 'bg-surface-gray-2' : '', inline ? 'h-7' : 'h-8', layout.narrow ? (inline ? 'w-7 justify-center' : 'w-8 justify-center') : 'px-2']"
+								:aria-label="`Approval mode: ${modeLabel}`"
+								:aria-expanded="modeMenu"
+								@click="modeMenu ? closeModeMenu() : (modeMenu = true)"
+							>
 								<span
-									class="lucide-chevron-down size-3 flex-none text-ink-gray-4 transition-transform dark:text-ink-gray-6"
-									:class="modeMenu ? 'rotate-180' : ''"
+									v-if="layout.narrow"
+									class="size-4"
+									:class="MODE_ICONS[currentMode] ?? 'lucide-lock'"
 									aria-hidden="true"
 								/>
-							</template>
-						</button>
+								<template v-else>{{ modeLabel }}</template>
+							</button>
+						</Tooltip>
 						<!-- a row a mode, what it does under its name and the tick centred beside both; wide
 						     enough for a description to keep to one line by the tick -->
-						<PalettePanel v-if="modeMenu" title="Approval mode" dropdown align="left" :width="344" @close="closeModeMenu">
+						<PalettePanel v-if="modeMenu" title="Approval mode" dropdown align="right" :width="344" @close="closeModeMenu">
 							<div class="p-1">
 								<button
 									v-for="m in modes"
@@ -350,41 +389,43 @@
 						</PalettePanel>
 					</span>
 
-					<span class="min-w-2 flex-1" />
 
 					<!-- the pickers, by the send button; a host adds its own around the model button -->
 					<slot name="toolbar" :open-palette="openPalette">
-						<ModelButton :providers="has('providers')" @open="openPalette" />
+						<ModelButton :large="!inline" :providers="has('providers')" @open="openPalette" />
 					</slot>
 
-					<button
-						v-if="running && !submitting"
-						class="ml-1 grid h-8 w-8 flex-none place-items-center rounded-6 bg-surface-gray-10 text-ink-base hover:opacity-90"
-						title="Stop"
-						@click="flow.abort()"
-					>
-						<span class="h-[11px] w-[11px] rounded-[2px] bg-current" />
-					</button>
-					<button
-						v-else
-						class="ml-1 grid h-8 w-8 flex-none place-items-center rounded-6"
-						:class="
-							canSend || submitting
-								? 'bg-surface-gray-10 text-ink-base hover:opacity-90'
-								: 'pointer-events-none bg-surface-gray-3 text-ink-gray-4'
-						"
-						title="Send"
-						:disabled="!canSend"
-						:aria-busy="submitting"
-						@click="submit"
-					>
-						<span
-							v-if="submitting"
-							class="lucide-loader-circle size-4 animate-spin"
-							aria-hidden="true"
-						/>
-						<span v-else class="lucide-arrow-up size-4" aria-hidden="true" />
-					</button>
+					<Tooltip v-if="running && !submitting" text="Stop">
+						<button
+							class="ml-1 grid flex-none place-items-center rounded-5 bg-surface-gray-10 text-ink-base hover:opacity-90"
+							:class="inline ? 'size-7' : 'size-8'"
+							aria-label="Stop"
+							@click="flow.abort()"
+						>
+							<span class="h-[11px] w-[11px] rounded-[2px] bg-current" />
+						</button>
+					</Tooltip>
+					<Tooltip v-else text="Send" :disabled="!canSend">
+						<button
+							class="ml-1 grid flex-none place-items-center rounded-5"
+							:class="[inline ? 'size-7' : 'size-8',
+								canSend || submitting
+									? 'bg-surface-gray-10 text-ink-base hover:opacity-90'
+									: 'pointer-events-none bg-surface-gray-3 text-ink-gray-4']
+							"
+							aria-label="Send"
+							:disabled="!canSend"
+							:aria-busy="submitting"
+							@click="submit"
+						>
+							<span
+								v-if="submitting"
+								class="lucide-loader-circle size-4 animate-spin"
+								aria-hidden="true"
+							/>
+							<span v-else class="lucide-arrow-up size-4" aria-hidden="true" />
+						</button>
+					</Tooltip>
 				</div>
 			</fieldset>
 			<ImageViewer v-if="viewer" :src="viewer.previewUrl" :alt="viewer.name" @close="viewer = null" />
@@ -394,10 +435,13 @@
 
 <script setup>
 import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
+import { Tooltip } from "frappe-ui"
+import Dropdown from "frappe-ui/src/components/Dropdown/Dropdown.vue"
 import { dialogs as frappeDialogs } from "frappe-ui/src/utils/dialog"
 
 import { isInert, isPageEvent } from "../inert.js"
 import { layout } from "../layout.js"
+import { checked } from "../menu.js"
 import {
 	APPROVAL_MODES,
 	approvalToAnswer,
@@ -429,9 +473,16 @@ const props = defineProps({
 	placeholder: { type: String, default: "Ask flow…" },
 	modes: { type: Array, default: () => APPROVAL_MODES }, // [{ id, label, desc }] in the host's words
 	disabled: { type: Boolean, default: false }, // shown but inert, e.g. until the host's setup is done
+	// a started chat's + menu, after Attach: the host's frappe-ui menu rows, `submenu`s included,
+	// whose onClick gets { insert }
+	plusItems: { type: Array, default: () => [] },
 })
 
 const flow = inject("flow")
+const lift = inject("composerLift", ref(0))
+// only while a new chat's first message carries the box down: opening a chat or starting a new one
+// puts it in place at once, so a fresh chat never looks like it grew out of the last
+const gliding = ref(false)
 const skillsEnabled = computed(() => flow.options.skillsEnabled !== false)
 
 const text = ref("")
@@ -450,7 +501,8 @@ const preparations = new Map()
 let preparationQueue = Promise.resolve()
 
 const SUPPORTED_IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/gif", "image/webp", "image/bmp"])
-const IMAGE_ACCEPT = ".png,.jpg,.jpeg,.gif,.webp,.bmp,image/png,image/jpeg,image/gif,image/webp,image/bmp"
+const VISION_WARNING = "The selected model cannot view images. Switch to a vision-capable model before sending."
+const IMAGE_ACCEPT =".png,.jpg,.jpeg,.gif,.webp,.bmp,image/png,image/jpeg,image/gif,image/webp,image/bmp"
 
 // the store owns the cap; blocking here just makes it visible before send time
 function atAttachmentLimit() {
@@ -684,7 +736,10 @@ function autosize() {
 	if (!el) return
 	el.style.height = "auto"
 	el.style.height = `${el.scrollHeight}px`
+	// a scrollbar only past the max-height: a phone draws one even over a box its text fits
+	el.style.overflowY = el.scrollHeight > el.clientHeight ? "auto" : "hidden"
 	textScrollTop.value = el.scrollTop
+	if (inline.value) fitRow(el)
 }
 watch(text, () => nextTick(autosize))
 onMounted(autosize)
@@ -857,6 +912,46 @@ const modeLabel = computed(() => props.modes.find((m) => m.id === currentMode.va
 // a narrow frame's mode button: tools locked behind a yes, or unlocked
 const MODE_ICONS = { ask: "lucide-lock", auto: "lucide-lock-open" }
 
+// a new chat is the page's one invitation, a full box; once it has started the box keeps to a row
+const inline = computed(() => !starting.value)
+// the row opens into two as its text wraps, the draft over the whole width and the + under it,
+// so no line of text starts indented past the +
+const wrapped = ref(false)
+const oneRow = computed(() => inline.value && !wrapped.value)
+// a draft that opened the box keeps it open until it is shorter than when it did, or the wider
+// draft would fit a line again and close it at once
+let wrappedAt = 0
+function fitRow(el) {
+	const line = parseFloat(getComputedStyle(el).lineHeight)
+	if (!wrapped.value && el.scrollHeight > line * 1.5 + 8) {
+		wrapped.value = true
+		wrappedAt = text.value.length
+	} else if (wrapped.value && !text.value.includes("\n") && text.value.length < wrappedAt) {
+		wrapped.value = false
+	}
+}
+// each shape holds its own least height
+watch(inline, () => (wrapped.value = false))
+watch(oneRow, () => nextTick(autosize))
+// the host's rows, nested as deep as they go; a pick is handed `insert`, to put a word in the draft
+const withInsert = (items) =>
+	items.map((item) => ({
+		...item,
+		...(item.submenu ? { submenu: withInsert(item.submenu) } : {}),
+		...(item.options ? { options: withInsert(item.options) } : {}),
+		...(item.onClick ? { onClick: () => item.onClick({ insert: replaceSlash }) } : {}),
+	}))
+// what goes in, then how it runs: each list opens on hover beside its row
+const plusOptions = computed(() => [
+	{ label: props.imagesOnly ? "Attach images" : "Attach files", icon: "lucide-paperclip", onClick: openFilePicker },
+	...withInsert(props.plusItems),
+	{
+		label: "Approval",
+		icon: MODE_ICONS[currentMode.value] ?? "lucide-lock",
+		submenu: props.modes.map((m) => checked({ label: m.label, onClick: () => flow.setMode(m.id) }, m.id === currentMode.value)),
+	},
+])
+
 const currentModel = computed(() => flow.state.conversation.model ?? flow.state.prefs.lastModel)
 const currentImageSupport = computed(() => {
 	if (flow.state.sessionId && flow.state.session) return flow.state.session.supports_images
@@ -1024,6 +1119,11 @@ async function submit() {
 	const draftText = text.value
 	const value = draftText.trim()
 	if (!value && !attachments.value.length && !codeRefs.value.length && !quotes.value.length) return
+	// a new chat's first message glides the box down to the foot; nothing else moves it with motion
+	if (starting.value) {
+		gliding.value = true
+		setTimeout(() => (gliding.value = false), 450)
+	}
 	if (value.startsWith("/")) {
 		const [name, ...rest] = value.slice(1).split(" ")
 		const command = enabledCommands.value.find((c) => c.name === name)

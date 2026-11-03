@@ -1,22 +1,18 @@
 <template>
 	<span v-if="skills.length || canAdd" class="relative min-w-0">
 		<!-- its list hangs from it -->
-		<button
-			ref="trigger"
-			class="flex h-6 max-w-full items-center gap-1.5 rounded-5 px-2 hover:text-ink-gray-9"
-			:class="open ? 'text-ink-gray-9' : ''"
-			title="Skills"
-			:aria-expanded="open"
-			@click="open ? close() : show()"
-		>
-			<span class="lucide-book-open size-3.5 flex-none" aria-hidden="true" />
-			<span class="truncate">Skills</span>
-			<span
-				class="lucide-chevron-down size-3 flex-none text-ink-gray-4 transition-transform dark:text-ink-gray-6"
-				:class="open ? 'rotate-180' : ''"
-				aria-hidden="true"
-			/>
-		</button>
+		<Tooltip text="Skills" :disabled="open">
+			<button
+				ref="trigger"
+				class="grid size-8 place-items-center rounded-5 text-ink-gray-7 hover:bg-surface-gray-2 hover:text-ink-gray-9 dark:text-ink-gray-8"
+				:class="open ? 'bg-surface-gray-2' : ''"
+				aria-label="Skills"
+				:aria-expanded="open"
+				@click="open ? close() : show()"
+			>
+				<span class="lucide-book-open size-4" aria-hidden="true" />
+			</button>
+		</Tooltip>
 		<PalettePanel
 			v-if="open"
 			title="Skills"
@@ -67,6 +63,7 @@
 
 <script setup>
 import { computed, inject, nextTick, onMounted, ref } from "vue";
+import { Tooltip } from "frappe-ui";
 import PalettePanel from "@flow/ui-core/components/PalettePanel.vue";
 import { layout } from "@flow/ui-core/layout.js";
 

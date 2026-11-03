@@ -17,6 +17,7 @@
 			:open="sidebarOpen"
 			:chat-in-view="!pageKind"
 			:before-switch="leavePage"
+			:menu="APP_MENU"
 			@close="store.setSidebarOpen(false)"
 		/>
 		<div
@@ -35,11 +36,12 @@
 					:sidebar-open="sidebarOpen"
 					:workspace="false"
 					:actions="chatActions"
-					:crumb="agentCrumb"
 					:history="noSidebar"
 					:manage="!inPanel"
 					:beside-navbar="panelHost"
 					:transcript="!inPanel"
+					:app-menu="APP_MENU"
+					:before-switch="leavePage"
 					@open-sidebar="store.setSidebarOpen(true)"
 				>
 					<template v-if="inPanel" #end>
@@ -59,10 +61,10 @@
 							<BrandMark
 								line
 								:size="32"
-								class="min-h-0 shrink max-md:!h-7 max-md:!w-7"
+								class="mb-3 min-h-0 shrink max-md:!h-7 max-md:!w-7"
 							/>
 							<h2
-								class="text-balance text-4xl leading-snug tracking-[-0.01em] text-ink-gray-9 md:text-6xl"
+								class="text-balance text-2xl text-ink-gray-9"
 							>
 								What can I help you with?
 							</h2>
@@ -77,9 +79,10 @@
 					:images-only="false"
 					:placeholder="placeholder"
 					:modes="MODES"
+					:plus-items="plusItems"
 				>
-					<template #start="{ insert }">
-						<AgentPicker />
+					<template #tools="{ insert, starting }">
+						<AgentPicker v-if="starting" />
 						<SkillPicker @pick="insert" />
 					</template>
 					<template #palette="{ view, query, close, back }">
@@ -146,7 +149,6 @@ import FeedbackBar from "./FeedbackBar.vue";
 import SetupState from "./SetupState.vue";
 import ShareChat from "./ShareChat.vue";
 import SkillPicker from "./SkillPicker.vue";
-import { useAgent } from "./agent.js";
 import { readScreen } from "./screen.js";
 import { presentTool } from "./toolMeta.js";
 
@@ -163,6 +165,22 @@ const COMMANDS = [
 	"abort",
 	"settings",
 ];
+// the way back to the rest of the site, in the sidebar's app menu
+const APP_MENU = [
+	{ label: "Go to Desk", icon: "lucide-external-link", onClick: () => (window.location.href = "/app") },
+];
+// a started chat's + menu nests the skills the full box lists from its button: a pick starts the
+// draft with it, and with none yet, the way to a new one
+const plusItems = computed(() => {
+	const skills = (store.state.skills ?? []).map((skill) => ({
+		label: skill.name,
+		onClick: ({ insert }) => insert(`/skill:${skill.name} `),
+	}));
+	const canAdd = page.can("Flow Skill", "create");
+	if (!skills.length && !canAdd) return [];
+	const add = { label: "Add a skill", icon: "lucide-plus", onClick: () => (page.createRecord("skills"), store.setSettingsOpen(true)) };
+	return [{ label: "Skills", icon: "lucide-book-open", submenu: skills.length ? skills : [add] }];
+});
 // the approval modes in Flow's terms: its tools act on documents, not files
 const MODES = [
 	{ id: "ask", label: "Ask for approval", desc: "Asks before changing anything." },
@@ -264,9 +282,6 @@ const placeholder = computed(() => {
 	const title = page.state.boot.agents.find((agent) => agent.name === name)?.title ?? "Flow";
 	return `Ask ${title}…`;
 });
-// the header names a chat's agent where the harness names its folder
-const { current: agent, title: agentTitle } = useAgent(store, page);
-const agentCrumb = computed(() => (agent.value ? { icon: "lucide-bot", label: agentTitle.value } : null));
 // someone else's chat is view-only: its tools would run as its owner
 const readOnly = computed(() => Boolean(page.state.readOnly[store.state.sessionId]));
 // only its owner shares a chat, once it has loaded and said who that is
@@ -360,6 +375,8 @@ async function leavePage() {
 	return !isNavigationFailure(failure);
 }
 provide("leavePage", leavePage);
+// a page's floating sidebar offers the app menu's items as the sidebar does
+provide("appMenu", APP_MENU);
 
 // the tab names the chat, or the page and its record as the page's bar does
 watch(

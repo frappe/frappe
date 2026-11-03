@@ -18,17 +18,28 @@ body {
 [data-theme="dark"] .flow-composer-surface {
 	background: var(--surface-gray-1);
 }
-/* a list hung from a button on the composer covers the box: in dark mode half a step lighter than
-   it, as the "/" list is over the chat */
+/* a list hung from a button on the composer covers the box: in dark mode a step lighter than it */
 [data-theme="dark"] .flow-composer-surface.flow-dropdown {
-	background: color-mix(in srgb, var(--surface-gray-1) 50%, var(--surface-gray-2));
+	background: var(--surface-gray-2);
 }
-/* the composer box's edge: in light mode half a step under outline-gray-2 */
-.flow-composer-edge {
-	border-color: color-mix(in srgb, var(--outline-gray-1) 50%, var(--outline-gray-2));
+@media (prefers-reduced-motion: no-preference) {
+	.flow-composer-glide {
+		transition: bottom 300ms ease-out;
+	}
 }
-[data-theme="dark"] .flow-composer-edge {
-	border-color: var(--outline-gray-1);
+/* a box docked at the foot hides the thread under it, and the thread fades out above it, so
+   nothing reads below the box and the box is easy to find */
+.flow-composer-docked {
+	background: var(--surface-base);
+}
+.flow-composer-docked::before {
+	content: "";
+	position: absolute;
+	inset-inline: 0;
+	bottom: 100%;
+	height: 24px;
+	pointer-events: none;
+	background: linear-gradient(to top, var(--surface-base), transparent);
 }
 /* a new chat's start bar under the box: a step off the page; in dark mode between the chat and
    the box */
@@ -642,4 +653,16 @@ body {
 }
 .flow-prompt-rail::-webkit-scrollbar {
 	display: none;
+}
+
+/* the chat search runs its field straight into the list, with no rule between them; its field
+   stays clear of the page's input fill, on hover and focus too */
+[data-slot="command-palette-input"][data-slot] {
+	border-bottom-width: 0;
+}
+[data-slot="command-palette-input"][data-slot] input,
+[data-slot="command-palette-input"][data-slot] input:hover,
+[data-slot="command-palette-input"][data-slot] input:focus {
+	background: transparent;
+	box-shadow: none;
 }
