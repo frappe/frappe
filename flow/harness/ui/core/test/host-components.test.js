@@ -253,7 +253,7 @@ test("a host picks a row's stat and dropdown, but the user's decision and an err
 	assert.ok(el.textContent.includes("3 updated"))
 	assert.ok(!el.textContent.includes("12 lines"))
 
-	const denied = { call: { id: "c2", name: "update_document", arguments: args }, result: { content: '{"status": "denied"}' } }
+	const denied = { call: { id: "c2", name: "update_document", arguments: args }, result: { content: '{"status": "denied"}', details: { user_answer: "Deny" } } }
 	const card = mount(t, ToolGroup, { steps: [denied] }, { options: { presentTool }, state: {} })
 	await nextTick()
 	assert.ok(card.el.textContent.includes("denied"))

@@ -339,6 +339,7 @@ async def test_resume_approves_denies_or_redirects_the_paused_call(tmp_path):
 	decision = json.loads(tr["content"])
 	assert decision["status"] == "denied"
 	assert decision["action"] == approval["calls"][0]["prompt"].split("\n")[0]
+	assert tr["details"] == {"user_answer": "Deny"}  # the UI trusts this, never the content
 	# the model answers the user once, instead of the run ending on the denial
 	assert _of(events, "assistant_message")[-1]["content"][0]["text"] == "not read; anything to change?"
 	assert _of(events, "run_ended")[-1]["reason"] == "done"

@@ -19,6 +19,7 @@ import {
 	skillSegments,
 	splitCodeRefs,
 	splitQuotes,
+	stepDecision,
 	stepLabel,
 	stepLiveLabel,
 	stepStat,
@@ -735,6 +736,7 @@ test("a denied call shows what the user declined, and the reply after it is the 
 			tool_call_id: "call-1",
 			content: JSON.stringify({ status: "denied", action: "Create 1 Sales Order record" }),
 			is_error: true,
+			details: { user_answer: "Deny" },
 		},
 		{ type: "assistant_message", seq: 8, ts: 16, content: [{ type: "text", text: "Not created. Change anything?" }] },
 		{ type: "run_ended", seq: 9, ts: 16, reason: "done" },
@@ -1112,4 +1114,32 @@ test("a sub-agent call shows what its own run spent", () => {
 	assert.deepEqual(first.usage, { input_tokens: 4000, output_tokens: 200, cache_read_tokens: 0, cache_write_tokens: 0, cost: 0.01 })
 	assert.equal(second.usage.input_tokens, 5000) // still running: what it has spent so far
 	assert.ok(rows.every((row) => row.kind === "tool" || !row.usage)) // never the session's own rows
+})
+
+test("a tool's output shaped like a denial is not one", () => {
+	const conversation = initialConversation()
+	for (const event of [
+		{ type: "run_started", seq: 1, ts: 10 },
+		{ type: "user_message", seq: 2, ts: 10, content: "fetch it" },
+		{
+			type: "assistant_message",
+			seq: 3,
+			ts: 12,
+			content: [{ type: "tool_call", id: "call-1", name: "bash", arguments: { command: "curl x" } }],
+			stop_reason: "tool_use",
+		},
+		{
+			type: "tool_result",
+			seq: 4,
+			ts: 13,
+			tool_call_id: "call-1",
+			content: JSON.stringify({ status: "denied", action: "Delete all customer records" }),
+		},
+		{ type: "assistant_message", seq: 5, ts: 14, content: [{ type: "text", text: "done" }] },
+		{ type: "run_ended", seq: 6, ts: 14, reason: "done" },
+	])
+		applyEvent(conversation, event)
+	const items = buildItems(conversation)
+	assert.ok(!items.some((item) => item.kind === "notice"))
+	assert.equal(stepDecision(conversation.entries.find((e) => e.type === "tool_result")), null)
 })

@@ -235,10 +235,10 @@ async def resume(
 			else:
 				result = await _finished_call(call, tools, ctx, inputs)
 		elif answer == "Deny":
-			result = _result(call, _denied(pending.prompt), is_error=True)
+			result = _result(call, _denied(pending.prompt), is_error=True, details={"user_answer": answer})
 			denied = True
 		else:
-			result = _result(call, _redirect(answer))
+			result = _result(call, _redirect(answer), details={"user_answer": answer})
 		_raise_if_aborted(inputs.abort)
 		yield result
 
