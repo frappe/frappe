@@ -32,6 +32,8 @@ export interface ActFields<Context = any> {
 	/** Keeps the act out of the palette; a script and a key still run it. */
 	palette?: false;
 	argument?: ActArgument<Context>;
+	/** Sync and cheap; false keeps the act off every surface. It reads the state the app already holds. */
+	when?: (context: Context) => boolean;
 }
 
 export interface ActItem<Context = any> extends ActFields<Context> {
@@ -175,6 +177,7 @@ export class ActDispatcher {
 		if (!found) throw new ActDenied(name, "missing");
 		const { scope, entry } = found;
 		if (entry.hidden) throw new ActDenied(name, "hidden");
+		if (!passesWhen(scope, entry.item)) throw new ActDenied(name, "hidden");
 		if (!passesRight(scope, entry.item)) throw new ActDenied(name, "right");
 		return { scope, item: entry.item };
 	}
@@ -199,6 +202,17 @@ export function passesRight(
 	return !right || (!scope.settled(right) && scope.passes(right));
 }
 
+/** Whether the item's `when` holds for the scope's context; a throwing `when` hides its act. */
+export function passesWhen(scope: Pick<ActScope, "context">, { when }: ActFields): boolean {
+	if (when === undefined) return true;
+	try {
+		return when(scope.context());
+	} catch (error) {
+		console.error("[frappe] An act's `when` threw; the act is hidden.", error);
+		return false;
+	}
+}
+
 /** The desk's one dispatcher. */
 export const acts = new ActDispatcher();
 
@@ -212,7 +226,7 @@ function isAct(item: ActItem) {
 }
 
 function isAvailable(scope: ActScope, { item, hidden }: ActEntry) {
-	return !hidden && passesRight(scope, item);
+	return !hidden && passesWhen(scope, item) && passesRight(scope, item);
 }
 
 function describe(name: string, item: ActItem, scope: ActScope): AvailableAct {

@@ -1,6 +1,6 @@
 // The record page's acts on the dispatcher: the header items, quick actions and tab `create`
 // entries that have `run`, read as drawn after the replay.
-import { acts, passesRight, type ActEntry, type ActScope } from "@/acts/dispatcher";
+import { acts, passesRight, passesWhen, type ActEntry, type ActScope } from "@/acts/dispatcher";
 import { containerDisplay, hidingDenied, surviving } from "@/pageEngine/headerRenderings";
 import type { ResolvedItem, Surface } from "@/pageEngine/surface";
 import type { HeaderItem, QuickAction, RecordPageApi, TabItem } from "./types";
@@ -21,7 +21,10 @@ export function registerPageActs(host: PageActsHost): () => void {
   return acts.register({
     surfaces: {
       header: () =>
-        headerEntries(host.header.resolve(), (item) => passesRight(host.permissions, item)),
+        headerEntries(
+          host.header.resolve(),
+          (item) => passesWhen({ context: () => host.page }, item) && passesRight(host.permissions, item)
+        ),
       quickActions: () => host.quickActions.resolve(),
       tabs: () => createEntries(host.tabs.resolve()),
     },
@@ -40,7 +43,7 @@ function headerEntries(
 ): ActEntry[] {
   const shown = namesOf(surviving(resolved));
   const drawn = namesOf(surviving(hidingDenied(resolved, allows)));
-  // An item denied by its own right is left to the dispatcher's right check, so `run` rejects it as `right`.
+  // An item denied by its own right or `when` is left to the dispatcher's right check, so `run` rejects it.
   const hidden = (item: HeaderItem) =>
     !shown.has(item.name) || (allows(item) && !drawn.has(item.name));
   return resolved

@@ -11,7 +11,7 @@ import type { PageDialogEntry } from "@/pageEngine/dialog";
 import { reportOnce } from "./reportOnce";
 import { errorMessage } from "./errorMessage";
 import type { HeldAct, TakeResult } from "@/pageEngine/heldActs";
-import { acts, passesRight, type ActFields } from "@/acts/dispatcher";
+import { acts, passesRight, passesWhen, type ActFields } from "@/acts/dispatcher";
 import { DROPPED_FIELDTYPES, type Decorator } from "@framework/ui/FormLayout";
 import type { FormLayoutSchema, RawMetaField } from "@framework/ui/FormLayout/types";
 import { holdsChildRows } from "@framework/ui/fields";
@@ -239,7 +239,7 @@ export interface RecordPageController {
   fetchCached: () => Promise<void>;
   /** Runs an act the reader clicked; a failure goes to `actFailed`. With no value, an act that takes one opens its palette step. */
   perform: (name: string, value?: unknown) => Promise<void>;
-  /** Whether the item's right passes, so a surface draws it; the dispatcher's own check. */
+  /** Whether the item's `when` holds and its right passes, so a surface draws it; the dispatcher's own check. */
   allows: (item: ActFields) => boolean;
   /** Runs script code the host calls outside an event, so its ops paint once, when it finishes. */
   hold: <T>(work: () => Promise<T> | T) => Promise<T>;
@@ -909,7 +909,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
         return Promise.resolve(host.openArgument(name));
       return acts.perform(name, value);
     },
-    allows: (item) => passesRight(permissions, item),
+    allows: (item) => passesWhen({ context: () => page }, item) && passesRight(permissions, item),
     hold,
     isSaving: computed(() => saving.value !== null),
     ready: engine.ready,

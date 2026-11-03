@@ -19,7 +19,7 @@ export interface SurfaceItem {
 }
 
 /** The keys every act item adds to its surface's list. */
-export const ACT_KEYS: readonly string[] = ["key", "right", "palette", "argument"];
+export const ACT_KEYS: readonly string[] = ["key", "right", "palette", "argument", "when"];
 
 /** Which half of the header row an item sits in; omitted means `right`. */
 export type HeaderZone = "left" | "right";

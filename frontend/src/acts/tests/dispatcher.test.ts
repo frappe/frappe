@@ -1,10 +1,11 @@
 // The dispatcher on its own: a scope's surfaces by name, and a later scope taking a name over.
 import { describe, expect, it, vi } from "vitest";
+import { ref } from "vue";
 
 vi.mock("frappe-ui", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 vi.mock("@framework/ui/api", () => ({ getTranslations: vi.fn() }));
 
-import { ActDenied, ActDispatcher, passesRight, type ActScope } from "../dispatcher";
+import { ActDenied, ActDispatcher, passesRight, passesWhen, type ActScope } from "../dispatcher";
 
 describe("the dispatcher", () => {
   it("keeps a newer scope's surface when an older scope lets go", async () => {
@@ -77,6 +78,73 @@ describe("the dispatcher", () => {
 
     expect(ran).toEqual(["convert"]);
     expect(denied).toBeInstanceOf(ActDenied);
+  });
+});
+
+describe("an act's when", () => {
+  function whenScope(when?: (context: any) => boolean) {
+    const ran: string[] = [];
+    const dispatcher = new ActDispatcher();
+    dispatcher.register({
+      ...scope("page"),
+      context: () => ({ medium: "twilio" }),
+      surfaces: { header: () => [{ item: { name: "call", when, run: () => void ran.push("call") }, hidden: false }] },
+    });
+    return { dispatcher, ran };
+  }
+
+  it("lists and runs an act with no when, or a when that holds for the scope's context", async () => {
+    const seen: unknown[] = [];
+    const { dispatcher, ran } = whenScope((context) => (seen.push(context), true));
+
+    await dispatcher.run("header.call");
+
+    expect(dispatcher.available().map((act) => act.name)).toEqual(["header.call"]);
+    expect(dispatcher.find("header.call")).toBeDefined();
+    expect(ran).toEqual(["call"]);
+    expect(seen[0]).toEqual({ medium: "twilio" });
+    expect(whenScope().dispatcher.available()).toHaveLength(1);
+  });
+
+  it("keeps an act whose when is false out of every read and rejects it as hidden", async () => {
+    const { dispatcher, ran } = whenScope(() => false);
+
+    expect(dispatcher.available()).toEqual([]);
+    expect(dispatcher.find("header.call")).toBeUndefined();
+    await expect(dispatcher.run("header.call")).rejects.toMatchObject({ reason: "hidden" });
+    expect(ran).toEqual([]);
+  });
+
+  it("follows the state its when reads", async () => {
+    const medium = ref<string | null>(null);
+    const { dispatcher, ran } = whenScope(() => !!medium.value);
+
+    expect(dispatcher.available()).toEqual([]);
+    medium.value = "twilio";
+    await dispatcher.run("header.call");
+
+    expect(dispatcher.available().map((act) => act.name)).toEqual(["header.call"]);
+    expect(ran).toEqual(["call"]);
+  });
+
+  it("hides an act whose when throws, and says so", () => {
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    const { dispatcher } = whenScope(() => {
+      throw new Error("no state yet");
+    });
+
+    expect(dispatcher.available()).toEqual([]);
+    expect(error).toHaveBeenCalled();
+    error.mockRestore();
+  });
+});
+
+describe("passesWhen", () => {
+  it("passes an item with no when, and asks a when with the scope's context", () => {
+    const scope = { context: () => "ctx" };
+    expect(passesWhen(scope, {})).toBe(true);
+    expect(passesWhen(scope, { when: (context) => context === "ctx" })).toBe(true);
+    expect(passesWhen(scope, { when: () => false })).toBe(false);
   });
 });
 
