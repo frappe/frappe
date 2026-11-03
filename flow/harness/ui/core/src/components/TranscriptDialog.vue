@@ -42,6 +42,11 @@
 			:key="row.key"
 			class="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-4 gap-y-1 border-b border-outline-gray-1 py-3.5 last:border-0 sm:grid-cols-[5.5rem_minmax(0,1fr)_auto]"
 		>
+			<!-- each user message opens a turn -->
+			<div v-if="turns[row.key]" class="col-span-full mb-2 flex items-baseline gap-3 text-sm-medium text-ink-gray-6">
+				<span class="flex-none">Turn {{ turns[row.key] }}</span>
+				<span v-if="row.ts" class="flex-none font-normal text-ink-gray-5">{{ formatTime(row.ts) }}</span>
+			</div>
 			<span
 				class="pt-1 text-xs-medium uppercase tracking-wide"
 				:class="row.kind === 'error' ? 'text-ink-red-4' : row.kind === 'user' ? 'text-ink-gray-8' : 'text-ink-gray-5'"
@@ -52,11 +57,13 @@
 				variant="ghost"
 				size="sm"
 				label="Raw JSON"
-				class="col-start-2 row-start-1 sm:col-start-3"
+				:class="turns[row.key] ? 'row-start-2' : 'row-start-1'"
+				class="col-start-2 sm:col-start-3"
 				:aria-expanded="opened.has(`${row.key}:raw`)"
 				@click="toggle(`${row.key}:raw`)"
 			/>
-			<div class="col-span-2 min-w-0 space-y-2 text-base leading-6 text-ink-gray-8 sm:col-span-1 sm:col-start-2 sm:row-start-1">
+			<div class="col-span-2 min-w-0 space-y-2 text-base leading-6 text-ink-gray-8 sm:col-span-1 sm:col-start-2"
+				:class="turns[row.key] ? 'sm:row-start-2' : 'sm:row-start-1'">
 				<p v-if="row.body" class="whitespace-pre-wrap break-words">{{ row.body }}</p>
 				<template v-else-if="row.kind === 'user'">
 					<p class="whitespace-pre-wrap break-words">{{ userText(row.entry) }}</p>
@@ -127,7 +134,7 @@ import { computed, inject, reactive } from "vue"
 import { Button } from "frappe-ui/src/components/Button"
 import { Dialog } from "frappe-ui/src/components/Dialog"
 
-import { buildTranscriptRows, formatCost, formatTokens, userAttachments, userText } from "../transcript.js"
+import { buildTranscriptRows, formatCost, formatTime, formatTokens, userAttachments, userText } from "../transcript.js"
 import CopyButton from "./CopyButton.vue"
 
 const ROLES = {
@@ -167,6 +174,12 @@ const stats = computed(() => {
 	}
 	if (usage.cost) stats.push({ label: "Cost", value: formatCost(usage.cost) })
 	return stats
+})
+
+const turns = computed(() => {
+	const turns = {}
+	for (const row of rows.value.filter((row) => row.kind === "user")) turns[row.key] = Object.keys(turns).length + 1
+	return turns
 })
 
 // the folds and raw JSON shown, by row key

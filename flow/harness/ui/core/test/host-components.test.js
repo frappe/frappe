@@ -2075,8 +2075,8 @@ test("the transcript reads each step as text, a tool by its name with its argume
 
 	const panel = document.querySelector("[role=dialog]")
 	assert.match(panel.textContent, /Tokens1k.*Input1k.*Output40.*Model calls1.*Context1kof 200k/s)
-	const row = (role) => [...panel.querySelectorAll(".grid")].find((el) => el.firstElementChild.textContent === role)
-	assert.match(row("user").textContent, /find the leak/)
+	const row = (role) => [...panel.querySelectorAll(".grid")].find((el) => el.querySelector(":scope > .uppercase").textContent === role)
+	assert.match(row("user").textContent, /^Turn 1.*find the leak/)
 	assert.doesNotMatch(row("user").textContent, /"type"/)
 	assert.match(row("assistant").textContent, /Calls read.*1k in · 40 out · 900 cached/s)
 	// a tool shows its name; its arguments and result unfold on a click
