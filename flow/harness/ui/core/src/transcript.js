@@ -450,6 +450,8 @@ export function stepDecision(result) {
 	if (!content || !content.startsWith("{")) return null
 	try {
 		const parsed = JSON.parse(content)
+		// only the loop writes details: a tool's output shaped like a denial is not one
+		if (parsed.status === "denied" && result.details?.user_answer !== "Deny") return null
 		return ["denied", "cancelled", "redirect"].includes(parsed.status) ? parsed : null
 	} catch {
 		return null
