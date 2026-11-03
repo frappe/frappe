@@ -8,29 +8,14 @@ from werkzeug.test import EnvironBuilder
 from werkzeug.wrappers import Request
 
 import frappe
-<<<<<<< HEAD
-from frappe.auth import CookieManager, LoginAttemptTracker, validate_auth
-=======
-from frappe.auth import (
-	CookieManager,
-	LoginAttemptTracker,
-	validate_api_key_secret,
-	validate_auth,
-	validate_ip_address,
-)
->>>>>>> b7ac132 (fix(auth): keep a plain rejection when the API key lookup errors)
+from frappe.auth import CookieManager, LoginAttemptTracker, validate_api_key_secret, validate_auth
 from frappe.core.doctype.user.user import generate_keys
 from frappe.frappeclient import AuthError, FrappeClient
 from frappe.sessions import Session, get_expired_sessions, get_expiry_in_seconds
 from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.tests.test_api import FrappeAPITestCase
 from frappe.utils import get_datetime, get_site_url, now
-<<<<<<< HEAD
 from frappe.utils.data import add_to_date
-=======
-from frappe.utils.data import add_to_date, sha256_hash
-from frappe.utils.logging import get_log_db, log_table
->>>>>>> 009b715 (fix(auth): log failed API key authentication)
 from frappe.www.login import _generate_temporary_login_link
 
 
@@ -387,11 +372,8 @@ class TestAPIKeyAuthFailureLog(IntegrationTestCase):
 		self._reset()
 
 	def _reset(self):
-		# Activity Log rows live in the log database, not in the site database
-		db = get_log_db()
-		qb, table = log_table("Activity Log")
-		db.sql(qb.from_(table).where(table.subject.like(self.SUBJECT)).delete())
-		db.commit()
+		frappe.db.delete("Activity Log", {"subject": ["like", self.SUBJECT]})
+		frappe.db.commit()
 		frappe.cache.delete_value(
 			[f"api_auth_failure_logged:{self.user_email}", "api_auth_failure_logged:unknown"]
 		)
