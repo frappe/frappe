@@ -79,7 +79,6 @@
 					<CopyButton
 						:text="item.text"
 						title="Copy response"
-						class="grid h-6 w-6 place-items-center rounded-5 text-ink-gray-4 hover:bg-surface-gray-2 hover:text-ink-gray-8"
 					/>
 					<!-- a host's own per-turn actions (Flow's feedback thumbs) -->
 					<component

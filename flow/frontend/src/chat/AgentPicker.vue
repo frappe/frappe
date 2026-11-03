@@ -2,16 +2,16 @@
 	<span class="relative min-w-0">
 		<!-- its list hangs from it -->
 		<Tooltip :text="`Agent: ${title}`" :disabled="open">
-			<button
+			<Button
 				ref="trigger"
-				class="grid size-8 place-items-center rounded-5 text-ink-gray-7 hover:bg-surface-gray-2 hover:text-ink-gray-9 dark:text-ink-gray-8"
-				:class="open ? 'bg-surface-gray-2' : ''"
+				variant="ghost"
+				size="md"
+				icon="lucide-brain-cog"
+				:data-state="open ? 'active' : undefined"
 				:aria-label="`Agent: ${title}`"
 				:aria-expanded="open"
 				@click="open ? close() : show()"
-			>
-				<span class="lucide-brain-cog size-4" aria-hidden="true" />
-			</button>
+			/>
 		</Tooltip>
 		<PalettePanel
 			v-if="open"
@@ -54,7 +54,7 @@
 
 <script setup>
 import { computed, inject, nextTick, ref } from "vue";
-import { Tooltip } from "frappe-ui";
+import { Button, Tooltip } from "frappe-ui";
 import PalettePanel from "@flow/ui-core/components/PalettePanel.vue";
 import { layout } from "@flow/ui-core/layout.js";
 
@@ -85,7 +85,7 @@ function show() {
 
 function close() {
 	open.value = false;
-	nextTick(() => trigger.value?.focus());
+	nextTick(() => trigger.value?.$el?.focus());
 }
 
 function choose(name) {

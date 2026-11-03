@@ -92,7 +92,7 @@
 					>{{ exitChip }}</span>
 					<CopyButton
 						:text="diffLines ? details.diff : output"
-						class="grid h-5 w-5 flex-none place-items-center rounded-4 text-ink-gray-5 hover:bg-surface-gray-2 hover:text-ink-gray-8"
+						class="-my-0.5"
 					/>
 				</div>
 				<pre

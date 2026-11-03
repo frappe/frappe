@@ -149,10 +149,12 @@ const widgets = moduleURL(`
 			return h("span", { "data-stub": "Badge" }, this.$slots.default?.() ?? this.label)
 		},
 	}
+	// its slots and icon in frappe-ui's order
 	export const Button = {
-		props: ["label", "disabled"],
+		props: ["label", "disabled", "icon", "variant", "size", "theme"],
 		render() {
-			return h("button", { disabled: this.disabled }, this.label)
+			const icon = this.icon ? h("span", { class: this.icon, "aria-hidden": "true" }) : this.$slots.icon?.()
+			return h("button", { disabled: this.disabled }, [this.$slots.prefix?.(), icon ?? this.$slots.default?.() ?? this.label, this.$slots.suffix?.()])
 		},
 	}
 	export const Select = { ...text("select"), props: ["modelValue", "options"] }

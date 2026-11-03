@@ -60,8 +60,8 @@
 				:text="link"
 				icon="lucide-link"
 				title="Copy link"
-				class="flex h-7 items-center gap-1.5 rounded-4 border border-outline-gray-2 bg-surface-base px-2 text-ink-gray-8 hover:border-outline-gray-3 active:bg-surface-gray-4"
-				:class="inPanel ? 'text-base' : 'text-md'"
+				variant="outline"
+				size="sm"
 			>
 				<template #default="{ copied }">{{ copied ? "Copied" : "Copy link" }}</template>
 			</CopyButton>
@@ -77,7 +77,6 @@ import CopyButton from "@flow/ui-core/components/CopyButton.vue";
 import LoadingState from "@flow/ui-core/components/LoadingState.vue";
 import { useDebouncedValue } from "@flow/ui-core/debounce.js";
 import { layout } from "@flow/ui-core/layout.js";
-import { inPanel } from "../panel.js";
 
 // The Share dialog, which the chat's owner opens from its menu: whoever is added may
 // view the chat, never write to it, since its tools run as the owner.

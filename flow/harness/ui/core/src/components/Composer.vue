@@ -122,20 +122,22 @@
 			<div
 				v-if="$slots.start ? starting : startCwd"
 				ref="startRow"
-				class="flow-start-surface absolute inset-x-3.5 bottom-full -mb-1.5 flex min-w-0 items-center gap-1 rounded-t-7 px-1.5 pb-3 pt-1.5 text-base text-ink-gray-7 dark:text-ink-gray-8"
+				class="flow-start-surface absolute inset-x-3.5 bottom-full -mb-1.5 flex min-w-0 items-center gap-1 rounded-t-7 px-1.5 pb-2.5 pt-1 text-base text-ink-gray-7 dark:text-ink-gray-8"
 				:class="listOpen ? 'invisible' : ''"
 			>
 				<!-- a host's picker puts a word in the draft at the caret with `insert`, as the "/" list does -->
 				<slot name="start" :insert="replaceSlash">
-					<button
-						class="flex h-6 min-w-0 items-center gap-1.5 rounded-5 px-2 hover:text-ink-gray-9"
-						title="Change working directory"
-						:disabled="disabled"
-						@click="chooseFolder"
-					>
-						<span class="lucide-folder size-3.5 flex-none" aria-hidden="true" />
-						<span class="truncate">{{ flow.folderName(startCwd) }}</span>
-					</button>
+					<span class="min-w-0">
+						<Button
+							variant="ghost"
+							class="max-w-full"
+							icon-left="lucide-folder"
+							:label="flow.folderName(startCwd)"
+							title="Change working directory"
+							:disabled="disabled"
+							@click="chooseFolder"
+						/>
+					</span>
 					<span v-if="git" class="hidden min-w-0 items-center gap-1.5 px-1.5 sm:flex" title="Branch">
 						<span class="lucide-git-branch size-3.5 flex-none" aria-hidden="true" />
 						<span class="truncate">{{ git.branch }}</span>
@@ -207,16 +209,12 @@
 					>
 						<span :class="chipIconClass"><span class="lucide-code size-3.5" aria-hidden="true" /></span>
 						<span class="min-w-0 truncate text-base font-medium text-ink-gray-8">{{ codeRefLabel(ref) }}</span>
-						<button :class="chipRemoveClass" title="Remove reference" :disabled="locked" @click="flow.removeCodeRef(i)">
-							<span class="lucide-x size-3" aria-hidden="true" />
-						</button>
+						<Button variant="ghost" size="xs" icon="lucide-x" title="Remove reference" :disabled="locked" @click="flow.removeCodeRef(i)" />
 					</span>
 					<span v-for="(quote, i) in quotes" :key="`quote:${i}`" :class="chipClass" :title="quote">
 						<span :class="chipIconClass"><span class="lucide-align-left size-3.5" aria-hidden="true" /></span>
 						<span class="min-w-0 truncate text-base font-medium text-ink-gray-8">{{ quoteLabel(quote) }}</span>
-						<button :class="chipRemoveClass" title="Remove quote" :disabled="locked" @click="flow.removeQuote(i)">
-							<span class="lucide-x size-3" aria-hidden="true" />
-						</button>
+						<Button variant="ghost" size="xs" icon="lucide-x" title="Remove quote" :disabled="locked" @click="flow.removeQuote(i)" />
 					</span>
 					<span v-for="{ item, i } in fileChips" :key="item.key" :class="chipClass" :title="item.name">
 						<span v-if="item.preparing" :class="chipIconClass" :aria-label="`Preparing ${item.name}`" role="status">
@@ -233,15 +231,15 @@
 							/>
 						</span>
 						<span class="min-w-0 flex-1 truncate text-base font-medium text-ink-gray-8">{{ item.name }}</span>
-						<button
-							:class="chipRemoveClass"
+						<Button
+							variant="ghost"
+							size="xs"
+							icon="lucide-x"
 							title="Remove attachment"
 							:aria-label="`Remove ${item.name}`"
 							:disabled="locked"
 							@click="removeAttachment(i)"
-						>
-							<span class="lucide-x size-3" aria-hidden="true" />
-						</button>
+						/>
 					</span>
 				</div>
 				<div v-for="item in attachments.filter((item) => item.error)" :key="item.key" class="px-1 text-base text-ink-red-6">
@@ -273,14 +271,13 @@
 					<span v-if="compact" class="flex flex-none">
 						<Dropdown :options="plusOptions" align="start" side="top">
 							<template #trigger>
-								<button
-									class="grid place-items-center rounded-5 text-ink-gray-7 hover:bg-surface-gray-2 hover:text-ink-gray-9 dark:text-ink-gray-8"
-									:class="inline ? 'size-7' : 'size-8'"
+								<Button
+									variant="ghost"
+									:size="inline ? 'sm' : 'md'"
+									icon="lucide-plus"
 									aria-label="Add to the message"
 									:disabled="locked"
-								>
-									<span class="lucide-plus size-4" aria-hidden="true" />
-								</button>
+								/>
 							</template>
 						</Dropdown>
 					</span>
@@ -320,14 +317,14 @@
 					</div>
 					<!-- attach files -->
 					<Tooltip v-if="!compact" :text="imagesOnly ? 'Attach images' : 'Attach files'">
-						<button
-							class="grid size-8 flex-none place-items-center rounded-5 text-ink-gray-7 hover:bg-surface-gray-2 hover:text-ink-gray-9 dark:text-ink-gray-8"
+						<Button
+							variant="ghost"
+							size="md"
+							icon="lucide-paperclip"
 							:aria-label="imagesOnly ? 'Attach images' : 'Attach files'"
 							:disabled="locked"
 							@click="openFilePicker"
-						>
-							<span class="lucide-paperclip size-4" aria-hidden="true" />
-						</button>
+						/>
 					</Tooltip>
 					<!-- a host's pickers beside it, on the box's own row; `starting` until the first message.
 					     A started chat's row has room for no more buttons: the host's `plusItems` nest in
@@ -344,22 +341,17 @@
 							:text="layout.narrow ? `Approval mode: ${modeLabel}` : 'Approval mode'"
 							:disabled="modeMenu"
 						>
-							<button
+							<Button
 								ref="modeButton"
-								class="flex items-center whitespace-nowrap rounded-5 text-base text-ink-gray-7 hover:bg-surface-gray-2 dark:text-ink-gray-8"
-								:class="[modeMenu ? 'bg-surface-gray-2' : '', inline ? 'h-7' : 'h-8', layout.narrow ? (inline ? 'w-7 justify-center' : 'w-8 justify-center') : 'px-2']"
+								variant="ghost"
+								:size="inline ? 'sm' : 'md'"
+								:icon="layout.narrow ? (MODE_ICONS[currentMode] ?? 'lucide-lock') : undefined"
+								:label="layout.narrow ? undefined : modeLabel"
+								:data-state="modeMenu ? 'active' : undefined"
 								:aria-label="`Approval mode: ${modeLabel}`"
 								:aria-expanded="modeMenu"
 								@click="modeMenu ? closeModeMenu() : (modeMenu = true)"
-							>
-								<span
-									v-if="layout.narrow"
-									class="size-4"
-									:class="MODE_ICONS[currentMode] ?? 'lucide-lock'"
-									aria-hidden="true"
-								/>
-								<template v-else>{{ modeLabel }}</template>
-							</button>
+							/>
 						</Tooltip>
 						<!-- a row a mode, what it does under its name and the tick centred beside both; wide
 						     enough for a description to keep to one line by the tick -->
@@ -442,6 +434,7 @@ import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } fr
 import { Tooltip } from "frappe-ui"
 import Dropdown from "frappe-ui/src/components/Dropdown/Dropdown.vue"
 import { dialogs as frappeDialogs } from "frappe-ui/src/utils/dialog"
+import { Button } from "frappe-ui/src/components/Button"
 
 import { isInert, isPageEvent } from "../inert.js"
 import { layout } from "../layout.js"
@@ -880,9 +873,7 @@ const staged = (keep) => attachments.value.map((item, i) => ({ item, i })).filte
 const imageTiles = computed(() => staged(isImageTile))
 const fileChips = computed(() => staged((item) => !isImageTile(item)))
 const chipClass = "flex h-8 max-w-[260px] items-center gap-2 rounded-6 border border-outline-gray-2 bg-surface-base pl-1 pr-1"
-const chipIconClass = "grid h-6 w-6 flex-none place-items-center rounded-5 bg-surface-gray-1 text-ink-gray-6"
-const chipRemoveClass =
-	"grid h-5 w-5 flex-none place-items-center rounded-5 text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-8"
+const chipIconClass = "grid h-6 w-6 flex-none place-items-center rounded-4 bg-surface-gray-1 text-ink-gray-6"
 // an existing session's cwd is frozen in its config; only new chats need one picked
 const needsCwd = computed(() => flow.options.requireCwd && !flow.state.sessionId && !flow.state.prefs.cwd)
 // a new chat, until its first message goes out; its folder, and the branch there where the host reads git
@@ -1243,7 +1234,7 @@ function dropQueued(item) {
 // the menu gives the keyboard back to its button, as the model button's does
 function closeModeMenu() {
 	modeMenu.value = false
-	nextTick(() => modeButton.value?.focus())
+	nextTick(() => modeButton.value?.$el?.focus())
 }
 
 function chooseMode(mode) {
