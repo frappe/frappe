@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CHECKBOX_TRACK, columnTracks } from "../columnTracks";
+import { CHECKBOX_TRACK, columnTracks, MENU_TRACK } from "../columnTracks";
 
 const name = { fieldname: "name", label: "Name" };
 const status = { fieldname: "status", label: "Status" };
@@ -10,6 +10,15 @@ describe("columnTracks", () => {
       CHECKBOX_TRACK,
       "minmax(0, 2fr)",
       "minmax(0, 1fr)",
+    ]);
+  });
+
+  it("ends with the menu track when the rows carry a menu", () => {
+    expect(columnTracks([name, status], {}, true)).toEqual([
+      CHECKBOX_TRACK,
+      "minmax(0, 2fr)",
+      "minmax(0, 1fr)",
+      MENU_TRACK,
     ]);
   });
 

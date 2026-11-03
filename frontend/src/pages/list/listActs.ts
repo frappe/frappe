@@ -37,7 +37,7 @@ export interface ListActsHost {
 export interface ListActs {
   /** The act by its item name while the dispatcher would run it, so the page draws it. */
   drawn: (name: string) => AvailableAct | undefined;
-  perform: (act: AvailableAct) => void;
+  perform: (act: AvailableAct, value?: unknown) => void;
 }
 
 export interface PageActs extends ListActs {
@@ -76,7 +76,7 @@ export function useListActs(host: ListActsHost, type = "List"): PageActs {
 function surfaceActs(surface: string): ListActs {
   return {
     drawn: (name) => acts.find(`${surface}.${name}`),
-    perform: (act) => void acts.perform(act.name),
+    perform: (act, value) => void acts.perform(act.name, value),
   };
 }
 

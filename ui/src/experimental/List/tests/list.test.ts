@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { reactive } from "vue";
+import { h, reactive } from "vue";
 import { List } from "../index";
 import type { ListRowData } from "../types";
 import { flush, mount, unmountAll } from "./mount";
@@ -112,6 +112,34 @@ describe("List selection", () => {
         .querySelector("[role='checkbox']")
         ?.getAttribute("aria-checked")
     ).toBe("true");
+  });
+
+  it("draws a menu cell per row only with rowMenu, and a click in it does not navigate", async () => {
+    const clicked: string[] = [];
+    const slots = {
+      rowMenu: ({ row }: { row: ListRowData }) =>
+        h("button", { onClick: () => clicked.push(String(row.name)) }, "menu"),
+    };
+    const plain = await mount(List, { columns, rows, rowLink }, slots);
+    expect(plain.root.querySelectorAll("button")).toHaveLength(0);
+    unmountAll();
+
+    const { root, router } = await mount(
+      List,
+      { columns, rows, rowLink, rowMenu: true },
+      slots
+    );
+    const buttons = root.querySelectorAll<HTMLElement>("button");
+    expect(buttons).toHaveLength(2);
+    expect(
+      root.querySelectorAll("[data-slot='list-header'] [role='columnheader']")
+    ).toHaveLength(5);
+
+    buttons[1].click();
+    await settle();
+
+    expect(clicked).toEqual(["B"]);
+    expect(router.currentRoute.value.path).toBe("/");
   });
 
   it("a click on the row itself does navigate", async () => {

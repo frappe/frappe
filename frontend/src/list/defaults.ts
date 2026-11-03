@@ -4,7 +4,7 @@ import { getColumnAlign, getDefaultColumns, type Column } from "@framework/ui/Co
 import type { ListColumn } from "@framework/ui/experimental/List";
 import type { RawMetaField } from "@framework/ui/FormLayout";
 import { parseOrderBy, type Sort } from "@framework/ui/SortBy";
-import type { ListHandlers } from "@/contributions/types";
+import type { ListHandlers, RowAction } from "@/contributions/types";
 
 /** The meta keys the list reads; the meta read sends the whole doctype record. */
 export interface ListMeta {
@@ -40,9 +40,18 @@ export function sameSort(a: Sort[], b: Sort[]): boolean {
 	return JSON.stringify(a) === JSON.stringify(b);
 }
 
-/** The fields a page of rows needs: `name` for the link, then one per column. */
-export function fetchFields(columns: Column[]): string[] {
-	return [...new Set(["name", ...columns.map((column) => column.fieldname)])];
+/** The fields a page of rows needs: `name` for the link, one per column, then each row action's. */
+export function fetchFields(columns: Column[], rowActions: RowAction[] = []): string[] {
+	const wanted = [...columns.map((column) => column.fieldname), ...rowActions.flatMap((a) => a.fields)];
+	return [...new Set(["name", ...wanted])];
+}
+
+/** Every contributing app's row actions in run order; an act named twice is listed once, and a `list` act is refused. */
+export function contributedRowActions(contributed: ListHandlers[]): RowAction[] {
+	const actions = contributed
+		.flatMap((handlers) => handlers.rowActions ?? [])
+		.filter((action) => !action.act.startsWith("list."));
+	return actions.filter((action, index) => actions.findIndex((one) => one.act === action.act) === index);
 }
 
 /** Every contributing app's columns in run order; a fieldname named twice is shown once. */
