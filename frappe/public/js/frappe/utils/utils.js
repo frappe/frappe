@@ -3,6 +3,7 @@
 
 import deep_equal from "fast-deep-equal";
 import number_systems from "./number_systems";
+import { get_country_flag_url } from "./country_flag_url.js";
 import { CHART_PALETTE, has_unsafe_scheme } from "../ui/components/utils.js";
 
 frappe.provide("frappe.utils");
@@ -1604,14 +1605,11 @@ Object.assign(frappe.utils, {
 		return $svg;
 	},
 
-	get_country_flag_url(country_code) {
-		const code = String(country_code || "xx").toLowerCase();
-		return `/assets/frappe/images/flags/${encodeURIComponent(code)}.svg`;
-	},
+	get_country_flag_url,
 
 	flag(country_code) {
-		const src = frappe.utils.get_country_flag_url(country_code);
-		const fallback = frappe.utils.get_country_flag_url("xx");
+		const src = get_country_flag_url(country_code);
+		const fallback = get_country_flag_url("xx");
 		return `<img loading="lazy" src="${src}" width="20" height="15" alt="" onerror="this.onerror=null;this.src='${fallback}'">`;
 	},
 

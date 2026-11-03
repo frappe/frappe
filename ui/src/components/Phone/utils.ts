@@ -1,4 +1,8 @@
 import countriesJson from "../../../../frappe/geo/country_info.json";
+import {
+	COUNTRY_FLAG_ASSET_BASE,
+	get_country_flag_url,
+} from "../../../../frappe/public/js/frappe/utils/country_flag_url.js";
 import type { Country } from "./types";
 
 export interface PhoneDetails {
@@ -83,15 +87,14 @@ export function getCountryFromCode(code?: string | null): Country | null {
   return countries.find((c) => c.code === code.toLowerCase()) ?? null;
 }
 
-export const COUNTRY_FLAG_ASSET_BASE = "/assets/frappe/images/flags";
+export { COUNTRY_FLAG_ASSET_BASE, get_country_flag_url };
 
 export function getCountryFlagUrl(countryCode: string): string {
-	const code = (countryCode || "xx").toLowerCase();
-	return `${COUNTRY_FLAG_ASSET_BASE}/${encodeURIComponent(code)}.svg`;
+	return get_country_flag_url(countryCode);
 }
 
 export function getFlagUrl(country: Country): string {
-	return getCountryFlagUrl(country.code);
+	return get_country_flag_url(country.code);
 }
 
 function getBrowserTimezone(): string {
