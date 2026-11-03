@@ -2,7 +2,7 @@
 import { describe, expect, it } from "vitest";
 import type { RawMetaField } from "@framework/ui/FormLayout";
 
-import { DEFAULT_SORT, contributedRowActions, defaultColumns, defaultSort, fetchFields, cellMark } from "../defaults";
+import { DEFAULT_SORT, cellCurrency, contributedRowActions, defaultColumns, defaultSort, fetchFields, cellMark } from "../defaults";
 
 const FIELDS: RawMetaField[] = [
 	{ fieldname: "title", label: "Title", fieldtype: "Data", in_list_view: 1 },
@@ -79,6 +79,49 @@ describe("fetchFields", () => {
 			{ act: "shell.crm.mail", fields: ["mobile_no", "email_id"] },
 		];
 		expect(fetchFields(columns, actions)).toEqual(["name", "status", "mobile_no", "email_id"]);
+	});
+});
+
+describe("cell currencies", () => {
+	const meta = {
+		fields: [
+			{ fieldname: "amount", fieldtype: "Currency", options: "currency" },
+			{ fieldname: "currency", fieldtype: "Link", options: "Currency" },
+			{ fieldname: "fee", fieldtype: "Currency", options: "Company:company:default_currency" },
+			{ fieldname: "company", fieldtype: "Link", options: "Company" },
+			{ fieldname: "tax", fieldtype: "Currency", options: "parent_currency" },
+			{ fieldname: "total", fieldtype: "Currency" },
+		],
+	};
+
+	it("reads a field the Currency column names straight from the row", () => {
+		expect(cellCurrency("amount", meta)).toEqual({ key: "currency", select: "currency" });
+	});
+
+	it("reads a linked record's currency through the link, under its own key", () => {
+		expect(cellCurrency("fee", meta)).toEqual({
+			key: "fee__currency",
+			select: "company.default_currency as fee__currency",
+		});
+	});
+
+	it("has none for a field meta lacks, a field the person cannot read, no options, or another fieldtype", () => {
+		expect(cellCurrency("tax", meta)).toBeUndefined();
+		expect(cellCurrency("fee", meta, (fieldname) => fieldname !== "company")).toBeUndefined();
+		expect(cellCurrency("total", meta)).toBeUndefined();
+		expect(cellCurrency("currency", meta)).toBeUndefined();
+	});
+
+	it("asks for each currency beside the columns", () => {
+		const columns = ["amount", "fee", "tax"].map((fieldname) => ({ fieldname, label: fieldname }));
+		expect(fetchFields(columns, [], meta)).toEqual([
+			"name",
+			"amount",
+			"fee",
+			"tax",
+			"currency",
+			"company.default_currency as fee__currency",
+		]);
 	});
 });
 

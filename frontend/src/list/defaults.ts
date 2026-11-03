@@ -42,10 +42,23 @@ export function sameSort(a: Sort[], b: Sort[]): boolean {
 	return JSON.stringify(a) === JSON.stringify(b);
 }
 
-/** The fields a page of rows needs: `name` for the link, one per column, each column's mark, then each row action's. */
-export function fetchFields(columns: Column[], rowActions: RowAction[] = [], meta: ListMeta = {}): string[] {
+/** The fields a page of rows needs: `name`, the columns, their marks and currencies, then the row actions'. */
+export function fetchFields(
+	columns: Column[],
+	rowActions: RowAction[] = [],
+	meta: ListMeta = {},
+	readable: (fieldname: string) => boolean = () => true
+): string[] {
 	const marks = columns.flatMap((column) => cellMark(column.fieldname, meta)?.select ?? []);
-	const wanted = [...columns.map((column) => column.fieldname), ...marks, ...rowActions.flatMap((a) => a.fields)];
+	const currencies = columns.flatMap(
+		(column) => cellCurrency(column.fieldname, meta, readable)?.select ?? []
+	);
+	const wanted = [
+		...columns.map((column) => column.fieldname),
+		...marks,
+		...currencies,
+		...rowActions.flatMap((a) => a.fields),
+	];
 	return [...new Set(["name", ...wanted])];
 }
 
@@ -67,6 +80,31 @@ export function cellMark(fieldname: string, meta: ListMeta): CellMark | undefine
 	if (meta.image_field && fieldname === (meta.title_field || "name")) {
 		return { source: { kind: "image", field: meta.image_field }, key: meta.image_field, select: meta.image_field };
 	}
+}
+
+/** Where a Currency cell finds its currency in the row: a field it names, or a linked record's under an alias. */
+export interface CellCurrency {
+	/** The row key holding the currency code. */
+	key: string;
+	/** The field the page asks for. */
+	select: string;
+}
+
+/** Follows `Doctype:link_field:currency_field` through the list query, so no cell reads the linked record. */
+export function cellCurrency(
+	fieldname: string,
+	meta: ListMeta,
+	readable: (fieldname: string) => boolean = () => true
+): CellCurrency | undefined {
+	const fields = meta.fields ?? [];
+	const field = fields.find((one) => one.fieldname === fieldname);
+	if (field?.fieldtype !== "Currency" || !field.options) return undefined;
+	const [source, link, currencyField] = field.options.split(":");
+	const holds = (name: string) => fields.some((one) => one.fieldname === name) && readable(name);
+	if (!link) return holds(source) ? { key: source, select: source } : undefined;
+	if (!currencyField || !holds(link)) return undefined;
+	const key = `${fieldname}__currency`;
+	return { key, select: `${link}.${currencyField} as ${key}` };
 }
 
 /** Every contributing app's row actions in run order; an act named twice is listed once, and a `list` act is refused. */

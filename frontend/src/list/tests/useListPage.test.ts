@@ -305,6 +305,33 @@ describe("the tiers", () => {
 		expect(page.sort.value).toEqual([{ fieldname: "amount", direction: "asc" }]);
 	});
 
+	it("knows a standard column's fieldtype, which meta does not list", async () => {
+		await mount("/lead");
+		expect(page.fieldOf("modified")?.fieldtype).toBe("Datetime");
+		expect(page.fieldOf("amount")?.fieldtype).toBe("Currency");
+		expect(page.fieldOf("gone")).toBeUndefined();
+	});
+
+	it("asks for the field a Currency column takes its currency from, when the person can read it", async () => {
+		const currency = { fieldname: "currency", label: "Currency", fieldtype: "Link", options: "Currency" };
+		const amount = { ...FIELDS[2], options: "currency" };
+		fake.meta!.fields = [FIELDS[0], FIELDS[1], amount, currency];
+		await mount("/lead");
+		await settle();
+		expect(fake.lists[0].query.fields).toEqual(["name", "title", "status", "amount", "currency"]);
+		expect(page.currencyOf("amount")).toEqual({ key: "currency", select: "currency" });
+
+		fake.meta!.fields = [FIELDS[0], FIELDS[1], amount, { ...currency, permlevel: 1 }];
+		fake.meta!.permissions = [{ role: "System Manager", permlevel: 1, read: 1 }];
+		resetDoctypeMeta();
+		clearDataCache();
+		fake.lists = [];
+		await mount("/lead");
+		await settle();
+		expect(fake.lists[0].query.fields).toEqual(["name", "title", "status", "amount"]);
+		expect(page.currencyOf("amount")).toBeUndefined();
+	});
+
 	it("writes the person's column change after the debounce, without labels, and not a rename alone", async () => {
 		await mount("/lead");
 		await settle();

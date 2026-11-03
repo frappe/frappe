@@ -48,6 +48,11 @@
 				/>
 				<div class="truncate text-base text-ink-gray-8">{{ value }}</div>
 			</div>
+			<FieldCell
+				v-else-if="cellFields.has(column.fieldname)"
+				:field="cellFields.get(column.fieldname)!"
+				:row="row"
+			/>
 			<div v-else class="truncate text-base text-ink-gray-8">{{ value }}</div>
 		</template>
 		<template v-if="rowActions.length" #rowMenu="{ row }">
@@ -78,7 +83,8 @@
 <script setup lang="ts">
 import { ColumnSettings } from "@framework/ui/ColumnSettings";
 import { LinkMark, isEmailField, isPhoneField } from "@framework/ui/fields";
-import type { RawMetaField } from "@framework/ui/FormLayout";
+import type { FieldMeta } from "@framework/ui/fields/types";
+import { mapField, type RawMetaField } from "@framework/ui/FormLayout";
 import { List, ListBulkBar, ListFooter, type BulkAction } from "@framework/ui/experimental/List";
 import { computed, ref } from "vue";
 import { __ } from "@/i18n";
@@ -89,9 +95,10 @@ import { pageGutter } from "@/shell/PageFrame.vue";
 import { failedState } from "@/shell/pageState";
 import PageState from "@/shell/PageState.vue";
 import DeleteDialog from "./DeleteDialog.vue";
-import type { RendererHost } from "./renderer";
 import EmailCell from "./EmailCell.vue";
+import FieldCell from "./FieldCell.vue";
 import PhoneCell from "./PhoneCell.vue";
+import type { RendererHost } from "./renderer";
 import RowMenu from "./RowMenu.vue";
 import { rowActionEntries, rowMenuOptions } from "./rowActions";
 
@@ -103,6 +110,7 @@ const {
 	rowActions,
 	fieldOf,
 	markOf,
+	currencyOf,
 	selection,
 	pageSize,
 	rowsKey,
@@ -140,6 +148,17 @@ useScrollMemory(
 
 const phoneFields = computed(() => columnFields(isPhoneField));
 const emailFields = computed(() => columnFields(isEmailField));
+
+// A Currency cell reads its currency from the row alone: `options` becomes the key it arrives under.
+const cellFields = computed(() => {
+	const fields = new Map<string, FieldMeta>();
+	for (const [fieldname, field] of columnFields(() => true)) {
+		const cellField = mapField(field, {});
+		if (cellField.fieldtype === "Currency") cellField.options = currencyOf(fieldname)?.key;
+		fields.set(fieldname, cellField);
+	}
+	return fields;
+});
 
 function columnFields(matches: (field: RawMetaField) => boolean) {
 	const fields = new Map<string, RawMetaField>();
