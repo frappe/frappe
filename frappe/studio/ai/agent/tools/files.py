@@ -63,7 +63,7 @@ def run_write_app_file(ctx, args: dict) -> str:
 		return _fail(error)
 	build_hint = (
 		" Run trigger_app_build once your files are ready so the running app picks them up."
-		if frappe.db.get_value("Studio App", ref[1], "is_standard")
+		if frappe.get_cached_doc("Studio App", ref[1]).builds_bundle()
 		else ""
 	)
 	return f"Wrote {path}. Import it from a page script via '@app/{path.rsplit('.', 1)[0]}'.{build_hint}"
