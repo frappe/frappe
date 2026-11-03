@@ -50,7 +50,12 @@ function mount_island(name, el, props = {}) {
 
 /** Starts downloading an island this site has, so a mount soon after finds it loaded. */
 export function preload_island(name) {
-	if (frappe.boot?.ui_islands?.includes(name)) preloadIsland(resolve_island(name));
+	if (
+		frappe.boot?.ui_islands?.includes(name) &&
+		frappe.boot.assets_json?.[name + ISLAND_JS_SUFFIX]
+	) {
+		preloadIsland(resolve_island(name));
+	}
 }
 
 function resolve_island(name) {
