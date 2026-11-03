@@ -41,9 +41,9 @@
 							@change="emit('toggle_private')"
 						/>{{ __("Private") }}</label
 					>
-					<span v-if="show_private_checkbox && private_hint" class="text-muted small">
-						{{ private_hint }}
-					</span>
+				</div>
+				<div v-if="show_private_checkbox && private_hint" class="private-hint">
+					{{ private_hint }}
 				</div>
 			</div>
 			<div class="file-actions">
@@ -285,5 +285,11 @@ onMounted(() => {
 
 .config-area {
 	gap: 0.5rem;
+}
+
+.private-hint {
+	font-size: var(--text-sm);
+	color: var(--text-light);
+	padding-top: 0.25rem;
 }
 </style>
