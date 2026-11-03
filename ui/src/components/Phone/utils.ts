@@ -83,8 +83,15 @@ export function getCountryFromCode(code?: string | null): Country | null {
   return countries.find((c) => c.code === code.toLowerCase()) ?? null;
 }
 
+export const COUNTRY_FLAG_ASSET_BASE = "/assets/frappe/images/flags";
+
+export function getCountryFlagUrl(countryCode: string): string {
+	const code = (countryCode || "xx").toLowerCase();
+	return `${COUNTRY_FLAG_ASSET_BASE}/${encodeURIComponent(code)}.svg`;
+}
+
 export function getFlagUrl(country: Country): string {
-  return `https://flagcdn.com/${country.code}.svg`;
+	return getCountryFlagUrl(country.code);
 }
 
 function getBrowserTimezone(): string {
