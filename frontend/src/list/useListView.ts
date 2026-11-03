@@ -2,7 +2,7 @@
 // and sort read, with the selection, the page size and the delete.
 import { applyColumnWidth, clearColumnWidth } from "@framework/ui/ColumnSettings";
 import type { ListColumn } from "@framework/ui/experimental/List";
-import { serializeFilters, type FilterCondition } from "@framework/ui/Filter";
+import { getFilterableFields, serializeFilters, type FilterCondition } from "@framework/ui/Filter";
 import type { RawMetaField } from "@framework/ui/FormLayout";
 import { serializeOrderBy } from "@framework/ui/SortBy";
 import { useDocPermissions } from "@framework/ui/useDocPermissions";
@@ -12,7 +12,16 @@ import type { RouteLocationRaw } from "vue-router";
 import { listHandlersFor } from "@/contributions/registry";
 import type { RowAction } from "@/contributions/types";
 import { routeFor } from "@/router/routeFor";
-import { cellMark, type CellMark, contributedRowActions, defaultColumns, fetchFields, type ListMeta } from "./defaults";
+import {
+	cellCurrency,
+	cellMark,
+	type CellCurrency,
+	type CellMark,
+	contributedRowActions,
+	defaultColumns,
+	fetchFields,
+	type ListMeta,
+} from "./defaults";
 import { readListMemory, recallRows, rememberRows, writeListMemory } from "./pageState";
 import { completeFilters, queryFromAddress } from "./query";
 import { columnsFrom, toStoredColumns } from "./storedSettings";
@@ -29,10 +38,12 @@ export interface ListView extends ListRows {
 	columns: WritableComputedRef<ListColumn[]>;
 	/** The row actions the apps contributed for this doctype. */
 	rowActions: RowAction[];
-	/** The meta field a column shows; a column the meta does not hold has none. */
+	/** The field a column shows, a standard one such as `creation` included. */
 	fieldOf: (fieldname: string) => RawMetaField | undefined;
 	/** What a column's cell shows before its text; see `cellMark`. */
 	markOf: (fieldname: string) => CellMark | undefined;
+	/** Where a Currency column's cell finds its currency in the row; see `cellCurrency`. */
+	currencyOf: (fieldname: string) => CellCurrency | undefined;
 	selection: Ref<string[]>;
 	/** Kept in the history entry. */
 	pageSize: Ref<number>;
@@ -105,7 +116,7 @@ export function useListView(view: View): ListView {
 		if (!view.seeded.value) return null;
 		return {
 			key: stateKey(),
-			fields: fetchFields(columns.value, readableActions(), listMeta.value ?? {}),
+			fields: fetchFields(columns.value, readableActions(), listMeta.value ?? {}, readable),
 			filters: filtersDict(view.filters.value),
 			orderBy: serializeOrderBy(view.sort.value),
 			limit: pageSize.value,
@@ -155,8 +166,11 @@ export function useListView(view: View): ListView {
 		...rows,
 		columns,
 		rowActions,
-		fieldOf: (fieldname) => fields.value.find((one) => one.fieldname === fieldname),
+		fieldOf: (fieldname) =>
+			fields.value.find((one) => one.fieldname === fieldname) ??
+			getFilterableFields([], doctype).find((one) => one.fieldname === fieldname),
 		markOf: (fieldname) => cellMark(fieldname, listMeta.value ?? {}),
+		currencyOf: (fieldname) => cellCurrency(fieldname, listMeta.value ?? {}, readable),
 		selection,
 		pageSize,
 		rowsKey,
