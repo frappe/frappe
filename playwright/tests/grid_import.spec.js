@@ -1,8 +1,6 @@
 import fs from "fs";
 import { test, expect } from "../support";
 import { drop_file } from "../support/drop_file";
-import grid_export_doctype from "../fixtures/grid_export_doctype";
-import grid_export_item_doctype from "../fixtures/grid_export_item_doctype";
 
 const HEADER = "Number (phone),Is Primary Phone (is_primary_phone)";
 const PARSE_FILE = "/api/method/frappe.desk.form.grid_import.parse_file";
@@ -210,7 +208,54 @@ test.describe("Child Table Data Import", () => {
 });
 
 test.describe("Child Table Data Export", () => {
-	const doctype = grid_export_doctype.name;
+	const doctype = "Grid Export Doctype";
+	const child_doctype = {
+		doctype: "DocType",
+		name: "Grid Export Item",
+		module: "Custom",
+		custom: 1,
+		istable: 1,
+		fields: [
+			{ fieldname: "item_name", fieldtype: "Data", label: "Item Name", reqd: 1 },
+			{ fieldname: "qty", fieldtype: "Int", label: "Qty" },
+			{ fieldname: "rate", fieldtype: "Currency", label: "Rate", permlevel: 1 },
+			{
+				fieldname: "internal_note",
+				fieldtype: "Data",
+				label: "Internal Note",
+				permlevel: 2,
+			},
+		],
+	};
+	const parent_doctype = {
+		doctype: "DocType",
+		name: doctype,
+		module: "Custom",
+		custom: 1,
+		is_submittable: 1,
+		fields: [
+			{ fieldname: "title", fieldtype: "Data", label: "Title" },
+			{
+				fieldname: "items",
+				fieldtype: "Table",
+				label: "Items",
+				options: child_doctype.name,
+				allow_bulk_edit: 1,
+			},
+		],
+		permissions: [
+			{
+				role: "System Manager",
+				read: 1,
+				write: 1,
+				create: 1,
+				delete: 1,
+				submit: 1,
+				cancel: 1,
+			},
+			{ role: "System Manager", permlevel: 1, read: 1, write: 0 },
+		],
+	};
 	const items = [
 		{ item_name: "Bolt", qty: 4, rate: 12.5, internal_note: "fragile" },
 		{ item_name: "Nut", qty: 9, rate: 3, internal_note: "spare" },
@@ -219,8 +264,8 @@ test.describe("Child Table Data Export", () => {
 	let draft;
 
 	test.beforeAll(async ({ admin }) => {
-		await admin.insert_doc("DocType", grid_export_item_doctype, true);
-		await admin.insert_doc("DocType", grid_export_doctype, true);
+		await admin.insert_doc("DocType", child_doctype, true);
+		await admin.insert_doc("DocType", parent_doctype, true);
 		submitted = (await admin.insert_doc(doctype, { title: "Submitted", items, docstatus: 1 }))
 			.name;
 		draft = (await admin.insert_doc(doctype, { title: "Draft", items })).name;
