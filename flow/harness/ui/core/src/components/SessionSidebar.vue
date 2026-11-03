@@ -310,7 +310,6 @@ const props = defineProps({
 	open: { type: Boolean, default: true },
 	chatInView: { type: Boolean, default: true },
 	beforeSwitch: { type: Function, default: null },
-	menu: { type: Array, default: () => [] }, // the host's items in the app menu, after Settings
 	apps: { type: Array, default: () => [] },
 	logout: { type: Function, default: null },
 })
@@ -332,7 +331,6 @@ const appMenu = computed(() => [
 				slots: layout.phone ? {} : { suffix: () => h(KeyboardShortcut, { combo: "Mod+,", showPlus: false }) },
 				onClick: afterMenu(() => flow.setSettingsOpen(true)),
 			},
-			...props.menu,
 		],
 	},
 	...(props.logout ? [{ group: "session", hideLabel: true, options: [{ label: "Log out", icon: "lucide-log-out", onClick: props.logout }] }] : []),
