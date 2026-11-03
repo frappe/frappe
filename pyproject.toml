@@ -230,7 +230,7 @@ nixpkgs-deps = [
 
 [tool.uv]
 exclude-newer = "7 days"
-exclude-newer-package = { pypdf = false, sqlparse = false, filelock = false } # drop sqlparse after 2026-08-20, filelock after 2026-11-10
+exclude-newer-package = { pypdf = false, filelock = false } # drop filelock after 2026-11-10
 
 [tool.mypy]
 strict = false
