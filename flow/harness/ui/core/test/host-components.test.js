@@ -2082,6 +2082,8 @@ test("the transcript shows each step as raw JSON, with usage under its request",
 	assert.doesNotMatch(panel.textContent, /"seq"|"context_window"/) // Flow's own fields stay out
 	assert.doesNotMatch(panel.textContent, /estimated|reported|~4|prompt & tool definitions/)
 	assert.equal(panel.querySelectorAll("button").length, 1) // only the close button
+	panel.querySelector("button[title=Close]").click()
+	assert.equal(flow.state.transcriptOpen, false)
 })
 
 test("the chat list groups chats by their folder, and says it is loading, not that there are no chats or matches", async (t) => {

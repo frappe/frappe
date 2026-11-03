@@ -131,6 +131,16 @@ const widgets = moduleURL(`
 	})
 	export const TextInput = text("input")
 	export const Textarea = text("textarea")
+	// its title and content while open, and a close button that asks it to close
+	export const Dialog = {
+		props: ["open", "title", "size"],
+		emits: ["update:open"],
+		render() {
+			return this.open
+				? h("div", { role: "dialog" }, [this.$slots.title?.() ?? this.title, this.$slots.default?.(), h("button", { title: "Close", onClick: () => this.$emit("update:open", false) })])
+				: null
+		},
+	}
 	export const Checkbox = {
 		props: ["modelValue", "disabled"],
 		emits: ["update:modelValue"],
