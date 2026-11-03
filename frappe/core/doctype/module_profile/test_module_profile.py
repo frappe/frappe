@@ -1,13 +1,9 @@
 # Copyright (c) 2020, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import frappe
-<<<<<<< HEAD
-from frappe.tests.utils import FrappeTestCase
-=======
 from frappe.core.doctype.user.test_user import test_user
 from frappe.core.doctype.user.user import get_module_profile
-from frappe.tests import IntegrationTestCase
->>>>>>> 87b4a4a (fix: check read permission in get_module_profile)
+from frappe.tests.utils import FrappeTestCase
 
 
 class TestModuleProfile(FrappeTestCase):
