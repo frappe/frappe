@@ -31,6 +31,8 @@ export interface StandingWindowHandle {
 	setActions(actions: StandingWindowAction[]): void;
 	/** Whether the frame offers close; true until set. */
 	setClosable(closable: boolean): void;
+	/** While on, the shell opens other pages in a new tab and asks before a reload; off until set. */
+	setKeepAlive(on: boolean): void;
 }
 
 /** One app's window as the row draws it. */
@@ -43,6 +45,7 @@ export interface StandingWindow {
 	title: string;
 	actions: StandingWindowAction[];
 	closable: boolean;
+	keepAlive: boolean;
 	handle: StandingWindowHandle;
 }
 
@@ -73,6 +76,7 @@ export function attachWindow(
 		title,
 		actions: [],
 		closable: true,
+		keepAlive: false,
 	}) as unknown as StandingWindow;
 	entry.handle = handleFor(entry, title);
 	const rank = order.indexOf(app);
@@ -97,6 +101,7 @@ function handleFor(entry: StandingWindow, appTitle: string): StandingWindowHandl
 			entry.actions = actions.slice(0, MAX_ACTIONS).map((action) => markRaw({ ...action }));
 		},
 		setClosable: (closable: boolean) => void (entry.closable = Boolean(closable)),
+		setKeepAlive: (on: boolean) => void (entry.keepAlive = Boolean(on)),
 	});
 }
 

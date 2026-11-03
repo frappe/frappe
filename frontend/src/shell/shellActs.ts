@@ -11,6 +11,7 @@ import { __ } from "@/i18n";
 import { useAppActs } from "./appActs";
 import { openCreate, type CreatedDoc, type CreateOptions } from "./create";
 import { shellDialog, type ShellDialog } from "./dialog";
+import { loadDocument } from "./tabKeepAlive";
 
 /** Opens `#settings/<prefix>/<pane>/<block>`; each segment is optional, in order. */
 export type OpenSettings = (prefix?: string, pane?: string, block?: string) => void;
@@ -251,7 +252,7 @@ function personItems(
 }
 
 function leave(href: string) {
-	window.location.assign(href);
+	loadDocument(href);
 }
 
 // The menu closes on the click, so the confirmation is a toast.

@@ -182,7 +182,9 @@ _Avoid_: plugin, boot hook. Not `acts.js`: acts are asked for by name; a hook at
 The floating window an app attaches through its shell hook, kept mounted across pages. Closing
 it hides the frame; its component stays mounted. One per app, docked in a row at the bottom
 right beside the composer, in `app_order`; open, minimised to a pill, or closed. The shell owns
-its frame and place; the app gives the content, the title and up to three actions.
+its frame and place; the app gives the content, the title and up to three actions. While a window
+sets **keep-alive** (off until set, for a live call), the shell opens links that would load another
+document in a new tab and asks before a reload or tab close.
 _Avoid_: popup, call window (CRM's use of it), widget.
 
 **Owning app**:

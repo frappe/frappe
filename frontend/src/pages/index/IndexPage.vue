@@ -140,6 +140,7 @@ import { Button, Dropdown, ScrollArea, TextInput, toast, type TextInputExposed }
 import type { Boot } from "@/boot";
 import { __ } from "@/i18n";
 import { usePageMenuItems } from "@/shell/pageMenu";
+import { loadDocument } from "@/shell/tabKeepAlive";
 import { matching, unfilteredTiles, type IndexApp } from "./apps";
 import AppTile from "./AppTile.vue";
 import { Favourites, MORE_FAVOURITES_KEY, favouriteKey } from "./favourites";
@@ -262,7 +263,7 @@ function onKeydown(event: KeyboardEvent) {
 	} else if (event.key === "Enter" && !event.isComposing) {
 		const target = selection.target();
 		if (target?.run) target.run();
-		else if (target?.href) window.location.assign(target.href);
+		else if (target?.href) loadDocument(target.href);
 	} else if (event.key === "Escape") {
 		query.value = "";
 	}
