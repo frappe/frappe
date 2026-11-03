@@ -60,6 +60,7 @@ import { formData, initialDoc } from "@/recordPage/formDialogLayout";
 import { landOnFirstMarked } from "@/pages/record/landOnField";
 import { routeForNew } from "@/router/routeFor";
 import type { CreateRequest } from "@/shell/create";
+import { loadDocument } from "@/shell/tabKeepAlive";
 import {
 	fetchNewDocument,
 	fieldDefaults,
@@ -201,7 +202,7 @@ async function handOver(carried: Record<string, any>) {
 	// The index's router holds no doctype route: the new record opens in its owner's app.
 	try {
 		const { newRecordHref } = await import("@/shell/palettePlaces");
-		window.location.assign(await newRecordHref(doctype, carried));
+		loadDocument(await newRecordHref(doctype, carried));
 	} catch {
 		toast.error(__("Could not open a new {0}", [__(doctype)]));
 	}

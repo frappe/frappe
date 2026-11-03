@@ -25,6 +25,7 @@ import AppShell from "../AppShell.vue";
 import { registerComposerBand, registerFloatingComposer } from "../composer";
 import type { ShellHookApi } from "../shellHooks";
 import type { StandingWindowHandle, StandingWindowOptions } from "../standingWindows";
+import { loadDocument } from "../tabKeepAlive";
 
 const addresses = new Addresses({ doctypes: {}, modules: {} });
 
@@ -769,5 +770,125 @@ describe("the row", () => {
 		dockRight(panel, icon);
 		await attached();
 		expect(row().style.right).toBe("432px");
+	});
+});
+
+describe("keep-alive", () => {
+	const away = (href = "/apps/desk/todo") => {
+		const link = document.body.appendChild(document.createElement("a"));
+		link.href = href;
+		return link;
+	};
+	// Whether the shell prevented the click: a later listener stops the test document from navigating.
+	const prevented = (link: Element, init: MouseEventInit = {}) => {
+		let seen = false;
+		const last = (event: Event) => {
+			seen = event.defaultPrevented;
+			event.preventDefault();
+		};
+		document.addEventListener("click", last);
+		link.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, ...init }));
+		document.removeEventListener("click", last);
+		return seen;
+	};
+	const leaving = () => {
+		const event = new Event("beforeunload", { cancelable: true });
+		window.dispatchEvent(event);
+		return event.defaultPrevented;
+	};
+
+	let opened: ReturnType<typeof vi.spyOn>;
+	let assigned: ReturnType<typeof vi.spyOn>;
+
+	beforeEach(() => {
+		opened = vi.spyOn(window, "open").mockImplementation(() => null);
+		assigned = vi.spyOn(window.location, "assign").mockImplementation(() => {});
+	});
+
+	it("is off until the app sets it: a link to another prefix loads here and a reload does not ask", async () => {
+		await attached();
+		expect(prevented(away())).toBe(false);
+		expect(opened).not.toHaveBeenCalled();
+		expect(leaving()).toBe(false);
+		loadDocument("/apps");
+		expect(assigned).toHaveBeenCalledWith("/apps");
+	});
+
+	it("opens a link to another prefix in a new tab while it is on", async () => {
+		const handle = await attached();
+		handle.setKeepAlive(true);
+		await flush();
+		expect(prevented(away())).toBe(true);
+		expect(opened).toHaveBeenCalledWith(`${location.origin}/apps/desk/todo`, "_blank", "noopener");
+	});
+
+	it("asks before a reload or a tab close while it is on", async () => {
+		const handle = await attached();
+		handle.setKeepAlive(true);
+		await flush();
+		expect(leaving()).toBe(true);
+	});
+
+	it("loads a page the shell opens by address in a new tab while it is on", async () => {
+		const handle = await attached();
+		handle.setKeepAlive(true);
+		await flush();
+		loadDocument("/apps");
+		expect(opened).toHaveBeenCalledWith("/apps", "_blank", "noopener");
+		expect(assigned).not.toHaveBeenCalled();
+	});
+
+	it("leaves a link the router moves, a new-tab click, a download and a hash change alone", async () => {
+		const handle = await attached();
+		handle.setKeepAlive(true);
+		await flush();
+		const routed = away("/apps/crm/leads");
+		routed.addEventListener("click", (event) => event.preventDefault());
+		const blank = away();
+		blank.target = "_blank";
+		const download = away("/files/a.pdf");
+		download.setAttribute("download", "");
+		for (const link of [routed, blank, download, away("#note"), away("mailto:a@example.com")])
+			prevented(link);
+		prevented(away(), { ctrlKey: true });
+		prevented(away(), { button: 1 });
+		expect(opened).not.toHaveBeenCalled();
+	});
+
+	it("goes back to loading here and not asking when the app sets it off", async () => {
+		const handle = await attached();
+		handle.setKeepAlive(true);
+		await flush();
+		handle.setKeepAlive(false);
+		await flush();
+		expect(prevented(away())).toBe(false);
+		expect(leaving()).toBe(false);
+		loadDocument("/apps");
+		expect(assigned).toHaveBeenCalledWith("/apps");
+	});
+
+	it("holds the tab while any window has it on", async () => {
+		const handles: Record<string, StandingWindowHandle | undefined> = {};
+		ship("crm", (shell) => (handles.crm = shell.window(Body)));
+		ship("helpdesk", (shell) => (handles.helpdesk = shell.window(Body)));
+		await mount([CRM, HELPDESK]);
+		await vi.waitFor(() => expect(handles.helpdesk).toBeDefined());
+		handles.crm!.setKeepAlive(true);
+		handles.helpdesk!.setKeepAlive(true);
+		await flush();
+		handles.crm!.setKeepAlive(false);
+		await flush();
+		expect(leaving()).toBe(true);
+		handles.helpdesk!.setKeepAlive(false);
+		await flush();
+		expect(leaving()).toBe(false);
+	});
+
+	it("reads anything but true as off", async () => {
+		const handle = await attached();
+		handle.setKeepAlive(true);
+		handle.setKeepAlive(undefined as unknown as boolean);
+		await flush();
+		expect(leaving()).toBe(false);
 	});
 });

@@ -24,8 +24,10 @@ import { useFlowLauncher } from "./flowLauncher";
 import type { Shell } from "./shellActs";
 import StandingWindowFrame from "./StandingWindowFrame.vue";
 import type { StandingWindow } from "./standingWindows";
+import { useTabKeepAlive } from "./tabKeepAlive";
 
 const props = defineProps<{ windows: readonly StandingWindow[]; shell: Shell }>();
+useTabKeepAlive(() => props.windows);
 
 const MARGIN = 24;
 const GAP = 12;

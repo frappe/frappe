@@ -50,6 +50,7 @@ import type { Boot } from "@/boot";
 import { __ } from "@/i18n";
 import { routeFor } from "@/router/routeFor";
 import type { PageStateValue } from "./pageState";
+import { loadDocument } from "./tabKeepAlive";
 
 const props = defineProps<PageStateValue>();
 
@@ -125,7 +126,7 @@ const retrying = ref(false);
 
 // A full load: the index is another document, with its own boot.
 function allApps() {
-	window.location.assign("/apps");
+	loadDocument("/apps");
 }
 
 async function run() {

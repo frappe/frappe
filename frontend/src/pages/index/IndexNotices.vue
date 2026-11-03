@@ -63,6 +63,7 @@
 import { computed, defineAsyncComponent, ref } from "vue";
 import { Alert, SidebarRailItem, type AlertAction } from "frappe-ui";
 import { __, __n } from "@/i18n";
+import { loadDocument } from "@/shell/tabKeepAlive";
 import { tuckedNotices, type IndexNoticeList, type NoticeKey } from "./notices";
 
 const WhatsNewDialog = defineAsyncComponent(() => import("./WhatsNewDialog.vue"));
@@ -102,7 +103,7 @@ function allCards(): Card[] {
 			),
 			action: {
 				label: __("Continue setup"),
-				onClick: () => window.location.assign(setup.route),
+				onClick: () => loadDocument(setup.route),
 			},
 		},
 		whatsNew && {

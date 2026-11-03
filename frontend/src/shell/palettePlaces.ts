@@ -15,6 +15,7 @@ import { rank } from "./paletteRanking";
 import { recentVisits, type RecentVisit } from "./recentVisits";
 import { SettingsAddressBook } from "./settingsAddress";
 import { fetchPanes, type PanesReply } from "./settingsPanes";
+import { loadDocument } from "./tabKeepAlive";
 
 export interface DoctypePlace {
 	name: string;
@@ -118,7 +119,7 @@ export function openPlace(href: string, { boot, router }: PaletteContext) {
 	const base = boot.shell_base;
 	if (boot.app && (href === base || href.startsWith(`${base}/`)))
 		router.push(href.slice(base.length) || "/");
-	else window.location.assign(href);
+	else loadDocument(href);
 }
 
 async function fetchPlaces(): Promise<PlacesReply> {
