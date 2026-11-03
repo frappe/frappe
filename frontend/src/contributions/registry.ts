@@ -5,6 +5,7 @@ import { addFileScript, addPageFile } from '@/recordPage'
 import type { ItemRenderer } from '@/navigation/types'
 import type {
   ActsContribution,
+  FieldActionsContribution,
   DoctypeContribution,
   ListHandlers,
   PageContribution,
@@ -89,6 +90,9 @@ export function settingsComponentFor(app: string, name: string) {
 /** Each active app's `acts.js`, in the site's app order; filled by `registerContributions`. */
 export const actsFiles: ActsContribution[] = []
 
+/** Each active app's `field-actions.js`, in the site's app order; filled by `registerContributions`. */
+export const fieldActionFiles: FieldActionsContribution[] = []
+
 /** Each active app's `shell.js`, in the site's app order; filled by `registerContributions`. */
 export const shellHookFiles: ShellHookContribution[] = []
 
@@ -124,6 +128,7 @@ export function registerContributions(appOrder: string[]) {
   registerReplacements(appOrder)
   registerPageScripts(appOrder)
   registerActs(appOrder)
+  registerFieldActions(appOrder)
   registerShellHooks(appOrder)
 
   const byDoctype = new Map<string, DoctypeContribution[]>()
@@ -153,6 +158,12 @@ function registerActs(appOrder: string[]) {
   const active = contributions.acts.filter((contribution) => appOrder.includes(contribution.app))
   actsFiles.length = 0
   actsFiles.push(...ordered(active, appOrder))
+}
+
+function registerFieldActions(appOrder: string[]) {
+  const active = (contributions.fieldActions ?? []).filter((c) => appOrder.includes(c.app))
+  fieldActionFiles.length = 0
+  fieldActionFiles.push(...ordered(active, appOrder))
 }
 
 function registerShellHooks(appOrder: string[]) {

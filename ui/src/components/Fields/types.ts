@@ -143,6 +143,22 @@ export interface RecordLink {
 
 export const RecordLinkKey: InjectionKey<RecordLink | null> = Symbol("RecordLink");
 
+/** One button an app placed on a field: its act already found and allowed now. */
+export interface FieldAction {
+  act: string;
+  label: string;
+  icon?: string;
+  run: () => void;
+}
+
+/** The host's field actions, which a Phone control draws; absent or null, it draws none. */
+export interface FieldActions {
+  /** The actions for this field and value, in the order the apps gave them. */
+  for: (field: FieldMeta, value: unknown) => FieldAction[];
+}
+
+export const FieldActionsKey: InjectionKey<FieldActions | null> = Symbol("FieldActions");
+
 /** Writes a field's live value into the doc on every change. Pure state sync. */
 export const UpdateKey: InjectionKey<(fieldname: string, value: any) => void> =
   Symbol("FormLayoutUpdate");

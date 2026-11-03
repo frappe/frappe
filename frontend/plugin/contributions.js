@@ -50,6 +50,7 @@ export function discover(manifest, allSourceDirs = manifest.map((entry) => entry
 	const viewTypes = [];
 	const settings = [];
 	const acts = [];
+	const fieldActions = [];
 	const shellHooks = [];
 	let replacements = [];
 	let pageScripts = [];
@@ -151,6 +152,10 @@ export function discover(manifest, allSourceDirs = manifest.map((entry) => entry
 			const actsFile = join(modulePath, "frontend", "acts.js");
 			if (isFile(actsFile)) acts.push({ app, file: actsFile });
 
+			// An app's field actions: <module>/frontend/field-actions.js, placing its acts on fields.
+			const fieldActionsFile = join(modulePath, "frontend", "field-actions.js");
+			if (isFile(fieldActionsFile)) fieldActions.push({ app, file: fieldActionsFile });
+
 			// An app's shell hook: <module>/frontend/shell.js, run once per tab at idle.
 			const shellFile = join(modulePath, "frontend", "shell.js");
 			if (isFile(shellFile)) shellHooks.push({ app, file: shellFile });
@@ -178,6 +183,7 @@ export function discover(manifest, allSourceDirs = manifest.map((entry) => entry
 		viewTypes,
 		settings: settings.filter((entry) => !sharesItsName(entry, settings)),
 		acts,
+		fieldActions,
 		shellHooks: shellHooks.filter((entry) => !sharesItsApp(entry, shellHooks)),
 		replacements,
 		pageScripts,
@@ -249,6 +255,7 @@ function generate({
 	viewTypes,
 	settings,
 	acts,
+	fieldActions,
 	shellHooks,
 	replacements,
 	pageScripts,
@@ -350,6 +357,16 @@ function generate({
 	// Lazy: the shell imports these at idle after the first paint.
 	lines.push("  acts: [");
 	for (const entry of acts) {
+		lines.push(
+			`    { app: ${JSON.stringify(entry.app)}, load: () => import(${JSON.stringify(
+				entry.file
+			)}) },`
+		);
+	}
+	lines.push("  ],");
+
+	lines.push("  fieldActions: [");
+	for (const entry of fieldActions) {
 		lines.push(
 			`    { app: ${JSON.stringify(entry.app)}, load: () => import(${JSON.stringify(
 				entry.file

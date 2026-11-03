@@ -20,6 +20,8 @@ export { default as ColorSwatch } from "./ColorSwatch.vue";
 // The field contract every value-input satisfies, plus the form-context
 // injection keys the deep-injection inputs (Table/Number/Image/DynamicLink) read.
 export type {
+  FieldAction,
+  FieldActions,
   FieldMeta,
   FieldComponentProps,
   FieldComponentEmits,
@@ -28,6 +30,7 @@ export type {
 } from "./types";
 export {
   DocKey,
+  FieldActionsKey,
   FieldErrorsKey,
   LinkTitlesKey,
   ParentDocKey,

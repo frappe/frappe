@@ -15,7 +15,8 @@
 		@focus="onFocus"
 		@blur="focused = false"
 	>
-		<template v-if="url" #suffix>
+		<template v-if="url || phone" #suffix>
+			<FieldActions v-if="phone && !row" :field="field" :value="modelValue" />
 			<DataOpenLink
 				v-if="address?.kind === 'web'"
 				:address="address"
@@ -30,6 +31,7 @@ import { computed, ref, watch } from "vue";
 import { TextInput } from "frappe-ui";
 import { dataHref, dataInputAttrs, dataOption, groupIban, stripIban } from "./dataOptions";
 import DataOpenLink from "./DataOpenLink.vue";
+import FieldActions from "./FieldActions.vue";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
 
 const props = defineProps<FieldComponentProps>();
@@ -39,6 +41,7 @@ const option = computed(() => dataOption(props.field));
 const attrs = computed(() => dataInputAttrs(option.value));
 const iban = computed(() => option.value === "IBAN");
 const url = computed(() => option.value === "URL");
+const phone = computed(() => option.value === "Phone");
 const address = computed(() => dataHref(props.field, props.modelValue));
 
 // An IBAN shows grouped, but regrouping while the person types would move the caret.

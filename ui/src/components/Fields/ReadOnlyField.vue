@@ -18,6 +18,14 @@
 			{{ text }}
 			<DataOpenLink :address="address" class="inline-grid align-middle" />
 		</template>
+		<template v-else-if="phone && !row" #default>
+			{{ text }}
+			<FieldActions
+				:field="field"
+				:value="modelValue"
+				class="-my-1 ms-1 inline-flex align-middle"
+			/>
+		</template>
 		<template v-else-if="field.fieldtype === 'Color'" #default>
 			<ColorSwatch :field="field" :value="modelValue" class="me-2.5" />{{ text }}
 		</template>
@@ -29,7 +37,8 @@ import { computed, inject } from "vue";
 import ReadValue from "./ReadValue.vue";
 import ColorSwatch from "./ColorSwatch.vue";
 import DataOpenLink from "./DataOpenLink.vue";
-import { dataHref } from "./dataOptions";
+import FieldActions from "./FieldActions.vue";
+import { dataHref, dataOption } from "./dataOptions";
 import { DocKey, ParentDocKey } from "./types";
 import { NUMBER_FIELDTYPES } from "../FormLayout/formatNumber";
 import { useFieldDisplay } from "../FormLayout/useFieldDisplay";
@@ -53,4 +62,9 @@ const text = computed(() => {
 });
 
 const address = computed(() => dataHref(props.field, props.modelValue));
+const phone = computed(
+	() =>
+		props.field.fieldtype === "Phone" ||
+		(props.field.fieldtype === "Data" && dataOption(props.field) === "Phone")
+);
 </script>
