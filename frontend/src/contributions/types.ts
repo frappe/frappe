@@ -118,6 +118,8 @@ export type ActsContribution = {
 export type FieldActionItem = ActionItem<string> & {
   /** Only `Phone` draws actions today. */
   fieldtype: string
+  /** The record's quick action label, where `label` is the field button's and the `⋯` row's. */
+  quickActionLabel?: string
 }
 
 export type FieldActionsContribution = {

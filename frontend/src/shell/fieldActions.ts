@@ -6,17 +6,27 @@ import { fieldActionFiles } from "@/contributions/registry";
 import type { FieldActionItem } from "@/contributions/types";
 import { acts } from "@/acts/dispatcher";
 
-/** The shell side of field actions: apps' files are imported when the first control asks. */
-export function fieldActions(): FieldActions {
-	const loaded = shallowRef<FieldActionItem[]>([]);
-	let loading: Promise<void> | undefined;
-	const load = () => (loading ??= importAll().then((all) => void (loaded.value = all)));
+/** The apps' field action items, imported once when the first reader asks. */
+export class FieldActionItems {
+	private loaded = shallowRef<FieldActionItem[]>([]);
+	private loading: Promise<void> | undefined;
 
+	/** Reactive: empty until the apps' files are in. */
+	list(): FieldActionItem[] {
+		if (!fieldActionFiles.length) return [];
+		this.loading ??= importAll().then((all) => void (this.loaded.value = all));
+		return this.loaded.value;
+	}
+}
+
+export const fieldActionItems = new FieldActionItems();
+
+/** The shell side of field actions: apps' files are imported when the first control asks. */
+export function fieldActions(items: FieldActionItems = fieldActionItems): FieldActions {
 	return {
 		for(field, value) {
-			if (!fieldActionFiles.length || !hasValue(value)) return [];
-			void load();
-			return loaded.value.filter((item) => item.fieldtype === kindOf(field)).flatMap((item) => button(item, value));
+			if (!hasValue(value)) return [];
+			return items.list().filter((item) => item.fieldtype === kindOf(field)).flatMap((item) => button(item, value));
 		},
 	};
 }

@@ -8,7 +8,7 @@ const perform = vi.hoisted(() => vi.fn());
 vi.mock("@/contributions/registry", () => ({ fieldActionFiles: files }));
 vi.mock("@/acts/dispatcher", () => ({ acts: { find: (name: string) => found.get(name), perform } }));
 
-import { fieldActions } from "../fieldActions";
+import { FieldActionItems, fieldActions } from "../fieldActions";
 
 const phone = { fieldname: "mobile_no", fieldtype: "Phone" };
 const call = { fieldtype: "Phone", act: "shell.crm.make_a_call" };
@@ -18,7 +18,7 @@ function shipping(app: string, ...items: unknown[]) {
 }
 
 async function actionsFor(field: object, value: unknown) {
-	const host = fieldActions();
+	const host = fieldActions(new FieldActionItems());
 	host.for(field as never, value);
 	await new Promise((resolve) => setTimeout(resolve));
 	return host.for(field as never, value);
@@ -106,6 +106,6 @@ describe("field actions", () => {
 	});
 
 	it("import nothing when no app ships the file", () => {
-		expect(fieldActions().for(phone as never, "1")).toEqual([]);
+		expect(fieldActions(new FieldActionItems()).for(phone as never, "1")).toEqual([]);
 	});
 });
