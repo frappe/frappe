@@ -379,7 +379,7 @@ class FrappeClient:
 				if rjson.get("exc"):
 					exception = json.loads(rjson["exc"])[0]
 				elif errors := rjson.get("errors"):
-					exception = errors[0].get("exception") or errors[0].get("type")
+					exception = cstr(errors[0].get("exception") or errors[0].get("type"))
 					if message := errors[0].get("message"):
 						exception += "\n" + strip_html(message)
 
