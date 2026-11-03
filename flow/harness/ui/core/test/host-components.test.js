@@ -2046,7 +2046,7 @@ test("a folder in the file tree opens with Space, says it's open, and stays open
 	assert.equal(shown("/w/src/a.js").length, 1)
 })
 
-test("the transcript shows each step as raw JSON, with usage under its request", async (t) => {
+test("the transcript reads each step as text, a tool by its name with its arguments and result folded, and its JSON a click away", async (t) => {
 	const conversation = initialConversation()
 	applyEvent(conversation, { type: "user_message", seq: 2, content: "find the leak" })
 	applyEvent(conversation, {
@@ -2075,14 +2075,33 @@ test("the transcript shows each step as raw JSON, with usage under its request",
 
 	const panel = document.querySelector("[role=dialog]")
 	assert.match(panel.textContent, /Tokens1k.*Input1k.*Output40.*Model calls1.*Context1kof 200k/s)
-	assert.match(panel.textContent, /user\s*\{\s*"type": "user_message",\s*"content": "find the leak"\s*\}/)
-	assert.match(panel.textContent, /assistant\s*\{\s*"type": "assistant_message".*\}\s*usage\s*\{\s*"type": "usage",.*"input_tokens": 1000/s)
-	// every tool reads the same way: the call, then what it returned
-	assert.match(panel.textContent, /tool\s*input\s*\{\s*"type": "tool_call".*"path": "server\.py".*output\s*\{\s*"type": "tool_result".*"content": "leaky line"/s)
+	const row = (role) => [...panel.querySelectorAll(".grid")].find((el) => el.firstElementChild.textContent === role)
+	assert.match(row("user").textContent, /find the leak/)
+	assert.doesNotMatch(row("user").textContent, /"type"/)
+	assert.match(row("assistant").textContent, /Calls read.*1k in · 40 out · 900 cached/s)
+	// a tool shows its name; its arguments and result unfold on a click
+	const tool = row("tool")
+	assert.equal(tool.querySelector("code").textContent, "read")
+	assert.equal(tool.querySelector("pre"), null)
+	const folds = [...tool.querySelectorAll("button[aria-expanded]")].filter((button) => button.textContent.trim() !== "Raw JSON")
+	assert.deepEqual(folds.map((button) => button.textContent.trim()), ["Arguments", "Result"])
+	folds[0].click()
+	folds[1].click()
+	await nextTick()
+	assert.match(tool.querySelector("pre").textContent, /"path": "server\.py"/)
+	assert.equal(tool.querySelectorAll("pre")[1].textContent, "leaky line")
+	// every row but the system prompt opens as the JSON it came from
+	const raw = [...row("assistant").querySelectorAll("button")].find((button) => button.textContent.trim() === "Raw JSON")
+	raw.click()
+	await nextTick()
+	assert.equal(raw.getAttribute("aria-expanded"), "true")
+	assert.match(row("assistant").querySelector("pre").textContent, /"entry": \{\s*"type": "assistant_message".*"usage": \{\s*"type": "usage",\s*"input_tokens": 1000/s)
+	assert.equal([...row("system").querySelectorAll("button")].length, 0)
 	assert.doesNotMatch(panel.textContent, /"seq"|"context_window"/) // Flow's own fields stay out
 	assert.doesNotMatch(panel.textContent, /estimated|reported|~4|prompt & tool definitions/)
 	// beside Close, the steps go out as JSON: copied, or downloaded as a file
-	assert.deepEqual([...panel.querySelectorAll("button")].map((button) => button.title || button.textContent), ["Download .json", "Close"])
+	const actions = [...panel.querySelectorAll("button")].filter((button) => !button.closest(".grid"))
+	assert.deepEqual(actions.map((button) => button.title || button.textContent), ["Download .json", "Close"])
 	assert.ok(panel.querySelector("[data-stub=CopyButton]"))
 	const saved = []
 	t.mock.method(URL, "createObjectURL", (blob) => (saved.push(blob), "blob:transcript"))
@@ -2090,7 +2109,7 @@ test("the transcript shows each step as raw JSON, with usage under its request",
 	t.mock.method(window.HTMLAnchorElement.prototype, "click", function () {
 		saved.push(this.download)
 	})
-	panel.querySelector("button").click()
+	actions[0].click()
 	assert.equal(saved[1], "transcript-chat.json")
 	const file = JSON.parse(await saved[0].text())
 	assert.deepEqual(file.rows.map((row) => row.kind), ["system", "user", "assistant", "tool"])

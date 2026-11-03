@@ -1,5 +1,5 @@
-<!-- The conversation log: every step's JSON beside its role, with the
-     provider's usage under the request that reported it. -->
+<!-- The conversation log: each step as it reads beside its role, its JSON a click away,
+     with the provider's usage under the request that reported it. -->
 <template>
 	<!-- frappe-ui's Dialog portals where its host keeps overlays (inside an island's shadow root),
 	     and brings the overlay, Escape, the focus trap and focus return -->
@@ -36,37 +36,98 @@
 		</div>
 
 		<div v-if="!rows.length" class="py-10 text-center text-sm text-ink-gray-5">Nothing sent yet.</div>
+		<!-- read as the Flow Session form reads: text as text, a tool by its name, JSON on demand -->
 		<div
 			v-for="row in rows"
 			:key="row.key"
-			class="grid grid-cols-[4.5rem_minmax(0,1fr)] gap-x-4 border-b border-outline-gray-1 py-3.5 last:border-0 sm:grid-cols-[5.5rem_minmax(0,1fr)]"
+			class="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-4 gap-y-1 border-b border-outline-gray-1 py-3.5 last:border-0 sm:grid-cols-[5.5rem_minmax(0,1fr)_auto]"
 		>
 			<span
-				class="font-mono text-xs-medium leading-5"
-				:class="row.kind === 'error' ? 'text-ink-red-4' : 'text-ink-gray-5'"
+				class="pt-1 text-xs-medium uppercase tracking-wide"
+				:class="row.kind === 'error' ? 'text-ink-red-4' : row.kind === 'user' ? 'text-ink-gray-8' : 'text-ink-gray-5'"
 				>{{ ROLES[row.kind] }}</span
 			>
-			<div class="min-w-0 space-y-2 text-sm leading-5">
-				<p v-if="row.body" class="max-h-[280px] overflow-auto whitespace-pre-wrap break-words text-ink-gray-8">{{ row.body }}</p>
-				<!-- a tool's call and result, and a request's usage, are labelled -->
-				<div v-for="part in PARTS.filter((name) => row[name])" :key="part">
-					<div v-if="part !== 'entry'" class="mb-1 font-mono text-xs text-ink-gray-4">{{ part }}</div>
-					<pre
-						class="m-0 max-h-[280px] overflow-auto whitespace-pre-wrap break-words rounded-4 border bg-surface-gray-1 px-3 py-2 font-mono text-xs leading-5 text-ink-gray-6"
-						:class="row.kind === 'error' ? 'border-outline-red-2' : 'border-transparent'"
-					>{{ JSON.stringify(row[part], null, 2) }}</pre>
-				</div>
+			<Button
+				v-if="row.kind !== 'system'"
+				variant="ghost"
+				size="sm"
+				label="Raw JSON"
+				class="col-start-2 row-start-1 sm:col-start-3"
+				:aria-expanded="opened.has(`${row.key}:raw`)"
+				@click="toggle(`${row.key}:raw`)"
+			/>
+			<div class="col-span-2 min-w-0 space-y-2 text-base leading-6 text-ink-gray-8 sm:col-span-1 sm:col-start-2 sm:row-start-1">
+				<p v-if="row.body" class="whitespace-pre-wrap break-words">{{ row.body }}</p>
+				<template v-else-if="row.kind === 'user'">
+					<p class="whitespace-pre-wrap break-words">{{ userText(row.entry) }}</p>
+					<p v-if="userAttachments(row.entry).length" class="text-sm text-ink-gray-5">
+						Attached: {{ userAttachments(row.entry).map((file) => file.name).join(", ") }}
+					</p>
+				</template>
+				<template v-else-if="row.kind === 'assistant'">
+					<template v-for="(block, index) in row.entry.content" :key="index">
+						<p v-if="block.type === 'text'" class="whitespace-pre-wrap break-words">{{ block.text }}</p>
+						<p v-else-if="block.type === 'thinking'" class="whitespace-pre-wrap break-words text-ink-gray-5">
+							{{ block.redacted ? "Thinking, not shown by the provider." : block.thinking }}
+						</p>
+					</template>
+					<p v-if="!row.entry.content.some((block) => block.type !== 'tool_call')" class="text-sm text-ink-gray-5">
+						Calls {{ row.entry.content.map((block) => block.name).join(", ") }}
+					</p>
+					<p v-if="row.entry.error_message" class="whitespace-pre-wrap break-words text-ink-red-4">{{ row.entry.error_message }}</p>
+				</template>
+				<template v-else-if="row.kind === 'tool'">
+					<code class="inline-block rounded-4 bg-surface-gray-2 px-1.5 py-0.5 font-mono text-sm-medium text-ink-gray-8">{{
+						row.input.name
+					}}</code>
+					<div v-for="fold in folds(row)" :key="fold.key">
+						<button
+							type="button"
+							class="flex items-center gap-1 rounded text-sm"
+							:class="fold.error ? 'text-ink-red-4' : 'text-ink-gray-6 hover:text-ink-gray-8'"
+							:aria-expanded="opened.has(fold.key)"
+							@click="toggle(fold.key)"
+						>
+							<span
+								class="lucide-chevron-right size-3.5 flex-none transition-transform"
+								:class="{ 'rotate-90': opened.has(fold.key) }"
+								aria-hidden="true"
+							/>
+							{{ fold.label }}
+						</button>
+						<pre
+							v-if="opened.has(fold.key)"
+							class="mt-1.5 overflow-auto whitespace-pre-wrap break-words rounded-4 border bg-surface-gray-1 px-3 py-2 font-mono text-xs leading-5 text-ink-gray-7 sm:max-h-[360px]"
+							:class="fold.error ? 'border-outline-red-2' : 'border-outline-gray-1'"
+						>{{ fold.text }}</pre>
+					</div>
+					<p v-if="!row.output" class="text-sm text-ink-gray-5">No result</p>
+				</template>
+				<template v-else-if="row.kind === 'compaction'">
+					<p class="text-sm text-ink-gray-5">Summary of the chat so far</p>
+					<p class="whitespace-pre-wrap break-words">{{ row.entry.summary }}</p>
+				</template>
+				<template v-else-if="row.kind === 'error'">
+					<p class="whitespace-pre-wrap break-words text-ink-red-4">{{ row.entry.message }}</p>
+					<p v-if="row.entry.detail" class="whitespace-pre-wrap break-words text-sm text-ink-gray-5">{{ row.entry.detail }}</p>
+				</template>
+				<p v-if="row.usage" class="text-sm tabular-nums text-ink-gray-5">{{ usageLine(row.usage) }}</p>
+				<pre
+					v-if="opened.has(`${row.key}:raw`)"
+					class="overflow-auto whitespace-pre-wrap break-words rounded-4 border bg-surface-gray-1 px-3 py-2 font-mono text-xs leading-5 text-ink-gray-7 sm:max-h-[360px]"
+					:class="row.kind === 'error' ? 'border-outline-red-2' : 'border-outline-gray-1'"
+				>{{ rawJson(row) }}</pre>
 			</div>
 		</div>
 	</Dialog>
 </template>
 
 <script setup>
-import { computed, inject } from "vue"
+import { computed, inject, reactive } from "vue"
 import { Button } from "frappe-ui/src/components/Button"
 import { Dialog } from "frappe-ui/src/components/Dialog"
 
-import { buildTranscriptRows, formatCost, formatTokens } from "../transcript.js"
+import { buildTranscriptRows, formatCost, formatTokens, userAttachments, userText } from "../transcript.js"
 import CopyButton from "./CopyButton.vue"
 
 const ROLES = {
@@ -107,6 +168,43 @@ const stats = computed(() => {
 	if (usage.cost) stats.push({ label: "Cost", value: formatCost(usage.cost) })
 	return stats
 })
+
+// the folds and raw JSON shown, by row key
+const opened = reactive(new Set())
+function toggle(key) {
+	if (!opened.delete(key)) opened.add(key)
+}
+
+// a tool's arguments and result, folded; a result that is JSON reads as JSON
+function folds(row) {
+	const folds = [{ key: `${row.key}:args`, label: "Arguments", text: JSON.stringify(row.input.arguments ?? {}, null, 2) }]
+	if (row.output) {
+		const error = !!row.output.is_error
+		folds.push({ key: `${row.key}:result`, label: error ? "Error" : "Result", text: pretty(row.output.content), error })
+	}
+	return folds
+}
+
+function pretty(text) {
+	try {
+		return JSON.stringify(JSON.parse(text), null, 2)
+	} catch {
+		return text
+	}
+}
+
+function usageLine(usage) {
+	const parts = [`${formatTokens(usage.input_tokens)} in`, `${formatTokens(usage.output_tokens)} out`]
+	if (usage.cache_read_tokens) parts.push(`${formatTokens(usage.cache_read_tokens)} cached`)
+	if (usage.cost) parts.push(formatCost(usage.cost))
+	return parts.join(" · ")
+}
+
+function rawJson(row) {
+	const parts = PARTS.filter((name) => row[name])
+	const raw = parts.length === 1 ? row[parts[0]] : Object.fromEntries(parts.map((name) => [name, row[name]]))
+	return JSON.stringify(raw, null, 2)
+}
 
 const PURPOSES = { title: "title", replies: "suggestions" }
 const background = computed(() => {
