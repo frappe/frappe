@@ -181,6 +181,13 @@ class TestPermissions(IntegrationTestCase):
 			self.assertIn("Test Blog Category", message)
 			self.assertIn("_Test Blog Category", message)
 
+	def test_check_without_print_logs_leaves_outer_check_logs_alone(self):
+		frappe.flags.has_permission_check_logs = []
+		self.addCleanup(frappe.flags.pop, "has_permission_check_logs", None)
+
+		self.assertFalse(frappe.permissions.has_permission("ToDo", "submit", print_logs=False))
+		self.assertEqual(frappe.flags.has_permission_check_logs, [])
+
 	def test_user_permissions_in_report(self):
 		add_user_permission("Test Blog Category", "_Test Blog Category 1", "test2@example.com")
 
