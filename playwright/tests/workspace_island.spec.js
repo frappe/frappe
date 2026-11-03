@@ -141,6 +141,11 @@ test.describe("Workspace island", () => {
 						type: "quick_list",
 						data: { quick_list_name: "Closed ToDos", col: 6 },
 					},
+					{
+						id: "pw-ql2",
+						type: "quick_list",
+						data: { quick_list_name: "My ToDos", col: 6 },
+					},
 				]),
 				custom_blocks: [BLOCK, BLUE_BLOCK, LATE_BLOCK].map((name) => ({
 					custom_block_name: name,
@@ -151,6 +156,11 @@ test.describe("Workspace island", () => {
 						document_type: "ToDo",
 						label: "Closed ToDos",
 						quick_list_filter: JSON.stringify([["ToDo", "status", "=", "Closed"]]),
+					},
+					{
+						document_type: "ToDo",
+						label: "My ToDos",
+						quick_list_filter: JSON.stringify([["ToDo", "owner", "=", "@me"]]),
 					},
 				],
 				shortcuts: [{ type: "DocType", link_to: "ToDo", label: "Playwright ToDos" }],
@@ -166,6 +176,7 @@ test.describe("Workspace island", () => {
 	});
 
 	let todo;
+	let my_todo;
 	test.beforeAll(async ({ admin }) => {
 		todo = await admin.insert_doc("ToDo", {
 			description: "Playwright open todo",
@@ -175,6 +186,7 @@ test.describe("Workspace island", () => {
 
 	test.afterAll(async ({ admin }) => {
 		await admin.remove_doc("ToDo", todo.name, true);
+		if (my_todo) await admin.remove_doc("ToDo", my_todo.name, true);
 		await admin.remove_doc("Workspace", WORKSPACE, true);
 	});
 
@@ -254,6 +266,15 @@ test.describe("Workspace island", () => {
 
 		await list.getByRole("button", { name: "Clear All Filters" }).click();
 		await expect(list.getByText("Playwright open todo").first()).toBeVisible();
+	});
+
+	test("a quick list reads @me in its filter as the reader", async ({ page, api }) => {
+		my_todo = await api.insert_doc("ToDo", { description: "Playwright my todo" });
+		await page.goto("/desk/playwright-island");
+
+		const list = page.locator(".ws-tile", { hasText: "My ToDos" });
+		await expect(list.getByText("Playwright my todo")).toBeVisible();
+		await expect(list.getByText("Playwright open todo")).toHaveCount(0);
 	});
 
 	test("a custom block runs its script in its own root", async ({ page }) => {

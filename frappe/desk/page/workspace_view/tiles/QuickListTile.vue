@@ -3,7 +3,7 @@ import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } fr
 import { Badge, Button, ItemListRow } from "frappe-ui";
 import { ChartCard, ChartContainer } from "frappe-ui/charts";
 import { get, post } from "../api.js";
-import { filter_rows } from "../filters.js";
+import { filter_rows, with_session_user } from "../filters.js";
 import DeskFilter from "./DeskFilter.vue";
 import { badge_theme } from "./badge_theme.js";
 
@@ -52,11 +52,12 @@ async function load() {
 		if (frappe.meta.has_field(doctype, field)) fields.push(field);
 	}
 
+	const query_filters = with_session_user(filters.value);
 	let names = null;
 	if (order_by.value === MY_ACTIVITY) {
 		const events = await get("frappe.desk.desktop.get_recent_activity", {
 			doctype,
-			filters: JSON.stringify(filters.value),
+			filters: JSON.stringify(query_filters),
 			limit: MAX_ROWS,
 		});
 		activity.value = Object.fromEntries(events.map((event) => [event.name, event]));
@@ -67,7 +68,7 @@ async function load() {
 	const data = await post("frappe.desk.reportview.get", {
 		doctype,
 		fields: [...new Set(fields)],
-		filters: names ? [...filters.value, [doctype, "name", "in", names]] : filters.value,
+		filters: names ? [...query_filters, [doctype, "name", "in", names]] : query_filters,
 		order_by: names ? "creation desc" : order_by.value,
 		start: 0,
 		page_length: MAX_ROWS,
@@ -166,7 +167,9 @@ function open(doc, event) {
 
 function open_list(event) {
 	if (event.ctrlKey || event.metaKey) frappe.open_in_new_tab = true;
-	const route_filters = frappe.utils.get_filter_from_json(JSON.stringify(filters.value));
+	const route_filters = frappe.utils.get_filter_from_json(
+		JSON.stringify(with_session_user(filters.value))
+	);
 	if (route_filters) frappe.route_options = route_filters;
 	frappe.set_route(frappe.utils.generate_route({ type: "doctype", name: doctype.value }));
 }
