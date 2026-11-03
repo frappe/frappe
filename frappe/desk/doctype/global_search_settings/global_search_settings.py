@@ -55,8 +55,9 @@ def get_doctypes_for_global_search():
 	return frappe.cache.hget("global_search", "search_priorities", get_from_db)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def reset_global_search_settings_doctypes():
+	frappe.has_permission("Global Search Settings", "write", throw=True)
 	update_global_search_doctypes()
 
 
