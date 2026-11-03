@@ -451,7 +451,10 @@ class TestUser(FrappeTestCase):
 		)
 
 		# throttle user creation
-		with patch.object(user_module.frappe.db, "get_creation_count", return_value=301):
+		with (
+			patch.object(user_module.frappe.db, "get_creation_count", return_value=301),
+			patch.dict(frappe.flags, {"in_test": False}),
+		):
 			self.assertRaisesRegex(
 				frappe.exceptions.ValidationError,
 				"Throttled",
