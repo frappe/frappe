@@ -20,7 +20,7 @@
 import { FieldActionButtons } from "@framework/ui/fields";
 import type { FieldMeta } from "@framework/ui/fields/types";
 
-// Q25: false keeps the button always visible; true shows it only on row hover or focus.
+// The button is always visible; true shows it only on row hover or focus.
 const SHOW_ON_ROW_HOVER = false;
 
 defineProps<{ field: FieldMeta; value: string }>();

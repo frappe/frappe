@@ -58,4 +58,12 @@ describe("a Phone list cell", () => {
 		expect((await mount("", [action()])).querySelector("button")).toBeNull();
 		expect((await mount("123", [])).querySelector("button")).toBeNull();
 	});
+
+	it("keeps a menu of two actions from opening the row", async () => {
+		const root = await mount("123", [action(), { ...action(), act: "shell.crm.text", label: "Text" }]);
+		const trigger = root.querySelector<HTMLButtonElement>("[data-slot='field-actions']")!;
+		const click = new MouseEvent("click", { bubbles: true, cancelable: true });
+		trigger.dispatchEvent(click);
+		expect(click.defaultPrevented).toBe(true);
+	});
 });

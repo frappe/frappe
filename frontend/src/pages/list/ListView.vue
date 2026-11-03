@@ -28,8 +28,8 @@
 	>
 		<template #cell="{ column, value }">
 			<PhoneCell
-				v-if="isPhoneColumn(column.fieldname)"
-				:field="fieldOf(column.fieldname)!"
+				v-if="phoneFields.has(column.fieldname)"
+				:field="phoneFields.get(column.fieldname)!"
 				:value="value"
 			/>
 			<div v-else class="truncate text-base text-ink-gray-8">{{ value }}</div>
@@ -62,6 +62,7 @@
 <script setup lang="ts">
 import { ColumnSettings } from "@framework/ui/ColumnSettings";
 import { isPhoneField } from "@framework/ui/fields";
+import type { RawMetaField } from "@framework/ui/FormLayout";
 import { List, ListBulkBar, ListFooter, type BulkAction } from "@framework/ui/experimental/List";
 import { computed, ref } from "vue";
 import { __ } from "@/i18n";
@@ -119,10 +120,14 @@ useScrollMemory(
 	{ doctype: props.view.doctype, query: rowsKey }
 );
 
-function isPhoneColumn(fieldname: string) {
-	const field = fieldOf(fieldname);
-	return !!field && isPhoneField(field);
-}
+const phoneFields = computed(() => {
+	const fields = new Map<string, RawMetaField>();
+	for (const { fieldname } of columns.value) {
+		const field = fieldOf(fieldname);
+		if (field && isPhoneField(field)) fields.set(fieldname, field);
+	}
+	return fields;
+});
 
 const listActs = props.host.acts(() => [
 	...(selection.value.length ? [deleteEntry()] : []),
