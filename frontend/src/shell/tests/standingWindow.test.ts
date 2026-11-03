@@ -338,6 +338,28 @@ describe("shell.window", () => {
 		expect(frame().querySelector("[data-standing-close]")).not.toBeNull();
 	});
 
+	it("pulses the pill while the app sets attention", async () => {
+		const handle = await attached();
+		handle.open();
+		await nextTick();
+		handle.minimise();
+		await nextTick();
+		const pill = () => document.querySelector("[data-standing-minimised]")!;
+		expect(pill().classList.contains("standing-attention")).toBe(false);
+
+		handle.setAttention(true);
+		await nextTick();
+		expect(pill().classList.contains("standing-attention")).toBe(true);
+
+		handle.setAttention(false);
+		await nextTick();
+		expect(pill().classList.contains("standing-attention")).toBe(false);
+
+		handle.setAttention(1 as unknown as boolean);
+		await nextTick();
+		expect(pill().classList.contains("standing-attention")).toBe(true);
+	});
+
 	it.each([
 		[100, "240px"],
 		[320, "320px"],
