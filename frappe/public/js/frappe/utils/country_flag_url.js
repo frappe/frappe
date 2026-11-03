@@ -1,4 +1,3 @@
-/** Same-origin country flag SVGs for Phone fields (see `frappe/public/images/flags/`). */
 export const COUNTRY_FLAG_ASSET_BASE = "/assets/frappe/images/flags";
 
 export function get_country_flag_url(country_code) {
