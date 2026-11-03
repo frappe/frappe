@@ -543,16 +543,9 @@ def update_user_info(docinfo, doc=None):
 
 
 @frappe.whitelist()
-<<<<<<< HEAD
 def get_user_info_for_viewers(users: str | list[str]):
-	user_info = {}
-	for user in frappe.parse_json(users):
-		frappe.utils.add_user_info(user, user_info)
-=======
-def get_user_info_for_viewers(users: str | list):
 	if is_website_user():
 		frappe.throw(_("Not permitted"), frappe.PermissionError)
->>>>>>> 03767e3 (fix: limit viewer user info to system users)
 
 	user_info = {}
 	for user in frappe.parse_json(users):
