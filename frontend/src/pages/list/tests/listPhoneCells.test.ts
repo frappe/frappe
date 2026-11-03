@@ -33,6 +33,7 @@ vi.mock("@/list/useListView", () => ({
 		hasNextPage: ref(false),
 		rowActions: [],
 		fieldOf: (fieldname: string) => metaFields.find((field) => field.fieldname === fieldname),
+		markOf: () => undefined,
 		columnsCustomized: ref(false),
 		rowLink: () => ({}),
 	}),

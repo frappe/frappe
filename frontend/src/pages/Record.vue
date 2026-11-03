@@ -130,7 +130,7 @@ import {
 } from "@framework/ui/api";
 import { documentKey } from "@framework/ui/cache";
 import { FormLayout } from "@framework/ui/FormLayout";
-import { CodeErrorsKey, LinkTitlesKey } from "@framework/ui/fields/types";
+import { CodeErrorsKey, LinkMarksKey, LinkTitlesKey } from "@framework/ui/fields/types";
 import type { FieldNode } from "@framework/ui/FormLayout/types";
 import { getSocketInstance } from "@framework/ui/socket";
 import { useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
@@ -249,6 +249,7 @@ const saved = ref<Record<string, any>>({});
 const meta = ref<any>(null);
 const docinfo = ref<DocInfo | null>(null);
 const linkTitles = ref<Record<string, string>>({});
+const linkMarks = ref<Record<string, string>>({});
 const codeErrors = ref<CodeError[]>([]);
 const state = shallowRef<PageStateValue | null>(null);
 const controller = shallowRef<RecordPageController | null>(null);
@@ -409,6 +410,7 @@ useLiveClientScripts({
 });
 
 provide(LinkTitlesKey, linkTitles);
+provide(LinkMarksKey, linkMarks);
 provide(CodeErrorsKey, codeErrors);
 
 provideRecordCommits(() => controller.value);
@@ -578,7 +580,11 @@ function reloadDocinfo(): Promise<void> {
 	if (!shown) return Promise.resolve();
 	return currentVisit.readNewest(
 		(signal) => loadParts(shown, docname.value, signal),
-		(fresh) => void (docinfo.value = fresh)
+		(fresh) => {
+			docinfo.value = fresh.docinfo;
+			// A value picked since the open has no mark until this read.
+			if (!same(linkMarks.value, fresh.linkMarks)) linkMarks.value = fresh.linkMarks;
+		}
 	);
 }
 
@@ -647,6 +653,7 @@ function blank() {
 	saved.value = {};
 	docinfo.value = null;
 	linkTitles.value = {};
+	linkMarks.value = {};
 	controller.value?.leave();
 	controller.value = null;
 	panelLayout.value = null;
@@ -757,6 +764,7 @@ function takeRefetch(fresh: LoadedRecord, before: DocInfo | null) {
 	saved.value = merged.saved;
 	doc.value = merged.doc;
 	if (!same(linkTitles.value, fresh.linkTitles)) linkTitles.value = fresh.linkTitles;
+	if (!same(linkMarks.value, fresh.linkMarks)) linkMarks.value = fresh.linkMarks;
 	// A write or live update since the reads began may be missing from `fresh`; a new read includes it.
 	if (docinfo.value !== before) return reloadDocinfo().catch(warnDocinfoFailed);
 	if (!same(before, fresh.docinfo)) docinfo.value = fresh.docinfo;
@@ -774,6 +782,7 @@ function show(loaded: LoadedRecord, metadata: any) {
 	doc.value = JSON.parse(JSON.stringify(loaded.document));
 	docinfo.value = loaded.docinfo;
 	linkTitles.value = loaded.linkTitles;
+	linkMarks.value = loaded.linkMarks;
 	meta.value = metadata;
 }
 

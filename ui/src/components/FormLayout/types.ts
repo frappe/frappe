@@ -91,6 +91,8 @@ export interface RawMetaField {
   precision?: number | string;
   /** A CSS length that caps a tall control, such as a Text Editor. */
   max_height?: string;
+  /** The server's pick of what a Link value's mark is read from on the target. */
+  link_mark?: { kind: "color" | "image"; field: string };
   hidden?: boolean | 0 | 1;
   read_only?: boolean | 0 | 1;
   /** The field stays editable on a submitted record. */

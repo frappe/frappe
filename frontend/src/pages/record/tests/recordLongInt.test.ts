@@ -58,6 +58,7 @@ const PARTS = {
   follows: false,
   users: {},
   link_titles: {},
+  link_marks: {},
   attachments: [],
   seen: [],
 };

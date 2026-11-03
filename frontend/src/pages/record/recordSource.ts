@@ -9,6 +9,7 @@ export interface LoadedRecord {
 	document: Record<string, any>;
 	docinfo: DocInfo;
 	linkTitles: Record<string, string>;
+	linkMarks: Record<string, string>;
 }
 
 /** The document, its parts and the link titles in one round trip; the read marks the record seen. */
@@ -27,14 +28,14 @@ export function readCachedRecord(doctype: string, name: string): LoadedRecord | 
 	return JSON.parse(JSON.stringify(loaded(entry.doc, entry.parts)));
 }
 
-/** The parts alone, on a realtime delta; the draft is untouched and nothing is marked seen. */
+/** The parts alone, on a realtime delta or a save; the draft is untouched and nothing is marked seen. */
 export async function loadParts(
 	doctype: string,
 	name: string,
 	signal?: AbortSignal
-): Promise<DocInfo> {
-	const { docinfo } = await read(doctype, name, RECORD_PARTS, signal);
-	return docinfo;
+): Promise<Pick<LoadedRecord, "docinfo" | "linkMarks">> {
+	const { docinfo, linkMarks } = await read(doctype, name, RECORD_PARTS, signal);
+	return { docinfo, linkMarks };
 }
 
 /** The whole document, as the draft holds it; `modified` is what lets the server refuse a stale save. */
@@ -70,5 +71,6 @@ function loaded(document: Record<string, any>, parts: Readonly<Record<string, un
 			attachments: parts.attachments as DocInfo["attachments"],
 		},
 		linkTitles: (parts.link_titles ?? {}) as Record<string, string>,
+		linkMarks: (parts.link_marks ?? {}) as Record<string, string>,
 	};
 }

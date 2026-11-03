@@ -94,6 +94,7 @@ async function answer(url: URL, init?: RequestInit): Promise<unknown> {
       follows: false,
       users: {},
       link_titles: {},
+      link_marks: {},
       attachments: [],
       seen: [],
     };

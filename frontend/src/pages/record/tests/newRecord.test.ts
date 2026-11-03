@@ -180,6 +180,7 @@ async function answer(url: URL, init?: RequestInit): Promise<[unknown, number]> 
         follows: false,
         users: {},
         link_titles: {},
+        link_marks: {},
         attachments: [],
         seen: [],
       },

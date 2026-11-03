@@ -4,11 +4,13 @@ import { getColumnAlign, getDefaultColumns, type Column } from "@framework/ui/Co
 import type { ListColumn } from "@framework/ui/experimental/List";
 import type { RawMetaField } from "@framework/ui/FormLayout";
 import { parseOrderBy, type Sort } from "@framework/ui/SortBy";
+import type { LinkMarkSource } from "@framework/ui/fields";
 import type { ListHandlers, RowAction } from "@/contributions/types";
 
 /** The meta keys the list reads; the meta read sends the whole doctype record. */
 export interface ListMeta {
 	title_field?: string;
+	image_field?: string;
 	sort_field?: string;
 	sort_order?: string;
 	fields?: RawMetaField[];
@@ -40,10 +42,31 @@ export function sameSort(a: Sort[], b: Sort[]): boolean {
 	return JSON.stringify(a) === JSON.stringify(b);
 }
 
-/** The fields a page of rows needs: `name` for the link, one per column, then each row action's. */
-export function fetchFields(columns: Column[], rowActions: RowAction[] = []): string[] {
-	const wanted = [...columns.map((column) => column.fieldname), ...rowActions.flatMap((a) => a.fields)];
+/** The fields a page of rows needs: `name` for the link, one per column, each column's mark, then each row action's. */
+export function fetchFields(columns: Column[], rowActions: RowAction[] = [], meta: ListMeta = {}): string[] {
+	const marks = columns.flatMap((column) => cellMark(column.fieldname, meta)?.select ?? []);
+	const wanted = [...columns.map((column) => column.fieldname), ...marks, ...rowActions.flatMap((a) => a.fields)];
 	return [...new Set(["name", ...wanted])];
+}
+
+/** What a cell shows before its text and where the row holds it: a Link's target mark, or the title's own image. */
+export interface CellMark {
+	source: LinkMarkSource;
+	/** The row key holding the mark value. */
+	key: string;
+	/** The field the page asks for; a Link's is read through the link, under an alias. */
+	select: string;
+}
+
+export function cellMark(fieldname: string, meta: ListMeta): CellMark | undefined {
+	const source = meta.fields?.find((field) => field.fieldname === fieldname)?.link_mark;
+	if (source) {
+		const key = `${fieldname}__mark`;
+		return { source, key, select: `${fieldname}.${source.field} as ${key}` };
+	}
+	if (meta.image_field && fieldname === (meta.title_field || "name")) {
+		return { source: { kind: "image", field: meta.image_field }, key: meta.image_field, select: meta.image_field };
+	}
 }
 
 /** Every contributing app's row actions in run order; an act named twice is listed once, and a `list` act is refused. */

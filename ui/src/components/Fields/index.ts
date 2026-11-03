@@ -17,6 +17,8 @@ export type { DataHref } from "./dataOptions";
 export { default as DataOpenLink } from "./DataOpenLink.vue";
 export { default as FieldActionButtons } from "./FieldActions.vue";
 export { default as ColorSwatch } from "./ColorSwatch.vue";
+export { default as LinkMark } from "./LinkMark.vue";
+export { useLinkMark } from "./useLinkMark";
 
 // The field contract every value-input satisfies, plus the form-context
 // injection keys the deep-injection inputs (Table/Number/Image/DynamicLink) read.
@@ -29,11 +31,13 @@ export type {
   FieldComponentEmits,
   FieldAddress,
   FieldError,
+  LinkMarkSource,
 } from "./types";
 export {
   DocKey,
   FieldActionsKey,
   FieldErrorsKey,
+  LinkMarksKey,
   LinkTitlesKey,
   ParentDocKey,
   TemplateNamesKey,

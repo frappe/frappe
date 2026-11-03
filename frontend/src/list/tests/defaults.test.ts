@@ -2,7 +2,7 @@
 import { describe, expect, it } from "vitest";
 import type { RawMetaField } from "@framework/ui/FormLayout";
 
-import { DEFAULT_SORT, contributedRowActions, defaultColumns, defaultSort, fetchFields } from "../defaults";
+import { DEFAULT_SORT, contributedRowActions, defaultColumns, defaultSort, fetchFields, cellMark } from "../defaults";
 
 const FIELDS: RawMetaField[] = [
 	{ fieldname: "title", label: "Title", fieldtype: "Data", in_list_view: 1 },
@@ -96,5 +96,47 @@ describe("contributedRowActions", () => {
 	it("refuses an act on the list surface, which would ask itself whether it is available", () => {
 		const own = { act: "list.create", fields: [] };
 		expect(contributedRowActions([{ rowActions: [own] }])).toEqual([]);
+	});
+});
+
+describe("cell marks", () => {
+	const meta = {
+		title_field: "lead_name",
+		image_field: "image",
+		fields: [
+			{ fieldname: "status", fieldtype: "Link", link_mark: { kind: "color" as const, field: "color" } },
+			{ fieldname: "lead_name", fieldtype: "Data" },
+		],
+	};
+	const columns = [
+		{ fieldname: "lead_name", label: "Name" },
+		{ fieldname: "status", label: "Status" },
+	];
+
+	it("reads a Link column's mark through the link, under its own key", () => {
+		expect(cellMark("status", meta)).toEqual({
+			source: { kind: "color", field: "color" },
+			key: "status__mark",
+			select: "status.color as status__mark",
+		});
+	});
+
+	it("shows the title column's own image_field", () => {
+		expect(cellMark("lead_name", meta)?.source).toEqual({ kind: "image", field: "image" });
+		expect(cellMark("lead_name", meta)?.key).toBe("image");
+	});
+
+	it("marks no other column", () => {
+		expect(cellMark("modified", meta)).toBeUndefined();
+	});
+
+	it("asks for each mark beside the columns", () => {
+		expect(fetchFields(columns, [], meta)).toEqual([
+			"name",
+			"lead_name",
+			"status",
+			"image",
+			"status.color as status__mark",
+		]);
 	});
 });

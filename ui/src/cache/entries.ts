@@ -11,6 +11,7 @@ export const RECORD_PARTS = [
   "follows",
   "users",
   "link_titles",
+  "link_marks",
   "attachments",
 ] as const;
 

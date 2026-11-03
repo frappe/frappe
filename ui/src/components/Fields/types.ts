@@ -16,12 +16,19 @@ export interface OptionChoice {
   label: string;
 }
 
+export interface LinkMarkSource {
+  kind: "color" | "image";
+  field: string;
+}
+
 export interface FieldMeta {
   fieldname: string;
   fieldtype: string;
   label?: string;
   /** Target doctype for `Link` fields, or child doctype for `Table` (Frappe `options`). */
   options?: string;
+  /** What a `Link` value's mark is read from on its target: a `color` field or an `image_field`. */
+  linkMark?: LinkMarkSource;
   /** A `Select` or `Autocomplete`'s choices with labels, when a script set them; `options` then holds their values. */
   choices?: OptionChoice[];
   /** Link search filters. */
@@ -120,6 +127,9 @@ export const ParentDocKey: InjectionKey<Ref<Record<string, any>> | null> =
 /** Titles a `Link` value shows before its options load, keyed `Doctype::name`. */
 export const LinkTitlesKey: InjectionKey<Ref<Record<string, string>>> =
   Symbol("FormLayoutLinkTitles");
+
+/** The mark values a `Link` value shows before it, keyed `Doctype::name`: a colour or an image address. */
+export const LinkMarksKey: InjectionKey<Ref<Record<string, string>>> = Symbol("FormLayoutLinkMarks");
 
 /** The host's Create, which a Link or Dynamic Link field offers; absent or null, it offers none. */
 export interface CreateRecord {

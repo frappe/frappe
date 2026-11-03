@@ -6,6 +6,7 @@
 			class="flex h-7 min-w-0 items-center rounded-4 border border-transparent bg-surface-gray-1 px-2 text-base"
 			data-slot="link-value"
 		>
+			<slot name="prefix" />
 			<RecordAnchor
 				v-if="href && text"
 				:href="href"

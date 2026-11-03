@@ -28,6 +28,7 @@ const ENVELOPE = {
 	follows: true,
 	users: { "ann@example.com": { full_name: "Ann", user_image: "/ann.png" } },
 	link_titles: { "CRM Lead::L-1": "Lead One" },
+	link_marks: { "CRM Deal Status::Won": "green" },
 	attachments: [
 		{
 			name: "F-1",
@@ -66,6 +67,7 @@ describe("loadRecord", () => {
 			"follows",
 			"users",
 			"link_titles",
+			"link_marks",
 			"attachments",
 			"seen",
 		]);
@@ -81,6 +83,7 @@ describe("loadRecord", () => {
 			attachments: ENVELOPE.attachments,
 		});
 		expect(loaded.linkTitles).toEqual(ENVELOPE.link_titles);
+		expect(loaded.linkMarks).toEqual(ENVELOPE.link_marks);
 	});
 
 	it("throws the wrapper's error for a refused read", async () => {
@@ -123,7 +126,7 @@ describe("readCachedRecord", () => {
 describe("loadParts", () => {
 	it("reads the same parts without marking the record seen, and hands back the parts alone", async () => {
 		respond(ENVELOPE);
-		const parts = await loadParts("CRM Deal", "D-1");
+		const { docinfo: parts, linkMarks } = await loadParts("CRM Deal", "D-1");
 		const include = lastCall().url.searchParams.get("include")!.split(",");
 		expect(include).not.toContain("seen");
 		expect(include).toContain("shares");
@@ -132,6 +135,7 @@ describe("loadParts", () => {
 		expect(parts.attachments).toEqual(ENVELOPE.attachments);
 		expect(parts.follows).toBe(true);
 		expect(parts).not.toHaveProperty("document");
+		expect(linkMarks).toEqual(ENVELOPE.link_marks);
 	});
 });
 

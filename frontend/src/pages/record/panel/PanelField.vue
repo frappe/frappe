@@ -48,9 +48,13 @@
 					>{{ display }}</a
 				>
 				<template v-else>
-					<ColorSwatch :field="field" :value="doc[field.fieldname]" class="me-1.5" />{{
-						display || placeholder
-					}}
+					<ColorSwatch :field="field" :value="doc[field.fieldname]" class="me-1.5" />
+					<LinkMark
+						class="me-1.5"
+						:source="field.linkMark"
+						:value="mark"
+						:text="display"
+					/>{{ display || placeholder }}
 				</template>
 			</span>
 			<span
@@ -102,10 +106,12 @@ import {
 	ColorSwatch,
 	DataOpenLink,
 	FieldActionButtons,
+	LinkMark,
 	dataHref,
 	focusField,
 	isEmailField,
 	isPhoneField,
+	useLinkMark,
 	useRecordLink,
 } from "@framework/ui/fields";
 import { isSummaryField, useFieldDisplay } from "@framework/ui/FormLayout";
@@ -122,6 +128,10 @@ const resolveField = inject(ResolveFieldKey)!;
 const context = inject(PanelContextKey, null);
 const titles = inject(LinkTitlesKey, null);
 const displayField = useFieldDisplay();
+const mark = useLinkMark(
+	() => props.field,
+	() => doc.value[props.field.fieldname]
+);
 const errors = inject(FieldErrorsKey, null);
 const error = computed(() => errors?.value[fieldErrorKey(props.field.fieldname)]);
 const message = computed(() => [error.value ?? []].flat().join(" "));
