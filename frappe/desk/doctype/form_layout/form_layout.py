@@ -256,6 +256,7 @@ def with_app_layout(layouts: list[dict], dt: str, type: str) -> list[dict]:
 				"condition": None,
 				"layout": parse_layout(app_layout.layout),
 				"omitted": list(app_layout.omitted),
+				"size": app_layout.size,
 			}
 		)
 	return layouts
@@ -277,6 +278,7 @@ def layout_of(row) -> dict:
 		"condition": row.condition,
 		"layout": parse_layout(row.layout),
 		"omitted": parse_omitted(row.omitted),
+		"size": row.dialog_size,
 	}
 
 
@@ -284,7 +286,7 @@ def get_layout_rows(dt: str, type: str) -> list:
 	return frappe.get_all(
 		"Form Layout",
 		filters={"dt": dt, "type": type},
-		fields=["name", "app", "condition", "layout", "omitted"],
+		fields=["name", "app", "condition", "layout", "omitted", "dialog_size"],
 		order_by="creation asc",
 	)
 

@@ -9,6 +9,7 @@
   "column_break_type",
   "type",
   "app",
+  "dialog_size",
   "condition_section",
   "condition",
   "layout_section",
@@ -48,6 +49,14 @@
    "options": "Installed Applications"
   },
   {
+   "depends_on": "eval:doc.type=='Quick Entry'",
+   "description": "The width of the Create dialog. Blank is xl.",
+   "fieldname": "dialog_size",
+   "fieldtype": "Select",
+   "label": "Dialog Size",
+   "options": "\nxs\nsm\nmd\nlg\nxl\n2xl\n3xl\n4xl\n5xl\n6xl\n7xl"
+  },
+  {
    "fieldname": "condition_section",
    "fieldtype": "Section Break"
   },
@@ -78,7 +87,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-10-31 12:00:00.000000",
+ "modified": "2026-11-03 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Form Layout",

@@ -1,5 +1,6 @@
 import { computed, shallowReactive, toValue, watch } from "vue";
 import type { ComputedRef, MaybeRefOrGetter, Ref } from "vue";
+import type { DialogSize } from "frappe-ui";
 import { runMethod } from "@framework/ui/api";
 import type { FormLayoutSchema, RawMetaField, TabOverride } from "@framework/ui/FormLayout/types";
 import type { Decorator } from "@framework/ui/FormLayout";
@@ -44,6 +45,8 @@ export interface UseFormLayout {
 	error: ComputedRef<unknown>;
 	/** `Quick Entry` only: the server's answer to whether Create opens a dialog. */
 	dialog: ComputedRef<boolean>;
+	/** `Quick Entry` only: the size the row in use gives the dialog; `null` when it gives none. */
+	dialogSize: ComputedRef<DialogSize | null>;
 	/** Fieldnames the row in use places; empty when no row applies. */
 	placed: ComputedRef<string[]>;
 	/** Re-fetch the layout rows (the meta reloads through `useDoctypeMeta`). */
@@ -155,6 +158,7 @@ export function useFormLayout(options: UseFormLayoutOptions): UseFormLayout {
 		loading: busy,
 		error: computed(() => error.value ?? entry.value.error),
 		dialog: computed(() => Boolean(response.value?.dialog)),
+		dialogSize: computed(() => row.value?.size ?? null),
 		placed: computed(() => placedFieldnames(row.value?.layout ?? null)),
 		reload: () => entry.value.reload(),
 		settled: () => whenSettled(stale),

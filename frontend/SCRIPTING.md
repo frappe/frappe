@@ -383,7 +383,9 @@ An app ships a `Form Layout` for one of its doctypes as a file in the doctype's 
 `new_record.json`.
 
 The file holds two keys. `layout` is the tree that a `Form Layout` row stores. `omitted`
-lists the fieldnames that the layout leaves out on purpose.
+lists the fieldnames that the layout leaves out on purpose. A `quick_entry.json` can also
+hold `size`, the Create dialog's size: a frappe-ui dialog size from `xs` to `7xl`. With no
+`size`, the dialog is `xl`.
 
 ```json
 {

@@ -48,10 +48,11 @@ class TestAppLayout(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.rollback()
 
-	def write_file(self, type: str, tree: list, omitted: list | None = None) -> str:
+	def write_file(self, type: str, tree: list, omitted: list | None = None, size: str | None = None) -> str:
 		path = os.path.join(self.folder, f"{frappe.scrub(type)}.json")
+		data = {"layout": tree, "omitted": omitted or [], **({"size": size} if size else {})}
 		with open(path, "w") as f:
-			f.write(frappe.as_json({"layout": tree, "omitted": omitted or []}) + "\n")
+			f.write(frappe.as_json(data) + "\n")
 		return path
 
 	def test_no_row_returns_the_file(self):
@@ -97,6 +98,12 @@ class TestAppLayout(IntegrationTestCase):
 		self.assertFalse(get_form_layouts("Event", "Quick Entry")["dialog"])
 		self.write_file("Quick Entry", a_tree("subject"))
 		self.assertTrue(get_form_layouts("Event", "Quick Entry")["dialog"])
+
+	def test_a_quick_entry_file_and_row_send_their_dialog_size(self):
+		self.write_file("Quick Entry", a_tree("title"), size="3xl")
+		self.assertEqual(get_form_layouts("Note", "Quick Entry")["layouts"][0]["size"], "3xl")
+		make_layout(type="Quick Entry", dialog_size="2xl", layout=json.dumps(a_tree("content"))).insert()
+		self.assertEqual(get_form_layouts("Note", "Quick Entry")["layouts"][0]["size"], "2xl")
 
 	def test_a_file_change_changes_the_cache_key(self):
 		path = self.write_file("Details", a_tree("title"))
@@ -168,7 +175,12 @@ class TestEveryAppLayoutFile(IntegrationTestCase):
 			text = f.read()
 		data = json.loads(text)
 		self.assertEqual(text, frappe.as_json(data) + "\n", "not written as a server save writes it")
-		self.assertEqual(set(data), {"layout", "omitted"})
+		self.assertEqual(set(data) - {"size"}, {"layout", "omitted"})
+		if "size" in data:
+			self.assertEqual(type, "Quick Entry", "only Quick Entry opens in a dialog")
+			self.assertIn(
+				data["size"], frappe.get_meta("Form Layout").get_field("dialog_size").options.split("\n")[1:]
+			)
 		self.assertIsInstance(data["layout"], list)
 		self.assertTrue(all(isinstance(fieldname, str) for fieldname in data["omitted"]))
 		row = make_layout(dt=dt, type=type, layout=json.dumps(data["layout"]))

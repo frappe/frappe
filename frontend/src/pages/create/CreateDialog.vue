@@ -7,7 +7,7 @@
 		:title="__('New {0}', [__(doctype)])"
 		:dismissible="!saving"
 		:show-close-button="!saving"
-		size="xl"
+		:size="size"
 		@after-leave="request.dismiss()"
 	>
 		<div ref="body">
@@ -126,6 +126,7 @@ fetchNewDocument(doctype).then(
 );
 
 const layoutFailed = computed(() => Boolean(quickEntry.error.value));
+const size = computed(() => quickEntry.dialogSize.value ?? "xl");
 
 quickEntry.settled().then(() => {
 	if (props.request.settled()) return;
