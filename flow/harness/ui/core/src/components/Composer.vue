@@ -94,24 +94,24 @@
 					<span class="flex-none text-base-medium text-ink-gray-6">Queued</span>
 					<span class="min-w-0 flex-1 truncate text-base text-ink-gray-7">{{ item.label }}</span>
 					<!-- a compaction takes no steering: the queue waits for it to end -->
-					<button
+					<Button
 						v-if="!compacting"
-						class="flex h-6 flex-none items-center gap-1 rounded-4 px-2 text-base-medium text-ink-gray-7 hover:bg-surface-gray-3 hover:text-ink-gray-9"
+						variant="ghost"
+						size="xs"
+						icon-left="lucide-corner-down-left"
+						:label="running ? 'Steer' : 'Send'"
 						:title="running ? 'Add it to the running turn' : 'Send it now'"
 						:disabled="disabled"
 						@click="steerQueued(item)"
-					>
-						<span class="lucide-corner-down-left size-3" aria-hidden="true" />
-						{{ running ? "Steer" : "Send" }}
-					</button>
-					<button
-						class="grid h-5 w-5 flex-none place-items-center rounded-4 text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-9"
+					/>
+					<Button
+						variant="ghost"
+						size="xs"
+						icon="lucide-x"
 						title="Remove from queue"
 						:disabled="disabled"
 						@click="dropQueued(item)"
-					>
-						<span class="lucide-x size-3" aria-hidden="true" />
-					</button>
+					/>
 				</div>
 			</div>
 

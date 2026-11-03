@@ -66,22 +66,16 @@
 			</h3>
 			<Dropdown v-if="hasWorkspaces" align="end" :options="viewOptions">
 				<template #trigger>
-					<button
-						class="grid size-7 flex-none place-items-center rounded-4 text-ink-gray-5 transition-colors hover:bg-surface-gray-3 hover:text-ink-gray-7 data-[state=open]:bg-surface-gray-3 data-[state=open]:text-ink-gray-7"
-						title="Group and sort"
-					>
-						<span class="lucide-sliders-horizontal size-4" aria-hidden="true" />
-					</button>
+					<Button variant="ghost" icon="lucide-sliders-horizontal" title="Group and sort" />
 				</template>
 			</Dropdown>
-			<button
+			<Button
 				v-if="hasWorkspaces"
-				class="grid size-7 flex-none place-items-center rounded-4 text-ink-gray-5 transition-colors hover:bg-surface-gray-3 hover:text-ink-gray-7"
+				variant="ghost"
+				icon="lucide-folder-plus"
 				title="New workspace"
 				@click="newWorkspace"
-			>
-				<span class="lucide-folder-plus size-4" aria-hidden="true" />
-			</button>
+			/>
 		</div>
 
 		<div class="flex min-h-0 flex-1 flex-col overflow-y-auto px-2 pb-2 pt-0.5">

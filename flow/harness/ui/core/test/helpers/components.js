@@ -151,10 +151,11 @@ const widgets = moduleURL(`
 	}
 	// its slots and icon in frappe-ui's order
 	export const Button = {
-		props: ["label", "disabled", "icon", "variant", "size", "theme"],
+		props: ["label", "disabled", "icon", "iconLeft", "variant", "size", "theme"],
 		render() {
 			const icon = this.icon ? h("span", { class: this.icon, "aria-hidden": "true" }) : this.$slots.icon?.()
-			return h("button", { disabled: this.disabled }, [this.$slots.prefix?.(), icon ?? this.$slots.default?.() ?? this.label, this.$slots.suffix?.()])
+			const prefix = this.iconLeft ? h("span", { class: this.iconLeft, "aria-hidden": "true" }) : this.$slots.prefix?.()
+			return h("button", { disabled: this.disabled }, [prefix, icon ?? this.$slots.default?.() ?? this.label, this.$slots.suffix?.()])
 		},
 	}
 	export const Select = { ...text("select"), props: ["modelValue", "options"] }

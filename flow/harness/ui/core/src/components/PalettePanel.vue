@@ -31,14 +31,7 @@
 		<!-- a slim bar only for a page's way back and controls, in the list's heading style;
 		     a root list labels itself -->
 		<header v-if="back || $slots.actions" class="mt-1 flex h-7 flex-none items-center gap-1 px-2.5">
-			<button
-				v-if="back"
-				class="grid h-6 w-6 place-items-center rounded-full text-ink-gray-5 hover:bg-surface-gray-2 hover:text-ink-gray-8"
-				title="Back"
-				@click="emit('back')"
-			>
-				<span class="lucide-arrow-left size-3.5" aria-hidden="true" />
-			</button>
+			<Button v-if="back" variant="ghost" size="xs" icon="lucide-arrow-left" title="Back" @click="emit('back')" />
 			<span class="min-w-0 truncate text-sm-medium text-ink-gray-4" :class="back ? '' : 'pl-1'">
 				{{ title }}
 			</span>
@@ -51,6 +44,7 @@
 
 <script setup>
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
+import { Button } from "frappe-ui/src/components/Button"
 
 import { isInert, isPageEvent } from "../inert.js"
 import { nextNavigationIndex } from "../paletteNav.js"
