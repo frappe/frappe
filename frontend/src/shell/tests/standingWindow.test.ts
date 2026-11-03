@@ -272,6 +272,32 @@ describe("shell.window", () => {
 			await vi.waitFor(() => expect(hasTooltip(frameTitle())).toBe(false));
 		});
 
+		it("follows the frame's width, with no change of title", async () => {
+			const reports: ResizeObserverCallback[] = [];
+			vi.stubGlobal(
+				"ResizeObserver",
+				class {
+					constructor(report: ResizeObserverCallback) {
+						reports.push(report);
+					}
+					observe() {}
+					unobserve() {}
+					disconnect() {}
+				}
+			);
+			const scroll = measureTitleAs(100);
+			const handle = await attached();
+			handle.open();
+			await nextTick();
+			expect(hasTooltip(frameTitle())).toBe(false);
+
+			scroll.mockImplementation(() => 180);
+			const entry = { borderBoxSize: [{ inlineSize: 100 }] } as unknown as ResizeObserverEntry;
+			reports.forEach((report) => report([entry], {} as ResizeObserver));
+			await vi.waitFor(() => expect(hasTooltip(frameTitle())).toBe(true));
+			vi.unstubAllGlobals();
+		});
+
 		it("stays while a truncated title ticks", async () => {
 			measureTitleAs(180);
 			const handle = await attached();
