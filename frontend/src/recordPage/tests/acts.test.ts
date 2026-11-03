@@ -182,7 +182,7 @@ describe("page.run", () => {
 
     expect(names()).not.toContain("header.call");
     expect(names()).not.toContain("quickActions.call");
-    expect(controller.allows(page.header.resolve().find((e) => e.item.name === "call")!.item)).toBe(false);
+    expect(controller.allows(controller.header.resolve().find((e) => e.item.name === "call")!.item)).toBe(false);
     expect(await denial(page.run("header.call"))).toMatchObject({ reason: "hidden" });
     expect(await denial(page.run("quickActions.call"))).toMatchObject({ reason: "hidden" });
     expect(seen[0]).toBe(page);
