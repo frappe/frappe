@@ -350,7 +350,7 @@ def _get_or_new(workspace: str) -> "CustomWorkspace":
 	return frappe.get_doc({"doctype": "Custom Workspace", "workspace": workspace})
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def reset_workspace_customization(workspace: str, variant: str | None = None) -> None:
 	"""Restore the app's workspace, or with `variant` only that layout (a role or the default)."""
 	from frappe.desk.doctype.workspace.workspace import is_workspace_manager
@@ -380,7 +380,7 @@ def reset_workspace_customization(workspace: str, variant: str | None = None) ->
 	customization.save(ignore_permissions=True)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def delete_workspace_layout(workspace: str, variant: str) -> None:
 	"""Delete a role layout the site added. An app's own layout is reset, never deleted."""
 	from frappe.desk.doctype.workspace.workspace import is_workspace_manager

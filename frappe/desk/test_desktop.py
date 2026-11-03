@@ -65,12 +65,12 @@ class TestGetWorkspace(IntegrationTestCase):
 		with self.assertRaises(frappe.PermissionError):
 			get_workspace("GW Gated")
 
-	def test_someone_elses_private_workspace_is_forbidden(self):
+	def test_someone_elses_private_workspace_is_not_found(self):
 		private = make_workspace("GW Private", public=0, for_user=MANAGER)
 		frappe.set_user(MANAGER)
 		self.assertFalse(get_workspace(private.name)["public"])
 		frappe.set_user(DESK_USER)
-		with self.assertRaises(frappe.PermissionError):
+		with self.assertRaises(frappe.DoesNotExistError):
 			get_workspace(private.name)
 
 	def test_unreadable_widgets_are_dropped_with_their_blocks(self):

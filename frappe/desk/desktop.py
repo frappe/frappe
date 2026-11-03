@@ -488,19 +488,20 @@ def get_workspace(name: str, variant: str | None = None) -> dict:
 
 	`variant` asks for one layout, a role or `DEFAULT_LAYOUT`, and only an editor gets it.
 	"""
-	module = frappe.db.get_value("Workspace", name, "module")
-	if module is None or module in get_disabled_modules():
+	row = frappe.db.get_value("Workspace", name, ["module", "for_user"], as_dict=True)
+	# someone else's private workspace reads as missing, so its name cannot be probed
+	if (
+		not row
+		or (row.for_user and row.for_user != frappe.session.user)
+		or row.module in get_disabled_modules()
+	):
 		raise frappe.DoesNotExistError(_("Workspace {0} not found").format(name))
 
 	from frappe.desk.doctype.workspace.workspace import can_edit_workspace
 
 	workspace = Workspace({"name": name})
 	doc = workspace.doc
-	if doc.for_user:
-		permitted = doc.for_user == frappe.session.user
-	else:
-		permitted = workspace.is_permitted()
-	if not permitted:
+	if not doc.for_user and not workspace.is_permitted():
 		raise frappe.PermissionError(_("You are not permitted to open this workspace"))
 
 	can_edit = can_edit_workspace(doc)

@@ -27,9 +27,9 @@ function with_user(text) {
 	const user = window.frappe.boot.user || {};
 	const full_name = window.frappe.session.user_fullname || "";
 	return text
-		.replaceAll("{first_name}", escape_html(user.first_name || full_name))
-		.replaceAll("{last_name}", escape_html(user.last_name || ""))
-		.replaceAll("{full_name}", escape_html(full_name));
+		.replaceAll("{first_name}", () => escape_html(user.first_name || full_name))
+		.replaceAll("{last_name}", () => escape_html(user.last_name || ""))
+		.replaceAll("{full_name}", () => escape_html(full_name));
 }
 </script>
 
