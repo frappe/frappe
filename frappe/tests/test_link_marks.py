@@ -25,8 +25,12 @@ class TestLinkMarks(IntegrationTestCase):
 	def test_record_part_holds_the_target_value(self):
 		user = frappe.get_doc("User", "Administrator")
 		frappe.db.set_value("User", user.name, "user_image", "/files/test_link_marks.png")
-		todo = frappe.get_doc({"doctype": "ToDo", "description": "link marks", "allocated_to": user.name}).insert()
-		self.assertEqual(DOCUMENT_PARTS["link_marks"](todo), {"User::Administrator": "/files/test_link_marks.png"})
+		todo = frappe.get_doc(
+			{"doctype": "ToDo", "description": "link marks", "allocated_to": user.name}
+		).insert()
+		self.assertEqual(
+			DOCUMENT_PARTS["link_marks"](todo), {"User::Administrator": "/files/test_link_marks.png"}
+		)
 
 	def test_target_field_the_reader_cannot_read_gives_no_mark(self):
 		with self.set_user("Guest"):
