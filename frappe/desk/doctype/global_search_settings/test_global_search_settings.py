@@ -6,21 +6,10 @@ from frappe.core.doctype.user.test_user import test_user
 from frappe.desk.doctype.global_search_settings.global_search_settings import (
 	reset_global_search_settings_doctypes,
 )
-from frappe.tests import IntegrationTestCase
-
-# On IntegrationTestCase, the doctype test records and all
-# link-field test record dependencies are recursively loaded
-# Use these module variables to add/remove to/from that list
-EXTRA_TEST_RECORD_DEPENDENCIES = []  # eg. ["User"]
-IGNORE_TEST_RECORD_DEPENDENCIES = []  # eg. ["User"]
+from frappe.tests.utils import FrappeTestCase
 
 
-class IntegrationTestGlobalSearchSettings(IntegrationTestCase):
-	"""
-	Integration tests for GlobalSearchSettings.
-	Use this class for testing interactions between multiple components.
-	"""
-
+class TestGlobalSearchSettings(FrappeTestCase):
 	def test_reset_requires_write_permission(self):
 		with test_user(roles=["Desk User"]) as user, self.set_user(user.name):
 			self.assertRaises(frappe.PermissionError, reset_global_search_settings_doctypes)
