@@ -1,18 +1,15 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import base64
-<<<<<<< HEAD
-import json
-=======
 import io
->>>>>>> 80292fb (fix(file): add each file once when zipping)
+import json
 import os
 import shutil
 import tempfile
 import zipfile
 from contextlib import contextmanager
 from typing import TYPE_CHECKING
-from unittest.mock import patch
+from unittest.mock import call, patch
 
 import frappe
 from frappe import _
@@ -735,13 +732,15 @@ class TestFile(FrappeTestCase):
 			file = frappe.get_doc(
 				doctype="File", file_name="zip_0.txt", content=b"x" * 600, is_private=1
 			).insert()
-			content = File.zip_files([file.name] * 3)
+			with patch("frappe.get_doc", wraps=frappe.get_doc) as get_doc:
+				content = File.zip_files([file.name] * 3)
 		finally:
 			frappe.set_user("Administrator")
 			file.delete()
 
 		with zipfile.ZipFile(io.BytesIO(content)) as zf:
 			self.assertEqual(zf.namelist(), ["zip_0.txt"])
+		self.assertEqual(get_doc.call_args_list.count(call("File", file.name)), 1)
 
 	def test_file_unzip_rolls_back_children_on_mid_extraction_failure(self):
 		fixture_dir = tempfile.mkdtemp()
