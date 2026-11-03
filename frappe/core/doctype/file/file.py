@@ -4,6 +4,7 @@
 import io
 import mimetypes
 import os
+import posixpath
 import re
 import shutil
 import zipfile
@@ -101,6 +102,7 @@ class File(Document):
 	def before_insert(self):
 		# Ensure correct formatting and type
 		self.file_url = unquote(self.file_url) if self.file_url else ""
+		self.normalize_file_url()
 
 		self.set_folder_name()
 		self.set_is_private()
@@ -198,6 +200,29 @@ class File(Document):
 				frappe.only_for("System Manager")
 			except PermissionError:
 				frappe.throw(_("Only System Managers can make this file public."))
+
+	def normalize_file_url(self):
+		"""Collapse `.` and `//` segments in a local file URL; reject `..`.
+
+		The private-file access check matches `file_url` literally, but the path is
+		resolved on disk after normalization. Without this, `/private/files/./secret.pdf`
+		slips past the check as a new URL while still reading `secret.pdf` from disk.
+		Pinning every row to the canonical URL keeps the two views in step.
+		"""
+		if not self.file_url or self.is_remote_file:
+			return
+
+		if ".." in self.file_url.split("/"):
+			frappe.throw(_("The File URL you've entered is incorrect"), title=_("Invalid File URL"))
+
+		for prefix in ("/private/files/", "/files/"):
+			if not self.file_url.startswith(prefix):
+				continue
+			name = posixpath.normpath("/" + self.file_url[len(prefix) :].lstrip("/")).lstrip("/")
+			if not name or name == ".":
+				frappe.throw(_("The File URL you've entered is incorrect"), title=_("Invalid File URL"))
+			self.file_url = prefix + name
+			return
 
 	def validate_private_file_access(self):
 		"""Validate that the user has permission to access an existing private file."""
@@ -379,13 +404,23 @@ class File(Document):
 		):
 			return
 
-		if frappe.get_meta(self.attached_to_doctype).issingle:
-			frappe.db.set_single_value(
-				self.attached_to_doctype,
-				self.attached_to_field,
-				self.file_url,
-			)
-		else:
+		parent_meta = frappe.get_meta(self.attached_to_doctype)
+
+		if parent_meta.issingle:
+			if (
+				parent_meta.has_field(self.attached_to_field)
+				and frappe.db.get_single_value(self.attached_to_doctype, self.attached_to_field)
+				== old_file_url
+			):
+				frappe.db.set_single_value(
+					self.attached_to_doctype,
+					self.attached_to_field,
+					self.file_url,
+				)
+		elif parent_meta.has_field(self.attached_to_field) and frappe.db.exists(
+			self.attached_to_doctype,
+			{"name": self.attached_to_name, self.attached_to_field: old_file_url},
+		):
 			frappe.db.set_value(
 				self.attached_to_doctype,
 				self.attached_to_name,
@@ -840,7 +875,13 @@ class File(Document):
 				file_exists = True
 
 		if not file_exists:
-			if not overwrite:
+			# rewrite in place only the file this record alone points to; file_name can differ from file_url
+			in_place = (
+				overwrite
+				and self.file_url
+				and not frappe.db.exists("File", {"file_url": self.file_url, "name": ("!=", self.name)})
+			)
+			if not in_place:
 				self.file_name = generate_file_name(
 					name=self.file_name,
 					suffix=self.content_hash[-6:],
@@ -850,6 +891,9 @@ class File(Document):
 			write_file_method = get_hook_method("write_file")
 			if write_file_method:
 				return write_file_method(self)
+			if in_place:
+				self.write_file()
+				return {"file_name": self.file_name, "file_url": self.file_url}
 			return self.save_file_on_filesystem()
 
 	def save_file_on_filesystem(self):

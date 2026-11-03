@@ -10,6 +10,7 @@ export {
   columnId,
   effectiveSort,
   findGroupByField,
+  formatRating,
   getAggregateFields,
   getGroupByFields,
   parseGroupBy,

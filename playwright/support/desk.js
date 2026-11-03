@@ -162,6 +162,8 @@ export class Desk {
 	}
 
 	async hide_dialog() {
+		const dialog = await this.get_open_dialog().elementHandle();
+		await this.page.waitForFunction((el) => !$(el).data("bs.modal")?._isTransitioning, dialog);
 		await this.get_open_dialog().locator(".btn-modal-close").click();
 		await expect(this.page.locator(".modal:visible")).toHaveCount(0);
 	}

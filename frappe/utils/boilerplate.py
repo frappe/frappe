@@ -745,7 +745,10 @@ jobs:
             ${{{{ runner.os }}}}-yarn-
 
       - name: Install MariaDB Client
-        run: sudo apt-get install mariadb-client-10.6
+        run: |
+          sudo apt-get install mariadb-client
+          # MariaDB 10.6 server has no TLS, but newer clients require it by default
+          printf "[client]\\nskip-ssl\\n" > ~/.my.cnf
 
       - name: Setup
         run: |

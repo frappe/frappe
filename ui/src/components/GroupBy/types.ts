@@ -47,6 +47,9 @@ export interface GroupByProps {
   hideLabel?: boolean;
   /** Which edge of the button the popover lines up with. Defaults to `end`. */
   align?: "start" | "end";
+  /** Fieldnames not to offer for grouping or aggregating, such as fields the app
+   *  never fills in. */
+  exclude?: string[];
 }
 
 /** Props for `<GroupByTable>`. The host fetches `rows` with `serializeGroupBy`. */

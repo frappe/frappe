@@ -1014,6 +1014,66 @@ class TestAttachment(FrappeTestCase):
 
 		self.assertTrue(exists)
 
+	def test_unchanged_private_attachment_is_not_reattached_on_save(self):
+		file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "test_unchanged.txt",
+				"content": "Unchanged Content",
+				"is_private": 1,
+			}
+		).insert()
+		doc = frappe.get_doc(doctype=self.test_doctype, title="test unchanged private attachment").insert()
+		frappe.db.set_value(self.test_doctype, doc.name, "attachment", file.file_url)
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		frappe.get_doc(self.test_doctype, doc.name).save(ignore_permissions=True)
+
+		self.assertFalse(
+			frappe.get_all(
+				"Error Log", filters={"reference_doctype": self.test_doctype, "reference_name": doc.name}
+			)
+		)
+
+	def test_toggle_is_private_leaves_unrelated_field_unchanged(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc(doctype="ToDo", description="Call Northwind Traders").insert()
+		file = frappe.get_doc(
+			doctype="File",
+			file_name="call-notes.txt",
+			content=b"call-notes-bytes",
+			is_private=1,
+			attached_to_doctype="ToDo",
+			attached_to_name=todo.name,
+			attached_to_field="description",
+		).insert()
+
+		file.is_private = 0
+		file.save()
+
+		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "description"), "Call Northwind Traders")
+
+	@change_settings("Navbar Settings", {"app_logo": "/files/logo.png"})
+	def test_toggle_is_private_leaves_unrelated_single_field_unchanged(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		file = frappe.get_doc(
+			doctype="File",
+			file_name="navbar-logo.png",
+			content=b"navbar-logo-bytes",
+			is_private=1,
+			attached_to_doctype="Navbar Settings",
+			attached_to_name="Navbar Settings",
+			attached_to_field="app_logo",
+		).insert()
+
+		file.is_private = 0
+		file.save()
+
+		self.assertEqual(frappe.db.get_single_value("Navbar Settings", "app_logo"), "/files/logo.png")
+
 
 class TestAttachmentsAccess(FrappeTestCase):
 	def setUp(self) -> None:
@@ -1111,6 +1171,44 @@ class TestAttachmentsAccess(FrappeTestCase):
 
 		other.file_url = private_file.file_url
 		self.assertRaises(frappe.PermissionError, other.save)
+
+	def test_dot_segment_cannot_bypass_private_file_access(self):
+		# A "./" segment resolves to the same file on disk but reads as a different URL.
+		# It must be normalised before the access check so it still points at the victim's row.
+		frappe.set_user("test@example.com")
+		victim = frappe.get_doc(
+			doctype="File", file_name="dot_bypass_private.txt", content="dot-bypass-bytes", is_private=1
+		).insert()
+		name = victim.file_url.rsplit("/", 1)[1]
+
+		frappe.set_user("test4@example.com")
+		attacker = frappe.get_doc(
+			doctype="File",
+			file_url=f"/private/files/./{name}",
+			file_name=name,
+			is_private=1,
+		)
+		self.assertRaises(frappe.PermissionError, attacker.insert)
+
+	def test_file_url_is_normalised_on_insert(self):
+		frappe.set_user("Administrator")
+		file = frappe.get_doc(
+			doctype="File", content=b"normalise-bytes", file_name="normalise_me.txt", is_private=1
+		).insert(ignore_permissions=True)
+		name = file.file_url.rsplit("/", 1)[1]
+
+		for messy in (
+			f"/private/files/./{name}",
+			f"/private/files/.//{name}",
+		):
+			candidate = frappe.new_doc("File")
+			candidate.file_url = messy
+			candidate.normalize_file_url()
+			self.assertEqual(candidate.file_url, f"/private/files/{name}")
+
+		candidate = frappe.new_doc("File")
+		candidate.file_url = f"/private/files/foo/../{name}"
+		self.assertRaisesRegex(ValidationError, "File URL", candidate.normalize_file_url)
 
 	def tearDown(self) -> None:
 		frappe.set_user("Administrator")
@@ -1315,6 +1413,46 @@ class TestFileOptimization(FrappeTestCase):
 			# neither the read nor the write side of optimize_file executed
 			self.assertEqual(first_file.get_content(), original_content)
 			self.assertEqual(frappe.get_doc("File", second_file.name).file_url, second_file.file_url)
+
+	def test_optimize_file_writes_to_own_file_url(self):
+		"""optimize_file must write to the record's file_url, not a path built from file_name."""
+		with self.set_user("test@example.com"), make_test_image_file(private=True) as first_file:
+			original_content = first_file.get_content()
+
+			with open(frappe.get_app_path("frappe", "tests/data/exif_sample_image.jpg"), "rb") as f:
+				second_file = frappe.get_doc(
+					{
+						"doctype": "File",
+						"file_name": "second_file.jpg",
+						"content": f.read(),
+						"is_private": 1,
+					}
+				).insert()
+			self.addCleanup(second_file.delete)
+
+			second_file = frappe.get_doc("File", second_file.name)
+			second_url, second_content = second_file.file_url, second_file.get_content()
+			second_file.file_name = first_file.file_name
+			second_file.optimize_file()
+
+			self.assertEqual(first_file.get_content(), original_content)
+			self.assertEqual(second_file.file_url, second_url)
+			self.assertNotEqual(second_file.get_content(), second_content)
+
+	def test_optimize_file_does_not_rewrite_shared_file(self):
+		"""optimize_file on one of two records sharing a file_url must leave the other one's file intact."""
+		with self.set_user("test@example.com"), make_test_image_file(private=True) as source:
+			original_content = source.get_content()
+			doctype, docname = make_test_doc()
+			copy = source.create_attachment_copy(doctype, docname)
+			self.addCleanup(copy.delete)
+
+			copy = frappe.get_doc("File", copy.name)
+			copy.optimize_file()
+
+			self.assertNotEqual(copy.file_url, source.file_url)
+			self.assertEqual(frappe.get_doc("File", source.name).get_content(), original_content)
+			self.assertNotEqual(copy.get_content(), original_content)
 
 	def test_validate_file_url_matches_record_allows_own_url(self):
 		with make_test_image_file() as test_file:

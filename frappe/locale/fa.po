@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-10-25 09:36+0000\n"
-"PO-Revision-Date: 2026-10-26 04:19\n"
+"PO-Revision-Date: 2026-11-02 04:13\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -13033,7 +13033,7 @@ msgstr "محدودیت نرخ ساعتی برای ایجاد پیوندهای ب
 #: frappe/public/js/frappe/form/controls/duration.js:22
 msgctxt "Duration"
 msgid "Hours"
-msgstr "ساعت ها"
+msgstr ""
 
 #. Description of the 'Number Format' (Select) field in DocType 'Currency'
 #: frappe/geo/doctype/currency/currency.json:67
@@ -17012,7 +17012,7 @@ msgstr "جزئی"
 #: frappe/public/js/frappe/form/controls/duration.js:23
 msgctxt "Duration"
 msgid "Minutes"
-msgstr "دقایق"
+msgstr ""
 
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.py:103
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.py:108
