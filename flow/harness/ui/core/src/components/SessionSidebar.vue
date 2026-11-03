@@ -329,7 +329,7 @@ const appMenu = computed(() => [
 			{
 				label: "Settings",
 				icon: "lucide-settings",
-				slots: { suffix: () => h(KeyboardShortcut, { combo: "Mod+,", showPlus: false }) },
+				slots: layout.phone ? {} : { suffix: () => h(KeyboardShortcut, { combo: "Mod+,", showPlus: false }) },
 				onClick: afterMenu(() => flow.setSettingsOpen(true)),
 			},
 			...props.menu,
