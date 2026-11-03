@@ -109,6 +109,9 @@
 						<option value="chrome" :disabled="has_typst_block">
 							{{ __("Chromium") }}
 						</option>
+						<option value="PlutoPrint" :disabled="has_typst_block">
+							{{ __("PlutoPrint (light)") }}
+						</option>
 						<option value="Typst" :disabled="typst_blockers.length > 0">
 							{{ __("Typst (fast)") }}
 						</option>
@@ -181,7 +184,7 @@ const DEPRECATION_NOTICES = {
 };
 let renderer = computed(() => {
 	const value = print_format.value?.pdf_generator;
-	return ["Typst", "WeasyPrint"].includes(value) ? value : "chrome";
+	return ["PlutoPrint", "Typst", "WeasyPrint"].includes(value) ? value : "chrome";
 });
 let deprecation_notice = computed(() => DEPRECATION_NOTICES[renderer.value] || null);
 let hint_icon = ref(null);
@@ -195,7 +198,8 @@ let renderer_hint = computed(() => {
 		parts.push(bullet_list(__("Typst cannot render:"), typst_blockers.value));
 	if (renderer.value === "WeasyPrint" && legacy_blockers.value.length)
 		parts.push(bullet_list(__("WeasyPrint cannot render:"), legacy_blockers.value));
-	if (!parts.length && renderer.value === "Typst") parts.push(__("Experimental"));
+	if (!parts.length && ["Typst", "PlutoPrint"].includes(renderer.value))
+		parts.push(__("Experimental"));
 	return parts.join("\n\n");
 });
 let hint_tooltip = null;
@@ -235,7 +239,7 @@ function set_background_image(image) {
 
 function set_renderer(value) {
 	if (value !== "Typst" && has_typst_block.value) return;
-	print_format.value.pdf_generator = value === "Typst" ? "Typst" : "chrome";
+	print_format.value.pdf_generator = ["Typst", "PlutoPrint"].includes(value) ? value : "chrome";
 }
 let font_options = computed(() => [
 	{ label: __("Default"), value: "" },

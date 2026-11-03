@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-10-25 09:36+0000\n"
-"PO-Revision-Date: 2026-10-26 04:19\n"
+"PO-Revision-Date: 2026-11-02 04:13\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Serbian (Cyrillic)\n"
 "MIME-Version: 1.0\n"
@@ -16294,7 +16294,7 @@ msgstr "Ограничење по часу за генерисање линко�
 #: frappe/public/js/frappe/form/controls/duration.js:29
 msgctxt "Duration"
 msgid "Hours"
-msgstr "Часови"
+msgstr "Сата"
 
 #: frappe/core/page/component_explorer/component_explorer.js:417
 #: frappe/core/page/component_explorer/component_explorer.js:426

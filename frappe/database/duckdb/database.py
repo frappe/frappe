@@ -3,6 +3,7 @@ from frappe import qb
 from frappe.database import get_duckdb
 from frappe.database.database import Database
 from frappe.database.duckdb.schema import DuckDBTable
+from frappe.query_builder import Order
 
 
 def get_type_map():
@@ -86,12 +87,26 @@ def get_pyarrow_type_map():
 
 
 def get_latest_sync(doctype: str | None = None):
-	if doctype:
-		if latest_sync := frappe.db.get_all(
-			"DuckDB Sync", filters={"doc_type": doctype}, pluck="name", order_by="creation desc", limit=1
-		):
-			return frappe.get_doc("DuckDB Sync", latest_sync[0]).get_duckdb_conn()
+	"""A read-only connection to the latest complete sync of the doctype."""
+	if doctype and (sync := get_latest_complete_sync(doctype)):
+		return get_duckdb(True, sync.filename)
 	return None
+
+
+def get_latest_complete_sync(doctype: str):
+	"""The latest submitted sync of the doctype whose tables are all copied, or None."""
+	sync = qb.DocType("DuckDB Sync")
+	item = qb.DocType("DuckDB Sync Item")
+	pending = qb.from_(item).select(item.parent).where(item.synced == 0)
+	syncs = (
+		qb.from_(sync)
+		.select(sync.name, sync.filename, sync.creation)
+		.where((sync.doc_type == doctype) & (sync.docstatus == 1) & sync.name.notin(pending))
+		.orderby(sync.creation, order=Order.desc)
+		.limit(1)
+		.run(as_dict=True)
+	)
+	return syncs[0] if syncs else None
 
 
 class DuckDBConnection:

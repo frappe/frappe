@@ -10,6 +10,7 @@ import frappe
 # Backward compatbility
 from frappe import _, bold, is_whitelisted, validate_and_sanitize_search_inputs
 from frappe.database.schema import SPECIAL_CHAR_PATTERN
+from frappe.model import get_permitted_fields
 from frappe.model.db_query import get_order_by
 from frappe.permissions import has_permission
 from frappe.utils import cint, cstr, escape_html, sbool, unique
@@ -603,7 +604,8 @@ def get_link_title(doctype: str, docname: str | int):
 	if meta.show_title_field_in_link:
 		try:
 			doc = frappe.get_lazy_doc(doctype, docname)
-			if has_permission(doctype, "read", doc, print_logs=False):
+			is_title_permitted = meta.title_field in get_permitted_fields(doctype)
+			if is_title_permitted and has_permission(doctype, "select", doc, print_logs=False):
 				return doc.get(meta.title_field)
 		except frappe.DoesNotExistError:
 			frappe.clear_last_message()

@@ -745,6 +745,26 @@ class TestTypstRender(IntegrationTestCase):
 		self.assertTrue(left_right.startswith("#align(right)[#grid(columns: (auto, auto)"))
 		self.assertIn("[#align(center)[#text(", inline)
 
+	def test_left_right_field_label_justify_matches_html(self):
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+		from frappe.utils.typst_emitter import TypstEmitter
+
+		pf = self.make(layout_with())
+		todo = self.make_todo()
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		emitter = TypstEmitter(PrintFormatGenerator(pf, todo))
+		df = {"fieldtype": "Data", "fieldname": "description", "label": "Description"}
+		section = {"field_orientation": "left-right"}
+		space_between = emitter._data_field(section, {**df, "label_justify": "space-between"})
+		space_evenly = emitter._data_field(section, {**df, "label_justify": "space-evenly"})
+		self.assertTrue(space_between.startswith("#grid(columns: (auto, 1fr)"))
+		self.assertTrue(space_evenly.startswith("#grid(columns: (1fr, auto, 1fr, auto, 1fr)"))
+		hidden_label = emitter._data_field(
+			section, {**df, "show_label": "hide", "label_justify": "space-evenly"}
+		)
+		self.assertTrue(hidden_label.startswith("#align(center)["))
+
 	@unittest.skipUnless(has_typst(), "typst not installed")
 	def test_image_format_comes_from_its_content(self):
 		from io import BytesIO

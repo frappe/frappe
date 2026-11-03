@@ -60,6 +60,46 @@ class TestSocialLoginKey(IntegrationTestCase):
 			login_via_oauth2("github", "iwriu", create_oauth_state(None))
 		self.assertEqual(frappe.session.user, TEST_GITHUB_USER)
 
+	def test_on_social_login_hook_receives_claims_and_can_grant_roles(self):
+		github_social_login_setup()
+		social_login_hook_calls.clear()
+
+		mock_session = MagicMock()
+		mock_session.get.side_effect = github_response_for_login
+
+		state = create_oauth_state(None)
+		with (
+			self.patch_hooks({"on_social_login": [f"{__name__}.grant_desk_access_on_social_login"]}),
+			patch.object(OAuth2Service, "get_auth_session", return_value=mock_session),
+		):
+			login_via_oauth2("github", "iwriu", state)
+
+		self.assertEqual(len(social_login_hook_calls), 1)
+		hook_call = social_login_hook_calls[0]
+		self.assertEqual(hook_call["user"], TEST_GITHUB_USER)
+		self.assertEqual(hook_call["provider"], "github")
+		self.assertEqual(hook_call["claims"]["login"], "dummy_username")
+		self.assertEqual(hook_call["claims"]["email"], TEST_GITHUB_USER)
+
+		self.assertEqual(frappe.session.user, TEST_GITHUB_USER)
+		self.assertIn("Desk User", frappe.get_roles(TEST_GITHUB_USER))
+		self.assertEqual(frappe.local.response.get("message"), "Logged In")
+
+	def test_on_social_login_hook_can_refuse_sign_in(self):
+		github_social_login_setup()
+
+		mock_session = MagicMock()
+		mock_session.get.side_effect = github_response_for_login
+
+		state = create_oauth_state(None)
+		with (
+			self.patch_hooks({"on_social_login": [f"{__name__}.refuse_social_login"]}),
+			patch.object(OAuth2Service, "get_auth_session", return_value=mock_session),
+		):
+			self.assertRaises(frappe.PermissionError, login_via_oauth2, "github", "iwriu", state)
+
+		self.assertEqual(frappe.session.user, "Guest")
+
 	def test_oauth_state_helpers_reject_unknown_and_reused_tokens(self):
 		"""consume_oauth_state must only resolve tokens it minted itself, and only once."""
 		self.assertIsNone(consume_oauth_state("attacker-forged-token"))
@@ -134,6 +174,20 @@ class TestSocialLoginKey(IntegrationTestCase):
 			login_via_oauth2("github", "iwriu", create_oauth_state(None))
 
 		self.assertEqual(frappe.session.user, TEST_GITHUB_USER)
+
+
+social_login_hook_calls = []
+
+
+def grant_desk_access_on_social_login(user: str, provider: str, claims: dict) -> None:
+	social_login_hook_calls.append({"user": user, "provider": provider, "claims": claims})
+	user_doc = frappe.get_doc("User", user)
+	user_doc.flags.ignore_permissions = True
+	user_doc.add_roles("Desk User")
+
+
+def refuse_social_login(user: str, provider: str, claims: dict) -> None:
+	raise frappe.PermissionError
 
 
 def make_social_login_key(**kwargs):

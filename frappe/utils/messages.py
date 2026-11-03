@@ -76,16 +76,17 @@ def msgprint(
 		else:
 			out.message = clean_html(msg)
 
-	if sys.stdin and sys.stdin.isatty():
-		if out.as_list:
-			msg = [strip_html_tags(cell) for cell in msg]
-		elif out.as_table:
-			msg = [[strip_html_tags(cell) for cell in row] for row in msg]
-		else:
-			msg = strip_html_tags(msg)
-
 	if frappe.flags.print_messages and out.message:
-		print(f"Message: {msg}")
+		terminal_msg = msg
+		if sys.stdin and sys.stdin.isatty():
+			if out.as_list:
+				terminal_msg = [strip_html_tags(cell) for cell in msg]
+			elif out.as_table:
+				terminal_msg = [[strip_html_tags(cell) for cell in row] for row in msg]
+			else:
+				terminal_msg = strip_html_tags(msg)
+
+		print(f"Message: {terminal_msg}")
 
 	out.title = title or _("Message", context="Default title of the message dialog")
 

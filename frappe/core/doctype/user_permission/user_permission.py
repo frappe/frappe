@@ -131,9 +131,12 @@ def get_user_permissions(user: str | None = None):
 			fields=["allow", "for_value", "applicable_for", "is_default", "hide_descendants"],
 			filters=dict(user=user),
 		):
-			meta = frappe.get_meta(perm.allow)
 			add_doc_to_perm(perm, perm.for_value, perm.is_default, perm.hide_descendants)
 
+			if not frappe.db.exists("DocType", perm.allow, cache=True):
+				continue
+
+			meta = frappe.get_meta(perm.allow)
 			if meta.is_nested_set() and not perm.hide_descendants:
 				decendants = frappe.db.get_descendants(perm.allow, perm.for_value)
 				for doc in decendants:

@@ -318,8 +318,8 @@ def delete_prepared_reports(reports: str | list[dict[str, Any]]):
 	reports = frappe.parse_json(reports)
 	for report in reports:
 		prepared_report = frappe.get_doc("Prepared Report", report["name"])
-		if prepared_report.has_permission():
-			prepared_report.delete(ignore_permissions=True, delete_permanently=True)
+		prepared_report.check_permission("read")
+		prepared_report.delete(ignore_permissions=True, delete_permanently=True)
 
 
 def create_json_gz_file(data, dt, dn, report_name):

@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-10-25 09:36+0000\n"
-"PO-Revision-Date: 2026-10-26 04:19\n"
+"PO-Revision-Date: 2026-11-02 04:13\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -1110,7 +1110,7 @@ msgstr "A9"
 #. Label of the ai_agents_tab (Tab Break) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json:866
 msgid "AI Agents"
-msgstr ""
+msgstr "AI Agenter"
 
 #. Option for the 'Email Sync Option' (Select) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json:265
@@ -14584,7 +14584,7 @@ msgstr "För mer information <a href=\"https://frappeframework.com/docs/user/en/
 #: frappe/core/doctype/system_settings/system_settings.js:130
 #, python-brace-format
 msgid "For more information, see {0}."
-msgstr ""
+msgstr "För mer information, se {0}."
 
 #: frappe/integrations/doctype/google_settings/google_settings.js:7
 #, python-brace-format
@@ -17577,7 +17577,7 @@ msgstr "Infogad"
 
 #: frappe/core/doctype/system_settings/system_settings.js:122
 msgid "Install it:"
-msgstr ""
+msgstr "Installera:"
 
 #. Name of a DocType
 #: frappe/core/doctype/installed_application/installed_application.json:62
@@ -32991,7 +32991,7 @@ msgstr "Registrering är inaktiverad"
 
 #: frappe/core/doctype/system_settings/system_settings.js:124
 msgid "Sign in to this site:"
-msgstr ""
+msgstr "Logga in på denna webbplats:"
 
 #: frappe/www/login.html:116 frappe/www/login.html:132
 #: frappe/www/login.html:209
@@ -33697,7 +33697,7 @@ msgstr "Standard Webb Formulär kan inte modifieras, duplicera Webb Formulär is
 
 #: frappe/printing/page/print/print.js:247
 msgid "Standard is used when no default is set"
-msgstr "Standardvärde används när inget standardvärde är angiven"
+msgstr "Standard används när ingen standardvärde är angiven"
 
 #: frappe/desk/doctype/list_filter/list_filter.py:101
 #, python-brace-format
@@ -35210,7 +35210,7 @@ msgstr "Telemetri"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json:886
 msgid "Tell AI agents what this site is for and how your team uses it. Agents receive this text when they connect."
-msgstr ""
+msgstr "Berätta för AI agenter vad denna webbplats är för och hur ditt lag använder den. Agenter får denna text när de ansluter."
 
 #. Label of the template (Link) field in DocType 'Auto Repeat'
 #. Label of the template (Code) field in DocType 'Address Template'
@@ -35897,7 +35897,7 @@ msgstr "Teman"
 
 #: frappe/core/doctype/system_settings/system_settings.js:126
 msgid "Then use it:"
-msgstr ""
+msgstr "Använd den sedan:"
 
 #: frappe/workflow/doctype/workflow/workflow.js:157
 msgid "There are documents which have workflow states that do not exist in this Workflow. It is recommended that you add these states to the Workflow and change their states before removing these states."
@@ -41994,11 +41994,11 @@ msgstr "hittade"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json:894
 msgid "frappectl"
-msgstr ""
+msgstr "frappectl"
 
 #: frappe/core/doctype/system_settings/system_settings.js:119
 msgid "frappectl is a command-line client for Frappe sites, built for people and AI agents."
-msgstr ""
+msgstr "frappectl är kommandorad klient för Frappe webbplatser, utvecklad för både människor och AI agenter."
 
 #. Option for the 'Indicator Color' (Select) field in DocType 'Custom
 #. Workspace'

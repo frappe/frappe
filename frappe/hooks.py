@@ -108,6 +108,7 @@ pdf_body_html = "frappe.utils.pdf.pdf_body_html"
 pdf_footer_html = "frappe.utils.pdf.pdf_footer_html"
 pdf_generator = [
 	"frappe.utils.pdf.get_chrome_pdf",
+	"frappe.utils.pdf.get_plutoprint_pdf",
 	"frappe.utils.print_format_generator.get_typst_pdf",
 	"frappe.utils.weasyprint.get_weasyprint_pdf",
 ]

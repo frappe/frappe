@@ -1248,6 +1248,87 @@ class TestDBQuery(IntegrationTestCase):
 
 		self.assertTrue(dashboard_settings)
 
+	def test_permission_query_condition_supports_pypika(self):
+		"""The legacy DatabaseQuery path must also accept a pypika criterion from a hook."""
+		from frappe.desk.doctype.dashboard_settings.dashboard_settings import (
+			create_dashboard_settings,
+		)
+		from frappe.model.db_query import DatabaseQuery
+
+		self.user = "test@example.com"
+		create_dashboard_settings(self.user)
+
+		with self.patch_hooks(
+			{
+				"permission_query_conditions": {
+					"Dashboard Settings": ["frappe.tests.test_query.test_permission_hook_criterion"]
+				}
+			}
+		):
+			db_query = DatabaseQuery("Dashboard Settings", user=self.user)
+			conditions = db_query.get_permission_query_conditions()
+
+			# The criterion must be rendered to a namespaced SQL string (the `tab`-prefixed
+			# table name is dialect-independent; only the surrounding quote char differs).
+			self.assertIn("tabDashboard Settings", conditions)
+			self.assertIn("name", conditions)
+
+			# And the rendered string must be valid SQL that selects the user's record.
+			rows = frappe.db.sql(
+				f"SELECT name FROM `tabDashboard Settings` WHERE {conditions}",
+				as_dict=True,
+			)
+			self.assertTrue(any(r.name == self.user for r in rows))
+
+	def test_permission_criterion_escapes_values_safely(self):
+		"""Values inside a pypika permission criterion must be driver-escaped, not inlined raw.
+
+		pypika's bare quote-doubling is unsafe on MariaDB (backslash is an escape char), so the
+		legacy path must route values through frappe.db.escape. A backslash must be doubled and a
+		quote-breakout attempt must stay inside the string literal.
+		"""
+		from frappe.model.db_query import DatabaseQuery
+
+		payload = "back\\slash' OR 1=1 -- "
+		Dashboard = frappe.qb.DocType("Dashboard Settings")
+		rendered = DatabaseQuery("Dashboard Settings")._render_permission_criterion(Dashboard.name == payload)
+
+		# The value must appear exactly as frappe.db.escape produces it (driver-quality escaping:
+		# backslash doubled, quote escaped) — never the raw breakout sequence.
+		self.assertIn(frappe.db.escape(payload), rendered)
+		self.assertNotIn("slash' OR", rendered)
+
+	def test_permission_criterion_or_stays_grouped(self):
+		from frappe.model.db_query import DatabaseQuery
+
+		open_todo = frappe.get_doc(doctype="ToDo", description="_Test OR Group", status="Open").insert()
+		closed_todo = frappe.get_doc(doctype="ToDo", description="_Test OR Group", status="Closed").insert()
+		with self.patch_hooks(
+			{
+				"permission_query_conditions": {
+					"ToDo": [
+						"frappe.tests.test_db_query.todo_description_hook",
+						"frappe.tests.test_db_query.todo_open_hook",
+					]
+				}
+			}
+		):
+			names = DatabaseQuery("ToDo").execute(pluck="name", user="test@example.com")
+
+		self.assertIn(open_todo.name, names)
+		self.assertNotIn(closed_todo.name, names)
+
+	def test_permission_criterion_values_are_inlined_as_is(self):
+		from frappe.model.db_query import DatabaseQuery
+
+		todo = frappe.get_doc(doctype="ToDo", description="100% %(param2)s").insert()
+		with self.patch_hooks(
+			{"permission_query_conditions": {"ToDo": ["frappe.tests.test_db_query.todo_placeholder_hook"]}}
+		):
+			names = DatabaseQuery("ToDo").execute(pluck="name", user="test@example.com")
+
+		self.assertEqual(names, [todo.name])
+
 	def test_virtual_doctype(self):
 		"""Test that virtual doctypes can be queried using get_all"""
 
@@ -1755,3 +1836,17 @@ def create_nested_doctype_records():
 		d = frappe.new_doc("Nested DocType")
 		d.update(r)
 		d.insert(ignore_permissions=True, ignore_if_duplicate=True)
+
+
+def todo_description_hook(user, doctype=None):
+	ToDo = frappe.qb.DocType("ToDo")
+	return (ToDo.description == "_Test OR Group") | (ToDo.description == "_Test OR Other")
+
+
+def todo_open_hook(user, doctype=None):
+	return frappe.qb.DocType("ToDo").status == "Open"
+
+
+def todo_placeholder_hook(user, doctype=None):
+	ToDo = frappe.qb.DocType("ToDo")
+	return (ToDo.description == "100% %(param2)s") | (ToDo.description == "_Test OR Other")

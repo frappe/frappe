@@ -737,7 +737,7 @@ def get_context(context):
 			or (
 				frappe.db.get_value("Print Format", self.print_format, "default_print_language")
 				if self.print_format
-				else "en"
+				else None
 			),
 		}
 

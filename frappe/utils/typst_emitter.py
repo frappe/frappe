@@ -296,6 +296,17 @@ def font_family(font: str | None) -> str:
 	return font if font and font != "Default" else DEFAULT_FONT
 
 
+def _font_cache_path(family: str) -> str | None:
+	"""The cache directory for a family once it holds something."""
+	import os
+
+	safe_family = re.sub(r"[^A-Za-z0-9 _-]", "", family).replace(" ", "_")
+	if not safe_family:
+		return None
+	path = os.path.join(frappe.get_site_path("private", "files", "typst_fonts"), safe_family)
+	return path if os.path.isdir(path) and os.listdir(path) else None
+
+
 def ensure_typst_fonts(family: str | None):
 	"""Fetch the format's Google Font as TTFs into the site's font cache.
 
@@ -696,8 +707,8 @@ class TypstEmitter:
 			else:
 				ruled = 'stroke: (bottom: 1.125pt + rgb("#e2e2e2")), inset: (bottom: 0.35em)'
 				spacing = "0.75em"
-			heading = f"#block(width: 100%, {ruled})[{label}]"
-			body = f"#stack(spacing: {spacing},\n[{heading}],\n[{body}])"
+			heading = f"#block(width: 100%, sticky: true, below: {spacing}, {ruled})[{label}]"
+			body = f"{heading}\n{body}"
 
 		block_args = self._section_block_args(section)
 		if section.get("keep_together"):
@@ -788,19 +799,19 @@ class TypstEmitter:
 
 		if len(cells) == 1:
 			return cells[0][1:-1]
-		if section.get("field_borders") and section.get("grid_borders") != "rows":
+		if section.get("field_borders"):
 			pad = pt(section.get("cell_padding"), 8)
 			# both HTML surfaces force gap to 0 in bordered mode — spacing comes
 			# from the cell padding on either side of the divider
 			gutter = pad
+			rule = "none" if section.get("grid_borders") == "rows" else hairline(section.get("border_color"))
 			divided = [cells[0]]
 			for cell in cells[1:]:
-				rule = hairline(section.get("border_color"))
 				divided.append(f"grid.cell(stroke: (left: {rule}), inset: (left: {pad}pt))" + cell)
 			return (
-				f"#grid(columns: ({', '.join(widths)}), column-gutter: {gutter}pt, align: top,\n"
+				f"#pad(y: -{pad}pt, grid(columns: ({', '.join(widths)}), column-gutter: {gutter}pt, inset: (y: {pad}pt), align: top,\n"
 				+ ",\n".join(divided)
-				+ ")"
+				+ "))"
 			)
 		return (
 			f"#grid(columns: ({', '.join(widths)}), column-gutter: {gap_pt}pt, align: top,\n"
@@ -818,7 +829,7 @@ class TypstEmitter:
 		if section.get("field_borders") and section.get("grid_borders") != "columns" and len(parts) > 1:
 			pad = pt(section.get("cell_padding"), 8)
 			ruled = [
-				f"#block(width: 100%, stroke: (bottom: {hairline(section.get('border_color'))}), inset: (bottom: {pad}pt))[{p}]"
+				f"#block(width: 100%, stroke: (bottom: {hairline(section.get('border_color'))}), inset: (bottom: {pad}pt), outset: (x: {pad}pt))[{p}]"
 				for p in parts[:-1]
 			] + [parts[-1]]
 			body = f"#stack(spacing: {pad}pt,\n" + ",\n".join(f"[{p}]" for p in ruled) + ")"
@@ -994,8 +1005,22 @@ class TypstEmitter:
 			if align in ("center", "right") and section.get("field_orientation") != "left-right":
 				body = f"#grid(columns: (auto, 1fr), column-gutter: {gap_pt}pt, [{label}], [#align({align})[{value_text}]])"
 				return self._text_props(df, body)
+			if section.get("field_orientation") == "left-right" and align not in ("center", "right"):
+				if df.get("label_justify") == "space-between":
+					body = f"#grid(columns: (auto, 1fr), column-gutter: {gap_pt}pt, [{label}], [#align(right)[{value_text}]])"
+					return self._text_props(df, body)
+				if df.get("label_justify") == "space-evenly":
+					body = f"#grid(columns: (1fr, auto, 1fr, auto, 1fr), column-gutter: {gap_pt}pt, [], [{label}], [], [{value_text}], [])"
+					return self._text_props(df, body)
 			body = f"#grid(columns: (auto, auto), column-gutter: {gap_pt}pt, [{label}], [{value_text}])"
 			return _aligned(self._text_props(df, body), align)
+		if (
+			show_label == "hide"
+			and section.get("field_orientation") == "left-right"
+			and align not in ("center", "right")
+			and df.get("label_justify") == "space-evenly"
+		):
+			return _aligned(self._text_props(df, value_text), "center")
 		spacing = gap_effect if gap_effect is not None else 4
 		parts = [f"[{label}]"] if label else []
 		parts.append(f"[{value_text}]")

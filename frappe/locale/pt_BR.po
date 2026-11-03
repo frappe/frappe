@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-10-25 09:36+0000\n"
-"PO-Revision-Date: 2026-10-26 04:19\n"
+"PO-Revision-Date: 2026-11-02 04:13\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -16296,7 +16296,7 @@ msgstr ""
 #: frappe/public/js/frappe/form/controls/duration.js:29
 msgctxt "Duration"
 msgid "Hours"
-msgstr "Horas"
+msgstr ""
 
 #: frappe/core/page/component_explorer/component_explorer.js:417
 #: frappe/core/page/component_explorer/component_explorer.js:426
@@ -21368,7 +21368,7 @@ msgstr "Menor"
 #: frappe/public/js/frappe/form/controls/duration.js:30
 msgctxt "Duration"
 msgid "Minutes"
-msgstr "Atas"
+msgstr ""
 
 #. Option for the 'Send Alert On' (Select) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json:141
