@@ -26,6 +26,7 @@
 // A relative path, because this branch's esbuild predates `alias`.
 import {
 	mountIsland,
+	preloadIsland,
 	reloadChangedIslands,
 	unmountIsland,
 } from "../../../../../../ui/island/host.js";
@@ -45,6 +46,11 @@ function mount_island(name, el, props = {}) {
 		host: build_desk_context(),
 		props,
 	});
+}
+
+/** Starts downloading an island this site has, so a mount soon after finds it loaded. */
+export function preload_island(name) {
+	if (frappe.boot?.ui_islands?.includes(name)) preloadIsland(resolve_island(name));
 }
 
 function resolve_island(name) {

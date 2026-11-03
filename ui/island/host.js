@@ -211,6 +211,18 @@ async function loadInto(target, entry) {
 }
 
 /**
+ * Starts downloading an island before anything mounts it, for a host that knows
+ * the island early. A mount of the same assets later reuses both downloads.
+ *
+ * @param {IslandAssets} assets
+ */
+export function preloadIsland(assets) {
+	if (assets.css) preloadStyleSheet(assets.css);
+	// the mount imports the same URL and reports a failure itself
+	import(/* @vite-ignore */ assets.js).catch(() => {});
+}
+
+/**
  * Starts the stylesheet download alongside the module's. `mount` fetches the
  * sheet only after every chunk has loaded and run. A `fetch` preload with
  * `crossorigin` matches that `fetch()`, so the browser sends one request.
