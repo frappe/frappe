@@ -249,8 +249,8 @@ class TestFire(IntegrationTestCase):
 		session = frappe.get_doc("Flow Session", run.session)
 		self.assertEqual((session.agent, session.source), (self.agent.name, "Trigger"))
 		# every trigger session runs unattended, so it cannot stop for human approval
-		self.assertTrue(session.auto_approve)
-		self.assertTrue(self.daemon.configs[run.session]["auto_approve"])
+		self.assertEqual(session.approval_mode, "Auto-approve")
+		self.assertEqual(self.daemon.configs[run.session]["approval_mode"], "auto_approve")
 		self.assertEqual(self.turns(), [("run", session.name, run.input)])
 
 		# a scheduled trigger has no target

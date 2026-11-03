@@ -352,7 +352,13 @@ class FlowAgent(Document):
 		"""Start a conversation driven by this agent on the flow server."""
 		from frappe.flow.lib.session import new_session
 
-		return new_session(self, model=model, title=title, source=source, auto_approve=auto_approve)
+		return new_session(
+			self,
+			model=model,
+			title=title,
+			source=source,
+			approval_mode="Auto-approve" if auto_approve else None,
+		)
 
 	def run(
 		self,

@@ -141,7 +141,9 @@ class Agent:
 		"""Start a conversation with this agent on the flow server."""
 		from frappe.flow.lib.session import new_session
 
-		return new_session(self.name, title=title, auto_approve=self.auto_approve)
+		return new_session(
+			self.name, title=title, approval_mode="Auto-approve" if self.auto_approve else None
+		)
 
 	def run(self, input: str, *, on_complete: str | None = None) -> FlowRun:
 		"""Start `input` in a new session and return its Running Flow Run without waiting.

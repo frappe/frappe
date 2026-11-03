@@ -327,7 +327,7 @@
 									:key="m.id"
 									data-palette-item
 									:aria-current="currentMode === m.id ? 'true' : undefined"
-									class="flow-palette-row h-auto py-1.5"
+									class="flow-palette-row !py-1.5"
 									@click="chooseMode(m.id)"
 								>
 									<span
@@ -400,6 +400,7 @@ import { isInert, isPageEvent } from "../inert.js"
 import { layout } from "../layout.js"
 import {
 	APPROVAL_MODES,
+	approvalMode,
 	approvalToAnswer,
 	codeRefLabel,
 	quoteBlock,
@@ -851,11 +852,11 @@ const canSend = computed(
 // preference new chats will be created with
 const currentMode = computed(() => {
 	if (!flow.state.sessionId) return flow.state.prefs.mode
-	return flow.state.session?.config?.auto_approve ? "auto" : "ask"
+	return approvalMode(flow.state.session?.config)
 })
 const modeLabel = computed(() => props.modes.find((m) => m.id === currentMode.value)?.label ?? currentMode.value)
 // a narrow frame's mode button: tools locked behind a yes, or unlocked
-const MODE_ICONS = { ask: "lucide-lock", auto: "lucide-lock-open" }
+const MODE_ICONS = { ask: "lucide-lock", auto: "lucide-shield-check", auto_approve: "lucide-lock-open" }
 
 const currentModel = computed(() => flow.state.conversation.model ?? flow.state.prefs.lastModel)
 const currentImageSupport = computed(() => {

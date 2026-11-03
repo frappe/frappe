@@ -38,7 +38,8 @@ One daemon can serve many sites (a Frappe bench), each one a folder. `FLOW_TENAN
 `POST /sessions` accepts a `SessionConfig`. Important fields are:
 
 - `model`, `credential_id`, and optional `reasoning_effort` (`off` through `max`);
-- `cwd`, `tools`, `extension_tools` (omit it to get every loaded extension tool), `client_tools`, and `auto_approve` (default: `false`);
+- `cwd`, `tools`, `extension_tools` (omit it to get every loaded extension tool), and `client_tools`;
+- `approval_mode` (default: `auto`): `ask` pauses at every confirmation gate, `auto_approve` skips them all, and in `auto` a gated call is first judged by `small_model` (else `model`) against the user's words (their messages and their answers at approval prompts), the agent's tool calls so far, and the call's complete effective arguments with its tool's schema; allowed, it runs and its `tool_result.details.review` records that; else it pauses as usual with the reason appended to its prompt. A call too large to show whole pauses without review. So does a client call whose confirm answer says `needs_user`: its card takes the user's input. A `subagent` call is reviewed as well, though it is not gated, so a task is judged against the user's words before the sub-agent takes it as its own instruction. `review_instructions` tells the reviewer what to be strict about in the host's terms (default: a coding brief). The reviewer's `usage` is `standalone` with purpose `review`;
 - `subagents`, the sub-agents the `subagent` tool may run beside `general`, and `max_concurrent_subagents`, how many may run at once (see [tools.md](tools.md#sub-agents)); an agent's `api_key`, `api_base` and `model_params` are refused wherever the session's own are;
 - `small_model`, a `model` with its own optional `api_key`, `api_base` and `model_params`, used for side jobs such as the title instead of the session's model; its key and params are refused wherever the session's own are;
 - `suggest_replies` (default: `false`): after a run ends normally, one more call on the session's model, prompt and tools, so it reuses the prompt cache, offers the user two to four next messages as a durable `replies_suggested` event. Its `usage`, like the title's, comes with `standalone: true` and a `purpose` (`title` or `replies`): spend, never context;
@@ -95,7 +96,7 @@ The server resolves credentials and prompt context itself; do not send API keys,
 | `GET /sessions/{sid}/extensions` | Returns loaded server extensions and diagnostics. |
 | `POST /extensions/reload` | Re-imports all extensions and returns the fresh info payload. |
 | `POST /skills` | Previews the skills a supplied `SessionConfig` would discover. |
-| `PATCH /sessions/{sid}/config` | Updates `auto_approve`, `tools`, `client_tools` together with `confirm_tools`, or `title`; any other field is refused. An approval change applies at the next tool gate, a tool change to later runs. |
+| `PATCH /sessions/{sid}/config` | Updates `approval_mode`, `tools`, `client_tools` together with `confirm_tools`, or `title`; any other field is refused. An approval change applies at the next tool gate, a tool change to later runs. |
 | `POST /sessions/{sid}/model` | Sets `model`, optional `credential_id`, and optional `reasoning_effort`. With the inline-credentials policy on, also accepts `api_key`, `api_base` and `model_params`. |
 | `POST /sessions/{sid}/rewind` | Moves the active branch to `{"target_seq": N}`; `0` means an empty conversation. |
 | `POST /sessions/{sid}/compact` | Runs manual compaction; the optional body is `{"instructions": "..."}`. |

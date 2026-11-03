@@ -68,7 +68,7 @@ const session = {
 	owner_name: "Tester",
 	agent: "reviewer",
 	model: "Sonnet",
-	auto_approve: 0,
+	approval_mode: "Ask",
 	runs: [],
 };
 Object.assign(transport.answers, {

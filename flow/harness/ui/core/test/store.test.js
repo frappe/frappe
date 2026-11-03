@@ -336,7 +336,7 @@ test("a change that answers after a chat switch stays with the chat it was made 
 	flow.state.conversation.pendingApproval = { seq: 2, calls: [{ id: "x" }], answers: {} }
 	models[0]({ model: "m/new" })
 	models[1]({ model: "m/A", reasoning_effort: "high" })
-	modeAnswer({ config: { auto_approve: true, cwd: "/A" } })
+	modeAnswer({ config: { approval_mode: "auto", cwd: "/A" } })
 	rewindAnswer({ status: "rewound" })
 	const rewound = (await Promise.all(changes))[3]
 
@@ -724,7 +724,7 @@ test("the active preset and custom instructions shape new sessions", async () =>
 	assert.equal(configs[1].system_suffix, "Review for risks.\n\nBe brief.")
 	assert.equal("system_preamble" in configs[1], false)
 	// model, thinking, and approval come from the chat, never the preset
-	assert.equal(configs[1].auto_approve, false)
+	assert.equal(configs[1].approval_mode, "auto") // Auto is the default mode
 	assert.equal("model" in configs[1], false)
 	assert.equal("effort" in configs[1], false)
 	assert.equal(configs[1].preset, id) // the chat keeps it, for the settings tab
@@ -1652,7 +1652,7 @@ test("a sub-agent's batch is answered with its own seq, and auto-approve answers
 	const resumes = []
 	const client = {
 		async patchConfig() {
-			return { config: { auto_approve: true } }
+			return { config: { approval_mode: "auto_approve" } }
 		},
 		async resume(sessionId, seq, answers) {
 			resumes.push({ seq, answers })
@@ -1682,7 +1682,7 @@ test("a sub-agent's batch is answered with its own seq, and auto-approve answers
 	assert.deepEqual(resumes, [{ seq: 6, answers: { a1: "Approve" } }])
 
 	// auto-approve answers every one still waiting, not just the oldest
-	await flow.setMode("auto")
+	await flow.setMode("auto_approve")
 	assert.deepEqual(resumes.slice(1), [
 		{ seq: 9, answers: { b1: "Approve" } },
 		{ seq: 11, answers: { d1: "Approve" } },

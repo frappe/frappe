@@ -456,7 +456,8 @@ class TestAgent(IntegrationTestCase):
 		run = agent.run("how many?")
 
 		self.assertEqual(
-			(session.agent, session.title, session.auto_approve), ("frappe/Todo Helper", "Todos", 1)
+			(session.agent, session.title, session.approval_mode),
+			("frappe/Todo Helper", "Todos", "Auto-approve"),
 		)
 		self.assertEqual((run.status, run.input), ("Running", "how many?"))
 		self.assertNotEqual(run.session, session.name)
@@ -465,7 +466,7 @@ class TestAgent(IntegrationTestCase):
 			[client_tool["function"]["name"] for client_tool in config["client_tools"]],
 			["count_todos", "close_todo", "read_records"],
 		)
-		self.assertEqual((config["confirm_tools"], config["auto_approve"]), (["close_todo"], True))
+		self.assertEqual((config["confirm_tools"], config["approval_mode"]), (["close_todo"], "auto_approve"))
 
 		# the callback runs a code tool as the session's owner
 		reply = tool_callback(session_id=session.name, tool="count_todos", args={"status": "Open"})
