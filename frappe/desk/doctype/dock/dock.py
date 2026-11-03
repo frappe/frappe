@@ -1193,9 +1193,9 @@ def destination(entry) -> dict:
 
 
 @frappe.whitelist()
-def save_user_dock(app: str, items: list | str, modules: list | str | None = None):
+def save_user_dock(app: str, items: list | str):
 	"""Save this user's own arrangement of `app`'s dock, applied on top of the site's."""
-	return _save_layer(app, items, user=frappe.session.user, require_visible=True, modules=modules)
+	return _save_layer(app, items, user=frappe.session.user, require_visible=True)
 
 
 @frappe.whitelist()
@@ -1225,9 +1225,7 @@ def add_modules(app: str, items: list | str, modules: list[str]) -> list:
 
 	items = frappe.parse_json(items) or []
 	for row in items:
-		if not isinstance(row, dict) or row.get("link_type") != "Sidebar":
-			continue
-		if row.get("link_to") not in modules:
+		if row.get("link_type") != "Sidebar" or row.get("link_to") not in modules:
 			continue
 
 		doc = frappe.get_doc(

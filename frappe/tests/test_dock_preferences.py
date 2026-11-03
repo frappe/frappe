@@ -2224,15 +2224,21 @@ class TestTheDeskDoor(IntegrationTestCase):
 
 class TestAddModule(IntegrationTestCase):
 	"""Add on the dock creates a module the site owns, placed in the app's dock, with a page of its
-	own to open on, so it is on the desk the moment it exists."""
+	own to open on, so it is on the desk the moment it exists. A module is the site's, so only the
+	dock for everyone creates one."""
 
 	MODULE = "Test Dock Added Module"
 	MANAGER = "test-dock-add-module@example.com"
+	CURATOR = "test-dock-add-module-curator@example.com"
 	DESK_USER = "test-dock-add-module-desk@example.com"
 
 	def setUp(self):
 		frappe.set_user("Administrator")
-		for email, roles in ((self.MANAGER, ["System Manager"]), (self.DESK_USER, [])):
+		for email, roles in (
+			(self.MANAGER, ["System Manager", "Workspace Manager"]),
+			(self.CURATOR, ["Workspace Manager"]),
+			(self.DESK_USER, []),
+		):
 			if not frappe.db.exists("User", email):
 				frappe.get_doc(
 					{
@@ -2246,21 +2252,21 @@ class TestAddModule(IntegrationTestCase):
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
-		frappe.db.delete("Dock", {"user": ["in", [self.MANAGER, self.DESK_USER]]})
+		clear_arrangements_for(app="frappe", standard=0)
 		for name in frappe.get_all("Workspace", {"module": self.MODULE}, pluck="name"):
 			frappe.delete_doc("Workspace", name, force=True)
 		frappe.delete_doc("Module Def", self.MODULE, force=True, ignore_missing=True)
-		for email in (self.MANAGER, self.DESK_USER):
+		for email in (self.MANAGER, self.CURATOR, self.DESK_USER):
 			frappe.delete_doc("User", email, force=True, ignore_missing=True)
 
-	def save(self, icon=None, save=save_user_dock):
+	def save(self, icon=None):
 		row = {"link_type": "Sidebar", "link_to": self.MODULE, "title": self.MODULE, "added": 1}
 		if icon:
 			row["icon"] = icon
-		return save("frappe", json.dumps([row]), json.dumps([self.MODULE]))
+		return save_site_dock("frappe", json.dumps([row]), json.dumps([self.MODULE]))
 
 	def saved_row(self):
-		return next(row for row in get_user_dock("frappe", self.MANAGER) if row["link_to"] == self.MODULE)
+		return next(row for row in get_site_dock("frappe") if row["link_to"] == self.MODULE)
 
 	def test_creates_a_custom_module_in_the_app_with_a_page_to_open_on(self):
 		frappe.set_user(self.MANAGER)
@@ -2292,7 +2298,7 @@ class TestAddModule(IntegrationTestCase):
 		self.assertEqual(self.saved_row()["icon"], DEFAULT_HEADER_ICON)
 
 	def test_needs_the_right_to_create_a_module(self):
-		frappe.set_user(self.DESK_USER)
+		frappe.set_user(self.CURATOR)
 		with self.assertRaises(frappe.PermissionError):
 			self.save()
 		frappe.set_user("Administrator")
@@ -2301,7 +2307,7 @@ class TestAddModule(IntegrationTestCase):
 	def test_a_save_that_is_refused_creates_no_module(self):
 		frappe.set_user(self.DESK_USER)
 		with self.assertRaises(frappe.PermissionError):
-			self.save(save=save_site_dock)
+			self.save()
 		frappe.set_user("Administrator")
 		self.assertFalse(frappe.db.exists("Module Def", self.MODULE))
 

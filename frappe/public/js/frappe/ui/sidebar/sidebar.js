@@ -109,6 +109,17 @@ frappe.ui.Sidebar = class Sidebar {
 			console.log(e);
 		}
 	}
+	// Swap in the desk state a sidebar or dock save sends back.
+	take_desk_state(payload) {
+		if (payload.workspace_pages) {
+			frappe.boot.workspaces = payload.workspace_pages;
+			frappe.app.setup_workspaces();
+		}
+		if (payload.module_sidebars) frappe.boot.module_sidebars = payload.module_sidebars;
+		if (payload.entity_module) frappe.boot.entity_module = payload.entity_module;
+		this.all_sidebar_items = frappe.boot.module_sidebars;
+	}
+
 	// A companion app's rail is its host's (`Dock.mount_on`).
 	rail_host_for(app_name) {
 		return (frappe.boot.app_rail_host && frappe.boot.app_rail_host[app_name]) || app_name;

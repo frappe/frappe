@@ -4,8 +4,8 @@
 // layers live, and the one action it has that a sidebar does not.
 //
 // It arranges the rail for the app you are currently in, on the rail itself: the tiles are the
-// list, dragged into order, taken off with their cross, and opened for their label and icon in a
-// panel beside the rail. A floating rail stays floating and is held open. The layer, Cancel and
+// list, dragged into order, and opened for their label and icon in a panel beside the rail, where
+// Remove takes them off. A floating rail stays floating and is held open. The layer, Cancel and
 // Save sit in a small bar in the corner of the screen, which can be dragged out of the way, so the
 // sidebar beside the rail is left as it is.
 //
@@ -17,7 +17,7 @@
 
 // What differs between the three layers, in one place: where the arrangement is read from, where
 // it is written back to, what to call it, and what to say once it lands. Everything else, such as
-// the list, the eye and the shape of a saved row, is the same whichever layer is on screen.
+// the list and the shape of a saved row, is the same whichever layer is on screen.
 const RESET_FOR_EVERYONE = "frappe.desk.doctype.dock.dock.reset_dock_for_everyone";
 const MARK_AS_STANDARD = "frappe.desk.doctype.dock.dock.mark_as_standard";
 
@@ -223,15 +223,7 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 		const $row = super.list_row(key).attr("aria-label", this.entries.get(key).label);
 		$row.find(".ws-row-controls").remove();
 		if (this.panel?.key === key) return $row;
-		this.tile_tooltips.push(
-			new frappe.ui.Tooltip($row[0], {
-				text: this.entries.get(key).label,
-				side: "right",
-				delay: 0,
-				offset: 10,
-				class: "es-tooltip--plain",
-			})
-		);
+		this.tile_tooltips.push(this.tile_tooltip($row[0], this.entries.get(key).label));
 		return $row;
 	}
 
@@ -243,15 +235,17 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 	render_body() {
 		this.add_tooltip?.destroy();
 		super.render_body();
-		if (this.$add) {
-			this.add_tooltip = new frappe.ui.Tooltip(this.$add[0], {
-				text: this.copy().add_label,
-				side: "right",
-				delay: 0,
-				offset: 10,
-				class: "es-tooltip--plain",
-			});
-		}
+		if (this.$add) this.add_tooltip = this.tile_tooltip(this.$add[0], this.copy().add_label);
+	}
+
+	tile_tooltip(target, text) {
+		return new frappe.ui.Tooltip(target, {
+			text,
+			side: "right",
+			delay: 0,
+			offset: 10,
+			class: "es-tooltip--plain",
+		});
 	}
 
 	destroy_tooltips() {
@@ -317,7 +311,7 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 		// What the app itself ships, unfiltered by anyone's reach: the pool the manager offers and
 		// what `unnamed_modules` counts against.
 		this.base_rows = base || [];
-		// Which of these rows this layer added itself, so they carry a cross rather than an eye.
+		// Which of these rows this layer added itself, so Remove drops them rather than hiding them.
 		// Read from the stored layer rather than inferred from the entry: an entry a lower layer
 		// added is a reference from here, and hiding is the right control for it.
 		this.own_adds = new Set(
@@ -331,7 +325,7 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 			(base || []).filter((row) => row.hidden).map((row) => this.key(row))
 		);
 		// Only what this layer put on the dock is named. Everything else the app offers follows it
-		// in the app's own order, with the eye off.
+		// in the app's own order, taken off.
 		this.arrange(this.initial_selection());
 	}
 
@@ -349,10 +343,6 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 		});
 	}
 
-	// A read-only count, not a control: how many of the app's modules are on no tier at all,
-	// neither on the rail nor shipped off it, simply never named. No layer can bring those back,
-	// so an author who did not intend it should see the number.
-	//
 	// Counted against the app's own rows rather than the entry set, which is reach-filtered. A
 	// module the record names but this user cannot see is still named, and reporting it as unnamed
 	// would send an author looking for a row that is already there.
@@ -433,9 +423,14 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 		return shown.length ? shown : this.all_keys();
 	}
 
-	// Add creates a module, so it is offered to whoever may create one.
+	// Add creates a module, so it is offered to whoever may create one. A module is the site's,
+	// so only the shared layers create one; on "Just for me" Add only puts a tile back.
 	can_add() {
 		return !!this.app && frappe.model.can_create("Module Def");
+	}
+
+	can_create_module() {
+		return this.layer !== "user";
 	}
 
 	is_own_add(key) {
@@ -490,11 +485,11 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 	// A read-only count, not a control: the app's modules on no tier at all, neither on the rail
 	// nor shipped off it, simply never named. Nothing above the app layer can bring one back, so
 	// an author who did not intend it should see the number.
-	pane_note() {
+	layer_note() {
 		const unnamed = this.unnamed_modules();
 		if (!unnamed.length) return "";
 
-		return __("{0} of this app's modules are on no tier at all: {1}", [
+		return __("{0} of this app's modules are not on the dock, for anyone: {1}", [
 			unnamed.length,
 			unnamed.join(", "),
 		]);
@@ -608,6 +603,15 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 						title: __("Module Exists"),
 					});
 				}
+				if (!this.can_create_module()) {
+					frappe.throw({
+						message: __(
+							"A new module is added for everyone. Switch to For everyone to add {0}.",
+							[frappe.utils.escape_html(name)]
+						),
+						title: __("Not on This Dock"),
+					});
+				}
 
 				this.close_panel();
 				this.new_modules.add(name);
@@ -647,11 +651,7 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 		if (!result?.rail) return result;
 
 		this.new_modules.clear();
-		frappe.boot.workspaces = result.workspace_pages;
-		frappe.app.setup_workspaces();
-		frappe.boot.module_sidebars = result.module_sidebars;
-		frappe.boot.entity_module = result.entity_module;
-		frappe.app.sidebar.all_sidebar_items = frappe.boot.module_sidebars;
+		frappe.app.sidebar.take_desk_state(result);
 		return result.rail;
 	}
 

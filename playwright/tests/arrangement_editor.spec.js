@@ -110,7 +110,7 @@ async function open_editor(page, { hidden = [], can_curate = false, note = "" } 
 					return true;
 				}
 
-				pane_note() {
+				layer_note() {
 					return note;
 				}
 
@@ -610,6 +610,8 @@ test.describe("Arrangement editor: an app's dock", () => {
 	const READ = "frappe.desk.doctype.dock.dock.get_user_dock_layer";
 	const BASE = "frappe.desk.doctype.dock.dock.get_app_dock_layer";
 	const SAVE = "frappe.desk.doctype.dock.dock.save_user_dock";
+	const SITE_READ = "frappe.desk.doctype.dock.dock.get_site_dock_layer";
+	const SITE_SAVE = "frappe.desk.doctype.dock.dock.save_site_dock";
 
 	let modules;
 
@@ -736,12 +738,17 @@ test.describe("Arrangement editor: an app's dock", () => {
 			.click();
 	}
 
-	// A save that creates modules answers with the desk state they change, the rail inside it.
+	// A module is the site's, so a curator adds one on the dock for everyone. A save that creates
+	// modules answers with the desk state they change, the rail inside it.
 	async function stub_save_with_modules(page) {
 		await stub_xcall(page, {
-			[READ]: modules.map((name) => ({ link_type: "Sidebar", link_to: name, hidden: 0 })),
+			[SITE_READ]: modules.map((name) => ({
+				link_type: "Sidebar",
+				link_to: name,
+				hidden: 0,
+			})),
 			[BASE]: [],
-			[SAVE]: await page.evaluate(() => ({
+			[SITE_SAVE]: await page.evaluate(() => ({
 				rail: frappe.boot.dock,
 				workspace_pages: frappe.boot.workspaces,
 				module_sidebars: {
@@ -751,31 +758,35 @@ test.describe("Arrangement editor: an app's dock", () => {
 				entity_module: frappe.boot.entity_module,
 			})),
 		});
-		await page.evaluate(
-			() => (frappe.model.can_create = (doctype) => doctype === "Module Def")
-		);
+		await page.evaluate(() => {
+			frappe.model.can_create = (doctype) => doctype === "Module Def";
+			frappe.user.has_role = () => true;
+		});
 	}
 
 	test("adds a module by name, created by the Save that names it", async ({ page }) => {
 		await stub_save_with_modules(page);
 		await open_dock_editor(page);
+		await expect(page.locator(".ws-bar .ws-layer-phrase")).toHaveText("for everyone");
 
 		await add_module_named(page, "Field Trips");
 		await expect(tiles(page)).toHaveCount(modules.length + 1);
 		// Nothing is created until Save, so Cancel would leave nothing behind.
-		expect((await stubbed_calls(page)).filter((m) => m !== READ && m !== BASE)).toEqual([]);
+		expect((await stubbed_calls(page)).filter((m) => m !== SITE_READ && m !== BASE)).toEqual(
+			[]
+		);
 
 		await bar_button(page, "Save").click();
-		const rows = await saved_rows(page, SAVE);
+		const rows = await saved_rows(page, SITE_SAVE);
 		expect(rows.find((row) => row.link_to === "Field Trips")).toMatchObject({
 			added: 1,
 			title: "Field Trips",
 		});
 		// One request creates the module and stores the row, so a failed save leaves neither.
-		expect((await stubbed_calls(page)).filter((m) => m !== READ && m !== BASE)).toEqual([
-			SAVE,
+		expect((await stubbed_calls(page)).filter((m) => m !== SITE_READ && m !== BASE)).toEqual([
+			SITE_SAVE,
 		]);
-		expect(JSON.parse((await saved_args(page, SAVE)).modules)).toEqual(["Field Trips"]);
+		expect(JSON.parse((await saved_args(page, SITE_SAVE)).modules)).toEqual(["Field Trips"]);
 		await expect
 			.poll(() => page.evaluate(() => frappe.boot.module_sidebars["Field Trips"]?.app))
 			.toBe("frappe");
@@ -788,8 +799,21 @@ test.describe("Arrangement editor: an app's dock", () => {
 		await add_module_named(page, "Field Trips", "tent");
 		await bar_button(page, "Save").click();
 
-		const rows = await saved_rows(page, SAVE);
+		const rows = await saved_rows(page, SITE_SAVE);
 		expect(rows.find((row) => row.link_to === "Field Trips")).toMatchObject({ icon: "tent" });
+	});
+
+	test("adds no module on a dock that is just for me", async ({ page }) => {
+		await page.evaluate(
+			() => (frappe.model.can_create = (doctype) => doctype === "Module Def")
+		);
+		await open_dock_editor(page);
+
+		await add_module_named(page, "Field Trips");
+		await expect(
+			page.locator(".modal:visible", { hasText: "added for everyone" })
+		).toBeVisible();
+		await expect(tiles(page)).toHaveCount(modules.length);
 	});
 
 	test("puts a tile taken off back when Add names it, rather than making another", async ({
