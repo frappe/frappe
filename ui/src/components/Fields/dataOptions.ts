@@ -15,6 +15,13 @@ export function dataOption(field: FieldMeta): string | undefined {
   return field.options || undefined;
 }
 
+/** A Phone field, or a Data field whose options say Phone: the fields an app's field actions reach. */
+export function isPhoneField(field: FieldMeta): boolean {
+  return (
+    field.fieldtype === "Phone" || (field.fieldtype === "Data" && field.options === "Phone")
+  );
+}
+
 /** The input's `type` and `inputmode` for a Data option; the browser checks nothing. */
 export function dataInputAttrs(option: string | undefined): {
   type: "text" | "tel";
