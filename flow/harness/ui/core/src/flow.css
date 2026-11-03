@@ -172,23 +172,6 @@ body {
 	}
 }
 
-.flow-btn-secondary {
-	flex: none;
-	height: 30px;
-	border-radius: 7px;
-	cursor: pointer;
-	font-size: theme(fontSize.sm);
-	font-weight: 500;
-	padding: 0 13px;
-	border: 1px solid var(--outline-gray-2);
-	background: var(--surface-base);
-	color: var(--ink-gray-7);
-}
-.flow-btn-secondary:hover {
-	background: var(--surface-gray-2);
-	color: var(--ink-gray-9);
-}
-
 /* dialog.prompt renders the subtle input variant, whose border matches its own
    background — invisible against the dark modal until focused. Give dialog
    inputs the app's outline field look; their own focus styles still apply.
