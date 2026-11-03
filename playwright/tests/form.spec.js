@@ -102,6 +102,7 @@ test.describe("Form", () => {
 
 	test("Jump to field in collapsed section", async ({ page, desk }) => {
 		await desk.new_form("User");
+		await page.waitForFunction(() => cur_frm.layout.wrapper.has(":focus").length);
 
 		await jump_to_field(page, "Location");
 		await expect(desk.get_field("location")).toBeFocused();
