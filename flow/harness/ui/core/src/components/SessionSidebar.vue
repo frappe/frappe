@@ -45,16 +45,15 @@
 			</button>
 		</div>
 
-		<!-- 7px over, 9px under: the rows sit midway between the brand mark and the list's header,
-		     each as tall as a workspace row -->
+		<!-- 7px over, 9px under: the rows sit midway between the brand mark and the list's header -->
 		<div class="mt-[7px] flex flex-none flex-col gap-0.5 px-2">
 			<!-- the essentials together at the top: start a chat, or find one, each with its keys on
 			     hover; search opens in a palette over the page -->
-			<SidebarItem icon="lucide-square-pen" class="h-8" @click="startNewChat()">
+			<SidebarItem icon="lucide-square-pen" @click="startNewChat()">
 				<span class="truncate text-sm text-ink-gray-8">New chat</span>
 				<KeyboardShortcut v-if="!layout.phone" combo="Mod+Shift+O" :class="HINT" />
 			</SidebarItem>
-			<SidebarItem icon="lucide-search" class="h-8" @click="searchOpen = true">
+			<SidebarItem icon="lucide-search" @click="searchOpen = true">
 				<span class="truncate text-sm text-ink-gray-8">Search</span>
 				<KeyboardShortcut v-if="!layout.phone" combo="Mod+K" :class="HINT" />
 			</SidebarItem>
@@ -187,7 +186,7 @@
 									v-for="s in group.chats"
 									:key="s.session_id"
 									:label="flow.sessionTitle(s)"
-									class="group relative h-7 select-none data-[state=active]:bg-surface-gray-3 data-[state=active]:shadow-none data-[state=inactive]:text-ink-gray-8"
+									class="group relative h-7 select-none data-[state=inactive]:text-ink-gray-8"
 									:class="[!grouped && 'quiet', menuFor === s.session_id && 'menu-open bg-surface-gray-2', dragClass(s.session_id)]"
 									:active="chatInView && s.session_id === flow.state.sessionId"
 									:data-reorder="canReorder ? `chat:${group.cwd ?? ''}` : null"
