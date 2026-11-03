@@ -1,4 +1,4 @@
-// A Phone column's list cell draws the number with the apps' field actions at its end; a click on
+// A Phone column's list cell draws the apps' field actions before the number; a click on
 // the button runs the action for its own cell and never follows the row's link.
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, nextTick } from "vue";
@@ -52,6 +52,12 @@ describe("a Phone list cell", () => {
 		expect(run).toHaveBeenCalledOnce();
 		expect(onRowClick).not.toHaveBeenCalled();
 		expect(click.defaultPrevented).toBe(true);
+	});
+
+	it("puts the button before the number", async () => {
+		const root = await mount("123", [action()]);
+		const actions = root.querySelector("[data-slot='phone-cell-actions']")!;
+		expect(actions.nextElementSibling?.textContent).toBe("123");
 	});
 
 	it("draws no button for an empty cell or when no app declares an action", async () => {
