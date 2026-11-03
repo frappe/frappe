@@ -37,14 +37,19 @@
 			:key="row.key"
 			class="grid grid-cols-[4.5rem_minmax(0,1fr)] gap-x-4 border-b border-outline-gray-1 py-3.5 last:border-0 sm:grid-cols-[5.5rem_minmax(0,1fr)]"
 		>
-			<span class="font-mono text-xs-medium leading-5 text-ink-gray-5">{{ ROLES[row.kind] }}</span>
+			<span
+				class="font-mono text-xs-medium leading-5"
+				:class="row.kind === 'error' ? 'text-ink-red-4' : 'text-ink-gray-5'"
+				>{{ ROLES[row.kind] }}</span
+			>
 			<div class="min-w-0 space-y-2 text-sm leading-5">
 				<p v-if="row.body" class="max-h-[280px] overflow-auto whitespace-pre-wrap break-words text-ink-gray-8">{{ row.body }}</p>
 				<!-- a tool's call and result, and a request's usage, are labelled -->
 				<div v-for="part in PARTS.filter((name) => row[name])" :key="part">
 					<div v-if="part !== 'entry'" class="mb-1 font-mono text-xs text-ink-gray-4">{{ part }}</div>
 					<pre
-						class="m-0 max-h-[280px] overflow-auto whitespace-pre-wrap break-words rounded-4 bg-surface-gray-1 px-3 py-2 font-mono text-xs leading-5 text-ink-gray-6"
+						class="m-0 max-h-[280px] overflow-auto whitespace-pre-wrap break-words rounded-4 border bg-surface-gray-1 px-3 py-2 font-mono text-xs leading-5 text-ink-gray-6"
+						:class="row.kind === 'error' ? 'border-outline-red-2' : 'border-transparent'"
 					>{{ JSON.stringify(row[part], null, 2) }}</pre>
 				</div>
 			</div>
