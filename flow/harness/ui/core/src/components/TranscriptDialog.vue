@@ -17,18 +17,22 @@
 				</div>
 			</div>
 		</template>
-		<div class="-mt-2 flex flex-wrap gap-2 border-b border-outline-gray-1 pb-5">
-			<div
-				v-for="stat in stats"
-				:key="stat.label"
-				class="min-w-[132px] flex-1 rounded-5 border border-outline-gray-1 px-3.5 py-3"
-			>
-				<div class="text-xs text-ink-gray-5">{{ stat.label }}</div>
-				<div class="mt-2 flex items-baseline gap-1.5">
-					<span class="text-base-semibold tabular-nums text-ink-gray-9">{{ stat.value }}</span>
-					<span v-if="stat.sub" class="truncate text-xs text-ink-gray-4">{{ stat.sub }}</span>
+		<div class="-mt-2 border-b border-outline-gray-1 pb-5">
+			<div class="flex flex-wrap gap-2">
+				<div
+					v-for="stat in stats"
+					:key="stat.label"
+					class="min-w-[132px] flex-1 rounded-5 border border-outline-gray-1 px-3.5 py-3"
+				>
+					<div class="text-xs text-ink-gray-5">{{ stat.label }}</div>
+					<div class="mt-2 flex items-baseline gap-1.5">
+						<span class="text-base-semibold tabular-nums text-ink-gray-9">{{ stat.value }}</span>
+						<span v-if="stat.sub" class="truncate text-xs text-ink-gray-4">{{ stat.sub }}</span>
+					</div>
 				</div>
 			</div>
+			<!-- the totals count the title and suggestions calls, which have no row -->
+			<p v-if="background" class="mt-3 text-sm text-ink-gray-5">{{ background }}</p>
 		</div>
 
 		<div v-if="!rows.length" class="py-10 text-center text-sm text-ink-gray-5">Nothing sent yet.</div>
@@ -102,6 +106,16 @@ const stats = computed(() => {
 	}
 	if (usage.cost) stats.push({ label: "Cost", value: formatCost(usage.cost) })
 	return stats
+})
+
+const PURPOSES = { title: "title", replies: "suggestions" }
+const background = computed(() => {
+	const calls = (conversation.value.requests ?? []).filter((usage) => usage.purpose)
+	if (!calls.length) return ""
+	const names = [...new Set(calls.map((usage) => PURPOSES[usage.purpose] ?? usage.purpose))].join(", ")
+	const tokens = calls.reduce((sum, usage) => sum + (usage.input_tokens ?? 0) + (usage.output_tokens ?? 0), 0)
+	const noun = calls.length === 1 ? "call" : "calls"
+	return `Includes ${calls.length} background ${noun} (${names}): ${formatTokens(tokens)} tokens`
 })
 
 const json = computed(() =>

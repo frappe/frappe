@@ -2095,6 +2095,12 @@ test("the transcript shows each step as raw JSON, with usage under its request",
 	const file = JSON.parse(await saved[0].text())
 	assert.deepEqual(file.rows.map((row) => row.kind), ["system", "user", "assistant", "tool"])
 	assert.equal(file.rows[3].output.content, "leaky line")
+	// the totals also count the calls that have no row
+	assert.doesNotMatch(panel.textContent, /background/)
+	applyEvent(flow.state.conversation, { type: "usage", seq: 6, purpose: "title", input_tokens: 80, output_tokens: 12 })
+	applyEvent(flow.state.conversation, { type: "usage", seq: 7, purpose: "replies", input_tokens: 1100, output_tokens: 30 })
+	await nextTick()
+	assert.match(panel.textContent, /Includes 2 background calls \(title, suggestions\): 1\.2k tokens/)
 	panel.querySelector("button[title=Close]").click()
 	assert.equal(flow.state.transcriptOpen, false)
 })
