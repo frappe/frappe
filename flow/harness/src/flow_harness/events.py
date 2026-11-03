@@ -209,7 +209,7 @@ class Usage(_Event):
 	# the summarizer's own call: count its tokens as spend, not as the context size
 	standalone: bool = False
 	# a side call, such as the title, outside the conversation
-	purpose: Literal["title", "replies"] | None = None
+	purpose: Literal["title", "replies", "review"] | None = None
 
 
 class PendingCall(BaseModel):
@@ -217,6 +217,7 @@ class PendingCall(BaseModel):
 	name: str
 	args: dict
 	prompt: str = ""  # human-facing approval prompt, resolved by the client
+	rewritten: bool = False  # a hook changed the arguments; `args` is what will run
 
 
 class ApprovalRequired(_Event):

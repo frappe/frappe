@@ -88,15 +88,15 @@ def create_session(
 	agent: str | None = None,
 	model: str | None = None,
 	title: str | None = None,
-	auto_approve: bool | int | str = False,
+	approval_mode: str | None = None,
 ) -> dict[str, Any]:
-	"""Start a session with `agent` (the Assistant by default)."""
+	"""Start a session with `agent` (the Assistant by default); `approval_mode` defaults to Auto."""
 	frappe.has_permission("Flow Session", "create", throw=True)
 	doc = new_session(
 		agent or None,
 		model=model or None,
 		title=(title or "").strip() or None,
-		auto_approve=cint(auto_approve),
+		approval_mode=approval_mode or None,
 	)
 	return _session_payload(doc)
 
@@ -300,11 +300,10 @@ def set_title(session: str, title: str) -> dict[str, str]:
 
 
 @frappe.whitelist()
-def set_auto_approve(session: str, auto_approve: bool | int | str) -> dict[str, bool]:
-	"""Whether confirmation tools run unattended; Trigger sessions cannot turn it off."""
-	flag = bool(cint(auto_approve))
-	_load_session(session, "write").set_auto_approve(flag)
-	return {"auto_approve": flag}
+def set_approval_mode(session: str, mode: str) -> dict[str, str]:
+	"""Ask, Auto or Auto-approve; a Trigger session stays on Auto-approve."""
+	_load_session(session, "write").set_approval_mode(mode)
+	return {"approval_mode": mode}
 
 
 @frappe.whitelist()
@@ -473,7 +472,7 @@ def _session_payload(doc: FlowSession) -> dict[str, Any]:
 		"owner": doc.owner,
 		"owner_name": get_fullname(doc.owner),
 		"general_access": doc.general_access,
-		"auto_approve": bool(doc.auto_approve),
+		"approval_mode": doc.approval_mode,
 		"read_only": not frappe.has_permission("Flow Session", "write", doc),
 		"runs": frappe.get_all(
 			"Flow Run", filters={"session": doc.name}, fields=RUN_FIELDS, order_by="creation asc"

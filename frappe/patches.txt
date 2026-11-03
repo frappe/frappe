@@ -304,3 +304,4 @@ execute:frappe.db.get_single_value("Flow Settings", "search_provider") or frappe
 frappe.patches.v17_0.name_flow_app_rows_after_their_app
 frappe.patches.v17_0.free_app_names_from_site_flow_triggers
 frappe.patches.v17_0.make_flow_memories_of_non_managers_personal
+frappe.patches.v17_0.flow_session_approval_mode

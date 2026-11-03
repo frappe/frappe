@@ -165,8 +165,9 @@ const COMMANDS = [
 ];
 // the approval modes in Flow's terms: its tools act on documents, not files
 const MODES = [
+	{ id: "auto", label: "Auto", desc: "A helper model handles approvals." },
 	{ id: "ask", label: "Ask for approval", desc: "Asks before changing anything." },
-	{ id: "auto", label: "Auto-approve", desc: "Runs everything without asking." },
+	{ id: "auto_approve", label: "Auto-approve", desc: "Runs everything without asking." },
 ];
 
 const props = defineProps({ boot: { type: Object, required: true } });
