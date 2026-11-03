@@ -144,7 +144,9 @@ test("a new chat's agent is picked from its own list in the box's tools row, bes
 	await nextTick();
 	assert.ok(!called("frappe.flow.api.boot"), "the page's own boot serves the first load");
 
-	assert.ok(el.textContent.includes("What can I help you with?"));
+	// no heading over a new chat: Flow's mark, then the box that asks
+	assert.ok(el.querySelector("svg[aria-label=Flow], [data-stub=BrandMark]"));
+	assert.equal(el.querySelector("h2"), null);
 	assert.equal(el.querySelector("textarea").placeholder, "Ask Flow…");
 	const agent = () => el.querySelector("button[aria-label^='Agent:']");
 	const box = el.querySelector("fieldset");
@@ -474,7 +476,6 @@ test("without a model the normal page shows the setup state and no composer, and
 	await until(() => called("frappe.flow.api.list_sessions"));
 	await nextTick();
 	assert.ok(el.querySelector("[data-stub=SetupState]"));
-	assert.ok(!el.textContent.includes("What can I help you with?"));
 	assert.equal(el.querySelector("textarea"), null);
 	assert.ok(
 		!el.textContent.includes("can send messages"),

@@ -205,7 +205,9 @@ const composerHeight = inject("composerHeight", ref(120))
 // a wide new chat holds the box under its greeting, as a letter starts under its salutation; a
 // phone keeps it at the foot, by the thumb and the keyboard
 const composerLift = inject("composerLift", ref(0))
-const docked = computed(() => empty.value && !layout.narrow && composerHeight.value > 0)
+// a new chat's box sits under the mark in the middle, in the Desk panel too; a phone keeps it at
+// the foot, where its keyboard leaves it in reach
+const docked = computed(() => empty.value && !layout.phone && composerHeight.value > 0)
 const dock = ref(null)
 let dockObserver = null
 function measureDock() {

@@ -149,6 +149,9 @@
 				</slot>
 			</div>
 
+			<!-- a host's line over the box, such as what the chat can see beside it -->
+			<slot name="above" />
+
 			<!-- a fieldset: disabling it disables every control inside, a host's pickers included.
 			     Positioned, so it covers the start row's foot -->
 			<fieldset
@@ -767,6 +770,11 @@ watch(
 		nextTick(() => box.value?.focus())
 	},
 )
+// New chat on a new chat changes no session, only the conversation: the box takes the keys too
+watch(
+	() => flow.state.conversation,
+	() => flow.state.sessionId || nextTick(() => box.value?.focus()),
+)
 
 const modeMenu = ref(false)
 const modeButton = ref(null)
@@ -1248,5 +1256,5 @@ function prefill(value) {
 	nextTick(() => box.value?.focus())
 }
 
-defineExpose({ prefill, startRow })
+defineExpose({ prefill, startRow, text }) // the draft, for a host whose page answers it
 </script>

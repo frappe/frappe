@@ -4,6 +4,7 @@
 	     now and then, present and attentive. Point at it, or at the button it sits in, and it winks -->
 	<svg
 		v-if="line"
+		ref="mark"
 		:width="size"
 		:height="size"
 		viewBox="3.25 2.6 17.5 17.5"
@@ -21,7 +22,7 @@
 			stroke-linecap="round"
 			stroke-linejoin="round"
 		/>
-		<g class="flow-mark-eyes">
+		<g class="flow-mark-eyes" :style="gaze">
 			<circle cx="9.1" cy="10.8" r="1.5" fill="currentColor" />
 			<circle cx="14.5" cy="10.8" r="1.5" fill="currentColor" />
 		</g>
@@ -38,17 +39,62 @@
 </template>
 
 <script setup>
+import { computed, onBeforeUnmount, ref, watch } from "vue"
 import otto from "../assets/flow.png"
 
-defineProps({
+const props = defineProps({
 	size: { type: Number, default: 18 },
 	line: { type: Boolean, default: false },
 	// "idle" blinks; null keeps the mark still
 	state: { type: String, default: "idle" },
+	// where the line mark's eyes look: "pointer" follows it about the page, "down" reads what is
+	// typed under it, "up" looks back at the one typing; null looks ahead
+	look: { type: String, default: null },
 })
 
 // each mark keeps its own moment in the blink, so two on one screen never blink as one
 const delay = -(Math.random() * 6).toFixed(2)
+
+// the eyes move at most this far, in the mark's own units, and reach it this far off (px)
+const REACH = 0.9
+const FAR = 300
+const FIXED = { down: [0, 1], up: [0, -0.7] }
+const mark = ref(null)
+const eyes = ref([0, 0])
+const still = typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches
+const gaze = computed(() => {
+	const [x, y] = props.look === "pointer" ? eyes.value : (FIXED[props.look] ?? [0, 0])
+	return still || (!x && !y) ? null : { transform: `translate(${x}px, ${y}px)` }
+})
+
+let frame = 0
+function follow(event) {
+	if (frame) return
+	frame = requestAnimationFrame(() => {
+		frame = 0
+		const box = mark.value?.getBoundingClientRect()
+		if (!box) return
+		const dx = event.clientX - (box.left + box.width / 2)
+		const dy = event.clientY - (box.top + box.height / 2)
+		const far = Math.hypot(dx, dy) || 1
+		const reach = Math.min(1, far / FAR) * REACH
+		eyes.value = [(dx / far) * reach, (dy / far) * reach]
+	})
+}
+const following = computed(() => props.line && props.look === "pointer" && !still)
+watch(
+	following,
+	(on) => {
+		if (typeof window === "undefined") return
+		if (on) window.addEventListener("pointermove", follow, { passive: true })
+		else window.removeEventListener("pointermove", follow)
+	},
+	{ immediate: true }
+)
+onBeforeUnmount(() => {
+	window.removeEventListener("pointermove", follow)
+	cancelAnimationFrame(frame)
+})
 </script>
 
 <style scoped>
@@ -58,6 +104,9 @@ const delay = -(Math.random() * 6).toFixed(2)
 }
 /* still for anyone who asked for less motion */
 @media (prefers-reduced-motion: no-preference) {
+	.flow-mark-eyes {
+		transition: transform 0.25s ease-out;
+	}
 	.flow-mark-idle .flow-mark-eyes circle {
 		animation: flow-mark-blink 6s ease-in-out var(--blink-delay, 0s) infinite;
 	}
