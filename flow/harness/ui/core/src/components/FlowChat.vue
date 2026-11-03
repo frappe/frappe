@@ -2,6 +2,7 @@
 	<!-- clip, not hidden: a hidden root still scrolls when focus lands in the closed panel.
 	     The root is the sidebar's colour, so the chat stands on it as a raised panel -->
 	<div
+		ref="root"
 		class="flow-sidebar-surface flex h-full min-h-0 overflow-clip text-md text-ink-gray-8"
 		:style="{
 			'--flow-chat-text': `${store.state.prefs.chatFontSize}px`,
@@ -130,9 +131,10 @@ const addTabOptions = [
 const sidebarOpen = computed(() => props.store.state.sidebarOpen)
 const composer = ref(null)
 const chat = ref(null)
+const root = ref(null)
 
 provideComposerHeight(composer)
-provideFileDrop(chat, composer)
+provideFileDrop(chat, composer, root)
 let uninstallShortcuts = null
 let uninstallFocusRings = null
 let uninstallViewport = null

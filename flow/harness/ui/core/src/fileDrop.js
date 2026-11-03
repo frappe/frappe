@@ -16,10 +16,25 @@ export function dragDepth() {
 	}
 }
 
+// Files dragged where nothing takes them: caught, so the browser does not open them in the
+// tab. The chat's own handlers come first and mark theirs handled.
+export const STRAY_DROPS = {
+	dragover(event) {
+		if (event.defaultPrevented || !dragHasFiles(event)) return
+		event.preventDefault()
+		event.dataTransfer.dropEffect = "none"
+	},
+	drop(event) {
+		if (!event.defaultPrevented && dragHasFiles(event)) event.preventDefault()
+	},
+}
+
 // Files dropped anywhere on a chat go to its composer, as if picked with Attach; the
 // composer shows the drop target while they are over the chat. A drop the composer cannot
-// take now is still caught, so a near miss does not open the file in the tab.
-export function provideFileDrop(target, composer) {
+// take now, or one elsewhere on `page` (the sidebar, a header), is still caught, so a near
+// miss does not open the file in the tab. Only the chat takes files: what lights up is what
+// accepts them.
+export function provideFileDrop(target, composer, page = null) {
 	const dragging = ref(false)
 	provide("fileDragging", dragging)
 	const depth = dragDepth()
@@ -46,8 +61,8 @@ export function provideFileDrop(target, composer) {
 			if (accepts()) composer.value.addFiles(Array.from(event.dataTransfer.files))
 		},
 	}
-	const bind = (el, method) => {
-		for (const [name, handler] of Object.entries(handlers)) el?.[method](name, handler)
+	const bind = (el, method, listeners = handlers) => {
+		for (const [name, handler] of Object.entries(listeners)) el?.[method](name, handler)
 	}
 	watch(
 		() => target.value,
@@ -57,6 +72,17 @@ export function provideFileDrop(target, composer) {
 		},
 		{ immediate: true },
 	)
-	onBeforeUnmount(() => bind(target.value, "removeEventListener"))
+	watch(
+		() => page?.value,
+		(el, old) => {
+			bind(old, "removeEventListener", STRAY_DROPS)
+			bind(el, "addEventListener", STRAY_DROPS)
+		},
+		{ immediate: true },
+	)
+	onBeforeUnmount(() => {
+		bind(target.value, "removeEventListener")
+		bind(page?.value, "removeEventListener", STRAY_DROPS)
+	})
 	return dragging
 }

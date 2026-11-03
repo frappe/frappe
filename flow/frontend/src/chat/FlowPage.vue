@@ -377,8 +377,9 @@ function openInTab() {
 // the composer floats over the list, which pads by its measured height
 const composer = ref(null);
 const chat = ref(null);
+const root = ref(null);
 provideComposerHeight(composer);
-provideFileDrop(chat, composer);
+provideFileDrop(chat, composer, root);
 // the new chat's mark, by the draft: at rest it watches the pointer, it reads while keys go,
 // and a draft that rests a moment has it look up, ready. A "/" opens commands, not a message
 const MOOD = {
@@ -476,7 +477,6 @@ let uninstallShortcuts = null;
 let uninstallFocusRings = null;
 let uninstallViewport = null;
 let unmeasure = null;
-const root = ref(null);
 onMounted(async () => {
 	// an island lays out by its own box, which a panel narrows; the page's width says nothing
 	unmeasure = measureLayoutBy(root.value);
