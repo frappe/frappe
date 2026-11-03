@@ -5,6 +5,7 @@ import {
   cancelledError,
   codeErrorsError,
   confirmConflict,
+  confirmRecordConflict,
   conflictError,
   SAVE_CONFLICT,
   shownInDialog,
@@ -66,6 +67,53 @@ describe("confirmConflict", () => {
     ]);
     expect(confirm.mock.calls[0][0].message).toContain("Reload to see their version");
     expect(confirm.mock.calls[1][0].message).toContain("Use theirs, or keep editing");
+  });
+});
+
+describe("confirmRecordConflict", () => {
+  const ask = async (changed: string[], act?: "submit" | "cancel") => {
+    const confirm = vi.fn().mockResolvedValue(true);
+    await confirmRecordConflict(confirm, "Ada", changed, act);
+    return confirm.mock.calls[0][0];
+  };
+
+  it("keeps Save's text for a save", async () => {
+    const options = await ask([]);
+    expect(options.message).toContain("cannot be saved over theirs");
+  });
+
+  it("gives a clean Submit its own text", async () => {
+    const options = await ask([], "submit");
+    expect(options.message).toBe(
+      "Ada saved this record after you opened it. Reload to see their version before you submit.",
+    );
+  });
+
+  it("gives a clean Cancel its own text", async () => {
+    const options = await ask([], "cancel");
+    expect(options.message).toBe(
+      "Ada saved this record after you opened it. Reload to see their version before you cancel.",
+    );
+  });
+
+  it("keeps Save's text for a Submit or Cancel with unsaved changes", async () => {
+    for (const act of ["submit", "cancel"] as const) {
+      const options = await ask(["Status"], act);
+      expect(options.message).toContain("your changes to Status cannot be saved over theirs");
+    }
+  });
+
+  it("keeps the dialog's title and buttons", async () => {
+    const options = await ask([], "submit");
+    expect(options).toMatchObject({
+      title: "Saved by someone else",
+      confirmLabel: "Reload and lose my changes",
+      cancelLabel: "Keep editing",
+    });
+  });
+
+  it("returns whether the reader chose to reload", async () => {
+    expect(await confirmRecordConflict(vi.fn().mockResolvedValue(false), "Ada", [], "submit")).toBe(false);
   });
 });
 

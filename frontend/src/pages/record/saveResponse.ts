@@ -2,6 +2,7 @@
 // and the fields the reader would lose.
 import type { RawMetaField } from "@framework/ui/FormLayout/types";
 import { __ } from "@/i18n";
+import type { DocstatusAct } from "./docstatusActs";
 import type { Confirm } from "./discardChanges";
 import { sameContent } from "./refetchMerge";
 
@@ -57,9 +58,9 @@ export async function confirmConflict(
 ): Promise<boolean> {
   const labels = changed.map((label) => __(label)).join(", ");
   const mine = changed.length ? __("your changes to {0}", [labels]) : __("your changes");
-  const confirmed = await confirm({
-    title: __("Saved by someone else"),
-    message: useTheirs
+  return askConflict(
+    confirm,
+    useTheirs
       ? __(
           "{0} saved this record after you opened it, so {1} cannot be saved over theirs. Use theirs, or keep editing to copy your values out first.",
           [editor, mine],
@@ -68,6 +69,29 @@ export async function confirmConflict(
           "{0} saved this record after you opened it, so {1} cannot be saved over theirs. Reload to see their version, or keep editing to copy your values out first.",
           [editor, mine],
         ),
+    useTheirs,
+  );
+}
+
+/** The record page's conflict: a Submit or Cancel on a record with no unsaved changes gets its own text, since nothing of the reader's is at stake. */
+export async function confirmRecordConflict(
+  confirm: Confirm,
+  editor: string,
+  changed: string[],
+  act?: DocstatusAct,
+): Promise<boolean> {
+  if (!act || changed.length) return confirmConflict(confirm, editor, changed);
+  const message =
+    act === "submit"
+      ? __("{0} saved this record after you opened it. Reload to see their version before you submit.", [editor])
+      : __("{0} saved this record after you opened it. Reload to see their version before you cancel.", [editor]);
+  return askConflict(confirm, message);
+}
+
+async function askConflict(confirm: Confirm, message: string, useTheirs?: string): Promise<boolean> {
+  const confirmed = await confirm({
+    title: __("Saved by someone else"),
+    message,
     confirmLabel: useTheirs ?? __("Reload and lose my changes"),
     cancelLabel: __("Keep editing"),
   });

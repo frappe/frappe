@@ -425,7 +425,7 @@ component group, with its main names.
 | Record source | The load, the parts re-read, the save, and a cached read |
 | Meta source (`awaitMeta`) | The doctype meta as one promise or its current value |
 | Refetch merge (`sameContent`) | Merges a background re-read into the draft the reader is editing. `sameContent` is the draft comparison the record page and the settings drafts share; a child row's stamps are not content |
-| Save conflict (`SaveConflict`, `confirmConflict`) | The error when someone else saved first, the fields the reader would lose, and the question the record page and the settings blocks ask |
+| Save conflict (`SaveConflict`, `confirmConflict`, `confirmRecordConflict`) | The error when someone else saved first, the fields the reader would lose, and the question the record page and the settings blocks ask; a Submit or Cancel on a record with no unsaved changes gets its own text |
 | Save code errors (`SaveCodeErrors`, `codeErrorsError`, `shownInDialog`, `codeErrorFrames`, `CodeErrorFrame`, `CodeErrorsDialog`) | *New.* A save the server refused because a Code field's text does not compile. One dialog lists each error with the lines around it, and the Code field marks them until the next save |
 | Required-fields dialog (`askRequired`, `SaveCancelled`, `cancelledError`, `RequiredFieldsDialog`) | *New.* The dialog a save, or a Submit, opens for mandatory fields the layout does not show; a Submit's primary button reads "Save and submit". Record and New Record pass it to the page as `askRequired`; Cancel throws `SaveCancelled`, which `shownInDialog` counts, so the draft stays dirty with no toast |
 | Live scripts | Re-runs the page's scripts when a stored script of its doctype changes |

@@ -221,7 +221,7 @@ import { landOffsets, readOffsets } from "./record/viewScroll";
 import { codeErrorFrames } from "./record/codeErrorFrames";
 import {
 	changedFields,
-	confirmConflict,
+	confirmRecordConflict,
 	codeErrorsError,
 	conflictError,
 	shownInDialog,
@@ -967,7 +967,7 @@ async function moveDocstatus(act: DocstatusAct) {
 		);
 	} catch (e) {
 		if (!(isApiError(e) && e.isTimestampMismatch)) throw e;
-		await resolveConflict();
+		await resolveConflict(act);
 		throw conflictError();
 	}
 }
@@ -1027,7 +1027,7 @@ function showCodeErrors(errors: CodeError[], sent: Record<string, any>, title?: 
 }
 
 // Nothing is re-applied: the reader sees who saved and what they changed, and chooses.
-async function resolveConflict() {
+async function resolveConflict(act?: DocstatusAct) {
 	const visit = currentVisit;
 	const latest = await loadRecord(doctype.value!, docname.value, visit.signal).catch(() => null);
 	if (!visit.current()) return;
@@ -1035,7 +1035,7 @@ async function resolveConflict() {
 		? personOf(latest.docinfo, latest.document.modified_by).name
 		: __("Someone else");
 	const changed = changedFields(doc.value, saved.value, meta.value?.fields);
-	if (await confirmConflict(controller.value!.page.dialog.confirm, editor, changed))
+	if (await confirmRecordConflict(controller.value!.page.dialog.confirm, editor, changed, act))
 		await load();
 }
 
