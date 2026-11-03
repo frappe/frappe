@@ -294,7 +294,7 @@ import { useKeyboardShortcut } from "frappe-ui"
 import { dialog } from "frappe-ui/src/utils/dialog"
 
 import { useDebouncedValue } from "../debounce.js"
-import { layout, useSlide } from "../layout.js"
+import { SIDEBAR_WIDTH, layout, useSlide } from "../layout.js"
 import BrandMark from "./BrandMark.vue"
 import ChatMenu from "./ChatMenu.vue"
 import ChatSearch from "./ChatSearch.vue"
@@ -687,8 +687,8 @@ async function newWorkspace() {
 	startNewChat(workspace?.path ?? cwd)
 }
 
-const DEFAULT_WIDTH = 288
-const clampWidth = (w) => Math.min(420, Math.max(224, w))
+const DEFAULT_WIDTH = SIDEBAR_WIDTH.default
+const clampWidth = (w) => Math.min(SIDEBAR_WIDTH.max, Math.max(SIDEBAR_WIDTH.min, w))
 const width = ref(clampWidth(flow.state.prefs.sidebarWidth ?? DEFAULT_WIDTH))
 
 function resetWidth() {
