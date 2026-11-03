@@ -327,7 +327,7 @@
 									:key="m.id"
 									data-palette-item
 									:aria-current="currentMode === m.id ? 'true' : undefined"
-									class="flow-palette-row h-auto py-1.5"
+									class="flow-palette-row !py-1.5"
 									@click="chooseMode(m.id)"
 								>
 									<span
