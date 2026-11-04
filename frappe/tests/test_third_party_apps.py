@@ -2,11 +2,11 @@
 # License: MIT. See LICENSE
 import frappe
 from frappe.core.doctype.user.test_user import test_user
-from frappe.tests import IntegrationTestCase
+from frappe.tests.utils import FrappeTestCase
 from frappe.www.third_party_apps import get_context
 
 
-class TestThirdPartyApps(IntegrationTestCase):
+class TestThirdPartyApps(FrappeTestCase):
 	def test_app_is_limited_to_clients_with_a_token(self):
 		own, other = (self.make_client(f"_Test Own Client {i}") for i in range(2))
 
