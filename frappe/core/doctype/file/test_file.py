@@ -1060,6 +1060,26 @@ class TestAttachment(IntegrationTestCase):
 			)
 		)
 
+	def test_unreadable_private_attachment_shows_no_message_on_save(self):
+		file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "test_unreadable.txt",
+				"content": "Unreadable Content",
+				"is_private": 1,
+			}
+		).insert()
+		doc = frappe.get_doc(doctype=self.test_doctype, title="test unreadable private attachment").insert()
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		frappe.clear_messages()
+		doc.attachment = file.file_url
+		doc.save(ignore_permissions=True)
+
+		self.assertFalse(frappe.db.exists("File", {"attached_to_name": doc.name, "file_url": file.file_url}))
+		self.assertFalse(frappe.message_log)
+
 	def test_toggle_is_private_leaves_unrelated_field_unchanged(self):
 		self.addCleanup(frappe.set_user, "Administrator")
 		frappe.set_user("test@example.com")

@@ -380,9 +380,11 @@ def attach_files_to_document(doc: "Document", event) -> None:
 			attached_to_field=df.fieldname,
 			folder="Home/Attachments",
 		)
+		messages = len(frappe.local.message_log)
 		try:
 			file.insert(ignore_permissions=True)
 		except Exception:
+			del frappe.local.message_log[messages:]
 			doc.log_error("Error Attaching File")
 
 
