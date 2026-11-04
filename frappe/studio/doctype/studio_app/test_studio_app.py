@@ -355,14 +355,23 @@ class TestStudioAppBuilder(FrappeTestCase):
 				}
 			]
 		}
+		# a draft page is never routed, so neither its components nor its missing ones count
+		draft_data = {
+			"published": 0,
+			"blocks": [{"componentName": "PosHeader", "isCustomVueComponent": True, "children": []}],
+		}
 
-		with mock_studio_app_files(app_name, pages={"my_page": page_data}) as studio_folder:
+		with mock_studio_app_files(
+			app_name, pages={"my_page": page_data, "draft": draft_data}
+		) as studio_folder:
 			builder = StudioAppBuilder(app_name, is_standard=True, frappe_app="frappe")
 			with patch("frappe.studio.utils.get_studio_folder", return_value=studio_folder):
 				builder.get_app_components_from_files()
 
 			self.assertIn("TextEditor", builder.components)
 			self.assertIn("Dropdown", builder.components)
+			self.assertNotIn("PosHeader", builder.components)
+			self.assertEqual(builder.missing_components, set())
 
 	def test_get_app_components_from_files_extracts_h_function_components(self):
 		app_name = "file-h-func-app"
@@ -416,24 +425,6 @@ class TestStudioAppBuilder(FrappeTestCase):
 
 			self.assertIn("Alert", builder.components)
 			self.assertIn("Badge", builder.components)
-
-	def test_ignores_unpublished_exported_pages(self):
-		app_name = "draft-page-app"
-		pages = {
-			"live": {"blocks": [{"componentName": "Button", "children": []}]},
-			"draft": {
-				"published": 0,
-				"blocks": [{"componentName": "PosHeader", "isCustomVueComponent": True, "children": []}],
-			},
-		}
-
-		with mock_studio_app_files(app_name, pages=pages) as studio_folder:
-			builder = StudioAppBuilder(app_name, is_standard=True, frappe_app="frappe")
-			with patch("frappe.studio.utils.get_studio_folder", return_value=studio_folder):
-				builder.get_app_components_from_files()
-
-		self.assertEqual(builder.components, {"Button"})
-		self.assertEqual(builder.missing_components, set())
 
 	def test_build_stops_when_a_custom_component_is_missing(self):
 		"""Building it anyway emits an unknown element, which renders blank with a clean console."""
