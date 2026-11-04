@@ -95,13 +95,16 @@ describe("a script's row", () => {
 		expect(root.querySelector("span.lucide-phone")).not.toBeNull();
 	});
 
-	it("keeps the default gutter icon when it names none", async () => {
-		const { root } = await mountFeed([], ["comment"], [own()]);
+	it.each([undefined, "fa fa-phone", "lucide-phone hidden"])(
+		"keeps the default gutter icon for %s",
+		async (icon) => {
+			const { root } = await mountFeed([], ["comment"], [own(icon)]);
 
-		expect(root.textContent).toContain("a script row");
-		expect(root.querySelector("span[class*='lucide-']")).toBeNull();
-		expect(root.querySelector("svg, [class*='size-4']")).not.toBeNull();
-	});
+			expect(root.textContent).toContain("a script row");
+			expect(root.querySelector("span[class*='lucide-'], span.fa")).toBeNull();
+			expect(root.querySelector("svg")).not.toBeNull();
+		},
+	);
 });
 
 describe("an email row's replies", () => {
