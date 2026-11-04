@@ -95,7 +95,11 @@ function errors() {
 	return vi.mocked(console.error).mock.calls.map(([message]) => String(message));
 }
 
-beforeAll(() => registerContributions(["frappe"]));
+beforeAll(async () => {
+	registerContributions(["frappe"]);
+	// The hooks await this import; cold, its transform outlasts `paint()`'s fixed turns.
+	await import("../standingWindows");
+});
 
 beforeEach(() => {
 	shellHookFiles.length = 0;
