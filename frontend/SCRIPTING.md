@@ -1475,6 +1475,7 @@ A script's row:
 | `timestamp` | Where the row sits, written as the server writes one: `2026-09-23 10:15:00`, in the site's time zone. Required, and `update` cannot clear it. `add` and `update` rewrite an ISO `2026-09-23T10:15:00` that way, and move a time with a `Z` or an offset to the site's time zone, so `new Date().toISOString()` lands where it should. Without the site's time zone such a row is dropped, with a warning that prints in production too. |
 | `component` | Draws the row, with `props` and a `page` prop. Required. |
 | `props` | Bound onto `component`. |
+| `icon` | `lucide-<name>`, any of the shell's lucide icons, drawn in the row's gutter. Without one the row keeps the default gutter icon. |
 | any other key | Not read: dropped on `add`, and a development build warns once. |
 
 A server row, as `items` hands it back:
@@ -1549,6 +1550,7 @@ export default {
       timestamp: '2026-09-23 10:15:00',
       component: CallRow,
       props: { id: 17 },
+      icon: 'lucide-phone',    // the gutter icon; without one the row shows the default
     })
 
     console.log(page.files.items.map((f) => f.name))
@@ -1566,7 +1568,7 @@ and a script's own rows placed among them by `timestamp`. It speaks `add`, `remo
 ### An item
 
 A script's row takes the same keys as a row of `page.activity`: `name`, `timestamp`,
-`component` and `props`.
+`component` and `props`. The Files list ignores `icon`.
 
 An attachment, as `items` hands it back:
 

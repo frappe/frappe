@@ -67,6 +67,7 @@ import {
 	type VisibleTypes,
 } from "@framework/ui/ActivityTimeline";
 import type { ActivityRow, FeedItem, RecordPageApi } from "@/recordPage";
+import { gutterIcon } from "./gutterIcon";
 import { __ } from "@/i18n";
 import { EMAIL_WRITER } from "../composer/emailDraft";
 import RecordFeed from "./RecordFeed.vue";
@@ -120,6 +121,7 @@ function withScriptRows(server: ActivityRow[]): Array<ActivityRow | CustomActivi
 			type: "script",
 			key: item.name,
 			timestamp: item.timestamp,
+			icon: gutterIcon(item.icon),
 			data: item,
 		}));
 	return own.length ? [...server, ...own].sort(compareActivities) : server;

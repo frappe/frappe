@@ -48,15 +48,18 @@ afterEach(() => {
 	document.body.innerHTML = "";
 });
 
-async function mountFeed(rows: unknown[], writers: string[] = ["comment"]) {
+async function mountFeed(rows: unknown[], writers: string[] = ["comment"], own: unknown[] = []) {
 	feed.rows = rows;
 	const root = document.createElement("div");
 	document.body.appendChild(root);
 	const open = vi.fn();
 	const page = { doctype: "CRM Deal", docname: "D-1", composer: { open } };
-	const controller = { composer: { visible: () => writers.map((name) => ({ name, label: name })) } };
-	const app = createApp(defineComponent({ setup: () => () => h(TimelineFeed, { page: page as any }) }));
-	const feeds = { controller: () => controller, composerBand: shallowRef(0) };
+	const controller = {
+		composer: { visible: () => writers.map((name) => ({ name, label: name })) },
+		activity: { visible: () => own },
+	};
+	const app = createApp(defineComponent({ setup: () => () => h(TimelineFeed, { page: page as any, main: own.length > 0 }) }));
+	const feeds = { controller: () => controller, composerBand: shallowRef(0), attach: () => () => {} };
 	app.provide(RecordFeedsKey, feeds as any);
 	app.mount(root);
 	apps.push(app);
@@ -74,6 +77,30 @@ describe("a timeline feed tab", () => {
 		const stops = root.querySelectorAll('[tabindex="0"]');
 		expect(stops).toHaveLength(1);
 		expect(stops[0].hasAttribute("data-reka-scroll-area-viewport")).toBe(true);
+	});
+});
+
+describe("a script's row", () => {
+	const own = (icon?: string) => ({
+		name: "task:1",
+		timestamp: "2026-09-20 10:00:00",
+		component: ScriptRow,
+		icon,
+	});
+
+	it("draws its icon in the gutter when it names one", async () => {
+		const { root } = await mountFeed([], ["comment"], [own("lucide-phone")]);
+
+		expect(root.textContent).toContain("a script row");
+		expect(root.querySelector("span.lucide-phone")).not.toBeNull();
+	});
+
+	it("keeps the default gutter icon when it names none", async () => {
+		const { root } = await mountFeed([], ["comment"], [own()]);
+
+		expect(root.textContent).toContain("a script row");
+		expect(root.querySelector("span[class*='lucide-']")).toBeNull();
+		expect(root.querySelector("svg, [class*='size-4']")).not.toBeNull();
 	});
 });
 
