@@ -237,6 +237,10 @@ What `page` is _for_ is a small, closed vocabulary:
   `page.header`, tab, panel and feed items, files and the composer are not drawn there.
   `page.dialog` verbs open over it. A submittable doctype never opens in it (the dialog has
   no Submit or Cancel): its record opens the page, and the build warns about the opt-in.
+- **`page.open` and `shell.open` navigate at once**: unlike `page.openSettings`, a call in
+  `onRefresh` is not held until the page commits, so open from a handler or an act, not from a
+  replay. A doctype that opens in the record dialog shows the dialog over the page and leaves the
+  address alone.
 - **A handful of contracts**: every `page.dialog` verb resolves `null` when the reader
   dismissed the dialog, so `if (!result) return` is always the idiom; `page.create`
   resolves `null` when nothing was saved in its dialog, so `if (!doc) return` is its

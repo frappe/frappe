@@ -387,6 +387,8 @@ export interface RecordPageApi extends PageApi {
     doctype: string,
     options?: { values?: Record<string, any> },
   ): Promise<Record<string, any> | null>;
+  /** Opens a record, a doctype's list or a saved view, as `shell.open` does. */
+  open(doctype: string, name?: string | null, options?: { view?: string }): Promise<void>;
   /** Opens the settings dialog at `#settings/<prefix>/<pane>/<block>`; each segment is optional. */
   openSettings(prefix?: string, pane?: string, block?: string): void;
   /** Runs an act by its full name, `<surface>.<item>`, in a hold; rejects with `ActDenied` or the act's error. */

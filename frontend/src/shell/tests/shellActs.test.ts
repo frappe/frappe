@@ -150,6 +150,7 @@ describe("the acts the shell holds", () => {
 			"shell.desk_v1",
 			"shell.log_out",
 			"shell.create",
+			"shell.open",
 		]);
 	});
 
@@ -162,6 +163,7 @@ describe("the acts the shell holds", () => {
 			"shell.desk_v1",
 			"shell.log_out",
 			"shell.create",
+			"shell.open",
 		]);
 	});
 

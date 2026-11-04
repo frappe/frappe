@@ -9,6 +9,8 @@ import { acts, type ActItem, type AvailableAct } from "@/acts/dispatcher";
 import { doctypeRight } from "@/acts/doctypeRight";
 import type { Boot } from "@/boot";
 import { __ } from "@/i18n";
+import { hrefFor } from "@/router/recordLink";
+import { routeFor } from "@/router/routeFor";
 import { useAppActs } from "./appActs";
 import { kindOf } from "./fieldActions";
 import { openCreate, type CreatedDoc, type CreateOptions } from "./create";
@@ -33,6 +35,10 @@ export interface Shell {
 	call: (method: string, params?: Record<string, any>) => Promise<any>;
 	run: (name: string, value?: unknown) => Promise<unknown>;
 	create: (doctype: string, options?: CreateOptions) => Promise<CreatedDoc | null>;
+	/** Opens a record, a doctype's list or a saved view: `shell.open('ToDo')`, `shell.open('ToDo', name)`, `shell.open('ToDo', null, { view })`. */
+	open: (doctype: string, name?: string | null, options?: { view?: string }) => Promise<void>;
+	/** The address of a record or list, for a plain `<a>`; `null` when the doctype has none. */
+	href: (doctype: string, name?: string) => string | null;
 	openSettings: OpenSettings;
 	dialog: ShellDialog;
 	/** The saved record open on the page, else `null`: a list, a new record or no page. */
@@ -41,6 +47,13 @@ export interface Shell {
 
 /** `shell.create`'s value: a doctype, or a doctype with the values its record starts with. */
 type CreateValue = string | { doctype: string; values?: Record<string, any> };
+
+/** `shell.open`'s value: what `routeFor` takes. */
+interface OpenValue {
+	doctype: string;
+	name?: string | null;
+	view?: string;
+}
 
 /** `shell.open_settings`'s value: the settings address's segments; none opens the first pane. */
 interface SettingsAddress {
@@ -135,6 +148,8 @@ function shellFor(host: ShellActsHost): Shell {
 		call: (method, params) => runMethod(method, params).then((envelope) => envelope.data),
 		run: (name, value) => acts.run(name, value),
 		create: (doctype, options) => openCreate(doctype, options),
+		open: (doctype, name, options) => acts.run("shell.open", { doctype, name, view: options?.view }) as Promise<void>,
+		href: (doctype, name) => hrefFor(host.router, doctype, name),
 		openSettings: host.openSettings,
 		dialog: shellDialog(),
 		record: openRecord,
@@ -171,6 +186,7 @@ function shellItems(
 		openSettingsItem(host.boot),
 		...personItems(host, setColorScheme),
 		createItem(),
+		openItem(),
 	];
 }
 
@@ -242,6 +258,18 @@ function createItem(): ActItem<Shell> {
 				typeof value === "string" ? { doctype: value, values: undefined } : value ?? {};
 			if (!doctype) throw new Error(__("Create needs a doctype"));
 			return shell.create(doctype, { values });
+		},
+	};
+}
+
+// Through `routeFor` and the router, so a record of a doctype that opens in a dialog does.
+function openItem(): ActItem<Shell> {
+	return {
+		name: "open",
+		palette: false,
+		run: async (shell, { doctype, name, view }: OpenValue) => {
+			if (!doctype) throw new Error(__("Open needs a doctype"));
+			await shell.router.push(routeFor(doctype, name, { view }));
 		},
 	};
 }
