@@ -6,7 +6,7 @@
 		<div class="flex flex-col items-center gap-4 text-center">
 			<BrandMark line :size="28" state="idle" />
 			<div class="flex flex-col gap-1.5">
-				<h1 class="text-2xl font-semibold text-ink-gray-9">{{ greeting }}</h1>
+				<h1 class="text-2xl-semibold text-ink-gray-9">{{ greeting }}</h1>
 				<p class="max-w-sm text-pretty text-p-base text-ink-gray-5">{{ subline }}</p>
 			</div>
 		</div>

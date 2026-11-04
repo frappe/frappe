@@ -2,7 +2,7 @@
 	<!-- clip, not hidden: a hidden root still scrolls when focus lands in the closed panel.
 	     The root is the sidebar's colour, so the chat stands on it as a raised panel -->
 	<div
-		class="flow-sidebar-surface flex h-full min-h-0 overflow-clip text-md text-ink-gray-8"
+		class="flow-sidebar-surface flex h-full min-h-0 overflow-clip text-base text-ink-gray-8"
 		:style="{
 			'--flow-chat-text': `${store.state.prefs.chatFontSize}px`,
 			'--flow-chat-weight': store.state.prefs.chatFontWeight,
@@ -20,9 +20,7 @@
 				<template #actions>
 					<Dropdown class="flex-none" :options="addTabOptions">
 						<template #trigger>
-							<button class="flow-icon-btn" title="New tab">
-								<span class="lucide-plus size-3.5" aria-hidden="true" />
-							</button>
+							<Button variant="ghost" icon="lucide-plus" title="New tab" />
 						</template>
 					</Dropdown>
 				</template>
@@ -80,6 +78,7 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, provide, ref, watch } from "vue"
+import { Button } from "frappe-ui/src/components/Button"
 import Dialogs from "frappe-ui/src/components/Dialogs.vue"
 import Dropdown from "frappe-ui/src/components/Dropdown/Dropdown.vue"
 import { useColorScheme } from "frappe-ui/src/composables/useColorScheme"
