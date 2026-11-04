@@ -81,7 +81,9 @@ import { clearDataCache } from "@framework/ui/cache";
 import { resetDoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { resetSession, setSession } from "@framework/ui/useSession";
 import { resetListSettings } from "@/list/useListSettings";
+import type { View } from "@/list/view";
 import { PLAIN_LIST } from "@/list/useListPage";
+import type { ListContext } from "@/contributions/types";
 import { useListActs } from "../listActs";
 import ViewPage from "../ViewPage.vue";
 import {
@@ -304,6 +306,19 @@ describe("the list surface", () => {
     expect(root.querySelector("[data-delete-dialog]")).not.toBeNull();
   });
 
+  it("gives a list act the list context: doctype, view, a copy of the selection and reload", async () => {
+    await mount();
+    fake.state.selection.value = ["CONT-0001"];
+    await nextTick();
+
+    const context = acts.contextOf("list") as ListContext<View>;
+    expect(context).toMatchObject({ doctype: "Contact", selection: ["CONT-0001"], reload: fake.reload });
+    expect(context.view.key).toBe("list");
+    expect(context.row).toBeUndefined();
+    fake.state.selection.value = [];
+    expect(context.selection).toEqual(["CONT-0001"]);
+  });
+
   it("refuses list.create and list.delete with ActDenied for a user without the rights, and draws neither", async () => {
     permissions = [READ_ONLY];
     fake.selectedAtMount = ["CONT-0001"];
@@ -514,6 +529,7 @@ describe("a renderer's acts", () => {
   async function mountActs(type?: string) {
     const host = {
       doctype: "Contact",
+      view: { doctype: "Contact", key: "list", type: "List" } as View,
       create: () => {},
       customizeQuickFilter: () => {},
       customizing: () => false,
@@ -527,7 +543,7 @@ describe("a renderer's acts", () => {
     const app = createApp(
       defineComponent({
         setup() {
-          useListActs(host, type).renderer(() => [moveCard]);
+          useListActs(host, type).renderer(() => [moveCard], () => ({ selection: [], reload: () => {} }));
           return () => null;
         },
       })

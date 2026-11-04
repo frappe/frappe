@@ -192,10 +192,10 @@ function columnFields(matches: (field: RawMetaField) => boolean) {
 	return fields;
 }
 
-const listActs = props.host.acts(() => [
-	...(selection.value.length ? [deleteEntry()] : []),
-	...rowActionEntries(rowActions),
-]);
+const listActs = props.host.acts(
+	() => [...(selection.value.length ? [deleteEntry()] : []), ...rowActionEntries(rowActions)],
+	() => ({ selection: selection.value, reload })
+);
 
 function deleteEntry() {
 	return {

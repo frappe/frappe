@@ -16,8 +16,24 @@ export type ActionItem<Context = unknown> = {
   when?: (context: Context) => boolean
 }
 
-/** A list row's action; `fields` are read into the list query so `value` finds them on the row. */
-export type RowAction = ActionItem<Record<string, unknown>> & { fields: string[] }
+/** What a list act's `run` gets, and a row action's `value` and `when` after the row. `View` is the page's view object. */
+export type ListContext<View = unknown> = {
+  doctype: string
+  view: View
+  /** The selected rows' names now; a copy, so a later selection does not change it. */
+  selection: string[]
+  /** The row a row action was taken on; absent for a bulk or page act. */
+  row?: Record<string, unknown>
+  /** Loads the rows again, as the list does after its own change. */
+  reload: () => void
+}
+
+/** A list row's action; `fields` are read into the list query so `value` finds them on the row. `value` and `when` get the list's context after the row. */
+export type RowAction = Omit<ActionItem, "value" | "when"> & {
+  value?: (row: Record<string, unknown>, list: ListContext) => unknown
+  when?: (row: Record<string, unknown>, list: ListContext) => boolean
+  fields: string[]
+}
 
 export type ListHandlers = {
   columns?: { fieldname: string; width?: number }[]
