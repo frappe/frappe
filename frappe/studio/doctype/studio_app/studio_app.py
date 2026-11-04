@@ -101,7 +101,7 @@ def get_desktop_apps() -> list[dict]:
 		frappe.qb.from_(StudioApp)
 		.inner_join(StudioPage)
 		.on(StudioPage.studio_app == StudioApp.name)
-		.select(StudioApp.name, StudioApp.app_title, StudioApp.route, StudioApp.app_icon)
+		.select(StudioApp.name, StudioApp.app_title, StudioApp.route, StudioApp.favicon)
 		.where(StudioPage.published == 1)
 		.distinct()
 		.orderby(StudioApp.app_title)
@@ -119,7 +119,6 @@ class StudioApp(WebsiteGenerator):
 		from frappe.types import DF
 
 		app_home: DF.Link | None
-		app_icon: DF.Icon | None
 		app_name: DF.Data | None
 		app_title: DF.Data
 		favicon: DF.AttachImage | None

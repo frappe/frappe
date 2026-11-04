@@ -12,7 +12,6 @@
   "route",
   "column_break_aroi",
   "app_home",
-  "app_icon",
   "favicon",
   "router_section",
   "router_script",
@@ -39,13 +38,7 @@
    "options": "Studio Page"
   },
   {
-   "description": "Shown on the desktop and in the app switcher",
-   "fieldname": "app_icon",
-   "fieldtype": "Icon",
-   "label": "App Icon"
-  },
-  {
-   "description": "Shown in the browser tab. Recommended size is 32x32 px in PNG or ICO",
+   "description": "Shown in the browser tab and as the app's icon on the desktop. Use a square PNG or SVG",
    "fieldname": "favicon",
    "fieldtype": "Attach Image",
    "label": "Favicon"
@@ -102,7 +95,7 @@
    "link_fieldname": "studio_app"
   }
  ],
- "modified": "2026-11-04 15:00:00.000000",
+ "modified": "2026-11-04 17:13:09.000000",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio App",

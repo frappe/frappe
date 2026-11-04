@@ -1468,7 +1468,7 @@ Object.assign(frappe.utils, {
 			app_name: app.name,
 			app_title: app.app_title,
 			app_route: `/${app.route}`,
-			app_icon: app.app_icon,
+			app_logo_url: app.favicon,
 		}));
 		const framework = apps.findIndex((app) => app.app_name === "frappe");
 		apps.splice(framework === -1 ? apps.length : framework, 0, ...studio_apps);
