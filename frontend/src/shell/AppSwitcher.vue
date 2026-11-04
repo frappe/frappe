@@ -14,7 +14,7 @@
 			tabindex="-1"
 			:aria-label="__('Switch app')"
 			:aria-activedescendant="`app-switcher-${appSwitcher.selected.value}`"
-			class="flex max-w-full outline-none flex-wrap justify-center gap-1 rounded-6 bg-surface-modal p-2 shadow-2xl ring-1 ring-outline-gray-2"
+			class="flex max-w-full outline-none flex-wrap justify-center gap-1 rounded-6 bg-surface-elevation-2 p-2 shadow-2xl ring-1 ring-outline-gray-2"
 		>
 			<button
 				v-for="(app, index) in appSwitcher.apps.value"
@@ -37,7 +37,7 @@
 					<AppLogo :logo="app.logo" :title="app.title" />
 					<span
 						v-if="app.kind === 'link'"
-						class="absolute -bottom-1 -right-1 flex size-5 items-center justify-center rounded-full bg-surface-white text-ink-gray-7 ring-1 ring-outline-gray-3"
+						class="absolute -bottom-1 -right-1 flex size-5 items-center justify-center rounded-full bg-surface-base text-ink-gray-7 ring-1 ring-outline-gray-3"
 						data-link-mark
 						:title="__('Leaves the desk')"
 					>

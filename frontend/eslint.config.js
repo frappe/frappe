@@ -69,15 +69,28 @@ const noDeepUiPath = [
 	{ selector: `TemplateElement[value.raw=${DEEP_UI_PATH}]`, message: deepUiPathMessage },
 ];
 
+// Classes frappe-ui 1.1.0 renamed (node_modules/frappe-ui/tailwind/migrate-tokens-v2.js): they now draw nothing.
+const STALE_TOKEN =
+	"/(surface-(white|menu-bar|cards?|modal|selected|gray-2-contrast)|ink-white|outline-(white|gray-modals?))(?![\\w-])/";
+const staleTokenMessage =
+	"A frappe-ui token that was renamed in 1.1.0 and now draws nothing. See migrate-tokens-v2.js for the new name.";
+
+const noStaleToken = [
+	{ selector: `Literal[value=${STALE_TOKEN}]`, message: staleTokenMessage },
+	{ selector: `TemplateElement[value.raw=${STALE_TOKEN}]`, message: staleTokenMessage },
+];
+
 // The core rule sees the script alone; the plugin's twin walks the template, where a
 // plain attribute value is a `VLiteral`.
 const noV1AddressInTemplate = [
 	...noV1Address,
 	{ selector: `VLiteral[value=${V1_ADDRESS}]`, message: v1AddressMessage },
+	{ selector: `VLiteral[value=${STALE_TOKEN}]`, message: staleTokenMessage },
+	...noStaleToken,
 ];
 
 const rules = {
-	"no-restricted-syntax": noV1Address,
+	"no-restricted-syntax": [...noV1Address, ...noStaleToken],
 	"no-restricted-imports": noFrappeUiFetch,
 	"vue/no-restricted-syntax": noV1AddressInTemplate,
 };
@@ -100,6 +113,6 @@ export default [
 	},
 	{
 		files: ["frontend/src/**/*.{js,ts,vue}"],
-		rules: { "no-restricted-syntax": [...noV1Address, ...noDeepUiPath] },
+		rules: { "no-restricted-syntax": [...noV1Address, ...noStaleToken, ...noDeepUiPath] },
 	},
 ];

@@ -2,7 +2,7 @@
 <template>
 	<RouterLink
 		:to="link"
-		class="group relative flex h-56 min-w-0 flex-col gap-2 overflow-hidden rounded-5 border border-outline-gray-2 bg-surface-white p-3 hover:border-outline-gray-3"
+		class="group relative flex h-56 min-w-0 flex-col gap-2 overflow-hidden rounded-5 border border-outline-gray-2 bg-surface-base p-3 hover:border-outline-gray-3"
 	>
 		<div class="truncate text-base font-medium text-ink-gray-9">{{ title }}</div>
 		<div
@@ -11,7 +11,7 @@
 			<RichTextView v-if="bodyIsHtml" :html="body" />
 			<div v-else class="whitespace-pre-line">{{ body }}</div>
 			<div
-				class="absolute inset-x-0 bottom-0 h-6 bg-gradient-to-t from-surface-white to-transparent"
+				class="absolute inset-x-0 bottom-0 h-6 bg-gradient-to-t from-surface-base to-transparent"
 			/>
 		</div>
 		<div class="flex min-w-0 items-center gap-2 text-sm text-ink-gray-5">
@@ -29,7 +29,7 @@
 		</div>
 		<div
 			v-if="menu.length"
-			class="absolute end-2 top-2 opacity-0 focus-within:opacity-100 group-hover:opacity-100"
+			class="absolute end-2 top-2 opacity-0 focus-within:opacity-100 group-hover:opacity-100 has-[[data-state=open]]:opacity-100"
 			@click.prevent.stop
 		>
 			<RowMenu :options="menu" />
