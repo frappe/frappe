@@ -90,10 +90,10 @@
 
 	// `text-base-medium text-ink-gray-8`, spelled out rather than leant on: the shared
 	// .header-title below sets a 1.2 line and takes its tracking from the page, and the token is
-	// 1.15 on 0.015em.
+	// 0.015em.
 	.header-title {
 		font-size: var(--text-md);
-		line-height: 1.15;
+		line-height: normal;
 		font-weight: var(--font-weight-medium);
 		letter-spacing: 0.015em;
 		color: var(--ink-gray-8);
