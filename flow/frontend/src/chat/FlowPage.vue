@@ -373,7 +373,9 @@ watch(
 	() => route.params.session,
 	(id) => {
 		if (pageKind.value) return; // the chat waits behind a page as it was, its box and all
-		if (id && id !== store.state.sessionId) store.openSession(id);
+		// in the panel, a route the user didn't pick: the chat it last showed, or Back to one,
+		// either of which may since be gone
+		if (id && id !== store.state.sessionId) store.openSession(id, { quiet: inPanel });
 		else if (!id && store.state.sessionId) store.startNewChat();
 	}
 );
@@ -438,7 +440,7 @@ onMounted(async () => {
 		(route.params.session ||
 			store.state.sessions.some((session) => session.session_id === wanted))
 	)
-		store.openSession(wanted);
+		store.openSession(wanted, { quiet: inPanel });
 });
 onBeforeUnmount(() => {
 	uninstallShortcuts?.();

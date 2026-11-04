@@ -305,15 +305,19 @@ export function createFlowStore(client, options = {}) {
 		state.toast = { message, kind, at: Date.now() }
 	}
 
-	async function guard(work, { rethrow = false } = {}) {
+	async function guard(work, { rethrow = false, quiet = false } = {}) {
 		try {
 			return await work()
 		} catch (error) {
-			if (error instanceof FlowAPIError) notify(error.message, "error")
-			else notify(String(error?.message ?? error), "error")
+			if (!quiet) report(error)
 			if (rethrow) throw error
 			return null
 		}
+	}
+
+	function report(error) {
+		if (error instanceof FlowAPIError) notify(error.message, "error")
+		else notify(String(error?.message ?? error), "error")
 	}
 
 	function rememberTitle(sid) {
@@ -541,7 +545,9 @@ export function createFlowStore(client, options = {}) {
 		}
 	}
 
-	async function openSession(sid, { sending = [], config = null } = {}) {
+	// `quiet`: a chat the page reopened by itself, not one the user asked for, starts a new chat
+	// without a word when it is gone
+	async function openSession(sid, { sending = [], config = null, quiet = false } = {}) {
 		const own = ++opening
 		closeStream()
 		// a same-session reload (rewind) keeps the open file tabs as they are, and a chat
@@ -572,15 +578,16 @@ export function createFlowStore(client, options = {}) {
 		state.conversation.sending = sending
 		state.loading = true
 		const [info, catalog] = await Promise.all([
-			guard(() => client.session(sid)),
+			guard(() => client.session(sid), { quiet }),
 			options.skillsEnabled && typeof client.skills === "function"
-				? guard(() => client.skills(sid))
+				? client.skills(sid).catch((error) => ({ error }))
 				: Promise.resolve({ skills: [] }),
 		])
 		if (state.sessionId !== sid || own !== opening) return
 		// a chat that failed to load (gone, or not this user's) leaves a blank chat, not one
-		// that can't send
+		// that can't send; its skills failed for the same reason, said once already
 		if (!info) return startNewChat()
+		if (catalog.error) report(catalog.error)
 		// Seed from the active branch, not a raw-log replay: the log also holds
 		// rewind markers and abandoned rows, which must never enter the
 		// transcript (a replayed rewind would trigger an endless reload loop).
