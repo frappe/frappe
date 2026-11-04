@@ -25,6 +25,7 @@
 		<template #actions>
 			<div class="flex items-center justify-between gap-2">
 				<Button
+					v-if="!inDialog"
 					variant="subtle"
 					:label="__('Edit full form')"
 					:disabled="saving"
@@ -43,8 +44,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, provide, ref, useTemplateRef, watch } from "vue";
+import { computed, inject, nextTick, provide, ref, useTemplateRef, watch } from "vue";
 import { useRouter } from "vue-router";
+import type { Boot } from "@/boot";
+import { opensInDialog } from "@/contributions/registry";
 import { useEventListener } from "@vueuse/core";
 import { Button, Dialog, ErrorMessage, toast } from "frappe-ui";
 import { createDocument, isApiError } from "@framework/ui/api";
@@ -81,6 +84,8 @@ const props = defineProps<{ request: CreateRequest }>();
 const { doctype, values } = props.request;
 
 const router = useRouter();
+// An opted-in doctype has no full page to hand over to: the dialog is its only form.
+const inDialog = opensInDialog(doctype, inject<Boot | null>("boot", null)?.app ?? null);
 const { meta } = useDoctypeMeta(doctype);
 // A row's condition reads this, not the live draft: a layout switch mid-keystroke steals focus.
 const conditionDoc = ref<Record<string, any>>({ ...values });
@@ -130,7 +135,7 @@ const size = computed(() => quickEntry.dialogSize.value ?? "xl");
 
 quickEntry.settled().then(() => {
 	if (props.request.settled()) return;
-	if (!layoutFailed.value && !quickEntry.dialog.value) {
+	if (!layoutFailed.value && !quickEntry.dialog.value && !inDialog) {
 		props.request.dismiss();
 		return handOver(values);
 	}

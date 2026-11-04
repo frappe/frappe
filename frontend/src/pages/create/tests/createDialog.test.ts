@@ -4,6 +4,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, inject, nextTick, watch, type App } from "vue";
 import { createMemoryHistory, createRouter, type Router } from "vue-router";
 
+const optedIn = vi.hoisted(() => ({ value: false }));
+vi.mock("@/contributions/registry", async (importOriginal) => ({
+	...((await importOriginal()) as object),
+	opensInDialog: () => optedIn.value,
+}));
+
 // A passthrough Dialog that ends its leave at once, so the test reads the form, not reka-ui.
 vi.mock("frappe-ui", () => ({
 	Dialog: defineComponent({
@@ -182,6 +188,7 @@ beforeEach(() => {
 	registerCreateDialog(CreateDialog);
 	closeCreates();
 	server = leadServer();
+	optedIn.value = false;
 	fetchMock.mockReset().mockImplementation(async (url, init) => {
 		const path = new URL(String(url), "http://x").pathname;
 		if (path.endsWith("/meta")) return json({ data: server.meta });
@@ -296,6 +303,18 @@ describe("dialog or full page", () => {
 		const { root } = await open("Lead");
 
 		expect(root.querySelector("[data-dialog]")!.getAttribute("data-size")).toBe("3xl");
+	});
+
+	it("stays a dialog without Edit full form for a doctype whose records open in the dialog, even when the server says no dialog", async () => {
+		optedIn.value = true;
+		server.layouts = { ...server.layouts, dialog: false };
+		const { root, answer } = await open("Lead");
+
+		expect(root.querySelector("[data-dialog]")).not.toBeNull();
+		expect(button(root, "Save")).toBeTruthy();
+		expect(button(root, "Edit full form")).toBeUndefined();
+		expect(answer.settled).toBe(false);
+		expect(router.currentRoute.value.fullPath).toBe("/lead");
 	});
 
 	it("goes to the full-page new record with the caller's values when the server says no dialog", async () => {
