@@ -38,6 +38,7 @@ const EditorView = await loadComponent("EditorView")
 const FilesBar = await loadComponent("FilesBar")
 const SessionSidebar = await loadComponent("SessionSidebar")
 const ModelPalette = await loadComponent("ModelPalette")
+const KeyButton = await loadComponent("KeyButton")
 const FileMentionPalette = await loadComponent("FileMentionPalette")
 const ProvidersDialog = await loadComponent("ProvidersDialog")
 const SettingsSkills = await loadComponent("SettingsSkills")
@@ -3259,4 +3260,38 @@ test("the web app shows its connect form when the daemon refuses the token, and 
 	await settle()
 	assert.ok(el.querySelector("[data-stub='FlowChat']"))
 	assert.equal(JSON.parse(saved["flow.ui.connection"]).token, "s3cret")
+})
+
+test("a saved key shows as a filled field that typing or pasting replaces whole", async (t) => {
+	const saved = []
+	const { el } = mount(t, KeyButton, { label: "Exa API key", saved: true, onSave: (key) => saved.push(key) })
+	el.querySelector("button[title='Change the Exa API key']").click()
+	await nextTick()
+	const input = el.querySelector("[role=dialog] input")
+	const save = [...el.querySelectorAll("button")].find((b) => b.textContent === "Save")
+	assert.equal(input.value, "•".repeat(16))
+	assert.ok(save.disabled)
+	const type = async (value) => {
+		input.value = value
+		input.dispatchEvent(new window.Event("input"))
+		await nextTick()
+		await nextTick()
+	}
+	// a key typed after it, or a bullet taken off, starts the field afresh
+	await type("•".repeat(16) + "e")
+	assert.equal(input.value, "e")
+	await type("")
+	await type("•".repeat(16))
+	await type("•".repeat(15))
+	assert.equal(input.value, "")
+	await type("exa-new-key")
+	el.querySelector("form").dispatchEvent(new window.Event("submit"))
+	await nextTick()
+	assert.deepEqual(saved, ["exa-new-key"])
+})
+
+test("with no key saved, the key's field asks for one on its own and starts empty", async (t) => {
+	const { el } = mount(t, KeyButton, { label: "Exa API key", saved: false })
+	await nextTick()
+	assert.equal(el.querySelector("[role=dialog] input").value, "")
 })

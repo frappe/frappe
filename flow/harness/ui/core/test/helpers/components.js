@@ -181,6 +181,15 @@ const widgets = moduleURL(`
 		},
 	}
 	export const Select = { ...text("select"), props: ["modelValue", "options"] }
+	// open, its body and actions; closing emits close, as frappe-ui's does
+	export const Dialog = {
+		props: ["open", "title", "size"],
+		emits: ["update:open", "close"],
+		watch: { open(now) { if (!now) this.$emit("close") } },
+		render() {
+			return this.open ? h("div", { role: "dialog", "aria-label": this.title }, [this.$slots.default?.(), this.$slots.actions?.()]) : null
+		},
+	}
 `)
 // the frappe-ui root's pieces ui-core takes from it: a tooltip as its trigger alone, and shortcuts
 // that a test presses through the component's own handlers
@@ -197,7 +206,7 @@ const components = new Set([
 	"Composer.vue", "ToolStep.vue", "ToolGroup.vue", "ApprovalCard.vue", "MessageList.vue", "ModelButton.vue",
 	"SettingsDialog.vue", "SettingsPage.vue", "UserBubble.vue", "TurnFold.vue", "ThinkingBlock.vue", "ThoughtStep.vue",
 	"SubagentView.vue", "TranscriptDialog.vue", "WorkspacePanel.vue", "FilesBar.vue", "FileTree.vue", "LoadingState.vue", "AddToChat.vue",
-	"EditorView.vue", "ChatMenu.vue", "PresetButton.vue", "SuggestedReplies.vue", "ChatHistory.vue", "TitleField.vue",
+	"EditorView.vue", "ChatMenu.vue", "PresetButton.vue", "SuggestedReplies.vue", "ChatHistory.vue", "TitleField.vue", "KeyButton.vue",
 ])
 const compiled = new Map()
 
