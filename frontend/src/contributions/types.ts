@@ -35,8 +35,18 @@ export type RowAction = Omit<ActionItem, "value" | "when"> & {
   fields: string[]
 }
 
+/** How a column draws its cells; each key is described in SCRIPTING.md. A key or value it does not name keeps the default cell. */
+export type ListCell = {
+  icons?: Record<string, string>
+  badge?: Record<string, 'gray' | 'blue' | 'green' | 'orange' | 'red'>
+  icon?: string
+  format?: string
+}
+
 export type ListHandlers = {
   columns?: { fieldname: string; width?: number }[]
+  /** By fieldname; the first app to name a fieldname wins. */
+  cells?: Record<string, ListCell>
   rowActions?: RowAction[]
   [key: string]: unknown
 }

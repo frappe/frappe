@@ -411,6 +411,32 @@ export default {
 }
 ```
 
+A list's `cells` key describes how a column draws its cells, as data (an app supplies no component).
+It is keyed by fieldname, and the first app to name a fieldname wins:
+
+| Key | What it does |
+| --- | --- |
+| `icons` | A value to icon map. The icon draws before the plain label and replaces the default status badge. |
+| `badge` | A value to theme map (`gray`, `blue`, `green`, `orange`, `red`): the value shows as a badge. |
+| `icon` | One icon before any non-empty value. |
+| `format` | A dayjs format for a Date or Datetime, such as `'D MMM, hh:mm a'`. Its tooltip is the full date. |
+
+An icon is a name from the icon sprite, with or without the `lucide-` prefix. A key, value or fieldtype
+it does not fit keeps the default cell, and an empty value draws no icon. A Check, Rating, Color, Attach
+or Image column keeps its own cell.
+
+```js
+// crm/fcrm/doctype/crm_task/frontend/list.js
+export default {
+  columns: [{ fieldname: 'title' }, { fieldname: 'status' }, { fieldname: 'priority' }, { fieldname: 'due_date' }],
+  cells: {
+    status: { icons: { Todo: 'lucide-circle', Done: 'lucide-circle-check' } },
+    priority: { badge: { High: 'red', Medium: 'orange', Low: 'gray' } },
+    due_date: { icon: 'lucide-calendar', format: 'D MMM, hh:mm a' },
+  },
+}
+```
+
 An act item takes five more keys, on `page.header`, `page.quickActions` and a tab's `create`:
 
 | Key | What it does |
