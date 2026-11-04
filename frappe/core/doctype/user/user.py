@@ -36,7 +36,7 @@ from frappe.utils import (
 from frappe.utils.data import sha256_hash
 from frappe.utils.deprecations import deprecated
 from frappe.utils.html_utils import sanitize_html
-from frappe.utils.password import check_password, get_password_reset_limit
+from frappe.utils.password import check_password, get_password_reset_limit, verify_against_placeholder
 from frappe.utils.password import update_password as _update_password
 from frappe.utils.user import get_system_managers
 from frappe.website.utils import get_home_page, is_signup_disabled
@@ -805,6 +805,8 @@ class User(Document):
 
 		users = frappe.get_all("User", fields=["name", "enabled"], or_filters=or_filters, limit=1)
 		if not users:
+			if validate_password:
+				verify_against_placeholder(password)
 			return
 
 		user = users[0]
