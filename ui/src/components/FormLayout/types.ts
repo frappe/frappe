@@ -226,6 +226,10 @@ export const HasTabsKey: InjectionKey<Ref<boolean>> =
 export const LabelContextKey: InjectionKey<Ref<string | undefined>> =
   Symbol("FormLayoutLabelContext");
 
+/** The `page` a record page hands a control a script supplied (`ui.component`) as its `page` prop; absent off a record page. */
+export const ControlPageKey: InjectionKey<Ref<unknown>> =
+  Symbol("FormLayoutControlPage");
+
 /** The fieldname `FormLayout` marks `[autofocus]`, or `""` for none. */
 export const AutofocusKey: InjectionKey<Ref<string>> =
   Symbol("FormLayoutAutofocus");

@@ -4,7 +4,7 @@ import type { App } from "vue";
 import FormLayoutColumn from "../FormLayoutColumn.vue";
 import { buildLayoutFromMeta } from "../buildLayoutFromMeta";
 import { resolveLayout } from "../resolveLayout";
-import { DocKey, ResolveFieldKey, UpdateKey } from "../types";
+import { ControlPageKey, DocKey, ResolveFieldKey, UpdateKey } from "../types";
 import type { FieldNode, FieldOverride, RawMetaField } from "../types";
 
 /**
@@ -192,7 +192,7 @@ describe("meta → DOM", () => {
 });
 
 /** Render one hand-built column (no meta step) so a `ui` overlay is expressible. */
-function renderColumn(fields: FieldNode[], doc: Record<string, any> = {}) {
+function renderColumn(fields: FieldNode[], doc: Record<string, any> = {}, page?: unknown) {
   host = document.createElement("div");
   document.body.appendChild(host);
   app = createApp({
@@ -201,6 +201,7 @@ function renderColumn(fields: FieldNode[], doc: Record<string, any> = {}) {
   app.provide(DocKey, ref(doc));
   app.provide(UpdateKey, (name: string, value: any) => (doc[name] = value));
   app.provide(ResolveFieldKey, () => StubField);
+  if (page) app.provide(ControlPageKey, ref(page));
   app.mount(host);
   return host;
 }
@@ -227,6 +228,23 @@ describe("the `ui` overlay reaches the DOM", () => {
     expect(host.querySelector("[data-stub]")!.getAttribute("data-fieldname")).toBe(
       "rate"
     );
+  });
+
+  it("hands a script's own control the record page as its `page` prop, and a stock control nothing", () => {
+    const PageProbe = defineComponent({
+      props: { field: { type: Object, required: true }, page: null },
+      setup: (props) => () => h("i", { "data-probe": (props.page as any)?.name ?? "none" }),
+    });
+    const host = renderColumn(
+      [
+        { fieldname: "rate", fieldtype: "Currency" },
+        { fieldname: "custom", fieldtype: "Data", ui: { component: PageProbe } },
+      ],
+      {},
+      { name: "the-page" }
+    );
+    expect(host.querySelector("[data-fieldname='rate']")!.hasAttribute("page")).toBe(false);
+    expect(host.querySelector("[data-probe]")!.getAttribute("data-probe")).toBe("the-page");
   });
 
   it("fires a ui.on.click handler — the route that makes a Button live", () => {

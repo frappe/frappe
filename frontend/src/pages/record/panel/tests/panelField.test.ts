@@ -15,6 +15,7 @@ vi.mock("@framework/ui/api", () => ({
 
 import {
 	CommitKey,
+	ControlPageKey,
 	DocKey,
 	NO_COMMIT,
 	ResolveFieldKey,
@@ -33,7 +34,7 @@ afterEach(() => {
 	document.body.innerHTML = "";
 });
 
-async function mount(field: FieldNode, onDetails: boolean) {
+async function mount(field: FieldNode, onDetails: boolean, page?: unknown) {
 	const expanded: FieldNode[] = [];
 	const root = document.createElement("div");
 	document.body.appendChild(root);
@@ -47,6 +48,7 @@ async function mount(field: FieldNode, onDetails: boolean) {
 	app.provide(CommitKey, NO_COMMIT);
 	app.provide(ResolveFieldKey, () => Control);
 	app.provide(PanelContextKey, { onDetails: () => onDetails } as any);
+	app.provide(ControlPageKey, ref(page));
 	app.mount(root);
 	mounted.push(app);
 	await nextTick();
@@ -76,5 +78,20 @@ describe("a summary row", () => {
 		await click(root);
 		expect(expanded).toEqual([]);
 		expect(root.querySelector("[data-control]")).not.toBeNull();
+	});
+
+	it("hands a script's own control the record page as its `page` prop, and a stock control nothing", async () => {
+		const Probe = defineComponent({
+			props: { page: null },
+			setup: (props) => () => h("i", { "data-probe": (props.page as any)?.name ?? "none" }),
+		});
+		const own: FieldNode = { ...json, ui: { component: Probe } } as FieldNode;
+		const scripted = await mount(own, false, { name: "the-page" });
+		await click(scripted.root);
+		expect(scripted.root.querySelector("[data-probe]")!.getAttribute("data-probe")).toBe("the-page");
+
+		const stock = await mount(json, false, { name: "the-page" });
+		await click(stock.root);
+		expect(stock.root.querySelector("[data-control]")!.hasAttribute("page")).toBe(false);
 	});
 });

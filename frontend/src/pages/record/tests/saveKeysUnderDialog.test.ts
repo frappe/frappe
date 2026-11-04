@@ -7,7 +7,7 @@ import { Addresses } from "@/addresses";
 import { acts } from "@/acts/dispatcher";
 import type { Boot } from "@/boot";
 import { resetFormLayouts } from "@/recordPage";
-import { createPageDialogs } from "@/pageEngine/dialog";
+import { createPageDialogs } from "@/shell/dialogs/pageDialogs";
 import { registerShell } from "@/router/routeFor";
 import { ActKeys } from "@/shell/actKeys";
 import { closeCreates, createDialog, createRequests, openCreate, registerCreateDialog } from "@/shell/create";
@@ -79,7 +79,7 @@ async function settle() {
 
 /** A record page's Save act, its own dialog stack, the shell's Create host and act keys, as the desk draws them. */
 function mountRecordPage() {
-	const pageDialogs = createPageDialogs({ isReplaying: () => false, hold: async (work) => work() });
+	const pageDialogs = createPageDialogs({ source: () => "host", isReplaying: () => false, hold: async (work) => work() });
 	const Page = defineComponent({
 		setup() {
 			onUnmounted(registerSaveAct());

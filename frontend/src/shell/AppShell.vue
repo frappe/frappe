@@ -51,13 +51,14 @@
 			@close="customize.close()"
 		/>
 
-		<ShellSettingsDialog v-if="settingsOpened" />
+		<ShellSettingsDialog v-if="settingsOpened" :shell="shell" />
 
 		<ShellPalette v-if="paletteLoaded" />
 		<LogoutDialog v-model="confirmingLogout" />
 
 		<!-- The open writer, here so a floating one outlives the page it was opened on. -->
 		<ComposerWindow :user="boot.session.user" />
+		<ShellDialogs v-if="shellDialogs.entries.value.length" />
 		<StandingWindows v-if="standingWindows.length" :windows="standingWindows" :shell="shell" />
 
 		<component
@@ -106,6 +107,7 @@ import { closeCreates, createDialog, createRequests } from "./create";
 import { closeRecordDialogs, recordDialog, recordDialogRequests } from "./recordDialog";
 import CustomizeSidebarDialog, { type CustomizeTarget } from "./CustomizeSidebarDialog.vue";
 import LogoutDialog from "./LogoutDialog.vue";
+import { shellDialogs } from "./dialog";
 import { openArgumentStep, paletteOpen } from "./palette";
 import RailColumn from "./RailColumn.vue";
 import { useShellActs, type OpenSettings } from "./shellActs";
@@ -115,6 +117,7 @@ import { useHashDialog } from "./useHashDialog";
 import UserMenu from "./UserMenu.vue";
 
 const ShellSettingsDialog = defineAsyncComponent(() => import("./ShellSettingsDialog.vue"));
+const ShellDialogs = defineAsyncComponent(() => import("./ShellDialogs.vue"));
 const StandingWindows = defineAsyncComponent(() => import("./StandingWindows.vue"));
 // Keys wait for no paint, so their code stays out of the cold-load chunk.
 const ActKeys = defineAsyncComponent(() => import("./actKeys").then((module) => module.ActKeys));
@@ -136,7 +139,6 @@ const route = useRoute();
 
 watch(() => route.fullPath, closeCreates);
 watch(() => route.path, closeRecordDialogs);
-const standingWindows = useShellHooks(boot.shell_hooks);
 
 const navigation = ref<Navigation>(boot.navigation ?? { rail: [], sidebars: {} });
 
@@ -325,6 +327,7 @@ const { appActsPending, shell } = useShellActs({
 		  }
 		: undefined,
 });
+const standingWindows = useShellHooks(boot.shell_hooks, shell);
 </script>
 
 <style scoped>

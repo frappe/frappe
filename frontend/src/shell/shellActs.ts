@@ -29,7 +29,7 @@ export interface ShellRecord {
 /** What a shell act's `run` and `argument.options` receive. */
 export interface Shell {
 	router: Router;
-	toast: { success: (message: string) => void; error: (message: string) => void };
+	toast: { success: (message: string) => void; error: (message: string) => void; info: (message: string) => void };
 	call: (method: string, params?: Record<string, any>) => Promise<any>;
 	run: (name: string, value?: unknown) => Promise<unknown>;
 	create: (doctype: string, options?: CreateOptions) => Promise<CreatedDoc | null>;
@@ -130,6 +130,7 @@ function shellFor(host: ShellActsHost): Shell {
 		toast: {
 			success: (message) => toast.success(message),
 			error: (message) => toast.error(message),
+			info: (message) => toast.info(message),
 		},
 		call: (method, params) => runMethod(method, params).then((envelope) => envelope.data),
 		run: (name, value) => acts.run(name, value),

@@ -1,8 +1,7 @@
-// `page.dialog`: `confirm` and `danger` are frappe-ui's own dialogs, narrowed as `shell.dialog` narrows them;
-// `open` and `form` render on this page's own stack, which `<PageDialogs>` mounts.
+// The dialog stack behind `page.dialog` and `shell.dialog.open`: `confirm` and `danger` are frappe-ui's own dialogs,
+// narrowed as `shell.dialog` narrows them; `open` and `form` render on this stack, which a host component mounts.
 import { shallowRef, type Component, type Ref } from "vue";
 import { openNarrowedDialog } from "@/narrowedDialog";
-import { runningSource } from "./context";
 import type {
   PageDialog,
   PageDialogConfirmOptions,
@@ -36,6 +35,8 @@ export interface PageDialogEntry {
 }
 
 export interface PageDialogHost {
+  /** The script running now, who an entry and a failure are named after. */
+  source: () => string;
   /** True while a replay is running; a dialog opened from `refresh` re-opens on every replay. */
   isReplaying: () => boolean;
   /** Runs a dialog's script callback so its ops paint once, when it finishes. */
@@ -70,7 +71,7 @@ export function createPageDialogs(host: PageDialogHost): PageDialogs {
   function warn(verb: string, reason: string) {
     if (!import.meta.env.DEV) return;
     console.warn(
-      `[page] ${runningSource()} called page.dialog.${verb} ${reason}`,
+      `[page] ${host.source()} called page.dialog.${verb} ${reason}`,
     );
   }
 
@@ -100,7 +101,7 @@ export function createPageDialogs(host: PageDialogHost): PageDialogs {
   ): Promise<any> {
     if (detached) return refused(verb);
     warnOnReplay(verb);
-    const source = runningSource();
+    const source = host.source();
     return new Promise((resolve) => {
       const id = nextId++;
       let settled = false;
@@ -138,7 +139,7 @@ export function createPageDialogs(host: PageDialogHost): PageDialogs {
   ): Promise<true | null> {
     if (detached) return refused(verb) as Promise<null>;
     warnOnReplay(verb);
-    const source = runningSource();
+    const source = host.source();
     return openNarrowedDialog(verb, args, {
       hold: host.hold,
       warn: (reason) => warn(verb, reason),

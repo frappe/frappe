@@ -17,7 +17,7 @@
 import { ref, watch } from "vue";
 import { Dialog } from "frappe-ui";
 import type { DialogSize } from "frappe-ui";
-import type { PageDialogEntry } from "@/pageEngine/dialog";
+import type { PageDialogEntry } from "@/shell/dialogs/pageDialogs";
 
 const props = defineProps<{ entry: PageDialogEntry }>();
 
