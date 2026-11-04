@@ -188,8 +188,6 @@ def upload_file():
 			current_chunk = 0
 			total_chunks = 1
 
-		from frappe.storage.upload import check_declared_size
-
 		total_file_size = int(frappe.form_dict.total_file_size or 0)
 		check_declared_size(total_file_size)
 
@@ -249,6 +247,17 @@ def upload_file():
 				"content": content,
 			}
 		).save(ignore_permissions=ignore_permissions)
+
+
+def check_declared_size(size: int):
+	from frappe.core.api.file import get_max_file_size
+
+	max_file_size = get_max_file_size()
+	if size > max_file_size:
+		frappe.throw(
+			_("File size exceeded the maximum allowed size of {0} MB").format(max_file_size / 1048576),
+			exc=MaxFileSizeReachedError,
+		)
 
 
 def check_write_permission(doctype: str | None = None, name: str | None = None):
