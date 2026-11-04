@@ -646,8 +646,8 @@ test("files save and diff against the browsed cwd, before a session or in one", 
 			if (!path.startsWith(`${cwd}/`)) throw new FlowAPIError(400, "file is outside the repository")
 			return { path, original: "old\n", modified: "new\n" }
 		},
-		async fileDiff(sid, path) {
-			calls.push(["session", sid, path])
+		async fileDiff(sid, path, since) {
+			calls.push(["session", sid, path, since])
 			return { path, original: "before\n", modified: "after\n" }
 		},
 		async gitChanges() {
@@ -684,11 +684,21 @@ test("files save and diff against the browsed cwd, before a session or in one", 
 	assert.equal(outside.error, null)
 	assert.equal(outside.original, "before\n")
 	assert.equal(outside.content, "after\n")
+
+	// a turn's files card diffs its own edits, skipping git; the files bar goes back to git
+	await flow.openDiffFile("/project/app.py", 7)
+	assert.equal(diff.original, "before\n")
+	assert.equal(diff.since, 7)
+	await flow.openDiffFile("/project/app.py")
+	assert.equal(diff.original, "old\n")
+	assert.equal(diff.since, null)
 	assert.deepEqual(calls, [
 		["write", "/project", "/project/a.txt", "new"],
 		["git", "/project", "/project/app.py"],
 		["git", "/project", "/home/elsewhere/hook.py"],
-		["session", "s1", "/home/elsewhere/hook.py"],
+		["session", "s1", "/home/elsewhere/hook.py", undefined],
+		["session", "s1", "/project/app.py", 7],
+		["git", "/project", "/project/app.py"],
 	])
 })
 
