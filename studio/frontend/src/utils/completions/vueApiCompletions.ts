@@ -2,9 +2,9 @@ import type { Completion, CompletionContext, CompletionResult } from "@codemirro
 import type { EditorView } from "@codemirror/view"
 import type { EditorState } from "@codemirror/state"
 import { syntaxTree } from "@codemirror/language"
-import { vueReactivityApis } from "@/page/pageScope"
+import { pageScriptVueApis } from "@/page/pageScope"
 
-const VUE_API_NAMES = Object.keys(vueReactivityApis)
+const VUE_API_NAMES = Object.keys(pageScriptVueApis)
 
 // Code files (.ts/.js/.vue): insert the call and add `import { name } from "vue"` if it's missing.
 export function vueImportCompletions(context: CompletionContext): CompletionResult | null {

@@ -267,7 +267,7 @@ const useStudioStore = defineStore("store", () => {
 		activePage.value = page
 		loadRouteVariables(page)
 		await setPageData(page)
-		await pageScope.setPageScript(page)
+		await pageScope.loadPageScript(page)
 
 		const blocks = JSON.parse(page.draft_blocks || page.blocks || "[]")
 		if (blocks.length === 0) {
@@ -409,7 +409,7 @@ const useStudioStore = defineStore("store", () => {
 		const page = await fetchPage(activePage.value.name)
 		if (!page) return
 		activePage.value = page
-		await pageScope.setPageScript(page)
+		await pageScope.loadPageScript(page)
 	}
 
 	async function publishPage() {
@@ -643,7 +643,7 @@ const useStudioStore = defineStore("store", () => {
 		for (const component of customVueComponents.value) {
 			invalidateComponentCache(component.component_name)
 		}
-		if (activePage.value) await pageScope.setPageScript(activePage.value)
+		if (activePage.value) await pageScope.loadPageScript(activePage.value)
 	}, 300)
 
 	// Register per-page code scripts (<page>.ts) for exported apps so the editor can load them.
@@ -758,7 +758,7 @@ const useStudioStore = defineStore("store", () => {
 		// re-resolve data sources with the new value, then re-run the page script so bindings that
 		// derive from a resource (e.g. refs seeded from note.doc via a watcher) re-bind to the new doc.
 		await pageScope.setPageResources(page, true)
-		await pageScope.setPageScript(page)
+		await pageScope.loadPageScript(page)
 	}, 300)
 
 	const codeStore = useCodeStore()

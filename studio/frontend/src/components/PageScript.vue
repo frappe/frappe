@@ -93,7 +93,7 @@ async function saveScript() {
 	try {
 		await store.updateActivePage("script", script.value)
 		// keep the runtime bindings in sync with the saved script
-		pageScope.setPageScript(store.activePage!)
+		pageScope.loadPageScript(store.activePage!)
 		toast.success("Saved the page script")
 	} catch (error: any) {
 		toast.error("Failed to save the page script", { description: error?.messages?.join(", ") })
