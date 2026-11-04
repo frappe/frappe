@@ -15,7 +15,10 @@ import { useAppActs } from "./appActs";
 import { kindOf } from "./fieldActions";
 import { openCreate, type CreatedDoc, type CreateOptions } from "./create";
 import { shellDialog, type ShellDialog } from "./dialog";
+import { useRealtime, type ShellRealtime } from "./realtime";
+import type { StandingWindowHandle } from "./standingWindows";
 import { loadDocument } from "./tabKeepAlive";
+import { resetWindowHandles, windowHandleOf } from "./windowHandles";
 
 /** Opens `#settings/<prefix>/<pane>/<block>`; each segment is optional, in order. */
 export type OpenSettings = (prefix?: string, pane?: string, block?: string) => void;
@@ -43,6 +46,9 @@ export interface Shell {
 	dialog: ShellDialog;
 	/** The saved record open on the page, else `null`: a list, a new record or no page. */
 	record: () => ShellRecord | null;
+	/** The standing window of `app`, from before its shell hook attaches it. */
+	windowOf: (app: string) => StandingWindowHandle;
+	realtime: ShellRealtime;
 }
 
 /** `shell.create`'s value: a doctype, or a doctype with the values its record starts with. */
@@ -91,7 +97,7 @@ export function colorSchemes(): { value: ColorScheme; label: string; icon: strin
 
 /** Registers the `shell` surface for the shell's life; the palette waits on `appActsPending`. */
 export function useShellActs(host: ShellActsHost) {
-	const shell = shellFor(host);
+	const shell = shellFor(host, useRealtime());
 	const appActs = useAppActs();
 	const { setColorScheme } = useColorScheme();
 	const release = acts.register({
@@ -110,6 +116,7 @@ export function useShellActs(host: ShellActsHost) {
 		failed: (error) => void toast.error(error instanceof Error ? error.message : String(error)),
 	});
 	onScopeDispose(release);
+	onScopeDispose(resetWindowHandles);
 	return { appActsPending: appActs.pending, shell };
 }
 
@@ -137,7 +144,7 @@ function isAppAct(name: string) {
 	return name.split(".").length > 2;
 }
 
-function shellFor(host: ShellActsHost): Shell {
+function shellFor(host: ShellActsHost, realtime: ShellRealtime): Shell {
 	return {
 		router: host.router,
 		toast: {
@@ -153,6 +160,8 @@ function shellFor(host: ShellActsHost): Shell {
 		openSettings: host.openSettings,
 		dialog: shellDialog(),
 		record: openRecord,
+		windowOf: windowHandleOf,
+		realtime,
 	};
 }
 

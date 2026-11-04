@@ -87,7 +87,12 @@
 			</template>
 
 			<div class="p-4">
-				<component :is="entry.component" :shell="shell" :window="entry.handle" />
+				<component
+					:is="entry.component!"
+					v-bind="entry.props"
+					:shell="shell"
+					:window="entry.handle"
+				/>
 			</div>
 		</FloatingWindow>
 	</div>

@@ -321,13 +321,22 @@ An app adds its own global acts in `<module>/frontend/acts.js`, whose default ex
 list of acts. Each joins the shell surface under the app's name, so CRM's `log_a_call` is
 `shell.crm.log_a_call`, and its `run` receives `(shell, value)`, where `shell` holds
 `router`, `toast` (`success`, `error` and `info`), `call`, `run`, `create`, `open`, `href`,
-`openSettings`, `record` and `dialog`. `shell.dialog.confirm` and `shell.dialog.danger` take the options
+`openSettings`, `record`, `dialog`, `windowOf` and `realtime`. `shell.dialog.confirm` and `shell.dialog.danger` take the options
 `page.dialog.confirm` and `page.dialog.danger` take and resolve `true` when confirmed and
 `null` when dismissed. `shell.dialog.open(component, props, options)` is `page.dialog.open`
 on the shell's own stack: it renders `component` in a dialog with a `close(result)` prop,
 takes the same `title`, `size` and `dismissible` options, and resolves what the component
 closes with, or `null` when the reader dismisses it. The dialog is not tied to a page and
-stays open across navigation. The `setup(shell)` of an app's `shell.js` receives that same
+stays open across navigation. `shell.windowOf(app)` is the handle of that app's standing
+window (see `shell.js`): `open(props)` shows the window and hands `props` to its component,
+`close()` hides it, and `isOpen` reads whether the frame shows. The handle exists before the
+app's `shell.js` has attached the window, so an act never meets a window that is still loading:
+an `open(props)` made early opens the window the moment it attaches. `shell.realtime.on(event,
+handler)` calls `handler` with each socket event of that name and returns `off`. Called in a
+component's setup before any `await`, a page's or a window's, it stops by itself when the
+component unmounts;
+anywhere else, an act's `run` or a `shell.js` setup, it lasts until you call `off`. A handler
+that throws is logged and does not stop the others. The `setup(shell)` of an app's `shell.js` receives that same
 `shell`, plus `afterSave(doctype, handler)` and `window(component, options)`. A settings
 pane's component block gets it as a `shell` prop beside its `bindings`. The desk imports the file at idle after the first paint, and
 `page.run` and the palette wait for it when asked sooner. A shell act's `right` is `{
