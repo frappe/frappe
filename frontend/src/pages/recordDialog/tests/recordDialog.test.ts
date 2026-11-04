@@ -7,6 +7,13 @@ import { createMemoryHistory, createRouter } from "vue-router";
 const discard = vi.hoisted(() => vi.fn());
 vi.mock("@/pages/record/discardChanges", () => ({ discardChanges: discard }));
 
+// The loader a `pages.json` dialog entry's body gives; null for a doctype with no body.
+const bodyLoader = vi.hoisted(() => ({ current: null as null | (() => Promise<unknown>) }));
+vi.mock("@/contributions/registry", async (importOriginal) => ({
+	...((await importOriginal()) as object),
+	recordDialogBody: () => bodyLoader.current ?? undefined,
+}));
+
 // A passthrough Dialog that ends its leave at once, so the test reads the form, not reka-ui.
 vi.mock("frappe-ui", () => ({
 	Dialog: defineComponent({
@@ -139,6 +146,7 @@ beforeEach(() => {
 	discard.mockReset();
 	server = leadServer();
 	recordDialogWrite.value = null;
+	bodyLoader.current = null;
 	fetchMock.mockReset().mockImplementation(async (url, init) => {
 		const path = new URL(String(url), "http://x").pathname;
 		if (path.endsWith("/meta"))
@@ -370,5 +378,62 @@ describe("the record dialog", () => {
 
 		expect(root.querySelector("[data-dialog]")).toBeNull();
 		expect(writes()).toEqual([]);
+	});
+});
+
+describe("the record dialog's body", () => {
+	// A read-only summary: it reads the record from `page`, saves through it, and offers the form.
+	const Summary = defineComponent({
+		props: { page: { type: Object, required: true }, edit: { type: Function, required: true } },
+		setup: (props) => () =>
+			h("section", { "data-body": "" }, [
+				h("p", `${props.page.doc.title} from ${props.page.doc.source}`),
+				h("button", { onClick: () => ((props.page.doc.source = "Phone"), props.page.save()) }, "Mark as phone"),
+				h("button", { onClick: () => props.edit() }, "Edit"),
+			]),
+	});
+
+	beforeEach(() => {
+		bodyLoader.current = async () => ({ default: Summary });
+	});
+
+	it("is drawn in place of the form, inside the dialog's frame", async () => {
+		const root = await open();
+
+		expect(root.querySelector("[data-body] p")!.textContent).toBe("Big deal from Web");
+		expect(root.querySelector("form")).toBeNull();
+		expect(root.querySelector("h2")!.textContent).toBe("LEAD-1");
+		expect(button(root, "Delete")).toBeTruthy();
+	});
+
+	it("saves the record through the page it is given", async () => {
+		const root = await open();
+
+		await click(root, "Mark as phone");
+
+		expect(writes()).toHaveLength(1);
+		expect(writes()[0]).toMatchObject({ method: "PATCH", path: "/api/v2/document/Lead/LEAD-1" });
+		expect(writes()[0].body).toMatchObject({ name: "LEAD-1", source: "Phone" });
+		expect(recordDialogWrite.value).toEqual({ doctype: "Lead" });
+	});
+
+	it("gives way to the form when it asks, and keeps the record", async () => {
+		const root = await open();
+
+		await click(root, "Edit");
+
+		expect(root.querySelector("[data-body]")).toBeNull();
+		expect(input(root, "title")!.value).toBe("Big deal");
+		expect(button(root, "Save")).toBeTruthy();
+	});
+
+	it("shows the error in the frame when the body fails to load", async () => {
+		bodyLoader.current = async () => {
+			throw new Error("chunk missing");
+		};
+		const root = await open();
+
+		expect(root.querySelector(".error")!.textContent).toContain("chunk missing");
+		expect(root.querySelector("[data-dialog]")).toBeTruthy();
 	});
 });

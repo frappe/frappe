@@ -12,8 +12,14 @@
 		@after-leave="request.dismiss()"
 	>
 		<div ref="body" data-record-form :inert="saving">
+			<component
+				:is="Body"
+				v-if="Body && !editing && controller && !refused"
+				:page="controller.page"
+				:edit="edit"
+			/>
 			<FormLayout
-				v-if="form.length && !refused"
+				v-else-if="form.length && !refused"
 				v-model:doc="doc"
 				v-model:tab="formTab"
 				:layout="form"
@@ -57,6 +63,7 @@ import {
 	useFormLayout,
 	type RecordPageController,
 } from "@/recordPage";
+import { recordDialogBody } from "@/contributions/registry";
 import { askRequired } from "@/pages/record/askRequired";
 import { discardChanges } from "@/pages/record/discardChanges";
 import { landOnField } from "@/pages/record/landOnField";
@@ -69,6 +76,7 @@ import { openArgumentStep } from "@/shell/palette";
 import { urlFor } from "@/router/routeFor";
 import type { Boot } from "@/boot";
 import { announceRecordDialogWrite, type RecordDialogRequest } from "@/shell/recordDialog";
+import { recordBodyComponent } from "./recordBody";
 import { resolveSaveConflict } from "./saveConflict";
 
 const props = defineProps<{ request: RecordDialogRequest }>();
@@ -96,6 +104,10 @@ const formTab = ref("");
 const activeFormTab = ref("");
 const actionsVersion = ref(0);
 const body = useTemplateRef<HTMLElement>("body");
+// A `pages.json` body draws in place of the form until the reader asks for the form.
+const bodyLoader = recordDialogBody(doctype, boot.app);
+const Body = bodyLoader ? recordBodyComponent(bodyLoader) : null;
+const editing = ref(false);
 
 const quickEntry = useFormLayout({
 	doctype,
@@ -153,6 +165,10 @@ async function open() {
 	if (quickEntry.error.value) error.value = errorMessage(quickEntry.error.value);
 	shown.value = true;
 	actionsVersion.value++;
+}
+
+function edit() {
+	editing.value = true;
 }
 
 function buildController() {

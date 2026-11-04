@@ -601,6 +601,73 @@ describe("the record dialog opt-in", () => {
   });
 });
 
+describe("the record dialog body", () => {
+  const entry = { page: "dialog", body: "summary" };
+  const pages = `${TICKET}/frontend/pages`;
+
+  it("names a pages/<name>.js, which the module imports and the dialog loads", () => {
+    const manifest = bench({
+      helpdesk: owner({ record: entry }, { [`${pages}/summary.js`]: PAGE }),
+    });
+    const file = join(manifest[0].source_dir, pages, "summary.js");
+    const { recordDialogs, replacements, warnings } = discover(manifest);
+
+    expect(recordDialogs).toEqual([
+      { app: "helpdesk", doctype: "HD Ticket", foreign: false, body: "summary", file },
+    ]);
+    expect(replacements).toEqual([]);
+    expect(warnings).toEqual([]);
+
+    const code = load(contributions(manifest) as any);
+    expect(code).toContain(`import b0 from ${JSON.stringify(file)}`);
+    expect(code).toContain(
+      `    { app: "helpdesk", doctype: "HD Ticket", component: b0?.component, foreign: false },`,
+    );
+  });
+
+  it("is scoped to the apps its entry names", () => {
+    const manifest = bench({
+      helpdesk: owner(
+        { record: { ...entry, apps: ["helpdesk"] } },
+        { [`${pages}/summary.js`]: PAGE },
+      ),
+    });
+
+    expect(discover(manifest).recordDialogs[0]).toMatchObject({ apps: ["helpdesk"], body: "summary" });
+  });
+
+  it.each([
+    ["names no file", {}, `"record" gives "dialog" the body "summary", but there is no pages/summary.js`],
+    ["is not a string", { files: { [`${pages}/summary.js`]: PAGE }, body: 3 }, `"record" gives "dialog" a "body" that is not a page name`],
+    ["is a standard page name", { files: { [`${pages}/record.js`]: PAGE }, body: "record" }, `"record" gives "dialog" the body "record", a reserved page name`],
+  ])("a body that %s is refused with the whole key", (_, setup: any, problem) => {
+    const manifest = bench({
+      helpdesk: owner({ record: { page: "dialog", body: setup.body ?? "summary" } }, setup.files ?? {}),
+    });
+    const { recordDialogs, warnings } = discover(manifest);
+
+    expect(recordDialogs).toEqual([]);
+    expect(warnings).toContain(
+      `[frappe] ${join(manifest[0].source_dir, TICKET, "frontend/pages.json")}: ${problem}; that key is ignored.`,
+    );
+  });
+
+  it("is refused on any other page", () => {
+    const manifest = bench({
+      helpdesk: owner(
+        { list: { page: "inbox", body: "summary" } },
+        { [`${pages}/inbox.js`]: PAGE, [`${pages}/summary.js`]: PAGE },
+      ),
+    });
+    const { replacements, warnings } = discover(manifest);
+
+    expect(replacements).toEqual([]);
+    expect(warnings).toContain(
+      `[frappe] ${join(manifest[0].source_dir, TICKET, "frontend/pages.json")}: "list" gives "inbox" a "body", which only the "dialog" entry may have; that key is ignored.`,
+    );
+  });
+});
+
 describe("the generated module", () => {
   it("imports each replacement and drops one with no component at runtime", () => {
     const manifest = bench({ helpdesk: owner({ record: "runner" }) });
