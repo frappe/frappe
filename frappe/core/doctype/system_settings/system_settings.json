@@ -821,12 +821,12 @@
    "label": "Allowed Doctypes for Guest Uploads"
   },
   {
-   "default": "Daily",
+   "default": "Weekly",
    "depends_on": "eval: doc.enable_snapshot_reports",
    "fieldname": "frequency",
    "fieldtype": "Select",
    "label": "Frequency",
-   "options": "Hourly\nDaily"
+   "options": "Daily\nWeekly"
   },
   {
    "depends_on": "eval: doc.enable_snapshot_reports",
@@ -901,7 +901,7 @@
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2026-10-22 12:00:00.000000",
+ "modified": "2026-11-04 11:19:08.065028",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
