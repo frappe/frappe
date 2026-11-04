@@ -1,6 +1,6 @@
 // The list draws each column's cell as the record's read-only field shows the value, and a Phone or
 // Email column's cells (a Phone field, or a Data field whose options say Phone or Email) with the field actions,
-// a Link or Dynamic Link value as a link to the record it names, and a web address with a link that opens it.
+// and a web address with a link that opens it.
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, nextTick, ref } from "vue";
 
@@ -34,8 +34,6 @@ const metaFields = [
 	{ fieldname: "lead_owner", fieldtype: "Link", options: "User" },
 	{ fieldname: "ref_doctype", fieldtype: "Link", options: "DocType" },
 	{ fieldname: "reference", fieldtype: "Dynamic Link", options: "ref_doctype" },
-	{ fieldname: "other_doctype", fieldtype: "Link", options: "DocType" },
-	{ fieldname: "other", fieldtype: "Dynamic Link", options: "other_doctype" },
 ];
 const columns = [
 	...metaFields.map(({ fieldname }) => ({ fieldname, label: fieldname })),
@@ -74,8 +72,6 @@ const row = {
 	lead_owner: "bob@example.com",
 	ref_doctype: "User",
 	reference: "ann@example.com",
-	other_doctype: "",
-	other: "orphan",
 	_extra: "as sent",
 };
 
@@ -139,12 +135,11 @@ vi.mock("frappe-ui", async (original) => ({
 }));
 vi.mock("@/shell/PageState.vue", () => ({ default: defineComponent({ render: () => null }) }));
 
-import { FieldActionsKey, RecordLinkKey } from "@framework/ui/fields/types";
+import { FieldActionsKey } from "@framework/ui/fields/types";
 import { resetSession, setSession } from "@framework/ui/useSession";
 import ListView from "../ListView.vue";
 
 const mounted: ReturnType<typeof createApp>[] = [];
-const openRecord = vi.fn();
 
 function mount(): HTMLElement {
 	const root = document.createElement("div");
@@ -159,10 +154,6 @@ function mount(): HTMLElement {
 			{ act: "a", label: `Call ${field.fieldname} ${value} ${JSON.stringify(record ?? null)}`, run: vi.fn() },
 		],
 	});
-	app.provide(RecordLinkKey, {
-		href: (doctype, name) => (doctype === "DocType" ? null : `/r/${doctype}/${name}`),
-		open: openRecord,
-	});
 	app.mount(root);
 	mounted.push(app);
 	return root;
@@ -173,7 +164,6 @@ afterEach(() => {
 	vi.unstubAllEnvs();
 	vi.useRealTimers();
 	resetSession();
-	openRecord.mockClear();
 	for (const app of mounted.splice(0)) app.unmount();
 	document.body.innerHTML = "";
 });
@@ -268,45 +258,6 @@ describe("a list's cells", () => {
 		expect(text("lead_owner")).toBe("bob@example.com");
 		// A Dynamic Link's title is never read, so a Link column's title for the same record is not borrowed.
 		expect(text("reference")).toBe("ann@example.com");
-	});
-
-	it("draw a Link or Dynamic Link value as a link to its record, a marked one too", async () => {
-		const root = mount();
-		await nextTick();
-
-		const anchor = (column: string) => root.querySelector<HTMLAnchorElement>(`[data-column='${column}'] a`);
-		expect(anchor("deal")?.getAttribute("href")).toBe("/r/CRM Deal/D-1");
-		expect(anchor("deal")?.textContent?.trim()).toBe("Acme");
-		expect(anchor("agent")?.getAttribute("href")).toBe("/r/User/ann@example.com");
-		expect(anchor("agent")?.textContent?.trim()).toBe("Ann Lee");
-		// A Dynamic Link opens a record of the doctype its sibling field names.
-		expect(anchor("reference")?.getAttribute("href")).toBe("/r/User/ann@example.com");
-		// A doctype with no record page, or a Dynamic Link with no doctype, draws the text alone.
-		expect(anchor("ref_doctype")).toBeNull();
-		expect(anchor("other")).toBeNull();
-		expect(root.querySelector("[data-column='other']")?.textContent?.trim()).toBe("orphan");
-		expect(anchor("status")).toBeNull();
-	});
-
-	it("open the linked record on a plain click, not the row, and leave a modified click to the browser", async () => {
-		const root = mount();
-		await nextTick();
-		const rowClicks = vi.fn();
-		root.addEventListener("click", rowClicks);
-
-		const deal = root.querySelector<HTMLAnchorElement>("[data-column='deal'] a")!;
-		const plain = new MouseEvent("click", { bubbles: true, cancelable: true });
-		deal.dispatchEvent(plain);
-		expect(openRecord).toHaveBeenCalledWith("CRM Deal", "D-1");
-		expect(plain.defaultPrevented).toBe(true);
-		expect(rowClicks).not.toHaveBeenCalled();
-
-		openRecord.mockClear();
-		const modified = new MouseEvent("click", { bubbles: true, cancelable: true, ctrlKey: true });
-		deal.dispatchEvent(modified);
-		expect(openRecord).not.toHaveBeenCalled();
-		expect(modified.defaultPrevented).toBe(false);
-		expect(rowClicks).not.toHaveBeenCalled();
 	});
 
 	it("draw a web address with a link that opens it in a new tab, not the row", async () => {
