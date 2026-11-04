@@ -35,6 +35,8 @@ export interface RecordBodyButton extends RecordBodyAction {
 export interface RecordBodyHeader {
 	/** Drawn in place of the record's name. */
 	title?: string;
+	/** A quiet line under the title, such as a date. */
+	subtitle?: string;
 	/** Icon buttons left of `⋯`; the label is the tooltip. */
 	buttons?: RecordBodyButton[];
 	/** Rows above Copy link and Delete in `⋯`. */
