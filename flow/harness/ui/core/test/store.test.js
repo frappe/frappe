@@ -1,6 +1,6 @@
 import assert from "node:assert/strict"
 import test from "node:test"
-import { ref } from "vue"
+import { ref, watch } from "vue"
 
 import { FlowAPIError } from "../src/client.js"
 import { chatFontWeight, layout } from "../src/layout.js"
@@ -235,6 +235,19 @@ test("a chat opens once, stays loading until its own load lands, and gives way t
 	assert.equal(flow.state.sessionId, null)
 	assert.equal(flow.state.loading, false)
 	assert.equal(flow.state.toast.message, "session not found")
+	flow.detach()
+})
+
+test("a gone chat the page reopened by itself gives way to a new chat without a word; one the user opened says so once", async () => {
+	const gone = () => Promise.reject(new FlowAPIError(404, "Flow Session gone not found"))
+	const flow = createFlowStore({ session: gone, skills: gone })
+	const toasts = []
+	watch(() => flow.state.toast, (toast) => toasts.push(toast.message), { flush: "sync" })
+	flow.state.prefs.lastSession = "gone"
+	await flow.openSession("gone", { quiet: true })
+	assert.deepEqual([flow.state.sessionId, flow.state.prefs.lastSession, toasts], [null, null, []])
+	await flow.openSession("gone")
+	assert.deepEqual([flow.state.sessionId, toasts], [null, ["Flow Session gone not found"]])
 	flow.detach()
 })
 

@@ -17,7 +17,7 @@
 		>
 			<!-- in settings, every service as a tile; the page's heading asks the question -->
 			<div v-if="!picked && list" key="list" class="flex w-full max-w-[560px] flex-col gap-5">
-				<p v-if="unplaced" class="text-base font-medium text-ink-gray-8">
+				<p v-if="unplaced" class="text-base-medium text-ink-gray-8">
 					Which service is this key for?
 					<span class="ml-1 font-mono text-sm font-normal text-ink-gray-5">{{ mask(unplaced) }}</span>
 				</p>
@@ -62,7 +62,7 @@
 
 			<!-- one question, answered with a click -->
 			<div v-else-if="!picked" key="choose" class="flex flex-col gap-3">
-				<p class="text-base font-medium text-ink-gray-8">
+				<p class="text-base-medium text-ink-gray-8">
 					{{ unplaced ? "Which service is this key for?" : "Which AI should Flow use?" }}
 					<span v-if="unplaced" class="ml-1 font-mono text-sm font-normal text-ink-gray-5">{{
 						mask(unplaced)
@@ -121,7 +121,7 @@
 				<div v-if="!list" class="flex flex-col gap-1.5">
 					<div class="flex items-center gap-2.5">
 						<ProviderIcon :provider-id="picked.id" :size="18" bare />
-						<p class="text-base font-medium text-ink-gray-8">Connect {{ picked.name }}</p>
+						<p class="text-base-medium text-ink-gray-8">Connect {{ picked.name }}</p>
 					</div>
 					<p class="text-p-sm text-ink-gray-5">{{ billedBy(picked) }}</p>
 				</div>
@@ -134,13 +134,13 @@
 							:class="opened ? 'lucide-circle-check text-ink-green-6' : 'lucide-circle-dashed text-ink-gray-6'"
 							aria-hidden="true"
 						/>
-						<span class="min-w-0 flex-1 text-base font-medium text-ink-gray-8">Open the {{ picked.console }}</span>
+						<span class="min-w-0 flex-1 text-base-medium text-ink-gray-8">Open the {{ picked.console }}</span>
 						<Button variant="ghost" label="Open" icon-right="lucide-arrow-up-right" @click="openConsole" />
 					</li>
 					<li aria-hidden="true" class="ml-[9.5px] h-4 border-l border-outline-gray-3" />
 					<li class="flex min-h-8 items-center gap-3">
 						<span class="lucide-circle-dashed size-5 flex-none text-ink-gray-6" aria-hidden="true" />
-						<span class="text-base font-medium text-ink-gray-8">Add credit, then copy a new API key</span>
+						<span class="text-base-medium text-ink-gray-8">Add credit, then copy a new API key</span>
 					</li>
 				</ol>
 
