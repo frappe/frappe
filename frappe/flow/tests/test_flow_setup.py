@@ -45,7 +45,10 @@ class TestFlowSetup(IntegrationTestCase):
 	@patch.object(setup, "_ask_with_key")
 	def test_a_provider_is_removed_with_its_models(self, _ask):
 		setup.connect("anthropic", "sk-ant-good-key-0000000000000")
-		with patch.object(setup, "_check", return_value=None):
+		with (
+			patch.object(setup, "_check", return_value=None),
+			patch("frappe.flow.assistant.ensure_builtin_assistant"),
+		):
 			setup.add_model("anthropic", "claude-haiku-5-5")
 		setup.remove_provider("anthropic")
 		self.assertFalse(frappe.db.exists("Flow Provider", "anthropic"))
