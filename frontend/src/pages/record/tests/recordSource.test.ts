@@ -109,6 +109,18 @@ describe("readCachedRecord", () => {
 		expect(readCachedRecord("CRM Deal", "D-1")!.docinfo.tags).toEqual(["urgent"]);
 	});
 
+	it("leaves out the join values a list read added, so the draft never carries them", async () => {
+		const ticket = takeTicket();
+		const row = { name: "D-1", modified: "2026-09-18 10:00:00.000000", org: "O1", org__title: "Acme" };
+		const query = { fields: ["name", "org", "org.title as org__title"] };
+		feedListRead(ticket, "CRM Deal", query, { data: [row] } as never);
+		settleTicket(ticket);
+		respond({ ...ENVELOPE, data: { ...ENVELOPE.data, org: "O1" } });
+		await loadRecord("CRM Deal", "D-1");
+
+		expect(readCachedRecord("CRM Deal", "D-1")!.document).not.toHaveProperty("org__title");
+	});
+
 	it("is null for a record never read, and for one a newer list row left partial", async () => {
 		expect(readCachedRecord("CRM Deal", "D-1")).toBeNull();
 		respond(ENVELOPE);

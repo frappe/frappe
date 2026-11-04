@@ -125,6 +125,20 @@ describe("a list with join aliases", () => {
     expect(held).not.toHaveProperty("customer__mark");
   });
 
+  it("drops an alias whose link the list never read once the record changes", () => {
+    const query = { fields: ["name", "fee", "company.default_currency as fee__currency"] };
+    readList(query, [doc("A", OLD, { fee: 5, fee__currency: "USD" })]);
+    readList({ fields: ["name", "fee"] }, [doc("A", NEW, { fee: 5 })]);
+    expect(readCachedRows(DOCTYPE, query)![0]).not.toHaveProperty("fee__currency");
+  });
+
+  it("keeps an alias whose link the list never read while modified is the same", () => {
+    const query = { fields: ["name", "fee", "company.default_currency as fee__currency"] };
+    readList(query, [doc("A", OLD, { fee: 5, fee__currency: "USD" })]);
+    readList({ fields: ["name", "fee"] }, [doc("A", OLD, { fee: 5 })]);
+    expect(readCachedRows(DOCTYPE, query)![0].fee__currency).toBe("USD");
+  });
+
   it("takes the new alias values of a newer row", () => {
     readList(joined, [row(OLD)]);
     readList(joined, [row(NEW, { customer__title: "Acme Inc" })]);

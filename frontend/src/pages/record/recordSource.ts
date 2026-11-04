@@ -21,11 +21,13 @@ export function loadRecord(
 	return read(doctype, name, [...RECORD_PARTS, "seen"], signal);
 }
 
-/** A copy of the last full read the shared cache holds; null when it holds none. */
+/** A copy of the last full read the shared cache holds, without the join values a list added; null when it holds none. */
 export function readCachedRecord(doctype: string, name: string): LoadedRecord | null {
 	const entry = readCachedDocument(doctype, name);
 	if (!entry?.complete) return null;
-	return JSON.parse(JSON.stringify(loaded(entry.doc, entry.parts)));
+	const doc = { ...entry.doc };
+	for (const alias of Object.keys(entry.joins)) delete doc[alias];
+	return JSON.parse(JSON.stringify(loaded(doc, entry.parts)));
 }
 
 /** The parts alone, on a realtime delta or a save; the draft is untouched and nothing is marked seen. */

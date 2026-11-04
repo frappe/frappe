@@ -27,11 +27,17 @@ export function carryJoins(
   const joins: Record<string, string> = { ...added };
   const kept: Record<string, unknown> = {};
   for (const [alias, link] of Object.entries(previous?.joins ?? {})) {
-    if (alias in added || !(alias in previous!.doc) || doc[link] !== previous!.doc[link]) continue;
+    if (alias in added || !(alias in previous!.doc) || !holds(doc, previous!.doc, link)) continue;
     kept[alias] = previous!.doc[alias];
     joins[alias] = link;
   }
   return { doc: Object.freeze({ ...doc, ...kept }), joins: Object.freeze(joins) };
+}
+
+/** A link the list did not read cannot be compared, so the value holds only for the same `modified`. */
+function holds(doc: Readonly<DocumentRecord>, previous: Readonly<DocumentRecord>, link: string) {
+  if (link in previous) return doc[link] === previous[link];
+  return doc.modified !== undefined && doc.modified === previous.modified;
 }
 
 export function withoutJoins(doc: Readonly<DocumentRecord>, joins: Joins): Readonly<DocumentRecord> {
