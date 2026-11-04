@@ -52,6 +52,7 @@
 import { computed } from "vue";
 import { ItemListRow, dayjs } from "frappe-ui";
 import { __ } from "@/i18n";
+import { relativeTime } from "@/relativeTime";
 import AppLogo from "@/shell/AppLogo.vue";
 import { recentKey, type IndexVisit } from "./recent";
 import { selectableId, type Selection } from "./selection";
@@ -71,7 +72,7 @@ const rows = computed(() =>
 			visit,
 			key,
 			selected: props.selection.isSelected(key),
-			when: dayjs.tz(visit.visited, props.siteZone).fromNow(),
+			when: relativeTime(dayjs.tz(visit.visited, props.siteZone)),
 		};
 	})
 );

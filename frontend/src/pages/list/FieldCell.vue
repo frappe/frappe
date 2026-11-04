@@ -8,9 +8,9 @@
 		:step="0.5"
 		disabled
 	/>
-	<div v-else-if="relativeTime" class="truncate text-base text-ink-gray-8">
+	<div v-else-if="relativeText" class="truncate text-base text-ink-gray-8">
 		<Tooltip :text="text">
-			<span>{{ relativeTime }}</span>
+			<span>{{ relativeText }}</span>
 		</Tooltip>
 	</div>
 	<div v-else-if="address" class="flex min-w-0 items-center gap-1">
@@ -34,6 +34,7 @@ import { useFieldDisplay } from "@framework/ui/FormLayout";
 import { currentSession } from "@framework/ui/useSession";
 import { Checkbox, Rating, Tooltip, dayjs } from "frappe-ui";
 import { computed } from "vue";
+import { relativeTime } from "@/relativeTime";
 
 // The form sums these up as "Set" or a first line; a cell shows the stored value.
 const STORED_VALUE_FIELDTYPES = new Set([
@@ -63,16 +64,14 @@ const address = computed(() => {
 });
 
 // Stored on the system clock, which the session carries; the person's own zone does not matter.
-const relativeTime = computed(() => {
+const relativeText = computed(() => {
 	const zone = currentSession()?.timezone;
 	if (!zone || !text.value) return "";
 	const standard = STANDARD_STAMPS.has(props.field.fieldname);
 	if (props.field.fieldtype !== "Datetime" || !(standard || props.field.readOnly)) return "";
 	const stamp = dayjs.tz(String(value.value), zone);
 	if (!stamp.isValid()) return "";
-	// A browser clock a little behind the server's would read a fresh save as "in a minute".
-	// Other fields can hold a real future ("in 2 hours"), so only the standard stamps are clamped.
-	return standard && stamp.isAfter(dayjs()) ? dayjs().fromNow() : stamp.fromNow();
+	return relativeTime(stamp);
 });
 
 const text = computed(() => {
