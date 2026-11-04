@@ -21,6 +21,8 @@ import { TextInput } from "frappe-ui/src/components/TextInput"
 const props = defineProps({
 	value: { type: String, required: true },
 	label: { type: String, default: "Name" },
+	// where Enter and Escape return the focus when no control started the edit, as a double click doesn't
+	back: { type: Function, default: null },
 })
 const emit = defineEmits(["save", "cancel"])
 
@@ -35,7 +37,7 @@ const composing = (e) => e.isComposing || e.keyCode === 229
 
 onMounted(() => {
 	const active = field.value?.inputElement?.getRootNode().activeElement
-	from = active && active !== document.body ? active : null
+	from = active && active !== document.body ? active : (props.back?.(field.value?.inputElement) ?? null)
 	field.value?.focus()
 	field.value?.inputElement?.select()
 })

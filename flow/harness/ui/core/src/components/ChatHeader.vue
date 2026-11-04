@@ -30,6 +30,7 @@
 				:value="title"
 				label="Chat name"
 				class="w-[min(400px,100%)] min-w-0"
+				:back="composerBox"
 				@save="(name) => rename(renaming, name)"
 				@cancel="renaming = null"
 			/>
@@ -203,6 +204,7 @@ const workspaceOpen = computed(() => flow.state.workspace.open)
 
 // the chat whose name is being edited; another chat opening ends the edit
 const renaming = ref(null)
+const composerBox = (input) => input?.closest("main")?.querySelector(".flow-composer-dock fieldset textarea")
 watch(
 	() => flow.state.sessionId,
 	() => (renaming.value = null),
