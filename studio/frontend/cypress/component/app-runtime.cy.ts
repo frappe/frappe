@@ -1,5 +1,5 @@
 import { isRef } from "vue"
-import { AppModuleRegistry, AppCompileError, clearAppStyles } from "@/runtime/moduleRegistry"
+import { AppModuleRegistry, AppCompileError, clearAppStyles } from "@/browserRuntime/moduleRegistry"
 
 const files: Record<string, string> = {
 	"utils/format.ts": `export function fmt(n: number): string { return "#" + n }`,

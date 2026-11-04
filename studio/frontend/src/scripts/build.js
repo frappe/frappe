@@ -334,8 +334,8 @@ async function buildWithVite(
 				...frameworkUIAlias(APPS_DIR),
 				// Built apps use compiled source and do not need the browser compiler or registry.
 				{
-					find: /^@\/runtime\/appRuntime$/,
-					replacement: path.resolve(__dirname, "../runtime/noBrowserRuntime.ts"),
+					find: /^@\/browserRuntime\/appRuntime$/,
+					replacement: path.resolve(__dirname, "../browserRuntime/noBrowserRuntime.ts"),
 				},
 				{ find: "@", replacement: path.resolve(__dirname, "../") },
 			],

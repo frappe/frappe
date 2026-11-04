@@ -9,7 +9,7 @@ import AppRenderer from "@/AppRenderer.vue"
 import { resourcesPlugin } from "frappe-ui"
 import { registerGlobalComponents } from "@/globals"
 import { registerCustomVueComponents, registerAppVueComponents } from "@/utils/customVueComponents"
-import { loadAppRuntime, loadAppRouterConfig } from "@/runtime/appRuntime"
+import { loadAppRuntime, loadAppRouterConfig } from "@/browserRuntime/appRuntime"
 import { registerStudioPageScripts } from "@/data/studioPageScripts"
 import { initSocket } from "@/socket"
 

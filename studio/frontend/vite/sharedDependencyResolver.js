@@ -9,7 +9,7 @@ import path from "path"
 // `extensions` built from @tiptap/core, @tiptap/pm, @tiptap/vue-3, @tiptap/extension-*
 // etc., and an app has no copies of its own to build them with — nor should it, since
 // an extension made from a second copy never registers against the editor's schema.
-// Include every module offered by runtime/importableModules.ts, and the peer dependencies
+// Include every module offered by browserRuntime/importableModules.ts, and the peer dependencies
 // above. A database app's temporary build folder has no node_modules, so its imports must
 // resolve to Studio's dependencies.
 const STUDIO_SHARED_DEPS = [

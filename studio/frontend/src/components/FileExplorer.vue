@@ -209,7 +209,7 @@ import {
 	languageForFile,
 	type StudioFileNode,
 } from "@/data/studioFiles"
-import { checkAppScript } from "@/runtime/appRuntime"
+import { checkAppScript } from "@/browserRuntime/appRuntime"
 import { confirm } from "@/utils/helpers"
 import { PAGE_SCRIPT_BOILERPLATE } from "@/utils/constants"
 import { pageScriptCompletions } from "@/utils/completions/pageScriptCompletions"

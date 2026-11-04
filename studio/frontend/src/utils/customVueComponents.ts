@@ -1,6 +1,6 @@
 import { defineAsyncComponent, shallowRef } from "vue"
 import { vueComponents } from "@/data/vueComponents"
-import { loadAppRuntime, loadAppModule } from "@/runtime/appRuntime"
+import { loadAppRuntime, loadAppModule } from "@/browserRuntime/appRuntime"
 import type { CustomVueComponentMeta } from "@/types/vue"
 
 export const customVueComponentsRegistry = shallowRef<Record<string, any>>({})

@@ -1,4 +1,4 @@
-import { IMPORTABLE_MODULES } from "@/runtime/importableModules"
+import { IMPORTABLE_MODULES } from "@/browserRuntime/importableModules"
 import { STUDIO_SHARED_DEPS } from "../../vite/sharedDependencyResolver"
 
 describe("the database app import map", () => {

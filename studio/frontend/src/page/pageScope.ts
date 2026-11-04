@@ -6,7 +6,7 @@ import { createDocumentResource, createListResource, createResource, call } from
 import { studioPageResources } from "@/data/studioResources"
 import { studioVariables } from "@/data/studioVariables"
 import { hasPageScript, loadPageScriptModule } from "@/data/studioPageScripts"
-import { loadAppPageScriptModule } from "@/runtime/appRuntime"
+import { loadAppPageScriptModule } from "@/browserRuntime/appRuntime"
 import * as globalUtils from "@/utils/globalUtils"
 import { useSocket } from "@/socket"
 import { getInitialVariableValue, getValueFromObject, setValueInObject } from "@/utils/helpers"

@@ -7,8 +7,8 @@
  */
 
 import { createResource } from "frappe-ui"
-import { compileFile, describeError } from "@/runtime/compiler"
-import { AppModuleRegistry, clearAppStyles } from "@/runtime/moduleRegistry"
+import { compileFile, describeError } from "@/browserRuntime/compiler"
+import { AppModuleRegistry, clearAppStyles } from "@/browserRuntime/moduleRegistry"
 import { scrub } from "@/utils/helpers"
 import type { RouterConfig } from "@/router/app_router"
 

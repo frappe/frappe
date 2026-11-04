@@ -11,8 +11,8 @@
  * extensions and index files, and .vue and .css imports require explicit extensions.
  */
 
-import { compileFile, describeError, parseImports, toCommonJS, type CompileError } from "@/runtime/compiler"
-import { loadImportableModule } from "@/runtime/importableModules"
+import { compileFile, describeError, parseImports, toCommonJS, type CompileError } from "@/browserRuntime/compiler"
+import { loadImportableModule } from "@/browserRuntime/importableModules"
 
 const EXTENSION_CANDIDATES = ["", ".ts", ".js", ".json", "/index.ts", "/index.js"]
 

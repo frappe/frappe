@@ -3,7 +3,7 @@ import { useRouter } from "vue-router"
 import { useDebounceFn } from "@vueuse/core"
 
 import { reloadCustomVueComponents } from "@/utils/customVueComponents"
-import { reloadAppRuntime } from "@/runtime/appRuntime"
+import { reloadAppRuntime } from "@/browserRuntime/appRuntime"
 import useComponentStore from "@/stores/componentStore"
 
 // Re-render the preview when the open page changes in the DB — an editor save, an AI edit, or a disk

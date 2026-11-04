@@ -12,7 +12,7 @@ let loaded = false
 
 function compiledApp() {
 	loaded = true
-	return import("@/runtime/compiledApp")
+	return import("@/browserRuntime/compiledApp")
 }
 
 export async function loadAppRuntime(appName: string): Promise<void> {

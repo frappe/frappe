@@ -3,7 +3,7 @@ import type { ComponentProp, ComponentProps } from "@/types"
 import type { VueProp, VuePropType } from "@/types/vue"
 
 import * as jsonTypes from "@/json_types"
-import { getAppSource } from "@/runtime/appRuntime"
+import { getAppSource } from "@/browserRuntime/appRuntime"
 import { isObjectEmpty } from "@/utils/helpers"
 import { ConcreteComponent, reactive } from "vue"
 import type { CustomVueComponentMeta } from "@/types/vue"

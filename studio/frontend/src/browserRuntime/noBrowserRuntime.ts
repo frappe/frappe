@@ -1,5 +1,5 @@
 /**
- * Replace @/runtime/appRuntime in app builds through the alias in src/scripts/build.js.
+ * Replace @/browserRuntime/appRuntime in app builds through the alias in src/scripts/build.js.
  *
  * Built apps already contain compiled components and page scripts. These exports let shared
  * renderer code import the runtime API without including the browser compiler or registry.
