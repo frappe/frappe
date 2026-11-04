@@ -114,6 +114,7 @@ class DesktopPage {
 				// `desk_route` on its `add_to_apps_screen` hook. Empty for a desk-native app,
 				// which renders no subtitle.
 				desk_route: app.desk_route,
+				module_icons: app.module_icons,
 			};
 			this.add_icon($grid, icon_data, app.route);
 		});
@@ -127,6 +128,16 @@ class DesktopPage {
 			$app_links.attr("target", "_blank");
 		}
 		$app_links.attr("href", route);
+		const $module_icons = $icon.find(".module-icon");
+		$module_icons
+			.filter((_, link) => link.getAttribute("href").startsWith("http"))
+			.attr("target", "_blank");
+
+		// The caption names the module icon under the pointer while the stack is fanned out.
+		const $title = $icon.find(".icon-title");
+		$module_icons
+			.on("mouseenter focus", (e) => $title.text(e.currentTarget.dataset.title))
+			.on("mouseleave blur", () => $title.text(__(icon_data.label)));
 		$grid.append($icon);
 	}
 	setup() {
