@@ -2,7 +2,7 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { toast } from "frappe-ui";
 import { logout as endSession } from "@framework/ui/api";
-import { createApp, defineComponent, h, nextTick, onUnmounted, type Component } from "vue";
+import { createApp, defineComponent, effectScope, h, nextTick, onUnmounted, type Component } from "vue";
 import { createMemoryHistory, createRouter } from "vue-router";
 
 vi.mock("@framework/ui/api", async (importOriginal) => ({
@@ -30,6 +30,7 @@ import { resetNavigationReports } from "@/navigation/registry";
 import { registerShell } from "@/router/routeFor";
 import AppShell from "../AppShell.vue";
 import { registerComposerBand, registerFloatingComposer } from "../composer";
+import type { Shell } from "../shellActs";
 import type { ShellHookApi } from "../shellHooks";
 import type { StandingWindowHandle, StandingWindowOptions } from "../standingWindows";
 import type { PaletteContext } from "../paletteGroups";
@@ -73,6 +74,7 @@ async function mount(hooks: ShellHook[] = [CRM]) {
 	installTranslate(app);
 	app.provide("boot", booted);
 	app.provide("addresses", addresses);
+	app.config.globalProperties.$socket = socket;
 	app.use(router);
 	await router.push("/");
 	await router.isReady();
@@ -99,6 +101,19 @@ async function attached(
 	await vi.waitFor(() => expect(document.querySelector("[data-standing-window]")).not.toBeNull());
 	return handle!;
 }
+
+const listeners = new Map<string, Set<(...payload: unknown[]) => void>>();
+const socket = {
+	emit: vi.fn(),
+	on: (event: string, handler: (...payload: unknown[]) => void) => {
+		listeners.set(event, (listeners.get(event) ?? new Set()).add(handler));
+	},
+	off: (event: string, handler: (...payload: unknown[]) => void) => {
+		listeners.get(event)?.delete(handler);
+	},
+};
+const fire = (event: string, ...payload: unknown[]) =>
+	[...(listeners.get(event) ?? [])].forEach((handler) => handler(...payload));
 
 const mounts = vi.fn();
 const unmounts = vi.fn();
@@ -136,6 +151,7 @@ beforeEach(() => {
 	mounts.mockClear();
 	unmounts.mockClear();
 	given.mockClear();
+	listeners.clear();
 });
 
 afterEach(() => {
@@ -555,6 +571,165 @@ describe("shell.window", () => {
 		expect(shown(frame("crm"))).toBe(true);
 		expect(shown(pill("helpdesk"))).toBe(true);
 		expect(pill("helpdesk").textContent).toContain("Helpdesk");
+	});
+});
+
+const Dialer = defineComponent({
+	props: { shell: Object, window: Object, number: String },
+	setup: (props) => () => h("p", { "data-dialer": "" }, props.number ?? "none"),
+});
+const dialer = () => document.querySelector("[data-dialer]")?.textContent;
+
+describe("shell.windowOf", () => {
+	it("opens a window with props before its shell hook has attached it", async () => {
+		let attached: StandingWindowHandle | undefined;
+		let before: StandingWindowHandle | undefined;
+		ship("crm", (shell) => {
+			before = shell.windowOf("crm");
+			before.open({ number: "+91 99999 00000" });
+			attached = shell.window(Dialer);
+		});
+		await mount();
+		await vi.waitFor(() => expect(dialer()).toBe("+91 99999 00000"));
+
+		expect(attached).toBe(before);
+		expect(attached!.isOpen).toBe(true);
+		expect(shown(frame())).toBe(true);
+		expect(frame().querySelector("[data-standing-title]")!.textContent).toContain("CRM");
+	});
+
+	it("stays closed when the app closes it before it attaches", async () => {
+		ship("crm", (shell) => {
+			shell.windowOf("crm").open();
+			shell.windowOf("crm").close();
+			shell.window(Dialer);
+		});
+		await mount();
+		await vi.waitFor(() => expect(dialer()).toBe("none"));
+
+		expect(shown(frame())).toBe(false);
+	});
+
+	it("opens an attached window with new props, and keeps them for an open with none", async () => {
+		const handle = await attached(Dialer);
+
+		handle.open({ number: "100" });
+		await nextTick();
+		expect(dialer()).toBe("100");
+		handle.open({ number: "200" });
+		await nextTick();
+		expect(dialer()).toBe("200");
+
+		handle.minimise();
+		handle.open();
+		await nextTick();
+		expect(dialer()).toBe("200");
+		expect(mounts).not.toHaveBeenCalled();
+	});
+
+	it("reads isOpen reactively: false while closed or minimised, true while the frame shows", async () => {
+		const handle = await attached();
+
+		expect(handle.isOpen).toBe(false);
+		handle.open();
+		expect(handle.isOpen).toBe(true);
+		handle.minimise();
+		expect(handle.isOpen).toBe(false);
+		handle.open();
+		handle.close();
+		expect(handle.isOpen).toBe(false);
+	});
+
+	it("draws nothing for an app that never attaches a window", async () => {
+		ship("crm", (shell) => shell.windowOf("crm").open({ number: "1" }));
+		await mount();
+		await flush();
+
+		expect(document.querySelector("[data-standing-window]")).toBeNull();
+	});
+});
+
+describe("shell.realtime", () => {
+	async function realtime() {
+		let given!: ShellHookApi;
+		ship("crm", (shell) => (given = shell));
+		await mount();
+		await vi.waitFor(() => expect(given).toBeDefined());
+		return given.realtime;
+	}
+
+	it("calls the handler with each event's payload until off", async () => {
+		const handler = vi.fn();
+		const off = (await realtime()).on("exotel_call", handler);
+
+		fire("exotel_call", { state: "ringing" }, 2);
+		expect(handler).toHaveBeenCalledWith({ state: "ringing" }, 2);
+		off();
+		fire("exotel_call", { state: "ended" });
+		expect(handler).toHaveBeenCalledOnce();
+	});
+
+	it("unsubscribes on its own when the scope that asked stops", async () => {
+		const { on } = await realtime();
+		const handler = vi.fn();
+		const scope = effectScope();
+		scope.run(() => on("exotel_call", handler));
+
+		scope.stop();
+		fire("exotel_call");
+		expect(handler).not.toHaveBeenCalled();
+		expect(listeners.get("exotel_call")?.size ?? 0).toBe(0);
+	});
+
+	it("keeps a subscription made outside any scope until its off", async () => {
+		const handler = vi.fn();
+		(await realtime()).on("exotel_call", handler);
+
+		fire("exotel_call");
+		fire("exotel_call");
+		expect(handler).toHaveBeenCalledTimes(2);
+	});
+
+	it("takes one subscription away with its off, though the handler is the same", async () => {
+		const { on } = await realtime();
+		const handler = vi.fn();
+		const first = on("exotel_call", handler);
+		on("exotel_call", handler);
+
+		first();
+		fire("exotel_call");
+		expect(handler).toHaveBeenCalledOnce();
+	});
+
+	it("lets the window component's subscription go with the window", async () => {
+		const Listening = defineComponent({
+			props: { shell: Object },
+			setup(props) {
+				(props.shell as Shell).realtime.on("exotel_call", () => {});
+				return () => null;
+			},
+		});
+		await attached(Listening);
+		expect(listeners.get("exotel_call")?.size).toBe(1);
+
+		releases.splice(0).forEach((release) => release());
+		expect(listeners.get("exotel_call")?.size).toBe(0);
+	});
+
+	it("logs a handler that fails and still calls the next one", async () => {
+		const { on } = await realtime();
+		const next = vi.fn();
+		on("exotel_call", () => {
+			throw new Error("boom");
+		});
+		on("exotel_call", next);
+
+		fire("exotel_call");
+		expect(next).toHaveBeenCalledOnce();
+		expect(vi.mocked(console.error)).toHaveBeenCalledWith(
+			'[frappe] A realtime handler for "exotel_call" failed.',
+			expect.any(Error)
+		);
 	});
 });
 
