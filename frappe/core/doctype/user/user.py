@@ -97,8 +97,8 @@ class User(Document):
 		default_workspace: DF.Link | None
 		defaults: DF.Table[DefaultValue]
 		desk_theme: DF.Literal["Light", "Dark", "Automatic"]
-		document_follow_frequency: DF.Literal["Hourly", "Daily", "Weekly"]
 		dock_mode: DF.Literal["Floating", "Pinned"]
+		document_follow_frequency: DF.Literal["Hourly", "Daily", "Weekly"]
 		document_follow_notify: DF.Check
 		email: DF.Data
 		email_signature: DF.TextEditor | None
@@ -243,6 +243,9 @@ class User(Document):
 		if self.name not in STANDARD_USERS:
 			self.email = self.name
 			self.validate_email_type(self.name)
+
+		if self.email:
+			self.email = self.email.strip().lower()
 
 		self.move_role_profile_name_to_role_profiles()
 		self.populate_role_profile_roles()
@@ -777,7 +780,7 @@ class User(Document):
 			frappe.rename_doc("Notification Settings", old_name, new_name, force=True, show_alert=False)
 
 		# set email
-		frappe.db.set_value("User", new_name, "email", new_name)
+		frappe.db.set_value("User", new_name, "email", new_name.lower())
 
 		get_controller("Workspace").rename_private_workspaces(old_name, new_name)
 
