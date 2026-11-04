@@ -2320,10 +2320,18 @@ operator_map = {
 
 def evaluate_filters(doc: "Mapping", filters: FilterSignature):
 	"""Return True if doc matches filters."""
+	from frappe.database.query import get_nested_set_hierarchy_result
+	from frappe.database.utils import NestedSetHierarchy
+
 	if not isinstance(filters, Filters):
 		filters = Filters(filters, doctype=doc.get("doctype"))
 	for d in filters:
 		f = get_filter(None, d)
+		if f.operator.lower() in NestedSetHierarchy:
+			hierarchy = f.operator.lower()
+			df = frappe.get_meta(f.doctype).get_field(f.fieldname)
+			f.value = get_nested_set_hierarchy_result(df.options if df else f.doctype, f.value, hierarchy)
+			f.operator = "not in" if hierarchy in ("not ancestors of", "not descendants of") else "in"
 		if not compare(doc.get(f.fieldname), f.operator, f.value, f.fieldtype):
 			return False
 
