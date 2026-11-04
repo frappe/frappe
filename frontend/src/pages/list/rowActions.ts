@@ -2,7 +2,7 @@
 // and the row's menu draws the ones that pass the target act's right and the item's own `when`.
 import type { ActEntry } from "@/acts/dispatcher";
 import { acts } from "@/acts/dispatcher";
-import type { RowAction } from "@/contributions/types";
+import type { ListContext, RowAction } from "@/contributions/types";
 import type { ListActs } from "./listActs";
 
 type Row = Record<string, unknown>;
@@ -22,8 +22,8 @@ export function rowActionEntries(actions: RowAction[]): ActEntry[] {
 				label: action.label ?? target?.label ?? action.act,
 				icon: action.icon ?? target?.icon,
 				palette: false,
-				run: (_context: unknown, row: Row) =>
-					acts.perform(action.act, action.value?.(row)),
+				run: (list: ListContext, row: Row) =>
+					acts.perform(action.act, action.value?.(row, { ...list, row })),
 			},
 			hidden: !target,
 		};
@@ -34,7 +34,7 @@ export function rowActionEntries(actions: RowAction[]): ActEntry[] {
 export function rowMenuOptions(row: Row, actions: RowAction[], listActs: ListActs): RowMenuOption[] {
 	return actions.flatMap((action) => {
 		const drawn = listActs.drawn(itemName(action));
-		if (!drawn || !applies(action, row)) return [];
+		if (!drawn || !applies(action, row, listActs.context())) return [];
 		return [{ label: drawn.label!, icon: drawn.icon, onClick: () => listActs.perform(drawn, row) }];
 	});
 }
@@ -44,9 +44,9 @@ function itemName(action: RowAction) {
 }
 
 // A `when` that throws on a row hides the action there; it must not break the list's render.
-function applies(action: RowAction, row: Row) {
+function applies(action: RowAction, row: Row, list: ListContext) {
 	try {
-		return action.when?.(row) !== false;
+		return action.when?.(row, { ...list, row }) !== false;
 	} catch {
 		return false;
 	}

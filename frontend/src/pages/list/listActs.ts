@@ -10,16 +10,18 @@ import {
   type ActRight,
   type AvailableAct,
 } from "@/acts/dispatcher";
+import type { ListContext } from "@/contributions/types";
 import { useCreateRight } from "@/createRight";
 import { __ } from "@/i18n";
 import { whenLoaded } from "@/acts/doctypeRight";
 import { favouriteWording } from "@/pages/favourite/favouriteWording";
 import type { DefaultScope } from "./defaultView";
 import { errorMessage } from "@/recordPage/errorMessage";
-import { typeKey } from "@/list/view";
+import { typeKey, type View } from "@/list/view";
 
 export interface ListActsHost {
   doctype: string;
+  view: View;
   create: () => unknown;
   customizeQuickFilter: () => void;
   customizing: () => boolean;
@@ -34,15 +36,20 @@ export interface ListActsHost {
   clearDefaultView: (scope: DefaultScope) => unknown;
 }
 
+/** What the renderer holds of the list context: the rows it shows and how they load again. */
+export type RendererContext = Pick<ListContext<View>, "selection" | "reload">;
+
 export interface ListActs {
+  /** The context an act's `run` gets now, without a row. */
+  context: () => ListContext<View>;
   /** The act by its item name while the dispatcher would run it, so the page draws it. */
   drawn: (name: string) => AvailableAct | undefined;
   perform: (act: AvailableAct, value?: unknown) => void;
 }
 
 export interface PageActs extends ListActs {
-  /** Puts a renderer's acts on its type's surface, under the page's rights; they draw from the result. */
-  renderer: (entries: () => ActEntry[]) => ListActs;
+  /** Puts a renderer's acts on its type's surface, under the page's rights; they draw from the result. `context` is its part of the list context. */
+  renderer: (entries: () => ActEntry[], context: () => RendererContext) => ListActs;
 }
 
 /** Registers the `list` surface for the page's life; the page draws its controls from `drawn`. */
@@ -51,12 +58,18 @@ export function useListActs(host: ListActsHost, type = "List"): PageActs {
   const { loading } = useDocPermissions(host.doctype);
   const surface = typeKey(type);
   const rendered = shallowRef<() => ActEntry[]>(() => []);
+  const renderedContext = shallowRef<() => RendererContext>(() => ({ selection: [], reload: () => {} }));
   const surfaces: Record<string, () => ActEntry[]> = { list: () => listEntries(host) };
   if (surface === "list") surfaces.list = () => [...listEntries(host), ...rendered.value()];
   else surfaces[surface] = () => rendered.value();
   const release = acts.register({
     surfaces,
-    context: () => undefined,
+    context: () => ({
+      doctype: host.doctype,
+      view: host.view,
+      ...renderedContext.value(),
+      selection: [...renderedContext.value().selection],
+    }),
     passes,
     settled: () => (loading.value ? whenLoaded(loading) : undefined),
     hold: async (work) => work(),
@@ -66,8 +79,9 @@ export function useListActs(host: ListActsHost, type = "List"): PageActs {
 
   return {
     ...surfaceActs("list"),
-    renderer: (entries) => {
+    renderer: (entries, context) => {
       rendered.value = entries;
+      renderedContext.value = context;
       return surfaceActs(surface);
     },
   };
@@ -75,6 +89,7 @@ export function useListActs(host: ListActsHost, type = "List"): PageActs {
 
 function surfaceActs(surface: string): ListActs {
   return {
+    context: () => acts.contextOf(surface) as ListContext<View>,
     drawn: (name) => acts.find(`${surface}.${name}`),
     perform: (act, value) => void acts.perform(act.name, value),
   };

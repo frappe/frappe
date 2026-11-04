@@ -320,6 +320,39 @@ export default [
 ]
 ```
 
+### List acts
+
+A list's own acts are named `list.<item>`: the built-in `list.create` and `list.delete`, and one
+`list.row_<act>` for each row action an app names in `list.js`. Their `run` receives
+`(list, value)`, one shape for a row act and a bulk act:
+
+| Key | What it holds |
+| --- | --- |
+| `list.doctype` | The doctype the list shows. |
+| `list.view` | The view object: `key`, `type`, and `filters`, `sort` and `settings`, which are refs (read `.value`). |
+| `list.selection` | The names of the selected rows now, a copy. |
+| `list.row` | The row, in a row act only; it holds the `fields` the action names. |
+| `list.reload()` | Loads the rows again, as the list does after its own change. |
+
+A row action in `list.js` names an act and the `fields` it reads. Its `value(row, list)` and
+`when(row, list)` receive the same `list` with `row` set, so a row action can pass `list.reload`
+or `list.selection` to the act it runs. A row action cannot name a `list.*` act. A `when` that
+throws hides the action on that row.
+
+```js
+// crm/fcrm/crm/doctype/crm_call_log/frontend/list.js
+export default {
+  rowActions: [
+    {
+      act: 'shell.crm.open_call_log',
+      fields: ['name', 'status'],
+      when: (row) => row.status !== 'Ringing',
+      value: (row, list) => ({ name: row.name, reload: list.reload }),
+    },
+  ],
+}
+```
+
 An act item takes five more keys, on `page.header`, `page.quickActions` and a tab's `create`:
 
 | Key | What it does |

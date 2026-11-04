@@ -2,7 +2,8 @@
 // available and the action's own `when` holds, and run through the dispatcher with `value(row)`.
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { acts, type ActEntry } from "@/acts/dispatcher";
-import type { RowAction } from "@/contributions/types";
+import type { ListContext, RowAction } from "@/contributions/types";
+import type { View } from "@/list/view";
 import { rowActionEntries, rowMenuOptions } from "../rowActions";
 import type { ListActs } from "../listActs";
 
@@ -12,11 +13,16 @@ const releases: (() => void)[] = [];
 
 afterEach(() => releases.splice(0).forEach((release) => release()));
 
-function register(surface: string, entries: () => ActEntry[], passes = () => true) {
+function register(
+	surface: string,
+	entries: () => ActEntry[],
+	passes = () => true,
+	context: () => unknown = () => undefined
+) {
 	releases.push(
 		acts.register({
 			surfaces: { [surface]: entries },
-			context: () => undefined,
+			context,
 			passes,
 			settled: () => undefined,
 			hold: async (work) => work(),
@@ -34,10 +40,15 @@ function callAct(ran: unknown[], right?: string): ActEntry {
 	};
 }
 
+const reload = vi.fn();
+const view = { doctype: "Lead", key: "list", type: "List" } as View;
+const listContext: ListContext<View> = { doctype: "Lead", view, selection: ["LEAD-2"], reload };
+
 /** The list surface the page registers, drawn from the same entries. */
 function listSurface(actions: RowAction[]): ListActs {
-	register("list", () => rowActionEntries(actions));
+	register("list", () => rowActionEntries(actions), () => true, () => listContext);
 	return {
+		context: () => listContext,
 		drawn: (name) => acts.find(`list.${name}`),
 		perform: (act, value) => void acts.perform(act.name, value),
 	};
@@ -100,6 +111,28 @@ describe("row actions", () => {
 			},
 		};
 		expect(rowMenuOptions({ name: "L" }, [action], listSurface([action]))).toEqual([]);
+	});
+
+	it("hands value and when the list's context with the row", async () => {
+		const ran: unknown[] = [];
+		register("shell", () => [callAct(ran)]);
+		const seen: ListContext[] = [];
+		const action: RowAction = {
+			...call,
+			when: (_row, list) => (seen.push(list), true),
+			value: (_row, list) => list,
+		};
+		const row = { name: "LEAD-1" };
+
+		const [option] = rowMenuOptions(row, [action], listSurface([action]));
+		option.onClick();
+		await vi.waitFor(() => expect(ran).toHaveLength(1));
+
+		const expected = { doctype: "Lead", view, selection: ["LEAD-2"], reload, row };
+		expect(seen[0]).toEqual(expected);
+		expect(ran[0]).toEqual(expected);
+		(ran[0] as ListContext).reload();
+		expect(reload).toHaveBeenCalledOnce();
 	});
 
 	it("keeps the actions off the palette", () => {

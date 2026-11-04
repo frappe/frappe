@@ -123,6 +123,7 @@ const favourited = computed(() => isFavourite(settings.favourites.value, starKey
 const listActs = useListActs(
 	{
 		doctype,
+		view,
 		create,
 		customizeQuickFilter: () => (customizing.value = true),
 		customizing: () => customizing.value,
