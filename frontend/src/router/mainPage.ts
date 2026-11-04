@@ -96,7 +96,7 @@ function reloadAddress() {
 }
 
 /** A module's default export, read as vue-router reads a lazy route component. */
-function pageOf(loaded: Loaded): Component {
+export function pageOf(loaded: Loaded): Component {
 	if (typeof loaded === "object" && "default" in loaded && loaded.default) return loaded.default;
 	return loaded as Component;
 }

@@ -286,7 +286,8 @@ A doctype's record shown in a dialog over the page the reader is on, instead of 
 page. An app opts a doctype in with `{"record": "dialog"}` in its `pages.json`. The form is the
 doctype's Quick Entry layout; a record script runs as on the page, and the header, tabs, feed,
 files and composer are not drawn. The address stays the record's own, so a direct load shows the
-list and opens the dialog over it.
+list and opens the dialog over it. An entry may name a **body**, a component that replaces the
+form with the same record, Save and frame, and that can switch to the form.
 _Avoid_: "modal record", "quick view".
 
 **Required-fields dialog**: <a id="required-fields-dialog"></a>

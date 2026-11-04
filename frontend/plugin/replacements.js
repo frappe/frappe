@@ -41,9 +41,10 @@ export function declaredPages(folder, declarer, benchApps) {
 	for (const [key, value] of Object.entries(read.declaration)) {
 		const declared = keyEntries(key, value, pageNames, benchApps);
 		warnings.push(...declared.warnings.map((warning) => `[frappe] ${path}: ${warning}.`));
-		for (const { page, apps } of declared.entries) {
+		for (const { page, apps, body } of declared.entries) {
 			if (page === DIALOG_PAGE) {
-				dialogs.push({ ...declarer, ...(apps && { apps }) });
+				const file = body && join(pagesRoot, `${body}.js`);
+				dialogs.push({ ...declarer, ...(apps && { apps }), ...(file && { body, file }) });
 				continue;
 			}
 			const file = join(pagesRoot, `${page}.js`);
@@ -51,7 +52,8 @@ export function declaredPages(folder, declarer, benchApps) {
 		}
 	}
 	const declared = new Set(found.map((entry) => entry.page));
-	const handlers = handlerFiles(folder, pageNames, declared, declarer);
+	const bodies = new Set(dialogs.map((entry) => entry.body));
+	const handlers = handlerFiles(folder, pageNames, { declared, bodies }, declarer);
 	warnings.unshift(...handlers.warnings);
 	if (pageNames.includes(DIALOG_PAGE))
 		warnings.unshift(
@@ -102,9 +104,9 @@ function keyEntries(key, value, pageNames, benchApps) {
 
 	const warnings = [];
 	const scoped = [];
-	for (const { page, apps } of entries) {
+	for (const { page, apps, body } of entries) {
 		if (!apps) {
-			scoped.push({ page, apps: null });
+			scoped.push({ page, apps: null, body });
 			continue;
 		}
 		if (!apps.length) {
@@ -118,7 +120,7 @@ function keyEntries(key, value, pageNames, benchApps) {
 			warnings.push(
 				`"${key}" names app "${app}" for "${page}", but it is not on the bench; it applies there once that app is installed`
 			);
-		scoped.push({ page, apps: named });
+		scoped.push({ page, apps: named, body });
 	}
 	return { entries: scoped, warnings };
 }
@@ -135,23 +137,35 @@ function keyProblem(key, value, entries, pageNames) {
 function entryProblem(key, entry, pageNames) {
 	if (entry === null || typeof entry !== "object" || Array.isArray(entry))
 		return `"${key}" is not a page name, a { "page", "apps" } entry or a list of entries`;
-	const unknown = Object.keys(entry).find((field) => field !== "page" && field !== "apps");
+	const unknown = Object.keys(entry).find((field) => !["page", "apps", "body"].includes(field));
 	if (unknown) return `"${key}" has an entry with the unknown field "${unknown}"`;
-	const { page, apps } = entry;
+	const { page, apps, body } = entry;
 	if (typeof page !== "string") return `"${key}" has an entry with no page name`;
 	if (
 		apps !== undefined &&
 		!(Array.isArray(apps) && apps.every((app) => typeof app === "string"))
 	)
 		return `"${key}" gives "${page}" an "apps" that is not a list of app names`;
+	if (body !== undefined && page !== DIALOG_PAGE)
+		return `"${key}" gives "${page}" a "body", which only the "${DIALOG_PAGE}" entry may have`;
 	if (STANDARD_PAGES.includes(page))
 		return `"${key}" names "${page}", a name reserved for the standard pages`;
-	if (page === DIALOG_PAGE)
-		return key === "record"
-			? null
-			: `"${key}" names "${page}", which only "record" may name (the record dialog)`;
+	if (page === DIALOG_PAGE) return dialogProblem(key, body, pageNames);
 	if (!pageNames.includes(page))
 		return `"${key}" names "${page}", but there is no pages/${page}.js`;
+	return null;
+}
+
+function dialogProblem(key, body, pageNames) {
+	if (key !== "record")
+		return `"${key}" names "${DIALOG_PAGE}", which only "record" may name (the record dialog)`;
+	if (body === undefined) return null;
+	if (typeof body !== "string")
+		return `"${key}" gives "${DIALOG_PAGE}" a "body" that is not a page name`;
+	if (STANDARD_PAGES.includes(body) || body === DIALOG_PAGE)
+		return `"${key}" gives "${DIALOG_PAGE}" the body "${body}", a reserved page name`;
+	if (!pageNames.includes(body))
+		return `"${key}" gives "${DIALOG_PAGE}" the body "${body}", but there is no pages/${body}.js`;
 	return null;
 }
 
@@ -170,7 +184,7 @@ function scopeClash(key, entries) {
 }
 
 /** A `.js` file beside `pages/` is the handler file of a declared page, or, if not, ignored with a warning. */
-function handlerFiles(folder, pageNames, declared, { app, doctype, foreign }) {
+function handlerFiles(folder, pageNames, { declared, bodies }, { app, doctype, foreign }) {
 	const pageScripts = [];
 	const warnings = [];
 	for (const handler of files(folder)) {
@@ -178,7 +192,11 @@ function handlerFiles(folder, pageNames, declared, { app, doctype, foreign }) {
 		if (STANDARD_PAGES.includes(name) || name === DIALOG_PAGE) continue;
 
 		const file = join(folder, handler);
-		if (declared.has(name)) {
+		if (bodies.has(name)) {
+			warnings.push(
+				`[frappe] ${file} is beside pages/${handler}, a record dialog body, which takes no handler file; it is ignored.`
+			);
+		} else if (declared.has(name)) {
 			pageScripts.push({ app, doctype, page: name, file });
 		} else if (pageNames.includes(name)) {
 			warnings.push(

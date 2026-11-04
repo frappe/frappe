@@ -27,7 +27,7 @@ async function opens(recordDialogs: RecordDialogContribution[], appOrder: string
   vi.resetModules()
   const registry = await import('../registry')
   await registry.registerContributions(appOrder)
-  return registry.opensInDialog
+  return Object.assign(registry.opensInDialog, { body: registry.recordDialogBody })
 }
 
 const todo = { app: 'frappe', doctype: 'ToDo', foreign: false }
@@ -49,5 +49,26 @@ describe('opensInDialog', () => {
     expect(opensIn('ToDo', 'crm')).toBe(true)
     expect(opensIn('ToDo', 'frappe')).toBe(false)
     expect(opensIn('ToDo', null)).toBe(false)
+  })
+})
+
+describe('recordDialogBody', () => {
+  const component = async () => ({})
+
+  it('is the body of the opt-in that names one, and absent for one that names none', async () => {
+    const opensIn = await opens([{ ...todo, component }, { ...todo, doctype: 'Note' }], ['frappe'])
+    expect(opensIn.body('ToDo', 'frappe')).toBe(component)
+    expect(opensIn.body('Note', 'frappe')).toBeUndefined()
+    expect(opensIn.body('Event', 'frappe')).toBeUndefined()
+  })
+
+  it('takes the entry that names the app over one that names none', async () => {
+    const scoped = async () => ({})
+    const opensIn = await opens(
+      [{ ...todo, component }, { ...todo, apps: ['crm'], component: scoped }],
+      ['frappe', 'crm'],
+    )
+    expect(opensIn.body('ToDo', 'crm')).toBe(scoped)
+    expect(opensIn.body('ToDo', 'frappe')).toBe(component)
   })
 })

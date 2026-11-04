@@ -65,6 +65,11 @@ export function opensInDialog(doctype: string, app: string | null) {
   return contendersIn(recordDialogs.get(doctype) ?? [], app).length > 0
 }
 
+/** The body that replaces the form in `doctype`'s record dialog in `app`, if the winning opt-in names one. */
+export function recordDialogBody(doctype: string, app: string | null) {
+  return contendersIn(recordDialogs.get(doctype) ?? [], app).at(-1)?.component
+}
+
 /** Every page that wins in `app`, for checks that need the address table. */
 export function declaredReplacements(app: string | null) {
   return [...claims.values()].flatMap((all) => contendersIn(all, app).slice(-1))

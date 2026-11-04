@@ -59,6 +59,19 @@ and `afterSave` run, and `page.save()` saves. The header, tab, panel and feed su
 the composer are not drawn, so their items are ignored there. `page.dialog` opens over it. Create
 for such a doctype shows no "Edit full form".
 
+An entry can name a body, a component that the dialog draws in place of the form, with the same
+record, Save and frame: `{"record": {"page": "dialog", "body": "summary"}}` loads
+`pages/summary.js` beside the `pages.json`, which exports `{ component }` as a replacement page
+does. The body gets two props: `page`, the dialog's `page` (read `page.doc`, call `page.save()`),
+and `edit()`, which switches the dialog to the form. Add `apps` to the entry to scope it.
+
+```js
+// crm/crm/doctype/crm_call_log/frontend/pages.json: { "record": { "page": "dialog", "body": "summary" } }
+// crm/crm/doctype/crm_call_log/frontend/pages/summary.js:
+export default { component: () => import("./CallSummary.vue") };
+// CallSummary.vue: defineProps(["page", "edit"]), shows page.doc.status and a button that calls edit().
+```
+
 ## Where a script runs
 
 A record-page script is a `Client Script` row with `view = Record` and `dt` set to the

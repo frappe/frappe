@@ -315,6 +315,9 @@ function generate({
 	replacements.forEach((entry, index) => {
 		imports.push(`import r${index} from ${JSON.stringify(entry.file)}`);
 	});
+	recordDialogs.forEach((entry, index) => {
+		if (entry.file) imports.push(`import b${index} from ${JSON.stringify(entry.file)}`);
+	});
 	pageScripts.forEach((entry, index) => {
 		imports.push(`import s${index} from ${JSON.stringify(entry.file)}`);
 	});
@@ -426,13 +429,14 @@ function generate({
 	lines.push("  ].filter(usable),");
 
 	lines.push("  recordDialogs: [");
-	for (const { app, doctype, apps, foreign } of recordDialogs) {
+	recordDialogs.forEach(({ app, doctype, apps, foreign, file }, index) => {
 		lines.push(
 			`    { app: ${JSON.stringify(app)}, doctype: ${JSON.stringify(doctype)}, ` +
 				(apps ? `apps: ${JSON.stringify(apps)}, ` : "") +
+				(file ? `component: b${index}?.component, ` : "") +
 				`foreign: ${foreign} },`
 		);
-	}
+	});
 	lines.push("  ],");
 
 	lines.push("  pageScripts: [");
