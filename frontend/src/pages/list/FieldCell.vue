@@ -34,7 +34,7 @@ import { useFieldDisplay } from "@framework/ui/FormLayout";
 import { currentSession } from "@framework/ui/useSession";
 import { Checkbox, Rating, Tooltip, dayjs } from "frappe-ui";
 import { computed } from "vue";
-import { relativeTime } from "@/relativeTime";
+import { relativeTime } from "@framework/ui/relativeTime";
 
 // The form sums these up as "Set" or a first line; a cell shows the stored value.
 const STORED_VALUE_FIELDTYPES = new Set([

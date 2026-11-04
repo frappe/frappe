@@ -102,6 +102,10 @@
       "import": "./src/socket.ts",
       "types": "./src/socket.ts"
     },
+    "./relativeTime": {
+      "import": "./src/composables/relativeTime.ts",
+      "types": "./src/composables/relativeTime.ts"
+    },
     "./useSession": {
       "import": "./src/composables/useSession.ts",
       "types": "./src/composables/useSession.ts"

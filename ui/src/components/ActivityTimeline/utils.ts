@@ -1,16 +1,16 @@
-import { dayjsLocal } from "frappe-ui";
 import { ref, type Ref } from "vue";
+import { relativeTime, siteTime } from "../../composables/relativeTime";
 
 export const dateTooltipFormat = "ddd, MMM D, YYYY h:mm A";
 
 export function dateFormat(date?: string, format = dateTooltipFormat): string {
   if (!date) return "";
-  return dayjsLocal(date).format(format);
+  return siteTime(date).format(format);
 }
 
 export function timeAgo(date?: string): string {
   if (!date) return "";
-  return dayjsLocal(date).fromNow();
+  return relativeTime(siteTime(date));
 }
 
 /** Plain text from an HTML fragment (used by the realtime normalizer). */

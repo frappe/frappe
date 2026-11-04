@@ -1,6 +1,6 @@
-// One reading of "3 days ago" for every relative date: list cells and the index's recent list.
-import { currentSession } from "@framework/ui/useSession";
+// One reading of a stored stamp and of "3 days ago": every relative date in the desk and the activity timeline.
 import { dayjs } from "frappe-ui";
+import { currentSession } from "./useSession";
 
 type Stamp = ReturnType<typeof dayjs>;
 
@@ -20,6 +20,12 @@ const UNITS: [Intl.RelativeTimeFormatUnit, number, number][] = [
 const INTL_TAGS: Record<string, string> = { "sr-CS": "sr-Latn" };
 
 const formatters = new Map<string, Intl.RelativeTimeFormat | null>();
+
+/** A stamp the server stored on the site's clock, as the instant it names. Without a session zone it reads in the browser's. */
+export function siteTime(stamp?: string): Stamp {
+	const zone = currentSession()?.timezone;
+	return zone && stamp ? dayjs.tz(stamp, zone) : dayjs(stamp);
+}
 
 /** `stamp` as time from now, in the signed-in person's language. A stamp under a minute ahead is clock skew and reads as just past. */
 export function relativeTime(stamp: Stamp): string {

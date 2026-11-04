@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { Avatar, dayjs } from "frappe-ui";
+import { Avatar } from "frappe-ui";
+import { relativeTime, siteTime } from "../../composables/relativeTime";
 import type { NotificationItemProps, NotificationLog } from "./types";
 
 const props = defineProps<NotificationItemProps>();
@@ -19,7 +20,7 @@ const title = computed(() => props.notification.title ?? props.notification.subj
 const description = computed(() => props.notification.description ?? "");
 
 const isUnread = computed(() => !props.notification.read);
-const timeAgo = computed(() => dayjs(props.notification.creation as string).fromNow());
+const timeAgo = computed(() => relativeTime(siteTime(props.notification.creation as string)));
 
 function activate() {
 	emit("click", props.notification);
