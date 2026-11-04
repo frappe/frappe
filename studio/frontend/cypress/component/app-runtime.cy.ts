@@ -17,6 +17,7 @@ export default { data() { return { label: "from options" } } }
 	"styles/extra.css": ".extra { color: blue }",
 	"theme.json": `{"accent": "teal"}`,
 	"side-effect.ts": `import "./styles/extra.css"\nimport theme from "./theme.json"\nexport const accent: string = theme.accent`,
+	"named-json.ts": `import theme, { accent } from "./theme.json"\nexport const accent2 = accent\nexport const whole = theme`,
 	"cycle-a.ts": `import { b } from "./cycle-b"\nexport const a = "a"\nexport function readB() { return b }`,
 	"cycle-b.ts": `import { a } from "./cycle-a"\nexport const b = "b"\nexport function readA() { return a }`,
 }
@@ -48,6 +49,12 @@ describe("AppModuleRegistry", () => {
 		cy.wrap(registry.loadModule("components/OptionsCard.vue")).then((card: any) => {
 			// Options API components need a separately compiled template.
 			cy.mount(card.default).get(".options").should("contain.text", "from options")
+		})
+
+		cy.wrap(registry.loadModule("named-json.ts")).then((module: any) => {
+			// Vite exposes a JSON object's keys as named exports, so the browser must too.
+			expect(module.accent2).to.equal("teal")
+			expect(module.whole).to.deep.equal({ accent: "teal" })
 		})
 
 		cy.wrap(registry.loadModule("side-effect.ts")).then((sideEffect: any) => {

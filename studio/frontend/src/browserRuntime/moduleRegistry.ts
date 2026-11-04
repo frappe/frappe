@@ -202,7 +202,10 @@ function joinRelative(from: string, specifier: string): string | null {
 
 function parseJSONModule(source: string): any {
 	const parsed = JSON.parse(source)
-	return Object.freeze({ __esModule: true, default: parsed })
+	// Vite turns a JSON object's top-level keys into named exports. Offer the same names here, so
+	// an app that imports them keeps working after its files move to a repository.
+	const named = parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {}
+	return Object.freeze({ ...named, __esModule: true, default: parsed })
 }
 
 function importError(path: string, message: string): CompileError {
