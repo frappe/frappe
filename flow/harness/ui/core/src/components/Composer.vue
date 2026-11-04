@@ -1055,7 +1055,9 @@ function pick(command) {
 	if (!command.stacked) paletteView.value = null
 	if (subSearch.value) prefill("/")
 	else if (slash.value) replaceSlash("")
-	command.run()
+	if (command.stacked) return command.run()
+	// after the box takes the focus back, so a command that opens a dialog keeps it there
+	nextTick(() => command.run())
 }
 
 // the whole "/word" at the caret (like pickMention), or just the caret when the
