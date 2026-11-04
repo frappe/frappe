@@ -155,6 +155,8 @@ def cache_blob(blob_name: str) -> None:
 	try:
 		with (
 			contextlib.closing(driver.read(blob.key, is_private=bool(blob.is_private))) as stream,
+			# get_cache_path confines the path to the files root
+			# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
 			open(part, "wb") as file,
 		):
 			shutil.copyfileobj(stream, file, CHUNK_SIZE)
