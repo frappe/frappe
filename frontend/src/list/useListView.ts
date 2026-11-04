@@ -25,6 +25,7 @@ import {
 } from "./defaults";
 import { readListMemory, recallRows, rememberRows, useRememberedPageSize, writeListMemory } from "./pageState";
 import { listStatusTheme, type StatusTheme } from "@/statusTheme";
+import { contributedCells, resolveCell, type CellView } from "./cells";
 import { completeFilters, queryFromAddress } from "./query";
 import { columnsFrom, toStoredColumns } from "./storedSettings";
 import { useListRows, type ListRow, type ListRows } from "./useListRows";
@@ -45,6 +46,8 @@ export interface ListView extends ListRows {
 	/** What a column's cell shows before its text; see `cellMark`. */
 	markOf: (fieldname: string) => CellMark | undefined;
 	statusThemeOf: (fieldname: string, value: unknown) => StatusTheme | null;
+	/** What an app's `cells` draw for a value, or null when they name nothing for it; see `resolveCell`. */
+	cellViewOf: (fieldname: string, value: unknown) => CellView | null;
 	/** Where a Currency column's cell finds its currency in the row; see `cellCurrency`. */
 	currencyOf: (fieldname: string) => RowValue | undefined;
 	/** The titles the rows hold for their Link values, keyed `Target::name` as the form's `link_titles`; see `cellTitle`. */
@@ -73,6 +76,7 @@ export function useListView(view: View): ListView {
 	const fields = computed(() => listMeta.value?.fields ?? []);
 	const contributed = listHandlersFor(doctype).map(({ handlers }) => handlers);
 	const rowActions = contributedRowActions(contributed);
+	const cells = contributedCells(contributed);
 
 	const readable = (fieldname: string) => {
 		const field = fields.value.find((one) => one.fieldname === fieldname);
@@ -179,6 +183,12 @@ export function useListView(view: View): ListView {
 			getFilterableFields([], doctype).find((one) => one.fieldname === fieldname),
 		markOf: (fieldname) => cellMark(fieldname, listMeta.value ?? {}),
 		statusThemeOf: (fieldname, value) => listStatusTheme(listMeta.value, fieldname, value),
+		cellViewOf: (fieldname, value) =>
+			resolveCell(
+				cells[fieldname],
+				value,
+				fields.value.find((one) => one.fieldname === fieldname)?.fieldtype
+			),
 		currencyOf: (fieldname) => cellCurrency(fieldname, listMeta.value ?? {}, readable),
 		linkTitles,
 		selection,

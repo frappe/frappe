@@ -50,6 +50,12 @@
 					{{ markedText(row, column.fieldname) }}
 				</div>
 			</div>
+			<ConfiguredCell
+				v-else-if="cellViewOf(column.fieldname, value) && cellFields.has(column.fieldname)"
+				:field="cellFields.get(column.fieldname)!"
+				:row="row"
+				:view="cellViewOf(column.fieldname, value)!"
+			/>
 			<StatusCell
 				v-else-if="
 					statusThemeOf(column.fieldname, value) && cellFields.has(column.fieldname)
@@ -104,6 +110,7 @@ import type { View } from "@/list/view";
 import { pageGutter } from "@/shell/PageFrame.vue";
 import { failedState } from "@/shell/pageState";
 import PageState from "@/shell/PageState.vue";
+import ConfiguredCell from "./ConfiguredCell.vue";
 import DeleteDialog from "./DeleteDialog.vue";
 import EmailCell from "./EmailCell.vue";
 import FieldCell from "./FieldCell.vue";
@@ -122,6 +129,7 @@ const {
 	fieldOf,
 	markOf,
 	statusThemeOf,
+	cellViewOf,
 	currencyOf,
 	linkTitles,
 	selection,

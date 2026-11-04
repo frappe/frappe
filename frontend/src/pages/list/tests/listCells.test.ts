@@ -38,7 +38,17 @@ const metaFields = [
 	{ fieldname: "lead_owner", fieldtype: "Link", options: "User" },
 	{ fieldname: "ref_doctype", fieldtype: "Link", options: "DocType" },
 	{ fieldname: "reference", fieldtype: "Dynamic Link", options: "ref_doctype" },
+	{ fieldname: "task_status", fieldtype: "Select", options: "Todo\nDone" },
+	{ fieldname: "priority", fieldtype: "Select", options: "Low\nHigh" },
+	{ fieldname: "due_date", fieldtype: "Datetime" },
 ];
+
+// What an app's `list.js` names for those three columns.
+const cells: Record<string, ListCell> = {
+	task_status: { icons: { Done: "lucide-circle-check" } },
+	priority: { badge: { High: "red" } },
+	due_date: { icon: "lucide-calendar", format: "D MMM, hh:mm a" },
+};
 const columns = [
 	...metaFields.map(({ fieldname }) => ({ fieldname, label: fieldname })),
 	{ fieldname: "_extra", label: "Extra" },
@@ -81,11 +91,16 @@ const row = {
 	ref_doctype: "User",
 	reference: "ann@example.com",
 	_extra: "as sent",
+	task_status: "Done",
+	priority: "High",
+	due_date: "2026-10-25 00:00:00",
 };
 
 const original = { ...row };
 
-vi.mock("@/list/useListView", () => ({
+vi.mock("@/list/useListView", async () => {
+	const { resolveCell } = await import("@/list/cells");
+	return {
 	useListView: () => ({
 		columns: ref(columns),
 		rows: ref([row]),
@@ -104,6 +119,12 @@ vi.mock("@/list/useListView", () => ({
 		fieldOf: (fieldname: string) => metaFields.find((field) => field.fieldname === fieldname),
 		markOf: (fieldname: string) =>
 			fieldname === "agent" ? { source: { kind: "image", field: "user_image" }, key: "agent__mark" } : undefined,
+		cellViewOf: (fieldname: string, value: unknown) =>
+			resolveCell(
+				cells[fieldname],
+				value,
+				metaFields.find((field) => field.fieldname === fieldname)?.fieldtype
+			),
 		statusThemeOf: (fieldname: string, value: unknown) =>
 			fieldname === "status" && value ? "red" : null,
 		currencyOf: (fieldname: string) =>
@@ -112,7 +133,8 @@ vi.mock("@/list/useListView", () => ({
 		columnsCustomized: ref(false),
 		rowLink: () => ({}),
 	}),
-}));
+	};
+});
 vi.mock("@framework/ui/experimental/List", async () => {
 	const { defineComponent, h } = await import("vue");
 	const stub = () => defineComponent({ setup: () => () => null });
@@ -143,8 +165,16 @@ vi.mock("frappe-ui", async (original) => ({
 		setup: (props, { slots }) => () => h("span", { "data-tooltip": props.text }, slots.default?.()),
 	}),
 }));
+// The sprite is not loaded here; the stub names the icon asked for.
+vi.mock("@/icons/Icon.vue", () => ({
+	default: defineComponent({
+		props: ["name"],
+		setup: (props) => () => h("i", { "data-icon": props.name }),
+	}),
+}));
 vi.mock("@/shell/PageState.vue", () => ({ default: defineComponent({ render: () => null }) }));
 
+import type { ListCell } from "@/contributions/types";
 import { FieldActionsKey } from "@framework/ui/fields/types";
 import { resetSession, setSession } from "@framework/ui/useSession";
 import ListView from "../ListView.vue";
@@ -353,5 +383,31 @@ describe("a list's cells", () => {
 		expect(checkbox?.disabled).toBe(true);
 		const stars = [...root.querySelectorAll("[data-column='score'] [data-slot='star']")];
 		expect(stars.map((star) => star.getAttribute("data-state"))).toEqual(["filled", "filled", "filled", "empty", "empty"]);
+	});
+
+	it("draw an app's cells: an icon before the label, a badge, and a dated cell with its calendar icon", async () => {
+		const root = mount();
+		await nextTick();
+
+		const cell = (column: string) => root.querySelector(`[data-column='${column}']`)!;
+		expect(cell("task_status").textContent).toContain("Done");
+		expect(cell("task_status").querySelector("[data-icon]")?.getAttribute("data-icon")).toBe("circle-check");
+		expect(cell("priority").textContent).toBe("High");
+		expect(cell("priority").querySelector("[data-icon]")).toBeNull();
+		expect(cell("due_date").textContent).toBe("25 Oct, 12:00 am");
+		expect(cell("due_date").querySelector("[data-icon]")?.getAttribute("data-icon")).toBe("calendar");
+		expect(cell("due_date").querySelector("[data-tooltip]")?.getAttribute("data-tooltip")).toBe(
+			"Sun, Oct 25, 2026 | 12:00 am"
+		);
+	});
+
+	it("keep the default cell for a value an app's cells do not name, and an empty one", async () => {
+		row.priority = "Low";
+		row.due_date = "";
+		const root = mount();
+		await nextTick();
+
+		expect(root.querySelector("[data-column='priority']")!.textContent).toBe("Low");
+		expect(root.querySelector("[data-column='due_date']")!.querySelector("[data-icon]")).toBeNull();
 	});
 });

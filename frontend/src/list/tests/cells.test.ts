@@ -1,0 +1,52 @@
+import { afterEach, describe, expect, it } from "vitest";
+import { resetSession } from "@framework/ui/useSession";
+import { contributedCells, resolveCell } from "../cells";
+
+afterEach(() => resetSession());
+
+describe("contributedCells", () => {
+	it("keeps the first app's entry for a fieldname", () => {
+		const cells = contributedCells([
+			{ cells: { status: { icons: { Done: "a" } } } },
+			{ cells: { status: { icons: { Done: "b" } }, priority: { badge: { High: "red" } } } },
+		]);
+		expect(cells).toEqual({ status: { icons: { Done: "a" } }, priority: { badge: { High: "red" } } });
+	});
+});
+
+describe("resolveCell", () => {
+	it("picks a value's icon, dropping frappe-ui's prefix, or its badge theme", () => {
+		expect(resolveCell({ icons: { Done: "lucide-circle-check" } }, "Done", "Select")).toEqual({ icon: "circle-check" });
+		expect(resolveCell({ badge: { High: "red" } }, "High", "Select")).toEqual({ theme: "red" });
+		expect(resolveCell({ badge: { Medium: "orange" } }, "Medium", "Select")).toEqual({ theme: "amber" });
+	});
+
+	it("names nothing for an unknown value, an empty one or no entry", () => {
+		const cell = { icons: { Done: "circle" }, icon: "calendar" };
+		expect(resolveCell(cell, "Todo", "Select")).toEqual({ icon: "calendar" });
+		expect(resolveCell(cell, "", "Select")).toBeNull();
+		expect(resolveCell(cell, null, "Select")).toBeNull();
+		expect(resolveCell(undefined, "Done", "Select")).toBeNull();
+		expect(resolveCell({ badge: { High: "red" } }, "Low", "Select")).toBeNull();
+	});
+
+	it("formats a Date or Datetime and gives the full date as its title", () => {
+		const cell = { icon: "lucide-calendar", format: "D MMM, hh:mm a" };
+		expect(resolveCell(cell, "2026-10-25 00:00:00", "Datetime")).toEqual({
+			icon: "calendar",
+			text: "25 Oct, 12:00 am",
+			title: "Sun, Oct 25, 2026 | 12:00 am",
+		});
+		expect(resolveCell({ format: "D MMM" }, "2026-10-25", "Date")).toEqual({
+			icon: undefined,
+			text: "25 Oct",
+			title: "Sun, Oct 25, 2026",
+		});
+	});
+
+	it("ignores a format on another fieldtype or a value that is no date", () => {
+		expect(resolveCell({ format: "D MMM" }, "Done", "Select")).toBeNull();
+		expect(resolveCell({ format: "D MMM" }, "not a date", "Date")).toBeNull();
+		expect(resolveCell({ icon: "calendar", format: "D MMM" }, "Done", "Select")).toEqual({ icon: "calendar" });
+	});
+});
