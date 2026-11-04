@@ -14,6 +14,9 @@ export interface ListMeta {
 	sort_field?: string;
 	sort_order?: string;
 	fields?: RawMetaField[];
+	states?: { title?: string; color?: string }[];
+	workflow_state_field?: string | null;
+	workflow_state_styles?: Record<string, string>;
 }
 
 const GENERIC_COLUMNS: Column[] = [

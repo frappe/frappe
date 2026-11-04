@@ -50,6 +50,14 @@
 					{{ markedText(row, column.fieldname) }}
 				</div>
 			</div>
+			<StatusCell
+				v-else-if="
+					statusThemeOf(column.fieldname, value) && cellFields.has(column.fieldname)
+				"
+				:field="cellFields.get(column.fieldname)!"
+				:row="row"
+				:theme="statusThemeOf(column.fieldname, value)!"
+			/>
 			<FieldCell
 				v-else-if="cellFields.has(column.fieldname)"
 				:field="cellFields.get(column.fieldname)!"
@@ -101,6 +109,7 @@ import EmailCell from "./EmailCell.vue";
 import FieldCell from "./FieldCell.vue";
 import PhoneCell from "./PhoneCell.vue";
 import type { RendererHost } from "./renderer";
+import StatusCell from "./StatusCell.vue";
 import RowMenu from "./RowMenu.vue";
 import { rowActionEntries, rowMenuOptions } from "./rowActions";
 
@@ -112,6 +121,7 @@ const {
 	rowActions,
 	fieldOf,
 	markOf,
+	statusThemeOf,
 	currencyOf,
 	linkTitles,
 	selection,

@@ -24,6 +24,7 @@ import {
 	type RowValue,
 } from "./defaults";
 import { readListMemory, recallRows, rememberRows, writeListMemory } from "./pageState";
+import { listStatusTheme, type StatusTheme } from "@/statusTheme";
 import { completeFilters, queryFromAddress } from "./query";
 import { columnsFrom, toStoredColumns } from "./storedSettings";
 import { useListRows, type ListRow, type ListRows } from "./useListRows";
@@ -43,6 +44,7 @@ export interface ListView extends ListRows {
 	fieldOf: (fieldname: string) => RawMetaField | undefined;
 	/** What a column's cell shows before its text; see `cellMark`. */
 	markOf: (fieldname: string) => CellMark | undefined;
+	statusThemeOf: (fieldname: string, value: unknown) => StatusTheme | null;
 	/** Where a Currency column's cell finds its currency in the row; see `cellCurrency`. */
 	currencyOf: (fieldname: string) => RowValue | undefined;
 	/** The titles the rows hold for their Link values, keyed `Target::name` as the form's `link_titles`; see `cellTitle`. */
@@ -186,6 +188,7 @@ export function useListView(view: View): ListView {
 			fields.value.find((one) => one.fieldname === fieldname) ??
 			getFilterableFields([], doctype).find((one) => one.fieldname === fieldname),
 		markOf: (fieldname) => cellMark(fieldname, listMeta.value ?? {}),
+		statusThemeOf: (fieldname, value) => listStatusTheme(listMeta.value, fieldname, value),
 		currencyOf: (fieldname) => cellCurrency(fieldname, listMeta.value ?? {}, readable),
 		linkTitles,
 		selection,

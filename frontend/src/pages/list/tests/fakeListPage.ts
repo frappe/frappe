@@ -95,6 +95,7 @@ export function useListView(): ListView {
     hasNextPage: ref(false),
     rowActions: [],
     fieldOf: () => undefined,
+    statusThemeOf: () => null,
     columnsCustomized: computed(() => false),
     resetColumns: async () => {},
     resizeColumn: () => {},

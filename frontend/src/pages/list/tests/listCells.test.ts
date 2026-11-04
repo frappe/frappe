@@ -104,6 +104,8 @@ vi.mock("@/list/useListView", () => ({
 		fieldOf: (fieldname: string) => metaFields.find((field) => field.fieldname === fieldname),
 		markOf: (fieldname: string) =>
 			fieldname === "agent" ? { source: { kind: "image", field: "user_image" }, key: "agent__mark" } : undefined,
+		statusThemeOf: (fieldname: string, value: unknown) =>
+			fieldname === "status" && value ? "red" : null,
 		currencyOf: (fieldname: string) =>
 			({ amount: { key: "currency" }, fee: { key: "fee__currency" } })[fieldname],
 		linkTitles: ref({ "CRM Deal::D-1": "Acme", "User::ann@example.com": "Ann Lee" }),
@@ -192,6 +194,16 @@ describe("a list's cells", () => {
 		const cell = root.querySelector("[data-column='email_id'] > div")!;
 		expect(cell.firstElementChild?.getAttribute("data-slot")).toBe("email-cell-actions");
 		expect(labelIn("status")).toBeUndefined();
+	});
+
+	it("draw a status column's value as a coloured badge, and no other cell", async () => {
+		const root = mount();
+		await nextTick();
+
+		const badge = root.querySelector("[data-column='status'] > div")!;
+		expect(badge.textContent?.trim()).toBe("Open");
+		expect(badge.className).toContain("red");
+		expect(root.querySelector("[data-column='website'] [class*='bg-surface-red']")).toBeNull();
 	});
 
 	it("draw every other cell as the record's read-only field shows the value", async () => {
