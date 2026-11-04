@@ -368,6 +368,11 @@ download --> files/<blob>/<filename> --keep--> private/cache/expiring/... --grac
   missing file is a normal case.
 - A copy lives at most `keep + grace + 10` minutes without a request, 370
   by default. A request to nginx just before a move can get one 404.
+- The sweep and `relocate_blobs` share one lock (`storage_cache_sweep`).
+  Relocation to a local driver can keep a cached copy as the blob's file,
+  so the sweep must not list rows while they move. A sweep that finds the
+  lock busy skips its run. It takes the lock before any database read, so
+  its listing sees every relocation commit.
 
 ### Upload
 

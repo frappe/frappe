@@ -15,13 +15,16 @@ from frappe.storage.cache import (
 	get_holding_path,
 	restore_cached,
 	sweep_cache,
+	sweep_lock,
 )
 from frappe.storage.local_driver import LocalDriver
+from frappe.storage.relocate import relocate_blobs
 from frappe.storage.serve import stream_blob
 from frappe.storage.tests import hook_value, storage_v2, unique_bytes, use_driver
 from frappe.storage.tests.test_cache import RemoteDriver
 from frappe.tests import IntegrationTestCase
 from frappe.utils import set_request
+from frappe.utils.file_lock import LockTimeoutError
 
 MINUTE = 60
 
@@ -149,3 +152,16 @@ class TestCacheSweep(IntegrationTestCase):
 			with cache_lock(blob.name, 1), patch("frappe.storage.cache.RESTORE_LOCK_TIMEOUT", 0.1):
 				self.assertIsNone(restore_cached(blob))
 			self.assertTrue(os.path.isfile(get_holding_path(blob)))
+
+	def test_the_sweep_and_a_relocation_never_run_together(self):
+		with storage_v2(), use_driver(RemoteDriver()):
+			blob = self.cached_blob(301)
+			with sweep_lock(1):
+				with patch("frappe.storage.cache.SWEEP_LOCK_TIMEOUT", 0.1):
+					self.assertEqual(sweep_cache()["held"], 0)
+				with (
+					patch("frappe.storage.relocate.SWEEP_WAIT_TIMEOUT", 0.1),
+					self.assertRaises(LockTimeoutError),
+				):
+					relocate_blobs()
+			self.assertTrue(os.path.isfile(get_cache_path(blob)))

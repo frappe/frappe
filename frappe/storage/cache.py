@@ -26,6 +26,7 @@ CACHE_JOB_TIMEOUT = 3600
 LOCK_STRIPES = 64
 RESTORE_LOCK_TIMEOUT = 5
 SWEEP_LOCK_TIMEOUT = 1
+SWEEP_LOCK = "storage_cache_sweep"
 NAME_BATCH_SIZE = 1000
 
 
@@ -43,6 +44,11 @@ class HoldingDriver(LocalDriver):
 def cache_lock(blob_name: str, timeout: float):
 	"""Lock one of a fixed set of lock files, so a site never holds one per blob."""
 	return filelock(f"storage_cache_{zlib.crc32(blob_name.encode()) % LOCK_STRIPES}", timeout=timeout)
+
+
+def sweep_lock(timeout: float):
+	"""Lock held by the sweep and by a blob relocation, so the sweep never lists a row that is moving."""
+	return filelock(SWEEP_LOCK, timeout=timeout)
 
 
 def is_cache_enabled(blob: "FileBlob") -> bool:
@@ -153,12 +159,18 @@ def delete_cached(blob: "FileBlob") -> None:
 def sweep_cache() -> dict:
 	"""Hold cached copies older than ``cache_keep_minutes``, then delete held copies older than ``cache_grace_minutes``.
 
-	A copy leaves ``public/files`` when it is held, so a request for it reaches Python and restores it."""
-	now = time.time()
-	keep = cint(frappe.get_system_settings("cache_keep_minutes")) * 60
-	grace = cint(frappe.get_system_settings("cache_grace_minutes")) * 60
-	held = sum(hold_copy(blob, now - keep) for blob in get_cached_copies())
-	return {"held": held, "deleted": delete_held_copies(now - grace)}
+	A copy leaves ``public/files`` when it is held, so a request for it reaches Python and restores it.
+	Skips the run while a relocation holds the lock. The lock comes before any database read, so the
+	listing sees every relocation commit."""
+	try:
+		with sweep_lock(SWEEP_LOCK_TIMEOUT):
+			now = time.time()
+			keep = cint(frappe.get_system_settings("cache_keep_minutes")) * 60
+			grace = cint(frappe.get_system_settings("cache_grace_minutes")) * 60
+			held = sum(hold_copy(blob, now - keep) for blob in get_cached_copies())
+			return {"held": held, "deleted": delete_held_copies(now - grace)}
+	except LockTimeoutError:
+		return {"held": 0, "deleted": 0}
 
 
 def get_cached_copies() -> Iterator[frappe._dict]:
