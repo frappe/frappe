@@ -170,7 +170,15 @@ def _make(
 			"in_reply_to": in_reply_to,
 		}
 	)
+<<<<<<< HEAD
 	comm.flags.skip_add_signature = not add_signature
+=======
+	comm.flags.skip_add_signature = not add_signature or (
+		raw_html and email_template and frappe.get_cached_value("Email Template", email_template, "use_html")
+	)
+	if cint(send_email) and not (recipients or cc or bcc):
+		frappe.throw(_("At least one recipient is required"))
+>>>>>>> 6e16b4e (fix: refuse to send an email communication with no recipient)
 	comm.insert(ignore_permissions=True)
 
 	# if not committed, delayed task doesn't find the communication
