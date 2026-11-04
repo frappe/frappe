@@ -614,13 +614,14 @@
 	}
 }
 
-// A count, or a shortcut hint: `mr-2 text-sm text-ink-gray-4` on a zone the label's flex-grow has
+// A count, a badge or a shortcut hint: `mr-2 text-sm text-ink-gray-4` on a zone the label's flex-grow has
 // already stranded at the row's end.
 .sidebar-item-suffix {
 	// flex, not inline: an inline span drops a badge onto the text baseline, a pixel or two
 	// below the label's centre line
 	display: flex;
 	align-items: center;
+	gap: calc(var(--spacing) * 1.5);
 	margin-left: auto;
 	margin-right: 8px;
 	padding: 0;

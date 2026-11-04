@@ -5,7 +5,7 @@ import { JSDOM } from "jsdom"
 
 // Vue's DOM runtime captures document at import time.
 const dom = new JSDOM("<body></body>", { url: "http://localhost" })
-for (const name of ["window", "document", "Document", "Element", "SVGElement", "HTMLElement", "Node", "NodeFilter"]) {
+for (const name of ["window", "document", "Document", "Element", "SVGElement", "HTMLElement", "Node", "NodeFilter", "getComputedStyle"]) {
 	globalThis[name] = dom.window[name]
 }
 dom.window.HTMLElement.prototype.scrollIntoView = () => {}
@@ -1272,7 +1272,7 @@ test("a settings page takes a way back and actions beside its heading, or after 
 	el.querySelector("button[title='Back to agents']").click()
 	assert.equal(backs, 1)
 	const bare = mount(t, SettingsPage, { title: "General" }, {})
-	assert.equal(bare.el.querySelector(".flow-icon-btn"), null)
+	assert.equal(bare.el.querySelector("button"), null)
 	assert.equal(bare.el.querySelector(".border-t"), null)
 	layout.narrow = true
 	t.after(() => (layout.narrow = false))
@@ -1537,7 +1537,7 @@ test("a saved preset stays open as saved: a new one becomes an edit of itself, t
 	assert.match(el.textContent, /3 of 3 tools/)
 
 	// inside a chat, the list marks the preset the chat records
-	const marked = () => [...el.querySelectorAll(".bg-surface-gray-1 .font-medium")].map((name) => name.textContent)
+	const marked = () => [...el.querySelectorAll(".bg-surface-gray-1 .text-base-medium")].map((name) => name.textContent)
 	assert.deepEqual(marked(), ["Standard"])
 	store.state.sessionId = "s1"
 	store.state.session = { config: { preset: store.state.presets[0].id } }
@@ -2046,7 +2046,7 @@ test("a folder in the file tree opens with Space, says it's open, and stays open
 	assert.equal(shown("/w/src/a.js").length, 1)
 })
 
-test("the transcript shows each step as raw JSON, with usage under its request", async (t) => {
+test("the transcript reads each step as text, a tool by its name with its arguments and result folded, and its JSON a click away", async (t) => {
 	const conversation = initialConversation()
 	applyEvent(conversation, { type: "user_message", seq: 2, content: "find the leak" })
 	applyEvent(conversation, {
@@ -2075,13 +2075,122 @@ test("the transcript shows each step as raw JSON, with usage under its request",
 
 	const panel = document.querySelector("[role=dialog]")
 	assert.match(panel.textContent, /Tokens1k.*Input1k.*Output40.*Model calls1.*Context1kof 200k/s)
-	assert.match(panel.textContent, /user\s*\{\s*"type": "user_message",\s*"content": "find the leak"\s*\}/)
-	assert.match(panel.textContent, /assistant\s*\{\s*"type": "assistant_message".*\}\s*usage\s*\{\s*"type": "usage",.*"input_tokens": 1000/s)
-	// every tool reads the same way: the call, then what it returned
-	assert.match(panel.textContent, /tool\s*input\s*\{\s*"type": "tool_call".*"path": "server\.py".*output\s*\{\s*"type": "tool_result".*"content": "leaky line"/s)
+	const row = (role) => [...panel.querySelectorAll(".grid")].find((el) => el.querySelector(":scope > .uppercase").textContent === role)
+	assert.match(row("user").textContent, /^Turn 1.*find the leak/)
+	assert.doesNotMatch(row("user").textContent, /"type"/)
+	assert.match(row("assistant").textContent, /Calls read.*1k in · 40 out · 900 cached/s)
+	// a tool shows its name; its arguments and result unfold on a click
+	const tool = row("tool")
+	assert.equal(tool.querySelector("code").textContent, "read")
+	assert.equal(tool.querySelector("pre"), null)
+	const folds = [...tool.querySelectorAll("button[aria-expanded]")].filter((button) => button.textContent.trim() !== "Raw JSON")
+	assert.deepEqual(folds.map((button) => button.textContent.trim()), ["Arguments", "Result"])
+	folds[0].click()
+	folds[1].click()
+	await nextTick()
+	assert.match(tool.querySelector("pre").textContent, /"path": "server\.py"/)
+	assert.equal(tool.querySelectorAll("pre")[1].textContent, "leaky line")
+	// every row but the system prompt opens as the JSON it came from
+	const raw = [...row("assistant").querySelectorAll("button")].find((button) => button.textContent.trim() === "Raw JSON")
+	raw.click()
+	await nextTick()
+	assert.equal(raw.getAttribute("aria-expanded"), "true")
+	assert.match(row("assistant").querySelector("pre").textContent, /"entry": \{\s*"type": "assistant_message".*"usage": \{\s*"type": "usage",\s*"input_tokens": 1000/s)
+	assert.equal([...row("system").querySelectorAll("button")].length, 0)
 	assert.doesNotMatch(panel.textContent, /"seq"|"context_window"/) // Flow's own fields stay out
 	assert.doesNotMatch(panel.textContent, /estimated|reported|~4|prompt & tool definitions/)
-	assert.equal(panel.querySelectorAll("button").length, 1) // only the close button
+	// beside Close, the steps go out as JSON: copied, or downloaded as a file
+	const actions = [...panel.querySelectorAll("button")].filter((button) => !button.closest(".grid"))
+	assert.deepEqual(actions.map((button) => button.title || button.textContent), ["Download .json", "Close"])
+	assert.ok(panel.querySelector("[data-stub=CopyButton]"))
+	const saved = []
+	t.mock.method(URL, "createObjectURL", (blob) => (saved.push(blob), "blob:transcript"))
+	t.mock.method(URL, "revokeObjectURL", () => {})
+	t.mock.method(window.HTMLAnchorElement.prototype, "click", function () {
+		saved.push(this.download)
+	})
+	actions[0].click()
+	assert.equal(saved[1], "transcript-chat.json")
+	const file = JSON.parse(await saved[0].text())
+	assert.deepEqual(file.rows.map((row) => row.kind), ["system", "user", "assistant", "tool"])
+	assert.equal(file.rows[3].output.content, "leaky line")
+	// the totals also count the calls that have no row
+	assert.doesNotMatch(panel.textContent, /background/)
+	applyEvent(flow.state.conversation, { type: "usage", seq: 6, purpose: "title", input_tokens: 80, output_tokens: 12 })
+	applyEvent(flow.state.conversation, { type: "usage", seq: 7, purpose: "replies", input_tokens: 1100, output_tokens: 30 })
+	await nextTick()
+	assert.match(panel.textContent, /Includes 2 background calls \(title, suggestions\): 1\.2k tokens/)
+	panel.querySelector("button[title=Close]").click()
+	assert.equal(flow.state.transcriptOpen, false)
+})
+
+test("the transcript shows the real system prompt, folded, where the host sends it, and the stand-in where it does not", async (t) => {
+	const conversation = initialConversation()
+	applyEvent(conversation, { type: "user_message", seq: 2, content: "hi" })
+	const asked = []
+	const flow = {
+		state: reactive({ transcriptOpen: true, sessionId: "s1", conversation, session: null }),
+		systemPrompt: async (sid) => (asked.push(sid), sid === "s1" ? "Be brief." : null),
+		setTranscriptOpen() {},
+	}
+	mount(t, TranscriptDialog, {}, flow)
+	await new Promise((resolve) => setTimeout(resolve))
+	await nextTick()
+	const panel = document.querySelector("[role=dialog]")
+	const fold = [...panel.querySelectorAll("button[aria-expanded]")].find((button) => button.textContent.trim() === "System prompt")
+	assert.deepEqual(asked, ["s1"])
+	assert.doesNotMatch(panel.textContent, /Be brief\./)
+	fold.click()
+	await nextTick()
+	assert.match(panel.textContent, /Be brief\./)
+
+	flow.state.sessionId = "s2"
+	await new Promise((resolve) => setTimeout(resolve))
+	await nextTick()
+	assert.match(panel.textContent, /System prompt\./)
+})
+
+test("the sidebar's header menu names the account, and leads to the host's apps, settings and out", async (t) => {
+	const done = []
+	const flow = {
+		state: reactive({ sessions: [], folders: null, sessionsLoading: false, sessionsMore: false, sessionId: null, prefs: { openFolders: [] } }),
+		sessionTitle: (session) => session.title,
+		folderName: (path) => path,
+		searchSessions() {},
+		setFolderOpen() {},
+		setSidebarView() {},
+		setSettingsOpen: (open) => done.push(["settings", open]),
+	}
+	const apps = [{ title: "Desk", route: "/desk", logo: "/desk.svg" }]
+	const user = { full_name: "Jane Doe", email: "jane@example.com", user_image: null }
+	const { el } = mount(t, SessionSidebar, { apps, logout: () => done.push(["logout"]), user }, flow)
+	el.querySelector("[data-stub=Dropdown] button").click()
+	await nextTick()
+	const items = () => [...el.querySelectorAll("[role=menuitem]")]
+	assert.deepEqual(items().map((item) => item.textContent), ["Jane Doe", "Apps", "Settings", "Log out"])
+	assert.equal(items()[0].dataset.description, "jane@example.com")
+	assert.equal(items()[0].disabled, true)
+	items()[2].click()
+	await new Promise((resolve) => setTimeout(() => setTimeout(resolve))) // once the menu has handed focus back
+	items()[3].click()
+	assert.deepEqual(done, [["settings", true], ["logout"]])
+	// no footer: Settings lives in the menu
+	assert.equal([...el.querySelectorAll("[data-stub=SidebarItem]")].some((row) => row.textContent.includes("Settings")), false)
+})
+
+test("a host with no apps or log out keeps Settings alone in the sidebar's menu", async (t) => {
+	const flow = {
+		state: reactive({ sessions: [], folders: null, sessionsLoading: false, sessionsMore: false, sessionId: null, prefs: { openFolders: [] } }),
+		sessionTitle: (session) => session.title,
+		folderName: (path) => path,
+		searchSessions() {},
+		setFolderOpen() {},
+		setSidebarView() {},
+	}
+	const { el } = mount(t, SessionSidebar, {}, flow)
+	el.querySelector("[data-stub=Dropdown] button").click()
+	await nextTick()
+	assert.deepEqual([...el.querySelectorAll("[role=menuitem]")].map((item) => item.textContent), ["Settings"])
 })
 
 test("the chat list groups chats by their folder, and says it is loading, not that there are no chats or matches", async (t) => {
@@ -2126,9 +2235,10 @@ test("the chat list groups chats by their folder, and says it is loading, not th
 
 	// the search sits in the list's header
 	const button = (title) => el.querySelector(`button[title='${title}']`)
+	const search = () => [...el.querySelectorAll("[data-stub=SidebarItem]")].find((row) => row.textContent.trim() === "Search")
 	flow.state.sessions = [{ session_id: "s1", title: "Alpha" }]
 	await nextTick()
-	button("Search chats").click()
+	search().querySelector("button").click()
 	await nextTick()
 	await typeSearch(t, el, "beta")
 	assert.ok(el.textContent.includes("Loading"))
@@ -2148,8 +2258,8 @@ test("the chat list groups chats by their folder, and says it is loading, not th
 	await nextTick()
 	t.mock.timers.tick(200) // the cleared query's debounce
 	await settle()
-	assert.deepEqual(labels(), ["New chat", "Alpha", "Settings"])
-	assert.ok(el.textContent.includes("Sessions") && !el.textContent.includes("Workspaces"))
+	assert.deepEqual(labels(), ["New chat", "Search", "Alpha"])
+	assert.ok(el.textContent.includes("Chats") && !el.textContent.includes("Workspaces"))
 
 	// with one, under its workspace, most recent first, the latest five and the open chat
 	const app = Array.from({ length: 7 }, (_, i) => ({ session_id: `a${i}`, title: `App ${i}`, cwd: "/w/app" }))
@@ -2158,7 +2268,7 @@ test("the chat list groups chats by their folder, and says it is loading, not th
 	flow.state.session = { config: { cwd: "/w/app" } }
 	await settle()
 	const workspaces = ["app", "App 0", "App 1", "App 2", "App 3", "App 4", "App 6", "Show 1 more", "api"]
-	assert.deepEqual(labels(), ["New chat", ...workspaces, "Settings"])
+	assert.deepEqual(labels(), ["New chat", "Search", ...workspaces])
 	assert.ok(el.textContent.includes("Workspaces"))
 
 	// a hovered chat's card shows its whole title and its workspace
@@ -2194,18 +2304,18 @@ test("the chat list groups chats by their folder, and says it is loading, not th
 	folderTrigger.dispatchEvent(new window.PointerEvent("pointerleave"))
 	await nextTick()
 	await click("Show 1 more")
-	assert.deepEqual(labels().slice(7, 10), ["App 5", "App 6", "Show less"])
+	assert.deepEqual(labels().slice(8, 11), ["App 5", "App 6", "Show less"])
 	await click("api")
 	await click("app")
 	t.mock.timers.runAll() // the folded rows leave once their animation's frames pass
-	assert.deepEqual(labels(), ["New chat", "app", "api", "Api work", "Settings"])
+	assert.deepEqual(labels(), ["New chat", "Search", "app", "api", "Api work"])
 	assert.deepEqual(flow.state.prefs.openFolders, ["/w/api"])
 
 	// a search opens every workspace with a match
-	button("Search chats").click()
+	search().querySelector("button").click()
 	await nextTick()
 	await typeSearch(t, el, "app 5")
-	assert.deepEqual(labels(), ["New chat", "app", "App 5", "Settings"])
+	assert.deepEqual(labels(), ["New chat", "app", "App 5"])
 	assert.equal(rows()[1].querySelector("button").getAttribute("aria-expanded"), "true")
 	assert.equal(el.querySelector("input").getAttribute("aria-label"), "Search chats") // not its close button's title
 	await click("app") // the search holds it open: a click folds nothing, now or after
@@ -2214,11 +2324,11 @@ test("the chat list groups chats by their folder, and says it is loading, not th
 	// an empty search closes once it loses focus
 	button("Close search").click()
 	await nextTick()
-	button("Search chats").click()
+	search().querySelector("button").click()
 	await nextTick()
 	el.querySelector("input").dispatchEvent(new window.Event("blur"))
 	await nextTick()
-	assert.ok(button("Search chats") && !el.querySelector("input"))
+	assert.ok(search() && !el.querySelector("input"))
 
 	// the filters menu lists the chats in one list; a drag puts a chat where it's dropped and
 	// switches to manual order, where each keeps its place and a new chat lands on top
@@ -2232,7 +2342,7 @@ test("the chat list groups chats by their folder, and says it is loading, not th
 		await nextTick()
 	}
 	await pickView("In one list")
-	assert.deepEqual(labels().slice(1, 4), ["App 0", "Api work", "App 1"])
+	assert.deepEqual(labels().slice(2, 5), ["App 0", "Api work", "App 1"])
 	const row = (label) => rows().find((item) => item.textContent.trim() === label)
 	const pointer = (type, target, init = {}) => {
 		// Vue skips the row's drag listener for a press in the millisecond the row was made, once its
@@ -2276,11 +2386,11 @@ test("the chat list groups chats by their folder, and says it is loading, not th
 	assert.equal(flow.state.prefs.sidebarOrder, undefined)
 	flow.state.prefs.chatOrder = ["b"] // an older manual order gives way to the one on screen
 	await drag("App 6", "App 0")
-	assert.deepEqual(labels().slice(1, 4), ["App 6", "App 0", "Api work"])
+	assert.deepEqual(labels().slice(2, 5), ["App 6", "App 0", "Api work"])
 	assert.equal(flow.state.prefs.sidebarOrder, "manual")
 	await pickView("Workspace")
 	await drag("api", "app")
-	assert.deepEqual(labels(), ["New chat", "api", "Api work", "app", "Settings"])
+	assert.deepEqual(labels(), ["New chat", "Search", "api", "Api work", "app"])
 
 	// a list with pages still to load can't be reordered: a drop saves every chat's place
 	flow.state.sessionsMore = true
@@ -2291,7 +2401,7 @@ test("the chat list groups chats by their folder, and says it is loading, not th
 
 	// a row's own buttons act alone and start no drag: the new-chat button leaves its workspace
 	// folded, and a chat's ••• doesn't open the chat
-	for (const [label, title] of [["app", "New chat in app"], ["Api work", "Session options"]]) {
+	for (const [label, title] of [["app", "New chat in app"], ["Api work", "Chat options"]]) {
 		const own = row(label).querySelector(`button[title='${title}']`)
 		pointer("pointerdown", own)
 		pointer("pointermove", window)
@@ -2302,17 +2412,17 @@ test("the chat list groups chats by their folder, and says it is loading, not th
 		await nextTick()
 	}
 	assert.deepEqual(opened, ["new chat in /w/app"])
-	assert.deepEqual(labels(), ["New chat", "api", "Api work", "app", "Settings"])
+	assert.deepEqual(labels(), ["New chat", "Search", "api", "Api work", "app"])
 	flow.state.sessions = [{ session_id: "n", title: "New one", cwd: "/w/api" }, ...flow.state.sessions]
 	await settle()
-	assert.deepEqual(labels(), ["New chat", "api", "New one", "Api work", "app", "Settings"])
+	assert.deepEqual(labels(), ["New chat", "Search", "api", "New one", "Api work", "app"])
 	assert.equal(flow.state.prefs.chatOrder[0], "n")
 
 	// a new chat on screen opens its folded workspace
 	flow.state.sessions = [{ session_id: "a7", title: "App 7", cwd: "/w/app" }, ...flow.state.sessions]
 	flow.state.sessionId = "a7"
 	await settle()
-	const appChats = () => labels().slice(labels().indexOf("app") + 1, -1)
+	const appChats = () => labels().slice(labels().indexOf("app") + 1)
 	assert.deepEqual(appChats(), ["App 7", "App 6", "App 0", "App 1", "App 2", "App 3", "App 4", "App 5", "Show less"])
 
 	// a chat dropped beside the open chat shown past the first five stays in view
@@ -2422,7 +2532,8 @@ test("a daemon's workspaces list by their own names, a new or empty one on top, 
 	const labels = () => rows().map((row) => row.textContent.trim())
 	const row = (label) => rows().find((item) => item.textContent.trim() === label)
 	const button = (title) => el.querySelector(`button[title='${title}']`)
-	assert.deepEqual(labels(), ["New chat", "empty", "Shop", "Fix the cart", "Old notes", "Settings"])
+	const search = () => [...el.querySelectorAll("[data-stub=SidebarItem]")].find((row) => row.textContent.trim() === "Search")
+	assert.deepEqual(labels(), ["New chat", "Search", "empty", "Shop", "Fix the cart", "Old notes"])
 	assert.ok(el.textContent.includes("Ungrouped"))
 	assert.ok(row("Shop").querySelector("button[title='Workspace options']"))
 
@@ -2430,7 +2541,7 @@ test("a daemon's workspaces list by their own names, a new or empty one on top, 
 	button("New workspace").click()
 	await settle()
 	assert.deepEqual(done, [["new chat", "/w/new"]])
-	assert.deepEqual(labels().slice(1, 3), ["new", "empty"])
+	assert.deepEqual(labels().slice(2, 4), ["new", "empty"])
 
 	// a manual order starts from the order on screen
 	const shown = labels()
@@ -2442,10 +2553,10 @@ test("a daemon's workspaces list by their own names, a new or empty one on top, 
 	assert.deepEqual(labels(), shown)
 
 	// a search shows only the workspaces with a match
-	button("Search chats").click()
+	search().querySelector("button").click()
 	await nextTick()
 	await typeSearch(t, el, "cart")
-	assert.deepEqual(labels(), ["New chat", "Shop", "Fix the cart", "Settings"])
+	assert.deepEqual(labels(), ["New chat", "Shop", "Fix the cart"])
 	button("Close search").click()
 	t.mock.timers.tick(200)
 	await settle()
@@ -2678,7 +2789,7 @@ test("the skills settings say they are loading until the folders are read, and a
 	assert.deepEqual(writes, ["/g/fresh/SKILL.md"])
 })
 
-test("the header says nothing in a new chat until its first message goes out, nor while a chat loads, and its menu renames or deletes the open chat, under the host's own items", async (t) => {
+test("the header says nothing in a new chat until its first message goes out, nor while a chat loads, and its menu renames the open chat in place or deletes it, under the host's own items", async (t) => {
 	const asked = []
 	dialog.prompt = dialog.confirm = (options) => asked.push(options)
 	t.after(() => {
@@ -2737,16 +2848,41 @@ test("the header says nothing in a new chat until its first message goes out, no
 	menu().click()
 	await nextTick()
 	assert.deepEqual(items().map((item) => item.textContent), ["Share", "Rename", "Delete"])
+	// Rename turns the title into a field holding it: Escape keeps the old name, Enter saves the new one.
+	// An item acts once the menu has handed focus back
+	const field = () => host.el.querySelector("header input")
+	const key = (name) => field().dispatchEvent(new window.KeyboardEvent("keydown", { key: name }))
+	const menuClosed = () => new Promise((resolve) => setTimeout(() => setTimeout(resolve)))
+	menu().focus() // reka hands the focus back to the trigger as the menu closes
 	items()[1].click()
+	await menuClosed()
+	await nextTick()
+	assert.equal(field().value, "Quarterly report")
+	// an IME's Enter and Escape stay with it
+	field().dispatchEvent(new window.KeyboardEvent("keydown", { key: "Enter", isComposing: true }))
+	field().dispatchEvent(new window.KeyboardEvent("keydown", { key: "Escape", keyCode: 229 }))
+	await nextTick()
+	assert.ok(field())
+	key("Escape")
+	await menuClosed()
+	assert.equal(field(), null)
+	assert.equal(document.activeElement, menu()) // the keyboard is back where it started
+	// as does a double click on the title
+	;[...host.el.querySelectorAll("header span")].find((span) => span.textContent === "Quarterly report").dispatchEvent(new window.MouseEvent("dblclick"))
+	await nextTick()
+	field().value = " Q3 report "
+	field().dispatchEvent(new window.Event("input"))
+	key("Enter")
+	await nextTick()
+	assert.equal(field(), null)
 	items()[2].click()
-	assert.equal(asked[0].fields[0].defaultValue, "Quarterly report")
-	assert.ok(asked[1].message.includes("Quarterly report"))
-	// another chat opening meanwhile: each dialog still acts on the chat it was opened for
+	await menuClosed()
+	assert.ok(asked[0].message.includes("Quarterly report"))
+	// another chat opening meanwhile: the dialog still acts on the chat it was opened for
 	flow.state.sessionId = "s2"
 	flow.state.session = { title: "Notes" }
 	await nextTick()
-	asked[0].onConfirm({ values: { title: " Q3 report " } })
-	asked[1].actions.at(-1).onClick()
+	asked[0].actions.at(-1).onClick()
 	assert.deepEqual(done, [["rename", "s1", "Q3 report"], ["delete", "s1"]])
 
 	// a chat the user may only view has no Rename or Delete: its menu holds the host's items alone
@@ -2773,6 +2909,15 @@ test("a header with its sidebar hidden leads with its button and, once the chat 
 	const hidden = mount(t, ChatHeader, { sidebarOpen: false, workspace: false }, flow).el
 	assert.deepEqual(buttons(hidden), ["Show sidebar"])
 
+	// a user with no chats yet has no clock
+	const chats = flow.state.sessions
+	flow.state.sessions = []
+	const first = mount(t, ChatHeader, { sidebarOpen: false, workspace: false, history: true }, flow).el
+	assert.deepEqual(buttons(first), ["Manage"])
+	flow.state.sessions = chats
+	await nextTick()
+	assert.deepEqual(buttons(first), ["Recent chats", "Manage"])
+
 	const nav = [{ label: "Agents", onClick: () => done.push("agents") }]
 	const { el } = mount(t, ChatHeader, { sidebarOpen: false, workspace: false, history: true, nav }, flow)
 	assert.deepEqual(buttons(el), ["Recent chats", "Manage"])
@@ -2787,16 +2932,26 @@ test("a header with its sidebar hidden leads with its button and, once the chat 
 	// the clock's list narrows as a search is typed, and a pick opens that chat and puts the list away
 	el.querySelector("button[title='Recent chats']").click()
 	await nextTick()
-	const rows = () => [...el.querySelectorAll("[data-palette-item]")].map((row) => row.textContent.trim())
+	const rows = () => [...el.querySelectorAll("[role=option]")].map((row) => row.textContent.trim())
 	assert.deepEqual(rows(), ["Quarterly report", "Expense claims"])
-	const field = el.querySelector("input[aria-label='Search chats']")
+	const field = el.querySelector("input[placeholder='Search chats…']")
+	field.value = "s2" // a chat's id is not its title
+	field.dispatchEvent(new window.Event("input"))
+	await nextTick()
+	assert.deepEqual(rows(), [])
 	field.value = "exp"
 	field.dispatchEvent(new window.Event("input"))
 	await nextTick()
 	assert.deepEqual(rows(), ["Expense claims"])
-	el.querySelector("[data-palette-item]").click()
+	el.querySelector("[role=option]").click()
 	await nextTick()
 	assert.deepEqual([rows(), done], [[], ["settings:true", "s2"]])
+	// reopened, the search is gone
+	el.querySelector("button[title='Recent chats']").click()
+	await nextTick()
+	assert.deepEqual([field.isConnected, el.querySelector("input[placeholder='Search chats…']").value], [false, ""])
+	el.querySelector("button[title='Recent chats']").click()
+	await nextTick()
 
 	// an open chat's menu ends a wide frame's header and sits by the title in a narrow one; it holds
 	// its own items alone
@@ -2921,6 +3076,17 @@ test("the ask-for-changes field takes focus and leaves an IME's Enter and Escape
 	assert.ok(el.querySelector("textarea"))
 	keydown(field, { key: "Enter" })
 	assert.deepEqual(answers, [["c1", "use 日本"]])
+
+	// Escape puts the form away and the keyboard back on the button that opened it
+	const ask = () => [...el.querySelectorAll("button")].find((b) => b.textContent === "Ask for changes")
+	await nextTick()
+	ask().click()
+	await nextTick()
+	await nextTick()
+	keydown(el.querySelector("textarea"), { key: "Escape" })
+	await nextTick()
+	await nextTick()
+	assert.equal(document.activeElement, ask())
 })
 
 test("a spreadsheet range pastes as its text, a screenshot as a picture", async (t) => {

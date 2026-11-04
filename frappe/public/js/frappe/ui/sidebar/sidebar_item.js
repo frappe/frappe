@@ -200,11 +200,11 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 		});
 	}
 	set_suffix() {
-		if (this.item.suffix) {
-			if (this.item.suffix.keyboard_shortcut) {
-				this.item.suffix = this.get_shortcut_html(this.item.suffix.keyboard_shortcut);
-			}
-		}
+		const { badge, keyboard_shortcut } = this.item.suffix || {};
+		if (!badge && !keyboard_shortcut) return;
+		this.item.suffix =
+			(badge ? frappe.ui.badge.html({ label: badge, size: "sm" }) : "") +
+			(keyboard_shortcut ? this.get_shortcut_html(keyboard_shortcut) : "");
 	}
 	get_shortcut_html(shortcut) {
 		shortcut = frappe.ui.keys.get_shortcut_label(shortcut);

@@ -33,7 +33,7 @@ class FlowLauncher {
 		const root = this.host.attachShadow({ mode: "open" });
 		root.innerHTML = `<style>${STYLE}</style>
 			<div class="panel" role="dialog" aria-label="Flow" inert>
-				<div class="window"><slot></slot>${SKELETON}</div>
+				<div class="window"><slot></slot>${SKELETON}${FAILED}</div>
 				<div class="shield"></div>
 				<div class="edge"></div>
 			</div>`;
@@ -64,6 +64,8 @@ class FlowLauncher {
 		this.panel
 			.querySelector(".edge")
 			.addEventListener("pointerdown", (event) => this.resize_panel(event));
+		this.panel.querySelector(".retry").addEventListener("click", () => this.retry());
+		this.panel.querySelector(".close").addEventListener("click", () => this.minimize());
 		// a file dropped on the panel's edge would open in the tab; the chat handles its own
 		for (const name of ["dragover", "drop"])
 			this.panel.addEventListener(name, (event) => {
@@ -159,8 +161,20 @@ class FlowLauncher {
 			() => this.host.toggleAttribute("data-ready", true),
 			(error) => {
 				this.host.toggleAttribute("data-failed", true);
+				if (this.state.open) this.panel.querySelector(".retry").focus();
 				console.error("Flow could not start", error);
 			}
+		);
+	}
+
+	// the chat's files failed to load: load them again, with the skeleton up meanwhile
+	retry() {
+		this.island.unmount();
+		this.host.removeAttribute("data-failed");
+		this.make_island();
+		this.island.ready.then(
+			() => this.focus_chat(),
+			() => {}
 		);
 	}
 
@@ -328,7 +342,11 @@ function load_state() {
 const SKELETON = `<div class="skeleton" aria-hidden="true">
 	<div class="bar"><i style="width: 40%"></i><b></b><b></b><b></b></div>
 	<div class="composer"><i style="width: 25%"></i></div>
-	<p>Flow could not start. Reload the page to try again.</p>
+</div>`;
+// in the skeleton's place when the chat's files could not load
+const FAILED = `<div class="failed" role="alert">
+	<p>Flow could not start.</p>
+	<div><button class="retry">Try again</button><button class="close">Close</button></div>
 </div>`;
 
 const SLIDE = `${SLIDE_TIME}ms cubic-bezier(0.2, 0, 0, 1)`;
@@ -394,11 +412,16 @@ const STYLE = `
 .skeleton b { width: 16px; height: 16px; border-radius: 4px; }
 .skeleton .bar { display: flex; align-items: center; gap: 16px; height: 48px; padding: 0 12px; box-sizing: border-box; }
 .skeleton .bar i { margin-right: auto; }
-.skeleton .composer { height: 124px; margin: 20px; padding: 22px 14px; box-sizing: border-box; border: 1px solid var(--outline-gray-2, rgba(128, 128, 128, 0.25)); border-radius: var(--radius-6, 12px); }
-.skeleton p { display: none; margin: 0 20px; color: var(--ink-gray-6, #7c7c7c); line-height: 1.5; }
-:host([data-failed]) .skeleton :is(.bar, .composer) { display: none; }
-:host([data-failed]) .skeleton { justify-content: center; text-align: center; }
-:host([data-failed]) .skeleton p { display: block; }
+.skeleton .composer { height: 124px; margin: 20px; padding: 22px 14px; box-sizing: border-box; border-radius: var(--radius-7, 16px); background: var(--surface-gray-1, rgba(128, 128, 128, 0.06)); }
+.failed { position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 0 20px; color: var(--ink-gray-6, #7c7c7c); line-height: 1.5; }
+.failed p { margin: 0; }
+.failed div { display: flex; gap: 8px; }
+.failed button { height: 28px; padding: 0 12px; border: 0; border-radius: var(--radius, 8px); font: inherit; cursor: pointer; background: var(--surface-gray-2, rgba(128, 128, 128, 0.12)); color: var(--ink-gray-8, #383838); }
+.failed button:hover { background: var(--surface-gray-3, rgba(128, 128, 128, 0.2)); }
+.failed .retry { background: var(--surface-gray-9, #171717); color: var(--ink-base, #fff); }
+.failed .retry:hover { background: var(--surface-gray-8, #383838); }
+:host([data-failed]) .skeleton { display: none; }
+:host([data-failed]) .failed { display: flex; }
 @media (prefers-reduced-motion: no-preference) {
 	.skeleton :is(i, b) { animation: pulse 1.5s ease-in-out infinite; }
 }
