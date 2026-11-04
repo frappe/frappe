@@ -19,13 +19,29 @@
 
 		<!-- the crumb (the folder, or the host's own) and the cost yield to the title on phones; a new
 		     chat shows no crumb, title or line under them until its first message goes out -->
-		<div v-if="started" class="flex min-w-0 items-center gap-2" :title="headerTitle">
+		<div v-if="started" class="flex min-w-0 items-center gap-2" :class="editing && 'flex-1'" :title="editing ? undefined : headerTitle">
 			<span v-if="lead" class="hidden min-w-0 flex-none items-center gap-1.5 text-base text-ink-gray-5 sm:flex">
 				<span class="size-3.5 flex-none" :class="lead.icon" aria-hidden="true" />
 				<span class="max-w-[220px] truncate">{{ lead.label }}</span>
 			</span>
 			<span v-if="lead" aria-hidden="true" class="hidden flex-none text-base text-ink-gray-3 sm:inline">/</span>
-			<span class="min-w-0 truncate font-medium text-ink-gray-9" :class="layout.phone ? 'text-md' : 'text-base'">{{ title }}</span>
+			<TitleField
+				v-if="editing"
+				:value="title"
+				label="Chat name"
+				class="w-full min-w-0 max-w-[400px]"
+				:back="composerBox"
+				@save="(name) => rename(renaming, name)"
+				@cancel="renaming = null"
+			/>
+			<!-- a double click renames the chat in place, as its menu's Rename does -->
+			<span
+				v-else
+				class="min-w-0 truncate font-medium text-ink-gray-9"
+				:class="layout.phone ? 'text-md' : 'text-base'"
+				@dblclick="menu && (renaming = flow.state.sessionId)"
+				>{{ title }}</span
+			>
 		</div>
 
 		<!-- by the title in a narrow frame; a wide one keeps it with the buttons at the end -->
@@ -34,6 +50,7 @@
 			:session-id="menu ? flow.state.sessionId : null"
 			:title="title"
 			:actions="menuActions"
+			@rename="renaming = flow.state.sessionId"
 			align="start"
 		>
 			<Button variant="ghost" icon="lucide-ellipsis" class="flex-none" title="Chat options" />
@@ -80,6 +97,7 @@
 				:session-id="menu ? flow.state.sessionId : null"
 				:title="title"
 				:actions="menuActions"
+				@rename="renaming = flow.state.sessionId"
 				align="end"
 			>
 				<Button variant="ghost" icon="lucide-ellipsis" class="flex-none" title="Chat options" />
@@ -101,7 +119,7 @@
 </template>
 
 <script setup>
-import { computed, inject } from "vue"
+import { computed, inject, ref, watch } from "vue"
 import { Button } from "frappe-ui/src/components/Button"
 import Dropdown from "frappe-ui/src/components/Dropdown/Dropdown.vue"
 
@@ -110,6 +128,7 @@ import { conversationTitle, formatCost, formatTokens } from "../transcript.js"
 import ChatHistory from "./ChatHistory.vue"
 import ChatMenu from "./ChatMenu.vue"
 import SidebarPeek from "./SidebarPeek.vue"
+import TitleField from "./TitleField.vue"
 
 const props = defineProps({
 	sidebarOpen: { type: Boolean, default: true },
@@ -182,4 +201,17 @@ const manageOptions = computed(() => [
 ])
 
 const workspaceOpen = computed(() => flow.state.workspace.open)
+
+// the chat whose name is being edited; another chat opening ends the edit
+const renaming = ref(null)
+const editing = computed(() => Boolean(renaming.value) && renaming.value === flow.state.sessionId)
+const composerBox = (input) => input?.closest("main")?.querySelector("fieldset textarea")
+watch(
+	() => flow.state.sessionId,
+	() => (renaming.value = null),
+)
+function rename(sid, name) {
+	renaming.value = null
+	void flow.renameSession(sid, name)
+}
 </script>
