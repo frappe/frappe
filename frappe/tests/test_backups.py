@@ -1,12 +1,11 @@
 import gzip
 import os
 import sqlite3
+import subprocess
 import tarfile
 import time
 import unittest
-from glob import glob
 from pathlib import Path
-from shutil import which
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
@@ -15,7 +14,6 @@ from frappe.tests import IntegrationTestCase
 from frappe.utils.backups import (
 	backup_sqlite_database,
 	fetch_latest_backups,
-	get_backup_path,
 	scheduled_backup,
 )
 
@@ -77,17 +75,17 @@ class TestServerScriptsBackup(IntegrationTestCase):
 		with tarfile.open(path) as archive:
 			return archive.getnames()
 
-	def test_backup_includes_server_scripts_archive(self):
+	def has_script(self, names):
+		return any(name.endswith(f"server_scripts/{self.SCRIPT}") for name in names)
+
+	def test_private_files_backup_includes_server_scripts(self):
 		with TemporaryDirectory() as directory:
-			odb = scheduled_backup(ignore_files=True, force=True, backup_path=directory)
+			odb = scheduled_backup(ignore_files=False, force=True, backup_path=directory)
 
-			path = odb.backup_path_server_scripts
-			self.assertIn("-server-scripts.tar", path)
-			self.assertTrue(os.path.exists(path))
-			self.assertTrue(any(name.endswith(self.SCRIPT) for name in self.archive_names(path)))
-			self.assertEqual(odb.get_summary()["server_scripts"]["path"], path)
+			self.assertTrue(self.has_script(self.archive_names(odb.backup_path_private_files)))
+			self.assertFalse(self.has_script(self.archive_names(odb.backup_path_files)))
 
-	def test_backup_without_scripts_folder_makes_no_archive(self):
+	def test_backup_without_scripts_folder(self):
 		real_get_site_path = frappe.get_site_path
 
 		def get_site_path(*parts):
@@ -97,44 +95,25 @@ class TestServerScriptsBackup(IntegrationTestCase):
 
 		with TemporaryDirectory() as directory:
 			with patch("frappe.get_site_path", get_site_path):
-				odb = scheduled_backup(ignore_files=True, force=True, backup_path=directory)
+				odb = scheduled_backup(ignore_files=False, force=True, backup_path=directory)
 
-			self.assertFalse(os.path.exists(odb.backup_path_server_scripts))
-			self.assertNotIn("server_scripts", odb.get_summary())
+			self.assertFalse(self.has_script(self.archive_names(odb.backup_path_private_files)))
 
-	def test_caller_managed_database_backup_leaves_no_archive(self):
-		before = set(glob(os.path.join(get_backup_path(), "*-server-scripts*")))
+	def test_compressed_private_files_backup_includes_server_scripts(self):
 		with TemporaryDirectory() as directory:
-			scheduled_backup(
-				ignore_files=True,
-				force=True,
-				backup_path_db=os.path.join(directory, "db.sql.gz"),
-				backup_path_conf=os.path.join(directory, "conf.json"),
-			)
-		after = set(glob(os.path.join(get_backup_path(), "*-server-scripts*")))
-		self.assertEqual(after, before)
+			odb = scheduled_backup(ignore_files=False, force=True, backup_path=directory, compress=True)
 
-	def test_compressed_backup_archive(self):
+			self.assertTrue(odb.backup_path_private_files.endswith(".tgz"))
+			self.assertTrue(self.has_script(self.archive_names(odb.backup_path_private_files)))
+
+	def test_restoring_private_files_brings_back_server_scripts(self):
 		with TemporaryDirectory() as directory:
-			odb = scheduled_backup(ignore_files=True, force=True, backup_path=directory, compress=True)
+			odb = scheduled_backup(ignore_files=False, force=True, backup_path=directory)
+			archive = os.path.abspath(odb.backup_path_private_files)
+			os.remove(self.script_path)
 
-			path = odb.backup_path_server_scripts
-			self.assertTrue(path.endswith(".tgz"))
-			with tarfile.open(path, "r:gz") as archive:
-				self.assertTrue(any(name.endswith(self.SCRIPT) for name in archive.getnames()))
+			# the same extraction frappe.installer.extract_files runs on restore
+			subprocess.run(["tar", "xf", archive, "--strip", "2"], cwd=frappe.get_site_path(), check=True)
 
-	@unittest.skipUnless(which("gpg"), "gpg is required for encrypted backups")
-	def test_encrypted_backup_archive_is_not_plain_tar(self):
-		settings = frappe.get_single("System Settings")
-		original = settings.encrypt_backup
-		settings.encrypt_backup = 1
-		settings.save()
-		self.addCleanup(lambda: frappe.db.set_single_value("System Settings", "encrypt_backup", original))
-
-		with TemporaryDirectory() as directory:
-			odb = scheduled_backup(ignore_files=True, force=True, backup_path=directory)
-
-			path = odb.backup_path_server_scripts
-			self.assertIn("-server-scripts-enc.tar", path)
-			self.assertTrue(os.path.exists(path))
-			self.assertFalse(tarfile.is_tarfile(path))
+			with open(self.script_path) as f:
+				self.assertEqual(f.read(), "doc.status = 'Closed'\n")

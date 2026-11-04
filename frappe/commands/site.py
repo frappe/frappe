@@ -187,11 +187,6 @@ def new_site(
 	help="Restores the private files of the site, given path to its tar file",
 )
 @click.option(
-	"--with-server-scripts",
-	type=click.Path(exists=True, dir_okay=False, resolve_path=True),
-	help="Restores the File server scripts of the site, given path to its tar file",
-)
-@click.option(
 	"--force",
 	is_flag=True,
 	default=False,
@@ -224,7 +219,6 @@ def restore(
 	force=None,
 	with_public_files=None,
 	with_private_files=None,
-	with_server_scripts=None,
 ):
 	"Restore site database from an sql file"
 
@@ -247,7 +241,6 @@ def restore(
 			force=context.force or force,
 			with_public_files=with_public_files,
 			with_private_files=with_private_files,
-			with_server_scripts=with_server_scripts,
 		)
 
 
@@ -265,7 +258,6 @@ def _restore(
 	force=None,
 	with_public_files=None,
 	with_private_files=None,
-	with_server_scripts=None,
 ):
 	from pathlib import Path
 
@@ -294,13 +286,7 @@ def _restore(
 
 	# ---- Progress reporting: total = 2 mandatory (locate + restore) + optional phases
 
-	total_phases = (
-		2
-		+ int(is_encrypted)
-		+ int(bool(with_public_files))
-		+ int(bool(with_private_files))
-		+ int(bool(with_server_scripts))
-	)
+	total_phases = 2 + int(is_encrypted) + int(bool(with_public_files)) + int(bool(with_private_files))
 	phase = 0
 
 	def _phase(msg: str, colour: str = "cyan") -> None:
@@ -365,16 +351,8 @@ def _restore(
 		else:
 			extract_files(site, with_private_files)
 
-	if with_server_scripts:
-		_phase("Restoring server scripts")
-		if encryption_key:
-			with decrypt_backup(with_server_scripts, encryption_key):
-				extract_files(site, with_server_scripts)
-		else:
-			extract_files(site, with_server_scripts)
-
 	success_message = "Site {} has been restored{}".format(
-		site, " with files" if (with_public_files or with_private_files or with_server_scripts) else ""
+		site, " with files" if (with_public_files or with_private_files) else ""
 	)
 	click.secho(success_message, fg="green")
 
