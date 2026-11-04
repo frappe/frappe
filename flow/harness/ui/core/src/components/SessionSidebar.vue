@@ -190,7 +190,8 @@
 									@pointerenter="crawlTitle"
 									@pointerleave="pressEnd(); restTitle($event); releaseCard(s.session_id)"
 								>
-									<!-- an empty icon lane lines a workspace's chats up under its name; loose chats line up with the label -->
+									<!-- an empty icon lane lines a workspace's chats up under its name. Loose chats line up
+									     with the icons and the list's heading, so their title takes back SidebarItem's label gap -->
 									<template v-if="group.cwd" #prefix><span class="size-4" /></template>
 									<HoverCard
 										side="right"
@@ -201,7 +202,10 @@
 										@update:open="(open) => showCard(s.session_id, open)"
 									>
 										<template #trigger>
-											<span class="row-title min-w-0 flex-1 overflow-hidden whitespace-nowrap text-sm leading-snug">
+											<span
+												class="row-title min-w-0 flex-1 overflow-hidden whitespace-nowrap text-sm leading-snug"
+												:class="!group.cwd && '-ml-2'"
+											>
 												<span class="inline-block">{{ flow.sessionTitle(s) }}</span>
 											</span>
 										</template>
@@ -244,7 +248,7 @@
 								</SidebarItem>
 								<SidebarItem v-if="group.toggle" :label="group.toggle" @click="toggleShowAll(group.cwd)">
 									<template v-if="group.cwd" #prefix><span class="size-4" /></template>
-									<span class="text-sm leading-snug text-ink-gray-5">{{ group.toggle }}</span>
+									<span class="text-sm leading-snug text-ink-gray-5" :class="!group.cwd && '-ml-2'">{{ group.toggle }}</span>
 								</SidebarItem>
 							</div>
 						</div>
