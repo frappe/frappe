@@ -136,7 +136,7 @@ describe("fetchFields and the shared cache", () => {
 	it("gives a query the cache keeps, whatever shape a column adds", () => {
 		const meta = {
 			fields: [
-				{ fieldname: "customer", fieldtype: "Link", options: "Customer", link_title: "customer_name", link_mark: { kind: "image", field: "image" } },
+				{ fieldname: "customer", fieldtype: "Link", options: "Customer", link_title: "customer_name", link_mark: { kind: "image" as const, field: "image" } },
 				{ fieldname: "company", fieldtype: "Link", options: "Company" },
 				{ fieldname: "fee", fieldtype: "Currency", options: "Company:company:default_currency" },
 			],
@@ -146,7 +146,7 @@ describe("fetchFields and the shared cache", () => {
 		const fields = fetchFields(columns, [], meta);
 		expect(fields.length).toBeGreaterThan(columns.length + 3);
 		clearDataCache();
-		feedListRead(takeTicket(), "Order", { fields }, { data: [{ name: "A", modified: "2026-11-01" }] });
+		feedListRead(takeTicket(), "Order", { fields }, { data: [{ name: "A", modified: "2026-11-01" }], has_next_page: false });
 		expect(readCachedList("Order", { fields })).toBeDefined();
 	});
 });

@@ -41,7 +41,7 @@ function holds(doc: Readonly<DocumentRecord>, previous: Readonly<DocumentRecord>
 }
 
 export function withoutJoins(doc: Readonly<DocumentRecord>, joins: Joins): Readonly<DocumentRecord> {
-  const rest: Record<string, unknown> = { ...doc };
+  const rest: DocumentRecord = { ...doc };
   for (const alias of Object.keys(joins)) delete rest[alias];
   return Object.freeze(rest);
 }
