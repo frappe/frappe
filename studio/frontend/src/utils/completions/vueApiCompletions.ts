@@ -2,9 +2,14 @@ import type { Completion, CompletionContext, CompletionResult } from "@codemirro
 import type { EditorView } from "@codemirror/view"
 import type { EditorState } from "@codemirror/state"
 import { syntaxTree } from "@codemirror/language"
-import { pageScriptVueApis } from "@/page/pageScope"
 
-const VUE_API_NAMES = Object.keys(pageScriptVueApis)
+// What the editor suggests for "vue". Not a restriction: a page script can import any vue export.
+const VUE_API_NAMES = [
+	"ref", "reactive", "computed", "watch", "watchEffect",
+	"toRef", "toRefs", "unref", "isRef", "isReactive",
+	"shallowRef", "readonly", "markRaw", "nextTick",
+	"onMounted", "onBeforeMount", "onBeforeUnmount", "onUnmounted",
+]
 
 // Code files (.ts/.js/.vue): insert the call and add `import { name } from "vue"` if it's missing.
 export function vueImportCompletions(context: CompletionContext): CompletionResult | null {

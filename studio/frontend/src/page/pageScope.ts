@@ -1,10 +1,7 @@
 import {
-	ref, computed, watch, watchEffect, reactive, toRef, toRefs, unref,
-	isRef, isReactive, shallowRef, readonly, markRaw, nextTick,
-	onMounted, onBeforeMount, onBeforeUnmount, onUnmounted,
+	ref, computed, watch, reactive, toRefs, unref, isRef, shallowRef,
 	type ComputedRef, type WatchStopHandle, h,
 } from "vue"
-import { watchDebounced } from "@vueuse/core"
 import { createDocumentResource, createListResource, createResource, call } from "frappe-ui"
 import { studioPageResources } from "@/data/studioResources"
 import { studioVariables } from "@/data/studioVariables"
@@ -29,14 +26,6 @@ import type { Variable } from "@/types/Studio/StudioPageVariable"
 import type { ExpressionEvaluationContext } from "@/types"
 import type { Ref } from "vue"
 import type { Router, RouteLocationNormalized } from "vue-router"
-
-// What a page script may import from vue — the list the script editor offers
-export const pageScriptVueApis = {
-	ref, reactive, computed, watch, watchEffect, watchDebounced,
-	toRef, toRefs, unref, isRef, isReactive,
-	shallowRef, readonly, markRaw, nextTick,
-	onMounted, onBeforeMount, onBeforeUnmount, onUnmounted,
-}
 
 // One page's data: resources, variables, page script and the contexts bindings evaluate against
 export function createPageScope(

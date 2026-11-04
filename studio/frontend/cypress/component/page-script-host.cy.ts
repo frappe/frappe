@@ -7,7 +7,6 @@ import {
 } from "vue"
 
 import { usePageScope } from "@/stores/codeStore"
-import { pageScriptVueApis } from "@/page/pageScope"
 import PageScriptHost from "@/components/PageScriptHost.vue"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 
@@ -180,15 +179,6 @@ describe("page script host", () => {
 			await nextTick()
 		})
 		cy.then(() => expect(usePageScope().pageScriptBindings.from).to.equal("second"))
-	})
-
-	it("offers the lifecycle hooks the script editor can now honour", () => {
-		expect(Object.keys(pageScriptVueApis)).to.include.members([
-			"onMounted",
-			"onBeforeMount",
-			"onBeforeUnmount",
-			"onUnmounted",
-		])
 	})
 
 	it("reports a setup that throws and still renders the page", () => {
