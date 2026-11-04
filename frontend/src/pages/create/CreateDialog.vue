@@ -32,6 +32,7 @@
 					@click="editFullForm"
 				/>
 				<Button
+					class="ms-auto"
 					variant="solid"
 					:label="__('Save')"
 					:loading="saving"

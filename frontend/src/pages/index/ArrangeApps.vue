@@ -37,7 +37,7 @@
 				</div>
 				<button
 					type="button"
-					class="absolute right-3 top-1 flex size-6 items-center justify-center rounded-full bg-surface-white text-ink-gray-7 shadow ring-1 ring-outline-gray-2 transition hover:bg-surface-gray-2 focus-visible:focus-ring"
+					class="absolute right-3 top-1 flex size-6 items-center justify-center rounded-full bg-surface-base text-ink-gray-7 shadow ring-1 ring-outline-gray-2 transition hover:bg-surface-gray-2 focus-visible:focus-ring"
 					:aria-label="__('Hide {0}', [app.title])"
 					:aria-pressed="app.hidden"
 					aria-keyshortcuts="Alt+ArrowLeft Alt+ArrowRight"

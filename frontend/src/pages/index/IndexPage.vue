@@ -84,7 +84,7 @@
 						<Dropdown :options="tileMenu(app)" side="bottom" align="end">
 							<button
 								type="button"
-								class="flex size-6 items-center justify-center rounded-full bg-surface-white text-ink-gray-7 shadow ring-1 ring-outline-gray-2 hover:bg-surface-gray-2 focus-visible:focus-ring"
+								class="flex size-6 items-center justify-center rounded-full bg-surface-base text-ink-gray-7 shadow ring-1 ring-outline-gray-2 hover:bg-surface-gray-2 focus-visible:focus-ring"
 								:aria-label="__('{0} options', [app.title])"
 								tabindex="-1"
 								data-tile-menu
