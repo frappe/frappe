@@ -2,18 +2,20 @@
 # License: MIT. See LICENSE
 import datetime
 import time
+from unittest.mock import patch
 
 import requests
 
 import frappe
-from frappe.auth import LoginAttemptTracker, validate_auth
-from frappe.core.doctype.user.user import generate_keys
+from frappe.auth import LoginAttemptTracker, LoginManager, get_login_attempt_tracker, validate_auth
+from frappe.core.doctype.user.user import User, generate_keys
 from frappe.frappeclient import AuthError, FrappeClient
 from frappe.sessions import Session, get_expired_sessions, get_expiry_in_seconds
 from frappe.tests.test_api import FrappeAPITestCase
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests.utils import FrappeTestCase, change_settings
 from frappe.utils import get_datetime, get_site_url, now
 from frappe.utils.data import add_to_date
+from frappe.utils.password import check_password, passlibctx
 from frappe.www.login import _generate_temporary_login_link
 
 
@@ -59,6 +61,70 @@ class TestAuth(FrappeTestCase):
 		frappe.db.set_single_value("System Settings", k, v)
 		frappe.clear_cache()
 		frappe.db.commit()
+
+	def test_locked_account_response_matches_unknown_account(self):
+		self.addCleanup(frappe.form_dict.clear)
+		unknown = "unknown_auth@example.com"
+		ips = [f"10.8.0.{i}" for i in range(6)]
+
+		def cleanup():
+			for key in [self.test_user_email, *ips]:
+				LoginAttemptTracker(key).add_success_attempt()
+			get_login_attempt_tracker(
+				unknown, raise_locked_exception=False, unknown_user=True
+			).add_success_attempt()
+
+		self.addCleanup(cleanup)
+
+		def attempt(usr, ip):
+			frappe.local.request_ip = ip
+			frappe.local.response = frappe._dict()
+			frappe.local.message_log = []
+			frappe.form_dict.update({"usr": usr, "pwd": "wrong_pwd_012"})
+			try:
+				LoginManager.__new__(LoginManager).authenticate()
+			except (frappe.AuthenticationError, frappe.SecurityException) as e:
+				return (
+					type(e),
+					frappe.local.response.get("message"),
+					[m["message"] for m in frappe.local.message_log],
+				)
+
+		with change_settings("System Settings", commit=True, allow_consecutive_login_attempts=2):
+			known = [attempt(self.test_user_email, ip) for ip in ips]
+			unknown_results = [attempt(unknown, ip) for ip in ips]
+
+		self.assertEqual(known, unknown_results)
+		self.assertEqual(known[0][:2], (frappe.AuthenticationError, "Invalid login credentials"))
+		self.assertEqual(known[-1][0], frappe.SecurityException)
+		self.assertIn("Too many failed login attempts", known[-1][2][0])
+
+	def test_unknown_account_login_without_lock_interval(self):
+		self.addCleanup(frappe.form_dict.clear)
+		settings = {"allow_consecutive_login_attempts": 2, "allow_login_after_fail": 0}
+		with change_settings("System Settings", commit=True, **settings):
+			frappe.local.request_ip = "10.8.1.1"
+			frappe.local.response = frappe._dict()
+			frappe.form_dict.update({"usr": "unknown_auth@example.com", "pwd": "wrong_pwd_012"})
+			with self.assertRaises(frappe.AuthenticationError):
+				LoginManager.__new__(LoginManager).authenticate()
+		self.assertEqual(frappe.local.response.get("message"), "Invalid login credentials")
+
+	def test_unknown_account_checks_a_password_hash(self):
+		with patch.object(passlibctx, "verify", wraps=passlibctx.verify) as verify:
+			self.assertIsNone(User.find_by_credentials("unknown_auth@example.com", "wrong_pwd_012"))
+		verify.assert_called_once()
+
+	def test_user_without_a_password_checks_a_password_hash(self):
+		email = "no_password_auth@example.com"
+		frappe.delete_doc("User", email, force=True)
+		frappe.get_doc(doctype="User", email=email, first_name="No Password", send_welcome_email=0).insert()
+		self.addCleanup(frappe.delete_doc, "User", email, force=True)
+
+		with patch.object(passlibctx, "verify", wraps=passlibctx.verify) as verify:
+			with self.assertRaises(frappe.AuthenticationError):
+				check_password(email, "wrong_pwd_012")
+		verify.assert_called_once()
 
 	def test_allow_login_using_mobile(self):
 		self.set_system_settings("allow_login_using_mobile_number", 1)
