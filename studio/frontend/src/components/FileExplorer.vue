@@ -158,6 +158,19 @@
 			<span v-if="openFileReadOnly" class="shrink-0 text-xs text-ink-gray-4">read-only</span>
 		</template>
 		<template #actions>
+			<Popover v-if="isPageScript" side="bottom" align="end" :offset="6" bare>
+				<template #trigger>
+					<Button
+						size="xs"
+						variant="ghost"
+						icon="lucide-circle-help"
+						title="How to write the page script"
+					/>
+				</template>
+				<div class="max-w-sm rounded-4 border border-outline-gray-2 bg-surface-base p-3 shadow-lg">
+					<PageScriptHelp />
+				</div>
+			</Popover>
 			<template v-if="!openFileReadOnly">
 				<Button size="xs" variant="ghost" icon="lucide-trash-2" @click="removeFile" title="Delete file" />
 				<Button size="xs" variant="solid" :loading="saving" :disabled="!dirty" @click="save">Save</Button>
@@ -167,9 +180,9 @@
 
 		<template #banner>
 			<ErrorMessage
-				v-if="pageScope.pageScriptError && isEditingActivePageScript"
+				v-if="scriptError || (pageScope.pageScriptError && isEditingActivePageScript)"
 				class="border-b border-outline-gray-2 px-3 py-2"
-				:message="`Error: ${pageScope.pageScriptError}`"
+				:message="scriptError || `Error: ${pageScope.pageScriptError}`"
 			/>
 		</template>
 	</CodeEditorDock>
@@ -178,10 +191,11 @@
 <script setup lang="ts">
 import { ref, computed, inject, watch, nextTick, onMounted, onBeforeUnmount } from "vue"
 import { useStorage } from "@vueuse/core"
-import { Button, Dialog, ErrorMessage, FormControl, Tree, toast, Tooltip } from "frappe-ui"
+import { Button, Dialog, ErrorMessage, FormControl, Popover, Tree, toast, Tooltip } from "frappe-ui"
 import CodeEditorDock from "@/components/CodeEditorDock.vue"
 import ContextMenu from "@/components/ContextMenu.vue"
 import EmptyState from "@/components/EmptyState.vue"
+import PageScriptHelp from "@/components/PageScriptHelp.vue"
 import useStudioStore from "@/stores/studioStore"
 import { usePageScope } from "@/stores/codeStore"
 import {
@@ -195,6 +209,7 @@ import {
 	languageForFile,
 	type StudioFileNode,
 } from "@/data/studioFiles"
+import { checkAppScript } from "@/runtime/appRuntime"
 import { confirm } from "@/utils/helpers"
 import { PAGE_SCRIPT_BOILERPLATE } from "@/utils/constants"
 import { pageScriptCompletions } from "@/utils/completions/pageScriptCompletions"
@@ -262,17 +277,9 @@ function findNode(path: string | null, nodes: StudioFileNode[] = tree.value): St
 	return null
 }
 
-const activePageHasScript = computed(() => {
-	// a database app's page script is not a file: it lives on the page doc and opens in its own dock
-	if (store.usesDbFiles) return Boolean(activePage.value?.script)
-	return Boolean(findNode(activePagePaths.value?.script ?? null))
-})
+const activePageHasScript = computed(() => Boolean(findNode(activePagePaths.value?.script ?? null)))
 
 function openActivePageScript() {
-	if (store.usesDbFiles) {
-		store.showPageScriptEditor = true
-		return
-	}
 	const scriptPath = activePagePaths.value?.script
 	if (scriptPath) openOrCreateFile(scriptPath)
 }
@@ -300,6 +307,11 @@ const language = computed(() => (openFile.value ? languageForFile(openFile.value
 const isEditingActivePageScript = computed(
 	() => Boolean(openFile.value) && openFile.value!.path === activePagePaths.value?.script,
 )
+
+// a page script is a module with its own dialect, wherever it is stored: it gets the boilerplate,
+// the help and a syntax check the other source files do not need
+const isPageScript = computed(() => Boolean(openFile.value) && isPageScriptPath(openFile.value!.path))
+const scriptError = ref<string | null>(null)
 
 // the app doc exports to <scrub(app)>.json at the studio root
 const appJsonPath = computed(() => `${scrub(app.value?.name ?? "")}.json`)
@@ -340,7 +352,9 @@ async function openNode(node: StudioFileNode) {
 	try {
 		const file = await readStudioFile(location.value, node.path)
 		openFile.value = { path: file.path, hash: file.hash }
-		editorContent.value = file.content
+		// a page authors the module dialect from the first keystroke
+		editorContent.value =
+			!file.content && isPageScriptPath(file.path) ? PAGE_SCRIPT_BOILERPLATE : file.content
 		savedContent.value = file.content
 	} catch (error: any) {
 		toast.error("Failed to open file", { description: error?.messages?.join(", ") })
@@ -354,6 +368,8 @@ function openRouterEditor() {
 }
 
 function onEditorChange(value: string) {
+	// the editor also emits on blur, so clicking Save must not wipe the error it is about to show
+	if (value !== editorContent.value) scriptError.value = null
 	editorContent.value = value
 }
 
@@ -370,6 +386,17 @@ const saving = ref(false)
 
 async function save() {
 	if (!openFile.value || !dirty.value || openFileReadOnly.value) return
+	// A broken script fails to compile and takes down every binding on the page, so block it.
+	if (isPageScript.value) {
+		const syntaxError = await checkAppScript(editorContent.value)
+		if (syntaxError) {
+			const hint = editorContent.value.includes("{{")
+				? " Scripts are plain TypeScript — use expressions directly, not {{ }} interpolation."
+				: ""
+			scriptError.value = `${syntaxError}.${hint}`
+			return
+		}
+	}
 	saving.value = true
 	try {
 		const result = await writeStudioFile(
@@ -383,6 +410,8 @@ async function save() {
 		toast.success("Saved")
 		// files in the store compile in the browser: refresh the canvas without waiting for realtime
 		if (store.usesDbFiles) store.refreshAppFiles()
+		// the script went straight to the page doc, so re-run setup() against what was saved
+		if (isEditingActivePageScript.value) store.reloadActivePageScript()
 	} catch (error: any) {
 		toast.error("Failed to save", { description: error?.messages?.join(", ") })
 	} finally {
@@ -472,12 +501,17 @@ const contextMenuNode = ref<StudioFileNode | null>(null)
 const contextMenuOptions = computed<ContextMenuOption[]>(() => {
 	const node = contextMenuNode.value
 	if (!node) return []
-	// Export-managed pages/components get no rename/delete actions.
+	// Export-managed pages/components get no rename/delete actions, and a page script is named
+	// after its page, so it can be emptied but not renamed.
 	const options: ContextMenuOption[] = isProtectedNode(node)
 		? []
 		: [
-				{ label: "Rename", action: () => startRename(node) },
-				{ label: "Delete", action: () => deleteNode(node), theme: "red" },
+				...(isPageScriptPath(node.path) ? [] : [{ label: "Rename", action: () => startRename(node) }]),
+				{
+					label: isPageScriptPath(node.path) ? "Clear" : "Delete",
+					action: () => deleteNode(node),
+					theme: "red",
+				},
 			]
 	if (!node.is_folder && node.path.endsWith(".vue")) {
 		const componentName = node.label.replace(/\.vue$/i, "")
@@ -598,7 +632,11 @@ function remapOpenFile(oldPath: string, newPath: string, isFolder: boolean) {
 // -- Delete --
 async function deleteNode(node: StudioFileNode) {
 	if (isProtectedNode(node)) return // export-managed, can't delete
-	const message = node.is_folder ? `Delete ${node.path} and everything inside it?` : `Delete ${node.path}?`
+	const message = node.is_folder
+		? `Delete ${node.path} and everything inside it?`
+		: isPageScriptPath(node.path)
+			? `Clear ${node.path}? The page keeps its empty script.`
+			: `Delete ${node.path}?`
 	if (!(await confirm(message))) return
 	try {
 		await deleteStudioFile(location.value, node.path)

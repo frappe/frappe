@@ -38,12 +38,35 @@ def uses_db_files(studio_app: str) -> bool:
 	return is_standard == 0
 
 
+def is_page_script_path(path: str) -> bool:
+	"""`studio_page/<stem>/<stem>.ts` — where a page's script lives, in the tree and on disk."""
+	return bool(re.fullmatch(r"studio_page/([^/]+)/\1\.ts", path))
+
+
+def page_script_owner(studio_app: str, file_path: str) -> str | None:
+	"""The page whose script this path holds, or None when the path is not a page script."""
+	path = normalize_path(file_path)
+	return page_script_paths(studio_app).get(path) if is_page_script_path(path) else None
+
+
+def page_script_paths(studio_app: str) -> dict[str, str]:
+	"""The app's page scripts, keyed by the path the export writes them to. A database app keeps
+	them on the page doc rather than in the store, so the explorer lists them where a repository
+	app has them on disk and both kinds browse one tree."""
+	pages = frappe.get_all(
+		"Studio Page",
+		filters={"studio_app": studio_app, "page_title": ("is", "set")},
+		fields=["name", "page_title"],
+	)
+	return {f"studio_page/{(stem := frappe.scrub(page.page_title))}/{stem}.ts": page.name for page in pages}
+
+
 def list_store_tree(studio_app: str) -> list[dict]:
 	"""The store's file tree, in the same shape the disk explorer returns."""
 	rows = frappe.get_all(
 		"Studio App File", filters={"studio_app": studio_app}, fields=["file_path", "is_folder"]
 	)
-	files = {row.file_path for row in rows if not row.is_folder}
+	files = {row.file_path for row in rows if not row.is_folder} | page_script_paths(studio_app).keys()
 	folders = {row.file_path for row in rows if row.is_folder}
 	for path in files:
 		folder = posixpath.dirname(path)
@@ -89,6 +112,9 @@ def get_store_files(studio_app: str) -> list[dict]:
 
 def read_store_file(studio_app: str, file_path: str) -> str | None:
 	"""The file's content, or None when the store has no such file."""
+	page = page_script_owner(studio_app, file_path)
+	if page:
+		return frappe.db.get_value("Studio Page", page, "script") or ""
 	row = get_store_row(studio_app, file_path)
 	if not row or row.is_folder:
 		return None
@@ -100,6 +126,9 @@ def write_store_file(studio_app: str, file_path: str, content: str, known_hash: 
 	stored content changed since it was read, refuse rather than clobber."""
 	if not isinstance(content, str):
 		frappe.throw(_("Invalid file content."))
+	page = page_script_owner(studio_app, file_path)
+	if page:
+		return write_page_script(page, content, known_hash)
 	row = get_store_row(studio_app, file_path)
 	if row and row.is_folder:
 		frappe.throw(_("{0} is a folder.").format(file_path))
@@ -111,6 +140,15 @@ def write_store_file(studio_app: str, file_path: str, content: str, known_hash: 
 		frappe.throw(_("{0} changed since you opened it.").format(file_path))
 	doc = frappe.get_doc("Studio App File", row.name)
 	doc.content = content
+	doc.save()
+
+
+def write_page_script(page: str, content: str, known_hash: str | None = None) -> None:
+	"""Save a page's script through its own doc, so the renderer and the export see the change."""
+	doc = frappe.get_doc("Studio Page", page)
+	if known_hash and file_hash(doc.script or "") != known_hash:
+		frappe.throw(_("{0} changed since you opened it.").format(doc.page_title))
+	doc.script = content
 	doc.save()
 
 
@@ -130,6 +168,8 @@ def rename_store_path(studio_app: str, file_path: str, new_path: str) -> None:
 	"""Rename a stored file, or a folder with everything under it."""
 	old = normalize_path(file_path)
 	new = normalize_path(new_path)
+	if page_script_owner(studio_app, old) or page_script_owner(studio_app, new):
+		frappe.throw(_("A page script is named after its page. Rename the page instead."))
 	row = get_store_row(studio_app, old)
 	children = get_store_rows_under(studio_app, old)
 	if not row and not children:
@@ -152,6 +192,9 @@ def rename_store_row(name: str, new_path: str) -> None:
 def delete_store_path(studio_app: str, file_path: str) -> None:
 	"""Delete a stored file, or a folder with everything under it."""
 	path = normalize_path(file_path)
+	page = page_script_owner(studio_app, path)
+	if page:
+		return write_page_script(page, "")
 	row = get_store_row(studio_app, path)
 	children = get_store_rows_under(studio_app, path)
 	if not row and not children:
@@ -163,7 +206,9 @@ def delete_store_path(studio_app: str, file_path: str) -> None:
 
 
 def store_path_exists(studio_app: str, path: str) -> bool:
-	"""A path is taken by a row, or implicitly by being the folder of one."""
+	"""A path is taken by a row, by a page's script, or implicitly by being the folder of one."""
+	if page_script_owner(studio_app, path):
+		return True
 	return bool(get_store_row(studio_app, path) or get_store_rows_under(studio_app, path))
 
 
@@ -270,8 +315,8 @@ def is_regenerated_file(studio_app: str, path: str) -> bool:
 	name = posixpath.basename(path)
 	if name.startswith(".") or name == "tsconfig.json" or is_export_doc_file(studio_app, path):
 		return True
-	# studio_page/<stem>/<stem>.ts goes back into its page doc, see Studio Page.restore_script_from_file
-	return bool(re.fullmatch(r"studio_page/([^/]+)/\1\.ts", path))
+	# the page script goes back into its page doc, see Studio Page.restore_script_from_file
+	return is_page_script_path(path)
 
 
 def is_storable_file(studio_app: str, path: str) -> bool:

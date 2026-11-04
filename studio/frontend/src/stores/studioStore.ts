@@ -109,8 +109,6 @@ const useStudioStore = defineStore("store", () => {
 	}
 
 	const showRouterEditor = ref(false)
-	// a database app opens the page-script dock from the file explorer, beside its other files
-	const showPageScriptEditor = ref(false)
 	// a database app's source files live in Studio App File and compile in the browser
 	const usesDbFiles = computed(() => !activeApp.value?.is_standard)
 
@@ -857,7 +855,6 @@ const useStudioStore = defineStore("store", () => {
 		activeApp,
 		usesDbFiles,
 		refreshAppFiles,
-		showPageScriptEditor,
 		setApp,
 		deleteApp,
 		updateActiveApp,

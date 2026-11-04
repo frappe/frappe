@@ -50,6 +50,26 @@ class TestFiles(IntegrationTestCase):
 		paths = [file["path"] for file in files.get_store_files(app.name)]
 		self.assertEqual(paths, ["components/Card.vue", "utils/format.ts"])
 
+	def test_a_page_script_is_browsed_and_edited_as_a_file(self):
+		app = make_db_app()
+		page = make_studio_page(app.name, page_title="Board")
+		path = "studio_page/board/board.ts"
+
+		tree = files.list_store_tree(app.name)
+		self.assertEqual([node["path"] for node in tree], ["studio_page"])
+		self.assertEqual(tree[0]["children"][0]["children"][0]["path"], path)
+
+		# the page doc owns the script, so editing it through the explorer never adds a store row
+		files.write_store_file(app.name, path, SETUP_SCRIPT)
+		self.assertEqual(frappe.db.get_value("Studio Page", page.name, "script"), SETUP_SCRIPT)
+		self.assertEqual(files.read_store_file(app.name, path), SETUP_SCRIPT)
+		self.assertEqual(files.get_store_files(app.name), [])
+
+		with self.assertRaises(frappe.ValidationError):
+			files.rename_store_path(app.name, path, "studio_page/board/renamed.ts")
+		files.delete_store_path(app.name, path)
+		self.assertEqual(files.read_store_file(app.name, path), "")
+
 	def test_path_rules(self):
 		app = make_db_app()
 		# path tricks are a jail escape, like the disk explorer treats them
