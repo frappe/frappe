@@ -45,7 +45,9 @@ function onKey(event) {
 }
 
 onMounted(() => {
+	// the focused element, inside a shadow root where Flow runs in one
 	returnFocus = document.activeElement
+	while (returnFocus?.shadowRoot?.activeElement) returnFocus = returnFocus.shadowRoot.activeElement
 	window.addEventListener("keydown", onKey, true)
 	closeEl.value?.focus()
 })

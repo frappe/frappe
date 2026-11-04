@@ -119,7 +119,7 @@
 </template>
 
 <script setup>
-import { computed, inject, ref, watch } from "vue"
+import { computed, inject, nextTick, ref, watch } from "vue"
 import { Button } from "frappe-ui/src/components/Button"
 import Dropdown from "frappe-ui/src/components/Dropdown/Dropdown.vue"
 
@@ -206,9 +206,11 @@ const workspaceOpen = computed(() => flow.state.workspace.open)
 const renaming = ref(null)
 const editing = computed(() => Boolean(renaming.value) && renaming.value === flow.state.sessionId)
 const composerBox = (input) => input?.closest("main")?.querySelector("fieldset textarea")
+// another chat opening ends the edit; after the field goes, as a browser that blurs a field on its
+// way out saves it to the chat it was for
 watch(
 	() => flow.state.sessionId,
-	() => (renaming.value = null),
+	() => nextTick(() => (renaming.value = null)),
 )
 function rename(sid, name) {
 	renaming.value = null

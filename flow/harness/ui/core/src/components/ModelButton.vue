@@ -62,7 +62,7 @@
 </template>
 
 <script setup>
-import { computed, inject, nextTick, ref } from "vue"
+import { computed, inject, nextTick, ref, watch } from "vue"
 
 import { layout } from "../layout.js"
 import { EFFORT_LABELS, modelTitle } from "../transcript.js"
@@ -77,6 +77,11 @@ const emit = defineEmits(["open"])
 const flow = inject("flow")
 const pane = ref(null) // null | "root"
 const sub = ref(null) // null | "models" | "thinking", the list open beside the menu
+// the models list's search goes when another list opens in its place: the keyboard stays in the
+// chat, on the button, where a page's panel still hears its keys as the list's
+watch(sub, (now, before) => {
+	if (before === "models" && now === "thinking") nextTick(() => trigger.value?.focus({ preventScroll: true }))
+})
 const ROOT_WIDTH = 160
 const LIST_WIDTH = 272
 // the menu ends at the button's right edge and its list opens 4px past it, or 4px off the menu's

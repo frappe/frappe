@@ -75,9 +75,9 @@ const options = computed(() => {
 // a phone's list leaves its search for a tap, rather than raise the keyboard over it
 onMounted(() => layout.phone || field.value?.focus());
 
-// settings, on a blank skill; the dialog takes the focus
+// settings, on a blank skill; the dialog takes the focus, so the closing menu gives it to no one
 function create() {
-	emit("close");
+	emit("close", false);
 	page.createRecord("skills");
 	flow.setSettingsOpen(true);
 }

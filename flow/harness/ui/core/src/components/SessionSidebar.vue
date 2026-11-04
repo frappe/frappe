@@ -291,7 +291,7 @@
 			</SidebarItem>
 		</footer>
 		<!-- its query is the sidebar's, so a search past the loaded page reloads the chats it matches -->
-		<ChatSearch v-model:open="searchOpen" v-model:query="query" @new="startNewChat()" @pick="pick" />
+		<ChatSearch v-model:open="searchOpen" v-model:query="query" @new="startNewChat()" @pick="openChat" />
 	</aside>
 </template>
 
@@ -716,12 +716,17 @@ function pressEnd() {
 }
 onBeforeUnmount(pressEnd)
 
-// a drawer closes once a chat is picked, and the chat opens once the host lets it
-async function pick(session) {
+// a row's chat, unless the tap ended a long press or a drag
+function pick(session) {
 	if (pressed) {
 		pressed = false
 		return
 	}
+	openChat(session)
+}
+
+// a drawer closes once a chat is picked, and the chat opens once the host lets it
+async function openChat(session) {
 	if (layout.narrow) emit("close")
 	if (props.beforeSwitch && !(await props.beforeSwitch())) return
 	flow.openSession(session.session_id)
