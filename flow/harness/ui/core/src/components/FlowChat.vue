@@ -2,6 +2,7 @@
 	<!-- clip, not hidden: a hidden root still scrolls when focus lands in the closed panel.
 	     The root is the sidebar's colour, so the chat stands on it as a raised panel -->
 	<div
+		ref="root"
 		class="flow-sidebar-surface flex h-full min-h-0 overflow-clip text-base text-ink-gray-8"
 		:style="{
 			'--flow-chat-text': `${store.state.prefs.chatFontSize}px`,
@@ -10,7 +11,7 @@
 	>
 		<SessionSidebar :open="sidebarOpen" @close="store.setSidebarOpen(false)" />
 		<div class="flex min-w-0 flex-1 overflow-clip bg-surface-base md:m-1 md:rounded-5 md:shadow-sm">
-			<main class="relative flex min-w-0 flex-1 flex-col bg-surface-base">
+			<main ref="chat" class="relative flex min-w-0 flex-1 flex-col bg-surface-base">
 				<ChatHeader :sidebar-open="sidebarOpen" @open-sidebar="store.setSidebarOpen(true)" />
 				<MessageList ref="list" />
 				<Composer ref="composer" />
@@ -87,6 +88,7 @@ import { installShortcuts } from "../shortcuts.js"
 import { installFocusRings } from "../focusRings.js"
 import { installViewport } from "../viewport.js"
 import { provideComposerHeight } from "../composerHeight.js"
+import { provideFileDrop } from "../fileDrop.js"
 import ChatHeader from "./ChatHeader.vue"
 import Composer from "./Composer.vue"
 import EditorView from "./EditorView.vue"
@@ -127,8 +129,11 @@ const addTabOptions = [
 
 const sidebarOpen = computed(() => props.store.state.sidebarOpen)
 const composer = ref(null)
+const chat = ref(null)
+const root = ref(null)
 
 provideComposerHeight(composer)
+provideFileDrop(chat, composer, root)
 let uninstallShortcuts = null
 let uninstallFocusRings = null
 let uninstallViewport = null

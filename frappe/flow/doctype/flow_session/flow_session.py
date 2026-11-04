@@ -216,6 +216,8 @@ class FlowSession(Document):
 		from frappe.flow.doctype.flow_session_attachment.flow_session_attachment import (
 			build_turn,
 			cleanup_indexed_files,
+			hold_sent_files,
+			release_sent_files,
 		)
 		from frappe.flow.doctype.flow_skill.flow_skill import expand_skill_command
 		from frappe.flow.memory.memory import memory_block
@@ -226,6 +228,7 @@ class FlowSession(Document):
 		self.sync()
 		turn = build_turn(self, expand_skill_command(self.agent, input), attachments or [])
 		turn.message += memory_block(self.agent, self.owner, input)
+		hold_sent_files(self.name, [row["file"] for row in turn.attachment_rows])
 		uploaded = []
 		try:
 			with DaemonClient.for_site() as client:
@@ -241,6 +244,7 @@ class FlowSession(Document):
 							client.cleanup_attachments(self.name, uploaded)
 					raise
 		except DaemonError as exc:
+			release_sent_files(self.name)
 			cleanup_indexed_files(self.name, turn.indexed_files)
 			if exc.status == 404:
 				frappe.throw(_(READ_ONLY), title=_("Flow Server"))
@@ -268,6 +272,8 @@ class FlowSession(Document):
 				_claim_attachment_file(self.name, row["file"])
 				self.append("attachments", {**row, "run": run.name})
 			self.save(ignore_permissions=True)
+			session = self.name
+			frappe.db.after_commit.add(lambda: release_sent_files(session))
 		return run
 
 	def resume(self, answers: dict[str, Any], approval_seq: int | None = None) -> FlowRun:

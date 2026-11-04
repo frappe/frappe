@@ -98,6 +98,7 @@ class TestToolCallback(IntegrationTestCase):
 			"frappe/execute",
 			"frappe/update_memory",
 			"frappe/search_attachments",
+			"frappe/read_attachment",
 			"frappe/read_screen",
 			"whoami",
 			"whoami_later",
@@ -257,6 +258,9 @@ class TestToolCallback(IntegrationTestCase):
 			(self.agent.name, "User", OWNER, run.name),
 		)
 
+		frappe.db.set_single_value("Flow Knowledge Settings", "embedding_model", self.agent.model)
+		frappe.clear_document_cache("Flow Knowledge Settings", "Flow Knowledge Settings")
+		self.addCleanup(frappe.clear_document_cache, "Flow Knowledge Settings", "Flow Knowledge Settings")
 		hit = {"attachment": "F1", "content": "refunds within thirty days", "score": 0.9}
 		with patch("frappe.flow.knowledge.retriever.retrieve_attachments", return_value=[hit]) as retrieve:
 			result = self.call("search_attachments", {"query": "refund"})
@@ -265,6 +269,19 @@ class TestToolCallback(IntegrationTestCase):
 			json.loads(result["content"]),
 			[{"file": None, "content": "refunds within thirty days", "score": 0.9}],
 		)
+
+		frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "policy.txt",
+				"content": "refunds within thirty days",
+				"is_private": 1,
+				"attached_to_doctype": "Flow Session",
+				"attached_to_name": self.session.name,
+			}
+		).insert(ignore_permissions=True).db_set("owner", OWNER)
+		result = self.call("read_attachment", {})
+		self.assertEqual([row["file_name"] for row in json.loads(result["content"])], ["policy.txt"])
 
 	def test_calls_are_refused_outside_the_sessions_enabled_owner_agents_and_tools(self):
 		child = self.flow_agent("Callback Child", tools=[{"tool": "whoami"}])
