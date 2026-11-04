@@ -19,6 +19,8 @@ for (const name of [...globals, ...types]) {
 	globalThis[name] = dom.window[name];
 }
 dom.window.HTMLElement.prototype.scrollIntoView = () => {};
+// a started chat's one-row box measures its draft's line
+globalThis.getComputedStyle = dom.window.getComputedStyle.bind(dom.window);
 // jsdom lays nothing out: the page keeps the window's width
 globalThis.ResizeObserver = class {
 	observe() {}
@@ -127,7 +129,7 @@ function shareDialog(t, client, { state, page = { boot } } = {}) {
 	return { el, vm };
 }
 
-test("a new chat's agent is picked over the box from its own list, beside its skills, the model alone by the send button; the chat starts with it and its header names it", async (t) => {
+test("a new chat's agent is picked from its own list in the box's tools row, beside its skills, the model by the send button; the chat starts with it and its box asks in its name", async (t) => {
 	const skillsAnswer = transport.answers["frappe.flow.api.skills"];
 	transport.answers["frappe.flow.api.skills"] = ({ agent }) => ({
 		skills: agent === "reviewer" ? [{ name: "review", description: "Reviews a change" }] : [],
@@ -142,22 +144,24 @@ test("a new chat's agent is picked over the box from its own list, beside its sk
 	await nextTick();
 	assert.ok(!called("frappe.flow.api.boot"), "the page's own boot serves the first load");
 
-	assert.ok(el.textContent.includes("What can I help you with?"));
+	// no heading over a new chat: Flow's mark, then the box that asks
+	assert.ok(el.querySelector("svg[aria-label=Flow], [data-stub=BrandMark]"));
+	assert.equal(el.querySelector("h2"), null);
 	assert.equal(el.querySelector("textarea").placeholder, "Ask Flow…");
-	const agent = () => el.querySelector("button[title='Agent']");
+	const agent = () => el.querySelector("button[aria-label^='Agent:']");
 	const box = el.querySelector("fieldset");
-	assert.equal(agent().textContent.trim(), "Flow");
-	assert.ok(!box.contains(agent()));
+	assert.equal(agent().getAttribute("aria-label"), "Agent: Flow");
+	assert.ok(box.contains(agent()), "in the box, with its tools");
 	assert.ok(box.querySelector("button[title^='Sonnet']"), "a new chat shows its agent's model");
 	// the chip names no count; for an agent without skills, its list says so and offers to add
 	// one, with nothing to search yet
-	const skills = () => el.querySelector("button[title='Skills']");
+	const skills = () => el.querySelector("button[aria-label='Skills']");
 	const skillRows = () => [...skills().parentElement.querySelectorAll("[data-palette-item]")];
 	const skillNames = () =>
 		skillRows().map((row) =>
 			(row.querySelector("span:not([aria-hidden])") ?? row).textContent.trim()
 		);
-	assert.equal(skills().textContent.trim(), "Skills");
+	assert.equal(skills().getAttribute("aria-label"), "Skills");
 	skills().click();
 	await nextTick();
 	assert.match(skills().nextElementSibling.textContent, /No skills/);
@@ -189,14 +193,14 @@ test("a new chat's agent is picked over the box from its own list, beside its sk
 	list()[0].click();
 	await nextTick();
 	assert.deepEqual(rows(), []);
-	assert.equal(agent().textContent.trim(), "Reviewer");
+	assert.equal(agent().getAttribute("aria-label"), "Agent: Reviewer");
 	assert.ok(box.querySelector("button[title^='Opus']"), "and the model follows the agent");
 	// the skills a new chat may start follow the agent; one picked from their list starts the draft
 	await until(() =>
 		transport.calls.some(([name, a]) => name === "frappe.flow.api.skills" && a.agent === "reviewer")
 	);
 	await new Promise((resolve) => setTimeout(resolve));
-	assert.equal(skills().textContent.trim(), "Skills");
+	assert.equal(skills().getAttribute("aria-label"), "Skills");
 	skills().click();
 	await nextTick();
 	await nextTick();
@@ -228,9 +232,9 @@ test("a new chat's agent is picked over the box from its own list, beside its sk
 	const reloaded = document.createElement("div");
 	const again = createApp(FlowPage, { boot: { ...boot, agents: [...boot.agents, writer] } });
 	again.use(router).mount(reloaded);
-	const agentAgain = () => reloaded.querySelector("button[title='Agent']");
+	const agentAgain = () => reloaded.querySelector("button[aria-label^='Agent:']");
 	await until(agentAgain);
-	assert.equal(agentAgain().textContent.trim(), "Reviewer");
+	assert.equal(agentAgain().getAttribute("aria-label"), "Agent: Reviewer");
 	assert.ok(reloaded.querySelector("fieldset button[title^='Sonnet']"));
 	agentAgain().click();
 	await nextTick();
@@ -263,7 +267,7 @@ test("a new chat's agent is picked over the box from its own list, beside its sk
 	textarea.value = "hi";
 	textarea.dispatchEvent(new Event("input"));
 	await nextTick();
-	el.querySelector("button[title='Send']").click();
+	el.querySelector("button[aria-label='Send']").click();
 	await until(() => called("frappe.flow.api.run"));
 	// a model outside the user's list is left to the server
 	const created = args("frappe.flow.api.create_session");
@@ -271,7 +275,7 @@ test("a new chat's agent is picked over the box from its own list, beside its sk
 	assert.deepEqual(args("frappe.flow.api.run"), { session: "S1", message: "hi", attachments: [] });
 	await nextTick();
 	assert.equal(agent(), null, "the agent is fixed once the conversation starts");
-	assert.match(el.querySelector("header div[title]").title, /^Reviewer \/ /);
+	assert.equal(el.querySelector("textarea").placeholder, "Ask Reviewer…");
 });
 
 test("a setup form's record page creates a record at its new address, Cmd+S saving the form it is pressed over (in a frame, left to the page around it), asks before leaving unsaved edits, kept, the chat behind it as it was, and a deleted record leaves for the chat; one that never loads has nothing to lose", async (t) => {
@@ -365,7 +369,14 @@ test("a setup form's record page creates a record at its new address, Cmd+S savi
 	await keep(1);
 	el.querySelector("aside button[title='Hide sidebar']").click();
 	await nextTick();
-	el.querySelector("main header button[title='New chat']").click();
+	// the bar's New chat floats with the sidebar over its button
+	el.querySelector("main header button[title='Show sidebar']").parentElement.dispatchEvent(
+		new Event("mouseenter")
+	);
+	await nextTick();
+	[...el.querySelectorAll("main header button")]
+		.find((b) => b.textContent.trim() === "New chat")
+		.click();
 	await keep(2);
 	el.querySelector("main header button[title='Show sidebar']").click();
 	const go = router.push("/s/S1");
@@ -451,7 +462,7 @@ test("boot is refetched only for the records it lists, skills when a skill or an
 	dom.window.Storage.prototype.setItem = setItem;
 });
 
-test("without a model the normal page shows the setup state and no composer, and keeps to the screen a phone's keyboard leaves; the setup's steps are numbered and Add opens a blank record", async (t) => {
+test("without a model the normal page shows the setup state and no composer, and keeps to the screen a phone's keyboard leaves; an admin connects there, a manual setup opening a blank provider, and anyone else asks an admin", async (t) => {
 	// the keyboard shrinks only the visible part of the page; a pinch zoom does too, by its scale
 	const viewport = Object.assign(new dom.window.EventTarget(), { height: 844, scale: 1 });
 	const { scrollTo } = dom.window;
@@ -465,7 +476,6 @@ test("without a model the normal page shows the setup state and no composer, and
 	await until(() => called("frappe.flow.api.list_sessions"));
 	await nextTick();
 	assert.ok(el.querySelector("[data-stub=SetupState]"));
-	assert.ok(!el.textContent.includes("What can I help you with?"));
 	assert.equal(el.querySelector("textarea"), null);
 	assert.ok(
 		!el.textContent.includes("can send messages"),
@@ -481,24 +491,49 @@ test("without a model the normal page shows the setup state and no composer, and
 	assert.equal(resize(422, 2), "844px");
 
 	const { createPage } = await import("../src/page.js");
-	const page = createPage({ ...boot, models: [], permissions: { "Flow Model": ["create"] } });
-	let opened = 0;
-	const setup = document.createElement("div");
-	const app = createApp(SetupState).use(router);
-	app.provide("flow", { setSettingsOpen: () => opened++ });
-	app.provide("flowPage", page);
-	app.mount(setup);
-	t.after(() => app.unmount());
-	const step = (label) =>
-		[...setup.querySelectorAll("button")].find((b) => b.textContent === label);
-	step("Add a provider").click();
-	assert.equal(opened, 1);
-	assert.ok(page.takeNewRecord("providers"), "settings open on a blank provider, not the list");
-	page.onBoot({ ...page.state.boot, provider: "openai" });
-	await nextTick();
-	assert.equal(step("Add a provider"), undefined, "a provider in place is a step done");
-	assert.ok(step("Provider added"));
-	assert.ok(step("Add a model"));
+	const { toast } = await import("./helpers/components.js");
+	const saved = { ...transport.answers };
+	t.after(() => Object.assign(transport.answers, saved));
+	let refreshes = 0;
+	const mountSetup = (permissions) => {
+		const page = createPage(
+			{ ...boot, models: [], permissions },
+			{ refresh: () => refreshes++ }
+		);
+		const state = { opened: 0 };
+		const setup = document.createElement("div");
+		const app = createApp(SetupState).use(router);
+		app.provide("flow", { setSettingsOpen: () => state.opened++ });
+		app.provide("flowPage", page);
+		app.mount(setup);
+		t.after(() => app.unmount());
+		return { page, setup, state };
+	};
+
+	// one who may add providers and models connects in place; their own server is set up in
+	// settings, on a blank provider rather than the list
+	const admin = mountSetup({ "Flow Provider": ["create"], "Flow Model": ["create"] });
+	const connect = admin.setup.querySelector("[data-stub=ConnectSetup]");
+	assert.ok(connect);
+	connect.dispatchEvent(new Event("manual"));
+	assert.equal(admin.state.opened, 1);
+	assert.ok(admin.page.takeNewRecord("providers"), "settings open on a blank provider, not the list");
+	// connected, boot is refetched for its models and everyone is told
+	toast.shown.length = 0;
+	connect.dispatchEvent(Object.assign(new Event("connected"), { service: { name: "Claude" } }));
+	assert.equal(refreshes, 1);
+	assert.deepEqual(toast.shown, ["Claude is connected for everyone"]);
+
+	// anyone else asks an admin, and is told who heard
+	transport.answers["frappe.flow.api.setup.ask_admin"] = { admins: ["Ann", "Bob"] };
+	const user = mountSetup({});
+	assert.equal(user.setup.querySelector("[data-stub=ConnectSetup]"), null);
+	const ask = () => user.setup.querySelector("button");
+	assert.equal(ask().textContent, "Ask an admin to connect Flow");
+	ask().click();
+	await until(() => ask().textContent === "Asked");
+	assert.ok(ask().disabled, "asked once");
+	assert.ok(user.setup.textContent.includes("Ann and Bob have a note."));
 });
 
 test("an explicit conversation URL opens even outside the recent session list, syncing a run that ended as it opened", async (t) => {
@@ -792,7 +827,7 @@ test("the thumbs show under a finished run, but not in a chat the user may only 
 	}
 });
 
-test("a loading chat shows the agent and model of its sidebar row, and names none opened from a link", async (t) => {
+test("a loading chat shows the model of its sidebar row, and names none opened from a link; loaded, its box asks in its agent's name", async (t) => {
 	await router.replace("/");
 	const pending = [];
 	transport.answers["frappe.flow.api.list_sessions"] = [
@@ -811,15 +846,12 @@ test("a loading chat shows the agent and model of its sidebar row, and names non
 		transport.answers["frappe.flow.api.session"] = session;
 	});
 	const el = mountPage(t);
-	// the header names the agent before the chat's title
-	const agent = () => el.querySelector("header div[title]")?.title.match(/^(.+?) \/ /)?.[1];
 	await until(() => el.textContent.includes("Listed chat"));
 	[...el.querySelectorAll("[data-stub=SidebarItem]")]
 		.find((row) => row.textContent.includes("Listed chat"))
 		.click();
 	await until(() => pending.length === 1);
 	await nextTick();
-	assert.equal(agent(), "Reviewer");
 	assert.ok(el.querySelector("button[title^='Sonnet']"));
 	pending[0]();
 
@@ -827,11 +859,11 @@ test("a loading chat shows the agent and model of its sidebar row, and names non
 	await router.replace("/s/slow");
 	await until(() => pending.length === 2);
 	await nextTick();
-	assert.equal(agent(), undefined);
+	assert.equal(el.querySelector("button[title^='Sonnet']"), null);
 	assert.ok(!el.textContent.includes("Choose Model"));
 	pending[1]();
-	await until(() => agent() === "Reviewer");
-	assert.ok(el.textContent.includes("Sonnet"));
+	await until(() => el.querySelector("textarea").placeholder === "Ask Reviewer…");
+	assert.ok(el.querySelector("button[title^='Sonnet']"));
 });
 
 test("a first message sent while the chat list loads keeps the page on its new chat, as does an address asking for one", async (t) => {
@@ -860,7 +892,7 @@ test("a first message sent while the chat list loads keeps the page on its new c
 	textarea.value = "hi";
 	textarea.dispatchEvent(new Event("input"));
 	await nextTick();
-	el.querySelector("button[title='Send']").click();
+	el.querySelector("button[aria-label='Send']").click();
 	// the list lands while the new chat is still being made
 	await until(() => called("frappe.flow.api.create_session"));
 	listed([{ name: "OLD", title: "Old chat" }]);
