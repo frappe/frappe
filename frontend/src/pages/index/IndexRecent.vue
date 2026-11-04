@@ -52,7 +52,7 @@
 import { computed } from "vue";
 import { ItemListRow, dayjs } from "frappe-ui";
 import { __ } from "@/i18n";
-import AppLogo from "./AppLogo.vue";
+import AppLogo from "@/shell/AppLogo.vue";
 import { recentKey, type IndexVisit } from "./recent";
 import { selectableId, type Selection } from "./selection";
 

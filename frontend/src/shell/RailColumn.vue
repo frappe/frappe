@@ -10,6 +10,8 @@
 				<button
 					type="button"
 					data-key="app-menu"
+					@pointerenter="loadApps"
+					@focus="loadApps"
 					:class="[TILE, boot.app_logo ? 'hover:opacity-90' : LETTER_TILE]"
 					:aria-label="__('{0} menu', [appTitle])"
 				>
@@ -95,7 +97,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject } from "vue";
+import { computed, h, inject, shallowRef } from "vue";
 import type { RouteLocationRaw } from "vue-router";
 import {
 	Divider,
@@ -114,7 +116,11 @@ import { labelOf, renderingOf } from "@/navigation/registry";
 import type { ItemNode } from "@/navigation/tree";
 import { useItemTree } from "@/navigation/useItemTree";
 import type { ItemContext } from "@/navigation/types";
+import AppLogo from "./AppLogo.vue";
+import { menuApps } from "./appSwitchOrder";
 import { openPalette } from "./palette";
+import type { PlacesApp } from "./palettePlaces";
+import { loadDocument } from "./tabKeepAlive";
 import { shellMenu } from "./shellActs";
 import UserMenu from "./UserMenu.vue";
 
@@ -173,5 +179,28 @@ function cellOf(item: NavigationItem): Cell | null {
 
 const APP_MENU = ["all_apps", "open_settings", "customize_sidebar", "copy_link"];
 
-const menu = computed<DropdownOptions>(() => shellMenu(APP_MENU));
+// The apps come from `places`, asked for when the tile is reached, so a boot carries none and
+// the palette's chunk stays out of the shell's load.
+const places = shallowRef<PlacesApp[]>([]);
+const menu = computed<DropdownOptions>(() => {
+	const apps = menuApps(places.value, boot.app).map((app) => ({
+		label: app.title,
+		icon: logoOf(app),
+		onClick: () => loadDocument(app.route),
+	}));
+	const actions = { group: "", hideLabel: true, options: shellMenu(APP_MENU) };
+	return apps.length ? [{ group: "", hideLabel: true, options: apps }, actions] : [actions];
+});
+
+function loadApps() {
+	void import("./palettePlaces")
+		.then((module) => module.loadApps())
+		.then((apps) => (places.value = apps))
+		.catch(() => {});
+}
+
+// A functional component so the menu row draws the logo, not an icon name.
+function logoOf(app: PlacesApp) {
+	return () => h(AppLogo, { logo: app.logo, title: app.title, size: 16 });
+}
 </script>

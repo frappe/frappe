@@ -69,6 +69,7 @@
 
 		<ActKeys :open-argument="openArgument" />
 		<PaletteKey />
+		<AppSwitcherKey />
 		<ToastProvider />
 		<!-- frappe-ui's imperative dialog stack; `page.dialog.confirm` and `danger` render here. -->
 		<Dialogs />
@@ -112,6 +113,9 @@ const StandingWindows = defineAsyncComponent(() => import("./StandingWindows.vue
 const ActKeys = defineAsyncComponent(() => import("./actKeys").then((module) => module.ActKeys));
 const PaletteKey = defineAsyncComponent(() =>
 	import("./paletteKey").then((module) => module.PaletteKey)
+);
+const AppSwitcherKey = defineAsyncComponent(() =>
+	import("./appSwitcherKey").then((module) => module.AppSwitcherKey)
 );
 // Opened before the apps' acts are in, the palette waits for them.
 const ShellPalette = defineAsyncComponent(() =>

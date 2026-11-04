@@ -25,9 +25,20 @@ export interface DoctypePlace {
 	can_create: boolean;
 }
 
+/** An app as `/apps` draws it, in the person's order. */
+export interface PlacesApp {
+	app: string;
+	title: string;
+	/** Where the tile opens: the app's prefix, or for a `link` tile the app's own UI. */
+	route: string;
+	logo?: string | null;
+	kind: "prefix" | "link";
+	hidden: boolean;
+}
+
 export interface PlacesReply {
 	doctypes: DoctypePlace[];
-	apps: { app: string; title: string; route: string }[];
+	apps: PlacesApp[];
 	titles: Record<string, string>;
 	recent: RecentVisit[];
 }
@@ -52,6 +63,11 @@ class HeldRead<T> {
 			.finally(() => (this.asking = null));
 		return this.asking;
 	}
+
+	/** Drops the held reply, so the next ask reads again. */
+	forget() {
+		this.value.value = null;
+	}
 }
 
 const places = new HeldRead<PlacesReply>();
@@ -63,6 +79,16 @@ export function loadPlaces(boot: Boot): Promise<unknown> {
 		places.ask(fetchPlaces).catch(placesFailed),
 		panes.ask(() => fetchPanes(boot)).catch(placesFailed),
 	]);
+}
+
+/** Drops the held places, as the person's app layer changed under them. */
+export function forgetPlaces() {
+	places.forget();
+}
+
+/** The apps, asked for once per tab. */
+export async function loadApps(): Promise<PlacesApp[]> {
+	return (await places.ask(fetchPlaces)).apps;
 }
 
 /** `shell.create`'s options: each doctype the user may create. */

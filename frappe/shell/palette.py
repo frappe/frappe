@@ -15,6 +15,7 @@ from frappe.utils import get_datetime, get_system_timezone
 from frappe.utils.data import make_filter_tuple
 
 from .boot import index_tiles, titled_visits
+from .index_layer import arrange
 from .doctypes import get_shell_doctypes
 from .links import canonical_path
 from .permissions import has_app_permission, may_enter_any_prefix
@@ -30,12 +31,15 @@ SHORTEST_QUERY = 2
 @frappe.desk_v2_only
 @frappe.whitelist(methods=["GET"])
 def places() -> dict:
-	"""The readable doctypes with their app, address and create right; the apps; each app's title; the recent visits."""
+	"""The readable doctypes with their app, address and create right; the apps in the person's order; each app's title; the recent visits."""
 	if not may_enter_any_prefix():
 		frappe.throw(_("You are not permitted to access this page."), frappe.PermissionError)
 
 	doctypes = place_doctypes()
-	apps = [{"app": tile["app"], "title": tile["title"], "route": tile["route"]} for tile in index_tiles()]
+	apps = [
+		{key: tile[key] for key in ("app", "title", "route", "logo", "kind", "hidden")}
+		for tile in arrange(index_tiles())
+	]
 	owners = {doctype["app"] for doctype in doctypes}
 	return {
 		"doctypes": doctypes,

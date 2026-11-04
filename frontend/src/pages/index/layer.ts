@@ -8,6 +8,8 @@ export async function saveLayer(apps: IndexApp[]): Promise<IndexApp[]> {
 		order: apps.map((app) => app.app),
 		hidden: apps.filter((app) => app.hidden).map((app) => app.app),
 	});
+	// The held places carry the old layer; a dynamic import keeps the palette out of the index chunk.
+	void import("@/shell/palettePlaces").then((module) => module.forgetPlaces());
 	return response.data;
 }
 

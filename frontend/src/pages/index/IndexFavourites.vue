@@ -54,7 +54,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { __ } from "@/i18n";
-import AppLogo from "./AppLogo.vue";
+import AppLogo from "@/shell/AppLogo.vue";
 import { MORE_FAVOURITES_KEY, favouriteKey, type Favourites } from "./favourites";
 import { selectableId, type Selection } from "./selection";
 
