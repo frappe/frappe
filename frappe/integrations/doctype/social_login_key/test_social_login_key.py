@@ -168,10 +168,10 @@ class TestSocialLoginKey(IntegrationTestCase):
 		mock_session = MagicMock()
 		mock_session.get.side_effect = github_response_for_login
 
-		state = create_oauth_state(None)
-		simulate_oauth_browser_roundtrip()
 		with patch.object(OAuth2Service, "get_auth_session", return_value=mock_session):
-			self.assertRaises(frappe.PermissionError, login_via_oauth2, "github", "iwriu", state)
+			self.assertRaises(
+				frappe.PermissionError, login_via_oauth2, "github", "iwriu", create_oauth_state(None)
+			)
 
 		mock_session.get.assert_not_called()
 		self.assertEqual(frappe.session.user, "Guest")
