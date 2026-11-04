@@ -1,5 +1,6 @@
 // The index page: one tile per boot app, the filter box, its states, and the keys it answers.
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { resetSession, setSession } from "@framework/ui/useSession";
 import { createApp, nextTick, type App } from "vue";
 import { createMemoryHistory, createRouter } from "vue-router";
 import { Addresses } from "@/addresses";
@@ -577,6 +578,20 @@ describe("the index's Recent", () => {
 		const [deal, todo] = rows(host);
 		expect(deal.querySelector("img")?.getAttribute("src")).toBe("/assets/crm/logo.svg");
 		expect(todo.querySelector("[data-app-logo]")?.textContent?.trim()).toBe("F");
+	});
+
+	it("draws each visit's time in the signed-in person's language", async () => {
+		setSession({ user: {}, roles: [], lang: "de", timezone: "Asia/Kolkata", defaults: {} } as never);
+		try {
+			const host = await mount(APPS, FAVOURITES, RECENT);
+			expect(rows(host).map((row) => row.querySelector("[data-slot='item-suffix']")?.textContent?.trim())).toEqual([
+				"vor 2 Minuten",
+				"vor 3 Stunden",
+				"vor 1 Tag",
+			]);
+		} finally {
+			resetSession();
+		}
 	});
 
 	it("steps aside while the box holds a query", async () => {

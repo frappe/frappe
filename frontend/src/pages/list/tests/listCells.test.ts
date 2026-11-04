@@ -269,7 +269,7 @@ describe("a list's cells", () => {
 		expect(plain("seen_date")).toBe("2026-11-04");
 	});
 
-	it("keep the absolute value without a site zone, draw a bad or empty stamp as it is, and never read the future of a standard stamp", async () => {
+	it("keep the absolute value without a site zone, draw a bad or empty stamp as it is, and read clock skew under a minute as a few seconds ago", async () => {
 		vi.useFakeTimers({ toFake: ["Date"] });
 		vi.setSystemTime(new Date("2026-11-04T04:33:00Z"));
 		const cell = async (column: string) => {
@@ -287,9 +287,26 @@ describe("a list's cells", () => {
 		Object.assign(row, { last_active: "garbage", response_by: "" });
 		expect(await cell("last_active")).toBe("garbage");
 		expect(await cell("response_by")).toBe("");
-		// 10:05 in Asia/Kolkata is ahead of the browser's clock by two minutes.
-		Object.assign(row, { modified: "2026-11-04 10:05:00" });
+		// 10:03:40 in Asia/Kolkata is 40 seconds ahead of the browser's clock, 10:05 two minutes.
+		Object.assign(row, { modified: "2026-11-04 10:03:40", last_active: "2026-11-04 10:03:40" });
 		expect(await cell("modified")).toBe("a few seconds ago");
+		expect(await cell("last_active")).toBe("a few seconds ago");
+		Object.assign(row, { modified: "2026-11-04 10:05:00" });
+		expect(await cell("modified")).toBe("in 2 minutes");
+	});
+
+	it("draw relative time in the signed-in person's language", async () => {
+		vi.useFakeTimers({ toFake: ["Date"] });
+		vi.setSystemTime(new Date("2026-11-04T04:33:00Z"));
+		setSession({ user: {}, roles: [], lang: "de", timezone: "Asia/Kolkata", defaults: {} } as never);
+		Object.assign(row, { modified: "2026-11-04 10:03:40" });
+		const root = mount();
+		await nextTick();
+
+		const cell = (column: string) => root.querySelector(`[data-column='${column}'] [data-tooltip]`);
+		expect(cell("modified")?.textContent).toBe("jetzt");
+		expect(cell("creation")?.textContent).toBe("vor 3 Tagen");
+		expect(cell("response_by")?.textContent).toBe("in 2 Stunden");
 	});
 
 	it("draw a Link value as its target's title, a marked one too, and the name where none is held", async () => {
