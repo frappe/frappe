@@ -464,6 +464,9 @@ def validate_ip_address(user):
 		if not frappe.flags.in_test
 		else frappe.db.get_value("User", user, user_fields, as_dict=True)
 	)
+	if not user_info:
+		return
+
 	ip_list = get_restricted_ip_list(user_info)
 	if not ip_list:
 		return
