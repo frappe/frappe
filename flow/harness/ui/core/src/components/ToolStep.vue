@@ -36,7 +36,7 @@
 				>{{ segment.text }}</span>
 			</span>
 			<template v-else>
-				<span class="flex-none text-base font-medium text-ink-gray-9">{{ label }}</span>
+				<span class="flex-none text-base-medium text-ink-gray-9">{{ label }}</span>
 				<span
 					class="min-w-0 flex-1 truncate text-base text-ink-gray-5 group-hover:text-ink-gray-7"
 					:class="step.call.name === 'bash' ? 'font-mono text-sm' : ''"
@@ -60,7 +60,7 @@
 			</div>
 			<!-- a call the user denied, cancelled, or redirected -->
 			<div v-if="decision" class="px-3 py-2.5">
-				<div class="text-sm font-medium" :class="statClass">{{ decisionTitle }}</div>
+				<div class="text-sm-medium" :class="statClass">{{ decisionTitle }}</div>
 				<div v-if="decision.user_feedback" class="mt-1 text-sm leading-relaxed text-ink-gray-6">
 					“{{ decision.user_feedback }}”
 				</div>
@@ -74,7 +74,7 @@
 						:href="hit.url"
 						target="_blank"
 						rel="noopener noreferrer"
-						class="block truncate text-sm font-medium text-ink-gray-8 hover:underline"
+						class="block truncate text-sm-medium text-ink-gray-8 hover:underline"
 					>{{ hit.title || hit.url }}</a>
 					<div class="truncate text-xs text-ink-gray-4">{{ pageName(hit.url) }}</div>
 					<div v-if="hit.snippet" class="mt-0.5 line-clamp-3 text-sm leading-relaxed text-ink-gray-6">{{ hit.snippet }}</div>
@@ -87,12 +87,12 @@
 					<span v-if="duration" class="flex-none font-mono text-xs text-ink-gray-5">{{ duration }}</span>
 					<span
 						v-if="exitChip"
-						class="flex-none rounded-4 px-1.5 py-px font-mono text-xs font-medium"
+						class="flex-none rounded-4 px-1.5 py-px font-mono text-xs-medium"
 						:class="failed ? 'bg-surface-red-1 text-ink-red-6' : 'bg-surface-green-1 text-ink-green-6'"
 					>{{ exitChip }}</span>
 					<CopyButton
 						:text="diffLines ? details.diff : output"
-						class="grid h-5 w-5 flex-none place-items-center rounded-4 text-ink-gray-5 hover:bg-surface-gray-2 hover:text-ink-gray-8"
+						class="-my-0.5"
 					/>
 				</div>
 				<pre
