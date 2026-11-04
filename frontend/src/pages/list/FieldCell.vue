@@ -47,8 +47,9 @@ const STORED_VALUE_FIELDTYPES = new Set([
 	"HTML Editor",
 ]);
 
-// The two standard stamps read as "3 days ago"; any other Datetime keeps its absolute value.
-const RELATIVE_FIELDNAMES = new Set(["modified", "creation"]);
+// The standard stamps and every read-only Datetime (the system writes those) read as "3 days ago";
+// an editable Datetime keeps its absolute value.
+const STANDARD_STAMPS = new Set(["modified", "creation"]);
 
 const props = defineProps<{ field: FieldMeta; row: Record<string, unknown> }>();
 
@@ -65,12 +66,13 @@ const address = computed(() => {
 const relativeTime = computed(() => {
 	const zone = currentSession()?.timezone;
 	if (!zone || !text.value) return "";
-	if (props.field.fieldtype !== "Datetime" || !RELATIVE_FIELDNAMES.has(props.field.fieldname))
-		return "";
+	const standard = STANDARD_STAMPS.has(props.field.fieldname);
+	if (props.field.fieldtype !== "Datetime" || !(standard || props.field.readOnly)) return "";
 	const stamp = dayjs.tz(String(value.value), zone);
 	if (!stamp.isValid()) return "";
 	// A browser clock a little behind the server's would read a fresh save as "in a minute".
-	return stamp.isAfter(dayjs()) ? dayjs().fromNow() : stamp.fromNow();
+	// Other fields can hold a real future ("in 2 hours"), so only the standard stamps are clamped.
+	return standard && stamp.isAfter(dayjs()) ? dayjs().fromNow() : stamp.fromNow();
 });
 
 const text = computed(() => {
