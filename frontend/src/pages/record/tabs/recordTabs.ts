@@ -114,11 +114,6 @@ export class RecordTabsHost {
     return claimed;
   };
 
-  /** Holds the painted tab when the address names none on the strip, so a later reorder never moves the reader. */
-  remember(shown: string) {
-    if (shown && !this.onStrip(this.wanted.value)) this.wanted.value = shown;
-  }
-
   reset() {
     this.wanted.value = queryTab(this.route.query.tab);
   }
