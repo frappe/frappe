@@ -8,23 +8,27 @@ frappe.provide("frappe.ui");
  * @property {Element|JQuery} [element] An existing `.modal` element (frappe.get_modal() markup). Omit to have one made from `title`, `content` and `actions`.
  * @property {string} [title] Plain text.
  * @property {Element|JQuery|function|string} [content] The body. An element, or a function called with the modal; a plain string renders as text, never HTML.
- * @property {Array<Object>} [actions] frappe.ui.button options for the footer; `onclick` is called with (event, modal).
+ * @property {string} [message] Plain text under the title, at the top of the body.
+ * @property {string} [icon] Icon name shown in a round badge before the title.
+ * @property {"gray"|"amber"|"blue"|"red"|"green"} [theme="gray"] Color of the icon badge.
+ * @property {Array<Object>} [actions] frappe.ui.button options for the footer; `onclick` is called with (event, modal), and an action without one closes the modal.
  * @property {Element|JQuery} [trigger] An existing element that opens the modal.
  * @property {Object} [button] Options for a generated frappe.ui.button trigger (ignored when `trigger` is passed).
  * @property {"small"|"large"|"extra-large"} [size] Wider or narrower than the default width.
- * @property {"top"|"center"} [position="top"] Where the modal sits on the screen.
+ * @property {"top"|"center"} [position="center"] Where the modal sits on the screen.
  * @property {boolean|"static"} [dismissible=true] Escape and a click outside close it; "static" makes them bounce it instead; false ignores them.
  * @property {boolean} [show_close_button=true] The × in the header.
  * @property {boolean} [animate=true] Fade in and out.
  * @property {boolean|string|Element} [focus=true] What gets focus once it is open: the modal itself (true), an element or selector inside it, or nothing (false).
  * @property {function} [on_show] Called before it opens.
  * @property {function} [on_shown] Called once it is open and the animation ended.
- * @property {function} [on_hide] Called with the reason before it closes: "escape" | "outside" | "close-button" | "owner" | "route", or what your own `modal.hide(reason)` passed.
+ * @property {function} [on_hide] Called with the reason before it closes: "escape" | "outside" | "close-button" | "action" | "owner" | "route", or what your own `modal.hide(reason)` passed.
  * @property {function} [on_hidden] Called with the reason once it is closed and the backdrop is gone.
  */
 
 const SIZES = { small: "modal-sm", large: "modal-lg", "extra-large": "modal-xl" };
-const POSITIONS = ["top", "center"];
+const POSITIONS = { top: "modal-dialog-top", center: "modal-dialog-centered" };
+const THEMES = ["gray", "amber", "blue", "red", "green"];
 const DISMISSIBLE = [true, false, "static"];
 const EVENTS = ["show", "shown", "hide", "hidden"];
 const FIXED_CONTENT = ".fixed-top, .fixed-bottom, .is-fixed, .sticky-top";
@@ -112,9 +116,13 @@ frappe.ui.Modal = class Modal {
 		this.dialog = this.element.querySelector(".modal-dialog");
 		const size = validated(opts.size || null, Object.keys(SIZES), "size", "Modal");
 		if (size) this.dialog.classList.add(SIZES[size]);
-		const position = validated(opts.position, POSITIONS, "position", "Modal");
-		if (position === "center") this.dialog.classList.add("modal-dialog-centered");
+		const position =
+			validated(opts.position, Object.keys(POSITIONS), "position", "Modal") || "center";
+		this.dialog.classList.add(POSITIONS[position]);
 		if (opts.show_close_button === false) $(this.close_button).hide();
+		if (opts.icon) this.set_icon(opts.icon, opts.theme);
+		if (opts.message) this.set_message(opts.message);
+		if (opts.actions?.length) this.set_actions(opts.actions);
 
 		$(this.element).on("click.es-modal", ".btn-modal-close", (e) => {
 			e.preventDefault();
@@ -142,22 +150,54 @@ frappe.ui.Modal = class Modal {
 		$modal.find(".modal-title").text(this.opts.title || "");
 		const content = resolve_content(this.opts.content, this);
 		if (content) $modal.find(".modal-body").append(content);
-		if (this.opts.actions?.length) {
-			$modal
-				.find(".modal-footer")
-				.removeClass("hide")
-				.find(".standard-actions")
-				.empty()
-				.append(
-					this.opts.actions.map((action) =>
-						frappe.ui.button({
-							...action,
-							onclick: (e) => action.onclick?.(e, this),
-						})
-					)
-				);
-		}
 		return $modal[0];
+	}
+
+	/** The round badge before the title; a falsy `icon` removes it. */
+	set_icon(icon, theme) {
+		this.element.querySelector(".modal-icon")?.remove();
+		if (!icon) return;
+		const badge = document.createElement("div");
+		badge.className = "modal-icon";
+		badge.dataset.theme = validated(theme, THEMES, "theme", "Modal") || "gray";
+		badge.innerHTML = frappe.utils.icon(String(icon).replace(/^lucide-/, ""), "sm");
+		this.element.querySelector(".modal-title").before(badge);
+	}
+
+	/** Plain text under the title; a falsy `text` removes it. */
+	set_message(text) {
+		let description = this.element.querySelector(".modal-description");
+		if (!text) {
+			description?.remove();
+			this.element.removeAttribute("aria-describedby");
+			return;
+		}
+		if (!description) {
+			description = document.createElement("p");
+			description.className = "modal-description";
+			description.id = frappe.utils.get_random(8);
+			this.element.querySelector(".modal-body").prepend(description);
+		}
+		description.textContent = text;
+		this.element.setAttribute("aria-describedby", description.id);
+	}
+
+	/** Replace the buttons set_actions added before; Dialog's own footer buttons stay. */
+	set_actions(actions = []) {
+		this.$actions?.remove();
+		this.$actions = $(
+			actions.map(
+				(action) =>
+					frappe.ui.button({
+						...action,
+						onclick: (e) =>
+							action.onclick ? action.onclick(e, this) : this.hide("action"),
+					})[0]
+			)
+		);
+		const footer = this.element.querySelector(".modal-footer");
+		footer.querySelector(".standard-actions").append(...this.$actions);
+		footer.classList.toggle("hide", !footer.querySelector(".es-button:not(.hide)"));
 	}
 
 	make_trigger() {

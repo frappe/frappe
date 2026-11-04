@@ -1,4 +1,4 @@
-$modal-inner-radius: calc(var(--radius-lg) - 1px);
+$modal-radius: var(--radius-xl);
 
 .modal {
 	position: fixed;
@@ -61,16 +61,15 @@ $modal-inner-radius: calc(var(--radius-lg) - 1px);
 }
 
 .modal-content {
+	--modal-bg: var(--surface-elevation-1);
 	position: relative;
 	display: flex;
 	flex-direction: column;
 	width: 100%;
 	pointer-events: auto;
 	background-color: var(--modal-bg);
-	background-clip: padding-box;
-	border: 1px solid;
-	border-radius: var(--radius-lg);
-	box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.5);
+	border-radius: $modal-radius;
+	box-shadow: var(--elevation-xl);
 	outline: 0;
 }
 
@@ -81,18 +80,13 @@ $modal-inner-radius: calc(var(--radius-lg) - 1px);
 	z-index: 1040;
 	width: 100vw;
 	height: 100vh;
-	background-color: var(--gray-800);
-
-	&.fade {
-		opacity: 0;
-	}
 }
 
 .modal-header {
 	display: flex;
 	justify-content: space-between;
-	border-top-left-radius: $modal-inner-radius;
-	border-top-right-radius: $modal-inner-radius;
+	border-top-left-radius: $modal-radius;
+	border-top-right-radius: $modal-radius;
 }
 
 .modal-title {
@@ -109,27 +103,26 @@ $modal-inner-radius: calc(var(--radius-lg) - 1px);
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
-	border-top: 1px solid var(--border-color);
-	border-bottom-right-radius: $modal-inner-radius;
-	border-bottom-left-radius: $modal-inner-radius;
+	border-bottom-right-radius: $modal-radius;
+	border-bottom-left-radius: $modal-radius;
 }
 
 @include media-breakpoint-up(sm) {
 	.modal-dialog {
 		max-width: $modal-md;
-		margin: 1.75rem auto;
+		margin: 3rem auto;
+	}
+
+	.modal-dialog-top {
+		margin-top: calc(20vh + 2rem);
 	}
 
 	.modal-dialog-scrollable {
-		max-height: calc(100% - 3.5rem);
+		max-height: calc(100% - 6rem);
 
 		.modal-content {
-			max-height: calc(100vh - 3.5rem);
+			max-height: calc(100vh - 6rem);
 		}
-	}
-
-	.modal-content {
-		box-shadow: $modal-content-box-shadow-sm-up;
 	}
 
 	.modal-sm {
@@ -140,12 +133,12 @@ $modal-inner-radius: calc(var(--radius-lg) - 1px);
 @include media-breakpoint-up(lg) {
 	.modal-lg,
 	.modal-xl {
-		max-width: 800px;
+		max-width: $modal-lg;
 	}
 }
 
 @include media-breakpoint-up(xl) {
 	.modal-xl {
-		max-width: 1140px;
+		max-width: $modal-xl;
 	}
 }

@@ -25,6 +25,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 		search_modal.removeClass("fade");
 		this.modal = new frappe.ui.Modal({
 			element: search_modal,
+			position: "top",
 			on_shown: () => {
 				const input = search_modal.find("#navbar-search").get(0);
 				setTimeout(() => input.focus(), 10);

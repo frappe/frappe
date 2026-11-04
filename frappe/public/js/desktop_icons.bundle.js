@@ -821,6 +821,7 @@ class DesktopModal {
 			this.modal.find(".modal-body").addClass("desktop-modal-body");
 			this.dialog_modal = new frappe.ui.Modal({
 				element: this.modal,
+				position: "top",
 				on_hidden: () => {
 					this.modal.remove();
 					frappe.desktop_utils.modal = null;

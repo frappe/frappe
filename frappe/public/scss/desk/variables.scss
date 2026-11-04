@@ -31,9 +31,10 @@ $desk-colors: (
 @function desk-color-text($name) {
 	@return if(index((warning, light), $name), $gray-900, #fff);
 }
-$modal-content-box-shadow-sm-up: 0px 5px 10px rgba(0, 0, 0, 0.100661);
-$modal-md: 575px;
-$modal-sm: 450px;
+$modal-sm: 28rem;
+$modal-md: 32rem;
+$modal-lg: 48rem;
+$modal-xl: 72rem;
 
 // input
 $input-btn-focus-width: 2px;

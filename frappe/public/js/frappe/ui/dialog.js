@@ -21,7 +21,6 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 				animate: true,
 				size: null,
 				auto_make: true,
-				centered: false,
 				keep_grid_form_open: false,
 				// on a phone, show as a frappe.ui.BottomSheet (static and minimizable dialogs
 				// stay dialogs); set the actions before show()
@@ -40,9 +39,16 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 		this.modal = new frappe.ui.Modal({
 			element: this.$wrapper,
 			size: ["small", "large", "extra-large"].includes(this.size) ? this.size : null,
-			position: this.centered ? "center" : "top",
-			dismissible: this.static ? "static" : true,
-			show_close_button: !this.static,
+			position: this.position,
+			dismissible: this.dismissible ?? (this.static ? "static" : true),
+			show_close_button: this.show_close_button ?? !this.static,
+			message: this.message,
+			icon: this.icon,
+			theme: this.theme,
+			actions: this.actions?.map((action) => ({
+				...action,
+				onclick: (e) => (action.onclick ? action.onclick(e, this) : this.hide("action")),
+			})),
 			on_show: () => this.emit("show"),
 			on_shown: () => this.emit("shown"),
 			on_hide: (reason) => this.emit("hide", reason),
