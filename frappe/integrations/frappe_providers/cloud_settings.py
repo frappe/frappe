@@ -232,8 +232,7 @@ def get_domains() -> dict:
 def get_domain_dns_records(domain: str) -> dict:
 	_assert_access()
 	client = PilotClient()
-	response = client.get(client.domain_path(_clean_domain(domain), "dns-records"))
-	records = (response or {}).get("records") or {}
+	records = client.get(client.domain_path(_clean_domain(domain), "dns-records")) or {}
 	return {"records": [*records.get("cname", []), *records.get("a", [])]}
 
 
