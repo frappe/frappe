@@ -96,18 +96,8 @@
 	}
 
 	.oauth-actions form,
-	.oauth-actions .btn {
+	.oauth-actions .es-button {
 		flex: 1;
-	}
-
-	.oauth-actions .btn {
-		width: 100%;
-	}
-
-	.oauth-actions .btn-primary {
-		color: white;
-		background: var(--gray-900);
-		border-color: var(--gray-900);
 	}
 
 	@media (max-width: 575.98px) {
@@ -148,10 +138,10 @@
 		</div>
 
 		<div class="oauth-actions">
-			<a href="{{ failure_url | string }}" class="btn btn-sm btn-default">{{ _("Deny") }}</a>
+			<a href="{{ failure_url | string }}" class="es-button">{{ _("Deny") }}</a>
 			<form method="POST" action="{{ success_url | string }}">
 				<input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-				<button type="submit" class="btn btn-sm btn-primary">{{ _("Allow") }}</button>
+				<button type="submit" class="es-button w-full" data-variant="solid">{{ _("Allow") }}</button>
 			</form>
 		</div>
 	</div>

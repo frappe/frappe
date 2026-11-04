@@ -26,24 +26,19 @@
 	{%- endif -%}
 
 	{%- endfor -%}
-	<ul class="nav nav-tabs" role="tablist" aria-label="{{ title or '' }}">
-		{%- for tab in ns.tabs -%}
-		{%- set first_tab = true if loop.index0 == 0 else false -%}
-		<li class="nav-item">
-			<a class="nav-link {{ 'active' if first_tab else '' }}" id="{{ tab.buttonid }}"
-				href="#{{ tab.panelid }}"
-				role="tab" aria-controls="{{ tab.panelid }}" aria-selected="{{ 'true' if first_tab else 'false' }}">
+	<div class="es-tabs" data-orientation="horizontal">
+		<div class="es-tabs__list" role="tablist" aria-label="{{ title or '' }}">
+			{%- for tab in ns.tabs -%}
+			<button type="button" class="es-tabs__tab" id="{{ tab.buttonid }}" role="tab"
+				aria-controls="{{ tab.panelid }}" aria-selected="{{ 'true' if loop.index0 == 0 else 'false' }}" data-state="{{ 'active' if loop.index0 == 0 else 'inactive' }}">
 				{{ _(tab.title) }}
-			</a>
-		</li>
-		{%- endfor -%}
-	</ul>
-	<div class="mt-6 tab-content">
+			</button>
+			{%- endfor -%}
+		</div>
 		{%- for tab in ns.tabs -%}
-		{%- set first_tab = true if loop.index0 == 0 else false -%}
-		<div class="tab-pane {{ 'active' if first_tab else '' }}" id="{{ tab.panelid }}" role="tabpanel"
-			aria-labelledby="{{ tab.buttonid }}">
-			<div class="from-markdown">
+		<div class="es-tabs__panel" id="{{ tab.panelid }}" role="tabpanel" aria-labelledby="{{ tab.buttonid }}"
+			data-state="{{ 'active' if loop.index0 == 0 else 'inactive' }}">
+			<div class="from-markdown mt-6">
 				{{ frappe.utils.md_to_html(tab.content) }}
 			</div>
 		</div>
@@ -53,18 +48,15 @@
 
 <script>
 	(() => {
-		const root = document.currentScript.previousElementSibling;
-		const tabs = [...root.querySelectorAll('[role="tab"]')];
-		root.addEventListener("click", (e) => {
-			const tab = e.target.closest('[role="tab"]');
-			if (!tabs.includes(tab)) return;
-			e.preventDefault();
-			for (const t of tabs) {
-				const active = t === tab;
-				t.classList.toggle("active", active);
-				t.setAttribute("aria-selected", active);
-				document.getElementById(t.getAttribute("aria-controls")).classList.toggle("active", active);
-			}
+		const root = document.currentScript.previousElementSibling.querySelector(".es-tabs");
+		frappe.ready(() => {
+			const tabs = [...root.querySelectorAll('[role="tab"]')].map((button) => ({
+				label: button.textContent.trim(),
+				content: document.getElementById(button.getAttribute("aria-controls")).firstElementChild,
+			}));
+			const el = frappe.ui.tabs({ tabs })[0];
+			el.querySelector('[role="tablist"]').setAttribute("aria-label", {{ (title or '') | tojson }});
+			root.replaceWith(el);
 		});
 	})();
 </script>

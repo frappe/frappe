@@ -57,9 +57,9 @@
 			</div>
 			<div>
 				{% if frappe.session.user == "Guest" %}
-				<div class="btn btn-default btn-md login-from-discussion"> {{ _("Login") }} </div>
+				<div class="es-button login-from-discussion" data-size="md"> {{ _("Login") }} </div>
 				{% elif condition is defined and not condition %}
-				<div class="btn btn-default btn-md login-from-discussion" data-redirect="{{ redirect_to }}">
+				<div class="es-button login-from-discussion" data-size="md" data-redirect="{{ redirect_to }}">
 					{{ button_name }}
 				</div>
 				{% else %}

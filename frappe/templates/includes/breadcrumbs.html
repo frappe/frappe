@@ -1,20 +1,20 @@
 {%- if not no_breadcrumbs and parents -%}
 <div class="breadcrumb-container container">
-	<nav aria-label="breadcrumb">
-		<ol class="breadcrumb" itemscope itemtype="http://schema.org/BreadcrumbList">
+	<nav class="es-breadcrumbs" aria-label="{{ _('Breadcrumb') }}">
+		<ol itemscope itemtype="http://schema.org/BreadcrumbList">
 			{%- set parents = parents[-3:] %}
 			{% set count = (parents | length) + 1 %}
 			{% for parent in parents %}
-				<li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem" class="breadcrumb-item">
-					<a itemprop="item" href="{{ url_prefix }}{{ parent.route | abs_url }}">
-						<span itemprop="name">{{ parent.title or parent.label or parent.name or "" }}</span>
+				<li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+					<a class="es-breadcrumbs__item" itemprop="item" href="{{ url_prefix }}{{ parent.route | abs_url }}">
+						<span class="es-breadcrumbs__label" itemprop="name">{{ parent.title or parent.label or parent.name or "" }}</span>
 						<meta itemprop="position" content="{{ loop.index }}" />
 					</a>
 				</li>
 			{% endfor %}
-			<li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem" class="breadcrumb-item active" aria-current="page">
-				<span itemprop="item">
-					<span itemprop="name">{{ _(title) }}</span>
+			<li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+				<span class="es-breadcrumbs__item" itemprop="item" aria-current="page">
+					<span class="es-breadcrumbs__label" itemprop="name">{{ _(title) }}</span>
 					<meta itemprop="position" content="{{ count }}"/>
 				</span>
 			</li>
