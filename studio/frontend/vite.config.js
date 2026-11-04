@@ -39,6 +39,9 @@ export default defineConfig(({ command }) => {
 			__VUE_PROD_DEVTOOLS__: true,
 		},
 		server: {
+			// the backend and the renderer address this server at the site's hostname, which
+			// resolves to 127.0.0.1; vite's default `localhost` binds only ::1 on macOS
+			host: true,
 			// explicitly set origin of generated assets (images, fonts, etc) during development.
 			// Required for the app renderer running on webserver port
 			// https://vite.dev/guide/backend-integration
