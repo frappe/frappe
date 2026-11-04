@@ -68,10 +68,11 @@ scope it.
 
 The dialog's header holds the title, the `⋯` menu (Copy link, Delete) and the close button. Its
 footer holds only Save. A body calls `header` once in setup with a function that returns
-`{ title, buttons, menu, save }`; the dialog calls it again when what it reads changes. `title`
-replaces the record's name. `buttons` are icon buttons left of `⋯`, each `{ label, icon, onClick }`
+`{ title, subtitle, buttons, menu, save }`; the dialog calls it again when what it reads changes.
+`title` replaces the record's name; `subtitle` is a quiet gray line under it, such as a date, and the
+buttons and the close button stay on the title's line. `buttons` are icon buttons left of `⋯`, each `{ label, icon, onClick }`
 with the label as its tooltip. `menu` rows of the same shape go above Copy link. `save: false`
-hides Save and Ctrl+S. All four hold only while the body shows: after `edit()`, the form gets the
+hides Save and Ctrl+S. All of these hold only while the body shows: after `edit()`, the form gets the
 record's name, the record's menu and Save back. Do not use `page.header` for this: a dialog does
 not draw it.
 

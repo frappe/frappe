@@ -11,9 +11,10 @@
 		@update:open="close"
 		@after-leave="request.dismiss()"
 	>
-		<!-- `pr-1` keeps the close button's gap; it follows the title slot with none. -->
+		<!-- `pr-1` keeps the close button's gap; it follows the title slot with none. The subtitle hangs
+		     below the row, so the header's height stays the row's and Dialog centres its close on the title. -->
 		<template #title>
-			<div class="flex items-center gap-1 pr-1">
+			<div class="relative flex items-center gap-1 pr-1">
 				<h3
 					:id="titleId"
 					class="min-w-0 flex-1 break-words text-2xl-semibold leading-6 text-ink-gray-8"
@@ -33,9 +34,15 @@
 				<Dropdown :options="menu" side="bottom" align="end">
 					<Button variant="ghost" icon="lucide-ellipsis" :aria-label="__('More')" />
 				</Dropdown>
+				<p
+					v-if="header.subtitle"
+					class="absolute inset-x-0 top-full truncate pt-1 text-p-sm text-ink-gray-5"
+				>
+					{{ header.subtitle }}
+				</p>
 			</div>
 		</template>
-		<div ref="body" data-record-form :inert="saving">
+		<div ref="body" data-record-form :class="header.subtitle && 'pt-5'" :inert="saving">
 			<component
 				:is="Body"
 				v-if="bodyShown"
