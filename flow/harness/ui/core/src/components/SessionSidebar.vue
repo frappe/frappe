@@ -11,6 +11,7 @@
 	<aside
 		class="flow-sidebar-surface fixed inset-y-0 left-0 z-30 flex w-[var(--sidebar-w)] flex-none flex-col md:relative"
 		:class="[
+			bright && 'flow-sidebar-bright',
 			sliding ? 'transition-[transform,margin-left] duration-200 ease-in-out' : '',
 			// no transform while open: a transformed aside would become the containing
 			// block for a menu's fixed backdrop, clipping it to the sidebar. Open in a wide
@@ -23,82 +24,59 @@
 		:style="{ '--sidebar-w': layout.phone ? 'min(85vw, 360px)' : width + 'px' }"
 		:inert="!open"
 	>
-		<!-- the mark and title in the rows' icon and label columns -->
-		<div class="flex h-12 flex-none items-center gap-2 pl-4 pr-2">
-			<BrandMark line :size="16" class="!text-ink-gray-8" />
-			<span class="text-base font-medium text-ink-gray-8">Flow</span>
+		<div class="flex h-12 flex-none items-center gap-2.5 pl-4 pr-2">
+			<!-- the app's own menu hangs from its name, as in Frappe's other apps: settings and the
+			     way back out live here, not at the foot of the list. The mark and title sit in the
+			     rows' icon and label columns -->
+			<Dropdown :options="appMenu" align="start">
+				<template #trigger>
+					<button
+						class="-ml-1.5 flex h-8 min-w-0 items-center gap-2 rounded-5 pl-1.5 pr-2 hover:bg-surface-gray-3 data-[state=open]:bg-surface-gray-3"
+						title="Flow menu"
+					>
+						<BrandMark line :size="16" class="!text-ink-gray-8" />
+						<span class="text-base-semibold text-ink-gray-9">Flow</span>
+						<span class="lucide-chevron-down size-3.5 flex-none text-ink-gray-5" aria-hidden="true" />
+					</button>
+				</template>
+			</Dropdown>
 			<span class="flex-1" />
-			<button class="flow-icon-btn" title="Hide sidebar" @click="emit('close')">
-				<span class="lucide-panel-left size-4" aria-hidden="true" />
-			</button>
+			<Button variant="ghost" icon="lucide-panel-left" title="Hide sidebar" @click="emit('close')" />
 		</div>
 
-		<!-- 7px over, 9px under: New chat sits midway between the brand mark and the list's header;
-		     it and the header (or search) are as tall as a workspace row -->
+		<!-- 7px over, 9px under: the rows sit midway between the brand mark and the list's header -->
 		<div class="mt-[7px] flex flex-none flex-col gap-0.5 px-2">
-			<SidebarItem icon="lucide-square-pen" class="h-8" @click="startNewChat()">
-				<span class="truncate text-base text-ink-gray-8">New chat</span>
+			<!-- the essentials together at the top: start a chat, or find one, each with its keys on
+			     hover; search opens in a palette over the page -->
+			<SidebarItem icon="lucide-square-pen" @click="startNewChat()">
+				<span class="truncate text-sm">New chat</span>
+				<KeyboardShortcut v-if="!layout.phone" combo="Mod+Shift+O" :class="HINT" />
+			</SidebarItem>
+			<SidebarItem icon="lucide-search" @click="searchOpen = true">
+				<span class="truncate text-sm">Search</span>
+				<KeyboardShortcut v-if="!layout.phone" combo="Mod+K" :class="HINT" />
 			</SidebarItem>
 			<!-- the host's own rows, like links to its pages -->
 			<slot name="nav" />
 		</div>
 
-		<!-- outside the scroller, so search stays in reach down a long list -->
-		<div v-if="flow.state.sessions.length || flow.state.folders?.length || searchOpen" class="list-head mt-[9px] flex h-8 flex-none items-center gap-0.5 px-2">
-			<!-- 4px short of the header and at its top, so the field stands clear of the first row -->
-			<label
-				v-if="searchOpen"
-				class="flex h-[calc(100%-4px)] min-w-0 flex-1 items-center gap-1.5 self-start rounded-4 bg-surface-base pl-2.5 pr-0.5"
-			>
-				<span class="lucide-search size-4 flex-none text-ink-gray-5" aria-hidden="true" />
-				<input
-					ref="searchInput"
-					v-model="query"
-					placeholder="Search chats"
-					aria-label="Search chats"
-					spellcheck="false"
-					class="h-full min-w-0 flex-1 border-0 bg-transparent p-0 text-base text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:ring-0"
-					@keydown.esc="closeSearch"
-					@blur="query || closeSearch()"
-				/>
-				<button
-					class="grid h-full w-6 flex-none place-items-center text-ink-gray-5 hover:text-ink-gray-8"
-					title="Close search"
-					@click="closeSearch"
-				>
-					<span class="lucide-x size-3.5" aria-hidden="true" />
-				</button>
-			</label>
-			<template v-else>
-				<h3 class="min-w-0 flex-1 truncate pl-2 text-sm font-medium text-ink-gray-5">
-					{{ grouped ? "Workspaces" : "Sessions" }}
-				</h3>
-				<button
-					class="grid size-7 flex-none place-items-center rounded-4 text-ink-gray-5 transition-colors hover:bg-surface-gray-3 hover:text-ink-gray-7"
-					title="Search chats"
-					@click="openSearch"
-				>
-					<span class="lucide-search size-4" aria-hidden="true" />
-				</button>
-				<Dropdown v-if="hasWorkspaces" align="end" :options="viewOptions">
-					<template #trigger>
-						<button
-							class="grid size-7 flex-none place-items-center rounded-4 text-ink-gray-5 transition-colors hover:bg-surface-gray-3 hover:text-ink-gray-7 data-[state=open]:bg-surface-gray-3 data-[state=open]:text-ink-gray-7"
-							title="Group and sort"
-						>
-							<span class="lucide-sliders-horizontal size-4" aria-hidden="true" />
-						</button>
-					</template>
-				</Dropdown>
-				<button
-					v-if="hasWorkspaces"
-					class="grid size-7 flex-none place-items-center rounded-4 text-ink-gray-5 transition-colors hover:bg-surface-gray-3 hover:text-ink-gray-7"
-					title="New workspace"
-					@click="newWorkspace"
-				>
-					<span class="lucide-folder-plus size-4" aria-hidden="true" />
-				</button>
-			</template>
+		<!-- outside the scroller, so the heading stays in place down a long list -->
+		<div v-if="flow.state.sessions.length || flow.state.folders?.length" class="list-head mt-[9px] flex h-8 flex-none items-center gap-0.5 px-2">
+			<h3 class="min-w-0 flex-1 truncate pl-2 text-sm-medium text-ink-gray-5">
+				{{ grouped ? "Workspaces" : "Chats" }}
+			</h3>
+			<Dropdown v-if="hasWorkspaces" align="end" :options="viewOptions">
+				<template #trigger>
+					<Button variant="ghost" icon="lucide-sliders-horizontal" title="Group and sort" />
+				</template>
+			</Dropdown>
+			<Button
+				v-if="hasWorkspaces"
+				variant="ghost"
+				icon="lucide-folder-plus"
+				title="New workspace"
+				@click="newWorkspace"
+			/>
 		</div>
 
 		<div class="flex min-h-0 flex-1 flex-col overflow-y-auto px-2 pb-2 pt-0.5">
@@ -140,13 +118,13 @@
 							@update:open="(open) => showCard(group.cwd, open)"
 						>
 							<template #trigger>
-								<span class="row-title folder-name min-w-0 flex-1 overflow-hidden whitespace-nowrap text-base leading-snug text-ink-gray-8">
+								<span class="row-title folder-name min-w-0 flex-1 overflow-hidden whitespace-nowrap text-sm leading-snug text-ink-gray-6">
 									{{ group.name }}
 								</span>
 							</template>
 							<!-- no wider than the room beside the row, which a narrow window's drawer cuts short -->
 							<div class="row-card flex max-w-[min(20rem,var(--reka-hover-card-content-available-width,20rem))] flex-col gap-1.5 px-3 py-2.5">
-								<p class="break-words text-base leading-snug text-ink-gray-8">{{ group.name }}</p>
+								<p class="break-words text-sm leading-snug text-ink-gray-8">{{ group.name }}</p>
 								<p class="flex items-start gap-1.5 text-sm leading-4 text-ink-gray-6">
 									<span class="lucide-folder size-4 flex-none text-ink-gray-5" aria-hidden="true" />
 									<span class="break-all">{{ group.cwd }}</span>
@@ -165,44 +143,45 @@
 							>
 								<template #trigger>
 									<span v-if="layout.phone" class="row-action absolute right-1 top-1/2 size-5 -translate-y-1/2" />
-									<button
+									<Button
 										v-else
-										class="row-action absolute right-8 top-1/2 grid size-6 -translate-y-1/2 place-items-center rounded-4 text-ink-gray-5 hover:bg-surface-gray-4 hover:text-ink-gray-8"
-										:class="menuFor === group.cwd ? 'text-ink-gray-7' : 'flow-hover-reveal'"
+										variant="ghost"
+										size="xs"
+										icon="lucide-ellipsis"
 										title="Workspace options"
+										class="row-action absolute right-8 top-1/2 -translate-y-1/2"
+										:class="menuFor !== group.cwd && 'flow-hover-reveal'"
 										@pointerdown.stop
-									>
-										<span class="lucide-ellipsis size-4" aria-hidden="true" />
-									</button>
+									/>
 								</template>
 							</Dropdown>
-							<button
+							<Button
 								v-if="!layout.phone"
-								class="row-action flow-hover-reveal absolute right-0.5 top-1/2 grid size-6 -translate-y-1/2 place-items-center rounded-4 text-ink-gray-5 hover:bg-surface-gray-4 hover:text-ink-gray-8"
+								variant="ghost"
+								size="xs"
+								icon="lucide-square-pen"
 								:title="`New chat in ${group.name}`"
+								class="row-action flow-hover-reveal absolute right-0.5 top-1/2 -translate-y-1/2"
 								@click="startNewChat(group.cwd)"
 								@pointerdown.stop
-							>
-								<span class="lucide-square-pen size-4" aria-hidden="true" />
-							</button>
+							/>
 						</template>
 					</SidebarItem>
-					<h3 v-else-if="grouped" class="flex h-7 items-center pl-2 text-sm font-medium text-ink-gray-5">
+					<h3 v-else-if="grouped" class="flex h-7 items-center pl-2 text-sm-medium text-ink-gray-5">
 						Ungrouped
 					</h3>
 					<!-- while a workspace is dragged only the workspaces show, so it drops between them -->
 					<Transition name="flow-fold">
 						<div v-if="group.open && dragging?.scope !== 'folder'" class="flow-fold" :class="group.cwd && '-mt-px'">
-							<!-- chats sit 30px apart, the first 31px under its workspace's name; 34px
-							     apart in one list, which has no names to space against. A phone's
-							     taller rows keep the 2px gaps -->
-							<div class="grid min-h-0 grid-cols-1" :class="grouped || layout.phone ? 'gap-0.5' : 'gap-1.5'">
+							<!-- chats sit 30px apart under a workspace's name, 34px apart in one list, which has
+							     no names to space against. A phone's taller rows keep the 2px gaps -->
+							<div class="grid min-h-0 grid-cols-1" :class="grouped || layout.phone ? 'gap-0.5' : 'gap-1'">
 								<SidebarItem
 									v-for="s in group.chats"
 									:key="s.session_id"
 									:label="flow.sessionTitle(s)"
-									class="group relative h-7 select-none data-[state=active]:bg-surface-gray-3 data-[state=active]:shadow-none data-[state=inactive]:text-ink-gray-8"
-									:class="[!grouped && 'quiet', menuFor === s.session_id && 'menu-open bg-surface-gray-2', dragClass(s.session_id)]"
+									class="group relative h-7 select-none"
+									:class="[!grouped && 'spaced', menuFor === s.session_id && 'menu-open bg-surface-gray-2', dragClass(s.session_id)]"
 									:active="chatInView && s.session_id === flow.state.sessionId"
 									:data-reorder="canReorder ? `chat:${group.cwd ?? ''}` : null"
 									:data-key="s.session_id"
@@ -214,7 +193,8 @@
 									@pointerenter="crawlTitle"
 									@pointerleave="pressEnd(); restTitle($event); releaseCard(s.session_id)"
 								>
-									<!-- an empty icon lane lines a workspace's chats up under its name; loose chats line up with the label -->
+									<!-- an empty icon lane lines a workspace's chats up under its name. Loose chats line up
+									     with the icons and the list's heading, so their title takes back SidebarItem's label gap -->
 									<template v-if="group.cwd" #prefix><span class="size-4" /></template>
 									<HoverCard
 										side="right"
@@ -226,14 +206,14 @@
 									>
 										<template #trigger>
 											<span
-												class="row-title min-w-0 flex-1 overflow-hidden whitespace-nowrap text-base leading-snug"
+												class="row-title min-w-0 flex-1 overflow-hidden whitespace-nowrap text-sm leading-snug"
 												:class="!group.cwd && '-ml-2'"
 											>
 												<span class="inline-block">{{ flow.sessionTitle(s) }}</span>
 											</span>
 										</template>
 										<div class="row-card flex max-w-[min(20rem,var(--reka-hover-card-content-available-width,20rem))] flex-col gap-1.5 px-3 py-2.5">
-											<p class="break-words text-base leading-snug text-ink-gray-8">{{ flow.sessionTitle(s) }}</p>
+											<p class="break-words text-sm leading-snug text-ink-gray-8">{{ flow.sessionTitle(s) }}</p>
 											<p v-if="s.cwd" class="flex items-center gap-1.5 text-sm text-ink-gray-6">
 												<span class="lucide-folder size-4 flex-none text-ink-gray-5" aria-hidden="true" />
 												<span class="truncate">{{ flow.folderName(s.workspace ?? s.cwd) }}</span>
@@ -241,26 +221,37 @@
 										</div>
 									</HoverCard>
 									<template #suffix>
+										<!-- over the row, which is a button: a field cannot sit inside it -->
+										<div v-if="renaming === s.session_id" class="absolute inset-0 z-20">
+											<TitleField
+												:value="flow.sessionTitle(s)"
+												label="Chat name"
+												@save="(name) => rename(s.session_id, name)"
+												@cancel="renaming = null"
+											/>
+										</div>
 										<ChatMenu
 											:session-id="s.session_id"
 											:title="flow.sessionTitle(s)"
 											:open="menuFor === s.session_id"
 											@update:open="(open) => setMenu(s.session_id, open)"
+											@rename="renaming = s.session_id"
 										>
-											<button
-												class="row-action chat-options absolute right-0.5 top-1/2 z-10 grid size-6 -translate-y-1/2 place-items-center rounded-4 text-ink-gray-5 transition-[color,opacity] hover:bg-surface-gray-4 hover:text-ink-gray-8"
-												:class="menuFor === s.session_id ? 'text-ink-gray-7 opacity-100' : 'opacity-0 group-hover:opacity-100'"
-												title="Session options"
+											<Button
+												variant="ghost"
+												size="xs"
+												icon="lucide-ellipsis"
+												title="Chat options"
+												class="row-action chat-options absolute right-0.5 top-1/2 z-10 -translate-y-1/2 transition-opacity"
+												:class="menuFor === s.session_id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'"
 												@pointerdown.stop
-											>
-												<span class="lucide-ellipsis size-4" aria-hidden="true" />
-											</button>
+											/>
 										</ChatMenu>
 									</template>
 								</SidebarItem>
 								<SidebarItem v-if="group.toggle" :label="group.toggle" @click="toggleShowAll(group.cwd)">
-									<template #prefix><span class="size-4" /></template>
-									<span class="text-sm leading-snug text-ink-gray-5">{{ group.toggle }}</span>
+									<template v-if="group.cwd" #prefix><span class="size-4" /></template>
+									<span class="text-sm leading-snug text-ink-gray-5" :class="!group.cwd && '-ml-2'">{{ group.toggle }}</span>
 								</SidebarItem>
 							</div>
 						</div>
@@ -293,52 +284,105 @@
 			@pointerdown="startResize"
 			@dblclick="resetWidth"
 		/>
-
-		<footer class="flex flex-col gap-0.5 border-t border-outline-gray-1 p-2">
+		<!-- a host without the app menu's Settings (the harness) keeps it at the foot -->
+		<footer v-if="settingsFooter" class="flex flex-col gap-0.5 border-t border-outline-gray-1 p-2">
 			<SidebarItem icon="lucide-settings" @click="flow.setSettingsOpen(true)">
 				<span class="truncate text-base text-ink-gray-8">Settings</span>
 			</SidebarItem>
 		</footer>
+		<!-- its query is the sidebar's, so a search past the loaded page reloads the chats it matches -->
+		<ChatSearch v-model:open="searchOpen" v-model:query="query" @new="startNewChat()" @pick="pick" />
 	</aside>
 </template>
 
 <script setup>
-import { computed, h, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
+import { computed, h, inject, onBeforeUnmount, onMounted, ref, watch } from "vue"
+import { Avatar } from "frappe-ui/src/components/Avatar"
+import { Button } from "frappe-ui/src/components/Button"
 import Dropdown from "frappe-ui/src/components/Dropdown/Dropdown.vue"
 import HoverCard from "frappe-ui/src/components/HoverCard/HoverCard.vue"
 import SidebarItem from "frappe-ui/src/components/Sidebar/SidebarItem.vue"
+import KeyboardShortcut from "frappe-ui/src/components/KeyboardShortcut/KeyboardShortcut.vue"
+import { useKeyboardShortcut } from "frappe-ui"
 import { dialog } from "frappe-ui/src/utils/dialog"
 
 import { useDebouncedValue } from "../debounce.js"
 import { layout, useSlide } from "../layout.js"
+import { afterMenu } from "../menu.js"
 import BrandMark from "./BrandMark.vue"
 import ChatMenu from "./ChatMenu.vue"
+import ChatSearch from "./ChatSearch.vue"
 import LoadingState from "./LoadingState.vue"
+import TitleField from "./TitleField.vue"
 
 // chatInView: false while a host shows a page in the open chat's place, so no chat row is marked.
-// beforeSwitch: such a host's say before a pick changes the open chat, resolving false to keep it
+// beforeSwitch: such a host's say before a pick changes the open chat, resolving false to keep it.
+// apps ({ title, route, logo }) and logout: the host's ways out of the page, which its menu offers
+// beside Settings. user ({ full_name, email, user_image }): whose account the menu leaves
 const props = defineProps({
 	open: { type: Boolean, default: true },
 	chatInView: { type: Boolean, default: true },
 	beforeSwitch: { type: Function, default: null },
+	apps: { type: Array, default: () => [] },
+	logout: { type: Function, default: null },
+	user: { type: Object, default: null },
+	settingsFooter: { type: Boolean, default: false },
+	// rows and workspace names in the text's own colour, grey kept for headings and hints (the harness)
+	bright: { type: Boolean, default: false },
 })
 const emit = defineEmits(["close"])
 const flow = inject("flow")
+
+const appMenu = computed(() => [
+	...(props.user ? [{ group: "account", hideLabel: true, options: [accountOption(props.user)] }] : []),
+	{
+		group: "page",
+		hideLabel: true,
+		options: [
+			...(props.apps.length ? [{ label: "Apps", icon: "lucide-layout-grid", submenu: props.apps.map(appOption) }] : []),
+			{
+				label: "Settings",
+				icon: "lucide-settings",
+				slots: layout.phone ? {} : { suffix: () => h(KeyboardShortcut, { combo: "Mod+,", showPlus: false, class: "mr-1.5" }) },
+				onClick: afterMenu(() => flow.setSettingsOpen(true)),
+			},
+		],
+	},
+	...(props.logout ? [{ group: "session", hideLabel: true, options: [{ label: "Log out", icon: "lucide-log-out", onClick: props.logout }] }] : []),
+])
+// a heading, not an action: the keys pass over it, and its text keeps its ink
+function accountOption(user) {
+	const avatar = () => h(Avatar, { label: user.full_name, image: user.user_image, size: "xs" })
+	const label = () =>
+		h("div", { class: "min-w-0" }, [
+			h("div", { class: "truncate leading-tighter text-ink-gray-8" }, user.full_name),
+			h("div", { class: "truncate text-p-sm text-ink-gray-5" }, user.email),
+		])
+	return { label: user.full_name, description: user.email, disabled: true, slots: { prefix: avatar, label } }
+}
+function appOption(app) {
+	const logo = () => h("img", { src: app.logo, alt: "", class: "size-4 flex-none rounded-[3px] object-contain" })
+	return { label: app.title, slots: app.logo ? { prefix: logo } : {}, onClick: () => window.location.assign(app.route) }
+}
 
 const query = ref("")
 const debouncedQuery = useDebouncedValue(query, 150)
 watch(debouncedQuery, (q) => flow.searchSessions(q))
 
 const searchOpen = ref(false)
-const searchInput = ref(null)
-function openSearch() {
+watch(searchOpen, (open) => open || (query.value = ""))
+
+// an essential's keys show on its row's hover, never always on
+const HINT = "ml-auto mr-2 opacity-0 transition-opacity group-hover/sidebar-item:opacity-100"
+// the palette floats over the page, so it opens alike with the sidebar shown or hidden; the floating
+// sidebar's Search row asks for it by an event
+function search() {
 	searchOpen.value = true
-	nextTick(() => searchInput.value?.focus())
 }
-function closeSearch() {
-	query.value = ""
-	searchOpen.value = false
-}
+useKeyboardShortcut({ combo: "Mod+K", description: "Search chats", allowInInput: true, handler: search })
+onMounted(() => window.addEventListener("flow-search", search))
+onBeforeUnmount(() => window.removeEventListener("flow-search", search))
+useKeyboardShortcut({ combo: "Mod+Shift+O", description: "New chat", allowInInput: true, handler: () => startNewChat() })
 
 // the row under the last session: scrolling it into view asks for the next page, and a
 // click asks again after a page that failed
@@ -374,6 +418,13 @@ function holdCard(key) {
 function releaseCard(key) {
 	if (cardHeld === key) cardHeld = null
 }
+// the chat whose row is a field for its name
+const renaming = ref(null)
+function rename(sid, name) {
+	renaming.value = null
+	void flow.renameSession(sid, name)
+}
+
 function setMenu(key, open) {
 	menuFor.value = open ? key : null
 	cardFor.value = null
@@ -758,6 +809,10 @@ const emptyMessage = computed(() => {
 </script>
 
 <style scoped>
+.flow-sidebar-bright :deep([data-state="inactive"]),
+.flow-sidebar-bright .folder-name {
+	color: var(--ink-gray-8);
+}
 .flow-backdrop-enter-active,
 .flow-backdrop-leave-active {
 	transition: opacity 0.2s ease;
@@ -790,15 +845,9 @@ const emptyMessage = computed(() => {
 		height: 2.25rem;
 	}
 	.row-title,
-	aside :deep([data-slot="sidebar-item"]) .text-base {
+	aside :deep([data-slot="sidebar-item"]) .text-sm {
 		font-size: theme(fontSize.md);
 	}
-}
-
-/* in one list, chats rest half a step quieter, so the long column reads calmer; the one
-   under the pointer and the open one keep full ink */
-.quiet[data-state="inactive"]:not(:hover, .menu-open) {
-	color: color-mix(in srgb, var(--ink-gray-7) 50%, var(--ink-gray-8));
 }
 
 /* a long chat or workspace name fades out at the row's end */
@@ -894,13 +943,13 @@ const emptyMessage = computed(() => {
 .drop-after::after {
 	bottom: -2px;
 }
-/* one list's 6px gaps, all but a phone's: the line keeps to their middle */
+/* one list's 4px gaps, all but a phone's: the line keeps to their middle */
 @media not all and (max-width: 767px) and (pointer: coarse) {
-	.quiet.drop-before::before {
-		top: -4px;
+	.spaced.drop-before::before {
+		top: -3px;
 	}
-	.quiet.drop-after::after {
-		bottom: -4px;
+	.spaced.drop-after::after {
+		bottom: -3px;
 	}
 }
 .flow-reordering :deep(*) {

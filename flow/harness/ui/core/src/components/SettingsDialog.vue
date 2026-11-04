@@ -2,7 +2,8 @@
 	<!-- a phone shows settings as a page: the sections in a list, each opening as a page of its own
 	     with a way back. Anything worked by a mouse, a narrow panel too, shows the dialog -->
 	<DialogRoot v-if="phone" :open="flow.state.settingsOpen" @update:open="flow.setSettingsOpen($event)">
-		<DialogPortal>
+		<!-- into the host's root, as frappe-ui's own dialogs go: an island's styles live there -->
+		<DialogPortal :to="portalTarget">
 			<DialogContent
 				:aria-describedby="undefined"
 				class="flow-settings-page fixed inset-0 z-50 flex flex-col bg-surface-base focus:outline-none"
@@ -68,7 +69,8 @@
 		:open="flow.state.settingsOpen"
 		@update:open="flow.setSettingsOpen($event)"
 	>
-		<SettingsSidebar class="pt-3">
+		<!-- dark: the nav is the lighter side and the panel the darker, as in Flow's own sidebar and Raven -->
+		<SettingsSidebar class="pt-3 dark:!bg-surface-gray-1">
 			<SettingsNavGroup v-for="(group, i) in groups" :key="i">
 				<template v-if="group.label" #label>
 					<span class="mb-1 block text-xs font-medium text-ink-gray-7">{{ group.label }}</span>
@@ -88,7 +90,7 @@
 
 		<!-- min-w-0 on the pane and each panel: long unbreakable content (paths)
 		     must not widen them past the dialog -->
-		<SettingsContent class="min-w-0">
+		<SettingsContent class="min-w-0 bg-surface-base">
 			<SettingsPanel v-for="item in tabs" :key="item.id" :value="item.id" class="min-w-0">
 				<slot :name="item.id" />
 			</SettingsPanel>
@@ -108,6 +110,7 @@ import {
 	SettingsSidebar,
 } from "frappe-ui/src/components/SettingsDialog"
 import { dialogs } from "frappe-ui/src/utils/dialog"
+import { usePortalTarget } from "frappe-ui/src/composables/usePortalTarget"
 
 import { layout } from "../layout.js"
 import { provideSettingsBack } from "../settingsBack.js"
@@ -119,6 +122,7 @@ const props = defineProps({
 })
 const tab = defineModel("tab", { type: String, default: undefined })
 const flow = inject("flow")
+const portalTarget = usePortalTarget()
 
 const tabs = computed(() => props.groups.flatMap((group) => group.tabs))
 const active = computed({

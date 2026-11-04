@@ -70,7 +70,7 @@ def boot() -> dict[str, Any]:
 		"provider": frappe.db.get_value("Flow Provider", {"enabled": 1}),
 		"file_types": sorted(FILE_EXTENSIONS),
 		"user": frappe.db.get_value(
-			"User", frappe.session.user, ["name", "full_name", "user_image"], as_dict=True
+			"User", frappe.session.user, ["name", "full_name", "email", "user_image"], as_dict=True
 		),
 		"permissions": {
 			doctype: [

@@ -9,11 +9,11 @@
 			'--flow-chat-weight': store.state.prefs.chatFontWeight,
 		}"
 	>
-		<SessionSidebar :open="sidebarOpen" @close="store.setSidebarOpen(false)" />
+		<SessionSidebar :open="sidebarOpen" settings-footer bright @close="store.setSidebarOpen(false)" />
 		<div class="flex min-w-0 flex-1 overflow-clip bg-surface-base md:m-1 md:rounded-5 md:shadow-sm">
 			<main ref="chat" class="relative flex min-w-0 flex-1 flex-col bg-surface-base">
 				<ChatHeader :sidebar-open="sidebarOpen" @open-sidebar="store.setSidebarOpen(true)" />
-				<MessageList ref="list" />
+				<MessageList ref="list" center-composer />
 				<Composer ref="composer" />
 			</main>
 			<WorkspacePanel>

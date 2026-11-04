@@ -18,8 +18,10 @@ const real = new Set([
 	"AgentPalette.vue",
 	"SkillPicker.vue",
 	"SessionSidebar.vue",
+	"SidebarPeek.vue",
 	"ChatHeader.vue",
 	"ChatMenu.vue",
+	"TitleField.vue",
 	"ShareChat.vue",
 	"MessageList.vue",
 	"LoadingState.vue",
@@ -54,7 +56,35 @@ function stubURL(name) {
 	return stubs.get(name);
 }
 
+// frappe-ui's Button: its icon or label, then its suffix, under either import path
+const button = moduleURL(`
+	import { h } from ${JSON.stringify(vue)}
+	export const Button = {
+		props: ["label", "loading", "disabled", "icon", "iconLeft", "variant", "size", "theme"],
+		render() {
+			const icon = this.icon ? h("span", { class: this.icon, "aria-hidden": "true" }) : this.$slots.icon?.()
+			return h("button", { disabled: this.loading || this.disabled }, [
+				icon ?? this.$slots.default?.() ?? this.label, this.$slots.suffix?.(),
+			])
+		},
+	}
+`);
+
 const fakes = {
+	"frappe-ui/src/components/Button": button,
+	"frappe-ui/src/components/Avatar": moduleURL(`
+		import { h } from ${JSON.stringify(vue)}
+		export const Avatar = { render() { return h("div", { "data-stub": "Avatar" }) } }
+	`),
+	"frappe-ui/src/components/TextInput": moduleURL(`
+		import { h } from ${JSON.stringify(vue)}
+		export const TextInput = {
+			props: ["modelValue"],
+			emits: ["update:modelValue"],
+			methods: { focus() { this.$el.focus() } },
+			render() { return h("input", { value: this.modelValue, onInput: (e) => this.$emit("update:modelValue", e.target.value) }) },
+		}
+	`),
 	"frappe-ui": moduleURL(`
 		import { h } from ${JSON.stringify(vue)}
 		const stub = (name) => ({ render() { return h("div", { "data-stub": name }) } })
@@ -66,6 +96,8 @@ const fakes = {
 		export const Switch = stub("Switch")
 		export const ErrorMessage = { props: ["message"], render() { return h("p", this.message) } }
 		export const Avatar = stub("Avatar")
+		// the sidebar's shortcuts: nothing to press in a test
+		export function useKeyboardShortcut() {}
 		export function frappeRequest() {}
 		export const config = {}
 		export function setConfig(key, value) { config[key] = value }
@@ -78,10 +110,7 @@ const fakes = {
 			emits: ["update:modelValue"],
 			render() { return h("div", { "data-control": "select", "data-value": this.modelValue }, (this.options || []).map(o => h("button", { onClick: () => this.$emit("update:modelValue", o.value) }, o.label))) }
 		}
-		export const Button = {
-			props: ["label", "loading"],
-			render() { return h("button", { disabled: this.loading }, this.label) }
-		}
+		export { Button } from ${JSON.stringify(button)}
 		export const FormControl = {
 			props: ["modelValue", "options", "query", "type", "label", "filterable", "loading"],
 			emits: ["update:modelValue", "update:query"],
@@ -115,6 +144,25 @@ const fakes = {
 					h("div", { onClick: () => (shown.value = !shown.value) }, slots.trigger?.()),
 					...((props.open ?? shown.value) ? props.options ?? [] : []).map((o) =>
 						h("button", { role: "menuitem", onClick: o.onClick }, o.label)),
+				])
+			},
+		}
+	`),
+	// a card over its trigger: the trigger, and the card once hovered or held open
+	"frappe-ui/src/components/HoverCard/HoverCard.vue": moduleURL(`
+		import { h, ref } from ${JSON.stringify(vue)}
+		export default {
+			props: ["open"],
+			emits: ["update:open"],
+			setup(props, { slots, emit }) {
+				const shown = ref(false)
+				const hover = () => {
+					shown.value = true
+					emit("update:open", true)
+				}
+				return () => h("div", { "data-stub": "HoverCard" }, [
+					h("div", { onMouseenter: hover }, slots.trigger?.()),
+					...((props.open ?? shown.value) ? [slots.default?.()] : []),
 				])
 			},
 		}

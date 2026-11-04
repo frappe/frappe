@@ -11,9 +11,12 @@
 		"
 	>
 		<template v-if="!sidebarOpen && !history">
-			<button class="flow-icon-btn" title="Show sidebar" @click="emit('open-sidebar')">
-				<span class="lucide-panel-left size-4" aria-hidden="true" />
-			</button>
+			<!-- a hover floats the sidebar; a click brings it back -->
+			<SidebarPeek :menu="appMenu" :before-switch="beforeSwitch">
+				<button class="flow-icon-btn" title="Show sidebar" @click="emit('open-sidebar')">
+					<span class="lucide-panel-left size-4" aria-hidden="true" />
+				</button>
+			</SidebarPeek>
 			<button v-if="started" class="flow-icon-btn" title="New chat" @click="flow.startNewChat()">
 				<span class="lucide-plus size-4" aria-hidden="true" />
 			</button>
@@ -115,6 +118,7 @@ import { layout } from "../layout.js"
 import { conversationTitle, formatTokens } from "../transcript.js"
 import ChatHistory from "./ChatHistory.vue"
 import ChatMenu from "./ChatMenu.vue"
+import SidebarPeek from "./SidebarPeek.vue"
 
 const props = defineProps({
 	sidebarOpen: { type: Boolean, default: true },
@@ -129,6 +133,8 @@ const props = defineProps({
 	// lines meet. Desk's head is 48px, a frappe-ui app's 42px
 	besideNavbar: { type: String, default: null },
 	transcript: { type: Boolean, default: true }, // false: no token readout or Transcript item
+	appMenu: { type: Array, default: () => [] }, // the host's items after Settings in the floating sidebar
+	beforeSwitch: { type: Function, default: null }, // a host's say before the open chat changes
 })
 const emit = defineEmits(["open-sidebar"])
 const flow = inject("flow")

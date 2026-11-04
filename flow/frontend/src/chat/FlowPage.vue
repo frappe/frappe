@@ -1,22 +1,20 @@
 <template>
 	<!-- clip, not hidden: a hidden root still scrolls when focus lands in the closed panel.
 	     The root is the sidebar's colour, so on the /flow page the chat stands on it as a raised
-	     panel; the launcher's panel keeps it flat at any size. The chat's text and its steps are
-	     the composer's size, the text a size up in a wide frame or on a phone -->
+	     panel; the launcher's panel keeps it flat at any size. The chat, its steps and the
+	     composer all read at Desk's base size (14px), at every width -->
 	<div
 		ref="root"
-		class="flow-sidebar-surface flex h-full min-h-0 overflow-clip text-md text-ink-gray-8 [--flow-step-text:theme(fontSize.base)]"
-		:class="
-			layout.phone
-				? '[--flow-chat-text:theme(fontSize.md)]'
-				: '[--flow-chat-text:theme(fontSize.base)] md:[--flow-chat-text:theme(fontSize.md)]'
-		"
+		class="flow-sidebar-surface flex h-full min-h-0 overflow-clip text-base text-ink-gray-8 [--flow-chat-text:theme(fontSize.base)] [--flow-step-text:theme(fontSize.base)]"
 	>
 		<SessionSidebar
 			v-if="!noSidebar"
 			:open="sidebarOpen"
 			:chat-in-view="!pageKind"
 			:before-switch="leavePage"
+			:apps="apps"
+			:logout="logout"
+			:user="page.state.boot.user"
 			@close="store.setSidebarOpen(false)"
 		/>
 		<div
@@ -41,6 +39,8 @@
 					:manage="!inPanel"
 					:beside-navbar="panelHost"
 					:transcript="!inPanel"
+					:app-menu="APP_MENU"
+					:before-switch="leavePage"
 					@open-sidebar="store.setSidebarOpen(true)"
 				>
 					<template v-if="inPanel" #end>
@@ -261,6 +261,25 @@ watch(
 const noSidebar = computed(() => !layout.phone && (layout.narrow || inPanel));
 provide("noSidebar", noSidebar);
 const sidebarOpen = computed(() => !noSidebar.value && store.state.sidebarOpen);
+// the sidebar menu's way to Desk and the other apps, asked for once a sidebar shows
+const apps = ref([]);
+watch(
+	noSidebar,
+	async (none) => {
+		if (none || apps.value.length) return;
+		const installed = await transport.call("frappe.apps.get_apps").catch(() => []);
+		apps.value = [{ title: "Desk", route: "/desk", logo: "/assets/frappe/images/frappe-framework-logo.svg" }, ...installed];
+	},
+	{ immediate: true }
+);
+async function logout() {
+	await transport.call("logout");
+	window.location.assign("/login");
+}
+// the way back to the rest of the site, in the floating sidebar's menu; the sidebar's own menu
+// lists Desk under Apps
+const APP_MENU = [{ label: "Go to Desk", icon: "lucide-external-link", onClick: () => (window.location.href = "/app") }];
+provide("appMenu", APP_MENU);
 // the composer asks in the name of the agent that answers
 const placeholder = computed(() => {
 	const name = store.state.session?.agent ?? page.state.agent;

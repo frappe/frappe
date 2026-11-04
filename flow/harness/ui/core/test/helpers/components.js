@@ -14,6 +14,21 @@ function stubURL(name) {
 		`))
 	return stubs.get(name)
 }
+// the chat search palette: while open, its query field and a way to close it
+stubs.set("ChatSearch", moduleURL(`
+	import { h } from ${JSON.stringify(vue)}
+	export default {
+		props: ["open", "query"],
+		emits: ["update:open", "update:query"],
+		render() {
+			if (!this.open) return null
+			return h("div", { "data-stub": "ChatSearch" }, [
+				h("input", { "aria-label": "Search chats", value: this.query, onInput: (e) => this.$emit("update:query", e.target.value) }),
+				h("button", { title: "Close search", onClick: () => this.$emit("update:open", false) }),
+			])
+		},
+	}
+`))
 const dialogs = moduleURL(`import { ref } from ${JSON.stringify(vue)}; export const dialogs = ref([]); export const dialog = {}`)
 // a test sets the dialog.* calls it expects, or opens one on the stack
 export const { dialog, dialogs: dialogStack } = await import(dialogs)
@@ -27,7 +42,7 @@ const dropdown = moduleURL(`
 			return () => h("div", { "data-stub": "Dropdown" }, [
 				h("div", { onClick: () => (shown.value = !shown.value) }, slots.trigger?.()),
 				...((props.open ?? shown.value) ? props.options ?? [] : []).flatMap((o) => o.options ?? [o]).map((o) =>
-					h("button", { role: "menuitem", onClick: o.onClick }, o.label)),
+					h("button", { role: "menuitem", "data-description": o.description, disabled: o.disabled, onClick: o.onClick }, o.label)),
 			])
 		},
 	}
@@ -123,6 +138,9 @@ const widgets = moduleURL(`
 	const text = (tag) => ({
 		props: ["modelValue"],
 		emits: ["update:modelValue"],
+		// as frappe-ui's fields expose it
+		methods: { focus() { this.$el.focus() } },
+		computed: { inputElement() { return this.$el } },
 		render() {
 			return h(tag, { value: this.modelValue, onInput: (e) => this.$emit("update:modelValue", e.target.value) })
 		},
@@ -147,19 +165,39 @@ const widgets = moduleURL(`
 			return h("span", { "data-stub": "Badge" }, this.$slots.default?.() ?? this.label)
 		},
 	}
-	export const Button = {
-		props: ["label", "disabled"],
+	export const Avatar = {
+		props: ["label", "image", "size"],
 		render() {
-			return h("button", { disabled: this.disabled }, this.label)
+			return h("span", { "data-stub": "Avatar" }, this.label)
+		},
+	}
+	// its slots and icon in frappe-ui's order
+	export const Button = {
+		props: ["label", "disabled", "icon", "iconLeft", "variant", "size", "theme"],
+		render() {
+			const icon = this.icon ? h("span", { class: this.icon, "aria-hidden": "true" }) : this.$slots.icon?.()
+			const prefix = this.iconLeft ? h("span", { class: this.iconLeft, "aria-hidden": "true" }) : this.$slots.prefix?.()
+			return h("button", { disabled: this.disabled }, [prefix, icon ?? this.$slots.default?.() ?? this.label, this.$slots.suffix?.()])
 		},
 	}
 	export const Select = { ...text("select"), props: ["modelValue", "options"] }
+`)
+// the frappe-ui root's pieces ui-core takes from it: a tooltip as its trigger alone, and shortcuts
+// that a test presses through the component's own handlers
+const frappeUI = moduleURL(`
+	export const Tooltip = { inheritAttrs: false, render() { return this.$slots.default?.() } }
+	export function useKeyboardShortcut() {}
+`)
+// no host target in a test: a dialog renders where it is
+const portalTarget = moduleURL(`
+	import { computed } from ${JSON.stringify(vue)}
+	export const usePortalTarget = () => computed(() => undefined)
 `)
 const components = new Set([
 	"Composer.vue", "ToolStep.vue", "ToolGroup.vue", "ApprovalCard.vue", "MessageList.vue", "ModelButton.vue",
 	"SettingsDialog.vue", "SettingsPage.vue", "UserBubble.vue", "TurnFold.vue", "ThinkingBlock.vue", "ThoughtStep.vue",
 	"SubagentView.vue", "TranscriptDialog.vue", "WorkspacePanel.vue", "FilesBar.vue", "FileTree.vue", "LoadingState.vue", "AddToChat.vue",
-	"EditorView.vue", "ChatMenu.vue", "PresetButton.vue", "SuggestedReplies.vue", "ChatHistory.vue",
+	"EditorView.vue", "ChatMenu.vue", "PresetButton.vue", "SuggestedReplies.vue", "ChatHistory.vue", "TitleField.vue",
 ])
 const compiled = new Map()
 
@@ -193,6 +231,10 @@ async function componentURL(url) {
 			resolved = settingsPieces
 		} else if (specifier.startsWith("frappe-ui/src/components/")) {
 			resolved = widgets
+		} else if (specifier === "frappe-ui/src/composables/usePortalTarget") {
+			resolved = portalTarget
+		} else if (specifier === "frappe-ui") {
+			resolved = frappeUI
 		} else if (specifier === "@flow/ui-core") {
 			resolved = uiCore
 		} else {

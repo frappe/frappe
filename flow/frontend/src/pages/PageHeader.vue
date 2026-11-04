@@ -6,9 +6,12 @@
 			<button v-if="noSidebar" class="flow-icon-btn" title="Back to chat" @click="leavePage()">
 				<span class="lucide-arrow-left size-4" aria-hidden="true" />
 			</button>
-			<button v-else class="flow-icon-btn" title="Show sidebar" @click="flow.setSidebarOpen(true)">
-				<span class="lucide-panel-left size-4" aria-hidden="true" />
-			</button>
+			<!-- a hover floats the sidebar; a click brings it back -->
+			<SidebarPeek v-else :menu="appMenu" :before-switch="leavePage">
+				<button class="flow-icon-btn" title="Show sidebar" @click="flow.setSidebarOpen(true)">
+					<span class="lucide-panel-left size-4" aria-hidden="true" />
+				</button>
+			</SidebarPeek>
 			<button class="flow-icon-btn max-md:hidden" title="New chat" @click="newChat">
 				<span class="lucide-plus size-4" aria-hidden="true" />
 			</button>
@@ -32,6 +35,7 @@
 
 <script setup>
 import { inject } from "vue";
+import SidebarPeek from "@flow/ui-core/components/SidebarPeek.vue";
 
 // A page's bar, where a chat has its header: the way to the sidebar while it is hidden, where
 // the page sits, and its actions at the end.
@@ -42,6 +46,7 @@ defineProps({
 const flow = inject("flow");
 const leavePage = inject("leavePage");
 const noSidebar = inject("noSidebar");
+const appMenu = inject("appMenu", []);
 
 // a new chat, in place of the one waiting behind the page, once the page lets go
 async function newChat() {
