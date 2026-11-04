@@ -273,7 +273,6 @@ def test_allowed_roots_fence_every_path(tmp_path, monkeypatch):
 		("/fs/files", {"cwd": str(repo)}),
 		("/fs/files/search", {"cwd": str(repo), "query": "x"}),
 		("/fs/git/changes", {"cwd": str(repo)}),
-		("/fs/git/branch", {"cwd": str(repo)}),
 		("/fs/git/file/diff", {"cwd": str(allowed), "path": "../outside.txt"}),
 		(f"/sessions/{sid}/file/diff", {"path": "../../outside.txt"}),
 	):
@@ -404,17 +403,6 @@ def test_git_changes_and_file_diff_serve_uncommitted_files(tmp_path):
 	assert (untracked["original"], untracked["modified"]) == ("", "a\nb\nc")
 	assert (deleted["original"], deleted["modified"]) == ("x\n", "")
 
-	# the branch checked out; a linked worktree says so, on its own branch, the main checkout does not
-	def head(cwd):
-		return c.get("/fs/git/branch", params={"cwd": str(cwd)}).json()
-
-	assert head(repo) == {"branch": "work", "worktree": False}
-	_git(repo, "worktree", "add", "-q", "-b", "side", str(tmp_path / "side"))
-	assert head(tmp_path / "side") == {"branch": "side", "worktree": True}
-	# a detached HEAD has no branch
-	_git(repo, "checkout", "-q", "--detach")
-	assert head(repo)["branch"] is None
-
 	plain = tmp_path / "plain"
 	plain.mkdir()
 	(plain / "f.txt").write_text("x\n")
@@ -422,7 +410,6 @@ def test_git_changes_and_file_diff_serve_uncommitted_files(tmp_path):
 		"root": None,
 		"files": [],
 	}
-	assert head(plain) == {"branch": None, "worktree": False}
 	assert c.get("/fs/git/file/diff", params={"cwd": str(plain), "path": "f.txt"}).status_code == 400
 
 

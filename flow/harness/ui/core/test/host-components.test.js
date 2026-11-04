@@ -840,7 +840,6 @@ test("a new chat shows its folder, branch and preset over the box until its firs
 			sent = { message, attachments }
 			return new Promise((resolve) => (finishSend = resolve))
 		},
-		gitBranch: async () => ({ branch: "work", worktree: true }),
 		pickFolder: async () => void picks++,
 		folderName: (path) => ({ "/w/expenses": "Expenses app" })[path],
 		activePreset: () => flow.state.presets.find((p) => p.id === flow.state.prefs.activePreset) ?? null,
@@ -859,9 +858,7 @@ test("a new chat shows its folder, branch and preset over the box until its firs
 	const folder = () => el.querySelector("button[title='Change working directory']")
 	await new Promise((resolve) => setImmediate(resolve))
 	assert.equal(folder().textContent.trim(), "Expenses app") // its workspace's name
-	// the branch, marked as a linked worktree's
-	const branch = [...el.querySelector("[title='Branch']").children].map((child) => child.textContent.trim())
-	assert.deepEqual(branch.filter(Boolean), ["work", "worktree"])
+	assert.equal(el.querySelector("[title='Branch']"), null)
 	folder().click()
 	assert.equal(picks, 1)
 

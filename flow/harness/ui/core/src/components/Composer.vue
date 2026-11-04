@@ -895,26 +895,12 @@ const chipRemoveClass =
 	"grid h-5 w-5 flex-none place-items-center rounded-5 text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-8"
 // an existing session's cwd is frozen in its config; only new chats need one picked
 const needsCwd = computed(() => flow.options.requireCwd && !flow.state.sessionId && !flow.state.prefs.cwd)
-// a new chat, until its first message goes out; its folder, and the branch there where the host reads git
+// a new chat, until its first message goes out, and its folder
 const starting = computed(() => !flow.state.sessionId && !flow.state.conversation.sending.length)
 const startCwd = computed(() => {
 	const cwd = flow.state.prefs?.cwd
 	return cwd && cwd !== "." && starting.value ? cwd : null
 })
-// the shell counts it in the composer's height, which the list centres a new chat's heading above
-const startRow = ref(null)
-// { branch, worktree }: null on a detached HEAD or outside a repository
-const git = ref(null)
-watch(
-	startCwd,
-	async (cwd) => {
-		git.value = null
-		if (!cwd || typeof flow.gitBranch !== "function") return
-		const head = await flow.gitBranch()
-		if (cwd === startCwd.value && head?.branch) git.value = head
-	},
-	{ immediate: true },
-)
 const canSend = computed(
 	() =>
 		!submitting.value &&

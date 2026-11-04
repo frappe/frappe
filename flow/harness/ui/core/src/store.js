@@ -1417,17 +1417,6 @@ export function createFlowStore(client, options = {}) {
 		}
 	}
 
-	// a new chat's branch line, which a failure leaves out as quietly
-	async function gitBranch() {
-		const cwd = explorerCwd()
-		if (!cwd || typeof client.gitBranch !== "function") return null
-		try {
-			return await client.gitBranch(cwd)
-		} catch {
-			return null
-		}
-	}
-
 	// the "+ → Files" view: panel open with no active tab, explorer as the focus
 	function showFilesView() {
 		state.workspace.open = true
@@ -1789,7 +1778,6 @@ export function createFlowStore(client, options = {}) {
 		listFiles,
 		searchFiles,
 		gitChanges,
-		gitBranch,
 		selectFile,
 		openSubagent,
 		showFilesView,
