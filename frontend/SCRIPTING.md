@@ -322,7 +322,7 @@ A list's own acts are named `list.<item>`: the built-in `list.create` and `list.
 | Key | What it holds |
 | --- | --- |
 | `list.doctype` | The doctype the list shows. |
-| `list.view` | The view object: `key`, `type`, `filters`, `sort` and `settings`. |
+| `list.view` | The view object: `key`, `type`, and `filters`, `sort` and `settings`, which are refs (read `.value`). |
 | `list.selection` | The names of the selected rows now, a copy. |
 | `list.row` | The row, in a row act only; it holds the `fields` the action names. |
 | `list.reload()` | Loads the rows again, as the list does after its own change. |

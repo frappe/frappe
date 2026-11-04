@@ -241,7 +241,7 @@ What `page` is _for_ is a small, closed vocabulary:
 - **A list act's context**: `run(list, value)` on a `list.*` act, and `value(row, list)` and
   `when(row, list)` on a `list.js` row action, get one `list` with `doctype`, `view`,
   `selection` (a copy of the selected names), `reload()` and, in a row act, `row`. These five
-  names are the contract; a list-page script surface beyond them is not promised.
+  names are the contract, and of `view` only `key`, `type`, `filters`, `sort` and `settings`; a list-page script surface beyond them is not promised.
 
 These are deliberately small, closed, and shaped like frappe rather than like the
 component library beneath them. They are what we would fight hardest to preserve.
