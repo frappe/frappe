@@ -570,7 +570,8 @@ function deriveTurns(entries, steeredSeqs = []) {
 
 // Files touched by a turn's settled edit/write calls, keyed by turn, aggregated
 // per path in first-touch order. Denied/failed calls don't count; a write
-// reports its full line count as additions.
+// reports its full line count as additions. `since` is the seq of the file's
+// first change in the turn, so its diff shows only this turn's edits on.
 function deriveFileChanges(entries, turnByEntry) {
 	const callTurns = new Map()
 	const filesByTurn = new Map()
@@ -585,7 +586,7 @@ function deriveFileChanges(entries, turnByEntry) {
 			if (!path || entry.is_error || stepDecision(entry)) continue
 			const turnKey = callTurns.get(entry.tool_call_id)
 			const files = filesByTurn.get(turnKey) ?? new Map()
-			const file = files.get(path) ?? { path, added: 0, removed: 0 }
+			const file = files.get(path) ?? { path, added: 0, removed: 0, since: entry.seq }
 			file.added += entry.details.lines_added ?? entry.details.lines ?? 0
 			file.removed += entry.details.lines_removed ?? 0
 			files.set(path, file)
