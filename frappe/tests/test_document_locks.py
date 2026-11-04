@@ -1,6 +1,8 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import frappe
+from frappe.core.doctype.user.test_user import test_user
+from frappe.model.document import unlock_document
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils.data import add_to_date, today
 
@@ -17,6 +19,18 @@ class TestDocumentLocks(FrappeTestCase):
 		todo_1.lock()
 		self.assertRaises(frappe.DocumentLockedError, todo.lock)
 		todo_1.unlock()
+
+	def test_unlock_document_requires_write_permission(self):
+		todo = frappe.get_doc(doctype="ToDo", description="unlock check").insert()
+		todo.lock()
+		self.addCleanup(todo.unlock)
+
+		with test_user(roles=["Desk User"]) as user, self.set_user(user.name):
+			self.assertRaises(frappe.PermissionError, unlock_document, "ToDo", todo.name)
+		self.assertTrue(todo.is_locked)
+
+		unlock_document("ToDo", todo.name)
+		self.assertFalse(todo.is_locked)
 
 	def test_operations_on_locked_documents(self):
 		todo = frappe.get_doc(dict(doctype="ToDo", description="testing operations")).insert()

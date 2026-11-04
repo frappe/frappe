@@ -3172,14 +3172,16 @@ def _document_values_generator(
 		yield tuple(doc_values.get(col) for col in columns)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def unlock_document(doctype: str | None = None, name: str | None = None, args=None):
 	# Backward compatibility
 	if not doctype and not name and args:
 		args = json.loads(args)
 		doctype = str(args["doctype"])
 		name = str(args["name"])
-	frappe.get_doc(doctype, name).unlock()
+	doc = frappe.get_doc(doctype, name)
+	doc.check_permission("write")
+	doc.unlock()
 	frappe.msgprint(frappe._("Document Unlocked"), alert=True)
 
 
