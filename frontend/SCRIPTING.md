@@ -422,7 +422,8 @@ It is keyed by fieldname, and the first app to name a fieldname wins:
 | `format` | A dayjs format for a Date or Datetime, such as `'D MMM, hh:mm a'`. Its tooltip is the full date. |
 
 An icon is a name from the icon sprite, with or without the `lucide-` prefix. A key, value or fieldtype
-it does not fit keeps the default cell, and an empty value draws no icon.
+it does not fit keeps the default cell, and an empty value draws no icon. A Check, Rating, Color, Attach
+or Image column keeps its own cell.
 
 ```js
 // crm/fcrm/doctype/crm_task/frontend/list.js

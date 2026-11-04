@@ -35,11 +35,7 @@ export type RowAction = Omit<ActionItem, "value" | "when"> & {
   fields: string[]
 }
 
-/**
- * How a column draws its cells. `icons` (value to icon) puts an icon before the label; `badge` (value to
- * theme) draws a badge; `icon` goes before any non-empty value; `format` is a dayjs format for a Date or
- * Datetime. A key or value this does not name keeps the default cell.
- */
+/** How a column draws its cells; each key is described in SCRIPTING.md. A key or value it does not name keeps the default cell. */
 export type ListCell = {
   icons?: Record<string, string>
   badge?: Record<string, 'gray' | 'blue' | 'green' | 'orange' | 'red'>

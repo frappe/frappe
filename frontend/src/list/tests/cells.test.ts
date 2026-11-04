@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { resetSession } from "@framework/ui/useSession";
+import { resetSession, setSession } from "@framework/ui/useSession";
 import { contributedCells, resolveCell } from "../cells";
 
 afterEach(() => resetSession());
@@ -42,6 +42,19 @@ describe("resolveCell", () => {
 			text: "25 Oct",
 			title: "Sun, Oct 25, 2026",
 		});
+	});
+
+	it("reads a Datetime in the session's zone", () => {
+		const cell = { format: "HH:mm Z" };
+		setSession({ user: {}, roles: [], lang: "en", timezone: "Asia/Kolkata", defaults: {} } as never);
+		expect(resolveCell(cell, "2026-10-25 23:00:00", "Datetime")?.text).toBe("23:00 +05:30");
+		setSession({ user: {}, roles: [], lang: "en", timezone: "America/New_York", defaults: {} } as never);
+		expect(resolveCell(cell, "2026-10-25 23:00:00", "Datetime")?.text).toBe("23:00 -04:00");
+	});
+
+	it("names nothing for an inherited key or a field a cell of its own draws", () => {
+		expect(resolveCell({ badge: { High: "red" } }, "constructor", "Select")).toBeNull();
+		expect(resolveCell({ icons: { 1: "circle" }, icon: "star" }, 1, "Rating")).toBeNull();
 	});
 
 	it("ignores a format on another fieldtype or a value that is no date", () => {

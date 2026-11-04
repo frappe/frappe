@@ -12,6 +12,9 @@ export interface CellView {
 	title?: string;
 }
 
+// `FieldCell` draws these itself, so an app's cell would show their raw value in its place.
+const OWN_CELL_FIELDTYPES = new Set(["Check", "Rating", "Color", "Attach", "Attach Image", "Image"]);
+
 /** Every contributing app's `cells` by fieldname; the first app to name a fieldname wins. */
 export function contributedCells(contributed: ListHandlers[]): Record<string, ListCell> {
 	const cells: Record<string, ListCell> = {};
@@ -23,16 +26,20 @@ export function contributedCells(contributed: ListHandlers[]): Record<string, Li
 
 /** What `cell` draws for `value`, or null when it names nothing for it and the default cell shows. */
 export function resolveCell(cell: ListCell | undefined, value: unknown, fieldtype?: string): CellView | null {
-	if (!cell || value == null || value === "") return null;
+	if (!cell || value == null || value === "" || (fieldtype && OWN_CELL_FIELDTYPES.has(fieldtype))) return null;
 	const key = String(value);
-	const icon = cell.icons?.[key];
+	const icon = named(cell.icons, key);
 	if (icon) return { icon: iconName(icon) };
-	const theme = cell.badge?.[key];
+	const theme = named(cell.badge, key);
 	// frappe-ui's Badge has no `orange`; its warm theme is `amber`.
 	if (theme) return { theme: theme === "orange" ? "amber" : theme };
 	const date = cell.format && fieldtype ? formatted(key, fieldtype, cell.format) : null;
 	if (!cell.icon && !date) return null;
 	return { icon: cell.icon && iconName(cell.icon), ...date };
+}
+
+function named<T>(map: Record<string, T> | undefined, key: string): T | undefined {
+	return map && Object.hasOwn(map, key) ? map[key] : undefined;
 }
 
 /** The sprite names its symbols without frappe-ui's `lucide-` prefix. */

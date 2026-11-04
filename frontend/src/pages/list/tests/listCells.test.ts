@@ -101,38 +101,38 @@ const original = { ...row };
 vi.mock("@/list/useListView", async () => {
 	const { resolveCell } = await import("@/list/cells");
 	return {
-	useListView: () => ({
-		columns: ref(columns),
-		rows: ref([row]),
-		selection: ref([]),
-		pageSize: ref(20),
-		rowsKey: () => "",
-		loading: ref(false),
-		error: ref(null),
-		rowCount: ref(1),
-		totalCount: ref(1),
-		totalCapped: ref(false),
-		totalUnknown: ref(false),
-		hasCounts: ref(true),
-		hasNextPage: ref(false),
-		rowActions: [],
-		fieldOf: (fieldname: string) => metaFields.find((field) => field.fieldname === fieldname),
-		markOf: (fieldname: string) =>
-			fieldname === "agent" ? { source: { kind: "image", field: "user_image" }, key: "agent__mark" } : undefined,
-		cellViewOf: (fieldname: string, value: unknown) =>
-			resolveCell(
-				cells[fieldname],
-				value,
-				metaFields.find((field) => field.fieldname === fieldname)?.fieldtype
-			),
-		statusThemeOf: (fieldname: string, value: unknown) =>
-			fieldname === "status" && value ? "red" : null,
-		currencyOf: (fieldname: string) =>
-			({ amount: { key: "currency" }, fee: { key: "fee__currency" } })[fieldname],
-		linkTitles: ref({ "CRM Deal::D-1": "Acme", "User::ann@example.com": "Ann Lee" }),
-		columnsCustomized: ref(false),
-		rowLink: () => ({}),
-	}),
+		useListView: () => ({
+			columns: ref(columns),
+			rows: ref([row]),
+			selection: ref([]),
+			pageSize: ref(20),
+			rowsKey: () => "",
+			loading: ref(false),
+			error: ref(null),
+			rowCount: ref(1),
+			totalCount: ref(1),
+			totalCapped: ref(false),
+			totalUnknown: ref(false),
+			hasCounts: ref(true),
+			hasNextPage: ref(false),
+			rowActions: [],
+			fieldOf: (fieldname: string) => metaFields.find((field) => field.fieldname === fieldname),
+			markOf: (fieldname: string) =>
+				fieldname === "agent" ? { source: { kind: "image", field: "user_image" }, key: "agent__mark" } : undefined,
+			cellViewOf: (fieldname: string, value: unknown) =>
+				resolveCell(
+					cells[fieldname],
+					value,
+					metaFields.find((field) => field.fieldname === fieldname)?.fieldtype
+				),
+			statusThemeOf: (fieldname: string, value: unknown) =>
+				fieldname === "status" && value ? "red" : null,
+			currencyOf: (fieldname: string) =>
+				({ amount: { key: "currency" }, fee: { key: "fee__currency" } })[fieldname],
+			linkTitles: ref({ "CRM Deal::D-1": "Acme", "User::ann@example.com": "Ann Lee" }),
+			columnsCustomized: ref(false),
+			rowLink: () => ({}),
+		}),
 	};
 });
 vi.mock("@framework/ui/experimental/List", async () => {
