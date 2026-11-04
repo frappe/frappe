@@ -18,6 +18,7 @@ from frappe.flow.lib.session import (
 	ABANDONED,
 	GONE,
 	READ_ONLY,
+	SERVER_STOPPED,
 	STOPPED,
 	LogRecorder,
 	call_on_complete,
@@ -388,6 +389,12 @@ class FlowSession(Document):
 			LogRecorder(self).record(rows)
 		if not info["running"]:
 			fail_running(self.name, ABANDONED)
+			frappe.db.set_value(
+				"Flow Run",
+				{"session": self.name, "status": "Failed", "error": SERVER_STOPPED},
+				"error",
+				ABANDONED,
+			)
 		if info["state"] == "idle":
 			for name in frappe.get_all(
 				"Flow Run", filters={"session": self.name, "status": "Paused"}, pluck="name"

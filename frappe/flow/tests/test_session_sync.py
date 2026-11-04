@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import json
+from datetime import timedelta
 from unittest.mock import Mock, call, patch
 
 import frappe
@@ -20,6 +21,7 @@ from frappe.flow.tests.test_fake_daemon import (
 	turn,
 )
 from frappe.tests import IntegrationTestCase
+from frappe.utils import now_datetime
 
 ON_COMPLETE = "frappe.flow.tests.test_session_sync.ended"
 
@@ -422,3 +424,127 @@ class TestSync(IntegrationTestCase):
 			self.session.chat("and that", on_complete="frappe.flow.tests.test_session_sync.other")
 		self.assertEqual(joined.name, run.name)
 		self.assertEqual(frappe.db.get_value("Flow Run", run.name, "on_complete"), ON_COMPLETE)
+
+
+class TestFailRunsOfStoppedServer(IntegrationTestCase):
+	"""The check that ends runs when the flow server stays down and nothing restarts it."""
+
+	HEALTHY = "frappe.flow.daemon.lifecycle.healthy"
+
+	def setUp(self):
+		model = frappe.get_doc(
+			{"doctype": "Flow Model", "title": "Down Model", "model_id": "openai/gpt-4o-mini", "enabled": 1}
+		).insert()
+		agent = frappe.get_doc(
+			{
+				"doctype": "Flow Agent",
+				"title": "Down Agent",
+				"model": model.name,
+				"instructions": "x",
+				"enabled": 1,
+			}
+		).insert()
+		self.session = frappe.get_doc({"doctype": "Flow Session", "agent": agent.name}).insert()
+		self.run_doc = frappe.get_doc(
+			{
+				"doctype": "Flow Run",
+				"session": self.session.name,
+				"source": "Manual",
+				"input": "hi",
+				"status": "Running",
+				"on_complete": ON_COMPLETE,
+			}
+		).insert(ignore_permissions=True)
+		frappe.cache.delete_value(sessions.SERVER_DOWN_SINCE)
+		self.addCleanup(frappe.cache.delete_value, sessions.SERVER_DOWN_SINCE)
+
+	def tearDown(self):
+		frappe.db.rollback()
+
+	def check(self, healthy=False):
+		with (
+			patch(self.HEALTHY, return_value=healthy),
+			patch(ON_COMPLETE) as on_complete,
+			patch.object(frappe.db, "commit"),
+		):
+			sessions.fail_runs_of_stopped_server()
+		return on_complete
+
+	def status(self):
+		return frappe.db.get_value("Flow Run", self.run_doc.name, "status")
+
+	def server_down_for(self, seconds):
+		frappe.cache.set_value(sessions.SERVER_DOWN_SINCE, now_datetime() - timedelta(seconds=seconds))
+
+	def test_a_healthy_server_leaves_the_run_and_clears_the_timer(self):
+		self.server_down_for(sessions.SERVER_DOWN_LIMIT + 1)
+		on_complete = self.check(healthy=True)
+		on_complete.assert_not_called()
+		self.assertEqual(self.status(), "Running")
+		self.assertFalse(frappe.cache.get_value(sessions.SERVER_DOWN_SINCE))
+
+	def test_the_first_failed_check_only_starts_the_timer(self):
+		on_complete = self.check()
+		on_complete.assert_not_called()
+		self.assertEqual(self.status(), "Running")
+		self.assertTrue(frappe.cache.get_value(sessions.SERVER_DOWN_SINCE))
+
+	def test_a_stop_shorter_than_the_limit_leaves_the_run(self):
+		self.server_down_for(sessions.SERVER_DOWN_LIMIT - 60)
+		on_complete = self.check()
+		on_complete.assert_not_called()
+		self.assertEqual(self.status(), "Running")
+
+	def test_a_stop_past_the_limit_fails_the_run_and_calls_on_complete_once(self):
+		self.server_down_for(sessions.SERVER_DOWN_LIMIT + 1)
+		on_complete = self.check()
+		on_complete.assert_called_once()
+		self.assertEqual(self.status(), "Failed")
+		self.assertEqual(frappe.db.get_value("Flow Run", self.run_doc.name, "error"), sessions.SERVER_STOPPED)
+		self.check().assert_not_called()
+
+	def test_on_complete_runs_as_the_session_owner_and_the_user_is_restored(self):
+		frappe.db.set_value("Flow Session", self.session.name, "owner", "Guest")
+		self.server_down_for(sessions.SERVER_DOWN_LIMIT + 1)
+		users = []
+		with (
+			patch(self.HEALTHY, return_value=False),
+			patch(ON_COMPLETE, side_effect=lambda run: users.append(frappe.session.user)),
+			patch.object(frappe.db, "commit"),
+		):
+			sessions.fail_runs_of_stopped_server()
+		self.assertEqual(users, ["Guest"])
+		self.assertEqual(frappe.session.user, "Administrator")
+
+	def test_no_running_runs_clears_an_old_timer(self):
+		self.run_doc.db_set("status", "Completed")
+		self.server_down_for(sessions.SERVER_DOWN_LIMIT + 1)
+		self.check()
+		self.assertFalse(frappe.cache.get_value(sessions.SERVER_DOWN_SINCE))
+
+	def test_a_server_back_after_the_limit_does_not_add_a_second_run(self):
+		self.server_down_for(sessions.SERVER_DOWN_LIMIT + 1)
+		self.check().assert_called_once()
+		daemon = FakeDaemon()
+		daemon.rows = [*turn(1, "r1")[:2], row(3, "run_ended", reason="interrupted")]
+		daemon.running = False
+		with patch.object(DaemonClient, "for_site", return_value=daemon):
+			self.session.reload()
+			self.session.sync()
+		self.assertEqual(frappe.db.count("Flow Run", {"session": self.session.name}), 1)
+		self.assertEqual(frappe.db.get_value("Flow Run", self.run_doc.name, "error"), sessions.FAILED)
+
+	def test_a_run_with_no_log_rows_is_not_given_a_later_runs_rows(self):
+		self.server_down_for(sessions.SERVER_DOWN_LIMIT + 1)
+		self.check()
+		daemon = FakeDaemon()
+		daemon.running = False
+		with patch.object(DaemonClient, "for_site", return_value=daemon):
+			self.session.reload()
+			self.session.sync()
+			self.assertEqual(frappe.db.get_value("Flow Run", self.run_doc.name, "error"), sessions.ABANDONED)
+			daemon.rows = turn(1, "r2")
+			self.session.reload()
+			self.session.sync()
+		self.assertEqual(self.status(), "Failed")
+		self.assertEqual(frappe.db.count("Flow Run", {"session": self.session.name}), 2)

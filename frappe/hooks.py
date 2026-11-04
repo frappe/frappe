@@ -309,6 +309,7 @@ scheduler_events = {
 			"frappe.automation_engine.scheduler.process_cron",
 			"frappe.automation_engine.drainer.drain_due",
 			"frappe.flow.triggers.dispatch_scheduled",
+			"frappe.flow.lib.session.fail_runs_of_stopped_server",
 		],
 		# 15 minutes
 		"0/15 * * * *": [

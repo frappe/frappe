@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING, Any
 import frappe
 from frappe import _
 from frappe.flow.daemon.client import DaemonClient, DaemonError
+from frappe.utils import now_datetime, time_diff_in_seconds
 
 if TYPE_CHECKING:
 	from frappe.flow.doctype.flow_agent.flow_agent import FlowAgent
@@ -39,8 +40,11 @@ ERRORS = {
 }
 FAILED = "The run failed."
 ABANDONED = "Run abandoned: the flow server stopped before it ended."
+SERVER_STOPPED = "Run abandoned: the flow server stayed down."
 GONE = "Run abandoned: the flow server no longer has this session."
 READ_ONLY = "This session's flow server copy is missing, so it is available as read-only history."
+SERVER_DOWN_SINCE = "flow_server_down_since"
+SERVER_DOWN_LIMIT = 15 * 60  # seconds
 USAGE_KEYS = ("input_tokens", "output_tokens", "cache_read_tokens", "cache_write_tokens", "cost")
 PENDING_KEYS = ("id", "name", "args", "prompt")
 
@@ -157,6 +161,7 @@ class LogRecorder:
 		run = self.run if self.run and self.run.status == "Paused" else self._find_or_create_run()
 		run.daemon_run_id = run_id
 		run.status = "Running"
+		run.error = None
 		run.questions = None
 		run.approval_seq = 0
 		self.run = run
@@ -168,7 +173,13 @@ class LogRecorder:
 		filters: dict[str, Any] = {"session": self.session.name, "status": ("in", ("Running", "Paused"))}
 		if self.matched_runs:
 			filters["name"] = ("not in", list(self.matched_runs))
-		name = frappe.db.get_value("Flow Run", filters, "name", order_by="creation asc")
+		# a run failed while the server was down is still the one its log rows belong to
+		name = frappe.db.get_value(
+			"Flow Run",
+			{**filters, "status": "Failed", "error": SERVER_STOPPED},
+			"name",
+			order_by="creation asc",
+		) or frappe.db.get_value("Flow Run", filters, "name", order_by="creation asc")
 		if name in self.runs:
 			return self.runs[name]
 		if name:
@@ -221,6 +232,35 @@ def fail_running(session_name: str, error: str) -> None:
 		"Flow Run", filters={"session": session_name, "status": "Running"}, pluck="name"
 	):
 		frappe.db.set_value("Flow Run", name, {"status": "Failed", "error": error})
+
+
+def fail_runs_of_stopped_server() -> None:
+	"""Fail running runs once the flow server has stayed down past the limit. A shorter stop is left
+	to the server's own run-end report when it starts again."""
+	from frappe.flow.daemon.lifecycle import healthy
+
+	session_names = frappe.get_all("Flow Run", filters={"status": "Running"}, pluck="session", distinct=True)
+	if not session_names or healthy():
+		frappe.cache.delete_value(SERVER_DOWN_SINCE)
+		return
+
+	down_since = frappe.cache.get_value(SERVER_DOWN_SINCE)
+	if not down_since:
+		frappe.cache.set_value(SERVER_DOWN_SINCE, now_datetime())
+		return
+	if time_diff_in_seconds(now_datetime(), down_since) < SERVER_DOWN_LIMIT:
+		return
+
+	user = frappe.session.user
+	try:
+		for name in session_names:
+			fail_running(name, SERVER_STOPPED)
+			session = frappe.get_doc("Flow Session", name)
+			frappe.set_user(session.owner)  # on_complete runs as the owner; nosemgrep: frappe-setuser
+			call_on_complete(session)
+			frappe.db.commit()  # keep this session's end if a later one fails; nosemgrep: frappe-manual-commit
+	finally:
+		frappe.set_user(user)  # nosemgrep: frappe-setuser
 
 
 def sync_with_retry(session: FlowSession) -> None:
