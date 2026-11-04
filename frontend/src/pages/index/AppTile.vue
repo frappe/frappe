@@ -27,7 +27,7 @@
 
 <script setup lang="ts">
 import type { IndexApp } from "./apps";
-import AppLogo from "./AppLogo.vue";
+import AppLogo from "@/shell/AppLogo.vue";
 
 defineProps<{ id: string; app: IndexApp; selected: boolean }>();
 </script>

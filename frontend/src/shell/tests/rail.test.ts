@@ -22,6 +22,7 @@ registerStandardPages(standardPages);
 
 const fake = vi.hoisted(() => ({
 	logout: vi.fn(),
+	runMethod: vi.fn(),
 	openSettings: vi.fn(),
 	customize: vi.fn(),
 	confirmLogout: vi.fn(),
@@ -31,6 +32,7 @@ const fake = vi.hoisted(() => ({
 vi.mock("@framework/ui/api", async (importOriginal) => ({
 	...(await importOriginal<typeof import("@framework/ui/api")>()),
 	logout: fake.logout,
+	runMethod: fake.runMethod,
 	getTranslations: fake.getTranslations,
 }));
 
@@ -428,6 +430,33 @@ describe("the app menu", () => {
 		await flush();
 		expect(fake.openSettings).toHaveBeenCalledOnce();
 		expect(fake.openSettings).toHaveBeenLastCalledWith();
+	});
+
+	it("lists the person's apps above All apps, less the current one and the hidden ones", async () => {
+		const app = (name: string, hidden = false) => ({
+			app: name,
+			title: name.toUpperCase(),
+			route: `/apps/${name}`,
+			logo: "/logo.svg",
+			kind: "prefix",
+			hidden,
+		});
+		fake.runMethod.mockResolvedValue({
+			data: { doctypes: [], apps: [app("books"), app("crm"), app("hrms", true), app("wiki")], titles: {}, recent: [] },
+		});
+		unmountAll();
+		const host = rail([]);
+		const tile = host.querySelector<HTMLElement>("[data-key='app-menu']")!;
+		tile.focus();
+		await vi.dynamicImportSettled();
+		await flush();
+		tile.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+		await flush();
+		await flush();
+
+		const rows = Array.from(document.body.querySelectorAll<HTMLElement>("[role='menuitem']"));
+		expect(rows.map((row) => row.textContent?.trim())).toEqual(["BOOKS", "WIKI", "All apps", "Settings", "Customize sidebar"]);
+		expect(rows[0].querySelector("[data-app-logo]")).not.toBeNull();
 	});
 
 	it("redraws its rows when the reader's language lands after it opened", async () => {

@@ -701,7 +701,10 @@ describe("the person's layer", () => {
 	});
 
 	it("offers Show on a hidden app the filter found", async () => {
-		fake.runMethod.mockResolvedValue({ data: APPS });
+		// Saving drops the held places, so the search asks for them again.
+		fake.runMethod.mockImplementation(async (method: string) => ({
+			data: method === "frappe.shell.palette.places" ? { doctypes: [], apps: [], titles: {}, recent: [] } : APPS,
+		}));
 		const host = await mount(HIDDEN_CRM);
 		await type(host, "crm");
 		const [show] = await openTileMenu(host, "crm");
@@ -711,7 +714,8 @@ describe("the person's layer", () => {
 		await flush();
 		await type(host, "");
 		expect(tiles(host).map((tile) => tile.dataset.app)).toContain("crm");
-		expect(saved()[0][1]).toEqual({ order: ["frappe", "erpnext", "crm", "gameplan"], hidden: [] });
+		const [, args] = saved().find(([method]) => method === "frappe.shell.boot.save_index_layer")!;
+		expect(args).toEqual({ order: ["frappe", "erpnext", "crm", "gameplan"], hidden: [] });
 	});
 
 	it("says so when every app is hidden, with a way to arrange them", async () => {

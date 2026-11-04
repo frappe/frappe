@@ -6,7 +6,7 @@ from unittest.mock import patch
 import frappe
 from frappe.permissions import add_permission, update_permission_property
 from frappe.shell import SHELL_ROOT
-from frappe.shell.boot import app_screen
+from frappe.shell.boot import app_screen, save_index_layer
 from frappe.shell.links import canonical_path
 from frappe.shell.palette import places
 from frappe.tests import IntegrationTestCase
@@ -117,6 +117,22 @@ class TestPalettePlaces(IntegrationTestCase):
 		frappe_app = next(app for app in reply["apps"] if app["app"] == "frappe")
 		self.assertTrue(frappe_app["route"].startswith(f"/{SHELL_ROOT}/"))
 		self.assertIn("frappe", reply["titles"])
+
+	def test_the_apps_follow_the_index_arrangement_with_what_the_switcher_draws(self):
+		frappe.set_user("Administrator")
+		apps = [row["app"] for row in places()["apps"]]
+		if len(apps) < 2:
+			self.skipTest("needs two apps with an apps screen entry")
+
+		save_index_layer(order=[apps[-1]], hidden=[apps[0]])
+		reply = places()["apps"]
+		by_app = {row["app"]: row for row in reply}
+
+		self.assertEqual(reply[0]["app"], apps[-1])
+		self.assertTrue(by_app[apps[0]]["hidden"])
+		self.assertFalse(by_app[apps[-1]]["hidden"])
+		self.assertEqual({"app", "title", "route", "logo", "kind", "hidden"}, set(reply[0]))
+		self.assertIn(by_app["frappe"]["kind"], ("prefix", "link"))
 
 	def test_a_guest_is_refused(self):
 		frappe.set_user("Guest")

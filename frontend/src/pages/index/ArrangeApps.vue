@@ -64,7 +64,7 @@ import { Button, toast } from "frappe-ui";
 import Draggable from "vuedraggable";
 import { __ } from "@/i18n";
 import type { IndexApp } from "./apps";
-import AppLogo from "./AppLogo.vue";
+import AppLogo from "@/shell/AppLogo.vue";
 import { gridClass } from "./grid";
 import { resetLayer, saveLayer } from "./layer";
 
