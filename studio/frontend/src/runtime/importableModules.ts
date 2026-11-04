@@ -13,7 +13,6 @@
 import * as vue from "vue"
 import * as vueRouter from "vue-router"
 import * as pinia from "pinia"
-import * as vueuse from "@vueuse/core"
 import * as frappeUI from "frappe-ui"
 import * as frappeUIList from "frappe-ui/list"
 
@@ -21,7 +20,6 @@ const modules: Record<string, Record<string, any>> = {
 	vue,
 	"vue-router": vueRouter,
 	pinia,
-	"@vueuse/core": vueuse,
 	"frappe-ui": frappeUI,
 	"frappe-ui/list": frappeUIList,
 }
