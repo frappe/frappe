@@ -68,6 +68,12 @@ export default defineConfig(({ command }) => {
 				lucideIcons: true,
 				buildConfig: false,
 				jinjaBootData: false,
+				// Pre-bundling splits frappe-ui in two: its .ts modules are bundled, its .vue
+				// files are served raw. A module-level singleton (the keyboard shortcut
+				// registry, the imperative dialogs) then gets one copy per side. Deep imports
+				// keep every file on the raw side. linkedOnly: false applies it to the
+				// installed package, not just a linked checkout.
+				barrelImports: { linkedOnly: false },
 			}),
 			frameworkui(),
 			studioRootAlias(),
@@ -112,10 +118,6 @@ export default defineConfig(({ command }) => {
 			chunkSizeWarningLimit: 1000,
 		},
 		optimizeDeps: {
-			// Vite pre-bundles frappe-ui's .ts modules but serves its .vue files raw, so a
-			// module-level singleton (the keyboard shortcut registry, the imperative dialogs)
-			// gets one copy per side and each side only sees its own.
-			exclude: ["frappe-ui"],
 			include: [
 				"engine.io-client",
 				"highlight.js/lib/core",
