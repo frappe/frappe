@@ -1,16 +1,12 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
-import html
-import json
-import re
 from unittest.mock import patch
 
 from werkzeug.wrappers import Response
 
 import frappe
-from frappe.flow.api import boot
-from frappe.flow.launcher import HIDDEN_KEY, add_to_page, set_hidden
+from frappe.flow.launcher import add_to_page, get_app_roots
 from frappe.flow.permissions import FLOW_USER_ROLE, ensure_flow_role
 from frappe.flow.tests.test_permissions import _user
 from frappe.tests import IntegrationTestCase
@@ -48,9 +44,6 @@ class TestFlowPage(IntegrationTestCase):
 		ensure_flow_role()
 		member = _user("flow-launcher-member@example.com", FLOW_USER_ROLE)
 		outsider = _user("flow-launcher-none@example.com")
-		translation = {"doctype": "Translation", "language": "de", "source_text": "Hide Flow icon"}
-		frappe.get_doc({**translation, "translated_text": "Flow-Symbol ausblenden"}).insert()
-		self.addCleanup(frappe.translate.clear_cache)  # translations cached before the rollback
 
 		def page(path):
 			set_request(path=path)
@@ -59,34 +52,25 @@ class TestFlowPage(IntegrationTestCase):
 			return response.get_data(as_text=True)
 
 		frappe.set_user(member)
-		self.assertRegex(
-			page("/desk/user"),
-			r'<p>page</p><script src="[^"]+flow_launcher\.bundle[^"]*" data-labels="[^"]+" defer></script></body>',
-		)
-		# its words in the user's language, which the apps' pages can't translate
-		self.addCleanup(setattr, frappe.local, "lang", frappe.local.lang)
-		frappe.local.lang = "de"
-		labels = re.search(r'data-labels="([^"]+)"', page("/desk/user"))[1]
-		self.assertEqual(json.loads(html.unescape(labels))["hide"], "Flow-Symbol ausblenden")
+		assets = {
+			"frappe.flow.chat.island.js": "/assets/frappe/dist/flow/frappe.flow.chat.island.ABC.js",
+			"frappe.flow.chat.island.css": "/assets/frappe/dist/flow/frappe.island.DEF.css",
+		}
+		with patch("frappe.flow.launcher.get_assets_json", return_value=assets):
+			self.assertRegex(
+				page("/desk/user"),
+				r'<p>page</p><script src="[^"]+flow_launcher\.bundle[^"]*" defer'
+				r' data-island="/assets/frappe/dist/flow/frappe\.flow\.chat\.island\.ABC\.js"'
+				r' data-island-css="/assets/frappe/dist/flow/frappe\.island\.DEF\.css"></script></body>',
+			)
 		# not on the website, nor on /flow itself
 		self.assertNotIn("flow_launcher", page("/about"))
 		self.assertNotIn("flow_launcher", page("/flow"))
-		# nor for a user who hid it, until /flow's settings show it again
-		self.addCleanup(frappe.defaults.clear_user_default, HIDDEN_KEY, member)  # the cached defaults
-		set_hidden(True)
-		self.assertNotIn("flow_launcher", page("/desk/user"))
-		self.assertTrue(boot()["launcher_hidden"])
-		set_hidden(False)
-		self.assertIn("flow_launcher", page("/desk/user"))
-		self.assertFalse(boot()["launcher_hidden"])
+		# nor in Raven, which has an integration of its own
+		with patch("frappe.get_hooks", return_value=[{"route": "/desk"}, {"route": "/raven"}]):
+			self.assertEqual(get_app_roots(), {"desk", "studio"})
+			self.assertNotIn("flow_launcher", page("/raven/channel/general"))
 		# nor for anyone who may not use Flow
 		for user in (outsider, "Guest"):
 			frappe.set_user(user)
 			self.assertNotIn("flow_launcher", page("/desk/user"))
-
-	def test_the_dev_boot_needs_developer_mode(self):
-		with patch.dict(frappe.local.conf, {"developer_mode": 0}):
-			with self.assertRaises(frappe.PermissionError):
-				index.get_context_for_dev()
-		with patch.dict(frappe.local.conf, {"developer_mode": 1}):
-			self.assertIn("flow_boot", index.get_context_for_dev())

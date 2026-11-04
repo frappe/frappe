@@ -13,18 +13,22 @@
 		<div
 			v-if="empty"
 			ref="emptyState"
-			class="flex h-full flex-col items-center justify-center gap-5 text-center"
-			:style="{ paddingBottom: composerHeight + 'px' }"
+			class="flex h-full flex-col items-center [justify-content:safe_center] gap-3 text-center"
+			:style="{ paddingBottom: docked ? '12vh' : composerHeight + 'px' }"
 		>
+			<!-- docked, the group is lifted: centred under the header it reads low, and the eye's centre
+			     sits a little above the true one -->
 			<slot name="empty">
 				<!-- a step smaller on a phone, and smaller still where the heading would run out of room -->
-				<BrandMark :size="52" class="min-h-0 shrink max-sm:!h-10 max-sm:!w-10" />
-				<h2 class="text-balance text-4xl font-normal leading-snug tracking-[-0.01em] text-ink-gray-9 sm:text-6xl">What would you like to build?</h2>
+				<BrandMark line :size="32" class="min-h-0 shrink max-sm:!h-7 max-sm:!w-7" />
+				<h2 class="text-balance text-4xl leading-snug tracking-[-0.01em] text-ink-gray-9 sm:text-6xl">What would you like to build?</h2>
 			</slot>
+			<!-- the composer's place under the greeting; it floats here until the first message -->
+			<div v-if="docked" ref="dock" class="mt-5 w-full shrink-0" :style="{ height: composerHeight + 'px' }" />
 		</div>
 		<LoadingState
 			v-else-if="loading"
-			class="h-full justify-center text-sm text-ink-gray-5"
+			class="h-full justify-center text-base text-ink-gray-5"
 			:style="{ paddingBottom: composerHeight + 'px' }"
 		/>
 		<div
@@ -85,19 +89,19 @@
 						:text="item.text"
 						:ts="item.ts"
 					/>
-					<span v-if="formatTime(item.ts)" class="text-2xs text-ink-gray-4">{{ formatTime(item.ts) }}</span>
+					<span v-if="formatTime(item.ts)" class="flow-turn-time text-ink-gray-4" :class="layout.phone ? 'text-sm' : 'text-xs md:text-sm'">{{ formatTime(item.ts) }}</span>
 				</div>
 				<TurnFiles v-else-if="item.kind === 'turn-files'" class="flow-turn-files -mt-1" :files="item.files" />
 				<div
 					v-else-if="item.kind === 'compaction'"
-					class="flex items-center gap-2.5 text-sm text-ink-gray-5"
+					class="flex items-center gap-2.5 text-base text-ink-gray-5"
 				>
 					<span class="lucide-archive size-3.5 flex-none" aria-hidden="true" />
 					<span>Context compacted ({{ item.entry.reason }})</span>
 				</div>
 				<div
 					v-else-if="item.kind === 'notice'"
-					class="flex items-center gap-3 py-1 text-2xs text-ink-gray-4"
+					class="flex items-center gap-3 py-1 text-xs text-ink-gray-4"
 				>
 					<span class="h-px flex-1 bg-surface-gray-3" />
 					<span>{{ item.text }}</span>
@@ -105,7 +109,7 @@
 				</div>
 				<div
 					v-else-if="item.kind === 'error'"
-					class="break-words rounded-6 border border-outline-red-1 bg-surface-red-1 px-3.5 py-2.5 text-sm text-ink-red-6"
+					class="break-words rounded-6 border border-outline-red-1 bg-surface-red-1 px-3.5 py-2.5 text-base text-ink-red-6"
 				>
 					{{ item.error.message }}
 				</div>
@@ -123,14 +127,15 @@
 
 			<!-- Before the first streamed block (or during retry/compaction), no
 			     transcript item owns the live status, so render one fallback line.
-			     py-2.5 keeps it on the same rhythm as the rows that replace it; after
+			     Its padding keeps it on the same rhythm as the rows that replace it; after
 			     a thinking block the thread gap collapses too, so the status sits
 			     exactly where the upcoming tool row will render. -->
 			<div
 				v-if="showStandaloneStatus"
-				class="py-2.5 text-sm font-medium"
+				class="flex items-center gap-2 py-2 text-base font-medium md:py-2.5"
 				:class="lastItem?.kind === 'thinking' ? '-mt-5' : ''"
 			>
+				<BrandMark line :size="16" :state="/think/i.test(liveLabel) ? 'thinking' : 'working'" />
 				<span class="flow-shimmer">{{ liveLabel }}</span>
 			</div>
 
@@ -161,6 +166,7 @@
 <script setup>
 import { computed, inject, nextTick, onBeforeUnmount, onMounted, provide, reactive, ref, watch } from "vue"
 
+import { layout } from "../layout.js"
 import { buildItems, formatTime, panelIds, suggestedReplies, userAttachments, userText } from "../transcript.js"
 import AddToChat from "./AddToChat.vue"
 import AssistantText from "./AssistantText.vue"
@@ -196,6 +202,31 @@ const blank = computed(() => !items.value.length && !conversation.value.running 
 const empty = computed(() => blank.value && !flow.state.loading)
 const loading = computed(() => blank.value && flow.state.loading)
 const composerHeight = inject("composerHeight", ref(120))
+// a wide new chat holds the box under its greeting, as a letter starts under its salutation; a
+// phone keeps it at the foot, by the thumb and the keyboard
+const composerLift = inject("composerLift", ref(0))
+// a new chat's box sits under the mark in the middle, in the Desk panel too; a phone keeps it at
+// the foot, where its keyboard leaves it in reach
+const docked = computed(() => empty.value && !layout.phone && composerHeight.value > 0)
+const dock = ref(null)
+let dockObserver = null
+function measureDock() {
+	const el = dock.value
+	const list = el?.offsetParent
+	composerLift.value = el && list ? Math.max(0, list.clientHeight - el.offsetTop - el.offsetHeight) : 0
+}
+watch(dock, (el) => {
+	dockObserver?.disconnect()
+	measureDock()
+	if (!el || typeof ResizeObserver === "undefined") return
+	dockObserver = new ResizeObserver(measureDock)
+	dockObserver.observe(el)
+	dockObserver.observe(el.offsetParent ?? el)
+})
+onBeforeUnmount(() => {
+	dockObserver?.disconnect()
+	composerLift.value = 0
+})
 const lastTurnCopyIndex = computed(() =>
 	items.value.findLastIndex((item) => item.kind === "turn-copy"),
 )

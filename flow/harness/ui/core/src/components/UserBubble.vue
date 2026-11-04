@@ -25,7 +25,7 @@
 					<span class="grid h-6 w-6 flex-none place-items-center rounded-5 bg-surface-gray-1 text-ink-gray-6">
 						<span class="size-3.5" :class="chip.icon" aria-hidden="true" />
 					</span>
-					<span class="truncate text-xs font-medium text-ink-gray-8">{{ chip.label }}</span>
+					<span class="truncate text-sm font-medium text-ink-gray-8">{{ chip.label }}</span>
 				</span>
 			</div>
 			<div
@@ -44,14 +44,14 @@
 					>{{ quote }}</blockquote></div><span v-for="(part, i) in parts" :key="i" :class="{ 'text-ink-blue-6': part.skill }">{{ part.text }}</span></div>
 			<button
 				v-if="clampable"
-				class="mt-1.5 text-xs font-medium text-ink-gray-5 hover:text-ink-gray-8"
+				class="mt-1.5 text-sm font-medium text-ink-gray-5 hover:text-ink-gray-8"
 				@click="expanded = !expanded"
 			>
 				{{ expanded ? "Show less" : "Show more" }}
 			</button>
 		</div>
 		<span class="absolute bottom-0 right-0.5 flex items-center gap-1">
-			<span v-if="time" class="flow-hover-reveal mr-1 text-2xs text-ink-gray-4">{{ time }}</span>
+			<span v-if="time" class="flow-hover-reveal mr-1 text-ink-gray-4" :class="layout.phone ? 'text-sm' : 'text-xs md:text-sm'">{{ time }}</span>
 			<button
 				v-if="rewindable"
 				title="Rewind to this message"
@@ -73,6 +73,7 @@
 import { computed, inject, onBeforeUnmount, onMounted, ref } from "vue"
 import { dialog } from "frappe-ui/src/utils/dialog"
 
+import { layout } from "../layout.js"
 import {
 	codeRefLabel,
 	formatTime,

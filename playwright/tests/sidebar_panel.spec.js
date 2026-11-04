@@ -113,8 +113,8 @@ test.describe("Sidebar Panel", () => {
 		await expect(page.locator(".dock-utilities .sidebar-notification")).toBeVisible();
 		await expect(band.locator(".navbar-modal-search-mobile")).toBeHidden();
 		await expect(band.locator(".sidebar-notification")).toBeHidden();
-		await expect(band.locator(".sidebar-background-tasks")).not.toHaveCount(0);
-		await expect(page.locator(".dock .sidebar-background-tasks")).toHaveCount(0);
+		await expect(band.locator(".sidebar-background-tasks")).toBeHidden();
+		await expect(page.locator(".dock-utilities .sidebar-background-tasks")).toHaveCount(1);
 	});
 
 	test("shows unread notifications as a dot on the dock bell", async () => {

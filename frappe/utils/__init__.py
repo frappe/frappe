@@ -270,6 +270,11 @@ def validate_url(
 	return is_valid
 
 
+def has_unsafe_url_scheme(txt: str) -> bool:
+	"""Return True if `txt` has a scheme that runs code when the URL is opened."""
+	return urlparse(txt).scheme in ("javascript", "vbscript", "data")
+
+
 def validate_iban(iban: str, throw: bool = False) -> bool:
 	from frappe import _
 
@@ -808,7 +813,7 @@ def get_name_from_email_string(email_string, email_id, name):
 
 def get_installed_apps_info():
 	out = []
-	from frappe.utils.change_log import get_versions
+	from frappe.utils.change_log import get_app_versions
 
 	out.extend(
 		{
@@ -816,7 +821,7 @@ def get_installed_apps_info():
 			"version": version_details.get("branch_version") or version_details.get("version"),
 			"branch": version_details.get("branch"),
 		}
-		for app, version_details in get_versions(include_disabled=True).items()
+		for app, version_details in get_app_versions(include_disabled=True).items()
 	)
 	return out
 

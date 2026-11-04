@@ -94,9 +94,12 @@
     user-select: none;
     outline: none;
 
-    /* button rows: strip the native button look */
+    /* button rows: strip the native button look and font */
     border: 0;
     background: transparent;
+    font-family: inherit;
+    font-weight: inherit;
+    letter-spacing: inherit;
 }
 
 .es-menu__item:hover {

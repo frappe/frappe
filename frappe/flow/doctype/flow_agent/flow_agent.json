@@ -10,6 +10,7 @@
   "description",
   "enabled",
   "is_system_generated",
+  "app",
   "column_break_meta",
   "model",
   "max_iterations",
@@ -57,6 +58,15 @@
    "fieldname": "is_system_generated",
    "fieldtype": "Check",
    "label": "System Generated",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "description": "The app that defines this agent in code.",
+   "fieldname": "app",
+   "fieldtype": "Data",
+   "label": "App",
+   "no_copy": 1,
    "read_only": 1
   },
   {
@@ -170,7 +180,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-10-21 23:45:00.000000",
+ "modified": "2026-10-30 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Flow",
  "name": "Flow Agent",

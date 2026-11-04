@@ -116,6 +116,26 @@ class TestSafeExec(IntegrationTestCase):
 			frappe.PermissionError, safe_exec, 'frappe.db.sql("update tabToDo set description=NULL")'
 		)
 
+	def test_sql_export_blocked_with_comment_separator(self):
+		for separator in ("/**/", "/*!50000 */", "-- x\n", "#x\n", " ", "\n"):
+			for keyword in ("outfile", "dumpfile"):
+				query = f"select 1 into{separator}{keyword} '/tmp/x'"
+				self.assertFalse(safe_exec_utils.check_safe_sql_query(query, throw=False), query)
+
+		self.assertFalse(
+			safe_exec_utils.check_safe_sql_query("select 1 /*! into outfile '/tmp/x' */", throw=False)
+		)
+		self.assertTrue(safe_exec_utils.check_safe_sql_query("select /* note */ 1 -- end", throw=False))
+
+	def test_sql_export_blocked_when_split_by_comment_like_text(self):
+		for query in (
+			"select 1--1 into/**/outfile '/tmp/x'",
+			"select '/*' into/**/outfile '/tmp/x' -- */",
+			"select 1 /*!into*/ /*!outfile*/ '/tmp/x'",
+			"select 1 into/*!50000dumpfile*/'/tmp/x'",
+		):
+			self.assertFalse(safe_exec_utils.check_safe_sql_query(query, throw=False), query)
+
 	def test_query_builder(self):
 		_locals = dict(out=None)
 		safe_exec(

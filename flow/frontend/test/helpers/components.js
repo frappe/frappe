@@ -12,13 +12,13 @@ const moduleURL = (code) => `data:text/javascript;base64,${Buffer.from(code).toS
 const real = new Set([
 	"FlowPage.vue",
 	"RecordPage.vue",
-	"RecordList.vue",
 	"RecordForm.vue",
 	"PageHeader.vue",
 	"AgentPicker.vue",
 	"AgentPalette.vue",
 	"SkillPicker.vue",
 	"SessionSidebar.vue",
+	"SidebarPeek.vue",
 	"ChatHeader.vue",
 	"ChatMenu.vue",
 	"ShareChat.vue",
@@ -67,6 +67,13 @@ const fakes = {
 		export const Switch = stub("Switch")
 		export const ErrorMessage = { props: ["message"], render() { return h("p", this.message) } }
 		export const Avatar = stub("Avatar")
+		// a hint around a control: only the control renders
+		export const Tooltip = { inheritAttrs: false, render() { return this.$slots.default?.() } }
+		// the sidebar's shortcuts: nothing to press in a test
+		export function useKeyboardShortcut() {}
+		export function frappeRequest() {}
+		export const config = {}
+		export function setConfig(key, value) { config[key] = value }
 		export const Dialog = {
 			props: ["open", "title"],
 			render() { return this.open ? h("div", { role: "dialog", "aria-label": this.title }, [this.$slots.default?.(), this.$slots.actions?.()]) : null }
@@ -110,9 +117,28 @@ const fakes = {
 			setup(props, { slots }) {
 				const shown = ref(false)
 				return () => h("div", { "data-stub": "Dropdown" }, [
-					h("div", { onClick: () => (shown.value = !shown.value) }, slots.trigger?.()),
+					h("div", { onClick: () => (shown.value = !shown.value) }, slots.trigger?.({ open: props.open ?? shown.value })),
 					...((props.open ?? shown.value) ? props.options ?? [] : []).map((o) =>
 						h("button", { role: "menuitem", onClick: o.onClick }, o.label)),
+				])
+			},
+		}
+	`),
+	// a card over its trigger: the trigger, and the card once hovered or held open
+	"frappe-ui/src/components/HoverCard/HoverCard.vue": moduleURL(`
+		import { h, ref } from ${JSON.stringify(vue)}
+		export default {
+			props: ["open"],
+			emits: ["update:open"],
+			setup(props, { slots, emit }) {
+				const shown = ref(false)
+				const hover = () => {
+					shown.value = true
+					emit("update:open", true)
+				}
+				return () => h("div", { "data-stub": "HoverCard" }, [
+					h("div", { onMouseenter: hover }, slots.trigger?.()),
+					...((props.open ?? shown.value) ? [slots.default?.()] : []),
 				])
 			},
 		}
@@ -149,7 +175,22 @@ const fakes = {
 		}
 		export function connectSocket() { return socket }
 	`),
+	// the island's entry: the mount records what it was given and runs its configure
+	"@framework/ui/island": moduleURL(`
+		import { createMemoryHistory, createRouter } from ${JSON.stringify(import.meta.resolve("vue-router"))}
+		export const mounts = []
+		export async function mountVueIsland(el, options) {
+			const router = createRouter({ history: options.history ?? createMemoryHistory(), routes: options.routes })
+			options.configure?.({ config: { globalProperties: { $router: router } } })
+			mounts.push({ el, options, router })
+			return { shadow_root: { host: el } }
+		}
+	`),
+	"./index.css": moduleURL(""),
 };
+// the app's root modules reach the site through the same fake
+fakes["./api/frappe.js"] = fakes["../api/frappe.js"];
+export const island = await import(fakes["@framework/ui/island"]);
 export const transport = await import(fakes["../api/frappe.js"]);
 export const { toast, dialog } = await import(fakes["frappe-ui"]);
 
@@ -162,8 +203,8 @@ async function componentURL(url) {
 		const { descriptor } = parse(source, { filename: url.pathname });
 		content = compileScript(descriptor, { id: url.pathname, inlineTemplate: true }).content;
 	}
-	// static imports and lazy import("…") calls
-	const imports = [...content.matchAll(/\b(from\s+|import\(\s*)["']([^"']+)["']/g)];
+	// static imports, bare ones (a stylesheet) and lazy import("…") calls
+	const imports = [...content.matchAll(/\b(from\s+|import\(\s*|import\s+)["']([^"']+)["']/g)];
 	for (const match of imports.reverse()) {
 		const specifier = match[2];
 		let resolved;

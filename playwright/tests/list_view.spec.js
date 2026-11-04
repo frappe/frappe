@@ -1,6 +1,7 @@
 import { test, expect } from "../support";
 
 const CHECK_ALL = ".list-header-subject .list-subject .list-check-all";
+const PHONE = { width: 375, height: 667 };
 
 test.describe("List View", () => {
 	test.beforeAll(async ({ admin }) => {
@@ -255,17 +256,74 @@ test.describe("List View", () => {
 
 		const order = page.locator(".sort-selector .btn-order");
 		await expect(order).toHaveAttribute("title", "descending");
-		await expect(order.locator(".sort-order use")).toHaveAttribute(
-			"href",
-			"#icon-arrow-down-wide-narrow"
-		);
+		await expect(order.locator("use")).toHaveAttribute("href", "#icon-arrow-down-wide-narrow");
 
 		await order.click();
 		await expect(order).toHaveAttribute("data-value", "asc");
 		await expect(order).toHaveAttribute("title", "ascending");
-		await expect(order.locator(".sort-order use")).toHaveAttribute(
+		await expect(order.locator("use")).toHaveAttribute("href", "#icon-arrow-up-narrow-wide");
+	});
+
+	test("sorts from a sheet on phones", async ({ page, desk }) => {
+		await page.setViewportSize(PHONE);
+		await desk.go_to_list("ToDo");
+		await desk.clear_filters();
+		await page.evaluate(() => cur_list.sort_selector.set_value("creation", "desc"));
+
+		const sort_button = page.getByRole("button", { name: "Sort", exact: true });
+		const sheet = page.locator(".es-bottom-sheet");
+		const option = (name) => sheet.getByRole("button", { name, exact: true });
+
+		await sort_button.click();
+		await expect(option("Descending")).toHaveAttribute("aria-pressed", "true");
+		await expect(option("Created On")).toHaveAttribute("aria-pressed", "true");
+
+		await option("Ascending").click();
+		await expect(sheet).toBeHidden();
+		await expect
+			.poll(() => page.evaluate(() => [cur_list.sort_by, cur_list.sort_order]))
+			.toEqual(["creation", "asc"]);
+
+		await sort_button.click();
+		await option("Last Updated On").click();
+		await expect
+			.poll(() => page.evaluate(() => [cur_list.sort_by, cur_list.sort_order]))
+			.toEqual(["modified", "asc"]);
+		await expect(sort_button.locator("use")).toHaveAttribute(
 			"href",
 			"#icon-arrow-up-narrow-wide"
 		);
+	});
+
+	test.describe("on a touch phone", () => {
+		test.use({ viewport: PHONE, hasTouch: true });
+
+		test("opens a row's actions on a long press", async ({ page, desk }) => {
+			await desk.go_to_list("ToDo");
+			await desk.clear_filters();
+
+			const row = page
+				.locator(".result .list-row-container:has(.list-row-checkbox)")
+				.first();
+			const subject = (await row.locator(".list-subject").innerText()).trim();
+			const box = await row.boundingBox();
+			const point = { x: box.x + box.width - 40, y: box.y + box.height / 2 };
+			const cdp = await page.context().newCDPSession(page);
+			await cdp.send("Input.dispatchTouchEvent", {
+				type: "touchStart",
+				touchPoints: [point],
+			});
+			await page.waitForTimeout(700);
+			await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+
+			await expect(page.locator(".es-bottom-sheet .es-bottom-sheet__title")).toHaveText(
+				subject
+			);
+			await expect
+				.poll(() =>
+					page.evaluate(() => [frappe.get_route()[0], cur_list.checked_docnames.size])
+				)
+				.toEqual(["List", 1]);
+		});
 	});
 });

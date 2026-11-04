@@ -8,7 +8,14 @@ import frappe
 from frappe import _
 from frappe.model import child_table_fields, display_fieldtypes, no_value_fields, std_fields, table_fields
 from frappe.studio.constants import STANDARD_COMPONENT_NAMES
-from frappe.studio.utils import get_exported_app_folders, has_page_write_perm, validate_installed_app
+from frappe.studio.utils import (
+	get_export_folder,
+	get_exported_app_folders,
+	get_exported_app_name,
+	get_studio_folder,
+	has_page_write_perm,
+	validate_installed_app,
+)
 from frappe.utils import sbool
 
 
@@ -112,7 +119,7 @@ def get_custom_vue_components(frappe_app: str) -> list[dict]:
 	components = []
 	seen_names = set()
 
-	studio_folder = frappe.get_app_source_path(frappe_app, "studio")
+	studio_folder = get_studio_folder(frappe_app)
 	if not os.path.exists(studio_folder):
 		return []
 
@@ -137,7 +144,7 @@ def get_custom_vue_components(frappe_app: str) -> list[dict]:
 		return False
 
 	for studio_app_dir in get_exported_app_folders(studio_folder):
-		studio_app = os.path.basename(studio_app_dir)
+		studio_app = get_exported_app_name(studio_app_dir)
 		for dirpath, _dirnames, filenames in os.walk(studio_app_dir):
 			for filename in sorted(filenames):
 				if not filename.endswith(".vue"):
@@ -172,7 +179,7 @@ def get_studio_page_scripts(frappe_app: str) -> list[dict]:
 	validate_installed_app(frappe_app)
 	scripts = []
 
-	studio_folder = frappe.get_app_source_path(frappe_app, "studio")
+	studio_folder = get_studio_folder(frappe_app)
 	if not os.path.exists(studio_folder):
 		return []
 
@@ -356,7 +363,7 @@ def _studio_app_root(frappe_app: str, studio_app: str) -> str:
 		frappe.throw(
 			_("Studio App {0} is not exported to {1}.").format(studio_app, frappe_app), frappe.PermissionError
 		)
-	return os.path.realpath(frappe.get_app_source_path(frappe_app, "studio", studio_app))
+	return os.path.realpath(get_export_folder(frappe_app, studio_app))
 
 
 def _resolve_studio_file(frappe_app: str, studio_app: str, file_path: str) -> str:

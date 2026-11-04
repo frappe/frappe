@@ -99,7 +99,7 @@ class CompactRequest(BaseModel):
 class ConfigPatchRequest(BaseModel):
 	model_config = ConfigDict(extra="forbid")
 
-	auto_approve: bool | None = None
+	approval_mode: Literal["ask", "auto", "auto_approve"] | None = None
 	tools: list[str] | None = None
 	client_tools: list[dict] | None = None
 	confirm_tools: list[str] | None = None
@@ -182,7 +182,7 @@ def create_sessions_router(
 	@router.post("/sessions")
 	async def create_session(request: Request, config: SessionConfig):
 		_refuse_inline_credentials(config.api_key, config.api_base, config.model_params)
-		for agent in config.subagents:
+		for agent in [*config.subagents, *filter(None, [config.small_model])]:
 			_refuse_inline_credentials(agent.api_key, agent.api_base, agent.model_params)
 		if system_append:
 			joined = "\n\n".join(p for p in (config.system_append, system_append) if p)
@@ -362,8 +362,8 @@ def create_sessions_router(
 		if req.client_tools is not None:
 			changes["client_tools"] = req.client_tools
 			changes["confirm_tools"] = req.confirm_tools or []
-		if req.auto_approve is not None:
-			changes["auto_approve"] = req.auto_approve
+		if req.approval_mode is not None:
+			changes["approval_mode"] = req.approval_mode
 		if req.title is not None:
 			changes["title"] = req.title.strip()
 			if not changes["title"]:

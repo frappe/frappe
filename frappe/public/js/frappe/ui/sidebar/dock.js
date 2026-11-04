@@ -108,8 +108,8 @@ frappe.ui.Dock = class Dock {
 		});
 	}
 
-	// Search and notifications lead the tray when it owns them (see apply_pin). The classes are
-	// what the search modal and the notifications panel already listen on.
+	// Search, notifications and Flow lead the tray when it owns them (see apply_pin). The classes
+	// are what the search modal and the notifications panel already listen on.
 	render_utilities() {
 		if (frappe.session.user === "Guest") return;
 		const $utilities = this.$dock.find(".dock-utilities");
@@ -137,6 +137,24 @@ frappe.ui.Dock = class Dock {
 			$bell.on("click", () => frappe.ui.sidebar_panels.toggle("notifications"));
 			$utilities.append($bell);
 		}
+
+		// the panel that frappe/flow/launcher.py adds to the page for those who may use Flow
+		if (frappe.model.can_read("Flow Session")) {
+			const $flow = this.make_utility({ label: __("Flow"), icon: "flow", css_class: "" });
+			$flow.on("click", () => window.flow?.toggle());
+			$utilities.append($flow);
+		}
+
+		// BackgroundTasks shows and hides every `.sidebar-background-tasks`, but the rail may be
+		// built after its first fetch, so this one is seeded from that list.
+		const $tasks = this.make_utility({
+			label: __("Background Tasks"),
+			icon: "server",
+			css_class: "sidebar-background-tasks",
+		});
+		$tasks.toggleClass("hidden", !this.sidebar.background_tasks?.db_tasks?.length);
+		$tasks.on("click", () => frappe.ui.sidebar_panels.toggle("background-tasks"));
+		$utilities.append($tasks);
 	}
 
 	make_utility({ label, icon, css_class, badge = "" }) {

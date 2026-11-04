@@ -40,8 +40,15 @@ function on_connection(socket) {
 
 	// ESBUild "open in editor" on error
 	socket.on("open_in_editor", async (data) => {
-		await subscriber.connect();
-		subscriber.publish("open_in_editor", JSON.stringify(data));
+		const client = get_redis_subscriber();
+		try {
+			await client.connect();
+			await client.publish("open_in_editor", JSON.stringify(data));
+		} catch (err) {
+			console.warn("failed to publish open_in_editor", err);
+		} finally {
+			await client.disconnect();
+		}
 	});
 }
 

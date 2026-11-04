@@ -48,7 +48,7 @@
 					role="tab"
 					tabindex="0"
 					:aria-selected="tab.path === workspace.active"
-					class="flow-tab group flex h-7 min-w-12 shrink basis-60 cursor-pointer items-center gap-1.5 rounded-5 pl-2.5 pr-1 text-xs"
+					class="flow-tab group flex h-7 min-w-12 shrink basis-60 cursor-pointer items-center gap-1.5 rounded-5 pl-2.5 pr-1 text-sm"
 					:class="
 						tab.path === workspace.active
 							? 'flow-tab-active bg-surface-gray-2 text-ink-gray-9'
@@ -78,7 +78,7 @@
 					v-if="transientTab"
 					role="tab"
 					aria-selected="true"
-					class="flow-tab flow-tab-active flex h-7 min-w-12 shrink basis-60 cursor-default items-center gap-1.5 rounded-5 bg-surface-gray-2 pl-2.5 pr-1 text-xs text-ink-gray-9"
+					class="flow-tab flow-tab-active flex h-7 min-w-12 shrink basis-60 cursor-default items-center gap-1.5 rounded-5 bg-surface-gray-2 pl-2.5 pr-1 text-sm text-ink-gray-9"
 				>
 					<span class="flow-tab-label min-w-0 flex-1 text-left">{{ transientTab }}</span>
 					<button
@@ -110,7 +110,7 @@
 				title="Close panel"
 				@click="flow.setWorkspaceOpen(false)"
 			>
-				<span class="lucide-panel-left size-3.5 -scale-x-100" aria-hidden="true" />
+				<span class="lucide-panel-left size-4 -scale-x-100" aria-hidden="true" />
 			</button>
 		</div>
 
@@ -138,7 +138,7 @@
 					/>
 				</button>
 				<button class="flow-icon-btn" title="Close panel" @click="flow.setWorkspaceOpen(false)">
-					<span class="lucide-panel-left size-3.5 -scale-x-100" aria-hidden="true" />
+					<span class="lucide-panel-left size-4 -scale-x-100" aria-hidden="true" />
 				</button>
 			</span>
 			<slot name="empty" />

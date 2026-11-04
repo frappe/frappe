@@ -591,7 +591,7 @@ frappe.ui.Sidebar = class Sidebar {
 			this.$items_container.append(no_items_message);
 		}
 	}
-	// Search, notifications and background tasks, as rows in a band under the header.
+	// Search, notifications, Flow and background tasks, as rows in a band under the header.
 	add_standard_items(items) {
 		if (this.standard_items_setup) return;
 		this.standard_items = [];
@@ -612,6 +612,17 @@ frappe.ui.Sidebar = class Sidebar {
 			class: "sidebar-notification hidden",
 			suffix: "<span class='notification-count es-badge hidden' data-variant='ghost' aria-live='polite'></span>",
 			onClick: () => frappe.ui.sidebar_panels.toggle("notifications"),
+		});
+		this.standard_items.push({
+			label: __("Flow"),
+			icon: "flow",
+			standard: true,
+			type: "Button",
+			class: "sidebar-flow",
+			suffix: { keyboard_shortcut: "ctrl+i" },
+			// the panel that frappe/flow/launcher.py adds to the page for those who may use Flow
+			onClick: () => window.flow?.toggle(),
+			condition: () => frappe.model.can_read("Flow Session"),
 		});
 		this.standard_items.push({
 			label: __("Background Tasks"),

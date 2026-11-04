@@ -9,6 +9,7 @@ import copyreg
 import io
 import mimetypes
 import os
+import posixpath
 import re
 import zipfile
 from typing import TYPE_CHECKING
@@ -148,6 +149,7 @@ class File(Document):
 			self.attached_to_field = None
 		# Ensure correct formatting and type
 		self.file_url = unquote(self.file_url) if self.file_url else ""
+		self.normalize_file_url()
 
 		self.set_folder_name()
 		self.set_is_private()
@@ -217,6 +219,8 @@ class File(Document):
 
 		# must run before handle_is_private_changed, which legitimately rewrites file_url
 		if not self.is_new() and self.has_value_changed("file_url"):
+			self.file_url = unquote(self.file_url) if self.file_url else ""
+			self.normalize_file_url()
 			self.validate_private_file_access()
 
 		# when dict is passed to get_doc for creation of new_doc, is_new returns None
@@ -258,12 +262,57 @@ class File(Document):
 			except PermissionError:
 				frappe.throw(_("Only System Managers can make this file public."))
 
+		if (
+			not self.is_private
+			and not self.is_remote_file
+			and self.attached_to_doctype
+			and (self.has_value_changed("is_private") or self.has_value_changed("attached_to_doctype"))
+			and frappe.get_meta(self.attached_to_doctype).force_private_attachments
+		):
+			frappe.throw(
+				_("Files attached to {0} must be private.").format(_(self.attached_to_doctype)),
+				title=_("Public File Not Allowed"),
+			)
+
+	def normalize_file_url(self):
+		"""Collapse `.` and `//` segments in a local file URL; reject `..`.
+
+		The private-file access check matches `file_url` literally, but the path is
+		resolved on disk after normalization. Without this, `/private/files/./secret.pdf`
+		slips past the check as a new URL while still reading `secret.pdf` from disk.
+		Pinning every row to the canonical URL keeps the two views in step.
+		"""
+		if not self.file_url:
+			return
+
+		site_url = self.get_site_url_prefix()
+		url = self.file_url[len(site_url) :]
+		if not site_url and self.is_remote_file:
+			return
+
+		if ".." in url.split("/"):
+			frappe.throw(_("The File URL you've entered is incorrect"), title=_("Invalid File URL"))
+
+		for prefix in ("/private/files/", "/files/"):
+			if not url.startswith(prefix):
+				continue
+			name = posixpath.normpath("/" + url[len(prefix) :].lstrip("/")).lstrip("/")
+			if not name or name == ".":
+				frappe.throw(_("The File URL you've entered is incorrect"), title=_("Invalid File URL"))
+			self.file_url = site_url + prefix + name
+			return
+
+	def get_site_url_prefix(self) -> str:
+		"""This site's URL if file_url starts with it (it is stripped later), else an empty string."""
+		site_url = get_url()
+		return site_url if self.file_url.startswith(site_url + "/") else ""
+
 	def validate_private_file_access(self):
 		"""Validate that the user has permission to access an existing private file."""
 		if not self.file_url:
 			return
 
-		filters = {"file_url": self.file_url, "is_private": 1}
+		filters = {"file_url": self.file_url[len(self.get_site_url_prefix()) :], "is_private": 1}
 		if not self.is_new():
 			filters["name"] = ["!=", self.name]
 
@@ -347,7 +396,7 @@ class File(Document):
 		self.validate_empty_folder()
 		self.validate_protected_file()
 		self.validate_not_referenced_in_attach_field()
-		self._delete_file_on_disk()
+		frappe.db.after_commit.add(self._delete_file_on_disk)
 		if not self.is_folder:
 			fieldname = escape_html(self.attached_to_field or "")
 			file_name = escape_html(self.file_name)
@@ -374,13 +423,17 @@ class File(Document):
 		parent_meta = frappe.get_meta(self.attached_to_doctype)
 
 		if parent_meta.issingle:
-			frappe.db.set_single_value(
-				self.attached_to_doctype,
-				self.attached_to_field,
-				self.file_url,
-			)
-			return
-		if parent_meta.has_field(self.attached_to_field) and frappe.db.exists(
+			if (
+				parent_meta.has_field(self.attached_to_field)
+				and frappe.db.get_single_value(self.attached_to_doctype, self.attached_to_field)
+				== old_file_url
+			):
+				frappe.db.set_single_value(
+					self.attached_to_doctype,
+					self.attached_to_field,
+					self.file_url,
+				)
+		elif parent_meta.has_field(self.attached_to_field) and frappe.db.exists(
 			self.attached_to_doctype,
 			{"name": self.attached_to_name, self.attached_to_field: old_file_url},
 		):

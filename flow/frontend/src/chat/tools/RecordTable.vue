@@ -1,8 +1,8 @@
 <template>
-	<div v-if="!rows.length" class="px-3 py-2.5 text-xs text-ink-gray-5">No records</div>
+	<div v-if="!rows.length" class="px-3 py-2.5 text-sm text-ink-gray-5">No records</div>
 	<div v-else>
 		<div class="overflow-auto" :class="open.size ? '' : 'max-h-[260px]'">
-			<table class="w-full border-collapse text-left text-xs">
+			<table class="w-full border-collapse text-left text-sm">
 				<thead>
 					<tr>
 						<th
@@ -73,7 +73,7 @@
 							class="border-t border-outline-gray-1"
 						>
 							<td :colspan="span" class="bg-surface-gray-1 px-3 py-2">
-								<div class="mb-1.5 text-2xs font-medium text-ink-gray-5">
+								<div class="mb-1.5 text-xs font-medium text-ink-gray-5">
 									{{ humanize(column) }}
 								</div>
 								<div
@@ -105,7 +105,7 @@
 		<button
 			v-if="hidden"
 			type="button"
-			class="w-full border-t border-outline-gray-1 px-3 py-1.5 text-left text-2xs text-ink-gray-6 hover:bg-surface-gray-1"
+			class="w-full border-t border-outline-gray-1 px-3 py-1.5 text-left text-xs text-ink-gray-6 hover:bg-surface-gray-1"
 			@click="visibleCount += PAGE_SIZE"
 		>
 			Show {{ Math.min(hidden, PAGE_SIZE) }} more ({{ hidden }} remaining)

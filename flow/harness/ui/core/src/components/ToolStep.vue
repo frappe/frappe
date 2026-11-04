@@ -2,7 +2,7 @@
 	<div>
 		<component
 			:is="expandable || link ? 'button' : 'div'"
-			class="flex w-full items-baseline gap-2.5 py-2.5 text-left"
+			class="flex w-full items-baseline gap-2.5 py-2 text-left md:py-2.5"
 			:class="[expandable || link ? 'group cursor-pointer' : '', live ? 'flow-tool-live' : '']"
 			@click="link ? flow.openSubagent(subagentId(step.call)) : expandable && (open = !open)"
 		>
@@ -22,7 +22,7 @@
 				/>
 			</span>
 			<!-- template text renders like a label, argument values like a subject -->
-			<span v-if="displaySegments.length" class="min-w-0 flex-1 truncate text-sm">
+			<span v-if="displaySegments.length" class="min-w-0 flex-1 truncate text-base">
 				<span
 					v-for="(segment, j) in displaySegments"
 					:key="j"
@@ -30,51 +30,64 @@
 						!segment.arg
 							? 'font-medium text-ink-gray-9'
 							: step.call.name === 'bash'
-								? 'font-mono text-xs text-ink-gray-5 group-hover:text-ink-gray-7'
+								? 'font-mono text-sm text-ink-gray-5 group-hover:text-ink-gray-7'
 								: 'text-ink-gray-5 group-hover:text-ink-gray-7'
 					"
 				>{{ segment.text }}</span>
 			</span>
 			<template v-else>
-				<span class="flex-none text-sm font-medium text-ink-gray-9">{{ label }}</span>
+				<span class="flex-none text-base font-medium text-ink-gray-9">{{ label }}</span>
 				<span
-					class="min-w-0 flex-1 truncate text-sm text-ink-gray-5 group-hover:text-ink-gray-7"
-					:class="step.call.name === 'bash' ? 'font-mono text-xs' : ''"
+					class="min-w-0 flex-1 truncate text-base text-ink-gray-5 group-hover:text-ink-gray-7"
+					:class="step.call.name === 'bash' ? 'font-mono text-sm' : ''"
 				>{{ subject }}</span>
 			</template>
 			<!-- edits get a Codex-style colored diffstat; everything else the plain stat -->
-			<span v-if="diffStat" class="flex-none font-mono text-xs">
+			<span v-if="diffStat" class="flex-none font-mono text-base">
 				<span class="text-ink-green-6">+{{ diffStat.added }}</span>
 				<span class="ml-1 text-ink-red-6">-{{ diffStat.removed }}</span>
 			</span>
-			<span v-else-if="stat" class="flex-none text-xs" :class="statClass">{{ stat }}</span>
+			<span v-else-if="stat" class="flex-none text-base" :class="statClass">{{ stat }}</span>
 		</component>
 
 		<div
 			v-if="open && expandable"
 			ref="payloadEl"
-			class="mb-1.5 mt-1 overflow-hidden rounded-[10px] border border-outline-gray-1 bg-surface-base"
+			class="mb-1.5 overflow-hidden rounded-[10px] border border-outline-gray-1 bg-surface-base"
 		>
 			<div v-if="meta.argsComponent && !resultView" class="border-b border-outline-gray-1">
 				<component :is="meta.argsComponent" :arguments="args" />
 			</div>
 			<!-- a call the user denied, cancelled, or redirected -->
 			<div v-if="decision" class="px-3 py-2.5">
-				<div class="text-xs font-medium" :class="statClass">{{ decisionTitle }}</div>
-				<div v-if="decision.user_feedback" class="mt-1 text-xs leading-relaxed text-ink-gray-6">
+				<div class="text-sm font-medium" :class="statClass">{{ decisionTitle }}</div>
+				<div v-if="decision.user_feedback" class="mt-1 text-sm leading-relaxed text-ink-gray-6">
 					“{{ decision.user_feedback }}”
 				</div>
 			</div>
 
 			<component :is="resultView" v-else-if="resultView" :arguments="args" :result="step.result" />
 
+			<div v-else-if="webResults" class="flex max-h-[260px] flex-col gap-3 overflow-auto px-3 py-2.5">
+				<div v-for="(hit, i) in webResults" :key="i" class="min-w-0">
+					<a
+						:href="hit.url"
+						target="_blank"
+						rel="noopener noreferrer"
+						class="block truncate text-sm font-medium text-ink-gray-8 hover:underline"
+					>{{ hit.title || hit.url }}</a>
+					<div class="truncate text-xs text-ink-gray-4">{{ pageName(hit.url) }}</div>
+					<div v-if="hit.snippet" class="mt-0.5 line-clamp-3 text-sm leading-relaxed text-ink-gray-6">{{ hit.snippet }}</div>
+				</div>
+			</div>
+
 			<template v-else-if="step.result">
 				<div class="flex items-center gap-2 border-b border-outline-gray-1 px-3 py-1.5">
-					<span class="min-w-0 flex-1 truncate text-2xs text-ink-gray-4">{{ panelNote }}</span>
-					<span v-if="duration" class="flex-none font-mono text-2xs text-ink-gray-5">{{ duration }}</span>
+					<span class="min-w-0 flex-1 truncate text-xs text-ink-gray-4">{{ panelNote }}</span>
+					<span v-if="duration" class="flex-none font-mono text-xs text-ink-gray-5">{{ duration }}</span>
 					<span
 						v-if="exitChip"
-						class="flex-none rounded-4 px-1.5 py-px font-mono text-2xs font-medium"
+						class="flex-none rounded-4 px-1.5 py-px font-mono text-xs font-medium"
 						:class="failed ? 'bg-surface-red-1 text-ink-red-6' : 'bg-surface-green-1 text-ink-green-6'"
 					>{{ exitChip }}</span>
 					<CopyButton
@@ -84,7 +97,7 @@
 				</div>
 				<pre
 					v-if="diffLines"
-					class="m-0 grid max-h-[260px] overflow-auto py-2 font-mono text-xs leading-[1.7]"
+					class="m-0 grid max-h-[260px] overflow-auto py-2 font-mono text-sm leading-[1.7]"
 				><span
 					v-for="(line, i) in diffLines"
 					:key="i"
@@ -93,7 +106,7 @@
 				>{{ line }}</span></pre>
 				<pre
 					v-else
-					class="m-0 max-h-[200px] overflow-y-auto whitespace-pre-wrap break-words px-3 py-2 font-mono text-xs leading-[1.65] text-ink-gray-6"
+					class="m-0 max-h-[200px] overflow-y-auto whitespace-pre-wrap break-words px-3 py-2 font-mono text-sm leading-[1.65] text-ink-gray-6"
 				>{{ output }}</pre>
 			</template>
 		</div>
@@ -106,6 +119,7 @@ import { computed, inject, ref, watch } from "vue"
 import { usePanelOpen } from "../panels.js"
 import {
 	compactDisplayText,
+	pageName,
 	stepDecision,
 	stepIcon,
 	stepLabel,
@@ -126,10 +140,13 @@ const open = usePanelOpen(() => props.step.call.id)
 const flow = inject("flow", null)
 const cwd = computed(() => flow?.state?.session?.config?.cwd ?? null)
 
+// a page reads by its host and path, as a file does by its name
 const displaySegments = computed(() =>
-	(props.step.call.display ?? []).map((segment) =>
-		segment.arg ? { ...segment, text: compactDisplayText(segment.text, cwd.value) } : segment,
-	),
+	(props.step.call.display ?? []).map((segment) => {
+		if (!segment.arg) return segment
+		const page = props.step.call.name === "web_fetch" && segment.arg === "url"
+		return { ...segment, text: page ? pageName(segment.text) : compactDisplayText(segment.text, cwd.value) }
+	}),
 )
 
 // a host describes its own tools; the daemon's have display segments or defaults
@@ -187,6 +204,13 @@ const resultView = computed(() =>
 		: null,
 )
 
+// a search's hits, each a page to open
+const webResults = computed(() =>
+	props.step.call.name === "web_search" && Array.isArray(details.value.results) && details.value.results.length
+		? details.value.results
+		: null,
+)
+
 const diffLines = computed(() =>
 	typeof details.value.diff === "string" && details.value.diff ? details.value.diff.split("\n") : null,
 )
@@ -211,10 +235,12 @@ const expandable = computed(() => {
 	if (link.value) return false
 	if (failed.value || decision.value) return true
 	if (meta.value.expandable === false) return false
+	// its arguments may still be streaming in: the row opens once the call has ended
+	if (!props.step.result && !props.step.aborted) return false
 	if (meta.value.argsComponent) return true
 	if (!props.step.result) return false
-	if (diffLines.value || resultView.value) return true
-	if (["read", "write", "edit"].includes(props.step.call.name)) return false
+	if (diffLines.value || resultView.value || webResults.value) return true
+	if (["read", "write", "edit", "web_fetch"].includes(props.step.call.name)) return false
 	return !!output.value
 })
 

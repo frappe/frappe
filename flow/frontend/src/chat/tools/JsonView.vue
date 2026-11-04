@@ -1,7 +1,7 @@
 <template>
 	<div class="flex items-start gap-2 px-3 py-2.5">
 		<pre
-			class="m-0 max-h-[240px] min-w-0 flex-1 overflow-auto whitespace-pre-wrap break-words font-mono text-xs leading-[1.65] text-ink-gray-6"
+			class="m-0 max-h-[240px] min-w-0 flex-1 overflow-auto whitespace-pre-wrap break-words font-mono text-sm leading-[1.65] text-ink-gray-6"
 			>{{ output }}</pre
 		>
 		<CopyButton

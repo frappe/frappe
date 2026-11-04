@@ -52,6 +52,16 @@ class TestGetDocuments(McpTestCase):
 		self.assertEqual(result["name"], self.names[0])
 		self.assertEqual(result["description"], "MCP read fixture 0")
 
+	def test_named_read_fields(self):
+		result = self.result(
+			tool="get_document", doctype="ToDo", name=self.names[0], fields=["description", "lable"]
+		)
+		self.assertEqual(result, {"description": "MCP read fixture 0"})
+		result = self.result(
+			tool="get_document", doctype="User", name=self.user, fields=["name", {"roles": ["role"]}]
+		)
+		self.assertEqual(result, {"name": self.user, "roles": []})
+
 	def test_named_read_denies_other_users_document(self):
 		response = self.read(tool="get_document", doctype="ToDo", name=self.names[3])
 		self.assertTrue(response.json["result"]["isError"])
@@ -127,6 +137,10 @@ class TestGetDocuments(McpTestCase):
 		self.assertIsNone(result.get("api_key"))
 		self.assertIsNone(result.get("api_secret"))
 		self.assertFalse(result.get("roles"))
+		result = self.result(
+			tool="get_document", doctype="User", name=self.user, fields=["name", "api_key", "api_secret"]
+		)
+		self.assertEqual(result, {"name": self.user, "api_key": None, "api_secret": None})
 
 	def test_invalid_arguments_never_execute_handler(self):
 		cases = (
@@ -141,6 +155,8 @@ class TestGetDocuments(McpTestCase):
 			{"doctype": "ToDo", "count_only": "true"},
 			{"doctype": "ToDo", "ignore_permissions": True},
 			{"doctype": "ToDo", "name": self.names[0], "count_only": True},
+			{"tool": "get_document", "doctype": "ToDo", "name": self.names[0], "fields": "description"},
+			{"tool": "get_document", "doctype": "ToDo", "name": self.names[0], "fields": [{"roles": "role"}]},
 		)
 		with (
 			patch("frappe.api.v2.read_doc") as read_doc,

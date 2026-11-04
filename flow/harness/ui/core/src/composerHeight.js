@@ -5,6 +5,8 @@ import { onBeforeUnmount, provide, ref, watch } from "vue"
 export function provideComposerHeight(composer) {
 	const height = ref(120)
 	provide("composerHeight", height)
+	// how far above the list's foot the box sits: a new chat docks it under the greeting
+	provide("composerLift", ref(0))
 	let observer
 	watch([() => composer.value?.$el, () => composer.value?.startRow], ([el, row]) => {
 		observer?.disconnect()

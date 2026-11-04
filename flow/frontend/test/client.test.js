@@ -38,32 +38,32 @@ const session = {
 	agent: "Flow",
 	model: "Sonnet",
 	source: "Manual",
-	auto_approve: false,
+	approval_mode: "Ask",
 	runs: [],
 };
 
 test("a new chat is created with the page's agent and an offered model, and reported back", async () => {
 	const reported = [];
 	const transport = fakeTransport({
-		"frappe.flow.api.create_session": { ...session, auto_approve: true },
+		"frappe.flow.api.create_session": { ...session, approval_mode: "Auto-approve" },
 	});
 	const client = new FrappeClient({
 		boot,
 		transport,
 		hooks: { agent: () => "Support", onSession: (d) => reported.push(d.name) },
 	});
-	const created = await client.createSession({ model: "Sonnet", auto_approve: true });
+	const created = await client.createSession({ model: "Sonnet", approval_mode: "auto_approve" });
 	assert.deepEqual(transport.calls[0], [
 		"frappe.flow.api.create_session",
-		{ agent: "Support", model: "Sonnet", auto_approve: 1 },
+		{ agent: "Support", model: "Sonnet", approval_mode: "Auto-approve" },
 	]);
 	assert.equal(created.session_id, "S1");
-	assert.equal(created.config.auto_approve, true);
+	assert.equal(created.config.approval_mode, "auto_approve");
 	assert.equal(created.config.model, "Sonnet");
 	assert.deepEqual(reported, ["S1"]);
 	// a remembered model the site no longer offers is left out, and the server picks
 	await new FrappeClient({ boot, transport }).createSession({ model: "Retired" });
-	assert.deepEqual(transport.calls[1][1], { agent: null, model: null, auto_approve: 0 });
+	assert.deepEqual(transport.calls[1][1], { agent: null, model: null, approval_mode: "Ask" });
 });
 
 test("session details carry the model's context window, a view-only flag and a config the store can patch", async () => {
@@ -74,28 +74,31 @@ test("session details carry the model's context window, a view-only flag and a c
 			read_only: name === "S2",
 		}),
 		"frappe.flow.api.set_title": { title: "Renamed" },
-		"frappe.flow.api.set_auto_approve": { auto_approve: true },
+		"frappe.flow.api.set_approval_mode": ({ mode }) => ({ approval_mode: mode }),
 	});
 	const client = new FrappeClient({ boot, transport });
 	const info = await client.session("S1");
 	assert.equal(info.context_window, 200000);
 	assert.equal(info.read_only, false);
 	assert.equal((await client.session("S2")).read_only, true);
-	assert.equal(info.config.auto_approve, false);
+	assert.equal(info.config.approval_mode, "ask");
 	const renamed = await client.patchConfig("S1", { title: "Renamed" });
 	assert.equal(renamed.config.title, "Renamed");
-	const approved = await client.patchConfig("S1", { auto_approve: true });
+	const approved = await client.patchConfig("S1", { approval_mode: "auto_approve" });
 	assert.deepEqual(approved.config, {
-		auto_approve: true,
+		approval_mode: "auto_approve",
 		title: "Renamed",
 		agent: "Flow",
 		model: "Sonnet",
 		cwd: null,
 	});
 	assert.deepEqual(transport.calls.at(-1), [
-		"frappe.flow.api.set_auto_approve",
-		{ session: "S1", auto_approve: 1 },
+		"frappe.flow.api.set_approval_mode",
+		{ session: "S1", mode: "Auto-approve" },
 	]);
+	const reviewed = await client.patchConfig("S1", { approval_mode: "auto" });
+	assert.equal(reviewed.config.approval_mode, "auto");
+	assert.deepEqual(transport.calls.at(-1), ["frappe.flow.api.set_approval_mode", { session: "S1", mode: "Auto" }]);
 });
 
 test("the log is presented and mirrored to the page, replaced by a snapshot and appended by a catch-up", async () => {

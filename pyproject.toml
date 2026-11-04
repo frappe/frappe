@@ -23,7 +23,7 @@ dependencies = [
     # We depend on internal attributes,
     # do NOT add loose requirements on PyMySQL versions.
     "PyMySQL==1.1.2",
-    "pypdf==6.21.2",
+    "pypdf==6.21.4",
     "PyPika @ git+https://github.com/frappe/pypika@054ffb18a0a60f3c3f472dcce86116fd86db1188",
     "mysqlclient==2.3.0",
     "PyQRCode~=1.2.1",
@@ -54,7 +54,7 @@ dependencies = [
     "phonenumbers~=9.0.41",
     "premailer~=3.10.0",
     "psutil~=7.2.2",
-    "psycopg2-binary~=2.9.13",
+    "psycopg[binary]~=3.3.6",
     "pyOpenSSL~=26.4.0",
     "pydantic~=2.14.1",
     "pyotp~=2.10.0",
@@ -88,7 +88,7 @@ dependencies = [
     "litellm==1.103.2",
     "json_repair~=0.59",
     # flow
-    "frappe-flow==0.1.20",
+    "frappe-flow==0.1.24",
     "lancedb~=0.33",
     "onnxruntime~=1.27",
     "pdfplumber~=0.11",
@@ -140,7 +140,6 @@ dev = [
     "types-openpyxl",
     "types-passlib",
     "types-psutil",
-    "types-psycopg2",
     "types-python-dateutil",
     "types-pytz",
     "types-requests",
@@ -243,7 +242,11 @@ nixpkgs-deps = [
 
 [tool.uv]
 exclude-newer = "7 days"
-exclude-newer-package = { sqlparse = false, pyjwt = false, oauthlib = false, frappe-flow = false, pypdf = false } # drop sqlparse after 2026-08-20, pyjwt and oauthlib after 2026-10-06, frappe-flow after 2026-10-30, pypdf after 2026-10-28
+exclude-newer-package = { pypdf = false, filelock = false } # drop pypdf after 2026-11-04, filelock after 2026-11-10
+
+[tool.uv.sources]
+# Installs through uv (bench, Pilot) take the harness from this checkout, so it ships with frappe. pip installs and frappe's wheel still take the PyPI pin above.
+frappe-flow = { path = "flow/harness", editable = true }
 
 [tool.mypy]
 strict = false

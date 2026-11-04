@@ -20,6 +20,13 @@
         "maxSlices": {
           "type": "number"
         },
+        "order": {
+          "type": "string",
+          "enum": [
+            "size",
+            "rows"
+          ]
+        },
         "hiddenSlices": {
           "type": "array",
           "items": {
@@ -59,6 +66,12 @@
               }
             }
           ]
+        },
+        "colors": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "echartOptions": {
           "type": "object"

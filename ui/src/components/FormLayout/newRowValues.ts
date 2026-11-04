@@ -17,6 +17,7 @@ const NO_VALUE = new Set([
   "Button",
   "Image",
   "Attachment Gallery",
+  "Vue Component",
 ]);
 
 const COLLECTIONS = new Set(["Table", "Table MultiSelect"]);

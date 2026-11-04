@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Any
 
 import frappe
 from frappe import _
+from frappe.flow.daemon.client import DaemonClient
 from frappe.flow.lib.session import new_session, sync_with_retry
 from frappe.query_builder.functions import Locate, Lower
 from frappe.utils import cint, escape_html, get_fullname, get_url
@@ -36,6 +37,7 @@ SETTINGS_DOCTYPES = (
 	"Flow Knowledge Source",
 	"Flow Knowledge Settings",
 	"Flow Agent Memory",
+	"Flow Settings",
 )
 
 
@@ -43,15 +45,18 @@ SETTINGS_DOCTYPES = (
 def boot() -> dict[str, Any]:
 	"""What a client needs before its first call: agents (with their models) and models to pick
 	from, the default agent, whether a provider is set up, the file types it may attach, who is
-	signed in, what they may manage and whether they hid the launcher's icon."""
+	signed in and what they may manage."""
 	frappe.has_permission("Flow Session", "read", throw=True)
-	from frappe.flow.assistant.assistant import ASSISTANT_AGENT_TITLE
+	from frappe.flow.assistant.assistant import ASSISTANT_AGENT_NAME
 	from frappe.flow.knowledge.extract import FILE_EXTENSIONS
-	from frappe.flow.launcher import is_hidden
 
-	agents = frappe.get_list(
-		"Flow Agent", filters={"enabled": 1}, fields=["name", "title", "model"], order_by="title"
-	)
+	agents = frappe.get_list("Flow Agent", filters={"enabled": 1}, fields=["name", "title", "model"])
+	# an app's agent shows without its app, unless another app's agent is named the same
+	short = [agent.name.rpartition("/")[2] for agent in agents]
+	for agent, name in zip(agents, short, strict=True):
+		app = agent.name.rpartition("/")[0]
+		agent.title = f"{name} ({app})" if app and short.count(name) > 1 else name
+	agents.sort(key=lambda agent: agent.title.lower())
 	models = frappe.get_list(
 		"Flow Model",
 		filters={"enabled": 1},
@@ -60,9 +65,9 @@ def boot() -> dict[str, Any]:
 	)
 	return {
 		"agents": agents,
-		"default_agent": next((a.name for a in agents if a.name == ASSISTANT_AGENT_TITLE), None),
+		"default_agent": next((a.name for a in agents if a.name == ASSISTANT_AGENT_NAME), None),
 		"models": models,
-		"has_provider": bool(frappe.db.exists("Flow Provider", {"enabled": 1})),
+		"provider": frappe.db.get_value("Flow Provider", {"enabled": 1}),
 		"file_types": sorted(FILE_EXTENSIONS),
 		"user": frappe.db.get_value(
 			"User", frappe.session.user, ["name", "full_name", "user_image"], as_dict=True
@@ -75,7 +80,6 @@ def boot() -> dict[str, Any]:
 			]
 			for doctype in SETTINGS_DOCTYPES
 		},
-		"launcher_hidden": is_hidden(),
 	}
 
 
@@ -84,15 +88,15 @@ def create_session(
 	agent: str | None = None,
 	model: str | None = None,
 	title: str | None = None,
-	auto_approve: bool | int | str = False,
+	approval_mode: str | None = None,
 ) -> dict[str, Any]:
-	"""Start a session with `agent` (the Assistant by default)."""
+	"""Start a session with `agent` (the Assistant by default); `approval_mode` defaults to Auto."""
 	frappe.has_permission("Flow Session", "create", throw=True)
 	doc = new_session(
 		agent or None,
 		model=model or None,
 		title=(title or "").strip() or None,
-		auto_approve=cint(auto_approve),
+		approval_mode=approval_mode or None,
 	)
 	return _session_payload(doc)
 
@@ -182,6 +186,59 @@ def resume(
 	return {"run": run.name, "status": "started"}
 
 
+@frappe.whitelist(methods=["POST"])
+def screen_result(
+	session: str, token: str, screen: dict[str, Any] | str | None = None, error: str | None = None
+) -> dict[str, bool]:
+	"""Answer the read_screen call waiting on `token` with what the panel saw, or why it saw nothing.
+	Not delivered once another panel on the chat answered or the call stopped waiting."""
+	doc = _load_session(session, "write")
+	if not isinstance(token, str) or not token.strip():
+		frappe.throw(_("Token is required."), title=_("Invalid Token"))
+	if error:
+		result = {"content": str(error), "is_error": True}
+	elif screen is not None:
+		content = screen if isinstance(screen, str) else json.dumps(screen, default=str)
+		result = {"content": content, "is_error": False}
+	else:
+		frappe.throw(_("A screen or an error is required."), title=_("Invalid Screen"))
+	with DaemonClient.for_site() as daemon:
+		return {"delivered": bool(daemon.tool_result(doc.name, token, result).get("delivered"))}
+
+
+@frappe.whitelist(methods=["POST"])
+def save_secret(session: str, call_id: str, password: str) -> dict[str, bool]:
+	"""Save what the user typed into a request_secret card's password box into the field the
+	waiting call names, as the user. The card is then approved with no value, so the secret
+	never reaches the flow server, the model or the transcript. Named `password` so error logs
+	mask it."""
+	from frappe.flow.tools.builtins import save_secret
+
+	if not password:
+		frappe.throw(_("Enter a value."), title=_("Invalid Value"))
+	doc = _load_session(session, "write")
+	call = _waiting_call(doc, call_id)
+	if not call or call.get("name") != "request_secret":
+		frappe.throw(_("This password box is no longer waiting."), title=_("Not Saved"))
+	save_secret(doc.name, call.get("args") or {}, password)
+	return {"saved": True}
+
+
+def _waiting_call(doc: FlowSession, call_id: str) -> dict[str, Any] | None:
+	"""The call `call_id` still waiting for its card, the run's own or a sub-agent's, from the
+	flow server's log; a sub-agent's batch is not kept on the Flow Run."""
+	rows = doc.entries(path="active")["entries"]
+	answered = {row.get("tool_call_id") for row in rows if row.get("type") == "tool_result"}
+	if call_id in answered:
+		return None
+	for row in rows:
+		if row.get("type") == "approval_required":
+			for call in row.get("calls") or []:
+				if call.get("id") == call_id:
+					return call
+	return None
+
+
 @frappe.whitelist()
 def abort(session: str) -> dict[str, str]:
 	return {"status": _load_session(session, "write").abort()}
@@ -243,11 +300,10 @@ def set_title(session: str, title: str) -> dict[str, str]:
 
 
 @frappe.whitelist()
-def set_auto_approve(session: str, auto_approve: bool | int | str) -> dict[str, bool]:
-	"""Whether confirmation tools run unattended; Trigger sessions cannot turn it off."""
-	flag = bool(cint(auto_approve))
-	_load_session(session, "write").set_auto_approve(flag)
-	return {"auto_approve": flag}
+def set_approval_mode(session: str, mode: str) -> dict[str, str]:
+	"""Ask, Auto or Auto-approve; a Trigger session stays on Auto-approve."""
+	_load_session(session, "write").set_approval_mode(mode)
+	return {"approval_mode": mode}
 
 
 @frappe.whitelist()
@@ -321,8 +377,9 @@ def sync_session(session: str) -> dict[str, Any]:
 @frappe.whitelist()
 def submit_feedback(run_name: str, rating: str, comment: str | None = None) -> dict[str, Any]:
 	"""Record thumbs feedback on a finished run, or clear it with rating "None". A
-	thumbs-down comment is stored as shared agent memory when the agent has memory
-	enabled (a no-op otherwise); clearing the rating drops that memory again."""
+	thumbs-down comment is stored as agent memory when the agent has memory enabled (a no-op
+	otherwise), the user's own unless they manage the agent; clearing the rating drops that
+	memory again."""
 	from frappe.flow.memory.memory import forget_feedback_memory, save_feedback_memory
 
 	if not isinstance(run_name, str) or not run_name.strip():
@@ -356,7 +413,7 @@ def submit_feedback(run_name: str, rating: str, comment: str | None = None) -> d
 
 	result: dict[str, Any] = {"rating": rating}
 	if memory:
-		result["memory"] = memory
+		result.update(memory=memory["memory_id"], memory_scope=memory["scope"])
 	return result
 
 
@@ -415,7 +472,7 @@ def _session_payload(doc: FlowSession) -> dict[str, Any]:
 		"owner": doc.owner,
 		"owner_name": get_fullname(doc.owner),
 		"general_access": doc.general_access,
-		"auto_approve": bool(doc.auto_approve),
+		"approval_mode": doc.approval_mode,
 		"read_only": not frappe.has_permission("Flow Session", "write", doc),
 		"runs": frappe.get_all(
 			"Flow Run", filters={"session": doc.name}, fields=RUN_FIELDS, order_by="creation asc"

@@ -15,10 +15,10 @@ from frappe.flow.daemon.callback import (
 	run_background_tool,
 )
 from frappe.flow.daemon.client import DaemonClient, DaemonError
-from frappe.flow.lib.tool import ToolContext, tool
+from frappe.flow.lib.tool import Pending, ToolContext, tool
 from frappe.flow.memory import store as memory_store
 from frappe.flow.tests.test_fake_daemon import FakeDaemon, turn
-from frappe.flow.tools.builtins import sync_builtin_tools
+from frappe.flow.tools.builtins import SCREEN_EVENT, SCREEN_TIMEOUT, sync_builtin_tools
 from frappe.tests import IntegrationTestCase
 from frappe.utils import set_request
 
@@ -54,6 +54,13 @@ def maybe_later(slow: bool = False, *, ctx: ToolContext) -> str:
 
 
 @tool
+def later(*, ctx: ToolContext) -> Pending:
+	"""Answers under the call's token later."""
+	frappe.flags.later_token = ctx.result_token
+	return Pending(timeout=7)
+
+
+@tool
 def callback_context(*, ctx: ToolContext) -> dict:
 	"""Return the trusted identity Flow supplied for this callback."""
 	return {"session": ctx.session_id, "agent": ctx.agent, "user": ctx.user}
@@ -72,7 +79,7 @@ class TestToolCallback(IntegrationTestCase):
 			frappe.get_doc(
 				{"doctype": "User", "email": OWNER, "first_name": "Callback", "send_welcome_email": 0}
 			).insert(ignore_permissions=True)
-		for slug in ("whoami", "maybe_later", "write_then_fail", "callback_context"):
+		for slug in ("whoami", "maybe_later", "write_then_fail", "callback_context", "later"):
 			self.flow_tool(slug, type="Imported", import_path=f"{MODULE}.{slug}")
 		self.flow_tool("boom", type="Script", code=BOOM)
 		self.flow_tool("whoami_later", type="Script", code=WHOAMI, background=1)
@@ -85,16 +92,19 @@ class TestToolCallback(IntegrationTestCase):
 			}
 		).insert()
 		attached = (
-			"read_records",
-			"delete",
-			"execute",
-			"update_memory",
-			"search_attachments",
+			"frappe/read_records",
+			"frappe/delete",
+			"frappe/run_action",
+			"frappe/execute",
+			"frappe/update_memory",
+			"frappe/search_attachments",
+			"frappe/read_screen",
 			"whoami",
 			"whoami_later",
 			"maybe_later",
 			"write_then_fail",
 			"callback_context",
+			"later",
 			"boom",
 		)
 		self.agent = frappe.get_doc(
@@ -337,6 +347,23 @@ class TestToolCallback(IntegrationTestCase):
 			# the job itself passes no token, so it runs the tool
 			self.assertEqual(self.call("maybe_later", {"slow": True}), inline)
 
+	def test_a_tool_may_answer_later_under_the_calls_token(self):
+		with patch("frappe.enqueue") as enqueue:
+			self.assertEqual(self.call("later", result_token="t1"), {"pending": True, "timeout": 7})
+		enqueue.assert_not_called()
+		self.assertEqual(frappe.flags.later_token, "t1")
+
+	def test_read_screen_asks_the_owners_panel_and_waits_for_its_answer(self):
+		with patch("frappe.publish_realtime") as publish:
+			reply = self.call("read_screen", result_token="t2")
+		self.assertEqual(reply, {"pending": True, "timeout": SCREEN_TIMEOUT})
+		publish.assert_called_once_with(
+			SCREEN_EVENT, {"session": self.session.name, "token": "t2"}, user=OWNER
+		)
+		with patch("frappe.publish_realtime") as publish:
+			self.assertTrue(self.call("read_screen")["is_error"])
+		publish.assert_not_called()
+
 	def test_a_job_skips_the_tool_once_its_run_stopped_waiting_or_it_waited_too_long(self):
 		stopped, late = FakeDaemon(), FakeDaemon()
 		stopped.waiting = False
@@ -369,11 +396,86 @@ class TestToolCallback(IntegrationTestCase):
 				run_background_tool(*args, start_by=time.time() + 60)
 		self.assertEqual([call.args[0] for call in sleep.call_args_list], [0, 1, 0, 1, 5])
 
+	def test_confirm_mode_answers_that_a_read_needs_no_card_and_runs_nothing(self):
+		creates = 'create("ToDo", [{"description": "ran at confirm"}])'
+		reads = {
+			"run_action": {
+				"doctype": "",
+				"names": [],
+				"action": "frappe.flow.tests.test_ai_builtins.read_only_whoami",
+			},
+			"execute": {"code": creates, "description": "Look", "read_only": True},
+		}
+		for name, args in reads.items():
+			with self.subTest(name):
+				self.assertEqual(self.call(name, args, mode="confirm"), {"requires_confirmation": False})
+		asks = {
+			"run_action": {"doctype": "", "names": [], "action": "frappe.client.set_value"},
+			"execute": {"code": creates, "description": "Look"},
+		}
+		for name, args in asks.items():
+			with self.subTest(name):
+				self.assertIn("prompt", self.call(name, args, mode="confirm"))
+		self.assertFalse(frappe.db.exists("ToDo", {"description": "ran at confirm"}))
+
+	def test_a_function_card_names_its_record_by_title_the_user_may_read(self):
+		def todo(description, assigned_by):
+			return frappe.get_doc(
+				{"doctype": "ToDo", "description": description, "assigned_by": assigned_by}
+			).insert(ignore_permissions=True)
+
+		mine = todo("<p>Call the courier about the delayed Pune shipment</p>", OWNER)
+		hidden = todo("Someone else's task", "Administrator")
+		for record, shown in (
+			(mine, "Call the courier about the delayed Pune shipment"),
+			(hidden, hidden.name),
+		):
+			with self.subTest(shown):
+				args = {"doctype": "ToDo", "name": record.name, "assign_to": ["Administrator"]}
+				prompt = self.call(
+					"run_action",
+					{"doctype": "", "names": [], "action": "frappe.desk.form.assign_to.add", "args": args},
+					mode="confirm",
+				)["prompt"]
+				self.assertEqual(prompt, f"Assign To: Add\nToDo: {shown}\nAssign To: Administrator")
+
+	def test_a_set_value_card_names_the_field_by_label_with_its_formatted_value(self):
+		todo = frappe.get_doc(
+			{"doctype": "ToDo", "description": "Renew the Delhivery contract", "assigned_by": OWNER}
+		).insert(ignore_permissions=True)
+		cases = (
+			({"fieldname": "priority", "value": "High"}, "Priority: High"),
+			(
+				{"fieldname": {"date": "2026-11-05", "priority": "Low"}},
+				f"Due Date: {frappe.utils.formatdate('2026-11-05')}\nPriority: Low",
+			),
+		)
+		for values, shown in cases:
+			with self.subTest(shown):
+				args = {"doctype": "ToDo", "name": todo.name, **values}
+				prompt = self.call(
+					"run_action",
+					{"doctype": "", "names": [], "action": "frappe.client.set_value", "args": args},
+					mode="confirm",
+				)["prompt"]
+				self.assertEqual(prompt, f"Client: Set Value\nToDo: Renew the Delhivery contract\n{shown}")
+
 	def test_confirm_mode_prompts_a_title_line_then_the_tools_own_summary(self):
 		prompt = self.call("delete", {"doctype": "ToDo", "names": ["a", "b"]}, mode="confirm")["prompt"]
 		self.assertEqual(prompt, "Delete 2 ToDo records\nDelete 2 ToDo: a, b")
 		prompt = self.call("execute", {"code": "result = 1", "description": "Count things"}, mode="confirm")
-		self.assertEqual(prompt["prompt"], "Count things\nCount things:\n\nresult = 1")
+		self.assertEqual(prompt["prompt"], "Count things\nCount things")
+		prompt = self.call(
+			"run_action",
+			{
+				"doctype": "",
+				"names": [],
+				"action": "frappe.desk.form.assign_to.add",
+				"args": {"assign_to": ["a"]},
+			},
+			mode="confirm",
+		)["prompt"]
+		self.assertEqual(prompt, "Assign To: Add\nAssign To: a")
 		prompt = self.call("boom", {"reason": "x"}, mode="confirm")["prompt"]
 		self.assertEqual(prompt, 'Boom\n{\n  "reason": "x"\n}')
 
@@ -389,6 +491,7 @@ class TestToolCallback(IntegrationTestCase):
 				'Run "Submit" on 2 Sales Order',
 			),
 			("run_action", {"action": "send_sms"}, 'Run "Send sms" on records'),
+			("run_action", {"action": "erpnext.selling.get_sales"}, "Selling: Get Sales"),
 			("execute", {"description": "  Count things ", "code": ""}, "Count things"),
 			("execute", {"code": "x"}, "Run Python code"),
 			("create", {"records": []}, "Create"),

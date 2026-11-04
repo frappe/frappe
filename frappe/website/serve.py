@@ -32,7 +32,7 @@ def handle_exception(e, endpoint, path, http_status_code):
 		return NotPermittedPage(endpoint, http_status_code, exception=e).render()
 
 	if isinstance(e, frappe.PageDoesNotExistError):
-		return NotFoundPage(endpoint, http_status_code).render()
+		return NotFoundPage(endpoint).render()
 
 	return ErrorPage(exception=e).render()
 

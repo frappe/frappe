@@ -567,12 +567,11 @@ async function update_assets_json_in_cache() {
 	// handle error event to avoid printing stack traces
 	try {
 		await client.connect();
+		await client.del("assets_json");
+		await client.quit();
 	} catch (e) {
 		log_warn("Cannot connect to redis_cache to update assets_json");
 	}
-	client.del("assets_json", (err) => {
-		client.unref();
-	});
 }
 
 function get_assets_json_path(is_rtl) {
@@ -725,14 +724,13 @@ async function run_frontend_build(name, frontend_path) {
 
 async function run_app_build(app, root_app_path) {
 	const started = Date.now();
-	let node_modules = path.resolve(root_app_path, "node_modules");
-	if (!fs.existsSync(node_modules)) {
-		await run_command("yarn install --frozen-lockfile", {
-			cwd: root_app_path,
-			app,
-			step: "install",
-		});
-	}
+	// every build, not only on a fresh checkout: an install made before an update lacks what the
+	// new lockfile adds. Yarn returns in under a second when the install is current
+	await run_command("yarn install --frozen-lockfile", {
+		cwd: root_app_path,
+		app,
+		step: "install",
+	});
 
 	await run_command("yarn build", { cwd: root_app_path, app, step: "build" });
 
@@ -939,13 +937,6 @@ function wait_for_children_exit(children, timeout_ms) {
 
 async function notify_redis({ error, success, changed_files }) {
 	// notify redis which in turns tells socketio to publish this to browser
-	let subscriber = get_redis_subscriber("redis_queue");
-	try {
-		await subscriber.connect();
-	} catch (e) {
-		log_warn("Cannot connect to redis_queue for browser events");
-	}
-
 	let payload = null;
 	if (error) {
 		let formatted = await esbuild.formatMessages(error.errors, {
@@ -967,13 +958,20 @@ async function notify_redis({ error, success, changed_files }) {
 		};
 	}
 
-	await subscriber.publish(
-		"events",
-		JSON.stringify({
-			event: "build_event",
-			message: payload,
-		})
-	);
+	let subscriber = get_redis_subscriber("redis_queue");
+	try {
+		await subscriber.connect();
+		await subscriber.publish(
+			"events",
+			JSON.stringify({
+				event: "build_event",
+				message: payload,
+			})
+		);
+		await subscriber.quit();
+	} catch (e) {
+		log_warn("Cannot connect to redis_queue for browser events");
+	}
 }
 
 async function open_in_editor() {
@@ -983,6 +981,9 @@ async function open_in_editor() {
 	} catch (e) {
 		log_warn("Cannot connect to redis_queue for open_in_editor events");
 	}
+	subscriber.on("error", () =>
+		log_warn("Cannot connect to redis_queue for open_in_editor events")
+	);
 	subscriber.subscribe("open_in_editor", (file) => {
 		file = JSON.parse(file);
 		let file_path = path.resolve(file.file);

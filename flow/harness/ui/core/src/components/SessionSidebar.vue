@@ -23,81 +23,68 @@
 		:style="{ '--sidebar-w': layout.phone ? 'min(85vw, 360px)' : width + 'px' }"
 		:inert="!open"
 	>
-		<div class="flex h-12 flex-none items-center gap-2.5 pl-3.5 pr-2">
-			<BrandMark :size="22" />
-			<span class="text-sm font-semibold text-ink-gray-9">Flow</span>
+		<div class="flex h-12 flex-none items-center gap-2.5 pl-4 pr-2">
+			<!-- the app's own menu hangs from its name, as in Frappe's other apps: settings and the
+			     way back out live here, not at the foot of the list. The mark and title sit in the
+			     rows' icon and label columns -->
+			<Dropdown :options="appMenu" align="start">
+				<template #trigger>
+					<button
+						class="-ml-1.5 flex h-8 min-w-0 items-center gap-2 rounded-5 pl-1.5 pr-2 hover:bg-surface-gray-3 data-[state=open]:bg-surface-gray-3"
+						title="Flow menu"
+					>
+						<BrandMark line :size="16" class="!text-ink-gray-8" />
+						<span class="text-base font-semibold text-ink-gray-9">Flow</span>
+						<span class="lucide-chevron-down size-3.5 flex-none text-ink-gray-5" aria-hidden="true" />
+					</button>
+				</template>
+			</Dropdown>
 			<span class="flex-1" />
 			<button class="flow-icon-btn" title="Hide sidebar" @click="emit('close')">
-				<span class="lucide-panel-left size-3.5" aria-hidden="true" />
+				<span class="lucide-panel-left size-4" aria-hidden="true" />
 			</button>
 		</div>
 
-		<!-- 7px over, 9px under: New chat sits midway between the brand mark and the list's header;
-		     it and the header (or search) are as tall as a workspace row -->
+		<!-- 7px over, 9px under: the rows sit midway between the brand mark and the list's header,
+		     each as tall as a workspace row -->
 		<div class="mt-[7px] flex flex-none flex-col gap-0.5 px-2">
+			<!-- the essentials together at the top: start a chat, or find one, each with its keys on
+			     hover; search opens in a palette over the page -->
 			<SidebarItem icon="lucide-square-pen" class="h-8" @click="startNewChat()">
-				<span class="truncate text-xs font-medium text-ink-gray-8">New chat</span>
+				<span class="truncate text-base text-ink-gray-8">New chat</span>
+				<KeyboardShortcut v-if="!layout.phone" combo="Mod+Shift+O" :class="HINT" />
+			</SidebarItem>
+			<SidebarItem icon="lucide-search" class="h-8" @click="searchOpen = true">
+				<span class="truncate text-base text-ink-gray-8">Search</span>
+				<KeyboardShortcut v-if="!layout.phone" combo="Mod+K" :class="HINT" />
 			</SidebarItem>
 			<!-- the host's own rows, like links to its pages -->
 			<slot name="nav" />
 		</div>
 
-		<!-- outside the scroller, so search stays in reach down a long list -->
-		<div v-if="flow.state.sessions.length || flow.state.folders?.length || searchOpen" class="list-head mt-[9px] flex h-8 flex-none items-center gap-0.5 px-2">
-			<!-- 4px short of the header and at its top, so the field stands clear of the first row -->
-			<label
-				v-if="searchOpen"
-				class="flex h-[calc(100%-4px)] min-w-0 flex-1 items-center gap-1.5 self-start rounded-4 bg-surface-base pl-2.5 pr-0.5"
+		<!-- outside the scroller, so the heading stays in place down a long list -->
+		<div v-if="flow.state.sessions.length || flow.state.folders?.length" class="list-head mt-[9px] flex h-8 flex-none items-center gap-0.5 px-2">
+			<h3 class="min-w-0 flex-1 truncate pl-2 text-sm font-medium text-ink-gray-5">
+				{{ grouped ? "Workspaces" : "Chats" }}
+			</h3>
+			<Dropdown v-if="hasWorkspaces" align="end" :options="viewOptions">
+				<template #trigger>
+					<button
+						class="grid size-7 flex-none place-items-center rounded-4 text-ink-gray-5 transition-colors hover:bg-surface-gray-3 hover:text-ink-gray-7 data-[state=open]:bg-surface-gray-3 data-[state=open]:text-ink-gray-7"
+						title="Group and sort"
+					>
+						<span class="lucide-sliders-horizontal size-4" aria-hidden="true" />
+					</button>
+				</template>
+			</Dropdown>
+			<button
+				v-if="hasWorkspaces"
+				class="grid size-7 flex-none place-items-center rounded-4 text-ink-gray-5 transition-colors hover:bg-surface-gray-3 hover:text-ink-gray-7"
+				title="New workspace"
+				@click="newWorkspace"
 			>
-				<span class="lucide-search size-4 flex-none text-ink-gray-5" aria-hidden="true" />
-				<input
-					ref="searchInput"
-					v-model="query"
-					placeholder="Search chats"
-					aria-label="Search chats"
-					spellcheck="false"
-					class="h-full min-w-0 flex-1 border-0 bg-transparent p-0 text-xs text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:ring-0"
-					@keydown.esc="closeSearch"
-					@blur="query || closeSearch()"
-				/>
-				<button
-					class="grid h-full w-6 flex-none place-items-center text-ink-gray-5 hover:text-ink-gray-8"
-					title="Close search"
-					@click="closeSearch"
-				>
-					<span class="lucide-x size-3.5" aria-hidden="true" />
-				</button>
-			</label>
-			<template v-else>
-				<h3 class="min-w-0 flex-1 truncate pl-2 text-xs font-medium text-ink-gray-5">
-					{{ grouped ? "Workspaces" : "Sessions" }}
-				</h3>
-				<button
-					class="grid size-7 flex-none place-items-center rounded-4 text-ink-gray-5 transition-colors hover:bg-surface-gray-3 hover:text-ink-gray-7"
-					title="Search chats"
-					@click="openSearch"
-				>
-					<span class="lucide-search size-4" aria-hidden="true" />
-				</button>
-				<Dropdown v-if="hasWorkspaces" align="end" :options="viewOptions">
-					<template #trigger>
-						<button
-							class="grid size-7 flex-none place-items-center rounded-4 text-ink-gray-5 transition-colors hover:bg-surface-gray-3 hover:text-ink-gray-7 data-[state=open]:bg-surface-gray-3 data-[state=open]:text-ink-gray-7"
-							title="Group and sort"
-						>
-							<span class="lucide-sliders-horizontal size-4" aria-hidden="true" />
-						</button>
-					</template>
-				</Dropdown>
-				<button
-					v-if="hasWorkspaces"
-					class="grid size-7 flex-none place-items-center rounded-4 text-ink-gray-5 transition-colors hover:bg-surface-gray-3 hover:text-ink-gray-7"
-					title="New workspace"
-					@click="newWorkspace"
-				>
-					<span class="lucide-folder-plus size-4" aria-hidden="true" />
-				</button>
-			</template>
+				<span class="lucide-folder-plus size-4" aria-hidden="true" />
+			</button>
 		</div>
 
 		<div class="flex min-h-0 flex-1 flex-col overflow-y-auto px-2 pb-2 pt-0.5">
@@ -139,14 +126,14 @@
 							@update:open="(open) => showCard(group.cwd, open)"
 						>
 							<template #trigger>
-								<span class="row-title folder-name min-w-0 flex-1 overflow-hidden whitespace-nowrap text-xs leading-snug text-ink-gray-8">
+								<span class="row-title folder-name min-w-0 flex-1 overflow-hidden whitespace-nowrap text-base leading-snug text-ink-gray-8">
 									{{ group.name }}
 								</span>
 							</template>
 							<!-- no wider than the room beside the row, which a narrow window's drawer cuts short -->
 							<div class="row-card flex max-w-[min(20rem,var(--reka-hover-card-content-available-width,20rem))] flex-col gap-1.5 px-3 py-2.5">
-								<p class="break-words text-sm leading-snug text-ink-gray-8">{{ group.name }}</p>
-								<p class="flex items-start gap-1.5 text-xs leading-4 text-ink-gray-6">
+								<p class="break-words text-base leading-snug text-ink-gray-8">{{ group.name }}</p>
+								<p class="flex items-start gap-1.5 text-sm leading-4 text-ink-gray-6">
 									<span class="lucide-folder size-4 flex-none text-ink-gray-5" aria-hidden="true" />
 									<span class="break-all">{{ group.cwd }}</span>
 								</p>
@@ -186,7 +173,7 @@
 							</button>
 						</template>
 					</SidebarItem>
-					<h3 v-else-if="grouped" class="flex h-7 items-center pl-2 text-2xs font-medium text-ink-gray-5">
+					<h3 v-else-if="grouped" class="flex h-7 items-center pl-2 text-sm font-medium text-ink-gray-5">
 						Ungrouped
 					</h3>
 					<!-- while a workspace is dragged only the workspaces show, so it drops between them -->
@@ -225,15 +212,15 @@
 									>
 										<template #trigger>
 											<span
-												class="row-title min-w-0 flex-1 overflow-hidden whitespace-nowrap text-xs leading-snug"
+												class="row-title min-w-0 flex-1 overflow-hidden whitespace-nowrap text-base leading-snug"
 												:class="!group.cwd && '-ml-2'"
 											>
 												<span class="inline-block">{{ flow.sessionTitle(s) }}</span>
 											</span>
 										</template>
 										<div class="row-card flex max-w-[min(20rem,var(--reka-hover-card-content-available-width,20rem))] flex-col gap-1.5 px-3 py-2.5">
-											<p class="break-words text-sm leading-snug text-ink-gray-8">{{ flow.sessionTitle(s) }}</p>
-											<p v-if="s.cwd" class="flex items-center gap-1.5 text-xs text-ink-gray-6">
+											<p class="break-words text-base leading-snug text-ink-gray-8">{{ flow.sessionTitle(s) }}</p>
+											<p v-if="s.cwd" class="flex items-center gap-1.5 text-sm text-ink-gray-6">
 												<span class="lucide-folder size-4 flex-none text-ink-gray-5" aria-hidden="true" />
 												<span class="truncate">{{ flow.folderName(s.workspace ?? s.cwd) }}</span>
 											</p>
@@ -259,7 +246,7 @@
 								</SidebarItem>
 								<SidebarItem v-if="group.toggle" :label="group.toggle" @click="toggleShowAll(group.cwd)">
 									<template #prefix><span class="size-4" /></template>
-									<span class="text-xs leading-snug text-ink-gray-5">{{ group.toggle }}</span>
+									<span class="text-sm leading-snug text-ink-gray-5">{{ group.toggle }}</span>
 								</SidebarItem>
 							</div>
 						</div>
@@ -268,16 +255,16 @@
 			</div>
 			<LoadingState
 				v-if="filtered.length === 0 && flow.state.sessionsLoading"
-				class="justify-center px-2.5 py-8 text-xs text-ink-gray-5"
+				class="justify-center px-2.5 py-8 text-sm text-ink-gray-5"
 			/>
-			<div v-else-if="filtered.length === 0" class="px-2.5 py-8 text-center text-xs text-ink-gray-5">
+			<div v-else-if="filtered.length === 0" class="px-2.5 py-8 text-center text-sm text-ink-gray-5">
 				{{ emptyMessage }}
 			</div>
 			<button
 				v-if="flow.state.sessionsMore"
 				ref="sentinel"
 				type="button"
-				class="w-full px-2.5 py-2 text-center text-2xs text-ink-gray-4 hover:text-ink-gray-6"
+				class="w-full px-2.5 py-2 text-center text-sm text-ink-gray-4 hover:text-ink-gray-6"
 				:disabled="flow.state.sessionsLoading"
 				@click="flow.loadMoreSessions()"
 			>
@@ -292,26 +279,25 @@
 			@pointerdown="startResize"
 			@dblclick="resetWidth"
 		/>
-
-		<footer class="flex flex-col gap-0.5 border-t border-outline-gray-1 p-2">
-			<SidebarItem icon="lucide-settings" @click="flow.setSettingsOpen(true)">
-				<span class="truncate text-xs font-medium text-ink-gray-8">Settings</span>
-			</SidebarItem>
-		</footer>
+		<!-- its query is the sidebar's, so a search past the loaded page reloads the chats it matches -->
+		<ChatSearch v-model:open="searchOpen" v-model:query="query" @new="startNewChat()" @pick="pick" />
 	</aside>
 </template>
 
 <script setup>
-import { computed, h, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
+import { computed, h, inject, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import Dropdown from "frappe-ui/src/components/Dropdown/Dropdown.vue"
 import HoverCard from "frappe-ui/src/components/HoverCard/HoverCard.vue"
 import SidebarItem from "frappe-ui/src/components/Sidebar/SidebarItem.vue"
+import KeyboardShortcut from "frappe-ui/src/components/KeyboardShortcut/KeyboardShortcut.vue"
+import { useKeyboardShortcut } from "frappe-ui"
 import { dialog } from "frappe-ui/src/utils/dialog"
 
 import { useDebouncedValue } from "../debounce.js"
-import { layout, useSlide } from "../layout.js"
+import { SIDEBAR_WIDTH, layout, useSlide } from "../layout.js"
 import BrandMark from "./BrandMark.vue"
 import ChatMenu from "./ChatMenu.vue"
+import ChatSearch from "./ChatSearch.vue"
 import LoadingState from "./LoadingState.vue"
 
 // chatInView: false while a host shows a page in the open chat's place, so no chat row is marked.
@@ -320,24 +306,34 @@ const props = defineProps({
 	open: { type: Boolean, default: true },
 	chatInView: { type: Boolean, default: true },
 	beforeSwitch: { type: Function, default: null },
+	menu: { type: Array, default: () => [] }, // the host's items in the app menu, after Settings
 })
 const emit = defineEmits(["close"])
 const flow = inject("flow")
+
+const appMenu = computed(() => [
+	{ label: "Settings", icon: "lucide-settings", onClick: () => flow.setSettingsOpen(true) },
+	...props.menu,
+])
 
 const query = ref("")
 const debouncedQuery = useDebouncedValue(query, 150)
 watch(debouncedQuery, (q) => flow.searchSessions(q))
 
 const searchOpen = ref(false)
-const searchInput = ref(null)
-function openSearch() {
+watch(searchOpen, (open) => open || (query.value = ""))
+
+// an essential's keys show on its row's hover, never always on
+const HINT = "ml-auto mr-2 opacity-0 transition-opacity group-hover/sidebar-item:opacity-100"
+// the palette floats over the page, so it opens alike with the sidebar shown or hidden; the floating
+// sidebar's Search row asks for it by an event
+function search() {
 	searchOpen.value = true
-	nextTick(() => searchInput.value?.focus())
 }
-function closeSearch() {
-	query.value = ""
-	searchOpen.value = false
-}
+useKeyboardShortcut({ combo: "Mod+K", description: "Search chats", allowInInput: true, handler: search })
+onMounted(() => window.addEventListener("flow-search", search))
+onBeforeUnmount(() => window.removeEventListener("flow-search", search))
+useKeyboardShortcut({ combo: "Mod+Shift+O", description: "New chat", allowInInput: true, handler: () => startNewChat() })
 
 // the row under the last session: scrolling it into view asks for the next page, and a
 // click asks again after a page that failed
@@ -691,8 +687,8 @@ async function newWorkspace() {
 	startNewChat(workspace?.path ?? cwd)
 }
 
-const DEFAULT_WIDTH = 288
-const clampWidth = (w) => Math.min(420, Math.max(224, w))
+const DEFAULT_WIDTH = SIDEBAR_WIDTH.default
+const clampWidth = (w) => Math.min(SIDEBAR_WIDTH.max, Math.max(SIDEBAR_WIDTH.min, w))
 const width = ref(clampWidth(flow.state.prefs.sidebarWidth ?? DEFAULT_WIDTH))
 
 function resetWidth() {
@@ -778,7 +774,7 @@ const emptyMessage = computed(() => {
 	translate: 0 -0.625rem;
 }
 
-/* a phone's drawer: rows and buttons a finger can take, titles a half step over the chat's text */
+/* a phone's drawer: rows and buttons a finger can take, titles at the chat's text size */
 @media (max-width: 767px) and (pointer: coarse) {
 	aside :deep([data-slot="sidebar-item"]),
 	.list-head {
@@ -789,8 +785,8 @@ const emptyMessage = computed(() => {
 		height: 2.25rem;
 	}
 	.row-title,
-	aside :deep([data-slot="sidebar-item"]) .text-xs {
-		font-size: 15.5px;
+	aside :deep([data-slot="sidebar-item"]) .text-base {
+		font-size: theme(fontSize.md);
 	}
 }
 
@@ -800,11 +796,8 @@ const emptyMessage = computed(() => {
 	color: color-mix(in srgb, var(--ink-gray-7) 50%, var(--ink-gray-8));
 }
 
-/* chat and workspace names a half step over text-xs in size and weight, keeping its spacing; a
-   long one fades out at the row's end */
+/* a long chat or workspace name fades out at the row's end */
 .row-title {
-	font-size: 13.5px;
-	font-weight: 460;
 	-webkit-mask-image: linear-gradient(to right, #000 calc(100% - 1.5rem), transparent);
 	mask-image: linear-gradient(to right, #000 calc(100% - 1.5rem), transparent);
 }

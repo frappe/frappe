@@ -14,18 +14,4 @@ export default {
 		"./node_modules/frappe-ui/src/utils/**/*.ts",
 		"../node_modules/frappe-ui/src/utils/**/*.ts",
 	],
-	theme: {
-		extend: {
-			// Chat-scale type ramp (design: 15px body). Same override the Flow
-			// panel uses, so shared components render identically there.
-			fontSize: {
-				"2xs": ["12px", { lineHeight: "1.15", letterSpacing: "0.01em", fontWeight: "420" }],
-				xs: ["13px", { lineHeight: "1.15", letterSpacing: "0.02em", fontWeight: "420" }],
-				sm: ["14px", { lineHeight: "1.15", letterSpacing: "0.02em", fontWeight: "420" }],
-				title: ["14.5px", { lineHeight: "1.15", letterSpacing: "0.02em", fontWeight: "420" }],
-				base: ["15px", { lineHeight: "1.15", letterSpacing: "0.02em", fontWeight: "420" }],
-				lg: ["17px", { lineHeight: "1.15", letterSpacing: "0.02em", fontWeight: "400" }],
-			},
-		},
-	},
 }

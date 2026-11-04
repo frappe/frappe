@@ -4,6 +4,23 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Frappe's own Inter, bundled so the app looks the same offline or behind a font blocker. */
+@font-face {
+	font-family: InterVariable;
+	font-style: normal;
+	font-weight: 100 900;
+	font-display: swap;
+	src: url("./fonts/InterVariable.woff2") format("woff2");
+}
+
+@font-face {
+	font-family: InterVariable;
+	font-style: italic;
+	font-weight: 100 900;
+	font-display: swap;
+	src: url("./fonts/InterVariable-Italic.woff2") format("woff2");
+}
+
 /* Light-theme tuning: frappe-ui's stock outlines (#ededed/#e2e2e2) all but
    vanish on the white surface; darken each step so borders actually read. */
 :root {
@@ -41,9 +58,19 @@ body,
 }
 
 body {
-	font-family: Inter, system-ui, sans-serif;
+	font-family: InterVariable, Inter, system-ui, sans-serif;
 	background: var(--surface-base);
 	-webkit-font-smoothing: antialiased;
+}
+
+/* frappe-ui's base asks for Inter's display cut ("opsz" 24); pin the text cut, as Flow in Frappe does */
+html,
+body,
+button,
+p,
+span,
+div {
+	font-variation-settings: "opsz" 14;
 }
 
 * {

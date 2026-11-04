@@ -34,7 +34,7 @@
 				<span class="min-w-0 flex-1 truncate">{{ p.name }}</span>
 				<span
 					v-if="p.configured"
-					class="flex items-center gap-1 text-2xs font-medium text-ink-green-7"
+					class="flex items-center gap-1 text-xs font-medium text-ink-green-7"
 				>
 					<span class="h-1.5 w-1.5 rounded-full bg-surface-green-7" />
 					Connected
@@ -45,7 +45,7 @@
 					aria-hidden="true"
 				/>
 			</button>
-			<LoadingState v-if="loading && !rows.length" class="justify-center px-3 py-7 text-xs text-ink-gray-5" />
+			<LoadingState v-if="loading && !rows.length" class="justify-center px-3 py-7 text-sm text-ink-gray-5" />
 			<div
 				v-if="!filtered.length && debouncedQuery && !loading"
 				class="flow-palette-empty"
@@ -80,36 +80,36 @@
 					<ProviderIcon :provider-id="selected.id" :icon="selected.icon" :size="28" />
 				</span>
 				<div class="min-w-0">
-					<div class="truncate text-sm font-semibold text-ink-gray-9">{{ selected.name }}</div>
-					<div class="truncate text-xs text-ink-gray-5">{{ selected.source || "Not connected" }}</div>
+					<div class="truncate text-base font-semibold text-ink-gray-9">{{ selected.name }}</div>
+					<div class="truncate text-sm text-ink-gray-5">{{ selected.source || "Not connected" }}</div>
 				</div>
 			</div>
 
 			<!-- custom endpoint setup: adds a new one, or edits the selected one in place -->
 			<form v-if="selected.custom_setup || selected.custom" class="flex flex-col gap-3" @submit.prevent="saveCustom">
 				<label class="block">
-					<span class="mb-1.5 block text-xs font-medium text-ink-gray-7">Name</span>
+					<span class="mb-1.5 block text-sm font-medium text-ink-gray-7">Name</span>
 					<input v-model="customName" :class="FIELD" placeholder="Local Ollama" />
 				</label>
 				<label class="block">
-					<span class="mb-1.5 block text-xs font-medium text-ink-gray-7">Base URL</span>
+					<span class="mb-1.5 block text-sm font-medium text-ink-gray-7">Base URL</span>
 					<input v-model="customBaseUrl" :class="FIELD" placeholder="http://localhost:11434/v1" />
 				</label>
 				<label class="block">
-					<span class="mb-1.5 block text-xs font-medium text-ink-gray-7">Models</span>
+					<span class="mb-1.5 block text-sm font-medium text-ink-gray-7">Models</span>
 					<textarea
 						v-model="customModelIds"
 						rows="3"
 						:class="[FIELD, 'h-auto resize-none py-2 leading-relaxed']"
 						placeholder="ollama/llama3.2&#10;ollama/qwen2.5"
 					/>
-					<span class="mt-1 block text-2xs leading-4 text-ink-gray-5">
+					<span class="mt-1 block text-xs leading-4 text-ink-gray-5">
 						One per line (or comma separated). Each id needs a prefix, e.g.
 						<code class="text-ink-gray-6">ollama/llama3.2</code>.
 					</span>
 				</label>
 				<label class="block">
-					<span class="mb-1.5 block text-xs font-medium text-ink-gray-7">
+					<span class="mb-1.5 block text-sm font-medium text-ink-gray-7">
 						API key <span class="font-normal text-ink-gray-4">(optional)</span>
 					</span>
 					<input
@@ -124,7 +124,7 @@
 					<button
 						v-if="editingCustom"
 						type="button"
-						class="flex h-8 items-center gap-1.5 rounded-5 px-3 text-xs font-medium text-ink-red-6 hover:bg-surface-red-1"
+						class="flex h-8 items-center gap-1.5 rounded-5 px-3 text-sm font-medium text-ink-red-6 hover:bg-surface-red-1"
 						:disabled="saving"
 						@click="disconnect"
 					>
@@ -133,7 +133,7 @@
 					</button>
 					<button
 						type="submit"
-						class="flex h-8 items-center gap-1.5 rounded-5 bg-surface-gray-10 px-3 text-xs font-medium text-ink-base hover:opacity-90 disabled:cursor-not-allowed disabled:border disabled:border-outline-gray-2 disabled:bg-surface-gray-1 disabled:text-ink-gray-4 disabled:hover:opacity-100"
+						class="flex h-8 items-center gap-1.5 rounded-5 bg-surface-gray-10 px-3 text-sm font-medium text-ink-base hover:opacity-90 disabled:cursor-not-allowed disabled:border disabled:border-outline-gray-2 disabled:bg-surface-gray-1 disabled:text-ink-gray-4 disabled:hover:opacity-100"
 						:disabled="!canSaveCustom || saving"
 					>
 						<span
@@ -148,14 +148,14 @@
 
 			<div v-else-if="selected.configured" class="mt-5">
 				<div
-					class="flex items-center gap-2 rounded-5 border border-outline-gray-1 bg-surface-gray-1 px-3 py-2.5 text-xs text-ink-gray-7"
+					class="flex items-center gap-2 rounded-5 border border-outline-gray-1 bg-surface-gray-1 px-3 py-2.5 text-sm text-ink-gray-7"
 				>
 					<span class="lucide-circle-check size-4 text-ink-green-7" aria-hidden="true" />
 					Ready to use
 				</div>
 				<button
 					v-if="selected.credential_type"
-					class="mt-3 flex h-8 items-center gap-1.5 rounded-5 px-3 text-xs font-medium text-ink-red-6 hover:bg-surface-red-1"
+					class="mt-3 flex h-8 items-center gap-1.5 rounded-5 px-3 text-sm font-medium text-ink-red-6 hover:bg-surface-red-1"
 					:disabled="saving"
 					@click="disconnect"
 				>
@@ -165,17 +165,17 @@
 			</div>
 
 			<form v-else-if="selected.auth_methods.includes('api_key')" class="mt-5" @submit.prevent="saveKey">
-				<label class="mb-1.5 block text-xs font-medium text-ink-gray-7">API key</label>
+				<label class="mb-1.5 block text-sm font-medium text-ink-gray-7">API key</label>
 				<input
 					v-model="apiKey"
 					type="password"
 					autocomplete="off"
-					class="h-9 w-full rounded-5 border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:border-outline-gray-4 focus:ring-0"
+					class="h-9 w-full rounded-5 border border-outline-gray-2 bg-surface-base px-3 text-base text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:border-outline-gray-4 focus:ring-0"
 					placeholder="Paste your API key"
 				/>
 				<button
 					type="submit"
-					class="mt-3 flex h-8 items-center gap-1.5 rounded-5 bg-surface-gray-10 px-3 text-xs font-medium text-ink-base hover:opacity-90 disabled:cursor-not-allowed disabled:border disabled:border-outline-gray-2 disabled:bg-surface-gray-1 disabled:text-ink-gray-4 disabled:hover:opacity-100"
+					class="mt-3 flex h-8 items-center gap-1.5 rounded-5 bg-surface-gray-10 px-3 text-sm font-medium text-ink-base hover:opacity-90 disabled:cursor-not-allowed disabled:border disabled:border-outline-gray-2 disabled:bg-surface-gray-1 disabled:text-ink-gray-4 disabled:hover:opacity-100"
 					:disabled="!apiKey.trim() || saving"
 				>
 					<span class="lucide-key size-3.5" aria-hidden="true" />
@@ -186,7 +186,7 @@
 			<div v-else class="mt-5">
 				<button
 					v-if="!['pending', 'waiting_manual', 'exchanging', 'connected'].includes(oauthStatus)"
-					class="flex h-9 items-center gap-2 rounded-5 bg-surface-gray-10 px-3.5 text-xs font-medium text-ink-base hover:opacity-90 disabled:opacity-50"
+					class="flex h-9 items-center gap-2 rounded-5 bg-surface-gray-10 px-3.5 text-sm font-medium text-ink-base hover:opacity-90 disabled:opacity-50"
 					:disabled="saving"
 					@click="beginOAuth"
 				>
@@ -195,7 +195,7 @@
 				</button>
 				<div
 					v-else-if="oauthStatus !== 'connected'"
-					class="flex items-center gap-2 rounded-5 border border-outline-gray-1 bg-surface-gray-1 px-3 py-2.5 text-xs text-ink-gray-7"
+					class="flex items-center gap-2 rounded-5 border border-outline-gray-1 bg-surface-gray-1 px-3 py-2.5 text-sm text-ink-gray-7"
 				>
 					<span class="flow-shimmer font-medium">
 						{{ oauthStatus === "exchanging" ? "Finishing sign-in…" : "Waiting for sign-in…" }}
@@ -208,24 +208,24 @@
 					:href="authorizeUrl"
 					target="_blank"
 					rel="noopener noreferrer"
-					class="mt-2 flex w-fit items-center gap-1.5 text-xs text-ink-gray-6 underline hover:text-ink-gray-9"
+					class="mt-2 flex w-fit items-center gap-1.5 text-sm text-ink-gray-6 underline hover:text-ink-gray-9"
 				>
 					<span class="lucide-external-link size-3" aria-hidden="true" />
 					Open the sign-in page
 				</a>
 				<div
 					v-if="oauthStatus === 'connected'"
-					class="flex items-center gap-2 rounded-5 border border-outline-gray-1 bg-surface-gray-1 px-3 py-2.5 text-xs text-ink-gray-7"
+					class="flex items-center gap-2 rounded-5 border border-outline-gray-1 bg-surface-gray-1 px-3 py-2.5 text-sm text-ink-gray-7"
 				>
 					<span class="lucide-circle-check size-4 text-ink-green-7" aria-hidden="true" />
 					Connected
 				</div>
-				<div v-if="oauthError" class="mt-2 text-xs leading-relaxed text-ink-red-6">
+				<div v-if="oauthError" class="mt-2 text-sm leading-relaxed text-ink-red-6">
 					{{ oauthError }}
 				</div>
 				<button
 					v-if="['pending', 'waiting_manual'].includes(oauthStatus) && !showManual"
-					class="mt-3 block text-xs text-ink-gray-5 hover:text-ink-gray-8"
+					class="mt-3 block text-sm text-ink-gray-5 hover:text-ink-gray-8"
 					@click="showManual = true"
 				>
 					Enter callback URL
@@ -233,12 +233,12 @@
 				<form v-if="showManual" class="mt-3" @submit.prevent="completeOAuth">
 					<input
 						v-model="callbackUrl"
-						class="h-9 w-full rounded-5 border border-outline-gray-2 bg-surface-base px-3 text-xs text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:border-outline-gray-4 focus:ring-0"
+						class="h-9 w-full rounded-5 border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:border-outline-gray-4 focus:ring-0"
 						placeholder="http://localhost:1455/auth/callback?..."
 					/>
 					<button
 						type="submit"
-						class="mt-2 flex h-8 items-center gap-1.5 rounded-5 border border-outline-gray-2 px-3 text-xs font-medium text-ink-gray-7 hover:bg-surface-gray-1 disabled:opacity-50"
+						class="mt-2 flex h-8 items-center gap-1.5 rounded-5 border border-outline-gray-2 px-3 text-sm font-medium text-ink-gray-7 hover:bg-surface-gray-1 disabled:opacity-50"
 						:disabled="!callbackUrl.trim() || saving"
 					>
 						Complete sign-in
@@ -275,7 +275,7 @@ const authorizeUrl = ref("")
 let pollTimer = null
 
 const FIELD =
-	"h-9 w-full rounded-5 border border-outline-gray-2 bg-surface-base px-3 text-xs text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:border-outline-gray-4 focus:ring-0"
+	"h-9 w-full rounded-5 border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:border-outline-gray-4 focus:ring-0"
 
 // the synthetic row that opens the custom-endpoint form
 const CUSTOM_OPTION = {

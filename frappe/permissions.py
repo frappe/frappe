@@ -44,22 +44,25 @@ AUTOMATIC_ROLES = (GUEST_ROLE, ALL_USER_ROLE, SYSTEM_USER_ROLE, ADMIN_ROLE)
 def print_has_permission_check_logs(func):
 	@functools.wraps(func)
 	def inner(*args, **kwargs):
-		print_logs = kwargs.get("print_logs", True)
-		self_perm_check = True if not kwargs.get("user") else kwargs.get("user") == frappe.session.user
+		if not kwargs.get("print_logs", True):
+			outer_check_logs = frappe.flags.pop("has_permission_check_logs", None)
+			try:
+				return func(*args, **kwargs)
+			finally:
+				frappe.flags["has_permission_check_logs"] = outer_check_logs
 
-		if print_logs:
-			frappe.flags["has_permission_check_logs"] = []
+		self_perm_check = True if not kwargs.get("user") else kwargs.get("user") == frappe.session.user
+		frappe.flags["has_permission_check_logs"] = []
 
 		result = func(*args, **kwargs)
 
 		# print only if access denied
 		# and if user is checking their own permission
-		if not result and self_perm_check and print_logs:
+		if not result and self_perm_check:
 			if logs := frappe.flags.get("has_permission_check_logs"):
 				msgprint(("<br>").join(logs))
 
-		if print_logs:
-			frappe.flags.pop("has_permission_check_logs", None)
+		frappe.flags.pop("has_permission_check_logs", None)
 		return result
 
 	return inner
@@ -924,6 +927,14 @@ def has_child_permission(
 
 def is_system_user(user: str | None = None) -> bool:
 	return frappe.get_cached_value("User", user or frappe.session.user, "user_type") == "System User"
+
+
+def validate_desk_user() -> None:
+	"""Raise PermissionError for Website Users and Guest; custom user types may have desk access."""
+	from frappe.utils.user import is_website_user
+
+	if is_website_user():
+		frappe.throw(_("Not permitted"), frappe.PermissionError)
 
 
 def check_doctype_permission(doctype: str, ptype: str = "read") -> None:

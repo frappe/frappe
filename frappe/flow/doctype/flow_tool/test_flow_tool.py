@@ -56,14 +56,16 @@ class IntegrationTestFlowTool(IntegrationTestCase):
 
 	def test_an_invalid_tool_is_refused(self):
 		cases = [
-			(_module(slug=bad), "Slug")
-			for bad in ("bad-slug", "1starts_with_digit", "bad slug", "has.dot", "HasCaps")
+			(_module(slug=bad), "Function Name")
+			for bad in ("bad-slug", "1starts_with_digit", "bad slug", "has.dot", "HasCaps", "crm/get_weather")
 		]
 		cases += [
 			(_module(import_path=None), "Import Path"),
 			(_module(import_path="not a path"), "Import Path"),
 			(_module(code="def main():\n\treturn 1"), "inline code"),
 			(_script(code=None), "Code"),
+			(_script(slug="read_records"), "reserved"),
+			(_script(slug="crm__get_weather"), "reserved"),
 			(_script(import_path="frappe.x.y"), "Import Path"),
 			(_script(code="def main(:\n\tpass"), "syntax"),
 			(_script(code="def other():\n\treturn 1\n"), "main"),
@@ -90,7 +92,7 @@ class TestFlowToolSystemGenerated(IntegrationTestCase):
 			("delete", lambda: frappe.delete_doc("Flow Tool", tool.name)),
 			(
 				"a builtin, even by the app",
-				lambda: frappe.delete_doc("Flow Tool", "read", ignore_permissions=True),
+				lambda: frappe.delete_doc("Flow Tool", "frappe/read", ignore_permissions=True),
 			),
 		):
 			with (
@@ -209,11 +211,17 @@ class TestSyncServerTools(IntegrationTestCase):
 		self.assertEqual(frappe.get_all("Flow Agent Tool", {"parent": agent.name}), [])
 
 	def test_an_extension_tool_that_cannot_have_a_server_row_is_skipped(self):
-		with self.subTest("named like an app tool"), patch("frappe.log_error") as log_error:
-			self.sync(_listed("read", "An override.", "override"))
-			self.assertEqual(frappe.db.get_value("Flow Tool", "read", "type"), "Imported")
-			log_error.assert_called_once()
-		with self.subTest("a name that is not a slug"), patch("frappe.log_error") as log_error:
-			self.sync(_listed("readTicket", "Fetch a ticket."))
-			self.assertFalse(frappe.db.exists("Flow Tool", "readTicket"))
-			log_error.assert_called_once()
+		frappe.get_doc(_script(slug="count_open")).insert()
+		for name, label in (("count_open", "named like the site's own tool"), ("read", "named like Flow's")):
+			with self.subTest(label), patch("frappe.log_error") as log_error:
+				self.sync(_listed(name, "An override.", "override"))
+				self.assertNotEqual(frappe.db.get_value("Flow Tool", name, "type"), "Server")
+				log_error.assert_called_once()
+		for name, label in (
+			("readTicket", "a name that is not a slug"),
+			("crm__ticket", "named like app tools"),
+		):
+			with self.subTest(label), patch("frappe.log_error") as log_error:
+				self.sync(_listed(name, "Fetch a ticket."))
+				self.assertFalse(frappe.db.exists("Flow Tool", name))
+				log_error.assert_called_once()

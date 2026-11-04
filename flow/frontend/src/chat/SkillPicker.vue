@@ -1,22 +1,18 @@
 <template>
 	<span v-if="skills.length || canAdd" class="relative min-w-0">
 		<!-- its list hangs from it -->
-		<button
-			ref="trigger"
-			class="flex max-w-full items-center gap-1.5 rounded-4 px-1.5 py-1 hover:bg-surface-gray-2 hover:text-ink-gray-8"
-			:class="open ? 'bg-surface-gray-2' : ''"
-			title="Skills"
-			:aria-expanded="open"
-			@click="open ? close() : show()"
-		>
-			<span class="lucide-book-open size-3.5 flex-none" aria-hidden="true" />
-			<span class="truncate">Skills</span>
-			<span
-				class="lucide-chevron-down size-3 flex-none text-ink-gray-4 transition-transform dark:text-ink-gray-6"
-				:class="open ? 'rotate-180' : ''"
-				aria-hidden="true"
-			/>
-		</button>
+		<Tooltip text="Skills" :disabled="open">
+			<button
+				ref="trigger"
+				class="grid size-8 place-items-center rounded-5 text-ink-gray-7 hover:bg-surface-gray-2 hover:text-ink-gray-9 dark:text-ink-gray-8"
+				:class="open ? 'bg-surface-gray-2' : ''"
+				aria-label="Skills"
+				:aria-expanded="open"
+				@click="open ? close() : show()"
+			>
+				<span class="lucide-book-open size-4" aria-hidden="true" />
+			</button>
+		</Tooltip>
 		<PalettePanel
 			v-if="open"
 			title="Skills"
@@ -31,7 +27,7 @@
 					ref="field"
 					v-model="search"
 					placeholder="Search skills…"
-					class="h-8 min-w-0 flex-1 border-0 bg-transparent px-[11px] text-sm text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:ring-0"
+					class="h-8 min-w-0 flex-1 border-0 bg-transparent px-[11px] text-base text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:ring-0"
 				/>
 			</div>
 			<div class="flow-palette-list min-h-0 flex-1 overflow-y-auto p-1">
@@ -67,7 +63,7 @@
 
 <script setup>
 import { computed, inject, nextTick, onMounted, ref } from "vue";
-import { useRouter } from "vue-router";
+import { Tooltip } from "frappe-ui";
 import PalettePanel from "@flow/ui-core/components/PalettePanel.vue";
 import { layout } from "@flow/ui-core/layout.js";
 
@@ -76,7 +72,6 @@ import { layout } from "@flow/ui-core/layout.js";
 const emit = defineEmits(["pick"]); // "/skill:<name> ", for the composer to put in the draft
 const flow = inject("flow");
 const page = inject("flowPage");
-const router = useRouter();
 const open = ref(false);
 const search = ref("");
 const trigger = ref(null);
@@ -113,9 +108,10 @@ function pick(name) {
 	emit("pick", `/skill:${name} `);
 }
 
-// the skills page, on a blank skill
+// settings, on a blank skill; the dialog takes the focus
 function create() {
 	open.value = false;
-	router.push("/skills/new");
+	page.createRecord("skills");
+	flow.setSettingsOpen(true);
 }
 </script>

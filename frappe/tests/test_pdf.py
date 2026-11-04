@@ -212,6 +212,27 @@ class TestPdf(IntegrationTestCase):
 			self.assertGreaterEqual(baselines[text], bottom, text)
 			self.assertLessEqual(baselines[text], top, text)
 
+	def test_internal_link_lands_on_its_target_with_footer(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		pdf = pdfgen.get_pdf(
+			'<a href="#totals">See totals</a>'
+			+ "<p>row</p>" * 80
+			+ '<p id="totals">Totals</p><div id="footer-html"><p style="height: 150px">BOTTOM</p></div>'
+		)
+		reader = PdfReader(io.BytesIO(pdf))
+		page, _, _, top, _ = reader.pages[0]["/Annots"][0].get_object()["/Dest"]
+		baselines = []
+
+		def record_baseline(text, cm, tm, *_):
+			if text.strip() == "Totals":
+				baselines.append(tm[4] * cm[1] + tm[5] * cm[3] + cm[5])
+
+		reader.pages[reader.get_page_number(page.get_object())].extract_text(visitor_text=record_baseline)
+		self.assertEqual(len(baselines), 1)
+		self.assertGreater(top, baselines[0])
+		self.assertLess(top, baselines[0] + 72)
+
 	def test_footer_is_measured_at_the_width_it_prints(self):
 		self.addCleanup(frappe.set_user, "Administrator")
 		frappe.set_user("test@example.com")
@@ -245,6 +266,32 @@ class TestPdf(IntegrationTestCase):
 
 		pdf = pdfgen.get_pdf("<p>body text</p>")
 		self.assertIn("body text", PdfReader(io.BytesIO(pdf)).pages[0].extract_text())
+
+	def test_two_pdfs_started_together_both_render(self):
+		import threading
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		site, sites_path = frappe.local.site, frappe.local.sites_path
+		pdfs = []
+		both_ready = threading.Barrier(2)
+
+		def render():
+			try:
+				frappe.init(site, sites_path=sites_path)
+				frappe.connect()
+				frappe.set_user("test@example.com")
+				both_ready.wait()
+				pdfs.append(pdfgen.get_pdf("<p>body text</p>"))
+			finally:
+				frappe.destroy()
+
+		renders = [threading.Thread(target=render, daemon=True) for _ in range(2)]
+		for thread in renders:
+			thread.start()
+		for thread in renders:
+			thread.join(timeout=60)
+		self.assertEqual(len(pdfs), 2)
 
 	def test_pages_merged_with_header_and_footer_are_compressed(self):
 		self.addCleanup(frappe.set_user, "Administrator")

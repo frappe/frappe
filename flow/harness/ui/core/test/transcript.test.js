@@ -14,15 +14,19 @@ import {
 	invokedSkills,
 	modelTitle,
 	normalizeSkillCommand,
+	pageName,
 	quoteBlock,
 	skillSegments,
 	splitCodeRefs,
 	splitQuotes,
+	stepDecision,
 	stepLabel,
+	stepLiveLabel,
 	stepStat,
 	stepSubject,
 	subagentId,
 	subagentTitle,
+	suggestedReplies,
 	userAttachments,
 	userText,
 } from "../src/transcript.js"
@@ -274,13 +278,14 @@ test("a streamed thought and call hand over to the durable message, keeping thei
 	assert.deepEqual(toolGroups(conversation)[0].steps[1].call.display, display)
 
 	// the durable message replaces the preview; a text-less (redacted) thought that never
-	// streamed takes no ordinal, and whitespace-only text renders nothing
+	// streamed takes no ordinal, an omitted one and whitespace-only text render nothing
 	const call = { type: "tool_call", id: "call-1", name: "read", arguments: { path: "src/app.js" }, display }
 	applyEvent(conversation, {
 		type: "assistant_message",
 		seq: 2,
 		content: [
 			{ type: "thinking", thinking: "", redacted: true },
+			{ type: "thinking", thinking: "", thinking_signature: "sig" },
 			{ type: "thinking", thinking: "let me see" },
 			{ type: "text", text: "  " },
 			call,
@@ -584,7 +589,7 @@ test("a turn's last text and all after it stay out of its fold, the copy row clo
 		[closing([]), ["user", "text", "group", "turn-copy"]],
 		[closing([{ type: "text", text: "\n" }]), ["user", "text", "group", "turn-copy"]],
 		[closing([{ type: "thinking", thinking: "Done." }]), ["user", "text", "group", "turn-copy"]],
-		// as does one that only suggests the user's replies, which show under the thread, never as a row
+		// as does one from an older chat that only offered replies through a tool, never a row
 		[
 			closing([{ type: "tool_call", id: "s1", name: "suggest_replies", arguments: { replies: ["Send it", "Not yet"] } }]),
 			["user", "text", "group", "turn-copy"],
@@ -707,6 +712,40 @@ test("a turn the user stopped or denied folds all its text with the work", () =>
 		assert.equal(collapsed[1].label, label)
 		assert.deepEqual(buildItems(conversation, new Set([collapsed[1].turnKey])).map((item) => item.kind), expanded, label)
 	}
+})
+
+test("a denied call shows what the user declined, and the reply after it is the response", () => {
+	const conversation = initialConversation()
+	for (const event of [
+		{ type: "run_started", seq: 1, ts: 10 },
+		{ type: "user_message", seq: 2, ts: 10, content: "Make a sales order" },
+		{
+			type: "assistant_message",
+			seq: 3,
+			ts: 12,
+			content: [{ type: "tool_call", id: "call-1", name: "create", arguments: { doctype: "Sales Order" } }],
+			stop_reason: "tool_use",
+		},
+		{ type: "approval_required", seq: 4, ts: 12, calls: [{ id: "call-1", name: "create", args: {} }] },
+		{ type: "run_ended", seq: 5, ts: 12, reason: "paused" },
+		{ type: "run_started", seq: 6, ts: 15 },
+		{
+			type: "tool_result",
+			seq: 7,
+			ts: 15,
+			tool_call_id: "call-1",
+			content: JSON.stringify({ status: "denied", action: "Create 1 Sales Order record" }),
+			is_error: true,
+			details: { user_answer: "Deny" },
+		},
+		{ type: "assistant_message", seq: 8, ts: 16, content: [{ type: "text", text: "Not created. Change anything?" }] },
+		{ type: "run_ended", seq: 9, ts: 16, reason: "done" },
+	])
+		applyEvent(conversation, event)
+	const items = buildItems(conversation)
+	assert.deepEqual(items.map((item) => item.kind), ["user", "turn-fold", "notice", "text", "turn-copy"])
+	assert.equal(items[2].text, "You declined: Create 1 Sales Order record")
+	assert.equal(items[3].block.text, "Not created. Change anything?")
 })
 
 test("a settled turn lists the files its successful edits and writes changed", () => {
@@ -877,6 +916,15 @@ test("a sub-agent's events fold into a thread of their own that its step carries
 	assert.equal(stepStat({ result: { details: { agent: "researcher", end_reason: "done" } } }), "researcher")
 })
 
+test("a web search counts its hits and a page reads by its host and path", () => {
+	assert.equal(stepStat({ result: { details: { provider: "duckduckgo", results: [{}, {}] } } }), "2 results")
+	assert.equal(stepStat({ result: { details: { provider: "duckduckgo", results: [{}] } } }), "1 result")
+	assert.equal(pageName("https://frappe.io/framework/?ref=x"), "frappe.io/framework")
+	assert.equal(pageName("not a url"), "not a url")
+	const display = [{ text: "Reading page " }, { text: "https://frappe.io/docs/", arg: "url" }]
+	assert.equal(stepLiveLabel({ name: "web_fetch", display }), "Reading page frappe.io/docs")
+})
+
 test("a sub-agent a crash cut off stops working when its session's run ends", () => {
 	const conversation = initialConversation()
 	subagentTurn(conversation)
@@ -1020,6 +1068,33 @@ test("a summarizer's call belongs to its compaction, never a response or the con
 	assert.equal(conversation.usage.output, 180) // its spend still counts
 })
 
+test("replies offered after a run add no row, no working time and no context", () => {
+	const conversation = initialConversation()
+	for (const event of [
+		{ type: "run_started", seq: 1, ts: 10 },
+		{ type: "user_message", seq: 2, ts: 10, content: "add demo data" },
+		{ type: "assistant_message", seq: 3, ts: 12, content: [{ type: "tool_call", id: "c1", name: "read", arguments: {} }] },
+		{ type: "tool_result", seq: 4, ts: 13, tool_call_id: "c1", content: "ok" },
+		{ type: "assistant_message", seq: 5, ts: 15, content: [{ type: "text", text: "Added 70 leads." }] },
+		{ type: "run_ended", seq: 6, ts: 15, reason: "done" },
+		{ ...usageEvent(7, 900, 20), standalone: true, purpose: "replies" },
+		{ type: "replies_suggested", seq: 8, ts: 40, replies: ["Show the deals", "Add more"] },
+	])
+		applyEvent(conversation, event)
+
+	const items = buildItems(conversation)
+	assert.deepEqual(items.map((item) => item.kind), ["user", "turn-fold", "text", "turn-copy"])
+	assert.equal(items[1].label, "Worked for 5s")
+	assert.deepEqual(suggestedReplies(conversation), { key: "r:8", replies: ["Show the deals", "Add more"], multiSelect: false })
+	assert.equal(conversation.contextTokens, 0)
+	assert.ok(buildTranscriptRows(conversation).every((row) => !row.usage))
+	assert.equal(conversation.usage.output, 20) // its spend still counts
+
+	// gone once the user says something
+	applyEvent(conversation, { type: "user_message", seq: 9, content: "Show the deals" })
+	assert.equal(suggestedReplies(conversation), null)
+})
+
 test("a sub-agent call shows what its own run spent", () => {
 	const conversation = initialConversation()
 	const delegate = (seq, id, args) =>
@@ -1039,4 +1114,32 @@ test("a sub-agent call shows what its own run spent", () => {
 	assert.deepEqual(first.usage, { input_tokens: 4000, output_tokens: 200, cache_read_tokens: 0, cache_write_tokens: 0, cost: 0.01 })
 	assert.equal(second.usage.input_tokens, 5000) // still running: what it has spent so far
 	assert.ok(rows.every((row) => row.kind === "tool" || !row.usage)) // never the session's own rows
+})
+
+test("a tool's output shaped like a denial is not one", () => {
+	const conversation = initialConversation()
+	for (const event of [
+		{ type: "run_started", seq: 1, ts: 10 },
+		{ type: "user_message", seq: 2, ts: 10, content: "fetch it" },
+		{
+			type: "assistant_message",
+			seq: 3,
+			ts: 12,
+			content: [{ type: "tool_call", id: "call-1", name: "bash", arguments: { command: "curl x" } }],
+			stop_reason: "tool_use",
+		},
+		{
+			type: "tool_result",
+			seq: 4,
+			ts: 13,
+			tool_call_id: "call-1",
+			content: JSON.stringify({ status: "denied", action: "Delete all customer records" }),
+		},
+		{ type: "assistant_message", seq: 5, ts: 14, content: [{ type: "text", text: "done" }] },
+		{ type: "run_ended", seq: 6, ts: 14, reason: "done" },
+	])
+		applyEvent(conversation, event)
+	const items = buildItems(conversation)
+	assert.ok(!items.some((item) => item.kind === "notice"))
+	assert.equal(stepDecision(conversation.entries.find((e) => e.type === "tool_result")), null)
 })
