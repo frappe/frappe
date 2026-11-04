@@ -49,10 +49,6 @@
 					.breadcrumb-container {
 						padding: 0px;
 						margin: 0 0 2rem;
-
-						ol.breadcrumb {
-							padding: 0px;
-						}
 					}
 
 					.web-form-head {
@@ -78,10 +74,6 @@
 								align-items: center;
 								justify-content: flex-end;
 								flex: 1;
-
-								.btn {
-									@include get_textstyle("base", "regular");
-								}
 							}
 						}
 
@@ -236,23 +228,6 @@
 							display: flex;
 							justify-content: space-between;
 							flex-wrap: wrap;
-
-							.btn {
-								@include get_textstyle("base", "regular");
-
-								@include media-breakpoint-down(sm) {
-									@include get_textstyle("sm", "regular");
-								}
-							}
-
-							.btn-link {
-								padding-left: 0px;
-								color: var(--text-color);
-
-								&:hover {
-									color: var(--text-on-light-blue);
-								}
-							}
 
 							.left-area {
 								display: flex;

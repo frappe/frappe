@@ -6,10 +6,7 @@
 @import "../common/mixins";
 @import "../common/global";
 @import "../common/icons";
-@import "../common/alert";
 @import "../common/flex";
-@import "../common/buttons";
-@import "buttons";
 @import "../common/modal";
 @import "../common/css_variables.scss";
 @import "../common/indicator";
@@ -120,44 +117,9 @@
 
 .breadcrumb-container {
 	margin-top: 1rem;
+	margin-bottom: 1rem;
 	padding-top: 0.25rem;
 }
-
-.breadcrumb {
-	padding-left: 0;
-	padding-right: 0;
-	font-size: $font-size-sm;
-}
-
-.breadcrumb-item {
-	+ .breadcrumb-item {
-		font-size: $font-size-sm;
-
-		&::before {
-			content: var(--right-arrow-svg);
-			display: inline-block;
-		}
-	}
-
-	a {
-		color: var(--text-color);
-	}
-
-	li.disabled {
-		a {
-			color: var(--text-muted);
-			pointer-events: none;
-		}
-	}
-}
-
-// rtlcss value directives don't survive esbuild's CSS printer (comments inside
-// declaration values are dropped), so flip the breadcrumb arrow via a raw block.
-/*!rtl:raw:
-.breadcrumb-item + .breadcrumb-item::before {
-	content: var(--left-arrow-svg);
-}
-*/
 
 a.card {
 	text-decoration: none;
@@ -251,14 +213,6 @@ h5.modal-title {
 
 .col-xs-12 {
 	@extend .col-12;
-}
-
-.btn-default {
-	@extend .btn-light;
-}
-
-.btn-xs {
-	@extend .btn-sm;
 }
 
 .hidden-xs {

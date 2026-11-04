@@ -1,0 +1,302 @@
+.btn,
+.close {
+	@extend .es-button;
+}
+
+.btn-primary,
+.btn-dark,
+.btn-success,
+.btn-info,
+.btn-warning,
+.btn-danger,
+.btn-secondary-dark {
+	@extend [data-variant="solid"];
+}
+
+.btn-danger,
+.btn-outline-danger {
+	@extend [data-theme="red"];
+}
+
+.btn-outline,
+.btn-outline-primary,
+.btn-outline-secondary,
+.btn-outline-success,
+.btn-outline-info,
+.btn-outline-warning,
+.btn-outline-danger,
+.btn-outline-light,
+.btn-outline-dark {
+	@extend [data-variant="outline"];
+}
+
+.btn-link,
+.btn-ghost,
+.close {
+	@extend [data-variant="ghost"];
+}
+
+.btn-md {
+	@extend [data-size="md"];
+}
+
+.btn-lg {
+	@extend [data-size="lg"];
+}
+
+.icon-btn,
+.close {
+	@extend [data-icon-button="true"];
+}
+
+.btn-block {
+	display: flex;
+	width: 100%;
+
+	+ .btn-block {
+		margin-top: 0.5rem;
+	}
+}
+
+.btn-group {
+	@extend .es-segmented-button;
+}
+
+.btn-group-vertical {
+	display: inline-flex;
+	flex-direction: column;
+}
+
+.btn-toolbar {
+	display: flex;
+	flex-wrap: wrap;
+}
+
+.close {
+	float: right;
+	font-size: var(--text-2xl);
+}
+
+.alert {
+	@extend .es-alert;
+	display: block;
+	position: relative;
+	margin-bottom: 1rem;
+}
+
+.alert-primary,
+.alert-info {
+	@extend [data-theme="blue"];
+}
+
+.alert-success {
+	@extend [data-theme="green"];
+}
+
+.alert-warning {
+	@extend [data-theme="yellow"];
+}
+
+.alert-danger {
+	@extend [data-theme="red"];
+}
+
+.alert-dismissible {
+	padding-inline-end: calc(var(--spacing) * 12);
+
+	.close {
+		position: absolute;
+		top: calc(var(--spacing) * 2);
+		inset-inline-end: calc(var(--spacing) * 2);
+	}
+}
+
+.badge {
+	@extend .es-badge;
+
+	&:empty {
+		display: none;
+	}
+}
+
+.badge-primary,
+.badge-info {
+	@extend [data-theme="blue"];
+}
+
+.badge-success {
+	@extend [data-theme="green"];
+}
+
+.badge-warning {
+	@extend [data-theme="amber"];
+}
+
+.badge-danger {
+	@extend [data-theme="red"];
+}
+
+.breadcrumb {
+	@extend .es-breadcrumbs;
+	flex-wrap: wrap;
+	margin-bottom: 1rem;
+	padding: 0;
+	list-style: none;
+}
+
+.breadcrumb-item.active {
+	@extend .es-breadcrumbs__item;
+	color: var(--ink-gray-9);
+}
+
+.dropup,
+.dropright,
+.dropdown,
+.dropleft {
+	position: relative;
+}
+
+.dropdown-toggle {
+	white-space: nowrap;
+
+	&::after {
+		display: inline-block;
+		margin-inline-start: 0.255em;
+		vertical-align: 0.255em;
+		content: "";
+		border-top: 0.3em solid;
+		border-right: 0.3em solid transparent;
+		border-left: 0.3em solid transparent;
+	}
+}
+
+.dropdown-menu {
+	@extend .es-menu;
+	@extend .es-menu__group;
+	position: absolute;
+	top: 100%;
+	left: 0;
+
+	&:not(.show) {
+		display: none;
+	}
+}
+
+.dropdown-menu-right {
+	right: 0;
+	left: auto;
+}
+
+.dropdown-item {
+	@extend .es-menu__item;
+}
+
+.dropdown-header {
+	@extend .es-menu__group-label;
+}
+
+.dropdown-divider {
+	border-top: 1px solid var(--outline-elevation-2);
+}
+
+.nav {
+	display: flex;
+	flex-wrap: wrap;
+	padding-left: 0;
+	margin-bottom: 0;
+	list-style: none;
+}
+
+.nav-link {
+	display: block;
+	padding: 0.5rem 1rem;
+
+	&:hover,
+	&:focus {
+		text-decoration: none;
+	}
+
+	&.disabled {
+		color: var(--ink-gray-4);
+		pointer-events: none;
+	}
+}
+
+.nav-tabs {
+	@extend .es-tabs__list;
+
+	.nav-link {
+		@extend .es-tabs__tab;
+	}
+
+	.nav-link.active {
+		@extend [data-state="active"];
+		box-shadow: inset 0 -2px var(--surface-gray-10);
+	}
+}
+
+.nav-pills {
+	@extend .es-tab-buttons;
+	@extend [data-type="ghost"];
+
+	.nav-link {
+		@extend .es-pill;
+	}
+
+	.nav-link.active {
+		@extend [data-state="active"];
+	}
+}
+
+.nav-fill .nav-item {
+	flex: 1 1 auto;
+	text-align: center;
+}
+
+.nav-justified .nav-item {
+	flex: 1 1 0;
+	text-align: center;
+}
+
+.tab-content > .tab-pane:not(.active) {
+	display: none;
+}
+
+.progress {
+	@extend .es-progress__track;
+	@extend [data-size="xl"];
+}
+
+.progress-bar {
+	@extend .es-progress__fill;
+}
+
+.spinner-border,
+.spinner-grow {
+	@extend .es-spinner;
+	vertical-align: text-bottom;
+}
+
+.toast {
+	@extend .es-toast;
+	flex-direction: column;
+	align-items: stretch;
+
+	&:not(.show) {
+		display: none;
+	}
+
+	.close {
+		--bt-fg: currentColor;
+	}
+}
+
+.toast-header {
+	@extend .es-toast__message;
+	display: flex;
+	align-items: center;
+}
+
+.toast-body {
+	@extend .es-toast__description;
+}
