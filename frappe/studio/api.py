@@ -11,7 +11,6 @@ from frappe.studio.constants import STANDARD_COMPONENT_NAMES
 from frappe.studio.utils import (
 	get_export_folder,
 	get_exported_app_folders,
-	get_exported_app_name,
 	get_studio_folder,
 	has_page_write_perm,
 	validate_installed_app,
@@ -113,14 +112,14 @@ def check_app_permission() -> bool:
 
 
 @frappe.whitelist()
-def get_custom_vue_components(frappe_app: str) -> list[dict]:
-	"""Discover custom Vue SFC components"""
+def get_custom_vue_components(frappe_app: str, studio_app: str) -> list[dict]:
+	"""Custom Vue SFC components exported with one studio app, from the folder the build reads."""
 	validate_installed_app(frappe_app)
 	components = []
 	seen_names = set()
 
-	studio_folder = get_studio_folder(frappe_app)
-	if not os.path.exists(studio_folder):
+	app_folder = get_export_folder(frappe_app, studio_app)
+	if app_folder not in get_exported_app_folders(get_studio_folder(frappe_app)):
 		return []
 
 	def has_reserved_name(name: str) -> bool:
@@ -143,28 +142,26 @@ def get_custom_vue_components(frappe_app: str) -> list[dict]:
 			return True
 		return False
 
-	for studio_app_dir in get_exported_app_folders(studio_folder):
-		studio_app = get_exported_app_name(studio_app_dir)
-		for dirpath, _dirnames, filenames in os.walk(studio_app_dir):
-			for filename in sorted(filenames):
-				if not filename.endswith(".vue"):
-					continue
+	for dirpath, _dirnames, filenames in os.walk(app_folder):
+		for filename in sorted(filenames):
+			if not filename.endswith(".vue"):
+				continue
 
-				component_name = filename[:-4]  # remove .vue
-				if has_reserved_name(component_name) or has_conflicting_name(component_name):
-					continue
+			component_name = filename[:-4]  # remove .vue
+			if has_reserved_name(component_name) or has_conflicting_name(component_name):
+				continue
 
-				seen_names.add(component_name)
-				file_path = os.path.join(dirpath, filename)
+			seen_names.add(component_name)
+			file_path = os.path.join(dirpath, filename)
 
-				components.append(
-					{
-						"component_name": component_name,
-						"studio_app": studio_app,
-						"file_path": file_path,
-						"studio_file_path": os.path.relpath(file_path, studio_app_dir),
-					}
-				)
+			components.append(
+				{
+					"component_name": component_name,
+					"studio_app": studio_app,
+					"file_path": file_path,
+					"studio_file_path": os.path.relpath(file_path, app_folder),
+				}
+			)
 
 	return components
 
