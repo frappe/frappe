@@ -36,6 +36,7 @@ class TestFlowSafeExec(IntegrationTestCase):
 			"execute",
 			"search_knowledge",
 			"search_attachments",
+			"read_attachment",
 			"read",
 			"grep",
 			"subagent",

@@ -67,6 +67,13 @@ class FlowLauncher {
 			.addEventListener("pointerdown", (event) => this.resize_panel(event));
 		this.panel.querySelector(".retry").addEventListener("click", () => this.retry());
 		this.panel.querySelector(".close").addEventListener("click", () => this.minimize());
+		// a file dropped on the panel's edge would open in the tab; the chat handles its own
+		for (const name of ["dragover", "drop"])
+			this.panel.addEventListener(name, (event) => {
+				if (event.defaultPrevented || !event.dataTransfer?.types.includes("Files")) return;
+				event.preventDefault();
+				event.dataTransfer.dropEffect = "none";
+			});
 		window.addEventListener("resize", () => this.place());
 		window.addEventListener("pagehide", () => this.save());
 	}
