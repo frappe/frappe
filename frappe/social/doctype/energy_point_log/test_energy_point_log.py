@@ -1,12 +1,18 @@
 # Copyright (c) 2019, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import frappe
+from frappe.core.doctype.user.test_user import test_user
 from frappe.desk.form.assign_to import add as assign_to
 from frappe.desk.page.user_profile.user_profile import get_energy_points_heatmap_data
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils.testutils import add_custom_field, clear_custom_fields
 
-from .energy_point_log import create_review_points_log, review
+from .energy_point_log import (
+	create_energy_points_log,
+	create_review_points_log,
+	get_reviews,
+	review,
+)
 from .energy_point_log import get_energy_points as _get_energy_points
 
 
@@ -155,6 +161,16 @@ class TestEnergyPointLog(FrappeTestCase):
 		review_points_after_review = get_points("test2@example.com", "review_points")
 		self.assertEqual(energy_points_after_review, energy_points_before_review - criticism_points)
 		self.assertEqual(review_points_after_review, review_points_before_review - criticism_points)
+
+	def test_get_reviews_needs_read_on_the_document(self):
+		todo = create_a_todo()
+		with test_user(roles=[], user_type="Website User") as user:
+			review_log = {"type": "Appreciation", "points": 1, "user": user.name, "reason": "good job"}
+			create_energy_points_log("ToDo", todo.name, review_log)
+			self.assertEqual(len(get_reviews("ToDo", todo.name)), 1)
+
+			with self.set_user(user.name):
+				self.assertRaises(frappe.PermissionError, get_reviews, "ToDo", todo.name)
 
 	def test_user_energy_point_as_admin(self):
 		frappe.set_user("Administrator")
