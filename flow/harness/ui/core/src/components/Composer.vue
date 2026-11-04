@@ -118,11 +118,11 @@
 			<!-- a fieldset: disabling it disables every control inside, a host's pickers included -->
 			<fieldset
 				:disabled="disabled"
-				class="flow-composer-surface flow-composer-edge relative flex min-w-0 flex-col gap-2 rounded-7 border p-2 shadow-[0_1px_2px_rgba(0,0,0,0.06),0_8px_24px_-10px_rgba(0,0,0,0.18)]"
+				class="flow-composer-surface relative flex min-w-0 flex-col gap-2 rounded-6 border border-outline-gray-1 p-2 focus-within:border-outline-gray-2 dark:border-transparent dark:focus-within:border-transparent"
 			>
 				<div
 					v-if="fileDragging"
-					class="pointer-events-none absolute inset-0 z-30 flex items-center justify-center gap-2 rounded-7 border border-dashed border-outline-gray-4 bg-surface-gray-1 text-base font-medium text-ink-gray-7"
+					class="pointer-events-none absolute inset-0 z-30 flex items-center justify-center gap-2 rounded-6 border border-dashed border-outline-gray-4 bg-surface-gray-1 text-base-medium text-ink-gray-7"
 				>
 					<span class="lucide-paperclip size-4" aria-hidden="true" />
 					Drop files to attach
@@ -404,7 +404,7 @@
 			     its lists opening below it while the box sits mid-page -->
 			<div
 				v-if="startCwd"
-				class="flow-start-surface mx-3.5 flex min-w-0 items-center gap-3 rounded-b-7 p-1.5 text-base text-ink-gray-7 dark:text-ink-gray-8"
+				class="flow-start-surface mx-3.5 flex min-w-0 items-center gap-3 rounded-b-6 p-1.5 text-base text-ink-gray-7 dark:text-ink-gray-8"
 			>
 				<button
 					class="flex h-6 min-w-0 items-center gap-1.5 rounded-5 px-2 hover:text-ink-gray-9"
