@@ -195,8 +195,11 @@ fall out of the path. Enumerated in both languages, in `frappe/shell/manifest.py
   never runs.
 - **The `frontend/` segment in the page path is load-bearing** — `<module>/page/` is desk
   v1's Page doctype and `templates/pages/` is website templates.
-- **`frontend/<name>.js` beside `pages/<name>.js`, and `custom/<x>/<name>.js`, are reserved
-  handler files.** The build warns about them and ignores them for now.
+- **`frontend/<name>.js` beside `pages/<name>.js`, and `custom/<x>/<name>.js` beside
+  `pages/<name>.js`, are that page's handler files.** The build bundles one when `pages.json`
+  declares the page, and it runs on that page of its own app only. One beside an undeclared page
+  is ignored with a warning, and so is a `custom/` one with no page beside it. They are not in
+  the ten paths, because they never make an app contribute.
 - **The doctype name is read from the doctype's own JSON**, not title-cased from the
   folder: `crm_deal` → `CRM Deal`, not `Crm Deal`. Names are indexed from *every* app on
   the bench, not just contributing ones, because a `custom/` folder can name a doctype
