@@ -72,6 +72,10 @@ const button = moduleURL(`
 
 const fakes = {
 	"frappe-ui/src/components/Button": button,
+	"frappe-ui/src/components/Avatar": moduleURL(`
+		import { h } from ${JSON.stringify(vue)}
+		export const Avatar = { render() { return h("div", { "data-stub": "Avatar" }) } }
+	`),
 	"frappe-ui/src/components/TextInput": moduleURL(`
 		import { h } from ${JSON.stringify(vue)}
 		export const TextInput = {

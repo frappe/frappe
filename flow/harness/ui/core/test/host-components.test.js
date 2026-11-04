@@ -2150,7 +2150,7 @@ test("the transcript shows the real system prompt, folded, where the host sends 
 	assert.match(panel.textContent, /System prompt\./)
 })
 
-test("the sidebar's header menu leads to the host's apps, settings and out", async (t) => {
+test("the sidebar's header menu names the account, and leads to the host's apps, settings and out", async (t) => {
 	const done = []
 	const flow = {
 		state: reactive({ sessions: [], folders: null, sessionsLoading: false, sessionsMore: false, sessionId: null, prefs: { openFolders: [] } }),
@@ -2162,14 +2162,17 @@ test("the sidebar's header menu leads to the host's apps, settings and out", asy
 		setSettingsOpen: (open) => done.push(["settings", open]),
 	}
 	const apps = [{ title: "Desk", route: "/desk", logo: "/desk.svg" }]
-	const { el } = mount(t, SessionSidebar, { apps, logout: () => done.push(["logout"]) }, flow)
+	const user = { full_name: "Jane Doe", email: "jane@example.com", user_image: null }
+	const { el } = mount(t, SessionSidebar, { apps, logout: () => done.push(["logout"]), user }, flow)
 	el.querySelector("[data-stub=Dropdown] button").click()
 	await nextTick()
 	const items = () => [...el.querySelectorAll("[role=menuitem]")]
-	assert.deepEqual(items().map((item) => item.textContent), ["Apps", "Settings", "Log out"])
-	items()[1].click()
-	await new Promise((resolve) => setTimeout(() => setTimeout(resolve))) // once the menu has handed focus back
+	assert.deepEqual(items().map((item) => item.textContent), ["Jane Doe", "Apps", "Settings", "Log out"])
+	assert.equal(items()[0].dataset.description, "jane@example.com")
+	assert.equal(items()[0].disabled, true)
 	items()[2].click()
+	await new Promise((resolve) => setTimeout(() => setTimeout(resolve))) // once the menu has handed focus back
+	items()[3].click()
 	assert.deepEqual(done, [["settings", true], ["logout"]])
 	// no footer: Settings lives in the menu
 	assert.equal([...el.querySelectorAll("[data-stub=SidebarItem]")].some((row) => row.textContent.includes("Settings")), false)

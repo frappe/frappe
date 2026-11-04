@@ -286,6 +286,7 @@
 
 <script setup>
 import { computed, h, inject, onBeforeUnmount, onMounted, ref, watch } from "vue"
+import { Avatar } from "frappe-ui/src/components/Avatar"
 import { Button } from "frappe-ui/src/components/Button"
 import Dropdown from "frappe-ui/src/components/Dropdown/Dropdown.vue"
 import HoverCard from "frappe-ui/src/components/HoverCard/HoverCard.vue"
@@ -306,18 +307,20 @@ import TitleField from "./TitleField.vue"
 // chatInView: false while a host shows a page in the open chat's place, so no chat row is marked.
 // beforeSwitch: such a host's say before a pick changes the open chat, resolving false to keep it.
 // apps ({ title, route, logo }) and logout: the host's ways out of the page, which its menu offers
-// beside Settings
+// beside Settings. user ({ full_name, email, user_image }): whose account the menu leaves
 const props = defineProps({
 	open: { type: Boolean, default: true },
 	chatInView: { type: Boolean, default: true },
 	beforeSwitch: { type: Function, default: null },
 	apps: { type: Array, default: () => [] },
 	logout: { type: Function, default: null },
+	user: { type: Object, default: null },
 })
 const emit = defineEmits(["close"])
 const flow = inject("flow")
 
 const appMenu = computed(() => [
+	...(props.user ? [{ group: "account", hideLabel: true, options: [accountOption(props.user)] }] : []),
 	{
 		group: "page",
 		hideLabel: true,
@@ -333,6 +336,16 @@ const appMenu = computed(() => [
 	},
 	...(props.logout ? [{ group: "session", hideLabel: true, options: [{ label: "Log out", icon: "lucide-log-out", onClick: props.logout }] }] : []),
 ])
+// a heading, not an action: the keys pass over it, and its text keeps its ink
+function accountOption(user) {
+	const avatar = () => h(Avatar, { label: user.full_name, image: user.user_image, size: "sm" })
+	const label = () =>
+		h("div", { class: "min-w-0" }, [
+			h("div", { class: "truncate leading-tighter text-ink-gray-8" }, user.full_name),
+			h("div", { class: "truncate text-p-sm text-ink-gray-5" }, user.email),
+		])
+	return { label: user.full_name, description: user.email, disabled: true, slots: { prefix: avatar, label } }
+}
 function appOption(app) {
 	const logo = () => h("img", { src: app.logo, alt: "", class: "size-4 flex-none rounded-[3px] object-contain" })
 	return { label: app.title, slots: app.logo ? { prefix: logo } : {}, onClick: () => window.location.assign(app.route) }

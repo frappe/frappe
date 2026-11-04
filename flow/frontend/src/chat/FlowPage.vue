@@ -14,6 +14,7 @@
 			:before-switch="leavePage"
 			:apps="apps"
 			:logout="logout"
+			:user="page.state.boot.user"
 			@close="store.setSidebarOpen(false)"
 		>
 			<template #brand><Badge label="Beta" size="sm" /></template>

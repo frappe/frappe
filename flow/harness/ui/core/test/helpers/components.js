@@ -27,7 +27,7 @@ const dropdown = moduleURL(`
 			return () => h("div", { "data-stub": "Dropdown" }, [
 				h("div", { onClick: () => (shown.value = !shown.value) }, slots.trigger?.()),
 				...((props.open ?? shown.value) ? props.options ?? [] : []).flatMap((o) => o.options ?? [o]).map((o) =>
-					h("button", { role: "menuitem", onClick: o.onClick }, o.label)),
+					h("button", { role: "menuitem", "data-description": o.description, disabled: o.disabled, onClick: o.onClick }, o.label)),
 			])
 		},
 	}
@@ -158,6 +158,12 @@ const widgets = moduleURL(`
 		props: ["label", "theme", "variant", "size"],
 		render() {
 			return h("span", { "data-stub": "Badge" }, this.$slots.default?.() ?? this.label)
+		},
+	}
+	export const Avatar = {
+		props: ["label", "image", "size"],
+		render() {
+			return h("span", { "data-stub": "Avatar" }, this.label)
 		},
 	}
 	// its slots and icon in frappe-ui's order
