@@ -150,6 +150,7 @@
 import { computed, inject, onBeforeUnmount, reactive, ref, watch } from "vue"
 
 import { useDebouncedValue } from "../debounce.js"
+import { layout } from "../layout.js"
 import { afterMenu } from "../menu.js"
 import { fileName } from "../transcript.js"
 import FileTree from "./FileTree.vue"
@@ -328,7 +329,7 @@ function startResize(event) {
 	const startX = event.clientX
 	const startWidth = width.value
 	// the handle sits on the bar's left edge: dragging left widens it
-	const move = (e) => (width.value = clampWidth(startWidth - (e.clientX - startX)))
+	const move = (e) => (width.value = clampWidth(startWidth - (e.clientX - startX) / layout.zoom))
 	const up = (e) => {
 		handle.releasePointerCapture(e.pointerId)
 		handle.removeEventListener("pointermove", move)

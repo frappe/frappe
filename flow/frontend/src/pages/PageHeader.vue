@@ -1,5 +1,5 @@
 <template>
-	<header class="flex h-12 flex-none items-center gap-2 px-3">
+	<header class="flex h-11 flex-none items-center gap-2 px-3">
 		<!-- set apart from the page's icon, which would otherwise read as one more button -->
 		<div v-if="noSidebar || !flow.state.sidebarOpen" class="flex items-center gap-2 md:mr-1.5">
 			<!-- with no sidebar to show, the page leads back to the chat -->
@@ -8,6 +8,7 @@
 			<SidebarPeek v-else :menu="appMenu" :before-switch="leavePage">
 				<Button variant="ghost" icon="lucide-panel-left" title="Show sidebar" @click="flow.setSidebarOpen(true)" />
 			</SidebarPeek>
+			<Button variant="ghost" icon="lucide-plus" class="max-md:hidden" title="New chat" @click="newChat" />
 		</div>
 		<!-- the page's icon and name; a narrow frame's bar keeps the name alone, for the room its
 		     actions leave -->
@@ -41,4 +42,9 @@ const flow = inject("flow");
 const leavePage = inject("leavePage");
 const noSidebar = inject("noSidebar");
 const appMenu = inject("appMenu", []);
+
+// a new chat, in place of the one waiting behind the page, once the page lets go
+async function newChat() {
+	if (await leavePage()) flow.startNewChat();
+}
 </script>

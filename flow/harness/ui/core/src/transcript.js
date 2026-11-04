@@ -720,10 +720,10 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 			if (decision?.status === "denied" && decision.action) {
 				flushThoughts()
 				items.push({
-					kind: "notice",
+					kind: "declined",
 					key: `d:${entry.seq}`,
 					turnKey: currentTurnKey,
-					text: `You declined: ${decision.action}`,
+					text: `Declined: ${decision.action}`,
 				})
 			}
 		} else if (entry.type === "compaction") {
@@ -866,7 +866,7 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 // report to the row that made the call — a response, or a compaction — never to
 // messages or tool results. A sub-agent call's row sums what its child spent.
 //   {key, kind: "system"|"user"|"assistant"|"tool"|"compaction"|"error",
-//    body?, entry?, input?, output?, usage?}
+//    body?, ts?, entry?, input?, output?, usage?}
 export function buildTranscriptRows(conversation) {
 	const rows = []
 	const steps = new Map() // tool call id -> its row, filled when the result lands

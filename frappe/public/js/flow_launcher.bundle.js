@@ -20,7 +20,6 @@ const LAYER = location.pathname.startsWith("/desk") ? 1035 : 45;
 class FlowLauncher {
 	constructor() {
 		this.state = load_state();
-		this.covered = false; // filling the window while /flow's settings are open
 		this.make();
 		this.bind();
 		this.place();
@@ -64,7 +63,9 @@ class FlowLauncher {
 		this.panel
 			.querySelector(".edge")
 			.addEventListener("pointerdown", (event) => this.resize_panel(event));
-		this.panel.querySelector(".retry").addEventListener("click", () => this.retry());
+		// a failed start isn't retried in place: the browser keeps a failed import for its URL, and
+		// a deploy since the page loaded leaves it naming files that are gone
+		this.panel.querySelector(".reload").addEventListener("click", () => location.reload());
 		this.panel.querySelector(".close").addEventListener("click", () => this.minimize());
 		// a file dropped on the panel's edge would open in the tab; the chat handles its own
 		for (const name of ["dragover", "drop"])
@@ -84,11 +85,11 @@ class FlowLauncher {
 		this.panel.inert = this.chat.inert = false;
 		this.place();
 		this.save();
-		// a failed start is logged once, where the island is made
+		// a failed start is logged once, where the island is made; its Try again takes the focus
 		if (focus)
 			this.island.ready.then(
 				() => this.focus_chat(),
-				() => {}
+				() => this.panel.querySelector(".reload").focus()
 			);
 	}
 
@@ -150,7 +151,6 @@ class FlowLauncher {
 				panel: desk ? "desk" : "app",
 				path: this.state.path,
 				onClose: () => this.minimize(),
-				onSettings: (open) => this.cover(open),
 				onNavigate: (path) => {
 					this.state.path = path;
 					this.save();
@@ -161,20 +161,8 @@ class FlowLauncher {
 			() => this.host.toggleAttribute("data-ready", true),
 			(error) => {
 				this.host.toggleAttribute("data-failed", true);
-				if (this.state.open) this.panel.querySelector(".retry").focus();
 				console.error("Flow could not start", error);
 			}
-		);
-	}
-
-	// the chat's files failed to load: load them again, with the skeleton up meanwhile
-	retry() {
-		this.island.unmount();
-		this.host.removeAttribute("data-failed");
-		this.make_island();
-		this.island.ready.then(
-			() => this.focus_chat(),
-			() => {}
 		);
 	}
 
@@ -188,14 +176,13 @@ class FlowLauncher {
 	place() {
 		if (!this.island) return;
 
-		// docked on the right, or over the whole window while /flow's settings are open
-		const width = this.covered ? innerWidth : this.dock_width();
+		// docked on the right
+		const width = this.dock_width();
 		// as variables, so the phone layout's rules can override them
 		const rect = { left: innerWidth - width, top: 0, width, height: innerHeight };
 		for (const [name, px] of Object.entries(rect)) {
 			this.panel.style.setProperty(`--${name}`, `${px}px`);
 		}
-		this.panel.toggleAttribute("data-covered", this.covered);
 		this.squeeze();
 	}
 
@@ -220,12 +207,6 @@ class FlowLauncher {
 			page.removeAttribute("data-flow-sliding");
 			this.host.removeAttribute("data-sliding");
 		}, SLIDE_TIME + 50);
-	}
-
-	// /flow's settings dialog fills the window until they close
-	cover(covered) {
-		this.covered = covered;
-		this.place();
 	}
 
 	// by its left edge
@@ -346,7 +327,7 @@ const SKELETON = `<div class="skeleton" aria-hidden="true">
 // in the skeleton's place when the chat's files could not load
 const FAILED = `<div class="failed" role="alert">
 	<p>Flow could not start.</p>
-	<div><button class="retry">Try again</button><button class="close">Close</button></div>
+	<div><button class="reload">Reload page</button><button class="close">Close</button></div>
 </div>`;
 
 const SLIDE = `${SLIDE_TIME}ms cubic-bezier(0.2, 0, 0, 1)`;
@@ -400,8 +381,8 @@ const STYLE = `
 	border-radius: 0;
 	box-shadow: none;
 }
-/* the chat's own fixed layers, its toasts, place against the panel and not the page; its
-   overlays sit in the top layer, above any containment */
+/* the chat's own fixed layers (its toasts, a menu's backdrop, a sub-agent's sheet) place against
+   the panel and not the page; its dialogs sit in the top layer, over the page */
 .window { position: relative; contain: layout; }
 /* after 300 ms, as Desk's island pages: a chat that is quicker never flashes it */
 .skeleton { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: space-between; }
@@ -418,21 +399,18 @@ const STYLE = `
 .failed div { display: flex; gap: 8px; }
 .failed button { height: 28px; padding: 0 12px; border: 0; border-radius: var(--radius, 8px); font: inherit; cursor: pointer; background: var(--surface-gray-2, rgba(128, 128, 128, 0.12)); color: var(--ink-gray-8, #383838); }
 .failed button:hover { background: var(--surface-gray-3, rgba(128, 128, 128, 0.2)); }
-.failed .retry { background: var(--surface-gray-9, #171717); color: var(--ink-base, #fff); }
-.failed .retry:hover { background: var(--surface-gray-8, #383838); }
+.failed .reload { background: var(--surface-gray-9, #171717); color: var(--ink-base, #fff); }
+.failed .reload:hover { background: var(--surface-gray-8, #383838); }
 :host([data-failed]) .skeleton { display: none; }
 :host([data-failed]) .failed { display: flex; }
 @media (prefers-reduced-motion: no-preference) {
 	.skeleton :is(i, b) { animation: pulse 1.5s ease-in-out infinite; }
 }
 @keyframes pulse { 50% { opacity: 0.5; } }
-/* filling the window, it has no edge toward the page */
-.panel[data-covered] .window { border-width: 0; }
 ::slotted(div) { flex: 1; min-height: 0; }
 .shield { position: absolute; inset: 0; display: none; }
 .busy .shield { display: block; }
 .edge { position: absolute; top: 0; bottom: 0; left: -4px; width: 8px; cursor: ew-resize; touch-action: none; }
-.panel[data-covered] .edge { display: none; }
 @media (max-width: ${PHONE_WIDTH - 1}px) {
 	.panel { inset: 0; width: auto; height: auto; }
 	.window { border-width: 0; }

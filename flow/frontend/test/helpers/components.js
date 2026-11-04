@@ -28,6 +28,7 @@ const real = new Set([
 	"Composer.vue",
 	"ModelButton.vue",
 	"DocPanel.vue",
+	"ModelRow.vue",
 	"FieldControl.vue",
 	"CodeField.vue",
 	"SettingsPage.vue",
@@ -93,11 +94,45 @@ const fakes = {
 		export const Badge = stub("Badge")
 		export const FormLabel = stub("FormLabel")
 		export const FileUploader = stub("FileUploader")
-		export const Switch = stub("Switch")
+		export const Switch = { props: ["modelValue"], emits: ["update:modelValue"], render() { return h("button", { "data-stub": "Switch", "aria-label": this.$attrs["aria-label"], onClick: () => this.$emit("update:modelValue", !this.modelValue) }) } }
 		export const ErrorMessage = { props: ["message"], render() { return h("p", this.message) } }
 		export const Avatar = stub("Avatar")
-		// a hint around a control: only the control renders
-		export const Tooltip = { inheritAttrs: false, render() { return this.$slots.default?.() } }
+		// a picker and a menu: the trigger, and the choices once it is clicked (a picker's once loaded)
+		export const Combobox = {
+			props: ["options", "loading"],
+			emits: ["update:modelValue", "update:open"],
+			data: () => ({ shown: false, query: "" }),
+			render() {
+				const toggle = () => { this.shown = !this.shown; this.$emit("update:open", this.shown) }
+				// like frappe-ui's: a typed query keeps the options whose label holds it; a custom row
+				// shows by its condition, labelled by its #item-<slot>, and runs its onClick
+				const query = this.query
+				const rows = (this.shown && !this.loading ? this.options || [] : []).flatMap(o => {
+					if (o.type !== "custom")
+						return o.label.toLowerCase().includes(query.toLowerCase())
+							? [h("button", { role: "option", onClick: () => this.$emit("update:modelValue", o.value) }, o.label)]
+							: []
+					if (o.condition && !o.condition({ query })) return []
+					const label = (o.slot && this.$slots["item-" + o.slot]?.({ item: o, query })) ?? o.label
+					return [h("button", { role: "option", onClick: () => o.onClick({ query }) }, label)]
+				})
+				return h("div", { "data-stub": "Combobox" }, [
+					h("div", { onClick: toggle }, this.$slots.trigger?.()),
+					...(this.shown ? [h("input", { value: query, onInput: e => (this.query = e.target.value) })] : []),
+					...rows,
+				])
+			}
+		}
+		export const Dropdown = {
+			props: ["options"],
+			data: () => ({ shown: false }),
+			render() {
+				return h("div", { "data-stub": "Dropdown" }, [
+					h("div", { onClick: () => (this.shown = !this.shown) }, this.$slots.default?.()),
+					...(this.shown ? this.options || [] : []).map(o => h("button", { role: "menuitem", onClick: o.onClick }, o.label)),
+				])
+			}
+		}
 		// the sidebar's shortcuts: nothing to press in a test
 		export function useKeyboardShortcut() {}
 		export function frappeRequest() {}
@@ -143,7 +178,7 @@ const fakes = {
 			setup(props, { slots }) {
 				const shown = ref(false)
 				return () => h("div", { "data-stub": "Dropdown" }, [
-					h("div", { onClick: () => (shown.value = !shown.value) }, slots.trigger?.({ open: props.open ?? shown.value })),
+					h("div", { onClick: () => (shown.value = !shown.value) }, slots.trigger?.()),
 					...((props.open ?? shown.value) ? props.options ?? [] : []).map((o) =>
 						h("button", { role: "menuitem", onClick: o.onClick }, o.label)),
 				])

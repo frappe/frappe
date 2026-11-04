@@ -6,11 +6,15 @@ import { reactive, ref, watch } from "vue"
 const wide = globalThis.matchMedia?.("(min-width: 768px)")
 const finger = globalThis.matchMedia?.("(pointer: coarse)")
 
-export const layout = reactive({ narrow: false, phone: false })
+// `zoom`: the harness scales its whole UI by its font size (FlowChat sets it); a pointer's or a
+// box's screen pixels are CSS pixels times this
+export const layout = reactive({ narrow: false, narrowWindow: false, phone: false, zoom: 1 })
 
 let box = null // the element whose width decides, for a chat in a panel beside a page
 function measure() {
-	layout.narrow = box ? box.width < 768 : !!wide && !wide.matches
+	// settings and dialogs cover the window, so they go by its width even in a panel
+	layout.narrowWindow = !!wide && !wide.matches
+	layout.narrow = box ? box.width < 768 : layout.narrowWindow
 	layout.phone = layout.narrow && !!finger?.matches
 }
 measure()
@@ -53,8 +57,6 @@ export function useSlide(open) {
 
 // the chat's text size in px (Settings › Appearance); the thread's step rows sit 1px under it
 export const CHAT_FONT_SIZE = { min: 12, max: 22, default: 15 }
-// the sidebar's width, as dragged; it opens at its narrowest, leaving the chat its room
-export const SIDEBAR_WIDTH = { min: 224, max: 420, default: 224 }
 // the chat's text weight; markdown headings are 600, so the choices stop under it
 export const CHAT_FONT_WEIGHT = {
 	default: 420,

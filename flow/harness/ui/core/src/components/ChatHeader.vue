@@ -7,29 +7,29 @@
 						'box-content border-outline-gray-1',
 						besideNavbar === 'desk' ? 'h-12' : 'h-10.5',
 					]
-				: ['h-12', started ? 'border-outline-gray-1' : 'border-transparent']
+				: ['h-11', started ? 'border-outline-gray-1' : 'border-transparent']
 		"
 	>
 		<template v-if="!sidebarOpen && !history">
 			<!-- a hover floats the sidebar, New chat with it; a click brings it back -->
 			<SidebarPeek :menu="appMenu" :before-switch="beforeSwitch">
-				<Button variant="ghost" icon="lucide-panel-left" title="Show sidebar" @click="emit('open-sidebar')" />
+				<Button variant="ghost" icon="lucide-panel-left" class="mr-1.5" title="Show sidebar" @click="emit('open-sidebar')" />
 			</SidebarPeek>
 		</template>
 
 		<!-- the crumb (the folder, or the host's own) and the cost yield to the title on phones; a new
 		     chat shows no crumb, title or line under them until its first message goes out -->
-		<div v-if="started" class="flex min-w-0 items-center gap-2" :title="headerTitle">
+		<div v-if="started" class="flex min-w-0 items-center gap-2" :class="editing && 'flex-1'" :title="editing ? undefined : headerTitle">
 			<span v-if="lead" class="hidden min-w-0 flex-none items-center gap-1.5 text-base text-ink-gray-5 sm:flex">
 				<span class="size-3.5 flex-none" :class="lead.icon" aria-hidden="true" />
 				<span class="max-w-[220px] truncate">{{ lead.label }}</span>
 			</span>
 			<span v-if="lead" aria-hidden="true" class="hidden flex-none text-base text-ink-gray-3 sm:inline">/</span>
 			<TitleField
-				v-if="renaming && renaming === flow.state.sessionId"
+				v-if="editing"
 				:value="title"
 				label="Chat name"
-				class="w-[min(400px,100%)] min-w-0"
+				class="w-full min-w-0 max-w-[400px]"
 				:back="composerBox"
 				@save="(name) => rename(renaming, name)"
 				@cancel="renaming = null"
@@ -119,7 +119,7 @@
 </template>
 
 <script setup>
-import { computed, inject, ref, watch } from "vue"
+import { computed, inject, nextTick, ref, watch } from "vue"
 import { Button } from "frappe-ui/src/components/Button"
 import Dropdown from "frappe-ui/src/components/Dropdown/Dropdown.vue"
 
@@ -142,7 +142,7 @@ const props = defineProps({
 	// "desk" or "app", beside that page's head: as tall, and always ruled in its color, so the two
 	// lines meet. Desk's head is 48px, a frappe-ui app's 42px
 	besideNavbar: { type: String, default: null },
-	appMenu: { type: Array, default: () => [] }, // the host's items after Settings, as in the sidebar's app menu
+	appMenu: { type: Array, default: () => [] }, // the host's items after Settings in the floating sidebar
 	beforeSwitch: { type: Function, default: null }, // a host's say before the open chat changes
 })
 const emit = defineEmits(["open-sidebar"])
@@ -204,10 +204,13 @@ const workspaceOpen = computed(() => flow.state.workspace.open)
 
 // the chat whose name is being edited; another chat opening ends the edit
 const renaming = ref(null)
-const composerBox = (input) => input?.closest("main")?.querySelector(".flow-composer-dock fieldset textarea")
+const editing = computed(() => Boolean(renaming.value) && renaming.value === flow.state.sessionId)
+const composerBox = (input) => input?.closest("main")?.querySelector("fieldset textarea")
+// another chat opening ends the edit; after the field goes, as a browser that blurs a field on its
+// way out saves it to the chat it was for
 watch(
 	() => flow.state.sessionId,
-	() => (renaming.value = null),
+	() => nextTick(() => (renaming.value = null)),
 )
 function rename(sid, name) {
 	renaming.value = null

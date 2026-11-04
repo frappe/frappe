@@ -240,7 +240,7 @@ test("a chat opens once, stays loading until its own load lands, and gives way t
 
 test("a gone chat the page reopened by itself gives way to a new chat without a word; one the user opened says so once", async () => {
 	const gone = () => Promise.reject(new FlowAPIError(404, "Flow Session gone not found"))
-	const flow = createFlowStore({ session: gone, skills: gone })
+	const flow = createFlowStore({ session: gone, skills: gone }, { skillsEnabled: true })
 	const toasts = []
 	watch(() => flow.state.toast, (toast) => toasts.push(toast.message), { flush: "sync" })
 	flow.state.prefs.lastSession = "gone"
@@ -653,9 +653,6 @@ test("files save and diff against the browsed cwd, before a session or in one", 
 		async gitChanges() {
 			throw new Error("boom")
 		},
-		async gitBranch() {
-			throw new Error("boom")
-		},
 	}
 	const flow = createFlowStore(client)
 	flow.setCwd("/project")
@@ -671,9 +668,8 @@ test("files save and diff against the browsed cwd, before a session or in one", 
 	assert.equal(diff.content, "new\n")
 	assert.equal(flow.state.workspace.open, true)
 
-	// the diff bar polls changes, so a failure stays silent instead of toasting, as a new chat's branch does
+	// the diff bar polls changes, so a failure stays silent instead of toasting
 	assert.equal(await flow.gitChanges(), null)
-	assert.equal(await flow.gitBranch(), null)
 	assert.equal(flow.state.toast, null)
 
 	// a file outside the repository falls back to the session's diff

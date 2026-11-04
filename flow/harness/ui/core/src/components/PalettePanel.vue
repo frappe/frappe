@@ -8,31 +8,38 @@
 	<section
 		ref="panel"
 		:aria-label="title"
-		class="flow-palette-panel absolute z-20 flex flex-col overflow-hidden rounded-6 bg-surface-elevation-2 ring-1 ring-black ring-opacity-5 dark:ring-outline-gray-2"
+		class="flow-palette-panel absolute z-20 flex flex-col overflow-hidden rounded-6 border border-outline-gray-1 flow-composer-surface shadow-[0_6px_20px_rgba(0,0,0,0.05)]"
 		:class="
 			dropdown
 				? [
-						'w-[var(--dropdown-width)]',
+						'flow-dropdown w-[var(--dropdown-width)]',
 						below ? 'top-[calc(100%+4px)]' : 'bottom-[calc(100%+8px)]',
-						align === 'right' ? 'right-0' : 'left-0',
-						'shadow-2xl',
+						beside ? '' : align === 'right' ? 'right-0' : 'left-0',
 					]
 				: 'bottom-[calc(100%+4px)] left-0 w-full'
 		"
 		:style="{
 			maxHeight: `${cap}px`,
 			height: full ? `${cap}px` : undefined,
-			'--dropdown-width': dropdown ? `min(${width}px, 100vw - 16px)` : undefined,
+			'--dropdown-width': dropdown ? `min(${width}px, ${frameWidth ? `${frameWidth - 16}px` : '100vw - 16px'})` : undefined,
 			translate: shift ? `${shift}px` : undefined,
+			[align === 'right' ? 'right' : 'left']: beside ? `${beside}px` : undefined,
 		}"
 		@mousedown="keepFocus"
 		@pointermove="onPointerMove"
 	>
 		<!-- a slim bar only for a page's way back and controls, in the list's heading style;
 		     a root list labels itself -->
-		<header v-if="back || $slots.actions" class="mt-1 flex h-7 flex-none items-center gap-1 px-2.5">
-			<Button v-if="back" variant="ghost" size="xs" icon="lucide-arrow-left" title="Back" @click="emit('back')" />
-			<span class="min-w-0 truncate text-sm-medium text-ink-gray-4" :class="back ? '' : 'pl-1'">
+		<header v-if="back || $slots.actions" class="mt-1 flex h-8 flex-none items-center gap-1 px-2.5">
+			<button
+				v-if="back"
+				class="grid h-6 w-6 place-items-center rounded-full text-ink-gray-5 hover:bg-surface-gray-2 hover:text-ink-gray-8"
+				title="Back"
+				@click="emit('back')"
+			>
+				<span class="lucide-arrow-left size-3.5" aria-hidden="true" />
+			</button>
+			<span class="min-w-0 truncate text-base-medium text-ink-gray-5" :class="back ? '' : 'pl-1'">
 				{{ title }}
 			</span>
 			<span class="flex-1" />
@@ -44,9 +51,9 @@
 
 <script setup>
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
-import { Button } from "frappe-ui/src/components/Button"
 
 import { isInert, isPageEvent } from "../inert.js"
+import { layout } from "../layout.js"
 import { nextNavigationIndex } from "../paletteNav.js"
 
 const props = defineProps({
@@ -64,28 +71,44 @@ const props = defineProps({
 	align: { type: String, default: "right" },
 	width: { type: Number, default: 304 },
 	below: { type: Boolean, default: false },
+	// a dropdown opened beside another one, this far from the button's `align` edge
+	beside: { type: Number, default: 0 },
+	// another list opened from this one takes the keys
+	passive: { type: Boolean, default: false },
 })
 const emit = defineEmits(["close", "back"])
 const panel = ref(null)
 // 352px tall at most, and no taller than the room above it (under it, `below`), 8px short of the
 // page's edge: a phone's keyboard can leave less
 const cap = ref(352)
-// a dropdown whose button sits near the page's side moves along, to stay 8px inside it
+// a dropdown whose button sits near its frame's side moves along, to stay 8px inside it
 const shift = ref(0)
+// a dropdown is no wider than its frame, less 8px a side
+const frameWidth = ref(null)
 let activeItem = null
 let observer = null
 let sizer = null
 let enterWaits = false
 let topWaits = false
 
+// the frame it opens in, which it keeps 8px inside: the island's host (the Desk panel, the page),
+// or the window where there is none
+function frameBox() {
+	const host = panel.value?.getRootNode().host
+	return host ? host.getBoundingClientRect() : { left: 0, right: document.documentElement.clientWidth }
+}
+
 function fit() {
 	const rect = panel.value.getBoundingClientRect()
 	const tall = props.below ? document.documentElement.clientHeight - Math.ceil(rect.top) : Math.floor(rect.bottom)
-	cap.value = Math.min(352, tall - 8)
+	// the rects are screen pixels, the cap and the shift CSS ones
+	const z = layout.zoom
+	cap.value = Math.min(352, tall / z - 8)
 	if (!props.dropdown) return
-	const left = rect.left - shift.value
-	const room = document.documentElement.clientWidth - 8 - (rect.right - shift.value)
-	shift.value = Math.round(Math.max(8 - left, Math.min(0, room)))
+	const frame = frameBox()
+	const left = rect.left - shift.value * z
+	const right = rect.right - shift.value * z
+	shift.value = Math.round(Math.max(frame.left + 8 * z - left, Math.min(0, frame.right - 8 * z - right)) / z)
 }
 
 function items() {
@@ -135,7 +158,7 @@ function onPointerMove(event) {
 // the composer textarea, whose text is their search.
 function onKey(event) {
 	// put away with a view the host hides (inert), it answers no keys
-	if (isInert(panel.value)) return
+	if (props.passive || isInert(panel.value)) return
 	// in a page's panel, keys typed into the page are the page's
 	if (isPageEvent(event, panel.value)) return
 	// an IME's Enter picks its candidate, not a row
@@ -188,6 +211,11 @@ onMounted(async () => {
 	window.addEventListener("keydown", onKey, true)
 	observer = new MutationObserver(syncItems)
 	observer.observe(panel.value, { childList: true, subtree: true })
+	if (props.dropdown) {
+		const frame = frameBox()
+		frameWidth.value = Math.round((frame.right - frame.left) / layout.zoom)
+		await nextTick()
+	}
 	// refitted as the page (the keyboard) or what it hangs from (a growing composer) resizes
 	if (typeof ResizeObserver !== "undefined") {
 		fit()
@@ -209,10 +237,15 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .flow-palette-panel :deep([data-palette-item][data-palette-active="true"]) {
-	background: var(--surface-alpha-gray-2);
+	background: var(--surface-gray-2);
+	color: var(--ink-gray-9);
 }
-/* as frappe-ui's menus are here (flow.css), a dark highlight a step clearer than the panel */
-[data-theme="dark"] .flow-palette-panel :deep([data-palette-item][data-palette-active="true"]) {
-	background: var(--surface-gray-3);
+.flow-palette-panel :deep([data-palette-active="true"] .flow-palette-hint) {
+	color: var(--ink-gray-5);
+}
+/* a dark dropdown over the composer is half a step lighter than the box (flow.css): its highlight
+   steps up with it */
+[data-theme="dark"] .flow-palette-panel.flow-dropdown :deep([data-palette-item][data-palette-active="true"]) {
+	background: color-mix(in srgb, var(--surface-gray-2) 50%, var(--surface-gray-3));
 }
 </style>

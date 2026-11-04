@@ -1,150 +1,173 @@
 <!-- The conversation log: each step as it reads beside its role, its JSON a click away,
      with the provider's usage under the request that reported it. -->
 <template>
-	<!-- frappe-ui's Dialog portals where its host keeps overlays (inside an island's shadow root),
-	     and brings the overlay, Escape, the focus trap and focus return -->
-	<Dialog :open="flow.state.transcriptOpen" size="7xl" @update:open="(open) => open || close()">
-		<template #title>
-			<div class="flex flex-wrap items-start gap-x-4 gap-y-3 pr-8">
-				<div class="min-w-[12rem] flex-1">
-					<h2 class="text-2xl-semibold leading-6 text-ink-gray-8">Transcript</h2>
-					<div v-if="title" class="mt-1.5 truncate text-base text-ink-gray-6">{{ title }}</div>
-				</div>
-				<!-- for an issue or another chat: the steps as they show, as JSON -->
-				<div v-if="rows.length" class="flex flex-none gap-2">
-					<CopyButton :text="json" title="Copy JSON" variant="subtle" size="sm">Copy JSON</CopyButton>
-					<Button variant="subtle" size="sm" icon-left="lucide-download" label="Download .json" @click="download" />
-				</div>
-			</div>
-		</template>
-		<div class="-mt-2 border-b border-outline-gray-1 pb-5">
-			<div class="flex flex-wrap gap-2">
-				<div
-					v-for="stat in stats"
-					:key="stat.label"
-					class="min-w-[132px] flex-1 rounded-5 border border-outline-gray-1 px-3.5 py-3"
-				>
-					<div class="text-xs text-ink-gray-5">{{ stat.label }}</div>
-					<div class="mt-2 flex items-baseline gap-1.5">
-						<span class="text-base-semibold tabular-nums text-ink-gray-9">{{ stat.value }}</span>
-						<span v-if="stat.sub" class="truncate text-xs text-ink-gray-4">{{ stat.sub }}</span>
-					</div>
-				</div>
-			</div>
-			<!-- the totals count the title and suggestions calls, which have no row -->
-			<p v-if="background" class="mt-3 text-sm text-ink-gray-5">{{ background }}</p>
-		</div>
-
-		<div v-if="!rows.length" class="py-10 text-center text-sm text-ink-gray-5">Nothing sent yet.</div>
-		<!-- read as the Flow Session form reads: text as text, a tool by its name, JSON on demand -->
+	<!-- into the host's root where it has one, as frappe-ui's dialogs go: an island's styles live there.
+	     Its overlay and card take frappe-ui's Dialog colours -->
+	<Teleport :to="portalTarget ?? 'body'">
 		<div
-			v-for="row in rows"
-			:key="row.key"
-			class="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-4 gap-y-1 border-b border-outline-gray-1 py-3.5 last:border-0 sm:grid-cols-[5.5rem_minmax(0,1fr)_auto]"
+			v-if="flow.state.transcriptOpen"
+			class="fixed inset-0 z-50 flex items-center justify-center bg-black-overlay-200 p-2 dark:bg-black-overlay-700 sm:p-6"
+			role="dialog"
+			aria-modal="true"
+			aria-label="Transcript"
+			@click.self="close"
 		>
-			<!-- each user message opens a turn -->
-			<div v-if="turns[row.key]" class="col-span-full mb-2 flex items-baseline gap-3 text-sm-medium text-ink-gray-6">
-				<span class="flex-none">Turn {{ turns[row.key] }}</span>
-				<span v-if="row.ts" class="flex-none font-normal text-ink-gray-5">{{ formatTime(row.ts) }}</span>
-			</div>
-			<span
-				class="pt-1 text-xs-medium uppercase tracking-wide"
-				:class="row.kind === 'error' ? 'text-ink-red-4' : row.kind === 'user' ? 'text-ink-gray-8' : 'text-ink-gray-5'"
-				>{{ ROLES[row.kind] }}</span
+			<!-- on a phone the totals scroll away with the steps under a pinned title; wider, only the steps scroll -->
+			<section
+				class="flex max-h-full w-full max-w-[1100px] flex-col overflow-y-auto rounded-7 bg-surface-elevation-1 shadow-xl sm:overflow-hidden"
 			>
-			<Button
-				v-if="row.kind !== 'system'"
-				variant="ghost"
-				size="sm"
-				label="Raw JSON"
-				:class="turns[row.key] ? 'row-start-2' : 'row-start-1'"
-				class="col-start-2 sm:col-start-3"
-				:aria-expanded="opened.has(`${row.key}:raw`)"
-				@click="toggle(`${row.key}:raw`)"
-			/>
-			<div class="col-span-2 min-w-0 space-y-2 text-base leading-6 text-ink-gray-8 sm:col-span-1 sm:col-start-2"
-				:class="turns[row.key] ? 'sm:row-start-2' : 'sm:row-start-1'">
-				<p v-if="row.body" class="whitespace-pre-wrap break-words">{{ row.body }}</p>
-				<template v-else-if="row.prompt">
-					<Button variant="ghost" size="sm" label="System prompt" :aria-expanded="opened.has(row.key)" @click="toggle(row.key)">
-						<template #prefix>
-							<span class="lucide-chevron-right size-4 transition-transform" :class="{ 'rotate-90': opened.has(row.key) }" aria-hidden="true" />
+				<header class="sticky top-0 z-10 flex-none bg-surface-elevation-1 p-4 sm:static sm:px-6 sm:pb-0 sm:pt-5">
+					<div class="flex items-center gap-2">
+						<h2 class="min-w-0 flex-1 text-md-semibold text-ink-gray-9">Transcript</h2>
+						<!-- for an issue or another chat: the steps as they show, as JSON -->
+						<template v-if="rows.length">
+							<CopyButton :text="json" title="Copy JSON" variant="subtle" size="sm">
+								<span class="max-sm:hidden">Copy JSON</span>
+							</CopyButton>
+							<Button variant="subtle" size="sm" icon-left="lucide-download" title="Download JSON" @click="download">
+								<span class="max-sm:hidden">Download</span>
+							</Button>
 						</template>
-					</Button>
-					<pre
-						v-if="opened.has(row.key)"
-						class="overflow-auto whitespace-pre-wrap break-words rounded-4 border border-outline-gray-1 bg-surface-gray-1 px-3 py-2 font-mono text-xs leading-5 text-ink-gray-7 sm:max-h-[360px]"
-					>{{ row.prompt }}</pre>
-				</template>
-				<template v-else-if="row.kind === 'user'">
-					<p class="whitespace-pre-wrap break-words">{{ userText(row.entry) }}</p>
-					<p v-if="userAttachments(row.entry).length" class="text-sm text-ink-gray-5">
-						Attached: {{ userAttachments(row.entry).map((file) => file.name).join(", ") }}
-					</p>
-				</template>
-				<template v-else-if="row.kind === 'assistant'">
-					<template v-for="(block, index) in row.entry.content" :key="index">
-						<p v-if="block.type === 'text'" class="whitespace-pre-wrap break-words">{{ block.text }}</p>
-						<p v-else-if="block.type === 'thinking'" class="whitespace-pre-wrap break-words text-ink-gray-5">
-							{{ block.redacted ? "Thinking, not shown by the provider." : block.thinking }}
-						</p>
-					</template>
-					<p v-if="row.entry.content.length && row.entry.content.every((block) => block.type === 'tool_call')" class="text-sm text-ink-gray-5">
-						Calls {{ row.entry.content.map((block) => block.name).join(", ") }}
-					</p>
-					<p v-if="row.entry.error_message" class="whitespace-pre-wrap break-words text-ink-red-4">{{ row.entry.error_message }}</p>
-				</template>
-				<template v-else-if="row.kind === 'tool'">
-					<code class="inline-block rounded-4 bg-surface-gray-2 px-1.5 py-0.5 font-mono text-sm-medium text-ink-gray-8">{{
-						row.input.name
-					}}</code>
-					<div v-for="fold in folds(row)" :key="fold.key">
-						<Button
-							variant="ghost"
-							size="sm"
-							:theme="fold.error ? 'red' : 'gray'"
-							:label="fold.label"
-							:aria-expanded="opened.has(fold.key)"
-							@click="toggle(fold.key)"
-						>
-							<template #prefix>
-								<span class="lucide-chevron-right size-4 transition-transform" :class="{ 'rotate-90': opened.has(fold.key) }" aria-hidden="true" />
-							</template>
-						</Button>
-						<pre
-							v-if="opened.has(fold.key)"
-							class="mt-1.5 overflow-auto whitespace-pre-wrap break-words rounded-4 border bg-surface-gray-1 px-3 py-2 font-mono text-xs leading-5 text-ink-gray-7 sm:max-h-[360px]"
-							:class="fold.error ? 'border-outline-red-2' : 'border-outline-gray-1'"
-						>{{ fold.text }}</pre>
+						<Button ref="closeEl" variant="ghost" icon="lucide-x" class="flex-none" title="Close" @click="close" />
 					</div>
-					<p v-if="!row.output" class="text-sm text-ink-gray-5">No result</p>
-				</template>
-				<template v-else-if="row.kind === 'compaction'">
-					<p class="text-sm text-ink-gray-5">Summary of the chat so far</p>
-					<p class="whitespace-pre-wrap break-words">{{ row.entry.summary }}</p>
-				</template>
-				<template v-else-if="row.kind === 'error'">
-					<p class="whitespace-pre-wrap break-words text-ink-red-4">{{ row.entry.message }}</p>
-					<p v-if="row.entry.detail" class="whitespace-pre-wrap break-words text-sm text-ink-gray-5">{{ row.entry.detail }}</p>
-				</template>
-				<p v-if="row.usage" class="text-sm tabular-nums text-ink-gray-5">{{ usageLine(row.usage) }}</p>
-				<pre
-					v-if="opened.has(`${row.key}:raw`)"
-					class="overflow-auto whitespace-pre-wrap break-words rounded-4 border bg-surface-gray-1 px-3 py-2 font-mono text-xs leading-5 text-ink-gray-7 sm:max-h-[360px]"
-					:class="row.kind === 'error' ? 'border-outline-red-2' : 'border-outline-gray-1'"
-				>{{ rawJson(row) }}</pre>
-			</div>
+					<div v-if="title" class="mt-1 truncate text-base text-ink-gray-6">{{ title }}</div>
+				</header>
+				<div class="flex flex-none flex-wrap gap-2 border-b border-outline-gray-1 px-4 pb-4 sm:mt-4 sm:px-6 sm:pb-5">
+					<div
+						v-for="stat in stats"
+						:key="stat.label"
+						class="min-w-[132px] flex-1 rounded-5 border border-outline-gray-1 px-3.5 py-3"
+					>
+						<div class="text-xs text-ink-gray-5">{{ stat.label }}</div>
+						<div class="mt-2 flex items-baseline gap-1.5">
+							<span class="text-base-semibold tabular-nums text-ink-gray-9">{{ stat.value }}</span>
+							<span v-if="stat.sub" class="truncate text-xs text-ink-gray-4">{{ stat.sub }}</span>
+						</div>
+					</div>
+				</div>
+
+				<div class="px-4 pb-2 sm:min-h-0 sm:flex-1 sm:overflow-y-auto sm:px-6">
+					<div v-if="!rows.length" class="py-10 text-center text-sm text-ink-gray-5">Nothing sent yet.</div>
+					<template v-for="(row, index) in rows" :key="row.key">
+						<!-- each user message opens a turn -->
+						<!-- the role, the first line and the JSON button share one baseline -->
+						<div
+							class="flex items-baseline gap-4 border-outline-gray-1 py-3"
+							:class="index ? 'border-t' : ''"
+						>
+							<span
+								class="w-[4.5rem] flex-none font-mono text-xs leading-6 sm:w-[5.5rem]"
+								:class="row.kind === 'error' ? 'text-ink-red-4' : 'text-ink-gray-5'"
+								>{{ ROLES[row.kind] }}</span
+							>
+							<div class="min-w-0 flex-1 space-y-2 text-sm leading-6 text-ink-gray-8">
+								<template v-if="row.kind === 'system'">
+									<button
+										v-if="prompt"
+										class="-ml-1.5 flex h-6 items-center gap-1 rounded-4 px-1.5 text-ink-gray-8 hover:bg-surface-gray-2"
+										:aria-expanded="opened.has(row.key)"
+										@click="toggle(row.key)"
+									>
+										<span
+											class="lucide-chevron-right size-3.5 transition-transform"
+											:class="{ 'rotate-90': opened.has(row.key) }"
+											aria-hidden="true"
+										/>
+										System prompt
+									</button>
+									<p v-else class="text-ink-gray-5">{{ row.body }}</p>
+									<pre v-if="prompt && opened.has(row.key)" :class="PRE">{{ prompt }}</pre>
+								</template>
+								<template v-else-if="row.kind === 'user'">
+									<p class="whitespace-pre-wrap break-words">{{ userText(row.entry) }}</p>
+									<p v-if="userAttachments(row.entry).length" class="text-ink-gray-5">
+										Attached: {{ userAttachments(row.entry).map((file) => file.name).join(", ") }}
+									</p>
+								</template>
+								<template v-else-if="row.kind === 'assistant'">
+									<template v-for="(block, index) in row.entry.content" :key="index">
+										<p v-if="block.type === 'text'" class="whitespace-pre-wrap break-words">{{ block.text }}</p>
+										<!-- a provider may send thinking with no text: nothing to read -->
+										<p
+											v-else-if="block.type === 'thinking' && (block.redacted || block.thinking?.trim())"
+											class="whitespace-pre-wrap break-words text-ink-gray-5"
+										>{{ block.redacted ? "Thinking, not shown by the provider." : block.thinking }}</p>
+									</template>
+									<p v-if="onlyCalls(row.entry)" class="text-ink-gray-5">
+										Called {{ row.entry.content.map((block) => block.name).join(", ") }}
+									</p>
+									<p v-if="row.entry.error_message" class="whitespace-pre-wrap break-words text-ink-red-4">{{ row.entry.error_message }}</p>
+								</template>
+								<!-- the tool by its name, its arguments and result folded under it -->
+								<template v-else-if="row.kind === 'tool'">
+									<p>
+										<code class="rounded-4 bg-surface-gray-2 px-1.5 py-0.5 font-mono text-xs text-ink-gray-8">{{ row.input.name }}</code>
+									</p>
+									<div v-for="fold in folds(row)" :key="fold.key">
+										<button
+											class="-ml-1.5 flex h-6 items-center gap-1 rounded-4 px-1.5 hover:bg-surface-gray-2"
+											:class="fold.error ? 'text-ink-red-4' : 'text-ink-gray-7'"
+											:aria-expanded="opened.has(fold.key)"
+											@click="toggle(fold.key)"
+										>
+											<span
+												class="lucide-chevron-right size-3.5 transition-transform"
+												:class="{ 'rotate-90': opened.has(fold.key) }"
+												aria-hidden="true"
+											/>
+											{{ fold.label }}
+										</button>
+										<pre v-if="opened.has(fold.key)" class="mt-1.5" :class="PRE">{{ fold.text }}</pre>
+									</div>
+								</template>
+								<template v-else-if="row.kind === 'compaction'">
+									<p class="text-ink-gray-5">Summary of the chat so far</p>
+									<p class="whitespace-pre-wrap break-words">{{ row.entry.summary }}</p>
+								</template>
+								<template v-else-if="row.kind === 'error'">
+									<p class="whitespace-pre-wrap break-words text-ink-red-4">{{ row.entry.message }}</p>
+									<p v-if="row.entry.detail" class="whitespace-pre-wrap break-words text-ink-gray-5">{{ row.entry.detail }}</p>
+								</template>
+								<p v-if="row.usage" class="tabular-nums text-ink-gray-5">{{ usageLine(row.usage) }}</p>
+								<template v-if="opened.has(`${row.key}:json`)">
+									<div v-for="part in PARTS.filter((name) => row[name])" :key="part">
+										<div v-if="part !== 'entry'" class="mb-1 font-mono text-xs text-ink-gray-5">{{ part }}</div>
+										<pre :class="PRE">{{ JSON.stringify(row[part], null, 2) }}</pre>
+									</div>
+								</template>
+							</div>
+							<!-- a user message's time before its JSON button -->
+							<span v-if="row.ts" class="flex-none text-xs tabular-nums text-ink-gray-5">{{ formatTime(row.ts) }}</span>
+							<button
+								v-if="row.kind !== 'system'"
+								class="flex h-6 flex-none items-center rounded-4 px-1.5 font-mono text-xs"
+								:class="
+									opened.has(`${row.key}:json`)
+										? 'bg-surface-gray-3 text-ink-gray-8'
+										: 'text-ink-gray-5 hover:bg-surface-gray-2 hover:text-ink-gray-8'
+								"
+								:aria-expanded="opened.has(`${row.key}:json`)"
+								@click="toggle(`${row.key}:json`)"
+							>
+								JSON
+							</button>
+						</div>
+					</template>
+				</div>
+			</section>
 		</div>
-	</Dialog>
+	</Teleport>
 </template>
 
 <script setup>
-import { computed, inject, reactive, ref, watch } from "vue"
+import { computed, inject, nextTick, onBeforeUnmount, reactive, ref, watch } from "vue"
 import { Button } from "frappe-ui/src/components/Button"
-import { Dialog } from "frappe-ui/src/components/Dialog"
+import { usePortalTarget } from "frappe-ui/src/composables/usePortalTarget"
 
 import { buildTranscriptRows, formatCost, formatTime, formatTokens, userAttachments, userText } from "../transcript.js"
 import CopyButton from "./CopyButton.vue"
+
+const portalTarget = usePortalTarget()
 
 const ROLES = {
 	system: "system",
@@ -156,12 +179,17 @@ const ROLES = {
 }
 // the row's raw objects, in the order they show
 const PARTS = ["entry", "input", "output", "usage"]
+const PRE =
+	"m-0 max-h-[360px] overflow-auto whitespace-pre-wrap break-words rounded-4 border border-outline-gray-1 bg-surface-gray-1 px-3 py-2 font-mono text-xs leading-5 text-ink-gray-7"
 
 const flow = inject("flow")
+const closeEl = ref(null)
 
 const conversation = computed(() => flow.state.conversation)
 const title = computed(() => flow.state.session?.title ?? "")
-// the real system prompt where the host sends it, else the stand-in
+const rows = computed(() => buildTranscriptRows(conversation.value))
+
+// the real system prompt where the host sends it (a System Manager's), else the stand-in
 const prompt = ref(null)
 watch(
 	() => flow.state.transcriptOpen && flow.state.sessionId,
@@ -171,11 +199,6 @@ watch(
 		if (flow.state.transcriptOpen && flow.state.sessionId === sid) prompt.value = text ?? null
 	},
 	{ immediate: true },
-)
-const rows = computed(() =>
-	buildTranscriptRows(conversation.value).map((row) =>
-		row.kind === "system" && prompt.value ? { key: row.key, kind: row.kind, prompt: prompt.value } : row,
-	),
 )
 
 const stats = computed(() => {
@@ -200,19 +223,13 @@ const stats = computed(() => {
 	return stats
 })
 
-const turns = computed(() => {
-	const turns = {}
-	for (const row of rows.value.filter((row) => row.kind === "user")) turns[row.key] = Object.keys(turns).length + 1
-	return turns
-})
-
-// the folds and raw JSON shown, by row key
+// the system prompt, the folds and the JSON shown, by row key
 const opened = reactive(new Set())
 function toggle(key) {
 	if (!opened.delete(key)) opened.add(key)
 }
 
-// a tool's arguments and result, folded; a result that is JSON reads as JSON
+// a tool's arguments and result; a result that is JSON reads as JSON
 function folds(row) {
 	const folds = [{ key: `${row.key}:args`, label: "Arguments", text: JSON.stringify(row.input.arguments ?? {}, null, 2) }]
 	if (row.output) {
@@ -230,6 +247,8 @@ function pretty(text) {
 	}
 }
 
+const onlyCalls = (entry) => entry.content.length > 0 && entry.content.every((block) => block.type === "tool_call")
+
 function usageLine(usage) {
 	const parts = [`${formatTokens(usage.input_tokens)} in`, `${formatTokens(usage.output_tokens)} out`]
 	if (usage.cache_read_tokens) parts.push(`${formatTokens(usage.cache_read_tokens)} cached`)
@@ -237,24 +256,16 @@ function usageLine(usage) {
 	return parts.join(" · ")
 }
 
-function rawJson(row) {
-	const parts = PARTS.filter((name) => row[name])
-	const raw = parts.length === 1 ? row[parts[0]] : Object.fromEntries(parts.map((name) => [name, row[name]]))
-	return JSON.stringify(raw, null, 2)
-}
-
-const PURPOSES = { title: "title", replies: "suggestions", review: "approval review" }
-const background = computed(() => {
-	const calls = (conversation.value.requests ?? []).filter((usage) => usage.purpose)
-	if (!calls.length) return ""
-	const names = [...new Set(calls.map((usage) => PURPOSES[usage.purpose] ?? usage.purpose))].join(", ")
-	const tokens = calls.reduce((sum, usage) => sum + (usage.input_tokens ?? 0) + (usage.output_tokens ?? 0), 0)
-	const noun = calls.length === 1 ? "call" : "calls"
-	return `Includes ${calls.length} background ${noun} (${names}): ${formatTokens(tokens)} tokens`
-})
-
 const json = computed(() =>
-	JSON.stringify({ session: flow.state.sessionId, title: title.value, rows: rows.value.map(({ key, ...row }) => row) }, null, 2),
+	JSON.stringify(
+		{
+			session: flow.state.sessionId,
+			title: title.value,
+			rows: rows.value.map(({ key, ...row }) => (row.kind === "system" && prompt.value ? { kind: row.kind, prompt: prompt.value } : row)),
+		},
+		null,
+		2,
+	),
 )
 
 function download() {
@@ -267,4 +278,36 @@ function download() {
 function close() {
 	flow.setTranscriptOpen(false)
 }
+
+// capture phase: the open dialog owns Escape before the composer's global
+// abort listener acts on the same keypress
+function onKey(event) {
+	if (event.key !== "Escape") return
+	event.preventDefault()
+	event.stopPropagation()
+	close()
+}
+
+// the focused element, inside a shadow root where Flow runs in one
+function deepActive() {
+	let active = document.activeElement
+	while (active?.shadowRoot?.activeElement) active = active.shadowRoot.activeElement
+	return active
+}
+
+let returnFocus = null
+watch(
+	() => flow.state.transcriptOpen,
+	(isOpen) => {
+		if (isOpen) {
+			returnFocus = deepActive()
+			window.addEventListener("keydown", onKey, true)
+			nextTick(() => closeEl.value?.$el?.focus())
+		} else {
+			window.removeEventListener("keydown", onKey, true)
+			returnFocus?.focus?.()
+		}
+	},
+)
+onBeforeUnmount(() => window.removeEventListener("keydown", onKey, true))
 </script>
