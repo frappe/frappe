@@ -42,13 +42,17 @@ describe("DurationField", () => {
     expect(render(93784, { hideDays: true, hideSeconds: true }).input.value).toBe("26h 3m");
   });
 
-  it("reads a typed day", async () => {
-    const { input, committed } = render(0);
+  it("reads a typed bare number in the smallest unit it shows", async () => {
+    const { input, committed } = render(0, { hideSeconds: true });
     input.dispatchEvent(new Event("focus"));
-    input.value = "1d 2h";
+    input.value = "90";
     input.dispatchEvent(new Event("input"));
     input.dispatchEvent(new Event("blur"));
     await nextTick();
-    expect(committed).toEqual([93600]);
+    expect(committed).toEqual([5400]);
+  });
+
+  it("shows zero in the smallest unit it shows", () => {
+    expect(render(0, { hideSeconds: true }).input.value).toBe("0m");
   });
 });

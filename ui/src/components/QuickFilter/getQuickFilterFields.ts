@@ -7,6 +7,8 @@ const toQuickFilterField = (f: RawMetaField): FilterField => ({
   fieldname: f.fieldname,
   fieldtype: f.fieldtype,
   options: f.options,
+  hide_days: f.hide_days,
+  hide_seconds: f.hide_seconds,
 });
 
 /** The `name` standard field, surfaced first in every default set. A self-Link
