@@ -20,7 +20,7 @@ from frappe.desk.doctype.notification_settings.notification_settings import (
 )
 from frappe.desk.notifications import clear_notifications
 from frappe.model.document import Document, get_controller
-from frappe.query_builder import DocType, Table
+from frappe.query_builder import Criterion, DocType, Table
 from frappe.rate_limiter import rate_limit
 from frappe.sessions import clear_sessions, hash_sid
 from frappe.twofactor import should_run_2fa
@@ -991,13 +991,24 @@ class User(Document):
 		login_with_mobile = cint(frappe.get_system_settings("allow_login_using_mobile_number"))
 		login_with_username = cint(frappe.get_system_settings("allow_login_using_user_name"))
 
-		or_filters = [{"name": user_name}]
-		if login_with_mobile:
-			or_filters.append({"mobile_no": user_name})
-		if login_with_username:
-			or_filters.append({"username": user_name})
+		user_table = DocType("User")
+		conditions = [(user_table.email == user_name.strip().lower()) & user_table.name.notin(STANDARD_USERS)]
 
-		users = frappe.get_all("User", fields=["name", "enabled"], or_filters=or_filters, limit=1)
+		if user_name.lower() == "administrator":
+			conditions.append(user_table.name == "Administrator")
+		if login_with_mobile:
+			conditions.append(user_table.mobile_no == user_name)
+		if login_with_username:
+			conditions.append(user_table.username == user_name)
+
+		users = (
+			frappe.qb.from_(user_table)
+			.select(user_table.name, user_table.enabled)
+			.where(Criterion.any(conditions))
+			.limit(1)
+			.run(as_dict=True)
+		)
+
 		if not users:
 			if validate_password:
 				verify_against_placeholder(password)
