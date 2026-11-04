@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { ListQuery } from "../../api";
 import { listCacheKey } from "../index";
+import { isFeedableQuery } from "../listKey";
 
 const key = (query: ListQuery, doctype = "ToDo") => listCacheKey(doctype, query);
 
@@ -46,5 +47,24 @@ describe("listCacheKey", () => {
     ["fields", key({ fields: ["title"] })],
   ])("changes with %s", (_, other) => {
     expect(other).not.toBe(key({}));
+  });
+});
+
+describe("isFeedableQuery", () => {
+  it.each([
+    ["plain fields", ["name", "title"]],
+    ["all fields", ["*"]],
+    ["a join alias", ["name", "customer.image as customer__mark"]],
+  ])("takes %s", (_, fields) => {
+    expect(isFeedableQuery({ fields })).toBe(true);
+  });
+
+  it.each([
+    ["a computed field", ["count(name) as total"]],
+    ["a nested join", ["a.b.c as x"]],
+    ["a join with a computed source", ["lower(a.b) as x"]],
+    ["a bare join", ["a.b"]],
+  ])("refuses %s", (_, fields) => {
+    expect(isFeedableQuery({ fields })).toBe(false);
   });
 });

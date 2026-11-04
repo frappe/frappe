@@ -15,6 +15,7 @@ import {
   type DocumentEntry,
   type ListEntry,
 } from "./entries";
+import { carryJoins, joinsOf, withoutJoins, type Joins } from "./joins";
 import { isFeedableQuery, listCacheKey } from "./listKey";
 import { NameCounts } from "./nameCounts";
 import { RowsMemo } from "./rowsMemo";
@@ -92,7 +93,8 @@ export class DataCache {
     const parts = entry && order === 0 ? { ...entry.parts, ...carried } : carried;
     const complete = holdsEveryPart(parts);
     if (!complete && !this.held(key)) return this.dropDocument(key);
-    this.setDocument(key, documentEntry(doctype, frozenCopy(doc), complete, parts), ticket);
+    const joined = carryJoins(frozenCopy(doc), entry);
+    this.setDocument(key, documentEntry(doctype, joined.doc, complete, parts, joined.joins), ticket);
     if (!complete) this.readRecords.delete(key);
     else if (!entry?.complete || holdsEveryPart(carried)) this.visitRecord(key, replySize);
   }
@@ -109,8 +111,9 @@ export class DataCache {
     const previous = this.lists.get(key);
     const start = query.start ?? 0;
     if (start > (previous?.names.length ?? 0)) return;
-    if (!this.gate.admitList(key, ticket)) return this.applyOlderRows(ticket, doctype, rows);
-    const listed = rows.filter((row) => this.applyRow(ticket, doctype, row));
+    if (!this.gate.admitList(key, ticket)) return this.applyOlderRows(ticket, doctype, rows, joinsOf(query.fields));
+    const joins = joinsOf(query.fields);
+    const listed = rows.filter((row) => this.applyRow(ticket, doctype, row, joins));
     const kept = previous ? previous.names.slice(0, start) : [];
     const names = [...new Set([...kept, ...listed.map((row) => String(row.name))])];
     this.setList(listEntry(key, doctype, names, envelope, previous));
@@ -179,7 +182,7 @@ export class DataCache {
     const doc = withPartField(entry.doc, part, value);
     if (!holds && doc === entry.doc) return;
     const parts = holds ? { ...entry.parts, [part]: frozenCopy(value) } : entry.parts;
-    this.setDocument(key, documentEntry(doctype, doc, entry.complete, parts), ticket);
+    this.setDocument(key, documentEntry(doctype, doc, entry.complete, parts, entry.joins), ticket);
   }
 
   /** The server may hold the name in another case, so every entry matching it goes. */
@@ -230,31 +233,34 @@ export class DataCache {
   }
 
   /** Whether the list keeps naming the row's document. */
-  private applyRow(ticket: number, doctype: string, row: DocumentRecord): boolean {
+  private applyRow(ticket: number, doctype: string, row: DocumentRecord, joins: Joins = {}): boolean {
     const key = documentKey(doctype, String(row.name));
     if (!this.gate.admitRead(key, ticket)) return !this.gate.isSealed(key);
     const entry = this.documents.get(key);
     const order = entry ? compareModified(row, entry.doc) : 1;
     if (order < 0) return true;
     // The entry keeps the fields a newer row leaves out, so a wider list paints no blank cell.
-    const doc = Object.freeze({ ...entry?.doc, ...frozenCopy(row) });
+    const base = entry ? withoutJoins(entry.doc, entry.joins) : undefined;
+    const merged = Object.freeze({ ...base, ...frozenCopy(row) });
+    const { doc, joins: held } = carryJoins(merged, entry, joins);
     if (entry && order === 0) {
-      this.setDocument(key, documentEntry(doctype, doc, entry.complete, entry.parts), ticket);
+      this.setDocument(key, documentEntry(doctype, doc, entry.complete, entry.parts, held), ticket);
     } else {
-      this.setDocument(key, documentEntry(doctype, doc, false), ticket);
+      this.setDocument(key, documentEntry(doctype, doc, false, {}, held), ticket);
       this.readRecords.delete(key);
     }
     return true;
   }
 
   /** The list keeps the newer reply's names; the rows still update the documents held. */
-  private applyOlderRows(ticket: number, doctype: string, rows: DocumentRecord[]) {
-    for (const row of rows) this.applyRow(ticket, doctype, row);
+  private applyOlderRows(ticket: number, doctype: string, rows: DocumentRecord[], joins: Joins) {
+    for (const row of rows) this.applyRow(ticket, doctype, row, joins);
     this.dropUnnamed(doctype, rows.map((row) => String(row.name)));
   }
 
   private replaceDoc(key: string, entry: DocumentEntry, doc: DocumentRecord, ticket: number) {
-    const replaced = documentEntry(entry.doctype, frozenCopy(doc), entry.complete, entry.parts);
+    const joined = carryJoins(frozenCopy(doc), entry);
+    const replaced = documentEntry(entry.doctype, joined.doc, entry.complete, entry.parts, joined.joins);
     this.setDocument(key, replaced, ticket);
   }
 
@@ -308,7 +314,7 @@ export class DataCache {
       const entry = this.documents.get(key);
       if (!entry) continue;
       if (this.held(key)) {
-        this.setDocument(key, documentEntry(entry.doctype, entry.doc, false));
+        this.setDocument(key, documentEntry(entry.doctype, entry.doc, false, {}, entry.joins));
       } else {
         this.dropDocument(key);
       }
