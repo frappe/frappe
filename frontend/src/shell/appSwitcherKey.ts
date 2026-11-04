@@ -4,7 +4,6 @@ import { defineAsyncComponent, defineComponent, h, inject, onBeforeUnmount } fro
 import { useKeyboardShortcut } from "frappe-ui";
 import type { Boot } from "@/boot";
 import { __ } from "@/i18n";
-import { atIdle } from "./atIdle";
 import { appSwitcher } from "./appSwitcher";
 import { recordAppUse } from "./appUse";
 
@@ -20,7 +19,7 @@ export const AppSwitcherKey = defineComponent({
 	name: "AppSwitcherKey",
 	setup() {
 		const boot = inject<Boot>("boot")!;
-		atIdle(() => recordAppUse(boot));
+		recordAppUse(boot);
 
 		// `event.code` is matched, so Option+` on a Mac, a dead key, types no accent: the press is cancelled.
 		for (const [combo, by] of [
