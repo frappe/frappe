@@ -7,7 +7,6 @@ import {
 
 const cardIn = (app: string) => ({
 	component_name: "Card",
-	frappe_app: "frappe",
 	studio_app: app,
 	file_path: new URL(`../fixtures/custom-components/${app}/Card.vue`, import.meta.url).pathname,
 	studio_file_path: "Card.vue",
