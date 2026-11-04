@@ -16,9 +16,7 @@
 			:logout="logout"
 			:user="page.state.boot.user"
 			@close="store.setSidebarOpen(false)"
-		>
-			<template #brand><Badge label="Beta" size="sm" /></template>
-		</SessionSidebar>
+		/>
 		<div
 			class="flex min-w-0 flex-1 overflow-clip bg-surface-base"
 			:class="inPanel ? '' : 'md:m-1 md:rounded-5 md:shadow-sm'"
@@ -152,7 +150,7 @@
 <script setup>
 import { computed, inject, onBeforeUnmount, onMounted, provide, ref, watch } from "vue";
 import { isNavigationFailure, useRoute, useRouter } from "vue-router";
-import { Badge, Button, Dialogs, ToastProvider, toast, useColorScheme } from "frappe-ui";
+import { Button, Dialogs, ToastProvider, toast, useColorScheme } from "frappe-ui";
 import { afterMenu, checked } from "@flow/ui-core/menu.js";
 import BrandMark from "@flow/ui-core/components/BrandMark.vue";
 import ChatHeader from "@flow/ui-core/components/ChatHeader.vue";
