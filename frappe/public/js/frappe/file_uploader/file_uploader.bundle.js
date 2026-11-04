@@ -139,10 +139,10 @@ class FileUploader {
 			(hide_dialog_footer) => {
 				if (hide_dialog_footer) {
 					this.dialog && this.dialog.footer.addClass("hide");
-					this.dialog.$wrapper.data("bs.modal")._config.backdrop = "static";
+					this.dialog.set_static_backdrop(true);
 				} else {
 					this.dialog && this.dialog.footer.removeClass("hide");
-					this.dialog.$wrapper.data("bs.modal")._config.backdrop = true;
+					this.dialog.set_static_backdrop(false);
 				}
 			}
 		);
@@ -180,10 +180,7 @@ class FileUploader {
 
 		this.wrapper = this.dialog.body;
 		this.dialog.show();
-		this.dialog.$wrapper.on("hidden.bs.modal", function () {
-			$(this).data("bs.modal", null);
-			$(this).remove();
-		});
+		this.dialog.on("hidden", (dialog) => dialog.$wrapper.remove());
 	}
 }
 

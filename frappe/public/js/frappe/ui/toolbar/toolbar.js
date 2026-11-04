@@ -150,14 +150,6 @@ frappe.ui.toolbar.Toolbar = class {
 		$(document).on("page-change", function () {
 			$("header .navbar .custom-menu").remove();
 		});
-
-		//focus search-modal on show in mobile view
-		$("#search-modal").on("shown.bs.modal", function () {
-			var search_modal = $(this);
-			setTimeout(function () {
-				search_modal.find("#modal-search").focus();
-			}, 300);
-		});
 	}
 
 	setup_announcement_widget() {

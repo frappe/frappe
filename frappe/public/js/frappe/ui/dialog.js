@@ -1,5 +1,6 @@
 import "./field_group";
 import "../dom";
+import Modal from "./modal";
 
 frappe.provide("frappe.ui");
 
@@ -35,12 +36,17 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 
 	make() {
 		this.$wrapper = frappe.get_modal("", "");
+		this.modal = new Modal(this.$wrapper.get(0), {
+			backdrop: this.static ? "static" : true,
+			keyboard: !this.static,
+			dismiss: ".btn-modal-close",
+			on_show: () => this.emit("show"),
+			on_shown: () => this.emit("shown"),
+			on_hide: () => this.emit("hide"),
+			on_hidden: () => this.emit("hidden"),
+		});
 
 		if (this.static) {
-			this.$wrapper.modal({
-				backdrop: "static",
-				keyboard: false,
-			});
 			this.get_close_btn().hide();
 		}
 
@@ -102,46 +108,46 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 		}
 
 		var me = this;
-		this.$wrapper
-			.on("hide.bs.modal", function () {
-				me.display = false;
-				me.is_minimized = false;
-				me.hide_scrollbar(false);
-				if (!me.keep_grid_form_open) {
-					// hide any grid row form if open
-					frappe.ui.form.get_open_grid_form?.()?.hide_form();
-				}
+		this.on("hide", function () {
+			me.display = false;
+			me.is_minimized = false;
+			me.hide_scrollbar(false);
+			if (!me.keep_grid_form_open) {
+				// hide any grid row form if open
+				frappe.ui.form.get_open_grid_form?.()?.hide_form();
+			}
 
-				if (frappe.ui.open_dialogs[frappe.ui.open_dialogs.length - 1] === me) {
-					frappe.ui.open_dialogs.pop();
-					if (frappe.ui.open_dialogs.length) {
-						window.cur_dialog =
-							frappe.ui.open_dialogs[frappe.ui.open_dialogs.length - 1];
-					} else {
-						window.cur_dialog = null;
-					}
+			if (frappe.ui.open_dialogs[frappe.ui.open_dialogs.length - 1] === me) {
+				frappe.ui.open_dialogs.pop();
+				if (frappe.ui.open_dialogs.length) {
+					window.cur_dialog = frappe.ui.open_dialogs[frappe.ui.open_dialogs.length - 1];
+				} else {
+					window.cur_dialog = null;
 				}
-				me.onhide && me.onhide();
-				me.on_hide && me.on_hide();
-			})
-			.on("hidden.bs.modal", function () {
+			}
+			me.onhide && me.onhide();
+			me.on_hide && me.on_hide();
+		})
+			.on("hidden", function () {
 				me.$wrapper.css("z-index", "");
 			})
-			.on("shown.bs.modal", function () {
+			.on("shown", function () {
 				// focus on first input
 				me.display = true;
 				window.cur_dialog = me;
 				frappe.ui.open_dialogs.push(me);
 				// dialogs that were still fading in when show() ran are only listed now
 				me.stack_above_open_dialogs();
-				// Bootstrap's focus guard goes before the first focus, so a combobox
+				// the modal's focus guard goes before the first focus, so a combobox
 				// panel (mounted in <body>) can take it
-				$(document).off("focusin.modal");
+				me.modal.release_focus();
 				if (!me.sheet) me.focus_on_first_input();
 				me.hide_scrollbar(true);
 				me.on_page_show && me.on_page_show();
 				$(document).trigger("frappe.ui.Dialog:shown");
-			})
+			});
+
+		this.$wrapper
 			.on("scroll", function () {
 				var $input = $("input:focus");
 				if (
@@ -175,6 +181,26 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 			},
 			true // capture phase
 		);
+	}
+
+	on(event, handler) {
+		this.listeners = this.listeners || {};
+		(this.listeners[event] = this.listeners[event] || []).push(handler);
+		return this;
+	}
+
+	off(event, handler) {
+		const handlers = this.listeners?.[event];
+		if (handlers) this.listeners[event] = handlers.filter((h) => h !== handler);
+		return this;
+	}
+
+	emit(event) {
+		for (const handler of [...(this.listeners?.[event] || [])]) handler.call(this, this);
+	}
+
+	set_static_backdrop(on) {
+		this.modal.config.backdrop = on ? "static" : true;
 	}
 
 	set_modal_size() {
@@ -348,7 +374,7 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 			this.$wrapper.removeClass("fade");
 		}
 		const opening = !this.display;
-		this.$wrapper.modal("show");
+		this.modal.show();
 		if (opening) this.stack_above_open_dialogs();
 
 		this.$wrapper.removeClass("modal-minimize");
@@ -393,12 +419,13 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 					this.header.after(this.modal_body);
 					this.footer.append(actions);
 				};
-				this.$wrapper.trigger("hide.bs.modal").trigger("hidden.bs.modal");
+				this.emit("hide");
+				this.emit("hidden");
 			},
 		});
-		this.$wrapper.trigger("show.bs.modal");
+		this.emit("show");
 		this.sheet.open();
-		this.$wrapper.trigger("shown.bs.modal");
+		this.emit("shown");
 	}
 
 	hide() {
@@ -406,7 +433,7 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 			this.sheet.close();
 			return;
 		}
-		this.$wrapper.modal("hide");
+		this.modal.hide();
 		this.is_visible = false;
 	}
 
@@ -424,7 +451,7 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 
 		const top = Math.max(...below.map((d) => cint(d.$wrapper.css("z-index"))));
 		this.$wrapper.css("z-index", Math.max(top + 2, cint(this.$wrapper.css("z-index"))));
-		$(this.$wrapper.data("bs.modal")._backdrop).css("z-index", top + 1);
+		$(this.modal.backdrop).css("z-index", top + 1);
 	}
 
 	handle_focus() {

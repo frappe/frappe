@@ -722,12 +722,6 @@ frappe.search.utils = {
 	searchable_functions: [],
 };
 
-/** Closes the navbar Awesome Bar modal. */
-function hide_navbar_search_modal() {
-	const $modal = $("#navbar-search").closest(".modal");
-	if ($modal.length) $modal.modal("hide");
-}
-
 /**
  * Open the global search dialog from the navbar Awesome Bar (Ctrl/Cmd+G).
  */
@@ -735,7 +729,7 @@ frappe.search.open_global_search_from_navbar_shortcut = function (e) {
 	const from_bar = ($("#navbar-search").val() || "").trim();
 	const dlg = frappe.searchdialog?.search;
 	if (dlg?.toggle_global_search_dialog) {
-		hide_navbar_search_modal();
+		frappe.app.awesome_bar?.close();
 		dlg.toggle_global_search_dialog(from_bar);
 	}
 	if (e) {

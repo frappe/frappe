@@ -73,7 +73,7 @@ function _open({ data_import, reference_doctype, import_type, title, on_close })
 	}
 
 	// Cleanup: unmount the wizard + drop the embedded form's global side effects.
-	dialog.$wrapper.on("hide.bs.modal", () => {
+	dialog.on("hide", () => {
 		try {
 			frm._data_import_wizard?.unmount?.();
 		} catch (e) {

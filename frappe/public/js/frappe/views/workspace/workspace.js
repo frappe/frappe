@@ -549,7 +549,7 @@ frappe.views.Workspace = class Workspace {
 		// tracked so a re-render of the same workspace doesn't stack a second copy on top
 		d.page_name = page.name;
 		this.mount_dialog = d;
-		d.$wrapper.on("hidden.bs.modal", () => {
+		d.on("hidden", () => {
 			if (this.mount_dialog === d) this.mount_dialog = null;
 			// closed without picking an app -> take the hint and stop asking for this session
 			if (!mounted) {
