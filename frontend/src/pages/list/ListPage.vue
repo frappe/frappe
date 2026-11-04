@@ -60,7 +60,7 @@ import { Filter } from "@framework/ui/Filter";
 import { QuickFilter } from "@framework/ui/QuickFilter";
 import { SortBy } from "@framework/ui/SortBy";
 import { useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
-import { computed, inject, ref } from "vue";
+import { computed, inject, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import type { Boot } from "@/boot";
 import { __ } from "@/i18n";
@@ -69,6 +69,7 @@ import { openCreate } from "@/shell/create";
 import type { ListPage } from "@/list/useListPage";
 import { isFavourite, useListSettings } from "@/list/useListSettings";
 import FavouriteStar from "@/pages/favourite/FavouriteStar.vue";
+import { recordDialogWrite } from "@/shell/recordDialog";
 import PageFrame, { pageGutter } from "@/shell/PageFrame.vue";
 import { failedState } from "@/shell/pageState";
 import { createdMessage } from "./createdMessage";
@@ -108,6 +109,11 @@ async function create() {
 		},
 	});
 }
+
+// A record dialog over the list changed a row: the rows reload as after a Create.
+watch(recordDialogWrite, (write) => {
+	if (write?.doctype === doctype) for (const callback of created) callback();
+});
 
 // The plain List view is the doctype's own star; any other view is starred by its key.
 const starKey = view.key === "list" ? null : view.key;

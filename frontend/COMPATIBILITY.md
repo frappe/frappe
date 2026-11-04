@@ -232,6 +232,11 @@ What `page` is _for_ is a small, closed vocabulary:
   `(page)`; one nested under a table gets `(page, row)`, except `onRemove`, whose
   row is gone. The row is an address, not a payload — `page.rows('products')`
   hands you the same handles in any handler at all.
+- **The record dialog draws less**: a doctype that opens in the record dialog runs its record
+  script with `page.form`, `page.fields`, field handlers, `page.save` and the save events;
+  `page.header`, tab, panel and feed items, files and the composer are not drawn there.
+  `page.dialog` verbs open over it. A submittable doctype never opens in it (the dialog has
+  no Submit or Cancel): its record opens the page, and the build warns about the opt-in.
 - **A handful of contracts**: every `page.dialog` verb resolves `null` when the reader
   dismissed the dialog, so `if (!result) return` is always the idiom; `page.create`
   resolves `null` when nothing was saved in its dialog, so `if (!doc) return` is its

@@ -133,6 +133,15 @@ export type ShellHookContribution = {
   load: () => Promise<{ setup?: unknown }>
 }
 
+// A doctype whose records open in the record dialog: `{"record": "dialog"}` in a `pages.json`.
+// No file backs it. `apps` scopes it as a replacement's does.
+export type RecordDialogContribution = {
+  app: string
+  doctype: string
+  apps?: string[]
+  foreign: boolean
+}
+
 export type Contributions = {
   doctypes: DoctypeContribution[]
   pages: PageContribution[]
@@ -143,5 +152,6 @@ export type Contributions = {
   fieldActions: FieldActionsContribution[]
   shellHooks: ShellHookContribution[]
   replacements: ReplacementContribution[]
+  recordDialogs: RecordDialogContribution[]
   pageScripts: PageScriptContribution[]
 }

@@ -62,20 +62,21 @@ def metadata_version() -> str:
 
 
 def build_address_table() -> dict:
-	"""`{doctype: [slug, module_slug]}` over the whole bench, plus modules, singles and slug-less doctypes."""
+	"""`{doctype: [slug, module_slug]}` over the whole bench, plus modules, singles, submittables and slug-less doctypes."""
 	# Full-bench, so the table is byte-identical for every user and prefix and can leave boot.
 	# The module *slug*, so the client never re-implements `frappe.scrub`.
 	doctypes = {}
 	holders = {}
 	used_modules = {}
 	singles = []
+	submittables = []
 	unaddressed = []
 
 	# Two rows sharing a slug: the one created first keeps the address and the later one has none.
-	for name, module, issingle in frappe.get_all(
+	for name, module, issingle, is_submittable in frappe.get_all(
 		"DocType",
 		filters={"istable": 0},
-		fields=["name", "module", "issingle"],
+		fields=["name", "module", "issingle", "is_submittable"],
 		order_by="creation asc",
 		as_list=True,
 	):
@@ -89,6 +90,9 @@ def build_address_table() -> dict:
 		# A single has no list: its address opens the document itself.
 		if issingle:
 			singles.append(name)
+		# A submittable's record has Submit and Cancel, which the record dialog has no buttons for.
+		if is_submittable:
+			submittables.append(name)
 
 	# A module with no Module Def row sorts last, keeping the order its doctypes gave it.
 	created = frappe.get_all("Module Def", order_by="creation asc", pluck="name")
@@ -97,7 +101,13 @@ def build_address_table() -> dict:
 	for module in sorted(used_modules, key=lambda module: rank.get(module, len(rank))):
 		claim(modules, "Module Def", module)
 
-	return {"doctypes": doctypes, "modules": modules, "singles": singles, "unaddressed": unaddressed}
+	return {
+		"doctypes": doctypes,
+		"modules": modules,
+		"singles": singles,
+		"submittables": submittables,
+		"unaddressed": unaddressed,
+	}
 
 
 def claim(holders: dict[str, str], doctype: str, name: str) -> bool:

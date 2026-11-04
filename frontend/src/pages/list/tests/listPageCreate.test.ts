@@ -42,6 +42,7 @@ import { Addresses } from "@/addresses";
 import type { Boot } from "@/boot";
 import { registerShell } from "@/router/routeFor";
 import { closeCreates, createRequests, registerCreateDialog } from "@/shell/create";
+import { announceRecordDialogWrite } from "@/shell/recordDialog";
 import type { Session } from "@framework/ui/api";
 import { clearDataCache } from "@framework/ui/cache";
 import { resetDoctypeMeta } from "@framework/ui/useDoctypeMeta";
@@ -182,6 +183,18 @@ describe("the list page Create button", () => {
 			doctype: "Contact",
 			values: { status: "Open", company: "Acme" },
 		});
+	});
+
+	it("reloads the rows when a record dialog saves or deletes a record of its doctype, and for no other", async () => {
+		await mount();
+
+		announceRecordDialogWrite("Lead");
+		await settle();
+		expect(fake.reload).not.toHaveBeenCalled();
+
+		announceRecordDialogWrite("Contact");
+		await settle();
+		expect(fake.reload).toHaveBeenCalledOnce();
 	});
 
 	it("reloads the rows and shows a toast that opens the saved record", async () => {

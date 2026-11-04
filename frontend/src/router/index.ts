@@ -14,6 +14,8 @@ import { contributedRoutes } from "./contributed";
 import { afterFramePaint } from "./mainPage";
 import { isModular } from "./routeFor";
 import { landingOf } from "@/navigation/landing";
+import { flushPendingRecordDialog } from "@/shell/recordDialog";
+import { recordDialogAnswer } from "./recordDialogGuard";
 import NotFound from "@/shell/NotFound.vue";
 
 const RECORD_ROUTES = new Set(["record", "standard-record"]);
@@ -38,8 +40,10 @@ export function createShellRouter(boot: Boot, addresses: Addresses) {
 		],
 	});
 
+	router.afterEach((to, _from, failure) => flushPendingRecordDialog(to.fullPath, !!failure));
+
 	// Canonicalise the doctype segment to its slug, never away from it: the slug is the address.
-	router.beforeResolve((to) => {
+	router.beforeResolve((to, from) => {
 		// The module is checked first: a record must not render under a module it does not belong to.
 		if (modular && typeof to.params.module === "string" && to.params.module) {
 			if (!addresses.hasModule(to.params.module)) {
@@ -71,6 +75,12 @@ export function createShellRouter(boot: Boot, addresses: Addresses) {
 			}
 			const checked = modular ? checkModule(to, addresses) : true;
 			if (checked !== true) return checked;
+
+			// A single's address is its document, and a submittable needs Submit and Cancel: never a dialog.
+			const dialog = addresses.isSingle(doctype) || addresses.isSubmittable(doctype)
+				? undefined
+				: recordDialogAnswer(to, from, doctype, boot.app);
+			if (dialog !== undefined) return dialog;
 
 			// Like a landing: a query states its own list, and the bare address never enters history.
 			const view = boot.default_views?.[doctype];

@@ -281,6 +281,14 @@ mandatory ones too, except breaks and dropped field types. Omitting places nothi
 no field property: `hidden` stays on the field.
 _Avoid_: missing field, orphan field, hidden field (a field property, not a placement).
 
+**Record dialog**: <a id="record-dialog"></a>
+A doctype's record shown in a dialog over the page the reader is on, instead of as the record
+page. An app opts a doctype in with `{"record": "dialog"}` in its `pages.json`. The form is the
+doctype's Quick Entry layout; a record script runs as on the page, and the header, tabs, feed,
+files and composer are not drawn. The address stays the record's own, so a direct load shows the
+list and opens the dialog over it.
+_Avoid_: "modal record", "quick view".
+
 **Required-fields dialog**: <a id="required-fields-dialog"></a>
 The dialog a save opens for each mandatory field that the layout does not show: `reqd` or
 `mandatory_depends_on` is true, the value is empty and the person can write it. It lists them

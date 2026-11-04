@@ -4,7 +4,7 @@
 import type { RouteLocationRaw, Router } from "vue-router";
 import type { Boot } from "@/boot";
 import type { Addresses } from "@/addresses";
-import { replacementFor } from "@/contributions/registry";
+import { opensInDialog, replacementFor } from "@/contributions/registry";
 
 export type Shell = { boot: Boot; addresses: Addresses; router: Router };
 
@@ -105,7 +105,9 @@ function doctypeParams(doctype: string): Record<string, string> {
 /** The standard page's route name when it was asked for and an app replaced the page. */
 function standardOr(doctype: string, key: "record" | "list", options: RouteOptions) {
 	if (!options.standard) return key;
-	return replacementFor(doctype, key, current().boot.app) ? `standard-${key}` : key;
+	const { app } = current().boot;
+	const opensDialog = key === "record" && opensInDialog(doctype, app);
+	return replacementFor(doctype, key, app) || opensDialog ? `standard-${key}` : key;
 }
 
 /** The full-page new record, `/<doctype>/new`, prefilled from the query; a table is JSON. */

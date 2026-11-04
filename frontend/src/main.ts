@@ -33,6 +33,7 @@ import { registerContributions, registerStandardPages } from "@/contributions/re
 import { standardPages } from "@/pages/standardPages";
 import AppShell from "@/shell/AppShell.vue";
 import { openCreate, registerCreateDialog } from "@/shell/create";
+import { registerRecordDialog } from "@/shell/recordDialog";
 import { registerSettingsBlocks } from "@/shell/settingsBlocks";
 import { registerDeskAfterSave } from "@/shell/deskAfterSave";
 import { recentVisits } from "@/shell/recentVisits";
@@ -63,6 +64,9 @@ async function start() {
 	setDrawnProps(recordDrawnProps());
 	setFormLayoutApp(boot.app);
 	registerCreateDialog(defineAsyncComponent(() => import("@/pages/create/CreateDialog.vue")));
+	registerRecordDialog(
+		defineAsyncComponent(() => import("@/pages/recordDialog/RecordDialog.vue"))
+	);
 	registerSettingsBlocks(() => import("@/pages/settings/SettingsBlocks.vue"));
 	registerDeskAfterSave(boot.session);
 

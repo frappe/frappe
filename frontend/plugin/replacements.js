@@ -7,6 +7,8 @@ import { basename, dirname, join } from "node:path";
 import { files, isFile } from "./folders.js";
 
 export const STANDARD_PAGES = ["record", "list"];
+/** Not a file: `{"record": "dialog"}` opens the doctype's records in the record dialog. */
+export const DIALOG_PAGE = "dialog";
 
 /** The keys a `pages.json` may use: the standard pages, and each view type's name in lower case. */
 export function pageKeys(viewTypes) {
@@ -35,10 +37,15 @@ export function declaredPages(folder, declarer, benchApps) {
 	const read = readDeclaration(path);
 	const warnings = [...read.warnings];
 	const found = [];
+	const dialogs = [];
 	for (const [key, value] of Object.entries(read.declaration)) {
 		const declared = keyEntries(key, value, pageNames, benchApps);
 		warnings.push(...declared.warnings.map((warning) => `[frappe] ${path}: ${warning}.`));
 		for (const { page, apps } of declared.entries) {
+			if (page === DIALOG_PAGE) {
+				dialogs.push({ ...declarer, ...(apps && { apps }) });
+				continue;
+			}
 			const file = join(pagesRoot, `${page}.js`);
 			found.push({ ...declarer, key, page, ...(apps && { apps }), file });
 		}
@@ -46,8 +53,16 @@ export function declaredPages(folder, declarer, benchApps) {
 	const declared = new Set(found.map((entry) => entry.page));
 	const handlers = handlerFiles(folder, pageNames, declared, declarer);
 	warnings.unshift(...handlers.warnings);
+	if (pageNames.includes(DIALOG_PAGE))
+		warnings.unshift(
+			`[frappe] ${join(
+				pagesRoot,
+				`${DIALOG_PAGE}.js`
+			)}: "${DIALOG_PAGE}" is a reserved page name, so this file is ignored.`
+		);
 	return {
 		found,
+		dialogs,
 		pageScripts: handlers.pageScripts,
 		warnings,
 		declaration: isFile(path) ? path : null,
@@ -131,6 +146,10 @@ function entryProblem(key, entry, pageNames) {
 		return `"${key}" gives "${page}" an "apps" that is not a list of app names`;
 	if (STANDARD_PAGES.includes(page))
 		return `"${key}" names "${page}", a name reserved for the standard pages`;
+	if (page === DIALOG_PAGE)
+		return key === "record"
+			? null
+			: `"${key}" names "${page}", which only "record" may name (the record dialog)`;
 	if (!pageNames.includes(page))
 		return `"${key}" names "${page}", but there is no pages/${page}.js`;
 	return null;
@@ -156,7 +175,7 @@ function handlerFiles(folder, pageNames, declared, { app, doctype, foreign }) {
 	const warnings = [];
 	for (const handler of files(folder)) {
 		const name = basename(handler, ".js");
-		if (STANDARD_PAGES.includes(name)) continue;
+		if (STANDARD_PAGES.includes(name) || name === DIALOG_PAGE) continue;
 
 		const file = join(folder, handler);
 		if (declared.has(name)) {
