@@ -11,6 +11,12 @@ import "./index.css";
 // frappe-ui's list and document resources fetch through this
 setConfig("resourceFetcher", frappeRequest);
 
+// frappe-ui's Spinner turns a custom property its CSS registers with @property, which a shadow
+// root ignores; registered for the page instead, it spins. Already registered: nothing to do
+try {
+	CSS.registerProperty({ name: "--fui-spinner-angle", syntax: "<angle>", inherits: false, initialValue: "0deg" });
+} catch {}
+
 // props: `panel` ("desk" or "app", the page around the launcher's panel; none on /flow),
 // `boot` (rendered by /flow; the panel asks for it), `path` (the route the panel opens), and
 // the listeners onClose, onSettings(open), onNavigate(path). On /flow the routes are the
