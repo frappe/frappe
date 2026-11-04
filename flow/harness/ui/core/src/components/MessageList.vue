@@ -96,6 +96,11 @@
 					<span class="lucide-archive size-3.5 flex-none" aria-hidden="true" />
 					<span>Context compacted ({{ item.entry.reason }})</span>
 				</div>
+				<!-- an action turned down at its card: a line of the turn, not a divider, as it can run long -->
+				<div v-else-if="item.kind === 'declined'" class="flex items-start gap-2.5 text-base text-ink-gray-5">
+					<span class="lucide-ban mt-[3px] size-3.5 flex-none" aria-hidden="true" />
+					<span class="min-w-0">{{ item.text }}</span>
+				</div>
 				<div
 					v-else-if="item.kind === 'notice'"
 					class="flex items-center gap-3 py-1 text-xs text-ink-gray-4"

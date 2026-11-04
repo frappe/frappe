@@ -743,8 +743,8 @@ test("a denied call shows what the user declined, and the reply after it is the 
 	])
 		applyEvent(conversation, event)
 	const items = buildItems(conversation)
-	assert.deepEqual(items.map((item) => item.kind), ["user", "turn-fold", "notice", "text", "turn-copy"])
-	assert.equal(items[2].text, "You declined: Create 1 Sales Order record")
+	assert.deepEqual(items.map((item) => item.kind), ["user", "turn-fold", "declined", "text", "turn-copy"])
+	assert.equal(items[2].text, "Declined: Create 1 Sales Order record")
 	assert.equal(items[3].block.text, "Not created. Change anything?")
 })
 

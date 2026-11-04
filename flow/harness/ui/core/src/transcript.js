@@ -719,10 +719,10 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 			if (decision?.status === "denied" && decision.action) {
 				flushThoughts()
 				items.push({
-					kind: "notice",
+					kind: "declined",
 					key: `d:${entry.seq}`,
 					turnKey: currentTurnKey,
-					text: `You declined: ${decision.action}`,
+					text: `Declined: ${decision.action}`,
 				})
 			}
 		} else if (entry.type === "compaction") {
