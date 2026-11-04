@@ -8,6 +8,8 @@ Neither reaches inside a shadow root. The document query cannot see a layer in a
 
 `ui/patches/reka-ui+<version>.patch` makes the layer read the tree it lives in. `getRootNode()` answers the shadow root inside an island and the document everywhere else, so nothing outside an island changes. The layer listens on both its own root and the document, and it ignores the document's retargeted copy of an event it already handled.
 
+The combobox's input has the same blind spot: when it loses focus, it looks for its list with `document.getElementById` and closes when it doesn't find it, so a click on an option inside an island closed the list before the click landed. The patch looks the list up in the same root.
+
 reka-ui is the app's dependency, because the app bundles frappe-ui ([0001](0001-an-app-bundles-its-own-island.md)). So the app applies the patch, from this package, in its `postinstall`:
 
 ```jsonc

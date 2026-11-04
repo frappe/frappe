@@ -128,7 +128,7 @@ export class SessionStream {
 				}
 				if (typeof event.revision === "number") this.revision = event.revision;
 				this.terminal(event);
-				yield this.present(withoutEnvelope(event));
+				yield this.present(event);
 			}
 		} finally {
 			this.close();
@@ -158,11 +158,6 @@ export class SessionStream {
 		this.synced.add(event.seq);
 		this.onTerminal?.(event.seq, event);
 	}
-}
-
-// what the relay and the daemon add to a live event to route it; a logged row has none of it
-function withoutEnvelope({ site, session_id, stream_id, revision, ...event }) {
-	return event;
 }
 
 function refused() {

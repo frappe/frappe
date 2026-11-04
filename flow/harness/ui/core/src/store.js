@@ -1,7 +1,7 @@
 import { reactive, watch } from "vue"
 
 import { FlowAPIError } from "./client.js"
-import { CHAT_FONT_SIZE, CHAT_FONT_WEIGHT, SIDEBAR_WIDTH, chatFontWeight, layout } from "./layout.js"
+import { CHAT_FONT_SIZE, CHAT_FONT_WEIGHT, chatFontWeight, layout } from "./layout.js"
 import {
 	applyEvent,
 	approvalConfig,
@@ -127,7 +127,7 @@ export function createFlowStore(client, options = {}) {
 		webSearch: null, // { provider, api_key } for new chats; null uses DuckDuckGo
 		cwd: null,
 		sidebarOpen: true,
-		sidebarWidth: SIDEBAR_WIDTH.default,
+		sidebarWidth: 288,
 		openFolders: [], // the sidebar's expanded workspace folders
 		sidebarGroup: "workspace", // "workspace" | "list": the sidebar's chats under their folders, or in one list
 		sidebarOrder: "updated", // "updated" | "manual": newest activity first, or as dragged
@@ -1429,17 +1429,6 @@ export function createFlowStore(client, options = {}) {
 		}
 	}
 
-	// a new chat's branch line, which a failure leaves out as quietly
-	async function gitBranch() {
-		const cwd = explorerCwd()
-		if (!cwd || typeof client.gitBranch !== "function") return null
-		try {
-			return await client.gitBranch(cwd)
-		} catch {
-			return null
-		}
-	}
-
 	// the "+ → Files" view: panel open with no active tab, explorer as the focus
 	function showFilesView() {
 		state.workspace.open = true
@@ -1809,7 +1798,6 @@ export function createFlowStore(client, options = {}) {
 		listFiles,
 		searchFiles,
 		gitChanges,
-		gitBranch,
 		selectFile,
 		openSubagent,
 		showFilesView,

@@ -57,9 +57,10 @@ def boot() -> dict[str, Any]:
 		app = agent.name.rpartition("/")[0]
 		agent.title = f"{name} ({app})" if app and short.count(name) > 1 else name
 	agents.sort(key=lambda agent: agent.title.lower())
+	# the chat's models: an embedding model is Knowledge's, not one to chat with
 	models = frappe.get_list(
 		"Flow Model",
-		filters={"enabled": 1},
+		filters={"enabled": 1, "embedding": 0},
 		fields=["name", "title", "model_id", "provider", "context_window"],
 		order_by="title",
 	)
@@ -67,7 +68,10 @@ def boot() -> dict[str, Any]:
 		"agents": agents,
 		"default_agent": next((a.name for a in agents if a.name == ASSISTANT_AGENT_NAME), None),
 		"models": models,
-		"provider": frappe.db.get_value("Flow Provider", {"enabled": 1}),
+		# the providers connected, oldest first: the first run picks a model from one of them
+		"providers": frappe.get_all(
+			"Flow Provider", filters={"enabled": 1}, pluck="name", order_by="creation asc"
+		),
 		"file_types": sorted(FILE_EXTENSIONS),
 		"user": frappe.db.get_value(
 			"User", frappe.session.user, ["name", "full_name", "email", "user_image"], as_dict=True

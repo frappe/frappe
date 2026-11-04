@@ -16,7 +16,7 @@
 			<p class="mt-1.5 text-xs" :class="editing.name && !validName ? 'text-ink-red-6' : 'text-ink-gray-5'">
 				Lowercase letters, digits, and single hyphens.
 			</p>
-			<Select v-model="editing.scope" class="mt-6 w-56" label="Where" :options="scopeOptions" />
+			<Select align="start" v-model="editing.scope" class="mt-6 w-56" label="Where" :options="scopeOptions" />
 			<p class="mt-1.5 text-xs text-ink-gray-5">Saved as {{ shortPath(editing) }}</p>
 		</template>
 		<p v-else class="mt-2 text-sm leading-5 text-ink-gray-6" :title="editing.path">{{ shortPath(editing) }}</p>
@@ -58,6 +58,7 @@
 					<div class="text-base-medium text-ink-gray-9">{{ scope.title }}</div>
 					<Select
 						v-if="scope.id === 'project' && projects.length"
+						align="start"
 						:model-value="projectCwd ?? ''"
 						:options="projectOptions"
 						@update:model-value="selectedProject = $event"

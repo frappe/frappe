@@ -3,21 +3,26 @@
 		title="Models"
 		:back="!dropdown"
 		:dropdown="dropdown"
+		:beside="beside"
+		:align="align"
+		:width="width"
 		:query="search"
 		:busy="search !== debounced"
 		@close="emit('close')"
 		@back="emit('back')"
 	>
 		<template v-if="!dropdown" #actions>
-			<Button variant="ghost" size="xs" title="Refresh models" @click="flow.refreshModels()">
-				<template #icon>
-					<span
-						class="lucide-refresh-cw size-3.5"
-						:class="flow.state.modelsLoading ? 'animate-spin' : ''"
-						aria-hidden="true"
-					/>
-				</template>
-			</Button>
+			<button
+				class="grid h-6 w-6 place-items-center rounded-full text-ink-gray-5 hover:bg-surface-gray-2 hover:text-ink-gray-8"
+				title="Refresh models"
+				@click="flow.refreshModels()"
+			>
+				<span
+					class="lucide-refresh-cw size-3.5"
+					:class="flow.state.modelsLoading ? 'animate-spin' : ''"
+					aria-hidden="true"
+				/>
+			</button>
 		</template>
 
 		<!-- hung from the model button, the list searches with a field of its own -->
@@ -26,23 +31,25 @@
 				ref="field"
 				v-model="typed"
 				placeholder="Search models…"
-				class="h-8 min-w-0 flex-1 border-0 bg-transparent px-2 text-base text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:ring-0"
+				class="h-8 min-w-0 flex-1 border-0 bg-transparent px-[11px] text-base text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:ring-0"
 			/>
-			<Button variant="ghost" size="xs" title="Refresh models" @click="flow.refreshModels()">
-				<template #icon>
-					<span
-						class="lucide-refresh-cw size-3.5"
-						:class="flow.state.modelsLoading ? 'animate-spin' : ''"
-						aria-hidden="true"
-					/>
-				</template>
-			</Button>
+			<button
+				class="grid h-6 w-6 flex-none place-items-center rounded-full text-ink-gray-5 hover:bg-surface-gray-2 hover:text-ink-gray-8"
+				title="Refresh models"
+				@click="flow.refreshModels()"
+			>
+				<span
+					class="lucide-refresh-cw size-3.5"
+					:class="flow.state.modelsLoading ? 'animate-spin' : ''"
+					aria-hidden="true"
+				/>
+			</button>
 		</div>
 
 		<div class="flow-palette-list min-h-0 flex-1 overflow-y-auto p-1">
 			<template v-for="(group, i) in groups" :key="group.provider">
 				<!-- a heading takes a row's height; the first sits in the list's top padding -->
-				<div class="flex h-7 items-center px-2 text-sm-medium text-ink-gray-4" :class="i ? 'mt-1' : '-mt-1'">
+				<div class="flex h-8 items-center px-[11px] text-base text-ink-gray-5" :class="i ? 'mt-1' : '-mt-1'">
 					{{ group.provider }}
 				</div>
 				<button
@@ -87,7 +94,6 @@
 
 <script setup>
 import { computed, inject, onMounted, ref } from "vue"
-import { Button } from "frappe-ui/src/components/Button"
 
 import { useDebouncedValue } from "../debounce.js"
 import { layout } from "../layout.js"
@@ -101,6 +107,10 @@ const props = defineProps({
 	query: { type: String, default: "" }, // the composer's text after its "/"
 	// hung from the model button with its own search, not over the composer
 	dropdown: { type: Boolean, default: false },
+	// opened beside the model button's menu: this far from the button's `align` edge, `width` wide
+	beside: { type: Number, default: 0 },
+	align: { type: String, default: "right" },
+	width: { type: Number, default: 304 },
 })
 const emit = defineEmits(["close", "back", "providers"])
 const flow = inject("flow")
