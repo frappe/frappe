@@ -20,7 +20,10 @@ const title = computed(() => props.notification.title ?? props.notification.subj
 const description = computed(() => props.notification.description ?? "");
 
 const isUnread = computed(() => !props.notification.read);
-const timeAgo = computed(() => relativeTime(siteTime(props.notification.creation as string)));
+const timeAgo = computed(() => {
+	const creation = props.notification.creation as string | undefined;
+	return creation ? relativeTime(siteTime(creation)) : "";
+});
 
 function activate() {
 	emit("click", props.notification);

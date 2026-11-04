@@ -109,4 +109,21 @@ describe("siteTime", () => {
 		onSite(undefined);
 		expect(siteTime("2026-11-04 10:00:00").valueOf()).toBe(new Date(2026, 10, 4, 10).getTime());
 	});
+
+	it("keeps the instant of a stamp that names its own zone", () => {
+		onSite("Asia/Kolkata");
+		expect(siteTime("2026-11-04T10:00:00Z").toISOString()).toBe("2026-11-04T10:00:00.000Z");
+		expect(siteTime("2026-11-04T10:00:00+05:30").toISOString()).toBe("2026-11-04T04:30:00.000Z");
+	});
+
+	it("reads a date alone as midnight on the site's clock", () => {
+		onSite("Asia/Kolkata");
+		expect(siteTime("2026-11-04").toISOString()).toBe("2026-11-03T18:30:00.000Z");
+	});
+
+	it("leaves a stamp it cannot read invalid, so nothing is drawn", () => {
+		onSite("Asia/Kolkata");
+		expect(siteTime("garbage").isValid()).toBe(false);
+		expect(relativeTime(siteTime("garbage"))).toBe("");
+	});
 });
