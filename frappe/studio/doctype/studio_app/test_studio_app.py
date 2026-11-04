@@ -16,7 +16,7 @@ from frappe.studio.build import (
 	get_published_custom_apps,
 	get_router_file,
 )
-from frappe.studio.doctype.studio_app.studio_app import StudioApp
+from frappe.studio.doctype.studio_app.studio_app import StudioApp, get_desktop_apps
 from frappe.studio.utils import get_exported_app_name
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import get_files_path, set_request
@@ -177,6 +177,9 @@ class TestStudioApp(FrappeTestCase):
 
 		self.assertTrue(served_app.is_website_published())
 		self.assertFalse(draft_app.is_website_published())
+		desktop_apps = [app.name for app in get_desktop_apps()]
+		self.assertIn(served_app.name, desktop_apps)
+		self.assertNotIn(draft_app.name, desktop_apps)
 		with self.set_user("Guest"):
 			self.assertEqual(get_website_response(served_app.route).status_code, 200)
 			self.assertEqual(get_website_response(draft_app.route).status_code, 404)
