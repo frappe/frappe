@@ -110,6 +110,19 @@ class TestBlobCache(IntegrationTestCase):
 			self.assertFalse(os.path.exists(os.path.dirname(get_cache_path(blob))))
 			self.assertIsNone(get_cached_path(blob))
 
+	def test_a_blob_deleted_during_its_download_leaves_no_cache_file(self):
+		with storage_v2(), use_driver(RemoteDriver()) as driver:
+			blob = self.put_blob()
+			read = driver.read
+
+			def read_then_delete_row(key, *, is_private=False):
+				frappe.db.delete("File Blob", blob.name)
+				return read(key, is_private=is_private)
+
+			with patch.object(driver, "read", read_then_delete_row):
+				cache_blob(blob.name)
+			self.assertFalse(os.path.exists(os.path.dirname(get_cache_path(blob))))
+
 	def test_nothing_is_cached_unless_the_site_flag_is_on(self):
 		with storage_v2(), use_driver(RemoteDriver()):
 			blob = self.put_blob(filename="a.bin")

@@ -25,6 +25,7 @@ CHUNK_SIZE = 64 * 1024
 CACHE_JOB_TIMEOUT = 3600
 LOCK_STRIPES = 64
 RESTORE_LOCK_TIMEOUT = 5
+DELETE_LOCK_TIMEOUT = 30
 SWEEP_LOCK_TIMEOUT = 1
 SWEEP_LOCK = "storage_cache_sweep"
 NAME_BATCH_SIZE = 1000
@@ -123,7 +124,10 @@ def queue_cache(blob: "FileBlob") -> None:
 
 
 def cache_blob(blob_name: str) -> None:
-	"""Download a blob from its driver into the cache. Skip a blob that is cached or deleted since queued."""
+	"""Download a blob from its driver into the cache. Skip a blob that is cached or deleted since queued.
+
+	The row is read again with a lock before the file lands, so a blob that GC deleted during the
+	download leaves no file that no row owns."""
 	if not frappe.db.exists("File Blob", blob_name):
 		return
 	blob = frappe.get_doc("File Blob", blob_name)
@@ -142,7 +146,8 @@ def cache_blob(blob_name: str) -> None:
 			shutil.copyfileobj(stream, file, CHUNK_SIZE)
 		if os.path.getsize(part) != int(blob.file_size or 0):
 			raise OSError(f"Cached {blob.name} has {os.path.getsize(part)} bytes, expected {blob.file_size}")
-		os.replace(part, path)
+		if frappe.db.get_value("File Blob", blob_name, "name", for_update=True):
+			os.replace(part, path)
 	finally:
 		with contextlib.suppress(FileNotFoundError):
 			os.remove(part)
@@ -151,9 +156,10 @@ def cache_blob(blob_name: str) -> None:
 
 
 def delete_cached(blob: "FileBlob") -> None:
-	"""Delete a blob's cached copy and its held copy."""
-	for driver in (LocalDriver(), HoldingDriver()):
-		driver.delete(get_cache_key(blob), is_private=bool(blob.is_private))
+	"""Delete a blob's cached copy and its held copy, under the blob's lock so no restore runs in between."""
+	with cache_lock(blob.name, DELETE_LOCK_TIMEOUT):
+		for driver in (LocalDriver(), HoldingDriver()):
+			driver.delete(get_cache_key(blob), is_private=bool(blob.is_private))
 
 
 def sweep_cache() -> dict:

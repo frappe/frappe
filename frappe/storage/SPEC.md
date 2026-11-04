@@ -342,7 +342,9 @@ through the serve route and X-Accel, like a local private blob.
   against `file_size`, then renames it. A failed download leaves no cache
   file, and the next request queues a new job.
 - A blob is immutable, so a cached file never goes stale. GC deletes the
-  cache file and any held copy with the blob.
+  cache file and any held copy with the blob, under the blob's lock.
+  `cache_blob` reads the row again with a row lock before the rename, so a
+  blob that GC deletes during the download leaves no file behind.
 - A private copy lives in `private/files`, so a backup with files holds it.
 
 Expiry. A cached copy lives `cache_keep_minutes` (default 300), then waits
