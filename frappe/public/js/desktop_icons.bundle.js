@@ -9,7 +9,6 @@
 // The page extends the Apps screen, so both modes share one header, search, avatar menu and
 // stylesheet. Only the grid differs: this one draws the Desktop Icon rows, folders included.
 import "./frappe/ui/desktop_icons_item.html";
-import Modal from "./frappe/ui/modal";
 
 frappe.desktop_utils = {};
 
@@ -820,8 +819,8 @@ class DesktopModal {
 			this.modal.addClass("desktop-modal");
 			this.modal.find(".modal-dialog").attr("id", "desktop-modal");
 			this.modal.find(".modal-body").addClass("desktop-modal-body");
-			this.dialog_modal = new Modal(this.modal.get(0), {
-				dismiss: ".btn-modal-close",
+			this.dialog_modal = new frappe.ui.Modal({
+				element: this.modal,
 				on_hidden: () => {
 					this.modal.remove();
 					frappe.desktop_utils.modal = null;

@@ -921,6 +921,97 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 				},
 			],
 		},
+		Modal: {
+			helper: "frappe.ui.modal",
+			groups: [
+				{
+					title: __("Basic (your own actions in the footer)"),
+					items: [
+						{
+							button: { label: "Archive project" },
+							title: "Archive this project?",
+							content: "Its tasks stay readable, but nobody can add to them.",
+							actions: [
+								{ label: "Cancel", onclick: (e, modal) => modal.hide() },
+								{
+									label: "Archive",
+									variant: "solid",
+									onclick: (e, modal) => {
+										frappe.ui.toast({ message: "Project archived" });
+										modal.hide();
+									},
+								},
+							],
+						},
+					],
+				},
+				{
+					title: __("Sizes"),
+					items: [
+						{
+							button: { label: "Small" },
+							size: "small",
+							title: "Small",
+							content: "Narrower than the default.",
+						},
+						{
+							button: { label: "Default" },
+							title: "Default",
+							content: "The width most dialogs use.",
+						},
+						{
+							button: { label: "Large" },
+							size: "large",
+							title: "Large",
+							content: "For forms with two columns.",
+						},
+						{
+							button: { label: "Extra large" },
+							size: "extra-large",
+							title: "Extra large",
+							content: "For forms with three or more columns.",
+						},
+					],
+				},
+				{
+					title: __("Centered on the screen"),
+					items: [
+						{
+							button: { label: "Centered" },
+							position: "center",
+							title: "Centered",
+							content: "Sits in the middle of the screen instead of near the top.",
+						},
+					],
+				},
+				{
+					title: __("Static (Escape and a click outside bounce it)"),
+					items: [
+						{
+							button: { label: "Static" },
+							dismissible: "static",
+							show_close_button: false,
+							title: "Static",
+							content: "Only the button closes it.",
+							actions: [{ label: "Done", onclick: (e, modal) => modal.hide() }],
+						},
+					],
+				},
+				{
+					title: __("Events (hide and hidden get the reason)"),
+					items: [
+						{
+							button: { label: "Close me any way" },
+							title: "Events",
+							content: "Press Escape, click outside, use the close button or Done.",
+							actions: [{ label: "Done", onclick: (e, modal) => modal.hide() }],
+							on_hidden: (reason) =>
+								frappe.ui.toast({ message: `Closed: ${reason}` }),
+						},
+					],
+				},
+			],
+		},
 		BottomSheet: {
 			helper: "frappe.ui.bottom_sheet",
 			groups: [

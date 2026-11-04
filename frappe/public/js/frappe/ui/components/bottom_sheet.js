@@ -1,6 +1,7 @@
-import { validated, is_thenable, icon_html, TABBABLE, resolve_content } from "./utils.js";
+import { validated, is_thenable, icon_html, resolve_content } from "./utils.js";
 import { normalize_options, build_item } from "./menu.js";
 import { place, VIEWPORT_PAD } from "./position.js";
+import { scrollbar_width, page_behind, guard_focus, trap_tab, return_focus } from "./overlay.js";
 
 frappe.provide("frappe.ui");
 
@@ -38,9 +39,6 @@ const FLICK = 0.5; // px per ms
 const EXPAND_DRAG = 40;
 const SETTLE_MS = 250; // keep in sync with the height transition in bottom_sheet.css
 
-// page-level layers that can be in <body> before a sheet opens and still take
-// focus from it; anything else added to <body> after it opened is allowed too
-const LAYERS = ".es-bottom-sheet-root, .modal, .datepickers-container, .es-toast-container";
 // the menu layer; a sheet lifted to or past it has to lift what it opens as well
 const MENU_LAYER = 1060;
 // a popover's gap from its anchor, and the least height worth showing when no side fits it
@@ -140,7 +138,7 @@ frappe.ui.BottomSheet = class BottomSheet {
 		if (this.root) return;
 		this.return_focus = document.activeElement;
 		// the page behind; taken before rendering, so pickers the content makes aren't in it
-		this.background = new Set(document.body.children);
+		this.background = page_behind();
 		this.title_id = `es-bottom-sheet-${++id_counter}-title`;
 
 		const root = document.createElement("div");
@@ -177,7 +175,7 @@ frappe.ui.BottomSheet = class BottomSheet {
 		if (!open_sheets.size) {
 			const html = document.documentElement;
 			// keep the scrollbar's space only if there was a scrollbar to hide
-			html.classList.toggle("es-bottom-sheet-gutter", window.innerWidth > html.clientWidth);
+			html.classList.toggle("es-bottom-sheet-gutter", scrollbar_width() > 0);
 			html.classList.add("es-bottom-sheet-open");
 		}
 		open_sheets.add(this);
@@ -210,10 +208,7 @@ frappe.ui.BottomSheet = class BottomSheet {
 
 		// back to where it came from, unless the tap that closed it moved focus on
 		// (an option that opened another sheet or a dialog)
-		const active = document.activeElement;
-		if (!active || active === document.body || root.contains(active)) {
-			(this.trigger_el || this.return_focus)?.focus?.({ preventScroll: true });
-		}
+		return_focus(this.trigger_el || this.return_focus, root);
 		this.opts.on_close && this.opts.on_close(reason);
 	}
 
@@ -550,18 +545,11 @@ frappe.ui.BottomSheet = class BottomSheet {
 			if (this.steps.length > 1) this.pop();
 			else if (this.dismissible) this.close("escape");
 		};
-		this.onkeydown = (e) => e.key === "Tab" && this.trap_tab(e);
+		this.onkeydown = (e) => e.key === "Tab" && trap_tab(this.panel, e);
 		// the scrim can't take focus, so a press on it would drop focus on <body>
 		this.onscrimpress = (e) => e.preventDefault();
 		this.onscrimclick = () =>
 			this.dismissible ? this.close("scrim") : this.panel.focus({ preventScroll: true });
-		// modal: focus that reaches the page behind comes back
-		this.onfocusin = (e) => {
-			let top = e.target;
-			while (top && top.parentElement !== document.body) top = top.parentElement;
-			if (!top || !this.background.has(top) || top.matches(LAYERS)) return;
-			this.panel.focus({ preventScroll: true });
-		};
 		this.ondragstart = (e) => this.drag_start(e);
 		// an on-screen keyboard shrinks the visual viewport; the sheet sits above it
 		this.onviewport = () => {
@@ -578,7 +566,7 @@ frappe.ui.BottomSheet = class BottomSheet {
 		this.panel.addEventListener("keydown", this.onkeydown);
 		this.scrim.addEventListener("mousedown", this.onscrimpress);
 		this.scrim.addEventListener("click", this.onscrimclick);
-		document.addEventListener("focusin", this.onfocusin);
+		this.release_focus = guard_focus(this.panel, this.background);
 		if (this.popover) {
 			this.onreposition = () => this.place_popover();
 			window.addEventListener("resize", this.onreposition);
@@ -596,31 +584,10 @@ frappe.ui.BottomSheet = class BottomSheet {
 
 	unbind() {
 		this.drag_end();
-		document.removeEventListener("focusin", this.onfocusin);
+		this.release_focus();
 		window.removeEventListener("resize", this.onreposition);
 		window.visualViewport?.removeEventListener("resize", this.onviewport);
 		window.visualViewport?.removeEventListener("scroll", this.onviewport);
-	}
-
-	// modal, so Tab cycles inside the sheet
-	trap_tab(e) {
-		const tabbables = [...this.panel.querySelectorAll(TABBABLE)].filter(
-			(el) => el.offsetParent !== null
-		);
-		if (!tabbables.length) {
-			e.preventDefault();
-			return;
-		}
-		const first = tabbables[0];
-		const last = tabbables[tabbables.length - 1];
-		const active = document.activeElement;
-		if (e.shiftKey && (active === first || active === this.panel)) {
-			e.preventDefault();
-			last.focus();
-		} else if (!e.shiftKey && active === last) {
-			e.preventDefault();
-			first.focus();
-		}
 	}
 
 	drag_start(e) {

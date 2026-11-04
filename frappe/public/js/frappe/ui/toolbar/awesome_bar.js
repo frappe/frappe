@@ -1,6 +1,5 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
-import Modal from "../modal";
 
 frappe.provide("frappe.search");
 frappe.provide("frappe.tags");
@@ -24,8 +23,8 @@ frappe.search.AwesomeBar = class AwesomeBar {
 		let search_modal = new frappe.get_modal("Search", "");
 		this.search_modal = search_modal;
 		search_modal.removeClass("fade");
-		this.modal = new Modal(search_modal.get(0), {
-			dismiss: ".btn-modal-close",
+		this.modal = new frappe.ui.Modal({
+			element: search_modal,
 			on_shown: () => {
 				const input = search_modal.find("#navbar-search").get(0);
 				setTimeout(() => input.focus(), 10);
