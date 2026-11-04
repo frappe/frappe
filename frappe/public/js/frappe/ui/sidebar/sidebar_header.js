@@ -202,6 +202,7 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 					options: frappe.utils.get_apps_screen_apps().map((app) => ({
 						name: `app-${app.app_name}`,
 						label: __(app.app_title || app.app_name),
+						icon: app.app_icon,
 						// An app's mark is its own logo, which no icon name stands in for.
 						image: Array.isArray(app.app_logo_url)
 							? app.app_logo_url[0]

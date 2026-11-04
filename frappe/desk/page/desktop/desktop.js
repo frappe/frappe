@@ -105,6 +105,7 @@ class DesktopPage {
 			const icon_data = {
 				label: app.app_title,
 				logo_url: app.app_logo_url,
+				icon: app.app_icon,
 				// A route into the desk for an app whose own UI isn't the desk, declared as
 				// `desk_route` on its `add_to_apps_screen` hook. Empty for a desk-native app,
 				// which renders no subtitle.

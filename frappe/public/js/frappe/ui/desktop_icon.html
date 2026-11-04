@@ -7,6 +7,10 @@
             <div class="icon-container">
                 <img class="app-icon" src="{{ frappe.utils.escape_html(icon.logo_url) }}" alt="{{ frappe.utils.escape_html(icon.label) }}" />
             </div>
+        {% } else if (icon.icon) { %}
+            <div class="icon-container">
+                {%= frappe.utils.icon(frappe.utils.escape_html(icon.icon), "lg") %}
+            </div>
         {% } else { %}
             {%= frappe.utils.desktop_icon(icon.label, "gray", "md", "Solid") %}
         {% } %}

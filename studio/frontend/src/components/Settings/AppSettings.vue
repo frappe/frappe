@@ -25,6 +25,14 @@
 			/>
 			<AppRenameDialog />
 		</div>
+		<div class="flex w-1/2 flex-col gap-1.5 pr-2.5">
+			<FormLabel label="App Icon" />
+			<IconPicker
+				:modelValue="app.app_icon ? `lucide-${app.app_icon}` : ''"
+				@update:modelValue="(value: string) => update('app_icon', value.replace(/^lucide-/, ''))"
+			/>
+			<span class="text-p-sm text-ink-gray-6">Appears on the desktop and in the app switcher</span>
+		</div>
 
 		<hr class="w-full border-outline-gray-2" />
 
@@ -85,6 +93,7 @@ import { Button, FileUploader, toast } from "frappe-ui"
 import Input from "@/components/Input.vue"
 import AppRenameDialog from "@/components/Settings/AppRenameDialog.vue"
 import ExportAppDialog from "@/components/ExportAppDialog.vue"
+import IconPicker from "@/components/IconPicker.vue"
 import useStudioStore from "@/stores/studioStore"
 import { scrub } from "@/utils/helpers"
 import defaultFavicon from "/favicon.png"
@@ -101,7 +110,13 @@ const isDeveloperMode = Boolean(window.is_developer_mode)
 const showExportDialog = ref(false)
 const exportFolder = computed(() => `${app.value?.frappe_app}/studio/${scrub(app.value?.app_name || "")}`)
 
-const FIELD_LABELS = { app_title: "Title", route: "Route", app_home: "App Home", favicon: "Favicon" }
+const FIELD_LABELS = {
+	app_title: "Title",
+	route: "Route",
+	app_home: "App Home",
+	app_icon: "App Icon",
+	favicon: "Favicon",
+}
 
 function update(field: keyof typeof FIELD_LABELS, value: string) {
 	const label = FIELD_LABELS[field]
