@@ -136,6 +136,7 @@ from typing import IO
 class StorageDriver(ABC):
 	name: str
 	key_prefix: str = ""    # prepended to every new key
+	cache_locally: bool = False   # keep requested blobs on local disk
 
 	@abstractmethod
 	def write(self, key: str, stream: IO[bytes], *, is_private: bool = False) -> None: ...
@@ -318,6 +319,27 @@ allow_native_redirect=False)` serves a blob the caller has already
 authorized, with no permission check or access log. It streams by
 default, because some clients (WebDAV) cannot follow a cross-host
 redirect; pass `allow_native_redirect=True` to allow the 302.
+
+### Local cache
+
+A driver with `cache_locally = True` (S3) keeps a copy of each requested
+blob on the site's disk, where a local blob would sit:
+`{public,private}/files/<blob>/<filename>`. A public copy is on disk at
+its URL path, so nginx serves it with no Python. A private copy goes
+through the serve route and X-Accel, like a local private blob.
+`frappe/storage/cache.py` owns it.
+
+- `stream_blob` serves a cached blob from disk, before it tries the native
+  URL. It uses X-Accel or `send_file`, like a local blob.
+- On a miss, `stream_blob` queues `cache_blob` on the `long` queue, one job
+  per blob (`storage_cache::<blob>`). The request itself is served as
+  before: a redirect or a stream from the driver.
+- `cache_blob` streams the object into a `.part` file, checks the size
+  against `file_size`, then renames it. A failed download leaves no cache
+  file, and the next request queues a new job.
+- A blob is immutable, so a cached file never goes stale. GC deletes the
+  cache file with the blob. There is no size limit or eviction yet.
+- A private copy lives in `private/files`, so a backup with files holds it.
 
 ### Upload
 
