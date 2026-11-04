@@ -18,20 +18,17 @@
 			>
 				<header class="sticky top-0 z-10 flex-none bg-surface-elevation-1 p-4 sm:static sm:px-6 sm:pb-0 sm:pt-5">
 					<div class="flex items-center gap-2">
-						<h2 class="min-w-0 flex-1 text-md font-semibold text-ink-gray-9">Transcript</h2>
+						<h2 class="min-w-0 flex-1 text-md-semibold text-ink-gray-9">Transcript</h2>
 						<!-- for an issue or another chat: the steps as they show, as JSON -->
 						<template v-if="rows.length">
-							<CopyButton :text="json" title="Copy JSON" :class="HEAD_BTN">
+							<CopyButton :text="json" title="Copy JSON" variant="subtle" size="sm">
 								<span class="max-sm:hidden">Copy JSON</span>
 							</CopyButton>
-							<button :class="HEAD_BTN" title="Download JSON" @click="download">
-								<span class="lucide-download size-3.5" aria-hidden="true" />
+							<Button variant="subtle" size="sm" icon-left="lucide-download" title="Download JSON" @click="download">
 								<span class="max-sm:hidden">Download</span>
-							</button>
+							</Button>
 						</template>
-						<button ref="closeEl" class="flow-icon-btn flex-none" title="Close" @click="close">
-							<span class="lucide-x size-3.5" aria-hidden="true" />
-						</button>
+						<Button ref="closeEl" variant="ghost" icon="lucide-x" class="flex-none" title="Close" @click="close" />
 					</div>
 					<div v-if="title" class="mt-1 truncate text-base text-ink-gray-6">{{ title }}</div>
 				</header>
@@ -43,7 +40,7 @@
 					>
 						<div class="text-xs text-ink-gray-5">{{ stat.label }}</div>
 						<div class="mt-2 flex items-baseline gap-1.5">
-							<span class="text-base font-semibold tabular-nums text-ink-gray-9">{{ stat.value }}</span>
+							<span class="text-base-semibold tabular-nums text-ink-gray-9">{{ stat.value }}</span>
 							<span v-if="stat.sub" class="truncate text-xs text-ink-gray-4">{{ stat.sub }}</span>
 						</div>
 					</div>
@@ -164,6 +161,7 @@
 
 <script setup>
 import { computed, inject, nextTick, onBeforeUnmount, reactive, ref, watch } from "vue"
+import { Button } from "frappe-ui/src/components/Button"
 import { usePortalTarget } from "frappe-ui/src/composables/usePortalTarget"
 
 import { buildTranscriptRows, formatCost, formatTime, formatTokens, userAttachments, userText } from "../transcript.js"
@@ -181,8 +179,6 @@ const ROLES = {
 }
 // the row's raw objects, in the order they show
 const PARTS = ["entry", "input", "output", "usage"]
-const HEAD_BTN =
-	"flex h-7 flex-none items-center gap-1.5 rounded-5 bg-surface-gray-2 px-2 text-sm text-ink-gray-8 hover:bg-surface-gray-3"
 const PRE =
 	"m-0 max-h-[360px] overflow-auto whitespace-pre-wrap break-words rounded-4 border border-outline-gray-1 bg-surface-gray-1 px-3 py-2 font-mono text-xs leading-5 text-ink-gray-7"
 
@@ -306,7 +302,7 @@ watch(
 		if (isOpen) {
 			returnFocus = deepActive()
 			window.addEventListener("keydown", onKey, true)
-			nextTick(() => closeEl.value?.focus())
+			nextTick(() => closeEl.value?.$el?.focus())
 		} else {
 			window.removeEventListener("keydown", onKey, true)
 			returnFocus?.focus?.()

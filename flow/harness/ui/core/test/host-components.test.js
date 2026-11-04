@@ -1556,7 +1556,7 @@ test("a saved preset stays open as saved: a new one becomes an edit of itself, t
 	assert.match(el.textContent, /3 of 3 tools/)
 
 	// inside a chat, the list marks the preset the chat records
-	const marked = () => [...el.querySelectorAll(".bg-surface-gray-1 .font-medium")].map((name) => name.textContent)
+	const marked = () => [...el.querySelectorAll(".bg-surface-gray-1 .text-base-medium")].map((name) => name.textContent)
 	assert.deepEqual(marked(), ["Standard"])
 	store.state.sessionId = "s1"
 	store.state.session = { config: { preset: store.state.presets[0].id } }

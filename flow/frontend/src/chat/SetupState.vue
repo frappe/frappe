@@ -1,7 +1,7 @@
 <template>
 	<div class="flex flex-col items-center gap-3">
 		<BrandMark line :size="32" class="min-h-0 shrink max-md:!h-7 max-md:!w-7" />
-		<div class="text-4xl font-medium text-ink-gray-9">Finish setup to start</div>
+		<div class="text-4xl-medium text-ink-gray-9">Finish setup to start</div>
 		<div v-if="hasModels" class="max-w-sm text-base text-ink-gray-6">
 			Every model is set, but no agent is enabled.
 		</div>

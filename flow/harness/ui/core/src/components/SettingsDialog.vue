@@ -19,7 +19,7 @@
 						<span class="lucide-chevron-left size-5" aria-hidden="true" />
 						<DialogTitle as="span" class="text-md">{{ back ? sectionLabel : "Settings" }}</DialogTitle>
 					</button>
-					<DialogTitle v-else class="px-2 text-md font-semibold text-ink-gray-9">Settings</DialogTitle>
+					<DialogTitle v-else class="px-2 text-md-semibold text-ink-gray-9">Settings</DialogTitle>
 					<span class="flex-1" />
 					<DialogClose class="grid h-9 w-9 place-items-center rounded-6 text-ink-gray-7 hover:bg-surface-gray-2" title="Close">
 						<span class="lucide-x size-4" aria-hidden="true" />
@@ -33,7 +33,7 @@
 						<nav v-else class="absolute inset-0 overflow-y-auto bg-surface-base px-2 pb-6">
 							<template v-for="(group, i) in groups" :key="i">
 								<!-- one group is the page itself: its name would only repeat the title -->
-								<div v-if="groups.length > 1" class="flex h-8 items-end px-3 pb-1 text-sm font-medium text-ink-gray-5" :class="i ? 'mt-3' : ''">
+								<div v-if="groups.length > 1" class="flex h-8 items-end px-3 pb-1 text-sm-medium text-ink-gray-5" :class="i ? 'mt-3' : ''">
 									{{ group.label }}
 								</div>
 								<button
@@ -73,7 +73,7 @@
 		<SettingsSidebar class="pt-3 dark:!bg-surface-gray-1">
 			<SettingsNavGroup v-for="(group, i) in groups" :key="i">
 				<template v-if="group.label" #label>
-					<span class="mb-1 block text-xs font-medium text-ink-gray-7">{{ group.label }}</span>
+					<span class="mb-1 block text-xs-medium text-ink-gray-7">{{ group.label }}</span>
 				</template>
 				<SettingsNavItem v-for="item in group.tabs" :key="item.id" :value="item.id" class="text-sm">
 					<template #prefix>

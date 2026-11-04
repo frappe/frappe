@@ -37,8 +37,8 @@
 			<!-- a double click renames the chat in place, as its menu's Rename does -->
 			<span
 				v-else
-				class="min-w-0 truncate font-medium text-ink-gray-9"
-				:class="layout.phone ? 'text-md' : 'text-base'"
+				class="min-w-0 truncate text-ink-gray-9"
+				:class="layout.phone ? 'text-md-medium' : 'text-base-medium'"
 				@dblclick="menu && (renaming = flow.state.sessionId)"
 				>{{ title }}</span
 			>

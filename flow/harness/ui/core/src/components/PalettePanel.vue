@@ -39,7 +39,7 @@
 			>
 				<span class="lucide-arrow-left size-3.5" aria-hidden="true" />
 			</button>
-			<span class="min-w-0 truncate text-base font-medium text-ink-gray-5" :class="back ? '' : 'pl-1'">
+			<span class="min-w-0 truncate text-base-medium text-ink-gray-5" :class="back ? '' : 'pl-1'">
 				{{ title }}
 			</span>
 			<span class="flex-1" />

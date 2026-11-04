@@ -45,3 +45,13 @@ body {
 :host([data-panel]) .dialog-content header h3 {
 	@apply text-lg-semibold;
 }
+
+/* sonner gives its toasts the system font; they take the chat's */
+:host [data-sonner-toaster] {
+	font-family: inherit;
+}
+
+/* the panel's dialogs cover the page, but its toasts keep to the panel */
+:host([data-panel]) [data-sonner-toaster] {
+	position: absolute;
+}

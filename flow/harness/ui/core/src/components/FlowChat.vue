@@ -21,9 +21,7 @@
 				<template #actions>
 					<Dropdown class="flex-none" :options="addTabOptions">
 						<template #trigger>
-							<button class="flow-icon-btn" title="New tab">
-								<span class="lucide-plus size-3.5" aria-hidden="true" />
-							</button>
+							<Button variant="ghost" icon="lucide-plus" title="New tab" />
 						</template>
 					</Dropdown>
 				</template>
@@ -81,6 +79,7 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, provide, ref, watch } from "vue"
+import { Button } from "frappe-ui/src/components/Button"
 import Dialogs from "frappe-ui/src/components/Dialogs.vue"
 import Dropdown from "frappe-ui/src/components/Dropdown/Dropdown.vue"
 import { useColorScheme } from "frappe-ui/src/composables/useColorScheme"
