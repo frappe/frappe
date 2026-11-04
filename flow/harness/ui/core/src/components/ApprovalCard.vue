@@ -1,6 +1,6 @@
 <template>
 	<div
-		class="flex max-h-[min(500px,72vh)] flex-col overflow-hidden rounded-6 border border-outline-gray-2 bg-surface-base"
+		class="flex max-h-[min(500px,calc(72vh/var(--flow-zoom,1)))] flex-col overflow-hidden rounded-6 border border-outline-gray-2 bg-surface-base"
 	>
 		<div class="flex items-start gap-3 px-3.5 py-2.5">
 			<div class="min-w-0 flex-1 text-base-medium leading-snug text-ink-gray-8">{{ title }}</div>

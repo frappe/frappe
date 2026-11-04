@@ -21,7 +21,7 @@
 				: '-translate-x-full md:ml-[calc(-1*var(--sidebar-w))] md:translate-x-0',
 			dragging && 'flow-reordering',
 		]"
-		:style="{ '--sidebar-w': layout.phone ? 'min(85vw, 360px)' : width + 'px' }"
+		:style="{ '--sidebar-w': layout.phone ? 'min(calc(85vw / var(--flow-zoom, 1)), 360px)' : width + 'px' }"
 		:inert="!open"
 	>
 		<div class="flex h-12 flex-none items-center gap-2.5 pl-4 pr-2">
@@ -763,7 +763,7 @@ function startResize(event) {
 	handle.setPointerCapture(event.pointerId)
 	const startX = event.clientX
 	const startWidth = width.value
-	const move = (e) => (width.value = clampWidth(startWidth + e.clientX - startX))
+	const move = (e) => (width.value = clampWidth(startWidth + (e.clientX - startX) / layout.zoom))
 	const up = (e) => {
 		handle.releasePointerCapture(e.pointerId)
 		handle.removeEventListener("pointermove", move)

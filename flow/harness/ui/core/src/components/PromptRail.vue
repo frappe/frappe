@@ -45,6 +45,8 @@
 <script setup>
 import { nextTick, ref, watch } from "vue"
 
+import { layout } from "../layout.js"
+
 const props = defineProps({
 	prompts: { type: Array, required: true }, // [{key, text}]
 	activeKey: { type: String, default: null },
@@ -63,15 +65,17 @@ const cardTop = ref(0)
 function onHover(prompt, event) {
 	const bar = event.currentTarget.getBoundingClientRect()
 	const origin = rail.value.getBoundingClientRect()
-	const anchor = bar.top + bar.height / 2 - origin.top
+	// the rects are screen pixels, the card's place and height CSS ones
+	const z = layout.zoom
+	const anchor = (bar.top + bar.height / 2 - origin.top) / z
 	hovered.value = { text: prompt.text }
 	cardTop.value = anchor
 	void nextTick(() => {
 		if (!card.value) return
 		const bounds = rail.value.offsetParent.getBoundingClientRect()
 		const pad = 4
-		const minTop = bounds.top - origin.top + pad
-		const maxTop = bounds.bottom - origin.top - card.value.offsetHeight - pad
+		const minTop = (bounds.top - origin.top) / z + pad
+		const maxTop = (bounds.bottom - origin.top) / z - card.value.offsetHeight - pad
 		cardTop.value = Math.min(Math.max(anchor - card.value.offsetHeight / 2, minTop), maxTop)
 	})
 }

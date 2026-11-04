@@ -6,7 +6,9 @@ import { reactive, ref, watch } from "vue"
 const wide = globalThis.matchMedia?.("(min-width: 768px)")
 const finger = globalThis.matchMedia?.("(pointer: coarse)")
 
-export const layout = reactive({ narrow: false, narrowWindow: false, phone: false })
+// `zoom`: the harness scales its whole UI by its font size (FlowChat sets it); a pointer's or a
+// box's screen pixels are CSS pixels times this
+export const layout = reactive({ narrow: false, narrowWindow: false, phone: false, zoom: 1 })
 
 let box = null // the element whose width decides, for a chat in a panel beside a page
 function measure() {

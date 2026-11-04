@@ -111,7 +111,7 @@ const entries = [
 
 function open() {
 	const room = document.documentElement.clientWidth - trigger.value.parentElement.getBoundingClientRect().right
-	side.value = room >= LIST_WIDTH + 4 + 8 ? "right" : "left"
+	side.value = room >= (LIST_WIDTH + 4 + 8) * layout.zoom ? "right" : "left"
 	pane.value = "root"
 }
 

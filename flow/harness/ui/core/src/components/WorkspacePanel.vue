@@ -210,7 +210,7 @@ function startResize(event) {
 	handle.setPointerCapture(event.pointerId)
 	const startX = event.clientX
 	const startWidth = width.value
-	const move = (e) => (width.value = clampWidth(startWidth - (e.clientX - startX)))
+	const move = (e) => (width.value = clampWidth(startWidth - (e.clientX - startX) / layout.zoom))
 	const up = (e) => {
 		handle.releasePointerCapture(e.pointerId)
 		handle.removeEventListener("pointermove", move)

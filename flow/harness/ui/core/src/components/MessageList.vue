@@ -393,7 +393,7 @@ function updateActivePrompt() {
 		activePromptKey.value = null
 		return
 	}
-	const threshold = el.getBoundingClientRect().top + el.clientHeight / 3
+	const threshold = el.getBoundingClientRect().top + (el.clientHeight * layout.zoom) / 3
 	let active = prompts.value[0].key
 	for (const bubble of el.querySelectorAll("[data-prompt-key]")) {
 		if (bubble.getBoundingClientRect().top <= threshold) active = bubble.dataset.promptKey

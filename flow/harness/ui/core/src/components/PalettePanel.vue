@@ -53,6 +53,7 @@
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
 
 import { isInert, isPageEvent } from "../inert.js"
+import { layout } from "../layout.js"
 import { nextNavigationIndex } from "../paletteNav.js"
 
 const props = defineProps({
@@ -100,12 +101,14 @@ function frameBox() {
 function fit() {
 	const rect = panel.value.getBoundingClientRect()
 	const tall = props.below ? document.documentElement.clientHeight - Math.ceil(rect.top) : Math.floor(rect.bottom)
-	cap.value = Math.min(352, tall - 8)
+	// the rects are screen pixels, the cap and the shift CSS ones
+	const z = layout.zoom
+	cap.value = Math.min(352, tall / z - 8)
 	if (!props.dropdown) return
 	const frame = frameBox()
-	const left = rect.left - shift.value
-	const right = rect.right - shift.value
-	shift.value = Math.round(Math.max(frame.left + 8 - left, Math.min(0, frame.right - 8 - right)))
+	const left = rect.left - shift.value * z
+	const right = rect.right - shift.value * z
+	shift.value = Math.round(Math.max(frame.left + 8 * z - left, Math.min(0, frame.right - 8 * z - right)) / z)
 }
 
 function items() {
@@ -210,7 +213,7 @@ onMounted(async () => {
 	observer.observe(panel.value, { childList: true, subtree: true })
 	if (props.dropdown) {
 		const frame = frameBox()
-		frameWidth.value = Math.round(frame.right - frame.left)
+		frameWidth.value = Math.round((frame.right - frame.left) / layout.zoom)
 		await nextTick()
 	}
 	// refitted as the page (the keyboard) or what it hangs from (a growing composer) resizes
