@@ -1,8 +1,8 @@
 // The one reading of "3 days ago" behind list cells and the index's recent list.
-import { setSession, resetSession } from "@framework/ui/useSession";
+import { resetSession, setSession } from "../useSession";
 import { dayjs } from "frappe-ui";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { relativeTime } from "../relativeTime";
+import { relativeTime, siteTime } from "../relativeTime";
 
 const NOW = "2026-11-04T04:30:00Z";
 
@@ -73,5 +73,57 @@ describe("relativeTime", () => {
 		resetSession();
 		expect(relativeTime(dayjs(new Date(Date.parse(NOW) - 3 * 60_000)))).toBe("3 minutes ago");
 		expect(readAs("not a language!", -3 * 60_000)).toBe("3 minutes ago");
+	});
+});
+
+describe("siteTime", () => {
+	beforeEach(() => {
+		vi.useFakeTimers({ toFake: ["Date"] });
+		vi.setSystemTime(new Date(NOW));
+	});
+
+	afterEach(() => {
+		vi.useRealTimers();
+		resetSession();
+	});
+
+	// The test runner's zone is UTC; the site is five and a half hours ahead of it.
+	function onSite(zone: string | undefined) {
+		setSession({ user: {}, roles: [], lang: "en", timezone: zone, defaults: {} } as never);
+	}
+
+	it("reads a stored stamp on the site's clock, not the browser's", () => {
+		onSite("Asia/Kolkata");
+		// 10:00 in Kolkata is 04:30 UTC, "now" in this test.
+		expect(siteTime("2026-11-04 10:00:00").toISOString()).toBe("2026-11-04T04:30:00.000Z");
+		expect(relativeTime(siteTime("2026-11-04 09:59:40"))).toBe("a few seconds ago");
+		expect(relativeTime(siteTime("2026-11-04 07:30:00"))).toBe("3 hours ago");
+	});
+
+	it("keeps the site's wall clock in the absolute form", () => {
+		onSite("Asia/Kolkata");
+		expect(siteTime("2026-11-04 10:00:00").format("YYYY-MM-DD HH:mm")).toBe("2026-11-04 10:00");
+	});
+
+	it("reads in the browser's zone when the session has none", () => {
+		onSite(undefined);
+		expect(siteTime("2026-11-04 10:00:00").valueOf()).toBe(new Date(2026, 10, 4, 10).getTime());
+	});
+
+	it("keeps the instant of a stamp that names its own zone", () => {
+		onSite("Asia/Kolkata");
+		expect(siteTime("2026-11-04T10:00:00Z").toISOString()).toBe("2026-11-04T10:00:00.000Z");
+		expect(siteTime("2026-11-04T10:00:00+05:30").toISOString()).toBe("2026-11-04T04:30:00.000Z");
+	});
+
+	it("reads a date alone as midnight on the site's clock", () => {
+		onSite("Asia/Kolkata");
+		expect(siteTime("2026-11-04").toISOString()).toBe("2026-11-03T18:30:00.000Z");
+	});
+
+	it("leaves a stamp it cannot read invalid, so nothing is drawn", () => {
+		onSite("Asia/Kolkata");
+		expect(siteTime("garbage").isValid()).toBe(false);
+		expect(relativeTime(siteTime("garbage"))).toBe("");
 	});
 });

@@ -8,6 +8,9 @@ import frappeui from "frappe-ui/vite";
 import contributions from "./plugin/contributions.js";
 import oneTree from "./plugin/oneTree.js";
 
+// Site-zone tests need a browser zone that is not the site's.
+process.env.TZ = "UTC";
+
 const ui = JSON.parse(readFileSync(new URL("../ui/package.json", import.meta.url), "utf8"));
 const declared = JSON.parse(readFileSync(new URL("./package.base.json", import.meta.url), "utf8"));
 // The manifest is stated inline: frappe's own item renderers are contributions, and a

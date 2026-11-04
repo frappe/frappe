@@ -1,6 +1,6 @@
 // The email a reply answers, quoted as desk v1 quotes it: an "On … wrote:" line over its plain text.
 import type { EmailActivity } from "@framework/ui/ActivityTimeline";
-import { dayjsLocal } from "frappe-ui";
+import { siteTime } from "@framework/ui/relativeTime";
 import { __ } from "@/i18n";
 
 // Desk v1's clip, so a long thread does not bloat every reply.
@@ -26,7 +26,7 @@ export function quoteEmail(email: EmailActivity["data"], timestamp?: string): st
 // A row just sent has no time until the feed's echo brings it.
 function attribution(sender: string, timestamp?: string) {
 	if (!timestamp) return __("{0} wrote:", [sender]);
-	const date = dayjsLocal(timestamp).format("LLL");
+	const date = siteTime(timestamp).format("LLL");
 	return __("On {0}, {1} wrote:", [date, sender]);
 }
 
