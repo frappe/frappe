@@ -12,6 +12,7 @@ import frappe
 import frappe.exceptions
 from frappe.core.doctype.user.user import (
 	User,
+	get_roles,
 	handle_password_test_fail,
 	reset_password,
 	sign_up,
@@ -170,6 +171,13 @@ class TestUser(FrappeTestCase):
 
 		self.assertEqual(second.username, f"{base}-2")
 		self.assertFalse([m for m in frappe.message_log if "unique" in str(m)])
+
+	def test_get_roles_of_another_user_needs_read_permission(self):
+		with test_user(roles=["Desk User"]) as user, self.set_user(user.name):
+			with patch.dict(frappe.form_dict, uid="Administrator"):
+				self.assertRaises(frappe.PermissionError, get_roles)
+			with patch.dict(frappe.form_dict, uid=user.name):
+				self.assertIn("Desk User", get_roles())
 
 	def test_delete(self):
 		frappe.get_doc("User", "test@example.com").add_roles("_Test Role 2")
