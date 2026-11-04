@@ -1,6 +1,6 @@
 // The list draws each column's cell as the record's read-only field shows the value, and a Phone or
 // Email column's cells (a Phone field, or a Data field whose options say Phone or Email) with the field actions,
-// and a Link or Dynamic Link value as a link to the record it names.
+// a Link or Dynamic Link value as a link to the record it names, and a web address with a link that opens it.
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, nextTick, ref } from "vue";
 
@@ -9,6 +9,8 @@ const metaFields = [
 	{ fieldname: "phone", fieldtype: "Data", options: "Phone" },
 	{ fieldname: "status", fieldtype: "Data" },
 	{ fieldname: "email_id", fieldtype: "Data", options: "Email" },
+	{ fieldname: "website", fieldtype: "Data", options: "URL" },
+	{ fieldname: "homepage", fieldtype: "Data", options: "URL" },
 	{ fieldname: "currency", fieldtype: "Link", options: "Currency" },
 	{ fieldname: "amount", fieldtype: "Currency", options: "currency" },
 	{ fieldname: "fee", fieldtype: "Currency", options: "Company:company:default_currency" },
@@ -42,6 +44,8 @@ const row = {
 	phone: "555",
 	status: "Open",
 	email_id: "lead@example.com",
+	website: "https://example.com/about",
+	homepage: "example.com",
 	currency: "USD",
 	amount: 1234567.5,
 	fee: 10,
@@ -243,6 +247,28 @@ describe("a list's cells", () => {
 		expect(openRecord).not.toHaveBeenCalled();
 		expect(modified.defaultPrevented).toBe(false);
 		expect(rowClicks).not.toHaveBeenCalled();
+	});
+
+	it("draw a web address with a link that opens it in a new tab, not the row", async () => {
+		const root = mount();
+		await nextTick();
+		const rowClicks = vi.fn();
+		root.addEventListener("click", rowClicks);
+
+		const cell = root.querySelector("[data-column='website']")!;
+		expect(cell.textContent?.trim()).toBe("https://example.com/about");
+		const open = cell.querySelector<HTMLAnchorElement>("[data-slot='open-url']")!;
+		expect(open.getAttribute("href")).toBe("https://example.com/about");
+		expect(open.getAttribute("target")).toBe("_blank");
+		expect(open.getAttribute("rel")).toBe("noopener noreferrer");
+		expect(open.parentElement!.lastElementChild).toBe(open);
+		const click = new MouseEvent("click", { bubbles: true, cancelable: true });
+		open.dispatchEvent(click);
+		expect(click.defaultPrevented).toBe(false);
+		expect(rowClicks).not.toHaveBeenCalled();
+		// Text that is not a web address draws alone, as the record's read-only field does.
+		expect(root.querySelector("[data-column='homepage']")?.textContent?.trim()).toBe("example.com");
+		expect(root.querySelector("[data-column='homepage'] a")).toBeNull();
 	});
 
 	it("draw a Check as a checkbox and a Rating as stars", async () => {
