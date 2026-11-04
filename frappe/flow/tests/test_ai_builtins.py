@@ -525,7 +525,7 @@ result = seen["result"][0]
 		self.assertEqual(frappe.db.count("ToDo", {"description": ["like", "approved code%"]}), 2)
 
 	def test_read_only_code_reaches_nothing_outside_the_database(self):
-		from frappe.flow.utils.safe_exec import get_flow_safe_globals
+		from frappe.flow.utils.safe_exec import NeedsApproval, get_flow_safe_globals
 
 		# what read-only code may call as is; anything else in frappe's namespace must be a stop,
 		# so a new global that reaches outside fails here first
@@ -539,11 +539,8 @@ result = seen["result"][0]
 		for name, value in frappe_ns.items():
 			if not callable(value) or isinstance(value, type) or name in pure:
 				continue
-			with self.subTest(name):
-				self.assertEqual(
-					getattr(value, "func", None).__name__,
-					"_stop" if name != "call" else "_call_read_function",
-				)
+			with self.subTest(name), self.assertRaises(NeedsApproval):
+				value(f"{MODULE}.get_only")
 
 
 class TestWriteTools(IntegrationTestCase):
