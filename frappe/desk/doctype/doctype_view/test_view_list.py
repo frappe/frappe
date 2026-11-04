@@ -22,6 +22,11 @@ def listed(views: list[dict]) -> list[tuple]:
 	return [(view["key"], view["label"], view["layer"]) for view in views]
 
 
+def saved(views: list[dict]) -> list[tuple]:
+	"""The views that belong to a layer; every view type's plain view has none."""
+	return listed([view for view in views if view["layer"] is not None])
+
+
 def default_of(views: list[dict]) -> list[str]:
 	return [view["key"] for view in views if view["default"]]
 
@@ -46,9 +51,8 @@ class TestViewList(AppViewCase):
 			views = list_views("ToDo")["ToDo"]
 
 		self.assertEqual(
-			listed(views),
+			saved(views),
 			[
-				("list", "List", None),
 				(alpha.key, "alpha mine", "own"),
 				(bravo.key, "Bravo mine", "own"),
 				(site.key, "Site one", "site"),
@@ -56,27 +60,32 @@ class TestViewList(AppViewCase):
 				("probe-zulu", "Zulu app", "app"),
 			],
 		)
-		self.assertEqual(
-			views[0], {"key": "list", "label": "List", "type": "List", "layer": None, "default": True}
+		plain = [view for view in views if view["layer"] is None]
+		self.assertEqual([view["key"] for view in views[: len(plain)]], [view["key"] for view in plain])
+		self.assertIn(
+			{"key": "list", "label": "List", "type": "List", "layer": None, "default": True}, plain
 		)
+		self.assertIn("cards", [view["key"] for view in plain])
 
 	def test_views_sharing_a_label_are_listed_by_key(self):
 		first, second = todo_view(SITE_ROW, "Twin"), todo_view(SITE_ROW, "Twin")
 
-		self.assertEqual([view["key"] for view in list_views("ToDo")["ToDo"][1:]], [first.key, second.key])
+		keys = [key for key, _label, _layer in saved(list_views("ToDo")["ToDo"])]
+
+		self.assertEqual(keys, [first.key, second.key])
 
 	def test_a_site_row_at_an_app_key_replaces_the_app_view(self):
 		self.folders.own_view("probe-open", label="Open probe")
 		site_row("probe-open", label="Site's")
 
-		self.assertEqual(listed(list_views("ToDo")["ToDo"])[1:], [("probe-open", "Site's", "site")])
+		self.assertEqual(saved(list_views("ToDo")["ToDo"]), [("probe-open", "Site's", "site")])
 
 	def test_an_own_view_made_before_an_app_shipped_its_key_is_listed_once_as_the_persons(self):
 		todo_view(self.person, "Probe Open")
 		self.folders.own_view("probe-open", label="Open probe")
 
 		with set_user(self.person):
-			self.assertEqual(listed(list_views("ToDo")["ToDo"])[1:], [("probe-open", "Probe Open", "own")])
+			self.assertEqual(saved(list_views("ToDo")["ToDo"]), [("probe-open", "Probe Open", "own")])
 
 	def test_the_plain_list_is_the_default_when_no_layer_names_one(self):
 		todo_view(SITE_ROW, "Site one")
@@ -107,14 +116,14 @@ class TestViewList(AppViewCase):
 		with set_user(self.person):
 			found = list_views()
 
-		self.assertEqual(listed(found["ToDo"])[1:], [("probe-open", "Probe", "app")])
-		self.assertEqual([view["label"] for view in found["Note"]], ["List", "Site note"])
+		self.assertEqual(saved(found["ToDo"]), [("probe-open", "Probe", "app")])
+		self.assertEqual([view["label"] for view in found["Note"] if view["layer"]], ["Site note"])
 		self.assertNotIn(PRIVATE_DOCTYPE, found)
 
 	def test_without_a_doctype_an_app_view_of_a_doctype_made_on_the_site_is_named_from_the_database(self):
 		self.folders.custom_view("acme", "probe-note", doctype="note", label="Acme's notes")
 
-		self.assertEqual(listed(list_views()["Note"])[1:], [("probe-note", "Acme's notes", "app")])
+		self.assertEqual(saved(list_views()["Note"]), [("probe-note", "Acme's notes", "app")])
 
 	def test_without_a_doctype_an_app_view_of_a_doctype_the_person_cannot_read_is_left_out(self):
 		self.folders.custom_view("acme", "probe-settings", doctype="system_settings")

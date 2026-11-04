@@ -8,6 +8,8 @@ vi.mock("@/pages/list/FieldCell.vue", () => ({ default: { template: "<span>3 day
 vi.mock("@framework/ui/RichText", () => ({ RichTextView: { props: ["html"], template: "<div v-html='html' />" } }));
 vi.mock("@framework/ui/fields", () => ({ LinkMark: { template: "<i data-mark />" } }));
 
+// Handed to the card as is; the card never builds an address.
+const CARD_LINK = "/records/NOTE-1";
 const mounted: ReturnType<typeof createApp>[] = [];
 
 afterEach(() => {
@@ -27,7 +29,7 @@ async function mount(props: Record<string, unknown>) {
 		titleField: "title",
 		bodyField: "content",
 		bodyIsHtml: true,
-		link: "/apps/desk/note/NOTE-1",
+		link: CARD_LINK,
 		menu: [],
 		person: { name: "Ada", image: null },
 		...props,
@@ -45,7 +47,7 @@ describe("CardItem", () => {
 		const root = await mount({});
 		const link = root.querySelector("a")!;
 
-		expect(link.getAttribute("href")).toBe("/apps/desk/note/NOTE-1");
+		expect(link.getAttribute("href")).toBe(CARD_LINK);
 		expect(link.textContent).toContain("Plan");
 		expect(link.textContent).toContain("Hello");
 		expect(link.textContent).toContain("Ada");
