@@ -2320,14 +2320,42 @@ operator_map = {
 
 def evaluate_filters(doc: "Mapping", filters: FilterSignature):
 	"""Return True if doc matches filters."""
+	from frappe.database.utils import NestedSetHierarchy
+
 	if not isinstance(filters, Filters):
 		filters = Filters(filters, doctype=doc.get("doctype"))
 	for d in filters:
 		f = get_filter(None, d)
-		if not compare(doc.get(f.fieldname), f.operator, f.value, f.fieldtype):
+		if f.operator.lower() in NestedSetHierarchy:
+			matches = evaluate_nested_set_filter(doc.get(f.fieldname), f)
+		else:
+			matches = compare(doc.get(f.fieldname), f.operator, f.value, f.fieldtype)
+
+		if not matches:
 			return False
 
 	return True
+
+
+def evaluate_nested_set_filter(value: Any, f: "frappe._dict") -> bool:
+	"""Return True if value matches a tree filter like "descendants of" or "not ancestors of".
+
+	The tree is the doctype that the field links to, or the filter doctype itself
+	(for example, a filter on `name`). Matching nodes are fetched the same way as in DB queries.
+	"""
+	from frappe.database.query import get_nested_set_hierarchy_result
+
+	df = frappe.get_meta(f.doctype).get_field(f.fieldname) if f.doctype else None
+	tree_doctype = df.options if df else f.doctype
+	if not tree_doctype:
+		return False
+
+	operator = f.operator.lower()
+	nodes = get_nested_set_hierarchy_result(tree_doctype, f.value, operator)
+	if operator.startswith("not "):
+		return value not in nodes
+
+	return value in nodes
 
 
 def compare(val1: Any, condition: str, val2: Any, fieldtype: str | None = None) -> bool:

@@ -9,7 +9,7 @@ from frappe.desk.treeview import get_children
 from frappe.query_builder import Field
 from frappe.query_builder.functions import Max
 from frappe.tests import IntegrationTestCase
-from frappe.utils import random_string
+from frappe.utils import evaluate_filters, random_string
 from frappe.utils.nestedset import (
 	NestedSetChildExistsError,
 	NestedSetInvalidMergeError,
@@ -325,6 +325,29 @@ class TestNestedSet(IntegrationTestCase):
 
 		self.assertNotIn(record, str(frappe.qb.get_query(table=linked_doctype, filters=exclusive_link)))
 		self.assertIn(record, str(frappe.qb.get_query(table=linked_doctype, filters=inclusive_link)))
+
+	def test_evaluate_filters_with_tree_operators(self):
+		# in-memory checks (used by Notification, Workflow etc.) must match DB query results
+		child = {"doctype": TEST_DOCTYPE, "name": "Child 1", "parent_test_tree_doctype": "Parent 1"}
+		test_cases = [
+			# filter on `name`: the tree is the filter doctype itself
+			(("name", "descendants of", "Parent 1"), True),
+			(("name", "descendants of", "Parent 2"), False),
+			(("name", "descendants of", "Child 1"), False),
+			(("name", "descendants of (inclusive)", "Child 1"), True),
+			(("name", "not descendants of", "Parent 1"), False),
+			(("name", "not descendants of", "Parent 2"), True),
+			(("name", "ancestors of", "Child 2"), False),
+			(("name", "not ancestors of", "Child 2"), True),
+			# filter on a Link field: the tree is the linked doctype
+			(("parent_test_tree_doctype", "descendants of", "Root Node"), True),
+			(("parent_test_tree_doctype", "ancestors of", "Child 2"), True),
+			(("parent_test_tree_doctype", "not ancestors of", "Child 2"), False),
+			(("parent_test_tree_doctype", "ancestors of", "Child 3"), False),
+		]
+
+		for filter, expected_result in test_cases:
+			self.assertEqual(evaluate_filters(child, [filter]), expected_result, msg=f"{filter}")
 
 	def test_disabled_records_in_treeview(self):
 		"""
