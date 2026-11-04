@@ -444,6 +444,70 @@ describe("when the view comes back", () => {
     expect(shownTab(root)).toBe("files");
   });
 
+  it("opens on the app's first tab when the reader only left on a default, then a script reorders", async () => {
+    let reorder = false;
+    await register({
+      onRefresh: (page) => {
+        notesPanel(page);
+        if (reorder) page.tabs.order(["activity"]);
+      },
+    });
+    const { root, router } = await mount(`/note/${name}`);
+    expect(shownTab(root)).toBe("details");
+    await leave(router);
+    reorder = true;
+
+    await comeBack(router);
+    await settle();
+
+    expect(shownTab(root)).toBe("activity");
+  });
+
+  it("keeps a click on the tab already shown as the reader's pick", async () => {
+    let reorder = false;
+    await register({
+      onRefresh: (page) => {
+        notesPanel(page);
+        if (reorder) page.tabs.order(["activity"]);
+      },
+    });
+    const { root, router } = await mount(`/note/${name}`);
+    await click(stripButton(root, "details"));
+    await leave(router);
+    reorder = true;
+
+    await comeBack(router);
+    await settle();
+
+    expect(shownTab(root)).toBe("details");
+  });
+
+  it("does not count a fallback as a pick when the picked tab is hidden", async () => {
+    let hideFiles = false;
+    let reorder = false;
+    await register({
+      onRefresh: (page) => {
+        notesPanel(page);
+        if (hideFiles) page.tabs.hide("files");
+        if (reorder) page.tabs.order(["activity"]);
+      },
+    });
+    const { root, router } = await mount(`/note/${name}`);
+    await click(stripButton(root, "files"));
+    hideFiles = true;
+    await leave(router);
+
+    await comeBack(router);
+    await settle();
+    expect(shownTab(root)).toBe("details");
+    await leave(router);
+    reorder = true;
+    await comeBack(router);
+    await settle();
+
+    expect(shownTab(root)).toBe("activity");
+  });
+
   it("comes back on Back", async () => {
     const { root, router } = await visitLeavingAView();
 
@@ -636,10 +700,10 @@ describe("when the view is set", () => {
   });
 
   it("reads a restored feed tab beside the record on a cold load, under the feed's placeholder", async () => {
-    // Activity is first with Details hidden, so the address never names it.
     await register({ onRefresh: (page) => page.tabs.hide("details") });
     const { root, router } = await mount(`/note/${name}`);
     expect(shownTab(root)).toBe("activity");
+    await click(stripButton(root, "activity"));
     await leave(router);
     clearDataCache();
     server.holdRecord = gate();
