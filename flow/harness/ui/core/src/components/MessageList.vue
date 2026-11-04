@@ -159,8 +159,9 @@
 	>
 		<span class="lucide-arrow-down size-4" aria-hidden="true" />
 	</button>
-	<!-- a read-only chat has no composer to quote into -->
-	<AddToChat v-if="!flow.state.session?.read_only" :within="scroller" />
+	<!-- the thread's text only, not an empty chat's greeting or setup; a read-only chat has no
+	     composer to quote into -->
+	<AddToChat v-if="!flow.state.session?.read_only" :within="thread" />
 	</div>
 </template>
 
