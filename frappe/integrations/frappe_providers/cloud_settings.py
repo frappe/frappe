@@ -232,9 +232,15 @@ def get_domains() -> dict:
 def get_domain_dns_records(domain: str) -> dict:
 	_assert_access()
 	client = PilotClient()
+<<<<<<< HEAD
 	response = client.get(client.domain_path(_clean_domain(domain), "dns-records"))
 	records = (response or {}).get("records") or {}
 	return {"records": [*records.get("cname", []), *records.get("a", [])]}
+=======
+	records = client.get(client.domain_path(_clean_domain(domain), "dns-records")) or {}
+	options = [records[name] for name in ("cname", "a") if records.get(name)]
+	return {"records": [record for option in options for record in option], "options": options}
+>>>>>>> 39d6ec8 (fix(cloud-settings): return each DNS record set as one option)
 
 
 @frappe.whitelist(methods=["POST"])
