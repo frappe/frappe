@@ -62,9 +62,7 @@ class TestViewList(AppViewCase):
 		)
 		plain = [view for view in views if view["layer"] is None]
 		self.assertEqual([view["key"] for view in views[: len(plain)]], [view["key"] for view in plain])
-		self.assertIn(
-			{"key": "list", "label": "List", "type": "List", "layer": None, "default": True}, plain
-		)
+		self.assertIn({"key": "list", "label": "List", "type": "List", "layer": None, "default": True}, plain)
 		self.assertIn("cards", [view["key"] for view in plain])
 
 	def test_views_sharing_a_label_are_listed_by_key(self):
