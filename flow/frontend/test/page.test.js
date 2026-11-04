@@ -127,7 +127,7 @@ function shareDialog(t, client, { state, page = { boot } } = {}) {
 	return { el, vm };
 }
 
-test("a new chat's agent is picked over the box from its own list, beside its skills, the model alone by the send button; the chat starts with it and its header names it", async (t) => {
+test("a new chat's agent and its skills are picked from lists beside the composer's + menu, the box naming the agent; the chat starts with it and its header names it", async (t) => {
 	const skillsAnswer = transport.answers["frappe.flow.api.skills"];
 	transport.answers["frappe.flow.api.skills"] = ({ agent }) => ({
 		skills: agent === "reviewer" ? [{ name: "review", description: "Reviews a change" }] : [],
@@ -142,70 +142,92 @@ test("a new chat's agent is picked over the box from its own list, beside its sk
 	await nextTick();
 	assert.ok(!called("frappe.flow.api.boot"), "the page's own boot serves the first load");
 
-	assert.ok(el.textContent.includes("What can I help you with?"));
+	assert.ok(el.querySelector("main [data-stub=BrandMark]"));
+	assert.ok(!el.textContent.includes("What can I help you with?"));
 	assert.equal(el.querySelector("textarea").placeholder, "Ask Flow…");
-	const agent = () => el.querySelector("button[title='Agent']");
 	const box = el.querySelector("fieldset");
-	assert.equal(agent().textContent.trim(), "Flow");
-	assert.ok(!box.contains(agent()));
+	// the + menu: attach, a new chat's agent and its skills, each list opening beside it
+	const plus = (root = el) => root.querySelector("fieldset button[title='Add']");
+	// a list's panel, drawn or stubbed
+	const list = (title, root = el) =>
+		root.querySelector(
+			`section[aria-label='${title}'], [data-stub=PalettePanel][title='${title}']`
+		);
+	const menuRows = (root = el) => [
+		...(list("Add", root)?.querySelectorAll("[data-palette-item]") ?? []),
+	];
+	const listRows = (title, root = el) => [
+		...(list(title, root)?.querySelectorAll("[data-palette-item]") ?? []),
+	];
+	async function open(label, root = el) {
+		if (!menuRows(root).length) {
+			plus(root).click();
+			await nextTick();
+		}
+		menuRows(root)
+			.find((row) => row.textContent.trim() === label)
+			.click();
+		await nextTick();
+		await nextTick();
+	}
+	plus().click();
+	await nextTick();
+	assert.deepEqual(
+		menuRows().map((row) => row.textContent.trim()),
+		["Attach files", "Agent", "Skills"]
+	);
+	plus().click();
+	await nextTick();
+	assert.equal(list("Add"), null);
 	assert.ok(box.querySelector("button[title^='Sonnet']"), "a new chat shows its agent's model");
-	// the chip names no count; for an agent without skills, its list says so and offers to add
-	// one, with nothing to search yet
-	const skills = () => el.querySelector("button[title='Skills']");
-	const skillRows = () => [...skills().parentElement.querySelectorAll("[data-palette-item]")];
+	// for an agent without skills, their list says so and offers to add one, with nothing to
+	// search yet
 	const skillNames = () =>
-		skillRows().map((row) =>
+		listRows("Skills").map((row) =>
 			(row.querySelector("span:not([aria-hidden])") ?? row).textContent.trim()
 		);
-	assert.equal(skills().textContent.trim(), "Skills");
-	skills().click();
-	await nextTick();
-	assert.match(skills().nextElementSibling.textContent, /No skills/);
+	await open("Skills");
+	assert.match(list("Skills").textContent, /No skills/);
 	assert.deepEqual(skillNames(), ["Add a skill"]);
-	assert.equal(skills().parentElement.querySelector("input"), null);
-	// adding one opens settings on a blank skill: the list closes, the chat stays where it is
-	skillRows()[0].click();
+	assert.equal(list("Skills").querySelector("input"), null);
+	// adding one opens settings on a blank skill: the menu closes, the chat stays where it is
+	listRows("Skills")[0].click();
 	await nextTick();
-	assert.equal(skillRows().length, 0);
+	assert.equal(list("Skills"), null);
+	assert.equal(list("Add"), null);
 	assert.equal(router.currentRoute.value.fullPath, "/");
 
-	// found by its search; no row to add one
-	const list = () => [...agent().parentElement.querySelectorAll("[data-palette-item]")];
+	// found by its search; the box then names the agent picked
 	const rows = () =>
-		list().map((row) => [row.textContent.trim(), row.getAttribute("aria-current")]);
-	agent().click();
-	await nextTick();
-	await nextTick();
+		listRows("Agent").map((row) => [row.textContent.trim(), row.getAttribute("aria-current")]);
+	await open("Agent");
 	assert.equal(document.activeElement.placeholder, "Search agents…");
 	assert.deepEqual(rows(), [
 		["Flow", "true"],
 		["Reviewer", null],
 	]);
-	const field = agent().parentElement.querySelector("input");
+	const field = list("Agent").querySelector("input");
 	field.value = "rev";
 	field.dispatchEvent(new Event("input"));
 	await nextTick();
 	assert.deepEqual(rows(), [["Reviewer", null]]);
-	list()[0].click();
+	listRows("Agent")[0].click();
 	await nextTick();
-	assert.deepEqual(rows(), []);
-	assert.equal(agent().textContent.trim(), "Reviewer");
+	assert.equal(list("Agent"), null);
+	assert.equal(el.querySelector("textarea").placeholder, "Ask Reviewer…");
 	assert.ok(box.querySelector("button[title^='Opus']"), "and the model follows the agent");
 	// the skills a new chat may start follow the agent; one picked from their list starts the draft
 	await until(() =>
 		transport.calls.some(([name, a]) => name === "frappe.flow.api.skills" && a.agent === "reviewer")
 	);
 	await new Promise((resolve) => setTimeout(resolve));
-	assert.equal(skills().textContent.trim(), "Skills");
-	skills().click();
-	await nextTick();
-	await nextTick();
+	await open("Skills");
 	assert.equal(document.activeElement.placeholder, "Search skills…");
 	assert.deepEqual(
-		[...skillRows()[0].querySelectorAll("span")].map((span) => span.textContent.trim()),
+		[...listRows("Skills")[0].querySelectorAll("span")].map((span) => span.textContent.trim()),
 		["review", "Reviews a change"]
 	);
-	const skillField = skills().parentElement.querySelector("input");
+	const skillField = list("Skills").querySelector("input");
 	skillField.value = "nothing like it";
 	skillField.dispatchEvent(new Event("input"));
 	await nextTick();
@@ -214,9 +236,9 @@ test("a new chat's agent is picked over the box from its own list, beside its sk
 	skillField.dispatchEvent(new Event("input"));
 	await nextTick();
 	assert.deepEqual(skillNames(), ["review"], "found by its description too, and no row to add");
-	skillRows()[0].click();
+	listRows("Skills")[0].click();
 	await nextTick();
-	assert.equal(skillRows().length, 0);
+	assert.equal(list("Skills"), null);
 	assert.equal(el.querySelector("textarea").value, "/skill:review ");
 
 	// a reload keeps the agent, and a model picked for it that the user may still use; another
@@ -228,14 +250,11 @@ test("a new chat's agent is picked over the box from its own list, beside its sk
 	const reloaded = document.createElement("div");
 	const again = createApp(FlowPage, { boot: { ...boot, agents: [...boot.agents, writer] } });
 	again.use(router).mount(reloaded);
-	const agentAgain = () => reloaded.querySelector("button[title='Agent']");
-	await until(agentAgain);
-	assert.equal(agentAgain().textContent.trim(), "Reviewer");
+	await until(() => plus(reloaded));
+	assert.equal(reloaded.querySelector("textarea").placeholder, "Ask Reviewer…");
 	assert.ok(reloaded.querySelector("fieldset button[title^='Sonnet']"));
-	agentAgain().click();
-	await nextTick();
-	await nextTick();
-	[...agentAgain().parentElement.querySelectorAll("[data-palette-item]")]
+	await open("Agent", reloaded);
+	listRows("Agent", reloaded)
 		.find((row) => row.textContent.includes("Writer"))
 		.click();
 	await nextTick();
@@ -270,7 +289,15 @@ test("a new chat's agent is picked over the box from its own list, beside its sk
 	assert.deepEqual([created.agent, created.model], ["reviewer", null]);
 	assert.deepEqual(args("frappe.flow.api.run"), { session: "S1", message: "hi", attachments: [] });
 	await nextTick();
-	assert.equal(agent(), null, "the agent is fixed once the conversation starts");
+	plus().click();
+	await nextTick();
+	assert.deepEqual(
+		menuRows().map((row) => row.textContent.trim()),
+		["Attach files", "Skills"],
+		"the agent is fixed once the conversation starts"
+	);
+	plus().click();
+	await nextTick();
 	assert.match(el.querySelector("header div[title]").title, /^Reviewer \/ /);
 });
 

@@ -11,6 +11,12 @@ body {
 	cursor: auto;
 }
 
+/* the thread and the composer: 800px at most, and narrower where the model menu's list (272px
+   beside it) would otherwise run off the right edge; never under 560px for that */
+.flow-column {
+	max-width: min(800px, max(560px, 100% - 436px));
+}
+
 /* the composer, and the lists that open over it */
 .flow-composer-surface {
 	background: color-mix(in srgb, var(--surface-base) 90%, var(--surface-gray-1));

@@ -52,20 +52,22 @@
 						</button>
 					</template>
 				</ChatHeader>
-				<MessageList :suggestions="!readOnly">
-					<template #empty>
+				<MessageList
+					:suggestions="!readOnly"
+					:center-composer="!inPanel && !readOnly && !needsSetup"
+				>
+					<template #empty="{ mark }">
 						<SetupState v-if="needsSetup" />
+						<!-- the mark over a quiet heading, each a step smaller in a narrow frame -->
 						<template v-else>
-							<!-- a step smaller in a narrow frame, and smaller still where the heading would run out of room -->
 							<BrandMark
 								line
 								:size="32"
+								v-bind="mark"
 								class="min-h-0 shrink max-md:!h-7 max-md:!w-7"
 							/>
-							<h2
-								class="text-balance text-4xl leading-snug tracking-[-0.01em] text-ink-gray-9 md:text-6xl"
-							>
-								What can I help you with?
+							<h2 class="text-balance text-4xl text-ink-gray-8 max-md:text-[22px]">
+								What would you like to do?
 							</h2>
 						</template>
 					</template>
@@ -78,10 +80,17 @@
 					:images-only="false"
 					:placeholder="placeholder"
 					:modes="MODES"
+					:plus-lists="plusLists"
 				>
-					<template #start="{ insert }">
-						<AgentPicker />
-						<SkillPicker @pick="insert" />
+					<template #below="{ starting }">
+						<p v-if="starting && !inPanel" class="mt-2 px-3 text-center text-sm text-ink-gray-5">
+							Flow is in beta and can make mistakes
+						</p>
+					</template>
+					<!-- the + menu's lists: a new chat's agent (a started chat keeps its own), and skills -->
+					<template #plus-list="{ id, beside, close, insert }">
+						<AgentPicker v-if="id === 'agent'" :beside="beside" @close="close" />
+						<SkillPicker v-else-if="id === 'skills'" :beside="beside" @close="close" @pick="insert" />
 					</template>
 					<template #palette="{ view, query, close, back }">
 						<AgentPalette
@@ -343,6 +352,14 @@ watch(
 const route = useRoute();
 const router = useRouter();
 // a setup form's record in the chat's place, for whoever may read its records
+// the composer's + menu after Attach: a new chat's agent, and skills where there are some or one
+// can be added
+const plusLists = computed(() => [
+	{ id: "agent", label: "Agent", icon: "lucide-bot", newChatOnly: true },
+	...((store.state.skills ?? []).length || page.can("Flow Skill", "create")
+		? [{ id: "skills", label: "Skills", icon: "lucide-book-open" }]
+		: []),
+]);
 const forms = computed(() => FORMS.filter((item) => page.can(SPECS[item.key].doctype, "read")));
 const pageKind = computed(() => {
 	const { kind } = route.params;

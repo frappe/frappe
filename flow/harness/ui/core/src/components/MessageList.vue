@@ -13,14 +13,16 @@
 		<div
 			v-if="empty"
 			ref="emptyState"
-			class="flex h-full flex-col items-center justify-center gap-3 text-center"
-			:style="{ paddingBottom: composerHeight + 'px' }"
+			class="flex h-full flex-col items-center [justify-content:safe_center] gap-3 text-center"
+			:style="{ paddingBottom: docked ? '12vh' : composerHeight + 'px' }"
 		>
-			<slot name="empty">
-				<!-- a step smaller on a phone, and smaller still where the heading would run out of room -->
-				<BrandMark line :size="32" class="min-h-0 shrink max-sm:!h-7 max-sm:!w-7" />
-				<h2 class="text-balance text-4xl leading-snug tracking-[-0.01em] text-ink-gray-9 sm:text-6xl">What would you like to build?</h2>
+			<slot name="empty" :mark="mark">
+				<!-- the mark over a quiet heading, each a step smaller on a phone -->
+				<BrandMark line :size="32" v-bind="mark" class="min-h-0 shrink max-sm:!h-7 max-sm:!w-7" />
+				<h2 class="text-balance text-2xl text-ink-gray-8 sm:text-4xl">What would you like to build?</h2>
 			</slot>
+			<!-- the box's place under the mark until the first message -->
+			<div v-if="docked" ref="dock" class="mt-5 w-full shrink-0" :style="{ height: composerHeight + 'px' }" />
 		</div>
 		<LoadingState
 			v-else-if="loading"
@@ -30,7 +32,7 @@
 		<div
 			v-else
 			ref="thread"
-			class="flow-thread mx-auto flex max-w-[800px] flex-col gap-5 pt-10"
+			class="flow-thread flow-column mx-auto flex flex-col gap-5 pt-10"
 			:style="{ paddingBottom: composerHeight + 40 + 'px' }"
 		>
 			<template v-for="(item, i) in items" :key="item.key">
@@ -181,6 +183,8 @@ const props = defineProps({
 	conversation: { type: Object, default: null },
 	// false where the user can't send, such as a read-only chat
 	suggestions: { type: Boolean, default: true },
+	// a new chat holds the composer under the mark, not at the foot
+	centerComposer: { type: Boolean, default: false },
 })
 const flow = inject("flow")
 const conversation = computed(() => props.conversation ?? flow.state.conversation)
@@ -197,6 +201,44 @@ const blank = computed(() => !items.value.length && !conversation.value.running 
 const empty = computed(() => blank.value && !flow.state.loading)
 const loading = computed(() => blank.value && flow.state.loading)
 const composerHeight = inject("composerHeight", ref(120))
+// a wide new chat holds the box in the middle, under the mark; a phone keeps it by the thumb
+const composerLift = inject("composerLift", ref(0))
+const docked = computed(() => props.centerComposer && empty.value && !layout.phone)
+const dock = ref(null)
+// the new chat's mark watches the pointer, reads while keys go, and looks up once the draft rests;
+// a "/" opens commands, not a message
+const draft = inject("composerDraft", ref(""))
+const typing = ref(false)
+let typingPause = 0
+watch(draft, (text) => {
+	clearTimeout(typingPause)
+	typing.value = Boolean(text.trim())
+	if (typing.value) typingPause = setTimeout(() => (typing.value = false), 900)
+})
+const mark = computed(() => {
+	const text = draft.value.trim()
+	if (!text || text.startsWith("/")) return { state: "idle", look: "pointer" }
+	return { state: null, look: typing.value ? "down" : "up" }
+})
+let dockObserver = null
+function measureDock() {
+	const el = dock.value
+	const list = el?.offsetParent
+	composerLift.value = el && list ? Math.max(0, list.clientHeight - el.offsetTop - el.offsetHeight) : 0
+}
+watch(dock, (el) => {
+	dockObserver?.disconnect()
+	measureDock()
+	if (!el || typeof ResizeObserver === "undefined") return
+	dockObserver = new ResizeObserver(measureDock)
+	dockObserver.observe(el)
+	dockObserver.observe(el.offsetParent ?? el)
+})
+onBeforeUnmount(() => {
+	dockObserver?.disconnect()
+	clearTimeout(typingPause)
+	if (docked.value) composerLift.value = 0
+})
 const lastTurnCopyIndex = computed(() =>
 	items.value.findLastIndex((item) => item.kind === "turn-copy"),
 )

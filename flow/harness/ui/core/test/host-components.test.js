@@ -86,7 +86,7 @@ test("a slash offers skills, mid-message only skills, and puts the one picked wh
 			options: { requireCwd: false, maxAttachments: 10, ...(enabled ? {} : { skillsEnabled: false }) },
 			state: reactive({
 				prefs: { mode: "ask" }, sessionId: null, session: null, models: [], codeRefs: [], quotes: [], queued: [],
-				skills: [{ name: "review", description: "Review files" }], conversation: {}, draft: null,
+				skills: [{ name: "review", description: "Review files" }], conversation: { sending: [] }, draft: null,
 			}),
 			loadSkills() { loads++ },
 		}
@@ -298,7 +298,7 @@ test("a host's empty state and turn actions take the list's place", async (t) =>
 		render: () => h(MessageList, null, { empty: () => h("h2", { "data-test": "empty" }, "How can I help?") }),
 	}, {}, flow)
 	assert.equal(el.querySelector("[data-test=empty]").textContent, "How can I help?")
-	assert.ok(!el.textContent.includes("What would you like to build?"))
+	assert.equal(el.querySelector("[data-stub=BrandMark]"), null)
 
 	conversation.entries.push(
 		{ type: "user_message", seq: 2, content: "hi", ts: 10 },
@@ -316,7 +316,7 @@ test("a host fills the composer with its pickers, commands, palette pages and wo
 		options: { requireCwd: false, maxAttachments: 10, skillsEnabled: false },
 		state: reactive({
 			prefs: { mode: "ask" }, sessionId: null, session: null, models: [], codeRefs: [], quotes: [], queued: [],
-			skills: [], conversation: {}, draft: null,
+			skills: [], conversation: { sending: [] }, draft: null,
 		}),
 		setMode: (mode) => (flow.state.prefs.mode = mode),
 	}
@@ -356,19 +356,29 @@ test("a host fills the composer with its pickers, commands, palette pages and wo
 	await nextTick()
 	assert.equal(box.value, "")
 
-	// the model button's lists are its own, hung from it, one line a row: the composer's stay shut
+	// the model button's menu is its own, hung from it, a bare row each: the composer's stay shut.
+	// A row's list opens beside the menu on hover, or on a click
 	model.click()
 	await nextTick()
 	const picker = model.parentElement
 	const entries = [...picker.querySelectorAll("[data-palette-item]")].map((row) => [...row.querySelectorAll("span:not([aria-hidden])")].map((span) => span.textContent))
-	assert.deepEqual(entries, [["Model", "Choose Model"], ["Thinking", "Default"]])
-	picker.querySelector("[data-palette-item]").click()
+	assert.deepEqual(entries, [["Model"], ["Thinking"]])
+	const [modelRow, thinkingRow] = picker.querySelectorAll("[data-palette-item]")
+	modelRow.dispatchEvent(new window.Event("pointerenter"))
 	await nextTick()
-	assert.equal(picker.querySelector("[data-palette-item]"), null)
+	assert.ok(picker.querySelector("[data-stub=ModelPalette]"))
+	thinkingRow.dispatchEvent(new window.Event("pointerenter"))
+	await nextTick()
+	assert.equal(picker.querySelector("[data-stub=ModelPalette]"), null)
+	assert.ok(picker.querySelector("[data-stub=ThinkingPalette]"))
+	modelRow.click()
+	await nextTick()
+	assert.ok(picker.querySelector("[data-palette-item]"))
 	assert.ok(picker.querySelector("[data-stub=ModelPalette]"))
 	assert.equal(box.value, "")
 	picker.querySelector("[data-stub=ModelPalette]").dispatchEvent(new window.Event("close"))
 	await nextTick()
+	assert.equal(picker.querySelector("[data-palette-item]"), null)
 	assert.equal(picker.querySelector("[data-stub=ModelPalette]"), null)
 	assert.equal(el.querySelector("[data-stub=ModelPalette]"), null)
 
@@ -460,10 +470,10 @@ test("a host fills the composer with its pickers, commands, palette pages and wo
 	await nextTick()
 	const icon = (node) => [...(node.querySelector("[class*='lucide-']")?.classList ?? [])].find((name) => name.startsWith("lucide-"))
 	assert.equal(mode.title, "Approval mode: Just do it")
-	assert.deepEqual([mode.textContent.trim(), icon(mode)], ["", "lucide-lock-open"])
+	assert.deepEqual([mode.textContent.trim(), icon(mode)], ["", "lucide-shield-alert"])
 	mode.click()
 	await nextTick()
-	assert.deepEqual([...mode.parentElement.querySelectorAll("[data-palette-item]")].map(icon), ["lucide-lock", "lucide-lock-open"])
+	assert.deepEqual([...mode.parentElement.querySelectorAll("[data-palette-item]")].map(icon), ["lucide-hand", "lucide-shield-alert"])
 	mode.click()
 	layout.narrow = false
 	await nextTick()
@@ -644,12 +654,12 @@ test("the thread shows the empty state, a loading line while a chat opens, and a
 	const { el } = mount(t, MessageList, {}, flow)
 	const sending = [{ key: "sending:1", entry: { type: "user_message", content: [{ type: "text", text: "count the todos" }], ts: 10 } }]
 	// a session without saved messages, as after a reload
-	assert.ok(el.textContent.includes("What would you like to build?"))
+	assert.ok(el.querySelector("[data-stub=BrandMark][look=pointer]"))
 
 	flow.state.loading = true
 	await nextTick()
 	assert.ok(el.textContent.includes("Loading"))
-	assert.ok(!el.textContent.includes("What would you like to build?"))
+	assert.equal(el.querySelector("[data-stub=BrandMark]"), null)
 
 	// a first message in flight keeps its bubble and status while the new session loads
 	conversation.sending = sending
@@ -663,7 +673,7 @@ test("the thread shows the empty state, a loading line while a chat opens, and a
 	flow.state.loading = false
 	await nextTick()
 	assert.ok(!el.textContent.includes("Loading"))
-	assert.ok(el.textContent.includes("What would you like to build?"))
+	assert.ok(el.querySelector("[data-stub=BrandMark]"))
 
 	// the server's copy arrives: the same message, now a real entry
 	conversation.sending = sending
