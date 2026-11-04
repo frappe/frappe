@@ -80,13 +80,13 @@ no npm. Needing anything else is the signal to export the app to a repository.
   APIs explicitly. `context` supplies page resources, variables, `route`,
   `router`, `call`, `toast` and `socket` (the app's socket.io connection).
   Return every state value or handler used by bindings and events; keep state
-  in code rather than Studio variables. `setup()` runs outside a component
-  instance, so `onMounted` and the other lifecycle hooks do nothing, and a
-  built app strips the warning that says so. Load data with an auto-fetching
-  `createResource` and return it, so the page paints before the data lands;
-  `await` in setup only when the page cannot render without it, and then
-  declare `watch` and `computed` before the first `await` so the page scope
-  owns them and disposes them on navigation. A database app
+  in code rather than Studio variables. `setup()` runs inside a component
+  instance, so `onMounted` and the other lifecycle hooks work. Load data with
+  an auto-fetching `createResource` and return it, so the page paints before
+  the data lands; `await` in setup only when the page cannot render without
+  it, and then register hooks and `watch` before the first `await`. After an
+  await the script is outside the instance, so a hook never fires and a
+  watcher is never disposed, as in any Vue `async setup()`. A database app
   stores the module in `Studio Page.script`; a repository app in a sibling
   `.ts` file.
 - Shared code (stores, composables, `.vue` components) lives in the app's own
