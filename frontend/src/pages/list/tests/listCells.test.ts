@@ -21,6 +21,8 @@ const metaFields = [
 	{ fieldname: "spent", fieldtype: "Duration", hide_days: 1, hide_seconds: 1 },
 	{ fieldname: "at", fieldtype: "Time" },
 	{ fieldname: "creation", fieldtype: "Datetime" },
+	{ fieldname: "modified", fieldtype: "Datetime" },
+	{ fieldname: "closed_on", fieldtype: "Datetime" },
 	{ fieldname: "notes", fieldtype: "Text Editor" },
 	{ fieldname: "file", fieldtype: "Attach" },
 	{ fieldname: "script", fieldtype: "Code" },
@@ -57,7 +59,9 @@ const row = {
 	taken: 93784,
 	spent: 93784,
 	at: "9:15:30",
-	creation: "2026-11-04 00:44:09.604123",
+	creation: "2026-11-01 10:00:00.604123",
+	modified: "2026-11-04 10:00:00.604123",
+	closed_on: "2026-11-04 00:44:09.604123",
 	notes: "<p>Hello <strong>bold</strong> world</p>",
 	file: "/files/report.pdf",
 	script: "def f():\n    return 1",
@@ -74,6 +78,8 @@ const row = {
 	other: "orphan",
 	_extra: "as sent",
 };
+
+const original = { ...row };
 
 vi.mock("@/list/useListView", () => ({
 	useListView: () => ({
@@ -123,9 +129,18 @@ vi.mock("@framework/ui/experimental/List", async () => {
 		}),
 	};
 });
+// The real tooltip draws its text only on hover; this one leaves it on the trigger.
+vi.mock("frappe-ui", async (original) => ({
+	...(await original<typeof import("frappe-ui")>()),
+	Tooltip: defineComponent({
+		props: ["text"],
+		setup: (props, { slots }) => () => h("span", { "data-tooltip": props.text }, slots.default?.()),
+	}),
+}));
 vi.mock("@/shell/PageState.vue", () => ({ default: defineComponent({ render: () => null }) }));
 
 import { FieldActionsKey, RecordLinkKey } from "@framework/ui/fields/types";
+import { resetSession, setSession } from "@framework/ui/useSession";
 import ListView from "../ListView.vue";
 
 const mounted: ReturnType<typeof createApp>[] = [];
@@ -154,6 +169,10 @@ function mount(): HTMLElement {
 }
 
 afterEach(() => {
+	Object.assign(row, original);
+	vi.unstubAllEnvs();
+	vi.useRealTimers();
+	resetSession();
 	openRecord.mockClear();
 	for (const app of mounted.splice(0)) app.unmount();
 	document.body.innerHTML = "";
@@ -191,13 +210,51 @@ describe("a list's cells", () => {
 		expect(text("taken")).toBe("1d 2h 3m 4s");
 		expect(text("spent")).toBe("26h 3m");
 		expect(text("at")).toBe("09:15");
-		expect(text("creation")).toBe("2026-11-04 00:44:09");
+		expect(text("closed_on")).toBe("2026-11-04 00:44:09");
 		expect(text("notes")).toBe("Hello bold world");
 		expect(text("file")).toBe("/files/report.pdf");
 		expect(text("script")).toBe("def f():\n    return 1");
 		expect(text("color")).toBe("#E03636");
 		expect(root.querySelector("[data-column='color'] [data-slot='swatch']")).not.toBeNull();
 		expect(text("_extra")).toBe("as sent");
+	});
+
+	it("draw Last Modified and Created On as relative time, read on the site's clock, with the date on hover", async () => {
+		// 10:00 in Asia/Kolkata is 04:30 UTC; a browser far from it would read the stamp hours off.
+		vi.stubEnv("TZ", "America/Los_Angeles");
+		vi.useFakeTimers({ toFake: ["Date"] });
+		vi.setSystemTime(new Date("2026-11-04T04:33:00Z"));
+		setSession({ user: {}, roles: [], lang: "en", timezone: "Asia/Kolkata", defaults: {} } as never);
+		const root = mount();
+		await nextTick();
+
+		const cell = (column: string) => root.querySelector(`[data-column='${column}'] [data-tooltip]`);
+		expect(cell("modified")?.textContent).toBe("3 minutes ago");
+		expect(cell("modified")?.getAttribute("data-tooltip")).toBe("2026-11-04 10:00:00");
+		expect(cell("creation")?.textContent).toBe("3 days ago");
+		expect(cell("creation")?.getAttribute("data-tooltip")).toBe("2026-11-01 10:00:00");
+		// Another Datetime field keeps its absolute value.
+		expect(root.querySelector("[data-column='closed_on']")?.textContent?.trim()).toBe("2026-11-04 00:44:09");
+		expect(cell("closed_on")).toBeNull();
+	});
+
+	it("keep the absolute value without a site zone, draw a bad or empty stamp as it is, and never read the future", async () => {
+		vi.useFakeTimers({ toFake: ["Date"] });
+		vi.setSystemTime(new Date("2026-11-04T04:33:00Z"));
+		const cell = async (column: string) => {
+			const root = mount();
+			await nextTick();
+			return root.querySelector(`[data-column='${column}']`)?.textContent?.trim();
+		};
+		expect(await cell("modified")).toBe("2026-11-04 10:00:00");
+
+		setSession({ user: {}, roles: [], lang: "en", timezone: "Asia/Kolkata", defaults: {} } as never);
+		Object.assign(row, { modified: "garbage", creation: "" });
+		expect(await cell("modified")).toBe("garbage");
+		expect(await cell("creation")).toBe("");
+		// 10:05 in Asia/Kolkata is ahead of the browser's clock by two minutes.
+		Object.assign(row, { modified: "2026-11-04 10:05:00" });
+		expect(await cell("modified")).toBe("a few seconds ago");
 	});
 
 	it("draw a Link value as its target's title, a marked one too, and the name where none is held", async () => {
