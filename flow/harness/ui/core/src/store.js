@@ -1,7 +1,7 @@
 import { reactive, watch } from "vue"
 
 import { FlowAPIError } from "./client.js"
-import { CHAT_FONT_SIZE, CHAT_FONT_WEIGHT, SIDEBAR_WIDTH, chatFontWeight, layout } from "./layout.js"
+import { CHAT_FONT_SIZE, CHAT_FONT_WEIGHT, chatFontWeight, layout } from "./layout.js"
 import {
 	applyEvent,
 	approvalConfig,
@@ -127,7 +127,7 @@ export function createFlowStore(client, options = {}) {
 		webSearch: null, // { provider, api_key } for new chats; null uses DuckDuckGo
 		cwd: null,
 		sidebarOpen: true,
-		sidebarWidth: SIDEBAR_WIDTH.default,
+		sidebarWidth: 288,
 		openFolders: [], // the sidebar's expanded workspace folders
 		sidebarGroup: "workspace", // "workspace" | "list": the sidebar's chats under their folders, or in one list
 		sidebarOrder: "updated", // "updated" | "manual": newest activity first, or as dragged

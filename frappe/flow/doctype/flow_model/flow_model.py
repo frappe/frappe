@@ -52,12 +52,6 @@ class FlowModel(Document):
 
 		ensure_builtin_assistant(model=self.name)
 
-	def on_trash(self):
-		# what the Models tab last heard from it, so a model saved again under its name starts clean
-		from frappe.flow.api.setup import MODEL_CHECKS
-
-		frappe.cache.hdel(MODEL_CHECKS, self.name)
-
 	def before_rename(self, old: str, new: str, merge: bool = False) -> None:
 		# move the setting here, so Frappe's update doesn't treat the rename as a new model
 		if not merge and frappe.get_cached_doc("Flow Knowledge Settings").embedding_model == old:
