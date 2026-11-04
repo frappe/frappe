@@ -109,6 +109,10 @@ export default defineConfig(({ command }) => {
 			chunkSizeWarningLimit: 1000,
 		},
 		optimizeDeps: {
+			// Vite pre-bundles frappe-ui's .ts modules but serves its .vue files raw, so a
+			// module-level singleton (the keyboard shortcut registry, the imperative dialogs)
+			// gets one copy per side and each side only sees its own.
+			exclude: ["frappe-ui"],
 			include: [
 				"engine.io-client",
 				"highlight.js/lib/core",
