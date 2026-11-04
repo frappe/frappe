@@ -3,9 +3,7 @@ import { test, expect } from "../support";
 const launcher = (page) => page.locator("flow-launcher");
 // Desk's Flow button, beside Search and Notifications in the dock or the sidebar
 const toggle = (page) =>
-	page
-		.locator('.dock-utilities [aria-label="Flow (Beta)"]:visible, .sidebar-flow:visible')
-		.first();
+	page.locator('.dock-utilities [aria-label="Flow"]:visible, .sidebar-flow:visible').first();
 const panel = (page) => launcher(page).locator(".panel");
 
 // The chat in the panel: the frappe.flow.chat island, once its header is up (a site with no
