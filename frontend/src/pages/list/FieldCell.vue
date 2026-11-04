@@ -23,8 +23,7 @@
 			:field="field"
 			:value="value"
 			class="me-1.5"
-		/><RecordText v-if="target && text" :doctype="target" :name="String(value)" :text="text" />
-		<template v-else>{{ text }}</template>
+		/>{{ text }}
 	</div>
 </template>
 
@@ -35,7 +34,6 @@ import { useFieldDisplay } from "@framework/ui/FormLayout";
 import { currentSession } from "@framework/ui/useSession";
 import { Checkbox, Rating, Tooltip, dayjs } from "frappe-ui";
 import { computed } from "vue";
-import RecordText from "./RecordText.vue";
 
 // The form sums these up as "Set" or a first line; a cell shows the stored value.
 const STORED_VALUE_FIELDTYPES = new Set([
@@ -61,14 +59,6 @@ const starCount = computed(() => Number(props.field.options) || 5);
 const address = computed(() => {
 	const href = dataHref(props.field, value.value);
 	return href?.kind === "web" ? href : null;
-});
-
-// A Dynamic Link's doctype is the sibling field its `options` names, which the list reads too.
-const target = computed(() => {
-	if (props.field.fieldtype === "Link") return props.field.options;
-	if (props.field.fieldtype === "Dynamic Link")
-		return String(props.row[props.field.options ?? ""] ?? "");
-	return "";
 });
 
 // Stored on the system clock, which the session carries; the person's own zone does not matter.
