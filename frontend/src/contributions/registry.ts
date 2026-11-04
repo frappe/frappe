@@ -9,6 +9,7 @@ import type {
   DoctypeContribution,
   ListHandlers,
   PageContribution,
+  RecordDialogContribution,
   ReplacementContribution,
   ShellHookContribution,
   StandardPages,
@@ -54,6 +55,14 @@ export function replacementFor(
   app: string | null,
 ) {
   return contendersIn(claims.get(`${key}:${doctype}`) ?? [], app).at(-1)
+}
+
+/** Doctype -> the active apps' record dialog opt-ins in run order. Not a claim: it replaces no page. */
+const recordDialogs = new Map<string, RecordDialogContribution[]>()
+
+/** Whether `doctype`'s records open in the record dialog in `app`; scoped like a replacement. */
+export function opensInDialog(doctype: string, app: string | null) {
+  return contendersIn(recordDialogs.get(doctype) ?? [], app).length > 0
 }
 
 /** Every page that wins in `app`, for checks that need the address table. */
@@ -126,6 +135,7 @@ export function registerContributions(appOrder: string[]) {
   registerItemTypes(appOrder)
   registerViewTypes(appOrder)
   registerReplacements(appOrder)
+  registerRecordDialogs(appOrder)
   registerPageScripts(appOrder)
   registerActs(appOrder)
   registerFieldActions(appOrder)
@@ -229,6 +239,17 @@ function registerReplacements(appOrder: string[]) {
   }
 }
 
+function registerRecordDialogs(appOrder: string[]) {
+  recordDialogs.clear()
+  for (const contribution of ordered(contributions.recordDialogs ?? [], appOrder, (c) => c.foreign)) {
+    if (!appOrder.includes(contribution.app)) continue
+    recordDialogs.set(contribution.doctype, [
+      ...(recordDialogs.get(contribution.doctype) ?? []),
+      contribution,
+    ])
+  }
+}
+
 /** Only an active app's handler files; each runs on its own app's page alone. */
 function registerPageScripts(appOrder: string[]) {
   for (const { app, doctype, page, handlers } of contributions.pageScripts ?? []) {
@@ -236,7 +257,7 @@ function registerPageScripts(appOrder: string[]) {
   }
 }
 
-function contendersIn(all: ReplacementContribution[], app: string | null) {
+function contendersIn<T extends { apps?: string[] }>(all: T[], app: string | null) {
   const scoped = all.filter((c) => app !== null && c.apps?.includes(app))
   return scoped.length ? scoped : all.filter((c) => !c.apps)
 }

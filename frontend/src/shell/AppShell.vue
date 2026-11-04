@@ -66,6 +66,12 @@
 			:key="request.id"
 			:request="request"
 		/>
+		<component
+			:is="recordDialog()"
+			v-for="request in recordDialogRequests"
+			:key="request.id"
+			:request="request"
+		/>
 
 		<ActKeys :open-argument="openArgument" />
 		<PaletteKey />
@@ -96,6 +102,7 @@ import { sectionMemory } from "@/navigation/sectionMemory";
 import type { OpenArgument } from "./actKeys";
 import ComposerWindow from "./ComposerWindow.vue";
 import { closeCreates, createDialog, createRequests } from "./create";
+import { closeRecordDialogs, recordDialog, recordDialogRequests } from "./recordDialog";
 import CustomizeSidebarDialog, { type CustomizeTarget } from "./CustomizeSidebarDialog.vue";
 import LogoutDialog from "./LogoutDialog.vue";
 import { openArgumentStep, paletteOpen } from "./palette";
@@ -124,6 +131,7 @@ const router = useRouter();
 const route = useRoute();
 
 watch(() => route.fullPath, closeCreates);
+watch(() => route.path, closeRecordDialogs);
 const standingWindows = useShellHooks(boot.shell_hooks);
 
 const navigation = ref<Navigation>(boot.navigation ?? { rail: [], sidebars: {} });

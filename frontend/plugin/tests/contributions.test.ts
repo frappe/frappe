@@ -535,6 +535,72 @@ function load(plugin: any, watched: string[] = []) {
   );
 }
 
+describe("the record dialog opt-in", () => {
+  it("is declared by the name dialog under record, with no file behind it", () => {
+    const manifest = bench({
+      helpdesk: owner({ record: { page: "dialog", apps: ["helpdesk"] } }),
+    });
+    const { recordDialogs, replacements, warnings } = discover(manifest);
+
+    expect(recordDialogs).toEqual([
+      {
+        app: "helpdesk",
+        doctype: "HD Ticket",
+        foreign: false,
+        apps: ["helpdesk"],
+      },
+    ]);
+    expect(replacements).toEqual([]);
+    expect(warnings).toEqual([]);
+  });
+
+  it("warns for a submittable doctype, whose record still opens the page", () => {
+    const manifest = bench({
+      helpdesk: owner(
+        { record: "dialog" },
+        {
+          [`${TICKET}/hd_ticket.json`]: JSON.stringify({
+            name: "HD Ticket",
+            is_submittable: 1,
+          }),
+        },
+      ),
+    });
+    const { warnings } = discover(manifest);
+
+    expect(warnings).toEqual([
+      `[frappe] 'helpdesk' opens 'HD Ticket' in the record dialog, a submittable with Submit and Cancel; its record still opens the page.`,
+    ]);
+  });
+
+  it("ships in the generated module", () => {
+    const manifest = bench({ helpdesk: owner({ record: "dialog" }) });
+    const code = load(contributions(manifest) as any);
+
+    expect(code).toContain(
+      `  recordDialogs: [\n` +
+        `    { app: "helpdesk", doctype: "HD Ticket", foreign: false },\n` +
+        `  ],`,
+    );
+  });
+
+  it("is refused under list, and a pages/dialog.js is ignored with a warning", () => {
+    const manifest = bench({
+      helpdesk: owner(
+        { list: "dialog" },
+        { [`${TICKET}/frontend/pages/dialog.js`]: PAGE },
+      ),
+    });
+    const { recordDialogs, warnings } = discover(manifest);
+
+    expect(recordDialogs).toEqual([]);
+    expect(warnings).toEqual([
+      `[frappe] ${join(manifest[0].source_dir, TICKET, "frontend/pages/dialog.js")}: "dialog" is a reserved page name, so this file is ignored.`,
+      `[frappe] ${join(manifest[0].source_dir, TICKET, "frontend/pages.json")}: "list" names "dialog", which only "record" may name (the record dialog); that key is ignored.`,
+    ]);
+  });
+});
+
 describe("the generated module", () => {
   it("imports each replacement and drops one with no component at runtime", () => {
     const manifest = bench({ helpdesk: owner({ record: "runner" }) });

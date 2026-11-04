@@ -24,8 +24,15 @@ function readDoctypes(sourceDirs) {
 				const definition = join(doctypeRoot, scrubbed, `${scrubbed}.json`);
 				if (!isFile(definition)) continue;
 				try {
-					const { name, istable } = JSON.parse(readFileSync(definition, "utf-8"));
-					if (name) definitions.set(scrubbed, { name, istable: Boolean(istable) });
+					const { name, istable, is_submittable } = JSON.parse(
+						readFileSync(definition, "utf-8")
+					);
+					if (name)
+						definitions.set(scrubbed, {
+							name,
+							istable: Boolean(istable),
+							submittable: Boolean(is_submittable),
+						});
 				} catch {
 					// A malformed definition is the doctype loader's to report. Fall back to the folder.
 				}
@@ -34,6 +41,20 @@ function readDoctypes(sourceDirs) {
 	}
 
 	return definitions;
+}
+
+/** A submittable's record needs Submit and Cancel, so it opens the page and the opt-in does nothing. */
+function submittableDialogs(recordDialogs, definitions) {
+	const submittable = new Set(
+		[...definitions.values()].filter((entry) => entry.submittable).map((entry) => entry.name)
+	);
+	return recordDialogs
+		.filter(({ doctype }) => submittable.has(doctype))
+		.map(
+			({ app, doctype }) =>
+				`[frappe] '${app}' opens '${doctype}' in the record dialog, a submittable with Submit and ` +
+				"Cancel; its record still opens the page."
+		);
 }
 
 function titleCase(scrubbed) {
@@ -54,6 +75,7 @@ export function discover(manifest, allSourceDirs = manifest.map((entry) => entry
 	const shellHooks = [];
 	let replacements = [];
 	let pageScripts = [];
+	const recordDialogs = [];
 	const declarations = [];
 	const warnings = [];
 	// Every app on the bench, not just the manifest: a `custom/` folder can name a doctype
@@ -80,6 +102,7 @@ export function discover(manifest, allSourceDirs = manifest.map((entry) => entry
 				const declarer = { app, doctype: unscrub(scrubbed), foreign: false };
 				const owned = declaredPages(frontend, declarer, benchApps);
 				replacements.push(...owned.found);
+				recordDialogs.push(...owned.dialogs);
 				pageScripts.push(...owned.pageScripts);
 				warnings.push(...owned.warnings);
 				if (owned.declaration) declarations.push(owned.declaration);
@@ -96,6 +119,7 @@ export function discover(manifest, allSourceDirs = manifest.map((entry) => entry
 				const declarer = { app, doctype: unscrub(scrubbed), foreign: true };
 				const custom = declaredPages(folder, declarer, benchApps);
 				replacements.push(...custom.found);
+				recordDialogs.push(...custom.dialogs);
 				pageScripts.push(...custom.pageScripts);
 				warnings.push(...custom.warnings);
 				if (custom.declaration) declarations.push(custom.declaration);
@@ -171,6 +195,7 @@ export function discover(manifest, allSourceDirs = manifest.map((entry) => entry
 				entry.page === script.page && dirname(dirname(entry.file)) === dirname(script.file)
 		)
 	);
+	warnings.push(...submittableDialogs(recordDialogs, definitions));
 	warnings.push(...clashes(replacements));
 	warnings.push(...settingsClashes(settings));
 	warnings.push(...shellHookClashes(shellHooks));
@@ -186,6 +211,7 @@ export function discover(manifest, allSourceDirs = manifest.map((entry) => entry
 		fieldActions,
 		shellHooks: shellHooks.filter((entry) => !sharesItsApp(entry, shellHooks)),
 		replacements,
+		recordDialogs,
 		pageScripts,
 		declarations,
 		warnings,
@@ -258,6 +284,7 @@ function generate({
 	fieldActions,
 	shellHooks,
 	replacements,
+	recordDialogs,
 	pageScripts,
 	warnings,
 }) {
@@ -397,6 +424,16 @@ function generate({
 		);
 	});
 	lines.push("  ].filter(usable),");
+
+	lines.push("  recordDialogs: [");
+	for (const { app, doctype, apps, foreign } of recordDialogs) {
+		lines.push(
+			`    { app: ${JSON.stringify(app)}, doctype: ${JSON.stringify(doctype)}, ` +
+				(apps ? `apps: ${JSON.stringify(apps)}, ` : "") +
+				`foreign: ${foreign} },`
+		);
+	}
+	lines.push("  ],");
 
 	lines.push("  pageScripts: [");
 	pageScripts.forEach(({ app, doctype, page, file }, index) => {

@@ -909,6 +909,19 @@ class TestShellBoot(IntegrationTestCase):
 		# Every single is still addressed like any other doctype.
 		self.assertEqual(table["doctypes"]["System Settings"], ["system-settings", "core"])
 
+	def test_the_address_table_names_the_submittables(self):
+		"""The record dialog has no Submit or Cancel, so the client must know which records need the page."""
+		from frappe.shell.doctypes import get_address_table
+
+		table = get_address_table()
+
+		self.assertEqual(
+			set(table["submittables"]),
+			set(frappe.get_all("DocType", filters={"istable": 0, "is_submittable": 1}, pluck="name")),
+		)
+		self.assertIn("MapReduce Job", table["submittables"])
+		self.assertNotIn("User", table["submittables"])
+
 	def test_the_contents_list_is_filtered_where_addressing_is_not(self):
 		"""Addressability is full-bench and permission-independent; contents are per app and filtered."""
 		from frappe.shell.doctypes import contents_for_app, get_address_table
