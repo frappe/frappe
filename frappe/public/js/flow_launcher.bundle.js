@@ -20,7 +20,6 @@ const LAYER = location.pathname.startsWith("/desk") ? 1035 : 45;
 class FlowLauncher {
 	constructor() {
 		this.state = load_state();
-		this.covered = false; // filling the window while /flow's settings are open
 		this.make();
 		this.bind();
 		this.place();
@@ -155,7 +154,6 @@ class FlowLauncher {
 				panel: desk ? "desk" : "app",
 				path: this.state.path,
 				onClose: () => this.minimize(),
-				onSettings: (open) => this.cover(open),
 				onNavigate: (path) => {
 					this.state.path = path;
 					this.save();
@@ -194,14 +192,13 @@ class FlowLauncher {
 	place() {
 		if (!this.island) return;
 
-		// docked on the right, or over the whole window while /flow's settings are open
-		const width = this.covered ? innerWidth : this.dock_width();
+		// docked on the right
+		const width = this.dock_width();
 		// as variables, so the phone layout's rules can override them
 		const rect = { left: innerWidth - width, top: 0, width, height: innerHeight };
 		for (const [name, px] of Object.entries(rect)) {
 			this.panel.style.setProperty(`--${name}`, `${px}px`);
 		}
-		this.panel.toggleAttribute("data-covered", this.covered);
 		this.squeeze();
 	}
 
@@ -226,12 +223,6 @@ class FlowLauncher {
 			page.removeAttribute("data-flow-sliding");
 			this.host.removeAttribute("data-sliding");
 		}, SLIDE_TIME + 50);
-	}
-
-	// /flow's settings dialog fills the window until they close
-	cover(covered) {
-		this.covered = covered;
-		this.place();
 	}
 
 	// by its left edge
@@ -406,9 +397,8 @@ const STYLE = `
 	border-radius: 0;
 	box-shadow: none;
 }
-/* the chat's own fixed layers, its toasts, place against the panel and not the page; its
-   overlays sit in the top layer, above any containment */
-.window { position: relative; contain: layout; }
+/* the chat's dialogs place against the page, over it; its toasts keep to the panel */
+.window { position: relative; }
 /* after 300 ms, as Desk's island pages: a chat that is quicker never flashes it */
 .skeleton { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: space-between; }
 .panel:not([inert]) .skeleton { animation: skeleton-in 150ms ease-out 300ms backwards; }
@@ -432,13 +422,10 @@ const STYLE = `
 	.skeleton :is(i, b) { animation: pulse 1.5s ease-in-out infinite; }
 }
 @keyframes pulse { 50% { opacity: 0.5; } }
-/* filling the window, it has no edge toward the page */
-.panel[data-covered] .window { border-width: 0; }
 ::slotted(div) { flex: 1; min-height: 0; }
 .shield { position: absolute; inset: 0; display: none; }
 .busy .shield { display: block; }
 .edge { position: absolute; top: 0; bottom: 0; left: -4px; width: 8px; cursor: ew-resize; touch-action: none; }
-.panel[data-covered] .edge { display: none; }
 @media (max-width: ${PHONE_WIDTH - 1}px) {
 	.panel { inset: 0; width: auto; height: auto; }
 	.window { border-width: 0; }

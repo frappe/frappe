@@ -1281,8 +1281,12 @@ test("a settings page takes a way back and actions beside its heading, or after 
 	const bare = mount(t, SettingsPage, { title: "General" }, {})
 	assert.equal(bare.el.querySelector(".flow-icon-btn"), null)
 	assert.equal(bare.el.querySelector(".border-t"), null)
+	// in a narrow panel beside a wide window, the page sits in a wide dialog
 	layout.narrow = true
 	t.after(() => (layout.narrow = false))
+	assert.equal(page().textContent, "Edit agentEnabledfieldsSave")
+	layout.narrowWindow = true
+	t.after(() => (layout.narrowWindow = false))
 	assert.equal(page().textContent, "Edit agentfieldsEnabledSave")
 })
 

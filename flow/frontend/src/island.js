@@ -19,7 +19,7 @@ try {
 
 // props: `panel` ("desk" or "app", the page around the launcher's panel; none on /flow),
 // `boot` (rendered by /flow; the panel asks for it), `path` (the route the panel opens), and
-// the listeners onClose, onSettings(open), onNavigate(path). On /flow the routes are the
+// the listeners onClose, onNavigate(path). On /flow the routes are the
 // address after /flow; in the panel they run on a memory history and the launcher keeps the
 // last one for the next page.
 export async function mount(el, context) {

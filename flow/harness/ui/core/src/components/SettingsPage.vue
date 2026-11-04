@@ -4,12 +4,12 @@
 			<Button v-if="back && !headerBack" variant="ghost" icon="lucide-arrow-left" class="-my-1 -ml-1.5" :title="back" @click="emit('back')" />
 			<h2 class="text-md-semibold text-ink-gray-9">{{ title }}</h2>
 			<!-- -my-1.5: a button doesn't grow the heading's row, so the heading sits as on other tabs -->
-			<div v-if="!layout.narrow" class="-my-1.5 ml-auto flex items-center gap-3"><slot name="actions" /></div>
+			<div v-if="!layout.narrowWindow" class="-my-1.5 ml-auto flex items-center gap-3"><slot name="actions" /></div>
 		</div>
 		<p v-if="description" class="mt-1 text-sm leading-5 text-ink-gray-6">{{ description }}</p>
 		<div class="pt-4"><slot /></div>
 		<!-- a narrow frame has no room beside the heading: the actions end the page -->
-		<div v-if="layout.narrow && $slots.actions" class="flex items-center gap-3 pt-4"><slot name="actions" /></div>
+		<div v-if="layout.narrowWindow && $slots.actions" class="flex items-center gap-3 pt-4"><slot name="actions" /></div>
 	</div>
 	<div
 		v-if="$slots.footer"

@@ -6,11 +6,13 @@ import { reactive, ref, watch } from "vue"
 const wide = globalThis.matchMedia?.("(min-width: 768px)")
 const finger = globalThis.matchMedia?.("(pointer: coarse)")
 
-export const layout = reactive({ narrow: false, phone: false })
+export const layout = reactive({ narrow: false, narrowWindow: false, phone: false })
 
 let box = null // the element whose width decides, for a chat in a panel beside a page
 function measure() {
-	layout.narrow = box ? box.width < 768 : !!wide && !wide.matches
+	// settings and dialogs cover the window, so they go by its width even in a panel
+	layout.narrowWindow = !!wide && !wide.matches
+	layout.narrow = box ? box.width < 768 : layout.narrowWindow
 	layout.phone = layout.narrow && !!finger?.matches
 }
 measure()

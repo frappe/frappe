@@ -9,11 +9,9 @@
 </template>
 
 <script setup>
-import { computed, inject, watch } from "vue";
+import { computed, inject } from "vue";
 import SettingsDialog from "@flow/ui-core/components/SettingsDialog.vue";
-import { layout } from "@flow/ui-core/layout.js";
 
-import { inPanel } from "../panel.js";
 import DocPanel from "./DocPanel.vue";
 import GeneralPanel from "./GeneralPanel.vue";
 import KnowledgePanel from "./KnowledgePanel.vue";
@@ -42,7 +40,6 @@ const ICONS = {
 
 const page = inject("flowPage");
 const flow = inject("flow");
-const host = inject("flowHost", null);
 const docKeys = ["agents", "skills", "tools", "triggers", "models", "providers", "memories"];
 const docSpecs = computed(() =>
 	docKeys.map((key) => SPECS[key]).filter((spec) => page.can(spec.doctype, "read"))
@@ -68,18 +65,4 @@ const groups = computed(() => {
 		.map((group) => ({ ...group, tabs: group.tabs.filter(Boolean) }))
 		.filter((group) => group.tabs.length);
 });
-
-// in the launcher's panel, the dialog fills the window while it's open (a phone's page fills the
-// panel already); the panel goes back once the dialog's 150ms exit has played
-let restore = null;
-watch(
-	() => flow.state.settingsOpen && !layout.phone,
-	(open) => {
-		if (!inPanel) return;
-		clearTimeout(restore);
-		const tell = () => host?.settings(open);
-		if (open) tell();
-		else restore = setTimeout(tell, 150);
-	}
-);
 </script>
