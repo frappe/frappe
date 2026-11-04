@@ -11,6 +11,7 @@ import frappe
 from frappe.storage.blob import key_basename, make_key
 from frappe.storage.driver import get_driver
 from frappe.storage.local_driver import LocalDriver
+from frappe.utils import cint
 
 if TYPE_CHECKING:
 	from frappe.core.doctype.file_blob.file_blob import FileBlob
@@ -22,6 +23,11 @@ CACHE_JOB_TIMEOUT = 3600
 def is_cache_enabled(blob: "FileBlob") -> bool:
 	"""True when the ``storage_local_cache`` site flag is on and the blob's driver caches."""
 	return bool(frappe.conf.storage_local_cache) and get_driver(blob.driver).cache_locally
+
+
+def get_max_cached_file_size() -> int:
+	"""Largest blob to cache, in bytes, from System Settings. 0 caches nothing."""
+	return cint(frappe.get_system_settings("max_cached_file_size")) * 1024 * 1024
 
 
 def get_cache_key(blob: "FileBlob") -> str:
@@ -43,8 +49,8 @@ def get_cached_path(blob: "FileBlob") -> str | None:
 
 
 def queue_cache(blob: "FileBlob") -> None:
-	"""Queue a background download of the blob into the cache. One job runs per blob at a time."""
-	if not is_cache_enabled(blob):
+	"""Queue a background download of a blob within the size limit. One job runs per blob at a time."""
+	if not is_cache_enabled(blob) or int(blob.file_size or 0) > get_max_cached_file_size():
 		return
 	frappe.enqueue(
 		"frappe.storage.cache.cache_blob",

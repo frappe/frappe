@@ -333,13 +333,15 @@ through the serve route and X-Accel, like a local private blob.
 - `stream_blob` serves a cached blob from disk, before it tries the native
   URL. It uses X-Accel or `send_file`, like a local blob.
 - On a miss, `stream_blob` queues `cache_blob` on the `long` queue, one job
-  per blob (`storage_cache::<blob>`). The request itself is served as
+  per blob (`storage_cache::<blob>`), when the blob is no larger than
+  System Settings `max_cached_file_size` (MB, default 100, 0 caches
+  nothing). A larger blob is never cached. The request itself is served as
   before: a redirect or a stream from the driver.
 - `cache_blob` streams the object into a `.part` file, checks the size
   against `file_size`, then renames it. A failed download leaves no cache
   file, and the next request queues a new job.
 - A blob is immutable, so a cached file never goes stale. GC deletes the
-  cache file with the blob. There is no size limit or eviction yet.
+  cache file with the blob. There is no eviction yet.
 - A private copy lives in `private/files`, so a backup with files holds it.
 
 ### Upload

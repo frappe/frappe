@@ -31,6 +31,7 @@ class TestBlobCache(IntegrationTestCase):
 		super().setUp()
 		frappe.set_user("Administrator")
 		self.enterContext(patch.dict(frappe.conf, {"storage_local_cache": 1}))
+		frappe.db.set_single_value("System Settings", "max_cached_file_size", 100)
 		self.blobs = []
 
 	def tearDown(self):
@@ -117,6 +118,23 @@ class TestBlobCache(IntegrationTestCase):
 			with patch.dict(frappe.conf, {"storage_local_cache": 0}), patch("frappe.enqueue") as enqueue:
 				self.assertIsNone(get_cached_path(blob))
 				self.assertEqual(self.stream(blob).status_code, 302)
+			enqueue.assert_not_called()
+
+	def test_only_blobs_within_the_size_limit_are_queued(self):
+		with storage_v2(), use_driver(RemoteDriver()):
+			blob = self.put_blob(b"x" * 1024, filename="a.bin")
+			cases = ((1, True), (0, False))
+			for limit_mb, queued in cases:
+				with self.subTest(limit_mb=limit_mb):
+					frappe.db.set_single_value("System Settings", "max_cached_file_size", limit_mb)
+					with patch("frappe.enqueue") as enqueue:
+						self.assertEqual(self.stream(blob).status_code, 302)
+					self.assertEqual(enqueue.called, queued)
+
+			frappe.db.set_single_value("System Settings", "max_cached_file_size", 2)
+			big = self.put_blob(b"x" * (2 * 1024 * 1024 + 1), filename="big.bin")
+			with patch("frappe.enqueue") as enqueue:
+				self.stream(big)
 			enqueue.assert_not_called()
 
 	def test_a_job_for_a_deleted_blob_does_nothing(self):

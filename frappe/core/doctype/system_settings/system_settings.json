@@ -83,6 +83,7 @@
   "files_section",
   "max_file_size",
   "max_zip_extract_size",
+  "max_cached_file_size",
   "allow_guests_to_upload_files",
   "force_web_capture_mode_for_uploads",
   "strip_exif_metadata_from_uploaded_images",
@@ -903,12 +904,20 @@
   {
    "fieldname": "frappectl_help",
    "fieldtype": "HTML"
+  },
+  {
+   "default": "100",
+   "description": "Files larger than this are not cached on the server's disk when the local cache is on.",
+   "fieldname": "max_cached_file_size",
+   "fieldtype": "Int",
+   "label": "Max Cached File Size (MB)",
+   "non_negative": 1
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2026-11-04 11:19:08.065028",
+ "modified": "2026-11-04 11:41:42.728984",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
