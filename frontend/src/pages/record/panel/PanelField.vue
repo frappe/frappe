@@ -35,7 +35,7 @@
 			@click="open"
 		>
 			<span
-				class="min-w-0 flex-1 truncate text-base"
+				class="flex min-w-0 flex-1 items-center text-base"
 				:class="error ? 'text-ink-red-4' : display ? 'text-ink-gray-8' : 'text-ink-gray-4'"
 			>
 				<!-- An editable row's click opens its editor, so its address waits on the arrow. -->
@@ -43,7 +43,7 @@
 					v-if="address?.kind === 'mail' && !interactive"
 					:href="address.href"
 					data-slot="mail-link"
-					class="underline-offset-2 hover:underline"
+					class="truncate underline-offset-2 hover:underline"
 					@click.stop
 					>{{ display }}</a
 				>
@@ -54,7 +54,8 @@
 						:source="field.linkMark"
 						:value="mark"
 						:text="display"
-					/>{{ display || placeholder }}
+					/>
+					<span class="truncate">{{ display || placeholder }}</span>
 				</template>
 			</span>
 			<span

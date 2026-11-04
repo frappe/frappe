@@ -58,7 +58,8 @@ describe("a marked panel row", () => {
 	it("shows the value in red and the message on one line, with the full text in its title", async () => {
 		const root = await mount({ qty: "Quantity must be positive" });
 		const row = root.querySelector<HTMLElement>('[data-fieldname="qty"]')!;
-		const [value, message] = row.querySelectorAll("span");
+		const value = row.querySelector("span")!;
+		const message = row.querySelector<HTMLElement>("span[title]")!;
 
 		expect(value.className).toContain("text-ink-red-4");
 		expect(message.textContent!.trim()).toBe("Quantity must be positive");
@@ -81,7 +82,7 @@ describe("a marked panel row", () => {
 		const root = await mount({});
 		const row = root.querySelector<HTMLElement>('[data-fieldname="qty"]')!;
 
-		expect(row.querySelectorAll("span")).toHaveLength(1);
+		expect(row.querySelector("span[title]")).toBeNull();
 		expect(row.querySelector("span")!.className).not.toContain("text-ink-red-4");
 	});
 });
