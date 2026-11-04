@@ -398,7 +398,7 @@ class TestCloudSettings(_CloudTestCase):
 	def test_dns_records_are_read_from_the_domain_resource(self):
 		result, call = self._pilot_call(
 			lambda: get_domain_dns_records(" Shop.Example.Com "),
-			{"records": {"cname": [{"type": "CNAME"}], "a": [{"type": "A"}]}},
+			{"cname": [{"type": "CNAME"}, {"type": "TXT"}], "a": [{"type": "A"}]},
 		)
 
 		method, url = call.args[:2]
@@ -408,7 +408,7 @@ class TestCloudSettings(_CloudTestCase):
 			"https://pilot.example.com/api/v1/sites/ravibakes.frappe.cloud"
 			"/domains/shop.example.com/dns-records",
 		)
-		self.assertEqual([record["type"] for record in result["records"]], ["CNAME", "A"])
+		self.assertEqual([record["type"] for record in result["records"]], ["CNAME", "TXT", "A"])
 
 	def test_remove_domain_deletes_the_domain_resource(self):
 		_, call = self._pilot_call(lambda: remove_domain("shop.example.com"), {"ok": True})
