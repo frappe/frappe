@@ -35,8 +35,6 @@
 					>
 						<BrandMark line :size="16" class="!text-ink-gray-8" />
 						<span class="text-base-semibold text-ink-gray-9">Flow</span>
-						<!-- the host's mark beside the name, like a release stage -->
-						<slot name="brand" />
 						<span class="lucide-chevron-down size-3.5 flex-none text-ink-gray-5" aria-hidden="true" />
 					</button>
 				</template>
@@ -192,8 +190,8 @@
 									@pointerenter="crawlTitle"
 									@pointerleave="pressEnd(); restTitle($event); releaseCard(s.session_id)"
 								>
-									<!-- an empty icon lane lines the titles up under the labels and names above -->
-									<template #prefix><span class="size-4" /></template>
+									<!-- an empty icon lane lines a workspace's chats up under its name; loose chats line up with the label -->
+									<template v-if="group.cwd" #prefix><span class="size-4" /></template>
 									<HoverCard
 										side="right"
 										:offset="12"
@@ -245,7 +243,7 @@
 									</template>
 								</SidebarItem>
 								<SidebarItem v-if="group.toggle" :label="group.toggle" @click="toggleShowAll(group.cwd)">
-									<template #prefix><span class="size-4" /></template>
+									<template v-if="group.cwd" #prefix><span class="size-4" /></template>
 									<span class="text-sm leading-snug text-ink-gray-5">{{ group.toggle }}</span>
 								</SidebarItem>
 							</div>
