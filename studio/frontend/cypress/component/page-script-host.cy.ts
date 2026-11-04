@@ -12,8 +12,7 @@ import type { StudioPage } from "@/types/Studio/StudioPage"
 
 const page = { name: "probe-page", script: "" } as StudioPage
 
-// loadPageScript() seeds the current page with no script; applyPageScriptHotUpdate then installs
-// the setup under test, the same path an edited page script takes.
+// Set the current page, then install the test setup through the script hot-update API.
 async function installPageScript(setup: unknown) {
 	const scope = usePageScope()
 	await scope.loadPageScript(page)
@@ -23,7 +22,7 @@ async function installPageScript(setup: unknown) {
 
 const hostMounted = ref(true)
 
-// The host as both environments use it: keyed on the script version, wrapping the page content.
+// Key the test host by script version to exercise remounting and cleanup.
 function mountHost(slot?: () => any) {
 	hostMounted.value = true
 	const scope = usePageScope()
@@ -79,7 +78,7 @@ describe("page script host", () => {
 		cy.then(() => expect(unmountedRan, "onUnmounted ran").to.be.true)
 	})
 
-	// repository apps in the wild (helpdesk's portal) unregister socket handlers this way
+	// Page scripts can use onScopeDispose to remove socket listeners.
 	it("still runs onScopeDispose, which the instance's own scope owns", () => {
 		let disposed = false
 		cy.wrap(installPageScript(() => (onScopeDispose(() => (disposed = true)), {})))

@@ -1,12 +1,10 @@
-"""Rewrite interpreted page scripts as `setup(context)` modules, so every Studio app authors
-one dialect.
+"""Convert database page scripts to the `setup(context)` format used by repository apps.
 
-A database app used to run its page script as a bare body: free identifiers resolved against a
-live context that carried Vue's reactivity APIs, the page's variables and resources, and a few
-globals. Its files now compile in the browser the way a repository app's do, so the script is a
-real module — it imports what it uses and returns what the page binds to.
+Older scripts could use Vue APIs, page variables and resources without declaring
+where those names came from. A module must import library APIs and read page data
+from `context`. It returns the values and functions used by page bindings.
 
-The rewrite keeps the body verbatim and wraps it:
+The conversion adds imports and a setup function around the existing script body:
 
         import { ref } from "vue"
 
@@ -18,9 +16,8 @@ The rewrite keeps the body verbatim and wraps it:
                 return { count }
         }
 
-What the body referenced through the old context now arrives through an import (Vue, VueUse and
-frappe-ui APIs) or through `context` (the page's own variables and resources, plus route, router
-and socket) — the same values, named the same way.
+Vue, VueUse and frappe-ui APIs come from imports. Page variables, resources, route,
+router and socket come from `context`. Existing references keep their names.
 """
 
 import json
@@ -28,7 +25,7 @@ import json
 import frappe
 from frappe.studio.files import write_store_file
 
-# The names the interpreted context injected, and where the module dialect gets them from.
+# Older scripts received these APIs through the execution context. Modules import them.
 VUE_APIS = (
 	"ref",
 	"reactive",
@@ -50,14 +47,14 @@ IMPORTED_APIS = {
 	"@vueuse/core": ("watchDebounced",),
 	"frappe-ui": ("call", "toast"),
 }
-# Context members that are not the page's own variables or resources.
+# These context values are available in addition to the page's variables and resources.
 CONTEXT_EXTRAS = ("route", "router", "socket")
 
 DECLARATION_KEYWORDS = {"const", "let", "var", "function", "class", "async"}
-# Tokens after which a newline ends the statement (ASI), so the next token starts a new one.
+# A newline after these tokens can start a statement through automatic semicolon insertion.
 STATEMENT_END_PUNCTUATION = {")", "]", "}"}
-# Punctuation that can only continue an expression, so it never starts a statement however it is
-# spaced — `}` ends a destructuring pattern as often as it ends a block.
+# These tokens continue an expression even after a newline.
+# A closing brace can end a destructuring pattern as well as a code block.
 CONTINUATION_PUNCTUATION = {"=", ".", ",", ":", "?", ")", "]", "}", "*", "/", "%", "<", ">", "&", "|", "^"}
 
 
@@ -70,8 +67,7 @@ def execute():
 	for page in pages:
 		convert_page_script(page.name, page.script)
 
-	# this release drops the field, and frappe leaves the column behind rather than dropping it;
-	# a site that never had it has nothing to move
+	# Frappe keeps columns for removed fields. Migrate the old router field only if it exists.
 	if frappe.db.has_column("Studio App", "router_script"):
 		for app in frappe.get_all("Studio App", filters={"is_standard": 0}, fields=["name", "router_script"]):
 			move_router_script_to_file(app.name, app.router_script)
@@ -88,16 +84,14 @@ def convert_page_script(page_name: str, script: str) -> None:
 
 
 def move_router_script_to_file(app_name: str, router_script: str | None) -> None:
-	"""A database app's router config moves from the `router_script` field into router.ts, where
-	every app keeps it. The field is dropped by this release."""
+	"""Move the removed `router_script` field to the app's `router.ts` source file."""
 	if not router_script or not router_script.strip():
 		return
 	write_store_file(app_name, "router.ts", f"export default {router_script.strip()}\n")
 
 
 def is_module(script: str) -> bool:
-	"""A bare script cannot contain a top-level `import`/`export` — it is a function body, not a
-	module — so either one marks a script this patch has already rewritten."""
+	"""Detect top-level import or export syntax so a module is not wrapped again."""
 	return any(
 		token.value in ("import", "export") and token.statement_start and token.depth == 0
 		for token in tokenize(script)
@@ -105,7 +99,7 @@ def is_module(script: str) -> bool:
 
 
 def get_context_names(page_name: str) -> list[str]:
-	"""The page's variables and resources, which the script used to read as free identifiers."""
+	"""Return names that older scripts could read from the page's execution context."""
 	page = frappe.get_doc("Studio Page", page_name)
 	variables = [row.variable_name for row in page.variables if row.variable_name]
 	resources = [row.resource_name for row in page.resources if row.resource_name]
@@ -113,13 +107,16 @@ def get_context_names(page_name: str) -> list[str]:
 
 
 def to_setup_module(script: str, context_names: list[str]) -> str:
-	"""The script as a `setup(context)` module: imports for the APIs it used, a destructure for
-	the context members it used, the body unchanged, and a return of its top-level bindings."""
+	"""Wrap the script in a setup module without rewriting its statements.
+
+	Import library APIs, read required values from `context` and return top-level
+	declarations for use by page bindings.
+	"""
 	tokens = list(tokenize(script))
 	bindings = get_top_level_bindings(tokens)
 	used = get_referenced_names(tokens)
 
-	# a binding of the same name shadows what the context used to inject, exactly as it did before
+	# Keep local declarations when they use the same names as context values.
 	declared = set(bindings)
 	from_context = [name for name in dict.fromkeys(context_names) if name in used and name not in declared]
 	taken = declared | set(from_context)
@@ -144,8 +141,10 @@ def to_setup_module(script: str, context_names: list[str]) -> str:
 
 
 def get_top_level_bindings(tokens: list["Token"]) -> list[str]:
-	"""Names the body declares at the top level — what the interpreted dialect returned to the
-	page. Matches `getTopLevelBindings` in the editor: declarations only, in source order."""
+	"""Find top-level declarations to return from setup, in source order.
+
+	Use the same declaration rules as the editor's `getTopLevelBindings` helper.
+	"""
 	names: list[str] = []
 	index = 0
 	while index < len(tokens):
@@ -167,8 +166,7 @@ def get_top_level_bindings(tokens: list["Token"]) -> list[str]:
 
 
 def read_declaration_name(tokens: list["Token"], index: int, names: list[str]) -> int:
-	"""The name of a `function`/`class` declaration. A `function`/`class` *expression* is skipped:
-	it is not a declaration, so its name never reached the page."""
+	"""Read a function or class declaration's name. Expression names are not page bindings."""
 	if index < len(tokens) and tokens[index].value == "*":
 		index += 1
 	if index < len(tokens) and tokens[index].kind == "identifier":
@@ -178,7 +176,7 @@ def read_declaration_name(tokens: list["Token"], index: int, names: list[str]) -
 
 
 def read_declarator_names(tokens: list["Token"], index: int, names: list[str]) -> int:
-	"""Every name bound by a `const`/`let`/`var` statement, destructuring patterns included."""
+	"""Read names declared by const, let or var, including destructured names."""
 	base_depth = tokens[index - 1].depth
 	while index < len(tokens):
 		token = tokens[index]
@@ -198,7 +196,7 @@ def read_declarator_names(tokens: list["Token"], index: int, names: list[str]) -
 
 
 def read_pattern_names(tokens: list["Token"], index: int, names: list[str]) -> int:
-	"""Names bound by a destructuring pattern, skipping object keys and default values."""
+	"""Read declared names from a destructuring pattern, excluding keys and default values."""
 	open_depth = tokens[index].depth + 1
 	index += 1
 	while index < len(tokens):
@@ -215,7 +213,7 @@ def read_pattern_names(tokens: list["Token"], index: int, names: list[str]) -> i
 			index = read_pattern_names(tokens, index, names)
 			continue
 		if token.kind == "identifier":
-			# `key: binding` binds the right-hand side, so a name before `:` is only a key
+			# In `key: binding`, only the name after the colon declares a variable.
 			if index + 1 < len(tokens) and tokens[index + 1].value == ":":
 				index += 2
 				continue
@@ -225,7 +223,7 @@ def read_pattern_names(tokens: list["Token"], index: int, names: list[str]) -> i
 
 
 def skip_default_value(tokens: list["Token"], index: int, pattern_depth: int) -> int:
-	"""Past a `= <expression>` inside a pattern, to its `,` or the pattern's close."""
+	"""Skip a default value and return the index of the next comma or closing bracket."""
 	while index < len(tokens):
 		token = tokens[index]
 		if token.depth < pattern_depth or (token.depth == pattern_depth and token.value == ","):
@@ -235,8 +233,11 @@ def skip_default_value(tokens: list["Token"], index: int, pattern_depth: int) ->
 
 
 def skip_to_next_declarator(tokens: list["Token"], index: int, base_depth: int) -> int | None:
-	"""Past one declarator's initialiser. Returns the index after the `,` that starts the next
-	declarator, the index of the token that ends the statement, or None at end of input."""
+	"""Skip one variable's initial value.
+
+	Return the index after a separating comma, the index of the statement's ending
+	token, or None at the end of the input.
+	"""
 	while index < len(tokens):
 		token = tokens[index]
 		if token.depth < base_depth:
@@ -251,8 +252,7 @@ def skip_to_next_declarator(tokens: list["Token"], index: int, base_depth: int) 
 
 
 def get_referenced_names(tokens: list["Token"]) -> set[str]:
-	"""Identifiers the body reads. Property names (`doc.ref`) and object keys are left out, so a
-	name here is one that had to resolve from the enclosing scope."""
+	"""Collect possible identifier references, excluding property names after `.` or `?.`."""
 	referenced = set()
 	for index, token in enumerate(tokens):
 		if token.kind != "identifier":
@@ -264,8 +264,7 @@ def get_referenced_names(tokens: list["Token"]) -> set[str]:
 
 
 def indent_code(source: str) -> str:
-	"""Indent the body by one tab. A line that continues a template literal keeps its indentation:
-	a tab there would change the string, not the code."""
+	"""Indent code by one tab. Preserve indentation inside multiline template strings."""
 	spans = [(token.start, token.end) for token in tokenize(source) if token.kind == "template"]
 	lines = []
 	position = 0
@@ -294,7 +293,7 @@ class Token:
 IDENTIFIER_START = set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_$")
 IDENTIFIER_REST = IDENTIFIER_START | set("0123456789")
 DIGITS = set("0123456789")
-# A `/` right after one of these starts a regular expression, not a division.
+# After these keywords, `/` starts a regular expression rather than division.
 REGEX_PRECEDING_KEYWORDS = {
 	"return",
 	"typeof",
@@ -314,14 +313,16 @@ REGEX_PRECEDING_KEYWORDS = {
 
 
 def tokenize(source: str):
-	"""JavaScript tokens, enough of them to find declarations and references: identifiers,
-	numbers, strings, templates (with their `${}` expressions tokenized), regular expressions,
-	comments and punctuation. Each token carries its bracket depth and whether it starts a
-	statement."""
+	"""Read the JavaScript tokens needed to find declarations and references for this migration.
+
+	Handle identifiers, numbers, strings, templates, regular expressions and punctuation.
+	Skip comments and tokenize expressions inside `${}`. Each token records its bracket
+	depth and whether it starts a statement.
+	"""
 	index = 0
 	length = len(source)
 	depth = 0
-	# open brackets of the template substitutions currently being tokenized
+	# Track the bracket depth of each active `${}` expression.
 	template_stack: list[int] = []
 	previous: Token | None = None
 	newline_before = True
@@ -380,7 +381,7 @@ def tokenize(source: str):
 		token_depth = depth - 1 if kind == "punctuation" and value in "([{" else depth
 		token = Token(kind, value, token_depth, statement_start, start, index)
 
-		# `${` inside a template: its expression is tokenized at one level deeper
+		# Read a template's `${}` expression at one additional bracket level.
 		if kind == "template" and value.endswith("${"):
 			depth += 1
 			template_stack.append(depth)
@@ -399,7 +400,7 @@ def is_statement_start(previous: Token | None, newline_before: bool, kind: str, 
 		return True
 	if not newline_before:
 		return False
-	# ASI: a newline after something a statement can end with starts the next one
+	# These tokens can end a statement when followed by a newline.
 	return previous.kind in ("identifier", "number", "string", "template", "regex") or (
 		previous.value in STATEMENT_END_PUNCTUATION
 	)
@@ -431,8 +432,10 @@ def read_quoted(source: str, index: int) -> int:
 
 
 def read_template(source: str, index: int, resuming: bool = False) -> int:
-	"""Up to the end of a template literal, or to the `${` that opens a substitution. `resuming`
-	continues a template after its substitution's closing brace."""
+	"""Read through a closing backtick or the `${` that starts an expression.
+
+	When resuming a template, `index` points to the expression's closing brace.
+	"""
 	index += 1
 	while index < len(source):
 		if source[index] == "\\":

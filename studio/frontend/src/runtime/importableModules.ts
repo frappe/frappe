@@ -1,17 +1,13 @@
 /**
- * The bare modules a database app may import — the renderer's own copies, so the app's `ref` or
- * `Button` is the same instance the page around it uses.
+ * Library modules available to database apps. Reuse the renderer's imports so Vue functions
+ * and components have the same identity in application code and the renderer.
  *
- * Every specifier here must also resolve in a real Vite build, so an app that moves to a
- * repository keeps building. Anything else is the signal to move the app to a repository, where
- * npm is available; there is no CDN escape hatch, and that closed list is the supply-chain
- * boundary.
+ * Each module name must also resolve in an app's Vite build. Additional dependencies require
+ * a repository app with npm packages installed; this loader has no CDN fallback.
  *
- * All but one are modules the renderer already ships, so they are imported here rather than
- * fetched: offering them cannot grow any app's bundle. The chart family is the exception — the
- * editor loads it on demand, so it keeps its own chunk here too. `frappe-ui/experimental` is
- * deliberately absent: it re-exports the charts, so offering that namespace whole would pull
- * them into every bundle. Its components are available as blocks.
+ * Charts load on demand in a separate chunk. Exclude the full frappe-ui/experimental namespace
+ * because it also exports charts and would load them with the other modules. Its components
+ * remain available as Studio blocks.
  */
 
 import * as vue from "vue"
@@ -39,8 +35,8 @@ export const IMPORTABLE_MODULES = [...Object.keys(modules), ...Object.keys(loade
 const loaded = new Map<string, Promise<Record<string, any>>>()
 
 /**
- * A namespace object carries no __esModule flag, so sucrase's default-import interop would
- * wrap it again; copy it and mark it.
+ * Sucrase uses __esModule to identify module exports. Copy the native namespace and add
+ * this flag so default imports are not wrapped a second time.
  */
 export function loadImportableModule(specifier: string): Promise<Record<string, any>> {
 	let module = loaded.get(specifier)

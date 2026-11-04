@@ -1,9 +1,9 @@
 /**
- * Compiles a Studio app's source files in the browser: Vue SFCs through vue/compiler-sfc,
- * TypeScript stripped (never type-checked) with sucrase. This is what a database app has
- * instead of Vite — a repository app's files are built ahead of time and never come through here.
+ * Compile stored source in the browser with vue/compiler-sfc and Sucrase.
+ * Strip TypeScript annotations without checking types. This supports database apps without
+ * a server build and syntax checking in the editor.
  *
- * The compilers load lazily, so an app that ships a build never downloads them.
+ * Load the compilers only when needed. Built apps exclude this module.
  */
 
 export interface CompileError {
@@ -21,7 +21,7 @@ export interface CompiledFile {
 
 export interface ModuleImport {
 	specifier: string
-	/** The names a static import takes, for the export check; empty for a re-export or `import()`. */
+	/** Named exports to validate. Empty for re-exports and dynamic imports. */
 	names: string[]
 }
 
@@ -31,8 +31,7 @@ export function describeError(error: CompileError): string {
 }
 
 const TS_OPTIONS: SucraseOptions = { transforms: ["typescript"], disableESTransforms: true }
-// Modules execute as CommonJS in the registry (see moduleRegistry.ts), so an import cycle
-// resolves the way it does in Node and in a bundler: the partly filled exports object.
+// The registry executes CommonJS modules. Cycles can read a module's exports before it finishes.
 const CJS_OPTIONS: SucraseOptions = { transforms: ["imports"], disableESTransforms: true }
 
 type SucraseOptions = import("sucrase").Options
@@ -46,7 +45,7 @@ function loadCompilers() {
 	return compilerModules
 }
 
-// Compiles are cheap (a few ms per file) but run on every runtime rebuild, so memoize by content.
+// Registry rebuilds can reuse compilation results when the source has not changed.
 const cache = new Map<string, Promise<CompiledFile>>()
 
 export function compileFile(filename: string, source: string): Promise<CompiledFile> {
@@ -69,7 +68,7 @@ async function compileTS(filename: string, source: string): Promise<CompiledFile
 	}
 }
 
-/** ESM to CommonJS, for the module registry. Not cached: callers transform compiled output once. */
+/** Convert ESM to CommonJS for the registry. The caller transforms each compiled module once. */
 export async function toCommonJS(filename: string, source: string): Promise<CompiledFile> {
 	const [, sucrase] = await loadCompilers()
 	try {
@@ -81,9 +80,9 @@ export async function toCommonJS(filename: string, source: string): Promise<Comp
 }
 
 /**
- * Every import in compiled module code, with the names each one takes. The registry needs these
- * before any module body runs, because its require is synchronous while loading a bare module is
- * not. A computed `import()` carries no specifier to read, so it falls through to that require.
+ * Find dependency paths and imported names before executing a module.
+ * Library modules load asynchronously, so preload them before synchronous require() calls.
+ * Computed import() paths cannot be discovered here and are resolved at execution time.
  */
 export async function parseImports(
 	filename: string,
@@ -104,7 +103,7 @@ function* staticImports(program: BabelProgram): Generator<ModuleImport> {
 			if (node.importKind === "type") continue
 			yield { specifier: node.source.value, names: importedNames(node) }
 		} else if ("source" in node && node.source) {
-			// `export … from "…"` pulls the module in without naming what it takes
+			// Load re-exported modules without checking individual export names here.
 			yield { specifier: node.source.value, names: [] }
 		}
 	}
@@ -120,7 +119,7 @@ function importedNames(node: ImportDeclaration): string[] {
 	return names
 }
 
-/** `import("…")` sits in an expression, so it takes a walk to find. */
+/** Find literal import() calls, including those nested inside expressions. */
 function* dynamicImports(node: unknown): Generator<ModuleImport> {
 	if (!node || typeof node !== "object") return
 	if (Array.isArray(node)) {
@@ -143,8 +142,7 @@ async function compileSFC(filename: string, source: string): Promise<CompiledFil
 	const [sfc] = await loadCompilers()
 	const id = scopeId(filename)
 	const { descriptor, errors: parseErrors } = sfc.parse(source, { filename })
-	// stop on parse errors before compileScript: with inlineTemplate a broken template compiles
-	// into a component that renders wrong instead of failing
+	// Reject template parse errors before compileScript can generate a partial component.
 	if (parseErrors.length) {
 		return { code: "", css: "", errors: parseErrors.map((error) => formatError(filename, error)) }
 	}
@@ -157,8 +155,8 @@ async function compileSFC(filename: string, source: string): Promise<CompiledFil
 	const hasTS = descriptor.script?.lang === "ts" || descriptor.scriptSetup?.lang === "ts"
 	const hasScopedStyle = descriptor.styles.some((style) => style.scoped)
 
-	// compileScript inlines the template only for <script setup>, and throws on an SFC with no
-	// script at all, so every other shape compiles its template separately
+	// Only <script setup> uses an inline template. Other components compile templates separately,
+	// including template-only components, which compileScript does not accept.
 	const inlineTemplate = Boolean(descriptor.scriptSetup)
 
 	let code: string
@@ -172,7 +170,7 @@ async function compileSFC(filename: string, source: string): Promise<CompiledFil
 		code = "const __sfc__ = {}\n"
 	}
 
-	// no <template> means the script is the whole component: it may carry its own render option
+	// A component without a template can supply its own render function.
 	if (!inlineTemplate && descriptor.template) {
 		const template = sfc.compileTemplate({
 			source: descriptor.template.content,
@@ -186,7 +184,7 @@ async function compileSFC(filename: string, source: string): Promise<CompiledFil
 		code += `\n${template.code}\n__sfc__.render = render\n`
 	}
 	if (hasTS) {
-		// one pass over the whole output also strips the TS casts inline templates leave in render code
+		// Strip the full output because inline templates can add TypeScript casts to render code.
 		const stripped = await compileTS(filename, code)
 		if (stripped.errors.length) return stripped
 		code = stripped.code
@@ -213,9 +211,8 @@ async function compileSFC(filename: string, source: string): Promise<CompiledFil
 }
 
 /**
- * There are no preprocessors in the browser. A block Vite would hand to sass or esbuild-jsx
- * reaches the plain compiler here, which accepts it and emits wrong output instead of failing,
- * so reject the language before anything compiles.
+ * This runtime has no Sass, JSX or template preprocessors. Reject unsupported block languages
+ * before a plain compiler can interpret them incorrectly.
  */
 function findUnsupportedLang(descriptor: import("vue/compiler-sfc").SFCDescriptor): string | null {
 	for (const block of [descriptor.script, descriptor.scriptSetup]) {
@@ -241,7 +238,7 @@ function unsupportedMessage(block: string, lang: string, instead: string): strin
 	)
 }
 
-/** Stable short id per filename, used as the scoped-style hash so scoped CSS survives edits. */
+/** Keep each file's scoped CSS identifier stable across source edits. */
 function scopeId(filename: string): string {
 	return (djb2(filename) >>> 0).toString(16).padStart(8, "0")
 }

@@ -122,12 +122,12 @@ def check_app_permission() -> bool:
 
 @frappe.whitelist(allow_guest=True, methods=["GET"])  # nosemgrep: guest-whitelisted-method
 def get_custom_vue_components(frappe_app: str | None = None, studio_app: str | None = None) -> list[dict]:
-	"""Discover custom Vue SFC components — on disk across a frappe app's exported studio apps,
-	or in the file store of a database `studio_app`.
+	"""List custom Vue SFC components from exported apps or a database app's file store.
 
-	The database branch runs for every viewer of a running app, so it carries get_app_files' access
-	rules. The disk branch is editor tooling — it returns bench paths — and stays behind Studio Page
-	read."""
+	Database components use the same viewer permissions as `get_app_files`, because
+	the running app needs this list. Disk components require Studio Page read
+	permission, because their metadata includes server file paths.
+	"""
 	if studio_app and files.uses_db_files(studio_app):
 		return get_stored_vue_components(studio_app)
 
@@ -187,11 +187,11 @@ def get_custom_vue_components(frappe_app: str | None = None, studio_app: str | N
 
 
 def get_stored_vue_components(studio_app: str) -> list[dict]:
-	"""Custom Vue SFC components in a database app's file store. Served without a `file_path`:
-	there is nothing on disk, the browser compiles them from the store.
+	"""List a database app's Vue components without server file paths.
 
-	Names the .vue files get_app_files already serves this session, so it shares that access rule
-	rather than the editor's: the renderer asks for this list to draw the app, not to edit it."""
+	The browser compiles their stored source. Use the same viewer permissions as
+	`get_app_files`, so viewers can load the components their app needs.
+	"""
 	validate_app_viewer_access(studio_app, allow_guest_pages=True)
 	components = []
 	seen_names = set()
@@ -265,10 +265,9 @@ def get_studio_page_scripts(frappe_app: str) -> list[dict]:
 # ---------------------------------------------------------------------------
 # Studio file explorer
 #
-# Read/write a Studio app's code files (`.ts/.js/.vue/.json/.css`), so composables, stores, page
-# scripts and components can be edited from Studio itself. A repository app's files live under
-# its `studio/<studio_app>/` folder and need developer mode; a database app's files live in the
-# file store (frappe/studio/files.py) and need neither a repository nor developer mode.
+# The file APIs support both source stores. Repository files are under `studio/<studio_app>/`
+# and require developer mode. Database files use `frappe.studio.files` and can be edited
+# without a repository or developer mode. Both paths check app permissions.
 # ---------------------------------------------------------------------------
 
 
@@ -318,8 +317,10 @@ def read_studio_file(frappe_app: str, studio_app: str, file_path: str, ignore_mi
 def write_studio_file(
 	frappe_app: str, studio_app: str, file_path: str, content: str, known_hash: str | None = None
 ) -> dict:
-	"""Write content to a file (creating parent folders). If known_hash is given and the file changed
-	since it was read, refuse rather than clobber."""
+	"""Write a file and create any required parent folders.
+
+	If `known_hash` is supplied, reject the write when the existing content has changed.
+	"""
 	if files.uses_db_files(studio_app):
 		_validate_studio_file_access("write", on_disk=False)
 		files.write_store_file(studio_app, file_path, content, known_hash)
@@ -440,12 +441,13 @@ def delete_studio_file(frappe_app: str, studio_app: str, file_path: str) -> None
 
 @frappe.whitelist(allow_guest=True, methods=["GET"])  # nosemgrep: guest-whitelisted-method
 def get_app_files(app_name: str) -> list[dict]:
-	"""Serve a database app's source files to the renderer, which compiles them in the browser.
+	"""Return a database app's source files for compilation in the browser.
 
-	Mirrors get_page's access rules: the sources are markup-level (the data they fetch stays
-	permission-checked by the endpoints the page's resources call). Editors (Studio Page read)
-	always get them, since they can preview unpublished apps; other logged-in users once the app
-	has a published page; guests only when a published page allows guests."""
+	Use the same viewer permissions as `get_page`. Users with Studio Page read
+	permission can preview unpublished apps. Other logged-in users need a published
+	page; guests need a published page that allows guests. Resource endpoints check
+	permissions separately when the app requests business data.
+	"""
 	if not isinstance(app_name, str):
 		frappe.throw(_("Invalid app name."))
 	validate_app_viewer_access(app_name, allow_guest_pages=True)
@@ -455,8 +457,7 @@ def get_app_files(app_name: str) -> list[dict]:
 
 
 def _validate_studio_file_access(permission_type: str = "read", on_disk: bool = True) -> None:
-	"""Files on disk are only editable on a bench in developer mode; the DB store is editable
-	wherever the app runs."""
+	"""Check Studio App permissions and require developer mode for files on disk."""
 	if on_disk and not frappe.conf.developer_mode:
 		frappe.throw(_("Editing Studio code files is only allowed in developer mode."))
 	frappe.has_permission("Studio App", ptype=permission_type, throw=True)

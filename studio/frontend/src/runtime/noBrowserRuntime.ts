@@ -1,9 +1,8 @@
 /**
- * What `@/runtime/appRuntime` resolves to inside a per-app Vite build (see src/scripts/build.js).
+ * Replace @/runtime/appRuntime in app builds through the alias in src/scripts/build.js.
  *
- * A built app's `.vue` components and page scripts are compiled by that build, so nothing in it
- * ever compiles in the browser. Aliasing the runtime away here keeps the compilers, and the
- * modules they make importable, out of every app bundle.
+ * Built apps already contain compiled components and page scripts. These exports let shared
+ * renderer code import the runtime API without including the browser compiler or registry.
  */
 
 function notBuiltForThisApp(): never {

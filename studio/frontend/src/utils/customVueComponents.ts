@@ -65,8 +65,8 @@ export async function reloadCustomVueComponents(frappeApp: string): Promise<Cust
 }
 
 /**
- * Sync the registry to a database app's .vue files: each component compiles in the browser from
- * the file store instead of importing a served file. Shared by the editor and the renderer.
+ * Register a database app's Vue components for the editor and renderer.
+ * Compile stored source through the app runtime and remove components no longer in the app.
  */
 export async function registerAppVueComponents(studioApp: string): Promise<CustomVueComponentMeta[]> {
 	await loadAppRuntime(studioApp)

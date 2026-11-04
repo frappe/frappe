@@ -67,15 +67,15 @@ class TestStudioApp(FrappeTestCase):
 		gate = "frappe.studio.doctype.studio_app.studio_app.can_build_bundle"
 		with patch(gate, return_value=True):
 			html = get_website_response("shop-demo/board").get_data(as_text=True)
-		# no bundle to serve, so the shared renderer takes over and compiles the files in the browser
+		# Without a bundle, the shared renderer compiles database source in the browser.
 		self.assertIn("window.uses_db_files = true", html)
 		self.assertIn("/assets/frappe/studio/", html)
-		# every app is built on publish, so a server that can build and has none failed or never ran
+		# A missing bundle should produce a warning when the server can build one.
 		self.assertIn("Could not find app assets", html)
 
 		with patch(gate, return_value=False):
 			html = get_website_response("shop-demo/board").get_data(as_text=True)
-		# a server without yarn never builds, so the browser runtime is not a missing build
+		# Without Yarn, browser compilation is expected and should not produce a build warning.
 		self.assertNotIn("Could not find app assets", html)
 
 	def test_app_favicon(self):
@@ -516,7 +516,7 @@ class TestStudioAppBuilder(FrappeTestCase):
 		page_sources = {}
 
 		def read_content_file(command, **kwargs):
-			# the app folder's globs come first; the page blocks and scripts are in the listed file
+			# The final content argument is the temporary file containing page blocks and scripts.
 			content_path = arguments(command, "--tailwind-content")[-1]
 			with open(content_path) as f:
 				page_sources["text"] = f.read()
@@ -550,7 +550,7 @@ class TestStudioAppBuilder(FrappeTestCase):
 		staged = {}
 		with patch("frappe.studio.build.subprocess.run") as run:
 			run.return_value.returncode = 0
-			# the staged tree is a temp directory that build() removes on the way out, so read it here
+			# Inspect temporary sources before build() removes the directory.
 			run.side_effect = (
 				lambda *a, **kw: staged.update(
 					folder=builder.app_folder,
@@ -561,15 +561,14 @@ class TestStudioAppBuilder(FrappeTestCase):
 			builder.build()
 
 		command = run.call_args.args[0]
-		# the stored sources reach vite as real files, so it builds what the browser compiles
+		# Vite receives paths to the same source files that the browser compiler uses.
 		custom = json.loads(argument(command, "--custom-components"))
 		self.assertTrue(custom["StoredCard"].endswith("/components/StoredCard.vue"))
 		self.assertEqual(argument(command, "--router-file"), os.path.join(builder.app_folder, "router.ts"))
 		scripts = json.loads(argument(command, "--page-scripts"))
 		self.assertEqual(scripts[0]["page_name"], page.name)
 		self.assertTrue(scripts[0]["file_path"].endswith("/studio_page/test_page/test_page.ts"))
-		# `@app/utils` resolves off the `studio/<app>/` segment of the importer's path, so the
-		# staged tree has to sit at the depth an export does
+		# The @app resolver requires a studio/<app>/ segment in the temporary source path.
 		self.assertTrue(staged["folder"].endswith(f"/studio/{frappe.scrub(app.name)}"))
 		self.assertTrue(staged["utils"])
 
@@ -870,7 +869,7 @@ def argument(command: list[str], flag: str) -> str | None:
 
 
 def arguments(command: list[str], flag: str) -> list[str]:
-	"""Every value that follows `flag` in a build command, for flags passed more than once."""
+	"""Return the value after each occurrence of a repeated build flag."""
 	return [value for index, value in enumerate(command) if index and command[index - 1] == flag]
 
 

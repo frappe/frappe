@@ -109,7 +109,7 @@ const useStudioStore = defineStore("store", () => {
 	}
 
 	const showRouterEditor = ref(false)
-	// a database app's source files live in Studio App File and compile in the browser
+	// Database apps can compile Studio App File source in the browser.
 	const usesDbFiles = computed(() => !activeApp.value?.is_standard)
 
 	async function setApp(appName: string) {
@@ -632,9 +632,8 @@ const useStudioStore = defineStore("store", () => {
 		customVueComponents.value = await reloadCustomVueComponents(activeApp.value!.frappe_app!)
 	}
 
-	// A file changed (an editor save, an agent write): refetch the sources, recompile the
-	// components, and re-run the open page's script so the canvas follows. Debounced to coalesce
-	// the editor's own save with its realtime echo.
+	// Reload source, components and the active page script after file changes.
+	// Debounce to combine a local save and its realtime event into one refresh.
 	const refreshAppFiles = useDebounceFn(async () => {
 		if (!usesDbFiles.value) return
 		await reloadAppRuntime()
@@ -709,7 +708,7 @@ const useStudioStore = defineStore("store", () => {
 	const routeObject = computed(() => {
 		if (!activePage.value) return ""
 
-		// copy — mutating the live route object would wipe the router's own params
+		// Copy the route before applying test parameters, so the router's current route stays intact.
 		const newRoute = { ...toRaw(appRouter.currentRoute.value) }
 		// Seed each dynamic param with its design-time test value (empty string when unset),
 		// e.g. "/hr/:employee/:id" -> { employee, id } filled from routeVariables
@@ -764,11 +763,10 @@ const useStudioStore = defineStore("store", () => {
 	const codeStore = useCodeStore()
 	const pageScope = usePageScope()
 	codeStore.setRouteObject(routeObject)
-	// shallowReadonly, not readonly: a deep readonly proxy unwraps currentRoute, so a page script's
-	// standard router.currentRoute.value reads undefined
+	// Keep currentRoute as a ref so scripts can use router.currentRoute.value.
+	// A deep readonly proxy would unwrap it.
 	codeStore.setRouterObject(shallowReadonly(appRouter))
-	// only what routing depends on: watching activePage deeply would re-navigate on every canvas
-	// edit, undoing a navigation the page script made itself
+	// Watch routing inputs only. Canvas edits must not reset navigation made by the page script.
 	const appRouteInputs = computed(() =>
 		JSON.stringify([
 			activePage.value?.name,

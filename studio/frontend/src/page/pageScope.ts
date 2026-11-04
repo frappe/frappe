@@ -328,8 +328,7 @@ export function createPageScope(
 
 	function teardownPage() {
 		stopResourceWatchers()
-		// drops the script as well: the host unmounts the instance running it, which is what stops
-		// its hooks and effects
+		// Changing the setup version unmounts the host and cleans up the script's effects.
 		setPageSetup(null)
 	}
 
@@ -374,10 +373,8 @@ export function createPageScope(
 	}
 
 	// PAGE SCRIPT
-	// Every page script is a `setup(context)` module. A build compiles it ahead of time and the
-	// runtime loads it by page name; without one it compiles in the browser from page.script.
-	// Loading only fetches the module. PageScriptHost calls setup() from its own component
-	// setup(), so the script runs in a real component instance like any Vue page's does.
+	// Load a setup(context) module from the app build or compile page.script in the browser.
+	// PageScriptHost calls setup() later, during component setup, so Vue lifecycle hooks work.
 	async function loadPageScript(page: StudioPage) {
 		currentPageName.value = page.name
 		try {
@@ -394,8 +391,7 @@ export function createPageScope(
 		return loadAppPageScriptModule(page)
 	}
 
-	// The host is keyed on the version, so a new setup unmounts the instance running the old one
-	// — cleaning up its hooks and effects — before a fresh instance runs this one.
+	// Changing the version remounts the host, cleaning up the previous script before running the new one.
 	function setPageSetup(setup: unknown) {
 		pageSetup.value = typeof setup === "function" ? (setup as Function) : null
 		pageScriptBindings.value = {}
@@ -404,9 +400,9 @@ export function createPageScope(
 		pageScriptVersion.value++
 	}
 
-	// Called by PageScriptHost from its own setup(), where setup(ctx) gets the live execution
-	// context (resources/variables/route/router). What the script registers synchronously belongs
-	// to the host instance; what it registers after an await does not, as in any async setup().
+	// PageScriptHost calls this during component setup with live resources, variables and routing.
+	// Hooks and effects registered synchronously belong to that host. After an await, the page
+	// script no longer has an active component instance for automatic registration and cleanup.
 	function runPageSetup() {
 		const setup = pageSetup.value
 		const version = pageScriptVersion.value
@@ -427,7 +423,7 @@ export function createPageScope(
 		}
 	}
 
-	// An async setup still running when the script changes must not overwrite the new one's work
+	// Ignore async results from a script that has already been replaced.
 	function applyPageScriptBindings(bindings: unknown, version: number) {
 		if (version !== pageScriptVersion.value) return
 		pageScriptBindings.value = (bindings as Record<string, any>) || {}
@@ -445,8 +441,7 @@ export function createPageScope(
 		pageScriptError.value = error instanceof Error ? error.message : String(error)
 	}
 
-	// HMR: this page's script (or a composable/util it imports) was edited. Swap in the freshly
-	// hot-loaded setup; the host remounts and runs it without a reload.
+	// Hot updates replace setup and remount its host without reloading the page.
 	function applyPageScriptHotUpdate(pageName: string, setup: unknown) {
 		if (currentPageName.value !== pageName) return
 		setPageSetup(setup)

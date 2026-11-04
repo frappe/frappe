@@ -109,8 +109,11 @@ def _build_shared_registry() -> ToolRegistry:
 
 
 def build_custom_page_registry() -> ToolRegistry:
-	"""Database app: its source files live in the DB and compile in the browser. It gets the file
-	tools and reactive state as Studio Page variables."""
+	"""Provide file, page script and variable tools for a database app.
+
+	The app stores source files in the database and can compile them in the browser.
+	Studio Page variables provide reactive state.
+	"""
 	from frappe.studio.ai.agent.tools import files, scripts, variables
 
 	registry = _build_shared_registry()
@@ -121,9 +124,11 @@ def build_custom_page_registry() -> ToolRegistry:
 
 
 def build_standard_page_registry() -> ToolRegistry:
-	"""Repository app: a real TypeScript codebase on disk. State and logic live in setup() modules,
-	stores and composables edited as files, so it gets NO variable-doctype tools (state is declared
-	in code instead)."""
+	"""Provide file and page script tools for a repository app.
+
+	State is declared in setup modules, stores and composables, so these apps do not
+	use tools that create Studio Page variables.
+	"""
 	from frappe.studio.ai.agent.tools import files, scripts
 
 	registry = _build_shared_registry()

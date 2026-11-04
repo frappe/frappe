@@ -3,7 +3,7 @@ import type { EditorView } from "@codemirror/view"
 import type { EditorState } from "@codemirror/state"
 import { syntaxTree } from "@codemirror/language"
 
-// What the editor suggests for "vue". Not a restriction: a page script can import any vue export.
+// These Vue exports appear in completions. Page scripts can still import other Vue exports.
 const VUE_API_NAMES = [
 	"ref", "reactive", "computed", "watch", "watchEffect",
 	"toRef", "toRefs", "unref", "isRef", "isReactive",

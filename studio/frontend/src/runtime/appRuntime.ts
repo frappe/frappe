@@ -1,10 +1,9 @@
 /**
- * The browser runtime for a database app's source files, loaded on demand.
+ * Load the browser source compiler and module registry on demand.
  *
- * Everything behind this module — the SFC/TypeScript compilers and the modules an app may import
- * — is heavy and only a database app needs it, so it stays out of the editor's and the renderer's
- * own bundles. Each call here loads that chunk first; `unloadAppRuntime` does not, so an app that
- * never compiles anything never pays for it.
+ * Keep the compilers and available library namespaces out of the initial editor and renderer
+ * bundles. Compilation or syntax checking loads them when needed. Reading or unloading an
+ * unused runtime does not load them. App builds use noBrowserRuntime.ts instead.
  */
 
 import type { RouterConfig } from "@/router/app_router"
@@ -50,7 +49,7 @@ export async function loadAppPageScriptModule(page: {
 	return (await compiledApp()).loadAppPageScriptModule(page)
 }
 
-/** Syntax-check a page script (a TypeScript module) before saving; null when it parses. */
+/** Return a page script's syntax error, or null if the TypeScript module parses. */
 export async function checkAppScript(source: string): Promise<string | null> {
 	return (await compiledApp()).checkAppScript(source)
 }

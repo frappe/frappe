@@ -59,7 +59,7 @@ class TestFiles(IntegrationTestCase):
 		self.assertEqual([node["path"] for node in tree], ["studio_page"])
 		self.assertEqual(tree[0]["children"][0]["children"][0]["path"], path)
 
-		# the page doc owns the script, so editing it through the explorer never adds a store row
+		# Editing a page script updates its page record instead of creating a stored file.
 		files.write_store_file(app.name, path, SETUP_SCRIPT)
 		self.assertEqual(frappe.db.get_value("Studio Page", page.name, "script"), SETUP_SCRIPT)
 		self.assertEqual(files.read_store_file(app.name, path), SETUP_SCRIPT)
@@ -72,7 +72,7 @@ class TestFiles(IntegrationTestCase):
 
 	def test_path_rules(self):
 		app = make_db_app()
-		# path tricks are a jail escape, like the disk explorer treats them
+		# Reject paths that could escape the app root, as the disk explorer does.
 		for traversal in ("../escape.ts", "a//b.ts", "./x.ts"):
 			with self.assertRaises(frappe.PermissionError, msg=traversal):
 				files.create_store_file(app.name, traversal)
@@ -132,7 +132,7 @@ class TestFiles(IntegrationTestCase):
 			repo_app = make_db_app(is_standard=1, frappe_app="frappe")
 		self.assertTrue(files.uses_db_files(db_app.name))
 		self.assertFalse(files.uses_db_files(repo_app.name))
-		# a missing app falls through to the disk jail, which rejects it
+		# A missing app does not use database file storage.
 		self.assertFalse(files.uses_db_files("no-such-app"))
 
 	def test_an_app_that_was_never_exported_discards_nothing(self):
@@ -156,11 +156,11 @@ class TestFiles(IntegrationTestCase):
 			)
 			self.assertEqual(frappe.read_file(os.path.join(folder, "router.ts")), "export default {}\n")
 			self.assertTrue(os.path.isdir(os.path.join(folder, "assets")))
-			# the page script moved to its companion .ts verbatim
+			# Export preserves the script's content in its companion .ts file.
 			self.assertEqual(
 				frappe.read_file(os.path.join(folder, "studio_page", "board", "board.ts")), SETUP_SCRIPT
 			)
-			# the store emptied: the repository owns the files now
+			# After export, source files belong to the repository and the store is empty.
 			self.assertEqual(files.get_store_files(app.name), [])
 
 			app.reload()
@@ -182,7 +182,7 @@ class TestFiles(IntegrationTestCase):
 			app.enable_app_export("frappe")
 
 			folder = app.get_folder_path()
-			# a repository app collects files the store has no home for
+			# A repository can contain files that the database store does not support.
 			write_export_file(folder, "assets", "icon.svg", content="<svg />")
 			write_export_file(folder, "studio_page", "board", "Card.vue")
 			write_export_file(folder, "tailwind.config.js")
@@ -192,7 +192,7 @@ class TestFiles(IntegrationTestCase):
 				app.disable_app_export()
 			for path in ("assets/icon.svg", "studio_page/board/Card.vue", "tailwind.config.js"):
 				self.assertIn(path, str(refused.exception))
-			# the refusal changed nothing
+			# Rejecting the operation preserves the existing export.
 			self.assertTrue(os.path.isdir(folder))
 			self.assertEqual(frappe.db.get_value("Studio App", app.name, "is_standard"), 1)
 

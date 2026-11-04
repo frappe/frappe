@@ -302,7 +302,7 @@ async function fetchCustomComponentTemplate(componentName: string): Promise<stri
 	const meta = customComponentMetas.get(componentName)
 	if (!meta) return ""
 
-	// a component in the file store has no served file: its source is already loaded in the runtime
+	// Database component source comes from the loaded app runtime instead of a file URL.
 	if (!meta.file_path) {
 		const storedSource = (await getAppSource(meta.studio_file_path)) || ""
 		if (storedSource) templateCache.set(componentName, storedSource)

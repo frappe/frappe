@@ -39,7 +39,7 @@ if (window.is_preview && typeof window.is_preview === "string") {
 
 const frappeApp = (window as any).frappe_app
 
-// A database app's files compile in the browser: load them (components, router.ts) before routing.
+// Load stored components and router.ts before creating the database app's router.
 async function prepareApp(): Promise<RouterConfig | undefined> {
 	if (window.uses_db_files) {
 		await loadAppRuntime(window.app_name)

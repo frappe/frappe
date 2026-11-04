@@ -1,12 +1,14 @@
 /**
- * Links and runs a database app's compiled modules. Each module executes once as CommonJS inside
- * a registry, so an import cycle resolves the way it does in a bundler, and `.css` imports inject
- * styles. Bare imports come from the renderer's own modules (importableModules.ts).
+ * Link and execute a database app's compiled modules as CommonJS.
+ * Execute each module once and cache its exports. CSS imports add styles to the document;
+ * library imports reuse the renderer's modules from importableModules.ts.
  *
- * Resolution mirrors what a real Vite build resolves — `@app/` maps to the app root (the
- * studioRootAlias plugin), relative paths try Vite's default extensions, and `.vue` or `.css`
- * need an explicit extension — so an import that works here keeps working once the app's files
- * move to a repository.
+ * The Blob-based native ESM experiment could reuse the renderer's Vue instance, but the browser
+ * retained evaluated module revisions for the document's lifetime. This registry and its cache
+ * can be collected when they are no longer referenced. See branch codex/native-esm-prototype.
+ *
+ * Use the app build's path rules: @app/ points to the app root, relative paths try supported
+ * extensions and index files, and .vue and .css imports require explicit extensions.
  */
 
 import { compileFile, describeError, parseImports, toCommonJS, type CompileError } from "@/runtime/compiler"
@@ -38,15 +40,15 @@ export class AppModuleRegistry {
 		this.files = { ...files }
 	}
 
-	/** Load a module by its exact path in the app (e.g. "router.ts", "components/Card.vue"). */
+	/** Load a module by its exact path relative to the app root, such as components/Card.vue. */
 	async loadModule(path: string): Promise<any> {
 		await this.prepare()
 		if (!this.factories[path]) throw new Error(`${path} is not a module in this app.`)
 		return this.load(path)
 	}
 
-	/** Add or replace one file after boot (a page script mounted at its virtual path) and keep
-	 * every already-executed module as it is. */
+	/** Add or replace a file and clear only that module's cached exports.
+	 * Other module caches stay unchanged, so cached importers may still hold older exports. */
 	async addFile(path: string, source: string): Promise<void> {
 		await this.prepare()
 		if (this.files[path] === source && this.factories[path]) return
@@ -75,7 +77,7 @@ export class AppModuleRegistry {
 		applyStyles(this.styles)
 	}
 
-	/** Compile one file, link-check its imports, and register its factory. */
+	/** Compile a file, validate its imports and create its module factory. */
 	private async compileInto(path: string, source: string, throwOnError = true): Promise<CompileError[]> {
 		const compiled = await compileFile(path, source)
 		const errors = [...compiled.errors]
@@ -99,8 +101,8 @@ export class AppModuleRegistry {
 		return errors
 	}
 
-	/** Resolve every import up front: bare ones load from the renderer's modules, relative ones
-	 * must exist in the app, and named imports from bare modules must actually be exported. */
+	/** Validate discovered imports before execution. Local paths must exist in the app.
+	 * Load renderer library modules and check their requested named exports. */
 	private async linkImports(path: string, code: string): Promise<CompileError[]> {
 		const { imports, errors } = await parseImports(path, code)
 		if (errors.length) return errors
@@ -144,8 +146,7 @@ export class AppModuleRegistry {
 		return this.load(resolved)
 	}
 
-	/** Each module runs once into its own exports object, registered before the body runs, so an
-	 * import cycle sees the partly filled exports. */
+	/** Cache the exports object before execution so cycles can read partially initialized exports. */
 	private load(path: string): any {
 		const existing = this.modules.get(path)
 		if (existing) return existing.exports
@@ -184,7 +185,7 @@ function isLocalSpecifier(specifier: string): boolean {
 	return specifier.startsWith(".") || specifier.startsWith("@app/")
 }
 
-/** "pages/a/a.ts" + "../../utils/x" -> "utils/x"; null when the path escapes the app root. */
+/** Resolve a relative import from its file's directory. Return null if it escapes the app root. */
 function joinRelative(from: string, specifier: string): string | null {
 	const parts = from.split("/").slice(0, -1)
 	for (const segment of specifier.split("/")) {
@@ -208,8 +209,7 @@ function importError(path: string, message: string): CompileError {
 	return { file: path, line: null, column: null, message }
 }
 
-// Styles are keyed by file path in the document head, shared across runtime rebuilds so a
-// rebuild replaces a file's styles instead of stacking duplicates.
+// Keep styles by file path across registry rebuilds, so edits replace styles instead of adding copies.
 const styleElements = new Map<string, HTMLStyleElement>()
 
 function applyStyles(styles: Record<string, string>) {

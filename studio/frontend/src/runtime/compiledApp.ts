@@ -1,11 +1,9 @@
 /**
- * A database app's sources and the live module registry built from them, shared by the renderer
- * and the editor canvas. Sources come from the DB file store in one call; page scripts arrive
- * with each page and are mounted at the path they occupy in a repository
- * (studio_page/<stem>/<stem>.ts), so their relative imports behave exactly like the files on disk.
+ * Manage database source files and their module registry for the editor and default renderer.
  *
- * Nothing imports this module directly — appRuntime.ts loads it on demand, so an app that ships a
- * build never downloads the compiler or the modules it makes importable.
+ * Fetch stored files together. Page scripts arrive with their page data and use the virtual
+ * path studio_page/<stem>/<stem>.ts, so relative imports resolve as they do in a repository.
+ * appRuntime.ts loads this implementation on demand; app builds exclude it.
  */
 
 import { createResource } from "frappe-ui"
@@ -30,14 +28,13 @@ let loadedAppName: string | null = null
 let sources: Record<string, string> = {}
 let registry: AppModuleRegistry | null = null
 
-/** Fetch the app's sources and build its registry. The editor and the renderer both call this
- * before anything compiles; calling it again for the same app reuses the loaded registry. */
+/** Fetch source and create a registry, or reuse the registry already loaded for this app. */
 export async function loadAppRuntime(appName: string): Promise<void> {
 	if (loadedAppName === appName && registry) return
 	await fetchSources(appName)
 }
 
-/** Refetch the sources and rebuild the registry (a file changed, or the editor saved one). */
+/** Fetch updated source and replace the loaded app's registry. */
 export async function reloadAppRuntime(): Promise<void> {
 	if (!loadedAppName) return
 	await fetchSources(loadedAppName)
@@ -54,7 +51,7 @@ async function fetchSources(appName: string): Promise<void> {
 	clearAppStyles(new Set(Object.keys(sources)))
 }
 
-/** Drop the loaded app (the editor switched to a repository app). */
+/** Clear the loaded app's source, registry and styles. */
 export function unloadAppRuntime(): void {
 	loadedAppName = null
 	sources = {}
@@ -70,7 +67,7 @@ export function loadAppModule(path: string): Promise<any> {
 	return getRegistry().loadModule(path)
 }
 
-/** The app's router config from its stored router.ts, if it has one. */
+/** Load router.ts or router.js and return its config, if present. */
 export async function loadAppRouterConfig(): Promise<RouterConfig | undefined> {
 	const registry = getRegistry()
 	const routerFile = ["router.ts", "router.js"].find((path) => registry.hasFile(path))
@@ -79,8 +76,7 @@ export async function loadAppRouterConfig(): Promise<RouterConfig | undefined> {
 	return module?.default || undefined
 }
 
-/** Mount the page's script at the path it occupies in a repository and load it; its default
- * export is setup(). */
+/** Load a page script at the path used by repository apps. Its default export is setup(). */
 export async function loadAppPageScriptModule(page: {
 	page_title?: string
 	script?: string | null
@@ -99,7 +95,7 @@ function getRegistry(): AppModuleRegistry {
 	return registry
 }
 
-/** Syntax-check a page script (a TypeScript module) before saving; null when it parses. */
+/** Return a page script's syntax error, or null if the TypeScript module parses. */
 export async function checkAppScript(source: string): Promise<string | null> {
 	const compiled = await compileFile("page_script.ts", source)
 	return compiled.errors.length ? compiled.errors.map(describeError).join("\n") : null

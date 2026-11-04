@@ -57,9 +57,11 @@ def has_page_write_perm(message: str | None = None):
 
 
 def validate_app_viewer_access(app_name: str, allow_guest_pages: bool = False) -> None:
-	"""Whether the session may read an app's source files. Editors (Studio Page read) always pass;
-	other logged-in users once the app has a published page; guests only when `allow_guest_pages`
-	and a published guest page exists."""
+	"""Check whether the current session may read an app's source files.
+
+	Studio Page readers can preview unpublished apps. Other logged-in users need a
+	published page. Guests also need `allow_guest_pages` and a published guest page.
+	"""
 	if frappe.has_permission("Studio Page", ptype="read"):
 		return
 	is_guest = frappe.session.user == "Guest"

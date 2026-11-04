@@ -308,8 +308,7 @@ const isEditingActivePageScript = computed(
 	() => Boolean(openFile.value) && openFile.value!.path === activePagePaths.value?.script,
 )
 
-// a page script is a module with its own dialect, wherever it is stored: it gets the boilerplate,
-// the help and a syntax check the other source files do not need
+// Page scripts use setup(context), so show their starter code, help and syntax errors.
 const isPageScript = computed(() => Boolean(openFile.value) && isPageScriptPath(openFile.value!.path))
 const scriptError = ref<string | null>(null)
 
@@ -352,7 +351,7 @@ async function openNode(node: StudioFileNode) {
 	try {
 		const file = await readStudioFile(location.value, node.path)
 		openFile.value = { path: file.path, hash: file.hash }
-		// a page authors the module dialect from the first keystroke
+		// Start empty page scripts with the required setup(context) module structure.
 		editorContent.value =
 			!file.content && isPageScriptPath(file.path) ? PAGE_SCRIPT_BOILERPLATE : file.content
 		savedContent.value = file.content
@@ -368,7 +367,7 @@ function openRouterEditor() {
 }
 
 function onEditorChange(value: string) {
-	// the editor also emits on blur, so clicking Save must not wipe the error it is about to show
+	// Blur also emits the current text. Ignore unchanged text to preserve Save's validation error.
 	if (value !== editorContent.value) scriptError.value = null
 	editorContent.value = value
 }
@@ -386,7 +385,7 @@ const saving = ref(false)
 
 async function save() {
 	if (!openFile.value || !dirty.value || openFileReadOnly.value) return
-	// A broken script fails to compile and takes down every binding on the page, so block it.
+	// Reject syntax errors before they prevent page setup from creating bindings.
 	if (isPageScript.value) {
 		const syntaxError = await checkAppScript(editorContent.value)
 		if (syntaxError) {
@@ -408,9 +407,9 @@ async function save() {
 		openFile.value.hash = result.hash
 		savedContent.value = editorContent.value
 		toast.success("Saved")
-		// files in the store compile in the browser: refresh the canvas without waiting for realtime
+		// Refresh stored source immediately instead of waiting for its realtime event.
 		if (store.usesDbFiles) store.refreshAppFiles()
-		// the script went straight to the page doc, so re-run setup() against what was saved
+		// Page scripts update their owning page record, so reload the active page's setup.
 		if (isEditingActivePageScript.value) store.reloadActivePageScript()
 	} catch (error: any) {
 		toast.error("Failed to save", { description: error?.messages?.join(", ") })
@@ -501,8 +500,8 @@ const contextMenuNode = ref<StudioFileNode | null>(null)
 const contextMenuOptions = computed<ContextMenuOption[]>(() => {
 	const node = contextMenuNode.value
 	if (!node) return []
-	// Export-managed pages/components get no rename/delete actions, and a page script is named
-	// after its page, so it can be emptied but not renamed.
+	// Studio-generated files and folders cannot be renamed or deleted here.
+	// A page script can be cleared; rename its owning page to change the script's name.
 	const options: ContextMenuOption[] = isProtectedNode(node)
 		? []
 		: [
@@ -714,8 +713,7 @@ async function onStudioFileChanged({ path }: { path: string }) {
 	}
 }
 
-// The file store has no Vite watcher, so its changes arrive over realtime: refresh the tree, and
-// re-read the open file when it is the one that changed.
+// Stored files have no Vite watcher. Realtime events refresh the tree and any open file that changed.
 const socket = inject<any>("socket")
 
 async function onAppFileChange(info: { doctype: string; name: string; studio_app: string }) {

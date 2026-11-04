@@ -332,7 +332,7 @@ async function buildWithVite(
 		resolve: {
 			alias: [
 				...frameworkUIAlias(APPS_DIR),
-				// a built app compiles nothing in the browser, so the runtime stays out of its bundle
+				// Built apps use compiled source and do not need the browser compiler or registry.
 				{
 					find: /^@\/runtime\/appRuntime$/,
 					replacement: path.resolve(__dirname, "../runtime/noBrowserRuntime.ts"),

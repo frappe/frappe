@@ -1,19 +1,18 @@
-"""Page-script tools — read and author a page's client script.
+"""Read and write page scripts.
 
-Every page's script is an ES module whose default export is a `setup(context)` function
-returning the bindings `{{ }}` expressions and event handlers use. It may `import`, and
-reads the page's variables, resources, route and router off `context`.
+Every page script is an ES module that exports `setup(context)` as its default.
+The function returns values and functions for `{{ }}` expressions and event handlers.
+It can import other modules and read page variables, resources, route and router
+from `context`.
 
-Where that script LIVES differs by app, and so do the two write paths:
-  - Database app → the DB `script` field, compiled in the browser. Editing it is live:
-    the canvas re-runs setup() as soon as the change is saved (reload event).
-  - Repository app in developer mode → a companion `<page>.ts` code file on disk
-    (`can_export`). The running app only reflects it after `generate_app_build`
-    rebuilds the bundle, so the write enqueues a build and the model must tell the
-    user to wait. Outside developer mode this file can't be written — refused.
+The app type determines where a script is saved and how updates reach the running app:
+- Database apps save to the page's `script` field. A reload event updates the canvas.
+- Repository apps save to a companion `<page>.ts` file. Writing requires developer
+  mode and System Manager permissions. The write queues an app build; the agent must
+  tell the user to wait for it.
 
-Both are server-side: the handler mutates the store of record, then either emits a
-reload (DB path) or enqueues a build (file path).
+Both write paths run on the server and update the app's source before requesting
+a reload or build.
 """
 
 import os
@@ -57,7 +56,7 @@ def run_set_page_script(ctx, args: dict) -> str:
 
 
 def _write_db_script(ctx, page, source: str) -> str:
-	"""Database app: store the script in the DB and reload the canvas — live."""
+	"""Save a database app's page script and request a canvas reload."""
 	if not frappe.has_permission("Studio Page", "write", page.name):
 		return "FAILED: you do not have permission to edit this page."
 	page.script = source
@@ -68,8 +67,11 @@ def _write_db_script(ctx, page, source: str) -> str:
 
 
 def _write_file_script(ctx, page, source: str) -> str:
-	"""Repository app: the script is a code file. Only writable in developer mode by a
-	System Manager; the running app reflects it only after the app rebuilds."""
+	"""Write a repository app's page script and queue an app build.
+
+	Writing requires developer mode and System Manager permissions. The running app
+	uses the new script after the build completes.
+	"""
 	if not frappe.conf.developer_mode:
 		return (
 			"FAILED: this page belongs to a repository app — its script lives in a code file editable "
@@ -77,8 +79,8 @@ def _write_file_script(ctx, page, source: str) -> str:
 		)
 	if "System Manager" not in frappe.get_roles():
 		return "FAILED: writing a repository app's page script requires the System Manager role."
-	# Feed write_code_file via the in-memory field; the DB `script` stays null (the .ts is
-	# the source of truth for a repository app's page), so we deliberately do NOT save the doc.
+	# write_code_file reads the field from this object. Do not save the document:
+	# repository page scripts belong in the .ts file, not the database field.
 	page.script = source
 	folder = page.get_folder_path()
 	frappe.create_folder(folder)

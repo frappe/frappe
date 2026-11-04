@@ -27,8 +27,10 @@ LUCIDE_ICON_REGEX = re.compile(r"\blucide-[a-z0-9]+(?:-[a-z0-9]+)*")
 
 
 def can_build_bundle() -> bool:
-	"""Whether this server can build an app bundle at all. Without yarn the browser renderer is
-	an app's normal runtime, not the sign of a failed build."""
+	"""Check whether Yarn is available to build an app bundle.
+
+	Without Yarn, database apps use the browser compiler and do not need a build warning.
+	"""
 	return bool(shutil.which("yarn"))
 
 
@@ -50,8 +52,7 @@ class StudioAppBuilder:
 		self.custom_vue_components: dict[str, str] = {}  # {ComponentName: absolute_path}
 		self.page_scripts: list[dict] = []  # [{page_name, file_path}]
 		self.router_file: str | None = None
-		# the folder the build reads: a repository app's export folder, or the temp folder build()
-		# lays a database app's sources out in
+		# Database sources use a temporary folder; repository sources use their export folder.
 		self.app_folder: str | None = None
 		self.icons: set[str] = set()
 		self.tailwind_content: list[str] = []
@@ -96,7 +97,7 @@ class StudioAppBuilder:
 					self._run_vite_build()
 
 	def _write_page_sources(self):
-		"""Page blocks aren't files, so write them to one for Tailwind to scan."""
+		"""Write page source to a temporary file so Tailwind can find its CSS classes."""
 		page_sources = tempfile.NamedTemporaryFile("w", suffix=".txt")
 		page_sources.write("\n".join(self.page_sources))
 		page_sources.flush()
@@ -221,7 +222,7 @@ class StudioAppBuilder:
 		"""Extract component names from exported JSON files on disk instead of DB records,
 		used during `bench build` when there's no DB access.
 		"""
-		# resolved here too: this is an entry point of its own during `bench build`
+		# bench build can call this method directly, before build() sets app_folder.
 		app_folder = self.app_folder = self.app_folder or self.get_app_folder()
 		page_folder = os.path.join(app_folder, "studio_page")
 		if not os.path.exists(page_folder):
@@ -402,16 +403,19 @@ def find_router_file(app_folder: str) -> str | None:
 
 
 def temp_export_folder(root: str, app_name: str) -> str:
-	"""Where a database app's sources are staged for a build. `@app/x` resolves against the
-	`studio/<studio_app>/` segment of the importing file's path, so the staged tree has to sit at
-	the same depth an export does or every `@app/` import fails to resolve."""
+	"""Return a temporary source root with the same `studio/<app>/` layout as an export.
+
+	The `@app/` resolver finds this path segment in the importing file's path.
+	"""
 	return os.path.join(root, "studio", frappe.scrub(app_name))
 
 
 def write_db_files_to_folder(studio_app: str, app_folder: str) -> list[dict]:
-	"""Lay a database app's sources out on disk the way an exported app stores them, so Vite builds
-	the same files the browser compiles: the file store at the app root, and each published page's
-	script as studio_page/<stem>/<stem>.ts. Returns the page scripts written."""
+	"""Write database source files to the export layout for Vite to build.
+
+	Store shared files at the app root and published page scripts at
+	`studio_page/<stem>/<stem>.ts`. Return each page script's name and file path.
+	"""
 	from frappe.studio.files import get_store_files
 
 	for file in get_store_files(studio_app):

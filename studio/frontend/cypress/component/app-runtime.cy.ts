@@ -41,12 +41,12 @@ describe("AppModuleRegistry", () => {
 			expect(card.default.__file).to.equal("components/StatCard.vue")
 			expect(card.default.__scopeId).to.match(/^data-v-/)
 			cy.mount(card.default).get(".stat").should("contain.text", "#42")
-			// the scoped style landed in the document and applies to the mounted component
+			// Scoped CSS must apply to the mounted component, not just compile successfully.
 			cy.get(".stat").should("have.css", "color", "rgb(200, 0, 0)")
 		})
 
 		cy.wrap(registry.loadModule("components/OptionsCard.vue")).then((card: any) => {
-			// no <script setup> to inline into, so the template has to compile on its own
+			// Options API components need a separately compiled template.
 			cy.mount(card.default).get(".options").should("contain.text", "from options")
 		})
 
@@ -74,7 +74,7 @@ export default function setup(context: any) { return { label: ref(fmt(7) + fmt2(
 		).then((module: any) => {
 			const bindings = module.default({})
 			expect(bindings.label.value).to.equal("#7#8")
-			// isRef only recognizes refs made by the same vue instance the editor runs on
+			// The returned binding must retain Vue's ref interface.
 			expect(isRef(bindings.label)).to.equal(true)
 		})
 	})
@@ -90,7 +90,7 @@ export const value = count("ok")`,
 		}
 
 		cy.wrap(new AppModuleRegistry(sources).loadModule("a.ts")).then((module: any) => {
-			// the alias is checked against "ref", the name vue actually exports, not "count"
+			// Validate the exported name "ref" even when the script imports it as "count".
 			expect(module.value.value).to.equal("ok")
 			expect(module.help).to.include('import "./theme.css"')
 		})
@@ -110,14 +110,14 @@ export const value = count("ok")`,
 					"a.ts",
 					"Cannot resolve",
 				)
-				// a literal import() is prefetched too, so it has to resolve like any other import
+				// Validate literal dynamic imports before the module executes.
 				await expectCompileError(
 					{ "a.ts": `export const lazy = () => import("./missing.vue")` },
 					"a.ts",
 					"Cannot resolve",
 				)
 				await expectCompileError({ "a.vue": `<template><div :broken="</template>` }, "a.vue", "a.vue")
-				// .vue files resolve only with an explicit extension, like the real Vite build
+				// Vue component imports require the .vue extension, as they do in the app build.
 				await expectCompileError(
 					{
 						"a.ts": `import Card from "./Card"\nexport const c = Card`,
@@ -126,7 +126,7 @@ export const value = count("ok")`,
 					"a.ts",
 					"Cannot resolve",
 				)
-				// a preprocessor the browser does not have must fail, not compile to wrong output
+				// Reject languages that require a preprocessor unavailable in the browser.
 				await expectCompileError(
 					{ "a.vue": `<template><b /></template>\n<style lang="scss">.x { &:hover { color: red } }</style>` },
 					"a.vue",

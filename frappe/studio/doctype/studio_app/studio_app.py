@@ -82,8 +82,8 @@ class StudioAppRenderer(DocumentPage):
 				self.context.stylesheets = manifest.get("stylesheets", [])
 				self.context.script = manifest.get("script")
 			else:
-				# the editor's renderer compiles the app's files in the browser; a server that
-				# cannot build has no bundle to miss, so only warn where one was expected
+				# The browser renderer can serve a database app without a build.
+				# Warn about missing assets only when the server can build them.
 				self.use_studio_renderer()
 				self.context.assets_not_found = can_build_bundle()
 
@@ -159,7 +159,7 @@ class StudioApp(WebsiteGenerator):
 		return get_router_file(self.frappe_app, self.name)
 
 	def uses_db_files(self) -> bool:
-		"""Whether the app's source files live in the DB store and compile in the browser."""
+		"""Return whether the app uses database source storage and supports browser compilation."""
 		return not self.is_standard
 
 	def get_boot(self) -> dict:
@@ -229,8 +229,7 @@ class StudioApp(WebsiteGenerator):
 		delete_folder(path)
 
 	def delete_app_build(self):
-		"""Drop the built bundle so the app falls back to the renderer, which compiles its files
-		in the browser. A stale bundle would otherwise keep serving the pages it was built from."""
+		"""Delete the bundle so the renderer loads the current source instead of an older build."""
 		if path := self.get_build_path():
 			delete_folder(path)
 
@@ -386,7 +385,7 @@ class StudioApp(WebsiteGenerator):
 
 	@frappe.whitelist()
 	def get_discarded_export_files(self) -> list[str]:
-		"""Export-folder files that disabling export would delete instead of storing."""
+		"""List export files that disabling export cannot preserve in the database."""
 		self.check_permission("write")
 		return discarded_export_files(self)
 
@@ -402,7 +401,7 @@ class StudioApp(WebsiteGenerator):
 
 		for page_name in self.standard_pages:
 			frappe.get_doc("Studio Page", page_name).restore_script_from_file()
-		# before the save below deletes the folder: the files move back into the DB store
+		# Preserve source files before save() deletes the export folder.
 		restore_store_from_disk(self)
 
 		frappe.db.set_value("Studio Page", {"studio_app": self.name}, "is_standard", 0)

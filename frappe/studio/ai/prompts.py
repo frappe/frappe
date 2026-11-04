@@ -269,9 +269,9 @@ App-wide routing (aliases, redirects, guards) goes in the app's router config, n
   },
 }"""
 
-# Mode-specific "State & logic" sections appended to DATA_WIRING. Plain strings (NOT f-strings) so the
-# `{{ }}` binding tokens survive verbatim. Both apps author the same page-script module; they differ in
-# where the files live and whether a build stands between an edit and the running app.
+# Use plain strings for these state and logic sections so `{{ }}` tokens stay unchanged.
+# Both app types use the same page script format.
+# File storage and the need to rebuild after an edit depend on the app type.
 CUSTOM_PAGE_CODE = """# State & logic
 Variables — reactive page state (a counter, a toggle, a selected filter). add_variable(name, type, initial_value); reference anywhere as {{ name }}, and read it in a page script as `context.name`. update_variable to retype/re-seed, delete_variable to remove (warns if still bound). Reuse before duplicating (list_variables).
 
@@ -356,9 +356,8 @@ When the user attaches an image (a screenshot or design mock), treat it as the s
 """
 
 
-# Two agents, picked by where the app's files live. Both author the same page-script module and the
-# same shared files; they differ in whether Studio Page variables are on offer and whether a build
-# stands between an edit and the running app.
+# Choose the agent by the app's source storage. Both use the same page script format
+# and shared files. Available variable tools and build requirements differ by app type.
 AGENT_SYSTEM_CUSTOM = get_agent_system(DATA_WIRING + "\n\n" + CUSTOM_PAGE_CODE + "\n\n" + ROUTING)
 AGENT_SYSTEM_STANDARD = get_agent_system(DATA_WIRING + "\n\n" + STANDARD_PAGE_CODE + "\n\n" + ROUTING)
 

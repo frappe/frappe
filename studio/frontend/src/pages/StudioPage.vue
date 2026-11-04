@@ -1,7 +1,7 @@
 <template>
 	<div class="studio isolate h-screen flex-col overflow-hidden bg-surface-gray-2">
-		<!-- renders nothing: it only gives the page script an instance to live in. Outside the
-		     canvas so re-running a script does not remount it and lose the canvas state. -->
+		<!-- Give page scripts a Vue instance. Keep the host outside the canvas so script edits
+		     remount the script without losing canvas state. -->
 		<PageScriptHost :key="pageScope.pageScriptVersion" />
 		<ComponentContextMenu ref="componentContextMenu"></ComponentContextMenu>
 		<StudioToolbar class="relative z-30" />

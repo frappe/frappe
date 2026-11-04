@@ -123,7 +123,7 @@ export const DYNAMIC_EXPRESSION_CONTENT_REGEX = /\{\{([\s\S]*?)\}\}/g
 // preserving escaped sequences (e.g. \" or \\n) in the captured group.
 export const QUOTED_STRING_CONTENT_REGEX = /"((?:[^"\\]|\\.)*)"/g
 
-// A page's setup() skeleton: new page scripts start from it, on disk and in the DB alike.
+// New page scripts use the same setup module in both source stores.
 export const PAGE_SCRIPT_BOILERPLATE = `export default function setup(context) {
 	// Reactive state, computed values, watchers and functions for this page.
 	// Read this page's data sources and variables from context, e.g. context.todos

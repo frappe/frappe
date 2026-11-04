@@ -61,8 +61,8 @@ export async function createAppRouter(config?: RouterConfig): Promise<Router> {
 	return router
 }
 
-// The dev server serves router.ts for a repository app; a database app's is compiled in the
-// browser and handed to createAppRouter, and a built app imports it in its own entry.
+// Repository previews load router.ts from the dev server. Database apps pass a browser-compiled
+// config to createAppRouter; app builds import the config in their generated entry.
 async function loadRouterConfig(): Promise<RouterConfig> {
 	if (!window.router_file) return {}
 	const mod = await runHook("router.ts", () => import(/* @vite-ignore */ window.router_file!))

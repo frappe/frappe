@@ -1,11 +1,12 @@
-"""File tools — read and write an app's code files (stores, composables, utils, components).
+"""Read and write an app's shared source files, such as stores, composables and components.
 
-An app's frontend is a real TypeScript project, on disk under `<frappe_app>/studio/<studio_app>/`
-for a repository app and in the DB file store for a database app. These server tools wrap the
-jailed studio-file API in frappe.studio.api, which already enforces the path jail, the
-editable-extension allowlist, the role, and developer mode for the files on disk — so the model
-never touches anything outside the app. A page edits its own logic with set_page_script; these
-tools are for the SHARED code around it, imported into page scripts via the app's `@app/*` alias.
+Repository apps store files under `<frappe_app>/studio/<studio_app>/`. Database apps
+store them in Studio App File records. Both use the file API in `frappe.studio.api`,
+which restricts paths to the app, checks allowed extensions and permissions, and
+requires developer mode for files on disk.
+
+Use `set_page_script` for a page's own logic. Use these tools for shared code that
+page scripts import with the `@app/` alias.
 """
 
 import frappe
@@ -99,8 +100,10 @@ def run_trigger_app_build(ctx, args: dict) -> str:
 
 
 def _app_ref(ctx) -> tuple[str, str] | str:
-	"""(frappe_app, studio_app) for the page in context. frappe_app is empty for a database app,
-	whose files the API reads from the store instead of the folder."""
+	"""Return `(frappe_app, studio_app)` for the current page.
+
+	For a database app, `frappe_app` is empty and the file API uses the database store.
+	"""
 	page = load_page(ctx)
 	if page is None:
 		return "FAILED: no page in context."

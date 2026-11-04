@@ -26,7 +26,7 @@ class TestPageScriptConversion(IntegrationTestCase):
 		self.assertEqual(bindings("const { y } = obj, z = 3"), ["y", "z"])
 
 	def test_ignores_declarations_that_are_not_top_level(self):
-		# a block, a loop head and a function expression declare nothing the page can bind to
+		# Nested declarations and function expression names are not top-level page bindings.
 		self.assertEqual(bindings("if (x) { const hidden = 1 }\nconst shown = 2"), ["shown"])
 		self.assertEqual(bindings("for (const item of items) {}\nconst total = 1"), ["total"])
 		self.assertEqual(
@@ -51,7 +51,7 @@ class TestPageScriptConversion(IntegrationTestCase):
 		self.assertIn("export default function setup(context) {", module)
 		self.assertIn("\tconst count = ref(0)", module)
 		self.assertIn("return { count, rows, increment }", module)
-		# route and router are untouched by this script, so they stay out of the destructure
+		# The generated context assignment excludes unused route and router values.
 		self.assertNotIn("route", module.split("export default")[0])
 
 	def test_imports_each_api_from_the_module_that_exports_it(self):
@@ -60,7 +60,7 @@ class TestPageScriptConversion(IntegrationTestCase):
 		self.assertIn('import { toast } from "frappe-ui"', module)
 
 	def test_a_declaration_shadows_what_the_context_offered(self):
-		# the interpreted script resolved `filter` to its own declaration, so the module must too
+		# Preserve the script's own filter declaration instead of reading filter from context.
 		module = to_setup_module("const filter = ref('')\n", ["filter", "route"])
 		self.assertNotIn("= context", module)
 		self.assertIn("return { filter }", module)
@@ -72,7 +72,7 @@ class TestPageScriptConversion(IntegrationTestCase):
 	def test_recognises_an_already_converted_script(self):
 		self.assertFalse(is_module("const a = 1\n"))
 		self.assertTrue(is_module(to_setup_module("const a = 1\n", [])))
-		# `export` inside a string or a comment does not make a script a module
+		# Only code can identify a module; ignore export text in strings and comments.
 		self.assertFalse(is_module("const a = 'export default x'\n"))
 
 	def test_patch_converts_database_pages_and_the_router_script(self):
@@ -89,6 +89,6 @@ class TestPageScriptConversion(IntegrationTestCase):
 			files.read_store_file(app.name, "router.ts"), "export default { setup(router) {} }\n"
 		)
 
-		# running it again leaves the converted script alone
+		# Running the conversion again must leave the module unchanged.
 		execute()
 		self.assertEqual(frappe.db.get_value("Studio Page", page.name, "script"), converted)

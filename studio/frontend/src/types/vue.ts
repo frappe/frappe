@@ -17,7 +17,7 @@ export interface CustomVueComponentMeta {
 	component_name: string
 	frappe_app?: string
 	studio_app: string
-	// absent for a component in the file store: there is no served file, the source is in the DB
+	// Omitted for database components, whose source loads through the app runtime.
 	file_path?: string
 	studio_file_path: string
 }

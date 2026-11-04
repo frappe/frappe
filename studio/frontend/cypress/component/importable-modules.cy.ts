@@ -3,8 +3,8 @@ import { STUDIO_SHARED_DEPS } from "../../vite/sharedDependencyResolver"
 
 describe("the database app import map", () => {
 	it("only offers modules a real Vite build can resolve", () => {
-		// A database app's sources build from a staged temp folder with no node_modules of its own,
-		// so every importable specifier must be redirected to Studio's copy by the build resolver.
+		// The temporary database-app build has no node_modules directory.
+		// Every offered library must resolve to Studio's installed dependencies.
 		const unresolvable = IMPORTABLE_MODULES.filter(
 			(specifier) => !STUDIO_SHARED_DEPS.some((dep) => specifier === dep || specifier.startsWith(`${dep}/`)),
 		)

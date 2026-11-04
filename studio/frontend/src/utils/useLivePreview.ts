@@ -22,7 +22,7 @@ export function useLivePreview() {
 		if (!failure) revision.value++
 	}, 300)
 
-	// a source file changed: refetch the sources, recompile the components, remount the page
+	// Reload source and components before remounting the page after a stored file changes.
 	const reloadAppFiles = useDebounceFn(async () => {
 		const { registerAppVueComponents } = await import("@/utils/customVueComponents")
 		await reloadAppRuntime()

@@ -77,7 +77,7 @@ const location = computed(() => ({
 	studio_app: store.activeApp?.name ?? "",
 }))
 
-// every app keeps its router config in router.ts, on disk or in its file store
+// Both app types use router.ts, stored in the repository or database file store.
 async function load() {
 	const file = await readStudioFileIfExists(location.value, ROUTER_FILE)
 	setLoaded(file.content ?? "", file.hash ?? undefined)

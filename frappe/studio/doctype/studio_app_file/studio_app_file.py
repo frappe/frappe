@@ -47,7 +47,7 @@ class StudioAppFile(Document):
 			frappe.throw(_("{0} already exists in app {1}.").format(self.file_path, self.studio_app))
 
 	def on_update(self):
-		# the file path, not the docname, tells the editor and the renderer what to refresh
+		# Viewers identify source files by path, so send the path instead of the record name.
 		publish_doc_change("Studio App File", self.file_path, self.studio_app)
 
 	def after_delete(self):
@@ -55,8 +55,8 @@ class StudioAppFile(Document):
 
 
 def on_doctype_update():
-	# validate_unique_path is a check followed by an insert, so two concurrent requests both pass
-	# it. The index is what makes one of them fail.
+	# Concurrent requests can both pass validate_unique_path().
+	# The database constraint prevents them from saving the same app and path.
 	frappe.db.add_unique(
 		"Studio App File", ("studio_app", "file_path"), constraint_name="unique_app_file_path"
 	)
