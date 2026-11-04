@@ -22,6 +22,7 @@ from frappe.flow.tools.builtins import (
 	sync_builtin_tools,
 	update,
 )
+from frappe.flow.utils.safe_exec import NeedsApproval
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import whitelist_for_tests
 
@@ -533,11 +534,8 @@ result = seen["result"][0]
 		for name, value in frappe_ns.items():
 			if not callable(value) or isinstance(value, type) or name in pure:
 				continue
-			with self.subTest(name):
-				self.assertEqual(
-					getattr(value, "func", None).__name__,
-					"_stop" if name != "call" else "_call_read_function",
-				)
+			with self.subTest(name), self.assertRaises(NeedsApproval):
+				value(f"{MODULE}.get_only")
 
 
 class TestWriteTools(IntegrationTestCase):
