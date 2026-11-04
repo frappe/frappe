@@ -63,7 +63,9 @@ class FlowLauncher {
 		this.panel
 			.querySelector(".edge")
 			.addEventListener("pointerdown", (event) => this.resize_panel(event));
-		this.panel.querySelector(".retry").addEventListener("click", () => this.retry());
+		// a failed start isn't retried in place: the browser keeps a failed import for its URL, and
+		// a deploy since the page loaded leaves it naming files that are gone
+		this.panel.querySelector(".reload").addEventListener("click", () => location.reload());
 		this.panel.querySelector(".close").addEventListener("click", () => this.minimize());
 		// a file dropped on the panel's edge would open in the tab; the chat handles its own
 		for (const name of ["dragover", "drop"])
@@ -83,11 +85,11 @@ class FlowLauncher {
 		this.panel.inert = this.chat.inert = false;
 		this.place();
 		this.save();
-		// a failed start is logged once, where the island is made
+		// a failed start is logged once, where the island is made; its Try again takes the focus
 		if (focus)
 			this.island.ready.then(
 				() => this.focus_chat(),
-				() => {}
+				() => this.panel.querySelector(".reload").focus()
 			);
 	}
 
@@ -138,12 +140,7 @@ class FlowLauncher {
 	make_island() {
 		const desk = Boolean(window.frappe?.set_route);
 		this.island = mountIsland(ISLAND, this.chat, {
-			// the browser keeps a failed import, and a failed preload, for its URL: a retry asks
-			// under new ones
-			resolve: () => {
-				const again = (url) => (this.retries ? `${url}?retry=${this.retries}` : url);
-				return { js: again(SCRIPT.dataset.island), css: again(SCRIPT.dataset.islandCss) };
-			},
+			resolve: () => ({ js: SCRIPT.dataset.island, css: SCRIPT.dataset.islandCss }),
 			host: {
 				locale: window.frappe?.boot?.lang || document.documentElement.lang || "en",
 				user: window.frappe?.session?.user || null,
@@ -164,21 +161,8 @@ class FlowLauncher {
 			() => this.host.toggleAttribute("data-ready", true),
 			(error) => {
 				this.host.toggleAttribute("data-failed", true);
-				if (this.state.open) this.panel.querySelector(".retry").focus();
 				console.error("Flow could not start", error);
 			}
-		);
-	}
-
-	// the chat's files failed to load: load them again, with the skeleton up meanwhile
-	retry() {
-		this.retries = (this.retries || 0) + 1;
-		this.island.unmount();
-		this.host.removeAttribute("data-failed");
-		this.make_island();
-		this.island.ready.then(
-			() => this.focus_chat(),
-			() => {}
 		);
 	}
 
@@ -343,7 +327,7 @@ const SKELETON = `<div class="skeleton" aria-hidden="true">
 // in the skeleton's place when the chat's files could not load
 const FAILED = `<div class="failed" role="alert">
 	<p>Flow could not start.</p>
-	<div><button class="retry">Try again</button><button class="close">Close</button></div>
+	<div><button class="reload">Reload page</button><button class="close">Close</button></div>
 </div>`;
 
 const SLIDE = `${SLIDE_TIME}ms cubic-bezier(0.2, 0, 0, 1)`;
@@ -415,8 +399,8 @@ const STYLE = `
 .failed div { display: flex; gap: 8px; }
 .failed button { height: 28px; padding: 0 12px; border: 0; border-radius: var(--radius, 8px); font: inherit; cursor: pointer; background: var(--surface-gray-2, rgba(128, 128, 128, 0.12)); color: var(--ink-gray-8, #383838); }
 .failed button:hover { background: var(--surface-gray-3, rgba(128, 128, 128, 0.2)); }
-.failed .retry { background: var(--surface-gray-9, #171717); color: var(--ink-base, #fff); }
-.failed .retry:hover { background: var(--surface-gray-8, #383838); }
+.failed .reload { background: var(--surface-gray-9, #171717); color: var(--ink-base, #fff); }
+.failed .reload:hover { background: var(--surface-gray-8, #383838); }
 :host([data-failed]) .skeleton { display: none; }
 :host([data-failed]) .failed { display: flex; }
 @media (prefers-reduced-motion: no-preference) {
