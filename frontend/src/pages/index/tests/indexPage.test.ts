@@ -701,7 +701,10 @@ describe("the person's layer", () => {
 	});
 
 	it("offers Show on a hidden app the filter found", async () => {
-		fake.runMethod.mockResolvedValue({ data: APPS });
+		// Saving drops the held places, so the search asks for them again.
+		fake.runMethod.mockImplementation(async (method: string) => ({
+			data: method === "frappe.shell.palette.places" ? { doctypes: [], apps: [], titles: {}, recent: [] } : APPS,
+		}));
 		const host = await mount(HIDDEN_CRM);
 		await type(host, "crm");
 		const [show] = await openTileMenu(host, "crm");

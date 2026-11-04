@@ -15,8 +15,8 @@ from frappe.utils import get_datetime, get_system_timezone
 from frappe.utils.data import make_filter_tuple
 
 from .boot import index_tiles, titled_visits
-from .index_layer import arrange
 from .doctypes import get_shell_doctypes
+from .index_layer import arrange
 from .links import canonical_path
 from .permissions import has_app_permission, may_enter_any_prefix
 from .route_history import Visit
