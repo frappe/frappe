@@ -23,7 +23,7 @@ import {
 	type ListMeta,
 	type RowValue,
 } from "./defaults";
-import { readListMemory, recallRows, rememberRows, writeListMemory } from "./pageState";
+import { readListMemory, recallRows, rememberRows, useRememberedPageSize, writeListMemory } from "./pageState";
 import { listStatusTheme, type StatusTheme } from "@/statusTheme";
 import { completeFilters, queryFromAddress } from "./query";
 import { columnsFrom, toStoredColumns } from "./storedSettings";
@@ -101,7 +101,7 @@ export function useListView(view: View): ListView {
 	});
 
 	const selection = ref<string[]>([]);
-	const pageSize = ref(readListMemory().pageSize ?? 20);
+	const pageSize = useRememberedPageSize();
 
 	const stateKey = () =>
 		JSON.stringify(queryFromAddress({ filters: view.filters.value, sort: view.sort.value }));
@@ -128,7 +128,6 @@ export function useListView(view: View): ListView {
 		};
 	});
 
-	watch(pageSize, (size) => writeListMemory({ pageSize: size }));
 	// The entry's offset belongs to the query it was scrolled on; a new query on the same entry
 	// starts at the top, or Back would land the old offset on the new rows.
 	watch(rows.loadedKey, (_key, previous) => {
@@ -153,17 +152,8 @@ export function useListView(view: View): ListView {
 	});
 
 	async function deleteSelection(): Promise<DeleteOutcome> {
-		const outcome: DeleteOutcome = { deleted: [], failed: [] };
-		for (const name of selection.value) {
-			try {
-				await rows.remove(name);
-				outcome.deleted.push(name);
-			} catch (failure) {
-				outcome.failed.push({ name, error: messageOf(failure) });
-			}
-		}
+		const outcome = await deleteRows(rows, selection.value);
 		selection.value = [];
-		rows.reload();
 		return outcome;
 	}
 
@@ -206,12 +196,27 @@ export function useListView(view: View): ListView {
 }
 
 /** The object form `useList` takes; it holds one condition per field, so a second one is lost. */
-function filtersDict(filters: FilterCondition[]): Record<string, unknown> {
+export function filtersDict(filters: FilterCondition[]): Record<string, unknown> {
 	const dict: Record<string, unknown> = {};
 	for (const [fieldname, operator, value] of serializeFilters(completeFilters(filters))) {
 		dict[fieldname] = [operator, value];
 	}
 	return dict;
+}
+
+/** Deletes the rows one by one, then reloads the page; what failed comes back with its message. */
+export async function deleteRows(rows: ListRows, names: string[]): Promise<DeleteOutcome> {
+	const outcome: DeleteOutcome = { deleted: [], failed: [] };
+	for (const name of names) {
+		try {
+			await rows.remove(name);
+			outcome.deleted.push(name);
+		} catch (failure) {
+			outcome.failed.push({ name, error: messageOf(failure) });
+		}
+	}
+	rows.reload();
+	return outcome;
 }
 
 function messageOf(failure: unknown): string {
