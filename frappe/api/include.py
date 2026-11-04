@@ -20,7 +20,7 @@ from frappe.desk.form.load import (
 	get_title_values_for_table_and_multiselect_fields,
 )
 from frappe.model.document import Document
-from frappe.model.workflow import get_workflow_name, get_workflow_state_field
+from frappe.model.workflow import get_workflow_name, get_workflow_names, get_workflow_state_field
 from frappe.permissions import get_doc_permissions
 from frappe.share import _get_users as get_shares
 
@@ -207,6 +207,21 @@ def get_doctype_state_field(doctype: str) -> str | None:
 	"""The field holding the state under the doctype's active workflow, or None."""
 	name = get_workflow_name(doctype)
 	return get_workflow_state_field(name) if name else None
+
+
+def get_workflow_state_styles(doctype: str) -> dict[str, str]:
+	"""The style of each state of the doctype's active workflows, for the states that have one."""
+	states = {
+		row.state
+		for name in get_workflow_names(doctype)
+		for row in frappe.get_cached_doc("Workflow", name).states
+	}
+	if not states:
+		return {}
+	rows = frappe.get_all(
+		"Workflow State", filters={"name": ("in", sorted(states))}, fields=["name", "style"]
+	)
+	return {row.name: row.style for row in rows if row.style}
 
 
 META_PARTS = {"children": get_children}

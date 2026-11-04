@@ -32,6 +32,16 @@ describe("statusItems", () => {
     ]);
   });
 
+  it("colours the workflow state by its Workflow State's style", () => {
+    const meta = {
+      workflow_state_field: "workflow_state",
+      workflow_state_styles: { Approved: "Success", Rejected: "Danger", Waiting: "Warning" },
+    };
+    expect(shown(meta, { workflow_state: "Approved" })[0]).toMatchObject({ theme: "green" });
+    expect(shown(meta, { workflow_state: "Rejected" })[0]).toMatchObject({ theme: "red" });
+    expect(shown(meta, { workflow_state: "Waiting" })[0]).toMatchObject({ theme: "orange" });
+  });
+
   it("falls back to the docstatus while the state field is empty", () => {
     const meta = { ...submittable, workflow_state_field: "workflow_state" };
     expect(shown(meta, { docstatus: 0, workflow_state: null })).toEqual([

@@ -1490,6 +1490,7 @@ class TestIncludePartsV2(FrappeAPITestCase):
 		path = self.doctype_path("ToDo", "meta")
 		response = self.get(path, {"sid": self.user_sid})
 		self.assertIsNone(response.json["data"]["workflow_state_field"])
+		self.assertEqual(response.json["data"]["workflow_state_styles"], {})
 
 		self.addCleanup(frappe.set_user, frappe.session.user)
 		frappe.set_user("Administrator")
@@ -1498,6 +1499,12 @@ class TestIncludePartsV2(FrappeAPITestCase):
 				frappe.get_doc({"doctype": "Workflow State", "workflow_state_name": state}).insert(
 					ignore_permissions=True
 				)
+		styles = {
+			state: frappe.db.get_value("Workflow State", state, "style") for state in ("Pending", "Done")
+		}
+		self.addCleanup(self.restore_state_styles, styles)
+		frappe.db.set_value("Workflow State", "Pending", "style", "")
+		frappe.db.set_value("Workflow State", "Done", "style", "Success")
 		if not frappe.db.exists("Workflow Action Master", "Finish"):
 			frappe.get_doc({"doctype": "Workflow Action Master", "workflow_action_name": "Finish"}).insert(
 				ignore_permissions=True
@@ -1520,6 +1527,13 @@ class TestIncludePartsV2(FrappeAPITestCase):
 		frappe.db.commit()
 		response = self.get(path, {"sid": self.user_sid})
 		self.assertEqual(response.json["data"]["workflow_state_field"], "workflow_state")
+		self.assertEqual(response.json["data"]["workflow_state_styles"], {"Done": "Success"})
+
+	@staticmethod
+	def restore_state_styles(styles):
+		for state, style in styles.items():
+			frappe.db.set_value("Workflow State", state, "style", style or "")
+		frappe.db.commit()
 
 	@staticmethod
 	def drop_workflow(workflow, had_field):
