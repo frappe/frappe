@@ -235,7 +235,8 @@ def get_domain_dns_records(domain: str) -> dict:
 	records = client.get(client.domain_path(_clean_domain(domain), "dns-records")) or {}
 	return {
 		"records": [*records.get("cname", []), *records.get("a", [])],
-		"options": [option for option in (records.get("cname"), records.get("a")) if option],
+		"cname": records.get("cname", []),
+		"a": records.get("a", []),
 	}
 
 
