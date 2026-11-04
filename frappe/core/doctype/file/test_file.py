@@ -1060,10 +1060,70 @@ class TestAttachment(IntegrationTestCase):
 			)
 		)
 
+<<<<<<< HEAD
 	def test_toggle_is_private_leaves_unrelated_field_unchanged(self):
 		self.addCleanup(frappe.set_user, "Administrator")
 		frappe.set_user("test@example.com")
 		todo = frappe.get_doc(doctype="ToDo", description="Call Northwind Traders").insert()
+=======
+	def test_unreadable_private_attachment_shows_no_message_on_save(self):
+		file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "test_unreadable.txt",
+				"content": "Unreadable Content",
+				"is_private": 1,
+			}
+		).insert()
+		doc = frappe.get_doc(doctype=self.test_doctype, title="test unreadable private attachment").insert()
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		frappe.clear_messages()
+		doc.attachment = file.file_url
+		doc.save(ignore_permissions=True)
+
+		self.assertFalse(frappe.db.exists("File", {"attached_to_name": doc.name, "file_url": file.file_url}))
+		self.assertFalse(frappe.message_log)
+
+	def test_url_attachment_is_attached_to_duplicated_document(self):
+		doc = frappe.get_doc(doctype=self.test_doctype, title="test url attachment on duplicate")
+		doc.attachment = "https://example.com/spec.pdf"
+		doc.insert()
+
+		duplicate = frappe.copy_doc(doc).insert()
+
+		self.assertTrue(
+			frappe.db.exists(
+				"File",
+				{
+					"file_url": "https://example.com/spec.pdf",
+					"attached_to_doctype": self.test_doctype,
+					"attached_to_name": duplicate.name,
+					"attached_to_field": "attachment",
+				},
+			)
+		)
+
+	def test_no_file_created_for_non_file_attach_value(self):
+		doc = frappe.get_doc(doctype=self.test_doctype, title="test non file attach value")
+		doc.attachment = "not a file"
+		doc.insert()
+
+		self.assertFalse(
+			frappe.db.exists(
+				"File",
+				{
+					"attached_to_doctype": self.test_doctype,
+					"attached_to_name": doc.name,
+					"attached_to_field": "attachment",
+				},
+			)
+		)
+
+	def test_delete_file_referenced_in_attach_field(self):
+		doc = frappe.get_doc(doctype=self.test_doctype, title="test delete referenced file").insert()
+>>>>>>> 97950f3 (test(file): saving an attach field shows no error when attaching fails)
 		file = frappe.get_doc(
 			doctype="File",
 			file_name="call-notes.txt",
