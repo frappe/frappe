@@ -427,7 +427,7 @@ frappe.ui.BottomSheet = class BottomSheet {
 		const groups = normalize_options(options);
 		// one label column: rows without an icon keep its space when any row has one
 		const reserve_icon_space = groups.some((group) =>
-			group.options.some((item) => item.icon || item.image)
+			group.options.some((item) => item.icon || item.image || item.letter)
 		);
 		for (const group of groups) {
 			const section = document.createElement("div");
