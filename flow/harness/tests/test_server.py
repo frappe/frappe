@@ -359,6 +359,25 @@ def test_file_diff_rebuilds_the_original_from_the_sessions_changes(tmp_path):
 			assert r.json() == {"path": str(tmp_path / name), "original": original, "modified": text}, name
 
 
+def test_file_diff_since_undoes_only_the_edits_from_that_seq(tmp_path):
+	c = _client(tmp_path)
+	sid = c.post("/sessions", json={"cwd": str(tmp_path)}).json()["session_id"]
+	path = tmp_path / "app.py"
+	v0, v1, v2 = "a\nb\nc\n", "a\nB\nc\n", "a\nB\nC\n"
+	path.write_text(v2)
+	_append_log_rows(
+		tmp_path, sid, [_edit_result(str(path), v0, v1, "e1"), _edit_result(str(path), v1, v2, "e2")]
+	)
+	log = next((tmp_path / "data" / "sessions").rglob(f"{sid}.jsonl"))
+	e2_seq = next(json.loads(line)["seq"] for line in log.open() if '"e2"' in line)
+
+	r = c.get(f"/sessions/{sid}/file/diff", params={"path": "app.py", "since": e2_seq})
+	assert r.json()["original"] == v1
+	# past the file's last edit there is nothing to show
+	r = c.get(f"/sessions/{sid}/file/diff", params={"path": "app.py", "since": e2_seq + 1})
+	assert r.status_code == 404
+
+
 def _git(cwd, *args):
 	subprocess.run(["git", "-C", str(cwd), *args], check=True, capture_output=True)
 
