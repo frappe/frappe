@@ -369,9 +369,10 @@ body {
 .flow-prose {
 	/* font-family: Inter; */
 	font-size: var(--flow-chat-text, 15px);
+	/* Raven's letter spacing, a little more room between lines */
 	line-height: 1.6;
 	font-weight: var(--flow-chat-weight, 420);
-	letter-spacing: normal;
+	letter-spacing: 0.02em;
 }
 /* the thread's step rows (tools, thinking, folds) sit one step under the chat text, or at
    --flow-step-text where a host sets it */

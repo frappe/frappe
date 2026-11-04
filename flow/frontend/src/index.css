@@ -36,18 +36,6 @@ body {
 	-webkit-font-smoothing: antialiased;
 }
 
-/* frappe-ui's base asks Inter's variable face for its display cut ("opsz" 24) on these
-   elements; pin the text cut, as the harness web app does, so the shared components
-   render alike (the display cut is ~5% narrower) */
-html,
-body,
-button,
-p,
-span,
-div {
-	font-variation-settings: "opsz" 14;
-}
-
 * {
 	scrollbar-width: thin;
 	scrollbar-color: var(--surface-gray-4) transparent;
