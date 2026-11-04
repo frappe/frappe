@@ -2,16 +2,16 @@
 	<span v-if="skills.length || canAdd" class="relative min-w-0">
 		<!-- its list hangs from it -->
 		<Tooltip text="Skills" :disabled="open">
-			<button
+			<Button
 				ref="trigger"
-				class="grid size-8 place-items-center rounded-5 text-ink-gray-7 hover:bg-surface-gray-2 hover:text-ink-gray-9 dark:text-ink-gray-8"
-				:class="open ? 'bg-surface-gray-2' : ''"
+				variant="ghost"
+				size="md"
+				icon="lucide-book-open"
+				:data-state="open ? 'active' : undefined"
 				aria-label="Skills"
 				:aria-expanded="open"
 				@click="open ? close() : show()"
-			>
-				<span class="lucide-book-open size-4" aria-hidden="true" />
-			</button>
+			/>
 		</Tooltip>
 		<PalettePanel
 			v-if="open"
@@ -27,7 +27,7 @@
 					ref="field"
 					v-model="search"
 					placeholder="Search skills…"
-					class="h-8 min-w-0 flex-1 border-0 bg-transparent px-[11px] text-base text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:ring-0"
+					class="h-8 min-w-0 flex-1 border-0 bg-transparent px-2 text-base text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:ring-0"
 				/>
 			</div>
 			<div class="flow-palette-list min-h-0 flex-1 overflow-y-auto p-1">
@@ -63,7 +63,7 @@
 
 <script setup>
 import { computed, inject, nextTick, onMounted, ref } from "vue";
-import { Tooltip } from "frappe-ui";
+import { Button, Tooltip } from "frappe-ui";
 import PalettePanel from "@flow/ui-core/components/PalettePanel.vue";
 import { layout } from "@flow/ui-core/layout.js";
 
@@ -99,7 +99,7 @@ function show() {
 
 function close() {
 	open.value = false;
-	nextTick(() => trigger.value?.focus());
+	nextTick(() => trigger.value?.$el?.focus());
 }
 
 // the draft takes the focus
