@@ -24,7 +24,7 @@ export interface StandingWindowOptions {
 export interface StandingWindowHandle {
 	/** Reactive. */
 	readonly state: StandingWindowState;
-	/** Reactive; whether the frame shows, so false while minimised. */
+	/** Reactive; `state` is `open`, so false while minimised, and true after an early `open` whether or not the window ever attaches. */
 	readonly isOpen: boolean;
 	/** Shows the frame; `props` become the component's props, and a call before the window attaches opens it on attach. */
 	open(props?: Record<string, unknown>): void;

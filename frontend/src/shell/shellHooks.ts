@@ -38,7 +38,7 @@ async function runAll(
 	windows: StandingWindow[],
 	shell: Shell
 ) {
-	// The window code loads here, so pages without a shell hook never carry it.
+	// The row's attach code loads here, so pages without a shell hook never carry it.
 	const [results, { attachWindow }] = await Promise.all([
 		Promise.allSettled(files.map((file) => file.load())),
 		import("./standingWindows"),

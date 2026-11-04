@@ -51,7 +51,7 @@ function handleFor(entry: StandingWindow): StandingWindowHandle {
 			return entry.state === "open";
 		},
 		open: (props?: Record<string, unknown>) => {
-			if (props) entry.props = props;
+			if (props) entry.props = markRaw({ ...props });
 			entry.state = "open";
 		},
 		minimise: () => void (entry.state = "minimised"),

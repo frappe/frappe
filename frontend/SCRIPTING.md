@@ -320,7 +320,8 @@ window (see `shell.js`): `open(props)` shows the window and hands `props` to its
 app's `shell.js` has attached the window, so an act never meets a window that is still loading:
 an `open(props)` made early opens the window the moment it attaches. `shell.realtime.on(event,
 handler)` calls `handler` with each socket event of that name and returns `off`. Called in a
-component's setup, a page's or a window's, it stops by itself when the component unmounts;
+component's setup before any `await`, a page's or a window's, it stops by itself when the
+component unmounts;
 anywhere else, an act's `run` or a `shell.js` setup, it lasts until you call `off`. A handler
 that throws is logged and does not stop the others. The `setup(shell)` of an app's `shell.js` receives that same
 `shell`, plus `afterSave(doctype, handler)` and `window(component, options)`. A settings
