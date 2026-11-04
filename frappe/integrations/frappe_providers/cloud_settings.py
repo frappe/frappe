@@ -234,6 +234,7 @@ def get_domain_dns_records(domain: str) -> dict:
 	client = PilotClient()
 	records = client.get(client.domain_path(_clean_domain(domain), "dns-records")) or {}
 	return {
+		# Same records as cname and a, in one list, for Pilot panels older than frappe/pilot#771.
 		"records": [*records.get("cname", []), *records.get("a", [])],
 		"cname": records.get("cname", []),
 		"a": records.get("a", []),
