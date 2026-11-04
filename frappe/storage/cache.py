@@ -3,6 +3,7 @@
 """Local disk cache for blobs on remote drivers. See "Local cache" in SPEC.md."""
 
 import contextlib
+import glob
 import os
 import shutil
 import time
@@ -177,7 +178,7 @@ def delete_cached(blob: "FileBlob") -> None:
 def sweep_cache() -> dict:
 	"""Hold cached copies older than ``keep_minutes``, then delete held copies older than ``grace_minutes``.
 
-	A copy leaves ``public/files`` when it is held, so a request for it reaches Python and restores it.
+	Also deletes ``.part`` files that a killed download left. A copy leaves ``public/files`` when it is held, so a request for it reaches Python and restores it.
 	Skips the run while a relocation holds the lock. The lock comes before any database read, so the
 	listing sees every relocation commit."""
 	try:
@@ -185,10 +186,13 @@ def sweep_cache() -> dict:
 			now = time.time()
 			keep = get_cache_setting("keep_minutes") * 60
 			grace = get_cache_setting("grace_minutes") * 60
-			held = sum(hold_copy(blob, now - keep) for blob in get_cached_copies())
-			return {"held": held, "deleted": delete_held_copies(now - grace)}
+			held = parts = 0
+			for blob in get_cached_copies():
+				parts += delete_stale_parts(blob, now - CACHE_JOB_TIMEOUT)
+				held += hold_copy(blob, now - keep)
+			return {"held": held, "deleted": delete_held_copies(now - grace), "parts": parts}
 	except LockTimeoutError:
-		return {"held": 0, "deleted": 0}
+		return {"held": 0, "deleted": 0, "parts": 0}
 
 
 def get_cached_copies() -> Iterator[frappe._dict]:
@@ -214,6 +218,22 @@ def get_cached_copies() -> Iterator[frappe._dict]:
 				},
 				fields=["name", "key", "is_private"],
 			)
+
+
+def delete_stale_parts(blob: "FileBlob", cutoff: float) -> int:
+	"""Delete the blob's ``.part`` files last written before ``cutoff``.
+
+	A download writes its part until it ends or the job times out, so an older part has no writer."""
+	path = get_cache_path(blob)
+	deleted = 0
+	for part in glob.glob(f"{glob.escape(path)}.*.part"):
+		with contextlib.suppress(FileNotFoundError):
+			if os.path.getmtime(part) <= cutoff:
+				os.remove(part)
+				deleted += 1
+	if deleted:
+		remove_empty_folder(path)
+	return deleted
 
 
 def hold_copy(blob: "FileBlob", cutoff: float) -> bool:

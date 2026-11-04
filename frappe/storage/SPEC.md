@@ -375,6 +375,9 @@ download --> files/<blob>/<filename> --keep--> private/cache/expiring/... --grac
   local blob has the same path shape, so the row's `driver` tells them apart.
   A site with no File Blob row on a caching driver stops before the scan.
   `driver` is indexed, so this check is cheap.
+- In each listed folder, the sweep also deletes `.part` files older than
+  the job timeout (60 minutes). A worker that was killed during a download
+  leaves them. A live download keeps its part's mtime fresh.
 - A held copy is out of `public/files`, so nginx no longer finds it and
   passes the request to Python. `get_cached_path` then moves the copy back,
   sets its mtime to now and serves it from disk. With the flag off nothing

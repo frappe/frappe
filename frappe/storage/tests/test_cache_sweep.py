@@ -204,3 +204,22 @@ class TestCacheSweep(IntegrationTestCase):
 		):
 			sweep_cache()
 		self.assertFalse(files_dirs & {call.args[0] for call in scandir.call_args_list})
+
+	def test_sweep_deletes_parts_that_a_killed_download_left(self):
+		with storage_v2(), use_driver(RemoteDriver()):
+			blob = put_blob(io.BytesIO(unique_bytes(b"part ")), filename="a.bin")
+			self.blobs.append(blob)
+			path = get_cache_path(blob)
+			os.makedirs(os.path.dirname(path))
+			stale, live = f"{path}.aaaaaaaa.part", f"{path}.bbbbbbbb.part"
+			for part in (stale, live):
+				open(part, "wb").close()
+			age(stale, 61)
+
+			self.assertEqual(sweep_cache()["parts"], 1)
+			self.assertFalse(os.path.exists(stale))
+			self.assertTrue(os.path.isfile(live))
+
+			age(live, 61)
+			self.assertEqual(sweep_cache()["parts"], 1)
+			self.assertFalse(os.path.exists(os.path.dirname(path)))
