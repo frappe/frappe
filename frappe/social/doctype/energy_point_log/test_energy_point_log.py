@@ -162,7 +162,7 @@ class TestEnergyPointLog(FrappeTestCase):
 		self.assertEqual(energy_points_after_review, energy_points_before_review - criticism_points)
 		self.assertEqual(review_points_after_review, review_points_before_review - criticism_points)
 
-	def test_get_reviews_needs_read_on_the_document(self):
+	def test_get_reviews_needs_read_on_energy_point_log(self):
 		todo = create_a_todo()
 		with test_user(roles=[], user_type="Website User") as user:
 			review_log = {"type": "Appreciation", "points": 1, "user": user.name, "reason": "good job"}

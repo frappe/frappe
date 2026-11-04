@@ -319,8 +319,7 @@ def review(doc, points, to_user, reason, review_type="Appreciation"):
 
 @frappe.whitelist()
 def get_reviews(doctype, docname):
-	frappe.has_permission(doctype, "read", docname, throw=True)
-	return frappe.get_all(
+	return frappe.get_list(
 		"Energy Point Log",
 		filters={
 			"reference_doctype": doctype,
