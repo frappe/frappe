@@ -13,14 +13,18 @@
 		<div
 			v-if="empty"
 			ref="emptyState"
-			class="flex h-full flex-col items-center justify-center gap-3 text-center"
-			:style="{ paddingBottom: composerHeight + 'px' }"
+			class="flex h-full flex-col items-center [justify-content:safe_center] gap-3 text-center"
+			:style="{ paddingBottom: docked ? '12vh' : composerHeight + 'px' }"
 		>
+			<!-- docked, the group is lifted: centred under the header it reads low, and the eye's centre
+			     sits a little above the true one -->
 			<slot name="empty">
 				<!-- a step smaller on a phone, and smaller still where the heading would run out of room -->
 				<BrandMark line :size="32" class="min-h-0 shrink max-sm:!h-7 max-sm:!w-7" />
 				<h2 class="text-balance text-4xl leading-snug tracking-[-0.01em] text-ink-gray-9 sm:text-6xl">What would you like to build?</h2>
 			</slot>
+			<!-- the composer's place under the greeting; it floats here until the first message -->
+			<div v-if="docked" ref="dock" class="mt-5 w-full shrink-0" :style="{ height: composerHeight + 'px' }" />
 		</div>
 		<LoadingState
 			v-else-if="loading"
@@ -128,9 +132,10 @@
 			     exactly where the upcoming tool row will render. -->
 			<div
 				v-if="showStandaloneStatus"
-				class="py-2 text-base font-medium md:py-2.5"
+				class="flex items-center gap-2 py-2 text-base font-medium md:py-2.5"
 				:class="lastItem?.kind === 'thinking' ? '-mt-5' : ''"
 			>
+				<BrandMark line :size="16" :state="/think/i.test(liveLabel) ? 'thinking' : 'working'" />
 				<span class="flow-shimmer">{{ liveLabel }}</span>
 			</div>
 
@@ -197,6 +202,31 @@ const blank = computed(() => !items.value.length && !conversation.value.running 
 const empty = computed(() => blank.value && !flow.state.loading)
 const loading = computed(() => blank.value && flow.state.loading)
 const composerHeight = inject("composerHeight", ref(120))
+// a wide new chat holds the box under its greeting, as a letter starts under its salutation; a
+// phone keeps it at the foot, by the thumb and the keyboard
+const composerLift = inject("composerLift", ref(0))
+// a new chat's box sits under the mark in the middle, in the Desk panel too; a phone keeps it at
+// the foot, where its keyboard leaves it in reach
+const docked = computed(() => empty.value && !layout.phone && composerHeight.value > 0)
+const dock = ref(null)
+let dockObserver = null
+function measureDock() {
+	const el = dock.value
+	const list = el?.offsetParent
+	composerLift.value = el && list ? Math.max(0, list.clientHeight - el.offsetTop - el.offsetHeight) : 0
+}
+watch(dock, (el) => {
+	dockObserver?.disconnect()
+	measureDock()
+	if (!el || typeof ResizeObserver === "undefined") return
+	dockObserver = new ResizeObserver(measureDock)
+	dockObserver.observe(el)
+	dockObserver.observe(el.offsetParent ?? el)
+})
+onBeforeUnmount(() => {
+	dockObserver?.disconnect()
+	composerLift.value = 0
+})
 const lastTurnCopyIndex = computed(() =>
 	items.value.findLastIndex((item) => item.kind === "turn-copy"),
 )

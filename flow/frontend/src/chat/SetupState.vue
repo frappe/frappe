@@ -1,50 +1,83 @@
 <template>
-	<div class="flex flex-col items-center gap-3">
-		<BrandMark line :size="32" class="min-h-0 shrink max-md:!h-7 max-md:!w-7" />
-		<div class="text-4xl font-medium text-ink-gray-9">Finish setup to start</div>
-		<div v-if="hasModels" class="max-w-sm text-base text-ink-gray-6">
-			Every model is set, but no agent is enabled.
+	<!-- the first run inside the chat itself: a greeting, then the one thing missing and who can
+	     add it. Connecting is a few clicks; finishing it is the chat. Hung from the top, not
+	     centred: what changes below (a picked service, a key, an error) never moves the greeting -->
+	<div class="flex w-full flex-1 flex-col items-center gap-8 self-stretch pb-10 pt-[min(18vh,160px)]">
+		<div class="flex flex-col items-center gap-4 text-center">
+			<BrandMark line :size="28" state="idle" />
+			<div class="flex flex-col gap-1.5">
+				<h1 class="text-2xl font-semibold text-ink-gray-9">{{ greeting }}</h1>
+				<p class="max-w-sm text-pretty text-p-base text-ink-gray-5">{{ subline }}</p>
+			</div>
 		</div>
-		<div v-if="canManage" class="mt-3 flex flex-col gap-2.5">
-			<template v-if="!hasModels">
-				<!-- each step numbered in a ring; a provider in place is a step done, its ring ticked -->
-				<Button v-if="hasProvider" variant="outline" class="[justify-content:flex-start]" label="Provider added" @click="open('providers')">
-					<template #prefix>
-						<span :class="ring"><span class="lucide-check size-3" aria-hidden="true" /></span>
-					</template>
-				</Button>
-				<Button v-else variant="outline" class="[justify-content:flex-start]" label="Add a provider" @click="create('providers')">
-					<template #prefix><span :class="ring">1</span></template>
-				</Button>
-				<Button variant="outline" class="[justify-content:flex-start]" label="Add a model" @click="create('models')">
-					<template #prefix><span :class="ring">2</span></template>
-				</Button>
-			</template>
-			<Button v-else variant="solid" label="Enable an agent" @click="open('agents')" />
+		<ConnectSetup v-if="canConnect" @connected="connected" @manual="create('providers')" />
+		<Button v-else-if="hasModels && canEnable" variant="solid" label="Enable an agent" @click="open('agents')" />
+		<div v-else-if="!hasModels" class="flex flex-col items-center gap-3">
+			<Button
+				variant="solid"
+				theme="gray"
+				:label="asked ? 'Asked' : 'Ask an admin to connect Flow'"
+				:icon-left="asked ? 'lucide-check' : 'lucide-bell'"
+				:disabled="Boolean(asked)"
+				@click="ask"
+			/>
+			<p v-if="asked?.length" class="text-p-sm text-ink-gray-5">
+				{{ asked.join(" and ") }} {{ asked.length > 1 ? "have" : "has" }} a note.
+			</p>
 		</div>
-		<div v-else class="text-sm text-ink-gray-5">Ask an administrator to finish the setup.</div>
 	</div>
 </template>
 
 <script setup>
-import { computed, inject } from "vue";
+import { computed, inject, ref } from "vue";
 import { useRouter } from "vue-router";
-import { Button } from "frappe-ui";
+import { Button, toast } from "frappe-ui";
 import BrandMark from "@flow/ui-core/components/BrandMark.vue";
 
+import { call } from "../api/frappe.js";
 import { inPanel } from "../panel.js";
+import ConnectSetup from "./setup/ConnectSetup.vue";
 
 // The empty state until a model and an agent exist: what is missing, and who can add it.
 const flow = inject("flow");
 const page = inject("flowPage");
 const router = useRouter();
 const hasModels = computed(() => page.state.boot.models.length > 0);
-const hasProvider = computed(() => Boolean(page.state.boot.provider));
-const ring =
-	"grid size-4.5 flex-none place-items-center rounded-full border border-outline-gray-3 text-2xs text-ink-gray-7";
-const canManage = computed(() =>
-	hasModels.value ? page.can("Flow Agent", "write") : page.can("Flow Model", "create")
+const canConnect = computed(
+	() => !hasModels.value && page.can("Flow Provider", "create") && page.can("Flow Model", "create")
 );
+const canEnable = computed(() => page.can("Flow Agent", "write"));
+
+// the greeting a colleague would give, by the hour and the first name
+const greeting = computed(() => {
+	const hour = new Date().getHours();
+	const hello = hour < 5 ? "Hello" : `Good ${hour < 12 ? "morning" : hour < 17 ? "afternoon" : "evening"}`;
+	const name = page.state.boot.user?.full_name?.split(" ")[0];
+	return name ? `${hello}, ${name}` : hello;
+});
+const subline = computed(() => {
+	if (canConnect.value) return "Set it up once, for everyone here.";
+	if (!hasModels.value) return "An admin needs to connect an AI first.";
+	return canEnable.value
+		? "Every model is set, but no agent is enabled."
+		: "Ask an administrator to enable an agent.";
+});
+
+// connected: boot lists the new models, the composer appears, and the Assistant has its model
+function connected({ service }) {
+	page.changed("Flow Model");
+	toast.success(`${service.name} is connected for everyone`);
+}
+
+// someone who can't connect asks those who can; the note says who heard
+const asked = ref(null);
+async function ask() {
+	try {
+		asked.value = (await call("frappe.flow.api.setup.ask_admin")).admins;
+	} catch (error) {
+		toast.error(error.message);
+	}
+}
 
 // settings on a tab; the launcher's panel opens its provider's form in place of the providers
 function open(tab) {

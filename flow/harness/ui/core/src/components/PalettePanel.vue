@@ -220,9 +220,9 @@ onBeforeUnmount(() => {
 .flow-palette-panel :deep([data-palette-active="true"] .flow-palette-hint) {
 	color: var(--ink-gray-5);
 }
-/* a dark dropdown over the composer is half a step lighter than the box (flow.css): its highlight
+/* a dark dropdown over the composer is a step lighter than the box (flow.css): its highlight
    steps up with it */
 [data-theme="dark"] .flow-palette-panel.flow-dropdown :deep([data-palette-item][data-palette-active="true"]) {
-	background: color-mix(in srgb, var(--surface-gray-2) 50%, var(--surface-gray-3));
+	background: var(--surface-gray-3);
 }
 </style>
