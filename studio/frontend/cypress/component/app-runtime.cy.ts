@@ -106,6 +106,40 @@ export default function setup(context: any) { return { label: ref(fmt(7) + fmt2(
 		)
 	})
 
+	it("checks named imports from the app's own modules", () => {
+		cy.wrap(
+			(async () => {
+				await expectCompileError(
+					{
+						"utils.ts": `export const one = 1`,
+						"a.ts": `import { two } from "./utils"\nexport const x = two`,
+					},
+					"a.ts",
+					'"utils.ts" has no export named "two"',
+				)
+			})(),
+		)
+
+		// A name that does exist must never be reported: through a re-export, from a destructured
+		// declaration, and from JSON. A wrong error here would break a working app.
+		const sources = {
+			"base.ts": `export const one = 1;\nexport const { two, three } = { two: 2, three: 3 };`,
+			"barrel.ts": `export * from "./base"\nexport const four = 4`,
+			"Card.vue": `<template><b /></template>`,
+			"palette.json": `{"accent": "teal"}`,
+			"ok.ts": `import { one, two, three, four } from "./barrel"
+import { accent } from "./palette.json"
+import Card from "./Card.vue"
+export const total = one + two + three + four
+export const theme = accent
+export const card = Card`,
+		}
+		cy.wrap(new AppModuleRegistry(sources).loadModule("ok.ts")).then((module: any) => {
+			expect(module.total).to.equal(10)
+			expect(module.theme).to.equal("teal")
+		})
+	})
+
 	it("reads imports from the syntax tree, not from import-like text", () => {
 		const sources = {
 			"a.ts": `import { ref as count } from "vue"

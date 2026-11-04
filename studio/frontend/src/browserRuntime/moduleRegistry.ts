@@ -11,7 +11,16 @@
  * extensions and index files, and .vue and .css imports require explicit extensions.
  */
 
-import { compileFile, describeError, parseImports, toCommonJS, type CompileError } from "@/browserRuntime/compiler"
+import {
+	compileFile,
+	describeError,
+	parseExports,
+	parseImports,
+	toCommonJS,
+	type CompileError,
+	type ModuleExports,
+	type ModuleImport,
+} from "@/browserRuntime/compiler"
 import { loadImportableModule } from "@/browserRuntime/importableModules"
 
 const EXTENSION_CANDIDATES = ["", ".ts", ".js", ".json", "/index.ts", "/index.js"]
@@ -34,6 +43,8 @@ export class AppModuleRegistry {
 	private styles: Record<string, string> = {}
 	private modules = new Map<string, { exports: any }>()
 	private failures: Record<string, CompileError[]> = {}
+	private exports: Record<string, ModuleExports> = {}
+	private localImports: Record<string, ModuleImport[]> = {}
 	private bare = new Map<string, any>()
 	private prepared: Promise<void> | null = null
 
@@ -58,6 +69,8 @@ export class AppModuleRegistry {
 		this.modules.delete(path)
 		delete this.failures[path]
 		await this.compileInto(path, source)
+		const errors = this.checkLocalExports(path)
+		if (errors.length) throw new AppCompileError(errors)
 		applyStyles(this.styles)
 	}
 
@@ -72,9 +85,17 @@ export class AppModuleRegistry {
 
 	private async compileAll(): Promise<void> {
 		this.failures = {}
+		this.exports = {}
+		this.localImports = {}
 		for (const [path, source] of Object.entries(this.files)) {
 			if (!isCompiledModule(path)) continue
 			const errors = await this.compileInto(path, source, false)
+			if (errors.length) this.failures[path] = errors
+		}
+		// Every module is compiled by now, so each one's exports are known to the next check.
+		for (const path of Object.keys(this.localImports)) {
+			if (this.failures[path]) continue
+			const errors = this.checkLocalExports(path)
 			if (errors.length) this.failures[path] = errors
 		}
 		applyStyles(this.styles)
@@ -98,6 +119,8 @@ export class AppModuleRegistry {
 					`${commonjs.code}\n//# sourceURL=studio-app:///${path}`,
 				) as ModuleFactory
 				if (compiled.css) this.styles[path] = compiled.css
+				const parsed = await parseExports(path, compiled.code)
+				if (!parsed.errors.length) this.exports[path] = parsed.exports
 			}
 		}
 		if (errors.length && throwOnError) throw new AppCompileError(errors)
@@ -110,10 +133,14 @@ export class AppModuleRegistry {
 		const { imports, errors } = await parseImports(path, code)
 		if (errors.length) return errors
 
+		this.localImports[path] = []
 		for (const { specifier, names } of imports) {
 			if (isLocalSpecifier(specifier)) {
-				if (!this.resolve(path, specifier)) {
+				const resolved = this.resolve(path, specifier)
+				if (!resolved) {
 					errors.push(importError(path, `Cannot resolve "${specifier}"`))
+				} else if (names.length) {
+					this.localImports[path].push({ specifier: resolved, names })
 				}
 				continue
 			}
@@ -133,6 +160,41 @@ export class AppModuleRegistry {
 			}
 		}
 		return errors
+	}
+
+	/** Check what this file imports from the app's own modules against what they export. */
+	private checkLocalExports(path: string): CompileError[] {
+		const errors: CompileError[] = []
+		for (const { specifier, names } of this.localImports[path] || []) {
+			const available = this.exportsOf(specifier, new Set())
+			if (!available) continue
+			for (const name of names) {
+				if (!available.has(name)) {
+					errors.push(importError(path, `"${specifier}" has no export named "${name}"`))
+				}
+			}
+		}
+		return errors
+	}
+
+	/** The names a file exports, or null when they cannot be known without running it. Returning
+	 * null skips the check, because a wrong error here would break a working app. */
+	private exportsOf(path: string, seen: Set<string>): Set<string> | null {
+		if (seen.has(path)) return new Set()
+		seen.add(path)
+		if (path.endsWith(".css")) return new Set(["default"])
+		if (path.endsWith(".json")) return jsonExports(this.files[path])
+		const own = this.exports[path]
+		if (!own) return null
+		const names = new Set(own.names)
+		for (const specifier of own.starFrom) {
+			const resolved = isLocalSpecifier(specifier) ? this.resolve(path, specifier) : null
+			if (!resolved) return null
+			const nested = this.exportsOf(resolved, seen)
+			if (!nested) return null
+			for (const name of nested) if (name !== "default") names.add(name)
+		}
+		return names
 	}
 
 	private require(from: string, specifier: string): any {
@@ -207,6 +269,16 @@ function joinRelative(from: string, specifier: string): string | null {
 		}
 	}
 	return parts.join("/")
+}
+
+function jsonExports(source: string): Set<string> | null {
+	try {
+		const parsed = JSON.parse(source)
+		const keys = parsed && typeof parsed === "object" && !Array.isArray(parsed) ? Object.keys(parsed) : []
+		return new Set([...keys, "default"])
+	} catch {
+		return null
+	}
 }
 
 function parseJSONModule(source: string): any {

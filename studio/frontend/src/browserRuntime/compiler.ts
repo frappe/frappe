@@ -25,6 +25,13 @@ export interface ModuleImport {
 	names: string[]
 }
 
+export interface ModuleExports {
+	/** Names the module exports itself, including "default". */
+	names: string[]
+	/** Specifiers it re-exports every name from, whose names it also exports. */
+	starFrom: string[]
+}
+
 export function describeError(error: CompileError): string {
 	const place = error.file ? `${error.file}${error.line ? `:${error.line}` : ""}: ` : ""
 	return `${place}${error.message}`
@@ -135,6 +142,68 @@ function* dynamicImports(node: unknown): Generator<ModuleImport> {
 		if (key !== "loc" && key !== "leadingComments" && key !== "trailingComments") {
 			yield* dynamicImports(fields[key])
 		}
+	}
+}
+
+/** The names a compiled module exports. Used to check an import against its target. */
+export async function parseExports(
+	filename: string,
+	code: string,
+): Promise<{ exports: ModuleExports; errors: CompileError[] }> {
+	const [sfc] = await loadCompilers()
+	try {
+		const { program } = sfc.babelParse(code, { sourceType: "module" })
+		return { exports: exportedNames(program), errors: [] }
+	} catch (error) {
+		return { exports: { names: [], starFrom: [] }, errors: [formatError(filename, error)] }
+	}
+}
+
+function exportedNames(program: BabelProgram): ModuleExports {
+	const names: string[] = []
+	const starFrom: string[] = []
+	for (const node of program.body) {
+		if (node.type === "ExportDefaultDeclaration") {
+			names.push("default")
+		} else if (node.type === "ExportAllDeclaration") {
+			starFrom.push(node.source.value)
+		} else if (node.type === "ExportNamedDeclaration" && node.exportKind !== "type") {
+			for (const specifier of node.specifiers) {
+				const exported = (specifier as any).exported
+				if (exported) names.push(exported.type === "Identifier" ? exported.name : exported.value)
+			}
+			if (node.declaration) declaredNames(node.declaration, names)
+		}
+	}
+	return { names, starFrom }
+}
+
+/** Collect the names a declaration binds, including destructured ones. */
+function declaredNames(node: any, names: string[]): void {
+	if (!node || typeof node !== "object") return
+	switch (node.type) {
+		case "VariableDeclaration":
+			for (const declarator of node.declarations) declaredNames(declarator.id, names)
+			return
+		case "Identifier":
+			names.push(node.name)
+			return
+		case "ObjectPattern":
+			for (const property of node.properties) {
+				declaredNames(property.type === "RestElement" ? property.argument : property.value, names)
+			}
+			return
+		case "ArrayPattern":
+			for (const element of node.elements) declaredNames(element, names)
+			return
+		case "AssignmentPattern":
+			declaredNames(node.left, names)
+			return
+		case "RestElement":
+			declaredNames(node.argument, names)
+			return
+		default:
+			if (node.id) declaredNames(node.id, names)
 	}
 }
 
