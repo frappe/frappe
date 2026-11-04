@@ -101,7 +101,10 @@ const gridStyle = {
 		"repeat(auto-fill, minmax(max(240px, calc((100% - 3 * var(--page-gutter)) / 4)), 1fr))",
 };
 
-const listActs = props.host.acts(() => [deleteEntry(), ...rowActionEntries(rowActions)]);
+const listActs = props.host.acts(
+	() => [deleteEntry(), ...rowActionEntries(rowActions)],
+	() => ({ selection: [], reload })
+);
 
 function deleteEntry() {
 	return {
