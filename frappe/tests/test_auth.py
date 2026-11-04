@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 import datetime
 import time
+from unittest.mock import patch
 
 import requests
 from werkzeug.test import EnvironBuilder
