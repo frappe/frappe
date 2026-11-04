@@ -12,7 +12,9 @@ def validate_settings(doctype: str, settings: dict):
 	meta = frappe.get_meta(doctype)
 	for key in SETTINGS_FIELDS:
 		fieldname = settings.get(key)
-		if fieldname and not (isinstance(fieldname, str) and (fieldname == "name" or meta.has_field(fieldname))):
+		if fieldname and not (
+			isinstance(fieldname, str) and (fieldname == "name" or meta.has_field(fieldname))
+		):
 			frappe.throw(
 				_("{0} is not a field of {1}.").format(frappe.bold(fieldname), _(doctype)),
 				title=_("Invalid Card Settings"),
