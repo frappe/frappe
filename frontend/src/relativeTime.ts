@@ -1,7 +1,8 @@
 // One reading of "3 days ago" for every relative date: list cells and the index's recent list.
 import { currentSession } from "@framework/ui/useSession";
 import { dayjs } from "frappe-ui";
-import type { Dayjs } from "dayjs";
+
+type Stamp = ReturnType<typeof dayjs>;
 
 const SKEW_MS = 60_000;
 const DAY_MS = 86_400_000;
@@ -21,7 +22,7 @@ const INTL_TAGS: Record<string, string> = { "sr-CS": "sr-Latn" };
 const formatters = new Map<string, Intl.RelativeTimeFormat | null>();
 
 /** `stamp` as time from now, in the signed-in person's language. A stamp under a minute ahead is clock skew and reads as just past. */
-export function relativeTime(stamp: Dayjs): string {
+export function relativeTime(stamp: Stamp): string {
 	if (!stamp.isValid()) return "";
 	const lang = currentSession()?.lang || "en";
 	const now = dayjs();
