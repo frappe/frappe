@@ -143,9 +143,9 @@ def ask_admin() -> dict[str, Any]:
 				emails,
 				{
 					"type": "Alert",
-					"subject": _(
-						"{0} would like to use Flow. Connect a model provider to set it up."
-					).format(frappe.bold(escape_html(get_fullname(frappe.session.user)))),
+					"subject": _("{0} would like to use Flow. Connect a model provider to set it up.").format(
+						frappe.bold(escape_html(get_fullname(frappe.session.user)))
+					),
 					"from_user": frappe.session.user,
 					"link": get_url("/flow"),
 				},

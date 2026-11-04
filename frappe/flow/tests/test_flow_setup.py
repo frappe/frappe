@@ -89,7 +89,9 @@ class TestFlowSetup(IntegrationTestCase):
 		self.assertEqual(check.call_count, 1)
 
 		# elsewhere, one that doesn't chat but embeds is an embedding model, whatever its name
-		with patch.object(setup, "_check", side_effect=lambda *a, embedding=False: None if embedding else chat_refused):
+		with patch.object(
+			setup, "_check", side_effect=lambda *a, embedding=False: None if embedding else chat_refused
+		):
 			added = setup.add_model("anthropic", "vectors-1")
 		self.assertTrue(added["embedding"])
 		self.assertEqual(frappe.db.get_value("Flow Model", added["name"], "embedding"), 1)
