@@ -16,7 +16,7 @@
 			<div class="flex items-center gap-1 pr-1">
 				<h3
 					:id="titleId"
-					class="min-w-0 flex-1 truncate text-2xl-semibold leading-6 text-ink-gray-8"
+					class="min-w-0 flex-1 break-words text-2xl-semibold leading-6 text-ink-gray-8"
 				>
 					{{ title }}
 				</h3>
@@ -27,6 +27,7 @@
 					:icon="button.icon"
 					:tooltip="button.label"
 					:aria-label="button.label"
+					:disabled="saving"
 					@click="button.onClick"
 				/>
 				<Dropdown :options="menu" side="bottom" align="end">
@@ -125,7 +126,8 @@ const activeFormTab = ref("");
 const actionsVersion = ref(0);
 const body = useTemplateRef<HTMLElement>("body");
 const titleId = useId();
-// reka names the dialog by its whole title header, menu buttons included ("54 More").
+// reka names the dialog by its whole title header, so the icon buttons in it would join the name
+// ("LEAD-1 More"): name it by the title text alone.
 watch(body, (element) =>
 	element?.closest('[role="dialog"]')?.setAttribute("aria-labelledby", titleId)
 );
@@ -148,8 +150,7 @@ const quickEntry = useFormLayout({
 const bodyShown = computed(() =>
 	Boolean(Body && !editing.value && controller.value && !refused.value)
 );
-// The body's header holds only while the body shows: the form gets the built-ins back.
-const header = computed<RecordBodyHeader>(() => (bodyShown.value ? bodyHeader.value() : {}));
+const header = computed<RecordBodyHeader>(() => (bodyShown.value ? readBodyHeader() : {}));
 const title = computed(() => header.value.title || (doc.value.name ?? name));
 const size = computed(() => quickEntry.dialogSize.value ?? "xl");
 const canWrite = computed(() => Boolean(perms.value.write));
@@ -212,9 +213,18 @@ function edit() {
 	editing.value = true;
 }
 
-/** The body's `header` prop: it hands over a getter, read again whenever what it reads changes. */
 function setBodyHeader(read: () => RecordBodyHeader) {
 	bodyHeader.value = read;
+}
+
+// A body's getter is its own code: one that throws keeps the record's header, as a `when` does.
+function readBodyHeader(): RecordBodyHeader {
+	try {
+		return bodyHeader.value();
+	} catch (exception) {
+		console.error(exception);
+		return {};
+	}
 }
 
 function bodyFailed(exception: unknown) {

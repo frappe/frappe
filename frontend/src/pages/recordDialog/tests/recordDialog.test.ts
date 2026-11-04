@@ -261,7 +261,6 @@ describe("the record dialog", () => {
 
 		expect(labels(root.querySelector("header"))).toEqual(["More", "Copy link", "Delete"]);
 		expect(labels(root.querySelector("[data-dialog] > div:last-child"))).toEqual(["Save"]);
-		// The menu sits in reka's title header: the dialog is named by the title text alone.
 		expect(root.querySelector("h3")!.id).not.toBe("");
 		expect(root.querySelector("[role=dialog]")!.getAttribute("aria-labelledby")).toBe(root.querySelector("h3")!.id);
 	});
@@ -478,7 +477,10 @@ describe("the record dialog's body", () => {
 					],
 					save: false,
 				}));
-				return () => h("section", { "data-body": "" }, props.page.doc.title);
+				return () =>
+					h("section", { "data-body": "" }, [
+						h("button", { onClick: () => (props.page.doc.title = "Changed") }, "Rename"),
+					]);
 			},
 		});
 
@@ -498,12 +500,14 @@ describe("the record dialog's body", () => {
 			expect(calls).toEqual(["task"]);
 		});
 
-		it("sends nothing on Ctrl+S while it shows", async () => {
-			await open();
+		it("sends nothing on Ctrl+S while it shows, even with a change", async () => {
+			const root = await open();
+			await click(root, "Rename");
 
 			await ctrlS();
 
 			expect(writes()).toHaveLength(0);
+			expect(root.querySelector("[data-dialog]")).toBeTruthy();
 		});
 
 		it("gives the form back the record's name, the record's menu and Save on Edit", async () => {
