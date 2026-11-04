@@ -232,9 +232,13 @@ def get_domains() -> dict:
 def get_domain_dns_records(domain: str) -> dict:
 	_assert_access()
 	client = PilotClient()
-	response = client.get(client.domain_path(_clean_domain(domain), "dns-records"))
-	records = (response or {}).get("records") or {}
-	return {"records": [*records.get("cname", []), *records.get("a", [])]}
+	records = client.get(client.domain_path(_clean_domain(domain), "dns-records")) or {}
+	return {
+		# Same records as cname and a, in one list, for Pilot panels older than frappe/pilot#771.
+		"records": [*records.get("cname", []), *records.get("a", [])],
+		"cname": records.get("cname", []),
+		"a": records.get("a", []),
+	}
 
 
 @frappe.whitelist(methods=["POST"])
