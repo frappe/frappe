@@ -70,7 +70,7 @@ def boot() -> dict[str, Any]:
 		"provider": frappe.db.get_value("Flow Provider", {"enabled": 1}),
 		"file_types": sorted(FILE_EXTENSIONS),
 		"user": frappe.db.get_value(
-			"User", frappe.session.user, ["name", "full_name", "email", "user_image"], as_dict=True
+			"User", frappe.session.user, ["name", "full_name", "user_image"], as_dict=True
 		),
 		"permissions": {
 			doctype: [
@@ -270,15 +270,6 @@ def entries(session: str, since: int | str = 0, path: str = "active") -> dict[st
 	if path not in ("active", "all"):
 		frappe.throw(_("Path must be active or all."), title=_("Invalid Path"))
 	return _load_session(session, "read").entries(since=cint(since), path=path)
-
-
-@frappe.whitelist()
-def system_prompt(session: str) -> str | None:
-	"""The session's system prompt for a System Manager; None for anyone else."""
-	doc = _load_session(session, "read")
-	if "System Manager" not in frappe.get_roles():
-		return None
-	return doc.system_prompt()
 
 
 @frappe.whitelist()

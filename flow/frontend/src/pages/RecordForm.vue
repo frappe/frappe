@@ -16,7 +16,9 @@
 			/>
 			<Dropdown v-if="canDelete" align="end" :options="menu">
 				<template #trigger>
-					<Button variant="ghost" icon="lucide-ellipsis" title="More" />
+					<button class="flow-icon-btn" title="More">
+						<span class="lucide-ellipsis size-4" aria-hidden="true" />
+					</button>
 				</template>
 			</Dropdown>
 			<Button

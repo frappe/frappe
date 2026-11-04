@@ -882,7 +882,7 @@ export function buildTranscriptRows(conversation) {
 	for (const [index, entry] of entries.entries()) {
 		let caller = null // the row whose model call a usage report in this gap belongs to
 		if (entry.type === "user_message") {
-			rows.push({ key: `u:${entry.seq}`, kind: "user", ts: entry.ts, entry: withoutFlowFields(entry) })
+			rows.push({ key: `u:${entry.seq}`, kind: "user", entry: withoutFlowFields(entry) })
 		} else if (entry.type === "assistant_message") {
 			caller = { key: `a:${entry.seq}`, kind: "assistant", entry: withoutFlowFields(entry) }
 			rows.push(caller)
@@ -1108,12 +1108,6 @@ export function formatTime(ts) {
 	const time = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
 	if (d.toDateString() === new Date().toDateString()) return time
 	return `${d.toLocaleDateString([], { month: "short", day: "numeric" })}, ${time}`
-}
-
-// a cost under a tenth of a cent would round to $0.000
-export function formatCost(cost) {
-	if (cost < 0.001) return "<$0.001"
-	return `$${cost.toFixed(cost < 1 ? 3 : 2)}`
 }
 
 export function formatTokens(n) {

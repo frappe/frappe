@@ -305,19 +305,15 @@ export function createFlowStore(client, options = {}) {
 		state.toast = { message, kind, at: Date.now() }
 	}
 
-	async function guard(work, { rethrow = false, quiet = false } = {}) {
+	async function guard(work, { rethrow = false } = {}) {
 		try {
 			return await work()
 		} catch (error) {
-			if (!quiet) report(error)
+			if (error instanceof FlowAPIError) notify(error.message, "error")
+			else notify(String(error?.message ?? error), "error")
 			if (rethrow) throw error
 			return null
 		}
-	}
-
-	function report(error) {
-		if (error instanceof FlowAPIError) notify(error.message, "error")
-		else notify(String(error?.message ?? error), "error")
 	}
 
 	function rememberTitle(sid) {
@@ -545,9 +541,7 @@ export function createFlowStore(client, options = {}) {
 		}
 	}
 
-	// `quiet`: a chat the page reopened by itself, not one the user asked for, starts a new chat
-	// without a word when it is gone
-	async function openSession(sid, { sending = [], config = null, quiet = false } = {}) {
+	async function openSession(sid, { sending = [], config = null } = {}) {
 		const own = ++opening
 		closeStream()
 		// a same-session reload (rewind) keeps the open file tabs as they are, and a chat
@@ -578,16 +572,15 @@ export function createFlowStore(client, options = {}) {
 		state.conversation.sending = sending
 		state.loading = true
 		const [info, catalog] = await Promise.all([
-			guard(() => client.session(sid), { quiet }),
+			guard(() => client.session(sid)),
 			options.skillsEnabled && typeof client.skills === "function"
-				? client.skills(sid).catch((error) => ({ error }))
+				? guard(() => client.skills(sid))
 				: Promise.resolve({ skills: [] }),
 		])
 		if (state.sessionId !== sid || own !== opening) return
 		// a chat that failed to load (gone, or not this user's) leaves a blank chat, not one
-		// that can't send; its skills failed for the same reason, said once already
+		// that can't send
 		if (!info) return startNewChat()
-		if (catalog.error) report(catalog.error)
 		// Seed from the active branch, not a raw-log replay: the log also holds
 		// rewind markers and abandoned rows, which must never enter the
 		// transcript (a replayed rewind would trigger an endless reload loop).
@@ -1691,14 +1684,6 @@ export function createFlowStore(client, options = {}) {
 	const coreNames = () => state.tools.filter((t) => !t.extension && !t.bundled).map((t) => t.name)
 	const extras = (tools) => tools.filter((name) => !coreNames().includes(name))
 
-	// the prompt a session's requests open with, where its host shows it; null keeps the stand-in
-	async function systemPrompt(sid) {
-		const prompt = state.session?.config?.system_prompt
-		if (typeof prompt === "string") return prompt
-		if (typeof client.systemPrompt !== "function") return null
-		return client.systemPrompt(sid).catch(() => null)
-	}
-
 	async function renameSession(sid, title) {
 		const data = await guard(() => client.patchConfig(sid, { title }))
 		if (!data) return
@@ -1837,7 +1822,6 @@ export function createFlowStore(client, options = {}) {
 		defaultPreset,
 		saveDefaultPreset,
 		renameSession,
-		systemPrompt,
 		deleteSession,
 		folderName,
 		addFolder,

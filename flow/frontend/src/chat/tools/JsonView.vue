@@ -4,7 +4,10 @@
 			class="m-0 max-h-[240px] min-w-0 flex-1 overflow-auto whitespace-pre-wrap break-words font-mono text-sm leading-[1.65] text-ink-gray-6"
 			>{{ output }}</pre
 		>
-		<CopyButton :text="output" />
+		<CopyButton
+			:text="output"
+			class="grid h-5 w-5 flex-none place-items-center rounded-4 text-ink-gray-5 hover:bg-surface-gray-2 hover:text-ink-gray-8"
+		/>
 	</div>
 </template>
 

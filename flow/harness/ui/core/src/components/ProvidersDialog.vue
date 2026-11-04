@@ -34,7 +34,7 @@
 				<span class="min-w-0 flex-1 truncate">{{ p.name }}</span>
 				<span
 					v-if="p.configured"
-					class="flex items-center gap-1 text-xs-medium text-ink-green-7"
+					class="flex items-center gap-1 text-xs font-medium text-ink-green-7"
 				>
 					<span class="h-1.5 w-1.5 rounded-full bg-surface-green-7" />
 					Connected
@@ -80,7 +80,7 @@
 					<ProviderIcon :provider-id="selected.id" :icon="selected.icon" :size="28" />
 				</span>
 				<div class="min-w-0">
-					<div class="truncate text-base-semibold text-ink-gray-9">{{ selected.name }}</div>
+					<div class="truncate text-base font-semibold text-ink-gray-9">{{ selected.name }}</div>
 					<div class="truncate text-sm text-ink-gray-5">{{ selected.source || "Not connected" }}</div>
 				</div>
 			</div>
@@ -88,15 +88,15 @@
 			<!-- custom endpoint setup: adds a new one, or edits the selected one in place -->
 			<form v-if="selected.custom_setup || selected.custom" class="flex flex-col gap-3" @submit.prevent="saveCustom">
 				<label class="block">
-					<span class="mb-1.5 block text-sm-medium text-ink-gray-7">Name</span>
+					<span class="mb-1.5 block text-sm font-medium text-ink-gray-7">Name</span>
 					<input v-model="customName" :class="FIELD" placeholder="Local Ollama" />
 				</label>
 				<label class="block">
-					<span class="mb-1.5 block text-sm-medium text-ink-gray-7">Base URL</span>
+					<span class="mb-1.5 block text-sm font-medium text-ink-gray-7">Base URL</span>
 					<input v-model="customBaseUrl" :class="FIELD" placeholder="http://localhost:11434/v1" />
 				</label>
 				<label class="block">
-					<span class="mb-1.5 block text-sm-medium text-ink-gray-7">Models</span>
+					<span class="mb-1.5 block text-sm font-medium text-ink-gray-7">Models</span>
 					<textarea
 						v-model="customModelIds"
 						rows="3"
@@ -109,7 +109,7 @@
 					</span>
 				</label>
 				<label class="block">
-					<span class="mb-1.5 block text-sm-medium text-ink-gray-7">
+					<span class="mb-1.5 block text-sm font-medium text-ink-gray-7">
 						API key <span class="font-normal text-ink-gray-4">(optional)</span>
 					</span>
 					<input
@@ -121,24 +121,28 @@
 					/>
 				</label>
 				<div class="mt-1 flex items-center gap-2">
-					<Button
+					<button
 						v-if="editingCustom"
-						variant="ghost"
-						theme="red"
-						size="md"
-						icon-left="lucide-log-out"
-						label="Disconnect"
+						type="button"
+						class="flex h-8 items-center gap-1.5 rounded-5 px-3 text-sm font-medium text-ink-red-6 hover:bg-surface-red-1"
 						:disabled="saving"
 						@click="disconnect"
-					/>
-					<Button
+					>
+						<span class="lucide-log-out size-3.5" aria-hidden="true" />
+						Disconnect
+					</button>
+					<button
 						type="submit"
-						variant="solid"
-						size="md"
-						:icon-left="editingCustom ? 'lucide-check' : 'lucide-plus'"
-						:label="editingCustom ? 'Save changes' : 'Add endpoint'"
+						class="flex h-8 items-center gap-1.5 rounded-5 bg-surface-gray-10 px-3 text-sm font-medium text-ink-base hover:opacity-90 disabled:cursor-not-allowed disabled:border disabled:border-outline-gray-2 disabled:bg-surface-gray-1 disabled:text-ink-gray-4 disabled:hover:opacity-100"
 						:disabled="!canSaveCustom || saving"
-					/>
+					>
+						<span
+							class="size-3.5"
+							:class="editingCustom ? 'lucide-check' : 'lucide-plus'"
+							aria-hidden="true"
+						/>
+						{{ editingCustom ? "Save changes" : "Add endpoint" }}
+					</button>
 				</div>
 			</form>
 
@@ -149,21 +153,19 @@
 					<span class="lucide-circle-check size-4 text-ink-green-7" aria-hidden="true" />
 					Ready to use
 				</div>
-				<Button
+				<button
 					v-if="selected.credential_type"
-					variant="ghost"
-					theme="red"
-					size="md"
-					class="mt-3"
-					icon-left="lucide-log-out"
-					label="Disconnect"
+					class="mt-3 flex h-8 items-center gap-1.5 rounded-5 px-3 text-sm font-medium text-ink-red-6 hover:bg-surface-red-1"
 					:disabled="saving"
 					@click="disconnect"
-				/>
+				>
+					<span class="lucide-log-out size-3.5" aria-hidden="true" />
+					Disconnect
+				</button>
 			</div>
 
 			<form v-else-if="selected.auth_methods.includes('api_key')" class="mt-5" @submit.prevent="saveKey">
-				<label class="mb-1.5 block text-sm-medium text-ink-gray-7">API key</label>
+				<label class="mb-1.5 block text-sm font-medium text-ink-gray-7">API key</label>
 				<input
 					v-model="apiKey"
 					type="password"
@@ -171,27 +173,26 @@
 					class="h-9 w-full rounded-5 border border-outline-gray-2 bg-surface-base px-3 text-base text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:border-outline-gray-4 focus:ring-0"
 					placeholder="Paste your API key"
 				/>
-				<Button
+				<button
 					type="submit"
-					variant="solid"
-					size="md"
-					class="mt-3"
-					icon-left="lucide-key"
-					label="Save API key"
+					class="mt-3 flex h-8 items-center gap-1.5 rounded-5 bg-surface-gray-10 px-3 text-sm font-medium text-ink-base hover:opacity-90 disabled:cursor-not-allowed disabled:border disabled:border-outline-gray-2 disabled:bg-surface-gray-1 disabled:text-ink-gray-4 disabled:hover:opacity-100"
 					:disabled="!apiKey.trim() || saving"
-				/>
+				>
+					<span class="lucide-key size-3.5" aria-hidden="true" />
+					Save API key
+				</button>
 			</form>
 
 			<div v-else class="mt-5">
-				<Button
+				<button
 					v-if="!['pending', 'waiting_manual', 'exchanging', 'connected'].includes(oauthStatus)"
-					variant="solid"
-					size="md"
-					icon-left="lucide-external-link"
-					label="Sign in"
+					class="flex h-9 items-center gap-2 rounded-5 bg-surface-gray-10 px-3.5 text-sm font-medium text-ink-base hover:opacity-90 disabled:opacity-50"
 					:disabled="saving"
 					@click="beginOAuth"
-				/>
+				>
+					<span class="lucide-external-link size-3.5" aria-hidden="true" />
+					Sign in
+				</button>
 				<div
 					v-else-if="oauthStatus !== 'connected'"
 					class="flex items-center gap-2 rounded-5 border border-outline-gray-1 bg-surface-gray-1 px-3 py-2.5 text-sm text-ink-gray-7"
@@ -235,14 +236,13 @@
 						class="h-9 w-full rounded-5 border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:border-outline-gray-4 focus:ring-0"
 						placeholder="http://localhost:1455/auth/callback?..."
 					/>
-					<Button
+					<button
 						type="submit"
-						variant="outline"
-						size="md"
-						class="mt-2"
-						label="Complete sign-in"
+						class="mt-2 flex h-8 items-center gap-1.5 rounded-5 border border-outline-gray-2 px-3 text-sm font-medium text-ink-gray-7 hover:bg-surface-gray-1 disabled:opacity-50"
 						:disabled="!callbackUrl.trim() || saving"
-					/>
+					>
+						Complete sign-in
+					</button>
 				</form>
 			</div>
 		</div>
@@ -251,7 +251,6 @@
 
 <script setup>
 import { computed, inject, onBeforeUnmount, ref, toRef } from "vue"
-import { Button } from "frappe-ui/src/components/Button"
 
 import { useDebouncedValue } from "../debounce.js"
 import LoadingState from "./LoadingState.vue"

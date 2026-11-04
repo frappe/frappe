@@ -12,7 +12,7 @@
 		>
 			<div
 				v-if="mode === 'diff'"
-				class="flex h-9 flex-none items-center border-b border-outline-gray-1 px-3 text-sm-medium text-ink-gray-5"
+				class="flex h-9 flex-none items-center border-b border-outline-gray-1 px-3 text-sm font-medium text-ink-gray-5"
 			>
 				{{ gitFiles.length }} {{ gitFiles.length === 1 ? "file" : "files" }} changed
 			</div>
@@ -150,7 +150,6 @@
 import { computed, inject, onBeforeUnmount, reactive, ref, watch } from "vue"
 
 import { useDebouncedValue } from "../debounce.js"
-import { afterMenu } from "../menu.js"
 import { fileName } from "../transcript.js"
 import FileTree from "./FileTree.vue"
 import LoadingState from "./LoadingState.vue"
@@ -234,14 +233,14 @@ watch(
 // the query falls back to the normal lazy tree with its manual expansion.
 const fileQuery = ref("")
 const searchInput = ref(null)
-// the Files view opened by hand puts the caret in its search, a restored one leaves it be, after
-// the menu it was opened from has handed the focus back
+// the Files view opened by hand puts the caret in its search, a restored one leaves it be.
+// Two timeouts: a menu it was opened from hands the focus back to its trigger in one, set as it closes
 watch(
 	() => props.open && props.mode === "files" && flow.state.workspace.focusSearch,
 	(asked) => {
 		if (!asked) return
 		flow.state.workspace.focusSearch = false
-		afterMenu(() => searchInput.value?.focus({ preventScroll: true }))()
+		setTimeout(() => setTimeout(() => searchInput.value?.focus({ preventScroll: true })))
 	},
 	{ immediate: true },
 )

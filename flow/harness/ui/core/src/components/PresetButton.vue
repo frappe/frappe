@@ -1,33 +1,30 @@
 <template>
 	<span class="relative min-w-0">
 		<!-- its list hangs from it -->
-		<Button
+		<button
 			ref="trigger"
-			variant="ghost"
-			class="max-w-full"
-			icon-left="lucide-layers"
-			:label="flow.activePreset()?.name ?? 'Standard'"
-			:data-state="open ? 'active' : undefined"
+			class="flex h-6 max-w-full items-center gap-1.5 rounded-5 px-2 hover:text-ink-gray-9"
+			:class="open ? 'text-ink-gray-9' : ''"
 			title="Agent preset"
 			:aria-expanded="open"
 			:disabled="disabled"
 			@click="open ? close() : show()"
 		>
-			<template #suffix>
-				<span
-					class="lucide-chevron-down -ml-0.5 size-3 flex-none text-ink-gray-4 transition-transform"
-					:class="open ? 'rotate-180' : ''"
-					aria-hidden="true"
-				/>
-			</template>
-		</Button>
+			<span class="lucide-layers size-3.5 flex-none" aria-hidden="true" />
+			<span class="truncate">{{ flow.activePreset()?.name ?? "Standard" }}</span>
+			<span
+				class="lucide-chevron-down size-3 flex-none text-ink-gray-4 transition-transform dark:text-ink-gray-6"
+				:class="open ? 'rotate-180' : ''"
+				aria-hidden="true"
+			/>
+		</button>
 		<PalettePanel v-if="open" title="Agent preset" dropdown align="left" :width="264" :query="search" @close="close">
 			<div class="flex flex-none pl-1 pr-2.5 pt-1">
 				<input
 					ref="field"
 					v-model="search"
 					placeholder="Search presets…"
-					class="h-8 min-w-0 flex-1 border-0 bg-transparent px-2 text-base text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:ring-0"
+					class="h-8 min-w-0 flex-1 border-0 bg-transparent px-[11px] text-base text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:ring-0"
 				/>
 			</div>
 			<div class="flow-palette-list min-h-0 flex-1 overflow-y-auto p-1">
@@ -59,7 +56,6 @@
 
 <script setup>
 import { computed, inject, nextTick, ref } from "vue"
-import { Button } from "frappe-ui/src/components/Button"
 
 import { layout } from "../layout.js"
 import PalettePanel from "./PalettePanel.vue"
@@ -90,7 +86,7 @@ function show() {
 
 function close() {
 	open.value = false
-	nextTick(() => trigger.value?.$el?.focus())
+	nextTick(() => trigger.value?.focus())
 }
 
 function choose(id) {

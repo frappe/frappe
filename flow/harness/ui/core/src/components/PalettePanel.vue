@@ -8,14 +8,13 @@
 	<section
 		ref="panel"
 		:aria-label="title"
-		class="flow-palette-panel absolute z-20 flex flex-col overflow-hidden rounded-6 bg-surface-elevation-2 ring-1 ring-black ring-opacity-5 dark:ring-outline-gray-2"
+		class="flow-palette-panel absolute z-20 flex flex-col overflow-hidden rounded-6 border border-outline-gray-1 flow-composer-surface shadow-[0_6px_20px_rgba(0,0,0,0.05)]"
 		:class="
 			dropdown
 				? [
-						'w-[var(--dropdown-width)]',
+						'flow-dropdown w-[var(--dropdown-width)]',
 						below ? 'top-[calc(100%+4px)]' : 'bottom-[calc(100%+8px)]',
 						align === 'right' ? 'right-0' : 'left-0',
-						'shadow-2xl',
 					]
 				: 'bottom-[calc(100%+4px)] left-0 w-full'
 		"
@@ -30,9 +29,16 @@
 	>
 		<!-- a slim bar only for a page's way back and controls, in the list's heading style;
 		     a root list labels itself -->
-		<header v-if="back || $slots.actions" class="mt-1 flex h-7 flex-none items-center gap-1 px-2.5">
-			<Button v-if="back" variant="ghost" size="xs" icon="lucide-arrow-left" title="Back" @click="emit('back')" />
-			<span class="min-w-0 truncate text-sm-medium text-ink-gray-4" :class="back ? '' : 'pl-1'">
+		<header v-if="back || $slots.actions" class="mt-1 flex h-8 flex-none items-center gap-1 px-2.5">
+			<button
+				v-if="back"
+				class="grid h-6 w-6 place-items-center rounded-full text-ink-gray-5 hover:bg-surface-gray-2 hover:text-ink-gray-8"
+				title="Back"
+				@click="emit('back')"
+			>
+				<span class="lucide-arrow-left size-3.5" aria-hidden="true" />
+			</button>
+			<span class="min-w-0 truncate text-base font-medium text-ink-gray-5" :class="back ? '' : 'pl-1'">
 				{{ title }}
 			</span>
 			<span class="flex-1" />
@@ -44,7 +50,6 @@
 
 <script setup>
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
-import { Button } from "frappe-ui/src/components/Button"
 
 import { isInert, isPageEvent } from "../inert.js"
 import { nextNavigationIndex } from "../paletteNav.js"
@@ -209,10 +214,15 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .flow-palette-panel :deep([data-palette-item][data-palette-active="true"]) {
-	background: var(--surface-alpha-gray-2);
+	background: var(--surface-gray-2);
+	color: var(--ink-gray-9);
 }
-/* as frappe-ui's menus are here (flow.css), a dark highlight a step clearer than the panel */
-[data-theme="dark"] .flow-palette-panel :deep([data-palette-item][data-palette-active="true"]) {
+.flow-palette-panel :deep([data-palette-active="true"] .flow-palette-hint) {
+	color: var(--ink-gray-5);
+}
+/* a dark dropdown over the composer is a step lighter than the box (flow.css): its highlight
+   steps up with it */
+[data-theme="dark"] .flow-palette-panel.flow-dropdown :deep([data-palette-item][data-palette-active="true"]) {
 	background: var(--surface-gray-3);
 }
 </style>

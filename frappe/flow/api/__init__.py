@@ -26,7 +26,6 @@ from frappe.flow.api.api import (
 	skills,
 	submit_feedback,
 	sync_session,
-	system_prompt,
 	unshare_session,
 )
 
@@ -57,6 +56,5 @@ __all__ = [
 	"skills",
 	"submit_feedback",
 	"sync_session",
-	"system_prompt",
 	"unshare_session",
 ]

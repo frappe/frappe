@@ -89,12 +89,10 @@ function key_target(e) {
 
 // a key typed into an island's input is the island's, unless the island sits in the dialog or
 // grid row that Desk's Escape, Enter and Ctrl+Up/Down act on: Escape in a chat beside the page
-// must not close the page's dialog. The shadow root comes from the event's path, which still holds
-// it when the island's own handler has already removed the input
+// must not close the page's dialog
 function is_island_key(e) {
 	const target = key_target(e);
-	const path = e.originalEvent?.composedPath() || [];
-	const root = path.find((node) => node instanceof ShadowRoot) || target?.getRootNode?.();
+	const root = target?.getRootNode?.();
 	if (!is_input(target) || !(root instanceof ShadowRoot)) return false;
 	return !root.host.closest(".modal, .grid-row-open");
 }

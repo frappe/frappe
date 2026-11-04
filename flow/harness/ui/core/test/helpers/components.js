@@ -27,7 +27,7 @@ const dropdown = moduleURL(`
 			return () => h("div", { "data-stub": "Dropdown" }, [
 				h("div", { onClick: () => (shown.value = !shown.value) }, slots.trigger?.()),
 				...((props.open ?? shown.value) ? props.options ?? [] : []).flatMap((o) => o.options ?? [o]).map((o) =>
-					h("button", { role: "menuitem", "data-description": o.description, disabled: o.disabled, onClick: o.onClick }, o.label)),
+					h("button", { role: "menuitem", onClick: o.onClick }, o.label)),
 			])
 		},
 	}
@@ -123,25 +123,12 @@ const widgets = moduleURL(`
 	const text = (tag) => ({
 		props: ["modelValue"],
 		emits: ["update:modelValue"],
-		// as frappe-ui's fields expose it
-		methods: { focus() { this.$el.focus() } },
-		computed: { inputElement() { return this.$el } },
 		render() {
 			return h(tag, { value: this.modelValue, onInput: (e) => this.$emit("update:modelValue", e.target.value) })
 		},
 	})
 	export const TextInput = text("input")
 	export const Textarea = text("textarea")
-	// its title and content while open, and a close button that asks it to close
-	export const Dialog = {
-		props: ["open", "title", "size"],
-		emits: ["update:open"],
-		render() {
-			return this.open
-				? h("div", { role: "dialog" }, [this.$slots.title?.() ?? this.title, this.$slots.default?.(), h("button", { title: "Close", onClick: () => this.$emit("update:open", false) })])
-				: null
-		},
-	}
 	export const Checkbox = {
 		props: ["modelValue", "disabled"],
 		emits: ["update:modelValue"],
@@ -160,57 +147,19 @@ const widgets = moduleURL(`
 			return h("span", { "data-stub": "Badge" }, this.$slots.default?.() ?? this.label)
 		},
 	}
-	export const Avatar = {
-		props: ["label", "image", "size"],
-		render() {
-			return h("span", { "data-stub": "Avatar" }, this.label)
-		},
-	}
-	// its slots and icon in frappe-ui's order
 	export const Button = {
-		props: ["label", "disabled", "icon", "iconLeft", "variant", "size", "theme"],
+		props: ["label", "disabled"],
 		render() {
-			const icon = this.icon ? h("span", { class: this.icon, "aria-hidden": "true" }) : this.$slots.icon?.()
-			const prefix = this.iconLeft ? h("span", { class: this.iconLeft, "aria-hidden": "true" }) : this.$slots.prefix?.()
-			return h("button", { disabled: this.disabled }, [prefix, icon ?? this.$slots.default?.() ?? this.label, this.$slots.suffix?.()])
+			return h("button", { disabled: this.disabled }, this.label)
 		},
 	}
 	export const Select = { ...text("select"), props: ["modelValue", "options"] }
-	// its trigger, and while open its search box, its options and its footer
-	export const Combobox = {
-		props: ["modelValue", "options", "open", "query", "placeholder", "emptyText", "filterable"],
-		emits: ["update:modelValue", "update:open", "update:query"],
-		methods: { focus() {} },
-		render() {
-			// as frappe-ui filters, on the label or the value, unless the caller filters
-			const q = (this.query ?? "").toLowerCase()
-			const options = (this.options ?? []).filter((o) => this.filterable === false || !q || o.label.toLowerCase().includes(q) || String(o.value).toLowerCase().includes(q))
-			return h("div", { "data-stub": "Combobox" }, [
-				h("div", { onClick: () => this.$emit("update:open", !this.open) }, this.$slots.trigger?.()),
-				...(this.open
-					? [
-							h("input", { placeholder: this.placeholder, value: this.query, onInput: (e) => this.$emit("update:query", e.target.value) }),
-							...options.map((o) =>
-								h("button", { role: "option", "aria-selected": String(o.value === this.modelValue), onClick: () => this.$emit("update:modelValue", o.value) }, o.label)),
-							options.length ? null : h("div", { "data-empty": "" }, this.emptyText),
-							this.$slots.footer?.(),
-						]
-					: []),
-			])
-		},
-	}
-`)
-// the frappe-ui root's pieces ui-core takes from it: a tooltip as its trigger alone, and shortcuts
-// that a test presses through the component's own handlers
-const frappeUI = moduleURL(`
-	export const Tooltip = { inheritAttrs: false, render() { return this.$slots.default?.() } }
-	export function useKeyboardShortcut() {}
 `)
 const components = new Set([
 	"Composer.vue", "ToolStep.vue", "ToolGroup.vue", "ApprovalCard.vue", "MessageList.vue", "ModelButton.vue",
 	"SettingsDialog.vue", "SettingsPage.vue", "UserBubble.vue", "TurnFold.vue", "ThinkingBlock.vue", "ThoughtStep.vue",
 	"SubagentView.vue", "TranscriptDialog.vue", "WorkspacePanel.vue", "FilesBar.vue", "FileTree.vue", "LoadingState.vue", "AddToChat.vue",
-	"EditorView.vue", "ChatMenu.vue", "PresetButton.vue", "SuggestedReplies.vue", "ChatHistory.vue", "TitleField.vue",
+	"EditorView.vue", "ChatMenu.vue", "PresetButton.vue", "SuggestedReplies.vue", "ChatHistory.vue",
 ])
 const compiled = new Map()
 
@@ -244,8 +193,6 @@ async function componentURL(url) {
 			resolved = settingsPieces
 		} else if (specifier.startsWith("frappe-ui/src/components/")) {
 			resolved = widgets
-		} else if (specifier === "frappe-ui") {
-			resolved = frappeUI
 		} else if (specifier === "@flow/ui-core") {
 			resolved = uiCore
 		} else {

@@ -33,7 +33,7 @@
 			<li v-for="user in members" :key="user.name" class="flex items-center gap-2.5">
 				<Avatar :image="user.user_image" :label="nameOf(user)" size="xl" />
 				<div class="min-w-0 flex-1">
-					<p class="truncate text-base-medium text-ink-gray-9">{{ nameOf(user) }}</p>
+					<p class="truncate text-base font-medium text-ink-gray-9">{{ nameOf(user) }}</p>
 					<p
 						v-if="nameOf(user) !== user.name"
 						class="mt-1 truncate text-xs text-ink-gray-5"
@@ -44,13 +44,14 @@
 				<span v-if="user.name === me.name" class="flex-none text-base text-ink-gray-5">
 					Owner (you)
 				</span>
-				<Button
+				<button
 					v-else
-					variant="ghost"
-					icon="lucide-x"
+					class="flow-icon-btn"
 					:title="`Remove ${nameOf(user)}'s access`"
 					@click="remove(user.name)"
-				 />
+				>
+					<span class="lucide-x size-3.5" aria-hidden="true" />
+				</button>
 			</li>
 			<li v-if="loading"><LoadingState class="py-1 text-sm text-ink-gray-5" /></li>
 		</ul>
@@ -59,8 +60,8 @@
 				:text="link"
 				icon="lucide-link"
 				title="Copy link"
-				variant="outline"
-				size="sm"
+				class="flex h-7 items-center gap-1.5 rounded-4 border border-outline-gray-2 bg-surface-base px-2 text-ink-gray-8 hover:border-outline-gray-3 active:bg-surface-gray-4"
+				:class="inPanel ? 'text-base' : 'text-md'"
 			>
 				<template #default="{ copied }">{{ copied ? "Copied" : "Copy link" }}</template>
 			</CopyButton>
@@ -71,11 +72,12 @@
 <script setup>
 import { computed, inject, nextTick, ref, watch } from "vue";
 import { useRouter } from "vue-router";
-import { Avatar, Button, Dialog, FormControl, Select, toast } from "frappe-ui";
+import { Avatar, Dialog, FormControl, Select, toast } from "frappe-ui";
 import CopyButton from "@flow/ui-core/components/CopyButton.vue";
 import LoadingState from "@flow/ui-core/components/LoadingState.vue";
 import { useDebouncedValue } from "@flow/ui-core/debounce.js";
 import { layout } from "@flow/ui-core/layout.js";
+import { inPanel } from "../panel.js";
 
 // The Share dialog, which the chat's owner opens from its menu: whoever is added may
 // view the chat, never write to it, since its tools run as the owner.

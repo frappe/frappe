@@ -399,24 +399,6 @@ class TestSessionEndpoints(ApiCase):
 		for name in api.__all__:
 			frappe.is_whitelisted(frappe.get_attr(f"frappe.flow.api.{name}"))
 
-	def test_system_prompt_is_sent_to_a_system_manager_only(self):
-		owner = _ensure_user(SHARER)
-		frappe.set_user(owner)
-		sid = self.create()
-		self.daemon.configs[sid]["system_prompt"] = "You are Flow, composed."
-		self.daemon.calls.clear()
-		self.assertIsNone(api.system_prompt(sid))
-		self.assertEqual(self.daemon.calls, [])  # a plain user's ask never reaches the flow server
-
-		frappe.set_user("Administrator")
-		frappe.get_doc("User", owner).add_roles("System Manager")
-		frappe.set_user(owner)
-		self.assertEqual(api.system_prompt(sid), "You are Flow, composed.")
-
-		frappe.set_user(_ensure_user(OTHER))
-		with self.assertRaises(frappe.PermissionError):
-			api.system_prompt(sid)
-
 	def test_screen_result_hands_the_panels_answer_to_the_call_waiting_on_its_token(self):
 		sid = self.create()
 		self.assertEqual(api.screen_result(sid, "t1", screen={"url": "/app/todo"}), {"delivered": True})

@@ -6,7 +6,7 @@
 			class="flex h-full items-center justify-center bg-surface-base px-6 text-center"
 		>
 			<div v-if="error" class="max-w-md">
-				<div class="text-xl-medium text-ink-gray-9">Flow could not start</div>
+				<div class="text-xl font-medium text-ink-gray-9">Flow could not start</div>
 				<div class="mt-2 text-base text-ink-gray-6">{{ error }}</div>
 				<!-- in a panel the Desk is already the page around it -->
 				<div v-if="panel" class="mt-4 flex justify-center gap-2">
@@ -16,7 +16,7 @@
 				<a
 					v-else
 					href="/desk"
-					class="mt-4 inline-block text-base-medium text-ink-gray-8 underline"
+					class="mt-4 inline-block text-base font-medium text-ink-gray-8 underline"
 					>Open the Desk</a
 				>
 			</div>

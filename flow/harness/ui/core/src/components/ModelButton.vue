@@ -3,21 +3,18 @@
 		<!-- the row shrinks the wrapper; the button, sized to its text, must follow it. Its menu
 		     nests the model and thinking lists, each opening on hover beside its row -->
 		<Dropdown :options="options" align="end" side="top">
-			<template #trigger>
-				<Button
-					variant="ghost"
-					:size="large ? 'md' : 'sm'"
-					class="max-w-full"
-					:label="modelLabel"
+			<template #trigger="{ open }">
+				<button
+					class="flex max-w-full items-center gap-1.5 rounded-5 px-2 text-base text-ink-gray-7 hover:bg-surface-gray-2 dark:text-ink-gray-8"
+					:class="[open ? 'bg-surface-gray-2' : '', large ? 'h-8' : 'h-7']"
 					:title="`${currentModel ?? modelLabel} · thinking ${effortLabel}`"
 				>
-					<template v-if="currentEffort !== 'default'" #suffix>
-						<span class="-ml-0.5 flex flex-none items-center gap-1.5">
-							<span class="h-[3px] w-[3px] flex-none rounded-full bg-surface-gray-4" />
-							<span class="text-ink-gray-5">{{ effortLabel }}</span>
-						</span>
+					<span class="min-w-0 truncate">{{ modelLabel }}</span>
+					<template v-if="currentEffort !== 'default'">
+						<span class="h-[3px] w-[3px] flex-none self-center rounded-full bg-surface-gray-4" />
+						<span class="flex-none text-ink-gray-5 dark:text-ink-gray-6">{{ effortLabel }}</span>
 					</template>
-				</Button>
+				</button>
 			</template>
 		</Dropdown>
 	</span>
@@ -25,7 +22,6 @@
 
 <script setup>
 import { computed, inject } from "vue"
-import { Button } from "frappe-ui/src/components/Button"
 import Dropdown from "frappe-ui/src/components/Dropdown/Dropdown.vue"
 
 import { checked } from "../menu.js"

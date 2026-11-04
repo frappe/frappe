@@ -33,7 +33,7 @@
 				</div>
 			</SettingsRow>
 			<div class="py-4">
-				<div class="text-base-medium text-ink-gray-9">Custom instructions</div>
+				<div class="text-base font-medium text-ink-gray-9">Custom instructions</div>
 				<p class="mt-1.5 text-sm leading-5 text-ink-gray-6">Added to the prompt of every new chat.</p>
 				<Textarea
 					v-model="draft"

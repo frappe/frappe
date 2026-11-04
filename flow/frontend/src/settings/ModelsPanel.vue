@@ -58,7 +58,7 @@
 			<span class="mb-1 grid size-11 place-items-center rounded-7 bg-surface-gray-2 text-ink-gray-7">
 				<span class="lucide-server size-5" aria-hidden="true" />
 			</span>
-			<p class="text-base-medium text-ink-gray-9">Connect a provider to start</p>
+			<p class="text-base font-medium text-ink-gray-9">Connect a provider to start</p>
 			<p class="mb-2 max-w-[360px] text-base text-ink-gray-5">
 				Flow turns on the provider's best models for you. You can add or switch off models after.
 			</p>
@@ -70,7 +70,7 @@
 			<section v-for="service in services" :key="service.name" class="flex flex-col gap-3">
 				<div class="flex min-h-8 items-center gap-2.5">
 					<ProviderIcon :provider-id="iconOf(service.name)" :size="24" bare class="flex-none" />
-					<span class="min-w-0 truncate text-base-medium text-ink-gray-9">{{ service.label }}</span>
+					<span class="min-w-0 truncate text-base font-medium text-ink-gray-9">{{ service.label }}</span>
 					<span class="flex-none text-base text-ink-gray-5">{{ countOf(service) }}</span>
 					<span v-if="keyRejected(service) || !service.enabled" class="flex-none text-sm text-ink-red-6">
 						{{ !service.enabled ? "Turned off" : "Key rejected" }}
@@ -127,7 +127,7 @@
 			<!-- models that carry a key of their own, set up before providers were -->
 			<section v-if="other.length" class="flex flex-col gap-3">
 				<div class="flex min-h-8 items-center gap-2.5">
-					<span class="text-base-medium text-ink-gray-9">With their own key</span>
+					<span class="text-base font-medium text-ink-gray-9">With their own key</span>
 					<span class="text-base text-ink-gray-5">{{ countOf({ models: other }) }}</span>
 				</div>
 				<ul class="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3">

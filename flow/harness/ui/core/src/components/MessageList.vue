@@ -79,6 +79,7 @@
 					<CopyButton
 						:text="item.text"
 						title="Copy response"
+						class="grid h-6 w-6 place-items-center rounded-5 text-ink-gray-4 hover:bg-surface-gray-2 hover:text-ink-gray-8"
 					/>
 					<!-- a host's own per-turn actions (Flow's feedback thumbs) -->
 					<component
@@ -131,7 +132,7 @@
 			     exactly where the upcoming tool row will render. -->
 			<div
 				v-if="showStandaloneStatus"
-				class="flex items-center gap-2 py-2 text-base-medium md:py-2.5"
+				class="flex items-center gap-2 py-2 text-base font-medium md:py-2.5"
 				:class="lastItem?.kind === 'thinking' ? '-mt-5' : ''"
 			>
 				<BrandMark line :size="16" :state="/think/i.test(liveLabel) ? 'thinking' : 'working'" />

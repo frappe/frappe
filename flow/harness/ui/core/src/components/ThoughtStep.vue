@@ -19,7 +19,7 @@
 					aria-hidden="true"
 				/>
 			</span>
-			<span class="flex-none text-base-medium" :class="live ? 'flow-shimmer' : 'text-ink-gray-9'">{{
+			<span class="flex-none text-base font-medium" :class="live ? 'flow-shimmer' : 'text-ink-gray-9'">{{
 				live ? "Thinking" : "Thought"
 			}}</span>
 			<span class="min-w-0 flex-1 truncate text-base text-ink-gray-5 group-hover:text-ink-gray-7">{{ preview }}</span>

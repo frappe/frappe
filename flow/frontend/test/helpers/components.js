@@ -21,7 +21,6 @@ const real = new Set([
 	"SidebarPeek.vue",
 	"ChatHeader.vue",
 	"ChatMenu.vue",
-	"TitleField.vue",
 	"ShareChat.vue",
 	"MessageList.vue",
 	"LoadingState.vue",
@@ -56,35 +55,7 @@ function stubURL(name) {
 	return stubs.get(name);
 }
 
-// frappe-ui's Button: its icon or label, then its suffix, under either import path
-const button = moduleURL(`
-	import { h } from ${JSON.stringify(vue)}
-	export const Button = {
-		props: ["label", "loading", "disabled", "icon", "iconLeft", "variant", "size", "theme"],
-		render() {
-			const icon = this.icon ? h("span", { class: this.icon, "aria-hidden": "true" }) : this.$slots.icon?.()
-			return h("button", { disabled: this.loading || this.disabled }, [
-				icon ?? this.$slots.default?.() ?? this.label, this.$slots.suffix?.(),
-			])
-		},
-	}
-`);
-
 const fakes = {
-	"frappe-ui/src/components/Button": button,
-	"frappe-ui/src/components/Avatar": moduleURL(`
-		import { h } from ${JSON.stringify(vue)}
-		export const Avatar = { render() { return h("div", { "data-stub": "Avatar" }) } }
-	`),
-	"frappe-ui/src/components/TextInput": moduleURL(`
-		import { h } from ${JSON.stringify(vue)}
-		export const TextInput = {
-			props: ["modelValue"],
-			emits: ["update:modelValue"],
-			methods: { focus() { this.$el.focus() } },
-			render() { return h("input", { value: this.modelValue, onInput: (e) => this.$emit("update:modelValue", e.target.value) }) },
-		}
-	`),
 	"frappe-ui": moduleURL(`
 		import { h } from ${JSON.stringify(vue)}
 		const stub = (name) => ({ render() { return h("div", { "data-stub": name }) } })
@@ -112,7 +83,10 @@ const fakes = {
 			emits: ["update:modelValue"],
 			render() { return h("div", { "data-control": "select", "data-value": this.modelValue }, (this.options || []).map(o => h("button", { onClick: () => this.$emit("update:modelValue", o.value) }, o.label))) }
 		}
-		export { Button } from ${JSON.stringify(button)}
+		export const Button = {
+			props: ["label", "loading"],
+			render() { return h("button", { disabled: this.loading }, this.label) }
+		}
 		export const FormControl = {
 			props: ["modelValue", "options", "query", "type", "label", "filterable", "loading"],
 			emits: ["update:modelValue", "update:query"],

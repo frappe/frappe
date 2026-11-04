@@ -1,6 +1,6 @@
 <template>
 	<div class="overflow-hidden rounded-6 border border-outline-gray-1">
-		<div class="flex h-9 items-center border-b border-outline-gray-1 bg-surface-gray-1 px-3 text-sm-medium text-ink-gray-5">
+		<div class="flex h-9 items-center border-b border-outline-gray-1 bg-surface-gray-1 px-3 text-sm font-medium text-ink-gray-5">
 			{{ files.length }} {{ files.length === 1 ? "file" : "files" }} changed
 		</div>
 		<div class="divide-y divide-outline-gray-1">
@@ -12,7 +12,7 @@
 				@click="flow.openDiffFile(file.path)"
 			>
 				<span class="lucide-file size-4 flex-none text-ink-gray-5" aria-hidden="true" />
-				<span class="flex-none text-base-medium text-ink-gray-9">{{ fileName(file.path) }}</span>
+				<span class="flex-none text-base font-medium text-ink-gray-9">{{ fileName(file.path) }}</span>
 				<span class="min-w-0 truncate text-sm text-ink-gray-4">{{ dirPath(file.path) }}</span>
 				<span class="flex-1" />
 				<span class="flex-none font-mono text-sm text-ink-green-5 dark:text-ink-green-7">+{{ file.added }}</span>
