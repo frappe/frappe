@@ -4,8 +4,10 @@ import { documentKey, onRecordLeft, readCachedDocument } from "@framework/ui/cac
 import { keepInHistory } from "@framework/ui/utils";
 
 export interface RecordView {
-  /** The record strip's tab. */
+  /** The record strip's tab as shown. */
   tab: string;
+  /** True when the reader chose `tab` (a click or a `?tab=`); a default is not remembered. */
+  picked?: boolean;
   /** The Details form's tab, by identity. */
   formTab: string;
   /** The Details sections, as `FormLayout` keys them. */

@@ -94,6 +94,11 @@ export class RecordTabsHost {
     return this.pick(this.tabs()?.visibleInReplay() ?? []);
   }
 
+  /** True when a click, a move or the address named the tab on show, not a fallback to the strip's first. */
+  picked(): boolean {
+    return this.wanted.value !== "" && this.wanted.value === this.shown();
+  }
+
   /** Committed state only: a read during a replay would stop tracking the commit. */
   shown(): string {
     return this.pick(this.tabs()?.visible() ?? []);

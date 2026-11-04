@@ -608,7 +608,7 @@ async function load({ fromMemory = false, keepWatch = false } = {}) {
 	// Read before this load writes a view of its own.
 	const view = fromMemory ? recallView(target.doctype, target.name, isNewNavigation()) : null;
 	const pointer = view ? "" : pointed;
-	openedQuery.value = view ? { ...route.query, tab: view.tab } : route.query;
+	openedQuery.value = view?.picked ? { ...route.query, tab: view.tab } : route.query;
 	keeper = viewKeeper(target.doctype, target.name);
 	keeping = false;
 	state.value = null;
@@ -827,7 +827,7 @@ async function openRecord({ visit, target, pointer, details, panel, view, feedRe
 async function settleView(visit: Visit, view: RecordView | null) {
 	if (view) {
 		disclosure.restore(view.panel);
-		tabsHost.settleRestored(view.tab);
+		if (view.picked) tabsHost.settleRestored(view.tab);
 	}
 	await nextTick();
 	const root = bodyRoot.value;
@@ -851,6 +851,7 @@ function keep() {
 	if (page.doctype !== doctype.value || page.docname !== docname.value) return;
 	keeper({
 		tab: shownTab.value,
+		picked: tabsHost.picked(),
 		formTab: activeFormTab.value || formTab.value,
 		// A copy: `history.replaceState` cannot clone a reactive proxy.
 		sections: { ...formSections.value },
@@ -941,7 +942,7 @@ function buildController({ visit, target, pointer, details, panel, view }: Openi
 	controller.value = created;
 	feeds.showPointedTab(pointer);
 	// After `controller` is set, whose change resets the strip to the address's tab.
-	if (view) tabsHost.restore(view.tab);
+	if (view?.picked) tabsHost.restore(view.tab);
 	return created;
 }
 
@@ -1130,7 +1131,13 @@ onUnmounted(() => {
 });
 
 watch(
-	() => [shownTab.value, activeFormTab.value, formSections.value, disclosure.shown()],
+	() => [
+		shownTab.value,
+		tabsHost.picked(),
+		activeFormTab.value,
+		formSections.value,
+		disclosure.shown(),
+	],
 	() => keep()
 );
 watch(bodyRoot, (root, _previous, onCleanup) => {
