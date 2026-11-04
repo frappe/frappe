@@ -1,5 +1,6 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # License: MIT. See LICENSE
+import contextlib
 import io
 import os
 import time
@@ -165,3 +166,22 @@ class TestCacheSweep(IntegrationTestCase):
 				):
 					relocate_blobs()
 			self.assertTrue(os.path.isfile(get_cache_path(blob)))
+
+	def test_a_copy_restored_right_after_the_sweep_holds_it_stays(self):
+		with storage_v2(), use_driver(RemoteDriver()):
+			blob = self.cached_blob(301)
+			restored = []
+
+			@contextlib.contextmanager
+			def lock_then_restore(blob_name, timeout):
+				with cache_lock(blob_name, timeout):
+					yield
+				if not restored:
+					restored.append(blob_name)
+					restore_cached(blob)
+
+			with patch("frappe.storage.cache.cache_lock", lock_then_restore):
+				sweep_cache()
+			self.assertTrue(restored)
+			self.assertTrue(os.path.isfile(get_cache_path(blob)))
+			self.assertFalse(os.path.exists(os.path.dirname(get_holding_path(blob))))

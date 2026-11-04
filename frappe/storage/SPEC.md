@@ -367,7 +367,8 @@ download --> files/<blob>/<filename> --keep--> private/cache/expiring/... --grac
 - One lock file out of 64 (`storage_cache_<n>`, by blob name) covers each
   move and delete. A busy blob is skipped by the sweep, and a request that
   cannot lock falls back to the native URL. Every step is atomic, so a
-  missing file is a normal case.
+  missing file is a normal case. A move removes the emptied blob folder
+  inside the same lock, and never deletes a file after it.
 - A copy lives at most `keep + grace + 10` minutes without a request, 370
   by default. A request to nginx just before a move can get one 404.
 - The sweep and `relocate_blobs` share one lock (`storage_cache_sweep`).

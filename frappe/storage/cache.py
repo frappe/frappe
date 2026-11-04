@@ -103,10 +103,16 @@ def restore_cached(blob: "FileBlob") -> str | None:
 			os.makedirs(os.path.dirname(path), exist_ok=True)
 			shutil.move(holding_path, path)
 			os.utime(path)
+			remove_empty_folder(holding_path)
 	except (FileNotFoundError, LockTimeoutError):
 		return None
-	HoldingDriver().delete(get_cache_key(blob), is_private=bool(blob.is_private))
 	return path
+
+
+def remove_empty_folder(path: str) -> None:
+	"""Remove the blob folder that held ``path`` when nothing else is in it."""
+	with contextlib.suppress(OSError):
+		os.rmdir(os.path.dirname(path))
 
 
 def queue_cache(blob: "FileBlob") -> None:
@@ -151,8 +157,7 @@ def cache_blob(blob_name: str) -> None:
 	finally:
 		with contextlib.suppress(FileNotFoundError):
 			os.remove(part)
-		with contextlib.suppress(OSError):
-			os.rmdir(os.path.dirname(path))
+		remove_empty_folder(path)
 
 
 def delete_cached(blob: "FileBlob") -> None:
@@ -212,9 +217,9 @@ def hold_copy(blob: "FileBlob", cutoff: float) -> bool:
 			os.makedirs(os.path.dirname(holding_path), exist_ok=True)
 			shutil.move(path, holding_path)
 			os.utime(holding_path)
+			remove_empty_folder(path)
 	except (FileNotFoundError, LockTimeoutError):
 		return False
-	LocalDriver().delete(get_cache_key(blob), is_private=bool(blob.is_private))
 	return True
 
 
@@ -233,8 +238,7 @@ def delete_held_copy(path: str, blob_name: str, cutoff: float) -> bool:
 			if os.path.getmtime(path) > cutoff:
 				return False
 			os.remove(path)
+			remove_empty_folder(path)
 	except (FileNotFoundError, LockTimeoutError):
 		return False
-	with contextlib.suppress(OSError):
-		os.rmdir(os.path.dirname(path))
 	return True
