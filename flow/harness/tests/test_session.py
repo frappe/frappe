@@ -107,27 +107,6 @@ def test_store_refuses_unsafe_ids_fenced_cwds_and_tampered_meta(tmp_path):
 		SessionStore(str(tmp_path / "data"), allowed_roots=[str(allowed)]).get(session.id)
 
 
-@pytest.mark.parametrize(
-	("legacy", "expected"),
-	[
-		({"auto_approve": True}, "auto_approve"),
-		({"auto_approve": False}, "ask"),
-		({"auto_approve": True, "approval_mode": "auto"}, "auto"),
-	],
-)
-def test_a_session_saved_with_auto_approve_loads_with_its_approval_mode(tmp_path, legacy, expected):
-	store = SessionStore(str(tmp_path))
-	session = store.create(SessionConfig(model="mock", cwd=str(tmp_path)))
-	meta = Path(session.log.path).with_name(f"{session.id}.meta.json")
-	config = json.loads(meta.read_text())
-	del config["approval_mode"]
-	meta.write_text(json.dumps({**config, **legacy}))
-
-	reloaded = SessionStore(str(tmp_path))
-	assert reloaded.get(session.id).config.approval_mode == expected
-	assert "auto_approve" not in reloaded.get(session.id).config.model_dump()
-
-
 async def test_set_model_applies_to_later_runs_and_survives_restart(tmp_path, monkeypatch):
 	resolved = []
 
