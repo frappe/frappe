@@ -154,6 +154,21 @@ class TestBlobCache(IntegrationTestCase):
 			with frappe.storage.fake():
 				self.assertFalse(self.put_blob().is_on_disk)
 
+	def test_the_redirect_is_cacheable_by_browsers_only_when_no_local_copy_is_coming(self):
+		with storage_v2(), use_driver(RemoteDriver()):
+			blob = self.put_blob(filename="a.bin")
+			cases = (
+				({"storage_local_cache": 1}, 100, "no-cache"),
+				({"storage_local_cache": 0}, 100, "public, max-age=1800"),
+				({"storage_local_cache": 1}, 0, "public, max-age=1800"),
+			)
+			for conf, limit_mb, cache_control in cases:
+				with self.subTest(conf=conf, limit_mb=limit_mb):
+					frappe.db.set_single_value("System Settings", "max_cached_file_size", limit_mb)
+					with patch.dict(frappe.conf, conf), patch("frappe.enqueue"):
+						response = self.stream(blob)
+					self.assertEqual(response.headers["Cache-Control"], cache_control)
+
 	def test_a_job_for_a_deleted_blob_does_nothing(self):
 		cache_blob("missing-blob")
 

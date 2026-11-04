@@ -300,7 +300,9 @@ nginx serves any file it finds on disk and passes the rest to Python
 (`try_files ... @webserver`). Python then handles:
 
 - `/files/<blob>/<filename>`: a public blob on another driver. No check;
-  a 302 to the driver's URL, cacheable for half the URL's lifetime.
+  a 302 to the driver's URL, cacheable for half the URL's lifetime. A blob
+  the local cache will download gets `no-cache` instead, so the next
+  request reaches Python.
 - `/private/files/<blob>/<filename>`: a private blob. A valid signature
   or session permission, then a redirect or the bytes.
 - Any other path is a v1 URL. A File row with that `file_url` and a blob

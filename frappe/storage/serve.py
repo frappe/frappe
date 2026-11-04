@@ -17,7 +17,7 @@ import frappe
 from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.storage.blob import served_type
-from frappe.storage.cache import get_cache_key, get_cached_path, queue_cache
+from frappe.storage.cache import get_cache_key, get_cached_path, is_cacheable, queue_cache
 from frappe.storage.driver import get_driver
 from frappe.storage.url import PRIVATE_PREFIX, native_download_url, parse_blob_url, verify_signature
 from frappe.utils import cint
@@ -222,7 +222,10 @@ def _native_url_response(blob: "FileBlob", filename: str, *, as_attachment: bool
 		return None
 	response = werkzeug.utils.redirect(native, 302)
 	if not blob.is_private:
-		response.headers["Cache-Control"] = f"public, max-age={PUBLIC_NATIVE_URL_TTL // 2}"
+		# a browser that kept this redirect would never reach the server to start the local cache
+		response.headers["Cache-Control"] = (
+			"no-cache" if is_cacheable(blob) else f"public, max-age={PUBLIC_NATIVE_URL_TTL // 2}"
+		)
 	return response
 
 

@@ -50,6 +50,11 @@ def is_cache_enabled(blob: "FileBlob") -> bool:
 	return bool(frappe.conf.storage_local_cache) and get_driver(blob.driver).cache_locally
 
 
+def is_cacheable(blob: "FileBlob") -> bool:
+	"""True when a request for the blob queues a download: caching is on and the blob fits the size limit."""
+	return is_cache_enabled(blob) and int(blob.file_size or 0) <= get_max_cached_file_size()
+
+
 def get_max_cached_file_size() -> int:
 	"""Largest blob to cache, in bytes, from System Settings. 0 caches nothing."""
 	return cint(frappe.get_system_settings("max_cached_file_size")) * 1024 * 1024
@@ -99,7 +104,7 @@ def restore_cached(blob: "FileBlob") -> str | None:
 
 def queue_cache(blob: "FileBlob") -> None:
 	"""Queue a background download of a blob within the size limit. One job runs per blob at a time."""
-	if not is_cache_enabled(blob) or int(blob.file_size or 0) > get_max_cached_file_size():
+	if not is_cacheable(blob):
 		return
 	frappe.enqueue(
 		"frappe.storage.cache.cache_blob",
