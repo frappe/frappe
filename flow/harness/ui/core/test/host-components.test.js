@@ -1408,6 +1408,18 @@ test("a streaming table keeps its scroll box as rows and text arrive", async (t)
 	assert.ok(el.textContent.includes("After the table"))
 })
 
+test("a code block inside a list item renders as a code block, in its item", async (t) => {
+	const text = "2. Set it:\n   ```bash\n   bench set-config k v\n   ```\n3. Retry."
+	const { el } = mount(t, { render: () => h(MarkdownContent, { text }) }, {}, {})
+	const list = el.querySelector("ol")
+	assert.equal(list.getAttribute("start"), "2")
+	const items = list.querySelectorAll(":scope > li")
+	assert.equal(items.length, 2)
+	assert.ok(items[0].querySelector("[data-stub=CodeBlock]"))
+	assert.ok(items[0].textContent.includes("Set it:"))
+	assert.equal(el.querySelector("pre"), null)
+})
+
 test("a view on the bottom stays there when a panel or the window resizes the list, unless an opened row pushed it off", async (t) => {
 	const observers = []
 	globalThis.ResizeObserver = class {
