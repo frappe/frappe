@@ -1,15 +1,14 @@
 <template>
 	<!-- its list hangs under it, over the composer -->
 	<span class="relative z-20">
-		<button
-			class="flow-icon-btn"
+		<Button
+			variant="ghost"
+			icon="lucide-history"
 			:class="open ? 'bg-surface-gray-2' : ''"
 			title="Recent chats"
 			:aria-expanded="open"
 			@click="open ? close() : show()"
-		>
-			<span class="lucide-history size-3.5" aria-hidden="true" />
-		</button>
+		/>
 		<PalettePanel
 			v-if="open"
 			title="Recent chats"
@@ -59,6 +58,7 @@
 
 <script setup>
 import { computed, inject, nextTick, ref, watch } from "vue"
+import { Button } from "frappe-ui/src/components/Button"
 
 import { useDebouncedValue } from "../debounce.js"
 import { layout } from "../layout.js"

@@ -2815,7 +2815,7 @@ test("the header says nothing in a new chat until its first message goes out, no
 	assert.deepEqual(items().map((item) => item.textContent), ["Share"])
 })
 
-test("a header with its sidebar hidden leads with its button and, once the chat has started, New chat; with none at all, a clock lists the chats beside New chat, and a gear, not the chat's menu, leads to the host's pages and Settings", async (t) => {
+test("a header with its sidebar hidden leads with its button alone, New chat floating out with the sidebar; with none at all, a clock lists the chats beside New chat, and a gear, not the chat's menu, leads to the host's pages and Settings", async (t) => {
 	const done = []
 	const flow = {
 		state: reactive({
@@ -2863,7 +2863,7 @@ test("a header with its sidebar hidden leads with its button and, once the chat 
 	flow.state.sessionId = "s2"
 	flow.state.session = { title: "Expense claims" }
 	await nextTick()
-	assert.deepEqual(buttons(hidden), ["Show sidebar", "New chat", "Chat options"])
+	assert.deepEqual(buttons(hidden), ["Show sidebar", "Chat options"])
 	assert.deepEqual(buttons(el), ["Recent chats", "New chat", "Manage", "Chat options"])
 	layout.narrow = true
 	t.after(() => (layout.narrow = false))
