@@ -8,6 +8,11 @@
 		:step="0.5"
 		disabled
 	/>
+	<div v-else-if="relativeTime" class="truncate text-base text-ink-gray-8">
+		<Tooltip :text="text">
+			<span>{{ relativeTime }}</span>
+		</Tooltip>
+	</div>
 	<div v-else-if="address" class="flex min-w-0 items-center gap-1">
 		<span class="truncate text-base text-ink-gray-8">{{ text }}</span>
 		<DataOpenLink :address="address" class="grid shrink-0" />
@@ -27,7 +32,8 @@
 import { ColorSwatch, DataOpenLink, dataHref } from "@framework/ui/fields";
 import type { FieldMeta } from "@framework/ui/fields/types";
 import { useFieldDisplay } from "@framework/ui/FormLayout";
-import { Checkbox, Rating } from "frappe-ui";
+import { currentSession } from "@framework/ui/useSession";
+import { Checkbox, Rating, Tooltip, dayjs } from "frappe-ui";
 import { computed } from "vue";
 import RecordText from "./RecordText.vue";
 
@@ -42,6 +48,9 @@ const STORED_VALUE_FIELDTYPES = new Set([
 	"Markdown Editor",
 	"HTML Editor",
 ]);
+
+// The two standard stamps read as "3 days ago"; any other Datetime keeps its absolute value.
+const RELATIVE_FIELDNAMES = new Set(["modified", "creation"]);
 
 const props = defineProps<{ field: FieldMeta; row: Record<string, unknown> }>();
 
@@ -60,6 +69,18 @@ const target = computed(() => {
 	if (props.field.fieldtype === "Dynamic Link")
 		return String(props.row[props.field.options ?? ""] ?? "");
 	return "";
+});
+
+// Stored on the system clock, which the session carries; the person's own zone does not matter.
+const relativeTime = computed(() => {
+	const zone = currentSession()?.timezone;
+	if (!zone || !text.value) return "";
+	if (props.field.fieldtype !== "Datetime" || !RELATIVE_FIELDNAMES.has(props.field.fieldname))
+		return "";
+	const stamp = dayjs.tz(String(value.value), zone);
+	if (!stamp.isValid()) return "";
+	// A browser clock a little behind the server's would read a fresh save as "in a minute".
+	return stamp.isAfter(dayjs()) ? dayjs().fromNow() : stamp.fromNow();
 });
 
 const text = computed(() => {
