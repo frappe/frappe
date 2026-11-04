@@ -18,6 +18,7 @@ from frappe.utils import add_to_date, set_request
 class RemoteDriver(MemoryDriver):
 	"""Remote driver with a native URL and a local cache, like S3."""
 
+	name = "remote"
 	cache_locally = True
 
 	def download_url(
@@ -105,8 +106,7 @@ class TestBlobCache(IntegrationTestCase):
 			driver.blobs[(False, blob.key)] = b"truncated"
 			with self.assertRaises(OSError):
 				cache_blob(blob.name)
-			leftovers = [f for f in os.listdir(os.path.dirname(get_cache_path(blob))) if blob.name in f]
-			self.assertEqual(leftovers, [])
+			self.assertFalse(os.path.exists(os.path.dirname(get_cache_path(blob))))
 			self.assertIsNone(get_cached_path(blob))
 
 	def test_nothing_is_cached_unless_the_site_flag_is_on(self):

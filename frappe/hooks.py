@@ -322,6 +322,7 @@ scheduler_events = {
 		# 10 minutes
 		"0/10 * * * *": [
 			"frappe.email.doctype.email_account.email_account.pull",
+			"frappe.storage.cache.sweep_cache",
 		],
 		# Hourly but offset by 30 minutes
 		"30 * * * *": [],

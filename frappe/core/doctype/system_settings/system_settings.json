@@ -84,6 +84,8 @@
   "max_file_size",
   "max_zip_extract_size",
   "max_cached_file_size",
+  "cache_keep_minutes",
+  "cache_grace_minutes",
   "allow_guests_to_upload_files",
   "force_web_capture_mode_for_uploads",
   "strip_exif_metadata_from_uploaded_images",
@@ -912,12 +914,28 @@
    "fieldtype": "Int",
    "label": "Max Cached File Size (MB)",
    "non_negative": 1
+  },
+  {
+   "default": "300",
+   "description": "After this time a cached file moves to a holding folder, where the next request brings it back.",
+   "fieldname": "cache_keep_minutes",
+   "fieldtype": "Int",
+   "label": "Keep Cached Files For (Minutes)",
+   "non_negative": 1
+  },
+  {
+   "default": "60",
+   "description": "A file that no request restores in this time is deleted from the server's disk.",
+   "fieldname": "cache_grace_minutes",
+   "fieldtype": "Int",
+   "label": "Keep Expired Cached Files For (Minutes)",
+   "non_negative": 1
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2026-11-04 11:41:42.728984",
+ "modified": "2026-11-04 12:10:07.871144",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

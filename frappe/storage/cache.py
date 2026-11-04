@@ -5,19 +5,44 @@
 import contextlib
 import os
 import shutil
+import time
+import zlib
+from collections.abc import Iterator
 from typing import TYPE_CHECKING
 
 import frappe
 from frappe.storage.blob import key_basename, make_key
-from frappe.storage.driver import get_driver
+from frappe.storage.driver import get_driver, get_driver_classes
 from frappe.storage.local_driver import LocalDriver
 from frappe.utils import cint
+from frappe.utils.file_lock import LockTimeoutError
+from frappe.utils.synchronization import filelock
 
 if TYPE_CHECKING:
 	from frappe.core.doctype.file_blob.file_blob import FileBlob
 
 CHUNK_SIZE = 64 * 1024
 CACHE_JOB_TIMEOUT = 3600
+LOCK_STRIPES = 64
+RESTORE_LOCK_TIMEOUT = 5
+SWEEP_LOCK_TIMEOUT = 1
+NAME_BATCH_SIZE = 1000
+
+
+def get_holding_dir() -> str:
+	return frappe.get_site_path("private", "cache", "expiring")
+
+
+class HoldingDriver(LocalDriver):
+	"""Holding folder of expiring cache copies: the local layout under ``private/cache/expiring``."""
+
+	def get_files_dir(self, is_private: bool = False) -> str:
+		return os.path.join(get_holding_dir(), "private" if is_private else "public")
+
+
+def cache_lock(blob_name: str, timeout: float):
+	"""Lock one of a fixed set of lock files, so a site never holds one per blob."""
+	return filelock(f"storage_cache_{zlib.crc32(blob_name.encode()) % LOCK_STRIPES}", timeout=timeout)
 
 
 def is_cache_enabled(blob: "FileBlob") -> bool:
@@ -40,12 +65,36 @@ def get_cache_path(blob: "FileBlob") -> str:
 	return LocalDriver().get_path(get_cache_key(blob), bool(blob.is_private))
 
 
+def get_holding_path(blob: "FileBlob") -> str:
+	return HoldingDriver().get_path(get_cache_key(blob), bool(blob.is_private))
+
+
 def get_cached_path(blob: "FileBlob") -> str | None:
-	"""Path of the blob's cached file, or None when caching is off or the file is missing."""
+	"""Path of the blob's cached file, restored from the holding folder when it is there.
+
+	None when caching is off or no copy exists."""
 	if not is_cache_enabled(blob):
 		return None
 	path = get_cache_path(blob)
-	return path if os.path.isfile(path) else None
+	return path if os.path.isfile(path) else restore_cached(blob)
+
+
+def restore_cached(blob: "FileBlob") -> str | None:
+	"""Move a held copy back into the cache and restart its clock. None when there is no copy to move."""
+	holding_path = get_holding_path(blob)
+	if not os.path.isfile(holding_path):
+		return None
+
+	path = get_cache_path(blob)
+	try:
+		with cache_lock(blob.name, RESTORE_LOCK_TIMEOUT):
+			os.makedirs(os.path.dirname(path), exist_ok=True)
+			shutil.move(holding_path, path)
+			os.utime(path)
+	except (FileNotFoundError, LockTimeoutError):
+		return None
+	HoldingDriver().delete(get_cache_key(blob), is_private=bool(blob.is_private))
+	return path
 
 
 def queue_cache(blob: "FileBlob") -> None:
@@ -86,7 +135,83 @@ def cache_blob(blob_name: str) -> None:
 	finally:
 		with contextlib.suppress(FileNotFoundError):
 			os.remove(part)
+		with contextlib.suppress(OSError):
+			os.rmdir(os.path.dirname(path))
 
 
 def delete_cached(blob: "FileBlob") -> None:
+	"""Delete a blob's cached copy and its held copy."""
+	for driver in (LocalDriver(), HoldingDriver()):
+		driver.delete(get_cache_key(blob), is_private=bool(blob.is_private))
+
+
+def sweep_cache() -> dict:
+	"""Hold cached copies older than ``cache_keep_minutes``, then delete held copies older than ``cache_grace_minutes``.
+
+	A copy leaves ``public/files`` when it is held, so a request for it reaches Python and restores it."""
+	now = time.time()
+	keep = cint(frappe.get_system_settings("cache_keep_minutes")) * 60
+	grace = cint(frappe.get_system_settings("cache_grace_minutes")) * 60
+	held = sum(hold_copy(blob, now - keep) for blob in get_cached_copies())
+	return {"held": held, "deleted": delete_held_copies(now - grace)}
+
+
+def get_cached_copies() -> Iterator[frappe._dict]:
+	"""File Blob rows of caching drivers that have a folder in the files folders.
+
+	A local blob has the same path shape as a cached copy, so the row's driver tells them apart."""
+	drivers = [name for name, path in get_driver_classes().items() if frappe.get_attr(path).cache_locally]
+	for is_private in (0, 1):
+		files_dir = LocalDriver().get_files_dir(bool(is_private))
+		if not (drivers and os.path.isdir(files_dir)):
+			continue
+		names = [entry.name for entry in os.scandir(files_dir) if entry.is_dir(follow_symlinks=False)]
+		for start in range(0, len(names), NAME_BATCH_SIZE):
+			yield from frappe.get_all(
+				"File Blob",
+				filters={
+					"name": ("in", names[start : start + NAME_BATCH_SIZE]),
+					"driver": ("in", drivers),
+					"is_private": is_private,
+				},
+				fields=["name", "key", "is_private"],
+			)
+
+
+def hold_copy(blob: "FileBlob", cutoff: float) -> bool:
+	"""Move one cached copy last written before ``cutoff`` into the holding folder."""
+	path = get_cache_path(blob)
+	try:
+		with cache_lock(blob.name, SWEEP_LOCK_TIMEOUT):
+			if os.path.getmtime(path) > cutoff:
+				return False
+			holding_path = get_holding_path(blob)
+			os.makedirs(os.path.dirname(holding_path), exist_ok=True)
+			shutil.move(path, holding_path)
+			os.utime(holding_path)
+	except (FileNotFoundError, LockTimeoutError):
+		return False
 	LocalDriver().delete(get_cache_key(blob), is_private=bool(blob.is_private))
+	return True
+
+
+def delete_held_copies(cutoff: float) -> int:
+	deleted = 0
+	for folder, _subfolders, names in os.walk(get_holding_dir()):
+		for name in names:
+			deleted += delete_held_copy(os.path.join(folder, name), os.path.basename(folder), cutoff)
+	return deleted
+
+
+def delete_held_copy(path: str, blob_name: str, cutoff: float) -> bool:
+	"""Delete one held copy last written before ``cutoff``."""
+	try:
+		with cache_lock(blob_name, SWEEP_LOCK_TIMEOUT):
+			if os.path.getmtime(path) > cutoff:
+				return False
+			os.remove(path)
+	except (FileNotFoundError, LockTimeoutError):
+		return False
+	with contextlib.suppress(OSError):
+		os.rmdir(os.path.dirname(path))
+	return True

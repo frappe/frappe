@@ -335,14 +335,37 @@ through the serve route and X-Accel, like a local private blob.
 - On a miss, `stream_blob` queues `cache_blob` on the `long` queue, one job
   per blob (`storage_cache::<blob>`), when the blob is no larger than
   System Settings `max_cached_file_size` (MB, default 100, 0 caches
-  nothing). A larger blob is never cached. The request itself is served as
-  before: a redirect or a stream from the driver.
+  nothing). A larger blob is never cached.
 - `cache_blob` streams the object into a `.part` file, checks the size
   against `file_size`, then renames it. A failed download leaves no cache
   file, and the next request queues a new job.
 - A blob is immutable, so a cached file never goes stale. GC deletes the
-  cache file with the blob. There is no eviction yet.
+  cache file and any held copy with the blob.
 - A private copy lives in `private/files`, so a backup with files holds it.
+
+Expiry. A cached copy lives `cache_keep_minutes` (default 300), then waits
+`cache_grace_minutes` (default 60) in a holding folder. The file's mtime is
+the clock, and its place is the state, so no database row changes.
+
+```
+download --> files/<blob>/<filename> --keep--> private/cache/expiring/... --grace--> deleted
+                      ^----------- a request moves it back, mtime = now --------|
+```
+
+- `sweep_cache` runs every 10 minutes, with the flag on or off. It lists
+  the blob folders in `public/files` and `private/files`, and keeps the
+  ones whose File Blob row has a caching driver and the same privacy. A
+  local blob has the same path shape, so the row's `driver` tells them apart.
+- A held copy is out of `public/files`, so nginx no longer finds it and
+  passes the request to Python. `get_cached_path` then moves the copy back,
+  sets its mtime to now and serves it from disk. With the flag off nothing
+  is restored.
+- One lock file out of 64 (`storage_cache_<n>`, by blob name) covers each
+  move and delete. A busy blob is skipped by the sweep, and a request that
+  cannot lock falls back to the native URL. Every step is atomic, so a
+  missing file is a normal case.
+- A copy lives at most `keep + grace + 10` minutes without a request, 370
+  by default. A request to nginx just before a move can get one 404.
 
 ### Upload
 
