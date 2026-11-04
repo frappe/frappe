@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 import datetime
 import time
+from unittest.mock import patch
 
 import requests
 from werkzeug.test import EnvironBuilder
@@ -339,6 +340,19 @@ class TestIPRestrictionForAPIAuth(IntegrationTestCase):
 
 		validate_auth()
 		self.assertEqual(frappe.session.user, self.user_email)
+
+	def test_auth_hook_user_without_user_record(self):
+		frappe.local.request = Request(EnvironBuilder().get_environ())
+		frappe.local.request_ip = "10.0.0.1"
+		frappe.set_user("Guest")
+
+		with patch(
+			"frappe.auth.validate_auth_via_hooks",
+			side_effect=lambda: frappe.set_user("no-such-user@example.com"),
+		):
+			validate_auth()
+
+		self.assertEqual(frappe.session.user, "no-such-user@example.com")
 
 
 class TestLoginAttemptTracker(IntegrationTestCase):
