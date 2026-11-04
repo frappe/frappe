@@ -179,6 +179,16 @@ describe("buildLayoutFromMeta", () => {
     expect(layout[0].sections[0].columns[0].fields[0].readOnly).toBe(true);
   });
 
+  it("maps a Duration's hide_days and hide_seconds", () => {
+    const layout = buildLayoutFromMeta([
+      field({ fieldname: "d", fieldtype: "Duration", hide_days: 1 }),
+      field({ fieldname: "s", fieldtype: "Duration", hide_seconds: 1 }),
+    ]);
+    const [days, seconds] = layout[0].sections[0].columns[0].fields;
+    expect([days.hideDays, days.hideSeconds]).toEqual([true, false]);
+    expect([seconds.hideDays, seconds.hideSeconds]).toEqual([false, true]);
+  });
+
   it("treats the Read Only fieldtype as readOnly", () => {
     const layout = buildLayoutFromMeta([
       field({ fieldname: "ro", fieldtype: "Read Only" }),

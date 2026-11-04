@@ -184,6 +184,9 @@ export function mapField(
     ...(holdsChildRows(field.fieldtype)
       ? { childFields: resolveChildFields(field, childMetas, decorate) }
       : {}),
+    ...(field.fieldtype === "Duration"
+      ? { hideDays: !!field.hide_days, hideSeconds: !!field.hide_seconds }
+      : {}),
     // The row-edit dialog renders the full child form; `Table MultiSelect` has
     // no row dialog, so only `Table` carries a `childLayout`.
     ...(field.fieldtype === TABLE

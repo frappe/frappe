@@ -18,6 +18,7 @@ const metaFields = [
 	{ fieldname: "ratio", fieldtype: "Float", precision: "2" },
 	{ fieldname: "done", fieldtype: "Percent" },
 	{ fieldname: "taken", fieldtype: "Duration" },
+	{ fieldname: "spent", fieldtype: "Duration", hide_days: 1, hide_seconds: 1 },
 	{ fieldname: "at", fieldtype: "Time" },
 	{ fieldname: "creation", fieldtype: "Datetime" },
 	{ fieldname: "notes", fieldtype: "Text Editor" },
@@ -54,6 +55,7 @@ const row = {
 	ratio: 12345.6789,
 	done: 42.5,
 	taken: 93784,
+	spent: 93784,
 	at: "9:15:30",
 	creation: "2026-11-04 00:44:09.604123",
 	notes: "<p>Hello <strong>bold</strong> world</p>",
@@ -186,7 +188,8 @@ describe("a list's cells", () => {
 		expect(text("secret")).toBe("••••••••");
 		expect(text("ratio")).toBe("12,345.68");
 		expect(text("done")).toBe("42.50%");
-		expect(text("taken")).toBe("26h 3m 4s");
+		expect(text("taken")).toBe("1d 2h 3m 4s");
+		expect(text("spent")).toBe("26h 3m");
 		expect(text("at")).toBe("09:15");
 		expect(text("creation")).toBe("2026-11-04 00:44:09");
 		expect(text("notes")).toBe("Hello bold world");

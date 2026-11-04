@@ -147,7 +147,13 @@ export function valueControl(f: Filter): ValueControlSpec {
   if (DURATION_TYPES.includes(fieldtype)) {
     return {
       control: "duration",
-      props: { field: bareField(field!, { placeholder: ph }) },
+      props: {
+        field: bareField(field!, {
+          placeholder: ph,
+          hideDays: !!field!.hide_days,
+          hideSeconds: !!field!.hide_seconds,
+        }),
+      },
     };
   }
   if (RATING_TYPES.includes(fieldtype)) {

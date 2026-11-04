@@ -5,6 +5,7 @@ import type { FormatFieldOptions } from "./formatNumber";
 import type { FieldMeta } from "../Fields/types";
 import { htmlToText } from "../RichText/html";
 import { groupIban } from "../Fields/dataOptions";
+import { durationUnits } from "../Fields/durationUnits";
 
 export interface DisplayOptions extends FormatFieldOptions {
   /** The record, for a fieldtype that reads a sibling field: Image, Dynamic Link. */
@@ -88,7 +89,7 @@ function formatValue(
     case "Rating":
       return formatRating(Number(value), field.options);
     case "Duration":
-      return formatDuration(Number(value));
+      return formatDuration(Number(value), "short", durationUnits(field));
     case "Time":
       return formatTime(String(value));
     case "Datetime":

@@ -49,13 +49,18 @@ const STANDARD_FIELDS: ReadonlyArray<
 ];
 
 const toFilterField = (
-  f: Pick<RawMetaField, "fieldname" | "fieldtype" | "label" | "options">
+  f: Pick<
+    RawMetaField,
+    "fieldname" | "fieldtype" | "label" | "options" | "hide_days" | "hide_seconds"
+  >
 ): FilterField => ({
   label: f.label ?? f.fieldname,
   value: f.fieldname,
   fieldname: f.fieldname,
   fieldtype: f.fieldtype,
   options: f.options,
+  hide_days: f.hide_days,
+  hide_seconds: f.hide_seconds,
 });
 
 /**

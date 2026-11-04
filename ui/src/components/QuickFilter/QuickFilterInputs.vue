@@ -339,7 +339,10 @@ function valueControl(field: FilterField): ValueControl {
 	}
 	if (fieldtype === "Date") return { is: DateField, props: { field: bareField(field) } };
 	if (fieldtype === "Datetime") return { is: DatetimeField, props: { field: bareField(field) } };
-	if (fieldtype === "Duration") return { is: DurationField, props: { field: bareField(field) } };
+	if (fieldtype === "Duration") {
+		const units = { hideDays: !!field.hide_days, hideSeconds: !!field.hide_seconds };
+		return { is: DurationField, props: { field: bareField(field, units) } };
+	}
 	return textControl(field);
 }
 

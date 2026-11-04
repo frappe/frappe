@@ -7,6 +7,7 @@
 		:required="field.reqd"
 		:error="error"
 		:disabled="field.readOnly"
+		v-bind="durationUnits(field)"
 	/>
 </template>
 
@@ -15,6 +16,7 @@
 // `v-model`. `update:modelValue` fires on commit, so we re-emit `change` too.
 import { computed } from "vue";
 import { Duration } from "frappe-ui";
+import { durationUnits } from "./durationUnits";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
 
 const props = defineProps<FieldComponentProps>();

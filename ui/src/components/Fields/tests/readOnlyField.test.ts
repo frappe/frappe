@@ -57,6 +57,8 @@ describe("a field the user cannot edit", () => {
     ["Select", { options: "Open\nClosed" }, "Closed", "Closed"],
     ["Time", {}, "9:15:00", "09:15"],
     ["Password", {}, "secret", "••••••••"],
+    ["Duration", {}, 93784, "1d 2h 3m 4s"],
+    ["Duration", { hideDays: true, hideSeconds: true }, 93784, "26h 3m"],
     ["Datetime", {}, "2026-10-24 09:15:00.123456", "2026-10-24 09:15:00"],
     ["Int", {}, null, "0"],
     ["Currency", { options: "" }, null, "₹ 0.00"],

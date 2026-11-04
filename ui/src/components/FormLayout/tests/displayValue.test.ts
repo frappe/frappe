@@ -167,8 +167,17 @@ describe("displayValue", () => {
     );
   });
 
-  it("formats a duration as the form's control does", () => {
+  it("formats a duration with days, as desk v1 and the form's control do", () => {
     expect(displayValue(5445, field("Duration"))).toBe("1h 30m 45s");
+    expect(displayValue(93784, field("Duration"))).toBe("1d 2h 3m 4s");
+  });
+
+  it("folds days into hours and rounds the seconds as the field asks", () => {
+    expect(displayValue(93784, field("Duration", { hideDays: true }))).toBe("26h 3m 4s");
+    expect(displayValue(93784, field("Duration", { hideSeconds: true }))).toBe("1d 2h 3m");
+    expect(
+      displayValue(93784, field("Duration", { hideDays: true, hideSeconds: true })),
+    ).toBe("26h 3m");
   });
 
   it("shows a time as the form's picker does", () => {
