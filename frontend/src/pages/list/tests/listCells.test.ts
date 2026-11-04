@@ -23,6 +23,10 @@ const metaFields = [
 	{ fieldname: "creation", fieldtype: "Datetime" },
 	{ fieldname: "modified", fieldtype: "Datetime" },
 	{ fieldname: "closed_on", fieldtype: "Datetime" },
+	{ fieldname: "last_active", fieldtype: "Datetime", read_only: 1 },
+	{ fieldname: "response_by", fieldtype: "Datetime", read_only: 1 },
+	{ fieldname: "locked_on", fieldtype: "Datetime", read_only_depends_on: "eval:doc.active" },
+	{ fieldname: "seen_date", fieldtype: "Date", read_only: 1 },
 	{ fieldname: "notes", fieldtype: "Text Editor" },
 	{ fieldname: "file", fieldtype: "Attach" },
 	{ fieldname: "script", fieldtype: "Code" },
@@ -62,6 +66,10 @@ const row = {
 	creation: "2026-11-01 10:00:00.604123",
 	modified: "2026-11-04 10:00:00.604123",
 	closed_on: "2026-11-04 00:44:09.604123",
+	last_active: "2026-11-04 08:00:00",
+	response_by: "2026-11-04 12:00:00",
+	locked_on: "2026-11-04 08:00:00",
+	seen_date: "2026-11-04",
 	notes: "<p>Hello <strong>bold</strong> world</p>",
 	file: "/files/report.pdf",
 	script: "def f():\n    return 1",
@@ -238,7 +246,28 @@ describe("a list's cells", () => {
 		expect(cell("closed_on")).toBeNull();
 	});
 
-	it("keep the absolute value without a site zone, draw a bad or empty stamp as it is, and never read the future", async () => {
+	it("draw a read-only Datetime as relative time, past or future, and keep editable Datetimes and Dates absolute", async () => {
+		vi.useFakeTimers({ toFake: ["Date"] });
+		vi.setSystemTime(new Date("2026-11-04T04:33:00Z"));
+		setSession({ user: {}, roles: [], lang: "en", timezone: "Asia/Kolkata", defaults: {} } as never);
+		const root = mount();
+		await nextTick();
+
+		const cell = (column: string) => root.querySelector(`[data-column='${column}'] [data-tooltip]`);
+		const plain = (column: string) => root.querySelector(`[data-column='${column}']`)?.textContent?.trim();
+		// 08:00 in Asia/Kolkata is 02:30 UTC, two hours back; 12:00 is 06:30 UTC, two hours ahead.
+		expect(cell("last_active")?.textContent).toBe("2 hours ago");
+		expect(cell("last_active")?.getAttribute("data-tooltip")).toBe("2026-11-04 08:00:00");
+		expect(cell("response_by")?.textContent).toBe("in 2 hours");
+		// A field made read-only only by read_only_depends_on is editable in meta.
+		expect(cell("locked_on")).toBeNull();
+		expect(plain("locked_on")).toBe("2026-11-04 08:00:00");
+		expect(cell("closed_on")).toBeNull();
+		expect(cell("seen_date")).toBeNull();
+		expect(plain("seen_date")).toBe("2026-11-04");
+	});
+
+	it("keep the absolute value without a site zone, draw a bad or empty stamp as it is, and never read the future of a standard stamp", async () => {
 		vi.useFakeTimers({ toFake: ["Date"] });
 		vi.setSystemTime(new Date("2026-11-04T04:33:00Z"));
 		const cell = async (column: string) => {
@@ -247,11 +276,15 @@ describe("a list's cells", () => {
 			return root.querySelector(`[data-column='${column}']`)?.textContent?.trim();
 		};
 		expect(await cell("modified")).toBe("2026-11-04 10:00:00");
+		expect(await cell("last_active")).toBe("2026-11-04 08:00:00");
 
 		setSession({ user: {}, roles: [], lang: "en", timezone: "Asia/Kolkata", defaults: {} } as never);
 		Object.assign(row, { modified: "garbage", creation: "" });
 		expect(await cell("modified")).toBe("garbage");
 		expect(await cell("creation")).toBe("");
+		Object.assign(row, { last_active: "garbage", response_by: "" });
+		expect(await cell("last_active")).toBe("garbage");
+		expect(await cell("response_by")).toBe("");
 		// 10:05 in Asia/Kolkata is ahead of the browser's clock by two minutes.
 		Object.assign(row, { modified: "2026-11-04 10:05:00" });
 		expect(await cell("modified")).toBe("a few seconds ago");
