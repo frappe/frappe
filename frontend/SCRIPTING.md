@@ -52,6 +52,13 @@ export default {
 };
 ```
 
+A doctype can open its records in a dialog: `{"record": "dialog"}` names no file, and a record
+address then opens the Quick Entry form over the page the reader is on. The record script of the
+doctype runs in it as on the page: `page.form` and `page.fields` draw, field handlers, `beforeSave`
+and `afterSave` run, and `page.save()` saves. The header, tab, panel and feed surfaces, files and
+the composer are not drawn, so their items are ignored there. `page.dialog` opens over it. Create
+for such a doctype shows no "Edit full form".
+
 ## Where a script runs
 
 A record-page script is a `Client Script` row with `view = Record` and `dt` set to the
