@@ -37,7 +37,10 @@ if (window.is_preview && typeof window.is_preview === "string") {
 
 const frappeApp = (window as any).frappe_app
 const componentsReady = frappeApp
-	? Promise.all([registerCustomVueComponents(frappeApp), registerStudioPageScripts(frappeApp)])
+	? Promise.all([
+			registerCustomVueComponents(frappeApp, (window as any).app_name),
+			registerStudioPageScripts(frappeApp),
+		])
 	: Promise.resolve()
 
 componentsReady

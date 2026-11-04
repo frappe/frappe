@@ -417,6 +417,38 @@ class TestStudioAppBuilder(FrappeTestCase):
 			self.assertIn("Alert", builder.components)
 			self.assertIn("Badge", builder.components)
 
+	def test_build_stops_when_a_custom_component_is_missing(self):
+		"""Building it anyway emits an unknown element, which renders blank with a clean console."""
+		app_name = "missing-comp-app"
+		page_data = {"blocks": [{"componentName": "PosHeader", "isCustomVueComponent": True, "children": []}]}
+
+		with mock_studio_app_files(app_name, pages={"page": page_data}) as studio_folder:
+			builder = StudioAppBuilder(app_name, is_standard=True, frappe_app="frappe")
+			with (
+				patch("frappe.studio.utils.get_studio_folder", return_value=studio_folder),
+				self.assertRaises(StudioAppBuildError) as raised,
+			):
+				builder.build()
+
+			self.assertIn("PosHeader", str(raised.exception))
+
+	def test_a_custom_component_in_the_app_folder_resolves(self):
+		app_name = "custom-comp-app"
+		page_data = {"blocks": [{"componentName": "PosHeader", "isCustomVueComponent": True, "children": []}]}
+
+		with mock_studio_app_files(app_name, pages={"page": page_data}) as studio_folder:
+			components_folder = os.path.join(studio_folder, frappe.scrub(app_name), "components")
+			os.makedirs(components_folder)
+			with open(os.path.join(components_folder, "PosHeader.vue"), "w") as f:
+				f.write("<template><header /></template>")
+
+			builder = StudioAppBuilder(app_name, is_standard=True, frappe_app="frappe")
+			with patch("frappe.studio.utils.get_studio_folder", return_value=studio_folder):
+				builder.get_app_components_from_files()
+
+			self.assertEqual(builder.missing_components, set())
+			self.assertIn("PosHeader", builder.custom_vue_components)
+
 	def test_collects_icons_from_pages_scripts_and_components(self):
 		app = make_studio_app(app_title="Icon App", app_name="icon-app")
 		component = frappe.get_doc(
