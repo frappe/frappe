@@ -1175,6 +1175,8 @@ frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 		self.assertEqual(frappe.response.pop("message"), '{"total": 41}' + frappe.local.site)
 
 	def test_file_script_cannot_replace_request_flags(self):
+		from frappe.deferred_insert import save_to_db
+
 		request_flags = vars(frappe)["flags"]
 		script = self.make_file_script(
 			"test_file_replaces_flags",
@@ -1183,10 +1185,17 @@ frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 			api_method="test_file_replaces_flags",
 		)
 
+		frappe.db.savepoint("before_flags")
 		self.assertRaisesRegex(frappe.ValidationError, "frappe.flags", script.execute_method)
+		frappe.db.rollback(save_point="before_flags")
 
 		self.assertIs(vars(frappe)["flags"], request_flags)
 		self.assertTrue(frappe.flags.in_test)
+		save_to_db()
+		error_logs = frappe.get_all(
+			"Error Log", filters={"reference_doctype": "Server Script", "reference_name": script.name}
+		)
+		self.assertTrue(error_logs)
 
 	def test_file_script_can_write_with_sql(self):
 		todo = frappe.get_doc(doctype="ToDo", description="before").insert()

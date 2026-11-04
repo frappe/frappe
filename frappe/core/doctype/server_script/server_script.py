@@ -272,6 +272,13 @@ class ServerScript(Document):
 			replaced_flags = vars(frappe)["flags"] is not request_flags
 			frappe.flags = request_flags
 		if replaced_flags:
+			frappe.log_error(
+				title=_("Server Script {0} replaced frappe.flags").format(self.name),
+				message=_("File Server Scripts must return API results with frappe.response['message']."),
+				reference_doctype=self.doctype,
+				reference_name=self.name,
+				defer_insert=True,
+			)
 			frappe.throw(
 				_("File Server Scripts cannot replace frappe.flags. Return API results with {0}.").format(
 					"<code>frappe.response['message']</code>"
