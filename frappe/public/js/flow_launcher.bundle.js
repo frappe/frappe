@@ -397,8 +397,9 @@ const STYLE = `
 	border-radius: 0;
 	box-shadow: none;
 }
-/* the chat's dialogs place against the page, over it; its toasts keep to the panel */
-.window { position: relative; }
+/* the chat's own fixed layers (its toasts, a menu's backdrop, a sub-agent's sheet) place against
+   the panel and not the page; its dialogs sit in the top layer, over the page */
+.window { position: relative; contain: layout; }
 /* after 300 ms, as Desk's island pages: a chat that is quicker never flashes it */
 .skeleton { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: space-between; }
 .panel:not([inert]) .skeleton { animation: skeleton-in 150ms ease-out 300ms backwards; }
