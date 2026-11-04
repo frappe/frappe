@@ -194,8 +194,8 @@ return visit. Keep a one-time move in `onOpen`, and read what belongs to a recor
 Every handler other than `onRefresh` and `onOpen` runs in a **hold** and paints once, when it finishes:
 a field handler, `onTabChange`, `onPost`, `beforeSave`, `afterSave`, the Submit and Cancel events, a header or quick
 action's `run` and a dialog's callbacks show all their changes together at the end. A
-handler that must show progress while it runs uses `page.toast.success` or
-`page.toast.error`. The first paint waits at most 500 ms for the page's scripts and
+handler that must show progress while it runs uses `page.toast.success`,
+`page.toast.error` or `page.toast.info`. The first paint waits at most 500 ms for the page's scripts and
 permissions. After that the page paints what it has, without any handler still running,
 the console names what it waits for, and the rest lands when it arrives.
 
@@ -294,10 +294,16 @@ page.header.add({ name: 'dark', label: 'Dark theme', run: (page) => page.run('sh
 An app adds its own global acts in `<module>/frontend/acts.js`, whose default export is a
 list of acts. Each joins the shell surface under the app's name, so CRM's `log_a_call` is
 `shell.crm.log_a_call`, and its `run` receives `(shell, value)`, where `shell` holds
-`router`, `toast`, `call`, `run`, `create`, `openSettings` and `dialog`, and nothing that
-needs a record. `shell.dialog` has `confirm` and `danger` only, which take the options
+`router`, `toast` (`success`, `error` and `info`), `call`, `run`, `create`, `openSettings`,
+`record` and `dialog`. `shell.dialog.confirm` and `shell.dialog.danger` take the options
 `page.dialog.confirm` and `page.dialog.danger` take and resolve `true` when confirmed and
-`null` when dismissed. The desk imports the file at idle after the first paint, and
+`null` when dismissed. `shell.dialog.open(component, props, options)` is `page.dialog.open`
+on the shell's own stack: it renders `component` in a dialog with a `close(result)` prop,
+takes the same `title`, `size` and `dismissible` options, and resolves what the component
+closes with, or `null` when the reader dismisses it. The dialog is not tied to a page and
+stays open across navigation. The `setup(shell)` of an app's `shell.js` receives that same
+`shell`, plus `afterSave(doctype, handler)` and `window(component, options)`. A settings
+pane's component block gets it as a `shell` prop beside its `bindings`. The desk imports the file at idle after the first paint, and
 `page.run` and the palette wait for it when asked sooner. A shell act's `right` is `{
 doctype, ptype }`; an act whose right is a bare ptype such as `'create'` is ignored, with
 a warning. Give `label` as a getter, so it is translated each time it is read, also when
@@ -1202,7 +1208,7 @@ both. A part beside a field is `page.form`'s to add, above.
 | `link_filters` | Search filters for a Link field. |
 | `precision` | Decimal places for a numeric field. |
 | `cannot_add_rows`, `cannot_delete_rows` | Booleans, or `0`/`1`. A Table field's grid hides every way to add a row (Add Row, insert, duplicate, a paste past the last row), or to delete one. A script can still add or remove rows. |
-| `component`, `props` | Another control in the field's slot, and what to bind onto it. |
+| `component`, `props` | Another control in the field's slot, and what to bind onto it. The control also receives `page`, the record's `page`, as a prop; a stock control does not. |
 
 A key not named here is dropped with a development warning. `get(fieldname)` answers the
 field as it resolves now, post-override and post-`depends_on`, and is read-only.

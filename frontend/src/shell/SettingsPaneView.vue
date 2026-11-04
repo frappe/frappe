@@ -11,7 +11,13 @@
 		</div>
 	</SettingsHeader>
 	<div ref="root" class="contents">
-		<component :is="blocks" :pane="pane" :reveal="revealing" @loaded="loaded = true" />
+		<component
+			:is="blocks"
+			:pane="pane"
+			:shell="shell"
+			:reveal="revealing"
+			@loaded="loaded = true"
+		/>
 	</div>
 </template>
 
@@ -21,6 +27,7 @@ import { SettingsHeader } from "frappe-ui";
 import { __ } from "@/i18n";
 import type { SettingsPane } from "./settingsPanes";
 import type { SettingsHit } from "./settingsSearch";
+import type { Shell } from "./shellActs";
 
 interface Target {
 	block?: string;
@@ -31,6 +38,7 @@ const props = defineProps<{
 	pane: SettingsPane;
 	/** The component `main.ts` registered to draw the blocks. */
 	blocks: Component;
+	shell: Shell;
 	/** The block the address names; it is scrolled to and flashed when the address changes to it. */
 	block?: string;
 	reveal?: SettingsHit;

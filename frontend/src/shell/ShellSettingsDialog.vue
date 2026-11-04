@@ -47,6 +47,7 @@
 					<SettingsPaneView
 						:pane="pane"
 						:blocks="blocks!"
+						:shell="shell"
 						:block="shown?.block"
 						:reveal="reveal?.pane === pane ? reveal : undefined"
 					/>
@@ -94,6 +95,9 @@ import { fetchPanes } from "./settingsPanes";
 import { SettingsSearch, type SettingsHit } from "./settingsSearch";
 import SettingsPaneView from "./SettingsPaneView.vue";
 import SettingsSearchBox from "./SettingsSearchBox.vue";
+import type { Shell } from "./shellActs";
+
+defineProps<{ shell: Shell }>();
 
 const boot = inject<Boot>("boot")!;
 const hash = useHashDialog("settings");

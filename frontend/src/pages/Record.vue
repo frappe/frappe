@@ -130,6 +130,7 @@ import {
 } from "@framework/ui/api";
 import { documentKey } from "@framework/ui/cache";
 import { FormLayout } from "@framework/ui/FormLayout";
+import { ControlPageKey } from "@framework/ui/FormLayout/types";
 import { CodeErrorsKey, LinkMarksKey, LinkTitlesKey } from "@framework/ui/fields/types";
 import type { FieldNode } from "@framework/ui/FormLayout/types";
 import { getSocketInstance } from "@framework/ui/socket";
@@ -412,6 +413,10 @@ useLiveClientScripts({
 provide(LinkTitlesKey, linkTitles);
 provide(LinkMarksKey, linkMarks);
 provide(CodeErrorsKey, codeErrors);
+provide(
+	ControlPageKey,
+	computed(() => controller.value?.page)
+);
 
 provideRecordCommits(() => controller.value);
 const buttonClick = buttonClicks(() => controller.value);

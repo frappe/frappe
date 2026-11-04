@@ -261,7 +261,12 @@ callback argument straight to a dependency.** Everything a script hands `page` i
 picked apart by the engine and forwarded key by key; everything the engine hands a
 script's callback is the engine's own object.
 `shell.dialog`'s `confirm` and `danger` follow the same rule, through the same
-narrowing as `page.dialog`'s.
+narrowing as `page.dialog`'s. `shell.dialog.open` is `page.dialog.open` on the shell's
+own stack, with the same contract: `component`, `props` and `options`, and a `close(result)`
+prop. A shell hook's `setup` and a settings pane's component block receive the same `shell`
+an act's `run` does, so what `shell` holds is part of the contract too. `page.toast` and
+`shell.toast` hold `success`, `error` and `info`. A script's own field control and every
+component item on a page surface receive `page` as a prop.
 
 There is one shaped hand-through, and it is shaped on purpose. A header item's `props`
 goes to whatever draws the item, and only to the props that thing declares:

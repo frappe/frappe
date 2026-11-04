@@ -27,6 +27,7 @@
 					:is="components.get(block.key)"
 					v-else
 					:bindings="drafts.components.get(block.key) ?? {}"
+					:shell="shell"
 				/>
 			</section>
 			<div v-if="drafts.hasButtons" class="h-16" aria-hidden="true" />
@@ -69,6 +70,7 @@ import { __ } from "@/i18n";
 import { settingsComponentFor } from "@/contributions/registry";
 import LoadingStatus from "@/shell/LoadingStatus.vue";
 import type { SettingsPane } from "@/shell/settingsPanes";
+import type { Shell } from "@/shell/shellActs";
 import { discardChanges, type Confirm } from "../record/discardChanges";
 import { useSaveKeys } from "../record/recordSave";
 import { PaneDrafts } from "./paneDrafts";
@@ -77,6 +79,8 @@ import SettingsRowsSkeleton from "./SettingsRowsSkeleton.vue";
 
 const props = defineProps<{
 	pane: SettingsPane;
+	/** A component block receives it as its `shell` prop. */
+	shell: Shell;
 	reveal?: { block: string; fieldname?: string };
 }>();
 const emit = defineEmits<{ loaded: [] }>();

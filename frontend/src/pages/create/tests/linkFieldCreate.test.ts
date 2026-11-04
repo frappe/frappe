@@ -78,7 +78,7 @@ import { useCreateRight } from "@/createRight";
 import { recordLink } from "@/router/recordLink";
 import { registerShell } from "@/router/routeFor";
 import { resetFormLayouts } from "@/recordPage";
-import { createPageDialogs } from "@/pageEngine/dialog";
+import { createPageDialogs } from "@/shell/dialogs/pageDialogs";
 import { closeCreates, createDialog, createRequests, openCreate, registerCreateDialog } from "@/shell/create";
 import PageDialogs from "@/pages/record/dialogs/PageDialogs.vue";
 import CreateDialog from "../CreateDialog.vue";
@@ -592,7 +592,7 @@ describe("stacking", () => {
 	it("opens a Create dialog above a page.dialog.form, and a save fills its field", async () => {
 		saved.Customer = { name: "CUST-0001" };
 		let answer: unknown;
-		const pageDialogs = createPageDialogs({ isReplaying: () => false, hold: async (work) => work() });
+		const pageDialogs = createPageDialogs({ source: () => "host", isReplaying: () => false, hold: async (work) => work() });
 		mount(() => h(PageDialogs, { controller: { dialogs: pageDialogs.entries } }));
 		void pageDialogs.api
 			.form({

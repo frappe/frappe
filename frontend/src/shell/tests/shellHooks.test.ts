@@ -178,15 +178,29 @@ describe("the shell hook", () => {
 		expect(setup).toHaveBeenCalledOnce();
 	});
 
-	it("hands setup a frozen shell that holds only afterSave and window", async () => {
+	it("hands setup a frozen shell: the whole Shell an act receives, plus afterSave and window", async () => {
 		let shell: Record<string, unknown> | undefined;
 		ship("crm", { setup: (given: Record<string, unknown>) => (shell = given) });
 
 		await mount(["crm"]);
 		await paint();
 
-		expect(Object.keys(shell!)).toEqual(["afterSave", "window"]);
+		expect(Object.keys(shell!).sort()).toEqual(
+			["afterSave", "call", "create", "dialog", "openSettings", "record", "router", "run", "toast", "window"].sort()
+		);
+		expect(Object.keys(shell!.dialog as object)).toEqual(["open", "confirm", "danger"]);
 		expect(Object.isFrozen(shell)).toBe(true);
+	});
+
+	it("lets setup reach the server and toast through the shell", async () => {
+		let shell: any;
+		ship("crm", { setup: (given: unknown) => (shell = given) });
+
+		await mount(["crm"]);
+		await paint();
+
+		expect(shell.toast.info).toBeTypeOf("function");
+		expect(shell.call).toBeTypeOf("function");
 	});
 
 	it("registers an after-save handler that runs when its doctype saves", async () => {

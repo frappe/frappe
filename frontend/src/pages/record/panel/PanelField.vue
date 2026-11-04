@@ -17,7 +17,7 @@
 			     duplicate listeners, so `ui.on.change` and the close-on-commit both fire. -->
 			<component
 				:is="field.ui?.component ?? resolved"
-				v-bind="field.ui?.props"
+				v-bind="{ ...field.ui?.props, ...scriptPage }"
 				:field="controlField"
 				:modelValue="doc[field.fieldname]"
 				:error="error"
@@ -94,6 +94,7 @@
 import { computed, inject, nextTick, ref, watch } from "vue";
 import {
 	CommitKey,
+	ControlPageKey,
 	DocKey,
 	LinkTitlesKey,
 	NO_COMMIT,
@@ -127,6 +128,11 @@ const update = inject(UpdateKey)!;
 const commit = inject(CommitKey, NO_COMMIT);
 const resolveField = inject(ResolveFieldKey)!;
 const context = inject(PanelContextKey, null);
+const page = inject(ControlPageKey, null);
+// Only a script's own control gets `page`; the stock ones would carry it as a stray attribute.
+const scriptPage = computed(() =>
+	props.field.ui?.component && page?.value ? { page: page.value } : {}
+);
 const titles = inject(LinkTitlesKey, null);
 const displayField = useFieldDisplay();
 const mark = useLinkMark(

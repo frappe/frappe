@@ -12,7 +12,7 @@
 		     `update:modelValue` both fire. -->
 		<component
 			:is="control"
-			v-bind="field.ui?.props"
+			v-bind="{ ...field.ui?.props, ...scriptPage }"
 			:field="field"
 			:modelValue="doc[field.fieldname]"
 			:error="error"
@@ -25,7 +25,15 @@
 
 <script setup lang="ts">
 import { computed, inject } from "vue";
-import { AutofocusKey, CommitKey, DocKey, NO_COMMIT, ResolveFieldKey, UpdateKey } from "./types";
+import {
+	AutofocusKey,
+	CommitKey,
+	ControlPageKey,
+	DocKey,
+	NO_COMMIT,
+	ResolveFieldKey,
+	UpdateKey,
+} from "./types";
 import { holdsChildRows } from "../Fields/rowIdentity";
 import { drawsReadValue } from "../Fields/readView";
 import ReadOnlyField from "../Fields/ReadOnlyField.vue";
@@ -40,6 +48,11 @@ const commit = inject(CommitKey, NO_COMMIT);
 const resolveField = inject(ResolveFieldKey)!;
 const autofocusField = inject(AutofocusKey, null);
 const errors = inject(FieldErrorsKey, null);
+const page = inject(ControlPageKey, null);
+// Only a script's own control gets `page`; the stock ones would carry it as a stray attribute.
+const scriptPage = computed(() =>
+	props.field.ui?.component && page?.value ? { page: page.value } : {}
+);
 const error = computed(() => errors?.value[fieldErrorKey(props.field.fieldname)]);
 
 // A child table commits through its rows, never under its own fieldname, which

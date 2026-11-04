@@ -2,11 +2,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { watchEffect } from "vue";
 
 vi.mock("frappe-ui", () => ({
-  toast: { success: vi.fn(), error: vi.fn() },
+  toast: { success: vi.fn(), error: vi.fn(), info: vi.fn() },
   dialog: vi.fn(),
 }));
 vi.mock("@framework/ui/api", () => ({ runMethod: vi.fn() }));
 
+import { toast } from "frappe-ui";
 import { createPageEngine } from "../createPageEngine";
 import { FIRST_PAINT_LIMIT_MS } from "../paintGate";
 import { Surface } from "../surface";
@@ -62,6 +63,14 @@ afterEach(() => {
 });
 
 describe("a page made with the builder", () => {
+  it("shows frappe-ui's toasts through page.toast, info included", () => {
+    const { page } = makeEngine();
+    page.toast.info("Invitation sent");
+    page.toast.success("Saved");
+    expect(toast.info).toHaveBeenCalledWith("Invitation sent");
+    expect(toast.success).toHaveBeenCalledWith("Saved");
+  });
+
   it("folds a source's ops over a fresh copy of the built-ins on every replay", async () => {
     register("one", {
       onRefresh: (page) => {

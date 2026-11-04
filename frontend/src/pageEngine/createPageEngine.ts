@@ -5,7 +5,7 @@ import { runMethod } from "@framework/ui/api";
 import { BodySurface } from "./body";
 import { appPageScripts } from "./appPageScripts";
 import { runningSource, withRunningSource } from "./context";
-import { createPageDialogs, type PageDialogEntry } from "./dialog";
+import { createPageDialogs, type PageDialogEntry } from "@/shell/dialogs/pageDialogs";
 import { FrameSurface } from "./frame";
 import { HeaderSurface } from "./headerRenderings";
 import { createHeldActs } from "./heldActs";
@@ -152,7 +152,7 @@ export function createPageEngine<Lists extends PageEngineLists, Extras extends o
   });
   const { hold } = gate;
 
-  const dialogs = createPageDialogs({ isReplaying: () => gate.isReplaying.value, hold });
+  const dialogs = createPageDialogs({ source: runningSource, isReplaying: () => gate.isReplaying.value, hold });
 
   const page = {
     doctype: spec.doctype,
@@ -172,6 +172,7 @@ export function createPageEngine<Lists extends PageEngineLists, Extras extends o
     toast: {
       success: (message: string) => toast.success(message),
       error: (message: string) => toast.error(message),
+      info: (message: string) => toast.info(message),
     },
     dialog: dialogs.api,
     call: (method: string, params?: Record<string, any>) =>

@@ -7,7 +7,7 @@ import { createPageEngine } from "@/pageEngine";
 import { CachedReads } from "./cachedReads";
 import { createCommitChannel, type RecordCommitChannel } from "./commitChannel";
 import { ComposerSurface, composerTab, type ComposerHost } from "./composer";
-import type { PageDialogEntry } from "@/pageEngine/dialog";
+import type { PageDialogEntry } from "@/shell/dialogs/pageDialogs";
 import { reportOnce } from "./reportOnce";
 import { errorMessage } from "./errorMessage";
 import type { HeldAct, TakeResult } from "@/pageEngine/heldActs";

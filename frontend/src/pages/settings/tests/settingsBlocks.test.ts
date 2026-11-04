@@ -24,12 +24,14 @@ import { getFieldComponent, registerFieldType } from "@framework/ui/FormLayout";
 import { CommitKey } from "@framework/ui/fields/types";
 import { resetDoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { registerSettingsBlocks } from "@/shell/settingsBlocks";
+import type { Shell } from "@/shell/shellActs";
 import type { PanesReply, SettingsBlock } from "@/shell/settingsPanes";
 import ShellSettingsDialog from "@/shell/ShellSettingsDialog.vue";
 import SettingsBlocks from "../SettingsBlocks.vue";
 import { SettingsServer, SYSTEM_SETTINGS } from "./settingsServer";
 
 const SYSTEM = { type: "Single", doctype: "System Settings" } as const;
+const SHELL = { toast: { info: vi.fn() } } as unknown as Shell;
 
 const BLOCKS: SettingsBlock[] = [
 	{
@@ -119,7 +121,7 @@ async function opened(pane = "system"): Promise<Router> {
 	await router.push("/deals");
 	await router.push({ path: "/deals", hash: `#settings/desk/${pane}` });
 	await router.isReady();
-	mounted = createApp(ShellSettingsDialog);
+	mounted = createApp(ShellSettingsDialog, { shell: SHELL });
 	mounted.provide("boot", {
 		app: null,
 		prefixes: { desk: { app: "frappe", modular: false } },
@@ -368,8 +370,9 @@ describe("a component block", () => {
 		},
 	});
 	const Theme = defineComponent({
-		props: { bindings: { type: Object, required: true } },
-		setup: (props) => () => h("p", { "data-theme": "" }, Object.keys(props.bindings).length),
+		props: { bindings: { type: Object, required: true }, shell: { type: Object, required: true } },
+		setup: (props) => () =>
+			h("p", { "data-theme": "", onClick: () => props.shell.toast.info("Hi") }, Object.keys(props.bindings).length),
 	});
 
 	beforeEach(() => {
@@ -389,6 +392,13 @@ describe("a component block", () => {
 		expect(server.writes.map((write) => write.body)).toEqual([
 			{ country: "India", modified: expect.any(String) },
 		]);
+	});
+
+	it("gives the app's file the shell as its `shell` prop", async () => {
+		await opened("calls");
+
+		document.body.querySelector<HTMLElement>("[data-theme]")!.click();
+		expect(SHELL.toast.info).toHaveBeenCalledWith("Hi");
 	});
 
 	it("draws a block with no binding with empty bindings, and drops a block whose file is missing", async () => {

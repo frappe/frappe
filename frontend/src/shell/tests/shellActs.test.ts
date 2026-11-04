@@ -1,7 +1,7 @@
 // The shell surface: each shell act run by name, which acts the shell holds where, the log out it confirms,
 // and the dialogs a shell act opens through `shell.dialog`.
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import { createApp, nextTick, type App } from "vue";
+import { createApp, defineComponent, h, nextTick, type App } from "vue";
 import { createMemoryHistory, createRouter, type Router } from "vue-router";
 
 import { acts, ActDenied } from "@/acts/dispatcher";
@@ -25,7 +25,7 @@ vi.mock("@framework/ui/api", async (importOriginal) => ({
 
 vi.mock("frappe-ui", async (importOriginal) => ({
 	...(await importOriginal<typeof import("frappe-ui")>()),
-	toast: { success: vi.fn(), error: vi.fn() },
+	toast: { success: vi.fn(), error: vi.fn(), info: vi.fn() },
 }));
 
 vi.mock("@/arrangement", async (importOriginal) => ({
@@ -393,10 +393,51 @@ describe("shell.dialog", () => {
 		) as HTMLButtonElement;
 	}
 
-	it("has confirm and danger only, no open or form", async () => {
+	it("has open, confirm and danger, no form", async () => {
 		await shell();
 		const { result } = await asShellAct((shell) => Object.keys(shell.dialog));
-		expect(await result).toEqual(["confirm", "danger"]);
+		expect(await result).toEqual(["open", "confirm", "danger"]);
+	});
+
+	describe("open", () => {
+		const Body = defineComponent({
+			props: { name: String, close: Function },
+			setup: (props) => () =>
+				h("div", { "data-testid": "body" }, [
+					h("span", props.name),
+					h("button", { onClick: () => props.close!({ picked: props.name }) }, "Pick"),
+				]),
+		});
+
+		it("renders the component with its props and resolves what it closes with", async () => {
+			await shell();
+			const { result } = await asShellAct((shell) =>
+				shell.dialog.open(Body, { name: "Ada" }, { title: "Pick one" })
+			);
+			await vi.waitFor(() => expect(document.body.querySelector("[role='dialog']")).not.toBeNull());
+			const dialog = document.body.querySelector("[role='dialog']")!;
+			expect(dialog.textContent).toContain("Pick one");
+			expect(dialog.querySelector("[data-testid='body']")!.textContent).toContain("Ada");
+			button("Pick").click();
+			expect(await result).toEqual({ picked: "Ada" });
+			await vi.waitFor(() => expect(document.body.querySelector("[role='dialog']")).toBeNull());
+		});
+
+		it("resolves null when the reader dismisses it", async () => {
+			await shell();
+			const { result } = await asShellAct((shell) => shell.dialog.open(Body, { name: "Ada" }));
+			await vi.waitFor(() => expect(document.body.querySelector("[role='dialog']")).not.toBeNull());
+			document.body.querySelector<HTMLElement>("[role='dialog'] [aria-label='Close']")!.click();
+			await settle();
+			expect(await result).toBeNull();
+		});
+	});
+
+	it("toast.info shows frappe-ui's info toast", async () => {
+		const { toast } = await import("frappe-ui");
+		await shell();
+		await asShellAct((shell) => shell.toast.info("Invitation sent"));
+		expect(toast.info).toHaveBeenCalledWith("Invitation sent");
 	});
 
 	it("confirm gives the act true when confirmed, and null when dismissed", async () => {

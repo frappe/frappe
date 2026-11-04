@@ -14,7 +14,7 @@ import { provide } from "vue";
 import { CodeErrorsKey, FieldErrorsKey } from "@framework/ui/fields/types";
 import type { RecordPageController } from "@/recordPage";
 import PageFormDialog from "./PageFormDialog.vue";
-import PageOpenDialog from "./PageOpenDialog.vue";
+import PageOpenDialog from "@/shell/dialogs/PageOpenDialog.vue";
 
 defineProps<{ controller: RecordPageController }>();
 
