@@ -81,7 +81,11 @@
 					<Button
 						variant="outline"
 						label="Retry"
-						@click="(activeTab.diff ? flow.openDiffFile : flow.openFile)(activeTab.path)"
+						@click="
+							activeTab.diff
+								? flow.openDiffFile(activeTab.path, activeTab.since ?? null)
+								: flow.openFile(activeTab.path)
+						"
 					/>
 				</div>
 				<LoadingState

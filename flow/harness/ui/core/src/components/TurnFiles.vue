@@ -9,7 +9,7 @@
 				:key="file.path"
 				class="flex w-full items-center gap-2.5 px-3 py-2.5 text-left transition-colors hover:bg-surface-gray-1"
 				:title="file.path"
-				@click="flow.openDiffFile(file.path)"
+				@click="flow.openDiffFile(file.path, file.since)"
 			>
 				<span class="lucide-file size-4 flex-none text-ink-gray-5" aria-hidden="true" />
 				<span class="flex-none text-base-medium text-ink-gray-9">{{ fileName(file.path) }}</span>
@@ -35,7 +35,7 @@ import { computed, inject, ref } from "vue"
 import { compactDisplayText, fileName } from "../transcript.js"
 
 const props = defineProps({
-	files: { type: Array, required: true }, // [{path, added, removed}]
+	files: { type: Array, required: true }, // [{path, added, removed, since}]
 })
 
 const VISIBLE = 4

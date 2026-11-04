@@ -503,7 +503,7 @@ export function createFlowStore(client, options = {}) {
 				maximized: ws.maximized,
 				active: ws.active,
 				view: ws.view ?? null,
-				tabs: ws.tabs.map((t) => ({ kind: t.kind, path: t.path, diff: !!t.diff })),
+				tabs: ws.tabs.map((t) => ({ kind: t.kind, path: t.path, diff: !!t.diff, since: t.since ?? null })),
 			}
 		} else {
 			delete workspaceBySession[sid]
@@ -526,7 +526,7 @@ export function createFlowStore(client, options = {}) {
 			open,
 			maximized: open && !!saved.maximized,
 			view: ["files", "diff"].includes(saved.view) ? saved.view : null,
-			tabs: stored.map(({ kind, path, diff }) =>
+			tabs: stored.map(({ kind, path, diff, since }) =>
 				kind === "subagent"
 					? { kind, path, name: "Sub-agent" } // named once the thread is loaded
 					: {
@@ -539,6 +539,7 @@ export function createFlowStore(client, options = {}) {
 							loading: false,
 							dirty: false,
 							diff: !!diff,
+							since: Number.isInteger(since) ? since : null,
 						},
 			),
 			active: saved.active == null ? null : paths.includes(saved.active) ? saved.active : (paths[0] ?? null),
@@ -1344,8 +1345,9 @@ export function createFlowStore(client, options = {}) {
 
 	// Diff twin of openFile: the tab shows the file's uncommitted changes, with
 	// HEAD as the original side; the working-tree content stays the editable
-	// (and savable) side.
-	async function openDiffFile(path) {
+	// (and savable) side. With `since` (a turn's first change to the file) the
+	// original is the file before that turn, from the session's own records.
+	async function openDiffFile(path, since = null) {
 		const cwd = explorerCwd()
 		const stale = () => explorerCwd() !== cwd
 		if (!cwd) return
@@ -1368,6 +1370,7 @@ export function createFlowStore(client, options = {}) {
 			tab = ws.tabs[ws.tabs.length - 1]
 		}
 		tab.diff = true
+		tab.since = since
 		ws.active = path
 		ws.open = true
 		persistWorkspace()
@@ -1375,6 +1378,8 @@ export function createFlowStore(client, options = {}) {
 		// a 400 means the file lies outside the repo (or there is none): the
 		// session's own recorded changes still diff it, so TurnFiles clicks work
 		const fetchDiff = async () => {
+			if (since != null && state.sessionId && typeof client.fileDiff === "function")
+				return client.fileDiff(state.sessionId, path, since)
 			try {
 				return await client.gitFileDiff(cwd, path)
 			} catch (error) {
@@ -1467,7 +1472,7 @@ export function createFlowStore(client, options = {}) {
 		state.workspace.active = path
 		persistWorkspace()
 		if (tab.kind === "editor" && tab.content == null && !tab.loading && !tab.error)
-			void (tab.diff ? openDiffFile(path) : openFile(path))
+			void (tab.diff ? openDiffFile(path, tab.since ?? null) : openFile(path))
 	}
 
 	// Open a sub-agent's thread in the workspace panel, beside the file tabs.
