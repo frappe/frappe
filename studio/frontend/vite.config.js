@@ -64,10 +64,6 @@ export default defineConfig(({ command }) => {
 				frappeProxy: true,
 				lucideIcons: true,
 				buildConfig: false,
-				// Avoid the plugin's incompatible esbuild adapter on Vite 8.
-				// Vite's pre-bundler already handles frappe-ui's missing optional peers
-				// with an error that loadLanguage catches and adds an install hint to.
-				codeLanguages: false,
 				jinjaBootData: false,
 			}),
 			frameworkui(),
