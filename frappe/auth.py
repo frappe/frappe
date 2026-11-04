@@ -455,16 +455,7 @@ def validate_ip_address(user):
 	):
 		return True
 
-<<<<<<< HEAD
 	from frappe.core.doctype.user.user import get_restricted_ip_list
-=======
-	try:
-		user_info = frappe.get_cached_doc("User", user)
-	except frappe.DoesNotExistError:
-		return
-
-	ip_list = user_info.get_restricted_ip_list()
->>>>>>> d8136b9 (fix: allow auth hooks to set a user without a User record)
 
 	# Only fetch required fields - for perf
 	user_fields = ["restrict_ip", "bypass_restrict_ip_check_if_2fa_enabled"]
@@ -473,6 +464,9 @@ def validate_ip_address(user):
 		if not frappe.flags.in_test
 		else frappe.db.get_value("User", user, user_fields, as_dict=True)
 	)
+	if not user_info:
+		return
+
 	ip_list = get_restricted_ip_list(user_info)
 	if not ip_list:
 		return
