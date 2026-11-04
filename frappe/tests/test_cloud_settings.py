@@ -410,6 +410,25 @@ class TestCloudSettings(_CloudTestCase):
 		)
 		self.assertEqual([record["type"] for record in result["records"]], ["CNAME", "TXT", "A"])
 
+	def test_dns_records_keep_each_record_set_as_one_option(self):
+		result, _ = self._pilot_call(
+			lambda: get_domain_dns_records("shop.example.com"),
+			{"cname": [{"type": "CNAME"}], "a": [{"type": "TXT"}, {"type": "A"}]},
+		)
+
+		self.assertEqual(
+			[[record["type"] for record in option] for option in result["options"]],
+			[["CNAME"], ["TXT", "A"]],
+		)
+
+	def test_dns_records_leave_out_empty_record_sets(self):
+		result, _ = self._pilot_call(
+			lambda: get_domain_dns_records("shop.example.com"),
+			{"cname": [{"type": "CNAME"}], "a": []},
+		)
+
+		self.assertEqual(result["options"], [[{"type": "CNAME"}]])
+
 	def test_remove_domain_deletes_the_domain_resource(self):
 		_, call = self._pilot_call(lambda: remove_domain("shop.example.com"), {"ok": True})
 
