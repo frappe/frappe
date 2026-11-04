@@ -270,7 +270,9 @@ def get_flow_safe_globals(*, tool_context: ToolContext | None = None) -> Namespa
 			get_list=_permissioned_get_list,
 			get_print=_gated_get_print,
 			attach_print=_gated_attach_print,
-			sendmail=(lambda *a, **k: _stop("frappe.sendmail", tool_context)) if read_only else _gated_sendmail,
+			sendmail=(lambda *a, **k: _stop("frappe.sendmail", tool_context))
+			if read_only
+			else _gated_sendmail,
 			log=frappe.log,
 			log_error=safer_log_error,
 			msgprint=frappe.msgprint,
