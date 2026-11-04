@@ -190,7 +190,7 @@ describe("the shell hook", () => {
 		await paint();
 
 		expect(Object.keys(shell!).sort()).toEqual(
-			["afterSave", "call", "create", "dialog", "openSettings", "record", "router", "run", "toast", "window"].sort()
+			["afterSave", "call", "create", "dialog", "href", "open", "openSettings", "record", "router", "run", "toast", "window"].sort()
 		);
 		expect(Object.keys(shell!.dialog as object)).toEqual(["open", "confirm", "danger"]);
 		expect(Object.isFrozen(shell)).toBe(true);

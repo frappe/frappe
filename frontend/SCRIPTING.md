@@ -284,18 +284,31 @@ Each menu entry in the rail and the avatar menu is one of them: `shell.all_apps`
 `shell.customize_sidebar`, `shell.copy_link` and `shell.toggle_sidebar` (while a sidebar
 shows), `shell.open_settings` with `{ prefix, pane, block }`, `shell.my_settings`,
 `shell.theme` with `'light'`, `'dark'` or `'system'`, `shell.desk_v1`, and `shell.log_out`,
-which asks first. `shell.create` takes a doctype, or `{ doctype, values }`.
-`page.create()` and `page.openSettings()` run `shell.create` and `shell.open_settings`.
+which asks first. `shell.create` takes a doctype, or `{ doctype, values }`. `shell.open` takes
+`{ doctype, name, view }` and opens that record, the doctype's list, or (with `view` and no name)
+one of its saved views; the palette does not list it. A Single has no list, so it opens the
+document, and `view` is ignored with a name. `page.create()`, `page.open()` and
+`page.openSettings()` run `shell.create`, `shell.open` and `shell.open_settings`.
 
 ```js
 page.header.add({ name: 'dark', label: 'Dark theme', run: (page) => page.run('shell.theme', 'dark') })
 ```
 
+Open a record with `page.open(doctype, name?, { view }?)`, or `shell.open(...)` in an act, and
+never push a route yourself: `open` goes through the router, so a doctype that opens in the
+record dialog opens there (a Single or a submittable opens its page). It resolves when the
+navigation settles, whether a page, the dialog or nothing opened, and rejects when the doctype
+has no address. `shell.href(doctype, name?)` gives the address for a plain `<a>`, or `null`.
+
+```js
+run: (shell, deal) => shell.open('CRM Deal', deal.name)
+```
+
 An app adds its own global acts in `<module>/frontend/acts.js`, whose default export is a
 list of acts. Each joins the shell surface under the app's name, so CRM's `log_a_call` is
 `shell.crm.log_a_call`, and its `run` receives `(shell, value)`, where `shell` holds
-`router`, `toast` (`success`, `error` and `info`), `call`, `run`, `create`, `openSettings`,
-`record` and `dialog`. `shell.dialog.confirm` and `shell.dialog.danger` take the options
+`router`, `toast` (`success`, `error` and `info`), `call`, `run`, `create`, `open`, `href`,
+`openSettings`, `record` and `dialog`. `shell.dialog.confirm` and `shell.dialog.danger` take the options
 `page.dialog.confirm` and `page.dialog.danger` take and resolve `true` when confirmed and
 `null` when dismissed. `shell.dialog.open(component, props, options)` is `page.dialog.open`
 on the shell's own stack: it renders `component` in a dialog with a `close(result)` prop,

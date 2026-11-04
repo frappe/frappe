@@ -103,3 +103,48 @@ describe("page.create", () => {
     expect(denied).toMatchObject({ act: "shell.create", reason: "missing" });
   });
 });
+
+describe("page.open", () => {
+  /** A shell surface holding only `shell.open`, which runs `open` with the act's value. */
+  function shellOpen(open: (value: unknown) => unknown) {
+    release = acts.register({
+      surfaces: { shell: () => [{ item: { name: "open", run: (_shell, value) => open(value) }, hidden: false }] },
+      context: () => undefined,
+      passes: () => false,
+      settled: () => undefined,
+      hold: async (work) => work(),
+      failed: () => {},
+    });
+  }
+
+  it("runs shell.open with the doctype, the name and the view", async () => {
+    const open = vi.fn(async () => {});
+    shellOpen(open);
+    const { page } = createRecordPage(makeHost());
+
+    await page.open("Contact", "CONTACT-1");
+    await page.open("Contact", null, { view: "mine" });
+
+    expect(open).toHaveBeenNthCalledWith(1, { doctype: "Contact", name: "CONTACT-1", view: undefined });
+    expect(open).toHaveBeenNthCalledWith(2, { doctype: "Contact", name: null, view: "mine" });
+  });
+
+  it("rejects with what the act threw", async () => {
+    shellOpen(async () => {
+      throw new Error("routeFor: no address for doctype 'Nope'");
+    });
+    const { page } = createRecordPage(makeHost());
+
+    await expect(page.open("Nope")).rejects.toThrow("no address for doctype 'Nope'");
+  });
+
+  it("opens nothing once the page has left", async () => {
+    const open = vi.fn(async () => {});
+    shellOpen(open);
+    const controller = createRecordPage(makeHost());
+    controller.leave();
+
+    await controller.page.open("Contact", "CONTACT-1");
+    expect(open).not.toHaveBeenCalled();
+  });
+});
