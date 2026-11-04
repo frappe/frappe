@@ -25,7 +25,7 @@
 					<span class="grid h-6 w-6 flex-none place-items-center rounded-5 bg-surface-gray-1 text-ink-gray-6">
 						<span class="size-3.5" :class="chip.icon" aria-hidden="true" />
 					</span>
-					<span class="truncate text-sm font-medium text-ink-gray-8">{{ chip.label }}</span>
+					<span class="truncate text-sm-medium text-ink-gray-8">{{ chip.label }}</span>
 				</span>
 			</div>
 			<div
@@ -44,7 +44,7 @@
 					>{{ quote }}</blockquote></div><span v-for="(part, i) in parts" :key="i" :class="{ 'text-ink-blue-6': part.skill }">{{ part.text }}</span></div>
 			<button
 				v-if="clampable"
-				class="mt-1.5 text-sm font-medium text-ink-gray-5 hover:text-ink-gray-8"
+				class="mt-1.5 text-sm-medium text-ink-gray-5 hover:text-ink-gray-8"
 				@click="expanded = !expanded"
 			>
 				{{ expanded ? "Show less" : "Show more" }}
@@ -52,17 +52,21 @@
 		</div>
 		<span class="absolute bottom-0 right-0.5 flex items-center gap-1">
 			<span v-if="time" class="flow-hover-reveal mr-1 text-ink-gray-4" :class="layout.phone ? 'text-sm' : 'text-xs md:text-sm'">{{ time }}</span>
-			<button
+			<Button
 				v-if="rewindable"
+				variant="ghost"
+				size="xs"
 				title="Rewind to this message"
-				class="flow-hover-reveal grid h-6 w-6 place-items-center rounded-5 text-ink-gray-4 hover:bg-surface-gray-2 hover:text-ink-gray-8"
+				class="flow-hover-reveal group/rewind"
 				@click="confirmRewind"
 			>
-				<span class="lucide-rotate-ccw size-3.5" aria-hidden="true" />
-			</button>
+				<template #icon>
+					<span class="lucide-rotate-ccw size-3.5 text-ink-gray-5 group-hover/rewind:text-ink-gray-8" aria-hidden="true" />
+				</template>
+			</Button>
 			<CopyButton
 				:text="text"
-				class="flow-hover-reveal grid h-6 w-6 place-items-center rounded-5 text-ink-gray-4 hover:bg-surface-gray-2 hover:text-ink-gray-8"
+				class="flow-hover-reveal"
 			/>
 		</span>
 		<ImageViewer v-if="viewer" :src="previews[viewer.id]" :alt="viewer.name" @close="viewer = null" />
@@ -72,6 +76,7 @@
 <script setup>
 import { computed, inject, onBeforeUnmount, onMounted, ref } from "vue"
 import { dialog } from "frappe-ui/src/utils/dialog"
+import { Button } from "frappe-ui/src/components/Button"
 
 import { layout } from "../layout.js"
 import {

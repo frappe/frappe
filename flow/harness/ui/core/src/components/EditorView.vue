@@ -78,12 +78,11 @@
 					class="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center"
 				>
 					<span class="text-sm text-ink-gray-5">{{ activeTab.error }}</span>
-					<button
-						class="flow-btn-secondary"
+					<Button
+						variant="outline"
+						label="Retry"
 						@click="(activeTab.diff ? flow.openDiffFile : flow.openFile)(activeTab.path)"
-					>
-						Retry
-					</button>
+					/>
 				</div>
 				<LoadingState
 					v-else-if="activeTab.content == null"

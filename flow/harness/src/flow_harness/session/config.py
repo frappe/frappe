@@ -118,6 +118,17 @@ class SessionConfig(BaseModel):
 	token_budget: int | None = Field(default=None, gt=0)
 	stream: bool = True
 
+	@model_validator(mode="before")
+	@classmethod
+	def _legacy_auto_approve(cls, value: object) -> object:
+		"""Sessions saved before `approval_mode` stored `auto_approve: bool`, where false meant ask."""
+		if not isinstance(value, dict) or "auto_approve" not in value:
+			return value
+		data = dict(value)
+		auto_approve = data.pop("auto_approve")
+		data.setdefault("approval_mode", "auto_approve" if auto_approve is True else "ask")
+		return data
+
 	@model_validator(mode="after")
 	def _check_agents(self) -> SessionConfig:
 		names = [agent.name for agent in self.subagents]

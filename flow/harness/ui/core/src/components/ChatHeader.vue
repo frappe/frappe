@@ -4,18 +4,16 @@
 		:class="
 			besideNavbar
 				? [
-						'box-content border-gray-200 dark:border-outline-gray-1',
+						'box-content border-outline-gray-1',
 						besideNavbar === 'desk' ? 'h-12' : 'h-10.5',
 					]
-				: ['h-11', started ? 'border-outline-gray-1' : 'border-transparent']
+				: ['h-12', started ? 'border-outline-gray-1' : 'border-transparent']
 		"
 	>
 		<template v-if="!sidebarOpen && !history">
 			<!-- a hover floats the sidebar, New chat with it; a click brings it back -->
 			<SidebarPeek :menu="appMenu" :before-switch="beforeSwitch">
-				<button class="flow-icon-btn" title="Show sidebar" @click="emit('open-sidebar')">
-					<span class="lucide-panel-left size-4" aria-hidden="true" />
-				</button>
+				<Button variant="ghost" icon="lucide-panel-left" title="Show sidebar" @click="emit('open-sidebar')" />
 			</SidebarPeek>
 		</template>
 
@@ -27,7 +25,23 @@
 				<span class="max-w-[220px] truncate">{{ lead.label }}</span>
 			</span>
 			<span v-if="lead" aria-hidden="true" class="hidden flex-none text-base text-ink-gray-3 sm:inline">/</span>
-			<span class="min-w-0 truncate font-medium text-ink-gray-9" :class="layout.phone ? 'text-md' : 'text-base'">{{ title }}</span>
+			<TitleField
+				v-if="renaming && renaming === flow.state.sessionId"
+				:value="title"
+				label="Chat name"
+				class="w-[min(400px,100%)] min-w-0"
+				:back="composerBox"
+				@save="(name) => rename(renaming, name)"
+				@cancel="renaming = null"
+			/>
+			<!-- a double click renames the chat in place, as its menu's Rename does -->
+			<span
+				v-else
+				class="min-w-0 truncate text-ink-gray-9"
+				:class="layout.phone ? 'text-md-medium' : 'text-base-medium'"
+				@dblclick="menu && (renaming = flow.state.sessionId)"
+				>{{ title }}</span
+			>
 		</div>
 
 		<!-- by the title in a narrow frame; a wide one keeps it with the buttons at the end -->
@@ -36,11 +50,10 @@
 			:session-id="menu ? flow.state.sessionId : null"
 			:title="title"
 			:actions="menuActions"
+			@rename="renaming = flow.state.sessionId"
 			align="start"
 		>
-			<button class="flow-icon-btn flex-none" title="Chat options">
-				<span class="lucide-ellipsis size-4" aria-hidden="true" />
-			</button>
+			<Button variant="ghost" icon="lucide-ellipsis" class="flex-none" title="Chat options" />
 		</ChatMenu>
 
 		<span class="min-w-2 flex-1" />
@@ -49,7 +62,7 @@
 			<!-- the readout opens the transcript: the same totals, step by step. A narrow frame leaves
 			     the title the room: its chat menu opens the transcript instead -->
 			<button
-				v-if="transcript && !layout.narrow && (contextTokens > 0 || spent > 0)"
+				v-if="!layout.narrow && (contextTokens > 0 || spent > 0)"
 				class="mr-2 flex items-center gap-2 whitespace-nowrap rounded-4 px-1.5 py-1 text-sm font-normal tabular-nums text-ink-gray-5 hover:bg-surface-gray-2"
 				title="Tokens, step by step"
 				@click="flow.setTranscriptOpen(true)"
@@ -68,19 +81,15 @@
 				<span v-else title="Tokens used so far">{{ formatTokens(spent) }} used</span>
 				<span v-if="cost > 0" class="flex items-center gap-2 text-ink-gray-4">
 					<span aria-hidden="true" class="text-ink-gray-3">·</span>
-					<span>${{ cost.toFixed(cost < 1 ? 3 : 2) }}</span>
+					<span>{{ formatCost(cost) }}</span>
 				</span>
 			</button>
 
 			<ChatHistory v-if="history" />
-			<button v-if="history && started" class="flow-icon-btn" title="New chat" @click="flow.startNewChat()">
-				<span class="lucide-plus size-4" aria-hidden="true" />
-			</button>
+			<Button v-if="history && started" variant="ghost" icon="lucide-plus" title="New chat" @click="flow.startNewChat()" />
 			<Dropdown v-if="history && manage" align="end" :options="manageOptions">
 				<template #trigger>
-					<button class="flow-icon-btn" title="Manage">
-						<span class="lucide-settings size-4" aria-hidden="true" />
-					</button>
+					<Button variant="ghost" icon="lucide-settings" title="Manage" />
 				</template>
 			</Dropdown>
 			<ChatMenu
@@ -88,34 +97,38 @@
 				:session-id="menu ? flow.state.sessionId : null"
 				:title="title"
 				:actions="menuActions"
+				@rename="renaming = flow.state.sessionId"
 				align="end"
 			>
-				<button class="flow-icon-btn flex-none" title="Chat options">
-					<span class="lucide-ellipsis size-4" aria-hidden="true" />
-				</button>
+				<Button variant="ghost" icon="lucide-ellipsis" class="flex-none" title="Chat options" />
 			</ChatMenu>
-			<button
+			<Button
 				v-if="workspace && !workspaceOpen"
-				class="flow-icon-btn ml-2"
+				variant="ghost"
+				class="ml-2"
 				title="Open panel"
 				@click="flow.setWorkspaceOpen(true)"
 			>
-				<span class="lucide-panel-left size-4 -scale-x-100" aria-hidden="true" />
-			</button>
+				<template #icon>
+					<span class="lucide-panel-left size-4 -scale-x-100" aria-hidden="true" />
+				</template>
+			</Button>
 			<slot name="end" />
 		</span>
 	</header>
 </template>
 
 <script setup>
-import { computed, inject } from "vue"
+import { computed, inject, ref, watch } from "vue"
+import { Button } from "frappe-ui/src/components/Button"
 import Dropdown from "frappe-ui/src/components/Dropdown/Dropdown.vue"
 
 import { layout } from "../layout.js"
-import { conversationTitle, formatTokens } from "../transcript.js"
+import { conversationTitle, formatCost, formatTokens } from "../transcript.js"
 import ChatHistory from "./ChatHistory.vue"
 import ChatMenu from "./ChatMenu.vue"
 import SidebarPeek from "./SidebarPeek.vue"
+import TitleField from "./TitleField.vue"
 
 const props = defineProps({
 	sidebarOpen: { type: Boolean, default: true },
@@ -129,7 +142,6 @@ const props = defineProps({
 	// "desk" or "app", beside that page's head: as tall, and always ruled in its color, so the two
 	// lines meet. Desk's head is 48px, a frappe-ui app's 42px
 	besideNavbar: { type: String, default: null },
-	transcript: { type: Boolean, default: true }, // false: no token readout or Transcript item
 	appMenu: { type: Array, default: () => [] }, // the host's items after Settings, as in the sidebar's app menu
 	beforeSwitch: { type: Function, default: null }, // a host's say before the open chat changes
 })
@@ -173,7 +185,7 @@ const contextWindow = computed(() => flow.state.conversation.contextWindow ?? nu
 
 // a narrow frame's chat menu opens the transcript in the readout's place
 const menuActions = computed(() => [
-	...(props.transcript && layout.narrow && (contextTokens.value > 0 || spent.value > 0)
+	...(layout.narrow && (contextTokens.value > 0 || spent.value > 0)
 		? [{ label: "Transcript", icon: "lucide-list", onClick: () => flow.setTranscriptOpen(true) }]
 		: []),
 	...props.actions,
@@ -189,4 +201,16 @@ const manageOptions = computed(() => [
 ])
 
 const workspaceOpen = computed(() => flow.state.workspace.open)
+
+// the chat whose name is being edited; another chat opening ends the edit
+const renaming = ref(null)
+const composerBox = (input) => input?.closest("main")?.querySelector(".flow-composer-dock fieldset textarea")
+watch(
+	() => flow.state.sessionId,
+	() => (renaming.value = null),
+)
+function rename(sid, name) {
+	renaming.value = null
+	void flow.renameSession(sid, name)
+}
 </script>

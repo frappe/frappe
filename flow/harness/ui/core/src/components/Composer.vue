@@ -36,7 +36,7 @@
 					<template v-for="(m, i) in menuItems" :key="m.name">
 						<!-- a heading takes a row's height, and a gap above it sets its section off; the
 						     first sits in the list's top padding -->
-						<div v-if="m.section" class="flex h-8 items-center px-[11px] text-base font-medium text-ink-gray-5" :class="i ? 'mt-2' : '-mt-1'">
+						<div v-if="m.section" class="flex h-7 items-center px-2 text-sm-medium text-ink-gray-4" :class="i ? 'mt-2' : '-mt-1'">
 							{{ m.section }}
 						</div>
 						<button data-palette-item class="flow-palette-row" @click="pick(m)">
@@ -82,7 +82,7 @@
 				:position="approval.position"
 				:total="approval.total"
 				:subagent="approval.subagent"
-				class="mb-2"
+				class="mb-3"
 			/>
 
 			<!-- the queue: messages waiting for the run to end -->
@@ -91,27 +91,27 @@
 				class="mx-3.5 -mb-1.5 flex flex-col divide-y divide-outline-gray-2 rounded-t-[10px] border border-b-0 border-outline-gray-2 bg-surface-gray-2 px-3 pb-2.5 pt-1"
 			>
 				<div v-for="item in flow.state.queued" :key="item.key" class="flex min-h-5 items-center gap-2 py-1">
-					<span class="flex-none text-base font-medium text-ink-gray-6">Queued</span>
+					<span class="flex-none text-base-medium text-ink-gray-6">Queued</span>
 					<span class="min-w-0 flex-1 truncate text-base text-ink-gray-7">{{ item.label }}</span>
 					<!-- a compaction takes no steering: the queue waits for it to end -->
-					<button
+					<Button
 						v-if="!compacting"
-						class="flex h-6 flex-none items-center gap-1 rounded-4 px-2 text-base font-medium text-ink-gray-7 hover:bg-surface-gray-3 hover:text-ink-gray-9"
+						variant="ghost"
+						size="xs"
+						icon-left="lucide-corner-down-left"
+						:label="running ? 'Steer' : 'Send'"
 						:title="running ? 'Add it to the running turn' : 'Send it now'"
 						:disabled="disabled"
 						@click="steerQueued(item)"
-					>
-						<span class="lucide-corner-down-left size-3" aria-hidden="true" />
-						{{ running ? "Steer" : "Send" }}
-					</button>
-					<button
-						class="grid h-5 w-5 flex-none place-items-center rounded-4 text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-9"
+					/>
+					<Button
+						variant="ghost"
+						size="xs"
+						icon="lucide-x"
 						title="Remove from queue"
 						:disabled="disabled"
 						@click="dropQueued(item)"
-					>
-						<span class="lucide-x size-3" aria-hidden="true" />
-					</button>
+					/>
 				</div>
 			</div>
 
@@ -122,20 +122,22 @@
 			<div
 				v-if="$slots.start ? starting : startCwd"
 				ref="startRow"
-				class="flow-start-surface absolute inset-x-3.5 bottom-full -mb-1.5 flex min-w-0 items-center gap-1 rounded-t-7 px-1.5 pb-3 pt-1.5 text-base text-ink-gray-7 dark:text-ink-gray-8"
+				class="flow-start-surface absolute inset-x-3.5 bottom-full -mb-1.5 flex min-w-0 items-center gap-1 rounded-t-7 px-1.5 pb-2.5 pt-1 text-base text-ink-gray-7 dark:text-ink-gray-8"
 				:class="listOpen ? 'invisible' : ''"
 			>
 				<!-- a host's picker puts a word in the draft at the caret with `insert`, as the "/" list does -->
 				<slot name="start" :insert="replaceSlash">
-					<button
-						class="flex h-6 min-w-0 items-center gap-1.5 rounded-5 px-2 hover:text-ink-gray-9"
-						title="Change working directory"
-						:disabled="disabled"
-						@click="chooseFolder"
-					>
-						<span class="lucide-folder size-3.5 flex-none" aria-hidden="true" />
-						<span class="truncate">{{ flow.folderName(startCwd) }}</span>
-					</button>
+					<span class="min-w-0">
+						<Button
+							variant="ghost"
+							class="max-w-full"
+							icon-left="lucide-folder"
+							:label="flow.folderName(startCwd)"
+							title="Change working directory"
+							:disabled="disabled"
+							@click="chooseFolder"
+						/>
+					</span>
 					<span v-if="git" class="hidden min-w-0 items-center gap-1.5 px-1.5 sm:flex" title="Branch">
 						<span class="lucide-git-branch size-3.5 flex-none" aria-hidden="true" />
 						<span class="truncate">{{ git.branch }}</span>
@@ -159,6 +161,13 @@
 				class="relative flex min-w-0 flex-col gap-2 rounded-7 bg-surface-gray-1"
 				:class="oneRow ? 'p-2' : 'p-3'"
 			>
+				<div
+					v-if="fileDragging"
+					class="pointer-events-none absolute inset-0 z-30 flex items-center justify-center gap-2 rounded-7 border border-dashed border-outline-gray-4 bg-surface-gray-1 text-base font-medium text-ink-gray-7"
+				>
+					<span class="lucide-paperclip size-4" aria-hidden="true" />
+					Drop files to attach
+				</div>
 				<button
 					v-if="needsCwd"
 					class="flex w-full items-center gap-2.5 rounded-6 border border-dashed border-outline-gray-3 bg-surface-gray-1 px-2.5 py-2 text-left hover:bg-surface-gray-2"
@@ -168,8 +177,8 @@
 						class="lucide-folder size-3.5 flex-none text-ink-gray-5"
 						aria-hidden="true"
 					/>
-					<span class="min-w-0 flex-1 text-base font-medium leading-4 text-ink-gray-9">Choose a project folder to start</span>
-					<span class="flex-none text-base font-medium text-ink-gray-6">Browse…</span>
+					<span class="min-w-0 flex-1 text-base-medium leading-4 text-ink-gray-9">Choose a project folder to start</span>
+					<span class="flex-none text-base-medium text-ink-gray-6">Browse…</span>
 				</button>
 				<div v-if="imageTiles.length" class="flex flex-wrap gap-1.5 px-1 pt-0.5">
 					<figure
@@ -206,17 +215,13 @@
 						:title="`${ref.rel}:${ref.start}-${ref.end}`"
 					>
 						<span :class="chipIconClass"><span class="lucide-code size-3.5" aria-hidden="true" /></span>
-						<span class="min-w-0 truncate text-base font-medium text-ink-gray-8">{{ codeRefLabel(ref) }}</span>
-						<button :class="chipRemoveClass" title="Remove reference" :disabled="locked" @click="flow.removeCodeRef(i)">
-							<span class="lucide-x size-3" aria-hidden="true" />
-						</button>
+						<span class="min-w-0 truncate text-base-medium text-ink-gray-8">{{ codeRefLabel(ref) }}</span>
+						<Button variant="ghost" size="xs" icon="lucide-x" title="Remove reference" :disabled="locked" @click="flow.removeCodeRef(i)" />
 					</span>
 					<span v-for="(quote, i) in quotes" :key="`quote:${i}`" :class="chipClass" :title="quote">
 						<span :class="chipIconClass"><span class="lucide-align-left size-3.5" aria-hidden="true" /></span>
-						<span class="min-w-0 truncate text-base font-medium text-ink-gray-8">{{ quoteLabel(quote) }}</span>
-						<button :class="chipRemoveClass" title="Remove quote" :disabled="locked" @click="flow.removeQuote(i)">
-							<span class="lucide-x size-3" aria-hidden="true" />
-						</button>
+						<span class="min-w-0 truncate text-base-medium text-ink-gray-8">{{ quoteLabel(quote) }}</span>
+						<Button variant="ghost" size="xs" icon="lucide-x" title="Remove quote" :disabled="locked" @click="flow.removeQuote(i)" />
 					</span>
 					<span v-for="{ item, i } in fileChips" :key="item.key" :class="chipClass" :title="item.name">
 						<span v-if="item.preparing" :class="chipIconClass" :aria-label="`Preparing ${item.name}`" role="status">
@@ -232,16 +237,16 @@
 								aria-hidden="true"
 							/>
 						</span>
-						<span class="min-w-0 flex-1 truncate text-base font-medium text-ink-gray-8">{{ item.name }}</span>
-						<button
-							:class="chipRemoveClass"
+						<span class="min-w-0 flex-1 truncate text-base-medium text-ink-gray-8">{{ item.name }}</span>
+						<Button
+							variant="ghost"
+							size="xs"
+							icon="lucide-x"
 							title="Remove attachment"
 							:aria-label="`Remove ${item.name}`"
 							:disabled="locked"
 							@click="removeAttachment(i)"
-						>
-							<span class="lucide-x size-3" aria-hidden="true" />
-						</button>
+						/>
 					</span>
 				</div>
 				<div v-for="item in attachments.filter((item) => item.error)" :key="item.key" class="px-1 text-base text-ink-red-6">
@@ -273,14 +278,13 @@
 					<span v-if="compact" class="flex flex-none">
 						<Dropdown :options="plusOptions" align="start" side="top">
 							<template #trigger>
-								<button
-									class="grid place-items-center rounded-5 text-ink-gray-7 hover:bg-surface-gray-2 hover:text-ink-gray-9 dark:text-ink-gray-8"
-									:class="inline ? 'size-7' : 'size-8'"
+								<Button
+									variant="ghost"
+									:size="inline ? 'sm' : 'md'"
+									icon="lucide-plus"
 									aria-label="Add to the message"
 									:disabled="locked"
-								>
-									<span class="lucide-plus size-4" aria-hidden="true" />
-								</button>
+								/>
 							</template>
 						</Dropdown>
 					</span>
@@ -320,14 +324,14 @@
 					</div>
 					<!-- attach files -->
 					<Tooltip v-if="!compact" :text="imagesOnly ? 'Attach images' : 'Attach files'">
-						<button
-							class="grid size-8 flex-none place-items-center rounded-5 text-ink-gray-7 hover:bg-surface-gray-2 hover:text-ink-gray-9 dark:text-ink-gray-8"
+						<Button
+							variant="ghost"
+							size="md"
+							icon="lucide-paperclip"
 							:aria-label="imagesOnly ? 'Attach images' : 'Attach files'"
 							:disabled="locked"
 							@click="openFilePicker"
-						>
-							<span class="lucide-paperclip size-4" aria-hidden="true" />
-						</button>
+						/>
 					</Tooltip>
 					<!-- a host's pickers beside it, on the box's own row; `starting` until the first message.
 					     A started chat's row has room for no more buttons: the host's `plusItems` nest in
@@ -344,22 +348,18 @@
 							:text="layout.narrow ? `Approval mode: ${modeLabel}` : 'Approval mode'"
 							:disabled="modeMenu"
 						>
-							<button
+							<Button
 								ref="modeButton"
-								class="flex items-center whitespace-nowrap rounded-5 text-base text-ink-gray-7 hover:bg-surface-gray-2 dark:text-ink-gray-8"
-								:class="[modeMenu ? 'bg-surface-gray-2' : '', inline ? 'h-7' : 'h-8', layout.narrow ? (inline ? 'w-7 justify-center' : 'w-8 justify-center') : 'px-2']"
+								variant="ghost"
+								:size="inline ? 'sm' : 'md'"
+								:icon="layout.narrow ? (MODE_ICONS[currentMode] ?? 'lucide-lock') : undefined"
+								:data-state="modeMenu ? 'active' : undefined"
 								:aria-label="`Approval mode: ${modeLabel}`"
 								:aria-expanded="modeMenu"
 								@click="modeMenu ? closeModeMenu() : (modeMenu = true)"
 							>
-								<span
-									v-if="layout.narrow"
-									class="size-4"
-									:class="MODE_ICONS[currentMode] ?? 'lucide-lock'"
-									aria-hidden="true"
-								/>
-								<template v-else>{{ modeLabel }}</template>
-							</button>
+								<template v-if="!layout.narrow">{{ modeLabel }}</template>
+							</Button>
 						</Tooltip>
 						<!-- a row a mode, what it does under its name and the tick centred beside both; wide
 						     enough for a description to keep to one line by the tick -->
@@ -370,7 +370,7 @@
 									:key="m.id"
 									data-palette-item
 									:aria-current="currentMode === m.id ? 'true' : undefined"
-									class="flow-palette-row !py-1.5"
+									class="flow-palette-row"
 									@click="chooseMode(m.id)"
 								>
 									<span
@@ -432,6 +432,8 @@
 					</Tooltip>
 				</div>
 			</fieldset>
+			<!-- a host's line under the box -->
+			<slot name="below" :starting="starting" />
 			<ImageViewer v-if="viewer" :src="viewer.previewUrl" :alt="viewer.name" @close="viewer = null" />
 		</div>
 	</div>
@@ -442,6 +444,7 @@ import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } fr
 import { Tooltip } from "frappe-ui"
 import Dropdown from "frappe-ui/src/components/Dropdown/Dropdown.vue"
 import { dialogs as frappeDialogs } from "frappe-ui/src/utils/dialog"
+import { Button } from "frappe-ui/src/components/Button"
 
 import { isInert, isPageEvent } from "../inert.js"
 import { layout } from "../layout.js"
@@ -497,6 +500,7 @@ const attachments = ref([])
 const viewer = ref(null)
 const submitting = ref(false)
 const locked = ref(false) // the box still holds the message going out
+const fileDragging = inject("fileDragging", ref(false))
 const textScrollTop = ref(0)
 const caretPos = ref(0)
 const mentionDismissed = ref(false)
@@ -880,9 +884,7 @@ const staged = (keep) => attachments.value.map((item, i) => ({ item, i })).filte
 const imageTiles = computed(() => staged(isImageTile))
 const fileChips = computed(() => staged((item) => !isImageTile(item)))
 const chipClass = "flex h-8 max-w-[260px] items-center gap-2 rounded-6 border border-outline-gray-2 bg-surface-base pl-1 pr-1"
-const chipIconClass = "grid h-6 w-6 flex-none place-items-center rounded-5 bg-surface-gray-1 text-ink-gray-6"
-const chipRemoveClass =
-	"grid h-5 w-5 flex-none place-items-center rounded-5 text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-8"
+const chipIconClass = "grid h-6 w-6 flex-none place-items-center rounded-4 bg-surface-gray-1 text-ink-gray-6"
 // an existing session's cwd is frozen in its config; only new chats need one picked
 const needsCwd = computed(() => flow.options.requireCwd && !flow.state.sessionId && !flow.state.prefs.cwd)
 // a new chat, until its first message goes out; its folder, and the branch there where the host reads git
@@ -1243,7 +1245,7 @@ function dropQueued(item) {
 // the menu gives the keyboard back to its button, as the model button's does
 function closeModeMenu() {
 	modeMenu.value = false
-	nextTick(() => modeButton.value?.focus())
+	nextTick(() => modeButton.value?.$el?.focus())
 }
 
 function chooseMode(mode) {
@@ -1257,5 +1259,11 @@ function prefill(value) {
 	nextTick(() => box.value?.focus())
 }
 
-defineExpose({ prefill, startRow, text }) // the draft, for a host whose page answers it
+function addFiles(files) {
+	addLocalFiles(files)
+	nextTick(() => box.value?.focus())
+}
+
+// text: the draft, for a host whose page answers it
+defineExpose({ prefill, startRow, text, addFiles, canAttach: () => !locked.value && !props.disabled })
 </script>

@@ -12,7 +12,9 @@
 			:open="sidebarOpen"
 			:chat-in-view="!pageKind"
 			:before-switch="leavePage"
-			:menu="APP_MENU"
+			:apps="apps"
+			:logout="logout"
+			:user="page.state.boot.user"
 			@close="store.setSidebarOpen(false)"
 		/>
 		<div
@@ -23,6 +25,7 @@
 			<!-- hidden under a page, not taken away: the chat waits as it was, its box's draft and
 			     files too, and inert, so nothing in it answers keys meanwhile -->
 			<main
+				ref="chat"
 				v-show="!pageKind"
 				:inert="pageKind ? true : null"
 				class="relative flex min-w-0 flex-1 flex-col bg-surface-base"
@@ -34,18 +37,13 @@
 					:history="noSidebar"
 					:manage="!inPanel"
 					:beside-navbar="panelHost"
-					:transcript="!inPanel"
 					:app-menu="APP_MENU"
 					:before-switch="leavePage"
 					@open-sidebar="store.setSidebarOpen(true)"
 				>
 					<template v-if="inPanel" #end>
-						<button class="flow-icon-btn" title="Open in new tab" @click="openInTab">
-							<span class="lucide-external-link size-4" aria-hidden="true" />
-						</button>
-						<button class="flow-icon-btn" title="Close" @click="closePanel">
-							<span class="lucide-x size-4" aria-hidden="true" />
-						</button>
+						<Button variant="ghost" icon="lucide-external-link" title="Open in new tab" @click="openInTab" />
+						<Button variant="ghost" icon="lucide-x" title="Close" @click="closePanel" />
 					</template>
 				</ChatHeader>
 				<MessageList :suggestions="!readOnly">
@@ -105,6 +103,11 @@
 							</button>
 						</div>
 					</template>
+					<template #below="{ starting }">
+						<p v-if="starting" class="mt-2 px-3 text-center text-sm text-ink-gray-5">
+							Flow is in beta and can make mistakes. Check what it shows you before you approve.
+						</p>
+					</template>
 					<template #tools="{ insert, starting }">
 						<AgentPicker v-if="starting" />
 						<SkillPicker @pick="insert" />
@@ -132,8 +135,13 @@
 			</WorkspacePanel>
 		</div>
 		<Dialogs />
-		<!-- a narrow frame's toasts drop from the top, off the composer, as the harness's do -->
-		<ToastProvider :position="layout.narrow ? 'top-center' : 'bottom-right'" />
+		<!-- a narrow frame's toasts drop from the top, off the composer, as the harness's do, and
+		     below the header, off its buttons -->
+		<ToastProvider
+			:position="layout.narrow ? 'top-center' : 'bottom-right'"
+			:offset="toastOffset"
+			:mobile-offset="toastOffset"
+		/>
 		<FlowSettings />
 		<TranscriptDialog />
 		<ShareChat v-if="canShare" ref="share" />
@@ -143,8 +151,8 @@
 <script setup>
 import { computed, inject, onBeforeUnmount, onMounted, provide, ref, watch } from "vue";
 import { isNavigationFailure, useRoute, useRouter } from "vue-router";
-import { Dialogs, ToastProvider, toast, useColorScheme } from "frappe-ui";
-import { checked } from "@flow/ui-core/menu.js";
+import { Button, Dialogs, ToastProvider, toast, useColorScheme } from "frappe-ui";
+import { afterMenu, checked } from "@flow/ui-core/menu.js";
 import BrandMark from "@flow/ui-core/components/BrandMark.vue";
 import ChatHeader from "@flow/ui-core/components/ChatHeader.vue";
 import Composer from "@flow/ui-core/components/Composer.vue";
@@ -156,6 +164,7 @@ import { installShortcuts } from "@flow/ui-core/shortcuts.js";
 import { installFocusRings } from "@flow/ui-core/focusRings.js";
 import { installViewport } from "@flow/ui-core/viewport.js";
 import { provideComposerHeight } from "@flow/ui-core/composerHeight.js";
+import { provideFileDrop } from "@flow/ui-core/fileDrop.js";
 import { layout, measureLayoutBy } from "@flow/ui-core/layout.js";
 import { createFlowStore } from "@flow/ui-core/store.js";
 
@@ -191,7 +200,8 @@ const COMMANDS = [
 	"abort",
 	"settings",
 ];
-// the way back to the rest of the site, in the sidebar's app menu
+// the way back to the rest of the site, in the floating sidebar's menu; the sidebar's own menu
+// lists Desk under Apps
 const APP_MENU = [
 	{ label: "Go to Desk", icon: "lucide-external-link", onClick: () => (window.location.href = "/app") },
 ];
@@ -205,7 +215,7 @@ const plusItems = computed(() => {
 		onClick: ({ insert }) => insert(`/skill:${skill.name} `),
 	}));
 	const canAdd = page.can("Flow Skill", "create");
-	const add = { label: "Add a skill", icon: "lucide-plus", onClick: () => (page.createRecord("skills"), store.setSettingsOpen(true)) };
+	const add = { label: "Add a skill", icon: "lucide-plus", onClick: afterMenu(() => (page.createRecord("skills"), store.setSettingsOpen(true))) };
 	const items = [];
 	// a new chat's agent, for a box too narrow for its own button (a started chat keeps its agent)
 	if (!store.state.sessionId && page.state.boot.agents.length > 1)
@@ -331,6 +341,21 @@ watch(
 const noSidebar = computed(() => !layout.phone && (layout.narrow || inPanel));
 provide("noSidebar", noSidebar);
 const sidebarOpen = computed(() => !noSidebar.value && store.state.sidebarOpen);
+// the sidebar menu's way to Desk and the other apps, asked for once a sidebar shows
+const apps = ref([]);
+watch(
+	noSidebar,
+	async (none) => {
+		if (none || apps.value.length) return;
+		const installed = await transport.call("frappe.apps.get_apps").catch(() => []);
+		apps.value = [{ title: "Desk", route: "/desk", logo: "/assets/frappe/images/frappe-framework-logo.svg" }, ...installed];
+	},
+	{ immediate: true }
+);
+async function logout() {
+	await transport.call("logout");
+	window.location.assign("/login");
+}
 // the composer asks in the name of the agent that answers
 const placeholder = computed(() => {
 	const name = store.state.session?.agent ?? page.state.agent;
@@ -372,9 +397,14 @@ function openInTab() {
 	closePanel();
 }
 
+const toastOffset = computed(() => (layout.narrow ? { top: 56 } : undefined));
+
 // the composer floats over the list, which pads by its measured height
 const composer = ref(null);
+const chat = ref(null);
+const root = ref(null);
 provideComposerHeight(composer);
+provideFileDrop(chat, composer, root);
 // the new chat's mark, by the draft: at rest it watches the pointer, it reads while keys go,
 // and a draft that rests a moment has it look up, ready. A "/" opens commands, not a message
 const MOOD = {
@@ -428,7 +458,9 @@ watch(
 	() => route.params.session,
 	(id) => {
 		if (pageKind.value) return; // the chat waits behind a page as it was, its box and all
-		if (id && id !== store.state.sessionId) store.openSession(id);
+		// in the panel, a route the user didn't pick: the chat it last showed, or Back to one,
+		// either of which may since be gone
+		if (id && id !== store.state.sessionId) store.openSession(id, { quiet: inPanel });
 		else if (!id && store.state.sessionId) store.startNewChat();
 	}
 );
@@ -472,7 +504,6 @@ let uninstallShortcuts = null;
 let uninstallFocusRings = null;
 let uninstallViewport = null;
 let unmeasure = null;
-const root = ref(null);
 onMounted(async () => {
 	// an island lays out by its own box, which a panel narrows; the page's width says nothing
 	unmeasure = measureLayoutBy(root.value);
