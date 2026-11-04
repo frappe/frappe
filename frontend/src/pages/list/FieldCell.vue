@@ -8,6 +8,10 @@
 		:step="0.5"
 		disabled
 	/>
+	<div v-else-if="address" class="flex min-w-0 items-center gap-1">
+		<span class="truncate text-base text-ink-gray-8">{{ text }}</span>
+		<DataOpenLink :address="address" class="grid shrink-0" />
+	</div>
 	<div v-else class="truncate text-base text-ink-gray-8">
 		<ColorSwatch
 			v-if="field.fieldtype === 'Color'"
@@ -20,7 +24,7 @@
 </template>
 
 <script setup lang="ts">
-import { ColorSwatch } from "@framework/ui/fields";
+import { ColorSwatch, DataOpenLink, dataHref } from "@framework/ui/fields";
 import type { FieldMeta } from "@framework/ui/fields/types";
 import { useFieldDisplay } from "@framework/ui/FormLayout";
 import { Checkbox, Rating } from "frappe-ui";
@@ -45,6 +49,10 @@ const display = useFieldDisplay();
 
 const value = computed(() => props.row[props.field.fieldname]);
 const starCount = computed(() => Number(props.field.options) || 5);
+const address = computed(() => {
+	const href = dataHref(props.field, value.value);
+	return href?.kind === "web" ? href : null;
+});
 
 // A Dynamic Link's doctype is the sibling field its `options` names, which the list reads too.
 const target = computed(() => {
