@@ -95,6 +95,10 @@ export interface RawMetaField {
   link_mark?: { kind: "color" | "image"; field: string };
   /** The target's field a Link value shows instead of the name, when the target shows titles in links. */
   link_title?: string;
+  /** A Duration that folds days into hours. */
+  hide_days?: boolean | 0 | 1;
+  /** A Duration that rounds to the minute. */
+  hide_seconds?: boolean | 0 | 1;
   hidden?: boolean | 0 | 1;
   read_only?: boolean | 0 | 1;
   /** The field stays editable on a submitted record. */

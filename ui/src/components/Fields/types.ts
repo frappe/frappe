@@ -52,6 +52,10 @@ export interface FieldMeta {
   precision?: number;
   /** The height a tall control grows to before it scrolls; a CSS length, or pixels when bare. */
   maxHeight?: string;
+  /** A `Duration` that folds days into hours. */
+  hideDays?: boolean;
+  /** A `Duration` that rounds to the minute. */
+  hideSeconds?: boolean;
   /** Initial grid-column width in px for a child-table column; omit for flexible. */
   width?: number;
   description?: string;
