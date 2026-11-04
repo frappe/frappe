@@ -119,9 +119,9 @@ $spacers: (
 	64: 16rem,
 );
 
-@import "foundation/functions";
-@import "foundation/variables";
-@import "foundation/mixins";
+@import "../common/base/functions";
+@import "../common/base/variables";
+@import "../common/base/mixins";
 @import "css_variables";
 
 $code-color: $purple;

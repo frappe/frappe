@@ -93,7 +93,11 @@
 	pointer-events: auto;
 	background-color: $modal-content-bg;
 	background-clip: padding-box;
-	border: $modal-content-border-width solid $modal-content-border-color;
+	border: if(
+		$modal-content-border-width == 0,
+		0,
+		$modal-content-border-width solid $modal-content-border-color
+	);
 	@include border-radius($modal-content-border-radius);
 	@include box-shadow($modal-content-box-shadow-xs);
 	outline: 0;
@@ -121,7 +125,11 @@
 	align-items: flex-start;
 	justify-content: space-between;
 	padding: $modal-header-padding;
-	border-bottom: $modal-header-border-width solid $modal-header-border-color;
+	border-bottom: if(
+		$modal-header-border-width == 0,
+		0,
+		$modal-header-border-width solid $modal-header-border-color
+	);
 	@include border-top-radius($modal-content-inner-border-radius);
 
 	.close {
@@ -148,7 +156,11 @@
 	align-items: center;
 	justify-content: flex-end;
 	padding: $modal-inner-padding - $modal-footer-margin-between * 0.5;
-	border-top: $modal-footer-border-width solid $modal-footer-border-color;
+	border-top: if(
+		$modal-footer-border-width == 0,
+		0,
+		$modal-footer-border-width solid $modal-footer-border-color
+	);
 	@include border-bottom-radius($modal-content-inner-border-radius);
 
 	> * {
