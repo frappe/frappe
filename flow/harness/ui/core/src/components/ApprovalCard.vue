@@ -40,7 +40,7 @@
 
 		<!-- a host view that answers the card itself brings its own buttons -->
 		<div v-if="!asking && !presentation.ownAnswers" class="flex items-center justify-end gap-2 px-3.5 py-2.5">
-			<button class="flow-btn-ghost" @click="asking = true">Ask for changes</button>
+			<button ref="askButton" class="flow-btn-ghost" @click="asking = true">Ask for changes</button>
 			<button class="flow-btn-secondary" @click="answer('Deny')">Deny</button>
 			<button class="flow-btn-primary" @click="answer('Approve')">Approve</button>
 		</div>
@@ -99,6 +99,7 @@ function answer(text) {
 
 // a ref fires before its node is in the document, where focus() is a no-op; the tick
 // after, the field exists and the typing lands in it
+const askButton = ref(null)
 function focusAsk(el) {
 	if (el) nextTick(() => el.focus())
 }
@@ -160,9 +161,11 @@ function sendAsk() {
 	askText.value = ""
 }
 
+// the keyboard goes back to the button that opened the field
 function cancelAsk() {
 	asking.value = false
 	askText.value = ""
+	nextTick(() => askButton.value?.focus())
 }
 
 // an IME's Enter and Escape pick or drop a candidate (Safari marks its closing key by keyCode 229)

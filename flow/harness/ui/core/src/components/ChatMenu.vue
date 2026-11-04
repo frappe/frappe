@@ -1,6 +1,6 @@
 <template>
 	<!-- open and update:open, when given, pass through to the Dropdown -->
-	<Dropdown :align="align" :options="[...actions, ...own]">
+	<Dropdown :align="align" :options="options">
 		<template #trigger><slot /></template>
 	</Dropdown>
 </template>
@@ -27,10 +27,15 @@ const flow = inject("flow")
 const own = computed(() =>
 	props.sessionId
 		? [
-				{ label: "Rename", icon: "lucide-pen", onClick: props.onRename ? afterMenu(props.onRename) : promptRename },
+				{ label: "Rename", icon: "lucide-pen", onClick: props.onRename ?? promptRename },
 				{ label: "Delete", icon: "lucide-trash-2", theme: "red", onClick: confirmDelete },
 			]
 		: [],
+)
+
+// each item runs once the menu has handed the focus back, so a dialog or field it opens keeps it
+const options = computed(() =>
+	[...props.actions, ...own.value].map((item) => ({ ...item, onClick: afterMenu((...args) => item.onClick?.(...args)) })),
 )
 
 // each dialog keeps the chat it was opened for, even if another one opens meanwhile

@@ -2866,8 +2866,16 @@ test("a header with its sidebar hidden leads with its button alone, New chat flo
 	el.querySelector("button[title=Manage]").click()
 	await nextTick()
 
+	// the clock's list, put away, hands the keyboard back to the clock
+	const clock = () => el.querySelector("button[title='Recent chats']")
+	clock().click()
+	await nextTick()
+	clock().click()
+	await nextTick()
+	assert.equal(document.activeElement, clock())
+
 	// the clock's list narrows as a search is typed, and a pick opens that chat and puts the list away
-	el.querySelector("button[title='Recent chats']").click()
+	clock().click()
 	await nextTick()
 	const rows = () => [...el.querySelectorAll("[data-palette-item]")].map((row) => row.textContent.trim())
 	assert.deepEqual(rows(), ["Quarterly report", "Expense claims"])
@@ -3003,6 +3011,17 @@ test("the ask-for-changes field takes focus and leaves an IME's Enter and Escape
 	assert.ok(el.querySelector("textarea"))
 	keydown(field, { key: "Enter" })
 	assert.deepEqual(answers, [["c1", "use 日本"]])
+
+	// Escape puts the field away and hands the keyboard back to the button that opened it
+	const ask = () => [...el.querySelectorAll("button")].find((b) => b.textContent === "Ask for changes")
+	await nextTick()
+	ask().click()
+	await nextTick()
+	await nextTick()
+	keydown(el.querySelector("textarea"), { key: "Escape" })
+	await nextTick()
+	await nextTick()
+	assert.equal(document.activeElement, ask())
 })
 
 test("a spreadsheet range pastes as its text, a screenshot as a picture", async (t) => {

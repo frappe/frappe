@@ -2,6 +2,7 @@
 	<!-- its list hangs under it, over the composer -->
 	<span class="relative z-20">
 		<Button
+			ref="trigger"
 			variant="ghost"
 			icon="lucide-history"
 			:class="open ? 'bg-surface-gray-2' : ''"
@@ -86,14 +87,16 @@ function show() {
 	nextTick(() => field.value?.focus())
 }
 
-// a search left in the box gives way to the whole list
-function close() {
+// a search left in the box gives way to the whole list; the keyboard goes back to the clock
+const trigger = ref(null)
+function close(refocus = true) {
 	open.value = false
 	search.value = ""
+	if (refocus) nextTick(() => trigger.value?.$el?.focus())
 }
 
 function choose(id) {
-	close()
+	close(false)
 	if (id !== flow.state.sessionId) flow.openSession(id)
 }
 </script>
