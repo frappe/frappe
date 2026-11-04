@@ -12,7 +12,7 @@ from .doctype_view import PLAIN_VIEW, SITE_ROW
 
 # The candidates of "which view types survive" (#45854), held until that grilling rules; a dropped one is released.
 SURVIVOR_CANDIDATES = frozenset(
-	{"report", "calendar", "gantt", "tree", "image", "inbox", "map", "dashboard", "cards"}
+	{"report", "calendar", "gantt", "tree", "image", "inbox", "map", "dashboard"}
 )
 
 # Kanban's before it is a type; `/<doctype>/view/record` is the standard page of the record named "view".

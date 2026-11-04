@@ -342,9 +342,6 @@
       "loadSprite",
       "symbolGeometry"
     ],
-    "frontend/src/list/useListPage.ts": [
-      "DeleteOutcome"
-    ],
     "frontend/src/navigation/current.ts": [
       "CurrentNavigation",
       "NavigationContexts"
