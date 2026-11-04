@@ -56,7 +56,7 @@
 						v-if="sortable"
 						class="min-w-0"
 						:direction="directionFor(sort, column.fieldname)"
-						:align="column.align === 'right' ? 'end' : 'start'"
+						:align="isRight(column) ? 'end' : 'start'"
 						@click="sort = nextSort(sort, column.fieldname)"
 					>
 						{{ column.label }}
@@ -261,8 +261,13 @@ function cellText(row: ListRowData, column: ListColumn): string {
 	return value == null ? "" : String(value);
 }
 
+// The last shown column aligns right whatever its type, as in CRM; it follows every add, drop and move.
+function isRight(column: ListColumn) {
+	return column.align === "right" || column === columns.value.at(-1);
+}
+
 function alignClass(column: ListColumn) {
-	return column.align === "right" ? "justify-end" : "";
+	return isRight(column) ? "justify-end" : "";
 }
 </script>
 

@@ -65,6 +65,36 @@ describe("List rows", () => {
     expect(cells[3].className).toContain("justify-end");
   });
 
+  it("right-aligns the last column whatever its type, and follows a change of columns", async () => {
+    const alignedCells = (root: HTMLElement) =>
+      [...rowsOf(root)[0].querySelectorAll("[data-slot='list-cell']")]
+        .slice(1)
+        .map((cell) => cell.className.includes("justify-end"));
+    const headerCells = (root: HTMLElement) =>
+      [...root.querySelectorAll("[data-slot='list-header'] > .relative")].map(
+        (cell) => cell.className.includes("justify-end")
+      );
+    const left = columns.slice(0, 2);
+    const state = reactive({ columns: left });
+    const { root } = await mount(List, {
+      get columns() {
+        return state.columns;
+      },
+      rows,
+    });
+    expect(alignedCells(root)).toEqual([false, true]);
+    expect(headerCells(root)).toEqual([false, true]);
+
+    state.columns = [...left, columns[2]];
+    await flush();
+    expect(alignedCells(root)).toEqual([false, false, true]);
+    expect(headerCells(root)).toEqual([false, false, true]);
+
+    state.columns = [columns[2], ...left];
+    await flush();
+    expect(alignedCells(root)).toEqual([true, false, true]);
+  });
+
   it("renders the cell slot in place of the text", async () => {
     const { root } = await mount(
       List,
