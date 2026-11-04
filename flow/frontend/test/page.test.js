@@ -478,7 +478,7 @@ test("boot is refetched only for the records it lists, skills when a skill or an
 	dom.window.Storage.prototype.setItem = setItem;
 });
 
-test("without a model the normal page shows the setup state and no composer, and keeps to the screen a phone's keyboard leaves; the setup's steps are numbered and Add opens a blank record", async (t) => {
+test("without a model the normal page shows the setup state and no composer, and keeps to the screen a phone's keyboard leaves; an admin connects there and picks a model, their own server opening a blank provider, and anyone else asks an admin", async (t) => {
 	// the keyboard shrinks only the visible part of the page; a pinch zoom does too, by its scale
 	const viewport = Object.assign(new dom.window.EventTarget(), { height: 844, scale: 1 });
 	const { scrollTo } = dom.window;
@@ -508,24 +508,72 @@ test("without a model the normal page shows the setup state and no composer, and
 	assert.equal(resize(422, 2), "844px");
 
 	const { createPage } = await import("../src/page.js");
-	const page = createPage({ ...boot, models: [], permissions: { "Flow Model": ["create"] } });
-	let opened = 0;
-	const setup = document.createElement("div");
-	const app = createApp(SetupState).use(router);
-	app.provide("flow", { setSettingsOpen: () => opened++ });
-	app.provide("flowPage", page);
-	app.mount(setup);
-	t.after(() => app.unmount());
-	const step = (label) =>
-		[...setup.querySelectorAll("button")].find((b) => b.textContent === label);
-	step("Add a provider").click();
-	assert.equal(opened, 1);
-	assert.ok(page.takeNewRecord("providers"), "settings open on a blank provider, not the list");
-	page.onBoot({ ...page.state.boot, provider: "openai" });
+	const { toast } = await import("./helpers/components.js");
+	const saved = { ...transport.answers };
+	t.after(() => Object.assign(transport.answers, saved));
+	let refreshes = 0;
+	const mountSetup = (permissions, provider = null) => {
+		const page = createPage(
+			{ ...boot, models: [], permissions, providers: provider ? [provider] : [] },
+			{ refresh: () => refreshes++ }
+		);
+		const state = { opened: 0 };
+		const setup = document.createElement("div");
+		const app = createApp(SetupState).use(router);
+		app.provide("flow", { setSettingsOpen: () => state.opened++ });
+		app.provide("flowPage", page);
+		app.mount(setup);
+		t.after(() => app.unmount());
+		return { page, setup, state };
+	};
+
+	// one who may add providers and models connects in place; their own server is set up in
+	// settings, on a blank provider rather than the list
+	const admin = mountSetup({ "Flow Provider": ["create"], "Flow Model": ["create"] });
+	const connect = admin.setup.querySelector("[data-stub=ConnectSetup]");
+	assert.ok(connect);
+	connect.dispatchEvent(new Event("manual"));
+	assert.equal(admin.state.opened, 1);
+	assert.ok(admin.page.takeNewRecord("providers"), "settings open on a blank provider, not the list");
+	// connected, boot is refetched for its models and everyone is told
+	toast.shown.length = 0;
+	connect.dispatchEvent(Object.assign(new Event("connected"), { service: { name: "Claude" } }));
+	assert.equal(refreshes, 1);
+	assert.deepEqual(toast.shown, ["Claude is connected for everyone"]);
+
+	// connected, a model is picked from that provider; nothing is added on its own. Another
+	// provider can be connected instead, and its models are picked from then
+	const picking = mountSetup({ "Flow Provider": ["create"], "Flow Model": ["create"] }, "anthropic");
+	const pick = () => picking.setup.querySelector("[data-stub=PickModel]");
+	assert.equal(pick().getAttribute("provider"), "anthropic");
+	refreshes = 0;
+	pick().dispatchEvent(new Event("added"));
+	assert.equal(refreshes, 1, "boot is refetched for the model");
+	pick().dispatchEvent(new Event("switch"));
 	await nextTick();
-	assert.equal(step("Add a provider"), undefined, "a provider in place is a step done");
-	assert.ok(step("Provider added"));
-	assert.ok(step("Add a model"));
+	const other = picking.setup.querySelector("[data-stub=ConnectSetup]");
+	other.dispatchEvent(Object.assign(new Event("connected"), { service: { id: "openai", name: "ChatGPT" } }));
+	await nextTick();
+	assert.equal(pick().getAttribute("provider"), "openai");
+	// switching again, both are ticked, and one picked again needs no key
+	pick().dispatchEvent(new Event("switch"));
+	await nextTick();
+	const again = picking.setup.querySelector("[data-stub=ConnectSetup]");
+	assert.equal(again.getAttribute("connected"), "anthropic,openai");
+	again.dispatchEvent(Object.assign(new Event("use"), { id: "anthropic" }));
+	await nextTick();
+	assert.equal(pick().getAttribute("provider"), "anthropic");
+
+	// anyone else asks an admin, and is told who heard
+	transport.answers["frappe.flow.api.setup.ask_admin"] = { admins: ["Ann", "Bob"] };
+	const user = mountSetup({});
+	assert.equal(user.setup.querySelector("[data-stub=ConnectSetup]"), null);
+	const ask = () => user.setup.querySelector("button");
+	assert.equal(ask().textContent, "Ask an admin to connect Flow");
+	ask().click();
+	await until(() => ask().textContent === "Asked");
+	assert.ok(ask().disabled, "asked once");
+	assert.ok(user.setup.textContent.includes("Ann and Bob have a note."));
 });
 
 test("an explicit conversation URL opens even outside the recent session list, syncing a run that ended as it opened", async (t) => {
