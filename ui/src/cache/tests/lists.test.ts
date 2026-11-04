@@ -3,6 +3,7 @@ import { ApiError } from "../../api/envelope";
 import {
   clearDataCache,
   feedDelete,
+  feedDocumentWrite,
   feedListError,
   feedReadError,
   readCachedDocument,
@@ -85,6 +86,63 @@ describe("a list read", () => {
     readList(query, rows("B", "A"));
     readRecord(doc("A", NEW, { title: "read" }));
     expect(readCachedRows(DOCTYPE, query)!.map((row) => row.title)).toEqual(["B", "read"]);
+  });
+});
+
+describe("a list with join aliases", () => {
+  const joined = {
+    fields: ["name", "customer", "customer.image as customer__mark", "customer.title as customer__title"],
+  };
+  const row = (modified: string, fields: Record<string, unknown> = {}) =>
+    doc("A", modified, { customer: "C1", customer__mark: "c1.png", customer__title: "Acme", ...fields });
+
+  it("feeds and paints on a revisit", () => {
+    readList(joined, [row(OLD)]);
+    expect(readCachedList(DOCTYPE, joined)!.names).toEqual(["A"]);
+    expect(readCachedRows(DOCTYPE, joined)).toEqual([row(OLD)]);
+  });
+
+  it("keeps the aliases through a full record read", () => {
+    readList(joined, [row(OLD)]);
+    readRecord(doc("A", NEW, { customer: "C1" }));
+    expect(readCachedRows(DOCTYPE, joined)![0]).toMatchObject({
+      customer__mark: "c1.png",
+      customer__title: "Acme",
+    });
+  });
+
+  it("keeps the aliases through a save", () => {
+    readList(joined, [row(OLD)]);
+    feedDocumentWrite(takeTicket(), DOCTYPE, doc("A", NEW, { customer: "C1" }));
+    expect(readCachedRows(DOCTYPE, joined)![0].customer__title).toBe("Acme");
+  });
+
+  it("drops an alias once its link names another record", () => {
+    readList(joined, [row(OLD)]);
+    readRecord(doc("A", NEW, { customer: "C2" }));
+    const [held] = readCachedRows(DOCTYPE, joined)!;
+    expect(held).not.toHaveProperty("customer__title");
+    expect(held).not.toHaveProperty("customer__mark");
+  });
+
+  it("drops an alias whose link the list never read once the record changes", () => {
+    const query = { fields: ["name", "fee", "company.default_currency as fee__currency"] };
+    readList(query, [doc("A", OLD, { fee: 5, fee__currency: "USD" })]);
+    readList({ fields: ["name", "fee"] }, [doc("A", NEW, { fee: 5 })]);
+    expect(readCachedRows(DOCTYPE, query)![0]).not.toHaveProperty("fee__currency");
+  });
+
+  it("keeps an alias whose link the list never read while modified is the same", () => {
+    const query = { fields: ["name", "fee", "company.default_currency as fee__currency"] };
+    readList(query, [doc("A", OLD, { fee: 5, fee__currency: "USD" })]);
+    readList({ fields: ["name", "fee"] }, [doc("A", OLD, { fee: 5 })]);
+    expect(readCachedRows(DOCTYPE, query)![0].fee__currency).toBe("USD");
+  });
+
+  it("takes the new alias values of a newer row", () => {
+    readList(joined, [row(OLD)]);
+    readList(joined, [row(NEW, { customer__title: "Acme Inc" })]);
+    expect(readCachedRows(DOCTYPE, joined)![0].customer__title).toBe("Acme Inc");
   });
 });
 

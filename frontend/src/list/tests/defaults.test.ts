@@ -1,6 +1,7 @@
 // The seeds: a contributed `list.js` above meta's `in_list_view`, and meta's sort above `modified desc`.
 import { describe, expect, it } from "vitest";
 import type { RawMetaField } from "@framework/ui/FormLayout";
+import { clearDataCache, feedListRead, readCachedList, takeTicket } from "@framework/ui/cache";
 
 import { DEFAULT_SORT, cellCurrency, contributedRowActions, defaultColumns, defaultSort, fetchFields, cellMark, cellTitle } from "../defaults";
 
@@ -128,6 +129,25 @@ describe("cell currencies", () => {
 			"currency",
 			"company.default_currency as fee__currency",
 		]);
+	});
+});
+
+describe("fetchFields and the shared cache", () => {
+	it("gives a query the cache keeps, whatever shape a column adds", () => {
+		const meta = {
+			fields: [
+				{ fieldname: "customer", fieldtype: "Link", options: "Customer", link_title: "customer_name", link_mark: { kind: "image" as const, field: "image" } },
+				{ fieldname: "company", fieldtype: "Link", options: "Company" },
+				{ fieldname: "fee", fieldtype: "Currency", options: "Company:company:default_currency" },
+			],
+			image_field: "photo",
+		};
+		const columns = ["customer", "company", "fee"].map((fieldname) => ({ fieldname, label: fieldname }));
+		const fields = fetchFields(columns, [], meta);
+		expect(fields.length).toBeGreaterThan(columns.length + 3);
+		clearDataCache();
+		feedListRead(takeTicket(), "Order", { fields }, { data: [{ name: "A", modified: "2026-11-01" }], has_next_page: false });
+		expect(readCachedList("Order", { fields })).toBeDefined();
 	});
 });
 

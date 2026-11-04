@@ -1,5 +1,6 @@
 // The list entry's key, and which list reads the cache takes.
 import type { ListQuery } from "../api";
+import { JOIN_FIELD } from "./joins";
 
 const KEY_PARTS = ["filters", "or_filters", "order_by", "group_by", "fields"] as const;
 const PLAIN_FIELD = /^[A-Za-z0-9_]+$/;
@@ -13,10 +14,10 @@ export function listCacheKey(doctype: string, query: ListQuery): string {
   return `${doctype}\u0000${JSON.stringify(sortKeys(parts))}`;
 }
 
-/** A grouped read or a computed field gives rows that are not documents. */
+/** A grouped read or a computed field gives rows that are not documents; a join alias is still a document's value. */
 export function isFeedableQuery(query: ListQuery): boolean {
   if (query.group_by) return false;
-  return (query.fields ?? []).every((field) => field === "*" || PLAIN_FIELD.test(field));
+  return (query.fields ?? []).every((field) => field === "*" || PLAIN_FIELD.test(field) || JOIN_FIELD.test(field));
 }
 
 /** The wrapper adds `modified` to every read, and asks for `name` when a read names no fields. */

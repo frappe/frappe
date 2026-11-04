@@ -1,5 +1,6 @@
 // The frozen entries the cache holds, and how a reply's values become part of one.
 import type { DocumentRecord, ListEnvelope } from "../api";
+import { NO_JOINS, type Joins } from "./joins";
 
 /** The parts beside the document; an entry holding all of them is complete. */
 export const RECORD_PARTS = [
@@ -24,6 +25,8 @@ export interface DocumentEntry {
   readonly complete: boolean;
   /** The side parts of the record read (permissions, attachments, assignments, ... link_titles), never `seen`. */
   readonly parts: Readonly<Record<string, unknown>>;
+  /** The join values the doc holds from a list read, each with its link; a full record read keeps them. */
+  readonly joins: Joins;
 }
 
 export interface ListEntry {
@@ -56,10 +59,11 @@ export function documentEntry(
   doctype: string,
   doc: Readonly<DocumentRecord>,
   complete: boolean,
-  parts: Record<string, unknown> = {}
+  parts: Record<string, unknown> = {},
+  joins: Joins = NO_JOINS
 ): DocumentEntry {
   const name = String(doc.name);
-  return Object.freeze({ doctype, name, doc, complete, parts: Object.freeze(parts) });
+  return Object.freeze({ doctype, name, doc, complete, parts: Object.freeze(parts), joins });
 }
 
 export function holdsEveryPart(parts: Readonly<Record<string, unknown>>): boolean {
