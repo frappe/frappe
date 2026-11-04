@@ -2533,7 +2533,6 @@ class TestFileOptimization(IntegrationTestCase):
 
 class TestGuestFileAndAttachments(IntegrationTestCase):
 	def setUp(self) -> None:
-		frappe.db.delete("File", {"is_folder": 0})
 		frappe.get_doc(
 			doctype="DocType",
 			name="Test For Attachment",

@@ -13,9 +13,7 @@ from frappe.utils.data import add_to_date, now_datetime
 class TestScheduledJobType(IntegrationTestCase):
 	def setUp(self):
 		frappe.db.rollback()
-		frappe.db.truncate("Scheduled Job Type")
 		sync_jobs()
-		frappe.db.commit()
 
 	def test_throws_on_duplicate_job(self):
 		job_config = dict(
