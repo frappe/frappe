@@ -1,7 +1,8 @@
 <!-- The conversation log: every step's JSON beside its role, with the
      provider's usage under the request that reported it. -->
 <template>
-	<Teleport to="body">
+	<!-- into the host's root where it has one, as frappe-ui's dialogs go: an island's styles live there -->
+	<Teleport :to="portalTarget ?? 'body'">
 		<div
 			v-if="flow.state.transcriptOpen"
 			class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-2 sm:p-6"
@@ -67,8 +68,11 @@
 
 <script setup>
 import { computed, inject, nextTick, onBeforeUnmount, ref, watch } from "vue"
+import { usePortalTarget } from "frappe-ui/src/composables/usePortalTarget"
 
 import { buildTranscriptRows, formatTokens } from "../transcript.js"
+
+const portalTarget = usePortalTarget()
 
 const ROLES = {
 	system: "system",
