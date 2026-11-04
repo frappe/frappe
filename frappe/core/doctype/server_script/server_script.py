@@ -8,6 +8,7 @@ from functools import partial
 from itertools import chain
 from pathlib import Path
 from typing import TYPE_CHECKING
+from urllib.parse import quote
 
 from RestrictedPython.transformer import INSPECT_ATTRIBUTES
 
@@ -147,8 +148,18 @@ class ServerScript(Document):
 			return
 		path = self.get_file_path()
 		self.set_onload("file_path", path)
+		self.set_onload("editor_url", self.get_editor_url())
 		if "Script Manager" in frappe.get_roles() and os.path.exists(path):
 			self.script = Path(path).read_text()
+
+	def get_editor_url(self) -> str | None:
+		"""Pilot's code editor for this site's scripts, opened at this script's file."""
+		pilot_url = frappe.conf.get("cloud_server_url") or frappe.conf.get("pilot_endpoint")
+		if not pilot_url:
+			return None
+		site = quote(frappe.local.site, safe="")
+		file_name = quote(f"{self.name}.py", safe="")
+		return f"{pilot_url.rstrip('/')}/editor/site/{site}?open={file_name}"
 
 	def on_update(self):
 		self.sync_scheduled_job_type()

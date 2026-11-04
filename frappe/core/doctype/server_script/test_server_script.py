@@ -682,6 +682,35 @@ frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 		script.save()
 		self.assertEqual(frappe.db.get_value("Server Script", script.name, "script"), "")
 
+	def test_file_sourced_script_onload_links_to_pilot_editor(self):
+		from unittest.mock import patch
+
+		script = frappe.get_doc(
+			doctype="Server Script",
+			name="test file editor link",
+			script_type="API",
+			api_method="test_file_editor_link",
+			script_source="File",
+		).insert()
+		self.addCleanup(script.delete)
+		pilot_urls = {
+			"cloud_server_url": "https://pilot.example.com/",
+			"pilot_endpoint": "http://127.0.0.1:7000",
+		}
+
+		with patch.dict(frappe.conf, pilot_urls):
+			script.run_method("onload")
+			self.assertEqual(
+				script.get_onload("editor_url"),
+				f"https://pilot.example.com/editor/site/{frappe.local.site}?open=test%20file%20editor%20link.py",
+			)
+
+		with patch.dict(frappe.conf, pilot_urls):
+			del frappe.conf["cloud_server_url"]
+			del frappe.conf["pilot_endpoint"]
+			script.run_method("onload")
+			self.assertIsNone(script.get_onload("editor_url"))
+
 	def test_script_is_required_only_for_database_scripts(self):
 		import os
 

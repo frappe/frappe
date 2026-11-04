@@ -34,6 +34,13 @@ frappe.ui.form.on("Server Script", {
 			frm.saved_script_name = frm.doc.name;
 		}
 		frm.trigger("toggle_file_source");
+
+		const editor_url = frm.doc.script_source === "File" && frm.doc.__onload?.editor_url;
+		if (editor_url) {
+			frm.add_custom_button(__("Open in Editor"), () =>
+				window.open(editor_url, "_blank", "noopener,noreferrer")
+			);
+		}
 	},
 
 	script_source(frm) {
