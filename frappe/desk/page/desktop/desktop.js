@@ -192,10 +192,8 @@ class DesktopPage {
 		this.setup();
 	}
 	render_app_icons() {
-		// the apps screen is powered entirely by the `add_to_apps_screen` hook,
-		// surfaced as `frappe.boot.app_data`; show one icon per opted-in app.
-		// Order by the hook's `sequence_id` (lower first); Framework declares 1000 so it
-		// always trails. Ties keep installed-apps order since sort() is stable.
+		// One icon per app that opts in through the `add_to_apps_screen` hook, plus each Studio
+		// App with a published page, in `get_apps_screen_apps` order.
 		// The destination is the landing ladder (see app_landing_route).
 		//
 		// An app that resolves to none of the three keeps its icon. It used to be filtered out,
@@ -203,13 +201,10 @@ class DesktopPage {
 		// is exactly the record an app ships, a dock-less app would have had no rail and no icon,
 		// so no way in at all. The icon leads to the desk's root, which is somewhere rather than
 		// nowhere.
-		const apps = (frappe.boot.app_data || [])
-			.filter((app) => app.on_apps_screen)
-			.map((app) => ({
-				...app,
-				route: frappe.app.sidebar?.app_landing_route(app) || "/desk",
-			}))
-			.sort((a, b) => (a.sequence_id ?? 100) - (b.sequence_id ?? 100));
+		const apps = frappe.utils.get_apps_screen_apps().map((app) => ({
+			...app,
+			route: frappe.app.sidebar?.app_landing_route(app) || "/desk",
+		}));
 
 		const $container = $(`<div class="icons-container"></div>`).appendTo(this.wrapper);
 		const columns = frappe.is_mobile() ? 3 : null;

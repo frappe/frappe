@@ -232,6 +232,7 @@ def load_desktop_data(bootinfo, desk_views: DeskViews | None = None):
 	"""
 	from frappe.desk.doctype.dock.dock import resolve_dock
 	from frappe.desk.doctype.sidebar.sidebar import build_canonical_shells
+	from frappe.studio.doctype.studio_app.studio_app import get_desktop_apps
 
 	desk_views = desk_views or DeskViews()
 
@@ -277,6 +278,7 @@ def load_desktop_data(bootinfo, desk_views: DeskViews | None = None):
 		bootinfo.desktop_icons = get_desktop_icons(bootinfo=bootinfo)
 
 	bootinfo.app_data = get_app_data()
+	bootinfo.studio_apps = get_desktop_apps()
 
 
 def get_app_data() -> list[dict]:

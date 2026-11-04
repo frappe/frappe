@@ -1417,6 +1417,23 @@ Object.assign(frappe.utils, {
 		return { icon, title };
 	},
 
+	// The apps the desktop screen and the app switcher list: installed apps by `sequence_id`,
+	// then Studio Apps by title, then Framework.
+	get_apps_screen_apps() {
+		const apps = (frappe.boot.app_data || [])
+			.filter((app) => app.on_apps_screen)
+			.sort((a, b) => (a.sequence_id ?? 100) - (b.sequence_id ?? 100));
+		const studio_apps = (frappe.boot.studio_apps || []).map((app) => ({
+			app_name: app.name,
+			app_title: app.app_title,
+			app_route: `/${app.route}`,
+			app_logo_url: app.favicon,
+		}));
+		const framework = apps.findIndex((app) => app.app_name === "frappe");
+		apps.splice(framework === -1 ? apps.length : framework, 0, ...studio_apps);
+		return apps;
+	},
+
 	// The boot entry for a module's own shell, or undefined.
 	//
 	// `frappe.boot.module_sidebars` is keyed by shell: a `Sidebar` document's name, or the module's
