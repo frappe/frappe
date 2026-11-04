@@ -649,11 +649,6 @@ body.full-width {
 	}
 }
 
-.popover-header {
-	background: var(--bg-color);
-	color: var(--ink-gray-9);
-}
-
 .web-form-request-list.embedded-list {
 	.embedded-list-table-wrap {
 		margin-bottom: 0;
@@ -663,4 +658,8 @@ body.full-width {
 	.embedded-list-table td:nth-child(3) {
 		width: 100%;
 	}
+}
+
+.es-popover.router-script-help-popover {
+	width: auto;
 }

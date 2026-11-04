@@ -1,5 +1,4 @@
 import "./libs.bundle.js";
-import "./frappe/ui/jquery_plugins/index.js";
 import "./frappe/ui/jquery_plugins/carousel.js";
 import "./frappe/class.js";
 import "./frappe/polyfill.js";

@@ -60,8 +60,7 @@ p {
 	margin-bottom: $paragraph-margin-bottom;
 }
 
-abbr[title],
-abbr[data-original-title] {
+abbr[title] {
 	text-decoration: underline;
 	text-decoration: underline dotted;
 	cursor: help;

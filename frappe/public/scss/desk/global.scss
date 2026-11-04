@@ -707,10 +707,6 @@ details > summary:focus {
 	pointer-events: none;
 }
 
-.popover-title {
-	display: none;
-}
-
 .highlight:not(.frappe-control) {
 	transition: 0.5s ease background-color;
 	box-shadow: var(--highlight-shadow) !important;
