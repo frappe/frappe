@@ -11,10 +11,9 @@ body {
 	cursor: auto;
 }
 
-/* the thread and the composer: 800px at most, and narrower where the model menu's list (272px
-   beside it) would otherwise run off the right edge; never under 560px for that */
+/* the thread and the composer, one width whether the sidebar shows or not */
 .flow-column {
-	max-width: min(800px, max(560px, 100% - 436px));
+	max-width: 800px;
 }
 
 /* the composer, and the lists that open over it */
