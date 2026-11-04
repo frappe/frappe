@@ -13,7 +13,7 @@
 		<template #trigger><slot /></template>
 		<!-- the sidebar's essentials and recent chats, floating: a chat changes without the page's
 		     layout changing. A click on the button still opens the sidebar for good -->
-		<div class="flex w-60 flex-col gap-2 p-1.5">
+		<div class="flow-peek flex w-60 flex-col gap-2 p-1.5">
 			<div class="flex items-center gap-2 px-2 py-1.5">
 				<BrandMark line :size="16" class="!text-ink-gray-6" />
 				<span class="text-base-medium text-ink-gray-6">Flow</span>
