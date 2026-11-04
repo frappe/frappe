@@ -286,7 +286,8 @@ shows), `shell.open_settings` with `{ prefix, pane, block }`, `shell.my_settings
 `shell.theme` with `'light'`, `'dark'` or `'system'`, `shell.desk_v1`, and `shell.log_out`,
 which asks first. `shell.create` takes a doctype, or `{ doctype, values }`. `shell.open` takes
 `{ doctype, name, view }` and opens that record, the doctype's list, or (with `view` and no name)
-one of its saved views; the palette does not list it. `page.create()`, `page.open()` and
+one of its saved views; the palette does not list it. A Single has no list, so it opens the
+document, and `view` is ignored with a name. `page.create()`, `page.open()` and
 `page.openSettings()` run `shell.create`, `shell.open` and `shell.open_settings`.
 
 ```js
@@ -295,7 +296,8 @@ page.header.add({ name: 'dark', label: 'Dark theme', run: (page) => page.run('sh
 
 Open a record with `page.open(doctype, name?, { view }?)`, or `shell.open(...)` in an act, and
 never push a route yourself: `open` goes through the router, so a doctype that opens in the
-record dialog opens there. It resolves when the navigation settles, and rejects when the doctype
+record dialog opens there (a Single or a submittable opens its page). It resolves when the
+navigation settles, whether a page, the dialog or nothing opened, and rejects when the doctype
 has no address. `shell.href(doctype, name?)` gives the address for a plain `<a>`, or `null`.
 
 ```js

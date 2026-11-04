@@ -38,7 +38,7 @@ export interface Shell {
 	/** Opens a record, a doctype's list or a saved view: `shell.open('ToDo')`, `shell.open('ToDo', name)`, `shell.open('ToDo', null, { view })`. */
 	open: (doctype: string, name?: string | null, options?: { view?: string }) => Promise<void>;
 	/** The address of a record or list, for a plain `<a>`; `null` when the doctype has none. */
-	href: (doctype: string, name?: string) => string | null;
+	href: (doctype: string, name?: string | null) => string | null;
 	openSettings: OpenSettings;
 	dialog: ShellDialog;
 	/** The saved record open on the page, else `null`: a list, a new record or no page. */
@@ -262,7 +262,6 @@ function createItem(): ActItem<Shell> {
 	};
 }
 
-// Through `routeFor` and the router, so a record of a doctype that opens in a dialog does.
 function openItem(): ActItem<Shell> {
 	return {
 		name: "open",

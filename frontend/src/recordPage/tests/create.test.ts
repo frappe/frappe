@@ -129,6 +129,15 @@ describe("page.open", () => {
     expect(open).toHaveBeenNthCalledWith(2, { doctype: "Contact", name: null, view: "mine" });
   });
 
+  it("rejects with what the act threw", async () => {
+    shellOpen(async () => {
+      throw new Error("routeFor: no address for doctype 'Nope'");
+    });
+    const { page } = createRecordPage(makeHost());
+
+    await expect(page.open("Nope")).rejects.toThrow("no address for doctype 'Nope'");
+  });
+
   it("opens nothing once the page has left", async () => {
     const open = vi.fn(async () => {});
     shellOpen(open);

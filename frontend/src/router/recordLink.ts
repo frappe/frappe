@@ -4,7 +4,7 @@ import type { RecordLink } from "@framework/ui/fields/types";
 import { routeFor } from "./routeFor";
 
 /** The address of a record, or of a doctype's list without a name; `null` when the doctype has none. */
-export function hrefFor(router: Router, doctype: string, name?: string): string | null {
+export function hrefFor(router: Router, doctype: string, name?: string | null): string | null {
 	try {
 		return router.resolve(routeFor(doctype, name)).href;
 	} catch {

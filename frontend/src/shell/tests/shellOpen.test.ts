@@ -9,7 +9,7 @@ import type { Boot } from "@/boot";
 import { registerContributions, registerStandardPages } from "@/contributions/registry";
 import { standardPages } from "@/pages/standardPages";
 import { createShellRouter } from "@/router";
-import { registerShell } from "@/router/routeFor";
+import { registerShell, urlFor } from "@/router/routeFor";
 import { recordDialogRequests, registerRecordDialog } from "../recordDialog";
 import { useShellActs, type Shell } from "../shellActs";
 
@@ -33,9 +33,9 @@ vi.mock("@/pages/Record.vue", () => ({ default: { render: () => null } }));
 vi.mock("@/shell/NotFound.vue", () => ({ default: { render: () => null } }));
 
 const addresses = new Addresses({
-	doctypes: { ToDo: ["todo", "desk"], Note: ["note", "desk"] },
+	doctypes: { ToDo: ["todo", "desk"], Note: ["note", "desk"], "Note Settings": ["note-settings", "desk"] },
 	modules: { desk: "Desk" },
-	singles: [],
+	singles: ["Note Settings"],
 	submittables: [],
 });
 const boot = {
@@ -91,6 +91,14 @@ describe("shell.open", () => {
 		]);
 	});
 
+	it("opens a single's document, with or without a name, and a name wins over a view", async () => {
+		await shell.open("Note Settings");
+		expect(router.currentRoute.value.params).toMatchObject({ doctype: "note-settings", name: "Note Settings" });
+
+		await shell.open("Note", "NOTE-1", { view: "mine" });
+		expect(router.currentRoute.value.fullPath).toBe("/note/NOTE-1");
+	});
+
 	it("rejects a value with no doctype, and a doctype with no address", async () => {
 		await expect(acts.run("shell.open", {})).rejects.toThrow("Open needs a doctype");
 		await expect(shell.open("Nope")).rejects.toThrow("no address for doctype 'Nope'");
@@ -106,8 +114,9 @@ describe("shell.open", () => {
 
 describe("shell.href", () => {
 	it("is the address of a record or a list, and null when the doctype has none", () => {
-		expect(shell.href("Note", "NOTE-1")).toBe("/apps/frappe/note/NOTE-1");
-		expect(shell.href("Note")).toBe("/apps/frappe/note");
+		expect(shell.href("Note", "NOTE-1")).toBe(urlFor("Note", "NOTE-1"));
+		expect(shell.href("Note")).toBe(urlFor("Note"));
+		expect(shell.href("Note", "NOTE-1")).not.toBe(shell.href("Note"));
 		expect(shell.href("Nope", "X")).toBeNull();
 	});
 });
