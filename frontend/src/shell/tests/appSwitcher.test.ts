@@ -132,6 +132,23 @@ describe("the keys", () => {
 		expect(fake.loadDocument).not.toHaveBeenCalled();
 	});
 
+	it("is a modal dialog that takes focus, follows the selection, and gives focus back", async () => {
+		const input = document.querySelector("input")!;
+		input.focus();
+		await tick({}, input);
+		const list = await vi.waitFor(() => document.querySelector<HTMLElement>("[role=listbox]")!);
+		expect(list.closest("[role=dialog]")?.getAttribute("aria-modal")).toBe("true");
+		await vi.waitFor(() => expect(document.activeElement).toBe(list));
+		const active = () => document.getElementById(list.getAttribute("aria-activedescendant")!);
+		expect(active()?.dataset.app).toBe("hrms");
+		press({ key: "ArrowRight", altKey: true });
+		await nextTick();
+		expect(active()?.dataset.app).toBe("books");
+		press({ key: "Escape", altKey: true });
+		await nextTick();
+		expect(document.activeElement).toBe(input);
+	});
+
 	it("opens from a focused text input, which it types nothing into", async () => {
 		const input = document.querySelector("input")!;
 		input.focus();

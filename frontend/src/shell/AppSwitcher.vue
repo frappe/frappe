@@ -2,17 +2,26 @@
 <template>
 	<div
 		class="fixed inset-0 z-[60] flex items-center justify-center p-4"
+		role="dialog"
+		aria-modal="true"
+		:aria-label="__('Switch app')"
 		@pointerdown.self="appSwitcher.cancel()"
 	>
+		<!-- The keys stay on the document; focus sits here so a screen reader follows the selection. -->
 		<div
+			ref="list"
 			role="listbox"
+			tabindex="-1"
 			:aria-label="__('Switch app')"
-			class="flex max-w-full flex-wrap justify-center gap-1 rounded-6 bg-surface-modal p-2 shadow-2xl ring-1 ring-outline-gray-2"
+			:aria-activedescendant="`app-switcher-${appSwitcher.selected.value}`"
+			class="flex max-w-full outline-none flex-wrap justify-center gap-1 rounded-6 bg-surface-modal p-2 shadow-2xl ring-1 ring-outline-gray-2"
 		>
 			<button
 				v-for="(app, index) in appSwitcher.apps.value"
+				:id="`app-switcher-${index}`"
 				:key="app.app"
 				type="button"
+				tabindex="-1"
 				role="option"
 				:aria-selected="index === appSwitcher.selected.value"
 				:data-app="app.app"
@@ -47,6 +56,13 @@
 </template>
 
 <script setup lang="ts">
+import { onBeforeUnmount, onMounted, useTemplateRef } from "vue";
 import AppLogo from "./AppLogo.vue";
 import { appSwitcher } from "./appSwitcher";
+
+const list = useTemplateRef<HTMLElement>("list");
+const before = document.activeElement as HTMLElement | null;
+
+onMounted(() => list.value?.focus({ preventScroll: true }));
+onBeforeUnmount(() => before?.focus({ preventScroll: true }));
 </script>
