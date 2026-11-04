@@ -4,9 +4,8 @@
 {% if parent %}
 
 {%- set dropdown_id = 'id-' + frappe.utils.generate_hash(length=12) -%}
-<li class="nav-item dropdown {% if submenu %} dropdown-submenu {% endif %}">
-	<a class="nav-link dropdown-toggle" href="#" id="{{ dropdown_id }}" role="button"
-		data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+<li class="nav-item dropdown">
+	<a class="nav-link dropdown-toggle" href="#" id="{{ dropdown_id }}" role="button" aria-haspopup="true" aria-expanded="false">
 		{{ _(item.label) }}
 	</a>
   	<ul class="dropdown-menu" aria-labelledby="{{ dropdown_id }}">
@@ -17,9 +16,8 @@
 </li>
 {% else %}
 {%- set dropdown_id = 'id-' + frappe.utils.generate_hash(length=12) -%}
-<li class="dropdown {% if submenu %} dropdown-submenu {% endif %}">
-	<a class="dropdown-item dropdown-toggle" href="#" id="{{ dropdown_id }}" role="button"
-		data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+<li class="dropdown">
+	<a class="dropdown-item dropdown-toggle" href="#" id="{{ dropdown_id }}" role="button" aria-haspopup="true" aria-expanded="false">
 		{{ _(item.label) }}
 	</a>
 	<ul class="dropdown-menu" aria-labelledby="{{ dropdown_id }}">

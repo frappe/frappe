@@ -499,6 +499,12 @@
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
+	cursor: pointer;
+	list-style: none;
+
+	&::-webkit-details-marker {
+		display: none;
+	}
 }
 
 .collapsible-item-title {
@@ -527,7 +533,7 @@
 	}
 }
 
-.collapsible-icon.is-opened .vertical {
+.collapsible-item[open] .collapsible-icon .vertical {
 	opacity: 0;
 }
 

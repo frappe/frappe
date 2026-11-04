@@ -422,7 +422,7 @@ export class MenuTree {
 		this.onblur = () => this.show_mnemonics(false);
 		window.addEventListener("blur", this.onblur);
 
-		frappe.router.once("change", () => this.close("navigate"));
+		frappe.router?.once("change", () => this.close("navigate"));
 
 		// keyboard opens land on a row right away (ArrowDown = first,
 		// ArrowUp = last); mouse opens just focus the panel so keys work
