@@ -30,6 +30,7 @@ class TestBlobCache(IntegrationTestCase):
 	def setUp(self):
 		super().setUp()
 		frappe.set_user("Administrator")
+		self.enterContext(patch.dict(frappe.conf, {"storage_local_cache": 1}))
 		self.blobs = []
 
 	def tearDown(self):
@@ -106,6 +107,17 @@ class TestBlobCache(IntegrationTestCase):
 			leftovers = [f for f in os.listdir(os.path.dirname(get_cache_path(blob))) if blob.name in f]
 			self.assertEqual(leftovers, [])
 			self.assertIsNone(get_cached_path(blob))
+
+	def test_nothing_is_cached_unless_the_site_flag_is_on(self):
+		with storage_v2(), use_driver(RemoteDriver()):
+			blob = self.put_blob(filename="a.bin")
+			cache_blob(blob.name)
+			self.assertIsNotNone(get_cached_path(blob))
+
+			with patch.dict(frappe.conf, {"storage_local_cache": 0}), patch("frappe.enqueue") as enqueue:
+				self.assertIsNone(get_cached_path(blob))
+				self.assertEqual(self.stream(blob).status_code, 302)
+			enqueue.assert_not_called()
 
 	def test_a_job_for_a_deleted_blob_does_nothing(self):
 		cache_blob("missing-blob")

@@ -322,8 +322,9 @@ redirect; pass `allow_native_redirect=True` to allow the 302.
 
 ### Local cache
 
-A driver with `cache_locally = True` (S3) keeps a copy of each requested
-blob on the site's disk, where a local blob would sit:
+With the `storage_local_cache` site config flag on (default off), a driver
+with `cache_locally = True` (S3) keeps a copy of each requested blob on
+the site's disk, where a local blob would sit:
 `{public,private}/files/<blob>/<filename>`. A public copy is on disk at
 its URL path, so nginx serves it with no Python. A private copy goes
 through the serve route and X-Accel, like a local private blob.

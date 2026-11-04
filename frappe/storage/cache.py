@@ -19,6 +19,11 @@ CHUNK_SIZE = 64 * 1024
 CACHE_JOB_TIMEOUT = 3600
 
 
+def is_cache_enabled(blob: "FileBlob") -> bool:
+	"""True when the ``storage_local_cache`` site flag is on and the blob's driver caches."""
+	return bool(frappe.conf.storage_local_cache) and get_driver(blob.driver).cache_locally
+
+
 def get_cache_key(blob: "FileBlob") -> str:
 	"""Local key of a blob, ``<blob>/<filename>``: the path its URL maps to, so nginx serves a public one."""
 	return make_key(LocalDriver(), blob.name, key_basename(blob.key))
@@ -30,8 +35,8 @@ def get_cache_path(blob: "FileBlob") -> str:
 
 
 def get_cached_path(blob: "FileBlob") -> str | None:
-	"""Path of the blob's cached file, or None when its driver does not cache or the file is missing."""
-	if not get_driver(blob.driver).cache_locally:
+	"""Path of the blob's cached file, or None when caching is off or the file is missing."""
+	if not is_cache_enabled(blob):
 		return None
 	path = get_cache_path(blob)
 	return path if os.path.isfile(path) else None
@@ -39,7 +44,7 @@ def get_cached_path(blob: "FileBlob") -> str | None:
 
 def queue_cache(blob: "FileBlob") -> None:
 	"""Queue a background download of the blob into the cache. One job runs per blob at a time."""
-	if not get_driver(blob.driver).cache_locally:
+	if not is_cache_enabled(blob):
 		return
 	frappe.enqueue(
 		"frappe.storage.cache.cache_blob",
