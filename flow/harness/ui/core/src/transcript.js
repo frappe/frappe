@@ -865,7 +865,7 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 // report to the row that made the call — a response, or a compaction — never to
 // messages or tool results. A sub-agent call's row sums what its child spent.
 //   {key, kind: "system"|"user"|"assistant"|"tool"|"compaction"|"error",
-//    body?, entry?, input?, output?, usage?}
+//    body?, ts?, entry?, input?, output?, usage?}
 export function buildTranscriptRows(conversation) {
 	const rows = []
 	const steps = new Map() // tool call id -> its row, filled when the result lands
@@ -882,7 +882,7 @@ export function buildTranscriptRows(conversation) {
 	for (const [index, entry] of entries.entries()) {
 		let caller = null // the row whose model call a usage report in this gap belongs to
 		if (entry.type === "user_message") {
-			rows.push({ key: `u:${entry.seq}`, kind: "user", entry: withoutFlowFields(entry) })
+			rows.push({ key: `u:${entry.seq}`, kind: "user", ts: entry.ts, entry: withoutFlowFields(entry) })
 		} else if (entry.type === "assistant_message") {
 			caller = { key: `a:${entry.seq}`, kind: "assistant", entry: withoutFlowFields(entry) }
 			rows.push(caller)

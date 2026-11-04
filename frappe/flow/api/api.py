@@ -273,6 +273,15 @@ def entries(session: str, since: int | str = 0, path: str = "active") -> dict[st
 
 
 @frappe.whitelist()
+def system_prompt(session: str) -> str | None:
+	"""The session's system prompt for a System Manager; None for anyone else."""
+	doc = _load_session(session, "read")
+	if "System Manager" not in frappe.get_roles():
+		return None
+	return doc.system_prompt()
+
+
+@frappe.whitelist()
 def set_model(session: str, model: str, reasoning_effort: str | None = None) -> dict[str, Any]:
 	"""Switch the session's model; `reasoning_effort` sets its thinking level, empty for the default."""
 	if not isinstance(model, str) or not model.strip():

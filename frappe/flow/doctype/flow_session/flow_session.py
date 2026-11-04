@@ -376,6 +376,11 @@ class FlowSession(Document):
 		with flow_server() as client:
 			return client.entries(self.name, since=since, path=path)
 
+	def system_prompt(self) -> str:
+		"""The prompt the flow server composed for this session, which every request opens with."""
+		with flow_server() as client:
+			return client.get_session(self.name)["config"]["system_prompt"]
+
 	def sync(self) -> None:
 		"""Record the flow server's log since the last sync into Flow Runs and transcript rows."""
 		self._lock()

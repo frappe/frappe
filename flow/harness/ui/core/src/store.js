@@ -1680,6 +1680,14 @@ export function createFlowStore(client, options = {}) {
 	const coreNames = () => state.tools.filter((t) => !t.extension && !t.bundled).map((t) => t.name)
 	const extras = (tools) => tools.filter((name) => !coreNames().includes(name))
 
+	// the prompt a session's requests open with, where its host shows it; null keeps the stand-in
+	async function systemPrompt(sid) {
+		const prompt = state.session?.config?.system_prompt
+		if (typeof prompt === "string") return prompt
+		if (typeof client.systemPrompt !== "function") return null
+		return client.systemPrompt(sid).catch(() => null)
+	}
+
 	async function renameSession(sid, title) {
 		const data = await guard(() => client.patchConfig(sid, { title }))
 		if (!data) return
@@ -1817,6 +1825,7 @@ export function createFlowStore(client, options = {}) {
 		defaultPreset,
 		saveDefaultPreset,
 		renameSession,
+		systemPrompt,
 		deleteSession,
 		folderName,
 		addFolder,

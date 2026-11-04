@@ -21,7 +21,7 @@ Object.defineProperty(dom.window.HTMLElement.prototype, "inert", {
 globalThis.requestAnimationFrame = (callback) => setTimeout(callback, 0)
 const { createApp, h, nextTick, reactive } = await import("vue")
 const { dialog, dialogStack, loadComponent } = await import("./helpers/components.js")
-const { applyEvent, initialConversation } = await import("../src/transcript.js")
+const { applyEvent, formatTime, initialConversation } = await import("../src/transcript.js")
 const { FlowAPIError } = await import("../src/client.js")
 const { layout } = await import("../src/layout.js")
 const Composer = await loadComponent("Composer")
@@ -2065,9 +2065,9 @@ test("a folder in the file tree opens with Space, says it's open, and stays open
 	assert.equal(shown("/w/src/a.js").length, 1)
 })
 
-test("the transcript shows each step as raw JSON, with usage under its request", async (t) => {
+test("the transcript reads each step as text, a user message by its time, a tool by its name with its arguments and result folded, and each step's JSON a click away", async (t) => {
 	const conversation = initialConversation()
-	applyEvent(conversation, { type: "user_message", seq: 2, content: "find the leak" })
+	applyEvent(conversation, { type: "user_message", seq: 2, ts: 1700000000, content: "find the leak" })
 	applyEvent(conversation, {
 		type: "assistant_message",
 		seq: 3,
@@ -2094,13 +2094,76 @@ test("the transcript shows each step as raw JSON, with usage under its request",
 
 	const panel = document.querySelector("[role=dialog]")
 	assert.match(panel.textContent, /Tokens1k.*Input1k.*Output40.*Model calls1.*Context1kof 200k/s)
-	assert.match(panel.textContent, /user\s*\{\s*"type": "user_message",\s*"content": "find the leak"\s*\}/)
-	assert.match(panel.textContent, /assistant\s*\{\s*"type": "assistant_message".*\}\s*usage\s*\{\s*"type": "usage",.*"input_tokens": 1000/s)
-	// every tool reads the same way: the call, then what it returned
-	assert.match(panel.textContent, /tool\s*input\s*\{\s*"type": "tool_call".*"path": "server\.py".*output\s*\{\s*"type": "tool_result".*"content": "leaky line"/s)
+	const row = (role) => [...panel.querySelectorAll("span.font-mono")].find((el) => el.textContent === role).parentElement
+	assert.match(row("user").textContent, new RegExp(`^user\\s*find the leak\\s*${formatTime(1700000000).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*JSON\\s*$`))
+	assert.doesNotMatch(panel.textContent, /Turn/)
+	assert.match(row("assistant").textContent, /Called read.*1k in · 40 out · 900 cached/s)
+	// a tool reads as its name, its arguments and result unfolding on a click; no JSON until asked
+	const tool = row("tool")
+	assert.equal(tool.querySelector("code").textContent, "read")
+	assert.equal(tool.querySelector("pre"), null)
+	assert.doesNotMatch(panel.textContent, /"type"/)
+	const buttons = () => [...tool.querySelectorAll("button[aria-expanded]")]
+	assert.deepEqual(buttons().map((button) => button.textContent.trim()), ["Arguments", "Result", "JSON"])
+	buttons()[0].click()
+	buttons()[1].click()
+	await nextTick()
+	const pres = tool.querySelectorAll("pre")
+	assert.match(pres[0].textContent, /"path": "server\.py"/)
+	assert.equal(pres[1].textContent, "leaky line")
+	buttons()[0].click()
+	buttons()[1].click()
+	const json = buttons()[2]
+	json.click()
+	await nextTick()
+	assert.equal(json.getAttribute("aria-expanded"), "true")
+	// the name above, then its input and output
+	assert.match(tool.textContent, /^tool\s*read\s*Arguments\s*Result\s*input\s*\{\s*"type": "tool_call".*"path": "server\.py".*output\s*\{\s*"type": "tool_result".*"content": "leaky line"/s)
 	assert.doesNotMatch(panel.textContent, /"seq"|"context_window"/) // Flow's own fields stay out
-	assert.doesNotMatch(panel.textContent, /estimated|reported|~4|prompt & tool definitions/)
-	assert.equal(panel.querySelectorAll("button").length, 1) // only the close button
+	// the system prompt's stand-in has no JSON
+	assert.equal(row("system").querySelector("button"), null)
+
+	// beside Close, the steps go out as JSON: copied, or downloaded as a file
+	assert.ok(panel.querySelector("[data-stub=CopyButton]"))
+	const saved = []
+	t.mock.method(URL, "createObjectURL", (blob) => (saved.push(blob), "blob:transcript"))
+	t.mock.method(URL, "revokeObjectURL", () => {})
+	t.mock.method(window.HTMLAnchorElement.prototype, "click", function () {
+		saved.push(this.download)
+	})
+	panel.querySelector("button[title='Download JSON']").click()
+	assert.equal(saved[1], "transcript-chat.json")
+	const file = JSON.parse(await saved[0].text())
+	assert.deepEqual(file.rows.map((row) => row.kind), ["system", "user", "assistant", "tool"])
+	assert.equal(file.rows[3].output.content, "leaky line")
+	panel.querySelector("button[title=Close]").click()
+	assert.equal(flow.state.transcriptOpen, false)
+})
+
+test("the transcript shows the real system prompt, folded, where the host sends it, and the stand-in where it does not", async (t) => {
+	const conversation = initialConversation()
+	applyEvent(conversation, { type: "user_message", seq: 2, content: "hi" })
+	const asked = []
+	const flow = {
+		state: reactive({ transcriptOpen: true, sessionId: "s1", conversation, session: null }),
+		systemPrompt: async (sid) => (asked.push(sid), sid === "s1" ? "Be brief." : null),
+		setTranscriptOpen() {},
+	}
+	mount(t, TranscriptDialog, {}, flow)
+	await new Promise((resolve) => setTimeout(resolve))
+	await nextTick()
+	const panel = document.querySelector("[role=dialog]")
+	const fold = [...panel.querySelectorAll("button[aria-expanded]")].find((button) => button.textContent.trim() === "System prompt")
+	assert.deepEqual(asked, ["s1"])
+	assert.doesNotMatch(panel.textContent, /Be brief\./)
+	fold.click()
+	await nextTick()
+	assert.match(panel.textContent, /Be brief\./)
+
+	flow.state.sessionId = "s2"
+	await new Promise((resolve) => setTimeout(resolve))
+	await nextTick()
+	assert.match(panel.textContent, /System prompt\./)
 })
 
 test("the sidebar's header menu names the account, and leads to the host's apps, settings and out", async (t) => {
