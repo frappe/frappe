@@ -62,14 +62,31 @@ for such a doctype shows no "Edit full form".
 An entry can name a body, a component that the dialog draws in place of the form, with the same
 record, Save and frame: `{"record": {"page": "dialog", "body": "summary"}}` loads
 `pages/summary.js` beside the `pages.json`, which exports `{ component }` as a replacement page
-does. The body gets two props: `page`, the dialog's `page` (read `page.doc`, call `page.save()`),
-and `edit()`, which switches the dialog to the form. Add `apps` to the entry to scope it.
+does. The body gets three props: `page`, the dialog's `page` (read `page.doc`, call `page.save()`),
+`edit()`, which switches the dialog to the form, and `header(read)`. Add `apps` to the entry to
+scope it.
+
+The dialog's header holds the title, the `⋯` menu (Copy link, Delete) and the close button. Its
+footer holds only Save. A body calls `header` once in setup with a function that returns
+`{ title, buttons, menu, save }`; the dialog calls it again when what it reads changes. `title`
+replaces the record's name. `buttons` are icon buttons left of `⋯`, each `{ label, icon, onClick }`
+with the label as its tooltip. `menu` rows of the same shape go above Copy link. `save: false`
+hides Save and Ctrl+S. All four hold only while the body shows: after `edit()`, the form gets the
+record's name, the record's menu and Save back. Do not use `page.header` for this: a dialog does
+not draw it.
 
 ```js
 // crm/crm/doctype/crm_call_log/frontend/pages.json: { "record": { "page": "dialog", "body": "summary" } }
 // crm/crm/doctype/crm_call_log/frontend/pages/summary.js:
 export default { component: () => import("./CallSummary.vue") };
-// CallSummary.vue: defineProps(["page", "edit"]), shows page.doc.status and a button that calls edit().
+// CallSummary.vue:
+const props = defineProps(["page", "edit", "header"]);
+props.header(() => ({
+	title: __("Call Details"),
+	buttons: [{ label: __("Edit"), icon: "lucide-pencil", onClick: props.edit }],
+	menu: [{ label: __("Add Note"), icon: "lucide-notebook-pen", onClick: addNote }],
+	save: false,
+}));
 ```
 
 ## Where a script runs

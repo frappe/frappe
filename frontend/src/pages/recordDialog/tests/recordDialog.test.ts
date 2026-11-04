@@ -27,7 +27,7 @@ vi.mock("frappe-ui", () => ({
 			return () =>
 				props.open
 					? h("div", { "data-dialog": "", role: "dialog" }, [
-							h("h2", props.title),
+							h("header", slots.title?.() ?? h("h3", props.title)),
 							h("button", { onClick: () => emit("update:open", false) }, "Close"),
 							h("div", slots.default?.()),
 							h("div", slots.actions?.()),
@@ -36,18 +36,20 @@ vi.mock("frappe-ui", () => ({
 		},
 	}),
 	Button: defineComponent({
-		props: { label: String, loading: Boolean, disabled: Boolean },
+		props: { label: String, loading: Boolean, disabled: Boolean, tooltip: String },
 		setup(props, { attrs }) {
-			return () => h("button", { ...attrs, disabled: props.disabled }, props.label);
+			return () => h("button", { ...attrs, disabled: props.disabled }, props.label ?? props.tooltip);
 		},
 	}),
 	Dropdown: defineComponent({
 		props: { options: { type: Array, default: () => [] } },
-		setup: (props) => () =>
-			h(
-				"div",
-				(props.options as any[]).map((option) => h("button", { onClick: option.onClick }, option.label))
-			),
+		setup: (props, { slots }) => () =>
+			h("div", [
+				slots.default?.(),
+				...(props.options as any[])
+					.flatMap((option) => option.options ?? [option])
+					.map((option) => h("button", { onClick: option.onClick }, option.label)),
+			]),
 	}),
 	ErrorMessage: defineComponent({
 		props: { message: String },
@@ -227,6 +229,15 @@ async function type(root: HTMLElement, fieldname: string, value: string) {
 	await settle();
 }
 
+function labels(element: Element | null | undefined) {
+	return [...(element?.querySelectorAll("button") ?? [])].map((button) => button.textContent?.trim() || button.getAttribute("aria-label"));
+}
+
+function ctrlS() {
+	document.body.dispatchEvent(new KeyboardEvent("keydown", { key: "s", ctrlKey: true, bubbles: true, cancelable: true }));
+	return settle();
+}
+
 function writes() {
 	return fetchMock.mock.calls
 		.filter(([, init]) => init?.method && init.method !== "GET")
@@ -237,12 +248,22 @@ describe("the record dialog", () => {
 	it("shows the record titled by its name, with the Quick Entry fields filled", async () => {
 		const root = await open();
 
-		expect(root.querySelector("h2")!.textContent).toBe("LEAD-1");
+		expect(root.querySelector("h3")!.textContent).toBe("LEAD-1");
 		expect(input(root, "title")!.value).toBe("Big deal");
 		expect(input(root, "company")!.value).toBe("Acme");
 		expect(button(root, "Save")).toBeTruthy();
 		expect(button(root, "Delete")).toBeTruthy();
 		expect(button(root, "Edit full form")).toBeUndefined();
+	});
+
+	it("draws the menu in the header beside the close button, and only Save in the footer", async () => {
+		const root = await open();
+
+		expect(labels(root.querySelector("header"))).toEqual(["More", "Copy link", "Delete"]);
+		expect(labels(root.querySelector("[data-dialog] > div:last-child"))).toEqual(["Save"]);
+		// The menu sits in reka's title header: the dialog is named by the title text alone.
+		expect(root.querySelector("h3")!.id).not.toBe("");
+		expect(root.querySelector("[role=dialog]")!.getAttribute("aria-labelledby")).toBe(root.querySelector("h3")!.id);
 	});
 
 	it("saves the edited record, announces the write and closes", async () => {
@@ -283,6 +304,7 @@ describe("the record dialog", () => {
 		expect(root.querySelector(".error")!.textContent).toBe("You do not have permission to open this record");
 		expect(root.querySelector("form")).toBeNull();
 		expect(button(root, "Save")).toBeUndefined();
+		expect(labels(root.querySelector("header"))).toContain("Copy link");
 	});
 
 	it("runs the record script: a hidden field is not drawn and beforeSave changes what is sent", async () => {
@@ -402,7 +424,7 @@ describe("the record dialog's body", () => {
 
 		expect(root.querySelector("[data-body] p")!.textContent).toBe("Big deal from Web");
 		expect(root.querySelector("form")).toBeNull();
-		expect(root.querySelector("h2")!.textContent).toBe("LEAD-1");
+		expect(root.querySelector("h3")!.textContent).toBe("LEAD-1");
 		expect(button(root, "Delete")).toBeTruthy();
 	});
 
@@ -435,5 +457,66 @@ describe("the record dialog's body", () => {
 
 		expect(root.querySelector(".error")!.textContent).toContain("chunk missing");
 		expect(input(root, "title")!.value).toBe("Big deal");
+	});
+
+	describe("with a header of its own", () => {
+		const calls: string[] = [];
+		// A call summary: its own title, an Edit icon button, two menu rows and no Save.
+		const Headed = defineComponent({
+			props: {
+				page: { type: Object, required: true },
+				edit: { type: Function, required: true },
+				header: { type: Function, required: true },
+			},
+			setup(props) {
+				props.header(() => ({
+					title: `Call with ${props.page.doc.title}`,
+					buttons: [{ label: "Edit call", icon: "lucide-pencil", onClick: () => props.edit() }],
+					menu: [
+						{ label: "Add note", icon: "lucide-notebook-pen", onClick: () => calls.push("note") },
+						{ label: "Add task", icon: "lucide-square-check", onClick: () => calls.push("task") },
+					],
+					save: false,
+				}));
+				return () => h("section", { "data-body": "" }, props.page.doc.title);
+			},
+		});
+
+		beforeEach(() => {
+			calls.length = 0;
+			bodyLoader.current = async () => ({ default: Headed });
+		});
+
+		it("shows its title, its buttons and its menu rows above the record's, and no Save", async () => {
+			const root = await open();
+
+			expect(root.querySelector("h3")!.textContent!.trim()).toBe("Call with Big deal");
+			expect(labels(root.querySelector("header"))).toEqual(["Edit call", "More", "Add note", "Add task", "Copy link", "Delete"]);
+			expect(button(root, "Save")).toBeUndefined();
+
+			await click(root, "Add task");
+			expect(calls).toEqual(["task"]);
+		});
+
+		it("sends nothing on Ctrl+S while it shows", async () => {
+			await open();
+
+			await ctrlS();
+
+			expect(writes()).toHaveLength(0);
+		});
+
+		it("gives the form back the record's name, the record's menu and Save on Edit", async () => {
+			const root = await open();
+
+			await click(root, "Edit call");
+
+			expect(root.querySelector("h3")!.textContent!.trim()).toBe("LEAD-1");
+			expect(labels(root.querySelector("header"))).toEqual(["More", "Copy link", "Delete"]);
+			expect(button(root, "Save")).toBeTruthy();
+			await type(root, "title", "Bigger deal");
+			await ctrlS();
+			expect(writes()).toHaveLength(1);
+		});
 	});
 });

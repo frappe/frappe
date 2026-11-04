@@ -11,12 +11,36 @@
 		@update:open="close"
 		@after-leave="request.dismiss()"
 	>
+		<!-- `pr-1` keeps the close button's gap; it follows the title slot with none. -->
+		<template #title>
+			<div class="flex items-center gap-1 pr-1">
+				<h3
+					:id="titleId"
+					class="min-w-0 flex-1 truncate text-2xl-semibold leading-6 text-ink-gray-8"
+				>
+					{{ title }}
+				</h3>
+				<Button
+					v-for="button in header.buttons"
+					:key="button.label"
+					variant="ghost"
+					:icon="button.icon"
+					:tooltip="button.label"
+					:aria-label="button.label"
+					@click="button.onClick"
+				/>
+				<Dropdown :options="menu" side="bottom" align="end">
+					<Button variant="ghost" icon="lucide-ellipsis" :aria-label="__('More')" />
+				</Dropdown>
+			</div>
+		</template>
 		<div ref="body" data-record-form :inert="saving">
 			<component
 				:is="Body"
-				v-if="Body && !editing && controller && !refused"
-				:page="controller.page"
+				v-if="bodyShown"
+				:page="controller!.page"
 				:edit="edit"
+				:header="setBodyHeader"
 			/>
 			<FormLayout
 				v-else-if="form.length && !refused"
@@ -27,13 +51,9 @@
 			/>
 			<ErrorMessage v-if="error" class="mt-2" :message="error" />
 		</div>
-		<template #actions>
-			<div class="flex items-center justify-between gap-2">
-				<Dropdown :options="menu" side="top" align="start">
-					<Button variant="ghost" icon="lucide-ellipsis" :aria-label="__('More')" />
-				</Dropdown>
+		<template v-if="showSave" #actions>
+			<div class="flex justify-end">
 				<Button
-					v-if="canWrite"
 					variant="solid"
 					:label="__('Save')"
 					:loading="saving"
@@ -46,7 +66,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, onUnmounted, ref, shallowRef, useTemplateRef, watch } from "vue";
+import { computed, inject, onUnmounted, ref, shallowRef, useId, useTemplateRef, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useEventListener } from "@vueuse/core";
 import { Button, Dialog, Dropdown, ErrorMessage, toast } from "frappe-ui";
@@ -76,7 +96,7 @@ import { openArgumentStep } from "@/shell/palette";
 import { urlFor } from "@/router/routeFor";
 import type { Boot } from "@/boot";
 import { announceRecordDialogWrite, type RecordDialogRequest } from "@/shell/recordDialog";
-import { recordBodyComponent } from "./recordBody";
+import { recordBodyComponent, type RecordBodyHeader } from "./recordBody";
 import { resolveSaveConflict } from "./saveConflict";
 
 const props = defineProps<{ request: RecordDialogRequest }>();
@@ -104,10 +124,16 @@ const formTab = ref("");
 const activeFormTab = ref("");
 const actionsVersion = ref(0);
 const body = useTemplateRef<HTMLElement>("body");
+const titleId = useId();
+// reka names the dialog by its whole title header, menu buttons included ("54 More").
+watch(body, (element) =>
+	element?.closest('[role="dialog"]')?.setAttribute("aria-labelledby", titleId)
+);
 // A `pages.json` body draws in place of the form until the reader asks for the form.
 const bodyLoader = recordDialogBody(doctype, boot.app);
 const Body = bodyLoader ? recordBodyComponent(bodyLoader, bodyFailed) : null;
 const editing = ref(false);
+const bodyHeader = shallowRef<() => RecordBodyHeader>(() => ({}));
 
 const quickEntry = useFormLayout({
 	doctype,
@@ -119,9 +145,15 @@ const quickEntry = useFormLayout({
 	tabOverrides: () => controller.value?.form.tabs.resolve() ?? {},
 });
 
-const title = computed(() => doc.value.name ?? name);
+const bodyShown = computed(() =>
+	Boolean(Body && !editing.value && controller.value && !refused.value)
+);
+// The body's header holds only while the body shows: the form gets the built-ins back.
+const header = computed<RecordBodyHeader>(() => (bodyShown.value ? bodyHeader.value() : {}));
+const title = computed(() => header.value.title || (doc.value.name ?? name));
 const size = computed(() => quickEntry.dialogSize.value ?? "xl");
 const canWrite = computed(() => Boolean(perms.value.write));
+const showSave = computed(() => canWrite.value && header.value.save !== false);
 const ready = computed(() => Boolean(controller.value?.ready.value) && !quickEntry.error.value);
 const dirty = computed(() => JSON.stringify(doc.value) !== JSON.stringify(saved.value));
 const layout = computed(() => quickEntry.layout.value);
@@ -131,10 +163,19 @@ const form = computed(() => {
 	return page ? joinForm(layout.value, page.form.resolve(), page.page) : layout.value;
 });
 const menu = computed(() => [
-	{ label: __("Copy link"), icon: "lucide-link", onClick: copyLink },
-	...(perms.value.delete
-		? [{ label: __("Delete"), icon: "lucide-trash-2", theme: "red", onClick: remove }]
+	...(header.value.menu?.length
+		? [{ group: "body", hideLabel: true, options: header.value.menu }]
 		: []),
+	{
+		group: "record",
+		hideLabel: true,
+		options: [
+			{ label: __("Copy link"), icon: "lucide-link", onClick: copyLink },
+			...(perms.value.delete
+				? [{ label: __("Delete"), icon: "lucide-trash-2", theme: "red", onClick: remove }]
+				: []),
+		],
+	},
 ]);
 
 void open();
@@ -169,6 +210,11 @@ async function open() {
 
 function edit() {
 	editing.value = true;
+}
+
+/** The body's `header` prop: it hands over a getter, read again whenever what it reads changes. */
+function setBodyHeader(read: () => RecordBodyHeader) {
+	bodyHeader.value = read;
 }
 
 function bodyFailed(exception: unknown) {
@@ -291,7 +337,7 @@ useEventListener(document, "keydown", (event: KeyboardEvent) => {
 		event.target instanceof Element ? event.target.closest('[role="dialog"]') : null;
 	if (inside && inside !== dialog) return;
 	event.preventDefault();
-	if (!event.repeat && canWrite.value) void save();
+	if (!event.repeat && showSave.value) void save();
 });
 
 const landing = {
