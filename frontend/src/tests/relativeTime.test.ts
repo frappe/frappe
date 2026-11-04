@@ -45,6 +45,30 @@ describe("relativeTime", () => {
 		expect(readAs("de", 90_000)).toBe("in 2 Minuten");
 	});
 
+	it("reads a stamp the same distance back and ahead alike, at the unit breakpoints", () => {
+		expect(readAs("de", -90_000)).toBe("vor 2 Minuten");
+		expect(readAs("de", 90_000)).toBe("in 2 Minuten");
+		expect(readAs("de", -44_000)).toBe("jetzt");
+		expect(readAs("de", -46_000)).toBe("vor 1 Minute");
+		expect(readAs("de", 60_000)).toBe("in 1 Minute");
+		expect(readAs("de", -46 * 60_000)).toBe("vor 1 Stunde");
+		expect(readAs("de", -23 * 3_600_000)).toBe("vor 1 Tag");
+		expect(readAs("de", -27 * 86_400_000)).toBe("vor 1 Monat");
+		expect(readAs("de", 400 * 86_400_000)).toBe("in 1 Jahr");
+	});
+
+	it("speaks English for a regional English code, and Serbian Latin for sr-CS", () => {
+		expect(readAs("en-GB", -3 * 60_000)).toBe("3 minutes ago");
+		expect(readAs("en_US", -3 * 60_000)).toBe("3 minutes ago");
+		expect(readAs("sr-CS", -3 * 86_400_000)).toBe("pre 3 dana");
+		expect(readAs("zh-TW", -3 * 86_400_000)).toBe("3 天前");
+	});
+
+	it("reads an invalid stamp as nothing, whatever the language", () => {
+		expect(readAs("de", NaN)).toBe("");
+		expect(readAs("en", NaN)).toBe("");
+	});
+
 	it("falls back to English without a session, and for a language the browser does not know", () => {
 		resetSession();
 		expect(relativeTime(dayjs(new Date(Date.parse(NOW) - 3 * 60_000)))).toBe("3 minutes ago");
