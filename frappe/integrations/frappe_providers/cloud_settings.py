@@ -233,7 +233,8 @@ def get_domain_dns_records(domain: str) -> dict:
 	_assert_access()
 	client = PilotClient()
 	records = client.get(client.domain_path(_clean_domain(domain), "dns-records")) or {}
-	return {"records": [*records.get("cname", []), *records.get("a", [])]}
+	options = [records[name] for name in ("cname", "a") if records.get(name)]
+	return {"records": [record for option in options for record in option], "options": options}
 
 
 @frappe.whitelist(methods=["POST"])
