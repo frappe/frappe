@@ -88,6 +88,20 @@ def get_email_address(user=None):
 	return frappe.db.get_value("User", user, "email")
 
 
+def get_email_addresses(users: list[str] | set[str]) -> dict[str, str]:
+	if not users:
+		return {}
+
+	return dict(
+		frappe.get_all(
+			"User",
+			filters={"name": ("in", users)},
+			fields=["name", "email"],
+			as_list=True,
+		)
+	)
+
+
 def get_formatted_email(user, mail=None):
 	"""get Email Address of user formatted as: `John Doe <johndoe@example.com>`"""
 	fullname = get_fullname(user)
@@ -834,14 +848,13 @@ def get_site_info():
 	users = frappe.get_all(
 		"User",
 		filters={"user_type": "System User", "name": ("not in", frappe.STANDARD_USERS)},
-		fields=["name", "enabled", "last_login", "last_active", "language", "time_zone"],
+		fields=["name", "email", "enabled", "last_login", "last_active", "language", "time_zone"],
 	)
 	system_managers = get_system_managers(only_name=True)
 	for u in users:
 		# tag system managers
 		u.is_system_manager = 1 if u.name in system_managers else 0
 		u.full_name = get_fullname(u.name)
-		u.email = u.name
 		del u["name"]
 
 	system_settings = frappe.db.get_singles_dict("System Settings")
