@@ -52,7 +52,8 @@ export function declaredPages(folder, declarer, benchApps) {
 		}
 	}
 	const declared = new Set(found.map((entry) => entry.page));
-	const handlers = handlerFiles(folder, pageNames, declared, declarer);
+	const bodies = new Set(dialogs.map((entry) => entry.body));
+	const handlers = handlerFiles(folder, pageNames, { declared, bodies }, declarer);
 	warnings.unshift(...handlers.warnings);
 	if (pageNames.includes(DIALOG_PAGE))
 		warnings.unshift(
@@ -183,7 +184,7 @@ function scopeClash(key, entries) {
 }
 
 /** A `.js` file beside `pages/` is the handler file of a declared page, or, if not, ignored with a warning. */
-function handlerFiles(folder, pageNames, declared, { app, doctype, foreign }) {
+function handlerFiles(folder, pageNames, { declared, bodies }, { app, doctype, foreign }) {
 	const pageScripts = [];
 	const warnings = [];
 	for (const handler of files(folder)) {
@@ -191,7 +192,11 @@ function handlerFiles(folder, pageNames, declared, { app, doctype, foreign }) {
 		if (STANDARD_PAGES.includes(name) || name === DIALOG_PAGE) continue;
 
 		const file = join(folder, handler);
-		if (declared.has(name)) {
+		if (bodies.has(name)) {
+			warnings.push(
+				`[frappe] ${file} is beside pages/${handler}, a record dialog body, which takes no handler file; it is ignored.`
+			);
+		} else if (declared.has(name)) {
 			pageScripts.push({ app, doctype, page: name, file });
 		} else if (pageNames.includes(name)) {
 			warnings.push(

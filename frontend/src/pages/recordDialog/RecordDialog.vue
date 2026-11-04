@@ -106,7 +106,7 @@ const actionsVersion = ref(0);
 const body = useTemplateRef<HTMLElement>("body");
 // A `pages.json` body draws in place of the form until the reader asks for the form.
 const bodyLoader = recordDialogBody(doctype, boot.app);
-const Body = bodyLoader ? recordBodyComponent(bodyLoader) : null;
+const Body = bodyLoader ? recordBodyComponent(bodyLoader, bodyFailed) : null;
 const editing = ref(false);
 
 const quickEntry = useFormLayout({
@@ -169,6 +169,11 @@ async function open() {
 
 function edit() {
 	editing.value = true;
+}
+
+function bodyFailed(exception: unknown) {
+	edit();
+	error.value = errorMessage(exception);
 }
 
 function buildController() {

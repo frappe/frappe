@@ -427,13 +427,13 @@ describe("the record dialog's body", () => {
 		expect(button(root, "Save")).toBeTruthy();
 	});
 
-	it("shows the error in the frame when the body fails to load", async () => {
+	it("falls back to the form, with the error, when the body fails to load", async () => {
 		bodyLoader.current = async () => {
 			throw new Error("chunk missing");
 		};
 		const root = await open();
 
 		expect(root.querySelector(".error")!.textContent).toContain("chunk missing");
-		expect(root.querySelector("[data-dialog]")).toBeTruthy();
+		expect(input(root, "title")!.value).toBe("Big deal");
 	});
 });

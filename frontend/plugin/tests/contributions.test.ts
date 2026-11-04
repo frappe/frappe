@@ -625,6 +625,24 @@ describe("the record dialog body", () => {
     );
   });
 
+  it("takes no handler file, and a file beside it is ignored with a warning", () => {
+    const manifest = bench({
+      helpdesk: owner(
+        { record: entry },
+        {
+          [`${pages}/summary.js`]: PAGE,
+          [`${TICKET}/frontend/summary.js`]: "export default {}",
+        },
+      ),
+    });
+    const { pageScripts, warnings } = discover(manifest);
+
+    expect(pageScripts).toEqual([]);
+    expect(warnings).toEqual([
+      `[frappe] ${join(manifest[0].source_dir, TICKET, "frontend/summary.js")} is beside pages/summary.js, a record dialog body, which takes no handler file; it is ignored.`,
+    ]);
+  });
+
   it("is scoped to the apps its entry names", () => {
     const manifest = bench({
       helpdesk: owner(
