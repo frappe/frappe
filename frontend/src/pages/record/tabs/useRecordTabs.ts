@@ -19,7 +19,6 @@ export function useRecordTabs({ route, router, controller, formTab }: RecordTabs
   const shownFormTab = computed(() => (shown.value === DETAILS_TAB ? formTab() : ""));
 
   watch(controller, () => host.reset(), { flush: "sync" });
-  watch(shown, (tab) => host.remember(tab));
   watchShownTab(controller, () => shown.value, (previous, next) => {
     host.warnIfHidden(previous, next);
     if (next) void controller()?.fireEvent("onTabChange");

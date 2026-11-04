@@ -112,7 +112,7 @@ describe("the painted tab", () => {
     expect(page.tabs.shown.value).toBe("details");
   });
 
-  it("stays put when a later replay reorders the strip and the address names no tab", async () => {
+  it("follows a later reorder while nobody chose a tab, and writes no `?tab=`", async () => {
     let reorder = false;
     registerRecordPage("CRM Deal", {
       onRefresh: (api) => {
@@ -121,13 +121,53 @@ describe("the painted tab", () => {
     });
     const page = makePage();
     await page.open();
+    expect(page.tabs.shown.value).toBe("details");
 
     reorder = true;
     await page.controller.value!.refresh();
     await settle();
 
-    expect(page.tabs.shown.value).toBe("details");
+    expect(page.tabs.shown.value).toBe("files");
     expect(page.route.query.tab).toBeUndefined();
+  });
+
+  it("does not remember the default: a reader who then picks Details keeps it through a reorder", async () => {
+    let order: string[] = [];
+    registerRecordPage("CRM Deal", { onRefresh: (api) => api.tabs.order(order) });
+    const page = makePage();
+    await page.open();
+    expect(page.tabs.shown.value).toBe("details");
+
+    order = ["activity"];
+    await page.controller.value!.refresh();
+    await settle();
+    expect(page.tabs.shown.value).toBe("activity");
+
+    await page.tabs.host.activate("details");
+    await settle();
+    order = ["files"];
+    await page.controller.value!.refresh();
+    await settle();
+
+    expect(page.tabs.shown.value).toBe("details");
+    expect(page.route.query.tab).toBe("details");
+  });
+
+  it("keeps the tab the address names through a reorder", async () => {
+    let reorder = false;
+    registerRecordPage("CRM Deal", {
+      onRefresh: (api) => {
+        if (reorder) api.tabs.order(["activity"]);
+      },
+    });
+    const page = makePage({ tab: "emails" });
+    await page.open();
+
+    reorder = true;
+    await page.controller.value!.refresh();
+    await settle();
+
+    expect(page.tabs.shown.value).toBe("emails");
   });
 
   it("opens a new page on the address alone, not on the last page's tab", async () => {

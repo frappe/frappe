@@ -4,6 +4,7 @@ import { createApp, defineComponent, h, nextTick, reactive } from "vue";
 import { ScrollArea } from "frappe-ui";
 
 const strips: unknown[] = [];
+let stripMounts = 0;
 
 vi.mock("frappe-ui", async (importOriginal) => ({
   ...((await importOriginal()) as object),
@@ -11,6 +12,7 @@ vi.mock("frappe-ui", async (importOriginal) => ({
     props: { modelValue: String, tabs: Array },
     emits: ["update:modelValue"],
     setup(props, { emit }) {
+      stripMounts += 1;
       return () => {
         strips.push(props.tabs);
         return h(
@@ -49,6 +51,7 @@ afterEach(() => {
   for (const app of apps.splice(0)) app.unmount();
   document.body.innerHTML = "";
   strips.length = 0;
+  stripMounts = 0;
 });
 
 function entry(name: string, extra: Partial<TabItem> = {}, hidden = false): ResolvedItem<TabItem> {
@@ -123,6 +126,19 @@ describe("the strip", () => {
 
     expect(route.query.tab).toBe("files");
     expect(host.shown()).toBe("files");
+  });
+
+  it("remounts the strip when the tab order changes, so the underline re-measures", async () => {
+    const { state } = await mount([...FOUR], "details");
+    expect(stripMounts).toBe(1);
+
+    state.tabs = [FOUR[1], FOUR[0], FOUR[2], FOUR[3]];
+    await nextTick();
+    expect(stripMounts).toBe(2);
+
+    state.tabs = state.tabs.map((tab) => ({ ...tab }));
+    await nextTick();
+    expect(stripMounts).toBe(2);
   });
 
   it("draws nothing when no tab is visible", async () => {

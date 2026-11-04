@@ -13,6 +13,7 @@
 			@click="pointerPressed = false"
 		>
 			<Tabs
+				:key="stripOrder"
 				:modelValue="active"
 				:tabs="stripTabs"
 				@update:modelValue="emit('select', String($event))"
@@ -94,6 +95,9 @@ const stripTabs = computed(() =>
 		.filter((entry) => !entry.hidden)
 		.map(({ item }) => ({ value: item.name, label: item.label, iconLeft: item.icon }))
 );
+
+// reka's indicator measures only on a value or size change, so a new order remounts the strip.
+const stripOrder = computed(() => stripTabs.value.map((tab) => tab.value).join());
 
 // A tab a script hides keeps its body, as a switch does.
 const mounted = computed(() => props.tabs.filter((entry) => visited.has(entry.item.name)));
