@@ -1,6 +1,7 @@
-import { ref, nextTick, computed, toRaw, readonly } from "vue"
+import { ref, nextTick, computed, toRaw, shallowReadonly, watch } from "vue"
 import { useDark, useDebounceFn, useStorage, useToggle } from "@vueuse/core"
 import router from "@/router/studio_router"
+import { createEditorAppRouter } from "@/router/editor_app_router"
 import { defineStore } from "pinia"
 
 import { fetchApp, fetchPage, confirm, getInitialVariableValue, getRouteVariables } from "@/utils/helpers"
@@ -706,11 +707,12 @@ const useStudioStore = defineStore("store", () => {
 	const propertyFilter = ref<string | null>(null)
 
 	// data
+	const { router: appRouter, goToPage } = createEditorAppRouter()
 	const routeObject = computed(() => {
 		if (!activePage.value) return ""
 
-		// copy — mutating the live route object would wipe the editor router's own params (appID/pageID)
-		const newRoute = { ...toRaw(router.currentRoute.value) }
+		// copy — mutating the live route object would wipe the router's own params
+		const newRoute = { ...toRaw(appRouter.currentRoute.value) }
 		// Seed each dynamic param with its design-time test value (empty string when unset),
 		// e.g. "/hr/:employee/:id" -> { employee, id } filled from routeVariables
 		const paramNames = getRouteVariables(activePage.value.route)
@@ -764,7 +766,23 @@ const useStudioStore = defineStore("store", () => {
 	const codeStore = useCodeStore()
 	const pageScope = usePageScope()
 	codeStore.setRouteObject(routeObject)
-	codeStore.setRouterObject(readonly(router))
+	// shallowReadonly, not readonly: a deep readonly proxy unwraps currentRoute, so a page script's
+	// standard router.currentRoute.value reads undefined
+	codeStore.setRouterObject(shallowReadonly(appRouter))
+	// only what routing depends on: watching activePage deeply would re-navigate on every canvas
+	// edit, undoing a navigation the page script made itself
+	const appRouteInputs = computed(() =>
+		JSON.stringify([
+			activePage.value?.name,
+			activePage.value?.route,
+			routeVariables.value,
+			Object.values(appPages.value).map((page) => [page.route, page.page_title]),
+		]),
+	)
+	watch(appRouteInputs, () => activePage.value && goToPage(Object.values(appPages.value), activePage.value, routeVariables.value), {
+		immediate: true,
+		flush: "sync",
+	})
 
 	// A page script (or a composable/util it imports) hot-updated. Re-run it in place when it's the
 	// active page so new refs/functions and changed dependency code show up on the canvas, in the
