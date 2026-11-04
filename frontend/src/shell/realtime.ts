@@ -1,5 +1,5 @@
 // `shell.realtime`: the tab's socket events for a script, dropped with the component that asked.
-import { getCurrentScope, onScopeDispose } from "vue";
+import { getCurrentInstance, getCurrentScope, onScopeDispose } from "vue";
 import { getSocketInstance, type RealtimeSocket } from "@framework/ui/socket";
 
 export interface ShellRealtime {
@@ -7,9 +7,9 @@ export interface ShellRealtime {
 	on(event: string, handler: (...payload: any[]) => void): () => void;
 }
 
-/** Reads the tab's socket, so call it in setup. */
+/** Reads the tab's socket in setup; outside a component there is none, and `on` does nothing. */
 export function useRealtime(): ShellRealtime {
-	const socket = getSocketInstance();
+	const socket = getCurrentInstance() ? getSocketInstance() : undefined;
 	return { on: (event, handler) => subscribe(socket, event, handler) };
 }
 
