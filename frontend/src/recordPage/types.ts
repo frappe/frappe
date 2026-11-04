@@ -127,9 +127,11 @@ export interface FeedItem extends SurfaceItem {
   timestamp: string;
   component: Component;
   props?: Record<string, any>;
+  /** `lucide-<name>`, drawn in the Activity gutter; the Files list ignores it. */
+  icon?: string;
 }
 
-export const FEED_ITEM_KEYS: readonly string[] = ["name", "timestamp", "component", "props"];
+export const FEED_ITEM_KEYS: readonly string[] = ["name", "timestamp", "component", "props", "icon"];
 
 /** One row the Activity tab has loaded, as the activity store holds it. */
 export type ActivityRow = BaseActivity<string, unknown>;

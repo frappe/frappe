@@ -202,6 +202,21 @@ describe("the list a script reads", () => {
 });
 
 describe("what a script adds and removes", () => {
+  it("keeps the icon a row names, for the gutter", () => {
+    const { page } = makePage();
+
+    page.activity.add({
+      name: "call:17",
+      timestamp: "2026-09-23 10:15:00",
+      component: CallRow,
+      icon: "lucide-phone",
+    });
+
+    expect(page.activity.items.find((row) => row.name === "call:17")).toMatchObject({
+      icon: "lucide-phone",
+    });
+  });
+
   it("drops a row with no component or no timestamp, and says why", () => {
     const { page } = makePage();
 
