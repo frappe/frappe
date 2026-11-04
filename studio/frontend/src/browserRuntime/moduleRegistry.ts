@@ -33,6 +33,7 @@ export class AppModuleRegistry {
 	private factories: Record<string, ModuleFactory> = {}
 	private styles: Record<string, string> = {}
 	private modules = new Map<string, { exports: any }>()
+	private failures: Record<string, CompileError[]> = {}
 	private bare = new Map<string, any>()
 	private prepared: Promise<void> | null = null
 
@@ -43,6 +44,7 @@ export class AppModuleRegistry {
 	/** Load a module by its exact path relative to the app root, such as components/Card.vue. */
 	async loadModule(path: string): Promise<any> {
 		await this.prepare()
+		this.throwIfFailed(path)
 		if (!this.factories[path]) throw new Error(`${path} is not a module in this app.`)
 		return this.load(path)
 	}
@@ -54,6 +56,7 @@ export class AppModuleRegistry {
 		if (this.files[path] === source && this.factories[path]) return
 		this.files[path] = source
 		this.modules.delete(path)
+		delete this.failures[path]
 		await this.compileInto(path, source)
 		applyStyles(this.styles)
 	}
@@ -68,12 +71,12 @@ export class AppModuleRegistry {
 	}
 
 	private async compileAll(): Promise<void> {
-		const errors: CompileError[] = []
+		this.failures = {}
 		for (const [path, source] of Object.entries(this.files)) {
 			if (!isCompiledModule(path)) continue
-			errors.push(...(await this.compileInto(path, source, false)))
+			const errors = await this.compileInto(path, source, false)
+			if (errors.length) this.failures[path] = errors
 		}
-		if (errors.length) throw new AppCompileError(errors)
 		applyStyles(this.styles)
 	}
 
@@ -142,8 +145,14 @@ export class AppModuleRegistry {
 		if (!resolved) throw new Error(`Cannot resolve "${specifier}" from ${from}`)
 		if (resolved.endsWith(".css")) return this.injectCSS(resolved)
 		if (resolved.endsWith(".json") && !this.factories[resolved]) return parseJSONModule(this.files[resolved])
+		this.throwIfFailed(resolved)
 		if (!this.factories[resolved]) throw new Error(`Cannot import "${specifier}" from ${from}: not a module`)
 		return this.load(resolved)
+	}
+
+	/** A file that does not compile fails the modules that import it, not every other page. */
+	private throwIfFailed(path: string) {
+		if (this.failures[path]) throw new AppCompileError(this.failures[path])
 	}
 
 	/** Cache the exports object before execution so cycles can read partially initialized exports. */

@@ -86,6 +86,26 @@ export default function setup(context: any) { return { label: ref(fmt(7) + fmt2(
 		})
 	})
 
+	it("fails only the modules that need a file which does not compile", () => {
+		const sources = {
+			"good.ts": `export const ok = "ok"`,
+			"half-written.ts": `export const oops = (`,
+			"needs-broken.ts": `import { oops } from "./half-written"\nexport const x = oops`,
+		}
+
+		// a half-written file nothing imports must not stop an unrelated page
+		cy.wrap(new AppModuleRegistry(sources).loadModule("good.ts")).then((module: any) => {
+			expect(module.ok).to.equal("ok")
+		})
+
+		cy.wrap(
+			(async () => {
+				await expectCompileError(sources, "half-written.ts", "half-written.ts")
+				await expectCompileError(sources, "needs-broken.ts", "half-written.ts")
+			})(),
+		)
+	})
+
 	it("reads imports from the syntax tree, not from import-like text", () => {
 		const sources = {
 			"a.ts": `import { ref as count } from "vue"
