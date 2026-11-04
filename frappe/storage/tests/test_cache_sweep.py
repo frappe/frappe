@@ -41,16 +41,22 @@ class TestCacheSweep(IntegrationTestCase):
 	def setUp(self):
 		super().setUp()
 		frappe.set_user("Administrator")
-		self.enterContext(patch.dict(frappe.conf, {"storage_local_cache": 1}))
+		self.enterContext(
+			patch.dict(
+				frappe.conf,
+				{
+					"storage_local_cache": 1,
+					"storage_local_cache_config": {
+						"max_file_size_mb": 100,
+						"keep_minutes": 300,
+						"grace_minutes": 60,
+					},
+				},
+			)
+		)
 		self.enterContext(
 			hook_value("storage_drivers", {"remote": "frappe.storage.tests.test_cache.RemoteDriver"})
 		)
-		for fieldname, value in (
-			("max_cached_file_size", 100),
-			("cache_keep_minutes", 300),
-			("cache_grace_minutes", 60),
-		):
-			frappe.db.set_single_value("System Settings", fieldname, value)
 		self.blobs = []
 
 	def tearDown(self):

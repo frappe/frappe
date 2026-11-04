@@ -83,9 +83,6 @@
   "files_section",
   "max_file_size",
   "max_zip_extract_size",
-  "max_cached_file_size",
-  "cache_keep_minutes",
-  "cache_grace_minutes",
   "allow_guests_to_upload_files",
   "force_web_capture_mode_for_uploads",
   "strip_exif_metadata_from_uploaded_images",
@@ -906,36 +903,12 @@
   {
    "fieldname": "frappectl_help",
    "fieldtype": "HTML"
-  },
-  {
-   "default": "100",
-   "description": "Files larger than this are not cached on the server's disk when the local cache is on.",
-   "fieldname": "max_cached_file_size",
-   "fieldtype": "Int",
-   "label": "Max Cached File Size (MB)",
-   "non_negative": 1
-  },
-  {
-   "default": "300",
-   "description": "After this time a cached file moves to a holding folder, where the next request brings it back.",
-   "fieldname": "cache_keep_minutes",
-   "fieldtype": "Int",
-   "label": "Keep Cached Files For (Minutes)",
-   "non_negative": 1
-  },
-  {
-   "default": "60",
-   "description": "A file that no request restores in this time is deleted from the server's disk.",
-   "fieldname": "cache_grace_minutes",
-   "fieldtype": "Int",
-   "label": "Keep Expired Cached Files For (Minutes)",
-   "non_negative": 1
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2026-11-04 12:10:07.871144",
+ "modified": "2026-11-04 11:19:08.065028",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

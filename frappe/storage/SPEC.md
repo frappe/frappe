@@ -332,12 +332,25 @@ its URL path, so nginx serves it with no Python. A private copy goes
 through the serve route and X-Accel, like a local private blob.
 `frappe/storage/cache.py` owns it.
 
+The cache uses the server's disk, so the server's operator sets its limits
+in site config, not a System Manager in System Settings. A missing key
+takes its default:
+
+```json
+"storage_local_cache": 1,
+"storage_local_cache_config": {
+	"max_file_size_mb": 100,
+	"keep_minutes": 300,
+	"grace_minutes": 60
+}
+```
+
 - `stream_blob` serves a cached blob from disk, before it tries the native
   URL. It uses X-Accel or `send_file`, like a local blob.
 - On a miss, `stream_blob` queues `cache_blob` on the `long` queue, one job
   per blob (`storage_cache::<blob>`), when the blob is no larger than
-  System Settings `max_cached_file_size` (MB, default 100, 0 caches
-  nothing). A larger blob is never cached.
+  `max_file_size_mb` (default 100, 0 caches nothing). A larger blob is
+  never cached.
 - `cache_blob` streams the object into a `.part` file, checks the size
   against `file_size`, then renames it. A failed download leaves no cache
   file, and the next request queues a new job.
@@ -347,8 +360,8 @@ through the serve route and X-Accel, like a local private blob.
   blob that GC deletes during the download leaves no file behind.
 - A private copy lives in `private/files`, so a backup with files holds it.
 
-Expiry. A cached copy lives `cache_keep_minutes` (default 300), then waits
-`cache_grace_minutes` (default 60) in a holding folder. The file's mtime is
+Expiry. A cached copy lives `keep_minutes` (default 300), then waits
+`grace_minutes` (default 60) in a holding folder. The file's mtime is
 the clock, and its place is the state, so no database row changes.
 
 ```

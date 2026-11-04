@@ -29,6 +29,7 @@ DELETE_LOCK_TIMEOUT = 30
 SWEEP_LOCK_TIMEOUT = 1
 SWEEP_LOCK = "storage_cache_sweep"
 NAME_BATCH_SIZE = 1000
+LOCAL_CACHE_DEFAULTS = {"max_file_size_mb": 100, "keep_minutes": 300, "grace_minutes": 60}
 
 
 def get_holding_dir() -> str:
@@ -62,9 +63,15 @@ def is_cacheable(blob: "FileBlob") -> bool:
 	return is_cache_enabled(blob) and int(blob.file_size or 0) <= get_max_cached_file_size()
 
 
+def get_cache_setting(name: str) -> int:
+	"""A ``storage_local_cache_config`` value from site config, else its default."""
+	config = frappe.conf.storage_local_cache_config or {}
+	return cint(config.get(name, LOCAL_CACHE_DEFAULTS[name]))
+
+
 def get_max_cached_file_size() -> int:
-	"""Largest blob to cache, in bytes, from System Settings. 0 caches nothing."""
-	return cint(frappe.get_system_settings("max_cached_file_size")) * 1024 * 1024
+	"""Largest blob to cache, in bytes. 0 caches nothing."""
+	return get_cache_setting("max_file_size_mb") * 1024 * 1024
 
 
 def get_cache_key(blob: "FileBlob") -> str:
@@ -168,7 +175,7 @@ def delete_cached(blob: "FileBlob") -> None:
 
 
 def sweep_cache() -> dict:
-	"""Hold cached copies older than ``cache_keep_minutes``, then delete held copies older than ``cache_grace_minutes``.
+	"""Hold cached copies older than ``keep_minutes``, then delete held copies older than ``grace_minutes``.
 
 	A copy leaves ``public/files`` when it is held, so a request for it reaches Python and restores it.
 	Skips the run while a relocation holds the lock. The lock comes before any database read, so the
@@ -176,8 +183,8 @@ def sweep_cache() -> dict:
 	try:
 		with sweep_lock(SWEEP_LOCK_TIMEOUT):
 			now = time.time()
-			keep = cint(frappe.get_system_settings("cache_keep_minutes")) * 60
-			grace = cint(frappe.get_system_settings("cache_grace_minutes")) * 60
+			keep = get_cache_setting("keep_minutes") * 60
+			grace = get_cache_setting("grace_minutes") * 60
 			held = sum(hold_copy(blob, now - keep) for blob in get_cached_copies())
 			return {"held": held, "deleted": delete_held_copies(now - grace)}
 	except LockTimeoutError:

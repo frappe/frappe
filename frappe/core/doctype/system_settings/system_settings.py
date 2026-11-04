@@ -36,8 +36,6 @@ class SystemSettings(Document):
 		backup_limit: DF.Int
 		bypass_2fa_for_retricted_ip_users: DF.Check
 		bypass_restrict_ip_check_if_2fa_enabled: DF.Check
-		cache_grace_minutes: DF.Int
-		cache_keep_minutes: DF.Int
 		country: DF.Link | None
 		currency: DF.Link | None
 		currency_precision: DF.Literal["", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
@@ -82,7 +80,6 @@ class SystemSettings(Document):
 		login_with_email_link_expiry: DF.Int
 		logout_on_password_reset: DF.Check
 		max_auto_email_report_per_user: DF.Int
-		max_cached_file_size: DF.Int
 		max_file_size: DF.Int
 		max_report_rows: DF.Int
 		max_signups_allowed_per_hour: DF.Int

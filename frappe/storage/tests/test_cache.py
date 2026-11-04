@@ -6,7 +6,13 @@ from unittest.mock import patch
 
 import frappe
 from frappe.storage.blob import put_blob
-from frappe.storage.cache import cache_blob, delete_cached, get_cache_path, get_cached_path
+from frappe.storage.cache import (
+	cache_blob,
+	delete_cached,
+	get_cache_path,
+	get_cached_path,
+	get_max_cached_file_size,
+)
 from frappe.storage.gc import MIN_AGE_HOURS, collect_garbage
 from frappe.storage.local_driver import LocalDriver
 from frappe.storage.memory_driver import MemoryDriver
@@ -14,6 +20,10 @@ from frappe.storage.serve import stream_blob
 from frappe.storage.tests import storage_v2, unique_bytes, use_driver
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_to_date, set_request
+
+
+def max_file_size_mb(limit_mb: int):
+	return patch.dict(frappe.conf, {"storage_local_cache_config": {"max_file_size_mb": limit_mb}})
 
 
 class RemoteDriver(MemoryDriver):
@@ -32,8 +42,12 @@ class TestBlobCache(IntegrationTestCase):
 	def setUp(self):
 		super().setUp()
 		frappe.set_user("Administrator")
-		self.enterContext(patch.dict(frappe.conf, {"storage_local_cache": 1}))
-		frappe.db.set_single_value("System Settings", "max_cached_file_size", 100)
+		self.enterContext(
+			patch.dict(
+				frappe.conf,
+				{"storage_local_cache": 1, "storage_local_cache_config": {"max_file_size_mb": 100}},
+			)
+		)
 		self.blobs = []
 
 	def tearDown(self):
@@ -140,16 +154,18 @@ class TestBlobCache(IntegrationTestCase):
 			cases = ((1, True), (0, False))
 			for limit_mb, queued in cases:
 				with self.subTest(limit_mb=limit_mb):
-					frappe.db.set_single_value("System Settings", "max_cached_file_size", limit_mb)
-					with patch("frappe.enqueue") as enqueue:
+					with max_file_size_mb(limit_mb), patch("frappe.enqueue") as enqueue:
 						self.assertEqual(self.stream(blob).status_code, 302)
 					self.assertEqual(enqueue.called, queued)
 
-			frappe.db.set_single_value("System Settings", "max_cached_file_size", 2)
 			big = self.put_blob(b"x" * (2 * 1024 * 1024 + 1), filename="big.bin")
-			with patch("frappe.enqueue") as enqueue:
+			with max_file_size_mb(2), patch("frappe.enqueue") as enqueue:
 				self.stream(big)
 			enqueue.assert_not_called()
+
+	def test_settings_without_site_config_take_their_defaults(self):
+		with patch.dict(frappe.conf, {"storage_local_cache_config": None}):
+			self.assertEqual(get_max_cached_file_size(), 100 * 1024 * 1024)
 
 	def test_file_blob_reports_whether_its_bytes_are_on_disk(self):
 		with storage_v2():
@@ -177,8 +193,7 @@ class TestBlobCache(IntegrationTestCase):
 			)
 			for conf, limit_mb, cache_control in cases:
 				with self.subTest(conf=conf, limit_mb=limit_mb):
-					frappe.db.set_single_value("System Settings", "max_cached_file_size", limit_mb)
-					with patch.dict(frappe.conf, conf), patch("frappe.enqueue"):
+					with patch.dict(frappe.conf, conf), max_file_size_mb(limit_mb), patch("frappe.enqueue"):
 						response = self.stream(blob)
 					self.assertEqual(response.headers["Cache-Control"], cache_control)
 
