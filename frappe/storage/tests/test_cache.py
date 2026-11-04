@@ -8,6 +8,7 @@ import frappe
 from frappe.storage.blob import put_blob
 from frappe.storage.cache import cache_blob, delete_cached, get_cache_path, get_cached_path
 from frappe.storage.gc import MIN_AGE_HOURS, collect_garbage
+from frappe.storage.local_driver import LocalDriver
 from frappe.storage.memory_driver import MemoryDriver
 from frappe.storage.serve import stream_blob
 from frappe.storage.tests import storage_v2, unique_bytes, use_driver
@@ -136,6 +137,22 @@ class TestBlobCache(IntegrationTestCase):
 			with patch("frappe.enqueue") as enqueue:
 				self.stream(big)
 			enqueue.assert_not_called()
+
+	def test_file_blob_reports_whether_its_bytes_are_on_disk(self):
+		with storage_v2():
+			with use_driver(RemoteDriver()):
+				remote = self.put_blob(filename="a.bin")
+				self.assertFalse(remote.is_on_disk)
+				cache_blob(remote.name)
+				self.assertTrue(remote.is_on_disk)
+				delete_cached(remote)
+				self.assertFalse(remote.is_on_disk)
+
+			with use_driver(LocalDriver()):
+				self.assertTrue(self.put_blob(filename="a.bin").is_on_disk)
+
+			with frappe.storage.fake():
+				self.assertFalse(self.put_blob().is_on_disk)
 
 	def test_a_job_for_a_deleted_blob_does_nothing(self):
 		cache_blob("missing-blob")
