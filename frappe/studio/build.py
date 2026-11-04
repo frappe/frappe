@@ -124,11 +124,11 @@ class StudioAppBuilder:
 			try:
 				# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
 				with open(json_path) as f:
-					page_name = json.load(f).get("page_name")
+					page_data = json.load(f)
 			except (OSError, json.JSONDecodeError):
 				continue
-			if page_name:
-				scripts.append({"page_name": page_name, "file_path": ts_path})
+			if page_data.get("published") and page_data.get("page_name"):
+				scripts.append({"page_name": page_data["page_name"], "file_path": ts_path})
 
 		self.page_scripts = scripts
 		return scripts
@@ -240,11 +240,15 @@ class StudioAppBuilder:
 				with open(page_path) as f:
 					page_text = f.read()
 				page_data = json.loads(page_text)
-				self._add_icons(page_text)
-				self._add_h_function_components(page_text)
 			except (json.JSONDecodeError, OSError) as e:
 				click.secho(f"Warning: Could not read {page_path}: {e}", fg="yellow")
 				continue
+
+			if not page_data.get("published"):
+				continue
+
+			self._add_icons(page_text)
+			self._add_h_function_components(page_text)
 
 			blocks = page_data.get("blocks")
 			if not blocks:

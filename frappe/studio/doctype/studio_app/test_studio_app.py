@@ -417,6 +417,24 @@ class TestStudioAppBuilder(FrappeTestCase):
 			self.assertIn("Alert", builder.components)
 			self.assertIn("Badge", builder.components)
 
+	def test_ignores_unpublished_exported_pages(self):
+		app_name = "draft-page-app"
+		pages = {
+			"live": {"blocks": [{"componentName": "Button", "children": []}]},
+			"draft": {
+				"published": 0,
+				"blocks": [{"componentName": "PosHeader", "isCustomVueComponent": True, "children": []}],
+			},
+		}
+
+		with mock_studio_app_files(app_name, pages=pages) as studio_folder:
+			builder = StudioAppBuilder(app_name, is_standard=True, frappe_app="frappe")
+			with patch("frappe.studio.utils.get_studio_folder", return_value=studio_folder):
+				builder.get_app_components_from_files()
+
+		self.assertEqual(builder.components, {"Button"})
+		self.assertEqual(builder.missing_components, set())
+
 	def test_build_stops_when_a_custom_component_is_missing(self):
 		"""Building it anyway emits an unknown element, which renders blank with a clean console."""
 		app_name = "missing-comp-app"
@@ -861,7 +879,7 @@ def mock_studio_app_files(app_name, pages=None, components=None, router=None):
 				page_dir = os.path.join(page_folder, page_name)
 				os.makedirs(page_dir, exist_ok=True)
 				with open(os.path.join(page_dir, f"{page_name}.json"), "w") as f:
-					json.dump(page_data, f)
+					json.dump({"published": 1, **page_data}, f)
 
 		if components:
 			comp_folder = os.path.join(app_folder, "studio_components")
