@@ -917,12 +917,13 @@ frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 		self.addCleanup(frappe.db.commit)
 		script = self.make_file_script(
 			"test_file_api",
-			"frappe.flags = 'hello from file'\n",
+			"frappe.response['message'] = 'hello from file'\n",
 			script_type="API",
 			api_method="test_file_api",
 			allow_guest=1,
 		)
-		self.assertEqual(script.execute_method(), "hello from file")
+		script.execute_method()
+		self.assertEqual(frappe.response.pop("message"), "hello from file")
 		frappe.db.commit()
 
 		response = requests.post(get_site_url(frappe.local.site) + "/api/method/test_file_api")
@@ -933,7 +934,7 @@ frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 		self.addCleanup(frappe.db.commit)
 		script = self.make_file_script(
 			"test_file_api_private",
-			"frappe.flags = 'private'\n",
+			"frappe.response['message'] = 'private'\n",
 			script_type="API",
 			api_method="test_file_api_private",
 			allow_guest=0,
@@ -951,7 +952,7 @@ frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 		self.addCleanup(frappe.db.commit)
 		script = self.make_file_script(
 			"test_file_rate_limited",
-			"frappe.flags = 'ok'\n",
+			"frappe.response['message'] = 'ok'\n",
 			script_type="API",
 			api_method="test_file_rate_limited",
 			allow_guest=1,
@@ -1078,7 +1079,9 @@ frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 			reference_doctype="ToDo",
 			doctype_event="Before Insert",
 		)
-		self.assertRaises(AttributeError, frappe.get_doc(doctype="ToDo", description="commit me").insert)
+		with self.assertWarns(Warning):
+			frappe.get_doc(doctype="ToDo", description="commit me").insert()
+		self.assertFalse(frappe.db._disable_transaction_control)
 
 	def test_disabled_file_script_is_never_dispatched(self):
 		import os
@@ -1136,35 +1139,85 @@ frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 					run(script)
 
 	def test_file_script_reads_environment_variables(self):
+		from frappe.utils.safe_exec import UnavailableEnv
+
 		script = self.make_file_script(
 			"test_file_env",
-			"frappe.flags = frappe.env.API_TOKEN\n",
+			"frappe.response['message'] = frappe.env.API_TOKEN\n",
 			script_type="API",
 			api_method="test_file_env",
 			variables=[{"key": "API_TOKEN", "value": "s3cr3t"}],
 		)
 
 		with self.set_user("test@example.com"):
-			self.assertEqual(frappe.get_doc("Server Script", script.name).execute_method(), "s3cr3t")
+			frappe.get_doc("Server Script", script.name).execute_method()
+		self.assertEqual(frappe.response.pop("message"), "s3cr3t")
+		self.assertIsInstance(frappe.local.server_script_env, UnavailableEnv)
 
-		self.write_file_script(script, "frappe.flags = frappe.env.MISSING\n")
+		self.write_file_script(script, "frappe.response['message'] = frappe.env.MISSING\n")
 		with self.set_user("test@example.com"):
 			self.assertRaisesRegex(frappe.ValidationError, "MISSING", script.execute_method)
 
-	def test_file_script_cannot_read_variable_values_directly(self):
-		owner = self.make_file_script(
-			"test_file_env_owner",
-			"pass\n",
+	def test_file_script_runs_plain_python(self):
+		self.make_file_script(
+			"test_file_plain_python",
+			"import json\n"
+			"from frappe.utils import cint\n"
+			"\n"
+			"def as_json(value):\n"
+			"    return json.dumps({'total': cint(value)})\n"
+			"\n"
+			"frappe.response['message'] = as_json('41') + frappe.local.site\n",
 			script_type="API",
-			api_method="test_file_env_owner",
-			variables=[{"key": "API_TOKEN", "value": "s3cr3t"}],
+			api_method="test_file_plain_python",
+		).execute_method()
+
+		self.assertEqual(frappe.response.pop("message"), '{"total": 41}' + frappe.local.site)
+
+	def test_file_script_cannot_replace_request_flags(self):
+		request_flags = vars(frappe)["flags"]
+		script = self.make_file_script(
+			"test_file_replaces_flags",
+			"frappe.flags = {'result': 'old style'}\n",
+			script_type="API",
+			api_method="test_file_replaces_flags",
 		)
-		reader = self.make_file_script(
-			"test_file_env_reader",
-			f'frappe.flags = frappe.get_doc("Server Script Variable", "{owner.variables[0].name}").get_password("value")\n',
-			script_type="API",
-			api_method="test_file_env_reader",
+
+		self.assertRaisesRegex(frappe.ValidationError, "frappe.flags", script.execute_method)
+
+		self.assertIs(vars(frappe)["flags"], request_flags)
+		self.assertTrue(frappe.flags.in_test)
+
+	def test_file_script_can_write_with_sql(self):
+		todo = frappe.get_doc(doctype="ToDo", description="before").insert()
+		script = self.make_file_script(
+			"test_file_sql_write",
+			"frappe.db.sql('update `tabToDo` set description = %s where name = %s', ('after', doc.name))\n",
+			script_type="Workflow Task",
+		)
+
+		script.execute_workflow_task(todo)
+
+		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "description"), "after")
+
+	def test_only_administrator_changes_file_script_triggers(self):
+		user = frappe.get_doc("User", "test@example.com")
+		user.add_roles("Script Manager")
+		self.addCleanup(user.remove_roles, "Script Manager")
+		script = self.make_file_script(
+			"test_file_triggers", "pass\n", script_type="API", api_method="test_file_triggers"
 		)
 
 		with self.set_user("test@example.com"):
-			self.assertRaises(frappe.PermissionError, reader.execute_method)
+			script = frappe.get_doc("Server Script", script.name)
+			script.allow_guest = 1
+			self.assertRaisesRegex(frappe.PermissionError, "Allow Guest", script.save)
+
+			script.reload()
+			script.disabled = 1
+			script.save()
+
+		script.reload()
+		script.allow_guest = 1
+		script.save()
+		self.assertEqual(frappe.db.get_value("Server Script", script.name, "allow_guest"), 1)

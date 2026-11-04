@@ -1,6 +1,7 @@
 # Copyright (c) 2019, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
+import builtins
 import keyword
 import os
 import re
@@ -22,11 +23,11 @@ from frappe.utils.safe_exec import (
 	UNSAFE_ATTRIBUTES,
 	FrappeTransformer,
 	ServerScriptNotEnabled,
+	UnavailableEnv,
 	get_keys_for_autocomplete,
 	get_safe_globals,
 	is_safe_exec_enabled,
 	safe_exec,
-	safe_exec_flags,
 )
 
 if TYPE_CHECKING:
@@ -36,6 +37,19 @@ if TYPE_CHECKING:
 VARIABLE_KEY_PATTERN = re.compile(r"[A-Za-z][A-Za-z0-9_]*")
 
 _compiled_file_cache: dict[str, tuple[int, object]] = {}
+
+FILE_SCRIPT_TRIGGER_FIELDS = (
+	"script_type",
+	"reference_doctype",
+	"doctype_event",
+	"api_method",
+	"allow_guest",
+	"event_frequency",
+	"cron_format",
+	"enable_rate_limit",
+	"rate_limit_count",
+	"rate_limit_seconds",
+)
 
 
 class ServerScript(Document):
@@ -110,6 +124,7 @@ class ServerScript(Document):
 	def validate(self):
 		frappe.only_for("Script Manager", True)
 		self.validate_script_source_change()
+		self.validate_file_script_triggers()
 		self.validate_variables()
 		if self.script_source == "File":
 			self.get_file_path()
@@ -125,6 +140,18 @@ class ServerScript(Document):
 		path = self.get_file_path()
 		if os.path.exists(path):
 			os.remove(path)
+
+	def validate_file_script_triggers(self):
+		"""File code runs unrestricted, so only Administrator changes what runs it and who can."""
+		if self.script_source != "File" or self.is_new() or frappe.session.user == "Administrator":
+			return
+		if changed := [field for field in FILE_SCRIPT_TRIGGER_FIELDS if self.has_value_changed(field)]:
+			frappe.throw(
+				_("Only Administrator can change {0} of a File script").format(
+					", ".join(_(self.meta.get_label(field)) for field in changed)
+				),
+				frappe.PermissionError,
+			)
 
 	def validate_script_source_change(self):
 		"""File is one-way: Database -> File moves the body to disk, never back."""
@@ -216,7 +243,10 @@ class ServerScript(Document):
 		return code
 
 	def run_script(self, _locals: dict | None = None, restrict_commit_rollback: bool = False):
-		"""Run the body from the DB (restricted) or from its file (raw exec)."""
+		"""Run the body from the DB (restricted) or from its file (plain Python, real `frappe`).
+
+		File scripts share one namespace, so imports and helper functions work; results are
+		read back into `_locals`. `frappe.env` holds the variables while the script runs."""
 		env = ServerScriptEnv(self.variables)
 		if self.script_source != "File":
 			# nosemgrep: frappe-codeinjection-eval
@@ -229,14 +259,27 @@ class ServerScript(Document):
 			)
 		if not is_safe_exec_enabled():
 			frappe.throw(_("Server Scripts are disabled."), ServerScriptNotEnabled)
-		exec_globals = get_safe_globals()
-		exec_globals.frappe.env = env
-		if restrict_commit_rollback:
-			for name in ("commit", "rollback", "add_index"):
-				exec_globals.frappe.db.pop(name, None)
-		with safe_exec_flags():
-			exec(self.get_compiled_file_code(), exec_globals, _locals)
-		return exec_globals, _locals
+		namespace = {"__builtins__": builtins, "frappe": frappe, "_": _, **(_locals or {})}
+		previous_env = getattr(frappe.local, "server_script_env", UnavailableEnv())
+		request_flags = vars(frappe)["flags"]
+		frappe.local.server_script_env = env
+		frappe.db._disable_transaction_control += int(restrict_commit_rollback)
+		try:
+			exec(self.get_compiled_file_code(), namespace)
+		finally:
+			frappe.db._disable_transaction_control -= int(restrict_commit_rollback)
+			frappe.local.server_script_env = previous_env
+			replaced_flags = vars(frappe)["flags"] is not request_flags
+			frappe.flags = request_flags
+		if replaced_flags:
+			frappe.throw(
+				_("File Server Scripts cannot replace frappe.flags. Return API results with {0}.").format(
+					"<code>frappe.response['message']</code>"
+				)
+			)
+		if _locals is not None:
+			_locals.update({key: namespace[key] for key in _locals})
+		return namespace, _locals
 
 	def get_file_stub_content(self) -> str:
 		trigger = {
@@ -457,6 +500,9 @@ def execute_api_server_script(script: ServerScript, *args, **kwargs):
 	# output can be stored in flags
 	_globals, _locals = script.run_script()
 
+	if script.script_source == "File":
+		# the real frappe.flags belongs to the request; File scripts answer via frappe.response
+		return {}
 	return _globals.frappe.flags
 
 
