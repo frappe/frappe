@@ -319,6 +319,7 @@ frappe.patches.v17_0.free_app_names_from_site_flow_triggers
 frappe.patches.v17_0.make_flow_memories_of_non_managers_personal
 frappe.patches.v17_0.flow_session_approval_mode
 frappe.patches.v15_0.set_snapshot_report_frequency_to_weekly
+frappe.patches.v17_0.flow_server_session_approval_mode
 
 
 [post_fixture_sync]
