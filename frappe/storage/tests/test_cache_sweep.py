@@ -185,3 +185,16 @@ class TestCacheSweep(IntegrationTestCase):
 			self.assertTrue(restored)
 			self.assertTrue(os.path.isfile(get_cache_path(blob)))
 			self.assertFalse(os.path.exists(os.path.dirname(get_holding_path(blob))))
+
+	def test_a_site_without_caching_blobs_never_scans_its_files(self):
+		drivers = {
+			"local": "frappe.storage.local_driver.LocalDriver",
+			"remote": "frappe.storage.tests.test_cache.RemoteDriver",
+		}
+		files_dirs = {LocalDriver().get_files_dir(is_private) for is_private in (False, True)}
+		with (
+			patch("frappe.storage.cache.get_driver_classes", return_value=drivers),
+			patch("os.scandir", wraps=os.scandir) as scandir,
+		):
+			sweep_cache()
+		self.assertFalse(files_dirs & {call.args[0] for call in scandir.call_args_list})

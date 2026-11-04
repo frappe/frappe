@@ -187,11 +187,14 @@ def sweep_cache() -> dict:
 def get_cached_copies() -> Iterator[frappe._dict]:
 	"""File Blob rows of caching drivers that have a folder in the files folders.
 
-	A local blob has the same path shape as a cached copy, so the row's driver tells them apart."""
+	A local blob has the same path shape as a cached copy, so the row's driver tells them apart.
+	A site with no blob on a caching driver never scans its files folders."""
 	drivers = [name for name, path in get_driver_classes().items() if frappe.get_attr(path).cache_locally]
+	if not (drivers and frappe.db.exists("File Blob", {"driver": ("in", drivers)})):
+		return
 	for is_private in (0, 1):
 		files_dir = LocalDriver().get_files_dir(bool(is_private))
-		if not (drivers and os.path.isdir(files_dir)):
+		if not os.path.isdir(files_dir):
 			continue
 		names = [entry.name for entry in os.scandir(files_dir) if entry.is_dir(follow_symlinks=False)]
 		for start in range(0, len(names), NAME_BATCH_SIZE):

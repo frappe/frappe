@@ -58,7 +58,8 @@
    "in_standard_filter": 1,
    "label": "Driver",
    "read_only": 1,
-   "reqd": 1
+   "reqd": 1,
+   "search_index": 1
   },
   {
    "default": "0",
@@ -90,7 +91,7 @@
  ],
  "in_create": 1,
  "links": [],
- "modified": "2026-11-04 12:48:04.244741",
+ "modified": "2026-11-05 00:13:25.108286",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "File Blob",
