@@ -998,9 +998,11 @@ class User(Document):
 		login_with_username = cint(frappe.get_system_settings("allow_login_using_user_name"))
 
 		user_table = DocType("User")
-		conditions = [(user_table.email == user_name.strip().lower()) & user_table.name.notin(STANDARD_USERS)]
+		user_name = user_name.strip()
+		normalized_user_name = user_name.lower()
+		conditions = [(user_table.email == normalized_user_name) & user_table.name.notin(STANDARD_USERS)]
 
-		if user_name.lower() == "administrator":
+		if normalized_user_name == "administrator":
 			conditions.append(user_table.name == "Administrator")
 		if login_with_mobile:
 			conditions.append(user_table.mobile_no == user_name)
