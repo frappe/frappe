@@ -156,14 +156,19 @@ const ResultView = {
 }
 
 test("an opened tool row shows its output, or a host's views of its arguments and result", async (t) => {
-	// no host: the call's display segments, and its output once opened
-	const bash = { call: { id: "bash", name: "bash", arguments: { command: "pwd" },
-		display: [{ text: "Running " }, { text: "pwd", arg: "command" }],
-	}, result: { content: "/project" } }
+	// no host: the call's display segments; a command opens to itself once streamed in, then to its output
+	const bash = reactive({ call: { id: "bash", name: "bash", arguments: { command: "pwd", description: "Print the folder" },
+		display: [{ text: "Running command · " }, { text: "Print the folder", arg: "description" }],
+	}, result: null, streaming: true })
 	const { el } = mount(t, ToolGroup, { steps: [bash] }, { state: {} })
-	assert.ok(el.textContent.includes("Running pwd"))
-	assert.equal(el.querySelector("pre"), null)
+	assert.ok(el.textContent.includes("Running command · Print the folder"))
+	assert.equal(el.querySelector("button"), null)
+	bash.streaming = false
+	await nextTick()
 	el.querySelector("button").click()
+	await nextTick()
+	assert.equal(el.querySelector("pre").textContent, "$ pwd")
+	bash.result = { content: "/project" }
 	await nextTick()
 	assert.equal(el.querySelector("pre").textContent, "/project")
 	assert.equal(el.querySelector("[data-test=args]"), null)

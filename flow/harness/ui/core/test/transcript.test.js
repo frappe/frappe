@@ -341,7 +341,9 @@ test("streamed thought, text, and tool call keep their order and keys until the 
 		arguments: { command: "ls" },
 	})
 	assert.deepEqual(conversation.partial.map((block) => block.type), ["thinking", "text", "tool_call"])
-	assert.deepEqual(buildItems(conversation).map((item) => item.kind), ["user", "thinking", "text", "group"])
+	const streamedItems = buildItems(conversation)
+	assert.deepEqual(streamedItems.map((item) => item.kind), ["user", "thinking", "text", "group"])
+	assert.equal(streamedItems[3].steps[0].streaming, true)
 
 	applyEvent(conversation, {
 		type: "assistant_message",
@@ -358,6 +360,7 @@ test("streamed thought, text, and tool call keep their order and keys until the 
 	const durableItems = buildItems(conversation)
 	assert.deepEqual(durableItems.map((item) => item.kind), ["user", "thinking", "text", "group"])
 	assert.equal(durableItems[3].key, "g:call-1")
+	assert.equal(durableItems[3].steps[0].streaming, false)
 
 	// a later text keeps its own key from the streamed preview to the durable message
 	applyEvent(conversation, { type: "tool_result", seq: 3, tool_call_id: "call-1", content: "a.js" })

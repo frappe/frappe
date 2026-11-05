@@ -696,6 +696,8 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 					call: block,
 					result: null,
 					aborted: !provisional && entry.stop_reason === "aborted",
+					// a streamed call's arguments are its short strings so far, each cut at 512 characters
+					streaming: provisional,
 					// a subagent call's child, once its first event has landed
 					subagent: block.name === "subagent" ? conversation.subagents?.[subagentId(block)] ?? null : null,
 				}
