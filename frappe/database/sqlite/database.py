@@ -5,6 +5,7 @@ from contextlib import contextmanager
 from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
+from uuid import UUID
 from zoneinfo import ZoneInfo
 
 import sqlglot
@@ -175,6 +176,7 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		sqlite3.register_converter("timestamp", lambda x: datetime.fromisoformat(x.decode()))
 		sqlite3.register_converter("date", convert_sqlite_date)
 		sqlite3.register_converter("time", convert_sqlite_time)
+		sqlite3.register_adapter(UUID, str)
 		if read_only:
 			return sqlite3.connect(
 				f"file:{db_path}?mode=ro",

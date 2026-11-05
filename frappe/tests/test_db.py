@@ -33,6 +33,13 @@ class TestDB(IntegrationTestCase):
 	def test_sqlite_busy_timeout_allows_short_writer_contention(self):
 		self.assertEqual(frappe.db.sql("PRAGMA busy_timeout")[0][0], 15_000)
 
+	@run_only_if(db_type_is.SQLITE)
+	def test_sqlite_binds_uuid_values(self):
+		from uuid import uuid4
+
+		value = uuid4()
+		self.assertEqual(frappe.db.sql("select %s", (value,))[0][0], str(value))
+
 	@run_only_if(db_type_is.MARIADB)
 	def test_get_column_type(self):
 		desc_data = frappe.db.sql("desc `tabUser`", as_dict=1)
