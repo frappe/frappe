@@ -60,6 +60,8 @@ class NumberCard(Document):
 			self.name = append_number_if_name_exists("Number Card", self.name)
 
 	def validate(self):
+		if not frappe.conf.developer_mode and self.is_standard:
+			frappe.throw(_("Cannot edit Standard Number Cards"))
 		if self.type == "Document Type":
 			if not (self.document_type and self.function):
 				frappe.throw(_("Document Type and Function are required to create a number card"))
