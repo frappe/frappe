@@ -126,13 +126,6 @@
 						:disabled="connecting"
 						@click="emit('manual', email)"
 					/>
-					<p class="text-center text-p-sm text-ink-gray-6">
-						{{
-							__(
-								"Uses an app password from your Google Account instead of signing in."
-							)
-						}}
-					</p>
 				</template>
 				<template v-else-if="kind === 'company'">
 					<Button
@@ -141,13 +134,6 @@
 						:label="__('Set up manually')"
 						@click="emit('manual', email)"
 					/>
-					<p class="text-center text-p-sm text-ink-gray-6">
-						{{
-							__(
-								"Uses an app password from your Google Account instead of signing in."
-							)
-						}}
-					</p>
 				</template>
 				<template v-else>
 					<Button
