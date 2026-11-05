@@ -26,9 +26,14 @@
 	>
 		<div class="flex h-12 flex-none items-center gap-2.5 pl-4 pr-2">
 			<!-- the app's own menu hangs from its name, as in Frappe's other apps: settings and the
-			     way back out live here, not at the foot of the list. The mark and title sit in the
-			     rows' icon and label columns -->
-			<Dropdown :options="appMenu" align="start">
+			     way back out live here, not at the foot of the list. A host with Settings at the foot
+			     (the harness) has the name alone. The mark and title sit in the rows' icon and label
+			     columns -->
+			<div v-if="settingsFooter" class="-ml-1.5 flex h-8 min-w-0 items-center gap-2 pl-1.5 pr-2">
+				<BrandMark line :size="16" class="!text-ink-gray-8" />
+				<span class="text-base-semibold text-ink-gray-9">Flow</span>
+			</div>
+			<Dropdown v-else :options="appMenu" align="start">
 				<template #trigger>
 					<button
 						class="-ml-1.5 flex h-8 min-w-0 items-center gap-2 rounded-5 pl-1.5 pr-2 hover:bg-surface-gray-3 data-[state=open]:bg-surface-gray-3"
@@ -486,7 +491,8 @@ function crawlTitle(event) {
 	crawlTimer = setTimeout(() => {
 		const rem = parseFloat(getComputedStyle(document.documentElement).fontSize)
 		const range = title.firstElementChild.offsetWidth - (title.clientWidth - 3 * rem)
-		if (range < 8) return // a few pixels of travel reads as jitter
+		// a title ending before the fade turns clear reads whole: only one running under the ••• crawls
+		if (range <= 1.5 * rem) return
 		title.style.setProperty("--crawl", `${-range}px`)
 		title.style.setProperty("--crawl-time", `${range / CRAWL_PX_PER_S}s`)
 		title.dataset.crawl = ""
