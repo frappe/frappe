@@ -627,6 +627,25 @@ class TestPermissions(IntegrationTestCase):
 		# delete the created doc
 		frappe.delete_doc("Test Blog Post", "_Test Blog Post Title")
 
+	def test_update_permission_property_respects_if_owner(self):
+		# a role can have one rule with and one without "Only If Creator" at the same level
+		update("Test Blog Post", "Blogger", 0, "if_owner", 1)
+		add_permission("Test Blog Post", "Blogger")
+
+		def get_rule(if_owner):
+			return frappe.db.get_value(
+				"Custom DocPerm",
+				dict(parent="Test Blog Post", role="Blogger", permlevel=0, if_owner=if_owner),
+				["name", "write"],
+				as_dict=True,
+			)
+
+		other = get_rule(0)
+		update("Test Blog Post", "Blogger", 0, "write", 1, 1)
+
+		self.assertEqual(get_rule(1).write, 1)
+		self.assertEqual(frappe.db.get_value("Custom DocPerm", other.name, "write"), other.write)
+
 	def test_if_owner_permission_on_getdoc(self):
 		update("Test Blog Post", "Blogger", 0, "if_owner", 1)
 		update("Test Blog Post", "Blogger", 0, "read", 1)
