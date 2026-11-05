@@ -58,8 +58,13 @@ class SessionConfig(BaseModel):
 		suggest_replies: After a run ends, offer the user a few next messages.
 		web_search: The search provider `web_search` queries, with its key.
 		confirm_tools: Extra tools that pause for approval, on top of each tool's own
-			default. `auto_approve` is the only way to switch approval off.
-		auto_approve: Unattended runs (triggers) skip approval.
+			default.
+		approval_mode: What happens at a gate. `ask` pauses for the user; `auto` has
+			`small_model` (else `model`) judge the call against what the user asked for,
+			running it if allowed and pausing with the reason if not; `auto_approve` runs everything,
+			as unattended runs (triggers) do.
+		review_instructions: What the `auto` reviewer should be strict about, in the host's
+			terms; None uses the coding default.
 		skills_enabled: Discover harness-neutral skills for this session.
 		skill_paths: Additional skill files or directories, resolved from `cwd`.
 		auto_compact: Compact near the model's window; recover from overflow once per run.
@@ -102,7 +107,8 @@ class SessionConfig(BaseModel):
 	suggest_replies: bool = False
 	web_search: WebSearchConfig = Field(default_factory=lambda: WebSearchConfig())
 	confirm_tools: list[str] = Field(default_factory=list)
-	auto_approve: bool = False
+	approval_mode: Literal["ask", "auto", "auto_approve"] = "auto"
+	review_instructions: str | None = None
 	skills_enabled: bool = True
 	skill_paths: list[str] = Field(default_factory=list, max_length=32)
 	auto_compact: bool = True

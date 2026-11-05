@@ -2,7 +2,7 @@
 	<SettingsPage title="General" description="Defaults for new chats.">
 		<div class="divide-y divide-outline-gray-1">
 			<SettingsRow title="Approval mode" description="Applies to new chats and the current one.">
-				<Select :model-value="flow.state.prefs.mode" :options="MODES" @update:model-value="flow.setMode($event)" />
+				<Select align="start" :model-value="flow.state.prefs.mode" :options="MODES" class="text-ink-gray-8" @update:model-value="flow.setMode($event)" />
 			</SettingsRow>
 			<SettingsRow title="Helper model" description="Does quick side jobs, like chat titles. A cheaper model saves credits.">
 				<Combobox
@@ -29,11 +29,11 @@
 						@save="saveSearchKey"
 						@cancel="provider = flow.state.prefs.webSearch?.provider ?? 'duckduckgo'"
 					/>
-					<Select :model-value="provider" :options="SEARCH_PROVIDERS" class="w-48" @update:model-value="pickProvider" />
+					<Select align="start" :model-value="provider" :options="SEARCH_PROVIDERS" class="w-48 text-ink-gray-8" @update:model-value="pickProvider" />
 				</div>
 			</SettingsRow>
 			<div class="py-4">
-				<div class="text-base font-medium text-ink-gray-9">Custom instructions</div>
+				<div class="text-base-medium text-ink-gray-9">Custom instructions</div>
 				<p class="mt-1.5 text-sm leading-5 text-ink-gray-6">Added to the prompt of every new chat.</p>
 				<Textarea
 					v-model="draft"

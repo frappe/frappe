@@ -62,7 +62,10 @@ frappe.ui.form.PrintView = class {
 		);
 		this.preview_bar = new frappe.ui.PrintPreviewBar({
 			parent: this.print_wrapper.find(".preview-beta-wrapper"),
-			get_metrics: (doc) => this.get_page_metrics(doc),
+			get_sheet: (doc) => ({
+				sheet: doc.body,
+				breaks: ".print-format > .page-break:not(:last-child)",
+			}),
 		});
 
 		const htmlSkeleton = `
@@ -123,10 +126,12 @@ frappe.ui.form.PrintView = class {
 			options: "Print Format",
 			label: __("Print Format"),
 			get_query: () => {
+				const restricted = frappe.meta.get_restricted_print_formats(this.frm.doctype);
 				return {
 					filters: {
 						doc_type: this.frm.doctype,
 						print_format_for: ["in", ["DocType", ""]],
+						...(restricted.length && { name: ["not in", restricted] }),
 					},
 				};
 			},
@@ -596,29 +601,6 @@ frappe.ui.form.PrintView = class {
 		if (!doc?.body) return;
 		this.preview_bar.attach(iframe);
 		doc.addEventListener("keydown", (e) => this.handle_print_keys(e));
-	}
-
-	get_page_metrics(doc) {
-		const body = doc.body;
-		const body_rect = body.getBoundingClientRect();
-		const scale = body.offsetHeight / (body_rect.height || 1);
-		const bottom_of = (el) => (el.getBoundingClientRect().bottom - body_rect.top) * scale;
-		const height_of = (el) => (el ? el.getBoundingClientRect().height * scale : 0);
-		const header = doc.querySelector(".document-header-content");
-		const repeated = this.print_settings?.repeat_header_footer
-			? (header ? bottom_of(header) - parseFloat(getComputedStyle(body).paddingTop) : 0) +
-			  height_of(doc.querySelector(".document-footer-content"))
-			: 0;
-		return {
-			top: body.offsetTop,
-			width: body.offsetWidth,
-			starts: frappe.ui.PrintPreviewBar.measure_pages({
-				page: body,
-				page_height: parseFloat(getComputedStyle(body).minHeight) || body.offsetHeight,
-				breaks: ".section.page-break, .print-format > .page-break:not(:last-child)",
-				repeated,
-			}),
-		};
 	}
 
 	handle_print_keys(e) {
@@ -1238,7 +1220,8 @@ frappe.ui.form.PrintView = class {
 	set_default_print_format() {
 		const default_format =
 			this.frm._layout_print_format || this.frm.meta.default_print_format || "";
-		this.set_print_format_value(default_format);
+		const restricted = frappe.meta.get_restricted_print_formats(this.frm.doctype);
+		this.set_print_format_value(restricted.includes(default_format) ? "" : default_format);
 	}
 
 	// apps like Print Designer replace setup_sidebar and only provide

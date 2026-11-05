@@ -4,7 +4,7 @@
      a toolbar button instead, the model and approval mode buttons' own
      lists, moved along to stay on the page; `below`, under a header's. -->
 <template>
-	<div class="fixed inset-0 z-10" @click="emit('close')" />
+	<div ref="backdrop" class="fixed inset-0 z-10" @click="emit('close')" />
 	<section
 		ref="panel"
 		:aria-label="title"
@@ -14,15 +14,16 @@
 				? [
 						'flow-dropdown w-[var(--dropdown-width)]',
 						below ? 'top-[calc(100%+4px)]' : 'bottom-[calc(100%+8px)]',
-						align === 'right' ? 'right-0' : 'left-0',
+						beside ? '' : align === 'right' ? 'right-0' : 'left-0',
 					]
 				: 'bottom-[calc(100%+4px)] left-0 w-full'
 		"
 		:style="{
 			maxHeight: `${cap}px`,
 			height: full ? `${cap}px` : undefined,
-			'--dropdown-width': dropdown ? `min(${width}px, 100vw - 16px)` : undefined,
+			'--dropdown-width': dropdown ? `min(${width}px, ${frameWidth ? `${frameWidth - 16}px` : '100vw - 16px'})` : undefined,
 			translate: shift ? `${shift}px` : undefined,
+			[align === 'right' ? 'right' : 'left']: beside ? `${beside}px` : undefined,
 		}"
 		@mousedown="keepFocus"
 		@pointermove="onPointerMove"
@@ -38,7 +39,7 @@
 			>
 				<span class="lucide-arrow-left size-3.5" aria-hidden="true" />
 			</button>
-			<span class="min-w-0 truncate text-base font-medium text-ink-gray-5" :class="back ? '' : 'pl-1'">
+			<span class="min-w-0 truncate text-base-medium text-ink-gray-5" :class="back ? '' : 'pl-1'">
 				{{ title }}
 			</span>
 			<span class="flex-1" />
@@ -51,6 +52,8 @@
 <script setup>
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
 
+import { isInert, isPageEvent } from "../inert.js"
+import { layout } from "../layout.js"
 import { nextNavigationIndex } from "../paletteNav.js"
 
 const props = defineProps({
@@ -68,28 +71,45 @@ const props = defineProps({
 	align: { type: String, default: "right" },
 	width: { type: Number, default: 304 },
 	below: { type: Boolean, default: false },
+	// a dropdown opened beside another one, this far from the button's `align` edge
+	beside: { type: Number, default: 0 },
+	// another list opened from this one takes the keys
+	passive: { type: Boolean, default: false },
 })
 const emit = defineEmits(["close", "back"])
 const panel = ref(null)
+const backdrop = ref(null)
 // 352px tall at most, and no taller than the room above it (under it, `below`), 8px short of the
 // page's edge: a phone's keyboard can leave less
 const cap = ref(352)
-// a dropdown whose button sits near the page's side moves along, to stay 8px inside it
+// a dropdown whose button sits near its frame's side moves along, to stay 8px inside it
 const shift = ref(0)
+// a dropdown is no wider than its frame, less 8px a side
+const frameWidth = ref(null)
 let activeItem = null
 let observer = null
 let sizer = null
 let enterWaits = false
 let topWaits = false
 
+// the frame it opens in, which it keeps 8px inside: the island's host (the Desk panel, the page),
+// or the window where there is none
+function frameBox() {
+	const host = panel.value?.getRootNode().host
+	return host ? host.getBoundingClientRect() : { left: 0, right: document.documentElement.clientWidth }
+}
+
 function fit() {
 	const rect = panel.value.getBoundingClientRect()
 	const tall = props.below ? document.documentElement.clientHeight - Math.ceil(rect.top) : Math.floor(rect.bottom)
-	cap.value = Math.min(352, tall - 8)
+	// the rects are screen pixels, the cap and the shift CSS ones
+	const z = layout.zoom
+	cap.value = Math.min(352, tall / z - 8)
 	if (!props.dropdown) return
-	const left = rect.left - shift.value
-	const room = document.documentElement.clientWidth - 8 - (rect.right - shift.value)
-	shift.value = Math.round(Math.max(8 - left, Math.min(0, room)))
+	const frame = frameBox()
+	const left = rect.left - shift.value * z
+	const right = rect.right - shift.value * z
+	shift.value = Math.round(Math.max(frame.left + 8 * z - left, Math.min(0, frame.right - 8 * z - right)) / z)
 }
 
 function items() {
@@ -139,7 +159,9 @@ function onPointerMove(event) {
 // the composer textarea, whose text is their search.
 function onKey(event) {
 	// put away with a view the host hides (inert), it answers no keys
-	if (panel.value?.closest("[inert]")) return
+	if (props.passive || isInert(panel.value)) return
+	// in a page's panel, keys typed into the page are the page's
+	if (isPageEvent(event, panel.value)) return
 	// an IME's Enter picks its candidate, not a row
 	if (event.isComposing || event.keyCode === 229) return
 	if (event.key === "Escape") {
@@ -186,10 +208,25 @@ watch(
 	},
 )
 
+// a press outside, where the backdrop doesn't reach (the sidebar stands above the chat), closes it
+// too; one in another of these lists (a menu's list beside it) doesn't
+function onPress(event) {
+	if (props.passive || isInert(panel.value)) return
+	const path = event.composedPath()
+	if (path.includes(backdrop.value) || path.some((node) => node.classList?.contains("flow-palette-panel"))) return
+	emit("close")
+}
+
 onMounted(async () => {
 	window.addEventListener("keydown", onKey, true)
+	window.addEventListener("pointerdown", onPress, true)
 	observer = new MutationObserver(syncItems)
 	observer.observe(panel.value, { childList: true, subtree: true })
+	if (props.dropdown) {
+		const frame = frameBox()
+		frameWidth.value = Math.round((frame.right - frame.left) / layout.zoom)
+		await nextTick()
+	}
 	// refitted as the page (the keyboard) or what it hangs from (a growing composer) resizes
 	if (typeof ResizeObserver !== "undefined") {
 		fit()
@@ -204,6 +241,7 @@ onMounted(async () => {
 })
 onBeforeUnmount(() => {
 	window.removeEventListener("keydown", onKey, true)
+	window.removeEventListener("pointerdown", onPress, true)
 	observer?.disconnect()
 	sizer?.disconnect()
 })

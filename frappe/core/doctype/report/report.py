@@ -275,7 +275,7 @@ class Report(Document):
 		return res
 
 	def get_module_method(self, method):
-		if method not in ("execute", "execute_snapshot_report", "get_xlsx_styles"):
+		if method not in ("execute", "execute_snapshot_report", "get_xlsx_styles", "formatter"):
 			raise Exception("Unknown report method")
 
 		module = self.module or frappe.db.get_value("DocType", self.ref_doctype, "module")
@@ -596,6 +596,16 @@ class Report(Document):
 			return
 
 		return method(metadata)
+
+	def get_formatter_from_module(self):
+		"""Return the module's `formatter(value, column, data, default_formatter)`, used by PDFs built on the server."""
+		if self.is_standard != "Yes" or self.report_type != "Script Report":
+			return
+
+		try:
+			return self.get_module_method("formatter")
+		except AttributeError:
+			return
 
 
 def get_filter_default(row, user):

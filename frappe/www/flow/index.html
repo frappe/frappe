@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1, interactive-widget=resizes-content"
+		/>
+		<link rel="stylesheet" href="/assets/frappe/css/fonts/inter/inter.css" />
+		<link rel="icon" type="image/png" href="/assets/frappe/images/flow.png" />
+		<title>Flow</title>
+		<style>
+			html,
+			body,
+			#app {
+				height: 100%;
+				margin: 0;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="app"></div>
+		<script>
+			window.csrf_token = {{ boot.csrf_token | tojson }};
+		</script>
+		<script type="module">
+			const boot = {{ boot | tojson }};
+			const app = document.getElementById("app");
+			const { mount } = await import({{ island_js | tojson }}).catch((error) => {
+				app.textContent = "Flow could not start. Reload the page to try again.";
+				throw error;
+			});
+			mount(app, {
+				host: {
+					locale: document.documentElement.lang,
+					user: boot.flow_boot.user?.name ?? null,
+					base_url: location.origin,
+					navigate: (route) => location.assign(route),
+				},
+				styles: [{{ island_css | tojson }}],
+				props: {
+					boot: { ...boot.flow_boot, ...boot, flow_boot: undefined },
+				},
+			});
+		</script>
+	</body>
+</html>

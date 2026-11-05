@@ -8,7 +8,7 @@
 <script setup>
 import { Button } from "frappe-ui";
 
-import { toneClass } from "./tone.js";
+import { toneClass } from "./tone-class.js";
 
 defineProps({ label: { type: String, default: "badge" } });
 </script>

@@ -62,6 +62,23 @@ class TestWriteDocument(McpTestCase):
 		self.assertEqual(result["name"], self.own)
 		self.assertEqual(frappe.db.get_value("ToDo", self.own, "description"), "Updated through MCP")
 
+	def test_create_and_update_fields(self):
+		result = self.result(
+			tool="create_document",
+			doctype="ToDo",
+			data={"description": "Picked fields"},
+			fields=["name", "owner"],
+		)
+		self.assertEqual(result, {"name": result["name"], "owner": self.user})
+		result = self.result(
+			tool="update_document",
+			doctype="ToDo",
+			name=self.own,
+			data={"status": "Closed"},
+			fields=["status"],
+		)
+		self.assertEqual(result, {"status": "Closed"})
+
 	def test_delete(self):
 		result = self.result(tool="delete_document", doctype="ToDo", name=self.own)
 		self.assertEqual(result, {"result": None})
@@ -135,6 +152,14 @@ class TestWriteDocument(McpTestCase):
 			{"tool": "create_document", "doctype": "ToDo", "name": self.own, "data": {}},
 			{"tool": "delete_document", "doctype": "ToDo", "name": self.own, "data": {}},
 			{"tool": "delete_document", "doctype": "ToDo", "name": self.own, "ignore_permissions": True},
+			{"tool": "create_document", "doctype": "ToDo", "data": {}, "fields": "name"},
+			{
+				"tool": "update_document",
+				"doctype": "ToDo",
+				"name": self.own,
+				"data": {},
+				"fields": [{"x": "y"}],
+			},
 		)
 		with (
 			patch("frappe.api.v2.create_doc") as create,

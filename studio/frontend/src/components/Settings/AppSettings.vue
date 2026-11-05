@@ -55,7 +55,7 @@
 						</template>
 					</FileUploader>
 					<span class="text-p-sm text-ink-gray-6">
-						Appears next to the title in the browser tab. Recommended size is 32x32 px in PNG or ICO
+						Appears in the browser tab and as the app's icon on the desktop. Use a square PNG or SVG
 					</span>
 				</div>
 			</div>

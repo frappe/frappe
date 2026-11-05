@@ -93,25 +93,31 @@
 				<slot name="actions" />
 			</div>
 			<!-- a narrow frame's panel already fills it -->
-			<button
+			<Button
 				v-if="!layout.narrow"
-				class="flow-icon-btn my-1 flex-none self-center"
+				variant="ghost"
+				class="my-1 flex-none self-center"
 				:title="workspace.maximized ? 'Exit full screen' : 'Full screen'"
 				@click="flow.toggleWorkspaceMaximized()"
 			>
-				<span
-					class="size-3.5"
-					:class="workspace.maximized ? 'lucide-minimize-2' : 'lucide-maximize-2'"
-					aria-hidden="true"
-				/>
-			</button>
-			<button
-				class="flow-icon-btn my-1 mr-1 flex-none self-center"
+				<template #icon>
+					<span
+						class="size-4"
+						:class="workspace.maximized ? 'lucide-minimize-2' : 'lucide-maximize-2'"
+						aria-hidden="true"
+					/>
+				</template>
+			</Button>
+			<Button
+				variant="ghost"
+				class="my-1 mr-1 flex-none self-center"
 				title="Close panel"
 				@click="flow.setWorkspaceOpen(false)"
 			>
-				<span class="lucide-panel-left size-3.5 -scale-x-100" aria-hidden="true" />
-			</button>
+				<template #icon>
+					<span class="lucide-panel-left size-4 -scale-x-100" aria-hidden="true" />
+				</template>
+			</Button>
 		</div>
 
 		<!-- kind-specific body: a sub-agent's thread, or the host's view of any other tab -->
@@ -125,21 +131,25 @@
 		     panel's window controls stay reachable) -->
 		<div v-if="!viewActive" class="relative flex flex-1 flex-col items-center justify-center gap-3 px-6">
 			<span class="absolute right-1 top-1 flex">
-				<button
+				<Button
 					v-if="!layout.narrow"
-					class="flow-icon-btn"
+					variant="ghost"
 					:title="workspace.maximized ? 'Exit full screen' : 'Full screen'"
 					@click="flow.toggleWorkspaceMaximized()"
 				>
-					<span
-						class="size-3.5"
-						:class="workspace.maximized ? 'lucide-minimize-2' : 'lucide-maximize-2'"
-						aria-hidden="true"
-					/>
-				</button>
-				<button class="flow-icon-btn" title="Close panel" @click="flow.setWorkspaceOpen(false)">
-					<span class="lucide-panel-left size-3.5 -scale-x-100" aria-hidden="true" />
-				</button>
+					<template #icon>
+						<span
+							class="size-4"
+							:class="workspace.maximized ? 'lucide-minimize-2' : 'lucide-maximize-2'"
+							aria-hidden="true"
+						/>
+					</template>
+				</Button>
+				<Button variant="ghost" title="Close panel" @click="flow.setWorkspaceOpen(false)">
+					<template #icon>
+						<span class="lucide-panel-left size-4 -scale-x-100" aria-hidden="true" />
+					</template>
+				</Button>
 			</span>
 			<slot name="empty" />
 		</div>
@@ -148,6 +158,7 @@
 
 <script setup>
 import { computed, inject, ref } from "vue"
+import { Button } from "frappe-ui/src/components/Button"
 import { dialog } from "frappe-ui/src/utils/dialog"
 
 import SubagentView from "./SubagentView.vue"
@@ -199,7 +210,7 @@ function startResize(event) {
 	handle.setPointerCapture(event.pointerId)
 	const startX = event.clientX
 	const startWidth = width.value
-	const move = (e) => (width.value = clampWidth(startWidth - (e.clientX - startX)))
+	const move = (e) => (width.value = clampWidth(startWidth - (e.clientX - startX) / layout.zoom))
 	const up = (e) => {
 		handle.releasePointerCapture(e.pointerId)
 		handle.removeEventListener("pointermove", move)

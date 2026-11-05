@@ -323,6 +323,20 @@ class TestQueryReport(IntegrationTestCase):
 
 		self.assertEqual(script, f'frappe.query_reports["{report.name}"]={{}}')
 
+	def test_get_script_reports_a_python_formatter(self):
+		from unittest.mock import patch
+
+		from frappe.core.doctype.user_permission.test_user_permission import create_user
+
+		frappe.set_user("Administrator")
+		user = create_user("test_report_formatter_reader@example.com")
+
+		with (
+			patch("frappe.desk.report.todo.todo.formatter", lambda *args: None, create=True),
+			self.set_user(user.name),
+		):
+			self.assertTrue(get_script("ToDo")["has_python_formatter"])
+
 	def test_xlsx_data_with_multiple_datatypes(self):
 		"""Test exporting report using rows with multiple datatypes (list, dict)"""
 

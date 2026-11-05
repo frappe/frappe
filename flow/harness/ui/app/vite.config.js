@@ -38,6 +38,8 @@ export default defineConfig({
 	// file, so only dev breaks).
 	optimizeDeps: {
 		exclude: ["frappe-ui"],
+		// a CommonJS module under frappe-ui's code blocks: unbundled, dev can't import its default
+		include: ["highlight.js/lib/core"],
 	},
 	server: { host: "127.0.0.1", proxy },
 	build: {

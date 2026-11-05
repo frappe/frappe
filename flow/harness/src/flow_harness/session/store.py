@@ -138,6 +138,13 @@ class SessionStore:
 		self._cache = self._session_cache.partition()
 		self.closing = asyncio.Event()  # set when the daemon shuts down; ends every event stream
 
+	def allows_tool(self, name: str) -> bool:
+		"""The cap applies to built-in tools; a tool a loaded extension registers passes,
+		since the operator put its file on this partition's extension paths."""
+		return (
+			self.tool_allowlist is None or name in self.tool_allowlist or name in self.extension_runtime.tools
+		)
+
 	def _load_extensions(self) -> ExtensionRuntime:
 		runtime = ExtensionRuntime()
 		runtime.load(
@@ -235,7 +242,7 @@ class SessionStore:
 		for agent in config.subagents:
 			requested.update(agent.tools or ())
 			requested.update(agent.extension_tools or ())
-		blocked = sorted(requested - self.tool_allowlist)
+		blocked = sorted(name for name in requested if not self.allows_tool(name))
 		if blocked:
 			raise PolicyError(f"tools not allowed by server policy: {', '.join(blocked)}")
 
@@ -290,8 +297,8 @@ class SessionStore:
 		composed = self.extension_runtime.compose_tools(selected, config.extension_tools)
 		if self.tool_allowlist is None:
 			return composed
-		# runs on every load, so old sessions and extension tools are capped too
-		return {name: tool for name, tool in composed.items() if name in self.tool_allowlist}
+		# runs on every load, so old sessions are capped too
+		return {name: tool for name, tool in composed.items() if self.allows_tool(name)}
 
 	def resolve_tools(self, config: SessionConfig) -> dict[str, Tool]:
 		"""Validate and compose the server tools selected by a session config."""
@@ -302,7 +309,7 @@ class SessionStore:
 		if self.tool_allowlist is not None:
 			# persist the effective builtin list, so meta and API echoes tell the truth
 			config = config.model_copy(
-				update={"tools": [name for name in config.tools if name in self.tool_allowlist]}
+				update={"tools": [name for name in config.tools if self.allows_tool(name)]}
 			)
 		# Catalog metadata and the composed prompt are immutable for this session.
 		# Skill files themselves remain live and are read when used, matching Pi.
@@ -491,7 +498,7 @@ class SessionStore:
 
 	def save_meta(self, session: Session) -> None:
 		"""Write the session's config to its meta file (called at create and on config
-		patches like `auto_approve`; model changes live in the log instead)."""
+		patches like `approval_mode`; model changes live in the log instead)."""
 		paths = _session_paths(os.path.dirname(session.log.path), session.id)
 		path = paths.meta
 		fd, tmp = mkstemp(prefix=f".{os.path.basename(path)}.", dir=paths.directory)
