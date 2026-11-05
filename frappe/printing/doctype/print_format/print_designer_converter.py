@@ -52,7 +52,7 @@ def convert_print_designer_format(doc) -> tuple[dict, list[str]]:
 
 
 @frappe.whitelist()
-def create_editor_format(print_format: str, name: str | None = None) -> str:
+def create_editor_format(print_format: str, name: str | None = None) -> dict:
 	"""Save a converted copy of a Print Designer format as a new editor format."""
 	frappe.only_for("System Manager")
 	source = frappe.get_doc("Print Format", print_format)
@@ -81,7 +81,7 @@ def create_editor_format(print_format: str, name: str | None = None) -> str:
 	target.insert()
 	if notes:
 		target.add_comment("Comment", "<br>".join(escape_html(n) for n in notes))
-	return target.name
+	return {"name": target.name, "notes": notes}
 
 
 def converted_margins(doc) -> dict:

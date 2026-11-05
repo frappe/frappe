@@ -86,7 +86,17 @@ frappe.ui.form.on("Print Format", {
 					args: { print_format: frm.doc.name },
 					freeze: true,
 				})
-				.then((r) => frappe.set_route("print-format-builder", r.message))
+				.then(({ message }) =>
+					frappe.set_route("print-format-builder", message.name).then(() => {
+						if (!message.notes.length) return;
+						frappe.msgprint({
+							title: __("Converted with changes"),
+							message: message.notes
+								.map((note) => frappe.utils.escape_html(note))
+								.join("<br>"),
+						});
+					})
+				)
 		);
 	},
 	custom_format: function (frm) {
