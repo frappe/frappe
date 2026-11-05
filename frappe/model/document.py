@@ -437,6 +437,16 @@ def get_doc_from_dict(data: dict[str, Any], **kwargs) -> "Document":
 	raise ImportError(data["doctype"])
 
 
+def _get_cached_link_value(doctype: str, name, field_tuple: tuple) -> dict | None:
+	"""Row an earlier link validation or `get_value(cache=True)` cached in this transaction."""
+	if not isinstance(name, str):
+		return None
+	rows = frappe.db.value_cache[doctype][name].get(field_tuple)
+	# get_value caches tuples too, under the same key
+	if rows and isinstance(rows[0], dict):
+		return rows[0]
+
+
 def get_lazy_doc(
 	doctype: str, name: str, *, for_update=None, check_permission: str | bool | None = None
 ) -> "Document":
@@ -1932,8 +1942,14 @@ class Document(_DocumentBase):
 				# Regular doctypes: bulk fetch with chunking
 				result_dict = {}
 				field_tuple = tuple(fields)
+				uncached_names = []
+				for name in names:
+					if row := _get_cached_link_value(doctype, name, field_tuple):
+						result_dict[name] = row
+					else:
+						uncached_names.append(name)
 
-				for name_chunk in _chunk(names, 1000):
+				for name_chunk in _chunk(uncached_names, 1000):
 					results = frappe.db.get_all(
 						doctype,
 						filters={"name": ("in", name_chunk)},
