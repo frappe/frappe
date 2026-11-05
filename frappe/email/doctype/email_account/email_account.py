@@ -147,10 +147,28 @@ class EmailAccount(Document):
 
 		self.name = self.email_account_name
 
+	def validate_mandatory_for_service(self):
+		required = []
+		if self.auth_method == "OAuth":
+			required.append("connected_app")
+			if not self.backend_app_flow:
+				required.append("connected_user")
+		if self.service == "Frappe Mail":
+			required.append("frappe_mail_site")
+
+		for fieldname in required:
+			if not self.get(fieldname):
+				frappe.throw(
+					_("{0} is required").format(frappe.bold(_(self.meta.get_label(fieldname)))),
+					frappe.MandatoryError,
+				)
+
 	def validate(self):
 		"""Validate Email Address and check POP3/IMAP and SMTP connections is enabled."""
 		if self.is_new() and not self.attachment_limit:
 			self.attachment_limit = get_max_file_size() // (1024 * 1024)
+
+		self.validate_mandatory_for_service()
 
 		if self.email_id:
 			validate_email_address(self.email_id, True)
