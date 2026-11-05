@@ -21,6 +21,8 @@ from frappe.utils import cint, cstr
 # Python uses old protocol for backward compatibility, we don't support anything <3.10.
 DEFAULT_PICKLE_PROTOCOL = 5
 
+_MISSING = object()
+
 
 class RedisearchWrapper(Search):
 	def sugadd(self, key, *suggestions, **kwargs):
@@ -90,6 +92,11 @@ class RedisWrapper(redis.Redis):
 		:param generator: Function to be called to generate a value if `None` is returned.
 		:param expires: If the key is supposed to be with an expiry, don't store it in frappe.local
 		"""
+		if use_local_cache:
+			val = frappe.local.cache.get(self.make_key(key, user, shared), _MISSING)
+			if val is not _MISSING:
+				return val
+
 		return self._get_value_with_size(
 			key,
 			generator=generator,
