@@ -51,11 +51,11 @@
 			</div>
 			<section
 				v-else-if="kind === 'company' && !unavailable"
-				class="flex flex-col gap-3 rounded-6 border border-outline-gray-2 p-3"
+				class="flex flex-col gap-3 rounded-5 border border-outline-gray-2 p-3"
 			>
 				<div class="flex items-start gap-3">
 					<div class="flex min-w-0 flex-1 flex-col gap-1">
-						<h4 class="text-base-medium text-ink-gray-8">
+						<h4 class="text-p-base-medium text-ink-gray-8">
 							{{ __("Your Google Workspace admin allows Frappe once") }}
 						</h4>
 						<p class="text-p-base text-ink-gray-6">
@@ -74,14 +74,20 @@
 						@click="copy(steps, __('Steps copied'))"
 					/>
 				</div>
-				<ol class="flex list-decimal flex-col gap-5 pl-5 marker:text-ink-gray-6">
-					<li v-for="(step, i) in stepItems" :key="i">
-						<div class="flex min-w-0 flex-col gap-1">
-							<span class="text-base-medium text-ink-gray-8">{{ step.title }}</span>
+				<ol class="flex list-decimal flex-col gap-5 pl-5">
+					<li
+						v-for="(step, i) in stepItems"
+						:key="i"
+						class="text-p-base text-ink-gray-6"
+					>
+						<div class="flex min-w-0 flex-col">
+							<span class="text-p-base-medium text-ink-gray-8">{{
+								step.title
+							}}</span>
 							<p class="text-p-base text-ink-gray-6">{{ step.description }}</p>
 							<Button
 								v-if="i === 0"
-								class="self-start"
+								class="mt-1.5 self-start"
 								variant="outline"
 								:href="ADMIN_CONSOLE"
 								icon-right="lucide-arrow-up-right"
@@ -89,7 +95,7 @@
 							/>
 							<div
 								v-if="i === 1 && clientId"
-								class="flex items-center gap-1 rounded bg-surface-gray-1 py-1 pl-2 pr-1"
+								class="mt-1.5 flex items-center gap-1 rounded-4 bg-surface-gray-1 py-1 pl-2 pr-1"
 							>
 								<code class="min-w-0 flex-1 truncate text-sm text-ink-gray-8">
 									{{ clientId }}
