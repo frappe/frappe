@@ -30,9 +30,7 @@ def add_comment(
 	reference_doctype: str, reference_name: str, content: str, comment_email: str, comment_by: str
 ) -> "Comment":
 	"""Allow logged user with permission to read document to add a comment"""
-	if not (strip_html(content).strip() or "<img" in content):
-		frappe.throw(_("Comment cannot be empty"), frappe.MandatoryError)
-
+	validate_comment_content(content)
 	reference_doc = frappe.get_lazy_doc(reference_doctype, reference_name, check_permission=True)
 
 	comment = frappe.new_doc("Comment")
@@ -54,6 +52,11 @@ def add_comment(
 	return comment
 
 
+def validate_comment_content(content: str) -> None:
+	if not (strip_html(content or "").strip() or "<img" in (content or "")):
+		frappe.throw(_("Comment cannot be empty"), frappe.MandatoryError)
+
+
 @frappe.whitelist()
 def update_comment(name: str | int, content: str):
 	"""allow only owner to update comment"""
@@ -61,6 +64,8 @@ def update_comment(name: str | int, content: str):
 
 	if frappe.session.user not in ["Administrator", doc.owner]:
 		frappe.throw(_("Comment can only be edited by the owner"), frappe.PermissionError)
+
+	validate_comment_content(content)
 
 	if doc.reference_doctype and doc.reference_name:
 		reference_doc = frappe.get_lazy_doc(doc.reference_doctype, doc.reference_name, check_permission=True)
