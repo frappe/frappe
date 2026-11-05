@@ -8,7 +8,7 @@ column pruning — so the two renderers can never disagree on what a user is
 allowed to see. Typst receives only resolved data and geometry, never logic.
 
 Formats that use features Typst cannot express (raw HTML blocks, Jinja field
-templates, client-side barcodes, …) are refused by :func:`typst_blockers`;
+templates, …) are refused by :func:`typst_blockers`;
 they keep rendering through Chromium.
 """
 
@@ -180,11 +180,7 @@ def typst_blockers(print_format, layout) -> list[str]:
 				styled_fields.append(node.get("label") or node.get("fieldname") or "?")
 		colors.extend(c for c in _unsafe_colors(node) if c not in colors)
 		fieldtype_reason = BLOCKER_FIELDTYPES.get(node.get("fieldtype"))
-		reason = (
-			(_(fieldtype_reason) if fieldtype_reason else None)
-			or _barcode_blocker(node, print_format)
-			or _image_blocker(node)
-		)
+		reason = (_(fieldtype_reason) if fieldtype_reason else None) or _image_blocker(node)
 		if reason and reason not in seen:
 			seen.add(reason)
 			blockers.append(reason)
@@ -198,23 +194,6 @@ def typst_blockers(print_format, layout) -> list[str]:
 def _list_names(names):
 	shown = ", ".join(names[:4])
 	return _("{0} and {1} more").format(shown, len(names) - 4) if len(names) > 4 else shown
-
-
-def _barcode_blocker(df, print_format):
-	"""Only QR renders server-side; JsBarcode formats need a browser."""
-	if df.get("fieldtype") != "Barcode":
-		return None
-	if df.get("custom"):
-		return None if df.get("barcode_format") == "QR" else _("Barcode that is not a QR code")
-	try:
-		meta_df = frappe.get_meta(print_format.doc_type).get_field(df.get("fieldname"))
-	except Exception:
-		meta_df = None
-	from frappe.utils.print_format_generator import is_qr_barcode_options
-
-	if meta_df and is_qr_barcode_options(meta_df.options):
-		return None
-	return _("Barcode that is not a QR code")
 
 
 def letterhead_blockers(lh) -> list[str]:
@@ -1177,15 +1156,14 @@ class TypstEmitter:
 		return _aligned(f'#image("{name}", width: {width})', df.get("align"))
 
 	def _barcode(self, df) -> str:
-		data_uri = df.get("_qr_data_uri")
-		if not data_uri:
-			return ""
-		data = self._read_site_file(data_uri)
-		if data is None:
+		data_uri = df.get("_barcode_data_uri")
+		data = self._read_site_file(data_uri) if data_uri else None
+		if not data:
 			return ""
 		name = self._asset("svg", data)
-		width = self._dimension(df.get("width")) or "35mm"
-		return _aligned(f'#image("{name}", width: {width})', df.get("align"))
+		width = self._dimension(df.get("width")) or ("35mm" if df.get("barcode_format") == "QR" else None)
+		image = f'#image("{name}", width: {width})' if width else f'#image("{name}")'
+		return _aligned(image, df.get("align"))
 
 	def _rating(self, df) -> str:
 		total = frappe.utils.cint(df.get("options")) or 5

@@ -1,6 +1,7 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See LICENSE
 
+import base64
 import copy
 import re
 from typing import ClassVar
@@ -139,7 +140,6 @@ def is_qr_barcode_options(options: str | None) -> bool:
 @frappe.whitelist()
 def get_qr_code(value: str) -> str:
 	"""Return a QR code for `value` as an SVG data URI (used by Barcode print elements)."""
-	import base64
 	import io
 
 	if not isinstance(value, str) or len(value) > 2000:
@@ -150,6 +150,44 @@ def get_qr_code(value: str) -> str:
 	stream = io.BytesIO()
 	qrcreate(value).svg(stream, scale=5, quiet_zone=1)
 	return "data:image/svg+xml;base64," + base64.b64encode(stream.getvalue()).decode()
+
+
+LINEAR_BARCODE_FORMATS = {"CODE128": ("code128", {}), "CODE39": ("code39", {"add_checksum": False})}
+
+
+@frappe.whitelist()
+def get_barcode(value: str, barcode_format: str = "CODE128", show_text: bool = True) -> str | None:
+	"""Return `value` as a barcode SVG data URI, or None when the format cannot encode it."""
+	from html import escape
+
+	import barcode
+	from barcode.errors import BarcodeError
+
+	if barcode_format == "QR":
+		return get_qr_code(value)
+	if not isinstance(value, str) or len(value) > 2000:
+		frappe.throw(_("Barcode value must be text under 2000 characters"), frappe.ValidationError)
+	if barcode_format not in LINEAR_BARCODE_FORMATS or not value:
+		return None
+
+	name, options = LINEAR_BARCODE_FORMATS[barcode_format]
+	try:
+		modules = "".join(barcode.get(name, value, options=options).build())
+	except BarcodeError:
+		return None
+
+	bars = "".join(
+		f"M{3 * match.start()} 0h{3 * len(match.group())}v40h-{3 * len(match.group())}z"
+		for match in re.finditer("1+", modules)
+	)
+	width, height = 3 * len(modules), 60 if frappe.utils.sbool(show_text) else 40
+	text = (
+		f'<text x="{width / 2}" y="56" text-anchor="middle" font-family="DejaVu Sans Mono, monospace" font-size="16">{escape(value)}</text>'
+		if height == 60
+		else ""
+	)
+	svg = f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}"><path d="{bars}"/>{text}</svg>'
+	return "data:image/svg+xml;base64," + base64.b64encode(svg.encode()).decode()
 
 
 DATE_FIELDTYPES = ("Date", "Datetime")
@@ -1169,7 +1207,7 @@ class PrintFormatGenerator:
 			df["_html"] = rendered
 
 	def prepare_barcode(self, df):
-		"""Resolve JsBarcode options / QR data URI for Barcode layout elements."""
+		"""Draw Barcode layout elements on the server, so every renderer prints them."""
 		if df.get("fieldtype") != "Barcode":
 			return
 		if not df.get("custom"):
@@ -1177,26 +1215,20 @@ class PrintFormatGenerator:
 			# whose options ask for a qr code prints its value as one — the
 			# field decides the format, the builder offers no override
 			meta_df = frappe.get_meta(self.doc.doctype).get_field(df.get("fieldname"))
-			value = self.doc.get(df.get("fieldname"))
-			if value and meta_df and is_qr_barcode_options(meta_df.options):
-				df["barcode_format"] = "QR"
-				df["_qr_data_uri"] = get_qr_code(str(value))
+			value = cstr(self.doc.get(df.get("fieldname")))
+			if value.startswith("<svg"):
+				df["_barcode_data_uri"] = (
+					"data:image/svg+xml;base64," + base64.b64encode(value.encode()).decode()
+				)
+			elif value:
+				if meta_df and is_qr_barcode_options(meta_df.options):
+					df["barcode_format"] = "QR"
+				df["_barcode_data_uri"] = get_barcode(value, df.get("barcode_format") or "CODE128")
 			return
-		if df.get("barcode_format") == "QR":
-			value = (
-				self.doc.get(df.get("barcode_field")) if df.get("barcode_field") else df.get("barcode_value")
-			)
-			if value:
-				df["_qr_data_uri"] = get_qr_code(str(value))
-		else:
-			df["_barcode_options"] = frappe.as_json(
-				{
-					"format": df.get("barcode_format") or "CODE128",
-					"displayValue": bool(df.get("show_text", True)),
-					"height": 40,
-					"margin": 0,
-				},
-				indent=None,
+		value = self.doc.get(df.get("barcode_field")) if df.get("barcode_field") else df.get("barcode_value")
+		if value:
+			df["_barcode_data_uri"] = get_barcode(
+				cstr(value), df.get("barcode_format") or "CODE128", df.get("show_text", True)
 			)
 
 	def prepare_linked_field(self, df):
