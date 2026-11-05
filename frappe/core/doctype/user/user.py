@@ -732,7 +732,9 @@ class User(Document):
 			frappe.delete_doc("Notification Settings", old_name, ignore_permissions=True)
 
 		frappe.clear_cache(user=old_name)
+		new_name = new_name.strip().lower()
 		self.validate_rename(old_name, new_name)
+		return new_name
 
 	def validate_rename(self, old_name, new_name):
 		# do not allow renaming administrator and guest
@@ -762,7 +764,7 @@ class User(Document):
 	def validate_email_type(self, email):
 		from frappe.utils import validate_email_address
 
-		validate_email_address(email.strip(), True)
+		validate_email_address(email, True)
 
 	def after_rename(self, old_name, new_name, merge=False):
 		if not frappe.flags.in_personal_data_deletion:
@@ -779,8 +781,7 @@ class User(Document):
 		if frappe.db.exists("Notification Settings", old_name):
 			frappe.rename_doc("Notification Settings", old_name, new_name, force=True, show_alert=False)
 
-		# set email
-		frappe.db.set_value("User", new_name, "email", new_name.lower())
+		frappe.db.set_value("User", new_name, "email", new_name)
 
 		get_controller("Workspace").rename_private_workspaces(old_name, new_name)
 
