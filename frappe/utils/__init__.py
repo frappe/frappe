@@ -107,6 +107,17 @@ def get_formatted_email(user, mail=None):
 		return cstr(make_header(decode_header(formataddr((fullname, mail)))))
 
 
+def get_user_by_email(email: str) -> str | None:
+	"""Return the ID of the user with this email, or None.
+
+	- The email is matched ignoring case and surrounding spaces.
+	- Administrator and Guest are never returned, so their email can't be used to log in as them.
+	"""
+	return frappe.db.get_value(
+		"User", {"email": email.strip().lower(), "name": ("not in", frappe.STANDARD_USERS)}
+	)
+
+
 def extract_email_id(email: str) -> str:
 	"""fetch only the email part of the Email Address"""
 	if not email:

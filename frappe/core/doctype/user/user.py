@@ -31,6 +31,7 @@ from frappe.utils import (
 	format_datetime,
 	get_formatted_email,
 	get_system_timezone,
+	get_user_by_email,
 	now_datetime,
 	today,
 )
@@ -718,7 +719,7 @@ class User(Document):
 			note.save(ignore_permissions=True)
 
 		# Unlink user from all of its invitation docs
-		invites = frappe.get_docs("User Invitation", filters={"email": self.name})
+		invites = frappe.get_docs("User Invitation", filters={"user": self.name})
 		for invite_doc in invites:
 			invite_doc.user = None
 			invite_doc.save(ignore_permissions=True)
@@ -1378,10 +1379,12 @@ def reset_password(user: str) -> None:
 	# via different messages or HTTP status codes (CWE-204).
 
 	try:
-		user_doc: User = frappe.get_doc("User", user)
-		if user_doc.name != "Administrator" and user_doc.enabled:
-			user_doc.validate_reset_password()
-			user_doc._reset_password(send_email=True)
+		if user_id := get_user_by_email(user):
+			user_doc: User = frappe.get_doc("User", user_id)
+
+			if user_doc.enabled:
+				user_doc.validate_reset_password()
+				user_doc._reset_password(send_email=True)
 		# For Administrator or disabled users: silently skip — same response below
 	except frappe.DoesNotExistError:
 		frappe.clear_messages()
