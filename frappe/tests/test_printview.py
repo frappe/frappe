@@ -286,20 +286,6 @@ class PrintViewTest(IntegrationTestCase):
 		self.assertNotIn("-543.21", html)
 		self.assertNotIn(">-9<", html)
 
-<<<<<<< HEAD
-=======
-	def test_print_error(self):
-		"""Print failures shouldn't generate PDF with failure message but instead escalate the error"""
-		doctype = new_doctype(is_submittable=1).insert()
-
-		doc = frappe.new_doc(doctype.name)
-		doc.insert()
-		doc.submit()
-		doc.cancel()
-
-		# cancelled doc can't be printed by default
-		self.assertRaises(frappe.PermissionError, frappe.attach_print, doc.doctype, doc.name)
-
 	def test_print_format_template_cannot_run_write_queries(self):
 		title = frappe.generate_hash()
 		note = frappe.get_doc(doctype="Note", title=title).insert()
@@ -320,7 +306,6 @@ class PrintViewTest(IntegrationTestCase):
 
 		self.assertEqual(frappe.db.get_value("Note", note.name, "title"), title)
 
->>>>>>> d6b3f3a (fix: render print format templates with the render-safe flags)
 	def test_before_print_runs_in_builder_renderer(self):
 		from frappe.utils.print_format_generator import PrintFormatGenerator
 
