@@ -1051,6 +1051,7 @@ def _get_timezones():
 @frappe.whitelist()
 def get_all_roles():
 	"""return all roles"""
+	frappe.has_permission("Role", "read", throw=True)
 	active_domains = frappe.get_active_domains()
 
 	Role = frappe.qb.DocType("Role")
@@ -1085,6 +1086,7 @@ def get_current_user_roles() -> list[str]:
 @frappe.whitelist()
 def get_perm_info(role: str):
 	"""get permission info"""
+	frappe.has_permission("Role", "read", throw=True)
 	from frappe.permissions import get_all_perms
 
 	return get_all_perms(role)
@@ -1578,6 +1580,7 @@ def throttle_user_creation():
 
 @frappe.whitelist()
 def get_module_profile(module_profile: str):
+	frappe.has_permission("Module Profile", "read", throw=True)
 	module_profile = frappe.get_doc("Module Profile", {"module_profile_name": module_profile})
 	return module_profile.get("block_modules")
 

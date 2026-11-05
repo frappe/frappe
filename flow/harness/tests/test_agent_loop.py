@@ -30,7 +30,7 @@ def _session(tmp_path, **cfg):
 		event_sink=lambda _sid, ev: events.append(ev),
 		credential_store=CredentialStore(str(tmp_path / "credentials.json")),  # never the real one
 	)
-	session = store.create(SessionConfig(cwd=str(tmp_path), **cfg))
+	session = store.create(SessionConfig(cwd=str(tmp_path), **{"approval_mode": "ask", **cfg}))
 	return session, events
 
 
@@ -331,13 +331,18 @@ async def test_resume_approves_denies_or_redirects_the_paused_call(tmp_path):
 	await _run(session, "again", model=MockModel(replies=[AssistantMessage(content="ok")]))
 	assert session._budget is not budget
 
-	session, events, mock = await paused("unreached")
+	session, events, mock = await paused("not read; anything to change?")
+	[approval] = _of(events, "approval_required")
 	await _resume(session, {"c1": "Deny"}, model=mock)
 	tr = _of(events, "tool_result")[0]
 	assert tr["is_error"] is True
-	assert "denied" in tr["content"]
-	assert _of(events, "run_ended")[-1]["reason"] == "denied"
-	assert mock._turn == 1  # the model was NOT called again after denial
+	decision = json.loads(tr["content"])
+	assert decision["status"] == "denied"
+	assert decision["action"] == approval["calls"][0]["prompt"].split("\n")[0]
+	assert tr["details"] == {"user_answer": "Deny"}  # the UI trusts this, never the content
+	# the model answers the user once, instead of the run ending on the denial
+	assert _of(events, "assistant_message")[-1]["content"][0]["text"] == "not read; anything to change?"
+	assert _of(events, "run_ended")[-1]["reason"] == "done"
 
 	session, events, mock = await paused("adjusted")
 	await _resume(session, {"c1": "use the other file"}, model=mock)
@@ -418,17 +423,17 @@ async def test_steering_joins_the_active_run_and_is_dropped_when_it_ends(tmp_pat
 	assert [e["content"][0]["text"] for e in _of(events, "assistant_message")] == ["reply-1", "reply-2"]
 	assert [e["reason"] for e in _of(events, "run_ended")] == ["done"]
 
-	# a steer waiting on a tool turn reaches the run resumed after an approval
+	# a steer waiting on a tool turn reaches the run resumed after an approval or a denial
 	(tmp_path / "a.txt").write_text("x")
-	session, events = _session(tmp_path, confirm_tools=["read"])
-	await _steer_into_a_tool_turn(session)
-	await _resume(session, {"c1": "Approve"}, model=MockModel(replies=[AssistantMessage(content="ok")]))
-	assert [e["content"] for e in _of(events, "user_message")] == ["start", "steer me"]
+	for answer in ("Approve", "Deny"):
+		session, events = _session(tmp_path, confirm_tools=["read"])
+		await _steer_into_a_tool_turn(session)
+		await _resume(session, {"c1": answer}, model=MockModel(replies=[AssistantMessage(content="ok")]))
+		assert [e["content"] for e in _of(events, "user_message")] == ["start", "steer me"], answer
 
 	# but dies with a run that ends
 	cases = [
 		# session config, how the paused run ends, the run ends seen
-		({"confirm_tools": ["read"]}, "deny", ["paused", "denied"]),
 		({"confirm_tools": ["read"]}, "cancel", ["paused"]),
 		({"max_turns": 1}, None, ["max_turns"]),
 		({"token_budget": 5}, None, ["budget"]),
@@ -436,9 +441,7 @@ async def test_steering_joins_the_active_run_and_is_dropped_when_it_ends(tmp_pat
 	for config, ending, ends in cases:
 		session, events = _session(tmp_path, **config)
 		await _steer_into_a_tool_turn(session)
-		if ending == "deny":
-			await _resume(session, {"c1": "Deny"})
-		elif ending == "cancel":
+		if ending == "cancel":
 			assert await session.cancel_pending() is True
 		assert [e["reason"] for e in _of(events, "run_ended")] == ends, ending
 
@@ -748,7 +751,7 @@ async def test_abort_between_tool_calls_prevents_later_tool_from_starting(tmp_pa
 
 	monkeypatch.setitem(BUILTIN_TOOLS, "first", first)
 	monkeypatch.setitem(BUILTIN_TOOLS, "second", second)
-	session, events = _session(tmp_path, tools=["first", "second"], auto_approve=True)
+	session, events = _session(tmp_path, tools=["first", "second"], approval_mode="auto_approve")
 	model = MockModel(
 		replies=[
 			AssistantMessage(
@@ -790,7 +793,7 @@ async def test_concurrent_tools_run_together_and_other_tools_alone(tmp_path, mon
 
 	monkeypatch.setitem(BUILTIN_TOOLS, "pair", pair)
 	monkeypatch.setitem(BUILTIN_TOOLS, "solo", solo)
-	session, _ = _session(tmp_path, tools=["pair", "solo"], auto_approve=True)
+	session, _ = _session(tmp_path, tools=["pair", "solo"], approval_mode="auto_approve")
 	model = MockModel(
 		replies=[
 			AssistantMessage(
@@ -862,7 +865,7 @@ async def test_client_tool_round_trips_the_callback_and_unwraps_the_frappe_envel
 		callback_headers={"X-Site": "alpha", "x-harness-token": "stale"},
 		callback_timeout=7,
 		user_context={"user": "alice"},
-		auto_approve=True,
+		approval_mode="auto_approve",
 	)
 	model = MockModel(
 		replies=[
@@ -904,7 +907,7 @@ _REPORT_CLIENT = {
 		}
 	],
 	"callback_url": "https://client.invalid/tools",
-	"auto_approve": True,
+	"approval_mode": "auto_approve",
 }
 
 
@@ -1215,7 +1218,7 @@ async def test_model_retries_inside_the_adapter_never_rerun_completed_tools(tmp_
 
 	monkeypatch.setitem(BUILTIN_TOOLS, "count_once", count_once)
 	monkeypatch.setattr("flow_harness.model.retry._retry_delay_seconds", lambda error, retry_index: 0)
-	session, events = _session(tmp_path, tools=["count_once"], auto_approve=True)
+	session, events = _session(tmp_path, tools=["count_once"], approval_mode="auto_approve")
 
 	await _run(session, "go", model=ToolThenFlakyModel())
 
@@ -1223,3 +1226,192 @@ async def test_model_retries_inside_the_adapter_never_rerun_completed_tools(tmp_
 	assert [event["tool_call_id"] for event in _of(events, "tool_result")] == ["count-1"]
 	assert [event["status"] for event in _of(events, "retry")] == ["scheduled", "started"]
 	assert _of(events, "run_ended")[-1]["reason"] == "done"
+
+
+async def test_a_client_tool_that_needs_no_approval_runs_once_with_no_card(tmp_path, monkeypatch):
+	posts = []
+
+	async def post(config, url, payload):
+		posts.append(payload)
+		if payload["mode"] == "confirm":
+			return {"requires_confirmation": not payload["args"].get("read_only")}
+		return {"content": "ran"}
+
+	monkeypatch.setattr("flow_harness.agent.client_tools._post", post)
+	gated = {**_REPORT_CLIENT, "approval_mode": "ask", "confirm_tools": ["report"]}
+
+	# the client says this call needs no approval: no card, and it runs once
+	session, events = _session(tmp_path, **gated)
+	model = MockModel(
+		replies=[
+			AssistantMessage(content=[ToolCall(id="c1", name="report", arguments={"read_only": True})]),
+			AssistantMessage(content="done"),
+		]
+	)
+	await _run(session, "build the report", model=model)
+	assert [p["mode"] for p in posts] == ["confirm", "execute"]
+	assert not _of(events, "approval_required")
+	assert [r["content"] for r in _of(events, "tool_result")] == ["ran"]
+	assert _of(events, "run_ended")[-1]["reason"] == "done"
+
+	# any other answer still asks, and nothing runs before the user does
+	posts.clear()
+	session, events = _session(tmp_path, **gated)
+	await _run(session, "build the report", model=_report_model())
+	assert [p["mode"] for p in posts] == ["confirm"]
+	assert len(_of(events, "approval_required")) == 1
+	assert _of(events, "run_ended")[-1]["reason"] == "paused"
+
+
+async def test_a_server_tools_empty_prompt_still_shows_a_card():
+	@tool(requires_confirmation=True, confirm_prompt=lambda args: args.get("description"))
+	def deploy(description: str = "", *, ctx=None):
+		return "deployed"
+
+	inputs = loop.LoopInputs(
+		config=SessionConfig(cwd="/tmp"),
+		model_name="mock",
+		messages=[],
+		credential_store=None,
+		abort=asyncio.Event(),
+	)
+	call = ToolCall(id="c1", name="deploy", arguments={})
+	# None is the client's "no approval needed"; a tool's own empty prompt means the generic card
+	prompt, needs_user = await loop._confirmation_prompt(call, {"deploy": deploy}, inputs)
+	assert prompt.startswith("Approve `deploy`?") and needs_user is False
+
+
+def _verdict(decision, reason="because"):
+	return AssistantMessage(content=json.dumps({"decision": decision, "reason": reason}))
+
+
+async def test_auto_review_runs_what_the_reviewer_allows_and_holds_the_rest(tmp_path, monkeypatch):
+	(tmp_path / "a.txt").write_text("FILE-A")
+	(tmp_path / "b.txt").write_text("FILE-B")
+	reviewers = []
+
+	def build(name, **kwargs):
+		reviewers.append(
+			_RecordingModel(
+				replies=[
+					_verdict("allow", "You asked for a.txt."),
+					_verdict("deny", "b.txt was never mentioned."),
+					_verdict("allow", "You asked for c.txt instead."),
+				]
+			)
+		)
+		return reviewers[-1]
+
+	monkeypatch.setattr("flow_harness.agent.loop.get_model", build)
+	session, events = _session(
+		tmp_path, confirm_tools=["read"], approval_mode="auto", small_model={"model": "mock"}
+	)
+	mock = MockModel(
+		replies=[
+			AssistantMessage(
+				content=[
+					ToolCall(id="c1", name="read", arguments={"path": "a.txt"}),
+					ToolCall(id="c2", name="read", arguments={"path": "b.txt"}),
+				]
+			),
+			AssistantMessage(content=[ToolCall(id="c3", name="read", arguments={"path": "c.txt"})]),
+			AssistantMessage(content="done"),
+		]
+	)
+	await _run(session, "read a.txt", model=mock)
+
+	# one reviewer per run, told only what the user said and what the agent called
+	assert len(reviewers) == 1
+	[first, second] = reviewers[0].requests
+	seen = ["\n".join(m.text for m in request.messages) for request in (first, second)]
+	assert "User: read a.txt" in seen[0] and "Agent called read" in seen[1]
+	# the second review's messages extend the first's, so the provider can serve the prefix from cache
+	first_items, second_items = ([m.text for m in r.messages] for r in (first, second))
+	assert second_items[:-1] == first_items  # so the provider serves the first review's messages from cache
+	# the call itself, with every argument, after its tool's definition
+	assert first_items[-1] == 'Agent called read: {"path": "a.txt"}'
+	assert first_items[-2].startswith('Tool definition: {"type": "function", "function": {"name": "read"')
+	assert first.tools is None and first.stream is False
+	# the allowed call ran, with the verdict kept in its result's details only
+	[result] = _of(events, "tool_result")
+	assert (result["tool_call_id"], result["content"]) == ("c1", "FILE-A")
+	assert result["details"]["review"] == {"decision": "allow"}
+	# the denied one waits for the user, saying why
+	[approval] = _of(events, "approval_required")
+	[call] = approval["calls"]
+	assert call["id"] == "c2" and call["prompt"].endswith("\n\nNot auto-approved: b.txt was never mentioned.")
+	assert _of(events, "run_ended")[-1]["reason"] == "paused"
+	# the reviews' spend is logged as standalone usage and counted against the run
+	purposes = [e["purpose"] for e in _of(events, "usage") if e.get("standalone")]
+	assert purposes == ["review", "review"]
+	assert session._budget.spent > sum(
+		e["input_tokens"] + e["output_tokens"] for e in _of(events, "usage") if not e.get("standalone")
+	)
+
+	# what the user types at the approval prompt is their word, and the next reviewer hears it
+	(tmp_path / "c.txt").write_text("FILE-C")
+	await _resume(session, {"c2": "read c.txt instead"}, model=mock)
+	[third] = reviewers[1].requests  # the resumed run has a reviewer of its own
+	assert "User (answering an approval for read): read c.txt instead" in "\n".join(
+		m.text for m in third.messages
+	)
+	assert _of(events, "tool_result")[-1]["content"] == "FILE-C"
+	assert _of(events, "run_ended")[-1]["reason"] == "done"
+
+
+async def test_auto_review_fails_closed_and_is_moot_with_approvals_off(tmp_path, monkeypatch):
+	(tmp_path / "a.txt").write_text("FILE-A")
+
+	async def paused_prompt(reviewer):
+		monkeypatch.setattr("flow_harness.agent.loop.get_model", lambda name, **kwargs: reviewer)
+		session, events = _session(tmp_path, confirm_tools=["read"], approval_mode="auto")
+		await _run(session, "read", model=MockModel(replies=[_read_call()]))
+		assert _of(events, "tool_result") == []
+		[approval] = _of(events, "approval_required")
+		return approval["calls"][0]["prompt"]
+
+	# an unparseable verdict, and a reviewer that breaks, both hand the call to the user
+	assert (await paused_prompt(MockModel(replies=[AssistantMessage(content="sure, go ahead")]))).endswith(
+		"Not auto-approved: The reviewer gave no clear verdict."
+	)
+
+	class Broken(MockModel):
+		async def run(self, request):
+			raise RuntimeError("down")
+			yield
+
+	assert (await paused_prompt(Broken())).endswith(
+		"Not auto-approved: The reviewer could not check this call."
+	)
+
+	# with approvals off there is nothing to review
+	def never(name, **kwargs):
+		raise AssertionError("no reviewer should be built")
+
+	monkeypatch.setattr("flow_harness.agent.loop.get_model", never)
+	session, events = _session(tmp_path, confirm_tools=["read"], approval_mode="auto_approve")
+	await _run(session, "read", model=MockModel(replies=[_read_call(), AssistantMessage(content="ok")]))
+	[result] = _of(events, "tool_result")
+	assert result["content"] == "FILE-A" and "review" not in result["details"]
+
+
+async def test_a_card_that_takes_the_users_input_is_never_auto_approved(tmp_path, monkeypatch):
+	async def post(config, url, payload):
+		return {"prompt": "Enter the API key", "needs_user": True}
+
+	def never(name, **kwargs):
+		raise AssertionError("no reviewer should be built")
+
+	monkeypatch.setattr("flow_harness.agent.client_tools._post", post)
+	monkeypatch.setattr("flow_harness.agent.loop.get_model", never)
+	gated = {
+		**_REPORT_CLIENT,
+		"approval_mode": "auto",
+		"confirm_tools": ["report"],
+		"small_model": {"model": "mock"},
+	}
+	session, events = _session(tmp_path, **gated)
+	await _run(session, "save the key", model=_report_model())
+	[approval] = _of(events, "approval_required")
+	assert approval["calls"][0]["prompt"] == "Enter the API key"
+	assert _of(events, "run_ended")[-1]["reason"] == "paused"

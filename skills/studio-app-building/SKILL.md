@@ -9,7 +9,8 @@ Studio apps contain `Studio Page` documents with a JSON block tree, optional
 `Studio Page Resource` rows, and page logic. Read [RULES.md](RULES.md) before
 writing bindings, events, or styles. Read [DESIGN.md](DESIGN.md) before building
 or restyling a page. For available components, check
-`studio/src/data/components.ts` and `studio/src/data/componentFamilies.ts`.
+`studio/frontend/src/data/components.ts` and
+`studio/frontend/src/data/componentFamilies.ts`.
 Read [ROUTING.md](ROUTING.md) for navigation, redirects, guards or `boot` data.
 
 ## Standard vs custom apps
@@ -28,7 +29,7 @@ workflows are not interchangeable.
   enable export with `StudioApp.enable_app_export(target_app)`. This sets
   `is_standard` and `frappe_app`, writes JSON, and moves existing page scripts
   into `.ts` files. Document save exports only in developer mode; see
-  `studio/export.py:can_export`.
+  `frappe/studio/export.py:can_export`.
 - Files live under the linked Frappe app. Inspect an existing export such as
   `frappe/studio/note/` before creating them directly:
 

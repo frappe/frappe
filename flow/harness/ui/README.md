@@ -128,8 +128,7 @@ app passes its doctype panels.
   and the `/cwd` folder picker are all served by the daemon (`title` in
   listings, `DELETE /sessions/{sid}`, `context_window`/`context_tokens` on the
   session detail, `/providers/*`, `GET /fs/pick`).
-- The approval-mode picker applies to sessions created from then on;
-  `auto_approve` is fixed at session create.
+- The approval-mode picker sets `approval_mode` on new sessions and patches the current one.
 - The composer supports image uploads and pasted images. PNG, JPEG, GIF, WebP, and BMP
   images are snapshotted into session-scoped attachment storage before the message is sent.
 - Serving the UI from a different origin without a proxy needs

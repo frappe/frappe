@@ -1,18 +1,18 @@
 <template>
 	<div
-		class="flex max-h-[min(500px,72vh)] flex-col overflow-hidden rounded-6 border border-outline-gray-2 bg-surface-base shadow-[0_1px_2px_rgba(0,0,0,0.06),0_8px_24px_-10px_rgba(0,0,0,0.18)]"
+		class="flex max-h-[min(500px,calc(72vh/var(--flow-zoom,1)))] flex-col overflow-hidden rounded-6 border border-outline-gray-2 bg-surface-base"
 	>
 		<div class="flex items-start gap-3 px-3.5 py-2.5">
-			<div class="min-w-0 flex-1 text-md leading-snug text-ink-gray-9">{{ title }}</div>
+			<div class="min-w-0 flex-1 text-base-medium leading-snug text-ink-gray-8">{{ title }}</div>
 			<span
 				v-if="subagent != null"
-				class="max-w-[45%] flex-none truncate rounded-full bg-surface-gray-2 px-2 py-0.5 text-xs font-medium text-ink-gray-6"
+				class="max-w-[45%] flex-none truncate rounded-full bg-surface-gray-2 px-2 py-0.5 text-xs-medium text-ink-gray-6"
 			>
 				Sub-agent{{ subagent ? `: ${subagent}` : "" }}
 			</span>
 			<span
 				v-if="total > 1"
-				class="flex-none rounded-full bg-surface-gray-2 px-2 py-0.5 text-xs font-medium text-ink-gray-6"
+				class="flex-none rounded-full bg-surface-gray-2 px-2 py-0.5 text-xs-medium text-ink-gray-6"
 			>
 				{{ position }} of {{ total }}
 			</span>
@@ -20,7 +20,11 @@
 
 		<!-- the host's view fills the card body with its own padding, so a table can go edge to edge -->
 		<div v-if="presentation.argsComponent" class="overflow-y-auto border-y border-outline-gray-1">
-			<component :is="presentation.argsComponent" :arguments="args" />
+			<component
+				:is="presentation.argsComponent"
+				:arguments="args"
+				v-bind="takesCall ? { call } : {}"
+			/>
 		</div>
 		<pre
 			v-else-if="body"
@@ -34,32 +38,28 @@
 			</div>
 		</div>
 
-		<div v-if="!asking" class="flex items-center justify-end gap-2 px-3.5 py-2.5">
-			<button class="flow-btn-ghost" @click="asking = true">Ask for changes</button>
-			<button class="flow-btn-secondary" @click="answer('Deny')">Deny</button>
-			<button class="flow-btn-primary" @click="answer('Approve')">Approve</button>
+		<!-- a host view that answers the card itself brings its own buttons -->
+		<div v-if="!asking && !presentation.ownAnswers" class="flex items-center justify-end gap-2 px-3.5 py-2.5">
+			<Button ref="askButton" variant="ghost" label="Ask for changes" @click="asking = true" />
+			<Button variant="subtle" label="Deny" @click="answer('Deny')" />
+			<Button variant="solid" label="Approve" @click="answer('Approve')" />
 		</div>
-		<div v-else class="px-3.5 py-2.5">
+		<div v-else-if="asking" class="px-3.5 py-2.5">
 			<!-- function ref: the field mounts only while asking, so mount-time focus
 			     is exactly "form opened" -->
-			<textarea
+			<Textarea
 				:ref="focusAsk"
 				v-model="askText"
-				rows="2"
+				variant="outline"
+				:rows="2"
 				placeholder="Describe what you want instead…"
-				class="w-full resize-none rounded-6 border border-outline-gray-2 bg-surface-base px-2.5 py-2 text-sm leading-normal text-ink-gray-9 outline-none focus:border-outline-gray-3 focus:ring-0"
+				class="resize-none"
 				@keydown="onAskKey"
 			/>
 			<div class="mt-2 flex items-center gap-2">
 				<span class="min-w-0 flex-1 truncate text-xs text-ink-gray-4">⏎ send · esc cancel</span>
-				<button class="flow-btn-ghost" @click="cancelAsk">Cancel</button>
-				<button
-					class="flow-btn-primary"
-					:class="askText.trim() ? '' : 'pointer-events-none opacity-50'"
-					@click="sendAsk"
-				>
-					Send
-				</button>
+				<Button variant="ghost" label="Cancel" @click="cancelAsk" />
+				<Button variant="solid" label="Send" :disabled="!askText.trim()" @click="sendAsk" />
 			</div>
 		</div>
 	</div>
@@ -67,6 +67,8 @@
 
 <script setup>
 import { computed, inject, nextTick, ref } from "vue"
+import { Button } from "frappe-ui/src/components/Button"
+import { Textarea } from "frappe-ui/src/components/Textarea"
 
 import { layout } from "../layout.js"
 
@@ -94,6 +96,7 @@ function answer(text) {
 
 // a ref fires before its node is in the document, where focus() is a no-op; the tick
 // after, the field exists and the typing lands in it
+const askButton = ref(null)
 function focusAsk(el) {
 	if (el) nextTick(() => el.focus())
 }
@@ -103,13 +106,19 @@ const args = computed(() => props.call.args ?? props.call.arguments ?? {})
 // a host's own tools may name the action better than the server prompt does
 const presentation = computed(() => flow.options?.presentTool?.(props.call.name, args.value) ?? {})
 
+// a view that declares a `call` prop reads the call itself, such as the server's prompt
+const takesCall = computed(() => {
+	const declared = presentation.value.argsComponent?.props
+	return Array.isArray(declared) ? declared.includes("call") : !!declared?.call
+})
+
 const title = computed(() => {
 	const a = args.value
 	const custom = presentation.value.title
 	if (custom != null) return custom
 	switch (props.call.name) {
 		case "bash":
-			return "Run this command?"
+			return a.description || "Run this command?"
 		case "edit": {
 			const n = a.edits?.length ?? 1
 			return `Apply ${n} edit${n === 1 ? "" : "s"} to ${a.path ?? "file"}?`
@@ -149,9 +158,11 @@ function sendAsk() {
 	askText.value = ""
 }
 
+// the keyboard goes back to the button that opened the field
 function cancelAsk() {
 	asking.value = false
 	askText.value = ""
+	nextTick(() => askButton.value?.$el?.focus())
 }
 
 // an IME's Enter and Escape pick or drop a candidate (Safari marks its closing key by keyCode 229)

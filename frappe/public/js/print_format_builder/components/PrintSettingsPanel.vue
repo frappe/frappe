@@ -1,6 +1,6 @@
 <template>
 	<div class="pfb-settings">
-		<InspectorSection :label="__('Typography')">
+		<InspectorSection :label="__('Text')">
 			<InspectorRow :label="__('Font')">
 				<Autocomplete
 					:options="font_options"
@@ -18,9 +18,6 @@
 					@change="(e) => (print_format.font_size = parseFloat(e.target.value) || 14)"
 				/>
 			</InspectorRow>
-		</InspectorSection>
-
-		<InspectorSection :label="__('Style')">
 			<InspectorRow v-for="c in color_settings" :key="c.fieldname" :label="c.label">
 				<ColorInput
 					:fieldname="c.fieldname"
@@ -58,21 +55,17 @@
 					<option value="Landscape">{{ __("Landscape") }}</option>
 				</select>
 			</InspectorRow>
-		</InspectorSection>
-
-		<InspectorSection :label="__('Spacing (mm)')">
 			<SpacingRow
-				:label="__('Margins')"
+				:label="__('Margins (mm)')"
 				:model-value="page_margins"
 				@update:model-value="set_margins"
 			/>
-		</InspectorSection>
-
-		<InspectorSection :label="__('Page background')">
-			<ImageUploadControl
-				:model-value="layout.background?.image || ''"
-				@update:model-value="set_background_image"
-			/>
+			<InspectorRow :label="__('Background')">
+				<ImageUploadControl
+					:model-value="layout.background?.image || ''"
+					@update:model-value="set_background_image"
+				/>
+			</InspectorRow>
 			<SliderRow
 				v-if="layout.background?.image"
 				:label="__('Opacity')"
@@ -87,7 +80,7 @@
 			</SliderRow>
 		</InspectorSection>
 
-		<InspectorSection :label="__('Document')">
+		<InspectorSection :label="__('Output')">
 			<InspectorRow :label="__('PDF renderer')">
 				<template #label>
 					<span class="pfb-label-with-hint">
@@ -133,6 +126,17 @@
 					</option>
 				</select>
 			</InspectorRow>
+		</InspectorSection>
+
+		<InspectorSection :label="__('Access')">
+			<DeskControl
+				:df="roles_df"
+				:model-value="print_format.roles || []"
+				@update:model-value="set_roles"
+			/>
+			<span class="pfb-insp-hint text-muted">
+				{{ __("If set, only users with one of these roles can print with this format.") }}
+			</span>
 		</InspectorSection>
 
 		<InspectorSection :label="__('Global variables')" :init-open="!!layout.global_variables">
@@ -269,8 +273,8 @@ let page_number_positions = computed(() => [
 
 // ── colors ─────────────────────────────────────────────────
 const color_settings = [
-	{ fieldname: "label_color", label: __("Label") },
-	{ fieldname: "value_color", label: __("Value") },
+	{ fieldname: "label_color", label: __("Label color") },
+	{ fieldname: "value_color", label: __("Value color") },
 ];
 const letterhead_df = {
 	fieldname: "letter_head",
@@ -278,6 +282,17 @@ const letterhead_df = {
 	options: "Letter Head",
 	placeholder: __("No letter head"),
 };
+const roles_df = {
+	fieldname: "roles",
+	fieldtype: "Table MultiSelect",
+	options: "Has Role",
+};
+function set_roles(rows) {
+	const roles = (rows || []).map((row) => row.role).filter(Boolean);
+	const current = (print_format.value.roles || []).map((row) => row.role);
+	if (roles.join("\n") === current.join("\n")) return;
+	print_format.value.roles = roles.map((role) => ({ role }));
+}
 function set_letterhead(name) {
 	if (name === (letterhead.value?.name || "")) return;
 	name ? store.change_letterhead(name) : store.remove_letterhead();

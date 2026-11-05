@@ -506,8 +506,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	get_report_settings() {
+		const report_name = this.report_name;
 		return new Promise((resolve, reject) => {
-			if (frappe.query_reports[this.report_name]) {
+			// other screens load only the report script, without the rest of get_script's settings
+			if (frappe.query_reports[this.report_name]?.has_python_formatter !== undefined) {
 				this.report_settings = frappe.query_reports[this.report_name];
 				resolve();
 			} else {
@@ -516,16 +518,18 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 						report_name: this.report_name,
 					})
 					.then((settings) => {
-						if (
-							!frappe.query_reports[settings.custom_report_name || this.report_name]
-						) {
+						if (!frappe.query_reports[settings.custom_report_name || report_name]) {
 							frappe.dom.eval(settings.script);
 						}
 						frappe.after_ajax(() => {
+							if (this.report_name !== report_name) return;
+
 							this.report_settings = this.get_local_report_settings(
 								settings.custom_report_name
 							);
 							this.report_settings.html_format = settings.html_format;
+							this.report_settings.has_python_formatter =
+								settings.has_python_formatter;
 							this.report_settings.execution_time = settings.execution_time || 0;
 							frappe.query_reports[this.report_name] = this.report_settings;
 
@@ -1105,15 +1109,17 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 						true
 					);
 
-					this.prepared_report_dialog.footer.prepend(`
-					<button type="button" class="btn btn-sm btn-default pull-left" data-action="delete_old_queued_reports">
-						${__("Delete and Generate New")}
-					</button>`);
+					if (frappe.model.can_read("Prepared Report")) {
+						this.prepared_report_dialog.footer.prepend(`
+						<button type="button" class="btn btn-sm btn-default pull-left" data-action="delete_old_queued_reports">
+							${__("Delete and Generate New")}
+						</button>`);
 
-					frappe.utils.bind_actions_with_object(
-						this.prepared_report_dialog.wrapper,
-						this
-					);
+						frappe.utils.bind_actions_with_object(
+							this.prepared_report_dialog.wrapper,
+							this
+						);
+					}
 				} else {
 					this.generate_background_report();
 				}
@@ -2208,7 +2214,12 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 								label: __("From Document Type"),
 								reqd: 1,
 								options: this.linked_doctypes?.map((df) => ({
-									label: df.doctype + " (" + frappe.unscrub(df.fieldname) + ")",
+									label:
+										__(df.doctype) +
+										" (" +
+										(this.columns.find((col) => col.fieldname === df.fieldname)
+											?.name || __(frappe.unscrub(df.fieldname))) +
+										")",
 									value: JSON.stringify({
 										doctype: df.doctype,
 										fieldname: df.fieldname,
@@ -2276,7 +2287,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 									? df.fieldname + "-" + frappe.scrub(values.doctype)
 									: df.fieldname,
 								fieldtype: df.fieldtype,
-								label: df.label,
+								label: __(df.label, null, df.parent),
 								insert_after_index: insert_after_index,
 								link_field: {
 									fieldname: values.fieldname,

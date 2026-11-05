@@ -5,7 +5,7 @@
 		title="General"
 		:description="
 			siteSettings
-				? 'Your account, how Flow looks, and settings for everyone.'
+				? 'Your account and site settings.'
 				: 'Your account and how Flow looks.'
 		"
 	>
@@ -16,7 +16,8 @@
 					{{ user.full_name }}
 				</span>
 			</SettingsRow>
-			<SettingsRow title="Theme" description="Follow the system, or pick one.">
+			<!-- in a page's panel the page owns the theme, which the chat follows -->
+			<SettingsRow v-if="!inPanel" title="Theme" description="Follow the system, or pick one.">
 				<Select
 					:model-value="colorScheme"
 					:options="THEMES"
@@ -34,6 +35,7 @@ import { Avatar, Select, useColorScheme } from "frappe-ui";
 import SettingsPage from "@flow/ui-core/components/SettingsPage.vue";
 import SettingsRow from "@flow/ui-core/components/SettingsRow.vue";
 
+import { inPanel } from "../panel.js";
 import DocForm from "./DocForm.vue";
 import { SPECS } from "./specs.js";
 
@@ -45,5 +47,5 @@ const THEMES = [
 const page = inject("flowPage");
 const user = computed(() => page.state.boot.user ?? { name: "", full_name: "" });
 const siteSettings = computed(() => page.can("Flow Settings", "read"));
-const { colorScheme, setColorScheme } = useColorScheme();
+const { colorScheme, setColorScheme } = inPanel ? {} : useColorScheme();
 </script>

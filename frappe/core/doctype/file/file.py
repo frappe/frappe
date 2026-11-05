@@ -262,6 +262,18 @@ class File(Document):
 			except PermissionError:
 				frappe.throw(_("Only System Managers can make this file public."))
 
+		if (
+			not self.is_private
+			and not self.is_remote_file
+			and self.attached_to_doctype
+			and (self.has_value_changed("is_private") or self.has_value_changed("attached_to_doctype"))
+			and frappe.get_meta(self.attached_to_doctype).force_private_attachments
+		):
+			frappe.throw(
+				_("Files attached to {0} must be private.").format(_(self.attached_to_doctype)),
+				title=_("Public File Not Allowed"),
+			)
+
 	def normalize_file_url(self):
 		"""Collapse `.` and `//` segments in a local file URL; reject `..`.
 
@@ -384,7 +396,7 @@ class File(Document):
 		self.validate_empty_folder()
 		self.validate_protected_file()
 		self.validate_not_referenced_in_attach_field()
-		self._delete_file_on_disk()
+		frappe.db.after_commit.add(self._delete_file_on_disk)
 		if not self.is_folder:
 			fieldname = escape_html(self.attached_to_field or "")
 			file_name = escape_html(self.file_name)
@@ -411,13 +423,17 @@ class File(Document):
 		parent_meta = frappe.get_meta(self.attached_to_doctype)
 
 		if parent_meta.issingle:
-			frappe.db.set_single_value(
-				self.attached_to_doctype,
-				self.attached_to_field,
-				self.file_url,
-			)
-			return
-		if parent_meta.has_field(self.attached_to_field) and frappe.db.exists(
+			if (
+				parent_meta.has_field(self.attached_to_field)
+				and frappe.db.get_single_value(self.attached_to_doctype, self.attached_to_field)
+				== old_file_url
+			):
+				frappe.db.set_single_value(
+					self.attached_to_doctype,
+					self.attached_to_field,
+					self.file_url,
+				)
+		elif parent_meta.has_field(self.attached_to_field) and frappe.db.exists(
 			self.attached_to_doctype,
 			{"name": self.attached_to_name, self.attached_to_field: old_file_url},
 		):

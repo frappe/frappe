@@ -1,9 +1,10 @@
 import { reactive, watch } from "vue"
 
 import { FlowAPIError } from "./client.js"
-import { CHAT_FONT_SIZE, CHAT_FONT_WEIGHT, layout } from "./layout.js"
+import { CHAT_FONT_SIZE, CHAT_FONT_WEIGHT, chatFontWeight, layout } from "./layout.js"
 import {
 	applyEvent,
+	approvalConfig,
 	approvalToAnswer,
 	conversationTitle,
 	initialConversation,
@@ -85,7 +86,9 @@ const COLOR_SCHEMES = ["system", "light", "dark"]
 //                  body, argsComponent, resultComponent }, any subset, describing the host's
 //                  own tools in rows, approvals and expanded output. Both components fill
 //                  their panel and carry their own padding; resultComponent takes the panel
-//                  over from the text dump, and expandable: false drops the dropdown
+//                  over from the text dump, and expandable: false drops the dropdown.
+//                  An argsComponent that declares a `call` prop is given the call.
+//                  ownAnswers: the argsComponent answers the card itself
 //   turnActions    a component rendered after each finished turn's copy button, with
 //                  the turn's key, response text and timestamp as props
 //   listedModel    true when a session-list row's `model` is the chat's current one, so a
@@ -114,7 +117,7 @@ export function createFlowStore(client, options = {}) {
 	// theme lives in frappe-ui's useColorScheme (localStorage "theme"), not here; a host whose
 	// daemon keeps settings passes it in (options.colorScheme) to save and restore it with them
 	const defaults = {
-		mode: "ask", // "ask" | "auto" — applied at session create
+		mode: "auto", // "auto" | "ask" | "auto_approve" — applied at session create, patched on the current one
 		customInstructions: "", // sent as system_suffix at session create
 		activePreset: null, // id of the agent preset applied to new chats
 		defaultPreset: null, // { tools, extensionTools } ticked for the Default preset on top of the core tools
@@ -138,6 +141,7 @@ export function createFlowStore(client, options = {}) {
 	// only what differs from these is saved, so a setting left alone follows a new default
 	const prefs = { ...copy(defaults), ...readJSON(keys.prefs, {}) }
 	if (typeof prefs.customInstructions !== "string") prefs.customInstructions = ""
+	prefs.chatFontWeight = chatFontWeight(prefs.chatFontWeight)
 
 	// the docked sidebar follows the saved preference; a drawer starts closed and is never saved
 	const sidebarFromPrefs = () => !layout.narrow && prefs.sidebarOpen !== false
@@ -186,6 +190,10 @@ export function createFlowStore(client, options = {}) {
 	let opening = 0 // keys the newest openSession: an older load of the same chat gives way
 	let creating = null // { blank, session }: in-flight lazy session creation; a double-send shares it
 	let sendCount = 0 // keys the bubbles waiting for the server to echo them
+	// a sent picture's own file, by each id its bubble goes by (the composer's, then the stored copy's),
+	// so the bubble shows it from the start rather than a chip while the stored copy loads. Only for a
+	// client that can load that copy later, and dropped when the chat is left
+	const sentPreviews = new Map()
 	let queueCount = 0 // keys the queue's rows
 	let lastRunEnd = null // the open session's latest run_ended reason
 	// waiting messages, as { message, attachments, afterSeq }, of the sessions not open right now
@@ -257,6 +265,7 @@ export function createFlowStore(client, options = {}) {
 			} else state.prefs[key] = copy(value ?? defaults[key])
 		}
 		if (typeof state.prefs.customInstructions !== "string") state.prefs.customInstructions = ""
+		state.prefs.chatFontWeight = chatFontWeight(state.prefs.chatFontWeight)
 		agreed = saved
 		settingsLoaded = true
 		localStorage.setItem(keys.prefs, JSON.stringify(changedPrefs()))
@@ -300,15 +309,19 @@ export function createFlowStore(client, options = {}) {
 		state.toast = { message, kind, at: Date.now() }
 	}
 
-	async function guard(work, { rethrow = false } = {}) {
+	async function guard(work, { rethrow = false, quiet = false } = {}) {
 		try {
 			return await work()
 		} catch (error) {
-			if (error instanceof FlowAPIError) notify(error.message, "error")
-			else notify(String(error?.message ?? error), "error")
+			if (!quiet) report(error)
 			if (rethrow) throw error
 			return null
 		}
+	}
+
+	function report(error) {
+		if (error instanceof FlowAPIError) notify(error.message, "error")
+		else notify(String(error?.message ?? error), "error")
 	}
 
 	function rememberTitle(sid) {
@@ -494,7 +507,7 @@ export function createFlowStore(client, options = {}) {
 				maximized: ws.maximized,
 				active: ws.active,
 				view: ws.view ?? null,
-				tabs: ws.tabs.map((t) => ({ kind: t.kind, path: t.path, diff: !!t.diff })),
+				tabs: ws.tabs.map((t) => ({ kind: t.kind, path: t.path, diff: !!t.diff, since: t.since ?? null })),
 			}
 		} else {
 			delete workspaceBySession[sid]
@@ -517,7 +530,7 @@ export function createFlowStore(client, options = {}) {
 			open,
 			maximized: open && !!saved.maximized,
 			view: ["files", "diff"].includes(saved.view) ? saved.view : null,
-			tabs: stored.map(({ kind, path, diff }) =>
+			tabs: stored.map(({ kind, path, diff, since }) =>
 				kind === "subagent"
 					? { kind, path, name: "Sub-agent" } // named once the thread is loaded
 					: {
@@ -530,19 +543,25 @@ export function createFlowStore(client, options = {}) {
 							loading: false,
 							dirty: false,
 							diff: !!diff,
+							since: Number.isInteger(since) ? since : null,
 						},
 			),
 			active: saved.active == null ? null : paths.includes(saved.active) ? saved.active : (paths[0] ?? null),
 		}
 	}
 
-	async function openSession(sid, { sending = [], config = null } = {}) {
+	// `quiet`: a chat the page reopened by itself, not one the user asked for, starts a new chat
+	// without a word when it is gone
+	async function openSession(sid, { sending = [], config = null, quiet = false } = {}) {
 		const own = ++opening
 		closeStream()
 		// a same-session reload (rewind) keeps the open file tabs as they are, and a chat
 		// just created (`config`) keeps the ones opened before its first message
 		const switching = state.sessionId !== sid && !config
-		if (switching) resetWorkspace()
+		if (switching) {
+			resetWorkspace()
+			dropSentPreviews()
+		}
 		swapQueue(sid)
 		state.sessionId = sid
 		if (switching) restoreWorkspace(sid)
@@ -567,15 +586,16 @@ export function createFlowStore(client, options = {}) {
 		state.conversation.sending = sending
 		state.loading = true
 		const [info, catalog] = await Promise.all([
-			guard(() => client.session(sid)),
+			guard(() => client.session(sid), { quiet }),
 			options.skillsEnabled && typeof client.skills === "function"
-				? guard(() => client.skills(sid))
+				? client.skills(sid).catch((error) => ({ error }))
 				: Promise.resolve({ skills: [] }),
 		])
 		if (state.sessionId !== sid || own !== opening) return
 		// a chat that failed to load (gone, or not this user's) leaves a blank chat, not one
-		// that can't send
+		// that can't send; its skills failed for the same reason, said once already
 		if (!info) return startNewChat()
+		if (catalog.error) report(catalog.error)
 		// Seed from the active branch, not a raw-log replay: the log also holds
 		// rewind markers and abandoned rows, which must never enter the
 		// transcript (a replayed rewind would trigger an endless reload loop).
@@ -709,10 +729,24 @@ export function createFlowStore(client, options = {}) {
 
 	// Reset to the blank "new chat" state, in the caller's folder or newChatCwd's.
 	// No server call — send() creates it lazily.
+	function keepPreviews(items, ids = items.map((item) => item.id ?? item.key)) {
+		if (typeof client.attachmentBlob !== "function") return
+		items.forEach((item, i) => {
+			if (item.kind === "image" && item.file && ids[i] && !sentPreviews.has(ids[i]))
+				sentPreviews.set(ids[i], URL.createObjectURL(item.file))
+		})
+	}
+
+	function dropSentPreviews() {
+		for (const url of sentPreviews.values()) URL.revokeObjectURL(url)
+		sentPreviews.clear()
+	}
+
 	function startNewChat({ cwd = null } = {}) {
 		const nextCwd = cwd ?? newChatCwd()
 		closeStream()
 		resetWorkspace()
+		dropSentPreviews()
 		swapQueue(null)
 		state.sessionId = null
 		state.session = null
@@ -741,7 +775,7 @@ export function createFlowStore(client, options = {}) {
 		const preset = activePreset()
 		const picked = preset ?? defaultPreset()
 		const config = {
-			auto_approve: state.prefs.mode === "auto",
+			...approvalConfig(state.prefs.mode),
 			suggest_replies: true,
 		}
 		if (state.prefs.smallModel) config.small_model = { model: state.prefs.smallModel }
@@ -864,6 +898,7 @@ export function createFlowStore(client, options = {}) {
 	// Opens the next turn, its bubble up before the first round trip: creating the
 	// session, searching memory and reaching the daemon happen behind it.
 	async function sendNow(message, attachments) {
+		keepPreviews(attachments)
 		const pending = { key: `sending:${++sendCount}`, entry: userEntry(message, attachments) }
 		state.conversation.sending.push(pending)
 		const sent = await deliver(message, attachments, pending, null)
@@ -1046,7 +1081,8 @@ export function createFlowStore(client, options = {}) {
 	// id: { attachments: [{ id, name, kind }], created: ids staged by this call }, or null
 	// when one failed (the guard has said why, and nothing staged here is left behind).
 	async function stageAttachments(sid, attachments) {
-		const uploads = attachments.filter((item) => item.file && !item.id).map((item) => item.file)
+		const uploading = attachments.filter((item) => item.file && !item.id)
+		const uploads = uploading.map((item) => item.file)
 		const mentionPaths = attachments.filter((item) => item.mentionPath).map((item) => item.mentionPath)
 		// independent sources — resolve concurrently rather than paying two round trips
 		const [uploaded, attached] = await Promise.all([
@@ -1058,6 +1094,9 @@ export function createFlowStore(client, options = {}) {
 			if (created.length) await client.cleanupAttachments(sid, created.map((item) => item.id)).catch(() => {})
 			return null
 		}
+		// the server answers uploads in the order they went
+		keepPreviews(attachments.filter((item) => item.id))
+		keepPreviews(uploading, (uploaded?.attachments ?? []).map((item) => item.id))
 		return {
 			attachments: [...attachments.filter((item) => item.id), ...created].map(({ id, name, kind }) => ({ id, name, kind })),
 			created: created.map((item) => item.id),
@@ -1254,11 +1293,11 @@ export function createFlowStore(client, options = {}) {
 		savePrefs()
 		const sid = state.sessionId
 		if (!sid) return
-		const data = await guard(() => client.patchConfig(sid, { auto_approve: mode === "auto" }))
+		const data = await guard(() => client.patchConfig(sid, approvalConfig(mode)))
 		// the server never switched, or the user moved to another chat meanwhile: don't act on it here
 		if (!data || state.sessionId !== sid) return
 		if (state.session) state.session.config = data.config
-		if (mode !== "auto") return
+		if (mode !== "auto_approve") return
 		// the batches already waiting at the gate are covered by the new mode: approve
 		// whatever the user hasn't decided yet (their explicit answers stand)
 		for (const pending of waitingApprovals(state.conversation)) {
@@ -1332,8 +1371,9 @@ export function createFlowStore(client, options = {}) {
 
 	// Diff twin of openFile: the tab shows the file's uncommitted changes, with
 	// HEAD as the original side; the working-tree content stays the editable
-	// (and savable) side.
-	async function openDiffFile(path) {
+	// (and savable) side. With `since` (a turn's first change to the file) the
+	// original is the file before that turn, from the session's own records.
+	async function openDiffFile(path, since = null) {
 		const cwd = explorerCwd()
 		const stale = () => explorerCwd() !== cwd
 		if (!cwd) return
@@ -1356,6 +1396,7 @@ export function createFlowStore(client, options = {}) {
 			tab = ws.tabs[ws.tabs.length - 1]
 		}
 		tab.diff = true
+		tab.since = since
 		ws.active = path
 		ws.open = true
 		persistWorkspace()
@@ -1363,6 +1404,8 @@ export function createFlowStore(client, options = {}) {
 		// a 400 means the file lies outside the repo (or there is none): the
 		// session's own recorded changes still diff it, so TurnFiles clicks work
 		const fetchDiff = async () => {
+			if (since != null && state.sessionId && typeof client.fileDiff === "function")
+				return client.fileDiff(state.sessionId, path, since)
 			try {
 				return await client.gitFileDiff(cwd, path)
 			} catch (error) {
@@ -1412,17 +1455,6 @@ export function createFlowStore(client, options = {}) {
 		}
 	}
 
-	// a new chat's branch line, which a failure leaves out as quietly
-	async function gitBranch() {
-		const cwd = explorerCwd()
-		if (!cwd || typeof client.gitBranch !== "function") return null
-		try {
-			return await client.gitBranch(cwd)
-		} catch {
-			return null
-		}
-	}
-
 	// the "+ → Files" view: panel open with no active tab, explorer as the focus
 	function showFilesView() {
 		state.workspace.open = true
@@ -1455,7 +1487,7 @@ export function createFlowStore(client, options = {}) {
 		state.workspace.active = path
 		persistWorkspace()
 		if (tab.kind === "editor" && tab.content == null && !tab.loading && !tab.error)
-			void (tab.diff ? openDiffFile(path) : openFile(path))
+			void (tab.diff ? openDiffFile(path, tab.since ?? null) : openFile(path))
 	}
 
 	// Open a sub-agent's thread in the workspace panel, beside the file tabs.
@@ -1679,6 +1711,14 @@ export function createFlowStore(client, options = {}) {
 	const coreNames = () => state.tools.filter((t) => !t.extension && !t.bundled).map((t) => t.name)
 	const extras = (tools) => tools.filter((name) => !coreNames().includes(name))
 
+	// the prompt a session's requests open with, where its host shows it; null keeps the stand-in
+	async function systemPrompt(sid) {
+		const prompt = state.session?.config?.system_prompt
+		if (typeof prompt === "string") return prompt
+		if (typeof client.systemPrompt !== "function") return null
+		return client.systemPrompt(sid).catch(() => null)
+	}
+
 	async function renameSession(sid, title) {
 		const data = await guard(() => client.patchConfig(sid, { title }))
 		if (!data) return
@@ -1784,7 +1824,6 @@ export function createFlowStore(client, options = {}) {
 		listFiles,
 		searchFiles,
 		gitChanges,
-		gitBranch,
 		selectFile,
 		openSubagent,
 		showFilesView,
@@ -1817,6 +1856,7 @@ export function createFlowStore(client, options = {}) {
 		defaultPreset,
 		saveDefaultPreset,
 		renameSession,
+		systemPrompt,
 		deleteSession,
 		folderName,
 		addFolder,
@@ -1824,6 +1864,7 @@ export function createFlowStore(client, options = {}) {
 		removeFolder,
 		pickFolder,
 		attachmentPreview,
+		sentPreview: (id) => sentPreviews.get(id) ?? null,
 		sessionTitle,
 		notify,
 		detach,

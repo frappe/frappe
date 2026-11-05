@@ -51,6 +51,11 @@ async def test_duckduckgo_needs_no_key_and_skips_ads(web):
 		"2. GitHub\nhttps://github.com/frappe/frappe"
 	)
 	assert seen[0].content == b"q=frappe"
+	assert result.details["results"][0] == {
+		"title": "Frappe Framework",
+		"url": "https://frappe.io/framework",
+		"snippet": "A low code framework.",
+	}
 
 
 async def test_duckduckgo_rate_limit_points_at_a_key(web):

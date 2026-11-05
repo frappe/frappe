@@ -888,6 +888,20 @@ class TestImage(IntegrationTestCase):
 		url = "/../private/files/thumbnail_traversal_secret.jpg"
 		self.assertEqual(get_image_thumbnail_uri(url), url)
 
+		link = frappe.get_site_path("public", "files", "thumbnail_traversal_link.jpg")
+		os.symlink(os.path.abspath(secret), link)
+		self.addCleanup(os.remove, link)
+		self.assertEqual(
+			get_image_thumbnail_uri("/files/thumbnail_traversal_link.jpg"),
+			"/files/thumbnail_traversal_link.jpg",
+		)
+
+		public = frappe.get_site_path("public", "files", "thumbnail_public.jpg")
+		with open(sample, "rb") as src, open(public, "wb") as dst:
+			dst.write(src.read())
+		self.addCleanup(os.remove, public)
+		self.assertTrue(get_image_thumbnail_uri("/files/thumbnail_public.jpg").startswith("data:image/"))
+
 	def test_optimize_image(self):
 		image_file_path = frappe.get_app_path("frappe", "tests", "data", "sample_image_for_optimization.jpg")
 		content_type = guess_type(image_file_path)[0]
@@ -2403,7 +2417,7 @@ class TestChangeLog(IntegrationTestCase):
 		with (
 			patch("frappe.get_system_settings", return_value=0),
 			patch("frappe.is_setup_complete", return_value=True),
-			patch("frappe.utils.change_log.get_versions", return_value=versions),
+			patch("frappe.utils.change_log.get_app_versions", return_value=versions),
 			patch("frappe.utils.change_log.get_source_url", return_value="https://github.com/frappe/app"),
 			patch(
 				"frappe.utils.change_log.check_release_on_github", return_value=(Version("2.0.0"), "frappe")

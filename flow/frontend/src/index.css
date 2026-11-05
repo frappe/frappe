@@ -1,9 +1,5 @@
 @import "@flow/ui-core/flow.css";
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 /* The same theme tuning as the harness web app, so the shared components look alike. */
 :root {
 	--outline-gray-1: #e6e6e6;
@@ -28,11 +24,18 @@
 	--outline-gray-3: #424242;
 }
 
-html,
-body,
-#app {
-	height: 100%;
-	margin: 0;
+/* the island lays out by its own width (build-islands.mjs turns width media queries into
+   container queries), so a narrow panel beside a page gets the narrow layout */
+:host {
+	container-type: inline-size;
+}
+
+/* the panel's dialogs and menus cover the window, so they lay out by its width: the portal is a
+   container as wide as the window, and no taller than before, so it covers nothing itself */
+:host([data-panel]) .frappe-island-portal {
+	container-type: inline-size;
+	inset: 0 auto auto 0 !important;
+	width: 100vw !important;
 }
 
 body {
@@ -41,24 +44,22 @@ body {
 	-webkit-font-smoothing: antialiased;
 }
 
-/* frappe-ui's base asks Inter's variable face for its display cut ("opsz" 24) on these
-   elements; the harness web app loads a static Inter without that axis, so pin the text
-   cut to render the shared components alike (the display cut is ~5% narrower) */
-html,
-body,
-button,
-p,
-span,
-div {
-	font-variation-settings: "opsz" 14;
-}
-
 * {
 	scrollbar-width: thin;
 	scrollbar-color: var(--surface-gray-4) transparent;
 }
 
 /* the panel's dialogs take the chat's narrow scale; frappe-ui titles them 2xl */
-[data-panel] .dialog-content header h3 {
+:host([data-panel]) .dialog-content header h3 {
 	@apply text-lg-semibold;
+}
+
+/* sonner gives its toasts the system font; they take the chat's */
+:host [data-sonner-toaster] {
+	font-family: inherit;
+}
+
+/* the panel's dialogs cover the page, but its toasts keep to the panel */
+:host([data-panel]) [data-sonner-toaster] {
+	position: absolute;
 }

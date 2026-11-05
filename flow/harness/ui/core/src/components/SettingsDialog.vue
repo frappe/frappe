@@ -2,7 +2,8 @@
 	<!-- a phone shows settings as a page: the sections in a list, each opening as a page of its own
 	     with a way back. Anything worked by a mouse, a narrow panel too, shows the dialog -->
 	<DialogRoot v-if="phone" :open="flow.state.settingsOpen" @update:open="flow.setSettingsOpen($event)">
-		<DialogPortal>
+		<!-- into the host's root, as frappe-ui's own dialogs go: an island's styles live there -->
+		<DialogPortal :to="portalTarget">
 			<DialogContent
 				:aria-describedby="undefined"
 				class="flow-settings-page fixed inset-0 z-50 flex flex-col bg-surface-base focus:outline-none"
@@ -18,7 +19,7 @@
 						<span class="lucide-chevron-left size-5" aria-hidden="true" />
 						<DialogTitle as="span" class="text-md">{{ back ? sectionLabel : "Settings" }}</DialogTitle>
 					</button>
-					<DialogTitle v-else class="px-2 text-md font-semibold text-ink-gray-9">Settings</DialogTitle>
+					<DialogTitle v-else class="px-2 text-md-semibold text-ink-gray-9">Settings</DialogTitle>
 					<span class="flex-1" />
 					<DialogClose class="grid h-9 w-9 place-items-center rounded-6 text-ink-gray-7 hover:bg-surface-gray-2" title="Close">
 						<span class="lucide-x size-4" aria-hidden="true" />
@@ -32,7 +33,7 @@
 						<nav v-else class="absolute inset-0 overflow-y-auto bg-surface-base px-2 pb-6">
 							<template v-for="(group, i) in groups" :key="i">
 								<!-- one group is the page itself: its name would only repeat the title -->
-								<div v-if="groups.length > 1" class="flex h-8 items-end px-3 pb-1 text-sm font-medium text-ink-gray-5" :class="i ? 'mt-3' : ''">
+								<div v-if="groups.length > 1" class="flex h-8 items-end px-3 pb-1 text-sm-medium text-ink-gray-5" :class="i ? 'mt-3' : ''">
 									{{ group.label }}
 								</div>
 								<button
@@ -68,10 +69,11 @@
 		:open="flow.state.settingsOpen"
 		@update:open="flow.setSettingsOpen($event)"
 	>
-		<SettingsSidebar class="pt-3">
+		<!-- dark: the nav is the lighter side and the panel the darker, as in Flow's own sidebar and Raven -->
+		<SettingsSidebar class="pt-3 dark:!bg-transparent">
 			<SettingsNavGroup v-for="(group, i) in groups" :key="i">
 				<template v-if="group.label" #label>
-					<span class="mb-1 block text-xs font-medium text-ink-gray-7">{{ group.label }}</span>
+					<span class="mb-1 block text-xs-medium text-ink-gray-7">{{ group.label }}</span>
 				</template>
 				<SettingsNavItem v-for="item in group.tabs" :key="item.id" :value="item.id" class="text-sm">
 					<template #prefix>
@@ -108,6 +110,7 @@ import {
 	SettingsSidebar,
 } from "frappe-ui/src/components/SettingsDialog"
 import { dialogs } from "frappe-ui/src/utils/dialog"
+import { usePortalTarget } from "frappe-ui/src/composables/usePortalTarget"
 
 import { layout } from "../layout.js"
 import { provideSettingsBack } from "../settingsBack.js"
@@ -119,6 +122,7 @@ const props = defineProps({
 })
 const tab = defineModel("tab", { type: String, default: undefined })
 const flow = inject("flow")
+const portalTarget = usePortalTarget()
 
 const tabs = computed(() => props.groups.flatMap((group) => group.tabs))
 const active = computed({
@@ -148,15 +152,16 @@ watch(
 
 // a phone's back goes back a screen, as the header's back does, and from the list closes settings.
 // Each page and dialog is an entry in the browser's history, added only after a tap: Chrome's back
-// skips all of a page's entries once it adds one with no tap since its last back. A frame's back is
-// the page's around it, so a frame adds none.
+// skips all of a page's entries once it adds one with no tap since its last back. In a frame or a
+// panel beside a page, back is the page's, so the chat adds none.
 const depth = computed(() =>
 	flow.state.settingsOpen ? (phone.value && section.value ? (back.value ? 3 : 2) : 1) + dialogs.value.length : 0,
 )
+const besidePage = inject("flowBesidePage", window.top !== window)
 let entries = window.history.state?.flowSettings ?? 0 // a reload keeps them, to leave
 let tapped = false // since the last back
 function syncHistory() {
-	while (layout.phone && tapped && entries < depth.value && window.top === window)
+	while (layout.phone && tapped && entries < depth.value && !besidePage)
 		window.history.pushState({ ...window.history.state, flowSettings: ++entries }, "")
 	if (entries > depth.value) window.history.go(depth.value - entries), (entries = depth.value)
 }
