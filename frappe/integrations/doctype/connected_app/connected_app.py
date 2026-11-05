@@ -68,7 +68,7 @@ class ConnectedApp(Document):
 		)
 		self.redirect_uri = urljoin(base_url, callback_path)
 
-		if not self.client_id:
+		if not self.is_new() and not self.client_id:
 			frappe.throw(
 				_("{0} is required").format(frappe.bold(_(self.meta.get_label("client_id")))),
 				frappe.MandatoryError,
