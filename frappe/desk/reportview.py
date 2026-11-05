@@ -14,6 +14,7 @@ import frappe
 import frappe.permissions
 from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
+from frappe.database.utils import NestedSetHierarchy
 from frappe.desk.link_title import get_report_link_titles, send_link_titles
 from frappe.model import child_table_fields, default_fields, get_permitted_fields, optional_fields
 from frappe.model.document import get_controller
@@ -1349,6 +1350,7 @@ def get_filters_cond(doctype, filters, conditions, ignore_permissions=None, with
 					"not in",
 					"between",
 					"is",
+					*NestedSetHierarchy,
 				):
 					flt.append([doctype, f[0], f[1][0], f[1][1]])
 				else:
