@@ -552,6 +552,15 @@ def run_report_view_export_job(user_email, form_params, csv_params):
 	send_report_email(user_email, report_name, file_extension, content, attached_to_name=report_name)
 
 
+def _restrict_to_names(form_params, doctype, names):
+	"""Narrow the export to `names` on top of the filters already applied in the report view."""
+	from frappe.types.filter import Filters
+
+	filters = Filters(form_params.get("filters") or [], doctype=doctype)
+	filters.append(("name", "in", names), doctype)
+	form_params["filters"] = filters
+
+
 def _export_query(form_params, csv_params, populate_response=True):
 	from frappe.desk.utils import get_csv_bytes, provide_binary_file
 	from frappe.utils.xlsxutils import get_default_xlsx_styles, handle_html, make_xlsx
@@ -581,14 +590,14 @@ def _export_query(form_params, csv_params, populate_response=True):
 		visible_names = None
 
 	if selection := form_params.pop("selected_items", None):
-		form_params["filters"] = {"name": ("in", frappe.parse_json(selection))}
+		_restrict_to_names(form_params, doctype, frappe.parse_json(selection))
 
 	# visible_names is the client's ordered display sequence
 	# When present, take precedence over generic filters/order/pagination: fetch
 	# exactly those rows, then reorder in Python below.
 	# Mirrors the visible_idx pattern in Query Report.
 	if visible_names:
-		form_params["filters"] = {"name": ("in", visible_names)}
+		_restrict_to_names(form_params, doctype, visible_names)
 		form_params["order_by"] = None
 		form_params.pop("page_length", None)
 		form_params.pop("limit_page_length", None)
