@@ -28,7 +28,6 @@
   "permissions",
   "apply_strict_user_permissions",
   "column_break_21",
-  "allow_older_web_view_links",
   "security_tab",
   "security",
   "session_expiry",
@@ -500,12 +499,6 @@
    "fieldname": "document_share_key_expiry",
    "fieldtype": "Int",
    "label": "Document Share Key Expiry (in Days)"
-  },
-  {
-   "default": "0",
-   "fieldname": "allow_older_web_view_links",
-   "fieldtype": "Check",
-   "label": "Allow Older Web View Links (Insecure)"
   },
   {
    "default": "20",
