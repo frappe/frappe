@@ -219,12 +219,17 @@ function text(value) {
 				</div>
 			</template>
 			<template #empty>
-				<span class="text-p-sm text-ink-gray-5">{{ __("No Data...") }}</span>
+				<span class="text-base font-medium text-ink-gray-8">
+					{{ __("No {0} found", [__(doctype)]) }}
+				</span>
+				<span class="-mt-1 max-w-60 text-p-sm text-ink-gray-6">
+					{{ __("Nothing matches the filters") }}
+				</span>
 			</template>
 			<div
 				ref="list"
 				class="-mx-2 flex flex-col overflow-hidden"
-				:class="{ 'min-h-16': rows?.length === 0 }"
+				:class="{ 'min-h-24': rows?.length === 0 }"
 			>
 				<ItemListRow
 					v-for="doc in visible"
