@@ -157,6 +157,7 @@ class File(Document):
 		self.validate_attachment_limit()
 		self.set_file_type()
 		self.validate_file_extension()
+		self.validate_attach_image_field()
 		self.validate_private_file_access()
 		# before ingestion, which may read the linked blob's bytes
 		self.validate_blob_reference()
@@ -544,6 +545,18 @@ class File(Document):
 				_("File type of {0} is not allowed").format(file_extension),
 				exc=FileTypeNotAllowed,
 			)
+
+	def validate_attach_image_field(self):
+		if not (frappe.request and self.attached_to_doctype and self.attached_to_field):
+			return
+
+		df = frappe.get_meta(self.attached_to_doctype).get_field(self.attached_to_field)
+		if not df or df.fieldtype != "Attach Image":
+			return
+
+		file_type = mimetypes.guess_type(self.file_name)[0]
+		if file_type and not file_type.startswith("image/"):
+			frappe.throw(_("{0} only accepts images").format(_(df.label)), exc=FileTypeNotAllowed)
 
 	def check_content(self):
 		from frappe.utils.pdf import pdf_contains_js
