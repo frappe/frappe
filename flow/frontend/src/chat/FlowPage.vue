@@ -76,16 +76,20 @@
 					:placeholder="placeholder"
 					:modes="MODES"
 					:plus-lists="plusLists"
+					new-chat-mode-right
 				>
 					<template #below="{ starting }">
 						<p v-if="starting && !inPanel" class="mt-2 px-3 text-center text-sm text-ink-gray-5">
 							Flow is in beta and can make mistakes
 						</p>
 					</template>
-					<!-- the + menu's lists: a new chat's agent (a started chat keeps its own), and skills -->
+					<!-- a new chat's agent and skills, as buttons beside the + -->
+					<template #tools="{ starting, insert }">
+						<ChatPickers v-if="starting" :insert="insert" />
+					</template>
+					<!-- a started chat's + menu: skills (it keeps its agent) -->
 					<template #plus-list="{ id, beside, close, insert }">
-						<AgentPicker v-if="id === 'agent'" :beside="beside" @close="close" />
-						<SkillPicker v-else-if="id === 'skills'" :beside="beside" @close="close" @pick="insert" />
+						<SkillPicker v-if="id === 'skills'" :beside="beside" @close="close" @pick="insert" />
 					</template>
 					<template #palette="{ view, query, close, back }">
 						<AgentPalette
@@ -148,7 +152,7 @@ import { FORMS } from "../pages/pages.js";
 import FlowSettings from "../settings/FlowSettings.vue";
 import { SPECS } from "../settings/specs.js";
 import AgentPalette from "./AgentPalette.vue";
-import AgentPicker from "./AgentPicker.vue";
+import ChatPickers from "./ChatPickers.vue";
 import FeedbackBar from "./FeedbackBar.vue";
 import SetupState from "./SetupState.vue";
 import ShareChat from "./ShareChat.vue";
@@ -348,14 +352,13 @@ watch(
 const route = useRoute();
 const router = useRouter();
 // a setup form's record in the chat's place, for whoever may read its records
-// the composer's + menu after Attach: a new chat's agent, and skills where there are some or one
-// can be added
-const plusLists = computed(() => [
-	{ id: "agent", label: "Agent", icon: "lucide-bot", newChatOnly: true },
-	...((store.state.skills ?? []).length || page.can("Flow Skill", "create")
-		? [{ id: "skills", label: "Skills", icon: "lucide-book-open" }]
-		: []),
-]);
+// a started chat's + menu after Attach: skills where there are some or one can be added. A new chat
+// has its own buttons for its agent and skills (ChatPickers)
+const plusLists = computed(() =>
+	(store.state.skills ?? []).length || page.can("Flow Skill", "create")
+		? [{ id: "skills", label: "Skills", icon: "lucide-book-open", startedOnly: true }]
+		: []
+);
 const forms = computed(() => FORMS.filter((item) => page.can(SPECS[item.key].doctype, "read")));
 const pageKind = computed(() => {
 	const { kind } = route.params;

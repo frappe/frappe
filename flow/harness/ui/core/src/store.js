@@ -190,6 +190,10 @@ export function createFlowStore(client, options = {}) {
 	let opening = 0 // keys the newest openSession: an older load of the same chat gives way
 	let creating = null // { blank, session }: in-flight lazy session creation; a double-send shares it
 	let sendCount = 0 // keys the bubbles waiting for the server to echo them
+	// a sent picture's own file, by each id its bubble goes by (the composer's, then the stored copy's),
+	// so the bubble shows it from the start rather than a chip while the stored copy loads. Only for a
+	// client that can load that copy later, and dropped when the chat is left
+	const sentPreviews = new Map()
 	let queueCount = 0 // keys the queue's rows
 	let lastRunEnd = null // the open session's latest run_ended reason
 	// waiting messages, as { message, attachments, afterSeq }, of the sessions not open right now
@@ -554,7 +558,10 @@ export function createFlowStore(client, options = {}) {
 		// a same-session reload (rewind) keeps the open file tabs as they are, and a chat
 		// just created (`config`) keeps the ones opened before its first message
 		const switching = state.sessionId !== sid && !config
-		if (switching) resetWorkspace()
+		if (switching) {
+			resetWorkspace()
+			dropSentPreviews()
+		}
 		swapQueue(sid)
 		state.sessionId = sid
 		if (switching) restoreWorkspace(sid)
@@ -722,10 +729,24 @@ export function createFlowStore(client, options = {}) {
 
 	// Reset to the blank "new chat" state, in the caller's folder or newChatCwd's.
 	// No server call — send() creates it lazily.
+	function keepPreviews(items, ids = items.map((item) => item.id ?? item.key)) {
+		if (typeof client.attachmentBlob !== "function") return
+		items.forEach((item, i) => {
+			if (item.kind === "image" && item.file && ids[i] && !sentPreviews.has(ids[i]))
+				sentPreviews.set(ids[i], URL.createObjectURL(item.file))
+		})
+	}
+
+	function dropSentPreviews() {
+		for (const url of sentPreviews.values()) URL.revokeObjectURL(url)
+		sentPreviews.clear()
+	}
+
 	function startNewChat({ cwd = null } = {}) {
 		const nextCwd = cwd ?? newChatCwd()
 		closeStream()
 		resetWorkspace()
+		dropSentPreviews()
 		swapQueue(null)
 		state.sessionId = null
 		state.session = null
@@ -877,6 +898,7 @@ export function createFlowStore(client, options = {}) {
 	// Opens the next turn, its bubble up before the first round trip: creating the
 	// session, searching memory and reaching the daemon happen behind it.
 	async function sendNow(message, attachments) {
+		keepPreviews(attachments)
 		const pending = { key: `sending:${++sendCount}`, entry: userEntry(message, attachments) }
 		state.conversation.sending.push(pending)
 		const sent = await deliver(message, attachments, pending, null)
@@ -1059,7 +1081,8 @@ export function createFlowStore(client, options = {}) {
 	// id: { attachments: [{ id, name, kind }], created: ids staged by this call }, or null
 	// when one failed (the guard has said why, and nothing staged here is left behind).
 	async function stageAttachments(sid, attachments) {
-		const uploads = attachments.filter((item) => item.file && !item.id).map((item) => item.file)
+		const uploading = attachments.filter((item) => item.file && !item.id)
+		const uploads = uploading.map((item) => item.file)
 		const mentionPaths = attachments.filter((item) => item.mentionPath).map((item) => item.mentionPath)
 		// independent sources — resolve concurrently rather than paying two round trips
 		const [uploaded, attached] = await Promise.all([
@@ -1071,6 +1094,9 @@ export function createFlowStore(client, options = {}) {
 			if (created.length) await client.cleanupAttachments(sid, created.map((item) => item.id)).catch(() => {})
 			return null
 		}
+		// the server answers uploads in the order they went
+		keepPreviews(attachments.filter((item) => item.id))
+		keepPreviews(uploading, (uploaded?.attachments ?? []).map((item) => item.id))
 		return {
 			attachments: [...attachments.filter((item) => item.id), ...created].map(({ id, name, kind }) => ({ id, name, kind })),
 			created: created.map((item) => item.id),
@@ -1838,6 +1864,7 @@ export function createFlowStore(client, options = {}) {
 		removeFolder,
 		pickFolder,
 		attachmentPreview,
+		sentPreview: (id) => sentPreviews.get(id) ?? null,
 		sessionTitle,
 		notify,
 		detach,

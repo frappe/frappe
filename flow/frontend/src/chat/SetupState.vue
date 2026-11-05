@@ -13,7 +13,7 @@
 		<template v-if="canConnect">
 			<!-- connected, a model is picked to start with; nothing is added on its own -->
 			<PickModel v-if="provider && !switching" :provider="provider" @added="added" @switch="switching = true" />
-			<ConnectSetup v-else :connected="connectedIds" @connected="connected" @use="use" @manual="create('providers')" />
+			<ConnectSetup v-else :connected="connectedIds" @connected="connected" @use="use" />
 		</template>
 		<Button v-else-if="hasModels && canEnable" variant="solid" label="Enable an agent" @click="open('agents')" />
 		<div v-else-if="!hasModels" class="flex flex-col items-center gap-3">
@@ -111,12 +111,6 @@ async function ask() {
 // settings on a tab
 function open(tab) {
 	page.state.settingsTab = tab;
-	flow.setSettingsOpen(true);
-}
-
-// a server of one's own opens settings on a blank provider, not the list
-function create(tab) {
-	page.createRecord(tab);
 	flow.setSettingsOpen(true);
 }
 </script>

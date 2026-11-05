@@ -42,6 +42,27 @@ class TestFlowSetup(IntegrationTestCase):
 			setup.connect("openrouter", "sk-or-bad")
 		self.assertEqual(ask.call_args.args[0], "https://openrouter.ai/api/v1/key")
 
+	def test_a_server_of_ones_own_is_saved_at_its_address(self):
+		frappe.db.delete("Flow Provider", {"name": "custom_openai"})
+		with patch.object(setup.requests, "get") as get:
+			self.assertEqual(
+				setup.connect("custom_openai", None, "http://models.example.com/v1/"), {"ok": True}
+			)
+		self.assertEqual(get.call_args.args[0], "http://models.example.com/v1/models")
+		self.assertEqual(
+			frappe.db.get_value("Flow Provider", "custom_openai", "base_url"), "http://models.example.com/v1"
+		)
+
+	def test_a_server_that_refuses_the_key_or_has_no_address_is_not_saved(self):
+		frappe.db.delete("Flow Provider", {"name": "custom_openai"})
+		refused = requests.HTTPError(response=SimpleNamespace(status_code=401))
+		with patch.object(setup.requests, "get") as get:
+			get.return_value.raise_for_status.side_effect = refused
+			result = setup.connect("custom_openai", "wrong", "https://models.example.com/v1")
+		self.assertEqual(result["reason"], "wrong_key")
+		self.assertRaises(frappe.ValidationError, setup.connect, "custom_openai", None, "models.example.com")
+		self.assertFalse(frappe.db.exists("Flow Provider", "custom_openai"))
+
 	@patch.object(setup, "_ask_with_key")
 	def test_a_provider_is_removed_with_its_models(self, _ask):
 		setup.connect("anthropic", "sk-ant-good-key-0000000000000")

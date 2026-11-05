@@ -79,10 +79,12 @@ const hoverCard = moduleURL(`
 		},
 	}
 `)
-// reka's dialog pieces: the root shows its content while open, and its close asks it to close
+// reka's dialog pieces: the root shows its content while open, and its close asks it to close; a
+// tooltip provider as its content alone
 const reka = moduleURL(`
 	import { h, inject, provide } from ${JSON.stringify(vue)}
 	const close = Symbol("close")
+	export const TooltipProvider = { setup: (props, { slots }) => () => slots.default?.() }
 	export const DialogRoot = {
 		props: ["open"],
 		emits: ["update:open"],
