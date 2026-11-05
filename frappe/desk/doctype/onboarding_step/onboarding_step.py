@@ -53,6 +53,25 @@ class OnboardingStep(Document):
 		video_url: DF.Data | None
 	# end: auto-generated types
 
+	def validate(self):
+		required = {
+			"Create Entry": ["reference_document"],
+			"Update Settings": ["reference_document"],
+			"Show Form Tour": ["reference_document"],
+			"View Report": ["reference_report"],
+			"Go to Page": ["path"],
+			"Complete Onboarding": ["module_onboarding"],
+		}.get(self.action, [])
+		if self.action == "Update Settings" and self.validate_action:
+			required.append("value_to_validate")
+
+		for fieldname in required:
+			if not self.get(fieldname):
+				frappe.throw(
+					_("{0} is required").format(frappe.bold(_(self.meta.get_label(fieldname)))),
+					frappe.MandatoryError,
+				)
+
 	def before_export(self, doc):
 		doc.is_complete = 0
 		doc.is_skipped = 0
