@@ -208,10 +208,7 @@ class TestNotification(IntegrationTestCase):
 		notification.send_alert_on = "New"
 		notification.message = "test"
 
-		recipent = frappe.new_doc("Notification Recipient")
-		recipent.receiver_by_document_field = "owner"
-
-		notification.recipents = recipent
+		notification.append("recipients", {"receiver_by_document_field": "owner"})
 		notification.condition = "test"
 
 		self.assertRaises(frappe.ValidationError, notification.save)
@@ -881,11 +878,13 @@ class TestNotification(IntegrationTestCase):
 				"doctype": "Email Template",
 				"name": "Test Empty Email Template",
 				"subject": "x",
-				"response": "",
+				"use_html": 1,
+				"response_html": "",
 			}
 		).insert()
 
 		notification = frappe.new_doc("Notification")
+		notification.name = "Test Empty Email Template Notification"
 		notification.document_type = "ToDo"
 		notification.event = "Save"
 		notification.channel = "Email"
