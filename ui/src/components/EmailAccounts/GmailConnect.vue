@@ -274,9 +274,11 @@ async function copy(text: string, done: string) {
 
 async function submit() {
 	const address = email.value.trim();
+	const stepsShown = checked.value === address;
 	checked.value = address;
 	if (!kind.value) return;
 	if (kind.value === "personal" || unavailable.value) return emit("manual", address);
+	if (!stepsShown) return;
 	error.value = null;
 	connecting.value = true;
 	try {

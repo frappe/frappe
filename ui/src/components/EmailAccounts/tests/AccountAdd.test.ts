@@ -282,3 +282,19 @@ it("signs a company address in with Google, shows the admin's client ID once the
   await new Promise((resolve) => setTimeout(resolve));
   expect(title()).toContain("New Gmail account");
 });
+
+it("shows a company address's admin steps on the first Enter and signs in on the next", async () => {
+  const connect = vi.fn(async () => true);
+  await openGmail(connect);
+  await type("support@fabkart.example.com");
+  const form = document.querySelector('[role="dialog"] form')!;
+
+  form.dispatchEvent(new Event("submit", { cancelable: true }));
+  await nextTick();
+  expect(connect).not.toHaveBeenCalled();
+  expect(document.querySelector('[role="dialog"]')!.textContent).toContain(GMAIL.client_id);
+
+  form.dispatchEvent(new Event("submit", { cancelable: true }));
+  await nextTick();
+  expect(connect).toHaveBeenCalledWith("GMail", "support@fabkart.example.com");
+});
