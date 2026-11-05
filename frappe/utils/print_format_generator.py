@@ -386,20 +386,25 @@ def check_conditions(doctype: str, name: str, conditions: list[str] | str):
 	"""Evaluate visibility conditions against a document the way the print does.
 	Returns {condition: {"visible": bool} | {"error": str}}; at most MAX_CONDITIONS
 	distinct expressions are evaluated per call."""
+	frappe.has_permission("Print Format", "write", throw=True)
 	conditions = frappe.parse_json(conditions) if isinstance(conditions, str) else conditions
 	if not all(isinstance(v, str) for v in (doctype, name)) or not isinstance(conditions, list):
 		frappe.throw(_("Invalid arguments"), frappe.ValidationError)
 	conditions = list(dict.fromkeys(c for c in conditions if c.strip() and len(c) <= 2000))[:MAX_CONDITIONS]
 	doc = frappe.get_doc(doctype, name)
 	doc.check_permission("read")
-	eval_locals = {"doc": doc, "print_settings": frappe.get_cached_doc("Print Settings")}
+	eval_locals = condition_locals(doc, frappe.get_cached_doc("Print Settings"))
 	out = {}
 	for condition in conditions:
 		try:
 			out[condition] = {"visible": bool(frappe.safe_eval(condition, None, eval_locals))}
-		except Exception as e:
-			out[condition] = {"error": str(e)[:200]}
+		except Exception:
+			out[condition] = {"error": _("This condition could not be evaluated")}
 	return out
+
+
+def condition_locals(doc, print_settings) -> dict:
+	return {"doc": doc.as_dict(), "print_settings": print_settings.as_dict()}
 
 
 class PrintFormatGenerator:
@@ -889,7 +894,7 @@ class PrintFormatGenerator:
 
 	def _render_zone_section(self, section: dict, doc, zone_class: str = "") -> str:
 		"""Render a header/footer zone section dict to HTML for the Chrome overlay."""
-		eval_locals = {"doc": doc, "print_settings": self.print_settings}
+		eval_locals = condition_locals(doc, self.print_settings)
 		for column in section.get("columns", []):
 			for df in column.get("fields", []):
 				if "renderer" not in df:
@@ -1058,7 +1063,7 @@ class PrintFormatGenerator:
 		empty across all rows, then renormalize widths. A bad condition fails open."""
 		from frappe.www.printview import column_has_value
 
-		eval_locals = {"doc": self.doc, "print_settings": self.print_settings}
+		eval_locals = condition_locals(self.doc, self.print_settings)
 		for column in iter_layout_columns(layout):
 			for df in column.get("fields", []):
 				if df.get("fieldtype") != "Table" or not df.get("table_columns"):
@@ -1126,7 +1131,7 @@ class PrintFormatGenerator:
 		self.filter_conditional_rows(df)
 
 	def set_field_renderers(self, layout):
-		eval_locals = {"doc": self.doc, "print_settings": self.print_settings}
+		eval_locals = condition_locals(self.doc, self.print_settings)
 		self.jinja_context = {
 			**global_variables_context(layout.get("global_variables"), self.doc),
 			"doc": self.doc,
@@ -1154,10 +1159,10 @@ class PrintFormatGenerator:
 		if not df.get("row_condition") or not source:
 			return
 		condition = df["row_condition"]
-		eval_locals = {"doc": self.doc, "print_settings": self.print_settings}
+		eval_locals = condition_locals(self.doc, self.print_settings)
 		kept = []
 		for row in self.doc.get(source) or []:
-			if self.eval_condition(condition, {**eval_locals, "row": row}, f"rows of {source}"):
+			if self.eval_condition(condition, {**eval_locals, "row": row.as_dict()}, f"rows of {source}"):
 				kept.append(row)
 		df["_rows"] = kept
 
