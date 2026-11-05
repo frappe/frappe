@@ -41,21 +41,26 @@ frappe.ui.form.on("Print Settings", {
 					action(__("View"), () =>
 						frappe.set_route("List", "Print Format", { pdf_generator: "wkhtmltopdf" })
 					),
-					action(__("Switch All"), () =>
-						frappe.confirm(__("Switch {0} to {1}?", [formats(count), generator]), () =>
-							frappe
-								.xcall(
-									"frappe.printing.doctype.print_settings.print_settings.follow_print_settings_pdf_generator"
-								)
-								.then((switched) => {
-									$toast.remove();
-									frappe.show_alert({
-										message: __("{0} switched", [formats(switched)]),
-										indicator: "green",
-									});
-								})
-						)
-					)
+					action(__("Switch All"), function () {
+						const $button = $(this).prop("disabled", true);
+						const enable = () => $button.prop("disabled", false);
+						frappe.confirm(
+							__("Switch {0} to {1}?", [formats(count), generator]),
+							() =>
+								frappe
+									.xcall(
+										"frappe.printing.doctype.print_settings.print_settings.follow_print_settings_pdf_generator"
+									)
+									.then((switched) => {
+										$toast.remove();
+										frappe.show_alert({
+											message: __("{0} switched", [formats(switched)]),
+											indicator: "green",
+										});
+									}, enable),
+							enable
+						);
+					})
 				),
 			},
 			15
