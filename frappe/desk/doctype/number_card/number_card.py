@@ -71,7 +71,7 @@ class NumberCard(Document):
 				frappe.throw(_("Parent Document Type is required to create a number card"))
 
 		elif self.type == "Report":
-			if not (self.report_name and self.report_field and self.function):
+			if not (self.report_name and self.report_field and self.report_function):
 				frappe.throw(_("Report Name, Report Field and Fucntion are required to create a number card"))
 
 		elif self.type == "Custom":
