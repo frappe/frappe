@@ -96,7 +96,7 @@ class PortalSettings(Document):
 	def validate(self):
 		if frappe.request and self.default_portal_home:
 			validate_path(self.default_portal_home)
-		if self.default_role:
+		if self.default_role and self.has_value_changed("default_role"):
 			role = frappe.db.get_value("Role", self.default_role, ["desk_access", "disabled"], as_dict=True)
 			if role and (role.desk_access or role.disabled):
 				frappe.throw(_("Default Role must be an enabled role without desk access"))
