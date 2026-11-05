@@ -34,6 +34,12 @@ class TestDB(IntegrationTestCase):
 		self.assertEqual(frappe.db.sql("PRAGMA busy_timeout")[0][0], 15_000)
 
 	@run_only_if(db_type_is.SQLITE)
+	def test_sqlite_add_index_accepts_quoted_columns(self):
+		frappe.db.add_index("ToDo", ["`status`", "allocated_to"], "todo_quoted_status_index")
+		self.assertTrue(frappe.db.has_index("tabToDo", "todo_quoted_status_index"))
+		frappe.db.sql_ddl("DROP INDEX IF EXISTS `todo_quoted_status_index`")
+
+	@run_only_if(db_type_is.SQLITE)
 	def test_sqlite_binds_uuid_values(self):
 		from uuid import uuid4
 

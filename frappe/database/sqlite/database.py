@@ -470,7 +470,7 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 			return
 		original_fields = fields
 		# SQLite indexes the complete value; a MariaDB prefix length is neither needed nor valid here.
-		fields = [re.sub(r"\(\d+\)$", "", field) for field in fields]
+		fields = [re.sub(r"\(\d+\)$", "", field).strip("`") for field in fields]
 		for field in fields:
 			if not re.fullmatch(r"\w+", field):
 				frappe.throw(f"Invalid index column: {field}")
