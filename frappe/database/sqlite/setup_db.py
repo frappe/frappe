@@ -53,15 +53,21 @@ def copy_db(db_file=None, verbose=False):
 	if not destination_db_folder.exists():
 		destination_db_folder.mkdir()
 	destination_db_path = destination_db_folder / f"{db_name}.db"
+	staged_db_path = destination_db_path.with_name(f"{destination_db_path.name}.restoring")
 
 	if db_path.suffix == ".gz":
 		import gzip
 
-		with gzip.open(db_file, "rb") as input, open(destination_db_path, "wb") as output:
+		with gzip.open(db_file, "rb") as input, open(staged_db_path, "wb") as output:
 			shutil.copyfileobj(input, output)
 
 	else:
-		shutil.copy(db_path, destination_db_path)
+		shutil.copy(db_path, staged_db_path)
+
+	# A WAL left by the replaced database would be replayed onto the restored one and corrupt it.
+	for suffix in ("-wal", "-shm"):
+		destination_db_path.with_name(destination_db_path.name + suffix).unlink(missing_ok=True)
+	os.replace(staged_db_path, destination_db_path)
 	if verbose:
 		print("Imported from database {}".format(db_path))
 
