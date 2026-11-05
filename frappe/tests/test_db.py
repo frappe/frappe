@@ -34,6 +34,38 @@ class TestDB(IntegrationTestCase):
 		self.assertEqual(frappe.db.sql("PRAGMA busy_timeout")[0][0], 15_000)
 
 	@run_only_if(db_type_is.SQLITE)
+	def test_sqlite_restore_discards_wal_of_replaced_database(self):
+		import tempfile
+		from pathlib import Path
+
+		from frappe.database.sqlite.setup_db import copy_db
+
+		with tempfile.TemporaryDirectory() as directory:
+			site = Path(directory)
+			(site / "db").mkdir()
+			source = site / "backup.db"
+			with sqlite3.connect(source) as connection:
+				connection.execute("create table restored (value text)")
+				connection.execute("insert into restored values ('from backup')")
+			destination = site / "db" / "restore_test.db"
+			destination.write_bytes(b"old database")
+			for suffix in ("-wal", "-shm"):
+				Path(f"{destination}{suffix}").write_bytes(b"stale")
+
+			with (
+				patch.object(frappe, "get_site_path", return_value=directory),
+				patch.dict(frappe.local.conf, {"db_name": "restore_test"}),
+			):
+				copy_db(source)
+
+			self.assertFalse(Path(f"{destination}-wal").exists())
+			self.assertFalse(Path(f"{destination}-shm").exists())
+			with sqlite3.connect(destination) as connection:
+				self.assertEqual(
+					connection.execute("select value from restored").fetchall(), [("from backup",)]
+				)
+
+	@run_only_if(db_type_is.SQLITE)
 	def test_sqlite_write_request_takes_writer_lock_at_begin(self):
 		previous_request = getattr(frappe.local, "request", None)
 		self.addCleanup(setattr, frappe.local, "request", previous_request)
