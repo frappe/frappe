@@ -23,7 +23,7 @@ dependencies = [
     # We depend on internal attributes,
     # do NOT add loose requirements on PyMySQL versions.
     "PyMySQL==1.1.2",
-    "pypdf==6.19.0",
+    "pypdf==6.21.4",
     "PyPika @ git+https://github.com/frappe/pypika@7ef6e40215d46cd531e8c4e58650b84c11abbd04",
     "mysqlclient==2.2.7",
     "PyQRCode~=1.2.1",
@@ -232,7 +232,7 @@ nixpkgs-deps = [
 
 [tool.uv]
 exclude-newer = "7 days"
-exclude-newer-package = { pypdf = false, filelock = false } # drop filelock after 2026-11-10
+exclude-newer-package = { pypdf = false, filelock = false } # drop pypdf after 2026-11-04, filelock after 2026-11-10
 
 [tool.mypy]
 strict = false
