@@ -1352,7 +1352,7 @@ test("a steered message waits below the running turn, Working under it, the turn
 	assert.equal(bubble.nextElementSibling.textContent.trim(), "Working")
 })
 
-test("open thoughts and tool rows stay open and unfolded as the run ends, until the turn is folded; a click focuses nothing", async (t) => {
+test("open thoughts and tool rows stay open as the run ends, and their turn unfolded even once they close, until it is folded; a click focuses nothing", async (t) => {
 	const conversation = reactive(initialConversation())
 	applyEvent(conversation, { type: "run_started", seq: 1, ts: 10 })
 	applyEvent(conversation, { type: "user_message", seq: 2, ts: 10, content: "list files" })
@@ -1396,7 +1396,14 @@ test("open thoughts and tool rows stay open and unfolded as the run ends, until 
 	assert.ok(panel())
 	assert.ok(el.querySelector("pre"))
 
-	// folding it by hand closes the rows with it
+	// closing them leaves the turn unfolded; folding it by hand closes the rows with it
+	rowButton(el, "Thought").click()
+	rowButton(el, "ls").click()
+	await nextTick()
+	assert.equal(panel(), null)
+	assert.equal(fold.getAttribute("aria-expanded"), "true")
+	rowButton(el, "ls").click()
+	await nextTick()
 	fold.click()
 	await nextTick()
 	assert.equal(fold.getAttribute("aria-expanded"), "false")

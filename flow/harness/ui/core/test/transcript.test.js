@@ -527,7 +527,7 @@ test("a turn folds only once its run ends, approval pauses and steered messages 
 	applyEvent(conversation, { type: "run_ended", seq: 12, ts: 130.5, reason: "done" })
 
 	const collapsed = buildItems(conversation)
-	assert.deepEqual(collapsed.map((item) => item.kind), ["user", "turn-fold", "user", "text", "turn-copy"])
+	assert.deepEqual(collapsed.map((item) => item.kind), ["user", "turn-fold", "text", "turn-copy"])
 	assert.equal(collapsed[1].label, "Worked for 30s")
 	assert.equal(collapsed.at(-1).text, "Done.")
 	const expanded = buildItems(conversation, new Set([collapsed[1].turnKey]))

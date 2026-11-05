@@ -606,10 +606,10 @@ function foldLabel(turn) {
 }
 
 // Folds durable entries and the streaming preview into renderable items:
-//   {kind: "user", entry}
+//   {kind: "user", entry, turnKey?, steered?}
 //   {kind: "text", block, entry?, provisional?}
 //   {kind: "thinking", block, entry?, live?}
-//   {kind: "group", steps: [{call, result, aborted} | {thought, id, live?}]}
+//   {kind: "group", steps: [{call, result, aborted, streaming} | {thought, id, live?}]}
 //   {kind: "turn-fold", turnKey, label, expanded}
 //   {kind: "turn-files", turnKey, files: [{path, added, removed}]}
 //   {kind: "compaction", entry}
@@ -708,10 +708,13 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 	}
 
 	for (const entry of conversation.entries) {
+		// a message that joins the turn before it was steered into that turn's run
+		const steered = entry.type === "user_message" && turnByEntry.get(entry) === currentTurnKey
 		currentTurnKey = turnByEntry.get(entry) ?? currentTurnKey
 		if (entry.type === "user_message") {
 			flushThoughts()
-			items.push({ kind: "user", key: `u:${entry.seq}`, entry })
+			const key = `u:${entry.seq}`
+			items.push(steered ? { kind: "user", key, turnKey: currentTurnKey, steered, entry } : { kind: "user", key, entry })
 		} else if (entry.type === "assistant_message") {
 			appendAssistantBlocks(entry.content ?? [], { entry })
 		} else if (entry.type === "tool_result") {
@@ -824,7 +827,7 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 		const foldable =
 			item.kind === "compaction" ||
 			(!inResponse.has(item.key) &&
-				(["group", "thinking"].includes(item.kind) || (item.kind === "text" && !item.provisional)))
+				(["group", "thinking"].includes(item.kind) || (item.kind === "text" && !item.provisional) || item.steered))
 		if (!foldable) continue
 		const foldableItems = foldableByTurn.get(item.turnKey) ?? []
 		foldableItems.push(item)
