@@ -528,6 +528,10 @@ body.print-format-doc .letter-head,
 	height: auto;
 }
 
+.print-format-doc .print-barcode img {
+	max-width: 100%;
+}
+
 .print-format-doc .field[data-fieldtype="Rating"] .rating-star {
 	width: 1.5em;
 }
