@@ -49,7 +49,6 @@ frappe.ui.form.on("Print Settings", {
 								)
 								.then((switched) => {
 									$toast.remove();
-									frm.doc.__onload.wkhtmltopdf_print_formats = 0;
 									frappe.show_alert({
 										message: __("{0} switched", [formats(switched)]),
 										indicator: "green",
