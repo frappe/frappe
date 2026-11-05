@@ -1,7 +1,12 @@
 <template>
-	<div class="pointer-events-none absolute inset-x-0 bottom-0 z-10 px-5 pb-3.5 max-md:bg-surface-base">
+	<div
+		ref="dock"
+		class="pointer-events-none absolute inset-x-0 bottom-0 z-10 px-5 pb-3.5 max-md:bg-surface-base"
+		:style="lift ? { bottom: `${lift}px` } : null"
+	>
 		<!-- the box floats over the thread; a narrow frame's strip around it hides the thread under it -->
-		<div ref="stack" class="pointer-events-auto relative mx-auto max-w-[800px]">
+		<!-- as wide as the thread (flow.css) -->
+		<div ref="stack" class="flow-column pointer-events-auto relative mx-auto">
 			<ModelPalette
 				v-if="paletteView === 'models'"
 				:providers="has('providers')"
@@ -31,7 +36,7 @@
 					<template v-for="(m, i) in menuItems" :key="m.name">
 						<!-- a heading takes a row's height, and a gap above it sets its section off; the
 						     first sits in the list's top padding -->
-						<div v-if="m.section" class="flex h-8 items-center px-[11px] text-base font-medium text-ink-gray-5" :class="i ? 'mt-2' : '-mt-1'">
+						<div v-if="m.section" class="flex h-8 items-center px-[11px] text-base-medium text-ink-gray-5" :class="i ? 'mt-2' : '-mt-1'">
 							{{ m.section }}
 						</div>
 						<button data-palette-item class="flow-palette-row" @click="pick(m)">
@@ -86,12 +91,12 @@
 				class="mx-3.5 -mb-1.5 flex flex-col divide-y divide-outline-gray-2 rounded-t-[10px] border border-b-0 border-outline-gray-2 bg-surface-gray-2 px-3 pb-2.5 pt-1"
 			>
 				<div v-for="item in flow.state.queued" :key="item.key" class="flex min-h-5 items-center gap-2 py-1">
-					<span class="flex-none text-base font-medium text-ink-gray-6">Queued</span>
+					<span class="flex-none text-base-medium text-ink-gray-6">Queued</span>
 					<span class="min-w-0 flex-1 truncate text-base text-ink-gray-7">{{ item.label }}</span>
 					<!-- a compaction takes no steering: the queue waits for it to end -->
 					<button
 						v-if="!compacting"
-						class="flex h-6 flex-none items-center gap-1 rounded-4 px-2 text-base font-medium text-ink-gray-7 hover:bg-surface-gray-3 hover:text-ink-gray-9"
+						class="flex h-6 flex-none items-center gap-1 rounded-4 px-2 text-base-medium text-ink-gray-7 hover:bg-surface-gray-3 hover:text-ink-gray-9"
 						:title="running ? 'Add it to the running turn' : 'Send it now'"
 						:disabled="disabled"
 						@click="steerQueued(item)"
@@ -110,46 +115,18 @@
 				</div>
 			</div>
 
-			<!-- a new chat's folder, branch and preset, or a host's own pickers, until its first message
-			     goes out: a bar tucked under the box, as the queue is, its buttons the box's own size
-			     with an even margin round them. Out of the flow, so a list opening over the box covers it,
-			     and hidden meanwhile. A phone leaves the branch out -->
-			<div
-				v-if="$slots.start ? starting : startCwd"
-				ref="startRow"
-				class="flow-start-surface absolute inset-x-3.5 bottom-full -mb-1.5 flex min-w-0 items-center gap-1 rounded-t-7 px-1.5 pb-3 pt-1.5 text-base text-ink-gray-7 dark:text-ink-gray-8"
-				:class="listOpen ? 'invisible' : ''"
-			>
-				<!-- a host's picker puts a word in the draft at the caret with `insert`, as the "/" list does -->
-				<slot name="start" :insert="replaceSlash">
-					<button
-						class="flex h-6 min-w-0 items-center gap-1.5 rounded-5 px-2 hover:text-ink-gray-9"
-						title="Change working directory"
-						:disabled="disabled"
-						@click="chooseFolder"
-					>
-						<span class="lucide-folder size-3.5 flex-none" aria-hidden="true" />
-						<span class="truncate">{{ flow.folderName(startCwd) }}</span>
-					</button>
-					<span v-if="git" class="hidden min-w-0 items-center gap-1.5 px-1.5 sm:flex" title="Branch">
-						<span class="lucide-git-branch size-3.5 flex-none" aria-hidden="true" />
-						<span class="truncate">{{ git.branch }}</span>
-						<!-- a linked worktree says so, as quietly as the model button's thinking level -->
-						<template v-if="git.worktree">
-							<span class="h-[3px] w-[3px] flex-none rounded-full bg-surface-gray-4" />
-							<span class="flex-none text-ink-gray-4 dark:text-ink-gray-6">worktree</span>
-						</template>
-					</span>
-					<PresetButton :disabled="disabled" />
-				</slot>
-			</div>
-
-			<!-- a fieldset: disabling it disables every control inside, a host's pickers included.
-			     Positioned, so it covers the start row's foot -->
+			<!-- a fieldset: disabling it disables every control inside, a host's pickers included -->
 			<fieldset
 				:disabled="disabled"
-				class="flow-composer-surface flow-composer-edge relative flex min-w-0 flex-col gap-2 rounded-7 border p-2 shadow-[0_1px_2px_rgba(0,0,0,0.06),0_8px_24px_-10px_rgba(0,0,0,0.18)]"
+				class="flow-composer-surface relative flex min-w-0 flex-col gap-2 rounded-6 border border-outline-gray-1 p-2 focus-within:border-outline-gray-2 dark:border-transparent dark:focus-within:border-transparent"
 			>
+				<div
+					v-if="fileDragging"
+					class="pointer-events-none absolute inset-0 z-30 flex items-center justify-center gap-2 rounded-6 border border-dashed border-outline-gray-4 bg-surface-gray-1 text-base-medium text-ink-gray-7"
+				>
+					<span class="lucide-paperclip size-4" aria-hidden="true" />
+					Drop files to attach
+				</div>
 				<button
 					v-if="needsCwd"
 					class="flex w-full items-center gap-2.5 rounded-6 border border-dashed border-outline-gray-3 bg-surface-gray-1 px-2.5 py-2 text-left hover:bg-surface-gray-2"
@@ -159,8 +136,8 @@
 						class="lucide-folder size-3.5 flex-none text-ink-gray-5"
 						aria-hidden="true"
 					/>
-					<span class="min-w-0 flex-1 text-base font-medium leading-4 text-ink-gray-9">Choose a project folder to start</span>
-					<span class="flex-none text-base font-medium text-ink-gray-6">Browse…</span>
+					<span class="min-w-0 flex-1 text-base-medium leading-4 text-ink-gray-9">Choose a project folder to start</span>
+					<span class="flex-none text-base-medium text-ink-gray-6">Browse…</span>
 				</button>
 				<div v-if="imageTiles.length" class="flex flex-wrap gap-1.5 px-1 pt-0.5">
 					<figure
@@ -197,14 +174,14 @@
 						:title="`${ref.rel}:${ref.start}-${ref.end}`"
 					>
 						<span :class="chipIconClass"><span class="lucide-code size-3.5" aria-hidden="true" /></span>
-						<span class="min-w-0 truncate text-base font-medium text-ink-gray-8">{{ codeRefLabel(ref) }}</span>
+						<span class="min-w-0 truncate text-base-medium text-ink-gray-8">{{ codeRefLabel(ref) }}</span>
 						<button :class="chipRemoveClass" title="Remove reference" :disabled="locked" @click="flow.removeCodeRef(i)">
 							<span class="lucide-x size-3" aria-hidden="true" />
 						</button>
 					</span>
 					<span v-for="(quote, i) in quotes" :key="`quote:${i}`" :class="chipClass" :title="quote">
 						<span :class="chipIconClass"><span class="lucide-align-left size-3.5" aria-hidden="true" /></span>
-						<span class="min-w-0 truncate text-base font-medium text-ink-gray-8">{{ quoteLabel(quote) }}</span>
+						<span class="min-w-0 truncate text-base-medium text-ink-gray-8">{{ quoteLabel(quote) }}</span>
 						<button :class="chipRemoveClass" title="Remove quote" :disabled="locked" @click="flow.removeQuote(i)">
 							<span class="lucide-x size-3" aria-hidden="true" />
 						</button>
@@ -223,7 +200,7 @@
 								aria-hidden="true"
 							/>
 						</span>
-						<span class="min-w-0 flex-1 truncate text-base font-medium text-ink-gray-8">{{ item.name }}</span>
+						<span class="min-w-0 flex-1 truncate text-base-medium text-ink-gray-8">{{ item.name }}</span>
 						<button
 							:class="chipRemoveClass"
 							title="Remove attachment"
@@ -282,18 +259,63 @@
 				</div>
 				<div v-if="modelWarning" class="px-1 text-base text-ink-gray-5">{{ modelWarning }}</div>
 				<div class="flex min-w-0 items-center gap-1">
-					<!-- attach files -->
-					<button
-						class="grid h-7 w-7 flex-none place-items-center rounded-5 text-ink-gray-6 hover:bg-surface-gray-2 hover:text-ink-gray-9 dark:text-ink-gray-8"
-						:title="imagesOnly ? 'Attach images' : 'Attach files'"
-						:disabled="locked"
-						@click="openFilePicker"
-					>
-						<span class="lucide-plus size-4" aria-hidden="true" />
-					</button>
+					<!-- attach files; with a host's lists (`plusLists`), a menu: attach, then a row a list,
+					     whose list opens beside it on hover (in its place in a narrow frame) -->
+					<span class="relative flex-none">
+						<button
+							ref="plusButton"
+							class="grid h-7 w-7 flex-none place-items-center rounded-5 text-ink-gray-6 hover:bg-surface-gray-2 hover:text-ink-gray-9 dark:text-ink-gray-8"
+							:class="plusMenu ? 'bg-surface-gray-2' : ''"
+							:title="plusRows.length ? 'Add' : attachLabel"
+							:aria-expanded="plusRows.length ? plusMenu : undefined"
+							:disabled="locked"
+							@click="plusRows.length ? (plusMenu ? closePlusMenu() : (plusMenu = true)) : openFilePicker()"
+						>
+							<span class="lucide-plus size-4" aria-hidden="true" />
+						</button>
+						<PalettePanel
+							v-if="plusMenu && !(plusSub && layout.narrow)"
+							title="Add"
+							dropdown
+							align="left"
+							:width="PLUS_WIDTH"
+							:passive="!!plusSub"
+							@close="closePlusMenu"
+						>
+							<div class="p-1">
+								<button data-palette-item class="flow-palette-row" @pointerenter="plusSub = null" @click="attachFromMenu">
+									<span class="lucide-paperclip size-4 flex-none" aria-hidden="true" />
+									<span class="min-w-0 flex-1 truncate">{{ attachLabel }}</span>
+								</button>
+								<button
+									v-for="row in plusRows"
+									:key="row.id"
+									data-palette-item
+									class="flow-palette-row"
+									:aria-expanded="plusSub === row.id"
+									@pointerenter="layout.narrow || (plusSub = row.id)"
+									@click="plusSub = row.id"
+								>
+									<span class="size-4 flex-none" :class="row.icon" aria-hidden="true" />
+									<span class="min-w-0 flex-1 truncate">{{ row.label }}</span>
+									<span class="lucide-chevron-right flow-palette-hint size-4 flex-none" aria-hidden="true" />
+								</button>
+							</div>
+						</PalettePanel>
+						<!-- the host's list for the row; `insert` puts a word in the draft at the caret, as the
+						     "/" list does -->
+						<slot
+							v-if="plusMenu && plusSub"
+							name="plus-list"
+							:id="plusSub"
+							:beside="layout.narrow ? 0 : PLUS_WIDTH + 4"
+							:close="closePlusMenu"
+							:insert="insertFromMenu"
+						/>
+					</span>
 
-					<!-- approval mode; its list hangs from it. A narrow frame shows the mode as its icon,
-					     which its list explains -->
+					<!-- approval mode, its icon and name; its list hangs from it. A narrow frame shows the
+					     icon alone, which its list explains -->
 					<span class="relative flex-none">
 						<button
 							ref="modeButton"
@@ -304,19 +326,11 @@
 							@click="modeMenu ? closeModeMenu() : (modeMenu = true)"
 						>
 							<span
-								v-if="layout.narrow"
-								class="size-4"
+								class="size-4 flex-none"
 								:class="MODE_ICONS[currentMode] ?? 'lucide-lock'"
 								aria-hidden="true"
 							/>
-							<template v-else>
-								{{ modeLabel }}
-								<span
-									class="lucide-chevron-down size-3 flex-none text-ink-gray-4 transition-transform dark:text-ink-gray-6"
-									:class="modeMenu ? 'rotate-180' : ''"
-									aria-hidden="true"
-								/>
-							</template>
+							<template v-if="!layout.narrow">{{ modeLabel }}</template>
 						</button>
 						<!-- a row a mode, what it does under its name and the tick centred beside both; wide
 						     enough for a description to keep to one line by the tick -->
@@ -331,7 +345,6 @@
 									@click="chooseMode(m.id)"
 								>
 									<span
-										v-if="layout.narrow"
 										class="size-4 flex-none"
 										:class="MODE_ICONS[m.id] ?? 'lucide-lock'"
 										aria-hidden="true"
@@ -387,6 +400,25 @@
 					</button>
 				</div>
 			</fieldset>
+			<!-- a new chat's folder and preset, until its first message goes out: a bar under the box,
+			     its lists opening below it while the box sits mid-page -->
+			<div
+				v-if="startCwd"
+				class="flow-start-surface mx-3.5 flex min-w-0 items-center gap-3 rounded-b-6 p-1.5 text-base text-ink-gray-7 dark:text-ink-gray-8"
+			>
+				<button
+					class="flex h-6 min-w-0 items-center gap-1.5 rounded-5 px-2 hover:text-ink-gray-9"
+					title="Change working directory"
+					:disabled="disabled"
+					@click="chooseFolder"
+				>
+					<span class="lucide-folder size-3.5 flex-none" aria-hidden="true" />
+					<span class="truncate">{{ flow.folderName(startCwd) }}</span>
+				</button>
+				<PresetButton :disabled="disabled" :below="!!lift" />
+			</div>
+			<!-- a host's line under the box, such as a new chat's note -->
+			<slot name="below" :starting="starting" />
 			<ImageViewer v-if="viewer" :src="viewer.previewUrl" :alt="viewer.name" @close="viewer = null" />
 		</div>
 	</div>
@@ -430,9 +462,25 @@ const props = defineProps({
 	placeholder: { type: String, default: "Ask flow…" },
 	modes: { type: Array, default: () => APPROVAL_MODES }, // [{ id, label, desc }] in the host's words
 	disabled: { type: Boolean, default: false }, // shown but inert, e.g. until the host's setup is done
+	// the + menu's lists after Attach: [{ id, label, icon, newChatOnly }], each drawn by the host's
+	// `plus-list` slot
+	plusLists: { type: Array, default: () => [] },
 })
 
 const flow = inject("flow")
+const lift = inject("composerLift", ref(0))
+// only a new chat's first message carries the box down with motion; opening a chat puts it in place.
+// The move runs as a transform, off the main thread, so the thread's first render can't stall it
+const gliding = ref(false)
+const dock = ref(null)
+watch(
+	lift,
+	(now, was) => {
+		if (now || !was || !gliding.value || matchMedia("(prefers-reduced-motion: reduce)").matches) return
+		dock.value?.animate([{ transform: `translateY(${-was}px)` }, { transform: "none" }], { duration: 300, easing: "ease-out" })
+	},
+	{ flush: "post" },
+)
 const skillsEnabled = computed(() => flow.options.skillsEnabled !== false)
 
 const text = ref("")
@@ -442,6 +490,7 @@ const attachments = ref([])
 const viewer = ref(null)
 const submitting = ref(false)
 const locked = ref(false) // the box still holds the message going out
+const fileDragging = inject("fileDragging", ref(false))
 const textScrollTop = ref(0)
 const caretPos = ref(0)
 const mentionDismissed = ref(false)
@@ -716,6 +765,31 @@ watch(
 const modeMenu = ref(false)
 const modeButton = ref(null)
 
+// the + menu: attach, then the host's lists (agent, skills), those for a new chat only while it is one
+const PLUS_WIDTH = 176
+const plusMenu = ref(false)
+const plusSub = ref(null)
+const plusButton = ref(null)
+const plusRows = computed(() => props.plusLists.filter((row) => !row.newChatOnly || starting.value))
+const attachLabel = computed(() => (props.imagesOnly ? "Attach images" : "Attach files"))
+
+function closePlusMenu(refocus = true) {
+	plusMenu.value = false
+	plusSub.value = null
+	if (refocus) nextTick(() => plusButton.value?.focus())
+}
+
+function attachFromMenu() {
+	closePlusMenu(false)
+	openFilePicker()
+}
+
+// the draft takes the focus
+function insertFromMenu(word) {
+	closePlusMenu(false)
+	replaceSlash(word)
+}
+
 // a toolbar picker: with nothing typed the composer is its search, as from a "/"
 function openPalette(view) {
 	paletteView.value = view
@@ -821,26 +895,12 @@ const chipRemoveClass =
 	"grid h-5 w-5 flex-none place-items-center rounded-5 text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-8"
 // an existing session's cwd is frozen in its config; only new chats need one picked
 const needsCwd = computed(() => flow.options.requireCwd && !flow.state.sessionId && !flow.state.prefs.cwd)
-// a new chat, until its first message goes out; its folder, and the branch there where the host reads git
+// a new chat, until its first message goes out, and its folder
 const starting = computed(() => !flow.state.sessionId && !flow.state.conversation.sending.length)
 const startCwd = computed(() => {
 	const cwd = flow.state.prefs?.cwd
 	return cwd && cwd !== "." && starting.value ? cwd : null
 })
-// the shell counts it in the composer's height, which the list centres a new chat's heading above
-const startRow = ref(null)
-// { branch, worktree }: null on a detached HEAD or outside a repository
-const git = ref(null)
-watch(
-	startCwd,
-	async (cwd) => {
-		git.value = null
-		if (!cwd || typeof flow.gitBranch !== "function") return
-		const head = await flow.gitBranch()
-		if (cwd === startCwd.value && head?.branch) git.value = head
-	},
-	{ immediate: true },
-)
 const canSend = computed(
 	() =>
 		!submitting.value &&
@@ -856,7 +916,7 @@ const currentMode = computed(() => {
 })
 const modeLabel = computed(() => props.modes.find((m) => m.id === currentMode.value)?.label ?? currentMode.value)
 // a narrow frame's mode button: tools locked behind a yes, or unlocked
-const MODE_ICONS = { ask: "lucide-lock", auto: "lucide-shield-check", auto_approve: "lucide-lock-open" }
+const MODE_ICONS = { ask: "lucide-hand", auto: "lucide-shield-check", auto_approve: "lucide-shield-alert" }
 
 const currentModel = computed(() => flow.state.conversation.model ?? flow.state.prefs.lastModel)
 const currentImageSupport = computed(() => {
@@ -995,7 +1055,9 @@ function pick(command) {
 	if (!command.stacked) paletteView.value = null
 	if (subSearch.value) prefill("/")
 	else if (slash.value) replaceSlash("")
-	command.run()
+	if (command.stacked) return command.run()
+	// after the box takes the focus back, so a command that opens a dialog keeps it there
+	nextTick(() => command.run())
 }
 
 // the whole "/word" at the caret (like pickMention), or just the caret when the
@@ -1025,6 +1087,10 @@ async function submit() {
 	const draftText = text.value
 	const value = draftText.trim()
 	if (!value && !attachments.value.length && !codeRefs.value.length && !quotes.value.length) return
+	if (lift.value) {
+		gliding.value = true
+		setTimeout(() => (gliding.value = false), 450)
+	}
 	if (value.startsWith("/")) {
 		const [name, ...rest] = value.slice(1).split(" ")
 		const command = enabledCommands.value.find((c) => c.name === name)
@@ -1145,5 +1211,10 @@ function prefill(value) {
 	nextTick(() => box.value?.focus())
 }
 
-defineExpose({ prefill, startRow })
+function addFiles(files) {
+	addLocalFiles(files)
+	nextTick(() => box.value?.focus())
+}
+
+defineExpose({ text, prefill, addFiles, canAttach: () => !locked.value && !props.disabled })
 </script>

@@ -74,7 +74,7 @@ function field_popup_open(target) {
 		.closest?.(".awesomplete")
 		?.querySelector(":scope > ul, :scope > [role='listbox']");
 	if (list && !list.hidden && list.children.length) return true;
-	return !!document.querySelector(".datepicker.active");
+	return !!document.querySelector(".air-datepicker.-active-");
 }
 
 // a header or footer: one piece of the caller's content, or several side by side
@@ -422,7 +422,7 @@ frappe.ui.BottomSheet = class BottomSheet {
 		const groups = normalize_options(options);
 		// one label column: rows without an icon keep its space when any row has one
 		const reserve_icon_space = groups.some((group) =>
-			group.options.some((item) => item.icon || item.image)
+			group.options.some((item) => item.icon || item.image || item.letter)
 		);
 		for (const group of groups) {
 			const section = document.createElement("div");

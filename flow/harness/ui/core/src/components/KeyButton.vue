@@ -13,22 +13,23 @@
 				type="password"
 				autocomplete="off"
 				label="API key"
-				:placeholder="saved ? '••••••••••••••••' : 'Paste your key'"
+				placeholder="Paste your key"
 				autofocus
+				@focus="$event.target.select()"
 			/>
 		</form>
 		<template #actions>
 			<div class="flex items-center gap-2">
 				<a v-if="link" :href="link" target="_blank" rel="noopener" class="text-sm text-ink-gray-6 underline">Get a key</a>
 				<Button label="Cancel" class="ml-auto" @click="open = false" />
-				<Button type="submit" form="key-form" variant="solid" label="Save" :disabled="!key.trim()" />
+				<Button type="submit" form="key-form" variant="solid" label="Save" :disabled="!key.trim() || key === MASK" />
 			</div>
 		</template>
 	</Dialog>
 </template>
 
 <script setup>
-import { onMounted, ref } from "vue"
+import { onMounted, ref, watch } from "vue"
 import { Button } from "frappe-ui/src/components/Button"
 import { Dialog } from "frappe-ui/src/components/Dialog"
 import { TextInput } from "frappe-ui/src/components/TextInput"
@@ -42,7 +43,16 @@ const props = defineProps({
 })
 const emit = defineEmits(["save", "cancel"])
 const open = ref(false)
+// a saved key shows as a filled field; typing or pasting replaces it whole
+const MASK = "•".repeat(16)
 const key = ref("")
+watch(open, (now) => {
+	if (now) key.value = props.saved ? MASK : ""
+})
+watch(key, (now, before) => {
+	if (before !== MASK || now === MASK) return
+	key.value = now.startsWith(MASK) ? now.slice(MASK.length) : MASK.startsWith(now) ? "" : now
+})
 let savedNow = false
 
 onMounted(() => {
@@ -50,7 +60,7 @@ onMounted(() => {
 })
 
 function submit() {
-	if (!key.value.trim()) return
+	if (!key.value.trim() || key.value === MASK) return
 	savedNow = true
 	emit("save", key.value.trim())
 	open.value = false
@@ -58,7 +68,6 @@ function submit() {
 
 function onClose() {
 	if (!savedNow && !props.saved) emit("cancel")
-	key.value = ""
 	savedNow = false
 }
 </script>

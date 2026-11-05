@@ -305,15 +305,19 @@ export function createFlowStore(client, options = {}) {
 		state.toast = { message, kind, at: Date.now() }
 	}
 
-	async function guard(work, { rethrow = false } = {}) {
+	async function guard(work, { rethrow = false, quiet = false } = {}) {
 		try {
 			return await work()
 		} catch (error) {
-			if (error instanceof FlowAPIError) notify(error.message, "error")
-			else notify(String(error?.message ?? error), "error")
+			if (!quiet) report(error)
 			if (rethrow) throw error
 			return null
 		}
+	}
+
+	function report(error) {
+		if (error instanceof FlowAPIError) notify(error.message, "error")
+		else notify(String(error?.message ?? error), "error")
 	}
 
 	function rememberTitle(sid) {
@@ -499,7 +503,7 @@ export function createFlowStore(client, options = {}) {
 				maximized: ws.maximized,
 				active: ws.active,
 				view: ws.view ?? null,
-				tabs: ws.tabs.map((t) => ({ kind: t.kind, path: t.path, diff: !!t.diff })),
+				tabs: ws.tabs.map((t) => ({ kind: t.kind, path: t.path, diff: !!t.diff, since: t.since ?? null })),
 			}
 		} else {
 			delete workspaceBySession[sid]
@@ -522,7 +526,7 @@ export function createFlowStore(client, options = {}) {
 			open,
 			maximized: open && !!saved.maximized,
 			view: ["files", "diff"].includes(saved.view) ? saved.view : null,
-			tabs: stored.map(({ kind, path, diff }) =>
+			tabs: stored.map(({ kind, path, diff, since }) =>
 				kind === "subagent"
 					? { kind, path, name: "Sub-agent" } // named once the thread is loaded
 					: {
@@ -535,13 +539,16 @@ export function createFlowStore(client, options = {}) {
 							loading: false,
 							dirty: false,
 							diff: !!diff,
+							since: Number.isInteger(since) ? since : null,
 						},
 			),
 			active: saved.active == null ? null : paths.includes(saved.active) ? saved.active : (paths[0] ?? null),
 		}
 	}
 
-	async function openSession(sid, { sending = [], config = null } = {}) {
+	// `quiet`: a chat the page reopened by itself, not one the user asked for, starts a new chat
+	// without a word when it is gone
+	async function openSession(sid, { sending = [], config = null, quiet = false } = {}) {
 		const own = ++opening
 		closeStream()
 		// a same-session reload (rewind) keeps the open file tabs as they are, and a chat
@@ -572,15 +579,16 @@ export function createFlowStore(client, options = {}) {
 		state.conversation.sending = sending
 		state.loading = true
 		const [info, catalog] = await Promise.all([
-			guard(() => client.session(sid)),
+			guard(() => client.session(sid), { quiet }),
 			options.skillsEnabled && typeof client.skills === "function"
-				? guard(() => client.skills(sid))
+				? client.skills(sid).catch((error) => ({ error }))
 				: Promise.resolve({ skills: [] }),
 		])
 		if (state.sessionId !== sid || own !== opening) return
 		// a chat that failed to load (gone, or not this user's) leaves a blank chat, not one
-		// that can't send
+		// that can't send; its skills failed for the same reason, said once already
 		if (!info) return startNewChat()
+		if (catalog.error) report(catalog.error)
 		// Seed from the active branch, not a raw-log replay: the log also holds
 		// rewind markers and abandoned rows, which must never enter the
 		// transcript (a replayed rewind would trigger an endless reload loop).
@@ -1337,8 +1345,9 @@ export function createFlowStore(client, options = {}) {
 
 	// Diff twin of openFile: the tab shows the file's uncommitted changes, with
 	// HEAD as the original side; the working-tree content stays the editable
-	// (and savable) side.
-	async function openDiffFile(path) {
+	// (and savable) side. With `since` (a turn's first change to the file) the
+	// original is the file before that turn, from the session's own records.
+	async function openDiffFile(path, since = null) {
 		const cwd = explorerCwd()
 		const stale = () => explorerCwd() !== cwd
 		if (!cwd) return
@@ -1361,6 +1370,7 @@ export function createFlowStore(client, options = {}) {
 			tab = ws.tabs[ws.tabs.length - 1]
 		}
 		tab.diff = true
+		tab.since = since
 		ws.active = path
 		ws.open = true
 		persistWorkspace()
@@ -1368,6 +1378,8 @@ export function createFlowStore(client, options = {}) {
 		// a 400 means the file lies outside the repo (or there is none): the
 		// session's own recorded changes still diff it, so TurnFiles clicks work
 		const fetchDiff = async () => {
+			if (since != null && state.sessionId && typeof client.fileDiff === "function")
+				return client.fileDiff(state.sessionId, path, since)
 			try {
 				return await client.gitFileDiff(cwd, path)
 			} catch (error) {
@@ -1417,17 +1429,6 @@ export function createFlowStore(client, options = {}) {
 		}
 	}
 
-	// a new chat's branch line, which a failure leaves out as quietly
-	async function gitBranch() {
-		const cwd = explorerCwd()
-		if (!cwd || typeof client.gitBranch !== "function") return null
-		try {
-			return await client.gitBranch(cwd)
-		} catch {
-			return null
-		}
-	}
-
 	// the "+ → Files" view: panel open with no active tab, explorer as the focus
 	function showFilesView() {
 		state.workspace.open = true
@@ -1460,7 +1461,7 @@ export function createFlowStore(client, options = {}) {
 		state.workspace.active = path
 		persistWorkspace()
 		if (tab.kind === "editor" && tab.content == null && !tab.loading && !tab.error)
-			void (tab.diff ? openDiffFile(path) : openFile(path))
+			void (tab.diff ? openDiffFile(path, tab.since ?? null) : openFile(path))
 	}
 
 	// Open a sub-agent's thread in the workspace panel, beside the file tabs.
@@ -1684,6 +1685,14 @@ export function createFlowStore(client, options = {}) {
 	const coreNames = () => state.tools.filter((t) => !t.extension && !t.bundled).map((t) => t.name)
 	const extras = (tools) => tools.filter((name) => !coreNames().includes(name))
 
+	// the prompt a session's requests open with, where its host shows it; null keeps the stand-in
+	async function systemPrompt(sid) {
+		const prompt = state.session?.config?.system_prompt
+		if (typeof prompt === "string") return prompt
+		if (typeof client.systemPrompt !== "function") return null
+		return client.systemPrompt(sid).catch(() => null)
+	}
+
 	async function renameSession(sid, title) {
 		const data = await guard(() => client.patchConfig(sid, { title }))
 		if (!data) return
@@ -1789,7 +1798,6 @@ export function createFlowStore(client, options = {}) {
 		listFiles,
 		searchFiles,
 		gitChanges,
-		gitBranch,
 		selectFile,
 		openSubagent,
 		showFilesView,
@@ -1822,6 +1830,7 @@ export function createFlowStore(client, options = {}) {
 		defaultPreset,
 		saveDefaultPreset,
 		renameSession,
+		systemPrompt,
 		deleteSession,
 		folderName,
 		addFolder,

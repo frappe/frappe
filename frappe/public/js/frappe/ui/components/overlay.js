@@ -5,7 +5,8 @@
 import { TABBABLE } from "./utils.js";
 
 /** Page-level layers in <body> that may take focus from an open overlay. */
-export const LAYERS = ".es-bottom-sheet-root, .modal, .datepickers-container, .es-toast-container";
+export const LAYERS =
+	".es-bottom-sheet-root, .modal, .air-datepicker-global-container, .es-toast-container";
 
 /** Width of the page's vertical scrollbar; 0 when it has none (or it overlays the page). */
 export function scrollbar_width() {

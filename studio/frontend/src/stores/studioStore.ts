@@ -627,7 +627,7 @@ const useStudioStore = defineStore("store", () => {
 
 	async function loadCustomVueComponents() {
 		const frappeApp = activeApp.value?.is_standard ? activeApp.value.frappe_app! : ""
-		customVueComponents.value = await reloadCustomVueComponents(frappeApp)
+		customVueComponents.value = await reloadCustomVueComponents(frappeApp, activeApp.value?.name ?? "")
 	}
 
 	// Register per-page code scripts (<page>.ts) for exported apps so the editor can load them.

@@ -5,7 +5,7 @@
 		title="General"
 		:description="
 			siteSettings
-				? 'Your account, how Flow looks, and settings for everyone.'
+				? 'Your account and site settings.'
 				: 'Your account and how Flow looks.'
 		"
 	>

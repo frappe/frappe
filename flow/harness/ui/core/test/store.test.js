@@ -1,6 +1,6 @@
 import assert from "node:assert/strict"
 import test from "node:test"
-import { ref } from "vue"
+import { ref, watch } from "vue"
 
 import { FlowAPIError } from "../src/client.js"
 import { chatFontWeight, layout } from "../src/layout.js"
@@ -235,6 +235,19 @@ test("a chat opens once, stays loading until its own load lands, and gives way t
 	assert.equal(flow.state.sessionId, null)
 	assert.equal(flow.state.loading, false)
 	assert.equal(flow.state.toast.message, "session not found")
+	flow.detach()
+})
+
+test("a gone chat the page reopened by itself gives way to a new chat without a word; one the user opened says so once", async () => {
+	const gone = () => Promise.reject(new FlowAPIError(404, "Flow Session gone not found"))
+	const flow = createFlowStore({ session: gone, skills: gone }, { skillsEnabled: true })
+	const toasts = []
+	watch(() => flow.state.toast, (toast) => toasts.push(toast.message), { flush: "sync" })
+	flow.state.prefs.lastSession = "gone"
+	await flow.openSession("gone", { quiet: true })
+	assert.deepEqual([flow.state.sessionId, flow.state.prefs.lastSession, toasts], [null, null, []])
+	await flow.openSession("gone")
+	assert.deepEqual([flow.state.sessionId, toasts], [null, ["Flow Session gone not found"]])
 	flow.detach()
 })
 
@@ -633,14 +646,11 @@ test("files save and diff against the browsed cwd, before a session or in one", 
 			if (!path.startsWith(`${cwd}/`)) throw new FlowAPIError(400, "file is outside the repository")
 			return { path, original: "old\n", modified: "new\n" }
 		},
-		async fileDiff(sid, path) {
-			calls.push(["session", sid, path])
+		async fileDiff(sid, path, since) {
+			calls.push(["session", sid, path, since])
 			return { path, original: "before\n", modified: "after\n" }
 		},
 		async gitChanges() {
-			throw new Error("boom")
-		},
-		async gitBranch() {
 			throw new Error("boom")
 		},
 	}
@@ -658,9 +668,8 @@ test("files save and diff against the browsed cwd, before a session or in one", 
 	assert.equal(diff.content, "new\n")
 	assert.equal(flow.state.workspace.open, true)
 
-	// the diff bar polls changes, so a failure stays silent instead of toasting, as a new chat's branch does
+	// the diff bar polls changes, so a failure stays silent instead of toasting
 	assert.equal(await flow.gitChanges(), null)
-	assert.equal(await flow.gitBranch(), null)
 	assert.equal(flow.state.toast, null)
 
 	// a file outside the repository falls back to the session's diff
@@ -671,11 +680,21 @@ test("files save and diff against the browsed cwd, before a session or in one", 
 	assert.equal(outside.error, null)
 	assert.equal(outside.original, "before\n")
 	assert.equal(outside.content, "after\n")
+
+	// a turn's files card diffs its own edits, skipping git; the files bar goes back to git
+	await flow.openDiffFile("/project/app.py", 7)
+	assert.equal(diff.original, "before\n")
+	assert.equal(diff.since, 7)
+	await flow.openDiffFile("/project/app.py")
+	assert.equal(diff.original, "old\n")
+	assert.equal(diff.since, null)
 	assert.deepEqual(calls, [
 		["write", "/project", "/project/a.txt", "new"],
 		["git", "/project", "/project/app.py"],
 		["git", "/project", "/home/elsewhere/hook.py"],
-		["session", "s1", "/home/elsewhere/hook.py"],
+		["session", "s1", "/home/elsewhere/hook.py", undefined],
+		["session", "s1", "/project/app.py", 7],
+		["git", "/project", "/project/app.py"],
 	])
 })
 

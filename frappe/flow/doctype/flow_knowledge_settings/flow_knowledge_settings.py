@@ -66,6 +66,12 @@ class FlowKnowledgeSettings(Document):
 		self.embedding_dimension = probe_dimension(self.embedding_model)
 
 
+def embeddings_configured() -> bool:
+	return bool(
+		frappe.get_cached_value("Flow Knowledge Settings", "Flow Knowledge Settings", "embedding_model")
+	)
+
+
 def require_embedding_model():
 	"""Knowledge ingestion needs an embedding model; block creating knowledge docs until one is set."""
 	settings = frappe.get_cached_doc("Flow Knowledge Settings")

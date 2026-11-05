@@ -743,8 +743,8 @@ test("a denied call shows what the user declined, and the reply after it is the 
 	])
 		applyEvent(conversation, event)
 	const items = buildItems(conversation)
-	assert.deepEqual(items.map((item) => item.kind), ["user", "turn-fold", "notice", "text", "turn-copy"])
-	assert.equal(items[2].text, "You declined: Create 1 Sales Order record")
+	assert.deepEqual(items.map((item) => item.kind), ["user", "turn-fold", "declined", "text", "turn-copy"])
+	assert.equal(items[2].text, "Declined: Create 1 Sales Order record")
 	assert.equal(items[3].block.text, "Not created. Change anything?")
 })
 
@@ -816,8 +816,8 @@ test("a settled turn lists the files its successful edits and writes changed", (
 		["user", "turn-fold", "text", "turn-files", "turn-copy"],
 	)
 	assert.deepEqual(items.find((item) => item.kind === "turn-files").files, [
-		{ path: "/proj/src/app.js", added: 5, removed: 3 },
-		{ path: "/proj/src/new.js", added: 12, removed: 0 },
+		{ path: "/proj/src/app.js", added: 5, removed: 3, since: 4 },
+		{ path: "/proj/src/new.js", added: 12, removed: 0, since: 5 },
 	])
 })
 

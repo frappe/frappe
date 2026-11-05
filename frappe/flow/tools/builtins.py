@@ -367,10 +367,10 @@ search_knowledge = bind_search_knowledge([])
 
 ATTACHMENT_SEARCH_SLUG = "search_attachments"
 
-_ATTACHMENT_SEARCH_DESCRIPTION = """Search the files attached to this conversation for passages relevant to `query`.
+_ATTACHMENT_SEARCH_DESCRIPTION = """Search the attached files indexed for retrieval for passages relevant to `query`.
 
-Use it when the user asks about an attached file that was too large to show in full. Returns the \
-most relevant chunks, each with its text, similarity score and file name."""
+Only files sent with relevant excerpts were indexed. Returns the most relevant chunks, each with \
+its text, similarity score and file name. To read an attached file's lines, use read_attachment."""
 
 
 def bind_search_attachments(session: str | None) -> Tool:
@@ -398,6 +398,36 @@ def bind_search_attachments(session: str | None) -> Tool:
 
 
 search_attachments = bind_search_attachments(None)
+
+
+ATTACHMENT_READ_SLUG = "read_attachment"
+
+_ATTACHMENT_READ_DESCRIPTION = """Read lines of a file attached to this conversation.
+
+`file` is the attachment's File (the file attribute of its <file> block) or its file name. Returns up to `limit` lines \
+(1,000 by default, at most 20,000 characters) from line `offset`; a table's header is line 1, then \
+one CSV line per row. The result ends with where to continue. \
+Without `file`, lists this conversation's attached files with their File names and URLs."""
+
+
+def bind_read_attachment(session: str | None) -> Tool:
+	"""A `read_attachment` tool scoped to one session. Unbound (None), it finds nothing."""
+
+	def read_attachment(
+		file: str | None = None, offset: int = 1, limit: int | None = None, *, ctx: ToolContext
+	) -> Any:
+		from frappe.flow.doctype.flow_session_attachment.flow_session_attachment import (
+			read_attachment as read,
+		)
+
+		if not session:
+			return []
+		return read(session, file, offset, limit)
+
+	return tool(read_attachment, description=_ATTACHMENT_READ_DESCRIPTION)
+
+
+read_attachment = bind_read_attachment(None)
 
 
 _UPDATE_MEMORY_DESCRIPTION = """Save a durable fact to memory, or revise one by passing its memory_id.
@@ -1029,6 +1059,7 @@ BUILTIN_TOOLS: list[Tool] = [
 	web_search,
 	search_knowledge,
 	search_attachments,
+	read_attachment,
 	update_memory,
 	load_skill,
 	create,
