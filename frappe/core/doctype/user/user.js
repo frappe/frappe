@@ -254,6 +254,26 @@ frappe.ui.form.on("User", {
 				);
 			}
 
+			if (frm.doc.api_key && frappe.user.has_role("System Manager")) {
+				frm.add_custom_button(
+					__("Revoke API Keys"),
+					function () {
+						frappe.confirm(
+							__(
+								"Revoke the API key and secret of this user? Integrations using them will stop working."
+							),
+							() =>
+								frappe
+									.xcall("frappe.core.doctype.user.user.revoke_keys", {
+										user: frm.doc.name,
+									})
+									.then(() => frm.reload_doc())
+						);
+					},
+					__("Password")
+				);
+			}
+
 			frm.trigger("enabled");
 
 			if (frm.roles_editor && frm.can_edit_roles) {
@@ -346,18 +366,32 @@ frappe.ui.form.on("User", {
 		});
 	},
 	generate_keys: function (frm) {
-		frappe.call({
-			method: "frappe.core.doctype.user.user.generate_keys",
-			args: {
-				user: frm.doc.name,
-			},
-			callback: function (r) {
-				if (r.message) {
-					show_api_key_dialog(r.message.api_key, r.message.api_secret);
-					frm.reload_doc();
-				}
-			},
-		});
+		const generate = (regenerate_api_key) =>
+			frappe.call({
+				method: "frappe.core.doctype.user.user.generate_keys",
+				args: {
+					user: frm.doc.name,
+					regenerate_api_key: regenerate_api_key,
+				},
+				callback: function (r) {
+					if (r.message) {
+						show_api_key_dialog(r.message.api_key, r.message.api_secret);
+						frm.reload_doc();
+					}
+				},
+			});
+
+		if (!frm.doc.api_key) {
+			generate(0);
+			return;
+		}
+
+		frappe.confirm(
+			__(
+				"Generate a new API key and secret? Integrations using the current ones will stop working."
+			),
+			() => generate(1)
+		);
 	},
 	after_save: function (frm) {
 		/**

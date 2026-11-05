@@ -607,7 +607,7 @@
    "label": "API Access"
   },
   {
-   "description": "API Key cannot be regenerated",
+   "description": "Generating keys again replaces this key",
    "fieldname": "api_key",
    "fieldtype": "Data",
    "label": "API Key",
@@ -952,7 +952,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2026-10-01 00:45:05.600707",
+ "modified": "2026-10-27 14:56:07.463736",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",

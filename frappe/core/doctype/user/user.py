@@ -1658,23 +1658,33 @@ def get_restricted_ip_list(user):
 
 
 @frappe.whitelist(methods=["POST"])
-def generate_keys(user: str):
+def generate_keys(user: str, regenerate_api_key: bool = False) -> dict[str, str]:
 	"""
 	generate api key and api secret
 
 	:param user: str
+	:param regenerate_api_key: also replace an existing api key, so clients using the old key stop working
 	"""
 	frappe.only_for("System Manager")
 	user_details: User = frappe.get_doc("User", user)
 	api_secret = frappe.generate_hash(length=15)
-	# if api key is not set generate api key
-	if not user_details.api_key:
+	if regenerate_api_key or not user_details.api_key:
 		api_key = frappe.generate_hash(length=15)
 		user_details.api_key = api_key
 	user_details.api_secret = api_secret
 	user_details.save()
 
 	return {"api_key": user_details.api_key, "api_secret": api_secret}
+
+
+@frappe.whitelist(methods=["POST"])
+def revoke_keys(user: str) -> None:
+	"""Remove the api key and api secret of the user, turning off token based authentication for them."""
+	frappe.only_for("System Manager")
+	user_details: User = frappe.get_doc("User", user)
+	user_details.api_key = None
+	user_details.api_secret = None
+	user_details.save()
 
 
 @frappe.whitelist()
