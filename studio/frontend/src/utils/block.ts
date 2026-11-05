@@ -757,7 +757,16 @@ class Block implements BlockOptions {
 
 	// component slots
 	initializeSlots() {
-		Object.entries(this.componentSlots).forEach(([slotName, slot]) => {
+		Object.entries(this.componentSlots).forEach(([slotName, stored]) => {
+			const slot = Array.isArray(stored) ? ({ slotName, slotContent: stored } as Slot) : stored
+			if (slot !== stored) {
+				// Hand-written JSON often puts the blocks straight under the slot name. Keep them.
+				console.warn(
+					`Slot "${slotName}" on ${this.componentName} is an array. ` +
+						"Studio stores a slot as { slotName, slotContent }.",
+				)
+				this.componentSlots[slotName] = slot
+			}
 			if (!slot.slotId) {
 				slot.slotId = this.generateSlotId(slotName)
 			}
