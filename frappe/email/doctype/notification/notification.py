@@ -178,6 +178,12 @@ class Notification(Document):
 			validate_template(self.subject)
 
 		validate_template(self.message)
+		if self.channel == "Email" and not self.email_template and not self.subject:
+			frappe.throw(
+				_("{0} is required").format(frappe.bold(_(self.meta.get_label("subject")))),
+				frappe.MandatoryError,
+			)
+
 		if self.channel == "Webhook" and not self.notification_webhook_url:
 			frappe.throw(
 				_("Notification Webhook URL is required for the Webhook channel"),
