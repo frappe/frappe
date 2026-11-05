@@ -74,16 +74,11 @@
 						@click="copy(steps, __('Steps copied'))"
 					/>
 				</div>
-				<ol class="flex flex-col gap-3">
-					<li v-for="(step, i) in stepItems" :key="i" class="flex gap-3">
-						<span
-							class="flex size-5 shrink-0 items-center justify-center rounded-full bg-surface-gray-2 text-sm-medium text-ink-gray-7"
-						>
-							{{ i + 1 }}
-						</span>
-						<div class="flex min-w-0 flex-1 flex-col gap-1">
+				<ol class="flex list-decimal flex-col gap-5 pl-5 marker:text-ink-gray-6">
+					<li v-for="(step, i) in stepItems" :key="i">
+						<div class="flex min-w-0 flex-col gap-1">
 							<span class="text-base-medium text-ink-gray-8">{{ step.title }}</span>
-							<p class="text-p-sm text-ink-gray-6">{{ step.description }}</p>
+							<p class="text-p-base text-ink-gray-6">{{ step.description }}</p>
 							<Button
 								v-if="i === 0"
 								class="self-start"
