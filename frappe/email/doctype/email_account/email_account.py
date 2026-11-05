@@ -441,7 +441,7 @@ class EmailAccount(Document):
 				error_message = _("Email Account Disabled.") + " " + error_message
 				error_message += "<br>" + _("Message from server: {0}").format(cstr(e))
 				self.handle_incoming_connect_error(description=error_message)
-				return None
+				raise
 
 			elif not is_background_receive and any(t in message for t in auth_error_codes):
 				SMTPServer.throw_invalid_credentials_exception()
@@ -455,7 +455,6 @@ class EmailAccount(Document):
 				self.db_set("no_failed", self.no_failed + 1)
 				if self.no_failed > 2:
 					self.handle_incoming_connect_error(description=description)
-				return
 
 			raise
 

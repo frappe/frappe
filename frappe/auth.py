@@ -16,7 +16,7 @@ import frappe.database
 import frappe.utils
 import frappe.utils.user
 from frappe import _
-from frappe.apps import get_default_path
+from frappe.apps import get_default_app, get_default_path
 from frappe.core.doctype.activity_log.activity_log import add_authentication_log
 from frappe.sessions import Session, clear_sessions, delete_session, get_expiry_in_seconds
 from frappe.translate import get_language
@@ -27,13 +27,13 @@ from frappe.twofactor import (
 	should_run_2fa,
 )
 from frappe.utils import cint, date_diff, datetime, today
-from frappe.utils.password import check_password, get_decrypted_password
-from frappe.website.utils import get_home_page
+from frappe.utils.password import check_password, get_decrypted_password, validate_password_size
+from frappe.website.utils import get_home_page, get_role_home_page, get_role_home_page_via_hooks
 
 SAFE_HTTP_METHODS = frozenset(("GET", "HEAD", "OPTIONS", "QUERY"))
 UNSAFE_HTTP_METHODS = frozenset(("POST", "PUT", "DELETE", "PATCH"))
 assert SAFE_HTTP_METHODS.isdisjoint(UNSAFE_HTTP_METHODS), "a HTTP method cannot be both safe and unsafe"
-MAX_PASSWORD_SIZE = 512
+
 API_AUTH_FAILURE_LOG_INTERVAL = 5 * 60  # seconds
 
 
@@ -67,6 +67,11 @@ class HTTPRequest:
 		return self._domain
 
 	def set_request_ip(self):
+		# bench start serves requests directly, so use the address of the connection itself
+		if frappe._dev_server and frappe.request and frappe.request.remote_addr:
+			frappe.local.request_ip = frappe.request.remote_addr
+			return
+
 		if frappe.get_request_header("X-Forwarded-For"):
 			frappe.local.request_ip = (frappe.get_request_header("X-Forwarded-For").split(",", 1)[0]).strip()
 
@@ -212,7 +217,14 @@ class LoginManager:
 			frappe.local.cookie_manager.set_cookie("system_user", "yes", deduplicate=True)
 			if not resume:
 				frappe.local.response["message"] = "Logged In"
-				frappe.local.response["home_page"] = get_home_page() or "/desk"
+				home_page = None
+				if get_default_app() and not (
+					get_role_home_page()
+					or get_role_home_page_via_hooks()
+					or frappe.get_user().load_user_default_workspace()
+				):
+					home_page = get_default_path()
+				frappe.local.response["home_page"] = home_page or get_home_page() or "/desk"
 
 		if not resume:
 			frappe.response["full_name"] = self.full_name
@@ -278,8 +290,7 @@ class LoginManager:
 		if not (user and pwd):
 			self.fail(_("Incomplete login details"), user=user)
 
-		if len(pwd) > MAX_PASSWORD_SIZE:
-			self.fail(_("Password size exceeded the maximum allowed size"), user=user)
+		validate_password_size(pwd)
 
 		_raw_user_name = user
 		user = User.find_by_credentials(user, pwd)
@@ -490,7 +501,11 @@ def validate_ip_address(user):
 	if request is not None and request.path.startswith("/api/method/frappe.realtime."):
 		return True
 
-	user_info = frappe.get_cached_doc("User", user)
+	try:
+		user_info = frappe.get_cached_doc("User", user)
+	except frappe.DoesNotExistError:
+		return
+
 	ip_list = user_info.get_restricted_ip_list()
 
 	if not ip_list:

@@ -144,7 +144,7 @@ class TestInitiateMailboxConnect(IntegrationTestCase):
 		self.pilot.assert_not_called()
 
 	def test_service_without_one_click_opens_the_form(self) -> None:
-		for service in ("Yahoo Mail", "GMail", None):
+		for service in ("Sendgrid", "SparkPost", None):
 			with self.subTest(service):
 				self.assertIsNone(email_oauth.initiate_mailbox_connect(service))
 		self.pilot.assert_not_called()
@@ -177,7 +177,7 @@ class TestInitiateMailboxConnect(IntegrationTestCase):
 		)
 
 	def test_reconnect_of_a_mailbox_not_signed_in_through_frappe_cloud_is_refused(self) -> None:
-		for token_uri in ("https://login.example.com/token", "frappe-cloud-relay:yahoo"):
+		for token_uri in ("https://login.example.com/token", "frappe-cloud-relay:zoho"):
 			with self.subTest(token_uri):
 				account = self.relay_mailbox(token_uri)
 				self.assertRaises(
@@ -201,13 +201,54 @@ class TestBoot(IntegrationTestCase):
 
 		with self.set_user("test@example.com"):
 			with patch.dict(frappe.conf, V2):
-				boot = get_bootinfo()
-				self.assertTrue(boot.is_v2_site)
-				self.assertEqual(boot.one_click_email_services, {"Outlook.com": "Outlook"})
+				self.assertTrue(get_bootinfo().is_v2_site)
 			with patch.dict(frappe.conf, {key: None for key in V2}):
-				boot = get_bootinfo()
-				self.assertFalse(boot.is_v2_site)
-				self.assertEqual(boot.one_click_email_services, {})
+				self.assertFalse(get_bootinfo().is_v2_site)
+
+
+class TestOneClickServices(IntegrationTestCase):
+	def setUp(self) -> None:
+		self.enterContext(self.set_user(create_user(USER).name))
+		self.enterContext(patch.dict(frappe.conf, V2))
+		self.pilot: MagicMock = self.enterContext(
+			patch.object(email_oauth.PilotClient, "post", return_value=["microsoft", "zoho"])
+		)
+		email_oauth.get_active_providers.clear_cache()
+		self.addCleanup(email_oauth.get_active_providers.clear_cache)
+
+	def test_lists_the_services_frappe_cloud_has_turned_on_and_this_site_knows(self) -> None:
+		self.assertEqual(email_oauth.get_one_click_services(), {"Outlook.com": "Outlook"})
+		self.assertEqual(self.pilot.call_args.args[0], pilot_path("get_active_providers"))
+
+	def test_lists_every_provider_this_site_knows(self) -> None:
+		self.pilot.return_value = ["google", "microsoft", "yahoo", "yandex"]
+		self.assertEqual(
+			email_oauth.get_one_click_services(),
+			{"Outlook.com": "Outlook", "GMail": "Gmail", "Yahoo Mail": "Yahoo", "Yandex.Mail": "Yandex"},
+		)
+
+	def test_leaves_out_a_provider_frappe_cloud_has_turned_off(self) -> None:
+		self.pilot.return_value = []
+		self.assertEqual(email_oauth.get_one_click_services(), {})
+
+	def test_asks_frappe_cloud_once_for_ten_minutes(self) -> None:
+		email_oauth.get_one_click_services()
+		email_oauth.get_one_click_services()
+		self.pilot.assert_called_once()
+
+	def test_lists_nothing_when_frappe_cloud_cannot_be_reached_and_asks_again_next_time(self) -> None:
+		self.pilot.side_effect = frappe.ValidationError("Could not reach your server")
+		self.assertEqual(email_oauth.get_one_click_services(), {})
+
+		self.pilot.side_effect = None
+		self.assertEqual(email_oauth.get_one_click_services(), {"Outlook.com": "Outlook"})
+
+	def test_lists_nothing_off_frappe_cloud_or_without_create_permission(self) -> None:
+		with patch.dict(frappe.conf, {key: None for key in V2}):
+			self.assertEqual(email_oauth.get_one_click_services(), {})
+		with self.set_user(create_user("email-oauth-reader@example.com", "Website Manager").name):
+			self.assertEqual(email_oauth.get_one_click_services(), {})
+		self.pilot.assert_not_called()
 
 
 def id_token(email: str, tid: str = PERSONAL) -> str:
@@ -297,6 +338,130 @@ class TestCallback(IntegrationTestCase):
 		self.assertEqual(app.token_uri, "frappe-cloud-relay:microsoft")
 		self.assertIsNone(app.get_password("client_secret", raise_exception=False))
 		self.assertEqual(app.get_token_cache(USER).get_password("refresh_token"), "rt")
+
+	def test_connects_gmail_mailbox(self) -> None:
+		self.pilot.return_value = token("one@email-oauth.example.com", tid=None)
+		email_oauth.callback(state=self.note(provider="google"), code="c")
+
+		self.assertTrue(
+			self.landed().endswith(
+				"email_oauth=connected&email_oauth_mailbox=one%40email-oauth.example.com&email_oauth_provider=google"
+			)
+		)
+		account = frappe.get_doc("Email Account", {"email_id": "one@email-oauth.example.com"})
+		self.assertEqual(account.email_server, "imap.gmail.com")
+		self.assertEqual(account.smtp_server, "smtp.gmail.com")
+		self.assertEqual(account.service, "GMail")
+		app = frappe.get_doc("Connected App", account.connected_app)
+		self.assertEqual(app.provider_name, "Gmail (one@email-oauth.example.com)")
+		self.assertEqual(app.token_uri, "frappe-cloud-relay:google")
+
+	def test_connects_yahoo_mailbox(self) -> None:
+		self.pilot.return_value = token("one@email-oauth.example.com", tid=None)
+		email_oauth.callback(state=self.note(provider="yahoo"), code="c")
+
+		self.assertTrue(
+			self.landed().endswith(
+				"email_oauth=connected&email_oauth_mailbox=one%40email-oauth.example.com&email_oauth_provider=yahoo"
+			)
+		)
+		account = frappe.get_doc("Email Account", {"email_id": "one@email-oauth.example.com"})
+		self.assertEqual(account.email_server, "imap.mail.yahoo.com")
+		self.assertEqual(account.smtp_server, "smtp.mail.yahoo.com")
+		self.assertEqual(account.service, "Yahoo Mail")
+		app = frappe.get_doc("Connected App", account.connected_app)
+		self.assertEqual(app.provider_name, "Yahoo (one@email-oauth.example.com)")
+		self.assertEqual(app.token_uri, "frappe-cloud-relay:yahoo")
+
+	def test_connects_yandex_mailbox(self) -> None:
+		yandex_token = token("ignored@email-oauth.example.com")
+		del yandex_token["id_token"]
+		self.pilot.return_value = yandex_token
+		userinfo = self.enterContext(
+			patch.object(
+				email_oauth, "make_get_request", return_value={"default_email": "one@email-oauth.example.com"}
+			)
+		)
+		email_oauth.callback(state=self.note(provider="yandex"), code="c")
+
+		self.assertTrue(
+			self.landed().endswith(
+				"email_oauth=connected&email_oauth_mailbox=one%40email-oauth.example.com&email_oauth_provider=yandex"
+			)
+		)
+		userinfo.assert_called_once_with(
+			"https://login.yandex.ru/info?format=json", headers={"Authorization": "OAuth at"}, timeout=(5, 10)
+		)
+		account = frappe.get_doc("Email Account", {"email_id": "one@email-oauth.example.com"})
+		self.assertEqual(account.email_server, "imap.yandex.com")
+		self.assertEqual(account.smtp_server, "smtp.yandex.com")
+		self.assertEqual(account.service, "Yandex.Mail")
+		app = frappe.get_doc("Connected App", account.connected_app)
+		self.assertEqual(app.provider_name, "Yandex (one@email-oauth.example.com)")
+		self.assertEqual(app.token_uri, "frappe-cloud-relay:yandex")
+
+	def test_yandex_mailbox_with_imap_off_asks_to_turn_it_on(self) -> None:
+		yandex_token = token("ignored@email-oauth.example.com")
+		del yandex_token["id_token"]
+		self.pilot.return_value = yandex_token
+		imap_off = "[AUTHENTICATIONFAILED] AUTHENTICATE invalid credentials or IMAP is disabled"
+		with (
+			patch.object(
+				email_oauth, "make_get_request", return_value={"default_email": "one@email-oauth.example.com"}
+			),
+			patch.object(EmailAccount, "validate", side_effect=frappe.ValidationError(imap_off)),
+			patch("frappe.log_error"),
+		):
+			email_oauth.callback(state=self.note(provider="yandex"), code="c")
+
+		self.assertTrue(
+			self.landed().endswith(
+				"email_oauth=imap_disabled&email_oauth_mailbox=one%40email-oauth.example.com&email_oauth_provider=yandex"
+			)
+		)
+
+	def test_gmail_without_mail_access_creates_nothing(self) -> None:
+		apps = frappe.db.count("Connected App")
+		self.pilot.return_value = token("one@email-oauth.example.com", tid=None) | {"scope": "openid email"}
+		email_oauth.callback(state=self.note(provider="google"), code="c")
+
+		self.assertTrue(
+			self.landed().endswith(
+				"email_oauth=missing_permission&email_oauth_mailbox=one%40email-oauth.example.com&email_oauth_provider=google"
+			)
+		)
+		self.assertEqual(frappe.db.count("Connected App"), apps)
+		self.assertFalse(frappe.db.exists("Email Account", {"email_id": "one@email-oauth.example.com"}))
+
+	def test_gmail_errors_become_fixed_codes(self) -> None:
+		for error, description, result in (
+			("access_denied", None, "cancelled"),
+			("admin_policy_enforced", None, "admin_approval"),
+		):
+			with self.subTest(error):
+				email_oauth.callback(
+					state=self.note(provider="google"), error=error, error_description=description
+				)
+				self.assertTrue(self.landed().endswith(f"?email_oauth={result}&email_oauth_provider=google"))
+
+		self.pilot.return_value = token("one@email-oauth.example.com", tid=None) | {
+			"scope": "openid https://mail.google.com/"
+		}
+		for message in (
+			"[ALERT] IMAP access is disabled for your domain. Please contact your domain administrator",
+			"[ALERT] Your account is not enabled for IMAP use. Please visit your Gmail settings page",
+		):
+			with (
+				self.subTest(message),
+				patch.object(EmailAccount, "validate", side_effect=frappe.ValidationError(message)),
+				patch("frappe.log_error"),
+			):
+				email_oauth.callback(state=self.note(provider="google"), code="c")
+				self.assertTrue(
+					self.landed().endswith(
+						"email_oauth=imap_disabled&email_oauth_mailbox=one%40email-oauth.example.com&email_oauth_provider=google"
+					)
+				)
 
 	def test_lands_with_the_result_before_the_fragment(self) -> None:
 		email_oauth.callback(state=self.note(redirect_to="/desk/email-account?view=list#top"), code="c")

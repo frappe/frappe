@@ -1,0 +1,302 @@
+import { readFile } from "node:fs/promises";
+
+import { compileScript, parse } from "vue/compiler-sfc";
+
+// Compiles the page and the core screens it composes for DOM tests. Every other .vue
+// file is a shallow stub carrying its name, and the modules that reach the site are
+// fakes the tests drive. Run with --preserve-symlinks so the linked core resolves this
+// app's Vue rather than its own copy.
+const vue = import.meta.resolve("vue");
+const moduleURL = (code) => `data:text/javascript;base64,${Buffer.from(code).toString("base64")}`;
+
+const real = new Set([
+	"FlowPage.vue",
+	"RecordPage.vue",
+	"RecordForm.vue",
+	"PageHeader.vue",
+	"AgentPicker.vue",
+	"AgentPalette.vue",
+	"SkillPicker.vue",
+	"SessionSidebar.vue",
+	"SidebarPeek.vue",
+	"ChatHeader.vue",
+	"ChatMenu.vue",
+	"TitleField.vue",
+	"ShareChat.vue",
+	"MessageList.vue",
+	"LoadingState.vue",
+	"Composer.vue",
+	"ModelButton.vue",
+	"DocPanel.vue",
+	"ModelRow.vue",
+	"FieldControl.vue",
+	"CodeField.vue",
+	"SettingsPage.vue",
+	"RecordTable.vue",
+	"ValueView.vue",
+	"CreateView.vue",
+	"ReadView.vue",
+	"NamesView.vue",
+	"CodeView.vue",
+	"SnippetView.vue",
+	"JsonView.vue",
+	"CodeBlock.vue",
+]);
+const stubs = new Map();
+function stubURL(name) {
+	if (!stubs.has(name))
+		stubs.set(
+			name,
+			moduleURL(`
+				import { h } from ${JSON.stringify(vue)}
+				export default { render() { return h("div", { "data-stub": ${JSON.stringify(
+					name
+				)} }, this.$slots.default?.({})) } }
+			`)
+		);
+	return stubs.get(name);
+}
+
+// frappe-ui's Button: its icon or label, then its suffix, under either import path
+const button = moduleURL(`
+	import { h } from ${JSON.stringify(vue)}
+	export const Button = {
+		props: ["label", "loading", "disabled", "icon", "iconLeft", "variant", "size", "theme"],
+		render() {
+			const icon = this.icon ? h("span", { class: this.icon, "aria-hidden": "true" }) : this.$slots.icon?.()
+			return h("button", { disabled: this.loading || this.disabled }, [
+				icon ?? this.$slots.default?.() ?? this.label, this.$slots.suffix?.(),
+			])
+		},
+	}
+`);
+
+const fakes = {
+	"frappe-ui/src/components/Button": button,
+	"frappe-ui/src/components/Avatar": moduleURL(`
+		import { h } from ${JSON.stringify(vue)}
+		export const Avatar = { render() { return h("div", { "data-stub": "Avatar" }) } }
+	`),
+	"frappe-ui/src/components/TextInput": moduleURL(`
+		import { h } from ${JSON.stringify(vue)}
+		export const TextInput = {
+			props: ["modelValue"],
+			emits: ["update:modelValue"],
+			methods: { focus() { this.$el.focus() } },
+			render() { return h("input", { value: this.modelValue, onInput: (e) => this.$emit("update:modelValue", e.target.value) }) },
+		}
+	`),
+	"frappe-ui": moduleURL(`
+		import { h } from ${JSON.stringify(vue)}
+		const stub = (name) => ({ render() { return h("div", { "data-stub": name }) } })
+		export const Dialogs = stub("Dialogs")
+		export const ToastProvider = stub("ToastProvider")
+		export const Badge = stub("Badge")
+		export const FormLabel = stub("FormLabel")
+		export const FileUploader = stub("FileUploader")
+		export const Switch = { props: ["modelValue"], emits: ["update:modelValue"], render() { return h("button", { "data-stub": "Switch", "aria-label": this.$attrs["aria-label"], onClick: () => this.$emit("update:modelValue", !this.modelValue) }) } }
+		export const ErrorMessage = { props: ["message"], render() { return h("p", this.message) } }
+		export const Avatar = stub("Avatar")
+		// a picker and a menu: the trigger, and the choices once it is clicked (a picker's once loaded)
+		export const Combobox = {
+			props: ["options", "loading"],
+			emits: ["update:modelValue", "update:open"],
+			data: () => ({ shown: false, query: "" }),
+			render() {
+				const toggle = () => { this.shown = !this.shown; this.$emit("update:open", this.shown) }
+				// like frappe-ui's: a typed query keeps the options whose label holds it; a custom row
+				// shows by its condition, labelled by its #item-<slot>, and runs its onClick
+				const query = this.query
+				const rows = (this.shown && !this.loading ? this.options || [] : []).flatMap(o => {
+					if (o.type !== "custom")
+						return o.label.toLowerCase().includes(query.toLowerCase())
+							? [h("button", { role: "option", onClick: () => this.$emit("update:modelValue", o.value) }, o.label)]
+							: []
+					if (o.condition && !o.condition({ query })) return []
+					const label = (o.slot && this.$slots["item-" + o.slot]?.({ item: o, query })) ?? o.label
+					return [h("button", { role: "option", onClick: () => o.onClick({ query }) }, label)]
+				})
+				return h("div", { "data-stub": "Combobox" }, [
+					h("div", { onClick: toggle }, this.$slots.trigger?.()),
+					...(this.shown ? [h("input", { value: query, onInput: e => (this.query = e.target.value) })] : []),
+					...rows,
+				])
+			}
+		}
+		export const Dropdown = {
+			props: ["options"],
+			data: () => ({ shown: false }),
+			render() {
+				return h("div", { "data-stub": "Dropdown" }, [
+					h("div", { onClick: () => (this.shown = !this.shown) }, this.$slots.default?.()),
+					...(this.shown ? this.options || [] : []).map(o => h("button", { role: "menuitem", onClick: o.onClick }, o.label)),
+				])
+			}
+		}
+		// the sidebar's shortcuts: nothing to press in a test
+		export function useKeyboardShortcut() {}
+		export function frappeRequest() {}
+		export const config = {}
+		export function setConfig(key, value) { config[key] = value }
+		export const Dialog = {
+			props: ["open", "title"],
+			render() { return this.open ? h("div", { role: "dialog", "aria-label": this.title }, [this.$slots.default?.(), this.$slots.actions?.()]) : null }
+		}
+		export const Select = {
+			props: ["modelValue", "options"],
+			emits: ["update:modelValue"],
+			render() { return h("div", { "data-control": "select", "data-value": this.modelValue }, (this.options || []).map(o => h("button", { onClick: () => this.$emit("update:modelValue", o.value) }, o.label))) }
+		}
+		export { Button } from ${JSON.stringify(button)}
+		export const FormControl = {
+			props: ["modelValue", "options", "query", "type", "label", "filterable", "loading"],
+			emits: ["update:modelValue", "update:query"],
+			render() {
+				const remote = ["combobox", "multiselect"].includes(this.type)
+				// like frappe-ui's combobox, a loading control shows no options
+				const options = this.loading ? [] : this.options || []
+				return h("div", { "data-control": this.label || this.type }, [
+					h("input", { value: remote ? this.query : this.modelValue, onInput: e => this.$emit(remote ? "update:query" : "update:modelValue", e.target.value) }),
+					...options.map(o => h("button", { onClick: () => this.$emit("update:modelValue", o.value) }, o.label)),
+				])
+			}
+		}
+		export const toast = { shown: [], success(message) { this.shown.push(message) }, error() {} }
+		export const dialog = {
+			asked: [],
+			danger(options) { this.asked.push(options) },
+			prompt() {},
+			confirm(options) { this.asked.push(options) },
+		}
+		export function useColorScheme() {}
+	`),
+	// the core's menus: the trigger, and the options once it is clicked or held open
+	"frappe-ui/src/components/Dropdown/Dropdown.vue": moduleURL(`
+		import { h, ref } from ${JSON.stringify(vue)}
+		export default {
+			props: ["options", "open"],
+			setup(props, { slots }) {
+				const shown = ref(false)
+				return () => h("div", { "data-stub": "Dropdown" }, [
+					h("div", { onClick: () => (shown.value = !shown.value) }, slots.trigger?.()),
+					...((props.open ?? shown.value) ? props.options ?? [] : []).map((o) =>
+						h("button", { role: "menuitem", onClick: o.onClick }, o.label)),
+				])
+			},
+		}
+	`),
+	// a card over its trigger: the trigger, and the card once hovered or held open
+	"frappe-ui/src/components/HoverCard/HoverCard.vue": moduleURL(`
+		import { h, ref } from ${JSON.stringify(vue)}
+		export default {
+			props: ["open"],
+			emits: ["update:open"],
+			setup(props, { slots, emit }) {
+				const shown = ref(false)
+				const hover = () => {
+					shown.value = true
+					emit("update:open", true)
+				}
+				return () => h("div", { "data-stub": "HoverCard" }, [
+					h("div", { onMouseenter: hover }, slots.trigger?.()),
+					...((props.open ?? shown.value) ? [slots.default?.()] : []),
+				])
+			},
+		}
+	`),
+	"frappe-ui/code-editor": moduleURL(`
+		export const CodeEditor = { render() { return null } }
+		export const CodeEditorContent = { render() { return null } }
+		export const CodeKit = { configure() { return [] } }
+	`),
+	"frappe-ui/src/utils/dialog": moduleURL(`
+		import { ref } from ${JSON.stringify(vue)}
+		export const dialogs = ref([])
+		export const dialog = {}
+	`),
+	"../api/frappe.js": moduleURL(`
+		export const calls = []
+		export const answers = {}
+		export async function call(method, args = {}) {
+			calls.push([method, args])
+			if (!(method in answers)) throw new Error("unexpected call: " + method)
+			const answer = answers[method]
+			return typeof answer === "function" ? answer(args) : answer
+		}
+		export async function uploadFile() { throw new Error("no uploads here") }
+		export function deleteFile() {}
+	`),
+	"../api/socket.js": moduleURL(`
+		export const socket = {
+			on() {}, off() {}, disconnect() {},
+			emit(name, ...args) {
+				const ack = args.at(-1)
+				if (name === "flow:subscribe" && typeof ack === "function") ack({ subscribed: true })
+			},
+		}
+		export function connectSocket() { return socket }
+	`),
+	// the island's entry: the mount records what it was given and runs its configure
+	"@framework/ui/island": moduleURL(`
+		import { createMemoryHistory, createRouter } from ${JSON.stringify(import.meta.resolve("vue-router"))}
+		export const mounts = []
+		export async function mountVueIsland(el, options) {
+			const router = createRouter({ history: options.history ?? createMemoryHistory(), routes: options.routes })
+			options.configure?.({ config: { globalProperties: { $router: router } } })
+			mounts.push({ el, options, router })
+			return { shadow_root: { host: el } }
+		}
+	`),
+	"./index.css": moduleURL(""),
+};
+// the app's root modules reach the site through the same fake
+fakes["./api/frappe.js"] = fakes["../api/frappe.js"];
+export const island = await import(fakes["@framework/ui/island"]);
+export const transport = await import(fakes["../api/frappe.js"]);
+export const { toast, dialog } = await import(fakes["frappe-ui"]);
+
+const compiled = new Map();
+async function componentURL(url) {
+	if (compiled.has(url.href)) return compiled.get(url.href);
+	const source = await readFile(url, "utf8");
+	let content = source;
+	if (url.pathname.endsWith(".vue")) {
+		const { descriptor } = parse(source, { filename: url.pathname });
+		content = compileScript(descriptor, { id: url.pathname, inlineTemplate: true }).content;
+	}
+	// static imports, bare ones (a stylesheet) and lazy import("…") calls
+	const imports = [...content.matchAll(/\b(from\s+|import\(\s*|import\s+)["']([^"']+)["']/g)];
+	for (const match of imports.reverse()) {
+		const specifier = match[2];
+		let resolved;
+		if (specifier in fakes) resolved = fakes[specifier];
+		else if (specifier.endsWith(".vue")) {
+			const name = specifier.split("/").pop();
+			resolved = real.has(name)
+				? await componentURL(targetURL(specifier, url))
+				: stubURL(name.slice(0, -4));
+		} else if (specifier.startsWith("."))
+			// a relative module of this app: compile it too, so its own .vue imports resolve
+			resolved = await componentURL(targetURL(specifier, url));
+		else resolved = targetURL(specifier, url).href;
+		content =
+			content.slice(0, match.index) +
+			`${match[1]}${JSON.stringify(resolved)}` +
+			content.slice(match.index + match[0].length);
+	}
+	const result = moduleURL(content);
+	compiled.set(url.href, result);
+	return result;
+}
+
+const targetURL = (specifier, from) =>
+	specifier.startsWith(".") ? new URL(specifier, from) : new URL(import.meta.resolve(specifier));
+
+export async function loadComponent(path) {
+	return (await loadModule(path)).default;
+}
+
+export async function loadModule(path) {
+	const url = new URL(`../../src/${path}`, import.meta.url);
+	return await import(await componentURL(url));
+}

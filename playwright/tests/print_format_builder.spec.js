@@ -414,7 +414,7 @@ test.describe("Print Format Builder — create flow", () => {
 		await expect(inspector).toContainText("Edit HTML");
 
 		await source("Image").click();
-		await expect(inspector).toContainText("Upload Image");
+		await expect(inspector.locator('button[title="Upload Image"]')).toBeVisible();
 		await expect(inspector).not.toContainText("Edit HTML");
 
 		await source("HTML").click();
@@ -1000,8 +1000,8 @@ test.describe("Print Format Builder — draft and Save & Apply", () => {
 			doc_type: "ToDo",
 			print_format_builder_beta: 1,
 			pdf_generator: "Typst",
-			format_data: JSON.stringify(
-				builder_layout([
+			format_data: JSON.stringify({
+				...builder_layout([
 					{
 						label: "",
 						columns: [
@@ -1019,8 +1019,9 @@ test.describe("Print Format Builder — draft and Save & Apply", () => {
 							},
 						],
 					},
-				])
-			),
+				]),
+				letter_head: "",
+			}),
 		});
 		await open_builder(page, typst_pf_name);
 		await expect(page.locator(".typst-block-source")).toContainText("doc.description");

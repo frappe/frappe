@@ -268,6 +268,10 @@ class TestAllowedDashboards(IntegrationTestCase):
 		self.assertIn(empty.name, allowed)
 		self.assertNotIn(filled.name, allowed)
 
+	def test_a_user_who_cannot_read_dashboards_has_none(self):
+		with patch("frappe.get_list", side_effect=frappe.PermissionError):
+			self.assertEqual(DeskViews.get_allowed_dashboards(), [])
+
 	def test_a_missing_number_card_is_skipped_quietly(self):
 		frappe.set_user("Administrator")
 		card = frappe.get_doc(

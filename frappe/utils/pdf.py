@@ -13,10 +13,12 @@ from frappe.utils.jinja_globals import is_rtl
 LARGE_PDF_SIZE = 2 * 1024 * 1024
 
 if TYPE_CHECKING:
+	from collections.abc import Iterator
+
 	import cssutils
 	from bs4 import BeautifulSoup
 	from pypdf import PdfReader, PdfWriter
-	from pypdf.generic import DictionaryObject
+	from pypdf.generic import DictionaryObject, IndirectObject
 
 
 def pdf_header_html(soup, head, content, styles, html_id, css, path=None):
@@ -37,8 +39,11 @@ def pdf_header_html(soup, head, content, styles, html_id, css, path=None):
 
 
 def pdf_body_html(template, args, **kwargs):
+	from frappe.utils.jinja import safe_render_flags
+
 	try:
-		return template.render(args, filters={"len": len})
+		with safe_render_flags():
+			return template.render(args, filters={"len": len})
 	except Exception as e:
 		# Guess line number ?
 		frappe.throw(
@@ -115,7 +120,7 @@ def get_pdf(
 	if output:
 		return pdf
 	if len(pdf) > LARGE_PDF_SIZE and any(
-		_has_image_xobject(page) for page in PdfReader(io.BytesIO(pdf)).pages
+		any(_image_xobjects(page)) for page in PdfReader(io.BytesIO(pdf)).pages
 	):
 		pdf = optimize_pdf(pdf, notify=False)
 	if password:
@@ -292,21 +297,25 @@ def _pdf_has_oversized_image(reader: "PdfReader", max_pixels: int) -> bool:
 	return False
 
 
-def _has_image_xobject(page_or_form: "DictionaryObject") -> bool:
-	"""Look for image XObjects, including inside form XObjects, without the inline image scan of
-	every content stream that `page.images` runs, which takes seconds on long text-only PDFs.
+def _image_xobjects(
+	page_or_form: "DictionaryObject",
+	path: tuple[str, ...] = (),
+	parent_forms: tuple["IndirectObject", ...] = (),
+) -> "Iterator[tuple[tuple[str, ...], DictionaryObject]]":
+	"""Yield the `page.images` key and object of each image XObject, including inside form XObjects,
+	without the inline image scan of every content stream that `page.images` runs, which takes
+	seconds on long text-only PDFs.
 	"""
 	try:
 		xobjects = page_or_form["/Resources"]["/XObject"]
 	except KeyError:
-		return False
-	for xobj in xobjects.values():
+		return
+	for name, xobj in xobjects.items():
 		xobj = xobj.get_object()
 		if xobj.get("/Subtype") == "/Image":
-			return True
-		if xobj.get("/Subtype") == "/Form" and _has_image_xobject(xobj):
-			return True
-	return False
+			yield (*path, name), xobj
+		elif xobj.get("/Subtype") == "/Form" and xobj.indirect_reference not in parent_forms:
+			yield from _image_xobjects(xobj, (*path, name), (*parent_forms, xobj.indirect_reference))
 
 
 def optimize_pdf(content: bytes, quality: int = 85, max_dim: int = 1600, notify: bool = True) -> bytes:
@@ -335,9 +344,13 @@ def optimize_pdf(content: bytes, quality: int = 85, max_dim: int = 1600, notify:
 
 		writer = PdfWriter(clone_from=reader)
 
+		seen_images = set()
 		unexpected_image_error_logged = False
 		for page in writer.pages:
-			for image_id in page.images.keys():
+			for image_id, xobj in _image_xobjects(page):
+				if xobj.indirect_reference in seen_images:
+					continue
+				seen_images.add(xobj.indirect_reference)
 				try:
 					img_file = page.images[image_id]
 					image = img_file.image

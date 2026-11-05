@@ -25,12 +25,24 @@ const headerBlock = {
 			componentId: "header-button",
 			componentProps: { label: "Hello from the header" },
 		},
+		{
+			componentName: "Button",
+			componentId: "header-subject",
+			componentProps: { label: "{{ inputs.title }}" },
+		},
 	],
 }
 const pageBlocks = [
 	{
 		...getBlockTemplate("body"),
-		children: [{ componentName: COMPONENT_ID, componentId: "header-1", isStudioComponent: true }],
+		children: [
+			{
+				componentName: COMPONENT_ID,
+				componentId: "header-1",
+				isStudioComponent: true,
+				componentProps: { title: "{{ subject }}" },
+			},
+		],
 	},
 ]
 
@@ -45,6 +57,11 @@ describe("studio components for guests", () => {
 			component_id: COMPONENT_ID,
 			component_name: "Cypress Header",
 			block: JSON.stringify(headerBlock),
+			// two inputs, so values would get a second evaluation pass if evaluation ran per input
+			inputs: [
+				{ input_name: "title", type: "string" },
+				{ input_name: "subtitle", type: "string", default: "'sub'" },
+			],
 		})
 		cy.insert_doc("Studio App", { app_name: APP_NAME, app_title: "Cypress Guest" })
 		cy.insert_doc("Studio Page", {
@@ -52,6 +69,13 @@ describe("studio components for guests", () => {
 			page_title: "Home",
 			route: "/",
 			blocks: JSON.stringify(pageBlocks),
+			variables: [
+				{
+					variable_name: "subject",
+					variable_type: "String",
+					initial_value: JSON.stringify("E2E {{ 7 * 7 }}"),
+				},
+			],
 			published: 1,
 			allow_guest: 1,
 		}).then((page) => (pageName = page.name))
@@ -72,14 +96,7 @@ describe("studio components for guests", () => {
 		cy.intercept("GET", GET_COMPONENT).as("getComponent")
 	})
 
-	it("renders them on a published guest page although the guest cannot read them", () => {
-		cy.request({
-			url: `/api/method/frappe.client.get?doctype=Studio Component&name=${COMPONENT_ID}`,
-			failOnStatusCode: false,
-		})
-			.its("status")
-			.should("eq", 403)
-
+	function mountAppPage() {
 		window.app_name = APP_NAME
 		const router = createRouter({
 			history: createMemoryHistory(),
@@ -90,9 +107,27 @@ describe("studio components for guests", () => {
 		cy.mount(AppPage, {
 			global: { plugins: [pinia, resourcesPlugin, router, { install: registerGlobalComponents }] },
 		})
+	}
+
+	it("renders them on a published guest page although the guest cannot read them", () => {
+		cy.request({
+			url: `/api/method/frappe.client.get?doctype=Studio Component&name=${COMPONENT_ID}`,
+			failOnStatusCode: false,
+		})
+			.its("status")
+			.should("eq", 403)
+
+		mountAppPage()
 
 		cy.contains("button", "Hello from the header").should("be.visible")
 		cy.get("@getComponent.all").should("have.length", 0)
+	})
+
+	it("evaluates an input value once, so text that looks like an expression stays text", () => {
+		mountAppPage()
+
+		cy.contains("button", "E2E {{ 7 * 7 }}").should("be.visible")
+		cy.contains("button", "E2E 49").should("not.exist")
 	})
 
 	it("keeps a component from the page payload when a fetch of it is refused later", () => {

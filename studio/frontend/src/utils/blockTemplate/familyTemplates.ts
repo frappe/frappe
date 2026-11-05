@@ -14,6 +14,7 @@ export const familyTemplates = {
 	"sidebar-label": sidebarLabelTemplate,
 	"sidebar-rail": sidebarRailTemplate,
 	"radio-group": radioGroupTemplate,
+	variants: variantsTemplate,
 	"bar-chart": () =>
 		chartTemplate("BarChart", { title: "Monthly Sales", data: MONTHLY_SALES, x: "month", y: ["sales", "target"] }),
 	"line-chart": () =>
@@ -475,6 +476,31 @@ function textBlock(
 		componentName: "TextBlock",
 		baseStyles: styles,
 		componentProps: { text, tag: "span", ...(fontSize && { fontSize }) },
+	}
+}
+
+function variantsTemplate(): BlockOptions {
+	return {
+		componentName: "Variants",
+		componentProps: { name: "Variant" },
+		children: [variantOption("Option 1"), variantOption("Option 2")],
+	}
+}
+
+export function variantOption(label: string): BlockOptions {
+	return {
+		componentName: "container",
+		variantOptionName: label,
+		blockName: label.toLowerCase().replace(/\s+/g, "-"),
+		baseStyles: {
+			display: "flex",
+			flexDirection: "column",
+			gap: "8px",
+			height: "auto",
+			width: "100%",
+			padding: "12px",
+		} as BlockStyleMap,
+		children: [textBlock(`${label} content`)],
 	}
 }
 

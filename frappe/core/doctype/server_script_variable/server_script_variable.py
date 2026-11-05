@@ -1,0 +1,34 @@
+# Copyright (c) 2026, Frappe Technologies and contributors
+# For license information, please see license.txt
+
+import frappe
+from frappe import _
+from frappe.model.document import Document
+
+
+class ServerScriptVariable(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		key: DF.Data
+		parent: DF.Data
+		parentfield: DF.Data
+		parenttype: DF.Data
+		value: DF.Password
+	# end: auto-generated types
+
+	_DOCTYPE_NAME = "Server Script Variable"
+
+	def get_password(self, fieldname="password", raise_exception=True):
+		frappe.throw(
+			_("Read environment variables as {0} in their Server Script").format(
+				"<code>frappe.env.KEY</code>"
+			),
+			frappe.PermissionError,
+			title=_("Not Permitted"),
+		)

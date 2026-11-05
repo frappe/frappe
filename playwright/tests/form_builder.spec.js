@@ -89,10 +89,9 @@ test.describe("Form Builder", () => {
 
 		await page.locator(".modal-body .clear-filters").click();
 		await page.locator(".modal-body .filter-action-buttons .add-filter").click();
+		await desk.pick_filter_field("ID");
 
-		const input = page.locator(
-			".modal-body .filter-box .list_filter .filter-field .link-field input"
-		);
+		const input = page.locator(".modal-body .filter-box .filter-field .link-field input");
 		const dropdown = input.locator("xpath=..").getByRole("listbox");
 		await input.focus();
 		await expect(dropdown).toBeVisible();

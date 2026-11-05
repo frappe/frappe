@@ -499,6 +499,17 @@
 	width: auto !important;
 }
 
+.print-format-doc .section-columns {
+	margin-left: 0;
+	margin-right: 0;
+}
+.print-format-doc .section-columns > .col:first-child {
+	padding-inline-start: 0;
+}
+.print-format-doc .section-columns > .col:last-child {
+	padding-inline-end: 0;
+}
+
 /* The shared Redesign print style gives .letter-head a 30px bottom margin for
    classic formats. Builder layouts space the letterhead through their own
    section margins, so neutralise it here. body. outranks the print style's
@@ -562,8 +573,6 @@ body.print-format-doc .letter-head,
 }
 .print-format-doc .section--grid .section-columns {
 	padding: 0;
-	margin-left: 0;
-	margin-right: 0;
 }
 .print-format-doc .section--grid .col {
 	padding: 0;

@@ -12,7 +12,6 @@ import frappe.permissions
 import frappe.share
 from frappe import STANDARD_USERS, _, msgprint, throw
 from frappe.apps import get_default_path
-from frappe.auth import MAX_PASSWORD_SIZE
 from frappe.core.doctype.user_type.user_type import user_linked_with_permission_on_doctype
 from frappe.database import savepoint
 from frappe.desk.doctype.notification_settings.notification_settings import (
@@ -273,8 +272,7 @@ class User(Document):
 		if self.default_app and self.default_app not in frappe.get_installed_apps():
 			self.default_app = ""
 
-		if (self.name not in ["Administrator", "Guest"]) and (not self.get_social_login_userid("frappe")):
-			self.set_social_login_userid("frappe", frappe.generate_hash(length=39))
+		self.set_frappe_social_login_userid()
 
 	def disable_email_fields_if_user_disabled(self):
 		if not self.enabled:
@@ -948,6 +946,32 @@ class User(Document):
 
 		self.append("social_logins", social_logins)
 
+	def set_frappe_social_login_userid(self):
+		"""The `frappe` provider userid is this site's OIDC `sub` claim, so it must stay
+		server-controlled: generated once and never changed by a later write."""
+		if self.name in STANDARD_USERS:
+			return
+
+		stored_userid = None
+		if not self.is_new():
+			stored_userid = frappe.db.get_value(
+				"User Social Login",
+				{"parent": self.name, "provider": "frappe"},
+				"userid",
+			)
+
+		frappe_logins = [d for d in self.social_logins if d.provider == "frappe"]
+
+		if stored_userid:
+			if frappe_logins:
+				frappe_logins[0].userid = stored_userid
+				for extra in frappe_logins[1:]:
+					self.social_logins.remove(extra)
+			else:
+				self.set_social_login_userid("frappe", stored_userid)
+		elif not frappe_logins:
+			self.set_social_login_userid("frappe", frappe.generate_hash(length=39))
+
 	def get_restricted_ip_list(self):
 		return get_restricted_ip_list(self)
 
@@ -1027,6 +1051,7 @@ def _get_timezones():
 @frappe.whitelist()
 def get_all_roles():
 	"""return all roles"""
+	frappe.has_permission("Role", "read", throw=True)
 	active_domains = frappe.get_active_domains()
 
 	Role = frappe.qb.DocType("Role")
@@ -1061,6 +1086,7 @@ def get_current_user_roles() -> list[str]:
 @frappe.whitelist()
 def get_perm_info(role: str):
 	"""get permission info"""
+	frappe.has_permission("Role", "read", throw=True)
 	from frappe.permissions import get_all_perms
 
 	return get_all_perms(role)
@@ -1078,12 +1104,17 @@ def update_password(
 	    key (str, optional): Password reset key. Defaults to None.
 	    old_password (str, optional): Old password. Defaults to None.
 	"""
+	from frappe.utils.password import validate_password_size
 
-	if old_password and len(old_password) > MAX_PASSWORD_SIZE:
-		frappe.throw(_("Old password size exceeded the maximum allowed size."))
+	if not key and not old_password:
+		frappe.throw(
+			_("Either a password reset key or old password is required."),
+			title=_("Missing Credentials"),
+		)
 
-	if len(new_password) > MAX_PASSWORD_SIZE:
-		frappe.throw(_("New password size exceeded the maximum allowed size."))
+	if old_password:
+		validate_password_size(old_password, _("Old Password"))
+	validate_password_size(new_password, _("New Password"))
 
 	result = test_password_strength(new_password)
 	feedback = result.get("feedback", None)
@@ -1228,7 +1259,7 @@ def _get_user_for_update_password(key, old_password):
 				frappe.db.set_value("User", result.user, "reset_password_key", "", update_modified=False)
 		else:
 			result.message = _("The reset password link has either been used before or is invalid")
-	elif old_password:
+	else:
 		# verify old password
 		frappe.local.login_manager.check_password(frappe.session.user, old_password)
 		user = frappe.session.user
@@ -1549,6 +1580,7 @@ def throttle_user_creation():
 
 @frappe.whitelist()
 def get_module_profile(module_profile: str):
+	frappe.has_permission("Module Profile", "read", throw=True)
 	module_profile = frappe.get_doc("Module Profile", {"module_profile_name": module_profile})
 	return module_profile.get("block_modules")
 

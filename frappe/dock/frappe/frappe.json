@@ -24,6 +24,14 @@
   {
    "added": 0,
    "hidden": 0,
+   "icon": "flow-soft",
+   "link_to": "Flow",
+   "link_type": "Sidebar",
+   "title": "Flow"
+  },
+  {
+   "added": 0,
+   "hidden": 0,
    "icon": "users-soft",
    "link_to": "Users",
    "link_type": "Sidebar",
@@ -110,7 +118,7 @@
    "title": "System"
   }
  ],
- "modified": "2026-10-21 12:00:00.000000",
+ "modified": "2026-10-22 12:00:00.000000",
  "modified_by": "Administrator",
  "name": "frappe",
  "owner": "Administrator",

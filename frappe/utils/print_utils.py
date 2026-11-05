@@ -17,15 +17,21 @@ def _print_format_doc_or_none(print_format: str | None, doctype: str | None = No
 	notifications and scheduled jobs that reference a removed format from breaking
 	mid-send — they fall back to the Standard render.
 	"""
-	if not print_format and doctype:
-		print_format = frappe.get_meta(doctype).default_print_format
+	from frappe.printing.doctype.print_format.print_format import can_print_with, check_print_format_roles
+
+	default = frappe.get_meta(doctype).default_print_format if doctype else None
+	requested = print_format and print_format != default
+	print_format = print_format or default
 	if not print_format or print_format == "Standard":
 		return None
 	try:
-		return frappe.get_cached_doc("Print Format", print_format)
+		doc = frappe.get_cached_doc("Print Format", print_format)
 	except frappe.DoesNotExistError:
 		frappe.clear_last_message()
 		return None
+	if requested:
+		check_print_format_roles(doc)
+	return doc if can_print_with(doc) else None
 
 
 def get_pdf_generators() -> list[str]:
@@ -129,7 +135,7 @@ def get_print(
 		standard_pdf_options = set(pdf_options) <= {"password"}
 		if (
 			as_pdf
-			and generator in HTML_PDF_GENERATORS
+			and (generator in HTML_PDF_GENERATORS or (pf_doc and generator == "Typst"))
 			and ((pf_doc is None and standard_pdf_options) or (pf_doc and uses_beta_renderer(pf_doc)))
 		):
 			from frappe.core.doctype.access_log.access_log import make_access_log
@@ -273,18 +279,28 @@ def attach_print(
 				if html:
 					content = get_pdf(html, options={"password": password} if password else None)
 				elif render_via_generator:
+					from frappe.core.doctype.access_log.access_log import make_access_log
 					from frappe.www.printview import validate_print_for_docstatus
 
 					doc_obj = doc or frappe.get_cached_doc(doctype, name)
 					validate_print_for_docstatus(doc_obj)
+					_run_print_pdf_hooks(doctype, name, print_format)
+					render_format = pf_doc or get_default_print_format(doc_obj.doctype)
 					content = _render_builder_pdf(
-						pf_doc or get_default_print_format(doc_obj.doctype),
+						render_format,
 						doc_obj,
 						letterhead if print_letterhead else None,
 						not print_letterhead,
 						password,
 						style=style,
 						settings=settings,
+					)
+					make_access_log(
+						doctype=doc_obj.doctype,
+						document=doc_obj.name,
+						file_type="PDF",
+						method="Print",
+						page=f"Print Format: {render_format.name}",
 					)
 				else:
 					kwargs["as_pdf"] = True

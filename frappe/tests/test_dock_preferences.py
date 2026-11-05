@@ -1798,15 +1798,16 @@ class TestTheAppsEntrySet(IntegrationTestCase):
 class TestTheFrameworksDock(IntegrationTestCase):
 	"""The framework shipping its own dock as an exported document.
 
-	Thirteen rows, not eleven. The hook deliberately left `Geo` and `System` unnamed so they would
+	Fourteen rows, not twelve. The hook deliberately left `Geo` and `System` unnamed so they would
 	follow in `modules.txt` order. A record has no trailing tier, so naming them is required, and the
-	rail renders the same thirteen buttons in the same order either way.
+	rail renders the same fourteen buttons in the same order either way.
 
 	"""
 
-	THIRTEEN: typing.ClassVar[list[str]] = [
+	FOURTEEN: typing.ClassVar[list[str]] = [
 		"Build",
 		"Studio",
+		"Flow",
 		"Users",
 		"Email",
 		"Website",
@@ -1826,9 +1827,9 @@ class TestTheFrameworksDock(IntegrationTestCase):
 
 		self.assertTrue(dock.standard)
 		self.assertEqual(dock.app, "frappe")
-		self.assertEqual([row.link_to for row in dock.items], self.THIRTEEN)
+		self.assertEqual([row.link_to for row in dock.items], self.FOURTEEN)
 		self.assertTrue(all(row.link_type == "Sidebar" for row in dock.items))
-		# All thirteen are authored: nothing derives an icon or a title, because a prefill would
+		# All fourteen are authored: nothing derives an icon or a title, because a prefill would
 		# make divergence look like inheritance.
 		self.assertTrue(all(row.icon and row.title for row in dock.items))
 
@@ -1844,18 +1845,18 @@ class TestTheFrameworksDock(IntegrationTestCase):
 
 		self.assertEqual(
 			names(get_app_dock("frappe")),
-			self.THIRTEEN,
+			self.FOURTEEN,
 		)
 
 	def test_the_walked_case_renders_the_same_dock(self):
-		"""Sixteen modules in, thirteen named, three code-only never nameable at all."""
+		"""Seventeen modules in, fourteen named, three code-only never nameable at all."""
 		from frappe.utils.modules import get_code_only_modules
 
 		frappe.set_user("Administrator")
 		clear_arrangements()
 
 		resolved = names(resolve_dock()["frappe"])
-		self.assertEqual([name for name in resolved if name in self.THIRTEEN], self.THIRTEEN)
+		self.assertEqual([name for name in resolved if name in self.FOURTEEN], self.FOURTEEN)
 
 		# the three the record cannot name, because they ship no navigation of their own
 		self.assertEqual(sorted(get_code_only_modules()), ["Core", "Custom", "Desk"])
@@ -2219,6 +2220,60 @@ class TestTheDeskDoor(IntegrationTestCase):
 		`desk_route` off one never gets `undefined`."""
 		with patch.object(frappe, "get_hooks", _with_desk_route("/desk/crm", denied=True)):
 			self.assertEqual(self.app_entry("frappe")["desk_route"], "")
+
+
+class TestModuleIcons(IntegrationTestCase):
+	"""An app's `add_to_apps_screen` entry can carry `module_icons`, which the apps screen fans out
+	behind the app's own icon, each linking to its own route."""
+
+	def app_entry(self, app_name: str) -> dict:
+		from frappe.boot import get_app_data
+
+		return next(app for app in get_app_data() if app["app_name"] == app_name)
+
+	def test_framework_fans_out_studio_and_flow(self):
+		self.assertEqual(
+			[(icon["title"], icon["route"]) for icon in self.app_entry("frappe")["module_icons"]],
+			[("Studio", "/studio"), ("Flow", "/flow")],
+		)
+
+	def test_an_icon_whose_permission_hook_says_no_is_dropped(self):
+		icons = [
+			{"title": "Open", "logo": "/open.svg", "route": "/open"},
+			{
+				"title": "Closed",
+				"logo": "/closed.svg",
+				"route": "/closed",
+				"has_permission": "frappe.tests.test_dock_preferences._denies_access",
+			},
+		]
+		with patch.object(frappe, "get_hooks", _with_module_icons(icons)):
+			self.assertEqual(
+				self.app_entry("frappe")["module_icons"],
+				[{"title": "Open", "logo": "/open.svg", "route": "/open"}],
+			)
+
+	def test_an_app_this_user_cannot_access_carries_no_module_icons(self):
+		icons = [{"title": "Studio", "logo": "/studio.svg", "route": "/studio"}]
+		with patch.object(frappe, "get_hooks", _with_module_icons(icons, denied=True)):
+			self.assertEqual(self.app_entry("frappe")["module_icons"], [])
+
+
+def _with_module_icons(icons: list[dict], denied: bool = False):
+	"""`frappe.get_hooks` with frappe's own apps-screen entry carrying `icons` as its
+	`module_icons`, and, with `denied`, a `has_permission` that turns everyone away."""
+	real = frappe.get_hooks
+
+	def patched(hook=None, default="_KEEP_DEFAULT_LIST", app_name=None):
+		hooks = real(hook, default, app_name)
+		if hook == "add_to_apps_screen" and app_name == "frappe":
+			entry = dict(hooks[0]) | {"module_icons": icons}
+			if denied:
+				entry["has_permission"] = "frappe.tests.test_dock_preferences._denies_access"
+			return [entry]
+		return hooks
+
+	return patched
 
 
 def _with_desk_route(route: str, denied: bool = False):

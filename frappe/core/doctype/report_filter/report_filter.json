@@ -37,7 +37,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Fieldtype",
-   "options": "Check\nCurrency\nData\nDate\nDatetime\nDynamic Link\nFloat\nFold\nInt\nLink\nSelect\nTime",
+   "options": "Autocomplete\nCheck\nCurrency\nData\nDate\nDateRange\nDatetime\nDynamic Link\nFloat\nFold\nInt\nLink\nMultiSelectList\nSelect\nTime",
    "reqd": 1
   },
   {
@@ -73,16 +73,17 @@
    "fieldtype": "Column Break"
   }
  ],
- "index_web_pages_for_search": 1,
  "istable": 1,
+ "link_display_mode": "Search",
  "links": [],
- "modified": "2024-03-23 16:03:36.633258",
+ "modified": "2026-10-27 23:26:49.588336",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Report Filter",
  "owner": "Administrator",
  "permissions": [],
  "quick_entry": 1,
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],

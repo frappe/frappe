@@ -96,6 +96,12 @@ class DeskViews:
 		return {cstr(report) for report in cls.get_allowed_reports(cache=cache, user=user).keys() if report}
 
 	@classmethod
+	@frappe.request_cache
+	def get_cached_allowed_report_names(cls, user: str) -> set[str]:
+		"""`get_allowed_report_names`, computed once per request for `user`. Do not mutate the result."""
+		return cls.get_allowed_report_names(user=user)
+
+	@classmethod
 	def get_allowed_dashboards(cls, cache=False):
 		"""Return dashboards the user is allowed to see.
 

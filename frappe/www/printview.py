@@ -10,6 +10,7 @@ import frappe
 from frappe import _, cstr, get_module_path
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.core.doctype.document_share_key.document_share_key import is_expired
+from frappe.printing.doctype.print_format.print_format import can_print_with, check_print_format_roles
 from frappe.utils import cint, escape_html, flt, strip_html
 from frappe.utils.jinja_globals import is_rtl
 from frappe.utils.print_utils import HTML_PDF_GENERATORS, resolve_pdf_generator
@@ -158,18 +159,23 @@ def cast_client_values(document: "Document"):
 
 def get_print_format_doc(print_format_name: str, meta: "Meta") -> "PrintFormat" | None:
 	"""Return print format document."""
-	if not print_format_name:
-		print_format_name = frappe.form_dict.format or meta.default_print_format or "Standard"
+	requested = print_format_name or frappe.form_dict.format
+	print_format_name = requested or meta.default_print_format or "Standard"
 
 	if print_format_name == "Standard":
 		return None
 
 	def fetch(name):
 		try:
-			return frappe.get_doc("Print Format", name)
+			doc = frappe.get_doc("Print Format", name)
 		except frappe.DoesNotExistError:
 			frappe.clear_last_message()
 			return None
+		if can_print_with(doc):
+			return doc
+		if name == requested and name != meta.default_print_format:
+			check_print_format_roles(doc)
+		return None
 
 	# a renamed or deleted format — or a caller interpolating a missing name into
 	# the url — resolves to the doctype's default, like an omitted name does
@@ -209,7 +215,7 @@ def get_rendered_template(
 ) -> str:
 	validate_print_permission(doc)
 
-	print_settings = frappe.get_single("Print Settings").as_dict()
+	print_settings = frappe.get_cached_doc("Print Settings").as_dict()
 	print_settings.update(get_allowed_print_settings_override(doc, settings))
 
 	if isinstance(no_letterhead, str):
@@ -252,7 +258,7 @@ def get_rendered_template(
 		letter_head.content = frappe.utils.jinja.render_template(letter_head.content, {"doc": doc.as_dict()})
 		if letter_head.custom_css:
 			letter_head.content += f"""
-			<style data-letter-head>
+			<style>
 				{letter_head.custom_css}
 			</style>
 			"""
@@ -467,7 +473,7 @@ def validate_print_for_docstatus(doc: "Document", print_settings: dict | None = 
 		return
 
 	if print_settings is None:
-		print_settings = frappe.get_single("Print Settings").as_dict()
+		print_settings = frappe.get_cached_doc("Print Settings").as_dict()
 
 	if doc.docstatus.is_draft() and not cint(print_settings.get("allow_print_for_draft")):
 		frappe.throw(_("Not allowed to print draft documents"), frappe.PermissionError)
@@ -692,7 +698,7 @@ def has_value(df: "DocField", doc: "Document") -> bool:
 def get_print_style(
 	style: str | None = None, print_format: "PrintFormat" | None = None, for_legacy: bool = False
 ) -> str:
-	print_settings = frappe.get_doc("Print Settings")
+	print_settings = frappe.get_cached_doc("Print Settings")
 
 	if not style:
 		style = print_settings.print_style or ""
@@ -914,7 +920,14 @@ window.print();
 // NOTE: doesn't close if print is cancelled in Chrome
 // Changed timeout to 5s from 1s because it blocked mobile view rendering
 setTimeout(function() {
-	window.close();
+	// mobile browsers return from print() while their print dialog is still open
+	if (document.hasFocus()) {
+		window.close();
+	} else {
+		window.addEventListener("focus", function() {
+			window.close();
+		});
+	}
 }, 5000);
 </script>
 """

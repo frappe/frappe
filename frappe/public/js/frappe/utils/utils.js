@@ -3,11 +3,12 @@
 
 import deep_equal from "fast-deep-equal";
 import number_systems from "./number_systems";
-import { CHART_PALETTE } from "../ui/components/utils.js";
+import { CHART_PALETTE, has_unsafe_scheme } from "../ui/components/utils.js";
 
 frappe.provide("frappe.utils");
 
 const eval_function_cache = new Map();
+let haptic_switch = null;
 
 // Array de duplicate
 if (!Array.prototype.uniqBy) {
@@ -276,6 +277,8 @@ Object.assign(frappe.utils, {
 
 		return String(txt).replace(/[&<>"'`=]/g, (char) => escape_html_mapping[char] || char);
 	},
+
+	has_unsafe_url_scheme: has_unsafe_scheme,
 
 	// Escape text and wrap in <strong> — use this instead of String.prototype.bold()
 	// so user-supplied values are safely escaped before being injected into HTML.
@@ -1171,6 +1174,32 @@ Object.assign(frappe.utils, {
 			input.remove();
 		}
 	},
+	/**
+	 * A light tick on a touch screen. iOS has no vibration, so a hidden switch is flipped; iOS 26.5+
+	 * ignores that from a script, and capture-phase click listeners still see the flip.
+	 */
+	haptic() {
+		if (!window.matchMedia("(hover: none)").matches) return;
+		if (navigator.vibrate) {
+			navigator.vibrate(10);
+			return;
+		}
+		if (!haptic_switch) {
+			haptic_switch = document.createElement("label");
+			haptic_switch.hidden = true;
+			haptic_switch.setAttribute("aria-hidden", "true");
+			const input = document.createElement("input");
+			input.type = "checkbox";
+			input.setAttribute("switch", "");
+			haptic_switch.append(input);
+			// keeps the flip from bubbling to the page's handlers
+			for (const type of ["click", "change"]) {
+				haptic_switch.addEventListener(type, (e) => e.stopPropagation());
+			}
+			document.body.append(haptic_switch);
+		}
+		haptic_switch.click();
+	},
 	is_rtl(lang = null) {
 		// Keep this list in sync with rtl_languages in the Python twin at
 		// frappe/utils/jinja_globals.py:is_rtl.
@@ -1429,6 +1458,23 @@ Object.assign(frappe.utils, {
 		return { icon, title };
 	},
 
+	// The apps the desktop screen and the app switcher list: installed apps by `sequence_id`,
+	// then Studio Apps by title, then Framework.
+	get_apps_screen_apps() {
+		const apps = (frappe.boot.app_data || [])
+			.filter((app) => app.on_apps_screen)
+			.sort((a, b) => (a.sequence_id ?? 100) - (b.sequence_id ?? 100));
+		const studio_apps = (frappe.boot.studio_apps || []).map((app) => ({
+			app_name: app.name,
+			app_title: app.app_title,
+			app_route: `/${app.route}`,
+			app_logo_url: app.favicon,
+		}));
+		const framework = apps.findIndex((app) => app.app_name === "frappe");
+		apps.splice(framework === -1 ? apps.length : framework, 0, ...studio_apps);
+		return apps;
+	},
+
 	// The boot entry for a module's own shell, or undefined.
 	//
 	// `frappe.boot.module_sidebars` is keyed by shell: a `Sidebar` document's name, or the module's
@@ -1617,6 +1663,7 @@ Object.assign(frappe.utils, {
 		};
 
 		for (let key in custom_options) {
+			if (key === "__proto__") continue;
 			if (typeof chart_args[key] === "object" && typeof custom_options[key] === "object") {
 				chart_args[key] = Object.assign(chart_args[key], custom_options[key]);
 			} else {

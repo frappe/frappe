@@ -11,7 +11,13 @@ import click
 
 import frappe
 from frappe.bundler import get_node_env
-from frappe.studio.utils import get_exported_app_folders, walk_blocks
+from frappe.studio.utils import (
+	get_export_folder,
+	get_exported_app_folders,
+	get_exported_app_name,
+	get_studio_folder,
+	walk_blocks,
+)
 from frappe.utils import get_files_path
 
 ANSI_ESCAPE_REGEX = re.compile(r"\x1b\[[0-9;]*[a-zA-Z]")
@@ -35,6 +41,7 @@ class StudioAppBuilder:
 		self.components = set()
 		self.studio_component_blocks = {}
 		self.custom_vue_components: dict[str, str] = {}  # {ComponentName: absolute_path}
+		self.missing_components: set[str] = set()
 		self.page_scripts: list[dict] = []  # [{page_name, file_path}]
 		self.router_file: str | None = None
 		self.app_folder: str | None = None
@@ -59,10 +66,16 @@ class StudioAppBuilder:
 
 	def build(self):
 		if self.is_standard:
+			self.app_folder = self.get_app_folder()
+			if not os.path.isdir(self.app_folder):
+				raise StudioAppBuildError(
+					f"No export folder found for app '{self.app_name}'",
+					f"Expected the exported app at {self.app_folder}.",
+				)
 			self.get_app_components_from_files()
+			self._validate_components_resolved()
 			self.get_page_scripts_from_files()
 			self.router_file = get_router_file(self.frappe_app, self.app_name)
-			self.app_folder = self.get_app_folder()
 			self.tailwind_content = get_tailwind_content(self.app_folder)
 			self._run_vite_build()
 		else:
@@ -79,7 +92,17 @@ class StudioAppBuilder:
 		return page_sources
 
 	def get_app_folder(self) -> str:
-		return os.path.join(get_studio_folder(self.frappe_app), self.app_name)
+		return get_export_folder(self.frappe_app, self.app_name)
+
+	def _validate_components_resolved(self) -> None:
+		"""An unresolved component builds into an unknown element, which renders blank and silent."""
+		if not self.missing_components:
+			return
+		names = ", ".join(sorted(self.missing_components))
+		raise StudioAppBuildError(
+			f"Components used by '{self.app_name}' are missing from its export: {names}",
+			f"Looked under {self.app_folder}. Export them with the app, or drop the blocks using them.",
+		)
 
 	def get_page_scripts_from_files(self):
 		"""Collect the <page>.ts code files for the app's published pages, so the build bundles a
@@ -101,11 +124,11 @@ class StudioAppBuilder:
 			try:
 				# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
 				with open(json_path) as f:
-					page_name = json.load(f).get("page_name")
+					page_data = json.load(f)
 			except (OSError, json.JSONDecodeError):
 				continue
-			if page_name:
-				scripts.append({"page_name": page_name, "file_path": ts_path})
+			if page_data.get("published") and page_data.get("page_name"):
+				scripts.append({"page_name": page_data["page_name"], "file_path": ts_path})
 
 		self.page_scripts = scripts
 		return scripts
@@ -217,11 +240,15 @@ class StudioAppBuilder:
 				with open(page_path) as f:
 					page_text = f.read()
 				page_data = json.loads(page_text)
-				self._add_icons(page_text)
-				self._add_h_function_components(page_text)
 			except (json.JSONDecodeError, OSError) as e:
 				click.secho(f"Warning: Could not read {page_path}: {e}", fg="yellow")
 				continue
+
+			if not page_data.get("published"):
+				continue
+
+			self._add_icons(page_text)
+			self._add_h_function_components(page_text)
 
 			blocks = page_data.get("blocks")
 			if not blocks:
@@ -258,6 +285,8 @@ class StudioAppBuilder:
 			comp_name = block.get("componentName")
 			if comp_name and comp_name in self.studio_component_blocks:
 				self._add_block_components(self.studio_component_blocks[comp_name])
+			elif comp_name:
+				self.missing_components.add(comp_name)
 		else:
 			component_block = frappe.db.get_value("Studio Component", block.get("componentName"), "block")
 			self._add_icons(component_block if isinstance(component_block, str) else None)
@@ -307,7 +336,9 @@ class StudioAppBuilder:
 		for dirpath, _dirnames, filenames in os.walk(app_dir):
 			if f"{componentName}.vue" in filenames:
 				self.custom_vue_components[componentName] = os.path.join(dirpath, f"{componentName}.vue")
-				break
+				return
+
+		self.missing_components.add(componentName)
 
 
 def build_standard_apps(apps: list[str] | None = None) -> None:
@@ -319,7 +350,7 @@ def build_standard_apps(apps: list[str] | None = None) -> None:
 	failed_apps = []
 	for frappe_app in apps or frappe.get_all_apps():
 		for app_folder in get_exported_app_folders(get_studio_folder(frappe_app)):
-			studio_app = os.path.basename(app_folder)
+			studio_app = get_exported_app_name(app_folder)
 			click.echo(f"\nBuilding Studio App: {studio_app} (from {frappe_app})")
 
 			try:
@@ -367,13 +398,9 @@ def get_published_custom_apps() -> list[str]:
 	return custom_apps
 
 
-def get_studio_folder(frappe_app: str) -> str | None:
-	return frappe.get_app_source_path(frappe_app, "studio")
-
-
 def get_router_file(frappe_app: str, studio_app: str) -> str | None:
 	"""Path of the app's studio/<app>/router.ts, if it ships one."""
-	path = os.path.join(get_studio_folder(frappe_app), studio_app, "router.ts")
+	path = os.path.join(get_export_folder(frappe_app, studio_app), "router.ts")
 	return path if os.path.exists(path) else None
 
 

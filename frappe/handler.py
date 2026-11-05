@@ -1,6 +1,7 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import hashlib
 import os
 from mimetypes import guess_type
 from pathlib import Path
@@ -13,7 +14,7 @@ import frappe.sessions
 import frappe.utils
 from frappe import _, is_whitelisted, ping
 from frappe.core.doctype.file.exceptions import MaxFileSizeReachedError
-from frappe.core.doctype.file.utils import find_file_by_url, get_safe_file_name
+from frappe.core.doctype.file.utils import find_file_by_url
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 from frappe.monitor import add_data_to_monitor
 from frappe.permissions import check_doctype_permission
@@ -190,7 +191,7 @@ def upload_file():
 		total_file_size = int(frappe.form_dict.total_file_size or 0)
 		check_declared_size(total_file_size)
 
-		temp_path = Path(get_files_path(".temp-" + get_safe_file_name(filename), is_private=is_private))
+		temp_path = get_chunk_temp_path(filename, is_private)
 		with temp_path.open("ab" if current_chunk > 0 else "wb") as f:
 			f.seek(offset)
 			f.write(file.stream.read())
@@ -254,6 +255,12 @@ def upload_file():
 		for func in funcs:
 			doc = frappe.call(func, doc=doc)
 		return doc.save(ignore_permissions=ignore_permissions)
+
+
+def get_chunk_temp_path(filename: str, is_private: str | int) -> Path:
+	"""Buffer for an unfinished chunked upload: private, and not shared across users or privacy."""
+	key = hashlib.sha256(f"{frappe.session.user}:{cint(is_private)}:{filename}".encode()).hexdigest()[:32]
+	return Path(get_files_path(f".temp-{key}", is_private=1))
 
 
 def check_write_permission(doctype: str | None = None, name: str | None = None):

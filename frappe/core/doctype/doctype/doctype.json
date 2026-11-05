@@ -60,9 +60,13 @@
   "allow_events_in_timeline",
   "allow_auto_repeat",
   "make_attachments_public",
+  "enable_upload_first_workflow",
+  "force_private_attachments",
   "view_settings",
   "show_title_field_in_link",
   "translated_doctype",
+  "link_display_mode",
+  "show_image_in_link",
   "search_fields",
   "default_print_format",
   "sort_field",
@@ -598,10 +602,42 @@
    "label": "Translate Link Fields"
   },
   {
+   "default": "Search",
+   "description": "How Link fields to this DocType load their options. Search: fetch matches as the user types. Select: load the whole list once, without a search box (for short lists).",
+   "fieldname": "link_display_mode",
+   "fieldtype": "Select",
+   "label": "Link Display Mode",
+   "options": "Search\nSelect"
+  },
+  {
    "default": "0",
+   "depends_on": "eval:doc.image_field",
+   "description": "Show the Image Field as an avatar in Link field dropdowns.",
+   "fieldname": "show_image_in_link",
+   "fieldtype": "Check",
+   "label": "Show Image in Link Fields"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:!doc.force_private_attachments",
    "fieldname": "make_attachments_public",
    "fieldtype": "Check",
    "label": "Make Attachments Public by Default"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:!doc.istable",
+   "description": "Users can upload a file first and write a document of this DocType from it.",
+   "fieldname": "enable_upload_first_workflow",
+   "fieldtype": "Check",
+   "label": "Allow documents to be created from an uploaded file"
+  },
+  {
+   "default": "0",
+   "description": "All files attached to this DocType must be private",
+   "fieldname": "force_private_attachments",
+   "fieldtype": "Check",
+   "label": "Force Private Attachments"
   },
   {
    "default": "0",
@@ -799,7 +835,7 @@
    "link_fieldname": "document_type"
   }
  ],
- "modified": "2026-09-29 19:26:17.998677",
+ "modified": "2026-11-02 09:54:18.575551",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",

@@ -2,14 +2,18 @@ import { test, expect } from "../support";
 
 const CONNECT =
 	"**/api/method/frappe.integrations.frappe_providers.email_oauth.initiate_mailbox_connect";
+const SERVICES =
+	"**/api/method/frappe.integrations.frappe_providers.email_oauth.get_one_click_services";
 
-async function open_add_dialog(page, desk) {
+const outlook = (route) => route.fulfill({ json: { message: { "Outlook.com": "Outlook" } } });
+
+async function open_add_dialog(page, desk, services = outlook) {
+	await page.route(SERVICES, services);
 	await desk.go_to_list("ToDo");
 	await desk.ready();
 	// boot is read when the Email Account list is first made, so set it before routing there
 	await page.evaluate(() => {
 		frappe.boot.is_v2_site = 1;
-		frappe.boot.one_click_email_services = { "Outlook.com": "Outlook" };
 		frappe.set_route("List", "Email Account");
 	});
 	await expect(page.locator("body")).toHaveAttribute("data-route", "List/Email Account/List");
@@ -47,4 +51,21 @@ test("offers the manual form when Outlook sign-in isn't available", async ({ pag
 		/^Form\/Email Account\/new-email-account-/
 	);
 	await expect(desk.get_field("service", "Select")).toHaveValue("Outlook.com");
+});
+
+test("keeps Continue off until the one-click list arrives", async ({ page, desk }) => {
+	let release;
+	const held = new Promise((resolve) => (release = resolve));
+	const dialog = await open_add_dialog(page, desk, async (route) => {
+		await held;
+		return outlook(route);
+	});
+	const primary = dialog.locator(".btn-modal-primary");
+
+	await dialog.getByRole("button", { name: "Outlook" }).click();
+	await expect(primary).toBeDisabled();
+
+	release();
+	await expect(primary).toBeEnabled();
+	await expect(dialog.locator(".btn-modal-secondary")).toHaveText("Set up manually");
 });

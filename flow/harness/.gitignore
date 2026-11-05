@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.flow-data/
+# built by `npm run build -w app` in ui/; served by `flow web`
+src/flow_harness/server/webui/

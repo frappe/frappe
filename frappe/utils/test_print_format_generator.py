@@ -270,6 +270,85 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 			generator.render_pdf()
 		self.assertNotIn("password", chrome_pdf.call_args.kwargs["options"])
 
+	def test_bulk_typst_pdf_with_password_is_encrypted(self):
+		import io
+
+		from pypdf import PdfReader
+
+		from frappe.utils.print_format import _download_multi_pdf
+
+		print_format = self._make_print_format(pdf_generator="Typst")
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc(
+			{"doctype": "ToDo", "description": "Send the Q3 price list to Contoso"}
+		).insert()
+
+		_download_multi_pdf(
+			"ToDo", json.dumps([todo.name]), format=print_format.name, options=json.dumps({"password": "qwe"})
+		)
+
+		reader = PdfReader(io.BytesIO(frappe.local.response.filecontent))
+		self.assertTrue(reader.decrypt("qwe"))
+		self.assertEqual(len(reader.pages), 1)
+
+	def test_bulk_pdf_links_stay_in_their_own_document(self):
+		import io
+
+		from pypdf import PdfReader
+
+		from frappe.utils.print_format import _download_multi_pdf
+
+		html = '<a href="#totals">See totals</a>' + "<p>row</p>" * 80 + '<p id="totals">Totals</p>'
+		print_format = self._make_print_format(
+			pdf_generator="chrome",
+			format_data=json.dumps(
+				{
+					"sections": [
+						{
+							"columns": [
+								{"fields": [{"fieldtype": "HTML", "fieldname": "_html1", "html": html}]}
+							]
+						}
+					]
+				}
+			),
+		)
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todos = [
+			frappe.get_doc({"doctype": "ToDo", "description": description}).insert().name
+			for description in ("Send the Q3 price list to Contoso", "Renew the Fabrikam support contract")
+		]
+
+		_download_multi_pdf("ToDo", json.dumps(todos), format=print_format.name, no_letterhead=1)
+
+		reader = PdfReader(io.BytesIO(frappe.local.response.filecontent))
+		(first_page, first_target), (second_page, second_target) = (
+			(number, reader.get_page_number(annotation.get_object()["/Dest"][0].get_object()))
+			for number, page in enumerate(reader.pages)
+			for annotation in page.get("/Annots", [])
+		)
+		self.assertLess(first_page, first_target)
+		self.assertLess(first_target, second_page)
+		self.assertLess(second_page, second_target)
+
+	def test_typst_pdf_with_password_is_encrypted(self):
+		import io
+
+		from pypdf import PdfReader
+
+		print_format = self._make_print_format(pdf_generator="Typst")
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc(
+			{"doctype": "ToDo", "description": "Send the Q3 price list to Contoso"}
+		).insert()
+
+		pdf = frappe.get_print("ToDo", todo.name, print_format=print_format.name, as_pdf=True, password="qwe")
+
+		self.assertTrue(PdfReader(io.BytesIO(pdf)).decrypt("qwe"))
+
 	def test_permlevel_restricted_fields_are_dropped(self):
 		"""A layout may reference permlevel-restricted fields; readers without access
 		to that permlevel must not get them in the print output."""
@@ -345,6 +424,23 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		):
 			self.assertEqual(frappe.get_print("ToDo", todo.name, as_pdf=True), b"%PDF-typst")
 
+	def test_typst_pdf_skips_the_html_print_view(self):
+		from unittest.mock import patch
+
+		from frappe.www import printview
+
+		print_format = self._make_print_format(pdf_generator="Typst")
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc(
+			{"doctype": "ToDo", "description": "Send the Q3 price list to Contoso"}
+		).insert()
+
+		with patch.object(printview, "get_context", wraps=printview.get_context) as get_context:
+			frappe.get_print("ToDo", todo.name, print_format.name, as_pdf=True)
+
+		get_context.assert_not_called()
+
 	def test_unknown_pdf_generator_uses_print_settings_default(self):
 		from unittest.mock import patch
 
@@ -380,6 +476,21 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		jinja.reload()
 		jinja.save()
 		self.assertEqual(jinja.pdf_generator, "chrome")
+
+	def test_jinja_variable_starting_with_on_keeps_plutoprint(self):
+		from frappe.utils.print_utils import resolve_pdf_generator
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		jinja = frappe._dict(
+			pdf_generator="PlutoPrint",
+			html='{%- set ongoing = doc.status == "Open" -%}<p>{{ doc.description }}</p>',
+		)
+		script = frappe._dict(
+			pdf_generator="PlutoPrint", html='<p onclick="print()">{{ doc.description }}</p>'
+		)
+		self.assertEqual(resolve_pdf_generator(jinja), "PlutoPrint")
+		self.assertEqual(resolve_pdf_generator(script), "chrome")
 
 	def test_standard_print_uses_print_settings_default(self):
 		from frappe.utils.print_utils import resolve_pdf_generator
@@ -1215,6 +1326,29 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		html = self._render_standard(self._make_submittable_doc(1))
 		self.assertNotIn('document-status="draft"', html)
 		self.assertNotIn('document-status="cancelled"', html)
+
+	def test_typst_draft_heading_rendered(self):
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+		from frappe.utils.typst_emitter import TypstEmitter
+
+		doc = self._make_submittable_doc(0)
+		print_format = self._make_print_format(doc_type=doc.doctype, pdf_generator="Typst")
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		with self.change_settings("Print Settings", add_draft_heading=1):
+			source, _assets = TypstEmitter(PrintFormatGenerator(print_format, doc)).emit()
+		self.assertIn('"DRAFT"', source)
+
+	def test_typst_cancelled_heading_rendered(self):
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+		from frappe.utils.typst_emitter import TypstEmitter
+
+		doc = self._make_submittable_doc(2)
+		print_format = self._make_print_format(doc_type=doc.doctype, pdf_generator="Typst")
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		source, _assets = TypstEmitter(PrintFormatGenerator(print_format, doc)).emit()
+		self.assertIn('"CANCELLED"', source)
 
 	def test_draft_print_blocked_when_not_allowed(self):
 		"""The new renderer enforces the draft-print guard on the beta path."""
