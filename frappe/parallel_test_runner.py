@@ -106,6 +106,10 @@ class ParallelTestRunner:
 			if not failed or not all(hasattr(test, "_testMethodName") for test in failed):
 				return
 			names = [test.id() for test in failed]
+			first_error = {
+				test.id(): (trace.strip().splitlines() or [""])[-1]
+				for test, trace in self.test_result.failures + self.test_result.errors
+			}
 			self.test_result.printErrors()
 			click.echo(self.test_result)
 			click.secho(f"\nRunning {len(names)} failed test(s) again", fg="yellow")
@@ -119,6 +123,7 @@ class ParallelTestRunner:
 			still = {test.id() for test, _ in self.test_result.failures + self.test_result.errors}
 			if flaky := [name for name in names if name not in still]:
 				click.secho(f"Flaky, passed when run again: {', '.join(flaky)}", fg="yellow")
+				report_flaky({name: first_error[name] for name in flaky})
 
 	def run_tests_for_file(self, file_info):
 		if not file_info:
@@ -196,6 +201,20 @@ class ParallelTestRunner:
 			test_count = f.read().count("def test_") * test_weight
 
 		return test_count
+
+
+def report_flaky(first_error):
+	"""Show tests that passed only when run again as warnings on the run and in its summary, when on GitHub Actions."""
+	if not os.environ.get("GITHUB_ACTIONS"):
+		return
+	for name, error in first_error.items():
+		print(f"::warning title=Flaky test::{name} failed, then passed when run again: {error}")
+	if summary := os.environ.get("GITHUB_STEP_SUMMARY"):
+		rows = "".join(f"| `{name}` | {error.replace('|', '\\|')} |\n" for name, error in first_error.items())
+		with open(summary, "a") as f:
+			f.write(
+				f"### ⚠️ Flaky tests: passed only when run again\n\n| Test | First run |\n|---|---|\n{rows}\n"
+			)
 
 
 def split_by_weight(work, weights, chunk_count):
