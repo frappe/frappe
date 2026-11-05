@@ -154,11 +154,12 @@ class TestAuth(IntegrationTestCase):
 			self.assertIsNone(User.find_by_credentials("unknown_auth@example.com", "wrong_pwd_012"))
 		verify.assert_called_once()
 
-	def test_login_email_ignores_case_and_spaces(self):
+	def test_email_login_ignores_case_and_spaces(self):
 		user = User.find_by_credentials(f" {self.test_user_email.upper()} ", self.test_user_password)
 		self.assertEqual(user.name, self.test_user_email)
 		self.assertTrue(user.is_authenticated)
 
+	def test_administrator_logs_in_by_name_not_email(self):
 		user = User.find_by_credentials("administrator", "", validate_password=False)
 		self.assertEqual(user.name, "Administrator")
 
