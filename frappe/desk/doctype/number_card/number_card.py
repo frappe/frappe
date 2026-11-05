@@ -7,6 +7,7 @@ from typing import Any
 import frappe
 from frappe import _
 from frappe.desk.desk_views import DeskViews
+from frappe.model import numeric_fieldtypes
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
 from frappe.modules.export_file import export_to_files
@@ -66,8 +67,17 @@ class NumberCard(Document):
 			if not (self.document_type and self.function):
 				frappe.throw(_("Document Type and Function are required to create a number card"))
 
-			if self.function != "Count" and not self.aggregate_function_based_on:
-				frappe.throw(_("Aggregate Field is required to create a number card"))
+			if self.function != "Count":
+				if not self.aggregate_function_based_on:
+					frappe.throw(_("Aggregate Field is required to create a number card"))
+				df = frappe.get_meta(self.document_type).get_field(self.aggregate_function_based_on)
+				if not df or df.fieldtype not in (*numeric_fieldtypes, "Duration"):
+					frappe.throw(
+						_("{0} is not a valid field for {1}").format(
+							frappe.bold(self.aggregate_function_based_on),
+							self.meta.get_label("aggregate_function_based_on"),
+						)
+					)
 
 			if frappe.get_meta(self.document_type).istable and not self.parent_document_type:
 				frappe.throw(_("Parent Document Type is required to create a number card"))
