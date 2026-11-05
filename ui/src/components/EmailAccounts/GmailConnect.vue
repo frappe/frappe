@@ -95,7 +95,7 @@
 							/>
 							<div
 								v-if="i === 1 && clientId"
-								class="mt-1.5 flex items-center gap-1 rounded-4 bg-surface-gray-1 py-1 pl-2 pr-1"
+								class="mt-1.5 flex items-center gap-1 rounded-4 bg-surface-gray-2 py-1 pl-2 pr-1"
 							>
 								<code class="min-w-0 flex-1 truncate text-sm text-ink-gray-8">
 									{{ clientId }}
