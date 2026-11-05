@@ -233,7 +233,12 @@ function tile_for(block) {
 
 <template>
 	<div ref="root" class="flex flex-col gap-6">
-		<section v-for="(section, index) in sections" :key="index" class="flex flex-col gap-3">
+		<section
+			v-for="(section, index) in sections"
+			:key="index"
+			class="flex flex-col gap-3"
+			:class="{ '-mt-6': editing && section.divider && sections[index - 1]?.tiles.length }"
+		>
 			<div
 				v-if="section.heading"
 				class="ws-frame relative"
@@ -255,10 +260,9 @@ function tile_for(block) {
 					@pointerdown="press($event, section.heading)"
 				/>
 			</div>
-			<div v-else-if="section.divider && !editing" class="h-6" aria-hidden="true" />
 			<div
-				v-else-if="section.divider"
-				class="ws-frame relative -mx-3 -my-1.5 flex items-center gap-3 px-3 py-1.5"
+				v-else-if="section.divider && editing"
+				class="ws-frame relative -mx-3 mb-1 flex items-center gap-3 px-3 py-1.5"
 				:data-block="section.divider.id"
 				:class="held === section.divider.id && 'ws-held'"
 			>
@@ -308,7 +312,7 @@ function tile_for(block) {
 			</div>
 			<div
 				v-if="editing && section.tiles.length"
-				class="h-4 rounded-4"
+				class="-mt-3 h-4 rounded-4"
 				:data-drop-after="section.tiles.at(-1).block.id"
 			/>
 		</section>
