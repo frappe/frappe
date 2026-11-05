@@ -148,7 +148,7 @@ def get_qr_code(value: str) -> str:
 	from pyqrcode import create as qrcreate
 
 	stream = io.BytesIO()
-	qrcreate(value).svg(stream, scale=5, quiet_zone=1)
+	qrcreate(value).svg(stream, scale=5, quiet_zone=1, omithw=True)
 	return "data:image/svg+xml;base64," + base64.b64encode(stream.getvalue()).decode()
 
 
