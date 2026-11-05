@@ -194,8 +194,8 @@ class EmailAccount(Document):
 				frappe.throw(_("You need to set one IMAP folder for {0}").format(frappe.bold(self.email_id)))
 
 			valid_doctypes = {d[0] for d in get_append_to()}
-			for folder in self.imap_folder:
-				if folder.append_to and folder.append_to not in valid_doctypes:
+			for append_to in [self.append_to, *(folder.append_to for folder in self.imap_folder)]:
+				if append_to and append_to not in valid_doctypes:
 					frappe.throw(_("Append To can be one of {0}").format(comma_or(valid_doctypes)))
 
 		if frappe.local.flags.in_patch or frappe.in_test:

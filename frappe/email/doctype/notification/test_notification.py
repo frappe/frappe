@@ -348,6 +348,7 @@ class TestNotification(IntegrationTestCase):
 		notification.event = "Minutes Before"
 		notification.datetime_changed = "starts_on"
 		notification.message = "Test message"
+		notification.append("recipients", {"receiver_by_document_field": "owner"})
 
 		# Test negative value
 		notification.minutes_offset = -5
