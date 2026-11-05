@@ -11,6 +11,7 @@ from poplib import error_proto
 
 import frappe
 from frappe import _, are_emails_muted, safe_encode
+from frappe.core.api.file import get_max_file_size
 from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification
 from frappe.desk.form import assign_to
 from frappe.email.doctype.email_domain.email_domain import EMAIL_DOMAIN_FIELDS
@@ -148,6 +149,8 @@ class EmailAccount(Document):
 
 	def validate(self):
 		"""Validate Email Address and check POP3/IMAP and SMTP connections is enabled."""
+		if self.is_new() and not self.attachment_limit:
+			self.attachment_limit = get_max_file_size() // (1024 * 1024)
 
 		if self.email_id:
 			validate_email_address(self.email_id, True)
