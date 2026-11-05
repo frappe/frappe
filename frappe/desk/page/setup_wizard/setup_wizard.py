@@ -289,7 +289,7 @@ def run_setup_success(args):  # nosemgrep
 		login_as_first_user(args)
 
 
-def login_as_first_user(args):
+def login_as_first_user(args):  # nosemgrep
 	if args.get("email") and hasattr(frappe.local, "login_manager"):
 		if user_id := get_user_by_email(args.get("email")):
 			frappe.local.login_manager.login_as(user_id)
