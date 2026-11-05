@@ -778,6 +778,9 @@ def sendmail(
 	if not delayed:
 		now = True
 
+	if communication and not (recipients or cc or bcc):
+		throw(_("At least one recipient is required"))
+
 	from frappe.email.doctype.email_queue.email_queue import QueueBuilder
 
 	builder = QueueBuilder(
