@@ -4,7 +4,7 @@
      a toolbar button instead, the model and approval mode buttons' own
      lists, moved along to stay on the page; `below`, under a header's. -->
 <template>
-	<div class="fixed inset-0 z-10" @click="emit('close')" />
+	<div ref="backdrop" class="fixed inset-0 z-10" @click="emit('close')" />
 	<section
 		ref="panel"
 		:aria-label="title"
@@ -78,6 +78,7 @@ const props = defineProps({
 })
 const emit = defineEmits(["close", "back"])
 const panel = ref(null)
+const backdrop = ref(null)
 // 352px tall at most, and no taller than the room above it (under it, `below`), 8px short of the
 // page's edge: a phone's keyboard can leave less
 const cap = ref(352)
@@ -207,8 +208,18 @@ watch(
 	},
 )
 
+// a press outside, where the backdrop doesn't reach (the sidebar stands above the chat), closes it
+// too; one in another of these lists (a menu's list beside it) doesn't
+function onPress(event) {
+	if (props.passive || isInert(panel.value)) return
+	const path = event.composedPath()
+	if (path.includes(backdrop.value) || path.some((node) => node.classList?.contains("flow-palette-panel"))) return
+	emit("close")
+}
+
 onMounted(async () => {
 	window.addEventListener("keydown", onKey, true)
+	window.addEventListener("pointerdown", onPress, true)
 	observer = new MutationObserver(syncItems)
 	observer.observe(panel.value, { childList: true, subtree: true })
 	if (props.dropdown) {
@@ -230,6 +241,7 @@ onMounted(async () => {
 })
 onBeforeUnmount(() => {
 	window.removeEventListener("keydown", onKey, true)
+	window.removeEventListener("pointerdown", onPress, true)
 	observer?.disconnect()
 	sizer?.disconnect()
 })
