@@ -147,9 +147,10 @@ class SystemSettings(Document):
 							)
 						)
 				toggle_two_factor_auth(True, roles=["All"])
-			else:
-				self.bypass_2fa_for_retricted_ip_users = 0
-				self.bypass_restrict_ip_check_if_2fa_enabled = 0
+
+		if not self.enable_two_factor_auth:
+			self.bypass_2fa_for_retricted_ip_users = 0
+			self.bypass_restrict_ip_check_if_2fa_enabled = 0
 
 		frappe.flags.update_last_reset_password_date = False
 		if self.force_user_to_reset_password and not cint(
