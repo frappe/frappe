@@ -43,6 +43,19 @@ class FormTour(Document):
 		workspace_name: DF.Link | None
 	# end: auto-generated types
 
+	def validate(self):
+		if not self.ui_tour:
+			return
+
+		for step in self.steps:
+			if not step.element_selector:
+				frappe.throw(
+					_("Row #{0}: {1} is required").format(
+						step.idx, frappe.bold(_(step.meta.get_label("element_selector")))
+					),
+					frappe.MandatoryError,
+				)
+
 	def before_save(self):
 		if self.is_standard and not self.module:
 			if self.workspace_name:
