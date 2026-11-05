@@ -149,7 +149,7 @@ function open(event) {
 <template>
 	<button
 		type="button"
-		class="group flex h-11 w-full items-center gap-2.5 rounded-4 border border-outline-gray-1 bg-surface-elevation-2 px-2.5 text-start transition-colors hover:bg-surface-gray-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3 active:bg-surface-gray-2 dark:border-outline-gray-2"
+		class="group flex h-11 w-full items-center gap-2.5 rounded-4 border border-outline-gray-1 bg-surface-elevation-2 px-2.5 text-start transition-colors hover:bg-surface-gray-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3 active:bg-surface-gray-2 dark:border-outline-gray-2 dark:bg-transparent"
 		:title="title"
 		:aria-label="name"
 		@mouseenter="describe_filters"

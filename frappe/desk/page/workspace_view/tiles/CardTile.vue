@@ -34,7 +34,7 @@ function blocked_text(link) {
 </script>
 
 <template>
-	<ChartCard>
+	<ChartCard class="dark:border-outline-gray-2 dark:bg-transparent">
 		<div class="mb-1.5 flex h-[21px] items-center gap-1">
 			<span class="truncate text-p-base font-medium text-ink-gray-8">{{
 				widget.label

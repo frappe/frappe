@@ -272,7 +272,7 @@ function on_description_click(event, step) {
 <template>
 	<section
 		v-if="loaded && (editing || (!hidden && !dismissed))"
-		class="rounded-4 border border-outline-gray-1 bg-surface-base dark:border-outline-gray-2"
+		class="rounded-4 border border-outline-gray-1 bg-surface-base dark:border-outline-gray-2 dark:bg-transparent"
 	>
 		<header class="flex items-start gap-3 px-4 pb-3 pt-3.5">
 			<div class="min-w-0 flex-1">

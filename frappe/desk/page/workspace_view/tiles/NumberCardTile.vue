@@ -37,7 +37,7 @@ const menu = computed(() => [
 
 <template>
 	<NumberCard
-		class="group h-full cursor-pointer hover:border-outline-gray-2"
+		class="group h-full cursor-pointer hover:border-outline-gray-2 dark:border-outline-gray-2 dark:bg-transparent dark:hover:border-outline-gray-3"
 		:title="widget.label"
 		:value="result?.value ?? null"
 		:color="result?.card.color || undefined"

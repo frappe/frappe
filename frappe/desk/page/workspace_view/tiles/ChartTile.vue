@@ -238,7 +238,7 @@ watch(
 </script>
 
 <template>
-	<ChartCard class="h-full">
+	<ChartCard class="h-full dark:border-outline-gray-2 dark:bg-transparent">
 		<ChartContainer
 			:title="widget.label"
 			:subtitle="last_synced"

@@ -184,7 +184,11 @@ function text(value) {
 </script>
 
 <template>
-	<ChartCard ref="card" :style="{ height: !rows && max_height ? `${max_height}px` : null }">
+	<ChartCard
+		ref="card"
+		class="dark:border-outline-gray-2 dark:bg-transparent"
+		:style="{ height: !rows && max_height ? `${max_height}px` : null }"
+	>
 		<ChartContainer :title="widget.label" :loading="!rows" :empty="rows?.length === 0">
 			<template #actions>
 				<div class="flex items-center gap-1">
