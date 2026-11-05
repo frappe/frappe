@@ -4,6 +4,7 @@ import socket
 from unittest.mock import patch
 
 import responses
+from bs4 import BeautifulSoup
 
 import frappe
 from frappe.model.workflow import (
@@ -133,6 +134,38 @@ class TestWorkflow(IntegrationTestCase):
 		workflow_actions = frappe.get_all("Workflow Action", fields=["*"])
 		self.assertEqual(len(workflow_actions), 1)
 		self.assertEqual(workflow_actions[0].status, "Completed")
+
+	def test_bulk_workflow_status_lists_each_document_separately(self):
+		from frappe.model.workflow import bulk_workflow_approval
+
+		user = frappe.get_doc("User", "test2@example.com")
+		user.add_roles("Test Approver")
+		self.addCleanup(user.remove_roles, "Test Approver")
+		frappe.set_user(user.name)
+
+		approved_todo = self.test_approve()
+		pending_todos = [create_new_todo(), create_new_todo()]
+		docnames = [todo.name for todo in pending_todos] + [approved_todo.name]
+		with (
+			patch.object(frappe.db, "commit"),
+			patch.object(frappe.db, "rollback"),
+			patch("frappe.publish_realtime") as publish_realtime,
+		):
+			bulk_workflow_approval(frappe.as_json(docnames), "ToDo", "Approve")
+
+		statuses = [
+			{
+				item.a.get_text(): item.get_text()
+				for item in BeautifulSoup(call.kwargs["message"].message, "html.parser").find_all("li")
+			}
+			for call in publish_realtime.call_args_list
+			if call.kwargs.get("event") == "msgprint"
+		]
+		self.assertEqual(len(statuses), 2)
+		failed, successful = statuses
+		self.assertEqual(successful, {todo.name: todo.name for todo in pending_todos})
+		self.assertEqual(list(failed), [approved_todo.name])
+		self.assertIn(frappe._("Not a valid Workflow Action"), failed[approved_todo.name])
 
 	def add_approver(self):
 		"""Give the workflow a mail recipient other than the document owner."""
