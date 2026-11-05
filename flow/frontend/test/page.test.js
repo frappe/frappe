@@ -127,7 +127,7 @@ function shareDialog(t, client, { state, page = { boot } } = {}) {
 	return { el, vm };
 }
 
-test("a new chat's agent and its skills are picked from lists beside the composer's + menu, the box naming the agent; the chat starts with it and its header names it", async (t) => {
+test("a new chat's agent and its skills are picked from their own buttons beside the composer's +, the box naming the agent; the chat starts with it, its header names it, and the + then holds skills", async (t) => {
 	const skillsAnswer = transport.answers["frappe.flow.api.skills"];
 	transport.answers["frappe.flow.api.skills"] = ({ agent }) => ({
 		skills: agent === "reviewer" ? [{ name: "review", description: "Reviews a change" }] : [],
@@ -146,8 +146,10 @@ test("a new chat's agent and its skills are picked from lists beside the compose
 	assert.ok(!el.textContent.includes("What can I help you with?"));
 	assert.equal(el.querySelector("textarea").placeholder, "Ask Flow…");
 	const box = el.querySelector("fieldset");
-	// the + menu: attach, a new chat's agent and its skills, each list opening beside it
-	const plus = (root = el) => root.querySelector("fieldset button[title='Add']");
+	// a started chat's + menu: attach, then skills
+	const plus = (root = el) => root.querySelector("fieldset button[aria-label='Add']");
+	// a new chat's own buttons beside the +: its agent and its skills, each opening its list
+	const picker = (label, root = el) => root.querySelector(`fieldset button[aria-label^='${label}']`);
 	// a list's panel, drawn or stubbed
 	const list = (title, root = el) =>
 		root.querySelector(
@@ -160,25 +162,15 @@ test("a new chat's agent and its skills are picked from lists beside the compose
 		...(list(title, root)?.querySelectorAll("[data-palette-item]") ?? []),
 	];
 	async function open(label, root = el) {
-		if (!menuRows(root).length) {
-			plus(root).click();
-			await nextTick();
-		}
-		menuRows(root)
-			.find((row) => row.textContent.trim() === label)
-			.click();
+		picker(label, root).click();
 		await nextTick();
 		await nextTick();
 	}
-	plus().click();
-	await nextTick();
-	assert.deepEqual(
-		menuRows().map((row) => row.textContent.trim()),
-		["Attach files", "Agent", "Skills"]
-	);
-	plus().click();
-	await nextTick();
-	assert.equal(list("Add"), null);
+	// a new chat's + attaches straight away: its agent and skills have their own buttons
+	assert.equal(plus(), null);
+	assert.ok(box.querySelector("button[aria-label='Attach files']"));
+	assert.ok(picker("Agent: Flow"));
+	assert.ok(picker("Skills"));
 	assert.ok(box.querySelector("button[title^='Sonnet']"), "a new chat shows its agent's model");
 	// for an agent without skills, their list says so and offers to add one, with nothing to
 	// search yet
@@ -250,7 +242,7 @@ test("a new chat's agent and its skills are picked from lists beside the compose
 	const reloaded = document.createElement("div");
 	const again = createApp(FlowPage, { boot: { ...boot, agents: [...boot.agents, writer] } });
 	again.use(router).mount(reloaded);
-	await until(() => plus(reloaded));
+	await until(() => picker("Agent", reloaded));
 	assert.equal(reloaded.querySelector("textarea").placeholder, "Ask Reviewer…");
 	assert.ok(reloaded.querySelector("fieldset button[title^='Sonnet']"));
 	await open("Agent", reloaded);
@@ -282,7 +274,7 @@ test("a new chat's agent and its skills are picked from lists beside the compose
 	textarea.value = "hi";
 	textarea.dispatchEvent(new Event("input"));
 	await nextTick();
-	el.querySelector("button[title='Send']").click();
+	el.querySelector("button[aria-label='Send']").click();
 	await until(() => called("frappe.flow.api.run"));
 	// a model outside the user's list is left to the server
 	const created = args("frappe.flow.api.create_session");
@@ -935,7 +927,7 @@ test("a first message sent while the chat list loads keeps the page on its new c
 	textarea.value = "hi";
 	textarea.dispatchEvent(new Event("input"));
 	await nextTick();
-	el.querySelector("button[title='Send']").click();
+	el.querySelector("button[aria-label='Send']").click();
 	// the list lands while the new chat is still being made
 	await until(() => called("frappe.flow.api.create_session"));
 	listed([{ name: "OLD", title: "Old chat" }]);
