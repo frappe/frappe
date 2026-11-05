@@ -789,11 +789,8 @@ class TestRemoveApp(FrappeTestCase):
 		self.assert_failed_uninstall_can_be_finished(deleting_doctype_times_out("Abc Test Uninstall One"))
 
 	def assert_failed_uninstall_can_be_finished(self, failure):
-<<<<<<< HEAD:frappe/tests/test_commands.py
-=======
-		from frappe.installer import get_app_owned_modules, remove_from_installed_apps
+		from frappe.installer import remove_from_installed_apps
 
->>>>>>> 5a3b2e3 (test(uninstall): retry a failed uninstall without --force):frappe/commands/test_commands.py
 		app = "abc_test_uninstall_app"
 		module = "Abc Test Uninstall Module"
 		doctypes = ["Abc Test Uninstall One", "Abc Test Uninstall Two"]
@@ -808,12 +805,8 @@ class TestRemoveApp(FrappeTestCase):
 			frappe.db.rollback()
 			frappe.flags.in_uninstall = False
 
-<<<<<<< HEAD:frappe/tests/test_commands.py
-			self.assertEqual(frappe.get_all("Module Def", filters={"app_name": app}, pluck="name"), [module])
-=======
 			self.assertIn(app, frappe.get_installed_apps())
-			self.assertEqual(get_app_owned_modules(app), [module])
->>>>>>> 5a3b2e3 (test(uninstall): retry a failed uninstall without --force):frappe/commands/test_commands.py
+			self.assertEqual(frappe.get_all("Module Def", filters={"app_name": app}, pluck="name"), [module])
 
 			remove_app(app, yes=True, no_backup=True)
 
