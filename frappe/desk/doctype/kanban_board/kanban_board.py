@@ -714,7 +714,7 @@ def quick_kanban_board(
 	doc.field_name = field_name
 
 	if project:
-		doc.filters = f'[["Task","project","=","{project}"]]'
+		doc.filters = json.dumps([["Task", "project", "=", project]])
 
 	options = ""
 	for field in meta.fields:
