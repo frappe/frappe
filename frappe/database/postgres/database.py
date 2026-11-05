@@ -2,6 +2,7 @@ import datetime
 import re
 from contextlib import contextmanager
 from decimal import Decimal
+from functools import lru_cache
 from itertools import batched
 
 import psycopg
@@ -1077,8 +1078,14 @@ def _integral_floats_as_ints(row, integer_positions):
 
 def modify_query(query):
 	""" "Modifies query according to the requirements of postgres"""
+	return _modify_query(str(query))
+
+
+# Values are bound separately, so the same query text repeats across requests
+@lru_cache(maxsize=1024)
+def _modify_query(query: str) -> str:
 	# replace ` with " only where a backtick delimits an identifier
-	query = convert_backtick_identifiers(str(query))
+	query = convert_backtick_identifiers(query)
 	query = replace_locate_with_strpos(query)
 	# MySQL REGEXP operator -> postgres case-insensitive regex match
 	query = REGEXP_PATTERN.sub(_replace_regexp_operator, query)
