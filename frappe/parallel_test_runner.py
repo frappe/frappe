@@ -29,7 +29,15 @@ TEST_WEIGHT_OVERRIDES = {
 
 class ParallelTestRunner:
 	def __init__(
-		self, app, site, build_number=1, total_builds=1, dry_run=False, lightmode=False, failfast=False
+		self,
+		app,
+		site,
+		build_number=1,
+		total_builds=1,
+		dry_run=False,
+		lightmode=False,
+		failfast=False,
+		retries=0,
 	):
 		self.app = app
 		self.site = site
@@ -38,6 +46,7 @@ class ParallelTestRunner:
 		self.dry_run = dry_run
 		self.lightmode = lightmode
 		self.failfast = failfast
+		self.retries = retries
 		self.test_file_list = []
 		self.total_test_weight = 0
 		self.test_result = None
@@ -46,6 +55,7 @@ class ParallelTestRunner:
 	def setup_and_run(self):
 		self.setup_test_site()
 		self.run_tests()
+		self.retry_failed()
 		self.print_result()
 
 	def setup_test_site(self):
@@ -88,6 +98,27 @@ class ParallelTestRunner:
 
 		for test_file_info in self.test_file_list:
 			self.run_tests_for_file(test_file_info)
+
+	def retry_failed(self):
+		"""Run the failed tests again in this process, without a new setup, and keep the result of their last run."""
+		for _ in range(self.retries):
+			failed = [test for test, _ in self.test_result.failures + self.test_result.errors]
+			if not failed or not all(hasattr(test, "_testMethodName") for test in failed):
+				return
+			names = [test.id() for test in failed]
+			self.test_result.printErrors()
+			click.echo(self.test_result)
+			click.secho(f"\nRunning {len(names)} failed test(s) again", fg="yellow")
+			frappe.db.rollback()
+			self.test_result = TestResult(
+				stream=sys.stderr, descriptions=True, verbosity=2, failfast=self.failfast
+			)
+			self.test_result.startTestRun()
+			unittest.TestLoader().loadTestsFromNames(names)(self.test_result)
+			self.test_result.stopTestRun()
+			still = {test.id() for test, _ in self.test_result.failures + self.test_result.errors}
+			if flaky := [name for name in names if name not in still]:
+				click.secho(f"Flaky, passed when run again: {', '.join(flaky)}", fg="yellow")
 
 	def run_tests_for_file(self, file_info):
 		if not file_info:
