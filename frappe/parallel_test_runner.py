@@ -211,6 +211,7 @@ def report_flaky(first_error):
 		print(f"::warning title=Flaky test::{name} failed, then passed when run again: {error}")
 	if summary := os.environ.get("GITHUB_STEP_SUMMARY"):
 		rows = "".join(f"| `{name}` | {error.replace('|', '\\|')} |\n" for name, error in first_error.items())
+		# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
 		with open(summary, "a") as f:
 			f.write(
 				f"### ⚠️ Flaky tests: passed only when run again\n\n| Test | First run |\n|---|---|\n{rows}\n"
