@@ -908,7 +908,11 @@ class TestUser(IntegrationTestCase):
 	def test_update_password_with_reset_key_refuses_another_logged_in_user(self):
 		from frappe.utils.password import check_password
 
-		with test_user(roles=[], new_password="Eastern_43A1W") as user:
+		# a regressed guard would log in, which commits
+		with (
+			patch.object(frappe.db, "commit"),
+			test_user(roles=[], new_password="Eastern_43A1W") as user,
+		):
 			key = self.reset_password(user)
 			with self.set_user("testpassword@example.com"):
 				# the failed request is rolled back, which keeps the link usable
@@ -959,11 +963,17 @@ class TestUser(IntegrationTestCase):
 		from frappe.auth import CookieManager, LoginManager
 		from frappe.utils import set_request
 
-		with self.set_user("Guest"):
-			set_request(path="/random")
-			frappe.local.cookie_manager = CookieManager()
-			frappe.local.login_manager = LoginManager()
-			yield
+		names = ("request", "cookie_manager", "login_manager")
+		saved = {name: getattr(frappe.local, name, None) for name in names}
+		try:
+			with self.set_user("Guest"):
+				set_request(path="/random")
+				frappe.local.cookie_manager = CookieManager()
+				frappe.local.login_manager = LoginManager()
+				yield
+		finally:
+			for name, value in saved.items():
+				setattr(frappe.local, name, value)
 
 	@contextmanager
 	def outgoing_email_account(self):
