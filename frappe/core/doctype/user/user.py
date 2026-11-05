@@ -33,6 +33,7 @@ from frappe.utils import (
 	get_system_timezone,
 	now_datetime,
 	today,
+	validate_time_zone,
 )
 from frappe.utils.background_jobs import get_queue, get_queue_args, get_running_jobs_in_queue
 from frappe.utils.data import sha256_hash
@@ -1013,6 +1014,8 @@ class User(Document):
 	def set_time_zone(self):
 		if not self.time_zone:
 			self.time_zone = get_system_timezone()
+		elif self.has_value_changed("time_zone"):
+			validate_time_zone(self.time_zone)
 
 	def get_permission_log_options(self, event=None):
 		return {"fields": ("role_profile_name", "roles", "module_profile", "block_modules")}

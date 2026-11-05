@@ -6,7 +6,7 @@ import frappe.defaults
 from frappe import _
 from frappe.model import no_value_fields
 from frappe.model.document import Document
-from frappe.utils import cint, today
+from frappe.utils import cint, today, validate_time_zone
 
 
 class SystemSettings(Document):
@@ -131,6 +131,9 @@ class SystemSettings(Document):
 			frappe.throw(_("Please select Minimum Password Score"))
 		elif not enable_password_policy:
 			self.minimum_password_score = ""
+
+		if self.time_zone and self.has_value_changed("time_zone"):
+			validate_time_zone(self.time_zone)
 
 		if self.session_expiry:
 			parts = self.session_expiry.split(":")

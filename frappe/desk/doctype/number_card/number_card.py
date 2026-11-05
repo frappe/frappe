@@ -67,6 +67,9 @@ class NumberCard(Document):
 			if not (self.document_type and self.function):
 				frappe.throw(_("Document Type and Function are required to create a number card"))
 
+			if frappe.get_meta(self.document_type).issingle:
+				frappe.throw(_("You cannot create a number card from single DocTypes"))
+
 			if self.function != "Count":
 				if not self.aggregate_function_based_on:
 					frappe.throw(_("Aggregate Field is required to create a number card"))
