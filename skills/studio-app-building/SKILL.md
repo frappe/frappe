@@ -66,6 +66,9 @@ Needing anything else is the signal to export the app to a repository.
   `componentEvents`, and unique `componentId` values. AI tools use compact
   aliases such as `name`, `props`, `style`, and `c`; use an existing export as
   the model when writing JSON files directly.
+- `componentSlots` maps a slot name to an object, not to a list of blocks:
+  `{"default": {"slotName": "default", "slotContent": [ ... ]}}`. Studio reads a
+  slot's blocks from `slotContent`.
 - Resources live in `Studio Page.resources`. Read the actual DocType fields
   before configuring a Document List or Document source. A list exposes
   `{{ source.data }}`; a document exposes `{{ source.doc }}`. Repeater children
