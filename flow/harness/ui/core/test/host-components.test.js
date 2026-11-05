@@ -3295,3 +3295,39 @@ test("with no key saved, the key's field asks for one on its own and starts empt
 	await nextTick()
 	assert.equal(el.querySelector("[role=dialog] input").value, "")
 })
+
+test("a press outside a palette closes it, where its backdrop doesn't reach too; one in it, in a list beside it or on its backdrop doesn't", async (t) => {
+	const PalettePanel = await loadComponent("PalettePanel")
+	globalThis.MutationObserver = dom.window.MutationObserver
+	t.after(() => delete globalThis.MutationObserver)
+	let closed = 0
+	const state = reactive({ passive: false })
+	const Host = {
+		render: () =>
+			h(PalettePanel, { title: "Models", passive: state.passive, onClose: () => closed++ }, () => [
+				h("button", { "data-palette-item": "" }, "a"),
+			]),
+	}
+	const { el } = mount(t, Host, {}, {})
+	await settle()
+	const sidebar = document.createElement("aside")
+	const beside = document.createElement("section")
+	beside.className = "flow-palette-panel"
+	document.body.append(sidebar, beside)
+	t.after(() => (sidebar.remove(), beside.remove()))
+	const press = (target) => target.dispatchEvent(new window.PointerEvent("pointerdown", { bubbles: true }))
+
+	press(el.querySelector("[data-palette-item]"))
+	press(beside)
+	press(el.querySelector(".fixed.inset-0")) // the backdrop closes on its click
+	assert.equal(closed, 0)
+	// a list put away under the one beside it leaves the closing to that one
+	state.passive = true
+	await nextTick()
+	press(sidebar)
+	assert.equal(closed, 0)
+	state.passive = false
+	await nextTick()
+	press(sidebar)
+	assert.equal(closed, 1)
+})
