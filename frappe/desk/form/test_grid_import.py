@@ -285,7 +285,9 @@ class TestGridImport(IntegrationTestCase):
 		headers = json.dumps(["Number (phone)"])
 		for docname in (self.contact, "new-contact-1"):
 			with self.subTest(docname=docname):
-				self.assertEqual(get_column_map("Contact", "phone_nos", headers, docname=docname), {0: "phone"})
+				self.assertEqual(
+					get_column_map("Contact", "phone_nos", headers, docname=docname), {0: "phone"}
+				)
 
 		for docname in (self.other_contact, None):
 			with self.subTest(docname=docname), self.assertRaises(frappe.PermissionError):
