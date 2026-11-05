@@ -1,5 +1,5 @@
 <template>
-	<Dialog v-model:open="open" :title="__('Connect Gmail')" size="lg">
+	<Dialog v-model:open="open" :title="__('Connect Gmail')" size="xl">
 		<form :id="formId" class="flex flex-col gap-4" novalidate @submit.prevent="submit">
 			<Banner
 				v-if="unavailable"
