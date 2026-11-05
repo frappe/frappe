@@ -95,11 +95,10 @@ def get_email_addresses(users: list[str] | set[str]) -> list[str]:
 	- Administrator and Guest (`frappe.sendmail` skips them)
 	- values that are not a user ID
 	"""
-	users = list(users)
 	lookup = set(users) - set(frappe.STANDARD_USERS)
 
 	if not lookup:
-		return users
+		return list(users)
 
 	emails = {
 		user.name: user.email
