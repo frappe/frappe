@@ -58,6 +58,7 @@ function add_email_account_dialog() {
 	let one_click = {};
 	let loaded = false;
 	let picked;
+	let gmail_company;
 
 	const open_form = (service, email_id) => {
 		d.hide();
@@ -157,6 +158,7 @@ function add_email_account_dialog() {
 					[email]
 				)
 			);
+		gmail_company = undefined;
 		d.set_value("gmail_address", email).then(() => {
 			update_gmail_step();
 			d.fields_dict.gmail_address.$input.trigger("focus");
@@ -173,32 +175,46 @@ function add_email_account_dialog() {
 		set_actions(...picked);
 		d.enable_primary_action();
 	};
+	const gmail_address = () => (d.fields_dict.gmail_address.$input.val() || "").trim();
+	const gmail_kind = (email) => {
+		if (!frappe.utils.validate_type(email, "email")) return null;
+		return /@(gmail|googlemail)\.com$/i.test(email) ? "personal" : "company";
+	};
+	const continue_gmail = () => {
+		const email = gmail_address();
+		const kind = gmail_kind(email);
+		if (kind === "personal") return open_form("GMail", email);
+		if (kind === "company") return sign_in("GMail", "Google", email);
+	};
+	const toggle_gmail_continue = () => {
+		gmail_kind(gmail_address()) ? d.enable_primary_action() : d.disable_primary_action();
+	};
 	const update_gmail_step = () => {
-		const email = (d.fields_dict.gmail_address.$input.val() || "").trim();
-		const valid = frappe.utils.validate_type(email, "email");
-		const personal = valid && /@(gmail|googlemail)\.com$/i.test(email);
-		d.set_df_property("gmail_steps", "hidden", !valid || personal ? 1 : 0);
-		if (valid && !personal) {
+		const email = gmail_address();
+		const company = gmail_kind(email) === "company";
+		d.set_df_property("gmail_steps", "hidden", company ? 0 : 1);
+		if (company) {
 			d.fields_dict.gmail_steps.$wrapper.html(
 				gmail_admin_steps(email.split("@")[1], one_click.GMail.client_id)
 			);
 		}
-		if (!valid || personal) {
-			d.get_secondary_btn().addClass("hide");
-			d.set_primary_action(__("Continue"), () => open_form("GMail", email));
-		} else {
-			const primary_btn = d.set_primary_action(__("Continue"), () =>
-				sign_in("GMail", "Google", email)
-			);
-			frappe.ui.button.dress(primary_btn, {
-				label: __("Continue"),
-				variant: "solid",
-				icon_right: "arrow-up-right",
-			});
-			d.set_secondary_action_label(__("Set up manually"));
-			d.set_secondary_action(() => open_form("GMail", email));
+		// rebuilding the buttons mid-click (blur fires on mousedown) would swallow that click
+		if (company !== gmail_company) {
+			gmail_company = company;
+			const primary_btn = d.set_primary_action(__("Continue"), continue_gmail);
+			if (company) {
+				frappe.ui.button.dress(primary_btn, {
+					label: __("Continue"),
+					variant: "solid",
+					icon_right: "arrow-up-right",
+				});
+				d.set_secondary_action_label(__("Set up manually"));
+				d.set_secondary_action(() => open_form("GMail", gmail_address()));
+			} else {
+				d.get_secondary_btn().addClass("hide");
+			}
 		}
-		valid ? d.enable_primary_action() : d.disable_primary_action();
+		toggle_gmail_continue();
 	};
 
 	const d = new frappe.ui.Dialog({
@@ -221,7 +237,9 @@ function add_email_account_dialog() {
 	d.fields_dict.gmail_address.$wrapper.before(
 		$(`<div class="gmail-wrong-mailbox alert alert-danger hide"><span></span></div>`)
 	);
-	d.fields_dict.gmail_address.$wrapper.on("input", "input", update_gmail_step);
+	d.fields_dict.gmail_address.$wrapper
+		.on("input", "input", toggle_gmail_continue)
+		.on("change", "input", update_gmail_step);
 	d.fields_dict.gmail_steps.$wrapper.on("click", "[data-copy]", (e) => {
 		const copy = $(e.currentTarget).attr("data-copy");
 		frappe.utils.copy_to_clipboard(

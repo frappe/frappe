@@ -240,6 +240,11 @@ async function type(address: string) {
   await nextTick();
 }
 
+async function leave() {
+  document.querySelector('[role="dialog"] input[type="email"]')!.dispatchEvent(new Event("blur"));
+  await nextTick();
+}
+
 it("opens a personal Gmail address in the form with an app password, without signing in", async () => {
   const connect = vi.fn();
   await openGmail(connect);
@@ -257,10 +262,12 @@ it("opens a personal Gmail address in the form with an app password, without sig
   expect(root.textContent).toContain("App password");
 });
 
-it("signs a company address in with Google, shows the admin's client ID, and falls back to the form when Google sign-in is off", async () => {
+it("signs a company address in with Google, shows the admin's client ID once the field is left, and falls back to the form when Google sign-in is off", async () => {
   const connect = vi.fn(async () => false);
   await openGmail(connect);
   await type("support@fabkart.example.com");
+  expect(document.querySelector('[role="dialog"]')!.textContent).not.toContain(GMAIL.client_id);
+  await leave();
   expect(document.querySelector('[role="dialog"]')!.textContent).toContain(GMAIL.client_id);
 
   inDialog("Sign in with Google")!.click();

@@ -33,6 +33,7 @@
 				placeholder="support@example.com"
 				:description="__('The Gmail or Google Workspace address you\'re connecting.')"
 				autofocus
+				@blur="checked = email.trim()"
 			/>
 			<div
 				v-if="kind === 'personal'"
@@ -170,7 +171,7 @@
 						variant="solid"
 						size="md"
 						:label="__('Continue')"
-						:disabled="!kind"
+						:disabled="!kindOf(email.trim())"
 					/>
 					<p v-if="kind" class="text-center text-p-sm text-ink-gray-6">
 						{{ __("Opens the setup form with this address filled in.") }}
@@ -206,6 +207,8 @@ const open = defineModel<boolean>("open", { default: false });
 
 const formId = useId();
 const email = ref("");
+/** The address as of the last blur or submit, which the steps and actions follow. */
+const checked = ref("");
 const wrongMailbox = ref(false);
 const unavailable = ref(false);
 const connecting = ref(false);
@@ -216,6 +219,7 @@ watch(
 	(value) => {
 		if (!value) return;
 		email.value = props.initialEmail ?? "";
+		checked.value = email.value;
 		wrongMailbox.value = Boolean(props.wrongMailbox);
 		unavailable.value = false;
 		error.value = null;
@@ -226,12 +230,13 @@ watch(email, (value) => {
 	if (value !== props.initialEmail) wrongMailbox.value = false;
 });
 
-const kind = computed(() => {
-	const address = mailboxAddress(email.value.trim());
+function kindOf(value: string) {
+	const address = mailboxAddress(value);
 	if (!address) return null;
 	return /@(gmail|googlemail)\.com$/i.test(address) ? "personal" : "company";
-});
-const domain = computed(() => email.value.trim().split("@")[1]);
+}
+const kind = computed(() => kindOf(checked.value));
+const domain = computed(() => checked.value.split("@")[1]);
 
 const stepItems = computed(() => [
 	{
@@ -284,8 +289,9 @@ async function copy(text: string, done: string) {
 }
 
 async function submit() {
-	if (!kind.value) return;
 	const address = email.value.trim();
+	checked.value = address;
+	if (!kind.value) return;
 	if (kind.value === "personal" || unavailable.value) return emit("manual", address);
 	error.value = null;
 	connecting.value = true;
