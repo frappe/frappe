@@ -199,6 +199,7 @@ frappe.integrations.doctype.oauth_bearer_token.patches.clear_old_tokens
 frappe.patches.v16_0.hash_oauth_bearer_tokens
 execute:frappe.db.truncate("Desktop Icon")
 frappe.patches.v16_0.merge_studio_into_frappe
+frappe.patches.v16_0.set_user_email_from_name
 
 [post_model_sync]
 frappe.patches.v16_0.migrate_slack_notifications
