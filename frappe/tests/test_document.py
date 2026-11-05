@@ -660,3 +660,21 @@ class TestDocumentWebView(FrappeTestCase):
 		)
 		self.assertEqual(sent_docs - all_docs, set(), "All docs should be inserted")
 		self.assertEqual(sent_child_docs - all_child_docs, set(), "All child docs should be inserted")
+
+	def test_sanitize_content_skips_json_fieldtype(self):
+		"""JSON field values must survive _sanitize_content untouched, even with
+		HTML-like substrings, while ordinary text fields are still sanitized."""
+		doctype = new_doctype(
+			fields=[
+				{"label": "Config", "fieldname": "config", "fieldtype": "JSON"},
+				{"label": "Description", "fieldname": "description", "fieldtype": "Text"},
+			]
+		).insert()
+
+		payload = '{"label": "<b onclick=\\"alert(1)\\">hi</b>"}'
+		doc = frappe.get_doc(
+			doctype=doctype.name, config=payload, description='<b onclick="alert(1)">hi</b>'
+		).insert()
+
+		self.assertEqual(doc.config, payload)
+		self.assertNotIn("onclick", doc.description)
