@@ -205,6 +205,11 @@ class User(Document):
 		# because it is handled separately
 		self.flags.ignore_save_passwords = ["new_password"]
 
+	def before_naming(self):
+		# data import keeps the given name and skips autoname
+		if self.name and self.name not in STANDARD_USERS:
+			self.name = self.name.strip().lower()
+
 	def autoname(self):
 		"""set name as Email Address"""
 		if self.get("is_admin") or self.get("is_guest"):

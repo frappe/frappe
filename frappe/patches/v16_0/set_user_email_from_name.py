@@ -1,24 +1,16 @@
 import frappe
 from frappe import STANDARD_USERS, _
 from frappe.query_builder.functions import Lower
-from frappe.utils import validate_email_address
 
 
 def execute():
 	"""Set every user's email to their user ID in lowercase, so the email can be made unique."""
 	users = frappe.get_all("User", fields=["name", "email"])
 
-	# Administrator, Guest and users whose ID is not an email keep their own email
-	changes, kept, owners = {}, [], {}
-
+	changes, owners = {}, {}
 	for user in users:
-		email = user.email
-
-		if validate_email_address(user.name):
-			email = user.name.lower()
-		elif user.name not in STANDARD_USERS:
-			kept.append(user)
-
+		# Administrator and Guest keep their own email
+		email = user.email if user.name in STANDARD_USERS else user.name.lower()
 		if email != user.email:
 			changes[user.name] = user.email
 
@@ -34,9 +26,6 @@ def execute():
 				"These users would share an email: {0}. Change their emails so that each one is unique, then run migrate again."
 			).format("; ".join(", ".join(names) for names in clashes))
 		)
-
-	for user in kept:
-		print(f"User {user.name}: ID is not an email, email {user.email!r} kept")
 
 	if not changes:
 		return
