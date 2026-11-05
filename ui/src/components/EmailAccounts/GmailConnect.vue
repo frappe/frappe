@@ -56,12 +56,12 @@
 				<div class="flex items-start gap-3">
 					<div class="flex min-w-0 flex-1 flex-col gap-1">
 						<h4 class="text-p-base-medium text-ink-gray-8">
-							{{ __("Your Google Workspace admin allows Frappe once") }}
+							{{ __("Your Google Workspace admin must allow Frappe first") }}
 						</h4>
 						<p class="text-p-base text-ink-gray-6">
 							{{
 								__(
-									"Follow these steps to continue. Skip this if your admin has already done it."
+									"This is a one-time step. Send these steps to your admin, or follow them if you are the admin."
 								)
 							}}
 						</p>

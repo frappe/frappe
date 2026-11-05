@@ -326,11 +326,11 @@ function gmail_admin_steps(client_id) {
 		<div class="gmail-admin-steps__head">
 			<div>
 				<div class="gmail-admin-steps__title">${esc(
-					__("Your Google Workspace admin allows Frappe once")
+					__("Your Google Workspace admin must allow Frappe first")
 				)}</div>
 				<p class="text-muted">${esc(
 					__(
-						"Follow these steps to continue. Skip this if your admin has already done it."
+						"This is a one-time step. Send these steps to your admin, or follow them if you are the admin."
 					)
 				)}</p>
 			</div>

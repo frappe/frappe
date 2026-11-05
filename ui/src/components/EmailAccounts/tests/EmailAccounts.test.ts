@@ -310,6 +310,6 @@ it("opens Gmail's Connect dialog with the admin's steps from a blocked sign-in",
 
   button("Show what your admin needs").click();
   await settle();
-  expect(dialog()?.textContent).toContain("Your Google Workspace admin allows Frappe once");
+  expect(dialog()?.textContent).toContain("Your Google Workspace admin must allow Frappe first");
   expect(dialog()?.textContent).toContain("gid");
 });
