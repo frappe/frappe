@@ -34,6 +34,36 @@ class TestDB(IntegrationTestCase):
 		self.assertEqual(frappe.db.sql("PRAGMA busy_timeout")[0][0], 15_000)
 
 	@run_only_if(db_type_is.SQLITE)
+	def test_sqlite_write_request_takes_writer_lock_at_begin(self):
+		previous_request = getattr(frappe.local, "request", None)
+		self.addCleanup(setattr, frappe.local, "request", previous_request)
+		set_request(method="POST", path="/api/method/ping")
+
+		db = get_db(cur_db_name=frappe.conf.db_name)
+		db.connect()
+		self.addCleanup(db.close)
+		other = sqlite3.connect(db.get_db_path(), timeout=0)
+		self.addCleanup(other.close)
+
+		with self.assertRaisesRegex(sqlite3.OperationalError, "database is locked"):
+			other.execute("BEGIN IMMEDIATE")
+
+	@run_only_if(db_type_is.SQLITE)
+	def test_sqlite_read_request_does_not_take_writer_lock(self):
+		previous_request = getattr(frappe.local, "request", None)
+		self.addCleanup(setattr, frappe.local, "request", previous_request)
+		set_request(method="GET", path="/api/method/ping")
+
+		db = get_db(cur_db_name=frappe.conf.db_name)
+		db.connect()
+		self.addCleanup(db.close)
+		other = sqlite3.connect(db.get_db_path(), timeout=0)
+		self.addCleanup(other.close)
+
+		other.execute("BEGIN IMMEDIATE")
+		other.rollback()
+
+	@run_only_if(db_type_is.SQLITE)
 	def test_sqlite_add_index_accepts_quoted_columns(self):
 		frappe.db.add_index("ToDo", ["`status`", "allocated_to"], "todo_quoted_status_index")
 		self.assertTrue(frappe.db.has_index("tabToDo", "todo_quoted_status_index"))

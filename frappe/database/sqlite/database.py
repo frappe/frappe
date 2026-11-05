@@ -622,6 +622,16 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		super().sql_ddl(query, *args, **kwargs)
 		self.commit()
 
+	@property
+	def is_write_request(self) -> bool:
+		"""Whether the current web request may write.
+
+		Such requests take the writer lock when their transaction begins, so a concurrent writer
+		makes them wait up to the busy timeout instead of failing at their first write.
+		"""
+		request = getattr(frappe.local, "request", None)
+		return request is not None and request.method not in ("GET", "HEAD", "OPTIONS")
+
 	def begin(self, *, read_only=False):
 		if read_only or frappe.flags.read_only or self.in_read_only_transaction:
 			if self._conn:
@@ -637,7 +647,8 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 			self._read_only_connection = False
 
 		try:
-			self.sql("BEGIN")
+			immediate = self.is_write_request and not getattr(self, "_read_only_connection", False)
+			self.sql("BEGIN IMMEDIATE" if immediate else "BEGIN")
 		except sqlite3.OperationalError as e:
 			if not self.is_nested_transaction_error(e):
 				raise e
