@@ -79,13 +79,16 @@ test("send stages uploads and mentions side by side, and sends a prepared file b
 			calls.push(["run", sid, message, ids])
 			return { status: "ok" }
 		},
+		async attachmentBlob() {
+			return new Blob(["stored"])
+		},
 	}
 	const flow = createFlowStore(client)
 	flow.state.sessionId = "session-1"
 
 	const sent = await flow.send("check these", [
 		{ id: "F1", file: { name: "notes.pdf" } }, // prepared: not uploaded again
-		{ key: "local:0", name: "screen.png", kind: "image", file: { name: "screen.png" } },
+		{ key: "local:0", name: "screen.png", kind: "image", file: new File(["png"], "screen.png") },
 		{ key: "mention:0", name: "foo.py", kind: "file", mentionPath: "src/foo.py" },
 	])
 
@@ -96,6 +99,10 @@ test("send stages uploads and mentions side by side, and sends a prepared file b
 		["attach", "session-1", ["src/foo.py"]],
 		["run", "session-1", "check these", ["F1", "att-upload", "att-0"]],
 	])
+	// the picture's bubble shows its own file from the start, by the composer's id and the stored one's
+	assert.match(flow.sentPreview("local:0"), /^blob:/)
+	assert.match(flow.sentPreview("att-upload"), /^blob:/)
+	assert.equal(flow.sentPreview("F1"), null)
 })
 
 test("skill previews load once per folder and never land in another folder's list", async () => {

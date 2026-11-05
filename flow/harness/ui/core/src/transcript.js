@@ -606,10 +606,10 @@ function foldLabel(turn) {
 }
 
 // Folds durable entries and the streaming preview into renderable items:
-//   {kind: "user", entry}
+//   {kind: "user", entry, turnKey?, steered?}
 //   {kind: "text", block, entry?, provisional?}
 //   {kind: "thinking", block, entry?, live?}
-//   {kind: "group", steps: [{call, result, aborted} | {thought, id, live?}]}
+//   {kind: "group", steps: [{call, result, aborted, streaming} | {thought, id, live?}]}
 //   {kind: "turn-fold", turnKey, label, expanded}
 //   {kind: "turn-files", turnKey, files: [{path, added, removed}]}
 //   {kind: "compaction", entry}
@@ -696,6 +696,8 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 					call: block,
 					result: null,
 					aborted: !provisional && entry.stop_reason === "aborted",
+					// a streamed call's arguments are its short strings so far, each cut at 512 characters
+					streaming: provisional,
 					// a subagent call's child, once its first event has landed
 					subagent: block.name === "subagent" ? conversation.subagents?.[subagentId(block)] ?? null : null,
 				}
@@ -706,24 +708,29 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 	}
 
 	for (const entry of conversation.entries) {
+		// a message that joins the turn before it was steered into that turn's run
+		const steered = entry.type === "user_message" && turnByEntry.get(entry) === currentTurnKey
 		currentTurnKey = turnByEntry.get(entry) ?? currentTurnKey
 		if (entry.type === "user_message") {
 			flushThoughts()
-			items.push({ kind: "user", key: `u:${entry.seq}`, entry })
+			const key = `u:${entry.seq}`
+			items.push(steered ? { kind: "user", key, turnKey: currentTurnKey, steered, entry } : { kind: "user", key, entry })
 		} else if (entry.type === "assistant_message") {
 			appendAssistantBlocks(entry.content ?? [], { entry })
 		} else if (entry.type === "tool_result") {
 			const step = stepsById.get(entry.tool_call_id)
 			if (step) step.result = entry
-			// a denial stays in sight when the work folds, in the words of the card
+			// a denial stays in sight when the work folds, in the words of the card; a tool with no words
+			// of its own has the server's generic question, so it is named instead
 			const decision = step ? stepDecision(entry) : null
 			if (decision?.status === "denied" && decision.action) {
+				const name = step.call.name
 				flushThoughts()
 				items.push({
 					kind: "declined",
 					key: `d:${entry.seq}`,
 					turnKey: currentTurnKey,
-					text: `Declined: ${decision.action}`,
+					text: decision.action === `Approve \`${name}\`?` ? `Denied ${name}` : `Declined: ${decision.action}`,
 				})
 			}
 		} else if (entry.type === "compaction") {
@@ -822,7 +829,7 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 		const foldable =
 			item.kind === "compaction" ||
 			(!inResponse.has(item.key) &&
-				(["group", "thinking"].includes(item.kind) || (item.kind === "text" && !item.provisional)))
+				(["group", "thinking"].includes(item.kind) || (item.kind === "text" && !item.provisional) || item.steered))
 		if (!foldable) continue
 		const foldableItems = foldableByTurn.get(item.turnKey) ?? []
 		foldableItems.push(item)
