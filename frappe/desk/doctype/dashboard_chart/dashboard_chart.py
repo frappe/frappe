@@ -440,7 +440,7 @@ class DashboardChart(Document):
 		if not df or df.fieldtype not in fieldtypes:
 			frappe.throw(
 				_("{0} is not a valid field for {1}").format(
-					frappe.bold(value), self.meta.get_label(fieldname)
+					frappe.bold(value), _(self.meta.get_label(fieldname))
 				)
 			)
 

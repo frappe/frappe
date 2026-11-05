@@ -75,7 +75,7 @@ class NumberCard(Document):
 					frappe.throw(
 						_("{0} is not a valid field for {1}").format(
 							frappe.bold(self.aggregate_function_based_on),
-							self.meta.get_label("aggregate_function_based_on"),
+							_(self.meta.get_label("aggregate_function_based_on")),
 						)
 					)
 

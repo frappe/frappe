@@ -30,12 +30,14 @@ class CalendarView(Document):
 		for fieldname in ("start_date_field", "end_date_field"):
 			value = self.get(fieldname)
 			if value and getattr(meta.get_field(value), "fieldtype", None) not in ("Date", "Datetime"):
-				frappe.throw(_("{0} must be a Date or Datetime field").format(self.meta.get_label(fieldname)))
+				frappe.throw(
+					_("{0} must be a Date or Datetime field").format(_(self.meta.get_label(fieldname)))
+				)
 
 		if self.subject_field and getattr(meta.get_field(self.subject_field), "fieldtype", None) in (
 			None,
 			*no_value_fields,
 		):
 			frappe.throw(
-				_("{0} must be a field that holds a value").format(self.meta.get_label("subject_field"))
+				_("{0} must be a field that holds a value").format(_(self.meta.get_label("subject_field")))
 			)
