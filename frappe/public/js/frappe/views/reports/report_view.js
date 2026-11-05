@@ -202,7 +202,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	prepare_data(r) {
 		let data = r.message || {};
 		data = frappe.utils.dict(data.keys, data.values);
-		const checked_names = this.datatable && this.get_checked_items(true);
+		const checked_keys = this.datatable && this.get_checked_items().map(this.get_row_key());
 
 		if (this.start === 0) {
 			this.data = data;
@@ -210,17 +210,24 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			this.data = this.data.concat(data);
 		}
 
-		if (checked_names) {
-			this.restore_checked_rows(checked_names);
+		if (checked_keys) {
+			this.restore_checked_rows(checked_keys);
 		}
 	}
 
-	// datatable tracks checked rows by index; remap them so new row order keeps the same docs
-	restore_checked_rows(names) {
-		const checked = new Set(names);
+	// datatable tracks checked rows by index; remap them so new row order keeps the same rows
+	restore_checked_rows(keys) {
+		const checked = new Set(keys);
+		const row_key = this.get_row_key();
 		this.datatable.rowmanager.checkMap = this.data.map((d) =>
-			d.name && checked.has(d.name) ? 1 : 0
+			d.name && checked.has(row_key(d)) ? 1 : 0
 		);
+	}
+
+	// a doc spans several rows when child table columns are shown
+	get_row_key() {
+		const cdts = this.get_unique_cdt_in_view();
+		return (d) => JSON.stringify([d.name, ...cdts.map((cdt) => d[`${cdt}:name`])]);
 	}
 
 	render(force) {
