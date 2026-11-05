@@ -401,6 +401,8 @@ class DashboardChart(Document):
 		if self.chart_type != "Custom" and self.chart_type != "Report":
 			self.check_required_field()
 			self.check_document_type()
+		elif self.chart_type == "Report" and not self.report_name:
+			frappe.throw(_("Report Name is required to create a dashboard chart"))
 
 		self.validate_custom_options()
 
