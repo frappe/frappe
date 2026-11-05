@@ -1685,8 +1685,8 @@ class Engine:
 			elif isinstance(field, Field):
 				if field.name == "*":
 					# Expand '*' to include all permitted fields
-					# Avoid reparsing '*' recursively by passing the actual list
-					allowed_fields.extend(self.parse_fields(list(permitted_fields_set)))
+					# Permitted fields are plain fieldnames from meta and need no parsing
+					allowed_fields.extend(self.table[fieldname] for fieldname in permitted_fields_set)
 				# Check if the field name is an optional field (like _user_tags) or in permitted fields
 				elif field.name in OPTIONAL_FIELDS or field.name in permitted_fields_set:
 					allowed_fields.append(field)
