@@ -121,7 +121,8 @@
 					<Button
 						variant="solid"
 						size="md"
-						:label="__('Sign in with Google')"
+						:label="__('Continue')"
+						icon-right="lucide-arrow-up-right"
 						:loading="connecting"
 						@click="submit"
 					/>

@@ -251,7 +251,7 @@ it("opens a personal Gmail address in the form with an app password, without sig
   expect(inDialog("Continue")!.disabled).toBe(true);
 
   await type("support.acme@gmail.com");
-  expect(inDialog("Sign in with Google")).toBeUndefined();
+  expect(inDialog("Set up manually")).toBeUndefined();
   inDialog("Continue")!.click();
   await new Promise((resolve) => setTimeout(resolve));
 
@@ -270,13 +270,13 @@ it("signs a company address in with Google, shows the admin's client ID once the
   await leave();
   expect(document.querySelector('[role="dialog"]')!.textContent).toContain(GMAIL.client_id);
 
-  inDialog("Sign in with Google")!.click();
+  inDialog("Continue")!.click();
   await new Promise((resolve) => setTimeout(resolve));
   expect(connect).toHaveBeenCalledWith("GMail", "support@fabkart.example.com");
   expect(document.querySelector('[role="dialog"] [role="status"]')?.textContent).toContain(
     "Google sign-in isn't available right now",
   );
-  expect(inDialog("Sign in with Google")).toBeUndefined();
+  expect(inDialog("Continue")).toBeUndefined();
 
   inDialog("Set up manually")!.click();
   await new Promise((resolve) => setTimeout(resolve));
