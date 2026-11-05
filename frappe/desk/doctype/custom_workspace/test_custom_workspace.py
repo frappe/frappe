@@ -252,6 +252,22 @@ class TestCustomWorkspaceIntegration(IntegrationTestCase):
 		labels = [s.label for s in result["shortcuts"]["items"]]
 		self.assertEqual(labels, ["My ToDos", "My Notes", "Audit"])
 
+	def test_patch_makes_v16_added_widgets_whole(self):
+		from frappe.patches.v17_0.make_custom_workspace_widgets_whole import execute
+
+		frappe.get_doc(
+			{
+				"doctype": "Custom Workspace",
+				"workspace": self.WORKSPACE,
+				"content": dumps([BASE_CONTENT[0], ADDED_SHORTCUT_BLOCK]),
+				"widgets": dumps({"shortcut": [ADDED_SHORTCUT_ITEM]}),
+			}
+		).insert()
+		execute()
+
+		widgets = loads(frappe.db.get_value("Custom Workspace", self.WORKSPACE, "widgets"))
+		self.assertEqual([w["label"] for w in widgets["shortcut"]], ["My ToDos", "Audit"])
+
 	def test_switching_renderer_freezes_nothing(self):
 		from frappe.desk.doctype.workspace.workspace import set_workspace_renderer
 
