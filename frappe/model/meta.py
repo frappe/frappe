@@ -196,7 +196,7 @@ class Meta(Document):
 	def get_masked_fields(self, parenttype=None):
 		import copy
 
-		if frappe.session.user == "Administrator":
+		if frappe.session.user == "Administrator" or not self._has_mask_fields:
 			return []
 		cache_key = f"masked_fields::{self.name}::{parenttype or ''}::{frappe.session.user}"
 		masked_fields = frappe.cache.get_value(cache_key)
@@ -213,6 +213,10 @@ class Meta(Document):
 			frappe.cache.set_value(cache_key, masked_fields)
 
 		return masked_fields
+
+	@cached_property
+	def _has_mask_fields(self) -> bool:
+		return any(df.get("mask") for df in self.fields)
 
 	@cached_property
 	def _dynamic_link_fields(self):
