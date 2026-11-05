@@ -118,7 +118,7 @@ class Webhook(Document):
 				validate_template(self.webhook_json)
 				self.webhook_data = []
 
-			if not any(h.key == "Content-Type" for h in self.webhook_headers):
+			if not any((h.key or "").lower() == "content-type" for h in self.webhook_headers):
 				self.append(
 					"webhook_headers",
 					{
