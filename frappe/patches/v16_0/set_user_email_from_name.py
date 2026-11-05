@@ -31,7 +31,7 @@ def execute():
 	if clashes:
 		frappe.throw(
 			_(
-				"These users would have the same email: {0}. Change one of them, then run migrate again."
+				"These users would share an email: {0}. Change their emails so that each one is unique, then run migrate again."
 			).format("; ".join(", ".join(names) for names in clashes))
 		)
 
