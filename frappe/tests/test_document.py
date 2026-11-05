@@ -15,8 +15,6 @@ from frappe.tests.utils import FrappeTestCase, timeout
 from frappe.utils import cint, get_datetime, now_datetime, set_request
 from frappe.website.serve import get_response
 
-from . import update_system_settings
-
 
 class CustomTestNote(Note):
 	@property
@@ -601,12 +599,8 @@ class TestDocumentWebView(FrappeTestCase):
 		document_key = todo.get_document_share_key()
 
 		# with old-style signature key
-		update_system_settings({"allow_older_web_view_links": True}, True)
 		old_document_key = todo.get_signature()
 		url = f"/ToDo/{todo.name}?key={old_document_key}"
-		self.assertEqual(self.get(url).status, "200 OK")
-
-		update_system_settings({"allow_older_web_view_links": False}, True)
 		self.assertEqual(self.get(url).status, "403 FORBIDDEN")
 
 		# with valid key
