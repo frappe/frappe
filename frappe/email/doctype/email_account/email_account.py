@@ -124,7 +124,7 @@ class EmailAccount(Document):
 		smtp_port: DF.Data | None
 		smtp_server: DF.Data | None
 		track_email_status: DF.Check
-		uidnext: DF.Int
+		uidnext: DF.LongInt
 		uidvalidity: DF.Data | None
 		unreplied_for_mins: DF.Int
 		use_imap: DF.Check
