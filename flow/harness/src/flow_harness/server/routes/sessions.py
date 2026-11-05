@@ -99,7 +99,7 @@ class CompactRequest(BaseModel):
 class ConfigPatchRequest(BaseModel):
 	model_config = ConfigDict(extra="forbid")
 
-	auto_approve: bool | None = None
+	approval_mode: Literal["ask", "auto", "auto_approve"] | None = None
 	tools: list[str] | None = None
 	client_tools: list[dict] | None = None
 	confirm_tools: list[str] | None = None
@@ -362,8 +362,8 @@ def create_sessions_router(
 		if req.client_tools is not None:
 			changes["client_tools"] = req.client_tools
 			changes["confirm_tools"] = req.confirm_tools or []
-		if req.auto_approve is not None:
-			changes["auto_approve"] = req.auto_approve
+		if req.approval_mode is not None:
+			changes["approval_mode"] = req.approval_mode
 		if req.title is not None:
 			changes["title"] = req.title.strip()
 			if not changes["title"]:
@@ -461,16 +461,18 @@ def create_sessions_router(
 		return snapshot
 
 	@router.get("/sessions/{sid}/file/diff", dependencies=gate(policy.fs_api))
-	async def file_diff(request: Request, sid: str, path: str):
+	async def file_diff(request: Request, sid: str, path: str, since: int = 0):
 		"""Both sides of the session's changes to one file, for the diff viewer.
-		`original` is reconstructed by reverse-applying the recorded edit diffs;
-		a write marks the file as created, so its original is empty."""
+		`original` is reconstructed by reverse-applying the recorded edit diffs
+		(only those at or after seq `since`); a write marks the file as created,
+		so its original is empty."""
 		session = _get(resolve_store(request), sid)
 		full_path = resolve_allowed_path(session.config.cwd, path, session.allowed_roots)
 
 		def compute() -> dict:
 			# the log scan and the string-heavy reconstruction stay off the event loop
 			results = file_change_results(active_path(session.log.read_since(0)), full_path)
+			results = [row for row in results if row["seq"] >= since]
 			if not results:
 				raise HTTPException(status_code=404, detail="the session has not changed this file")
 			modified = read_text_file(full_path, strip_bom=True)

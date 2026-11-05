@@ -656,6 +656,9 @@ def is_whitelisted(method):
 
 
 def read_only():
+	"""Mark a function as one that never writes, so its reads may go to a replica
+	(`read_from_replica`) and Flow runs it without asking the user, in a read-only transaction."""
+
 	def innfn(fn):
 		@functools.wraps(fn)
 		def wrapper_fn(*args, **kwargs):
@@ -674,6 +677,7 @@ def read_only():
 
 			return retval
 
+		wrapper_fn.read_only = True
 		return wrapper_fn
 
 	return innfn

@@ -1,4 +1,4 @@
-<div class="desktop-icon">
+<div class="desktop-icon{% if (icon.module_icons && icon.module_icons.length) { %} has-module-icons{% } %}">
     <!-- The logo and the title are two anchors to the same place, because the subtitle below is a
          link of its own and an anchor cannot nest inside another. The logo is hidden from the
          accessibility tree so the tile offers one link to the app, not two. -->
@@ -11,10 +11,29 @@
             {%= frappe.utils.desktop_icon(icon.label, "gray", "md", "Solid") %}
         {% } %}
     </a>
+    {% if (icon.module_icons && icon.module_icons.length) { %}
+    <div class="module-icons">
+        {% for (var module_icon of icon.module_icons) { %}
+        <a class="module-icon" href="{{ frappe.utils.escape_html(module_icon.route) }}"
+            data-title="{{ frappe.utils.escape_html(__(module_icon.title)) }}"
+            aria-label="{{ frappe.utils.escape_html(__(module_icon.title)) }}">
+            <span class="module-icon-card">
+                {% if (module_icon.logo) { %}
+                    <img src="{{ frappe.utils.escape_html(module_icon.logo) }}" alt="" />
+                {% } else { %}
+                    {%= frappe.utils.desktop_icon(module_icon.title, "gray", "md", "Solid") %}
+                {% } %}
+            </span>
+        </a>
+        {% } %}
+    </div>
+    {% } %}
     <div class="icon-caption">
         <a class="icon-title" href="#">{{ frappe.utils.escape_html(__(icon.label)) }}</a>
         {% if (icon.desk_route) { %}
         <a class="icon-subtitle" href="{{ frappe.utils.escape_html(icon.desk_route) }}">{{ frappe.utils.escape_html(__("Open in Desk")) }}</a>
+        {% } else if (icon.module_icons && icon.module_icons.length) { %}
+        <span class="icon-subtitle">{{ frappe.utils.escape_html(icon.module_icons.map((m) => __(m.title)).join(" · ")) }}</span>
         {% } %}
     </div>
 </div>

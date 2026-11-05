@@ -6,13 +6,17 @@ const toggle = (page) =>
 	page.locator('.dock-utilities [aria-label="Flow"]:visible, .sidebar-flow:visible').first();
 const panel = (page) => launcher(page).locator(".panel");
 
-// The chat in the panel, once /flow has loaded in it
+// The chat in the panel: the frappe.flow.chat island, once its header is up (a site with no
+// model shows setup in place of the message box). Locators pierce its shadow root
 async function chat(page) {
-	const frame = await (await launcher(page).locator("iframe").elementHandle()).contentFrame();
-	await expect.poll(() => frame.url()).toMatch(/^https?:\/\/[^/]+\/flow/);
-	await frame.waitForLoadState();
-	return frame;
+	const island = launcher(page).locator(".frappe-island");
+	await expect(island.getByRole("button", { name: "Close", exact: true })).toBeVisible();
+	return island;
 }
+// the island's own root, which keeps a mark for as long as the chat isn't mounted again
+const mark = (island) =>
+	island.locator(".frappe-island-root").evaluate((el) => (el.marked = true));
+const marked = (island) => island.locator(".frappe-island-root").evaluate((el) => el.marked);
 
 test.describe("Flow launcher", () => {
 	test.beforeEach(async ({ page, desk }) => {
@@ -23,7 +27,7 @@ test.describe("Flow launcher", () => {
 	test("opens Flow in a panel that Ctrl+I and × put away, its chat kept", async ({ page }) => {
 		await toggle(page).click();
 		await expect(panel(page)).not.toHaveAttribute("inert");
-		await (await chat(page)).evaluate(() => (window.marked = true));
+		await mark(await chat(page));
 
 		// the page narrows beside it, and takes its room back once it's put away
 		const margin = () =>
@@ -38,13 +42,13 @@ test.describe("Flow launcher", () => {
 		await expect.poll(margin).toBe("0px");
 		await page.keyboard.press("Control+i");
 		await expect(panel(page)).not.toHaveAttribute("inert");
-		expect(await (await chat(page)).evaluate(() => window.marked)).toBe(true);
+		expect(await marked(await chat(page))).toBe(true);
 
 		// the header's × puts it away too, and the next open shows the same chat
 		await (await chat(page)).getByRole("button", { name: "Close", exact: true }).click();
 		await expect(panel(page)).toHaveAttribute("inert", "");
 		await toggle(page).click();
-		expect(await (await chat(page)).evaluate(() => window.marked)).toBe(true);
+		expect(await marked(await chat(page))).toBe(true);
 
 		// a new tab takes the chat over from the panel
 		const [tab] = await Promise.all([
@@ -64,11 +68,11 @@ test.describe("Flow launcher", () => {
 		await page.reload();
 		await desk.ready();
 		await toggle(page).click();
-		const frame = await chat(page);
+		const island = await chat(page);
 		expect(await panel(page).evaluate((el) => el.getBoundingClientRect().width)).toBe(900);
 
-		await expect(frame.getByRole("button", { name: "Hide sidebar" })).toBeHidden();
-		await expect(frame.getByRole("button", { name: "Manage" })).toHaveCount(0);
+		await expect(island.getByRole("button", { name: "Hide sidebar" })).toBeHidden();
+		await expect(island.getByRole("button", { name: "Manage" })).toHaveCount(0);
 	});
 
 	test("opens and closes from an app's own element marked data-flow-toggle", async ({

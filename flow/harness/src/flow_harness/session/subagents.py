@@ -164,7 +164,7 @@ class SubagentRunner:
 				context_tokens=child.context_tokens,
 				context_message_count=child.context_message_count,
 			)
-			async for event in loop.resume(pending_approval, answers, continued):
+			async for event in loop.resume(pending_approval, answers, continued, stop_on_deny=True):
 				yield event
 
 	async def _wait_for_answers(

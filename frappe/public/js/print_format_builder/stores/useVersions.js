@@ -13,6 +13,7 @@ const VERSION_FIELDS = [
 	"value_color",
 	"css",
 	"pdf_generator",
+	"roles",
 ];
 
 export function useVersions({

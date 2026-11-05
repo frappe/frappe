@@ -26,6 +26,8 @@ const ReadView = await loadComponent("chat/tools/ReadView.vue");
 const ReportView = await loadComponent("chat/tools/ReportView.vue");
 const NamesView = await loadComponent("chat/tools/NamesView.vue");
 const CodeView = await loadComponent("chat/tools/CodeView.vue");
+const CodeCard = await loadComponent("chat/tools/CodeCard.vue");
+const FunctionCard = await loadComponent("chat/tools/FunctionCard.vue");
 const SnippetView = await loadComponent("chat/tools/SnippetView.vue");
 const JsonView = await loadComponent("chat/tools/JsonView.vue");
 
@@ -234,6 +236,44 @@ test("execute keeps the code and pretty-prints what it returned", (t) => {
 		presentTool("execute", { description: "Count invoices" }).subject,
 		"Count invoices"
 	);
+});
+
+test("execute's card keeps its code behind Show code", async (t) => {
+	assert.notEqual(presentTool("execute", {}).argsComponent, presentTool("execute", {}).resultComponent);
+	const el = mount(t, CodeCard, { arguments: { code: "result = 1", description: "Count" } });
+	assert.equal(el.querySelector("pre"), null);
+	el.querySelector("button").click();
+	await nextTick();
+	await nextTick();
+	assert.ok(el.querySelector("pre").textContent.includes("result = 1"), el.innerHTML);
+});
+
+test("a function call reads by its title, not its dotted path", () => {
+	const args = { doctype: "", names: [], action: "frappe.desk.form.assign_to.add" };
+	assert.equal(presentTool("run_action", args).subject, "Assign To: Add");
+	assert.equal(presentTool("run_action", args).label, "Running a Function");
+	const denied = json({ status: "denied", action: "Assign To: Add" });
+	assert.equal(presentTool("run_action", args, denied).subject, "Assign To: Add");
+	assert.equal(presentTool("run_action", args, { content: "Error: not permitted" }).subject, "Assign To: Add");
+	const result = json({ action: args.action, title: "Assign To: Add", result: [] });
+	assert.equal(presentTool("run_action", args, result).subject, "Assign To: Add");
+	assert.equal(presentTool("run_action", args, result).stat, "");
+	assert.equal(presentTool("run_action", { action: "submit", doctype: "Sales Invoice" }).subject, "Sales Invoice");
+});
+
+test("a function's card shows the server's lines in words, not a records table", (t) => {
+	const args = { doctype: "", names: [], action: "frappe.desk.form.assign_to.add" };
+	const fn = presentTool("run_action", args);
+	assert.notEqual(fn.argsComponent, fn.resultComponent);
+	const submit = presentTool("run_action", { action: "submit", doctype: "ToDo", names: ["a"] });
+	assert.equal(submit.argsComponent, submit.resultComponent);
+	const prompt = "Assign To: Add\nToDo: Call the courier about the delayed Pune shipment\nAssign To: Administrator";
+	const el = mount(t, FunctionCard, { arguments: args, call: { prompt } });
+	const rows = [...el.querySelectorAll("tr")].map((row) => [...row.children].map((cell) => cell.textContent));
+	assert.deepEqual(rows, [
+		["ToDo", "Call the courier about the delayed Pune shipment"],
+		["Assign To", "Administrator"],
+	]);
 });
 
 test("a result its view cannot read, saved before its tool's return changed or cut, shows as text without a count, except under execute's code", () => {

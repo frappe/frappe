@@ -4,6 +4,7 @@
 		:doctype="field.options ?? ''"
 		:filters="field.filters"
 		:title="title"
+		:idLabels="isName"
 		:label="field.label"
 		:description="field.description"
 		:placeholder="field.placeholder"
@@ -29,8 +30,13 @@ const emit = defineEmits<FieldComponentEmits>();
 
 const titles = inject(LinkTitlesKey, null);
 
+// `name` stores the ID, so show the ID, not the title.
+const isName = computed(() => props.field.fieldname === "name");
+
 const title = computed(() =>
-	props.modelValue ? titles?.value[`${props.field.options}::${props.modelValue}`] : undefined
+	props.modelValue && !isName.value
+		? titles?.value[`${props.field.options}::${props.modelValue}`]
+		: undefined
 );
 
 const value = computed<string | null>({

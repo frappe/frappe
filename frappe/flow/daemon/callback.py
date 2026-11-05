@@ -14,7 +14,7 @@ import frappe
 from frappe import _
 from frappe.flow.daemon.client import DaemonClient, DaemonError
 from frappe.flow.lib.session import call_on_complete, sync_with_retry
-from frappe.flow.lib.tool import ToolContext
+from frappe.flow.lib.tool import Pending, ToolContext
 
 if TYPE_CHECKING:
 	from frappe.flow.lib.tool import Tool
@@ -116,12 +116,17 @@ def _dispatch(
 	if tool is None:
 		return _error(_("Unknown tool {0}.").format(name))
 	if mode == "confirm":
-		return {"prompt": confirm_prompt(tool, args)}
+		if not _requires_confirmation(tool, args):
+			return {"requires_confirmation": False}
+		return {"prompt": confirm_prompt(tool, args), **({"needs_user": True} if tool.needs_user else {})}
 	# the job itself passes no token
 	if result_token and (tool.background(args) if callable(tool.background) else tool.background):
 		return _enqueue(session_id, agent, name, args, result_token)
-	ctx = ToolContext(session_id=session_id, agent=agent, user=frappe.session.user)
-	return {"content": _text(tool(**args, ctx=ctx)), "is_error": False}
+	ctx = ToolContext(session_id=session_id, agent=agent, user=frappe.session.user, result_token=result_token)
+	result = tool(**args, ctx=ctx)
+	if isinstance(result, Pending):
+		return {"pending": True, "timeout": result.timeout}
+	return {"content": _text(result), "is_error": False}
 
 
 def _enqueue(session_id: str, agent: str, tool: str, args: dict, result_token: str) -> dict:
@@ -180,6 +185,16 @@ def _text(result: Any) -> str:
 	return json.dumps(result, default=str)
 
 
+def _requires_confirmation(tool: Tool, args: dict) -> bool:
+	"""The tool's own answer for this call; a card when it has none per call or can't give one."""
+	if not callable(tool.requires_confirmation):
+		return True
+	try:
+		return bool(tool.requires_confirmation(args))
+	except Exception:
+		return True
+
+
 def confirm_prompt(tool: Tool, args: dict) -> str:
 	"""First line: what is being approved, in plain English. Then the tool's own summary,
 	else its arguments."""
@@ -197,8 +212,15 @@ def confirm_title(name: str, args: dict) -> str:
 	if name == "delete" and doctype:
 		return _count("Delete 1 {0} record", "Delete {0} {1} records", args.get("names"), doctype)
 	if name == "run_action" and action:
+		from frappe.flow.tools.builtins import function_title, is_function_path
+
+		if is_function_path(action):
+			return function_title(action)
 		target = f"{_list_count_or_one(args.get('names'))} {doctype}" if doctype else _("records")
 		return _('Run "{0}" on {1}').format(_humanize(action), target)
+	if name == "request_secret" and doctype and frappe.db.exists("DocType", doctype):
+		label = frappe.get_meta(doctype).get_label(args.get("fieldname"))
+		return _("Enter {0} for {1} {2}").format(_(label), _(doctype), args.get("name"))
 	if name == "execute":
 		description = args.get("description")
 		return (description.strip() if isinstance(description, str) else "") or _("Run Python code")

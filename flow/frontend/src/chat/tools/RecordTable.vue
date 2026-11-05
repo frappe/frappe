@@ -73,7 +73,7 @@
 							class="border-t border-outline-gray-1"
 						>
 							<td :colspan="span" class="bg-surface-gray-1 px-3 py-2">
-								<div class="mb-1.5 text-xs font-medium text-ink-gray-5">
+								<div class="mb-1.5 text-xs-medium text-ink-gray-5">
 									{{ humanize(column) }}
 								</div>
 								<div

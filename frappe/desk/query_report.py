@@ -259,6 +259,7 @@ def get_script(report_name: str):
 	return {
 		"script": render_include(script),
 		"html_format": html_format,
+		"has_python_formatter": bool(report.get_formatter_from_module()),
 		"execution_time": frappe.cache.hget("report_execution_time", report_name) or 0,
 		"filters": filters,
 		"validate_filters": report.validate_filters,

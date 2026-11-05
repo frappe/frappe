@@ -28,7 +28,13 @@ from frappe.studio.export import (
 	write_document_file,
 )
 from frappe.studio.realtime import publish_doc_change
-from frappe.studio.utils import camel_case_to_kebab_case, get_export_folder, validate_file_name
+from frappe.studio.utils import (
+	camel_case_to_kebab_case,
+	get_export_folder,
+	has_page_write_perm,
+	validate_file_name,
+	walk_blocks,
+)
 from frappe.utils import get_datetime
 
 # A variable is referenced as {{ name }} and spread into the page's JS eval context, so its
@@ -372,6 +378,20 @@ class StudioPage(Document):
 			self.blocks = self.draft_blocks
 			self.draft_blocks = None
 		self.save()
+		return {"unresolved_variants": self.get_unresolved_variants()}
+
+	def get_unresolved_variants(self) -> list[str]:
+		"""Names of the Variants blocks (including those in components) the published page still carries"""
+		blocks = parse_json(self.blocks) or []
+		if not blocks:
+			return []
+		trees = [blocks, *(parse_json(component["block"]) for component in get_components_for_blocks(blocks))]
+		return [
+			(block.get("componentProps") or {}).get("name") or "Variant"
+			for tree in trees
+			for block in walk_blocks(tree)
+			if block.get("componentName") == "Variants"
+		]
 
 	@frappe.whitelist()
 	def unpublish(self):
@@ -450,10 +470,86 @@ def get_blocks(page) -> list[dict]:
 	return [*(parse_json(page.blocks) or []), *(parse_json(page.draft_blocks) or [])]
 
 
-def get_app_page(app_name: str, page_name: str) -> "StudioPage":
-	"""The cached page, or the same 404 whether it is missing or belongs to another app."""
+@frappe.whitelist()
+@has_page_write_perm()
+def keep_variant(app_name: str, page_name: str, block_id: str, option_name: str) -> None:
+	"""Collapse a Variants block to its chosen child and delete the other options."""
+	page = get_app_page(app_name, page_name, cached=False)
+	option_name = str(option_name)
+
+	kept = False
+	for field in ("draft_blocks", "blocks"):
+		blocks = parse_json(page.get(field)) or []
+		if blocks and replace_variants_block(blocks, str(block_id), option_name):
+			page.set(field, frappe.as_json(blocks, indent=None))
+			kept = True
+	if kept:
+		page._skip_validate = True
+		page.save()
+	elif not keep_component_variant(page, str(block_id), option_name):
+		frappe.throw(
+			_('Could not keep option "{0}" of variants block {1}. Reload the page and try again.').format(
+				option_name, block_id
+			)
+		)
+
+
+def keep_component_variant(page: "StudioPage", block_id: str, option_name: str) -> bool:
+	"""The block can live inside a studio component the page uses. Keeping it edits the
+	component, so every instance on every page follows."""
+	for component in get_components_for_blocks(get_blocks(page)):
+		block = parse_json(component["block"])
+		if not block or not replace_variants_block(block, block_id, option_name):
+			continue
+		component_doc = frappe.get_doc("Studio Component", component["name"])
+		component_doc.block = frappe.as_json(block, indent=None)
+		component_doc.save()
+		if page.is_standard:
+			page.export_components()
+		return True
+	return False
+
+
+def replace_variants_block(blocks, block_id: str, option_name: str) -> bool:
+	"""Swap the matching Variants block for the option of that name, anywhere in the tree."""
+	for parent in walk_blocks(blocks):
+		for children in child_lists(parent):
+			for index, child in enumerate(children):
+				if not isinstance(child, dict) or child.get("componentId") != block_id:
+					continue
+				if child.get("componentName") != "Variants":
+					continue
+				# two options of the same name are indistinguishable, so refuse the keep
+				# rather than delete the wrong one
+				options = child.get("children") or []
+				matches = [
+					option
+					for position, option in enumerate(options)
+					if isinstance(option, dict)
+					and (option.get("variantOptionName") or f"Option {position + 1}") == option_name
+				]
+				if len(matches) != 1:
+					return False
+				kept = matches[0]
+				kept.pop("variantOptionName", None)
+				children[index] = kept
+				return True
+	return False
+
+
+def child_lists(block: dict):
+	"""Every list of child blocks under a block: children, plus each slot's content."""
+	if isinstance(block.get("children"), list):
+		yield block["children"]
+	for slot in (block.get("componentSlots") or {}).values():
+		if isinstance(slot, dict) and isinstance(slot.get("slotContent"), list):
+			yield slot["slotContent"]
+
+
+def get_app_page(app_name: str, page_name: str, cached: bool = True) -> "StudioPage":
 	try:
-		page = frappe.get_cached_doc("Studio Page", page_name) if page_name else None
+		get_page_doc = frappe.get_cached_doc if cached else frappe.get_doc
+		page = get_page_doc("Studio Page", page_name) if page_name else None
 	except frappe.DoesNotExistError:
 		# get_doc queues "Studio Page <name> not found" for the client; keep the reply to "Page not found"
 		frappe.clear_last_message()

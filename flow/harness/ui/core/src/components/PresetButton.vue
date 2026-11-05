@@ -3,8 +3,8 @@
 		<!-- its list hangs from it -->
 		<button
 			ref="trigger"
-			class="flex h-7 max-w-full items-center gap-1.5 rounded-5 px-2 hover:bg-surface-gray-3 hover:text-ink-gray-8 dark:hover:bg-surface-gray-2"
-			:class="open ? 'bg-surface-gray-3 dark:bg-surface-gray-2' : ''"
+			class="flex h-6 max-w-full items-center gap-1.5 rounded-5 px-2 hover:text-ink-gray-9"
+			:class="open ? 'text-ink-gray-9' : ''"
 			title="Agent preset"
 			:aria-expanded="open"
 			:disabled="disabled"
@@ -18,7 +18,7 @@
 				aria-hidden="true"
 			/>
 		</button>
-		<PalettePanel v-if="open" title="Agent preset" dropdown align="left" :width="264" :query="search" @close="close">
+		<PalettePanel v-if="open" title="Agent preset" dropdown align="left" :below="below" :width="264" :query="search" @close="close">
 			<div class="flex flex-none pl-1 pr-2.5 pt-1">
 				<input
 					ref="field"
@@ -61,7 +61,8 @@ import { layout } from "../layout.js"
 import PalettePanel from "./PalettePanel.vue"
 
 // A new chat's agent preset: Standard (core tools, the built-in prompt) or one saved in settings
-defineProps({ disabled: { type: Boolean, default: false } })
+// `below`: its list opens under it, where the box sits mid-page
+defineProps({ disabled: { type: Boolean, default: false }, below: { type: Boolean, default: false } })
 const flow = inject("flow")
 const open = ref(false)
 const search = ref("")

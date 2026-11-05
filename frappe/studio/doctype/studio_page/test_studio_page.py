@@ -17,7 +17,7 @@ from frappe.studio.doctype.studio_page.copy_paste_handler import (
 	paste_data_source,
 	paste_page,
 )
-from frappe.studio.doctype.studio_page.studio_page import get_page
+from frappe.studio.doctype.studio_page.studio_page import get_page, keep_variant
 from frappe.studio.export import remove_empty_values
 from frappe.tests import IntegrationTestCase
 
@@ -44,6 +44,24 @@ def component_ref(component) -> dict:
 	return {"componentName": component.name, "isStudioComponent": True, "children": []}
 
 
+def variants_block(block_id: str, set_name: str, options: list[tuple[str, str | None]]) -> dict:
+	"""A Variants block, one child per (block id, option name). An unnamed option carries no name."""
+	return {
+		"componentId": block_id,
+		"componentName": "Variants",
+		"componentProps": {"name": set_name},
+		"children": [
+			{
+				"componentId": option_id,
+				"componentName": "container",
+				"children": [],
+				**({"variantOptionName": option_name} if option_name else {}),
+			}
+			for option_id, option_name in options
+		],
+	}
+
+
 def make_page_with_data(app_name: str):
 	page = make_studio_page(app_name, page_title="Board", route="/board", published=0)
 	page.append("resources", TODO_RESOURCE)
@@ -55,6 +73,83 @@ def make_page_with_data(app_name: str):
 
 
 class TestStudioPage(IntegrationTestCase):
+	def test_keep_variant_collapses_the_block_to_the_chosen_option(self):
+		app = make_studio_app(app_name="variants-" + frappe.generate_hash(length=8))
+		hero = variants_block("Variants-hero", "Hero", [("option-a", "A"), ("option-b", "B")])
+		blocks = [{"componentId": "root", "componentName": "div", "children": [hero]}]
+		page = make_studio_page(app.name, blocks=frappe.as_json(blocks), route="/variants")
+
+		ambiguous = frappe.parse_json(frappe.as_json(blocks))
+		ambiguous[0]["children"][0]["children"][1]["variantOptionName"] = "A"
+		frappe.db.set_value("Studio Page", page.name, "blocks", frappe.as_json(ambiguous))
+		self.assertRaises(frappe.ValidationError, keep_variant, app.name, page.name, "Variants-hero", "A")
+		frappe.db.set_value("Studio Page", page.name, "blocks", frappe.as_json(blocks))
+
+		# the message names the option, so a bad option is not reported as a missing block
+		with self.assertRaises(frappe.ValidationError) as refused:
+			keep_variant(app.name, page.name, "Variants-hero", "C")
+		self.assertIn('option "C"', str(refused.exception))
+
+		# the draft holds the options the other way round, as a reorder leaves them
+		draft = frappe.parse_json(frappe.as_json(blocks))
+		draft[0]["children"][0]["children"].reverse()
+		frappe.db.set_value("Studio Page", page.name, "draft_blocks", frappe.as_json(draft))
+
+		keep_variant(app.name, page.name, "Variants-hero", "B")
+
+		for field in ("draft_blocks", "blocks"):
+			kept = frappe.parse_json(frappe.db.get_value("Studio Page", page.name, field))
+			self.assertEqual(kept[0]["children"][0]["componentId"], "option-b")
+			self.assertNotIn("variantOptionName", kept[0]["children"][0])
+		self.assertRaises(frappe.ValidationError, keep_variant, app.name, page.name, "missing-block", "A")
+
+	def test_keep_variant_resolves_into_a_studio_component(self):
+		app = make_studio_app(app_name="variants-" + frappe.generate_hash(length=8))
+		component = make_component(
+			"Card " + frappe.generate_hash(length=8),
+			block={
+				"componentId": "comp-root",
+				"componentName": "div",
+				"children": [variants_block("Variants-card", "Card", [("card-a", "A"), ("card-b", "B")])],
+			},
+		)
+		blocks = [
+			{
+				"componentId": "root",
+				"componentName": "div",
+				"children": [
+					{
+						"componentId": "card-1",
+						"componentName": component.name,
+						"isStudioComponent": True,
+						"children": [],
+					}
+				],
+			}
+		]
+		page = make_studio_page(app.name, blocks=frappe.as_json(blocks), route="/component-variants")
+
+		self.assertIn("Card", page.get_unresolved_variants())
+
+		keep_variant(app.name, page.name, "Variants-card", "B")
+
+		kept = frappe.parse_json(frappe.db.get_value("Studio Component", component.name, "block"))
+		self.assertEqual(kept["children"][0]["componentId"], "card-b")
+		self.assertNotIn("variantOptionName", kept["children"][0])
+		self.assertEqual(page.reload().get_unresolved_variants(), [])
+
+	def test_publish_reports_unresolved_variants(self):
+		app = make_studio_app(app_name="variants-" + frappe.generate_hash(length=8))
+		# options without names of their own, so a Keep has to find them by position
+		hero = variants_block("Variants-hero", "Hero", [("option-a", None), ("option-b", None)])
+		blocks = [{"componentId": "root", "componentName": "div", "children": [hero]}]
+		page = make_studio_page(app.name, blocks=frappe.as_json(blocks), route="/variant-drafts")
+		self.assertEqual(page.publish()["unresolved_variants"], ["Hero"])
+
+		keep_variant(app.name, page.name, "Variants-hero", "Option 1")
+		page.reload()
+		self.assertEqual(page.publish()["unresolved_variants"], [])
+
 	def test_page_title_must_scrub_to_a_single_folder_name(self):
 		app = make_studio_app(app_name="title-" + frappe.generate_hash(length=8))
 		self.assertRaises(frappe.ValidationError, make_studio_page, app.name, page_title="../../outside")

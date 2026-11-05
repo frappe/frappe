@@ -51,7 +51,7 @@ def new_session(
 	model: str | None = None,
 	title: str | None = None,
 	source: str = "Manual",
-	auto_approve: bool = False,
+	approval_mode: str | None = None,
 ) -> FlowSession:
 	"""Start a Flow Session and its flow server twin. `agent` defaults to the Assistant."""
 	if agent is None:
@@ -66,7 +66,7 @@ def new_session(
 			"model": model,
 			"title": title,
 			"source": source,
-			"auto_approve": source == "Trigger" or bool(auto_approve),
+			"approval_mode": "Auto-approve" if source == "Trigger" else approval_mode or "Auto",
 		}
 	).insert(ignore_permissions=True)
 	with flow_server() as client:
@@ -304,13 +304,13 @@ def _dump(value: Any) -> str:
 
 
 def _default_agent_name() -> str:
-	from frappe.flow.assistant import ASSISTANT_AGENT_TITLE
+	from frappe.flow.assistant import ASSISTANT_AGENT_NAME, ASSISTANT_AGENT_TITLE
 
-	if not frappe.db.exists("Flow Agent", ASSISTANT_AGENT_TITLE):
+	if not frappe.db.exists("Flow Agent", ASSISTANT_AGENT_NAME):
 		frappe.throw(
 			_("The {0} agent is missing. Create a Flow Model first to auto-provision it.").format(
 				ASSISTANT_AGENT_TITLE
 			),
 			title=_("Missing Default Agent"),
 		)
-	return ASSISTANT_AGENT_TITLE
+	return ASSISTANT_AGENT_NAME

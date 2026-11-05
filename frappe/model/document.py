@@ -1,5 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import copy
 import datetime
 import functools
 import hashlib
@@ -1579,6 +1580,30 @@ class Document(_DocumentBase):
 							delattr(child, df.fieldname)
 
 		self.mask_fields()
+
+	def copy_with_fieldlevel_read_permissions(self) -> "Document":
+		"""Return a copy without the values the user is not allowed to read, so that this document stays
+		whole for what is queued on it, such as webhooks and background jobs."""
+		if frappe.session.user == "Administrator" or not self._has_fieldlevel_read_restrictions():
+			return self
+
+		doc = get_doc(copy.deepcopy(self.as_dict()))
+		doc.apply_fieldlevel_read_permissions()
+		return doc
+
+	def _has_fieldlevel_read_restrictions(self) -> bool:
+		"""Whether `apply_fieldlevel_read_permissions` would remove or mask any value for this user."""
+		if self.meta.get_masked_fields():
+			return True
+
+		permlevels = {df.permlevel for df in self.meta.fields if df.permlevel}
+		for table_field in self.meta.get_table_fields(include_computed=True):
+			child_meta = frappe.get_meta(table_field.options)
+			permlevels.update(df.permlevel for df in child_meta.fields if df.permlevel)
+			if child_meta.get_masked_fields(parenttype=self.doctype):
+				return True
+
+		return bool(permlevels - set(self.get_permlevel_access("read")))
 
 	def _restore_masked_fields_from_db(self):
 		"""Restore masked field values from DB so that link-field user-permission checks
@@ -4255,9 +4280,11 @@ def _document_values_generator(
 		yield tuple(doc_values.get(col) for col in columns)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def unlock_document(doctype: str, name: str):
-	frappe.get_lazy_doc(doctype, name).unlock()
+	doc = frappe.get_lazy_doc(doctype, name)
+	doc.check_permission("write")
+	doc.unlock()
 	frappe.msgprint(frappe._("Document Unlocked"), alert=True)
 
 
