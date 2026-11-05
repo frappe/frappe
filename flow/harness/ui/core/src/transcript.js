@@ -720,15 +720,17 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 		} else if (entry.type === "tool_result") {
 			const step = stepsById.get(entry.tool_call_id)
 			if (step) step.result = entry
-			// a denial stays in sight when the work folds, in the words of the card
+			// a denial stays in sight when the work folds, in the words of the card; a tool with no words
+			// of its own has the server's generic question, so it is named instead
 			const decision = step ? stepDecision(entry) : null
 			if (decision?.status === "denied" && decision.action) {
+				const name = step.call.name
 				flushThoughts()
 				items.push({
 					kind: "declined",
 					key: `d:${entry.seq}`,
 					turnKey: currentTurnKey,
-					text: `Declined: ${decision.action}`,
+					text: decision.action === `Approve \`${name}\`?` ? `Denied ${name}` : `Declined: ${decision.action}`,
 				})
 			}
 		} else if (entry.type === "compaction") {

@@ -749,6 +749,10 @@ test("a denied call shows what the user declined, and the reply after it is the 
 	assert.deepEqual(items.map((item) => item.kind), ["user", "turn-fold", "declined", "text", "turn-copy"])
 	assert.equal(items[2].text, "Declined: Create 1 Sales Order record")
 	assert.equal(items[3].block.text, "Not created. Change anything?")
+
+	// a tool with no words of its own for its card is named, not asked about
+	conversation.entries.find((entry) => entry.seq === 7).content = JSON.stringify({ status: "denied", action: "Approve `create`?" })
+	assert.equal(buildItems(conversation)[2].text, "Denied create")
 })
 
 test("a settled turn lists the files its successful edits and writes changed", () => {
