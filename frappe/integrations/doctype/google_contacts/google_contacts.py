@@ -116,6 +116,7 @@ def sync_contacts_from_google_contacts(g_contact):
 	contacts_updated = 0
 
 	sync_token = account.get_password(fieldname="next_sync_token", raise_exception=False) or None
+	next_sync_token = None
 	contacts = frappe._dict()
 
 	while True:
@@ -143,11 +144,7 @@ def sync_contacts_from_google_contacts(g_contact):
 
 		results.extend(contact for contact in contacts.get("connections", []))
 		if not contacts.get("nextPageToken"):
-			if contacts.get("nextSyncToken"):
-				frappe.db.set_value(
-					"Google Contacts", account.name, "next_sync_token", contacts.get("nextSyncToken")
-				)
-				frappe.db.commit()
+			next_sync_token = contacts.get("nextSyncToken")
 			break
 
 	frappe.db.set_value("Google Contacts", account.name, "last_sync_on", frappe.utils.now_datetime())
@@ -190,6 +187,10 @@ def sync_contacts_from_google_contacts(g_contact):
 					)
 
 				contact.insert(ignore_permissions=True)
+
+	if next_sync_token:
+		frappe.db.set_value("Google Contacts", account.name, "next_sync_token", next_sync_token)
+		frappe.db.commit()
 
 	return (
 		_("{0} Google Contacts synced.").format(contacts_updated)
