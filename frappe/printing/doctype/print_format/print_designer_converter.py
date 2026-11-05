@@ -73,6 +73,7 @@ def create_editor_format(print_format: str, name: str | None = None) -> str:
 			"default_print_language": source.default_print_language,
 			"pdf_generator": "chrome",
 			"page_number": source.page_number,
+			"absolute_value": source.absolute_value,
 			"font": converted_font(source),
 			**converted_margins(source),
 		}
