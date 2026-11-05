@@ -32,6 +32,16 @@ async function expectCompileError(sources: Record<string, string>, entry: string
 	}
 }
 
+async function compileErrorOf(lines: string[]) {
+	try {
+		await new AppModuleRegistry({ "a.vue": lines.join("\n") }).loadModule("a.vue")
+		throw new Error("expected a compile error")
+	} catch (error: any) {
+		expect(error).to.be.instanceOf(AppCompileError)
+		return error.errors[0]
+	}
+}
+
 describe("AppModuleRegistry", () => {
 	afterEach(() => clearAppStyles())
 
@@ -155,6 +165,34 @@ export const value = count("ok")`,
 			expect(module.value.value).to.equal("ok")
 			expect(module.help).to.include('import "./theme.css"')
 		})
+	})
+
+	it("reports a compile error at the file's line, not the block's", () => {
+		cy.wrap(
+			(async () => {
+				const scriptError = await compileErrorOf([
+					"<template>",
+					"  <div>{{ n }}</div>",
+					"</template>",
+					"",
+					'<script setup lang="ts">',
+					"const n = 1",
+					"const broken = ((()))",
+					"</script>",
+				])
+				expect(scriptError.line, "script error line").to.equal(7)
+
+				const styleError = await compileErrorOf([
+					"<template><b /></template>",
+					"",
+					"<style scoped>",
+					".a { color: red }",
+					".b { color: ",
+					"</style>",
+				])
+				expect(styleError.line, "style error line").to.equal(5)
+			})(),
+		)
 	})
 
 	it("reports unresolvable and invalid imports with the file in the message", () => {

@@ -233,7 +233,8 @@ async function compileSFC(filename: string, source: string): Promise<CompiledFil
 		try {
 			code = sfc.compileScript(descriptor, { id, inlineTemplate, genDefaultAs: "__sfc__" }).content
 		} catch (error) {
-			return { code: "", css: "", errors: [formatError(filename, error)] }
+			const block = descriptor.scriptSetup || descriptor.script
+			return { code: "", css: "", errors: [formatError(filename, error, blockOffset(block))] }
 		}
 	} else {
 		code = "const __sfc__ = {}\n"
@@ -248,7 +249,8 @@ async function compileSFC(filename: string, source: string): Promise<CompiledFil
 			scoped: hasScopedStyle,
 		})
 		if (template.errors.length) {
-			return { code: "", css: "", errors: template.errors.map((error) => formatError(filename, error)) }
+			const offset = blockOffset(descriptor.template)
+			return { code: "", css: "", errors: template.errors.map((error) => formatError(filename, error, offset)) }
 		}
 		code += `\n${template.code}\n__sfc__.render = render\n`
 	}
@@ -268,7 +270,7 @@ async function compileSFC(filename: string, source: string): Promise<CompiledFil
 			id: `data-v-${id}`,
 			scoped: style.scoped,
 		})
-		cssErrors.push(...result.errors.map((error) => formatError(filename, error)))
+		cssErrors.push(...result.errors.map((error) => formatError(filename, error, blockOffset(style))))
 		css += result.code
 	}
 	if (cssErrors.length) return { code: "", css: "", errors: cssErrors }
@@ -320,11 +322,18 @@ function djb2(text: string): number {
 	return hash
 }
 
-function formatError(filename: string, error: any): CompileError {
-	const location = error?.loc?.start || error?.loc || {}
+/** A block compiler counts lines inside its own block, so shift them onto the file's lines. */
+function blockOffset(block: { loc: { start: { line: number } } } | null | undefined): number {
+	return block ? block.loc.start.line - 1 : 0
+}
+
+function formatError(filename: string, error: any, lineOffset = 0): CompileError {
+	// Babel and the SFC parser report a position in `loc`; postcss puts it on the error itself.
+	const location = error?.loc?.start || error?.loc || error || {}
+	const line = location.line ?? null
 	return {
 		file: filename,
-		line: location.line ?? null,
+		line: line === null ? null : line + lineOffset,
 		column: location.column ?? null,
 		message: error?.message || String(error),
 	}
