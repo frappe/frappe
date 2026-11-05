@@ -46,12 +46,33 @@
 			<Password
 				v-else
 				v-model="form.password"
-				:label="__('Password')"
+				:label="service.service === 'GMail' ? __('App password') : __('Password')"
 				autocomplete="new-password"
 				:description="editing ? __('Leave blank to keep the saved one.') : undefined"
 				:error="errorOn('password')"
 				:required="!editing"
-			/>
+			>
+				<template v-if="service.service === 'GMail' && !editing" #description>
+					{{
+						__(
+							"A 16-character password you create in your Google Account, not your Gmail password. Needs 2-Step Verification."
+						)
+					}}
+					<a
+						href="https://support.google.com/accounts/answer/185833"
+						target="_blank"
+						rel="noopener"
+						class="text-ink-gray-8 underline"
+					>
+						{{ __("How to create one") }}
+						<span
+							class="lucide-arrow-up-right inline-block size-3"
+							aria-hidden="true"
+						/>
+						<span class="sr-only">{{ __("(opens in new tab)") }}</span>
+					</a>
+				</template>
+			</Password>
 		</template>
 		<template v-if="service.kind === 'custom'">
 			<Link

@@ -10,7 +10,7 @@ vi.mock("frappe-ui", async (importOriginal) => ({
   toast: { success: vi.fn(), error: vi.fn() },
   dialog: { confirm },
 }));
-const oneClick = vi.hoisted(() => ({ services: {} as Record<string, string> }));
+const oneClick = vi.hoisted(() => ({ services: {} as Record<string, unknown> }));
 vi.mock("../useEmailAccounts", () => ({
   useOneClick: () => ({ data: oneClick.services }),
 }));
@@ -77,7 +77,7 @@ it("offers reconnect for an own OAuth app anywhere, and for a Frappe Cloud sign-
   remount({ accounts });
   expect(actions()).toEqual(["desk", "reconnect"]);
 
-  oneClick.services = { GMail: "Gmail" };
+  oneClick.services = { GMail: { label: "Gmail", client_id: null } };
   remount({ accounts });
   expect(actions()).toEqual(["reconnect", "reconnect"]);
 });

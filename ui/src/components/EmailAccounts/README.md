@@ -44,7 +44,11 @@ const unsaved = ref(false);
   while its service is in that list; otherwise it links to Desk. When adding,
   picking one of them signs in through
   Frappe Cloud (`initiate_mailbox_connect`); any other tile opens its form. When Frappe Cloud
-  can't sign the service in right now, the panel opens the form with a note saying so. Desk's own Add dialog
+  can't sign the service in right now, the panel opens the form with a note saying so. Gmail first
+  asks for the address in a dialog: @gmail.com and @googlemail.com open the form for an app
+  password; any other address signs in with Google for that address (`login_hint`), shows the
+  steps and client ID a Google Workspace admin needs, and offers "Set up manually". Signing in
+  with another account adds nothing and reopens the dialog. Desk's own Add dialog
   also offers "Set up manually"; the panel doesn't. Sign-in leaves the page and lands back on it with
   `?email_oauth=<result>&email_oauth_mailbox=<address>&email_oauth_provider=<provider>` appended. The panel reads them when it
   mounts and removes them from the URL. The host's only job is to open the panel when the page

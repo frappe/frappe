@@ -124,6 +124,9 @@ Frappe Cloud v2 sites. The panel asks the site which services can sign in this w
 (`email_oauth.get_one_click_services`, cached for 10 minutes; empty elsewhere). Picking one of those services signs
 in; any other opens the form. When
 Frappe Cloud can't sign the service in right now, the panel opens the form with a note saying so.
+Gmail asks for the address first: a personal @gmail.com address opens the form for an app
+password, and a company address signs in with Google, with the steps its Google Workspace admin
+takes once to allow Frappe.
 _Avoid_: relay connect, OAuth connect (OAuth also covers an account's own app).
 
 **Auth kind**:

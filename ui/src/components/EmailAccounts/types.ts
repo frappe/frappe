@@ -74,6 +74,13 @@ export interface FieldError {
   message: string;
 }
 
+/** A service `get_one_click_services` says this site signs in in one click now. */
+export interface OneClickService {
+  label: string;
+  /** Google's, for a Google Workspace admin to allow the app; null for the others. */
+  client_id: string | null;
+}
+
 /** A one-click sign-in this page landed back from, read from its URL. */
 export interface SignInReturn {
   /** `email_oauth`: `connected`, `reconnected`, or the code of why it failed. */
@@ -86,6 +93,8 @@ export interface SignInReturn {
   account?: EmailAccount;
   /** Why making that account the default failed. */
   error?: unknown;
+  /** Whether this tab left to add a new mailbox, rather than to reconnect one. */
+  started?: boolean;
 }
 
 export interface EmailAccountsController {
@@ -110,9 +119,10 @@ export interface EmailAccountsController {
   setDefault(kind: "incoming" | "outgoing", name: string | null): Promise<void>;
   /**
    * Leaves the page for a new `service` mailbox's one-click sign-in; false, staying on the page,
-   * when Frappe Cloud can't sign it in right now, so the form is the way to add it.
+   * when Frappe Cloud can't sign it in right now, so the form is the way to add it. With `email`,
+   * the provider is asked to sign in with that address, and another one is not added.
    */
-  connect(service: string): Promise<boolean>;
+  connect(service: string, email?: string): Promise<boolean>;
   /**
    * Signs `account` in again and leaves the page: one-click sign-in for a Frappe Cloud one, its
    * own Connected App's flow, as `connected_user`, for any other OAuth account.

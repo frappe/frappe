@@ -3,9 +3,12 @@ import { afterEach, expect, it, vi } from "vitest";
 import { createApp, nextTick } from "vue";
 import type { App } from "vue";
 import AccountAdd from "../AccountAdd.vue";
+import type { OneClickService } from "../types";
 
 const oneClick = vi.hoisted(() => ({
-  services: {} as Record<string, string> | Promise<Record<string, string>>,
+  services: {} as
+    | Record<string, OneClickService>
+    | Promise<Record<string, OneClickService>>,
 }));
 vi.mock("frappe-ui", async (importOriginal) => {
   const ui = await importOriginal<typeof import("frappe-ui")>();
@@ -13,6 +16,8 @@ vi.mock("frappe-ui", async (importOriginal) => {
   ui.setConfig("resourceFetcher", async () => oneClick.services);
   return { ...ui, toast: { success: vi.fn(), error: vi.fn() } };
 });
+
+const OUTLOOK = { label: "Outlook", client_id: null };
 
 let app: App;
 let root: HTMLElement;
@@ -54,7 +59,7 @@ it("Back is disabled while a create is in flight, and `created` is emitted when 
   await nextTick();
   fill("Account name", "Support");
   fill("Email address", "support@example.com");
-  fill("Password", "secret");
+  fill("App password", "secret");
   root.querySelector("form")!.dispatchEvent(new Event("submit"));
   await nextTick();
   expect(button("Back:").disabled).toBe(true);
@@ -70,7 +75,7 @@ it("Back is disabled while a create is in flight, and `created` is emitted when 
 async function mountOneClick(
   connect: (service: string) => Promise<boolean> = vi.fn(),
 ) {
-  oneClick.services = { "Outlook.com": "Outlook" };
+  oneClick.services = { "Outlook.com": OUTLOOK };
   root = document.createElement("div");
   document.body.append(root);
   app = createApp(AccountAdd, { controller: { connect } });
@@ -153,7 +158,7 @@ it("opens the form directly for a service without one-click sign-in, and for eve
 });
 
 it("waits for the one-click list when a tile is picked before it arrives", async () => {
-  let arrive!: (services: Record<string, string>) => void;
+  let arrive!: (services: Record<string, OneClickService>) => void;
   oneClick.services = new Promise((resolve) => (arrive = resolve));
   const connect = vi.fn(() => new Promise<boolean>(() => {}));
   root = document.createElement("div");
@@ -165,7 +170,7 @@ it("waits for the one-click list when a tile is picked before it arrives", async
   await nextTick();
   expect(root.querySelector("form")).toBeNull();
 
-  arrive({ "Outlook.com": "Outlook" });
+  arrive({ "Outlook.com": OUTLOOK });
   await new Promise((resolve) => setTimeout(resolve));
   expect(connect).toHaveBeenCalledWith("Outlook.com");
   expect(root.querySelector("form")).toBeNull();
@@ -187,7 +192,7 @@ async function submitGmail() {
   await nextTick();
   fill("Account name", "Support");
   fill("Email address", "support@example.com");
-  fill("Password", "secret");
+  fill("App password", "secret");
   const field = root.querySelector("input")!;
   field.focus();
   root.querySelector("form")!.dispatchEvent(new Event("submit"));
@@ -209,4 +214,64 @@ it("reports a failed create in a toast, keeps the form and refocuses the field",
   expect(created).not.toHaveBeenCalled();
   expect(field.value).toBe("Support");
   expect(document.activeElement).toBe(field);
+});
+
+const GMAIL = { label: "Gmail", client_id: "gid.apps.googleusercontent.com" };
+const inDialog = (name: string) =>
+  [...document.querySelectorAll<HTMLButtonElement>('[role="dialog"] button')].find((b) =>
+    b.textContent?.trim().startsWith(name),
+  );
+
+async function openGmail(connect: (service: string, email?: string) => Promise<boolean> = vi.fn()) {
+  oneClick.services = { GMail: GMAIL };
+  root = document.createElement("div");
+  document.body.append(root);
+  app = createApp(AccountAdd, { controller: { connect } });
+  app.mount(root);
+  await new Promise((resolve) => setTimeout(resolve));
+  button("Gmail").click();
+  await new Promise((resolve) => setTimeout(resolve));
+}
+
+async function type(address: string) {
+  const input = document.querySelector<HTMLInputElement>('[role="dialog"] input[type="email"]')!;
+  input.value = address;
+  input.dispatchEvent(new Event("input"));
+  await nextTick();
+}
+
+it("opens a personal Gmail address in the form with an app password, without signing in", async () => {
+  const connect = vi.fn();
+  await openGmail(connect);
+  expect(inDialog("Continue")!.disabled).toBe(true);
+
+  await type("support.acme@gmail.com");
+  expect(inDialog("Sign in with Google")).toBeUndefined();
+  inDialog("Continue")!.click();
+  await new Promise((resolve) => setTimeout(resolve));
+
+  expect(connect).not.toHaveBeenCalled();
+  expect(title()).toContain("New Gmail account");
+  const email = [...root.querySelectorAll("input")].find((i) => i.type === "email")!;
+  expect(email.value).toBe("support.acme@gmail.com");
+  expect(root.textContent).toContain("App password");
+});
+
+it("signs a company address in with Google, shows the admin's client ID, and falls back to the form when Google sign-in is off", async () => {
+  const connect = vi.fn(async () => false);
+  await openGmail(connect);
+  await type("support@fabkart.example.com");
+  expect(document.querySelector('[role="dialog"]')!.textContent).toContain(GMAIL.client_id);
+
+  inDialog("Sign in with Google")!.click();
+  await new Promise((resolve) => setTimeout(resolve));
+  expect(connect).toHaveBeenCalledWith("GMail", "support@fabkart.example.com");
+  expect(document.querySelector('[role="dialog"] [role="status"]')?.textContent).toContain(
+    "Google sign-in isn't available right now",
+  );
+  expect(inDialog("Sign in with Google")).toBeUndefined();
+
+  inDialog("Set up manually")!.click();
+  await new Promise((resolve) => setTimeout(resolve));
+  expect(title()).toContain("New Gmail account");
 });

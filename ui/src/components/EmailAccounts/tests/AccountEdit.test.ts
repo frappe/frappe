@@ -12,7 +12,7 @@ vi.mock("frappe-ui", async (importOriginal) => ({
   frappeRequest: async () => [],
 }));
 
-const oneClick = vi.hoisted(() => ({ services: {} as Record<string, string> }));
+const oneClick = vi.hoisted(() => ({ services: {} as Record<string, unknown> }));
 vi.mock("../useEmailAccounts", () => ({
   useOneClick: () => ({ data: oneClick.services }),
 }));
@@ -66,7 +66,7 @@ function mount(overrides = {}) {
 beforeEach(() => {
   confirm.mockReset();
   reconnect.mockReset();
-  oneClick.services = { "Outlook.com": "Outlook" };
+  oneClick.services = { "Outlook.com": { label: "Outlook", client_id: null } };
   pull.mockReset();
   update.mockReset();
   onBack.mockReset();

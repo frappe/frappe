@@ -384,6 +384,7 @@ describe("sign-in return", () => {
       result: "cancelled",
       mailbox: "sales@example.com",
       provider: "google",
+      started: false,
     });
     expect(window.location.pathname + window.location.search + window.location.hash).toBe(
       "/helpdesk/tickets?status=Open#inbox",

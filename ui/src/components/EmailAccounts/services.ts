@@ -6,6 +6,7 @@ import type {
   EmailAccountDoc,
   EmailService,
   FieldError,
+  OneClickService,
 } from "./types";
 
 // served by frappe, so Desk's Add Email Account dialog uses the same files
@@ -21,10 +22,6 @@ export const services: EmailService[] = [
     label: "Gmail",
     logo: LOGOS + "gmail.png",
     kind: "password",
-    get help() {
-      return __("Needs two-factor authentication and an app password.");
-    },
-    helpLink: "https://support.google.com/accounts/answer/185833",
   },
   {
     service: "Outlook.com",
@@ -304,7 +301,13 @@ export function validate(
       };
   }
   if (!form.password && !editing)
-    return { field: "password", message: __("Password is required") };
+    return {
+      field: "password",
+      message:
+        service.service === "GMail"
+          ? __("App password is required")
+          : __("Password is required"),
+    };
 }
 
 export function authKind(account: EmailAccountDoc): AuthKind {
@@ -334,9 +337,7 @@ export function oauthMessage(result: string, provider?: string | null): string {
       ),
     },
     google: {
-      admin_approval: __(
-        "Your Google Workspace admin has blocked Frappe. Ask them to allow it under Security > API controls in the Google Admin console.",
-      ),
+      admin_approval: __("Your Google Workspace admin hasn't allowed Frappe yet."),
       imap_disabled: __(
         "IMAP is turned off for this mailbox. Turn it on in Gmail settings under Forwarding and POP/IMAP, or ask your Google Workspace admin.",
       ),
@@ -413,7 +414,7 @@ export function errorText(e: unknown): string {
 /** `oneClick`: the services the site signs in in one click now, from `get_one_click_services`. */
 export function reconnectable(
   account: Pick<EmailAccount, "authKind" | "service">,
-  oneClick: Record<string, string>,
+  oneClick: Record<string, OneClickService>,
 ): boolean {
   return (
     account.authKind === "oauth-custom" ||

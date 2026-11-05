@@ -25,7 +25,7 @@ const CONNECT =
   "frappe.integrations.frappe_providers.email_oauth.initiate_mailbox_connect";
 const ONE_CLICK =
   "frappe.integrations.frappe_providers.email_oauth.get_one_click_services";
-let oneClick: Record<string, string> = {};
+let oneClick: Record<string, unknown> = {};
 
 let app: App;
 let root: HTMLElement;
@@ -179,7 +179,7 @@ it("signs in on Frappe Cloud V2 when the provider has one-click sign-in", async 
     href: "https://example.com/helpdesk/tickets?status=Open",
     assign,
   });
-  oneClick = { "Outlook.com": "Outlook" };
+  oneClick = { "Outlook.com": { label: "Outlook", client_id: null } };
   await openTiles();
   await settle();
   button("Outlook").click();
@@ -284,4 +284,32 @@ it("shows a failed sign-in in the list", async () => {
   );
   expect(onCreated).not.toHaveBeenCalled();
   expect(root.textContent).toContain("Couldn't connect sales@example.com");
+});
+
+const dialog = () => document.querySelector('[role="dialog"]');
+
+it("reopens Gmail's Connect dialog when a new mailbox was signed in with another Google account", async () => {
+  oneClick = { GMail: { label: "Gmail", client_id: "gid" } };
+  markSignInStarted();
+  await landWith(
+    "email_oauth=wrong_mailbox&email_oauth_mailbox=support%40fabkart.example.com&email_oauth_provider=google",
+  );
+  await settle();
+
+  expect(dialog()?.textContent).toContain("That isn't the address you entered");
+  const input = dialog()!.querySelector<HTMLInputElement>('input[type="email"]')!;
+  expect(input.value).toBe("support@fabkart.example.com");
+});
+
+it("opens Gmail's Connect dialog with the admin's steps from a blocked sign-in", async () => {
+  oneClick = { GMail: { label: "Gmail", client_id: "gid" } };
+  await landWith(
+    "email_oauth=admin_approval&email_oauth_mailbox=support%40fabkart.example.com&email_oauth_provider=google",
+  );
+  expect(dialog()).toBeNull();
+
+  button("Show what your admin needs").click();
+  await settle();
+  expect(dialog()?.textContent).toContain("Your Google Workspace admin allows Frappe once");
+  expect(dialog()?.textContent).toContain("gid");
 });

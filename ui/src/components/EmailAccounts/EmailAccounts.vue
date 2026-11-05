@@ -3,6 +3,7 @@
 		v-if="view === 'add'"
 		:controller="controller"
 		:providers="providers"
+		:gmail="gmail"
 		@back="backToList('')"
 		@created="onCreated"
 		@dirty="(value) => (dirty = value)"
@@ -22,6 +23,7 @@
 		:controller="controller"
 		:focus="returnFocus"
 		@add="view = 'add'"
+		@gmail="(email) => openGmail({ email })"
 		@open="(name) => (editing = controller.accounts.find((a) => a.name === name))"
 	/>
 </template>
@@ -60,6 +62,19 @@ const mailbox = controller.signIn?.mailbox ?? null;
 const provider = controller.signIn?.provider ?? null;
 
 const view = ref<"list" | "add">("list");
+const gmail = shallowRef<{ email: string; wrongMailbox?: boolean }>();
+function openGmail(start: { email: string; wrongMailbox?: boolean }) {
+	oauthResult.value = null;
+	gmail.value = start;
+	view.value = "add";
+}
+if (
+	oauthResult.value === "wrong_mailbox" &&
+	provider === "google" &&
+	mailbox &&
+	controller.signIn?.started
+)
+	openGmail({ email: mailbox, wrongMailbox: true });
 const editing = shallowRef<EmailAccount>();
 watch(
 	() => controller.accounts,
@@ -73,6 +88,7 @@ const returnFocus = ref<string>();
 function backToList(focus: string) {
 	returnFocus.value = focus;
 	dirty.value = false;
+	gmail.value = undefined;
 	view.value = "list";
 	editing.value = undefined;
 }

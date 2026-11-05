@@ -160,7 +160,7 @@ describe("validate", () => {
     });
     expect(validate(service("GMail"), form({ password: "" }))).toEqual({
       field: "password",
-      message: "Password is required",
+      message: "App password is required",
     });
     expect(
       validate(
@@ -261,7 +261,7 @@ describe("reconnectable", () => {
     expect(reconnectable({ ...outlook, authKind: "oauth" }, {})).toBe(false);
     expect(reconnectable({ ...outlook, authKind: "oauth-custom" }, {})).toBe(true);
 
-    const oneClick = { "Outlook.com": "Outlook" };
+    const oneClick = { "Outlook.com": { label: "Outlook", client_id: null } };
     expect(reconnectable({ ...outlook, authKind: "oauth" }, oneClick)).toBe(true);
     expect(reconnectable({ service: "GMail", authKind: "oauth" }, oneClick)).toBe(false);
     expect(reconnectable({ ...outlook, authKind: "password" }, oneClick)).toBe(false);
@@ -300,7 +300,7 @@ describe("oauthMessage", () => {
       "Your Microsoft 365 admin must approve Frappe first.",
     );
     expect(oauthMessage("admin_approval", "google")).toContain(
-      "Google Workspace admin has blocked Frappe",
+      "Google Workspace admin hasn't allowed Frappe yet",
     );
     expect(oauthMessage("imap_disabled", "yandex")).toContain(
       "Yandex Mail settings",

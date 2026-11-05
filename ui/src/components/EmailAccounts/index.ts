@@ -5,5 +5,6 @@ export type {
   AuthKind,
   EmailAccount,
   EmailAccountsController,
+  OneClickService,
   SignInReturn,
 } from "./types";

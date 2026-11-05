@@ -45,7 +45,7 @@ const FIELDS = [
 ];
 
 /**
- * The services this site signs in in one click now, with their labels; empty off Frappe Cloud V2.
+ * The services this site signs in in one click now, as `OneClickService`s; empty off Frappe Cloud V2.
  * Every caller shares one resource, refetched on each call.
  */
 export function useOneClick() {
@@ -194,8 +194,8 @@ export function useEmailAccounts(doctype: string): EmailAccountsController {
       await load();
     },
 
-    async connect(service) {
-      const url = await initiate({ service });
+    async connect(service, email) {
+      const url = await initiate({ service, ...(email && { email }) });
       if (!url) return false;
       markSignInStarted();
       window.location.assign(url);
@@ -232,6 +232,7 @@ export function useEmailAccounts(doctype: string): EmailAccountsController {
   });
 
   const started = Boolean(controller.signIn) && takeSignInStarted();
+  if (controller.signIn) controller.signIn.started = started;
   if (controller.signIn?.result === "connected") {
     const signIn = controller.signIn;
     const stop = watch(

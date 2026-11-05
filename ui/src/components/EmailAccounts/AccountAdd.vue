@@ -89,6 +89,14 @@
 				<ErrorMessage v-if="connectError" class="mt-3" :message="connectError" />
 			</template>
 		</ScrollArea>
+		<GmailConnect
+			v-model:open="gmailOpen"
+			:controller="controller"
+			:client-id="oneClick.data?.GMail?.client_id"
+			:initial-email="gmailStart?.email"
+			:wrong-mailbox="gmailStart?.wrongMailbox"
+			@manual="setUpGmail"
+		/>
 	</div>
 </template>
 
@@ -99,11 +107,17 @@ import { translate as __ } from "../../utils/translate";
 import AccountFields from "./AccountFields.vue";
 import BackHeader from "./BackHeader.vue";
 import Banner from "./Banner.vue";
+import GmailConnect from "./GmailConnect.vue";
 import { emptyForm, errorText, services, validate } from "./services";
 import type { EmailAccountsController, EmailService, FieldError } from "./types";
 import { useOneClick } from "./useEmailAccounts";
 
-const props = defineProps<{ controller: EmailAccountsController; providers?: string[] }>();
+const props = defineProps<{
+	controller: EmailAccountsController;
+	providers?: string[];
+	/** Opens on Gmail's Connect dialog with this address. */
+	gmail?: { email: string; wrongMailbox?: boolean };
+}>();
 const emit = defineEmits<{ back: []; created: [service: string]; dirty: [dirty: boolean] }>();
 
 const oneClick = useOneClick();
@@ -122,10 +136,17 @@ const dirty = computed(() => JSON.stringify(form.value) !== blank);
 watch(dirty, (value) => emit("dirty", value));
 const invalid = ref<FieldError>();
 const saving = ref(false);
+const gmailStart = shallowRef(props.gmail);
+const gmailOpen = ref(Boolean(props.gmail));
 
 async function choose(service: EmailService) {
 	connectError.value = null;
 	if (oneClick.loading) await oneClick.promise?.catch(() => {});
+	if (service.service === "GMail" && oneClick.data?.GMail) {
+		gmailStart.value = undefined;
+		gmailOpen.value = true;
+		return;
+	}
 	if (oneClick.data?.[service.service]) {
 		connecting.value = service;
 		try {
@@ -142,6 +163,14 @@ async function choose(service: EmailService) {
 		unavailable.value = true;
 	}
 	selected.value = service;
+	await nextTick();
+	header.value?.focus();
+}
+
+async function setUpGmail(email: string) {
+	gmailOpen.value = false;
+	selected.value = services.find((s) => s.service === "GMail")!;
+	form.value.email_id = email;
 	await nextTick();
 	header.value?.focus();
 }

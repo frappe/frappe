@@ -118,7 +118,16 @@ const answers: Record<string, (args: Args) => unknown> = {
 			if (a.name === name || value)
 				Object.assign(a, { [fieldname]: a.name === name ? value : 0 });
 	},
-	get_one_click_services: () => (cloud.value ? { "Outlook.com": "Outlook" } : {}),
+	get_one_click_services: () =>
+		cloud.value
+			? {
+					"Outlook.com": { label: "Outlook", client_id: null },
+					GMail: {
+						label: "Gmail",
+						client_id: "1234-example.apps.googleusercontent.com",
+					},
+			  }
+			: {},
 	initiate_mailbox_connect: (args) =>
 		args.email_account || args.service === "Outlook.com" ? "#" : null,
 	run_doc_method: () => "#",

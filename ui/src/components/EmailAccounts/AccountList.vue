@@ -44,6 +44,14 @@
 					<span class="lucide-arrow-up-right inline-block size-3" aria-hidden="true" />
 					<span class="sr-only">{{ __("(opens in new tab)") }}</span>
 				</a>
+				<button
+					v-if="adminSteps"
+					type="button"
+					class="text-ink-gray-8 underline"
+					@click="emit('gmail', oauthMailbox ?? '')"
+				>
+					{{ __("Show what your admin needs") }}
+				</button>
 			</template>
 		</Banner>
 		<div
@@ -290,11 +298,17 @@ const props = defineProps<{
 	/** The provider the sign-in went to, when it is known. */
 	oauthProvider?: string | null;
 }>();
-const emit = defineEmits<{ add: []; open: [name: string] }>();
+const emit = defineEmits<{ add: []; open: [name: string]; gmail: [email: string] }>();
 const oneClick = useOneClick();
 const oauthResult = defineModel<string | null>("oauthResult");
 const helpLink = computed(
 	() => oauthResult.value && oauthHelpLink(oauthResult.value, props.oauthProvider)
+);
+const adminSteps = computed(
+	() =>
+		oauthResult.value === "admin_approval" &&
+		props.oauthProvider === "google" &&
+		Boolean(oneClick.data?.GMail)
 );
 const ids = { heading: useId(), incoming: useId(), outgoing: useId(), mailboxes: useId() };
 
