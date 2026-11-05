@@ -53,8 +53,9 @@ const VALUE_FORMATTERS = {
 const TIME_FORMATS = () => [frappe.datetime.get_user_time_fmt(), frappe.defaultTimeFormat];
 
 export default class GridImport {
-	constructor(grid) {
+	constructor(grid, permission = "write") {
 		this.grid = grid;
+		this.permission = permission;
 	}
 
 	get_title() {
@@ -62,14 +63,14 @@ export default class GridImport {
 	}
 
 	get_docfields() {
-		const can_write = (df) => this.grid.frm.get_perm(cint(df.permlevel), "write");
+		const has_perm = (df) => this.grid.frm.get_perm(cint(df.permlevel), this.permission);
 		return (this.docfields ??= [
 			{ fieldname: ID_FIELDNAME, label: __("ID"), fieldtype: "Data" },
 			...frappe
 				.get_meta(this.grid.df.options)
 				.fields.filter(
 					(df) =>
-						frappe.model.is_value_type(df.fieldtype) && !df.is_virtual && can_write(df)
+						frappe.model.is_value_type(df.fieldtype) && !df.is_virtual && has_perm(df)
 				),
 		]);
 	}
@@ -862,11 +863,15 @@ export default class GridImport {
 		this.dialog.get_primary_btn().prop("disabled", !has_source && !this.state.rows.length);
 	}
 
-	open_template_exporter() {
+	open_row_exporter() {
+		this.open_template_exporter(null);
+	}
+
+	open_template_exporter(import_type = this.state.import_type) {
 		frappe.require("data_import_tools.bundle.js", () => {
 			new frappe.data_import.DataExporter(
 				this.grid.df.options,
-				this.state.import_type,
+				import_type,
 				"CSV",
 				false,
 				{ fields: this.get_docfields() },
