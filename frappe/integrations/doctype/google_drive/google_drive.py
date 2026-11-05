@@ -62,7 +62,7 @@ class GoogleDrive(Document):
 
 
 @frappe.whitelist(methods=["POST"])
-def authorize_access(reauthorize=False, code=None):
+def authorize_access(reauthorize: bool = False, code: str | None = None):
 	"""
 	If no Authorization code get it from Google and then request for Refresh Token.
 	Google Contact Name is set to flags to set_value after Authorization Code is obtained.
