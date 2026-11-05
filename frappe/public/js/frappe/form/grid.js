@@ -153,6 +153,11 @@ export default class Grid {
 						</div>
 						<div class="grid-bulk-actions text-right">
 							${frappe.ui.button.html({
+								label: __("Download"),
+								size: "sm",
+								css_class: "grid-download hidden",
+							})}
+							${frappe.ui.button.html({
 								label: __("Upload"),
 								size: "sm",
 								css_class: "grid-upload hidden",
@@ -836,6 +841,7 @@ export default class Grid {
 		this.wrapper
 			.find(".grid-add-row, .grid-add-multiple-rows, .grid-upload")
 			.toggleClass("d-none", !is_editable);
+		this.wrapper.find(".grid-download").toggleClass("d-none", is_editable);
 	}
 
 	setup_fields() {
@@ -1604,15 +1610,24 @@ export default class Grid {
 	setup_allow_bulk_edit() {
 		if (!this.frm || !this.frm.get_docfield(this.df.fieldname)?.allow_bulk_edit) return;
 
+		this.setup_bulk_edit_button(".grid-upload", () =>
+			new frappe.ui.form.GridImport(this).show()
+		);
+		this.setup_bulk_edit_button(".grid-download", () =>
+			new frappe.ui.form.GridImport(this, "read").open_row_exporter()
+		);
+	}
+
+	setup_bulk_edit_button(selector, open) {
 		$(this.wrapper)
-			.find(".grid-upload")
+			.find(selector)
 			.removeClass("hidden")
 			.on("click", () => {
 				if (this.opening_import) return false;
 				this.opening_import = true;
 				frappe.require("grid_import.bundle.js", () => {
 					this.opening_import = false;
-					new frappe.ui.form.GridImport(this).show();
+					open();
 				});
 				return false;
 			});
