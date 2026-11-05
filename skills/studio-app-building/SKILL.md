@@ -24,9 +24,9 @@ file copy.
 | Database | `Studio App File` records in the site database | The browser | Edit and preview in Studio, on any site |
 | Repository (`is_standard`) | Exported files under a linked Frappe app | Vite | Edit files, run `watch-studio`, check `/dev/<app_route>` |
 
-A database app can import `vue`, `vue-router`, `pinia`, `@vueuse/core`,
-`frappe-ui`, `frappe-ui/list`, `frappe-ui/charts` and its own files — there is
-no npm. Needing anything else is the signal to export the app to a repository.
+A database app can import `vue`, `vue-router`, `pinia`, `frappe-ui`,
+`frappe-ui/list`, `frappe-ui/charts` and its own files — there is no npm.
+Needing anything else is the signal to export the app to a repository.
 
 ## Establish the app
 
