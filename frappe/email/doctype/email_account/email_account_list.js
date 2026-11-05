@@ -226,7 +226,7 @@ function add_email_account_dialog() {
 				fieldname: "gmail_address",
 				label: __("Email Address"),
 				options: "Email",
-				description: __("The Gmail or Google Workspace address you're connecting."),
+				description: __("The Gmail or Google Workspace email ID you're connecting."),
 				hidden: 1,
 			},
 			{ fieldtype: "HTML", fieldname: "gmail_steps", hidden: 1 },

@@ -1,13 +1,11 @@
 <template>
 	<Dialog v-model:open="open" :title="__('Connect Gmail')" size="lg">
 		<form :id="formId" class="flex flex-col gap-4" novalidate @submit.prevent="submit">
-			<p class="text-p-base text-ink-gray-7">
+			<p v-if="kind === 'company' && !unavailable" class="text-p-base text-ink-gray-7">
 				{{
-					kind === "company" && !unavailable
-						? __(
-								"Sign in with Google to connect this mailbox. Frappe never sees your password."
-						  )
-						: __("Enter the address you want to connect.")
+					__(
+						"Sign in with Google to connect this mailbox. Frappe never sees your password."
+					)
 				}}
 			</p>
 			<Banner
@@ -31,7 +29,7 @@
 				type="email"
 				:label="__('Email address')"
 				placeholder="support@example.com"
-				:description="__('The Gmail or Google Workspace address you\'re connecting.')"
+				:description="__('The Gmail or Google Workspace email ID you\'re connecting.')"
 				autofocus
 				@blur="checked = email.trim()"
 			/>
