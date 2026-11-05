@@ -366,12 +366,23 @@ class TestWebsite(FrappeTestCase):
 	def test_safe_render(self):
 		content = get_response_content("/_test/_test_safe_render_on")
 		self.assertNotIn("Safe Render On", content)
-		self.assertIn("frappe.exceptions.ValidationError: Illegal template", content)
+		self.assertIn("Show Error", content)
 
 		content = get_response_content("/_test/_test_safe_render_off")
 		self.assertIn("Safe Render Off", content)
 		self.assertIn("test.__test", content)
-		self.assertNotIn("frappe.exceptions.ValidationError: Illegal template", content)
+		self.assertNotIn("Show Error", content)
+
+	@change_settings("System Settings", {"allow_error_traceback": 1})
+	def test_error_traceback_only_for_system_users(self):
+		traceback = "frappe.exceptions.ValidationError: Illegal template"
+
+		content = get_response_content("/_test/_test_safe_render_on")
+		self.assertNotIn(traceback, content)
+
+		frappe.set_user("Administrator")
+		content = get_response_content("/_test/_test_safe_render_on")
+		self.assertIn(traceback, content)
 
 	def test_never_render(self):
 		from pathlib import Path
