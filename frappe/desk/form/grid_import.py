@@ -249,8 +249,9 @@ def parse_datetime(value: str, formats) -> datetime.datetime | str:
 
 
 def check_permission(doctype: str, ptype: str, docname: str | None = None):
-	doc = docname if docname and frappe.db.exists(doctype, docname) else None
-	if not frappe.has_permission(doctype, ptype, doc=doc):
+	if docname and not frappe.db.exists(doctype, docname):
+		ptype, docname = "create", None
+	if not frappe.has_permission(doctype, ptype, doc=docname):
 		raise frappe.PermissionError
 
 

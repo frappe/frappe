@@ -281,9 +281,11 @@ class TestGridImport(IntegrationTestCase):
 			with self.subTest(url=url), self.assertRaises(frappe.ValidationError):
 				parse_google_sheet("Contact", url, docname=self.contact)
 
-	def test_owner_can_import_into_their_own_document_only(self):
+	def test_owner_can_import_into_their_own_or_a_new_document_only(self):
 		headers = json.dumps(["Number (phone)"])
-		self.assertEqual(get_column_map("Contact", "phone_nos", headers, docname=self.contact), {0: "phone"})
+		for docname in (self.contact, "new-contact-1"):
+			with self.subTest(docname=docname):
+				self.assertEqual(get_column_map("Contact", "phone_nos", headers, docname=docname), {0: "phone"})
 
 		for docname in (self.other_contact, None):
 			with self.subTest(docname=docname), self.assertRaises(frappe.PermissionError):
