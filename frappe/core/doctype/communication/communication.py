@@ -93,7 +93,7 @@ class Communication(Document, CommunicationEmailMixin):
 		subject: DF.SmallText
 		text_content: DF.Code | None
 		timeline_links: DF.Table[CommunicationLink]
-		uid: DF.Int
+		uid: DF.LongInt
 		unread_notification_sent: DF.Check
 		user: DF.Link | None
 	# end: auto-generated types

@@ -40,7 +40,7 @@
   },
   {
    "fieldname": "sync_from_uid",
-   "fieldtype": "Int",
+   "fieldtype": "Long Int",
    "hidden": 1,
    "label": "Sync From UID"
   }
@@ -48,7 +48,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-09-15 00:21:41.486093",
+ "modified": "2026-11-05 01:20:00.000000",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "IMAP Folder",
