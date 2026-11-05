@@ -38,10 +38,10 @@ frappe.ui.form.on("Print Settings", {
 				message,
 				indicator: "orange",
 				body: $('<div class="next-action-container"></div>').append(
-					action(__("View Formats"), () =>
+					action(__("View"), () =>
 						frappe.set_route("List", "Print Format", { pdf_generator: "wkhtmltopdf" })
 					),
-					action(__("Use {0}", [generator]), () =>
+					action(__("Switch All"), () =>
 						frappe.confirm(__("Switch {0} to {1}?", [formats(count), generator]), () =>
 							frappe
 								.xcall(
