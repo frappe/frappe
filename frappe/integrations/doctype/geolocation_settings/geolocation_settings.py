@@ -28,7 +28,22 @@ class GeolocationSettings(Document):
 		provider: DF.Literal["Geoapify", "Nomatim", "HERE"]
 	# end: auto-generated types
 
-	pass
+	def validate(self):
+		if not self.enable_address_autocompletion:
+			return
+
+		required = ["provider"]
+		if self.provider in ("Geoapify", "HERE"):
+			required.append("api_key")
+		elif self.provider == "Nomatim":
+			required.append("base_url")
+
+		for fieldname in required:
+			if not self.get(fieldname):
+				frappe.throw(
+					_("{0} is required").format(frappe.bold(_(self.meta.get_label(fieldname)))),
+					frappe.MandatoryError,
+				)
 
 
 @frappe.whitelist()
