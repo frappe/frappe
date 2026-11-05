@@ -6,7 +6,7 @@ import json
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import get_email_address
+from frappe.utils import get_email_addresses
 from frappe.utils.verified_command import get_signed_params
 
 
@@ -80,7 +80,7 @@ class PersonalDataDownloadRequest(Document):
 		)
 		host_name = frappe.local.site
 		frappe.sendmail(
-			recipients=get_email_address(self.user),
+			recipients=get_email_addresses([self.user]),
 			subject=_("Download Your Data"),
 			template="download_data",
 			args={

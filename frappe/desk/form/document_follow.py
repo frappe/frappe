@@ -114,10 +114,10 @@ def get_message(doc_name, doctype, frequency, user):
 
 
 def send_email_alert(receiver, docinfo, timeline):
-	if receiver and receiver not in frappe.STANDARD_USERS:
+	if receiver:
 		frappe.sendmail(
 			subject=_("Document Follow Notification"),
-			recipients=[frappe.utils.get_email_address(receiver)],
+			recipients=frappe.utils.get_email_addresses([receiver]),
 			template="document_follow",
 			args={
 				"docinfo": docinfo,

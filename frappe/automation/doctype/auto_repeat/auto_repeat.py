@@ -18,7 +18,7 @@ from frappe.model.document import Document
 from frappe.utils import (
 	add_days,
 	date_diff,
-	get_email_address,
+	get_email_addresses,
 	getdate,
 	month_diff,
 	split_emails,
@@ -488,10 +488,7 @@ class AutoRepeat(Document):
 		frappe.db.set_value("Auto Repeat", self.name, "disabled", 1)
 
 	def notify_error_to_user(self, error_log):
-		recipients = get_system_managers()
-
-		if self.owner not in frappe.STANDARD_USERS:
-			recipients.append(get_email_address(self.owner))
+		recipients = get_email_addresses([*get_system_managers(only_name=True), self.owner])
 
 		subject = _("Auto Repeat Document Creation Failed")
 

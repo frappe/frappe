@@ -256,10 +256,8 @@ class SendNotification(AutomationAction):
 		if params.get("channel") == "System":
 			return self._notify_system(doc, recipients, subject, message)
 
-		emails = get_email_addresses(set(recipients) - set(frappe.STANDARD_USERS))
-
 		frappe.sendmail(
-			recipients=[emails.get(user) or user for user in recipients],
+			recipients=get_email_addresses(recipients),
 			subject=subject,
 			message=message,
 			reference_doctype=doc.doctype if doc else None,

@@ -979,8 +979,7 @@ def get_assignees(doc):
 		fields=["allocated_to"],
 	)
 
-	users = [d.allocated_to for d in assignees if d.allocated_to not in frappe.STANDARD_USERS]
-	return list(get_email_addresses(users).values())
+	return get_email_addresses([d.allocated_to for d in assignees])
 
 
 def get_receiver_email(doc, fieldname):

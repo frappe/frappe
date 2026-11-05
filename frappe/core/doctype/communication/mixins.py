@@ -8,7 +8,6 @@ from frappe.desk.doctype.todo.todo import ToDo
 from frappe.email.doctype.email_account.email_account import EmailAccount
 from frappe.utils import (
 	cstr,
-	get_email_address,
 	get_email_addresses,
 	get_formatted_email,
 	get_url,
@@ -41,8 +40,7 @@ class CommunicationEmailMixin:
 		if notification_email:
 			return notification_email
 
-		if parent_doc.owner not in frappe.STANDARD_USERS:
-			return get_email_address(parent_doc.owner)
+		return get_email_addresses([parent_doc.owner])[0]
 
 	def get_all_email_addresses(self, exclude_displayname=False):
 		"""Get all Email addresses mentioned in the doc along with display name."""
@@ -105,12 +103,12 @@ class CommunicationEmailMixin:
 			if notification_recipient := self.get_notification_recipient():
 				cc.append(notification_recipient)
 			cc = set(cc) - {self.sender_mailid}
-			assignees = set(self.get_assignees()) - set(frappe.STANDARD_USERS)
+			assignees = set(self.get_assignees())
 			# Check and remove If user disabled notifications for incoming emails on assigned document.
 			for assignee in assignees.copy():
 				if not is_email_enabled_for_feature(assignee, "enable_email_threads_on_assigned_document"):
 					assignees.remove(assignee)
-			cc.update(set(get_email_addresses(assignees).values()) - {self.sender_mailid})
+			cc.update(set(get_email_addresses(assignees)) - {self.sender_mailid})
 
 		cc = set(cc) - set(self.filter_thread_notification_disbled_users(cc))
 		cc = cc - set(self.mail_recipients(is_inbound_mail_communcation=is_inbound_mail_communcation))
