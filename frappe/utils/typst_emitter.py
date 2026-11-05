@@ -411,12 +411,13 @@ def typst_escape(value):
 def render_typst_template(markup: str, context: dict) -> str:
 	"""Jinja for Typst blocks — every interpolated value is escaped so document
 	content crosses as text, never as Typst code; the markup around it stays raw."""
-	from frappe.utils.jinja import get_jenv
+	from frappe.utils.jinja import get_jenv, safe_render_flags
 
 	env = get_jenv().overlay(finalize=typst_escape, autoescape=False)
 	env.filters = env.filters.copy()
 	env.filters["typst_raw"] = TypstRaw
-	return env.from_string(markup).render(context)
+	with safe_render_flags():
+		return env.from_string(markup).render(context)
 
 
 def has_jinja(markup: str) -> bool:
