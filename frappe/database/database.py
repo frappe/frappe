@@ -3,6 +3,7 @@
 
 import itertools
 import json
+import logging
 import random
 import re
 import string
@@ -130,7 +131,9 @@ class Database:
 
 		self.value_cache = recursive_defaultdict()
 		self.logger = frappe.logger("database")
-		self.logger.setLevel("WARNING")
+		# setLevel clears the level cache of all loggers, even when the level does not change.
+		if self.logger.level != logging.WARNING:
+			self.logger.setLevel(logging.WARNING)
 
 		self.before_commit = CallbackManager()
 		self.after_commit = CallbackManager()
