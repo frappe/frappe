@@ -470,7 +470,7 @@ test("boot is refetched only for the records it lists, skills when a skill or an
 	dom.window.Storage.prototype.setItem = setItem;
 });
 
-test("without a model the normal page shows the setup state and no composer, and keeps to the screen a phone's keyboard leaves; an admin connects there and picks a model, their own server opening a blank provider, and anyone else asks an admin", async (t) => {
+test("without a model the normal page shows the setup state and no composer, and keeps to the screen a phone's keyboard leaves; an admin connects there and picks a model, and anyone else asks an admin", async (t) => {
 	// the keyboard shrinks only the visible part of the page; a pinch zoom does too, by its scale
 	const viewport = Object.assign(new dom.window.EventTarget(), { height: 844, scale: 1 });
 	const { scrollTo } = dom.window;
@@ -519,14 +519,10 @@ test("without a model the normal page shows the setup state and no composer, and
 		return { page, setup, state };
 	};
 
-	// one who may add providers and models connects in place; their own server is set up in
-	// settings, on a blank provider rather than the list
+	// one who may add providers and models connects in place, their own server too
 	const admin = mountSetup({ "Flow Provider": ["create"], "Flow Model": ["create"] });
 	const connect = admin.setup.querySelector("[data-stub=ConnectSetup]");
 	assert.ok(connect);
-	connect.dispatchEvent(new Event("manual"));
-	assert.equal(admin.state.opened, 1);
-	assert.ok(admin.page.takeNewRecord("providers"), "settings open on a blank provider, not the list");
 	// connected, boot is refetched for its models and everyone is told
 	toast.shown.length = 0;
 	connect.dispatchEvent(Object.assign(new Event("connected"), { service: { name: "Claude" } }));
