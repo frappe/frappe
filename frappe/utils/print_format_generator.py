@@ -1121,15 +1121,7 @@ class PrintFormatGenerator:
 		self.filter_conditional_rows(df)
 
 	def set_field_renderers(self, layout):
-<<<<<<< HEAD
-		eval_locals = {"doc": self.doc, "print_settings": self.print_settings}
-=======
 		eval_locals = condition_locals(self.doc, self.print_settings)
-		self.jinja_context = {
-			**global_variables_context(layout.get("global_variables"), self.doc),
-			"doc": self.doc,
-		}
->>>>>>> 6cc9f81 (fix(print): evaluate conditions against document values)
 		for section in layout["sections"]:
 			if section.get("visible_if"):
 				section["_hidden"] = not self.eval_condition(
