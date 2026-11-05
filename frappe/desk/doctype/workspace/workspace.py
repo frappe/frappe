@@ -84,6 +84,7 @@ class Workspace(Document, DeskViews):
 
 	def validate(self):
 		self.title = strip_html(self.title)
+		self.validate_links()
 
 		# `with_module` marks a page a module brought with it rather than one a user published. A
 		# module added on the site creates the page it opens on (`ModuleDef.after_insert`), and
@@ -133,6 +134,20 @@ class Workspace(Document, DeskViews):
 		self.validate_duplicate_widget_labels()
 		self.validate_shared_page_has_a_module()
 		self.validate_private_page_is_yours()
+
+	def validate_links(self):
+		for link in self.links:
+			if link.type != "Link":
+				continue
+
+			for fieldname in ("link_type", "link_to"):
+				if not link.get(fieldname):
+					frappe.throw(
+						_("Row #{0}: {1} is required").format(
+							link.idx, frappe.bold(_(link.meta.get_label(fieldname)))
+						),
+						frappe.MandatoryError,
+					)
 
 	def validate_private_page_is_yours(self):
 		"""A private page belongs to the person named in `for_user`, and only they may write one.
