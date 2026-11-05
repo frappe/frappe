@@ -786,8 +786,8 @@ def new_page(new_page: dict):
 	doc.icon = page.get("icon") or "grid"
 	doc.content = page.get("content")
 	doc.parent_page = page.get("parent_page")
-	doc.label = page.get("label")
 	doc.for_user = page.get("for_user")
+	doc.label = f"{doc.title}-{doc.for_user}" if doc.for_user else doc.title
 	doc.public = page.get("public")
 	for role in page.get("roles") or []:
 		if role.get("role"):
