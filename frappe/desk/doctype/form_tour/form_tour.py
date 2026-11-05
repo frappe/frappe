@@ -52,7 +52,9 @@ class FormTour(Document):
 				self.module = frappe.db.get_value("DocType", dashboard_doctype, "module")
 			else:
 				self.module = "Desk"
-		if not self.ui_tour:
+		if self.ui_tour:
+			self.page_route = json.dumps(self.get_page_route())
+		else:
 			meta = frappe.get_meta(self.reference_doctype)
 			for step in self.steps:
 				if step.is_table_field and step.parent_fieldname:
@@ -65,6 +67,57 @@ class FormTour(Document):
 					field_df = meta.get_field(step.fieldname)
 					step.label = field_df.label
 					step.fieldtype = field_df.fieldtype
+
+	def get_page_route(self):
+		view = self.view_name
+		if view != "Form":
+			self.new_document_form = 0
+		if view != "Workspaces":
+			self.workspace_name = ""
+		if view != "List":
+			self.list_name = ""
+		if view != "Page":
+			self.page_name = ""
+		if view != "List" or self.list_name != "Report":
+			self.report_name = ""
+		if view != "List" or self.list_name != "Dashboard":
+			self.dashboard_name = ""
+		if view in ("Workspaces", "Page"):
+			self.reference_doctype = ""
+
+		if view == "Workspaces":
+			if not self.workspace_name:
+				return [view, "*"]
+			if not frappe.db.get_value("Workspace", self.workspace_name, "public"):
+				return [view, "private", self.workspace_name]
+			return [view, self.workspace_name]
+
+		if view == "List":
+			if self.list_name == "File":
+				return ["List", "File"]
+			if self.reference_doctype:
+				return [view, self.reference_doctype, self.list_name]
+			if self.list_name == "Dashboard":
+				return ["dashboard-view", self.dashboard_name or "*"]
+			return [view, "*", self.list_name]
+
+		if view == "Form":
+			if not self.reference_doctype:
+				return [view, "*", "new-*"] if self.new_document_form else [view, "*"]
+			if frappe.get_meta(self.reference_doctype).issingle:
+				return [view, self.reference_doctype, self.reference_doctype]
+			if self.new_document_form:
+				return [
+					view,
+					self.reference_doctype,
+					"new-" + self.reference_doctype.lower().replace(" ", "-"),
+				]
+			return [view, self.reference_doctype]
+
+		if view == "Page":
+			return [self.page_name]
+
+		return [view]
 
 	def on_update(self):
 		frappe.cache.delete_key("bootinfo")
