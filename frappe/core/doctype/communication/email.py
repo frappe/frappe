@@ -97,6 +97,9 @@ def make(
 	else:
 		frappe.has_permission("Communication", ptype="create", throw=True)
 
+	if cint(send_email) and not (recipients or cc or bcc):
+		frappe.throw(_("Enter Email Recipient(s) in the To, CC, or BCC fields"))
+
 	if letterhead:
 		frappe.has_permission("Letter Head", doc=letterhead, ptype="read", throw=True)
 
