@@ -160,6 +160,27 @@ class TestEmailAccount(IntegrationTestCase):
 			"This is an e-mail message sent automatically by Microsoft Outlook while" in comm.content
 		)
 
+	def test_imap_uids_above_int_range(self):
+		uid = 3_000_000_000  # IMAP UIDs are 32-bit unsigned, above the signed Int range
+		frappe.db.set_value("Email Account", "_Test Email Account 1", "uidnext", uid)
+
+		account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		folder = account.append("imap_folder", {"folder_name": "INBOX", "append_to": "ToDo"})
+		folder.sync_from_uid = uid
+		account.save()
+		self.assertEqual(frappe.db.get_value("IMAP Folder", folder.name, "sync_from_uid"), uid)
+
+		comm = frappe.get_doc(
+			{
+				"doctype": "Communication",
+				"communication_type": "Communication",
+				"sent_or_received": "Received",
+				"subject": "uid above int range",
+				"uid": uid,
+			}
+		).insert()
+		self.assertEqual(frappe.db.get_value("Communication", comm.name, "uid"), uid)
+
 	def test_outgoing(self):
 		comm_name = make(
 			subject="test-mail-000",
