@@ -159,6 +159,52 @@ test.describe("List View", () => {
 		await api.remove_doc("Web Page", "impressum");
 	});
 
+	test("keeps the selection after a bulk edit", async ({ page, desk, api }) => {
+		await desk.go_to_list("ToDo");
+		await desk.clear_filters();
+
+		const rows = page.locator(".list-row-checkbox");
+		await rows.nth(0).click();
+		await rows.nth(1).click();
+		const selected = await page.evaluate(() => Array.from(cur_list.checked_docnames));
+		const priorities = await Promise.all(
+			selected.map(async (name) => [name, (await api.get_doc("ToDo", name)).data.priority])
+		);
+
+		try {
+			await desk.click_action_button("Edit");
+			await page.waitForFunction(() => cur_dialog?.display);
+			await page.evaluate(async () => {
+				await cur_dialog.set_value("field", "Priority (ToDo)");
+				await cur_dialog.set_value("value", "High");
+			});
+			await desk.click_modal_primary_button("Update 2 records");
+			await expect(page.locator(".modal:visible")).toHaveCount(0);
+
+			await expect
+				.poll(() => page.evaluate(() => Array.from(cur_list.checked_docnames).sort()))
+				.toEqual(selected.sort());
+			await expect(page.locator(".list-row-checkbox:checked")).toHaveCount(2);
+		} finally {
+			for (const [name, priority] of priorities) {
+				await api.update_doc("ToDo", name, { priority });
+			}
+		}
+	});
+
+	test("clears a partial selection from the header checkbox", async ({ page, desk }) => {
+		await desk.go_to_list("ToDo");
+		await desk.clear_filters();
+
+		await page.locator(".list-row-checkbox").first().click();
+		const header_check = page.locator(".checkbox-actions .list-check-all");
+		await expect.poll(() => header_check.evaluate((el) => el.indeterminate)).toBe(true);
+
+		await header_check.click();
+		await expect.poll(() => page.evaluate(() => cur_list.checked_docnames.size)).toBe(0);
+		await expect(page.locator(".list-row-checkbox:checked")).toHaveCount(0);
+	});
+
 	test("keeps selected rows checked after a list rerender", async ({ page, desk }) => {
 		await desk.go_to_list("ToDo");
 		await desk.clear_filters();
