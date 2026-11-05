@@ -146,7 +146,7 @@ class Event(Document):
 				],
 				pluck="name",
 			):
-				frappe.delete_doc("Communication", communication, force=True)
+				frappe.delete_doc("Communication", communication, force=True, ignore_permissions=True)
 
 	def on_trash(self):
 		communications = frappe.get_all(
