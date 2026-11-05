@@ -136,15 +136,26 @@ class Workspace(Document, DeskViews):
 		self.validate_private_page_is_yours()
 
 	def validate_links(self):
-		for link in self.links:
-			if link.type != "Link":
-				continue
+		for fieldname in {"Link": ("link_type", "link_to"), "URL": ("external_link",)}.get(self.type, ()):
+			if not self.get(fieldname):
+				frappe.throw(
+					_("{0} is required").format(frappe.bold(_(self.meta.get_label(fieldname)))),
+					frappe.MandatoryError,
+				)
 
-			for fieldname in ("link_type", "link_to"):
-				if not link.get(fieldname):
+		rows = [(link, ("link_type", "link_to")) for link in self.links if link.type == "Link"]
+		for shortcut in self.shortcuts:
+			fieldnames = ["url" if shortcut.type == "URL" else "link_to"]
+			if shortcut.doc_view == "Kanban":
+				fieldnames.append("kanban_board")
+			rows.append((shortcut, fieldnames))
+
+		for row, fieldnames in rows:
+			for fieldname in fieldnames:
+				if not row.get(fieldname):
 					frappe.throw(
 						_("Row #{0}: {1} is required").format(
-							link.idx, frappe.bold(_(link.meta.get_label(fieldname)))
+							row.idx, frappe.bold(_(row.meta.get_label(fieldname)))
 						),
 						frappe.MandatoryError,
 					)
@@ -1175,6 +1186,9 @@ def update_workspace_settings(
 			_("You need the Workspace Manager role to edit this workspace."),
 			frappe.PermissionError,
 		)
+
+	if access not in ("private", "group", "public"):
+		frappe.throw(_("Access must be one of private, group or public"))
 
 	role_list = frappe.parse_json(roles) if isinstance(roles, str) else (roles or [])
 	# a row may be a `{role: ...}` dict (from the dialog grid) or a bare role name
