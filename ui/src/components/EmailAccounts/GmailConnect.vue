@@ -1,13 +1,6 @@
 <template>
 	<Dialog v-model:open="open" :title="__('Connect Gmail')" size="lg">
 		<form :id="formId" class="flex flex-col gap-4" novalidate @submit.prevent="submit">
-			<p v-if="kind === 'company' && !unavailable" class="text-p-base text-ink-gray-7">
-				{{
-					__(
-						"Sign in with Google to connect this mailbox. Frappe never sees your password."
-					)
-				}}
-			</p>
 			<Banner
 				v-if="unavailable"
 				:title="__('Google sign-in isn\'t available right now')"
