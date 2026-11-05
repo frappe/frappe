@@ -68,8 +68,7 @@
 						<p class="text-p-base text-ink-gray-6">
 							{{
 								__(
-									"{0} is a company domain. Skip this if your admin has already done it.",
-									[domain]
+									"Follow these steps to continue. Skip this if your admin has already done it."
 								)
 							}}
 						</p>
@@ -234,7 +233,6 @@ function kindOf(value: string) {
 	return /@(gmail|googlemail)\.com$/i.test(address) ? "personal" : "company";
 }
 const kind = computed(() => kindOf(checked.value));
-const domain = computed(() => checked.value.split("@")[1]);
 
 const stepItems = computed(() => [
 	{

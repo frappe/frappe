@@ -194,9 +194,7 @@ function add_email_account_dialog() {
 		const company = gmail_kind(email) === "company";
 		d.set_df_property("gmail_steps", "hidden", company ? 0 : 1);
 		if (company) {
-			d.fields_dict.gmail_steps.$wrapper.html(
-				gmail_admin_steps(email.split("@")[1], one_click.GMail.client_id)
-			);
+			d.fields_dict.gmail_steps.$wrapper.html(gmail_admin_steps(one_click.GMail.client_id));
 		}
 		// rebuilding the buttons mid-click (blur fires on mousedown) would swallow that click
 		if (company !== gmail_company) {
@@ -285,7 +283,7 @@ function add_email_account_dialog() {
 const SIGN_IN_STARTED = "email_oauth_sign_in_started";
 const GOOGLE_ADMIN_CONSOLE = "https://admin.google.com/ac/owl/list?tab=configuredApps";
 
-function gmail_admin_steps(domain, client_id) {
+function gmail_admin_steps(client_id) {
 	const esc = frappe.utils.escape_html;
 	const steps = [
 		[
@@ -331,9 +329,9 @@ function gmail_admin_steps(domain, client_id) {
 					__("Your Google Workspace admin allows Frappe once")
 				)}</div>
 				<p class="text-muted">${esc(
-					__("{0} is a company domain. Skip this if your admin has already done it.", [
-						domain,
-					])
+					__(
+						"Follow these steps to continue. Skip this if your admin has already done it."
+					)
 				)}</p>
 			</div>
 			${frappe.ui.button.html({
