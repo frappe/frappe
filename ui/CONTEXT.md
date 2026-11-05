@@ -150,3 +150,4 @@ _Avoid_: re-authorize (Desk's name for a custom app's flow).
 **Default incoming / Default outgoing**:
 The one account replies come into and the one account mail is sent from, picked once for
 the whole list rather than on each account.
+Turning off a direction on the default account asks first, as nothing is then the default for it.

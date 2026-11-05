@@ -220,3 +220,21 @@ it("has nothing to save after retyping a saved port", async () => {
   await nextTick();
   expect(button("Save").disabled).toBe(true);
 });
+
+it("asks before saving with receiving off on the default incoming account", async () => {
+  update.mockResolvedValue(undefined);
+  mount({ default_incoming: 1 });
+  // Receive email is the form's first switch
+  root.querySelector<HTMLButtonElement>('[role="switch"]')!.click();
+  await nextTick();
+
+  root.querySelector("form")!.dispatchEvent(new Event("submit"));
+  await nextTick();
+  expect(confirm.mock.calls[0][0]).toMatchObject({
+    message: "Support is the default incoming account. Turn this off and you won't be able to receive email.",
+  });
+  expect(update).not.toHaveBeenCalled();
+
+  confirm.mock.calls[0][0].onConfirm({ close: vi.fn() });
+  expect(update).toHaveBeenCalledWith(expect.objectContaining({ name: "Support" }), { enable_incoming: 0 }, undefined);
+});

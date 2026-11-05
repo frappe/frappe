@@ -88,7 +88,7 @@ import { translate as __ } from "../../utils/translate";
 import AccountFields from "./AccountFields.vue";
 import BackHeader from "./BackHeader.vue";
 import Banner from "./Banner.vue";
-import { confirmDiscard } from "./confirmDiscard";
+import { confirmDefaultsOff, confirmDiscard } from "./confirmDiscard";
 import {
 	credentials,
 	deskUrl,
@@ -133,6 +133,10 @@ async function save() {
 	);
 	if (invalid.value) return;
 	const focused = document.activeElement as HTMLElement | null;
+	confirmDefaultsOff(props.account, changes.value, () => persist(focused));
+}
+
+async function persist(focused: HTMLElement | null) {
 	saving.value = true;
 	const newName = renamed.value ? form.value.email_account_name : undefined;
 	try {

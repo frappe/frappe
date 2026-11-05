@@ -4,9 +4,11 @@ import { createApp, reactive } from "vue";
 import type { App } from "vue";
 import AccountList from "../AccountList.vue";
 
+const { confirm } = vi.hoisted(() => ({ confirm: vi.fn() }));
 vi.mock("frappe-ui", async (importOriginal) => ({
   ...(await importOriginal<typeof import("frappe-ui")>()),
   toast: { success: vi.fn(), error: vi.fn() },
+  dialog: { confirm },
 }));
 const oneClick = vi.hoisted(() => ({ services: {} as Record<string, string> }));
 vi.mock("../useEmailAccounts", () => ({
@@ -97,6 +99,32 @@ it("turns a direction on from its card's toggle, holding the whole card until it
   saved();
   await new Promise((resolve) => setTimeout(resolve));
   expect([card().getAttribute("aria-busy"), ...locked()]).toEqual(["false", false, false, false]);
+});
+
+it("asks before turning off sending on the default outgoing account, and saves only if confirmed", async () => {
+  const update = vi.fn().mockResolvedValue(undefined);
+  remount({ update });
+  const send = () => root.querySelectorAll("li")[0].querySelectorAll<HTMLButtonElement>('[role="switch"]')[1];
+  send().click();
+  await new Promise((resolve) => setTimeout(resolve));
+  expect(confirm.mock.calls[0][0]).toMatchObject({
+    title: "Turn off the default account?",
+    message: "Sales is the default outgoing account. Turn this off and you won't be able to send email.",
+  });
+  expect(update).not.toHaveBeenCalled();
+  expect(send().getAttribute("aria-checked")).toBe("true");
+
+  confirm.mock.calls[0][0].onConfirm({ close: vi.fn() });
+  expect(update).toHaveBeenCalledWith(expect.objectContaining({ name: "Sales" }), { enable_outgoing: 0 });
+});
+
+it("turns sending off without asking on an account that isn't the default", async () => {
+  const update = vi.fn().mockResolvedValue(undefined);
+  remount({ update });
+  root.querySelectorAll("li")[1].querySelectorAll<HTMLButtonElement>('[role="switch"]')[1].click();
+  await new Promise((resolve) => setTimeout(resolve));
+  expect(confirm).not.toHaveBeenCalled();
+  expect(update).toHaveBeenCalledWith(expect.objectContaining({ name: "Support" }), { enable_outgoing: 0 });
 });
 
 const button = (name: string) =>

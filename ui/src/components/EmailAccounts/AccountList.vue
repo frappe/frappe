@@ -269,6 +269,7 @@ import { Avatar, Badge, Button, ScrollArea, Select, Spinner, Switch, toast } fro
 import { computed, h, nextTick, onMounted, reactive, ref, useId } from "vue";
 import { translate as __ } from "../../utils/translate";
 import Banner from "./Banner.vue";
+import { confirmDefaultsOff } from "./confirmDiscard";
 import {
 	deskUrl,
 	errorText,
@@ -361,21 +362,20 @@ function logoIcon(account: EmailAccount) {
 
 // accounts with a toggle saving, and the value each switch shows until it saves
 const saving = reactive(new Map<string, Partial<Record<string, boolean>>>());
-async function toggle(
-	account: EmailAccount,
-	field: "enable_incoming" | "enable_outgoing",
-	on: boolean
-) {
-	// the whole card waits, so its other toggle can't race this save
-	saving.set(account.name, { [field]: on });
-	try {
-		// turning a direction off also clears the account's default for it, on save
-		await props.controller.update(account, { [field]: on ? 1 : 0 });
-	} catch (e) {
-		toast.error(errorText(e) || __("Couldn't update the email account"));
-	} finally {
-		saving.delete(account.name);
-	}
+function toggle(account: EmailAccount, field: "enable_incoming" | "enable_outgoing", on: boolean) {
+	const changes = { [field]: on ? 1 : 0 };
+	confirmDefaultsOff(account, changes, async () => {
+		// the whole card waits, so its other toggle can't race this save
+		saving.set(account.name, { [field]: on });
+		try {
+			// turning a direction off also clears the account's default for it, on save
+			await props.controller.update(account, changes);
+		} catch (e) {
+			toast.error(errorText(e) || __("Couldn't update the email account"));
+		} finally {
+			saving.delete(account.name);
+		}
+	});
 }
 
 const reconnecting = ref<string>();
