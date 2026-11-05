@@ -1,6 +1,6 @@
 <template>
 	<Dialog v-model:open="open" :title="__('Connect Gmail')" size="xl">
-		<form :id="formId" class="flex flex-col gap-4" novalidate @submit.prevent="submit">
+		<form class="flex flex-col gap-4" novalidate @submit.prevent="checked = email.trim()">
 			<Banner
 				v-if="unavailable"
 				:title="__('Google sign-in isn\'t available right now')"
@@ -119,12 +119,11 @@
 			<div class="flex flex-col gap-2">
 				<template v-if="kind === 'company' && !unavailable">
 					<Button
-						type="submit"
-						:form="formId"
 						variant="solid"
 						size="md"
 						:label="__('Sign in with Google')"
 						:loading="connecting"
+						@click="submit"
 					/>
 					<Button
 						size="md"
@@ -143,12 +142,11 @@
 				</template>
 				<template v-else>
 					<Button
-						type="submit"
-						:form="formId"
 						variant="solid"
 						size="md"
 						:label="__('Continue')"
 						:disabled="!kindOf(email.trim())"
+						@click="submit"
 					/>
 					<p v-if="kind" class="text-center text-p-sm text-ink-gray-6">
 						{{ __("Opens the setup form with this address filled in.") }}
@@ -161,7 +159,7 @@
 
 <script setup lang="ts">
 import { Button, Dialog, ErrorMessage, FormControl, toast } from "frappe-ui";
-import { computed, ref, useId, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { translate as __ } from "../../utils/translate";
 import Banner from "./Banner.vue";
 import { mailboxAddress } from "./services";
@@ -182,7 +180,6 @@ const props = defineProps<{
 const emit = defineEmits<{ manual: [email: string] }>();
 const open = defineModel<boolean>("open", { default: false });
 
-const formId = useId();
 const email = ref("");
 /** The address as of the last blur or submit, which the steps and actions follow. */
 const checked = ref("");
@@ -266,11 +263,9 @@ async function copy(text: string, done: string) {
 
 async function submit() {
 	const address = email.value.trim();
-	const stepsShown = checked.value === address;
 	checked.value = address;
 	if (!kind.value) return;
 	if (kind.value === "personal" || unavailable.value) return emit("manual", address);
-	if (!stepsShown) return;
 	error.value = null;
 	connecting.value = true;
 	try {

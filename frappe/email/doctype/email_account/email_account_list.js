@@ -59,7 +59,6 @@ function add_email_account_dialog() {
 	let loaded = false;
 	let picked;
 	let gmail_company;
-	let gmail_shown;
 
 	const open_form = (service, email_id) => {
 		d.hide();
@@ -185,9 +184,7 @@ function add_email_account_dialog() {
 		const email = gmail_address();
 		const kind = gmail_kind(email);
 		if (kind === "personal") return open_form("GMail", email);
-		if (kind !== "company") return;
-		if (email !== gmail_shown) return update_gmail_step();
-		return sign_in("GMail", "Google", email);
+		if (kind === "company") return sign_in("GMail", "Google", email);
 	};
 	const toggle_gmail_continue = () => {
 		gmail_kind(gmail_address()) ? d.enable_primary_action() : d.disable_primary_action();
@@ -195,7 +192,6 @@ function add_email_account_dialog() {
 	const update_gmail_step = () => {
 		const email = gmail_address();
 		const company = gmail_kind(email) === "company";
-		gmail_shown = email;
 		d.set_df_property("gmail_steps", "hidden", company ? 0 : 1);
 		if (company) {
 			d.fields_dict.gmail_steps.$wrapper.html(gmail_admin_steps(one_click.GMail.client_id));
