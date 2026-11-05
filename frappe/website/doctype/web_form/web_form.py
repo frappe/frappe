@@ -105,12 +105,22 @@ class WebForm(WebsiteGenerator):
 			else:
 				frappe.throw(_("You need to be in developer mode to edit a Standard Web Form"))
 
+		self.set_access_flags()
+
 		if not frappe.flags.in_import:
 			self.validate_fields()
 			self.warn_about_empty_pages()
 
 		self.validate_hidden_and_mandatory()
 		self.validate_guest_key_link_fields()
+
+	def set_access_flags(self):
+		if self.anonymous:
+			self.login_required = 0
+		if not (self.login_required or self.key_required):
+			self.allow_multiple = self.allow_edit = self.allow_delete = self.show_list = 0
+		if self.allow_multiple:
+			self.show_list = 1
 
 	def validate_guest_key_link_fields(self):
 		if not is_guest_key_web_form(self):
