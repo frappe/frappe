@@ -68,6 +68,12 @@ class ConnectedApp(Document):
 		)
 		self.redirect_uri = urljoin(base_url, callback_path)
 
+		if not self.client_id:
+			frappe.throw(
+				_("{0} is required").format(frappe.bold(_(self.meta.get_label("client_id")))),
+				frappe.MandatoryError,
+			)
+
 	def get_oauth2_session(self, user=None, init=False):
 		"""Return an auto-refreshing OAuth2 session which is an extension of a requests.Session()"""
 		token = None
