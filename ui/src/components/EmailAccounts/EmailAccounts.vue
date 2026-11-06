@@ -1,0 +1,125 @@
+<template>
+	<AccountAdd
+		v-if="view === 'add'"
+		:controller="controller"
+		:providers="providers"
+		:gmail="gmail"
+		@back="backToList('')"
+		@created="onCreated"
+		@dirty="(value) => (dirty = value)"
+	/>
+	<AccountEdit
+		v-else-if="editing"
+		:controller="controller"
+		:account="editing"
+		@back="backToList"
+		@dirty="(value) => (dirty = value)"
+	/>
+	<AccountList
+		v-else
+		v-model:oauth-result="oauthResult"
+		:oauth-mailbox="mailbox"
+		:oauth-provider="provider"
+		:controller="controller"
+		:focus="returnFocus"
+		@add="view = 'add'"
+		@gmail="(email) => openGmail({ email })"
+		@open="(name) => (editing = controller.accounts.find((a) => a.name === name))"
+	/>
+</template>
+
+<script setup lang="ts">
+import { toast } from "frappe-ui";
+import { h, onBeforeUnmount, onMounted, ref, shallowRef, watch } from "vue";
+import { translate as __ } from "../../utils/translate";
+import AccountAdd from "./AccountAdd.vue";
+import AccountEdit from "./AccountEdit.vue";
+import AccountList from "./AccountList.vue";
+import { errorText } from "./services";
+import type { EmailAccount } from "./types";
+import { useEmailAccounts } from "./useEmailAccounts";
+
+const props = defineProps<{
+	/** The DocType incoming mail is appended to, e.g. `"HD Ticket"`. */
+	doctype: string;
+	/** Email Account `service` values to offer tiles for, `""` being Custom email; all by default. */
+	providers?: string[];
+}>();
+const emit = defineEmits<{
+	/** A mailbox was added, with a password or API key or by one-click sign-in. */
+	created: [service: string];
+}>();
+/**
+ * Whether an add or edit form has unsaved changes; the host reads it to guard its own
+ * navigation.
+ */
+const dirty = defineModel<boolean>("dirty", { default: false });
+
+const controller = useEmailAccounts(props.doctype);
+
+const oauthResult = ref(controller.signIn?.result ?? null);
+const mailbox = controller.signIn?.mailbox ?? null;
+const provider = controller.signIn?.provider ?? null;
+
+const view = ref<"list" | "add">("list");
+const gmail = shallowRef<{ email: string; wrongMailbox?: boolean }>();
+function openGmail(start: { email: string; wrongMailbox?: boolean }) {
+	oauthResult.value = null;
+	gmail.value = start;
+	view.value = "add";
+}
+if (
+	oauthResult.value === "wrong_mailbox" &&
+	provider === "google" &&
+	mailbox &&
+	controller.signIn?.started
+)
+	openGmail({ email: mailbox, wrongMailbox: true });
+const editing = shallowRef<EmailAccount>();
+watch(
+	() => controller.accounts,
+	(accounts) => {
+		const name = editing.value?.name;
+		editing.value = accounts.find((a) => a.name === name) ?? editing.value;
+	}
+);
+
+const returnFocus = ref<string>();
+function backToList(focus: string) {
+	returnFocus.value = focus;
+	dirty.value = false;
+	gmail.value = undefined;
+	view.value = "list";
+	editing.value = undefined;
+}
+
+function onCreated(service: string) {
+	backToList("");
+	emit("created", service);
+}
+
+const connected = oauthResult.value === "connected";
+if (connected || oauthResult.value === "reconnected") {
+	const message = connected
+		? mailbox
+			? __("Connected {0}", [mailbox])
+			: __("Mailbox connected")
+		: mailbox
+		? __("Reconnected {0}", [mailbox])
+		: __("Mailbox reconnected");
+	toast.success(() => h("span", message));
+	oauthResult.value = null;
+}
+
+watch(
+	() => controller.signIn?.account,
+	(account) => account && emit("created", account.service)
+);
+watch(
+	() => controller.signIn?.error,
+	(e) => e && toast.error(errorText(e) || __("Couldn't change the default account"))
+);
+
+onMounted(() => controller.load());
+onBeforeUnmount(() => (dirty.value = false));
+</script>
