@@ -256,16 +256,19 @@ class SendNotification(AutomationAction):
 		if params.get("channel") == "System":
 			return self._notify_system(doc, recipients, subject, message)
 
-		emails = get_email_addresses(recipients)
+		emails = list(get_email_addresses(recipients).values())
+
+		if not emails:
+			return _("No recipients to notify")
 
 		frappe.sendmail(
-			recipients=[emails.get(recipient, recipient) for recipient in recipients],
+			recipients=emails,
 			subject=subject,
 			message=message,
 			reference_doctype=doc.doctype if doc else None,
 			reference_name=doc.name if doc else None,
 		)
-		return _("Emailed {0}").format(", ".join(recipients))
+		return _("Emailed {0}").format(", ".join(emails))
 
 	def _content(self, params, doc, context):
 		if params.get("email_template"):
