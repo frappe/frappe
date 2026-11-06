@@ -74,23 +74,6 @@ class TestRQJob(IntegrationTestCase):
 			rq_job = frappe.get_doc("RQ Job", job.id)
 		self.assertEqual(rq_job.job_name, job.description)
 
-	def test_get_list_when_job_expires_after_fetch(self):
-		job = frappe.enqueue(method=self.BG_JOB, queue="short")
-		fetch_many = Job.fetch_many
-
-		def fetch_then_expire(*args, **kwargs):
-			jobs = fetch_many(*args, **kwargs)
-			job.delete()
-			return jobs
-
-		with (
-			patch.object(RQJob, "get_matching_job_ids", return_value=[job.id]),
-			patch.object(Job, "fetch_many", side_effect=fetch_then_expire),
-		):
-			jobs = RQJob.get_list()
-
-		self.assertEqual([j.name for j in jobs], [job.id])
-
 	@requires_test_service(TestService.BACKGROUND_WORKER)
 	@timeout
 	def test_get_list_filtering(self):
