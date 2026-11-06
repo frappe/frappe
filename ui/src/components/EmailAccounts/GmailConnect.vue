@@ -17,12 +17,13 @@
 					)
 				"
 			/>
-			<FormControl
+			<TextInput
 				v-model="email"
 				type="email"
 				:label="__('Email address')"
 				placeholder="support@example.com"
 				:description="__('The Gmail or Google Workspace email ID you\'re connecting.')"
+				:error="invalid ? __('Enter a valid email address') : undefined"
 				autofocus
 				@blur="checked = email.trim()"
 			/>
@@ -160,7 +161,7 @@
 </template>
 
 <script setup lang="ts">
-import { Button, Dialog, ErrorMessage, FormControl, toast } from "frappe-ui";
+import { Button, Dialog, ErrorMessage, TextInput, toast } from "frappe-ui";
 import { computed, ref, watch } from "vue";
 import { translate as __ } from "../../utils/translate";
 import Banner from "./Banner.vue";
@@ -212,6 +213,9 @@ function kindOf(value: string) {
 	return /@(gmail|googlemail)\.com$/i.test(address) ? "personal" : "company";
 }
 const kind = computed(() => kindOf(checked.value));
+const invalid = computed(
+	() => Boolean(checked.value) && !kind.value && !kindOf(email.value.trim())
+);
 
 const stepItems = computed(() => [
 	{

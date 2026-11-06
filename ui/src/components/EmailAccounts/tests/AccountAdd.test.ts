@@ -296,3 +296,14 @@ it("shows a company address's admin steps on Enter without signing in", async ()
   await nextTick();
   expect(connect).not.toHaveBeenCalled();
 });
+
+it("flags a wrong Gmail address only once the field is left, and clears it once fixed", async () => {
+  await openGmail(vi.fn());
+  const text = () => document.querySelector('[role="dialog"]')!.textContent;
+  await type("knnsd3jmg");
+  expect(text()).not.toContain("Enter a valid email address");
+  await leave();
+  expect(text()).toContain("Enter a valid email address");
+  await type("support.acme@gmail.com");
+  expect(text()).not.toContain("Enter a valid email address");
+});
