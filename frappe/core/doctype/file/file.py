@@ -110,7 +110,6 @@ class File(Document):
 		self.validate_attachment_limit()
 		self.set_file_type()
 		self.validate_file_extension()
-		self.validate_upload_type()
 		self.validate_private_file_access()
 
 		if self.is_folder:
@@ -516,20 +515,6 @@ class File(Document):
 		file_extension = os.path.splitext(self.file_name)[1].lstrip(".").upper()
 		if file_extension not in allowed_extensions.splitlines():
 			frappe.throw(_("File type of {0} is not allowed").format(file_extension), exc=FileTypeNotAllowed)
-
-	def validate_upload_type(self):
-		"""Apply the upload type allow-list of `upload_file` to every request-made File with content."""
-		if self.is_folder or not frappe.request or self.get("content") is None:
-			return
-
-		from frappe.handler import ALLOWED_MIMETYPES
-
-		user = frappe.session.user
-		if user != "Guest" and frappe.get_cached_doc("User", user).has_desk_access():
-			return
-
-		if mimetypes.guess_type(self.file_name or "")[0] not in ALLOWED_MIMETYPES:
-			frappe.throw(_("You can only upload JPG, PNG, GIF, PDF, TXT, CSV or Microsoft documents."))
 
 	def check_content(self):
 		if self.file_type == "PDF" and self._content and pdf_contains_js(self._content):
