@@ -25,9 +25,9 @@ dependabot[bot]
 FawazAlhafiz
 frappe-pr-bot
 frappe-release-bot[bot]
-g-sowani
 gajjug004
 gavindsouza
+g-sowani
 harshp4114
 HenningWendtland
 humedi
