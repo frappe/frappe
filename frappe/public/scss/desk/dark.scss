@@ -155,9 +155,6 @@ $dash-icon-dark: url("data:image/svg+xml, <svg viewBox='0 0 8 7' fill='none' xml
 		&:checked,
 		&:indeterminate {
 			background-color: var(--surface-gray-10);
-		}
-
-		&:checked {
 			background-image: $check-icon-dark, var(--checkbox-gradient);
 		}
 

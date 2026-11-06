@@ -232,7 +232,14 @@ def get_assignments(doc) -> list[dict]:
 
 
 @frappe.whitelist()
+<<<<<<< HEAD
 def bulk_apply(doctype: str, docnames: str | list[str]):
+=======
+def bulk_apply(doctype: str, docnames: str | list[str]) -> bool:
+	if not frappe.get_cached_value("User", frappe.session.user, "bulk_actions"):
+		frappe.throw(_("You are not allowed to perform bulk actions"), frappe.PermissionError)
+
+>>>>>>> cae1a61 (fix(list): clear selection when a bulk action is queued)
 	docnames = frappe.parse_json(docnames)
 	background = len(docnames) > 5
 
@@ -246,6 +253,8 @@ def bulk_apply(doctype: str, docnames: str | list[str]):
 			)
 		else:
 			apply(doctype=doctype, name=name)
+
+	return background
 
 
 def reopen_closed_assignment(doc):

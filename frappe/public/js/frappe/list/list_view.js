@@ -662,6 +662,140 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				this.$result.append(this.get_list_row_html(doc));
 			}
 		}
+<<<<<<< HEAD
+=======
+
+		if (!frappe.is_mobile()) {
+			this.apply_column_widths();
+		}
+		this.update_listview_classes(has_assignto, assign_to_count);
+		// Non-virtual path does not go through finalize_virtual_rows; restore bulk selection here.
+		if (!this.should_use_virtualization()) {
+			this.set_rows_as_checked();
+		}
+	}
+
+	/** Preserve rendered column widths before rows are torn down and re-rendered. */
+	capture_column_widths_from_dom() {
+		if (frappe.is_mobile()) {
+			return;
+		}
+		this.$result
+			.find(".list-row-head .level-left .list-row-col[data-fieldname]")
+			.each((_, el) => {
+				const $el = $(el);
+				const fieldname = $el.attr("data-fieldname");
+				if (!fieldname || fieldname === "undefined") {
+					return;
+				}
+
+				// exact, not rounded: pinning 94.5px as 95px shifts every column after it
+				const width = $el[0].getBoundingClientRect().width;
+				if (!width) {
+					return;
+				}
+
+				const existing = flt(this.column_max_widths[fieldname]) || 0;
+				this.column_max_widths[fieldname] = Math.max(existing, width);
+			});
+	}
+
+	get_assignment_stats() {
+		let has_assignto = false;
+		let assign_to_count = 0;
+
+		for (let doc of this.data) {
+			if (!doc._assign) continue;
+			const assign_to_length = JSON.parse(doc._assign)?.length || 0;
+			assign_to_count = Math.max(
+				assign_to_count,
+				assign_to_length > this.max_number_of_avatars
+					? this.max_number_of_avatars
+					: assign_to_length
+			);
+		}
+		has_assignto = assign_to_count > 0;
+
+		return { has_assignto, assign_to_count };
+	}
+
+	// Virtual row-window logic is lazy-loaded from list_view_virtualization.js.
+
+	/** Turn on virtual scrolling when this page has 2000+ rows. */
+	should_use_virtualization() {
+		if (this.view !== "List") {
+			return false;
+		}
+
+		if (this._virtualization_bundle_failed) {
+			return false;
+		}
+
+		return this.data.length >= this.virtualization_threshold;
+	}
+
+	/** Drop checked rows that left the list after filter/pagination refresh. */
+	prune_checked_docnames() {
+		if (!this.checked_docnames.size) {
+			return;
+		}
+
+		const valid_names = new Set(this.data.map((doc) => doc.name));
+		for (const name of this.checked_docnames) {
+			if (!valid_names.has(name)) {
+				this.checked_docnames.delete(name);
+			}
+		}
+		if (!this.checked_docnames.size) this.on_row_checked();
+	}
+
+	/** Read checkbox docname; tolerates raw names with bare % (not URI-encoded). */
+	get_checkbox_docname($checkbox) {
+		const raw = $checkbox.attr("data-name") ?? $checkbox.data()?.name;
+		if (!raw) {
+			return "";
+		}
+
+		try {
+			return cstr(decodeURIComponent(raw));
+		} catch {
+			return cstr(raw);
+		}
+	}
+
+	find_checkbox_by_docname(docname) {
+		// DOM lookup helper used by shift-select and test assertions.
+		return this.$result.find(".list-row-checkbox").filter((_, el) => {
+			return this.get_checkbox_docname($(el)) === docname;
+		});
+	}
+
+	sync_checked_docname($checkbox) {
+		const name = this.get_checkbox_docname($checkbox);
+		if (!name) {
+			return;
+		}
+
+		// Keep Set in sync with checkbox — selection survives when row scrolls out of the DOM.
+		if ($checkbox.prop("checked")) {
+			this.checked_docnames.add(name);
+		} else {
+			this.checked_docnames.delete(name);
+		}
+	}
+
+	/**
+	 * Mirror header select-all state into the Set source-of-truth.
+	 * This keeps selection stable across virtualization rerenders and pagination changes.
+	 */
+	set_select_all_checked(checked) {
+		if (checked) {
+			this.data.forEach((doc) => this.checked_docnames.add(doc.name));
+			return;
+		}
+
+		this.checked_docnames.clear();
+>>>>>>> cae1a61 (fix(list): clear selection when a bulk action is queued)
 	}
 
 	render_count() {
@@ -1960,10 +2094,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				label: __("Apply Assignment Rule", null, "Button in list view actions menu"),
 				action: () => {
 					this.disable_list_update = true;
-					bulk_operations.apply_assignment_rule(this.get_checked_items(true), () => {
-						this.disable_list_update = false;
-						this.refresh();
-					});
+					bulk_operations.apply_assignment_rule(
+						this.get_checked_items(true),
+						(queued) => {
+							this.disable_list_update = false;
+							if (queued) this.clear_checked_items();
+							this.refresh();
+						}
+					);
 				},
 				standard: true,
 			};
@@ -2037,8 +2175,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 							),
 							() => {
 								this.disable_list_update = true;
-								bulk_operations.submit_or_cancel(docnames, "cancel", () => {
+								bulk_operations.submit_or_cancel(docnames, "cancel", (queued) => {
 									this.disable_list_update = false;
+									if (queued) this.clear_checked_items();
 									this.refresh();
 								});
 							}
@@ -2063,8 +2202,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 							),
 							() => {
 								this.disable_list_update = true;
-								bulk_operations.submit_or_cancel(docnames, "submit", () => {
+								bulk_operations.submit_or_cancel(docnames, "submit", (queued) => {
 									this.disable_list_update = false;
+									if (queued) this.clear_checked_items();
 									this.refresh();
 								});
 							}
@@ -2088,10 +2228,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					});
 
 					this.disable_list_update = true;
-					bulk_operations.edit(this.get_checked_items(true), field_mappings, () => {
-						this.disable_list_update = false;
-						this.refresh();
-					});
+					bulk_operations.edit(
+						this.get_checked_items(true),
+						field_mappings,
+						(queued) => {
+							this.disable_list_update = false;
+							if (queued) this.clear_checked_items();
+							this.refresh();
+						}
+					);
 				},
 				standard: true,
 			};

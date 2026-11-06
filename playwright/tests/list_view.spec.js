@@ -123,23 +123,29 @@ test.describe("List View", () => {
 	});
 
 	test("keeps the selection after a bulk edit", async ({ page, desk, api }) => {
-		await desk.go_to_list("ToDo");
-		await desk.clear_filters();
-
-		const rows = page.locator(".list-row-checkbox");
-		await rows.nth(0).click();
-		await rows.nth(1).click();
-		const selected = await page.evaluate(() => Array.from(cur_list.checked_docnames));
-		const priorities = await Promise.all(
-			selected.map(async (name) => [name, (await api.get_doc("ToDo", name)).data.priority])
-		);
+		const suffix = Date.now().toString(36);
+		const selected = [];
+		for (const route of [`bulk-edit-a-${suffix}`, `bulk-edit-b-${suffix}`]) {
+			const doc = await api.insert_doc("Web Page", {
+				title: route,
+				route,
+				content_type: "Rich Text",
+			});
+			selected.push(doc.name);
+		}
 
 		try {
+			await desk.go_to_list("Web Page");
+			await desk.clear_filters();
+			for (const name of selected) {
+				await page.locator(`.list-row-checkbox[data-name="${name}"]`).click();
+			}
+
 			await desk.click_action_button("Edit");
 			await page.waitForFunction(() => cur_dialog?.display);
 			await page.evaluate(async () => {
-				await cur_dialog.set_value("field", "Priority (ToDo)");
-				await cur_dialog.set_value("value", "High");
+				await cur_dialog.set_value("field", "Text Align (Web Page)");
+				await cur_dialog.set_value("value", "Center");
 			});
 			await desk.click_modal_primary_button("Update 2 records");
 			await expect(page.locator(".modal:visible")).toHaveCount(0);
@@ -149,8 +155,34 @@ test.describe("List View", () => {
 				.toEqual(selected.sort());
 			await expect(page.locator(".list-row-checkbox:checked")).toHaveCount(2);
 		} finally {
-			for (const [name, priority] of priorities) {
-				await api.update_doc("ToDo", name, { priority });
+			for (const name of selected) {
+				await api.remove_doc("Web Page", name);
+			}
+		}
+	});
+
+	test("clears the selection when a bulk action is queued", async ({ page, desk, api }) => {
+		// More than 5 docs makes bulk_apply enqueue instead of running inline.
+		const selected = [];
+		for (let i = 0; i < 6; i++) {
+			const doc = await api.insert_doc("ToDo", { description: `queued bulk ${i}` });
+			selected.push(doc.name);
+		}
+
+		try {
+			await desk.go_to_list("ToDo");
+			await desk.clear_filters();
+			for (const name of selected) {
+				await page.locator(`.list-row-checkbox[data-name="${name}"]`).click();
+			}
+
+			await desk.click_action_button("Apply Assignment Rule");
+
+			await expect.poll(() => page.evaluate(() => cur_list.checked_docnames.size)).toBe(0);
+			await expect(page.locator(".list-row-checkbox:checked")).toHaveCount(0);
+		} finally {
+			for (const name of selected) {
+				await api.remove_doc("ToDo", name);
 			}
 		}
 	});
