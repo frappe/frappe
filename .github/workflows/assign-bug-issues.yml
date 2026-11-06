@@ -7,6 +7,9 @@ on:
 permissions:
   issues: write
 
+concurrency:
+  group: assign-bug-issues
+
 jobs:
   assign:
     if: github.repository == 'frappe/frappe' && !github.event.issue.assignees[0] && contains(github.event.issue.labels.*.name, 'bug')
@@ -17,8 +20,25 @@ jobs:
           script: |
             const assignees = ["g-sowani", "ruchiigadgil", "rameensh"];
             const issue = context.payload.issue;
+            const { data: recent } = await github.rest.issues.listForRepo({
+              ...context.repo,
+              labels: "bug",
+              state: "all",
+              sort: "created",
+              direction: "desc",
+              per_page: 50,
+            });
+            let next = 0;
+            for (const other of recent) {
+              if (other.number === issue.number || other.pull_request) continue;
+              const last = other.assignees.map((a) => assignees.indexOf(a.login)).find((i) => i >= 0);
+              if (last !== undefined) {
+                next = (last + 1) % assignees.length;
+                break;
+              }
+            }
             await github.rest.issues.addAssignees({
               ...context.repo,
               issue_number: issue.number,
-              assignees: [assignees[issue.number % assignees.length]],
+              assignees: [assignees[next]],
             });
