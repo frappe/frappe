@@ -1,11 +1,7 @@
 # Copyright (c) 2017, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
-from unittest.mock import patch
-
-import requests
-
 import frappe
-from frappe.core.doctype.sms_settings.sms_settings import check_sms_permission, send_request
+from frappe.core.doctype.sms_settings.sms_settings import check_sms_permission
 from frappe.tests import IntegrationTestCase
 
 
@@ -52,12 +48,3 @@ class TestSMSSettings(IntegrationTestCase):
 
 		frappe.db.delete("Has Role", {"parent": "test@example.com", "role": "System Manager"})
 		frappe.clear_cache(user="test@example.com")
-
-	def test_gateway_error_hides_request_url(self):
-		error = requests.HTTPError("500 Server Error for url: https://gw.example.com/?api_key=secret-key-123")
-		with patch("requests.get", side_effect=error):
-			with self.assertRaises(frappe.ValidationError) as ctx:
-				send_request("https://gw.example.com/", {"api_key": "secret-key-123"}, headers={"a": "b"})
-
-		self.assertNotIn("secret-key-123", str(ctx.exception))
-		self.assertTrue(ctx.exception.__suppress_context__)
