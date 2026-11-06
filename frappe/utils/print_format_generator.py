@@ -27,7 +27,7 @@ def render_jinja_template(
 	# template is rendered inside frappe's SandboxedEnvironment (Jinja2 sandbox).
 	# The caller must hold the "print" permission on the document before reaching this line.
 	try:
-		context = {**global_variables_context(global_variables, doc), "doc": doc}
+		context = {**global_variables_context(global_variables, doc), "doc": doc, "get_qr_code": get_qr_code}
 		return frappe.render_template(  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
 			template, context
 		)
@@ -1137,6 +1137,7 @@ class PrintFormatGenerator:
 		self.jinja_context = {
 			**global_variables_context(layout.get("global_variables"), self.doc),
 			"doc": self.doc,
+			"get_qr_code": get_qr_code,
 		}
 		for section in layout["sections"]:
 			if section.get("visible_if"):
