@@ -66,11 +66,13 @@ jobs:
             [ -n "$run_id" ] || continue
             gh run cancel "$run_id" --repo "$GITHUB_REPOSITORY" 2>/dev/null || true
             for _ in $(seq 360); do [ "$(gh run view "$run_id" --repo "$GITHUB_REPOSITORY" --json status --jq .status)" = completed ] && break; sleep 10; done
+            [ "$(gh pr view "$PR" --repo "$GITHUB_REPOSITORY" --json headRefOid --jq .headRefOid)" = "$HEAD_SHA" ] || exit 0
             gh run rerun "$run_id" --repo "$GITHUB_REPOSITORY"
           done
         env:
           GH_TOKEN: ${{ github.token }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR: ${{ github.event.pull_request.number }}
       - run: |
           if [ -n "$PR" ] && { [ "$ACTION" = labeled ] || [ "$FIX" = true ]; }; then python .github/helper/develop_status.py wait "$PR"
           elif [ -n "$PR" ]; then python .github/helper/develop_status.py pr "$PR"
