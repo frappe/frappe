@@ -454,7 +454,7 @@ export function parse_inline_style(css) {
 	if (!css || typeof css !== "string") return style;
 	const el = document.createElement("div");
 	el.setAttribute("style", css);
-	for (const decl of el.style.cssText.split(/;(?![^(]*\))/)) {
+	for (const decl of split_declarations(el.style.cssText)) {
 		const idx = decl.indexOf(":");
 		if (idx === -1) continue;
 		const prop = decl.slice(0, idx).trim();
@@ -462,6 +462,32 @@ export function parse_inline_style(css) {
 		if (prop && value) style[prop] = value;
 	}
 	return style;
+}
+
+function split_declarations(text) {
+	const decls = [];
+	let quote = null;
+	let depth = 0;
+	let start = 0;
+	for (let i = 0; i < text.length; i++) {
+		const c = text[i];
+		if (c === "\\") {
+			i++;
+		} else if (quote) {
+			if (c === quote) quote = null;
+		} else if (c === '"' || c === "'") {
+			quote = c;
+		} else if (c === "(") {
+			depth++;
+		} else if (c === ")") {
+			depth--;
+		} else if (c === ";" && !depth) {
+			decls.push(text.slice(start, i));
+			start = i + 1;
+		}
+	}
+	decls.push(text.slice(start));
+	return decls;
 }
 
 // Deterministic pastel colour for a merged-cell initials thumbnail, keyed off
