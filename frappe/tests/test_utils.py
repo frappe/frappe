@@ -915,6 +915,18 @@ class TestImage(IntegrationTestCase):
 		self.assertLessEqual(height, 500)
 		self.assertLess(len(optimized_content), len(original_content))
 
+	def test_optimize_image_fills_transparency_with_white(self):
+		image_file_path = frappe.get_app_path("frappe", "tests", "data", "sample_image_for_optimization.jpg")
+		image = Image.open(image_file_path).convert("RGBA")
+		image.paste((0, 0, 0, 0), (0, 0, image.width // 2, image.height))
+		content = io.BytesIO()
+		image.save(content, format="PNG")
+
+		with self.set_user("test@example.com"):
+			optimized_content = optimize_image(content.getvalue(), "image/jpeg")
+
+		self.assertEqual(Image.open(io.BytesIO(optimized_content)).getpixel((10, 10)), (255, 255, 255))
+
 	def test_optimize_pdf(self):
 		from pypdf import PdfReader
 
