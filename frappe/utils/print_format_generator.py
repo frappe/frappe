@@ -6,6 +6,8 @@ import re
 from typing import ClassVar
 from urllib.parse import quote
 
+from bs4 import BeautifulSoup
+
 import frappe
 from frappe import _
 from frappe.printing.fieldtypes import CONTENT_FIELDTYPES
@@ -1171,7 +1173,7 @@ class PrintFormatGenerator:
 			rendered = frappe.render_template(  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
 				df.get("html") or "", self.jinja_context
 			)
-			df["_html"] = rendered
+			df["_html"] = BeautifulSoup(f"<body>{rendered}</body>", "html5lib").body.decode_contents()
 
 	def prepare_barcode(self, df):
 		"""Resolve JsBarcode options / QR data URI for Barcode layout elements."""
