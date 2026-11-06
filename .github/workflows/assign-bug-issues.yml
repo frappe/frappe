@@ -1,0 +1,24 @@
+name: Assign bug issues
+
+on:
+  issues:
+    types: [opened, labeled]
+
+permissions:
+  issues: write
+
+jobs:
+  assign:
+    if: github.repository == 'frappe/frappe' && !github.event.issue.assignees[0] && contains(github.event.issue.labels.*.name, 'bug')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v8
+        with:
+          script: |
+            const assignees = ["g-sowani", "ruchiigadgil", "rameensh"];
+            const issue = context.payload.issue;
+            await github.rest.issues.addAssignees({
+              ...context.repo,
+              issue_number: issue.number,
+              assignees: [assignees[issue.number % assignees.length]],
+            });
