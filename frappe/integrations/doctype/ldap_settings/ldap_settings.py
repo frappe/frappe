@@ -373,14 +373,16 @@ class LDAPSettings(Document):
 		email = user_entry[self.ldap_email_field].value
 
 		if isinstance(email, list):
-			# check if any of the email in the list already exist
-			for e in email:
-				if get_user_by_email(e):
-					email = e
-					break
-			else:
-				# if none of the email exist, use the first email
-				email = email[0]
+			# use the first email that already belongs to a user, else the first one
+			existing = frappe.get_all(
+				"User",
+				filters={
+					"email": ("in", [e.strip().lower() for e in email]),
+					"name": ("not in", frappe.STANDARD_USERS),
+				},
+				pluck="email",
+			)
+			email = next((e for e in email if e.strip().lower() in existing), email[0])
 
 		data = {
 			"username": user_entry[self.ldap_username_field].value,
