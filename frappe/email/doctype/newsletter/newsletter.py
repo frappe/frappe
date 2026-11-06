@@ -444,7 +444,11 @@ def send_scheduled_email():
 
 
 @frappe.whitelist(allow_guest=True)
-def newsletter_email_read(recipient_email=None, reference_doctype=None, reference_name=None):
+def newsletter_email_read(
+	recipient_email: str | None = None,
+	reference_doctype: str | None = None,
+	reference_name: str | None = None,
+):
 	if not (recipient_email and reference_name):
 		return
 	try:
