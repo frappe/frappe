@@ -355,7 +355,8 @@ test("a change that answers after a chat switch stays with the chat it was made 
 	await flow.openSession("B")
 	flow.state.conversation.pendingApproval = { seq: 2, calls: [{ id: "x" }], answers: {} }
 	models[0]({ model: "m/new" })
-	models[1]({ model: "m/A", reasoning_effort: "high" })
+	await changes[0]
+	models[1]({ model: "m/new", reasoning_effort: "high" })
 	modeAnswer({ config: { approval_mode: "auto", cwd: "/A" } })
 	rewindAnswer({ status: "rewound" })
 	const rewound = (await Promise.all(changes))[3]
@@ -516,6 +517,164 @@ test("a model the chat takes updates its header and the default; a refused one d
 	flow.renamedModel("deepseek/deepseek-chat", "deepseek/v4")
 	assert.equal(flow.state.prefs.lastModel, "deepseek/v4")
 	assert.equal(JSON.parse(stored.at(-1)).lastModel, "deepseek/v4")
+	flow.detach()
+})
+
+for (const picker of ["model", "thinking"]) {
+	test(`${picker} changes immediately, rolls back on failure, and is remembered only after saving`, async () => {
+		let resolve, reject
+		const flow = createFlowStore({
+			setModel: () => new Promise((yes, no) => {
+				resolve = yes
+				reject = no
+			}),
+		})
+		flow.state.sessionId = "s1"
+		flow.state.session = { model: "old", context_window: 100 }
+		Object.assign(flow.state.conversation, { model: "old", reasoningEffort: "low", contextWindow: 100 })
+		Object.assign(flow.state.prefs, { lastModel: "old", lastEffort: "low" })
+		const choose = () => picker === "model" ? flow.selectModel("new") : flow.selectEffort("high")
+		const current = () => picker === "model" ? flow.state.conversation.model : flow.state.conversation.reasoningEffort
+		const remembered = () => picker === "model" ? flow.state.prefs.lastModel : flow.state.prefs.lastEffort
+		const before = current()
+		const selected = picker === "model" ? "new" : "high"
+
+		const failed = choose()
+		assert.equal(current(), selected)
+		assert.equal(remembered(), before)
+		reject(new FlowAPIError(409, "a run is already active"))
+		await failed
+		assert.equal(current(), before)
+		assert.equal(remembered(), before)
+		assert.equal(flow.state.toast.kind, "error")
+
+		const saved = choose()
+		assert.equal(current(), selected)
+		resolve({ model: picker === "model" ? "new" : "old", context_window: 200 })
+		await saved
+		assert.equal(current(), selected)
+		assert.equal(remembered(), selected)
+		assert.equal(flow.state.session.context_window, 200)
+		flow.detach()
+	})
+}
+
+test("rapid model and thinking picks stay visible through older replies, and sending waits for them", async () => {
+	const calls = []
+	const requests = []
+	let emit
+	const client = hostClient(calls)
+	client.setModel = (sid, body) => new Promise((resolve, reject) => requests.push({ body, resolve, reject }))
+	client.stream = () => ({
+		close() {},
+		async *[Symbol.asyncIterator]() {
+			yield await new Promise((resolve) => (emit = resolve))
+		},
+	})
+	const flow = createFlowStore(client)
+	await flow.openSession("s1")
+	flow.state.conversation.reasoningEffort = "low"
+	flow.state.prefs.lastEffort = "low"
+	const model = flow.selectModel("new")
+	const effort = flow.selectEffort("high")
+	const sent = flow.send("hello")
+	assert.equal(flow.state.conversation.model, "new")
+	assert.equal(flow.state.conversation.reasoningEffort, "high")
+	assert.equal(requests.length, 1)
+	assert.deepEqual(calls, [])
+
+	requests[0].resolve({ model: "new", context_window: 200 })
+	await model
+	assert.deepEqual(requests[1].body, { model: "new", reasoning_effort: "high" })
+	emit({ type: "model_changed", seq: 1, model: "new", reasoning_effort: "low" })
+	await new Promise((resolve) => setImmediate(resolve))
+	assert.equal(flow.state.conversation.reasoningEffort, "high")
+	assert.deepEqual(calls, [])
+
+	requests[1].reject(new FlowAPIError(409, "a run is already active"))
+	await effort
+	assert.equal(await sent, true)
+	assert.equal(flow.state.conversation.model, "new")
+	assert.equal(flow.state.conversation.reasoningEffort, "low")
+	assert.equal(flow.state.conversation.contextWindow, 200)
+	assert.equal(flow.state.prefs.lastModel, "new")
+	assert.equal(flow.state.prefs.lastEffort, "low")
+	assert.deepEqual(calls, [["run", "hello"]])
+	flow.detach()
+})
+
+test("a pending model selection survives switching away and reopening its chat", async () => {
+	const client = hostClient([])
+	let saved = false
+	let resolveModel
+	client.session = async (sid) => ({
+		session_id: sid,
+		model: sid === "A" && saved ? "new" : "old",
+		context_window: sid === "A" && saved ? 200 : 100,
+		latest_seq: 0,
+	})
+	client.setModel = () => new Promise((resolve) => {
+		resolveModel = () => {
+			saved = true
+			resolve({ model: "new", context_window: 200 })
+		}
+	})
+	const flow = createFlowStore(client)
+	await flow.openSession("A")
+	const selected = flow.selectModel("new")
+	await flow.openSession("B")
+	const reopened = flow.openSession("A")
+	assert.equal(flow.state.conversation.model, "new")
+	resolveModel()
+	await Promise.all([selected, reopened])
+	assert.equal(flow.state.conversation.model, "new")
+	assert.equal(flow.state.conversation.contextWindow, 200)
+	assert.equal(flow.state.session.model, "new")
+	assert.equal(flow.state.session.context_window, 200)
+	flow.detach()
+})
+
+test("sending waits for a model selected while attachments are uploading", async () => {
+	const calls = []
+	const client = hostClient(calls)
+	let resolveUpload, resolveModel
+	client.uploadAttachments = () => new Promise((resolve) => (resolveUpload = resolve))
+	client.setModel = () => new Promise((resolve) => (resolveModel = resolve))
+	const flow = createFlowStore(client)
+	await flow.openSession("s1")
+	const sent = flow.send("hello", [{ file: { name: "notes.txt" }, name: "notes.txt" }])
+	const selected = flow.selectModel("new")
+	resolveUpload({ attachments: [{ id: "attachment", name: "notes.txt", kind: "file" }] })
+	await new Promise((resolve) => setImmediate(resolve))
+	assert.deepEqual(calls, [])
+	resolveModel({ model: "new", context_window: 200 })
+	await selected
+	assert.equal(await sent, true)
+	assert.deepEqual(calls, [["run", "hello"]])
+	flow.detach()
+})
+
+test("a successful queued model selection remembers the effort its failed predecessor selected", async () => {
+	const requests = []
+	const client = hostClient([])
+	client.setModel = (sid, body) => new Promise((resolve, reject) => requests.push({ body, resolve, reject }))
+	const flow = createFlowStore(client)
+	await flow.openSession("s1")
+	flow.state.conversation.reasoningEffort = "low"
+	flow.state.prefs.lastEffort = "low"
+	const effort = flow.selectEffort("high")
+	const model = flow.selectModel("new")
+	requests[0].reject(new FlowAPIError(409, "a run is already active"))
+	await effort
+	assert.deepEqual(requests[1].body, { model: "new", reasoning_effort: "high" })
+	requests[1].resolve({ model: "new", context_window: 200 })
+	await model
+	assert.equal(flow.state.conversation.reasoningEffort, "high")
+	assert.equal(flow.state.prefs.lastEffort, "high")
+	const next = flow.selectModel("next")
+	assert.deepEqual(requests[2].body, { model: "next", reasoning_effort: "high" })
+	requests[2].resolve({ model: "next", context_window: 300 })
+	await next
 	flow.detach()
 })
 
