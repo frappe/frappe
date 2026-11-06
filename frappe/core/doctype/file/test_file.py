@@ -665,8 +665,6 @@ class TestFile(FrappeTestCase):
 		).insert(ignore_permissions=True)
 		self.assertRaisesRegex(ValidationError, "not a zip file", test_file.unzip)
 
-<<<<<<< HEAD
-=======
 	def test_file_unzip_limits_member_count(self):
 		buffer = io.BytesIO()
 		with zipfile.ZipFile(buffer, "w") as archive:
@@ -683,8 +681,6 @@ class TestFile(FrappeTestCase):
 		self.assertEqual(frappe.db.count("File"), file_count_before)
 		self.assertEqual(len(zip_file.unzip()), 3)
 
-	@IntegrationTestCase.change_settings("System Settings", {"max_zip_extract_size": 0})
->>>>>>> cb3f772 (fix: apply upload type allow-list to File inserts and cap zip member count)
 	def test_file_unzip_respects_dedicated_extract_size_setting(self):
 		file_path = frappe.get_app_path("frappe", "www/_test/assets/file.zip")
 		public_file_path = frappe.get_site_path("public", "files")

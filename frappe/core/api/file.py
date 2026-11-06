@@ -99,17 +99,10 @@ def get_max_extract_size() -> int:
 	)
 
 
-<<<<<<< HEAD
-=======
 def get_max_extract_members() -> int:
 	return cint(frappe.conf.get("max_zip_extract_members")) or 1000
 
 
-def get_file_chunk_size() -> int:
-	return cint(frappe.conf.get("file_chunk_size")) or 25 * 1024 * 1024
-
-
->>>>>>> cb3f772 (fix: apply upload type allow-list to File inserts and cap zip member count)
 @frappe.whitelist()
 def create_new_folder(file_name: str, folder: str) -> File:
 	"""create new folder under current parent folder"""
