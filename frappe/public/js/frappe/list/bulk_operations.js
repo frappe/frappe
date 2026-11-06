@@ -296,6 +296,15 @@ export default class BulkOperations {
 				task_id: task_id,
 			})
 			.then((failed_docnames) => {
+				if (!failed_docnames || failed_docnames.length < docnames.length) {
+					frappe.utils.play_sound(action);
+				}
+				// nothing returned means the server enqueued the batch
+				const queued =
+					!failed_docnames ||
+					(action === "submit" && frappe.get_meta(this.doctype).queue_in_background);
+				if (done) done(queued);
+
 				if (failed_docnames?.length) {
 					const comma_separated_records = frappe.utils.comma_and(failed_docnames);
 					switch (action) {
@@ -309,6 +318,7 @@ export default class BulkOperations {
 							frappe.throw(__("Cannot {0} {1}.", [action, comma_separated_records]));
 					}
 				}
+<<<<<<< HEAD
 				if (!failed_docnames || failed_docnames.length < docnames.length) {
 					frappe.utils.play_sound(action);
 					// nothing returned means the server enqueued the batch
@@ -320,6 +330,8 @@ export default class BulkOperations {
 			})
 			.finally(() => {
 				frappe.realtime.task_unsubscribe(task_id);
+=======
+>>>>>>> 36e517a (fix(list): refresh the list when a bulk submit or cancel fails)
 			});
 	}
 
