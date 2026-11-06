@@ -205,20 +205,22 @@ class TestPrintFormatBuilderElements(IntegrationTestCase):
 				"width": "50mm",
 			}
 		)
-		self.assertIn('data-barcode-value="TEST-123"', html)
-		self.assertIn('"format": "CODE39"', html)
-		self.assertIn('"displayValue": false', html)
+		self.assertIn('src="data:image/svg+xml;base64,', html)
 		self.assertIn("width: 50mm", html)
-		# the client-side renderer must be shipped with the document
-		self.assertIn("print.bundle", html)
-		self.assertIn("render_barcode", html)
+		self.assertNotIn("data-barcode-value", html)
 
 		# value bound to a doc field
 		html = self.render(df | {"barcode_field": "name", "barcode_format": "CODE128"})
-		self.assertIn('data-barcode-value="Administrator"', html)
+		self.assertIn('src="data:image/svg+xml;base64,', html)
+
+		# a value the format cannot encode prints nothing
+		self.assertNotIn(
+			'class="field print-barcode',
+			self.render(df | {"barcode_value": "a*b", "barcode_format": "CODE39"}),
+		)
 
 		# no value -> block is skipped entirely
-		self.assertNotIn("print-barcode", self.render(df | {"barcode_value": ""}))
+		self.assertNotIn('class="field print-barcode', self.render(df | {"barcode_value": ""}))
 
 	def test_qr_code(self):
 		import base64

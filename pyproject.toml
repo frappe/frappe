@@ -27,6 +27,7 @@ dependencies = [
     "PyPika @ git+https://github.com/frappe/pypika@054ffb18a0a60f3c3f472dcce86116fd86db1188",
     "mysqlclient==2.3.0",
     "PyQRCode~=1.2.1",
+    "python-barcode~=0.16.1",
     "PyYAML~=6.0.3",
     "RestrictedPython~=8.5",
     "Werkzeug==3.1.9",
