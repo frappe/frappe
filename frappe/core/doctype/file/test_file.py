@@ -1391,6 +1391,17 @@ class TestAttachment(IntegrationTestCase):
 		self.assertFalse(frappe.db.exists("File", {"attached_to_name": doc.name, "file_url": file.file_url}))
 		self.assertFalse(frappe.message_log)
 
+	def test_attachment_failing_after_insert_leaves_no_file(self):
+		doc = frappe.get_doc(doctype=self.test_doctype, title="test attachment failing after insert").insert()
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		doc.attachment = "https://example.com/brochure.pdf"
+		with patch("frappe.core.doctype.file.file.File.after_insert", side_effect=ValidationError):
+			doc.save(ignore_permissions=True)
+
+		self.assertFalse(frappe.db.exists("File", {"attached_to_name": doc.name, "file_url": doc.attachment}))
+
 	def test_url_attachment_is_attached_to_duplicated_document(self):
 		doc = frappe.get_doc(doctype=self.test_doctype, title="test url attachment on duplicate")
 		doc.attachment = "https://example.com/spec.pdf"
