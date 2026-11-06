@@ -243,6 +243,10 @@ frappe.data_import.DataExporter = class DataExporter {
 
 		if (!export_records || !count_method[export_records]) return;
 
+		const count_args = JSON.stringify([export_records, this.get_filters()]);
+		if (count_args === this.last_count_args) return;
+		this.last_count_args = count_args;
+
 		const count_request_id = (this.count_request_id = (this.count_request_id || 0) + 1);
 		count_method[export_records]().then((value) => {
 			if (count_request_id !== this.count_request_id) return;
