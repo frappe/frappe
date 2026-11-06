@@ -93,7 +93,7 @@ def provider_error_from_http(
 def normalize_provider_error(error: Exception, *, provider: str) -> ProviderError:
 	"""Normalize native-provider and raw httpx failures."""
 	status_code, headers, detail = _exception_context(error)
-	if isinstance(error, httpx.TimeoutException):
+	if isinstance(error, (TimeoutError, httpx.TimeoutException)):
 		return _provider_error(
 			kind="timeout",
 			retryable=True,
@@ -124,6 +124,9 @@ def normalize_provider_error(error: Exception, *, provider: str) -> ProviderErro
 def normalize_litellm_error(error: Exception, *, provider: str) -> ProviderError:
 	"""Map LiteLLM's public exception hierarchy into Flow's error model."""
 	from litellm import exceptions as litellm_exceptions
+
+	if isinstance(error, litellm_exceptions.MidStreamFallbackError) and error.original_exception is not None:
+		return normalize_litellm_error(error.original_exception, provider=provider)
 
 	status_code, headers, detail = _exception_context(error)
 	kind: ProviderErrorKind
