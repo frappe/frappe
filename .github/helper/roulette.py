@@ -160,6 +160,42 @@ def is_ci(file):
 	return ".github" in file and "VOUCHED.td" not in file and not file.endswith(".md")
 
 
+PR_UNUSED_CI_FILES = (".github/helper/develop_status.py",)
+
+
+def workflow_ci_files():
+	"""The .github files the running workflow uses: its own file, roulette, and every file or action it or those files name. None outside GitHub Actions."""
+	match = re.search(r"(\.github/workflows/[^@]+)@", os.environ.get("GITHUB_WORKFLOW_REF", ""))
+	if not match:
+		return None
+	root = os.environ.get("GITHUB_WORKSPACE", ".")
+	used, pending = {".github/helper/roulette.py"}, [match[1]]
+	while pending:
+		path = pending.pop()
+		if path in used:
+			continue
+		used.add(path)
+		full = os.path.join(root, path)
+		if os.path.isdir(full) and not path.startswith(".github/actions/"):
+			continue
+		files = [os.path.join(path, name) for name in os.listdir(full)] if os.path.isdir(full) else [path]
+		for file in files:
+			try:
+				with open(os.path.join(root, file)) as f:
+					text = f.read()
+			except OSError:
+				continue
+			pending += [ref.rstrip("/.") for ref in re.findall(r"\.github/[\w./-]+", text)]
+	return used
+
+
+def uses_ci_file(file, used):
+	"""Does the running workflow use this changed CI file? Develop status runs only on the branch, never on a pull request."""
+	if file in PR_UNUSED_CI_FILES:
+		return False
+	return used is None or file in used or "/".join(file.split("/")[:3]) in used
+
+
 def is_frontend_code(file):
 	"""Check if the file is frontend code. `.html` in the `frappe` package outside `public` is Jinja rendered on the server."""
 	if os.path.basename(file) in ("package.json", "yarn.lock") and not file.startswith("frappe/"):
@@ -235,7 +271,8 @@ if __name__ == "__main__":
 		sys.exit(0)
 
 	# Analyze changed files
-	ci_files_changed = any(f for f in files_list if is_ci(f))
+	used_ci_files = workflow_ci_files()
+	ci_files_changed = any(is_ci(f) and uses_ci_file(f, used_ci_files) for f in files_list)
 	only_docs_changed = len(list(filter(is_docs, files_list))) == len(files_list)
 	only_frontend_code_changed = len(list(filter(is_frontend_code, files_list))) == len(files_list)
 	updated_py_file_count = len(list(filter(is_server_side_code, files_list)))
