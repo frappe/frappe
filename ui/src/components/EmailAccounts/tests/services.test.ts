@@ -133,6 +133,11 @@ describe("emptyForm", () => {
       use_tls: false,
     });
   });
+
+  it("fills in a saved secret masked", () => {
+    const account = doc({ password: "******", api_secret: "****" });
+    expect(emptyForm(account)).toMatchObject({ password: "******", api_secret: "****" });
+  });
 });
 
 describe("credentials", () => {
@@ -162,6 +167,9 @@ describe("validate", () => {
       field: "password",
       message: "App password is required",
     });
+    expect(
+      validate(service(""), form({ domain: "example.com", password: "" })),
+    ).toEqual({ field: "password", message: "Password is required" });
     expect(
       validate(
         service("Frappe Mail"),
