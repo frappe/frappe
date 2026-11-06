@@ -259,14 +259,18 @@ class TestGetWorkspace(IntegrationTestCase):
 
 	def test_boot_keeps_content_for_legacy_only(self):
 		make_workspace("GW Legacy", renderer="Legacy", content=[block("header", text="Old")])
+		make_workspace("GW Island", renderer="Frappe UI", content=[block("header", text="New")])
+		make_workspace("GW Unset", content=[block("header", text="Unset")])
+		frappe.db.set_value("Workspace", "GW Unset", "renderer", None)
 		frappe.set_user(DESK_USER)
 		frappe.local.request_cache.clear()
 		pages = {p.name: p for p in get_workspaces()["pages"]}
 
 		self.assertEqual(pages["GW Legacy"].renderer, "Legacy")
 		self.assertIn("Old", pages["GW Legacy"].content)
-		self.assertEqual(pages["GW Test"].renderer, "Frappe UI")
-		self.assertNotIn("content", pages["GW Test"])
+		self.assertIn("Unset", pages["GW Unset"].content)
+		self.assertEqual(pages["GW Island"].renderer, "Frappe UI")
+		self.assertNotIn("content", pages["GW Island"])
 
 
 class TestRoleLayouts(IntegrationTestCase):

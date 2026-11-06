@@ -144,6 +144,23 @@ class Workspace(Document, DeskViews):
 		self.validate_variants()
 		self.validate_shared_page_has_a_module()
 		self.validate_private_page_is_yours()
+		self.ship_on_new_renderer()
+		self.validate_renderer_stays_frappe_ui()
+
+	def ship_on_new_renderer(self):
+		"""A page an app author first marks standard ships on Frappe UI. An import keeps what its file
+		says, so a site never gets a different renderer for being in developer mode."""
+		if self.can_export() and self.has_value_changed("standard") and not frappe.flags.in_import:
+			self.renderer = "Frappe UI"
+
+	def validate_renderer_stays_frappe_ui(self):
+		"""A site moves to Frappe UI one way. An app author in developer mode, or an import, can
+		still set either renderer."""
+		if frappe.conf.developer_mode or frappe.flags.in_import:
+			return
+		previous = self.get_doc_before_save()
+		if previous and previous.renderer == "Frappe UI" and self.renderer != "Frappe UI":
+			frappe.throw(_("A workspace on the new layout cannot go back to the old one."))
 
 	def validate_variants(self):
 		variants = self.get("variants") or []
@@ -1109,10 +1126,12 @@ def save_variant(doc, role: str, content: list, new_widgets: dict) -> None:
 
 @frappe.whitelist(methods=["POST"])
 def set_workspace_renderer(name: str, renderer: str):
-	"""Draw a workspace with the other renderer. On an app's workspace only the site's choice
-	changes, so its content keeps following the app."""
+	"""Draw a workspace with the other renderer. A site only moves to Frappe UI. On an app's workspace
+	only the site's choice changes, so its content keeps following the app."""
 	if renderer not in ("Legacy", "Frappe UI"):
 		frappe.throw(_("Unknown renderer {0}").format(renderer))
+	if renderer == "Legacy" and not frappe.conf.developer_mode:
+		frappe.throw(_("A workspace on the new layout cannot go back to the old one."))
 
 	doc = frappe.get_doc("Workspace", name)
 	if not can_edit_workspace(doc):

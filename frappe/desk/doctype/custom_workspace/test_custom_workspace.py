@@ -112,7 +112,7 @@ class TestCustomWorkspaceUnit(IntegrationTestCase):
 
 	def test_effective_renderer(self):
 		for app in ("Legacy", "Frappe UI"):
-			for site, expected in (("Inherit", app), ("Legacy", "Legacy"), ("Frappe UI", "Frappe UI")):
+			for site, expected in (("Inherit", app), ("Frappe UI", "Frappe UI")):
 				with self.subTest(app=app, site=site):
 					customization = make_customization(renderer=site)
 					self.assertEqual(effective_renderer(app, customization), expected)
@@ -228,14 +228,15 @@ class TestCustomWorkspaceIntegration(IntegrationTestCase):
 	def test_renderer_is_a_diff_and_reset_clears_it(self):
 		from frappe.desk.desktop import Workspace
 
-		upsert_property_customization(self.WORKSPACE, renderer="Legacy")
+		frappe.db.set_value("Workspace", self.WORKSPACE, "renderer", "Legacy")
+		upsert_property_customization(self.WORKSPACE, renderer="Frappe UI")
 		customization = frappe.get_doc("Custom Workspace", self.WORKSPACE)
 		self.assertFalse(customization.content)
 		self.assertFalse(customization.widgets)
-		self.assertEqual(Workspace({"name": self.WORKSPACE}, minimal=True).doc.renderer, "Legacy")
+		self.assertEqual(Workspace({"name": self.WORKSPACE}, minimal=True).doc.renderer, "Frappe UI")
 
 		reset_workspace_customization(self.WORKSPACE)
-		self.assertEqual(Workspace({"name": self.WORKSPACE}, minimal=True).doc.renderer, "Frappe UI")
+		self.assertEqual(Workspace({"name": self.WORKSPACE}, minimal=True).doc.renderer, "Legacy")
 
 	def test_a_legacy_save_keeps_every_app_widget(self):
 		from frappe.desk.desktop import get_desktop_page
@@ -271,12 +272,20 @@ class TestCustomWorkspaceIntegration(IntegrationTestCase):
 	def test_switching_renderer_freezes_nothing(self):
 		from frappe.desk.doctype.workspace.workspace import set_workspace_renderer
 
+		frappe.db.set_value("Workspace", self.WORKSPACE, "renderer", "Legacy")
 		with patch.dict(frappe.conf, {"developer_mode": 0}):
-			set_workspace_renderer(self.WORKSPACE, "Legacy")
+			set_workspace_renderer(self.WORKSPACE, "Frappe UI")
 			customization = frappe.get_doc("Custom Workspace", self.WORKSPACE)
-			self.assertEqual(customization.renderer, "Legacy")
+			self.assertEqual(customization.renderer, "Frappe UI")
 			self.assertFalse(customization.content)
 
+			with self.assertRaises(frappe.ValidationError):
+				set_workspace_renderer(self.WORKSPACE, "Legacy")
+			with self.assertRaises(frappe.ValidationError):
+				upsert_property_customization(self.WORKSPACE, renderer="Legacy")
+			self.assertEqual(frappe.db.get_value("Custom Workspace", self.WORKSPACE, "renderer"), "Frappe UI")
+
+			frappe.db.set_value("Workspace", self.WORKSPACE, "renderer", "Frappe UI")
 			set_workspace_renderer(self.WORKSPACE, "Frappe UI")
 		self.assertEqual(frappe.db.get_value("Custom Workspace", self.WORKSPACE, "renderer"), "Inherit")
 		self.assertEqual(loads(frappe.db.get_value("Workspace", self.WORKSPACE, "content")), BASE_CONTENT)

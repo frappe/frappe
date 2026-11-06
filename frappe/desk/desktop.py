@@ -785,7 +785,7 @@ def get_workspaces():
 		all_pages.sort(key=lambda page: page.get("sequence_id") or 0)
 
 	for page in all_pages:
-		if page.renderer != "Legacy":
+		if page.renderer == "Frappe UI":
 			del page["content"]
 
 	pages = []

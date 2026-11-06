@@ -275,7 +275,7 @@ frappe.router = {
 
 	// The page that draws a workspace: the island's Page, or the legacy view.
 	workspace_view_for(page) {
-		if (page.renderer === "Legacy" || !frappe.boot.workspace_view) return "Workspaces";
+		if (page.renderer !== "Frappe UI" || !frappe.boot.workspace_view) return "Workspaces";
 		return frappe.boot.workspace_view;
 	},
 

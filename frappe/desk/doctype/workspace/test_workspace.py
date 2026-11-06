@@ -1,6 +1,7 @@
 # Copyright (c) 2020, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import json
+from unittest.mock import patch
 
 import frappe
 from frappe.desk.doctype.sidebar.test_sidebar import sidebarless_module
@@ -43,22 +44,57 @@ class TestWorkspace(IntegrationTestCase):
 	# 	else:
 	# 		self.assertEqual(len(cards), 1)
 
-	def test_renderer_defaults_to_frappe_ui(self):
+	def test_renderer_defaults_to_legacy(self):
 		workspace = create_workspace(
 			name="Renderer Test", label="Renderer Test", public=1, title="Renderer Test"
 		)
 		workspace.insert()
-		self.assertEqual(workspace.renderer, "Frappe UI")
+		self.assertEqual(workspace.renderer, "Legacy")
 
-	def test_renderer_patch_moves_every_workspace_to_frappe_ui(self):
+	def test_a_page_first_marked_standard_ships_on_frappe_ui(self):
+		def standard_page(title):
+			workspace = create_workspace(name=title, label=title, public=1, title=title)
+			workspace.module = "Desk"
+			workspace.standard = 1
+			return workspace
+
+		with patch.dict(frappe.conf, {"developer_mode": 1}):
+			authored = standard_page("Renderer Authored").insert()
+			self.assertEqual(authored.renderer, "Frappe UI")
+
+			authored.renderer = "Legacy"
+			authored.save()
+			self.assertEqual(authored.renderer, "Legacy")
+
+			with patch.dict(frappe.flags, {"in_import": True}):
+				imported = standard_page("Renderer Imported").insert()
+			self.assertEqual(imported.renderer, "Legacy")
+
+		with patch.dict(frappe.conf, {"developer_mode": 0}):
+			self.assertEqual(standard_page("Renderer On A Site").insert().renderer, "Legacy")
+
+	def test_a_site_cannot_take_a_page_back_to_legacy(self):
+		from frappe.desk.doctype.workspace.workspace import set_workspace_renderer
+
 		workspace = create_workspace(
-			name="Renderer Test", label="Renderer Test", public=1, title="Renderer Test"
+			name="Renderer One Way", label="Renderer One Way", public=1, title="Renderer One Way"
 		)
+		workspace.renderer = "Frappe UI"
 		workspace.insert()
-		frappe.db.set_value("Workspace", workspace.name, "renderer", None)
 
-		frappe.get_attr("frappe.patches.v17_0.set_workspace_renderer_to_frappe_ui.execute")()
+		with patch.dict(frappe.conf, {"developer_mode": 0}):
+			workspace.renderer = "Legacy"
+			with self.assertRaises(frappe.ValidationError):
+				workspace.save()
+			with self.assertRaises(frappe.ValidationError):
+				set_workspace_renderer(workspace.name, "Legacy")
 		self.assertEqual(frappe.db.get_value("Workspace", workspace.name, "renderer"), "Frappe UI")
+
+		with patch.dict(frappe.conf, {"developer_mode": 1}):
+			workspace.reload()
+			workspace.renderer = "Legacy"
+			workspace.save()
+		self.assertEqual(frappe.db.get_value("Workspace", workspace.name, "renderer"), "Legacy")
 
 	def test_role_layouts_are_validated(self):
 		def card(label):

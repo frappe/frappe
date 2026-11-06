@@ -274,7 +274,7 @@
    "options": "Module Onboarding"
   },
   {
-   "default": "Frappe UI",
+   "default": "Legacy",
    "fieldname": "renderer",
    "fieldtype": "Select",
    "label": "Renderer",
@@ -295,7 +295,7 @@
  ],
  "in_create": 1,
  "links": [],
- "modified": "2026-10-26 06:20:00.000000",
+ "modified": "2026-11-06 16:56:30.000000",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Workspace",

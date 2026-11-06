@@ -74,7 +74,7 @@ class CustomWorkspace(Document):
 		]
 		override_sequence: DF.Check
 		removed_roles: DF.Table[HasRole]
-		renderer: DF.Literal["Inherit", "Legacy", "Frappe UI"]
+		renderer: DF.Literal["Inherit", "Frappe UI"]
 		sequence_id: DF.Float
 		user: DF.Link | None
 		variants: DF.Table[WorkspaceVariant]

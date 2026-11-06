@@ -137,7 +137,7 @@
    "fieldname": "renderer",
    "fieldtype": "Select",
    "label": "Renderer",
-   "options": "Inherit\nLegacy\nFrappe UI"
+   "options": "Inherit\nFrappe UI"
   },
   {
    "description": "The site's role layouts. A row for a role the app ships replaces that layout in its place; any other comes after the app's layouts. Managed by the workspace editor.",
@@ -149,7 +149,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-11-03 12:00:00.000000",
+ "modified": "2026-11-06 18:19:00.000000",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Custom Workspace",
