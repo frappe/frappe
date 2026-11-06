@@ -482,6 +482,18 @@ class TestPdf(IntegrationTestCase):
 
 		self.assertEqual(calls, [{"doctype": "ToDo", "name": todo.name, "print_format": None}])
 
+	def test_emailed_print_leaves_cached_doc_unchanged(self):
+		from unittest.mock import patch
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "emailed print"}).insert()
+
+		with patch("frappe.utils.pdf.get_chrome_pdf", return_value=b"%PDF-"):
+			frappe.attach_print("ToDo", todo.name)
+
+		self.assertFalse(frappe.get_cached_doc("ToDo", todo.name).flags.in_print)
+
 	def test_on_print_pdf_hook_runs_for_bulk_prints(self):
 		from unittest.mock import patch
 
