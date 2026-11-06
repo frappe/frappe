@@ -479,7 +479,7 @@ class Email:
 			return
 
 		if _reply_to and not frappe.db.get_value(
-			"Email Account", {"email_id": _reply_to, "enable_incoming": 1}, "email_id"
+			"Email Account", {"email_id": extract_email_id(_reply_to), "enable_incoming": 1}, "email_id"
 		):
 			self.from_email = extract_email_id(_reply_to)
 		else:
