@@ -1169,7 +1169,7 @@ class PrintFormatGenerator:
 		df["_rows"] = kept
 
 	def prepare_html(self, df):
-		if df.get("fieldtype") == "HTML" and not df.get("_hidden"):
+		if df.get("renderer") == "HTML" and not df.get("_hidden"):
 			rendered = frappe.render_template(  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
 				df.get("html") or "", self.jinja_context
 			)
