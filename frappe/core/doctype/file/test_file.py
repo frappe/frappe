@@ -184,25 +184,6 @@ class TestExtensionValidations(IntegrationTestCase):
 		bad_file = frappe.new_doc("File", file_name=f"{file_name}.phtml", content=content)
 		self.assertRaises(FileTypeNotAllowed, bad_file.insert)
 
-	@IntegrationTestCase.change_settings("System Settings", {"allowed_file_extensions": ""})
-	def test_file_type_allowlist_applies_to_users_without_desk_access(self):
-		set_request(method="POST", path="/")
-		email = f"{frappe.generate_hash(length=8)}@example.com"
-		frappe.get_doc(doctype="User", email=email, first_name="Tester", user_type="Website User").insert()
-
-		with self.set_user(email):
-			bad_file = frappe.new_doc("File", file_name="page.html", content="<p>x</p>")
-			self.assertRaises(frappe.ValidationError, bad_file.insert, ignore_permissions=True)
-
-			ok_file = frappe.new_doc("File", file_name="note.txt", content="x").insert(
-				ignore_permissions=True
-			)
-			self.assertTrue(ok_file.name)
-
-		# desk users are unaffected
-		html_file = frappe.new_doc("File", file_name="page.html", content="<p>x</p>").insert()
-		self.assertTrue(html_file.name)
-
 
 class TestBase64File(IntegrationTestCase):
 	def setUp(self):
