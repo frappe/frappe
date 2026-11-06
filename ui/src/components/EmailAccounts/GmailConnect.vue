@@ -68,7 +68,7 @@
 						</p>
 					</div>
 					<Button
-						class="-mt-2"
+						class="-mt-1"
 						variant="ghost"
 						icon="lucide-copy"
 						:tooltip="__('Copy steps for your admin')"
