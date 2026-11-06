@@ -9,7 +9,8 @@ Their page scripts stay in Studio Page records but appear at the same paths
 in the file explorer as repository page scripts.
 
 Both app types can produce a Vite build. A database app can also compile its
-source in the browser when no build is available.
+source in the browser when no build is available. The browser compiles
+TypeScript only, so a Vue single file component needs a repository app.
 
 Enabling export writes stored files to the repository and clears the file store.
 Disabling export restores supported files to the database before deleting the
@@ -27,6 +28,9 @@ from frappe import _
 # Allow client source files only. Files that execute on the server, such as Python files,
 # must be edited in the repository.
 ALLOWED_STUDIO_FILE_EXTENSIONS = {".ts", ".js", ".vue", ".json", ".css"}
+# A database app builds its pages from Studio components. A Vue single file component needs the
+# repository's build, so the database store does not keep one.
+ALLOWED_STORED_FILE_EXTENSIONS = ALLOWED_STUDIO_FILE_EXTENSIONS - {".vue"}
 
 
 def uses_db_files(studio_app: str) -> bool:
@@ -335,7 +339,7 @@ def is_storable_file(studio_app: str, path: str) -> bool:
 	name = posixpath.basename(path)
 	if name.startswith(".") or name == "tsconfig.json" or name.lower() == "tailwind.config.js":
 		return False
-	if posixpath.splitext(name)[1].lower() not in ALLOWED_STUDIO_FILE_EXTENSIONS:
+	if posixpath.splitext(name)[1].lower() not in ALLOWED_STORED_FILE_EXTENSIONS:
 		return False
 	return not path.startswith("studio_page/") and not is_export_doc_file(studio_app, path)
 
@@ -359,10 +363,15 @@ def file_hash(content: str) -> str:
 	return hashlib.sha1(content.encode("utf-8")).hexdigest()
 
 
-def validate_allowed_extension(file_path: str) -> None:
+def validate_allowed_extension(file_path: str, allowed: set[str] | None = None) -> None:
 	extension = os.path.splitext(file_path)[1].lower()
-	if extension not in ALLOWED_STUDIO_FILE_EXTENSIONS:
-		frappe.throw(_("Editing {0} files is not allowed.").format(extension or "these"))
+	if extension in (allowed or ALLOWED_STUDIO_FILE_EXTENSIONS):
+		return
+	if extension == ".vue":
+		frappe.throw(
+			_("A database app cannot hold Vue components. Export the app to a repository to add one.")
+		)
+	frappe.throw(_("Editing {0} files is not allowed.").format(extension or "these"))
 
 
 def is_export_doc_file(studio_app: str, file_path: str) -> bool:

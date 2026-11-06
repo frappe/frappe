@@ -1,6 +1,5 @@
 import { defineAsyncComponent, shallowRef } from "vue"
 import { vueComponents } from "@/data/vueComponents"
-import { loadAppRuntime, loadAppModule } from "@/browserRuntime/appRuntime"
 import type { CustomVueComponentMeta } from "@/types/vue"
 
 export const customVueComponentsRegistry = shallowRef<Record<string, any>>({})
@@ -56,34 +55,6 @@ export function unregisterCustomVueComponents(components: CustomVueComponentMeta
 export async function reloadCustomVueComponents(frappeApp: string): Promise<CustomVueComponentMeta[]> {
 	const before = Object.keys(customVueComponentsRegistry.value)
 	const components = await registerCustomVueComponents(frappeApp)
-
-	const current = new Set(components.map((comp) => comp.component_name))
-	const removed = before.filter((name) => !current.has(name)).map((name) => ({ component_name: name }))
-	if (removed.length) unregisterCustomVueComponents(removed as CustomVueComponentMeta[])
-
-	return components
-}
-
-/**
- * Register a database app's Vue components for the editor and renderer.
- * Compile stored source through the app runtime and remove components no longer in the app.
- */
-export async function registerAppVueComponents(studioApp: string): Promise<CustomVueComponentMeta[]> {
-	await loadAppRuntime(studioApp)
-	const components: CustomVueComponentMeta[] = await vueComponents.reload({ studio_app: studioApp })
-
-	const before = Object.keys(customVueComponentsRegistry.value)
-	const registry = { ...customVueComponentsRegistry.value }
-	for (const comp of components) {
-		const asyncComp = defineAsyncComponent(() =>
-			loadAppModule(comp.studio_file_path).then((module) => module.default),
-		)
-		registry[comp.component_name] = asyncComp
-		if (window.__APP_COMPONENTS__) {
-			window.__APP_COMPONENTS__[comp.component_name] = asyncComp
-		}
-	}
-	customVueComponentsRegistry.value = registry
 
 	const current = new Set(components.map((comp) => comp.component_name))
 	const removed = before.filter((name) => !current.has(name)).map((name) => ({ component_name: name }))

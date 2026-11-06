@@ -8,7 +8,7 @@
  * can be collected when they are no longer referenced. See branch codex/native-esm-prototype.
  *
  * Use the app build's path rules: @app/ points to the app root, relative paths try supported
- * extensions and index files, and .vue and .css imports require explicit extensions.
+ * extensions and index files, and a .css import needs its explicit extension.
  */
 
 import {
@@ -52,7 +52,7 @@ export class AppModuleRegistry {
 		this.files = { ...files }
 	}
 
-	/** Load a module by its exact path relative to the app root, such as components/Card.vue. */
+	/** Load a module by its exact path relative to the app root, such as stores/catalog.ts. */
 	async loadModule(path: string): Promise<any> {
 		await this.prepare()
 		this.throwIfFailed(path)
@@ -118,7 +118,6 @@ export class AppModuleRegistry {
 					"module",
 					`${commonjs.code}\n//# sourceURL=studio-app:///${path}`,
 				) as ModuleFactory
-				if (compiled.css) this.styles[path] = compiled.css
 				const parsed = await parseExports(path, compiled.code)
 				if (!parsed.errors.length) this.exports[path] = parsed.exports
 			}
@@ -232,7 +231,7 @@ export class AppModuleRegistry {
 			? specifier.slice("@app/".length)
 			: joinRelative(from, specifier)
 		if (base === null) return null
-		if (base.endsWith(".vue") || base.endsWith(".css")) {
+		if (base.endsWith(".css")) {
 			return this.files[base] !== undefined ? base : null
 		}
 		for (const extension of EXTENSION_CANDIDATES) {
@@ -249,7 +248,7 @@ export class AppModuleRegistry {
 }
 
 function isCompiledModule(path: string): boolean {
-	return path.endsWith(".vue") || path.endsWith(".ts") || path.endsWith(".js")
+	return path.endsWith(".ts") || path.endsWith(".js")
 }
 
 function isLocalSpecifier(specifier: string): boolean {

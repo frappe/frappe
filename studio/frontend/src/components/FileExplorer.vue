@@ -422,10 +422,12 @@ async function save() {
 const showNewEntryDialog = ref(false)
 const newEntryPath = ref("")
 const newEntryType = ref<"file" | "folder">("file")
+// A database app has no Vue compiler in its build path, so .vue files need a repository app.
+const allowedExtensions = computed(() => (store.usesDbFiles ? ".ts, .js, .json, .css" : ".ts, .js, .vue, .json, .css"))
 const newEntryDescription = computed(() =>
 	newEntryType.value === "folder"
 		? `Relative to studio/${app.value?.app_name}`
-		: `Relative to studio/${app.value?.app_name}. Allowed: .ts, .js, .vue, .json, .css`,
+		: `Relative to studio/${app.value?.app_name}. Allowed: ${allowedExtensions.value}`,
 )
 const pathInput = ref<any>(null)
 const treeContainer = ref<HTMLElement | null>(null)

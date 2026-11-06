@@ -1,7 +1,7 @@
 /**
- * Compile stored source in the browser with vue/compiler-sfc and Sucrase.
- * Strip TypeScript annotations without checking types. This supports database apps without
- * a server build and syntax checking in the editor.
+ * Compile stored source in the browser with Sucrase, and read its imports and exports with
+ * vue/compiler-sfc's Babel parser. Strip TypeScript annotations without checking types. This
+ * supports database apps without a server build and syntax checking in the editor.
  *
  * Load the compilers only when needed. Built apps exclude this module.
  */
@@ -15,7 +15,6 @@ export interface CompileError {
 
 export interface CompiledFile {
 	code: string
-	css: string
 	errors: CompileError[]
 }
 
@@ -59,7 +58,7 @@ export function compileFile(filename: string, source: string): Promise<CompiledF
 	const key = `${filename}\0${source.length}\0${djb2(source)}`
 	let compiled = cache.get(key)
 	if (!compiled) {
-		compiled = filename.endsWith(".vue") ? compileSFC(filename, source) : compileTS(filename, source)
+		compiled = compileTS(filename, source)
 		cache.set(key, compiled)
 	}
 	return compiled
@@ -69,9 +68,9 @@ async function compileTS(filename: string, source: string): Promise<CompiledFile
 	const [, sucrase] = await loadCompilers()
 	try {
 		const code = sucrase.transform(source, { ...TS_OPTIONS, filePath: filename }).code
-		return { code, css: "", errors: [] }
+		return { code, errors: [] }
 	} catch (error) {
-		return { code: "", css: "", errors: [formatError(filename, error)] }
+		return { code: "", errors: [formatError(filename, error)] }
 	}
 }
 
@@ -80,9 +79,9 @@ export async function toCommonJS(filename: string, source: string): Promise<Comp
 	const [, sucrase] = await loadCompilers()
 	try {
 		const code = sucrase.transform(source, { ...CJS_OPTIONS, filePath: filename }).code
-		return { code, css: "", errors: [] }
+		return { code, errors: [] }
 	} catch (error) {
-		return { code: "", css: "", errors: [formatError(filename, error)] }
+		return { code: "", errors: [formatError(filename, error)] }
 	}
 }
 
@@ -207,113 +206,6 @@ function declaredNames(node: any, names: string[]): void {
 	}
 }
 
-async function compileSFC(filename: string, source: string): Promise<CompiledFile> {
-	const [sfc] = await loadCompilers()
-	const id = scopeId(filename)
-	const { descriptor, errors: parseErrors } = sfc.parse(source, { filename })
-	// Reject template parse errors before compileScript can generate a partial component.
-	if (parseErrors.length) {
-		return { code: "", css: "", errors: parseErrors.map((error) => formatError(filename, error)) }
-	}
-
-	const unsupported = findUnsupportedLang(descriptor)
-	if (unsupported) {
-		return { code: "", css: "", errors: [{ file: filename, line: null, column: null, message: unsupported }] }
-	}
-
-	const hasTS = descriptor.script?.lang === "ts" || descriptor.scriptSetup?.lang === "ts"
-	const hasScopedStyle = descriptor.styles.some((style) => style.scoped)
-
-	// Only <script setup> uses an inline template. Other components compile templates separately,
-	// including template-only components, which compileScript does not accept.
-	const inlineTemplate = Boolean(descriptor.scriptSetup)
-
-	let code: string
-	if (descriptor.script || descriptor.scriptSetup) {
-		try {
-			code = sfc.compileScript(descriptor, { id, inlineTemplate, genDefaultAs: "__sfc__" }).content
-		} catch (error) {
-			const block = descriptor.scriptSetup || descriptor.script
-			return { code: "", css: "", errors: [formatError(filename, error, blockOffset(block))] }
-		}
-	} else {
-		code = "const __sfc__ = {}\n"
-	}
-
-	// A component without a template can supply its own render function.
-	if (!inlineTemplate && descriptor.template) {
-		const template = sfc.compileTemplate({
-			source: descriptor.template.content,
-			filename,
-			id,
-			scoped: hasScopedStyle,
-		})
-		if (template.errors.length) {
-			const offset = blockOffset(descriptor.template)
-			return { code: "", css: "", errors: template.errors.map((error) => formatError(filename, error, offset)) }
-		}
-		code += `\n${template.code}\n__sfc__.render = render\n`
-	}
-	if (hasTS) {
-		// Strip the full output because inline templates can add TypeScript casts to render code.
-		const stripped = await compileTS(filename, code)
-		if (stripped.errors.length) return stripped
-		code = stripped.code
-	}
-
-	let css = ""
-	const cssErrors: CompileError[] = []
-	for (const style of descriptor.styles) {
-		const result = await sfc.compileStyleAsync({
-			source: style.content,
-			filename,
-			id: `data-v-${id}`,
-			scoped: style.scoped,
-		})
-		cssErrors.push(...result.errors.map((error) => formatError(filename, error, blockOffset(style))))
-		css += result.code
-	}
-	if (cssErrors.length) return { code: "", css: "", errors: cssErrors }
-
-	code += `\n__sfc__.__file = ${JSON.stringify(filename)}\n`
-	if (hasScopedStyle) code += `__sfc__.__scopeId = ${JSON.stringify(`data-v-${id}`)}\n`
-	code += "export default __sfc__\n"
-	return { code, css, errors: [] }
-}
-
-/**
- * This runtime has no Sass, JSX or template preprocessors. Reject unsupported block languages
- * before a plain compiler can interpret them incorrectly.
- */
-function findUnsupportedLang(descriptor: import("vue/compiler-sfc").SFCDescriptor): string | null {
-	for (const block of [descriptor.script, descriptor.scriptSetup]) {
-		if (block?.lang && block.lang !== "ts" && block.lang !== "js") {
-			return unsupportedMessage("script", block.lang, "TypeScript or JavaScript")
-		}
-	}
-	if (descriptor.template?.lang && descriptor.template.lang !== "html") {
-		return unsupportedMessage("template", descriptor.template.lang, "plain HTML")
-	}
-	for (const style of descriptor.styles) {
-		if (style.lang && style.lang !== "css") {
-			return unsupportedMessage("style", style.lang, "plain CSS")
-		}
-	}
-	return null
-}
-
-function unsupportedMessage(block: string, lang: string, instead: string): string {
-	return (
-		`<${block} lang="${lang}"> is not supported in a database app: the browser has no ` +
-		`${lang} compiler. Use ${instead}, or export the app to a repository to build it with Vite.`
-	)
-}
-
-/** Keep each file's scoped CSS identifier stable across source edits. */
-function scopeId(filename: string): string {
-	return (djb2(filename) >>> 0).toString(16).padStart(8, "0")
-}
-
 function djb2(text: string): number {
 	let hash = 5381
 	for (let index = 0; index < text.length; index++) {
@@ -322,18 +214,11 @@ function djb2(text: string): number {
 	return hash
 }
 
-/** A block compiler counts lines inside its own block, so shift them onto the file's lines. */
-function blockOffset(block: { loc: { start: { line: number } } } | null | undefined): number {
-	return block ? block.loc.start.line - 1 : 0
-}
-
-function formatError(filename: string, error: any, lineOffset = 0): CompileError {
-	// Babel and the SFC parser report a position in `loc`; postcss puts it on the error itself.
-	const location = error?.loc?.start || error?.loc || error || {}
-	const line = location.line ?? null
+function formatError(filename: string, error: any): CompileError {
+	const location = error?.loc?.start || error?.loc || {}
 	return {
 		file: filename,
-		line: line === null ? null : line + lineOffset,
+		line: location.line ?? null,
 		column: location.column ?? null,
 		message: error?.message || String(error),
 	}

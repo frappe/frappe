@@ -22,11 +22,9 @@ export function useLivePreview() {
 		if (!failure) revision.value++
 	}, 300)
 
-	// Reload source and components before remounting the page after a stored file changes.
+	// Reload source before remounting the page after a stored file changes.
 	const reloadAppFiles = useDebounceFn(async () => {
-		const { registerAppVueComponents } = await import("@/utils/customVueComponents")
 		await reloadAppRuntime()
-		await registerAppVueComponents(window.app_name)
 		const { path, query, hash } = router.currentRoute.value
 		const failure = await router.replace({ path, query, hash, force: true })
 		if (!failure) revision.value++

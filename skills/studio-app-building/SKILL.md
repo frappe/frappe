@@ -92,8 +92,9 @@ Needing anything else is the signal to export the app to a repository.
   watcher is never disposed, as in any Vue `async setup()`. A database app
   stores the module in `Studio Page.script`; a repository app in a sibling
   `.ts` file.
-- Shared code (stores, composables, `.vue` components) lives in the app's own
-  files and is imported via `@app/...`, wherever those files are stored.
+- Shared code (stores, composables, and a repository app's `.vue` components)
+  lives in the app's own files and is imported via `@app/...`, wherever those
+  files are stored.
 - Tailwind runs at build time, and every app is built on publish, so the built
   CSS carries the app's own classes. An app whose build failed or has not run
   yet falls back to the shared Studio renderer, which only carries the classes
@@ -118,7 +119,9 @@ Needing anything else is the signal to export the app to a repository.
 
 ## Custom Vue components
 
-An app can use its own Vue components as blocks. Reach for one when
+A repository app can use its own Vue components as blocks. A database app
+cannot: its components are Studio Components, and the file store refuses a
+`.vue` file. Export the app to a repository to add one. Reach for one when
 built-in components and block compositions can't express the UI cleanly: a
 stateful widget (rating input, drag-and-drop board, canvas or SVG drawing), a
 third-party library, or markup a page would otherwise rebuild from dozens of
@@ -126,12 +129,9 @@ blocks with heavy script glue. Don't use one to restyle something a built-in
 component already does. For reusable layouts made of ordinary blocks, use a
 Studio Component (`studio_components/*.json`) instead.
 
-- Put a single-file component at `components/<ComponentName>.vue` — in the
-  file store for a database app, under `<frappe_app>/studio/<studio_app>/`
-  for a repository app. Studio finds any `.vue` file in the app, and the file
-  name is the block's `componentName`. A database app compiles it in the
-  browser, which has no preprocessors: `<style lang="scss">` and `lang="tsx"`
-  are rejected, plain CSS and `lang="ts"` work.
+- Put a single-file component at `<frappe_app>/studio/<studio_app>/components/<ComponentName>.vue`.
+  Studio finds any `.vue` file in the app, and the file name is the block's
+  `componentName`.
 - Write it like any vue single-file component. Style
   with Tailwind classes and espresso tokens per [DESIGN.md](DESIGN.md), and
   try to keep one root element (or bind `$attrs` onto it) so block styles apply.

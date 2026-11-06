@@ -4,6 +4,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.studio.files import (
+	ALLOWED_STORED_FILE_EXTENSIONS,
 	is_export_folder,
 	normalize_path,
 	validate_allowed_extension,
@@ -34,7 +35,7 @@ class StudioAppFile(Document):
 			if is_export_folder(self.file_path):
 				frappe.throw(_("{0} is managed by Studio and can't be created.").format(self.file_path))
 		else:
-			validate_allowed_extension(self.file_path)
+			validate_allowed_extension(self.file_path, ALLOWED_STORED_FILE_EXTENSIONS)
 			validate_editable(self.studio_app, self.file_path)
 		self.validate_unique_path()
 

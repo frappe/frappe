@@ -8,7 +8,7 @@ import ErrorPage from "@/pages/ErrorPage.vue"
 import AppRenderer from "@/AppRenderer.vue"
 import { resourcesPlugin } from "frappe-ui"
 import { registerGlobalComponents } from "@/globals"
-import { registerCustomVueComponents, registerAppVueComponents } from "@/utils/customVueComponents"
+import { registerCustomVueComponents } from "@/utils/customVueComponents"
 import { loadAppRuntime, loadAppRouterConfig } from "@/browserRuntime/appRuntime"
 import { registerStudioPageScripts } from "@/data/studioPageScripts"
 import { initSocket } from "@/socket"
@@ -43,7 +43,6 @@ const frappeApp = (window as any).frappe_app
 async function prepareApp(): Promise<RouterConfig | undefined> {
 	if (window.uses_db_files) {
 		await loadAppRuntime(window.app_name)
-		await registerAppVueComponents(window.app_name)
 		return loadAppRouterConfig()
 	}
 	if (frappeApp) {

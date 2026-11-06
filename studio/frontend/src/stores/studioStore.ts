@@ -13,10 +13,10 @@ import { studioVariables } from "@/data/studioVariables"
 import Block from "@/utils/block"
 import useCanvasStore from "@/stores/canvasStore"
 import useCodeStore, { usePageScope } from "@/stores/codeStore"
-import { registerAppVueComponents, reloadCustomVueComponents } from "@/utils/customVueComponents"
+import { reloadCustomVueComponents } from "@/utils/customVueComponents"
 import { registerStudioPageScripts, unregisterStudioPageScripts } from "@/data/studioPageScripts"
-import { reloadAppRuntime, unloadAppRuntime } from "@/browserRuntime/appRuntime"
-import { registerCustomComponentPaths, invalidateComponentCache } from "@/utils/components"
+import { loadAppRuntime, reloadAppRuntime, unloadAppRuntime } from "@/browserRuntime/appRuntime"
+import { registerCustomComponentPaths } from "@/utils/components"
 import type { CustomVueComponentMeta } from "@/types/vue"
 
 import type { StudioApp } from "@/types/Studio/StudioApp"
@@ -116,6 +116,7 @@ const useStudioStore = defineStore("store", () => {
 		const appDoc = await fetchApp(appName)
 		if (!appDoc) return
 		activeApp.value = appDoc
+		if (usesDbFiles.value) await loadAppRuntime(appName)
 		await setAppBoot(appName)
 		await setAppPages(appName)
 		await setCustomComponents()
@@ -617,19 +618,12 @@ const useStudioStore = defineStore("store", () => {
 		}, route)
 	}
 
-	// custom components
+	// Only a repository app ships .vue components. An empty app name clears the ones the last app registered.
 	async function setCustomComponents() {
-		await loadCustomVueComponents()
+		if (!usesDbFiles.value) await unloadAppRuntime()
+		const frappeApp = usesDbFiles.value ? "" : activeApp.value!.frappe_app!
+		customVueComponents.value = await reloadCustomVueComponents(frappeApp)
 		await registerCustomComponentPaths(customVueComponents.value)
-	}
-
-	async function loadCustomVueComponents() {
-		if (usesDbFiles.value) {
-			customVueComponents.value = await registerAppVueComponents(activeApp.value!.name)
-			return
-		}
-		await unloadAppRuntime()
-		customVueComponents.value = await reloadCustomVueComponents(activeApp.value!.frappe_app!)
 	}
 
 	// Reload source, components and the active page script after file changes.
@@ -637,10 +631,6 @@ const useStudioStore = defineStore("store", () => {
 	const refreshAppFiles = useDebounceFn(async () => {
 		if (!usesDbFiles.value) return
 		await reloadAppRuntime()
-		await setCustomComponents()
-		for (const component of customVueComponents.value) {
-			invalidateComponentCache(component.component_name)
-		}
 		if (activePage.value) await pageScope.loadPageScript(activePage.value)
 	}, 300)
 
@@ -864,7 +854,6 @@ const useStudioStore = defineStore("store", () => {
 		getAppPageRoute,
 		// custom components
 		setCustomComponents,
-		loadCustomVueComponents,
 		customVueComponents,
 		// cross-panel navigation
 		selectedVueFile,

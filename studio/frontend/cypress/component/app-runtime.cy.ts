@@ -3,17 +3,6 @@ import { AppModuleRegistry, AppCompileError, clearAppStyles } from "@/browserRun
 
 const files: Record<string, string> = {
 	"utils/format.ts": `export function fmt(n: number): string { return "#" + n }`,
-	"components/StatCard.vue": `<template><div class="stat">{{ fmt(count) }}<slot /></div></template>
-<script setup lang="ts">
-import { ref } from "vue"
-import { fmt } from "../utils/format"
-const count = ref(42)
-</script>
-<style scoped>.stat { color: rgb(200, 0, 0) }</style>`,
-	"components/OptionsCard.vue": `<template><div class="options">{{ label }}</div></template>
-<script>
-export default { data() { return { label: "from options" } } }
-</script>`,
 	"styles/extra.css": ".extra { color: blue }",
 	"theme.json": `{"accent": "teal"}`,
 	"side-effect.ts": `import "./styles/extra.css"\nimport theme from "./theme.json"\nexport const accent: string = theme.accent`,
@@ -32,34 +21,11 @@ async function expectCompileError(sources: Record<string, string>, entry: string
 	}
 }
 
-async function compileErrorOf(lines: string[]) {
-	try {
-		await new AppModuleRegistry({ "a.vue": lines.join("\n") }).loadModule("a.vue")
-		throw new Error("expected a compile error")
-	} catch (error: any) {
-		expect(error).to.be.instanceOf(AppCompileError)
-		return error.errors[0]
-	}
-}
-
 describe("AppModuleRegistry", () => {
 	afterEach(() => clearAppStyles())
 
 	it("compiles, links and runs an app's modules in the page", () => {
 		const registry = new AppModuleRegistry(files)
-
-		cy.wrap(registry.loadModule("components/StatCard.vue")).then((card: any) => {
-			expect(card.default.__file).to.equal("components/StatCard.vue")
-			expect(card.default.__scopeId).to.match(/^data-v-/)
-			cy.mount(card.default).get(".stat").should("contain.text", "#42")
-			// Scoped CSS must apply to the mounted component, not just compile successfully.
-			cy.get(".stat").should("have.css", "color", "rgb(200, 0, 0)")
-		})
-
-		cy.wrap(registry.loadModule("components/OptionsCard.vue")).then((card: any) => {
-			// Options API components need a separately compiled template.
-			cy.mount(card.default).get(".options").should("contain.text", "from options")
-		})
 
 		cy.wrap(registry.loadModule("named-json.ts")).then((module: any) => {
 			// Vite exposes a JSON object's keys as named exports, so the browser must too.
@@ -135,14 +101,11 @@ export default function setup(context: any) { return { label: ref(fmt(7) + fmt2(
 		const sources = {
 			"base.ts": `export const one = 1;\nexport const { two, three } = { two: 2, three: 3 };`,
 			"barrel.ts": `export * from "./base"\nexport const four = 4`,
-			"Card.vue": `<template><b /></template>`,
 			"palette.json": `{"accent": "teal"}`,
 			"ok.ts": `import { one, two, three, four } from "./barrel"
 import { accent } from "./palette.json"
-import Card from "./Card.vue"
 export const total = one + two + three + four
-export const theme = accent
-export const card = Card`,
+export const theme = accent`,
 		}
 		cy.wrap(new AppModuleRegistry(sources).loadModule("ok.ts")).then((module: any) => {
 			expect(module.total).to.equal(10)
@@ -167,34 +130,6 @@ export const value = count("ok")`,
 		})
 	})
 
-	it("reports a compile error at the file's line, not the block's", () => {
-		cy.wrap(
-			(async () => {
-				const scriptError = await compileErrorOf([
-					"<template>",
-					"  <div>{{ n }}</div>",
-					"</template>",
-					"",
-					'<script setup lang="ts">',
-					"const n = 1",
-					"const broken = ((()))",
-					"</script>",
-				])
-				expect(scriptError.line, "script error line").to.equal(7)
-
-				const styleError = await compileErrorOf([
-					"<template><b /></template>",
-					"",
-					"<style scoped>",
-					".a { color: red }",
-					".b { color: ",
-					"</style>",
-				])
-				expect(styleError.line, "style error line").to.equal(5)
-			})(),
-		)
-	})
-
 	it("reports unresolvable and invalid imports with the file in the message", () => {
 		cy.wrap(
 			(async () => {
@@ -211,25 +146,15 @@ export const value = count("ok")`,
 				)
 				// Validate literal dynamic imports before the module executes.
 				await expectCompileError(
-					{ "a.ts": `export const lazy = () => import("./missing.vue")` },
+					{ "a.ts": `export const lazy = () => import("./missing-page")` },
 					"a.ts",
 					"Cannot resolve",
 				)
-				await expectCompileError({ "a.vue": `<template><div :broken="</template>` }, "a.vue", "a.vue")
-				// Vue component imports require the .vue extension, as they do in the app build.
+				// A stylesheet import needs its extension, as it does in the app build.
 				await expectCompileError(
-					{
-						"a.ts": `import Card from "./Card"\nexport const c = Card`,
-						"Card.vue": "<template><b /></template>",
-					},
+					{ "a.ts": `import "./theme.css"\nexport const x = 1` },
 					"a.ts",
 					"Cannot resolve",
-				)
-				// Reject languages that require a preprocessor unavailable in the browser.
-				await expectCompileError(
-					{ "a.vue": `<template><b /></template>\n<style lang="scss">.x { &:hover { color: red } }</style>` },
-					"a.vue",
-					'<style lang="scss"> is not supported',
 				)
 			})(),
 		)

@@ -58,7 +58,7 @@ class TestStudioApp(FrappeTestCase):
 
 		app = make_studio_app(app_title="Shop Demo", app_name="shop-demo")
 		make_studio_page(app.name, page_title="Board", route="/board", published=1)
-		write_store_file(app.name, "components/Price.vue", "<template><span /></template>")
+		write_store_file(app.name, "utils.ts", "export const price = 1\n")
 
 		app.reload()
 		self.assertTrue(app.uses_db_files())
@@ -536,11 +536,7 @@ class TestStudioAppBuilder(FrappeTestCase):
 		from frappe.studio.files import write_store_file
 
 		app = make_studio_app(app_title="Stored App", app_name="stored-app")
-		blocks = json.dumps([{"componentName": "StoredCard", "isCustomVueComponent": True, "children": []}])
-		page = make_studio_page(
-			app.name, blocks=blocks, script="export default function setup() {}", published=1
-		)
-		write_store_file(app.name, "components/StoredCard.vue", "<template><b/></template>")
+		page = make_studio_page(app.name, script="export default function setup() {}", published=1)
 		write_store_file(app.name, "router.ts", "export default {}\n")
 		write_store_file(app.name, "utils.ts", "export const one = 1\n")
 
@@ -562,8 +558,8 @@ class TestStudioAppBuilder(FrappeTestCase):
 
 		command = run.call_args.args[0]
 		# Vite receives paths to the same source files that the browser compiler uses.
-		custom = json.loads(argument(command, "--custom-components"))
-		self.assertTrue(custom["StoredCard"].endswith("/components/StoredCard.vue"))
+		# A database app ships no Vue components; they need a repository app.
+		self.assertIsNone(argument(command, "--custom-components"))
 		self.assertEqual(argument(command, "--router-file"), os.path.join(builder.app_folder, "router.ts"))
 		scripts = json.loads(argument(command, "--page-scripts"))
 		self.assertEqual(scripts[0]["page_name"], page.name)

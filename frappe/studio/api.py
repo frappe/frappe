@@ -1,5 +1,4 @@
 import os
-import posixpath
 import shutil
 from typing import Literal
 
@@ -9,6 +8,7 @@ from frappe.model import child_table_fields, display_fieldtypes, no_value_fields
 from frappe.studio import files
 from frappe.studio.constants import STANDARD_COMPONENT_NAMES
 from frappe.studio.files import (
+	ALLOWED_STORED_FILE_EXTENSIONS,
 	ALLOWED_STUDIO_FILE_EXTENSIONS,
 	file_hash,
 	validate_allowed_extension,
@@ -121,16 +121,12 @@ def check_app_permission() -> bool:
 
 
 @frappe.whitelist(allow_guest=True, methods=["GET"])  # nosemgrep: guest-whitelisted-method
-def get_custom_vue_components(frappe_app: str | None = None, studio_app: str | None = None) -> list[dict]:
-	"""List custom Vue SFC components from exported apps or a database app's file store.
+def get_custom_vue_components(frappe_app: str | None = None) -> list[dict]:
+	"""List custom Vue SFC components exported under a Frappe app.
 
-	Database components use the same viewer permissions as `get_app_files`, because
-	the running app needs this list. Disk components require Studio Page read
-	permission, because their metadata includes server file paths.
+	Only a repository app ships them. Require Studio Page read permission, because
+	their metadata includes server file paths.
 	"""
-	if studio_app and files.uses_db_files(studio_app):
-		return get_stored_vue_components(studio_app)
-
 	frappe.has_permission("Studio Page", ptype="read", throw=True)
 	validate_installed_app(frappe_app)
 	components = []
@@ -182,39 +178,6 @@ def get_custom_vue_components(frappe_app: str | None = None, studio_app: str | N
 						"studio_file_path": os.path.relpath(file_path, studio_app_dir),
 					}
 				)
-
-	return components
-
-
-def get_stored_vue_components(studio_app: str) -> list[dict]:
-	"""List a database app's Vue components without server file paths.
-
-	The browser compiles their stored source. Use the same viewer permissions as
-	`get_app_files`, so viewers can load the components their app needs.
-	"""
-	validate_app_viewer_access(studio_app, allow_guest_pages=True)
-	components = []
-	seen_names = set()
-
-	for file in files.get_store_files(studio_app):
-		if not file["path"].endswith(".vue"):
-			continue
-		component_name = posixpath.basename(file["path"])[:-4]
-		if component_name in STANDARD_COMPONENT_NAMES or component_name in seen_names:
-			frappe.log_error(
-				title="Studio: Custom component name conflict",
-				message=f"Custom component '{component_name}' in {studio_app} conflicts with "
-				"a standard or another custom component. Skipping.",
-			)
-			continue
-		seen_names.add(component_name)
-		components.append(
-			{
-				"component_name": component_name,
-				"studio_app": studio_app,
-				"studio_file_path": file["path"],
-			}
-		)
 
 	return components
 
@@ -290,7 +253,7 @@ def read_studio_file(frappe_app: str, studio_app: str, file_path: str, ignore_mi
 	"""Return a file's content plus a hash callers pass back to write_studio_file for conflict checks."""
 	if files.uses_db_files(studio_app):
 		_validate_studio_file_access(on_disk=False)
-		validate_allowed_extension(file_path)
+		validate_allowed_extension(file_path, ALLOWED_STORED_FILE_EXTENSIONS)
 		content = files.read_store_file(studio_app, file_path)
 		if content is None:
 			if sbool(ignore_missing):

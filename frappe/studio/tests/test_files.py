@@ -34,7 +34,7 @@ class TestFiles(IntegrationTestCase):
 		app = make_db_app()
 		files.create_store_file(app.name, "utils/format.ts")
 		files.write_store_file(app.name, "utils/format.ts", "export const one = 1\n")
-		files.write_store_file(app.name, "components/Card.vue", "<template><div /></template>\n")
+		files.write_store_file(app.name, "components/card.css", ".card { color: red }\n")
 		files.create_store_folder(app.name, "assets")
 
 		self.assertEqual(files.read_store_file(app.name, "utils/format.ts"), "export const one = 1\n")
@@ -48,7 +48,13 @@ class TestFiles(IntegrationTestCase):
 		self.assertEqual(tree[2]["children"][0]["path"], "utils/format.ts")
 
 		paths = [file["path"] for file in files.get_store_files(app.name)]
-		self.assertEqual(paths, ["components/Card.vue", "utils/format.ts"])
+		self.assertEqual(paths, ["components/card.css", "utils/format.ts"])
+
+	def test_the_store_refuses_a_vue_component(self):
+		app = make_db_app()
+		with self.assertRaises(frappe.ValidationError) as refused:
+			files.write_store_file(app.name, "components/Card.vue", "<template><b /></template>\n")
+		self.assertIn("Export the app to a repository", str(refused.exception))
 
 	def test_a_page_script_is_browsed_and_edited_as_a_file(self):
 		app = make_db_app()
@@ -142,7 +148,7 @@ class TestFiles(IntegrationTestCase):
 		with exports_in_tempdir():
 			app = make_db_app()
 			page = make_studio_page(app.name, page_title="Board", script=SETUP_SCRIPT)
-			files.write_store_file(app.name, "components/Card.vue", "<template><b>hi</b></template>\n")
+			files.write_store_file(app.name, "components/card.css", ".card { color: red }\n")
 			files.write_store_file(app.name, "router.ts", "export default {}\n")
 			files.create_store_folder(app.name, "assets")
 
@@ -151,8 +157,8 @@ class TestFiles(IntegrationTestCase):
 
 			folder = app.get_folder_path()
 			self.assertEqual(
-				frappe.read_file(os.path.join(folder, "components", "Card.vue")),
-				"<template><b>hi</b></template>\n",
+				frappe.read_file(os.path.join(folder, "components", "card.css")),
+				".card { color: red }\n",
 			)
 			self.assertEqual(frappe.read_file(os.path.join(folder, "router.ts")), "export default {}\n")
 			self.assertTrue(os.path.isdir(os.path.join(folder, "assets")))
@@ -166,9 +172,7 @@ class TestFiles(IntegrationTestCase):
 			app.reload()
 			app.disable_app_export()
 
-			self.assertEqual(
-				files.read_store_file(app.name, "components/Card.vue"), "<template><b>hi</b></template>\n"
-			)
+			self.assertEqual(files.read_store_file(app.name, "components/card.css"), ".card { color: red }\n")
 			self.assertEqual(files.read_store_file(app.name, "router.ts"), "export default {}\n")
 			self.assertEqual(frappe.db.get_value("Studio Page", page.name, "script"), SETUP_SCRIPT)
 
@@ -176,7 +180,7 @@ class TestFiles(IntegrationTestCase):
 		with exports_in_tempdir():
 			app = make_db_app()
 			make_studio_page(app.name, page_title="Board", script=SETUP_SCRIPT)
-			files.write_store_file(app.name, "components/Card.vue", "<template><b>hi</b></template>\n")
+			files.write_store_file(app.name, "components/card.css", ".card { color: red }\n")
 
 			app.reload()
 			app.enable_app_export("frappe")
@@ -184,13 +188,19 @@ class TestFiles(IntegrationTestCase):
 			folder = app.get_folder_path()
 			# A repository can contain files that the database store does not support.
 			write_export_file(folder, "assets", "icon.svg", content="<svg />")
+			write_export_file(folder, "components", "Card.vue")
 			write_export_file(folder, "studio_page", "board", "Card.vue")
 			write_export_file(folder, "tailwind.config.js")
 
 			app.reload()
 			with self.assertRaises(frappe.ValidationError) as refused:
 				app.disable_app_export()
-			for path in ("assets/icon.svg", "studio_page/board/Card.vue", "tailwind.config.js"):
+			for path in (
+				"assets/icon.svg",
+				"components/Card.vue",
+				"studio_page/board/Card.vue",
+				"tailwind.config.js",
+			):
 				self.assertIn(path, str(refused.exception))
 			# Rejecting the operation preserves the existing export.
 			self.assertTrue(os.path.isdir(folder))
@@ -198,9 +208,8 @@ class TestFiles(IntegrationTestCase):
 
 			app.reload()
 			app.disable_app_export(confirm_discarded=True)
-			self.assertEqual(
-				files.read_store_file(app.name, "components/Card.vue"), "<template><b>hi</b></template>\n"
-			)
+			self.assertEqual(files.read_store_file(app.name, "components/card.css"), ".card { color: red }\n")
+			self.assertIsNone(files.read_store_file(app.name, "components/Card.vue"))
 			self.assertEqual(
 				frappe.db.get_value("Studio Page", {"studio_app": app.name}, "script"), SETUP_SCRIPT
 			)

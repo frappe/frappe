@@ -46,7 +46,7 @@ export function useLiveEditor() {
 
 	// 2. A custom .vue component was added/removed/renamed in a studio folder (Vite emits this in
 	// dev; content edits hot-reload on their own). Reload the app's component set.
-	const onCustomComponentsChanged = () => store.loadCustomVueComponents()
+	const onCustomComponentsChanged = () => store.setCustomComponents()
 
 	// 3. A custom .vue component's content changed on disk. Vite hot-reloads its rendered module,
 	// but our template/slot caches keep the stale copy — so a newly added/removed <slot> wouldn't

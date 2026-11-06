@@ -72,11 +72,11 @@ class TestApi(IntegrationTestCase):
 
 	def test_app_files_are_served_only_to_someone_who_may_see_the_app(self):
 		app = make_studio_app(app_name="served-" + frappe.generate_hash(length=8))
-		write_studio_file("", app.name, "components/Card.vue", "<template><b>hi</b></template>\n")
+		write_studio_file("", app.name, "utils.ts", "export const one = 1\n")
 
 		served = get_app_files(app.name)
-		self.assertEqual([file["path"] for file in served], ["components/Card.vue"])
-		self.assertEqual(served[0]["content"], "<template><b>hi</b></template>\n")
+		self.assertEqual([file["path"] for file in served], ["utils.ts"])
+		self.assertEqual(served[0]["content"], "export const one = 1\n")
 
 		# Guests need a published page that allows guest access.
 		with self.set_user("Guest"):
@@ -85,19 +85,13 @@ class TestApi(IntegrationTestCase):
 		with self.set_user("Guest"):
 			self.assertEqual(len(get_app_files(app.name)), 1)
 
-	def test_a_database_app_lists_its_components_to_everyone_it_serves_files_to(self):
-		# Viewers who can load Vue source also need component names to render the app.
+	def test_a_database_app_cannot_store_a_vue_component(self):
+		# Vue components need the repository's build, so only a repository app ships them.
 		app = make_studio_app(app_name="vue-" + frappe.generate_hash(length=8))
-		write_studio_file("", app.name, "components/Card.vue", "<template><b>hi</b></template>\n")
-		make_studio_page(app.name, published=1, allow_guest=1)
-
-		for user in ("test@example.com", "Guest"):
-			with self.set_user(user):
-				self.assertEqual(
-					[c["component_name"] for c in get_custom_vue_components(studio_app=app.name)],
-					["Card"],
-					msg=user,
-				)
+		with self.assertRaises(frappe.ValidationError) as refused:
+			write_studio_file("", app.name, "components/Card.vue", "<template><b>hi</b></template>\n")
+		self.assertIn("Export the app to a repository", str(refused.exception))
+		self.assertEqual(get_app_files(app.name), [])
 
 	def test_only_an_editor_can_enumerate_components_on_disk(self):
 		# Disk component metadata includes server paths and requires editor permissions.
