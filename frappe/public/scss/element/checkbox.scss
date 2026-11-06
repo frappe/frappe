@@ -28,13 +28,10 @@ input[type="checkbox"] {
 	&:checked,
 	&:indeterminate {
 		background-color: var(--primary);
+		background-image: $check-icon, var(--checkbox-gradient);
 		background-size: 57%, 100%;
 		box-shadow: none;
 		border: none;
-	}
-
-	&:checked {
-		background-image: $check-icon, var(--checkbox-gradient);
 	}
 
 	&:indeterminate {

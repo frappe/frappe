@@ -1159,6 +1159,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				this.checked_docnames.delete(name);
 			}
 		}
+		if (!this.checked_docnames.size) this.on_row_checked();
 	}
 
 	/** Read checkbox docname; tolerates raw names with bare % (not URI-encoded). */
@@ -2844,10 +2845,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				label: __("Apply Assignment Rule", null, "Button in list view actions menu"),
 				action: () => {
 					this.disable_list_update = true;
-					bulk_operations.apply_assignment_rule(this.get_checked_items(true), () => {
-						this.disable_list_update = false;
-						this.refresh();
-					});
+					bulk_operations.apply_assignment_rule(
+						this.get_checked_items(true),
+						(queued) => {
+							this.disable_list_update = false;
+							if (queued) this.clear_checked_items();
+							this.refresh();
+						}
+					);
 				},
 				standard: true,
 			};
@@ -2929,8 +2934,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 							),
 							() => {
 								this.disable_list_update = true;
-								bulk_operations.submit_or_cancel(docnames, "cancel", () => {
+								bulk_operations.submit_or_cancel(docnames, "cancel", (queued) => {
 									this.disable_list_update = false;
+									if (queued) this.clear_checked_items();
 									this.refresh();
 								});
 							},
@@ -2958,8 +2964,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 							),
 							() => {
 								this.disable_list_update = true;
-								bulk_operations.submit_or_cancel(docnames, "submit", () => {
+								bulk_operations.submit_or_cancel(docnames, "submit", (queued) => {
 									this.disable_list_update = false;
+									if (queued) this.clear_checked_items();
 									this.refresh();
 								});
 							}
@@ -3011,10 +3018,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					});
 
 					this.disable_list_update = true;
-					bulk_operations.edit(this.get_checked_items(true), field_mappings, () => {
-						this.disable_list_update = false;
-						this.refresh();
-					});
+					bulk_operations.edit(
+						this.get_checked_items(true),
+						field_mappings,
+						(queued) => {
+							this.disable_list_update = false;
+							if (queued) this.clear_checked_items();
+							this.refresh();
+						}
+					);
 				},
 				standard: true,
 			};
