@@ -1018,7 +1018,9 @@ def secret_field_refusal(doctype: Any, name: Any, fieldname: Any) -> str | None:
 	if not frappe.db.exists(doctype, name):
 		return _("{0} {1} does not exist; create it first.").format(doctype, name)
 	doc = frappe.get_doc(doctype, name)
-	if not doc.has_permission("write") or not doc.has_permlevel_access_to(fieldname, df, "write"):
+	if not frappe.has_permission(doctype, "write", doc=doc) or not doc.has_permlevel_access_to(
+		fieldname, df, "write"
+	):
 		return _("You don't have permission to change {0} on {1} {2}.").format(
 			df.label or fieldname, doctype, name
 		)
