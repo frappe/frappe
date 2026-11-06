@@ -12,6 +12,7 @@ import orjson
 from werkzeug.wrappers import Request, Response
 
 import frappe
+from frappe.auth import get_oauth_client_name, set_agent
 from frappe.mcp import protocol, server
 from frappe.mcp.protocol import McpError
 from frappe.permissions import SYSTEM_USER_ROLE
@@ -48,6 +49,7 @@ def handle_request(request: Request) -> Response:
 	if context.version == protocol.LATEST_VERSION:
 		check_headers(request, payload, params)
 		check_metadata(params)
+	set_agent(agent_name(params), "MCP")
 
 	if "id" not in payload:
 		# Notifications never execute a tool and never receive a JSON-RPC response.
@@ -135,6 +137,16 @@ def check_metadata(params: dict) -> None:
 		raise McpError(protocol.INVALID_PARAMS, "Client capabilities must be provided as an object")
 	if protocol.META_CLIENT in meta and not server.valid_identity(meta[protocol.META_CLIENT]):
 		raise McpError(protocol.INVALID_PARAMS, "Client identity requires a name and version")
+
+
+def agent_name(params: dict) -> str:
+	if name := get_oauth_client_name():
+		return name
+	meta = params.get("_meta")
+	client = meta.get(protocol.META_CLIENT) if isinstance(meta, dict) else None
+	if isinstance(client, dict) and isinstance(client.get("name"), str) and client["name"].strip():
+		return client["name"].strip()
+	return "MCP"
 
 
 def check_origin(request: Request) -> None:
