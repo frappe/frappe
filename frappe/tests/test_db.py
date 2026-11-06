@@ -509,8 +509,10 @@ class TestDB(IntegrationTestCase):
 			with self.subTest(query=query):
 				frappe.db.sql(query)
 
+		frappe.db.savepoint("bound_comment")
 		with self.assertRaises(frappe.db.ProgrammingError):
 			frappe.db.sql("select 1 -- %s", ("\n; select 2 --",))
+		frappe.db.rollback(save_point="bound_comment")
 
 		self.assertEqual(frappe.db.sql("select %s", ("a; b",)), (("a; b",),))
 
