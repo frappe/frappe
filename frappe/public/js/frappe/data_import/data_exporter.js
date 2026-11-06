@@ -102,7 +102,6 @@ frappe.data_import.DataExporter = class DataExporter {
 
 		this.make_filter_area();
 		this.make_select_all_buttons();
-		this.update_record_count_message();
 		this.setup_search_input();
 
 		this.dialog.show();
