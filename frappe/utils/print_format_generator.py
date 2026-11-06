@@ -1217,26 +1217,26 @@ class PrintFormatGenerator:
 		"""Draw Barcode layout elements on the server, so every renderer prints them."""
 		if df.get("fieldtype") != "Barcode":
 			return
-		if not df.get("custom"):
-			# a dragged Barcode docfield prints whatever it stores; a docfield
-			# whose options ask for a qr code prints its value as one — the
-			# field decides the format, the builder offers no override
-			meta_df = frappe.get_meta(self.doc.doctype).get_field(df.get("fieldname"))
+		if df.get("custom"):
+			source = df.get("barcode_field")
+			value = cstr(self.doc.get(source) if source else df.get("barcode_value"))
+		else:
 			value = cstr(self.doc.get(df.get("fieldname")))
-			if value.startswith("<svg"):
-				df["_barcode_data_uri"] = (
-					"data:image/svg+xml;base64," + base64.b64encode(value.encode()).decode()
-				)
-			elif value:
-				if meta_df and is_qr_barcode_options(meta_df.options):
-					df["barcode_format"] = "QR"
-				df["_barcode_data_uri"] = get_barcode(value, df.get("barcode_format") or "CODE128")
+		if value.startswith("<svg"):
+			df["_barcode_data_uri"] = "data:image/svg+xml;base64," + base64.b64encode(value.encode()).decode()
 			return
-		value = self.doc.get(df.get("barcode_field")) if df.get("barcode_field") else df.get("barcode_value")
-		if value:
+		if not value:
+			return
+		if df.get("custom"):
 			df["_barcode_data_uri"] = get_barcode(
-				cstr(value), df.get("barcode_format") or "CODE128", df.get("show_text", True)
+				value, df.get("barcode_format") or "CODE128", df.get("show_text", True)
 			)
+			return
+		# a dragged Barcode docfield whose options ask for a qr code prints its value as one
+		meta_df = frappe.get_meta(self.doc.doctype).get_field(df.get("fieldname"))
+		if meta_df and is_qr_barcode_options(meta_df.options):
+			df["barcode_format"] = "QR"
+		df["_barcode_data_uri"] = get_barcode(value, df.get("barcode_format") or "CODE128")
 
 	def prepare_linked_field(self, df):
 		"""Resolve a Linked Field's one-hop path (link_field.target_field) to a
