@@ -4,8 +4,8 @@
 		     hang from it -->
 		<button
 			ref="trigger"
-			class="flex h-7 max-w-full items-center gap-1.5 rounded-5 px-2 text-base text-ink-gray-7 hover:bg-surface-gray-2 dark:text-ink-gray-8"
-			:class="pane ? 'bg-surface-gray-2' : ''"
+			class="flex max-w-full items-center gap-1.5 rounded-5 px-2 text-base text-ink-gray-7 hover:bg-surface-gray-2 dark:text-ink-gray-8"
+			:class="[tall ? 'h-8' : 'h-7', pane && 'bg-surface-gray-2']"
 			:title="`${currentModel ?? modelLabel} · thinking ${effortLabel}`"
 			:aria-expanded="!!pane"
 			@click="pane ? close() : open()"
@@ -72,7 +72,8 @@ import ThinkingPalette from "./ThinkingPalette.vue"
 
 // The composer's model button, with its own model and thinking lists; `open` asks the
 // composer for its providers page, where an empty model list sends the user.
-defineProps({ providers: { type: Boolean, default: false } })
+// `tall`: a new chat's roomier box
+defineProps({ providers: { type: Boolean, default: false }, tall: { type: Boolean, default: false } })
 const emit = defineEmits(["open"])
 const flow = inject("flow")
 const pane = ref(null) // null | "root"

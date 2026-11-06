@@ -187,9 +187,14 @@ export function createFlowStore(client, options = {}) {
 
 	let stream = null
 	let streamTask = null
+	const modelChanges = new Map()
 	let opening = 0 // keys the newest openSession: an older load of the same chat gives way
 	let creating = null // { blank, session }: in-flight lazy session creation; a double-send shares it
 	let sendCount = 0 // keys the bubbles waiting for the server to echo them
+	// a sent picture's own file, by each id its bubble goes by (the composer's, then the stored copy's),
+	// so the bubble shows it from the start rather than a chip while the stored copy loads. Only for a
+	// client that can load that copy later, and dropped when the chat is left
+	const sentPreviews = new Map()
 	let queueCount = 0 // keys the queue's rows
 	let lastRunEnd = null // the open session's latest run_ended reason
 	// waiting messages, as { message, attachments, afterSeq }, of the sessions not open right now
@@ -554,7 +559,10 @@ export function createFlowStore(client, options = {}) {
 		// a same-session reload (rewind) keeps the open file tabs as they are, and a chat
 		// just created (`config`) keeps the ones opened before its first message
 		const switching = state.sessionId !== sid && !config
-		if (switching) resetWorkspace()
+		if (switching) {
+			resetWorkspace()
+			dropSentPreviews()
+		}
 		swapQueue(sid)
 		state.sessionId = sid
 		if (switching) restoreWorkspace(sid)
@@ -572,12 +580,16 @@ export function createFlowStore(client, options = {}) {
 		state.conversation = initialConversation()
 		// a chat just created knows its model, and a list row's when the host vouches for it;
 		// anything else waits for the load
-		state.conversation.model = config?.model ?? (options.listedModel ? listed?.model : null) ?? null
+		const changing = modelChanges.get(sid)
+		state.conversation.model = changing?.model ?? config?.model ?? (options.listedModel ? listed?.model : null) ?? null
+		state.conversation.reasoningEffort = changing?.reasoning_effort ?? null
 		lastRunEnd = null
 		// a message sent before this session existed is still in flight: its bubble
 		// stays up instead of blinking out while the transcript loads
 		state.conversation.sending = sending
 		state.loading = true
+		while (modelChanges.has(sid)) await modelChanges.get(sid).promise
+		if (state.sessionId !== sid || own !== opening) return
 		const [info, catalog] = await Promise.all([
 			guard(() => client.session(sid), { quiet }),
 			options.skillsEnabled && typeof client.skills === "function"
@@ -659,6 +671,11 @@ export function createFlowStore(client, options = {}) {
 			thread.liveErrorSeqs.push(event.seq)
 		}
 		if (event.subagent_id) return // a sub-agent's rows change nothing below
+		const changing = modelChanges.get(sid)
+		if (event.type === "model_changed" && changing) {
+			state.conversation.model = changing.model
+			state.conversation.reasoningEffort = changing.reasoning_effort
+		}
 		if (event.type === "user_message") {
 			// Match attachment messages, whose text is wrapped in content blocks.
 			const blocks = Array.isArray(event.content) ? event.content : []
@@ -722,10 +739,24 @@ export function createFlowStore(client, options = {}) {
 
 	// Reset to the blank "new chat" state, in the caller's folder or newChatCwd's.
 	// No server call — send() creates it lazily.
+	function keepPreviews(items, ids = items.map((item) => item.id ?? item.key)) {
+		if (typeof client.attachmentBlob !== "function") return
+		items.forEach((item, i) => {
+			if (item.kind === "image" && item.file && ids[i] && !sentPreviews.has(ids[i]))
+				sentPreviews.set(ids[i], URL.createObjectURL(item.file))
+		})
+	}
+
+	function dropSentPreviews() {
+		for (const url of sentPreviews.values()) URL.revokeObjectURL(url)
+		sentPreviews.clear()
+	}
+
 	function startNewChat({ cwd = null } = {}) {
 		const nextCwd = cwd ?? newChatCwd()
 		closeStream()
 		resetWorkspace()
+		dropSentPreviews()
 		swapQueue(null)
 		state.sessionId = null
 		state.session = null
@@ -877,6 +908,7 @@ export function createFlowStore(client, options = {}) {
 	// Opens the next turn, its bubble up before the first round trip: creating the
 	// session, searching memory and reaching the daemon happen behind it.
 	async function sendNow(message, attachments) {
+		keepPreviews(attachments)
 		const pending = { key: `sending:${++sendCount}`, entry: userEntry(message, attachments) }
 		state.conversation.sending.push(pending)
 		const sent = await deliver(message, attachments, pending, null)
@@ -1012,6 +1044,7 @@ export function createFlowStore(client, options = {}) {
 				if (creating === own) creating = null
 			}
 		}
+		while (modelChanges.has(sid)) await modelChanges.get(sid).promise
 		const staged = await stageAttachments(sid, attachments)
 		if (!staged) return false
 		const attachmentIds = staged.attachments.map((item) => item.id)
@@ -1021,6 +1054,7 @@ export function createFlowStore(client, options = {}) {
 			// with it, and the turn can consume it before this call answers
 			if (steered) steered.attachmentIds = attachmentIds
 			const seen = state.conversation.entries.length
+			while (modelChanges.has(sid)) await modelChanges.get(sid).promise
 			const result = await guard(() => client.run(sid, message, attachmentIds))
 			if (!result) return false
 			admitted = true
@@ -1059,7 +1093,8 @@ export function createFlowStore(client, options = {}) {
 	// id: { attachments: [{ id, name, kind }], created: ids staged by this call }, or null
 	// when one failed (the guard has said why, and nothing staged here is left behind).
 	async function stageAttachments(sid, attachments) {
-		const uploads = attachments.filter((item) => item.file && !item.id).map((item) => item.file)
+		const uploading = attachments.filter((item) => item.file && !item.id)
+		const uploads = uploading.map((item) => item.file)
 		const mentionPaths = attachments.filter((item) => item.mentionPath).map((item) => item.mentionPath)
 		// independent sources — resolve concurrently rather than paying two round trips
 		const [uploaded, attached] = await Promise.all([
@@ -1071,6 +1106,9 @@ export function createFlowStore(client, options = {}) {
 			if (created.length) await client.cleanupAttachments(sid, created.map((item) => item.id)).catch(() => {})
 			return null
 		}
+		// the server answers uploads in the order they went
+		keepPreviews(attachments.filter((item) => item.id))
+		keepPreviews(uploading, (uploaded?.attachments ?? []).map((item) => item.id))
 		return {
 			attachments: [...attachments.filter((item) => item.id), ...created].map(({ id, name, kind }) => ({ id, name, kind })),
 			created: created.map((item) => item.id),
@@ -1207,28 +1245,11 @@ export function createFlowStore(client, options = {}) {
 			state.prefs.lastModel = model
 			return savePrefs()
 		}
-		const data = await guard(() =>
-			client.setModel(sid, {
-				model,
-				reasoning_effort:
-					state.prefs.lastEffort && state.prefs.lastEffort !== "default" ? state.prefs.lastEffort : null,
-			}),
-		)
-		// a chat refuses a change while it runs: only one it took becomes the default
-		if (!data) return
-		state.prefs.lastModel = model
-		savePrefs()
-		// the list's copy is what this chat shows while it reopens
-		const listed = state.sessions.find((s) => s.session_id === sid)
-		if (listed) listed.model = data.model
-		if (state.sessionId !== sid) return // the user moved to another chat meanwhile
-		state.conversation.model = data.model
-		state.conversation.contextWindow = data.context_window ?? null
-		if (state.session) {
-			state.session.model = data.model
-			state.session.context_window = data.context_window ?? null
-			state.session.supports_images = data.supports_images
-		}
+		const changing = modelChanges.get(sid)
+		const effort = changing
+			? changing.reasoning_effort
+			: state.prefs.lastEffort && state.prefs.lastEffort !== "default" ? state.prefs.lastEffort : null
+		await changeModel(sid, model, effort, "lastModel")
 	}
 
 	// a model the host renamed stays the one a new chat starts with
@@ -1246,18 +1267,48 @@ export function createFlowStore(client, options = {}) {
 		}
 		const model = state.conversation.model ?? state.session?.model
 		if (!model) return
-		const data = await guard(() =>
-			client.setModel(sid, {
-				model,
-				reasoning_effort: effort === "default" ? null : effort,
-			}),
-		)
-		// a chat refuses a change while it runs: only one it took becomes the default
-		if (!data) return
-		state.prefs.lastEffort = effort
-		savePrefs()
-		if (state.sessionId !== sid) return // the user moved to another chat meanwhile
-		state.conversation.reasoningEffort = effort === "default" ? null : effort
+		await changeModel(sid, model, effort === "default" ? null : effort, "lastEffort")
+	}
+
+	function changeModel(sid, model, effort, preference) {
+		const conversation = state.conversation
+		const previous = modelChanges.get(sid)
+		const confirmed = previous?.confirmed ?? {
+			model: conversation.model,
+			reasoning_effort: conversation.reasoningEffort,
+			context_window: conversation.contextWindow,
+			supports_images: state.session?.supports_images,
+		}
+		const preferences = {
+			...previous?.preferences,
+			[preference]: preference === "lastModel" ? model : effort ?? "default",
+		}
+		const changing = { model, reasoning_effort: effort, confirmed, preferences, promise: null }
+		modelChanges.set(sid, changing)
+		conversation.model = model
+		conversation.reasoningEffort = effort
+		changing.promise = (async () => {
+			if (previous) await previous.promise
+			const data = await guard(() => client.setModel(sid, { model, reasoning_effort: effort }))
+			if (data) {
+				if (confirmed.model !== data.model) confirmed.context_window = null
+				Object.assign(confirmed, data, { reasoning_effort: effort })
+				const listed = state.sessions.find((s) => s.session_id === sid)
+				if (listed) listed.model = data.model
+				Object.assign(state.prefs, preferences)
+				savePrefs()
+			}
+			if (modelChanges.get(sid) === changing) {
+				modelChanges.delete(sid)
+				if (state.sessionId === sid) {
+					state.conversation.model = confirmed.model
+					state.conversation.reasoningEffort = confirmed.reasoning_effort
+					state.conversation.contextWindow = confirmed.context_window
+					if (state.session) Object.assign(state.session, confirmed)
+				}
+			}
+		})()
+		return changing.promise
 	}
 
 	// Approval mode: remembered for new chats, and applied to the current session
@@ -1838,6 +1889,7 @@ export function createFlowStore(client, options = {}) {
 		removeFolder,
 		pickFolder,
 		attachmentPreview,
+		sentPreview: (id) => sentPreviews.get(id) ?? null,
 		sessionTitle,
 		notify,
 		detach,

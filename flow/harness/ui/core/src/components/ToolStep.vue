@@ -27,11 +27,13 @@
 					v-for="(segment, j) in displaySegments"
 					:key="j"
 					:class="
-						!segment.arg
-							? 'font-medium text-ink-gray-9'
-							: step.call.name === 'bash'
-								? 'font-mono text-sm text-ink-gray-5 group-hover:text-ink-gray-7'
-								: 'text-ink-gray-5 group-hover:text-ink-gray-7'
+						segment.sep
+							? 'text-ink-gray-3'
+							: !segment.arg
+								? 'font-medium text-ink-gray-9'
+								: step.call.name === 'bash' && segment.arg === 'command'
+									? 'font-mono text-sm text-ink-gray-5 group-hover:text-ink-gray-7'
+									: 'text-ink-gray-5 group-hover:text-ink-gray-7'
 					"
 				>{{ segment.text }}</span>
 			</span>
@@ -109,6 +111,11 @@
 					class="m-0 max-h-[200px] overflow-y-auto whitespace-pre-wrap break-words px-3 py-2 font-mono text-sm leading-[1.65] text-ink-gray-6"
 				>{{ output }}</pre>
 			</template>
+
+			<pre
+				v-else-if="command"
+				class="m-0 max-h-[200px] overflow-y-auto whitespace-pre-wrap break-words px-3 py-2 font-mono text-sm leading-[1.65] text-ink-gray-6"
+			>$ {{ command }}</pre>
 		</div>
 	</div>
 </template>
@@ -140,10 +147,10 @@ const open = usePanelOpen(() => props.step.call.id)
 const flow = inject("flow", null)
 const cwd = computed(() => flow?.state?.session?.config?.cwd ?? null)
 
-// a page reads by its host and path, as a file does by its name
+// a page reads by its host and path, as a file does by its name; a " · " in the template is a faint separator
 const displaySegments = computed(() =>
-	(props.step.call.display ?? []).map((segment) => {
-		if (!segment.arg) return segment
+	(props.step.call.display ?? []).flatMap((segment) => {
+		if (!segment.arg) return segment.text.split(/( · )/).filter(Boolean).map((text) => ({ text, sep: text === " · " }))
 		const page = props.step.call.name === "web_fetch" && segment.arg === "url"
 		return { ...segment, text: page ? pageName(segment.text) : compactDisplayText(segment.text, cwd.value) }
 	}),
@@ -159,6 +166,10 @@ const icon = computed(() => meta.value.icon ?? stepIcon(props.step.call.name))
 const label = computed(() => meta.value.label ?? stepLabel(props.step.call.name))
 const subject = computed(() =>
 	compactDisplayText(meta.value.subject ?? stepSubject(props.step.call), cwd.value),
+)
+// the whole command, once its call has streamed in: the row opens to it before its output lands
+const command = computed(() =>
+	props.step.call.name === "bash" && !props.step.streaming ? (args.value.command ?? "") : "",
 )
 const failed = computed(() => props.step.result?.is_error === true)
 const details = computed(() => props.step.result?.details ?? {})
@@ -235,6 +246,7 @@ const expandable = computed(() => {
 	if (link.value) return false
 	if (failed.value || decision.value) return true
 	if (meta.value.expandable === false) return false
+	if (command.value) return true
 	// its arguments may still be streaming in: the row opens once the call has ended
 	if (!props.step.result && !props.step.aborted) return false
 	if (meta.value.argsComponent) return true

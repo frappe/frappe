@@ -200,6 +200,16 @@ const expandedTurnKeys = ref(new Set())
 const openPanels = reactive(new Set())
 provide("openPanels", openPanels)
 const items = computed(() => buildItems(conversation.value, expandedTurnKeys.value, openPanels))
+// a turn that ends with one of its rows open stays unfolded once the row is closed: only its fold folds it
+watch(
+	() =>
+		items.value
+			.filter((item) => item.kind === "turn-fold" && item.expanded && !expandedTurnKeys.value.has(item.turnKey))
+			.map((item) => item.turnKey),
+	(held) => {
+		if (held.length) expandedTurnKeys.value = new Set([...expandedTurnKeys.value, ...held])
+	},
+)
 
 // nothing to draw yet: the empty state, or a loading line while a session opens
 const blank = computed(() => !items.value.length && !conversation.value.running && !conversation.value.liveLabel)

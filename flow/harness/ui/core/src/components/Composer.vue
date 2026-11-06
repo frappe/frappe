@@ -118,7 +118,8 @@
 			<!-- a fieldset: disabling it disables every control inside, a host's pickers included -->
 			<fieldset
 				:disabled="disabled"
-				class="flow-composer-surface relative flex min-w-0 flex-col gap-2 rounded-6 border border-outline-gray-1 p-2 focus-within:border-outline-gray-2 dark:border-transparent dark:focus-within:border-transparent"
+				class="flow-composer-surface relative flex min-w-0 flex-col rounded-6 border border-outline-gray-2 focus-within:border-outline-gray-3 dark:border-transparent dark:focus-within:border-transparent"
+				:class="starting ? 'gap-4 p-2.5' : 'gap-2 p-2'"
 			>
 				<div
 					v-if="fileDragging"
@@ -235,8 +236,8 @@
 						:disabled="locked"
 						:placeholder="placeholder"
 						style="caret-color: var(--ink-gray-9)"
-						class="relative max-h-40 min-h-[62px] w-full resize-none border-0 bg-transparent px-1.5 pt-1 text-md leading-relaxed outline-none placeholder:text-ink-gray-4 focus:ring-0 max-sm:text-[length:var(--flow-chat-text,15px)] dark:placeholder:text-ink-gray-6"
-						:class="skillParts ? 'text-transparent' : 'text-ink-gray-9'"
+						class="relative max-h-40 w-full resize-none border-0 bg-transparent px-1.5 text-md leading-relaxed outline-none placeholder:text-ink-gray-4 focus:ring-0 max-sm:text-[length:var(--flow-chat-text,15px)] dark:placeholder:text-ink-gray-6"
+						:class="[skillParts ? 'text-transparent' : 'text-ink-gray-9', starting ? 'min-h-[50px] py-1' : 'min-h-[62px] pt-1']"
 						@keydown="onKey"
 						@paste="onPaste"
 						@scroll="textScrollTop = $event.currentTarget.scrollTop"
@@ -258,147 +259,172 @@
 					The selected model cannot view images. Switch to a vision-capable model before sending.
 				</div>
 				<div v-if="modelWarning" class="px-1 text-base text-ink-gray-5">{{ modelWarning }}</div>
-				<div class="flex min-w-0 items-center gap-1">
-					<!-- attach files; with a host's lists (`plusLists`), a menu: attach, then a row a list,
-					     whose list opens beside it on hover (in its place in a narrow frame) -->
-					<span class="relative flex-none">
-						<button
-							ref="plusButton"
-							class="grid h-7 w-7 flex-none place-items-center rounded-5 text-ink-gray-6 hover:bg-surface-gray-2 hover:text-ink-gray-9 dark:text-ink-gray-8"
-							:class="plusMenu ? 'bg-surface-gray-2' : ''"
-							:title="plusRows.length ? 'Add' : attachLabel"
-							:aria-expanded="plusRows.length ? plusMenu : undefined"
-							:disabled="locked"
-							@click="plusRows.length ? (plusMenu ? closePlusMenu() : (plusMenu = true)) : openFilePicker()"
-						>
-							<span class="lucide-plus size-4" aria-hidden="true" />
-						</button>
-						<PalettePanel
-							v-if="plusMenu && !(plusSub && layout.narrow)"
-							title="Add"
-							dropdown
-							align="left"
-							:width="PLUS_WIDTH"
-							:passive="!!plusSub"
-							@close="closePlusMenu"
-						>
-							<div class="p-1">
-								<button data-palette-item class="flow-palette-row" @pointerenter="plusSub = null" @click="attachFromMenu">
-									<span class="lucide-paperclip size-4 flex-none" aria-hidden="true" />
-									<span class="min-w-0 flex-1 truncate">{{ attachLabel }}</span>
-								</button>
+				<!-- a tooltip opens on hover or keyboard focus, not when a closed menu hands focus back -->
+				<TooltipProvider :delay-duration="500" ignore-non-keyboard-focus>
+					<div class="flex min-w-0 items-center gap-1">
+						<!-- attach files; with a host's lists (`plusLists`), a menu: attach, then a row a list,
+						     whose list opens beside it on hover (in its place in a narrow frame) -->
+						<span class="relative flex-none">
+							<Tooltip :text="plusMenu ? '' : plusRows.length ? 'Add' : attachLabel">
 								<button
-									v-for="row in plusRows"
-									:key="row.id"
-									data-palette-item
-									class="flow-palette-row"
-									:aria-expanded="plusSub === row.id"
-									@pointerenter="layout.narrow || (plusSub = row.id)"
-									@click="plusSub = row.id"
+									ref="plusButton"
+									class="grid flex-none place-items-center rounded-5 text-ink-gray-6 hover:bg-surface-gray-2 hover:text-ink-gray-9 dark:text-ink-gray-8"
+									:class="[plusMenu && 'bg-surface-gray-2', starting ? 'h-8 w-8' : 'h-7 w-7']"
+									:aria-label="plusRows.length ? 'Add' : attachLabel"
+									:aria-expanded="plusRows.length ? plusMenu : undefined"
+									:disabled="locked"
+									@click="plusRows.length ? (plusMenu ? closePlusMenu() : (plusMenu = true)) : openFilePicker()"
 								>
-									<span class="size-4 flex-none" :class="row.icon" aria-hidden="true" />
-									<span class="min-w-0 flex-1 truncate">{{ row.label }}</span>
-									<span class="lucide-chevron-right flow-palette-hint size-4 flex-none" aria-hidden="true" />
+									<span class="size-4" :class="plusRows.length ? 'lucide-plus' : 'lucide-paperclip'" aria-hidden="true" />
 								</button>
-							</div>
-						</PalettePanel>
-						<!-- the host's list for the row; `insert` puts a word in the draft at the caret, as the
-						     "/" list does -->
-						<slot
-							v-if="plusMenu && plusSub"
-							name="plus-list"
-							:id="plusSub"
-							:beside="layout.narrow ? 0 : PLUS_WIDTH + 4"
-							:close="closePlusMenu"
-							:insert="insertFromMenu"
-						/>
-					</span>
-
-					<!-- approval mode, its icon and name; its list hangs from it. A narrow frame shows the
-					     icon alone, which its list explains -->
-					<span class="relative flex-none">
-						<button
-							ref="modeButton"
-							class="flex h-7 items-center gap-1.5 whitespace-nowrap rounded-5 text-base text-ink-gray-7 hover:bg-surface-gray-2 dark:text-ink-gray-8"
-							:class="[modeMenu ? 'bg-surface-gray-2' : '', layout.narrow ? 'w-7 justify-center' : 'px-2']"
-							:title="layout.narrow ? `Approval mode: ${modeLabel}` : 'Approval mode'"
-							:aria-expanded="modeMenu"
-							@click="modeMenu ? closeModeMenu() : (modeMenu = true)"
-						>
-							<span
-								class="size-4 flex-none"
-								:class="MODE_ICONS[currentMode] ?? 'lucide-lock'"
-								aria-hidden="true"
+							</Tooltip>
+							<PalettePanel
+								v-if="plusMenu && !(plusSub && layout.narrow)"
+								title="Add"
+								dropdown
+								align="left"
+								:width="PLUS_WIDTH"
+								:passive="!!plusSub"
+								@close="closePlusMenu"
+							>
+								<div class="p-1">
+									<button data-palette-item class="flow-palette-row" @pointerenter="plusSub = null" @click="attachFromMenu">
+										<span class="lucide-paperclip size-4 flex-none" aria-hidden="true" />
+										<span class="min-w-0 flex-1 truncate">{{ attachLabel }}</span>
+									</button>
+									<button
+										v-for="row in plusRows"
+										:key="row.id"
+										data-palette-item
+										class="flow-palette-row"
+										:aria-expanded="plusSub === row.id"
+										@pointerenter="layout.narrow || (plusSub = row.id)"
+										@click="plusSub = row.id"
+									>
+										<span class="size-4 flex-none" :class="row.icon" aria-hidden="true" />
+										<span class="min-w-0 flex-1 truncate">{{ row.label }}</span>
+										<span class="lucide-chevron-right flow-palette-hint size-4 flex-none" aria-hidden="true" />
+									</button>
+								</div>
+							</PalettePanel>
+							<!-- the host's list for the row; `insert` puts a word in the draft at the caret, as the
+							     "/" list does -->
+							<slot
+								v-if="plusMenu && plusSub"
+								name="plus-list"
+								:id="plusSub"
+								:beside="layout.narrow ? 0 : PLUS_WIDTH + 4"
+								:close="closePlusMenu"
+								:insert="insertFromMenu"
 							/>
-							<template v-if="!layout.narrow">{{ modeLabel }}</template>
-						</button>
-						<!-- a row a mode, what it does under its name and the tick centred beside both; wide
-						     enough for a description to keep to one line by the tick -->
-						<PalettePanel v-if="modeMenu" title="Approval mode" dropdown align="left" :width="344" @close="closeModeMenu">
-							<div class="p-1">
+						</span>
+						<!-- a host's own buttons beside the +, such as a new chat's pickers; `starting` until the
+						     first message goes out -->
+						<slot name="tools" :starting="starting" :insert="insertFromMenu" />
+						<span v-if="modeAtModel" class="min-w-2 flex-1" />
+
+						<!-- approval mode, its icon and name; its list hangs from it. A narrow frame shows the
+						     icon alone, which its list explains. A host may put a new chat's by the model, on the right -->
+						<span class="relative flex-none">
+							<Tooltip :text="modeMenu ? '' : layout.narrow ? `Approval mode: ${modeLabel}` : 'Approval mode'">
 								<button
-									v-for="m in modes"
-									:key="m.id"
-									data-palette-item
-									:aria-current="currentMode === m.id ? 'true' : undefined"
-									class="flow-palette-row !py-1.5"
-									@click="chooseMode(m.id)"
+									ref="modeButton"
+									class="flex items-center gap-1.5 whitespace-nowrap rounded-5 text-base text-ink-gray-7 hover:bg-surface-gray-2 dark:text-ink-gray-8"
+									:class="[
+										modeMenu ? 'bg-surface-gray-2' : '',
+										starting ? 'h-8' : 'h-7',
+										layout.narrow ? `${starting ? 'w-8' : 'w-7'} justify-center` : 'px-2',
+									]"
+									:aria-label="`Approval mode: ${modeLabel}`"
+									:aria-expanded="modeMenu"
+									@click="modeMenu ? closeModeMenu() : (modeMenu = true)"
 								>
 									<span
 										class="size-4 flex-none"
-										:class="MODE_ICONS[m.id] ?? 'lucide-lock'"
+										:class="MODE_ICONS[currentMode] ?? 'lucide-lock'"
 										aria-hidden="true"
 									/>
-									<span class="min-w-0 flex-1">
-										<span class="block truncate">{{ m.label }}</span>
-										<span class="flow-palette-hint block text-sm leading-snug">{{ m.desc }}</span>
-									</span>
-									<span
-										v-if="currentMode === m.id"
-										class="lucide-check size-4 flex-none"
-										aria-hidden="true"
-									/>
+									<template v-if="!layout.narrow">{{ modeLabel }}</template>
 								</button>
-							</div>
-						</PalettePanel>
-					</span>
+							</Tooltip>
+							<!-- a row a mode, what it does under its name and the tick centred beside both; wide
+							     enough for a description to keep to one line by the tick -->
+							<PalettePanel
+								v-if="modeMenu"
+								title="Approval mode"
+								dropdown
+								:align="modeAtModel ? 'right' : 'left'"
+								:width="344"
+								@close="closeModeMenu"
+							>
+								<div class="p-1">
+									<button
+										v-for="m in modes"
+										:key="m.id"
+										data-palette-item
+										:aria-current="currentMode === m.id ? 'true' : undefined"
+										class="flow-palette-row !py-1.5"
+										@click="chooseMode(m.id)"
+									>
+										<span
+											class="size-4 flex-none"
+											:class="MODE_ICONS[m.id] ?? 'lucide-lock'"
+											aria-hidden="true"
+										/>
+										<span class="min-w-0 flex-1">
+											<span class="block truncate">{{ m.label }}</span>
+											<span class="flow-palette-hint block text-sm leading-snug">{{ m.desc }}</span>
+										</span>
+										<span
+											v-if="currentMode === m.id"
+											class="lucide-check size-4 flex-none"
+											aria-hidden="true"
+										/>
+									</button>
+								</div>
+							</PalettePanel>
+						</span>
 
-					<span class="min-w-2 flex-1" />
+						<span v-if="!modeAtModel" class="min-w-2 flex-1" />
 
-					<!-- the pickers, by the send button; a host adds its own around the model button -->
-					<slot name="toolbar" :open-palette="openPalette">
-						<ModelButton :providers="has('providers')" @open="openPalette" />
-					</slot>
+						<!-- the pickers, by the send button; a host adds its own around the model button -->
+						<slot name="toolbar" :open-palette="openPalette">
+							<ModelButton :providers="has('providers')" :tall="starting" @open="openPalette" />
+						</slot>
 
-					<button
-						v-if="running && !submitting"
-						class="ml-1 grid h-8 w-8 flex-none place-items-center rounded-6 bg-surface-gray-10 text-ink-base hover:opacity-90"
-						title="Stop"
-						@click="flow.abort()"
-					>
-						<span class="h-[11px] w-[11px] rounded-[2px] bg-current" />
-					</button>
-					<button
-						v-else
-						class="ml-1 grid h-8 w-8 flex-none place-items-center rounded-6"
-						:class="
-							canSend || submitting
-								? 'bg-surface-gray-10 text-ink-base hover:opacity-90'
-								: 'pointer-events-none bg-surface-gray-3 text-ink-gray-4'
-						"
-						title="Send"
-						:disabled="!canSend"
-						:aria-busy="submitting"
-						@click="submit"
-					>
-						<span
-							v-if="submitting"
-							class="lucide-loader-circle size-4 animate-spin"
-							aria-hidden="true"
-						/>
-						<span v-else class="lucide-arrow-up size-4" aria-hidden="true" />
-					</button>
-				</div>
+						<Tooltip v-if="running && !submitting" text="Stop">
+							<button
+								class="ml-1 grid h-7 w-7 flex-none place-items-center rounded-5 bg-surface-gray-10 text-ink-base hover:opacity-90"
+								aria-label="Stop"
+								@click="flow.abort()"
+							>
+								<span class="h-[11px] w-[11px] rounded-[2px] bg-current" />
+							</button>
+						</Tooltip>
+						<Tooltip v-else :text="canSend ? 'Send' : ''">
+							<button
+								class="ml-1 grid flex-none place-items-center rounded-5"
+								:class="[
+									starting ? 'h-8 w-8' : 'h-7 w-7',
+									canSend || submitting
+										? 'bg-surface-gray-10 text-ink-base hover:opacity-90'
+										: 'pointer-events-none bg-surface-gray-3 text-ink-gray-4',
+								]"
+								aria-label="Send"
+								:disabled="!canSend"
+								:aria-busy="submitting"
+								@click="submit"
+							>
+								<span
+									v-if="submitting"
+									class="lucide-loader-circle size-4 animate-spin"
+									aria-hidden="true"
+								/>
+								<span v-else class="lucide-arrow-up size-4" aria-hidden="true" />
+							</button>
+						</Tooltip>
+					</div>
+				</TooltipProvider>
 			</fieldset>
 			<!-- a new chat's folder and preset, until its first message goes out: a bar under the box,
 			     its lists opening below it while the box sits mid-page -->
@@ -426,6 +452,8 @@
 
 <script setup>
 import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
+import { Tooltip } from "frappe-ui"
+import { TooltipProvider } from "reka-ui"
 import { dialogs as frappeDialogs } from "frappe-ui/src/utils/dialog"
 
 import { isInert, isPageEvent } from "../inert.js"
@@ -462,9 +490,11 @@ const props = defineProps({
 	placeholder: { type: String, default: "Ask flow…" },
 	modes: { type: Array, default: () => APPROVAL_MODES }, // [{ id, label, desc }] in the host's words
 	disabled: { type: Boolean, default: false }, // shown but inert, e.g. until the host's setup is done
-	// the + menu's lists after Attach: [{ id, label, icon, newChatOnly }], each drawn by the host's
-	// `plus-list` slot
+	// the + menu's lists after Attach: [{ id, label, icon, startedOnly }], each drawn by the host's
+	// `plus-list` slot; a new chat has its own buttons for those `startedOnly`, in the `tools` slot
 	plusLists: { type: Array, default: () => [] },
+	// a new chat's approval mode on the right, by the model, rather than by the +
+	newChatModeRight: { type: Boolean, default: false },
 })
 
 const flow = inject("flow")
@@ -770,7 +800,8 @@ const PLUS_WIDTH = 176
 const plusMenu = ref(false)
 const plusSub = ref(null)
 const plusButton = ref(null)
-const plusRows = computed(() => props.plusLists.filter((row) => !row.newChatOnly || starting.value))
+const modeAtModel = computed(() => props.newChatModeRight && starting.value)
+const plusRows = computed(() => props.plusLists.filter((row) => !row.startedOnly || !starting.value))
 const attachLabel = computed(() => (props.imagesOnly ? "Attach images" : "Attach files"))
 
 function closePlusMenu(refocus = true) {

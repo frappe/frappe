@@ -46,6 +46,11 @@ body {
 	background: var(--surface-gray-1);
 }
 
+/* the sidebar's hover peek stands in for the sidebar, which casts no shadow: its edge alone */
+[data-slot="content-body"]:has(> .flow-peek) {
+	--tw-shadow: 0 0 #0000;
+}
+
 /* Long dropdown menus: the page itself never scrolls, so a menu taller than
    the viewport would be unreachable. Cap it to the space reka reports for the
    popper and scroll inside instead. */

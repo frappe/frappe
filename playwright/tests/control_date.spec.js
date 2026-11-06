@@ -33,34 +33,24 @@ test.describe("Date Control", () => {
 		await get_dialog(desk);
 		const input = desk.get_field("date", "Date");
 		await input.click();
-		await page.locator(".datepicker--nav-title").click();
-		await page.locator(".datepicker--nav-title").click();
+		await page.locator(".air-datepicker-nav--title").click();
+		await page.locator(".air-datepicker-nav--title").click();
 
-		await page
-			.locator(
-				'.datepicker--years > .datepicker--cells > .datepicker--cell[data-year="2020"]'
-			)
-			.click();
-		await page
-			.locator(
-				'.datepicker--months > .datepicker--cells > .datepicker--cell[data-month="0"]'
-			)
-			.click();
-		await page
-			.locator('.datepicker--days > .datepicker--cells > .datepicker--cell[data-date="15"]')
-			.click();
+		await page.locator('.air-datepicker-cell.-year-[data-year="2020"]').click();
+		await page.locator('.air-datepicker-cell.-month-[data-month="0"]').click();
+		await page.locator('.air-datepicker-cell.-day-[data-date="15"]').click();
 
 		await expect.poll(() => get_date_value(page)).toBe("2020-01-15");
 
 		await input.click();
-		await page.locator(".datepicker--nav-action[data-action=next]").click();
-		await page.locator('.datepicker--cell[data-date="15"]').click();
+		await page.locator(".air-datepicker-nav--action[data-action=next]").click();
+		await page.locator('.air-datepicker-cell.-day-[data-date="15"]').click();
 
 		await expect.poll(() => get_date_value(page)).toBe("2020-02-15");
 
 		await input.click();
-		await page.locator(".datepicker--nav-action[data-action=prev]").click();
-		await page.locator('.datepicker--cell[data-date="15"]').click();
+		await page.locator(".air-datepicker-nav--action[data-action=prev]").click();
+		await page.locator('.air-datepicker-cell.-day-[data-date="15"]').click();
 
 		await expect.poll(() => get_date_value(page)).toBe("2020-01-15");
 	});
@@ -69,7 +59,7 @@ test.describe("Date Control", () => {
 		await get_dialog(desk);
 		await desk.get_field("date", "Date").click();
 
-		await page.locator(".datepicker--button").click();
+		await page.locator(".air-datepicker-button").click();
 
 		const today = await page.evaluate(() => frappe.datetime.get_today());
 		await expect.poll(() => get_date_value(page)).toBe(today);

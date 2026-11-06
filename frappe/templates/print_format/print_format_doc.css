@@ -528,7 +528,8 @@ body.print-format-doc .letter-head,
 	height: auto;
 }
 
-.print-format-doc .print-barcode img {
+.print-format-doc .print-barcode img,
+.print-format-doc .custom-html img {
 	max-width: 100%;
 }
 
