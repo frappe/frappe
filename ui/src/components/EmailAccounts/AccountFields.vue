@@ -46,7 +46,7 @@
 			<Password
 				v-else
 				v-model="form.password"
-				:label="__('App password')"
+				:label="service.kind === 'custom' ? __('Password') : __('App password')"
 				autocomplete="new-password"
 				:placeholder="editing ? '********' : undefined"
 				:error="errorOn('password')"

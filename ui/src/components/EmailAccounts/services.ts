@@ -303,7 +303,10 @@ export function validate(
   if (!form.password && !editing)
     return {
       field: "password",
-      message: __("App password is required"),
+      message:
+        service.kind === "custom"
+          ? __("Password is required")
+          : __("App password is required"),
     };
 }
 

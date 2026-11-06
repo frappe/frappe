@@ -163,6 +163,9 @@ describe("validate", () => {
       message: "App password is required",
     });
     expect(
+      validate(service(""), form({ domain: "example.com", password: "" })),
+    ).toEqual({ field: "password", message: "Password is required" });
+    expect(
       validate(
         service("Frappe Mail"),
         form({ frappe_mail_site: "s", api_key: "k" }),
