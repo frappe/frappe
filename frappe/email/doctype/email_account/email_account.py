@@ -749,16 +749,20 @@ class EmailAccount(Document):
 				seen_status = messages.get("seen_status", {}).get(uid)
 				if self.email_sync_option != "UNSEEN" or seen_status != "SEEN":
 					# only append the emails with status != 'SEEN' if sync option is set to 'UNSEEN'
-					mails.append(
-						InboundMail(
-							message,
-							self,
-							frappe.safe_decode(uid),
-							seen_status,
-							append_to,
-							imap_folder,
+					try:
+						mails.append(
+							InboundMail(
+								message,
+								self,
+								frappe.safe_decode(uid),
+								seen_status,
+								append_to,
+								imap_folder,
+							)
 						)
-					)
+					except Exception:
+						self.log_error(title="EmailAccount.receive")
+						self.handle_bad_emails(frappe.safe_decode(uid), message, frappe.get_traceback())
 
 		if not self.enable_incoming:
 			return []
