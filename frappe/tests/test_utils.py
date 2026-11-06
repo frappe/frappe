@@ -29,6 +29,7 @@ from frappe.utils import (
 	flt,
 	format_timedelta,
 	get_bench_path,
+	get_email_addresses,
 	get_file_timestamp,
 	get_identicon,
 	get_link_to_report,
@@ -1909,6 +1910,18 @@ class TestLocks(IntegrationTestCase):
 
 
 class TestMiscUtils(IntegrationTestCase):
+	def test_get_email_addresses(self):
+		from frappe.core.doctype.user.test_user import test_user
+
+		with test_user(roles=[]) as user:
+			frappe.db.set_value("User", user.name, "email", f"changed_{user.email}")
+
+			self.assertEqual(
+				get_email_addresses([user.name, "Administrator", "not_a_user"]),
+				{user.name: f"changed_{user.email}"},
+			)
+			self.assertIn("Administrator", get_email_addresses(["Administrator"], skip_standard_users=False))
+
 	def test_get_file_timestamp(self):
 		self.assertIsInstance(get_file_timestamp(__file__), str)
 
