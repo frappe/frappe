@@ -135,7 +135,11 @@ function set_default_max_attachment_size(frm) {
 function add_helpful_links(frm) {
 	// For better UX
 	const gmail = frm.doc.service === "GMail";
-	frm.set_df_property("password", "label", gmail ? __("App password") : __("Password"));
+	frm.set_df_property(
+		"password",
+		"label",
+		frm.doc.service ? __("App password") : __("Password")
+	);
 	frm.set_df_property(
 		"password",
 		"description",
@@ -244,6 +248,7 @@ frappe.ui.form.on("Email Account", {
 		frm.saved_email_id = frm.doc.email_id;
 		frm.events.enable_incoming(frm);
 		frm.events.show_oauth_authorization_message(frm);
+		add_helpful_links(frm);
 
 		if (frappe.route_flags.delete_user_from_locals && frappe.route_flags.linked_user) {
 			delete frappe.route_flags.delete_user_from_locals;
