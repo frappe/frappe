@@ -81,7 +81,11 @@
 					<Button
 						variant="outline"
 						label="Retry"
-						@click="(activeTab.diff ? flow.openDiffFile : flow.openFile)(activeTab.path)"
+						@click="
+							activeTab.diff
+								? flow.openDiffFile(activeTab.path, activeTab.since ?? null)
+								: flow.openFile(activeTab.path)
+						"
 					/>
 				</div>
 				<LoadingState
@@ -452,5 +456,11 @@ async function save() {
 }
 .flow-crumbs :deep(span[aria-hidden="true"]) {
 	font-size: theme(fontSize.base);
+}
+/* the file's name keeps its width while every folder shows, so a path too long for the row folds
+   its leading folders into the "…" menu instead of cutting the name. Breadcrumbs folds only past two
+   crumbs; folded, or with fewer, a long name truncates */
+.flow-crumbs:not(:has(.lucide-ellipsis)):has(button ~ button ~ button) :deep(button:last-child) {
+	flex-shrink: 0;
 }
 </style>

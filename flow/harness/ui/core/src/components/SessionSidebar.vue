@@ -11,6 +11,7 @@
 	<aside
 		class="flow-sidebar-surface fixed inset-y-0 left-0 z-30 flex w-[var(--sidebar-w)] flex-none flex-col md:relative"
 		:class="[
+			bright && 'flow-sidebar-bright',
 			sliding ? 'transition-[transform,margin-left] duration-200 ease-in-out' : '',
 			// no transform while open: a transformed aside would become the containing
 			// block for a menu's fixed backdrop, clipping it to the sidebar. Open in a wide
@@ -20,14 +21,19 @@
 				: '-translate-x-full md:ml-[calc(-1*var(--sidebar-w))] md:translate-x-0',
 			dragging && 'flow-reordering',
 		]"
-		:style="{ '--sidebar-w': layout.phone ? 'min(85vw, 360px)' : width + 'px' }"
+		:style="{ '--sidebar-w': layout.phone ? 'min(calc(85vw / var(--flow-zoom, 1)), 360px)' : width + 'px' }"
 		:inert="!open"
 	>
 		<div class="flex h-12 flex-none items-center gap-2.5 pl-4 pr-2">
 			<!-- the app's own menu hangs from its name, as in Frappe's other apps: settings and the
-			     way back out live here, not at the foot of the list. The mark and title sit in the
-			     rows' icon and label columns -->
-			<Dropdown :options="appMenu" align="start">
+			     way back out live here, not at the foot of the list. A host with Settings at the foot
+			     (the harness) has the name alone. The mark and title sit in the rows' icon and label
+			     columns -->
+			<div v-if="settingsFooter" class="-ml-1.5 flex h-8 min-w-0 items-center gap-2 pl-1.5 pr-2">
+				<BrandMark line :size="16" class="!text-ink-gray-8" />
+				<span class="text-base-semibold text-ink-gray-9">Flow</span>
+			</div>
+			<Dropdown v-else :options="appMenu" align="start">
 				<template #trigger>
 					<button
 						class="-ml-1.5 flex h-8 min-w-0 items-center gap-2 rounded-5 pl-1.5 pr-2 hover:bg-surface-gray-3 data-[state=open]:bg-surface-gray-3"
@@ -117,13 +123,13 @@
 							@update:open="(open) => showCard(group.cwd, open)"
 						>
 							<template #trigger>
-								<span class="row-title folder-name min-w-0 flex-1 overflow-hidden whitespace-nowrap text-sm leading-snug text-ink-gray-8">
+								<span class="row-title folder-name min-w-0 flex-1 overflow-hidden whitespace-nowrap text-sm leading-snug text-ink-gray-6">
 									{{ group.name }}
 								</span>
 							</template>
 							<!-- no wider than the room beside the row, which a narrow window's drawer cuts short -->
 							<div class="row-card flex max-w-[min(20rem,var(--reka-hover-card-content-available-width,20rem))] flex-col gap-1.5 px-3 py-2.5">
-								<p class="break-words text-base leading-snug text-ink-gray-8">{{ group.name }}</p>
+								<p class="break-words text-sm leading-snug text-ink-gray-8">{{ group.name }}</p>
 								<p class="flex items-start gap-1.5 text-sm leading-4 text-ink-gray-6">
 									<span class="lucide-folder size-4 flex-none text-ink-gray-5" aria-hidden="true" />
 									<span class="break-all">{{ group.cwd }}</span>
@@ -172,13 +178,15 @@
 					<!-- while a workspace is dragged only the workspaces show, so it drops between them -->
 					<Transition name="flow-fold">
 						<div v-if="group.open && dragging?.scope !== 'folder'" class="flow-fold" :class="group.cwd && '-mt-px'">
-							<div class="grid min-h-0 grid-cols-1 gap-0.5">
+							<!-- chats sit 30px apart under a workspace's name, 34px apart in one list, which has
+							     no names to space against. A phone's taller rows keep the 2px gaps -->
+							<div class="grid min-h-0 grid-cols-1" :class="grouped || layout.phone ? 'gap-0.5' : 'gap-1'">
 								<SidebarItem
 									v-for="s in group.chats"
 									:key="s.session_id"
 									:label="flow.sessionTitle(s)"
 									class="group relative h-7 select-none"
-									:class="[menuFor === s.session_id && 'menu-open bg-surface-gray-2', dragClass(s.session_id)]"
+									:class="[!grouped && 'spaced', menuFor === s.session_id && 'menu-open bg-surface-gray-2', dragClass(s.session_id)]"
 									:active="chatInView && s.session_id === flow.state.sessionId"
 									:data-reorder="canReorder ? `chat:${group.cwd ?? ''}` : null"
 									:data-key="s.session_id"
@@ -210,7 +218,7 @@
 											</span>
 										</template>
 										<div class="row-card flex max-w-[min(20rem,var(--reka-hover-card-content-available-width,20rem))] flex-col gap-1.5 px-3 py-2.5">
-											<p class="break-words text-base leading-snug text-ink-gray-8">{{ flow.sessionTitle(s) }}</p>
+											<p class="break-words text-sm leading-snug text-ink-gray-8">{{ flow.sessionTitle(s) }}</p>
 											<p v-if="s.cwd" class="flex items-center gap-1.5 text-sm text-ink-gray-6">
 												<span class="lucide-folder size-4 flex-none text-ink-gray-5" aria-hidden="true" />
 												<span class="truncate">{{ flow.folderName(s.workspace ?? s.cwd) }}</span>
@@ -281,8 +289,14 @@
 			@pointerdown="startResize"
 			@dblclick="resetWidth"
 		/>
+		<!-- a host without the app menu's Settings (the harness) keeps it at the foot -->
+		<footer v-if="settingsFooter" class="flex flex-col gap-0.5 border-t border-outline-gray-1 p-2">
+			<SidebarItem icon="lucide-settings" @click="flow.setSettingsOpen(true)">
+				<span class="truncate text-base text-ink-gray-8">Settings</span>
+			</SidebarItem>
+		</footer>
 		<!-- its query is the sidebar's, so a search past the loaded page reloads the chats it matches -->
-		<ChatSearch v-model:open="searchOpen" v-model:query="query" @new="startNewChat()" @pick="pick" />
+		<ChatSearch v-model:open="searchOpen" v-model:query="query" @new="startNewChat()" @pick="openChat" />
 	</aside>
 </template>
 
@@ -298,7 +312,7 @@ import { useKeyboardShortcut } from "frappe-ui"
 import { dialog } from "frappe-ui/src/utils/dialog"
 
 import { useDebouncedValue } from "../debounce.js"
-import { SIDEBAR_WIDTH, layout, useSlide } from "../layout.js"
+import { layout, useSlide } from "../layout.js"
 import { afterMenu } from "../menu.js"
 import BrandMark from "./BrandMark.vue"
 import ChatMenu from "./ChatMenu.vue"
@@ -317,6 +331,9 @@ const props = defineProps({
 	apps: { type: Array, default: () => [] },
 	logout: { type: Function, default: null },
 	user: { type: Object, default: null },
+	settingsFooter: { type: Boolean, default: false },
+	// rows and workspace names in the text's own colour, grey kept for headings and hints (the harness)
+	bright: { type: Boolean, default: false },
 })
 const emit = defineEmits(["close"])
 const flow = inject("flow")
@@ -331,7 +348,7 @@ const appMenu = computed(() => [
 			{
 				label: "Settings",
 				icon: "lucide-settings",
-				slots: layout.phone ? {} : { suffix: () => h(KeyboardShortcut, { combo: "Mod+,", showPlus: false }) },
+				slots: layout.phone ? {} : { suffix: () => h(KeyboardShortcut, { combo: "Mod+,", showPlus: false, class: "mr-1.5" }) },
 				onClick: afterMenu(() => flow.setSettingsOpen(true)),
 			},
 		],
@@ -340,7 +357,7 @@ const appMenu = computed(() => [
 ])
 // a heading, not an action: the keys pass over it, and its text keeps its ink
 function accountOption(user) {
-	const avatar = () => h(Avatar, { label: user.full_name, image: user.user_image, size: "sm" })
+	const avatar = () => h(Avatar, { label: user.full_name, image: user.user_image, size: "xs" })
 	const label = () =>
 		h("div", { class: "min-w-0" }, [
 			h("div", { class: "truncate leading-tighter text-ink-gray-8" }, user.full_name),
@@ -474,7 +491,8 @@ function crawlTitle(event) {
 	crawlTimer = setTimeout(() => {
 		const rem = parseFloat(getComputedStyle(document.documentElement).fontSize)
 		const range = title.firstElementChild.offsetWidth - (title.clientWidth - 3 * rem)
-		if (range < 8) return // a few pixels of travel reads as jitter
+		// a title ending before the fade turns clear reads whole: only one running under the ••• crawls
+		if (range <= 1.5 * rem) return
 		title.style.setProperty("--crawl", `${-range}px`)
 		title.style.setProperty("--crawl-time", `${range / CRAWL_PX_PER_S}s`)
 		title.dataset.crawl = ""
@@ -704,12 +722,17 @@ function pressEnd() {
 }
 onBeforeUnmount(pressEnd)
 
-// a drawer closes once a chat is picked, and the chat opens once the host lets it
-async function pick(session) {
+// a row's chat, unless the tap ended a long press or a drag
+function pick(session) {
 	if (pressed) {
 		pressed = false
 		return
 	}
+	openChat(session)
+}
+
+// a drawer closes once a chat is picked, and the chat opens once the host lets it
+async function openChat(session) {
 	if (layout.narrow) emit("close")
 	if (props.beforeSwitch && !(await props.beforeSwitch())) return
 	flow.openSession(session.session_id)
@@ -731,8 +754,8 @@ async function newWorkspace() {
 	startNewChat(workspace?.path ?? cwd)
 }
 
-const DEFAULT_WIDTH = SIDEBAR_WIDTH.default
-const clampWidth = (w) => Math.min(SIDEBAR_WIDTH.max, Math.max(SIDEBAR_WIDTH.min, w))
+const DEFAULT_WIDTH = 288
+const clampWidth = (w) => Math.min(420, Math.max(224, w))
 const width = ref(clampWidth(flow.state.prefs.sidebarWidth ?? DEFAULT_WIDTH))
 
 function resetWidth() {
@@ -746,7 +769,7 @@ function startResize(event) {
 	handle.setPointerCapture(event.pointerId)
 	const startX = event.clientX
 	const startWidth = width.value
-	const move = (e) => (width.value = clampWidth(startWidth + e.clientX - startX))
+	const move = (e) => (width.value = clampWidth(startWidth + (e.clientX - startX) / layout.zoom))
 	const up = (e) => {
 		handle.releasePointerCapture(e.pointerId)
 		handle.removeEventListener("pointermove", move)
@@ -797,6 +820,10 @@ const emptyMessage = computed(() => {
 </script>
 
 <style scoped>
+.flow-sidebar-bright :deep([data-state="inactive"]),
+.flow-sidebar-bright .folder-name {
+	color: var(--ink-gray-8);
+}
 .flow-backdrop-enter-active,
 .flow-backdrop-leave-active {
 	transition: opacity 0.2s ease;
@@ -926,6 +953,15 @@ const emptyMessage = computed(() => {
 }
 .drop-after::after {
 	bottom: -2px;
+}
+/* one list's 4px gaps, all but a phone's: the line keeps to their middle */
+@media not all and (max-width: 767px) and (pointer: coarse) {
+	.spaced.drop-before::before {
+		top: -3px;
+	}
+	.spaced.drop-after::after {
+		bottom: -3px;
+	}
 }
 .flow-reordering :deep(*) {
 	cursor: grabbing !important;

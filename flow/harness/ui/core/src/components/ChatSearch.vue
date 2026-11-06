@@ -9,7 +9,10 @@
 		@update:query="emit('update:query', $event)"
 		@select="choose"
 	>
-		<CommandPaletteInput placeholder="Search chats" />
+		<!-- the card's own colour, not frappe-ui's transparent: Chrome repaints an unfocused window's
+		     field alone, and a transparent one shows the page through it as a dark strip. Held 1px
+		     down so it doesn't cover the card's lit top edge. -->
+		<CommandPaletteInput placeholder="Search chats" class="mt-px !bg-surface-elevation-1 !pt-[11px]" />
 		<CommandPaletteList>
 			<!-- held off the field's rule as far as the rows sit from the sides; a group brings its own -->
 			<div v-if="!query.trim()" class="pt-2.5">

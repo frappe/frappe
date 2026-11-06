@@ -11,24 +11,22 @@ body {
 	cursor: auto;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-	.flow-composer-glide {
-		transition: bottom 300ms ease-out;
-	}
+/* the thread and the composer, one width whether the sidebar shows or not */
+.flow-column {
+	max-width: 800px;
 }
-/* a box docked at the foot hides the thread under it, and the thread fades out above it, so
-   nothing reads below the box and the box is easy to find */
-.flow-composer-docked {
-	background: var(--surface-base);
+
+/* the composer, and the lists that open over it */
+.flow-composer-surface {
+	background: color-mix(in srgb, var(--surface-base) 90%, var(--surface-gray-1));
 }
-.flow-composer-docked::before {
-	content: "";
-	position: absolute;
-	inset-inline: 0;
-	bottom: 100%;
-	height: 24px;
-	pointer-events: none;
-	background: linear-gradient(to top, var(--surface-base), transparent);
+[data-theme="dark"] .flow-composer-surface {
+	background: var(--surface-gray-1);
+}
+/* a list hung from a button on the composer covers the box: in dark mode half a step lighter than
+   it, as the "/" list is over the chat */
+[data-theme="dark"] .flow-composer-surface.flow-dropdown {
+	background: color-mix(in srgb, var(--surface-gray-1) 50%, var(--surface-gray-2));
 }
 /* a new chat's start bar under the box: a step off the page; in dark mode between the chat and
    the box */
@@ -46,6 +44,11 @@ body {
 }
 [data-theme="dark"] .flow-sidebar-surface {
 	background: var(--surface-gray-1);
+}
+
+/* the sidebar's hover peek stands in for the sidebar, which casts no shadow: its edge alone */
+[data-slot="content-body"]:has(> .flow-peek) {
+	--tw-shadow: 0 0 #0000;
 }
 
 /* Long dropdown menus: the page itself never scrolls, so a menu taller than
@@ -97,22 +100,23 @@ body {
 	background: var(--surface-gray-3);
 }
 
-/* A row of the lists over the composer (PalettePanel), as frappe-ui's ItemListRow: text-base on
-   at least 28px, taller for a description under its name. The pointer and the keyboard share one
-   highlight (PalettePanel), so a row has no hover color. A description or other aside takes
-   flow-palette-hint. */
+/* A row of the lists over the composer (PalettePanel): text-base on 32px, 2px apart, the active
+   row rounded as a frappe-ui menu's item. The pointer and the keyboard share that one highlight
+   (PalettePanel), so a row has no hover color. A description or other aside takes flow-palette-hint. */
 .flow-palette-row {
 	display: flex;
 	width: 100%;
-	min-height: 28px;
+	min-height: 32px; /* a row with a description grows past it */
 	align-items: center;
 	gap: 8px;
-	padding: 6px 8px;
+	padding: 0 11px;
 	border-radius: theme(borderRadius.4);
 	font-size: theme(fontSize.base);
-	line-height: theme(lineHeight.tighter);
-	color: var(--ink-gray-7);
+	color: var(--ink-gray-8);
 	text-align: left;
+}
+.flow-palette-row + .flow-palette-row {
+	margin-top: 2px;
 }
 /* a phone's menus and lists at the chat's text size */
 @media (max-width: 767px) and (pointer: coarse) {
@@ -127,9 +131,9 @@ body {
 /* a list with nothing to show says so in one muted line, a row's height */
 .flow-palette-empty {
 	display: flex;
-	height: 28px;
+	height: 32px;
 	align-items: center;
-	padding: 0 8px;
+	padding: 0 11px;
 	font-size: theme(fontSize.base);
 	color: var(--ink-gray-5);
 }
@@ -312,9 +316,10 @@ body {
 .flow-prose {
 	/* font-family: Inter; */
 	font-size: var(--flow-chat-text, 15px);
+	/* Raven's letter spacing, a little more room between lines */
 	line-height: 1.6;
 	font-weight: var(--flow-chat-weight, 420);
-	letter-spacing: normal;
+	letter-spacing: 0.02em;
 }
 /* the thread's step rows (tools, thinking, folds) sit one step under the chat text, or at
    --flow-step-text where a host sets it */
@@ -415,7 +420,7 @@ body {
 	margin: 0.6em 0;
 	padding: 10px 12px;
 	border-radius: 12px;
-	border: 1px solid var(--outline-gray-2);
+	border: 1px solid var(--outline-gray-1);
 	background: var(--surface-gray-1);
 	overflow-x: auto;
 	font-size: 0.85em;
@@ -599,16 +604,4 @@ body {
 }
 .flow-prompt-rail::-webkit-scrollbar {
 	display: none;
-}
-
-/* the chat search runs its field straight into the list, with no rule between them; its field
-   stays clear of the page's input fill, on hover and focus too */
-[data-slot="command-palette-input"][data-slot] {
-	border-bottom-width: 0;
-}
-[data-slot="command-palette-input"][data-slot] input,
-[data-slot="command-palette-input"][data-slot] input:hover,
-[data-slot="command-palette-input"][data-slot] input:focus {
-	background: transparent;
-	box-shadow: none;
 }

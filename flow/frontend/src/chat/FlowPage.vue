@@ -34,6 +34,7 @@
 					:sidebar-open="sidebarOpen"
 					:workspace="false"
 					:actions="chatActions"
+					:crumb="agentCrumb"
 					:history="noSidebar"
 					:manage="!inPanel"
 					:beside-navbar="panelHost"
@@ -46,30 +47,23 @@
 						<Button variant="ghost" icon="lucide-x" title="Close" @click="closePanel" />
 					</template>
 				</ChatHeader>
-				<MessageList :suggestions="!readOnly">
-					<template #empty>
+				<MessageList
+					:suggestions="!readOnly"
+					:center-composer="!inPanel && !readOnly && !needsSetup"
+				>
+					<template #empty="{ mark }">
 						<SetupState v-if="needsSetup" />
+						<!-- the mark over a quiet heading, each a step smaller in a narrow frame -->
 						<template v-else>
-							<!-- no heading: the box's own "Ask Flow…" asks. The mark alone sits over it, a step
-							     smaller in a narrow frame. It watches the pointer, reads what is typed, then
-							     looks up when the draft rests; its word for that hangs under it, out of the
-							     layout, so the box never moves -->
-							<div class="relative mb-10 flex min-h-0 shrink flex-col items-center max-md:mb-8">
-								<BrandMark
-									line
-									:size="32"
-									:state="mood === 'idle' ? 'idle' : null"
-									:look="MOOD[mood].look"
-									class="min-h-0 shrink max-md:!h-7 max-md:!w-7"
-								/>
-								<p
-									aria-live="polite"
-									class="absolute top-full mt-2.5 whitespace-nowrap text-sm text-ink-gray-5 transition-opacity duration-300"
-									:class="MOOD[mood].note ? 'opacity-100' : 'opacity-0'"
-								>
-									{{ MOOD[mood].note || MOOD.ready.note }}
-								</p>
-							</div>
+							<BrandMark
+								line
+								:size="32"
+								v-bind="mark"
+								class="min-h-0 shrink max-md:!h-7 max-md:!w-7"
+							/>
+							<h2 class="text-balance text-4xl text-ink-gray-8 max-md:text-[22px]">
+								What would you like to do?
+							</h2>
 						</template>
 					</template>
 				</MessageList>
@@ -81,36 +75,21 @@
 					:images-only="false"
 					:placeholder="placeholder"
 					:modes="MODES"
-					:plus-items="plusItems"
+					:plus-lists="plusLists"
+					new-chat-mode-right
 				>
-					<!-- the page beside the panel, which the chat can read; dismissed, the chat leaves
-					     that page alone until another opens -->
-					<template v-if="crumb" #above>
-						<div class="mb-1.5 flex min-w-0 items-center gap-1 px-3 text-sm text-ink-gray-5">
-							<span class="lucide-app-window size-3.5 flex-none" aria-hidden="true" />
-							<span class="truncate" :class="crumb.label ? '' : 'text-ink-gray-7'">{{ crumb.parent }}</span>
-							<template v-if="crumb.label">
-								<span class="flex-none text-ink-gray-4" aria-hidden="true">/</span>
-								<span class="truncate text-ink-gray-7">{{ crumb.label }}</span>
-							</template>
-							<button
-								class="ml-0.5 grid size-4 flex-none place-items-center rounded-4 text-ink-gray-4 hover:bg-surface-gray-2 hover:text-ink-gray-8"
-								title="Stop working on this page"
-								aria-label="Stop working on this page"
-								@click="leftPage = crumb.key"
-							>
-								<span class="lucide-x size-3" aria-hidden="true" />
-							</button>
-						</div>
-					</template>
 					<template #below="{ starting }">
-						<p v-if="starting" class="mt-2 px-3 text-center text-sm text-ink-gray-5">
-							Flow is in beta and can make mistakes. Check what it shows you before you approve.
+						<p v-if="starting && !inPanel" class="mt-2 px-3 text-center text-sm text-ink-gray-5">
+							Flow is in beta and can make mistakes
 						</p>
 					</template>
-					<template #tools="{ insert, starting }">
-						<AgentPicker v-if="starting" />
-						<SkillPicker @pick="insert" />
+					<!-- a new chat's agent and skills, as buttons beside the + -->
+					<template #tools="{ starting, insert }">
+						<ChatPickers v-if="starting" :insert="insert" />
+					</template>
+					<!-- a started chat's + menu: skills (it keeps its agent) -->
+					<template #plus-list="{ id, beside, close, insert }">
+						<SkillPicker v-if="id === 'skills'" :beside="beside" @close="close" @pick="insert" />
 					</template>
 					<template #palette="{ view, query, close, back }">
 						<AgentPalette
@@ -135,13 +114,8 @@
 			</WorkspacePanel>
 		</div>
 		<Dialogs />
-		<!-- a narrow frame's toasts drop from the top, off the composer, as the harness's do, and
-		     below the header, off its buttons -->
-		<ToastProvider
-			:position="layout.narrow ? 'top-center' : 'bottom-right'"
-			:offset="toastOffset"
-			:mobile-offset="toastOffset"
-		/>
+		<!-- a narrow frame's toasts drop from the top, off the composer, as the harness's do -->
+		<ToastProvider :position="layout.narrow ? 'top-center' : 'bottom-right'" />
 		<FlowSettings />
 		<TranscriptDialog />
 		<ShareChat v-if="canShare" ref="share" />
@@ -151,8 +125,8 @@
 <script setup>
 import { computed, inject, onBeforeUnmount, onMounted, provide, ref, watch } from "vue";
 import { isNavigationFailure, useRoute, useRouter } from "vue-router";
-import { Button, Dialogs, ToastProvider, toast, useColorScheme } from "frappe-ui";
-import { afterMenu, checked } from "@flow/ui-core/menu.js";
+import { Dialogs, ToastProvider, toast, useColorScheme } from "frappe-ui";
+import { Button } from "frappe-ui/src/components/Button";
 import BrandMark from "@flow/ui-core/components/BrandMark.vue";
 import ChatHeader from "@flow/ui-core/components/ChatHeader.vue";
 import Composer from "@flow/ui-core/components/Composer.vue";
@@ -178,12 +152,12 @@ import { FORMS } from "../pages/pages.js";
 import FlowSettings from "../settings/FlowSettings.vue";
 import { SPECS } from "../settings/specs.js";
 import AgentPalette from "./AgentPalette.vue";
-import AgentPicker from "./AgentPicker.vue";
+import ChatPickers from "./ChatPickers.vue";
 import FeedbackBar from "./FeedbackBar.vue";
 import SetupState from "./SetupState.vue";
 import ShareChat from "./ShareChat.vue";
 import SkillPicker from "./SkillPicker.vue";
-import { cameFrom, handOffPage, useDeskPage } from "./deskPage.js";
+import { useAgent } from "./agent.js";
 import { readScreen } from "./screen.js";
 import { presentTool } from "./toolMeta.js";
 
@@ -200,36 +174,6 @@ const COMMANDS = [
 	"abort",
 	"settings",
 ];
-// the way back to the rest of the site, in the floating sidebar's menu; the sidebar's own menu
-// lists Desk under Apps
-const APP_MENU = [
-	{ label: "Go to Desk", icon: "lucide-external-link", onClick: () => (window.location.href = "/app") },
-];
-// a started chat's + menu nests the skills the full box lists from its button: a pick starts the
-// draft with it, and with none yet, the way to a new one
-// the agent a new chat will start with, ticked in the + menu's Agent list
-const agentNow = computed(() => page.state.agent ?? page.state.boot.default_agent);
-const plusItems = computed(() => {
-	const skills = (store.state.skills ?? []).map((skill) => ({
-		label: skill.name,
-		onClick: ({ insert }) => insert(`/skill:${skill.name} `),
-	}));
-	const canAdd = page.can("Flow Skill", "create");
-	const add = { label: "Add a skill", icon: "lucide-plus", onClick: afterMenu(() => (page.createRecord("skills"), store.setSettingsOpen(true))) };
-	const items = [];
-	// a new chat's agent, for a box too narrow for its own button (a started chat keeps its agent)
-	if (!store.state.sessionId && page.state.boot.agents.length > 1)
-		items.push({
-			label: "Agent",
-			icon: "lucide-brain-cog",
-			submenu: page.state.boot.agents.map((agent) =>
-				checked({ label: agent.title, onClick: () => (page.state.agent = agent.name) }, agent.name === agentNow.value)
-			),
-		});
-	if (skills.length || canAdd)
-		items.push({ label: "Skills", icon: "lucide-book-open", submenu: skills.length ? skills : [add] });
-	return items;
-});
 // the approval modes in Flow's terms: its tools act on documents, not files
 const MODES = [
 	{ id: "auto", label: "Auto", desc: "A helper model handles approvals." },
@@ -273,12 +217,6 @@ provide("flow", store);
 provide("flowPage", page);
 // in the launcher's panel the window's history is the page's around it
 provide("flowBesidePage", inPanel);
-// the Desk page beside the panel, or in a tab of its own the page it was opened from, named over
-// the box; its × leaves that page out of the chat
-const deskPage = inPanel ? useDeskPage() : ref(cameFrom());
-const leftPage = ref(null);
-const crumb = computed(() => (deskPage.value?.key === leftPage.value ? null : deskPage.value));
-
 // the agent's read_screen: the panel reads the page beside it and answers for the chat it shows. A
 // tab of its own has no page; it answers late, so a panel on the same chat is heard first
 const STANDALONE_DELAY = 1500;
@@ -287,16 +225,7 @@ socket.on("flow:read_screen", async (message) => {
 	const answer = { session: message.session, token: message.token };
 	if (!inPanel) {
 		await new Promise((resolve) => setTimeout(resolve, STANDALONE_DELAY));
-		// the page it came from can't be read from here, but its record can
-		if (crumb.value)
-			answer.screen = {
-				url: crumb.value.url,
-				record: crumb.value.record ?? undefined,
-				note: "Flow is open in a tab of its own; this is the page the user opened it from. Its text can't be read from here, so read the record itself.",
-			};
-		else answer.error = "Flow is open in a tab of its own, with no page beside it.";
-	} else if (!crumb.value && deskPage.value) {
-		answer.error = "The user took the page beside the chat out of it. Ask them what they mean.";
+		answer.error = "Flow is open in a tab of its own, with no page beside it.";
 	} else {
 		try {
 			answer.screen = readScreen(window, root.value?.getRootNode().host);
@@ -356,12 +285,19 @@ async function logout() {
 	await transport.call("logout");
 	window.location.assign("/login");
 }
+// the way back to the rest of the site, in the floating sidebar's menu; the sidebar's own menu
+// lists Desk under Apps
+const APP_MENU = [{ label: "Go to Desk", icon: "lucide-external-link", onClick: () => (window.location.href = "/app") }];
+provide("appMenu", APP_MENU);
 // the composer asks in the name of the agent that answers
 const placeholder = computed(() => {
 	const name = store.state.session?.agent ?? page.state.agent;
 	const title = page.state.boot.agents.find((agent) => agent.name === name)?.title ?? "Flow";
 	return `Ask ${title}…`;
 });
+// the header names a chat's agent where the harness names its folder
+const { current: agent, title: agentTitle } = useAgent(store, page);
+const agentCrumb = computed(() => (agent.value ? { icon: "lucide-bot", label: agentTitle.value } : null));
 // someone else's chat is view-only: its tools would run as its owner
 const readOnly = computed(() => Boolean(page.state.readOnly[store.state.sessionId]));
 // only its owner shares a chat, once it has loaded and said who that is
@@ -392,12 +328,9 @@ const needsSetup = computed(
 const host = inject("flowHost", null);
 const closePanel = () => host?.close();
 function openInTab() {
-	if (crumb.value) handOffPage(crumb.value);
 	window.open(`/flow${route.fullPath}`, "_blank", "noopener");
 	closePanel();
 }
-
-const toastOffset = computed(() => (layout.narrow ? { top: 56 } : undefined));
 
 // the composer floats over the list, which pads by its measured height
 const composer = ref(null);
@@ -405,28 +338,6 @@ const chat = ref(null);
 const root = ref(null);
 provideComposerHeight(composer);
 provideFileDrop(chat, composer, root);
-// the new chat's mark, by the draft: at rest it watches the pointer, it reads while keys go,
-// and a draft that rests a moment has it look up, ready. A "/" opens commands, not a message
-const MOOD = {
-	idle: { look: "pointer", note: "" },
-	reading: { look: "down", note: "Reading…" },
-	ready: { look: "up", note: "Ready when you are" },
-};
-const READ_PAUSE = 900; // ms of no typing before a draft rests
-const typing = ref(false);
-let typingPause = 0;
-const draft = computed(() => composer.value?.text ?? "");
-watch(draft, (text) => {
-	clearTimeout(typingPause);
-	typing.value = Boolean(text.trim());
-	if (typing.value) typingPause = setTimeout(() => (typing.value = false), READ_PAUSE);
-});
-const mood = computed(() => {
-	const text = draft.value.trim();
-	if (!text || text.startsWith("/")) return "idle";
-	return typing.value ? "reading" : "ready";
-});
-onBeforeUnmount(() => clearTimeout(typingPause));
 
 watch(
 	() => store.state.toast,
@@ -441,6 +352,13 @@ watch(
 const route = useRoute();
 const router = useRouter();
 // a setup form's record in the chat's place, for whoever may read its records
+// a started chat's + menu after Attach: skills where there are some or one can be added. A new chat
+// has its own buttons for its agent and skills (ChatPickers)
+const plusLists = computed(() =>
+	(store.state.skills ?? []).length || page.can("Flow Skill", "create")
+		? [{ id: "skills", label: "Skills", icon: "lucide-book-open", startedOnly: true }]
+		: []
+);
 const forms = computed(() => FORMS.filter((item) => page.can(SPECS[item.key].doctype, "read")));
 const pageKind = computed(() => {
 	const { kind } = route.params;
@@ -485,8 +403,6 @@ async function leavePage() {
 	return !isNavigationFailure(failure);
 }
 provide("leavePage", leavePage);
-// a page's floating sidebar offers the app menu's items as the sidebar does
-provide("appMenu", APP_MENU);
 
 // the tab names the chat, or the page and its record as the page's bar does
 watch(
@@ -527,7 +443,7 @@ onMounted(async () => {
 		(route.params.session ||
 			store.state.sessions.some((session) => session.session_id === wanted))
 	)
-		store.openSession(wanted);
+		store.openSession(wanted, { quiet: inPanel });
 });
 onBeforeUnmount(() => {
 	uninstallShortcuts?.();

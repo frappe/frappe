@@ -5,9 +5,9 @@
 		</template>
 		<div class="divide-y divide-outline-gray-1">
 			<SettingsRow title="Theme" description="Follow the system, or pick one.">
-				<Select :model-value="colorScheme" :options="THEMES" class="w-36" @update:model-value="setColorScheme" />
+				<Select align="start" :model-value="colorScheme" :options="THEMES" class="w-36" @update:model-value="setColorScheme" />
 			</SettingsRow>
-			<SettingsRow title="Font size" description="The size of the chat's text." :saved="size">
+			<SettingsRow title="Font size" description="The size of the chat's text. The rest of Flow scales with it." :saved="size">
 				<span class="flex items-center gap-2">
 					<!-- one box: the steps sit inside its border and round with its corners -->
 					<span
@@ -42,6 +42,7 @@
 			</SettingsRow>
 			<SettingsRow title="Font weight" description="The weight of the chat's text." :saved="weight">
 				<Select
+					align="start"
 					:model-value="weight"
 					:options="CHAT_FONT_WEIGHT.options"
 					class="w-36"

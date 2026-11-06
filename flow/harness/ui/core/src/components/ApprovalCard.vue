@@ -1,6 +1,6 @@
 <template>
 	<div
-		class="flex max-h-[min(500px,72vh)] flex-col overflow-hidden rounded-6 border border-outline-gray-2 bg-surface-base"
+		class="flex max-h-[min(500px,calc(72vh/var(--flow-zoom,1)))] flex-col overflow-hidden rounded-6 border border-outline-gray-2 bg-surface-base"
 	>
 		<div class="flex items-start gap-3 px-3.5 py-2.5">
 			<div class="min-w-0 flex-1 text-base-medium leading-snug text-ink-gray-8">{{ title }}</div>
@@ -85,7 +85,6 @@ const flow = inject("flow")
 
 const asking = ref(false)
 const askText = ref("")
-const askButton = ref(null)
 
 // On a phone the card comes up under a finger that was going somewhere else, or takes the
 // place of the call just answered: a tap in its first moment answers nothing.
@@ -97,6 +96,7 @@ function answer(text) {
 
 // a ref fires before its node is in the document, where focus() is a no-op; the tick
 // after, the field exists and the typing lands in it
+const askButton = ref(null)
 function focusAsk(el) {
 	if (el) nextTick(() => el.focus())
 }
@@ -118,7 +118,7 @@ const title = computed(() => {
 	if (custom != null) return custom
 	switch (props.call.name) {
 		case "bash":
-			return "Run this command?"
+			return a.description || "Run this command?"
 		case "edit": {
 			const n = a.edits?.length ?? 1
 			return `Apply ${n} edit${n === 1 ? "" : "s"} to ${a.path ?? "file"}?`
@@ -158,6 +158,7 @@ function sendAsk() {
 	askText.value = ""
 }
 
+// the keyboard goes back to the button that opened the field
 function cancelAsk() {
 	asking.value = false
 	askText.value = ""

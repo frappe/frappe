@@ -38,7 +38,7 @@ import { searchLinks } from "./links.js";
 import { useDebouncedValue } from "@flow/ui-core/debounce.js";
 import { SPECS } from "./specs.js";
 
-const DESCRIPTION = "What agents can search.";
+const DESCRIPTION = "Sources agents can search.";
 
 const page = inject("flowPage");
 const tabs = computed(() =>

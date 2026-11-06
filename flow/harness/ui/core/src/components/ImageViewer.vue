@@ -1,22 +1,58 @@
 <template>
-	<!-- frappe-ui's Dialog portals where its host keeps overlays (inside an island's shadow root),
-	     and brings the overlay, Escape, the focus trap and focus return -->
-	<Dialog open bare size="5xl" @update:open="(open) => open || emit('close')">
-		<Dialog.Title class="sr-only">{{ alt || "Image" }}</Dialog.Title>
-		<div class="relative flex items-center justify-center p-2">
-			<img :src="src" :alt="alt" class="max-h-[calc(100vh-8rem)] max-w-full rounded-5 object-contain" />
-			<Button variant="subtle" icon="lucide-x" title="Close" class="absolute right-4 top-4" @click="emit('close')" />
+	<!-- into the host's root where it has one, as frappe-ui's dialogs go: an island's styles live there -->
+	<Teleport :to="portalTarget ?? 'body'">
+		<div
+			class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-6"
+			role="dialog"
+			aria-modal="true"
+			:aria-label="alt || 'Image'"
+			@click.self="emit('close')"
+		>
+			<img :src="src" :alt="alt" class="max-h-full max-w-full rounded-6 object-contain shadow-2xl" />
+			<button
+				ref="closeEl"
+				class="absolute right-4 top-4 grid h-8 w-8 place-items-center rounded-full bg-white/15 text-white hover:bg-white/25"
+				title="Close"
+				@click="emit('close')"
+			>
+				<span class="lucide-x size-4" aria-hidden="true" />
+			</button>
 		</div>
-	</Dialog>
+	</Teleport>
 </template>
 
 <script setup>
-import { Button } from "frappe-ui/src/components/Button"
-import { Dialog } from "frappe-ui/src/components/Dialog"
+import { onBeforeUnmount, onMounted, ref } from "vue"
+import { usePortalTarget } from "frappe-ui/src/composables/usePortalTarget"
+
+const portalTarget = usePortalTarget()
 
 defineProps({
 	src: { type: String, required: true },
 	alt: { type: String, default: "" },
 })
 const emit = defineEmits(["close"])
+const closeEl = ref(null)
+let returnFocus = null
+
+// capture phase: an open viewer owns Escape before the composer's global
+// abort listener (and any focused element) can act on the same keypress
+function onKey(event) {
+	if (event.key !== "Escape") return
+	event.preventDefault()
+	event.stopPropagation()
+	emit("close")
+}
+
+onMounted(() => {
+	// the focused element, inside a shadow root where Flow runs in one
+	returnFocus = document.activeElement
+	while (returnFocus?.shadowRoot?.activeElement) returnFocus = returnFocus.shadowRoot.activeElement
+	window.addEventListener("keydown", onKey, true)
+	closeEl.value?.focus()
+})
+onBeforeUnmount(() => {
+	window.removeEventListener("keydown", onKey, true)
+	returnFocus?.focus?.()
+})
 </script>

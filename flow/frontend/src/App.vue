@@ -38,10 +38,9 @@ const props = defineProps({
 	panel: { type: String, default: null },
 	path: { type: String, default: null },
 });
-const emit = defineEmits(["close", "settings", "navigate"]);
+const emit = defineEmits(["close", "navigate"]);
 provide("flowHost", {
 	close: () => emit("close"),
-	settings: (open) => emit("settings", open),
 });
 
 const boot = ref(null);

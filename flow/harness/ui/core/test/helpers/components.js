@@ -14,6 +14,21 @@ function stubURL(name) {
 		`))
 	return stubs.get(name)
 }
+// the chat search palette: while open, its query field and a way to close it
+stubs.set("ChatSearch", moduleURL(`
+	import { h } from ${JSON.stringify(vue)}
+	export default {
+		props: ["open", "query"],
+		emits: ["update:open", "update:query"],
+		render() {
+			if (!this.open) return null
+			return h("div", { "data-stub": "ChatSearch" }, [
+				h("input", { "aria-label": "Search chats", value: this.query, onInput: (e) => this.$emit("update:query", e.target.value) }),
+				h("button", { title: "Close search", onClick: () => this.$emit("update:open", false) }),
+			])
+		},
+	}
+`))
 const dialogs = moduleURL(`import { ref } from ${JSON.stringify(vue)}; export const dialogs = ref([]); export const dialog = {}`)
 // a test sets the dialog.* calls it expects, or opens one on the stack
 export const { dialog, dialogs: dialogStack } = await import(dialogs)
@@ -64,10 +79,12 @@ const hoverCard = moduleURL(`
 		},
 	}
 `)
-// reka's dialog pieces: the root shows its content while open, and its close asks it to close
+// reka's dialog pieces: the root shows its content while open, and its close asks it to close; a
+// tooltip provider as its content alone
 const reka = moduleURL(`
 	import { h, inject, provide } from ${JSON.stringify(vue)}
 	const close = Symbol("close")
+	export const TooltipProvider = { setup: (props, { slots }) => () => slots.default?.() }
 	export const DialogRoot = {
 		props: ["open"],
 		emits: ["update:open"],
@@ -132,16 +149,6 @@ const widgets = moduleURL(`
 	})
 	export const TextInput = text("input")
 	export const Textarea = text("textarea")
-	// its title and content while open, and a close button that asks it to close
-	export const Dialog = {
-		props: ["open", "title", "size"],
-		emits: ["update:open"],
-		render() {
-			return this.open
-				? h("div", { role: "dialog" }, [this.$slots.title?.() ?? this.title, this.$slots.default?.(), h("button", { title: "Close", onClick: () => this.$emit("update:open", false) })])
-				: null
-		},
-	}
 	export const Checkbox = {
 		props: ["modelValue", "disabled"],
 		emits: ["update:modelValue"],
@@ -176,27 +183,13 @@ const widgets = moduleURL(`
 		},
 	}
 	export const Select = { ...text("select"), props: ["modelValue", "options"] }
-	// its trigger, and while open its search box, its options and its footer
-	export const Combobox = {
-		props: ["modelValue", "options", "open", "query", "placeholder", "emptyText", "filterable"],
-		emits: ["update:modelValue", "update:open", "update:query"],
-		methods: { focus() {} },
+	// open, its body and actions; closing emits close, as frappe-ui's does
+	export const Dialog = {
+		props: ["open", "title", "size"],
+		emits: ["update:open", "close"],
+		watch: { open(now) { if (!now) this.$emit("close") } },
 		render() {
-			// as frappe-ui filters, on the label or the value, unless the caller filters
-			const q = (this.query ?? "").toLowerCase()
-			const options = (this.options ?? []).filter((o) => this.filterable === false || !q || o.label.toLowerCase().includes(q) || String(o.value).toLowerCase().includes(q))
-			return h("div", { "data-stub": "Combobox" }, [
-				h("div", { onClick: () => this.$emit("update:open", !this.open) }, this.$slots.trigger?.()),
-				...(this.open
-					? [
-							h("input", { placeholder: this.placeholder, value: this.query, onInput: (e) => this.$emit("update:query", e.target.value) }),
-							...options.map((o) =>
-								h("button", { role: "option", "aria-selected": String(o.value === this.modelValue), onClick: () => this.$emit("update:modelValue", o.value) }, o.label)),
-							options.length ? null : h("div", { "data-empty": "" }, this.emptyText),
-							this.$slots.footer?.(),
-						]
-					: []),
-			])
+			return this.open ? h("div", { role: "dialog", "aria-label": this.title }, [this.$slots.default?.(), this.$slots.actions?.()]) : null
 		},
 	}
 `)
@@ -206,11 +199,16 @@ const frappeUI = moduleURL(`
 	export const Tooltip = { inheritAttrs: false, render() { return this.$slots.default?.() } }
 	export function useKeyboardShortcut() {}
 `)
+// no host target in a test: a dialog renders where it is
+const portalTarget = moduleURL(`
+	import { computed } from ${JSON.stringify(vue)}
+	export const usePortalTarget = () => computed(() => undefined)
+`)
 const components = new Set([
 	"Composer.vue", "ToolStep.vue", "ToolGroup.vue", "ApprovalCard.vue", "MessageList.vue", "ModelButton.vue",
 	"SettingsDialog.vue", "SettingsPage.vue", "UserBubble.vue", "TurnFold.vue", "ThinkingBlock.vue", "ThoughtStep.vue",
 	"SubagentView.vue", "TranscriptDialog.vue", "WorkspacePanel.vue", "FilesBar.vue", "FileTree.vue", "LoadingState.vue", "AddToChat.vue",
-	"EditorView.vue", "ChatMenu.vue", "PresetButton.vue", "SuggestedReplies.vue", "ChatHistory.vue", "TitleField.vue",
+	"EditorView.vue", "ChatMenu.vue", "PresetButton.vue", "SuggestedReplies.vue", "ChatHistory.vue", "TitleField.vue", "KeyButton.vue",
 ])
 const compiled = new Map()
 
@@ -244,6 +242,8 @@ async function componentURL(url) {
 			resolved = settingsPieces
 		} else if (specifier.startsWith("frappe-ui/src/components/")) {
 			resolved = widgets
+		} else if (specifier === "frappe-ui/src/composables/usePortalTarget") {
+			resolved = portalTarget
 		} else if (specifier === "frappe-ui") {
 			resolved = frappeUI
 		} else if (specifier === "@flow/ui-core") {

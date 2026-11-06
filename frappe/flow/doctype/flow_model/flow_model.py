@@ -28,6 +28,7 @@ class FlowModel(Document):
 		api_key: DF.Password | None
 		base_url: DF.Data | None
 		context_window: DF.Int
+		embedding: DF.Check
 		enabled: DF.Check
 		extra_params: DF.JSON | None
 		model_id: DF.Data
@@ -46,17 +47,12 @@ class FlowModel(Document):
 		self._resolve_context_window()
 
 	def after_insert(self):
-		if not self.enabled:
+		# the Assistant chats: an embedding model is no model for it
+		if not self.enabled or self.embedding:
 			return
 		from frappe.flow.assistant import ensure_builtin_assistant
 
 		ensure_builtin_assistant(model=self.name)
-
-	def on_trash(self):
-		# what the Models tab last heard from it, so a model saved again under its name starts clean
-		from frappe.flow.api.setup import MODEL_CHECKS
-
-		frappe.cache.hdel(MODEL_CHECKS, self.name)
 
 	def before_rename(self, old: str, new: str, merge: bool = False) -> None:
 		# move the setting here, so Frappe's update doesn't treat the rename as a new model
@@ -206,7 +202,10 @@ def _live_models(provider: str) -> list[str]:
 	doc = frappe.get_doc("Flow Provider", provider)
 	api_key = doc.get_password("api_key", raise_exception=False) or ""
 	base = (doc.base_url or "").rstrip("/")
-	url = (base if base.endswith("/models") else f"{base}/models") if base else MODEL_ENDPOINTS[provider]
+	if provider == "ollama_chat":
+		url = f"{base}/v1/models"  # its OpenAI-style list
+	else:
+		url = (base if base.endswith("/models") else f"{base}/models") if base else MODEL_ENDPOINTS[provider]
 	params = {}
 	if provider == "anthropic":
 		headers = {"x-api-key": api_key, "anthropic-version": "2023-06-01"}
@@ -216,6 +215,8 @@ def _live_models(provider: str) -> list[str]:
 		params = {"pageSize": 1000}
 	else:
 		headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
+	if provider == "openrouter":
+		params = {"output_modalities": "text,embeddings"}  # its list is chat models alone by default
 	response = requests.get(url, headers=headers, params=params, timeout=10)
 	response.raise_for_status()
 	data = response.json()
