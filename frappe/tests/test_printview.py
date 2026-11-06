@@ -286,6 +286,26 @@ class PrintViewTest(IntegrationTestCase):
 		self.assertNotIn("-543.21", html)
 		self.assertNotIn(">-9<", html)
 
+	def test_print_format_template_cannot_run_write_queries(self):
+		title = frappe.generate_hash()
+		note = frappe.get_doc(doctype="Note", title=title).insert()
+		print_format = frappe.get_doc(
+			doctype="Print Format",
+			name=frappe.generate_hash(),
+			doc_type="Note",
+			custom_format=1,
+			print_format_type="Jinja",
+			html=(
+				'{% set note = frappe.qb.DocType("Note") %}'
+				'{{ frappe.qb.update(note).set(note.title, "changed").where(note.name == doc.name).run() }}'
+			),
+		).insert()
+
+		with self.assertRaises(frappe.PrintFormatError):
+			get_html_and_style(doc="Note", name=note.name, print_format=print_format.name, no_letterhead=1)
+
+		self.assertEqual(frappe.db.get_value("Note", note.name, "title"), title)
+
 	def test_before_print_runs_in_builder_renderer(self):
 		from frappe.utils.print_format_generator import PrintFormatGenerator
 
