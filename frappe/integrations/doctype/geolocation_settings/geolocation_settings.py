@@ -55,6 +55,8 @@ def autocomplete(txt: str) -> list[dict]:
 
 	try:
 		return list(provider.autocomplete(txt))
-	except requests.RequestException:
+	except requests.RequestException as e:
 		# the exception text carries the provider URL, which includes the API key
+		status = getattr(e.response, "status_code", None)
+		frappe.log_error(title="Address autocomplete failed", message=f"{type(e).__name__} (status {status})")
 		raise frappe.ValidationError(_("Address autocomplete failed")) from None
