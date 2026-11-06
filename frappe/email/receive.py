@@ -527,7 +527,10 @@ class Email:
 		decoded = ""
 		for part, encoding in parts:
 			if encoding:
-				decoded += part.decode(encoding, "replace")
+				try:
+					decoded += part.decode(encoding, "replace")
+				except LookupError:
+					decoded += part.decode("utf-8", "replace")
 			else:
 				decoded += safe_decode(part)
 
