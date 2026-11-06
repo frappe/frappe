@@ -12,7 +12,7 @@ import frappe
 from frappe import _
 from frappe.core.doctype.communication.email import make
 from frappe.desk.form.load import get_attachments
-from frappe.email.doctype.email_account.email_account import notify_unreplied
+from frappe.email.doctype.email_account.email_account import EmailAccount, notify_unreplied
 from frappe.email.email_body import get_message_id
 from frappe.email.receive import Email, InboundMail, SentEmailInInboxError
 from frappe.tests import IntegrationTestCase
