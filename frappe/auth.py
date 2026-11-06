@@ -35,6 +35,7 @@ UNSAFE_HTTP_METHODS = frozenset(("POST", "PUT", "DELETE", "PATCH"))
 assert SAFE_HTTP_METHODS.isdisjoint(UNSAFE_HTTP_METHODS), "a HTTP method cannot be both safe and unsafe"
 
 API_AUTH_FAILURE_LOG_INTERVAL = 5 * 60  # seconds
+AGENT_NAME_LENGTH = 140
 
 
 class HTTPRequest:
@@ -710,7 +711,7 @@ def validate_oauth(authorization_header):
 		token_hash = get_oauth_token_hash(token)
 		token_filters = {"access_token": token_hash}
 		token_details = frappe.db.get_value(
-			"OAuth Bearer Token", token_filters, ("scopes", "user"), as_dict=True
+			"OAuth Bearer Token", token_filters, ("scopes", "user", "client"), as_dict=True
 		)
 		if not token_details:
 			return
@@ -723,6 +724,7 @@ def validate_oauth(authorization_header):
 			if not frappe.get_cached_value("User", user, "enabled"):
 				frappe.throw(_("User {0} is disabled").format(user), frappe.AuthenticationError)
 			frappe.set_user(user)
+			frappe.session.data.oauth_client = token_details.client
 			frappe.local.form_dict = form_dict
 	except AttributeError:
 		pass
@@ -798,6 +800,30 @@ def reject_api_key_auth(reason: str, user: str | None = None) -> NoReturn:
 		)
 
 	raise frappe.AuthenticationError
+
+
+def set_agent(
+	name: str, via: str, reference_doctype: str | None = None, reference_name: str | None = None
+) -> None:
+	"""Record the LLM agent that acts for the current user, for attribution in Version.
+
+	Call it after `frappe.set_user`, which clears it. It does nothing in a cookie session,
+	because that session is saved and the agent would stay in it for later requests.
+	"""
+	session_obj = getattr(frappe.local, "session_obj", None)
+	if session_obj and session_obj.sid != "Guest":
+		return
+
+	agent = frappe._dict(name=name[:AGENT_NAME_LENGTH], via=via)
+	if reference_doctype and reference_name:
+		agent.update(reference_doctype=reference_doctype, reference_name=reference_name)
+	frappe.session.data.agent = agent
+
+
+def get_oauth_client_name() -> str | None:
+	"""The registered name of the OAuth client that made the current request."""
+	if client := frappe.session.data.get("oauth_client"):
+		return frappe.get_cached_value("OAuth Client", client, "app_name")
 
 
 def validate_auth_via_hooks():
