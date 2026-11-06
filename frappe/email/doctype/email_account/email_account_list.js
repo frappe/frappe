@@ -186,11 +186,19 @@ function add_email_account_dialog() {
 		if (kind === "personal") return open_form("GMail", email);
 		if (kind === "company") return sign_in("GMail", "Google", email);
 	};
+	const mark_gmail_invalid = (invalid) => {
+		const field = d.fields_dict.gmail_address;
+		field.df.invalid = invalid;
+		field.set_invalid();
+	};
 	const toggle_gmail_continue = () => {
-		gmail_kind(gmail_address()) ? d.enable_primary_action() : d.disable_primary_action();
+		const valid = Boolean(gmail_kind(gmail_address()));
+		valid ? d.enable_primary_action() : d.disable_primary_action();
+		if (valid) mark_gmail_invalid(false);
 	};
 	const update_gmail_step = () => {
 		const email = gmail_address();
+		mark_gmail_invalid(Boolean(email) && !gmail_kind(email));
 		const company = gmail_kind(email) === "company";
 		d.set_df_property("gmail_steps", "hidden", company ? 0 : 1);
 		if (company) {
@@ -223,7 +231,6 @@ function add_email_account_dialog() {
 				fieldtype: "Data",
 				fieldname: "gmail_address",
 				label: __("Email Address"),
-				options: "Email",
 				description: __("The Gmail or Google Workspace email ID you're connecting."),
 				hidden: 1,
 			},
