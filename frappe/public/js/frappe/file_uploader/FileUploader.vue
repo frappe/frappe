@@ -620,6 +620,7 @@ async function upload_file(file, i) {
 						} catch (e) {
 							r = xhr.responseText;
 						}
+						frappe.request.cleanup({}, r);
 
 						file.doc = file_doc;
 						if (props.on_success) {
