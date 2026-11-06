@@ -1344,8 +1344,7 @@ def sign_up(email: str, full_name: str, redirect_to: str) -> tuple[int, str]:
 	if is_signup_disabled():
 		allow = False
 
-	existing_user = frappe.db.get("User", {"email": email.strip().lower()})
-	if existing_user:
+	if get_user_by_email(email, skip_standard_users=False):
 		allow = False
 
 	if not allow:
