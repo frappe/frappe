@@ -6,6 +6,8 @@ import re
 from typing import ClassVar
 from urllib.parse import quote
 
+from bs4 import BeautifulSoup
+
 import frappe
 from frappe import _
 from frappe.printing.doctype.print_format.classic_converter import uses_legacy_weasyprint
@@ -1119,6 +1121,7 @@ class PrintFormatGenerator:
 		self.prepare_linked_field(df)
 		self.prepare_date_format(df)
 		self.filter_conditional_rows(df)
+		self.prepare_html(df)
 
 	def set_field_renderers(self, layout):
 		eval_locals = condition_locals(self.doc, self.print_settings)
@@ -1151,6 +1154,13 @@ class PrintFormatGenerator:
 			if self.eval_condition(condition, {**eval_locals, "row": row.as_dict()}, f"rows of {source}"):
 				kept.append(row)
 		df["_rows"] = kept
+
+	def prepare_html(self, df):
+		if df.get("renderer") == "HTML" and not df.get("_hidden"):
+			rendered = frappe.render_template(  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
+				df.get("html") or "", {"doc": self.doc}
+			)
+			df["_html"] = BeautifulSoup(f"<body>{rendered}</body>", "html5lib").body.decode_contents()
 
 	def prepare_barcode(self, df):
 		"""Resolve JsBarcode options / QR data URI for Barcode layout elements."""
