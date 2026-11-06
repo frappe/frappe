@@ -49,7 +49,7 @@
 					@click="edit(row.name)"
 				>
 					<span class="min-w-0 flex-1">
-						<span class="block truncate text-base font-medium text-ink-gray-9">{{
+						<span class="block truncate text-base-medium text-ink-gray-9">{{
 							row[spec.titleField] || row.name
 						}}</span>
 						<span

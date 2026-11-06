@@ -1,14 +1,7 @@
-import { h } from "vue"
-
-// A frappe-ui menu row that is the current pick: marked, with a tick at its end, as the lists
-// that pick a model, a level or a mode show it.
-export function checked(option, isCurrent) {
-	if (!isCurrent) return option
-	return {
-		...option,
-		selected: true,
-		slots: { suffix: () => h("span", { class: "lucide-check ml-auto size-4 flex-none text-ink-gray-7", "aria-hidden": "true" }) },
-	}
+// a menu hands the focus back to its trigger on a timer as it unmounts: an item that opens a
+// dialog or a field runs after that, so what it opens keeps the focus
+export function afterMenu(run) {
+	return (...args) => setTimeout(() => setTimeout(() => run(...args)))
 }
 
 // frappe-ui's Dropdown opens on the press and swallows the click that ends it, matching that click

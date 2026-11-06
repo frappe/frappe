@@ -6,8 +6,7 @@
 		</template>
 		<!-- results landed but the run continues (model deciding the next step):
 		     no row carries the live signal, so a trailing status line does -->
-		<div v-if="tailLabel" class="flex items-center gap-2 py-2 text-base font-medium md:py-2.5">
-			<BrandMark line :size="16" :state="/think/i.test(tailLabel) ? 'thinking' : 'working'" />
+		<div v-if="tailLabel" class="py-2 text-base-medium md:py-2.5">
 			<span class="flow-shimmer">{{ tailLabel }}</span>
 		</div>
 	</div>
@@ -16,7 +15,6 @@
 <script setup>
 import { computed } from "vue"
 
-import BrandMark from "./BrandMark.vue"
 import ThoughtStep from "./ThoughtStep.vue"
 import ToolStep from "./ToolStep.vue"
 

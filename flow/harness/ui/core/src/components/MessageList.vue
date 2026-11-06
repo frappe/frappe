@@ -16,14 +16,12 @@
 			class="flex h-full flex-col items-center [justify-content:safe_center] gap-3 text-center"
 			:style="{ paddingBottom: docked ? '12vh' : composerHeight + 'px' }"
 		>
-			<!-- docked, the group is lifted: centred under the header it reads low, and the eye's centre
-			     sits a little above the true one -->
-			<slot name="empty">
-				<!-- a step smaller on a phone, and smaller still where the heading would run out of room -->
-				<BrandMark line :size="32" class="min-h-0 shrink max-sm:!h-7 max-sm:!w-7" />
-				<h2 class="text-balance text-4xl leading-snug tracking-[-0.01em] text-ink-gray-9 sm:text-6xl">What would you like to build?</h2>
+			<slot name="empty" :mark="mark">
+				<!-- the mark over a quiet heading, each a step smaller on a phone -->
+				<BrandMark line :size="32" v-bind="mark" class="min-h-0 shrink max-sm:!h-7 max-sm:!w-7" />
+				<h2 class="text-balance text-2xl text-ink-gray-8 sm:text-4xl">What would you like to build?</h2>
 			</slot>
-			<!-- the composer's place under the greeting; it floats here until the first message -->
+			<!-- the box's place under the mark until the first message -->
 			<div v-if="docked" ref="dock" class="mt-5 w-full shrink-0" :style="{ height: composerHeight + 'px' }" />
 		</div>
 		<LoadingState
@@ -34,7 +32,7 @@
 		<div
 			v-else
 			ref="thread"
-			class="flow-thread mx-auto flex max-w-[800px] flex-col gap-5 pt-10"
+			class="flow-thread flow-column mx-auto flex flex-col gap-5 pt-10"
 			:style="{ paddingBottom: composerHeight + 40 + 'px' }"
 		>
 			<template v-for="(item, i) in items" :key="item.key">
@@ -79,7 +77,6 @@
 					<CopyButton
 						:text="item.text"
 						title="Copy response"
-						class="grid h-6 w-6 place-items-center rounded-5 text-ink-gray-4 hover:bg-surface-gray-2 hover:text-ink-gray-8"
 					/>
 					<!-- a host's own per-turn actions (Flow's feedback thumbs) -->
 					<component
@@ -98,6 +95,11 @@
 				>
 					<span class="lucide-archive size-3.5 flex-none" aria-hidden="true" />
 					<span>Context compacted ({{ item.entry.reason }})</span>
+				</div>
+				<!-- an action turned down at its card: a line of the turn, not a divider, as it can run long -->
+				<div v-else-if="item.kind === 'declined'" class="flex items-start gap-2.5 text-base text-ink-gray-5">
+					<span class="lucide-ban mt-[3px] size-3.5 flex-none" aria-hidden="true" />
+					<span class="min-w-0">{{ item.text }}</span>
 				</div>
 				<div
 					v-else-if="item.kind === 'notice'"
@@ -132,10 +134,9 @@
 			     exactly where the upcoming tool row will render. -->
 			<div
 				v-if="showStandaloneStatus"
-				class="flex items-center gap-2 py-2 text-base font-medium md:py-2.5"
+				class="py-2 text-base-medium md:py-2.5"
 				:class="lastItem?.kind === 'thinking' ? '-mt-5' : ''"
 			>
-				<BrandMark line :size="16" :state="/think/i.test(liveLabel) ? 'thinking' : 'working'" />
 				<span class="flow-shimmer">{{ liveLabel }}</span>
 			</div>
 
@@ -158,8 +159,9 @@
 	>
 		<span class="lucide-arrow-down size-4" aria-hidden="true" />
 	</button>
-	<!-- a read-only chat has no composer to quote into -->
-	<AddToChat v-if="!flow.state.session?.read_only" :within="scroller" />
+	<!-- the thread's text only, not an empty chat's greeting or setup; a read-only chat has no
+	     composer to quote into -->
+	<AddToChat v-if="!flow.state.session?.read_only" :within="thread" />
 	</div>
 </template>
 
@@ -186,6 +188,8 @@ const props = defineProps({
 	conversation: { type: Object, default: null },
 	// false where the user can't send, such as a read-only chat
 	suggestions: { type: Boolean, default: true },
+	// a new chat holds the composer under the mark, not at the foot
+	centerComposer: { type: Boolean, default: false },
 })
 const flow = inject("flow")
 const conversation = computed(() => props.conversation ?? flow.state.conversation)
@@ -196,19 +200,41 @@ const expandedTurnKeys = ref(new Set())
 const openPanels = reactive(new Set())
 provide("openPanels", openPanels)
 const items = computed(() => buildItems(conversation.value, expandedTurnKeys.value, openPanels))
+// a turn that ends with one of its rows open stays unfolded once the row is closed: only its fold folds it
+watch(
+	() =>
+		items.value
+			.filter((item) => item.kind === "turn-fold" && item.expanded && !expandedTurnKeys.value.has(item.turnKey))
+			.map((item) => item.turnKey),
+	(held) => {
+		if (held.length) expandedTurnKeys.value = new Set([...expandedTurnKeys.value, ...held])
+	},
+)
 
 // nothing to draw yet: the empty state, or a loading line while a session opens
 const blank = computed(() => !items.value.length && !conversation.value.running && !conversation.value.liveLabel)
 const empty = computed(() => blank.value && !flow.state.loading)
 const loading = computed(() => blank.value && flow.state.loading)
 const composerHeight = inject("composerHeight", ref(120))
-// a wide new chat holds the box under its greeting, as a letter starts under its salutation; a
-// phone keeps it at the foot, by the thumb and the keyboard
+// a wide new chat holds the box in the middle, under the mark; a phone keeps it by the thumb
 const composerLift = inject("composerLift", ref(0))
-// a new chat's box sits under the mark in the middle, in the Desk panel too; a phone keeps it at
-// the foot, where its keyboard leaves it in reach
-const docked = computed(() => empty.value && !layout.phone && composerHeight.value > 0)
+const docked = computed(() => props.centerComposer && empty.value && !layout.phone)
 const dock = ref(null)
+// the new chat's mark watches the pointer, reads while keys go, and looks up once the draft rests;
+// a "/" opens commands, not a message
+const draft = inject("composerDraft", ref(""))
+const typing = ref(false)
+let typingPause = 0
+watch(draft, (text) => {
+	clearTimeout(typingPause)
+	typing.value = Boolean(text.trim())
+	if (typing.value) typingPause = setTimeout(() => (typing.value = false), 900)
+})
+const mark = computed(() => {
+	const text = draft.value.trim()
+	if (!text || text.startsWith("/")) return { state: "idle", look: "pointer" }
+	return { state: null, look: typing.value ? "down" : "up" }
+})
 let dockObserver = null
 function measureDock() {
 	const el = dock.value
@@ -225,7 +251,8 @@ watch(dock, (el) => {
 })
 onBeforeUnmount(() => {
 	dockObserver?.disconnect()
-	composerLift.value = 0
+	clearTimeout(typingPause)
+	if (docked.value) composerLift.value = 0
 })
 const lastTurnCopyIndex = computed(() =>
 	items.value.findLastIndex((item) => item.kind === "turn-copy"),
@@ -376,7 +403,7 @@ function updateActivePrompt() {
 		activePromptKey.value = null
 		return
 	}
-	const threshold = el.getBoundingClientRect().top + el.clientHeight / 3
+	const threshold = el.getBoundingClientRect().top + (el.clientHeight * layout.zoom) / 3
 	let active = prompts.value[0].key
 	for (const bubble of el.querySelectorAll("[data-prompt-key]")) {
 		if (bubble.getBoundingClientRect().top <= threshold) active = bubble.dataset.promptKey

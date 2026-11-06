@@ -76,6 +76,12 @@ export const SPECS = {
 			{ name: "title", label: "Title", type: "text", required: true, rename: true },
 			enabled,
 			{
+				name: "embedding",
+				label: "Embedding model",
+				type: "check",
+				description: "Turns text into vectors for Knowledge's search. Not offered in chats.",
+			},
+			{
 				name: "provider",
 				label: "Provider",
 				type: "link",
@@ -616,7 +622,7 @@ export const SPECS = {
 				label: "Embedding model",
 				type: "link",
 				link: "Flow Model",
-				description: "An embedding model, such as openai/text-embedding-3-small.",
+				description: "Add one in Models first, such as OpenAI's text-embedding-3-small.",
 			},
 			{
 				name: "embedding_dimension",

@@ -1,37 +1,95 @@
 <template>
 	<span class="relative min-w-0 max-w-[360px]">
-		<!-- the row shrinks the wrapper; the button, sized to its text, must follow it. Its menu
-		     nests the model and thinking lists, each opening on hover beside its row -->
-		<Dropdown :options="options" align="end" side="top">
-			<template #trigger="{ open }">
-				<button
-					class="flex max-w-full items-center gap-1.5 rounded-5 px-2 text-base text-ink-gray-7 hover:bg-surface-gray-2 dark:text-ink-gray-8"
-					:class="[open ? 'bg-surface-gray-2' : '', large ? 'h-8' : 'h-7']"
-					:title="`${currentModel ?? modelLabel} · thinking ${effortLabel}`"
-				>
-					<span class="min-w-0 truncate">{{ modelLabel }}</span>
-					<template v-if="currentEffort !== 'default'">
-						<span class="h-[3px] w-[3px] flex-none self-center rounded-full bg-surface-gray-4" />
-						<span class="flex-none text-ink-gray-5 dark:text-ink-gray-6">{{ effortLabel }}</span>
-					</template>
-				</button>
+		<!-- the row shrinks the wrapper; the button, sized to its text, must follow it. Its lists
+		     hang from it -->
+		<button
+			ref="trigger"
+			class="flex max-w-full items-center gap-1.5 rounded-5 px-2 text-base text-ink-gray-7 hover:bg-surface-gray-2 dark:text-ink-gray-8"
+			:class="[tall ? 'h-8' : 'h-7', pane && 'bg-surface-gray-2']"
+			:title="`${currentModel ?? modelLabel} · thinking ${effortLabel}`"
+			:aria-expanded="!!pane"
+			@click="pane ? close() : open()"
+		>
+			<span class="min-w-0 truncate">{{ modelLabel }}</span>
+			<template v-if="currentEffort !== 'default'">
+				<span class="h-[3px] w-[3px] flex-none self-center rounded-full bg-surface-gray-4" />
+				<span class="flex-none text-ink-gray-5 dark:text-ink-gray-6">{{ effortLabel }}</span>
 			</template>
-		</Dropdown>
+		</button>
+		<!-- its own menu, hung from it: a row each for the model and thinking, whose list opens beside
+		     it on hover (in its place in a narrow frame, the Desk panel's or a phone's) -->
+		<PalettePanel
+			v-if="pane && !(sub && layout.narrow)"
+			title="Model and thinking"
+			dropdown
+			:width="ROOT_WIDTH"
+			:passive="!!sub"
+			@close="close"
+		>
+			<div class="p-1">
+				<button
+					v-for="entry in entries"
+					:key="entry.pane"
+					data-palette-item
+					class="flow-palette-row"
+					:aria-expanded="sub === entry.pane"
+					@pointerenter="layout.narrow || (sub = entry.pane)"
+					@click="sub = entry.pane"
+				>
+					<span class="size-4 flex-none" :class="entry.icon" aria-hidden="true" />
+					<span class="min-w-0 flex-1 truncate">{{ entry.label }}</span>
+					<span class="lucide-chevron-right flow-palette-hint size-4 flex-none" aria-hidden="true" />
+				</button>
+			</div>
+		</PalettePanel>
+		<ModelPalette
+			v-if="sub === 'models'"
+			dropdown
+			:beside="beside"
+			:width="LIST_WIDTH"
+			:providers="providers"
+			@close="close"
+			@providers="openProviders"
+		/>
+		<ThinkingPalette
+			v-else-if="sub === 'thinking'"
+			dropdown
+			:beside="beside"
+			:width="LIST_WIDTH"
+			@close="close"
+		/>
 	</span>
 </template>
 
 <script setup>
-import { computed, inject } from "vue"
-import Dropdown from "frappe-ui/src/components/Dropdown/Dropdown.vue"
+import { computed, inject, nextTick, ref, watch } from "vue"
 
-import { checked } from "../menu.js"
-import { EFFORTS, EFFORT_LABELS, modelTitle } from "../transcript.js"
+import { layout } from "../layout.js"
+import { EFFORT_LABELS, modelTitle } from "../transcript.js"
+import ModelPalette from "./ModelPalette.vue"
+import PalettePanel from "./PalettePanel.vue"
+import ThinkingPalette from "./ThinkingPalette.vue"
 
-// The composer's model button: a menu whose Model and Thinking rows nest their lists; `open`
-// asks the composer for its providers page, where an empty model list sends the user.
-const props = defineProps({ providers: { type: Boolean, default: false }, large: { type: Boolean, default: false } })
+// The composer's model button, with its own model and thinking lists; `open` asks the
+// composer for its providers page, where an empty model list sends the user.
+// `tall`: a new chat's roomier box
+defineProps({ providers: { type: Boolean, default: false }, tall: { type: Boolean, default: false } })
 const emit = defineEmits(["open"])
 const flow = inject("flow")
+const pane = ref(null) // null | "root"
+const sub = ref(null) // null | "models" | "thinking", the list open beside the menu
+// the models list's search goes when another list opens in its place: the keyboard stays in the
+// chat, on the button, where a page's panel still hears its keys as the list's
+watch(sub, (now, before) => {
+	if (before === "models" && now === "thinking") nextTick(() => trigger.value?.focus({ preventScroll: true }))
+})
+const ROOT_WIDTH = 160
+const LIST_WIDTH = 272
+// the menu ends at the button's right edge and its list opens 4px past it, or 4px off the menu's
+// left where the page has no room; a narrow frame's list takes the menu's place
+const side = ref("right")
+const beside = computed(() => (layout.narrow ? 0 : side.value === "right" ? -(LIST_WIDTH + 4) : ROOT_WIDTH + 4))
+const trigger = ref(null)
 
 // a chat that is still loading shows its own model once known, never the last one picked
 const currentModel = computed(
@@ -47,30 +105,26 @@ const modelLabel = computed(() => {
 	return modelTitle(model, flow.state.models)
 })
 const effortLabel = computed(() => EFFORT_LABELS[currentEffort.value] ?? "Default")
+const entries = [
+	{ pane: "models", label: "Model", icon: "lucide-cpu" },
+	{ pane: "thinking", label: "Thinking", icon: "lucide-zap" },
+]
 
-// each provider's models under its name; none yet leads to connecting a provider
-const modelOptions = computed(() => {
-	const groups = new Map()
-	for (const m of flow.state.models) {
-		if (!groups.has(m.provider)) groups.set(m.provider, [])
-		const option = { label: m.display_name || modelTitle(m.name), onClick: () => flow.selectModel(m.name) }
-		groups.get(m.provider).push(checked(option, m.name === currentModel.value))
-	}
-	const lists = [...groups].map(([provider, options]) => ({ group: provider, options }))
-	if (!lists.length) lists.push({ group: "none", hideLabel: true, options: [{ label: "No models yet", disabled: true }] })
-	if (props.providers)
-		lists.push({
-			group: "providers",
-			hideLabel: true,
-			options: [{ label: "Connect a provider", icon: "lucide-key", onClick: () => emit("open", "providers") }],
-		})
-	return lists
-})
-const thinkingOptions = computed(() =>
-	EFFORTS.map((id) => checked({ label: EFFORT_LABELS[id], onClick: () => flow.selectEffort(id) }, id === currentEffort.value)),
-)
-const options = computed(() => [
-	{ label: "Model", icon: "lucide-cpu", submenu: modelOptions.value },
-	{ label: "Thinking", icon: "lucide-zap", submenu: thinkingOptions.value },
-])
+function open() {
+	const room = document.documentElement.clientWidth - trigger.value.parentElement.getBoundingClientRect().right
+	side.value = room >= (LIST_WIDTH + 4 + 8) * layout.zoom ? "right" : "left"
+	pane.value = "root"
+}
+
+function close() {
+	pane.value = null
+	sub.value = null
+	nextTick(() => trigger.value?.focus())
+}
+
+function openProviders() {
+	pane.value = null
+	sub.value = null
+	emit("open", "providers")
+}
 </script>

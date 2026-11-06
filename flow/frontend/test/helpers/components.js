@@ -15,18 +15,21 @@ const real = new Set([
 	"RecordForm.vue",
 	"PageHeader.vue",
 	"AgentPicker.vue",
+	"ChatPickers.vue",
 	"AgentPalette.vue",
 	"SkillPicker.vue",
 	"SessionSidebar.vue",
 	"SidebarPeek.vue",
 	"ChatHeader.vue",
 	"ChatMenu.vue",
+	"TitleField.vue",
 	"ShareChat.vue",
 	"MessageList.vue",
 	"LoadingState.vue",
 	"Composer.vue",
 	"ModelButton.vue",
 	"DocPanel.vue",
+	"ModelRow.vue",
 	"FieldControl.vue",
 	"CodeField.vue",
 	"SettingsPage.vue",
@@ -55,7 +58,35 @@ function stubURL(name) {
 	return stubs.get(name);
 }
 
+// frappe-ui's Button: its icon or label, then its suffix, under either import path
+const button = moduleURL(`
+	import { h } from ${JSON.stringify(vue)}
+	export const Button = {
+		props: ["label", "loading", "disabled", "icon", "iconLeft", "variant", "size", "theme"],
+		render() {
+			const icon = this.icon ? h("span", { class: this.icon, "aria-hidden": "true" }) : this.$slots.icon?.()
+			return h("button", { disabled: this.loading || this.disabled }, [
+				icon ?? this.$slots.default?.() ?? this.label, this.$slots.suffix?.(),
+			])
+		},
+	}
+`);
+
 const fakes = {
+	"frappe-ui/src/components/Button": button,
+	"frappe-ui/src/components/Avatar": moduleURL(`
+		import { h } from ${JSON.stringify(vue)}
+		export const Avatar = { render() { return h("div", { "data-stub": "Avatar" }) } }
+	`),
+	"frappe-ui/src/components/TextInput": moduleURL(`
+		import { h } from ${JSON.stringify(vue)}
+		export const TextInput = {
+			props: ["modelValue"],
+			emits: ["update:modelValue"],
+			methods: { focus() { this.$el.focus() } },
+			render() { return h("input", { value: this.modelValue, onInput: (e) => this.$emit("update:modelValue", e.target.value) }) },
+		}
+	`),
 	"frappe-ui": moduleURL(`
 		import { h } from ${JSON.stringify(vue)}
 		const stub = (name) => ({ render() { return h("div", { "data-stub": name }) } })
@@ -64,11 +95,47 @@ const fakes = {
 		export const Badge = stub("Badge")
 		export const FormLabel = stub("FormLabel")
 		export const FileUploader = stub("FileUploader")
-		export const Switch = stub("Switch")
+		export const Switch = { props: ["modelValue"], emits: ["update:modelValue"], render() { return h("button", { "data-stub": "Switch", "aria-label": this.$attrs["aria-label"], onClick: () => this.$emit("update:modelValue", !this.modelValue) }) } }
 		export const ErrorMessage = { props: ["message"], render() { return h("p", this.message) } }
 		export const Avatar = stub("Avatar")
-		// a hint around a control: only the control renders
+		// a tooltip as its trigger alone
 		export const Tooltip = { inheritAttrs: false, render() { return this.$slots.default?.() } }
+		// a picker and a menu: the trigger, and the choices once it is clicked (a picker's once loaded)
+		export const Combobox = {
+			props: ["options", "loading"],
+			emits: ["update:modelValue", "update:open"],
+			data: () => ({ shown: false, query: "" }),
+			render() {
+				const toggle = () => { this.shown = !this.shown; this.$emit("update:open", this.shown) }
+				// like frappe-ui's: a typed query keeps the options whose label holds it; a custom row
+				// shows by its condition, labelled by its #item-<slot>, and runs its onClick
+				const query = this.query
+				const rows = (this.shown && !this.loading ? this.options || [] : []).flatMap(o => {
+					if (o.type !== "custom")
+						return o.label.toLowerCase().includes(query.toLowerCase())
+							? [h("button", { role: "option", onClick: () => this.$emit("update:modelValue", o.value) }, o.label)]
+							: []
+					if (o.condition && !o.condition({ query })) return []
+					const label = (o.slot && this.$slots["item-" + o.slot]?.({ item: o, query })) ?? o.label
+					return [h("button", { role: "option", onClick: () => o.onClick({ query }) }, label)]
+				})
+				return h("div", { "data-stub": "Combobox" }, [
+					h("div", { onClick: toggle }, this.$slots.trigger?.()),
+					...(this.shown ? [h("input", { value: query, onInput: e => (this.query = e.target.value) })] : []),
+					...rows,
+				])
+			}
+		}
+		export const Dropdown = {
+			props: ["options"],
+			data: () => ({ shown: false }),
+			render() {
+				return h("div", { "data-stub": "Dropdown" }, [
+					h("div", { onClick: () => (this.shown = !this.shown) }, this.$slots.default?.()),
+					...(this.shown ? this.options || [] : []).map(o => h("button", { role: "menuitem", onClick: o.onClick }, o.label)),
+				])
+			}
+		}
 		// the sidebar's shortcuts: nothing to press in a test
 		export function useKeyboardShortcut() {}
 		export function frappeRequest() {}
@@ -83,10 +150,7 @@ const fakes = {
 			emits: ["update:modelValue"],
 			render() { return h("div", { "data-control": "select", "data-value": this.modelValue }, (this.options || []).map(o => h("button", { onClick: () => this.$emit("update:modelValue", o.value) }, o.label))) }
 		}
-		export const Button = {
-			props: ["label", "loading"],
-			render() { return h("button", { disabled: this.loading }, this.label) }
-		}
+		export { Button } from ${JSON.stringify(button)}
 		export const FormControl = {
 			props: ["modelValue", "options", "query", "type", "label", "filterable", "loading"],
 			emits: ["update:modelValue", "update:query"],
@@ -117,7 +181,7 @@ const fakes = {
 			setup(props, { slots }) {
 				const shown = ref(false)
 				return () => h("div", { "data-stub": "Dropdown" }, [
-					h("div", { onClick: () => (shown.value = !shown.value) }, slots.trigger?.({ open: props.open ?? shown.value })),
+					h("div", { onClick: () => (shown.value = !shown.value) }, slots.trigger?.()),
 					...((props.open ?? shown.value) ? props.options ?? [] : []).map((o) =>
 						h("button", { role: "menuitem", onClick: o.onClick }, o.label)),
 				])

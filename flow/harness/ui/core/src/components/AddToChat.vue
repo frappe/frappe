@@ -22,6 +22,8 @@
 <script setup>
 import { inject, onBeforeUnmount, onMounted, ref } from "vue"
 
+import { layout } from "../layout.js"
+
 // Floating "Add to chat" pill over a text selection inside `within`: queues the
 // selected text as a quote for the composer.
 const props = defineProps({ within: { type: Object, default: null } })
@@ -97,12 +99,14 @@ function place() {
 	const bottom = Math.min(rect.bottom, box.bottom)
 	if (bottom <= top) return (pill.value = null) // scrolled out of view
 	const first = edgeLine(found.range, false) ?? rect
-	const below = first.top - box.top < 40
+	// the rects are screen pixels, the pill's place CSS ones
+	const z = layout.zoom
+	const below = first.top - box.top < 40 * z
 	const anchor = below ? (edgeLine(found.range, true) ?? rect) : first
 	pill.value = {
 		text: found.text,
-		x: Math.min(Math.max((anchor.left + anchor.right) / 2, box.left + 60), box.right - 60) - box.left,
-		y: (below ? Math.min(bottom, box.bottom - 36) : first.top) - box.top,
+		x: (Math.min(Math.max((anchor.left + anchor.right) / 2, box.left + 60 * z), box.right - 60 * z) - box.left) / z,
+		y: ((below ? Math.min(bottom, box.bottom - 36 * z) : first.top) - box.top) / z,
 		below,
 	}
 }

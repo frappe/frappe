@@ -341,7 +341,9 @@ test("streamed thought, text, and tool call keep their order and keys until the 
 		arguments: { command: "ls" },
 	})
 	assert.deepEqual(conversation.partial.map((block) => block.type), ["thinking", "text", "tool_call"])
-	assert.deepEqual(buildItems(conversation).map((item) => item.kind), ["user", "thinking", "text", "group"])
+	const streamedItems = buildItems(conversation)
+	assert.deepEqual(streamedItems.map((item) => item.kind), ["user", "thinking", "text", "group"])
+	assert.equal(streamedItems[3].steps[0].streaming, true)
 
 	applyEvent(conversation, {
 		type: "assistant_message",
@@ -358,6 +360,7 @@ test("streamed thought, text, and tool call keep their order and keys until the 
 	const durableItems = buildItems(conversation)
 	assert.deepEqual(durableItems.map((item) => item.kind), ["user", "thinking", "text", "group"])
 	assert.equal(durableItems[3].key, "g:call-1")
+	assert.equal(durableItems[3].steps[0].streaming, false)
 
 	// a later text keeps its own key from the streamed preview to the durable message
 	applyEvent(conversation, { type: "tool_result", seq: 3, tool_call_id: "call-1", content: "a.js" })
@@ -524,7 +527,7 @@ test("a turn folds only once its run ends, approval pauses and steered messages 
 	applyEvent(conversation, { type: "run_ended", seq: 12, ts: 130.5, reason: "done" })
 
 	const collapsed = buildItems(conversation)
-	assert.deepEqual(collapsed.map((item) => item.kind), ["user", "turn-fold", "user", "text", "turn-copy"])
+	assert.deepEqual(collapsed.map((item) => item.kind), ["user", "turn-fold", "text", "turn-copy"])
 	assert.equal(collapsed[1].label, "Worked for 30s")
 	assert.equal(collapsed.at(-1).text, "Done.")
 	const expanded = buildItems(conversation, new Set([collapsed[1].turnKey]))
@@ -743,9 +746,13 @@ test("a denied call shows what the user declined, and the reply after it is the 
 	])
 		applyEvent(conversation, event)
 	const items = buildItems(conversation)
-	assert.deepEqual(items.map((item) => item.kind), ["user", "turn-fold", "notice", "text", "turn-copy"])
-	assert.equal(items[2].text, "You declined: Create 1 Sales Order record")
+	assert.deepEqual(items.map((item) => item.kind), ["user", "turn-fold", "declined", "text", "turn-copy"])
+	assert.equal(items[2].text, "Declined: Create 1 Sales Order record")
 	assert.equal(items[3].block.text, "Not created. Change anything?")
+
+	// a tool with no words of its own for its card is named, not asked about
+	conversation.entries.find((entry) => entry.seq === 7).content = JSON.stringify({ status: "denied", action: "Approve `create`?" })
+	assert.equal(buildItems(conversation)[2].text, "Denied create")
 })
 
 test("a settled turn lists the files its successful edits and writes changed", () => {
@@ -816,8 +823,8 @@ test("a settled turn lists the files its successful edits and writes changed", (
 		["user", "turn-fold", "text", "turn-files", "turn-copy"],
 	)
 	assert.deepEqual(items.find((item) => item.kind === "turn-files").files, [
-		{ path: "/proj/src/app.js", added: 5, removed: 3 },
-		{ path: "/proj/src/new.js", added: 12, removed: 0 },
+		{ path: "/proj/src/app.js", added: 5, removed: 3, since: 4 },
+		{ path: "/proj/src/new.js", added: 12, removed: 0, since: 5 },
 	])
 })
 

@@ -13,10 +13,10 @@
 		<template #trigger><slot /></template>
 		<!-- the sidebar's essentials and recent chats, floating: a chat changes without the page's
 		     layout changing. A click on the button still opens the sidebar for good -->
-		<div class="flex w-60 flex-col gap-2 p-1.5">
+		<div class="flow-peek flex w-60 flex-col gap-2 p-1.5">
 			<div class="flex items-center gap-2 px-2 py-1.5">
 				<BrandMark line :size="16" class="!text-ink-gray-6" />
-				<span class="text-base font-medium text-ink-gray-6">Flow</span>
+				<span class="text-base-medium text-ink-gray-6">Flow</span>
 			</div>
 			<div class="flex flex-col gap-px">
 				<button v-for="item in items" :key="item.label" type="button" :class="ROW" @click="run(item.onClick)">
@@ -26,7 +26,7 @@
 				</button>
 			</div>
 			<div v-if="recent.length" class="flex flex-col gap-px">
-				<p class="flex h-7 items-center px-2 text-sm font-medium text-ink-gray-4">Chat</p>
+				<p class="flex h-7 items-center px-2 text-sm-medium text-ink-gray-4">Chat</p>
 				<button
 					v-for="s in recent"
 					:key="s.session_id"

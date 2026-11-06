@@ -199,6 +199,7 @@ frappe.integrations.doctype.oauth_bearer_token.patches.clear_old_tokens
 frappe.patches.v16_0.hash_oauth_bearer_tokens
 execute:frappe.db.truncate("Desktop Icon")
 frappe.patches.v16_0.merge_studio_into_frappe
+frappe.patches.v16_0.set_user_email_from_name
 
 [post_model_sync]
 frappe.patches.v16_0.migrate_slack_notifications
@@ -319,6 +320,8 @@ frappe.patches.v17_0.free_app_names_from_site_flow_triggers
 frappe.patches.v17_0.make_flow_memories_of_non_managers_personal
 frappe.patches.v17_0.flow_session_approval_mode
 frappe.patches.v15_0.set_snapshot_report_frequency_to_weekly
+frappe.patches.v17_0.flow_server_session_approval_mode
+frappe.patches.v17_0.mark_flow_embedding_model
 
 
 [post_fixture_sync]

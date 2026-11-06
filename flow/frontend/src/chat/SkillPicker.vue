@@ -1,80 +1,65 @@
 <template>
-	<span v-if="skills.length || canAdd" class="relative min-w-0">
-		<!-- its list hangs from it -->
-		<Tooltip text="Skills" :disabled="open">
+	<!-- the skills a new chat's agent can load, beside the composer's + menu -->
+	<PalettePanel
+		title="Skills"
+		dropdown
+		align="left"
+		:beside="beside"
+		:query="search"
+		@close="emit('close')"
+	>
+		<!-- nothing to search before there is a skill -->
+		<div v-if="skills.length" class="flex flex-none pl-1 pr-2.5 pt-1">
+			<input
+				ref="field"
+				v-model="search"
+				placeholder="Search skills…"
+				class="h-8 min-w-0 flex-1 border-0 bg-transparent px-[11px] text-base text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:ring-0"
+			/>
+		</div>
+		<div class="flow-palette-list min-h-0 flex-1 overflow-y-auto p-1">
 			<button
-				ref="trigger"
-				class="grid size-8 place-items-center rounded-5 text-ink-gray-7 hover:bg-surface-gray-2 hover:text-ink-gray-9 dark:text-ink-gray-8"
-				:class="open ? 'bg-surface-gray-2' : ''"
-				aria-label="Skills"
-				:aria-expanded="open"
-				@click="open ? close() : show()"
+				v-for="skill in options"
+				:key="skill.name"
+				data-palette-item
+				class="flow-palette-row"
+				@click="emit('pick', `/skill:${skill.name} `)"
 			>
-				<span class="lucide-book-open size-4" aria-hidden="true" />
+				<span class="max-w-[40%] flex-none truncate">{{ skill.name }}</span>
+				<span class="flow-palette-hint min-w-0 flex-1 truncate">
+					{{ skill.description }}
+				</span>
 			</button>
-		</Tooltip>
-		<PalettePanel
-			v-if="open"
-			title="Skills"
-			dropdown
-			align="left"
-			:query="search"
-			@close="close"
-		>
-			<!-- nothing to search before there is a skill -->
-			<div v-if="skills.length" class="flex flex-none pl-1 pr-2.5 pt-1">
-				<input
-					ref="field"
-					v-model="search"
-					placeholder="Search skills…"
-					class="h-8 min-w-0 flex-1 border-0 bg-transparent px-[11px] text-base text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:ring-0"
-				/>
+			<div v-if="!options.length" class="flow-palette-empty">
+				{{ skills.length ? "No matching skills" : "No skills" }}
 			</div>
-			<div class="flow-palette-list min-h-0 flex-1 overflow-y-auto p-1">
-				<button
-					v-for="skill in options"
-					:key="skill.name"
-					data-palette-item
-					class="flow-palette-row"
-					@click="pick(skill.name)"
-				>
-					<span class="max-w-[40%] flex-none truncate">{{ skill.name }}</span>
-					<span class="flow-palette-hint min-w-0 flex-1 truncate">
-						{{ skill.description }}
-					</span>
-				</button>
-				<div v-if="!options.length" class="flow-palette-empty">
-					{{ skills.length ? "No matching skills" : "No skills" }}
-				</div>
-				<!-- with none, or none found: the way to a new one -->
-				<button
-					v-if="canAdd && !options.length"
-					data-palette-item
-					class="flow-palette-row"
-					@click="create"
-				>
-					<span class="lucide-plus size-4 flex-none" aria-hidden="true" />
-					Add a skill
-				</button>
-			</div>
-		</PalettePanel>
-	</span>
+			<!-- with none, or none found: the way to a new one -->
+			<button
+				v-if="canAdd && !options.length"
+				data-palette-item
+				class="flow-palette-row"
+				@click="create"
+			>
+				<span class="lucide-plus size-4 flex-none" aria-hidden="true" />
+				Add a skill
+			</button>
+		</div>
+	</PalettePanel>
 </template>
 
 <script setup>
-import { computed, inject, nextTick, onMounted, ref } from "vue";
-import { Tooltip } from "frappe-ui";
+import { computed, inject, onMounted, ref } from "vue";
 import PalettePanel from "@flow/ui-core/components/PalettePanel.vue";
 import { layout } from "@flow/ui-core/layout.js";
 
-// The skills a new chat's agent can load, over the composer; a pick starts the draft with it.
-// Shown without any too, for someone who may add one.
-const emit = defineEmits(["pick"]); // "/skill:<name> ", for the composer to put in the draft
+// The skills a new chat's agent can load, beside the composer's + menu; a pick puts it in the
+// draft. Shown without any too, for someone who may add one.
+defineProps({ beside: { type: Number, default: 0 } }); // this far from the + button's left
+// pick: "/skill:<name> ", for the composer to put in the draft
+const emit = defineEmits(["pick", "close"]);
 const flow = inject("flow");
 const page = inject("flowPage");
-const open = ref(false);
 const search = ref("");
-const trigger = ref(null);
 const field = ref(null);
 
 const skills = computed(() => flow.state.skills ?? []);
@@ -87,30 +72,12 @@ const options = computed(() => {
 		return words.every((word) => text.includes(word));
 	});
 });
-// listed before anything is typed; the page reloads them when the agent changes
-onMounted(() => void flow.loadSkills());
+// a phone's list leaves its search for a tap, rather than raise the keyboard over it
+onMounted(() => layout.phone || field.value?.focus());
 
-function show() {
-	search.value = "";
-	open.value = true;
-	// a phone's list leaves its search for a tap, rather than raise the keyboard over it
-	nextTick(() => layout.phone || field.value?.focus());
-}
-
-function close() {
-	open.value = false;
-	nextTick(() => trigger.value?.focus());
-}
-
-// the draft takes the focus
-function pick(name) {
-	open.value = false;
-	emit("pick", `/skill:${name} `);
-}
-
-// settings, on a blank skill; the dialog takes the focus
+// settings, on a blank skill; the dialog takes the focus, so the closing menu gives it to no one
 function create() {
-	open.value = false;
+	emit("close", false);
 	page.createRecord("skills");
 	flow.setSettingsOpen(true);
 }

@@ -57,9 +57,10 @@ def boot() -> dict[str, Any]:
 		app = agent.name.rpartition("/")[0]
 		agent.title = f"{name} ({app})" if app and short.count(name) > 1 else name
 	agents.sort(key=lambda agent: agent.title.lower())
+	# the chat's models: an embedding model is Knowledge's, not one to chat with
 	models = frappe.get_list(
 		"Flow Model",
-		filters={"enabled": 1},
+		filters={"enabled": 1, "embedding": 0},
 		fields=["name", "title", "model_id", "provider", "context_window"],
 		order_by="title",
 	)
@@ -67,10 +68,13 @@ def boot() -> dict[str, Any]:
 		"agents": agents,
 		"default_agent": next((a.name for a in agents if a.name == ASSISTANT_AGENT_NAME), None),
 		"models": models,
-		"provider": frappe.db.get_value("Flow Provider", {"enabled": 1}),
+		# the providers connected, oldest first: the first run picks a model from one of them
+		"providers": frappe.get_all(
+			"Flow Provider", filters={"enabled": 1}, pluck="name", order_by="creation asc"
+		),
 		"file_types": sorted(FILE_EXTENSIONS),
 		"user": frappe.db.get_value(
-			"User", frappe.session.user, ["name", "full_name", "user_image"], as_dict=True
+			"User", frappe.session.user, ["name", "full_name", "email", "user_image"], as_dict=True
 		),
 		"permissions": {
 			doctype: [
@@ -270,6 +274,15 @@ def entries(session: str, since: int | str = 0, path: str = "active") -> dict[st
 	if path not in ("active", "all"):
 		frappe.throw(_("Path must be active or all."), title=_("Invalid Path"))
 	return _load_session(session, "read").entries(since=cint(since), path=path)
+
+
+@frappe.whitelist()
+def system_prompt(session: str) -> str | None:
+	"""The session's system prompt for a System Manager; None for anyone else."""
+	doc = _load_session(session, "read")
+	if "System Manager" not in frappe.get_roles():
+		return None
+	return doc.system_prompt()
 
 
 @frappe.whitelist()

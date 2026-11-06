@@ -72,7 +72,6 @@ def create_test_file(file_name="test_attachment.txt", content="Test file content
 
 class TestNotification(IntegrationTestCase):
 	def setUp(self):
-		frappe.db.delete("Email Queue")
 		frappe.set_user("test@example.com")
 
 		if not frappe.db.exists("Notification", {"name": "ToDo Status Update"}, "name"):
@@ -120,7 +119,9 @@ class TestNotification(IntegrationTestCase):
 				},
 			)
 		)
-		frappe.db.delete("Email Queue")
+		frappe.db.delete(
+			"Email Queue", {"reference_doctype": "Communication", "reference_name": communication.name}
+		)
 
 		communication.reload()
 		communication.content = "test 2"
@@ -450,8 +451,10 @@ class TestNotification(IntegrationTestCase):
 
 	def test_cc_jinja(self):
 		frappe.db.delete("User", {"email": "test_jinja@example.com"})
-		frappe.db.delete("Email Queue")
-		frappe.db.delete("Email Queue Recipient")
+		frappe.db.delete(
+			"Email Queue", {"reference_doctype": "User", "reference_name": "test_jinja@example.com"}
+		)
+		frappe.db.delete("Email Queue Recipient", {"recipient": "test_jinja@example.com"})
 
 		test_user = frappe.new_doc("User")
 		test_user.name = "test_jinja"
@@ -470,8 +473,10 @@ class TestNotification(IntegrationTestCase):
 		self.assertTrue(frappe.db.get_value("Email Queue Recipient", {"recipient": "test_jinja@example.com"}))
 
 		frappe.db.delete("User", {"email": "test_jinja@example.com"})
-		frappe.db.delete("Email Queue")
-		frappe.db.delete("Email Queue Recipient")
+		frappe.db.delete(
+			"Email Queue", {"reference_doctype": "User", "reference_name": "test_jinja@example.com"}
+		)
+		frappe.db.delete("Email Queue Recipient", {"recipient": "test_jinja@example.com"})
 
 	def test_notification_to_assignee(self):
 		todo = frappe.new_doc("ToDo")
@@ -582,8 +587,6 @@ class TestNotification(IntegrationTestCase):
 
 	def test_attach_files_from_field(self):
 		"""Test notification with 'From Field' attachment option."""
-		frappe.db.delete("Email Queue")
-
 		with get_test_doctype_with_attach_field("Test From Field Doctype") as test_doctype:
 			with create_test_file("from_field_test.txt", "Content from specific field") as test_file:
 				# Create notification with "From Field" attachment
@@ -631,8 +634,6 @@ class TestNotification(IntegrationTestCase):
 
 	def test_attach_files_all(self):
 		"""Test notification with 'All' attachment option."""
-		frappe.db.delete("Email Queue")
-
 		with get_test_doctype_with_attach_field("Test All Attachments Doctype") as test_doctype:
 			with create_test_file("all_test_1.txt", "First file content") as test_file1:
 				# Create notification with "All" attachment option
@@ -697,8 +698,6 @@ class TestNotification(IntegrationTestCase):
 
 	def test_attach_files_empty_option(self):
 		"""Test notification with empty attachment option (no attachments)."""
-		frappe.db.delete("Email Queue")
-
 		# Create notification with empty attach_files option
 		notification_config = {
 			"name": "Test No Attachments",

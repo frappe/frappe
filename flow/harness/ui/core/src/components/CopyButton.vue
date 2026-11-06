@@ -1,22 +1,39 @@
 <template>
-	<button
-		v-bind="$attrs"
+	<Button
+		:variant="variant"
+		:size="size"
+		class="group/copy"
 		:title="copied ? 'Copied' : title"
 		:style="copied ? { opacity: 1 } : undefined"
 		@click.stop="copy"
 	>
-		<span class="size-3.5" :class="copied ? 'lucide-check' : icon" aria-hidden="true" />
-		<slot :copied="copied" />
-	</button>
+		<template v-if="$slots.default" #prefix>
+			<span class="size-3.5" :class="copied ? 'lucide-check' : icon" aria-hidden="true" />
+		</template>
+		<template v-if="$slots.default" #default>
+			<slot :copied="copied" />
+		</template>
+		<!-- a bare icon rests quieter than the button's ink, as the other message actions do -->
+		<template v-else #icon>
+			<span
+				class="size-3.5 text-ink-gray-5 group-hover/copy:text-ink-gray-8"
+				:class="copied ? 'lucide-check' : icon"
+				aria-hidden="true"
+			/>
+		</template>
+	</Button>
 </template>
 
 <script setup>
 import { onBeforeUnmount, ref } from "vue"
+import { Button } from "frappe-ui/src/components/Button"
 
 const props = defineProps({
 	text: { type: String, required: true },
 	title: { type: String, default: "Copy" },
 	icon: { type: String, default: "lucide-copy" },
+	variant: { type: String, default: "ghost" },
+	size: { type: String, default: "xs" },
 })
 
 const copied = ref(false)
