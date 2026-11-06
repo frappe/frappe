@@ -284,9 +284,9 @@ class TestQueryOptimization(IntegrationTestCase):
 					{quote}tabUser{quote} u
 					join {quote}tabHas Role{quote} r
 					on r.parent = u.name
-					where email='xyz'
+					where first_name='xyz'
 					and bio like '%xyz%'
 					"""
 				)
 				self.assertEqual(suggested_index.table, "tabUser")
-				self.assertEqual(suggested_index.column, "email")
+				self.assertEqual(suggested_index.column, "first_name")
