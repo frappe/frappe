@@ -303,10 +303,7 @@ export function validate(
   if (!form.password && !editing)
     return {
       field: "password",
-      message:
-        service.service === "GMail"
-          ? __("App password is required")
-          : __("Password is required"),
+      message: __("App password is required"),
     };
 }
 

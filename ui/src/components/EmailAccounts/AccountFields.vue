@@ -38,7 +38,7 @@
 					v-model="form.api_secret"
 					:label="__('API secret')"
 					autocomplete="new-password"
-					:description="editing ? __('Leave blank to keep the saved one.') : undefined"
+					:placeholder="editing ? '********' : undefined"
 					:error="errorOn('api_secret')"
 					:required="!editing"
 				/>
@@ -46,9 +46,9 @@
 			<Password
 				v-else
 				v-model="form.password"
-				:label="service.service === 'GMail' ? __('App password') : __('Password')"
+				:label="__('App password')"
 				autocomplete="new-password"
-				:description="editing ? __('Leave blank to keep the saved one.') : undefined"
+				:placeholder="editing ? '********' : undefined"
 				:error="errorOn('password')"
 				:required="!editing"
 			>
