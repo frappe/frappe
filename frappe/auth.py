@@ -654,6 +654,7 @@ def validate_auth():
 	# and bearer tokens bypass the user's IP restrictions entirely.
 	if frappe.session.user != user_before_auth and frappe.session.user not in ("", "Guest"):
 		validate_ip_address(frappe.session.user)
+		set_agent_from_header()
 
 
 def _is_oauth_client_auth(authorization_header) -> bool:
@@ -818,6 +819,16 @@ def set_agent(
 	if reference_doctype and reference_name:
 		agent.update(reference_doctype=reference_doctype, reference_name=reference_name)
 	frappe.session.data.agent = agent
+
+
+def set_agent_from_header() -> None:
+	"""Read the agent that a token or OAuth client names in the `X-Frappe-Agent` header."""
+	header = (frappe.get_request_header("X-Frappe-Agent") or "").strip()
+	if not header:
+		return
+	client_name = get_oauth_client_name()
+	name = f"{client_name} ({header})" if client_name and client_name != header else header
+	set_agent(name, "API")
 
 
 def get_oauth_client_name() -> str | None:
