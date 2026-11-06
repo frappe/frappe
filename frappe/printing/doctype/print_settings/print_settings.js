@@ -41,7 +41,7 @@ frappe.ui.form.on("Print Settings", {
 					action(__("View"), () =>
 						frappe.set_route("List", "Print Format", { pdf_generator: "wkhtmltopdf" })
 					),
-					action(__("Switch All"), function () {
+					action(__("Use {0}", [generator]), function () {
 						const $button = $(this).prop("disabled", true);
 						const enable = () => $button.prop("disabled", false);
 						frappe.confirm(
