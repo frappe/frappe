@@ -930,6 +930,22 @@ class TestFile(IntegrationTestCase):
 		finally:
 			frappe.set_user("Administrator")
 
+	def test_permission_check_on_file_of_unreadable_document_shows_no_message(self):
+		note = frappe.get_doc(doctype="Note", title="Unreadable note").insert()
+		file = frappe.get_doc(
+			doctype="File",
+			file_name="test_unreadable_note.txt",
+			content="x",
+			is_private=1,
+			attached_to_doctype="Note",
+			attached_to_name=note.name,
+		).insert()
+
+		with self.set_user("test@example.com"):
+			frappe.clear_messages()
+			self.assertFalse(frappe.has_permission("File", "read", doc=file))
+			self.assertFalse(frappe.message_log)
+
 	def insert_case_variant_files(self, **attached_to):
 		files = []
 		for owner, file_url in (
