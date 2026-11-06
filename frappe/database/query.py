@@ -23,7 +23,13 @@ from frappe.database.utils import (
 	is_order_by_in_select,
 )
 from frappe.model import CORE_DOCTYPES as PERMITTED_CORE_DOCTYPES
-from frappe.model import OPTIONAL_FIELDS, get_permitted_fields, numeric_fieldtypes
+from frappe.model import (
+	DEFAULT_FIELDS,
+	OPTIONAL_FIELDS,
+	child_table_fields,
+	get_permitted_fields,
+	numeric_fieldtypes,
+)
 from frappe.model.document import DOCTYPES_FOR_DOCTYPE, Document
 from frappe.query_builder import Criterion, Field, Order, functions
 from frappe.query_builder.custom import Month, MonthName, Quarter, Year
@@ -44,6 +50,7 @@ CORE_DOCTYPES = DOCTYPES_FOR_DOCTYPE | frozenset(
 
 
 TABLES_WITHOUT_DOCTYPE = frozenset(("Singles", "Sessions", "Series"))
+STANDARD_FIELDS = DEFAULT_FIELDS | OPTIONAL_FIELDS | frozenset(child_table_fields)
 
 # What MariaDB coerces `''` to in `is set`; postgres rejects `''` for these columns.
 # No real date equals MariaDB's zero date, so only NULL is empty for dates.
@@ -1010,8 +1017,6 @@ class Engine:
 			else:
 				# Field belongs to the main doctype or doctype wasn't specified differently
 				# If doctype wasn't specified, and the field isn't a standard field and doesn't exist in main doctype, check child tables
-				from frappe.model import child_table_fields, default_fields, optional_fields
-
 				if self.doctype in CORE_DOCTYPES:
 					meta = None
 				else:
@@ -1023,7 +1028,7 @@ class Engine:
 				if (
 					meta
 					and not doctype
-					and target_fieldname not in default_fields + optional_fields + child_table_fields
+					and target_fieldname not in STANDARD_FIELDS
 					and not meta.has_field(target_fieldname)
 				):
 					for df in meta.get_table_fields(include_computed=True):

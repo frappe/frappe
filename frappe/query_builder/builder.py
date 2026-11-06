@@ -67,9 +67,9 @@ class Base:
 
 	@staticmethod
 	def validate_doctype(doctype) -> None:
-		from frappe import _, throw
-
 		if not TABLE_NAME_PATTERN.match(doctype):
+			from frappe import _, throw
+
 			throw(_("Invalid DocType: {0}").format(doctype))
 
 
