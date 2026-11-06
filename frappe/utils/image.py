@@ -39,8 +39,10 @@ def strip_exif_data(content, content_type):
 	original_image = ImageOps.exif_transpose(original_image)
 	output = io.BytesIO()
 	# ref: https://stackoverflow.com/a/48248432
-	if content_type == "image/jpeg" and original_image.mode in ("RGBA", "P"):
-		original_image = original_image.convert("RGB")
+	if content_type == "image/jpeg" and original_image.mode in ("RGBA", "LA", "P"):
+		original_image = Image.alpha_composite(
+			Image.new("RGBA", original_image.size, "white"), original_image.convert("RGBA")
+		).convert("RGB")
 
 	original_image.save(output, format=content_type.split("/")[1], exif=b"")
 	return output.getvalue()
@@ -53,8 +55,10 @@ def optimize_image(content, content_type, max_width=1024, max_height=768, optimi
 	try:
 		image = Image.open(io.BytesIO(content))
 		exif = image.getexif()
-		if content_type == "image/jpeg" and image.mode in ("RGBA", "P"):
-			image = image.convert("RGB")
+		if content_type == "image/jpeg" and image.mode in ("RGBA", "LA", "P"):
+			image = Image.alpha_composite(
+				Image.new("RGBA", image.size, "white"), image.convert("RGBA")
+			).convert("RGB")
 		width, height = image.size
 		max_height = max(min(max_height, height * 0.8), 200)
 		max_width = max(min(max_width, width * 0.8), 200)
