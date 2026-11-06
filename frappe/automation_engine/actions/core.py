@@ -257,7 +257,7 @@ class SendNotification(AutomationAction):
 			return self._notify_system(doc, recipients, subject, message)
 
 		frappe.sendmail(
-			recipients=get_email_addresses(recipients),
+			recipients=list(get_email_addresses(recipients).values()),
 			subject=subject,
 			message=message,
 			reference_doctype=doc.doctype if doc else None,

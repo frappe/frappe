@@ -120,7 +120,7 @@ class PersonalDataDeletionRequest(Document):
 		managers = [m for m in get_system_managers(only_name=True) if is_email_notifications_enabled(m)]
 
 		frappe.sendmail(
-			recipients=get_email_addresses(managers),
+			recipients=list(get_email_addresses(managers).values()),
 			subject=_("User {0} has requested for data deletion").format(self.email),
 			template="data_deletion_approval",
 			args={"user": self.email, "url": frappe.utils.get_url(self.get_url())},

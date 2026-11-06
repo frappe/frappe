@@ -88,24 +88,26 @@ def get_email_address(user=None):
 	return frappe.db.get_value("User", user, "email")
 
 
-def get_email_addresses(users: list[str] | set[str]) -> list[str]:
-	"""Return the email of each user, in the same order.
+def get_email_addresses(users: list[str] | set[str], skip_standard_users: bool = True) -> dict[str, str]:
+	"""Return `{user ID: email}` for the given users.
 
-	Returned unchanged, so the result can hold values that are not emails:
-	- Administrator and Guest (`frappe.sendmail` skips them)
-	- values that are not a user ID
+	- Users that don't exist or have no email are left out.
+	- Administrator and Guest are left out unless `skip_standard_users` is False.
 	"""
-	lookup = set(users) - set(frappe.STANDARD_USERS)
+	if skip_standard_users:
+		users = set(users) - set(frappe.STANDARD_USERS)
 
-	if not lookup:
-		return list(users)
+	if not users:
+		return {}
 
-	emails = {
-		user.name: user.email
-		for user in frappe.get_all("User", filters={"name": ("in", lookup)}, fields=["name", "email"])
-	}
-
-	return [emails.get(user) or user for user in users]
+	return dict(
+		frappe.get_all(
+			"User",
+			filters={"name": ("in", users), "email": ("is", "set")},
+			fields=["name", "email"],
+			as_list=True,
+		)
+	)
 
 
 def get_formatted_email(user, mail=None):

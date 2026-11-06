@@ -80,7 +80,7 @@ class PersonalDataDownloadRequest(Document):
 		)
 		host_name = frappe.local.site
 		frappe.sendmail(
-			recipients=get_email_addresses([self.user]),
+			recipients=list(get_email_addresses([self.user]).values()),
 			subject=_("Download Your Data"),
 			template="download_data",
 			args={

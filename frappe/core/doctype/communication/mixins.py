@@ -40,7 +40,7 @@ class CommunicationEmailMixin:
 		if notification_email:
 			return notification_email
 
-		return get_email_addresses([parent_doc.owner])[0]
+		return get_email_addresses([parent_doc.owner]).get(parent_doc.owner)
 
 	def get_all_email_addresses(self, exclude_displayname=False):
 		"""Get all Email addresses mentioned in the doc along with display name."""
@@ -108,7 +108,7 @@ class CommunicationEmailMixin:
 			for assignee in assignees.copy():
 				if not is_email_enabled_for_feature(assignee, "enable_email_threads_on_assigned_document"):
 					assignees.remove(assignee)
-			cc.update(set(get_email_addresses(assignees)) - {self.sender_mailid})
+			cc.update(set(get_email_addresses(assignees).values()) - {self.sender_mailid})
 
 		cc = set(cc) - set(self.filter_thread_notification_disbled_users(cc))
 		cc = cc - set(self.mail_recipients(is_inbound_mail_communcation=is_inbound_mail_communcation))

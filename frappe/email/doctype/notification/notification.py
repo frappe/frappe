@@ -979,7 +979,7 @@ def get_assignees(doc):
 		fields=["allocated_to"],
 	)
 
-	return get_email_addresses([d.allocated_to for d in assignees])
+	return list(get_email_addresses([d.allocated_to for d in assignees]).values())
 
 
 def get_receiver_email(doc, fieldname):
