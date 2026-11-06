@@ -54,6 +54,8 @@ def optimize_image(content, content_type, max_width=1024, max_height=768, optimi
 	try:
 		image = Image.open(io.BytesIO(content))
 		exif = image.getexif()
+		if content_type == "image/jpeg" and image.mode in ("RGBA", "P"):
+			image = image.convert("RGB")
 		width, height = image.size
 		max_height = max(min(max_height, height * 0.8), 200)
 		max_width = max(min(max_width, width * 0.8), 200)
