@@ -208,7 +208,7 @@ def update_password(user, pwd, doctype="User", fieldname="password", logout_all_
 	try:
 		hashPwd = cstr(Fernet(frappe.local.conf.get("encryption_key") or "").encrypt(encode(hashPwd)))
 	except ValueError:
-		# missing or malformed key: keep the plain hash rather than raise an exception
+		# if the key is missing or malformed, store the plain hash instead of raising an error
 		pass
 
 	query = frappe.qb.into(Auth).columns(
