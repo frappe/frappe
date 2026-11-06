@@ -754,7 +754,7 @@ class EmailAccount(Document):
 							message,
 							self,
 							frappe.safe_decode(uid),
-							seen_status,
+							1 if seen_status == "SEEN" else 0,
 							append_to,
 							imap_folder,
 						)
