@@ -1,6 +1,8 @@
 # Copyright (c) 2024, Frappe Technologies and contributors
 # For license information, please see license.txt
 
+import requests
+
 import frappe
 from frappe import _
 from frappe.model.document import Document
@@ -51,4 +53,8 @@ def autocomplete(txt: str) -> list[dict]:
 	else:
 		frappe.throw(_("This geolocation provider is not supported yet."))
 
-	return list(provider.autocomplete(txt))
+	try:
+		return list(provider.autocomplete(txt))
+	except requests.RequestException:
+		# the exception text carries the provider URL, which includes the API key
+		raise frappe.ValidationError(_("Address autocomplete failed")) from None
