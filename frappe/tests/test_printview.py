@@ -113,7 +113,7 @@ class PrintViewTest(IntegrationTestCase):
 		benign = self._make_doc(doctype.name, ".png")
 		html = get_html_and_style(doc=benign.as_json(), print_format="Standard", no_letterhead=1)["html"]
 		self.assertIn('src="/files/img.png"', html)
-		self.assertIn('data-barcode-value="1234.png"', html)
+		self.assertIn('<img src="data:image/svg+xml;base64,', html)
 
 		evil = self._make_doc(doctype.name, '.png" onerror="alert(1)')
 		html = get_html_and_style(doc=evil.as_json(), print_format="Standard", no_letterhead=1)["html"]
