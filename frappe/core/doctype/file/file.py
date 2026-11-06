@@ -10,6 +10,8 @@ import shutil
 import zipfile
 from urllib.parse import quote, unquote
 
+import filetype
+
 import frappe
 from frappe import _
 from frappe.database.schema import SPECIAL_CHAR_PATTERN
@@ -780,7 +782,9 @@ class File(Document):
 			encodings = FILE_ENCODING_OPTIONS
 		with open(file_path, mode="rb") as f:
 			self._content = f.read()
-			if not self._content.startswith(OLE_FILE_SIGNATURE):
+			# Only decode if not a binary file
+			kind = filetype.guess(self._content)
+			if not kind and not self._content.startswith(OLE_FILE_SIGNATURE):
 				# looping will not result in slowdown, as the content is usually utf-8 or utf-8-sig
 				# encoded so the first iteration will be enough most of the time
 				for encoding in encodings:
