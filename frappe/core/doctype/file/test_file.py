@@ -751,6 +751,22 @@ class TestFile(IntegrationTestCase):
 		).insert(ignore_permissions=True)
 		self.assertRaisesRegex(ValidationError, "not a zip file", test_file.unzip)
 
+	def test_file_unzip_limits_member_count(self):
+		buffer = io.BytesIO()
+		with zipfile.ZipFile(buffer, "w") as archive:
+			for i in range(3):
+				archive.writestr(f"member-{i}.txt", "x")
+		zip_file = frappe.get_doc(
+			doctype="File", file_name="members.zip", content=buffer.getvalue(), is_private=1
+		).insert()
+
+		file_count_before = frappe.db.count("File")
+		with patch.dict(frappe.conf, {"max_zip_extract_members": 2}):
+			self.assertRaisesRegex(ValidationError, "more than the maximum", zip_file.unzip)
+
+		self.assertEqual(frappe.db.count("File"), file_count_before)
+		self.assertEqual(len(zip_file.unzip()), 3)
+
 	@IntegrationTestCase.change_settings("System Settings", {"max_zip_extract_size": 0})
 	def test_file_unzip_respects_dedicated_extract_size_setting(self):
 		file_path = frappe.get_app_path("frappe", "www/_test/assets/file.zip")
