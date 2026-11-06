@@ -215,11 +215,12 @@ class TestPrintFormatBuilderElements(IntegrationTestCase):
 
 		# a value the format cannot encode prints nothing
 		self.assertNotIn(
-			"print-barcode", self.render(df | {"barcode_value": "a*b", "barcode_format": "CODE39"})
+			'class="field print-barcode',
+			self.render(df | {"barcode_value": "a*b", "barcode_format": "CODE39"}),
 		)
 
 		# no value -> block is skipped entirely
-		self.assertNotIn("print-barcode", self.render(df | {"barcode_value": ""}))
+		self.assertNotIn('class="field print-barcode', self.render(df | {"barcode_value": ""}))
 
 	def test_qr_code(self):
 		import base64
