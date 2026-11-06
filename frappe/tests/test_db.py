@@ -831,6 +831,10 @@ class TestDB(IntegrationTestCase):
 			"select * from \"tabtree b\" where lft > '13' and rgt <= '16' and name = '1' and parent = 4134qrsdc and isgroup = 1.00045",
 			modify_query(query),
 		)
+		self.assertEqual(
+			"""select 'a=1', E'b\\' =1', "c=1", $$d=1$$ where e= '1'""",
+			modify_query("""select 'a=1', E'b\\' =1', "c=1", $$d=1$$ where e=1"""),
+		)
 
 		query = 'select locate(".io", "frappe.io"), locate("3", cast(3 as varchar)), locate("3", 3::varchar)'
 		self.assertEqual(
