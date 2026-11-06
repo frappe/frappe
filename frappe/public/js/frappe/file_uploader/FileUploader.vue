@@ -619,7 +619,9 @@ function upload_file(file, i) {
 				} else if (xhr.status === 403) {
 					file.failed = true;
 					let response = parse_error_response(xhr.responseText);
-					file.error_message = __("Not permitted. {0}.", [response.error_message || ""]);
+					file.error_message = response.error_message
+						? __("Not permitted. {0}.", [response.error_message])
+						: __("Not permitted");
 					if (response.server_messages.length) {
 						file.error_message += `\n${response.server_messages.join("\n")}`;
 					}
@@ -712,16 +714,16 @@ function parse_error_response(response_text) {
 
 		try {
 			server_messages.push(
-				...JSON.parse(response._server_messages).map((m) => {
+				...JSON.parse(response._server_messages || "[]").map((m) => {
 					let parsed = JSON.parse(m);
 					return parsed.message;
 				})
 			);
 		} catch (e) {
-			console.warning("Failed to parse server message", e);
+			console.warn("Failed to parse server message", e);
 		}
 	} catch (e) {
-		console.warning("Failed to parse error response", e);
+		console.warn("Failed to parse error response", e);
 	}
 
 	return {
