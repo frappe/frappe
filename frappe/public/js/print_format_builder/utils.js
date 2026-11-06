@@ -452,7 +452,9 @@ export function serialize_layout(layout) {
 export function parse_inline_style(css) {
 	const style = {};
 	if (!css || typeof css !== "string") return style;
-	for (const decl of css.split(";")) {
+	const el = document.createElement("div");
+	el.setAttribute("style", css);
+	for (const decl of el.style.cssText.split(/;(?![^(]*\))/)) {
 		const idx = decl.indexOf(":");
 		if (idx === -1) continue;
 		const prop = decl.slice(0, idx).trim();
