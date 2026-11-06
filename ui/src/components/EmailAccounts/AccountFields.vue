@@ -38,7 +38,6 @@
 					v-model="form.api_secret"
 					:label="__('API secret')"
 					autocomplete="new-password"
-					:placeholder="editing ? '********' : undefined"
 					:error="errorOn('api_secret')"
 					:required="!editing"
 				/>
@@ -48,7 +47,6 @@
 				v-model="form.password"
 				:label="service.kind === 'custom' ? __('Password') : __('App password')"
 				autocomplete="new-password"
-				:placeholder="editing ? '********' : undefined"
 				:error="errorOn('password')"
 				:required="!editing"
 			>

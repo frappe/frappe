@@ -133,6 +133,11 @@ describe("emptyForm", () => {
       use_tls: false,
     });
   });
+
+  it("fills in a saved secret masked", () => {
+    const account = doc({ password: "******", api_secret: "****" });
+    expect(emptyForm(account)).toMatchObject({ password: "******", api_secret: "****" });
+  });
 });
 
 describe("credentials", () => {
