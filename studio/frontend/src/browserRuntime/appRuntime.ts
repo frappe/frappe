@@ -49,7 +49,7 @@ export async function loadAppPageScriptModule(page: {
 	return (await compiledApp()).loadAppPageScriptModule(page)
 }
 
-/** Return a page script's syntax error, or null if the TypeScript module parses. */
+/** Return a page script's syntax error, or null if the module parses. */
 export async function checkAppScript(source: string): Promise<string | null> {
 	return (await compiledApp()).checkAppScript(source)
 }

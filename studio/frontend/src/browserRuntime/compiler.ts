@@ -1,7 +1,10 @@
 /**
- * Compile stored source in the browser with Sucrase, and read its imports and exports with
- * vue/compiler-sfc's Babel parser. Strip TypeScript annotations without checking types. This
- * supports database apps without a server build and syntax checking in the editor.
+ * Convert stored source to CommonJS in the browser with Sucrase, and read its imports and exports
+ * with vue/compiler-sfc's Babel parser. This supports database apps without a server build and
+ * syntax checking in the editor.
+ *
+ * A database app stores JavaScript, so nothing here compiles another language. TypeScript syntax
+ * is a syntax error, as it is in a plain .js file anywhere else.
  *
  * Load the compilers only when needed. Built apps exclude this module.
  */
@@ -36,7 +39,6 @@ export function describeError(error: CompileError): string {
 	return `${place}${error.message}`
 }
 
-const TS_OPTIONS: SucraseOptions = { transforms: ["typescript"], disableESTransforms: true }
 // The registry executes CommonJS modules. Cycles can read a module's exports before it finishes.
 const CJS_OPTIONS: SucraseOptions = { transforms: ["imports"], disableESTransforms: true }
 
@@ -54,28 +56,18 @@ function loadCompilers() {
 // Registry rebuilds can reuse compilation results when the source has not changed.
 const cache = new Map<string, Promise<CompiledFile>>()
 
+/** Convert ESM to CommonJS for the registry. The caller compiles each module once. */
 export function compileFile(filename: string, source: string): Promise<CompiledFile> {
 	const key = `${filename}\0${source.length}\0${djb2(source)}`
 	let compiled = cache.get(key)
 	if (!compiled) {
-		compiled = compileTS(filename, source)
+		compiled = toCommonJS(filename, source)
 		cache.set(key, compiled)
 	}
 	return compiled
 }
 
-async function compileTS(filename: string, source: string): Promise<CompiledFile> {
-	const [, sucrase] = await loadCompilers()
-	try {
-		const code = sucrase.transform(source, { ...TS_OPTIONS, filePath: filename }).code
-		return { code, errors: [] }
-	} catch (error) {
-		return { code: "", errors: [formatError(filename, error)] }
-	}
-}
-
-/** Convert ESM to CommonJS for the registry. The caller transforms each compiled module once. */
-export async function toCommonJS(filename: string, source: string): Promise<CompiledFile> {
+async function toCommonJS(filename: string, source: string): Promise<CompiledFile> {
 	const [, sucrase] = await loadCompilers()
 	try {
 		const code = sucrase.transform(source, { ...CJS_OPTIONS, filePath: filename }).code

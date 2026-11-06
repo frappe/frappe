@@ -226,7 +226,7 @@ ${pageScripts
 })`
 		: ""
 
-	// A standard app's studio/<app>/router.ts is compiled in; a custom app's router script is served with the page.
+	// A standard app's router file is compiled in; a custom app's router script is served with the page.
 	const routerImport = routerFile ? `import routerConfig from ${JSON.stringify(routerFile)}` : ""
 	const routerConfig = routerFile ? "routerConfig" : ""
 

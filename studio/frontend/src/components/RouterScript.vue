@@ -53,7 +53,7 @@ import { routerScriptCompletions } from "@/utils/completions/routerScriptComplet
 import { confirm } from "@/utils/helpers"
 import useStudioStore from "@/stores/studioStore"
 
-const ROUTER_FILE = "router.ts"
+const ROUTER_FILE = "router.js"
 const BOILERPLATE = `{
 	setup(router) {
 		// e.g. send users who have not finished onboarding to the Onboarding page
@@ -65,6 +65,7 @@ const BOILERPLATE = `{
 
 const store = useStudioStore()
 
+const routerFile = ref(ROUTER_FILE)
 const script = ref("")
 const savedScript = ref("")
 const fileHash = ref<string | undefined>()
@@ -77,21 +78,30 @@ const location = computed(() => ({
 	studio_app: store.activeApp?.name ?? "",
 }))
 
-// Both app types use router.ts, stored in the repository or database file store.
+// Both app types keep the router config at the app root, in the repository or database file store.
 async function load() {
-	const file = await readStudioFileIfExists(location.value, ROUTER_FILE)
+	routerFile.value = ROUTER_FILE
+	let file = await readStudioFileIfExists(location.value, ROUTER_FILE)
+	// A repository app may already ship a hand-written router.ts.
+	if (file.content === null && !store.usesDbFiles) {
+		const typescript = await readStudioFileIfExists(location.value, "router.ts")
+		if (typescript.content !== null) {
+			routerFile.value = "router.ts"
+			file = typescript
+		}
+	}
 	setLoaded(file.content ?? "", file.hash ?? undefined)
 	if (file.content === null) script.value = `export default ${BOILERPLATE}\n`
 }
 
 async function saveFile(source: string) {
-	const result = await writeStudioFile(location.value, ROUTER_FILE, source, fileHash.value)
+	const result = await writeStudioFile(location.value, routerFile.value, source, fileHash.value)
 	fileHash.value = result.hash
 	if (store.usesDbFiles) store.refreshAppFiles()
 }
 
 async function removeFile() {
-	await deleteStudioFile(location.value, ROUTER_FILE)
+	await deleteStudioFile(location.value, routerFile.value)
 	if (store.usesDbFiles) store.refreshAppFiles()
 }
 

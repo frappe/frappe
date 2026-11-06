@@ -86,7 +86,7 @@ class TestPageScriptConversion(IntegrationTestCase):
 		self.assertIn('import { ref } from "vue"', converted)
 		self.assertIn("return { count }", converted)
 		self.assertEqual(
-			files.read_store_file(app.name, "router.ts"), "export default { setup(router) {} }\n"
+			files.read_store_file(app.name, "router.js"), "export default { setup(router) {} }\n"
 		)
 
 		# Running the conversion again must leave the module unchanged.

@@ -252,7 +252,7 @@ class StudioApp(WebsiteGenerator):
 		if not can_export(self):
 			return
 
-		# carry every exported file (page scripts, router.ts, components) over to the new folder
+		# carry every exported file (page scripts, the router file, components) over to the new folder
 		move_folder(self.get_folder_path(old), self.get_folder_path())
 		# the app JSON is keyed by the scrubbed name (my-app and my_app share my_app.json)
 		old_file = os.path.join(self.get_folder_path(), f"{frappe.scrub(old)}.json")
@@ -262,7 +262,7 @@ class StudioApp(WebsiteGenerator):
 
 	def move_export_to(self, target_app: str):
 		"""Carry the export folder, files and all, into another Frappe app. Exported page scripts
-		and router.ts live only in these files, so re-exporting from the DB would lose them."""
+		and the router file live only in these files, so re-exporting from the DB would lose them."""
 		old_path = self.get_folder_path()
 		new_path = self.get_folder_path(frappe_app=target_app)
 		if os.path.exists(new_path):

@@ -16,14 +16,13 @@ import {
 	describeError,
 	parseExports,
 	parseImports,
-	toCommonJS,
 	type CompileError,
 	type ModuleExports,
 	type ModuleImport,
 } from "@/browserRuntime/compiler"
 import { loadImportableModule } from "@/browserRuntime/importableModules"
 
-const EXTENSION_CANDIDATES = ["", ".ts", ".js", ".json", "/index.ts", "/index.js"]
+const EXTENSION_CANDIDATES = ["", ".js", ".json", "/index.js"]
 
 type ModuleFactory = (exports: any, require: (specifier: string) => any, module: any) => void
 
@@ -52,7 +51,7 @@ export class AppModuleRegistry {
 		this.files = { ...files }
 	}
 
-	/** Load a module by its exact path relative to the app root, such as stores/catalog.ts. */
+	/** Load a module by its exact path relative to the app root, such as stores/catalog.js. */
 	async loadModule(path: string): Promise<any> {
 		await this.prepare()
 		this.throwIfFailed(path)
@@ -101,24 +100,20 @@ export class AppModuleRegistry {
 		applyStyles(this.styles)
 	}
 
-	/** Compile a file, validate its imports and create its module factory. */
+	/** Validate a file's imports, compile it and create its module factory. */
 	private async compileInto(path: string, source: string, throwOnError = true): Promise<CompileError[]> {
-		const compiled = await compileFile(path, source)
-		const errors = [...compiled.errors]
+		const errors = await this.linkImports(path, source)
 		if (!errors.length) {
-			errors.push(...(await this.linkImports(path, compiled.code)))
-		}
-		if (!errors.length) {
-			const commonjs = await toCommonJS(path, compiled.code)
-			errors.push(...commonjs.errors)
+			const compiled = await compileFile(path, source)
+			errors.push(...compiled.errors)
 			if (!errors.length) {
 				this.factories[path] = new Function(
 					"exports",
 					"require",
 					"module",
-					`${commonjs.code}\n//# sourceURL=studio-app:///${path}`,
+					`${compiled.code}\n//# sourceURL=studio-app:///${path}`,
 				) as ModuleFactory
-				const parsed = await parseExports(path, compiled.code)
+				const parsed = await parseExports(path, source)
 				if (!parsed.errors.length) this.exports[path] = parsed.exports
 			}
 		}
@@ -248,7 +243,7 @@ export class AppModuleRegistry {
 }
 
 function isCompiledModule(path: string): boolean {
-	return path.endsWith(".ts") || path.endsWith(".js")
+	return path.endsWith(".js")
 }
 
 function isLocalSpecifier(specifier: string): boolean {

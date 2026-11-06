@@ -88,6 +88,15 @@ def get_app_file_path(app_folder: str) -> str:
 	return os.path.join(app_folder, f"{frappe.scrub(os.path.basename(app_folder))}.json")
 
 
+def script_extension(folder: str, stem: str) -> str:
+	"""Studio writes a page script or router file as `.js`. An existing `.ts` file keeps its extension."""
+	return "ts" if os.path.isfile(os.path.join(folder, f"{stem}.ts")) else "js"
+
+
+def find_script_file(folder: str, stem: str) -> str:
+	return os.path.join(folder, f"{stem}.{script_extension(folder, stem)}")
+
+
 def get_exported_app_name(app_folder: str) -> str:
 	"""The app's name from its exported JSON. The folder name is scrubbed
 	(`my-app` lives in `my_app`), so it cannot name the app."""

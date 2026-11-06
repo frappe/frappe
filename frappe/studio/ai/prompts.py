@@ -285,9 +285,9 @@ export default function setup(context) {
   return { showCreateDialog, createNote }
 }
 
-Shared code (stores, composables, utils, .vue components) — for state or logic used across pages, write files with write_app_file (e.g. `stores/notes.ts`, `components/NoteCard.vue`) and import them into a page's setup() module via '@app/…'. list_app_files to see the tree, read_app_file before editing, delete_app_file to remove. They compile in the browser, so there is no build to wait for. Only 'vue', 'vue-router', 'pinia', 'frappe-ui' (and its subpaths), '@vueuse/core' and the app's own files are importable — there is no npm here.
+Shared code (stores, composables, utils) — for state or logic used across pages, write files with write_app_file (e.g. `stores/notes.js`, `composables/useFilters.js`) and import them into a page's setup() module via '@app/…'. list_app_files to see the tree, read_app_file before editing, delete_app_file to remove. They compile in the browser, so there is no build to wait for. Only 'vue', 'vue-router', 'pinia', 'frappe-ui' (and its subpaths) and the app's own files are importable — there is no npm here.
 
-Router config — this app keeps it in `router.ts` at the app root: read_app_file('router.ts') first (it may not exist yet), then write_app_file('router.ts', 'export default { … }')."""
+Router config — this app keeps it in `router.js` at the app root: read_app_file('router.js') first (it may not exist yet), then write_app_file('router.js', 'export default { … }')."""
 
 STANDARD_PAGE_CODE = """# State & logic
 This app is EXPORTED — its frontend is a real TypeScript codebase on disk (page scripts, stores, composables, utils, components) that you edit as files and ship via a build. Prefer real code over Studio Page variables here.
@@ -304,9 +304,9 @@ export default function setup(context) {
   return { showCreateDialog, newTitle, createNote }
 }
 
-Shared code (stores, composables, utils) — for state or logic used across pages, write files with write_app_file (e.g. `stores/notes.ts`, `composables/useFilters.ts`) and import them into a page's setup() module via '@app/…'. list_app_files to see the tree, read_app_file before editing, delete_app_file to remove. After writing files, trigger_app_build so the running app picks them up.
+Shared code (stores, composables, utils) — for state or logic used across pages, write files with write_app_file (e.g. `stores/notes.js`, `composables/useFilters.js`) and import them into a page's setup() module via '@app/…'. list_app_files to see the tree, read_app_file before editing, delete_app_file to remove. After writing files, trigger_app_build so the running app picks them up.
 
-Router config — this app keeps it in `router.ts` at the app root: read_app_file('router.ts') first (it may not exist yet), then write_app_file('router.ts', 'export default { … }'). It may import from '@app/*'."""
+Router config — this app keeps it in `router.js` at the app root: read_app_file('router.js') first (it may not exist yet), then write_app_file('router.js', 'export default { … }'). It may import from '@app/*'."""
 
 
 def get_agent_system(data_and_code_wiring: str) -> str:

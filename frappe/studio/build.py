@@ -13,6 +13,7 @@ import click
 import frappe
 from frappe.bundler import get_node_env
 from frappe.studio.utils import (
+	find_script_file,
 	get_export_folder,
 	get_exported_app_folders,
 	get_exported_app_name,
@@ -107,21 +108,21 @@ class StudioAppBuilder:
 		return get_export_folder(self.frappe_app, self.app_name)
 
 	def get_page_scripts_from_files(self):
-		"""Collect the <page>.ts code files for the app's published pages, so the build bundles a
+		"""Collect the <page>.js code files for the app's published pages, so the build bundles a
 		`setup()` module per page (code mode)."""
 		page_folder = os.path.join(self.app_folder, "studio_page")
 		if not page_folder or not os.path.isdir(page_folder):
 			return
 
 		scripts = []
-		# each page is a folder holding <stem>.json + <stem>.ts
+		# each page is a folder holding <stem>.json + <stem>.js
 		for entry in sorted(os.listdir(page_folder)):
 			page_dir = os.path.join(page_folder, entry)
 			if not os.path.isdir(page_dir):
 				continue
-			ts_path = os.path.join(page_dir, f"{entry}.ts")
+			script_path = find_script_file(page_dir, entry)
 			json_path = os.path.join(page_dir, f"{entry}.json")
-			if not (os.path.exists(ts_path) and os.path.exists(json_path)):
+			if not (os.path.exists(script_path) and os.path.exists(json_path)):
 				continue
 			try:
 				# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
@@ -130,7 +131,7 @@ class StudioAppBuilder:
 			except (OSError, json.JSONDecodeError):
 				continue
 			if page_name:
-				scripts.append({"page_name": page_name, "file_path": ts_path})
+				scripts.append({"page_name": page_name, "file_path": script_path})
 
 		self.page_scripts = scripts
 		return scripts
@@ -230,7 +231,7 @@ class StudioAppBuilder:
 
 		self._load_studio_components_from_files(app_folder)
 
-		# each page is a folder holding <stem>.json + <stem>.ts
+		# each page is a folder holding <stem>.json + <stem>.js
 		for entry in os.listdir(page_folder):
 			page_dir = os.path.join(page_folder, entry)
 			if not os.path.isdir(page_dir):
@@ -393,12 +394,12 @@ def get_published_custom_apps() -> list[str]:
 
 
 def get_router_file(frappe_app: str, studio_app: str) -> str | None:
-	"""Path of the app's studio/<app>/router.ts, if it ships one."""
+	"""Path of the app's studio/<app>/router.js, if it ships one."""
 	return find_router_file(get_export_folder(frappe_app, studio_app))
 
 
 def find_router_file(app_folder: str) -> str | None:
-	path = os.path.join(app_folder, "router.ts")
+	path = find_script_file(app_folder, "router")
 	return path if os.path.exists(path) else None
 
 
@@ -414,7 +415,7 @@ def write_db_files_to_folder(studio_app: str, app_folder: str) -> list[dict]:
 	"""Write database source files to the export layout for Vite to build.
 
 	Store shared files at the app root and published page scripts at
-	`studio_page/<stem>/<stem>.ts`. Return each page script's name and file path.
+	`studio_page/<stem>/<stem>.js`. Return each page script's name and file path.
 	"""
 	from frappe.studio.files import get_store_files
 
@@ -429,7 +430,7 @@ def write_db_files_to_folder(studio_app: str, app_folder: str) -> list[dict]:
 	page_scripts = []
 	for page in pages:
 		stem = frappe.scrub(page.page_title)
-		path = os.path.join(app_folder, "studio_page", stem, f"{stem}.ts")
+		path = os.path.join(app_folder, "studio_page", stem, f"{stem}.js")
 		write_build_file(path, page.script)
 		page_scripts.append({"page_name": page.name, "file_path": path})
 	return page_scripts

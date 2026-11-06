@@ -84,10 +84,10 @@ def convert_page_script(page_name: str, script: str) -> None:
 
 
 def move_router_script_to_file(app_name: str, router_script: str | None) -> None:
-	"""Move the removed `router_script` field to the app's `router.ts` source file."""
+	"""Move the removed `router_script` field to the app's `router.js` source file."""
 	if not router_script or not router_script.strip():
 		return
-	write_store_file(app_name, "router.ts", f"export default {router_script.strip()}\n")
+	write_store_file(app_name, "router.js", f"export default {router_script.strip()}\n")
 
 
 def is_module(script: str) -> bool:

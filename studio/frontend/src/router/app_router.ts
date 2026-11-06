@@ -61,11 +61,11 @@ export async function createAppRouter(config?: RouterConfig): Promise<Router> {
 	return router
 }
 
-// Repository previews load router.ts from the dev server. Database apps pass a browser-compiled
+// Repository previews load the router file from the dev server. Database apps pass a browser-compiled
 // config to createAppRouter; app builds import the config in their generated entry.
 async function loadRouterConfig(): Promise<RouterConfig> {
 	if (!window.router_file) return {}
-	const mod = await runHook("router.ts", () => import(/* @vite-ignore */ window.router_file!))
+	const mod = await runHook("router file", () => import(/* @vite-ignore */ window.router_file!))
 	return mod.default || {}
 }
 

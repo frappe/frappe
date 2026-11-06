@@ -7,7 +7,7 @@ from `context`.
 
 The app type determines where a script is saved and how updates reach the running app:
 - Database apps save to the page's `script` field. A reload event updates the canvas.
-- Repository apps save to a companion `<page>.ts` file. Writing requires developer
+- Repository apps save to a companion `<page>.js` file. Writing requires developer
   mode and System Manager permissions. The write queues an app build; the agent must
   tell the user to wait for it.
 
@@ -21,6 +21,7 @@ import frappe
 from frappe.studio.ai.agent.registry import Tool
 from frappe.studio.ai.agent.tools.page import load_page, save_page
 from frappe.studio.export import can_export, write_code_file
+from frappe.studio.utils import find_script_file, script_extension
 
 
 def run_get_page_script(ctx, args: dict) -> str:
@@ -30,7 +31,7 @@ def run_get_page_script(ctx, args: dict) -> str:
 	source = _read_script(page)
 	if not source.strip():
 		return "This page has no script yet."
-	where = "code file (<page>.ts)" if can_export(page) else "the page's `script` field (DB)"
+	where = "code file (<page>.js)" if can_export(page) else "the page's `script` field (DB)"
 	return f"Current page script (stored in {where}):\n{source}"
 
 
@@ -80,11 +81,14 @@ def _write_file_script(ctx, page, source: str) -> str:
 	if "System Manager" not in frappe.get_roles():
 		return "FAILED: writing a repository app's page script requires the System Manager role."
 	# write_code_file reads the field from this object. Do not save the document:
-	# repository page scripts belong in the .ts file, not the database field.
+	# repository page scripts belong in the code file, not the database field.
 	page.script = source
 	folder = page.get_folder_path()
 	frappe.create_folder(folder)
-	write_code_file(page, folder, code_field="script", extension="ts", filename=page.get_export_docname())
+	stem = page.get_export_docname()
+	write_code_file(
+		page, folder, code_field="script", extension=script_extension(folder, stem), filename=stem
+	)
 	frappe.enqueue_doc("Studio App", page.studio_app, "build_app_bundle", queue="long", timeout=1200)
 	return (
 		"Wrote the page script to its code file and started an app rebuild. The change appears on the "
@@ -94,7 +98,7 @@ def _write_file_script(ctx, page, source: str) -> str:
 
 def _read_script(page) -> str:
 	if can_export(page):
-		path = os.path.join(page.get_folder_path(), f"{page.get_export_docname()}.ts")
+		path = find_script_file(page.get_folder_path(), page.get_export_docname())
 		return frappe.read_file(path) or "" if os.path.exists(path) else ""
 	return page.script or ""
 

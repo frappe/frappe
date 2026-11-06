@@ -55,10 +55,10 @@ class TestApi(IntegrationTestCase):
 	def test_the_file_explorer_reaches_a_database_app_without_developer_mode(self):
 		app = make_studio_app(app_name="store-" + frappe.generate_hash(length=8))
 		with patch.dict(frappe.conf, {"developer_mode": 0}):
-			create_studio_file("", app.name, "utils/format.ts")
-			write_studio_file("", app.name, "utils/format.ts", "export const one = 1\n")
+			create_studio_file("", app.name, "utils/format.js")
+			write_studio_file("", app.name, "utils/format.js", "export const one = 1\n")
 			self.assertEqual(
-				read_studio_file("", app.name, "utils/format.ts")["content"], "export const one = 1\n"
+				read_studio_file("", app.name, "utils/format.js")["content"], "export const one = 1\n"
 			)
 			self.assertEqual(list_studio_files("", app.name)[0]["path"], "utils")
 
@@ -72,10 +72,10 @@ class TestApi(IntegrationTestCase):
 
 	def test_app_files_are_served_only_to_someone_who_may_see_the_app(self):
 		app = make_studio_app(app_name="served-" + frappe.generate_hash(length=8))
-		write_studio_file("", app.name, "utils.ts", "export const one = 1\n")
+		write_studio_file("", app.name, "utils.js", "export const one = 1\n")
 
 		served = get_app_files(app.name)
-		self.assertEqual([file["path"] for file in served], ["utils.ts"])
+		self.assertEqual([file["path"] for file in served], ["utils.js"])
 		self.assertEqual(served[0]["content"], "export const one = 1\n")
 
 		# Guests need a published page that allows guest access.
@@ -85,12 +85,13 @@ class TestApi(IntegrationTestCase):
 		with self.set_user("Guest"):
 			self.assertEqual(len(get_app_files(app.name)), 1)
 
-	def test_a_database_app_cannot_store_a_vue_component(self):
-		# Vue components need the repository's build, so only a repository app ships them.
+	def test_a_database_app_cannot_store_source_the_browser_cannot_run(self):
+		# Vue components and TypeScript need the repository's build, so only a repository app ships them.
 		app = make_studio_app(app_name="vue-" + frappe.generate_hash(length=8))
-		with self.assertRaises(frappe.ValidationError) as refused:
-			write_studio_file("", app.name, "components/Card.vue", "<template><b>hi</b></template>\n")
-		self.assertIn("Export the app to a repository", str(refused.exception))
+		for file_path in ("components/Card.vue", "stores/catalog.ts"):
+			with self.assertRaises(frappe.ValidationError, msg=file_path) as refused:
+				write_studio_file("", app.name, file_path, "export const one = 1\n")
+			self.assertIn("repository", str(refused.exception))
 		self.assertEqual(get_app_files(app.name), [])
 
 	def test_only_an_editor_can_enumerate_components_on_disk(self):

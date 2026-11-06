@@ -32,34 +32,35 @@ def make_db_app(**kwargs):
 class TestFiles(IntegrationTestCase):
 	def test_store_crud_and_tree(self):
 		app = make_db_app()
-		files.create_store_file(app.name, "utils/format.ts")
-		files.write_store_file(app.name, "utils/format.ts", "export const one = 1\n")
+		files.create_store_file(app.name, "utils/format.js")
+		files.write_store_file(app.name, "utils/format.js", "export const one = 1\n")
 		files.write_store_file(app.name, "components/card.css", ".card { color: red }\n")
 		files.create_store_folder(app.name, "assets")
 
-		self.assertEqual(files.read_store_file(app.name, "utils/format.ts"), "export const one = 1\n")
-		self.assertIsNone(files.read_store_file(app.name, "missing.ts"))
+		self.assertEqual(files.read_store_file(app.name, "utils/format.js"), "export const one = 1\n")
+		self.assertIsNone(files.read_store_file(app.name, "missing.js"))
 
 		tree = files.list_store_tree(app.name)
 		self.assertEqual(
 			[(node["path"], node["is_folder"]) for node in tree],
 			[("assets", True), ("components", True), ("utils", True)],
 		)
-		self.assertEqual(tree[2]["children"][0]["path"], "utils/format.ts")
+		self.assertEqual(tree[2]["children"][0]["path"], "utils/format.js")
 
 		paths = [file["path"] for file in files.get_store_files(app.name)]
-		self.assertEqual(paths, ["components/card.css", "utils/format.ts"])
+		self.assertEqual(paths, ["components/card.css", "utils/format.js"])
 
-	def test_the_store_refuses_a_vue_component(self):
+	def test_the_store_refuses_source_the_browser_cannot_run(self):
 		app = make_db_app()
-		with self.assertRaises(frappe.ValidationError) as refused:
-			files.write_store_file(app.name, "components/Card.vue", "<template><b /></template>\n")
-		self.assertIn("Export the app to a repository", str(refused.exception))
+		for path in ("components/Card.vue", "stores/catalog.ts"):
+			with self.assertRaises(frappe.ValidationError, msg=path) as refused:
+				files.write_store_file(app.name, path, "export const one = 1\n")
+			self.assertIn("repository", str(refused.exception))
 
 	def test_a_page_script_is_browsed_and_edited_as_a_file(self):
 		app = make_db_app()
 		page = make_studio_page(app.name, page_title="Board")
-		path = "studio_page/board/board.ts"
+		path = "studio_page/board/board.js"
 
 		tree = files.list_store_tree(app.name)
 		self.assertEqual([node["path"] for node in tree], ["studio_page"])
@@ -72,14 +73,14 @@ class TestFiles(IntegrationTestCase):
 		self.assertEqual(files.get_store_files(app.name), [])
 
 		with self.assertRaises(frappe.ValidationError):
-			files.rename_store_path(app.name, path, "studio_page/board/renamed.ts")
+			files.rename_store_path(app.name, path, "studio_page/board/renamed.js")
 		files.delete_store_path(app.name, path)
 		self.assertEqual(files.read_store_file(app.name, path), "")
 
 	def test_path_rules(self):
 		app = make_db_app()
 		# Reject paths that could escape the app root, as the disk explorer does.
-		for traversal in ("../escape.ts", "a//b.ts", "./x.ts"):
+		for traversal in ("../escape.js", "a//b.js", "./x.js"):
 			with self.assertRaises(frappe.PermissionError, msg=traversal):
 				files.create_store_file(app.name, traversal)
 		for bad_path in (
@@ -96,41 +97,41 @@ class TestFiles(IntegrationTestCase):
 
 	def test_duplicate_and_conflict_checks(self):
 		app = make_db_app()
-		files.create_store_file(app.name, "a.ts")
+		files.create_store_file(app.name, "a.js")
 		with self.assertRaises(frappe.ValidationError):
-			files.create_store_file(app.name, "a.ts")
+			files.create_store_file(app.name, "a.js")
 
-		files.write_store_file(app.name, "a.ts", "let x = 1\n")
+		files.write_store_file(app.name, "a.js", "let x = 1\n")
 		stale_hash = files.file_hash("something else")
 		with self.assertRaises(frappe.ValidationError):
-			files.write_store_file(app.name, "a.ts", "let x = 2\n", known_hash=stale_hash)
-		files.write_store_file(app.name, "a.ts", "let x = 2\n", known_hash=files.file_hash("let x = 1\n"))
-		self.assertEqual(files.read_store_file(app.name, "a.ts"), "let x = 2\n")
+			files.write_store_file(app.name, "a.js", "let x = 2\n", known_hash=stale_hash)
+		files.write_store_file(app.name, "a.js", "let x = 2\n", known_hash=files.file_hash("let x = 1\n"))
+		self.assertEqual(files.read_store_file(app.name, "a.js"), "let x = 2\n")
 
 	def test_the_file_path_index_catches_a_duplicate_the_app_check_misses(self):
 		app = make_db_app()
-		files.create_store_file(app.name, "a.ts")
+		files.create_store_file(app.name, "a.js")
 
 		frappe.db.savepoint("duplicate_path")
 		with patch.object(StudioAppFile, "validate_unique_path"):
 			with self.assertRaises(frappe.UniqueValidationError):
-				files.insert_store_row(app.name, "a.ts", "")
+				files.insert_store_row(app.name, "a.js", "")
 		frappe.db.rollback(save_point="duplicate_path")
 
 	def test_rename_and_delete_folders_move_subtrees(self):
 		app = make_db_app()
-		files.write_store_file(app.name, "utils/a.ts", "export const a = 1\n")
-		files.write_store_file(app.name, "utils/deep/b.ts", "export const b = 2\n")
+		files.write_store_file(app.name, "utils/a.js", "export const a = 1\n")
+		files.write_store_file(app.name, "utils/deep/b.js", "export const b = 2\n")
 
 		files.rename_store_path(app.name, "utils", "lib")
 		self.assertEqual(
-			[file["path"] for file in files.get_store_files(app.name)], ["lib/a.ts", "lib/deep/b.ts"]
+			[file["path"] for file in files.get_store_files(app.name)], ["lib/a.js", "lib/deep/b.js"]
 		)
 		with self.assertRaises(frappe.ValidationError):
-			files.rename_store_path(app.name, "missing.ts", "found.ts")
+			files.rename_store_path(app.name, "missing.js", "found.js")
 
 		files.delete_store_path(app.name, "lib/deep")
-		self.assertEqual([file["path"] for file in files.get_store_files(app.name)], ["lib/a.ts"])
+		self.assertEqual([file["path"] for file in files.get_store_files(app.name)], ["lib/a.js"])
 
 	def test_uses_db_files(self):
 		with exports_in_tempdir():
@@ -149,7 +150,7 @@ class TestFiles(IntegrationTestCase):
 			app = make_db_app()
 			page = make_studio_page(app.name, page_title="Board", script=SETUP_SCRIPT)
 			files.write_store_file(app.name, "components/card.css", ".card { color: red }\n")
-			files.write_store_file(app.name, "router.ts", "export default {}\n")
+			files.write_store_file(app.name, "router.js", "export default {}\n")
 			files.create_store_folder(app.name, "assets")
 
 			app.reload()
@@ -160,11 +161,11 @@ class TestFiles(IntegrationTestCase):
 				frappe.read_file(os.path.join(folder, "components", "card.css")),
 				".card { color: red }\n",
 			)
-			self.assertEqual(frappe.read_file(os.path.join(folder, "router.ts")), "export default {}\n")
+			self.assertEqual(frappe.read_file(os.path.join(folder, "router.js")), "export default {}\n")
 			self.assertTrue(os.path.isdir(os.path.join(folder, "assets")))
-			# Export preserves the script's content in its companion .ts file.
+			# Export preserves the script's content in its companion .js file.
 			self.assertEqual(
-				frappe.read_file(os.path.join(folder, "studio_page", "board", "board.ts")), SETUP_SCRIPT
+				frappe.read_file(os.path.join(folder, "studio_page", "board", "board.js")), SETUP_SCRIPT
 			)
 			# After export, source files belong to the repository and the store is empty.
 			self.assertEqual(files.get_store_files(app.name), [])
@@ -173,7 +174,7 @@ class TestFiles(IntegrationTestCase):
 			app.disable_app_export()
 
 			self.assertEqual(files.read_store_file(app.name, "components/card.css"), ".card { color: red }\n")
-			self.assertEqual(files.read_store_file(app.name, "router.ts"), "export default {}\n")
+			self.assertEqual(files.read_store_file(app.name, "router.js"), "export default {}\n")
 			self.assertEqual(frappe.db.get_value("Studio Page", page.name, "script"), SETUP_SCRIPT)
 
 	def test_disabling_export_refuses_to_delete_files_the_store_cannot_hold(self):
@@ -189,6 +190,7 @@ class TestFiles(IntegrationTestCase):
 			# A repository can contain files that the database store does not support.
 			write_export_file(folder, "assets", "icon.svg", content="<svg />")
 			write_export_file(folder, "components", "Card.vue")
+			write_export_file(folder, "stores", "catalog.ts")
 			write_export_file(folder, "studio_page", "board", "Card.vue")
 			write_export_file(folder, "tailwind.config.js")
 
@@ -198,6 +200,7 @@ class TestFiles(IntegrationTestCase):
 			for path in (
 				"assets/icon.svg",
 				"components/Card.vue",
+				"stores/catalog.ts",
 				"studio_page/board/Card.vue",
 				"tailwind.config.js",
 			):
@@ -216,6 +219,6 @@ class TestFiles(IntegrationTestCase):
 
 	def test_deleting_app_deletes_store(self):
 		app = make_db_app()
-		files.write_store_file(app.name, "a.ts", "let x = 1\n")
+		files.write_store_file(app.name, "a.js", "let x = 1\n")
 		app.delete()
 		self.assertEqual(frappe.db.count("Studio App File", {"studio_app": app.name}), 0)

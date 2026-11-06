@@ -16,6 +16,7 @@ from frappe.studio.files import (
 	validate_folder_removable,
 )
 from frappe.studio.utils import (
+	find_script_file,
 	get_export_folder,
 	get_exported_app_folders,
 	get_exported_app_name,
@@ -184,7 +185,7 @@ def get_custom_vue_components(frappe_app: str | None = None) -> list[dict]:
 
 @frappe.whitelist()
 def get_studio_page_scripts(frappe_app: str) -> list[dict]:
-	"""Discover exported page scripts (<page>.ts) under <app>/studio/<studio_app>/studio_page/.
+	"""Discover exported page scripts (<page>.js) under <app>/studio/<studio_app>/studio_page/.
 
 	Keyed by the page's docname (`page_name`, read from the sibling JSON) so the runtime can load
 	a page's compiled setup() module by its docname.
@@ -201,13 +202,13 @@ def get_studio_page_scripts(frappe_app: str) -> list[dict]:
 		if not os.path.isdir(page_folder):
 			continue
 
-		# each page is a folder holding <stem>.json + <stem>.ts
+		# each page is a folder holding <stem>.json + <stem>.js
 		for entry in sorted(os.listdir(page_folder)):
 			page_dir = os.path.join(page_folder, entry)
 			if not os.path.isdir(page_dir):
 				continue
 
-			file_path = os.path.join(page_dir, f"{entry}.ts")
+			file_path = find_script_file(page_dir, entry)
 			json_path = os.path.join(page_dir, f"{entry}.json")
 			if not (os.path.exists(file_path) and os.path.exists(json_path)):
 				continue

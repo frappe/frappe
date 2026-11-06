@@ -2,7 +2,7 @@
  * Manage database source files and their module registry for the editor and default renderer.
  *
  * Fetch stored files together. Page scripts arrive with their page data and use the virtual
- * path studio_page/<stem>/<stem>.ts, so relative imports resolve as they do in a repository.
+ * path studio_page/<stem>/<stem>.js, so relative imports resolve as they do in a repository.
  * appRuntime.ts loads this implementation on demand; app builds exclude it.
  */
 
@@ -23,6 +23,8 @@ const appFilesResource = createResource({
 	method: "GET",
 	makeParams: ({ app_name }: { app_name: string }) => ({ app_name }),
 })
+
+const ROUTER_FILE = "router.js"
 
 let loadedAppName: string | null = null
 let sources: Record<string, string> = {}
@@ -67,12 +69,11 @@ export function loadAppModule(path: string): Promise<any> {
 	return getRegistry().loadModule(path)
 }
 
-/** Load router.ts or router.js and return its config, if present. */
+/** Load router.js and return its config, if present. */
 export async function loadAppRouterConfig(): Promise<RouterConfig | undefined> {
 	const registry = getRegistry()
-	const routerFile = ["router.ts", "router.js"].find((path) => registry.hasFile(path))
-	if (!routerFile) return undefined
-	const module = await registry.loadModule(routerFile)
+	if (!registry.hasFile(ROUTER_FILE)) return undefined
+	const module = await registry.loadModule(ROUTER_FILE)
 	return module?.default || undefined
 }
 
@@ -84,7 +85,7 @@ export async function loadAppPageScriptModule(page: {
 	const script = page.script || ""
 	if (!script.trim()) return null
 	const stem = scrub(page.page_title || "page")
-	const path = `studio_page/${stem}/${stem}.ts`
+	const path = `studio_page/${stem}/${stem}.js`
 	const registry = getRegistry()
 	await registry.addFile(path, script)
 	return registry.loadModule(path)
@@ -95,8 +96,8 @@ function getRegistry(): AppModuleRegistry {
 	return registry
 }
 
-/** Return a page script's syntax error, or null if the TypeScript module parses. */
+/** Return a page script's syntax error, or null if the module parses. */
 export async function checkAppScript(source: string): Promise<string | null> {
-	const compiled = await compileFile("page_script.ts", source)
+	const compiled = await compileFile("page_script.js", source)
 	return compiled.errors.length ? compiled.errors.map(describeError).join("\n") : null
 }

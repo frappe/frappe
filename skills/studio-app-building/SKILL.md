@@ -24,6 +24,10 @@ file copy.
 | Database | `Studio App File` records in the site database | The browser | Edit and preview in Studio, on any site |
 | Repository (`is_standard`) | Exported files under a linked Frappe app | Vite | Edit files, run `watch-studio`, check `/dev/<app_route>` |
 
+A database app holds `.js`, `.json` and `.css` files. The browser links and runs
+them as they are, so TypeScript is a syntax error there. A repository app builds
+with Vite and can hold `.ts` and `.vue` files too.
+
 A database app can import `vue`, `vue-router`, `pinia`, `frappe-ui`,
 `frappe-ui/list`, `frappe-ui/charts` and its own files — there is no npm.
 Needing anything else is the signal to export the app to a repository.
@@ -33,7 +37,7 @@ Needing anything else is the signal to export the app to a repository.
 - For a standard (exported) app, create the app and pages in Studio, then
   enable export with `StudioApp.enable_app_export(target_app)`. This sets
   `is_standard` and `frappe_app`, writes JSON, and moves existing page scripts
-  into `.ts` files. Document save exports only in developer mode; see
+  into `.js` files. Document save exports only in developer mode; see
   `frappe/studio/export.py:can_export`.
 - Files live under the linked Frappe app. Inspect an existing export such as
   `frappe/studio/note/` before creating them directly:
@@ -41,14 +45,15 @@ Needing anything else is the signal to export the app to a repository.
   ```text
   <frappe_app>/studio/<studio_app>/<studio_app>.json
   <frappe_app>/studio/<studio_app>/studio_page/<scrubbed_title>/<scrubbed_title>.json
-  <frappe_app>/studio/<studio_app>/studio_page/<scrubbed_title>/<scrubbed_title>.ts
+  <frappe_app>/studio/<studio_app>/studio_page/<scrubbed_title>/<scrubbed_title>.js
   <frappe_app>/studio/<studio_app>/studio_components/<component_name>.json
   ```
 
-- The `.ts` file is optional. In page JSON, top-level `name` is the scrubbed
-  title; `page_name` is the real document ID used by Studio and the script
-  bundle. Keep `page_name` stable. If the title changes on disk, move the JSON
-  and `.ts` file to the new `frappe.scrub(page_title)` stem. Resource fields
+- The page script file is optional, and a repository app can write it as `.ts`
+  instead. In page JSON, top-level `name` is the scrubbed title; `page_name` is
+  the real document ID used by Studio and the script bundle. Keep `page_name`
+  stable. If the title changes on disk, move the JSON and the script file to the
+  new `frappe.scrub(page_title)` stem. Resource fields
   such as `fields` and `filters` are JSON encoded strings in exported child
   rows.
 - The app `route` is the URL prefix; page routes start with `/` and are
@@ -91,7 +96,7 @@ Needing anything else is the signal to export the app to a repository.
   await the script is outside the instance, so a hook never fires and a
   watcher is never disposed, as in any Vue `async setup()`. A database app
   stores the module in `Studio Page.script`; a repository app in a sibling
-  `.ts` file.
+  `.js` file.
 - Shared code (stores, composables, and a repository app's `.vue` components)
   lives in the app's own files and is imported via `@app/...`, wherever those
   files are stored.
@@ -154,7 +159,7 @@ Studio Component (`studio_components/*.json`) instead.
 
 - With the Vite dev server running, adding, removing, or editing a `.vue`
   file updates the editor's component panel and canvas without a restart. A
-  page `.ts` script may also import it directly
+  page script may also import it directly
   (`import Board from "@app/components/Board.vue"`) to render it with `h()`.
 
 ## Sync, run, and verify
@@ -163,7 +168,7 @@ Studio Component (`studio_components/*.json`) instead.
   `bench --site <site> watch-studio`. The watcher imports changed app, page,
   and component JSON automatically. It discovers `studio/` folders at startup,
   so restart it if the target folder was created later. Vite hot-reloads page
-  `.ts` files; the watcher does not sync deletions.
+  scripts; the watcher does not sync deletions.
 - Inspect the Vite-served `/dev/<app_route>` preview and its page routes.
   Preview can show draft blocks without publishing or building. Do not run
   `bench migrate` or `build-studio-app` in the edit-and-preview loop. Build

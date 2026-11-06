@@ -331,7 +331,7 @@ class TestStudioPage(IntegrationTestCase):
 			page.get_app().write_files(
 				[
 					{"path": "components/Hero.vue", "content": "<template><h1 /></template>"},
-					{"path": "stores/settings.ts", "content": "export const x = 1"},
+					{"path": "stores/settings.js", "content": "export const x = 1"},
 				]
 			)
 			page.script = 'import { x } from "@app/stores/settings"\nexport default function setup() {}'
@@ -340,7 +340,7 @@ class TestStudioPage(IntegrationTestCase):
 
 			copy = page.get_copy(blocks)
 			self.assertEqual(
-				[file["path"] for file in copy["files"]], ["components/Hero.vue", "stores/settings.ts"]
+				[file["path"] for file in copy["files"]], ["components/Hero.vue", "stores/settings.js"]
 			)
 
 			pasted = paste_page(target_app.name, {**copy, "blocks": blocks})
@@ -350,7 +350,7 @@ class TestStudioPage(IntegrationTestCase):
 				"<template><h1 /></template>",
 			)
 			self.assertEqual(
-				frappe.read_file(os.path.join(pasted.get_app().get_folder_path(), "stores/settings.ts")),
+				frappe.read_file(os.path.join(pasted.get_app().get_folder_path(), "stores/settings.js")),
 				"export const x = 1",
 			)
 
@@ -359,19 +359,19 @@ class TestStudioPage(IntegrationTestCase):
 			app = make_studio_app(
 				app_name="files-" + frappe.generate_hash(length=10), is_standard=1, frappe_app="frappe"
 			)
-			app.write_files([{"path": "stores/settings.ts", "content": "export const x = 1"}])
+			app.write_files([{"path": "stores/settings.js", "content": "export const x = 1"}])
 
 			with self.assertRaisesRegex(frappe.ValidationError, "different content"):
 				app.write_files(
 					[
-						{"path": "stores/new.ts", "content": "export const y = 1"},
-						{"path": "stores/settings.ts", "content": "export const x = 2"},
+						{"path": "stores/new.js", "content": "export const y = 1"},
+						{"path": "stores/settings.js", "content": "export const x = 2"},
 					]
 				)
 
-			self.assertFalse(os.path.exists(os.path.join(app.get_folder_path(), "stores/new.ts")))
+			self.assertFalse(os.path.exists(os.path.join(app.get_folder_path(), "stores/new.js")))
 			self.assertEqual(
-				frappe.read_file(os.path.join(app.get_folder_path(), "stores/settings.ts")),
+				frappe.read_file(os.path.join(app.get_folder_path(), "stores/settings.js")),
 				"export const x = 1",
 			)
 
@@ -395,14 +395,14 @@ class TestStudioPage(IntegrationTestCase):
 			app = make_studio_app(
 				app_name="files-" + frappe.generate_hash(length=10), is_standard=1, frappe_app="frappe"
 			)
-			outside = os.path.join(os.path.dirname(app.get_folder_path()), "secret.ts")
+			outside = os.path.join(os.path.dirname(app.get_folder_path()), "secret.js")
 			with open(outside, "w") as f:
 				f.write("export const secret = true")
 			os.makedirs(os.path.join(app.get_folder_path(), "stores"))
-			os.symlink(outside, os.path.join(app.get_folder_path(), "stores/secret.ts"))
+			os.symlink(outside, os.path.join(app.get_folder_path(), "stores/secret.js"))
 
 			with self.assertRaises(frappe.PermissionError):
-				app.collect_files('import "@app/stores/secret.ts"', "", [])
+				app.collect_files('import "@app/stores/secret.js"', "", [])
 
 	def test_pasted_blocks_bring_the_data_sources_and_variables_they_use(self):
 		app = make_studio_app(app_name="deps-" + frappe.generate_hash(length=10))
@@ -544,6 +544,24 @@ class TestStudioPage(IntegrationTestCase):
 
 		draft = make_studio_page(app.name, page_title="Home Draft", route="/home", published=0)
 		self.assertRaises(frappe.ValidationError, draft.publish)
+
+	def test_a_repository_page_script_keeps_an_existing_typescript_file(self):
+		with exports_in_tempdir():
+			app = make_studio_app(
+				app_name="ts-" + frappe.generate_hash(length=10), is_standard=1, frappe_app="frappe"
+			)
+			page = make_studio_page(app.name, page_title="Board", script="console.log('one')")
+			page.export_script_to_file()
+			self.assertTrue(page.get_script_file_path().endswith("board.js"))
+
+			os.rename(page.get_script_file_path(), os.path.join(page.get_folder_path(), "board.ts"))
+			page.db_set("script", "console.log('two')", update_modified=False)
+			page.reload()
+			page.write_script_file()
+
+			self.assertTrue(page.get_script_file_path().endswith("board.ts"))
+			self.assertEqual(frappe.read_file(page.get_script_file_path()), "console.log('two')")
+			self.assertFalse(os.path.exists(os.path.join(page.get_folder_path(), "board.js")))
 
 	def test_retitle_with_the_same_stem_keeps_the_export(self):
 		with exports_in_tempdir():

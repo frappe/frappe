@@ -9,8 +9,8 @@ Their page scripts stay in Studio Page records but appear at the same paths
 in the file explorer as repository page scripts.
 
 Both app types can produce a Vite build. A database app can also compile its
-source in the browser when no build is available. The browser compiles
-TypeScript only, so a Vue single file component needs a repository app.
+source in the browser when no build is available. The browser runs the source
+as it is, so TypeScript and Vue single file components need a repository app.
 
 Enabling export writes stored files to the repository and clears the file store.
 Disabling export restores supported files to the database before deleting the
@@ -28,9 +28,9 @@ from frappe import _
 # Allow client source files only. Files that execute on the server, such as Python files,
 # must be edited in the repository.
 ALLOWED_STUDIO_FILE_EXTENSIONS = {".ts", ".js", ".vue", ".json", ".css"}
-# A database app builds its pages from Studio components. A Vue single file component needs the
-# repository's build, so the database store does not keep one.
-ALLOWED_STORED_FILE_EXTENSIONS = ALLOWED_STUDIO_FILE_EXTENSIONS - {".vue"}
+# The browser links and runs a database app's source as it is. TypeScript and Vue single file
+# components need the repository's build, so the database store does not keep them.
+ALLOWED_STORED_FILE_EXTENSIONS = {".js", ".json", ".css"}
 
 
 def uses_db_files(studio_app: str) -> bool:
@@ -40,8 +40,11 @@ def uses_db_files(studio_app: str) -> bool:
 
 
 def is_page_script_path(path: str) -> bool:
-	"""Match `studio_page/<stem>/<stem>.ts`, the page script path used by both source stores."""
-	return bool(re.fullmatch(r"studio_page/([^/]+)/\1\.ts", path))
+	"""Match `studio_page/<stem>/<stem>.js`, the page script path used by both source stores.
+
+	A repository app may still hold a page script written in TypeScript.
+	"""
+	return bool(re.fullmatch(r"studio_page/([^/]+)/\1\.(js|ts)", path))
 
 
 def page_script_owner(studio_app: str, file_path: str) -> str | None:
@@ -61,7 +64,7 @@ def page_script_paths(studio_app: str) -> dict[str, str]:
 		filters={"studio_app": studio_app, "page_title": ("is", "set")},
 		fields=["name", "page_title"],
 	)
-	return {f"studio_page/{(stem := frappe.scrub(page.page_title))}/{stem}.ts": page.name for page in pages}
+	return {f"studio_page/{(stem := frappe.scrub(page.page_title))}/{stem}.js": page.name for page in pages}
 
 
 def list_store_tree(studio_app: str) -> list[dict]:
@@ -370,6 +373,12 @@ def validate_allowed_extension(file_path: str, allowed: set[str] | None = None) 
 	if extension == ".vue":
 		frappe.throw(
 			_("A database app cannot hold Vue components. Export the app to a repository to add one.")
+		)
+	if extension == ".ts":
+		frappe.throw(
+			_(
+				"A database app has no TypeScript compiler. Write JavaScript, or export the app to a repository."
+			)
 		)
 	frappe.throw(_("Editing {0} files is not allowed.").format(extension or "these"))
 

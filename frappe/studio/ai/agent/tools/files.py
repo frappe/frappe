@@ -26,7 +26,7 @@ def run_list_app_files(ctx, args: dict) -> str:
 		return _fail(error)
 	paths = _flatten(tree)
 	if not paths:
-		return "The app has no editable files yet. Create them with write_app_file (e.g. stores/notes.ts)."
+		return "The app has no editable files yet. Create them with write_app_file (e.g. stores/notes.js)."
 	return "App files (paths are relative to the app root, imported as '@app/<path>'):\n" + "\n".join(paths)
 
 
@@ -149,7 +149,7 @@ read_app_file = Tool(
 		"properties": {
 			"file_path": {
 				"type": "string",
-				"description": "Path relative to the app root, e.g. 'stores/notes.ts'.",
+				"description": "Path relative to the app root, e.g. 'stores/notes.js'.",
 			}
 		},
 		"required": ["file_path"],
@@ -172,7 +172,7 @@ write_app_file = Tool(
 		"properties": {
 			"file_path": {
 				"type": "string",
-				"description": "Path relative to the app root, e.g. 'stores/notes.ts' or 'composables/useFilters.ts'.",
+				"description": "Path relative to the app root, e.g. 'stores/notes.js' or 'composables/useFilters.js'.",
 			},
 			"content": {"type": "string", "description": "The full file content."},
 		},
@@ -190,7 +190,7 @@ delete_app_file = Tool(
 		"properties": {
 			"file_path": {
 				"type": "string",
-				"description": "Path relative to the app root, e.g. 'utils/old.ts'.",
+				"description": "Path relative to the app root, e.g. 'utils/old.js'.",
 			}
 		},
 		"required": ["file_path"],

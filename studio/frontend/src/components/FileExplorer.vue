@@ -121,7 +121,7 @@
 				variant="outline"
 				:label="newEntryType === 'folder' ? 'Folder path' : 'File path'"
 				:description="newEntryDescription"
-				:placeholder="newEntryType === 'folder' ? 'composables' : 'composables/useThing.ts'"
+				:placeholder="newEntryType === 'folder' ? 'composables' : 'composables/useThing.js'"
 				v-model="newEntryPath"
 				@keyup.enter="createEntry"
 			/>
@@ -264,7 +264,10 @@ const activePagePaths = computed(() => {
 	const title = activePage.value?.page_title
 	if (!title) return null
 	const folder = `studio_page/${scrub(title)}`
-	return { folder, script: `${folder}/${scrub(title)}.ts` }
+	const stem = `${folder}/${scrub(title)}`
+	// A repository app may hold the script as .ts; Studio writes .js.
+	const existing = [`${stem}.js`, `${stem}.ts`].find((path) => findNode(path))
+	return { folder, script: existing ?? `${stem}.js` }
 })
 
 function findNode(path: string | null, nodes: StudioFileNode[] = tree.value): StudioFileNode | null {
@@ -343,7 +346,7 @@ function getFileBadge(path: string): { label: string; colorClass: string } {
 }
 
 async function openNode(node: StudioFileNode) {
-	if (node.path === "router.ts") return openRouterEditor()
+	if (node.path === "router.js" || node.path === "router.ts") return openRouterEditor()
 	if (dirty.value) {
 		const discard = await confirm("Discard unsaved changes?")
 		if (!discard) return
@@ -360,7 +363,7 @@ async function openNode(node: StudioFileNode) {
 	}
 }
 
-// the router editor owns router.ts: its completions, page-name warning and help live there
+// the router editor owns the router file: its completions, page-name warning and help live there
 function openRouterEditor() {
 	store.studioLayout.leftPanelActiveTab = "Pages"
 	store.showRouterEditor = true
@@ -422,8 +425,8 @@ async function save() {
 const showNewEntryDialog = ref(false)
 const newEntryPath = ref("")
 const newEntryType = ref<"file" | "folder">("file")
-// A database app has no Vue compiler in its build path, so .vue files need a repository app.
-const allowedExtensions = computed(() => (store.usesDbFiles ? ".ts, .js, .json, .css" : ".ts, .js, .vue, .json, .css"))
+// A database app's source runs as it is, so TypeScript and .vue files need a repository app.
+const allowedExtensions = computed(() => (store.usesDbFiles ? ".js, .json, .css" : ".ts, .js, .vue, .json, .css"))
 const newEntryDescription = computed(() =>
 	newEntryType.value === "folder"
 		? `Relative to studio/${app.value?.app_name}`
@@ -460,7 +463,7 @@ function focusFormInput(formRef: { value: any }, start?: number, end?: number) {
 }
 
 function isPageScriptPath(path: string): boolean {
-	const match = path.match(/^studio_page\/([^/]+)\/([^/]+)\.ts$/)
+	const match = path.match(/^studio_page\/([^/]+)\/([^/]+)\.(?:js|ts)$/)
 	return Boolean(match && match[1] === match[2])
 }
 
