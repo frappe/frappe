@@ -111,6 +111,7 @@
   {
    "default": "0",
    "depends_on": "eval: doc.service != \"Frappe Mail\" && !doc.backend_app_flow",
+   "description": "Tick if the mail server username is not the same as the email address.",
    "fieldname": "login_id_is_different",
    "fieldtype": "Check",
    "hide_days": 1,
@@ -119,6 +120,7 @@
   },
   {
    "depends_on": "login_id_is_different",
+   "description": "The username used to sign in to the mail server.",
    "fieldname": "login_id",
    "fieldtype": "Data",
    "hide_days": 1,
@@ -136,6 +138,7 @@
   {
    "default": "0",
    "depends_on": "eval: doc.auth_method === \"Basic\" && doc.service != \"Frappe Mail\"",
+   "description": "Save without a password. Users this account is added to are asked for the password the next time they open the desk.",
    "fieldname": "awaiting_password",
    "fieldtype": "Check",
    "hide_days": 1,
@@ -162,6 +165,7 @@
   },
   {
    "depends_on": "eval:!doc.service",
+   "description": "Copies the server settings from an Email Domain. Use this for mailboxes on your own domain that share one mail server.",
    "fieldname": "domain",
    "fieldtype": "Link",
    "hide_days": 1,
@@ -174,6 +178,7 @@
   },
   {
    "depends_on": "eval:!doc.domain",
+   "description": "Fills in the server settings for this provider. Choose Outlook.com for Outlook, Hotmail and Microsoft 365 mailboxes.",
    "fieldname": "service",
    "fieldtype": "Select",
    "hide_days": 1,
@@ -191,6 +196,7 @@
   },
   {
    "default": "0",
+   "description": "Fetch new emails from this mailbox every few minutes.",
    "fieldname": "enable_incoming",
    "fieldtype": "Check",
    "hide_days": 1,
@@ -199,6 +205,7 @@
   },
   {
    "default": "0",
+   "description": "IMAP reads emails from the folders you list below and leaves them on the server. Untick to use POP, which reads only the inbox.",
    "fetch_from": "domain.use_imap",
    "fieldname": "use_imap",
    "fieldtype": "Check",
@@ -319,6 +326,7 @@
   },
   {
    "default": "0",
+   "description": "Send emails from this address.",
    "fieldname": "enable_outgoing",
    "fieldtype": "Check",
    "hide_days": 1,
@@ -396,6 +404,7 @@
   },
   {
    "default": "0",
+   "description": "Tick only if the outgoing server accepts email without a username and password, like a local mail relay.",
    "fieldname": "no_smtp_authentication",
    "fieldtype": "Check",
    "hide_days": 1,
@@ -600,6 +609,7 @@
   },
   {
    "default": "Basic",
+   "description": "Basic signs in with a password or app password. OAuth uses Sign in with Google or Microsoft, which is set up once in Email Settings.",
    "fieldname": "auth_method",
    "fieldtype": "Select",
    "label": "Method",
@@ -615,6 +625,7 @@
   },
   {
    "depends_on": "eval: doc.auth_method === \"OAuth\"",
+   "description": "The Google or Microsoft sign-in app. Set it up in Email Settings under Sign-in Apps.",
    "fieldname": "connected_app",
    "fieldtype": "Link",
    "label": "Connected App",
@@ -623,6 +634,7 @@
   },
   {
    "depends_on": "eval: doc.auth_method === \"OAuth\" && !doc.backend_app_flow",
+   "description": "The user whose sign-in is used for this mailbox. This user has to click Authorize API Access and sign in.",
    "fieldname": "connected_user",
    "fieldtype": "Link",
    "label": "Connected User",
@@ -694,6 +706,7 @@
   {
    "default": "0",
    "depends_on": "eval: doc.auth_method === \"OAuth\"",
+   "description": "Microsoft 365 only. Signs in as the app itself instead of as a user. Needs admin consent and mailbox permissions in Exchange Online.",
    "fieldname": "backend_app_flow",
    "fieldtype": "Check",
    "label": "Authenticate as Service Principal"
@@ -769,7 +782,7 @@
  "index_web_pages_for_search": 1,
  "links": [],
  "make_attachments_public": 1,
- "modified": "2026-08-21 23:24:23.931446",
+ "modified": "2026-10-10 03:54:40.327083",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Account",

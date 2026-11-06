@@ -19,6 +19,7 @@
 .settings-dialog {
 	display: flex;
 	flex: 1;
+	min-width: 0;
 	min-height: 0;
 	background-color: var(--surface-elevation-1);
 }
@@ -168,7 +169,7 @@
 .settings-dialog-panel-title {
 	display: flex;
 	gap: 0.5rem;
-	height: 1.25rem;
+	min-height: 1.25rem;
 	font-size: var(--text-xl);
 	font-weight: var(--weight-semibold);
 	line-height: 1;
