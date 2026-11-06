@@ -719,7 +719,7 @@ class File(Document):
 
 	def unzip(self) -> list["File"]:
 		"""Unzip current file and replace it by its children"""
-		from frappe.core.api.file import get_max_extract_size
+		from frappe.core.api.file import get_max_extract_members, get_max_extract_size
 
 		if not self.file_url.endswith(".zip"):
 			frappe.throw(_("{0} is not a zip file").format(self.file_name))
@@ -743,6 +743,13 @@ class File(Document):
 				if not (file.is_dir() or file.filename.startswith("__MACOSX/"))
 				and not os.path.basename(file.filename).startswith(".")
 			]
+
+			if len(members) > get_max_extract_members():
+				frappe.throw(
+					_("Zip file contains more than the maximum allowed {0} files").format(
+						get_max_extract_members()
+					)
+				)
 
 			# Reject on declared (central directory) sizes before reading any member,
 			# so a small, highly compressible archive can't force large reads/writes.

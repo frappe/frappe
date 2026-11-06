@@ -1876,9 +1876,7 @@ class Document(_DocumentBase):
 
 		for doc in docs_to_validate:
 			is_submittable = self.meta.is_submittable
-			link_fields = doc.meta.get_link_fields() + doc.meta.get(
-				"fields", {"fieldtype": ("=", "Dynamic Link")}
-			)
+			link_fields = doc.meta.get_link_fields() + doc.meta.get_dynamic_link_fields()
 
 			for df in link_fields:
 				docname = doc.get(df.fieldname)
@@ -3589,7 +3587,7 @@ class Document(_DocumentBase):
 		invalid_links = []
 		cancelled_links = []
 
-		for df in self.meta.get_link_fields() + self.meta.get("fields", {"fieldtype": ("=", "Dynamic Link")}):
+		for df in self.meta.get_link_fields() + self.meta.get_dynamic_link_fields():
 			docname = self.get(df.fieldname)
 			if not docname:
 				continue

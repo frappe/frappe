@@ -182,7 +182,7 @@ def execute_query(query, *args, _db=None, **kwargs):
 	dt = query.__dict__.get("_doctype")
 	parent_dt = query.__dict__.get("_parent_doctype")
 	fields = query.__dict__.get("_fields_list", [])
-	child_queries = query._child_queries
+	child_queries = query.__dict__.get("_child_queries")
 	name_field_injected = query.__dict__.get("_name_field_injected", False)
 	query, params = prepare_query(query)
 	if db.db_type == "sqlite":
@@ -190,7 +190,7 @@ def execute_query(query, *args, _db=None, **kwargs):
 		kwargs["_skip_sqlite_transpilation"] = True
 	result = db.sql(query, params, *args, **kwargs)  # nosemgrep
 
-	if child_queries and isinstance(child_queries, list) and result:
+	if child_queries and result:
 		execute_child_queries(child_queries, result)
 		if dt:
 			mask_child_query_fields(child_queries, result)

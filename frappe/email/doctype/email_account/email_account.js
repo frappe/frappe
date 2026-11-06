@@ -134,19 +134,24 @@ function set_default_max_attachment_size(frm) {
 }
 function add_helpful_links(frm) {
 	// For better UX
-	if (frm.doc.service === "GMail") {
-		frm.set_df_property(
-			"password",
-			"description",
-			__("To generate password click {0}", [
-				"<a href='https://knowledge.workspace.google.com/kb/how-to-create-app-passwords-000009237' target='_blank'>" +
-					__("here") +
-					"</a>",
-			])
-		);
-	} else {
-		frm.set_df_property("password", "description", "");
-	}
+	const gmail = frm.doc.service === "GMail";
+	frm.set_df_property(
+		"password",
+		"label",
+		frm.doc.service ? __("App password") : __("Password")
+	);
+	frm.set_df_property(
+		"password",
+		"description",
+		gmail
+			? __(
+					"A 16-character password you create in your Google Account, not your Gmail password. Needs 2-Step Verification."
+			  ) +
+					` <a href="https://support.google.com/accounts/answer/185833" target="_blank" rel="noopener">${__(
+						"How to create one"
+					)}</a>`
+			: ""
+	);
 
 	if (frm.doc.service === "Frappe Mail") {
 		frm.set_df_property(
@@ -243,6 +248,7 @@ frappe.ui.form.on("Email Account", {
 		frm.saved_email_id = frm.doc.email_id;
 		frm.events.enable_incoming(frm);
 		frm.events.show_oauth_authorization_message(frm);
+		add_helpful_links(frm);
 
 		if (frappe.route_flags.delete_user_from_locals && frappe.route_flags.linked_user) {
 			delete frappe.route_flags.delete_user_from_locals;

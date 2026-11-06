@@ -75,10 +75,11 @@ ONE_CLICK_PROVIDERS: dict[Provider, dict] = {
 
 
 @frappe.whitelist()
-def get_one_click_services() -> dict[str, str]:
-	"""Email Account services this site can add in one click now, each with its provider's label:
-	the providers Frappe Cloud has turned on that this site knows. Empty when Frappe Cloud can't be
-	reached, so adding a mailbox falls back to the normal form."""
+def get_one_click_services() -> dict[str, dict]:
+	"""Email Account services this site can add in one click now, each with its provider's label and
+	client ID (Google's only, for a Workspace admin to allow): the providers Frappe Cloud has turned on
+	that this site knows. Empty when Frappe Cloud can't be reached, so adding a mailbox falls back
+	to the normal form."""
 	if not is_v2_site() or not frappe.has_permission("Email Account", "create"):
 		return {}
 	try:
@@ -87,16 +88,19 @@ def get_one_click_services() -> dict[str, str]:
 		frappe.clear_last_message()
 		frappe.log_error("Couldn't get the one-click email providers from Frappe Cloud")
 		return {}
+	if isinstance(active, list):  # Central before it sent client IDs
+		active = dict.fromkeys(active)
 	return {
-		config["service"]: config["label"]
+		config["service"]: {"label": config["label"], "client_id": active[provider]}
 		for provider, config in ONE_CLICK_PROVIDERS.items()
 		if provider in active
 	}
 
 
 @redis_cache(ttl=10 * 60)
-def get_active_providers() -> list[str]:
-	"""The providers Frappe Cloud has turned on; Central is asked at most every 10 minutes."""
+def get_active_providers() -> dict[str, str | None]:
+	"""The providers Frappe Cloud has turned on, with Google's client ID; Central is asked at most
+	every 10 minutes."""
 	return call_central_method("get_active_providers")
 
 
@@ -106,12 +110,14 @@ def initiate_mailbox_connect(
 	redirect_to: str = DEFAULT_LANDING,
 	target_doctype: str | None = None,
 	email_account: str | None = None,
+	email: str | None = None,
 ) -> str | None:
 	"""Start a mailbox Connect; returns the provider's sign-in link, or None when adding a mailbox
 	of `service` can't be done in one click here and needs the normal Email Account form.
 
 	With `email_account`, signing in reconnects that mailbox instead of adding one, with the
-	provider it was connected with; `service` is ignored."""
+	provider it was connected with; `service` is ignored. Otherwise `email` is the address the user
+	means to add: the provider is asked to sign in with it, and another mailbox is refused."""
 	if email_account:
 		frappe.has_permission("Email Account", "write", doc=email_account, throw=True)
 		connected_app, login_hint = frappe.db.get_value(
@@ -128,7 +134,7 @@ def initiate_mailbox_connect(
 				)
 			)
 	else:
-		login_hint = None
+		login_hint = email
 		frappe.has_permission("Email Account", "create", throw=True)
 		provider = next((k for k, v in ONE_CLICK_PROVIDERS.items() if v["service"] == service), None)
 		if not provider or not is_v2_site():
@@ -167,6 +173,7 @@ def initiate_mailbox_connect(
 			"redirect_to": redirect_to,
 			"target_doctype": target_doctype,
 			"email_account": email_account,
+			"email": email,
 		},
 		expires_in_sec=NOTE_TTL,
 	)
@@ -222,7 +229,12 @@ def callback(
 	# the provider can only send the browser back with a GET, which is rolled back unless it commits;
 	# the state note above ties this request to the user's own sign-in
 	frappe.db.commit()  # keeps the mailbox or the Error Log  # nosemgrep
-	land(note["redirect_to"], result, account_email if account_name else email, note["provider"])
+	land(
+		note["redirect_to"],
+		result,
+		account_email if account_name else note.get("email") or email,
+		note["provider"],
+	)
 
 
 def connect_mailbox(
@@ -277,6 +289,8 @@ def connect_mailbox(
 			return "failed", email
 		if account_email.casefold() != email.casefold():
 			return "wrong_mailbox", email
+	elif note.get("email") and note["email"].casefold() != email.casefold():
+		return "wrong_mailbox", email
 	elif frappe.db.exists("Email Account", {"email_id": email}):
 		return "already_connected", email
 

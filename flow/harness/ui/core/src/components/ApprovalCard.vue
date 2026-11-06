@@ -118,7 +118,7 @@ const title = computed(() => {
 	if (custom != null) return custom
 	switch (props.call.name) {
 		case "bash":
-			return "Run this command?"
+			return a.description || "Run this command?"
 		case "edit": {
 			const n = a.edits?.length ?? 1
 			return `Apply ${n} edit${n === 1 ? "" : "s"} to ${a.path ?? "file"}?`

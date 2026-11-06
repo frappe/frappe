@@ -14,6 +14,8 @@ from collections.abc import AsyncIterator, Callable, Mapping
 from dataclasses import dataclass, field
 from typing import Any, cast
 
+import httpx
+
 from flow_harness.events import (
 	AnyEvent,
 	AssistantMessage,
@@ -36,6 +38,8 @@ from flow_harness.model.content import ResolvedImage, resolve_tool_images, resol
 from flow_harness.model.errors import normalize_litellm_error
 from flow_harness.model.retry import run_with_retries
 from flow_harness.model.tool_display import tool_call_display_ready_event, with_tool_call_displays
+
+STREAM_IDLE_TIMEOUT_SECONDS = 120.0
 
 
 class LiteLLMModel(Model):
@@ -143,7 +147,9 @@ class LiteLLMModel(Model):
 		import litellm
 
 		try:
-			response = await await_with_cancellation(litellm.acompletion(**kwargs), cancellation)
+			response = await await_with_cancellation(
+				asyncio.wait_for(litellm.acompletion(**kwargs), _completion_timeout(kwargs)), cancellation
+			)
 		except ModelCancelled:
 			raise
 		except Exception as exc:
@@ -177,6 +183,8 @@ class LiteLLMModel(Model):
 		kwargs["stream"] = True
 		kwargs["stream_options"] = {"include_usage": True}
 		assembler = _ResponseAssembler(tool_display_templates=tool_display_templates)
+		timeout = _completion_timeout(kwargs)
+		stream: AsyncIterator[Any] | None = None
 		try:
 			# acompletion returns `ModelResponse | CustomStreamWrapper` and picks at
 			# runtime from the `stream` value, which is inside our kwargs dict — so the
@@ -184,18 +192,48 @@ class LiteLLMModel(Model):
 			# only opens the response; chunks come from iterating it.
 			stream = cast(
 				AsyncIterator[Any],
-				await await_with_cancellation(litellm.acompletion(**kwargs), cancellation),
+				await await_with_cancellation(
+					asyncio.wait_for(litellm.acompletion(**kwargs), timeout),
+					cancellation,
+				),
 			)
-			async for chunk in iterate_with_cancellation(stream, cancellation):
+			async for chunk in iterate_with_cancellation(stream, cancellation, idle_timeout=timeout):
 				for event in assembler.add_chunk(chunk):
 					yield event
 		except ModelCancelled:
 			assembler.finish_reason = "aborted"  # keep any partial content in the terminal
 		except Exception as exc:
-			raise normalize_litellm_error(exc, provider=self.provider) from exc
+			error = normalize_litellm_error(exc, provider=self.provider)
+			# LiteLLM withholds the finish reason until its trailing usage chunk.
+			finish_reason = assembler.finish_reason or _attr(stream, "received_finish_reason")
+			if error.kind not in {"timeout", "transport"} or finish_reason is None:
+				raise error from exc
+			assembler.finish_reason = finish_reason
+			chunks = _attr(stream, "chunks")
+			if chunks:
+				response = litellm.stream_chunk_builder(
+					chunks=chunks, messages=kwargs["messages"], logging_obj=_attr(stream, "logging_obj")
+				)
+				assembler.raw_usage = _attr(response, "usage")
 
 		yield assembler.assistant_message(self)
 		yield assembler.usage()
+
+
+def _completion_timeout(kwargs: Mapping[str, Any]) -> float | None:
+	"""Use HTTPX's read limit for response silence, including explicitly disabled limits."""
+	from litellm.litellm_core_utils.request_timeout_resolver import get_configured_request_timeout
+
+	timeout = kwargs.get("timeout")
+	if timeout is None:
+		timeout = kwargs.get("request_timeout")
+	if timeout is None:
+		timeout = get_configured_request_timeout()
+	if timeout is None:
+		timeout = STREAM_IDLE_TIMEOUT_SECONDS
+	if isinstance(timeout, httpx.Timeout):
+		return timeout.read
+	return float(timeout)
 
 
 def litellm_limits(name: str) -> tuple[int | None, int | None]:

@@ -182,7 +182,8 @@ class Meta(Document):
 		return _serialize(self, no_nulls=no_nulls)
 
 	def get_link_fields(self):
-		return self.get("fields", {"fieldtype": "Link", "options": ["!=", "[Select]"]})
+		# Callers can change the returned list
+		return self._link_fields.copy()
 
 	def get_data_fields(self):
 		return self.get("fields", {"fieldtype": "Data"})
@@ -217,6 +218,10 @@ class Meta(Document):
 	@cached_property
 	def _has_mask_fields(self) -> bool:
 		return any(df.get("mask") for df in self.fields)
+
+	@cached_property
+	def _link_fields(self):
+		return self.get("fields", {"fieldtype": "Link", "options": ["!=", "[Select]"]})
 
 	@cached_property
 	def _dynamic_link_fields(self):

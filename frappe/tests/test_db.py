@@ -509,8 +509,10 @@ class TestDB(IntegrationTestCase):
 			with self.subTest(query=query):
 				frappe.db.sql(query)
 
+		frappe.db.savepoint("bound_comment")
 		with self.assertRaises(frappe.db.ProgrammingError):
 			frappe.db.sql("select 1 -- %s", ("\n; select 2 --",))
+		frappe.db.rollback(save_point="bound_comment")
 
 		self.assertEqual(frappe.db.sql("select %s", ("a; b",)), (("a; b",),))
 
@@ -830,6 +832,10 @@ class TestDB(IntegrationTestCase):
 		self.assertEqual(
 			"select * from \"tabtree b\" where lft > '13' and rgt <= '16' and name = '1' and parent = 4134qrsdc and isgroup = 1.00045",
 			modify_query(query),
+		)
+		self.assertEqual(
+			"""select 'a=1', E'b\\' =1', "c=1", $$d=1$$ where e= '1'""",
+			modify_query("""select 'a=1', E'b\\' =1', "c=1", $$d=1$$ where e=1"""),
 		)
 
 		query = 'select locate(".io", "frappe.io"), locate("3", cast(3 as varchar)), locate("3", 3::varchar)'

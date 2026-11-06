@@ -166,11 +166,17 @@ def send_request(gateway_url, params, headers=None, use_post=False, use_json=Fal
 	else:
 		kwargs["params"] = params
 
-	if use_post:
-		response = requests.post(gateway_url, **kwargs)
-	else:
-		response = requests.get(gateway_url, **kwargs)
-	response.raise_for_status()
+	try:
+		if use_post:
+			response = requests.post(gateway_url, **kwargs)
+		else:
+			response = requests.get(gateway_url, **kwargs)
+		response.raise_for_status()
+	except requests.RequestException as e:
+		# the exception text carries the gateway URL, which can include credentials
+		status = getattr(e.response, "status_code", None)
+		frappe.log_error(title="SMS gateway request failed", message=f"{type(e).__name__} (status {status})")
+		raise frappe.ValidationError(_("SMS gateway request failed")) from None
 	return response.status_code
 
 
