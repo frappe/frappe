@@ -22,6 +22,7 @@
   "add_unsubscribe_link",
   "unsubscribe_param",
   "unsubscribe_method",
+  "email_read_tracker_url",
   "expose_recipients",
   "attachments",
   "retry",
@@ -127,6 +128,12 @@
    "label": "Unsubscribe Method"
   },
   {
+   "fieldname": "email_read_tracker_url",
+   "fieldtype": "Small Text",
+   "label": "Email Read Tracker URL",
+   "read_only": 1
+  },
+  {
    "fieldname": "expose_recipients",
    "fieldtype": "Data",
    "label": "Expose Recipients"
@@ -163,7 +170,7 @@
  "idx": 1,
  "in_create": 1,
  "links": [],
- "modified": "2026-07-16 07:11:53.229233",
+ "modified": "2026-11-06 16:03:54.759361",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Queue",
