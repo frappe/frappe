@@ -675,8 +675,6 @@ class TestImage(FrappeTestCase):
 		self.assertLessEqual(height, 500)
 		self.assertLess(len(optimized_content), len(original_content))
 
-<<<<<<< HEAD
-=======
 	def test_optimize_image_fills_transparency_with_white(self):
 		image_file_path = frappe.get_app_path("frappe", "tests", "data", "sample_image_for_optimization.jpg")
 		image = Image.open(image_file_path).convert("RGBA")
@@ -689,9 +687,6 @@ class TestImage(FrappeTestCase):
 
 		self.assertEqual(Image.open(io.BytesIO(optimized_content)).getpixel((10, 10)), (255, 255, 255))
 
-	def test_optimize_pdf(self):
-		from pypdf import PdfReader
->>>>>>> a4c5c08 (test: transparent areas of an optimized jpeg come out white)
 
 class TestPythonExpressions(FrappeTestCase):
 	def test_validation_for_good_python_expression(self):
