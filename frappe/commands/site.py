@@ -1282,7 +1282,7 @@ def set_user_password(site, user, password, logout_all_sessions=False):
 
 
 @click.command("set-last-active-for-user")
-@click.option("--user", help="Email of the user to set the last active date for")
+@click.option("--user", help="Email of the user whose last active date should be set")
 @pass_context
 def set_last_active_for_user(context: CliCtxObj, user=None):
 	"Set users last active date to current datetime"
