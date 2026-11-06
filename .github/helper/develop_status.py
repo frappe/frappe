@@ -52,7 +52,7 @@ def gate_conclusion(run, gate_job):
 
 
 def suite_result(run, workflow):
-	"""("success", "failure" or "pending", failed job url) for a suite run, counting it passed only when its test jobs ran."""
+	"""("success", "failure", "skipped" or "pending", failed job url) for a suite run, counting it passed only when its test jobs ran."""
 	if not run or run["status"] != "completed":
 		return "pending", ""
 	jobs = gh(f"repos/{REPO}/actions/runs/{run['id']}/jobs")["jobs"]
@@ -62,6 +62,8 @@ def suite_result(run, workflow):
 	if failed:
 		return "failure", failed
 	tests = [job["conclusion"] for job in jobs if job["name"].startswith(TEST_JOBS[workflow])]
+	if all(c == "skipped" for c in tests):
+		return "skipped", ""
 	gate = next((job["conclusion"] for job in jobs if job["name"] == SUITES[workflow]), None)
 	if gate == "success" and tests and all(c == "success" for c in tests):
 		return "success", ""
@@ -118,7 +120,7 @@ def branch_state(branch):
 
 
 def fix_status(pr):
-	"""A fix pull request can merge only once every suite failing on its branch passed on it."""
+	"""A fix pull request can merge only once every suite failing on its branch passed on it, or was skipped because the pull request does not touch it."""
 	branch = pr["base"]["ref"]
 	results = [suite_result(pr_run(workflow, pr), workflow) for workflow in failing_suites(branch)]
 	failed = next((url for state, url in results if state == "failure"), None)
