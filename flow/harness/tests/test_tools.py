@@ -174,6 +174,22 @@ async def test_bash_returns_when_the_shell_exits_and_leaves_background_jobs_runn
 		os.killpg(os.getpgid(job), signal.SIGKILL)
 
 
+async def test_bash_runs_commands_in_bash_without_the_callers_stdin(tmp_path):
+	read_end, write_end = os.pipe()  # a stdin that stays open and never sends, like a sandbox's
+	saved = os.dup(0)
+	os.dup2(read_end, 0)
+	try:
+		res = await bash(
+			command='[[ -n "$BASH_VERSION" ]] && cat && echo done', ctx=_ctx(tmp_path, timeout=2)
+		)
+	finally:
+		os.dup2(saved, 0)
+		for fd in (saved, read_end, write_end):
+			os.close(fd)
+	assert not res.is_error, res.content
+	assert "done" in res.content
+
+
 async def test_bash_truncation_spills_to_temp_file(tmp_path):
 	res = await bash(command="seq 3000", ctx=_ctx(tmp_path))
 	assert res.details["truncation"]["truncated"] is True

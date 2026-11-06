@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import shutil
 import tempfile
 import time
 from typing import Annotated
@@ -38,9 +39,12 @@ async def bash(
 	# A file, not a pipe: background jobs the command leaves running would hold a pipe
 	# open, and asyncio only reports the exit once every pipe has closed.
 	output = tempfile.TemporaryFile()
-	proc = await asyncio.create_subprocess_shell(
+	proc = await asyncio.create_subprocess_exec(
+		shutil.which("bash") or "/bin/sh",
+		"-c",
 		command,
 		cwd=ctx.cwd,
+		stdin=asyncio.subprocess.DEVNULL,
 		stdout=output,
 		stderr=asyncio.subprocess.STDOUT,
 		start_new_session=True,
