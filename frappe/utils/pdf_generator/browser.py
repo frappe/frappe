@@ -175,8 +175,8 @@ class Browser:
 		soup = self.soup
 		options = self.options
 		if options.get("block-external-requests"):
-			for script in soup.find_all("script"):
-				script.decompose()
+			for element in soup.find_all(["script", "iframe", "frame", "object", "embed"]):
+				element.decompose()
 			for tag in soup.find_all(True):
 				for attr in [attr for attr in tag.attrs if attr.lower().startswith("on")]:
 					del tag[attr]
