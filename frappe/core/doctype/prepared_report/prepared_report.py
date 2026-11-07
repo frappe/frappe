@@ -228,8 +228,14 @@ def stop_prepared_report(report_name: str):
 	prepared_report.check_permission("write")
 
 	job_id = prepared_report.job_id
+<<<<<<< HEAD
 	if not job_id.startswith(frappe.local.site):
 		frappe.throw(f"Invalid job_id: must start with {frappe.local.site}")
+=======
+	if job_id:
+		if not job_id.startswith(f"{frappe.local.site}||"):
+			frappe.throw(f"Invalid job_id: must start with {frappe.local.site}")
+>>>>>>> a3112ff (fix: match a site's background jobs by its exact name)
 
 	try:
 		send_stop_job_command(connection=get_redis_conn(), job_id=job_id)
