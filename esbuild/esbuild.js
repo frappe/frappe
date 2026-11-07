@@ -87,7 +87,7 @@ const WATCH_MODE = Boolean(argv.watch);
 const PRODUCTION = Boolean(argv.production);
 const RUN_BUILD_COMMAND = !WATCH_MODE && Boolean(argv["run-build-command"]);
 const ESBUILD_TARGET = argv["esbuild-target"] || "es2020";
-// Allow VERBOSE to be inherited by nested esbuild invocations (per-app yarn
+// Allow VERBOSE to be inherited by nested esbuild invocations (per-app
 // build) via the environment; CLI flag propagation through yarn run breaks
 // chained scripts like `yarn copy && cp`.
 const VERBOSE = Boolean(argv.verbose) || process.env.FRAPPE_BUILD_VERBOSE === "1";
@@ -671,7 +671,7 @@ async function run_build_command_for_apps(apps) {
 		await terminate_build_children();
 		const errors = error instanceof AggregateError ? error.errors : [error];
 		for (const err of errors) {
-			log_error(`${err.command || err.step} failed for ${err.app || "an app"}`);
+			log_error(`${err.command} failed for ${err.app || "an app"}`);
 			if (VERBOSE) {
 				// Child output (if any) was already streamed by flush_verbose;
 				// surface the raw error so spawn/ENOENT failures aren't silent.
@@ -704,7 +704,7 @@ async function run_frontend_build(name, frontend_path) {
 		await run_app_build(name, frontend_path);
 	} catch (error) {
 		await terminate_build_children();
-		log_error(`${error.command || error.step} failed for ${name}`);
+		log_error(`${error.command} failed for ${name}`);
 		if (VERBOSE) {
 			log(chalk.dim(error.stack || error.message || String(error)));
 		} else if (error.output) {
@@ -777,7 +777,6 @@ function run_command(command, { cwd, app, step }) {
 			BUILD_CHILDREN.delete(child);
 			flush_verbose();
 			error.app = app;
-			error.step = step;
 			error.command = command;
 			error.output = output_buffer.toString();
 			reject(error);
@@ -800,7 +799,6 @@ function run_command(command, { cwd, app, step }) {
 
 			const error = new Error(`${step} command failed for ${app} (${exit_details})`);
 			error.app = app;
-			error.step = step;
 			error.command = command;
 			error.output = output_buffer.toString();
 			reject(error);
@@ -906,7 +904,7 @@ async function terminate_build_children({ grace_period_ms = 5000 } = {}) {
 	await wait_for_children_exit(victims, grace_period_ms);
 
 	// Anything still alive after the grace period gets SIGKILL so we don't
-	// leave orphaned yarn/esbuild processes when the parent exits.
+	// leave orphaned package-manager/esbuild processes when the parent exits.
 	for (const child of victims) {
 		if (child.exitCode !== null || child.signalCode !== null) continue;
 		try {
