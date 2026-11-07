@@ -57,16 +57,18 @@ def run_write_app_file(ctx, args: dict) -> str:
 		return "FAILED: file_path is required."
 	if not isinstance(content, str):
 		return "FAILED: content is required (the full file text)."
-	from frappe.studio import api
+	from frappe.studio import api, files
 
 	try:
 		api.write_studio_file(*ref, path, content)
 	except Exception as error:
 		return _fail(error)
-	return (
-		f"Wrote {path}. Import it from a page script via '@app/{path.rsplit('.', 1)[0]}'. "
-		"Run trigger_app_build once your files are ready so the running app picks them up."
+	reaches_app = (
+		"It compiles in the browser, so there is no build to wait for."
+		if files.is_db_app(ref[1])
+		else "Run trigger_app_build once your files are ready so the running app picks them up."
 	)
+	return f"Wrote {path}. Import it from a page script via '@app/{path.rsplit('.', 1)[0]}'. {reaches_app}"
 
 
 def run_delete_app_file(ctx, args: dict) -> str:
@@ -167,8 +169,8 @@ write_app_file = Tool(
 		"Default new repository code to .ts; keep existing .js files. Database code must be .js. "
 		"Repository apps also allow .vue files; both app types allow .json and .css. Parent folders "
 		"are created automatically. Import it from a page's setup() module via '@app/<path-without-ext>'. "
-		"Pass the ENTIRE file content (it overwrites; read_app_file first to extend an existing file). Run "
-		"trigger_app_build afterwards so the change reaches the running app."
+		"Pass the ENTIRE file content (it overwrites; read_app_file first to extend an existing file). A "
+		"repository app needs trigger_app_build afterwards; a database app compiles in the browser."
 	),
 	parameters={
 		"type": "object",
@@ -205,8 +207,9 @@ trigger_app_build = Tool(
 	side="server",
 	handler=run_trigger_app_build,
 	description=(
-		"Rebuild the exported app's bundle so file edits (stores/composables/utils) reach the running "
-		"app. Call once after writing files. Tell the user the change appears only after the build finishes."
+		"Rebuild a repository app's bundle so file edits (stores/composables/utils) reach the running "
+		"app. Call once after writing files. Tell the user the change appears only after the build "
+		"finishes. A database app needs no build: its files compile in the browser."
 	),
 	parameters={"type": "object", "properties": {}},
 )
