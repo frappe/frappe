@@ -1194,8 +1194,12 @@ def set_email_password(email_account: str, password: str):
 
 def get_automatic_email_link():
 	def check_db():
-		return frappe.db.get_value(
-			"Email Account", {"enable_incoming": 1, "enable_automatic_linking": 1}, "email_id"
+		# client_cache treats None as a miss
+		return (
+			frappe.db.get_value(
+				"Email Account", {"enable_incoming": 1, "enable_automatic_linking": 1}, "email_id"
+			)
+			or ""
 		)
 
 	return frappe.client_cache.get_value("automatic_linking_email", generator=check_db)
