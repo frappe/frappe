@@ -61,32 +61,57 @@ def get_change_log(user=None):
 
 
 def get_change_log_for_app(app, from_version, to_version):
-	change_log_folder = os.path.join(frappe.get_app_path(app), "change_log")
-	if not os.path.exists(change_log_folder):
-		return
-
 	from_version = Version(from_version)
 	to_version = Version(to_version)
 	# remove pre-release part
 	to_version.prerelease = None
 
-	major_version_folders = [f"v{i}" for i in range(from_version.major, to_version.major + 1)]
-	app_change_log = []
+	return [
+		[cstr(version), content]
+		for version, content in read_change_logs(app, range(from_version.major, to_version.major + 1))
+		if from_version < version <= to_version
+	]
 
-	for folder in os.listdir(change_log_folder):
-		if folder in major_version_folders:
-			for file in os.listdir(os.path.join(change_log_folder, folder)):
-				version = Version(os.path.splitext(file)[0][1:].replace("_", "."))
 
-				if from_version < version <= to_version:
-					file_path = os.path.join(change_log_folder, folder, file)
-					content = frappe.read_file(file_path)
-					app_change_log.append([version, content])
+def get_release_notes_for_app(app, version):
+	current_version = Version(version)
+	current_version.prerelease = None
 
-	app_change_log = sorted(app_change_log, key=lambda d: d[0], reverse=True)
+	return [
+		[cstr(version), content]
+		for version, content in read_change_logs(app, [current_version.major])
+		if version <= current_version
+	]
 
-	# convert version to string and send
-	return [[cstr(d[0]), d[1]] for d in app_change_log]
+
+def read_change_logs(app, major_versions):
+	"""Return (version, markdown) of the app's change log files in these major versions, newest first."""
+	change_logs = []
+	for major_version in major_versions:
+		folder = os.path.join(frappe.get_app_path(app), "change_log", f"v{major_version}")
+		if not os.path.isdir(folder):
+			continue
+
+		for file in os.listdir(folder):
+			version = Version(os.path.splitext(file)[0][1:].replace("_", "."))
+			change_logs.append((version, frappe.read_file(os.path.join(folder, file))))
+
+	return sorted(change_logs, key=lambda d: d[0], reverse=True)
+
+
+@frappe.whitelist()
+def get_release_notes() -> list[dict]:
+	frappe.permissions.validate_desk_user()
+
+	release_notes = []
+	for app, opts in sorted(get_app_versions().items(), key=lambda item: item[0] == "frappe"):
+		change_log = get_release_notes_for_app(app, opts["version"])
+		if change_log:
+			release_notes.append(
+				{"title": opts["title"], "version": opts["version"], "change_log": change_log}
+			)
+
+	return release_notes
 
 
 @frappe.whitelist()
