@@ -4,8 +4,15 @@ import json
 
 import frappe
 from frappe.core.doctype.doctype.doctype import clear_permissions_cache
+<<<<<<< HEAD
 from frappe.permissions import add_permission, reset_perms
 from frappe.tests.utils import FrappeTestCase
+=======
+from frappe.core.doctype.user.test_user import test_user
+from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+from frappe.permissions import add_permission, add_user_permission, reset_perms
+from frappe.tests import IntegrationTestCase
+>>>>>>> 5c451c0 (fix(web_form): apply field-level read permissions to form responses)
 from frappe.utils import add_to_date, set_request
 from frappe.website.doctype.web_form.web_form import (
 	accept,
@@ -534,6 +541,39 @@ class TestWebForm(FrappeTestCase):
 		frappe.set_user("Guest")
 		with self.assertRaises(frappe.PermissionError):
 			delete("manage-events", event.name)
+
+	def test_owner_response_hides_values_above_users_permlevel(self):
+		web_form = self.make_temp_web_form(
+			doc_type="Note",
+			allow_edit=1,
+			web_form_fields=[{"fieldname": "title", "fieldtype": "Data", "label": "Title", "reqd": 1}],
+		)
+		property_setter = make_property_setter("Note", "notify_on_login", "permlevel", 3, "Int")
+		self.addCleanup(frappe.delete_doc, "Property Setter", property_setter.name, force=True)
+		self.addCleanup(frappe.clear_cache, doctype="Note")
+
+		with test_user(roles=["Desk User"]) as user:
+			note = frappe.get_doc(doctype="Note", title="_Test Note").insert(ignore_permissions=True)
+			frappe.db.set_value("Note", note.name, {"owner": user.name, "notify_on_login": 1, "public": 1})
+			self.addCleanup(frappe.delete_doc, "Note", note.name, force=True, ignore_permissions=True)
+			self.assertEqual(
+				frappe.db.get_value("Note", note.name, ["owner", "notify_on_login"]), (user.name, 1)
+			)
+
+			with self.set_user(user.name):
+				frappe.local.path = f"{web_form.route}/{note.name}/edit"
+				frappe.local.form_dict = frappe._dict(name=note.name, is_edit=1)
+				context = frappe._dict()
+				web_form.get_context(context)
+				saved = accept(web_form.name, json.dumps({"name": note.name, "title": "_Test Note"}))
+				form_data = get_form_data("Note", note.name, web_form.name)
+
+			self.assertEqual(saved.title, "_Test Note")
+			self.assertEqual(form_data.doc.title, "_Test Note")
+			self.assertEqual(context.reference_doc["title"], "_Test Note")
+			self.assertFalse(saved.get("notify_on_login"))
+			self.assertFalse(form_data.doc.get("notify_on_login"))
+			self.assertFalse(context.reference_doc.get("notify_on_login"))
 
 	def test_guest_reference_doc_exposes_only_web_form_fields(self):
 		"""Guest with a valid key viewing a bound document must only receive
