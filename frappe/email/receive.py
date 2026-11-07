@@ -549,7 +549,7 @@ class Email:
 			if part.get_filename():
 				self.get_attachment(part)
 
-		elif content_type == "text/html":
+		elif content_type == "text/html" and part.get_content_disposition() != "attachment":
 			self.html_content += self.get_payload(part)
 
 		elif content_type == "message/rfc822":
