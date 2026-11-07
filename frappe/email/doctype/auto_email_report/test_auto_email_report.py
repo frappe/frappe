@@ -44,6 +44,18 @@ class TestAutoEmailReport(IntegrationTestCase):
 		with self.assertRaisesRegex(frappe.ValidationError, "DocType.*is mandatory"):
 			auto_email_report.save()
 
+	def test_run_as_user_permission(self):
+		auto_email_report = get_auto_email_report()
+		auto_email_report.user = "test1@example.com"
+
+		with self.set_user("test2@example.com"):
+			self.assertRaises(frappe.PermissionError, auto_email_report.validate_user_permission)
+
+		with self.set_user("test@example.com"):
+			auto_email_report.validate_user_permission()
+			auto_email_report.user = "Administrator"
+			self.assertRaises(frappe.PermissionError, auto_email_report.validate_user_permission)
+
 	def test_dynamic_date_filters(self):
 		auto_email_report = get_auto_email_report()
 
