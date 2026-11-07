@@ -1,8 +1,8 @@
-name: Assign bug issues
+name: Assign new issues
 
 on:
   issues:
-    types: [opened, labeled]
+    types: [opened]
 
 permissions:
   issues: write
@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   assign:
-    if: github.repository == 'frappe/frappe' && !github.event.issue.assignees[0] && contains(github.event.issue.labels.*.name, 'bug')
+    if: github.repository == 'frappe/frappe' && !github.event.issue.assignees[0]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/github-script@v8
@@ -22,7 +22,6 @@ jobs:
             const issue = context.payload.issue;
             const { data: recent } = await github.rest.issues.listForRepo({
               ...context.repo,
-              labels: "bug",
               state: "all",
               sort: "created",
               direction: "desc",
