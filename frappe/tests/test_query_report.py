@@ -15,7 +15,7 @@ from frappe.desk.query_report import (
 	run,
 )
 from frappe.tests import IntegrationTestCase
-from frappe.utils.xlsxutils import XLSXMetadata, XLSXStyleBuilder, make_xlsx
+from frappe.utils.xlsxutils import XLSXMetadata, XLSXStyleBuilder, get_default_xlsx_styles, make_xlsx
 
 
 class TestQueryReport(IntegrationTestCase):
@@ -788,6 +788,20 @@ data = columns, result
 			indent = builder.styles[builder.cell_styles[(row_idx, 0)][0]]["indent"]
 			self.assertEqual(indent, expected)
 			self.assertIsInstance(indent, int)
+
+	def test_xlsx_currency_symbol_info_with_missing_currency(self):
+		"""_get_currency_symbol_info should not crash when currency has no Currency master record"""
+		symbol, on_right = XLSXStyleBuilder._get_currency_symbol_info("XYZ_NONEXISTENT")
+		self.assertEqual(symbol, "XYZ_NONEXISTENT")
+		self.assertFalse(on_right)
+
+	def test_xlsx_export_with_unknown_currency(self):
+		"""get_default_xlsx_styles should not crash when a Currency field references a currency not in Currency master"""
+		columns = [{"fieldname": "amount", "fieldtype": "Currency", "label": "Amount", "options": "currency"}]
+		data = [{"amount": 100.0, "currency": "XYZ_NONEXISTENT"}]
+
+		styles = get_default_xlsx_styles(columns=columns, data=data)
+		self.assertIsNotNone(styles)
 
 	def test_export_report_via_email(self):
 		REPORT_NAME = "Test CSV Report"
