@@ -87,8 +87,7 @@ export class AppModuleRegistry {
 		this.localImports = {}
 		for (const [path, source] of Object.entries(this.files)) {
 			if (!isCompiledModule(path)) continue
-			const errors = await this.compileInto(path, source, false)
-			if (errors.length) this.failures[path] = errors
+			await this.compileInto(path, source, false)
 		}
 		// Every module is compiled by now, so each one's exports are known to the next check.
 		for (const path of Object.keys(this.localImports)) {
@@ -121,7 +120,13 @@ export class AppModuleRegistry {
 			}
 			if (!errors.length) this.exports[path] = parsed.exports
 		}
-		if (errors.length && throwOnError) throw new AppCompileError(errors)
+		if (errors.length) {
+			// Drop the last working version, or a module that no longer compiles keeps running.
+			delete this.factories[path]
+			delete this.exports[path]
+			this.failures[path] = errors
+			if (throwOnError) throw new AppCompileError(errors)
+		}
 		return errors
 	}
 

@@ -52,6 +52,19 @@ export default function setup(context) { return { label: ref(fmt(7) + fmt2(8)) }
 			(async () => {
 				await expectCompileError(sources, "half-written.js", "half-written.js")
 				await expectCompileError(sources, "needs-broken.js", "half-written.js")
+
+				// A module that stops compiling must not keep running the last version that did,
+				// or a broken script looks fine again after a reload.
+				const registry = new AppModuleRegistry({ "a.js": `export const value = 1` })
+				expect((await registry.loadModule("a.js")).value).to.equal(1)
+				for (const attempt of ["first", "second"]) {
+					let saveError: any = null
+					await registry.addFile("a.js", `export const value = (`).catch((e) => (saveError = e))
+					expect(saveError, `${attempt} save rejected`).to.be.instanceOf(AppCompileError)
+				}
+				let loadError: any = null
+				await registry.loadModule("a.js").catch((e) => (loadError = e))
+				expect(loadError, "loading it reports the failure").to.be.instanceOf(AppCompileError)
 			})(),
 		)
 	})
