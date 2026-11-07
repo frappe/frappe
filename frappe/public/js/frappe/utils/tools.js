@@ -58,6 +58,7 @@ const MD_ALLOWED_TAGS = new Set([
 	"i",
 	"a",
 	"img",
+	"video",
 	"table",
 	"thead",
 	"tbody",
@@ -67,6 +68,7 @@ const MD_ALLOWED_TAGS = new Set([
 ]);
 const MD_SAFE_URL = /^(https?:|mailto:|tel:|#|\/(?!\/))/i;
 const MD_SAFE_IMG_SRC = /^(https?:|\/(?!\/)|data:image\/)/i;
+const MD_SAFE_VIDEO_SRC = /^(https?:|\/(?!\/))/i;
 const MD_SAFE_ALIGN = /^text-align:\s*(left|right|center|justify);?$/i;
 
 // Whitelist-sanitize markdown-generated HTML to prevent XSS (showdown does not sanitize).
@@ -87,11 +89,15 @@ function sanitize_markdown_html(html) {
 					name === "alt" ||
 					(tag === "a" && name === "href" && MD_SAFE_URL.test(attr.value)) ||
 					(tag === "img" && name === "src" && MD_SAFE_IMG_SRC.test(attr.value)) ||
+					(tag === "video" && name === "src" && MD_SAFE_VIDEO_SRC.test(attr.value)) ||
 					((tag === "code" || tag === "pre") && name === "class") ||
 					((tag === "th" || tag === "td") &&
 						name === "style" &&
 						MD_SAFE_ALIGN.test(attr.value));
 				if (!keep) el.removeAttribute(attr.name);
+			}
+			if (tag === "video") {
+				el.setAttribute("controls", "");
 			}
 			if (tag === "a") {
 				const href = el.getAttribute("href") || "";
