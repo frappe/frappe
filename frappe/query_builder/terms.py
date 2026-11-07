@@ -34,12 +34,13 @@ class NamedParameterWrapper:
 		        str: parameter used in the SQL query
 		"""
 		if term is not None and id(term) in self._term_keys:
-			return self._term_keys[id(term)]
+			return self._term_keys[id(term)][1]
 		param_key = f"%(param{len(self.parameters) + 1})s"
 		assert param_key[2:-2] not in self.parameters, "generated parameter keys must be unique"
 		self.parameters[param_key[2:-2]] = param_value
 		if term is not None:
-			self._term_keys[id(term)] = param_key
+			# hold the term, so a term freed mid-render can't pass its id to another
+			self._term_keys[id(term)] = (term, param_key)
 		return param_key
 
 	def get_parameters(self) -> dict[str, Any]:
