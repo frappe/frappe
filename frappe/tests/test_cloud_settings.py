@@ -502,6 +502,24 @@ class TestCloudMarketplace(_CloudTestCase):
 		self.assertEqual(result["update_count"], 1)
 		self.assertEqual(set(result["categories"]), {"Applications", "Developer Tools"})
 
+	def test_an_installed_app_names_the_installed_apps_that_require_it(self):
+		from frappe.integrations.frappe_providers import cloud_marketplace
+
+		def get_hooks(hook=None, default=None, app_name=None):
+			return ["frappe/erpnext"] if (hook, app_name) == ("required_apps", "hrms") else []
+
+		client = FakeClient(
+			{
+				"sites/test.localhost/marketplace": self.CATALOG,
+				"sites/test.localhost/apps": {"apps": [{"name": "erpnext"}, {"name": "hrms"}]},
+			}
+		)
+		with patch("frappe.get_hooks", side_effect=get_hooks):
+			apps = {app["name"]: app for app in cloud_marketplace.list_apps(client)["apps"]}
+
+		self.assertEqual(apps["erpnext"]["required_by"], ["hrms"])
+		self.assertEqual(apps["crm"]["required_by"], [])
+
 	def test_installed_apps_sort_first(self):
 		self.assertEqual(self._list()["apps"][0]["name"], "erpnext")
 
