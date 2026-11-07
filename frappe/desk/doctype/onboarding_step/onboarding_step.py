@@ -58,12 +58,12 @@ class OnboardingStep(Document):
 			"Create Entry": ["reference_document"],
 			"Update Settings": ["reference_document"],
 			"Show Form Tour": ["reference_document"],
-			"View Report": ["reference_report"],
+			"View Report": ["reference_report", "report_description"],
 			"Go to Page": ["path"],
 			"Complete Onboarding": ["module_onboarding"],
 		}.get(self.action, [])
 		if self.action == "Update Settings" and self.validate_action:
-			required.append("value_to_validate")
+			required += ["field", "value_to_validate"]
 
 		for fieldname in required:
 			if not self.get(fieldname):
