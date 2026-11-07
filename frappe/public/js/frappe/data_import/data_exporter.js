@@ -14,13 +14,15 @@ frappe.data_import.DataExporter = class DataExporter {
 		exporting_for,
 		filetype = "CSV",
 		hide_blank_template = false,
-		provider_schema = null
+		provider_schema = null,
+		local_source = null
 	) {
 		this.doctype = doctype;
 		this.exporting_for = exporting_for;
 		this.hide_blank_template = hide_blank_template;
 		// {fields, child_tables}; when set, the picker reads it instead of DocType meta.
 		this.provider_schema = provider_schema || null;
+		this.local_source = local_source || null;
 		frappe.model.with_doctype(doctype, () => {
 			this.make_dialog(filetype);
 		});
@@ -46,10 +48,9 @@ frappe.data_import.DataExporter = class DataExporter {
 							label: __("All Records"),
 							value: "all",
 						},
-						{
-							label: __("Filtered Records"),
-							value: "by_filter",
-						},
+						...(this.local_source
+							? []
+							: [{ label: __("Filtered Records"), value: "by_filter" }]),
 						{
 							label: __("5 Records"),
 							value: "5_records",
@@ -123,6 +124,11 @@ frappe.data_import.DataExporter = class DataExporter {
 			}
 		}
 
+		if (this.local_source) {
+			this.local_source.download(values, doctype_field_map[this.doctype]);
+			return;
+		}
+
 		let filters = null;
 		if (values.export_records === "by_filter") {
 			filters = this.get_filters();
@@ -152,9 +158,12 @@ frappe.data_import.DataExporter = class DataExporter {
 		let section_title = for_insert
 			? __("Select Fields To Insert")
 			: __("Select Fields To Update");
+		let section_heading = this.exporting_for
+			? `<h6 class="form-section-heading uppercase">${section_title}</h6>`
+			: "";
 		let $select_all_buttons = $(`
 			<div class="mb-3">
-				<h6 class="form-section-heading uppercase">${section_title}</h6>
+				${section_heading}
 				<button class="btn btn-default btn-xs" data-action="select_all">
 					${__("Select All")}
 				</button>
@@ -218,14 +227,16 @@ frappe.data_import.DataExporter = class DataExporter {
 	}
 
 	update_record_count_message() {
+		let local_count = this.local_source?.rows.length;
 		let count_method = {
-			all: () => frappe.db.count(this.doctype),
+			all: () =>
+				this.local_source ? Promise.resolve(local_count) : frappe.db.count(this.doctype),
 			by_filter: () =>
 				frappe.db.count(this.doctype, {
 					filters: this.get_filters(),
 				}),
 			blank_template: () => Promise.resolve(0),
-			"5_records": () => Promise.resolve(5),
+			"5_records": () => Promise.resolve(this.local_source ? Math.min(5, local_count) : 5),
 		};
 
 		let export_records = this.dialog.get_value("export_records");
@@ -413,7 +424,11 @@ frappe.data_import.DataExporter = class DataExporter {
 
 	setup_on_page_show() {
 		frappe.utils.setup_search(this.dialog.$body, ".unit-checkbox", ".label-area");
-		this.select_mandatory();
+		if (this.exporting_for) {
+			this.select_mandatory();
+		} else {
+			this.select_all();
+		}
 	}
 };
 
