@@ -404,7 +404,7 @@ class FileV1(File):
 		duplicate_file = None
 
 		# check if a file exists with the same content hash and is also in the same folder (public or private)
-		if not ignore_existing_file_check:
+		if not ignore_existing_file_check and not overwrite:
 			duplicate_file = frappe.get_value(
 				"File",
 				{"content_hash": self.content_hash, "is_private": self.is_private},
@@ -428,6 +428,7 @@ class FileV1(File):
 				and not frappe.db.exists("File", {"file_url": self.file_url, "name": ("!=", self.name)})
 			)
 			if not in_place:
+				self.flags.pop("original_content", None)
 				self.file_name = generate_file_name(
 					name=self.file_name,
 					suffix=self.content_hash[-6:],
