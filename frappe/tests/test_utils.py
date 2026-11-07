@@ -2453,13 +2453,18 @@ class TestChangeLog(IntegrationTestCase):
 				with open(os.path.join(folder, file), "w") as f:
 					f.write(file)
 
+			with open(os.path.join(app_path, "change_log", "v16", "v16_2_0.md"), "a") as f:
+				f.write("\n<!-- more -->\nDetails")
+
 			with patch("frappe.get_app_path", return_value=app_path):
 				release_notes = get_release_notes_for_app("app", "16.2.0-dev")
 				change_log = get_change_log_for_app("app", "15.8.0", "16.2.0-dev")
 
-		self.assertEqual(release_notes, [["16.2.0", "v16_2_0.md"], ["16.0.0", "v16_0_0.md"]])
 		self.assertEqual(
-			change_log, [["16.2.0", "v16_2_0.md"], ["16.0.0", "v16_0_0.md"], ["15.9.0", "v15_9_0.md"]]
+			release_notes, [["16.2.0", "v16_2_0.md\n<!-- more -->\nDetails"], ["16.0.0", "v16_0_0.md"]]
+		)
+		self.assertEqual(
+			change_log, [["16.2.0", "v16_2_0.md\n"], ["16.0.0", "v16_0_0.md"], ["15.9.0", "v15_9_0.md"]]
 		)
 
 
