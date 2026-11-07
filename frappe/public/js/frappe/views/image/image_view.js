@@ -68,6 +68,8 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 		`);
 
 		this.render_count();
+		this.prune_checked_docnames();
+		this.set_rows_as_checked();
 	}
 
 	item_details_html(item) {
