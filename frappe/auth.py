@@ -171,6 +171,14 @@ class LoginManager:
 				return False
 
 		if self.force_user_to_reset_password():
+			cache_key = frappe.cache.make_key(f"rl:password_expired_reset:{self.user}")
+			frappe.cache.set(cache_key, 0, ex=60 * 60, nx=True)  # nosemgrep: frappe-cache-breaks-multitenancy
+			if frappe.cache.incrby(cache_key, 1) > (frappe.get_system_settings("password_reset_limit") or 3):
+				frappe.throw(
+					_("You hit the rate limit because of too many requests. Please try after sometime."),
+					frappe.RateLimitExceededError,
+				)
+
 			doc = frappe.get_doc("User", self.user)
 			doc._reset_password(send_email=True, password_expired=True)
 			frappe.local.response["message"] = "Password Reset"
