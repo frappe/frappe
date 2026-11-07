@@ -20,6 +20,7 @@ import frappe
 from frappe import _, safe_encode
 from frappe.model.document import Document
 from frappe.twofactor import authenticate_for_2factor, confirm_otp_token, should_run_2fa
+from frappe.utils import get_user_by_email
 
 if TYPE_CHECKING:
 	from frappe.core.doctype.user.user import User
@@ -210,8 +211,8 @@ class LDAPSettings(Document):
 		user: User = None
 		role: str = None
 
-		if frappe.db.exists("User", user_data["email"]):
-			user = frappe.get_doc("User", user_data["email"])
+		if user_id := get_user_by_email(user_data["email"]):
+			user = frappe.get_doc("User", user_id)
 			LDAPSettings.update_user_fields(user=user, user_data=user_data)
 		elif not self.do_not_create_new_user:
 			doc = user_data | {
@@ -355,10 +356,10 @@ class LDAPSettings(Document):
 				hashed_password = hashed(HASHED_SALTED_SHA, safe_encode(password))
 				changes = {"userPassword": [(MODIFY_REPLACE, [hashed_password])]}
 				if conn.modify(entry_dn, changes=changes):
-					if logout_sessions:
+					if logout_sessions and (user_id := get_user_by_email(user)):
 						from frappe.sessions import clear_sessions
 
-						clear_sessions(user=user, force=True)
+						clear_sessions(user=user_id, force=True)
 					frappe.msgprint(_("Password changed successfully."))
 				else:
 					frappe.throw(_("Failed to change password."))
@@ -372,14 +373,16 @@ class LDAPSettings(Document):
 		email = user_entry[self.ldap_email_field].value
 
 		if isinstance(email, list):
-			# check if any of the email in the list already exist
-			for e in email:
-				if frappe.db.exists("User", e):
-					email = e
-					break
-			else:
-				# if none of the email exist, use the first email
-				email = email[0]
+			# use the first email that already belongs to a user, else the first one
+			existing = frappe.get_all(
+				"User",
+				filters={
+					"email": ("in", [e.strip().lower() for e in email]),
+					"name": ("not in", frappe.STANDARD_USERS),
+				},
+				pluck="email",
+			)
+			email = next((e for e in email if e.strip().lower() in existing), email[0])
 
 		data = {
 			"username": user_entry[self.ldap_username_field].value,

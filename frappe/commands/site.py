@@ -757,7 +757,7 @@ def disable_user(context: CliCtxObj, email):
 	site = get_site(context)
 	with frappe.init_site(site):
 		frappe.connect()
-		user = frappe.get_doc("User", email)
+		user = frappe.get_doc("User", {"email": email})
 		user.enabled = 0
 		user.save(ignore_permissions=True)
 		frappe.db.commit()
@@ -1248,6 +1248,20 @@ def set_admin_password(context: CliCtxObj, admin_password=None, logout_all_sessi
 		set_user_password(site, "Administrator", admin_password, logout_all_sessions)
 
 
+def get_user_id(user: str) -> str:
+	"""Return the ID of the user with this email, or exit if there is none.
+
+	- Administrator and Guest are given by name, as they have no email to log in with.
+	"""
+	user_id = user if user in frappe.STANDARD_USERS else frappe.utils.get_user_by_email(user)
+
+	if not user_id:
+		click.echo(f"User {user} does not exist")
+		sys.exit(1)
+
+	return user_id
+
+
 def set_user_password(site, user, password, logout_all_sessions=False):
 	from frappe.utils.password import update_password
 
@@ -1258,9 +1272,7 @@ def set_user_password(site, user, password, logout_all_sessions=False):
 			password = getpass.getpass(f"{user}'s password for {site}: ")
 
 		frappe.connect()
-		if not frappe.db.exists("User", user):
-			print(f"User {user} does not exist")
-			sys.exit(1)
+		user = get_user_id(user)
 
 		update_password(user=user, pwd=password, logout_all_sessions=logout_all_sessions)
 		frappe.db.set_value("User", user, "last_password_reset_date", frappe.utils.today())
@@ -1270,7 +1282,7 @@ def set_user_password(site, user, password, logout_all_sessions=False):
 
 
 @click.command("set-last-active-for-user")
-@click.option("--user", help="Setup last active date for user")
+@click.option("--user", help="Email of the user whose last active date should be set")
 @pass_context
 def set_last_active_for_user(context: CliCtxObj, user=None):
 	"Set users last active date to current datetime"
@@ -1281,6 +1293,9 @@ def set_last_active_for_user(context: CliCtxObj, user=None):
 
 	with frappe.init_site(site):
 		frappe.connect()
+		if user:
+			user = get_user_id(user)
+
 		if not user:
 			user = get_system_users(limit=1)
 			if len(user) > 0:
@@ -1313,7 +1328,7 @@ def publish_realtime(context: CliCtxObj, event, message, room, user, doctype, do
 				event,
 				message=message,
 				room=room,
-				user=user,
+				user=get_user_id(user) if user else None,
 				doctype=doctype,
 				docname=docname,
 				after_commit=after_commit,
@@ -1327,7 +1342,7 @@ def publish_realtime(context: CliCtxObj, event, message, room, user, doctype, do
 
 @click.command("browse")
 @click.argument("site", required=False)
-@click.option("--user", required=False, help="Login as user")
+@click.option("--user", required=False, help="Email of the user to log in as, or Administrator")
 @click.option(
 	"--sid", "print_sid", is_flag=True, help="Print the generated session id instead of opening the browser"
 )
@@ -1366,9 +1381,7 @@ def browse(
 	sid = ""
 	login_path = ""
 	if user:
-		if not frappe.db.exists("User", user):
-			click.echo(f"User {user} does not exist")
-			sys.exit(1)
+		user = get_user_id(user)
 
 		if frappe.conf.developer_mode or user == "Administrator":
 			frappe.utils.set_request(path="/")
