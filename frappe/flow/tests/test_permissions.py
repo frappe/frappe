@@ -86,6 +86,7 @@ class TestFlowAccess(IntegrationTestCase):
 			"rewind": {"session": session.name, "target_seq": 0},
 			"compact": {"session": session.name},
 			"entries": {"session": session.name},
+			"system_prompt": {"session": session.name},
 			"set_model": {"session": session.name, "model": "m"},
 			"set_title": {"session": session.name, "title": "t"},
 			"set_approval_mode": {"session": session.name, "mode": "Ask"},

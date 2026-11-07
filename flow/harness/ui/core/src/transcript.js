@@ -570,7 +570,8 @@ function deriveTurns(entries, steeredSeqs = []) {
 
 // Files touched by a turn's settled edit/write calls, keyed by turn, aggregated
 // per path in first-touch order. Denied/failed calls don't count; a write
-// reports its full line count as additions.
+// reports its full line count as additions. `since` is the seq of the file's
+// first change in the turn, so its diff shows only this turn's edits on.
 function deriveFileChanges(entries, turnByEntry) {
 	const callTurns = new Map()
 	const filesByTurn = new Map()
@@ -585,7 +586,7 @@ function deriveFileChanges(entries, turnByEntry) {
 			if (!path || entry.is_error || stepDecision(entry)) continue
 			const turnKey = callTurns.get(entry.tool_call_id)
 			const files = filesByTurn.get(turnKey) ?? new Map()
-			const file = files.get(path) ?? { path, added: 0, removed: 0 }
+			const file = files.get(path) ?? { path, added: 0, removed: 0, since: entry.seq }
 			file.added += entry.details.lines_added ?? entry.details.lines ?? 0
 			file.removed += entry.details.lines_removed ?? 0
 			files.set(path, file)
@@ -605,10 +606,10 @@ function foldLabel(turn) {
 }
 
 // Folds durable entries and the streaming preview into renderable items:
-//   {kind: "user", entry}
+//   {kind: "user", entry, turnKey?, steered?}
 //   {kind: "text", block, entry?, provisional?}
 //   {kind: "thinking", block, entry?, live?}
-//   {kind: "group", steps: [{call, result, aborted} | {thought, id, live?}]}
+//   {kind: "group", steps: [{call, result, aborted, streaming} | {thought, id, live?}]}
 //   {kind: "turn-fold", turnKey, label, expanded}
 //   {kind: "turn-files", turnKey, files: [{path, added, removed}]}
 //   {kind: "compaction", entry}
@@ -695,6 +696,8 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 					call: block,
 					result: null,
 					aborted: !provisional && entry.stop_reason === "aborted",
+					// a streamed call's arguments are its short strings so far, each cut at 512 characters
+					streaming: provisional,
 					// a subagent call's child, once its first event has landed
 					subagent: block.name === "subagent" ? conversation.subagents?.[subagentId(block)] ?? null : null,
 				}
@@ -705,24 +708,29 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 	}
 
 	for (const entry of conversation.entries) {
+		// a message that joins the turn before it was steered into that turn's run
+		const steered = entry.type === "user_message" && turnByEntry.get(entry) === currentTurnKey
 		currentTurnKey = turnByEntry.get(entry) ?? currentTurnKey
 		if (entry.type === "user_message") {
 			flushThoughts()
-			items.push({ kind: "user", key: `u:${entry.seq}`, entry })
+			const key = `u:${entry.seq}`
+			items.push(steered ? { kind: "user", key, turnKey: currentTurnKey, steered, entry } : { kind: "user", key, entry })
 		} else if (entry.type === "assistant_message") {
 			appendAssistantBlocks(entry.content ?? [], { entry })
 		} else if (entry.type === "tool_result") {
 			const step = stepsById.get(entry.tool_call_id)
 			if (step) step.result = entry
-			// a denial stays in sight when the work folds, in the words of the card
+			// a denial stays in sight when the work folds, in the words of the card; a tool with no words
+			// of its own has the server's generic question, so it is named instead
 			const decision = step ? stepDecision(entry) : null
 			if (decision?.status === "denied" && decision.action) {
+				const name = step.call.name
 				flushThoughts()
 				items.push({
-					kind: "notice",
+					kind: "declined",
 					key: `d:${entry.seq}`,
 					turnKey: currentTurnKey,
-					text: `You declined: ${decision.action}`,
+					text: decision.action === `Approve \`${name}\`?` ? `Denied ${name}` : `Declined: ${decision.action}`,
 				})
 			}
 		} else if (entry.type === "compaction") {
@@ -821,7 +829,7 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 		const foldable =
 			item.kind === "compaction" ||
 			(!inResponse.has(item.key) &&
-				(["group", "thinking"].includes(item.kind) || (item.kind === "text" && !item.provisional)))
+				(["group", "thinking"].includes(item.kind) || (item.kind === "text" && !item.provisional) || item.steered))
 		if (!foldable) continue
 		const foldableItems = foldableByTurn.get(item.turnKey) ?? []
 		foldableItems.push(item)
@@ -865,7 +873,7 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 // report to the row that made the call — a response, or a compaction — never to
 // messages or tool results. A sub-agent call's row sums what its child spent.
 //   {key, kind: "system"|"user"|"assistant"|"tool"|"compaction"|"error",
-//    body?, entry?, input?, output?, usage?}
+//    body?, ts?, entry?, input?, output?, usage?}
 export function buildTranscriptRows(conversation) {
 	const rows = []
 	const steps = new Map() // tool call id -> its row, filled when the result lands
@@ -882,7 +890,7 @@ export function buildTranscriptRows(conversation) {
 	for (const [index, entry] of entries.entries()) {
 		let caller = null // the row whose model call a usage report in this gap belongs to
 		if (entry.type === "user_message") {
-			rows.push({ key: `u:${entry.seq}`, kind: "user", entry: withoutFlowFields(entry) })
+			rows.push({ key: `u:${entry.seq}`, kind: "user", ts: entry.ts, entry: withoutFlowFields(entry) })
 		} else if (entry.type === "assistant_message") {
 			caller = { key: `a:${entry.seq}`, kind: "assistant", entry: withoutFlowFields(entry) }
 			rows.push(caller)
@@ -1108,6 +1116,12 @@ export function formatTime(ts) {
 	const time = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
 	if (d.toDateString() === new Date().toDateString()) return time
 	return `${d.toLocaleDateString([], { month: "short", day: "numeric" })}, ${time}`
+}
+
+// a cost under a tenth of a cent would round to $0.000
+export function formatCost(cost) {
+	if (cost < 0.001) return "<$0.001"
+	return `$${cost.toFixed(cost < 1 ? 3 : 2)}`
 }
 
 export function formatTokens(n) {

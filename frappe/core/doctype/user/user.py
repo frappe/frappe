@@ -20,7 +20,7 @@ from frappe.desk.doctype.notification_settings.notification_settings import (
 )
 from frappe.desk.notifications import clear_notifications
 from frappe.model.document import Document, get_controller
-from frappe.query_builder import DocType, Table
+from frappe.query_builder import Criterion, DocType, Table
 from frappe.rate_limiter import rate_limit
 from frappe.sessions import clear_sessions, hash_sid
 from frappe.twofactor import should_run_2fa
@@ -97,8 +97,8 @@ class User(Document):
 		default_workspace: DF.Link | None
 		defaults: DF.Table[DefaultValue]
 		desk_theme: DF.Literal["Light", "Dark", "Automatic"]
-		document_follow_frequency: DF.Literal["Hourly", "Daily", "Weekly"]
 		dock_mode: DF.Literal["Floating", "Pinned"]
+		document_follow_frequency: DF.Literal["Hourly", "Daily", "Weekly"]
 		document_follow_notify: DF.Check
 		email: DF.Data
 		email_signature: DF.TextEditor | None
@@ -205,6 +205,11 @@ class User(Document):
 		# because it is handled separately
 		self.flags.ignore_save_passwords = ["new_password"]
 
+	def before_naming(self):
+		# data import keeps the given name and skips autoname
+		if self.name and self.name not in STANDARD_USERS:
+			self.name = self.name.strip().lower()
+
 	def autoname(self):
 		"""set name as Email Address"""
 		if self.get("is_admin") or self.get("is_guest"):
@@ -243,6 +248,9 @@ class User(Document):
 		if self.name not in STANDARD_USERS:
 			self.email = self.name
 			self.validate_email_type(self.name)
+
+		if self.email:
+			self.email = self.email.strip().lower()
 
 		self.move_role_profile_name_to_role_profiles()
 		self.populate_role_profile_roles()
@@ -729,7 +737,9 @@ class User(Document):
 			frappe.delete_doc("Notification Settings", old_name, ignore_permissions=True)
 
 		frappe.clear_cache(user=old_name)
+		new_name = new_name.strip().lower()
 		self.validate_rename(old_name, new_name)
+		return new_name
 
 	def validate_rename(self, old_name, new_name):
 		# do not allow renaming administrator and guest
@@ -759,7 +769,7 @@ class User(Document):
 	def validate_email_type(self, email):
 		from frappe.utils import validate_email_address
 
-		validate_email_address(email.strip(), True)
+		validate_email_address(email, True)
 
 	def after_rename(self, old_name, new_name, merge=False):
 		if not frappe.flags.in_personal_data_deletion:
@@ -776,7 +786,6 @@ class User(Document):
 		if frappe.db.exists("Notification Settings", old_name):
 			frappe.rename_doc("Notification Settings", old_name, new_name, force=True, show_alert=False)
 
-		# set email
 		frappe.db.set_value("User", new_name, "email", new_name)
 
 		get_controller("Workspace").rename_private_workspaces(old_name, new_name)
@@ -988,13 +997,26 @@ class User(Document):
 		login_with_mobile = cint(frappe.get_system_settings("allow_login_using_mobile_number"))
 		login_with_username = cint(frappe.get_system_settings("allow_login_using_user_name"))
 
-		or_filters = [{"name": user_name}]
-		if login_with_mobile:
-			or_filters.append({"mobile_no": user_name})
-		if login_with_username:
-			or_filters.append({"username": user_name})
+		user_table = DocType("User")
+		user_name = user_name.strip()
+		normalized_user_name = user_name.lower()
+		conditions = [(user_table.email == normalized_user_name) & user_table.name.notin(STANDARD_USERS)]
 
-		users = frappe.get_all("User", fields=["name", "enabled"], or_filters=or_filters, limit=1)
+		if normalized_user_name == "administrator":
+			conditions.append(user_table.name == "Administrator")
+		if login_with_mobile:
+			conditions.append(user_table.mobile_no == user_name)
+		if login_with_username:
+			conditions.append(user_table.username == user_name)
+
+		users = (
+			frappe.qb.from_(user_table)
+			.select(user_table.name, user_table.enabled)
+			.where(Criterion.any(conditions))
+			.limit(1)
+			.run(as_dict=True)
+		)
+
 		if not users:
 			if validate_password:
 				verify_against_placeholder(password)
@@ -1580,6 +1602,7 @@ def throttle_user_creation():
 
 @frappe.whitelist()
 def get_module_profile(module_profile: str):
+	frappe.has_permission("Module Profile", "read", throw=True)
 	module_profile = frappe.get_doc("Module Profile", {"module_profile_name": module_profile})
 	return module_profile.get("block_modules")
 

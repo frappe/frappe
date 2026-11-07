@@ -27,16 +27,18 @@
 					v-for="(segment, j) in displaySegments"
 					:key="j"
 					:class="
-						!segment.arg
-							? 'font-medium text-ink-gray-9'
-							: step.call.name === 'bash'
-								? 'font-mono text-sm text-ink-gray-5 group-hover:text-ink-gray-7'
-								: 'text-ink-gray-5 group-hover:text-ink-gray-7'
+						segment.sep
+							? 'text-ink-gray-3'
+							: !segment.arg
+								? 'font-medium text-ink-gray-9'
+								: step.call.name === 'bash' && segment.arg === 'command'
+									? 'font-mono text-sm text-ink-gray-5 group-hover:text-ink-gray-7'
+									: 'text-ink-gray-5 group-hover:text-ink-gray-7'
 					"
 				>{{ segment.text }}</span>
 			</span>
 			<template v-else>
-				<span class="flex-none text-base font-medium text-ink-gray-9">{{ label }}</span>
+				<span class="flex-none text-base-medium text-ink-gray-9">{{ label }}</span>
 				<span
 					class="min-w-0 flex-1 truncate text-base text-ink-gray-5 group-hover:text-ink-gray-7"
 					:class="step.call.name === 'bash' ? 'font-mono text-sm' : ''"
@@ -60,7 +62,7 @@
 			</div>
 			<!-- a call the user denied, cancelled, or redirected -->
 			<div v-if="decision" class="px-3 py-2.5">
-				<div class="text-sm font-medium" :class="statClass">{{ decisionTitle }}</div>
+				<div class="text-sm-medium" :class="statClass">{{ decisionTitle }}</div>
 				<div v-if="decision.user_feedback" class="mt-1 text-sm leading-relaxed text-ink-gray-6">
 					“{{ decision.user_feedback }}”
 				</div>
@@ -74,7 +76,7 @@
 						:href="hit.url"
 						target="_blank"
 						rel="noopener noreferrer"
-						class="block truncate text-sm font-medium text-ink-gray-8 hover:underline"
+						class="block truncate text-sm-medium text-ink-gray-8 hover:underline"
 					>{{ hit.title || hit.url }}</a>
 					<div class="truncate text-xs text-ink-gray-4">{{ pageName(hit.url) }}</div>
 					<div v-if="hit.snippet" class="mt-0.5 line-clamp-3 text-sm leading-relaxed text-ink-gray-6">{{ hit.snippet }}</div>
@@ -87,12 +89,12 @@
 					<span v-if="duration" class="flex-none font-mono text-xs text-ink-gray-5">{{ duration }}</span>
 					<span
 						v-if="exitChip"
-						class="flex-none rounded-4 px-1.5 py-px font-mono text-xs font-medium"
+						class="flex-none rounded-4 px-1.5 py-px font-mono text-xs-medium"
 						:class="failed ? 'bg-surface-red-1 text-ink-red-6' : 'bg-surface-green-1 text-ink-green-6'"
 					>{{ exitChip }}</span>
 					<CopyButton
 						:text="diffLines ? details.diff : output"
-						class="grid h-5 w-5 flex-none place-items-center rounded-4 text-ink-gray-5 hover:bg-surface-gray-2 hover:text-ink-gray-8"
+						class="-my-0.5"
 					/>
 				</div>
 				<pre
@@ -109,6 +111,11 @@
 					class="m-0 max-h-[200px] overflow-y-auto whitespace-pre-wrap break-words px-3 py-2 font-mono text-sm leading-[1.65] text-ink-gray-6"
 				>{{ output }}</pre>
 			</template>
+
+			<pre
+				v-else-if="command"
+				class="m-0 max-h-[200px] overflow-y-auto whitespace-pre-wrap break-words px-3 py-2 font-mono text-sm leading-[1.65] text-ink-gray-6"
+			>$ {{ command }}</pre>
 		</div>
 	</div>
 </template>
@@ -140,10 +147,10 @@ const open = usePanelOpen(() => props.step.call.id)
 const flow = inject("flow", null)
 const cwd = computed(() => flow?.state?.session?.config?.cwd ?? null)
 
-// a page reads by its host and path, as a file does by its name
+// a page reads by its host and path, as a file does by its name; a " · " in the template is a faint separator
 const displaySegments = computed(() =>
-	(props.step.call.display ?? []).map((segment) => {
-		if (!segment.arg) return segment
+	(props.step.call.display ?? []).flatMap((segment) => {
+		if (!segment.arg) return segment.text.split(/( · )/).filter(Boolean).map((text) => ({ text, sep: text === " · " }))
 		const page = props.step.call.name === "web_fetch" && segment.arg === "url"
 		return { ...segment, text: page ? pageName(segment.text) : compactDisplayText(segment.text, cwd.value) }
 	}),
@@ -159,6 +166,10 @@ const icon = computed(() => meta.value.icon ?? stepIcon(props.step.call.name))
 const label = computed(() => meta.value.label ?? stepLabel(props.step.call.name))
 const subject = computed(() =>
 	compactDisplayText(meta.value.subject ?? stepSubject(props.step.call), cwd.value),
+)
+// the whole command, once its call has streamed in: the row opens to it before its output lands
+const command = computed(() =>
+	props.step.call.name === "bash" && !props.step.streaming ? (args.value.command ?? "") : "",
 )
 const failed = computed(() => props.step.result?.is_error === true)
 const details = computed(() => props.step.result?.details ?? {})
@@ -235,6 +246,7 @@ const expandable = computed(() => {
 	if (link.value) return false
 	if (failed.value || decision.value) return true
 	if (meta.value.expandable === false) return false
+	if (command.value) return true
 	// its arguments may still be streaming in: the row opens once the call has ended
 	if (!props.step.result && !props.step.aborted) return false
 	if (meta.value.argsComponent) return true

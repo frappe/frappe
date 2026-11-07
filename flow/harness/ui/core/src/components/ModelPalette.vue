@@ -3,6 +3,9 @@
 		title="Models"
 		:back="!dropdown"
 		:dropdown="dropdown"
+		:beside="beside"
+		:align="align"
+		:width="width"
 		:query="search"
 		:busy="search !== debounced"
 		@close="emit('close')"
@@ -104,6 +107,10 @@ const props = defineProps({
 	query: { type: String, default: "" }, // the composer's text after its "/"
 	// hung from the model button with its own search, not over the composer
 	dropdown: { type: Boolean, default: false },
+	// opened beside the model button's menu: this far from the button's `align` edge, `width` wide
+	beside: { type: Number, default: 0 },
+	align: { type: String, default: "right" },
+	width: { type: Number, default: 304 },
 })
 const emit = defineEmits(["close", "back", "providers"])
 const flow = inject("flow")

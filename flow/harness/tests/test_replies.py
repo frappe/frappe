@@ -87,7 +87,7 @@ async def test_replies_come_only_after_a_finished_run_and_only_while_they_still_
 	# an answer that offers nothing usable: its spend is still counted
 	unusable = (
 		"Try asking about your deals.",
-		'{"replies": ["Only one"]}',
+		'{"replies": ["a", "b", "c", "d"]}',
 		[ToolCall(id="c2", name="read", arguments={"path": "a.txt"})],
 	)
 	for reply in unusable:
@@ -123,7 +123,7 @@ async def test_replies_come_only_after_a_finished_run_and_only_while_they_still_
 	assert len(_of(events, "replies_suggested")) == 1
 
 
-def test_parse_replies_takes_two_to_four_distinct_short_messages():
+def test_parse_replies_takes_one_to_three_distinct_short_messages():
 	fenced = '```json\n{"replies": [" Yes ", "No"], "multi_select": true}\n```'
 	assert parse_replies(fenced).model_dump(include={"replies", "multi_select"}) == {
 		"replies": ["Yes", "No"],
@@ -131,9 +131,10 @@ def test_parse_replies_takes_two_to_four_distinct_short_messages():
 	}
 	thought = '<think>Answer as {"replies": [...]} only.</think>\n{"replies": ["Yes", "No"]}'
 	assert parse_replies(thought).replies == ["Yes", "No"]
+	assert parse_replies('{"replies": ["Run the tests"]}').replies == ["Run the tests"]
 	for text in (
 		'{"replies": []}',
-		'{"replies": ["a", "b", "c", "d", "e"]}',
+		'{"replies": ["a", "b", "c", "d"]}',
 		'{"replies": ["Yes", "Yes "]}',
 		'{"replies": ["Yes", " "]}',
 		'{"replies": ["Yes", "' + "x" * 201 + '"]}',

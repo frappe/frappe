@@ -46,7 +46,10 @@ async function prepareApp(): Promise<RouterConfig | undefined> {
 		return loadAppRouterConfig()
 	}
 	if (frappeApp) {
-		await Promise.all([registerCustomVueComponents(frappeApp), registerStudioPageScripts(frappeApp)])
+		await Promise.all([
+			registerCustomVueComponents(frappeApp, window.app_name),
+			registerStudioPageScripts(frappeApp),
+		])
 	}
 	return undefined
 }

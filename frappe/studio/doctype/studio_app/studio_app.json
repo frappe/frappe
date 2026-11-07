@@ -36,7 +36,7 @@
    "options": "Studio Page"
   },
   {
-   "description": "Shown in the browser tab. Recommended size is 32x32 px in PNG or ICO",
+   "description": "Shown in the browser tab and as the app's icon on the desktop. Use a square PNG or SVG",
    "fieldname": "favicon",
    "fieldtype": "Attach Image",
    "label": "Favicon"
@@ -83,7 +83,7 @@
    "link_fieldname": "studio_app"
   }
  ],
- "modified": "2026-11-03 19:07:51.344105",
+ "modified": "2026-11-07 13:45:26.621023",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio App",

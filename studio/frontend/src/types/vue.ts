@@ -15,7 +15,6 @@ export type VueProp = {
 
 export interface CustomVueComponentMeta {
 	component_name: string
-	frappe_app?: string
 	studio_app: string
 	// Omitted for database components, whose source loads through the app runtime.
 	file_path?: string

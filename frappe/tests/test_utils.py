@@ -888,6 +888,20 @@ class TestImage(IntegrationTestCase):
 		url = "/../private/files/thumbnail_traversal_secret.jpg"
 		self.assertEqual(get_image_thumbnail_uri(url), url)
 
+		link = frappe.get_site_path("public", "files", "thumbnail_traversal_link.jpg")
+		os.symlink(os.path.abspath(secret), link)
+		self.addCleanup(os.remove, link)
+		self.assertEqual(
+			get_image_thumbnail_uri("/files/thumbnail_traversal_link.jpg"),
+			"/files/thumbnail_traversal_link.jpg",
+		)
+
+		public = frappe.get_site_path("public", "files", "thumbnail_public.jpg")
+		with open(sample, "rb") as src, open(public, "wb") as dst:
+			dst.write(src.read())
+		self.addCleanup(os.remove, public)
+		self.assertTrue(get_image_thumbnail_uri("/files/thumbnail_public.jpg").startswith("data:image/"))
+
 	def test_optimize_image(self):
 		image_file_path = frappe.get_app_path("frappe", "tests", "data", "sample_image_for_optimization.jpg")
 		content_type = guess_type(image_file_path)[0]
@@ -900,6 +914,18 @@ class TestImage(IntegrationTestCase):
 		self.assertLessEqual(width, 500)
 		self.assertLessEqual(height, 500)
 		self.assertLess(len(optimized_content), len(original_content))
+
+	def test_optimize_image_fills_transparency_with_white(self):
+		image_file_path = frappe.get_app_path("frappe", "tests", "data", "sample_image_for_optimization.jpg")
+		image = Image.open(image_file_path).convert("RGBA")
+		image.paste((0, 0, 0, 0), (0, 0, image.width // 2, image.height))
+		content = io.BytesIO()
+		image.save(content, format="PNG")
+
+		with self.set_user("test@example.com"):
+			optimized_content = optimize_image(content.getvalue(), "image/jpeg")
+
+		self.assertEqual(Image.open(io.BytesIO(optimized_content)).getpixel((10, 10)), (255, 255, 255))
 
 	def test_optimize_pdf(self):
 		from pypdf import PdfReader

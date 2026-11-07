@@ -16,7 +16,7 @@ from frappe.studio.build import (
 	get_published_custom_apps,
 	get_router_file,
 )
-from frappe.studio.doctype.studio_app.studio_app import StudioApp
+from frappe.studio.doctype.studio_app.studio_app import StudioApp, get_desktop_apps
 from frappe.studio.files import read_store_file, write_store_file
 from frappe.studio.utils import get_exported_app_name
 from frappe.tests.utils import FrappeTestCase
@@ -196,6 +196,9 @@ class TestStudioApp(FrappeTestCase):
 
 		self.assertTrue(served_app.is_website_published())
 		self.assertFalse(draft_app.is_website_published())
+		desktop_apps = [app.name for app in get_desktop_apps()]
+		self.assertIn(served_app.name, desktop_apps)
+		self.assertNotIn(draft_app.name, desktop_apps)
 		with self.set_user("Guest"):
 			self.assertEqual(get_website_response(served_app.route).status_code, 200)
 			self.assertEqual(get_website_response(draft_app.route).status_code, 404)
@@ -374,14 +377,23 @@ class TestStudioAppBuilder(FrappeTestCase):
 				}
 			]
 		}
+		# a draft page is never routed, so neither its components nor its missing ones count
+		draft_data = {
+			"published": 0,
+			"blocks": [{"componentName": "PosHeader", "isCustomVueComponent": True, "children": []}],
+		}
 
-		with mock_studio_app_files(app_name, pages={"my_page": page_data}) as studio_folder:
+		with mock_studio_app_files(
+			app_name, pages={"my_page": page_data, "draft": draft_data}
+		) as studio_folder:
 			builder = StudioAppBuilder(app_name, is_standard=True, frappe_app="frappe")
 			with patch("frappe.studio.utils.get_studio_folder", return_value=studio_folder):
 				builder.get_app_components_from_files()
 
 			self.assertIn("TextEditor", builder.components)
 			self.assertIn("Dropdown", builder.components)
+			self.assertNotIn("PosHeader", builder.components)
+			self.assertEqual(builder.missing_components, set())
 
 	def test_get_app_components_from_files_extracts_h_function_components(self):
 		app_name = "file-h-func-app"
@@ -435,6 +447,38 @@ class TestStudioAppBuilder(FrappeTestCase):
 
 			self.assertIn("Alert", builder.components)
 			self.assertIn("Badge", builder.components)
+
+	def test_build_stops_when_a_custom_component_is_missing(self):
+		"""Building it anyway emits an unknown element, which renders blank with a clean console."""
+		app_name = "missing-comp-app"
+		page_data = {"blocks": [{"componentName": "PosHeader", "isCustomVueComponent": True, "children": []}]}
+
+		with mock_studio_app_files(app_name, pages={"page": page_data}) as studio_folder:
+			builder = StudioAppBuilder(app_name, is_standard=True, frappe_app="frappe")
+			with (
+				patch("frappe.studio.utils.get_studio_folder", return_value=studio_folder),
+				self.assertRaises(StudioAppBuildError) as raised,
+			):
+				builder.build()
+
+			self.assertIn("PosHeader", str(raised.exception))
+
+	def test_a_custom_component_in_the_app_folder_resolves(self):
+		app_name = "custom-comp-app"
+		page_data = {"blocks": [{"componentName": "PosHeader", "isCustomVueComponent": True, "children": []}]}
+
+		with mock_studio_app_files(app_name, pages={"page": page_data}) as studio_folder:
+			components_folder = os.path.join(studio_folder, frappe.scrub(app_name), "components")
+			os.makedirs(components_folder)
+			with open(os.path.join(components_folder, "PosHeader.vue"), "w") as f:
+				f.write("<template><header /></template>")
+
+			builder = StudioAppBuilder(app_name, is_standard=True, frappe_app="frappe")
+			with patch("frappe.studio.utils.get_studio_folder", return_value=studio_folder):
+				builder.get_app_components_from_files()
+
+			self.assertEqual(builder.missing_components, set())
+			self.assertIn("PosHeader", builder.custom_vue_components)
 
 	def test_collects_icons_from_pages_scripts_and_components(self):
 		app = make_studio_app(app_title="Icon App", app_name="icon-app")
@@ -889,7 +933,7 @@ def mock_studio_app_files(app_name, pages=None, components=None, router=None):
 				page_dir = os.path.join(page_folder, page_name)
 				os.makedirs(page_dir, exist_ok=True)
 				with open(os.path.join(page_dir, f"{page_name}.json"), "w") as f:
-					json.dump(page_data, f)
+					json.dump({"published": 1, **page_data}, f)
 
 		if components:
 			comp_folder = os.path.join(app_folder, "studio_components")

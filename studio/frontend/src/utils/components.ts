@@ -232,9 +232,13 @@ const templateCache = new Map<string, string>()
 const customComponentMetas = new Map<string, CustomVueComponentMeta>()
 
 async function registerCustomComponentPaths(components: CustomVueComponentMeta[]) {
+	const previous = new Map(customComponentMetas)
 	customComponentMetas.clear()
 	for (const comp of components) {
 		customComponentMetas.set(comp.component_name, comp)
+	}
+	for (const [name, meta] of previous) {
+		if (customComponentMetas.get(name)?.file_path !== meta.file_path) invalidateComponentCache(name)
 	}
 	await Promise.all(components.map((comp) => getComponentSlots(comp.component_name, true)))
 }
@@ -316,11 +320,7 @@ async function fetchCustomComponentTemplate(componentName: string): Promise<stri
 		// (HMR content edit) gets the new source instead of the stale cached module.
 		const cacheBust = import.meta.env.DEV ? `&t=${Date.now()}` : ""
 		const module = await import(/* @vite-ignore */ `${filePath}?raw${cacheBust}`)
-		const rawSource = module.default || ""
-		if (rawSource) {
-			templateCache.set(componentName, rawSource)
-		}
-		return rawSource
+		return module.default || ""
 	} catch (error) {
 		console.error(`Error fetching custom component template ${componentName}:`, error)
 		return ""
@@ -348,11 +348,16 @@ const slotsCache = reactive(new Map<string, ReturnType<typeof parseSlotsFromTemp
 async function getComponentSlots(componentName: string, isCustomVueComponent?: boolean) {
 	const cached = slotsCache.get(componentName)
 	if (cached) return cached
+	const filePath = customComponentMetas.get(componentName)?.file_path
 	const template = isCustomVueComponent
 		? await fetchCustomComponentTemplate(componentName)
 		: getComponentTemplate(componentName)
+	if (isCustomVueComponent && customComponentMetas.get(componentName)?.file_path !== filePath) return []
 	const slots = parseSlotsFromTemplate(template)
-	if (template) slotsCache.set(componentName, slots)
+	if (template) {
+		if (isCustomVueComponent) templateCache.set(componentName, template)
+		slotsCache.set(componentName, slots)
+	}
 	return slots
 }
 

@@ -633,6 +633,24 @@ class TestEmailAccount(IntegrationTestCase):
 		self.assertTrue(frappe.db.exists("Communication", {"message_id": "rfq-7@example.com"}))
 		self.assertEqual(self.get_sync_from_uids(email_account), {"RFQ": 8})
 
+	def test_unparseable_mail_keeps_the_rest_of_the_batch(self):
+		email_account = self.make_imap_account({"RFQ": 7})
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		mailbox = IMAPMailbox({"RFQ": {7: "rfq-7", 8: "rfq-8"}})
+		init = InboundMail.__init__
+
+		def init_or_fail(mail, content, email_account, uid=None, *args):
+			if uid == "7":
+				raise ValueError("header could not be decoded")
+			init(mail, content, email_account, uid, *args)
+
+		with patch.object(InboundMail, "__init__", init_or_fail):
+			receive_from_mailbox(mailbox, email_account)
+
+		self.assertTrue(frappe.db.exists("Communication", {"message_id": "rfq-8@example.com"}))
+		self.assertTrue(frappe.db.exists("Unhandled Email", {"email_account": email_account, "uid": "7"}))
+
 	@patch("frappe.email.receive.EmailServer.connect", return_value=True)
 	@patch("frappe.email.receive.EmailServer.select_imap_folder", return_value=True)
 	@patch("frappe.email.receive.EmailServer.logout", side_effect=lambda: None)

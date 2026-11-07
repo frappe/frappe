@@ -56,11 +56,6 @@ class TestTypstGate(IntegrationTestCase):
 		cases = {
 			"HTML block": {"fieldtype": "HTML", "fieldname": "h", "html": "<b>x</b>"},
 			"Field Template block": {"fieldtype": "Field Template", "field_template": "T"},
-			"Barcode that is not a QR code": {
-				"fieldtype": "Barcode",
-				"custom": 1,
-				"barcode_format": "CODE128",
-			},
 			"Image loaded from a web address": {
 				"fieldtype": "Image",
 				"custom": 1,
@@ -71,9 +66,15 @@ class TestTypstGate(IntegrationTestCase):
 			with self.subTest(reason=reason):
 				self.assertIn(reason, typst_blockers(self.pf(), layout_with(field)))
 
-	def test_qr_barcode_qualifies(self):
-		field = {"fieldtype": "Barcode", "custom": 1, "barcode_format": "QR", "barcode_value": "X"}
-		self.assertEqual(typst_blockers(self.pf(), layout_with(field)), [])
+	def test_barcodes_qualify(self):
+		for barcode_format in ("QR", "CODE128", "CODE39"):
+			field = {
+				"fieldtype": "Barcode",
+				"custom": 1,
+				"barcode_format": barcode_format,
+				"barcode_value": "X",
+			}
+			self.assertEqual(typst_blockers(self.pf(), layout_with(field)), [])
 
 	def test_format_level_blockers(self):
 		self.assertIn("Custom HTML format", typst_blockers(self.pf(custom_format=1), layout_with()))

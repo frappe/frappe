@@ -462,9 +462,14 @@ def _attach_field_values(doc: "Document", candidates: list[tuple["DocField", Any
 			attached_to_field=df.fieldname,
 			folder="Home/Attachments",
 		)
+		messages = len(frappe.local.message_log)
+		savepoint = "attach_field_value"
+		frappe.db.savepoint(savepoint)
 		try:
 			file.insert(ignore_permissions=True)
 		except Exception:
+			frappe.db.rollback(save_point=savepoint)
+			del frappe.local.message_log[messages:]
 			doc.log_error("Error Attaching File")
 
 

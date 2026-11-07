@@ -61,6 +61,7 @@ class EmailQueue(Document):
 		attachments: DF.Code | None
 		communication: DF.Link | None
 		email_account: DF.Link | None
+		email_read_tracker_url: DF.SmallText | None
 		error: DF.Code | None
 		expose_recipients: DF.Data | None
 		message: DF.Code | None

@@ -622,7 +622,7 @@ const useStudioStore = defineStore("store", () => {
 	async function setCustomComponents() {
 		if (!usesDbFiles.value) await unloadAppRuntime()
 		const frappeApp = usesDbFiles.value ? "" : activeApp.value!.frappe_app!
-		customVueComponents.value = await reloadCustomVueComponents(frappeApp)
+		customVueComponents.value = await reloadCustomVueComponents(frappeApp, activeApp.value?.name ?? "")
 		await registerCustomComponentPaths(customVueComponents.value)
 	}
 

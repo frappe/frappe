@@ -102,7 +102,6 @@ frappe.data_import.DataExporter = class DataExporter {
 
 		this.make_filter_area();
 		this.make_select_all_buttons();
-		this.update_record_count_message();
 		this.setup_search_input();
 
 		this.dialog.show();
@@ -158,9 +157,12 @@ frappe.data_import.DataExporter = class DataExporter {
 		let section_title = for_insert
 			? __("Select Fields To Insert")
 			: __("Select Fields To Update");
+		let section_heading = this.exporting_for
+			? `<h6 class="form-section-heading uppercase">${section_title}</h6>`
+			: "";
 		let $select_all_buttons = $(`
 			<div class="mb-3">
-				<h6 class="form-section-heading uppercase">${section_title}</h6>
+				${section_heading}
 				<button class="btn btn-default btn-xs" data-action="select_all">
 					${__("Select All")}
 				</button>
@@ -239,6 +241,10 @@ frappe.data_import.DataExporter = class DataExporter {
 		let export_records = this.dialog.get_value("export_records");
 
 		if (!export_records || !count_method[export_records]) return;
+
+		const count_args = JSON.stringify([export_records, this.get_filters()]);
+		if (count_args === this.last_count_args) return;
+		this.last_count_args = count_args;
 
 		const count_request_id = (this.count_request_id = (this.count_request_id || 0) + 1);
 		count_method[export_records]().then((value) => {
@@ -423,7 +429,11 @@ frappe.data_import.DataExporter = class DataExporter {
 
 	setup_on_page_show() {
 		frappe.utils.setup_search(this.dialog.$body, ".unit-checkbox", ".label-area");
-		this.select_mandatory();
+		if (this.exporting_for) {
+			this.select_mandatory();
+		} else {
+			this.select_all();
+		}
 	}
 };
 

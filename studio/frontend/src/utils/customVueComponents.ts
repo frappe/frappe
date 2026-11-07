@@ -4,13 +4,18 @@ import type { CustomVueComponentMeta } from "@/types/vue"
 
 export const customVueComponentsRegistry = shallowRef<Record<string, any>>({})
 /**
- * Dynamically register custom Vue components from a specific Frappe app into the custom components registry.
- * @param frappeApp - The Frappe app name to fetch components from
+ * Dynamically register the custom Vue components one studio app exports into the registry.
  */
-export async function registerCustomVueComponents(frappeApp: string): Promise<CustomVueComponentMeta[]> {
+export async function registerCustomVueComponents(
+	frappeApp: string,
+	studioApp: string,
+): Promise<CustomVueComponentMeta[]> {
 	try {
-		if (!frappeApp) return []
-		const components: CustomVueComponentMeta[] = await vueComponents.reload({ frappe_app: frappeApp })
+		if (!frappeApp || !studioApp) return []
+		const components: CustomVueComponentMeta[] = await vueComponents.reload({
+			frappe_app: frappeApp,
+			studio_app: studioApp,
+		})
 
 		const registry = { ...customVueComponentsRegistry.value }
 		for (const comp of components) {
@@ -52,9 +57,12 @@ export function unregisterCustomVueComponents(components: CustomVueComponentMeta
 // Re-sync the registry to the app's current custom components. register() only merges, so on its
 // own a removed component would linger; this also evicts any that no longer exist. Pass an empty
 // frappeApp to clear them all (e.g. a non-standard app). Shared by the editor and the preview.
-export async function reloadCustomVueComponents(frappeApp: string): Promise<CustomVueComponentMeta[]> {
+export async function reloadCustomVueComponents(
+	frappeApp: string,
+	studioApp: string,
+): Promise<CustomVueComponentMeta[]> {
 	const before = Object.keys(customVueComponentsRegistry.value)
-	const components = await registerCustomVueComponents(frappeApp)
+	const components = await registerCustomVueComponents(frappeApp, studioApp)
 
 	const current = new Set(components.map((comp) => comp.component_name))
 	const removed = before.filter((name) => !current.has(name)).map((name) => ({ component_name: name }))

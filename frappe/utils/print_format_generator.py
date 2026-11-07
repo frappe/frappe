@@ -1,10 +1,13 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See LICENSE
 
+import base64
 import copy
 import re
 from typing import ClassVar
 from urllib.parse import quote
+
+from bs4 import BeautifulSoup
 
 import frappe
 from frappe import _
@@ -25,7 +28,7 @@ def render_jinja_template(
 	# template is rendered inside frappe's SandboxedEnvironment (Jinja2 sandbox).
 	# The caller must hold the "print" permission on the document before reaching this line.
 	try:
-		context = {**global_variables_context(global_variables, doc), "doc": doc}
+		context = {**global_variables_context(global_variables, doc), "doc": doc, "get_qr_code": get_qr_code}
 		return frappe.render_template(  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
 			template, context
 		)
@@ -139,7 +142,6 @@ def is_qr_barcode_options(options: str | None) -> bool:
 @frappe.whitelist()
 def get_qr_code(value: str) -> str:
 	"""Return a QR code for `value` as an SVG data URI (used by Barcode print elements)."""
-	import base64
 	import io
 
 	if not isinstance(value, str) or len(value) > 2000:
@@ -148,8 +150,46 @@ def get_qr_code(value: str) -> str:
 	from pyqrcode import create as qrcreate
 
 	stream = io.BytesIO()
-	qrcreate(value).svg(stream, scale=5, quiet_zone=1)
+	qrcreate(value).svg(stream, scale=5, quiet_zone=1, omithw=True)
 	return "data:image/svg+xml;base64," + base64.b64encode(stream.getvalue()).decode()
+
+
+LINEAR_BARCODE_FORMATS = {"CODE128": ("code128", {}), "CODE39": ("code39", {"add_checksum": False})}
+
+
+@frappe.whitelist()
+def get_barcode(value: str, barcode_format: str = "CODE128", show_text: bool = True) -> str | None:
+	"""Return `value` as a barcode SVG data URI, or None when the format cannot encode it."""
+	from html import escape
+
+	import barcode
+	from barcode.errors import BarcodeError
+
+	if barcode_format == "QR":
+		return get_qr_code(value)
+	if not isinstance(value, str) or len(value) > 2000:
+		frappe.throw(_("Barcode value must be text under 2000 characters"), frappe.ValidationError)
+	if barcode_format not in LINEAR_BARCODE_FORMATS or not value:
+		return None
+
+	name, options = LINEAR_BARCODE_FORMATS[barcode_format]
+	try:
+		modules = "".join(barcode.get(name, value, options=options).build())
+	except BarcodeError:
+		return None
+
+	bars = "".join(
+		f"M{3 * match.start()} 0h{3 * len(match.group())}v40h-{3 * len(match.group())}z"
+		for match in re.finditer("1+", modules)
+	)
+	width, height = 3 * len(modules), 60 if frappe.utils.sbool(show_text) else 40
+	text = (
+		f'<text x="{width / 2}" y="56" text-anchor="middle" font-family="DejaVu Sans Mono, monospace" font-size="16">{escape(value)}</text>'
+		if height == 60
+		else ""
+	)
+	svg = f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}"><path d="{bars}"/>{text}</svg>'
+	return "data:image/svg+xml;base64," + base64.b64encode(svg.encode()).decode()
 
 
 DATE_FIELDTYPES = ("Date", "Datetime")
@@ -386,20 +426,25 @@ def check_conditions(doctype: str, name: str, conditions: list[str] | str):
 	"""Evaluate visibility conditions against a document the way the print does.
 	Returns {condition: {"visible": bool} | {"error": str}}; at most MAX_CONDITIONS
 	distinct expressions are evaluated per call."""
+	frappe.has_permission("Print Format", "write", throw=True)
 	conditions = frappe.parse_json(conditions) if isinstance(conditions, str) else conditions
 	if not all(isinstance(v, str) for v in (doctype, name)) or not isinstance(conditions, list):
 		frappe.throw(_("Invalid arguments"), frappe.ValidationError)
 	conditions = list(dict.fromkeys(c for c in conditions if c.strip() and len(c) <= 2000))[:MAX_CONDITIONS]
 	doc = frappe.get_doc(doctype, name)
 	doc.check_permission("read")
-	eval_locals = {"doc": doc, "print_settings": frappe.get_cached_doc("Print Settings")}
+	eval_locals = condition_locals(doc, frappe.get_cached_doc("Print Settings"))
 	out = {}
 	for condition in conditions:
 		try:
 			out[condition] = {"visible": bool(frappe.safe_eval(condition, None, eval_locals))}
-		except Exception as e:
-			out[condition] = {"error": str(e)[:200]}
+		except Exception:
+			out[condition] = {"error": _("This condition could not be evaluated")}
 	return out
+
+
+def condition_locals(doc, print_settings) -> dict:
+	return {"doc": doc.as_dict(), "print_settings": print_settings.as_dict()}
 
 
 class PrintFormatGenerator:
@@ -889,7 +934,7 @@ class PrintFormatGenerator:
 
 	def _render_zone_section(self, section: dict, doc, zone_class: str = "") -> str:
 		"""Render a header/footer zone section dict to HTML for the Chrome overlay."""
-		eval_locals = {"doc": doc, "print_settings": self.print_settings}
+		eval_locals = condition_locals(doc, self.print_settings)
 		for column in section.get("columns", []):
 			for df in column.get("fields", []):
 				if "renderer" not in df:
@@ -1058,7 +1103,7 @@ class PrintFormatGenerator:
 		empty across all rows, then renormalize widths. A bad condition fails open."""
 		from frappe.www.printview import column_has_value
 
-		eval_locals = {"doc": self.doc, "print_settings": self.print_settings}
+		eval_locals = condition_locals(self.doc, self.print_settings)
 		for column in iter_layout_columns(layout):
 			for df in column.get("fields", []):
 				if df.get("fieldtype") != "Table" or not df.get("table_columns"):
@@ -1126,10 +1171,11 @@ class PrintFormatGenerator:
 		self.filter_conditional_rows(df)
 
 	def set_field_renderers(self, layout):
-		eval_locals = {"doc": self.doc, "print_settings": self.print_settings}
+		eval_locals = condition_locals(self.doc, self.print_settings)
 		self.jinja_context = {
 			**global_variables_context(layout.get("global_variables"), self.doc),
 			"doc": self.doc,
+			"get_qr_code": get_qr_code,
 		}
 		for section in layout["sections"]:
 			if section.get("visible_if"):
@@ -1154,50 +1200,44 @@ class PrintFormatGenerator:
 		if not df.get("row_condition") or not source:
 			return
 		condition = df["row_condition"]
-		eval_locals = {"doc": self.doc, "print_settings": self.print_settings}
+		eval_locals = condition_locals(self.doc, self.print_settings)
 		kept = []
 		for row in self.doc.get(source) or []:
-			if self.eval_condition(condition, {**eval_locals, "row": row}, f"rows of {source}"):
+			if self.eval_condition(condition, {**eval_locals, "row": row.as_dict()}, f"rows of {source}"):
 				kept.append(row)
 		df["_rows"] = kept
 
 	def prepare_html(self, df):
-		if df.get("fieldtype") == "HTML" and not df.get("_hidden"):
+		if df.get("renderer") == "HTML" and not df.get("_hidden"):
 			rendered = frappe.render_template(  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
 				df.get("html") or "", self.jinja_context
 			)
-			df["_html"] = rendered
+			df["_html"] = BeautifulSoup(f"<body>{rendered}</body>", "html5lib").body.decode_contents()
 
 	def prepare_barcode(self, df):
-		"""Resolve JsBarcode options / QR data URI for Barcode layout elements."""
+		"""Draw Barcode layout elements on the server, so every renderer prints them."""
 		if df.get("fieldtype") != "Barcode":
 			return
-		if not df.get("custom"):
-			# a dragged Barcode docfield prints whatever it stores; a docfield
-			# whose options ask for a qr code prints its value as one — the
-			# field decides the format, the builder offers no override
-			meta_df = frappe.get_meta(self.doc.doctype).get_field(df.get("fieldname"))
-			value = self.doc.get(df.get("fieldname"))
-			if value and meta_df and is_qr_barcode_options(meta_df.options):
-				df["barcode_format"] = "QR"
-				df["_qr_data_uri"] = get_qr_code(str(value))
-			return
-		if df.get("barcode_format") == "QR":
-			value = (
-				self.doc.get(df.get("barcode_field")) if df.get("barcode_field") else df.get("barcode_value")
-			)
-			if value:
-				df["_qr_data_uri"] = get_qr_code(str(value))
+		if df.get("custom"):
+			source = df.get("barcode_field")
+			value = cstr(self.doc.get(source) if source else df.get("barcode_value"))
 		else:
-			df["_barcode_options"] = frappe.as_json(
-				{
-					"format": df.get("barcode_format") or "CODE128",
-					"displayValue": bool(df.get("show_text", True)),
-					"height": 40,
-					"margin": 0,
-				},
-				indent=None,
+			value = cstr(self.doc.get(df.get("fieldname")))
+		if value.startswith("<svg"):
+			df["_barcode_data_uri"] = "data:image/svg+xml;base64," + base64.b64encode(value.encode()).decode()
+			return
+		if not value:
+			return
+		if df.get("custom"):
+			df["_barcode_data_uri"] = get_barcode(
+				value, df.get("barcode_format") or "CODE128", df.get("show_text", True)
 			)
+			return
+		# a dragged Barcode docfield whose options ask for a qr code prints its value as one
+		meta_df = frappe.get_meta(self.doc.doctype).get_field(df.get("fieldname"))
+		if meta_df and is_qr_barcode_options(meta_df.options):
+			df["barcode_format"] = "QR"
+		df["_barcode_data_uri"] = get_barcode(value, df.get("barcode_format") or "CODE128")
 
 	def prepare_linked_field(self, df):
 		"""Resolve a Linked Field's one-hop path (link_field.target_field) to a

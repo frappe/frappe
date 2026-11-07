@@ -399,6 +399,24 @@ class TestSessionEndpoints(ApiCase):
 		for name in api.__all__:
 			frappe.is_whitelisted(frappe.get_attr(f"frappe.flow.api.{name}"))
 
+	def test_system_prompt_is_sent_to_a_system_manager_only(self):
+		owner = _ensure_user(SHARER)
+		frappe.set_user(owner)
+		sid = self.create()
+		self.daemon.configs[sid]["system_prompt"] = "You are Flow, composed."
+		self.daemon.calls.clear()
+		self.assertIsNone(api.system_prompt(sid))
+		self.assertEqual(self.daemon.calls, [])  # a plain user's ask never reaches the flow server
+
+		frappe.set_user("Administrator")
+		frappe.get_doc("User", owner).add_roles("System Manager")
+		frappe.set_user(owner)
+		self.assertEqual(api.system_prompt(sid), "You are Flow, composed.")
+
+		frappe.set_user(_ensure_user(OTHER))
+		with self.assertRaises(frappe.PermissionError):
+			api.system_prompt(sid)
+
 	def test_screen_result_hands_the_panels_answer_to_the_call_waiting_on_its_token(self):
 		sid = self.create()
 		self.assertEqual(api.screen_result(sid, "t1", screen={"url": "/app/todo"}), {"delivered": True})
@@ -455,9 +473,9 @@ class TestSessionEndpoints(ApiCase):
 		self.assertIn("full_name", data["user"])
 		self.assertEqual(data["permissions"]["Flow Provider"], ["read", "write", "create", "delete"])
 		frappe.db.delete("Flow Provider")  # tearDown rolls it back
-		self.assertIsNone(api.boot()["provider"])
+		self.assertEqual(api.boot()["providers"], [])
 		provider = frappe.get_doc({"doctype": "Flow Provider", "provider": "openai"}).insert()
-		self.assertEqual(api.boot()["provider"], provider.name)
+		self.assertEqual(api.boot()["providers"], [provider.name])
 		frappe.set_user(_ensure_user(OTHER))
 		data = api.boot()
 		self.assertEqual(data["user"]["name"], OTHER)
@@ -521,7 +539,8 @@ class TestSessionEndpoints(ApiCase):
 		name = self.create()
 		run = api.run(name, "read", attachments=json.dumps([notes.name]))["run"]
 		self.assertEqual(
-			self.daemon.calls[-1], ("run", name, 'read\n<file name="notes.txt">\nthe body\n</file>')
+			self.daemon.calls[-1],
+			("run", name, f'read\n<file name="notes.txt" {_file_attrs(notes)}>\nthe body\n</file>'),
 		)
 		self.assertEqual(frappe.db.get_value("Flow Run", run, "input"), "read")
 		[row] = frappe.get_doc("Flow Session", name).attachments
@@ -541,7 +560,10 @@ class TestSessionEndpoints(ApiCase):
 		# a file may go without a message
 		gone = self.upload("gone.txt", "gone")
 		self.assertEqual(api.run(name, "", attachments=[gone.name])["status"], "started")
-		self.assertEqual(self.daemon.calls[-1], ("run", name, '\n<file name="gone.txt">\ngone\n</file>'))
+		self.assertEqual(
+			self.daemon.calls[-1],
+			("run", name, f'\n<file name="gone.txt" {_file_attrs(gone)}>\ngone\n</file>'),
+		)
 		# a sync drops the row of a file deleted since
 		frappe.db.delete("File", {"name": gone.name})
 		api.sync_session(name)
@@ -1127,3 +1149,7 @@ class TestLiveEndpoints(LiveServerCase):
 				("assistant", "Mock reply to: two"),
 			],
 		)
+
+
+def _file_attrs(file_doc) -> str:
+	return f'file="{file_doc.name}" url="{file_doc.file_url}" size="1 KB"'

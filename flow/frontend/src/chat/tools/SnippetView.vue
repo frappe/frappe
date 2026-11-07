@@ -2,7 +2,7 @@
 	<div v-if="!groups.length" class="px-3 py-2.5 text-sm text-ink-gray-5">No matches</div>
 	<div v-else class="flex max-h-[260px] flex-col gap-3 overflow-auto px-3 py-2.5">
 		<div v-for="(group, i) in groups" :key="i">
-			<div class="mb-1 truncate text-xs font-medium text-ink-gray-5">{{ group.title }}</div>
+			<div class="mb-1 truncate text-xs-medium text-ink-gray-5">{{ group.title }}</div>
 			<div
 				v-for="(hit, j) in group.hits"
 				:key="j"
