@@ -572,7 +572,8 @@ const editingPath = ref<string | null>(null)
 
 function startRename(node: StudioFileNode) {
 	closeContextMenu()
-	if (isProtectedNode(node)) return // export-managed, read-only
+	// A page script is named after its page, so only a retitle may rename it.
+	if (isProtectedNode(node) || isPageScriptPath(node.path)) return
 	editingPath.value = node.path
 	nextTick(() => requestAnimationFrame(() => focusLabel(node)))
 }
