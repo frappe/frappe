@@ -463,6 +463,13 @@ class TestDocument(IntegrationTestCase):
 		finally:
 			doctype.delete(force=True)
 
+	def test_color_validation(self):
+		todo = frappe.get_doc(doctype="ToDo", description="_Test Color", color="not-a-colour")
+		self.assertRaises(frappe.ValidationError, todo.insert)
+
+		for color in (None, "#fff", "#1a5fb4", "#1A5FB480"):
+			frappe.get_doc(doctype="ToDo", description="_Test Color", color=color).insert()
+
 	def test_get_formatted(self):
 		frappe.get_doc(
 			{
