@@ -1,6 +1,7 @@
 import typing
 from random import choice
 from unittest.mock import patch
+from urllib.parse import urljoin
 
 import requests
 
@@ -9,6 +10,7 @@ from frappe.api import discovery
 from frappe.api.v2 import run_doc_method
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.core.doctype.user.user import generate_keys
+from frappe.desk.doctype.note.note import Note
 from frappe.desk.doctype.todo.todo import ToDo
 from frappe.installer import update_site_config
 from frappe.permissions import add_permission, update_permission_property
@@ -195,6 +197,26 @@ class TestResourceAPIV2(FrappeAPITestCase):
 		docname = response.json["data"]["name"]
 		self.assertIsInstance(docname, str)
 		self.GENERATED_DOCUMENTS.append(docname)
+
+	def test_create_document_leaves_missing_fields_to_controller(self):
+		def setup(doc):
+			doc.dont_update_if_missing.append("notify_on_every_login")
+
+		def before_insert(doc):
+			if doc.get("notify_on_every_login") is None:
+				doc.notify_on_every_login = 1
+
+		with (
+			patch.object(Note, "__setup__", setup, create=True),
+			patch.object(Note, "before_insert", before_insert, create=True),
+		):
+			for path in (self.resource("Note"), urljoin(self.site_url, "api/resource/Note")):
+				for sent, expected in (({}, 1), ({"notify_on_every_login": 0}, 0)):
+					with self.subTest(path=path, sent=sent):
+						response = self.post(path, {"title": "x", "sid": self.sid, **sent})
+						data = response.json["data"]
+						self.delete(self.resource("Note", data["name"]), data={"sid": self.sid})
+						self.assertEqual(data["notify_on_every_login"], expected)
 
 	def test_copy_document_v2(self):
 		doc = frappe.get_doc(self.DOCTYPE, self.GENERATED_DOCUMENTS[0])
