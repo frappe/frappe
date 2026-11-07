@@ -83,7 +83,6 @@ class PilotClient:
 			frappe.throw(_("Could not reach your server: {0}").format(exc), frappe.ValidationError)
 
 		payload = self._parse(response)
-		# An OK response is the answer, even when it carries an `error` field, such as a failed task's record.
 		if response.ok:
 			return payload
 		frappe.throw(
