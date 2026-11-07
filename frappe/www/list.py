@@ -167,6 +167,9 @@ def get_list_context(context, doctype, web_form_name=None):
 	if not meta.custom and not list_context.list_template:
 		list_context.template = meta.get_list_template()
 
+	if not list_context.list_template:
+		list_context.list_template = "templates/includes/list/list.html"
+
 	return list_context
 
 

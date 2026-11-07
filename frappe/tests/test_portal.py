@@ -56,3 +56,8 @@ class TestPortalList(IntegrationTestCase):
 		frappe.local.form_dict.list_context = "injected"
 		context = portal.get_context(frappe._dict(), doctype="Help Article")
 		self.assertTrue(any(self.article.route in row for row in context.result))
+
+	def test_doctype_without_list_template_uses_the_default(self):
+		context = portal.get_context(frappe._dict(), doctype="ToDo")
+
+		self.assertEqual(context.list_template, "templates/includes/list/list.html")
