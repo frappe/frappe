@@ -671,8 +671,7 @@ async function run_build_command_for_apps(apps) {
 		await terminate_build_children();
 		const errors = error instanceof AggregateError ? error.errors : [error];
 		for (const err of errors) {
-			const step_label = err.step === "install" ? "yarn install" : "yarn build";
-			log_error(`${step_label} failed for ${err.app || "an app"}`);
+			log_error(`${err.command || err.step} failed for ${err.app || "an app"}`);
 			if (VERBOSE) {
 				// Child output (if any) was already streamed by flush_verbose;
 				// surface the raw error so spawn/ENOENT failures aren't silent.
@@ -705,9 +704,7 @@ async function run_frontend_build(name, frontend_path) {
 		await run_app_build(name, frontend_path);
 	} catch (error) {
 		await terminate_build_children();
-		log_error(
-			`${error.step === "install" ? "yarn install" : "yarn build"} failed for ${name}`
-		);
+		log_error(`${error.command || error.step} failed for ${name}`);
 		if (VERBOSE) {
 			log(chalk.dim(error.stack || error.message || String(error)));
 		} else if (error.output) {
@@ -724,20 +721,27 @@ async function run_frontend_build(name, frontend_path) {
 
 async function run_app_build(app, root_app_path) {
 	const started = Date.now();
+	const package_manager = get_package_manager(root_app_path);
 	// every build, not only on a fresh checkout: an install made before an update lacks what the
-	// new lockfile adds. Yarn returns in under a second when the install is current
-	await run_command("yarn install --frozen-lockfile", {
+	// new lockfile adds. The install returns in under a second when it is current
+	await run_command(`${package_manager} install --frozen-lockfile`, {
 		cwd: root_app_path,
 		app,
 		step: "install",
 	});
 
-	await run_command("yarn build", { cwd: root_app_path, app, step: "build" });
+	await run_command(`${package_manager} build`, { cwd: root_app_path, app, step: "build" });
 
 	if (!VERBOSE) {
 		const elapsed = ((Date.now() - started) / 1000).toFixed(1);
 		log(`${chalk.green("✔")} ${chalk.bold(app)} built in ${elapsed}s`);
 	}
+}
+
+// An app with pnpm-lock.yaml installs with pnpm; Yarn 1 cannot read that lockfile or install
+// its workspace: dependencies. Every other app keeps Yarn.
+function get_package_manager(root_app_path) {
+	return fs.existsSync(path.join(root_app_path, "pnpm-lock.yaml")) ? "pnpm" : "yarn";
 }
 
 function run_command(command, { cwd, app, step }) {
@@ -771,6 +775,7 @@ function run_command(command, { cwd, app, step }) {
 			flush_verbose();
 			error.app = app;
 			error.step = step;
+			error.command = command;
 			error.output = output_buffer.toString();
 			reject(error);
 		});
@@ -793,6 +798,7 @@ function run_command(command, { cwd, app, step }) {
 			const error = new Error(`${step} command failed for ${app} (${exit_details})`);
 			error.app = app;
 			error.step = step;
+			error.command = command;
 			error.output = output_buffer.toString();
 			reject(error);
 		});
