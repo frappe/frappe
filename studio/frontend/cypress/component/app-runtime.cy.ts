@@ -2,9 +2,7 @@ import { isRef } from "vue"
 import { AppModuleRegistry, AppCompileError, clearAppStyles } from "@/browserRuntime/moduleRegistry"
 
 // Linking, execution order and export resolution are checked against a real build in
-// module-parity.cy.ts. This spec covers what only the registry does: adding a file to a loaded
-// app, keeping one broken file local, and the rules that exist because the browser runs the
-// source as it is.
+// module-parity.cy.ts. This spec covers only what the registry itself does.
 
 async function expectCompileError(sources: Record<string, string>, entry: string, needle: string) {
 	try {

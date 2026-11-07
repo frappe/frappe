@@ -59,17 +59,17 @@ function loadCompilers() {
 	return compilerModules
 }
 
-// Registry rebuilds can reuse compilation results when the source has not changed.
-const cache = new Map<string, Promise<CompiledFile>>()
+// Hold the latest compilation of each file, so a rebuild reuses the files that did not change.
+// Keying by path replaces a superseded version instead of keeping it, and holds every file of an
+// app however large it is.
+const cache = new Map<string, { source: string; compiled: Promise<CompiledFile> }>()
 
 /** Convert ESM to CommonJS for the registry. The caller compiles each module once. */
 export function compileFile(filename: string, source: string): Promise<CompiledFile> {
-	const key = `${filename}\0${source.length}\0${djb2(source)}`
-	let compiled = cache.get(key)
-	if (!compiled) {
-		compiled = toCommonJS(filename, source)
-		cache.set(key, compiled)
-	}
+	const cached = cache.get(filename)
+	if (cached?.source === source) return cached.compiled
+	const compiled = toCommonJS(filename, source)
+	cache.set(filename, { source, compiled })
 	return compiled
 }
 
@@ -84,7 +84,7 @@ async function toCommonJS(filename: string, source: string): Promise<CompiledFil
 }
 
 /**
- * Read a module's dependencies and the names it exports, in one parse.
+ * Read a module's dependencies and the names it exports.
  *
  * Library modules load asynchronously, so the caller preloads them before synchronous require()
  * calls. Database apps require literal import() paths so both loaders can discover dependencies,
@@ -240,14 +240,6 @@ function declaredNames(node: any, names: string[]): void {
 		default:
 			if (node.id) declaredNames(node.id, names)
 	}
-}
-
-function djb2(text: string): number {
-	let hash = 5381
-	for (let index = 0; index < text.length; index++) {
-		hash = ((hash << 5) + hash + text.charCodeAt(index)) | 0
-	}
-	return hash
 }
 
 function formatError(filename: string, error: any): CompileError {
