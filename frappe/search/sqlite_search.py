@@ -376,9 +376,7 @@ class SQLiteSearch(ABC):
 				if temp_db_path and not is_continuation:
 					self._with_connection(lambda cursor: cursor.execute("DELETE FROM search_fts"))
 
-				# Initialize progress tracking (only for completely fresh builds)
-				if not is_continuation:
-					self._initialize_index_progress()
+				self._initialize_index_progress()
 
 			# Get current progress
 			progress = self._get_index_progress()
