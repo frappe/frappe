@@ -19,7 +19,7 @@
 			<slot name="empty" :mark="mark">
 				<!-- the mark over a quiet heading, each a step smaller on a phone -->
 				<BrandMark line :size="32" v-bind="mark" class="min-h-0 shrink max-sm:!h-7 max-sm:!w-7" />
-				<h2 class="text-balance text-2xl text-ink-gray-8 sm:text-4xl">What would you like to build?</h2>
+				<h2 class="text-balance text-2xl text-ink-gray-8 sm:text-[22px]">What would you like to build?</h2>
 			</slot>
 			<!-- the box's place under the mark until the first message -->
 			<div v-if="docked" ref="dock" class="mt-5 w-full shrink-0" :style="{ height: composerHeight + 'px' }" />
