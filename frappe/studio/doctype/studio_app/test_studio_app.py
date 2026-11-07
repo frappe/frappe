@@ -35,7 +35,7 @@ class TestStudioApp(FrappeTestCase):
 			app = make_studio_app(app_title="Routed Custom App", app_name="routed-custom-app")
 			write_store_file(app.name, "router.js", ROUTER_FILE_SOURCE)
 			context = get_renderer_context(app)
-			self.assertTrue(context.uses_db_files)
+			self.assertTrue(context.is_db_app)
 			self.assertIsNone(context.router_file)
 
 			app.enable_app_export("frappe")
@@ -45,7 +45,7 @@ class TestStudioApp(FrappeTestCase):
 			self.assertEqual(read_store_file(app.name, "router.js"), None)
 
 			context = get_renderer_context(app)
-			self.assertFalse(context.uses_db_files)
+			self.assertFalse(context.is_db_app)
 			self.assertEqual(context.router_file, router_path)
 			with patch.dict(frappe.conf, {"developer_mode": 0}):
 				self.assertIsNone(get_renderer_context(app).router_file)
@@ -61,14 +61,13 @@ class TestStudioApp(FrappeTestCase):
 		write_store_file(app.name, "utils.js", "export const price = 1\n")
 
 		app.reload()
-		self.assertTrue(app.uses_db_files())
 		self.assertIsNone(app.get_assets_from_manifest())
 
 		gate = "frappe.studio.doctype.studio_app.studio_app.can_build_bundle"
 		with patch(gate, return_value=True):
 			html = get_website_response("shop-demo/board").get_data(as_text=True)
 		# Without a bundle, the shared renderer compiles database source in the browser.
-		self.assertIn("window.uses_db_files = true", html)
+		self.assertIn("window.is_db_app = true", html)
 		self.assertIn("/assets/frappe/studio/", html)
 		# A missing bundle should produce a warning when the server can build one.
 		self.assertIn("Could not find app assets", html)

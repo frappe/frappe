@@ -84,11 +84,11 @@ const location = computed(() => ({
 
 // Both app types keep the router config at the app root, in the repository or database file store.
 async function load() {
-	const candidates = store.usesDbFiles ? ["router.js"] : ["router.ts", "router.js"]
+	const candidates = store.isDbApp ? ["router.js"] : ["router.ts", "router.js"]
 	const files = await Promise.all(candidates.map((path) => readStudioFileIfExists(location.value, path)))
 	const existing = files.filter((file) => file.content !== null)
 	const paths = existing.map((file) => file.path)
-	routerFile.value = resolveScriptPath("router", paths, store.usesDbFiles)
+	routerFile.value = resolveScriptPath("router", paths, store.isDbApp)
 	const file = existing[0] ?? files[0]
 	setLoaded(file.content ?? "", file.hash ?? undefined)
 	if (file.content === null) script.value = `export default ${BOILERPLATE}\n`
@@ -97,12 +97,12 @@ async function load() {
 async function saveFile(source: string) {
 	const result = await writeStudioFile(location.value, routerFile.value, source, fileHash.value)
 	fileHash.value = result.hash
-	if (store.usesDbFiles) store.refreshAppFiles()
+	if (store.isDbApp) store.refreshAppFiles()
 }
 
 async function removeFile() {
 	await deleteStudioFile(location.value, routerFile.value)
-	if (store.usesDbFiles) store.refreshAppFiles()
+	if (store.isDbApp) store.refreshAppFiles()
 }
 
 function complete(context: CompletionContext) {

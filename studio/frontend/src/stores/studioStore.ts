@@ -110,13 +110,13 @@ const useStudioStore = defineStore("store", () => {
 
 	const showRouterEditor = ref(false)
 	// Database apps can compile Studio App File source in the browser.
-	const usesDbFiles = computed(() => !activeApp.value?.is_standard)
+	const isDbApp = computed(() => activeApp.value?.is_standard === 0)
 
 	async function setApp(appName: string) {
 		const appDoc = await fetchApp(appName)
 		if (!appDoc) return
 		activeApp.value = appDoc
-		if (usesDbFiles.value) await loadAppRuntime(appName)
+		if (isDbApp.value) await loadAppRuntime(appName)
 		else await unloadAppRuntime()
 		await setAppBoot(appName)
 		await setAppPages(appName)
@@ -621,7 +621,7 @@ const useStudioStore = defineStore("store", () => {
 
 	// Only a repository app ships .vue components. An empty app name clears the ones the last app registered.
 	async function setCustomComponents() {
-		const frappeApp = usesDbFiles.value ? "" : activeApp.value!.frappe_app!
+		const frappeApp = isDbApp.value ? "" : activeApp.value!.frappe_app!
 		customVueComponents.value = await reloadCustomVueComponents(frappeApp, activeApp.value?.name ?? "")
 		await registerCustomComponentPaths(customVueComponents.value)
 	}
@@ -629,7 +629,7 @@ const useStudioStore = defineStore("store", () => {
 	// Reload source, components and the active page script after file changes.
 	// Debounce to combine a local save and its realtime event into one refresh.
 	const refreshAppFiles = useDebounceFn(async () => {
-		if (!usesDbFiles.value) return
+		if (!isDbApp.value) return
 		await reloadAppRuntime()
 		if (activePage.value) await pageScope.loadPageScript(activePage.value)
 	}, 300)
@@ -843,7 +843,7 @@ const useStudioStore = defineStore("store", () => {
 		showPageOptions,
 		// studio app
 		activeApp,
-		usesDbFiles,
+		isDbApp,
 		refreshAppFiles,
 		setApp,
 		deleteApp,

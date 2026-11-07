@@ -129,14 +129,14 @@ class TestFiles(IntegrationTestCase):
 		files.delete_store_path(app.name, "lib/deep")
 		self.assertEqual([file["path"] for file in files.get_store_files(app.name)], ["lib/a.js"])
 
-	def test_uses_db_files(self):
+	def test_is_db_app(self):
 		with exports_in_tempdir():
 			db_app = make_db_app()
 			repo_app = make_db_app(is_standard=1, frappe_app="frappe")
-		self.assertTrue(files.uses_db_files(db_app.name))
-		self.assertFalse(files.uses_db_files(repo_app.name))
+		self.assertTrue(files.is_db_app(db_app.name))
+		self.assertFalse(files.is_db_app(repo_app.name))
 		# A missing app does not use database file storage.
-		self.assertFalse(files.uses_db_files("no-such-app"))
+		self.assertFalse(files.is_db_app("no-such-app"))
 
 	def test_an_app_that_was_never_exported_discards_nothing(self):
 		self.assertEqual(files.discarded_export_files(make_db_app()), [])

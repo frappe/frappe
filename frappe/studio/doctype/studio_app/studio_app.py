@@ -160,7 +160,7 @@ class StudioApp(WebsiteGenerator):
 		context.can_edit_app = bool(
 			(context.is_developer_mode or not self.is_standard) and check_app_permission()
 		)
-		context.uses_db_files = self.uses_db_files()
+		context.is_db_app = not self.is_standard
 		context.router_file = self.get_router_file() if context.is_developer_mode else None
 
 		context.base_url = frappe.utils.get_url(self.route)
@@ -173,10 +173,6 @@ class StudioApp(WebsiteGenerator):
 		from frappe.studio.build import get_router_file
 
 		return get_router_file(self.frappe_app, self.name)
-
-	def uses_db_files(self) -> bool:
-		"""Return whether the app uses database source storage and supports browser compilation."""
-		return not self.is_standard
 
 	def get_boot(self) -> dict:
 		"""Get the boot data for this Studio app"""

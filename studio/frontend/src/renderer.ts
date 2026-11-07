@@ -26,7 +26,7 @@ window.__APP_COMPONENTS__ = app._context.components
 declare global {
 	interface Window {
 		is_preview?: boolean
-		uses_db_files?: boolean
+		is_db_app?: boolean
 		can_edit_app?: boolean
 		__APP_COMPONENTS__: any
 		[key: string]: string
@@ -41,7 +41,7 @@ const frappeApp = (window as any).frappe_app
 
 // Load stored components and router.js before creating the database app's router.
 async function prepareApp(): Promise<RouterConfig | undefined> {
-	if (window.uses_db_files) {
+	if (window.is_db_app) {
 		await loadAppRuntime(window.app_name)
 		return loadAppRouterConfig()
 	}

@@ -26,7 +26,7 @@ def run_list_app_files(ctx, args: dict) -> str:
 		return _fail(error)
 	paths = _flatten(tree)
 	if not paths:
-		extension = "js" if files.uses_db_files(ref[1]) else "ts"
+		extension = "js" if files.is_db_app(ref[1]) else "ts"
 		return f"The app has no editable files yet. Create them with write_app_file (e.g. stores/notes.{extension})."
 	return "App files (paths are relative to the app root, imported as '@app/<path>'):\n" + "\n".join(paths)
 

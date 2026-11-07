@@ -39,7 +39,7 @@ export function useLivePreview() {
 			reloadPage(info.name)
 		} else if (
 			info?.doctype === "Studio App File" &&
-			window.uses_db_files &&
+			window.is_db_app &&
 			info?.studio_app === window.app_name
 		) {
 			reloadAppFiles()

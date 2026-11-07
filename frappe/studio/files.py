@@ -33,7 +33,7 @@ ALLOWED_STUDIO_FILE_EXTENSIONS = {".ts", ".js", ".vue", ".json", ".css"}
 ALLOWED_STORED_FILE_EXTENSIONS = {".js", ".json", ".css"}
 
 
-def uses_db_files(studio_app: str) -> bool:
+def is_db_app(studio_app: str) -> bool:
 	"""Return whether the app uses database source storage. Return False for a missing app."""
 	is_standard = frappe.db.get_value("Studio App", studio_app, "is_standard")
 	return is_standard == 0

@@ -236,7 +236,7 @@ def get_studio_page_scripts(frappe_app: str) -> list[dict]:
 @frappe.whitelist()
 def list_studio_files(frappe_app: str, studio_app: str) -> list[dict]:
 	"""Return the app's editable file tree."""
-	if files.uses_db_files(studio_app):
+	if files.is_db_app(studio_app):
 		_validate_studio_file_access(on_disk=False)
 		return files.list_store_tree(studio_app)
 
@@ -250,7 +250,7 @@ def list_studio_files(frappe_app: str, studio_app: str) -> list[dict]:
 @frappe.whitelist()
 def read_studio_file(frappe_app: str, studio_app: str, file_path: str, ignore_missing: bool = False) -> dict:
 	"""Return a file's content plus a hash callers pass back to write_studio_file for conflict checks."""
-	if files.uses_db_files(studio_app):
+	if files.is_db_app(studio_app):
 		_validate_studio_file_access(on_disk=False)
 		validate_allowed_extension(file_path, ALLOWED_STORED_FILE_EXTENSIONS)
 		content = files.read_store_file(studio_app, file_path)
@@ -283,7 +283,7 @@ def write_studio_file(
 
 	If `known_hash` is supplied, reject the write when the existing content has changed.
 	"""
-	if files.uses_db_files(studio_app):
+	if files.is_db_app(studio_app):
 		_validate_studio_file_access("write", on_disk=False)
 		files.write_store_file(studio_app, file_path, content, known_hash)
 		return {"path": file_path, "hash": file_hash(content)}
@@ -311,7 +311,7 @@ def write_studio_file(
 @has_page_write_perm()
 def create_studio_file(frappe_app: str, studio_app: str, file_path: str) -> dict:
 	"""Create an empty editable file (and any parent folders); error if it already exists."""
-	if files.uses_db_files(studio_app):
+	if files.is_db_app(studio_app):
 		_validate_studio_file_access("write", on_disk=False)
 		files.create_store_file(studio_app, file_path)
 		return {"path": file_path, "hash": file_hash("")}
@@ -335,7 +335,7 @@ def create_studio_file(frappe_app: str, studio_app: str, file_path: str) -> dict
 @has_page_write_perm()
 def create_studio_folder(frappe_app: str, studio_app: str, folder_path: str) -> dict:
 	"""Create an empty folder (and any parent folders) in a repository app's folder."""
-	if files.uses_db_files(studio_app):
+	if files.is_db_app(studio_app):
 		frappe.throw(_("A folder appears when you create a file in it."))
 
 	_validate_studio_file_access("write")
@@ -350,7 +350,7 @@ def create_studio_folder(frappe_app: str, studio_app: str, folder_path: str) -> 
 @has_page_write_perm()
 def rename_studio_file(frappe_app: str, studio_app: str, file_path: str, new_path: str) -> dict:
 	"""Rename/move an editable file or a folder within the app folder."""
-	if files.uses_db_files(studio_app):
+	if files.is_db_app(studio_app):
 		_validate_studio_file_access("write", on_disk=False)
 		files.rename_store_path(studio_app, file_path, new_path)
 		return {"path": new_path}
@@ -383,7 +383,7 @@ def rename_studio_file(frappe_app: str, studio_app: str, file_path: str, new_pat
 @has_page_write_perm()
 def delete_studio_file(frappe_app: str, studio_app: str, file_path: str) -> None:
 	"""Delete an editable file, or a folder (with its contents), within the app folder."""
-	if files.uses_db_files(studio_app):
+	if files.is_db_app(studio_app):
 		_validate_studio_file_access("write", on_disk=False)
 		files.delete_store_path(studio_app, file_path)
 		return
@@ -414,7 +414,7 @@ def get_app_files(app_name: str) -> list[dict]:
 	if not isinstance(app_name, str):
 		frappe.throw(_("Invalid app name."))
 	validate_app_viewer_access(app_name, allow_guest_pages=True)
-	if not files.uses_db_files(app_name):
+	if not files.is_db_app(app_name):
 		return []
 	return files.get_store_files(app_name)
 

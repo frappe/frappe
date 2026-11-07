@@ -13,7 +13,7 @@
 					title="New file"
 				/>
 				<Button
-					v-if="!store.usesDbFiles"
+					v-if="!store.isDbApp"
 					variant="ghost"
 					icon="lucide-folder-plus"
 					@click="openNewEntryDialog('folder')"
@@ -126,7 +126,7 @@
 				:placeholder="
 					newEntryType === 'folder'
 						? 'composables'
-						: `composables/useThing.${store.usesDbFiles ? 'js' : 'ts'}`
+						: `composables/useThing.${store.isDbApp ? 'js' : 'ts'}`
 				"
 				v-model="newEntryPath"
 				@keyup.enter="createEntry"
@@ -287,7 +287,7 @@ function openActivePageScript() {
 	const paths = activePagePaths.value
 	if (!paths) return
 	try {
-		openOrCreateFile(resolveScriptPath(paths.stem, paths.existing, store.usesDbFiles))
+		openOrCreateFile(resolveScriptPath(paths.stem, paths.existing, store.isDbApp))
 	} catch (error: any) {
 		toast.error("Failed to open the page script", { description: error.message })
 	}
@@ -396,7 +396,7 @@ async function save() {
 	if (!openFile.value || !dirty.value || openFileReadOnly.value) return
 	// Reject syntax errors before they prevent page setup from creating bindings.
 	if (isPageScript.value) {
-		const syntaxError = await checkAppScript(editorContent.value, openFile.value.path, store.usesDbFiles)
+		const syntaxError = await checkAppScript(editorContent.value, openFile.value.path, store.isDbApp)
 		if (syntaxError) {
 			const hint = editorContent.value.includes("{{")
 				? " Use expressions directly in scripts, not {{ }} interpolation."
@@ -417,7 +417,7 @@ async function save() {
 		savedContent.value = editorContent.value
 		toast.success("Saved")
 		// Refresh stored source immediately instead of waiting for its realtime event.
-		if (store.usesDbFiles) store.refreshAppFiles()
+		if (store.isDbApp) store.refreshAppFiles()
 		// Page scripts update their owning page record, so reload the active page's setup.
 		if (isEditingActivePageScript.value) store.reloadActivePageScript()
 	} catch (error: any) {
@@ -433,7 +433,7 @@ const newEntryPath = ref("")
 const newEntryType = ref<"file" | "folder">("file")
 // A database app's source runs as it is, so TypeScript and .vue files need a repository app.
 const allowedExtensions = computed(() =>
-	store.usesDbFiles ? ".js, .json, .css" : ".ts, .js, .vue, .json, .css",
+	store.isDbApp ? ".js, .json, .css" : ".ts, .js, .vue, .json, .css",
 )
 const newEntryDescription = computed(() =>
 	newEntryType.value === "folder"
@@ -730,7 +730,7 @@ async function onStudioFileChanged({ path }: { path: string }) {
 const socket = inject<any>("socket")
 
 async function onAppFileChange(info: { doctype: string; name: string; studio_app: string }) {
-	if (info?.doctype !== "Studio App File" || !store.usesDbFiles) return
+	if (info?.doctype !== "Studio App File" || !store.isDbApp) return
 	if (info.studio_app !== location.value.studio_app) return
 	await onStudioFilesChanged()
 	if (openFile.value && info.name === openFile.value.path) {
