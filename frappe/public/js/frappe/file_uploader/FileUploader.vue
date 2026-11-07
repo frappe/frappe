@@ -514,6 +514,7 @@ function check_restrictions(file) {
 	return is_correct_type && valid_file_size;
 }
 
+<<<<<<< HEAD
 function set_loading_state(dialog, loading) {
 	let $btn = dialog?.get_primary_btn();
 	if (loading) {
@@ -530,6 +531,10 @@ function set_loading_state(dialog, loading) {
 }
 function upload_files(dialog) {
 	set_loading_state(dialog, true);
+=======
+function upload_files() {
+	let promise;
+>>>>>>> 3f6720b (fix: file uploader leaks a global variable on every upload)
 	if (show_file_browser.value) {
 		promise = upload_via_file_browser();
 	} else if (show_web_link.value) {
