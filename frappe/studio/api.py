@@ -23,6 +23,7 @@ from frappe.studio.utils import (
 	has_page_write_perm,
 	validate_app_viewer_access,
 	validate_installed_app,
+	validate_one_script_file,
 )
 from frappe.utils import sbool
 
@@ -182,7 +183,7 @@ def get_custom_vue_components(frappe_app: str, studio_app: str) -> list[dict]:
 
 @frappe.whitelist()
 def get_studio_page_scripts(frappe_app: str) -> list[dict]:
-	"""Discover exported page scripts (<page>.js) under <app>/studio/<studio_app>/studio_page/.
+	"""Discover exported page scripts (<page>.ts or <page>.js) under <app>/studio/<studio_app>/studio_page/.
 
 	Keyed by the page's docname (`page_name`, read from the sibling JSON) so the runtime can load
 	a page's compiled setup() module by its docname.
@@ -199,7 +200,7 @@ def get_studio_page_scripts(frappe_app: str) -> list[dict]:
 		if not os.path.isdir(page_folder):
 			continue
 
-		# each page is a folder holding <stem>.json + <stem>.js
+		# each page is a folder holding <stem>.json and a .ts or .js script
 		for entry in sorted(os.listdir(page_folder)):
 			page_dir = os.path.join(page_folder, entry)
 			if not os.path.isdir(page_dir):
@@ -291,6 +292,7 @@ def write_studio_file(
 	validate_allowed_extension(file_path)
 	validate_editable(studio_app, file_path)
 	target = _resolve_studio_file(frappe_app, studio_app, file_path)
+	validate_one_script_file(os.path.dirname(target), os.path.basename(file_path))
 
 	if known_hash and os.path.isfile(target):
 		# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
@@ -320,6 +322,7 @@ def create_studio_file(frappe_app: str, studio_app: str, file_path: str) -> dict
 	target = _resolve_studio_file(frappe_app, studio_app, file_path)
 	if os.path.exists(target):
 		frappe.throw(_("{0} already exists.").format(file_path))
+	validate_one_script_file(os.path.dirname(target), os.path.basename(file_path))
 
 	os.makedirs(os.path.dirname(target), exist_ok=True)
 	# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
@@ -367,6 +370,7 @@ def rename_studio_file(frappe_app: str, studio_app: str, file_path: str, new_pat
 		validate_allowed_extension(new_path)
 		validate_editable(studio_app, file_path)
 		validate_editable(studio_app, new_path)
+		validate_one_script_file(os.path.dirname(destination), os.path.basename(new_path), moved_from=source)
 	else:
 		validate_folder_removable(file_path)
 

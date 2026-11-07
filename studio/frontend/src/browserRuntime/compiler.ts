@@ -4,7 +4,8 @@
  * syntax checking in the editor.
  *
  * A database app stores JavaScript, so nothing here compiles another language. TypeScript syntax
- * is a syntax error, as it is in a plain .js file anywhere else.
+ * is a syntax error in a .js file, as it is anywhere else; only the editor's syntax check parses
+ * it, for a repository app's .ts script.
  *
  * Load the compilers only when needed. Built apps exclude this module.
  */
@@ -88,7 +89,10 @@ export async function parseImports(
 ): Promise<{ imports: ModuleImport[]; errors: CompileError[] }> {
 	const [sfc] = await loadCompilers()
 	try {
-		const { program } = sfc.babelParse(code, { sourceType: "module" })
+		const { program } = sfc.babelParse(code, {
+			sourceType: "module",
+			plugins: filename.endsWith(".ts") ? ["typescript"] : [],
+		})
 		return { imports: [...staticImports(program), ...dynamicImports(program)], errors: [] }
 	} catch (error) {
 		return { imports: [], errors: [formatError(filename, error)] }

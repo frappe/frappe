@@ -304,9 +304,11 @@ export default function setup(context) {
   return { showCreateDialog, newTitle, createNote }
 }
 
-Shared code (stores, composables, utils) — for state or logic used across pages, write files with write_app_file (e.g. `stores/notes.js`, `composables/useFilters.js`) and import them into a page's setup() module via '@app/…'. list_app_files to see the tree, read_app_file before editing, delete_app_file to remove. After writing files, trigger_app_build so the running app picks them up.
+Shared code (stores, composables, utils) — for state or logic used across pages, write files with write_app_file (e.g. `stores/notes.ts`, `composables/useFilters.ts`) and import them into a page's setup() module via '@app/…'. list_app_files to see the tree, read_app_file before editing, delete_app_file to remove. After writing files, trigger_app_build so the running app picks them up.
 
-Router config — this app keeps it in `router.js` at the app root: read_app_file('router.js') first (it may not exist yet), then write_app_file('router.js', 'export default { … }'). It may import from '@app/*'."""
+Default new code files to `.ts`; `.js` is also allowed. Preserve an existing file's extension.
+
+Router config — list_app_files and use the existing `router.ts` or `router.js` at the app root. If neither exists, create `router.ts`. Read the existing file before editing and preserve its extension. It default-exports the config and may import from '@app/*'."""
 
 
 def get_agent_system(data_and_code_wiring: str) -> str:

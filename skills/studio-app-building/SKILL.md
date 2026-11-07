@@ -26,7 +26,9 @@ file copy.
 
 A database app holds `.js`, `.json` and `.css` files. The browser links and runs
 them as they are, so TypeScript is a syntax error there. A repository app builds
-with Vite and can hold `.ts` and `.vue` files too.
+with Vite and holds `.ts` and `.vue` files too: write a new file in TypeScript,
+leave an existing `.js` file in JavaScript, and never give one module both
+extensions.
 
 A database app can import `vue`, `vue-router`, `pinia`, `frappe-ui`,
 `frappe-ui/list`, `frappe-ui/charts` and its own files — there is no npm.
@@ -37,25 +39,24 @@ Needing anything else is the signal to export the app to a repository.
 - For a standard (exported) app, create the app and pages in Studio, then
   enable export with `StudioApp.enable_app_export(target_app)`. This sets
   `is_standard` and `frappe_app`, writes JSON, and moves existing page scripts
-  into `.js` files. Document save exports only in developer mode; see
-  `frappe/studio/export.py:can_export`.
+  into `.js` files, the language they were written in. Document save exports
+  only in developer mode; see `frappe/studio/export.py:can_export`.
 - Files live under the linked Frappe app. Inspect an existing export such as
-  `frappe/studio/note/` before creating them directly:
+  `helpdesk/studio/helpdesk/` before creating them directly:
 
   ```text
   <frappe_app>/studio/<studio_app>/<studio_app>.json
   <frappe_app>/studio/<studio_app>/studio_page/<scrubbed_title>/<scrubbed_title>.json
-  <frappe_app>/studio/<studio_app>/studio_page/<scrubbed_title>/<scrubbed_title>.js
+  <frappe_app>/studio/<studio_app>/studio_page/<scrubbed_title>/<scrubbed_title>.ts
   <frappe_app>/studio/<studio_app>/studio_components/<component_name>.json
   ```
 
-- The page script file is optional, and a repository app can write it as `.ts`
-  instead. In page JSON, top-level `name` is the scrubbed title; `page_name` is
-  the real document ID used by Studio and the script bundle. Keep `page_name`
-  stable. If the title changes on disk, move the JSON and the script file to the
-  new `frappe.scrub(page_title)` stem. Resource fields
-  such as `fields` and `filters` are JSON encoded strings in exported child
-  rows.
+- The page script file is optional. In page JSON, top-level `name` is the
+  scrubbed title; `page_name` is the real document ID used by Studio and the
+  script bundle. Keep `page_name` stable. If the title changes on disk, move the
+  JSON and the script file to the new `frappe.scrub(page_title)` stem. Resource
+  fields such as `fields` and `filters` are JSON encoded strings in exported
+  child rows.
 - The app `route` is the URL prefix; page routes start with `/` and are
   relative to it. `app_home` holds a page document ID. Public routes require
   published pages; guest access also requires `allow_guest`.
@@ -96,7 +97,7 @@ Needing anything else is the signal to export the app to a repository.
   await the script is outside the instance, so a hook never fires and a
   watcher is never disposed, as in any Vue `async setup()`. A database app
   stores the module in `Studio Page.script`; a repository app in a sibling
-  `.js` file.
+  script file.
 - Shared code (stores, composables, and a repository app's `.vue` components)
   lives in the app's own files and is imported via `@app/...`, wherever those
   files are stored.

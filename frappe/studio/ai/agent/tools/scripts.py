@@ -7,9 +7,9 @@ from `context`.
 
 The app type determines where a script is saved and how updates reach the running app:
 - Database apps save to the page's `script` field. A reload event updates the canvas.
-- Repository apps save to a companion `<page>.js` file. Writing requires developer
-  mode and System Manager permissions. The write queues an app build; the agent must
-  tell the user to wait for it.
+- Repository apps default to a companion `<page>.ts` file and preserve existing
+  `.js` files. Writing requires developer mode and System Manager permissions.
+  The write queues an app build; the agent must tell the user to wait for it.
 
 Both write paths run on the server and update the app's source before requesting
 a reload or build.
@@ -31,7 +31,11 @@ def run_get_page_script(ctx, args: dict) -> str:
 	source = _read_script(page)
 	if not source.strip():
 		return "This page has no script yet."
-	where = "code file (<page>.js)" if can_export(page) else "the page's `script` field (DB)"
+	where = (
+		f"code file ({os.path.basename(page.get_script_file_path())})"
+		if can_export(page)
+		else "the page's `script` field (DB)"
+	)
 	return f"Current page script (stored in {where}):\n{source}"
 
 

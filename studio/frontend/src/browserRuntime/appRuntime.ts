@@ -45,6 +45,6 @@ export async function loadAppPageScriptModule(page: {
 }
 
 /** Return a page script's syntax error, or null if the module parses. */
-export async function checkAppScript(source: string): Promise<string | null> {
-	return (await compiledApp()).checkAppScript(source)
+export async function checkAppScript(source: string, filename = "page_script.js"): Promise<string | null> {
+	return (await compiledApp()).checkAppScript(source, filename)
 }

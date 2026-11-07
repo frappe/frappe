@@ -66,6 +66,15 @@ export function deleteStudioFile(location: StudioFileLocation, file_path: string
 	return call("frappe.studio.api.delete_studio_file", { ...location, file_path })
 }
 
+export function resolveScriptPath(stem: string, existingPaths: string[], usesDbFiles: boolean): string {
+	if (usesDbFiles) return `${stem}.js`
+	const existing = [`${stem}.ts`, `${stem}.js`].filter((path) => existingPaths.includes(path))
+	if (existing.length > 1) {
+		throw new Error(`Both ${stem}.ts and ${stem}.js exist. Keep only one script file.`)
+	}
+	return existing[0] ?? `${stem}.ts`
+}
+
 // Map a file extension to the language mode the Code editor understands.
 export function languageForFile(path: string): "json" | "javascript" | "html" | "css" | "vue" {
 	const extension = path.slice(path.lastIndexOf(".")).toLowerCase()

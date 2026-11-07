@@ -120,14 +120,14 @@ class StudioAppBuilder:
 		)
 
 	def get_page_scripts_from_files(self):
-		"""Collect the <page>.js code files for the app's published pages, so the build bundles a
+		"""Collect the page script files for the app's published pages, so the build bundles a
 		`setup()` module per page (code mode)."""
 		page_folder = os.path.join(self.app_folder, "studio_page")
 		if not page_folder or not os.path.isdir(page_folder):
 			return
 
 		scripts = []
-		# each page is a folder holding <stem>.json + <stem>.js
+		# each page is a folder holding <stem>.json and a .ts or .js script
 		for entry in sorted(os.listdir(page_folder)):
 			page_dir = os.path.join(page_folder, entry)
 			if not os.path.isdir(page_dir):
@@ -243,7 +243,7 @@ class StudioAppBuilder:
 
 		self._load_studio_components_from_files(app_folder)
 
-		# each page is a folder holding <stem>.json + <stem>.js
+		# each page is a folder holding <stem>.json and a .ts or .js script
 		for entry in os.listdir(page_folder):
 			page_dir = os.path.join(page_folder, entry)
 			if not os.path.isdir(page_dir):
@@ -414,7 +414,7 @@ def get_published_custom_apps() -> list[str]:
 
 
 def get_router_file(frappe_app: str, studio_app: str) -> str | None:
-	"""Path of the app's studio/<app>/router.js, if it ships one."""
+	"""Path of the app's router.ts or router.js, if it ships one."""
 	return find_router_file(get_export_folder(frappe_app, studio_app))
 
 

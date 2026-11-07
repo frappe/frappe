@@ -9,6 +9,7 @@ from frappe.studio.api import (
 	get_studio_page_scripts,
 	list_studio_files,
 	read_studio_file,
+	rename_studio_file,
 	write_studio_file,
 )
 from frappe.studio.doctype.studio_app.test_studio_app import make_studio_app, make_studio_page
@@ -73,6 +74,30 @@ class TestApi(IntegrationTestCase):
 					lambda: create_studio_file("frappe", app.name, file_path),
 				):
 					self.assertRaises(frappe.ValidationError, call)
+
+	def test_one_module_cannot_hold_a_typescript_and_a_javascript_file(self):
+		# A build and the page script loader find a module by its stem, so only one file may hold it.
+		with exports_in_tempdir(), patch.dict(frappe.conf, {"developer_mode": 1}):
+			app = make_studio_app(
+				app_name="dup-" + frappe.generate_hash(length=8), is_standard=1, frappe_app="frappe"
+			)
+			write_studio_file("frappe", app.name, "utils/format.ts", "export const one = 1\n")
+			create_studio_file("frappe", app.name, "utils/helpers.ts")
+			for call in (
+				lambda: write_studio_file("frappe", app.name, "utils/format.js", "export const two = 2\n"),
+				lambda: create_studio_file("frappe", app.name, "utils/format.js"),
+				lambda: rename_studio_file("frappe", app.name, "utils/helpers.ts", "utils/format.js"),
+			):
+				with self.assertRaises(frappe.ValidationError) as refused:
+					call()
+				self.assertIn("Keep only one", str(refused.exception))
+
+			# A file in another language is not a companion, and a rename may switch language.
+			create_studio_file("frappe", app.name, "utils/format.css")
+			rename_studio_file("frappe", app.name, "utils/format.ts", "utils/format.js")
+			self.assertEqual(
+				read_studio_file("frappe", app.name, "utils/format.js")["content"], "export const one = 1\n"
+			)
 
 	def test_the_file_explorer_reaches_a_database_app_without_developer_mode(self):
 		app = make_studio_app(app_name="store-" + frappe.generate_hash(length=8))

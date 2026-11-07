@@ -31,6 +31,7 @@
 
 		<button
 			v-if="activePage"
+			:disabled="loading"
 			class="flex w-full items-center gap-2 rounded-4 border border-outline-gray-2 px-2 py-1.5 text-left hover:bg-surface-gray-2"
 			:title="
 				activePageHasScript
@@ -122,7 +123,11 @@
 				variant="outline"
 				:label="newEntryType === 'folder' ? 'Folder path' : 'File path'"
 				:description="newEntryDescription"
-				:placeholder="newEntryType === 'folder' ? 'composables' : 'composables/useThing.js'"
+				:placeholder="
+					newEntryType === 'folder'
+						? 'composables'
+						: `composables/useThing.${store.usesDbFiles ? 'js' : 'ts'}`
+				"
 				v-model="newEntryPath"
 				@keyup.enter="createEntry"
 			/>
@@ -161,12 +166,7 @@
 		<template #actions>
 			<Popover v-if="isPageScript" side="bottom" align="end" :offset="6" bare>
 				<template #trigger>
-					<Button
-						size="xs"
-						variant="ghost"
-						icon="lucide-circle-help"
-						title="How to write the page script"
-					/>
+					<Button size="xs" variant="ghost" icon="lucide-circle-help" title="How to write the page script" />
 				</template>
 				<div class="max-w-sm rounded-4 border border-outline-gray-2 bg-surface-base p-3 shadow-lg">
 					<PageScriptHelp />
@@ -208,6 +208,7 @@ import {
 	renameStudioFile,
 	deleteStudioFile,
 	languageForFile,
+	resolveScriptPath,
 	type StudioFileNode,
 } from "@/data/studioFiles"
 import { checkAppScript } from "@/browserRuntime/appRuntime"
@@ -266,9 +267,8 @@ const activePagePaths = computed(() => {
 	if (!title) return null
 	const folder = `studio_page/${scrub(title)}`
 	const stem = `${folder}/${scrub(title)}`
-	// A repository app may hold the script as .ts; Studio writes .js.
-	const existing = [`${stem}.js`, `${stem}.ts`].find((path) => findNode(path))
-	return { folder, script: existing ?? `${stem}.js` }
+	const existing = [`${stem}.ts`, `${stem}.js`].filter((path) => findNode(path))
+	return { folder, stem, existing }
 })
 
 function findNode(path: string | null, nodes: StudioFileNode[] = tree.value): StudioFileNode | null {
@@ -281,11 +281,16 @@ function findNode(path: string | null, nodes: StudioFileNode[] = tree.value): St
 	return null
 }
 
-const activePageHasScript = computed(() => Boolean(findNode(activePagePaths.value?.script ?? null)))
+const activePageHasScript = computed(() => Boolean(activePagePaths.value?.existing.length))
 
 function openActivePageScript() {
-	const scriptPath = activePagePaths.value?.script
-	if (scriptPath) openOrCreateFile(scriptPath)
+	const paths = activePagePaths.value
+	if (!paths) return
+	try {
+		openOrCreateFile(resolveScriptPath(paths.stem, paths.existing, store.usesDbFiles))
+	} catch (error: any) {
+		toast.error("Failed to open the page script", { description: error.message })
+	}
 }
 
 function openOrCreateFile(path: string) {
@@ -308,8 +313,8 @@ const savedContent = ref("")
 const dirty = computed(() => Boolean(openFile.value) && editorContent.value !== savedContent.value)
 const language = computed(() => (openFile.value ? languageForFile(openFile.value.path) : "javascript"))
 
-const isEditingActivePageScript = computed(
-	() => Boolean(openFile.value) && openFile.value!.path === activePagePaths.value?.script,
+const isEditingActivePageScript = computed(() =>
+	Boolean(openFile.value && activePagePaths.value?.existing.includes(openFile.value.path)),
 )
 
 // Page scripts use setup(context), so show their starter code, help and syntax errors.
@@ -391,10 +396,10 @@ async function save() {
 	if (!openFile.value || !dirty.value || openFileReadOnly.value) return
 	// Reject syntax errors before they prevent page setup from creating bindings.
 	if (isPageScript.value) {
-		const syntaxError = await checkAppScript(editorContent.value)
+		const syntaxError = await checkAppScript(editorContent.value, openFile.value.path)
 		if (syntaxError) {
 			const hint = editorContent.value.includes("{{")
-				? " Scripts are plain TypeScript — use expressions directly, not {{ }} interpolation."
+				? " Use expressions directly in scripts, not {{ }} interpolation."
 				: ""
 			scriptError.value = `${syntaxError}.${hint}`
 			return
@@ -427,7 +432,9 @@ const showNewEntryDialog = ref(false)
 const newEntryPath = ref("")
 const newEntryType = ref<"file" | "folder">("file")
 // A database app's source runs as it is, so TypeScript and .vue files need a repository app.
-const allowedExtensions = computed(() => (store.usesDbFiles ? ".js, .json, .css" : ".ts, .js, .vue, .json, .css"))
+const allowedExtensions = computed(() =>
+	store.usesDbFiles ? ".js, .json, .css" : ".ts, .js, .vue, .json, .css",
+)
 const newEntryDescription = computed(() =>
 	newEntryType.value === "folder"
 		? `Relative to studio/${app.value?.app_name}`

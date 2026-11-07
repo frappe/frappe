@@ -7,7 +7,7 @@
  */
 
 import { createResource } from "frappe-ui"
-import { compileFile, describeError } from "@/browserRuntime/compiler"
+import { parseImports, describeError } from "@/browserRuntime/compiler"
 import { AppModuleRegistry, clearAppStyles } from "@/browserRuntime/moduleRegistry"
 import { scrub } from "@/utils/helpers"
 import type { RouterConfig } from "@/router/app_router"
@@ -93,7 +93,7 @@ function getRegistry(): AppModuleRegistry {
 }
 
 /** Return a page script's syntax error, or null if the module parses. */
-export async function checkAppScript(source: string): Promise<string | null> {
-	const compiled = await compileFile("page_script.js", source)
-	return compiled.errors.length ? compiled.errors.map(describeError).join("\n") : null
+export async function checkAppScript(source: string, filename = "page_script.js"): Promise<string | null> {
+	const parsed = await parseImports(filename, source)
+	return parsed.errors.length ? parsed.errors.map(describeError).join("\n") : null
 }

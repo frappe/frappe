@@ -8,9 +8,9 @@
   runs after the route already matched). It is plain vue-router: `router` is a
   vue-router `Router`, `route` a route record, and guards, aliases and options
   behave as in the vue-router docs; Studio only adds the three keys below.
-  Every app keeps it in `router.js` at the app root with `export default`: in
-  the file store for a database app, in
-  `<frappe_app>/studio/<studio_app>/router.js` for a repository app.
+  Every app keeps it in a `router` module at the app root with `export default`:
+  in the file store for a database app, under
+  `<frappe_app>/studio/<studio_app>/` for a repository app.
 
   ```js
   {

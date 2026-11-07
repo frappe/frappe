@@ -8,7 +8,7 @@
 		@save="save"
 	>
 		<template #title>
-			<span class="truncate text-sm text-ink-gray-8">{{ ROUTER_FILE }}</span>
+			<span class="truncate text-sm text-ink-gray-8">{{ routerFile }}</span>
 			<Badge v-if="dirty" theme="amber" variant="subtle" label="Unsaved" />
 		</template>
 		<template #actions>
@@ -48,12 +48,16 @@ import type { CompletionContext } from "@codemirror/autocomplete"
 import { toast, Badge, Button, Popover, ErrorMessage } from "frappe-ui"
 import CodeEditorDock from "@/components/CodeEditorDock.vue"
 import RouterScriptHelp from "@/components/RouterScriptHelp.vue"
-import { deleteStudioFile, readStudioFileIfExists, writeStudioFile } from "@/data/studioFiles"
+import {
+	deleteStudioFile,
+	readStudioFileIfExists,
+	resolveScriptPath,
+	writeStudioFile,
+} from "@/data/studioFiles"
 import { routerScriptCompletions } from "@/utils/completions/routerScriptCompletions"
 import { confirm } from "@/utils/helpers"
 import useStudioStore from "@/stores/studioStore"
 
-const ROUTER_FILE = "router.js"
 const BOILERPLATE = `{
 	setup(router) {
 		// e.g. send users who have not finished onboarding to the Onboarding page
@@ -65,7 +69,7 @@ const BOILERPLATE = `{
 
 const store = useStudioStore()
 
-const routerFile = ref(ROUTER_FILE)
+const routerFile = ref("")
 const script = ref("")
 const savedScript = ref("")
 const fileHash = ref<string | undefined>()
@@ -80,16 +84,14 @@ const location = computed(() => ({
 
 // Both app types keep the router config at the app root, in the repository or database file store.
 async function load() {
-	routerFile.value = ROUTER_FILE
-	let file = await readStudioFileIfExists(location.value, ROUTER_FILE)
-	// A repository app may already ship a hand-written router.ts.
-	if (file.content === null && !store.usesDbFiles) {
-		const typescript = await readStudioFileIfExists(location.value, "router.ts")
-		if (typescript.content !== null) {
-			routerFile.value = "router.ts"
-			file = typescript
-		}
-	}
+	const paths = store.usesDbFiles ? ["router.js"] : ["router.ts", "router.js"]
+	const files = await Promise.all(paths.map((path) => readStudioFileIfExists(location.value, path)))
+	routerFile.value = resolveScriptPath(
+		"router",
+		files.filter((file) => file.content !== null).map((file) => file.path),
+		store.usesDbFiles,
+	)
+	const file = files.find((file) => file.path === routerFile.value)!
 	setLoaded(file.content ?? "", file.hash ?? undefined)
 	if (file.content === null) script.value = `export default ${BOILERPLATE}\n`
 }
@@ -117,7 +119,9 @@ watch(
 			await load()
 		} catch (loadError: any) {
 			store.showRouterEditor = false
-			toast.error("Failed to open the router script", { description: loadError?.messages?.join(", ") })
+			toast.error("Failed to open the router script", {
+				description: loadError?.messages?.join(", ") || loadError?.message,
+			})
 		}
 	},
 	{ immediate: true },

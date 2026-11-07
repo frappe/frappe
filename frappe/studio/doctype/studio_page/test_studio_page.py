@@ -545,23 +545,31 @@ class TestStudioPage(IntegrationTestCase):
 		draft = make_studio_page(app.name, page_title="Home Draft", route="/home", published=0)
 		self.assertRaises(frappe.ValidationError, draft.publish)
 
-	def test_a_repository_page_script_keeps_an_existing_typescript_file(self):
+	def test_a_repository_page_script_exports_as_javascript_and_new_files_use_typescript(self):
 		with exports_in_tempdir():
 			app = make_studio_app(
 				app_name="ts-" + frappe.generate_hash(length=10), is_standard=1, frappe_app="frappe"
 			)
 			page = make_studio_page(app.name, page_title="Board", script="console.log('one')")
+			# The database script is JavaScript, so enabling export keeps the language.
 			page.export_script_to_file()
 			self.assertTrue(page.get_script_file_path().endswith("board.js"))
 
-			os.rename(page.get_script_file_path(), os.path.join(page.get_folder_path(), "board.ts"))
+			# A page that has no script file yet gets TypeScript.
+			os.remove(page.get_script_file_path())
 			page.db_set("script", "console.log('two')", update_modified=False)
 			page.reload()
 			page.write_script_file()
-
 			self.assertTrue(page.get_script_file_path().endswith("board.ts"))
-			self.assertEqual(frappe.read_file(page.get_script_file_path()), "console.log('two')")
-			self.assertFalse(os.path.exists(os.path.join(page.get_folder_path(), "board.js")))
+
+			os.rename(page.get_script_file_path(), os.path.join(page.get_folder_path(), "board.js"))
+			page.db_set("script", "console.log('three')", update_modified=False)
+			page.reload()
+			page.write_script_file()
+
+			self.assertTrue(page.get_script_file_path().endswith("board.js"))
+			self.assertEqual(frappe.read_file(page.get_script_file_path()), "console.log('three')")
+			self.assertFalse(os.path.exists(os.path.join(page.get_folder_path(), "board.ts")))
 
 	def test_retitle_with_the_same_stem_keeps_the_export(self):
 		with exports_in_tempdir():
