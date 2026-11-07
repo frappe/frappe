@@ -676,6 +676,8 @@ class User(Document):
 		# Delete user's List Filters
 		frappe.db.delete("List Filter", {"for_user": self.name})
 
+		frappe.defaults.clear_default(parent=self.name)
+
 		# Delete the user's own navigation arrangements: their sidebar layers and their dock.
 		# Delete whole documents rather than rows, because they carry a child table and deleting
 		# the document is what clears the cached set of layers. The site layer, with `user` blank,
