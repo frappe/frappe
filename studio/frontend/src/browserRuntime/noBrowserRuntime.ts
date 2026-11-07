@@ -17,6 +17,3 @@ export const checkAppScript = notBuiltForThisApp
 
 export async function reloadAppRuntime(): Promise<void> {}
 export async function unloadAppRuntime(): Promise<void> {}
-export async function getAppSource(): Promise<string | undefined> {
-	return undefined
-}

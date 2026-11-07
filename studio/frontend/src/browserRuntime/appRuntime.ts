@@ -29,11 +29,6 @@ export async function unloadAppRuntime(): Promise<void> {
 	return (await compiledApp()).unloadAppRuntime()
 }
 
-export async function getAppSource(path: string): Promise<string | undefined> {
-	if (!loaded) return undefined
-	return (await compiledApp()).getAppSource(path)
-}
-
 export async function loadAppModule(path: string): Promise<any> {
 	return (await compiledApp()).loadAppModule(path)
 }

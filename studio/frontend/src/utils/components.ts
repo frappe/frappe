@@ -3,7 +3,6 @@ import type { ComponentProp, ComponentProps } from "@/types"
 import type { VueProp, VuePropType } from "@/types/vue"
 
 import * as jsonTypes from "@/json_types"
-import { getAppSource } from "@/browserRuntime/appRuntime"
 import { isObjectEmpty } from "@/utils/helpers"
 import { ConcreteComponent, reactive } from "vue"
 import type { CustomVueComponentMeta } from "@/types/vue"
@@ -305,13 +304,6 @@ async function fetchCustomComponentTemplate(componentName: string): Promise<stri
 
 	const meta = customComponentMetas.get(componentName)
 	if (!meta) return ""
-
-	// Database component source comes from the loaded app runtime instead of a file URL.
-	if (!meta.file_path) {
-		const storedSource = (await getAppSource(meta.studio_file_path)) || ""
-		if (storedSource) templateCache.set(componentName, storedSource)
-		return storedSource
-	}
 
 	const filePath = meta.file_path
 	try {

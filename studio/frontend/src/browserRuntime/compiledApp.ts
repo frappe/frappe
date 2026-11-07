@@ -61,10 +61,6 @@ export function unloadAppRuntime(): void {
 	clearAppStyles()
 }
 
-export function getAppSource(path: string): string | undefined {
-	return sources[path]
-}
-
 export function loadAppModule(path: string): Promise<any> {
 	return getRegistry().loadModule(path)
 }

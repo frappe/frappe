@@ -19,10 +19,8 @@ export async function registerCustomVueComponents(
 
 		const registry = { ...customVueComponentsRegistry.value }
 		for (const comp of components) {
-			const filePath = comp.file_path
-			if (!filePath) continue
 			try {
-				const asyncComp = defineAsyncComponent(() => import(/* @vite-ignore */ filePath))
+				const asyncComp = defineAsyncComponent(() => import(/* @vite-ignore */ comp.file_path))
 				registry[comp.component_name] = asyncComp
 				if (window.__APP_COMPONENTS__) {
 					window.__APP_COMPONENTS__[comp.component_name] = asyncComp
