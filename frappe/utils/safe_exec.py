@@ -734,12 +734,17 @@ def check_safe_sql_query(query: str, throw: bool = True) -> bool:
 
 	Safe queries:
 	        1. Read only 'select' or 'explain' queries
+<<<<<<< HEAD
 			2. CTE on mariadb where writes are not allowed.
+=======
+	        2. That do not read __Auth (password hashes and encrypted secrets)
+>>>>>>> f718186 (fix(safe_exec): templates and scripts can't read __Auth)
 	"""
 
 	query = query.strip().lower()
 	whitelisted_statements = ("select", "explain")
 
+<<<<<<< HEAD
 	if re.search(r"\binto\s+(outfile|dumpfile)\b", query):
 		if throw:
 			frappe.throw(
@@ -753,14 +758,21 @@ def check_safe_sql_query(query: str, throw: bool = True) -> bool:
 		query.startswith("with") and frappe.db.db_type == "mariadb"
 	):
 		return True
+=======
+	# match the keyword alone: comments and executable comments can separate it from INTO
+	if re.search(r"outfile|dumpfile", query) or not query.startswith(whitelisted_statements):
+		return _reject_sql_query(_("Read-Only queries are allowed"), throw)
 
+	if "__auth" in query:
+		return _reject_sql_query(_("Reading passwords is not allowed"), throw)
+>>>>>>> f718186 (fix(safe_exec): templates and scripts can't read __Auth)
+
+	return True
+
+
+def _reject_sql_query(message: str, throw: bool) -> bool:
 	if throw:
-		frappe.throw(
-			_("Read-Only queries are allowed"),
-			title=_("Unsafe SQL query"),
-			exc=frappe.PermissionError,
-		)
-
+		frappe.throw(message, title=_("Unsafe SQL query"), exc=frappe.PermissionError)
 	return False
 
 
