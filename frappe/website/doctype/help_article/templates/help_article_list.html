@@ -14,14 +14,14 @@
 	</div>
 </div>
 
-<div class="blog-list-content">
+<div class="kb-list-content">
 	<div data-doctype="{{ doctype }}" data-txt="{{ (txt or '') | e }}">
 		{% if not result -%}
 		<div class="text-muted" style="min-height: 300px;">
 			{{ no_result_message or _("Nothing to show") }}
 		</div>
 		{% else %}
-		<div id="blog-list" class="blog-list result col">
+		<div class="kb-list result col">
 			{% for item in result %}
 			{{ item }}
 			{% endfor %}
@@ -30,4 +30,23 @@
 		<button class="btn btn-light btn-more my-4 {% if not show_more -%} hidden {%- endif %}">{{ _("Load More") }}</button>
 	</div>
 </div>
+<script>
+	frappe.ready(() => {
+		const page_length = 20;
+		const url = new URL(window.location.href);
+		const shown = parseInt(url.searchParams.get("limit")) || page_length;
+
+		// Reload with more rows instead of calling an API.
+		$(".kb-list-content .btn-more").on("click", function () {
+			url.searchParams.set("limit", shown + page_length);
+			window.location.href = url.toString();
+		});
+
+		// After a reload, scroll to the first row that was added.
+		if (shown > page_length) {
+			const first_new_row = $(".kb-list .portal-row").get(shown - page_length);
+			first_new_row?.scrollIntoView();
+		}
+	});
+</script>
 {% endblock %}
