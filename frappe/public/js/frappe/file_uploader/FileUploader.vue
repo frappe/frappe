@@ -529,6 +529,7 @@ function set_loading_state(dialog, loading) {
 	}
 }
 function upload_files(dialog) {
+	let promise;
 	set_loading_state(dialog, true);
 	if (show_file_browser.value) {
 		promise = upload_via_file_browser();
