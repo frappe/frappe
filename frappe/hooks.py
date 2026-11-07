@@ -616,6 +616,12 @@ standard_help_items = [
 		"is_standard": 1,
 	},
 	{
+		"item_label": "What's New",
+		"item_type": "Route",
+		"route": "/desk/whats-new",
+		"is_standard": 1,
+	},
+	{
 		"item_label": "System Health",
 		"item_type": "Route",
 		"route": "/desk/system-health-report",
