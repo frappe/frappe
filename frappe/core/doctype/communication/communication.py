@@ -397,10 +397,9 @@ class Communication(Document, CommunicationEmailMixin):
 					self.sender_full_name = frappe.db.get_value("User", self.sender, "full_name")
 
 				if not self.sender_full_name:
-					first_name, last_name = frappe.db.get_value(
-						"Contact", filters={"email_id": sender_email}, fieldname=["first_name", "last_name"]
-					) or [None, None]
-					self.sender_full_name = (first_name or "") + (last_name or "")
+					self.sender_full_name = frappe.db.get_value(
+						"Contact", {"email_id": sender_email}, "full_name"
+					)
 
 				if not self.sender_full_name:
 					self.sender_full_name = sender_email
