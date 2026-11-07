@@ -883,8 +883,9 @@ class InboundMail(Email):
 			reference_doctype, reference_name = parent.reference_doctype, parent.reference_name
 			reference_document = self.get_doc(reference_doctype, reference_name, ignore_error=True)
 
-		if not reference_document and self.email_account.append_to:
-			reference_document = self.match_record_by_subject_and_sender(self.email_account.append_to)
+		append_to = self.append_to if self.email_account.use_imap else self.email_account.append_to
+		if not reference_document and append_to:
+			reference_document = self.match_record_by_subject_and_sender(append_to)
 
 		if not reference_document and self.is_reply_to_system_sent_mail():
 			reference_document = parent_communication
@@ -934,7 +935,7 @@ class InboundMail(Email):
 			if email_fields.sender_field and not (len(subject) > 10 and is_system_user(self.from_email)):
 				filters[email_fields.sender_field] = self.from_email
 
-			name = frappe.db.get_value(self.email_account.append_to, filters=filters)
+			name = frappe.db.get_value(doctype, filters=filters)
 			record = self.get_doc(doctype, name, ignore_error=True) if name else None
 		return record
 
