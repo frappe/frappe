@@ -2357,12 +2357,18 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 							},
 						],
 						primary_action: (values) => {
+							const resized_widths = this.datatable.getResizedColumnWidths();
 							return frappe.call({
 								method: "frappe.desk.query_report.save_report",
 								args: {
 									reference_report: this.report_name,
 									report_name: values.report_name,
-									columns: this.get_visible_columns(),
+									columns: this.get_visible_columns().map((column) => ({
+										...column,
+										width: resized_widths.has(column.id)
+											? parseInt(resized_widths.get(column.id))
+											: column.width,
+									})),
 									filters: this.get_filter_values(),
 								},
 								callback: function (r) {
