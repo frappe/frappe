@@ -7,22 +7,14 @@ import requests
 
 import frappe
 from frappe.api import discovery
-<<<<<<< HEAD
+from frappe.api.v2 import run_doc_method
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.core.doctype.user.user import generate_keys
 from frappe.installer import update_site_config
+from frappe.permissions import add_permission, update_permission_property
 from frappe.tests.test_api import FrappeAPITestCase, make_request, suppress_stdout
 from frappe.tests.utils import toggle_test_mode, whitelist_for_tests
-from frappe.utils import get_test_client
-=======
-from frappe.api.v2 import run_doc_method
-from frappe.installer import update_site_config
-from frappe.permissions import add_permission, update_permission_property
-from frappe.tests.test_api import FrappeAPITestCase, suppress_stdout
-from frappe.tests.utils import toggle_test_mode, wait_for_job, whitelist_for_tests
-from frappe.tests.utils.test_capabilities import TestService, requires_test_service
-from frappe.utils import set_request
->>>>>>> 9437f2a (test(api): run a method on an unsaved doc with only create permission)
+from frappe.utils import get_test_client, set_request
 
 authorization_token = None
 
