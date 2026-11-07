@@ -519,6 +519,7 @@ function check_restrictions(file) {
 }
 
 function upload_files() {
+	let promise;
 	if (show_file_browser.value) {
 		promise = upload_via_file_browser();
 	} else if (show_web_link.value) {
