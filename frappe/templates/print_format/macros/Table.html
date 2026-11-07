@@ -3,6 +3,8 @@
 		{{- frappe.utils.format_datetime(row.get(df.fieldname), df.date_format.replace("mm", "MM") ~ " " ~ frappe.utils.get_user_time_format()) -}}
 	{%- elif df.date_format and row.get(df.fieldname) and df.fieldtype == "Date" -%}
 		{{- frappe.utils.formatdate(row.get(df.fieldname), df.date_format) -}}
+	{%- elif df.fieldtype in ("Code", "JSON") -%}
+		{{- row.get_formatted(df.fieldname)|e -}}
 	{%- else -%}
 		{{- row.get_formatted(df.fieldname) -}}
 	{%- endif -%}
