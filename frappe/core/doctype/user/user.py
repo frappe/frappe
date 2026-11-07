@@ -790,6 +790,9 @@ class User(Document):
 
 		frappe.db.set_value("User", new_name, "email", new_name)
 
+		if not merge:
+			frappe.db.set_value("DefaultValue", {"parent": old_name}, "parent", new_name)
+
 		get_controller("Workspace").rename_private_workspaces(old_name, new_name)
 
 		clear_sessions(user=old_name, force=True)
