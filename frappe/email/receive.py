@@ -301,7 +301,8 @@ class EmailServer:
 			if self.retry_count < self.retry_limit:
 				self.connect()
 				self.retry_count += 1
-				self.get_messages(folder)
+				self.imap.select(folder, readonly=self.settings.email_sync_rule != "UNSEEN")
+				return self.retrieve_message(uid, msg_num, folder)
 
 		except Exception as e:
 			if self.has_login_limit_exceeded(e):
