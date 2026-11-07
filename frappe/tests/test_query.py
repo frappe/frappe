@@ -2216,6 +2216,54 @@ class TestQuery(IntegrationTestCase):
 		test_user_doc.remove_roles(test_role)
 		frappe.delete_doc("Role", test_role, force=True)
 
+	def test_child_table_queried_directly_checks_parent_permissions(self):
+		child_dt = new_doctype(
+			fields=[
+				{"fieldname": "public_field", "fieldtype": "Int", "label": "Public"},
+				{"fieldname": "restricted_field", "fieldtype": "Int", "permlevel": 1, "label": "Restricted"},
+			],
+			istable=1,
+		).insert()
+		parent_dt = new_doctype(
+			fields=[{"fieldname": "items", "fieldtype": "Table", "options": child_dt.name, "label": "Items"}]
+		).insert()
+		role = frappe.get_doc({"doctype": "Role", "role_name": "Direct Child Query Role"}).insert(
+			ignore_if_duplicate=True
+		)
+		user = frappe.get_doc("User", "test2@example.com")
+		add_permission(parent_dt.name, role.name, 0, ptype="read")
+		user.add_roles(role.name)
+		self.addCleanup(frappe.delete_doc, "Role", role.name, force=True)
+		self.addCleanup(child_dt.delete)
+		self.addCleanup(parent_dt.delete)
+		self.addCleanup(user.remove_roles, role.name)
+
+		def build(query):
+			frappe.qb.get_query(
+				child_dt.name, parent_doctype=parent_dt.name, ignore_permissions=False, **query
+			).get_sql()
+
+		def assert_queries(fieldname, allowed):
+			for query in (
+				{"fields": [{"MAX": fieldname}]},
+				{"filters": {fieldname: 1}},
+				{"or_filters": {fieldname: [">", 1]}},
+				{"order_by": f"{fieldname} desc"},
+				{"fields": [{"COUNT": "*"}], "group_by": fieldname},
+			):
+				with self.subTest(fieldname=fieldname, query=query), self.set_user(user.name):
+					if allowed:
+						build(query)
+					else:
+						self.assertRaises(frappe.PermissionError, build, query)
+
+		assert_queries("public_field", allowed=True)
+		assert_queries("restricted_field", allowed=False)
+
+		update_permission_property(parent_dt.name, role.name, 0, "select", 1, validate=False)
+		update_permission_property(parent_dt.name, role.name, 0, "read", 0, validate=False)
+		assert_queries("public_field", allowed=False)
+
 	def test_group_by_order_by_validation_errors(self):
 		"""Test validation errors for invalid GROUP BY and ORDER BY fields."""
 		invalid_group_by_fields = [
