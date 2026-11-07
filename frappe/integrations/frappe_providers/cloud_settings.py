@@ -469,6 +469,30 @@ def create_topup_checkout(amount: float, redirect_url: str) -> dict:
 	return cloud_billing.create_topup_checkout(PilotClient(), amount, redirect_url)
 
 
+@frappe.whitelist(methods=["GET"])
+def get_invoices() -> list:
+	_assert_access()
+	from frappe.integrations.frappe_providers import cloud_billing
+
+	return cloud_billing.invoices(PilotClient())
+
+
+@frappe.whitelist(methods=["POST"])
+def get_invoice_pdf(invoice: str) -> dict:
+	_assert_access()
+	from frappe.integrations.frappe_providers import cloud_billing
+
+	return cloud_billing.invoice_pdf(PilotClient(), invoice)
+
+
+@frappe.whitelist(methods=["POST"])
+def create_invoice_checkout(invoice: str, redirect_url: str) -> dict:
+	_assert_access()
+	from frappe.integrations.frappe_providers import cloud_billing
+
+	return cloud_billing.create_invoice_checkout(PilotClient(), invoice, redirect_url)
+
+
 @frappe.whitelist(methods=["POST"])
 def get_checkout_status(reference: str) -> dict:
 	_assert_access()
