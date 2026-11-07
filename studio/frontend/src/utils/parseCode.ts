@@ -107,29 +107,6 @@ export function getBindingType(binding: unknown): string {
 	return typeof unwrapped
 }
 
-export interface ScriptSyntaxError {
-	message: string
-	line: number
-	column: number
-}
-
-// Validate a client script as a module and return the first syntax error (with position),
-// or null if it parses. Used to block saving a broken script before it nukes the page.
-export function getScriptError(code: string): ScriptSyntaxError | null {
-	if (!code?.trim()) return null
-
-	try {
-		parse(code, { ecmaVersion: "latest", sourceType: "module" })
-		return null
-	} catch (error: any) {
-		return {
-			message: error.message,
-			line: error.loc?.line ?? 0,
-			column: error.loc?.column ?? 0,
-		}
-	}
-}
-
 // Validate the contents of every {{ ... }} in a value and return the first problem, or null if all parse
 export function getExpressionError(value: string): string | null {
 	const unmatchedBraces = value.replace(DYNAMIC_EXPRESSION_CONTENT_REGEX, "")
