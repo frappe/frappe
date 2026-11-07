@@ -54,6 +54,7 @@ import {
 	resolveScriptPath,
 	writeStudioFile,
 } from "@/data/studioFiles"
+import { checkAppScript } from "@/browserRuntime/appRuntime"
 import { routerScriptCompletions } from "@/utils/completions/routerScriptCompletions"
 import { confirm } from "@/utils/helpers"
 import useStudioStore from "@/stores/studioStore"
@@ -95,6 +96,8 @@ async function load() {
 }
 
 async function saveFile(source: string) {
+	const syntaxError = await checkAppScript(source, routerFile.value, store.isDbApp)
+	if (syntaxError) throw new Error(syntaxError)
 	const result = await writeStudioFile(location.value, routerFile.value, source, fileHash.value)
 	fileHash.value = result.hash
 	if (store.isDbApp) store.refreshAppFiles()
