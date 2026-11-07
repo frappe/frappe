@@ -260,7 +260,7 @@ def restore_store_from_disk(app) -> None:
 	if not os.path.isdir(root):
 		return
 	for dirpath, filenames, folder in walk_export_folder(root):
-		if folder.startswith("studio_page"):
+		if folder == "studio_page" or folder.startswith("studio_page/"):
 			continue
 		for filename in filenames:
 			path = f"{folder}/{filename}" if folder else filename
@@ -312,7 +312,8 @@ def is_regenerated_file(studio_app: str, path: str) -> bool:
 	if name.startswith(".") or name == "tsconfig.json" or is_export_doc_file(studio_app, path):
 		return True
 	# Studio Page.restore_script_from_file preserves page scripts before the folder is deleted.
-	return is_page_script_path(path)
+	# Only JavaScript survives: the database runtime has no TypeScript compiler.
+	return is_page_script_path(path) and path.endswith(".js")
 
 
 def is_storable_file(studio_app: str, path: str) -> bool:
