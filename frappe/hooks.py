@@ -14,9 +14,26 @@ app_home = "/desk/build"
 app_email = "developers@frappe.io"
 
 before_install = "frappe.utils.install.before_install"
-after_install = "frappe.utils.install.after_install"
-after_app_install = "frappe.utils.install.create_desktop_icons_for_app"
-after_app_uninstall = "frappe.utils.install.delete_desktop_icons_for_app"
+after_install = [
+	"frappe.utils.install.after_install",
+	"frappe.flow.permissions.ensure_flow_role",
+	"frappe.flow.assistant.sync_builtin_assistant",
+	"frappe.flow.daemon.lifecycle.after_install",
+]
+after_app_install = [
+	"frappe.utils.install.create_desktop_icons_for_app",
+	"frappe.studio.sync.after_app_install",
+	"frappe.flow.assistant.sync_assistant_skills",
+	"frappe.flow.lib.agent.sync_agents",
+	"frappe.flow.lib.agent.sync_tools",
+	"frappe.flow.lib.trigger.sync_triggers",
+]
+before_app_uninstall = "frappe.studio.sync.before_app_uninstall"
+after_app_uninstall = [
+	"frappe.utils.install.delete_desktop_icons_for_app",
+	"frappe.flow.assistant.sync_assistant_skills",
+	"frappe.flow.lib.trigger.sync_triggers",
+]
 
 page_js = {"setup-wizard": "public/js/frappe/setup_wizard.js"}
 
@@ -59,7 +76,12 @@ website_route_rules = [
 	{"from_route": "/kb/<category>", "to_route": "Help Article"},
 	{"from_route": "/profile", "to_route": "me"},
 	{"from_route": "/desk/<path:app_path>", "to_route": "desk"},
+	{"from_route": "/studio/<path:app_path>", "to_route": "studio"},
+	{"from_route": "/flow/<path:app_path>", "to_route": "flow"},
 ]
+
+# Studio: a Studio App with a published page is served at its route by this renderer
+page_renderer = ["frappe.studio.doctype.studio_app.studio_app.StudioAppRenderer"]
 
 website_redirects = [
 	{"source": r"/app/(.*)", "target": r"/desk/\1", "forward_query_parameters": True},
@@ -104,6 +126,7 @@ pdf_body_html = "frappe.utils.pdf.pdf_body_html"
 pdf_footer_html = "frappe.utils.pdf.pdf_footer_html"
 pdf_generator = [
 	"frappe.utils.pdf.get_chrome_pdf",
+	"frappe.utils.pdf.get_plutoprint_pdf",
 	"frappe.utils.print_format_generator.get_typst_pdf",
 ]
 # permissions
@@ -143,6 +166,7 @@ permission_query_conditions = {
 	"User Invitation": "frappe.core.doctype.user_invitation.user_invitation.get_permission_query_conditions",
 	"Document Template": "frappe.desk.doctype.document_template.document_template.get_permission_query_conditions",
 	"Tag Link": "frappe.desk.doctype.tag_link.tag_link.get_permission_query_conditions",
+	"Attachment Queue": "frappe.core.doctype.attachment_queue.attachment_queue.get_permission_query_conditions",
 	"Document Follow": "frappe.email.doctype.document_follow.document_follow.get_permission_query_conditions",
 	"Scheduled Job Type": "frappe.core.doctype.scheduled_job_type.scheduled_job_type.get_permission_query_conditions",
 	"Custom Sidebar": "frappe.desk.doctype.custom_sidebar.custom_sidebar.get_permission_query_conditions",
@@ -157,6 +181,14 @@ permission_query_conditions = {
 	"Client Script": "frappe.app_state.get_module_permission_query_conditions",
 	"Server Script": "frappe.app_state.get_module_permission_query_conditions",
 	"Desktop Icon": "frappe.app_state.get_app_permission_query_conditions",
+	"Studio AI Session": "frappe.studio.permissions.session_query_conditions",
+	"Studio AI Message": "frappe.studio.permissions.message_query_conditions",
+	"Flow Session": "frappe.flow.permissions.session_query_conditions",
+	"Flow Run": "frappe.flow.permissions.session_query_conditions",
+	"Flow Agent Memory": "frappe.flow.permissions.memory_query_conditions",
+	"Flow Agent": "frappe.flow.permissions.role_query_conditions",
+	"Flow Model": "frappe.flow.permissions.role_query_conditions",
+	"Flow Skill": "frappe.flow.permissions.skill_query_conditions",
 }
 
 has_permission = {
@@ -180,9 +212,18 @@ has_permission = {
 	"Notification Log": "frappe.desk.doctype.notification_log.notification_log.has_permission",
 	"User Invitation": "frappe.core.doctype.user_invitation.user_invitation.has_permission",
 	"Document Template": "frappe.desk.doctype.document_template.document_template.has_permission",
+	"Attachment Queue": "frappe.core.doctype.attachment_queue.attachment_queue.has_permission",
 	"Document Follow": "frappe.email.doctype.document_follow.document_follow.has_permission",
 	"Custom Sidebar": "frappe.desk.doctype.custom_sidebar.custom_sidebar.has_permission",
 	"Dock": "frappe.desk.doctype.dock.dock.has_permission",
+	"Studio AI Session": "frappe.studio.permissions.has_session_permission",
+	"Studio AI Message": "frappe.studio.permissions.has_message_permission",
+	"Flow Session": "frappe.flow.permissions.has_session_permission",
+	"Flow Run": "frappe.flow.permissions.has_session_permission",
+	"Flow Agent Memory": "frappe.flow.permissions.has_memory_permission",
+	"Flow Agent": "frappe.flow.permissions.has_role_permission",
+	"Flow Model": "frappe.flow.permissions.has_role_permission",
+	"Flow Skill": "frappe.flow.permissions.has_skill_permission",
 }
 
 has_website_permission = {"Address": "frappe.contacts.doctype.address.address.has_website_permission"}
@@ -202,6 +243,7 @@ standard_queries = {"User": "frappe.core.doctype.user.user.user_query"}
 
 doc_events = {
 	"*": {
+		"after_insert": "frappe.flow.triggers.dispatch",
 		"on_update": [
 			"frappe.desk.notifications.clear_doctype_notifications",
 			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",
@@ -211,17 +253,22 @@ doc_events = {
 			"frappe.core.doctype.user_type.user_type.apply_permissions_for_non_standard_user_type",
 			"frappe.core.doctype.permission_log.permission_log.make_perm_log",
 			"frappe.search.sqlite_search.update_doc_index",
+			"frappe.flow.triggers.dispatch",
 		],
+		"on_submit": "frappe.flow.triggers.dispatch",
 		"after_rename": "frappe.desk.notifications.clear_doctype_notifications",
 		"on_cancel": [
 			"frappe.desk.notifications.clear_doctype_notifications",
 			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",
 			"frappe.automation.doctype.assignment_rule.assignment_rule.apply",
+			"frappe.flow.triggers.dispatch",
 		],
 		"on_trash": [
 			"frappe.desk.notifications.clear_doctype_notifications",
 			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",
 			"frappe.search.sqlite_search.delete_doc_index",
+			"frappe.core.doctype.attachment_queue.attachment_queue.unlink_deleted_document",
+			"frappe.flow.triggers.dispatch",
 		],
 		"on_update_after_submit": [
 			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",
@@ -249,6 +296,7 @@ doc_events = {
 	"Page": {
 		"on_update": "frappe.cache_manager.build_domain_restricted_page_cache",
 	},
+	"DocShare": {"on_trash": "frappe.flow.doctype.flow_session.flow_session.on_share_removed"},
 }
 
 scheduler_events = {
@@ -260,6 +308,7 @@ scheduler_events = {
 			"frappe.integrations.doctype.webhook.webhook.retry_failed_webhooks",
 			"frappe.automation_engine.scheduler.process_cron",
 			"frappe.automation_engine.drainer.drain_due",
+			"frappe.flow.triggers.dispatch_scheduled",
 		],
 		# 15 minutes
 		"0/15 * * * *": [
@@ -300,7 +349,6 @@ scheduler_events = {
 		"frappe.desk.form.document_follow.send_hourly_updates",
 		"frappe.website.doctype.personal_data_deletion_request.personal_data_deletion_request.process_data_deletion_request",
 		"frappe.core.doctype.prepared_report.prepared_report.expire_stalled_report",
-		"frappe.twofactor.delete_all_barcodes_for_users",
 		"frappe.oauth.delete_oauth2_data",
 		"frappe.website.doctype.web_page.web_page.check_publish_status",
 		"frappe.desk.utils.delete_old_exported_report_files",
@@ -309,6 +357,8 @@ scheduler_events = {
 		"frappe.desk.doctype.event.event.send_event_digest",
 		"frappe.email.doctype.notification.notification.trigger_daily_alerts",
 		"frappe.desk.form.document_follow.send_daily_updates",
+		"frappe.storage.gc.collect_garbage",
+		"frappe.flow.knowledge.ingest.sync_due_sources",
 	],
 	"daily_long": [],
 	"daily_maintenance": [
@@ -352,8 +402,16 @@ before_migrate = ["frappe.core.doctype.patch_log.patch_log.before_migrate"]
 after_migrate = [
 	"frappe.website.doctype.website_theme.website_theme.after_migrate",
 	"frappe.search.sqlite_search.build_index_in_background",
+	"frappe.api.discovery.build_cache_in_background",
 	"frappe.desk.doctype.notification_type.notification_type.install_notification_types",
 	"frappe.automation.doctype.automation_trigger_queue.automation_trigger_queue.ensure_dedup_indexes",
+	"frappe.studio.sync.after_migrate",
+	"frappe.flow.permissions.ensure_flow_role",
+	"frappe.flow.assistant.sync_builtin_assistant",
+	"frappe.flow.lib.agent.sync_agents",
+	"frappe.flow.lib.agent.sync_tools",
+	"frappe.flow.lib.trigger.sync_triggers",
+	"frappe.flow.daemon.lifecycle.after_migrate",
 ]
 
 otp_methods = ["OTP App", "Email", "SMS"]
@@ -462,6 +520,7 @@ override_whitelisted_methods = {
 }
 
 ignore_links_on_delete = [
+	"Attachment Queue",
 	"Communication",
 	"ToDo",
 	"DocShare",
@@ -491,6 +550,11 @@ ignore_links_on_delete = [
 	"Sidebar",
 	"Custom Sidebar",
 	"Dock",
+	"Background Task",
+	# Flow keeps these as bookkeeping: an indexed doc, a trigger's target, a chat's model.
+	"Flow Knowledge Chunk",
+	"Flow Run",
+	"Flow Session",
 ]
 
 # Request Hooks
@@ -503,7 +567,14 @@ before_request = [
 
 after_request = [
 	"frappe.monitor.stop",
+	"frappe.flow.launcher.add_to_page",
 ]
+
+# Routes whose PUT body init_request must not buffer through make_form_dict or
+# cap at the generic upload size. The route reads request.stream itself and must
+# bound the body on its own. Paths match as written, so list every API mount a
+# route is reached on.
+streaming_request_paths = []
 
 # Background Job Hooks
 before_job = [
@@ -528,6 +599,7 @@ after_job = [
 extend_bootinfo = [
 	"frappe.utils.telemetry.add_bootinfo",
 	"frappe.core.doctype.user_permission.user_permission.send_user_permissions",
+	"frappe.flow.boot.boot_session",
 ]
 
 export_python_type_annotations = True
@@ -577,6 +649,8 @@ default_log_clearing_doctypes = {
 	"API Request Log": 90,
 	"Email Queue Recipient": 30,  # this is added as a dummy placeholder and clearing is handled by Email Queue itself
 	"DuckDB Sync": 45,
+	"Flow Session": 90,
+	"Attachment Queue": 30,
 }
 
 # These keys will not be erased when doing frappe.clear_cache()
@@ -616,7 +690,11 @@ expose_discovery_source = True
 # A `Page` of type "Frappe UI" is drawn by an island too, and needs no line of
 # Python. Framework builds those islands for every app on the bench, in one
 # build, after any app's assets are built.
-after_app_build = "frappe.bundler.build_page_islands"
+after_app_build = [
+	"frappe.bundler.build_page_islands",
+	# exported studio apps of the built apps; the editor itself is built by esbuild
+	"frappe.studio.build.after_app_build",
+]
 
 
 add_to_apps_screen = [
@@ -628,6 +706,11 @@ add_to_apps_screen = [
 		"has_permission": "frappe.permissions.check_app_permission",
 		# Sort order on the apps (desktop) screen; lower shows first. Framework is pinned last.
 		"sequence_id": 1000,
+		# Fanned out behind Framework's icon on the apps screen; each opens its own route.
+		"module_icons": [
+			{"title": "Studio", "logo": "/assets/frappe/studio/studio-logo.svg", "route": "/studio"},
+			{"title": "Flow", "logo": "/assets/frappe/images/flow.png", "route": "/flow"},
+		],
 	}
 ]
 

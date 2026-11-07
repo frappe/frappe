@@ -182,7 +182,7 @@ $.extend(frappe, {
 					})
 					.join("<br>");
 				$(opts.error_msg).html(message_html).toggle(true);
-			} else {
+			} else if (!opts.silent) {
 				frappe.msgprint(server_messages);
 			}
 		}

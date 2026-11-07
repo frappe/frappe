@@ -168,14 +168,10 @@ class PostgresTable(DBTable):
 			)
 		]
 
-		create_index_query = ""
 		for fieldname in index_fields:
 			index_name = get_single_column_index_name(self.table_name, fieldname)
-			create_index_query += (
-				f'CREATE INDEX IF NOT EXISTS "{index_name}" ON `{self.table_name}`(`{fieldname}`);'
-			)
-		# nosemgrep
-		frappe.db.sql(create_index_query)
+			# nosemgrep
+			frappe.db.sql(f'CREATE INDEX IF NOT EXISTS "{index_name}" ON `{self.table_name}`(`{fieldname}`)')
 
 	def alter(self):
 		for col in self.columns.values():
@@ -226,27 +222,29 @@ class PostgresTable(DBTable):
 
 			query.append(f"ALTER COLUMN `{col.fieldname}` SET DEFAULT {col_default}")
 
-		create_contraint_query = ""
+		create_constraint_queries = []
 		for col in self.add_index:
 			# if index key not exists
 			index_name = get_single_column_index_name(self.table_name, col.fieldname)
-			create_contraint_query += (
-				f'CREATE INDEX IF NOT EXISTS "{index_name}" ON `{self.table_name}`(`{col.fieldname}`);'
+			create_constraint_queries.append(
+				f'CREATE INDEX IF NOT EXISTS "{index_name}" ON `{self.table_name}`(`{col.fieldname}`)'
 			)
 
 		if self.meta.sort_field == "modified" and not frappe.db.get_column_index(
 			self.table_name, "modified", unique=False
 		):
 			index_name = get_single_column_index_name(self.table_name, "modified")
-			create_contraint_query += (
-				f'CREATE INDEX IF NOT EXISTS "{index_name}" ON `{self.table_name}`(`modified`);'
+			create_constraint_queries.append(
+				f'CREATE INDEX IF NOT EXISTS "{index_name}" ON `{self.table_name}`(`modified`)'
 			)
 
 		for col in self.add_unique:
 			# if index key not exists
 			if col.fieldname not in new_column_names:
 				index_name = get_unique_index_name(self.table_name, col.fieldname)
-				create_contraint_query += f'CREATE UNIQUE INDEX IF NOT EXISTS "{index_name}" ON `{self.table_name}`(`{col.fieldname}`);'
+				create_constraint_queries.append(
+					f'CREATE UNIQUE INDEX IF NOT EXISTS "{index_name}" ON `{self.table_name}`(`{col.fieldname}`)'
+				)
 
 		# logic to drop unique constraint for fields deleted from a doctype
 		meta_columns = set(self.columns.keys())
@@ -279,14 +277,14 @@ class PostgresTable(DBTable):
 				)
 				self.drop_unique.append(deleted_col)
 
-		drop_contraint_query = ""
+		drop_constraint_queries = []
 		for col in self.drop_index:
 			# primary key
 			if col.fieldname != "name":
 				# if index key exists; use the schema-unique name (a bare-fieldname DROP would be
 				# schema-global on postgres and could drop another table's like-named index)
 				index_name = get_single_column_index_name(self.table_name, col.fieldname)
-				drop_contraint_query += f'DROP INDEX IF EXISTS "{index_name}" ;'
+				drop_constraint_queries.append(f'DROP INDEX IF EXISTS "{index_name}"')
 
 		for col in self.drop_unique:
 			# primary key
@@ -299,9 +297,11 @@ class PostgresTable(DBTable):
 				continue
 
 			if unique_index.Constraint_name:
-				drop_contraint_query += f'ALTER TABLE "{self.table_name}" DROP CONSTRAINT IF EXISTS "{unique_index.Constraint_name}" ;'
+				drop_constraint_queries.append(
+					f'ALTER TABLE "{self.table_name}" DROP CONSTRAINT IF EXISTS "{unique_index.Constraint_name}"'
+				)
 			else:
-				drop_contraint_query += f'DROP INDEX IF EXISTS "{unique_index.Key_name}" ;'
+				drop_constraint_queries.append(f'DROP INDEX IF EXISTS "{unique_index.Key_name}"')
 
 		change_nullability = []
 		for col in self.change_nullability:
@@ -333,12 +333,9 @@ class PostgresTable(DBTable):
 			if change_nullability:
 				# nosemgrep
 				frappe.db.sql(f"ALTER TABLE `{self.table_name}` {','.join(change_nullability)}")
-			if create_contraint_query:
+			for constraint_query in create_constraint_queries + drop_constraint_queries:
 				# nosemgrep
-				frappe.db.sql(create_contraint_query)
-			if drop_contraint_query:
-				# nosemgrep
-				frappe.db.sql(drop_contraint_query)
+				frappe.db.sql(constraint_query)
 		except Exception as e:
 			# sanitize
 			if frappe.db.is_duplicate_fieldname(e):

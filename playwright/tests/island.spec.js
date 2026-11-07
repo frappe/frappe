@@ -152,6 +152,20 @@ test.describe("Island", () => {
 		expect(await page.evaluate(() => window.__island_mounts)).toBe(1);
 	});
 
+	test("update(props) during the mount reaches the island", async ({ page }) => {
+		const el = await host_element(page, "island-11");
+		await el.evaluate(async (el, island) => {
+			// onReady runs inside mount, before the island's stylesheet loads
+			const pending = frappe.ui.mount_island(island, el, {
+				label: "before",
+				onReady: () => pending.update({ label: "after" }),
+			});
+			await pending.ready;
+		}, ISLAND);
+
+		expect(await el.evaluate(shadow_text)).toBe("after");
+	});
+
 	test("unmounts idempotently", async ({ page }) => {
 		const el = await host_element(page, "island-6");
 		await el.evaluate(async (el, island) => {

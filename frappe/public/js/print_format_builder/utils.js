@@ -106,6 +106,9 @@ export function typst_blockers_client(print_format, layout, letterhead) {
 		if ((letterhead.footer || "").trim() && !footer_is_image)
 			add(__("Letterhead footer with HTML content"));
 	}
+	if (/^(https?:)?\/\//.test(layout?.background?.image || "")) {
+		add(__("Background image loaded from a web address"));
+	}
 	for (const node of layout_nodes(layout)) {
 		if ((node.custom_style || "").trim()) {
 			let unknown = false;
@@ -126,15 +129,6 @@ export function typst_blockers_client(print_format, layout, letterhead) {
 		}
 		if (node.fieldtype === "HTML") add(__("HTML block"));
 		if (node.fieldtype === "Field Template") add(__("Field Template block"));
-		if (node.fieldtype === "Barcode") {
-			if (node.custom) {
-				if (node.barcode_format !== "QR") add(__("Barcode that is not a QR code"));
-			} else {
-				const meta_df = frappe.meta.get_docfield(print_format?.doc_type, node.fieldname);
-				if (!meta_df || !is_qr_barcode_options(meta_df.options))
-					add(__("Barcode that is not a QR code"));
-			}
-		}
 		if (node.fieldtype === "Image" && /^https?:\/\//.test(node.image_url || ""))
 			add(__("Image loaded from a web address"));
 		for (const key of ["label_color", "value_color"]) {
@@ -449,7 +443,9 @@ export function serialize_layout(layout) {
 export function parse_inline_style(css) {
 	const style = {};
 	if (!css || typeof css !== "string") return style;
-	for (const decl of css.split(";")) {
+	const el = document.createElement("div");
+	el.setAttribute("style", css);
+	for (const decl of split_declarations(el.style.cssText)) {
 		const idx = decl.indexOf(":");
 		if (idx === -1) continue;
 		const prop = decl.slice(0, idx).trim();
@@ -457,6 +453,32 @@ export function parse_inline_style(css) {
 		if (prop && value) style[prop] = value;
 	}
 	return style;
+}
+
+function split_declarations(text) {
+	const decls = [];
+	let quote = null;
+	let depth = 0;
+	let start = 0;
+	for (let i = 0; i < text.length; i++) {
+		const c = text[i];
+		if (c === "\\") {
+			i++;
+		} else if (quote) {
+			if (c === quote) quote = null;
+		} else if (c === '"' || c === "'") {
+			quote = c;
+		} else if (c === "(") {
+			depth++;
+		} else if (c === ")") {
+			depth--;
+		} else if (c === ";" && !depth) {
+			decls.push(text.slice(start, i));
+			start = i + 1;
+		}
+	}
+	decls.push(text.slice(start));
+	return decls;
 }
 
 // Deterministic pastel colour for a merged-cell initials thumbnail, keyed off
@@ -472,14 +494,14 @@ export function thumb_hue(text) {
 	return ((idx < 0 ? 0 : idx) * 37) % 360;
 }
 
-export async function render_jinja_html(html, doctype, docname) {
+export async function render_jinja_html(html, doctype, docname, global_variables) {
 	if (!html) return html;
 	if (!html.includes("{{") && !html.includes("{%")) return html;
 	if (!doctype || !docname) return html;
 	try {
 		const r = await frappe.call({
 			method: "frappe.utils.print_format_generator.render_jinja_template",
-			args: { template: html, doctype, docname },
+			args: { template: html, doctype, docname, global_variables },
 			silent: 1,
 		});
 		return r.message ?? html;
@@ -651,6 +673,20 @@ export function get_image_dimensions(src) {
 }
 
 // Option lists shared by the inspectors
+export function text_field_paths(text, meta) {
+	return [...(text || "").matchAll(/\{([\w.]+)\}/g)]
+		.map((m) => m[1])
+		.filter((path) => {
+			const [fieldname, target] = path.split(".");
+			const df = meta?.fields?.find((f) => f.fieldname === fieldname);
+			if (!target) return !!df || fieldname === "name";
+			return (
+				df?.fieldtype === "Link" &&
+				!!frappe.get_meta(df.options)?.fields?.some((f) => f.fieldname === target)
+			);
+		});
+}
+
 export function value_field_opts(fields) {
 	return (fields || [])
 		.filter((f) => !frappe.model.no_value_type.includes(f.fieldtype))

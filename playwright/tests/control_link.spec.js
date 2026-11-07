@@ -27,13 +27,13 @@ test.describe("Control Link", () => {
 		for (const name of created_todos) {
 			await admin.remove_doc("ToDo", name, true);
 		}
+		await admin.remove_doc("Property Setter", "ToDo-main-show_title_field_in_link", true);
+		await admin.remove_doc("Property Setter", "ToDo-assigned_by-default", true);
+		await admin.remove_doc("Property Setter", "ToDo-main-show_preview_popup", true);
 	});
 
 	test.afterAll(async ({ admin }) => {
 		await admin.set_value("User", TEST_USER, { language: "en" });
-		await admin.remove_doc("Property Setter", "ToDo-main-show_title_field_in_link", true);
-		await admin.remove_doc("Property Setter", "ToDo-assigned_by-default", true);
-		await admin.remove_doc("Property Setter", "ToDo-main-show_preview_popup", true);
 	});
 
 	async function get_dialog_with_link(desk) {
@@ -141,6 +141,43 @@ test.describe("Control Link", () => {
 		await input.blur();
 		await validated;
 		await expect(input).toHaveValue("");
+	});
+
+	test("should keep typed text when the window loses focus", async ({ page, desk }) => {
+		await get_dialog_with_link(desk);
+
+		const input = await focus_link_input(page);
+		await input.pressSequentially("invalid value", { delay: 100 });
+
+		let validated = false;
+		page.on("request", (req) => {
+			validated ||= req.url().includes("/api/method/frappe.client.validate_link_and_fetch");
+		});
+		await input.evaluate((el) => {
+			document.hasFocus = () => false;
+			el.dispatchEvent(new Event("change", { bubbles: true }));
+			el.dispatchEvent(new FocusEvent("blur"));
+		});
+		await page.evaluate(() => frappe.xcall("ping"));
+
+		expect(validated).toBe(false);
+		await expect(input).toHaveValue("invalid value");
+	});
+
+	test("should show the results again when the window regains focus", async ({ page, desk }) => {
+		await get_dialog_with_link(desk);
+
+		const input = await focus_link_input(page);
+		await input.pressSequentially(todo_stamp, { delay: 100 });
+		const result = get_dropdown(input).locator("div[role='option']").first();
+		await expect(result).toContainText(todo_stamp);
+
+		await input.evaluate((el) => el.dispatchEvent(new FocusEvent("blur")));
+		await expect(get_dropdown(input)).toBeHidden();
+		await input.evaluate((el) => el.dispatchEvent(new FocusEvent("focus")));
+
+		await expect(result).toContainText(todo_stamp);
+		await expect(get_dropdown(input)).toBeVisible();
 	});
 
 	test("should be possible set empty value explicitly", async ({ page, desk }) => {

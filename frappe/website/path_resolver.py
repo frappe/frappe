@@ -1,8 +1,10 @@
 import os
 import re
+from functools import lru_cache
 
+import orjson
 import werkzeug.routing.exceptions
-from werkzeug.routing import Rule
+from werkzeug.routing import Map, Rule
 
 import frappe
 from frappe.website.page_renderers.document_page import DocumentPage
@@ -13,7 +15,7 @@ from frappe.website.page_renderers.redirect_page import RedirectPage
 from frappe.website.page_renderers.static_page import StaticPage
 from frappe.website.page_renderers.template_page import TemplatePage
 from frappe.website.page_renderers.web_form import WebFormPage
-from frappe.website.router import evaluate_dynamic_routes
+from frappe.website.router import evaluate_dynamic_routes, match_route_map
 from frappe.website.utils import can_cache, check_if_webform_exists, get_home_page
 
 
@@ -137,7 +139,10 @@ def resolve_redirect(path, query_string=None):
 		frappe.flags.redirect_location = redirect_location
 		raise frappe.Redirect(status_code)
 
-	redirect_to = frappe.cache.hget("website_redirects", path or "/")
+	redirects = frappe.get_hooks("website_redirects")
+	use_cache = not (query_string and any(rule.get("match_with_query_string") for rule in redirects))
+
+	redirect_to = frappe.cache.hget("website_redirects", path or "/") if use_cache else None
 	if redirect_to:
 		if isinstance(redirect_to, dict):
 			raise_redirect(
@@ -151,8 +156,7 @@ def resolve_redirect(path, query_string=None):
 	if redirect_to is False:
 		return
 
-	redirects = frappe.get_hooks("website_redirects")
-	redirects += [
+	redirects = redirects + [
 		{
 			"source": r.source,
 			"target": r.target,
@@ -180,19 +184,21 @@ def resolve_redirect(path, query_string=None):
 			redirect_to = re.sub(pattern, rule["target"], path_to_match)
 			status_code = rule.get("redirect_http_status") or 301
 
-			frappe.cache.hset(
-				"website_redirects",
-				path_to_match or "/",
-				{
-					"path": redirect_to,
-					"status_code": status_code,
-					"forward_query_parameters": rule.get("forward_query_parameters"),
-				},
-			)
+			if use_cache:
+				frappe.cache.hset(
+					"website_redirects",
+					path or "/",
+					{
+						"path": redirect_to,
+						"status_code": status_code,
+						"forward_query_parameters": rule.get("forward_query_parameters"),
+					},
+				)
 
 			raise_redirect(redirect_to, status_code, rule.get("forward_query_parameters"))
 
-	frappe.cache.hset("website_redirects", path_to_match or "/", False)
+	if use_cache:
+		frappe.cache.hset("website_redirects", path or "/", False)
 
 
 def resolve_path(path):
@@ -215,18 +221,22 @@ def resolve_path(path):
 
 def resolve_from_map(path):
 	"""transform dynamic route to a static one from hooks and route defined in doctype"""
-	rules = [
-		Rule(r["from_route"], endpoint=r["to_route"], defaults=r.get("defaults")) for r in get_website_rules()
-	]
+	route_map = _get_website_route_map(orjson.dumps(get_website_rules()))
+	return match_route_map(route_map, path) or path
 
-	return evaluate_dynamic_routes(rules, path) or path
+
+@lru_cache(maxsize=64)
+def _get_website_route_map(serialized_rules: bytes) -> Map:
+	"""Keep the compiled Map, because werkzeug compiles each rule into Python code and that is slow."""
+	rules = orjson.loads(serialized_rules)
+	return Map([Rule(r["from_route"], endpoint=r["to_route"], defaults=r.get("defaults")) for r in rules])
 
 
 def get_website_rules():
 	"""Get website route rules from hooks and DocType route"""
 
 	def _get():
-		rules = frappe.get_hooks("website_route_rules")
+		rules = list(frappe.get_hooks("website_route_rules"))
 		for d in frappe.get_all("DocType", "name, route", dict(has_web_view=1)):
 			if d.route:
 				rules.append(dict(from_route="/" + d.route.strip("/"), to_route=d.name))

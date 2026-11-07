@@ -69,7 +69,10 @@ def evaluate_dynamic_routes(rules, path):
 	Use Werkzeug routing to evaluate dynamic routes like /project/<name>
 	https://werkzeug.palletsprojects.com/en/1.0.x/routing/
 	"""
-	route_map = Map(rules)
+	return match_route_map(Map(rules), path)
+
+
+def match_route_map(route_map: Map, path: str):
 	endpoint = None
 
 	if hasattr(frappe.local, "request") and frappe.local.request.environ:
@@ -302,7 +305,7 @@ def get_doctypes_with_web_view():
 			"DocType", fields=["name", "module"], filters=dict(has_web_view=1)
 		)
 		module_app_map = frappe.local.module_app
-		doctypes += [
+		doctypes = doctypes + [
 			d.name
 			for d in doctypes_with_web_view
 			if module_app_map.get(frappe.scrub(d.module)) in installed_apps

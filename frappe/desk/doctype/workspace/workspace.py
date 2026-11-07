@@ -589,7 +589,7 @@ def sanitize_content(content: str | None) -> str | None:
 	left.
 
 	`content` is a Long Text field holding a JSON document, and every write of a Long Text field
-	goes through the XSS sanitizer (`BaseDocument._sanitize_content`). That sanitizer reads the
+	goes through the XSS sanitizer (`Document._sanitize_content`). That sanitizer reads the
 	whole field as HTML, so the markup a header block carries, such as `<span class=\\"h4\\">` with
 	quotes escaped because it lives inside a JSON string, comes back as `class="\\&quot;h4\\&quot;"`
 	and the field is no longer JSON. Every reader then raises, and the desk itself reads `Home`.
@@ -999,7 +999,7 @@ def update_page(name: str, title: str, icon: str, indicator_color: str, parent: 
 	doc = frappe.get_doc("Workspace", name)
 
 	if doc.get("public") and not is_workspace_manager():
-		frappe.throw(_("Need Workspace Manager role to edit public workspaces."))
+		frappe.throw(_("Need Workspace Manager role to edit public workspaces."), frappe.PermissionError)
 	elif not doc.get("public") and doc.get("for_user") != frappe.session.user and not is_workspace_manager():
 		frappe.throw(
 			_("Need Workspace Manager role to edit private workspace of other users."),
@@ -1363,3 +1363,15 @@ def check_workspace_manager(message: str) -> None:
 	"""Refuse anyone who is not one, with a message saying what they were trying to do."""
 	if not is_workspace_manager():
 		frappe.throw(message, frappe.PermissionError)
+
+
+def check_layer_keeps_its_owner(doc) -> None:
+	"""Refuse moving a `Custom Sidebar` or `Dock` layer to another user, unless the caller is a
+	Workspace Manager.
+
+	Their `has_permission` can only read `user` off the document being saved, so naming yourself
+	would otherwise be enough to pass it and take someone else's layer or the site's.
+	"""
+	before = doc.get_doc_before_save()
+	if before and (before.user or "") != (doc.user or ""):
+		check_workspace_manager(_("You need to be Workspace Manager to move this layer to another user."))

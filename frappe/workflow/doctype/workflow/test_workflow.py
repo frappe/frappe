@@ -26,6 +26,9 @@ class TestWorkflow(IntegrationTestCase):
 		super().setUpClass()
 		make_test_records("User")
 		cls.enterClassContext(cls.enable_safe_exec())
+		create_workflow_state_field("ToDo")
+		create_workflow_state_field("Domain")
+		create_new_submittable_doctype()
 
 	def setUp(self):
 		self.patcher = patch("frappe.attach_print", return_value={})
@@ -111,7 +114,8 @@ class TestWorkflow(IntegrationTestCase):
 
 		todo = create_new_todo()
 		# docnames as a native list (frappe.parse_json passthrough); < 20 docs runs inline
-		bulk_workflow_approval([todo.name], "ToDo", "Approve")
+		with patch.object(frappe.db, "commit"):
+			bulk_workflow_approval([todo.name], "ToDo", "Approve")
 		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "workflow_state"), "Approved")
 
 	def test_if_workflow_actions_were_processed_using_role(self):
@@ -202,6 +206,19 @@ class TestWorkflow(IntegrationTestCase):
 
 		workflow.states[1].doc_status = 0
 		workflow.save()
+
+	def test_workflow_action_email_leaves_out_a_draft_print_when_drafts_cannot_print(self):
+		from frappe.workflow.doctype.workflow_action.workflow_action import get_common_email_args
+
+		self.patcher.stop()
+		doc = frappe.get_doc(
+			{"doctype": create_new_submittable_doctype().name, "test_field": "test"}
+		).insert()
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+
+		with self.change_settings("Print Settings", allow_print_for_draft=0):
+			self.assertEqual(get_common_email_args(doc)["attachments"], [])
 
 	def test_queued_workflow_action_returns_doc(self):
 		dt = create_new_submittable_doctype()
@@ -883,3 +900,120 @@ def build_conditional_todo_workflow(conditions, workflow_priority=0, states=("Pe
 def create_conditional_todo_workflow(priority=None, workflow_priority=0, states=("Pending", "Approved")):
 	conditions = [("priority", "=", priority)] if priority else []
 	return build_conditional_todo_workflow(conditions, workflow_priority, states).insert()
+
+
+class TestWorkflowFieldLevelRead(IntegrationTestCase):
+	def setUp(self):
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+		from frappe.core.doctype.user.user import generate_keys
+
+		frappe.set_user("Administrator")
+		self.user = "workflow.fieldlevel@example.com"
+		if not frappe.db.exists("User", self.user):
+			frappe.get_doc(
+				doctype="User",
+				email=self.user,
+				first_name="Workflow Field Level",
+				roles=[{"role": "Desk User"}],
+				send_welcome_email=0,
+			).insert()
+		keys = generate_keys(self.user)
+		self.headers = {"Authorization": f"token {keys['api_key']}:{keys['api_secret']}"}
+
+		self.doctype = (
+			new_doctype(
+				fields=[
+					{"fieldname": "title", "fieldtype": "Data", "label": "Title"},
+					{
+						"fieldname": "secret",
+						"fieldtype": "Data",
+						"label": "Secret",
+						"permlevel": 1,
+						"default": "hidden",
+					},
+					{
+						"fieldname": "workflow_state",
+						"fieldtype": "Link",
+						"label": "Workflow State",
+						"options": "Workflow State",
+						"permlevel": 1,
+					},
+				],
+				permissions=[
+					{"role": "Desk User", "read": 1, "write": 1, "create": 1, "permlevel": 0},
+					{"role": "Desk User", "read": 0, "write": 1, "permlevel": 1},
+				],
+			)
+			.insert()
+			.name
+		)
+		self.workflow = frappe.get_doc(
+			{
+				"doctype": "Workflow",
+				"workflow_name": f"Field Level {self.doctype}",
+				"document_type": self.doctype,
+				"workflow_state_field": "workflow_state",
+				"is_active": 1,
+				"states": [
+					{"state": "Pending", "allow_edit": "All"},
+					{"state": "Approved", "allow_edit": "All", "doc_status": 0},
+				],
+				"transitions": [
+					{
+						"state": "Pending",
+						"action": "Approve",
+						"next_state": "Approved",
+						"allowed": "Desk User",
+						"allow_self_approval": 1,
+					}
+				],
+			}
+		).insert()
+		self.name = frappe.get_doc(doctype=self.doctype, title="x").insert().name
+		frappe.db.commit()  # nosemgrep
+
+	def tearDown(self):
+		try:
+			frappe.db.rollback()
+			frappe.set_user("Administrator")
+			for action in frappe.get_all(
+				"Workflow Action", {"reference_doctype": self.doctype}, pluck="name"
+			):
+				frappe.delete_doc("Workflow Action", action, force=True)
+			frappe.delete_doc("Workflow", self.workflow.name, force=True)
+			frappe.delete_doc("DocType", self.doctype, force=True)
+			frappe.delete_doc_if_exists("User", self.user)
+			frappe.db.commit()  # nosemgrep
+		finally:
+			super().tearDown()
+
+	def test_whitelisted_apply_workflow_omits_unreadable_fields(self):
+		from frappe.tests.test_api import make_request
+		from frappe.utils import get_test_client
+
+		response = make_request(
+			get_test_client(use_cookies=False).post,
+			args=("/api/method/frappe.model.workflow.apply_workflow",),
+			kwargs={
+				"json": {"doc": frappe.get_doc(self.doctype, self.name).as_json(), "action": "Approve"},
+				"headers": self.headers,
+			},
+			site=frappe.local.site,
+		)
+		self.assertEqual(response.status_code, 200, response.text)
+		doc = response.json["message"]
+		self.assertEqual(doc["title"], "x")
+		self.assertIsNone(doc.get("secret"))
+		self.assertIsNone(doc.get("workflow_state"))
+
+	def test_confirm_action_page_sees_workflow_state_of_unreadable_field(self):
+		from frappe.workflow.doctype.workflow_action import workflow_action
+
+		frappe.set_user(self.user)
+		with (
+			patch.object(workflow_action, "verify_request", return_value=True),
+			patch.object(workflow_action, "return_success_page") as page,
+		):
+			workflow_action.confirm_action(self.doctype, self.name, self.user, "Approve")
+
+		self.assertEqual(page.call_args.args[0].workflow_state, "Approved")

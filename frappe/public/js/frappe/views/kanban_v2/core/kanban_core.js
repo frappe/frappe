@@ -1,4 +1,6 @@
 // Kanban board engine: columns, virtualized cards, drag/drop, pagination.
+// Option stepScroll moves the board a column at a time while a card is held at an edge (touch).
+// The bus emits drag:target with the column a dragged card would land in, or null.
 import {
 	bindCardDrag,
 	bindCardDropTarget,
@@ -15,6 +17,11 @@ const DEFAULT_PAGE_LENGTH = 50;
 const CARD_GAP = 8;
 // load the next page once the window is this many rows from the loaded end
 const PREFETCH_ROWS = 8;
+
+// with stepScroll, how long a dragged card rests at an edge before the board moves a column
+const STEP_SCROLL_MS = 700;
+// how close to a board or column edge a dragged card starts scrolling it
+const SCROLL_EDGE = 64;
 
 let _kanban_instance_seq = 0;
 
@@ -54,11 +61,15 @@ export class KanbanCore {
 		this.dropSlotEl = null;
 		this.dropCommitPending = false;
 		this.dragSourceColumn = null;
+		this.dragSourceCard = null;
 		this.dragPreview = null;
 		this.dragGrabOffset = null;
 		this.lastSelected = null;
 		this.pointer = { x: 0, y: 0 };
 		this.autoScrollRAF = null;
+		// stepScroll: when the card reached an edge, and whether it has been away from both edges
+		this.edgeSince = null;
+		this.edgeArmed = false;
 		// cards this board just moved, so their realtime echo is skipped
 		this.ownMoves = new Map();
 		this.movesInFlight = 0;
@@ -82,10 +93,13 @@ export class KanbanCore {
 			);
 		}
 
-		this.monitorCleanup = startDragMonitor((args) => this.handleDrop(args));
+		this.monitorCleanup = startDragMonitor(
+			(args) => this.handleDrop(args),
+			(args) => this.onDropTargetChange(args)
+		);
 
-		// auto-scroll near edges while dragging
-		this.root.addEventListener("dragover", this.onDragOver);
+		// auto-scroll near edges; on document, as the finger can pass the board's edge
+		document.addEventListener("dragover", this.onDragOver);
 		this.root.addEventListener("drop", this.onDragEnd);
 		document.addEventListener("dragend", this.onDragEnd);
 
@@ -176,6 +190,7 @@ export class KanbanCore {
 		this.teardownViews();
 		this.onDragEnd();
 		this.dragSourceColumn = null;
+		this.dragSourceCard = null;
 		this.clearCardsDragging();
 		this.endCardPreview();
 		this.clearDropIndicator();
@@ -186,13 +201,13 @@ export class KanbanCore {
 		this.providerUnsub = null;
 		clearTimeout(this.remoteTimer);
 		if (this.root) {
-			this.root.removeEventListener("dragover", this.onDragOver);
 			this.root.removeEventListener("drop", this.onDragEnd);
 		}
 		if (this.columnSortable) {
 			this.columnSortable.destroy();
 			this.columnSortable = null;
 		}
+		document.removeEventListener("dragover", this.onDragOver);
 		document.removeEventListener("dragend", this.onDragEnd);
 		if (this.container) this.container.replaceChildren();
 		this.root = null;
@@ -387,7 +402,9 @@ export class KanbanCore {
 			topSpacer,
 			bottomSpacer,
 			virtualizer: new ColumnVirtualizer(ordered.length),
-			cardCleanups: [],
+			// card name -> { card, index, el, cleanups } for the cards in the window
+			cardEls: new Map(),
+			measuredWidth: null,
 			renderedRange: { start: 0, end: 0 },
 			loading: false,
 			footer: null,
@@ -410,7 +427,7 @@ export class KanbanCore {
 			view.virtualizer.setCount(ordered.length);
 		}
 		if (ordered.length === 0) {
-			this.flushList(view.cardCleanups);
+			this.dropCardEls(view);
 			view.body.replaceChildren(this.renderEmptyState(view.column));
 			view.renderedRange = { start: 0, end: 0 };
 			return;
@@ -423,21 +440,52 @@ export class KanbanCore {
 			? view.virtualizer.range(view.body.scrollTop, viewport)
 			: { start: 0, end: ordered.length, padTop: 0, padBottom: 0 };
 
-		this.flushList(view.cardCleanups);
-		const nodes = [];
+		// unchanged cards are kept, so a scroll doesn't rebuild the whole window
+		const previous = view.cardEls;
+		const current = new Map();
+		const fresh = [];
 		for (let i = visibleRange.start; i < visibleRange.end; i++) {
-			nodes.push(this.createCardEl(view.column, ordered[i], i, view.cardCleanups));
+			const card = ordered[i];
+			let entry = previous.get(card.name);
+			if (entry && entry.card === card && entry.index === i) {
+				previous.delete(card.name);
+				if (entry.held) {
+					entry.held = false;
+					entry.el.classList.remove("hidden");
+				}
+			} else {
+				const cleanups = [];
+				const el = this.createCardEl(view.column, card, i, cleanups);
+				entry = { card, index: i, el, cleanups };
+				fresh.push(entry);
+			}
+			current.set(card.name, entry);
 		}
+		// the browser ends a drag on the dragged card, so out of the window it stays, hidden
+		const held = previous.get(this.dragSourceCard);
+		if (held && !current.has(this.dragSourceCard)) {
+			previous.delete(this.dragSourceCard);
+			held.held = true;
+			held.el.classList.add("hidden");
+			current.set(this.dragSourceCard, held);
+		}
+		this.dropCardEls(view);
+		view.cardEls = current;
 		view.topSpacer.style.height = `${visibleRange.padTop}px`;
 		view.bottomSpacer.style.height = `${visibleRange.padBottom}px`;
-		view.body.replaceChildren(view.topSpacer, ...nodes, view.bottomSpacer);
+		this.placeCards(view, [...current.values()]);
 		view.renderedRange = { start: visibleRange.start, end: visibleRange.end };
 
 		if (this.options.virtualization) {
+			// new cards; all of them once the width, or something around them (remeasure), changed
+			const width = view.body.clientWidth;
+			const measured = width === view.measuredWidth ? fresh : [...current.values()];
+			view.measuredWidth = width;
 			let changed = false;
-			nodes.forEach((node, k) => {
-				const h = node.getBoundingClientRect().height + CARD_GAP;
-				if (view.virtualizer.measure(visibleRange.start + k, h)) changed = true;
+			measured.forEach((entry) => {
+				if (entry.held) return;
+				const h = entry.el.getBoundingClientRect().height + CARD_GAP;
+				if (view.virtualizer.measure(entry.index, h)) changed = true;
 			});
 			if (changed) {
 				view.virtualizer.rebuild();
@@ -447,6 +495,35 @@ export class KanbanCore {
 				}px`;
 			}
 		}
+	}
+
+	/** Measures every rendered card again, after something outside the board changed their size. */
+	remeasure() {
+		for (const view of this.columnViews.values()) {
+			view.measuredWidth = null;
+			if (view.virtualizer.count > 0) this.renderWindow(view);
+		}
+	}
+
+	/** Moves only the cards that changed place: a card taken out and put back is laid out again. */
+	placeCards(view, entries) {
+		const { body, topSpacer, bottomSpacer } = view;
+		if (topSpacer.parentNode !== body) body.replaceChildren(topSpacer, bottomSpacer);
+		const nodes = entries.map((entry) => entry.el);
+		const wanted = new Set([topSpacer, bottomSpacer, ...nodes]);
+		for (const child of [...body.children]) {
+			if (!wanted.has(child)) child.remove();
+		}
+		let next = topSpacer.nextSibling;
+		for (const node of nodes) {
+			if (node === next) next = node.nextSibling;
+			else body.insertBefore(node, next);
+		}
+	}
+
+	dropCardEls(view) {
+		for (const entry of view.cardEls.values()) this.flushList(entry.cleanups);
+		view.cardEls.clear();
 	}
 
 	renderColumnHeader(column) {
@@ -503,6 +580,11 @@ export class KanbanCore {
 			ghostClass: "kn-col-dragging",
 			direction: "horizontal",
 			bubbleScroll: true,
+			// on touch, a swipe on a header scrolls the board and a held press drags the column
+			delay: 300,
+			delayOnTouchOnly: true,
+			touchStartThreshold: 5,
+			onChoose: () => frappe.utils.haptic(),
 			// let scrolling, card drags and the add button through
 			filter: ".kn-column-body, .kn-column-footer, .kn-card, .kn-add-card",
 			preventOnFilter: false,
@@ -559,12 +641,15 @@ export class KanbanCore {
 		cleanups.push(
 			bindCardDrag(el, dragData, {
 				onStart: (input) => {
+					frappe.utils.haptic();
 					this.dragSourceColumn = column.id;
+					this.dragSourceCard = card.name;
 					this.markCardsDragging(card.name);
 					this.startCardPreview(el, card.name, input);
 				},
 				onEnd: () => {
 					this.dragSourceColumn = null;
+					this.dragSourceCard = null;
 					this.clearCardsDragging();
 					this.endCardPreview();
 					// close the slot on a cancelled drop; a real drop has claimed it by now
@@ -585,7 +670,7 @@ export class KanbanCore {
 		el.addEventListener("click", (ev) => {
 			this.applySelection(card.name, column.id, index, ev);
 			const cb = this.options.callbacks;
-			cb && cb.onCardClick && cb.onCardClick(card);
+			cb && cb.onCardClick && cb.onCardClick(card, ev);
 			this.bus.emit("card:click", card);
 		});
 		el.addEventListener("dblclick", () => {
@@ -703,8 +788,16 @@ export class KanbanCore {
 	}
 
 	onDragOver = (e) => {
+		if (!this.dragSourceColumn && !this.root.contains(e.target)) return;
 		this.pointer.x = e.clientX;
 		this.pointer.y = e.clientY;
+		// stepScroll waits until the finger has been away from both edges; checked per move, as a
+		// quick move to an edge can fall between two frames
+		if (this.options.stepScroll && !this.edgeArmed) {
+			const br = this.root.getBoundingClientRect();
+			this.edgeArmed =
+				e.clientX > br.left + SCROLL_EDGE && e.clientX < br.right - SCROLL_EDGE;
+		}
 		this.positionCardPreview(e.clientX, e.clientY);
 		if (this.autoScrollRAF === null) {
 			this.autoScrollRAF = requestAnimationFrame(this.autoScrollTick);
@@ -716,14 +809,38 @@ export class KanbanCore {
 			cancelAnimationFrame(this.autoScrollRAF);
 			this.autoScrollRAF = null;
 		}
+		this.edgeSince = null;
+		this.edgeArmed = false;
+		this.markDropColumn(null);
+		this.bus.emit("drag:target", null);
 	};
+
+	/** Outlines and emits the column a card dragged from this board would land in, or null. */
+	onDropTargetChange({ source, location }) {
+		if (!source.data || source.data.boardId !== this.instanceId) return;
+		const target = location.current.dropTargets.find((t) => t.data && t.data.columnId);
+		const columnId =
+			target && target.data.columnId !== this.dragSourceColumn ? target.data.columnId : null;
+		this.markDropColumn(columnId);
+		this.bus.emit("drag:target", columnId);
+	}
+
+	markDropColumn(columnId) {
+		if (!this.root) return;
+		this.root
+			.querySelectorAll(".kn-drop-column")
+			.forEach((el) => el.classList.remove("kn-drop-column"));
+		if (!columnId) return;
+		const column = this.root.querySelector(`.kn-column[data-col="${CSS.escape(columnId)}"]`);
+		column && column.classList.add("kn-drop-column");
+	}
 
 	autoScrollTick = () => {
 		if (!this.root) {
 			this.autoScrollRAF = null;
 			return;
 		}
-		const EDGE = 64;
+		const EDGE = SCROLL_EDGE;
 		const MAX_SPEED = 16;
 		const { x, y } = this.pointer;
 		const speed = (d) => MAX_SPEED * Math.min(1, d / EDGE);
@@ -737,17 +854,61 @@ export class KanbanCore {
 		}
 
 		const br = this.root.getBoundingClientRect();
-		if (x < br.left + EDGE) this.root.scrollLeft -= speed(br.left + EDGE - x);
-		else if (x > br.right - EDGE) this.root.scrollLeft += speed(x - (br.right - EDGE));
+		// a finger over another lane or the toolbar doesn't scroll this board sideways
+		if (y < br.top || y > br.bottom) {
+			this.edgeSince = null;
+		} else if (this.options.stepScroll) {
+			this.stepScroll(x, br, EDGE);
+		} else if (x < br.left + EDGE) {
+			this.root.scrollLeft -= speed(br.left + EDGE - x);
+		} else if (x > br.right - EDGE) {
+			this.root.scrollLeft += speed(x - (br.right - EDGE));
+		}
 
 		this.autoScrollRAF = requestAnimationFrame(this.autoScrollTick);
 	};
+
+	/** A card held at an edge moves the board one column per pause, so it can't race past them. */
+	stepScroll(x, br, edge) {
+		const side = x < br.left + edge ? -1 : x > br.right - edge ? 1 : 0;
+		// a card lifted inside an edge steps only after the finger has left it
+		if (!side || !this.edgeArmed || !this.canStep(side)) {
+			this.edgeSince = null;
+			return;
+		}
+		const now = performance.now();
+		if (this.edgeSince == null) {
+			this.edgeSince = now;
+		} else if (now - this.edgeSince > STEP_SCROLL_MS) {
+			this.root.scrollBy({ left: side * this.columnStep(), behavior: "smooth" });
+			frappe.utils.haptic();
+			this.edgeSince = now;
+		}
+	}
+
+	/** How far one column moves the board: its width plus the gap. */
+	columnStep() {
+		const column = this.root.querySelector(".kn-column");
+		const gap = parseFloat(getComputedStyle(this.root).columnGap) || 0;
+		return column ? column.getBoundingClientRect().width + gap : this.root.clientWidth;
+	}
+
+	canStep(side) {
+		const end = this.root.scrollWidth - this.root.clientWidth;
+		const at = Math.abs(this.root.scrollLeft);
+		// scrollLeft runs negative in RTL, so there a step left moves away from the start
+		const away = side > 0 !== (getComputedStyle(this.root).direction === "rtl");
+		return away ? at < end - 1 : at > 1;
+	}
 
 	async handleDrop(args) {
 		this.onDragEnd();
 		const src = args && args.source && args.source.data;
 		// successful moves keep the slot until animateMove so cards don't bounce
-		const abort = () => this.clearDropIndicator({ animate: true });
+		const abort = () => {
+			this.dragReleaseRect = null;
+			this.clearDropIndicator({ animate: true });
+		};
 
 		if (!src || src.kind !== "card") return abort();
 		// every board's monitor sees every drag
@@ -855,6 +1016,8 @@ export class KanbanCore {
 		// measure with the slot open, then close it and move the card in one FLIP from its release point
 		const releaseAnchor = this.dragReleaseRect ? { cardId, rect: this.dragReleaseRect } : null;
 		this.dragReleaseRect = null;
+		// a dropped card lands with a tick; a menu's Move to has no release point
+		if (releaseAnchor) frappe.utils.haptic();
 		this.animateMove(
 			affected,
 			() => {
@@ -932,6 +1095,7 @@ export class KanbanCore {
 				return;
 			}
 		}
+		frappe.utils.haptic();
 
 		this.animateMove(affected, () => {
 			// as in applyMove, close the slot inside the FLIP
@@ -1317,7 +1481,7 @@ export class KanbanCore {
 		this.flushRendererCleanups();
 		this.flushList(this.dragCleanups);
 		for (const view of this.columnViews.values()) {
-			this.flushList(view.cardCleanups);
+			this.dropCardEls(view);
 		}
 		this.columnViews.clear();
 	}

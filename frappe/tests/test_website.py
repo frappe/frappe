@@ -168,7 +168,10 @@ class TestWebsite(IntegrationTestCase):
 		self.assertEqual(response.status_code, 417)
 
 	def test_login(self):
+		from frappe.auth import CookieManager
+
 		set_request(method="GET", path="/login")
+		frappe.local.cookie_manager = CookieManager()
 		response = get_response()
 		self.assertEqual(response.status_code, 200)
 
@@ -190,6 +193,12 @@ class TestWebsite(IntegrationTestCase):
 	def test_not_found(self):
 		set_request(method="GET", path="/_test/missing")
 		response = get_response()
+		self.assertEqual(response.status_code, 404)
+
+	def test_not_found_raised_while_rendering(self):
+		with patch.object(StaticPage, "render", side_effect=frappe.PageDoesNotExistError):
+			set_request(method="GET", path="/_test/assets/image")
+			response = get_response()
 		self.assertEqual(response.status_code, 404)
 
 	def test_redirect(self):
@@ -275,6 +284,21 @@ class TestWebsite(IntegrationTestCase):
 
 		delattr(frappe.hooks, "website_redirects")
 		frappe.client_cache.delete_value("app_hooks")
+
+	def test_redirect_with_query_string_after_bare_path(self):
+		self.addCleanup(frappe.cache.hdel, "website_redirects", "courses/course")
+		redirects = [
+			dict(source=r"/courses/course\?course=(.*)", target=r"/courses/\1", match_with_query_string=True)
+		]
+
+		with self.patch_hooks({"website_redirects": redirects}):
+			set_request(method="GET", path="/courses/course")
+			get_response()
+			set_request(method="GET", path="/courses/course?course=data")
+			response = get_response()
+
+		self.assertEqual(response.status_code, 301)
+		self.assertEqual(response.headers.get("Location"), "/courses/data")
 
 	def test_custom_page_renderer(self):
 		from frappe import get_hooks

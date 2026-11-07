@@ -23,6 +23,19 @@ class TestLetterHead(IntegrationTestCase):
 		self.assertEqual(rendered["header"], '<div class="logo"></div>')
 		self.assertEqual(rendered["footer"], '<div class="address"></div>')
 
+	def test_rendered_letter_head_includes_header_script(self):
+		doc = frappe.new_doc("Letter Head")
+		doc.letter_head_for = "Report"
+		doc.letter_head_name = "Test Letter Head Header Script"
+		doc.content = '<div class="logo"></div>'
+		doc.header_script = "document.title = 'Test Letter Head';"
+		doc.insert()
+
+		with self.set_user("test@example.com"):
+			rendered = render_letterhead_for_print(doc.name, {})
+
+		self.assertIn(doc.header_script, rendered["header"])
+
 	def test_auto_image(self):
 		doc = frappe.new_doc("Letter Head")
 		doc.letter_head_for = "DocType"

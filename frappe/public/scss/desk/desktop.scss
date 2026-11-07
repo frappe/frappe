@@ -236,6 +236,11 @@ body {
 
 		.widget-body {
 			padding-top: 7px;
+
+			// lines a frappe-ui chart up with the head, as frappe-charts pads its own svg
+			&:has(.frappe-island) {
+				padding-inline: calc(var(--spacing) * 2);
+			}
 		}
 
 		.widget-control {
@@ -337,6 +342,8 @@ body {
 
 			.widget-body {
 				display: flex;
+				justify-content: center;
+				width: 100%;
 				max-height: 100%;
 				margin: auto;
 				margin-top: calc(-1 * var(--margin-md));
@@ -678,6 +685,15 @@ body {
 
 		&:hover {
 			border-color: var(--outline-gray-3);
+		}
+
+		// An island draws the card's body and handles its own clicks, so the card opens no list.
+		&.number-widget-island {
+			cursor: default;
+
+			&:hover {
+				border-color: var(--outline-gray-1);
+			}
 		}
 
 		.widget-head {

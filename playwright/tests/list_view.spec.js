@@ -1,6 +1,7 @@
 import { test, expect } from "../support";
 
 const CHECK_ALL = ".list-header-subject .list-subject .list-check-all";
+const PHONE = { width: 375, height: 667 };
 
 test.describe("List View", () => {
 	test.beforeAll(async ({ admin }) => {
@@ -28,8 +29,8 @@ test.describe("List View", () => {
 			frappe.route_options = { published: ["=", 0] };
 			frappe.set_route("List", "Web Page");
 		});
-		await expect(page.locator(".filter-selector .filter-button .button-label")).toContainText(
-			"Filters"
+		await expect(page.locator(".filter-selector .filter-button .filter-label")).toHaveText(
+			"1"
 		);
 		await expect
 			.poll(() =>
@@ -178,6 +179,7 @@ test.describe("List View", () => {
 				}, selected_docname)
 			)
 			.toEqual({ length: 1, checked: true });
+		await expect(page.locator(".list-row-head .checkbox-actions")).toBeVisible();
 	});
 
 	test("preserves select-all across virtualized window rerenders", async ({ page, desk }) => {
@@ -254,101 +256,74 @@ test.describe("List View", () => {
 
 		const order = page.locator(".sort-selector .btn-order");
 		await expect(order).toHaveAttribute("title", "descending");
-		await expect(order.locator(".sort-order use")).toHaveAttribute(
-			"href",
-			"#icon-arrow-down-wide-narrow"
-		);
+		await expect(order.locator("use")).toHaveAttribute("href", "#icon-arrow-down-wide-narrow");
 
 		await order.click();
 		await expect(order).toHaveAttribute("data-value", "asc");
 		await expect(order).toHaveAttribute("title", "ascending");
-		await expect(order.locator(".sort-order use")).toHaveAttribute(
+		await expect(order.locator("use")).toHaveAttribute("href", "#icon-arrow-up-narrow-wide");
+	});
+
+	test("sorts from a sheet on phones", async ({ page, desk }) => {
+		await page.setViewportSize(PHONE);
+		await desk.go_to_list("ToDo");
+		await desk.clear_filters();
+		await page.evaluate(() => cur_list.sort_selector.set_value("creation", "desc"));
+
+		const sort_button = page.getByRole("button", { name: "Sort", exact: true });
+		const sheet = page.locator(".es-bottom-sheet");
+		const option = (name) => sheet.getByRole("button", { name, exact: true });
+
+		await sort_button.click();
+		await expect(option("Descending")).toHaveAttribute("aria-pressed", "true");
+		await expect(option("Created On")).toHaveAttribute("aria-pressed", "true");
+
+		await option("Ascending").click();
+		await expect(sheet).toBeHidden();
+		await expect
+			.poll(() => page.evaluate(() => [cur_list.sort_by, cur_list.sort_order]))
+			.toEqual(["creation", "asc"]);
+
+		await sort_button.click();
+		await option("Last Updated On").click();
+		await expect
+			.poll(() => page.evaluate(() => [cur_list.sort_by, cur_list.sort_order]))
+			.toEqual(["modified", "asc"]);
+		await expect(sort_button.locator("use")).toHaveAttribute(
 			"href",
 			"#icon-arrow-up-narrow-wide"
 		);
 	});
 
-	test("opens an empty filter row with all fields listed", async ({ page, desk }) => {
-		await desk.go_to_list("ToDo");
-		await desk.clear_filters();
-		await desk.open_list_filter();
+	test.describe("on a touch phone", () => {
+		test.use({ viewport: PHONE, hasTouch: true });
 
-		const area = page.locator(".filter-popover .fieldname-select-area").first();
-		const input = area.locator("input");
-		const highlighted = area.locator('li[aria-selected="true"]');
+		test("opens a row's actions on a long press", async ({ page, desk }) => {
+			await desk.go_to_list("ToDo");
+			await desk.clear_filters();
 
-		await expect(input).toBeFocused();
-		await expect(input).toHaveValue("");
-		await expect(area.locator("li", { hasText: /^Status$/ })).toBeVisible();
-		await expect(highlighted).toHaveCount(0);
+			const row = page
+				.locator(".result .list-row-container:has(.list-row-checkbox)")
+				.first();
+			const subject = (await row.locator(".list-subject").innerText()).trim();
+			const box = await row.boundingBox();
+			const point = { x: box.x + box.width - 40, y: box.y + box.height / 2 };
+			const cdp = await page.context().newCDPSession(page);
+			await cdp.send("Input.dispatchTouchEvent", {
+				type: "touchStart",
+				touchPoints: [point],
+			});
+			await page.waitForTimeout(700);
+			await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
 
-		await input.pressSequentially("Status");
-		await input.press("Enter");
-		await input.blur();
-		await expect(input).toHaveValue("Status");
-
-		// blur without a selection restores the current field
-		await input.click();
-		await input.pressSequentially("Desc");
-		await input.blur();
-		await expect(input).toHaveValue("Status");
-
-		// Tab on the full list keeps the current field instead of the first one
-		await input.click();
-		await expect(input).toHaveValue("");
-		await expect(highlighted).toHaveText("Status");
-		await input.press("Tab");
-		await expect(input).toHaveValue("Status");
-		expect(
-			await page.evaluate(() =>
-				cur_list.filter_area.filter_list.filters[0].fieldselect.get_value()
-			)
-		).toBe("ToDo.status");
-	});
-
-	test("does not focus saved filters when the popover opens", async ({ page, desk }) => {
-		await desk.go_to_list("ToDo");
-		await desk.clear_filters();
-		await page.evaluate(() =>
-			cur_list.filter_area.add([["ToDo", "owner", "like", "%example.com%"]])
-		);
-		await desk.open_list_filter();
-
-		const input = page.locator(".filter-popover .fieldname-select-area input").first();
-		await expect(input).toHaveValue("Created By");
-		await expect(input).not.toBeFocused();
-		await expect(page.locator(".filter-popover")).toBeFocused();
-
-		// keyboard users reach the first field with Tab and keep the whole filter with another Tab
-		await page.keyboard.press("Tab");
-		await expect(input).toBeFocused();
-		await page.keyboard.press("Tab");
-		await expect(input).toHaveValue("Created By");
-		expect(
-			await page.evaluate(() => cur_list.filter_area.filter_list.filters[0].get_value())
-		).toEqual(["ToDo", "owner", "like", "%example.com%"]);
-
-		// Escape outside a field closes the popover and returns focus to the button
-		await page.locator(".filter-popover .remove-filter[role=button]").first().focus();
-		await page.keyboard.press("Escape");
-		await expect(page.locator(".filter-popover")).toBeHidden();
-		await expect(page.locator(".filter-section .filter-button")).toBeFocused();
-
-		// so does Enter on the apply button
-		await page.keyboard.press("Enter");
-		await expect(page.locator(".filter-popover")).toBeFocused();
-		await page.locator(".filter-popover .apply-filters").focus();
-		await page.keyboard.press("Enter");
-		await expect(page.locator(".filter-popover")).toBeHidden();
-		await expect(page.locator(".filter-section .filter-button")).toBeFocused();
-
-		// removing a row keeps focus in the popover, so Escape still closes it
-		await page.keyboard.press("Enter");
-		await expect(page.locator(".filter-popover")).toBeFocused();
-		await page.locator(".filter-popover .remove-filter[role=button]").first().focus();
-		await page.keyboard.press("Enter");
-		await expect(page.locator(".filter-popover")).toBeFocused();
-		await page.keyboard.press("Escape");
-		await expect(page.locator(".filter-popover")).toBeHidden();
+			await expect(page.locator(".es-bottom-sheet .es-bottom-sheet__title")).toHaveText(
+				subject
+			);
+			await expect
+				.poll(() =>
+					page.evaluate(() => [frappe.get_route()[0], cur_list.checked_docnames.size])
+				)
+				.toEqual(["List", 1]);
+		});
 	});
 });

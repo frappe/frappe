@@ -6,6 +6,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { createRequire } from "node:module";
 
+const { update_assets_json } = createRequire(import.meta.url)("../../../esbuild/assets_json.js");
+
 /** Suffixes that make an island key unmistakable to the module loader. */
 export const ISLAND_JS_SUFFIX = ".island.js";
 export const ISLAND_CSS_SUFFIX = ".island.css";
@@ -62,15 +64,6 @@ export function benchPaths(benchRoot, app, subdir = ISLAND_DIST_SUBDIR) {
 	};
 }
 
-export function readAssetsJson(assetsJsonPath) {
-	try {
-		return JSON.parse(fs.readFileSync(assetsJsonPath, "utf-8"));
-	} catch {
-		// Missing or empty. The esbuild pipeline populates the rest.
-		return {};
-	}
-}
-
 /**
  * Register an app's built islands in assets.json.
  *
@@ -91,11 +84,9 @@ export function readAssetsJson(assetsJsonPath) {
  */
 export async function writeIslandAssets(paths, relMap) {
 	const ownPrefix = `${paths.urlPrefix}/`;
-	const existing = readAssetsJson(paths.assetsJsonPath);
-
-	const kept = Object.fromEntries(
-		Object.entries(existing).filter(([, url]) => !url.startsWith(ownPrefix))
-	);
+	await fs.promises.mkdir(path.dirname(paths.assetsJsonPath), {
+		recursive: true,
+	});
 	const written = Object.fromEntries(
 		Object.entries(relMap).map(([key, rel]) => [
 			key,
@@ -103,21 +94,19 @@ export async function writeIslandAssets(paths, relMap) {
 		])
 	);
 
-	const taken = Object.keys(written).filter((key) => key in kept);
-	if (taken.length)
-		throw new Error(
-			"island: a build elsewhere on this bench already registers " +
-				taken.map((key) => `"${key}" (${kept[key]})`).join(", ") +
-				".\nAn island name is one bench-wide namespace. Rename the entry."
+	await update_assets_json(paths.assetsJsonPath, (existing) => {
+		const kept = Object.fromEntries(
+			Object.entries(existing).filter(([, url]) => !url.startsWith(ownPrefix))
 		);
-
-	await fs.promises.mkdir(path.dirname(paths.assetsJsonPath), {
-		recursive: true,
+		const taken = Object.keys(written).filter((key) => key in kept);
+		if (taken.length)
+			throw new Error(
+				"island: a build elsewhere on this bench already registers " +
+					taken.map((key) => `"${key}" (${kept[key]})`).join(", ") +
+					".\nAn island name is one bench-wide namespace. Rename the entry."
+			);
+		return { ...kept, ...written };
 	});
-	await fs.promises.writeFile(
-		paths.assetsJsonPath,
-		JSON.stringify({ ...kept, ...written }, null, 4)
-	);
 	await invalidateAssetsCache(paths);
 	return written;
 }

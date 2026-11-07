@@ -13,9 +13,10 @@ from frappe.desk.doctype.notification_log.notification_log import (
 from frappe.desk.doctype.notification_settings.notification_settings import (
 	get_subscribed_documents,
 )
-from frappe.utils import get_fullname
+from frappe.utils import get_fullname, unique
 
 COUNT_SAVEPOINT = "linked_document_count"
+LINK_COUNT_LIMIT = 100
 
 
 @frappe.whitelist()
@@ -280,7 +281,7 @@ def _get_linked_document_counts(doctype: str, name: str, items=None):
 		"internal_links_found": [],
 	}
 
-	for d in items:
+	for d in unique(items):
 		internal_link_for_doctype = links.get("internal_links", {}).get(d) or links.get(
 			"internal_and_external_links", {}
 		).get(d)
@@ -292,12 +293,13 @@ def _get_linked_document_counts(doctype: str, name: str, items=None):
 				# pairs can be linked from either side, e.g. a Sales Invoice made
 				# from a Delivery Note (internal) vs one a Delivery Note was made
 				# from (external), so probe the other direction too
-				out["external_links_found"].append(get_external_links(d, name, links))
+				for fieldname in get_external_link_fieldnames(d, links):
+					out["external_links_found"].append(get_external_links(d, name, links, fieldname))
 			else:
 				out["external_links_found"].append({"doctype": d, "open_count": 0, "count": 0})
 		else:
-			external_links_data_for_d = get_external_links(d, name, links)
-			out["external_links_found"].append(external_links_data_for_d)
+			for fieldname in get_external_link_fieldnames(d, links):
+				out["external_links_found"].append(get_external_links(d, name, links, fieldname))
 
 	out = {
 		"count": out,
@@ -339,6 +341,17 @@ def get_external_link_fieldname(doctype, links):
 	return links.get("non_standard_fieldnames", {}).get(doctype, links.get("fieldname"))
 
 
+def get_external_link_fieldnames(doctype, links):
+	default_fieldname = get_external_link_fieldname(doctype, links)
+	return unique(
+		[
+			group.get("fieldnames", {}).get(doctype) or group.get("fieldname") or default_fieldname
+			for group in links.transactions
+			if doctype in group["items"]
+		]
+	) or [default_fieldname]
+
+
 def has_external_link_field(doctype, links):
 	"""Whether `doctype` (or one of its child tables) has the field that links it back."""
 	fieldname = get_external_link_fieldname(doctype, links)
@@ -357,8 +370,8 @@ def get_child_doctypes_with_field(doctype, fieldname):
 	return [df.options for df in meta.get_table_fields() if frappe.get_meta(df.options).has_field(fieldname)]
 
 
-def get_external_links(doctype, name, links):
-	fieldname = get_external_link_fieldname(doctype, links)
+def get_external_links(doctype, name, links, fieldname=None):
+	fieldname = fieldname or get_external_link_fieldname(doctype, links)
 
 	# updating filters based on dynamic_links
 	filters = get_dynamic_link_filters(doctype, links, fieldname) or {}
@@ -375,31 +388,35 @@ def get_external_links(doctype, name, links):
 		filters.update(open_count_filters)
 		open_count = get_doc_count(doctype, filters)
 
-	return {"doctype": doctype, "count": total_count, "open_count": open_count}
+	return {"doctype": doctype, "fieldname": fieldname, "count": total_count, "open_count": open_count}
 
 
 def get_external_links_in_child_tables(doctype, name, fieldname, child_doctypes, filters):
 	"""A filter on a fieldname that several child tables share resolves to whichever of them
-	is scanned first, so match the link in any of them and let the client route by name."""
+	is scanned first, so match the link in any of them and let the client route by name.
+	Past the cap the names are left out and the client filters on the field instead."""
 	names = get_list_unless_timed_out(
 		frappe.get_list,
 		doctype,
 		filters=filters,
 		or_filters=[[child_doctype, fieldname, "=", name] for child_doctype in child_doctypes],
-		limit=100,
+		limit=LINK_COUNT_LIMIT,
 		distinct=True,
 		ignore_ifnull=True,
 		order_by=None,
 		pluck="name",
 	)
 	if names is None:
-		return {"doctype": doctype, "count": "?", "open_count": 0}
+		return {"doctype": doctype, "fieldname": fieldname, "count": "?", "open_count": 0}
 
 	open_count = 0
 	if names and (open_count_filters := get_filters_for(doctype)):
 		open_count = get_doc_count(doctype, {"name": ("in", names), **open_count_filters})
 
-	return {"doctype": doctype, "count": len(names), "open_count": open_count, "names": names}
+	data = {"doctype": doctype, "fieldname": fieldname, "count": len(names), "open_count": open_count}
+	if len(names) < LINK_COUNT_LIMIT:
+		data["names"] = names
+	return data
 
 
 def get_doc_count(doctype, filters) -> int | Literal["?"]:

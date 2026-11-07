@@ -5,8 +5,7 @@ from typing import Protocol, runtime_checkable
 
 import frappe
 from frappe import _
-from frappe.model.base_document import get_controller
-from frappe.model.document import Document
+from frappe.model.document import Document, get_controller
 from frappe.query_builder import Table
 from frappe.utils import add_days, cint, now_datetime
 from frappe.utils.caching import site_cache

@@ -6,7 +6,7 @@ import os
 import orjson
 
 import frappe
-from frappe.model.base_document import get_controller
+from frappe.model.document import get_controller
 from frappe.modules import get_module_path, scrub_dt_dn
 from frappe.query_builder import DocType
 from frappe.utils import get_datetime, now
@@ -33,6 +33,7 @@ ignore_values = {
 	"Module Onboarding": ["is_complete"],
 	"Onboarding Step": ["is_complete", "is_skipped"],
 	"Workspace": ["is_hidden"],
+	"Letter Head": ["is_default", "disabled"],
 }
 
 ignore_doctypes = [""]

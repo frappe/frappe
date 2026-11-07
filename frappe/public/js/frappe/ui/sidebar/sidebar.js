@@ -12,6 +12,18 @@ frappe.get_module_icon = function (module) {
 	return row?.icon || frappe.boot.module_sidebars?.[module]?.header_icon || null;
 };
 
+// Open a surface in the arrangement editor. The editor is not in the desk bundle, so it is loaded
+// first. `manager` names the surface's class, which the editor's bundle defines.
+frappe.ui.open_arrangement_editor = function (manager, opts, error_message) {
+	return frappe
+		.require("arrangement_editor.bundle.js")
+		.then(() => frappe.ui.ArrangementEditor.start(frappe.ui[manager], opts))
+		.catch((e) => {
+			console.error("Failed to load arrangement_editor.bundle.js", e);
+			frappe.ui.toast({ message: error_message, type: "error" });
+		});
+};
+
 // Route prefixes that name an entity of another kind. `dashboard-view` is itself a Page, so it is
 // checked before page_info.
 const ENTITY_VIEW_ROUTES = {
@@ -97,6 +109,17 @@ frappe.ui.Sidebar = class Sidebar {
 			console.log(e);
 		}
 	}
+	// Swap in the desk state a sidebar or dock save sends back.
+	take_desk_state(payload) {
+		if (payload.workspace_pages) {
+			frappe.boot.workspaces = payload.workspace_pages;
+			frappe.app.setup_workspaces();
+		}
+		if (payload.module_sidebars) frappe.boot.module_sidebars = payload.module_sidebars;
+		if (payload.entity_module) frappe.boot.entity_module = payload.entity_module;
+		this.all_sidebar_items = frappe.boot.module_sidebars;
+	}
+
 	// A companion app's rail is its host's (`Dock.mount_on`).
 	rail_host_for(app_name) {
 		return (frappe.boot.app_rail_host && frappe.boot.app_rail_host[app_name]) || app_name;
@@ -364,100 +387,88 @@ frappe.ui.Sidebar = class Sidebar {
 
 	// The user menu, shared by the sidebar's user button and the dock's avatar.
 	create_user_menu({ parent, button, side = "top", align = "start" }) {
-		const me = this;
 		const $btn = button;
-		const $container = parent;
 
 		new frappe.ui.Dropdown({
-			trigger: $container,
+			trigger: parent,
 			side,
 			align,
-			options: [
-				{
-					group: "",
-					options: [
-						{
-							name: "my-space",
-							label: __("My Space"),
-							icon: "user",
-							href: "/desk/private",
-							condition: () => !!frappe.boot.desk_settings.show_my_space,
-						},
-						{
-							name: "settings",
-							label: __("Settings"),
-							icon: "settings",
-							onclick: function () {
-								// Not in the desk bundle, so it is loaded on click.
-								frappe
-									.require("user_settings_dialog.bundle.js")
-									.then(() => frappe.ui.show_user_settings("profile"))
-									.catch((e) => {
-										console.error(
-											"Sidebar: failed to load user_settings_dialog.bundle.js",
-											e
-										);
-										frappe.ui.toast({
-											message: __(
-												"Could not open Settings. Please refresh the page."
-											),
-											type: "error",
-										});
-									});
-							},
-						},
-						{
-							name: "workspace-selector",
-							label: __("Manage Dock"),
-							icon: "monitor",
-							// A module in no app has no dock to arrange.
-							condition: () => !!me.get_sidebar_app(),
-							onclick: function () {
-								// Not in the desk bundle, so it is loaded on click.
-								frappe
-									.require("arrangement_editor.bundle.js")
-									.then(() => new frappe.ui.DockManager())
-									.catch((e) => {
-										console.error(
-											"Sidebar: failed to load arrangement_editor.bundle.js",
-											e
-										);
-										frappe.ui.toast({
-											message: __(
-												"Could not open the dock manager. Please refresh the page."
-											),
-											type: "error",
-										});
-									});
-							},
-						},
-						{
-							name: "reload",
-							label: __("Reload"),
-							icon: "rotate-ccw",
-							onclick: function () {
-								frappe.ui.toolbar.clear_cache();
-							},
-						},
-					],
-				},
-				{
-					group: "",
-					options: [
-						{
-							name: "logout",
-							label: __("Logout"),
-							icon: "log-out",
-							onclick: function () {
-								frappe.app.logout();
-							},
-						},
-					],
-				},
-			],
+			options: this.user_menu_options(),
 			on_open: () => $btn.addClass("user-menu-active"),
 			on_close: () => $btn.removeClass("user-menu-active"),
 		});
+	}
+
+	// Also listed by the phone Profile page (desk/page/profile).
+	user_menu_options() {
+		const me = this;
+		return [
+			{
+				group: "",
+				options: [
+					{
+						name: "my-space",
+						label: __("My Space"),
+						icon: "user",
+						href: "/desk/private",
+						condition: () => !!frappe.boot.desk_settings.show_my_space,
+					},
+					{
+						name: "settings",
+						label: __("Settings"),
+						icon: "settings",
+						onclick: function () {
+							// Not in the desk bundle, so it is loaded on click.
+							frappe
+								.require("user_settings_dialog.bundle.js")
+								.then(() => frappe.ui.show_user_settings("profile"))
+								.catch((e) => {
+									console.error(
+										"Sidebar: failed to load user_settings_dialog.bundle.js",
+										e
+									);
+									frappe.ui.toast({
+										message: __(
+											"Could not open Settings. Please refresh the page."
+										),
+										type: "error",
+									});
+								});
+						},
+					},
+					{
+						name: "workspace-selector",
+						label: __("Manage Dock"),
+						icon: "monitor",
+						// A module in no app has no dock to arrange, and a phone has no room
+						// beside the drawer to arrange one in.
+						condition: () => !!me.get_sidebar_app() && !frappe.is_mobile(),
+						onclick: () => me.dock?.edit(),
+					},
+					{
+						name: "reload",
+						label: __("Reload"),
+						icon: "rotate-ccw",
+						onclick: function () {
+							frappe.ui.toolbar.clear_cache();
+						},
+					},
+				],
+			},
+			{
+				group: "",
+				options: [
+					{
+						name: "logout",
+						label: __("Logout"),
+						icon: "log-out",
+						onclick: function () {
+							frappe.app.logout();
+						},
+					},
+				],
+			},
+		];
 	}
 
 	highlight_active_item() {
@@ -533,10 +544,12 @@ frappe.ui.Sidebar = class Sidebar {
 		this.apply_expanded_state();
 	}
 
-	// A drawer starts shut; on a desktop the viewer's last choice is kept in this browser.
+	// A drawer starts shut; on a desktop the viewer's last choice is kept in this browser. While
+	// the sidebar is being edited it stays open, since the editor is drawn in it.
 	load_expanded_state() {
 		this.sidebar_expanded =
-			!this.panel_can_close() && !this.saved_collapsed_state() && !this.folded_for_page;
+			!!this.editor ||
+			(!this.panel_can_close() && !this.saved_collapsed_state() && !this.folded_for_page);
 	}
 
 	// Storage can be missing or refuse, and then the panel opens whole.
@@ -557,10 +570,10 @@ frappe.ui.Sidebar = class Sidebar {
 		}
 	}
 
+	// The items list, not a lookup inside the wrapper: the phone's navigation sheet borrows it.
 	empty() {
-		if (this.wrapper.find(".sidebar-items")[0]) {
-			this.wrapper.find(".sidebar-items").html("");
-		}
+		this.$items_container.html("");
+		this.items = [];
 	}
 	make_sidebar() {
 		this.empty();
@@ -584,10 +597,10 @@ frappe.ui.Sidebar = class Sidebar {
 			let no_items_message = $(
 				"<div class='flex' style='padding: 30px'> No Sidebar Items </div>"
 			);
-			this.wrapper.find(".sidebar-items").append(no_items_message);
+			this.$items_container.append(no_items_message);
 		}
 	}
-	// Search, notifications and background tasks, as rows in a band under the header.
+	// Search, notifications, Flow and background tasks, as rows in a band under the header.
 	add_standard_items(items) {
 		if (this.standard_items_setup) return;
 		this.standard_items = [];
@@ -608,6 +621,17 @@ frappe.ui.Sidebar = class Sidebar {
 			class: "sidebar-notification hidden",
 			suffix: "<span class='notification-count es-badge hidden' data-variant='ghost' aria-live='polite'></span>",
 			onClick: () => frappe.ui.sidebar_panels.toggle("notifications"),
+		});
+		this.standard_items.push({
+			label: __("Flow"),
+			icon: "flow",
+			standard: true,
+			type: "Button",
+			class: "sidebar-flow",
+			suffix: { keyboard_shortcut: "ctrl+i" },
+			// the panel that frappe/flow/launcher.py adds to the page for those who may use Flow
+			onClick: () => window.flow?.toggle(),
+			condition: () => frappe.model.can_read("Flow Session"),
 		});
 		this.standard_items.push({
 			label: __("Background Tasks"),
@@ -653,7 +677,7 @@ frappe.ui.Sidebar = class Sidebar {
 
 	remove_item(item, index) {}
 
-	// Close the drawer on a click anywhere but the sidebar, the dock or the page's own toggle.
+	// Close the drawer on a click anywhere but the sidebar or the dock.
 	setup_click_away() {
 		$(document)
 			// Rebuilt on some navigations, so drop the old handler instead of stacking another.
@@ -663,7 +687,7 @@ frappe.ui.Sidebar = class Sidebar {
 				// Panels mount beside the sidebar but still belong to it.
 				if (
 					$(e.target).closest(
-						".body-sidebar, .dock, .sidebar-toggle-btn, .sidebar-panel, .sidebar-collapse-arrow"
+						".body-sidebar, .dock, .sidebar-panel, .sidebar-collapse-arrow"
 					).length
 				)
 					return;
@@ -745,6 +769,7 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 
 	close() {
+		if (this.editor) return;
 		this.sidebar_expanded = false;
 		this.save_collapsed_state(true);
 
@@ -895,10 +920,47 @@ frappe.ui.Sidebar = class Sidebar {
 		return frappe.boot.canonical_shell?.[this.link_type_from_route(route)]?.[entity] || null;
 	}
 
+	// An open editor may not survive the move. Then it is asked to leave first, and the sidebar is
+	// worked out again from wherever the desk has got to once it has.
 	select_shell(module) {
-		if (module && module !== this.current_module) {
-			frappe.app.sidebar.setup(module);
+		if (!module || module === this.current_module) return;
+
+		if (this.editor && !this.editor.survives_shell(module)) {
+			this.editor.leave(() => this.set_workspace_sidebar());
+			return;
 		}
+		frappe.app.sidebar.setup(module);
+	}
+
+	// Hand the column to an arrangement editor: the sidebar's own bands step aside and the editor
+	// draws in their place until `end_editing`. Returns the node it draws in.
+	begin_editing(editor) {
+		this.editor = editor;
+		this.load_expanded_state();
+		this.apply_expanded_state();
+		this.wrapper.addClass("sidebar-editing");
+		return $(`<div class="sidebar-editor"></div>`).appendTo(
+			this.wrapper.find(".body-sidebar")
+		);
+	}
+
+	// An editor drawn somewhere other than this column, such as on the dock, is still told when
+	// the desk moves (see `select_shell`).
+	watch_editor(editor) {
+		this.editor = editor;
+	}
+
+	unwatch_editor(editor) {
+		if (this.editor === editor) this.editor = null;
+	}
+
+	end_editing(editor) {
+		if (this.editor !== editor) return;
+		this.editor = null;
+		this.wrapper.removeClass("sidebar-editing");
+		this.wrapper.find(".sidebar-editor").remove();
+		this.load_expanded_state();
+		this.apply_expanded_state();
 	}
 
 	// Switch to a shell and open its landing page.

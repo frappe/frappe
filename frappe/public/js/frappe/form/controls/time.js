@@ -18,29 +18,25 @@ frappe.ui.form.ControlTime = class ControlTime extends frappe.ui.form.ControlDat
 			sysdefaults && sysdefaults.time_format ? sysdefaults.time_format : "HH:mm:ss";
 
 		this.time_format = frappe.defaultTimeFormat;
+		this.today_text = __("Now");
 		this.datepicker_options = {
-			language: "en",
+			locale: frappe.ui.form.get_datepicker_locale("en"),
 			timepicker: true,
 			onlyTimepicker: true,
-			timeFormat: time_format.toLowerCase().replace("mm", "ii"),
+			timeFormat: time_format.replace(":ss", ""),
+			dateFormat: (date) => moment(date).format(time_format),
 			startDate: frappe.datetime.now_time(true),
-			onSelect: () => {
-				// ignore micro seconds
-				if (
-					moment(this.get_value(), time_format).format("HH:mm:ss") !=
-					moment(this.value, time_format).format("HH:mm:ss")
-				) {
-					this.$input.trigger("change");
-				}
-			},
-			onShow: () => {
-				$(".datepicker--button:visible").text(__("Now"));
-
-				this.update_datepicker_position();
-			},
+			position: frappe.ui.form.position_datepicker,
 			keyboardNav: false,
-			todayButton: true,
+			buttons: [this.get_today_button()],
 		};
+	}
+	set_datepicker() {
+		super.set_datepicker();
+		frappe.ui.form.add_seconds_slider(this.datepicker);
+	}
+	get_now_date() {
+		return frappe.datetime.now_time(true);
 	}
 	set_input(value) {
 		super.set_input(value);
@@ -48,7 +44,7 @@ frappe.ui.form.ControlTime = class ControlTime extends frappe.ui.form.ControlDat
 			return;
 		}
 		if (!value) {
-			this.datepicker.clear();
+			this.clear_datepicker();
 			return;
 		}
 
@@ -58,23 +54,9 @@ frappe.ui.form.ControlTime = class ControlTime extends frappe.ui.form.ControlDat
 			selected_date && moment(selected_date).format(frappe.defaultTimeFormat);
 		const time = moment(value, frappe.defaultTimeFormat);
 		if (selected_time !== time.format(frappe.defaultTimeFormat)) {
-			this.datepicker.selectDate(frappe.datetime.moment_to_date_obj(time));
-		}
-	}
-	set_datepicker() {
-		this.$input.datepicker(this.datepicker_options);
-		this.datepicker = this.$input.data("datepicker");
-
-		this.datepicker.$datepicker.find('[data-action="today"]').click(() => {
-			this.datepicker.selectDate(frappe.datetime.now_time(true));
-			this.datepicker.hide();
-		});
-		if (this.datepicker.opts.timeFormat.indexOf("s") == -1) {
-			// No seconds in time format
-			const $tp = this.datepicker.timepicker;
-			$tp.$seconds.parent().css("display", "none");
-			$tp.$secondsText.css("display", "none");
-			$tp.$secondsText.prev().css("display", "none");
+			this.select_date_silently(frappe.datetime.moment_to_date_obj(time), {
+				updateTime: true,
+			});
 		}
 	}
 	set_description() {

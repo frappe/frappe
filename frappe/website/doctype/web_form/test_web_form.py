@@ -4,8 +4,9 @@ import json
 
 import frappe
 from frappe.core.doctype.doctype.doctype import clear_permissions_cache
+from frappe.core.doctype.user.test_user import test_user
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
-from frappe.permissions import add_permission, reset_perms
+from frappe.permissions import add_permission, add_user_permission, reset_perms
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_to_date, set_request
 from frappe.website.doctype.web_form.web_form import (
@@ -14,6 +15,7 @@ from frappe.website.doctype.web_form.web_form import (
 	delete_multiple,
 	get_form_data,
 	get_link_options,
+	get_table_multiselect_fields,
 	get_web_form_list,
 	process_link_field,
 )
@@ -167,6 +169,22 @@ class TestWebForm(IntegrationTestCase):
 			data=json.dumps({**doc, "subject": "someone@example.com"}),
 		)
 		self.assertTrue(frappe.db.exists("Event", {"subject": "someone@example.com"}))
+
+	def test_web_form_url_field_rejects_script_schemes(self):
+		frappe.set_user("Administrator")
+
+		# Event.subject carries no data field options; the Web Form types it as a URL
+		web_form = self.make_temp_web_form(
+			web_form_fields=[
+				{"fieldname": "subject", "fieldtype": "Data", "label": "Title", "reqd": 1, "options": "URL"}
+			]
+		)
+		doc = {"doctype": "Event", "subject": "javascript:alert(1)", "starts_on": "2014-09-09"}
+
+		self.assertRaises(frappe.ValidationError, accept, web_form=web_form.name, data=json.dumps(doc))
+
+		accept(web_form=web_form.name, data=json.dumps({**doc, "subject": "https://example.com/x"}))
+		self.assertTrue(frappe.db.exists("Event", {"subject": "https://example.com/x"}))
 
 	def test_web_form_phone_fieldtype_is_enforced_on_server(self):
 		"""`Phone` as a Web Form fieldtype is invisible to Meta.get_phone_fields(), which
@@ -813,6 +831,39 @@ class TestWebForm(IntegrationTestCase):
 		with self.assertRaises(frappe.PermissionError):
 			delete("manage-events", event.name)
 
+	def test_owner_response_hides_values_above_users_permlevel(self):
+		web_form = self.make_temp_web_form(
+			doc_type="Note",
+			allow_edit=1,
+			web_form_fields=[{"fieldname": "title", "fieldtype": "Data", "label": "Title", "reqd": 1}],
+		)
+		property_setter = make_property_setter("Note", "notify_on_login", "permlevel", 3, "Int")
+		self.addCleanup(frappe.delete_doc, "Property Setter", property_setter.name, force=True)
+		self.addCleanup(frappe.clear_cache, doctype="Note")
+
+		with test_user(roles=["Desk User"]) as user:
+			note = frappe.get_doc(doctype="Note", title="_Test Note").insert(ignore_permissions=True)
+			frappe.db.set_value("Note", note.name, {"owner": user.name, "notify_on_login": 1, "public": 1})
+			self.addCleanup(frappe.delete_doc, "Note", note.name, force=True, ignore_permissions=True)
+			self.assertEqual(
+				frappe.db.get_value("Note", note.name, ["owner", "notify_on_login"]), (user.name, 1)
+			)
+
+			with self.set_user(user.name):
+				frappe.local.path = f"{web_form.route}/{note.name}/edit"
+				frappe.local.form_dict = frappe._dict(name=note.name, is_edit=1)
+				context = frappe._dict()
+				web_form.get_context(context)
+				saved = accept(web_form.name, json.dumps({"name": note.name, "title": "_Test Note"}))
+				form_data = get_form_data("Note", note.name, web_form.name)
+
+			self.assertEqual(saved.title, "_Test Note")
+			self.assertEqual(form_data.doc.title, "_Test Note")
+			self.assertEqual(context.reference_doc["title"], "_Test Note")
+			self.assertFalse(saved.get("notify_on_login"))
+			self.assertFalse(form_data.doc.get("notify_on_login"))
+			self.assertFalse(context.reference_doc.get("notify_on_login"))
+
 	def test_guest_reference_doc_exposes_only_web_form_fields(self):
 		"""Guest with a valid key viewing a bound document must only receive
 		web-form field values in reference_doc, not the full document."""
@@ -1042,10 +1093,8 @@ class TestWebForm(IntegrationTestCase):
 
 	def test_web_form_request_expiry_is_enforced(self):
 		self.set_web_form_settings(key_required=1, login_required=0)
-		web_form_request = self.create_web_form_request(
-			expires_on=add_to_date(None, minutes=-1),
-			doc_values={"event_type": "Public"},
-		)
+		web_form_request = self.create_web_form_request(doc_values={"event_type": "Public"})
+		web_form_request.db_set("expires_on", add_to_date(None, minutes=-1))
 
 		frappe.set_user("Guest")
 		with self.assertRaises(frappe.exceptions.LinkExpired):
@@ -1130,10 +1179,8 @@ class TestWebForm(IntegrationTestCase):
 
 	def test_get_web_form_list_rejects_expired_key(self):
 		self.set_web_form_settings(key_required=1, login_required=0, allow_multiple=1, show_list=1)
-		web_form_request = self.create_web_form_request(
-			expires_on=add_to_date(None, minutes=-1),
-			doc_values={"event_type": "Public"},
-		)
+		web_form_request = self.create_web_form_request(doc_values={"event_type": "Public"})
+		web_form_request.db_set("expires_on", add_to_date(None, minutes=-1))
 
 		frappe.set_user("Guest")
 		with self.assertRaises(frappe.exceptions.LinkExpired):
@@ -1367,6 +1414,139 @@ class TestWebForm(IntegrationTestCase):
 		child_link_field = next(f for f in result.event_participants if f["fieldname"] == "reference_doctype")
 		for options in (link_field.options, child_link_field["options"]):
 			self.assertEqual(sorted(option["value"] for option in options), ["Event", "ToDo"])
+
+	def test_table_field_allow_read_on_all_link_options(self):
+		web_form = self.make_temp_web_form(
+			web_form_fields=[
+				{"fieldname": "subject", "fieldtype": "Data", "label": "Title", "reqd": 1},
+				{
+					"fieldname": "event_participants",
+					"fieldtype": "Table",
+					"label": "Event Participants",
+					"options": "Event Participants",
+				},
+			],
+		)
+		user = self.create_website_user("_test_web_form_table_links@example.com")
+
+		def child_link_options():
+			frappe.set_user(user)
+			result = get_form_data(doctype="Event", web_form_name=web_form.name)
+			frappe.set_user("Administrator")
+
+			child_link_field = next(
+				f for f in result.event_participants if f["fieldname"] == "reference_doctype"
+			)
+			return [option["value"] for option in child_link_field["options"]]
+
+		self.assertEqual(child_link_options(), [])
+
+		web_form.web_form_fields[1].allow_read_on_all_link_options = 1
+		web_form.save(ignore_permissions=True)
+		self.assertIn("Event", child_link_options())
+
+	def test_link_field_options_apply_user_permissions(self):
+		web_form = self.make_temp_web_form(
+			web_form_fields=[
+				{"fieldname": "subject", "fieldtype": "Data", "label": "Title", "reqd": 1},
+				{
+					"fieldname": "event_participants",
+					"fieldtype": "Table",
+					"label": "Event Participants",
+					"options": "Event Participants",
+					"allow_read_on_all_link_options": 1,
+				},
+			],
+		)
+		user = self.create_user_allowed_only_todo_doctype()
+
+		def child_link_options():
+			frappe.set_user(user)
+			result = get_form_data(doctype="Event", web_form_name=web_form.name)
+			frappe.set_user("Administrator")
+
+			child_link_field = next(
+				f for f in result.event_participants if f["fieldname"] == "reference_doctype"
+			)
+			return [option["value"] for option in child_link_field["options"]]
+
+		self.assertIn("Event", child_link_options())
+
+		web_form.web_form_fields[1].apply_user_permissions = 1
+		web_form.save(ignore_permissions=True)
+		self.assertEqual(child_link_options(), ["ToDo"])
+
+		property_setter = make_property_setter(
+			"Event Participants", "reference_doctype", "ignore_user_permissions", 1, "Check"
+		)
+		self.addCleanup(frappe.delete_doc, "Property Setter", property_setter.name, force=True)
+		self.assertIn("Event", child_link_options())
+
+	def test_link_field_apply_user_permissions(self):
+		web_form = self.make_temp_web_form(
+			web_form_fields=[
+				{"fieldname": "subject", "fieldtype": "Data", "label": "Title", "reqd": 1},
+				{
+					"fieldname": "reference_doctype",
+					"fieldtype": "Link",
+					"label": "Reference Document Type",
+					"options": "DocType",
+					"allow_read_on_all_link_options": 1,
+					"apply_user_permissions": 1,
+				},
+			],
+		)
+		user = self.create_user_allowed_only_todo_doctype()
+
+		frappe.set_user(user)
+		result = get_form_data(doctype="Event", web_form_name=web_form.name)
+		link_field = next(f for f in result.web_form.web_form_fields if f.fieldname == "reference_doctype")
+		self.assertEqual([option["value"] for option in link_field.options], ["ToDo"])
+
+		doc = {"doctype": "Event", "subject": "_Test User Permitted Link", "starts_on": "2014-09-09"}
+		self.assertRaises(
+			frappe.PermissionError,
+			accept,
+			web_form=web_form.name,
+			data=json.dumps({**doc, "reference_doctype": "Event"}),
+		)
+		accept(web_form=web_form.name, data=json.dumps({**doc, "reference_doctype": "ToDo"}))
+		frappe.set_user("Administrator")
+		self.assertTrue(frappe.db.exists("Event", {"subject": doc["subject"], "reference_doctype": "ToDo"}))
+
+	def test_table_multiselect_apply_user_permissions(self):
+		web_form = self.make_temp_web_form(
+			web_form_fields=[
+				{"fieldname": "subject", "fieldtype": "Data", "label": "Title", "reqd": 1},
+				{
+					"fieldname": "event_participants",
+					"fieldtype": "Table",
+					"label": "Event Participants",
+					"options": "Event Participants",
+				},
+			],
+		)
+		frappe.set_user(self.create_user_allowed_only_todo_doctype())
+
+		def multiselect_options(apply_user_permissions):
+			(df,) = get_table_multiselect_fields(
+				"Event Participants",
+				web_form.name,
+				allow_read_on_all=True,
+				apply_user_permissions=apply_user_permissions,
+			)
+			return [option["value"] for option in df.link_options]
+
+		self.assertIn("Event", multiselect_options(False))
+		self.assertEqual(multiselect_options(True), ["ToDo"])
+		frappe.set_user("Administrator")
+
+	def create_user_allowed_only_todo_doctype(self):
+		user = self.create_website_user("_test_web_form_user_permissions@example.com")
+		add_user_permission("DocType", "ToDo", user, ignore_permissions=True)
+		user_permission = frappe.db.get_value("User Permission", {"user": user, "allow": "DocType"})
+		self.addCleanup(frappe.delete_doc, "User Permission", user_permission, force=True)
+		return user
 
 	def test_link_field_options_skip_link_filters_of_another_doctype(self):
 		property_setter = make_property_setter(

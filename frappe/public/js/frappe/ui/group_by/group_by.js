@@ -97,10 +97,12 @@ frappe.ui.GroupBy = class {
 		});
 		field_select.$input.attr({ placeholder, "aria-label": placeholder });
 		field_select.set_value(doctype, fieldname);
+		$(parent).data("field_select", field_select);
 	}
 
+	// the field picker lists every field, so a keyboard user can pick one right away
 	focus_last_group_by() {
-		this.$group_by_area.find(".group-by-field-select input").last().trigger("focus");
+		this.$group_by_area.find(".group-by-field-select").last().data("field_select")?.open();
 	}
 
 	set_group_by_field(idx, doctype, fieldname) {
@@ -140,6 +142,8 @@ frappe.ui.GroupBy = class {
 					// re-rendering the popover detaches the clicked element
 					document.body.contains(e.target) &&
 					$(e.target).parents(".group-by-popover").length === 0 &&
+					// the field picker's list opens in <body>
+					$(e.target).closest(".es-menu").length === 0 &&
 					$(e.target).parents(".group-by-box").length === 0 &&
 					$(e.target).parents(".group-by-button").length === 0 &&
 					!$(e.target).is(this.group_by_button)
@@ -339,11 +343,13 @@ frappe.ui.GroupBy = class {
 		let get_fieldname = (name) => name.split(".")[1].replace(/`/g, "");
 		let get_doctype = (name) => name.split(".")[0].replace(/`/g, "").replace(/^tab/, "");
 
-		this.group_by_fields_selected = settings.group_by.map((group_by) =>
-			group_by.startsWith("`tab")
-				? { fieldname: get_fieldname(group_by), doctype: get_doctype(group_by) }
-				: { fieldname: group_by, doctype: this.doctype }
-		);
+		this.group_by_fields_selected = settings.group_by
+			.map((group_by) =>
+				group_by.startsWith("`tab")
+					? { fieldname: get_fieldname(group_by), doctype: get_doctype(group_by) }
+					: { fieldname: group_by, doctype: this.doctype }
+			)
+			.filter((f) => this.report_view.is_queryable_field(f.fieldname, f.doctype));
 
 		this.aggregates = settings.aggregates.map((aggregate) => {
 			const aggregate_on = aggregate.aggregate_on;

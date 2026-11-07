@@ -571,26 +571,17 @@ def update_order(board_name: str, order: str | dict):
 	# can still reorder cards on a shared board.
 	board.check_permission("read")
 	doctype = board.reference_doctype
-	updated_cards = []
 
 	if not frappe.has_permission(doctype, "write"):
 		# Return board data from db
-		return board, updated_cards
+		return board, []
 
 	fieldname = board.field_name
 	order_dict = frappe.parse_json(order)
 
 	for col_name, cards in order_dict.items():
 		# the classic board's saved order can still list deleted documents
-		valid_cards = []
-		for card in cards:
-			column = frappe.db.get_value(doctype, card, fieldname)
-			if column != col_name:
-				if not frappe.db.exists(doctype, card):
-					continue
-				frappe.set_value(doctype, card, fieldname, col_name)
-				updated_cards.append(dict(name=card, column=col_name))
-			valid_cards.append(card)
+		valid_cards = [card for card in cards if frappe.db.get_value(doctype, card, fieldname) == col_name]
 
 		for column in board.columns:
 			if column.column_name == col_name:
@@ -598,7 +589,7 @@ def update_order(board_name: str, order: str | dict):
 
 	saved = board.save(ignore_permissions=True)
 	publish_kanban_board_update(saved)
-	return saved, updated_cards
+	return saved, []
 
 
 @frappe.whitelist()

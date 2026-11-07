@@ -1,19 +1,12 @@
 <template>
-	<img v-if="format == 'QR' && qr_src" :src="qr_src" :style="{ width: df.width || '35mm' }" />
 	<img
-		v-else-if="barcode_img"
+		v-if="barcode_img || barcode_src"
 		class="pf-barcode-svg"
-		:src="barcode_img"
-		:style="df.width ? { width: df.width } : {}"
+		:src="barcode_img || barcode_src"
+		:style="df.width ? { width: df.width } : format == 'QR' ? { width: '35mm' } : {}"
 		alt=""
 	/>
-	<div
-		v-else-if="barcode_svg"
-		class="pf-barcode-svg"
-		:style="df.width ? { width: df.width } : {}"
-		v-html="barcode_svg"
-	></div>
-	<span v-else-if="barcode_raw_value && format !== 'QR'" class="text-muted">{{
+	<span v-else-if="barcode_raw_value && !loading" class="text-muted">{{
 		__("Invalid value for {0}", [format || "CODE128"])
 	}}</span>
 	<span v-else-if="!df.custom" class="text-muted">{{ __("No value to encode") }}</span>
@@ -22,14 +15,14 @@
 
 <script setup>
 import { ref, computed, watch, inject } from "vue";
-import JsBarcode from "jsbarcode";
 import { is_qr_barcode_options } from "../../utils";
 
 const props = defineProps(["df"]);
 const store = inject("$store");
 const preview_doc = computed(() => store.preview_doc.value);
 
-let qr_src = ref(null);
+let barcode_src = ref(null);
+let loading = ref(true);
 
 // a Barcode docfield whose options ask for a qr code renders as one — the
 // field decides, there is no format control
@@ -62,45 +55,28 @@ let barcode_raw_value = computed(() => {
 // the desk DOM: an SVG in <img> runs no script and fetches nothing external.
 let barcode_img = computed(() => {
 	const value = barcode_raw_value.value;
-	if (!value || format.value === "QR") return null;
-	const str = String(value);
+	const str = String(value || "");
 	if (!str.startsWith("<svg")) return null;
 	return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(str)}`;
 });
 
-let barcode_svg = computed(() => {
-	const value = barcode_raw_value.value;
-	if (!value || format.value === "QR" || barcode_img.value) return null;
-	const str = String(value);
-	const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-	try {
-		JsBarcode(svg, str, {
-			format: format.value || "CODE128",
-			displayValue: props.df.show_text !== false,
-			height: 40,
-			margin: 0,
-		});
-		svg.setAttribute("width", "100%");
-		return svg.outerHTML;
-	} catch {
-		return null;
-	}
-});
-
 watch(
-	[barcode_raw_value, format],
-	frappe.utils.debounce(async ([value, format]) => {
-		if (format !== "QR" || !value) {
-			qr_src.value = null;
-			return;
-		}
+	[barcode_raw_value, barcode_img, format, () => props.df.show_text],
+	frappe.utils.debounce(async ([value, img, format, show_text]) => {
+		barcode_src.value = null;
+		if (!value || img) return;
+		loading.value = true;
 		try {
-			const r = await frappe.call("frappe.utils.print_format_generator.get_qr_code", {
+			const r = await frappe.call("frappe.utils.print_format_generator.get_barcode", {
 				value: String(value),
+				barcode_format: format || "CODE128",
+				show_text: props.df.custom ? show_text ?? true : true,
 			});
-			qr_src.value = r.message || null;
+			barcode_src.value = r.message || null;
 		} catch {
-			qr_src.value = null;
+			barcode_src.value = null;
+		} finally {
+			loading.value = false;
 		}
 	}, 300),
 	{ immediate: true }

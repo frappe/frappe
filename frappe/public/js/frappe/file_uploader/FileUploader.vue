@@ -199,6 +199,7 @@
 					:key="file.name"
 					:file="file"
 					:allow_toggle_private="allow_toggle_private"
+					:private_hint="private_hint"
 					:allow_toggle_optimize="allow_toggle_optimize"
 					@remove="remove_file(file)"
 					@toggle_private="file.private = !file.private"
@@ -301,6 +302,9 @@ const props = defineProps({
 	},
 	allow_toggle_private: {
 		default: true,
+	},
+	force_private: {
+		default: false,
 	},
 	allow_toggle_optimize: {
 		default: true,
@@ -616,6 +620,7 @@ async function upload_file(file, i) {
 						} catch (e) {
 							r = xhr.responseText;
 						}
+						frappe.request.cleanup({}, r);
 
 						file.doc = file_doc;
 						if (props.on_success) {
@@ -633,7 +638,9 @@ async function upload_file(file, i) {
 					reject();
 					file.failed = true;
 					let response = parse_error_response(xhr.responseText);
-					file.error_message = __("Not permitted. {0}.", [response.error_message || ""]);
+					file.error_message = response.error_message
+						? __("Not permitted. {0}.", [response.error_message])
+						: __("Not permitted");
 					if (response.server_messages.length) {
 						file.error_message += `\n${response.server_messages.join("\n")}`;
 					}
@@ -739,16 +746,16 @@ function parse_error_response(response_text) {
 
 		try {
 			server_messages.push(
-				...JSON.parse(response._server_messages).map((m) => {
+				...JSON.parse(response._server_messages || "[]").map((m) => {
 					let parsed = JSON.parse(m);
 					return parsed.message;
 				})
 			);
 		} catch (e) {
-			console.warning("Failed to parse server message", e);
+			console.warn("Failed to parse server message", e);
 		}
 	} catch (e) {
-		console.warning("Failed to parse error response", e);
+		console.warn("Failed to parse error response", e);
 	}
 
 	return {
@@ -801,6 +808,11 @@ let upload_complete = computed(() => {
 		files.value.length > 0 &&
 		files.value.every((file) => file.total !== 0 && file.progress === file.total)
 	);
+});
+let private_hint = computed(() => {
+	return props.force_private
+		? __("Files attached to {0} must be private", [__(props.doctype)])
+		: null;
 });
 
 // watcher

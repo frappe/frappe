@@ -24,12 +24,16 @@ dankgarlic1
 dependabot[bot]
 FawazAlhafiz
 frappe-pr-bot
+frappe-release-bot[bot]
 gajjug004
 gavindsouza
 g-sowani
 harshp4114
 HenningWendtland
 humedi
+HusnaMa
+itsdaveit
+jacob-salvi
 karm1000
 kaulith
 KerollesFathy
@@ -44,6 +48,7 @@ PatrickDEissler
 Priyal208
 priyanshshah2442
 rameensh
+rehanrehman389
 revant
 Rl0007
 rtdany10
@@ -51,5 +56,6 @@ ruchiigadgil
 SaiFi0102
 shubhdoshi21
 TANMAY2006-UX
+trustedcomputer
 Vigneshsekar
 vorasmit

@@ -14,42 +14,7 @@ const BOOT_USER_FIELDS = [
 frappe.ui.show_user_settings = async function (default_tab) {
 	let user_data;
 	try {
-		if (!frappe.all_timezones) {
-			const { message } = await frappe.call("frappe.core.doctype.user.user.get_timezones");
-			frappe.all_timezones = message?.timezones || [];
-		}
-
-		// Fields already loaded at boot time; fetch only the rest.
-		const boot_user = frappe.boot.user || {};
-		const response = await frappe.db.get_value("User", frappe.session.user, [
-			"middle_name",
-			"username",
-			"thread_notify",
-			"time_zone",
-			"notifications",
-			"search_bar",
-			"list_sidebar",
-			"bulk_actions",
-			"view_switcher",
-			"form_sidebar",
-			"timeline",
-			"dashboard",
-			"form_navigation_buttons",
-			"report_split_view",
-			"show_my_space",
-			"dock_mode",
-		]);
-		user_data = {
-			first_name: boot_user.first_name,
-			last_name: boot_user.last_name,
-			email_signature: boot_user.email_signature,
-			language: boot_user.language,
-			mute_sounds: boot_user.mute_sounds,
-			send_me_a_copy: boot_user.send_me_a_copy,
-			send_read_receipt: boot_user.send_read_receipt,
-			show_absolute_datetime_in_timeline: boot_user.show_absolute_datetime_in_timeline,
-			...response.message,
-		};
+		user_data = await _load_user_data();
 	} catch (e) {
 		frappe.ui.toast({
 			message: __("Failed to load settings"),
@@ -69,13 +34,13 @@ frappe.ui.show_user_settings = async function (default_tab) {
 			{
 				group: __("Settings"),
 				items: [
-					_profile_tab(user_data || {}),
-					_email_tab(user_data || {}),
-					_appearance_tab(user_data || {}),
-					_preferences_tab(user_data || {}),
-					_lists_tab(user_data || {}),
-					_forms_tab(user_data || {}),
-					_reports_tab(user_data || {}),
+					_profile_tab(user_data),
+					_email_tab(user_data),
+					_appearance_tab(user_data),
+					_preferences_tab(user_data),
+					_lists_tab(user_data),
+					_forms_tab(user_data),
+					_reports_tab(user_data),
 					_session_defaults_tab(),
 					_keyboard_shortcuts_tab(),
 				],
@@ -86,6 +51,60 @@ frappe.ui.show_user_settings = async function (default_tab) {
 	frappe.ui._user_settings_dialog = d;
 	d.show();
 };
+
+// The phone Profile page (desk/page/profile) draws these sections as screens of its own, so
+// the two read one set of fields and save the same way.
+frappe.ui.user_settings = {
+	load: _load_user_data,
+	save: _save_user,
+	switches: (section) => _switches()[section],
+	save_profile: _save_profile,
+	upload_image: (on_success) => _upload_user_image(frappe.session.user, on_success),
+	language_name: _language_name,
+	// opens the small dialog that edits one field: language, time_zone or email_signature
+	change(fieldname, user_data, on_save) {
+		_change_user_field({ ..._CHANGEABLE[fieldname](user_data), on_save });
+	},
+};
+
+async function _load_user_data() {
+	if (!frappe.all_timezones) {
+		const { message } = await frappe.call("frappe.core.doctype.user.user.get_timezones");
+		frappe.all_timezones = message?.timezones || [];
+	}
+
+	// All from the server, not boot: the User form and this module both change them
+	// after boot, and the profile page loads them again when it is shown again.
+	const response = await frappe.db.get_value("User", frappe.session.user, [
+		"full_name",
+		"user_image",
+		"first_name",
+		"middle_name",
+		"last_name",
+		"username",
+		"thread_notify",
+		"time_zone",
+		"notifications",
+		"search_bar",
+		"list_sidebar",
+		"bulk_actions",
+		"view_switcher",
+		"form_sidebar",
+		"timeline",
+		"dashboard",
+		"form_navigation_buttons",
+		"report_split_view",
+		"show_my_space",
+		"dock_mode",
+		"email_signature",
+		"language",
+		"mute_sounds",
+		"send_me_a_copy",
+		"send_read_receipt",
+		"show_absolute_datetime_in_timeline",
+	]);
+	return response.message;
+}
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -137,6 +156,139 @@ function _bind_switch_autosave(panel, fieldnames) {
 	});
 }
 
+// Each section's on/off settings: User fields saved the moment they change.
+function _switches() {
+	return {
+		email: [
+			{
+				fieldname: "thread_notify",
+				label: __("Send notifications for email threads"),
+				description: __(
+					"Get notified when there's a new reply in an email thread you're part of."
+				),
+			},
+			{
+				fieldname: "send_me_a_copy",
+				label: __("Send me a copy of outgoing emails"),
+				description: __("Receive a copy of every email you send in your inbox."),
+			},
+			{
+				fieldname: "send_read_receipt",
+				label: __("Request read receipts for outgoing emails"),
+				description: __("Get notified when a recipient opens an email you send."),
+			},
+		],
+		preferences: [
+			{
+				fieldname: "notifications",
+				label: __("Allow notifications"),
+				description: __(
+					"Show desktop and in-app notifications for activity on your account."
+				),
+			},
+			{
+				fieldname: "search_bar",
+				label: __("Show search bar"),
+				description: __("Display the search bar in the navigation area for quick access."),
+			},
+			{
+				fieldname: "show_my_space",
+				label: __("Show My Space"),
+				description: __("Add a link to your own private workspaces in the user menu."),
+			},
+			{
+				fieldname: "mute_sounds",
+				label: __("Mute sounds"),
+				description: __(
+					"Disable all notification and alert sounds across the application."
+				),
+			},
+		],
+		lists: [
+			{
+				fieldname: "list_sidebar",
+				label: __("Show sidebar"),
+				description: __("Display the filter and group-by sidebar in list views."),
+			},
+			{
+				fieldname: "bulk_actions",
+				label: __("Allow bulk actions"),
+				description: __(
+					"Enable checkboxes to select multiple records and perform bulk operations."
+				),
+			},
+			{
+				fieldname: "view_switcher",
+				label: __("Show view switcher"),
+				description: __(
+					"Allow switching between list, kanban, report, and other views from the toolbar"
+				),
+			},
+		],
+		forms: [
+			{
+				fieldname: "form_sidebar",
+				label: __("Show sidebar"),
+				description: __(
+					"Display a sidebar in forms with attachments, preview image, tags, and other details."
+				),
+			},
+			{
+				fieldname: "timeline",
+				label: __("Show timeline"),
+				description: __(
+					"Show the activity timeline with comments, emails, and version history."
+				),
+			},
+			{
+				fieldname: "dashboard",
+				label: __("Show dashboard"),
+				description: __(
+					"Show a summary dashboard with charts and statistics, where available, at the top of forms."
+				),
+			},
+			{
+				fieldname: "show_absolute_datetime_in_timeline",
+				label: __("Show absolute datetime in timeline"),
+				description: __(
+					"Display exact timestamps instead of relative time in the activity timeline."
+				),
+			},
+			{
+				fieldname: "form_navigation_buttons",
+				label: __("Show navigation buttons"),
+				description: __(
+					"Show navigation buttons to view the previous and next record in the form toolbar."
+				),
+			},
+		],
+		reports: [
+			{
+				fieldname: "report_split_view",
+				label: __("Split view"),
+				description: __(
+					"Open a linked document in a side panel instead of navigating away from the report. Not available on mobile."
+				),
+			},
+		],
+	};
+}
+
+function _switch_fields(section, user_data) {
+	return _switches()[section].map((field) => ({
+		fieldtype: "Switch",
+		...field,
+		default: user_data[field.fieldname],
+	}));
+}
+
+function _bind_section_autosave(panel, section) {
+	_bind_switch_autosave(
+		panel,
+		_switches()[section].map((field) => field.fieldname)
+	);
+}
+
 function _section_heading(title, description) {
 	const desc = description
 		? `<div class="settings-dialog-section-description">${description}</div>`
@@ -163,25 +315,7 @@ function _profile_tab(user_data) {
 				click(panel) {
 					const values = panel.get_values();
 					if (!values) return;
-					// get_values() omits empty fields, but the server needs explicit empty
-					// strings to clear previously-set values.
-					const payload = {
-						first_name: values.first_name || "",
-						middle_name: values.middle_name || "",
-						last_name: values.last_name || "",
-						username: values.username || "",
-					};
-					return _save_user(payload).then(() => {
-						Object.assign(user_data, payload);
-						const fn = [payload.first_name, payload.middle_name, payload.last_name]
-							.filter(Boolean)
-							.join(" ");
-						if (frappe.boot.user_info?.[frappe.session.user]) {
-							frappe.boot.user_info[frappe.session.user].fullname =
-								fn || frappe.session.user;
-						}
-						panel.refresh();
-					});
+					return _save_profile(user_data, values).then(() => panel.refresh());
 				},
 			},
 		],
@@ -249,7 +383,7 @@ function _profile_tab(user_data) {
 
 			panel.body
 				.find(".profile-avatar-upload")
-				.on("click", () => _upload_user_image(user, panel));
+				.on("click", () => _upload_user_image(user, () => panel.refresh()));
 			panel.body
 				.find(".change-password-btn")
 				.on("click", () => frappe.ui.show_change_password_dialog(user));
@@ -257,7 +391,28 @@ function _profile_tab(user_data) {
 	};
 }
 
-function _upload_user_image(user, panel) {
+// Saves the name fields and username, and the full name desk shows for the user.
+function _save_profile(user_data, values) {
+	// get_values() omits empty fields, but the server needs explicit empty
+	// strings to clear previously-set values.
+	const payload = {
+		first_name: values.first_name || "",
+		middle_name: values.middle_name || "",
+		last_name: values.last_name || "",
+		username: values.username || "",
+	};
+	return _save_user(payload).then(() => {
+		Object.assign(user_data, payload);
+		const fn = [payload.first_name, payload.middle_name, payload.last_name]
+			.filter(Boolean)
+			.join(" ");
+		if (frappe.boot.user_info?.[frappe.session.user]) {
+			frappe.boot.user_info[frappe.session.user].fullname = fn || frappe.session.user;
+		}
+	});
+}
+
+function _upload_user_image(user, on_success) {
 	new frappe.ui.FileUploader({
 		doctype: "User",
 		docname: user,
@@ -270,7 +425,7 @@ function _upload_user_image(user, panel) {
 			if (frappe.boot.user_info?.[user]) {
 				frappe.boot.user_info[user].image = file.file_url;
 			}
-			panel.refresh();
+			on_success(file);
 		},
 	});
 }
@@ -285,29 +440,7 @@ function _email_tab(user_data) {
 		title: __("Email"),
 		description: __("Configure your email settings."),
 		fields: [
-			{
-				fieldtype: "Switch",
-				fieldname: "thread_notify",
-				label: __("Send notifications for email threads"),
-				description: __(
-					"Get notified when there's a new reply in an email thread you're part of."
-				),
-				default: user_data.thread_notify,
-			},
-			{
-				fieldtype: "Switch",
-				fieldname: "send_me_a_copy",
-				label: __("Send me a copy of outgoing emails"),
-				description: __("Receive a copy of every email you send in your inbox."),
-				default: user_data.send_me_a_copy,
-			},
-			{
-				fieldtype: "Switch",
-				fieldname: "send_read_receipt",
-				label: __("Request read receipts for outgoing emails"),
-				description: __("Get notified when a recipient opens an email you send."),
-				default: user_data.send_read_receipt,
-			},
+			..._switch_fields("email", user_data),
 			{ fieldtype: "Section Break", label: __("Email Signature") },
 			{
 				fieldtype: "Text Editor",
@@ -325,7 +458,7 @@ function _email_tab(user_data) {
 			},
 		],
 		render(panel) {
-			_bind_switch_autosave(panel, ["thread_notify", "send_me_a_copy", "send_read_receipt"]);
+			_bind_section_autosave(panel, "email");
 		},
 	};
 }
@@ -505,47 +638,9 @@ function _preferences_tab(user_data) {
 		icon: "settings",
 		title: __("Preferences"),
 		description: __("Language, timezone and notification preferences."),
-		fields: [
-			{
-				fieldtype: "Switch",
-				fieldname: "notifications",
-				label: __("Allow notifications"),
-				description: __(
-					"Show desktop and in-app notifications for activity on your account."
-				),
-				default: user_data.notifications,
-			},
-			{
-				fieldtype: "Switch",
-				fieldname: "search_bar",
-				label: __("Show search bar"),
-				description: __("Display the search bar in the navigation area for quick access."),
-				default: user_data.search_bar,
-			},
-			{
-				fieldtype: "Switch",
-				fieldname: "show_my_space",
-				label: __("Show My Space"),
-				description: __("Add a link to your own private workspaces in the user menu."),
-				default: user_data.show_my_space,
-			},
-			{
-				fieldtype: "Switch",
-				fieldname: "mute_sounds",
-				label: __("Mute sounds"),
-				description: __(
-					"Disable all notification and alert sounds across the application."
-				),
-				default: user_data.mute_sounds,
-			},
-		],
+		fields: _switch_fields("preferences", user_data),
 		render(panel) {
-			_bind_switch_autosave(panel, [
-				"notifications",
-				"search_bar",
-				"show_my_space",
-				"mute_sounds",
-			]);
+			_bind_section_autosave(panel, "preferences");
 
 			panel.body.append(_section_heading(__("Locale")));
 
@@ -555,15 +650,7 @@ function _preferences_tab(user_data) {
 				button_label: __("Change Language"),
 				onClick() {
 					_change_user_field({
-						field: {
-							fieldtype: "Link",
-							fieldname: "language",
-							label: __("Language"),
-							options: "Language",
-							default: user_data.language,
-							reqd: 1,
-						},
-						title: __("Change Language"),
+						..._CHANGEABLE.language(user_data),
 						on_save(value) {
 							user_data.language = value;
 							_set_language_label($lang, value);
@@ -579,15 +666,7 @@ function _preferences_tab(user_data) {
 				button_label: __("Change Time Zone"),
 				onClick() {
 					_change_user_field({
-						field: {
-							fieldtype: "Autocomplete",
-							fieldname: "time_zone",
-							label: __("Time Zone"),
-							options: frappe.all_timezones,
-							default: user_data.time_zone,
-							reqd: 1,
-						},
-						title: __("Change Time Zone"),
+						..._CHANGEABLE.time_zone(user_data),
 						on_save(value) {
 							user_data.time_zone = value;
 							$tz.find(".preference-value").text(value || "");
@@ -617,14 +696,50 @@ function _add_preference_row(parent, { label, value, button_label, onClick }) {
 }
 
 function _set_language_label($row, code) {
-	if (!code) {
-		$row.find(".preference-value").text("");
-		return;
-	}
-	frappe.db.get_value("Language", code, "language_name").then((r) => {
-		$row.find(".preference-value").text(r.message?.language_name || code);
-	});
+	_language_name(code).then((name) => $row.find(".preference-value").text(name));
 }
+
+function _language_name(code) {
+	if (!code) return Promise.resolve("");
+	return frappe.db
+		.get_value("Language", code, "language_name")
+		.then((r) => r.message?.language_name || code);
+}
+
+// The fields edited one at a time, in a small dialog of their own.
+const _CHANGEABLE = {
+	language: (user_data) => ({
+		title: __("Change Language"),
+		field: {
+			fieldtype: "Link",
+			fieldname: "language",
+			label: __("Language"),
+			options: "Language",
+			default: user_data.language,
+			reqd: 1,
+		},
+	}),
+	time_zone: (user_data) => ({
+		title: __("Change Time Zone"),
+		field: {
+			fieldtype: "Autocomplete",
+			fieldname: "time_zone",
+			label: __("Time Zone"),
+			options: frappe.all_timezones,
+			default: user_data.time_zone,
+			reqd: 1,
+		},
+	}),
+	email_signature: (user_data) => ({
+		title: __("Email Signature"),
+		field: {
+			fieldtype: "Text Editor",
+			fieldname: "email_signature",
+			label: __("Email Signature"),
+			default: user_data.email_signature || "",
+		},
+	}),
+};
 
 function _change_user_field({ field, title, on_save }) {
 	const dialog = new frappe.ui.Dialog({
@@ -651,35 +766,9 @@ function _lists_tab(user_data) {
 		icon: "list",
 		title: __("Lists"),
 		description: __("Configure list view behaviour."),
-		fields: [
-			{
-				fieldtype: "Switch",
-				fieldname: "list_sidebar",
-				label: __("Show sidebar"),
-				description: __("Display the filter and group-by sidebar in list views."),
-				default: user_data.list_sidebar,
-			},
-			{
-				fieldtype: "Switch",
-				fieldname: "bulk_actions",
-				label: __("Allow bulk actions"),
-				description: __(
-					"Enable checkboxes to select multiple records and perform bulk operations."
-				),
-				default: user_data.bulk_actions,
-			},
-			{
-				fieldtype: "Switch",
-				fieldname: "view_switcher",
-				label: __("Show view switcher"),
-				description: __(
-					"Allow switching between list, kanban, report, and other views from the toolbar"
-				),
-				default: user_data.view_switcher,
-			},
-		],
+		fields: _switch_fields("lists", user_data),
 		render(panel) {
-			_bind_switch_autosave(panel, ["list_sidebar", "bulk_actions", "view_switcher"]);
+			_bind_section_autosave(panel, "lists");
 		},
 	};
 }
@@ -693,61 +782,9 @@ function _forms_tab(user_data) {
 		icon: "file",
 		title: __("Forms"),
 		description: __("Configure form view behaviour."),
-		fields: [
-			{
-				fieldtype: "Switch",
-				fieldname: "form_sidebar",
-				label: __("Show sidebar"),
-				description: __(
-					"Display a sidebar in forms with attachments, preview image, tags, and other details."
-				),
-				default: user_data.form_sidebar,
-			},
-			{
-				fieldtype: "Switch",
-				fieldname: "timeline",
-				label: __("Show timeline"),
-				description: __(
-					"Show the activity timeline with comments, emails, and version history."
-				),
-				default: user_data.timeline,
-			},
-			{
-				fieldtype: "Switch",
-				fieldname: "dashboard",
-				label: __("Show dashboard"),
-				description: __(
-					"Show a summary dashboard with charts and statistics, where available, at the top of forms."
-				),
-				default: user_data.dashboard,
-			},
-			{
-				fieldtype: "Switch",
-				fieldname: "show_absolute_datetime_in_timeline",
-				label: __("Show absolute datetime in timeline"),
-				description: __(
-					"Display exact timestamps instead of relative time in the activity timeline."
-				),
-				default: user_data.show_absolute_datetime_in_timeline,
-			},
-			{
-				fieldtype: "Switch",
-				fieldname: "form_navigation_buttons",
-				label: __("Show navigation buttons"),
-				description: __(
-					"Show navigation buttons to view the previous and next record in the form toolbar."
-				),
-				default: user_data.form_navigation_buttons,
-			},
-		],
+		fields: _switch_fields("forms", user_data),
 		render(panel) {
-			_bind_switch_autosave(panel, [
-				"form_sidebar",
-				"timeline",
-				"dashboard",
-				"show_absolute_datetime_in_timeline",
-				"form_navigation_buttons",
-			]);
+			_bind_section_autosave(panel, "forms");
 		},
 	};
 }
@@ -761,19 +798,9 @@ function _reports_tab(user_data) {
 		icon: "table",
 		title: __("Reports"),
 		description: __("Configure report view behaviour."),
-		fields: [
-			{
-				fieldtype: "Switch",
-				fieldname: "report_split_view",
-				label: __("Split view"),
-				description: __(
-					"Open a linked document in a side panel instead of navigating away from the report. Not available on mobile."
-				),
-				default: user_data.report_split_view,
-			},
-		],
+		fields: _switch_fields("reports", user_data),
 		render(panel) {
-			_bind_switch_autosave(panel, ["report_split_view"]);
+			_bind_section_autosave(panel, "reports");
 		},
 	};
 }

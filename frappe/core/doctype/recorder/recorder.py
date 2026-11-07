@@ -53,7 +53,7 @@ class Recorder(Document):
 		if not request_data:
 			raise frappe.DoesNotExistError
 		request = serialize_request(request_data)
-		super(Document, self).__init__(request)
+		self.init_from_dict(request)
 
 	@staticmethod
 	def get_list(filters=None, start=0, page_length=20, order_by="duration desc"):

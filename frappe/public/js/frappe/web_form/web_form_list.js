@@ -350,7 +350,7 @@ export default class WebFormList {
 
 		const key = frappe.web_form_doc.web_form_request_key;
 		const query = key ? `?web_form_request_key=${encodeURIComponent(key)}` : "";
-		window.location.href = path + "/" + name + query;
+		window.location.href = path + "/" + encodeURIComponent(name) + query;
 	}
 
 	get_selected() {

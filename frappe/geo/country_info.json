@@ -131,12 +131,7 @@
    "America/Argentina/San_Juan",
    "America/Argentina/San_Luis",
    "America/Argentina/Tucuman",
-   "America/Argentina/Ushuaia",
-   "America/Buenos_Aires",
-   "America/Catamarca",
-   "America/Cordoba",
-   "America/Jujuy",
-   "America/Mendoza"
+   "America/Argentina/Ushuaia"
   ],
   "isd": "+54"
  },
@@ -178,7 +173,6 @@
    "Australia/Adelaide",
    "Australia/Brisbane",
    "Australia/Broken_Hill",
-   "Australia/Currie",
    "Australia/Darwin",
    "Australia/Eucla",
    "Australia/Hobart",
@@ -522,22 +516,15 @@
    "America/Inuvik",
    "America/Iqaluit",
    "America/Moncton",
-   "America/Montreal",
-   "America/Nipigon",
-   "America/Pangnirtung",
-   "America/Rainy_River",
    "America/Rankin_Inlet",
    "America/Regina",
    "America/Resolute",
    "America/St_Johns",
    "America/Swift_Current",
-   "America/Thunder_Bay",
    "America/Toronto",
    "America/Vancouver",
    "America/Whitehorse",
-   "America/Winnipeg",
-   "America/Yellowknife",
-   "America/Coral_Harbour"
+   "America/Winnipeg"
   ],
   "isd": "+1"
  },
@@ -614,9 +601,6 @@
   "date_format": "yyyy-mm-dd",
   "number_format": "#,###.##",
   "timezones": [
-   "Asia/Chongqing",
-   "Asia/Harbin",
-   "Asia/Kashgar",
    "Asia/Shanghai",
    "Asia/Urumqi"
   ],
@@ -883,8 +867,7 @@
   "currency_symbol": "Nfk",
   "number_format": "#,###.##",
   "timezones": [
-   "Africa/Asmara",
-   "Africa/Asmera"
+   "Africa/Asmara"
   ],
   "isd": "+291"
  },
@@ -931,8 +914,7 @@
   "currency_symbol": "kr",
   "number_format": "#,###.##",
   "timezones": [
-   "Atlantic/Faroe",
-   "Atlantic/Faeroe"
+   "Atlantic/Faroe"
   ],
   "isd": "+298"
  },
@@ -1095,7 +1077,6 @@
   "number_format": "#,###.##",
   "timezones": [
    "America/Danmarkshavn",
-   "America/Godthab",
    "America/Scoresbysund",
    "America/Thule",
    "America/Nuuk"
@@ -1277,8 +1258,7 @@
   "currency_symbol": "\u20b9",
   "number_format": "#,##,###.##",
   "timezones": [
-   "Asia/Kolkata",
-   "Asia/Calcutta"
+   "Asia/Kolkata"
   ],
   "isd": "+91"
  },
@@ -1473,7 +1453,6 @@
   "currency_symbol": "$",
   "number_format": "#,###.##",
   "timezones": [
-   "Pacific/Enderbury",
    "Pacific/Kiritimati",
    "Pacific/Tarawa",
    "Pacific/Kanton"
@@ -1809,7 +1788,6 @@
    "America/Mexico_City",
    "America/Monterrey",
    "America/Ojinaga",
-   "America/Santa_Isabel",
    "America/Tijuana"
   ],
   "isd": "+52"
@@ -1851,7 +1829,6 @@
   "date_format": "yyyy-mm-dd",
   "number_format": "#,###.##",
   "timezones": [
-   "Asia/Choibalsan",
    "Asia/Hovd",
    "Asia/Ulaanbaatar"
   ],
@@ -1916,7 +1893,6 @@
   "currency_name": "Kyat",
   "number_format": "#,###.##",
   "timezones": [
-   "Asia/Rangoon",
    "Asia/Yangon"
   ],
   "isd": "+95"
@@ -1954,8 +1930,7 @@
   "currency_symbol": "\u20a8",
   "number_format": "#,##,###.##",
   "timezones": [
-   "Asia/Kathmandu",
-   "Asia/Katmandu"
+   "Asia/Kathmandu"
   ],
   "isd": "+977"
  },
@@ -2833,10 +2808,7 @@
   "currency_symbol": "\u20b4",
   "number_format": "#,###.##",
   "timezones": [
-   "Europe/Kiev",
    "Europe/Simferopol",
-   "Europe/Uzhgorod",
-   "Europe/Zaporozhye",
    "Europe/Kyiv"
   ],
   "isd": "+380"
@@ -2907,9 +2879,7 @@
    "America/Denver",
    "America/Sitka",
    "America/Yakutat",
-   "Pacific/Honolulu",
-   "America/Indianapolis",
-   "America/Louisville"
+   "Pacific/Honolulu"
   ],
   "isd": "+1"
  },

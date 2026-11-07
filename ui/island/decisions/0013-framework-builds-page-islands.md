@@ -4,7 +4,7 @@ An island builds on the app's own tooling ([0005](0005-the-preset-resolves-its-t
 
 ## Decision
 
-One build, run by framework, for every Frappe UI page on the bench. Its vite root is `ui/vite/island/toolchain/`, a directory whose only content is the build's own dependencies.
+One build, run by framework, for every Frappe UI page on the bench. Its vite root is `island-toolchain/`, a directory beside `ui/` whose only content is the build's own dependencies.
 
 This amends 0005 rather than reversing it. The preset still resolves its tooling from its root. For this one build that root is framework's, and an app's own islands are untouched.
 
@@ -13,6 +13,8 @@ So a page island compiles against framework's frappe-ui, `@framework/ui`, and no
 Amended by [0014](0014-assets-json-is-the-island-registry.md). Such a page keeps its route: it names the app's island in its `island` field, and this build skips it.
 
 One build and not one per app, for the reason in [0002](0002-an-app-builds-its-islands-together.md) and again for [0003](0003-tailwind-scans-the-module-list-not-a-glob.md): every page island on the bench shares one vue chunk and one frappe-ui chunk, and the scan's throwaway first pass runs once instead of once per app. `after_app_build` runs it, because any app's build can be the one that added a page.
+
+Amended by [0015](0015-framework-builds-its-own-islands.md). Framework's own islands, such as `frappe.chart`, are a second build that `bench build` runs itself, and its failure fails the command.
 
 Output is `sites/assets/frappe/dist/page-island/`, not `dist/island/`. A build owns every assets.json key pointing into its own directory, so framework's build and an app's own build need two directories or they drop each other's keys.
 
@@ -29,6 +31,8 @@ It works only for an app that already has a frontend, which is the minority and 
 The simpler-looking version of the same idea: put the dependencies in `@framework/ui` itself and root the build there.
 
 A bench links `@framework/ui` into every consuming app by symlink, and node resolves from a module's real path. A `vue` and a `frappe-ui` sitting in `ui/node_modules` are a second copy for every app that links the package. The README calls that out as the thing that breaks provide/inject and doubles vue. A sibling directory is never on the walk up from `ui/src`.
+
+The same holds for a toolchain anywhere inside `ui/`, which is where it first lived, at `ui/vite/island/toolchain/`. Its own link to `@framework/ui` pointed at a folder that contained the link, so any copy that followed symlinks looped, and every app that links the package carried the toolchain's `node_modules` with it.
 
 ## Rejected: framework hosts a frontend of its own
 

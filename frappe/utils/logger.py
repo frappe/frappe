@@ -129,6 +129,6 @@ def sanitized_dict(form_dict):
 
 	for k in sanitized_dict:
 		for secret_kw in blocklist:
-			if secret_kw in k:
+			if secret_kw in str(k).lower():
 				sanitized_dict[k] = "********"
 	return sanitized_dict

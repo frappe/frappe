@@ -31,12 +31,11 @@ from frappe.model import (
 	optional_fields,
 	table_fields,
 )
-from frappe.model.base_document import (
+from frappe.model.document import (
 	DOCTYPE_TABLE_FIELDS,
 	TABLE_DOCTYPES_FOR_DOCTYPE,
-	BaseDocument,
+	Document,
 )
-from frappe.model.document import Document
 from frappe.model.utils import is_single_doctype
 from frappe.model.workflow import get_workflow_name
 from frappe.modules import load_doctype_module
@@ -118,9 +117,9 @@ def load_doctype_from_file(doctype):
 	for d in txt.get("permissions", []):
 		d["doctype"] = "DocPerm"
 
-	txt["fields"] = [BaseDocument(d) for d in txt["fields"]]
+	txt["fields"] = [Document(d) for d in txt["fields"]]
 	if "permissions" in txt:
-		txt["permissions"] = [BaseDocument(d) for d in txt["permissions"]]
+		txt["permissions"] = [Document(d) for d in txt["permissions"]]
 
 	return txt
 
@@ -183,7 +182,8 @@ class Meta(Document):
 		return _serialize(self, no_nulls=no_nulls)
 
 	def get_link_fields(self):
-		return self.get("fields", {"fieldtype": "Link", "options": ["!=", "[Select]"]})
+		# Callers can change the returned list
+		return self._link_fields.copy()
 
 	def get_data_fields(self):
 		return self.get("fields", {"fieldtype": "Data"})
@@ -214,6 +214,10 @@ class Meta(Document):
 			frappe.cache.set_value(cache_key, masked_fields)
 
 		return masked_fields
+
+	@cached_property
+	def _link_fields(self):
+		return self.get("fields", {"fieldtype": "Link", "options": ["!=", "[Select]"]})
 
 	@cached_property
 	def _dynamic_link_fields(self):
@@ -1112,7 +1116,7 @@ def _serialize(doc, no_nulls=False, *, is_child=False):
 				continue
 
 			if isinstance(value, ListOrTuple):
-				if value and isinstance(value[0], BaseDocument):
+				if value and isinstance(value[0], Document):
 					out[key] = [_serialize(d, no_nulls=no_nulls, is_child=True) for d in value]
 
 				continue

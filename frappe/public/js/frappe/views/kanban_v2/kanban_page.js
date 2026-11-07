@@ -6,10 +6,10 @@ frappe.views.kanban_system_fields = ["owner", "creation", "modified", "modified_
 
 // badge style per Select value (lowercase keys); unknown values get a guessed color
 const SELECT_STYLES = {
-	low: { theme: "gray", icon: "signal-low" },
-	medium: { theme: "amber", icon: "signal-medium" },
-	high: { theme: "red", icon: "signal-high" },
-	urgent: { theme: "red", icon: "signal" },
+	low: { theme: "gray", icon: "priority-low" },
+	medium: { theme: "amber", icon: "priority-medium" },
+	high: { theme: "red", icon: "priority-high" },
+	urgent: { theme: "red", icon: "priority-urgent" },
 
 	draft: { theme: "gray", icon: "circle-dashed" },
 	submitted: { theme: "blue", icon: "send" },
@@ -130,16 +130,15 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 
 	make_selection_bar() {
 		this.selected_ids = [];
-		this.$selection_bar = $(`
-			<div class="kn-selection-bar items-center gap-2 rounded-md border bg-surface-base ps-4 pe-2.5 py-2.5">
-				<span class="kn-sel-count text-sm-semibold text-ink-gray-8 whitespace-nowrap pe-1"></span>
-				${frappe.ui.button.html({ label: __("Edit"), css_class: "kn-sel-edit" })}
-				${frappe.ui.button.html({ label: __("Assign"), css_class: "kn-sel-assign" })}
-				${frappe.ui.button.html({ label: __("Tags"), css_class: "kn-sel-tags" })}
-				<span class="kn-sel-custom flex items-center gap-2"></span>
-				${frappe.ui.button.html({ label: __("Delete"), theme: "red", css_class: "kn-sel-delete" })}
-				${frappe.ui.button.html({ label: __("Clear"), variant: "ghost", css_class: "kn-sel-clear" })}
-			</div>`).appendTo(this.wrapper);
+		this.$selection_bar = $("<div>")
+			.addClass("kn-selection-bar items-center gap-2 rounded-md border bg-surface-base")
+			.addClass("ps-4 pe-2.5 py-2.5")
+			.appendTo(this.wrapper);
+		this.render_selection_bar();
+		// opening or closing the sidebar resizes the board without a window resize
+		new ResizeObserver(() => this.selected_ids.length && this.place_selection_bar()).observe(
+			this.$container[0]
+		);
 
 		const done = () => {
 			if (this.board) {
@@ -149,17 +148,17 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		};
 		this._selection_done = done;
 		// Clear only deselects, so unlike the other actions it skips the refresh
-		this.$selection_bar.find(".kn-sel-clear").on("click", () => this.clear_selection());
-		this.$selection_bar.find(".kn-sel-edit").on("click", () => this.bulk_edit(done));
-		this.$selection_bar
-			.find(".kn-sel-assign")
-			.on("click", () => this.bulk().assign(this.selected_ids, done));
-		this.$selection_bar
-			.find(".kn-sel-tags")
-			.on("click", () => this.bulk().add_tags(this.selected_ids, done));
-		this.$selection_bar
-			.find(".kn-sel-delete")
-			.on("click", () => this.confirm_delete(this.selected_ids, done));
+		this.$selection_bar.on("click", ".kn-sel-clear", () => this.clear_selection());
+		this.$selection_bar.on("click", ".kn-sel-edit", () => this.bulk_edit(done));
+		this.$selection_bar.on("click", ".kn-sel-assign", () =>
+			this.bulk().assign(this.selected_ids, done)
+		);
+		this.$selection_bar.on("click", ".kn-sel-tags", () =>
+			this.bulk().add_tags(this.selected_ids, done)
+		);
+		this.$selection_bar.on("click", ".kn-sel-delete", () =>
+			this.confirm_delete(this.selected_ids, done)
+		);
 
 		frappe.ui.keys.add_shortcut({
 			shortcut: "escape",
@@ -169,14 +168,33 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			page: this.page,
 		});
 		// each board route has its own page, so leaving it means leaving the board
-		$(this.wrapper).on("hide", () => {
-			this.update_selection_bar([]);
-			this.teardown_board(true);
-		});
+		$(this.wrapper).on("hide", () => this.teardown_board(true));
+	}
+
+	render_selection_bar() {
+		const button = (label, icon, opts) => this.selection_button({ label, icon, ...opts });
+		this.$selection_bar.html(`
+			<span class="kn-sel-count text-sm-semibold text-ink-gray-8 whitespace-nowrap pe-1"></span>
+			${button(__("Edit"), "pencil", { css_class: "kn-sel-edit" })}
+			${button(__("Assign"), "user-plus", { css_class: "kn-sel-assign" })}
+			${button(__("Tags"), "tag", { css_class: "kn-sel-tags" })}
+			<span class="kn-sel-custom flex items-center gap-2"></span>
+			${button(__("Delete"), "trash-2", { theme: "red", css_class: "kn-sel-delete" })}
+			${button(__("Clear"), "x", { variant: "ghost", css_class: "kn-sel-clear" })}`);
+	}
+
+	/** A phone has room for icons only. */
+	selection_button({ label, icon, ...opts }) {
+		return frappe.ui.button.html(
+			frappe.is_mobile() && icon ? { icon, title: label, ...opts } : { label, icon, ...opts }
+		);
 	}
 
 	/** `clear_route` also forgets the board and undoes the page layout, for leaving the page. */
 	teardown_board(clear_route = false) {
+		this.exit_select_mode({ remeasure: false });
+		this.update_selection_bar([]);
+		this.remove_column_chips();
 		if (this.board) {
 			this.board.destroy();
 			this.board = null;
@@ -193,9 +211,15 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		const rect = this.$container[0].getBoundingClientRect();
 		if (!rect) return;
 		const bottom_gap = 8;
+		const tab_bar = document.querySelector("frappe-mobile-nav.desk-mobile-nav");
 		const available = Math.max(
 			220,
-			Math.floor(window.innerHeight - Math.max(0, rect.top) - bottom_gap)
+			Math.floor(
+				window.innerHeight -
+					Math.max(0, rect.top) -
+					bottom_gap -
+					(tab_bar ? tab_bar.offsetHeight : 0)
+			)
 		);
 		this.$container[0].style.setProperty("--kanban-v2-height", `${available}px`);
 	}
@@ -204,7 +228,16 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		if (this._board_height_sync_bound) return;
 		this._board_height_sync_bound = true;
 
-		this._on_board_height_sync = () => this.sync_board_height();
+		this._on_board_height_sync = () => {
+			this.sync_board_height();
+			// a phone board is built differently, so turning a tablet rebuilds it; a pinch zoom doesn't
+			const zoomed =
+				window.visualViewport && Math.abs(window.visualViewport.scale - 1) > 0.01;
+			if (this.board && !zoomed && this.built_for_phone !== frappe.is_mobile()) {
+				this.render_selection_bar();
+				this.mount_board();
+			}
+		};
 		window.addEventListener("resize", this._on_board_height_sync, { passive: true });
 	}
 
@@ -277,9 +310,17 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			this.$selection_bar.find(".kn-sel-assign").toggle(this.show_assigned_to !== false);
 			this.refresh_bulk_actions();
 			this.$selection_bar.css("display", "flex");
+			this.place_selection_bar();
 		} else {
 			this.$selection_bar.hide();
+			this.exit_select_mode();
 		}
+	}
+
+	/** Centred over the board, not the window, so the sidebar beside it can't cover it. */
+	place_selection_bar() {
+		const board = this.$container[0].getBoundingClientRect();
+		this.$selection_bar.css("left", frappe.is_mobile() ? "" : board.left + board.width / 2);
 	}
 
 	/** settings.bulk_actions(ids, page) returns extra buttons, shown before Delete. */
@@ -297,7 +338,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			if (typeof action.condition === "function" && !action.condition()) return;
 
 			const $btn = $(
-				frappe.ui.button.html({
+				this.selection_button({
 					label: action.label,
 					icon: action.icon,
 					theme: action.theme,
@@ -355,6 +396,9 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		await frappe.model.with_doctype(this.doctype);
 		this.setup_meta();
 		this.setup_toolbar();
+		// before the board loads: it reads its filters from the boxes and the panel
+		await this.setup_quick_filters();
+		this.sync_filter_group_to_board();
 		this.mount_board();
 		// so opening Kanban without a board name comes back here
 		frappe.model.user_settings.save(this.doctype, "last_view", "Kanban").then(() =>
@@ -362,9 +406,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 				last_kanban_board: board_name,
 			})
 		);
-		this.sync_filter_group_to_board();
 		this.setup_group_button();
-		this.setup_quick_filters();
 	}
 
 	setup_meta() {
@@ -654,20 +696,30 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		this.sync_board_height();
 	}
 
-	setup_quick_filters() {
+	async setup_quick_filters() {
 		const page = this.page;
 		if (!this.$quick_filters) {
 			this.$quick_filters = $(
 				'<div class="standard-filter-section kanban-v2-quick-filters flex"></div>'
 			).insertBefore(this.$filter_section);
 		}
-		// keep typed values across re-renders (board or swimlane change)
-		const preserved = {};
+		// the boxes' filters outlive them (board or swimlane change), each replacing the filter its
+		// box would hold: the new boxes take back the ones they can hold, the rest stay in the panel
+		const quick = this.get_quick_filters();
+		const boxed = new Set(quick.map(([, fn]) => fn));
+		this.filters = (this.filters || [])
+			.filter(
+				([doctype, fn, cond, val]) =>
+					!(
+						doctype === this.doctype &&
+						boxed.has(fn) &&
+						frappe.ui.FilterGroup.fits_box(page.fields_dict[fn], cond, val)
+					)
+			)
+			.concat(quick);
 		(this._quick_filter_fields || []).forEach((fn) => {
 			const f = page.fields_dict[fn];
 			if (f) {
-				const v = f.get_value();
-				if (v) preserved[fn] = v;
 				f.$wrapper && f.$wrapper.remove();
 				delete page.fields_dict[fn];
 			}
@@ -692,17 +744,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			this._quick_filter_fields.push(df.fieldname);
 		});
 
-		this.seed_quick_filters();
-
-		this._seeding_quick = true;
-		try {
-			Object.keys(preserved).forEach((fn) => {
-				const field = page.fields_dict[fn];
-				if (field) field.set_value(preserved[fn]);
-			});
-		} finally {
-			this._seeding_quick = false;
-		}
+		await this.seed_quick_filters();
 	}
 
 	/** Mirrors the list view's standard filters. */
@@ -732,6 +774,10 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			if (options.length && options[0] !== "") options.unshift("");
 			options = options.join("\n");
 		}
+		// a tree's box takes the branch under the picked node, as on the list view
+		if (df.fieldtype === "Link" && df.options && frappe.boot.treeviews.includes(df.options)) {
+			condition = "descendants of (inclusive)";
+		}
 		return {
 			fieldtype,
 			label: __(df.label, null, df.parent),
@@ -740,23 +786,26 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			condition,
 			is_filter: 1,
 			ignore_link_validation: fieldtype === "Dynamic Link",
-			onchange: () => this.on_quick_filter_change(),
+			onchange: () => this.on_filter_change(),
 		};
 	}
 
-	seed_quick_filters() {
-		const set = new Set(this._quick_filter_fields || []);
+	/** A filter a quick filter box can hold lives in that box, as on the list view. */
+	async seed_quick_filters() {
+		const seeds = new Map();
+		this.filters = (this.filters || []).filter(([doctype, fn, cond, val]) => {
+			const box = doctype === this.doctype && this.page.fields_dict[fn];
+			if (!box || seeds.has(box)) return true;
+			if (!frappe.ui.FilterGroup.fits_box(box, cond, val)) return true;
+			box.df.match_type = cond;
+			// only the pair of wildcards the box adds itself: "%#4" (ends with) stays as it is
+			const pair = cond === "like" && typeof val === "string" && /^%.*%$/s.test(val);
+			seeds.set(box, pair ? val.slice(1, -1) : val);
+			return false;
+		});
 		this._seeding_quick = true;
 		try {
-			(this.filters || []).forEach(([, fn, cond, val]) => {
-				if (!set.has(fn)) return;
-				const field = this.page.fields_dict[fn];
-				if (!field) return;
-				let v = val;
-				if (cond === "like" && typeof v === "string") v = v.replace(/^%+|%+$/g, "");
-				field.df.match_type = cond === "like" ? "like" : "=";
-				field.set_value(v);
-			});
+			await Promise.all([...seeds].map(([box, value]) => box.set_value(value)));
 		} finally {
 			this._seeding_quick = false;
 		}
@@ -785,32 +834,31 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		return out;
 	}
 
-	/** A quick filter replaces a popover filter on the same field only when it has a value. */
+	/** The panel's filters and the quick filter boxes together. */
 	get_effective_filters(extra) {
-		const quick = this.get_quick_filters();
-		const active = new Set(quick.map((f) => f[1]));
-		const base = (this.filters || []).filter((f) => !active.has(f[1]));
-		const eff = base.concat(quick);
-		return extra && extra.length ? eff.concat(extra) : eff;
+		return (this.filters || []).concat(this.get_quick_filters(), extra || []);
 	}
 
-	on_quick_filter_change() {
+	/** A panel edit can change a box too, so both wait and reload once. */
+	on_filter_change() {
 		if (this._seeding_quick) return;
-		this._quick_reload =
-			this._quick_reload || frappe.utils.debounce(() => this.reload_board_filters(), 300);
-		this._quick_reload();
+		this._apply_filters =
+			this._apply_filters || frappe.utils.debounce(() => this.apply_filters(), 300);
+		this._apply_filters();
 	}
 
-	reload_board_filters() {
-		// quick filters aren't in this.filters, so reset the key or a later popover edit is skipped
-		this._loaded_key = null;
-		if (this.group_by_field) {
-			this.mount_board(); // swimlanes depend on the filtered set
-			return;
+	/** The quick filter boxes and the panel's rows, in one reload. */
+	async clear_filters() {
+		this._seeding_quick = true;
+		try {
+			await Promise.all(
+				this._quick_filter_fields.map((fn) => this.page.fields_dict[fn].set_value(""))
+			);
+		} finally {
+			this._seeding_quick = false;
 		}
-		if (!this.provider) return;
-		this.provider.setFilters(this.get_effective_filters());
-		this.board.refresh();
+		this.filter_group.clear_filters();
+		this.apply_filters();
 	}
 
 	setup_settings_button($parent) {
@@ -819,7 +867,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 				label: __("Duplicate"),
 				icon: "copy",
 				size: "sm",
-				css_class: "settings-button mr-0",
+				css_class: "settings-button mr-0 hidden-xs",
 				tooltip: __("Copy this board to change its setup"),
 				onclick: () => this.duplicate_board(),
 			});
@@ -830,7 +878,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			label: __("Settings"),
 			icon: "settings",
 			size: "sm",
-			css_class: "settings-button mr-0",
+			css_class: "settings-button mr-0 hidden-xs",
 			title: __("Settings"),
 			onclick: () =>
 				frappe.require("kanban_settings.bundle.js", () =>
@@ -869,6 +917,8 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			this.$group_dropdown = new frappe.ui.Dropdown({
 				button: button_opts,
 				options: () => this.get_group_dropdown_options(),
+				sheet_on_mobile: true,
+				sheet_title: () => __("Group By"),
 			});
 			this.$group_wrapper.append(this.$group_dropdown.$trigger);
 			($parent || this.$filter_section).append(this.$group_wrapper);
@@ -898,30 +948,20 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		return items;
 	}
 
-	set_group_by(fieldname) {
+	async set_group_by(fieldname) {
 		const next = fieldname || null;
 		if (next === (this.group_by_field || null)) return;
 		this.group_by_field = next;
 		this.setup_group_button();
-		this.setup_quick_filters(); // drop the now-active swimlane field from quick filters
+		await this.setup_quick_filters(); // drop the now-active swimlane field from quick filters
+		this.sync_filter_group_to_board();
 		this.sync_board_height();
 		this.mount_board();
 	}
 
 	setup_filter_button($parent) {
-		// same markup as the list view's FilterArea
-		const $selector = $(`
-			<div class="filter-selector">
-				<div class="btn-group">
-					<button class="btn btn-default btn-sm filter-button">
-						<span class="filter-icon button-icon">${frappe.utils.icon("funnel")}</span>
-						<span class="button-label hidden-xs">${__("Filter")}</span>
-					</button>
-					<button class="btn btn-default btn-sm filter-x-button" title="${__("Clear all filters")}">
-						<span class="filter-icon button-icon">${frappe.utils.icon("x")}</span>
-					</button>
-				</div>
-			</div>`);
+		// the list view's own filter button
+		const { $selector, filter_button, filter_x_button } = frappe.ui.FilterGroup.make_buttons();
 
 		if ($parent) {
 			$parent.append($selector);
@@ -932,38 +972,35 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		this.filter_group = new frappe.ui.FilterGroup({
 			parent: $selector,
 			doctype: this.doctype,
-			filter_button: $selector.find(".filter-button"),
-			filter_x_button: $selector.find(".filter-x-button"),
+			filter_button,
+			filter_x_button,
 			default_filters: [],
-			on_change: () => this.apply_filters(),
+			// the quick filter boxes show as rows in the panel, as on the list view
+			toolbar: {
+				get_standard_field: (fieldname) => this.page.fields_dict[fieldname],
+				get_standard_filters: () => this.get_quick_filters(),
+				clear: () => this.clear_filters(),
+			},
+			on_change: () => this.on_filter_change(),
 		});
-		// outside a list view, FilterGroup's clear button doesn't fire on_change
-		$selector
-			.find(".filter-x-button")
-			.on("click", () => setTimeout(() => this.apply_filters(), 0));
-		if (this.filters && this.filters.length) {
-			this.filter_group.add_filters_to_filter_group(this.filters);
-		}
-		this.sync_filter_ui();
 	}
 
 	/** The filter group outlives a board reload, so reset it to the board's filters. */
-	sync_filter_group_to_board() {
+	async sync_filter_group_to_board() {
 		if (!this.filter_group) return;
 		const desired = JSON.stringify(this.filters || []);
-		if (JSON.stringify(this.filter_group.get_filters() || []) === desired) {
-			this.sync_filter_ui();
-			return;
-		}
-		// skip the on_change reload; mount_board already loads these filters
-		this._syncing_filters = true;
-		try {
-			this.filter_group.clear_filters();
-			if (this.filters && this.filters.length) {
-				this.filter_group.add_filters_to_filter_group(this.filters);
+		if (JSON.stringify(this.filter_group.get_filters() || []) !== desired) {
+			// skip the on_change reload; mount_board already loads these filters
+			this._syncing_filters = true;
+			try {
+				this.filter_group.clear_filters();
+				// a row counts once its value is set, which takes a moment
+				await this.filter_group.add_filters(this.filters || []);
+			} finally {
+				this._syncing_filters = false;
 			}
-		} finally {
-			this._syncing_filters = false;
+			// a quick filter picked meanwhile was skipped above; the board catches up now
+			if (this.board) this.apply_filters();
 		}
 		this.sync_filter_ui();
 	}
@@ -978,7 +1015,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		this.filters = this.filter_group.get_filters();
 		this.sync_filter_ui();
 		// popover open/close fires on_change without a change, so skip the reload
-		const key = JSON.stringify(this.filters || []);
+		const key = JSON.stringify(this.get_effective_filters());
 		if (key === this._loaded_key) return;
 		this._loaded_key = key;
 		if (this.group_by_field) {
@@ -1023,7 +1060,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 				"Kanban Board",
 				this.current_board,
 				"filters",
-				JSON.stringify(this.filters || [])
+				JSON.stringify(this.get_effective_filters())
 			)
 			.then(() => {
 				frappe.ui.toast({ message: __("Filters saved"), type: "success" });
@@ -1034,8 +1071,12 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		// lets a slow swimlane load tell it is stale
 		this._mount_seq = (this._mount_seq || 0) + 1;
 		this.teardown_board();
+		this.built_for_phone = frappe.is_mobile();
+		// tablets too: a touch screen taps where a mouse hovers and right-clicks
+		this.touch = this.built_for_phone || window.matchMedia("(hover: none)").matches;
+		this.$container.toggleClass("kn-touch", this.touch);
 		this.$container.empty();
-		this._loaded_key = JSON.stringify(this.filters || []); // filters the board reflects
+		this._loaded_key = JSON.stringify(this.get_effective_filters()); // filters the board reflects
 		if (this.group_by_field) {
 			this.mount_grouped_board(this._mount_seq);
 		} else {
@@ -1077,6 +1118,11 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			},
 			onAddCard: (columnId) => this.add_document(columnId),
 		};
+		// the sheet opens the form, so a double tap doesn't
+		if (this.touch) {
+			base_callbacks.onCardClick = (card, ev) => this.on_card_tap(card, ev);
+			base_callbacks.onCardOpen = null;
+		}
 		return {
 			provider,
 			groupBy: this.field_name,
@@ -1084,7 +1130,9 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			pageLength: opts.pageLength || 20,
 			// swimlane boards size to their content, so the caller turns virtualization off
 			virtualization: opts.virtualization !== undefined ? opts.virtualization : true,
-			selection: "multi",
+			// on touch the page picks cards itself, in select mode
+			selection: this.touch ? "none" : "multi",
+			stepScroll: this.touch,
 			// skeleton column count, minus archived columns, which the provider doesn't return
 			skeletonColumns:
 				(this.board_doc?.columns || []).filter((c) => c.status !== "Archived").length || 3,
@@ -1107,6 +1155,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			this.$container[0],
 			this.board_options(provider)
 		);
+		if (this.built_for_phone) this.make_column_chips();
 	}
 
 	/** Each lane is its own board, so cards can't be dragged across lanes. */
@@ -1122,7 +1171,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 				{
 					board_name: this.current_board,
 					group_by: field,
-					filters: JSON.stringify(this.filters || []),
+					filters: JSON.stringify(this.get_effective_filters()),
 				}
 			);
 		} catch (e) {
@@ -1189,7 +1238,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 
 	add_document(columnId) {
 		const values = { [this.field_name]: columnId };
-		(this.filters || []).forEach((f) => {
+		this.get_effective_filters().forEach((f) => {
 			if (f[2] === "=") values[f[1]] = f[3];
 		});
 
@@ -1223,7 +1272,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		el.appendChild(rows);
 		el.appendChild(this.card_footer(card));
 
-		this.bind_context_menu(el, card);
+		if (!this.touch) this.bind_context_menu(el, card);
 	}
 
 	card_footer(card) {
@@ -1315,13 +1364,18 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		return $badge[0];
 	}
 
+	card_title(card) {
+		const title_df = frappe.meta.get_docfield(this.doctype, this.title_field);
+		return (
+			this.plain_text(card[this.title_field], title_df && title_df.fieldtype) || card.name
+		);
+	}
+
 	title_row(card) {
 		const row = document.createElement("div");
 		row.className = "kn-frow kn-title-row flex items-center gap-2 min-w-0 mb-0.5";
 
-		const title_df = frappe.meta.get_docfield(this.doctype, this.title_field);
-		const title_text =
-			this.plain_text(card[this.title_field], title_df && title_df.fieldtype) || card.name;
+		const title_text = this.card_title(card);
 		const image_url = this.image_field && card[this.image_field];
 		if (this.image_field) {
 			row.appendChild(
@@ -1338,14 +1392,17 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		title.className = "kn-card-title text-sm-medium text-ink-gray-9 min-w-0";
 		title.textContent = title_text;
 		if (this.open_on_title_click) {
-			title.classList.add("cursor-pointer");
 			title.setAttribute("role", "link");
 			title.setAttribute("tabindex", "0");
 			const open = (e) => {
 				e.stopPropagation();
 				frappe.set_route("Form", this.doctype, card.name);
 			};
-			title.addEventListener("click", open);
+			// on touch a tap opens the card's sheet; the keyboard still opens the form
+			if (!this.touch) {
+				title.classList.add("cursor-pointer");
+				title.addEventListener("click", open);
+			}
 			title.addEventListener("keydown", (e) => {
 				if (e.key === "Enter" || e.key === " ") {
 					e.preventDefault();
@@ -1354,7 +1411,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			});
 		}
 		row.appendChild(title);
-		this.bind_more_info_hovercard(title, card);
+		if (!this.touch) this.bind_more_info_hovercard(title, card);
 		return row;
 	}
 
@@ -1517,7 +1574,10 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			return el;
 		}
 
-		el.innerHTML = frappe.format(val, df, { inline: true }, card);
+		const html_val = frappe.model.plain_text_fieldtypes.includes(df.fieldtype)
+			? frappe.utils.escape_html(val)
+			: val;
+		el.innerHTML = frappe.format(html_val, df, { inline: true }, card);
 		this.tip_if_long(el, this.plain_text(val, df.fieldtype) || String(val));
 		return el;
 	}
@@ -1540,64 +1600,260 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		// a function, so "Move to" reflects the card's current column each time
 		new frappe.ui.ContextMenu({
 			target: $(el),
-			options: () => this.card_context_menu_items(card),
+			options: () => this.card_context_menu_items(card, { engine: this.engine_of(el) }),
 		});
 	}
 
-	move_to_items(card) {
-		const cols = (this.board && this.board.engine.state.columns) || [];
+	move_to_items(card, engine = this.board && this.board.engine) {
+		const cols = (engine && engine.state.columns) || [];
 		const current = card[this.field_name];
 		return cols
 			.filter((c) => c.id !== current)
 			.map((c) => ({
-				label: __(c.title || c.id),
-				onclick: () => this.board.engine.applyMove(card.name, current, c.id, 0),
+				label: this.column_label(c),
+				onclick: () => engine.applyMove(card.name, current, c.id, 0),
 			}));
 	}
 
-	card_context_menu_items(card) {
-		const move_targets = this.move_to_items(card);
-		const items = [
-			{
-				label: __("Open in New Tab"),
-				icon: "external-link",
-				onclick: () =>
-					window.open(
-						`/app/${frappe.router.slug(this.doctype)}/${encodeURIComponent(card.name)}`
-					),
-			},
-			{
-				label: __("Copy Link"),
-				icon: "link",
-				onclick: () => {
-					frappe.utils.copy_to_clipboard(
-						`${frappe.urllib.get_base_url()}/app/${frappe.router.slug(
-							this.doctype
-						)}/${encodeURIComponent(card.name)}`
-					);
-				},
-			},
-			{
-				label: __("Move to"),
-				icon: "move-right",
-				submenu: move_targets,
-				condition: () => move_targets.length > 0,
-			},
-			{
-				label: __("Delete"),
-				icon: "trash-2",
-				theme: "red",
-				onclick: () => this.confirm_delete([card.name], () => this.board.refresh()),
-			},
-		];
+	column_label(column) {
+		return __(column.title || column.id);
+	}
 
-		// settings.card_context_menu(card, page) returns extra items
+	/** `engine` is the board the card is on, as a card can sit in two swimlanes. */
+	card_context_menu_items(
+		card,
+		{ touch = false, engine = this.board && this.board.engine } = {}
+	) {
+		const move_targets = this.move_to_items(card, engine);
+		const link = frappe.utils.get_form_link(this.doctype, card.name);
+		const open_in_new_tab = {
+			label: __("Open in New Tab"),
+			icon: "external-link",
+			onclick: () => window.open(link),
+		};
+		const copy_link = {
+			label: __("Copy Link"),
+			icon: "link",
+			onclick: () => frappe.utils.copy_to_clipboard(frappe.urllib.get_base_url() + link),
+		};
+		const move_to = {
+			label: __("Move to"),
+			icon: "move-right",
+			submenu: move_targets,
+			condition: () => move_targets.length > 0,
+		};
+		const remove = {
+			label: __("Delete"),
+			icon: "trash-2",
+			theme: "red",
+			onclick: () => this.confirm_delete([card.name], () => this.board.refresh()),
+		};
+		// touch has no Ctrl-click, so the sheet selects; it opens the form itself, not a tab
+		const items = touch
+			? [
+					move_to,
+					this.show_assigned_to !== false && {
+						label: __("Assign"),
+						icon: "user-plus",
+						onclick: () => this.open_assign(card),
+					},
+					copy_link,
+					{
+						label: __("Select"),
+						icon: "circle-check",
+						onclick: () => this.enter_select_mode(card, engine),
+					},
+			  ]
+			: [open_in_new_tab, copy_link, move_to];
+
+		// settings.card_context_menu(card, page) returns extra items, shown before Delete
 		const settings = this.settings || {};
 		if (typeof settings.card_context_menu === "function") {
 			const extra = settings.card_context_menu(card, this) || [];
 			if (Array.isArray(extra)) items.push(...extra);
 		}
+		items.push(remove);
 		return items;
+	}
+
+	on_card_tap(card, ev) {
+		const engine = this.engine_of(ev.currentTarget);
+		if (this.select_mode) this.toggle_card(card, engine);
+		else this.open_card_sheet(card, engine, ev.currentTarget);
+	}
+
+	engine_of(el) {
+		if (!this.board) return null;
+		return this.board.engine_for ? this.board.engine_for(el) : this.board.engine;
+	}
+
+	/** The hover preview and card menu for a tap: a sheet, or beside the card on a tablet. */
+	async open_card_sheet(card, engine, el) {
+		if (this._opening_card_sheet) return;
+		this._opening_card_sheet = true;
+		const mount_seq = this._mount_seq;
+		await frappe
+			.require(["bottom_sheet.bundle.js", "bottom_sheet.bundle.css"])
+			.finally(() => (this._opening_card_sheet = false));
+		// the board was rebuilt or left while the sheet's script loaded
+		if (mount_seq !== this._mount_seq || !this.board) return;
+		let sheet = null;
+		const close = () => sheet && sheet.close();
+		const content = this.more_info_content(card, close, { gutter: false });
+		content.classList.add("kn-mi-sheet");
+		const open = frappe.ui.button({
+			label: __("Open {0}", [__(this.doctype)]),
+			variant: "solid",
+			size: "md",
+			onclick: () => {
+				close();
+				frappe.set_route("Form", this.doctype, card.name);
+			},
+		});
+		sheet = new frappe.ui.BottomSheet({
+			anchor: el,
+			content,
+			options: this.card_context_menu_items(card, { touch: true, engine }),
+			footer: [open[0]],
+			// it has no title row, so the card's title names it
+			on_open: (s) => s.panel.setAttribute("aria-label", this.card_title(card)),
+		});
+		sheet.open();
+	}
+
+	enter_select_mode(card, engine) {
+		this.select_mode = true;
+		this.$container.addClass("kn-select-mode");
+		// the ring's room rewraps some titles
+		this.board.engine.remeasure();
+		this.toggle_card(card, engine);
+	}
+
+	/** `remeasure: false` when the board is about to go anyway. */
+	exit_select_mode({ remeasure = true } = {}) {
+		if (!this.select_mode) return;
+		this.select_mode = false;
+		this.$container.removeClass("kn-select-mode");
+		if (remeasure && this.board) this.board.engine.remeasure();
+	}
+
+	toggle_card(card, engine) {
+		if (!engine) return;
+		const ids = new Set(engine.state.selection);
+		if (ids.has(card.name)) ids.delete(card.name);
+		else ids.add(card.name);
+		engine.select([...ids]);
+		frappe.utils.haptic();
+	}
+
+	/** A phone shows one column at a time; chips name them all and mark the one on screen. */
+	make_column_chips() {
+		const engine = this.board.engine;
+		const board = engine.root;
+		const $bar = $('<div class="kn-column-chips flex overflow-x-auto px-4 pb-2"></div>');
+		this.$column_chips = $bar.insertBefore(this.$container);
+		const columns = () => engine.state.columns;
+		const rtl = () => getComputedStyle(board).direction === "rtl";
+		const scroll_to = (id) => {
+			const column = board.querySelector(`.kn-column[data-col="${CSS.escape(id)}"]`);
+			if (!column) return;
+			const b = board.getBoundingClientRect();
+			const c = column.getBoundingClientRect();
+			board.scrollBy({ left: rtl() ? c.right - b.right : c.left - b.left });
+		};
+		const on_screen = () => {
+			const at = Math.abs(board.scrollLeft);
+			// at the end the last column can't reach the start edge
+			const end = board.scrollWidth - board.clientWidth;
+			if (end > 0 && at >= end - 1) return columns().at(-1);
+			return columns()[Math.round(at / engine.columnStep())];
+		};
+		// scrolls only the chips, not the page around them
+		const reveal = (chip) => {
+			const b = $bar[0].getBoundingClientRect();
+			const r = chip.getBoundingClientRect();
+			if (r.left < b.left) $bar[0].scrollBy({ left: r.left - b.left - 16 });
+			else if (r.right > b.right) $bar[0].scrollBy({ left: r.right - b.right + 16 });
+		};
+
+		let chips = null;
+		let key = null;
+		let active = null;
+		const render = () => {
+			const next = JSON.stringify(columns().map((c) => [c.id, c.title, c.total, c.color]));
+			if (next !== key) {
+				key = next;
+				active = null;
+				const $chips = frappe.ui.tab_buttons({
+					type: "ghost",
+					label: __("Columns"),
+					options: columns().map((c) => ({
+						value: c.id,
+						label: this.column_label(c),
+						prefix: () => this.column_dot(c),
+						suffix: () => $('<span class="text-ink-gray-5">').text(c.total),
+					})),
+					on_change: (id) => scroll_to(id),
+				});
+				$bar.empty().append($chips);
+				chips = $chips.data("es-tab-buttons");
+				this.sync_board_height();
+			}
+			const current = on_screen();
+			if (!chips || !current || current.id === active) return;
+			active = current.id;
+			chips.set_value(active, { silent: true });
+			const chip = chips.$el.find("[aria-checked='true']")[0];
+			chip && reveal(chip);
+		};
+		const schedule = () =>
+			(this._chips_frame ??= requestAnimationFrame(() => {
+				this._chips_frame = null;
+				render();
+			}));
+		engine.on("state:change", schedule);
+		engine.on("card:move", schedule);
+		board.addEventListener("scroll", schedule, { passive: true });
+		this.bind_drag_hint(engine);
+		render();
+	}
+
+	column_dot(column) {
+		const dot = document.createElement("span");
+		dot.className = `kn-column-dot indicator ${frappe.scrub(column.color || "gray", "-")}`;
+		dot.setAttribute("aria-hidden", "true");
+		return dot;
+	}
+
+	/** While a card is dragged, a pill names the column it would land in. */
+	bind_drag_hint(engine) {
+		const $pill = $("<div>")
+			.addClass("kn-drag-hint inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full")
+			.addClass(
+				"shadow-md text-sm-semibold bg-surface-gray-9 text-ink-base pointer-events-none"
+			)
+			.appendTo(this.wrapper)
+			.hide();
+		this.$drag_hint = $pill;
+		engine.on("drag:target", (id) => {
+			const column = id && engine.getColumn(id);
+			if (!column) return $pill.hide();
+			$pill
+				.html(frappe.utils.icon("move-right", "sm"))
+				.append($("<span>").text(__("Move to {0}", [this.column_label(column)])));
+			$pill.show();
+		});
+	}
+
+	remove_column_chips() {
+		if (!this.$column_chips) return;
+		cancelAnimationFrame(this._chips_frame);
+		this._chips_frame = null;
+		this.$column_chips.remove();
+		this.$column_chips = null;
+		this.$drag_hint.remove();
+		this.$drag_hint = null;
+		this.sync_board_height();
 	}
 
 	bind_more_info_hovercard(title, card) {
@@ -1609,7 +1865,8 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		});
 	}
 
-	more_info_content(card, close) {
+	/** `gutter: false` leaves the side padding to a sheet that has its own. */
+	more_info_content(card, close, { gutter = true } = {}) {
 		const wrap = document.createElement("div");
 		wrap.className = "kn-mi flex flex-col w-full";
 
@@ -1727,6 +1984,9 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			wrap.appendChild(foot);
 		} else if (wrap.lastElementChild) {
 			wrap.lastElementChild.classList.add("pb-3");
+		}
+		if (!gutter) {
+			for (const section of wrap.children) section.classList.remove("px-4");
 		}
 		return wrap;
 	}
@@ -2150,6 +2410,11 @@ frappe.views.KanbanV2GroupedBoard = class KanbanV2GroupedBoard {
 		this.$root = null;
 	}
 
+	/** The lane a card element sits in; a card can sit in two lanes. */
+	engine_for(el) {
+		return this.boards.find((b) => b.board && b.board.engine.root.contains(el))?.board.engine;
+	}
+
 	/** Lets the selection bar and "Move to" work across lanes. */
 	get engine() {
 		const boards = this.boards;
@@ -2166,6 +2431,7 @@ frappe.views.KanbanV2GroupedBoard = class KanbanV2GroupedBoard {
 				const hit = boards.find((b) => b.board && b.board.engine.findCard(cardId));
 				if (hit) hit.board.engine.applyMove(cardId, from, to, index);
 			},
+			remeasure: () => boards.forEach((b) => b.board && b.board.engine.remeasure()),
 		};
 	}
 };

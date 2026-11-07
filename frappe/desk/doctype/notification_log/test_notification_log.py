@@ -5,6 +5,7 @@ from frappe.core.doctype.user.user import get_system_users
 from frappe.desk.doctype.notification_log.notification_log import (
 	enqueue_create_notification,
 	get_email_header,
+	get_notification_logs,
 	get_title,
 )
 from frappe.desk.doctype.notification_type.notification_type import install_notification_types
@@ -205,6 +206,47 @@ class TestNotificationLog(IntegrationTestCase):
 		)
 		app = frappe.db.get_value("Notification Log", {"for_user": recipient, "subject": "No app"}, "app")
 		self.assertFalse(app)
+
+	def test_get_notification_logs_returns_only_your_own(self):
+		other = get_user()
+		frappe.get_doc(
+			{"doctype": "Notification Log", "subject": "for someone else", "for_user": other}
+		).insert(ignore_permissions=True)
+		frappe.get_doc(
+			{"doctype": "Notification Log", "subject": "for you", "for_user": "Administrator"}
+		).insert(ignore_permissions=True)
+
+		logs = get_notification_logs(limit=100)["notification_logs"]
+		self.assertTrue(logs)
+		self.assertEqual({log.for_user for log in logs}, {"Administrator"})
+
+	def test_get_notification_logs_as_a_normal_user(self):
+		you = make_recipient("notify_you@example.com")
+		other = make_recipient("notify_other@example.com")
+		for user in (you, other):
+			frappe.get_doc(
+				{"doctype": "Notification Log", "subject": f"for {user}", "for_user": user}
+			).insert(ignore_permissions=True)
+
+		with self.set_user(you):
+			logs = get_notification_logs(limit=100)["notification_logs"]
+
+		self.assertEqual([log.subject for log in logs], [f"for {you}"])
+
+	def test_get_notification_logs_by_read_state(self):
+		you = make_recipient("notify_read_state@example.com")
+		for subject, read in (("old unread", 0), ("newer read", 1)):
+			frappe.get_doc(
+				{"doctype": "Notification Log", "subject": subject, "for_user": you, "read": read}
+			).insert(ignore_permissions=True)
+
+		with self.set_user(you):
+			unread = get_notification_logs(limit=1, read=0)["notification_logs"]
+			read = get_notification_logs(limit=1, read=1)["notification_logs"]
+
+		# with one shared limit, the newer read log alone would fill it
+		self.assertEqual([log.subject for log in unread], ["old unread"])
+		self.assertEqual([log.subject for log in read], ["newer read"])
 
 
 def make_recipient(email: str) -> str:

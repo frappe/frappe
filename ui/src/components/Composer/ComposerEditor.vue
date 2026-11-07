@@ -55,35 +55,56 @@
 					</div>
 
 					<div class="mt-auto">
-						<div v-if="attachments.length" class="my-2 flex flex-wrap gap-2">
-							<slot
-								name="attachments"
-								v-bind="{ attachments, remove: removeAttachment }"
-							>
-								<Button
-									v-for="attachment in attachments"
-									:key="attachment.file_url"
-									theme="gray"
-									variant="outline"
-									:label="attachment.file_name"
-									:title="attachment.file_name"
-									class="min-w-0 max-w-36"
-								>
-									<template #prefix>
-										<component
-											:is="attachmentIcon(attachment)"
-											class="size-3.5 shrink-0"
-										/>
-									</template>
-									<template #suffix>
-										<span
-											class="lucide-x size-3.5 cursor-pointer shrink-0"
-											@click.self.stop="removeAttachment(attachment)"
-										/>
-									</template>
-								</Button>
-							</slot>
-						</div>
+						<!-- The row grows in with the first chip and collapses with the last, so the
+						     composer's height changes smoothly; the group animates the chips between. -->
+						<Transition
+							:enter-active-class="ROW_ENTER"
+							:enter-from-class="ROW_HIDDEN"
+							:leave-active-class="ROW_LEAVE"
+							:leave-to-class="ROW_HIDDEN"
+						>
+							<div v-if="attachments.length" class="grid grid-rows-[1fr]">
+								<div class="min-h-0">
+									<div class="flex flex-wrap gap-2 py-2">
+										<slot
+											name="attachments"
+											v-bind="{ attachments, remove: removeAttachment }"
+										>
+											<TransitionGroup
+												:enter-active-class="CHIP_ENTER"
+												:enter-from-class="CHIP_HIDDEN"
+												:leave-active-class="CHIP_LEAVE"
+												:leave-to-class="CHIP_HIDDEN"
+											>
+												<Button
+													v-for="attachment in attachments"
+													:key="attachment.file_url"
+													theme="gray"
+													variant="outline"
+													:label="attachment.file_name"
+													:title="attachment.file_name"
+													class="min-w-0 max-w-36"
+												>
+													<template #prefix>
+														<LucidePaperclip
+															class="size-3.5 shrink-0"
+														/>
+													</template>
+													<template #suffix>
+														<span
+															class="lucide-x size-3.5 cursor-pointer shrink-0"
+															@click.self.stop="
+																removeAttachment(attachment)
+															"
+														/>
+													</template>
+												</Button>
+											</TransitionGroup>
+										</slot>
+									</div>
+								</div>
+							</div>
+						</Transition>
 
 						<!-- Host content pinned above the utilities row, e.g. actions staged for send. -->
 						<slot name="footer" />
@@ -176,14 +197,6 @@
 import { computed, nextTick, ref, useTemplateRef, watch } from "vue";
 import { useScroll } from "@vueuse/core";
 import { Button, Spinner, toast } from "frappe-ui";
-import LucideFile from "~icons/lucide/file";
-import LucideFileArchive from "~icons/lucide/file-archive";
-import LucideFileAudio from "~icons/lucide/file-audio";
-import LucideFileCode from "~icons/lucide/file-code";
-import LucideFileImage from "~icons/lucide/file-image";
-import LucideFileSpreadsheet from "~icons/lucide/file-spreadsheet";
-import LucideFileText from "~icons/lucide/file-text";
-import LucideFileVideo from "~icons/lucide/file-video";
 import LucidePaperclip from "~icons/lucide/paperclip";
 import {
 	Editor,
@@ -274,6 +287,8 @@ const extensions = [
 	RichTextKit.configure({
 		heading: { levels: [2, 3, 4, 5, 6] },
 		mention: { items: () => mentionItems.value },
+		// Server sanitizing drops iframes, so a pasted URL would turn into an embed that is lost on send.
+		iframe: false,
 	}),
 	...(props.extensions ?? []),
 ];
@@ -357,6 +372,15 @@ function buildMessage() {
 }
 
 const attachments = ref<UploadedFile[]>([]);
+const CHIP_ENTER = "transition duration-150 ease-out motion-reduce:transition-none";
+const CHIP_LEAVE = "transition duration-100 ease-in motion-reduce:transition-none";
+const CHIP_HIDDEN = "scale-90 opacity-0";
+// Height animates through grid rows (0fr ↔ 1fr), which needs no measured height.
+const ROW_ENTER =
+	"overflow-hidden transition-[grid-template-rows,opacity] duration-150 ease-out motion-reduce:transition-none";
+const ROW_LEAVE =
+	"overflow-hidden transition-[grid-template-rows,opacity] duration-150 ease-in motion-reduce:transition-none";
+const ROW_HIDDEN = "!grid-rows-[0fr] opacity-0";
 const isUploading = ref(false);
 function addAttachment(file: UploadedFile) {
 	if (attachments.value.length >= props.maxAttachments) {
@@ -364,22 +388,6 @@ function addAttachment(file: UploadedFile) {
 		return;
 	}
 	attachments.value.push(file);
-}
-
-// Chip icon by MIME type.
-function attachmentIcon(file: UploadedFile) {
-	const type = file.file_type ?? "";
-	if (type.startsWith("image/")) return LucideFileImage;
-	if (type.startsWith("video/")) return LucideFileVideo;
-	if (type.startsWith("audio/")) return LucideFileAudio;
-	if (type.includes("csv") || type.includes("sheet") || type.includes("excel"))
-		return LucideFileSpreadsheet;
-	if (type.includes("zip") || type.includes("tar") || type.includes("compressed"))
-		return LucideFileArchive;
-	if (type.includes("json") || type.includes("xml") || type.includes("html"))
-		return LucideFileCode;
-	if (type.includes("pdf") || type.startsWith("text/")) return LucideFileText;
-	return LucideFile;
 }
 
 function setUploading(value: boolean) {

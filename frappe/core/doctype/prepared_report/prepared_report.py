@@ -40,8 +40,6 @@ class PreparedReport(Document):
 		filters: DF.SmallText | None
 		job_id: DF.Data | None
 		peak_memory_usage: DF.Int
-		queued_at: DF.Datetime | None
-		queued_by: DF.Data | None
 		report_end_time: DF.Datetime | None
 		report_name: DF.Data
 		status: DF.Literal["Error", "Queued", "Completed", "Started", "Cancelled"]
@@ -79,13 +77,17 @@ class PreparedReport(Document):
 
 	def after_insert(self):
 		timeout = frappe.get_value("Report", self.report_name, "timeout")
-		enqueue(
-			generate_report,
-			queue="long",
+		frappe.enqueue_task(
+			method="frappe.core.doctype.prepared_report.prepared_report.generate_report",
 			prepared_report=self.name,
+			task_name=self.report_name,
+			ref_doctype=self.doctype,
+			ref_docname=self.name,
 			timeout=timeout or REPORT_TIMEOUT,
+			show_progress_bar=False,
 			enqueue_after_commit=True,
 			at_front_when_starved=True,
+			queue="long",
 		)
 
 	def get_prepared_data(self, with_file_name=False, format="json"):
@@ -150,10 +152,13 @@ def generate_report(prepared_report):
 		instance.status = "Completed"
 
 	except Exception:
+		frappe.db.rollback()
 		# we need to ensure that error gets stored
 		_save_error(instance, error=frappe.get_traceback(with_context=True))
 		notify_report_status(instance)
-		return
+		# reraise so 'Background Task' can capture
+		frappe.db.commit()
+		raise
 
 	instance.reload()
 	instance.status = "Completed"
@@ -243,23 +248,43 @@ def make_prepared_report(report_name: str, filters: dict[str, Any] | str | list 
 @frappe.whitelist()
 def stop_prepared_report(report_name: str):
 	"""Stop a running Prepared Report job."""
+	from rq.job import Job, JobStatus
+
 	prepared_report = frappe.get_doc("Prepared Report", report_name)
 	prepared_report.check_permission("write")
 
-	job_id = prepared_report.job_id
-	if not job_id.startswith(frappe.local.site):
-		frappe.throw(f"Invalid job_id: must start with {frappe.local.site}")
+	if prepared_report.owner != frappe.session.user and "System Manager" not in frappe.get_roles():
+		frappe.throw(_("Not permitted"), frappe.PermissionError)
 
-	try:
-		send_stop_job_command(connection=get_redis_conn(), job_id=job_id)
+	job_id = prepared_report.job_id
+	if job_id:
+		if not job_id.startswith(frappe.local.site):
+			frappe.throw(f"Invalid job_id: must start with {frappe.local.site}")
+
+		conn = get_redis_conn()
+		job = Job.fetch(job_id, connection=conn)
+		if job.get_status(refresh=True) == JobStatus.STARTED:
+			send_stop_job_command(connection=conn, job_id=job_id)
+
+	if prepared_report.status != "Completed":
 		frappe.db.set_value(
 			"Prepared Report",
 			prepared_report.name,
 			{"status": "Cancelled"},
 		)
-		frappe.msgprint(_("Job stopped successfully"), alert=True, indicator="green")
-	except InvalidJobOperation:
-		frappe.msgprint(_("Job is not running."), title=_("Invalid Operation"))
+		if tasks := frappe.db.get_all(
+			"Background Task",
+			{
+				"ref_doctype": "Prepared Report",
+				"ref_docname": report_name,
+				"status": ["in", ["Queued", "Running"]],
+			},
+			pluck="name",
+		):
+			frappe.db.set_value("Background Task", {"name": ["in", tasks]}, "status", "Cancelled")
+			for task in tasks:
+				task_doc = frappe.get_doc("Background Task", task)
+				task_doc._publish({"task_id": task_doc.task_id, "status": "Cancelled"})
 
 
 def process_filters_for_prepared_report(filters: dict[str, Any] | str) -> str:
@@ -337,8 +362,8 @@ def delete_prepared_reports(reports: str | list[dict[str, Any]]):
 	reports = frappe.parse_json(reports)
 	for report in reports:
 		prepared_report = frappe.get_doc("Prepared Report", report["name"])
-		if prepared_report.has_permission():
-			prepared_report.delete(ignore_permissions=True, delete_permanently=True)
+		prepared_report.check_permission("read")
+		prepared_report.delete(ignore_permissions=True, delete_permanently=True)
 
 
 def create_json_gz_file(data, dt, dn, report_name):
@@ -367,7 +392,7 @@ def create_json_gz_file(data, dt, dn, report_name):
 @frappe.whitelist()
 def download_attachment(dn: str, format: str):
 	pr = frappe.get_doc("Prepared Report", dn)
-	if not pr.has_permission("read"):
+	if not frappe.has_permission("Prepared Report", "read", doc=pr):
 		frappe.throw(frappe._("Cannot Download Report due to insufficient permissions"))
 
 	data, file_name = pr.get_prepared_data(with_file_name=True, format=format)

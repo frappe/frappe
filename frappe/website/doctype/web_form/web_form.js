@@ -253,13 +253,10 @@ frappe.ui.form.on("Web Form", {
 				title: __("Set Filters"),
 				fields: fields,
 				primary_action: function () {
-					let values = this.get_values();
-					if (values) {
-						this.hide();
-						let filters = frm.filter_group.get_filters();
-						frm.set_value("condition_json", JSON.stringify(filters));
-						frm.trigger("render_condition_table");
-					}
+					this.hide();
+					let filters = frm.filter_group.get_filters();
+					frm.set_value("condition_json", JSON.stringify(filters));
+					frm.trigger("render_condition_table");
 				},
 				primary_action_label: "Set",
 			});
@@ -330,8 +327,7 @@ frappe.ui.form.on("Web Form", {
 			let dialog = new frappe.ui.Dialog({
 				title: __("Set Dynamic Filters"),
 				fields: fields,
-				primary_action: () => {
-					let values = dialog.get_values();
+				primary_action: (values) => {
 					dialog.hide();
 					let dynamic_filters = [];
 					for (let key of Object.keys(values)) {
@@ -593,23 +589,36 @@ class GetFieldsDialog {
 	}
 
 	// a new field sits where the DocType would put it, relative to the fields the form
-	// already has; breaks are never consulted, so the form's own layout is left alone
+	// already has; the form's own breaks are never consulted, so its layout is left alone
 	get_insert_index(df) {
 		const rows = this.frm.doc.web_form_fields;
-		const position = this.fields.indexOf(df);
-		const row_index = (fieldname) => rows.findIndex((d) => d.fieldname === fieldname);
+		const position = this.doctype_fields.indexOf(df);
+		const nearest = (step) => {
+			let pages_away = 0;
+			let sections_away = 0;
+			for (let i = position + step; i >= 0 && i < this.doctype_fields.length; i += step) {
+				const neighbour = this.doctype_fields[i];
+				if (is_layout_field(neighbour)) {
+					if (get_web_form_fieldtype(neighbour) === "Page Break") pages_away++;
+					else if (neighbour.fieldtype !== "Column Break") sections_away++;
+					continue;
+				}
+				const at = rows.findIndex((d) => d.fieldname === neighbour.fieldname);
+				if (at !== -1) return { at, pages_away, sections_away };
+			}
+		};
+		const before = nearest(-1);
+		const after = nearest(1);
+		const after_is_nearer =
+			before &&
+			after &&
+			(after.pages_away - before.pages_away || after.sections_away - before.sections_away) <
+				0;
 
-		for (let i = position - 1; i >= 0; i--) {
-			const at = row_index(this.fields[i].fieldname);
-			if (at !== -1) return at + 1;
-		}
-		// nothing before it: sit before the nearest one after, so a new opening field stays
-		// inside the form's first section
-		for (let i = position + 1; i < this.fields.length; i++) {
-			const at = row_index(this.fields[i].fieldname);
-			if (at !== -1) return at;
-		}
-		return rows.length;
+		// follow the neighbour on the nearer page, then in the nearer section
+		if (after_is_nearer) return after.at;
+		if (before) return before.at + 1;
+		return after ? after.at : rows.length;
 	}
 
 	rebuild_layout(selected) {
@@ -624,7 +633,7 @@ class GetFieldsDialog {
 		this.frm.dirty();
 	}
 
-	// existing rows are reused, so their edits survive. An empty break is kept anyway:
+	// only field rows are reused: existing_rows has no breaks. An empty break is kept anyway:
 	// the portal skips the empty page and the save says so
 	get_ordered_rows(selected) {
 		const rows = this.doctype_fields
@@ -891,6 +900,7 @@ function render_form_builder(frm) {
 	frappe
 		.require("form_builder.bundle.js")
 		.then(() => {
+			if (frappe.get_current_page() !== frm.page) return;
 			frappe.web_form_builder = new frappe.ui.FormBuilder({
 				wrapper: wrapper,
 				frm: frm,

@@ -71,6 +71,14 @@ class LogDatabase(SQLiteDatabase):
 		would leave the connection permanently mid-transaction and defeat autocommit.
 		"""
 
+	def clear_db_table_cache(self, query_type: str) -> None:
+		"""No-op: the schema cache belongs to the primary database.
+
+		`db_tables` and `table_columns::*` are site-global keys that `frappe.db` reads.
+		`ensure_log_table` issues DDL here on every request that touches a log DocType, so
+		clearing them would throw away the primary's cached schema each time.
+		"""
+
 
 def get_log_db() -> LogDatabase:
 	"""Return the log database handle, connecting on first use.
@@ -274,7 +282,7 @@ def is_log_doctype(doctype: str) -> bool:
 	retention command -- uses this to tell a log DocType apart from an ordinary one,
 	because a log DocType owns no table in the site's primary database.
 	"""
-	from frappe.model.base_document import get_controller
+	from frappe.model.document import get_controller
 	from frappe.utils.sqlite_document import SQLiteLogDocument
 
 	try:

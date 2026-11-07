@@ -7,6 +7,28 @@ const TITLE = ".navbar-breadcrumbs:visible li:last-child";
 
 const doctype_name = custom_submittable_doctype.name;
 
+function track_failed_report_requests(page) {
+	const failed_requests = [];
+	page.on("response", (response) => {
+		if (response.url().includes("frappe.desk.reportview.get") && !response.ok()) {
+			failed_requests.push(response.url());
+		}
+	});
+	return failed_requests;
+}
+
+async function save_report_group_by({ desk, api }, doctype, group_by = null) {
+	// the open view saves its own settings on render, let it finish before replacing them
+	await desk.ready();
+	const report = group_by
+		? { group_by: { group_by, aggregates: [{ aggregate_function: "count" }] } }
+		: {};
+	await api.call("frappe.model.utils.user_settings.save", {
+		doctype,
+		user_settings: JSON.stringify({ Report: report }),
+	});
+}
+
 test.describe("Report View", () => {
 	test.beforeAll(async ({ admin }) => {
 		await admin.insert_doc("DocType", custom_submittable_doctype, true);
@@ -22,6 +44,26 @@ test.describe("Report View", () => {
 				docstatus: 1,
 			});
 		}
+	});
+
+	test("drops a saved chart that has no Y axis", async ({ page, api, desk }) => {
+		const errors = [];
+		page.on("pageerror", (error) => errors.push(error.message));
+		await page.goto(`/desk/List/${doctype_name}/Report`);
+		// the open view saves its own settings on render, let it finish before replacing them
+		await desk.ready();
+		await api.call("frappe.model.utils.user_settings.save", {
+			doctype: doctype_name,
+			user_settings: JSON.stringify({
+				Report: { chart_args: { chart_type: "bar", x_axis: "name", y_axes: [] } },
+			}),
+		});
+
+		await page.reload();
+
+		await expect(page.locator(".dt-row-0")).toBeVisible();
+		await expect(page.locator(".charts-wrapper")).toBeHidden();
+		expect(errors).toEqual([]);
 	});
 
 	test("Field with enabled allow_on_submit should be editable.", async ({ page, api }) => {
@@ -145,19 +187,49 @@ test.describe("Report View group by button", () => {
 		await expect(button_label.locator("b")).toHaveCount(0);
 	});
 
+	test("keeps the group by popover open when a field is picked with the mouse", async ({
+		page,
+	}) => {
+		const popover = page.locator(".group-by-popover");
+		await page.evaluate(() => {
+			const control = window.cur_list.group_by_control;
+			control.remove_group_by();
+			// the popover fades out, so catch the hide itself
+			control.group_by_button.on("hide.bs.popover", () => (window.group_by_hidden = true));
+		});
+
+		await page.locator(".group-by-button").click();
+		await page
+			.locator(".es-combobox__panel[data-state='open']")
+			.getByRole("option", { name: label })
+			.click();
+
+		await expect(popover.locator("select.aggregate-function")).toBeVisible();
+		expect(await page.evaluate(() => window.group_by_hidden)).toBeUndefined();
+		expect(
+			await page.evaluate(() => window.cur_list.group_by_control.get_group_bys())
+		).toEqual([{ doctype, fieldname: "category" }]);
+	});
+
 	test("keeps keyboard focus in the group by popover", async ({ page }) => {
 		const button = page.locator(".group-by-button");
 		const popover = page.locator(".group-by-popover");
-		const input = popover.locator(".group-by-field-select input").first();
+		const field = popover.locator(".group-by-field-select .es-combobox").first();
+		// the field picker's list opens in <body>
+		const picker = page.locator(".es-combobox__panel[data-state='open']");
 		await page.evaluate(() => window.cur_list.group_by_control.remove_group_by());
 
+		// the picker opens on every field, with the keyboard in it
 		await button.click();
-		await expect(input).toBeFocused();
-		await expect(popover.locator("li", { hasText: "Category" })).toBeVisible();
+		await expect(picker.getByRole("option", { name: label })).toBeVisible();
+		await expect
+			.poll(() =>
+				page.evaluate(() => !!document.activeElement.closest(".es-combobox__panel"))
+			)
+			.toBe(true);
 
 		// picking the first group by re-renders the popover, focus moves on to the row
-		await input.pressSequentially("Category");
-		await input.press("Enter");
+		await page.keyboard.press("Enter");
 		await expect(popover.locator(".remove-group-by-row").first()).toBeFocused();
 
 		// reopening focuses the popover, Tab reaches the field and another Tab keeps it
@@ -166,9 +238,9 @@ test.describe("Report View group by button", () => {
 		await button.click();
 		await expect(popover).toBeFocused();
 		await page.keyboard.press("Tab");
-		await expect(input).toBeFocused();
+		await expect(field).toBeFocused();
 		await page.keyboard.press("Tab");
-		await expect(input).toHaveValue(label);
+		await expect(field).toContainText(label);
 		expect(
 			await page.evaluate(() => window.cur_list.group_by_control.get_group_bys())
 		).toEqual([{ doctype, fieldname: "category" }]);
@@ -207,6 +279,42 @@ test.describe("Report View group by button", () => {
 		await expect(popover).toBeHidden();
 	});
 
+	test("opens a saved view grouped by a field that cannot be queried", async ({
+		page,
+		api,
+		desk,
+	}) => {
+		const failed_requests = track_failed_report_requests(page);
+		const open_with_saved_group_by = async (group_by) => {
+			await save_report_group_by({ desk, api }, doctype, group_by);
+			await page.goto("/desk/report-group-by-label/view/report");
+			await expect(page.locator(".dt-row-0")).toBeVisible();
+		};
+		const comments = "`tabReport Group By Label`.`_comments`";
+		const category = "`tabReport Group By Label`.`category`";
+
+		try {
+			await open_with_saved_group_by([comments, category]);
+			expect(await page.evaluate(() => window.cur_list.group_by_control.group_by)).toBe(
+				category
+			);
+			await expect
+				.poll(() =>
+					page.evaluate(() => window.cur_list.data.map((row) => row.category).sort())
+				)
+				.toEqual(["A", "B"]);
+
+			await open_with_saved_group_by([comments]);
+			expect(
+				await page.evaluate(() => window.cur_list.group_by_control.group_by)
+			).toBeFalsy();
+
+			expect(failed_requests).toEqual([]);
+		} finally {
+			await save_report_group_by({ desk, api }, doctype);
+		}
+	});
+
 	test("keeps decimals in minimum and maximum totals", async ({ page }) => {
 		await page.evaluate(() => {
 			const amount = "`tabReport Group By Label`.`amount`";
@@ -231,5 +339,89 @@ test.describe("Report View group by button", () => {
 				})
 			)
 			.toEqual([10.25, 20.25]);
+	});
+});
+
+test.describe("Report View child table group by", () => {
+	const test_user = "test_report_child_group_by@example.com";
+	const role = "Report Child Group By Test Role";
+	const doctype = "Report Child Group By Parent";
+	const child_doctype = "Report Child Group By Row";
+
+	test.beforeAll(async ({ admin }) => {
+		await admin.insert_doc("Role", { role_name: role, desk_access: 1 }, true);
+		await admin.insert_doc(
+			"DocType",
+			{
+				name: child_doctype,
+				custom: 1,
+				istable: 1,
+				module: "Custom",
+				fields: [
+					{ fieldname: "label", fieldtype: "Data", label: "Label" },
+					{ fieldname: "note", fieldtype: "Data", label: "Note", is_virtual: 1 },
+				],
+			},
+			true
+		);
+		await admin.insert_doc(
+			"DocType",
+			{
+				name: doctype,
+				custom: 1,
+				module: "Custom",
+				fields: [
+					{ fieldname: "label", fieldtype: "Data", label: "Label", is_virtual: 1 },
+					{
+						fieldname: "rows",
+						fieldtype: "Table",
+						label: "Rows",
+						options: child_doctype,
+					},
+				],
+				permissions: [{ role, read: 1, report: 1 }],
+			},
+			true
+		);
+		await admin.call("frappe.tests.ui_test_helpers.create_test_user", { username: test_user });
+		await admin.call("frappe.tests.ui_test_helpers.add_remove_role", {
+			action: "add",
+			user: test_user,
+			role,
+		});
+		await admin.insert_doc(doctype, { rows: [{ label: "A" }, { label: "B" }] });
+	});
+
+	test("checks the virtual flag on the child table", async ({ page, api, desk }) => {
+		await desk.login(test_user);
+		await page.goto("/desk/report-child-group-by-parent/view/report");
+		await expect(page.locator(".dt-row-0")).toBeVisible();
+
+		const failed_requests = track_failed_report_requests(page);
+		const open_with_saved_group_by = async (group_by) => {
+			await save_report_group_by({ desk, api }, doctype, group_by);
+			await page.goto("/desk/report-child-group-by-parent/view/report");
+			await expect(page.locator(".dt-row-0")).toBeVisible();
+		};
+		const child_label = "`tabReport Child Group By Row`.`label`";
+		const child_note = "`tabReport Child Group By Row`.`note`";
+
+		try {
+			// the parent has a virtual field of the same name, the child field is stored
+			await open_with_saved_group_by([child_label]);
+			expect(await page.evaluate(() => window.cur_list.group_by_control.group_by)).toBe(
+				child_label
+			);
+			await expect.poll(() => page.evaluate(() => window.cur_list.data.length)).toBe(2);
+
+			await open_with_saved_group_by([child_note]);
+			expect(
+				await page.evaluate(() => window.cur_list.group_by_control.group_by)
+			).toBeFalsy();
+
+			expect(failed_requests).toEqual([]);
+		} finally {
+			await save_report_group_by({ desk, api }, doctype);
+		}
 	});
 });

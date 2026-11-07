@@ -195,16 +195,6 @@ test.describe("Attach Control with Failed Document Save", () => {
 
 	test("Check if file was uploaded correctly", async () => {
 		const { page, desk, api } = shared;
-		const select_filter_field = async (label) => {
-			const fieldname_select = page.locator(".fieldname-select-area .form-control").last();
-			await fieldname_select.click();
-			await fieldname_select.pressSequentially(label);
-			await expect(
-				page.locator(".fieldname-select-area").last().locator("li", { hasText: label })
-			).toBeVisible();
-			await fieldname_select.press("Enter");
-			await fieldname_select.blur();
-		};
 
 		// the list restores the filters an earlier run left in the user's list settings
 		await api.call("frappe.model.utils.user_settings.save", {
@@ -213,23 +203,25 @@ test.describe("Attach Control with Failed Document Save", () => {
 		});
 		await desk.go_to_list("File");
 		await desk.open_list_filter();
-		await select_filter_field("Attached To Name");
+		await page.locator(".filter-popover .add-filter").click();
+		await desk.pick_filter_field("Attached To Name");
 		const attached_to_name = page.locator('input[data-fieldname="attached_to_name"]');
 		await attached_to_name.click();
 		await attached_to_name.pressSequentially(docname);
 		await attached_to_name.blur();
-		await page.getByRole("button", { name: "+ Add a Filter", exact: true }).click();
-		await select_filter_field("Attached To Doctype");
+		await page.locator(".filter-popover .add-filter").click();
+		await desk.pick_filter_field("Attached To DocType");
 		const attached_to_doctype = page
 			.locator('input[data-fieldname="attached_to_doctype"]')
 			.last();
 		await attached_to_doctype.click();
 		await attached_to_doctype.pressSequentially("Test Mandatory Attach Control");
 		await attached_to_doctype.blur();
-		await page.locator(".filter-popover .apply-filters").click();
 		await expect(page.locator("header .level-right .list-count:visible")).toContainText(
 			"1 of 1"
 		);
+		// the next test opens the panel again
+		await desk.close_list_filter();
 	});
 
 	test("Check if file exists with temporary name", async () => {
@@ -240,7 +232,6 @@ test.describe("Attach Control with Failed Document Save", () => {
 		await attached_to_name.clear();
 		await attached_to_name.pressSequentially(temp_name);
 		await attached_to_name.blur();
-		await page.locator(".filter-popover .apply-filters").click();
 		await expect(page.locator(".frappe-list > .no-result")).toBeVisible();
 	});
 });

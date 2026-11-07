@@ -1,0 +1,141 @@
+<template>
+	<!-- a layer over the thread, up to the composer; only the pill itself takes clicks -->
+	<div ref="layer" class="pointer-events-none absolute inset-x-0 top-0 z-10" :style="{ bottom: composerHeight + 'px' }">
+		<button
+			v-if="pill"
+			type="button"
+			class="flow-add-to-chat pointer-events-auto absolute"
+			:style="{
+				left: pill.x + 'px',
+				top: pill.y + 'px',
+				transform: pill.below ? 'translate(-50%, 8px)' : 'translate(-50%, calc(-100% - 8px))',
+			}"
+			@mousedown.prevent
+			@click="add"
+		>
+			<span class="lucide-message-square size-3.5 text-ink-gray-6" aria-hidden="true" />
+			Add to chat
+		</button>
+	</div>
+</template>
+
+<script setup>
+import { inject, onBeforeUnmount, onMounted, ref } from "vue"
+
+import { layout } from "../layout.js"
+
+// Floating "Add to chat" pill over a text selection inside `within`: queues the
+// selected text as a quote for the composer.
+const props = defineProps({ within: { type: Object, default: null } })
+const flow = inject("flow")
+const composerHeight = inject("composerHeight", ref(0))
+const layer = ref(null)
+const pill = ref(null)
+let timer = null
+let resizeObserver = null
+
+// the selection, when it is a non-empty one inside the thread
+function selected() {
+	const range = selectedRange()
+	if (!range || range.collapsed || !props.within?.contains(range.commonAncestorContainer)) return null
+	const text = range.toString().trim()
+	return text ? { range, text } : null
+}
+
+// In an island the thread sits in a shadow root, where the document's selection reads as
+// collapsed on the host: Chrome keeps the real one on the root, Safari and Firefox give it
+// through getComposedRanges
+function selectedRange() {
+	const root = props.within?.getRootNode()
+	const own = root?.getSelection?.()
+	if (own) return own.rangeCount ? own.getRangeAt(0) : null
+	const selection = document.getSelection()
+	if (!selection?.rangeCount) return null
+	if (!(root instanceof ShadowRoot) || !selection.getComposedRanges) return selection.getRangeAt(0)
+	const [found] = selection.getComposedRanges({ shadowRoots: [root] })
+	if (!found) return null
+	const range = document.createRange()
+	range.setStart(found.startContainer, found.startOffset)
+	range.setEnd(found.endContainer, found.endOffset)
+	return range
+}
+
+// the selection's first (or last) line, measured from its text: the range's own
+// boxes cover whole blocks, and split a line at every bold or code run
+function edgeLine(range, last) {
+	const walker = document.createTreeWalker(props.within, NodeFilter.SHOW_TEXT)
+	const step = () => (last ? walker.previousNode() : walker.nextNode())
+	let node = last ? range.endContainer : range.startContainer
+	while (last && node.lastChild) node = node.lastChild
+	walker.currentNode = node
+	if (node.nodeType !== Node.TEXT_NODE) node = step()
+	while (node && !range.intersectsNode(node)) node = step() // text in the boundary's element, outside the range
+	let line = null
+	for (; node && range.intersectsNode(node); node = step()) {
+		const piece = document.createRange()
+		piece.selectNodeContents(node)
+		if (node === range.startContainer) piece.setStart(node, range.startOffset)
+		if (node === range.endContainer) piece.setEnd(node, range.endOffset)
+		const rects = [...piece.getClientRects()].filter((rect) => rect.width && rect.height)
+		for (const rect of last ? rects.reverse() : rects) {
+			const middle = (rect.top + rect.bottom) / 2
+			if (line && (middle < line.top || middle > line.bottom)) return line // the next line
+			line ??= { left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom }
+			line.left = Math.min(line.left, rect.left)
+			line.right = Math.max(line.right, rect.right)
+		}
+	}
+	return line
+}
+
+// centered above the selection's first line; under its last line when there is
+// no room above, and never past the layer's bottom (the composer sits there)
+function place() {
+	const found = selected()
+	if (!found) return (pill.value = null)
+	const box = layer.value.getBoundingClientRect()
+	const rect = found.range.getBoundingClientRect()
+	const top = Math.max(rect.top, box.top)
+	const bottom = Math.min(rect.bottom, box.bottom)
+	if (bottom <= top) return (pill.value = null) // scrolled out of view
+	const first = edgeLine(found.range, false) ?? rect
+	// the rects are screen pixels, the pill's place CSS ones
+	const z = layout.zoom
+	const below = first.top - box.top < 40 * z
+	const anchor = below ? (edgeLine(found.range, true) ?? rect) : first
+	pill.value = {
+		text: found.text,
+		x: (Math.min(Math.max((anchor.left + anchor.right) / 2, box.left + 60 * z), box.right - 60 * z) - box.left) / z,
+		y: ((below ? Math.min(bottom, box.bottom - 36 * z) : first.top) - box.top) / z,
+		below,
+	}
+}
+
+// a collapsing selection hides the pill at once; a growing one settles first
+function onSelectionChange() {
+	clearTimeout(timer)
+	if (!selected()) return (pill.value = null)
+	timer = setTimeout(place, 150)
+}
+
+function add() {
+	flow.addQuote(pill.value.text)
+	const selection = props.within?.getRootNode().getSelection?.() ?? document.getSelection()
+	selection?.removeAllRanges()
+	pill.value = null
+}
+
+onMounted(() => {
+	document.addEventListener("selectionchange", onSelectionChange)
+	document.addEventListener("scroll", place, true) // the pill rides along, and returns with its selection
+	if (typeof ResizeObserver === "undefined") return
+	resizeObserver = new ResizeObserver(place) // a resized thread re-wraps the selection
+	resizeObserver.observe(layer.value)
+})
+onBeforeUnmount(() => {
+	clearTimeout(timer)
+	resizeObserver?.disconnect()
+	document.removeEventListener("selectionchange", onSelectionChange)
+	document.removeEventListener("scroll", place, true)
+})
+</script>

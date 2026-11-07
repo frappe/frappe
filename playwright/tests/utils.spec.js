@@ -84,6 +84,12 @@ test.describe("Utils", () => {
 		expect(await run_util(page, "shorten_number", 0)).toBe("0");
 	});
 
+	test("should not pad a number below the smallest unit with decimals", async ({ page }) => {
+		expect(await run_util(page, "shorten_number", 500, "India", 3)).toBe("500");
+		expect(await run_util(page, "shorten_number", 123.456, "India", 3)).toBe("123.46");
+		expect(await run_util(page, "shorten_number", 40000, "India", 3)).toBe("40 K");
+	});
+
 	test("should parse days, hours, minutes and seconds", async ({ page }) => {
 		const seconds = 60 * 60 * 24 + 60 * 60 + 60 + 1;
 

@@ -72,6 +72,14 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		this.bind_change_event();
 	}
 
+	bind_change_event() {
+		// Firefox fires change when the window loses focus
+		this.$input.on("change", (e) => {
+			if (e.originalEvent && !document.hasFocus()) e.stopImmediatePropagation();
+		});
+		super.bind_change_event();
+	}
+
 	show_link_and_clear_buttons() {
 		if (this.$input.val() && this.get_options()) {
 			const doctype = this.get_options();
@@ -283,6 +291,13 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		this.$input.on("input", this._debounced_input_handler);
 
 		this.$input.on("blur", function () {
+			if (document.activeElement === me.input) {
+				if (me.autocomplete_open && me.$input.val()) {
+					me.$input.one("focus", () => me.on_input());
+				}
+				return;
+			}
+
 			if (me.selected) {
 				me.selected = false;
 				return;

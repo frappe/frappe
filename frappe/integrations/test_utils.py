@@ -16,6 +16,8 @@ class TestOAuth2DynamicClientMetadata(UnitTestCase):
 			"http://127.0.0.1:8080/callback",
 			"http://127.42.0.9/callback",
 			"http://[::1]:8080/callback",
+			"http://localhost/callback",
+			"http://localhost:8080/callback",
 		):
 			with self.subTest(redirect_uri=redirect_uri):
 				client = OAuth2DynamicClientMetadata(client_name="Test Client", redirect_uris=[redirect_uri])
@@ -23,8 +25,8 @@ class TestOAuth2DynamicClientMetadata(UnitTestCase):
 
 		for redirect_uri in (
 			"http://example.com/callback",
-			"http://localhost/callback",
 			"http://192.168.1.1/callback",
+			"http://localhost.example.com/callback",
 		):
 			with self.subTest(redirect_uri=redirect_uri):
 				client = OAuth2DynamicClientMetadata(client_name="Test Client", redirect_uris=[redirect_uri])

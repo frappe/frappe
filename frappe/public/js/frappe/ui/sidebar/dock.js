@@ -1,7 +1,8 @@
 // The app switcher: the modules of the app that owns the sidebar on screen. Pinned (the default)
-// it is a column; floating it slides in over the sidebar when the pointer hits the window's left edge.
+// it is a column; floating it slides in over the sidebar when the pointer hits the window's left
+// edge (the right one in RTL).
 frappe.ui.Dock = class Dock {
-	// Pixels from the left edge: reveal at the edge, hide once the pointer is past the tray.
+	// Pixels from the dock's side of the window: reveal at the edge, hide once past the tray.
 	static REVEAL_EDGE = 1;
 	static HIDE_BAND = 90;
 
@@ -56,12 +57,71 @@ frappe.ui.Dock = class Dock {
 		this.render_utilities();
 		this.setup_reveal();
 		this.setup_shortcut();
+		this.setup_drag_to_edit();
 		this.apply_open_state();
 	}
 
 	set_pinned(pinned) {
 		this.pinned = pinned;
 		this.apply_pin();
+	}
+
+	// Held open while it is being arranged. A floating dock stays floating, so it does not slide
+	// away from the edit in progress, and a pinned one stays a column.
+	hold_open(held) {
+		this.held = held;
+		if (held) this.open();
+		else this.close();
+	}
+
+	// Hand the tiles to an arrangement editor, which draws its own in their place until
+	// `end_editing`. Returns the node it draws in.
+	begin_editing(editor) {
+		this.editor = editor;
+		this.sortable?.option("disabled", true);
+		this.tooltips.forEach((tip) => tip.destroy());
+		this.tooltips = [];
+		this.$dock.addClass("dock-editing");
+		this.$add_slot = $(`<div class="dock-add-slot"></div>`).insertAfter(this.$items);
+		return this.$items;
+	}
+
+	end_editing(editor) {
+		if (this.editor !== editor) return;
+		this.editor = null;
+		this.$dock.removeClass("dock-editing");
+		this.$add_slot?.remove();
+		this.sortable?.option("disabled", false);
+		this.rendered = null;
+		this.refresh();
+	}
+
+	edit(opts) {
+		return frappe.ui.open_arrangement_editor(
+			"DockManager",
+			opts,
+			__("Could not open the dock manager. Please refresh the page.")
+		);
+	}
+
+	// Dragging a tile is a way into arranging the dock: the drop opens the editor with the tiles
+	// in the order they were dropped, as its first unsaved change.
+	setup_drag_to_edit() {
+		this.sortable = new Sortable(this.$items[0], {
+			draggable: ".dock-item",
+			animation: 150,
+			onStart: () => {
+				this.dragged = true;
+				this.tooltips.forEach((tip) => tip.hide());
+			},
+			onEnd: (evt) => {
+				setTimeout(() => (this.dragged = false));
+				if (evt.oldIndex === evt.newIndex) return;
+				const order = $.map(this.$items.find(".dock-item"), (el) => el.dataset.key);
+				this.edit({ order });
+			},
+		});
+		if (frappe.is_mobile()) this.sortable.option("disabled", true);
 	}
 
 	// A touch screen cannot summon a floating dock, and a page without the sidebar has no other
@@ -80,6 +140,10 @@ frappe.ui.Dock = class Dock {
 			$("body").toggleClass("dock-pinned", pinned);
 			pinned ? this.open() : this.close();
 		}
+		this.$dock.toggleClass(
+			"dock-owns-utilities",
+			this.is_pinned || !this.sidebar.page_allows_sidebar()
+		);
 		// A collapsed sidebar hides beside a pinned dock and folds to its rail otherwise.
 		this.sidebar.refit_collapsed_sidebar();
 	}
@@ -103,9 +167,8 @@ frappe.ui.Dock = class Dock {
 		});
 	}
 
-	// Search and notifications lead the tray, and the sidebar drops its own rows for them while
-	// the dock is active (see dock.scss). The classes are what the search modal and the
-	// notifications panel already listen on.
+	// Search, notifications and Flow lead the tray when it owns them (see apply_pin). The classes
+	// are what the search modal and the notifications panel already listen on.
 	render_utilities() {
 		if (frappe.session.user === "Guest") return;
 		const $utilities = this.$dock.find(".dock-utilities");
@@ -133,6 +196,24 @@ frappe.ui.Dock = class Dock {
 			$bell.on("click", () => frappe.ui.sidebar_panels.toggle("notifications"));
 			$utilities.append($bell);
 		}
+
+		// the panel that frappe/flow/launcher.py adds to the page for those who may use Flow
+		if (frappe.model.can_read("Flow Session")) {
+			const $flow = this.make_utility({ label: __("Flow"), icon: "flow", css_class: "" });
+			$flow.on("click", () => window.flow?.toggle());
+			$utilities.append($flow);
+		}
+
+		// BackgroundTasks shows and hides every `.sidebar-background-tasks`, but the rail may be
+		// built after its first fetch, so this one is seeded from that list.
+		const $tasks = this.make_utility({
+			label: __("Background Tasks"),
+			icon: "server",
+			css_class: "sidebar-background-tasks",
+		});
+		$tasks.toggleClass("hidden", !this.sidebar.background_tasks?.db_tasks?.length);
+		$tasks.on("click", () => frappe.ui.sidebar_panels.toggle("background-tasks"));
+		$utilities.append($tasks);
 	}
 
 	make_utility({ label, icon, css_class, badge = "" }) {
@@ -156,17 +237,21 @@ frappe.ui.Dock = class Dock {
 	// for the sidebar rows under it. Not `mouseleave` either: a dock that slides in under a still
 	// pointer never gets `mouseenter`, so it would never get the leave.
 	setup_reveal() {
+		const rtl = frappe.utils.is_rtl();
 		$(document)
 			.off(".dock-edge")
 			.on("mousemove.dock-edge", (e) => {
 				if (!this.enabled || this.is_pinned) return;
+				const dist_from_edge = rtl
+					? document.documentElement.clientWidth - 1 - e.clientX
+					: e.clientX;
 				// Cheap exit for the common case: shut, and nowhere near the edge.
-				if (!this.is_open && e.clientX > frappe.ui.Dock.REVEAL_EDGE) return;
+				if (!this.is_open && dist_from_edge > frappe.ui.Dock.REVEAL_EDGE) return;
 
 				const open = this.should_open({
 					over_dock: !!$(e.target).closest(".dock").length,
 					holds_focus: this.holds_focus(),
-					dist_from_edge: e.clientX,
+					dist_from_edge,
 					currently_open: this.is_open,
 				});
 				open ? this.open() : this.close();
@@ -230,7 +315,7 @@ frappe.ui.Dock = class Dock {
 	}
 
 	close() {
-		if (!this.is_open || this.is_pinned) return;
+		if (!this.is_open || this.is_pinned || this.held) return;
 		const had_focus = this.holds_focus();
 		const opener = this.opener;
 		this.opener = null;
@@ -263,9 +348,10 @@ frappe.ui.Dock = class Dock {
 			return;
 		}
 		this.$dock.removeClass("hidden");
+		if (this.editor) return;
 
 		// One navigation calls this up to three times, so skip the rebuild when nothing drawn changed.
-		const entries = this.sidebar.collect_dock_entries(this.app);
+		const entries = this.sidebar.collect_dock_entries(this.app).filter(Boolean);
 		const signature = JSON.stringify([
 			this.app ? this.app.app_name : null,
 			this.sidebar.current_module,
@@ -351,6 +437,7 @@ frappe.ui.Dock = class Dock {
 			: frappe.utils.desktop_icon(label, "gray", "rail");
 		let $item = $(`<button
 			class="dock-item ${is_active ? "active" : ""} ${is_duotone ? "dock-item--duotone" : ""}"
+			data-key="${frappe.utils.escape_html(this.sidebar.dock_entry_key(entry))}"
 			aria-label="${frappe.utils.escape_html(label)}"
 			${is_active ? 'aria-current="page"' : ""}
 		>
@@ -361,6 +448,7 @@ frappe.ui.Dock = class Dock {
 		this.name_tile($item, label);
 
 		$item.on("click", () => {
+			if (this.dragged) return;
 			this.close();
 			this.sidebar.open_dock_entry(entry);
 		});

@@ -1,0 +1,64 @@
+<style>
+.flow-run h6 { font-size: var(--text-md); font-weight: 420; color: #525252; margin: 44px 0 12px; }
+.flow-run h6:first-child { margin-top: 0; }
+.flow-run table.usage { width: auto; margin: 0; }
+.flow-run table thead th { font-weight: 500; }
+.flow-run pre.args { white-space: pre-wrap; word-break: break-word; font-size: 12px; margin: 0; }
+.flow-run table.calls { width: 100%; margin: 0; font-size: 12px; }
+.flow-run .empty { color: var(--text-muted); }
+.flow-run pre.text { white-space: pre-wrap; word-break: break-word; margin: 0; background: var(--control-bg); border-radius: 6px; padding: 9px 11px; }
+</style>
+{% var esc = (v) => frappe.utils.escape_html(v == null ? "" : String(v)); %}
+{% var nf = (n) => Number(n || 0).toLocaleString(); %}
+{% var hasKeys = (o) => o && Object.keys(o).length; %}
+<div class="flow-run">
+
+{% if input %}
+<h6>{{ __("Input") }}</h6>
+<pre class="text">{{ esc(input) }}</pre>
+{% endif %}
+
+{% if output %}
+<h6>{{ __("Output") }}</h6>
+<pre class="text">{{ esc(output) }}</pre>
+{% endif %}
+
+{% if error %}
+<h6>{{ __("Error") }}</h6>
+<pre class="text">{{ esc(error) }}</pre>
+{% endif %}
+
+{% if usage %}
+<h6>{{ __("Token Usage") }}</h6>
+<table class="table table-bordered usage">
+	<thead><tr><th>{{ __("Input") }}</th><th>{{ __("Output") }}</th><th>{{ __("Cache Read") }}</th><th>{{ __("Cache Write") }}</th><th>{{ __("Cost") }}</th></tr></thead>
+	<tbody><tr><td>{{ nf(usage.input_tokens) }}</td><td>{{ nf(usage.output_tokens) }}</td><td>{{ nf(usage.cache_read_tokens) }}</td><td>{{ nf(usage.cache_write_tokens) }}</td><td>{{ Number(usage.cost || 0).toFixed(4) }}</td></tr></tbody>
+</table>
+{% endif %}
+
+{% if calls && calls.length %}
+<h6>{{ __("Tool Calls") }}</h6>
+<table class="table table-bordered calls">
+	<thead><tr><th style="width: 32px;">#</th><th>{{ __("Tool") }}</th><th>{{ __("Arguments") }}</th></tr></thead>
+	<tbody>
+{% for c in calls %}
+		<tr>
+			<td class="text-muted">{{ c._index + 1 }}</td>
+			<td style="white-space: nowrap;"><code>{{ esc(c.name) }}</code></td>
+			<td>{% if hasKeys(c.arguments) %}<pre class="args">{{ esc(JSON.stringify(c.arguments, null, 2)) }}</pre>{% else %}<span class="empty">—</span>{% endif %}</td>
+		</tr>
+{% endfor %}
+	</tbody>
+</table>
+{% endif %}
+
+{% if questions && questions.length %}
+<h6>{{ __("Pending Questions") }}</h6>
+<ul style="margin: 0; padding-left: 18px;">
+{% for q in questions %}
+	<li style="margin-bottom: 8px;"><pre class="args">{{ esc(q.prompt) }}</pre></li>
+{% endfor %}
+</ul>
+{% endif %}
+
+</div>

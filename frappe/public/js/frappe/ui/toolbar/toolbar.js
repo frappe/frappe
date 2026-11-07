@@ -6,6 +6,16 @@ frappe.provide("frappe.search");
 
 frappe.ui.toolbar.Toolbar = class {
 	constructor() {
+		let current_announcement = frappe.boot.navbar_settings.announcement_widget;
+
+		if (
+			current_announcement &&
+			current_announcement != localStorage.getItem("announcement_widget")
+		) {
+			localStorage.removeItem("dismissed_announcement_widget");
+			localStorage.setItem("announcement_widget", current_announcement);
+		}
+
 		if (
 			frappe.boot.read_only ||
 			frappe.boot.user.impersonated_by ||
@@ -159,12 +169,6 @@ frappe.ui.toolbar.Toolbar = class {
 		let current_announcement = frappe.boot.navbar_settings.announcement_widget;
 
 		if (!current_announcement) return;
-
-		// If an unseen announcement is added, overlook dismiss flag
-		if (current_announcement != localStorage.getItem("announcement_widget")) {
-			localStorage.removeItem("dismissed_announcement_widget");
-			localStorage.setItem("announcement_widget", current_announcement);
-		}
 
 		// When an announcement is closed, add dismiss flag
 		if (!localStorage.getItem("dismissed_announcement_widget")) {

@@ -6,6 +6,7 @@ import frappe
 import frappe.modules.utils
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.desk.form.save import savedocs
+from frappe.model.db_query import DatabaseQuery
 from frappe.model.document import Document
 from frappe.model.virtual_doctype import validate_controller
 from frappe.tests import IntegrationTestCase
@@ -55,7 +56,7 @@ class VirtualDoctypeTest(Document):
 	def load_from_db(self):
 		data = self.get_current_data()
 		d = data.get(self.name)
-		super(Document, self).__init__(d)
+		self.init_from_dict(d)
 
 	def db_update(self, *args, **kwargs):
 		# For this example insert and update are same operation,
@@ -186,6 +187,21 @@ class TestVirtualDoctypes(IntegrationTestCase):
 
 		listed_docs = {d.name for d in frappe.get_list(TEST_DOCTYPE_NAME)}
 		self.assertIn(doc.name, listed_docs)
+
+	def test_get_list_without_order_by_keeps_controller_default(self):
+		def get_list(order_by="name asc"):
+			return [frappe._dict(order_by=order_by)]
+
+		with patch.object(VirtualDoctypeTest, "get_list", staticmethod(get_list)):
+			self.assertEqual(frappe.get_list(TEST_DOCTYPE_NAME)[0].order_by, "name asc")
+			self.assertEqual(
+				frappe.get_list(TEST_DOCTYPE_NAME, order_by="creation desc")[0].order_by, "creation desc"
+			)
+			self.assertEqual(DatabaseQuery(TEST_DOCTYPE_NAME).execute()[0].order_by, "name asc")
+			self.assertEqual(
+				DatabaseQuery(TEST_DOCTYPE_NAME).execute(order_by="creation desc")[0].order_by,
+				"creation desc",
+			)
 
 	def test_guest_cannot_delete_virtual_doctype(self):
 		doc = frappe.get_doc(doctype=TEST_DOCTYPE_NAME).insert()

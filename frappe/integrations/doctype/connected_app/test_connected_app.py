@@ -220,6 +220,24 @@ class TestConnectedApp(IntegrationTestCase):
 		finally:
 			frappe.set_user("Administrator")
 
+	def test_has_token_for_another_user_needs_their_email_account(self):
+		from frappe.integrations.doctype.connected_app.connected_app import has_token
+
+		reader = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": f"{frappe.generate_hash()}@example.com",
+				"first_name": "Reader",
+				"send_welcome_email": 0,
+				"roles": [{"role": "Inbox User"}],
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(lambda: frappe.delete_doc("User", reader.name, force=True, ignore_permissions=True))
+
+		with self.set_user(reader.name):
+			self.assertFalse(has_token(self.connected_app.name))
+			self.assertRaises(frappe.PermissionError, has_token, self.connected_app.name, self.user_name)
+
 	def tearDown(self):
 		def delete_if_exists(attribute):
 			doc = getattr(self, attribute, None)

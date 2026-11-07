@@ -31,8 +31,8 @@ frappe.ui.form.on("Installed Applications", {
 					],
 				},
 			],
-			primary_action: function () {
-				const new_order = this.get_values()["apps"].map((row) => row.app_name);
+			primary_action: function (values) {
+				const new_order = values["apps"].map((row) => row.app_name);
 				frappe.call({
 					method: "frappe.core.doctype.installed_applications.installed_applications.update_installed_apps_order",
 					freeze: true,

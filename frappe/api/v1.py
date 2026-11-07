@@ -47,13 +47,14 @@ def handle_rpc_call(method: str):
 def create_doc(doctype: str):
 	data = get_request_form_data()
 	data.pop("doctype", None)
-	return frappe.new_doc(doctype, **data).insert()
+	return frappe.new_doc(doctype, **data).insert().copy_with_fieldlevel_read_permissions()
 
 
 def update_doc(doctype: str, name: str):
 	data = get_request_form_data()
 
 	doc = frappe.get_doc(doctype, name, for_update=True)
+	doc.check_permission("write")
 	if "flags" in data:
 		del data["flags"]
 
@@ -64,7 +65,7 @@ def update_doc(doctype: str, name: str):
 	if doc.get("parenttype"):
 		frappe.get_doc(doc.parenttype, doc.parent).save()
 
-	return doc
+	return doc.copy_with_fieldlevel_read_permissions()
 
 
 def delete_doc(doctype: str, name: str):

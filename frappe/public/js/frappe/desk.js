@@ -440,7 +440,6 @@ frappe.Application = class Application {
 	}
 	logout() {
 		var me = this;
-		me.logged_out = true;
 		frappe.confirm(__("Are you sure you want to log out?"), function () {
 			return frappe.call({
 				method: "logout",
@@ -449,6 +448,7 @@ frappe.Application = class Application {
 						return;
 					}
 
+					me.logged_out = true;
 					me.redirect_to_login();
 				},
 			});

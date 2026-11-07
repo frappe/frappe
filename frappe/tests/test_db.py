@@ -468,10 +468,64 @@ class TestDB(IntegrationTestCase):
 			frappe.delete_doc(test_doctype, doc)
 		clear_custom_fields(test_doctype)
 
-	@unimplemented_for(db_type_is.POSTGRES)
 	def test_multi_statements(self):
 		with self.assertRaises(frappe.db.ProgrammingError):
 			frappe.db.sql("select 1; select 1")
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_multi_statements_postgres_lexing(self):
+		for query in (
+			"select 1 /* ; */; select 2",
+			"select 1 -- ;\n; select 2",
+			"select 1 /* /* */ */; select 2",
+			"select 'a\\'; select 2",
+			"select E'\\''; select 2",
+			'select 1 as a$b$; select 2 as "$b$"',
+			'select 1 as é$b$; select 2 as "$b$"',
+			'select 1 as a\u00a0$b$; select 2 as "$b$"',
+			"select 1 -- \r; select 2",
+			"select E'a'\n'\\''; select 2 --'",
+			"select E'a' -- c\n\n'\\''; select 2 --'",
+			"select E'a' '\\'; select 2 --'",
+			"select E''\v\n'\\' -- '; select 2",
+		):
+			with (
+				self.subTest(query=query),
+				self.assertRaisesRegex(frappe.db.ProgrammingError, "Multiple SQL statements"),
+			):
+				frappe.db.sql(query)
+
+		for query in (
+			"select 1;",
+			"select 1; -- trailing",
+			"select 'a''; select 2'",
+			"select E'\\'; select 2'",
+			'select 1 as "a;b"',
+			"select $$;$$",
+			"select $t$ $$; $t$",
+			"select 1 /* /* */ ; */",
+			"select E'a'\n'\\'; select 2'",
+		):
+			with self.subTest(query=query):
+				frappe.db.sql(query)
+
+		frappe.db.savepoint("bound_comment")
+		with self.assertRaises(frappe.db.ProgrammingError):
+			frappe.db.sql("select 1 -- %s", ("\n; select 2 --",))
+		frappe.db.rollback(save_point="bound_comment")
+
+		self.assertEqual(frappe.db.sql("select %s", ("a; b",)), (("a; b",),))
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_multi_statements_postgres_nonstandard_strings(self):
+		frappe.db.sql("SET LOCAL standard_conforming_strings = off")
+		self.addCleanup(frappe.db.sql, "RESET standard_conforming_strings")
+		with self.assertRaises(frappe.db.ProgrammingError):
+			frappe.db.sql("select '\\'' ; select 2 --'")
+		with self.assertRaises(frappe.db.ProgrammingError):
+			frappe.db.sql("select B'1\\' ; select 2 -- '")
+
+		frappe.db.sql("select 'a\\'; select 2'")
 
 	def test_savepoints(self):
 		frappe.db.rollback()
@@ -778,6 +832,10 @@ class TestDB(IntegrationTestCase):
 		self.assertEqual(
 			"select * from \"tabtree b\" where lft > '13' and rgt <= '16' and name = '1' and parent = 4134qrsdc and isgroup = 1.00045",
 			modify_query(query),
+		)
+		self.assertEqual(
+			"""select 'a=1', E'b\\' =1', "c=1", $$d=1$$ where e= '1'""",
+			modify_query("""select 'a=1', E'b\\' =1', "c=1", $$d=1$$ where e=1"""),
 		)
 
 		query = 'select locate(".io", "frappe.io"), locate("3", cast(3 as varchar)), locate("3", 3::varchar)'
@@ -1149,19 +1207,120 @@ class TestDB(IntegrationTestCase):
 		self.assertEqual(matched, ["Administrator"])
 
 	@run_only_if(db_type_is.POSTGRES)
-	def test_modify_values(self):
-		from frappe.database.postgres.database import modify_values
+	def test_bind_values(self):
+		from frappe.database.postgres.database import bind_values
 
 		self.assertEqual(
-			{"a": "23", "b": 23.0, "c": 23.0345, "d": "wow", "e": ("1", "2", "3", "abc")},
-			modify_values({"a": 23, "b": 23.0, "c": 23.0345, "d": "wow", "e": [1, 2, 3, "abc"]}),
+			("a = %(a)s and b = %(b)s", {"a": "23", "b": 23.5, "c": "wow"}),
+			bind_values("a = %(a)s and b = %(b)s", {"a": 23, "b": 23.5, "c": "wow"}),
 		)
 		# bool is a subclass of int, it must not end up as "True"
-		self.assertEqual({"a": "1", "b": "0"}, modify_values({"a": True, "b": False}))
+		self.assertEqual(("%s %s", ["1", "0"]), bind_values("%s %s", (True, False)))
 		self.assertEqual(
-			["23", 23.0, 23.00004345, "wow", ("1", "2", "3", "abc")],
-			modify_values((23, 23.0, 23.00004345, "wow", [1, 2, 3, "abc"])),
+			("a = ANY(%s) and b like '1%%' and c <> ALL(%s) and d = %s", [["1", "abc"], ["x"], None]),
+			bind_values("a in %s and b like '1%%' and c NOT IN %s and d = %s", ([1, "abc"], ("x",), None)),
 		)
+		self.assertEqual(
+			("a = ANY(%(a)s) or %(b)s", {"a": ["1", "abc"], "b": "x"}),
+			bind_values("a in %(a)s or %(b)s", {"a": (1, "abc"), "b": "x", "unused": 1}),
+		)
+		self.assertEqual(
+			("(a, b) in ((%s, %s), (%s, %s)) and c = (%s, %s)", ["1", "2", "3", "4", "x", "y"]),
+			bind_values("(a, b) in %s and c = %s", (((1, 2), (3, 4)), ("x", "y"))),
+		)
+		self.assertEqual(
+			(
+				"(a, b) = (%(pair__0_)s, %(pair__1)s) and c = %(pair__0)s",
+				{"pair__0_": "x", "pair__1": "y", "pair__0": "z"},
+			),
+			bind_values("(a, b) = %(pair)s and c = %(pair__0)s", {"pair": ("x", "y"), "pair__0": "z"}),
+		)
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_session_settings_are_set_after_connecting(self):
+		from frappe.automation_engine.tests.test_drainer import connect_again
+
+		other = connect_again()
+		self.addCleanup(other.close)
+		# PgBouncer rejects or drops startup options
+		self.assertNotIn("options", other._conn.info.get_parameters())
+		self.assertEqual(other.sql("show transaction_isolation")[0][0], "repeatable read")
+		other.rollback()
+		self.assertEqual(other.sql("show transaction_isolation")[0][0], "repeatable read")
+		self.assertEqual(other.sql("show search_path"), frappe.db.sql("show search_path"))
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_close_leaves_no_transaction_open(self):
+		from psycopg.pq import TransactionStatus
+
+		from frappe.automation_engine.tests.test_drainer import connect_again
+
+		other = connect_again()
+		other.sql("select 1")
+		conn = other._conn
+		statuses = []
+		close = conn.close
+		with patch.object(conn, "close", lambda: statuses.append(conn.info.transaction_status) or close()):
+			other.close()
+		self.assertEqual(statuses, [TransactionStatus.IDLE])
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_transactions_after_commit_use_the_session_isolation(self):
+		from frappe.automation_engine.tests.test_drainer import connect_again
+
+		other = connect_again()
+		self.addCleanup(other.close)
+		other.commit()
+		self.assertEqual(other.sql("show transaction_isolation")[0][0], "repeatable read")
+		other.sql("SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL READ COMMITTED")
+		other.commit()
+		self.assertEqual(other.sql("show transaction_isolation")[0][0], "read committed")
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_server_bound_parameters_postgres_cannot_type(self):
+		from frappe.query_builder.functions import Concat
+
+		doctype = frappe.qb.DocType("DocType")
+		query = frappe.qb.from_(doctype).select(Concat("DT-", doctype.name)).where(doctype.name == "User")
+		self.assertEqual(query.run(), (("DT-User",),))
+		self.assertEqual(frappe.db.sql("select 1 where 1.5 in %s", ([1, 1.5],)), ((1,),))
+		names = [f"name-{i}" for i in range(70_000)]
+		in_list = ", ".join(["%s"] * len(names))
+		self.assertEqual(
+			frappe.db.sql(f"select count(*) from tabDocType where name in ({in_list})", names), ((0,),)
+		)
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_reconnect_closes_the_replaced_connection(self):
+		frappe.db.sql("select 1 where 1 in %s", ([1],))
+		replaced = frappe.db._conn
+		frappe.db.connect()
+		self.assertTrue(replaced.closed)
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_search_path_keeps_the_schema_case(self):
+		from frappe.automation_engine.tests.test_drainer import connect_again
+
+		with patch.dict(frappe.conf, {"db_schema": "Tenant A"}):
+			other = connect_again()
+		self.addCleanup(other.close)
+		self.assertEqual(other.sql("show search_path")[0][0], '"Tenant A"')
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_escape_round_trips_backslashes(self):
+		value = "C:\\temp\\it's"
+		self.assertEqual(frappe.db.sql(f"select {frappe.db.escape(value, percent=False)}")[0][0], value)
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_sql_binds_sequences_and_utility_statements(self):
+		names = frappe.db.sql(
+			"select name from tabDocType where name in %s order by name", (["Role", "User"],)
+		)
+		self.assertEqual(names, (("Role",), ("User",)))
+		self.assertFalse(frappe.db.sql("select name from tabDocType where issingle in %s", ((5, 6),)))
+		self.assertFalse(frappe.db.sql("select name from tabDocType where name in %s", ((),)))
+		frappe.db.sql("set local statement_timeout = %s", 1234)
+		self.assertEqual(frappe.db.sql("show statement_timeout")[0][0], "1234ms")
 
 	def test_callbacks(self):
 		order_of_execution = []
@@ -2032,7 +2191,7 @@ class TestDDLCommandsPost(IntegrationTestCase):
 		self.assertSequenceEqual([("id",), ("content",)], frappe.db.describe(self.test_table_name))
 
 	def test_change_type(self) -> None:
-		from psycopg2.errors import DatatypeMismatch
+		from psycopg.errors import DatatypeMismatch
 
 		def get_table_description():
 			return frappe.db.sql(
@@ -2097,7 +2256,7 @@ class TestDDLCommandsPost(IntegrationTestCase):
 		self.assertEqual(advisory_count(), before)
 
 	def test_advisory_lock_query_error_keeps_the_callers_savepoint(self) -> None:
-		from psycopg2.errors import UndefinedTable
+		from psycopg.errors import UndefinedTable
 
 		frappe.db.sql(f'INSERT INTO "tab{self.test_table_name}" VALUES (1, %s)', ("before the lock",))
 		with savepoint(catch=UndefinedTable):
@@ -2241,7 +2400,7 @@ class TestDDLCommandsPost(IntegrationTestCase):
 			frappe.db.add_index(self.test_table_name, ["id"], include=['content") ; DROP TABLE x --'])
 
 	def test_json_columns_return_strings(self) -> None:
-		# Regression: psycopg2 auto-parses json/jsonb into python objects, but frappe models JSON
+		# Regression: psycopg auto-parses json/jsonb into python objects, but frappe models JSON
 		# fields as strings (like MariaDB's longtext) and json.loads them on demand. A parsed value
 		# diverges from MariaDB and breaks re-saving a doc whose JSON field came back as a list.
 		row = frappe.db.sql("""SELECT '[1, 2]'::jsonb AS a, '{"k": 1}'::json AS b""", as_dict=True)[0]
@@ -2385,6 +2544,54 @@ class TestTransactionManagement(IntegrationTestCase):
 		frappe.db.transaction_advisory_lock("frappe-test-xact-lock")  # re-entrant
 		frappe.db.rollback()
 		self.assertEqual(advisory_count(), before)
+
+
+class TestReadOnlyTransaction(IntegrationTestCase):
+	def setUp(self):
+		frappe.db.rollback()
+
+	def test_reads_work_and_every_write_is_refused(self):
+		with frappe.db.read_only():
+			self.assertTrue(frappe.db.exists("User", "Administrator"))
+			self.assertRaises(frappe.InReadOnlyMode, frappe.get_doc(doctype="ToDo", description="x").insert)
+			# a commit inside begins another read-only transaction, and runs no after-commit callback
+			ran = []
+			frappe.db.after_commit.add(lambda: ran.append(1))
+			frappe.db.commit()
+			self.assertRaises(frappe.InReadOnlyMode, frappe.db.set_value, "User", "Guest", "bio", "x")
+			frappe.db.rollback()
+			self.assertRaises(frappe.InReadOnlyMode, frappe.db.set_value, "User", "Guest", "bio", "x")
+			self.assertEqual(ran, [])
+		self.assertFalse(frappe.db.in_read_only_transaction)
+		todo = frappe.get_doc(doctype="ToDo", description="after").insert()
+		self.assertTrue(frappe.db.exists("ToDo", todo.name))
+
+	@run_only_if(db_type_is.MARIADB)
+	def test_ddl_cannot_leave_it(self):
+		with frappe.db.read_only():
+			self.assertRaises(frappe.InReadOnlyMode, frappe.db.sql, "create table `_read_only_t` (a int)")
+			frappe.db.sql("commit")
+			self.assertRaises(frappe.InReadOnlyMode, frappe.db.set_value, "User", "Guest", "bio", "x")
+
+	def test_nested_use_keeps_the_outer_one(self):
+		with frappe.db.read_only():
+			with frappe.db.read_only():
+				pass
+			self.assertTrue(frappe.db.in_read_only_transaction)
+			self.assertRaises(frappe.InReadOnlyMode, frappe.db.set_value, "User", "Guest", "bio", "x")
+
+	def test_an_open_transaction_with_writes_must_end_first(self):
+		frappe.db.set_value("User", "Guest", "bio", "before")
+		with self.assertRaises(frappe.ValidationError):
+			with frappe.db.read_only():
+				pass
+		self.assertFalse(frappe.db.in_read_only_transaction)
+		self.assertEqual(frappe.db.get_value("User", "Guest", "bio"), "before")
+
+	def test_an_error_log_inside_is_deferred(self):
+		with frappe.db.read_only():
+			frappe.log_error("read-only scope")
+			self.assertEqual(frappe.db.transaction_writes, 0)
 
 
 # Treat same DB as replica for tests, a separate connection will be opened
@@ -2622,47 +2829,28 @@ class TestPostgresSchemaQueryIndependence(ExtIntegrationTestCase):
 		):
 			self.cleanup()
 
-		frappe.db.sql(
-			f"""
-			CREATE SCHEMA alt_schema;
-
-			CREATE TABLE "public"."tab{self.test_table_name}" (
-					col_a VARCHAR,
-					col_b VARCHAR
-			);
-
-			CREATE TABLE "alt_schema"."tab{self.test_table_name}" (
-					col_c VARCHAR PRIMARY KEY,
-					col_d VARCHAR
-			);
-
-			CREATE TABLE "alt_schema"."tab{self.test_table_name}_2" (
-					col_c VARCHAR,
-					col_d VARCHAR
-			);
-
-			CREATE TABLE "alt_schema"."tabUser" (
-					col_c VARCHAR,
-					col_d VARCHAR
-			);
-
-			insert into "public"."tab{self.test_table_name}" (col_a, col_b) values ('a', 'b');
-			"""
-		)
+		for query in (
+			"CREATE SCHEMA alt_schema",
+			f'CREATE TABLE "public"."tab{self.test_table_name}" (col_a VARCHAR, col_b VARCHAR)',
+			f'CREATE TABLE "alt_schema"."tab{self.test_table_name}" (col_c VARCHAR PRIMARY KEY, col_d VARCHAR)',
+			f'CREATE TABLE "alt_schema"."tab{self.test_table_name}_2" (col_c VARCHAR, col_d VARCHAR)',
+			'CREATE TABLE "alt_schema"."tabUser" (col_c VARCHAR, col_d VARCHAR)',
+			f"""insert into "public"."tab{self.test_table_name}" (col_a, col_b) values ('a', 'b')""",
+		):
+			frappe.db.sql(query)
 
 	def tearDown(self) -> None:
 		self.cleanup()
 
 	def cleanup(self) -> None:
-		frappe.db.sql(
-			f"""
-				DROP TABLE "public"."tab{self.test_table_name}";
-				DROP TABLE "alt_schema"."tab{self.test_table_name}";
-				DROP TABLE "alt_schema"."tab{self.test_table_name}_2";
-				DROP TABLE "alt_schema"."tabUser";
-				DROP SCHEMA "alt_schema" CASCADE;
-				"""
-		)
+		for query in (
+			f'DROP TABLE "public"."tab{self.test_table_name}"',
+			f'DROP TABLE "alt_schema"."tab{self.test_table_name}"',
+			f'DROP TABLE "alt_schema"."tab{self.test_table_name}_2"',
+			'DROP TABLE "alt_schema"."tabUser"',
+			'DROP SCHEMA "alt_schema" CASCADE',
+		):
+			frappe.db.sql(query)
 
 	def test_get_tables(self) -> None:
 		tables = frappe.db.get_tables(cached=False)
@@ -2782,6 +2970,7 @@ class TestPostgresSchemaQueryIndependence(ExtIntegrationTestCase):
 		)  # there should be a single row in the public table
 
 		# when schema is changed to alt_schema, the alt_schema tables should be addressed by search path
+		self.addCleanup(frappe.db.connect)
 		frappe.conf["db_schema"] = "alt_schema"
 		frappe.db.connect()
 		rows = frappe.db.sql(f'select * from "tab{self.test_table_name}"')
@@ -2834,7 +3023,7 @@ class TestDbConnectWithEnvCredentials(IntegrationTestCase):
 			self.assertTrue(re.search(r"database [\"']dbiq[\"']", str(cm.exception)))
 
 		# with wrong host
-		with set_env_variable("FRAPPE_DB_HOST", "iqx.local"):
+		with set_env_variable("FRAPPE_DB_HOST", "iqx.invalid"):
 			frappe.init(self.current_site, force=True)
 			frappe.connect()
 
@@ -2906,21 +3095,14 @@ class TestMariaDBExceptionUtil(IntegrationTestCase):
 		"""Postgres serialization failures (REPEATABLE READ write conflicts) must be retriable like
 		deadlocks; otherwise they surface as unhandled query errors (e.g. on the per-request session
 		update under concurrency)."""
-		from psycopg2.errorcodes import DEADLOCK_DETECTED, SERIALIZATION_FAILURE
+		from psycopg.errors import DeadlockDetected, SerializationFailure, UniqueViolation
 
 		from frappe.database.postgres.database import PostgresExceptionUtil
 
-		class _E(Exception):
-			pass
+		for error in (SerializationFailure, DeadlockDetected):
+			self.assertTrue(PostgresExceptionUtil.is_deadlocked(error()))
 
-		for code in (SERIALIZATION_FAILURE, DEADLOCK_DETECTED):
-			e = _E()
-			e.pgcode = code
-			self.assertTrue(PostgresExceptionUtil.is_deadlocked(e))
-
-		unrelated = _E()
-		unrelated.pgcode = "12345"
-		self.assertFalse(PostgresExceptionUtil.is_deadlocked(unrelated))
+		self.assertFalse(PostgresExceptionUtil.is_deadlocked(UniqueViolation()))
 
 
 class TestSQLiteExceptionUtil(UnitTestCase):

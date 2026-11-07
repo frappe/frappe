@@ -100,6 +100,12 @@ frappe.ui.form.ControlIcon = class ControlIcon extends frappe.ui.form.ControlDat
 					this.$wrapper.popover("hide");
 				});
 			});
+
+		this.$input.on("blur", (e) => {
+			if (e.relatedTarget && !$(e.relatedTarget).parents().is(".popover")) {
+				this.$wrapper.popover("hide");
+			}
+		});
 	}
 
 	refresh() {

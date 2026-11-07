@@ -1,3 +1,4 @@
+import fs from "fs";
 import { test, expect } from "../support";
 
 const REPORT_PAGE = "#page-query-report";
@@ -97,6 +98,68 @@ test.describe("Query Report", () => {
 		await expect(msgprint).toContainText("Field");
 	});
 
+	test("saves resized column widths", async ({ page, desk }) => {
+		await page.goto("/desk/query-report/Test ToDo Report");
+		await expect(page.locator(".datatable")).toBeAttached();
+
+		const column = await page.evaluate(() => {
+			const report = frappe.query_report;
+			return report.datatable.datamanager
+				.getColumns(true)
+				.find((col) => col.id === report.columns[0].id);
+		});
+		const auto_column = await page.evaluate((resized_id) => {
+			return frappe.query_report.columns.find(
+				(col) => col.id !== resized_id && col.width === null
+			)?.id;
+		}, column.id);
+		expect(auto_column).toBeTruthy();
+		const handle = page.locator(
+			`.dt-cell__content--header-${column.colIndex} .dt-cell__resize-handle`
+		);
+		const box = await handle.boundingBox();
+		await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+		await page.mouse.down();
+		await page.mouse.move(box.x + box.width / 2 + 80, box.y + box.height / 2);
+		await page.mouse.up();
+
+		const resized_width = await page.evaluate((id) => {
+			return frappe.query_report.datatable.datamanager
+				.getColumns(true)
+				.find((col) => col.id === id).width;
+		}, column.id);
+		expect(resized_width).toBeGreaterThan(column.width);
+		await page.evaluate(() =>
+			frappe.views.QueryReport.prototype.refresh.call(frappe.query_report)
+		);
+		await expect
+			.poll(() =>
+				page.evaluate((id) => {
+					return frappe.query_report.datatable.datamanager
+						.getColumns(true)
+						.find((col) => col.id === id)?.width;
+				}, column.id)
+			)
+			.toBe(resized_width);
+		await save_report(page, desk, " Width");
+		await page.goto("/desk/query-report/Test ToDo Report Width");
+		await expect(page.locator(".datatable")).toBeAttached();
+		await expect
+			.poll(() =>
+				page.evaluate((id) => {
+					return frappe.query_report.datatable.datamanager
+						.getColumns(true)
+						.find((col) => col.id === id)?.width;
+				}, column.id)
+			)
+			.toBe(parseInt(resized_width));
+		expect(
+			await page.evaluate((id) => {
+				return frappe.query_report.columns.find((col) => col.id === id).width;
+			}, auto_column)
+		).toBeNull();
+	});
+
 	const save_report_and_open = async (page, desk, report, update_name) => {
 		await save_report(page, desk, update_name);
 
@@ -110,5 +173,118 @@ test.describe("Query Report", () => {
 
 		await save_report_and_open(page, desk, "Test ToDo Report 1", " 1");
 		await save_report_and_open(page, desk, "Test ToDo Report 11", "1");
+	});
+
+	test("exports rows in the order shown after sorting and filtering", async ({
+		page,
+		desk,
+		admin,
+	}) => {
+		await admin.insert_doc(
+			"Report",
+			{
+				report_name: "Test ToDo Export Order Report",
+				ref_doctype: "ToDo",
+				report_type: "Query Report",
+				query: "select description from tabToDo order by description desc",
+			},
+			true
+		);
+		await admin.create_records([
+			{ doctype: "ToDo", description: "Archive the example.com mailbox" },
+			{ doctype: "ToDo", description: "Renew the example.com domain" },
+		]);
+
+		await page.goto("/desk/query-report/Test ToDo Export Order Report");
+		const header = page.locator(".dt-cell--header.dt-cell--col-1");
+		await header.hover();
+		await header.locator(".dt-dropdown__toggle").click();
+		await page.locator(".dt-dropdown__list-item", { hasText: "Sort Ascending" }).click();
+		await expect(header.locator(".sort-indicator")).toHaveText("↑");
+		await page.locator('.dt-filter[data-col-index="1"]').pressSequentially("the example.com");
+		await expect(page.locator(".dt-scrollable .dt-cell--col-1")).toHaveText([
+			"Archive the example.com mailbox",
+			"Renew the example.com domain",
+		]);
+
+		await click_report_menu_item(page, "Export");
+		await desk
+			.get_open_dialog()
+			.locator('select[data-fieldname="file_format"]')
+			.selectOption("CSV");
+		const download = page.waitForEvent("download");
+		await desk
+			.get_open_dialog()
+			.getByRole("button", { name: "Download", exact: true })
+			.click();
+		const csv = fs.readFileSync(await (await download).path(), "utf8");
+		expect(csv.split(/\r?\n/).slice(1, 3)).toEqual([
+			'"Archive the example.com mailbox"',
+			'"Renew the example.com domain"',
+		]);
+	});
+
+	test.describe("Custom Report", () => {
+		test.beforeAll(async ({ admin }) => {
+			await admin.insert_doc(
+				"Report",
+				{
+					report_name: "Test ToDo Shared Filters Report",
+					ref_doctype: "ToDo",
+					report_type: "Query Report",
+					is_standard: "No",
+					query: "select name from tabToDo",
+					javascript: `
+						window.shared_todo_report ??= { filters: [] };
+						frappe.query_reports["Test ToDo Shared Filters Report"] = $.extend({}, window.shared_todo_report);
+						frappe.query_reports["Test ToDo Shared Filters Report"].filters.push({
+							fieldname: "status",
+							label: "Status",
+							fieldtype: "Data",
+						});
+					`,
+				},
+				true
+			);
+			await admin.insert_doc(
+				"Report",
+				{
+					report_name: "Test ToDo Shared Filters Report 1",
+					ref_doctype: "ToDo",
+					report_type: "Custom Report",
+					is_standard: "No",
+					reference_report: "Test ToDo Shared Filters Report",
+				},
+				true
+			);
+		});
+
+		test("shows filters once after the reference report script ran", async ({ page }) => {
+			await page.goto("/desk/todo");
+			await page.evaluate(() =>
+				frappe.report_utils.get_report_filters("Test ToDo Shared Filters Report")
+			);
+			await page.evaluate(() =>
+				frappe.set_route("query-report", "Test ToDo Shared Filters Report 1")
+			);
+
+			await expect(page.locator(`${REPORT_PAGE} .datatable`)).toBeAttached();
+			await expect(
+				page.locator(`${REPORT_PAGE} .page-form .frappe-control[data-fieldname="status"]`)
+			).toHaveCount(1);
+		});
+
+		test("gets filters from the reference report script", async ({ page }) => {
+			await page.goto("/desk/todo");
+			const fieldnames = await page.evaluate(async () => {
+				await frappe.report_utils.get_report_filters("Test ToDo Shared Filters Report");
+				const filters = await frappe.report_utils.get_report_filters(
+					"Test ToDo Shared Filters Report 1"
+				);
+				return filters?.map((filter) => filter.fieldname);
+			});
+
+			expect(fieldnames).toEqual(["status"]);
+		});
 	});
 });

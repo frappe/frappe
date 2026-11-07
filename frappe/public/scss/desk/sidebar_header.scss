@@ -26,6 +26,8 @@
 	font-family: inherit;
 	text-decoration: none;
 	cursor: pointer;
+	-webkit-user-select: none;
+	user-select: none;
 	overflow: hidden;
 
 	// `.hover` is the class SidebarHeader.setup_hover puts on; :hover covers the rail's, which has

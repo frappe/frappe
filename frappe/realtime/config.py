@@ -48,7 +48,10 @@ def get_config(sites_path: str | None = None, embedded: bool = False) -> Realtim
 	"""Build the realtime config from common_site_config.json."""
 	import frappe
 
-	sites_path = os.path.abspath(sites_path or getattr(frappe.local, "sites_path", None) or "sites")
+	default_sites_path = "sites" if os.path.isdir("sites") else "."
+	sites_path = os.path.abspath(
+		sites_path or getattr(frappe.local, "sites_path", None) or default_sites_path
+	)
 	conf = frappe.get_common_site_config(sites_path=sites_path)
 
 	webserver_port = conf.get("webserver_port")

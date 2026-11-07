@@ -117,3 +117,38 @@ test.describe("Awesome Bar", () => {
 		);
 	});
 });
+
+test.describe("Awesome Bar page results", () => {
+	const routes = (results) => results.map((r) => r.route.join("/"));
+
+	test("leaves system pages out of page results", async ({ page, desk }) => {
+		await page.goto("/desk/todo");
+		await desk.ready();
+
+		const found = await page.evaluate(() => ({
+			system: frappe.search.utils.get_pages("profile"),
+			regular: frappe.search.utils.get_pages("dashboard"),
+		}));
+		expect(routes(found.system)).not.toContain("profile");
+		expect(routes(found.regular)).toContain("dashboard-view");
+	});
+
+	test("leaves visited system pages out of recent results", async ({ page, desk }) => {
+		await page.goto("/desk/todo");
+		await desk.ready();
+		for (const route of ["profile", "dashboard-view"]) {
+			await page.evaluate((route) => frappe.set_route(route), route);
+			await page.waitForFunction(
+				(route) => frappe.route_history.some((r) => r[0] === route),
+				route
+			);
+		}
+
+		const found = await page.evaluate(() => ({
+			system: frappe.search.utils.get_recent_pages("profile"),
+			regular: frappe.search.utils.get_recent_pages("dashboard"),
+		}));
+		expect(routes(found.system)).not.toContain("profile");
+		expect(routes(found.regular)).toContain("dashboard-view");
+	});
+});

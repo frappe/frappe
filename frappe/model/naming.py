@@ -87,7 +87,7 @@ class NamingSeries:
 		parts = self.series.split(".")
 		return parse_naming_series(parts, doc=doc)
 
-	def get_prefix(self) -> str:
+	def get_prefix(self, doc: "Document | None" = None) -> str:
 		"""Naming series stores prefix to maintain a counter in DB. This prefix can be used to update counter or validations.
 
 		e.g. `SINV-.YY.-.####` has prefix of `SINV-22-` in database for year 2022.
@@ -104,7 +104,7 @@ class NamingSeries:
 		# sends prefix + digits to DB to find next number.
 		# Instead of reimplementing the whole parsing logic in multiple places we
 		# can just ask this function to give us the prefix.
-		parse_naming_series(self.series, number_generator=fake_counter_backend)
+		parse_naming_series(self.series, doc=doc, number_generator=fake_counter_backend)
 
 		if prefix is None:
 			frappe.throw(_("Invalid Naming Series: {}").format(self.series))
@@ -125,10 +125,10 @@ class NamingSeries:
 			generated_names.append(parse_naming_series(self.series, doc=doc, number_generator=fake_counter))
 		return generated_names
 
-	def update_counter(self, new_count: int) -> None:
+	def update_counter(self, new_count: int, doc: "Document | None" = None) -> None:
 		"""Warning: Incorrectly updating series can result in unusable transactions"""
 		Series = frappe.qb.DocType("Series")
-		prefix = self.get_prefix()
+		prefix = self.get_prefix(doc)
 
 		# Initialize if not present in DB
 		if frappe.db.get_value("Series", prefix, "name", order_by="name") is None:
@@ -136,8 +136,8 @@ class NamingSeries:
 
 		(frappe.qb.update(Series).set(Series.current, cint(new_count)).where(Series.name == prefix)).run()
 
-	def get_current_value(self) -> int:
-		prefix = self.get_prefix()
+	def get_current_value(self, doc: "Document | None" = None) -> int:
+		prefix = self.get_prefix(doc)
 		return cint(frappe.db.get_value("Series", prefix, "current", order_by="name", for_update=True))
 
 
@@ -255,7 +255,7 @@ def set_naming_from_document_naming_rule(doc):
 	"""
 	Evaluate rules based on "Document Naming Series" doctype
 	"""
-	from frappe.model.base_document import DOCTYPES_FOR_DOCTYPE
+	from frappe.model.document import DOCTYPES_FOR_DOCTYPE
 
 	IGNORED_DOCTYPES = {*log_types, *DOCTYPES_FOR_DOCTYPE, "DefaultValue", "Patch Log"}
 

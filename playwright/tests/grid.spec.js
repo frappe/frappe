@@ -310,7 +310,9 @@ test.describe("Grid", () => {
 
 		await table.locator(".grid-add-row").click();
 		// the cell renders its control only once the row turns editable
-		await table.locator('.grid-row[data-idx="1"] [data-fieldname="link_doctype"]').click();
+		await table
+			.locator('.grid-row[data-idx="1"] .grid-static-col[data-fieldname="link_doctype"]')
+			.click();
 		const cell = table.locator(
 			'.grid-row[data-idx="1"] [data-fieldname="link_doctype"] input'
 		);

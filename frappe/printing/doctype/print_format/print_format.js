@@ -7,7 +7,6 @@ frappe.ui.form.on("Print Format", "onload", function (frm) {
 
 	if (frm.is_new() && !frm.doc.custom_format) {
 		frm.set_value("print_format_builder_beta", 1);
-		frm.set_value("pdf_generator", "chrome");
 	}
 });
 
@@ -38,10 +37,9 @@ frappe.ui.form.on("Print Format", {
 		if (frm.doc.standard === "Yes" && frappe.session.user !== "Administrator") {
 			frm.set_intro(__("Please duplicate this to make changes"));
 		}
-		frm.trigger("render_buttons");
+		frm.trigger("render_buttons").then(() => frm.trigger("render_convert_button"));
 		frm.toggle_display("standard", frappe.boot.developer_mode);
 		frm.trigger("hide_absolute_value_field");
-		frm.trigger("set_chrome_for_builder");
 	},
 	render_buttons: function (frm) {
 		frm.page.clear_inner_toolbar();
@@ -77,6 +75,30 @@ frappe.ui.form.on("Print Format", {
 			}
 		}
 	},
+	render_convert_button: function (frm) {
+		if (frm.is_new() || !frm.doc.print_designer || !frappe.user.has_role("System Manager")) {
+			return;
+		}
+		frm.add_custom_button(__("Convert to Editor Format"), () =>
+			frappe
+				.call({
+					method: "frappe.printing.doctype.print_format.print_designer_converter.create_editor_format",
+					args: { print_format: frm.doc.name },
+					freeze: true,
+				})
+				.then(({ message }) =>
+					frappe.set_route("print-format-builder", message.name).then(() => {
+						if (!message.notes.length) return;
+						frappe.msgprint({
+							title: __("Converted with changes"),
+							message: message.notes
+								.map((note) => frappe.utils.escape_html(note))
+								.join("<br>"),
+						});
+					})
+				)
+		);
+	},
 	custom_format: function (frm) {
 		var value = frm.doc.custom_format ? 0 : 1;
 		frm.set_value("align_labels_right", value);
@@ -86,21 +108,7 @@ frappe.ui.form.on("Print Format", {
 		if (frm.doc.custom_format) {
 			frm.set_value("print_format_builder_beta", 0);
 		}
-		frm.trigger("render_buttons");
-		frm.trigger("set_chrome_for_builder");
-	},
-	print_format_builder_beta: function (frm) {
-		frm.trigger("set_chrome_for_builder");
-	},
-	set_chrome_for_builder: function (frm) {
-		const is_builder = frm.doc.print_format_builder_beta;
-		const is_custom = frm.doc.custom_format;
-		const should_force_chrome =
-			is_builder && (frm.is_new() || !is_custom) && frm.doc.pdf_generator !== "Typst";
-		if (should_force_chrome) {
-			frm.set_value("pdf_generator", "chrome");
-		}
-		frm.set_df_property("pdf_generator", "read_only", should_force_chrome ? 1 : 0);
+		frm.trigger("render_buttons").then(() => frm.trigger("render_convert_button"));
 	},
 	doc_type: function (frm) {
 		frm.trigger("hide_absolute_value_field");

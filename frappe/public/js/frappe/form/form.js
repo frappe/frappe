@@ -66,7 +66,7 @@ frappe.ui.form.get_breadcrumbs = function (frm) {
 	}
 
 	let title = frappe.model.get_doc_title(frm.doc);
-	title = __(title) || __(frm.doc.name);
+	title = __(title);
 	if (frappe.utils.is_html(title)) title = strip_html(title);
 	items.push({ label: title });
 
@@ -697,6 +697,7 @@ frappe.ui.form.Form = class FrappeForm {
 				},
 				() => this.cscript.is_onload && this.is_new() && this.focus_on_first_input(),
 				() => this.run_after_load_hook(),
+				() => this.show_upload_first_review(),
 				() => this.dashboard.after_refresh(),
 				() => (this.cscript.is_onload = false),
 				() => this.configure_breadcrumb_width(),
@@ -868,6 +869,44 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 	}
 
+	show_upload_first_review() {
+		// The entry being reviewed rides in the route until the document's first save.
+		if (!this.meta.enable_upload_first_workflow || this.doc.docstatus !== 0) return;
+
+		// same as the layout param: route_options on a fresh route, the URL after that
+		const from_route_options = frappe.route_options?.attachment_queue;
+		const entry_name =
+			from_route_options ||
+			new URLSearchParams(window.location.search).get("attachment_queue");
+		if (from_route_options) delete frappe.route_options.attachment_queue;
+
+		if (!entry_name) return;
+		// already reviewing this document, including a pane the reader closed
+		if (this.upload_first_review?.docname === this.docname) return;
+		if (this._upload_first_review_docname === this.docname) return;
+		// One Form is shared by every document of its DocType, so this.docname moves on
+		// as the user does: the entry below belongs to the document asked about here.
+		const docname = (this._upload_first_review_docname = this.docname);
+
+		return frappe.db
+			.get_list("Attachment Queue", {
+				fields: ["name", "document_type", "source_file"],
+				filters: { name: entry_name, created_document: ["is", "not set"] },
+				limit: 1,
+			})
+			.then(([entry]) => {
+				if (!entry) return;
+
+				// the review ships as its own on-demand bundle
+				frappe.require("upload_first_review.bundle.js", () => {
+					// the form may have moved to another document while this loaded
+					if (this.docname !== docname) return;
+
+					frappe.ui.form.upload_first_review.open(this, entry);
+				});
+			});
+	}
+
 	refresh_fields() {
 		if (this.layout === undefined) {
 			return;
@@ -986,6 +1025,10 @@ frappe.ui.form.Form = class FrappeForm {
 				}
 
 				me.script_manager.trigger("after_save");
+
+				if (me.upload_first_review) {
+					frappe.ui.form.upload_first_review.file(me);
+				}
 
 				if (frappe.route_hooks.after_save) {
 					let route_callback = frappe.route_hooks.after_save;
@@ -1680,6 +1723,11 @@ frappe.ui.form.Form = class FrappeForm {
 
 		delete this.opendocs[old];
 		this.opendocs[name] = true;
+
+		if (this.active_tab_map?.[old]) {
+			this.active_tab_map[name] = this.active_tab_map[old];
+			delete this.active_tab_map[old];
+		}
 
 		if (this.meta.in_dialog || !this.in_form) {
 			return;

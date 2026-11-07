@@ -51,7 +51,7 @@ class TestPython(UnitTestCase):
 				(3, "With context", "ctx"),
 				(4, "Positional", "greeting"),
 				(5, "Lazy", "lazyctx"),
-				(6, "Multi line", "multictx"),
+				(7, "Multi line", "multictx"),
 				(10, "Dup", None),
 				(10, "Dup", "dupctx"),
 				(11, "First", "firstctx"),
