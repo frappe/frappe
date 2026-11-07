@@ -1,5 +1,7 @@
 import { AppModuleRegistry, clearAppStyles } from "@/browserRuntime/moduleRegistry"
+import { IMPORTABLE_MODULES } from "@/browserRuntime/importableModules"
 import { moduleFixtures } from "../fixtures/module-fixtures.mjs"
+import { STUDIO_SHARED_DEPS } from "../../vite/sharedDependencyResolver"
 
 async function outcome(load: () => Promise<any>) {
 	try {
@@ -66,6 +68,15 @@ describe("DB app modules: browser registry and Vite build", () => {
 			)
 		})
 	}
+
+	it("only offers libraries a real build can resolve", () => {
+		// A database app's temporary build folder has no node_modules directory, so every offered
+		// library must resolve to Studio's installed dependencies.
+		const unresolvable = IMPORTABLE_MODULES.filter(
+			(specifier) => !STUDIO_SHARED_DEPS.some((dep) => specifier === dep || specifier.startsWith(`${dep}/`)),
+		)
+		expect(unresolvable, "importable but unresolvable in a build").to.deep.equal([])
+	})
 
 	it("keeps a failed module failed without executing it a second time", () => {
 		cy.wrap(

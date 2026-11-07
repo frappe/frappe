@@ -20,8 +20,8 @@ import os
 import frappe
 from frappe.studio.ai.agent.registry import Tool
 from frappe.studio.ai.agent.tools.page import load_page, save_page
-from frappe.studio.export import can_export, write_code_file
-from frappe.studio.utils import find_script_file, script_extension
+from frappe.studio.export import can_export
+from frappe.studio.utils import find_script_file
 
 
 def run_get_page_script(ctx, args: dict) -> str:
@@ -84,15 +84,10 @@ def _write_file_script(ctx, page, source: str) -> str:
 		)
 	if "System Manager" not in frappe.get_roles():
 		return "FAILED: writing a repository app's page script requires the System Manager role."
-	# write_code_file reads the field from this object. Do not save the document:
-	# repository page scripts belong in the code file, not the database field.
+	# write_script_file reads the field from this object and clears it again, because a
+	# repository page's script belongs in the code file, not the database field.
 	page.script = source
-	folder = page.get_folder_path()
-	frappe.create_folder(folder)
-	stem = page.get_export_docname()
-	write_code_file(
-		page, folder, code_field="script", extension=script_extension(folder, stem), filename=stem
-	)
+	page.write_script_file()
 	frappe.enqueue_doc("Studio App", page.studio_app, "build_app_bundle", queue="long", timeout=1200)
 	return (
 		"Wrote the page script to its code file and started an app rebuild. The change appears on the "

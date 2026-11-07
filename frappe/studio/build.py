@@ -123,7 +123,7 @@ class StudioAppBuilder:
 		"""Collect the page script files for the app's published pages, so the build bundles a
 		`setup()` module per page (code mode)."""
 		page_folder = os.path.join(self.app_folder, "studio_page")
-		if not page_folder or not os.path.isdir(page_folder):
+		if not os.path.isdir(page_folder):
 			return
 
 		scripts = []

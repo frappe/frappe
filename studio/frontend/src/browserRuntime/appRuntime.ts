@@ -29,10 +29,6 @@ export async function unloadAppRuntime(): Promise<void> {
 	return (await compiledApp()).unloadAppRuntime()
 }
 
-export async function loadAppModule(path: string): Promise<any> {
-	return (await compiledApp()).loadAppModule(path)
-}
-
 export async function loadAppRouterConfig(): Promise<RouterConfig | undefined> {
 	return (await compiledApp()).loadAppRouterConfig()
 }

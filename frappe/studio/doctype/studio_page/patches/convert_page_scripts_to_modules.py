@@ -143,10 +143,7 @@ def to_setup_module(script: str, context_names: list[str]) -> str:
 
 
 def get_top_level_bindings(tokens: list["Token"]) -> list[str]:
-	"""Find top-level declarations to return from setup, in source order.
-
-	Use the same declaration rules as the editor's `getTopLevelBindings` helper.
-	"""
+	"""Find top-level declarations to return from setup, in source order."""
 	names: list[str] = []
 	index = 0
 	while index < len(tokens):
@@ -365,7 +362,7 @@ def tokenize(source: str):
 		elif char == "}" and template_stack and depth == template_stack[-1]:
 			template_stack.pop()
 			depth -= 1
-			index = read_template(source, index, resuming=True)
+			index = read_template(source, index)
 			kind = "template"
 		elif char == "/" and starts_regex(previous):
 			index = read_regex(source, index)
@@ -433,7 +430,7 @@ def read_quoted(source: str, index: int) -> int:
 	return index
 
 
-def read_template(source: str, index: int, resuming: bool = False) -> int:
+def read_template(source: str, index: int) -> int:
 	"""Read through a closing backtick or the `${` that starts an expression.
 
 	When resuming a template, `index` points to the expression's closing brace.
@@ -448,7 +445,6 @@ def read_template(source: str, index: int, resuming: bool = False) -> int:
 		if source[index] == "`":
 			return index + 1
 		index += 1
-	del resuming
 	return index
 
 

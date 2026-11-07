@@ -14,8 +14,7 @@
 import {
 	compileFile,
 	describeError,
-	parseExports,
-	parseImports,
+	parseModule,
 	type CompileError,
 	type ModuleExports,
 	type ModuleImport,
@@ -28,12 +27,9 @@ const AMBIGUOUS_EXPORT = Symbol("ambiguous export")
 type ModuleFactory = (exports: any, require: (specifier: string) => any, module: any) => void
 
 export class AppCompileError extends Error {
-	errors: CompileError[]
-
 	constructor(errors: CompileError[]) {
 		super(errors.map(describeError).join("\n"))
 		this.name = "AppCompileError"
-		this.errors = errors
 	}
 }
 
@@ -105,7 +101,8 @@ export class AppModuleRegistry {
 
 	/** Validate a file's imports, compile it and create its module factory. */
 	private async compileInto(path: string, source: string, throwOnError = true): Promise<CompileError[]> {
-		const errors = await this.linkImports(path, source)
+		const parsed = await parseModule(path, source, true)
+		const errors = parsed.errors.length ? parsed.errors : await this.linkImports(path, parsed.imports)
 		if (!errors.length) {
 			const compiled = await compileFile(path, source)
 			errors.push(...compiled.errors)
@@ -122,10 +119,7 @@ export class AppModuleRegistry {
 					errors.push(importError(path, (error as Error).message))
 				}
 			}
-			if (!errors.length) {
-				const parsed = await parseExports(path, source)
-				if (!parsed.errors.length) this.exports[path] = parsed.exports
-			}
+			if (!errors.length) this.exports[path] = parsed.exports
 		}
 		if (errors.length && throwOnError) throw new AppCompileError(errors)
 		return errors
@@ -133,10 +127,8 @@ export class AppModuleRegistry {
 
 	/** Validate discovered imports before execution. Local paths must exist in the app.
 	 * Load renderer library modules and check their requested exports. */
-	private async linkImports(path: string, code: string): Promise<CompileError[]> {
-		const { imports, errors } = await parseImports(path, code, true)
-		if (errors.length) return errors
-
+	private async linkImports(path: string, imports: ModuleImport[]): Promise<CompileError[]> {
+		const errors: CompileError[] = []
 		this.localImports[path] = []
 		for (const { specifier, names } of imports) {
 			if (isLocalSpecifier(specifier)) {

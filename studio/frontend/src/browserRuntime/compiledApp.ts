@@ -7,7 +7,7 @@
  */
 
 import { createResource } from "frappe-ui"
-import { parseImports, describeError } from "@/browserRuntime/compiler"
+import { parseModule, describeError } from "@/browserRuntime/compiler"
 import { AppModuleRegistry, clearAppStyles } from "@/browserRuntime/moduleRegistry"
 import { scrub } from "@/utils/helpers"
 import type { RouterConfig } from "@/router/app_router"
@@ -61,10 +61,6 @@ export function unloadAppRuntime(): void {
 	clearAppStyles()
 }
 
-export function loadAppModule(path: string): Promise<any> {
-	return getRegistry().loadModule(path)
-}
-
 /** Load router.js and return its config, if present. */
 export async function loadAppRouterConfig(): Promise<RouterConfig | undefined> {
 	const registry = getRegistry()
@@ -98,6 +94,6 @@ export async function checkAppScript(
 	filename = "page_script.js",
 	databaseApp = false,
 ): Promise<string | null> {
-	const parsed = await parseImports(filename, source, databaseApp)
+	const parsed = await parseModule(filename, source, databaseApp)
 	return parsed.errors.length ? parsed.errors.map(describeError).join("\n") : null
 }

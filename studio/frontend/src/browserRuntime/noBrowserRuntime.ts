@@ -10,7 +10,6 @@ function notBuiltForThisApp(): never {
 }
 
 export const loadAppRuntime = notBuiltForThisApp
-export const loadAppModule = notBuiltForThisApp
 export const loadAppRouterConfig = notBuiltForThisApp
 export const loadAppPageScriptModule = notBuiltForThisApp
 export const checkAppScript = notBuiltForThisApp

@@ -68,45 +68,42 @@ describe("page script host", () => {
 		})
 	})
 
-	it("fires onUnmounted when the host unmounts", () => {
-		let unmountedRan = false
-		cy.wrap(installPageScript(() => (onUnmounted(() => (unmountedRan = true)), {})))
-		mountHost()
-
-		cy.then(() => expect(unmountedRan, "onUnmounted ran while still mounted").to.be.false)
-		cy.wrap(null).then(unmountHost)
-		cy.then(() => expect(unmountedRan, "onUnmounted ran").to.be.true)
-	})
-
-	// Page scripts can use onScopeDispose to remove socket listeners.
-	it("still runs onScopeDispose, which the instance's own scope owns", () => {
-		let disposed = false
-		cy.wrap(installPageScript(() => (onScopeDispose(() => (disposed = true)), {})))
-		mountHost()
-
-		cy.then(() => expect(disposed, "disposed while still mounted").to.be.false)
-		cy.wrap(null).then(unmountHost)
-		cy.then(() => expect(disposed, "onScopeDispose ran").to.be.true)
-	})
-
-	it("disposes a watcher the script created when the host unmounts", () => {
+	it("cleans up the script's hooks, scopes and watchers when the host unmounts", () => {
 		const source = ref(0)
+		let unmountedRan = false
+		let disposed = false
 		let fired = 0
-		cy.wrap(installPageScript(() => (watch(source, () => fired++), {})))
+		cy.wrap(
+			installPageScript(() => {
+				onUnmounted(() => (unmountedRan = true))
+				// Page scripts can use onScopeDispose to remove socket listeners.
+				onScopeDispose(() => (disposed = true))
+				watch(source, () => fired++)
+				return {}
+			}),
+		)
 		mountHost()
 
 		cy.wrap(null).then(async () => {
 			source.value = 1
 			await nextTick()
 		})
-		cy.then(() => expect(fired, "watcher did not fire while mounted").to.equal(1))
+		cy.then(() => {
+			expect(unmountedRan, "onUnmounted ran while still mounted").to.be.false
+			expect(disposed, "disposed while still mounted").to.be.false
+			expect(fired, "watcher did not fire while mounted").to.equal(1)
+		})
 
 		cy.wrap(null).then(unmountHost)
 		cy.wrap(null).then(async () => {
 			source.value = 2
 			await nextTick()
 		})
-		cy.then(() => expect(fired, "watcher outlived the page").to.equal(1))
+		cy.then(() => {
+			expect(unmountedRan, "onUnmounted ran").to.be.true
+			expect(disposed, "onScopeDispose ran").to.be.true
+			expect(fired, "watcher outlived the page").to.equal(1)
+		})
 	})
 
 	it("stops the script when the page is torn down", () => {

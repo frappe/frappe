@@ -117,6 +117,7 @@ const useStudioStore = defineStore("store", () => {
 		if (!appDoc) return
 		activeApp.value = appDoc
 		if (usesDbFiles.value) await loadAppRuntime(appName)
+		else await unloadAppRuntime()
 		await setAppBoot(appName)
 		await setAppPages(appName)
 		await setCustomComponents()
@@ -620,7 +621,6 @@ const useStudioStore = defineStore("store", () => {
 
 	// Only a repository app ships .vue components. An empty app name clears the ones the last app registered.
 	async function setCustomComponents() {
-		if (!usesDbFiles.value) await unloadAppRuntime()
 		const frappeApp = usesDbFiles.value ? "" : activeApp.value!.frappe_app!
 		customVueComponents.value = await reloadCustomVueComponents(frappeApp, activeApp.value?.name ?? "")
 		await registerCustomComponentPaths(customVueComponents.value)
@@ -765,10 +765,12 @@ const useStudioStore = defineStore("store", () => {
 			Object.values(appPages.value).map((page) => [page.route, page.page_title]),
 		]),
 	)
-	watch(appRouteInputs, () => activePage.value && goToPage(Object.values(appPages.value), activePage.value, routeVariables.value), {
-		immediate: true,
-		flush: "sync",
-	})
+	watch(
+		appRouteInputs,
+		() =>
+			activePage.value && goToPage(Object.values(appPages.value), activePage.value, routeVariables.value),
+		{ immediate: true, flush: "sync" },
+	)
 
 	// A page script (or a composable/util it imports) hot-updated. Re-run it in place when it's the
 	// active page so new refs/functions and changed dependency code show up on the canvas, in the

@@ -15,19 +15,21 @@ export function useLivePreview() {
 	const router = useRouter()
 	const revision = ref(0)
 
-	const reloadPage = useDebounceFn(async (pageName: string) => {
-		const { path, query, hash, meta } = router.currentRoute.value
-		if (meta.pageName !== pageName) return
+	async function remountPage() {
+		const { path, query, hash } = router.currentRoute.value
 		const failure = await router.replace({ path, query, hash, force: true })
 		if (!failure) revision.value++
+	}
+
+	const reloadPage = useDebounceFn(async (pageName: string) => {
+		if (router.currentRoute.value.meta.pageName !== pageName) return
+		await remountPage()
 	}, 300)
 
 	// Reload source before remounting the page after a stored file changes.
 	const reloadAppFiles = useDebounceFn(async () => {
 		await reloadAppRuntime()
-		const { path, query, hash } = router.currentRoute.value
-		const failure = await router.replace({ path, query, hash, force: true })
-		if (!failure) revision.value++
+		await remountPage()
 	}, 300)
 
 	const onDocUpdate = (info: any) => {

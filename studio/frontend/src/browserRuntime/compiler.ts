@@ -17,7 +17,7 @@ export interface CompileError {
 	message: string
 }
 
-export interface CompiledFile {
+interface CompiledFile {
 	code: string
 	errors: CompileError[]
 }
@@ -32,6 +32,12 @@ export interface ModuleExports {
 	bindings: Record<string, { name: string; from?: string }>
 	/** Specifiers it re-exports every name from, whose names it also exports. */
 	starFrom: string[]
+}
+
+export interface ParsedModule {
+	imports: ModuleImport[]
+	exports: ModuleExports
+	errors: CompileError[]
 }
 
 export function describeError(error: CompileError): string {
@@ -78,15 +84,17 @@ async function toCommonJS(filename: string, source: string): Promise<CompiledFil
 }
 
 /**
- * Find dependency paths and imported names before executing a module.
- * Library modules load asynchronously, so preload them before synchronous require() calls.
- * Database apps require literal import() paths so both loaders can discover dependencies.
+ * Read a module's dependencies and the names it exports, in one parse.
+ *
+ * Library modules load asynchronously, so the caller preloads them before synchronous require()
+ * calls. Database apps require literal import() paths so both loaders can discover dependencies,
+ * and their source must also satisfy moduleContract.ts.
  */
-export async function parseImports(
+export async function parseModule(
 	filename: string,
 	code: string,
 	databaseApp = false,
-): Promise<{ imports: ModuleImport[]; errors: CompileError[] }> {
+): Promise<ParsedModule> {
 	const [sfc] = await loadCompilers()
 	try {
 		const { program } = sfc.babelParse(code, {
@@ -96,12 +104,20 @@ export async function parseImports(
 		if (databaseApp) {
 			const { moduleSyntaxErrors } = await import("@/browserRuntime/moduleContract")
 			const errors = moduleSyntaxErrors(program, filename)
-			if (errors.length) return { imports: [], errors }
+			if (errors.length) return { ...nothingParsed(), errors }
 		}
-		return { imports: [...staticImports(program), ...dynamicImports(program)], errors: [] }
+		return {
+			imports: [...staticImports(program), ...dynamicImports(program)],
+			exports: exportedNames(program),
+			errors: [],
+		}
 	} catch (error) {
-		return { imports: [], errors: [formatError(filename, error)] }
+		return { ...nothingParsed(), errors: [formatError(filename, error)] }
 	}
+}
+
+function nothingParsed(): ParsedModule {
+	return { imports: [], exports: { bindings: {}, starFrom: [] }, errors: [] }
 }
 
 function* staticImports(program: BabelProgram): Generator<ModuleImport> {
@@ -148,20 +164,6 @@ function* dynamicImports(node: unknown): Generator<ModuleImport> {
 		if (key !== "loc" && key !== "leadingComments" && key !== "trailingComments") {
 			yield* dynamicImports(fields[key])
 		}
-	}
-}
-
-/** The names a compiled module exports. Used to check an import against its target. */
-export async function parseExports(
-	filename: string,
-	code: string,
-): Promise<{ exports: ModuleExports; errors: CompileError[] }> {
-	const [sfc] = await loadCompilers()
-	try {
-		const { program } = sfc.babelParse(code, { sourceType: "module" })
-		return { exports: exportedNames(program), errors: [] }
-	} catch (error) {
-		return { exports: { bindings: {}, starFrom: [] }, errors: [formatError(filename, error)] }
 	}
 }
 

@@ -22,15 +22,10 @@ describe("Studio script files", () => {
 		cy.document().then((doc) => doc.getElementById("studio-code-editor-outlet")?.remove())
 	})
 
-	it("defaults repository scripts to TypeScript and DB scripts to JavaScript", () => {
+	it("defaults a new repository script to TypeScript, a DB script to JavaScript, and keeps either existing one", () => {
 		for (const stem of ["router", "studio_page/board/board"]) {
 			expect(resolveScriptPath(stem, [], false)).to.equal(`${stem}.ts`)
 			expect(resolveScriptPath(stem, [], true)).to.equal(`${stem}.js`)
-		}
-	})
-
-	it("preserves either existing repository extension and rejects duplicate companions", () => {
-		for (const stem of ["router", "studio_page/board/board"]) {
 			for (const extension of ["js", "ts"]) {
 				const path = `${stem}.${extension}`
 				expect(resolveScriptPath(stem, [path], false)).to.equal(path)

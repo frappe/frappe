@@ -49,13 +49,6 @@ class TestFiles(IntegrationTestCase):
 		paths = [file["path"] for file in files.get_store_files(app.name)]
 		self.assertEqual(paths, ["components/card.css", "utils/format.js"])
 
-	def test_the_store_refuses_source_the_browser_cannot_run(self):
-		app = make_db_app()
-		for path in ("components/Card.vue", "stores/catalog.ts"):
-			with self.assertRaises(frappe.ValidationError, msg=path) as refused:
-				files.write_store_file(app.name, path, "export const one = 1\n")
-			self.assertIn("repository", str(refused.exception))
-
 	def test_a_page_script_is_browsed_and_edited_as_a_file(self):
 		app = make_db_app()
 		page = make_studio_page(app.name, page_title="Board")

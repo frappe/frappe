@@ -259,7 +259,7 @@ def restore_store_from_disk(app) -> None:
 	root = app.get_folder_path()
 	if not os.path.isdir(root):
 		return
-	for dirpath, _dirnames, filenames, folder in walk_export_folder(root):
+	for dirpath, filenames, folder in walk_export_folder(root):
 		if folder.startswith("studio_page"):
 			continue
 		for filename in filenames:
@@ -272,7 +272,8 @@ def restore_store_from_disk(app) -> None:
 def walk_export_folder(root: str):
 	"""Walk source directories, skipping hidden folders, node_modules and __pycache__.
 
-	Include each directory's path relative to the export root; use "" for the root.
+	Yield each directory's absolute path, its filenames, and its path relative to the export
+	root, which is "" for the root itself.
 	"""
 	for dirpath, dirnames, filenames in os.walk(root):
 		dirnames[:] = [
@@ -281,7 +282,7 @@ def walk_export_folder(root: str):
 			if not name.startswith(".") and name not in ("node_modules", "__pycache__")
 		]
 		folder = os.path.relpath(dirpath, root).replace(os.sep, "/")
-		yield dirpath, dirnames, filenames, "" if folder == "." else folder
+		yield dirpath, filenames, "" if folder == "." else folder
 
 
 def discarded_export_files(app) -> list[str]:
@@ -297,7 +298,7 @@ def discarded_export_files(app) -> list[str]:
 	if not os.path.isdir(root):
 		return []
 	discarded = []
-	for _dirpath, _dirnames, filenames, folder in walk_export_folder(root):
+	for _dirpath, filenames, folder in walk_export_folder(root):
 		for filename in filenames:
 			path = f"{folder}/{filename}" if folder else filename
 			if not is_storable_file(app.name, path) and not is_regenerated_file(app.name, path):
@@ -329,9 +330,9 @@ def normalize_path(file_path: str) -> str:
 
 	The database store must validate paths itself because it cannot use filesystem resolution.
 	"""
-	if file_path is not None and not isinstance(file_path, str):
+	if not isinstance(file_path, str):
 		frappe.throw(_("Invalid file path: {0}").format(file_path), frappe.PermissionError)
-	path = (file_path or "").strip().strip("/")
+	path = file_path.strip().strip("/")
 	first_segment = path.split("/", 1)[0]
 	if not path or "\\" in path or first_segment == ".." or posixpath.normpath(path) != path:
 		frappe.throw(_("Invalid file path: {0}").format(file_path), frappe.PermissionError)
