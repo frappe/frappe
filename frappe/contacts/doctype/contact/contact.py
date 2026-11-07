@@ -133,7 +133,7 @@ class Contact(Document):
 
 	def set_user(self):
 		if not self.user and self.email_id:
-			self.user = frappe.db.get_value("User", {"email": self.email_id})
+			self.user = frappe.db.get_value("User", {"email": self.email_id.strip().lower()})
 
 	def get_link_for(self, link_doctype):
 		"""Return the link name, if exists for the given link DocType"""
@@ -385,7 +385,7 @@ def get_contact_details(contact: str):
 
 def update_contact(doc, method):
 	"""Update contact when user is updated, if contact is found. Called via hooks"""
-	contact_name = frappe.db.get_value("Contact", {"email_id": doc.name})
+	contact_name = frappe.db.get_value("Contact", {"email_id": doc.email})
 	if contact_name:
 		contact = frappe.get_doc("Contact", contact_name)
 		for key in ("first_name", "last_name", "phone"):

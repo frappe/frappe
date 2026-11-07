@@ -83,7 +83,7 @@ class Address(Document):
 	def link_address(self):
 		"""Link address based on owner"""
 		if not self.links:
-			contact_name = frappe.db.get_value("Contact", {"email_id": self.owner})
+			contact_name = frappe.db.get_value("Contact", {"user": self.owner})
 			if contact_name:
 				contact = frappe.get_cached_doc("Contact", contact_name)
 				for link in contact.links:
@@ -242,7 +242,7 @@ def get_address_list(doctype, txt, filters, limit_start, limit_page_length=20, o
 
 def has_website_permission(doc, ptype, user, verbose=False):
 	"""Return True if there is a related lead or contact related to this document."""
-	contact_name = frappe.db.get_value("Contact", {"email_id": frappe.session.user})
+	contact_name = frappe.db.get_value("Contact", {"user": frappe.session.user})
 
 	if contact_name:
 		contact = frappe.get_doc("Contact", contact_name)
