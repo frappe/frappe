@@ -382,6 +382,10 @@ class SQLiteSearch(ABC):
 
 			# Get current progress
 			progress = self._get_index_progress()
+			if not progress:
+				self._initialize_index_progress()
+				progress = self._get_index_progress()
+
 			started_at = self._build_started_at(is_continuation, progress)
 
 			# Check if indexing is already complete
