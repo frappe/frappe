@@ -226,7 +226,7 @@ ${pageScripts
 })`
 		: ""
 
-	// A standard app's studio/<app>/router.ts is compiled in; a custom app's router script is served with the page.
+	// A standard app's router file is compiled in; a custom app's router script is served with the page.
 	const routerImport = routerFile ? `import routerConfig from ${JSON.stringify(routerFile)}` : ""
 	const routerConfig = routerFile ? "routerConfig" : ""
 
@@ -330,7 +330,15 @@ async function buildWithVite(
 			frameworkui(),
 		],
 		resolve: {
-			alias: [...frameworkUIAlias(APPS_DIR), { find: "@", replacement: path.resolve(__dirname, "../") }],
+			alias: [
+				...frameworkUIAlias(APPS_DIR),
+				// Built apps use compiled source and do not need the browser compiler or registry.
+				{
+					find: /^@\/browserRuntime\/appRuntime$/,
+					replacement: path.resolve(__dirname, "../browserRuntime/noBrowserRuntime.ts"),
+				},
+				{ find: "@", replacement: path.resolve(__dirname, "../") },
+			],
 			// keep vue/pinia/etc as single instances so studio modules (composables/stores)
 			// share the app's runtime — Pinia breaks with duplicate copies
 			dedupe: [

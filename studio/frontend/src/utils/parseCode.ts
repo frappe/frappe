@@ -98,67 +98,6 @@ export function toOptionalChaining(expression: string): string {
 	}
 }
 
-// Collect every binding name a declaration pattern introduces, including
-// destructuring (object/array/rest/default patterns).
-function collectPatternNames(pattern: any, names: string[]) {
-	if (!pattern) return
-	switch (pattern.type) {
-		case "Identifier":
-			names.push(pattern.name)
-			break
-		case "ObjectPattern":
-			for (const property of pattern.properties) {
-				if (property.type === "RestElement") {
-					collectPatternNames(property.argument, names)
-				} else {
-					collectPatternNames(property.value, names)
-				}
-			}
-			break
-		case "ArrayPattern":
-			for (const element of pattern.elements) {
-				// holes (e.g. `[, b]`) are null
-				collectPatternNames(element, names)
-			}
-			break
-		case "RestElement":
-			collectPatternNames(pattern.argument, names)
-			break
-		case "AssignmentPattern":
-			collectPatternNames(pattern.left, names)
-			break
-	}
-}
-
-const bindingNamesCache = new LRUCache<string[]>(20)
-// All top-level bindings a script introduces: functions, classes, and variables
-// (incl. destructured ones). Used to expose a client script's state like a <script setup>.
-export function getTopLevelBindings(code: string): string[] {
-	if (!code?.trim()) return []
-
-	const cached = bindingNamesCache.get(code)
-	if (cached !== undefined) return cached
-
-	try {
-		const ast = parse(code, { ecmaVersion: "latest", sourceType: "module" })
-		const names: string[] = []
-		for (const node of ast.body) {
-			if (node.type === "FunctionDeclaration" || node.type === "ClassDeclaration") {
-				if ((node as any).id) names.push((node as any).id.name)
-			} else if (node.type === "VariableDeclaration") {
-				for (const declaration of (node as any).declarations) {
-					collectPatternNames(declaration.id, names)
-				}
-			}
-		}
-		bindingNamesCache.set(code, names)
-		return names
-	} catch {
-		bindingNamesCache.set(code, [])
-		return []
-	}
-}
-
 // Describe a reactive binding's kind for display ("function" | "computed" | "ref" | typeof).
 // A computed is a ref too, so isRef alone can't tell them apart; its internal `.effect` does.
 export function getBindingType(binding: unknown): string {

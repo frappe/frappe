@@ -269,15 +269,25 @@ App-wide routing (aliases, redirects, guards) goes in the app's router config, n
   },
 }"""
 
-# Mode-specific "State & logic" sections appended to DATA_WIRING. Plain strings (NOT f-strings) so the
-# `{{ }}` binding tokens survive verbatim. The non-exported app keeps state in Studio Page variables and
-# a bare interpreted script; the exported app keeps it in code (setup() modules, stores, composables).
+# Use plain strings for these state and logic sections so `{{ }}` tokens stay unchanged.
+# Both app types use the same page script format.
+# File storage and the need to rebuild after an edit depend on the app type.
 CUSTOM_PAGE_CODE = """# State & logic
-Variables — reactive page state (a counter, a toggle, a selected filter). add_variable(name, type, initial_value); reference anywhere as {{ name }}. update_variable to retype/re-seed, delete_variable to remove (warns if still bound). Reuse before duplicating (list_variables).
+Variables — reactive page state (a counter, a toggle, a selected filter). add_variable(name, type, initial_value); reference anywhere as {{ name }}, and read it in a page script as `context.name`. update_variable to retype/re-seed, delete_variable to remove (warns if still bound). Reuse before duplicating (list_variables).
 
-Page script (advanced) — for page logic that outgrows a single event handler: shared helpers, watchers, computed values, data fetched on mount. This app is NOT exported, so its script is a BARE `<script setup>` body — NO `export`, NO `import`, NO `setup()` wrapper. Declare state and helpers at the top level and they're auto-exposed to {{ }} and handlers (do NOT write a return). Vue reactivity APIs (ref/computed/watch), variables, resources, route and router are directly in scope — write `ref(0)`, never `context.ref`. set_page_script replaces the whole script (read it first with get_page_script); it runs live on the canvas the moment it's saved.
+Reactive state & page logic — author the page's setup() MODULE with set_page_script. It is a REAL ES module, so you MUST `import` framework APIs at the TOP — Vue reactivity `import { ref, computed, watch } from 'vue'`; and as needed `import { call, toast } from 'frappe-ui'`, `import { defineStore, storeToRefs } from 'pinia'`, and the app's own files via '@app/*'. `ref`/`computed`/`watch` are NOT on `context` — NEVER write `context.ref` or `const { ref } = context`; import them from 'vue'. The `context` PARAM carries the PAGE's own things: its data sources/resources, its variables, `route` and `router` (e.g. `context.notes`, `context.route`). Only what you RETURN becomes bindings usable in {{ }} and handlers. set_page_script replaces the whole module (read it first with get_page_script); this app's files compile in the browser, so a saved module runs live on the canvas.
+Example:
+import { ref } from 'vue'
+export default function setup(context) {
+  const showCreateDialog = ref(false)
+  const { notes } = context
+  const createNote = (title) => notes.insert.submit({ title })
+  return { showCreateDialog, createNote }
+}
 
-Router config — this app keeps it in the app's router script: read it with get_router_script, write the WHOLE object literal (no `export`, no `import`) with set_router_script."""
+Shared code (stores, composables, utils) — for state or logic used across pages, write files with write_app_file (e.g. `stores/notes.js`, `composables/useFilters.js`) and import them into a page's setup() module via '@app/…'. list_app_files to see the tree, read_app_file before editing, delete_app_file to remove. They compile in the browser, so there is no build to wait for. Only 'vue', 'vue-router', 'pinia', 'frappe-ui' (and its subpaths) and the app's own files are importable — there is no npm here.
+
+Router config — this app keeps it in `router.js` at the app root: read_app_file('router.js') first (it may not exist yet), then write_app_file('router.js', 'export default { … }')."""
 
 STANDARD_PAGE_CODE = """# State & logic
 This app is EXPORTED — its frontend is a real TypeScript codebase on disk (page scripts, stores, composables, utils, components) that you edit as files and ship via a build. Prefer real code over Studio Page variables here.
@@ -296,7 +306,9 @@ export default function setup(context) {
 
 Shared code (stores, composables, utils) — for state or logic used across pages, write files with write_app_file (e.g. `stores/notes.ts`, `composables/useFilters.ts`) and import them into a page's setup() module via '@app/…'. list_app_files to see the tree, read_app_file before editing, delete_app_file to remove. After writing files, trigger_app_build so the running app picks them up.
 
-Router config — this app keeps it in `router.ts` at the app root: read_app_file('router.ts') first (it may not exist yet), then write_app_file('router.ts', 'export default { … }'). It may import from '@app/*'."""
+Default new code files to `.ts`; `.js` is also allowed. Preserve an existing file's extension.
+
+Router config — list_app_files and use the existing `router.ts` or `router.js` at the app root. If neither exists, create `router.ts`. Read the existing file before editing and preserve its extension. It default-exports the config and may import from '@app/*'."""
 
 
 def get_agent_system(data_and_code_wiring: str) -> str:
@@ -346,9 +358,8 @@ When the user attaches an image (a screenshot or design mock), treat it as the s
 """
 
 
-# Two agents, picked by whether the app is exported. Both share everything except the
-# State & logic section: the non-exported agent keeps state in variables + a bare interpreted script;
-# the standard agent keeps it in code (setup() modules, stores, composables) edited as files.
+# Choose the agent by the app's source storage. Both use the same page script format
+# and shared files. Available variable tools and build requirements differ by app type.
 AGENT_SYSTEM_CUSTOM = get_agent_system(DATA_WIRING + "\n\n" + CUSTOM_PAGE_CODE + "\n\n" + ROUTING)
 AGENT_SYSTEM_STANDARD = get_agent_system(DATA_WIRING + "\n\n" + STANDARD_PAGE_CODE + "\n\n" + ROUTING)
 

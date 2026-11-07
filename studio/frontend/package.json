@@ -13,6 +13,7 @@
 		"extract-frappeui-types": "tsx src/scripts/tsToJSONGenerator.ts frappeui",
 		"extract-frameworkui-types": "tsx src/scripts/tsToJSONGenerator.ts frameworkui",
 		"extract-studio-types": "tsx src/scripts/tsToJSONGenerator.ts studio",
+		"test:node": "node --test vite/*.test.mjs",
 		"test:cypress": "cypress run --component",
 		"test:cypress:open": "cypress open --component"
 	},
@@ -35,6 +36,7 @@
 		"marked": "^15.0.6",
 		"pinia": "^2.2.1",
 		"reka-ui": "^2.9.9",
+		"sucrase": "^3.35.0",
 		"thememirror": "^2.0.1",
 		"typescript": "^5.8.3",
 		"vite": "8.0.13",

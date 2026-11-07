@@ -16,6 +16,13 @@ export function useLiveEditor() {
 	// 1. JSON changed on disk and was synced to the DB. Only external (disk) edits refresh the
 	// editor — its own saves are already live on the canvas, and rebuilding would drop selection.
 	async function onDiskSync({ doctype, name, studio_app, source }: DiskSyncInfo) {
+		// File-store events identify files by path. The store combines local saves and realtime
+		// events into one canvas refresh.
+		if (doctype === "Studio App File") {
+			if (studio_app === store.activeApp?.name) store.refreshAppFiles()
+			return
+		}
+
 		if (source !== "disk") return
 
 		// components are global (no app scope), so react regardless of which app is open. Re-fetching
@@ -39,7 +46,7 @@ export function useLiveEditor() {
 
 	// 2. A custom .vue component was added/removed/renamed in a studio folder (Vite emits this in
 	// dev; content edits hot-reload on their own). Reload the app's component set.
-	const onCustomComponentsChanged = () => store.loadCustomVueComponents()
+	const onCustomComponentsChanged = () => store.setCustomComponents()
 
 	// 3. A custom .vue component's content changed on disk. Vite hot-reloads its rendered module,
 	// but our template/slot caches keep the stale copy — so a newly added/removed <slot> wouldn't

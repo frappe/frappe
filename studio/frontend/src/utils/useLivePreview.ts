@@ -3,6 +3,7 @@ import { useRouter } from "vue-router"
 import { useDebounceFn } from "@vueuse/core"
 
 import { reloadCustomVueComponents } from "@/utils/customVueComponents"
+import { reloadAppRuntime } from "@/browserRuntime/appRuntime"
 import useComponentStore from "@/stores/componentStore"
 
 // Re-render the preview when the open page changes in the DB — an editor save, an AI edit, or a disk
@@ -21,11 +22,25 @@ export function useLivePreview() {
 		if (!failure) revision.value++
 	}, 300)
 
+	// Reload source before remounting the page after a stored file changes.
+	const reloadAppFiles = useDebounceFn(async () => {
+		await reloadAppRuntime()
+		const { path, query, hash } = router.currentRoute.value
+		const failure = await router.replace({ path, query, hash, force: true })
+		if (!failure) revision.value++
+	}, 300)
+
 	const onDocUpdate = (info: any) => {
 		if (info?.doctype === "Studio Component") {
 			useComponentStore().reloadComponent(info.name)
 		} else if (info?.doctype === "Studio Page" && info?.name === router.currentRoute.value.meta.pageName) {
 			reloadPage(info.name)
+		} else if (
+			info?.doctype === "Studio App File" &&
+			window.uses_db_files &&
+			info?.studio_app === window.app_name
+		) {
+			reloadAppFiles()
 		}
 	}
 

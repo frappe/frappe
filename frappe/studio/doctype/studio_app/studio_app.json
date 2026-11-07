@@ -13,8 +13,6 @@
   "column_break_aroi",
   "app_home",
   "favicon",
-  "router_section",
-  "router_script",
   "export_section",
   "is_standard",
   "frappe_app"
@@ -72,20 +70,6 @@
    "fieldtype": "Select",
    "label": "Frappe App (for export)",
    "mandatory_depends_on": "is_standard"
-  },
-  {
-   "depends_on": "eval:!doc.is_standard",
-   "fieldname": "router_section",
-   "fieldtype": "Section Break",
-   "label": "Router"
-  },
-  {
-   "depends_on": "eval:!doc.is_standard",
-   "description": "Control navigation with guards, redirects, aliases and route metadata",
-   "fieldname": "router_script",
-   "fieldtype": "Code",
-   "label": "Router Script",
-   "options": "JavaScript"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -93,9 +77,13 @@
   {
    "link_doctype": "Studio Page",
    "link_fieldname": "studio_app"
+  },
+  {
+   "link_doctype": "Studio App File",
+   "link_fieldname": "studio_app"
   }
  ],
- "modified": "2026-11-04 17:13:09.000000",
+ "modified": "2026-11-07 13:45:26.621023",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio App",

@@ -13,6 +13,7 @@
 					title="New file"
 				/>
 				<Button
+					v-if="!store.usesDbFiles"
 					variant="ghost"
 					icon="lucide-folder-plus"
 					@click="openNewEntryDialog('folder')"
@@ -30,6 +31,7 @@
 
 		<button
 			v-if="activePage"
+			:disabled="loading"
 			class="flex w-full items-center gap-2 rounded-4 border border-outline-gray-2 px-2 py-1.5 text-left hover:bg-surface-gray-2"
 			:title="
 				activePageHasScript
@@ -121,7 +123,11 @@
 				variant="outline"
 				:label="newEntryType === 'folder' ? 'Folder path' : 'File path'"
 				:description="newEntryDescription"
-				:placeholder="newEntryType === 'folder' ? 'composables' : 'composables/useThing.ts'"
+				:placeholder="
+					newEntryType === 'folder'
+						? 'composables'
+						: `composables/useThing.${store.usesDbFiles ? 'js' : 'ts'}`
+				"
 				v-model="newEntryPath"
 				@keyup.enter="createEntry"
 			/>
@@ -158,6 +164,14 @@
 			<span v-if="openFileReadOnly" class="shrink-0 text-xs text-ink-gray-4">read-only</span>
 		</template>
 		<template #actions>
+			<Popover v-if="isPageScript" side="bottom" align="end" :offset="6" bare>
+				<template #trigger>
+					<Button size="xs" variant="ghost" icon="lucide-circle-help" title="How to write the page script" />
+				</template>
+				<div class="max-w-sm rounded-4 border border-outline-gray-2 bg-surface-base p-3 shadow-lg">
+					<PageScriptHelp />
+				</div>
+			</Popover>
 			<template v-if="!openFileReadOnly">
 				<Button size="xs" variant="ghost" icon="lucide-trash-2" @click="removeFile" title="Delete file" />
 				<Button size="xs" variant="solid" :loading="saving" :disabled="!dirty" @click="save">Save</Button>
@@ -167,21 +181,22 @@
 
 		<template #banner>
 			<ErrorMessage
-				v-if="pageScope.pageScriptError && isEditingActivePageScript"
+				v-if="scriptError || (pageScope.pageScriptError && isEditingActivePageScript)"
 				class="border-b border-outline-gray-2 px-3 py-2"
-				:message="`Error: ${pageScope.pageScriptError}`"
+				:message="scriptError || `Error: ${pageScope.pageScriptError}`"
 			/>
 		</template>
 	</CodeEditorDock>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from "vue"
+import { ref, computed, inject, watch, nextTick, onMounted, onBeforeUnmount } from "vue"
 import { useStorage } from "@vueuse/core"
-import { Button, Dialog, ErrorMessage, FormControl, Tree, toast, Tooltip } from "frappe-ui"
+import { Button, Dialog, ErrorMessage, FormControl, Popover, Tree, toast, Tooltip } from "frappe-ui"
 import CodeEditorDock from "@/components/CodeEditorDock.vue"
 import ContextMenu from "@/components/ContextMenu.vue"
 import EmptyState from "@/components/EmptyState.vue"
+import PageScriptHelp from "@/components/PageScriptHelp.vue"
 import useStudioStore from "@/stores/studioStore"
 import { usePageScope } from "@/stores/codeStore"
 import {
@@ -193,9 +208,12 @@ import {
 	renameStudioFile,
 	deleteStudioFile,
 	languageForFile,
+	resolveScriptPath,
 	type StudioFileNode,
 } from "@/data/studioFiles"
+import { checkAppScript } from "@/browserRuntime/appRuntime"
 import { confirm } from "@/utils/helpers"
+import { PAGE_SCRIPT_BOILERPLATE } from "@/utils/constants"
 import { pageScriptCompletions } from "@/utils/completions/pageScriptCompletions"
 import type { ContextMenuOption } from "@/types"
 
@@ -248,7 +266,9 @@ const activePagePaths = computed(() => {
 	const title = activePage.value?.page_title
 	if (!title) return null
 	const folder = `studio_page/${scrub(title)}`
-	return { folder, script: `${folder}/${scrub(title)}.ts` }
+	const stem = `${folder}/${scrub(title)}`
+	const existing = [`${stem}.ts`, `${stem}.js`].filter((path) => findNode(path))
+	return { folder, stem, existing }
 })
 
 function findNode(path: string | null, nodes: StudioFileNode[] = tree.value): StudioFileNode | null {
@@ -261,11 +281,16 @@ function findNode(path: string | null, nodes: StudioFileNode[] = tree.value): St
 	return null
 }
 
-const activePageHasScript = computed(() => Boolean(findNode(activePagePaths.value?.script ?? null)))
+const activePageHasScript = computed(() => Boolean(activePagePaths.value?.existing.length))
 
 function openActivePageScript() {
-	const scriptPath = activePagePaths.value?.script
-	if (scriptPath) openOrCreateFile(scriptPath)
+	const paths = activePagePaths.value
+	if (!paths) return
+	try {
+		openOrCreateFile(resolveScriptPath(paths.stem, paths.existing, store.usesDbFiles))
+	} catch (error: any) {
+		toast.error("Failed to open the page script", { description: error.message })
+	}
 }
 
 function openOrCreateFile(path: string) {
@@ -288,9 +313,13 @@ const savedContent = ref("")
 const dirty = computed(() => Boolean(openFile.value) && editorContent.value !== savedContent.value)
 const language = computed(() => (openFile.value ? languageForFile(openFile.value.path) : "javascript"))
 
-const isEditingActivePageScript = computed(
-	() => Boolean(openFile.value) && openFile.value!.path === activePagePaths.value?.script,
+const isEditingActivePageScript = computed(() =>
+	Boolean(openFile.value && activePagePaths.value?.existing.includes(openFile.value.path)),
 )
+
+// Page scripts use setup(context), so show their starter code, help and syntax errors.
+const isPageScript = computed(() => Boolean(openFile.value) && isPageScriptPath(openFile.value!.path))
+const scriptError = ref<string | null>(null)
 
 // the app doc exports to <scrub(app)>.json at the studio root
 const appJsonPath = computed(() => `${scrub(app.value?.name ?? "")}.json`)
@@ -323,7 +352,7 @@ function getFileBadge(path: string): { label: string; colorClass: string } {
 }
 
 async function openNode(node: StudioFileNode) {
-	if (node.path === "router.ts") return openRouterEditor()
+	if (node.path === "router.js" || node.path === "router.ts") return openRouterEditor()
 	if (dirty.value) {
 		const discard = await confirm("Discard unsaved changes?")
 		if (!discard) return
@@ -331,20 +360,24 @@ async function openNode(node: StudioFileNode) {
 	try {
 		const file = await readStudioFile(location.value, node.path)
 		openFile.value = { path: file.path, hash: file.hash }
-		editorContent.value = file.content
+		// Start empty page scripts with the required setup(context) module structure.
+		editorContent.value =
+			!file.content && isPageScriptPath(file.path) ? PAGE_SCRIPT_BOILERPLATE : file.content
 		savedContent.value = file.content
 	} catch (error: any) {
 		toast.error("Failed to open file", { description: error?.messages?.join(", ") })
 	}
 }
 
-// the router editor owns router.ts: its completions, page-name warning and help live there
+// the router editor owns the router file: its completions, page-name warning and help live there
 function openRouterEditor() {
 	store.studioLayout.leftPanelActiveTab = "Pages"
 	store.showRouterEditor = true
 }
 
 function onEditorChange(value: string) {
+	// Blur also emits the current text. Ignore unchanged text to preserve Save's validation error.
+	if (value !== editorContent.value) scriptError.value = null
 	editorContent.value = value
 }
 
@@ -361,6 +394,17 @@ const saving = ref(false)
 
 async function save() {
 	if (!openFile.value || !dirty.value || openFileReadOnly.value) return
+	// Reject syntax errors before they prevent page setup from creating bindings.
+	if (isPageScript.value) {
+		const syntaxError = await checkAppScript(editorContent.value, openFile.value.path)
+		if (syntaxError) {
+			const hint = editorContent.value.includes("{{")
+				? " Use expressions directly in scripts, not {{ }} interpolation."
+				: ""
+			scriptError.value = `${syntaxError}.${hint}`
+			return
+		}
+	}
 	saving.value = true
 	try {
 		const result = await writeStudioFile(
@@ -372,6 +416,10 @@ async function save() {
 		openFile.value.hash = result.hash
 		savedContent.value = editorContent.value
 		toast.success("Saved")
+		// Refresh stored source immediately instead of waiting for its realtime event.
+		if (store.usesDbFiles) store.refreshAppFiles()
+		// Page scripts update their owning page record, so reload the active page's setup.
+		if (isEditingActivePageScript.value) store.reloadActivePageScript()
 	} catch (error: any) {
 		toast.error("Failed to save", { description: error?.messages?.join(", ") })
 	} finally {
@@ -383,10 +431,14 @@ async function save() {
 const showNewEntryDialog = ref(false)
 const newEntryPath = ref("")
 const newEntryType = ref<"file" | "folder">("file")
+// A database app's source runs as it is, so TypeScript and .vue files need a repository app.
+const allowedExtensions = computed(() =>
+	store.usesDbFiles ? ".js, .json, .css" : ".ts, .js, .vue, .json, .css",
+)
 const newEntryDescription = computed(() =>
 	newEntryType.value === "folder"
 		? `Relative to studio/${app.value?.app_name}`
-		: `Relative to studio/${app.value?.app_name}. Allowed: .ts, .js, .vue, .json, .css`,
+		: `Relative to studio/${app.value?.app_name}. Allowed: ${allowedExtensions.value}`,
 )
 const pathInput = ref<any>(null)
 const treeContainer = ref<HTMLElement | null>(null)
@@ -418,17 +470,8 @@ function focusFormInput(formRef: { value: any }, start?: number, end?: number) {
 	})
 }
 
-// A page's script (studio_page/<stem>/<stem>.ts) gets a setup() skeleton instead of an empty file.
-const PAGE_SCRIPT_BOILERPLATE = `export default function setup(context) {
-	// Reactive state, computed values, watchers and functions for this page.
-	// Read this page's data sources and variables from context, e.g. context.todos
-
-	return {}
-}
-`
-
 function isPageScriptPath(path: string): boolean {
-	const match = path.match(/^studio_page\/([^/]+)\/([^/]+)\.ts$/)
+	const match = path.match(/^studio_page\/([^/]+)\/([^/]+)\.(?:js|ts)$/)
 	return Boolean(match && match[1] === match[2])
 }
 
@@ -470,12 +513,17 @@ const contextMenuNode = ref<StudioFileNode | null>(null)
 const contextMenuOptions = computed<ContextMenuOption[]>(() => {
 	const node = contextMenuNode.value
 	if (!node) return []
-	// Export-managed pages/components get no rename/delete actions.
+	// Studio-generated files and folders cannot be renamed or deleted here.
+	// A page script can be cleared; rename its owning page to change the script's name.
 	const options: ContextMenuOption[] = isProtectedNode(node)
 		? []
 		: [
-				{ label: "Rename", action: () => startRename(node) },
-				{ label: "Delete", action: () => deleteNode(node), theme: "red" },
+				...(isPageScriptPath(node.path) ? [] : [{ label: "Rename", action: () => startRename(node) }]),
+				{
+					label: isPageScriptPath(node.path) ? "Clear" : "Delete",
+					action: () => deleteNode(node),
+					theme: "red",
+				},
 			]
 	if (!node.is_folder && node.path.endsWith(".vue")) {
 		const componentName = node.label.replace(/\.vue$/i, "")
@@ -596,7 +644,11 @@ function remapOpenFile(oldPath: string, newPath: string, isFolder: boolean) {
 // -- Delete --
 async function deleteNode(node: StudioFileNode) {
 	if (isProtectedNode(node)) return // export-managed, can't delete
-	const message = node.is_folder ? `Delete ${node.path} and everything inside it?` : `Delete ${node.path}?`
+	const message = node.is_folder
+		? `Delete ${node.path} and everything inside it?`
+		: isPageScriptPath(node.path)
+			? `Clear ${node.path}? The page keeps its empty script.`
+			: `Delete ${node.path}?`
 	if (!(await confirm(message))) return
 	try {
 		await deleteStudioFile(location.value, node.path)
@@ -674,12 +726,26 @@ async function onStudioFileChanged({ path }: { path: string }) {
 	}
 }
 
+// Stored files have no Vite watcher. Realtime events refresh the tree and any open file that changed.
+const socket = inject<any>("socket")
+
+async function onAppFileChange(info: { doctype: string; name: string; studio_app: string }) {
+	if (info?.doctype !== "Studio App File" || !store.usesDbFiles) return
+	if (info.studio_app !== location.value.studio_app) return
+	await onStudioFilesChanged()
+	if (openFile.value && info.name === openFile.value.path) {
+		await onStudioFileChanged({ path: `${info.studio_app}/${info.name}` })
+	}
+}
+
 onMounted(() => {
 	import.meta.hot?.on("studio:files-changed", onStudioFilesChanged)
 	import.meta.hot?.on("studio:file-changed", onStudioFileChanged)
+	socket?.on("studio_doc_update", onAppFileChange)
 })
 onBeforeUnmount(() => {
 	import.meta.hot?.off("studio:files-changed", onStudioFilesChanged)
 	import.meta.hot?.off("studio:file-changed", onStudioFileChanged)
+	socket?.off("studio_doc_update", onAppFileChange)
 })
 </script>

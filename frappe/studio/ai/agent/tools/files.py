@@ -1,11 +1,12 @@
-"""File tools — read and write an exported app's code files (stores, composables, utils, components).
+"""Read and write an app's shared source files, such as stores, composables and components.
 
-Only for STANDARD (exported) apps: their frontend is a real TypeScript project on disk under
-`<frappe_app>/studio/<studio_app>/`. These server tools wrap the jailed studio-file API in
-frappe.studio.api, which already enforces the path jail, the editable-extension allowlist, developer mode
-and the System Manager role — so the model never touches anything outside the app folder. A page
-edits its own logic with set_page_script; these tools are for the SHARED code around it, imported
-into page scripts via the app's `@app/*` alias.
+Repository apps store files under `<frappe_app>/studio/<studio_app>/`. Database apps
+store them in Studio App File records. Both use the file API in `frappe.studio.api`,
+which restricts paths to the app, checks allowed extensions and permissions, and
+requires developer mode for files on disk.
+
+Use `set_page_script` for a page's own logic. Use these tools for shared code that
+page scripts import with the `@app/` alias.
 """
 
 import frappe
@@ -17,7 +18,7 @@ def run_list_app_files(ctx, args: dict) -> str:
 	ref = _app_ref(ctx)
 	if isinstance(ref, str):
 		return ref
-	from frappe.studio import api
+	from frappe.studio import api, files
 
 	try:
 		tree = api.list_studio_files(*ref)
@@ -25,7 +26,8 @@ def run_list_app_files(ctx, args: dict) -> str:
 		return _fail(error)
 	paths = _flatten(tree)
 	if not paths:
-		return "The app has no editable files yet. Create them with write_app_file (e.g. stores/notes.ts)."
+		extension = "js" if files.uses_db_files(ref[1]) else "ts"
+		return f"The app has no editable files yet. Create them with write_app_file (e.g. stores/notes.{extension})."
 	return "App files (paths are relative to the app root, imported as '@app/<path>'):\n" + "\n".join(paths)
 
 
@@ -99,13 +101,15 @@ def run_trigger_app_build(ctx, args: dict) -> str:
 
 
 def _app_ref(ctx) -> tuple[str, str] | str:
-	"""(frappe_app, studio_app) for the page in context, or a FAILED string if it isn't an exported app."""
+	"""Return `(frappe_app, studio_app)` for the current page.
+
+	The file API routes on the app's `is_standard` flag, not on `frappe_app`: an app that was
+	exported and then un-exported keeps the Frappe app it was exported to.
+	"""
 	page = load_page(ctx)
 	if page is None:
 		return "FAILED: no page in context."
-	if not page.is_standard:
-		return "FAILED: this app isn't exported — it has no code files. Use variables and set_page_script instead."
-	return page.frappe_app, page.studio_app
+	return page.frappe_app or "", page.studio_app
 
 
 def _flatten(nodes: list[dict]) -> list[str]:
@@ -131,8 +135,8 @@ list_app_files = Tool(
 	side="server",
 	handler=run_list_app_files,
 	description=(
-		"List the exported app's editable code files (stores, composables, utils, components, page "
-		"scripts). Use before read_app_file / write_app_file to see what already exists and reuse it."
+		"List the app's editable code files (stores, composables, utils, components, page scripts). "
+		"Use before read_app_file / write_app_file to see what already exists and reuse it."
 	),
 	parameters={"type": "object", "properties": {}},
 )
@@ -141,13 +145,13 @@ read_app_file = Tool(
 	name="read_app_file",
 	side="server",
 	handler=run_read_app_file,
-	description="Read one of the exported app's code files. Read before editing so you extend it, not clobber it.",
+	description="Read one of the app's code files. Read before editing so you extend it, not clobber it.",
 	parameters={
 		"type": "object",
 		"properties": {
 			"file_path": {
 				"type": "string",
-				"description": "Path relative to the app root, e.g. 'stores/notes.ts'.",
+				"description": "Path relative to the app root. Default new code to .ts in repository apps and .js in database apps.",
 			}
 		},
 		"required": ["file_path"],
@@ -159,8 +163,9 @@ write_app_file = Tool(
 	side="server",
 	handler=run_write_app_file,
 	description=(
-		"Create or overwrite one of the exported app's code files — a Pinia store, a composable, a util, "
-		"or a custom component (.ts/.js/.vue/.css) for state or logic shared across pages. Parent folders "
+		"Create or overwrite one of the app's code files for state or logic shared across pages. "
+		"Default new repository code to .ts; keep existing .js files. Database code must be .js. "
+		"Repository apps also allow .vue files; both app types allow .json and .css. Parent folders "
 		"are created automatically. Import it from a page's setup() module via '@app/<path-without-ext>'. "
 		"Pass the ENTIRE file content (it overwrites; read_app_file first to extend an existing file). Run "
 		"trigger_app_build afterwards so the change reaches the running app."
@@ -170,7 +175,7 @@ write_app_file = Tool(
 		"properties": {
 			"file_path": {
 				"type": "string",
-				"description": "Path relative to the app root, e.g. 'stores/notes.ts' or 'composables/useFilters.ts'.",
+				"description": "Path relative to the app root, e.g. 'stores/notes.ts' for a repository app or 'stores/notes.js' for a database app.",
 			},
 			"content": {"type": "string", "description": "The full file content."},
 		},
@@ -188,7 +193,7 @@ delete_app_file = Tool(
 		"properties": {
 			"file_path": {
 				"type": "string",
-				"description": "Path relative to the app root, e.g. 'utils/old.ts'.",
+				"description": "Path relative to the app root, e.g. 'utils/old.js'.",
 			}
 		},
 		"required": ["file_path"],
