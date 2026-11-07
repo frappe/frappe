@@ -40,6 +40,52 @@ def make_xlsx(data, sheet_name, wb=None, column_widths=None):
 	sheet_name_sanitized = INVALID_TITLE_REGEX.sub(" ", sheet_name)
 	ws = wb.create_sheet(sheet_name_sanitized, 0)
 
+<<<<<<< HEAD
+=======
+		wb = xlsxwriter.Workbook(xlsx_file, options)
+		created_wb = True
+
+	ws = wb.add_worksheet(get_sanitized_sheet_name(sheet_name))
+
+	# extract style components
+	def _extract_ids(key: str) -> dict:
+		return {k: tuple(v) for k, v in (styles.get(key) or {}).items() if v}
+
+	style_registry: list[dict] = styles.get("styles") or []
+	col_style_ids: dict[int, tuple[int, ...]] = _extract_ids("column_styles")
+	row_style_ids: dict[int, tuple[int, ...]] = _extract_ids("row_styles")
+	cell_style_ids: dict[tuple[int, int], tuple[int, ...]] = _extract_ids("cell_styles")
+
+	styling_enabled = bool(col_style_ids or row_style_ids or cell_style_ids)
+
+	if not styling_enabled:
+		ws.set_row(0, cell_format=wb.add_format({"bold": True}))
+
+	def resolve_style_ids(style_ids: tuple[int, ...]) -> dict:
+		if len(style_ids) == 1:
+			return style_registry[style_ids[0]]
+
+		result = {}
+
+		for sid in style_ids:
+			result.update(style_registry[sid])
+		return result
+
+	@functools.cache
+	def get_format(style_ids: tuple[int, ...]) -> Format:
+		return wb.add_format(resolve_style_ids(style_ids))
+
+	# time / duration values need an explicit number format, otherwise Excel shows raw day fractions
+	excel_time_format = XLSXStyleBuilder.get_time_format()
+
+	@functools.cache
+	def get_time_cell_format(style_ids: tuple[int, ...], num_format: str) -> Format:
+		style = dict(resolve_style_ids(style_ids))
+		style.setdefault("num_format", num_format)
+		return wb.add_format(style)
+
+	# set column widths
+>>>>>>> 4abfa99 (fix(xlsx): apply number format to time and timedelta values in Excel export)
 	for i, column_width in enumerate(column_widths):
 		if column_width:
 			ws.column_dimensions[get_column_letter(i + 1)].width = column_width
@@ -49,11 +95,68 @@ def make_xlsx(data, sheet_name, wb=None, column_widths=None):
 
 	date_format, time_format = get_excel_date_format()
 
+<<<<<<< HEAD
 	for row in data:
 		clean_row = []
 		for item in row:
 			if isinstance(item, str) and (sheet_name not in ["Data Import Template", "Data Export"]):
 				value = handle_html(item)
+=======
+	# priority: column < row < cell (later in tuple = higher priority)
+	cell_formats: dict[tuple[int, int], Format] = {}
+
+	# process explicit cell styles
+	for pos, cell_ids in cell_style_ids.items():
+		row_idx, col_idx = pos
+		col_ids = col_style_ids.get(col_idx, ())
+		row_ids = row_style_ids.get(row_idx, ())
+
+		cell_formats[pos] = get_format(col_ids + row_ids + cell_ids)
+
+	# process row x column intersections (no explicit cell style)
+	for row_idx, row_ids in row_style_ids.items():
+		for col_idx, col_ids in col_style_ids.items():
+			pos = (row_idx, col_idx)
+			if pos not in cell_formats:
+				cell_formats[pos] = get_format(col_ids + row_ids)
+
+	# quick access for hot loop
+	handle_html_content = sheet_name not in {"Data Import Template", "Data Export"}
+	illegal_chars_search = ILLEGAL_CHARACTERS_RE.search
+	illegal_chars_sub = ILLEGAL_CHARACTERS_RE.sub
+
+	write = ws.write
+	write_string = ws.write_string
+	has_cell_formats = bool(cell_formats)
+	get_cell_format = cell_formats.get
+
+	for row_idx, row in enumerate(data):
+		for col_idx, value in enumerate(row):
+			is_formula_like = False
+
+			if isinstance(value, str):
+				if handle_html_content:
+					value = handle_html(value)
+
+				if illegal_chars_search(value):
+					value = illegal_chars_sub("", value)
+
+				is_formula_like = value.startswith(FORMULA_TRIGGER_CHARS)
+
+			cell_format = get_cell_format((row_idx, col_idx)) if has_cell_formats else None
+
+			if isinstance(value, datetime.time | datetime.timedelta):
+				cell_format = get_time_cell_format(
+					col_style_ids.get(col_idx, ())
+					+ row_style_ids.get(row_idx, ())
+					+ cell_style_ids.get((row_idx, col_idx), ()),
+					"[h]:mm:ss" if isinstance(value, datetime.timedelta) else excel_time_format,
+				)
+
+			if is_formula_like:
+				# force literal text so the cell isn't parsed as a formula
+				write_string(row_idx, col_idx, value, cell_format)
+>>>>>>> 4abfa99 (fix(xlsx): apply number format to time and timedelta values in Excel export)
 			else:
 				value = item
 
