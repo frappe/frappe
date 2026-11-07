@@ -14,6 +14,8 @@ from frappe.utils import cint, cstr
 from frappe.utils.caching import redis_cache
 from frappe.utils.frappecloud import on_frappecloud
 
+CHANGE_LOG_SUMMARY_END = "<!-- more -->"
+
 
 def get_change_log(user=None):
 	if not user:
@@ -61,11 +63,15 @@ def get_change_log(user=None):
 
 
 def get_change_log_for_app(app, from_version, to_version):
+	"""Return the summaries of the app's change logs after from_version, up to to_version.
+
+	A summary is the text above `<!-- more -->`, or the whole file without it.
+	"""
 	from_version = Version(from_version)
 	to_version = Version(to_version).truncate()
 
 	return [
-		[cstr(version), content]
+		[cstr(version), content.split(CHANGE_LOG_SUMMARY_END)[0]]
 		for version, content in read_change_logs(app, range(from_version.major, to_version.major + 1))
 		if from_version < version <= to_version
 	]

@@ -523,7 +523,7 @@ frappe.Application = class Application {
 			title: __("Updated To A New Version 🎉"),
 			wide: true,
 			primary_action: {
-				label: __("See All Release Notes"),
+				label: __("Read Full Release Notes"),
 				action: () => {
 					change_log_dialog.hide();
 					frappe.set_route("whats-new");
