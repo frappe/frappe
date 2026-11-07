@@ -9,7 +9,11 @@ from frappe.desk.doctype.sidebar.sidebar import (
 	item_key,
 	validate_item_route,
 )
-from frappe.desk.doctype.workspace.workspace import check_workspace_manager, is_workspace_manager
+from frappe.desk.doctype.workspace.workspace import (
+	check_layer_keeps_its_owner,
+	check_workspace_manager,
+	is_workspace_manager,
+)
 from frappe.desk.layers import resolve_layers
 from frappe.model.document import Document
 
@@ -76,22 +80,12 @@ class CustomSidebar(Document):
 	# end: auto-generated types
 
 	def validate(self):
-		self.validate_layer_keeps_its_owner()
+		check_layer_keeps_its_owner(self)
 		self.validate_module()
 		self.validate_unique()
 		self.validate_item_routes()
 		self.drop_private_workspaces()
 		self.anchor_the_items()
-
-	def validate_layer_keeps_its_owner(self):
-		"""Refuse moving a layer to another user unless the caller curates every layer.
-
-		`has_permission` can only read `user` off the document in front of it, so naming yourself
-		would otherwise be enough to pass it and take someone else's layer or the site's.
-		"""
-		before = self.get_doc_before_save()
-		if before and (before.user or SITE_LAYER) != (self.user or SITE_LAYER) and not is_workspace_manager():
-			frappe.throw(_("Only a Workspace Manager can move a sidebar layer."), frappe.PermissionError)
 
 	def validate_module(self):
 		"""Check the module in the model rather than in the endpoints. `_validate_links` below no

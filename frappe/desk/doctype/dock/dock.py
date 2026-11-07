@@ -10,7 +10,11 @@ from frappe import _
 # app content on a site, or is a user editing? Shared rather than copied, so a route added to one
 # list but not the other cannot break one doctype and not the other on customer sites.
 from frappe.desk.doctype.sidebar.sidebar import SYSTEM_WRITE_FLAGS
-from frappe.desk.doctype.workspace.workspace import check_workspace_manager, is_workspace_manager
+from frappe.desk.doctype.workspace.workspace import (
+	check_layer_keeps_its_owner,
+	check_workspace_manager,
+	is_workspace_manager,
+)
 from frappe.desk.layers import resolve_layers
 from frappe.model.document import Document
 
@@ -135,6 +139,7 @@ class Dock(Document):
 			self.name = self.app
 
 	def validate(self):
+		check_layer_keeps_its_owner(self)
 		# One spelling of "not a user's own layer", so the composite index can compare them. The
 		# column is also not-nullable, which is what makes this stick: a blank column in a unique
 		# index is stored as `NULL`, and every NULL is distinct to an index, so one app could

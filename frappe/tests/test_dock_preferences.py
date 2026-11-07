@@ -1207,6 +1207,29 @@ class TestWhatACustomisationMayDo(DockTestCase):
 		self.assertEqual(frappe.get_all("Dock", filters={"app": APP, "standard": 0}), [])
 		self.assertEqual(names(dock_for(self.PERSON)), [ALPHA, BETA, GAMMA])
 
+	def moved_site_layer(self):
+		"""The site layer, naming `PERSON` as its owner and not saved yet."""
+		frappe.set_user(self.MANAGER)
+		save_site_dock(APP, payload(BETA))
+		doc = frappe.get_doc("Dock", frappe.db.get_value("Dock", {"app": APP, "user": ""}))
+		doc.user = self.PERSON
+		return doc
+
+	def test_a_layer_cannot_be_moved_by_naming_a_new_owner(self):
+		"""`has_permission` reads `user` off the document being saved, so it cannot refuse this. The
+		document has to, on any site that grants more than the default read on `Dock`.
+		"""
+		doc = self.moved_site_layer()
+
+		frappe.set_user(self.PERSON)
+		self.assertRaises(frappe.PermissionError, doc.save, ignore_permissions=True)
+
+	def test_a_workspace_manager_may_move_a_layer(self):
+		doc = self.moved_site_layer()
+		doc.save()
+
+		self.assertEqual(frappe.db.get_value("Dock", doc.name, "user"), self.PERSON)
+
 	def test_reset_for_everyone_is_workspace_manager_only(self):
 		from frappe.desk.doctype.dock.dock import reset_dock_for_everyone
 
