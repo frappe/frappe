@@ -682,11 +682,10 @@ ace-builds@^1.4.8:
   resolved "https://registry.yarnpkg.com/ace-builds/-/ace-builds-1.31.2.tgz#bd5d0ee4243b9ae4358563889cb5663f4893b3e7"
   integrity sha512-IeZI9ytPA6mB+goPxPkUPW4vXBoLuaBl5czu2tjtKrMi7mdRgyIUA/8e5JlrI1mqKoMeWHoUujzMTWkyutTdBw==
 
-"air-datepicker@git+https://github.com/frappe/air-datepicker":
-  version "2.2.3"
-  resolved "git+https://github.com/frappe/air-datepicker#ed37b94d95c68d8544357e330be0c89d044a3eea"
-  dependencies:
-    jquery ">=2.0.0 <4.0.0"
+air-datepicker@^3.6.0:
+  version "3.6.0"
+  resolved "https://registry.yarnpkg.com/air-datepicker/-/air-datepicker-3.6.0.tgz#97dc1c9140985a90acb463822d7c58fe67c3e086"
+  integrity sha512-+txUkqa949rXBJDmkQAIb/GehZECJYF4rm9XJxVYtEX22C9WvBpE/XwCUQZBopKIkpg4ycAySJ9lH3JOg9qQTw==
 
 ansi-regex@^5.0.1:
   version "5.0.1"
@@ -1199,10 +1198,10 @@ frappe-charts@2.0.0-rc31:
   resolved "https://registry.yarnpkg.com/frappe-charts/-/frappe-charts-2.0.0-rc31.tgz#84bf967667fe1f7019697d752d10cd048479295a"
   integrity sha512-N9girfYw5OYQd9MOwn0lq78FTOFhOXSp99yn1lQ0PYBCIKXU++2eUw5kpao1fonuAJuANq2yLNEnh2+VAxWv4g==
 
-frappe-datatable@1.21.3:
-  version "1.21.3"
-  resolved "https://registry.yarnpkg.com/frappe-datatable/-/frappe-datatable-1.21.3.tgz#a3df1df54f19066c0453df1b27dc5d711d10e51f"
-  integrity sha512-vpLSPKhASYfcvii1tDoTouzC6DbNmchMxjmjh5tF9oNCMqH28D+Vzc97tXQRDyWJIfVxtC1iOt08H17jsVmVAA==
+frappe-datatable@1.22.0:
+  version "1.22.0"
+  resolved "https://registry.yarnpkg.com/frappe-datatable/-/frappe-datatable-1.22.0.tgz#bd0f1d5dc06a3ba7157a053aa6b590f4c96aa37a"
+  integrity sha512-VMLpfK3JM6KGijKVWymqjprGLqsWAo+qq+uIxLMMYETzOlYBZBKOJpe7wY/bTfKWLcYhDVCUSIAMSiwr/1FL8Q==
   dependencies:
     hyperlist "^1.0.0-beta"
     lodash "^4.17.5"
@@ -1423,7 +1422,7 @@ is-what@^4.1.8:
   resolved "https://registry.yarnpkg.com/is-what/-/is-what-4.1.16.tgz#1ad860a19da8b4895ad5495da3182ce2acdd7a6f"
   integrity sha512-ZhMwEosbFJkA0YhFnNDgTM4ZxDRsS6HqTo7qsZM08fehyRYIYa0yHu5R6mgo1n/8MgaPBXiPimPD77baVFYg+A==
 
-jquery@3.7.1, "jquery@>=2.0.0 <4.0.0":
+jquery@3.7.1:
   version "3.7.1"
   resolved "https://registry.yarnpkg.com/jquery/-/jquery-3.7.1.tgz#083ef98927c9a6a74d05a6af02806566d16274de"
   integrity sha512-m4avr8yL8kmFN8psrbFFFmB/If14iN5o9nw/NgnnM+kybDJpRsAynV2BsfpTYrTRysYUdADVD7CkUUizgkpLfg==

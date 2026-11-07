@@ -4,6 +4,8 @@ import test from "node:test";
 import { cleanUserText, presentEvent } from "../src/api/events.js";
 
 const FILE = '\n<file name="notes &amp; &quot;plans&quot;.txt">\nline one\nline two\n</file>';
+const SAVED =
+	'\n<file name="events.csv" file="adf48b0900" url="/private/files/events.csv" size="121 KB">\nSaved as a File, not shown in full.\nname,site\n1,a.example.com\n[Preview: the header and the first 1 rows.]\n</file>';
 const NOTE = "\n[Attached file: big.pdf (large; relevant excerpts follow)]";
 const EXCERPTS =
 	"\nRelevant excerpts from the attached files:\n<excerpts>\n[big.pdf] some text\n</excerpts>";
@@ -20,6 +22,7 @@ test("the typed message is what remains once Flow's blocks are removed", () => {
 			"Summarize these",
 			['notes & "plans".txt', "big.pdf"],
 		],
+		["Import this" + SAVED + EXCERPTS + MEMORY, "Import this", ["events.csv"]],
 		[skill + MEMORY, skill, []],
 		["hello\n\nthere", "hello\n\nthere", []],
 		["", "", []],

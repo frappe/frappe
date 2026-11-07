@@ -13,7 +13,6 @@ from __future__ import annotations
 
 import json
 import mimetypes
-from functools import partial
 from typing import TYPE_CHECKING, Any, NoReturn
 
 import RestrictedPython.Guards
@@ -186,6 +185,7 @@ _SKIP_BUILTINS = frozenset(
 		"web_search",
 		"search_knowledge",
 		"search_attachments",
+		"read_attachment",
 		"update_memory",
 		"load_skill",
 		"request_secret",
@@ -195,12 +195,20 @@ _SKIP_BUILTINS = frozenset(
 
 def _flow_builtins(tool_context: ToolContext | None = None) -> dict[str, Any]:
 	"""The permission-checked builtins, callable as plain functions inside the sandbox.
-	`execute` and the bound tools are left out."""
+	`execute` and the bound tools are left out. `ctx` is held in a closure, never a `partial`
+	keyword or arg, so the sandbox can neither override it nor read it back off the function."""
 	from frappe.flow.tools.builtins import BUILTIN_TOOLS
 
-	out = {t.name: partial(t.func, ctx=tool_context) for t in BUILTIN_TOOLS if t.name not in _SKIP_BUILTINS}
+	def bind(func):
+		def call(*args, **kwargs):
+			kwargs.pop("ctx", None)
+			return func(*args, ctx=tool_context, **kwargs)
+
+		return call
+
+	out = {t.name: bind(t.func) for t in BUILTIN_TOOLS if t.name not in _SKIP_BUILTINS}
 	# the code's own transaction holds its calls, read-only or approved
-	out["run_action"] = partial(_sandbox_run_action, ctx=tool_context)
+	out["run_action"] = bind(_sandbox_run_action)
 	return out
 
 
@@ -250,8 +258,10 @@ def get_flow_safe_globals(*, tool_context: ToolContext | None = None) -> Namespa
 		html2text=html2text,
 		guess_mimetype=mimetypes.guess_type,
 		frappe=NamespaceDict(
-			call=partial(_call_read_function, tool_context) if read_only else call_whitelisted_function,
-			enqueue=partial(_stop, "frappe.enqueue", tool_context) if read_only else safe_enqueue,
+			call=(lambda function, **kwargs: _call_read_function(tool_context, function, **kwargs))
+			if read_only
+			else call_whitelisted_function,
+			enqueue=(lambda *a, **k: _stop("frappe.enqueue", tool_context)) if read_only else safe_enqueue,
 			is_job_queued=is_job_queued,
 			user=user,
 			session=frappe._dict(user=user),
@@ -261,7 +271,9 @@ def get_flow_safe_globals(*, tool_context: ToolContext | None = None) -> Namespa
 			get_list=_permissioned_get_list,
 			get_print=_gated_get_print,
 			attach_print=_gated_attach_print,
-			sendmail=partial(_stop, "frappe.sendmail", tool_context) if read_only else _gated_sendmail,
+			sendmail=(lambda *a, **k: _stop("frappe.sendmail", tool_context))
+			if read_only
+			else _gated_sendmail,
 			log=frappe.log,
 			log_error=safer_log_error,
 			msgprint=frappe.msgprint,

@@ -56,6 +56,7 @@ def test_http_error_classification():
 def test_raised_failures_are_typed():
 	request = httpx.Request("POST", "https://provider.test")
 	cases = [
+		(TimeoutError(), "timeout"),
 		(httpx.ReadTimeout("slow", request=request), "timeout"),
 		(httpx.ConnectError("refused", request=request), "transport"),
 		(httpx.RemoteProtocolError("disconnected", request=request), "transport"),

@@ -4,6 +4,7 @@
 		<template v-for="spec in docSpecs" #[spec.key]>
 			<DocPanel :spec="spec" :description="DESCRIPTIONS[spec.key]" />
 		</template>
+		<template #models><ModelsPanel /></template>
 		<template #knowledge><KnowledgePanel /></template>
 	</SettingsDialog>
 </template>
@@ -11,21 +12,18 @@
 <script setup>
 import { computed, inject, watch } from "vue";
 import SettingsDialog from "@flow/ui-core/components/SettingsDialog.vue";
-import { layout } from "@flow/ui-core/layout.js";
 
-import { inPanel } from "../panel.js";
 import DocPanel from "./DocPanel.vue";
 import GeneralPanel from "./GeneralPanel.vue";
 import KnowledgePanel from "./KnowledgePanel.vue";
+import ModelsPanel from "./ModelsPanel.vue";
 import { SPECS } from "./specs.js";
 
 const DESCRIPTIONS = {
-	agents: "Who answers, and what each agent can do.",
-	skills: "Know-how agents can pick up for particular tasks.",
+	agents: "The agents you can chat with.",
+	skills: "Instructions agents can use for specific tasks.",
 	tools: "Actions agents can take.",
 	triggers: "Run an agent when a document changes or on a schedule.",
-	models: "The models agents can use.",
-	providers: "API keys for the model providers.",
 	memories: "What agents have remembered.",
 };
 const ICONS = {
@@ -35,15 +33,13 @@ const ICONS = {
 	tools: "lucide-wrench",
 	triggers: "lucide-workflow",
 	models: "lucide-box",
-	providers: "lucide-key",
 	knowledge: "lucide-database",
 	memories: "lucide-bookmark",
 };
 
 const page = inject("flowPage");
-const flow = inject("flow");
-const host = inject("flowHost", null);
-const docKeys = ["agents", "skills", "tools", "triggers", "models", "providers", "memories"];
+// models and the providers they come from share one tab of their own
+const docKeys = ["agents", "skills", "tools", "triggers", "memories"];
 const docSpecs = computed(() =>
 	docKeys.map((key) => SPECS[key]).filter((spec) => page.can(spec.doctype, "read"))
 );
@@ -54,9 +50,12 @@ const groups = computed(() => {
 	const allowed = new Set(docSpecs.value.map((spec) => spec.key));
 	const docTab = (key) => (allowed.has(key) ? tab(key, SPECS[key].label) : null);
 	return [
-		{ label: "Chat", tabs: [tab("general", "General")] },
+		{
+			label: "Chat",
+			// models are set up by those who may change them; everyone else picks one in the composer
+			tabs: [tab("general", "General"), page.can("Flow Model", "write") ? tab("models", "Models") : null],
+		},
 		{ label: "Agents", tabs: ["agents", "skills", "tools", "triggers"].map(docTab) },
-		{ label: "Models", tabs: ["models", "providers"].map(docTab) },
 		{
 			label: "Knowledge",
 			tabs: [
@@ -69,17 +68,10 @@ const groups = computed(() => {
 		.filter((group) => group.tabs.length);
 });
 
-// in the launcher's panel, the dialog fills the window while it's open (a phone's page fills the
-// panel already); the panel goes back once the dialog's 150ms exit has played
-let restore = null;
+// the providers had a tab of their own; whatever still asks for it gets the one they share
 watch(
-	() => flow.state.settingsOpen && !layout.phone,
-	(open) => {
-		if (!inPanel) return;
-		clearTimeout(restore);
-		const tell = () => host?.settings(open);
-		if (open) tell();
-		else restore = setTimeout(tell, 150);
-	}
+	() => page.state.settingsTab,
+	(tab) => tab === "providers" && (page.state.settingsTab = "models"),
+	{ immediate: true }
 );
 </script>

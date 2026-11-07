@@ -2,7 +2,7 @@
 	<!-- the control sits beside the title and description; in a narrow frame beside the title only,
 	     so the description has the row's width -->
 	<div class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 py-4 md:gap-x-8">
-		<span class="min-w-0 text-base font-medium text-ink-gray-9">{{ title }}</span>
+		<span class="min-w-0 text-base-medium text-ink-gray-9">{{ title }}</span>
 		<div class="relative" :class="description && 'md:row-span-2'">
 			<SavedNote
 				v-if="saved !== undefined"

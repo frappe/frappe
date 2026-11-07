@@ -194,27 +194,25 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 			submenu: [
 				{
 					group: "",
-					options: (frappe.boot.app_data || [])
-						.filter((app) => app.on_apps_screen)
-						.sort((a, b) => (a.sequence_id ?? 100) - (b.sequence_id ?? 100))
-						.map((app) => ({
-							name: `app-${app.app_name}`,
-							label: __(app.app_title || app.app_name),
-							// An app's mark is its own logo, which no icon name stands in for.
-							image: Array.isArray(app.app_logo_url)
-								? app.app_logo_url[0]
-								: app.app_logo_url,
-							onclick: () => {
-								const route = sidebar.app_landing_route(app) || "/desk";
-								if (route.startsWith("http")) {
-									window.open(route, "_blank");
-								} else if (sidebar.is_desk_route(route)) {
-									frappe.set_route(route);
-								} else {
-									window.location.href = route;
-								}
-							},
-						})),
+					options: frappe.utils.get_apps_screen_apps().map((app) => ({
+						name: `app-${app.app_name}`,
+						label: __(app.app_title || app.app_name),
+						// An app's mark is its own logo, which no icon name stands in for.
+						image: Array.isArray(app.app_logo_url)
+							? app.app_logo_url[0]
+							: app.app_logo_url,
+						letter: (app.app_title || app.app_name).charAt(0),
+						onclick: () => {
+							const route = sidebar.app_landing_route(app) || "/desk";
+							if (route.startsWith("http")) {
+								window.open(route, "_blank");
+							} else if (sidebar.is_desk_route(route)) {
+								frappe.set_route(route);
+							} else {
+								window.location.href = route;
+							}
+						},
+					})),
 				},
 				{
 					group: "",

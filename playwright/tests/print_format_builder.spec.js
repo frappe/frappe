@@ -1000,8 +1000,8 @@ test.describe("Print Format Builder — draft and Save & Apply", () => {
 			doc_type: "ToDo",
 			print_format_builder_beta: 1,
 			pdf_generator: "Typst",
-			format_data: JSON.stringify(
-				builder_layout([
+			format_data: JSON.stringify({
+				...builder_layout([
 					{
 						label: "",
 						columns: [
@@ -1019,8 +1019,9 @@ test.describe("Print Format Builder — draft and Save & Apply", () => {
 							},
 						],
 					},
-				])
-			),
+				]),
+				letter_head: "",
+			}),
 		});
 		await open_builder(page, typst_pf_name);
 		await expect(page.locator(".typst-block-source")).toContainText("doc.description");

@@ -39,8 +39,11 @@ def pdf_header_html(soup, head, content, styles, html_id, css, path=None):
 
 
 def pdf_body_html(template, args, **kwargs):
+	from frappe.utils.jinja import safe_render_flags
+
 	try:
-		return template.render(args, filters={"len": len})
+		with safe_render_flags():
+			return template.render(args, filters={"len": len})
 	except Exception as e:
 		# Guess line number ?
 		frappe.throw(

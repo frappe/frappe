@@ -127,9 +127,9 @@ Flow ships with Frappe. Add a `Flow Provider` with your API key and a `Flow Mode
 
 ### Flow agent harness
 
-Conversations run on the flow agent harness, a daemon from the [`frappe-flow`](https://pypi.org/project/frappe-flow/) package that is shared by every site on the bench. Creating a site starts it; `bench flow-server setup|start|stop|restart|status` manage it by hand. Its log is at `<bench>/logs/flow-server.log`.
+Conversations run on the flow agent harness, a daemon from the [`frappe-flow`](https://pypi.org/project/frappe-flow/) package that is shared by every site on the bench. Creating a site starts it; `bench flow-server setup|start|stop|restart|status` manage it by hand, and nothing restarts it after a crash or a reboot. Its log is at `<bench>/logs/flow-server.log`.
 
-To run it under Supervisor, set `"flow_server_manager": "supervisor"` in `common_site_config.json` and add `bench flow-server serve` as a Supervisor program with `autorestart=true` that logs to `logs/flow-server.log`. Restart that program after updating Frappe or Flow's extensions.
+To run it under Supervisor, set `"flow_server_manager": "supervisor"` in `common_site_config.json` and add `bench flow-server serve` as a Supervisor program with `autorestart=true` that logs to `logs/flow-server.log`. Flow leaves starting and stopping to Supervisor: restart that program after updating Frappe or adding extensions.
 
 ## Code layout
 

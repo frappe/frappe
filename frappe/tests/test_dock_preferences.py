@@ -2312,6 +2312,60 @@ class TestAddModule(IntegrationTestCase):
 		self.assertFalse(frappe.db.exists("Module Def", self.MODULE))
 
 
+class TestModuleIcons(IntegrationTestCase):
+	"""An app's `add_to_apps_screen` entry can carry `module_icons`, which the apps screen fans out
+	behind the app's own icon, each linking to its own route."""
+
+	def app_entry(self, app_name: str) -> dict:
+		from frappe.boot import get_app_data
+
+		return next(app for app in get_app_data() if app["app_name"] == app_name)
+
+	def test_framework_fans_out_studio_and_flow(self):
+		self.assertEqual(
+			[(icon["title"], icon["route"]) for icon in self.app_entry("frappe")["module_icons"]],
+			[("Studio", "/studio"), ("Flow", "/flow")],
+		)
+
+	def test_an_icon_whose_permission_hook_says_no_is_dropped(self):
+		icons = [
+			{"title": "Open", "logo": "/open.svg", "route": "/open"},
+			{
+				"title": "Closed",
+				"logo": "/closed.svg",
+				"route": "/closed",
+				"has_permission": "frappe.tests.test_dock_preferences._denies_access",
+			},
+		]
+		with patch.object(frappe, "get_hooks", _with_module_icons(icons)):
+			self.assertEqual(
+				self.app_entry("frappe")["module_icons"],
+				[{"title": "Open", "logo": "/open.svg", "route": "/open"}],
+			)
+
+	def test_an_app_this_user_cannot_access_carries_no_module_icons(self):
+		icons = [{"title": "Studio", "logo": "/studio.svg", "route": "/studio"}]
+		with patch.object(frappe, "get_hooks", _with_module_icons(icons, denied=True)):
+			self.assertEqual(self.app_entry("frappe")["module_icons"], [])
+
+
+def _with_module_icons(icons: list[dict], denied: bool = False):
+	"""`frappe.get_hooks` with frappe's own apps-screen entry carrying `icons` as its
+	`module_icons`, and, with `denied`, a `has_permission` that turns everyone away."""
+	real = frappe.get_hooks
+
+	def patched(hook=None, default="_KEEP_DEFAULT_LIST", app_name=None):
+		hooks = real(hook, default, app_name)
+		if hook == "add_to_apps_screen" and app_name == "frappe":
+			entry = dict(hooks[0]) | {"module_icons": icons}
+			if denied:
+				entry["has_permission"] = "frappe.tests.test_dock_preferences._denies_access"
+			return [entry]
+		return hooks
+
+	return patched
+
+
 def _with_desk_route(route: str, denied: bool = False):
 	"""`frappe.get_hooks` with a `desk_route` added to frappe's own apps-screen entry, standing in
 	for the non-desk app that would really ship one. `denied` also points the entry's

@@ -457,7 +457,7 @@ def save_report(name: str | int, doctype: str, report_settings: str):
 		if report.report_type != "Report Builder":
 			frappe.throw(_("Only reports of type Report Builder can be edited"))
 
-		if report.owner != frappe.session.user and not report.has_permission("write"):
+		if report.owner != frappe.session.user and not frappe.has_permission("Report", "write", doc=report):
 			frappe.throw(_("Insufficient Permissions for editing Report"), frappe.PermissionError)
 	else:
 		if not frappe.has_permission("Report", "create"):
@@ -497,7 +497,7 @@ def delete_report(name: str | int):
 	if report.report_type != "Report Builder":
 		frappe.throw(_("Only reports of type Report Builder can be deleted"))
 
-	if report.owner != frappe.session.user and not report.has_permission("delete"):
+	if report.owner != frappe.session.user and not frappe.has_permission("Report", "delete", doc=report):
 		frappe.throw(_("Insufficient Permissions for deleting Report"), frappe.PermissionError)
 
 	report.delete(ignore_permissions=True)

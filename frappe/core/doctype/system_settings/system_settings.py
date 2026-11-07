@@ -70,7 +70,7 @@ class SystemSettings(Document):
 		float_precision: DF.Literal["", "2", "3", "4", "5", "6", "7", "8", "9"]
 		force_user_to_reset_password: DF.Int
 		force_web_capture_mode_for_uploads: DF.Check
-		frequency: DF.Literal["Hourly", "Daily"]
+		frequency: DF.Literal["Daily", "Weekly"]
 		hide_empty_read_only_fields: DF.Check
 		hide_footer_in_auto_email_reports: DF.Check
 		language: DF.Link
@@ -294,8 +294,8 @@ def disable_duckdb_cron_job():
 		frappe.db.delete("Scheduler Event", event)
 
 
-def enable_duckdb_cron_job(frequency: str = "Daily"):
-	cron_format = "0 0 * * *" if frequency == "Daily" else "0 * * * *"
+def enable_duckdb_cron_job(frequency: str = "Weekly"):
+	cron_format = "0 0 * * *" if frequency == "Daily" else "0 0 * * 0"
 	method = "frappe.database.duckdb.database.start_duckdb_sync"
 
 	# schedule cron job
@@ -318,7 +318,7 @@ def enable_duckdb_cron_job(frequency: str = "Daily"):
 	).insert()
 
 
-def snapshot_report_scheduler(enable: bool = False, frequency: str = "Daily"):
+def snapshot_report_scheduler(enable: bool = False, frequency: str = "Weekly"):
 	# trash old job and recreate
 	disable_duckdb_cron_job()
 	if enable:

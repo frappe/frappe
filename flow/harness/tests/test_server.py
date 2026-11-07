@@ -273,7 +273,6 @@ def test_allowed_roots_fence_every_path(tmp_path, monkeypatch):
 		("/fs/files", {"cwd": str(repo)}),
 		("/fs/files/search", {"cwd": str(repo), "query": "x"}),
 		("/fs/git/changes", {"cwd": str(repo)}),
-		("/fs/git/branch", {"cwd": str(repo)}),
 		("/fs/git/file/diff", {"cwd": str(allowed), "path": "../outside.txt"}),
 		(f"/sessions/{sid}/file/diff", {"path": "../../outside.txt"}),
 	):
@@ -359,6 +358,25 @@ def test_file_diff_rebuilds_the_original_from_the_sessions_changes(tmp_path):
 			assert r.json() == {"path": str(tmp_path / name), "original": original, "modified": text}, name
 
 
+def test_file_diff_since_undoes_only_the_edits_from_that_seq(tmp_path):
+	c = _client(tmp_path)
+	sid = c.post("/sessions", json={"cwd": str(tmp_path)}).json()["session_id"]
+	path = tmp_path / "app.py"
+	v0, v1, v2 = "a\nb\nc\n", "a\nB\nc\n", "a\nB\nC\n"
+	path.write_text(v2)
+	_append_log_rows(
+		tmp_path, sid, [_edit_result(str(path), v0, v1, "e1"), _edit_result(str(path), v1, v2, "e2")]
+	)
+	log = next((tmp_path / "data" / "sessions").rglob(f"{sid}.jsonl"))
+	e2_seq = next(json.loads(line)["seq"] for line in log.open() if '"e2"' in line)
+
+	r = c.get(f"/sessions/{sid}/file/diff", params={"path": "app.py", "since": e2_seq})
+	assert r.json()["original"] == v1
+	# past the file's last edit there is nothing to show
+	r = c.get(f"/sessions/{sid}/file/diff", params={"path": "app.py", "since": e2_seq + 1})
+	assert r.status_code == 404
+
+
 def _git(cwd, *args):
 	subprocess.run(["git", "-C", str(cwd), *args], check=True, capture_output=True)
 
@@ -404,17 +422,6 @@ def test_git_changes_and_file_diff_serve_uncommitted_files(tmp_path):
 	assert (untracked["original"], untracked["modified"]) == ("", "a\nb\nc")
 	assert (deleted["original"], deleted["modified"]) == ("x\n", "")
 
-	# the branch checked out; a linked worktree says so, on its own branch, the main checkout does not
-	def head(cwd):
-		return c.get("/fs/git/branch", params={"cwd": str(cwd)}).json()
-
-	assert head(repo) == {"branch": "work", "worktree": False}
-	_git(repo, "worktree", "add", "-q", "-b", "side", str(tmp_path / "side"))
-	assert head(tmp_path / "side") == {"branch": "side", "worktree": True}
-	# a detached HEAD has no branch
-	_git(repo, "checkout", "-q", "--detach")
-	assert head(repo)["branch"] is None
-
 	plain = tmp_path / "plain"
 	plain.mkdir()
 	(plain / "f.txt").write_text("x\n")
@@ -422,7 +429,6 @@ def test_git_changes_and_file_diff_serve_uncommitted_files(tmp_path):
 		"root": None,
 		"files": [],
 	}
-	assert head(plain) == {"branch": None, "worktree": False}
 	assert c.get("/fs/git/file/diff", params={"cwd": str(plain), "path": "f.txt"}).status_code == 400
 
 
