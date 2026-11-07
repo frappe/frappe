@@ -241,7 +241,8 @@ def create_doc(doctype: str):
 	data = frappe.form_dict
 	data.pop("doctype", None)
 
-	doc = frappe.new_doc(doctype, **data)
+	# not new_doc: insert() sets defaults, so a controller can tell a left-out field from a sent one
+	doc = frappe.get_doc({"doctype": doctype, **data})
 
 	if (name := data.get("name")) and isinstance(name, str | int):
 		doc.flags.name_set = True
