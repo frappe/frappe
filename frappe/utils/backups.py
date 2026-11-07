@@ -395,6 +395,9 @@ class BackupGenerator:
 		for folder in ("public", "private"):
 			files_path = frappe.get_site_path(folder, "files")
 			backup_path = self.backup_path_files if folder == "public" else self.backup_path_private_files
+			scripts_path = frappe.get_site_path("server_scripts")
+			if folder == "private" and os.path.isdir(scripts_path):
+				files_path = f"{files_path} {scripts_path}"
 
 			if self.compress_files:
 				cmd_string = "set -o pipefail; tar cf - {1} | gzip > {0}"

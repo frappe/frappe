@@ -1,14 +1,21 @@
 import gzip
 import os
 import sqlite3
+import subprocess
+import tarfile
 import time
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
+import frappe
 from frappe.tests import IntegrationTestCase
-from frappe.utils.backups import backup_sqlite_database, fetch_latest_backups
+from frappe.utils.backups import (
+	backup_sqlite_database,
+	fetch_latest_backups,
+	scheduled_backup,
+)
 
 
 class TestLatestBackup(IntegrationTestCase):
@@ -51,3 +58,62 @@ class TestSQLiteBackup(unittest.TestCase):
 			with sqlite3.connect(restored_path) as restored:
 				self.assertEqual(restored.execute("SELECT value FROM test_value").fetchone(), (2,))
 				self.assertEqual(restored.execute("PRAGMA integrity_check").fetchone(), ("ok",))
+
+
+class TestServerScriptsBackup(IntegrationTestCase):
+	SCRIPT = "zz_backup_test.py"
+
+	def setUp(self):
+		self.scripts_dir = frappe.get_site_path("server_scripts")
+		os.makedirs(self.scripts_dir, exist_ok=True)
+		self.script_path = os.path.join(self.scripts_dir, self.SCRIPT)
+		with open(self.script_path, "w") as f:
+			f.write("doc.status = 'Closed'\n")
+		self.addCleanup(lambda: os.path.exists(self.script_path) and os.remove(self.script_path))
+
+	def archive_names(self, path):
+		with tarfile.open(path) as archive:
+			return archive.getnames()
+
+	def has_script(self, names):
+		return any(name.endswith(f"server_scripts/{self.SCRIPT}") for name in names)
+
+	def test_private_files_backup_includes_server_scripts(self):
+		with TemporaryDirectory() as directory:
+			odb = scheduled_backup(ignore_files=False, force=True, backup_path=directory)
+
+			self.assertTrue(self.has_script(self.archive_names(odb.backup_path_private_files)))
+			self.assertFalse(self.has_script(self.archive_names(odb.backup_path_files)))
+
+	def test_backup_without_scripts_folder(self):
+		real_get_site_path = frappe.get_site_path
+
+		def get_site_path(*parts):
+			if parts == ("server_scripts",):
+				return os.path.join(directory, "missing")
+			return real_get_site_path(*parts)
+
+		with TemporaryDirectory() as directory:
+			with patch("frappe.get_site_path", get_site_path):
+				odb = scheduled_backup(ignore_files=False, force=True, backup_path=directory)
+
+			self.assertFalse(self.has_script(self.archive_names(odb.backup_path_private_files)))
+
+	def test_compressed_private_files_backup_includes_server_scripts(self):
+		with TemporaryDirectory() as directory:
+			odb = scheduled_backup(ignore_files=False, force=True, backup_path=directory, compress=True)
+
+			self.assertTrue(odb.backup_path_private_files.endswith(".tgz"))
+			self.assertTrue(self.has_script(self.archive_names(odb.backup_path_private_files)))
+
+	def test_restoring_private_files_brings_back_server_scripts(self):
+		with TemporaryDirectory() as directory:
+			odb = scheduled_backup(ignore_files=False, force=True, backup_path=directory)
+			archive = os.path.abspath(odb.backup_path_private_files)
+			os.remove(self.script_path)
+
+			# the same extraction frappe.installer.extract_files runs on restore
+			subprocess.run(["tar", "xf", archive, "--strip", "2"], cwd=frappe.get_site_path(), check=True)
+
+			with open(self.script_path) as f:
+				self.assertEqual(f.read(), "doc.status = 'Closed'\n")
