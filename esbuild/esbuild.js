@@ -721,16 +721,12 @@ async function run_frontend_build(name, frontend_path) {
 
 async function run_app_build(app, root_app_path) {
 	const started = Date.now();
-	const package_manager = get_package_manager(root_app_path);
+	const commands = get_build_commands(root_app_path);
 	// every build, not only on a fresh checkout: an install made before an update lacks what the
 	// new lockfile adds. The install returns in under a second when it is current
-	await run_command(`${package_manager} install --frozen-lockfile`, {
-		cwd: root_app_path,
-		app,
-		step: "install",
-	});
+	await run_command(commands.install, { cwd: root_app_path, app, step: "install" });
 
-	await run_command(`${package_manager} build`, { cwd: root_app_path, app, step: "build" });
+	await run_command(commands.build, { cwd: root_app_path, app, step: "build" });
 
 	if (!VERBOSE) {
 		const elapsed = ((Date.now() - started) / 1000).toFixed(1);
@@ -740,8 +736,15 @@ async function run_app_build(app, root_app_path) {
 
 // An app with pnpm-lock.yaml installs with pnpm; Yarn 1 cannot read that lockfile or install
 // its workspace: dependencies. Every other app keeps Yarn.
-function get_package_manager(root_app_path) {
-	return fs.existsSync(path.join(root_app_path, "pnpm-lock.yaml")) ? "pnpm" : "yarn";
+function get_build_commands(root_app_path) {
+	if (fs.existsSync(path.join(root_app_path, "pnpm-lock.yaml"))) {
+		return {
+			// the build has no terminal, so pnpm must not stop to ask before it recreates node_modules
+			install: "pnpm install --frozen-lockfile --config.confirm-modules-purge=false",
+			build: "pnpm build",
+		};
+	}
+	return { install: "yarn install --frozen-lockfile", build: "yarn build" };
 }
 
 function run_command(command, { cwd, app, step }) {
