@@ -452,7 +452,11 @@ class PrintFormatGenerator:
 
 	_TOP_POSITIONS: ClassVar[set[str]] = {"top_left", "top_center", "top_right"}
 	_BOTTOM_POSITIONS: ClassVar[set[str]] = {"bottom_left", "bottom_center", "bottom_right"}
-	_FIELD_RENDERERS: ClassVar[dict[str, str]] = {"HTML Editor": "HTML", "Markdown Editor": "Markdown"}
+	_FIELD_RENDERERS: ClassVar[dict[str, str]] = {
+		"HTML Editor": "HTML",
+		"Markdown Editor": "Markdown",
+		"JSON": "Code",
+	}
 	JUSTIFY_MODES: ClassVar[frozenset[str]] = frozenset(
 		{"space-between", "space-evenly", "center", "right-end"}
 	)
@@ -1250,6 +1254,10 @@ class PrintFormatGenerator:
 		value, target_df = resolved
 		if target_df.fieldtype == "Attach Image":
 			df["renderer"] = "AttachImage"
+			df["_value"] = value
+			return
+		if target_df.fieldtype in ("Code", "JSON"):
+			df["renderer"] = "Code"
 			df["_value"] = value
 			return
 		df["_value"] = frappe.format_value(value, df=target_df, doc=self.doc)
