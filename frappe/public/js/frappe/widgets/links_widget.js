@@ -33,11 +33,11 @@ export default class LinksWidget extends Widget {
 				</button>
 			`).appendTo(this.widget.find(".widget-title"));
 
-			description.popover({
-				trigger: "hover",
-				placement: "top",
-				content: () => `<div class="card-description small">${__(this.description)}</div>`,
-				html: true,
+			frappe.ui.hover_card(description, {
+				side: "top",
+				open_delay: 0,
+				close_delay: 0,
+				content: () => __(this.description),
 			});
 		}
 
@@ -60,15 +60,7 @@ export default class LinksWidget extends Widget {
 
 		const get_link_for_item = (item) => {
 			if (is_link_disabled(item)) {
-				return `<span class="link-content ellipsis disabled-link">${item.link_title}</span>
-					<div class="module-link-popover popover fade top in" role="tooltip" style="display: none;">
-						<div class="arrow"></div>
-						<h3 class="popover-title" style="display: none;"></h3>
-						<div class="popover-content" style="padding: 12px;">
-							<div class="small text-muted">${__("You need to create these first:") + " "}</div>
-							<div class="small">${item.incomplete_dependencies.join(", ")}</div>
-						</div>
-					</div>`;
+				return `<span class="link-content ellipsis disabled-link">${item.link_title}</span>`;
 			}
 
 			if (item.youtube_id)
@@ -111,14 +103,33 @@ export default class LinksWidget extends Widget {
 			`);
 
 			if (item.description) {
-				$link.find(".link-text").popover({
-					trigger: "hover",
-					placement: "top",
-					title: item.link_title,
+				frappe.ui.hover_card($link.find(".link-text"), {
+					side: "top",
+					open_delay: 600,
+					close_delay: 100,
 					content: () =>
-						`<div class="link-description small">${__(item.description)}</div>`,
-					html: true,
-					delay: { show: 600, hide: 100 },
+						$(`<div class="es-popover__header"></div>`).append(
+							$(`<div class="es-popover__title"></div>`).text(item.link_title),
+							$(`<p class="es-popover__description"></p>`).text(__(item.description))
+						)[0],
+				});
+			}
+
+			if (is_link_disabled(item)) {
+				frappe.ui.hover_card($link.find(".link-content"), {
+					side: "top",
+					open_delay: 0,
+					close_delay: 0,
+					content: () =>
+						!this.in_customize_mode &&
+						$(`<div></div>`).append(
+							$(`<div class="small text-muted"></div>`).text(
+								__("You need to create these first:")
+							),
+							$(`<div class="small"></div>`).text(
+								item.incomplete_dependencies.join(", ")
+							)
+						)[0],
 				});
 			}
 
@@ -132,18 +143,9 @@ export default class LinksWidget extends Widget {
 
 	setup_events() {
 		this.link_list.forEach((link) => {
-			// Bind Popver Event
 			const link_label = link.find(".link-content");
 
-			if (link.hasClass("disabled-link")) {
-				const popover = link.find(".module-link-popover");
-
-				link_label.mouseover(() => {
-					if (this.in_customize_mode) return;
-					popover.show();
-				});
-				link_label.mouseout(() => popover.hide());
-			} else {
+			if (!link.hasClass("disabled-link")) {
 				link_label.click((event) => {
 					if (this.in_customize_mode) return;
 

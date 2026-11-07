@@ -793,7 +793,6 @@ class DesktopModal {
 		this.parent_icon_obj = icon;
 	}
 	setup(icon_title, child_icons_data, grid_row_size) {
-		const me = this;
 		this.make_modal(icon_title);
 
 		// Check if we're in edit mode
@@ -812,12 +811,6 @@ class DesktopModal {
 		if (is_edit_mode) {
 			this.child_icon_grid.setup_reordering(this.child_icon_grid.grid);
 		}
-
-		this.modal.on("hidden.bs.modal", function () {
-			me.modal.remove();
-			frappe.desktop_utils.modal = null;
-			frappe.desktop_utils.modal_stack = [];
-		});
 	}
 	make_modal(icon_title) {
 		if ($(".desktop-modal").length == 0) {
@@ -826,6 +819,15 @@ class DesktopModal {
 			this.modal.addClass("desktop-modal");
 			this.modal.find(".modal-dialog").attr("id", "desktop-modal");
 			this.modal.find(".modal-body").addClass("desktop-modal-body");
+			this.dialog_modal = new frappe.ui.Modal({
+				element: this.modal,
+				position: "top",
+				on_hidden: () => {
+					this.modal.remove();
+					frappe.desktop_utils.modal = null;
+					frappe.desktop_utils.modal_stack = [];
+				},
+			});
 			this.$child_icons_wrapper = this.modal.find(".desktop-modal-body");
 			// the modal sits outside the page body, so it needs the page's title tooltip of its own
 			frappe.ui.Tooltip.delegate(this.modal.get(0), ".icon-title", {
@@ -867,10 +869,10 @@ class DesktopModal {
 			});
 	}
 	show() {
-		this.modal.modal("show");
+		this.dialog_modal.show();
 	}
 	hide() {
-		this.modal.modal("hide");
+		this.dialog_modal.hide();
 	}
 }
 

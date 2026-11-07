@@ -1932,35 +1932,26 @@ Object.assign(frappe.utils, {
 					<span class="label">${selected_action.label}</span>
 				</button>
 
-				<button type="button" class="btn ${btn_type} btn-sm dropdown-toggle dropdown-toggle-split" data-toggle="dropdown">
+				<button type="button" class="btn ${btn_type} btn-sm dropdown-toggle-split">
 					${frappe.utils.icon("chevron-down", "xs")}
 				</button>
-
-				<ul class="dropdown-menu dropdown-menu-right" role="menu"></ul>
 			</div>
 		`);
 
-		actions.forEach((action) => {
-			$(`<li>
-				<a class="dropdown-item flex">
-					<div class="tick-icon mr-2">${frappe.utils.icon("check", "xs")}</div>
-					<div>
-						<div class="item-label">${action.label}</div>
-						<div class="item-description text-muted small">${action.description || ""}</div>
-					</div>
-				</a>
-			</li>`)
-				.appendTo($select_group_button.find(".dropdown-menu"))
-				.click((e) => {
-					selected_action = action;
-					$select_group_button.find(".selected-button .label").text(action.label);
-
-					$(e.currentTarget).find(".tick-icon").addClass("selected");
-					$(e.currentTarget).siblings().find(".tick-icon").removeClass("selected");
-				});
+		new frappe.ui.Dropdown({
+			trigger: $select_group_button.find(".dropdown-toggle-split"),
+			align: "end",
+			options: () =>
+				actions.map((action) => ({
+					label: action.label,
+					description: action.description,
+					selected: action === selected_action,
+					onclick: () => {
+						selected_action = action;
+						$select_group_button.find(".selected-button .label").text(action.label);
+					},
+				})),
 		});
-
-		$select_group_button.find(".dropdown-menu li:first-child .tick-icon").addClass("selected");
 
 		$select_group_button.find(".selected-button").click((event) => {
 			event.stopPropagation();

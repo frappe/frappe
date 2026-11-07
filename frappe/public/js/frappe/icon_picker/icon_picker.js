@@ -59,12 +59,12 @@ class Picker {
 		this.icon_picker_wrapper.find(".search-icons").after(`<div class="form-tabs-list">
 				<ul class="nav form-tabs" id="form-tabs" role="tablist">
 					<li class="nav-item show">
-						<button class="nav-link active" data-toggle="tab" role="tab" aria-selected="true">
+						<button class="nav-link active" role="tab" aria-selected="true">
 								Icon
 						</button>
 					</li>
 					<li class="nav-item show">
-						<button class="nav-link" data-toggle="tab" role="tab" aria-selected="true">
+						<button class="nav-link" role="tab" aria-selected="false">
 								Emoji
 						</button>
 					</li>
@@ -75,6 +75,11 @@ class Picker {
 
 		this.icon_picker_wrapper.find(".nav-item").on("click", function (e) {
 			let container_name = $(this).text().trim().toLowerCase();
+			me.icon_picker_wrapper
+				.find(".nav-link")
+				.removeClass("active")
+				.attr("aria-selected", "false");
+			$(this).find(".nav-link").addClass("active").attr("aria-selected", "true");
 
 			icon_types.forEach((type) => {
 				if (type === container_name) {

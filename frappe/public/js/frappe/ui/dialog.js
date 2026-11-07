@@ -1,5 +1,6 @@
 import "./field_group";
 import "../dom";
+import "./components/modal.js";
 
 frappe.provide("frappe.ui");
 
@@ -20,7 +21,6 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 				animate: true,
 				size: null,
 				auto_make: true,
-				centered: false,
 				keep_grid_form_open: false,
 				// on a phone, show as a frappe.ui.BottomSheet (static and minimizable dialogs
 				// stay dialogs); set the actions before show()
@@ -34,23 +34,27 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 	}
 
 	make() {
-		this.$wrapper = frappe.get_modal("", "");
-
-		if (this.static) {
-			this.$wrapper.modal({
-				backdrop: "static",
-				keyboard: false,
-			});
-			this.get_close_btn().hide();
-		}
-
 		if (!this.size) this.set_modal_size();
-
-		this.wrapper = this.$wrapper.find(".modal-dialog").get(0);
-		if (this.centered) $(this.wrapper).addClass("modal-dialog-centered");
-		if (this.size == "small") $(this.wrapper).addClass("modal-sm");
-		else if (this.size == "large") $(this.wrapper).addClass("modal-lg");
-		else if (this.size == "extra-large") $(this.wrapper).addClass("modal-xl");
+		this.$wrapper = frappe.get_modal("", "");
+		this.modal = new frappe.ui.Modal({
+			element: this.$wrapper,
+			size: ["small", "large", "extra-large"].includes(this.size) ? this.size : null,
+			position: this.position,
+			dismissible: this.dismissible ?? (this.static ? "static" : true),
+			show_close_button: this.show_close_button ?? !this.static,
+			message: this.message,
+			icon: this.icon,
+			theme: this.theme,
+			actions: this.actions?.map((action) => ({
+				...action,
+				onclick: (e) => (action.onclick ? action.onclick(e, this) : this.hide("action")),
+			})),
+			on_show: () => this.emit("show"),
+			on_shown: () => this.emit("shown"),
+			on_hide: (reason) => this.emit("hide", reason),
+			on_hidden: (reason) => this.emit("hidden", reason),
+		});
+		this.wrapper = this.modal.dialog;
 
 		this.make_head();
 		this.modal_body = this.$wrapper.find(".modal-body");
@@ -102,46 +106,43 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 		}
 
 		var me = this;
-		this.$wrapper
-			.on("hide.bs.modal", function () {
-				me.display = false;
-				me.is_minimized = false;
-				me.hide_scrollbar(false);
-				if (!me.keep_grid_form_open) {
-					// hide any grid row form if open
-					frappe.ui.form.get_open_grid_form?.()?.hide_form();
-				}
+		this.on("hide", function () {
+			me.display = false;
+			me.is_minimized = false;
+			me.hide_scrollbar(false);
+			if (!me.keep_grid_form_open) {
+				// hide any grid row form if open
+				frappe.ui.form.get_open_grid_form?.()?.hide_form();
+			}
 
-				if (frappe.ui.open_dialogs[frappe.ui.open_dialogs.length - 1] === me) {
-					frappe.ui.open_dialogs.pop();
-					if (frappe.ui.open_dialogs.length) {
-						window.cur_dialog =
-							frappe.ui.open_dialogs[frappe.ui.open_dialogs.length - 1];
-					} else {
-						window.cur_dialog = null;
-					}
+			if (frappe.ui.open_dialogs[frappe.ui.open_dialogs.length - 1] === me) {
+				frappe.ui.open_dialogs.pop();
+				if (frappe.ui.open_dialogs.length) {
+					window.cur_dialog = frappe.ui.open_dialogs[frappe.ui.open_dialogs.length - 1];
+				} else {
+					window.cur_dialog = null;
 				}
-				me.onhide && me.onhide();
-				me.on_hide && me.on_hide();
-			})
-			.on("hidden.bs.modal", function () {
+			}
+			me.onhide && me.onhide();
+			me.on_hide && me.on_hide();
+		})
+			.on("hidden", function () {
 				me.$wrapper.css("z-index", "");
 			})
-			.on("shown.bs.modal", function () {
+			.on("shown", function () {
 				// focus on first input
 				me.display = true;
 				window.cur_dialog = me;
 				frappe.ui.open_dialogs.push(me);
 				// dialogs that were still fading in when show() ran are only listed now
 				me.stack_above_open_dialogs();
-				// Bootstrap's focus guard goes before the first focus, so a combobox
-				// panel (mounted in <body>) can take it
-				$(document).off("focusin.modal");
 				if (!me.sheet) me.focus_on_first_input();
 				me.hide_scrollbar(true);
 				me.on_page_show && me.on_page_show();
 				$(document).trigger("frappe.ui.Dialog:shown");
-			})
+			});
+
+		this.$wrapper
 			.on("scroll", function () {
 				var $input = $("input:focus");
 				if (
@@ -175,6 +176,28 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 			},
 			true // capture phase
 		);
+	}
+
+	on(event, handler) {
+		this.listeners = this.listeners || {};
+		(this.listeners[event] = this.listeners[event] || []).push(handler);
+		return this;
+	}
+
+	off(event, handler) {
+		const handlers = this.listeners?.[event];
+		if (handlers) this.listeners[event] = handlers.filter((h) => h !== handler);
+		return this;
+	}
+
+	emit(event, reason) {
+		for (const handler of [...(this.listeners?.[event] || [])]) {
+			handler.call(this, this, reason);
+		}
+	}
+
+	set_static_backdrop(on) {
+		this.modal.dismissible = on ? "static" : true;
 	}
 
 	set_modal_size() {
@@ -225,9 +248,19 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 
 	set_alert(text, alert_class = "info") {
 		this.clear_alert();
-		this.$alert = $(`<div class="alert alert-${alert_class}">${text}</div>`).prependTo(
-			this.body
-		);
+		const theme = {
+			info: "blue",
+			blue: "blue",
+			warning: "yellow",
+			yellow: "yellow",
+			orange: "yellow",
+			danger: "red",
+			red: "red",
+			success: "green",
+			green: "green",
+		}[alert_class];
+		this.$alert = frappe.ui.alert({ theme }).prependTo(this.body);
+		this.$alert.find(".es-alert__title").html(text);
 		this.$message.text(text);
 	}
 
@@ -338,7 +371,7 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 			this.$wrapper.removeClass("fade");
 		}
 		const opening = !this.display;
-		this.$wrapper.modal("show");
+		this.modal.show();
 		if (opening) this.stack_above_open_dialogs();
 
 		this.$wrapper.removeClass("modal-minimize");
@@ -373,7 +406,7 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 			title: this.$wrapper.find(".modal-title").text(),
 			content: this.modal_body.get(0),
 			footer: this.footer.hasClass("hide") ? null : actions.get(),
-			on_close: () => {
+			on_close: (reason) => {
 				this.sheet = null;
 				this.is_visible = false;
 				// moved back on the next show: now, the sheet would slide out empty
@@ -383,20 +416,21 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 					this.header.after(this.modal_body);
 					this.footer.append(actions);
 				};
-				this.$wrapper.trigger("hide.bs.modal").trigger("hidden.bs.modal");
+				this.emit("hide", reason);
+				this.emit("hidden", reason);
 			},
 		});
-		this.$wrapper.trigger("show.bs.modal");
+		this.emit("show");
 		this.sheet.open();
-		this.$wrapper.trigger("shown.bs.modal");
+		this.emit("shown");
 	}
 
-	hide() {
+	hide(reason) {
 		if (this.sheet) {
 			this.sheet.close();
 			return;
 		}
-		this.$wrapper.modal("hide");
+		this.modal.hide(reason);
 		this.is_visible = false;
 	}
 
@@ -414,7 +448,7 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 
 		const top = Math.max(...below.map((d) => cint(d.$wrapper.css("z-index"))));
 		this.$wrapper.css("z-index", Math.max(top + 2, cint(this.$wrapper.css("z-index"))));
-		$(this.$wrapper.data("bs.modal")._backdrop).css("z-index", top + 1);
+		$(this.modal.backdrop).css("z-index", top + 1);
 	}
 
 	handle_focus() {
@@ -453,6 +487,7 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 		let modal = this.$wrapper.closest(".modal").toggleClass("modal-minimize");
 		modal.attr("tabindex") ? modal.removeAttr("tabindex") : modal.attr("tabindex", -1);
 		this.is_minimized = !this.is_minimized;
+		this.is_minimized ? this.modal.release_focus() : this.modal.trap_focus();
 		const icon = this.is_minimized ? "expand" : "collapse";
 		this.get_minimize_btn().html(frappe.utils.icon(icon));
 		this.on_minimize_toggle && this.on_minimize_toggle(this.is_minimized);
@@ -481,7 +516,7 @@ frappe.ui.hide_open_dialog = () => {
 	// hide open dialog
 	if (window.cur_dialog) {
 		if (!cur_dialog.minimizable) {
-			cur_dialog.hide();
+			cur_dialog.hide("route");
 		} else if (!cur_dialog.is_minimized) {
 			cur_dialog.toggle_minimize();
 		}

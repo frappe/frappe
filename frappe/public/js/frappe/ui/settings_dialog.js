@@ -207,7 +207,7 @@ frappe.ui.SettingsDialog = class SettingsDialog extends frappe.ui.Dialog {
 		this.$panels = this.$layout.find(".settings-dialog-panels");
 
 		this.render_sidebar();
-		this.$wrapper.on("shown.bs.modal", () => this.scroll_to_active_tab());
+		this.on("shown", () => this.scroll_to_active_tab());
 
 		const default_tab = this.default_tab || this.first_tab_id();
 		if (default_tab) this.activate(default_tab);

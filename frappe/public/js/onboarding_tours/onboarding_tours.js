@@ -131,7 +131,7 @@ frappe.ui.OnboardingTour = class OnboardingTour {
 			$(element).on("click", () => {
 				if (
 					!this.driver.getHighlightedElement() ||
-					this.driver.getHighlightedElement().node.id?.startsWith("popover")
+					this.driver.getHighlightedElement().node.id?.startsWith("es-popover")
 				)
 					return;
 
@@ -154,23 +154,19 @@ frappe.ui.OnboardingTour = class OnboardingTour {
 
 				if (!this.driver.getHighlightedElement()) return;
 				on_next(this.driver.getHighlightedElement());
-				let popover = this.driver
-					.getHighlightedElement()
-					.node.getAttribute("aria-describedby")
-					? this.driver.getHighlightedElement().node
-					: this.driver
-							.getHighlightedElement()
-							.node.querySelector('[aria-describedby^="popover"]');
+				const node = this.driver.getHighlightedElement().node;
+				const opener = '[aria-haspopup="dialog"][aria-controls^="es-popover"]';
+				let popover = node.matches(opener) ? node : node.querySelector(opener);
 
 				if (!popover) return;
 
-				let popover_id = popover.getAttribute("aria-describedby");
+				let popover_id = popover.getAttribute("aria-controls");
 				let step_index = this.driver.steps.indexOf(this.driver.getHighlightedElement());
 
 				if (this.driver_steps[step_index + 1]?.element.id == popover_id) return;
 
 				this.driver_steps = this.driver_steps.filter(
-					(step) => !step.element.id?.startsWith("popover")
+					(step) => !step.element.id?.startsWith("es-popover")
 				);
 
 				let new_step = { ...this.driver_steps[step_index] };
@@ -183,7 +179,9 @@ frappe.ui.OnboardingTour = class OnboardingTour {
 				this.driver.moveNext();
 				this.driver.overlay.refresh();
 
-				$(popover).one("hide.bs.popover", (e) => {
+				const observer = new MutationObserver(() => {
+					if (popover.getAttribute("aria-expanded") === "true") return;
+					observer.disconnect();
 					this.driver_steps.splice(this.driver.currentStep, 1);
 					this.driver_steps[this.driver.currentStep - 1].showButtons = true;
 					new_step.popover.description = description;
@@ -191,6 +189,7 @@ frappe.ui.OnboardingTour = class OnboardingTour {
 					this.driver.movePrevious();
 					this.driver.overlay.refresh();
 				});
+				observer.observe(popover, { attributeFilter: ["aria-expanded"] });
 			});
 		}
 
@@ -245,13 +244,18 @@ frappe.ui.OnboardingTour = class OnboardingTour {
 			this.driver.reset();
 			this.driver.start(step + 1);
 			this.driver.overlay.refresh();
-			modal_element.closest(".modal").one("hide.bs.modal", () => {
+			const dialog = frappe.ui.open_dialogs.find((d) =>
+				d.$wrapper.is(modal_element.closest(".modal"))
+			);
+			const on_hide = () => {
+				dialog.off("hide", on_hide);
 				this.driver_steps.splice(this.driver.currentStep, 1);
 				this.update_driver_steps();
 				this.driver.movePrevious();
 				this.driver.moveNext();
 				this.driver.overlay.refresh();
-			});
+			};
+			dialog?.on("hide", on_hide);
 		}, 500);
 	}
 };

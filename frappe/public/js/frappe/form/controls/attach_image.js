@@ -2,20 +2,14 @@ frappe.ui.form.ControlAttachImage = class ControlAttachImage extends frappe.ui.f
 	make_input() {
 		super.make_input();
 
-		let $file_link = this.$value.find(".attached-file-link");
-		// Changing placement from top to bottom to avoid flickering. Fix with better solution
-		$file_link.popover({
-			trigger: "hover",
-			placement: "bottom",
-			content: () => {
-				return `<div>
-					<img src="${this.get_value()}"
-						width="150px"
-						style="object-fit: contain;"
-					/>
-				</div>`;
-			},
-			html: true,
+		frappe.ui.hover_card(this.$value.find(".attached-file-link"), {
+			open_delay: 0,
+			close_delay: 0,
+			content: () =>
+				$("<img>", { src: this.get_value(), width: "150px" }).css(
+					"object-fit",
+					"contain"
+				)[0],
 		});
 	}
 	set_upload_options() {

@@ -190,12 +190,7 @@ frappe.ui.Page = class Page {
 
 		// keyboard shortcuts
 		let menu_btn = this.menu_btn_group.find("button");
-		menu_btn
-			.attr("title", __("Menu"))
-			.tooltip({ delay: { show: 600, hide: 100 }, trigger: "hover" })
-			.on("click mousedown", function () {
-				$(this).tooltip("hide");
-			});
+		frappe.ui.tooltip(menu_btn, { text: __("Menu"), delay: 600 });
 		frappe.ui.keys.get_shortcut_group(this.page_actions[0]).add(menu_btn);
 
 		// The Menu / Actions dropdowns are espresso menus. The old bootstrap
@@ -263,8 +258,9 @@ frappe.ui.Page = class Page {
 		this.clear_indicator().removeClass("hide").html(indicator_html).attr("data-theme", color);
 
 		if (is_mobile) {
-			this.indicator.attr("title", label);
-			this.indicator.tooltip();
+			const tooltip = this.indicator.data("es-tooltip");
+			if (tooltip) tooltip.set_text(label);
+			else frappe.ui.tooltip(this.indicator, { text: label, delay: 0 });
 		}
 	}
 
@@ -281,9 +277,7 @@ frappe.ui.Page = class Page {
 
 		button.appendTo(this.icon_group.removeClass("hide"));
 		button.click(click);
-		button
-			.attr("title", __(tooltip_label))
-			.tooltip({ delay: { show: 600, hide: 100 }, trigger: "hover" });
+		frappe.ui.tooltip(button, { text: __(tooltip_label), delay: 600 });
 
 		return button;
 	}
@@ -1212,13 +1206,8 @@ frappe.ui.Page = class Page {
 			only_input: df.fieldtype == "Check" ? false : true,
 		});
 		f.refresh();
-		$(f.wrapper)
-			.addClass("col-md-2")
-			.attr("title", __(df.label, null, df.parent))
-			.tooltip({
-				delay: { show: 600, hide: 100 },
-				trigger: "hover",
-			});
+		$(f.wrapper).addClass("col-md-2");
+		frappe.ui.tooltip(f.wrapper, { text: __(df.label, null, df.parent), delay: 600 });
 		if (parent == this.filters) {
 			this.restyle_field(f);
 		}

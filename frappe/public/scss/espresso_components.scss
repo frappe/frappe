@@ -7,44 +7,44 @@
  *
  * Loaded by desk.bundle.scss (and other bundles that need the components). */
 
-@import "frappe/public/css/espresso/components/badge.css";
+@import "frappe/public/css/espresso/components/badge";
 /* Framework-only: legacy indicator color aliases for .es-badge (third-party-safe). */
-@import "frappe/public/css/espresso/components/badge-legacy-colors.css";
+@import "frappe/public/css/espresso/components/badge-legacy-colors";
 
-@import "frappe/public/css/espresso/components/button.css";
+@import "frappe/public/css/espresso/components/button";
 /* Joins two .es-button halves — must load after button.css. */
-@import "frappe/public/css/espresso/components/segmented_button.css";
+@import "frappe/public/css/espresso/components/segmented_button";
 
-@import "frappe/public/css/espresso/components/spinner.css";
+@import "frappe/public/css/espresso/components/spinner";
 
-@import "frappe/public/css/espresso/components/skeleton.css";
+@import "frappe/public/css/espresso/components/skeleton";
 
-@import "frappe/public/css/espresso/components/divider.css";
+@import "frappe/public/css/espresso/components/divider";
 
-@import "frappe/public/css/espresso/components/avatar.css";
+@import "frappe/public/css/espresso/components/avatar";
 
-@import "frappe/public/css/espresso/components/avatar_group.css";
+@import "frappe/public/css/espresso/components/avatar_group";
 
-@import "frappe/public/css/espresso/components/alert.css";
+@import "frappe/public/css/espresso/components/alert";
 
-@import "frappe/public/css/espresso/components/breadcrumbs.css";
+@import "frappe/public/css/espresso/components/breadcrumbs";
 
-@import "frappe/public/css/espresso/components/toast.css";
+@import "frappe/public/css/espresso/components/toast";
 
-@import "frappe/public/css/espresso/components/menu.css";
+@import "frappe/public/css/espresso/components/menu";
 
-@import "frappe/public/css/espresso/components/tooltip.css";
+@import "frappe/public/css/espresso/components/tooltip";
 
-@import "frappe/public/css/espresso/components/popover.css";
+@import "frappe/public/css/espresso/components/popover";
 /* Modifier on .es-popover — must load after it. */
-@import "frappe/public/css/espresso/components/hover_card.css";
+@import "frappe/public/css/espresso/components/hover_card";
 
 /* Panel is an .es-menu — must load after menu.css. */
-@import "frappe/public/css/espresso/components/combobox.css";
+@import "frappe/public/css/espresso/components/combobox";
 
-@import "frappe/public/css/espresso/components/tabs.css";
+@import "frappe/public/css/espresso/components/tabs";
 
-@import "frappe/public/css/espresso/components/tab_buttons.css";
+@import "frappe/public/css/espresso/components/tab_buttons";
 
-@import "frappe/public/css/espresso/components/progress.css";
-@import "frappe/public/css/espresso/components/stepper.css";
+@import "frappe/public/css/espresso/components/progress";
+@import "frappe/public/css/espresso/components/stepper";

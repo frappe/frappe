@@ -335,7 +335,7 @@ export default class GridRow {
 				if (!this.configure_columns) {
 					const edit_msg = __("Edit", "", "Edit grid row");
 					this.open_form_button = $(`
-						<div class="btn-open-row" data-toggle="tooltip" data-placement="right" title="${edit_msg}">
+						<div class="btn-open-row">
 							<a>${frappe.utils.icon("pencil", "xs")}</a>
 						</div>
 					`).appendTo(this.open_form_button);
@@ -349,7 +349,11 @@ export default class GridRow {
 							}
 						});
 
-					this.open_form_button.tooltip({ delay: { show: 600, hide: 100 } });
+					frappe.ui.tooltip(this.open_form_button, {
+						text: edit_msg,
+						side: "right",
+						delay: 600,
+					});
 				}
 
 				if (this.is_too_small()) {

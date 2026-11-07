@@ -638,35 +638,23 @@ export default class ChartWidget extends Widget {
 	}
 
 	set_chart_actions(actions) {
-		this.chart_actions = $(`<div class="chart-actions dropdown pull-right">
-			<button data-toggle="dropdown"
-				aria-haspopup="true"aria-expanded="false"
-				class="btn btn-xs btn-secondary chart-menu"
-			>
+		this.chart_actions = $(`<div class="chart-actions pull-right">
+			<button class="btn btn-xs btn-secondary chart-menu">
 				<svg class="icon icon-sm">
 					<use href="#icon-ellipsis">
 					</use>
 				</svg>
 			</button>
-			<ul class="dropdown-menu dropdown-menu-right">
-				${actions
-					.map(
-						(action) =>
-							`<li><a class="dropdown-item" data-action="${
-								action.action
-							}">${frappe.utils.escape_html(__(action.label))}</a></li>`
-					)
-					.join("")}
-			</ul>
 		</div>
 		`);
-		/* eslint-enable indent */
 
-		this.chart_actions.find("a[data-action]").each((i, o) => {
-			const action = o.dataset.action;
-			// Bind the handler, not the action object. jQuery binds whatever it is
-			// given and throws on click when that is not a function.
-			$(o).click(actions.find((a) => a.action === action).handler);
+		new frappe.ui.Dropdown({
+			trigger: this.chart_actions.find(".chart-menu"),
+			align: "end",
+			options: actions.map((action) => ({
+				label: __(action.label),
+				onclick: action.handler,
+			})),
 		});
 		this.chart_actions.appendTo(this.action_area);
 	}

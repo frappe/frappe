@@ -3,12 +3,16 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 ) {
 	static trigger_change_on_input_event = false;
 	make_input() {
-		let template = `
-			<div class="multiselect-list dropdown">
-				<div class="form-control cursor-pointer input-xs" data-toggle="dropdown" tabindex=0>
+		this.$list_wrapper = $(`
+			<div class="multiselect-list">
+				<div class="form-control cursor-pointer input-xs" tabindex=0>
 					<div class="status-text ellipsis"></div>
 				</div>
-				<ul class="dropdown-menu">
+			</div>
+		`);
+		this.$menu = $(`
+			<div class="multiselect-list">
+				<ul class="list-unstyled m-0">
 					<li class="dropdown-input-wrapper">
 						<input type="text" class="form-control input-xs">
 					</li>
@@ -20,52 +24,68 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 						</button>
 						<button class="btn btn-primary btn-xs clear-selections text-nowrap">
 							${__("Clear All")}
-    					</button>
+						</button>
 					</li>
 				</ul>
 			</div>
-		`;
+		`);
 
-		this.$list_wrapper = $(template);
 		this.$input = $("<input>");
 		this.input = this.$input.get(0);
 		this.has_input = true;
 		this.$list_wrapper.prependTo(this.input_area);
-		this.$filter_input = this.$list_wrapper.find("input");
+		this.$filter_input = this.$menu.find("input");
 		this.values = [];
 		this._options = [];
 		this._selected_values = [];
 		this.highlighted = -1;
-		this.$list_wrapper.on("click", ".dropdown-menu", (e) => {
-			e.stopPropagation();
-		});
-		this.$list_wrapper.on("click", ".clear-selections", (e) => {
+		this.$menu.on("click", ".clear-selections", (e) => {
 			this.clear_all_selections();
 		});
-		this.$list_wrapper.on("click", ".select-all-options", (e) => {
+		this.$menu.on("click", ".select-all-options", (e) => {
 			this.select_all_options();
 		});
-		this.$list_wrapper.on("click", ".selectable-item", (e) => {
+		this.$menu.on("click", ".selectable-item", (e) => {
 			let $target = $(e.currentTarget);
 			this.toggle_select_item($target);
 		});
 
+		const $toggle = this.$list_wrapper.find(".form-control");
+		this.popover = new frappe.ui.Popover({
+			trigger: $toggle,
+			content: () => this.$menu[0],
+			on_open: (popover) => {
+				popover.panel.style.width = "auto";
+				popover.panel.style.minWidth = `${this.$list_wrapper.outerWidth()}px`;
+				this.set_options().then(() => {
+					if (!this._selected_values || !this._selected_values.length) {
+						this._selected_values = this.process_options(this.values);
+					}
+					this._options = this._selected_values
+						.concat(this._options)
+						.uniqBy((opt) => opt.value);
+					this.set_selectable_items(this._options);
+					this.$filter_input.trigger("focus");
+				});
+			},
+		});
+
 		// open dropdown on tab focus
-		const $toggle = this.$list_wrapper.find('[data-toggle="dropdown"]');
 		let focus_triggered_by_mouse = false;
 		$toggle.on("mousedown", () => {
 			focus_triggered_by_mouse = true;
 		});
-		$toggle.on("focus", () => {
+		$toggle.on("focus", (e) => {
 			if (focus_triggered_by_mouse) {
 				focus_triggered_by_mouse = false;
 				return;
 			}
-			$toggle.dropdown("show");
+			if (this.$menu.parent()[0]?.contains(e.relatedTarget)) return;
+			this.popover.open();
 		});
 
 		// prevent input text focus loss when clicking items or buttons
-		this.$list_wrapper.on(
+		this.$menu.on(
 			"mousedown",
 			".selectable-item, .select-all-options, .clear-selections",
 			(e) => {
@@ -73,7 +93,7 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 			}
 		);
 
-		this.$list_wrapper.on(
+		this.$menu.on(
 			"input",
 			"input",
 			frappe.utils.debounce((e) => {
@@ -98,7 +118,7 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 				});
 			}, 300)
 		);
-		this.$list_wrapper.on("keydown", "input", (e) => {
+		this.$menu.on("keydown", "input", (e) => {
 			if (e.key === "ArrowDown") {
 				this.highlight_item(1);
 			} else if (e.key === "ArrowUp") {
@@ -118,19 +138,6 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 			if (e.key === "Backspace") {
 				this.set_value([]);
 			}
-		});
-
-		this.$list_wrapper.on("show.bs.dropdown", () => {
-			this.set_options().then(() => {
-				if (!this._selected_values || !this._selected_values.length) {
-					this._selected_values = this.process_options(this.values);
-				}
-				this._options = this._selected_values
-					.concat(this._options)
-					.uniqBy((opt) => opt.value);
-				this.set_selectable_items(this._options);
-				this.$filter_input.trigger("focus");
-			});
 		});
 
 		this.set_input_attributes();
@@ -193,7 +200,7 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 		}
 		//Unselect old values
 		this.values.forEach((value) => {
-			this.$list_wrapper
+			this.$menu
 				.find(`.selectable-item[data-value=${CSS.escape(value)}]`)
 				.toggleClass("selected");
 		});
@@ -201,7 +208,7 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 		this.values.forEach((value) => {
 			this.update_selected_values(value);
 			//Select new values
-			this.$list_wrapper
+			this.$menu
 				.find(`.selectable-item[data-value=${CSS.escape(value)}]`)
 				.toggleClass("selected");
 		});
@@ -300,7 +307,7 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 		if (!html) {
 			html = `<li class="text-muted">${__("No values to show")}</li>`;
 		}
-		this.$list_wrapper.find(".selectable-items").html(html);
+		this.$menu.find(".selectable-items").html(html);
 
 		this.highlighted = -1;
 	}
@@ -315,7 +322,7 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 		if (this.highlighted < 0) {
 			this.highlighted = 0;
 		}
-		let $items = this.$list_wrapper.find(".selectable-item");
+		let $items = this.$menu.find(".selectable-item");
 		if (this.highlighted > $items.length - 1) {
 			this.highlighted = $items.length - 1;
 		}

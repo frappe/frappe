@@ -87,7 +87,6 @@ class FormTimeline extends BaseTimeline {
 			.on("click", function (e) {
 				me.only_communication = !this.checked;
 				me.render_timeline_items();
-				$(this).tab("show");
 			});
 		this.timeline_wrapper
 			.find(".timeline-item.activity-title")
@@ -293,6 +292,7 @@ class FormTimeline extends BaseTimeline {
 		doc.user_full_name = doc.sender_full_name;
 		doc.content = frappe.dom.remove_script_and_style(doc.content);
 		let communication_content = $(frappe.render_template("timeline_message_box", { doc }));
+		this.setup_more_actions(communication_content, doc);
 		if (allow_reply) {
 			this.setup_reply(communication_content, doc);
 		}
@@ -355,6 +355,7 @@ class FormTimeline extends BaseTimeline {
 	get_comment_timeline_content(doc) {
 		doc.content = frappe.dom.remove_script_and_style(doc.content);
 		const comment_content = $(frappe.render_template("timeline_message_box", { doc }));
+		this.setup_more_actions(comment_content, doc);
 		this.setup_comment_actions(comment_content, doc);
 		return comment_content;
 	}
@@ -527,6 +528,16 @@ class FormTimeline extends BaseTimeline {
 
 	setup_reply(communication_box, communication_doc) {
 		let actions = communication_box.find(".custom-actions");
+		if (frappe.is_mobile()) {
+			this.add_dropdown_item(communication_box, [
+				{ label: __("Reply"), onclick: () => this.compose_mail(communication_doc) },
+				{
+					label: __("Reply All"),
+					onclick: () => this.compose_mail(communication_doc, true),
+				},
+			]);
+			return;
+		}
 		let reply = $(`<a class="action-btn reply">${frappe.utils.icon("reply", "md")}</a>`).click(
 			() => {
 				this.compose_mail(communication_doc);
@@ -537,27 +548,26 @@ class FormTimeline extends BaseTimeline {
 		).click(() => {
 			this.compose_mail(communication_doc, true);
 		});
-		if (frappe.is_mobile()) {
-			this.add_dropdown_item(communication_box, [reply, reply_all]);
-		} else {
-			actions.append(reply);
-			actions.append(reply_all);
-		}
+		actions.append(reply);
+		actions.append(reply_all);
+	}
+	setup_more_actions(timeline_box, doc) {
+		const items = [
+			{ label: __("Copy Link"), onclick: () => this.copy_link(timeline_box) },
+			{
+				label: __("Open Communication"),
+				href: doc._url,
+				condition: () => Boolean(doc._url) && frappe.is_mobile(),
+			},
+		];
+		timeline_box.data("more_actions", items);
+		new frappe.ui.Dropdown({
+			trigger: timeline_box.find(".more-actions > .action-btn"),
+			options: () => items,
+		});
 	}
 	add_dropdown_item(timeline_box, menu_items) {
-		let more_actions = timeline_box.find(".more-actions > .dropdown-menu > li");
-		menu_items.forEach((m) => {
-			let action_name = m[0].classList[1];
-			let formatted_action_name =
-				String(action_name).charAt(0).toUpperCase() + String(action_name).slice(1);
-			m.empty();
-			m.append(
-				__("{0}", [frappe.utils.to_title_case(formatted_action_name.replace("-", " "))])
-			);
-			m.removeClass();
-			m.addClass("dropdown-item");
-			more_actions.append(m);
-		});
+		timeline_box.data("more_actions").push(...menu_items);
 	}
 	compose_mail(communication_doc = null, reply_all = false) {
 		const args = {
@@ -628,20 +638,19 @@ class FormTimeline extends BaseTimeline {
 		let edit_box = this.make_editable(edit_wrapper);
 		let content_wrapper = comment_wrapper.find(".content");
 		let more_actions_wrapper = comment_wrapper.find(".more-actions");
-		const dropdown_menu = more_actions_wrapper.find(".dropdown-menu li");
 
 		if (frappe.session.user == doc.owner || frappe.user.has_role("System Manager")) {
 			if (frappe.model.can_delete("Comment")) {
-				const delete_option = $(`
-					<a class="dropdown-item">${__("Delete")}</a>
-				`).click(() => this.delete_comment(doc.name));
-				dropdown_menu.append(delete_option);
+				this.add_dropdown_item(comment_wrapper, [
+					{ label: __("Delete"), onclick: () => this.delete_comment(doc.name) },
+				]);
 			}
-
-			const un_publish_button = $(`
-				<a class="dropdown-item">${doc.published ? __("Unpublish") : __("Publish")}</a>
-			`).click(() => this.update_comment_publicity(doc.name, !doc.published));
-			dropdown_menu.append(un_publish_button);
+			this.add_dropdown_item(comment_wrapper, [
+				{
+					label: doc.published ? __("Unpublish") : __("Publish"),
+					onclick: () => this.update_comment_publicity(doc.name, !doc.published),
+				},
+			]);
 		}
 
 		let dismiss_button = $(`
@@ -692,7 +701,9 @@ class FormTimeline extends BaseTimeline {
 		let actions_wrapper = comment_wrapper.find(".custom-actions");
 		if (frappe.is_mobile()) {
 			if (can_edit) {
-				this.add_dropdown_item(comment_wrapper, [edit_button]);
+				this.add_dropdown_item(comment_wrapper, [
+					{ label: __("Edit"), onclick: () => edit_button.click() },
+				]);
 			}
 		} else {
 			actions_wrapper.append(edit_button);
@@ -783,11 +794,11 @@ class FormTimeline extends BaseTimeline {
 		});
 	}
 
-	copy_link(ev) {
+	copy_link(timeline_box) {
 		let doc_link = frappe.urllib.get_full_url(
 			frappe.utils.get_form_link(this.frm.doctype, this.frm.docname)
 		);
-		let element_id = $(ev.currentTarget).closest(".timeline-content").attr("id");
+		let element_id = timeline_box.closest(".timeline-content").attr("id");
 		frappe.utils.copy_to_clipboard(`${doc_link}#${element_id}`);
 	}
 }
