@@ -88,6 +88,9 @@ DatetimeTypes = datetime.date | datetime.datetime | datetime.time | datetime.tim
 
 max_positive_value = {"smallint": 2**15 - 1, "int": 2**31 - 1, "bigint": 2**63 - 1}
 
+# CSS hex colors: #RGB, #RGBA, #RRGGBB, #RRGGBBAA
+HEX_COLOR = re.compile(r"#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})")
+
 # Sentinel object for cache miss detection in bulk link validation
 # Used to distinguish between "not in cache" and "cached as None (does not exist)"
 _NOT_IN_CACHE = object()
@@ -3776,6 +3779,20 @@ class Document(_DocumentBase):
 
 			if data_field_options == "IBAN":
 				validate_iban(data, throw=True)
+
+		for color_field in self.meta.get("fields", {"fieldtype": "Color"}):
+			self._validate_color(color_field)
+
+	def _validate_color(self, df):
+		color = self.get(df.fieldname)
+		if not color or HEX_COLOR.fullmatch(cstr(color)):
+			return
+
+		label = frappe.bold(self.meta.get_translated_label(df.fieldname))
+		if self.get("parentfield"):
+			label = _("Row #{0}: {1}").format(self.idx, label)
+
+		frappe.throw(_("{0} must be a hex color code like #1a5fb4").format(label), title=_("Invalid Color"))
 
 	def _validate_length(self):
 		if frappe.flags.in_install:
