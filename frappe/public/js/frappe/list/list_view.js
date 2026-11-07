@@ -1932,7 +1932,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					style = `background-color: var(${color[0]}); color: var(${color[1]})`;
 				}
 
-				return `<div class="tag-pill ellipsis" title="${tag}" style="${style}">${tag}</div>`;
+				return `<div class="tag-pill ellipsis" title="${frappe.utils.escape_html(
+					tag
+				)}" style="${style}">${tag}</div>`;
 			}
 		};
 		user_tags = (user_tags || "").split(",");
