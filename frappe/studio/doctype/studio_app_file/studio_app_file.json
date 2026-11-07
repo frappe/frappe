@@ -2,7 +2,7 @@
  "actions": [],
  "autoname": "hash",
  "beta": 1,
- "creation": "2026-10-30 12:00:00.000000",
+ "creation": "2026-10-30 12:00:00",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
@@ -45,9 +45,9 @@
   }
  ],
  "grid_page_length": 50,
- "index_web_pages_for_search": 1,
+ "link_display_mode": "Search",
  "links": [],
- "modified": "2026-10-30 12:00:00.000000",
+ "modified": "2026-11-07 10:55:09.676991",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio App File",
@@ -82,5 +82,6 @@
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
- "title_field": "file_path"
+ "title_field": "file_path",
+ "track_changes": 1
 }
