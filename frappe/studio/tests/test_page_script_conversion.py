@@ -5,6 +5,7 @@ from frappe.studio.doctype.studio_page.patches.convert_page_scripts_to_modules i
 	execute,
 	get_top_level_bindings,
 	is_module,
+	move_router_script_to_file,
 	to_setup_module,
 	tokenize,
 )
@@ -78,13 +79,15 @@ class TestPageScriptConversion(IntegrationTestCase):
 	def test_patch_converts_database_pages_and_the_router_script(self):
 		app = make_studio_app(app_name="converted-app", app_title="Converted App")
 		page = make_studio_page(app.name, page_title="Board", script="const count = ref(0)\n")
-		frappe.db.set_value("Studio App", app.name, "router_script", "{ setup(router) {} }")
 
 		execute()
 
 		converted = frappe.db.get_value("Studio Page", page.name, "script")
 		self.assertIn('import { ref } from "vue"', converted)
 		self.assertIn("return { count }", converted)
+
+		# The app no longer has a router_script column, so move its value directly.
+		move_router_script_to_file(app.name, "{ setup(router) {} }")
 		self.assertEqual(
 			files.read_store_file(app.name, "router.js"), "export default { setup(router) {} }\n"
 		)
