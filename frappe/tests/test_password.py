@@ -1,6 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import unicodedata
+from unittest.mock import patch
 
 from cryptography.fernet import Fernet
 
@@ -13,6 +14,7 @@ from frappe.utils.password import (
 	check_password,
 	decrypt,
 	encrypt,
+	is_password_reused,
 	passlibctx,
 	update_password,
 )
@@ -73,8 +75,9 @@ class TestPassword(IntegrationTestCase):
 		# is not plain text
 		self.assertTrue(auth.password != new_password)
 
-		# is valid hashing
-		self.assertTrue(passlibctx.verify(new_password, auth.password))
+		# is a valid hash, stored encrypted with the site's encryption key
+		self.assertIsNone(passlibctx.identify(auth.password))
+		self.assertTrue(passlibctx.verify(new_password, decrypt(auth.password)))
 
 		self.assertTrue(check_password(user, new_password))
 
@@ -97,12 +100,86 @@ class TestPassword(IntegrationTestCase):
 		set_raw_hash(user, nfd)
 		self.assertTrue(check_password(user, nfd))
 
-		stored = get_password_list(dict(doctype="User", name=user))[0].password
+		stored = decrypt(get_password_list(dict(doctype="User", name=user))[0].password)
 		self.assertTrue(passlibctx.verify(nfc, stored))
 		self.assertFalse(passlibctx.verify(nfd, stored))
 
 		self.assertRaises(frappe.AuthenticationError, check_password, user, "Cafe_43A1W")
 		update_password(user, "Eastern_43A1W")
+
+	def test_plain_hash_is_peppered_on_login(self, user="test@example.com"):
+		update_password(user, "Eastern_43A1W")
+		set_raw_hash(user, "Eastern_43A1W")
+		self.assertTrue(check_password(user, "Eastern_43A1W"))
+
+		stored = get_password_list(dict(doctype="User", name=user))[0].password
+		self.assertIsNone(passlibctx.identify(stored))
+		self.assertTrue(passlibctx.verify("Eastern_43A1W", decrypt(stored)))
+
+	def test_plain_hash_without_a_usable_encryption_key(self, user="test@example.com"):
+		update_password(user, "Eastern_43A1W")
+		self.addCleanup(update_password, user, "Eastern_43A1W")
+		frappe.clear_messages()
+
+		for encryption_key in (None, "", "not-a-fernet-key"):
+			with (
+				self.subTest(encryption_key=encryption_key),
+				patch.dict(frappe.local.conf, encryption_key=encryption_key),
+				# a key written here would replace the test site's real one
+				patch("frappe.installer.update_site_config", side_effect=AssertionError("key written")),
+			):
+				# login is not refused after a correct password, and the hash stays plain
+				set_raw_hash(user, "Eastern_43A1W")
+				self.assertEqual(check_password(user, "Eastern_43A1W"), user)
+				stored = get_password_list(dict(doctype="User", name=user))[0].password
+				self.assertTrue(passlibctx.verify("Eastern_43A1W", stored))
+
+				# reset link still sets a password
+				update_password(user, "Eastern_43A1W-new")
+				self.assertEqual(check_password(user, "Eastern_43A1W-new"), user)
+
+		self.assertFalse(frappe.message_log)
+
+	def test_peppered_hash_is_not_rewritten_on_login(self, user="test@example.com"):
+		update_password(user, "Eastern_43A1W")
+		stored = get_password_list(dict(doctype="User", name=user))[0].password
+
+		self.assertTrue(check_password(user, "Eastern_43A1W"))
+		# Fernet output differs on every call, so an unchanged value means no rewrite
+		self.assertEqual(get_password_list(dict(doctype="User", name=user))[0].password, stored)
+
+	def test_peppered_password_reuse(self, user="test@example.com"):
+		update_password(user, "Eastern_43A1W")
+		self.assertTrue(is_password_reused(user, "Eastern_43A1W"))
+		self.assertFalse(is_password_reused(user, "Eastern_43A1W-new"))
+
+	def test_password_under_another_encryption_key(self, user="test@example.com"):
+		update_password(user, "Eastern_43A1W")
+		self.addCleanup(update_password, user, "Eastern_43A1W")
+		frappe.clear_messages()
+
+		for encryption_key in (Fernet.generate_key().decode(), "not-a-fernet-key"):
+			with (
+				self.subTest(encryption_key=encryption_key),
+				patch.dict(frappe.local.conf, encryption_key=encryption_key),
+			):
+				self.assertRaises(frappe.AuthenticationError, check_password, user, "Eastern_43A1W")
+				self.assertFalse(is_password_reused(user, "Eastern_43A1W"))
+
+		# the reply carries no key error
+		self.assertFalse(frappe.message_log)
+
+		# reset link: a new password is stored and checked under the new key
+		with patch.dict(frappe.local.conf, encryption_key=Fernet.generate_key().decode()):
+			update_password(user, "Eastern_43A1W-new")
+			self.assertEqual(check_password(user, "Eastern_43A1W-new"), user)
+
+	def test_missing_encryption_key_fails_closed(self, user="test@example.com"):
+		update_password(user, "Eastern_43A1W")
+		with patch.dict(frappe.local.conf):
+			del frappe.local.conf["encryption_key"]
+			self.assertRaises(frappe.AuthenticationError, check_password, user, "Eastern_43A1W")
+			self.assertNotIn("encryption_key", frappe.local.conf)
 
 	def test_oversized_password(self):
 		user = "test@example.com"

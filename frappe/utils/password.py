@@ -35,9 +35,16 @@ def validate_password_size(pwd, label=None):
 
 
 def verify_password(pwd, hashed):
+	if is_peppered := not passlibctx.identify(hashed):
+		try:
+			hashed = cstr(Fernet(frappe.local.conf.get("encryption_key") or "").decrypt(hashed))
+		except (InvalidToken, ValueError):
+			verify_against_placeholder(pwd)
+			return False, False
+
 	normalized = normalize_password(pwd)
 	if passlibctx.verify(normalized, hashed):
-		return True, passlibctx.needs_update(hashed)
+		return True, not is_peppered or passlibctx.needs_update(hashed)
 
 	# hash saved before normalization, check raw input as before, rehash on match
 	if normalized != pwd and passlibctx.verify(pwd, hashed):
@@ -198,6 +205,11 @@ def update_password(user, pwd, doctype="User", fieldname="password", logout_all_
 
 	validate_password_size(pwd)
 	hashPwd = passlibctx.hash(normalize_password(pwd))
+	try:
+		hashPwd = cstr(Fernet(frappe.local.conf.get("encryption_key") or "").encrypt(encode(hashPwd)))
+	except ValueError:
+		# if the key is missing or malformed, store the plain hash instead of raising an error
+		pass
 
 	query = frappe.qb.into(Auth).columns(
 		Auth.doctype, Auth.name, Auth.fieldname, Auth.password, Auth.encrypted
