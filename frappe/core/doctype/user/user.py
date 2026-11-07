@@ -1576,7 +1576,12 @@ def handle_password_test_fail(feedback: dict):
 	message_parts = []
 
 	if warning:
-		message_parts.append(f'<div class="alert alert-warning" role="alert">{warning}</div>')
+		message_parts.append(
+			'<div class="es-alert mb-3" role="alert" data-theme="yellow">'
+			'<svg class="icon icon-sm" stroke="currentColor" aria-hidden="true"><use href="#icon-triangle-alert"></use></svg>'
+			f'<div class="es-alert__content"><span class="es-alert__title">{warning}</span></div>'
+			"</div>"
+		)
 
 	if suggestions:
 		suggestions_html = (

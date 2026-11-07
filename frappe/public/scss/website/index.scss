@@ -1,7 +1,7 @@
 @import "variables";
 @import "../../css/fonts/inter/inter.scss";
 @import "../common/quill";
-@import "~bootstrap/scss/bootstrap";
+@import "foundation/index";
 @import "~cropperjs/dist/cropper.min";
 @import "../common/mixins";
 @import "../common/global";
@@ -9,6 +9,7 @@
 @import "../common/alert";
 @import "../common/flex";
 @import "../common/buttons";
+@import "buttons";
 @import "../common/modal";
 @import "../common/css_variables.scss";
 @import "../common/indicator";

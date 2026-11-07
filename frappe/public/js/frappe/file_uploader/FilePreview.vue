@@ -76,20 +76,22 @@
 			</div>
 		</div>
 		<div style="width: 100%">
-			<div v-if="file.error_message" class="alert alert-danger mb-0 mt-2" role="alert">
-				{{ file.error_message }}
-			</div>
+			<div
+				v-if="file.error_message"
+				class="mt-2"
+				v-html="frappe.ui.alert.html({ title: file.error_message, theme: 'red' })"
+			></div>
 			<div
 				v-if="!file.private && !file.error_message && !uploaded && !file.failed"
-				class="alert alert-warning mb-0"
-				role="alert"
-			>
-				{{
-					__(
-						"This file is public and can be accessed by anyone, even without logging in. Mark it private to limit access."
-					)
-				}}
-			</div>
+				v-html="
+					frappe.ui.alert.html({
+						title: __(
+							'This file is public and can be accessed by anyone, even without logging in. Mark it private to limit access.'
+						),
+						theme: 'yellow',
+					})
+				"
+			></div>
 		</div>
 	</div>
 </template>

@@ -1,0 +1,147 @@
+.table {
+	width: 100%;
+	margin-bottom: $spacer;
+	color: $table-color;
+	background-color: $table-bg;
+
+	th,
+	td {
+		padding: $table-cell-padding;
+		vertical-align: top;
+		border-top: $table-border-width solid $table-border-color;
+	}
+
+	thead th {
+		vertical-align: bottom;
+		border-bottom: (2 * $table-border-width) solid $table-border-color;
+	}
+
+	tbody + tbody {
+		border-top: (2 * $table-border-width) solid $table-border-color;
+	}
+}
+
+.table-sm {
+	th,
+	td {
+		padding: $table-cell-padding-sm;
+	}
+}
+
+.table-bordered {
+	border: $table-border-width solid $table-border-color;
+
+	th,
+	td {
+		border: $table-border-width solid $table-border-color;
+	}
+
+	thead {
+		th,
+		td {
+			border-bottom-width: 2 * $table-border-width;
+		}
+	}
+}
+
+.table-borderless {
+	th,
+	td,
+	thead th,
+	tbody + tbody {
+		border: 0;
+	}
+}
+
+.table-striped {
+	tbody tr:nth-of-type(#{$table-striped-order}) {
+		background-color: $table-accent-bg;
+	}
+}
+
+.table-hover {
+	tbody tr {
+		@include hover() {
+			color: $table-hover-color;
+			background-color: $table-hover-bg;
+		}
+	}
+}
+
+@each $color, $value in $theme-colors {
+	@include table-row-variant(
+		$color,
+		theme-color-level($color, $table-bg-level),
+		theme-color-level($color, $table-border-level)
+	);
+}
+
+@include table-row-variant(active, $table-active-bg);
+
+.table {
+	.thead-dark {
+		th {
+			color: $table-dark-color;
+			background-color: $table-dark-bg;
+			border-color: $table-dark-border-color;
+		}
+	}
+
+	.thead-light {
+		th {
+			color: $table-head-color;
+			background-color: $table-head-bg;
+			border-color: $table-border-color;
+		}
+	}
+}
+
+.table-dark {
+	color: $table-dark-color;
+	background-color: $table-dark-bg;
+
+	th,
+	td,
+	thead th {
+		border-color: $table-dark-border-color;
+	}
+
+	&.table-bordered {
+		border: 0;
+	}
+
+	&.table-striped {
+		tbody tr:nth-of-type(#{$table-striped-order}) {
+			background-color: $table-dark-accent-bg;
+		}
+	}
+
+	&.table-hover {
+		tbody tr {
+			@include hover() {
+				color: $table-dark-hover-color;
+				background-color: $table-dark-hover-bg;
+			}
+		}
+	}
+}
+
+.table-responsive {
+	@each $breakpoint in map-keys($grid-breakpoints) {
+		$next: breakpoint-next($breakpoint, $grid-breakpoints);
+		$infix: breakpoint-infix($next, $grid-breakpoints);
+
+		&#{$infix} {
+			@include media-breakpoint-down($breakpoint) {
+				display: block;
+				width: 100%;
+				overflow-x: auto;
+				-webkit-overflow-scrolling: touch;
+
+				> .table-bordered {
+					border: 0;
+				}
+			}
+		}
+	}
+}

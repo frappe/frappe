@@ -1,0 +1,142 @@
+@mixin print-nav-justified-items {
+	> li {
+		float: none;
+
+		> a {
+			margin-bottom: 5px;
+			text-align: center;
+		}
+	}
+	@media (min-width: 768px) {
+		> li {
+			display: table-cell;
+			width: 1%;
+
+			> a {
+				margin-bottom: 0;
+			}
+		}
+	}
+}
+
+@mixin print-nav-tabs-justified-items {
+	> li > a {
+		margin-right: 0;
+		border-radius: $print-radius;
+	}
+	> .active > a {
+		border: 1px solid #ddd;
+	}
+	@media (min-width: 768px) {
+		> li > a {
+			border-bottom: 1px solid #ddd;
+			border-radius: $print-radius $print-radius 0 0;
+		}
+		> .active > a {
+			border-bottom-color: #fff;
+		}
+	}
+}
+
+.nav {
+	padding-left: 0;
+	margin-bottom: 0;
+	list-style: none;
+	@extend %clearfix;
+
+	> li {
+		position: relative;
+		display: block;
+
+		> a {
+			position: relative;
+			display: block;
+			padding: 10px 15px;
+		}
+		&.disabled > a {
+			color: $print-gray-light;
+		}
+	}
+	.nav-divider {
+		height: 1px;
+		margin: 9px 0;
+		overflow: hidden;
+		background-color: #e5e5e5;
+	}
+	> li > a > img {
+		max-width: none;
+	}
+}
+
+.nav-tabs {
+	border-bottom: 1px solid #ddd;
+
+	> li {
+		float: left;
+		margin-bottom: -1px;
+
+		> a {
+			margin-right: 2px;
+			line-height: $print-line-height;
+			border: 1px solid transparent;
+			border-radius: $print-radius $print-radius 0 0;
+		}
+		&.active > a {
+			color: $print-input-color;
+			background-color: #fff;
+			border: 1px solid #ddd;
+			border-bottom-color: transparent;
+		}
+	}
+	&.nav-justified {
+		width: 100%;
+		border-bottom: 0;
+		@include print-nav-justified-items;
+		@include print-nav-tabs-justified-items;
+	}
+}
+
+.nav-pills > li {
+	float: left;
+
+	> a {
+		border-radius: $print-radius;
+	}
+	+ li {
+		margin-left: 2px;
+	}
+	&.active > a {
+		color: inherit;
+		background-color: #f7fafc;
+	}
+}
+
+.nav-stacked > li {
+	float: none;
+
+	+ li {
+		margin-top: 2px;
+		margin-left: 0;
+	}
+}
+
+.nav-justified {
+	width: 100%;
+	@include print-nav-justified-items;
+}
+
+.nav-tabs-justified {
+	border-bottom: 0;
+	@include print-nav-tabs-justified-items;
+}
+
+.tab-content {
+	> .tab-pane {
+		display: none;
+		visibility: hidden;
+	}
+	> .active {
+		display: block;
+		visibility: visible;
+	}
+}
