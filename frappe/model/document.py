@@ -2696,6 +2696,10 @@ class Document(_DocumentBase):
 					continue
 
 				frappe.utils.validate_url(data, throw=True)
+				if frappe.utils.has_unsafe_url_scheme(data):
+					frappe.throw(
+						_("'{0}' is not a valid URL").format(frappe.bold(data)), title=_("Invalid URL")
+					)
 
 			if data_field_options == "IBAN" and data:
 				frappe.utils.validate_iban(data, throw=True)
