@@ -13,6 +13,7 @@
 		"extract-frappeui-types": "tsx src/scripts/tsToJSONGenerator.ts frappeui",
 		"extract-frameworkui-types": "tsx src/scripts/tsToJSONGenerator.ts frameworkui",
 		"extract-studio-types": "tsx src/scripts/tsToJSONGenerator.ts studio",
+		"test:node": "node --test vite/*.test.mjs",
 		"test:cypress": "cypress run --component",
 		"test:cypress:open": "cypress open --component"
 	},
