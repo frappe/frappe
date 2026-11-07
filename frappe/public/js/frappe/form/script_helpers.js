@@ -39,6 +39,7 @@ window.set_field_options = function (n, txt) {
 window.toggle_field = function (n, hidden) {
 	var df = frappe.meta.get_docfield(cur_frm.doctype, n, cur_frm.docname);
 	if (df) {
+		if (cint(df.hidden) === cint(hidden)) return;
 		df.hidden = hidden;
 		refresh_field(n);
 	} else {
