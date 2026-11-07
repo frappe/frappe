@@ -62,9 +62,7 @@ def get_change_log(user=None):
 
 def get_change_log_for_app(app, from_version, to_version):
 	from_version = Version(from_version)
-	to_version = Version(to_version)
-	# remove pre-release part
-	to_version.prerelease = None
+	to_version = Version(to_version).truncate()
 
 	return [
 		[cstr(version), content]
@@ -74,8 +72,7 @@ def get_change_log_for_app(app, from_version, to_version):
 
 
 def get_release_notes_for_app(app, version):
-	current_version = Version(version)
-	current_version.prerelease = None
+	current_version = Version(version).truncate()
 
 	return [
 		[cstr(version), content]
