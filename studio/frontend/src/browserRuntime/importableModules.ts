@@ -15,7 +15,6 @@ import * as vueRouter from "vue-router"
 import * as pinia from "pinia"
 import * as frappeUI from "frappe-ui"
 import * as frappeUIList from "frappe-ui/list"
-
 const modules: Record<string, Record<string, any>> = {
 	vue,
 	"vue-router": vueRouter,
@@ -50,7 +49,7 @@ export function loadImportableModule(specifier: string): Promise<Record<string, 
 			)
 		}
 		module = (namespace ? Promise.resolve(namespace) : loader()).then((resolved) =>
-			Object.freeze({ ...resolved, __esModule: true }),
+			Object.freeze(Object.defineProperty({ ...resolved }, "__esModule", { value: true })),
 		)
 		loaded.set(specifier, module)
 	}

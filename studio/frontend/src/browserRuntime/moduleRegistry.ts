@@ -23,6 +23,7 @@ import {
 import { loadImportableModule } from "@/browserRuntime/importableModules"
 
 const EXTENSION_CANDIDATES = ["", ".js", ".json", "/index.js"]
+const AMBIGUOUS_EXPORT = Symbol("ambiguous export")
 
 type ModuleFactory = (exports: any, require: (specifier: string) => any, module: any) => void
 
@@ -41,6 +42,7 @@ export class AppModuleRegistry {
 	private factories: Record<string, ModuleFactory> = {}
 	private styles: Record<string, string> = {}
 	private modules = new Map<string, { exports: any }>()
+	private executionErrors = new Map<string, unknown>()
 	private failures: Record<string, CompileError[]> = {}
 	private exports: Record<string, ModuleExports> = {}
 	private localImports: Record<string, ModuleImport[]> = {}
@@ -66,6 +68,7 @@ export class AppModuleRegistry {
 		if (this.files[path] === source && this.factories[path]) return
 		this.files[path] = source
 		this.modules.delete(path)
+		this.executionErrors.delete(path)
 		delete this.failures[path]
 		await this.compileInto(path, source)
 		const errors = this.checkLocalExports(path)
@@ -107,12 +110,19 @@ export class AppModuleRegistry {
 			const compiled = await compileFile(path, source)
 			errors.push(...compiled.errors)
 			if (!errors.length) {
-				this.factories[path] = new Function(
-					"exports",
-					"require",
-					"module",
-					`${compiled.code}\n//# sourceURL=studio-app:///${path}`,
-				) as ModuleFactory
+				try {
+					this.factories[path] = new Function(
+						"exports",
+						"require",
+						"module",
+						`${compiled.code}\n//# sourceURL=studio-app:///${path}`,
+					) as ModuleFactory
+				} catch (error) {
+					// Sucrase passes through syntax only a module allows, such as top-level await.
+					errors.push(importError(path, (error as Error).message))
+				}
+			}
+			if (!errors.length) {
 				const parsed = await parseExports(path, source)
 				if (!parsed.errors.length) this.exports[path] = parsed.exports
 			}
@@ -122,9 +132,9 @@ export class AppModuleRegistry {
 	}
 
 	/** Validate discovered imports before execution. Local paths must exist in the app.
-	 * Load renderer library modules and check their requested named exports. */
+	 * Load renderer library modules and check their requested exports. */
 	private async linkImports(path: string, code: string): Promise<CompileError[]> {
-		const { imports, errors } = await parseImports(path, code)
+		const { imports, errors } = await parseImports(path, code, true)
 		if (errors.length) return errors
 
 		this.localImports[path] = []
@@ -148,7 +158,7 @@ export class AppModuleRegistry {
 			}
 			const namespace = this.bare.get(specifier)
 			for (const name of names) {
-				if (!(name in namespace)) {
+				if (name === "__esModule" || !(name in namespace)) {
 					errors.push(importError(path, `"${specifier}" has no export named "${name}"`))
 				}
 			}
@@ -160,10 +170,11 @@ export class AppModuleRegistry {
 	private checkLocalExports(path: string): CompileError[] {
 		const errors: CompileError[] = []
 		for (const { specifier, names } of this.localImports[path] || []) {
-			const available = this.exportsOf(specifier, new Set())
-			if (!available) continue
 			for (const name of names) {
-				if (!available.has(name)) {
+				const binding = this.resolveExport(specifier, name, new Set())
+				if (binding === AMBIGUOUS_EXPORT) {
+					errors.push(importError(path, `"${specifier}" has an ambiguous export named "${name}"`))
+				} else if (binding === null) {
 					errors.push(importError(path, `"${specifier}" has no export named "${name}"`))
 				}
 			}
@@ -171,24 +182,45 @@ export class AppModuleRegistry {
 		return errors
 	}
 
-	/** The names a file exports, or null when they cannot be known without running it. Returning
-	 * null skips the check, because a wrong error here would break a working app. */
-	private exportsOf(path: string, seen: Set<string>): Set<string> | null {
-		if (seen.has(path)) return new Set()
-		seen.add(path)
-		if (path.endsWith(".css")) return new Set(["default"])
-		if (path.endsWith(".json")) return jsonExports(this.files[path])
-		const own = this.exports[path]
-		if (!own) return null
-		const names = new Set(own.names)
-		for (const specifier of own.starFrom) {
-			const resolved = isLocalSpecifier(specifier) ? this.resolve(path, specifier) : null
-			if (!resolved) return null
-			const nested = this.exportsOf(resolved, seen)
-			if (!nested) return null
-			for (const name of nested) if (name !== "default") names.add(name)
+	/** Return a binding's origin, null if missing, an ambiguity marker, or undefined for a broken file. */
+	private resolveExport(
+		path: string,
+		name: string,
+		seen: Set<string>,
+	): string | null | undefined | typeof AMBIGUOUS_EXPORT {
+		const key = `${path}\0${name}`
+		if (seen.has(key)) return null
+		seen = new Set(seen).add(key)
+		const bare = this.bare.get(path)
+		if (bare) return name !== "__esModule" && name in bare ? key : null
+		if (path.endsWith(".css")) return null
+		if (path.endsWith(".json")) {
+			const names = jsonExports(this.files[path])
+			return names === null ? undefined : names.has(name) ? key : null
 		}
-		return names
+		const own = this.exports[path]
+		if (!own) return undefined
+		const binding = own.bindings[name]
+		if (binding) {
+			if (!binding.from) return `${path}\0${binding.name}`
+			const target = isLocalSpecifier(binding.from) ? this.resolve(path, binding.from) : binding.from
+			if (!target) return null
+			return binding.name === "*" ? `${target}\0*` : this.resolveExport(target, binding.name, seen)
+		}
+		if (name === "default") return null
+		let found: string | null = null
+		for (const specifier of own.starFrom) {
+			const resolved = isLocalSpecifier(specifier) ? this.resolve(path, specifier) : specifier
+			if (!resolved) return null
+			const nested = this.resolveExport(resolved, name, seen)
+			if (nested === undefined) return undefined
+			if (nested === AMBIGUOUS_EXPORT) return AMBIGUOUS_EXPORT
+			if (nested !== null) {
+				if (found !== null && found !== nested) return AMBIGUOUS_EXPORT
+				found = nested
+			}
+		}
+		return found
 	}
 
 	private require(from: string, specifier: string): any {
@@ -213,11 +245,23 @@ export class AppModuleRegistry {
 
 	/** Cache the exports object before execution so cycles can read partially initialized exports. */
 	private load(path: string): any {
+		if (this.executionErrors.has(path)) throw this.executionErrors.get(path)
 		const existing = this.modules.get(path)
 		if (existing) return existing.exports
 		const module = { exports: {} }
 		this.modules.set(path, module)
-		this.factories[path](module.exports, (specifier: string) => this.require(path, specifier), module)
+		try {
+			this.factories[path].call(
+				undefined,
+				module.exports,
+				(specifier: string) => this.require(path, specifier),
+				module,
+			)
+		} catch (error) {
+			this.executionErrors.set(path, error)
+			this.modules.delete(path)
+			throw error
+		}
 		return module.exports
 	}
 
@@ -238,7 +282,7 @@ export class AppModuleRegistry {
 	private injectCSS(path: string): any {
 		this.styles[path] = this.files[path]
 		applyStyles(this.styles)
-		return Object.freeze({ __esModule: true, default: path })
+		return Object.freeze(Object.defineProperty({}, "__esModule", { value: true }))
 	}
 }
 
@@ -280,7 +324,9 @@ function parseJSONModule(source: string): any {
 	// Vite turns a JSON object's top-level keys into named exports. Offer the same names here, so
 	// an app that imports them keeps working after its files move to a repository.
 	const named = parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {}
-	return Object.freeze({ ...named, __esModule: true, default: parsed })
+	return Object.freeze(
+		Object.defineProperty({ ...named, default: parsed }, "__esModule", { value: true, enumerable: false }),
+	)
 }
 
 function importError(path: string, message: string): CompileError {

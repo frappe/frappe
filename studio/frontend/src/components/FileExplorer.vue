@@ -396,7 +396,7 @@ async function save() {
 	if (!openFile.value || !dirty.value || openFileReadOnly.value) return
 	// Reject syntax errors before they prevent page setup from creating bindings.
 	if (isPageScript.value) {
-		const syntaxError = await checkAppScript(editorContent.value, openFile.value.path)
+		const syntaxError = await checkAppScript(editorContent.value, openFile.value.path, store.usesDbFiles)
 		if (syntaxError) {
 			const hint = editorContent.value.includes("{{")
 				? " Use expressions directly in scripts, not {{ }} interpolation."

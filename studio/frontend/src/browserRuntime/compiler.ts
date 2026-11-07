@@ -24,13 +24,12 @@ export interface CompiledFile {
 
 export interface ModuleImport {
 	specifier: string
-	/** Named exports to validate. Empty for re-exports and dynamic imports. */
+	/** Requested exports, including "default". Namespace and dynamic imports have no names. */
 	names: string[]
 }
 
 export interface ModuleExports {
-	/** Names the module exports itself, including "default". */
-	names: string[]
+	bindings: Record<string, { name: string; from?: string }>
 	/** Specifiers it re-exports every name from, whose names it also exports. */
 	starFrom: string[]
 }
@@ -44,7 +43,7 @@ export function describeError(error: CompileError): string {
 const CJS_OPTIONS: SucraseOptions = { transforms: ["imports"], disableESTransforms: true }
 
 type SucraseOptions = import("sucrase").Options
-type BabelProgram = ReturnType<typeof import("vue/compiler-sfc").babelParse>["program"]
+export type BabelProgram = ReturnType<typeof import("vue/compiler-sfc").babelParse>["program"]
 type ImportDeclaration = Extract<BabelProgram["body"][number], { type: "ImportDeclaration" }>
 
 let compilerModules: Promise<[typeof import("vue/compiler-sfc"), typeof import("sucrase")]> | null = null
@@ -81,11 +80,12 @@ async function toCommonJS(filename: string, source: string): Promise<CompiledFil
 /**
  * Find dependency paths and imported names before executing a module.
  * Library modules load asynchronously, so preload them before synchronous require() calls.
- * Computed import() paths cannot be discovered here and are resolved at execution time.
+ * Database apps require literal import() paths so both loaders can discover dependencies.
  */
 export async function parseImports(
 	filename: string,
 	code: string,
+	databaseApp = false,
 ): Promise<{ imports: ModuleImport[]; errors: CompileError[] }> {
 	const [sfc] = await loadCompilers()
 	try {
@@ -93,6 +93,11 @@ export async function parseImports(
 			sourceType: "module",
 			plugins: filename.endsWith(".ts") ? ["typescript"] : [],
 		})
+		if (databaseApp) {
+			const { moduleSyntaxErrors } = await import("@/browserRuntime/moduleContract")
+			const errors = moduleSyntaxErrors(program, filename)
+			if (errors.length) return { imports: [], errors }
+		}
 		return { imports: [...staticImports(program), ...dynamicImports(program)], errors: [] }
 	} catch (error) {
 		return { imports: [], errors: [formatError(filename, error)] }
@@ -104,8 +109,13 @@ function* staticImports(program: BabelProgram): Generator<ModuleImport> {
 		if (node.type === "ImportDeclaration") {
 			if (node.importKind === "type") continue
 			yield { specifier: node.source.value, names: importedNames(node) }
-		} else if ("source" in node && node.source) {
-			// Load re-exported modules without checking individual export names here.
+		} else if (node.type === "ExportNamedDeclaration" && node.source && node.exportKind !== "type") {
+			const names = node.specifiers.flatMap((specifier) => {
+				if (specifier.type !== "ExportSpecifier" || specifier.exportKind === "type") return []
+				return [exportName(specifier.local)]
+			})
+			yield { specifier: node.source.value, names }
+		} else if (node.type === "ExportAllDeclaration") {
 			yield { specifier: node.source.value, names: [] }
 		}
 	}
@@ -114,6 +124,7 @@ function* staticImports(program: BabelProgram): Generator<ModuleImport> {
 function importedNames(node: ImportDeclaration): string[] {
 	const names: string[] = []
 	for (const specifier of node.specifiers) {
+		if (specifier.type === "ImportDefaultSpecifier") names.push("default")
 		if (specifier.type !== "ImportSpecifier" || specifier.importKind === "type") continue
 		const { imported } = specifier
 		names.push(imported.type === "Identifier" ? imported.name : imported.value)
@@ -150,27 +161,54 @@ export async function parseExports(
 		const { program } = sfc.babelParse(code, { sourceType: "module" })
 		return { exports: exportedNames(program), errors: [] }
 	} catch (error) {
-		return { exports: { names: [], starFrom: [] }, errors: [formatError(filename, error)] }
+		return { exports: { bindings: {}, starFrom: [] }, errors: [formatError(filename, error)] }
 	}
 }
 
 function exportedNames(program: BabelProgram): ModuleExports {
-	const names: string[] = []
+	const bindings: ModuleExports["bindings"] = Object.create(null)
 	const starFrom: string[] = []
+	const imports: ModuleExports["bindings"] = Object.create(null)
+	for (const node of program.body) {
+		if (node.type !== "ImportDeclaration" || node.importKind === "type") continue
+		for (const specifier of node.specifiers) {
+			if (specifier.type === "ImportSpecifier" && specifier.importKind === "type") continue
+			const name =
+				specifier.type === "ImportSpecifier"
+					? exportName(specifier.imported)
+					: specifier.type === "ImportDefaultSpecifier"
+						? "default"
+						: "*"
+			imports[specifier.local.name] = { name, from: node.source.value }
+		}
+	}
 	for (const node of program.body) {
 		if (node.type === "ExportDefaultDeclaration") {
-			names.push("default")
+			bindings.default = {
+				name: "id" in node.declaration && node.declaration.id ? node.declaration.id.name : "*default*",
+			}
 		} else if (node.type === "ExportAllDeclaration") {
 			starFrom.push(node.source.value)
 		} else if (node.type === "ExportNamedDeclaration" && node.exportKind !== "type") {
 			for (const specifier of node.specifiers) {
-				const exported = (specifier as any).exported
-				if (exported) names.push(exported.type === "Identifier" ? exported.name : exported.value)
+				if (specifier.type === "ExportSpecifier" && specifier.exportKind === "type") continue
+				const local = specifier.type === "ExportSpecifier" ? exportName(specifier.local) : "*"
+				bindings[exportName(specifier.exported)] = node.source
+					? { name: local, from: node.source.value }
+					: imports[local] || { name: local }
 			}
-			if (node.declaration) declaredNames(node.declaration, names)
+			if (node.declaration) {
+				const names: string[] = []
+				declaredNames(node.declaration, names)
+				for (const name of names) bindings[name] = { name }
+			}
 		}
 	}
-	return { names, starFrom }
+	return { bindings, starFrom }
+}
+
+function exportName(node: { type: string; name?: string; value?: string }): string {
+	return node.type === "Identifier" ? node.name! : node.value!
 }
 
 /** Collect the names a declaration binds, including destructured ones. */

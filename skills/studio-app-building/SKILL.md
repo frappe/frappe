@@ -34,6 +34,16 @@ A database app can import `vue`, `vue-router`, `pinia`, `frappe-ui`,
 `frappe-ui/list`, `frappe-ui/charts` and its own files — there is no npm.
 Needing anything else is the signal to export the app to a repository.
 
+Database modules use ESM `import`/`export`. Relative paths and `@app/` work, and
+dynamic `import()` needs a literal path. A JSON file offers its object as the
+default export and its top-level keys as named exports; a CSS file is imported
+for its side effect only and has no default export, so its asset URLs must be
+absolute. Name every import and export with an identifier, not a string.
+`require`, `module` and `exports` are not available, and those three names are
+reserved as top-level bindings. Top-level `await` and `import.meta` are not
+available either, so put asynchronous work in `setup()` or a handler. In a cycle,
+read an imported value inside `setup()`, not while the module runs.
+
 ## Establish the app
 
 - For a standard (exported) app, create the app and pages in Studio, then

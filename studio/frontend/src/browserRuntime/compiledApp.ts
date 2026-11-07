@@ -93,7 +93,11 @@ function getRegistry(): AppModuleRegistry {
 }
 
 /** Return a page script's syntax error, or null if the module parses. */
-export async function checkAppScript(source: string, filename = "page_script.js"): Promise<string | null> {
-	const parsed = await parseImports(filename, source)
+export async function checkAppScript(
+	source: string,
+	filename = "page_script.js",
+	databaseApp = false,
+): Promise<string | null> {
+	const parsed = await parseImports(filename, source, databaseApp)
 	return parsed.errors.length ? parsed.errors.map(describeError).join("\n") : null
 }
