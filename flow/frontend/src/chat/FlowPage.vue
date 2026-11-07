@@ -53,7 +53,7 @@
 				>
 					<template #empty="{ mark }">
 						<SetupState v-if="needsSetup" />
-						<!-- the mark over a quiet heading, each a step smaller in a narrow frame -->
+						<!-- the mark over a quiet heading, the mark a step smaller in a narrow frame -->
 						<template v-else>
 							<BrandMark
 								line
@@ -61,7 +61,7 @@
 								v-bind="mark"
 								class="min-h-0 shrink max-md:!h-7 max-md:!w-7"
 							/>
-							<h2 class="text-balance text-4xl text-ink-gray-8 max-md:text-[22px]">
+							<h2 class="text-balance text-[22px] text-ink-gray-8">
 								What would you like to do?
 							</h2>
 						</template>
