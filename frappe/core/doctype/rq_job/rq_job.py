@@ -215,7 +215,7 @@ def for_current_site(job: Job) -> bool:
 def filter_current_site_jobs(job_ids: list[str]) -> list[str]:
 	site = frappe.local.site
 
-	return [j for j in job_ids if j.startswith(site)]
+	return [j for j in job_ids if j.startswith(f"{site}||")]
 
 
 def _eval_filters(filter, values: list[str]) -> list[str]:
