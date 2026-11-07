@@ -549,6 +549,20 @@ class TestCloudTask(_CloudTestCase):
 		self.assertEqual(result["status"], "success")
 		self.assertEqual(result["task_id"], "task-1")
 
+	def test_get_task_reports_a_failed_task(self):
+		from frappe.integrations.frappe_providers.cloud_settings import get_task
+
+		failed = {"task_id": "task-1", "status": "failed", "exit_code": 1, "error": "Install failed."}
+		with (
+			patch.dict(frappe.conf, PILOT_CONF),
+			patch("frappe.get_roles", return_value=["System Manager"]),
+			patch("requests.request", return_value=Response(failed)),
+		):
+			result = get_task("task-1")
+
+		self.assertEqual(result["status"], "failed")
+		self.assertEqual(result["error"], "Install failed.")
+
 
 class Response:
 	text = ""
