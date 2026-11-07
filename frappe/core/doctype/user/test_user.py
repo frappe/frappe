@@ -13,6 +13,14 @@ import frappe.exceptions
 from frappe.client import set_value
 from frappe.core.doctype.user.user import (
 	User,
+<<<<<<< HEAD
+=======
+	bulk_add_roles,
+	bulk_remove_roles,
+	change_password,
+	get_all_roles,
+	get_perm_info,
+>>>>>>> d1c87ed (fix: limit desk metadata endpoints to desk users)
 	handle_password_test_fail,
 	reset_password,
 	sign_up,
@@ -40,6 +48,25 @@ class TestUser(IntegrationTestCase):
 		frappe.db.set_single_value("System Settings", "minimum_password_score", "")
 		frappe.db.set_single_value("System Settings", "password_reset_limit", 3)
 		frappe.set_user("Administrator")
+
+	def test_role_listing_requires_role_read(self):
+		desk_user = frappe.get_doc(
+			doctype="User",
+			email="roles_desk_user@example.com",
+			first_name="Desk",
+			roles=[{"role": "_Test Role"}],
+			send_welcome_email=0,
+		).insert(ignore_permissions=True)
+		self.addCleanup(frappe.delete_doc, "User", desk_user.name, force=True)
+
+		# a desk user without read on Role
+		frappe.set_user(desk_user.name)
+		self.assertRaises(frappe.PermissionError, get_all_roles)
+		self.assertRaises(frappe.PermissionError, get_perm_info, "System Manager")
+
+		frappe.set_user("test@example.com")
+		self.assertIn("System Manager", get_all_roles())
+		self.assertTrue(get_perm_info("System Manager"))
 
 	@staticmethod
 	def reset_password(user) -> str:
