@@ -352,6 +352,7 @@ scheduler_events = {
 		"frappe.oauth.delete_oauth2_data",
 		"frappe.website.doctype.web_page.web_page.check_publish_status",
 		"frappe.desk.utils.delete_old_exported_report_files",
+		"frappe.api.discovery.build_cache_if_missing",
 	],
 	"daily": [
 		"frappe.desk.doctype.event.event.send_event_digest",
