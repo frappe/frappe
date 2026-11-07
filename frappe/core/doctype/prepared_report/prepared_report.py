@@ -258,7 +258,7 @@ def stop_prepared_report(report_name: str):
 
 	job_id = prepared_report.job_id
 	if job_id:
-		if not job_id.startswith(frappe.local.site):
+		if not job_id.startswith(f"{frappe.local.site}||"):
 			frappe.throw(f"Invalid job_id: must start with {frappe.local.site}")
 
 		conn = get_redis_conn()
