@@ -1,5 +1,6 @@
 import localforage from "localforage";
 import PhonePicker from "../../phone_picker/phone_picker";
+import { get_country_flag_url } from "../../utils/country_flag_url.js";
 
 frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlData {
 	async make_input() {
@@ -201,7 +202,7 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 	}
 
 	set_flag(country_code) {
-		this.selected_icon.find("img").attr("src", `https://flagcdn.com/${country_code}.svg`);
+		this.selected_icon.find("img").attr("src", get_country_flag_url(country_code));
 		this.$icon = this.selected_icon.find("img");
 		this.$icon.hasClass("hide") && this.$icon.toggleClass("hide");
 	}
