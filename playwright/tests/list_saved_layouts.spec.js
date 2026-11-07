@@ -142,6 +142,114 @@ test.describe("List View — Saved Layouts", () => {
 		await expect(layout_row.filter({ hasText: "Personal" }).first()).toBeVisible();
 	});
 
+	test("keeps ID when editing a layout and lets users remove and restore it", async ({
+		page,
+		desk,
+		api,
+	}) => {
+		const todo = await api.insert_doc("ToDo", { description: "Check list layout ID" });
+		try {
+			await create_test_layout(api, {
+				layout_name: "_test_layout_id",
+				filters: "[]",
+				columns: JSON.stringify([
+					{ fieldname: "description", label: "Description" },
+					{ fieldname: "name", label: "ID" },
+				]),
+			});
+			await page.goto(LIST_URL);
+			await desk.ready();
+			await select_layout(page, "_test_layout_id");
+
+			const edit_layout = async () => {
+				await open_layout_submenu(page);
+				await menu_item(page, "Manage Layouts").click();
+				await page
+					.locator(".modal:visible .layout-manage-row", { hasText: "_test_layout_id" })
+					.locator(".layout-action-edit")
+					.click();
+				await page.locator(".modal:visible .add-new-fields").click();
+			};
+
+			const save_layout = async () => {
+				await page
+					.locator(".modal:visible")
+					.last()
+					.getByRole("button", { name: "Save", exact: true })
+					.click();
+				await page
+					.locator(".modal:visible")
+					.last()
+					.getByRole("button", { name: "Update", exact: true })
+					.click();
+				await expect(page.locator(".modal:visible")).toHaveCount(0);
+				await page.reload();
+				await desk.ready();
+			};
+
+			await edit_layout();
+			const id = page.locator('.modal:visible input[data-unit="name"]');
+			await expect(id).toBeChecked();
+			await save_layout();
+			await expect(page.locator('.list-row-head [data-fieldname="name"]')).toBeVisible();
+
+			await edit_layout();
+			await id.uncheck();
+			await save_layout();
+			await expect(page.locator('.list-row-head [data-fieldname="name"]')).toHaveCount(0);
+
+			await edit_layout();
+			await expect(id).not.toBeChecked();
+			await id.check();
+			await save_layout();
+			await expect(page.locator('.list-row-head [data-fieldname="name"]')).toBeVisible();
+		} finally {
+			await api.remove_doc("ToDo", todo.name);
+		}
+	});
+
+	test("includes ID in new layout defaults unless the list hides it", async ({ page, desk }) => {
+		await page.goto(LIST_URL);
+		await desk.ready();
+		await page.evaluate(() => {
+			cur_list.settings.hide_name_column = false;
+		});
+
+		async function open_create_layout() {
+			await open_layout_submenu(page);
+			await menu_item(page, "Create Layout").click();
+		}
+
+		await open_create_layout();
+		await expect(
+			page.locator('.modal:visible .fields_order[data-fieldname="name"]')
+		).toBeVisible();
+		await page.locator(".modal:visible .add-new-fields").click();
+		await page.locator('.modal:visible [data-fieldname="reset_fields"] button').click();
+		await expect(page.locator('.modal:visible input[data-unit="name"]')).toBeChecked();
+		await page
+			.locator(".modal:visible")
+			.last()
+			.getByRole("button", { name: "Save", exact: true })
+			.click();
+		await expect(
+			page.locator('.modal:visible .fields_order[data-fieldname="name"]')
+		).toBeVisible();
+		await page
+			.locator(".modal:visible")
+			.filter({ has: page.locator(".add-new-fields") })
+			.getByRole("button", { name: "Close", exact: true })
+			.click();
+
+		await page.evaluate(() => {
+			cur_list.settings.hide_name_column = true;
+		});
+		await open_create_layout();
+		await expect(
+			page.locator('.modal:visible .fields_order[data-fieldname="name"]')
+		).toHaveCount(0);
+	});
+
 	test("switches to list view with a layout applied, from another view", async ({
 		page,
 		desk,
