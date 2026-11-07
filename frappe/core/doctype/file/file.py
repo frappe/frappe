@@ -984,6 +984,7 @@ class File(Document):
 
 	@frappe.whitelist()
 	def optimize_file(self):
+		frappe.has_permission(self.doctype, "write", self.name, throw=True)
 		if self.is_folder:
 			raise TypeError("Folders cannot be optimized")
 
