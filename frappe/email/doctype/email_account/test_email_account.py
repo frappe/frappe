@@ -855,7 +855,7 @@ class TestInboundMail(IntegrationTestCase):
 		)
 
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
-		inbound_mail = InboundMail(mail_content, email_account, 12345, 1)
+		inbound_mail = InboundMail(mail_content, email_account, 12345, 1, "ToDo")
 		reference_doc = inbound_mail.reference_document()
 		self.assertEqual(todo.name, reference_doc.name)
 
@@ -867,7 +867,7 @@ class TestInboundMail(IntegrationTestCase):
 			"{{ subject }}", f"RE: {subject}"
 		)
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
-		inbound_mail = InboundMail(mail_content, email_account, 12345, 1)
+		inbound_mail = InboundMail(mail_content, email_account, 12345, 1, "ToDo")
 		reference_doc = inbound_mail.reference_document()
 		self.assertEqual(todo.name, reference_doc.name)
 
@@ -907,7 +907,7 @@ class TestInboundMail(IntegrationTestCase):
 			.encode("utf-8")
 		)  # note: encode to bytes because that's what triggered the error
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
-		inbound_mail = InboundMail(mail_content, email_account, 12345, 1)
+		inbound_mail = InboundMail(mail_content, email_account, 12345, 1, "ToDo")
 		reference_doc = inbound_mail.reference_document()
 		self.assertEqual(todo.name, reference_doc.name)
 
