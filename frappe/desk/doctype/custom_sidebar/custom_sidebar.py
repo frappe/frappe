@@ -76,11 +76,22 @@ class CustomSidebar(Document):
 	# end: auto-generated types
 
 	def validate(self):
+		self.validate_layer_keeps_its_owner()
 		self.validate_module()
 		self.validate_unique()
 		self.validate_item_routes()
 		self.drop_private_workspaces()
 		self.anchor_the_items()
+
+	def validate_layer_keeps_its_owner(self):
+		"""Refuse moving a layer to another user unless the caller curates every layer.
+
+		`has_permission` can only read `user` off the document in front of it, so naming yourself
+		would otherwise be enough to pass it and take someone else's layer or the site's.
+		"""
+		before = self.get_doc_before_save()
+		if before and (before.user or SITE_LAYER) != (self.user or SITE_LAYER) and not is_workspace_manager():
+			frappe.throw(_("Only a Workspace Manager can move a sidebar layer."), frappe.PermissionError)
 
 	def validate_module(self):
 		"""Check the module in the model rather than in the endpoints. `_validate_links` below no
@@ -418,7 +429,12 @@ def layer_arrangement(module: str, user: str | None) -> list[dict]:
 	where the page is instead of leaving it to the derivation. The site's layer is shown none of
 	them, because it may hold none (`drop_private_workspaces`).
 	"""
-	from frappe.desk.doctype.sidebar.sidebar import PRIVATE_MODULE, filter_sidebar_items, get_module_base
+	from frappe.desk.doctype.sidebar.sidebar import (
+		PRIVATE_MODULE,
+		allowed_added_item,
+		filter_sidebar_items,
+		get_module_base,
+	)
 
 	check_module(module)
 
@@ -435,6 +451,9 @@ def layer_arrangement(module: str, user: str | None) -> list[dict]:
 		items = filter_sidebar_items(base.rows, perm_ctx, check_permission=bool(user))
 
 	resolved, hidden = resolve_arrangement(items, get_layers(module, user))
+	if user:
+		# A row a layer added was never in the base, so the filter above did not see it.
+		resolved = [item for item in resolved if allowed_added_item(item, perm_ctx)]
 
 	own = get_customization(module, user)
 	own_added = {item_key(row) for row in own.sidebar_items if row.added} if own else set()
