@@ -179,7 +179,7 @@ function open(event) {
 					aria-hidden="true"
 				/>
 				<span v-if="dot" class="size-1.5 rounded-full" :class="dot" />
-				<span class="text-sm tabular-nums text-ink-gray-6">{{ count_text }}</span>
+				<span class="text-sm text-ink-gray-6">{{ count_text }}</span>
 			</template>
 			<span
 				v-else-if="widget.type === 'URL'"

@@ -314,7 +314,7 @@ function on_description_click(event, step) {
 					:aria-expanded="group.open"
 					@click="toggle_fold(group)"
 				>
-					<span class="flex-1 tabular-nums">{{ group.label }}</span>
+					<span class="flex-1">{{ group.label }}</span>
 					<span
 						class="size-4"
 						:class="group.open ? 'lucide-chevron-up' : 'lucide-chevron-down'"
@@ -344,10 +344,7 @@ function on_description_click(event, step) {
 							>
 								{{ step.title }}
 							</span>
-							<span
-								v-if="step_meta(step)"
-								class="shrink-0 text-sm tabular-nums text-ink-gray-6"
-							>
+							<span v-if="step_meta(step)" class="shrink-0 text-sm text-ink-gray-6">
 								{{ step_meta(step) }}
 							</span>
 							<span
