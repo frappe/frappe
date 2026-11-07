@@ -395,9 +395,9 @@ class LoginManager:
 	def logout(self, arg="", user=None):
 		if not user:
 			user = frappe.session.user
-		self.run_trigger("on_logout")
 
 		if user == frappe.session.user:
+			self.run_trigger("on_logout")
 			delete_session(frappe.session.sid, user=user, reason="User Manually Logged Out")
 			self.clear_cookies()
 			if frappe.request:
