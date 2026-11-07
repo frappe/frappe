@@ -83,8 +83,7 @@ class PilotClient:
 			frappe.throw(_("Could not reach your server: {0}").format(exc), frappe.ValidationError)
 
 		payload = self._parse(response)
-		# Some endpoints (e.g. the app registry) return a bare JSON list.
-		if response.ok and (isinstance(payload, list) or not payload.get("error")):
+		if response.ok:
 			return payload
 		frappe.throw(
 			self._error_message(payload) or response.text or _("Request to your server failed."),
