@@ -117,7 +117,7 @@ def send_email_alert(receiver, docinfo, timeline):
 	if receiver:
 		frappe.sendmail(
 			subject=_("Document Follow Notification"),
-			recipients=[receiver],
+			recipients=list(frappe.utils.get_email_addresses([receiver]).values()),
 			template="document_follow",
 			args={
 				"docinfo": docinfo,

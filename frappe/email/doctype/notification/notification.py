@@ -21,6 +21,7 @@ from frappe.utils import (
 	cast,
 	cint,
 	get_email_address,
+	get_email_addresses,
 	now_datetime,
 	nowdate,
 	validate_email_address,
@@ -675,16 +676,12 @@ def get_context(context):
 				)
 				if child_field:
 					for d in doc.get(child_field):
-						email_id = d.get(data_field)
-						if email_id == "Administrator":
-							email_id = get_email_address("Administrator")
+						email_id = get_receiver_email(d, data_field)
 						if validate_email_address(email_id):
 							recipients.append(email_id)
 				# field from current doc
 				else:
-					email_ids_value = doc.get(data_field)
-					if email_ids_value == "Administrator":
-						email_ids_value = get_email_address("Administrator")
+					email_ids_value = get_receiver_email(doc, data_field)
 					if validate_email_address(email_ids_value):
 						email_ids = email_ids_value.replace(",", "\n")
 						recipients = recipients + email_ids.split("\n")
@@ -981,7 +978,18 @@ def get_assignees(doc):
 		fields=["allocated_to"],
 	)
 
-	return [d.allocated_to for d in assignees]
+	return list(get_email_addresses([d.allocated_to for d in assignees]).values())
+
+
+def get_receiver_email(doc, fieldname):
+	"""Return the field's value, as the user's email when the field holds a user ID."""
+	value = doc.get(fieldname)
+	df = doc.meta.get_field(fieldname)
+
+	if value and (fieldname == "owner" or (df and df.fieldtype == "Link" and df.options == "User")):
+		return get_email_address(value)
+
+	return value
 
 
 def get_emails_from_template(template, context):

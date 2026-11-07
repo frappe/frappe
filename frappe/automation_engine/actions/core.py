@@ -14,7 +14,7 @@ from frappe.automation_engine.actions.base import (
 	render_context,
 	render_value,
 )
-from frappe.utils import cint, flt
+from frappe.utils import cint, flt, get_email_addresses
 
 NUMERIC_FIELDTYPES = ("Int", "Float", "Currency", "Percent")
 HTTP_METHODS = ("GET", "POST", "PUT", "PATCH", "DELETE")
@@ -255,14 +255,20 @@ class SendNotification(AutomationAction):
 			return _("No recipients to notify")
 		if params.get("channel") == "System":
 			return self._notify_system(doc, recipients, subject, message)
+
+		emails = list(get_email_addresses(recipients).values())
+
+		if not emails:
+			return _("No recipients to notify")
+
 		frappe.sendmail(
-			recipients=recipients,
+			recipients=emails,
 			subject=subject,
 			message=message,
 			reference_doctype=doc.doctype if doc else None,
 			reference_name=doc.name if doc else None,
 		)
-		return _("Emailed {0}").format(", ".join(recipients))
+		return _("Emailed {0}").format(", ".join(emails))
 
 	def _content(self, params, doc, context):
 		if params.get("email_template"):

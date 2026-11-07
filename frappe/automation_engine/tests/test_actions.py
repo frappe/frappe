@@ -27,6 +27,17 @@ def make_todo(**kwargs):
 	return frappe.get_doc({"doctype": "ToDo", "description": "x", **kwargs}).insert()
 
 
+def make_user():
+	return frappe.get_doc(
+		{
+			"doctype": "User",
+			"email": f"{frappe.generate_hash()}@example.com",
+			"first_name": "Notify",
+			"send_welcome_email": 0,
+		}
+	).insert()
+
+
 class TestActions(IntegrationTestCase):
 	def setUp(self):
 		frappe.set_user("Administrator")
@@ -134,36 +145,40 @@ class TestActions(IntegrationTestCase):
 		# `recipients` is declared JSON; a builder may store it as the string form. Iterating
 		# that string sends one character per "recipient".
 		todo = make_todo()
+		user = make_user()
 		captured = {}
 		original = frappe.sendmail
 		frappe.sendmail = lambda **kwargs: captured.update(kwargs)
 		try:
 			SendNotification().execute(
 				todo,
-				{"channel": "Email", "recipients": '["a@example.com"]', "subject": "s", "message": "m"},
+				{"channel": "Email", "recipients": f'["{user.name}"]', "subject": "s", "message": "m"},
 				{},
 			)
 		finally:
 			frappe.sendmail = original
-		self.assertEqual(captured["recipients"], ["a@example.com"])
+		self.assertEqual(captured["recipients"], [user.email])
 
 	def test_send_notification_wraps_a_single_bare_recipient(self):
 		todo = make_todo()
+		user = make_user()
 		captured = {}
 		original = frappe.sendmail
 		frappe.sendmail = lambda **kwargs: captured.update(kwargs)
 		try:
 			SendNotification().execute(
 				todo,
-				{"channel": "Email", "recipients": "a@example.com", "subject": "s", "message": "m"},
+				{"channel": "Email", "recipients": user.name, "subject": "s", "message": "m"},
 				{},
 			)
 		finally:
 			frappe.sendmail = original
-		self.assertEqual(captured["recipients"], ["a@example.com"])
+		self.assertEqual(captured["recipients"], [user.email])
 
 	def test_send_notification_resolves_the_owner_token(self):
 		todo = make_todo()
+		user = make_user()
+		todo.owner = user.name
 		captured = {}
 		original = frappe.sendmail
 		frappe.sendmail = lambda **kwargs: captured.update(kwargs)
@@ -175,11 +190,12 @@ class TestActions(IntegrationTestCase):
 			)
 		finally:
 			frappe.sendmail = original
-		self.assertEqual(captured["recipients"], [todo.owner])
+		self.assertEqual(captured["recipients"], [user.email])
 
 	def test_send_notification_resolves_the_assignees_token(self):
 		note = frappe.get_doc({"doctype": "Note", "title": "notify-assignees", "public": 1}).insert()
-		AssignToUser().execute(note, {"assign_to": ["Administrator"]}, {})
+		user = make_user()
+		AssignToUser().execute(note, {"assign_to": [user.name]}, {})
 		note.reload()
 		captured = {}
 		original = frappe.sendmail
@@ -192,10 +208,13 @@ class TestActions(IntegrationTestCase):
 			)
 		finally:
 			frappe.sendmail = original
-		self.assertEqual(captured["recipients"], ["Administrator"])
+		self.assertEqual(captured["recipients"], [user.email])
 
 	def test_send_notification_dedupes_resolved_recipients(self):
 		todo = make_todo()
+		owner = make_user()
+		other = make_user()
+		todo.owner = owner.name
 		captured = {}
 		original = frappe.sendmail
 		frappe.sendmail = lambda **kwargs: captured.update(kwargs)
@@ -204,7 +223,7 @@ class TestActions(IntegrationTestCase):
 				todo,
 				{
 					"channel": "Email",
-					"recipients": ["@owner", todo.owner, "other@example.com"],
+					"recipients": ["@owner", todo.owner, other.name],
 					"subject": "s",
 					"message": "m",
 				},
@@ -212,7 +231,7 @@ class TestActions(IntegrationTestCase):
 			)
 		finally:
 			frappe.sendmail = original
-		self.assertEqual(captured["recipients"], [todo.owner, "other@example.com"])
+		self.assertCountEqual(captured["recipients"], [owner.email, other.email])
 
 	def test_send_notification_skips_sending_when_a_token_resolves_to_nobody(self):
 		note = frappe.get_doc({"doctype": "Note", "title": "notify-nobody", "public": 1}).insert()
@@ -262,18 +281,19 @@ class TestActions(IntegrationTestCase):
 
 	def test_send_notification_email_delegates_to_sendmail(self):
 		todo = make_todo()
+		user = make_user()
 		captured = {}
 		original = frappe.sendmail
 		frappe.sendmail = lambda **kwargs: captured.update(kwargs)
 		try:
 			SendNotification().execute(
 				todo,
-				{"channel": "Email", "recipients": ["a@example.com"], "subject": "s", "message": "m"},
+				{"channel": "Email", "recipients": [user.name], "subject": "s", "message": "m"},
 				{},
 			)
 		finally:
 			frappe.sendmail = original
-		self.assertEqual(captured["recipients"], ["a@example.com"])
+		self.assertEqual(captured["recipients"], [user.email])
 		self.assertEqual(captured["reference_name"], todo.name)
 
 

@@ -88,11 +88,19 @@ def get_recipient_avatars(emails: str | list) -> dict:
 
 
 def get_system_managers():
-	return frappe.db.sql_list(
-		"""select parent FROM `tabHas Role`
-		WHERE role='System Manager'
-		AND parent!='Administrator'
-		AND parent IN (SELECT email FROM tabUser WHERE enabled=1)"""
+	User = frappe.qb.DocType("User")
+	HasRole = frappe.qb.DocType("Has Role")
+
+	return (
+		frappe.qb.from_(User)
+		.join(HasRole)
+		.on(HasRole.parent == User.name)
+		.where(User.enabled == 1)
+		.where(User.name != "Administrator")
+		.where(HasRole.parenttype == "User")
+		.where(HasRole.role == "System Manager")
+		.select(User.email)
+		.run(pluck=True)
 	)
 
 
