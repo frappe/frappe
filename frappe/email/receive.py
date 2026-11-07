@@ -566,7 +566,7 @@ class Email:
 		message = list(part.walk())[1]
 		headers = []
 		for key in ("From", "To", "Subject", "Date"):
-			value = cstr(message.get(key))
+			value = self.decode_email(message.get(key))
 			if value:
 				headers.append(f"{_(key)}: {escape(value)}")
 
