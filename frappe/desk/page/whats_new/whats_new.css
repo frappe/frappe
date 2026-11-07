@@ -1,0 +1,5 @@
+.whats-new img,
+.whats-new video {
+	max-width: 100%;
+	height: auto;
+}

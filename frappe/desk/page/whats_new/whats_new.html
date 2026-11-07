@@ -1,15 +1,16 @@
-<div class="py-4 px-4">
-	{% if (!release_notes.length) { %}
-		<p class="text-muted">{{ __("There are no release notes for this version.") }}</p>
-	{% } %}
-	{% for (let i = 0; i < release_notes.length; i++) {
-		let app = release_notes[i]; %}
-		{% if (i > 0) { %} <hr> {% } %}
-		<h2>{{ app.title }} <small class="text-muted">{{ app.version }}</small></h2>
-		{% for (let j = 0; j < app.change_log.length; j++) {
-			let version_info = app.change_log[j]; %}
-			<h3 class="mt-4 text-muted">{{ __("Version {0}", [version_info[0]]) }}</h3>
-			<div>{{ frappe.markdown(version_info[1]) }}</div>
+<div class="whats-new py-4 px-4">
+	<div class="col-lg-10 col-xl-8 p-0">
+		{% if (!release_notes.length) { %}
+			<p class="text-muted">{{ __("There are no release notes for this version.") }}</p>
 		{% } %}
-	{% } %}
+		{% for (let i = 0; i < release_notes.length; i++) {
+			let app = release_notes[i]; %}
+			{% for (let j = 0; j < app.change_log.length; j++) {
+				let version_info = app.change_log[j]; %}
+				{% if (i > 0 || j > 0) { %} <hr class="my-5"> {% } %}
+				<h1>{{ app.title }} {{ version_info[0] }}</h1>
+				<div>{{ frappe.markdown(version_info[1]) }}</div>
+			{% } %}
+		{% } %}
+	</div>
 </div>
