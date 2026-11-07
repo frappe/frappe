@@ -51,6 +51,8 @@ from frappe.utils import (
 )
 from frappe.utils.change_log import (
 	check_for_update,
+	get_change_log_for_app,
+	get_release_notes_for_app,
 	get_source_url,
 	parse_github_url,
 	parse_latest_non_beta_release,
@@ -2440,6 +2442,25 @@ class TestChangeLog(IntegrationTestCase):
 			updates = check_for_update()
 
 		self.assertEqual([u.app_name for u in updates.major], ["released"])
+
+	def test_release_notes_cover_current_major_version(self):
+		import tempfile
+
+		with tempfile.TemporaryDirectory() as app_path:
+			for file in ("v15_9_0.md", "v16_0_0.md", "v16_2_0.md", "v16_5_0.md"):
+				folder = os.path.join(app_path, "change_log", file.split("_")[0])
+				os.makedirs(folder, exist_ok=True)
+				with open(os.path.join(folder, file), "w") as f:
+					f.write(file)
+
+			with patch("frappe.get_app_path", return_value=app_path):
+				release_notes = get_release_notes_for_app("app", "16.2.0-dev")
+				change_log = get_change_log_for_app("app", "15.8.0", "16.2.0-dev")
+
+		self.assertEqual(release_notes, [["16.2.0", "v16_2_0.md"], ["16.0.0", "v16_0_0.md"]])
+		self.assertEqual(
+			change_log, [["16.2.0", "v16_2_0.md"], ["16.0.0", "v16_0_0.md"], ["15.9.0", "v15_9_0.md"]]
+		)
 
 
 class TestCrypto(IntegrationTestCase):
