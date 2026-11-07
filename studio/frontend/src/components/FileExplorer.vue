@@ -13,6 +13,7 @@
 					title="New file"
 				/>
 				<Button
+					v-if="!store.usesDbFiles"
 					variant="ghost"
 					icon="lucide-folder-plus"
 					@click="openNewEntryDialog('folder')"

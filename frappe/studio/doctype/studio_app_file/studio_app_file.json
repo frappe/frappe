@@ -8,7 +8,6 @@
  "field_order": [
   "studio_app",
   "file_path",
-  "is_folder",
   "content"
  ],
  "fields": [
@@ -31,13 +30,6 @@
    "reqd": 1
   },
   {
-   "default": "0",
-   "fieldname": "is_folder",
-   "fieldtype": "Check",
-   "label": "Is Folder"
-  },
-  {
-   "depends_on": "eval:!doc.is_folder",
    "fieldname": "content",
    "fieldtype": "Code",
    "ignore_xss_filter": 1,
@@ -47,7 +39,7 @@
  "grid_page_length": 50,
  "link_display_mode": "Search",
  "links": [],
- "modified": "2026-11-07 10:55:09.676991",
+ "modified": "2026-11-07 12:02:51.593567",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio App File",

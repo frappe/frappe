@@ -16,8 +16,10 @@ The conversion adds imports and a setup function around the existing script body
                 return { count }
         }
 
-Vue, VueUse and frappe-ui APIs come from imports. Page variables, resources, route,
-router and socket come from `context`. Existing references keep their names.
+Vue and frappe-ui APIs come from imports. Page variables, resources, route, router and
+socket come from `context`. Existing references keep their names. A VueUse API becomes a
+`@vueuse/core` import, which a database app cannot resolve, so the page reports the line
+to rewrite.
 """
 
 import json

@@ -69,11 +69,9 @@ def page_script_paths(studio_app: str) -> dict[str, str]:
 
 def list_store_tree(studio_app: str) -> list[dict]:
 	"""Return stored files and page script paths in the disk explorer's tree format."""
-	rows = frappe.get_all(
-		"Studio App File", filters={"studio_app": studio_app}, fields=["file_path", "is_folder"]
-	)
-	files = {row.file_path for row in rows if not row.is_folder} | page_script_paths(studio_app).keys()
-	folders = {row.file_path for row in rows if row.is_folder}
+	stored = frappe.get_all("Studio App File", filters={"studio_app": studio_app}, pluck="file_path")
+	files = set(stored) | page_script_paths(studio_app).keys()
+	folders = set()
 	for path in files:
 		folder = posixpath.dirname(path)
 		while folder:
@@ -106,7 +104,7 @@ def get_store_files(studio_app: str) -> list[dict]:
 	"""Return stored source files and their content hashes for the browser compiler."""
 	rows = frappe.get_all(
 		"Studio App File",
-		filters={"studio_app": studio_app, "is_folder": 0},
+		filters={"studio_app": studio_app},
 		fields=["file_path", "content"],
 		order_by="file_path",
 	)
@@ -122,7 +120,7 @@ def read_store_file(studio_app: str, file_path: str) -> str | None:
 	if page:
 		return frappe.db.get_value("Studio Page", page, "script") or ""
 	row = get_store_row(studio_app, file_path)
-	if not row or row.is_folder:
+	if not row:
 		return None
 	return row.content or ""
 
@@ -138,8 +136,6 @@ def write_store_file(studio_app: str, file_path: str, content: str, known_hash: 
 	if page:
 		return write_page_script(page, content, known_hash)
 	row = get_store_row(studio_app, file_path)
-	if row and row.is_folder:
-		frappe.throw(_("{0} is a folder.").format(file_path))
 	if not row:
 		insert_store_row(studio_app, file_path, content)
 		return
@@ -164,12 +160,6 @@ def create_store_file(studio_app: str, file_path: str) -> None:
 	if store_path_exists(studio_app, file_path):
 		frappe.throw(_("{0} already exists.").format(file_path))
 	insert_store_row(studio_app, file_path, "")
-
-
-def create_store_folder(studio_app: str, folder_path: str) -> None:
-	if store_path_exists(studio_app, folder_path):
-		frappe.throw(_("{0} already exists.").format(folder_path))
-	insert_store_row(studio_app, folder_path, None, is_folder=True)
 
 
 def rename_store_path(studio_app: str, file_path: str, new_path: str) -> None:
@@ -227,7 +217,7 @@ def get_store_row(studio_app: str, file_path: str):
 	rows = frappe.get_all(
 		"Studio App File",
 		filters={"studio_app": studio_app, "file_path": normalize_path(file_path)},
-		fields=["name", "file_path", "content", "is_folder"],
+		fields=["name", "file_path", "content"],
 		limit=1,
 	)
 	return rows[0] if rows else None
@@ -240,13 +230,9 @@ def get_store_rows_under(studio_app: str, folder_path: str) -> list[frappe._dict
 	return [row for row in rows if row.file_path.startswith(prefix)]
 
 
-def insert_store_row(studio_app: str, file_path: str, content: str | None, is_folder: bool = False) -> None:
+def insert_store_row(studio_app: str, file_path: str, content: str) -> None:
 	frappe.get_doc(
-		doctype="Studio App File",
-		studio_app=studio_app,
-		file_path=file_path,
-		content=content,
-		is_folder=is_folder,
+		doctype="Studio App File", studio_app=studio_app, file_path=file_path, content=content
 	).insert()
 
 
@@ -256,18 +242,11 @@ def export_store_to_disk(app) -> None:
 	Keep identical existing files. Abort if an existing file has different content.
 	"""
 	rows = frappe.get_all(
-		"Studio App File",
-		filters={"studio_app": app.name},
-		fields=["file_path", "content", "is_folder"],
+		"Studio App File", filters={"studio_app": app.name}, fields=["file_path", "content"]
 	)
 	if not rows:
 		return
-	for row in rows:
-		if row.is_folder:
-			frappe.create_folder(app.resolve_file_path(row.file_path))
-	app.write_files(
-		[{"path": row.file_path, "content": row.content or ""} for row in rows if not row.is_folder]
-	)
+	app.write_files([{"path": row.file_path, "content": row.content or ""} for row in rows])
 	frappe.db.delete("Studio App File", {"studio_app": app.name})
 
 
@@ -280,11 +259,9 @@ def restore_store_from_disk(app) -> None:
 	root = app.get_folder_path()
 	if not os.path.isdir(root):
 		return
-	for dirpath, dirnames, filenames, folder in walk_export_folder(root):
+	for dirpath, _dirnames, filenames, folder in walk_export_folder(root):
 		if folder.startswith("studio_page"):
 			continue
-		if folder and not dirnames and not filenames and not store_path_exists(app.name, folder):
-			create_store_folder(app.name, folder)
 		for filename in filenames:
 			path = f"{folder}/{filename}" if folder else filename
 			if not is_storable_file(app.name, path):
@@ -381,6 +358,14 @@ def validate_allowed_extension(file_path: str, allowed: set[str] | None = None) 
 			)
 		)
 	frappe.throw(_("Editing {0} files is not allowed.").format(extension or "these"))
+
+
+def validate_folder_names(file_path: str) -> None:
+	"""Keep source extensions out of folder names, so no file path can contain another file."""
+	for folder in posixpath.dirname(file_path).split("/"):
+		extension = posixpath.splitext(folder)[1].lower()
+		if extension in ALLOWED_STUDIO_FILE_EXTENSIONS:
+			frappe.throw(_("{0} is a folder, so its name cannot end with {1}.").format(folder, extension))
 
 
 def is_export_doc_file(studio_app: str, file_path: str) -> bool:

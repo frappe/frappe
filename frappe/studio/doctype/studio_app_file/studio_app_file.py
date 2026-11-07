@@ -5,10 +5,10 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.studio.files import (
 	ALLOWED_STORED_FILE_EXTENSIONS,
-	is_export_folder,
 	normalize_path,
 	validate_allowed_extension,
 	validate_editable,
+	validate_folder_names,
 )
 from frappe.studio.realtime import publish_doc_change
 
@@ -24,19 +24,14 @@ class StudioAppFile(Document):
 
 		content: DF.Code | None
 		file_path: DF.Data
-		is_folder: DF.Check
 		studio_app: DF.Link
 	# end: auto-generated types
 
 	def validate(self):
 		self.file_path = normalize_path(self.file_path)
-		if self.is_folder:
-			self.content = None
-			if is_export_folder(self.file_path):
-				frappe.throw(_("{0} is managed by Studio and can't be created.").format(self.file_path))
-		else:
-			validate_allowed_extension(self.file_path, ALLOWED_STORED_FILE_EXTENSIONS)
-			validate_editable(self.studio_app, self.file_path)
+		validate_allowed_extension(self.file_path, ALLOWED_STORED_FILE_EXTENSIONS)
+		validate_folder_names(self.file_path)
+		validate_editable(self.studio_app, self.file_path)
 		self.validate_unique_path()
 
 	def validate_unique_path(self):

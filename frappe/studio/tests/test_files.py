@@ -35,7 +35,6 @@ class TestFiles(IntegrationTestCase):
 		files.create_store_file(app.name, "utils/format.js")
 		files.write_store_file(app.name, "utils/format.js", "export const one = 1\n")
 		files.write_store_file(app.name, "components/card.css", ".card { color: red }\n")
-		files.create_store_folder(app.name, "assets")
 
 		self.assertEqual(files.read_store_file(app.name, "utils/format.js"), "export const one = 1\n")
 		self.assertIsNone(files.read_store_file(app.name, "missing.js"))
@@ -43,9 +42,9 @@ class TestFiles(IntegrationTestCase):
 		tree = files.list_store_tree(app.name)
 		self.assertEqual(
 			[(node["path"], node["is_folder"]) for node in tree],
-			[("assets", True), ("components", True), ("utils", True)],
+			[("components", True), ("utils", True)],
 		)
-		self.assertEqual(tree[2]["children"][0]["path"], "utils/format.js")
+		self.assertEqual(tree[1]["children"][0]["path"], "utils/format.js")
 
 		paths = [file["path"] for file in files.get_store_files(app.name)]
 		self.assertEqual(paths, ["components/card.css", "utils/format.js"])
@@ -92,8 +91,6 @@ class TestFiles(IntegrationTestCase):
 		):
 			with self.assertRaises(frappe.ValidationError, msg=bad_path):
 				files.create_store_file(app.name, bad_path)
-		with self.assertRaises(frappe.ValidationError):
-			files.create_store_folder(app.name, "studio_page")
 
 	def test_duplicate_and_conflict_checks(self):
 		app = make_db_app()
@@ -107,6 +104,12 @@ class TestFiles(IntegrationTestCase):
 			files.write_store_file(app.name, "a.js", "let x = 2\n", known_hash=stale_hash)
 		files.write_store_file(app.name, "a.js", "let x = 2\n", known_hash=files.file_hash("let x = 1\n"))
 		self.assertEqual(files.read_store_file(app.name, "a.js"), "let x = 2\n")
+
+		# A folder name with a source extension would put a file inside another file.
+		for bad_path in ("a.js/format.js", "lib/helpers.ts/format.js"):
+			with self.assertRaises(frappe.ValidationError, msg=bad_path) as refused:
+				files.write_store_file(app.name, bad_path, "let y = 1\n")
+			self.assertIn("is a folder", str(refused.exception))
 
 	def test_the_file_path_index_catches_a_duplicate_the_app_check_misses(self):
 		app = make_db_app()
@@ -151,7 +154,6 @@ class TestFiles(IntegrationTestCase):
 			page = make_studio_page(app.name, page_title="Board", script=SETUP_SCRIPT)
 			files.write_store_file(app.name, "components/card.css", ".card { color: red }\n")
 			files.write_store_file(app.name, "router.js", "export default {}\n")
-			files.create_store_folder(app.name, "assets")
 
 			app.reload()
 			app.enable_app_export("frappe")
@@ -162,7 +164,6 @@ class TestFiles(IntegrationTestCase):
 				".card { color: red }\n",
 			)
 			self.assertEqual(frappe.read_file(os.path.join(folder, "router.js")), "export default {}\n")
-			self.assertTrue(os.path.isdir(os.path.join(folder, "assets")))
 			# Export preserves the script's content in its companion .js file.
 			self.assertEqual(
 				frappe.read_file(os.path.join(folder, "studio_page", "board", "board.js")), SETUP_SCRIPT

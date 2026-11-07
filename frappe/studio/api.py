@@ -334,11 +334,9 @@ def create_studio_file(frappe_app: str, studio_app: str, file_path: str) -> dict
 @frappe.whitelist()
 @has_page_write_perm()
 def create_studio_folder(frappe_app: str, studio_app: str, folder_path: str) -> dict:
-	"""Create an empty folder (and any parent folders) within the app folder."""
+	"""Create an empty folder (and any parent folders) in a repository app's folder."""
 	if files.uses_db_files(studio_app):
-		_validate_studio_file_access("write", on_disk=False)
-		files.create_store_folder(studio_app, folder_path)
-		return {"path": folder_path}
+		frappe.throw(_("A folder appears when you create a file in it."))
 
 	_validate_studio_file_access("write")
 	target = _resolve_studio_file(frappe_app, studio_app, folder_path)
