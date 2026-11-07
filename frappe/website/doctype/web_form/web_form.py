@@ -105,12 +105,22 @@ class WebForm(WebsiteGenerator):
 			else:
 				frappe.throw(_("You need to be in developer mode to edit a Standard Web Form"))
 
+		self.set_access_flags()
+
 		if not frappe.flags.in_import:
 			self.validate_fields()
 			self.warn_about_empty_pages()
 
 		self.validate_hidden_and_mandatory()
 		self.validate_guest_key_link_fields()
+
+	def set_access_flags(self):
+		if self.anonymous:
+			self.login_required = 0
+		if not (self.login_required or self.key_required):
+			self.allow_multiple = self.allow_edit = self.allow_delete = self.show_list = 0
+		if self.allow_multiple:
+			self.show_list = 1
 
 	def validate_guest_key_link_fields(self):
 		if not is_guest_key_web_form(self):
@@ -313,12 +323,9 @@ def get_context(context):
 			and not frappe.form_dict.is_list
 			and not web_form_request
 		):
-			condition_json = json.loads(self.condition_json) if self.condition_json else []
-			condition_json.append(["owner", "=", frappe.session.user])
-			names = frappe.get_all(self.doc_type, filters=condition_json, pluck="name")
-			if names:
+			if name := self.get_user_response():
 				context.in_view_mode = True
-				self.redirect_to(f"/{self.route}/{names[0]}")
+				self.redirect_to(f"/{self.route}/{name}")
 
 		# Show new form when
 		# - User is Guest
@@ -533,6 +540,12 @@ def get_context(context):
 
 	def redirect_to(self, path: str):
 		frappe.redirect(path + get_web_form_request_query())
+
+	def get_user_response(self) -> str | None:
+		condition_json = json.loads(self.condition_json) if self.condition_json else []
+		condition_json.append(["owner", "=", frappe.session.user])
+		names = frappe.get_all(self.doc_type, filters=condition_json, pluck="name", limit=1)
+		return names[0] if names else None
 
 	def get_web_form_request(
 		self,
@@ -964,6 +977,13 @@ def accept(web_form: str, data: str | dict, web_form_request_key: str | None = N
 		doc = frappe.get_doc(doctype, data.name)
 	else:
 		# insert
+		if (
+			web_form.login_required
+			and not web_form.allow_multiple
+			and not web_form_request
+			and web_form.get_user_response()
+		):
+			frappe.throw(_("You have already submitted a response to this form"))
 		doc = frappe.new_doc(doctype)
 
 	# Set ignore_mandatory flag if allow_incomplete is enabled

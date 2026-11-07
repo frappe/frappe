@@ -11,6 +11,7 @@ from poplib import error_proto
 
 import frappe
 from frappe import _, are_emails_muted, safe_encode
+from frappe.core.api.file import get_max_file_size
 from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification
 from frappe.desk.form import assign_to
 from frappe.email.doctype.email_domain.email_domain import EMAIL_DOMAIN_FIELDS
@@ -146,8 +147,28 @@ class EmailAccount(Document):
 
 		self.name = self.email_account_name
 
+	def validate_mandatory_for_service(self):
+		required = []
+		if self.auth_method == "OAuth":
+			required.append("connected_app")
+			if not self.backend_app_flow:
+				required.append("connected_user")
+		if self.service == "Frappe Mail":
+			required.append("frappe_mail_site")
+
+		for fieldname in required:
+			if not self.get(fieldname):
+				frappe.throw(
+					_("{0} is required").format(frappe.bold(_(self.meta.get_label(fieldname)))),
+					frappe.MandatoryError,
+				)
+
 	def validate(self):
 		"""Validate Email Address and check POP3/IMAP and SMTP connections is enabled."""
+		if self.is_new() and not self.attachment_limit:
+			self.attachment_limit = get_max_file_size() // (1024 * 1024)
+
+		self.validate_mandatory_for_service()
 
 		if self.email_id:
 			validate_email_address(self.email_id, True)
@@ -173,8 +194,8 @@ class EmailAccount(Document):
 				frappe.throw(_("You need to set one IMAP folder for {0}").format(frappe.bold(self.email_id)))
 
 			valid_doctypes = {d[0] for d in get_append_to()}
-			for folder in self.imap_folder:
-				if folder.append_to and folder.append_to not in valid_doctypes:
+			for append_to in [self.append_to, *(folder.append_to for folder in self.imap_folder)]:
+				if append_to and append_to not in valid_doctypes:
 					frappe.throw(_("Append To can be one of {0}").format(comma_or(valid_doctypes)))
 
 		if frappe.local.flags.in_patch or frappe.in_test:

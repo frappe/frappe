@@ -173,6 +173,9 @@ class PrintFormat(Document):
 		if self.custom_format and not self.html and not self.raw_printing:
 			frappe.throw(_("{0} is required").format(frappe.bold(_("HTML"))), frappe.MandatoryError)
 
+		if self.print_format_for == "DocType" and not self.doc_type:
+			frappe.throw(_("{0} is required").format(frappe.bold(_("DocType"))), frappe.MandatoryError)
+
 		if self.print_format_for == "Report" and not self.report:
 			frappe.throw(_("{0} is required").format(frappe.bold(_("Report"))), frappe.MandatoryError)
 

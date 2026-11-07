@@ -178,6 +178,17 @@ class Notification(Document):
 			validate_template(self.subject)
 
 		validate_template(self.message)
+		self.sender_email = (
+			frappe.db.get_value("Email Account", self.sender, "email_id") if self.sender else None
+		)
+		if self.channel in ("Email", "Webhook", "System Notification") and not (
+			self.email_template or self.subject
+		):
+			frappe.throw(
+				_("{0} is required").format(frappe.bold(_(self.meta.get_label("subject")))),
+				frappe.MandatoryError,
+			)
+
 		if self.channel == "Webhook" and not self.notification_webhook_url:
 			frappe.throw(
 				_("Notification Webhook URL is required for the Webhook channel"),
@@ -211,6 +222,12 @@ class Notification(Document):
 			email_template = frappe.get_cached_doc("Email Template", self.email_template)
 			if not email_template.response_:
 				frappe.throw(_("Email Template {0} has no content to send").format(self.email_template))
+
+		if self.channel != "Webhook" and not (self.recipients or self.send_to_all_assignees):
+			frappe.throw(
+				_("{0} is required").format(frappe.bold(_(self.meta.get_label("recipients")))),
+				frappe.MandatoryError,
+			)
 
 		self.validate_forbidden_document_types()
 		self.validate_condition()
