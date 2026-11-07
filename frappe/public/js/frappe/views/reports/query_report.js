@@ -934,11 +934,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					// If query_string contains prepared_report_name then set filters
 					// to match the mentioned prepared report doc and disable editing
 					if (this.prepared_report_name) {
-						const filters_from_report = JSON.parse(data.doc.filters);
+						this.set_filters(JSON.parse(data.doc.filters));
+						this.previous_filters = this.get_filter_values();
 						Object.values(this.filters).forEach(function (field) {
-							if (filters_from_report[field.fieldname]) {
-								field.set_input(filters_from_report[field.fieldname]);
-							}
 							if (field.input) {
 								field.input.disabled = true;
 							}

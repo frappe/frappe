@@ -160,6 +160,40 @@ test.describe("Query Report", () => {
 		).toBeNull();
 	});
 
+	test("restores the filters of a prepared report run", async ({ page, api, admin }) => {
+		await admin.insert_doc(
+			"Report",
+			{
+				report_name: "Test Prepared ToDo Report",
+				ref_doctype: "ToDo",
+				report_type: "Query Report",
+				is_standard: "No",
+				prepared_report: 1,
+				validate_filters: 1,
+				query: "select name, status from tabToDo",
+				filters: [{ fieldname: "status", label: "Status", fieldtype: "MultiSelectList" }],
+			},
+			true
+		);
+		await page.goto("/desk/query-report/Test Prepared ToDo Report");
+		const { message } = await api.call(
+			"frappe.core.doctype.prepared_report.prepared_report.make_prepared_report",
+			{ report_name: "Test Prepared ToDo Report", filters: { status: ["Open"] } }
+		);
+		await expect
+			.poll(async () => (await api.get_doc("Prepared Report", message.name)).data.status, {
+				timeout: 30000,
+			})
+			.toBe("Completed");
+
+		await page.goto(
+			`/desk/query-report/Test Prepared ToDo Report?prepared_report_name=${message.name}`
+		);
+		await expect
+			.poll(() => page.evaluate(() => frappe.query_report.get_filter_value("status")))
+			.toEqual(["Open"]);
+	});
+
 	const save_report_and_open = async (page, desk, report, update_name) => {
 		await save_report(page, desk, update_name);
 
