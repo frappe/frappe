@@ -34,7 +34,12 @@ from flow_harness.events import (
 from flow_harness.model.base import Model, ModelRequest
 from flow_harness.model.cancellation import ModelCancelled, await_with_cancellation, iterate_with_cancellation
 from flow_harness.model.catalog import model_supports_images
-from flow_harness.model.content import ResolvedImage, resolve_tool_images, resolve_user_content
+from flow_harness.model.content import (
+	ResolvedImage,
+	resolve_tool_images,
+	resolve_user_content,
+	tool_result_text,
+)
 from flow_harness.model.errors import normalize_litellm_error
 from flow_harness.model.retry import run_with_retries
 from flow_harness.model.tool_display import tool_call_display_ready_event, with_tool_call_displays
@@ -521,7 +526,7 @@ def _openai_messages(
 				{
 					"role": "tool",
 					"tool_call_id": message.tool_call_id,
-					"content": message.content,
+					"content": tool_result_text(message, supports_images=supports_images),
 				}
 			)
 			pending_images.extend(

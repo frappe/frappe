@@ -74,7 +74,7 @@ class AttachmentStore:
 		if len(data) > MAX_SOURCE_BYTES:
 			raise AttachmentError(f"attachment exceeds the {MAX_SOURCE_BYTES // 1024 // 1024} MB limit")
 		name = _safe_name(name, keep_dirs=True)
-		inline = self._add_inline(name, data)
+		inline = self._add_inline(name, data, path)
 		if inline is not None:
 			return inline
 		return self.add_reference(name, data, len(data), path, tools=tools)
@@ -92,14 +92,14 @@ class AttachmentStore:
 			_write_private(self._meta_path(content.id), content.model_dump_json().encode())
 		return content
 
-	def _add_inline(self, name: str, data: bytes) -> AttachmentContent | None:
+	def _add_inline(self, name: str, data: bytes, path: str) -> AttachmentContent | None:
 		"""Store an image or small UTF-8 text for the model to see; None for anything else."""
 		try:
 			processed_image = _process_image(data)
 		except AttachmentError:
 			return None  # an image too big or odd to send goes as a file
 		if processed_image is not None:
-			return self._store_image(name, processed_image)
+			return self._store_image(name, processed_image, path)
 		if len(data) > MAX_TEXT_BYTES or b"\0" in data:  # a NUL byte means binary
 			return None
 		try:
@@ -116,16 +116,21 @@ class AttachmentStore:
 		self._write(content, data)
 		return content
 
-	def _store_image(self, name: str, processed: tuple[bytes, str, int, int]) -> AttachmentContent:
+	def _store_image(
+		self, name: str, processed: tuple[bytes, str, int, int], path: str | None = None
+	) -> AttachmentContent:
+		"""`path` is where a model that cannot see images opens it: the project file, else this copy."""
 		data, mime_type, width, height = processed
+		attachment_id = uuid.uuid4().hex[:24]
 		content = AttachmentContent(
-			id=uuid.uuid4().hex[:24],
+			id=attachment_id,
 			name=name,
 			mime_type=mime_type,
 			size=len(data),
 			kind="image",
 			width=width,
 			height=height,
+			path=path or self._data_path(attachment_id),
 		)
 		self._write(content, data)
 		return content
