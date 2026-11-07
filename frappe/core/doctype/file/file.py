@@ -935,7 +935,7 @@ class File(Document):
 		self.validate_file_url_matches_record()
 		self.validate_blob_access()
 
-		content_type = mimetypes.guess_type(self.file_name)[0]
+		content_type = mimetypes.guess_type(self.file_name)[0] or ""
 		is_local_image = content_type.startswith("image/") and self.file_size > 0
 		is_svg = content_type == "image/svg+xml"
 		is_local_pdf = content_type == "application/pdf" and self.file_size > 0
