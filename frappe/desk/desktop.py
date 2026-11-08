@@ -261,6 +261,9 @@ class Workspace(DeskViews):
 		if item.get("link_type") == "DocType":
 			item["description"] = frappe.get_meta(item.link_to).description
 
+		if item.get("link_type") == "Report" and not item.report_ref_doctype:
+			item["report_ref_doctype"] = self.allowed_reports.get(item.link_to, {}).get("ref_doctype")
+
 		# Translate label
 		item["label"] = _(item.label) if item.label else _(item.name)
 

@@ -1,6 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-from json import dumps
+from json import dumps, loads
 from unittest.mock import patch
 
 import frappe
@@ -11,6 +11,7 @@ from frappe.desk.desktop import (
 	get_workspace,
 	get_workspaces,
 )
+from frappe.desk.doctype.workspace.workspace import save_page
 from frappe.tests import IntegrationTestCase
 from frappe.utils.logging import get_log_db
 
@@ -346,6 +347,43 @@ class TestRoleLayouts(IntegrationTestCase):
 		private = make_workspace("GW Private Layouts", public=0, for_user=self.BOTH)
 		frappe.set_user(self.BOTH)
 		self.assertIsNone(get_workspace(private.name, variant=self.ONE)["variant"])
+
+
+class TestSavingLayouts(IntegrationTestCase):
+	ROLE = "GW Role One"
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+		self.addCleanup(frappe.set_user, "Administrator")
+		if not frappe.db.exists("Role", self.ROLE):
+			frappe.get_doc({"doctype": "Role", "role_name": self.ROLE, "desk_access": 1}).insert()
+		make_user(MANAGER, ["Desk User", "Workspace Manager"])
+
+	def stored(self, name):
+		return [b["id"] for b in loads(frappe.db.get_value("Workspace", name, "content"))]
+
+	def test_a_report_link_keeps_its_doctype_in_a_site_copy(self):
+		report = frappe.db.get_value(
+			"Report", {"report_type": "Report Builder"}, ["name", "ref_doctype"], as_dict=True
+		)
+		if not report:
+			self.skipTest("no Report Builder report on this site")
+		card = block("card", "Reports")
+		make_workspace(
+			"GW Reports",
+			content=[card],
+			links=[
+				{"type": "Card Break", "label": "Reports", "link_count": 1},
+				{"type": "Link", "label": "R", "link_type": "Report", "link_to": report.name},
+			],
+		)
+		frappe.db.set_value("Workspace", "GW Reports", "standard", 1)
+		frappe.clear_document_cache("Workspace", "GW Reports")
+		self.addCleanup(frappe.delete_doc_if_exists, "Custom Workspace", "GW Reports")
+		with patch.dict(frappe.conf, {"developer_mode": 0}):
+			save_page("GW Reports", 1, {}, dumps([card]))
+		links = get_workspace("GW Reports")["widgets"]["cards"]["Reports"]["links"]
+		self.assertEqual(links[0]["report_ref_doctype"], report.ref_doctype)
 
 
 class TestRecentActivity(IntegrationTestCase):
