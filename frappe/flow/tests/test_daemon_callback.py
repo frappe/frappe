@@ -95,6 +95,7 @@ class TestToolCallback(IntegrationTestCase):
 			"frappe/read_records",
 			"frappe/delete",
 			"frappe/run_action",
+			"frappe/call_api",
 			"frappe/execute",
 			"frappe/update_memory",
 			"frappe/search_attachments",
@@ -490,6 +491,12 @@ class TestToolCallback(IntegrationTestCase):
 				"action": "frappe.desk.form.assign_to.add",
 				"args": {"assign_to": ["a"]},
 			},
+			mode="confirm",
+		)["prompt"]
+		self.assertEqual(prompt, "Assign To: Add\nAssign To: a")
+		prompt = self.call(
+			"call_api",
+			{"method": "frappe.desk.form.assign_to.add", "args": {"assign_to": ["a"]}},
 			mode="confirm",
 		)["prompt"]
 		self.assertEqual(prompt, "Assign To: Add\nAssign To: a")
