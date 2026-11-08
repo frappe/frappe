@@ -1,5 +1,13 @@
 <script setup>
-import { computed, defineAsyncComponent, nextTick, ref, shallowRef, watch } from "vue";
+import {
+	computed,
+	defineAsyncComponent,
+	nextTick,
+	onBeforeUnmount,
+	ref,
+	shallowRef,
+	watch,
+} from "vue";
 import { Alert, FrappeUIProvider, setConfig } from "frappe-ui";
 import { get, post } from "./api.js";
 import WorkspaceGrid from "./WorkspaceGrid.vue";
@@ -189,16 +197,29 @@ function reset() {
 	});
 }
 
+function open_target() {
+	editing.value = null;
+	editor.value = null;
+	workspace.value = null;
+	load();
+}
+
 watch(
 	() => target.value.name + target.value.private,
 	() => {
-		editing.value = null;
-		editor.value = null;
-		workspace.value = null;
-		load();
+		// back on the page being edited, after declining to discard it
+		if (editing.value?.name === target.value.name) return;
+		if (!editor.value?.dirty) return open_target();
+		frappe.confirm(__("Discard your unsaved changes?"), open_target, () => history.back());
 	},
 	{ immediate: true }
 );
+
+function warn_before_unload(event) {
+	if (editor.value?.dirty) event.preventDefault();
+}
+window.addEventListener("beforeunload", warn_before_unload);
+onBeforeUnmount(() => window.removeEventListener("beforeunload", warn_before_unload));
 </script>
 
 <template>

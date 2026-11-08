@@ -370,7 +370,7 @@ watch(
 	{ immediate: true }
 );
 
-defineExpose({ blocks, widgets, selected_id, previewing, variant, on_move, add_text });
+defineExpose({ blocks, widgets, selected_id, previewing, variant, dirty, on_move, add_text });
 </script>
 
 <template>
