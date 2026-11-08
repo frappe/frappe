@@ -27,6 +27,7 @@ from frappe.flow.tools.builtins import (
 	update,
 )
 from frappe.flow.utils.safe_exec import NeedsApproval
+from frappe.permissions import SYSTEM_USER_ROLE
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import whitelist_for_tests
 
@@ -231,6 +232,33 @@ class TestFindApis(IntegrationTestCase):
 						self.assertTrue(call_api.requires_confirmation({"method": method}))
 						result = call_api(method=method, args={"who": "Flow"}, ctx=self.ctx)["result"]
 						self.assertEqual(result, "hello Flow")
+
+	def test_hides_a_scripts_code_from_users_who_cannot_read_it(self):
+		self.addCleanup(frappe.client_cache.delete_value, "server_script_map")
+		self.addCleanup(frappe.db.rollback)
+		discovery.build_cache()
+		with self.set_user("Administrator"):
+			frappe.get_doc(
+				{
+					"doctype": "Server Script",
+					"name": "flow_shadow_probe",
+					"script_type": "API",
+					"api_method": f"{MODULE}.get_only",
+					"script": 'frappe.response["message"] = "secret"',
+				}
+			).insert()
+			user = frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": "flow-no-scripts@example.com",
+					"first_name": "No Scripts",
+					"roles": [{"role": SYSTEM_USER_ROLE}],
+				}
+			).insert()
+		with self.set_user(user.name):
+			self.assertFalse(frappe.has_permission("Server Script", "read"))
+			found = describe_api(method=f"{MODULE}.get_only", ctx=self.ctx)
+		self.assertNotIn("secret", found.get("source", ""))
 
 	def test_describes_document_actions(self):
 		comment = describe_api(method="add_comment", doctype="ToDo", ctx=self.ctx)

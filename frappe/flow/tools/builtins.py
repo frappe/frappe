@@ -198,8 +198,9 @@ def describe_api(method: str, doctype: str | None = None, *, ctx: ToolContext) -
 			found.pop("source", None)
 		return found
 	found = discovery.method(method)
-	if script := _api_server_script(method):
-		# discovery lists a script only to users who can read it; its code shows the args it reads
+	script = _api_server_script(method)
+	if script and frappe.has_permission("Server Script", "read", doc=script):
+		# its code shows the args it reads
 		found["source"] = frappe.db.get_value("Server Script", script, "script")
 	found["read_only"] = is_read_function(method)
 	return found
