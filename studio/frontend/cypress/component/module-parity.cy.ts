@@ -1,6 +1,7 @@
 import { AppModuleRegistry, clearAppStyles } from "@/browserRuntime/moduleRegistry"
 import { IMPORTABLE_MODULES } from "@/browserRuntime/importableModules"
 import { moduleFixtures } from "../fixtures/module-fixtures.mjs"
+import { IMPORTABLE_LIBRARIES } from "../../vite/importableLibraries"
 import { STUDIO_SHARED_DEPS } from "../../vite/sharedDependencyResolver"
 
 async function outcome(load: () => Promise<any>) {
@@ -76,6 +77,9 @@ describe("DB app modules: browser registry and Vite build", () => {
 			(specifier) => !STUDIO_SHARED_DEPS.some((dep) => specifier === dep || specifier.startsWith(`${dep}/`)),
 		)
 		expect(unresolvable, "importable but unresolvable in a build").to.deep.equal([])
+
+		// databaseAppImports holds the build to this list, so it must match what the preview offers.
+		expect(IMPORTABLE_LIBRARIES, "the build's list").to.deep.equal(IMPORTABLE_MODULES)
 	})
 
 	it("keeps a failed module failed without executing it a second time", () => {

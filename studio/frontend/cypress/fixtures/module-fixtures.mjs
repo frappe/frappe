@@ -201,6 +201,12 @@ source.value++; await nextTick(); root.remove(); return {mounted, unmounted, wat
 			"default",
 		],
 		[
+			"import-escapes-the-app",
+			'import value from "@app/../outside.js"; export const run = () => value',
+			"export const value = 1",
+			"Cannot resolve",
+		],
+		[
 			"missing-default-reexport",
 			"export {default as run} from './value.js'",
 			"export const value = 1",

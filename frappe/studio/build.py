@@ -188,6 +188,10 @@ class StudioAppBuilder:
 		for glob in self.tailwind_content:
 			command += ["--tailwind-content", glob]
 
+		if not self.is_standard:
+			# Hold the app's own code to the imports its browser preview allows.
+			command += ["--database-app"]
+
 		studio_app_path = frappe.get_app_source_path("frappe", "studio", "frontend")
 		result = subprocess.run(
 			command,

@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url"
 import { build } from "vite"
 import vue from "@vitejs/plugin-vue"
 import frappeui from "frappe-ui/vite"
+import databaseAppImports from "../../vite/databaseAppImports.js"
 import sharedDependencyResolver from "../../vite/sharedDependencyResolver.js"
 import studioRootAlias from "../../vite/studioRootAlias.js"
 import { moduleFixtures } from "../fixtures/module-fixtures.mjs"
@@ -71,6 +72,7 @@ async function buildFixture(fixture, root) {
 			plugins: [
 				vue(),
 				frappeui({ buildConfig: false, codeLanguages: false, lucideIcons: false }),
+				databaseAppImports(folder),
 				studioRootAlias(),
 				sharedDependencyResolver(frontend),
 			],
