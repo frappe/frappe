@@ -92,7 +92,10 @@ def move_router_script_to_file(app_name: str, router_script: str | None) -> None
 	"""Move the removed `router_script` field to the app's `router.js` source file."""
 	if not router_script or not router_script.strip():
 		return
-	write_store_file(app_name, "router.js", f"export default {router_script.strip()}\n")
+	used = get_referenced_names(list(tokenize(router_script)))
+	names = [name for name in IMPORTED_APIS["frappe-ui"] if name in used]
+	imports = f'import {{ {", ".join(names)} }} from "frappe-ui"\n\n' if names else ""
+	write_store_file(app_name, "router.js", f"{imports}export default {router_script.strip()}\n")
 
 
 def is_module(script: str) -> bool:

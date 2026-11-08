@@ -12,7 +12,8 @@ During site migration, the converter:
 - Reads referenced page variables, resources, `route`, `router`, and `socket`
   from `context`.
 - Returns top-level declarations for use in page bindings and event handlers.
-- Moves the legacy app `router_script`, when present, into `router.js`.
+- Moves the legacy app `router_script`, when present, into `router.js`, adding
+  imports for `call` and `toast` when used.
 
 Empty scripts and scripts already containing top-level import/export syntax are
 skipped. Skipped scripts still need to follow the new format.
@@ -42,6 +43,9 @@ returned handler.
 - The current converter turns `watchDebounced` into an `@vueuse/core` import,
   which database apps cannot load. Replace it with a Vue watcher and debounce
   logic with cleanup, or export to a repository with that dependency installed.
+- Page titles must produce different script filenames within an app. Existing
+  conflicting titles are preserved, but source listing, builds, and exports report
+  the conflict. Rename one page and update navigation that uses its title.
 - Legacy scripts ran in sloppy mode, so assigning an undeclared name, such as
   `total = 0`, created a global. A module is strict, so the same line now throws
   `ReferenceError: total is not defined`. Declare those names with `const` or `let`.
