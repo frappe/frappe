@@ -26,6 +26,27 @@ const TOOLS = {
 		label: "Reading DocType Meta",
 		stat: (result) => count(result.fields?.length ?? 0, "field"),
 	},
+	find_apis: {
+		icon: "lucide-search-code",
+		label: "Finding APIs",
+		stat: (result) => count(result.length, "match", "matches"),
+	},
+	describe_api: {
+		icon: "lucide-square-function",
+		label: "Reading an API",
+		stat: (result) => count(result.params?.length ?? 0, "argument"),
+		subject: (args) =>
+			[args.doctype, functionTitle(args.method ?? "")].filter(Boolean).join(": "),
+	},
+	call_api: {
+		icon: "lucide-play",
+		label: "Running a Function",
+		view: JsonView,
+		argsView: FunctionCard,
+		asks: true,
+		subject: (args, result) =>
+			parseResult(result)?.title ?? functionTitle(args.method ?? ""),
+	},
 	read_records: {
 		icon: "lucide-database",
 		label: "Reading Records",
