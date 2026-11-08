@@ -3105,6 +3105,10 @@ test("the ask-for-changes field takes focus and leaves an IME's Enter and Escape
 })
 
 test("a new chat's box is roomier only while it sits mid-page: at the foot, as in a panel, its first message leaves its size alone", async (t) => {
+	// jsdom lays nothing out: a textarea's content height is its floor
+	const proto = window.HTMLTextAreaElement.prototype
+	Object.defineProperty(proto, "scrollHeight", { configurable: true, get() { return this.className.includes("min-h-[50px]") ? 50 : 62 } })
+	t.after(() => delete proto.scrollHeight)
 	const flow = composerFlow()
 	Object.assign(flow.state, { sessionId: null, conversation: { running: false, sending: [] } })
 	const lift = ref(0)
@@ -3130,6 +3134,9 @@ test("a new chat's box is roomier only while it sits mid-page: at the foot, as i
 	lift.value = 200
 	await nextTick()
 	assert.deepEqual(size(), [true, true])
+	// the textarea fits the roomier box's floor, not the one it had at the foot
+	await nextTick()
+	assert.equal(el.querySelector("textarea").style.height, "50px")
 })
 
 test("a spreadsheet range pastes as its text, a screenshot as a picture", async (t) => {
