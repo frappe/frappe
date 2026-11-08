@@ -461,6 +461,7 @@ WIDGET_FIELDS = {
 			"stats_filter",
 			"url",
 			"kanban_board",
+			"restrict_to_domain",
 			"report_ref_doctype",
 			"is_query_report",
 			"ref_doctype",
