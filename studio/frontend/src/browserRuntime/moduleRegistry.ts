@@ -36,7 +36,6 @@ export class AppCompileError extends Error {
 export class AppModuleRegistry {
 	private files: Record<string, string>
 	private factories: Record<string, ModuleFactory> = {}
-	private styles: Record<string, string> = {}
 	private modules = new Map<string, { exports: any }>()
 	private executionErrors = new Map<string, unknown>()
 	private failures: Record<string, CompileError[]> = {}
@@ -67,9 +66,9 @@ export class AppModuleRegistry {
 		this.executionErrors.delete(path)
 		delete this.failures[path]
 		await this.compileInto(path, source)
+		this.throwIfFailed(path)
 		const errors = this.checkLocalExports(path)
 		if (errors.length) throw new AppCompileError(errors)
-		applyStyles(this.styles)
 	}
 
 	hasFile(path: string): boolean {
@@ -82,12 +81,9 @@ export class AppModuleRegistry {
 	}
 
 	private async compileAll(): Promise<void> {
-		this.failures = {}
-		this.exports = {}
-		this.localImports = {}
 		for (const [path, source] of Object.entries(this.files)) {
-			if (!isCompiledModule(path)) continue
-			await this.compileInto(path, source, false)
+			if (!path.endsWith(".js")) continue
+			await this.compileInto(path, source)
 		}
 		// Every module is compiled by now, so each one's exports are known to the next check.
 		for (const path of Object.keys(this.localImports)) {
@@ -95,11 +91,10 @@ export class AppModuleRegistry {
 			const errors = this.checkLocalExports(path)
 			if (errors.length) this.failures[path] = errors
 		}
-		applyStyles(this.styles)
 	}
 
 	/** Validate a file's imports, compile it and create its module factory. */
-	private async compileInto(path: string, source: string, throwOnError = true): Promise<CompileError[]> {
+	private async compileInto(path: string, source: string): Promise<void> {
 		const parsed = await parseModule(path, source, true)
 		const errors = parsed.errors.length ? parsed.errors : await this.linkImports(path, parsed.imports)
 		if (!errors.length) {
@@ -125,9 +120,7 @@ export class AppModuleRegistry {
 			delete this.factories[path]
 			delete this.exports[path]
 			this.failures[path] = errors
-			if (throwOnError) throw new AppCompileError(errors)
 		}
-		return errors
 	}
 
 	/** Validate discovered imports before execution. Local paths must exist in the app.
@@ -277,14 +270,16 @@ export class AppModuleRegistry {
 	}
 
 	private injectCSS(path: string): any {
-		this.styles[path] = this.files[path]
-		applyStyles(this.styles)
+		let element = styleElements.get(path)
+		if (!element || !element.isConnected) {
+			element = document.createElement("style")
+			element.dataset.studioAppCss = path
+			document.head.append(element)
+			styleElements.set(path, element)
+		}
+		if (element.textContent !== this.files[path]) element.textContent = this.files[path]
 		return Object.freeze(Object.defineProperty({}, "__esModule", { value: true }))
 	}
-}
-
-function isCompiledModule(path: string): boolean {
-	return path.endsWith(".js")
 }
 
 function isLocalSpecifier(specifier: string): boolean {
@@ -332,19 +327,6 @@ function importError(path: string, message: string): CompileError {
 
 // Keep styles by file path across registry rebuilds, so edits replace styles instead of adding copies.
 const styleElements = new Map<string, HTMLStyleElement>()
-
-function applyStyles(styles: Record<string, string>) {
-	for (const [path, css] of Object.entries(styles)) {
-		let element = styleElements.get(path)
-		if (!element || !element.isConnected) {
-			element = document.createElement("style")
-			element.dataset.studioAppCss = path
-			document.head.append(element)
-			styleElements.set(path, element)
-		}
-		if (element.textContent !== css) element.textContent = css
-	}
-}
 
 export function clearAppStyles(keep: Set<string> = new Set()) {
 	for (const [path, element] of styleElements) {

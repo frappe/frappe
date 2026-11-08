@@ -124,9 +124,7 @@
 				:label="newEntryType === 'folder' ? 'Folder path' : 'File path'"
 				:description="newEntryDescription"
 				:placeholder="
-					newEntryType === 'folder'
-						? 'composables'
-						: `composables/useThing.${store.isDbApp ? 'js' : 'ts'}`
+					newEntryType === 'folder' ? 'composables' : `composables/useThing.${store.isDbApp ? 'js' : 'ts'}`
 				"
 				v-model="newEntryPath"
 				@keyup.enter="createEntry"
@@ -212,7 +210,7 @@ import {
 	type StudioFileNode,
 } from "@/data/studioFiles"
 import { checkAppScript } from "@/browserRuntime/appRuntime"
-import { confirm } from "@/utils/helpers"
+import { confirm, scrub } from "@/utils/helpers"
 import { PAGE_SCRIPT_BOILERPLATE } from "@/utils/constants"
 import { pageScriptCompletions } from "@/utils/completions/pageScriptCompletions"
 import type { ContextMenuOption } from "@/types"
@@ -257,10 +255,6 @@ function onNodeClick(node: StudioFileNode, toggle: () => void) {
 
 // -- Active page --
 const activePage = computed(() => store.activePage)
-
-function scrub(text: string): string {
-	return text.replaceAll(" ", "_").replaceAll("-", "_").toLowerCase()
-}
 
 const activePagePaths = computed(() => {
 	const title = activePage.value?.page_title
@@ -432,9 +426,7 @@ const showNewEntryDialog = ref(false)
 const newEntryPath = ref("")
 const newEntryType = ref<"file" | "folder">("file")
 // A database app's source runs as it is, so TypeScript and .vue files need a repository app.
-const allowedExtensions = computed(() =>
-	store.isDbApp ? ".js, .json, .css" : ".ts, .js, .vue, .json, .css",
-)
+const allowedExtensions = computed(() => (store.isDbApp ? ".js, .json, .css" : ".ts, .js, .vue, .json, .css"))
 const newEntryDescription = computed(() =>
 	newEntryType.value === "folder"
 		? `Relative to studio/${app.value?.app_name}`

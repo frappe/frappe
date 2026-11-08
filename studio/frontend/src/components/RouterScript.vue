@@ -95,19 +95,6 @@ async function load() {
 	if (file.content === null) script.value = `export default ${BOILERPLATE}\n`
 }
 
-async function saveFile(source: string) {
-	const syntaxError = await checkAppScript(source, routerFile.value, store.isDbApp)
-	if (syntaxError) throw new Error(syntaxError)
-	const result = await writeStudioFile(location.value, routerFile.value, source, fileHash.value)
-	fileHash.value = result.hash
-	if (store.isDbApp) store.refreshAppFiles()
-}
-
-async function removeFile() {
-	await deleteStudioFile(location.value, routerFile.value)
-	if (store.isDbApp) store.refreshAppFiles()
-}
-
 function complete(context: CompletionContext) {
 	return routerScriptCompletions(context, Object.values(store.appPages))
 }
@@ -145,8 +132,13 @@ async function save() {
 	if (!dirty.value) return
 	saving.value = true
 	try {
-		await saveFile(script.value)
-		savedScript.value = script.value
+		const source = script.value
+		const syntaxError = await checkAppScript(source, routerFile.value, store.isDbApp)
+		if (syntaxError) throw new Error(syntaxError)
+		const result = await writeStudioFile(location.value, routerFile.value, source, fileHash.value)
+		fileHash.value = result.hash
+		if (store.isDbApp) store.refreshAppFiles()
+		savedScript.value = source
 		toast.success("Saved the router script")
 	} catch (saveError: any) {
 		error.value = saveError?.messages?.join(", ") || saveError?.message || "Failed to save the router script"
@@ -158,7 +150,8 @@ async function save() {
 async function remove() {
 	if (!(await confirm("The app goes back to Studio's default routing.", "Delete router script?"))) return
 	try {
-		await removeFile()
+		await deleteStudioFile(location.value, routerFile.value)
+		if (store.isDbApp) store.refreshAppFiles()
 		store.showRouterEditor = false
 		toast.success("Deleted the router script")
 	} catch (removeError: any) {
