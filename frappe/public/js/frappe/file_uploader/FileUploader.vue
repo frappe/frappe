@@ -797,6 +797,7 @@ defineExpose({
 	toggle_all_private,
 	wrapper_ready,
 	close_dialog,
+	hide_dialog_footer,
 });
 </script>
 
