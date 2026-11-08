@@ -226,7 +226,6 @@
 			:file="files[crop_image_with_index]"
 			:fixed_aspect_ratio="restrictions.crop_image_aspect_ratio"
 			@toggle_image_cropper="toggle_image_cropper(-1)"
-			@upload_after_crop="trigger_upload = true"
 		/>
 		<FileBrowser
 			ref="file_browser"
@@ -328,7 +327,6 @@ let show_file_browser = ref(false);
 let show_web_link = ref(false);
 let show_image_cropper = ref(false);
 let crop_image_with_index = ref(-1);
-let trigger_upload = ref(false);
 let close_dialog = ref(false);
 let hide_dialog_footer = ref(false);
 let allow_take_photo = ref(false);

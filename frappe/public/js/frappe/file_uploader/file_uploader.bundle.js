@@ -117,15 +117,6 @@ class FileUploader {
 		);
 
 		watch(
-			() => this.uploader.trigger_upload,
-			(trigger_upload) => {
-				if (trigger_upload) {
-					this.upload_files();
-				}
-			}
-		);
-
-		watch(
 			() => this.uploader.close_dialog,
 			(close_dialog) => {
 				if (close_dialog) {
