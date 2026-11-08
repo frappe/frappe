@@ -930,6 +930,8 @@ const needsCwd = computed(() => flow.options.requireCwd && !flow.state.sessionId
 const starting = computed(() => !flow.state.sessionId && !flow.state.conversation.sending.length)
 // roomier while it sits mid-page; at the foot (a panel, a phone) it keeps one size, before and after
 const tall = computed(() => starting.value && !!lift.value)
+// its textarea's floor changes with it: fit the box again
+watch(tall, () => nextTick(autosize))
 const startCwd = computed(() => {
 	const cwd = flow.state.prefs?.cwd
 	return cwd && cwd !== "." && starting.value ? cwd : null
