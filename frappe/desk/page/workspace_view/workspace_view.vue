@@ -111,7 +111,7 @@ async function load() {
 	// a new workspace, or one just switched here, opens in the editor
 	if (frappe.ui.open_workspace_editor === workspace.value.name) {
 		frappe.ui.open_workspace_editor = null;
-		if (workspace.value.can_edit) edit();
+		if (workspace.value.can_edit && can_open_editor.value) edit();
 	}
 }
 
@@ -150,8 +150,11 @@ function actions() {
 	return list;
 }
 
-// a reader who cannot edit the shared page edits a layout of their own
-const can_open_editor = computed(() => workspace.value?.can_edit || workspace.value?.can_edit_own);
+// A reader who cannot edit the shared page edits a layout of their own. The editor's pane leaves
+// a phone no room for the page.
+const can_open_editor = computed(
+	() => !frappe.is_mobile() && (workspace.value?.can_edit || workspace.value?.can_edit_own)
+);
 
 function reset_own_layout() {
 	frappe.confirm(__("Drop your own layout of this workspace and see the shared one?"), () =>
