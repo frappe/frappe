@@ -419,14 +419,20 @@ def _get_or_new(workspace: str) -> "CustomWorkspace":
 
 @frappe.whitelist(methods=["POST"])
 def reset_workspace_customization(workspace: str, variant: str | None = None) -> None:
-	"""Restore the app's workspace, or with `variant` only that layout (a role or the default)."""
+	"""Restore the app's workspace, or with `variant` only that layout (a role or the default).
+
+	A site's move to Frappe UI stays: it goes one way, and reset is not a way back.
+	"""
 	from frappe.desk.doctype.workspace.workspace import is_workspace_manager
 
 	if not is_workspace_manager():
 		frappe.throw(_("You need to be Workspace Manager to reset a workspace."), frappe.PermissionError)
 
 	if not variant:
+		renderer = frappe.db.get_value("Custom Workspace", workspace, "renderer")
 		frappe.delete_doc_if_exists("Custom Workspace", workspace)
+		if renderer == "Frappe UI":
+			upsert_property_customization(workspace, renderer=renderer)
 		return
 
 	if not frappe.db.exists("Custom Workspace", workspace):

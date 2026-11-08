@@ -225,7 +225,7 @@ class TestCustomWorkspaceIntegration(IntegrationTestCase):
 		reset_workspace_customization(self.WORKSPACE)
 		self.assertFalse(frappe.db.exists("Custom Workspace", self.WORKSPACE))
 
-	def test_renderer_is_a_diff_and_reset_clears_it(self):
+	def test_renderer_is_a_diff_and_reset_keeps_it(self):
 		from frappe.desk.desktop import Workspace
 
 		frappe.db.set_value("Workspace", self.WORKSPACE, "renderer", "Legacy")
@@ -235,8 +235,11 @@ class TestCustomWorkspaceIntegration(IntegrationTestCase):
 		self.assertFalse(customization.widgets)
 		self.assertEqual(Workspace({"name": self.WORKSPACE}, minimal=True).doc.renderer, "Frappe UI")
 
+		upsert_property_customization(self.WORKSPACE, visibility="Hidden")
 		reset_workspace_customization(self.WORKSPACE)
-		self.assertEqual(Workspace({"name": self.WORKSPACE}, minimal=True).doc.renderer, "Legacy")
+		customization = frappe.get_doc("Custom Workspace", self.WORKSPACE)
+		self.assertEqual(customization.visibility, "Inherit")
+		self.assertEqual(Workspace({"name": self.WORKSPACE}, minimal=True).doc.renderer, "Frappe UI")
 
 	def test_a_legacy_save_keeps_every_app_widget(self):
 		from frappe.desk.desktop import get_desktop_page
