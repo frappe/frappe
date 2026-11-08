@@ -84,8 +84,8 @@
 						</p>
 					</template>
 					<!-- a new chat's agent and skills, as buttons beside the + -->
-					<template #tools="{ starting, insert }">
-						<ChatPickers v-if="starting" :insert="insert" />
+					<template #tools="{ starting, tall, insert }">
+						<ChatPickers v-if="starting" :insert="insert" :tall="tall" />
 					</template>
 					<!-- a started chat's + menu: skills (it keeps its agent) -->
 					<template #plus-list="{ id, beside, close, insert }">
