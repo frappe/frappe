@@ -5,16 +5,20 @@ import json
 from unittest.mock import patch
 
 import frappe
+from frappe.api import discovery
 from frappe.core.doctype.rq_worker.rq_worker import RQWorker
 from frappe.desk.doctype.todo.todo import ToDo
 from frappe.flow import ToolContext
 from frappe.flow.tools.builtins import (
 	BUILTIN_TOOLS,
 	builtin_name,
+	call_api,
 	create,
 	delete,
 	describe,
+	describe_api,
 	execute,
+	find_apis,
 	find_doctypes,
 	read_records,
 	run_action,
@@ -23,6 +27,7 @@ from frappe.flow.tools.builtins import (
 	update,
 )
 from frappe.flow.utils.safe_exec import NeedsApproval
+from frappe.permissions import SYSTEM_USER_ROLE
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import whitelist_for_tests
 
@@ -159,6 +164,121 @@ class TestDescribe(IntegrationTestCase):
 		result = describe(doctype="Contact Phone", ctx=CTX)
 		self.assertIn("phone", {f["fieldname"] for f in result["fields"]})
 		self.assertTrue(result["permissions"]["read"])
+
+
+class TestFindApis(IntegrationTestCase):
+	def setUp(self):
+		self.enterContext(self.set_user("test@example.com"))
+		self.ctx = ToolContext(session_id="test", agent="Test Agent", user="test@example.com")
+
+	def test_finds_and_describes_python_apis(self):
+		discovery.clear_cache()
+		# a cold index is built by the background job, never inside the tool call
+		with patch("frappe.api.discovery.build_cache_in_background") as queue_build:
+			with self.assertRaisesRegex(discovery.DiscoveryCacheUnavailable, "try again"):
+				find_apis(query="test_ai_builtins read_only_whoami", ctx=self.ctx)
+		queue_build.assert_called_once()
+		discovery.build_cache()
+		found = find_apis(query="test_ai_builtins read_only_whoami", ctx=self.ctx)
+		self.assertEqual([entry["path"] for entry in found], [f"{MODULE}.read_only_whoami"])
+
+		read = describe_api(method=found[0]["path"], ctx=self.ctx)
+		self.assertTrue(read["read_only"])
+		self.assertFalse(describe_api(method=f"{MODULE}.get_only", ctx=self.ctx)["read_only"])
+		self.assertEqual(call_api(method=f"{MODULE}.get_only", ctx=self.ctx)["result"], "get")
+		with self.assertRaisesRegex(frappe.ValidationError, "whitelisted API's path"):
+			call_api(method="submit", ctx=self.ctx)
+		with self.assertRaisesRegex(ValueError, "not whitelisted"):
+			call_api(method=f"{MODULE}.read_only_not_whitelisted", ctx=self.ctx)
+
+		with self.patch_hooks(
+			{"override_whitelisted_methods": {f"{MODULE}.get_only": [f"{MODULE}.read_only_whoami"]}}
+		):
+			found = describe_api(method=f"{MODULE}.get_only", ctx=self.ctx)
+			self.assertEqual(
+				call_api(method=f"{MODULE}.get_only", ctx=self.ctx)["result"][0], "test@example.com"
+			)
+		self.assertEqual(found["path"], f"{MODULE}.read_only_whoami")
+		self.assertTrue(found["read_only"])
+
+	def test_runs_api_server_scripts(self):
+		frappe.get_doc("User", "test@example.com").add_roles("Script Manager")
+		self.addCleanup(frappe.clear_cache, user="test@example.com")
+		self.addCleanup(frappe.client_cache.delete_value, "server_script_map")
+		self.addCleanup(frappe.db.rollback)
+		self.enterContext(self.enable_safe_exec())
+		discovery.build_cache()
+		script = 'frappe.response["message"] = "hello " + frappe.form_dict.who'
+		for api_method in ("flow_api_script_probe", "flow.api_script_probe"):
+			with self.subTest(api_method=api_method):
+				frappe.get_doc(
+					{
+						"doctype": "Server Script",
+						"name": api_method,
+						"script_type": "API",
+						"api_method": api_method,
+						"script": script,
+					}
+				).insert()
+				self.assertIn(api_method, [e.get("path") for e in find_apis(query=api_method, ctx=self.ctx)])
+				# a read-only function overridden by a script must still ask
+				overridden = f"{MODULE}.read_only_whoami"
+				with self.patch_hooks({"override_whitelisted_methods": {overridden: [api_method]}}):
+					for method in (api_method, overridden):
+						found = describe_api(method=method, ctx=self.ctx)
+						self.assertEqual(found["path"], api_method)
+						self.assertEqual(found["source"], script)
+						self.assertFalse(found["read_only"])
+						self.assertTrue(call_api.requires_confirmation({"method": method}))
+						result = call_api(method=method, args={"who": "Flow"}, ctx=self.ctx)["result"]
+						self.assertEqual(result, "hello Flow")
+
+	def test_hides_a_scripts_code_from_users_who_cannot_read_it(self):
+		self.addCleanup(frappe.client_cache.delete_value, "server_script_map")
+		self.addCleanup(frappe.db.rollback)
+		discovery.build_cache()
+		with self.set_user("Administrator"):
+			frappe.get_doc(
+				{
+					"doctype": "Server Script",
+					"name": "flow_shadow_probe",
+					"script_type": "API",
+					"api_method": f"{MODULE}.get_only",
+					"script": 'frappe.response["message"] = "secret"',
+				}
+			).insert()
+			user = frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": "flow-no-scripts@example.com",
+					"first_name": "No Scripts",
+					"roles": [{"role": SYSTEM_USER_ROLE}],
+				}
+			).insert()
+		with self.set_user(user.name):
+			self.assertFalse(frappe.has_permission("Server Script", "read"))
+			found = describe_api(method=f"{MODULE}.get_only", ctx=self.ctx)
+		self.assertNotIn("secret", found.get("source", ""))
+
+	def test_describes_document_actions(self):
+		comment = describe_api(method="add_comment", doctype="ToDo", ctx=self.ctx)
+		self.assertIn("comment_type", {param["name"] for param in comment["params"]})
+
+		self.addCleanup(frappe.db.rollback)
+		role = frappe.get_doc({"doctype": "Role", "role_name": "Flow API Rename Probe"}).insert()
+		found = describe_api(method="rename", doctype="Role", ctx=self.ctx)
+		self.assertEqual([param["name"] for param in found["params"]], ["new_name"])
+		self.assertNotIn("source", found)
+		new_name = "Flow API Renamed Probe"
+		run_action(
+			doctype="Role",
+			names=[role.name],
+			action=found["method"],
+			args={found["params"][0]["name"]: new_name},
+			ctx=self.ctx,
+		)
+		self.assertTrue(frappe.db.exists("Role", new_name))
+		self.assertFalse(frappe.db.exists("Role", role.name))
 
 
 class TestReadRecords(IntegrationTestCase):
@@ -455,18 +575,19 @@ class TestReadOnlyCalls(IntegrationTestCase):
 		frappe.get_doc({"doctype": "ToDo", "description": "after a read"}).insert()
 
 	def test_only_a_function_marked_read_only_skips_the_card(self):
-		needs_card = run_action.requires_confirmation
-		self.assertFalse(needs_card({"action": f"{MODULE}.read_only_whoami"}))
-		for action in (
-			f"{MODULE}.get_only",
-			"frappe.core.doctype.access_log.access_log.make_access_log",
-			f"{MODULE}.read_only_not_whitelisted",
-			"frappe.client.set_value",
-			"submit",
-			None,
-		):
-			with self.subTest(action):
-				self.assertTrue(needs_card({"action": action}))
+		for api_tool, key in ((run_action, "action"), (call_api, "method")):
+			needs_card = api_tool.requires_confirmation
+			self.assertFalse(needs_card({key: f"{MODULE}.read_only_whoami"}))
+			for action in (
+				f"{MODULE}.get_only",
+				"frappe.core.doctype.access_log.access_log.make_access_log",
+				f"{MODULE}.read_only_not_whitelisted",
+				"frappe.client.set_value",
+				"submit",
+				None,
+			):
+				with self.subTest(api_tool.name, action=action):
+					self.assertTrue(needs_card({key: action}))
 		self.assertFalse(execute.requires_confirmation({"code": "", "read_only": True}))
 		self.assertTrue(execute.requires_confirmation({"code": ""}))
 
@@ -488,6 +609,9 @@ class TestReadOnlyCalls(IntegrationTestCase):
 		self.assertEqual(run("result = frappe.session.user"), "test@example.com")
 		self.assertEqual(run(f'result = frappe.call("{MODULE}.read_only_whoami")')[0], "test@example.com")
 		self.assertEqual(
+			run(f'result = call_api("{MODULE}.read_only_whoami")')["result"][0], "test@example.com"
+		)
+		self.assertEqual(
 			run(f'result = run_action("", [], "{MODULE}.read_only_whoami")')["result"][1], "System Manager"
 		)
 		self.assertRaisesRegex(NameError, "undefined_name", run, "result = undefined_name")
@@ -504,6 +628,7 @@ class TestReadOnlyCalls(IntegrationTestCase):
 			"calls an unmarked function": 'frappe.call("frappe.ping")',
 			"hides that call": 'try:\n\tfrappe.call("frappe.ping")\nexcept Exception:\n\tpass',
 			"runs an unmarked function": 'run_action("", [], "frappe.ping")',
+			"calls an unmarked API": 'call_api("frappe.ping")',
 			"runs a record action": 'run_action("ToDo", ["x"], "submit")',
 			"calls a read that hides its write": f'frappe.call("{MODULE}.read_only_that_hides_its_write")',
 		}
@@ -518,6 +643,7 @@ class TestReadOnlyCalls(IntegrationTestCase):
 		code = f"""
 create("ToDo", [{{"description": "approved code"}}])
 seen = run_action("", [], "{MODULE}.read_only_whoami")
+call_api("{MODULE}.read_only_whoami")
 frappe.call("{MODULE}.read_only_whoami")
 create("ToDo", [{{"description": "approved code, after the read"}}])
 result = seen["result"][0]

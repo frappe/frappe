@@ -5,13 +5,18 @@ from __future__ import annotations
 
 import json
 import re
+from collections.abc import Callable
+from functools import partial
 from typing import Any, Literal, NoReturn
 
 import frappe
 from frappe import _
+from frappe.api import discovery
+from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 from frappe.database.utils import DefaultOrderBy
 from frappe.flow.lib.tool import Pending, Tool, ToolContext, tool
 from frappe.flow.utils.safe_exec import safe_exec
+from frappe.handler import run_server_script
 from frappe.model.base_document import get_controller
 from frappe.model.document import Document
 from frappe.query_builder.functions import Count
@@ -162,6 +167,43 @@ def describe(
 		result["docstatus"] = int(doc.docstatus)
 		result["actions"] = _doc_actions(doc, meta)
 	return result
+
+
+@tool
+def find_apis(query: str, *, ctx: ToolContext) -> list[dict[str, Any]]:
+	"""Find whitelisted APIs and document methods whose path or docstring has every word of `query`.
+
+	Never guess an API's path: find it here, get its arguments with describe_api, then run it
+	with call_api, or a document method with run_action. Returns up to 50 matches, each an API's
+	`path` or a document method's `doctype` and `method`, with the first line of its docstring.
+	If the index is being generated, grep the apps' code for `@frappe.whitelist` instead of retrying.
+	"""
+	return discovery.search(query)["results"]
+
+
+@tool
+def describe_api(method: str, doctype: str | None = None, *, ctx: ToolContext) -> dict[str, Any]:
+	"""Get a whitelisted API's arguments and docstring by its dotted path, or a document method's
+	by its name and `doctype`.
+
+	`path` is the API as it runs now, after any app's override. One with `read_only` true runs
+	through call_api without asking the user. If the index is being generated, read the function's
+	code for its arguments instead of retrying.
+	"""
+	if doctype:
+		found = discovery.doctype_method(doctype, method)
+		if method == "rename":
+			found["params"] = [{"name": "new_name", "required": True, "type": "str"}]
+			found["docstring"] = "Rename the document to `new_name`."
+			found.pop("source", None)
+		return found
+	found = discovery.method(method)
+	script = _api_server_script(method)
+	if script and frappe.has_permission("Server Script", "read", doc=script):
+		# its code shows the args it reads
+		found["source"] = frappe.db.get_value("Server Script", script, "script")
+	found["read_only"] = is_read_function(method)
+	return found
 
 
 @tool
@@ -529,7 +571,7 @@ def execute(code: str, description: str, read_only: bool = False, *, ctx: ToolCo
 	- Reads: frappe.get_list (supports group_by and aggregates via dict fields, e.g.
 	  fields=[{"SUM": "qty", "as": "total"}] or [{"COUNT": "*", "as": "n"}]),
 	  frappe.get_doc (returns a dict), frappe.get_meta, frappe.db.get_value/get_single_value/count/exists.
-	- Writes: create, update, delete, run_action — the same permission-checked tools you call directly.
+	- Writes: create, update, delete, run_action, call_api — the same permission-checked tools you call directly.
 	- Also: read_records, describe, find_doctypes, frappe.call (whitelisted methods), frappe.enqueue,
 	  frappe.sendmail, frappe.get_print, frappe.utils.* (dates, numbers, strings).
 
@@ -775,18 +817,22 @@ def delete(doctype: str, names: list[str], *, ctx: ToolContext) -> dict[str, Any
 	return {"doctype": doctype, "deleted": deleted}
 
 
+def _call_api_prompt(call: dict[str, Any]) -> str:
+	args = dict(call.get("args") or {})
+	lines = []
+	doctype, name = args.get("doctype"), args.get("name")
+	if isinstance(doctype, str) and isinstance(name, str) and frappe.db.exists("DocType", doctype):
+		del args["doctype"], args["name"]
+		lines.append(f"{_(doctype)}: {_record_title(doctype, name)}")
+		lines.extend(_field_lines(doctype, args))
+	lines.extend(f"{_(frappe.unscrub(key))}: {_in_words(value)}" for key, value in args.items())
+	return "\n".join(lines)
+
+
 def _run_action_prompt(call: dict[str, Any]) -> str:
 	action = call.get("action")
 	if is_function_path(action):
-		args = dict(call.get("args") or {})
-		lines = []
-		doctype, name = args.get("doctype"), args.get("name")
-		if isinstance(doctype, str) and isinstance(name, str) and frappe.db.exists("DocType", doctype):
-			del args["doctype"], args["name"]
-			lines.append(f"{_(doctype)}: {_record_title(doctype, name)}")
-			lines.extend(_field_lines(doctype, args))
-		lines.extend(f"{_(frappe.unscrub(key))}: {_in_words(value)}" for key, value in args.items())
-		return "\n".join(lines)
+		return _call_api_prompt(call)
 	return _("Run '{0}' on {1} {2}: {3}").format(
 		action,
 		len(call.get("names") or []),
@@ -853,18 +899,57 @@ def run_action(
 	and `names`; one its developer marked a read runs without asking the user.
 	If it fails on any record, none are changed.
 	"""
-	if not is_read_function(action):
-		return _run_action(doctype, names, action, args, ctx=ctx)
+	if is_function_path(action):
+		return call_api(method=action, args=args, ctx=ctx)
+	return _run_action(doctype, names, action, args, ctx=ctx)
+
+
+@tool(
+	requires_confirmation=lambda args: not is_read_function(args.get("method")),
+	confirm_prompt=_call_api_prompt,
+)
+def call_api(method: str, args: dict[str, Any] | None = None, *, ctx: ToolContext) -> dict[str, Any]:
+	"""Call a whitelisted Python API or API Server Script found through find_apis and describe_api,
+	or in the apps' code.
+
+	Pass its path as `method` and its arguments as `args`. Document methods use run_action.
+	An API its developer marked read-only runs without approval in a read-only transaction;
+	all other calls require the user's approval. Failures roll back the call's writes.
+	"""
+	if not is_read_function(method):
+		return _call_api(method, args, ctx=ctx)
 	with frappe.db.read_only():
-		result = _run_action(doctype, names, action, args, ctx=ctx)
+		result = _call_api(method, args, ctx=ctx)
 		# the function caught the database's refusal
 		if frappe.db.transaction_writes:
 			raise ValueError(
 				_("{0} tried to write, so it is not a read. Nothing was saved.").format(
-					function_title(action)
+					function_title(method)
 				)
 			)
 		return result
+
+
+def _call_api(method: str, args: dict[str, Any] | None = None, *, ctx: ToolContext) -> dict[str, Any]:
+	args = args or {}
+	script = _api_server_script(method)
+	if not script and not is_function_path(method):
+		frappe.throw(_("Pass a whitelisted API's path from find_apis."), title=_("Invalid API"))
+	frappe.db.savepoint(_BATCH_SAVEPOINT)
+	try:
+		if script:
+			call = partial(run_server_script, script)
+		else:
+			fn = frappe.get_attr(frappe.override_whitelisted_method(method))
+			frappe.is_whitelisted(fn)
+			# nosemgrep: frappe-codeinjection-eval
+			call = partial(frappe.call, fn, **args)
+		result = _call_as_request(call, args)
+	except Exception as e:
+		_undo_batch(function_title(method), e, ctx)
+	if isinstance(result, Document):
+		result = result.as_dict(no_nulls=True)
+	return {"action": method, "title": function_title(method), "result": result}
 
 
 def _run_action(
@@ -873,16 +958,7 @@ def _run_action(
 	args = args or {}
 
 	if is_function_path(action):
-		frappe.db.savepoint(_BATCH_SAVEPOINT)
-		try:
-			method = frappe.get_attr(frappe.override_whitelisted_method(action))
-			frappe.is_whitelisted(method)
-			result = _call_as_request(method, args)
-		except Exception as e:
-			_undo_batch(function_title(action), e, ctx)
-		if isinstance(result, Document):
-			result = result.as_dict(no_nulls=True)
-		return {"action": action, "title": function_title(action), "result": result}
+		return _call_api(action, args, ctx=ctx)
 
 	if action == "rename":
 		if len(names) != 1:
@@ -931,15 +1007,14 @@ def _undo_batch(record: str, error: Exception, ctx: ToolContext) -> NoReturn:
 	raise failure
 
 
-def _call_as_request(method: Any, args: dict[str, Any]) -> Any:
-	"""Call a whitelisted function as desk's API call does: `args` are the request's form_dict, and
+def _call_as_request(call: Callable[[], Any], args: dict[str, Any]) -> Any:
+	"""Run `call` as desk's API call does: `args` are the request's form_dict, and
 	what it puts in frappe.response is its reply, which may not be a file."""
 	form_dict, response = frappe.local.form_dict, frappe.local.response
-	frappe.local.form_dict, frappe.local.response = frappe._dict(args), frappe._dict()
+	# a request's starting response; server scripts only see a non-empty one
+	frappe.local.form_dict, frappe.local.response = frappe._dict(args), frappe._dict({"docs": []})
 	try:
-		# the caller resolved `method` and checked that it is whitelisted
-		# nosemgrep: frappe-codeinjection-eval
-		result = frappe.call(method, **args)
+		result = call()
 		if frappe.response.get("type"):
 			raise ValueError(
 				f"It replies with a {frappe.response.type} file, not data, so it can't run here."
@@ -956,13 +1031,20 @@ def is_function_path(action: Any) -> bool:
 
 def is_read_function(path: Any) -> bool:
 	"""Whether `path` names a whitelisted function its developer marked `@frappe.read_only()`."""
-	if not is_function_path(path):
+	if not is_function_path(path) or _api_server_script(path):
 		return False
 	try:
 		method = frappe.get_attr(frappe.override_whitelisted_method(path))
 	except Exception:
 		return False
 	return method in frappe.whitelisted and getattr(method, "read_only", False)
+
+
+def _api_server_script(path: Any) -> str | None:
+	"""The API Server Script that answers `path` after overrides, as a request to it would run."""
+	if not isinstance(path, str):
+		return None
+	return get_server_script_map().get("_api", {}).get(frappe.override_whitelisted_method(path))
 
 
 def function_title(path: str) -> str:
@@ -1052,6 +1134,8 @@ def _secret_key(session: str, doctype: str, name: str, fieldname: str) -> str:
 BUILTIN_TOOLS: list[Tool] = [
 	find_doctypes,
 	describe,
+	find_apis,
+	describe_api,
 	read_records,
 	run_report,
 	read,
@@ -1068,6 +1152,7 @@ BUILTIN_TOOLS: list[Tool] = [
 	update,
 	delete,
 	run_action,
+	call_api,
 	execute,
 	read_screen,
 	request_secret,
