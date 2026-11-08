@@ -457,6 +457,19 @@ class TestSavingLayouts(IntegrationTestCase):
 		links = get_workspace("GW Reports")["widgets"]["cards"]["Reports"]["links"]
 		self.assertEqual(links[0]["report_ref_doctype"], report.ref_doctype)
 
+	def test_developer_mode_keeps_a_site_copy_out_of_the_app_file(self):
+		text = block("header", text="App")
+		make_workspace("GW Dev", content=[text])
+		frappe.db.set_value("Workspace", "GW Dev", "standard", 1)
+		frappe.clear_document_cache("Workspace", "GW Dev")
+		self.addCleanup(frappe.delete_doc_if_exists, "Custom Workspace", "GW Dev")
+		with patch.dict(frappe.conf, {"developer_mode": 0}):
+			save_page("GW Dev", 1, {}, dumps([block("header", text="Site")]))
+		with patch.dict(frappe.conf, {"developer_mode": 1}):
+			save_page("GW Dev", 1, {}, dumps([block("header", text="Site again")]))
+		self.assertEqual(self.stored("GW Dev"), [text["id"]])
+		self.assertEqual(get_workspace("GW Dev")["content"][0]["data"]["text"], "Site again")
+
 
 class TestRecentActivity(IntegrationTestCase):
 	def setUp(self):

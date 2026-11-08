@@ -7,7 +7,7 @@ from json import dumps, loads
 import frappe
 from frappe import _
 from frappe.desk.desk_views import DeskViews
-from frappe.desk.desktop import get_workspaces, save_new_widget
+from frappe.desk.desktop import get_workspaces, is_layout_customized, save_new_widget
 from frappe.desk.doctype.desktop_settings.desktop_settings import is_desktop_icons_page
 from frappe.desk.doctype.workspace_variant.workspace_variant import (
 	DEFAULT_LAYOUT,
@@ -1059,14 +1059,18 @@ def save_page(
 
 	blocks = dumps(merge_unseen_blocks(name, variant, frappe.parse_json(blocks), new_widgets, copied_from))
 
+	from frappe.desk.doctype.custom_workspace.custom_workspace import (
+		get_customization,
+		upsert_content_customization,
+	)
+
 	# A standard (app-shipped) workspace is never edited in place on a site. The site's layout
 	# changes are stored as a delta on top of the live base, so app updates keep arriving. In
-	# developer mode the app author edits the base itself so it exports to JSON.
-	if doc.standard and not frappe.conf.developer_mode:
-		from frappe.desk.doctype.custom_workspace.custom_workspace import (
-			upsert_content_customization,
-		)
-
+	# developer mode the app author edits the base itself so it exports to JSON, unless the layout
+	# on screen is the site's copy, which must not end up in the app's file.
+	if doc.standard and (
+		not frappe.conf.developer_mode or is_layout_customized(get_customization(name), variant)
+	):
 		upsert_content_customization(name, frappe.parse_json(blocks), new_widgets, variant)
 		return {"name": name, "public": public, "label": doc.label}
 

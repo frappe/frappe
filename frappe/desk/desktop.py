@@ -526,7 +526,7 @@ def get_workspace(name: str, variant: str | None = None) -> dict:
 	content = [block for block in stored if is_drawable(block, widgets)]
 	customization = get_customization(name) if doc.standard else None
 	if can_edit:
-		context = editor_context(doc, customization)
+		context = editor_context(doc, customization, workspace.variant)
 	elif doc.public:
 		context = {"layouts": [], "save_target": "own"}
 	else:
@@ -571,7 +571,7 @@ def open_workspace(page: dict) -> Workspace:
 	return workspace
 
 
-def editor_context(doc, customization) -> dict:
+def editor_context(doc, customization, variant: str | None) -> dict:
 	"""What the editor shows about where a save goes: the layouts, and the file or site copy."""
 	from frappe.desk.doctype.workspace.workspace import get_workspace_app
 
@@ -595,7 +595,7 @@ def editor_context(doc, customization) -> dict:
 	layouts += [{"role": r, "source": "Site copy" if r in site_roles else app_title} for r in app_roles]
 	layouts += [{"role": r, "source": "Site"} for r in site_roles if r not in app_roles]
 
-	if frappe.conf.developer_mode:
+	if frappe.conf.developer_mode and not is_layout_customized(customization, variant):
 		scrubbed = frappe.scrub(base.name)
 		path = os.path.join(frappe.get_module_path(base.module), "workspace", scrubbed, f"{scrubbed}.json")
 		return {"layouts": layouts, "save_target": os.path.relpath(path, frappe.get_app_source_path(app))}
