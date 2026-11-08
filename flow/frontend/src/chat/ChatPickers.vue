@@ -6,7 +6,7 @@
 			<button
 				ref="agentButton"
 				type="button"
-				:class="[BUTTON, open === 'agent' && 'bg-surface-gray-2']"
+				:class="[BUTTON, tall ? 'h-8 w-8' : 'h-7 w-7', open === 'agent' && 'bg-surface-gray-2']"
 				:aria-label="`Agent: ${agentTitle}`"
 				:aria-expanded="open === 'agent'"
 				@click="toggle('agent')"
@@ -21,7 +21,7 @@
 			<button
 				ref="skillsButton"
 				type="button"
-				:class="[BUTTON, open === 'skills' && 'bg-surface-gray-2']"
+				:class="[BUTTON, tall ? 'h-8 w-8' : 'h-7 w-7', open === 'skills' && 'bg-surface-gray-2']"
 				aria-label="Skills"
 				:aria-expanded="open === 'skills'"
 				@click="toggle('skills')"
@@ -41,8 +41,11 @@ import { useAgent } from "./agent.js";
 import AgentPicker from "./AgentPicker.vue";
 import SkillPicker from "./SkillPicker.vue";
 
-// `insert` puts a picked skill in the draft, as the composer's "/" list does
-const props = defineProps({ insert: { type: Function, required: true } });
+// `insert` puts a picked skill in the draft, as the composer's "/" list does; `tall` as its + button
+const props = defineProps({
+	insert: { type: Function, required: true },
+	tall: { type: Boolean, default: false },
+});
 const flow = inject("flow");
 const page = inject("flowPage");
 const { current } = useAgent();
@@ -72,7 +75,7 @@ function pick(word) {
 	props.insert(word);
 }
 
-// the composer's + button in a new chat, matched
+// the composer's + button, matched
 const BUTTON =
-	"grid h-8 w-8 flex-none place-items-center rounded-5 text-ink-gray-6 hover:bg-surface-gray-2 hover:text-ink-gray-9 dark:text-ink-gray-8";
+	"grid flex-none place-items-center rounded-5 text-ink-gray-6 hover:bg-surface-gray-2 hover:text-ink-gray-9 dark:text-ink-gray-8";
 </script>

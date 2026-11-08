@@ -119,7 +119,7 @@
 			<fieldset
 				:disabled="disabled"
 				class="flow-composer-surface relative flex min-w-0 flex-col rounded-6 border border-outline-gray-2 focus-within:border-outline-gray-3 dark:border-transparent dark:focus-within:border-transparent"
-				:class="starting ? 'gap-4 p-2.5' : 'gap-2 p-2'"
+				:class="tall ? 'gap-4 p-2.5' : 'gap-2 p-2'"
 			>
 				<div
 					v-if="fileDragging"
@@ -237,7 +237,7 @@
 						:placeholder="placeholder"
 						style="caret-color: var(--ink-gray-9)"
 						class="relative max-h-40 w-full resize-none border-0 bg-transparent px-1.5 text-md leading-relaxed outline-none placeholder:text-ink-gray-4 focus:ring-0 max-sm:text-[length:var(--flow-chat-text,15px)] dark:placeholder:text-ink-gray-6"
-						:class="[skillParts ? 'text-transparent' : 'text-ink-gray-9', starting ? 'min-h-[50px] py-1' : 'min-h-[62px] pt-1']"
+						:class="[skillParts ? 'text-transparent' : 'text-ink-gray-9', tall ? 'min-h-[50px] py-1' : 'min-h-[62px] pt-1']"
 						@keydown="onKey"
 						@paste="onPaste"
 						@scroll="textScrollTop = $event.currentTarget.scrollTop"
@@ -269,7 +269,7 @@
 								<button
 									ref="plusButton"
 									class="grid flex-none place-items-center rounded-5 text-ink-gray-6 hover:bg-surface-gray-2 hover:text-ink-gray-9 dark:text-ink-gray-8"
-									:class="[plusMenu && 'bg-surface-gray-2', starting ? 'h-8 w-8' : 'h-7 w-7']"
+									:class="[plusMenu && 'bg-surface-gray-2', tall ? 'h-8 w-8' : 'h-7 w-7']"
 									:aria-label="plusRows.length ? 'Add' : attachLabel"
 									:aria-expanded="plusRows.length ? plusMenu : undefined"
 									:disabled="locked"
@@ -319,8 +319,8 @@
 							/>
 						</span>
 						<!-- a host's own buttons beside the +, such as a new chat's pickers; `starting` until the
-						     first message goes out -->
-						<slot name="tools" :starting="starting" :insert="insertFromMenu" />
+						     first message goes out, `tall` while the box is roomier -->
+						<slot name="tools" :starting="starting" :tall="tall" :insert="insertFromMenu" />
 						<span v-if="modeAtModel" class="min-w-2 flex-1" />
 
 						<!-- approval mode, its icon and name; its list hangs from it. A narrow frame shows the
@@ -332,8 +332,8 @@
 									class="flex items-center gap-1.5 whitespace-nowrap rounded-5 text-base text-ink-gray-7 hover:bg-surface-gray-2 dark:text-ink-gray-8"
 									:class="[
 										modeMenu ? 'bg-surface-gray-2' : '',
-										starting ? 'h-8' : 'h-7',
-										layout.narrow ? `${starting ? 'w-8' : 'w-7'} justify-center` : 'px-2',
+										tall ? 'h-8' : 'h-7',
+										layout.narrow ? `${tall ? 'w-8' : 'w-7'} justify-center` : 'px-2',
 									]"
 									:aria-label="`Approval mode: ${modeLabel}`"
 									:aria-expanded="modeMenu"
@@ -389,7 +389,7 @@
 
 						<!-- the pickers, by the send button; a host adds its own around the model button -->
 						<slot name="toolbar" :open-palette="openPalette">
-							<ModelButton :providers="has('providers')" :tall="starting" @open="openPalette" />
+							<ModelButton :providers="has('providers')" :tall="tall" @open="openPalette" />
 						</slot>
 
 						<Tooltip v-if="running && !submitting" text="Stop">
@@ -405,7 +405,7 @@
 							<button
 								class="ml-1 grid flex-none place-items-center rounded-5"
 								:class="[
-									starting ? 'h-8 w-8' : 'h-7 w-7',
+									tall ? 'h-8 w-8' : 'h-7 w-7',
 									canSend || submitting
 										? 'bg-surface-gray-10 text-ink-base hover:opacity-90'
 										: 'pointer-events-none bg-surface-gray-3 text-ink-gray-4',
@@ -928,6 +928,8 @@ const chipRemoveClass =
 const needsCwd = computed(() => flow.options.requireCwd && !flow.state.sessionId && !flow.state.prefs.cwd)
 // a new chat, until its first message goes out, and its folder
 const starting = computed(() => !flow.state.sessionId && !flow.state.conversation.sending.length)
+// roomier while it sits mid-page; at the foot (a panel, a phone) it keeps one size, before and after
+const tall = computed(() => starting.value && !!lift.value)
 const startCwd = computed(() => {
 	const cwd = flow.state.prefs?.cwd
 	return cwd && cwd !== "." && starting.value ? cwd : null
