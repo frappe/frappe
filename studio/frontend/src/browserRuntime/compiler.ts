@@ -106,9 +106,18 @@ export async function parseModule(
 			const errors = moduleSyntaxErrors(program, filename)
 			if (errors.length) return { ...nothingParsed(), errors }
 		}
+		const imports = [...staticImports(program)]
+		sfc.walk(program, {
+			enter(node: any) {
+				if (node.type === "CallExpression" && node.callee.type === "Import") {
+					const [argument] = node.arguments
+					if (argument?.type === "StringLiteral") imports.push({ specifier: argument.value, names: [] })
+				}
+			},
+		})
 		return {
-			imports: [...staticImports(program), ...dynamicImports(program)],
-			exports: exportedNames(program),
+			imports,
+			exports: exportedNames(program, sfc.extractIdentifiers),
 			errors: [],
 		}
 	} catch (error) {
@@ -148,26 +157,10 @@ function importedNames(node: ImportDeclaration): string[] {
 	return names
 }
 
-/** Find literal import() calls, including those nested inside expressions. */
-function* dynamicImports(node: unknown): Generator<ModuleImport> {
-	if (!node || typeof node !== "object") return
-	if (Array.isArray(node)) {
-		for (const item of node) yield* dynamicImports(item)
-		return
-	}
-	const fields = node as Record<string, any>
-	if (fields.type === "CallExpression" && fields.callee?.type === "Import") {
-		const [argument] = fields.arguments
-		if (argument?.type === "StringLiteral") yield { specifier: argument.value, names: [] }
-	}
-	for (const key in fields) {
-		if (key !== "loc" && key !== "leadingComments" && key !== "trailingComments") {
-			yield* dynamicImports(fields[key])
-		}
-	}
-}
-
-function exportedNames(program: BabelProgram): ModuleExports {
+function exportedNames(
+	program: BabelProgram,
+	extractIdentifiers: typeof import("vue/compiler-sfc").extractIdentifiers,
+): ModuleExports {
 	const bindings: ModuleExports["bindings"] = Object.create(null)
 	const starFrom: string[] = []
 	const imports: ModuleExports["bindings"] = Object.create(null)
@@ -200,9 +193,14 @@ function exportedNames(program: BabelProgram): ModuleExports {
 					: imports[local] || { name: local }
 			}
 			if (node.declaration) {
-				const names: string[] = []
-				declaredNames(node.declaration, names)
-				for (const name of names) bindings[name] = { name }
+				const declaration = node.declaration
+				const identifiers =
+					declaration.type === "VariableDeclaration"
+						? declaration.declarations.flatMap(({ id }) => extractIdentifiers(id))
+						: "id" in declaration && declaration.id?.type === "Identifier"
+							? [declaration.id]
+							: []
+				for (const { name } of identifiers) bindings[name] = { name }
 			}
 		}
 	}
@@ -211,35 +209,6 @@ function exportedNames(program: BabelProgram): ModuleExports {
 
 function exportName(node: { type: string; name?: string; value?: string }): string {
 	return node.type === "Identifier" ? node.name! : node.value!
-}
-
-/** Collect the names a declaration binds, including destructured ones. */
-function declaredNames(node: any, names: string[]): void {
-	if (!node || typeof node !== "object") return
-	switch (node.type) {
-		case "VariableDeclaration":
-			for (const declarator of node.declarations) declaredNames(declarator.id, names)
-			return
-		case "Identifier":
-			names.push(node.name)
-			return
-		case "ObjectPattern":
-			for (const property of node.properties) {
-				declaredNames(property.type === "RestElement" ? property.argument : property.value, names)
-			}
-			return
-		case "ArrayPattern":
-			for (const element of node.elements) declaredNames(element, names)
-			return
-		case "AssignmentPattern":
-			declaredNames(node.left, names)
-			return
-		case "RestElement":
-			declaredNames(node.argument, names)
-			return
-		default:
-			if (node.id) declaredNames(node.id, names)
-	}
 }
 
 function formatError(filename: string, error: any): CompileError {

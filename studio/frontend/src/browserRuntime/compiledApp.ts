@@ -15,7 +15,6 @@ import type { RouterConfig } from "@/router/app_router"
 interface AppFile {
 	path: string
 	content: string
-	hash: string
 }
 
 const appFilesResource = createResource({
@@ -27,7 +26,6 @@ const appFilesResource = createResource({
 const ROUTER_FILE = "router.js"
 
 let loadedAppName: string | null = null
-let sources: Record<string, string> = {}
 let registry: AppModuleRegistry | null = null
 
 /** Fetch source and create a registry, or reuse the registry already loaded for this app. */
@@ -45,7 +43,7 @@ export async function reloadAppRuntime(): Promise<void> {
 async function fetchSources(appName: string): Promise<void> {
 	const files: AppFile[] = await appFilesResource.fetch({ app_name: appName })
 	loadedAppName = appName
-	sources = {}
+	const sources: Record<string, string> = {}
 	for (const file of files) {
 		sources[file.path] = file.content
 	}
@@ -56,7 +54,6 @@ async function fetchSources(appName: string): Promise<void> {
 /** Clear the loaded app's source, registry and styles. */
 export function unloadAppRuntime(): void {
 	loadedAppName = null
-	sources = {}
 	registry = null
 	clearAppStyles()
 }

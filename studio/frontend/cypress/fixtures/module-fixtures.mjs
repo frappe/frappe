@@ -20,6 +20,14 @@ export const run = () => [main, value, all.default, all.value, Object.keys(all).
 		expected: [7, 3, 7, 3, ["default", "value"]],
 	},
 	{
+		name: "destructured-exports",
+		files: {
+			"value.js": "export const { two, three } = { two: 2, three: 3 }",
+			"entry.js": "import { two, three } from './value.js'; export const run = () => two + three",
+		},
+		expected: 5,
+	},
+	{
 		name: "paths-and-comments",
 		files: {
 			"utils/index.js": "export const value = 3",
@@ -195,6 +203,12 @@ source.value++; await nextTick(); root.remove(); return {mounted, unmounted, wat
 		expected: 42,
 	},
 	...[
+		[
+			"missing-named-import",
+			"import { two } from './value.js'; export const run = () => two",
+			"export const one = 1",
+			'"value.js" has no export named "two"',
+		],
 		[
 			"missing-default",
 			"import value from './value.js'; export const run = () => value",

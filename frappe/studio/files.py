@@ -101,17 +101,14 @@ def build_tree(parent: str, folders: set[str], files: set[str]) -> list[dict]:
 
 
 def get_store_files(studio_app: str) -> list[dict]:
-	"""Return stored source files and their content hashes for the browser compiler."""
+	"""Return stored source files for the browser compiler and app build."""
 	rows = frappe.get_all(
 		"Studio App File",
 		filters={"studio_app": studio_app},
 		fields=["file_path", "content"],
 		order_by="file_path",
 	)
-	return [
-		{"path": row.file_path, "content": row.content or "", "hash": file_hash(row.content or "")}
-		for row in rows
-	]
+	return [{"path": row.file_path, "content": row.content or ""} for row in rows]
 
 
 def read_store_file(studio_app: str, file_path: str) -> str | None:

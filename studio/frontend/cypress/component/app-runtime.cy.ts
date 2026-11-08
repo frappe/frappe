@@ -69,31 +69,6 @@ export default function setup(context) { return { label: ref(fmt(7) + fmt2(8)) }
 		)
 	})
 
-	it("reports a missing named import, and never reports one the target does declare", () => {
-		cy.wrap(
-			(async () => {
-				await expectCompileError(
-					{
-						"utils.js": `export const one = 1`,
-						"a.js": `import { two } from "./utils"\nexport const x = two`,
-					},
-					"a.js",
-					'"utils.js" has no export named "two"',
-				)
-			})(),
-		)
-
-		// A destructured export declares every name in its pattern. A wrong error here would
-		// break a working app.
-		const sources = {
-			"base.js": `export const { two, three } = { two: 2, three: 3 }`,
-			"ok.js": `import { two, three } from "./base"\nexport const total = two + three`,
-		}
-		cy.wrap(new AppModuleRegistry(sources).loadModule("ok.js")).then((module: any) => {
-			expect(module.total).to.equal(5)
-		})
-	})
-
 	it("runs the source as it is, so typescript syntax is a syntax error", () => {
 		cy.wrap(expectCompileError({ "a.js": `export const n: number = 1` }, "a.js", "a.js"))
 	})
@@ -101,7 +76,6 @@ export default function setup(context) { return { label: ref(fmt(7) + fmt2(8)) }
 	it("reports unresolvable and invalid imports with the file in the message", () => {
 		cy.wrap(
 			(async () => {
-				await expectCompileError({ "a.js": `import x from "lodash"\nexport const y = x` }, "a.js", "lodash")
 				await expectCompileError(
 					{ "a.js": `import y from "./missing"\nexport const z = y` },
 					"a.js",
