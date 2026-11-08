@@ -35,6 +35,7 @@ setConfig("requestHeaders", () => ({ "X-Frappe-CSRF-Token": frappe.csrf_token })
 
 const workspace = ref(null);
 const not_found = ref(false);
+const load_failed = ref(false);
 const editing = ref(null);
 const edit_count = ref(0);
 const managing = ref(false);
@@ -89,13 +90,20 @@ const target = computed(() =>
 async function load() {
 	const { name } = target.value;
 	not_found.value = false;
+	load_failed.value = false;
 	if (!name) return show_not_found();
 
+	let page;
 	try {
-		workspace.value = await get("frappe.desk.desktop.get_workspace", { name });
-	} catch {
+		page = await get("frappe.desk.desktop.get_workspace", { name });
+	} catch (e) {
+		if (target.value.name !== name) return;
+		load_failed.value = ![403, 404].includes(e.status);
 		return show_not_found();
 	}
+	// the user has moved on to another workspace while this one loaded
+	if (target.value.name !== name) return;
+	workspace.value = page;
 	correct_private_segment();
 	emit("title", workspace.value.title);
 	emit("actions", actions());
@@ -167,6 +175,7 @@ async function edit(variant) {
 		}),
 		import("./editor/WorkspaceEditor.vue"),
 	]);
+	if (workspace.value?.name !== page.name) return;
 	WorkspaceEditor.value = module.default;
 	editing.value = page;
 	edit_count.value++;
@@ -241,7 +250,13 @@ onBeforeUnmount(() => window.removeEventListener("beforeunload", warn_before_unl
 					>
 						<span class="lucide-file-question size-6" aria-hidden="true" />
 						<p class="text-base">
-							{{ __("This workspace does not exist, or you cannot open it.") }}
+							{{
+								load_failed
+									? __(
+											"This workspace could not be loaded. Reload to try again."
+									  )
+									: __("This workspace does not exist, or you cannot open it.")
+							}}
 						</p>
 					</div>
 					<template v-else-if="canvas">
