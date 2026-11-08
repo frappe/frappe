@@ -5,11 +5,11 @@ import path from "node:path"
 import test from "node:test"
 import { fileURLToPath } from "node:url"
 import { build } from "vite"
-import databaseAppImports from "./databaseAppImports.js"
-import sharedDependencyResolver from "./sharedDependencyResolver.js"
-import studioRootAlias from "./studioRootAlias.js"
+import databaseAppImports from "../databaseAppImports.js"
+import sharedDependencyResolver from "../sharedDependencyResolver.js"
+import studioRootAlias from "../studioRootAlias.js"
 
-const frontend = fileURLToPath(new URL("../", import.meta.url))
+const frontend = fileURLToPath(new URL("../../", import.meta.url))
 const CANARY = "STUDIO_DB_CANARY"
 const outsideFiles = {
 	"secret.json": JSON.stringify({ password: CANARY }),

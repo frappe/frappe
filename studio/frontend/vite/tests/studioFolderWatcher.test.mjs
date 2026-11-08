@@ -3,7 +3,7 @@ import fs from "node:fs"
 import os from "node:os"
 import path from "node:path"
 import test from "node:test"
-import studioFolderWatcher from "./studioFolderWatcher.js"
+import studioFolderWatcher from "../studioFolderWatcher.js"
 
 test("page scripts and router files accept HMR with either extension", () => {
 	const appsDir = fs.mkdtempSync(path.join(os.tmpdir(), "studio-script-hmr-"))
