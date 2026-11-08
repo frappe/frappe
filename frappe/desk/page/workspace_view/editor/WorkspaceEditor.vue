@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref, watch } from "vue";
-import { post } from "../api.js";
+import { attempt, post } from "../api.js";
 import BlockPanel from "./BlockPanel.vue";
 import {
 	BLOCK_TYPES,
@@ -163,13 +163,14 @@ function reset_workspace() {
 		__("Reset {0} to the app's version? This removes every change this site made to it.", [
 			frappe.utils.escape_html(props.workspace.title),
 		]),
-		async () => {
-			await post(
-				"frappe.desk.doctype.custom_workspace.custom_workspace.reset_workspace_customization",
-				{ workspace: props.workspace.name }
-			);
-			emit("saved");
-		}
+		() =>
+			attempt(async () => {
+				await post(
+					"frappe.desk.doctype.custom_workspace.custom_workspace.reset_workspace_customization",
+					{ workspace: props.workspace.name }
+				);
+				emit("saved");
+			})
 	);
 }
 
@@ -261,53 +262,53 @@ const hint = computed(() => {
 });
 
 function reset_layout() {
-	frappe.confirm(
-		__("Bring back the app's {0} layout?", [layout_label(layout.value)]),
-		async () => {
+	frappe.confirm(__("Bring back the app's {0} layout?", [layout_label(layout.value)]), () =>
+		attempt(async () => {
 			await post(
 				"frappe.desk.doctype.custom_workspace.custom_workspace.reset_workspace_customization",
 				{ workspace: props.workspace.name, variant: variant.value || DEFAULT_LAYOUT }
 			);
 			emit("saved", variant.value);
-		}
+		})
 	);
 }
 
 function reset_own_layout() {
-	frappe.confirm(
-		__("Drop your own layout of this workspace and see the shared one?"),
-		async () => {
+	frappe.confirm(__("Drop your own layout of this workspace and see the shared one?"), () =>
+		attempt(async () => {
 			await post(
 				"frappe.desk.doctype.custom_workspace.custom_workspace.reset_my_workspace_layout",
 				{ workspace: props.workspace.name }
 			);
 			emit("done");
-		}
+		})
 	);
 }
 
 function delete_layout() {
-	frappe.confirm(__("Delete the {0} layout?", [layout_label(layout.value)]), async () => {
-		await post(
-			"frappe.desk.doctype.custom_workspace.custom_workspace.delete_workspace_layout",
-			{
-				workspace: props.workspace.name,
-				variant: variant.value,
-			}
-		);
-		emit("switch", null);
-	});
+	frappe.confirm(__("Delete the {0} layout?", [layout_label(layout.value)]), () =>
+		attempt(async () => {
+			await post(
+				"frappe.desk.doctype.custom_workspace.custom_workspace.delete_workspace_layout",
+				{
+					workspace: props.workspace.name,
+					variant: variant.value,
+				}
+			);
+			emit("switch", null);
+		})
+	);
 }
 
 function delete_workspace() {
-	frappe.confirm(
-		__("Delete {0}?", [frappe.utils.escape_html(props.workspace.title)]),
-		async () => {
-			await post("frappe.desk.doctype.workspace.workspace.delete_page", {
+	frappe.confirm(__("Delete {0}?", [frappe.utils.escape_html(props.workspace.title)]), () =>
+		attempt(async () => {
+			const message = await post("frappe.desk.doctype.workspace.workspace.delete_page", {
 				name: props.workspace.name,
 			});
+			frappe.ui.update_workspace_pages(message);
 			frappe.set_route("/desk");
-		}
+		})
 	);
 }
 

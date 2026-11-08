@@ -9,7 +9,7 @@ import {
 	watch,
 } from "vue";
 import { Alert, FrappeUIProvider, setConfig } from "frappe-ui";
-import { get, post } from "./api.js";
+import { attempt, get, post } from "./api.js";
 import WorkspaceGrid from "./WorkspaceGrid.vue";
 import EmptyWorkspace from "./EmptyWorkspace.vue";
 import { block_rects, glide } from "./grid.js";
@@ -154,15 +154,14 @@ function actions() {
 const can_open_editor = computed(() => workspace.value?.can_edit || workspace.value?.can_edit_own);
 
 function reset_own_layout() {
-	frappe.confirm(
-		__("Drop your own layout of this workspace and see the shared one?"),
-		async () => {
+	frappe.confirm(__("Drop your own layout of this workspace and see the shared one?"), () =>
+		attempt(async () => {
 			await post(
 				"frappe.desk.doctype.custom_workspace.custom_workspace.reset_my_workspace_layout",
 				{ workspace: workspace.value.name }
 			);
 			load();
-		}
+		})
 	);
 }
 
@@ -196,14 +195,16 @@ function reset() {
 		"Reset <b>{0}</b> to the standard, app-shipped version? This removes all site customizations.",
 		[frappe.utils.escape_html(workspace.value.title)]
 	);
-	frappe.confirm(message, async () => {
-		await post(
-			"frappe.desk.doctype.custom_workspace.custom_workspace.reset_workspace_customization",
-			{ workspace: workspace.value.name }
-		);
-		frappe.show_alert({ message: __("Workspace reset to standard"), indicator: "green" });
-		load();
-	});
+	frappe.confirm(message, () =>
+		attempt(async () => {
+			await post(
+				"frappe.desk.doctype.custom_workspace.custom_workspace.reset_workspace_customization",
+				{ workspace: workspace.value.name }
+			);
+			frappe.show_alert({ message: __("Workspace reset to standard"), indicator: "green" });
+			load();
+		})
+	);
 }
 
 function open_target() {

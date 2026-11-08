@@ -17,6 +17,15 @@ export async function post(method, params = {}) {
 	});
 }
 
+// Runs a server action from a confirm dialog or menu, and shows the user why it failed.
+export async function attempt(action) {
+	try {
+		await action();
+	} catch (e) {
+		window.frappe.msgprint(window.frappe.utils.escape_html(e.message));
+	}
+}
+
 async function request(url, options) {
 	const response = await fetch(url, {
 		...options,
