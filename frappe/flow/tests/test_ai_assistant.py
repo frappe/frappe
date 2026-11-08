@@ -47,9 +47,11 @@ class TestSyncBuiltinAssistant(IntegrationTestCase):
 		self.assertTrue(doc.enabled)
 		expected = sorted(builtin_name(t.name) for t in BUILTIN_TOOLS)
 		self.assertEqual(sorted(row.tool for row in doc.tools), expected)
-		self.assertIn(
-			f"You are helping Administrator (Administrator). Session started on {get_weekday()}, {today()}.",
-			doc.render_instructions(),
+		# last, so the shared text before it stays cacheable across users
+		self.assertTrue(
+			doc.render_instructions().endswith(
+				f"\n\nYou are helping Administrator (Administrator). Session started on {get_weekday()}, {today()}."
+			)
 		)
 		with self.assertRaisesRegex(frappe.ValidationError, "system-generated"):
 			frappe.delete_doc("Flow Agent", ASSISTANT_AGENT_NAME, ignore_permissions=True)
