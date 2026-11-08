@@ -34,6 +34,7 @@ const selected_id = ref(null);
 const previewing = ref(false);
 const variant = ref(props.workspace.variant);
 const layouts = ref([...(props.workspace.layouts || [])]);
+const copied_from = ref(null);
 const layout = computed(() => layouts.value.find((l) => l.role === variant.value));
 const initial = JSON.stringify(blocks.value);
 const dirty = computed(
@@ -144,6 +145,7 @@ async function save() {
 			new_widgets,
 			blocks: saved,
 			variant: variant.value || DEFAULT_LAYOUT,
+			copied_from: copied_from.value,
 		});
 		frappe.show_alert({ message: __("Saved"), indicator: "green" });
 		emit("done");
@@ -216,6 +218,7 @@ function new_layout() {
 			}),
 		},
 		({ role }) => {
+			copied_from.value ??= variant.value || DEFAULT_LAYOUT;
 			layouts.value.push({ role, source: "New" });
 			variant.value = role;
 			for (const block of blocks.value) {

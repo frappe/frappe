@@ -1029,8 +1029,18 @@ def add_private_to_sidebar(workspace):
 
 
 @frappe.whitelist()
-def save_page(name: str, public: str | int, new_widgets: dict, blocks: str, variant: str | None = None):
-	"""Save one layout of a workspace: `variant` names a role layout, else the default."""
+def save_page(
+	name: str,
+	public: str | int,
+	new_widgets: dict,
+	blocks: str,
+	variant: str | None = None,
+	copied_from: str | None = None,
+):
+	"""Save one layout of a workspace: `variant` names a role layout, else the default.
+
+	`copied_from` names the layout a new role layout started as.
+	"""
 	public = frappe.parse_json(public)
 	new_widgets = frappe.parse_json(new_widgets or "{}")
 	if variant == DEFAULT_LAYOUT:
@@ -1047,7 +1057,7 @@ def save_page(name: str, public: str | int, new_widgets: dict, blocks: str, vari
 		save_own_layout(name, frappe.parse_json(blocks), new_widgets)
 		return {"name": name, "public": public, "label": doc.label}
 
-	blocks = dumps(merge_unseen_blocks(name, variant, frappe.parse_json(blocks)))
+	blocks = dumps(merge_unseen_blocks(name, variant, frappe.parse_json(blocks), new_widgets, copied_from))
 
 	# A standard (app-shipped) workspace is never edited in place on a site. The site's layout
 	# changes are stored as a delta on top of the live base, so app updates keep arriving. In
@@ -1137,18 +1147,24 @@ def stored_widget(block: dict, stored_widgets: dict) -> dict | None:
 	return widget
 
 
-def merge_unseen_blocks(name: str, variant: str | None, blocks: list) -> list:
+def merge_unseen_blocks(
+	name: str, variant: str | None, blocks: list, new_widgets: dict, copied_from: str | None = None
+) -> list:
 	"""Put back the blocks the editor could not see, each after the block it followed.
 
 	An editor is shown only the widgets they may read, so their save would otherwise drop the
 	rest for everyone. The stored layout and the saving user's permissions say which those are.
-	A block that draws for nobody is not put back.
+	A block that draws for nobody is not put back. A new role layout takes them from the layout
+	it was copied from, and adds their widgets to `new_widgets`, since it has none of its own.
 	"""
 	from frappe.desk.desktop import Workspace, is_drawable, readable_widgets
 	from frappe.desk.doctype.custom_workspace.custom_workspace import snapshot_widgets
 
 	workspace = Workspace({"name": name})
 	workspace.use_layout(variant or DEFAULT_LAYOUT)
+	is_new_layout = bool(variant) and not workspace.variant
+	if is_new_layout:
+		workspace.use_layout(copied_from or DEFAULT_LAYOUT)
 	stored = loads(workspace.doc.content or "[]")
 	stored_widgets = snapshot_widgets(workspace.doc)
 	widgets = readable_widgets(workspace)
@@ -1162,8 +1178,10 @@ def merge_unseen_blocks(name: str, variant: str | None, blocks: list) -> list:
 			onboarding = block["data"].get("onboarding_name")
 			if not onboarding or not frappe.db.exists("Module Onboarding", onboarding):
 				continue
-		elif not stored_widget(block, stored_widgets):
+		elif not (widget := stored_widget(block, stored_widgets)):
 			continue
+		elif is_new_layout:
+			new_widgets.setdefault(block["type"], []).append(widget)
 		before = (block_key(b) for b in reversed(stored[:index]))
 		anchor = next((key for key in before if key in kept), None)
 		at = 0 if anchor is None else [block_key(b) for b in merged].index(anchor) + 1

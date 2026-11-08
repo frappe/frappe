@@ -403,6 +403,31 @@ class TestSavingLayouts(IntegrationTestCase):
 		frappe.set_user("Administrator")
 		self.assertEqual(self.stored("GW Secret Page"), [text["id"], chart["id"]])
 
+	def test_a_new_role_layout_keeps_the_unread_widgets_of_its_source(self):
+		make_chart("GW Secret", "Error Log")
+		chart = block("chart", "Secret")
+		other = block("chart", "Elsewhere")
+		make_workspace(
+			"GW Copy",
+			content=[other],
+			charts=[{"label": "Elsewhere", "chart_name": "GW Secret"}],
+			variants=[
+				{
+					"role": "System Manager",
+					"content": dumps([chart]),
+					"widgets": dumps({"chart": [{"label": "Secret", "chart_name": "GW Secret"}]}),
+				}
+			],
+		)
+		text = block("header", text="New")
+		frappe.set_user(MANAGER)
+		save_page("GW Copy", 1, {}, dumps([text]), variant=self.ROLE, copied_from="System Manager")
+		frappe.set_user("Administrator")
+
+		row = next(r for r in frappe.get_doc("Workspace", "GW Copy").variants if r.role == self.ROLE)
+		self.assertEqual([b["id"] for b in loads(row.content)], [chart["id"], text["id"]])
+		self.assertEqual([w["label"] for w in loads(row.widgets)["chart"]], ["Secret"])
+
 	def test_a_hidden_onboarding_is_not_a_lack_of_access(self):
 		make_workspace(
 			"GW Onboarding", content=[{"id": "o", "type": "onboarding", "data": {"onboarding_name": "x"}}]
