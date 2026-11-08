@@ -121,7 +121,7 @@ def check_app_permission() -> bool:
 	return False
 
 
-@frappe.whitelist(allow_guest=True, methods=["GET"])  # nosemgrep: guest-whitelisted-method
+@frappe.whitelist(methods=["GET"])
 def get_custom_vue_components(frappe_app: str, studio_app: str) -> list[dict]:
 	"""List the custom Vue SFC components one studio app exports, from the folder the build reads.
 
