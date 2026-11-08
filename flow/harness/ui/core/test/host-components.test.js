@@ -19,7 +19,7 @@ Object.defineProperty(dom.window.HTMLElement.prototype, "inert", {
 	},
 })
 globalThis.requestAnimationFrame = (callback) => setTimeout(callback, 0)
-const { createApp, h, nextTick, reactive } = await import("vue")
+const { createApp, h, nextTick, reactive, ref } = await import("vue")
 const { dialog, dialogStack, loadComponent } = await import("./helpers/components.js")
 const { applyEvent, formatTime, initialConversation } = await import("../src/transcript.js")
 const { FlowAPIError } = await import("../src/client.js")
@@ -3102,6 +3102,34 @@ test("the ask-for-changes field takes focus and leaves an IME's Enter and Escape
 	await nextTick()
 	await nextTick()
 	assert.equal(document.activeElement, ask())
+})
+
+test("a new chat's box is roomier only while it sits mid-page: at the foot, as in a panel, its first message leaves its size alone", async (t) => {
+	const flow = composerFlow()
+	Object.assign(flow.state, { sessionId: null, conversation: { running: false, sending: [] } })
+	const lift = ref(0)
+	const el = document.createElement("div")
+	document.body.append(el)
+	const app = createApp(Composer, { commands: [], mentions: false })
+	app.provide("flow", flow)
+	app.provide("composerLift", lift)
+	app.mount(el)
+	t.after(() => {
+		app.unmount()
+		el.remove()
+	})
+	const size = () => [el.querySelector("fieldset").className.includes("p-2.5"), el.querySelector('[aria-label="Send"]').className.includes("h-8")]
+
+	assert.deepEqual(size(), [false, false])
+	flow.state.conversation.sending.push({ text: "hi" })
+	await nextTick()
+	assert.deepEqual(size(), [false, false])
+
+	// mid-page, as on the /flow page, a new chat's box is the roomier one
+	flow.state.conversation.sending.length = 0
+	lift.value = 200
+	await nextTick()
+	assert.deepEqual(size(), [true, true])
 })
 
 test("a spreadsheet range pastes as its text, a screenshot as a picture", async (t) => {
