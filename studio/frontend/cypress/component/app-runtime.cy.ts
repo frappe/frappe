@@ -36,7 +36,7 @@ export default function setup(context) { return { label: ref(fmt(7) + fmt2(8)) }
 		})
 	})
 
-	it("fails only the modules that need a file which does not compile", () => {
+	it("fails only the modules a broken file breaks, and keeps them failed", () => {
 		const sources = {
 			"good.js": `export const ok = "ok"`,
 			"half-written.js": `export const oops = (`,
@@ -65,6 +65,21 @@ export default function setup(context) { return { label: ref(fmt(7) + fmt2(8)) }
 				let loadError: any = null
 				await registry.loadModule("a.js").catch((e) => (loadError = e))
 				expect(loadError, "loading it reports the failure").to.be.instanceOf(AppCompileError)
+
+				// A missing export is the one failure that leaves a working factory behind, so an
+				// unchanged script has to keep reporting it instead of running an undefined import.
+				const pageRegistry = new AppModuleRegistry({ "utils.js": `export const present = 1` })
+				const page = "studio_page/board/board.js"
+				const missingExport = `import { missing } from "@app/utils.js"\nexport default () => missing`
+				for (const attempt of ["first", "second"]) {
+					let importError: any = null
+					await pageRegistry.addFile(page, missingExport).catch((e) => (importError = e))
+					expect(importError, `${attempt} save rejected`).to.be.instanceOf(AppCompileError)
+					expect(importError.message).to.include(`has no export named "missing"`)
+				}
+				const fixed = `import { present } from "@app/utils.js"\nexport default () => present`
+				await pageRegistry.addFile(page, fixed)
+				expect((await pageRegistry.loadModule(page)).default()).to.equal(1)
 			})(),
 		)
 	})

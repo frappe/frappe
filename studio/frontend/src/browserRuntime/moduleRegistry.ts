@@ -60,15 +60,17 @@ export class AppModuleRegistry {
 	 * Other module caches stay unchanged, so cached importers may still hold older exports. */
 	async addFile(path: string, source: string): Promise<void> {
 		await this.prepare()
-		if (this.files[path] === source && this.factories[path]) return
-		this.files[path] = source
-		this.modules.delete(path)
-		this.executionErrors.delete(path)
-		delete this.failures[path]
-		await this.compileInto(path, source)
+		if (this.files[path] !== source || !this.factories[path]) {
+			this.files[path] = source
+			this.modules.delete(path)
+			this.executionErrors.delete(path)
+			delete this.failures[path]
+			await this.compileInto(path, source)
+			this.throwIfFailed(path)
+			const errors = this.checkLocalExports(path)
+			if (errors.length) this.failures[path] = errors
+		}
 		this.throwIfFailed(path)
-		const errors = this.checkLocalExports(path)
-		if (errors.length) throw new AppCompileError(errors)
 	}
 
 	hasFile(path: string): boolean {
