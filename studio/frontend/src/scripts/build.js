@@ -119,6 +119,7 @@ export async function generateAppBuild(
 	databaseApp = false,
 ) {
 	if (!appName) return
+	if (databaseApp && !appFolder) throw new Error("--database-app requires --app-folder")
 
 	const componentList = components ? components.split(",") : []
 	const customComponents = customComponentsJson ? JSON.parse(customComponentsJson) : {}
@@ -339,7 +340,7 @@ async function buildWithVite(
 				jinjaBootData: false,
 			}),
 			// Before studioRootAlias, so it sees @app/ specifiers as written.
-			...(databaseApp && appFolder ? [databaseAppImports(appFolder)] : []),
+			databaseApp && databaseAppImports(appFolder),
 			studioRootAlias(),
 			sharedDependencyResolver(path.resolve(__dirname, "../../")),
 			// resolves @framework/ui's own deps from studio's node_modules

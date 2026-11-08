@@ -1,36 +1,32 @@
 import { extractIdentifiers, walk, walkIdentifiers } from "vue/compiler-sfc"
-import type { BabelProgram } from "@/browserRuntime/compiler"
-import type { CompileError } from "@/browserRuntime/compiler"
+import { IMPORTABLE_MODULES } from "./importableLibraries.js"
 
 const COMMONJS_NAMES = ["require", "module", "exports"]
 
 /**
- * Report source the browser's CommonJS loader runs differently from a published bundle.
- *
- * Only divergences the loader cannot report itself belong here. Sucrase injects `require`,
- * `module` and `exports`, so source using those names works in the preview and breaks once the
- * app is built. A computed `import()` resolves against the page in the preview and against the
- * module in a build. Sucrase cannot parse a string-named import or export at all, and reports only
- * "Unexpected string".
+ * Validate source for both the browser loader and database-app publishing.
+ * @param {import('./compiler').BabelProgram} program
+ * @param {string} filename
+ * @returns {import('./compiler').CompileError[]}
  */
-export function moduleSyntaxErrors(program: BabelProgram, filename: string): CompileError[] {
-	const errors: CompileError[] = []
-	const known: Record<string, number> = Object.create(null)
-	const record = (node: any, message: string) =>
+export function moduleSyntaxErrors(program, filename) {
+	const errors = []
+	const known = Object.create(null)
+	const record = (node, message) =>
 		errors.push({
 			file: filename,
 			line: node.loc?.start.line ?? null,
 			column: node.loc?.start.column ?? null,
 			message,
 		})
-	const bind = (id: any) => {
+	const bind = (id) => {
 		if (known[id.name]) return
 		known[id.name] = 1
 		if (COMMONJS_NAMES.includes(id.name))
 			record(id, `Top-level binding "${id.name}" is reserved in database apps.`)
 	}
 	for (const statement of program.body) {
-		const node: any = (statement as any).declaration || statement
+		const node = statement.declaration || statement
 		if (node.type === "VariableDeclaration") {
 			for (const declaration of node.declarations) {
 				for (const id of extractIdentifiers(declaration.id)) bind(id)
@@ -43,7 +39,7 @@ export function moduleSyntaxErrors(program: BabelProgram, filename: string): Com
 
 	let functionDepth = 0
 	walk(program, {
-		enter(node: any) {
+		enter(node) {
 			if (isFunction(node)) functionDepth++
 			// `var` hoists to the module, so a nested one still binds a top-level name.
 			if (node.type === "VariableDeclaration" && node.kind === "var" && !functionDepth) {
@@ -68,15 +64,35 @@ export function moduleSyntaxErrors(program: BabelProgram, filename: string): Com
 			) {
 				record(node, "Dynamic imports in database apps must use a literal module path.")
 			}
+			if (node.type === "MetaProperty" && node.meta.name === "import") {
+				record(node, "import.meta is not supported in database apps.")
+			}
+			const source =
+				node.source || (node.type === "CallExpression" && node.callee.type === "Import" && node.arguments[0])
+			if (source?.type === "StringLiteral") {
+				const specifier = source.value
+				if (specifier.includes("?") || specifier.includes("#")) {
+					record(node, "Import queries and fragments are not supported in database apps.")
+				} else if (
+					!specifier.startsWith(".") &&
+					!specifier.startsWith("@app/") &&
+					!IMPORTABLE_MODULES.includes(specifier)
+				) {
+					record(node, `"${specifier}" is not importable in a database app.`)
+				}
+				if (node.attributes?.length || node.assertions?.length || node.arguments?.length > 1) {
+					record(node, "Import attributes are not supported in database apps.")
+				}
+			}
 		},
-		leave(node: any) {
+		leave(node) {
 			if (isFunction(node)) functionDepth--
 		},
 	})
 
 	if (program.body.length) {
 		walkIdentifiers(
-			program as any,
+			program,
 			(id, _parent, _stack, isReference, isLocal) => {
 				if (isReference && !isLocal && COMMONJS_NAMES.includes(id.name)) {
 					record(id, `${id.name} is not available in database app source. Use import and export instead.`)
@@ -90,6 +106,6 @@ export function moduleSyntaxErrors(program: BabelProgram, filename: string): Com
 	return errors
 }
 
-function isFunction(node: { type: string }): boolean {
+function isFunction(node) {
 	return node.type.includes("Function") || node.type.endsWith("Method")
 }

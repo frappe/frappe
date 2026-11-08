@@ -602,6 +602,7 @@ class TestStudioAppBuilder(FrappeTestCase):
 		command = run.call_args.args[0]
 		# Vite receives paths to the same source files that the browser compiler uses.
 		# A database app ships no Vue components; they need a repository app.
+		self.assertIn("--database-app", command)
 		self.assertIsNone(argument(command, "--custom-components"))
 		self.assertEqual(argument(command, "--router-file"), os.path.join(builder.app_folder, "router.js"))
 		scripts = json.loads(argument(command, "--page-scripts"))

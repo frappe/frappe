@@ -443,6 +443,7 @@ def write_db_files_to_folder(studio_app: str, app_folder: str) -> list[dict]:
 	"""
 	from frappe.studio.files import get_store_files
 
+	frappe.create_folder(app_folder)
 	for file in get_store_files(studio_app):
 		write_build_file(os.path.join(app_folder, file["path"]), file["content"])
 

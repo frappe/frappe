@@ -15,6 +15,10 @@ import * as vueRouter from "vue-router"
 import * as pinia from "pinia"
 import * as frappeUI from "frappe-ui"
 import * as frappeUIList from "frappe-ui/list"
+import { IMPORTABLE_MODULES } from "./importableLibraries.js"
+
+export { IMPORTABLE_MODULES }
+
 const modules: Record<string, Record<string, any>> = {
 	vue,
 	"vue-router": vueRouter,
@@ -27,8 +31,6 @@ const loaders: Record<string, () => Promise<Record<string, any>>> = {
 	"frappe-ui/charts": () => import("frappe-ui/charts"),
 }
 
-export const IMPORTABLE_MODULES = [...Object.keys(modules), ...Object.keys(loaders)].sort()
-
 const loaded = new Map<string, Promise<Record<string, any>>>()
 
 /**
@@ -40,7 +42,7 @@ export function loadImportableModule(specifier: string): Promise<Record<string, 
 	if (!module) {
 		const namespace = modules[specifier]
 		const loader = loaders[specifier]
-		if (!namespace && !loader) {
+		if (!IMPORTABLE_MODULES.includes(specifier) || (!namespace && !loader)) {
 			return Promise.reject(
 				new Error(
 					`"${specifier}" is not importable here. An app whose files live in the database can ` +

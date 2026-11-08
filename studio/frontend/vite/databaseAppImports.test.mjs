@@ -9,101 +9,99 @@ import databaseAppImports from "./databaseAppImports.js"
 import sharedDependencyResolver from "./sharedDependencyResolver.js"
 import studioRootAlias from "./studioRootAlias.js"
 
-// A database app's build folder has no node_modules, so libraries resolve to Studio's own.
 const frontend = fileURLToPath(new URL("../", import.meta.url))
+const CANARY = "STUDIO_DB_CANARY"
+const outsideFiles = {
+	"secret.json": JSON.stringify({ password: CANARY }),
+	"secret.css": `:root { --secret: "${CANARY}" }`,
+	"secret.txt": CANARY,
+}
 
-/** Build one app folder the way a published database app is built, and return the bundle or the error. */
-async function buildApp(files, outsideFiles = {}) {
+async function buildApp(files, databaseApp = true) {
 	const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "studio-db-imports-"))
 	const appFolder = path.join(tmp, "studio", "shop")
-	for (const [target, source] of [
-		...Object.entries(outsideFiles).map(([file, body]) => [path.join(tmp, file), body]),
-		...Object.entries(files).map(([file, body]) => [path.join(appFolder, file), body]),
-	]) {
-		fs.mkdirSync(path.dirname(target), { recursive: true })
-		fs.writeFileSync(target, source)
-	}
-	const outDir = path.join(tmp, "out")
 	try {
-		await build({
+		for (const [folder, sources] of [
+			[tmp, outsideFiles],
+			[appFolder, files],
+		]) {
+			for (const [file, source] of Object.entries(sources)) {
+				const target = path.join(folder, file)
+				fs.mkdirSync(path.dirname(target), { recursive: true })
+				fs.writeFileSync(target, source)
+			}
+		}
+		const result = await build({
 			configFile: false,
 			root: appFolder,
 			logLevel: "silent",
-			plugins: [databaseAppImports(appFolder), studioRootAlias(), sharedDependencyResolver(frontend)],
+			plugins: [
+				databaseApp && databaseAppImports(appFolder),
+				studioRootAlias(),
+				sharedDependencyResolver(frontend),
+			],
 			build: {
-				outDir,
-				emptyOutDir: true,
+				write: false,
 				lib: { entry: path.join(appFolder, "entry.js"), formats: ["es"], fileName: "bundle" },
 			},
 		})
-		const bundle = fs
-			.readdirSync(outDir)
-			.map((file) => fs.readFileSync(path.join(outDir, file), "utf8"))
+		return [result]
+			.flat()
+			.flatMap(({ output }) => output)
+			.map((file) => file.code ?? file.source)
 			.join("\n")
-		return { ok: true, bundle }
-	} catch (error) {
-		return { ok: false, error: String(error.message) }
 	} finally {
 		fs.rmSync(tmp, { recursive: true, force: true })
 	}
 }
 
-const SECRET = { "secrets.json": '{"password":"CANARY"}' }
-
-test("a database app's build refuses an import that leaves the app folder", async () => {
-	// `@app/` is only a prefix: path.join normalises `..`, so it can walk out of the app.
-	const viaPrefix = await buildApp(
-		{
-			"entry.js": `export { password } from "./stores/leak.js"`,
-			"stores/leak.js": `import data from "@app/../../secrets.json"\nexport const password = data.password`,
-		},
-		SECRET,
-	)
-	assert.equal(viaPrefix.ok, false)
-	assert.match(viaPrefix.error, /must not walk above the app root/)
-
-	const viaRelative = await buildApp(
-		{
-			"entry.js": `export { password } from "./stores/leak.js"`,
-			"stores/leak.js": `import data from "../../../secrets.json"\nexport const password = data.password`,
-		},
-		SECRET,
-	)
-	assert.equal(viaRelative.ok, false)
-	assert.match(viaRelative.error, /resolves outside the app/)
-
-	// A query suffix must not hide the path: ?raw would otherwise inline any file as a string.
-	const viaRaw = await buildApp(
-		{
-			"entry.js": `export { text } from "./stores/leak.js"`,
-			"stores/leak.js": `import text from "../../../secrets.json?raw"\nexport { text }`,
-		},
-		SECRET,
-	)
-	assert.equal(viaRaw.ok, false)
-	assert.match(viaRaw.error, /resolves outside the app/)
-
-	const viaLibrary = await buildApp({
-		"entry.js": `import value from "lodash"\nexport const total = value`,
+for (const specifier of ["@app/../../secret.json", "../../../secret.json"]) {
+	test(`a database build refuses ${specifier}`, async () => {
+		await assert.rejects(
+			buildApp({
+				"entry.js": 'export { password } from "./stores/leak.js"',
+				"stores/leak.js": `import data from "${specifier}"; export const password = data.password`,
+			}),
+			/resolves outside the app/,
+		)
 	})
-	assert.equal(viaLibrary.ok, false)
-	assert.match(viaLibrary.error, /is not importable in a database app/)
+}
+
+test("database CSS keeps @import and url() in the browser", async () => {
+	const bundle = await buildApp({
+		"entry.js": 'import "./theme.css"',
+		"theme.css": '@import "../../secret.css"; .asset { background: url("../../secret.txt") }',
+	})
+	assert.ok(!bundle.includes(CANARY))
+	assert.ok(!bundle.includes(Buffer.from(CANARY).toString("base64")))
 })
 
-test("a database app's build keeps resolving its own files and allowed libraries", async () => {
-	const built = await buildApp(
-		{
-			"entry.js": `export { label } from "./studio_page/board/board.js"`,
-			"utils/format.js": `export const fmt = (n) => "#" + n`,
-			"theme.json": `{"accent":"teal"}`,
-			"studio_page/board/board.js": `import { isRef, ref } from "vue"
-import { fmt } from "@app/utils/format"
-import { fmt as fmt2 } from "../../utils/format"
-import theme from "@app/theme.json"
-export const label = fmt(1) + fmt2(2) + theme.accent + isRef(ref(0))`,
-		},
-		SECRET,
+test("database builds reject import.meta asset reads", async () => {
+	await assert.rejects(
+		buildApp({
+			"entry.js": 'export const asset = new URL("../../secret.txt", import.meta.url).href',
+		}),
+		/import.meta is not supported/,
 	)
-	assert.equal(built.ok, true, built.error)
-	assert.ok(!built.bundle.includes("CANARY"))
+})
+
+test("package metadata cannot redirect a database build entry", async () => {
+	const bundle = await buildApp({
+		"entry.js": "export const value = 42",
+		"package.json": JSON.stringify({ browser: { "./entry.js": "../../secret.json" } }),
+	})
+	assert.ok(!bundle.includes(CANARY))
+})
+
+test("repository builds keep TypeScript and Vite asset processing", async () => {
+	const bundle = await buildApp(
+		{
+			"entry.js":
+				'import "./theme.css"; export { value } from "./value.ts"; export const asset = new URL("../../secret.txt", import.meta.url).href',
+			"value.ts": "export const value: number = 42",
+			"theme.css": '@import "../../secret.css";',
+		},
+		false,
+	)
+	assert.ok(bundle.includes(CANARY))
 })

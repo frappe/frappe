@@ -7,8 +7,7 @@
  *   previewOnly?: boolean
  * }[]}
  *
- * `failureContains`: both loaders must reject the source. `previewOnly`: the preview rejects it and
- * a build accepts it, because the rule exists only in the browser's CommonJS loader.
+ * `previewOnly` documents a remaining difference in the browser's CommonJS loader.
  */
 export const moduleFixtures = [
 	{
@@ -103,10 +102,12 @@ return [before, first.value, first === second, globalThis.__moduleFixtureOrder.l
 		name: "css-side-effect",
 		files: {
 			"theme.css": ".studio-module-fixture { color: rgb(1, 2, 3) }",
-			"entry.js": `import './theme.css'; export function run() { const el = document.createElement('div');
-el.className = 'studio-module-fixture'; document.body.append(el); const color = getComputedStyle(el).color; el.remove(); return color }`,
+			"entry.js": `import './theme.css'; import '@app/theme.css'; import * as styles from '@app/theme.css';
+export function run() { const el = document.createElement('div');
+el.className = 'studio-module-fixture'; document.body.append(el); const color = getComputedStyle(el).color; el.remove();
+return [color, Object.keys(styles), document.querySelectorAll('style[data-studio-app-css="theme.css"]').length] }`,
 		},
-		expected: "rgb(1, 2, 3)",
+		expected: ["rgb(1, 2, 3)", [], 1],
 	},
 	{
 		name: "external-reexports",
@@ -256,8 +257,6 @@ source.value++; await nextTick(); root.remove(); return {mounted, unmounted, wat
 		},
 		failureContains: "value",
 	},
-	// Sucrase injects the CommonJS names, so source using them runs in the preview and breaks once
-	// the app is built. A computed import() resolves against the page here and the module there.
 	...[
 		["commonjs-require", "export const run = () => require('./value.js')", "require", { "value.js": "" }],
 		["commonjs-module", "module.exports = {run:() => 1}", "module"],
@@ -265,20 +264,36 @@ source.value++; await nextTick(); root.remove(); return {mounted, unmounted, wat
 		["top-level-reserved-name", "const module = 1; export const run = () => module", "reserved"],
 		["computed-import", "export const run = name => import('./' + name)", "literal module path"],
 		["string-named-export", "const value = 1; export {value as 'foo-bar'}", "String-named imports"],
+		["import-meta", "export const run = () => import.meta.env.MODE", "import.meta"],
+		[
+			"unsupported-library",
+			"import {useDebounceFn} from '@vueuse/core'; export const run = () => useDebounceFn",
+			"not importable",
+		],
+		[
+			"import-query",
+			"import text from './value.js?raw'; export const run = () => text",
+			"Import queries",
+			{ "value.js": "export default 1" },
+		],
+		[
+			"import-attributes",
+			"export const run = () => import('./theme.json', {with:{type:'json'}})",
+			"Import attributes",
+			{ "theme.json": "{}" },
+		],
 	].map(([name, entry, failureContains, extra = {}]) => ({
 		name,
 		files: { "entry.js": entry, ...extra },
 		failureContains,
-		previewOnly: true,
 	})),
 	// Sucrase passes these through, so the loader reports what new Function() rejects.
-	...[
-		["top-level-await", "export const run = await Promise.resolve(() => 1)", "await is only valid"],
-		["import-meta", "export const run = () => import.meta.env.MODE", "import.meta"],
-	].map(([name, entry, failureContains]) => ({
-		name,
-		files: { "entry.js": entry },
-		failureContains,
-		previewOnly: true,
-	})),
+	...[["top-level-await", "export const run = await Promise.resolve(() => 1)", "await is only valid"]].map(
+		([name, entry, failureContains]) => ({
+			name,
+			files: { "entry.js": entry },
+			failureContains,
+			previewOnly: true,
+		}),
+	),
 ]
