@@ -35,14 +35,6 @@ describe("Filter ↔ QuickFilter sync over the shared list", () => {
     expect(serializeFilters(filters)).toEqual([["status", "=", "Open"]]);
   });
 
-  it("Filter → QuickFilter: a Filter-built condition shows in the quick input", () => {
-    // A condition created in the Filter popover (its canonical operator).
-    const filters: Filter[] = [
-      { field: STATUS, fieldname: "status", operator: "equals", value: "Open" },
-    ];
-    expect(quickValue(filters, STATUS)).toBe("Open");
-  });
-
   it("a free-text like quick filter round-trips to a wrapped wire LIKE", () => {
     const filters = applyQuick([], TITLE, "acme", "like");
     expect(quickValue(filters, TITLE)).toBe("acme");

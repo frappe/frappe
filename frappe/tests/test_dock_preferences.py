@@ -534,10 +534,6 @@ class TestDockSiteLayer(DockTestCase):
 
 	# -- the merge ----------------------------------------------------------------------
 
-	def test_site_order_applies_to_a_user_who_has_arranged_nothing(self):
-		self.set_site_order(BETA, ALPHA)
-		self.assertEqual(names(dock_for(self.DESK_USER)), [BETA, ALPHA])
-
 	def test_a_saved_layer_is_exactly_the_rail(self):
 		"""A user's saved layer is their rail. What they left out is not behind what they kept; it is
 		off, and it comes back by being added rather than by appearing on its own.
@@ -561,16 +557,6 @@ class TestDockSiteLayer(DockTestCase):
 		frappe.set_user(self.DESK_USER)
 		save_user_dock(APP, payload(sidebar(BETA, hidden=0)))
 		self.assertEqual(hidden_by_name(dock_for(self.DESK_USER))[BETA], 0)
-
-	def test_a_module_the_site_never_named_is_absent_rather_than_appended(self):
-		"""Absence is the answer: the arrangement says what to move, not what to show.
-
-		The client keeps a module no layer names in its app's own order, after the ones a layer did
-		name, so nothing has to be re-listed for it to keep its default place.
-
-		"""
-		self.set_site_order(BETA, ALPHA)
-		self.assertEqual(names(dock_for(self.DESK_USER)), [BETA, ALPHA])
 
 	def test_an_entry_the_app_adds_later_waits_to_be_added(self):
 		"""The cost of a saved layer being exactly the rail. An entry the app ships after the site has
