@@ -1032,16 +1032,20 @@ def add_private_to_sidebar(workspace):
 def save_page(name: str, public: str | int, new_widgets: dict, blocks: str, variant: str | None = None):
 	"""Save one layout of a workspace: `variant` names a role layout, else the default."""
 	public = frappe.parse_json(public)
+	new_widgets = frappe.parse_json(new_widgets or "{}")
 	if variant == DEFAULT_LAYOUT:
 		variant = None
 
 	doc = frappe.get_doc("Workspace", name)
 	can_edit = can_edit_workspace(doc)
-	if not can_edit and doc.public:
-		save_own_layout(name, frappe.parse_json(blocks), frappe.parse_json(new_widgets or "{}"))
-		return {"name": name, "public": public, "label": doc.label}
-	if not can_edit:
+	if not can_edit and not doc.public:
 		frappe.throw(_("You are not permitted to edit this workspace."), frappe.PermissionError)
+
+	validate_blocks_are_set_up(frappe.parse_json(blocks), new_widgets)
+
+	if not can_edit:
+		save_own_layout(name, frappe.parse_json(blocks), new_widgets)
+		return {"name": name, "public": public, "label": doc.label}
 
 	blocks = dumps(merge_unseen_blocks(name, variant, frappe.parse_json(blocks)))
 
@@ -1053,16 +1057,14 @@ def save_page(name: str, public: str | int, new_widgets: dict, blocks: str, vari
 			upsert_content_customization,
 		)
 
-		upsert_content_customization(
-			name, frappe.parse_json(blocks), frappe.parse_json(new_widgets or "{}"), variant
-		)
+		upsert_content_customization(name, frappe.parse_json(blocks), new_widgets, variant)
 		return {"name": name, "public": public, "label": doc.label}
 
 	if not doc.type:
 		doc.type = "Workspace"
 
 	if variant:
-		save_variant(doc, variant, frappe.parse_json(blocks), frappe.parse_json(new_widgets or "{}"))
+		save_variant(doc, variant, frappe.parse_json(blocks), new_widgets)
 		return {"name": name, "public": public, "label": doc.label}
 
 	doc.content = blocks
@@ -1083,23 +1085,84 @@ def save_own_layout(name: str, content: list, new_widgets: dict) -> None:
 	save_user_layout(workspace.doc, content, new_widgets)
 
 
+# Block type -> the field a widget of that type cannot do without, and the doctype it names.
+WIDGET_RECORDS = {
+	"chart": ("chart_name", "Dashboard Chart"),
+	"number_card": ("number_card_name", "Number Card"),
+	"quick_list": ("document_type", "DocType"),
+	"custom_block": ("custom_block_name", "Custom HTML Block"),
+}
+
+
+def is_widget_set_up(widget_type: str, widget: dict) -> bool:
+	if widget_type == "card":
+		return bool(loads(widget.get("links") or "[]"))
+	if widget_type == "shortcut":
+		return bool(widget.get("url") if widget.get("type") == "URL" else widget.get("link_to"))
+	return bool(widget.get(WIDGET_RECORDS[widget_type][0]))
+
+
+def validate_blocks_are_set_up(blocks: list, new_widgets: dict) -> None:
+	"""Refuse a block left without the thing it shows, which could never be drawn or removed."""
+	for widget_type, widgets in new_widgets.items():
+		for widget in widgets or []:
+			if not is_widget_set_up(widget_type, widget):
+				frappe.throw(
+					_("{0} is not set up yet. Choose what it shows, or remove it.").format(
+						frappe.bold(widget.get("label"))
+					),
+					title=_("Unfinished Block"),
+				)
+
+	if any(
+		b.get("type") == "onboarding" and not (b.get("data") or {}).get("onboarding_name") for b in blocks
+	):
+		frappe.throw(
+			_("An Onboarding block is not set up yet. Choose an onboarding, or remove it."),
+			title=_("Unfinished Block"),
+		)
+
+
+def stored_widget(block: dict, stored_widgets: dict) -> dict | None:
+	"""The widget row `block` names, if it still points at something that exists."""
+	block_type = block["type"]
+	name = (block.get("data") or {}).get(f"{block_type}_name")
+	widget = next((w for w in stored_widgets.get(block_type, []) if w.get("label") == name), None)
+	if not widget or not is_widget_set_up(block_type, widget):
+		return None
+	if block_type in WIDGET_RECORDS:
+		field, doctype = WIDGET_RECORDS[block_type]
+		if not frappe.db.exists(doctype, widget.get(field)):
+			return None
+	return widget
+
+
 def merge_unseen_blocks(name: str, variant: str | None, blocks: list) -> list:
 	"""Put back the blocks the editor could not see, each after the block it followed.
 
 	An editor is shown only the widgets they may read, so their save would otherwise drop the
 	rest for everyone. The stored layout and the saving user's permissions say which those are.
+	A block that draws for nobody is not put back.
 	"""
 	from frappe.desk.desktop import Workspace, is_drawable, readable_widgets
+	from frappe.desk.doctype.custom_workspace.custom_workspace import snapshot_widgets
 
 	workspace = Workspace({"name": name})
 	workspace.use_layout(variant or DEFAULT_LAYOUT)
 	stored = loads(workspace.doc.content or "[]")
+	stored_widgets = snapshot_widgets(workspace.doc)
 	widgets = readable_widgets(workspace)
 
 	merged = list(blocks)
 	kept = {block_key(block) for block in merged}
 	for index, block in enumerate(stored):
 		if is_drawable(block, widgets):
+			continue
+		if block["type"] == "onboarding":
+			onboarding = block["data"].get("onboarding_name")
+			if not onboarding or not frappe.db.exists("Module Onboarding", onboarding):
+				continue
+		elif not stored_widget(block, stored_widgets):
 			continue
 		before = (block_key(b) for b in reversed(stored[:index]))
 		anchor = next((key for key in before if key in kept), None)

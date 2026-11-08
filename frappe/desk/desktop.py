@@ -659,7 +659,8 @@ def is_drawable(block: dict, widgets: dict) -> bool:
 
 
 def has_widget(content: list) -> bool:
-	return any(block.get("type") in WIDGET_FIELDS for block in content)
+	# an onboarding that is finished or switched off is hidden from everyone, whatever they may read
+	return any(block.get("type") in WIDGET_FIELDS and block.get("type") != "onboarding" for block in content)
 
 
 def _fold_chart_settings(charts: dict) -> None:

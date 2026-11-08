@@ -362,6 +362,53 @@ class TestSavingLayouts(IntegrationTestCase):
 	def stored(self, name):
 		return [b["id"] for b in loads(frappe.db.get_value("Workspace", name, "content"))]
 
+	def test_a_block_left_unfinished_is_refused(self):
+		make_workspace("GW Unfinished")
+		for kind, widget in (
+			("chart", {"label": "C", "chart_name": None}),
+			("number_card", {"label": "N", "number_card_name": None}),
+			("quick_list", {"label": "Q", "document_type": None}),
+			("custom_block", {"label": "B", "custom_block_name": None}),
+			("shortcut", {"label": "S", "type": "DocType", "link_to": None}),
+			("card", {"label": "K", "links": "[]"}),
+		):
+			with self.assertRaises(frappe.ValidationError):
+				save_page("GW Unfinished", 1, {kind: [widget]}, dumps([block(kind, widget["label"])]))
+		with self.assertRaises(frappe.ValidationError):
+			save_page("GW Unfinished", 1, {}, dumps([{"id": "o", "type": "onboarding", "data": {}}]))
+
+	def test_a_url_shortcut_needs_no_link_target(self):
+		make_workspace("GW Url")
+		widget = {"label": "Site", "type": "URL", "url": "https://example.com"}
+		save_page("GW Url", 1, {"shortcut": [widget]}, dumps([block("shortcut", "Site")]))
+
+	def test_a_block_that_draws_for_nobody_is_not_put_back(self):
+		text = block("header", text="Kept")
+		dead = block("number_card", "Gone")
+		make_workspace("GW Dead", content=[text, dead])
+		save_page("GW Dead", 1, {}, dumps([text]))
+		self.assertEqual(self.stored("GW Dead"), [text["id"]])
+
+	def test_an_unreadable_block_is_put_back(self):
+		make_chart("GW Secret", "Error Log")
+		text = block("header", text="Kept")
+		chart = block("chart", "Secret")
+		make_workspace(
+			"GW Secret Page",
+			content=[text, chart],
+			charts=[{"label": "Secret", "chart_name": "GW Secret"}],
+		)
+		frappe.set_user(MANAGER)
+		save_page("GW Secret Page", 1, {}, dumps([text]))
+		frappe.set_user("Administrator")
+		self.assertEqual(self.stored("GW Secret Page"), [text["id"], chart["id"]])
+
+	def test_a_hidden_onboarding_is_not_a_lack_of_access(self):
+		make_workspace(
+			"GW Onboarding", content=[{"id": "o", "type": "onboarding", "data": {"onboarding_name": "x"}}]
+		)
+		self.assertFalse(get_workspace("GW Onboarding")["no_access"])
+
 	def test_a_report_link_keeps_its_doctype_in_a_site_copy(self):
 		report = frappe.db.get_value(
 			"Report", {"report_type": "Report Builder"}, ["name", "ref_doctype"], as_dict=True
