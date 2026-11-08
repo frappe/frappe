@@ -20,6 +20,9 @@ Vue and frappe-ui APIs come from imports. Page variables, resources, route, rout
 socket come from `context`. Existing references keep their names. A VueUse API becomes a
 `@vueuse/core` import, which a database app cannot resolve, so the page reports the line
 to rewrite.
+
+What a site owner has to review afterwards is in
+`studio/frontend/docs/migrate-custom-db-apps-to-modules.md`.
 """
 
 import json
