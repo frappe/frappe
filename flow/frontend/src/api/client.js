@@ -126,6 +126,11 @@ export class FrappeClient {
 		};
 	}
 
+	// the server sends it to a System Manager, null to anyone else
+	systemPrompt(sid) {
+		return this.transport.call("frappe.flow.api.system_prompt", { session: sid });
+	}
+
 	async entries(sid, since = 0, path = "active") {
 		const data = await this.transport.call("frappe.flow.api.entries", { session: sid, since, path });
 		const entries = (data.entries ?? []).map((row) => this.present(row, sid));

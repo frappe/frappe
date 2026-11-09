@@ -71,3 +71,17 @@ class TestNote(IntegrationTestCase):
 
 		# self.assertTrue(('title', 'test note', 'test note 1'), data['changed'])
 		# self.assertTrue(('content', 'test note content', '1'), data['changed'])
+
+	def test_pasted_image_is_saved_as_file(self):
+		png = (
+			"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+		)
+		note = frappe.get_doc(
+			doctype="Note", title="image note", content=f'<p><img src="data:image/png;base64,{png}"></p>'
+		).insert()
+
+		self.assertNotIn("data:", note.content)
+		self.assertRegex(note.content, r'<img src="/private/files/[^"]+\.png')
+		self.assertTrue(
+			frappe.db.exists("File", {"attached_to_doctype": "Note", "attached_to_name": note.name})
+		)

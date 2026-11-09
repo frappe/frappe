@@ -8,11 +8,7 @@
 			:class="bare ? '' : 'bg-surface-gray-2'"
 		>
 			<span class="min-w-0 truncate font-mono text-xs text-ink-gray-5">{{ lang ?? "text" }}</span>
-			<CopyButton
-				:text="code"
-				title="Copy code"
-				class="grid h-6 w-6 flex-none place-items-center rounded-5 text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-8"
-			/>
+			<CopyButton :text="code" title="Copy code" />
 		</div>
 		<pre><code v-html="html" /></pre>
 	</div>

@@ -9,7 +9,7 @@ from frappe.desk.treeview import get_children
 from frappe.query_builder import Field
 from frappe.query_builder.functions import Max
 from frappe.tests import IntegrationTestCase
-from frappe.utils import random_string
+from frappe.utils import evaluate_filters, random_string
 from frappe.utils.nestedset import (
 	NestedSetChildExistsError,
 	NestedSetInvalidMergeError,
@@ -325,6 +325,14 @@ class TestNestedSet(IntegrationTestCase):
 
 		self.assertNotIn(record, str(frappe.qb.get_query(table=linked_doctype, filters=exclusive_link)))
 		self.assertIn(record, str(frappe.qb.get_query(table=linked_doctype, filters=inclusive_link)))
+
+	def test_evaluate_desc_filters(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		doc = {"doctype": TEST_DOCTYPE, "parent_test_tree_doctype": "Parent 1"}
+
+		self.assertTrue(evaluate_filters(doc, {"parent_test_tree_doctype": ("descendants of", "Root Node")}))
+		self.assertFalse(evaluate_filters(doc, {"parent_test_tree_doctype": ("descendants of", "Parent 2")}))
 
 	def test_disabled_records_in_treeview(self):
 		"""

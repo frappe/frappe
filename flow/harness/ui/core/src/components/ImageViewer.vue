@@ -1,5 +1,6 @@
 <template>
-	<Teleport to="body">
+	<!-- into the host's root where it has one, as frappe-ui's dialogs go: an island's styles live there -->
+	<Teleport :to="portalTarget ?? 'body'">
 		<div
 			class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-6"
 			role="dialog"
@@ -22,6 +23,9 @@
 
 <script setup>
 import { onBeforeUnmount, onMounted, ref } from "vue"
+import { usePortalTarget } from "frappe-ui/src/composables/usePortalTarget"
+
+const portalTarget = usePortalTarget()
 
 defineProps({
 	src: { type: String, required: true },
@@ -41,7 +45,9 @@ function onKey(event) {
 }
 
 onMounted(() => {
+	// the focused element, inside a shadow root where Flow runs in one
 	returnFocus = document.activeElement
+	while (returnFocus?.shadowRoot?.activeElement) returnFocus = returnFocus.shadowRoot.activeElement
 	window.addEventListener("keydown", onKey, true)
 	closeEl.value?.focus()
 })

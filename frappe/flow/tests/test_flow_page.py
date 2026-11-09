@@ -68,7 +68,7 @@ class TestFlowPage(IntegrationTestCase):
 		self.assertNotIn("flow_launcher", page("/flow"))
 		# nor in Raven, which has an integration of its own
 		with patch("frappe.get_hooks", return_value=[{"route": "/desk"}, {"route": "/raven"}]):
-			self.assertEqual(get_app_roots(), {"desk"})
+			self.assertEqual(get_app_roots(), {"desk", "studio"})
 			self.assertNotIn("flow_launcher", page("/raven/channel/general"))
 		# nor for anyone who may not use Flow
 		for user in (outsider, "Guest"):

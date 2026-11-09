@@ -93,6 +93,22 @@ class StudioAppRenderer(DocumentPage):
 		return self.path.startswith("dev/")
 
 
+def get_desktop_apps() -> list[dict]:
+	"""Apps with a published page, which is what makes `/<route>` serve them."""
+	StudioApp = frappe.qb.DocType("Studio App")
+	StudioPage = frappe.qb.DocType("Studio Page")
+	return (
+		frappe.qb.from_(StudioApp)
+		.inner_join(StudioPage)
+		.on(StudioPage.studio_app == StudioApp.name)
+		.select(StudioApp.name, StudioApp.app_title, StudioApp.route, StudioApp.favicon)
+		.where(StudioPage.published == 1)
+		.distinct()
+		.orderby(StudioApp.app_title)
+		.run(as_dict=True)
+	)
+
+
 class StudioApp(WebsiteGenerator):
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
@@ -358,6 +374,7 @@ class StudioApp(WebsiteGenerator):
 
 	@frappe.whitelist()
 	def enable_app_export(self, target_app: str):
+		frappe.has_permission(self.doctype, "write", self.name, throw=True)
 		validate_installed_app(target_app)
 		if self.is_standard and self.frappe_app and self.frappe_app != target_app:
 			self.move_export_to(target_app)

@@ -178,6 +178,7 @@ async function loadInto(target, entry) {
 		const assets = await entry.resolve(entry.name);
 		if (entry.cancelled) return;
 
+		if (assets.css) preloadStyleSheet(assets.css);
 		const module = await import(/* @vite-ignore */ assets.js);
 		if (entry.cancelled) return;
 
@@ -207,6 +208,33 @@ async function loadInto(target, entry) {
 	} finally {
 		entry.loading = false;
 	}
+}
+
+/**
+ * Starts downloading an island before anything mounts it, for a host that knows
+ * the island early. A mount of the same assets later reuses both downloads.
+ *
+ * @param {IslandAssets} assets
+ */
+export function preloadIsland(assets) {
+	if (assets.css) preloadStyleSheet(assets.css);
+	// the mount imports the same URL and reports a failure itself
+	import(/* @vite-ignore */ assets.js).catch(() => {});
+}
+
+/**
+ * Starts the stylesheet download alongside the module's. `mount` fetches the
+ * sheet only after every chunk has loaded and run. A `fetch` preload with
+ * `crossorigin` matches that `fetch()`, so the browser sends one request.
+ */
+function preloadStyleSheet(url) {
+	if (document.head.querySelector(`link[rel="preload"][href="${CSS.escape(url)}"]`)) return;
+	const link = document.createElement("link");
+	link.rel = "preload";
+	link.as = "fetch";
+	link.crossOrigin = "anonymous";
+	link.href = url;
+	document.head.append(link);
 }
 
 function resolveElement(el) {

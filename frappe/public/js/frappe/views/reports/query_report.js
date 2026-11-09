@@ -934,11 +934,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					// If query_string contains prepared_report_name then set filters
 					// to match the mentioned prepared report doc and disable editing
 					if (this.prepared_report_name) {
-						const filters_from_report = JSON.parse(data.doc.filters);
+						this.set_filters(JSON.parse(data.doc.filters));
+						this.previous_filters = this.get_filter_values();
 						Object.values(this.filters).forEach(function (field) {
-							if (filters_from_report[field.fieldname]) {
-								field.set_input(filters_from_report[field.fieldname]);
-							}
 							if (field.input) {
 								field.input.disabled = true;
 							}
@@ -2357,12 +2355,18 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 							},
 						],
 						primary_action: (values) => {
+							const resized_widths = this.datatable.getResizedColumnWidths();
 							return frappe.call({
 								method: "frappe.desk.query_report.save_report",
 								args: {
 									reference_report: this.report_name,
 									report_name: values.report_name,
-									columns: this.get_visible_columns(),
+									columns: this.get_visible_columns().map((column) => ({
+										...column,
+										width: resized_widths.has(column.id)
+											? parseInt(resized_widths.get(column.id))
+											: column.width,
+									})),
 									filters: this.get_filter_values(),
 								},
 								callback: function (r) {
@@ -2592,6 +2596,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			title,
 			description,
 			actions,
+			css_class: "whitespace-pre-wrap",
 		})[0].outerHTML;
 	}
 

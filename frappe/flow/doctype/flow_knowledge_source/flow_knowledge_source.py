@@ -102,6 +102,7 @@ class FlowKnowledgeSource(Document):
 		existing chunks are stale."""
 		from frappe.flow.knowledge.ingest import enqueue_ingestion
 
+		frappe.has_permission(self.doctype, "write", self.name, throw=True)
 		self.db_set("status", "Pending", update_modified=False)
 		enqueue_ingestion(self.name, rebuild=bool(rebuild))
 
@@ -109,4 +110,5 @@ class FlowKnowledgeSource(Document):
 	def reconcile(self):
 		from frappe.flow.knowledge.ingest import enqueue_reconciliation
 
+		frappe.has_permission(self.doctype, "write", self.name, throw=True)
 		enqueue_reconciliation(self.name)

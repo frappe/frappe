@@ -749,16 +749,20 @@ class EmailAccount(Document):
 				seen_status = messages.get("seen_status", {}).get(uid)
 				if self.email_sync_option != "UNSEEN" or seen_status != "SEEN":
 					# only append the emails with status != 'SEEN' if sync option is set to 'UNSEEN'
-					mails.append(
-						InboundMail(
-							message,
-							self,
-							frappe.safe_decode(uid),
-							seen_status,
-							append_to,
-							imap_folder,
+					try:
+						mails.append(
+							InboundMail(
+								message,
+								self,
+								frappe.safe_decode(uid),
+								1 if seen_status == "SEEN" else 0,
+								append_to,
+								imap_folder,
+							)
 						)
-					)
+					except Exception:
+						self.log_error(title="EmailAccount.receive")
+						self.handle_bad_emails(frappe.safe_decode(uid), message, frappe.get_traceback())
 
 		if not self.enable_incoming:
 			return []
@@ -970,7 +974,7 @@ def notify_unreplied():
 		email_account = frappe.get_doc("Email Account", email_account.name)
 
 		if email_account.use_imap:
-			append_to = [folder.get("append_to") for folder in email_account.imap_folder]
+			append_to = [folder.append_to for folder in email_account.imap_folder if folder.append_to]
 		else:
 			append_to = email_account.append_to
 

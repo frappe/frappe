@@ -18,7 +18,7 @@
 					aria-hidden="true"
 				/>
 			</span>
-			<span class="flex-none text-base font-medium" :class="live ? 'flow-shimmer' : 'text-ink-gray-9'">{{
+			<span class="flex-none text-base-medium" :class="live ? 'flow-shimmer' : 'text-ink-gray-9'">{{
 				live ? "Thinking" : "Thought"
 			}}</span>
 		</button>

@@ -546,6 +546,43 @@ class TestUserRowsAreTheUsers(CustomizationTestCase):
 		self.assertTrue(frappe.db.exists("Custom Sidebar", {"user": ""}))
 
 
+class TestALayerKeepsItsOwner(CustomizationTestCase):
+	"""`has_permission` reads `user` off the document being saved, so naming yourself on someone
+	else's layer must not be what lets you write it."""
+
+	def setUp(self):
+		super().setUp()
+		make_user(OTHER, ["Desk User"])
+
+	def tearDown(self):
+		super().tearDown()
+		frappe.delete_doc("User", OTHER, force=True, ignore_missing=True)
+
+	def take(self, name):
+		from frappe.client import set_value
+
+		frappe.set_user(OTHER)
+		with self.assertRaises(frappe.PermissionError):
+			set_value("Custom Sidebar", name, "user", OTHER)
+		frappe.set_user("Administrator")
+
+	def test_nobody_takes_another_users_layer(self):
+		self.as_user()
+		save_sidebar_customization(MODULE, json.dumps([]))
+		frappe.set_user("Administrator")
+		name = frappe.db.get_value("Custom Sidebar", {"module": MODULE, "user": USER})
+
+		self.take(name)
+		self.assertEqual(frappe.db.get_value("Custom Sidebar", name, "user"), USER)
+
+	def test_nobody_takes_the_site_layer(self):
+		save_site_sidebar(MODULE, json.dumps([]))
+		name = frappe.db.get_value("Custom Sidebar", {"module": MODULE, "user": ""})
+
+		self.take(name)
+		self.assertEqual(frappe.db.get_value("Custom Sidebar", name, "user"), "")
+
+
 class TestOnlyTheOwnersLayerHoldsAPrivatePage(CustomizationTestCase):
 	"""A row naming a private page belongs in its owner's own layer, and nowhere else.
 
@@ -1165,6 +1202,49 @@ class TestAnAddedItemIsStillPermissionChecked(CustomizationTestCase):
 
 		frappe.set_user(MANAGER)
 		self.assertIn("https://example.com", [item["url"] for item in self.items()])
+
+
+class TestTheEditorHidesWhatTheReaderMayNotOpen(CustomizationTestCase):
+	"""A user's editor opens on what is in front of them, so a row the site added for others does not
+	show there either. The site's own editor keeps it, or the next save would drop it."""
+
+	def setUp(self):
+		super().setUp()
+		make_user(MANAGER, ["Desk User", "Workspace Manager"])
+		save_site_sidebar(
+			MODULE,
+			json.dumps(
+				[
+					*self.base_items(),
+					{
+						"added": 1,
+						"type": "Link",
+						"link_type": "DocType",
+						"link_to": "Custom Field",
+						"label": "Custom Field",
+					},
+				]
+			),
+		)
+
+	def tearDown(self):
+		super().tearDown()
+		frappe.delete_doc("User", MANAGER, force=True, ignore_missing=True)
+
+	def links(self, read):
+		return [item["link_to"] for item in read(MODULE)]
+
+	def test_a_reader_who_may_not_open_it_does_not_see_it(self):
+		frappe.set_user(MANAGER)
+		self.assertNotIn("Custom Field", self.links(get_user_sidebar_layer))
+
+	def test_a_reader_who_may_open_it_does(self):
+		self.as_user()
+		self.assertIn("Custom Field", self.links(get_user_sidebar_layer))
+
+	def test_the_site_layer_keeps_it_for_a_curator_who_may_not_open_it(self):
+		frappe.set_user(MANAGER)
+		self.assertIn("Custom Field", self.links(get_site_sidebar_layer))
 
 
 class TestPageRouteIsPartOfTheIdentity(CustomizationTestCase):
