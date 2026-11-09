@@ -3,6 +3,7 @@ import { computed, inject, onMounted, reactive, ref, watch } from "vue";
 import { Button, Progress } from "frappe-ui";
 import { get_shell, import_records, run_action, update_step } from "./onboarding.js";
 import { get_youtube_id } from "../../../../public/js/frappe/widgets/youtube_id.js";
+import Fold from "./Fold.vue";
 
 const props = defineProps({
 	widget: { type: Object, required: true },
@@ -272,7 +273,7 @@ function on_description_click(event, step) {
 <template>
 	<section
 		v-if="loaded && (editing || (!hidden && !dismissed))"
-		class="rounded-4 border border-outline-gray-1 bg-surface-base dark:border-outline-gray-2 dark:bg-transparent"
+		class="overflow-hidden rounded-4 border border-outline-gray-1 bg-surface-base dark:border-outline-gray-2 dark:bg-transparent"
 	>
 		<header class="flex items-start gap-3 px-4 pb-3 pt-3.5">
 			<div class="min-w-0 flex-1">
@@ -288,6 +289,7 @@ function on_description_click(event, step) {
 				@click="dismiss"
 			/>
 			<Button
+				class="-me-1.5"
 				size="sm"
 				variant="ghost"
 				:icon="collapsed ? 'lucide-chevron-down' : 'lucide-chevron-up'"
@@ -305,12 +307,12 @@ function on_description_click(event, step) {
 			/>
 		</div>
 
-		<template v-if="!collapsed">
+		<Fold :open="!collapsed">
 			<template v-for="group in groups" :key="group.key">
 				<button
 					v-if="group.label"
 					type="button"
-					class="flex h-8 w-full items-center gap-2 border-t border-outline-gray-1 px-4 text-start text-sm text-ink-gray-6 hover:bg-surface-gray-1"
+					class="flex h-8 w-full items-center gap-2 border-t border-outline-gray-1 px-4 text-start text-sm text-ink-gray-6 hover:bg-surface-gray-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-outline-gray-3"
 					:aria-expanded="group.open"
 					@click="toggle_fold(group)"
 				>
@@ -321,156 +323,171 @@ function on_description_click(event, step) {
 						aria-hidden="true"
 					/>
 				</button>
-				<ul
-					v-if="group.open && group.rows.length"
-					class="divide-y divide-outline-gray-1 border-t border-outline-gray-1"
-				>
-					<li v-for="step in group.rows" :key="step.name">
-						<button
-							type="button"
-							class="flex h-8 w-full items-center gap-3 px-4 text-start hover:bg-surface-gray-1"
-							:aria-expanded="step.name === open"
-							@click="toggle(step)"
-						>
-							<span
-								:class="status(step).icon"
-								class="size-4 shrink-0"
-								role="img"
-								:aria-label="status(step).label"
-							/>
-							<span
-								class="min-w-0 flex-1 truncate text-base"
-								:class="is_done(step) ? 'text-ink-gray-6' : 'text-ink-gray-8'"
+				<Fold :open="group.open && group.rows.length > 0">
+					<ul class="divide-y divide-outline-gray-1 border-t border-outline-gray-1">
+						<li v-for="step in group.rows" :key="step.name">
+							<button
+								type="button"
+								class="flex h-8 w-full items-center gap-3 px-4 text-start hover:bg-surface-gray-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-outline-gray-3"
+								:aria-expanded="step.name === open"
+								@click="toggle(step)"
 							>
-								{{ step.title }}
-							</span>
-							<span v-if="step_meta(step)" class="shrink-0 text-sm text-ink-gray-6">
-								{{ step_meta(step) }}
-							</span>
-							<span
-								class="size-4 shrink-0 text-ink-gray-5"
-								:class="
-									step.name === open
-										? 'lucide-chevron-up'
-										: 'lucide-chevron-down'
-								"
-								aria-hidden="true"
-							/>
-						</button>
-						<div
-							v-if="step.name === open"
-							class="flex flex-col gap-4 bg-surface-gray-1 px-4 pb-4 pt-3 ps-11"
-							:class="{ 'sm:flex-row-reverse': size !== 'L' }"
-						>
-							<div
-								v-if="get_youtube_id(step.intro_video_url)"
-								class="aspect-video w-full max-w-80 shrink-0 overflow-hidden rounded-4 bg-surface-gray-3"
-								:class="{ 'sm:w-56': size !== 'L' }"
-							>
-								<iframe
-									v-if="playing === step.name"
-									class="size-full border-0"
-									:src="`https://www.youtube-nocookie.com/embed/${get_youtube_id(
-										step.intro_video_url
-									)}?autoplay=1`"
-									:title="__('YouTube video player')"
-									allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-									referrerpolicy="strict-origin-when-cross-origin"
-									allowfullscreen
+								<span
+									:class="status(step).icon"
+									class="size-4 shrink-0"
+									role="img"
+									:aria-label="status(step).label"
 								/>
-								<button
-									v-else
-									type="button"
-									class="onboarding-video group relative block size-full"
-									:aria-label="__('Play video')"
-									@click="play(step)"
+								<span
+									class="min-w-0 flex-1 truncate text-base"
+									:class="is_done(step) ? 'text-ink-gray-6' : 'text-ink-gray-8'"
 								>
-									<img
-										:src="thumbnail(get_youtube_id(step.intro_video_url))"
-										alt=""
-										decoding="async"
-										class="size-full object-cover"
-										@load="
-											check_thumbnail(
-												$event,
-												get_youtube_id(step.intro_video_url)
-											)
-										"
-										@error="
-											check_thumbnail(
-												$event,
-												get_youtube_id(step.intro_video_url)
-											)
-										"
-									/>
-									<span class="onboarding-video-play">
-										<span class="lucide-play size-5" aria-hidden="true" />
-									</span>
-								</button>
-							</div>
-							<div class="min-w-0 flex-1">
+									{{ step.title }}
+								</span>
+								<span
+									v-if="step_meta(step)"
+									class="shrink-0 text-sm text-ink-gray-6"
+								>
+									{{ step_meta(step) }}
+								</span>
+								<span
+									class="size-4 shrink-0 text-ink-gray-5"
+									:class="
+										step.name === open
+											? 'lucide-chevron-up'
+											: 'lucide-chevron-down'
+									"
+									aria-hidden="true"
+								/>
+							</button>
+							<Fold :open="step.name === open">
 								<div
-									v-if="step.description"
-									class="text-p-sm text-ink-gray-7"
-									v-html="frappe.markdown(split_docs(step.description).text)"
-									@click="on_description_click($event, step)"
-								/>
-								<p
-									v-if="step.is_submittable && !step.is_complete"
-									class="mt-1.5 text-p-xs text-ink-gray-6"
+									class="flex flex-col gap-4 px-4 pb-4 pt-1 ps-11"
+									:class="{ 'sm:flex-row-reverse sm:items-start': size !== 'L' }"
 								>
-									{{ __("Finishes when you submit one, not when you save it.") }}
-								</p>
-								<div class="mt-3 flex flex-wrap items-center gap-2">
-									<Button
-										:variant="step.is_complete ? 'subtle' : 'solid'"
-										:label="
-											step.is_complete
-												? __('Open again')
-												: step.action_label || step.title
-										"
-										@click="act(step)"
-									/>
-									<Button
-										v-if="step.can_import && !step.is_complete"
-										variant="subtle"
-										icon-left="lucide-import"
-										:label="__('Import')"
-										@click="import_records(step)"
-									/>
-									<Button
-										v-if="split_docs(step.description).docs"
-										variant="ghost"
-										icon-left="lucide-book-open"
-										:label="split_docs(step.description).docs.label"
-										:href="split_docs(step.description).docs.link"
-										target="_blank"
-										@click="
-											capture_step_event('step_docs_opened', step, {
-												url: split_docs(step.description).docs.link,
-											})
-										"
-									/>
-									<span class="flex-1" />
-									<Button
-										v-if="step.is_skipped"
-										variant="ghost"
-										:label="__('Undo skip')"
-										@click="unskip(step)"
-									/>
-									<Button
-										v-else-if="!step.is_complete"
-										variant="ghost"
-										:label="__('Skip')"
-										@click="skip(step)"
-									/>
+									<div
+										v-if="get_youtube_id(step.intro_video_url)"
+										class="aspect-video w-full max-w-80 shrink-0 overflow-hidden rounded-4 border border-outline-gray-1 bg-surface-gray-3 dark:border-outline-gray-2"
+										:class="{ 'sm:w-56': size !== 'L' }"
+									>
+										<iframe
+											v-if="playing === step.name"
+											class="size-full border-0"
+											:src="`https://www.youtube-nocookie.com/embed/${get_youtube_id(
+												step.intro_video_url
+											)}?autoplay=1`"
+											:title="__('YouTube video player')"
+											allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+											referrerpolicy="strict-origin-when-cross-origin"
+											allowfullscreen
+										/>
+										<button
+											v-else
+											type="button"
+											class="onboarding-video group relative block size-full"
+											:aria-label="__('Play video')"
+											@click="play(step)"
+										>
+											<img
+												:src="
+													thumbnail(get_youtube_id(step.intro_video_url))
+												"
+												alt=""
+												decoding="async"
+												class="size-full object-cover"
+												@load="
+													check_thumbnail(
+														$event,
+														get_youtube_id(step.intro_video_url)
+													)
+												"
+												@error="
+													check_thumbnail(
+														$event,
+														get_youtube_id(step.intro_video_url)
+													)
+												"
+											/>
+											<span class="onboarding-video-play">
+												<span
+													class="lucide-play size-5"
+													aria-hidden="true"
+												/>
+											</span>
+										</button>
+									</div>
+									<div class="min-w-0 flex-1">
+										<div
+											v-if="step.description"
+											class="text-p-sm text-ink-gray-7"
+											v-html="
+												frappe.markdown(split_docs(step.description).text)
+											"
+											@click="on_description_click($event, step)"
+										/>
+										<p
+											v-if="step.is_submittable && !step.is_complete"
+											class="mt-1.5 text-p-xs text-ink-gray-6"
+										>
+											{{
+												__(
+													"Finishes when you submit one, not when you save it."
+												)
+											}}
+										</p>
+										<div class="mt-3 flex flex-wrap items-center gap-2">
+											<Button
+												:variant="step.is_complete ? 'subtle' : 'solid'"
+												:label="
+													step.is_complete
+														? __('Open again')
+														: step.action_label || step.title
+												"
+												@click="act(step)"
+											/>
+											<Button
+												v-if="step.can_import && !step.is_complete"
+												variant="subtle"
+												icon-left="lucide-import"
+												:label="__('Import')"
+												@click="import_records(step)"
+											/>
+											<Button
+												v-if="split_docs(step.description).docs"
+												variant="ghost"
+												icon-left="lucide-book-open"
+												:label="split_docs(step.description).docs.label"
+												:href="split_docs(step.description).docs.link"
+												target="_blank"
+												@click="
+													capture_step_event('step_docs_opened', step, {
+														url: split_docs(step.description).docs
+															.link,
+													})
+												"
+											/>
+											<span class="flex-1" />
+											<Button
+												v-if="step.is_skipped"
+												variant="ghost"
+												:label="__('Undo skip')"
+												@click="unskip(step)"
+											/>
+											<Button
+												v-else-if="!step.is_complete"
+												variant="ghost"
+												:label="__('Skip')"
+												@click="skip(step)"
+											/>
+										</div>
+									</div>
 								</div>
-							</div>
-						</div>
-					</li>
-				</ul>
+							</Fold>
+						</li>
+					</ul>
+				</Fold>
 			</template>
-		</template>
+		</Fold>
 	</section>
 </template>
 
