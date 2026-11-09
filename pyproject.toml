@@ -176,6 +176,7 @@ watchdog = "~=6.0.0"
 hypothesis = "~=6.155.2"
 responses = "==0.23.1"
 freezegun = "~=1.5.5"
+spdx-tools = "~=0.8.5"
 
 # flow: for OpenCV, which rapidocr installs
 [deploy.dependencies.apt]
