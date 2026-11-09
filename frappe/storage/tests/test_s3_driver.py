@@ -326,6 +326,7 @@ class TestS3ServesLikeLocal(IntegrationTestCase):
 
 	def setUp(self):
 		super().setUp()
+		self.enterContext(patch.dict(frappe.conf, {"storage_local_cache": 0}))
 		self.driver = make_driver(**TEST_CONFIG)
 		self.driver.test_client.generate_presigned_url.return_value = "https://signed.example.com/x"
 		self.memory = MemoryDriver()

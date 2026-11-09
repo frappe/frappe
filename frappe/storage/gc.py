@@ -8,6 +8,7 @@ from pypika.terms import Criterion, ExistsCriterion
 import frappe
 import frappe.storage
 from frappe.model.rename_doc import get_link_fields
+from frappe.storage.cache import delete_cached
 from frappe.storage.upload import expire_stale_upload_sessions
 from frappe.utils import add_to_date, get_datetime, now_datetime
 
@@ -137,6 +138,7 @@ def delete_blob(blob, cutoff, logger, stats: dict, *, columns: list[dict] | None
 	try:
 		driver = frappe.storage.get_driver(current.driver)
 		driver.delete(current.key, is_private=bool(current.is_private))
+		delete_cached(blob)
 	except Exception:
 		stats["bytes_delete_errors"] += 1
 		logger.warning(

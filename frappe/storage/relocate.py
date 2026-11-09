@@ -9,17 +9,20 @@ from collections.abc import Callable
 import frappe
 from frappe import _
 from frappe.storage.blob import key_basename, make_key
+from frappe.storage.cache import sweep_lock
 from frappe.storage.driver import StorageDriver, get_driver
 from frappe.utils import cint
 
 BATCH_SIZE = 100
+SWEEP_WAIT_TIMEOUT = 600
 
 
 def relocate_blobs(batch_size: int = BATCH_SIZE, target_driver: str | None = None) -> dict:
 	"""Move blobs to a driver's canonical ``<blob>/<filename>`` keys. Safe to re-run.
 
 	The target defaults to the configured driver. ``File.file_url`` never changes.
-	A source object is deleted only after the commit that repoints its row."""
+	A source object is deleted only after the commit that repoints its row. Holds the cache sweep's
+	lock for the whole run: a cached copy can become the target, and the sweep must not expire it."""
 	if batch_size <= 0:
 		frappe.throw(_("batch_size must be greater than zero"), frappe.ValidationError)
 
@@ -31,36 +34,38 @@ def relocate_blobs(batch_size: int = BATCH_SIZE, target_driver: str | None = Non
 	logger = frappe.logger("storage")
 	after_name = ""
 
-	while rows := get_relocation_batch(batch_size, after_name):
-		moved_in_batch: list[tuple[str, int]] = []
-		for row in rows:
+	with sweep_lock(SWEEP_WAIT_TIMEOUT):
+		while rows := get_relocation_batch(batch_size, after_name):
+			moved_in_batch: list[tuple[str, int]] = []
+			for row in rows:
+				try:
+					outcome = relocate_blob(row, target, stats, logger)
+				except Exception:
+					stats["errors"] += 1
+					logger.warning(f"storage relocation: could not move blob {row.name}", exc_info=True)
+					continue
+
+				if outcome is None:
+					stats["skipped"] += 1
+				else:
+					moved_in_batch.append((row.name, outcome))
+
 			try:
-				outcome = relocate_blob(row, target, stats, logger)
+				_commit_batch()
 			except Exception:
-				stats["errors"] += 1
-				logger.warning(f"storage relocation: could not move blob {row.name}", exc_info=True)
-				continue
-
-			if outcome is None:
-				stats["skipped"] += 1
+				# The whole batch remains at its source rows. Canonical objects copied
+				# before the failed commit are harmless and make the next run cheaper.
+				frappe.db.rollback()
+				stats["errors"] += len(moved_in_batch)
+				logger.warning(
+					f"storage relocation: could not commit the move of {len(moved_in_batch)} blobs",
+					exc_info=True,
+				)
 			else:
-				moved_in_batch.append((row.name, outcome))
+				stats["moved"] += len(moved_in_batch)
+				stats["bytes"] += sum(size for _blob_name, size in moved_in_batch)
 
-		try:
-			_commit_batch()
-		except Exception:
-			# The whole batch remains at its source rows. Canonical objects copied
-			# before the failed commit are harmless and make the next run cheaper.
-			frappe.db.rollback()
-			stats["errors"] += len(moved_in_batch)
-			logger.warning(
-				f"storage relocation: could not commit the move of {len(moved_in_batch)} blobs", exc_info=True
-			)
-		else:
-			stats["moved"] += len(moved_in_batch)
-			stats["bytes"] += sum(size for _blob_name, size in moved_in_batch)
-
-		after_name = rows[-1].name
+			after_name = rows[-1].name
 
 	logger.info(
 		"storage relocation: moved {0} blobs ({1} bytes), skipped {2}, errors {3}".format(

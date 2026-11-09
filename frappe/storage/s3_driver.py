@@ -38,6 +38,7 @@ class S3Driver(StorageDriver):
 	another site's backup can read that site's objects but never deletes them."""
 
 	name = "s3"
+	cache_locally = True
 
 	def __init__(self):
 		config = frappe.conf.storage_driver_config or {}
