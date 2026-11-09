@@ -1,0 +1,30 @@
+name: Test Labels
+
+on:
+  pull_request_target:
+    types: [labeled]
+
+permissions:
+  actions: write
+  contents: read
+  pull-requests: read
+
+jobs:
+  restart:
+    name: Restart Tests
+    if: ${{ github.event.label.name == 'Run Server Tests' || github.event.label.name == 'Run UI Tests' }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          if [ "$LABEL" = "Run Server Tests" ]; then workflow=server-tests.yml; else workflow=ui-tests.yml; fi
+          run_id=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow "$workflow" --commit "$HEAD_SHA" --limit 1 --json databaseId --jq '.[0].databaseId')
+          [ -n "$run_id" ] || exit 0
+          gh run cancel "$run_id" --repo "$GITHUB_REPOSITORY" 2>/dev/null || true
+          for _ in $(seq 60); do [ "$(gh run view "$run_id" --repo "$GITHUB_REPOSITORY" --json status --jq .status)" = completed ] && break; sleep 10; done
+          [ "$(gh pr view "$PR" --repo "$GITHUB_REPOSITORY" --json headRefOid --jq .headRefOid)" = "$HEAD_SHA" ] || exit 0
+          gh run rerun "$run_id" --repo "$GITHUB_REPOSITORY"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LABEL: ${{ github.event.label.name }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR: ${{ github.event.pull_request.number }}
