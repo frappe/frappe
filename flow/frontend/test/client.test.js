@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { FrappeClient } from "../src/api/client.js";
+import { CREDIT_SPENT } from "../src/api/events.js";
 
 function fakeTransport(answers = {}) {
 	const calls = [];
@@ -341,4 +342,19 @@ test("a sync that fails after a run ends is retried once, then dropped quietly",
 		transport.calls.filter(([method]) => method === "frappe.flow.api.sync_session").length,
 		4
 	);
+});
+
+test("a 402 on a Grove model says the free credits are spent; another provider's is its own", () => {
+	const models = [
+		{ name: "GPT-x", model_id: "grove/gpt-x", provider: "grove" },
+		...boot.models,
+	];
+	const client = new FrappeClient({ boot: { models }, transport: fakeTransport({}) });
+	const spent = { type: "run_error", status_code: 402, message: "grove (402): credit balance exhausted" };
+	client.sessionInfo({ ...session, model: "GPT-x" });
+	assert.equal(client.present(spent, "S1").message, CREDIT_SPENT);
+	assert.equal(client.present(spent, "S1").settings_tab, "models");
+	assert.equal(client.present({ ...spent, status_code: 429 }, "S1").message, spent.message);
+	client.sessionInfo({ ...session, model: "Sonnet" });
+	assert.equal(client.present(spent, "S1").message, spent.message);
 });
