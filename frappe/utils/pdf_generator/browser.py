@@ -430,7 +430,7 @@ class Browser:
 		self.printable_width = 96 * (
 			updated_options["paperWidth"] - updated_options["marginLeft"] - updated_options["marginRight"]
 		)
-		if self.printable_width < 0:
+		if self.printable_width < 1:
 			frappe.throw(
 				frappe._(
 					"Margins leave no room for content on a {0}px wide page. Reduce them or use a larger page size."
@@ -511,7 +511,7 @@ class Browser:
 		)
 
 		body_margins = 96 * (self.body_page.options["marginTop"] + self.body_page.options["marginBottom"])
-		if body_height - body_margins <= 0:
+		if body_height - body_margins < 1:
 			frappe.throw(
 				frappe._(
 					"Header, footer and margins leave no room for content on a {0}px tall page. Reduce their height or use a larger page size."
