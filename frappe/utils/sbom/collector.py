@@ -57,6 +57,7 @@ class Package:
 	commit: str | None = None
 	download_url: str | None = None
 	integrity: str | None = None
+	vendored_path: str | None = None
 
 
 @dataclass(frozen=True)
@@ -98,6 +99,9 @@ class _Collector:
 		for app in self.apps.values():
 			self.add_python_dependencies(app)
 			self.add_js_dependencies(app)
+
+		if app := self.apps.get("frappe"):
+			self.add_vendored_libraries(app)
 
 		return Inventory(
 			apps=list(self.apps.values()),
@@ -193,6 +197,20 @@ class _Collector:
 			integrity=integrity,
 		)
 		return self.packages[key], True
+
+	def add_vendored_libraries(self, app: App):
+		"""Add the libraries that are copied into the app, because no manifest lists them."""
+		for library in json.loads(Path(__file__).with_name("vendored_libraries.json").read_text()):
+			package = Package(
+				ecosystem="npm",
+				name=library["name"],
+				version=library.get("version"),
+				license=License(expression=library.get("license")),
+				author=library.get("author"),
+				vendored_path=library["path"],
+			)
+			self.packages[("vendored", package.name, package.version)] = package
+			self.link(app, package)
 
 
 def get_app(name: str) -> App:
