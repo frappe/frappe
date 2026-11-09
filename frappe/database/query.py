@@ -551,7 +551,305 @@ def _sanitize_field(field: str, is_mariadb):
 		# Skip checking if there are no special characters
 		return field
 
+<<<<<<< HEAD
 	stripped_field = sqlparse.format(field, strip_comments=True, keyword_case="lower")
 	if is_mariadb:
 		return MARIADB_SPECIFIC_COMMENT.sub("", stripped_field)
 	return stripped_field
+=======
+	if field.isdigit():
+		return field
+
+	# Reject SQL functions in string format - use dict syntax instead
+	if _is_function_call(field):
+		frappe.throw(
+			_(
+				"SQL functions are not allowed as strings in SELECT: {0}. Use dict syntax like {{'COUNT': '*'}} instead."
+			).format(field),
+			frappe.ValidationError,
+		)
+
+	if ALLOWED_FIELD_PATTERN.match(field):
+		return field
+
+	frappe.throw(
+		_(
+			"Invalid field format for SELECT: {0}. Field names must be simple, backticked, table-qualified, aliased, or '*'."
+		).format(field),
+		frappe.PermissionError,
+	)
+
+
+class RawCriterion(Term):
+	"""A class to represent raw SQL string as a criterion.
+
+	Allows using raw SQL strings in pypika queries:
+		frappe.qb.from_("DocType").where(RawCriterion("name like 'a%'"))
+	"""
+
+	def __init__(self, sql_string: str):
+		self.sql_string = sql_string
+		super().__init__()
+
+	def get_sql(self, **kwargs: Any) -> str:
+		return self.sql_string
+
+	def __and__(self, other):
+		return CombinedRawCriterion(self, other, "AND")
+
+	def __or__(self, other):
+		return CombinedRawCriterion(self, other, "OR")
+
+	def __invert__(self):
+		return RawCriterion(f"NOT ({self.sql_string})")
+
+
+class CombinedRawCriterion(RawCriterion):
+	def __init__(self, left, right, operator):
+		self.left = left
+		self.right = right
+		self.operator = operator
+		super(RawCriterion, self).__init__()
+
+	def get_sql(self, **kwargs: Any) -> str:
+		left_sql = self.left.get_sql(**kwargs) if hasattr(self.left, "get_sql") else str(self.left)
+		right_sql = self.right.get_sql(**kwargs) if hasattr(self.right, "get_sql") else str(self.right)
+		# Wrap entire expression in parentheses to ensure correct operator precedence
+		return f"(({left_sql}) {self.operator} ({right_sql}))"
+
+
+class SQLFunctionParser:
+	"""Parser for SQL function dictionaries in query builder fields."""
+
+	def __init__(self, engine):
+		self.engine = engine
+
+	def is_function_dict(self, field_dict: dict) -> bool:
+		"""Check if a dictionary represents a SQL function definition."""
+		function_keys = [k for k in field_dict.keys() if k.lower() != "as"]
+		return len(function_keys) == 1 and function_keys[0] in FUNCTION_MAPPING
+
+	def is_operator_dict(self, field_dict: dict) -> bool:
+		"""Check if a dictionary represents an arithmetic operator expression.
+
+		Example: {"ADD": [1, 2], "as": "sum"} or {"DIV": ["total", "count"]}
+		"""
+		operator_keys = [k for k in field_dict.keys() if k.lower() != "as"]
+		return len(operator_keys) == 1 and operator_keys[0] in OPERATOR_MAPPING
+
+	def _extract_dict_components(self, d: dict, valid_keys: dict, error_msg: str) -> tuple:
+		"""Extract name, alias, and args from function/operator dict."""
+		name = None
+		alias = None
+		args = None
+
+		for key, value in d.items():
+			if key.lower() == "as":
+				alias = value
+			else:
+				name = key
+				args = value
+
+		if not name:
+			frappe.throw(_("Invalid {0} dictionary format").format(error_msg), frappe.ValidationError)
+
+		if name not in valid_keys:
+			frappe.throw(_("Unsupported {0}: {1}").format(error_msg, name), frappe.ValidationError)
+
+		if alias:
+			self._validate_alias(alias)
+
+		return name, alias, args
+
+	def parse_function(self, function_dict: dict) -> Field:
+		"""Parse a SQL function dictionary into a pypika function call."""
+		function_name, alias, function_args = self._extract_dict_components(
+			function_dict, FUNCTION_MAPPING, "function or invalid field name"
+		)
+
+		func_class = FUNCTION_MAPPING[function_name]
+
+		if isinstance(function_args, str):
+			parsed_arg = self._parse_and_validate_argument(function_args, function_name=function_name)
+			function_call = func_class(parsed_arg)
+		elif isinstance(function_args, list):
+			parsed_args = []
+			for arg in function_args:
+				parsed_arg = self._parse_and_validate_argument(arg, function_name=function_name)
+				parsed_args.append(parsed_arg)
+			function_call = func_class(*parsed_args)
+		elif isinstance(function_args, (int | float)):
+			function_call = func_class(function_args)
+		elif function_args is None:
+			try:
+				function_call = func_class()
+			except TypeError:
+				frappe.throw(
+					_("Function {0} requires arguments but none were provided").format(function_name),
+					frappe.ValidationError,
+				)
+		else:
+			frappe.throw(
+				_(
+					"Invalid function argument type: {0}. Only strings, numbers, lists, and None are allowed."
+				).format(type(function_args).__name__),
+				frappe.ValidationError,
+			)
+
+		if alias:
+			return function_call.as_(alias)
+		else:
+			return function_call
+
+	def parse_operator(self, operator_dict: dict) -> ArithmeticExpression:
+		"""Parse an arithmetic operator dictionary into a pypika ArithmeticExpression.
+
+		Operators require exactly 2 arguments (left and right operands).
+		Arguments can be: numbers, field names, nested functions, or nested operators.
+		Example: {"DIV": [1, {"NULLIF": [{"LOCATE": ["'test'", "name"]}, 0]}]}
+		"""
+		operator_name, alias, operator_args = self._extract_dict_components(
+			operator_dict, OPERATOR_MAPPING, "operator"
+		)
+
+		operator = OPERATOR_MAPPING[operator_name]
+
+		# Operators require exactly 2 arguments (left and right operands)
+		if not isinstance(operator_args, list) or len(operator_args) != 2:
+			frappe.throw(
+				_("Operator {0} requires exactly 2 arguments (left and right operands)").format(
+					operator_name
+				),
+				frappe.ValidationError,
+			)
+
+		# Parse and validate both operands (supports nested functions/operators)
+		left = self._parse_and_validate_argument(operator_args[0])
+		right = self._parse_and_validate_argument(operator_args[1])
+
+		# Wrap raw values (numbers, strings) in ValueWrapper so pypika can process them
+		if not isinstance(left, Term):
+			left = ValueWrapper(left)
+		if not isinstance(right, Term):
+			right = ValueWrapper(right)
+
+		assert isinstance(left, Term) and isinstance(right, Term), "operands must be pypika Terms"
+		expression = ArithmeticExpression(operator=operator, left=left, right=right)
+
+		if alias:
+			return expression.as_(alias)
+		else:
+			return expression
+
+	def _parse_and_validate_argument(self, arg, *, function_name: str | None = None):
+		"""Parse and validate a single function/operator argument against SQL injection.
+
+		Supports:
+		- Numbers: 1, 2.5, etc.
+		- Strings: field names or quoted literals
+		- Nested dicts: functions {"COUNT": "name"} or operators {"ADD": [1, 2]}
+		"""
+		if isinstance(arg, (int | float)):
+			return arg
+		elif isinstance(arg, str):
+			return self._validate_string_argument(arg, function_name=function_name)
+		elif isinstance(arg, dict):
+			# Recursively handle nested functions and operators
+			if self.is_function_dict(arg):
+				return self.parse_function(arg)
+			elif self.is_operator_dict(arg):
+				return self.parse_operator(arg)
+			else:
+				frappe.throw(
+					_("Invalid nested expression: dictionary must represent a function or operator"),
+					frappe.ValidationError,
+				)
+		elif arg is None:
+			# None is allowed for some functions
+			return arg
+		else:
+			frappe.throw(
+				_("Invalid argument type: {0}. Only strings, numbers, dicts, and None are allowed.").format(
+					type(arg).__name__
+				),
+				frappe.ValidationError,
+			)
+
+	def _validate_string_argument(self, arg: str, *, function_name: str | None = None):
+		"""Validate string arguments to prevent SQL injection."""
+		arg = arg.strip()
+
+		if not arg:
+			frappe.throw(_("Empty string arguments are not allowed"), frappe.ValidationError)
+
+		# Special case: allow '*' only for specific functions like COUNT(*)
+		if arg == "*":
+			if function_name not in STAR_ALLOWED_FUNCTIONS:
+				frappe.throw(
+					_("'*' is only allowed in {0} SQL function(s)").format(", ".join(STAR_ALLOWED_FUNCTIONS)),
+					frappe.ValidationError,
+				)
+			return Star()
+
+		# Check for string literals (quoted strings)
+		if len(arg) >= 2 and arg[0] in ("'", '"') and arg[-1] == arg[0]:
+			# note: pypika handles proper escaping with wrap_constant
+			return arg[1:-1]
+
+		# Check for backtick notation: `tabDocType`.`fieldname`
+		# Parse and return as Field object to preserve field reference in operators
+		elif "`" in arg:
+			if parsed := self.engine._parse_backtick_field_notation(arg):
+				table_name, field_name = parsed
+				self.engine.check_select_field_permission(table_name, field_name)
+				return Table(f"tab{table_name}")[field_name]
+			else:
+				frappe.throw(
+					_(
+						"Invalid argument format: {0}. Only quoted string literals or simple field names are allowed."
+					).format(arg),
+					frappe.ValidationError,
+				)
+
+		# Check if it's a numeric string like "1" (for COUNT(1), etc.)
+		elif arg.isdigit():
+			return int(arg)
+
+		elif self._is_valid_field_name(arg):
+			self._check_function_field_permission(arg)
+			return self.engine.table[arg]
+
+		else:
+			frappe.throw(
+				_(
+					"Invalid argument format: {0}. Only quoted string literals or simple field names are allowed."
+				).format(arg),
+				frappe.ValidationError,
+			)
+
+	def _is_valid_field_name(self, name: str) -> bool:
+		"""Check if a string is a valid field name."""
+		# Field names should only contain alphanumeric characters and underscores
+		return SIMPLE_FIELD_PATTERN.match(name) is not None
+
+	def _validate_alias(self, alias: str):
+		"""Validate alias name for SQL injection."""
+		if not isinstance(alias, str):
+			frappe.throw(_("Alias must be a string"), frappe.ValidationError)
+
+		alias = alias.strip()
+		if not alias:
+			frappe.throw(_("Empty alias is not allowed"), frappe.ValidationError)
+
+		# Alias should be a simple identifier
+		# Note: pypika wraps aliases in backticks, so anything without backticks is safe
+		if not SIMPLE_FIELD_PATTERN.match(alias):
+			frappe.throw(
+				_("Invalid alias format: {0}. Alias must be a simple identifier.").format(alias),
+				frappe.ValidationError,
+			)
+
+	def _check_function_field_permission(self, field_name: str):
+		if self.engine.apply_permissions and self.engine.doctype:
+			self.engine.check_select_field_permission(self.engine.doctype, field_name, self.engine.parent_doctype)
+>>>>>>> 2af7628 (fix: enforce child field permissions in function expressions)
