@@ -130,3 +130,86 @@ class TestFlowSetup(IntegrationTestCase):
 		forbidden = requests.HTTPError(response=SimpleNamespace(status_code=403))
 		with patch.object(setup, "_ask_with_key", side_effect=forbidden):
 			self.assertEqual(setup.connect("anthropic", "sk-ant-restricted-0000000000"), {"ok": True})
+
+
+SITE_KEY = {"ai_keys": [{"gateway_url": "https://ai.example.com/", "api_key": "grove-key"}]}
+# what Grove lists for the key
+LISTED = ["gpt-x", "gpt-6-luna", "text-embedding-3-small"]
+
+
+class TestSiteKeyProvider(IntegrationTestCase):
+	"""A site whose config has a Grove key chats on Flow's first open, without setup."""
+
+	def setUp(self):
+		frappe.db.delete("Flow Model", {"provider": "grove"})
+		frappe.db.delete("Flow Provider", {"name": "grove"})
+		frappe.cache.delete_value(setup.GROVE_DOWN_CACHE)
+
+	def tearDown(self):
+		frappe.db.rollback()
+
+	def _sync(self, conf=SITE_KEY, listed=LISTED):
+		def gateway(url, headers, timeout):
+			self.assertEqual(url, "https://ai.example.com/openai/v1/models")
+			response = SimpleNamespace(raise_for_status=lambda: None)
+			response.json = lambda: {"data": [{"id": model} for model in listed]}
+			return response
+
+		with (
+			patch.dict(frappe.conf, conf),
+			patch.object(setup.requests, "get", side_effect=gateway) as get,
+			patch("frappe.flow.assistant.ensure_builtin_assistant") as assistant,
+		):
+			setup.sync_site_provider()
+		return get, assistant
+
+	def test_the_first_open_adds_grove_with_luna_alone(self):
+		_get, assistant = self._sync()
+		self.assertTrue(frappe.db.get_value("Flow Provider", "grove", "enabled"))
+		self.assertFalse(
+			frappe.get_doc("Flow Provider", "grove").get_password("api_key", raise_exception=False)
+		)
+		models = frappe.get_all("Flow Model", {"provider": "grove"}, ["name", "model_id", "enabled"])
+		self.assertEqual([(model.model_id, model.enabled) for model in models], [("grove/gpt-6-luna", 1)])
+		# the Assistant chats with it
+		assistant.assert_called_once_with(model=models[0].name)
+
+	def test_a_key_without_luna_adds_nothing_so_setup_shows(self):
+		self._sync(listed=["gpt-x"])
+		self.assertFalse(frappe.db.exists("Flow Provider", "grove"))
+
+	def test_later_opens_and_sites_without_a_key_ask_no_gateway(self):
+		self._sync()
+		get, _assistant = self._sync()
+		get.assert_not_called()
+		frappe.db.rollback()
+		get, _assistant = self._sync({"ai_keys": []})
+		get.assert_not_called()
+		self.assertFalse(frappe.db.exists("Flow Provider", "grove"))
+
+	def test_a_gateway_that_does_not_answer_adds_nothing_and_is_asked_again_later(self):
+		with (
+			patch.dict(frappe.conf, SITE_KEY),
+			patch.object(setup.requests, "get", side_effect=requests.ConnectionError),
+		):
+			setup.sync_site_provider()
+		self.assertFalse(frappe.db.exists("Flow Provider", "grove"))
+		# the next opens don't wait on it again for a while
+		get, _assistant = self._sync()
+		get.assert_not_called()
+		frappe.cache.delete_value(setup.GROVE_DOWN_CACHE)
+		self._sync()
+		self.assertTrue(frappe.db.exists("Flow Provider", "grove"))
+
+	def test_two_first_opens_at_once_add_grove_once(self):
+		self._sync()
+		# the other open checked before this one's rows were there
+		with patch.object(frappe.db, "exists", return_value=False):
+			self._sync()
+		self.assertEqual(frappe.db.count("Flow Model", {"provider": "grove"}), 1)
+
+	def test_a_key_that_just_arrived_is_read_from_the_config_file(self):
+		# site config is cached for up to a minute: the key is in the file, not yet in frappe.conf
+		with patch.object(frappe, "get_site_config", return_value=SITE_KEY):
+			self._sync({"ai_keys": []})
+		self.assertTrue(frappe.db.exists("Flow Provider", "grove"))

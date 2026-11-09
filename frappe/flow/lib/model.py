@@ -67,8 +67,13 @@ def resolve_provider_credentials(model_id: str, provider: str | None = None) -> 
 
 
 def site_key() -> dict[str, str] | None:
-	"""The first `ai_keys` entry Frappe Cloud writes into site config: {gateway_url, api_key}."""
-	entry = (frappe.conf.get("ai_keys") or [None])[0]
+	"""The first `ai_keys` entry Frappe Cloud writes into site config: {gateway_url, api_key}.
+	Site config is cached for up to a minute, so a key not in it yet is read from the file."""
+	return _first_key(frappe.conf) or _first_key(frappe.get_site_config())
+
+
+def _first_key(conf: dict) -> dict[str, str] | None:
+	entry = (conf.get("ai_keys") or [None])[0]
 	if isinstance(entry, dict) and entry.get("gateway_url") and entry.get("api_key"):
 		return entry
 	return None

@@ -47,9 +47,11 @@ def boot() -> dict[str, Any]:
 	from, the default agent, whether a provider is set up, the file types it may attach, who is
 	signed in and what they may manage."""
 	frappe.has_permission("Flow Session", "read", throw=True)
+	from frappe.flow.api.setup import sync_site_provider
 	from frappe.flow.assistant.assistant import ASSISTANT_AGENT_NAME
 	from frappe.flow.knowledge.extract import FILE_EXTENSIONS
 
+	sync_site_provider()
 	agents = frappe.get_list("Flow Agent", filters={"enabled": 1}, fields=["name", "title", "model"])
 	# an app's agent shows without its app, unless another app's agent is named the same
 	short = [agent.name.rpartition("/")[2] for agent in agents]
