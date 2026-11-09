@@ -517,10 +517,13 @@ export function formatDuration(durationMs) {
 	const roundedSeconds = Math.round(durationMs / 1_000)
 	if (roundedSeconds < 60) return `${roundedSeconds}s`
 	const minutes = Math.floor(roundedSeconds / 60)
-	const seconds = roundedSeconds % 60
-	if (seconds === 0) return `${minutes}m`
-	return `${minutes}m ${seconds}s`
+	if (minutes < 60) return pair(minutes, "m", roundedSeconds % 60, "s")
+	const hours = Math.floor(minutes / 60)
+	if (hours < 24) return pair(hours, "h", minutes % 60, "m")
+	return pair(Math.floor(hours / 24), "d", hours % 24, "h")
 }
+
+const pair = (big, bigUnit, small, smallUnit) => (small ? `${big}${bigUnit} ${small}${smallUnit}` : `${big}${bigUnit}`)
 
 function deriveTurns(entries, steeredSeqs = []) {
 	const turns = new Map()

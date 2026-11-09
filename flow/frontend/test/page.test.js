@@ -470,7 +470,7 @@ test("boot is refetched only for the records it lists, skills when a skill or an
 	dom.window.Storage.prototype.setItem = setItem;
 });
 
-test("without a model the normal page shows the setup state and no composer, and keeps to the screen a phone's keyboard leaves; an admin connects there and picks a model, and anyone else asks an admin", async (t) => {
+test("without a model the normal page shows the setup state and no composer, and keeps to the screen a phone's keyboard leaves; an admin connects there and picks a model, and anyone else is told an admin needs to", async (t) => {
 	// the keyboard shrinks only the visible part of the page; a pinch zoom does too, by its scale
 	const viewport = Object.assign(new dom.window.EventTarget(), { height: 844, scale: 1 });
 	const { scrollTo } = dom.window;
@@ -552,16 +552,11 @@ test("without a model the normal page shows the setup state and no composer, and
 	await nextTick();
 	assert.equal(pick().getAttribute("provider"), "anthropic");
 
-	// anyone else asks an admin, and is told who heard
-	transport.answers["frappe.flow.api.setup.ask_admin"] = { admins: ["Ann", "Bob"] };
+	// anyone else is told an admin needs to connect a provider
 	const user = mountSetup({});
 	assert.equal(user.setup.querySelector("[data-stub=ConnectSetup]"), null);
-	const ask = () => user.setup.querySelector("button");
-	assert.equal(ask().textContent, "Ask an admin to connect Flow");
-	ask().click();
-	await until(() => ask().textContent === "Asked");
-	assert.ok(ask().disabled, "asked once");
-	assert.ok(user.setup.textContent.includes("Ann and Bob have a note."));
+	assert.equal(user.setup.querySelector("button"), null);
+	assert.ok(user.setup.textContent.includes("An admin needs to connect a provider first."));
 });
 
 test("an explicit conversation URL opens even outside the recent session list, syncing a run that ended as it opened", async (t) => {

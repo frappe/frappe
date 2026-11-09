@@ -15,7 +15,7 @@ import requests
 
 import frappe
 from frappe import _
-from frappe.utils import escape_html, get_fullname, get_url, sbool
+from frappe.utils import escape_html, sbool
 
 # Beside the site, a model server needs no key
 OLLAMA_URL = "http://localhost:11434"
@@ -27,7 +27,6 @@ SERVER_PROVIDER = "custom_openai"
 NO_CREDIT = ("credit balance", "insufficient_quota", "billing", "payment required", "quota")
 # and when it has no model by that name
 NO_MODEL = ("not a valid model", "model_not_found", "does not exist", "invalid model", "unknown model")
-ASK_ADMIN_CACHE = "flow_setup_asked"
 # where a key is checked when the models list doesn't need one
 KEY_URLS = {"openrouter": "https://openrouter.ai/api/v1/key"}
 
@@ -148,32 +147,6 @@ def remove_provider(provider: str) -> None:
 	for name in frappe.get_all("Flow Model", {"provider": provider}, pluck="name"):
 		frappe.delete_doc("Flow Model", name)
 	frappe.delete_doc("Flow Provider", provider)
-
-
-@frappe.whitelist(methods=["POST"])
-def ask_admin() -> dict[str, Any]:
-	"""Someone who can't connect a service asks those who can, once a day at most."""
-	frappe.has_permission("Flow Session", "read", throw=True)
-	key = f"{ASK_ADMIN_CACHE}:{frappe.session.user}"
-	admins = _admins()
-	if not frappe.cache.get_value(key):
-		from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification
-
-		emails = [email for email in frappe.get_all("User", {"name": ("in", admins)}, pluck="email") if email]
-		if emails:
-			enqueue_create_notification(
-				emails,
-				{
-					"type": "Alert",
-					"subject": _("{0} would like to use Flow. Connect a model provider to set it up.").format(
-						frappe.bold(escape_html(get_fullname(frappe.session.user)))
-					),
-					"from_user": frappe.session.user,
-					"link": get_url("/flow"),
-				},
-			)
-		frappe.cache.set_value(key, 1, expires_in_sec=24 * 60 * 60)
-	return {"admins": [get_fullname(user) for user in admins[:3]]}
 
 
 def _check_can_connect() -> None:
@@ -304,19 +277,3 @@ def _title(model: str) -> str:
 		head, _sep, rest = name[4:].partition("-")
 		return f"GPT-{head} {rest.replace('-', ' ')}".strip()
 	return " ".join(part if part[:1].isdigit() else part.capitalize() for part in name.split("-"))
-
-
-def _admins() -> list[str]:
-	"""Enabled users who may connect a service."""
-	users = frappe.get_all(
-		"Has Role",
-		filters={"role": "System Manager", "parenttype": "User"},
-		pluck="parent",
-		distinct=True,
-	)
-	return frappe.get_all(
-		"User",
-		filters={"name": ("in", users), "enabled": 1, "user_type": "System User"},
-		pluck="name",
-		order_by="creation asc",
-	)

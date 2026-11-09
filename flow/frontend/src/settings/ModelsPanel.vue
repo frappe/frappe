@@ -95,7 +95,7 @@
 					<span class="lucide-loader-circle size-3.5 animate-spin" aria-hidden="true" />
 					Checking {{ adding[service.name] }}…
 				</p>
-				<ErrorMessage v-else-if="addErrors[service.name]" :message="addErrors[service.name]" />
+				<ErrorMessage v-else-if="addErrors[service.name]" class="break-words" :message="addErrors[service.name]" />
 				<p
 					v-if="!service.models.length"
 					class="rounded-6 border border-dashed border-outline-gray-2 py-6 text-center text-sm text-ink-gray-5"

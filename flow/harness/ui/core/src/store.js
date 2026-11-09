@@ -127,7 +127,7 @@ export function createFlowStore(client, options = {}) {
 		webSearch: null, // { provider, api_key } for new chats; null uses DuckDuckGo
 		cwd: null,
 		sidebarOpen: true,
-		sidebarWidth: 288,
+		sidebarWidth: 256,
 		openFolders: [], // the sidebar's expanded workspace folders
 		sidebarGroup: "workspace", // "workspace" | "list": the sidebar's chats under their folders, or in one list
 		sidebarOrder: "updated", // "updated" | "manual": newest activity first, or as dragged
