@@ -868,6 +868,26 @@ class TestClassicConverter(IntegrationTestCase):
 		execute()
 		self.assertEqual(frappe.db.get_value("Print Format", self.FORMAT_NAME, "format_data"), modified)
 
+	def test_repair_restores_paper_size(self):
+		from frappe.patches.v16_0.repair_converted_print_formats import execute
+
+		doc = self.make_classic_format()
+		doc.db_set(
+			{
+				"paper_size": "A5",
+				"print_format_builder_beta": 1,
+				"classic_format_data": doc.format_data,
+				"format_data": frappe.as_json({"sections": []}),
+			}
+		)
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+
+		execute()
+
+		format_data = frappe.db.get_value("Print Format", self.FORMAT_NAME, "format_data")
+		self.assertEqual(frappe.parse_json(format_data).get("page"), {"size": "A5"})
+
 	def test_migration_skips_corrupt_format(self):
 		"""A format with unparseable format_data is skipped, not fatal to the run."""
 		from frappe.printing.doctype.print_format.classic_converter import migrate_all_classic_formats
