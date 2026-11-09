@@ -42,6 +42,10 @@ class FlowProvider(Document):
 			self.api_key = self.api_key.strip()
 
 	def _validate_provider_known(self):
+		from frappe.flow.lib.model import SITE_PROVIDER
+
+		if self.provider == SITE_PROVIDER:
+			return
 		try:
 			import litellm
 		except ImportError:
