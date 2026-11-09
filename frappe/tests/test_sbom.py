@@ -1,12 +1,15 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import re
 from importlib.metadata import version
 
 from spdx_tools.spdx.parser.jsonlikedict.json_like_dict_parser import JsonLikeDictParser
 from spdx_tools.spdx.validation.document_validator import validate_full_spdx_document
 
-from frappe.tests import UnitTestCase
+import frappe
+from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.utils.sbom import build_and_attach_sbom, generate_sbom
 from frappe.utils.sbom.collector import License, _npm_alias_target, _yarn_source, collect, parse_yarn_lock
 from frappe.utils.sbom.licenses import NOASSERTION, to_spdx_license
 from frappe.utils.sbom.spdx import to_spdx
@@ -116,4 +119,46 @@ class TestSPDX(UnitTestCase):
 				"relatedSpdxElement": werkzeug,
 			},
 			self.document["relationships"],
+		)
+
+
+class TestGenerateSBOM(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		for email, roles in (("sbom-manager@example.com", ["System Manager"]), ("sbom-user@example.com", [])):
+			if not frappe.db.exists("User", email):
+				frappe.get_doc(
+					{"doctype": "User", "email": email, "first_name": "SBOM", "send_welcome_email": 0}
+				).insert().add_roles(*roles)
+
+	def test_requires_system_manager(self):
+		with self.set_user("sbom-user@example.com"), self.assertRaises(frappe.PermissionError):
+			generate_sbom()
+
+	def test_attaches_sbom_and_notifies(self):
+		with self.set_user("sbom-manager@example.com"):
+			build_and_attach_sbom()
+
+		file = frappe.get_last_doc(
+			"File",
+			filters={
+				"attached_to_doctype": "Installed Applications",
+				"attached_to_name": "Installed Applications",
+			},
+		)
+		self.assertTrue(file.is_private)
+		self.assertRegex(file.file_name, r"^sbom-.*-\d{8}-\d{6}\.spdx\.json$")
+		self.assertEqual(frappe.parse_json(file.get_content())["spdxVersion"], "SPDX-2.3")
+
+		self.assertTrue(
+			frappe.db.exists(
+				"Notification Log",
+				{
+					"for_user": "sbom-manager@example.com",
+					"type": "Alert",
+					"document_type": "Installed Applications",
+					"document_name": "Installed Applications",
+				},
+			)
 		)
