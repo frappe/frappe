@@ -133,9 +133,10 @@ class PrintDesignerConverter:
 			body = (compiled.get("body") or [{}])[0].get("childrens") or []
 			footer = self.first_page(compiled.get("footer"))
 		else:
-			header = load_json(self.doc.get("print_designer_header")) or []
-			body = ((load_json(self.doc.get("print_designer_body")) or [{}])[0] or {}).get("childrens") or []
-			footer = load_json(self.doc.get("print_designer_footer")) or []
+			header, body, footer = (
+				((load_json(self.doc.get(f"print_designer_{zone}")) or [{}])[0] or {}).get("childrens") or []
+				for zone in ("header", "body", "footer")
+			)
 			self.notes.append(_("No row and column layout was saved, so rows were grouped by position."))
 
 		layout = {
