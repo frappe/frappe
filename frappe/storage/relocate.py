@@ -11,6 +11,7 @@ from frappe import _
 from frappe.storage.blob import key_basename, make_key
 from frappe.storage.cache import sweep_lock
 from frappe.storage.driver import StorageDriver, get_driver
+from frappe.storage.s3_driver import S3Driver
 from frappe.utils import cint
 
 BATCH_SIZE = 100
@@ -100,8 +101,20 @@ def relocate_blob(row, target: StorageDriver, stats: dict, logger) -> int | None
 	source = get_driver(row.driver)
 	is_private = bool(row.is_private)
 	if not target.exists(target_key, is_private=is_private):
-		with source.read(row.key, is_private=is_private) as stream:
-			target.write(target_key, stream, is_private=is_private)
+		if (
+			isinstance(source, S3Driver)
+			and isinstance(target, S3Driver)
+			and source.client is target.client
+			and source.bucket == target.bucket
+		):
+			target.client.copy(
+				CopySource={"Bucket": source.bucket, "Key": source.object_key(row.key, is_private)},
+				Bucket=target.bucket,
+				Key=target.object_key(target_key, is_private),
+			)
+		else:
+			with source.read(row.key, is_private=is_private) as stream:
+				target.write(target_key, stream, is_private=is_private)
 	# the source is deleted after commit, so the copy must be in place first
 	if not target.exists(target_key, is_private=is_private):
 		raise RuntimeError(f"copied object {target_key} is missing")
