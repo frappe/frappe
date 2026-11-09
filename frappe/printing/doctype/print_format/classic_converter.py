@@ -6,7 +6,6 @@ import json
 import frappe
 from frappe.model import no_value_fields
 from frappe.utils import cint, flt
-from frappe.utils.print_format_generator import layout_page_settings
 
 ASSUMED_BODY_WIDTH_PX = 750
 DEFAULT_COLUMN_WIDTH_PCT = 10
@@ -90,6 +89,8 @@ def convert_classic_to_beta(format_data, meta, print_format=None) -> tuple[dict,
 
 	Returns (layout, dropped) where dropped lists fieldnames that no longer
 	exist in the doctype and were left out of the converted layout."""
+	from frappe.utils.print_format_generator import layout_page_settings
+
 	dropped = []
 	show_section_headings = cint(print_format.get("show_section_headings")) if print_format else 0
 	line_breaks = cint(print_format.get("line_breaks")) if print_format else 0
