@@ -2238,12 +2238,15 @@ class TestQuery(IntegrationTestCase):
 		self.addCleanup(parent_dt.delete)
 		self.addCleanup(user.remove_roles, role.name)
 
-		def build(query):
+		def build_child_query(query):
 			frappe.qb.get_query(
 				child_dt.name, parent_doctype=parent_dt.name, ignore_permissions=False, **query
 			).get_sql()
 
-		def assert_queries(fieldname, allowed):
+		def build_parent_query(query):
+			frappe.qb.get_query(parent_dt.name, ignore_permissions=False, **query).get_sql()
+
+		def assert_queries(fieldname, allowed, build=build_child_query):
 			for query in (
 				{"fields": [{"MAX": fieldname}]},
 				{"filters": {fieldname: 1}},
@@ -2257,12 +2260,18 @@ class TestQuery(IntegrationTestCase):
 					else:
 						self.assertRaises(frappe.PermissionError, build, query)
 
+		def child_ref(fieldname):
+			return f"`tab{child_dt.name}`.`{fieldname}`"
+
 		assert_queries("public_field", allowed=True)
 		assert_queries("restricted_field", allowed=False)
+		assert_queries(child_ref("public_field"), allowed=True, build=build_parent_query)
+		assert_queries(child_ref("restricted_field"), allowed=False, build=build_parent_query)
 
 		update_permission_property(parent_dt.name, role.name, 0, "select", 1, validate=False)
 		update_permission_property(parent_dt.name, role.name, 0, "read", 0, validate=False)
 		assert_queries("public_field", allowed=False)
+		assert_queries(child_ref("public_field"), allowed=False, build=build_parent_query)
 
 	def test_group_by_order_by_validation_errors(self):
 		"""Test validation errors for invalid GROUP BY and ORDER BY fields."""
