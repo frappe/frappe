@@ -867,6 +867,37 @@ class TestClassicConverter(IntegrationTestCase):
 		self.assertNotIn(bad_name, report)
 
 
+class TestPrintDesignerConverter(IntegrationTestCase):
+	def test_print_designer_linked_image_prints_the_linked_document_image(self):
+		from frappe.printing.doctype.print_format.print_designer_converter import (
+			convert_print_designer_format,
+		)
+
+		user_image = frappe.db.get_value("User", "Administrator", "user_image")
+		frappe.db.set_value("User", "Administrator", "user_image", "/files/admin.png")
+		self.addCleanup(frappe.db.set_value, "User", "Administrator", "user_image", user_image)
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		image = {
+			"type": "image",
+			"isDynamic": True,
+			"image": {"doctype": "User", "fieldname": "user_image", "parentField": "allocated_to"},
+		}
+		doc = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"doc_type": "ToDo",
+				"print_designer_body": frappe.as_json([{"childrens": [image]}]),
+			}
+		)
+
+		layout, _notes = convert_print_designer_format(doc)
+
+		html = layout["sections"][0]["columns"][0]["fields"][0]["html"]
+		todo = frappe.get_doc({"doctype": "ToDo", "allocated_to": "Administrator"})
+		self.assertIn("/files/admin.png", frappe.render_template(html, {"doc": todo}))
+
+
 class TestPrintFormatChildTableVisibility(IntegrationTestCase):
 	"""Per-row and per-column conditional visibility for child Table fields."""
 
