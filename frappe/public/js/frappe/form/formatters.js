@@ -36,7 +36,10 @@ frappe.form.formatters = {
 	Data: function (value, df) {
 		if (df && df.options == "URL") {
 			if (!value) return "";
-			return `<a href="${value}" title="Open Link" target="_blank">${value}</a>`;
+			const plain = frappe.utils.unescape_html(value);
+			const safe = frappe.utils.escape_html(plain);
+			if (frappe.utils.has_unsafe_url_scheme(plain)) return safe;
+			return `<a href="${safe}" title="Open Link" target="_blank">${safe}</a>`;
 		}
 		if (df && df.options == "IBAN") {
 			if (!value) return "";

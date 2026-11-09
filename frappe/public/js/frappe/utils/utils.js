@@ -273,6 +273,15 @@ Object.assign(frappe.utils, {
 		);
 	},
 
+	has_unsafe_url_scheme: function (value) {
+		const bare = String(value)
+			// removed anywhere in the URL by the browser
+			.replace(/[\t\n\r]/g, "")
+			// any leading C0 control (U+0000-U+0020) or space, before the scheme
+			.replace(/^[\u0000-\u0020]+/, "");
+		return /^(javascript|vbscript|data):/i.test(bare);
+	},
+
 	html2text: function (html) {
 		const parser = new DOMParser();
 		const dom = parser.parseFromString(html, "text/html");
