@@ -510,8 +510,11 @@ class PrintDesignerConverter:
 		node.update(self.style_props({**self.styled(element), **(item.get("style") or {})}))
 		return node
 
-	def table_node(self, element) -> dict:
+	def table_node(self, element) -> dict | None:
 		table = element.get("table") or {}
+		if not table.get("fieldname"):
+			self.notes.append(_("A table with no child table selected was left out."))
+			return None
 		columns = []
 		for column in element.get("columns") or []:
 			fields = [
