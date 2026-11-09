@@ -1,6 +1,8 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+from functools import lru_cache
+
 from cryptography.fernet import Fernet, InvalidToken
 from passlib.context import CryptContext
 from pypika.terms import Values
@@ -80,6 +82,16 @@ def remove_encrypted_password(doctype, name, fieldname="password"):
 	frappe.db.delete("__Auth", {"doctype": doctype, "name": name, "fieldname": fieldname})
 
 
+@lru_cache(maxsize=1)
+def _placeholder_hash() -> str:
+	return passlibctx.hash(frappe.generate_hash())
+
+
+def verify_against_placeholder(pwd):
+	"""Spend the time of a real verification, so a missing password cannot be told from a wrong one."""
+	passlibctx.verify(pwd, _placeholder_hash())
+
+
 def check_password(user, pwd, doctype="User", fieldname="password", delete_tracker_cache=True):
 	"""Checks if user and password are correct, else raises frappe.AuthenticationError"""
 
@@ -96,7 +108,12 @@ def check_password(user, pwd, doctype="User", fieldname="password", delete_track
 		.run(as_dict=True)
 	)
 
-	if not result or not passlibctx.verify(pwd, result[0].password):
+	if result:
+		matched = passlibctx.verify(pwd, result[0].password)
+	else:
+		verify_against_placeholder(pwd)
+		matched = False
+	if not matched:
 		raise frappe.AuthenticationError(_("Incorrect User or Password"))
 
 	# lettercase agnostic
