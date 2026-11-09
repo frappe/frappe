@@ -754,7 +754,7 @@ async function newWorkspace() {
 	startNewChat(workspace?.path ?? cwd)
 }
 
-const DEFAULT_WIDTH = 288
+const DEFAULT_WIDTH = 256
 const clampWidth = (w) => Math.min(420, Math.max(224, w))
 const width = ref(clampWidth(flow.state.prefs.sidebarWidth ?? DEFAULT_WIDTH))
 
