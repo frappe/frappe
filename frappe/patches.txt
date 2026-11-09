@@ -326,3 +326,4 @@ frappe.patches.v17_0.mark_flow_embedding_model
 
 [post_fixture_sync]
 frappe.patches.v17_0.add_core_pdf_generators_to_option_overrides
+frappe.patches.v17_0.migrate_s3_blob_keys

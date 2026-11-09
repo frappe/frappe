@@ -17,7 +17,9 @@ BATCH_SIZE = 100
 SWEEP_WAIT_TIMEOUT = 600
 
 
-def relocate_blobs(batch_size: int = BATCH_SIZE, target_driver: str | None = None) -> dict:
+def relocate_blobs(
+	batch_size: int = BATCH_SIZE, target_driver: str | None = None, source_driver: str | None = None
+) -> dict:
 	"""Move blobs to a driver's canonical ``<blob>/<filename>`` keys. Safe to re-run.
 
 	The target defaults to the configured driver. ``File.file_url`` never changes.
@@ -35,7 +37,7 @@ def relocate_blobs(batch_size: int = BATCH_SIZE, target_driver: str | None = Non
 	after_name = ""
 
 	with sweep_lock(SWEEP_WAIT_TIMEOUT):
-		while rows := get_relocation_batch(batch_size, after_name):
+		while rows := get_relocation_batch(batch_size, after_name, source_driver):
 			moved_in_batch: list[tuple[str, int]] = []
 			for row in rows:
 				try:
@@ -75,11 +77,14 @@ def relocate_blobs(batch_size: int = BATCH_SIZE, target_driver: str | None = Non
 	return stats
 
 
-def get_relocation_batch(limit: int, after_name: str) -> list[dict]:
+def get_relocation_batch(limit: int, after_name: str, source_driver: str | None = None) -> list[dict]:
 	"""Return the next stable page of blob rows."""
+	filters = {"name": (">", after_name)}
+	if source_driver is not None:
+		filters["driver"] = source_driver
 	return frappe.get_all(
 		"File Blob",
-		filters={"name": (">", after_name)},
+		filters=filters,
 		fields=["name", "key", "checksum", "file_size", "driver", "is_private"],
 		order_by="name asc",
 		limit=limit,
