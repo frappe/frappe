@@ -257,6 +257,24 @@ class PrintViewTest(IntegrationTestCase):
 		drop_default()
 		self.assertIsNone(get_print_format_doc("None", frappe.get_meta("Note")))
 
+	def test_document_print_skips_the_report_default_letter_head(self):
+		from frappe.www.printview import get_letter_head
+
+		report_letter_head = frappe.get_doc(
+			doctype="Letter Head",
+			letter_head_name="_Test Report Letter Head",
+			letter_head_for="Report",
+			content="<h3>_Test Report Letter Head</h3>",
+			is_default=1,
+		).insert()
+		self.addCleanup(report_letter_head.delete)
+		todo = frappe.get_doc(doctype="ToDo", description="_Test ToDo").insert()
+
+		with self.set_user("test@example.com"):
+			letter_head = get_letter_head(todo, no_letterhead=False)
+
+		self.assertNotEqual(letter_head.get("content"), report_letter_head.content)
+
 	def _make_linked_print_doc(self):
 		linked_doctype = new_doctype(title_field="some_fieldname", show_title_field_in_link=1).insert()
 		link_field = {

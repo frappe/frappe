@@ -504,7 +504,7 @@ class PrintFormatGenerator:
 					return None
 			else:
 				name = self.doc.get("letter_head") or frappe.db.get_value(
-					"Letter Head", {"is_default": 1}, "name"
+					"Letter Head", {"is_default": 1, "letter_head_for": "DocType"}, "name"
 				)
 		# a stale link shouldn't fail the render — templates degrade to no letter head too
 		if not name or not frappe.db.exists("Letter Head", name):
