@@ -959,6 +959,13 @@ class PrintFormatGenerator:
 	}
 
 	def get_layout(self, print_format):
+		if print_format.flags.is_default_layout:
+			from frappe.printing.doctype.print_format.classic_converter import create_default_layout
+			from frappe.printing.print_style_presets import apply_style_preset
+
+			# before_print may change the meta after format_data was built
+			layout = create_default_layout(self.doc.meta)
+			return self.get_processed_layout(apply_style_preset(layout, self.style_name))
 		if not print_format.format_data:
 			# a format created without a layout (the New dialog inserts a bare row)
 			# prints the default layout instead of a blank page until its first save
@@ -978,10 +985,6 @@ class PrintFormatGenerator:
 			)
 			if not print_format.page_number or print_format.page_number == "Hide":
 				print_format.page_number = "Bottom Center"
-		if print_format.flags.is_default_layout:
-			from frappe.printing.print_style_presets import apply_style_preset
-
-			layout = apply_style_preset(layout, self.style_name)
 		return self.get_processed_layout(layout)
 
 	def get_processed_layout(self, layout):
