@@ -175,6 +175,7 @@ watchdog = "~=6.0.0"
 hypothesis = "~=6.77.0"
 responses = "==0.23.1"
 freezegun = "~=1.5.5"
+spdx-tools = "~=0.8.5"
 
 [tool.ruff]
 line-length = 110
