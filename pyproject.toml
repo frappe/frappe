@@ -29,11 +29,15 @@ dependencies = [
     "PyQRCode~=1.2.1",
     "PyYAML~=6.0.3",
     "RestrictedPython~=8.5",
+<<<<<<< HEAD
     "WeasyPrint==70.0",
     # WeasyPrint allows fonttools[woff]>=4.59.2, which keeps brotli<1.2.1 (CVE-2026-111497)
     "fonttools[woff]>=4.68.0",
     "typst~=0.15.0",
     "pydyf==0.12.1",
+=======
+    "packaging>=24.2",
+>>>>>>> 7c975f8 (feat(sbom): resolve installed versions and transitive Python deps)
     "Werkzeug==3.1.9",
     "Whoosh~=2.7.4",
     "beautifulsoup4~=4.13.5",
