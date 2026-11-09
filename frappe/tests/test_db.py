@@ -3090,6 +3090,24 @@ class TestMariaDBExceptionUtil(IntegrationTestCase):
 		self.assertFalse(MariaDBExceptionUtil.is_data_too_long(e))
 		self.assertFalse(MariaDBExceptionUtil.is_db_table_size_limit(e))
 
+	@run_only_if(db_type_is.MARIADB)
+	def test_exception_utils_recognize_frappe_wrappers(self):
+		"""The wrappers Database.sql() raises must satisfy the driver error predicates too."""
+		import pymysql
+
+		from frappe.database.mariadb.database import MariaDBExceptionUtil
+
+		self.assertTrue(
+			MariaDBExceptionUtil.is_deadlocked(
+				frappe.QueryDeadlockError(pymysql.OperationalError(1213, "Deadlock or lock wait timeout"))
+			)
+		)
+		self.assertTrue(
+			MariaDBExceptionUtil.is_timedout(
+				frappe.QueryTimeoutError(pymysql.OperationalError(1205, "Lock wait timeout exceeded"))
+			)
+		)
+
 	@run_only_if(db_type_is.POSTGRES)
 	def test_serialization_failure_is_treated_as_deadlock(self):
 		"""Postgres serialization failures (REPEATABLE READ write conflicts) must be retriable like
@@ -3103,6 +3121,9 @@ class TestMariaDBExceptionUtil(IntegrationTestCase):
 			self.assertTrue(PostgresExceptionUtil.is_deadlocked(error()))
 
 		self.assertFalse(PostgresExceptionUtil.is_deadlocked(UniqueViolation()))
+
+		self.assertTrue(PostgresExceptionUtil.is_deadlocked(frappe.QueryDeadlockError(UniqueViolation())))
+		self.assertTrue(PostgresExceptionUtil.is_timedout(frappe.QueryTimeoutError(UniqueViolation())))
 
 
 class TestSQLiteExceptionUtil(UnitTestCase):
@@ -3146,6 +3167,16 @@ class TestSQLiteExceptionUtil(UnitTestCase):
 
 		self.assertTrue(SQLiteExceptionUtil.is_deadlocked(error))
 		self.assertFalse(SQLiteExceptionUtil.is_timedout(error))
+
+	def test_frappe_wrappers_are_recognized_as_deadlock_and_timeout(self):
+		from frappe.database.sqlite.database import SQLiteExceptionUtil
+
+		error = sqlite3.OperationalError("database is locked")
+
+		self.assertTrue(SQLiteExceptionUtil.is_deadlocked(frappe.QueryDeadlockError(error)))
+		self.assertTrue(SQLiteExceptionUtil.is_timedout(frappe.QueryTimeoutError(error)))
+		self.assertFalse(SQLiteExceptionUtil.is_deadlocked(error))
+		self.assertTrue(SQLiteExceptionUtil.is_timedout(error))
 
 	def test_plain_busy_is_a_timeout(self):
 		from frappe.database.sqlite.database import SQLiteExceptionUtil

@@ -201,11 +201,15 @@ class PostgresExceptionUtil:
 		# wait, but postgres aborts the loser with SERIALIZATION_FAILURE ("could not serialize
 		# access due to concurrent update"). Classifying it here routes it through frappe's deadlock
 		# retry instead of surfacing as an unhandled query error.
-		return isinstance(e, errors.DeadlockDetected | errors.SerializationFailure)
+		return isinstance(e, errors.DeadlockDetected | errors.SerializationFailure) or isinstance(
+			e, frappe.QueryDeadlockError
+		)
 
 	@staticmethod
 	def is_timedout(e):
-		return isinstance(e, errors.QueryCanceled | errors.LockNotAvailable)
+		return isinstance(e, errors.QueryCanceled | errors.LockNotAvailable) or isinstance(
+			e, frappe.QueryTimeoutError
+		)
 
 	@staticmethod
 	def is_read_only_mode_error(e) -> bool:

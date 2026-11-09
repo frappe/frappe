@@ -26,11 +26,15 @@ class MariaDBExceptionUtil:
 
 	@staticmethod
 	def is_deadlocked(e: pymysql.Error) -> bool:
+		if isinstance(e, frappe.QueryDeadlockError):
+			return True
 		# Snapshot isolation is also treated as deadlock from User POV
 		return e.args and e.args[0] in (ER.LOCK_DEADLOCK, ER.CHECKREAD)
 
 	@staticmethod
 	def is_timedout(e: pymysql.Error) -> bool:
+		if isinstance(e, frappe.QueryTimeoutError):
+			return True
 		return e.args and e.args[0] == ER.LOCK_WAIT_TIMEOUT
 
 	@staticmethod

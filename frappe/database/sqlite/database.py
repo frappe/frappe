@@ -61,10 +61,14 @@ class SQLiteExceptionUtil:
 
 	@staticmethod
 	def is_deadlocked(e: sqlite3.Error) -> bool:
+		if isinstance(e, frappe.QueryDeadlockError):
+			return True
 		return getattr(e, "sqlite_errorcode", None) == sqlite3.SQLITE_BUSY_SNAPSHOT
 
 	@classmethod
 	def is_timedout(cls, e: sqlite3.Error) -> bool:
+		if isinstance(e, frappe.QueryTimeoutError):
+			return True
 		return not cls.is_deadlocked(e) and (
 			getattr(e, "sqlite_errorcode", None) == sqlite3.SQLITE_BUSY or "database is locked" in str(e)
 		)

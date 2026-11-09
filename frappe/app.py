@@ -415,11 +415,7 @@ def handle_exception(e):
 	elif isinstance(e, frappe.SessionStopped):
 		response = frappe.utils.response.handle_session_stopped()
 
-	elif (
-		http_status_code == 500
-		and (frappe.db and isinstance(e, frappe.db.InternalError))
-		and (frappe.db and (frappe.db.is_deadlocked(e) or frappe.db.is_timedout(e)))
-	):
+	elif http_status_code == 500 and frappe.db and (frappe.db.is_deadlocked(e) or frappe.db.is_timedout(e)):
 		http_status_code = 508
 
 	elif http_status_code == 401:
