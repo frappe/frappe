@@ -3,10 +3,12 @@
 The result has no SPDX concepts. The attribution page and the SBOM serializer both use it.
 """
 
+import base64
 import contextlib
 import importlib
 import importlib.metadata
 import json
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -53,6 +55,8 @@ class Package:
 	author: str | None = None
 	repository_url: str | None = None
 	commit: str | None = None
+	download_url: str | None = None
+	integrity: str | None = None
 
 
 @dataclass(frozen=True)
@@ -83,7 +87,7 @@ class _Collector:
 	def __init__(self, app_names: list[str]):
 		self.app_names = app_names
 		self.apps: dict[str, App] = {}
-		self.packages: dict[tuple[str, str], Package] = {}
+		self.packages: dict[tuple[str, str] | tuple[str, str, str | None], Package] = {}
 		self.dependencies: dict[Dependency, None] = {}
 		self.expanded_python_extras: set[tuple[str, str]] = set()
 
@@ -149,10 +153,46 @@ class _Collector:
 		return self.packages[key], distribution
 
 	def add_js_dependencies(self, app: App):
-		for package in get_js_deps(app.name):
-			key = ("npm", package.name)
-			self.packages.setdefault(key, package)
-			self.link(app, self.packages[key])
+		for root in _js_roots(app.name):
+			manifest = _read_json(root / "package.json") or {}
+			lockfile = _read_yarn_lock(root / "yarn.lock")
+			queue = [(app, name, spec) for name, spec in manifest.get("dependencies", {}).items()]
+
+			while queue:
+				dependent, name, spec = queue.pop(0)
+				entry = lockfile.get(f"{name}@{spec}")
+				package, is_new = self.get_js_package(
+					_npm_alias_target(name, spec), entry, root / "node_modules" / name / "package.json"
+				)
+				self.link(dependent, package)
+				if entry and is_new:
+					queue.extend(
+						(package, child_name, child_spec)
+						for section in ("dependencies", "optionalDependencies")
+						for child_name, child_spec in entry.get(section, {}).items()
+					)
+
+	def get_js_package(self, name: str, entry: dict | None, manifest_path: Path) -> tuple[Package, bool]:
+		version = entry.get("version") if entry else None
+		key = ("npm", name, version)
+		if key in self.packages:
+			return self.packages[key], False
+
+		manifest = _read_json(manifest_path) or {}
+		if version and manifest.get("version") != version:
+			manifest = {}
+
+		download_url, integrity = _yarn_source(entry or {})
+		self.packages[key] = Package(
+			ecosystem="npm",
+			name=name,
+			version=version,
+			license=_npm_license(manifest),
+			author=_npm_author(manifest),
+			download_url=download_url,
+			integrity=integrity,
+		)
+		return self.packages[key], True
 
 
 def get_app(name: str) -> App:
@@ -238,55 +278,88 @@ def _vcs_source(distribution: importlib.metadata.Distribution) -> tuple[str | No
 	return None, None
 
 
-def get_js_deps(app: str) -> list[Package]:
+def _js_roots(app: str) -> list[Path]:
+	"""Return the app root and its direct child directories that have a package.json."""
 	app_root = Path(frappe.get_app_path(app, ".."))
+	return [
+		directory
+		for directory in (app_root, *sorted(app_root.iterdir()))
+		if directory.is_dir() and (directory / "package.json").exists()
+	]
 
-	# Collect (package.json, node_modules) pairs from the app root and any direct
-	# child directory that has its own package.json (e.g. a frontend subdirectory).
-	sources = []
-	root_package_json = app_root / "package.json"
-	if root_package_json.exists():
-		sources.append((root_package_json, app_root / "node_modules"))
-	for subdir in app_root.iterdir():
-		if subdir.is_dir() and (subdir / "package.json").exists():
-			sources.append((subdir / "package.json", subdir / "node_modules"))
 
-	result = []
-	seen = set()
+def _read_json(path: Path) -> dict | None:
+	with contextlib.suppress(FileNotFoundError, json.JSONDecodeError):
+		return json.loads(path.read_text())
+	return None
 
-	for package_json, node_modules_path in sources:
-		with open(package_json) as f:
-			package = json.load(f)
 
-		packages = package.get("dependencies", {}).keys()
+def _read_yarn_lock(path: Path) -> dict[str, dict]:
+	with contextlib.suppress(FileNotFoundError):
+		return parse_yarn_lock(path.read_text())
+	return {}
 
-		for name in packages:
-			if name in seen:
-				continue
-			seen.add(name)
 
-			package_json_path = node_modules_path / name / "package.json"
-			if not package_json_path.exists():
-				result.append(Package(ecosystem="npm", name=name))
-				continue
+def parse_yarn_lock(text: str) -> dict[str, dict]:
+	"""Parse a yarn v1 lockfile into a map from each "name@range" key to its entry.
 
-			pkg_data = None
-			with contextlib.suppress(json.JSONDecodeError):
-				pkg_data = json.loads(package_json_path.read_text())
-			if not pkg_data:
-				continue
+	Return an empty map for other formats, such as the YAML lockfile of yarn 2 and later.
+	"""
+	if "# yarn lockfile v1" not in text:
+		return {}
 
-			result.append(
-				Package(
-					ecosystem="npm",
-					name=name,
-					version=pkg_data.get("version"),
-					license=_npm_license(pkg_data),
-					author=_npm_author(pkg_data),
-				)
-			)
+	entries: dict[str, dict] = {}
+	entry: dict = {}
+	section: dict | None = None
 
-	return result
+	for line in text.splitlines():
+		if not line.strip() or line.lstrip().startswith("#"):
+			continue
+
+		indent = len(line) - len(line.lstrip(" "))
+		line = line.strip()
+
+		if indent == 0:
+			entry = {}
+			section = None
+			for key in line.removesuffix(":").split(", "):
+				entries[_unquote(key)] = entry
+		elif line.endswith(":"):
+			section = entry.setdefault(line.removesuffix(":"), {})
+		else:
+			key, _, value = line.partition(" ")
+			key, value = _unquote(key), _unquote(value)
+			if indent == 2:
+				entry[key] = value
+				section = None
+			elif section is not None:
+				section[key] = value
+
+	return entries
+
+
+def _unquote(value: str) -> str:
+	return value.removeprefix('"').removesuffix('"')
+
+
+def _npm_alias_target(name: str, spec: str) -> str:
+	"""Return the real package name of an alias such as `"string-width-cjs": "npm:string-width@^4"`."""
+	if spec.startswith("npm:"):
+		target = spec.removeprefix("npm:")
+		return target.rsplit("@", 1)[0] if target.rfind("@") > 0 else target
+	return name
+
+
+def _yarn_source(entry: dict) -> tuple[str | None, str | None]:
+	"""Return the download URL and the subresource integrity string of a yarn lockfile entry.
+
+	Old lockfiles have no integrity field. Then the URL fragment holds the SHA-1 of the tarball.
+	"""
+	url, _, fragment = (entry.get("resolved") or "").partition("#")
+	integrity = entry.get("integrity")
+	if not integrity and re.fullmatch(r"[0-9a-f]{40}", fragment):
+		integrity = "sha1-" + base64.b64encode(bytes.fromhex(fragment)).decode()
+	return url or None, integrity
 
 
 def _npm_license(pkg_data: dict) -> License:
