@@ -212,6 +212,16 @@ class PrintViewTest(IntegrationTestCase):
 		with self.set_user("test@example.com"):
 			self.assertIn("width: 148mm", get_preview_page_css(print_format))
 
+	def test_preview_sheet_uses_the_print_format_class_page_size(self):
+		from frappe.www.printview import get_preview_page_css
+
+		print_format = frappe.get_doc(
+			doctype="Print Format", doc_type="Note", css=".print-format { page-size: A5; }"
+		)
+
+		with self.set_user("test@example.com"):
+			self.assertIn("width: 148mm", get_preview_page_css(print_format))
+
 	def test_before_print_runs_in_builder_renderer(self):
 		from frappe.utils.print_format_generator import PrintFormatGenerator
 
