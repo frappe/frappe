@@ -166,7 +166,10 @@ def get_barcode(value: str, barcode_format: str = "CODE128", show_text: bool = T
 	from barcode.errors import BarcodeError
 
 	if barcode_format == "QR":
-		return get_qr_code(value)
+		try:
+			return get_qr_code(value)
+		except ValueError:
+			return None
 	if not isinstance(value, str) or len(value) > 2000:
 		frappe.throw(_("Barcode value must be text under 2000 characters"), frappe.ValidationError)
 	if barcode_format not in LINEAR_BARCODE_FORMATS or not value:
