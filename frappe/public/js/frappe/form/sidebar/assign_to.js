@@ -159,7 +159,17 @@ frappe.ui.form.AssignToDialog = class AssignToDialog {
 				})
 				.then((response) => {
 					user_group_members = response.map((group_member) => group_member.user);
-					me.dialog.set_value("assign_to", user_group_members);
+					return frappe.db.get_link_options("User", "", {
+						user_type: "System User",
+						enabled: 1,
+						name: ["in", user_group_members],
+					});
+				})
+				.then((users) => {
+					me.dialog.set_value(
+						"assign_to",
+						users.map((user) => user.value)
+					);
 				});
 		}
 	}
