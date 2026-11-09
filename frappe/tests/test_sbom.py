@@ -86,7 +86,8 @@ class TestSPDX(UnitTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
-		cls.document = to_spdx(collect(["frappe"]), "example.com")
+		cls.inventory = collect(["frappe"])
+		cls.document = to_spdx(cls.inventory, "example.com")
 		cls.ids = {p["SPDXID"]: p for p in cls.document["packages"]}
 
 	def get_package_id(self, purl: str) -> str:
@@ -112,6 +113,10 @@ class TestSPDX(UnitTestCase):
 
 	def test_includes_vendored_libraries(self):
 		self.assertDependsOnFrappe("pkg:npm/leaflet@1.2.0")
+
+	def test_includes_nested_js_roots(self):
+		(app,) = self.inventory.apps
+		self.assertIn("json5", {p.name for p in self.inventory.direct_dependencies(app)})
 
 	def assertDependsOnFrappe(self, purl: str):
 		frappe_id = next(
