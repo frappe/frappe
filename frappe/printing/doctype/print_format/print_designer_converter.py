@@ -217,12 +217,14 @@ class PrintDesignerConverter:
 	# ----- structure ------------------------------------------------------------
 
 	def zone(self, elements, height=0) -> dict:
+		earlier_notes = len(self.notes)
 		sections = self.sections(elements)
 		if len(sections) == 1:
 			columns = sections[0]["columns"]
 		elif all(len(s["columns"]) == 1 for s in sections):
 			columns = [{"label": "", "fields": [f for s in sections for f in s["columns"][0]["fields"]]}]
 		else:
+			del self.notes[earlier_notes:]
 			rows = self.rows(sorted(elements, key=lambda e: (flt(e.get("startY")), flt(e.get("startX")))))
 			html = "".join(self.row_html(row) for row in rows)
 			columns = [{"label": "", "fields": [self.html_node(html)]}]
