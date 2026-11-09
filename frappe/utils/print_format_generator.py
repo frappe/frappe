@@ -165,6 +165,8 @@ def get_barcode(value: str, barcode_format: str = "CODE128", show_text: bool = T
 	import barcode
 	from barcode.errors import BarcodeError
 
+	from frappe.utils.typst_emitter import _CONTROL_CHARS
+
 	if barcode_format == "QR":
 		return get_qr_code(value)
 	if not isinstance(value, str) or len(value) > 2000:
@@ -184,7 +186,7 @@ def get_barcode(value: str, barcode_format: str = "CODE128", show_text: bool = T
 	)
 	width, height = 3 * len(modules), 60 if frappe.utils.sbool(show_text) else 40
 	text = (
-		f'<text x="{width / 2}" y="56" text-anchor="middle" font-family="DejaVu Sans Mono, monospace" font-size="16">{escape(value)}</text>'
+		f'<text x="{width / 2}" y="56" text-anchor="middle" font-family="DejaVu Sans Mono, monospace" font-size="16">{escape(_CONTROL_CHARS.sub("", value))}</text>'
 		if height == 60
 		else ""
 	)
@@ -504,7 +506,7 @@ class PrintFormatGenerator:
 					return None
 			else:
 				name = self.doc.get("letter_head") or frappe.db.get_value(
-					"Letter Head", {"is_default": 1}, "name"
+					"Letter Head", {"is_default": 1, "letter_head_for": "DocType"}, "name"
 				)
 		# a stale link shouldn't fail the render — templates degrade to no letter head too
 		if not name or not frappe.db.exists("Letter Head", name):
@@ -517,12 +519,21 @@ class PrintFormatGenerator:
 		except ValueError:
 			return {}
 		if isinstance(layout, list):
+			from frappe.utils.pdf_generator.browser import RECEIPT_WIDTHS
+			from frappe.utils.print_utils import parse_float_and_unit
+
 			pf = self.print_format
 			if pf.paper_size == "Custom" and pf.paper_width and pf.paper_height:
 				return {
 					"pdf_page_size": "Custom",
 					"pdf_page_width": pf.paper_width,
 					"pdf_page_height": pf.paper_height,
+				}
+			if receipt_width := RECEIPT_WIDTHS.get(pf.paper_size):
+				return {
+					"pdf_page_size": "Custom",
+					"pdf_page_width": parse_float_and_unit(receipt_width)["value"],
+					"pdf_page_height": 297,
 				}
 			return layout_page_settings({"page": {"size": pf.paper_size}})
 		return layout_page_settings(layout)
@@ -711,6 +722,8 @@ class PrintFormatGenerator:
 	def page_options(self) -> dict:
 		"""The page size as the Chrome renderer takes it, from the settings this
 		generator laid the page out for."""
+		from frappe.printing.doctype.print_format.classic_converter import is_classic_layout
+		from frappe.utils.pdf_generator.browser import RECEIPT_WIDTHS
 		from frappe.utils.print_utils import convert_uom
 
 		size = self.print_settings.get("pdf_page_size")
@@ -723,6 +736,10 @@ class PrintFormatGenerator:
 				value = self.print_settings.get(setting)
 				if value:
 					options[option] = convert_uom(value, "mm", "px", only_number=True)
+			if self.print_format.paper_size in RECEIPT_WIDTHS and is_classic_layout(
+				self.print_format.format_data
+			):
+				options["fit-height"] = True
 		return options
 
 	def render_typst_pdf(self, password=None):

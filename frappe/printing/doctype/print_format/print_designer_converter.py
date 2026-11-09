@@ -36,6 +36,7 @@ CSS_PROPERTIES = {
 	"whiteSpace": "white-space",
 }
 PAGE_NUMBER_FIELDS = {"page": '<span class="page"></span>', "topage": '<span class="topage"></span>'}
+BARCODE_FORMATS = {"qrcode": "QR", "qr": "QR", "code128": "CODE128", "code39": "CODE39"}
 
 
 def is_print_designer_format(doc) -> bool:
@@ -133,9 +134,10 @@ class PrintDesignerConverter:
 			body = (compiled.get("body") or [{}])[0].get("childrens") or []
 			footer = self.first_page(compiled.get("footer"))
 		else:
-			header = load_json(self.doc.get("print_designer_header")) or []
-			body = ((load_json(self.doc.get("print_designer_body")) or [{}])[0] or {}).get("childrens") or []
-			footer = load_json(self.doc.get("print_designer_footer")) or []
+			header, body, footer = (
+				((load_json(self.doc.get(f"print_designer_{zone}")) or [{}])[0] or {}).get("childrens") or []
+				for zone in ("header", "body", "footer")
+			)
 			self.notes.append(_("No row and column layout was saved, so rows were grouped by position."))
 
 		layout = {
@@ -217,12 +219,14 @@ class PrintDesignerConverter:
 	# ----- structure ------------------------------------------------------------
 
 	def zone(self, elements, height=0) -> dict:
+		earlier_notes = len(self.notes)
 		sections = self.sections(elements)
 		if len(sections) == 1:
 			columns = sections[0]["columns"]
 		elif all(len(s["columns"]) == 1 for s in sections):
 			columns = [{"label": "", "fields": [f for s in sections for f in s["columns"][0]["fields"]]}]
 		else:
+			del self.notes[earlier_notes:]
 			rows = self.rows(sorted(elements, key=lambda e: (flt(e.get("startY")), flt(e.get("startX")))))
 			html = "".join(self.row_html(row) for row in rows)
 			columns = [{"label": "", "fields": [self.html_node(html)]}]
@@ -301,7 +305,9 @@ class PrintDesignerConverter:
 		total = self.content_width()
 		if len(row) == 1 and row[0].get("layoutType") == "row":
 			children = row[0].get("childrens") or []
-			if children and all(c.get("layoutType") == "column" for c in children):
+			if children and all(
+				c.get("type") == "rectangle" and c.get("layoutType") == "column" for c in children
+			):
 				return [
 					{
 						"label": "",
@@ -366,7 +372,7 @@ class PrintDesignerConverter:
 		if (
 			element.get("layoutType") == "row"
 			and len(children) > 1
-			and all(c.get("layoutType") == "column" for c in children)
+			and all(c.get("type") == "rectangle" and c.get("layoutType") == "column" for c in children)
 		):
 			return [self.side_by_side(children)]
 		if element.get("layoutType") != "column" and children:
@@ -509,8 +515,11 @@ class PrintDesignerConverter:
 		node.update(self.style_props({**self.styled(element), **(item.get("style") or {})}))
 		return node
 
-	def table_node(self, element) -> dict:
+	def table_node(self, element) -> dict | None:
 		table = element.get("table") or {}
+		if not table.get("fieldname"):
+			self.notes.append(_("A table with no child table selected was left out."))
+			return None
 		columns = []
 		for column in element.get("columns") or []:
 			fields = [
@@ -609,10 +618,20 @@ class PrintDesignerConverter:
 
 	def barcode_node(self, element) -> dict | None:
 		value = (element.get("value") or "").strip()
-		kind = "QR" if (element.get("barcodeFormat") or "").lower() in ("qrcode", "qr") else "CODE128"
+		barcode_format = (element.get("barcodeFormat") or "").lower()
+		kind = BARCODE_FORMATS.get(barcode_format, "CODE128")
 		size = f"{round(flt(element.get('width')) / PX_PER_MM, 1)}mm"
 		field = re.fullmatch(r"{{\s*doc\.(\w+)\s*}}", value)
-		if field and (field.group(1) == "name" or self.meta.get_field(field.group(1))):
+		known_field = bool(field and (field.group(1) == "name" or self.meta.get_field(field.group(1))))
+		if (
+			barcode_format
+			and barcode_format not in BARCODE_FORMATS
+			and (known_field or not JINJA.search(value))
+		):
+			self.notes.append(
+				_("The {0} barcode type was changed to CODE128.").format(barcode_format.upper())
+			)
+		if known_field:
 			return {
 				"label": "Barcode",
 				"fieldname": self.name("barcode"),

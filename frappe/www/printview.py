@@ -556,7 +556,7 @@ def get_letter_head(doc: "Document", no_letterhead: bool, letterhead: str | None
 		return (
 			frappe.db.get_value(
 				"Letter Head",
-				{"is_default": 1},
+				{"is_default": 1, "letter_head_for": "DocType"},
 				["content", "footer", "header_script", "footer_script", "custom_css"],
 				as_dict=True,
 			)
