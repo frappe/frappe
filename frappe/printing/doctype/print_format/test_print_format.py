@@ -569,6 +569,24 @@ class TestClassicConverter(IntegrationTestCase):
 		self.assertIn("<div>ToDo</div>", html)
 		self.assertIn(f'<small class="sub-heading">{todo.name}</small>', html)
 
+	def test_default_layout_follows_before_print(self):
+		from frappe.printing.doctype.print_format.classic_converter import get_default_print_format
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "Before print test"}).insert()
+		self.addCleanup(todo.delete, ignore_permissions=True)
+		priority = todo.meta.get_field("priority")
+		self.addCleanup(priority.set, "print_hide", priority.print_hide)
+		todo.before_print = lambda settings: priority.set("print_hide", 1)
+
+		generator = PrintFormatGenerator(get_default_print_format("ToDo"), todo)
+		fieldnames = [
+			f["fieldname"] for s in generator.layout["sections"] for c in s["columns"] for f in c["fields"]
+		]
+		self.assertNotIn("priority", fieldnames)
+
 	def test_print_width_mapping(self):
 		from frappe.printing.doctype.print_format.classic_converter import (
 			distribute_widths,
