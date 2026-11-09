@@ -133,8 +133,8 @@ class TestFlowSetup(IntegrationTestCase):
 
 
 SITE_KEY = {"ai_keys": [{"gateway_url": "https://ai.example.com/", "api_key": "grove-key"}]}
-# what Grove lists for the key
-LISTED = ["gpt-x", "gpt-6-luna", "text-embedding-3-small"]
+# what Grove lists for the key, each model under its vendor
+LISTED = ["morph/glm-5.3-flash", "openai/gpt-6-luna", "openai/text-embedding-3-small"]
 
 
 class TestSiteKeyProvider(IntegrationTestCase):
@@ -170,12 +170,14 @@ class TestSiteKeyProvider(IntegrationTestCase):
 			frappe.get_doc("Flow Provider", "grove").get_password("api_key", raise_exception=False)
 		)
 		models = frappe.get_all("Flow Model", {"provider": "grove"}, ["name", "model_id", "enabled"])
-		self.assertEqual([(model.model_id, model.enabled) for model in models], [("grove/gpt-6-luna", 1)])
+		self.assertEqual(
+			[(model.model_id, model.enabled) for model in models], [("grove/openai/gpt-6-luna", 1)]
+		)
 		# the Assistant chats with it
 		assistant.assert_called_once_with(model=models[0].name)
 
 	def test_a_key_without_luna_adds_nothing_so_setup_shows(self):
-		self._sync(listed=["gpt-x"])
+		self._sync(listed=["morph/glm-5.3-flash", "gpt-6-luna"])
 		self.assertFalse(frappe.db.exists("Flow Provider", "grove"))
 
 	def test_later_opens_and_sites_without_a_key_ask_no_gateway(self):

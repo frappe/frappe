@@ -30,7 +30,7 @@ NO_MODEL = ("not a valid model", "model_not_found", "does not exist", "invalid m
 # set while Grove's gateway isn't answering, so each open of Flow doesn't wait on it
 GROVE_DOWN_CACHE = "flow_grove_down"
 # the one Grove model that works today, the one a site with a Grove key starts with
-GROVE_MODEL = "gpt-6-luna"
+GROVE_MODEL = "openai/gpt-6-luna"  # as Grove lists it, under its vendor
 # where a key is checked when the models list doesn't need one
 KEY_URLS = {"openrouter": "https://openrouter.ai/api/v1/key"}
 
