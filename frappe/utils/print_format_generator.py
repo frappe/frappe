@@ -679,9 +679,7 @@ class PrintFormatGenerator:
 			pdf = self.underlay_background(pdf, background, pdf_generator=generator_name)
 		return run_after_print(self.doc, pdf, password=password)
 
-	def underlay_background(
-		self, pdf: bytes, background: dict, password: str | None = None, pdf_generator: str = "chrome"
-	) -> bytes:
+	def underlay_background(self, pdf: bytes, background: dict, pdf_generator: str = "chrome") -> bytes:
 		"""Draw the page background under every page of ``pdf``, edge to edge."""
 		from io import BytesIO
 
@@ -700,8 +698,6 @@ class PrintFormatGenerator:
 		writer = PdfWriter(clone_from=BytesIO(pdf))
 		for page in writer.pages:
 			page.merge_page(background_page, over=False)
-		if password:
-			writer.encrypt(password)
 		out = BytesIO()
 		writer.write(out)
 		return out.getvalue()

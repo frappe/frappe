@@ -2,11 +2,12 @@ import re
 from typing import TYPE_CHECKING, Literal
 
 import frappe
-from frappe.model.document import Document
 from frappe.utils.data import cint, cstr
 
 if TYPE_CHECKING:
 	from pypdf import PdfWriter
+
+	from frappe.model.document import Document
 
 # Chromium download/setup helpers were moved to `frappe.utils.chromium.download`.
 
@@ -79,16 +80,14 @@ def _run_print_pdf_hooks(doctype, name, print_format):
 
 
 def run_after_print(
-	doc: Document, pdf: bytes, password: str | None = None, output: "PdfWriter | None" = None
+	doc: "Document", pdf: bytes, password: str | None = None, output: "PdfWriter | None" = None
 ) -> "bytes | PdfWriter":
-	method = getattr(doc, "after_print", None)
-	if callable(method):
-		pdf = method(pdf) or pdf
+	if hasattr(doc, "after_print"):
+		pdf = doc.after_print(pdf) or pdf
 
 	hooks = frappe.get_doc_hooks()
 	for path in hooks.get(doc.doctype, {}).get("after_print", []) + hooks.get("*", {}).get("after_print", []):
-		# nosemgrep: frappe-semgrep-rules.rules.security.frappe-codeinjection-eval
-		pdf = frappe.call(path, doc, "after_print", pdf) or pdf
+		pdf = frappe.get_attr(path)(doc, "after_print", pdf) or pdf
 
 	if password and output is None:
 		from frappe.utils.pdf import encrypt_pdf
@@ -186,7 +185,7 @@ def get_print(
 				doc_obj,
 				letterhead,
 				no_letterhead,
-				pdf_options.get("password"),
+				None if output else pdf_options.get("password"),
 				style,
 				settings=settings,
 				pdf_generator=generator,
@@ -198,7 +197,7 @@ def get_print(
 				method="Print",
 				page=f"Print Format: {render_format.name}",
 			)
-			if output and not password:
+			if output:
 				from io import BytesIO
 
 				from pypdf import PdfReader

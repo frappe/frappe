@@ -133,6 +133,8 @@ class TestPrintUtils(IntegrationTestCase):
 		password = "s3cret"
 		todo = self._make_todo()
 		other = self._make_todo()
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
 
 		def assert_encrypted(pdf):
 			reader = PdfReader(io.BytesIO(pdf))
@@ -146,3 +148,50 @@ class TestPrintUtils(IntegrationTestCase):
 
 		_download_multi_pdf("ToDo", [todo.name, other.name], options={"password": password})
 		assert_encrypted(frappe.local.response.filecontent)
+
+	def test_print_into_writer_leaves_encryption_to_the_caller(self):
+		"""With an output writer, get_print appends plain pages, and the caller encrypts the writer."""
+		todo = self._make_todo()
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+
+		writer = PdfWriter()
+		result = frappe.get_print("ToDo", todo.name, as_pdf=True, output=writer, password="s3cret")
+
+		self.assertIs(result, writer)
+		self.assertTrue(writer.pages)
+
+	def test_after_print_runs_on_classic_print_formats(self):
+		"""A classic print format and a mail body render through printview and the pdf_generator hooks,
+		not through the format builder, so after_print has to run there too."""
+		print_format = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": f"_Test After Print {frappe.generate_hash(length=6)}",
+				"doc_type": "ToDo",
+				"custom_format": 1,
+				"print_format_type": "Jinja",
+				"standard": "No",
+				"html": "<p>marker</p>",
+			}
+		).insert()
+		self.addCleanup(frappe.delete_doc, "Print Format", print_format.name, force=True)
+		todo = self._make_todo()
+		frappe.flags.after_print_pages = []
+		self.addCleanup(frappe.set_user, "Administrator")
+		self.addCleanup(lambda: setattr(frappe.local, "doc_events_hooks", None))
+		frappe.set_user("test@example.com")
+
+		with self.patch_hooks(
+			{"doc_events": {"ToDo": {"after_print": "frappe.utils.test_print_utils.add_blank_page"}}}
+		):
+			frappe.local.doc_events_hooks = None
+			printed = frappe.get_print("ToDo", todo.name, print_format=print_format.name, as_pdf=True)
+			attached = frappe.attach_print("ToDo", todo.name, print_format=print_format.name)["fcontent"]
+			mail_body = frappe.attach_print("ToDo", todo.name, html="<p>mail body</p>")["fcontent"]
+
+		self.assertEqual(frappe.flags.after_print_pages, [1, 1, 1])
+		for pdf in (printed, attached, mail_body):
+			self.assertEqual(len(PdfReader(io.BytesIO(pdf)).pages), 2)
+		for pdf in (printed, attached):
+			self.assertIn("marker", PdfReader(io.BytesIO(pdf)).pages[0].extract_text())
