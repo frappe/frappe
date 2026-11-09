@@ -158,6 +158,15 @@ class TestStudioPage(IntegrationTestCase):
 		page.page_title = "nested/title"
 		self.assertRaises(frappe.ValidationError, page.save)
 
+		# two titles that scrub to one name would share a folder, so the second one is rejected
+		make_studio_page(app.name, page_title="Sales Order", route="/sales")
+		with self.assertRaisesRegex(frappe.ValidationError, "both become"):
+			make_studio_page(app.name, page_title="Sales-Order", route="/sales-order")
+		other = make_studio_page(app.name, page_title="Other", route="/other")
+		other.page_title = "Sales-Order"
+		with self.assertRaisesRegex(frappe.ValidationError, "both become"):
+			other.save()
+
 	def test_remove_empty_values(self):
 		test_dict = {
 			"keep_this": "value",
@@ -532,7 +541,7 @@ class TestStudioPage(IntegrationTestCase):
 		with self.assertRaisesRegex(frappe.PermissionError, "does not belong"):
 			paste_page(app.name, {"blocks": []}, target_page=target.name)
 
-	def test_published_pages_keep_distinct_routes_on_every_save(self):
+	def test_pages_keep_distinct_routes(self):
 		app = make_studio_app(app_name="routes-" + frappe.generate_hash(length=10))
 		make_studio_page(app.name, page_title="Home", route="/home", published=1)
 		page = make_studio_page(app.name, page_title="About", route="/about", published=1)
@@ -542,8 +551,15 @@ class TestStudioPage(IntegrationTestCase):
 		page.route = "/home"
 		self.assertRaises(frappe.ValidationError, page.save)
 
-		draft = make_studio_page(app.name, page_title="Home Draft", route="/home", published=0)
-		self.assertRaises(frappe.ValidationError, draft.publish)
+		# preview routes unpublished pages too, so a draft cannot take the route either
+		self.assertRaises(
+			frappe.ValidationError,
+			make_studio_page,
+			app.name,
+			page_title="Home Draft",
+			route="/home",
+			published=0,
+		)
 
 	def test_a_repository_page_script_exports_as_javascript_and_new_files_use_typescript(self):
 		with exports_in_tempdir():

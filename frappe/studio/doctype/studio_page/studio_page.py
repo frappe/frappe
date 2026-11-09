@@ -109,11 +109,11 @@ class StudioPage(Document):
 	def validate(self):
 		validate_standard_app_change(self)
 		self.validate_page_title()
-		# only published pages are served, so only they must not share a route or title
-		if self.published and any(
-			self.has_value_changed(field) for field in ("route", "page_title", "published")
-		):
-			self.validate_conflicts_with_other_pages()
+		if self.has_value_changed("page_title"):
+			self.validate_export_stem_is_free()
+		if self.has_value_changed("route"):
+			self.validate_route_is_free()
+
 		# passed from the frontend for faster page saves when variables & resources are not changed
 		if not hasattr(self, "_skip_validate"):
 			self.validate_variables()
@@ -412,22 +412,31 @@ class StudioPage(Document):
 		self.save()
 		return self.modified
 
-	def validate_conflicts_with_other_pages(self):
+	def validate_export_stem_is_free(self):
+		# both pages would export to studio_page/<stem>/ and overwrite each other's files
+		stem = self.get_export_docname()
+		for page_title in frappe.get_all(
+			"Studio Page",
+			filters={"studio_app": self.studio_app, "name": ["!=", self.name]},
+			pluck="page_title",
+		):
+			if frappe.scrub(page_title) == stem:
+				frappe.throw(
+					_('Page titles "{0}" and "{1}" both become "{2}". Rename one of the pages.').format(
+						self.page_title, page_title, stem
+					),
+					title=_("Conflicting Page Titles"),
+				)
+
+	def validate_route_is_free(self):
+		# preview and the editor route every page of the app, published or not
 		other_pages = frappe.get_all(
 			"Studio Page",
-			filters={"studio_app": self.studio_app, "name": ["!=", self.name], "published": 1},
-			or_filters=[
-				["route", "=", self.route],
-				["page_title", "=", self.page_title],
-			],
-			fields=["route", "page_title"],
+			filters={"studio_app": self.studio_app, "name": ["!=", self.name], "route": self.route},
+			pluck="page_title",
 		)
 		if other_pages:
-			frappe.throw(
-				_("Page(s) with duplicate Route or Page Title already exist in this app: {0}").format(
-					", ".join([f"{page.page_title} - {page.route}" for page in other_pages]),
-				)
-			)
+			frappe.throw(_("Route {0} is already used by: {1}").format(self.route, ", ".join(other_pages)))
 
 	def get_folder_path(self, with_filename: bool = False) -> str:
 		# each page exports to its own folder: studio/<app>/studio_page/<scrubbed_title>/
