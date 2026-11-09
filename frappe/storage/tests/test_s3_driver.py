@@ -113,12 +113,18 @@ class TestS3DriverConfig(IntegrationTestCase):
 class TestS3SitePrefix(IntegrationTestCase):
 	"""Sites sharing one bucket keep their objects under their own prefix."""
 
-	def test_prefix_defaults_to_a_hash_of_the_database_name_or_is_configured(self):
-		expected = hashlib.sha256(TEST_DB_NAME.encode()).hexdigest()[:12] + "/"
-		self.assertEqual(make_driver(**TEST_CONFIG).key_prefix, expected)
+	def setUp(self):
+		super().setUp()
+		self.enterContext(self.set_user("testperm@example.com"))
 
-		self.assertEqual(make_driver(**TEST_CONFIG, prefix="tenant-a.v2").key_prefix, "tenant-a.v2/")
-		self.assertEqual(make_driver(**TEST_CONFIG, prefix="/tenant-a/").key_prefix, "tenant-a/")
+	def test_prefix_uses_the_site_name_and_preserves_the_legacy_prefix(self):
+		with patch.object(frappe.local, "site", "tenant-a.example.com"):
+			self.assertEqual(make_driver(**TEST_CONFIG).key_prefix, "sites/tenant-a.example.com/storage/")
+		expected = hashlib.sha256(TEST_DB_NAME.encode()).hexdigest()[:12] + "/"
+		self.assertEqual(make_driver(**TEST_CONFIG).legacy_key_prefix, expected)
+
+		self.assertEqual(make_driver(**TEST_CONFIG, prefix="tenant-a.v2").legacy_key_prefix, "tenant-a.v2/")
+		self.assertEqual(make_driver(**TEST_CONFIG, prefix="/tenant-a/").legacy_key_prefix, "tenant-a/")
 		for invalid in ("tenant a", "tenant/a", "../tenant"):
 			with self.subTest(prefix=invalid), self.assertRaises(frappe.ValidationError):
 				make_driver(**TEST_CONFIG, prefix=invalid)
@@ -130,21 +136,46 @@ class TestS3SitePrefix(IntegrationTestCase):
 
 		with use_driver(driver):
 			blob = put_blob(io.BytesIO(b"prefixed bytes"), is_private=True, filename="report.pdf")
-			self.assertEqual(upload_key("upload123"), "tenant-a/uploads/upload123")
-		self.assertEqual(blob.key, f"tenant-a/{blob.name}/report.pdf")
+			self.assertEqual(upload_key("upload123"), f"sites/{frappe.local.site}/storage/uploads/upload123")
+		self.assertEqual(blob.key, f"sites/{frappe.local.site}/storage/{blob.name}/report.pdf")
 		client.upload_fileobj.assert_called_once()
-		self.assertEqual(client.upload_fileobj.call_args.args[2], f"private/tenant-a/{blob.name}/report.pdf")
+		self.assertEqual(
+			client.upload_fileobj.call_args.args[2],
+			f"sites/{frappe.local.site}/storage/private/{blob.name}/report.pdf",
+		)
 
 		driver.delete(blob.key, is_private=True)
 		client.delete_object.assert_called_once_with(
-			Bucket="test-bucket", Key=f"private/tenant-a/{blob.name}/report.pdf"
+			Bucket="test-bucket", Key=f"sites/{frappe.local.site}/storage/private/{blob.name}/report.pdf"
 		)
 
 		# another site's object, such as one a restored backup points at
 		client.delete_object.reset_mock()
+		driver.read(f"sites/tenant-b.example.com/storage/{blob.name}/report.pdf", is_private=True)
+		client.get_object.assert_called_with(
+			Bucket="test-bucket", Key=f"sites/tenant-b.example.com/storage/private/{blob.name}/report.pdf"
+		)
+		driver.delete(f"sites/tenant-b.example.com/storage/{blob.name}/report.pdf", is_private=True)
 		driver.delete(f"tenant-b/{blob.name}/report.pdf", is_private=True)
 		driver.delete("legacy/report.pdf")
 		client.delete_object.assert_not_called()
+
+	def test_legacy_keys_remain_readable_and_deletable(self):
+		for prefix in ("tenant-a", "sites"):
+			driver = make_driver(**TEST_CONFIG, prefix=prefix)
+			for is_private, namespace in ((False, "public"), (True, "private")):
+				with self.subTest(prefix=prefix, namespace=namespace):
+					key = f"{prefix}/abcdef0123/report.pdf"
+					expected = {"Bucket": "test-bucket", "Key": f"{namespace}/{key}"}
+					driver.read(key, is_private=is_private)
+					driver.test_client.get_object.assert_called_with(**expected)
+					driver.delete(key, is_private=is_private)
+					driver.test_client.delete_object.assert_called_with(**expected)
+					driver.test_client.delete_object.reset_mock()
+					driver.delete(
+						"sites/other.example.com/storage/abcdef0123/report.pdf", is_private=is_private
+					)
+					driver.test_client.delete_object.assert_not_called()
 
 
 class TestS3DriverBehavior(IntegrationTestCase):
@@ -152,6 +183,7 @@ class TestS3DriverBehavior(IntegrationTestCase):
 
 	def setUp(self):
 		super().setUp()
+		self.enterContext(self.set_user("testperm@example.com"))
 		self.driver = make_driver(**TEST_CONFIG)
 		self.client = self.driver.test_client
 		self.key = f"{self.driver.key_prefix}abcdef0123/report.pdf"
@@ -163,7 +195,10 @@ class TestS3DriverBehavior(IntegrationTestCase):
 		for is_private, namespace in ((False, "public"), (True, "private")):
 			with self.subTest(namespace=namespace):
 				self.client.reset_mock()
-				object_key = {"Bucket": "test-bucket", "Key": f"{namespace}/{self.key}"}
+				object_key = {
+					"Bucket": "test-bucket",
+					"Key": f"sites/{frappe.local.site}/storage/{namespace}/abcdef0123/report.pdf",
+				}
 				body = io.BytesIO(b"stored bytes")
 				self.client.get_object.return_value = {"Body": body}
 
@@ -206,11 +241,15 @@ class TestS3DriverBehavior(IntegrationTestCase):
 		self.assertEqual(call.args, ("get_object",))
 		self.assertEqual(call.kwargs["ExpiresIn"], 300)
 		self.assertEqual(self.presigned_params()["Bucket"], "test-bucket")
-		self.assertEqual(self.presigned_params()["Key"], f"private/{self.key}")
+		self.assertEqual(
+			self.presigned_params()["Key"], f"sites/{frappe.local.site}/storage/private/abcdef0123/report.pdf"
+		)
 
 		# is_private defaults to False
 		self.driver.download_url(self.key, "logo.png", 60)
-		self.assertEqual(self.presigned_params()["Key"], f"public/{self.key}")
+		self.assertEqual(
+			self.presigned_params()["Key"], f"sites/{frappe.local.site}/storage/public/abcdef0123/report.pdf"
+		)
 
 	def test_download_url_disposition(self):
 		self.driver.download_url(self.key, "report.pdf", 60, mime_type="application/pdf")
@@ -261,19 +300,20 @@ class TestS3DriverBehavior(IntegrationTestCase):
 				self.assertEqual(self.presigned_params()["ResponseContentType"], served)
 
 	def test_upload_target_is_a_presigned_post(self):
-		fields = {"key": "private/uploads/xyz", "policy": "p", "x-amz-signature": "s"}
+		object_key = f"sites/{frappe.local.site}/storage/private/uploads/xyz"
+		fields = {"key": object_key, "policy": "p", "x-amz-signature": "s"}
 		self.client.generate_presigned_post.return_value = {
 			"url": "https://test-bucket.s3.example.com",
 			"fields": fields,
 		}
-		target = self.driver.upload_target("uploads/xyz", 1024, is_private=True)
+		target = self.driver.upload_target(f"{self.driver.key_prefix}uploads/xyz", 1024, is_private=True)
 		self.assertEqual(
 			target, {"mode": "direct", "url": "https://test-bucket.s3.example.com", "fields": fields}
 		)
 
 		call = self.client.generate_presigned_post.call_args
 		self.assertEqual(call.kwargs["Bucket"], "test-bucket")
-		self.assertEqual(call.kwargs["Key"], "private/uploads/xyz")
+		self.assertEqual(call.kwargs["Key"], object_key)
 		self.assertEqual(call.kwargs["ExpiresIn"], UPLOAD_TARGET_TTL)
 		self.assertIn(["content-length-range", 1024, 1024], call.kwargs["Conditions"])
 
@@ -284,16 +324,23 @@ class TestS3DriverWithRealBoto3(IntegrationTestCase):
 
 	def setUp(self):
 		super().setUp()
+		self.enterContext(self.set_user("testperm@example.com"))
 		with site_config(**TEST_CONFIG):
 			self.driver = S3Driver()
 
 	def test_presigned_get_and_post(self):
 		url = self.driver.download_url(
-			"ab/cd/deadbeef", "report.pdf", 300, is_private=True, mime_type="application/pdf"
+			f"{self.driver.key_prefix}abcdef0123/report.pdf",
+			"report.pdf",
+			300,
+			is_private=True,
+			mime_type="application/pdf",
 		)
 		parsed = urlparse(url)
 		query = parse_qs(parsed.query)
-		self.assertTrue(parsed.path.endswith("/private/ab/cd/deadbeef"))
+		self.assertTrue(
+			parsed.path.endswith(f"/sites/{frappe.local.site}/storage/private/abcdef0123/report.pdf")
+		)
 		self.assertEqual(query["X-Amz-Expires"], ["300"])
 		self.assertIn("X-Amz-Signature", query)
 		self.assertEqual(query["response-content-type"], ["application/pdf"])
@@ -301,9 +348,9 @@ class TestS3DriverWithRealBoto3(IntegrationTestCase):
 		self.assertTrue(disposition.startswith("inline; "))
 		self.assertIn("report.pdf", disposition)
 
-		target = self.driver.upload_target("uploads/abc123", 2048, is_private=True)
+		target = self.driver.upload_target(f"{self.driver.key_prefix}uploads/abc123", 2048, is_private=True)
 		self.assertEqual(target["mode"], "direct")
-		self.assertEqual(target["fields"]["key"], "private/uploads/abc123")
+		self.assertEqual(target["fields"]["key"], f"sites/{frappe.local.site}/storage/private/uploads/abc123")
 		policy = json.loads(base64.b64decode(target["fields"]["policy"]))
 		self.assertIn(["content-length-range", 2048, 2048], policy["conditions"])
 

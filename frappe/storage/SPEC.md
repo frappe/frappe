@@ -184,15 +184,17 @@ storage_drivers = {"s3": "myapp.storage.s3.S3Driver"}
 
 Core ships `local` (default), `s3` (boto3, optional dependency) and
 `memory` (tests). The local driver writes under `private/files/` and
-`public/files/`. The S3 object key is `public/` or `private/` followed by
-the blob key.
+`public/files/`. New S3 object keys are
+`sites/<site-name>/storage/<public|private>/<blob>/<filename>`.
 
 Site prefix: a driver shared by several sites, such as one S3 bucket,
 starts every new key with the site's folder. For S3 it is
-`storage_driver_config.prefix`, or by default 12 hex characters of the
-SHA-256 of the database name (set once, unique on a server, and not shown
-in presigned URLs). The prefix is stored in each key, not added at read
-time, and the driver deletes only keys under the current prefix. A
+`sites/<site-name>/storage/`, using `frappe.local.site`. The prefix is stored
+in each blob key, with the privacy namespace inserted after it in S3.
+Existing keys still resolve to their original objects. The legacy
+`storage_driver_config.prefix`, or 12 hex characters of the SHA-256 of
+the database name, is retained for cleanup of old objects. The driver
+deletes only objects under the current site's new or legacy prefix. A
 staging site restored from production can still read production's
 objects, but its garbage collection never deletes them.
 
@@ -524,7 +526,7 @@ Each stage is independently shippable and revertible by the flag.
    reads privacy from the prefix stays correct. Public local files are
    on disk at their URL path, so nginx serves them with zero Python.
    Not revocable without deleting the blob. Approved.
-5. Site prefix: stored in each key, defaulting to a hash of the database
-   name; deletes only under the site's own prefix. Approved.
+5. Site prefix: stored in each key as `sites/<site-name>/storage/`; deletes
+   only under the site's own new or legacy prefix. Approved.
 
 No open questions.
