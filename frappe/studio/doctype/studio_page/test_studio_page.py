@@ -160,7 +160,6 @@ class TestStudioPage(IntegrationTestCase):
 		page.page_title = "nested/title"
 		self.assertRaises(frappe.ValidationError, page.save)
 
-		# two titles that scrub to one name would share a folder, so the second one is rejected
 		make_studio_page(app.name, page_title="Sales Order", route="/sales")
 		with self.assertRaisesRegex(frappe.ValidationError, "both become"):
 			make_studio_page(app.name, page_title="Sales-Order", route="/sales-order")

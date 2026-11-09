@@ -135,7 +135,6 @@ class StudioPage(Document):
 		if can_export(self):
 			# each page lives in its own folder: studio/<app>/studio_page/<scrubbed_title>/
 			frappe.create_folder(self.get_folder_path())
-			# Page code belongs in the companion file, so exclude it from JSON.
 			write_document_file(self, folder=self.get_folder_path(), exclude_fields=["script"])
 			self.relocate_on_retitle()
 			self.export_components()
@@ -411,7 +410,6 @@ class StudioPage(Document):
 		return self.modified
 
 	def validate_export_stem_is_free(self):
-		# both pages would export to studio_page/<stem>/ and overwrite each other's files
 		stem = self.get_export_docname()
 		for page_title in frappe.get_all(
 			"Studio Page",

@@ -175,7 +175,8 @@ export class AppModuleRegistry {
 		return errors
 	}
 
-	/** Return a binding's origin, null if missing, an ambiguity marker, or undefined for a broken file. */
+	/** Follow re-exports to their original binding: two paths to the same binding are not ambiguous.
+	 * Return null if missing, an ambiguity marker for competing bindings, or undefined for a broken file. */
 	private resolveExport(
 		path: string,
 		name: string,
@@ -238,6 +239,7 @@ export class AppModuleRegistry {
 
 	/** Cache the exports object before execution so cycles can read partially initialized exports. */
 	private load(path: string): any {
+		// A module may throw after side effects; revisiting it must not execute those effects again.
 		if (this.executionErrors.has(path)) throw this.executionErrors.get(path)
 		const existing = this.modules.get(path)
 		if (existing) return existing.exports

@@ -228,16 +228,16 @@ const frameworkUIComponentPaths: Record<string, string> = {
 
 const templateCache = new Map<string, string>()
 
-const customComponentMetas = new Map<string, CustomVueComponentMeta>()
+const customComponentFilePaths = new Map<string, string>()
 
 async function registerCustomComponentPaths(components: CustomVueComponentMeta[]) {
-	const previous = new Map(customComponentMetas)
-	customComponentMetas.clear()
+	const previousPaths = new Map(customComponentFilePaths)
+	customComponentFilePaths.clear()
 	for (const comp of components) {
-		customComponentMetas.set(comp.component_name, comp)
+		customComponentFilePaths.set(comp.component_name, comp.file_path)
 	}
-	for (const [name, meta] of previous) {
-		if (customComponentMetas.get(name)?.file_path !== meta.file_path) invalidateComponentCache(name)
+	for (const [name, filePath] of previousPaths) {
+		if (customComponentFilePaths.get(name) !== filePath) invalidateComponentCache(name)
 	}
 	await Promise.all(components.map((comp) => getComponentSlots(comp.component_name, true)))
 }
@@ -302,10 +302,9 @@ async function fetchCustomComponentTemplate(componentName: string): Promise<stri
 		return templateCache.get(componentName) || ""
 	}
 
-	const meta = customComponentMetas.get(componentName)
-	if (!meta) return ""
+	const filePath = customComponentFilePaths.get(componentName)
+	if (!filePath) return ""
 
-	const filePath = meta.file_path
 	try {
 		// Use Vite's ?raw import to get unprocessed file content as a string. In dev, a unique
 		// query busts the browser's ES-module cache so a re-fetch after invalidateComponentCache
@@ -340,11 +339,11 @@ const slotsCache = reactive(new Map<string, ReturnType<typeof parseSlotsFromTemp
 async function getComponentSlots(componentName: string, isCustomVueComponent?: boolean) {
 	const cached = slotsCache.get(componentName)
 	if (cached) return cached
-	const filePath = customComponentMetas.get(componentName)?.file_path
+	const filePath = customComponentFilePaths.get(componentName)
 	const template = isCustomVueComponent
 		? await fetchCustomComponentTemplate(componentName)
 		: getComponentTemplate(componentName)
-	if (isCustomVueComponent && customComponentMetas.get(componentName)?.file_path !== filePath) return []
+	if (isCustomVueComponent && customComponentFilePaths.get(componentName) !== filePath) return []
 	const slots = parseSlotsFromTemplate(template)
 	if (template) {
 		if (isCustomVueComponent) templateCache.set(componentName, template)

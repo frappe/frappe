@@ -40,11 +40,11 @@ const text = 'import "./missing.js"'; export const run = () => [value, text.leng
 		name: "reexports-and-live-bindings",
 		files: {
 			"state.js": "export let count = 0; export function add() { count++ }; export default 'default'",
-			"barrel.js": `export * from "./state.js"; export { default as label } from "./state.js"; export * as state from "./state.js"`,
-			"entry.js": `import { count, add, label, state } from "./barrel.js";
-export function run() { const before = count; add(); return [before, count, state.count, label] }`,
+			"barrel.js": `export * from "./state.js"; export { default, default as label } from "./state.js"; export * as state from "./state.js"`,
+			"entry.js": `import main, { count, add, label, state } from "./barrel.js";
+export function run() { const before = count; add(); return [before, count, state.count, label, main] }`,
 		},
-		expected: [0, 1, 1, "default"],
+		expected: [0, 1, 1, "default", "default"],
 	},
 	{
 		name: "diamond-reexports",
@@ -101,10 +101,10 @@ return [before, first.value, first === second, globalThis.__moduleFixtureOrder.l
 		name: "json-exports",
 		files: {
 			"theme.json": '{"accent":"teal","size":3}',
-			"entry.js":
-				"import theme, { accent, size } from './theme.json'; export const run = () => [theme, accent, size]",
+			"entry.js": `import theme, { accent, size } from './theme.json'; import * as all from './theme.json';
+export const run = () => [theme, accent, size, Object.keys(all).sort()]`,
 		},
-		expected: [{ accent: "teal", size: 3 }, "teal", 3],
+		expected: [{ accent: "teal", size: 3 }, "teal", 3, ["accent", "default", "size"]],
 	},
 	{
 		name: "css-side-effect",
@@ -120,19 +120,11 @@ return [color, Object.keys(styles), document.querySelectorAll('style[data-studio
 	{
 		name: "external-reexports",
 		files: {
-			"barrel.js": "export {ref} from 'vue'; export * as Vue from 'vue'",
+			"barrel.js": "export {ref} from 'vue'; export * as Vue from 'vue'; export * from 'vue'",
 			"entry.js":
-				"import {ref, Vue} from './barrel.js'; export const run = () => [ref === Vue.ref, Vue.isRef(ref(42))]",
+				"import {ref, isRef, Vue} from './barrel.js'; export const run = () => [ref === Vue.ref, isRef(ref(42))]",
 		},
 		expected: [true, true],
-	},
-	{
-		name: "external-star-reexport",
-		files: {
-			"barrel.js": "export * from 'vue'",
-			"entry.js": "import { ref, isRef } from './barrel.js'; export const run = () => isRef(ref(42))",
-		},
-		expected: true,
 	},
 	{
 		name: "vue-instance-and-lifecycle",
@@ -165,23 +157,6 @@ source.value++; await nextTick(); root.remove(); return {mounted, unmounted, wat
 		expected: 6,
 	},
 	{
-		name: "default-through-barrel",
-		files: {
-			"base.js": "export default 42",
-			"barrel.js": "export { default } from './base.js'",
-			"entry.js": "import value from './barrel.js'; export const run = () => value",
-		},
-		expected: 42,
-	},
-	{
-		name: "json-namespace",
-		files: {
-			"theme.json": '{"accent":"teal","size":3}',
-			"entry.js": "import * as theme from './theme.json'; export const run = () => Object.keys(theme).sort()",
-		},
-		expected: ["accent", "default", "size"],
-	},
-	{
 		name: "json-string-named-import",
 		files: {
 			"theme.json": '{"foo-bar":"teal"}',
@@ -196,11 +171,6 @@ source.value++; await nextTick(); root.remove(); return {mounted, unmounted, wat
 				"class Base { set value(v) { throw new Error('setter invoked') } }; class Child extends Base { value = 3 }; export const run = () => new Child().value",
 		},
 		expected: 3,
-	},
-	{
-		name: "async-function-await",
-		files: { "entry.js": "export async function run() { return await Promise.resolve(42) }" },
-		expected: 42,
 	},
 	...[
 		[

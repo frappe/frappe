@@ -30,7 +30,6 @@ import json
 import frappe
 from frappe.studio.files import write_store_file
 
-# Older scripts received these APIs through the execution context. Modules import them.
 VUE_APIS = (
 	"ref",
 	"reactive",
@@ -52,7 +51,6 @@ IMPORTED_APIS = {
 	"@vueuse/core": ("watchDebounced",),
 	"frappe-ui": ("call", "toast"),
 }
-# These context values are available in addition to the page's variables and resources.
 CONTEXT_EXTRAS = ("route", "router", "socket")
 
 DECLARATION_KEYWORDS = {"const", "let", "var", "function", "class", "async"}
@@ -124,7 +122,6 @@ def to_setup_module(script: str, context_names: list[str]) -> str:
 	bindings = get_top_level_bindings(tokens)
 	used = get_referenced_names(tokens)
 
-	# Keep local declarations when they use the same names as context values.
 	declared = set(bindings)
 	from_context = [name for name in dict.fromkeys(context_names) if name in used and name not in declared]
 	taken = declared | set(from_context)
@@ -291,9 +288,6 @@ class Token:
 		self.start = start
 		self.end = end
 
-	def __repr__(self):
-		return f"Token({self.kind}, {self.value!r}, depth={self.depth})"
-
 
 IDENTIFIER_START = set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_$")
 IDENTIFIER_REST = IDENTIFIER_START | set("0123456789")
@@ -327,7 +321,6 @@ def tokenize(source: str):
 	index = 0
 	length = len(source)
 	depth = 0
-	# Track the bracket depth of each active `${}` expression.
 	template_stack: list[int] = []
 	previous: Token | None = None
 	newline_before = True

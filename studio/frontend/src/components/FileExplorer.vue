@@ -311,7 +311,6 @@ const isEditingActivePageScript = computed(() =>
 	Boolean(openFile.value && activePagePaths.value?.existing.includes(openFile.value.path)),
 )
 
-// Page scripts use setup(context), so show their starter code, help and syntax errors.
 const isPageScript = computed(() => Boolean(openFile.value) && isPageScriptPath(openFile.value!.path))
 const scriptError = ref<string | null>(null)
 
@@ -346,7 +345,12 @@ function getFileBadge(path: string): { label: string; colorClass: string } {
 }
 
 async function openNode(node: StudioFileNode) {
-	if (node.path === "router.js" || node.path === "router.ts") return openRouterEditor()
+	// the router editor owns the router file: its completions, page-name warning and help live there
+	if (node.path === "router.js" || node.path === "router.ts") {
+		store.studioLayout.leftPanelActiveTab = "Pages"
+		store.showRouterEditor = true
+		return
+	}
 	if (dirty.value) {
 		const discard = await confirm("Discard unsaved changes?")
 		if (!discard) return
@@ -354,19 +358,12 @@ async function openNode(node: StudioFileNode) {
 	try {
 		const file = await readStudioFile(location.value, node.path)
 		openFile.value = { path: file.path, hash: file.hash }
-		// Start empty page scripts with the required setup(context) module structure.
 		editorContent.value =
 			!file.content && isPageScriptPath(file.path) ? PAGE_SCRIPT_BOILERPLATE : file.content
 		savedContent.value = file.content
 	} catch (error: any) {
 		toast.error("Failed to open file", { description: error?.messages?.join(", ") })
 	}
-}
-
-// the router editor owns the router file: its completions, page-name warning and help live there
-function openRouterEditor() {
-	store.studioLayout.leftPanelActiveTab = "Pages"
-	store.showRouterEditor = true
 }
 
 function onEditorChange(value: string) {
@@ -388,7 +385,6 @@ const saving = ref(false)
 
 async function save() {
 	if (!openFile.value || !dirty.value || openFileReadOnly.value) return
-	// Reject syntax errors before they prevent page setup from creating bindings.
 	if (isPageScript.value) {
 		const syntaxError = await checkAppScript(editorContent.value, openFile.value.path, store.isDbApp)
 		if (syntaxError) {
@@ -412,7 +408,6 @@ async function save() {
 		toast.success("Saved")
 		// Refresh stored source immediately instead of waiting for its realtime event.
 		if (store.isDbApp) store.refreshAppFiles()
-		// Page scripts update their owning page record, so reload the active page's setup.
 		if (isEditingActivePageScript.value) store.reloadActivePageScript()
 	} catch (error: any) {
 		toast.error("Failed to save", { description: error?.messages?.join(", ") })
@@ -425,7 +420,6 @@ async function save() {
 const showNewEntryDialog = ref(false)
 const newEntryPath = ref("")
 const newEntryType = ref<"file" | "folder">("file")
-// A database app's source runs as it is, so TypeScript and .vue files need a repository app.
 const allowedExtensions = computed(() => (store.isDbApp ? ".js, .json, .css" : ".ts, .js, .vue, .json, .css"))
 const newEntryDescription = computed(() =>
 	newEntryType.value === "folder"
@@ -505,8 +499,6 @@ const contextMenuNode = ref<StudioFileNode | null>(null)
 const contextMenuOptions = computed<ContextMenuOption[]>(() => {
 	const node = contextMenuNode.value
 	if (!node) return []
-	// Studio-generated files and folders cannot be renamed or deleted here.
-	// A page script can be cleared; rename its owning page to change the script's name.
 	const options: ContextMenuOption[] = isProtectedNode(node)
 		? []
 		: [

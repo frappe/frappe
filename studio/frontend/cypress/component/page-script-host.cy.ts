@@ -2,8 +2,15 @@ import { pinia } from "../support/component"
 
 import { setActivePinia } from "pinia"
 import {
-	defineComponent, getCurrentInstance, h, nextTick,
-	onMounted, onScopeDispose, onUnmounted, ref, watch,
+	defineComponent,
+	getCurrentInstance,
+	h,
+	nextTick,
+	onMounted,
+	onScopeDispose,
+	onUnmounted,
+	ref,
+	watch,
 } from "vue"
 
 import { usePageScope } from "@/stores/codeStore"
@@ -12,7 +19,6 @@ import type { StudioPage } from "@/types/Studio/StudioPage"
 
 const page = { name: "probe-page", script: "" } as StudioPage
 
-// Set the current page, then install the test setup through the script hot-update API.
 async function installPageScript(setup: unknown) {
 	const scope = usePageScope()
 	await scope.loadPageScript(page)
@@ -22,7 +28,6 @@ async function installPageScript(setup: unknown) {
 
 const hostMounted = ref(true)
 
-// Key the test host by script version to exercise remounting and cleanup.
 function mountHost(slot?: () => any) {
 	hostMounted.value = true
 	const scope = usePageScope()
@@ -50,24 +55,6 @@ describe("page script host", () => {
 		usePageScope().teardownPage()
 	})
 
-	it("runs setup in a component instance, so onMounted fires", () => {
-		let hadInstance = false
-		let mountedRan = false
-		cy.wrap(
-			installPageScript(() => {
-				hadInstance = Boolean(getCurrentInstance())
-				onMounted(() => (mountedRan = true))
-				return {}
-			}),
-		)
-		mountHost()
-
-		cy.then(() => {
-			expect(hadInstance, "setup saw a component instance").to.be.true
-			expect(mountedRan, "onMounted ran").to.be.true
-		})
-	})
-
 	it("cleans up the script's hooks, scopes and watchers when the host unmounts", () => {
 		const source = ref(0)
 		let unmountedRan = false
@@ -76,7 +63,6 @@ describe("page script host", () => {
 		cy.wrap(
 			installPageScript(() => {
 				onUnmounted(() => (unmountedRan = true))
-				// Page scripts can use onScopeDispose to remove socket listeners.
 				onScopeDispose(() => (disposed = true))
 				watch(source, () => fired++)
 				return {}
@@ -136,17 +122,29 @@ describe("page script host", () => {
 		})
 	})
 
-	it("renders the page once, with a synchronous setup's bindings already in place", () => {
+	it("runs setup in a component and renders once with its bindings in place", () => {
 		const scope = usePageScope()
 		const renders: string[] = []
-		cy.wrap(installPageScript(() => ({ title: "now" })))
+		let hadInstance = false
+		let mountedRan = false
+		cy.wrap(
+			installPageScript(() => {
+				hadInstance = Boolean(getCurrentInstance())
+				onMounted(() => (mountedRan = true))
+				return { title: "now" }
+			}),
+		)
 		mountHost(() => {
 			renders.push(String(scope.pageScriptBindings.title))
 			return h("div", { "data-cy": "page" }, String(scope.pageScriptBindings.title))
 		})
 
 		cy.get("[data-cy=page]").should("have.text", "now")
-		cy.then(() => expect(renders, "the page rendered before its bindings").to.deep.equal(["now"]))
+		cy.then(() => {
+			expect(hadInstance, "setup saw a component instance").to.be.true
+			expect(mountedRan, "onMounted ran").to.be.true
+			expect(renders, "the page rendered before its bindings").to.deep.equal(["now"])
+		})
 	})
 
 	it("holds the page back until an async setup resolves", () => {

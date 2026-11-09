@@ -23,7 +23,7 @@ def run_list_app_files(ctx, args: dict) -> str:
 	try:
 		tree = api.list_studio_files(*ref)
 	except Exception as error:
-		return _fail(error)
+		return f"FAILED: {error}"
 	paths = _flatten(tree)
 	if not paths:
 		extension = "js" if files.is_db_app(ref[1]) else "ts"
@@ -43,7 +43,7 @@ def run_read_app_file(ctx, args: dict) -> str:
 	try:
 		result = api.read_studio_file(*ref, path)
 	except Exception as error:
-		return _fail(error)
+		return f"FAILED: {error}"
 	return f"{path}:\n{result['content']}"
 
 
@@ -62,7 +62,7 @@ def run_write_app_file(ctx, args: dict) -> str:
 	try:
 		api.write_studio_file(*ref, path, content)
 	except Exception as error:
-		return _fail(error)
+		return f"FAILED: {error}"
 	reaches_app = (
 		"It compiles in the browser, so there is no build to wait for."
 		if files.is_db_app(ref[1])
@@ -83,7 +83,7 @@ def run_delete_app_file(ctx, args: dict) -> str:
 	try:
 		api.delete_studio_file(*ref, path)
 	except Exception as error:
-		return _fail(error)
+		return f"FAILED: {error}"
 	return f"Deleted {path}."
 
 
@@ -97,9 +97,6 @@ def run_trigger_app_build(ctx, args: dict) -> str:
 		"Started an app rebuild. The file changes appear in the running app only after it finishes — "
 		"tell the user to wait for the build to complete."
 	)
-
-
-# --- helpers --------------------------------------------------------------
 
 
 def _app_ref(ctx) -> tuple[str, str] | str:
@@ -118,19 +115,11 @@ def _flatten(nodes: list[dict]) -> list[str]:
 	"""Depth-first list of paths from the file tree; folders get a trailing '/'."""
 	paths = []
 	for node in nodes:
+		paths.append(node["path"] + ("/" if node["is_folder"] else ""))
 		if node["is_folder"]:
-			paths.append(node["path"] + "/")
 			paths.extend(_flatten(node["children"]))
-		else:
-			paths.append(node["path"])
 	return paths
 
-
-def _fail(error: Exception) -> str:
-	return f"FAILED: {error}"
-
-
-# --- tool definitions -----------------------------------------------------
 
 list_app_files = Tool(
 	name="list_app_files",

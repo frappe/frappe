@@ -3,6 +3,8 @@
  *
  * Fetch stored files together. Page scripts arrive with their page data and use the virtual
  * path studio_page/<stem>/<stem>.js, so relative imports resolve as they do in a repository.
+ * Navigation reuses the loaded app's registry so shared module state survives between pages.
+ * Reloading source replaces that registry and its evaluated modules.
  * appRuntime.ts loads this implementation on demand; app builds exclude it.
  */
 
@@ -43,10 +45,7 @@ export async function reloadAppRuntime(): Promise<void> {
 async function fetchSources(appName: string): Promise<void> {
 	const files: AppFile[] = await appFilesResource.fetch({ app_name: appName })
 	loadedAppName = appName
-	const sources: Record<string, string> = {}
-	for (const file of files) {
-		sources[file.path] = file.content
-	}
+	const sources = Object.fromEntries(files.map(({ path, content }) => [path, content]))
 	registry = new AppModuleRegistry(sources)
 	clearAppStyles(new Set(Object.keys(sources)))
 }

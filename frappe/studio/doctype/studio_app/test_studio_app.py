@@ -54,8 +54,6 @@ class TestStudioApp(FrappeTestCase):
 			self.assertEqual(read_store_file(app.name, "router.js"), ROUTER_FILE_SOURCE)
 
 	def test_a_database_app_renders_through_the_browser_runtime(self):
-		from frappe.studio.files import write_store_file
-
 		app = make_studio_app(app_title="Shop Demo", app_name="shop-demo")
 		make_studio_page(app.name, page_title="Board", route="/board", published=1)
 		write_store_file(app.name, "utils.js", "export const price = 1\n")
@@ -66,15 +64,12 @@ class TestStudioApp(FrappeTestCase):
 		gate = "frappe.studio.doctype.studio_app.studio_app.can_build_bundle"
 		with patch(gate, return_value=True):
 			html = get_website_response("shop-demo/board").get_data(as_text=True)
-		# Without a bundle, the shared renderer compiles database source in the browser.
 		self.assertIn("window.is_db_app = true", html)
 		self.assertIn("/assets/frappe/studio/", html)
-		# A missing bundle should produce a warning when the server can build one.
 		self.assertIn("Could not find app assets", html)
 
 		with patch(gate, return_value=False):
 			html = get_website_response("shop-demo/board").get_data(as_text=True)
-		# Without Yarn, browser compilation is expected and should not produce a build warning.
 		self.assertNotIn("Could not find app assets", html)
 
 	def test_app_favicon(self):
@@ -576,8 +571,6 @@ class TestStudioAppBuilder(FrappeTestCase):
 			self.assertIn(css_class, page_sources["text"])
 
 	def test_builds_a_database_app_from_its_stored_files(self):
-		from frappe.studio.files import write_store_file
-
 		app = make_studio_app(app_title="Stored App", app_name="stored-app")
 		page = make_studio_page(app.name, script="export default function setup() {}", published=1)
 		write_store_file(app.name, "router.js", "export default {}\n")
@@ -600,8 +593,6 @@ class TestStudioAppBuilder(FrappeTestCase):
 			builder.build()
 
 		command = run.call_args.args[0]
-		# Vite receives paths to the same source files that the browser compiler uses.
-		# A database app ships no Vue components; they need a repository app.
 		self.assertIn("--database-app", command)
 		self.assertIsNone(argument(command, "--custom-components"))
 		self.assertEqual(argument(command, "--router-file"), os.path.join(builder.app_folder, "router.js"))

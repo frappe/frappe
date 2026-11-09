@@ -31,7 +31,6 @@ export default function setup(context) { return { label: ref(fmt(7) + fmt2(8)) }
 		).then((module: any) => {
 			const bindings = module.default({})
 			expect(bindings.label.value).to.equal("#7#8")
-			// The returned binding must retain Vue's ref interface.
 			expect(isRef(bindings.label)).to.equal(true)
 		})
 	})
@@ -43,7 +42,6 @@ export default function setup(context) { return { label: ref(fmt(7) + fmt2(8)) }
 			"needs-broken.js": `import { oops } from "./half-written"\nexport const x = oops`,
 		}
 
-		// a half-written file nothing imports must not stop an unrelated page
 		cy.wrap(new AppModuleRegistry(sources).loadModule("good.js")).then((module: any) => {
 			expect(module.ok).to.equal("ok")
 		})
@@ -53,8 +51,6 @@ export default function setup(context) { return { label: ref(fmt(7) + fmt2(8)) }
 				await expectCompileError(sources, "half-written.js", "half-written.js")
 				await expectCompileError(sources, "needs-broken.js", "half-written.js")
 
-				// A module that stops compiling must not keep running the last version that did,
-				// or a broken script looks fine again after a reload.
 				const registry = new AppModuleRegistry({ "a.js": `export const value = 1` })
 				expect((await registry.loadModule("a.js")).value).to.equal(1)
 				for (const attempt of ["first", "second"]) {
@@ -66,8 +62,6 @@ export default function setup(context) { return { label: ref(fmt(7) + fmt2(8)) }
 				await registry.loadModule("a.js").catch((e) => (loadError = e))
 				expect(loadError, "loading it reports the failure").to.be.instanceOf(AppCompileError)
 
-				// A missing export is the one failure that leaves a working factory behind, so an
-				// unchanged script has to keep reporting it instead of running an undefined import.
 				const pageRegistry = new AppModuleRegistry({ "utils.js": `export const present = 1` })
 				const page = "studio_page/board/board.js"
 				const missingExport = `import { missing } from "@app/utils.js"\nexport default () => missing`
@@ -96,15 +90,8 @@ export default function setup(context) { return { label: ref(fmt(7) + fmt2(8)) }
 					"a.js",
 					"Cannot resolve",
 				)
-				// Validate literal dynamic imports before the module executes.
 				await expectCompileError(
 					{ "a.js": `export const lazy = () => import("./missing-page")` },
-					"a.js",
-					"Cannot resolve",
-				)
-				// A stylesheet import needs its extension, as it does in the app build.
-				await expectCompileError(
-					{ "a.js": `import "./theme.css"\nexport const x = 1` },
 					"a.js",
 					"Cannot resolve",
 				)

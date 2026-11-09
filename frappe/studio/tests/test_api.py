@@ -76,7 +76,6 @@ class TestApi(IntegrationTestCase):
 					self.assertRaises(frappe.ValidationError, call)
 
 	def test_one_module_cannot_hold_a_typescript_and_a_javascript_file(self):
-		# A build and the page script loader find a module by its stem, so only one file may hold it.
 		with exports_in_tempdir(), patch.dict(frappe.conf, {"developer_mode": 1}):
 			app = make_studio_app(
 				app_name="dup-" + frappe.generate_hash(length=8), is_standard=1, frappe_app="frappe"
@@ -92,7 +91,6 @@ class TestApi(IntegrationTestCase):
 					call()
 				self.assertIn("Keep only one", str(refused.exception))
 
-			# A file in another language is not a companion, and a rename may switch language.
 			create_studio_file("frappe", app.name, "utils/format.css")
 			rename_studio_file("frappe", app.name, "utils/format.ts", "utils/format.js")
 			self.assertEqual(
@@ -109,7 +107,6 @@ class TestApi(IntegrationTestCase):
 			)
 			self.assertEqual(list_studio_files("", app.name)[0]["path"], "utils")
 
-		# The same request requires developer mode when the source is in a repository.
 		with exports_in_tempdir():
 			repo_app = make_studio_app(
 				app_name="repo-" + frappe.generate_hash(length=8), is_standard=1, frappe_app="frappe"
@@ -125,7 +122,6 @@ class TestApi(IntegrationTestCase):
 		self.assertEqual([file["path"] for file in served], ["utils.js"])
 		self.assertEqual(served[0]["content"], "export const one = 1\n")
 
-		# Guests need a published page that allows guest access.
 		with self.set_user("Guest"):
 			self.assertRaises(frappe.PermissionError, get_app_files, app.name)
 		make_studio_page(app.name, published=1, allow_guest=1)
@@ -133,7 +129,6 @@ class TestApi(IntegrationTestCase):
 			self.assertEqual(len(get_app_files(app.name)), 1)
 
 	def test_a_database_app_cannot_store_source_the_browser_cannot_run(self):
-		# Vue components and TypeScript need the repository's build, so only a repository app ships them.
 		app = make_studio_app(app_name="vue-" + frappe.generate_hash(length=8))
 		for file_path in ("components/Card.vue", "stores/catalog.ts"):
 			with self.assertRaises(frappe.ValidationError, msg=file_path) as refused:
@@ -142,7 +137,6 @@ class TestApi(IntegrationTestCase):
 		self.assertEqual(get_app_files(app.name), [])
 
 	def test_only_an_editor_can_enumerate_components_on_disk(self):
-		# Disk component metadata includes server paths and requires editor permissions.
 		with self.set_user("Guest"):
 			self.assertRaises(frappe.PermissionError, get_custom_vue_components, "frappe", "any-app")
 

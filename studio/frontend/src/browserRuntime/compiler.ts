@@ -29,6 +29,8 @@ export interface ModuleImport {
 }
 
 export interface ModuleExports {
+	/** `export { count as total } from "./state"` records total -> { name: "count", from: "./state" }.
+	 * Local declarations omit `from`; the registry follows re-exports to their original binding. */
 	bindings: Record<string, { name: string; from?: string }>
 	/** Specifiers it re-exports every name from, whose names it also exports. */
 	starFrom: string[]

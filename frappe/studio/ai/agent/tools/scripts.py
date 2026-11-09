@@ -57,9 +57,6 @@ def run_set_page_script(ctx, args: dict) -> str:
 	return _write_db_script(ctx, page, source)
 
 
-# --- write paths ----------------------------------------------------------
-
-
 def _write_db_script(ctx, page, source: str) -> str:
 	"""Save a database app's page script and request a canvas reload."""
 	if not frappe.has_permission("Studio Page", "write", page.name):
@@ -84,8 +81,6 @@ def _write_file_script(ctx, page, source: str) -> str:
 		)
 	if "System Manager" not in frappe.get_roles():
 		return "FAILED: writing a repository app's page script requires the System Manager role."
-	# write_script_file reads the field from this object and clears it again, because a
-	# repository page's script belongs in the code file, not the database field.
 	page.script = source
 	page.write_script_file()
 	frappe.enqueue_doc("Studio App", page.studio_app, "build_app_bundle", queue="long", timeout=1200)
@@ -101,8 +96,6 @@ def _read_script(page) -> str:
 		return frappe.read_file(path) or "" if os.path.exists(path) else ""
 	return page.script or ""
 
-
-# --- tool definitions -----------------------------------------------------
 
 get_page_script = Tool(
 	name="get_page_script",

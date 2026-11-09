@@ -91,7 +91,11 @@ async function confirmChange() {
 			{ path: exportFolder(exportedTo.value) },
 			".",
 		]
-		const discarded = await discardedExportFiles()
+		const data: any = await studioApps.runDocMethod.submit({
+			name: store.activeApp?.app_name,
+			method: "get_discarded_export_files",
+		})
+		const discarded: string[] = data?.message || []
 		if (discarded.length) {
 			segments.push(" The database cannot store these files, so they go with it: ")
 			discarded.forEach((path, index) => segments.push(index ? ", " : "", { path }))
@@ -128,14 +132,6 @@ async function exportApp() {
 		target_app: targetApp.value,
 	})
 	toast.success("App exported")
-}
-
-async function discardedExportFiles(): Promise<string[]> {
-	const data: any = await studioApps.runDocMethod.submit({
-		name: store.activeApp?.app_name,
-		method: "get_discarded_export_files",
-	})
-	return data?.message || []
 }
 
 async function disableAppExport() {

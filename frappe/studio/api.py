@@ -25,7 +25,7 @@ from frappe.studio.utils import (
 	validate_installed_app,
 	validate_one_script_file,
 )
-from frappe.utils import sbool
+from frappe.utils import sbool, touch_file
 
 
 @frappe.whitelist()
@@ -200,7 +200,6 @@ def get_studio_page_scripts(frappe_app: str) -> list[dict]:
 		if not os.path.isdir(page_folder):
 			continue
 
-		# each page is a folder holding <stem>.json and a .ts or .js script
 		for entry in sorted(os.listdir(page_folder)):
 			page_dir = os.path.join(page_folder, entry)
 			if not os.path.isdir(page_dir):
@@ -224,15 +223,6 @@ def get_studio_page_scripts(frappe_app: str) -> list[dict]:
 	return scripts
 
 
-# ---------------------------------------------------------------------------
-# Studio file explorer
-#
-# The file APIs support both source stores. Repository files are under `studio/<studio_app>/`
-# and require developer mode. Database files use `frappe.studio.files` and can be edited
-# without a repository or developer mode. Both paths check app permissions.
-# ---------------------------------------------------------------------------
-
-
 @frappe.whitelist()
 def list_studio_files(frappe_app: str, studio_app: str) -> list[dict]:
 	"""Return the app's editable file tree."""
@@ -254,23 +244,19 @@ def read_studio_file(frappe_app: str, studio_app: str, file_path: str, ignore_mi
 		_validate_studio_file_access(on_disk=False)
 		validate_allowed_extension(file_path, ALLOWED_STORED_FILE_EXTENSIONS)
 		content = files.read_store_file(studio_app, file_path)
-		if content is None:
-			if sbool(ignore_missing):
-				return {"path": file_path, "content": None, "hash": None}
-			frappe.throw(_("File not found: {0}").format(file_path))
-		return {"path": file_path, "content": content, "hash": file_hash(content)}
-
-	_validate_studio_file_access()
-	validate_allowed_extension(file_path)
-	target = _resolve_studio_file(frappe_app, studio_app, file_path)
-	if not os.path.isfile(target):
+	else:
+		_validate_studio_file_access()
+		validate_allowed_extension(file_path)
+		target = _resolve_studio_file(frappe_app, studio_app, file_path)
+		content = None
+		if os.path.isfile(target):
+			# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
+			with open(target, encoding="utf-8") as f:
+				content = f.read()
+	if content is None:
 		if sbool(ignore_missing):
 			return {"path": file_path, "content": None, "hash": None}
 		frappe.throw(_("File not found: {0}").format(file_path))
-
-	# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
-	with open(target, encoding="utf-8") as f:
-		content = f.read()
 	return {"path": file_path, "content": content, "hash": file_hash(content)}
 
 
@@ -325,9 +311,7 @@ def create_studio_file(frappe_app: str, studio_app: str, file_path: str) -> dict
 	validate_one_script_file(os.path.dirname(target), os.path.basename(file_path))
 
 	os.makedirs(os.path.dirname(target), exist_ok=True)
-	# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
-	with open(target, "w", encoding="utf-8") as f:
-		f.write("")
+	touch_file(target)
 	return {"path": file_path, "hash": file_hash("")}
 
 

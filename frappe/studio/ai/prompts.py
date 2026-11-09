@@ -270,12 +270,15 @@ App-wide routing (aliases, redirects, guards) goes in the app's router config, n
 }"""
 
 # Use plain strings for these state and logic sections so `{{ }}` tokens stay unchanged.
-# Both app types use the same page script format.
-# File storage and the need to rebuild after an edit depend on the app type.
-CUSTOM_PAGE_CODE = """# State & logic
+PAGE_SCRIPT_MODULE = """Reactive state & page logic — author the page's setup() MODULE with set_page_script. It is a REAL ES module, so you MUST `import` framework APIs at the TOP — Vue reactivity `import { ref, computed, watch } from 'vue'`; and as needed `import { call, toast } from 'frappe-ui'`, `import { defineStore, storeToRefs } from 'pinia'`, and the app's own files via '@app/*'. `ref`/`computed`/`watch` are NOT on `context` — NEVER write `context.ref` or `const { ref } = context`; import them from 'vue'. The `context` PARAM carries the PAGE's own things: its data sources/resources, its variables, `route` and `router` (e.g. `context.notes`, `context.route`). Only what you RETURN becomes bindings usable in {{ }} and handlers."""
+
+CUSTOM_PAGE_CODE = (
+	"""# State & logic
 Variables — reactive page state (a counter, a toggle, a selected filter). add_variable(name, type, initial_value); reference anywhere as {{ name }}, and read it in a page script as `context.name`. update_variable to retype/re-seed, delete_variable to remove (warns if still bound). Reuse before duplicating (list_variables).
 
-Reactive state & page logic — author the page's setup() MODULE with set_page_script. It is a REAL ES module, so you MUST `import` framework APIs at the TOP — Vue reactivity `import { ref, computed, watch } from 'vue'`; and as needed `import { call, toast } from 'frappe-ui'`, `import { defineStore, storeToRefs } from 'pinia'`, and the app's own files via '@app/*'. `ref`/`computed`/`watch` are NOT on `context` — NEVER write `context.ref` or `const { ref } = context`; import them from 'vue'. The `context` PARAM carries the PAGE's own things: its data sources/resources, its variables, `route` and `router` (e.g. `context.notes`, `context.route`). Only what you RETURN becomes bindings usable in {{ }} and handlers. set_page_script replaces the whole module (read it first with get_page_script); this app's files compile in the browser, so a saved module runs live on the canvas.
+"""
+	+ PAGE_SCRIPT_MODULE
+	+ """ set_page_script replaces the whole module (read it first with get_page_script); this app's files compile in the browser, so a saved module runs live on the canvas.
 Example:
 import { ref } from 'vue'
 export default function setup(context) {
@@ -288,11 +291,15 @@ export default function setup(context) {
 Shared code (stores, composables, utils) — for state or logic used across pages, write files with write_app_file (e.g. `stores/notes.js`, `composables/useFilters.js`) and import them into a page's setup() module via '@app/…'. list_app_files to see the tree, read_app_file before editing, delete_app_file to remove. They compile in the browser, so there is no build to wait for. Only 'vue', 'vue-router', 'pinia', 'frappe-ui' (and its subpaths) and the app's own files are importable — there is no npm here.
 
 Router config — this app keeps it in `router.js` at the app root: read_app_file('router.js') first (it may not exist yet), then write_app_file('router.js', 'export default { … }')."""
+)
 
-STANDARD_PAGE_CODE = """# State & logic
+STANDARD_PAGE_CODE = (
+	"""# State & logic
 This app is EXPORTED — its frontend is a real TypeScript codebase on disk (page scripts, stores, composables, utils, components) that you edit as files and ship via a build. Prefer real code over Studio Page variables here.
 
-Reactive state & page logic — author the page's setup() MODULE with set_page_script. It is a REAL ES module, so you MUST `import` framework APIs at the TOP — Vue reactivity `import { ref, computed, watch } from 'vue'`; and as needed `import { call, toast } from 'frappe-ui'`, `import { defineStore, storeToRefs } from 'pinia'`, and the app's own files via '@app/*'. `ref`/`computed`/`watch` are NOT on `context` — NEVER write `context.ref` or `const { ref } = context`; import them from 'vue'. The `context` PARAM carries the PAGE's own things: its data sources/resources, its variables, `route` and `router` (e.g. `context.notes`, `context.route`). Only what you RETURN becomes bindings usable in {{ }} and handlers. Declare page-local state as refs — do NOT create Studio Page variables. set_page_script replaces the whole module (read it first with get_page_script).
+"""
+	+ PAGE_SCRIPT_MODULE
+	+ """ Declare page-local state as refs — do NOT create Studio Page variables. set_page_script replaces the whole module (read it first with get_page_script).
 DECLARE STATE THE SAME TURN YOU ADD UI THAT USES IT. There is no add_variable in an exported app, so any reactive state your UI touches — a Dialog's open flag, an input's modelValue, a counter/toggle a button mutates — must be a ref you declare in setup() and RETURN. A button `events` like `showDialog.value = true`, or a modelValue bound to `showDialog`, does NOTHING unless setup() declares and returns `showDialog`. So whenever you add interactive UI, call set_page_script in the SAME turn to add the backing state — never wire an event or binding to a name the page script doesn't return.
 Example:
 import { ref } from 'vue'
@@ -309,6 +316,7 @@ Shared code (stores, composables, utils) — for state or logic used across page
 Default new code files to `.ts`; `.js` is also allowed. Preserve an existing file's extension.
 
 Router config — list_app_files and use the existing `router.ts` or `router.js` at the app root. If neither exists, create `router.ts`. Read the existing file before editing and preserve its extension. It default-exports the config and may import from '@app/*'."""
+)
 
 
 def get_agent_system(data_and_code_wiring: str) -> str:
@@ -358,8 +366,6 @@ When the user attaches an image (a screenshot or design mock), treat it as the s
 """
 
 
-# Choose the agent by the app's source storage. Both use the same page script format
-# and shared files. Available variable tools and build requirements differ by app type.
 AGENT_SYSTEM_CUSTOM = get_agent_system(DATA_WIRING + "\n\n" + CUSTOM_PAGE_CODE + "\n\n" + ROUTING)
 AGENT_SYSTEM_STANDARD = get_agent_system(DATA_WIRING + "\n\n" + STANDARD_PAGE_CODE + "\n\n" + ROUTING)
 

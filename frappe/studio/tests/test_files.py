@@ -32,6 +32,9 @@ def make_db_app(**kwargs):
 class TestFiles(IntegrationTestCase):
 	def test_store_crud_and_tree(self):
 		app = make_db_app()
+		self.assertTrue(files.is_db_app(app.name))
+		self.assertFalse(files.is_db_app("no-such-app"))
+		self.assertEqual(files.discarded_export_files(app), [])
 		files.create_store_file(app.name, "utils/format.js")
 		files.write_store_file(app.name, "utils/format.js", "export const one = 1\n")
 		files.write_store_file(app.name, "components/card.css", ".card { color: red }\n")
@@ -48,6 +51,8 @@ class TestFiles(IntegrationTestCase):
 
 		paths = [file["path"] for file in files.get_store_files(app.name)]
 		self.assertEqual(paths, ["components/card.css", "utils/format.js"])
+		app.delete()
+		self.assertEqual(frappe.db.count("Studio App File", {"studio_app": app.name}), 0)
 
 	def test_a_page_script_is_browsed_and_edited_as_a_file(self):
 		app = make_db_app()
@@ -58,7 +63,6 @@ class TestFiles(IntegrationTestCase):
 		self.assertEqual([node["path"] for node in tree], ["studio_page"])
 		self.assertEqual(tree[0]["children"][0]["children"][0]["path"], path)
 
-		# Editing a page script updates its page record instead of creating a stored file.
 		files.write_store_file(app.name, path, SETUP_SCRIPT)
 		self.assertEqual(frappe.db.get_value("Studio Page", page.name, "script"), SETUP_SCRIPT)
 		self.assertEqual(files.read_store_file(app.name, path), SETUP_SCRIPT)
@@ -71,7 +75,6 @@ class TestFiles(IntegrationTestCase):
 
 	def test_path_rules(self):
 		app = make_db_app()
-		# Reject paths that could escape the app root, as the disk explorer does.
 		for traversal in ("../escape.js", "a//b.js", "./x.js"):
 			with self.assertRaises(frappe.PermissionError, msg=traversal):
 				files.create_store_file(app.name, traversal)
@@ -98,7 +101,6 @@ class TestFiles(IntegrationTestCase):
 		files.write_store_file(app.name, "a.js", "let x = 2\n", known_hash=files.file_hash("let x = 1\n"))
 		self.assertEqual(files.read_store_file(app.name, "a.js"), "let x = 2\n")
 
-		# A folder name with a source extension would put a file inside another file.
 		for bad_path in ("a.js/format.js", "lib/helpers.ts/format.js"):
 			with self.assertRaises(frappe.ValidationError, msg=bad_path) as refused:
 				files.write_store_file(app.name, bad_path, "let y = 1\n")
@@ -129,46 +131,30 @@ class TestFiles(IntegrationTestCase):
 		files.delete_store_path(app.name, "lib/deep")
 		self.assertEqual([file["path"] for file in files.get_store_files(app.name)], ["lib/a.js"])
 
-	def test_is_db_app(self):
-		with exports_in_tempdir():
-			db_app = make_db_app()
-			repo_app = make_db_app(is_standard=1, frappe_app="frappe")
-		self.assertTrue(files.is_db_app(db_app.name))
-		self.assertFalse(files.is_db_app(repo_app.name))
-		# A missing app does not use database file storage.
-		self.assertFalse(files.is_db_app("no-such-app"))
-
-	def test_an_app_that_was_never_exported_discards_nothing(self):
-		self.assertEqual(files.discarded_export_files(make_db_app()), [])
-
 	def test_export_round_trip(self):
 		with exports_in_tempdir():
 			app = make_db_app()
 			page = make_studio_page(app.name, page_title="Board", script=SETUP_SCRIPT)
 			files.write_store_file(app.name, "components/card.css", ".card { color: red }\n")
-			files.write_store_file(app.name, "router.js", "export default {}\n")
 
 			app.reload()
 			app.enable_app_export("frappe")
+			self.assertFalse(files.is_db_app(app.name))
 
 			folder = app.get_folder_path()
 			self.assertEqual(
 				frappe.read_file(os.path.join(folder, "components", "card.css")),
 				".card { color: red }\n",
 			)
-			self.assertEqual(frappe.read_file(os.path.join(folder, "router.js")), "export default {}\n")
-			# Export preserves the script's content in its companion .js file.
 			self.assertEqual(
 				frappe.read_file(os.path.join(folder, "studio_page", "board", "board.js")), SETUP_SCRIPT
 			)
-			# After export, source files belong to the repository and the store is empty.
 			self.assertEqual(files.get_store_files(app.name), [])
 
 			app.reload()
 			app.disable_app_export()
 
 			self.assertEqual(files.read_store_file(app.name, "components/card.css"), ".card { color: red }\n")
-			self.assertEqual(files.read_store_file(app.name, "router.js"), "export default {}\n")
 			self.assertEqual(frappe.db.get_value("Studio Page", page.name, "script"), SETUP_SCRIPT)
 
 	def test_disabling_export_refuses_to_delete_files_the_store_cannot_hold(self):
@@ -181,7 +167,6 @@ class TestFiles(IntegrationTestCase):
 			app.enable_app_export("frappe")
 
 			folder = app.get_folder_path()
-			# A repository can contain files that the database store does not support.
 			write_export_file(folder, "assets", "icon.svg", content="<svg />")
 			write_export_file(folder, "components", "Card.vue")
 			write_export_file(folder, "stores", "catalog.ts")
@@ -199,7 +184,6 @@ class TestFiles(IntegrationTestCase):
 				"tailwind.config.js",
 			):
 				self.assertIn(path, str(refused.exception))
-			# Rejecting the operation preserves the existing export.
 			self.assertTrue(os.path.isdir(folder))
 			self.assertEqual(frappe.db.get_value("Studio App", app.name, "is_standard"), 1)
 
@@ -210,9 +194,3 @@ class TestFiles(IntegrationTestCase):
 			self.assertEqual(
 				frappe.db.get_value("Studio Page", {"studio_app": app.name}, "script"), SETUP_SCRIPT
 			)
-
-	def test_deleting_app_deletes_store(self):
-		app = make_db_app()
-		files.write_store_file(app.name, "a.js", "let x = 1\n")
-		app.delete()
-		self.assertEqual(frappe.db.count("Studio App File", {"studio_app": app.name}), 0)

@@ -5,6 +5,7 @@ const COMMONJS_NAMES = ["require", "module", "exports"]
 
 /**
  * Validate source for both the browser loader and database-app publishing.
+ * Both paths use these restrictions so unsupported syntax fails consistently in preview and builds.
  * @param {import('./compiler').BabelProgram} program
  * @param {string} filename
  * @returns {import('./compiler').CompileError[]}

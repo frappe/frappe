@@ -2,7 +2,7 @@
  * Load the browser source compiler and module registry on demand.
  *
  * Keep the compilers and available library namespaces out of the initial editor and renderer
- * bundles. Compilation or syntax checking loads them when needed. Reading or unloading an
+ * bundles. Compilation or syntax checking loads them when needed. Reloading or unloading an
  * unused runtime does not load them. App builds use noBrowserRuntime.ts instead.
  */
 

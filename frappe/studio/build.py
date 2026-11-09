@@ -54,7 +54,6 @@ class StudioAppBuilder:
 		self.missing_components: set[str] = set()
 		self.page_scripts: list[dict] = []  # [{page_name, file_path}]
 		self.router_file: str | None = None
-		# Database sources use a temporary folder; repository sources use their export folder.
 		self.app_folder: str | None = None
 		self.icons: set[str] = set()
 		self.tailwind_content: list[str] = []
@@ -127,7 +126,6 @@ class StudioAppBuilder:
 			return
 
 		scripts = []
-		# each page is a folder holding <stem>.json and a .ts or .js script
 		for entry in sorted(os.listdir(page_folder)):
 			page_dir = os.path.join(page_folder, entry)
 			if not os.path.isdir(page_dir):
@@ -189,7 +187,6 @@ class StudioAppBuilder:
 			command += ["--tailwind-content", glob]
 
 		if not self.is_standard:
-			# Hold the app's own code to the imports its browser preview allows.
 			command += ["--database-app"]
 
 		studio_app_path = frappe.get_app_source_path("frappe", "studio", "frontend")
@@ -247,7 +244,6 @@ class StudioAppBuilder:
 
 		self._load_studio_components_from_files(app_folder)
 
-		# each page is a folder holding <stem>.json and a .ts or .js script
 		for entry in os.listdir(page_folder):
 			page_dir = os.path.join(page_folder, entry)
 			if not os.path.isdir(page_dir):

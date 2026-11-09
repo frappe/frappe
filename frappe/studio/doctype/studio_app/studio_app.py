@@ -273,7 +273,6 @@ class StudioApp(WebsiteGenerator):
 		if not can_export(self):
 			return
 
-		# carry every exported file (page scripts, the router file, components) over to the new folder
 		move_folder(self.get_folder_path(old), self.get_folder_path())
 		# the app JSON is keyed by the scrubbed name (my-app and my_app share my_app.json)
 		old_file = os.path.join(self.get_folder_path(), f"{frappe.scrub(old)}.json")
@@ -301,7 +300,11 @@ class StudioApp(WebsiteGenerator):
 			self.build_app_bundle()
 			return {"build_error": None}
 		except Exception as e:
-			return {"build_error": self._log_build_failure(e)}
+			error_log = frappe.log_error(
+				title=f"Studio app build failed: {self.name}",
+				message=getattr(e, "output", None) or frappe.get_traceback(),
+			)
+			return {"build_error": {"error_log": error_log.name}}
 
 	def build_app_bundle(self):
 		"""Build the app bundle, raising on failure — background jobs enqueue this
@@ -311,13 +314,6 @@ class StudioApp(WebsiteGenerator):
 		StudioAppBuilder(
 			studio_app=self.name, is_standard=self.is_standard, frappe_app=self.frappe_app
 		).build()
-
-	def _log_build_failure(self, exception: Exception) -> dict:
-		error_log = frappe.log_error(
-			title=f"Studio app build failed: {self.name}",
-			message=getattr(exception, "output", None) or frappe.get_traceback(),
-		)
-		return {"error_log": error_log.name}
 
 	@frappe.whitelist()
 	def publish_app(self):
@@ -485,7 +481,6 @@ class StudioApp(WebsiteGenerator):
 				path for name in custom_vue_component_names(blocks) if (path := self.find_vue_component(name))
 			]
 		else:
-			# a database app keeps its source in the file store, and ships no Vue components
 			stored = {file["path"]: file["content"] for file in get_store_files(self.name)}
 			read = stored.get
 			pending = []
