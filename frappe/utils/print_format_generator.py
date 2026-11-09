@@ -140,7 +140,7 @@ def is_qr_barcode_options(options: str | None) -> bool:
 
 
 @frappe.whitelist()
-def get_qr_code(value: str) -> str:
+def get_qr_code(value: str) -> str | None:
 	"""Return a QR code for `value` as an SVG data URI (used by Barcode print elements)."""
 	import io
 
@@ -150,7 +150,10 @@ def get_qr_code(value: str) -> str:
 	from pyqrcode import create as qrcreate
 
 	stream = io.BytesIO()
-	qrcreate(value).svg(stream, scale=5, quiet_zone=1, omithw=True)
+	try:
+		qrcreate(value).svg(stream, scale=5, quiet_zone=1, omithw=True)
+	except ValueError:
+		return None
 	return "data:image/svg+xml;base64," + base64.b64encode(stream.getvalue()).decode()
 
 
@@ -166,10 +169,7 @@ def get_barcode(value: str, barcode_format: str = "CODE128", show_text: bool = T
 	from barcode.errors import BarcodeError
 
 	if barcode_format == "QR":
-		try:
-			return get_qr_code(value)
-		except ValueError:
-			return None
+		return get_qr_code(value)
 	if not isinstance(value, str) or len(value) > 2000:
 		frappe.throw(_("Barcode value must be text under 2000 characters"), frappe.ValidationError)
 	if barcode_format not in LINEAR_BARCODE_FORMATS or not value:
