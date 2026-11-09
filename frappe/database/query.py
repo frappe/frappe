@@ -2751,4 +2751,4 @@ class SQLFunctionParser:
 
 	def _check_function_field_permission(self, field_name: str):
 		if self.engine.apply_permissions and self.engine.doctype:
-			self.engine.check_select_field_permission(self.engine.doctype, field_name)
+			self.engine.check_select_field_permission(self.engine.doctype, field_name, self.engine.parent_doctype)
