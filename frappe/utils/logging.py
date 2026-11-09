@@ -290,8 +290,8 @@ def is_log_doctype(doctype: str) -> bool:
 	except (ImportError, frappe.DoesNotExistError):
 		# The one expected failure: an unknown or uninstalled DocType has no controller to
 		# import, and so is not a log DocType. `import_controller` raises `ImportError` for
-		# every such case, and `ModuleNotFoundError` is a subclass of it, or
-		# `DoesNotExistError` for a name in another letter case.
+		# every such case (`ModuleNotFoundError` is a subclass of it), or `DoesNotExistError`
+		# for a name in the wrong letter case.
 		#
 		# Anything else is a real fault -- an invalid class override, for instance, which
 		# `import_controller` reports with `frappe.throw` -- and must not be quietly

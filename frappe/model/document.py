@@ -178,9 +178,8 @@ def import_controller(doctype):
 		)
 		if doctype_info:
 			if doctype_info.name != doctype:
-				frappe.throw(
-					_("{0} {1} not found").format(_("DocType"), doctype),
-					frappe.DoesNotExistError(doctype="DocType"),
+				raise frappe.DoesNotExistError(
+					_("{0} {1} not found").format(_("DocType"), doctype), doctype=doctype_info.name
 				)
 			if doctype_info.custom:
 				return NestedSet if doctype_info.is_tree else Document
