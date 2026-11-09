@@ -676,8 +676,3 @@ def check_print_format_roles(print_format: "PrintFormat") -> None:
 			frappe.PermissionError,
 			title=_("Not Permitted"),
 		)
-
-
-def check_print_format_roles_by_name(print_format: str | None) -> None:
-	if print_format and print_format != "Standard" and frappe.db.exists("Print Format", print_format):
-		check_print_format_roles(frappe.get_cached_doc("Print Format", print_format))
