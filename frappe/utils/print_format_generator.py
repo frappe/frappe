@@ -165,6 +165,8 @@ def get_barcode(value: str, barcode_format: str = "CODE128", show_text: bool = T
 	import barcode
 	from barcode.errors import BarcodeError
 
+	from frappe.utils.typst_emitter import _CONTROL_CHARS
+
 	if barcode_format == "QR":
 		return get_qr_code(value)
 	if not isinstance(value, str) or len(value) > 2000:
@@ -184,7 +186,7 @@ def get_barcode(value: str, barcode_format: str = "CODE128", show_text: bool = T
 	)
 	width, height = 3 * len(modules), 60 if frappe.utils.sbool(show_text) else 40
 	text = (
-		f'<text x="{width / 2}" y="56" text-anchor="middle" font-family="DejaVu Sans Mono, monospace" font-size="16">{escape(value)}</text>'
+		f'<text x="{width / 2}" y="56" text-anchor="middle" font-family="DejaVu Sans Mono, monospace" font-size="16">{escape(_CONTROL_CHARS.sub("", value))}</text>'
 		if height == 60
 		else ""
 	)
