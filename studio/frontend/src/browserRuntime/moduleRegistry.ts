@@ -20,6 +20,7 @@ import {
 	type ModuleImport,
 } from "@/browserRuntime/compiler"
 import { loadImportableModule } from "@/browserRuntime/importableModules"
+import { isEditor } from "@/utils/helpers"
 
 const EXTENSION_CANDIDATES = ["", ".js", ".json", "/index.js"]
 const AMBIGUOUS_EXPORT = Symbol("ambiguous export")
@@ -279,7 +280,8 @@ export class AppModuleRegistry {
 			document.head.append(element)
 			styleElements.set(path, element)
 		}
-		if (element.textContent !== this.files[path]) element.textContent = this.files[path]
+		const css = fenceToCanvas(this.files[path])
+		if (element.textContent !== css) element.textContent = css
 		return Object.freeze(Object.defineProperty({}, "__esModule", { value: true }))
 	}
 }
@@ -325,6 +327,22 @@ function parseJSONModule(source: string): any {
 
 function importError(path: string, message: string): CompileError {
 	return { file: path, line: null, column: null, message }
+}
+
+// A sheet's document roots, which in the editor mean the canvas copy of the page.
+const DOCUMENT_ROOTS = /(^|[{},]|\*\/)(\s*)(?:html|body|:root)(?=[\s{,.:#[>+~])/g
+// `@import` is only read at the top of a sheet, so it cannot move inside the fence.
+const SHEET_AT_RULES = /@(?:charset|import)\b[^;]*;/gi
+
+/** In the editor the app shares a document with the editor's own chrome, so fence it into the canvas. */
+function fenceToCanvas(css: string): string {
+	if (!isEditor()) return css
+	const imports: string[] = []
+	const rules = css.replace(SHEET_AT_RULES, (rule) => {
+		imports.push(rule)
+		return ""
+	})
+	return `${imports.join("\n")}\n@scope (.canvas) {\n${rules.replace(DOCUMENT_ROOTS, "$1$2:scope")}\n}`
 }
 
 // Keep styles by file path across registry rebuilds, so edits replace styles instead of adding copies.
