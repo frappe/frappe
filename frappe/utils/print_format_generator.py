@@ -1066,7 +1066,14 @@ class PrintFormatGenerator:
 			fields = [
 				df
 				for df in column.get("fields", [])
-				if self.has_field_access(self.doc, meta, df.get("fieldname"), df.get("source_fieldname"))
+				if self.has_field_access(
+					self.doc,
+					meta,
+					df.get("fieldname"),
+					df.get("source_fieldname")
+					or (df.get("fieldtype") == "Repeater" and df.get("source"))
+					or (df.get("custom") and df.get("barcode_field")),
+				)
 			]
 			column["fields"] = fields
 			for df in fields:
