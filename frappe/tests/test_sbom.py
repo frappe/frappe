@@ -108,15 +108,20 @@ class TestSPDX(UnitTestCase):
 		self.assertEqual(described, ["frappe"])
 
 	def test_frappe_depends_on_werkzeug(self):
+		self.assertDependsOnFrappe(f"pkg:pypi/werkzeug@{version('werkzeug')}")
+
+	def test_includes_vendored_libraries(self):
+		self.assertDependsOnFrappe("pkg:npm/leaflet@1.2.0")
+
+	def assertDependsOnFrappe(self, purl: str):
 		frappe_id = next(
 			p["SPDXID"] for p in self.document["packages"] if p["primaryPackagePurpose"] == "APPLICATION"
 		)
-		werkzeug = self.get_package_id(f"pkg:pypi/werkzeug@{version('werkzeug')}")
 		self.assertIn(
 			{
 				"spdxElementId": frappe_id,
 				"relationshipType": "DEPENDS_ON",
-				"relatedSpdxElement": werkzeug,
+				"relatedSpdxElement": self.get_package_id(purl),
 			},
 			self.document["relationships"],
 		)

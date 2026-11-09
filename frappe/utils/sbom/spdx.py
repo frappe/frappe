@@ -96,6 +96,8 @@ def _dependency_package(package: Package, ids: _SPDXIds) -> dict:
 	}
 	if checksums := _checksums(package.integrity):
 		result["checksums"] = checksums
+	if package.vendored_path:
+		result["comment"] = f"Vendored at {package.vendored_path}"
 	return result
 
 
