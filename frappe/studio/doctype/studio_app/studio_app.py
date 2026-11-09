@@ -4,6 +4,7 @@ import json
 import os
 import re
 import shutil
+from collections.abc import Callable
 from urllib.parse import quote
 
 import frappe
@@ -16,7 +17,13 @@ from frappe.studio.export import (
 	validate_standard_app_change,
 	write_document_file,
 )
-from frappe.studio.files import discarded_export_files, export_store_to_disk, restore_store_from_disk
+from frappe.studio.files import (
+	discarded_export_files,
+	export_store_to_disk,
+	get_store_files,
+	restore_store_from_disk,
+	write_store_files,
+)
 from frappe.studio.realtime import publish_doc_change
 from frappe.studio.utils import get_app_file_path, get_export_folder, validate_installed_app, walk_blocks
 from frappe.utils import get_files_path, sbool
@@ -26,6 +33,8 @@ from frappe.website.website_generator import WebsiteGenerator
 
 IMPORT_RE = re.compile(r"""(?:from|import)\s*\(?\s*['"]((?:@app/|\.\.?/)[^'"]+)['"]""")
 EXTENSIONS = (".ts", ".js", ".vue", ".json", ".css")
+# Read one of an app's source files by its app-relative path, or None when the app has no such file.
+ReadFile = Callable[[str], str | None]
 
 
 class StudioAppRenderer(DocumentPage):
@@ -470,25 +479,45 @@ class StudioApp(WebsiteGenerator):
 
 	def collect_files(self, script: str, script_dir: str, blocks) -> list[dict]:
 		"""The custom Vue components `blocks` use and everything the script and those files import."""
-		files = {}
-		pending = [
-			path for name in custom_vue_component_names(blocks) if (path := self.find_vue_component(name))
-		]
-		pending += self.resolve_imports(script, script_dir)
+		if self.is_standard:
+			read = self.read_exported_file
+			pending = [
+				path for name in custom_vue_component_names(blocks) if (path := self.find_vue_component(name))
+			]
+		else:
+			# a database app keeps its source in the file store, and ships no Vue components
+			stored = {file["path"]: file["content"] for file in get_store_files(self.name)}
+			read = stored.get
+			pending = []
 
+		files = {}
+		pending += resolve_imports(script, script_dir, read)
 		while pending:
 			path = pending.pop()
 			if path in files:
 				continue
-			# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
-			with open(self.resolve_file_path(path), encoding="utf-8") as f:
-				files[path] = f.read()
-			pending += self.resolve_imports(files[path], os.path.dirname(path))
+			files[path] = read(path)
+			pending += resolve_imports(files[path], os.path.dirname(path), read)
 
 		return [{"path": path, "content": files[path]} for path in sorted(files)]
 
+	def read_exported_file(self, path: str) -> str | None:
+		target = self.resolve_file_path(path)
+		if not os.path.isfile(target):
+			return None
+		# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
+		with open(target, encoding="utf-8") as f:
+			return f.read()
+
 	def write_files(self, files: list[dict]):
-		"""Add copied files without replacing incompatible files already in the app."""
+		"""Put copied files where this app keeps its source."""
+		if not self.is_standard:
+			write_store_files(self.name, files)
+		elif can_export(self):
+			self.write_exported_files(files)
+
+	def write_exported_files(self, files: list[dict]):
+		"""Add copied files without replacing incompatible files already in the export folder."""
 		targets = {}
 		for file in files:
 			if (
@@ -537,28 +566,6 @@ class StudioApp(WebsiteGenerator):
 			)
 		return matches[0] if matches else None
 
-	def resolve_imports(self, source: str, from_dir: str) -> list[str]:
-		paths = []
-		for spec in IMPORT_RE.findall(source or ""):
-			base = spec[len("@app/") :] if spec.startswith("@app/") else os.path.join(from_dir, spec)
-			if path := self.resolve_module(os.path.normpath(base)):
-				paths.append(path)
-		return paths
-
-	def resolve_module(self, base: str) -> str | None:
-		"""Vite's lookup: the path itself, then with an extension, then an index file."""
-		if os.path.isabs(base) or base == ".." or base.startswith(f"..{os.sep}"):
-			return None
-		candidates = [
-			base,
-			*(base + ext for ext in EXTENSIONS),
-			*(os.path.join(base, f"index{ext}") for ext in (".ts", ".js")),
-		]
-		for candidate in candidates:
-			if os.path.isfile(self.resolve_file_path(candidate)):
-				return candidate
-		return None
-
 	def resolve_file_path(self, path: str) -> str:
 		root = os.path.realpath(self.get_folder_path())
 		target = os.path.realpath(os.path.join(root, path))
@@ -581,6 +588,27 @@ def move_folder(source: str, destination: str):
 		return
 	frappe.create_folder(os.path.dirname(destination))
 	shutil.move(source, destination)
+
+
+def resolve_imports(source: str, from_dir: str, read: ReadFile) -> list[str]:
+	paths = []
+	for spec in IMPORT_RE.findall(source or ""):
+		base = spec[len("@app/") :] if spec.startswith("@app/") else os.path.join(from_dir, spec)
+		if path := resolve_module(os.path.normpath(base), read):
+			paths.append(path)
+	return paths
+
+
+def resolve_module(base: str, read: ReadFile) -> str | None:
+	"""Vite's lookup: the path itself, then with an extension, then an index file."""
+	if os.path.isabs(base) or base == ".." or base.startswith(f"..{os.sep}"):
+		return None
+	candidates = [
+		base,
+		*(base + ext for ext in EXTENSIONS),
+		*(os.path.join(base, f"index{ext}") for ext in (".ts", ".js")),
+	]
+	return next((path for path in candidates if read(path) is not None), None)
 
 
 def custom_vue_component_names(blocks) -> set[str]:

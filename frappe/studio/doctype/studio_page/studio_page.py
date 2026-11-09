@@ -206,10 +206,8 @@ class StudioPage(Document):
 		}
 
 	def get_app_files(self, script: str, blocks) -> list[dict]:
-		if not (self.is_standard and self.frappe_app):
-			return []
 		app = self.get_app()
-		script_dir = os.path.relpath(self.get_folder_path(), app.get_folder_path())
+		script_dir = f"studio_page/{self.get_export_docname()}"
 		return app.collect_files(script, script_dir, blocks)
 
 	def get_app(self):

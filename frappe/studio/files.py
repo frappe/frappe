@@ -111,6 +111,35 @@ def get_store_files(studio_app: str) -> list[dict]:
 	return [{"path": row.file_path, "content": row.content or ""} for row in rows]
 
 
+def write_store_files(studio_app: str, files: list[dict]) -> None:
+	"""Install copied source files after checking every path and content conflict."""
+	existing = {file["path"]: file["content"] for file in get_store_files(studio_app)}
+	targets = {}
+	for file in files:
+		if (
+			not isinstance(file, dict)
+			or not isinstance(file.get("path"), str)
+			or not isinstance(file.get("content"), str)
+		):
+			frappe.throw(_("Invalid copied file."))
+		path = normalize_path(file["path"])
+		validate_allowed_extension(path, ALLOWED_STORED_FILE_EXTENSIONS)
+		validate_folder_names(path)
+		if not is_storable_file(studio_app, path):
+			frappe.throw(_("Unsupported copied file: {0}").format(path))
+		if path in targets and targets[path] != file["content"]:
+			frappe.throw(_("The copy contains conflicting versions of {0}.").format(path))
+		if path in existing and existing[path] != file["content"]:
+			frappe.throw(
+				_("{0} already exists with different content. Rename it before pasting.").format(path),
+				title=_("File conflict"),
+			)
+		targets[path] = file["content"]
+	for path, content in targets.items():
+		if path not in existing:
+			write_store_file(studio_app, path, content)
+
+
 def read_store_file(studio_app: str, file_path: str) -> str | None:
 	"""Read source from the file store or its owning page. Return None for a missing file."""
 	page = page_script_owner(studio_app, file_path)
@@ -243,7 +272,7 @@ def export_store_to_disk(app) -> None:
 	)
 	if not rows:
 		return
-	app.write_files([{"path": row.file_path, "content": row.content or ""} for row in rows])
+	app.write_exported_files([{"path": row.file_path, "content": row.content or ""} for row in rows])
 	frappe.db.delete("Studio App File", {"studio_app": app.name})
 
 

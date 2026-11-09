@@ -5,6 +5,7 @@ import os
 from unittest.mock import patch
 
 import frappe
+from frappe.studio import files
 from frappe.studio.doctype.studio_app.studio_app import StudioAppRenderer
 from frappe.studio.doctype.studio_app.test_studio_app import (
 	exports_in_tempdir,
@@ -19,6 +20,7 @@ from frappe.studio.doctype.studio_page.copy_paste_handler import (
 )
 from frappe.studio.doctype.studio_page.studio_page import get_page, keep_variant
 from frappe.studio.export import remove_empty_values
+from frappe.studio.tests.test_permissions import make_studio_user
 from frappe.tests import IntegrationTestCase
 
 PAGE_SCRIPT = "export function setup() { return { greeting: 'hi' } }"
@@ -362,6 +364,37 @@ class TestStudioPage(IntegrationTestCase):
 				frappe.read_file(os.path.join(pasted.get_app().get_folder_path(), "stores/settings.js")),
 				"export const x = 1",
 			)
+
+	def test_database_page_copy_carries_transitive_file_dependencies(self):
+		user = make_studio_user("studio-copy@example.com")
+		with self.set_user(user):
+			source = make_studio_app(app_name="copy-src-" + frappe.generate_hash(length=8))
+			target = make_studio_app(app_name="copy-dst-" + frappe.generate_hash(length=8))
+			page = make_studio_page(source.name, page_title="Board")
+			source.write_files(
+				[
+					{
+						"path": "stores/settings.js",
+						"content": 'import data from "./data.json"; export default data',
+					},
+					{"path": "stores/data.json", "content": '{"value": 7}'},
+				]
+			)
+			page.script = 'import data from "../../stores/settings"; export default () => ({ data })'
+			page.save()
+			copy = page.get_copy([])
+			self.assertEqual(
+				[file["path"] for file in copy["files"]],
+				["stores/data.json", "stores/settings.js"],
+			)
+			pasted = paste_page(target.name, {**copy, "blocks": []})
+			self.assertEqual(files.get_store_files(target.name), copy["files"])
+			files.write_store_file(target.name, "stores/data.json", '{"value": 8}')
+			copy["files"].insert(0, {"path": "new.js", "content": "export default 1"})
+			with self.assertRaisesRegex(frappe.ValidationError, "different content"):
+				paste_page(target.name, {**copy, "blocks": []}, target_page=pasted.name)
+			self.assertEqual(files.read_store_file(target.name, "stores/data.json"), '{"value": 8}')
+			self.assertIsNone(files.read_store_file(target.name, "new.js"))
 
 	def test_paste_rejects_conflicting_files_before_writing(self):
 		with exports_in_tempdir():
