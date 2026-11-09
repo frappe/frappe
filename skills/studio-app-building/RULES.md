@@ -53,3 +53,7 @@
 - Style values use espresso tokens — `var(--ink-…)` for text, `var(--surface-…)`
   for backgrounds, `var(--outline-…)` for borders — NEVER raw hex or rgb().
   Pick the exact step by ROLE from the design language.
+- Set a block's look in its style values, not in a stylesheet. Use a `.css` file
+  only for what those cannot express: `:hover`, `:focus`, `::before`/`::after`,
+  child or sibling selectors, and `@keyframes`. A property you could set on the
+  block belongs on the block, where the author can see and change it.
