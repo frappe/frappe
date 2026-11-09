@@ -435,7 +435,7 @@ def has_permission(doc, user):
 	if "System Manager" in user.roles:
 		return True
 
-	return doc.report_name in user.get_all_reports().keys()
+	return doc.report_name in user.get_all_reports().keys() and doc.owner == user.name
 
 
 @frappe.whitelist()
