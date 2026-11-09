@@ -3740,7 +3740,7 @@ class Document(_DocumentBase):
 
 		for phone_field in self.meta.get_phone_fields():
 			phone = self.get(phone_field.fieldname)
-			validate_phone_number_with_country_code(phone, phone_field.fieldname)
+			validate_phone_number_with_country_code(phone, phone_field.fieldname, _(phone_field.label))
 
 		# data_field options defined in frappe.model.data_field_options
 		for data_field in self.meta.get_data_fields():

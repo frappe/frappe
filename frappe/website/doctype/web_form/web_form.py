@@ -800,7 +800,7 @@ def get_context(context):
 
 			if field.fieldtype == "Phone":
 				if not (df and df.fieldtype == "Phone"):
-					validate_phone_number_with_country_code(value, field.fieldname)
+					validate_phone_number_with_country_code(value, field.fieldname, _(field.label))
 				continue
 
 			if field.fieldtype != "Data" or not field.options:
