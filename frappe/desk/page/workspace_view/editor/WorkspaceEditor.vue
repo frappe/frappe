@@ -378,7 +378,10 @@ defineExpose({ blocks, widgets, selected_id, previewing, variant, dirty, on_move
 	<aside
 		class="my-4 mr-4 flex min-h-0 w-[21rem] flex-col overflow-hidden rounded-6 border border-outline-gray-2 bg-surface-base"
 	>
-		<section class="flex flex-col gap-2 border-b border-outline-gray-2 px-3 pt-4 pb-2">
+		<section
+			class="flex flex-col gap-2 border-outline-gray-2 px-3 pt-4 pb-2"
+			:class="{ 'border-b': selected }"
+		>
 			<div class="flex flex-col gap-1 px-2">
 				<span class="text-base font-medium text-ink-gray-8">
 					{{ __("Add blocks") }}
