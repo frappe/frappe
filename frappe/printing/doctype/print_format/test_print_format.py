@@ -867,6 +867,33 @@ class TestClassicConverter(IntegrationTestCase):
 		self.assertNotIn(bad_name, report)
 
 
+class TestPrintDesignerConverter(IntegrationTestCase):
+	def test_print_designer_barcode_keeps_its_type(self):
+		from frappe.printing.doctype.print_format.print_designer_converter import (
+			convert_print_designer_format,
+		)
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		barcodes = [
+			{"type": "barcode", "barcodeFormat": "code39", "value": "{{ doc.name }}"},
+			{"type": "barcode", "barcodeFormat": "ean13", "value": "4006381333931", "startX": 400},
+		]
+		doc = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"doc_type": "Note",
+				"print_designer_body": frappe.as_json([{"childrens": barcodes}]),
+			}
+		)
+
+		layout, notes = convert_print_designer_format(doc)
+
+		columns = layout["sections"][0]["columns"]
+		self.assertEqual([c["fields"][0]["barcode_format"] for c in columns], ["CODE39", "CODE128"])
+		self.assertIn("The EAN13 barcode type was changed to CODE128.", notes)
+
+
 class TestPrintFormatChildTableVisibility(IntegrationTestCase):
 	"""Per-row and per-column conditional visibility for child Table fields."""
 

@@ -36,6 +36,7 @@ CSS_PROPERTIES = {
 	"whiteSpace": "white-space",
 }
 PAGE_NUMBER_FIELDS = {"page": '<span class="page"></span>', "topage": '<span class="topage"></span>'}
+BARCODE_FORMATS = {"qrcode": "QR", "qr": "QR", "code128": "CODE128", "code39": "CODE39"}
 
 
 def is_print_designer_format(doc) -> bool:
@@ -604,10 +605,20 @@ class PrintDesignerConverter:
 
 	def barcode_node(self, element) -> dict | None:
 		value = (element.get("value") or "").strip()
-		kind = "QR" if (element.get("barcodeFormat") or "").lower() in ("qrcode", "qr") else "CODE128"
+		barcode_format = (element.get("barcodeFormat") or "").lower()
+		kind = BARCODE_FORMATS.get(barcode_format, "CODE128")
 		size = f"{round(flt(element.get('width')) / PX_PER_MM, 1)}mm"
 		field = re.fullmatch(r"{{\s*doc\.(\w+)\s*}}", value)
-		if field and (field.group(1) == "name" or self.meta.get_field(field.group(1))):
+		known_field = bool(field and (field.group(1) == "name" or self.meta.get_field(field.group(1))))
+		if (
+			barcode_format
+			and barcode_format not in BARCODE_FORMATS
+			and (known_field or not JINJA.search(value))
+		):
+			self.notes.append(
+				_("The {0} barcode type was changed to CODE128.").format(barcode_format.upper())
+			)
+		if known_field:
 			return {
 				"label": "Barcode",
 				"fieldname": self.name("barcode"),
