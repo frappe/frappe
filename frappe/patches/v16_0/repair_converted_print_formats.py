@@ -7,28 +7,30 @@ from frappe.printing.doctype.print_format.classic_converter import (
 	NUMERIC_DEFAULT_FIELDS,
 	missing_numeric_defaults,
 )
+from frappe.utils.print_format_generator import layout_page_settings
 
 
 def execute():
 	"""Repair formats converted before the converter fixes: numeric fields left at 0,
-	narrow serial columns, sections with no spacing. Nothing else is touched."""
+	narrow serial columns, sections with no spacing, paper size dropped. Nothing else
+	is touched."""
 	names = frappe.get_all(
 		"Print Format",
 		filters={"print_format_builder_beta": 1, "classic_format_data": ("is", "set")},
 		pluck="name",
 	)
-	fields = ["format_data", *NUMERIC_DEFAULT_FIELDS]
+	fields = ["format_data", "paper_size", *NUMERIC_DEFAULT_FIELDS]
 	for name in names:
 		row = frappe.db.get_value("Print Format", name, fields, as_dict=True)
 		values = missing_numeric_defaults(row)
-		repaired = repair_layout(row.format_data)
+		repaired = repair_layout(row.format_data, row.paper_size)
 		if repaired:
 			values["format_data"] = repaired
 		if values:
 			frappe.db.set_value("Print Format", name, values, update_modified=False)
 
 
-def repair_layout(format_data):
+def repair_layout(format_data, paper_size):
 	try:
 		layout = json.loads(format_data)
 	except (TypeError, ValueError):
@@ -45,7 +47,17 @@ def repair_layout(format_data):
 					changed = True
 	if add_section_spacing(layout):
 		changed = True
+	if add_page_size(layout, paper_size):
+		changed = True
 	return json.dumps(layout, indent=1) if changed else None
+
+
+def add_page_size(layout, paper_size):
+	page = layout.get("page") or {}
+	if page.get("size") or not layout_page_settings({"page": {"size": paper_size}}):
+		return False
+	layout["page"] = {**page, "size": paper_size}
+	return True
 
 
 def add_section_spacing(layout):
