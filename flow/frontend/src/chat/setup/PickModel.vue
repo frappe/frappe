@@ -19,7 +19,7 @@
 			<span class="lucide-loader-circle size-3.5 animate-spin" aria-hidden="true" />
 			Checking {{ adding }}…
 		</p>
-		<ErrorMessage v-else :message="error" />
+		<ErrorMessage v-else class="break-words" :message="error" />
 		<Button class="-ml-2 self-start" variant="ghost" label="Use another provider" :disabled="Boolean(adding)" @click="emit('switch')" />
 	</div>
 </template>
