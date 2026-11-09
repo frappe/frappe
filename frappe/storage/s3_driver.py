@@ -20,9 +20,7 @@ MISSING_KEY_CODES = ("404", "NoSuchKey", "NotFound")
 
 
 def get_site_prefix(config: dict) -> str:
-	"""The site's folder in the bucket: ``storage_driver_config.prefix``, else a hash of the database name.
-
-	The hash keeps the database name out of the presigned URLs users see."""
+	"""Legacy prefix retained for deleting objects written before site-name keys."""
 	prefix = (config.get("prefix") or "").strip("/")
 	if not prefix:
 		return hashlib.sha256(frappe.conf.db_name.encode()).hexdigest()[:12]
@@ -74,10 +72,15 @@ class S3Driver(StorageDriver):
 				client_kwargs[boto_arg] = value
 
 		self.client = boto3.client("s3", config=Config(signature_version="s3v4"), **client_kwargs)
-		self.key_prefix = f"{get_site_prefix(config)}/"
+		self.key_prefix = f"sites/{frappe.local.site}/storage/"
+		self.legacy_key_prefix = f"{get_site_prefix(config)}/"
 
 	def object_key(self, key: str, is_private: bool = False) -> str:
-		return f"{'private' if is_private else 'public'}/{key}"
+		namespace = "private" if is_private else "public"
+		parts = key.split("/", 3)
+		if len(parts) == 4 and parts[0] == "sites" and parts[2] == "storage":
+			return f"sites/{parts[1]}/storage/{namespace}/{parts[3]}"
+		return f"{namespace}/{key}"
 
 	def write(self, key: str, stream: IO[bytes], *, is_private: bool = False) -> None:
 		self.client.upload_fileobj(stream, self.bucket, self.object_key(key, is_private))
@@ -98,12 +101,16 @@ class S3Driver(StorageDriver):
 			raise
 
 	def delete(self, key: str, *, is_private: bool = False) -> None:
-		if not key.startswith(self.key_prefix):
+		object_key = self.object_key(key, is_private)
+		namespace = "private" if is_private else "public"
+		if not object_key.startswith(
+			(f"{self.key_prefix}{namespace}/", f"{namespace}/{self.legacy_key_prefix}")
+		):
 			# another site's object, such as one a restored backup points at
 			frappe.logger("storage").info(f"storage: kept {key}, it is outside this site's prefix")
 			return
 		# delete_object is idempotent; a missing key is not an error
-		self.client.delete_object(Bucket=self.bucket, Key=self.object_key(key, is_private))
+		self.client.delete_object(Bucket=self.bucket, Key=object_key)
 
 	def exists(self, key: str, *, is_private: bool = False) -> bool:
 		try:
