@@ -399,10 +399,12 @@ def get_kanban_column_counts(
 			message=frappe.get_traceback(),
 		)
 		for column_name in column_names:
-			counts[column_name] = frappe.db.count(
+			counts[column_name] = frappe.get_list(
 				doctype,
 				filters=column_filter(doctype, field_name, column_name, filters),
-			)
+				fields=[{"COUNT": "*", "as": "_count"}],
+				order_by=None,
+			)[0]._count
 	return counts
 
 
@@ -530,7 +532,7 @@ def get_kanban_column_page():
 	cards = fetch_kanban_column_cards(
 		reportview_args, doctype, field_name, column_name, kanban_start, kanban_page_length
 	)
-	total = frappe.db.count(doctype, filters=col_filters)
+	total = get_kanban_column_counts(doctype, field_name, col_filters, [column_name])[column_name]
 
 	return {"total": total, "cards": cards}
 
