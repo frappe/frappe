@@ -78,8 +78,10 @@ class S3Driver(StorageDriver):
 	def object_key(self, key: str, is_private: bool = False) -> str:
 		namespace = "private" if is_private else "public"
 		parts = key.split("/", 3)
-		if len(parts) == 4 and parts[0] == "sites" and parts[2] == "storage":
-			return f"sites/{parts[1]}/storage/{namespace}/{parts[3]}"
+		if len(parts) == 4 and parts[0] == "sites":
+			if parts[2] == "storage":
+				return f"sites/{parts[1]}/storage/{namespace}/{parts[3]}"
+			return f"sites/{parts[1]}/{namespace}/{parts[2]}/{parts[3]}"
 		return f"{namespace}/{key}"
 
 	def write(self, key: str, stream: IO[bytes], *, is_private: bool = False) -> None:
@@ -104,7 +106,11 @@ class S3Driver(StorageDriver):
 		object_key = self.object_key(key, is_private)
 		namespace = "private" if is_private else "public"
 		if not object_key.startswith(
-			(f"{self.key_prefix}{namespace}/", f"{namespace}/{self.legacy_key_prefix}")
+			(
+				f"{self.key_prefix}{namespace}/",
+				f"sites/{frappe.local.site}/{namespace}/",
+				f"{namespace}/{self.legacy_key_prefix}",
+			)
 		):
 			# another site's object, such as one a restored backup points at
 			frappe.logger("storage").info(f"storage: kept {key}, it is outside this site's prefix")

@@ -177,6 +177,25 @@ class TestS3SitePrefix(IntegrationTestCase):
 					)
 					driver.test_client.delete_object.assert_not_called()
 
+	def test_site_keys_before_the_storage_directory_are_supported(self):
+		driver = make_driver(**TEST_CONFIG)
+		client = driver.test_client
+		key = f"sites/{frappe.local.site}/abcdef0123/report.pdf"
+		for is_private, namespace in ((False, "public"), (True, "private")):
+			with self.subTest(namespace=namespace):
+				client.reset_mock()
+				expected = {
+					"Bucket": "test-bucket",
+					"Key": f"sites/{frappe.local.site}/{namespace}/abcdef0123/report.pdf",
+				}
+				driver.read(key, is_private=is_private)
+				client.get_object.assert_called_once_with(**expected)
+				driver.delete(key, is_private=is_private)
+				client.delete_object.assert_called_once_with(**expected)
+				client.delete_object.reset_mock()
+				driver.delete("sites/other.example.com/abcdef0123/report.pdf", is_private=is_private)
+				client.delete_object.assert_not_called()
+
 
 class TestS3DriverBehavior(IntegrationTestCase):
 	"""Behavior tests against a stubbed boto3 client. Run without boto3."""

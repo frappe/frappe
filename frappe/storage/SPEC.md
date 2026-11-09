@@ -496,9 +496,12 @@ Laravel's `Storage::fake()`.
 - `file_url` keeps working for both generations. `download_private_file`
   and `serve_public_file` serve a v1 URL from its blob when the row has
   one, so `frappe.storage.relocate.relocate_blobs` can move the bytes to
-  another driver without changing `file_url`.
+  another driver without changing `file_url`. S3 drivers sharing the same
+  client and bucket use server-side copies; other transfers stream through
+  Frappe.
 - The `migrate_s3_blob_keys` patch relocates existing S3 blobs into
   `sites/<site-name>/storage/<public|private>/<blob>/<filename>` in batches,
+  using server-side copies, including multipart copies for large objects,
   leaving local blobs and `file_url` unchanged. Failed rows can be retried
   by rerunning the patch; source objects are deleted only after commit.
 - The legacy write path (`utils/file_manager.py`) is not ported. Under
