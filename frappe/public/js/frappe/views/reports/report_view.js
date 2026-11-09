@@ -204,12 +204,27 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	prepare_data(r) {
 		let data = r.message || {};
 		data = frappe.utils.dict(data.keys, data.values);
+		const row_key = this.get_row_key();
+		const checked = this.datatable && new Set(this.get_checked_items().map(row_key));
 
 		if (this.start === 0) {
 			this.data = data;
 		} else {
 			this.data = this.data.concat(data);
 		}
+
+		// datatable tracks checked rows by index; remap them so new row order keeps the same rows
+		if (checked) {
+			this.datatable.rowmanager.checkMap = this.data.map((d) =>
+				d.name && checked.has(row_key(d)) ? 1 : 0
+			);
+		}
+	}
+
+	// a doc spans several rows when child table columns are shown
+	get_row_key() {
+		const cdts = this.get_unique_cdt_in_view();
+		return (d) => JSON.stringify([d.name, ...cdts.map((cdt) => d[`${cdt}:name`])]);
 	}
 
 	render(force) {
