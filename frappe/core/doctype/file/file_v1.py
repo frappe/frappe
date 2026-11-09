@@ -193,10 +193,9 @@ class FileV1(File):
 			)
 			updated_file_url = f"{url_starts_with}{target_file_name}"
 
-		other_refs_exist = self.content_hash and frappe.db.exists(
+		other_refs_exist = frappe.db.exists(
 			"File",
 			{
-				"content_hash": self.content_hash,
 				"file_url": self.file_url,
 				"name": ["!=", self.name],
 			},
@@ -296,7 +295,6 @@ class FileV1(File):
 		on_disk_file_not_shared = self.content_hash and not frappe.get_all(
 			"File",
 			filters={
-				"content_hash": self.content_hash,
 				"file_url": self.file_url,
 				"name": ["!=", self.name],
 			},
