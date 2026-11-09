@@ -5,7 +5,7 @@ on:
     # How often the full server and UI suites run on develop, when develop has new commits.
     - cron: "23 * * * *"
   pull_request_target:
-    branches: [develop, desk-v2]
+    branches: [develop, desk-v2, version-15-hotfix, version-16-hotfix]
     types: [opened, synchronize, reopened, labeled, unlabeled, closed]
   workflow_run:
     workflows: [Server, UI]
@@ -47,7 +47,9 @@ jobs:
       && (github.event_name != 'workflow_run'
       || (github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.run_attempt > 1))
       && (!contains(fromJSON('["labeled", "unlabeled"]'), github.event.action)
-      || contains(fromJSON('["fixes-develop", "run-full-ci", "Run Server Tests", "Run UI Tests"]'), github.event.label.name)) }}
+      || contains(fromJSON('["fixes-develop", "run-full-ci", "Run Server Tests", "Run UI Tests"]'), github.event.label.name))
+      && (github.event.action == 'labeled' || !github.event.pull_request
+      || contains(fromJSON('["develop", "desk-v2"]'), github.event.pull_request.base.ref)) }}
     runs-on: ubuntu-latest
     timeout-minutes: 180
     concurrency:
@@ -73,7 +75,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           PR: ${{ github.event.pull_request.number }}
-      - run: |
+      - if: ${{ !github.event.pull_request || contains(fromJSON('["develop", "desk-v2"]'), github.event.pull_request.base.ref) }}
+        run: |
           if [ -n "$PR" ] && { [ "$ACTION" = labeled ] || [ "$FIX" = true ]; }; then python .github/helper/develop_status.py wait "$PR"
           elif [ -n "$PR" ]; then python .github/helper/develop_status.py pr "$PR"
           elif [ -n "$RUN_SHA" ]; then python .github/helper/develop_status.py commit "$RUN_SHA"
