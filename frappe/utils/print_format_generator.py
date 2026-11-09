@@ -517,12 +517,21 @@ class PrintFormatGenerator:
 		except ValueError:
 			return {}
 		if isinstance(layout, list):
+			from frappe.utils.pdf_generator.browser import RECEIPT_WIDTHS
+			from frappe.utils.print_utils import parse_float_and_unit
+
 			pf = self.print_format
 			if pf.paper_size == "Custom" and pf.paper_width and pf.paper_height:
 				return {
 					"pdf_page_size": "Custom",
 					"pdf_page_width": pf.paper_width,
 					"pdf_page_height": pf.paper_height,
+				}
+			if receipt_width := RECEIPT_WIDTHS.get(pf.paper_size):
+				return {
+					"pdf_page_size": "Custom",
+					"pdf_page_width": parse_float_and_unit(receipt_width)["value"],
+					"pdf_page_height": 297,
 				}
 			return layout_page_settings({"page": {"size": pf.paper_size}})
 		return layout_page_settings(layout)
@@ -711,6 +720,8 @@ class PrintFormatGenerator:
 	def page_options(self) -> dict:
 		"""The page size as the Chrome renderer takes it, from the settings this
 		generator laid the page out for."""
+		from frappe.printing.doctype.print_format.classic_converter import is_classic_layout
+		from frappe.utils.pdf_generator.browser import RECEIPT_WIDTHS
 		from frappe.utils.print_utils import convert_uom
 
 		size = self.print_settings.get("pdf_page_size")
@@ -723,6 +734,10 @@ class PrintFormatGenerator:
 				value = self.print_settings.get(setting)
 				if value:
 					options[option] = convert_uom(value, "mm", "px", only_number=True)
+			if self.print_format.paper_size in RECEIPT_WIDTHS and is_classic_layout(
+				self.print_format.format_data
+			):
+				options["fit-height"] = True
 		return options
 
 	def render_typst_pdf(self, password=None):
