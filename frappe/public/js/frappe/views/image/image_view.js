@@ -96,11 +96,12 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 		const encoded_name = item._name;
 		const title = strip_html(item[this.meta.title_field || "name"]);
 		const escaped_title = frappe.utils.escape_html(title);
+		const escaped_name = frappe.utils.escape_html(item.name);
 		const _class = !item._image_url ? "no-image" : "";
 		const _html = item._image_url
 			? `<img data-name="${encoded_name}" src="${frappe.utils.escape_html(
 					item._image_url
-			  )}" alt="${title}">`
+			  )}" alt="${escaped_title}">`
 			: `<span class="placeholder-text">
 				${frappe.get_abbr(title)}
 			</span>`;
@@ -140,7 +141,7 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 					<div class="image-title">
 						<span class="ellipsis" title="${escaped_title}">
 							<a class="ellipsis" href="${this.get_form_link(item)}"
-								title="${escaped_title}" data-doctype="${this.doctype}" data-name="${item.name}">
+								title="${escaped_title}" data-doctype="${this.doctype}" data-name="${escaped_name}">
 								${title}
 							</a>
 						</span>
