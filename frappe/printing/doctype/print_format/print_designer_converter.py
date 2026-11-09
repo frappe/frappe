@@ -305,7 +305,9 @@ class PrintDesignerConverter:
 		total = self.content_width()
 		if len(row) == 1 and row[0].get("layoutType") == "row":
 			children = row[0].get("childrens") or []
-			if children and all(c.get("layoutType") == "column" for c in children):
+			if children and all(
+				c.get("type") == "rectangle" and c.get("layoutType") == "column" for c in children
+			):
 				return [
 					{
 						"label": "",
@@ -370,7 +372,7 @@ class PrintDesignerConverter:
 		if (
 			element.get("layoutType") == "row"
 			and len(children) > 1
-			and all(c.get("layoutType") == "column" for c in children)
+			and all(c.get("type") == "rectangle" and c.get("layoutType") == "column" for c in children)
 		):
 			return [self.side_by_side(children)]
 		if element.get("layoutType") != "column" and children:
