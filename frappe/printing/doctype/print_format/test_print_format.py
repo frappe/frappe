@@ -248,6 +248,12 @@ class TestPrintFormatBuilderElements(IntegrationTestCase):
 		self.assertTrue(data_uri.startswith(prefix))
 		self.assertIn(b"<svg", base64.b64decode(data_uri[len(prefix) :]))
 
+	def test_qr_code_returns_nothing_when_the_value_does_not_fit(self):
+		from frappe.utils.print_format_generator import get_qr_code
+
+		with self.set_user("test@example.com"):
+			self.assertIsNone(get_qr_code("x" * 1274))
+
 
 class TestPrintFormatHardening(IntegrationTestCase):
 	"""Malformed layouts and conditions must not take the print down."""
