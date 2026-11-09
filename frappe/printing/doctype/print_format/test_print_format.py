@@ -587,6 +587,24 @@ class TestClassicConverter(IntegrationTestCase):
 		]
 		self.assertNotIn("priority", fieldnames)
 
+	def test_layout_drops_fields_hidden_in_before_print(self):
+		from frappe.printing.doctype.print_format.classic_converter import get_default_print_format
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "Before print test"}).insert()
+		self.addCleanup(todo.delete, ignore_permissions=True)
+		priority = todo.meta.get_field("priority")
+		self.addCleanup(priority.delete_key, "__print_hide")
+		todo.before_print = lambda settings: priority.set("__print_hide", 1)
+
+		generator = PrintFormatGenerator(get_default_print_format("ToDo"), todo)
+		fieldnames = [
+			f["fieldname"] for s in generator.layout["sections"] for c in s["columns"] for f in c["fields"]
+		]
+		self.assertNotIn("priority", fieldnames)
+
 	def test_print_width_mapping(self):
 		from frappe.printing.doctype.print_format.classic_converter import (
 			distribute_widths,

@@ -990,6 +990,7 @@ class PrintFormatGenerator:
 	def get_processed_layout(self, layout):
 		layout = self.normalise_layout(layout)
 		layout = self.apply_permlevel_access(layout)
+		layout = self.apply_print_hide(layout)
 		layout = self.set_field_renderers(layout)
 		layout = self.prune_table_columns(layout)
 		layout = self.process_margin_texts(layout)
@@ -1105,6 +1106,53 @@ class PrintFormatGenerator:
 						]
 		return layout
 
+	def apply_print_hide(self, layout):
+		"""Drop fields the document hides from this print, by the rules
+		`Document.is_print_hide` applies to a field placed in a format."""
+
+		def is_hidden(doc, fieldname):
+			return bool(fieldname and doc.is_print_hide(fieldname, frappe._dict(print_hide=0)))
+
+		for column in iter_layout_columns(layout):
+			fields = [
+				df
+				for df in column.get("fields", [])
+				if not is_hidden(
+					self.doc, df.get("source_fieldname") or df.get("source") or df.get("fieldname")
+				)
+			]
+			column["fields"] = fields
+			for df in fields:
+				if df.get("fieldtype") == "Repeater":
+					rows = self.doc.get(df.get("source")) or []
+					if not rows:
+						continue
+					for col in df.get("repeater_columns") or []:
+						col["template"] = [
+							tok
+							for tok in col.get("template") or []
+							if not (
+								isinstance(tok, dict)
+								and tok.get("t") == "f"
+								and is_hidden(rows[0], tok.get("v"))
+							)
+						]
+					continue
+				if df.get("fieldtype") != "Table" or not df.get("table_columns"):
+					continue
+				rows = self.doc.get(df.get("fieldname")) or []
+				if not rows:
+					continue
+				df["table_columns"] = [
+					col for col in df["table_columns"] if not is_hidden(rows[0], col.get("fieldname"))
+				]
+				for col in df["table_columns"]:
+					if col.get("merged_fields"):
+						col["merged_fields"] = [
+							mf for mf in col["merged_fields"] if not is_hidden(rows[0], mf.get("fieldname"))
+						]
+		return layout
+
 	def prune_table_columns(self, layout):
 		"""Drop table columns that fail their column_condition (doc-scoped) or that are
 		empty across all rows, then renormalize widths. A bad condition fails open."""
@@ -1125,7 +1173,11 @@ class PrintFormatGenerator:
 						rows
 						and col.get("fieldname") != "idx"
 						and col.get("fieldtype") != "Blank"
-						and not column_has_value(rows, col.get("fieldname"), frappe._dict(col))
+						and not column_has_value(
+							rows,
+							col.get("fieldname"),
+							rows[0].meta.get_field(col.get("fieldname")) or frappe._dict(col),
+						)
 					):
 						continue
 					kept.append(col)
