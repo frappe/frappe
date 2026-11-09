@@ -507,7 +507,10 @@ def _check_draft(doc, payload):
 def apply_draft(name: str, modified: str | datetime, data: str | dict | None = None):
 	"""Copy the draft onto the fields that print, then clear it."""
 	doc = _writable_format(name, modified)
-	for field, value in _draft_payload(data if data is not None else doc.draft_data).items():
+	payload = _draft_payload(data if data is not None else doc.draft_data)
+	for row in payload.get("roles") or []:
+		row.pop("name", None)
+	for field, value in payload.items():
 		doc.set(field, value)
 	doc.draft_data = None
 	doc.save()
