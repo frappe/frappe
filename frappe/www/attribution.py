@@ -1,13 +1,7 @@
-import contextlib
-import importlib.metadata
-import json
-import re
-import tomllib
-from pathlib import Path
-
 import frappe
 from frappe import _
 from frappe.permissions import is_system_user
+from frappe.utils.sbom.collector import get_app_info
 
 
 def get_context(context):
@@ -21,6 +15,7 @@ def get_context(context):
 			apps.append(app_info)
 
 	context.apps = apps
+<<<<<<< HEAD
 
 
 def get_app_info(app: str):
@@ -149,3 +144,5 @@ def parse_pip_requirement(requirement: str) -> str:
 	match = re.match(r"^([A-Za-z0-9_\-\[\]]+)(.*)$", requirement)
 
 	return match[1] if match else requirement
+=======
+>>>>>>> 27158af (refactor(attribution): extract dependency collector)
