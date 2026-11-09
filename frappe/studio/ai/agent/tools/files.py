@@ -167,8 +167,10 @@ write_app_file = Tool(
 	description=(
 		"Create or overwrite one of the app's code files for state or logic shared across pages. "
 		"Default new repository code to .ts; keep existing .js files. Database code must be .js. "
-		"Repository apps also allow .vue files; both app types allow .json and .css. Parent folders "
-		"are created automatically. Import it from a page's setup() module via '@app/<path-without-ext>'. "
+		"Repository apps also allow .vue files; both app types allow .json and .css. A stylesheet is only "
+		"for what block styles cannot express, such as :hover or @keyframes; set an ordinary property on "
+		"the block instead. Parent folders are created automatically. Import it from a page's setup() "
+		"module via '@app/<path-without-ext>'. "
 		"Pass the ENTIRE file content (it overwrites; read_app_file first to extend an existing file). A "
 		"repository app needs trigger_app_build afterwards; a database app compiles in the browser."
 	),
