@@ -1,13 +1,13 @@
 <!-- The Tags column: `_user_tags` is a comma string, with a leading comma when set. -->
 <template>
 	<div class="flex min-w-0 items-center gap-1 overflow-hidden">
-		<Badge v-for="tag in tags" :key="tag" :label="tag" theme="gray" class="shrink-0" />
+		<TagChip v-for="tag in tags" :key="tag" :tag="tag" class="shrink-0 pr-2" />
 	</div>
 </template>
 
 <script setup lang="ts">
-import { Badge } from "frappe-ui";
 import { computed } from "vue";
+import TagChip from "../record/panel/TagChip.vue";
 
 const props = defineProps<{ value: unknown }>();
 

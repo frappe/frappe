@@ -3,6 +3,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, nextTick, type Component } from "vue";
 import { seedRowParts } from "@/list/rowParts";
+import { tagColor } from "../../record/panel/people";
 import AvatarStackCell from "../AvatarStackCell.vue";
 import CommentsCell from "../CommentsCell.vue";
 import DocstatusCell from "../DocstatusCell.vue";
@@ -34,9 +35,10 @@ async function render(cell: Component, props: Record<string, unknown>, onRowClic
 }
 
 describe("list collaboration cells", () => {
-	it("draws Tags from the comma string, ignoring the leading comma", async () => {
+	it("draws Tags from the comma string in their record colours, ignoring the leading comma", async () => {
 		const root = await render(TagsCell, { value: ",a,b" });
-		expect(root.textContent).toBe("ab");
+		expect(root.textContent?.replace(/\s/g, "")).toBe("ab");
+		expect(root.querySelectorAll("[aria-hidden]")[0].className).toContain(tagColor("a"));
 	});
 
 	it("names Document Status and colours it as v1 does", async () => {
