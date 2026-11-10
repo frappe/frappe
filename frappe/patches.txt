@@ -316,6 +316,7 @@ frappe.studio.doctype.studio_page.patches.migrate_charts_to_frappe_ui_charts
 frappe.studio.doctype.studio_page.patches.migrate_get_icon_calls
 execute:frappe.db.set_single_value("System Settings", "enable_mcp", 1)
 frappe.patches.v17_0.fill_form_layout_omitted
+frappe.patches.v17_0.settings_block_kind
 
 
 [post_fixture_sync]

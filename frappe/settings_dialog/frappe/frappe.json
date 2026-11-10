@@ -2,52 +2,105 @@
  "app": "frappe",
  "blocks": [
   {
-   "binding_type": "",
-   "bindings": "{\"user\": {\"type\": \"Record\", \"doctype\": \"User\", \"resolver\": \"session_user\"}}",
+   "bindings": {
+    "user": {
+     "doctype": "User",
+     "resolver": "session_user",
+     "type": "Record"
+    }
+   },
    "component": "profile-photo",
-   "fields": "[\"user_image\"]",
    "key": "photo",
-   "name_resolver": "",
+   "kind": "Component",
    "pane": "profile",
    "save_mode": "auto",
-   "settings": "[{\"label\": \"Photo\", \"keywords\": [\"avatar\", \"picture\", \"image\"]}]"
+   "saves_fields": [
+    "user_image"
+   ],
+   "search_entries": [
+    {
+     "keywords": [
+      "avatar",
+      "picture",
+      "image"
+     ],
+     "label": "Photo"
+    }
+   ]
   },
   {
    "binding_type": "Record",
    "document_type": "User",
-   "fields": "[\"first_name\", \"middle_name\", \"last_name\", \"username\"]",
+   "fields": [
+    "first_name",
+    "middle_name",
+    "last_name",
+    "username"
+   ],
    "key": "details",
+   "kind": "Generated",
    "name_resolver": "session_user",
    "pane": "profile",
    "save_mode": "auto"
   },
   {
-   "binding_type": "",
-   "bindings": "{\"user\": {\"type\": \"Record\", \"doctype\": \"User\", \"resolver\": \"session_user\"}}",
+   "bindings": {
+    "user": {
+     "doctype": "User",
+     "resolver": "session_user",
+     "type": "Record"
+    }
+   },
    "component": "language-and-time-zone",
-   "fields": "[\"language\", \"time_zone\"]",
    "key": "locale",
+   "kind": "Component",
    "label": "Language and time zone",
-   "name_resolver": "",
    "pane": "profile",
    "save_mode": "auto",
-   "settings": "[{\"label\": \"Language\"}, {\"label\": \"Time Zone\", \"keywords\": [\"timezone\"]}]"
+   "saves_fields": [
+    "language",
+    "time_zone"
+   ],
+   "search_entries": [
+    {
+     "label": "Language"
+    },
+    {
+     "keywords": [
+      "timezone"
+     ],
+     "label": "Time Zone"
+    }
+   ]
   },
   {
-   "binding_type": "",
    "component": "theme",
    "key": "appearance",
+   "kind": "Component",
    "label": "Appearance",
-   "name_resolver": "",
    "pane": "profile",
    "save_mode": "auto",
-   "settings": "[{\"label\": \"Theme\", \"keywords\": [\"dark mode\", \"light mode\", \"color scheme\"]}]"
+   "search_entries": [
+    {
+     "keywords": [
+      "dark mode",
+      "light mode",
+      "color scheme"
+     ],
+     "label": "Theme"
+    }
+   ]
   },
   {
    "binding_type": "Record",
    "document_type": "User",
-   "fields": "[\"document_follow_notify\", \"document_follow_frequency\", \"thread_notify\"]",
+   "fields": [
+    "document_follow_notify",
+    "document_follow_frequency",
+    "thread_notify"
+   ],
    "key": "notifications",
+   "kind": "Generated",
    "label": "Notifications",
    "name_resolver": "session_user",
    "pane": "profile",
@@ -56,92 +109,156 @@
   {
    "binding_type": "Record",
    "document_type": "User",
-   "fields": "[\"email_signature\"]",
+   "fields": [
+    "email_signature"
+   ],
    "key": "email",
+   "kind": "Generated",
    "label": "Email",
    "name_resolver": "session_user",
    "pane": "profile",
    "save_mode": "auto"
   },
   {
-   "binding_type": "",
    "component": "session-defaults",
    "description": "Values new records start with, until you log out.",
    "key": "session-defaults",
+   "kind": "Component",
    "label": "Session defaults",
-   "name_resolver": "",
    "pane": "profile",
    "save_mode": "auto",
-   "settings": "[{\"label\": \"Session defaults\", \"keywords\": [\"default company\", \"defaults\"]}]"
+   "search_entries": [
+    {
+     "keywords": [
+      "default company",
+      "defaults"
+     ],
+     "label": "Session defaults"
+    }
+   ]
   },
   {
-   "binding_type": "",
    "component": "change-password",
-   "description": "Never set a password because you sign in another way? Use “Forgot password” on the login page.",
+   "description": "Never set a password because you sign in another way? Use \u201cForgot password\u201d on the login page.",
    "key": "password",
+   "kind": "Component",
    "label": "Password",
-   "name_resolver": "",
    "pane": "profile",
    "save_mode": "auto",
-   "settings": "[{\"label\": \"Change password\", \"keywords\": [\"password\", \"reset password\"]}]"
+   "search_entries": [
+    {
+     "keywords": [
+      "password",
+      "reset password"
+     ],
+     "label": "Change password"
+    }
+   ]
   },
   {
    "binding_type": "Single",
    "document_type": "System Settings",
-   "fields": "[\"country\", \"language\", \"currency\", \"date_format\", \"time_format\", \"number_format\", \"use_number_format_from_currency\", \"first_day_of_the_week\", \"float_precision\", \"currency_precision\"]",
+   "fields": [
+    "country",
+    "language",
+    "currency",
+    "date_format",
+    "time_format",
+    "number_format",
+    "use_number_format_from_currency",
+    "first_day_of_the_week",
+    "float_precision",
+    "currency_precision"
+   ],
    "key": "regional",
+   "kind": "Generated",
    "label": "Region and formats",
-   "name_resolver": "",
    "pane": "system",
    "save_mode": "button"
   },
   {
    "binding_type": "Single",
    "document_type": "System Settings",
-   "fields": "[\"allow_login_using_user_name\", \"allow_login_using_mobile_number\", \"login_with_email_link\", \"login_with_email_link_expiry\", \"disable_user_pass_login\", \"session_expiry\", \"deny_multiple_sessions\", \"allow_consecutive_login_attempts\", \"allow_login_after_fail\"]",
+   "fields": [
+    "allow_login_using_user_name",
+    "allow_login_using_mobile_number",
+    "login_with_email_link",
+    "login_with_email_link_expiry",
+    "disable_user_pass_login",
+    "session_expiry",
+    "deny_multiple_sessions",
+    "allow_consecutive_login_attempts",
+    "allow_login_after_fail"
+   ],
    "key": "login",
+   "kind": "Generated",
    "label": "Login",
-   "name_resolver": "",
    "pane": "system",
    "save_mode": "button"
   },
   {
    "binding_type": "Single",
    "document_type": "System Settings",
-   "fields": "[\"enable_password_policy\", \"minimum_password_score\", \"force_user_to_reset_password\", \"reset_password_link_expiry_duration\", \"password_reset_limit\", \"logout_on_password_reset\"]",
+   "fields": [
+    "enable_password_policy",
+    "minimum_password_score",
+    "force_user_to_reset_password",
+    "reset_password_link_expiry_duration",
+    "password_reset_limit",
+    "logout_on_password_reset"
+   ],
    "key": "password",
+   "kind": "Generated",
    "label": "Password",
-   "name_resolver": "",
    "pane": "system",
    "save_mode": "button"
   },
   {
    "binding_type": "Single",
    "document_type": "System Settings",
-   "fields": "[\"enable_two_factor_auth\", \"two_factor_method\", \"otp_issuer_name\", \"otp_sms_template\", \"bypass_2fa_for_retricted_ip_users\", \"bypass_restrict_ip_check_if_2fa_enabled\"]",
+   "fields": [
+    "enable_two_factor_auth",
+    "two_factor_method",
+    "otp_issuer_name",
+    "otp_sms_template",
+    "bypass_2fa_for_retricted_ip_users",
+    "bypass_restrict_ip_check_if_2fa_enabled"
+   ],
    "key": "two-factor",
+   "kind": "Generated",
    "label": "Two-factor authentication",
-   "name_resolver": "",
    "pane": "system",
    "save_mode": "button"
   },
   {
    "binding_type": "Single",
    "document_type": "System Settings",
-   "fields": "[\"email_footer_address\", \"disable_standard_email_footer\", \"attach_view_link\", \"email_retry_limit\"]",
+   "fields": [
+    "email_footer_address",
+    "disable_standard_email_footer",
+    "attach_view_link",
+    "email_retry_limit"
+   ],
    "key": "email",
+   "kind": "Generated",
    "label": "Email",
-   "name_resolver": "",
    "pane": "system",
    "save_mode": "auto"
   },
   {
    "binding_type": "Single",
    "document_type": "System Settings",
-   "fields": "[\"max_file_size\", \"allowed_file_extensions\", \"only_allow_system_managers_to_upload_public_files\", \"strip_exif_metadata_from_uploaded_images\", \"allow_guests_to_upload_files\", \"allowed_doctypes_for_guest_uploads\"]",
+   "fields": [
+    "max_file_size",
+    "allowed_file_extensions",
+    "only_allow_system_managers_to_upload_public_files",
+    "strip_exif_metadata_from_uploaded_images",
+    "allow_guests_to_upload_files",
+    "allowed_doctypes_for_guest_uploads"
+   ],
    "key": "files",
+   "kind": "Generated",
    "label": "Files",
-   "name_resolver": "",
    "pane": "system",
    "save_mode": "button"
   }

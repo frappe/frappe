@@ -8,6 +8,7 @@
  "field_order": [
   "key",
   "pane",
+  "kind",
   "label",
   "description",
   "save_mode",
@@ -21,8 +22,9 @@
   "component_section",
   "component",
   "bindings",
+  "saves_fields",
   "column_break_component",
-  "settings",
+  "search_entries",
   "placement_section",
   "anchors"
  ],
@@ -41,6 +43,16 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Pane",
+   "reqd": 1
+  },
+  {
+   "default": "Generated",
+   "description": "Generated draws a Single or Record from its fields. Component runs the file named below.",
+   "fieldname": "kind",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Kind",
+   "options": "Generated\nComponent",
    "reqd": 1
   },
   {
@@ -72,15 +84,17 @@
   {
    "fieldname": "binding_section",
    "fieldtype": "Section Break",
-   "label": "Binding"
+   "label": "Binding",
+   "depends_on": "eval:doc.kind == 'Generated'"
   },
   {
-   "description": "A generated block's binding. Blank for a component block.",
    "fieldname": "binding_type",
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Binding Type",
-   "options": "\nSingle\nRecord"
+   "options": "\nSingle\nRecord",
+   "description": "Single or Record.",
+   "mandatory_depends_on": "eval:doc.kind == 'Generated'"
   },
   {
    "depends_on": "binding_type",
@@ -104,8 +118,8 @@
    "fieldtype": "Column Break"
   },
   {
-   "depends_on": "eval:doc.binding_type || doc.component",
-   "description": "JSON list of fieldnames. A generated block shows them; empty shows the doctype's whole layout. A component block with a binding saves only these, so it lists at least one, each a field of one of its doctypes.",
+   "depends_on": "eval:doc.kind == 'Generated'",
+   "description": "JSON list of fieldnames the block shows. Empty shows the doctype's whole layout.",
    "fieldname": "fields",
    "fieldtype": "Code",
    "label": "Fields",
@@ -114,17 +128,19 @@
   {
    "fieldname": "component_section",
    "fieldtype": "Section Break",
-   "label": "Component"
+   "label": "Component",
+   "depends_on": "eval:doc.kind == 'Component'"
   },
   {
-   "depends_on": "eval:!doc.binding_type",
+   "depends_on": "eval:doc.kind == 'Component'",
    "description": "The file name, without .vue, under a module's frontend/settings folder.",
    "fieldname": "component",
    "fieldtype": "Data",
-   "label": "Component"
+   "label": "Component",
+   "mandatory_depends_on": "eval:doc.kind == 'Component'"
   },
   {
-   "depends_on": "component",
+   "depends_on": "eval:doc.kind == 'Component'",
    "description": "JSON object of named bindings: {name: {type, doctype, resolver}}.",
    "fieldname": "bindings",
    "fieldtype": "Code",
@@ -132,15 +148,23 @@
    "options": "JSON"
   },
   {
+   "depends_on": "eval:doc.kind == 'Component' && doc.bindings",
+   "description": "JSON list of fieldnames the component saves and owns. A bound component lists at least one, each a field of one of its doctypes.",
+   "fieldname": "saves_fields",
+   "fieldtype": "Code",
+   "label": "Saves Fields",
+   "options": "JSON"
+  },
+  {
    "fieldname": "column_break_component",
    "fieldtype": "Column Break"
   },
   {
-   "depends_on": "component",
+   "depends_on": "eval:doc.kind == 'Component'",
    "description": "JSON list of {label, keywords} the component shows, for search.",
-   "fieldname": "settings",
+   "fieldname": "search_entries",
    "fieldtype": "Code",
-   "label": "Settings",
+   "label": "Search Entries",
    "options": "JSON"
   },
   {
@@ -160,7 +184,7 @@
  "istable": 1,
  "link_display_mode": "Search",
  "links": [],
- "modified": "2026-10-31 16:47:34.503978",
+ "modified": "2026-11-10 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Settings Block",

@@ -550,8 +550,16 @@ no pane of its own. It ships as `<app>/settings_dialog/<name>/<name>.json`.
 
 **Settings Pane** and **Settings Block**: <a id="settings-pane"></a><a id="settings-block"></a>
 The two row types of a `Settings Dialog`: `panes` (key, label, icon, description) and
-`blocks` (key, pane, the binding or the component, `fields`, `bindings`, `settings` for
-search, `anchors`, `save_mode`, `roles`). They share no content field, so they are two tables.
+`blocks` (key, pane, `kind`, the binding or the component, `anchors`, `save_mode`, `roles`).
+They share no content field, so they are two tables.
+
+A block's `kind` is `Generated` (a Single or Record `binding_type`, with `fields`: the fields it
+shows) or `Component` (a `component` file, with `bindings`, `saves_fields`: the fields it saves
+and owns, and `search_entries` for search). Each kind leaves the other's columns blank. The file
+holds `fields`, `saves_fields`, `bindings`, `search_entries`, `anchors` and `roles` as native
+JSON; the columns are text, and import reads the old shape (no `kind`, a component's `fields`
+and `settings`) too. `get_panes` still sends a component's `saves_fields` as `fields` and its
+`search_entries` as `settings`.
 
 ## Words that collide
 

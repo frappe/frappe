@@ -8,6 +8,10 @@ from frappe import _
 
 BINDING_TYPES = ("Single", "Record")
 NAME_RESOLVERS = ("session_user",)
+KINDS = ("Generated", "Component")
+# The columns only a component uses; a generated block shows `fields` and leaves these blank.
+COMPONENT_COLUMNS = ("saves_fields", "bindings", "search_entries")
+JSON_COLUMNS = ("fields", "saves_fields", "bindings", "search_entries", "anchors", "roles")
 
 
 class Refusal(Exception):
@@ -31,13 +35,15 @@ class Block:
 
 	def read_columns(self):
 		"""Read every JSON column this kind of block uses, so a wrong shape raises here."""
-		columns = ["fields", "anchors", "roles"] + (["bindings", "settings"] if self.is_component else [])
+		columns = ["fields", "anchors", "roles"]
+		if self.is_component:
+			columns = ["fields", "bindings", "search_entries", "anchors", "roles"]
 		for column in columns:
 			getattr(self, column)
 
 	@property
 	def is_component(self) -> bool:
-		return bool(self.row.component)
+		return self.row.kind == "Component"
 
 	@cached_property
 	def bindings(self) -> dict[str, dict]:
@@ -50,7 +56,8 @@ class Block:
 
 	@cached_property
 	def fields(self) -> list[str]:
-		return self._column("fields", list, str)
+		"""What the block lists: the fields a generated block shows, the fields a component saves."""
+		return self._column("saves_fields" if self.is_component else "fields", list, str)
 
 	@cached_property
 	def roles(self) -> list[str]:
@@ -70,11 +77,11 @@ class Block:
 		return anchors
 
 	@cached_property
-	def settings(self) -> list[dict]:
-		settings = self._column("settings", list, dict)
-		if not all(isinstance(entry.get("label"), str) and entry["label"].strip() for entry in settings):
-			raise self._bad_json("settings")
-		return settings
+	def search_entries(self) -> list[dict]:
+		entries = self._column("search_entries", list, dict)
+		if not all(isinstance(entry.get("label"), str) and entry["label"].strip() for entry in entries):
+			raise self._bad_json("search_entries")
+		return entries
 
 	@cached_property
 	def doctypes(self) -> list[str]:
@@ -105,10 +112,50 @@ class Block:
 		return value
 
 	def _bad_json(self, fieldname: str) -> Refusal:
-		label = frappe.get_meta("Settings Block").get_label(fieldname)
 		return Refusal(
-			_("Invalid JSON"), _("{0} does not hold the JSON it should.").format(frappe.bold(label))
+			_("Invalid JSON"),
+			_("{0} does not hold the JSON it should.").format(frappe.bold(label_of(fieldname))),
 		)
+
+
+def label_of(fieldname: str) -> str:
+	return frappe.get_meta("Settings Block").get_label(fieldname)
+
+
+def upgrade_row(values: dict) -> dict:
+	"""A block row as a file may hold it, in today's shape.
+
+	A file may still use the old shape (no `kind`; a component's `fields` and `settings`) and may hold
+	its JSON columns as native values; the columns are text in the database.
+	"""
+	row = dict(values)
+
+	if not row.get("kind"):
+		row["kind"] = "Component" if row.get("component") else "Generated"
+		if "settings" in row:
+			row["search_entries"] = row.pop("settings")
+		if row["kind"] == "Component" and "fields" in row:
+			row["saves_fields"] = row.pop("fields")
+
+	for column in JSON_COLUMNS:
+		if isinstance(row.get(column), list | dict):
+			row[column] = json.dumps(row[column])
+
+	return row
+
+
+def native_row(values: dict) -> dict:
+	"""A block row for a file: its JSON columns as native values, so the file reads without escapes, and no blank column."""
+	row = {column: value for column, value in values.items() if value not in (None, "")}
+
+	for column in JSON_COLUMNS:
+		if isinstance(row.get(column), str) and row[column].strip():
+			try:
+				row[column] = json.loads(row[column])
+			except ValueError:
+				pass
+
+	return row
 
 
 def check_binding(binding_type: str | None, doctype: str | None, resolver: str | None):

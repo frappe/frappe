@@ -1,9 +1,11 @@
 # The settings dialog's rules, run by save, by import, after migrate and by the merge.
 
+import json
 import os
 from unittest.mock import patch
 
 import frappe
+from frappe.desk.doctype.settings_dialog.settings_dialog import SettingsDialog
 from frappe.desk.doctype.settings_dialog.test_settings_dialog import (
 	EXTENDER,
 	HOST,
@@ -14,6 +16,7 @@ from frappe.desk.doctype.settings_dialog.test_settings_dialog import (
 	ship,
 	single,
 )
+from frappe.desk.settings_block import native_row
 from frappe.desk.settings_rules import SettingsRules, is_strict
 from frappe.shell.settings import check_shipped_records, merge_shipped
 from frappe.shell.settings_snapshot import check_settings_snapshot
@@ -96,10 +99,13 @@ class TestSettingsRules(SettingsDialogTestCase):
 
 	def test_after_migrate_finds_two_apps_owning_a_field(self):
 		with authoring():
-			ship(["general"], [bound("phone", fields='["mobile_no"]')])
+			ship(["general"], [bound("phone", saves_fields='["mobile_no"]')])
 			unchecked(
 				ship(
-					blocks=[bound("calls", fields='["mobile_no"]')], app=EXTENDER, extends=HOST, insert=False
+					blocks=[bound("calls", saves_fields='["mobile_no"]')],
+					app=EXTENDER,
+					extends=HOST,
+					insert=False,
 				)
 			)
 
@@ -191,3 +197,42 @@ class TestSettingsRules(SettingsDialogTestCase):
 			doc = ship(blocks=[single("system")], app=EXTENDER, extends=HOST, insert=False)
 			with self.assertRaisesRegex(frappe.ValidationError, "already ships a block"):
 				doc.insert()
+
+	def test_import_reads_the_old_shape_and_native_json(self):
+		old = {"key": "theme", "pane": "general", "component": "theme", "settings": '[{"label": "Theme"}]'}
+		new = {
+			"key": "theme",
+			"pane": "general",
+			"kind": "Component",
+			"component": "theme",
+			"search_entries": [{"label": "Theme"}],
+			"saves_fields": ["language"],
+			"bindings": {"user": {"type": "Record", "doctype": "User", "resolver": "session_user"}},
+			"roles": ["System Manager"],
+		}
+		for block in (old, new):
+			with self.subTest(block=block):
+				docdict = {"doctype": "Settings Dialog", "blocks": [block]}
+				SettingsDialog.prepare_for_import(docdict)
+				row = docdict["blocks"][0]
+				self.assertEqual(row["kind"], "Component")
+				self.assertEqual(json.loads(row["search_entries"]), [{"label": "Theme"}])
+				self.assertNotIn("settings", row)
+
+	def test_export_writes_native_json_and_no_blank_column(self):
+		row = native_row(
+			{"key": "theme", "binding_type": "", "roles": '["System Manager"]', "saves_fields": "not json"}
+		)
+		self.assertEqual(row, {"key": "theme", "roles": ["System Manager"], "saves_fields": "not json"})
+
+	def test_a_block_must_match_its_kind(self):
+		with authoring():
+			for block in (
+				single("both", component="theme"),
+				single("with-entries", search_entries='[{"label": "Theme"}]'),
+				{**component("shows", fields='["a"]')},
+				{**component("bound-doctype"), "document_type": "User"},
+				{**component("odd"), "kind": "Other"},
+			):
+				with self.subTest(block=block["key"]):
+					self.assertRaises(frappe.ValidationError, ship, ["general"], [block])

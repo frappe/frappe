@@ -48,17 +48,24 @@ def pane(key: str, **kwargs) -> dict:
 
 
 def single(key: str, pane: str = "general", doctype: str = "System Settings", **kwargs) -> dict:
-	return {"key": key, "pane": pane, "binding_type": "Single", "document_type": doctype, **kwargs}
+	return {
+		"key": key,
+		"pane": pane,
+		"kind": "Generated",
+		"binding_type": "Single",
+		"document_type": doctype,
+		**kwargs,
+	}
 
 
 def component(key: str, pane: str = "general", **kwargs) -> dict:
-	return {"key": key, "pane": pane, "component": key, **kwargs}
+	return {"key": key, "pane": pane, "kind": "Component", "component": key, **kwargs}
 
 
-def bound(key: str, pane: str = "general", fields: str | None = '["user_image"]', **kwargs) -> dict:
+def bound(key: str, pane: str = "general", saves_fields: str | None = '["user_image"]', **kwargs) -> dict:
 	"""A component block on the session `User`."""
 	binding = {"type": "Record", "doctype": "User", "resolver": "session_user"}
-	return component(key, pane, bindings=json.dumps({"user": binding}), fields=fields, **kwargs)
+	return component(key, pane, bindings=json.dumps({"user": binding}), saves_fields=saves_fields, **kwargs)
 
 
 class SettingsDialogTestCase(IntegrationTestCase):
@@ -143,7 +150,7 @@ class TestSettingsDialog(SettingsDialogTestCase):
 	def test_a_named_binding_takes_the_same_closed_list(self):
 		def named(resolver):
 			binding = {"type": "Record", "doctype": "User", "resolver": resolver}
-			return component("me", bindings=json.dumps({"user": binding}), fields='["user_image"]')
+			return component("me", bindings=json.dumps({"user": binding}), saves_fields='["user_image"]')
 
 		with authoring():
 			self.assertRaises(frappe.ValidationError, ship, ["general"], [named("owner")])
@@ -172,11 +179,11 @@ class TestSettingsDialog(SettingsDialogTestCase):
 	def test_a_json_column_holds_its_own_shape(self):
 		cases = {
 			"fields": single("system", fields='{"a": 1}'),
-			"component fields": bound("photo", fields='["user_image", 1]'),
+			"component fields": bound("photo", saves_fields='["user_image", 1]'),
 			"bindings": component("theme", bindings='["user"]'),
-			"settings": component("theme", settings='"Theme"'),
-			"settings label": component("theme", settings='[{"keywords": "dark"}]'),
-			"settings blank label": component("theme", settings='[{"label": " ", "keywords": "dark"}]'),
+			"settings": component("theme", search_entries='"Theme"'),
+			"settings label": component("theme", search_entries='[{"keywords": "dark"}]'),
+			"settings blank label": component("theme", search_entries='[{"label": " ", "keywords": "dark"}]'),
 			"anchors": component("theme", anchors="not json"),
 			"anchor target": component("theme", anchors='[{"after": ["system"]}]'),
 			"anchor parent": component("theme", anchors='[{"after": "system", "parent_key": "x"}]'),
@@ -195,7 +202,9 @@ class TestSettingsDialog(SettingsDialogTestCase):
 				["general"],
 				[
 					single("system", fields='["language", "time_zone"]'),
-					component("theme", settings='[{"label": "Theme", "keywords": "dark light"}]', roles="[]"),
+					component(
+						"theme", search_entries='[{"label": "Theme", "keywords": "dark light"}]', roles="[]"
+					),
 				],
 			)
 
@@ -216,13 +225,13 @@ class TestSettingsDialog(SettingsDialogTestCase):
 				frappe.ValidationError,
 				ship,
 				["general"],
-				[bound("photo"), bound("signature", fields='["full_name"]', save_mode="button")],
+				[bound("photo"), bound("signature", saves_fields='["full_name"]', save_mode="button")],
 			)
 			ship(
 				["general", "other"],
 				[
 					bound("photo"),
-					bound("name", fields='["full_name"]'),
+					bound("name", saves_fields='["full_name"]'),
 					bound("signature", pane="other", save_mode="button"),
 				],
 			)
@@ -230,13 +239,17 @@ class TestSettingsDialog(SettingsDialogTestCase):
 	def test_a_component_block_in_a_hosts_pane_shares_the_hosts_save_mode(self):
 		with authoring():
 			ship(["general"], [bound("photo", save_mode="button")])
-			calls = bound("calls", fields='["mobile_no"]')
+			calls = bound("calls", saves_fields='["mobile_no"]')
 			self.assertRaises(frappe.ValidationError, ship, blocks=[calls], app=EXTENDER, extends=HOST)
 			ship(blocks=[{**calls, "save_mode": "button"}], app=EXTENDER, extends=HOST)
 
 	def test_the_host_is_refused_a_save_mode_an_extension_already_holds(self):
 		with authoring():
-			ship(blocks=[bound("calls", fields='["phone"]', save_mode="button")], app=EXTENDER, extends=HOST)
+			ship(
+				blocks=[bound("calls", saves_fields='["phone"]', save_mode="button")],
+				app=EXTENDER,
+				extends=HOST,
+			)
 			photo = bound("photo")
 			self.assertRaises(frappe.ValidationError, ship, ["general"], [photo])
 			ship(["general"], [{**photo, "save_mode": "button"}])
@@ -248,26 +261,26 @@ class TestSettingsDialog(SettingsDialogTestCase):
 				ship,
 				["general"],
 				[
-					bound("photo", fields='["user_image"]'),
-					bound("locale", fields='["language", "user_image"]'),
+					bound("photo", saves_fields='["user_image"]'),
+					bound("locale", saves_fields='["language", "user_image"]'),
 				],
 			)
 			ship(
 				["general", "other"],
 				[
-					bound("photo", fields='["user_image"]'),
-					bound("locale", fields='["language", "time_zone"]'),
-					bound("avatar", pane="other", fields='["user_image"]'),
+					bound("photo", saves_fields='["user_image"]'),
+					bound("locale", saves_fields='["language", "time_zone"]'),
+					bound("avatar", pane="other", saves_fields='["user_image"]'),
 				],
 			)
 
 	def test_the_host_is_refused_a_field_an_extension_already_declares(self):
 		with authoring():
-			ship(blocks=[bound("calls", fields='["mobile_no"]')], app=EXTENDER, extends=HOST)
+			ship(blocks=[bound("calls", saves_fields='["mobile_no"]')], app=EXTENDER, extends=HOST)
 			self.assertRaises(
-				frappe.ValidationError, ship, ["general"], [bound("phone", fields='["mobile_no"]')]
+				frappe.ValidationError, ship, ["general"], [bound("phone", saves_fields='["mobile_no"]')]
 			)
-			ship(["general"], [bound("phone", fields='["phone"]')])
+			ship(["general"], [bound("phone", saves_fields='["phone"]')])
 
 	def test_a_bound_component_block_lists_fields_its_doctypes_have(self):
 		user = {"type": "Record", "doctype": "User", "resolver": "session_user"}
@@ -275,11 +288,14 @@ class TestSettingsDialog(SettingsDialogTestCase):
 		with authoring():
 			for fields in (None, "[]", '["user_imag"]', '["user_image", "nope"]'):
 				with self.subTest(fields=fields):
-					block = component("both", bindings=two, fields=fields)
+					block = component("both", bindings=two, saves_fields=fields)
 					self.assertRaises(frappe.ValidationError, ship, ["general"], [block])
 			ship(
 				["general"],
-				[component("both", bindings=two, fields='["user_image", "app_name"]'), component("theme")],
+				[
+					component("both", bindings=two, saves_fields='["user_image", "app_name"]'),
+					component("theme"),
+				],
 			)
 
 	def test_a_generated_block_may_differ_from_a_component_on_its_binding(self):
