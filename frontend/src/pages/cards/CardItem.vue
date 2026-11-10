@@ -4,7 +4,9 @@
 		:to="link"
 		class="group relative flex h-56 min-w-0 flex-col gap-2 overflow-hidden rounded-5 border border-outline-gray-2 bg-surface-base p-3 hover:border-outline-gray-3"
 	>
-		<div class="truncate text-base font-medium text-ink-gray-9">{{ title }}</div>
+		<div class="truncate text-base" :class="titleClass || 'font-medium text-ink-gray-9'">
+			{{ title }}
+		</div>
 		<div
 			class="pointer-events-none relative min-h-0 flex-1 overflow-hidden text-p-sm text-ink-gray-7"
 		>
@@ -61,6 +63,8 @@ const props = defineProps<{
 	bodyField: string | null;
 	bodyIsHtml: boolean;
 	link: RouteLocationRaw;
+	/** The title's seen look on a Track Seen doctype; empty keeps the default. */
+	titleClass?: string;
 	menu: RowMenuOption[];
 	person?: Person;
 }>();

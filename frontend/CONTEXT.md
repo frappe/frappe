@@ -497,6 +497,14 @@ link, star and sidebar row. Unique per doctype across every layer. A view is ide
 its doctype and its key.
 _Avoid_: view name, view slug (a **slug** is a doctype's address), view id.
 
+**Seen / Unseen record**: <a id="seen"></a>
+On a Track Seen doctype, a record is **seen** by a user when the user is in its `_seen` list,
+and **unseen** otherwise; an empty or missing `_seen` is unseen. Opening the record page or
+dialog marks it seen; an insert starts it seen by its creator alone, and each save resets it to
+the saver. The list and the cards view ask for `_seen` only on such a doctype and mark only the
+title cell: unseen in `text-ink-gray-9 font-medium`, seen in `text-ink-gray-7`.
+_Avoid_: read / unread (those are email's words), visited.
+
 ### The settings dialog
 
 **Settings dialog**: <a id="settings-dialog"></a>

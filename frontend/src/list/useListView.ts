@@ -7,6 +7,7 @@ import type { RawMetaField } from "@framework/ui/FormLayout";
 import { serializeOrderBy } from "@framework/ui/SortBy";
 import { useDocPermissions } from "@framework/ui/useDocPermissions";
 import { useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
+import { currentSession } from "@framework/ui/useSession";
 import { computed, ref, watch, type ComputedRef, type Ref, type WritableComputedRef } from "vue";
 import type { RouteLocationRaw } from "vue-router";
 import { listHandlersFor } from "@/contributions/registry";
@@ -28,6 +29,7 @@ import { listStatusTheme, type StatusTheme } from "@/statusTheme";
 import { contributedCells, resolveCell, type CellView } from "./cells";
 import { completeFilters, queryFromAddress } from "./query";
 import { partsFor } from "./rowParts";
+import { cellSeenClass, isUnseen, seenColumn } from "./seen";
 import { columnsFrom, toStoredColumns } from "./storedSettings";
 import { useListRows, type ListRow, type ListRows } from "./useListRows";
 import type { View } from "./view";
@@ -58,6 +60,8 @@ export interface ListView extends ListRows {
 	pageSize: Ref<number>;
 	/** The filters and sort the rows belong to, as one string: the session memory's key. */
 	rowsKey: () => string;
+	/** The class a cell takes on a Track Seen doctype for its row's seen state; "" off the title cell or when Track Seen is off. */
+	seenClassOf: (row: ListRow, fieldname: string) => string;
 	/** True when the person's own row holds columns. */
 	columnsCustomized: ComputedRef<boolean>;
 	/** Clears the person's columns, so the site's or the app's show. */
@@ -176,6 +180,11 @@ export function useListView(view: View): ListView {
 		return titles;
 	});
 
+	const user = currentSession()?.user.name ?? null;
+	const seenField = computed(() =>
+		seenColumn(listMeta.value, columns.value.map((column) => column.fieldname))
+	);
+
 	return {
 		...rows,
 		columns,
@@ -193,6 +202,8 @@ export function useListView(view: View): ListView {
 			),
 		currencyOf: (fieldname) => cellCurrency(fieldname, listMeta.value ?? {}, readable),
 		linkTitles,
+		seenClassOf: (row, fieldname) =>
+			fieldname === seenField.value ? cellSeenClass(isUnseen(row, user)) : "",
 		selection,
 		pageSize,
 		rowsKey,

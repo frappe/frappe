@@ -237,6 +237,26 @@ describe("seeding", () => {
 	});
 });
 
+describe("Track Seen", () => {
+	it("asks for _seen and marks the title cell of a row the user has not opened", async () => {
+		fake.meta = { ...fake.meta!, track_seen: 1 } as typeof fake.meta;
+		await mount("/lead");
+		await settle();
+		expect(fake.listDocuments.mock.calls[0][1].fields).toEqual(["name", "title", "status", "amount", "_seen"]);
+		const row = { name: "LEAD-1", _seen: '["bob@example.com"]' };
+		expect(page.seenClassOf(row, "title")).toContain("font-medium");
+		expect(page.seenClassOf(row, "status")).toBe("");
+		expect(page.seenClassOf({ ...row, _seen: '["alice@example.com"]' }, "title")).not.toContain("font-medium");
+	});
+
+	it("leaves a doctype that does not track seen as it is", async () => {
+		await mount("/lead");
+		await settle();
+		expect(fake.listDocuments.mock.calls[0][1].fields).not.toContain("_seen");
+		expect(page.seenClassOf({ name: "LEAD-1" }, "title")).toBe("");
+	});
+});
+
 describe("the view", () => {
 	it("is the view opened, with the stored settings, the page's changes on top and the URL's filters and sort", async () => {
 		opened = { key: "board", label: "Board", type: "Kanban", layer: "own", applies: true };

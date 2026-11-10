@@ -87,6 +87,13 @@ describe("fetchFields", () => {
 		];
 		expect(fetchFields(columns, actions)).toEqual(["name", "status", "mobile_no", "email_id"]);
 	});
+
+	it("asks for _seen on a Track Seen doctype, and only then", () => {
+		const columns = [{ fieldname: "status", label: "Status" }];
+		expect(fetchFields(columns, [], { track_seen: 1 })).toEqual(["name", "status", "_seen"]);
+		expect(fetchFields(columns, [], { track_seen: 0 })).toEqual(["name", "status"]);
+		expect(fetchFields(columns, [], {})).toEqual(["name", "status"]);
+	});
 });
 
 describe("cell currencies", () => {

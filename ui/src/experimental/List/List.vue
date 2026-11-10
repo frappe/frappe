@@ -108,7 +108,7 @@
 					<ListCell
 						v-for="column in columns"
 						:key="column.fieldname"
-						:class="alignClass(column)"
+						:class="[alignClass(column), cellClass?.(row, column)]"
 					>
 						<slot
 							name="cell"
