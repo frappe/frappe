@@ -57,6 +57,8 @@ class FormTour(Document):
 				)
 
 	def before_save(self):
+		if self.ui_tour:
+			self.page_route = json.dumps(self.get_page_route())
 		if self.is_standard and not self.module:
 			if self.workspace_name:
 				self.module = frappe.db.get_value("Workspace", self.workspace_name, "module")
@@ -65,9 +67,7 @@ class FormTour(Document):
 				self.module = frappe.db.get_value("DocType", dashboard_doctype, "module")
 			else:
 				self.module = "Desk"
-		if self.ui_tour:
-			self.page_route = json.dumps(self.get_page_route())
-		else:
+		if not self.ui_tour:
 			meta = frappe.get_meta(self.reference_doctype)
 			for step in self.steps:
 				if step.is_table_field and step.parent_fieldname:
