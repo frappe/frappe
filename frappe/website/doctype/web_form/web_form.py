@@ -115,8 +115,6 @@ class WebForm(WebsiteGenerator):
 		self.validate_guest_key_link_fields()
 
 	def set_access_flags(self):
-		if self.anonymous:
-			self.login_required = 0
 		if not (self.login_required or self.key_required):
 			self.allow_multiple = self.allow_edit = self.allow_delete = self.show_list = 0
 		if self.allow_multiple:
