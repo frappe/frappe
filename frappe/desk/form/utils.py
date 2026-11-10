@@ -31,6 +31,11 @@ def add_comment(
 ) -> "Comment":
 	"""Allow logged user with permission to read document to add a comment"""
 	validate_comment_content(content)
+	return insert_comment(reference_doctype, reference_name, content)
+
+
+def insert_comment(reference_doctype: str, reference_name: str, content: str) -> "Comment":
+	"""Add the session user's comment after a read check on the document. `content` is not checked."""
 	reference_doc = frappe.get_lazy_doc(reference_doctype, reference_name, check_permission=True)
 
 	comment = frappe.new_doc("Comment")
@@ -53,7 +58,8 @@ def add_comment(
 
 
 def validate_comment_content(content: str) -> None:
-	if not (strip_html(content or "").strip() or "<img" in (content or "")):
+	content = content or ""
+	if not (strip_html(content).strip() or "<img" in content or "<video" in content):
 		frappe.throw(_("Comment cannot be empty"), frappe.MandatoryError)
 
 
