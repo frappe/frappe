@@ -32,7 +32,7 @@
     "@vueuse/core": "^11.3.0",
     "autoprefixer": "^10.4.20",
     "dompurify": "^3.3.3",
-    "frappe-ui": "1.1.0",
+    "frappe-ui": "github:frappe/frappe-ui#fa69f53219da81368845db20b1ac0ad3a8ae62fe",
     "jiti": "^1.21.7",
     "lowlight": "^3.3.0",
     "postcss": "^8.4.5",
