@@ -596,7 +596,9 @@ class PrintDesignerConverter:
 			if image.get("parentField") and image.get("doctype"):
 				return self.html_node(
 					f"{{%- set image_url = frappe.db.get_value({image.get('doctype')!r}, doc.{image['parentField']}, {image['fieldname']!r}) -%}}"
-					'{%- if image_url -%}<img src="{{ image_url }}" style="max-width: 100%;">{%- endif -%}'
+					"{%- if image_url -%}"
+					f'<img src="{{{{ image_url }}}}" style="width: {round(flt(element.get("width")) / PX_PER_MM, 1)}mm; max-width: 100%;">'
+					"{%- endif -%}"
 				)
 			return {
 				"label": image.get("label") or "",
