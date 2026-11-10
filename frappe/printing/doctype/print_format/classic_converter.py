@@ -101,8 +101,6 @@ def convert_classic_to_beta(format_data, meta, print_format=None) -> tuple[dict,
 		"header": {"columns": [{"label": "", "fields": []}]},
 		"footer": {"columns": [{"label": "", "fields": []}]},
 	}
-	from frappe.utils.print_format_generator import layout_page_settings
-
 	if layout_page_settings({"page": {"size": paper_size}}):
 		layout["page"] = {"size": paper_size}
 
