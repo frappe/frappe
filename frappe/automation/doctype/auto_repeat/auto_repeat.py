@@ -89,10 +89,12 @@ class AutoRepeat(Document):
 		self.update_auto_repeat_id()
 		self.unlink_if_applicable()
 
-		if self.template and not (self.subject and self.message):
+		default_message = self.meta.get_field("message").default
+		if self.template and self.has_value_changed("template"):
 			template = frappe.get_cached_doc("Email Template", self.template)
 			self.subject = self.subject or template.subject
-			self.message = self.message or template.response_
+			if not self.message or self.message == default_message:
+				self.message = template.response_
 
 		validate_template(self.subject or "")
 		validate_template(self.message or "")
