@@ -171,6 +171,9 @@ class TestWebhook(IntegrationTestCase):
 		# retrieve or create a User webhook for `after_insert`
 		self.responses = responses.RequestsMock()
 		self.responses.start()
+		self.addCleanup(self.responses.reset)
+		self.addCleanup(self.responses.stop)
+		self.enterContext(patch.object(frappe.local, "_webhook_queue", None, create=True))
 
 		self.responses.add(
 			responses.POST,
@@ -211,8 +214,6 @@ class TestWebhook(IntegrationTestCase):
 			self.test_user.delete()
 			frappe.db.commit()
 		finally:
-			self.responses.stop()
-			self.responses.reset()
 			super().tearDown()
 
 	@timeout(5, "Test webhooks should never wait, check mocked responses.")
@@ -233,6 +234,7 @@ class TestWebhook(IntegrationTestCase):
 		execution = frappe.local._webhook_queue[0]
 		self.assertEqual(execution.webhook.name, self.sample_webhooks[0].name)
 		self.assertEqual(execution.doc.name, self.test_user.name)
+		flush_webhook_execution_queue()
 
 	@timeout(5, "Test webhooks should never wait, check mocked responses.")
 	def test_validate_doc_events(self):
