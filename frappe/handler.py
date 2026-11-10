@@ -113,7 +113,13 @@ def is_valid_http_method(method):
 def logout():
 	from frappe.utils.oauth import get_oauth2_logout_url
 
-	logout_url = get_oauth2_logout_url()
+	try:
+		logout_url = get_oauth2_logout_url()
+	except Exception:
+		# IdP configuration must never prevent local session invalidation.
+		frappe.logger("frappe.auth").exception("Could not prepare OIDC logout redirect")
+		logout_url = None
+
 	# Only redirects set during this logout's on_logout hooks should be considered.
 	frappe.local.flags.pop("post_logout_redirect", None)
 	frappe.local.login_manager.logout()
