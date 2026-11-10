@@ -34,6 +34,10 @@
       "types": "./src/components/FileUpload/index.ts"
     },
     "./FileUpload/FileUploadDialog.vue": "./src/components/FileUpload/FileUploadDialog.vue",
+    "./SectionMarks": {
+      "import": "./src/components/SectionMarks/index.ts",
+      "types": "./src/components/SectionMarks/index.ts"
+    },
     "./InviteUser": {
       "import": "./src/components/InviteUser/index.ts",
       "types": "./src/components/InviteUser/index.ts"

@@ -34,6 +34,7 @@ export {
 export type { DocumentEntry, ListEntry } from "./cache";
 export * from "./utils";
 export * from "./components/Grid";
+export * from "./components/SectionMarks";
 export * from "./components/Phone";
 export * from "./components/TableMultiSelect";
 export * from "./components/Notifications";
