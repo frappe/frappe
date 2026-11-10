@@ -223,3 +223,7 @@ frontend/yarn.lock
 .base-lock.*
 # local checkout of frappe-datatable; not a submodule of this repo
 ui/datatable/
+
+# local files: a PR body and an uncommitted walk config
+/.*-pr-body.md
+frontend/walks/*.nocache.config.js

@@ -254,7 +254,7 @@ component group, with its main names.
 | `Filter`, `QuickFilter`, `ConditionBuilder` | Edit list filters, and their address and wire format |
 | `SortBy` | The list sort control and its `order_by` string |
 | `ColumnSettings` (`isColumnFieldtype`, `isSortableColumn`) | Pick, order and size list columns. `isColumnFieldtype` tells which fieldtypes can be a column; `isSortableColumn` tells which can be sorted on |
-| `experimental/List` (`List`, `ListFooter`, `ListBulkBar`) | A virtual-scroll list with selection, a bulk bar and an optional end-of-row menu cell (`rowMenu` prop and slot) |
+| `experimental/List` (`List`, `ListFooter`, `ListBulkBar`) | A virtual-scroll list with selection, a bulk bar and an optional end-of-row menu cell (`rowMenu` prop and slot). A `cellClass(row, column)` prop adds a class to a cell. A column with `sortable: false` has no sort header |
 | `ListView` and `usePagedList` | An app's own paged list: rows a page at a time |
 | `useLinkSearch` | The server's matches for a link picker; the last answer wins. A fresh search skips the browser's cached answer |
 | `Notifications` | The notification panel and its data |
@@ -346,11 +346,11 @@ component group, with its main names.
 | `View` (`ViewSettings`, `typeKey`) | What a renderer gets: the doctype, key, type, layer, settings, filters, sort, `update`, `customized` and `reset`. `typeKey(type)` is the lowercase type name, the address segment and the act surface |
 | `contributedCells`, `resolveCell`, `CellView` | The apps' list `cells` by fieldname (the first app to name a fieldname wins), and what one draws for a value: an icon, a badge theme, or a Date or Datetime in the app's dayjs format. The `cells` are data in `list.js`: no extra chunk, fetch or permission check (the column's field is read as before) |
 | `useListView` (`DeleteOutcome`, `deleteRows`, `filtersDict`) | The List renderer's state: columns, selection, page size, the rows (`useListRows`), delete, row links, column resize and the apps' row actions |
-| `useListRows` (`ListRow`, `ListRows`) | Rows and a total for one query, a page at a time |
+| `useListRows` (`ListRow`, `ListRows`) | Rows and a total for one query, a page at a time. A query can carry `include` parts, which the shown columns read beside the rows. The rows follow a `_seen` write to the data cache without a read (`followSeen`). They do not follow `_assign` or `_user_tags` |
 | Row parts (`personOf`, `commentCountOf`) | What the list read's `include` parts say about a row: the named person behind a user id (Assigned To, Liked By) and the row's comment count |
 | Favourite stars (`isStarred`, `toggleStar`) | The Favourite column's own state: which listed rows the person starred, and the click that stars or unstars one in place. Self-contained so the column can go on its own |
 | List defaults (`ListMeta`, `contributedRowActions`) | A doctype's list facts and the apps' row actions, read the same by every renderer |
-| List seen (`isUnseen`, `cardSeenClass`) | Whether a row is unseen for the session user on a Track Seen doctype, and the title class a list cell and a card take for it |
+| List seen (`isUnseen`, `cardSeenClass`) | Whether a row is unseen for the session user on a Track Seen doctype, and the title class a list cell and a card take for it. The seen style reaches only a cell that draws its text in `text-ink-gray-8`: the plain (`FieldCell`), Link, Email and Phone cells, and a configured cell without a badge. A cell that draws its text in another class shows no style |
 | List memory (`readListMemory`, `writeListMemory`, `useRememberedPageSize`) | The page size a history entry keeps, as a ref both renderers share |
 | List settings (`useListSettings`, `markListSettingsStale`, `isFavourite`) | Saved columns, sort and quick filters, per user or site. The same read says which of the list and its saved views (by key) the person starred, and its star toggle (`toggle_favourite` on `DocType` <doctype>, with the view's key on a view) queues with the writes. On `doctype_update` it keeps the old rows on show and reads fresh ones |
 | Saved view lookup (`useSavedView`, `SavedView`, `isMissing`) | *New.* The saved view a list address names, from `find`, once per address the page shows; a newer address drops the older answer. `isMissing` reads a 404 as a view the person cannot open. The list page draws no list until the view is found. Not cached |
@@ -690,7 +690,7 @@ For the dialog, the requests on its first open. The numbers are an open question
 | --- | --- | --- | --- | --- |
 | 1 | The router's guard finds an opted-in doctype's record address (`opensInDialog`). In the app it opens the dialog over the page; on a direct load it shows the list first, then opens the dialog | 5, 6 | None | The registry Map, built at start |
 | 2 | `openRecordDialog` puts a request on the shell's stack. The dialog that `main.ts` registered draws it | 6, 8 | None | Open requests in browser memory. A route change that leaves the path closes them |
-| 3 | The dialog reads the record with its parts and the Quick Entry layout in parallel | 8, 3, 1 | Read permission on the record, and the controller's `has_permission` | The shared record cache, key doctype and name, with `RECORD_PARTS` |
+| 3 | The dialog reads the record with its parts and the Quick Entry layout in parallel. On a Track Seen doctype, the read marks the cached row seen. A list under the dialog shows the change with no read | 8, 3, 1 | Read permission on the record, and the controller's `has_permission` | The shared record cache, key doctype and name, with `RECORD_PARTS` |
 | 4 | The Save button, Ctrl/Cmd+S or the record script runs `page.save()`: `beforeSave`, the required check, the update, `afterSave` | 8, 7, 1 | Write permission, checked again by the server; the dialog hides Save by `docinfo.permissions` | None. The update sends the whole document, whose `modified` lets the server refuse a stale save |
 | 5 | After the save or a delete, `recordDialogWrite` is announced and the dialog closes. A list of that doctype under it re-reads its rows | 6, 8 | Delete permission on the server | The list's own query key |
 
@@ -738,6 +738,10 @@ made each choice here.
 PR may lower a count. A PR that raises a count fails, unless the same PR edits the
 baseline, so the reviewer sees the raise in the diff. A PR that lands a cut lowers the
 baseline in the same PR.
+
+**A raise of a page's JS baseline is measured.** A PR that takes a page past its baseline plus
+5 KB measures exactly what it adds. The owner may raise that page's baseline by only those
+bytes. Nobody raises a baseline before a PR needs it, and no raise covers many pages.
 
 **The CI checks**
 
