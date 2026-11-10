@@ -925,7 +925,8 @@
       "useInviteUser"
     ],
     "ui/src/components/Link/linkOption.ts": [
-      "toLinkOption"
+      "toLinkOption",
+      "toIdOption"
     ],
     "ui/src/components/Link/types.ts": [
       "LinkEmits",
@@ -1122,6 +1123,24 @@
     ],
     "ui/src/utils/translate.ts": [
       "translate"
+    ],
+    "frappe/public/js/frappe/utils/country_flag_url.js": [
+      "get_country_flag_url"
+    ],
+    "ui/src/components/EmailAccounts/EmailAccounts.vue": [
+      "EmailAccounts"
+    ],
+    "ui/src/components/EmailAccounts/types.ts": [
+      "AccountStatus",
+      "AuthKind",
+      "EmailAccount",
+      "EmailAccountsController",
+      "OneClickService",
+      "SignInReturn"
+    ],
+    "ui/src/components/EmailAccounts/useEmailAccounts.ts": [
+      "useEmailAccounts",
+      "useOneClick"
     ]
   },
   "flowEntries": [
