@@ -4,6 +4,7 @@ import { listDocuments } from "@framework/ui/api";
 import { serializeOrderBy } from "@framework/ui/SortBy";
 import { useDocPermissions } from "@framework/ui/useDocPermissions";
 import { useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
+import { currentSession } from "@framework/ui/useSession";
 import { computed, inject, reactive, watch, type ComputedRef, type Ref } from "vue";
 import type { RouteLocationRaw } from "vue-router";
 import type { Boot } from "@/boot";
@@ -12,6 +13,7 @@ import type { RowAction } from "@/contributions/types";
 import { contributedRowActions, type ListMeta } from "@/list/defaults";
 import { useRememberedPageSize } from "@/list/pageState";
 import { queryFromAddress } from "@/list/query";
+import { cardSeenClass, isUnseen } from "@/list/seen";
 import { deleteRows, filtersDict, type DeleteOutcome } from "@/list/useListView";
 import { useListRows, type ListRow, type ListRows } from "@/list/useListRows";
 import type { View } from "@/list/view";
@@ -44,6 +46,8 @@ export interface CardsView extends ListRows {
 	people: Record<string, Person>;
 	pageSize: Ref<number>;
 	cardLink: (row: ListRow) => RouteLocationRaw;
+	/** The title's class for the row's seen state; "" when the doctype does not track seen. */
+	titleClassOf: (row: ListRow) => string;
 	deleteOne: (name: string) => Promise<DeleteOutcome>;
 }
 
@@ -72,6 +76,7 @@ export function useCardsView(view: View): CardsView {
 			...(fields.value.body ? [fields.value.body] : []),
 			"owner",
 			"modified",
+			...(listMeta.value.track_seen ? ["_seen"] : []),
 			...rowActions.flatMap((action) => action.fields.filter(readable)),
 		]);
 		return {
@@ -87,7 +92,20 @@ export function useCardsView(view: View): CardsView {
 
 	const deleteOne = (name: string) => deleteRows(rows, [name]);
 
-	return { ...rows, fields, rowActions, people, pageSize, cardLink: (row) => routeFor(doctype, row.name), deleteOne };
+	const user = currentSession()?.user.name ?? null;
+	const titleClassOf = (row: ListRow) =>
+		listMeta.value?.track_seen ? cardSeenClass(isUnseen(row, user)) : "";
+
+	return {
+		...rows,
+		fields,
+		rowActions,
+		people,
+		pageSize,
+		cardLink: (row) => routeFor(doctype, row.name),
+		titleClassOf,
+		deleteOne,
+	};
 }
 
 async function readPeople(ids: string[]) {

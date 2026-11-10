@@ -54,6 +54,14 @@ describe("CardItem", () => {
 		expect(link.textContent).toContain("3 days ago");
 	});
 
+	it("draws its title in the class the view gives it, else the default", async () => {
+		const title = (root: HTMLElement) => root.querySelector("a > div")!.classList;
+		expect(title(await mount({}))).toContain("text-ink-gray-9");
+		const seen = title(await mount({ titleClass: "text-ink-gray-7" }));
+		expect(seen).toContain("text-ink-gray-7");
+		expect(seen).not.toContain("text-ink-gray-9");
+	});
+
 	it("draws no menu without actions", async () => {
 		const root = await mount({});
 		expect(root.querySelector("[aria-label='Row actions']")).toBeNull();

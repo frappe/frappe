@@ -22,6 +22,7 @@
 		:loading="loading"
 		:rowLink="rowLink"
 		:rowMenu="rowActions.length > 0"
+		:cellClass="(row, column) => seenClassOf(row, column.fieldname)"
 		gutter="var(--page-gutter)"
 		@column-resize="resizeColumn($event.fieldname, $event.width)"
 		@column-reset="resetColumnWidth($event.fieldname)"
@@ -153,6 +154,7 @@ const {
 	cellViewOf,
 	currencyOf,
 	linkTitles,
+	seenClassOf,
 	selection,
 	pageSize,
 	rowsKey,

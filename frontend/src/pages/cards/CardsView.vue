@@ -23,6 +23,7 @@
 				:bodyField="fields.body"
 				:bodyIsHtml="fields.bodyIsHtml"
 				:link="cardLink(row)"
+				:titleClass="titleClassOf(row)"
 				:menu="menuFor(row)"
 				:person="people[String(row.owner)]"
 			/>
@@ -85,6 +86,7 @@ const {
 	countExact,
 	reload,
 	cardLink,
+	titleClassOf,
 	deleteOne,
 } = useCardsView(props.view);
 

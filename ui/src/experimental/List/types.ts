@@ -22,6 +22,8 @@ export interface ListProps {
   rowLink?: (row: ListRowData) => RouteLocationRaw;
   /** Where the checkbox and the last cell's text land, as a CSS length; the row bleeds past it. */
   gutter?: string;
+  /** A class for a cell, from its row and column; the host marks a cell without wrapping it. */
+  cellClass?: (row: ListRowData, column: ListColumn) => string;
   /** Draws one more cell at the end of each row, filled by the `rowMenu` slot. */
   rowMenu?: boolean;
 }

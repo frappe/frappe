@@ -19,6 +19,7 @@ export interface ListMeta {
 	is_virtual?: 0 | 1;
 	workflow_state_field?: string | null;
 	workflow_state_styles?: Record<string, string>;
+	track_seen?: 0 | 1;
 }
 
 const GENERIC_COLUMNS: Column[] = [
@@ -50,7 +51,7 @@ export function sameSort(a: Sort[], b: Sort[]): boolean {
 /** Columns the list read gives as parts, not as fields: the server has no such field. */
 const PART_COLUMNS = new Set(["_favourite", "_comments"]);
 
-/** The fields a page of rows needs: `name`, the columns, their marks, currencies and titles, then the row actions'. */
+/** The fields a page of rows needs: `name`, the columns, their marks, currencies and titles, then the row actions' and `_seen` on a Track Seen doctype. */
 export function fetchFields(
 	columns: Column[],
 	rowActions: RowAction[] = [],
@@ -68,6 +69,7 @@ export function fetchFields(
 		...currencies,
 		...titles,
 		...rowActions.flatMap((a) => a.fields),
+		...(meta.track_seen ? ["_seen"] : []),
 	];
 	return [...new Set(["name", ...wanted])];
 }
