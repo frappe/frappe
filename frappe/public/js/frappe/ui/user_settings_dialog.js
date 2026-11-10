@@ -72,8 +72,6 @@ async function _load_user_data() {
 		const { message } = await frappe.call("frappe.core.doctype.user.user.get_timezones");
 		frappe.all_timezones = message?.timezones || [];
 	}
-	// the photo upload follows the User form's attachment settings
-	await frappe.model.with_doctype("User");
 
 	// All from the server, not boot: the User form and this module both change them
 	// after boot, and the profile page loads them again when it is shown again.
@@ -414,7 +412,17 @@ function _save_profile(user_data, values) {
 	});
 }
 
-function _upload_user_image(user, on_success) {
+let _opening_uploader = false;
+
+async function _upload_user_image(user, on_success) {
+	// a second click while the User meta loads opens nothing
+	if (_opening_uploader) return;
+	_opening_uploader = true;
+	try {
+		await frappe.model.with_doctype("User");
+	} finally {
+		_opening_uploader = false;
+	}
 	new frappe.ui.FileUploader({
 		doctype: "User",
 		docname: user,
