@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import json
+import os
 import typing
 from contextlib import contextmanager
 from types import SimpleNamespace
@@ -2572,6 +2573,17 @@ class TestAppSidebarLayer(IntegrationTestCase):
 
 			self.assertTrue(all(row["added"] == 0 for row in get_app_sidebar_layer(MODULE)))
 
+	def test_saving_drops_the_cached_boot(self):
+		"""The desk boots from a cache, so a save that left it would show the old sidebar on the next
+		page load."""
+		with module_resolvable_on_disk(MODULE), developer_mode():
+			self.with_content()
+			rows = json.dumps(get_app_sidebar_layer(MODULE))
+			frappe.cache.hset("bootinfo", "Administrator", {"stale": 1})
+			save_app_sidebar(MODULE, rows)
+
+		self.assertIsNone(frappe.cache.hget("bootinfo", "Administrator"))
+
 	def test_saving_writes_a_standard_document_and_exports_it(self):
 		"""One action. The layer is named after the app, and a document that is not standard is not
 		the app's: no file backs it and no migrate re-imports it."""
@@ -3076,3 +3088,25 @@ class TestPrivateShell(IntegrationTestCase):
 		frappe.clear_cache(user=self.user)
 
 		self.assertIn(page.name, self.links())
+
+
+class TestSidebarSyncOrder(IntegrationTestCase):
+	def test_child_tables_sync_before_any_sidebar_record(self):
+		"""Migrate loads the stored rows of a changed Sidebar record before it writes the new ones,
+		so every child table must exist by then, or a site from v16 fails on the first one."""
+		import frappe.model.sync as sync
+
+		files = []
+		with (
+			patch.object(sync, "import_file_by_path", side_effect=lambda path, **kwargs: files.append(path)),
+			patch.object(sync, "import_desktop_icon_fixtures"),
+			patch.object(sync, "update_progress_bar"),
+		):
+			sync.sync_for("frappe")
+
+		parts = [path.split(os.sep) for path in files]
+		first_record = next(i for i, p in enumerate(parts) if p[-3] == "sidebar" and p[-4] != "doctype")
+		for table_field in frappe.get_meta("Sidebar").get_table_fields():
+			child = frappe.scrub(table_field.options)
+			position = next(i for i, p in enumerate(parts) if p[-3:] == ["doctype", child, f"{child}.json"])
+			self.assertLess(position, first_record, table_field.options)

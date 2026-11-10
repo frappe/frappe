@@ -6,6 +6,13 @@ from __future__ import annotations
 import frappe
 from frappe import _
 from frappe.flow.triggers.triggers import clear_trigger_cache
+from frappe.flow.utils.system_generated import (
+	block_delete,
+	block_insert,
+	block_rename,
+	block_slash_in_name,
+	validate_immutable,
+)
 from frappe.model.document import Document
 
 DOC_EVENTS = frozenset({"after_insert", "on_update", "on_submit", "on_cancel", "on_trash"})
@@ -21,11 +28,13 @@ class FlowTrigger(Document):
 		from frappe.types import DF
 
 		agent: DF.Link
+		app: DF.Data | None
 		condition: DF.Code | None
 		cron_expression: DF.Data | None
 		doc_event: DF.Literal[None, "after_insert", "on_update", "on_submit", "on_cancel", "on_trash"]
 		enabled: DF.Check
 		event: DF.Literal["DocType Event", "Scheduled"]
+		is_system_generated: DF.Check
 		last_fired_at: DF.Datetime | None
 		prompt_template: DF.Code
 		run_as: DF.Link | None
@@ -33,7 +42,28 @@ class FlowTrigger(Document):
 		title: DF.Data
 	# end: auto-generated types
 
+	def before_insert(self):
+		block_insert(self)
+
+	def before_rename(self, old: str, new: str, _merge: bool = False) -> None:
+		block_rename(self, old)
+		block_slash_in_name(self, new)
+
 	def validate(self):
+		block_slash_in_name(self)
+		validate_immutable(
+			self,
+			(
+				"agent",
+				"event",
+				"target_doctype",
+				"doc_event",
+				"cron_expression",
+				"condition",
+				"prompt_template",
+				"run_as",
+			),
+		)
 		self._validate_event_fields()
 		self._validate_cron()
 		self._validate_condition()
@@ -44,9 +74,13 @@ class FlowTrigger(Document):
 		clear_trigger_cache()
 
 	def on_trash(self):
+		block_delete(self)
 		clear_trigger_cache()
 
 	def _validate_run_as(self):
+		# checked only while on, so a trigger whose user is gone can still be switched off
+		if not self.enabled:
+			return
 		if self.run_as and (
 			self.run_as == "Guest" or not frappe.db.get_value("User", self.run_as, "enabled")
 		):

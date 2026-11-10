@@ -13,9 +13,9 @@ from frappe.desk.doctype.favourite.favourite import toggle_favourite
 from frappe.desk.doctype.tag.tag import add_tag, remove_tag
 from frappe.desk.form import assign_to
 from frappe.desk.form.document_follow import follow_document, unfollow_document
-from frappe.desk.form.utils import add_comment, delete_comment, update_comment
+from frappe.desk.form.utils import delete_comment, insert_comment, update_comment, validate_comment_content
 from frappe.model.document import Document
-from frappe.utils import cint, get_fullname
+from frappe.utils import cint
 
 EVERYONE = "everyone"
 MAX_ATTACHMENTS = 10
@@ -162,9 +162,11 @@ def remove_follow(doc: Document, key: None) -> None:
 
 def add_a_comment(doc: Document, body: dict) -> str:
 	files = files_to_link(body.get("attachments") or [])
-	comment = add_comment(
-		doc.doctype, doc.name, body.get("content") or "", frappe.session.user, get_fullname()
-	)
+	content = body.get("content") or ""
+	# attachments alone make a comment
+	if not files:
+		validate_comment_content(content)
+	comment = insert_comment(doc.doctype, doc.name, content)
 	attach_files(files, "Comment", comment.name)
 	# after the attachments are linked, so they are no longer unattached and stay on the Comment
 	attach_inline_media(doc, comment.content)

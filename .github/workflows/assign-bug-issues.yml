@@ -1,0 +1,43 @@
+name: Assign new issues
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  issues: write
+
+concurrency:
+  group: assign-bug-issues
+
+jobs:
+  assign:
+    if: github.repository == 'frappe/frappe' && !github.event.issue.assignees[0]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v8
+        with:
+          script: |
+            const assignees = ["g-sowani", "ruchiigadgil", "rameensh"];
+            const issue = context.payload.issue;
+            const { data: recent } = await github.rest.issues.listForRepo({
+              ...context.repo,
+              state: "all",
+              sort: "created",
+              direction: "desc",
+              per_page: 50,
+            });
+            let next = 0;
+            for (const other of recent) {
+              if (other.number === issue.number || other.pull_request) continue;
+              const last = other.assignees.map((a) => assignees.indexOf(a.login)).find((i) => i >= 0);
+              if (last !== undefined) {
+                next = (last + 1) % assignees.length;
+                break;
+              }
+            }
+            await github.rest.issues.addAssignees({
+              ...context.repo,
+              issue_number: issue.number,
+              assignees: [assignees[next]],
+            });

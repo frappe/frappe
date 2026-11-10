@@ -5,9 +5,9 @@
 		</template>
 		<div class="divide-y divide-outline-gray-1">
 			<SettingsRow title="Theme" description="Follow the system, or pick one.">
-				<Select :model-value="colorScheme" :options="THEMES" class="w-36" @update:model-value="setColorScheme" />
+				<Select align="start" :model-value="colorScheme" :options="THEMES" class="w-36" @update:model-value="setColorScheme" />
 			</SettingsRow>
-			<SettingsRow title="Font size" description="The size of the chat's text." :saved="size">
+			<SettingsRow title="Font size" description="The size of the chat's text. The rest of Flow scales with it." :saved="size">
 				<span class="flex items-center gap-2">
 					<!-- one box: the steps sit inside its border and round with its corners -->
 					<span
@@ -20,7 +20,7 @@
 							:max="CHAT_FONT_SIZE.max"
 							step="any"
 							aria-label="Font size"
-							class="min-w-0 flex-1 border-0 bg-transparent py-0 pl-2 pr-0 text-sm tabular-nums text-ink-gray-8 [appearance:textfield] focus:ring-0 [&::-webkit-inner-spin-button]:appearance-none"
+							class="min-w-0 flex-1 border-0 bg-transparent py-0 pl-2 pr-0 text-base tabular-nums text-ink-gray-8 [appearance:textfield] focus:ring-0 [&::-webkit-inner-spin-button]:appearance-none"
 							@input="preview"
 							@change="commit"
 						/>
@@ -37,11 +37,12 @@
 							</button>
 						</span>
 					</span>
-					<span class="text-sm text-ink-gray-6">px</span>
+					<span class="text-base text-ink-gray-6">px</span>
 				</span>
 			</SettingsRow>
 			<SettingsRow title="Font weight" description="The weight of the chat's text." :saved="weight">
 				<Select
+					align="start"
 					:model-value="weight"
 					:options="CHAT_FONT_WEIGHT.options"
 					class="w-36"

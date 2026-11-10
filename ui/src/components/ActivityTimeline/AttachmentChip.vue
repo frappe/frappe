@@ -1,6 +1,6 @@
 <template>
 	<span class="inline-flex max-w-full">
-		<!-- previewable (image/text) opens a dialog; else a plain download link -->
+		<!-- previewable (image/text/markdown) opens a dialog; else a plain download link -->
 		<component :is="wrapper.tag" v-bind="wrapper.attrs" class="inline-flex max-w-full">
 			<Button
 				class="group max-w-full"
@@ -41,6 +41,10 @@
 				>
 					{{ textContent }}
 				</div>
+				<MarkdownPreview
+					v-else-if="preview === 'markdown' && textContent"
+					:content="textContent"
+				/>
 				<img
 					v-else-if="preview === 'image'"
 					:src="url"
@@ -60,9 +64,12 @@
 
 <script setup lang="ts">
 import { Button, Dialog } from "frappe-ui";
-import { computed, ref, watch } from "vue";
+import { computed, defineAsyncComponent, ref, watch } from "vue";
 import LucideDownload from "~icons/lucide/download";
 import LucidePaperclip from "~icons/lucide/paperclip";
+
+// The editor is heavy and only a markdown preview needs it: load it when one opens.
+const MarkdownPreview = defineAsyncComponent(() => import("./MarkdownPreview.vue"));
 
 const props = withDefaults(
 	defineProps<{
@@ -75,15 +82,17 @@ const props = withDefaults(
 );
 
 const IMAGE_EXTS = new Set(["png", "jpg", "jpeg", "gif", "webp", "svg", "bmp"]);
-const TEXT_EXTS = new Set(["txt", "md", "log"]);
+const TEXT_EXTS = new Set(["txt", "log"]);
+const MARKDOWN_EXTS = new Set(["md", "markdown"]);
 const VIDEO_EXTS = new Set(["mp4", "mov", "webm", "mkv", "avi", "m4v"]);
 
-// only images, text files, and video preview in a dialog; everything else downloads
-const preview = computed<"image" | "text" | "video" | null>(() => {
+// only images, text, markdown, and video preview in a dialog; everything else downloads
+const preview = computed<"image" | "text" | "markdown" | "video" | null>(() => {
 	if (!props.url) return null;
 	const ext = (props.label.split(".").pop() || "").toLowerCase();
 	if (IMAGE_EXTS.has(ext)) return "image";
 	if (TEXT_EXTS.has(ext)) return "text";
+	if (MARKDOWN_EXTS.has(ext)) return "markdown";
 	if (VIDEO_EXTS.has(ext)) return "video";
 	return null;
 });
@@ -105,7 +114,8 @@ const error = ref<string | null>(null);
 
 // fetch text lazily on first open
 watch(previewOpen, async (isOpen) => {
-	if (isOpen && preview.value === "text" && props.url && !textContent.value) {
+	const isText = preview.value === "text" || preview.value === "markdown";
+	if (isOpen && isText && props.url && !textContent.value) {
 		error.value = null;
 		try {
 			const res = await fetch(props.url);

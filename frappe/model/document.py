@@ -1,5 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import copy
 import datetime
 import functools
 import hashlib
@@ -1585,6 +1586,30 @@ class Document(_DocumentBase):
 
 		self.mask_fields()
 
+	def copy_with_fieldlevel_read_permissions(self) -> "Document":
+		"""Return a copy without the values the user is not allowed to read, so that this document stays
+		whole for what is queued on it, such as webhooks and background jobs."""
+		if frappe.session.user == "Administrator" or not self._has_fieldlevel_read_restrictions():
+			return self
+
+		doc = get_doc(copy.deepcopy(self.as_dict()))
+		doc.apply_fieldlevel_read_permissions()
+		return doc
+
+	def _has_fieldlevel_read_restrictions(self) -> bool:
+		"""Whether `apply_fieldlevel_read_permissions` would remove or mask any value for this user."""
+		if self.meta.get_masked_fields():
+			return True
+
+		permlevels = {df.permlevel for df in self.meta.fields if df.permlevel}
+		for table_field in self.meta.get_table_fields(include_computed=True):
+			child_meta = frappe.get_meta(table_field.options)
+			permlevels.update(df.permlevel for df in child_meta.fields if df.permlevel)
+			if child_meta.get_masked_fields(parenttype=self.doctype):
+				return True
+
+		return bool(permlevels - set(self.get_permlevel_access("read")))
+
 	def _restore_masked_fields_from_db(self):
 		"""Restore masked field values from DB so that link-field user-permission checks
 		are not tripped by the XXXXXXXX placeholder sent from the client."""
@@ -1881,9 +1906,7 @@ class Document(_DocumentBase):
 
 		for doc in docs_to_validate:
 			is_submittable = self.meta.is_submittable
-			link_fields = doc.meta.get_link_fields() + doc.meta.get(
-				"fields", {"fieldtype": ("=", "Dynamic Link")}
-			)
+			link_fields = doc.meta.get_link_fields() + doc.meta.get_dynamic_link_fields()
 
 			for df in link_fields:
 				docname = doc.get(df.fieldname)
@@ -3626,7 +3649,7 @@ class Document(_DocumentBase):
 		invalid_links = []
 		cancelled_links = []
 
-		for df in self.meta.get_link_fields() + self.meta.get("fields", {"fieldtype": ("=", "Dynamic Link")}):
+		for df in self.meta.get_link_fields() + self.meta.get_dynamic_link_fields():
 			docname = self.get(df.fieldname)
 			if not docname:
 				continue
@@ -3784,6 +3807,7 @@ class Document(_DocumentBase):
 
 	def _validate_data_fields(self):
 		from frappe.utils import (
+			has_unsafe_url_scheme,
 			split_emails,
 			validate_email_address,
 			validate_iban,
@@ -3796,7 +3820,7 @@ class Document(_DocumentBase):
 		for phone_field in self.meta.get_phone_fields():
 			phone = self.get(phone_field.fieldname)
 			with self._naming_field(phone_field.fieldname):
-				validate_phone_number_with_country_code(phone, phone_field.fieldname)
+				validate_phone_number_with_country_code(phone, phone_field.fieldname, _(phone_field.label))
 
 		# data_field options defined in frappe.model.data_field_options
 		for data_field in self.meta.get_data_fields():
@@ -3826,6 +3850,10 @@ class Document(_DocumentBase):
 
 				if data_field_options == "URL":
 					validate_url(data, throw=True)
+					if has_unsafe_url_scheme(data):
+						frappe.throw(
+							_("'{0}' is not a valid URL").format(frappe.bold(data)), title=_("Invalid URL")
+						)
 
 				if data_field_options == "IBAN":
 					validate_iban(data, throw=True)
@@ -4381,9 +4409,11 @@ def _document_values_generator(
 		yield tuple(doc_values.get(col) for col in columns)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def unlock_document(doctype: str, name: str):
-	frappe.get_lazy_doc(doctype, name).unlock()
+	doc = frappe.get_lazy_doc(doctype, name)
+	doc.check_permission("write")
+	doc.unlock()
 	frappe.msgprint(frappe._("Document Unlocked"), alert=True)
 
 

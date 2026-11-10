@@ -103,6 +103,10 @@ let docfield_df = computed(() => {
 				df.fieldtype = "Select";
 				df.options = ["", "Email", "Name", "Phone", "URL", "Barcode", "IBAN"];
 			}
+			if (store.form.selected_field.fieldtype === "Vue Component") {
+				df.fieldtype = "Select";
+				df.options = ["", ...frappe.boot.ui_islands];
+			}
 
 			const FIELD_DESCRIPTIONS = {
 				Select: __("Enter list of Options, each on a new line."),

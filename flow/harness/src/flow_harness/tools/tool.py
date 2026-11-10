@@ -24,6 +24,7 @@ from typing import Any, Literal, Union, get_args, get_origin, get_type_hints, ov
 from pydantic import BaseModel, ConfigDict, validate_call
 
 from flow_harness.events import AttachmentContent, DisplaySegment
+from flow_harness.session.config import WebSearchConfig
 
 _DISPLAY_VARIABLE = re.compile(r"{{\s*([A-Za-z_][A-Za-z0-9_]*)\s*}}")
 DISPLAY_VALUE_CHARS = 512
@@ -85,6 +86,8 @@ class ToolContext:
 	run_subagent: Callable[[str, str, str | None, str | None], Awaitable[SubagentOutcome]] | None = None
 	# the call being executed, set per dispatch
 	tool_call_id: str = ""
+	# where web_search sends a query; None searches DuckDuckGo
+	web_search: WebSearchConfig | None = None
 
 
 @dataclass
@@ -129,8 +132,6 @@ class Tool:
 	display_template: str | None = None
 	# May run alongside the other concurrent tools called in the same turn.
 	concurrent: bool = False
-	# A turn that calls only such tools, none failing, ends the run: no model turn follows.
-	ends_run: bool = False
 
 	def __post_init__(self) -> None:
 		if self.display_template is not None:
@@ -173,7 +174,6 @@ def tool(
 	prompt_guidelines: tuple[str, ...] = (),
 	display_template: str | None = None,
 	concurrent: bool = False,
-	ends_run: bool = False,
 ) -> Callable[[Callable[..., Awaitable[ToolResult]]], Tool]: ...
 
 
@@ -188,7 +188,6 @@ def tool(
 	prompt_guidelines: tuple[str, ...] = (),
 	display_template: str | None = None,
 	concurrent: bool = False,
-	ends_run: bool = False,
 ) -> Tool | Callable[[Callable[..., Awaitable[ToolResult]]], Tool]:
 	def wrap(f: Callable[..., Awaitable[ToolResult]]) -> Tool:
 		return Tool(
@@ -202,7 +201,6 @@ def tool(
 			prompt_guidelines=prompt_guidelines,
 			display_template=display_template,
 			concurrent=concurrent,
-			ends_run=ends_run,
 		)
 
 	return wrap(func) if func is not None else wrap

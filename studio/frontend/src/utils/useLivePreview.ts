@@ -31,7 +31,8 @@ export function useLivePreview() {
 
 	// a custom .vue component was added/removed/renamed in a studio folder (Vite emits this in dev;
 	// content edits hot-reload on their own). Re-register so the preview picks it up.
-	const onCustomComponentsChanged = () => reloadCustomVueComponents((window as any).frappe_app)
+	const onCustomComponentsChanged = () =>
+		reloadCustomVueComponents((window as any).frappe_app, (window as any).app_name)
 
 	onMounted(() => {
 		socket?.on("studio_doc_update", onDocUpdate)

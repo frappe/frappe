@@ -182,7 +182,8 @@ class Meta(Document):
 		return _serialize(self, no_nulls=no_nulls)
 
 	def get_link_fields(self):
-		return self.get("fields", {"fieldtype": "Link", "options": ["!=", "[Select]"]})
+		# Callers can change the returned list
+		return self._link_fields.copy()
 
 	def get_data_fields(self):
 		return self.get("fields", {"fieldtype": "Data"})
@@ -213,6 +214,10 @@ class Meta(Document):
 			frappe.cache.set_value(cache_key, masked_fields)
 
 		return masked_fields
+
+	@cached_property
+	def _link_fields(self):
+		return self.get("fields", {"fieldtype": "Link", "options": ["!=", "[Select]"]})
 
 	@cached_property
 	def _dynamic_link_fields(self):

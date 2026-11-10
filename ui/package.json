@@ -38,6 +38,10 @@
       "import": "./src/components/SectionMarks/index.ts",
       "types": "./src/components/SectionMarks/index.ts"
     },
+    "./EmailAccounts": {
+      "import": "./src/components/EmailAccounts/index.ts",
+      "types": "./src/components/EmailAccounts/index.ts"
+    },
     "./InviteUser": {
       "import": "./src/components/InviteUser/index.ts",
       "types": "./src/components/InviteUser/index.ts"

@@ -395,9 +395,9 @@ class LoginManager:
 	def logout(self, arg="", user=None):
 		if not user:
 			user = frappe.session.user
-		self.run_trigger("on_logout")
 
 		if user == frappe.session.user:
+			self.run_trigger("on_logout")
 			delete_session(frappe.session.sid, user=user, reason="User Manually Logged Out")
 			self.clear_cookies()
 			if frappe.request:
@@ -501,7 +501,11 @@ def validate_ip_address(user):
 	if request is not None and request.path.startswith("/api/method/frappe.realtime."):
 		return True
 
-	user_info = frappe.get_cached_doc("User", user)
+	try:
+		user_info = frappe.get_cached_doc("User", user)
+	except frappe.DoesNotExistError:
+		return
+
 	ip_list = user_info.get_restricted_ip_list()
 
 	if not ip_list:

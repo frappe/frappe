@@ -2,9 +2,13 @@
 steering, abort at every await point, and typed failure settlement."""
 
 import asyncio
+import json
+import os
+import re
 
 import pytest
 
+from flow_harness.agent import loop
 from flow_harness.agent.client_tools import deliver_result
 from flow_harness.agent.loop import HookDecision
 from flow_harness.events import AssistantMessage, ToolCall, Usage
@@ -26,7 +30,7 @@ def _session(tmp_path, **cfg):
 		event_sink=lambda _sid, ev: events.append(ev),
 		credential_store=CredentialStore(str(tmp_path / "credentials.json")),  # never the real one
 	)
-	session = store.create(SessionConfig(cwd=str(tmp_path), **cfg))
+	session = store.create(SessionConfig(cwd=str(tmp_path), **{"approval_mode": "ask", **cfg}))
 	return session, events
 
 
@@ -48,15 +52,15 @@ def _of(events, t):
 	return [e for e in events if e["type"] == t]
 
 
+def _saved_path(content):
+	return re.search(r"is saved in (\S+): ", content).group(1)
+
+
 def _read_call(cid="c1", path="a.txt"):
 	return AssistantMessage(content=[ToolCall(id=cid, name="read", arguments={"path": path})])
 
 
-def _offer(cid, *replies):
-	return ToolCall(id=cid, name="suggest_replies", arguments={"replies": list(replies)})
-
-
-async def test_a_run_takes_turns_until_the_model_stops_or_calls_only_run_ending_tools(tmp_path):
+async def test_a_run_takes_turns_until_the_model_stops_calling_tools(tmp_path):
 	(tmp_path / "a.txt").write_text("FILE-A")
 	session, events = _session(tmp_path)
 	mock = MockModel(replies=[_read_call(), AssistantMessage(content="hello there")])
@@ -70,16 +74,6 @@ async def test_a_run_takes_turns_until_the_model_stops_or_calls_only_run_ending_
 	assert [e["reason"] for e in _of(events, "run_ended")] == ["done"]
 	assert session.transcript.messages[0].type == "user_message"
 	assert session.transcript.messages[0].content == "hi"
-
-	# offering replies ends the run, unless the turn also called another tool or the offer failed
-	session, events = _session(tmp_path, tools=["read", "suggest_replies"])
-	read, offer = _read_call().tool_calls[0], _offer("c2", "Yes", "No")
-	turns = [[read, offer], [_offer("c3", "Yes")], [_offer("c4", "Yes", "No")], "never asked"]
-	mock = MockModel(replies=[AssistantMessage(content=content) for content in turns])
-	await _run(session, "hi", model=mock)
-	assert [r["is_error"] for r in _of(events, "tool_result")] == [False, False, True, False]
-	assert len(_of(events, "assistant_message")) == 3
-	assert [e["reason"] for e in _of(events, "run_ended")] == ["done"]
 
 
 async def test_the_model_request_carries_the_session_settings(tmp_path, monkeypatch):
@@ -213,9 +207,12 @@ async def _dump(session, events, content):
 async def test_oversized_tool_results_keep_their_start_and_end(tmp_path):
 	session, events = _session(tmp_path)
 	result = await _dump(session, events, "a" * 100_000 + "b" * 100_000)
+	saved = _saved_path(result["content"])
+	assert saved.startswith(f"{session.results_dir}/c1-")
 	assert result["content"] == (
 		"a" * 40_960 + "\n\n[Cut the middle: showing the first 40 KB and the last 10 KB of 195 KB. "
-		"To see more, call again asking for less: fewer fields, filters, a limit or a count. "
+		f"The whole result is saved in {saved}: read it in parts with read's "
+		"offset and limit, or find lines in it with grep. "
 		"Don't repeat a call that changed data.]\n\n" + "b" * 10_240
 	)
 	assert result["details"]["truncation"]["truncated"] is True
@@ -256,6 +253,60 @@ async def test_oversized_tool_results_keep_their_start_and_end(tmp_path):
 	)
 
 
+async def test_an_oversized_result_is_saved_whole_for_read(tmp_path, monkeypatch):
+	rows = [{"name": f"INV-{i:05}", "customer": "Acme" if i == 4321 else "Other"} for i in range(6000)]
+	workspace = tmp_path / "work"
+	workspace.mkdir()
+	events: list[dict] = []
+	store = SessionStore(
+		str(tmp_path / "data"),
+		event_sink=lambda _sid, ev: events.append(ev),
+		credential_store=CredentialStore(str(tmp_path / "credentials.json")),
+		allowed_roots=[str(workspace)],  # as deployed: read reaches the saved result, nothing else
+	)
+	session = store.create(SessionConfig(cwd=str(workspace), tools=["read", "grep"]))
+	result = await _dump(session, events, json.dumps(rows))  # one line, as a client tool's JSON arrives
+	saved = _saved_path(result["content"])
+	assert "The whole result is saved in" in result["content"]
+
+	# the saved JSON has one value per line, so read can page it and grep can find a row
+	grep_call = ToolCall(id="c2", name="grep", arguments={"pattern": "Acme", "path": saved})
+	read_call = ToolCall(id="c3", name="read", arguments={"path": saved, "offset": 17286, "limit": 4})
+	calls = AssistantMessage(content=[grep_call, read_call])
+	await _run(session, "find", model=MockModel(replies=[calls, AssistantMessage(content="ok")]))
+	found, page = (r["content"] for r in _of(events, "tool_result")[-2:])
+	assert found.endswith(':17288:  "customer": "Acme"')
+	assert '"name": "INV-04321"' in page
+
+	# a provider that reuses a call id does not overwrite the earlier result
+	again = _saved_path((await _dump(session, events, "y" * 200_000))["content"])
+	assert again != saved
+	assert '"name": "INV-04321"' in open(saved).read()
+
+	# past the size cap, only the start is saved, ending on a whole line
+	monkeypatch.setattr(loop, "MAX_SAVED_BYTES", 100_000)
+	result = await _dump(session, events, "\n".join("z" * 99 for _ in range(3000)))
+	assert "The first 98 KB of the result is saved in" in result["content"]
+	assert open(_saved_path(result["content"])).read() == "\n".join("z" * 99 for _ in range(1000))
+
+	# a folder that cannot be written leaves the plain cut, not a failed run
+	(tmp_path / "taken").write_text("")
+	session.results_dir = str(tmp_path / "taken")
+	result = await _dump(session, events, "x" * 200_000)
+	assert "call again asking for less" in result["content"]
+	assert [e["reason"] for e in _of(events, "run_ended")][-1] == "done"
+	session.results_dir = os.path.dirname(saved)
+
+	# without read there is nothing to open it with, so nothing is saved
+	no_read = store.create(SessionConfig(cwd=str(workspace), tools=["grep"]))
+	result = await _dump(no_read, events, "x" * 200_000)
+	assert "call again asking for less" in result["content"]
+	assert not os.path.exists(no_read.results_dir)
+
+	store.delete(session.id)
+	assert not os.path.exists(session.results_dir)
+
+
 async def test_resume_approves_denies_or_redirects_the_paused_call(tmp_path):
 	(tmp_path / "a.txt").write_text("SECRET")
 
@@ -280,13 +331,18 @@ async def test_resume_approves_denies_or_redirects_the_paused_call(tmp_path):
 	await _run(session, "again", model=MockModel(replies=[AssistantMessage(content="ok")]))
 	assert session._budget is not budget
 
-	session, events, mock = await paused("unreached")
+	session, events, mock = await paused("not read; anything to change?")
+	[approval] = _of(events, "approval_required")
 	await _resume(session, {"c1": "Deny"}, model=mock)
 	tr = _of(events, "tool_result")[0]
 	assert tr["is_error"] is True
-	assert "denied" in tr["content"]
-	assert _of(events, "run_ended")[-1]["reason"] == "denied"
-	assert mock._turn == 1  # the model was NOT called again after denial
+	decision = json.loads(tr["content"])
+	assert decision["status"] == "denied"
+	assert decision["action"] == approval["calls"][0]["prompt"].split("\n")[0]
+	assert tr["details"] == {"user_answer": "Deny"}  # the UI trusts this, never the content
+	# the model answers the user once, instead of the run ending on the denial
+	assert _of(events, "assistant_message")[-1]["content"][0]["text"] == "not read; anything to change?"
+	assert _of(events, "run_ended")[-1]["reason"] == "done"
 
 	session, events, mock = await paused("adjusted")
 	await _resume(session, {"c1": "use the other file"}, model=mock)
@@ -295,19 +351,6 @@ async def test_resume_approves_denies_or_redirects_the_paused_call(tmp_path):
 	assert "use the other file" in tr["content"]
 	assert mock._turn == 2  # the model got a turn to adjust
 	assert _of(events, "run_ended")[-1]["reason"] == "done"
-
-	# an approved run-ending tool still ends the run; a redirect still gets the model's turn
-	for answer, model_turns in [("Approve", 1), ("shorter ones", 2)]:
-		session, events = _session(tmp_path, tools=["suggest_replies"], confirm_tools=["suggest_replies"])
-		replies = [
-			AssistantMessage(content=[_offer("c1", "Yes", "No")]),
-			AssistantMessage(content="adjusted"),
-		]
-		mock = MockModel(replies=replies)
-		await _run(session, "ask me", model=mock)
-		await _resume(session, {"c1": answer}, model=mock)
-		assert mock._turn == model_turns, answer
-		assert [e["reason"] for e in _of(events, "run_ended")] == ["paused", "done"]
 
 
 async def test_a_paused_session_refuses_runs_and_inexact_answers_until_cancelled(tmp_path):
@@ -380,17 +423,17 @@ async def test_steering_joins_the_active_run_and_is_dropped_when_it_ends(tmp_pat
 	assert [e["content"][0]["text"] for e in _of(events, "assistant_message")] == ["reply-1", "reply-2"]
 	assert [e["reason"] for e in _of(events, "run_ended")] == ["done"]
 
-	# a steer waiting on a tool turn reaches the run resumed after an approval
+	# a steer waiting on a tool turn reaches the run resumed after an approval or a denial
 	(tmp_path / "a.txt").write_text("x")
-	session, events = _session(tmp_path, confirm_tools=["read"])
-	await _steer_into_a_tool_turn(session)
-	await _resume(session, {"c1": "Approve"}, model=MockModel(replies=[AssistantMessage(content="ok")]))
-	assert [e["content"] for e in _of(events, "user_message")] == ["start", "steer me"]
+	for answer in ("Approve", "Deny"):
+		session, events = _session(tmp_path, confirm_tools=["read"])
+		await _steer_into_a_tool_turn(session)
+		await _resume(session, {"c1": answer}, model=MockModel(replies=[AssistantMessage(content="ok")]))
+		assert [e["content"] for e in _of(events, "user_message")] == ["start", "steer me"], answer
 
 	# but dies with a run that ends
 	cases = [
 		# session config, how the paused run ends, the run ends seen
-		({"confirm_tools": ["read"]}, "deny", ["paused", "denied"]),
 		({"confirm_tools": ["read"]}, "cancel", ["paused"]),
 		({"max_turns": 1}, None, ["max_turns"]),
 		({"token_budget": 5}, None, ["budget"]),
@@ -398,9 +441,7 @@ async def test_steering_joins_the_active_run_and_is_dropped_when_it_ends(tmp_pat
 	for config, ending, ends in cases:
 		session, events = _session(tmp_path, **config)
 		await _steer_into_a_tool_turn(session)
-		if ending == "deny":
-			await _resume(session, {"c1": "Deny"})
-		elif ending == "cancel":
+		if ending == "cancel":
 			assert await session.cancel_pending() is True
 		assert [e["reason"] for e in _of(events, "run_ended")] == ends, ending
 
@@ -710,7 +751,7 @@ async def test_abort_between_tool_calls_prevents_later_tool_from_starting(tmp_pa
 
 	monkeypatch.setitem(BUILTIN_TOOLS, "first", first)
 	monkeypatch.setitem(BUILTIN_TOOLS, "second", second)
-	session, events = _session(tmp_path, tools=["first", "second"], auto_approve=True)
+	session, events = _session(tmp_path, tools=["first", "second"], approval_mode="auto_approve")
 	model = MockModel(
 		replies=[
 			AssistantMessage(
@@ -752,7 +793,7 @@ async def test_concurrent_tools_run_together_and_other_tools_alone(tmp_path, mon
 
 	monkeypatch.setitem(BUILTIN_TOOLS, "pair", pair)
 	monkeypatch.setitem(BUILTIN_TOOLS, "solo", solo)
-	session, _ = _session(tmp_path, tools=["pair", "solo"], auto_approve=True)
+	session, _ = _session(tmp_path, tools=["pair", "solo"], approval_mode="auto_approve")
 	model = MockModel(
 		replies=[
 			AssistantMessage(
@@ -824,7 +865,7 @@ async def test_client_tool_round_trips_the_callback_and_unwraps_the_frappe_envel
 		callback_headers={"X-Site": "alpha", "x-harness-token": "stale"},
 		callback_timeout=7,
 		user_context={"user": "alice"},
-		auto_approve=True,
+		approval_mode="auto_approve",
 	)
 	model = MockModel(
 		replies=[
@@ -866,7 +907,7 @@ _REPORT_CLIENT = {
 		}
 	],
 	"callback_url": "https://client.invalid/tools",
-	"auto_approve": True,
+	"approval_mode": "auto_approve",
 }
 
 
@@ -1177,7 +1218,7 @@ async def test_model_retries_inside_the_adapter_never_rerun_completed_tools(tmp_
 
 	monkeypatch.setitem(BUILTIN_TOOLS, "count_once", count_once)
 	monkeypatch.setattr("flow_harness.model.retry._retry_delay_seconds", lambda error, retry_index: 0)
-	session, events = _session(tmp_path, tools=["count_once"], auto_approve=True)
+	session, events = _session(tmp_path, tools=["count_once"], approval_mode="auto_approve")
 
 	await _run(session, "go", model=ToolThenFlakyModel())
 
@@ -1185,3 +1226,192 @@ async def test_model_retries_inside_the_adapter_never_rerun_completed_tools(tmp_
 	assert [event["tool_call_id"] for event in _of(events, "tool_result")] == ["count-1"]
 	assert [event["status"] for event in _of(events, "retry")] == ["scheduled", "started"]
 	assert _of(events, "run_ended")[-1]["reason"] == "done"
+
+
+async def test_a_client_tool_that_needs_no_approval_runs_once_with_no_card(tmp_path, monkeypatch):
+	posts = []
+
+	async def post(config, url, payload):
+		posts.append(payload)
+		if payload["mode"] == "confirm":
+			return {"requires_confirmation": not payload["args"].get("read_only")}
+		return {"content": "ran"}
+
+	monkeypatch.setattr("flow_harness.agent.client_tools._post", post)
+	gated = {**_REPORT_CLIENT, "approval_mode": "ask", "confirm_tools": ["report"]}
+
+	# the client says this call needs no approval: no card, and it runs once
+	session, events = _session(tmp_path, **gated)
+	model = MockModel(
+		replies=[
+			AssistantMessage(content=[ToolCall(id="c1", name="report", arguments={"read_only": True})]),
+			AssistantMessage(content="done"),
+		]
+	)
+	await _run(session, "build the report", model=model)
+	assert [p["mode"] for p in posts] == ["confirm", "execute"]
+	assert not _of(events, "approval_required")
+	assert [r["content"] for r in _of(events, "tool_result")] == ["ran"]
+	assert _of(events, "run_ended")[-1]["reason"] == "done"
+
+	# any other answer still asks, and nothing runs before the user does
+	posts.clear()
+	session, events = _session(tmp_path, **gated)
+	await _run(session, "build the report", model=_report_model())
+	assert [p["mode"] for p in posts] == ["confirm"]
+	assert len(_of(events, "approval_required")) == 1
+	assert _of(events, "run_ended")[-1]["reason"] == "paused"
+
+
+async def test_a_server_tools_empty_prompt_still_shows_a_card():
+	@tool(requires_confirmation=True, confirm_prompt=lambda args: args.get("description"))
+	def deploy(description: str = "", *, ctx=None):
+		return "deployed"
+
+	inputs = loop.LoopInputs(
+		config=SessionConfig(cwd="/tmp"),
+		model_name="mock",
+		messages=[],
+		credential_store=None,
+		abort=asyncio.Event(),
+	)
+	call = ToolCall(id="c1", name="deploy", arguments={})
+	# None is the client's "no approval needed"; a tool's own empty prompt means the generic card
+	prompt, needs_user = await loop._confirmation_prompt(call, {"deploy": deploy}, inputs)
+	assert prompt.startswith("Approve `deploy`?") and needs_user is False
+
+
+def _verdict(decision, reason="because"):
+	return AssistantMessage(content=json.dumps({"decision": decision, "reason": reason}))
+
+
+async def test_auto_review_runs_what_the_reviewer_allows_and_holds_the_rest(tmp_path, monkeypatch):
+	(tmp_path / "a.txt").write_text("FILE-A")
+	(tmp_path / "b.txt").write_text("FILE-B")
+	reviewers = []
+
+	def build(name, **kwargs):
+		reviewers.append(
+			_RecordingModel(
+				replies=[
+					_verdict("allow", "You asked for a.txt."),
+					_verdict("deny", "b.txt was never mentioned."),
+					_verdict("allow", "You asked for c.txt instead."),
+				]
+			)
+		)
+		return reviewers[-1]
+
+	monkeypatch.setattr("flow_harness.agent.loop.get_model", build)
+	session, events = _session(
+		tmp_path, confirm_tools=["read"], approval_mode="auto", small_model={"model": "mock"}
+	)
+	mock = MockModel(
+		replies=[
+			AssistantMessage(
+				content=[
+					ToolCall(id="c1", name="read", arguments={"path": "a.txt"}),
+					ToolCall(id="c2", name="read", arguments={"path": "b.txt"}),
+				]
+			),
+			AssistantMessage(content=[ToolCall(id="c3", name="read", arguments={"path": "c.txt"})]),
+			AssistantMessage(content="done"),
+		]
+	)
+	await _run(session, "read a.txt", model=mock)
+
+	# one reviewer per run, told only what the user said and what the agent called
+	assert len(reviewers) == 1
+	[first, second] = reviewers[0].requests
+	seen = ["\n".join(m.text for m in request.messages) for request in (first, second)]
+	assert "User: read a.txt" in seen[0] and "Agent called read" in seen[1]
+	# the second review's messages extend the first's, so the provider can serve the prefix from cache
+	first_items, second_items = ([m.text for m in r.messages] for r in (first, second))
+	assert second_items[:-1] == first_items  # so the provider serves the first review's messages from cache
+	# the call itself, with every argument, after its tool's definition
+	assert first_items[-1] == 'Agent called read: {"path": "a.txt"}'
+	assert first_items[-2].startswith('Tool definition: {"type": "function", "function": {"name": "read"')
+	assert first.tools is None and first.stream is False
+	# the allowed call ran, with the verdict kept in its result's details only
+	[result] = _of(events, "tool_result")
+	assert (result["tool_call_id"], result["content"]) == ("c1", "FILE-A")
+	assert result["details"]["review"] == {"decision": "allow"}
+	# the denied one waits for the user, saying why
+	[approval] = _of(events, "approval_required")
+	[call] = approval["calls"]
+	assert call["id"] == "c2" and call["prompt"].endswith("\n\nNot auto-approved: b.txt was never mentioned.")
+	assert _of(events, "run_ended")[-1]["reason"] == "paused"
+	# the reviews' spend is logged as standalone usage and counted against the run
+	purposes = [e["purpose"] for e in _of(events, "usage") if e.get("standalone")]
+	assert purposes == ["review", "review"]
+	assert session._budget.spent > sum(
+		e["input_tokens"] + e["output_tokens"] for e in _of(events, "usage") if not e.get("standalone")
+	)
+
+	# what the user types at the approval prompt is their word, and the next reviewer hears it
+	(tmp_path / "c.txt").write_text("FILE-C")
+	await _resume(session, {"c2": "read c.txt instead"}, model=mock)
+	[third] = reviewers[1].requests  # the resumed run has a reviewer of its own
+	assert "User (answering an approval for read): read c.txt instead" in "\n".join(
+		m.text for m in third.messages
+	)
+	assert _of(events, "tool_result")[-1]["content"] == "FILE-C"
+	assert _of(events, "run_ended")[-1]["reason"] == "done"
+
+
+async def test_auto_review_fails_closed_and_is_moot_with_approvals_off(tmp_path, monkeypatch):
+	(tmp_path / "a.txt").write_text("FILE-A")
+
+	async def paused_prompt(reviewer):
+		monkeypatch.setattr("flow_harness.agent.loop.get_model", lambda name, **kwargs: reviewer)
+		session, events = _session(tmp_path, confirm_tools=["read"], approval_mode="auto")
+		await _run(session, "read", model=MockModel(replies=[_read_call()]))
+		assert _of(events, "tool_result") == []
+		[approval] = _of(events, "approval_required")
+		return approval["calls"][0]["prompt"]
+
+	# an unparseable verdict, and a reviewer that breaks, both hand the call to the user
+	assert (await paused_prompt(MockModel(replies=[AssistantMessage(content="sure, go ahead")]))).endswith(
+		"Not auto-approved: The reviewer gave no clear verdict."
+	)
+
+	class Broken(MockModel):
+		async def run(self, request):
+			raise RuntimeError("down")
+			yield
+
+	assert (await paused_prompt(Broken())).endswith(
+		"Not auto-approved: The reviewer could not check this call."
+	)
+
+	# with approvals off there is nothing to review
+	def never(name, **kwargs):
+		raise AssertionError("no reviewer should be built")
+
+	monkeypatch.setattr("flow_harness.agent.loop.get_model", never)
+	session, events = _session(tmp_path, confirm_tools=["read"], approval_mode="auto_approve")
+	await _run(session, "read", model=MockModel(replies=[_read_call(), AssistantMessage(content="ok")]))
+	[result] = _of(events, "tool_result")
+	assert result["content"] == "FILE-A" and "review" not in result["details"]
+
+
+async def test_a_card_that_takes_the_users_input_is_never_auto_approved(tmp_path, monkeypatch):
+	async def post(config, url, payload):
+		return {"prompt": "Enter the API key", "needs_user": True}
+
+	def never(name, **kwargs):
+		raise AssertionError("no reviewer should be built")
+
+	monkeypatch.setattr("flow_harness.agent.client_tools._post", post)
+	monkeypatch.setattr("flow_harness.agent.loop.get_model", never)
+	gated = {
+		**_REPORT_CLIENT,
+		"approval_mode": "auto",
+		"confirm_tools": ["report"],
+		"small_model": {"model": "mock"},
+	}
+	session, events = _session(tmp_path, **gated)
+	await _run(session, "save the key", model=_report_model())
+	[approval] = _of(events, "approval_required")
+	assert approval["calls"][0]["prompt"] == "Enter the API key"
+	assert _of(events, "run_ended")[-1]["reason"] == "paused"

@@ -1,9 +1,9 @@
 import assert from "node:assert/strict"
 import test from "node:test"
-import { ref } from "vue"
+import { ref, watch } from "vue"
 
 import { FlowAPIError } from "../src/client.js"
-import { layout } from "../src/layout.js"
+import { chatFontWeight, layout } from "../src/layout.js"
 import { createFlowStore, MAX_ATTACHMENTS } from "../src/store.js"
 import { applyEvent } from "../src/transcript.js"
 
@@ -79,13 +79,16 @@ test("send stages uploads and mentions side by side, and sends a prepared file b
 			calls.push(["run", sid, message, ids])
 			return { status: "ok" }
 		},
+		async attachmentBlob() {
+			return new Blob(["stored"])
+		},
 	}
 	const flow = createFlowStore(client)
 	flow.state.sessionId = "session-1"
 
 	const sent = await flow.send("check these", [
 		{ id: "F1", file: { name: "notes.pdf" } }, // prepared: not uploaded again
-		{ key: "local:0", name: "screen.png", kind: "image", file: { name: "screen.png" } },
+		{ key: "local:0", name: "screen.png", kind: "image", file: new File(["png"], "screen.png") },
 		{ key: "mention:0", name: "foo.py", kind: "file", mentionPath: "src/foo.py" },
 	])
 
@@ -96,6 +99,10 @@ test("send stages uploads and mentions side by side, and sends a prepared file b
 		["attach", "session-1", ["src/foo.py"]],
 		["run", "session-1", "check these", ["F1", "att-upload", "att-0"]],
 	])
+	// the picture's bubble shows its own file from the start, by the composer's id and the stored one's
+	assert.match(flow.sentPreview("local:0"), /^blob:/)
+	assert.match(flow.sentPreview("att-upload"), /^blob:/)
+	assert.equal(flow.sentPreview("F1"), null)
 })
 
 test("skill previews load once per folder and never land in another folder's list", async () => {
@@ -238,6 +245,19 @@ test("a chat opens once, stays loading until its own load lands, and gives way t
 	flow.detach()
 })
 
+test("a gone chat the page reopened by itself gives way to a new chat without a word; one the user opened says so once", async () => {
+	const gone = () => Promise.reject(new FlowAPIError(404, "Flow Session gone not found"))
+	const flow = createFlowStore({ session: gone, skills: gone }, { skillsEnabled: true })
+	const toasts = []
+	watch(() => flow.state.toast, (toast) => toasts.push(toast.message), { flush: "sync" })
+	flow.state.prefs.lastSession = "gone"
+	await flow.openSession("gone", { quiet: true })
+	assert.deepEqual([flow.state.sessionId, flow.state.prefs.lastSession, toasts], [null, null, []])
+	await flow.openSession("gone")
+	assert.deepEqual([flow.state.sessionId, toasts], [null, ["Flow Session gone not found"]])
+	flow.detach()
+})
+
 test("only the latest model refresh ends the loading and fills the list", async () => {
 	const answers = []
 	const flow = createFlowStore({ models: () => new Promise((resolve) => answers.push(resolve)) })
@@ -335,8 +355,9 @@ test("a change that answers after a chat switch stays with the chat it was made 
 	await flow.openSession("B")
 	flow.state.conversation.pendingApproval = { seq: 2, calls: [{ id: "x" }], answers: {} }
 	models[0]({ model: "m/new" })
-	models[1]({ model: "m/A", reasoning_effort: "high" })
-	modeAnswer({ config: { auto_approve: true, cwd: "/A" } })
+	await changes[0]
+	models[1]({ model: "m/new", reasoning_effort: "high" })
+	modeAnswer({ config: { approval_mode: "auto", cwd: "/A" } })
 	rewindAnswer({ status: "rewound" })
 	const rewound = (await Promise.all(changes))[3]
 
@@ -499,6 +520,164 @@ test("a model the chat takes updates its header and the default; a refused one d
 	flow.detach()
 })
 
+for (const picker of ["model", "thinking"]) {
+	test(`${picker} changes immediately, rolls back on failure, and is remembered only after saving`, async () => {
+		let resolve, reject
+		const flow = createFlowStore({
+			setModel: () => new Promise((yes, no) => {
+				resolve = yes
+				reject = no
+			}),
+		})
+		flow.state.sessionId = "s1"
+		flow.state.session = { model: "old", context_window: 100 }
+		Object.assign(flow.state.conversation, { model: "old", reasoningEffort: "low", contextWindow: 100 })
+		Object.assign(flow.state.prefs, { lastModel: "old", lastEffort: "low" })
+		const choose = () => picker === "model" ? flow.selectModel("new") : flow.selectEffort("high")
+		const current = () => picker === "model" ? flow.state.conversation.model : flow.state.conversation.reasoningEffort
+		const remembered = () => picker === "model" ? flow.state.prefs.lastModel : flow.state.prefs.lastEffort
+		const before = current()
+		const selected = picker === "model" ? "new" : "high"
+
+		const failed = choose()
+		assert.equal(current(), selected)
+		assert.equal(remembered(), before)
+		reject(new FlowAPIError(409, "a run is already active"))
+		await failed
+		assert.equal(current(), before)
+		assert.equal(remembered(), before)
+		assert.equal(flow.state.toast.kind, "error")
+
+		const saved = choose()
+		assert.equal(current(), selected)
+		resolve({ model: picker === "model" ? "new" : "old", context_window: 200 })
+		await saved
+		assert.equal(current(), selected)
+		assert.equal(remembered(), selected)
+		assert.equal(flow.state.session.context_window, 200)
+		flow.detach()
+	})
+}
+
+test("rapid model and thinking picks stay visible through older replies, and sending waits for them", async () => {
+	const calls = []
+	const requests = []
+	let emit
+	const client = hostClient(calls)
+	client.setModel = (sid, body) => new Promise((resolve, reject) => requests.push({ body, resolve, reject }))
+	client.stream = () => ({
+		close() {},
+		async *[Symbol.asyncIterator]() {
+			yield await new Promise((resolve) => (emit = resolve))
+		},
+	})
+	const flow = createFlowStore(client)
+	await flow.openSession("s1")
+	flow.state.conversation.reasoningEffort = "low"
+	flow.state.prefs.lastEffort = "low"
+	const model = flow.selectModel("new")
+	const effort = flow.selectEffort("high")
+	const sent = flow.send("hello")
+	assert.equal(flow.state.conversation.model, "new")
+	assert.equal(flow.state.conversation.reasoningEffort, "high")
+	assert.equal(requests.length, 1)
+	assert.deepEqual(calls, [])
+
+	requests[0].resolve({ model: "new", context_window: 200 })
+	await model
+	assert.deepEqual(requests[1].body, { model: "new", reasoning_effort: "high" })
+	emit({ type: "model_changed", seq: 1, model: "new", reasoning_effort: "low" })
+	await new Promise((resolve) => setImmediate(resolve))
+	assert.equal(flow.state.conversation.reasoningEffort, "high")
+	assert.deepEqual(calls, [])
+
+	requests[1].reject(new FlowAPIError(409, "a run is already active"))
+	await effort
+	assert.equal(await sent, true)
+	assert.equal(flow.state.conversation.model, "new")
+	assert.equal(flow.state.conversation.reasoningEffort, "low")
+	assert.equal(flow.state.conversation.contextWindow, 200)
+	assert.equal(flow.state.prefs.lastModel, "new")
+	assert.equal(flow.state.prefs.lastEffort, "low")
+	assert.deepEqual(calls, [["run", "hello"]])
+	flow.detach()
+})
+
+test("a pending model selection survives switching away and reopening its chat", async () => {
+	const client = hostClient([])
+	let saved = false
+	let resolveModel
+	client.session = async (sid) => ({
+		session_id: sid,
+		model: sid === "A" && saved ? "new" : "old",
+		context_window: sid === "A" && saved ? 200 : 100,
+		latest_seq: 0,
+	})
+	client.setModel = () => new Promise((resolve) => {
+		resolveModel = () => {
+			saved = true
+			resolve({ model: "new", context_window: 200 })
+		}
+	})
+	const flow = createFlowStore(client)
+	await flow.openSession("A")
+	const selected = flow.selectModel("new")
+	await flow.openSession("B")
+	const reopened = flow.openSession("A")
+	assert.equal(flow.state.conversation.model, "new")
+	resolveModel()
+	await Promise.all([selected, reopened])
+	assert.equal(flow.state.conversation.model, "new")
+	assert.equal(flow.state.conversation.contextWindow, 200)
+	assert.equal(flow.state.session.model, "new")
+	assert.equal(flow.state.session.context_window, 200)
+	flow.detach()
+})
+
+test("sending waits for a model selected while attachments are uploading", async () => {
+	const calls = []
+	const client = hostClient(calls)
+	let resolveUpload, resolveModel
+	client.uploadAttachments = () => new Promise((resolve) => (resolveUpload = resolve))
+	client.setModel = () => new Promise((resolve) => (resolveModel = resolve))
+	const flow = createFlowStore(client)
+	await flow.openSession("s1")
+	const sent = flow.send("hello", [{ file: { name: "notes.txt" }, name: "notes.txt" }])
+	const selected = flow.selectModel("new")
+	resolveUpload({ attachments: [{ id: "attachment", name: "notes.txt", kind: "file" }] })
+	await new Promise((resolve) => setImmediate(resolve))
+	assert.deepEqual(calls, [])
+	resolveModel({ model: "new", context_window: 200 })
+	await selected
+	assert.equal(await sent, true)
+	assert.deepEqual(calls, [["run", "hello"]])
+	flow.detach()
+})
+
+test("a successful queued model selection remembers the effort its failed predecessor selected", async () => {
+	const requests = []
+	const client = hostClient([])
+	client.setModel = (sid, body) => new Promise((resolve, reject) => requests.push({ body, resolve, reject }))
+	const flow = createFlowStore(client)
+	await flow.openSession("s1")
+	flow.state.conversation.reasoningEffort = "low"
+	flow.state.prefs.lastEffort = "low"
+	const effort = flow.selectEffort("high")
+	const model = flow.selectModel("new")
+	requests[0].reject(new FlowAPIError(409, "a run is already active"))
+	await effort
+	assert.deepEqual(requests[1].body, { model: "new", reasoning_effort: "high" })
+	requests[1].resolve({ model: "new", context_window: 200 })
+	await model
+	assert.equal(flow.state.conversation.reasoningEffort, "high")
+	assert.equal(flow.state.prefs.lastEffort, "high")
+	const next = flow.selectModel("next")
+	assert.deepEqual(requests[2].body, { model: "next", reasoning_effort: "high" })
+	requests[2].resolve({ model: "next", context_window: 300 })
+	await next
+	flow.detach()
+})
+
 test("a reopened chat restores its model's limit and the reply still streaming", async () => {
 	let releaseSuffix
 	let prefixDelivered
@@ -633,14 +812,11 @@ test("files save and diff against the browsed cwd, before a session or in one", 
 			if (!path.startsWith(`${cwd}/`)) throw new FlowAPIError(400, "file is outside the repository")
 			return { path, original: "old\n", modified: "new\n" }
 		},
-		async fileDiff(sid, path) {
-			calls.push(["session", sid, path])
+		async fileDiff(sid, path, since) {
+			calls.push(["session", sid, path, since])
 			return { path, original: "before\n", modified: "after\n" }
 		},
 		async gitChanges() {
-			throw new Error("boom")
-		},
-		async gitBranch() {
 			throw new Error("boom")
 		},
 	}
@@ -658,9 +834,8 @@ test("files save and diff against the browsed cwd, before a session or in one", 
 	assert.equal(diff.content, "new\n")
 	assert.equal(flow.state.workspace.open, true)
 
-	// the diff bar polls changes, so a failure stays silent instead of toasting, as a new chat's branch does
+	// the diff bar polls changes, so a failure stays silent instead of toasting
 	assert.equal(await flow.gitChanges(), null)
-	assert.equal(await flow.gitBranch(), null)
 	assert.equal(flow.state.toast, null)
 
 	// a file outside the repository falls back to the session's diff
@@ -671,11 +846,21 @@ test("files save and diff against the browsed cwd, before a session or in one", 
 	assert.equal(outside.error, null)
 	assert.equal(outside.original, "before\n")
 	assert.equal(outside.content, "after\n")
+
+	// a turn's files card diffs its own edits, skipping git; the files bar goes back to git
+	await flow.openDiffFile("/project/app.py", 7)
+	assert.equal(diff.original, "before\n")
+	assert.equal(diff.since, 7)
+	await flow.openDiffFile("/project/app.py")
+	assert.equal(diff.original, "old\n")
+	assert.equal(diff.since, null)
 	assert.deepEqual(calls, [
 		["write", "/project", "/project/a.txt", "new"],
 		["git", "/project", "/project/app.py"],
 		["git", "/project", "/home/elsewhere/hook.py"],
-		["session", "s1", "/home/elsewhere/hook.py"],
+		["session", "s1", "/home/elsewhere/hook.py", undefined],
+		["session", "s1", "/project/app.py", 7],
+		["git", "/project", "/project/app.py"],
 	])
 })
 
@@ -724,7 +909,7 @@ test("the active preset and custom instructions shape new sessions", async () =>
 	assert.equal(configs[1].system_suffix, "Review for risks.\n\nBe brief.")
 	assert.equal("system_preamble" in configs[1], false)
 	// model, thinking, and approval come from the chat, never the preset
-	assert.equal(configs[1].auto_approve, false)
+	assert.equal(configs[1].approval_mode, "auto") // Auto is the default mode
 	assert.equal("model" in configs[1], false)
 	assert.equal("effort" in configs[1], false)
 	assert.equal(configs[1].preset, id) // the chat keeps it, for the settings tab
@@ -1071,7 +1256,7 @@ test("saved state lives under the host's storage key and keeps only what differs
 
 		// a change the daemon missed goes to it at the next load, over the copy it has
 		daemon.away = true
-		other.setChatFontWeight(300)
+		other.setChatFontWeight(360)
 		t.mock.timers.tick(500)
 		await settled()
 		daemon.away = false
@@ -1080,18 +1265,18 @@ test("saved state lives under the host's storage key and keeps only what differs
 		await settled()
 		const reloaded = createFlowStore(client, { storageKey: "flow.ui:other", colorScheme: otherScheme })
 		await settled()
-		assert.deepEqual([reloaded.state.prefs.chatFontWeight, reloaded.state.prefs.chatFontSize], [300, 20])
-		assert.equal(daemon.settings.chatFontWeight, 300)
+		assert.deepEqual([reloaded.state.prefs.chatFontWeight, reloaded.state.prefs.chatFontSize], [360, 20])
+		assert.equal(daemon.settings.chatFontWeight, 360)
 
 		// a setting put back to its default goes as null, so every browser follows the default again
-		reloaded.setChatFontWeight(450)
+		reloaded.setChatFontWeight(420)
 		t.mock.timers.tick(500)
 		await settled()
 		assert.equal(daemon.settings.chatFontWeight, null)
 		assert.equal("chatFontWeight" in JSON.parse(backing.get("flow.ui:other.prefs")), false)
 		const firstAgain = createFlowStore(client, { storageKey: "flow.ui:site:user", colorScheme: scheme("dark") })
 		await settled()
-		assert.equal(firstAgain.state.prefs.chatFontWeight, 450)
+		assert.equal(firstAgain.state.prefs.chatFontWeight, 420)
 		assert.equal("chatFontWeight" in JSON.parse(backing.get("flow.ui:site:user.prefs")), false)
 	} finally {
 		globalThis.localStorage = previousStorage
@@ -1652,7 +1837,7 @@ test("a sub-agent's batch is answered with its own seq, and auto-approve answers
 	const resumes = []
 	const client = {
 		async patchConfig() {
-			return { config: { auto_approve: true } }
+			return { config: { approval_mode: "auto_approve" } }
 		},
 		async resume(sessionId, seq, answers) {
 			resumes.push({ seq, answers })
@@ -1682,7 +1867,7 @@ test("a sub-agent's batch is answered with its own seq, and auto-approve answers
 	assert.deepEqual(resumes, [{ seq: 6, answers: { a1: "Approve" } }])
 
 	// auto-approve answers every one still waiting, not just the oldest
-	await flow.setMode("auto")
+	await flow.setMode("auto_approve")
 	assert.deepEqual(resumes.slice(1), [
 		{ seq: 9, answers: { b1: "Approve" } },
 		{ seq: 11, answers: { d1: "Approve" } },
@@ -1796,4 +1981,8 @@ test("a compaction takes steering away as soon as it's asked for; a refused one 
 	await asked
 	assert.equal(flow.state.conversation.compacting, false)
 	flow.detach()
+})
+
+test("a chat font weight saved before the choices changed takes the nearest one, and none the default", () => {
+	assert.deepEqual([300, 450, 500, 360, undefined].map(chatFontWeight), [360, 420, 500, 360, 420])
 })

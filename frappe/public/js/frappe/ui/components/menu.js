@@ -37,6 +37,7 @@ import { place } from "./position.js";
  * @property {string} [icon] Lucide icon name shown before the label.
  * @property {string} [icon_right] Lucide icon name shown at the end of the row, e.g. "external-link" on a row that opens a new tab. Submenu rows end in their chevron instead.
  * @property {string} [image] Image URL shown before the label, for a mark no lucide icon can stand in for (an app's logo). Ignored when `icon` is set; refused on code-running schemes, like `href`.
+ * @property {string} [letter] A letter drawn as the mark when there is no `icon` or `image`, the way the desk draws an app with no logo. Only A to Z; any other character leaves the space empty.
  * @property {string} [description] Smaller second line under the label.
  * @property {"gray"|"red"} [theme="gray"] "red" for destructive rows.
  * @property {boolean} [selected] Marks the current choice (visual only).
@@ -183,6 +184,11 @@ export function build_item(item, { reserve_icon_space, component, taken }) {
 		// the label right beside it already names the thing, so the mark is decorative
 		img.alt = "";
 		el.appendChild(img);
+	} else if (/^[a-z]$/i.test(item.letter || "")) {
+		el.insertAdjacentHTML(
+			"beforeend",
+			`<span class="es-menu__letter" aria-hidden="true"><svg class="desktop-alphabet"><use href="#${item.letter.toUpperCase()}"></use></svg></span>`
+		);
 	} else if (reserve_icon_space) {
 		const space = document.createElement("span");
 		space.className = "es-menu__icon-space";
@@ -275,7 +281,9 @@ function render_content(panel, groups, { empty_text, component }) {
 
 		// when any row in a group has an icon, iconless rows reserve the
 		// same space so the labels line up
-		const reserve_icon_space = group.options.some((item) => item.icon || item.image);
+		const reserve_icon_space = group.options.some(
+			(item) => item.icon || item.image || item.letter
+		);
 
 		for (const item of group.options) {
 			const { el, mnemonic } = build_item(item, {
@@ -532,6 +540,10 @@ export class MenuTree {
 			// exit point + the panel's near corners
 			row.el.addEventListener("pointerleave", (e) => {
 				this.start_grace(entry, row, e);
+				// radix: the highlight leaves with the pointer; the panel keeps focus for keys
+				if (!this.grace && document.activeElement === row.el) {
+					entry.panel.focus({ preventScroll: true });
+				}
 			});
 		}
 	}

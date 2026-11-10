@@ -31,6 +31,10 @@ from urllib.error import HTTPError
 
 FULL_CI_LABEL = "run-full-ci"
 FIX_DEVELOP_LABEL = "fixes-develop"
+BUNDLE_SIZE_FILES = (
+	".github/workflows/default-js-bundle-size.yml",
+	".github/helper/compare_default_js_bundle_size.py",
+)
 
 
 @cache
@@ -238,6 +242,13 @@ if __name__ == "__main__":
 		print("No files' changes detected. Build is shutting")
 		sys.exit(0)
 
+	if build_type == "bundle":
+		if any(is_frontend_code(f) or f in BUNDLE_SIZE_FILES for f in files_list):
+			os.system('echo "build=strawberry" >> $GITHUB_OUTPUT')
+		else:
+			print("No frontend code was updated, stopping bundle size check.")
+		sys.exit(0)
+
 	# Analyze changed files
 	ci_files_changed = any(f for f in files_list if is_ci(f))
 	only_docs_changed = len(list(filter(is_docs, files_list))) == len(files_list)
@@ -268,7 +279,7 @@ if __name__ == "__main__":
 			sys.exit(0)
 	elif ci_files_changed:
 		print("CI related files were updated, running all build processes.")
-	elif only_docs_changed:
+	elif only_docs_changed and not tests_requested:
 		print("Only docs were updated, stopping build process.")
 		sys.exit(0)
 	elif only_frontend_code_changed and build_type == "server" and not tests_requested:

@@ -19,16 +19,19 @@ class ReportFilter(Document):
 		default: DF.SmallText | None
 		fieldname: DF.Data
 		fieldtype: DF.Literal[
+			"Autocomplete",
 			"Check",
 			"Currency",
 			"Data",
 			"Date",
+			"DateRange",
 			"Datetime",
 			"Dynamic Link",
 			"Float",
 			"Fold",
 			"Int",
 			"Link",
+			"MultiSelectList",
 			"Select",
 			"Time",
 		]

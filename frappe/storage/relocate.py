@@ -9,17 +9,23 @@ from collections.abc import Callable
 import frappe
 from frappe import _
 from frappe.storage.blob import key_basename, make_key
+from frappe.storage.cache import sweep_lock
 from frappe.storage.driver import StorageDriver, get_driver
+from frappe.storage.s3_driver import S3Driver
 from frappe.utils import cint
 
 BATCH_SIZE = 100
+SWEEP_WAIT_TIMEOUT = 600
 
 
-def relocate_blobs(batch_size: int = BATCH_SIZE, target_driver: str | None = None) -> dict:
+def relocate_blobs(
+	batch_size: int = BATCH_SIZE, target_driver: str | None = None, source_driver: str | None = None
+) -> dict:
 	"""Move blobs to a driver's canonical ``<blob>/<filename>`` keys. Safe to re-run.
 
 	The target defaults to the configured driver. ``File.file_url`` never changes.
-	A source object is deleted only after the commit that repoints its row."""
+	A source object is deleted only after the commit that repoints its row. Holds the cache sweep's
+	lock for the whole run: a cached copy can become the target, and the sweep must not expire it."""
 	if batch_size <= 0:
 		frappe.throw(_("batch_size must be greater than zero"), frappe.ValidationError)
 
@@ -31,36 +37,38 @@ def relocate_blobs(batch_size: int = BATCH_SIZE, target_driver: str | None = Non
 	logger = frappe.logger("storage")
 	after_name = ""
 
-	while rows := get_relocation_batch(batch_size, after_name):
-		moved_in_batch: list[tuple[str, int]] = []
-		for row in rows:
+	with sweep_lock(SWEEP_WAIT_TIMEOUT):
+		while rows := get_relocation_batch(batch_size, after_name, source_driver):
+			moved_in_batch: list[tuple[str, int]] = []
+			for row in rows:
+				try:
+					outcome = relocate_blob(row, target, stats, logger)
+				except Exception:
+					stats["errors"] += 1
+					logger.warning(f"storage relocation: could not move blob {row.name}", exc_info=True)
+					continue
+
+				if outcome is None:
+					stats["skipped"] += 1
+				else:
+					moved_in_batch.append((row.name, outcome))
+
 			try:
-				outcome = relocate_blob(row, target, stats, logger)
+				_commit_batch()
 			except Exception:
-				stats["errors"] += 1
-				logger.warning(f"storage relocation: could not move blob {row.name}", exc_info=True)
-				continue
-
-			if outcome is None:
-				stats["skipped"] += 1
+				# The whole batch remains at its source rows. Canonical objects copied
+				# before the failed commit are harmless and make the next run cheaper.
+				frappe.db.rollback()
+				stats["errors"] += len(moved_in_batch)
+				logger.warning(
+					f"storage relocation: could not commit the move of {len(moved_in_batch)} blobs",
+					exc_info=True,
+				)
 			else:
-				moved_in_batch.append((row.name, outcome))
+				stats["moved"] += len(moved_in_batch)
+				stats["bytes"] += sum(size for _blob_name, size in moved_in_batch)
 
-		try:
-			_commit_batch()
-		except Exception:
-			# The whole batch remains at its source rows. Canonical objects copied
-			# before the failed commit are harmless and make the next run cheaper.
-			frappe.db.rollback()
-			stats["errors"] += len(moved_in_batch)
-			logger.warning(
-				f"storage relocation: could not commit the move of {len(moved_in_batch)} blobs", exc_info=True
-			)
-		else:
-			stats["moved"] += len(moved_in_batch)
-			stats["bytes"] += sum(size for _blob_name, size in moved_in_batch)
-
-		after_name = rows[-1].name
+			after_name = rows[-1].name
 
 	logger.info(
 		"storage relocation: moved {0} blobs ({1} bytes), skipped {2}, errors {3}".format(
@@ -70,11 +78,14 @@ def relocate_blobs(batch_size: int = BATCH_SIZE, target_driver: str | None = Non
 	return stats
 
 
-def get_relocation_batch(limit: int, after_name: str) -> list[dict]:
+def get_relocation_batch(limit: int, after_name: str, source_driver: str | None = None) -> list[dict]:
 	"""Return the next stable page of blob rows."""
+	filters = {"name": (">", after_name)}
+	if source_driver is not None:
+		filters["driver"] = source_driver
 	return frappe.get_all(
 		"File Blob",
-		filters={"name": (">", after_name)},
+		filters=filters,
 		fields=["name", "key", "checksum", "file_size", "driver", "is_private"],
 		order_by="name asc",
 		limit=limit,
@@ -90,8 +101,20 @@ def relocate_blob(row, target: StorageDriver, stats: dict, logger) -> int | None
 	source = get_driver(row.driver)
 	is_private = bool(row.is_private)
 	if not target.exists(target_key, is_private=is_private):
-		with source.read(row.key, is_private=is_private) as stream:
-			target.write(target_key, stream, is_private=is_private)
+		if (
+			isinstance(source, S3Driver)
+			and isinstance(target, S3Driver)
+			and source.client is target.client
+			and source.bucket == target.bucket
+		):
+			target.client.copy(
+				CopySource={"Bucket": source.bucket, "Key": source.object_key(row.key, is_private)},
+				Bucket=target.bucket,
+				Key=target.object_key(target_key, is_private),
+			)
+		else:
+			with source.read(row.key, is_private=is_private) as stream:
+				target.write(target_key, stream, is_private=is_private)
 	# the source is deleted after commit, so the copy must be in place first
 	if not target.exists(target_key, is_private=is_private):
 		raise RuntimeError(f"copied object {target_key} is missing")

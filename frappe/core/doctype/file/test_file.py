@@ -23,9 +23,11 @@ from frappe.core.api.file import (
 )
 from frappe.core.doctype.file.exceptions import FileTypeNotAllowed, MaxFileSizeReachedError
 from frappe.core.doctype.file.utils import (
+	find_file_by_url,
 	get_corrupted_image_msg,
 	get_extension,
 	get_web_image,
+	remove_file_by_url,
 )
 from frappe.desk.form.save import savedocs
 from frappe.desk.form.utils import add_comment, remove_attach
@@ -159,6 +161,15 @@ class TestFSRollbacks(IntegrationTestCase):
 
 		frappe.db.rollback()
 		self.assertFalse(file.exists_on_disk())
+
+	def test_delete_keeps_file_on_disk_until_commit(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		file_name = content = frappe.generate_hash()
+		file = frappe.new_doc("File", file_name=file_name, content=content).insert()
+
+		file.delete()
+		self.assertTrue(file.exists_on_disk())
 
 
 class TestWriteFileContainment(IntegrationTestCase):
@@ -846,6 +857,22 @@ class TestFile(IntegrationTestCase):
 		).insert(ignore_permissions=True)
 		self.assertRaisesRegex(ValidationError, "not a zip file", test_file.unzip)
 
+	def test_file_unzip_limits_member_count(self):
+		buffer = io.BytesIO()
+		with zipfile.ZipFile(buffer, "w") as archive:
+			for i in range(3):
+				archive.writestr(f"member-{i}.txt", "x")
+		zip_file = frappe.get_doc(
+			doctype="File", file_name="members.zip", content=buffer.getvalue(), is_private=1
+		).insert()
+
+		file_count_before = frappe.db.count("File")
+		with patch.dict(frappe.conf, {"max_zip_extract_members": 2}):
+			self.assertRaisesRegex(ValidationError, "more than the maximum", zip_file.unzip)
+
+		self.assertEqual(frappe.db.count("File"), file_count_before)
+		self.assertEqual(len(zip_file.unzip()), 3)
+
 	@IntegrationTestCase.change_settings("System Settings", {"max_zip_extract_size": 0})
 	def test_file_unzip_respects_dedicated_extract_size_setting(self):
 		file_path = frappe.get_app_path("frappe", "www/_test/assets/file.zip")
@@ -905,6 +932,61 @@ class TestFile(IntegrationTestCase):
 			)
 		finally:
 			frappe.set_user("Administrator")
+
+	def test_permission_check_on_file_of_unreadable_document_shows_no_message(self):
+		note = frappe.get_doc(doctype="Note", title="Unreadable note").insert()
+		file = frappe.get_doc(
+			doctype="File",
+			file_name="test_unreadable_note.txt",
+			content="x",
+			is_private=1,
+			attached_to_doctype="Note",
+			attached_to_name=note.name,
+		).insert()
+
+		with self.set_user("test@example.com"):
+			frappe.clear_messages()
+			self.assertFalse(frappe.has_permission("File", "read", doc=file))
+			self.assertFalse(frappe.message_log)
+
+	def insert_case_variant_files(self, **attached_to):
+		files = []
+		for owner, file_url in (
+			("test@example.com", "/private/files/CaseCheck.txt"),
+			("test4@example.com", "/private/files/casecheck.txt"),
+		):
+			with self.set_user(owner):
+				file = frappe.new_doc("File")
+				file.update(
+					{
+						"file_name": file_url.split("/")[-1],
+						"file_url": file_url,
+						"is_private": 1,
+						**attached_to,
+					}
+				)
+				file.set_new_name()
+				file.db_insert()
+			self.addCleanup(frappe.delete_doc, "File", file.name, force=True, ignore_permissions=True)
+			files.append(file)
+		return files
+
+	def test_find_file_by_url_ignores_urls_that_differ_in_case(self):
+		self.insert_case_variant_files()
+
+		with self.set_user("test4@example.com"):
+			self.assertIsNone(find_file_by_url("/private/files/CaseCheck.txt"))
+			self.assertEqual(find_file_by_url("/private/files/casecheck.txt").owner, "test4@example.com")
+
+	def test_remove_file_by_url_ignores_urls_that_differ_in_case(self):
+		note = frappe.get_doc(doctype="Note", title="Case check", public=1).insert()
+		self.addCleanup(note.delete)
+		upper, lower = self.insert_case_variant_files(attached_to_doctype="Note", attached_to_name=note.name)
+
+		remove_file_by_url("/private/files/CaseCheck.txt", doctype="Note", name=note.name)
+
+		self.assertFalse(frappe.db.exists("File", upper.name))
+		self.assertTrue(frappe.db.exists("File", lower.name))
 
 	def test_zip_files_adds_a_repeated_file_once(self):
 		from frappe.core.doctype.file.file import File
@@ -1167,6 +1249,34 @@ class TestChunkedUpload(IntegrationTestCase):
 		self.assertEqual(len(get_chunk_temp_path("a", 1).name), len(get_chunk_temp_path("あ" * 200, 1).name))
 
 
+class TestPrivateFileDownload(IntegrationTestCase):
+	def download(self, file_name=None):
+		from frappe.utils.response import download_private_file
+
+		frappe.set_user("test@example.com")
+		file = frappe.get_doc({"doctype": "File", "file_name": "note.txt", "content": "x", "is_private": 1})
+		file.insert()
+		self.addCleanup(frappe.delete_doc, "File", file.name, force=True)
+		self.addCleanup(frappe.set_user, "Administrator")
+		self.addCleanup(frappe.local.form_dict.clear)
+		self.addCleanup(setattr, frappe.local, "request", None)
+
+		if file_name:
+			file.file_name = file_name
+			file.save()
+		set_request(path=file.file_url)
+		frappe.form_dict.fid = file.name
+		return download_private_file(file.file_url)
+
+	def test_file_renamed_to_html_is_downloaded(self):
+		response = self.download("page.html")
+		self.assertTrue(response.headers["Content-Disposition"].startswith("attachment"))
+
+	def test_text_file_is_shown_inline(self):
+		response = self.download()
+		self.assertFalse(response.headers["Content-Disposition"].startswith("attachment"))
+
+
 @contextmanager
 def convert_to_symlink(directory):
 	"""Moves a directory to temp directory and symlinks original path for testing"""
@@ -1183,6 +1293,7 @@ class TestAttachment(IntegrationTestCase):
 	test_doctype = "Test For Attachment"
 	test_child_doctype = "Test For Attachment Child"
 	test_submittable_doctype = "Test For Attachment Submittable"
+	test_protected_doctype = "Test For Attachment Protected"
 
 	@classmethod
 	def setUpClass(cls):
@@ -1213,6 +1324,16 @@ class TestAttachment(IntegrationTestCase):
 		).insert(ignore_if_duplicate=True)
 		frappe.get_doc(
 			doctype="DocType",
+			name=cls.test_protected_doctype,
+			module="Custom",
+			custom=1,
+			is_submittable=1,
+			protect_attached_files=1,
+			fields=[{"label": "Title", "fieldname": "title", "fieldtype": "Data"}],
+			permissions=[{"role": "System Manager", "submit": 1, "cancel": 1, "delete": 0}],
+		).insert(ignore_if_duplicate=True)
+		frappe.get_doc(
+			doctype="DocType",
 			name=cls.test_doctype,
 			module="Custom",
 			custom=1,
@@ -1234,6 +1355,7 @@ class TestAttachment(IntegrationTestCase):
 		frappe.delete_doc("DocType", cls.test_doctype)
 		frappe.delete_doc("DocType", cls.test_child_doctype)
 		frappe.delete_doc("DocType", cls.test_submittable_doctype)
+		frappe.delete_doc("DocType", cls.test_protected_doctype)
 
 	def test_file_attachment_on_update(self):
 		doc = frappe.get_doc(doctype=self.test_doctype, title="test for attachment on update").insert()
@@ -1257,6 +1379,59 @@ class TestAttachment(IntegrationTestCase):
 		)
 
 		self.assertTrue(exists)
+
+	def test_unchanged_private_attachment_is_not_reattached_on_save(self):
+		file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "test_unchanged.txt",
+				"content": "Unchanged Content",
+				"is_private": 1,
+			}
+		).insert()
+		doc = frappe.get_doc(doctype=self.test_doctype, title="test unchanged private attachment").insert()
+		frappe.db.set_value(self.test_doctype, doc.name, "attachment", file.file_url)
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		frappe.get_doc(self.test_doctype, doc.name).save(ignore_permissions=True)
+
+		self.assertFalse(
+			frappe.get_all(
+				"Error Log", filters={"reference_doctype": self.test_doctype, "reference_name": doc.name}
+			)
+		)
+
+	def test_unreadable_private_attachment_shows_no_message_on_save(self):
+		file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "test_unreadable.txt",
+				"content": "Unreadable Content",
+				"is_private": 1,
+			}
+		).insert()
+		doc = frappe.get_doc(doctype=self.test_doctype, title="test unreadable private attachment").insert()
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		frappe.clear_messages()
+		doc.attachment = file.file_url
+		doc.save(ignore_permissions=True)
+
+		self.assertFalse(frappe.db.exists("File", {"attached_to_name": doc.name, "file_url": file.file_url}))
+		self.assertFalse(frappe.message_log)
+
+	def test_attachment_failing_after_insert_leaves_no_file(self):
+		doc = frappe.get_doc(doctype=self.test_doctype, title="test attachment failing after insert").insert()
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		doc.attachment = "https://example.com/brochure.pdf"
+		with patch("frappe.core.doctype.file.file.File.after_insert", side_effect=ValidationError):
+			doc.save(ignore_permissions=True)
+
+		self.assertFalse(frappe.db.exists("File", {"attached_to_name": doc.name, "file_url": doc.attachment}))
 
 	def test_url_attachment_is_attached_to_duplicated_document(self):
 		doc = frappe.get_doc(doctype=self.test_doctype, title="test url attachment on duplicate")
@@ -1405,6 +1580,28 @@ class TestAttachment(IntegrationTestCase):
 
 		frappe.delete_doc("File", file.name)
 		self.assertFalse(frappe.db.exists("File", file.name))
+
+	def test_protected_file_delete_shows_only_the_protection_error(self):
+		doc = frappe.get_doc(doctype=self.test_protected_doctype, title="test protected delete").insert()
+		file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "test_protected.txt",
+				"content": "Protected Content",
+				"attached_to_doctype": self.test_protected_doctype,
+				"attached_to_name": doc.name,
+			}
+		).insert()
+		doc.submit()
+		doc.cancel()
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		frappe.clear_messages()
+		with self.assertRaises(frappe.ValidationError):
+			frappe.delete_doc("File", file.name)
+
+		self.assertEqual([message.get("title") for message in frappe.message_log], ["Protected File"])
 
 	def test_document_delete_cascades_referenced_attachment(self):
 		doc = frappe.get_doc(doctype=self.test_doctype, title="test cascade delete").insert()
@@ -1643,6 +1840,64 @@ class TestChildTableAttachments(IntegrationTestCase):
 		other.file_url = file.file_url
 		self.assertRaises(frappe.PermissionError, other.save)
 
+	def test_dot_segment_cannot_bypass_private_file_access(self):
+		# A "./" segment resolves to the same file on disk but reads as a different URL.
+		# It must be normalised before the access check so it still points at the victim's row.
+		frappe.set_user("test@example.com")
+		victim = self.make_unattached_file(b"dot-bypass-bytes", is_private=1)
+		name = victim.file_url.rsplit("/", 1)[1]
+
+		frappe.set_user("test4@example.com")
+		attacker = frappe.get_doc(
+			doctype="File",
+			file_url=f"/private/files/./{name}",
+			file_name=name,
+			is_private=1,
+		)
+		self.assertRaises(frappe.PermissionError, attacker.insert)
+
+	def test_site_url_and_update_cannot_bypass_private_file_access(self):
+		frappe.set_user("test@example.com")
+		victim = self.make_unattached_file(b"site-url-bypass-bytes", is_private=1)
+		name = victim.file_url.rsplit("/", 1)[1]
+
+		frappe.set_user("test4@example.com")
+		own = self.make_unattached_file(b"site-url-own-bytes", is_private=1)
+		site_url = frappe.utils.get_url()
+
+		for url in (
+			f"{site_url}/private/files/{name}",
+			f"{site_url}/private/files/./{name}",
+			f"/private/files/./{name}",
+			f"/private/files/%2e/{name}",
+		):
+			attacker = frappe.get_doc(doctype="File", file_url=url, file_name=name, is_private=1)
+			self.assertRaises(frappe.PermissionError, attacker.insert)
+
+			own.reload()
+			own.file_url = url
+			self.assertRaises(frappe.PermissionError, own.save)
+
+	def test_file_url_is_normalised_on_insert(self):
+		frappe.set_user("Administrator")
+		file = frappe.get_doc(
+			doctype="File", content=b"normalise-bytes", file_name="normalise_me.txt", is_private=1
+		).insert(ignore_permissions=True)
+		name = file.file_url.rsplit("/", 1)[1]
+
+		for messy in (
+			f"/private/files/./{name}",
+			f"/private/files/.//{name}",
+		):
+			candidate = frappe.new_doc("File")
+			candidate.file_url = messy
+			candidate.normalize_file_url()
+			self.assertEqual(candidate.file_url, f"/private/files/{name}")
+
+		candidate = frappe.new_doc("File")
+		candidate.file_url = f"/private/files/foo/../{name}"
+		self.assertRaisesRegex(ValidationError, "File URL", candidate.normalize_file_url)
+
 	def test_batched_attach_does_not_duplicate_already_attached_files(self):
 		file = self.make_unattached_file(b"child-resave-bytes")
 		doc = self.make_parent_doc(cards=[{"image": file.file_url}])
@@ -1827,6 +2082,43 @@ class TestChildTableAttachments(IntegrationTestCase):
 		doc_reloaded = frappe.get_doc(self.parent_doctype, doc.name)
 		file_reloaded = frappe.get_doc("File", file.name)
 		self.assertEqual(doc_reloaded.parent_image, file_reloaded.file_url)
+
+	@IntegrationTestCase.change_settings("Navbar Settings", {"app_logo": "/files/logo.png"})
+	def test_toggle_is_private_leaves_unrelated_single_field_unchanged(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		file = frappe.get_doc(
+			doctype="File",
+			file_name="navbar-logo.png",
+			content=b"navbar-logo-bytes",
+			is_private=1,
+			attached_to_doctype="Navbar Settings",
+			attached_to_name="Navbar Settings",
+			attached_to_field="app_logo",
+		).insert()
+
+		file.is_private = 0
+		file.save()
+
+		self.assertEqual(frappe.db.get_single_value("Navbar Settings", "app_logo"), "/files/logo.png")
+
+	def test_toggle_is_private_updates_single_doctype_child_row(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		file = self.make_unattached_file(b"team-member-bytes")
+		settings = frappe.get_single("About Us Settings")
+		row = settings.append(
+			"team_members", {"full_name": "Test Member", "image_link": file.file_url, "bio": "Test"}
+		)
+		settings.save(ignore_permissions=True)
+
+		attached = frappe.get_doc("File", file.name)
+		attached.is_private = 0
+		attached.save(ignore_permissions=True)
+
+		self.assertEqual(
+			frappe.db.get_value("About Us Team Member", row.name, "image_link"), attached.file_url
+		)
 
 
 class TestTextEditorFileAdoption(IntegrationTestCase):
@@ -2561,7 +2853,6 @@ class TestFileOptimization(IntegrationTestCase):
 
 class TestGuestFileAndAttachments(IntegrationTestCase):
 	def setUp(self) -> None:
-		frappe.db.delete("File", {"is_folder": 0})
 		frappe.get_doc(
 			doctype="DocType",
 			name="Test For Attachment",
@@ -2665,6 +2956,7 @@ class TestGuestFileAndAttachments(IntegrationTestCase):
 
 		# Deleting a public File should not delete the private File's disk file
 		doc_pub.delete()
+		frappe.db.after_commit.run()
 		self.assertTrue(os.path.exists(doc_pri.get_full_path()))
 
 		# TODO: Migrate existing Files that have a mismatch between `is_private` and `file_url` prefix?
@@ -2672,6 +2964,7 @@ class TestGuestFileAndAttachments(IntegrationTestCase):
 
 		self.assertEqual(doc_pri.get_content(), content)
 		doc_pri.delete()
+		frappe.db.after_commit.run()
 		self.assertFalse(os.path.exists(doc_pri.get_full_path()))
 
 	def test_toggling_is_private_does_not_leak_shared_file(self):
@@ -2731,6 +3024,7 @@ class TestGuestFileAndAttachments(IntegrationTestCase):
 		# B's private copy must survive because B still references it.
 		doc_a_path = doc_a.get_full_path()
 		doc_a.delete()
+		frappe.db.after_commit.run()
 		self.assertFalse(
 			os.path.exists(doc_a_path),
 			"Public copy not cleaned up after A's deletion",
@@ -2744,6 +3038,7 @@ class TestGuestFileAndAttachments(IntegrationTestCase):
 		# Deleting B removes the last reference to the private copy.
 		doc_b_path = doc_b.get_full_path()
 		doc_b.delete()
+		frappe.db.after_commit.run()
 		self.assertFalse(
 			os.path.exists(doc_b_path),
 			"Private copy not cleaned up after B's deletion",
@@ -2842,6 +3137,66 @@ class TestPublicFileRestriction(IntegrationTestCase):
 
 		file_doc.insert()
 		self.assertFalse(file_doc.is_private)
+
+
+class TestForcePrivateAttachments(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+
+		cls.test_doctype = "Test Force Private Attachments"
+		new_doctype(
+			cls.test_doctype,
+			force_private_attachments=1,
+			permissions=[{"role": "Website Manager", "read": 1, "write": 1, "create": 1}],
+		).insert(ignore_if_duplicate=True)
+
+		cls.user = "test_force_private@example.com"
+		if not frappe.db.exists("User", cls.user):
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": cls.user,
+					"first_name": "Test Force Private",
+					"roles": [{"role": "Website Manager"}],
+				}
+			).insert(ignore_permissions=True)
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.db.rollback()
+		frappe.delete_doc_if_exists("DocType", cls.test_doctype)
+
+	def setUp(self):
+		frappe.set_user(self.user)
+		self.doc = frappe.get_doc(doctype=self.test_doctype).insert()
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+
+	def attach(self, is_private):
+		return frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "force_private.txt",
+				"content": "Test content",
+				"is_private": is_private,
+				"attached_to_doctype": self.test_doctype,
+				"attached_to_name": self.doc.name,
+			}
+		)
+
+	def test_public_attachment_is_rejected(self):
+		self.assertRaises(frappe.ValidationError, self.attach(is_private=0).insert)
+
+	def test_private_attachment_is_allowed(self):
+		self.assertTrue(self.attach(is_private=1).insert().is_private)
+
+	def test_private_attachment_cannot_be_made_public(self):
+		file = self.attach(is_private=1).insert()
+		file.is_private = 0
+		self.assertRaises(frappe.ValidationError, file.save)
 
 
 class TestFileListOwnerRestriction(IntegrationTestCase):

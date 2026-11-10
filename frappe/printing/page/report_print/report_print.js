@@ -101,7 +101,10 @@ frappe.views.ReportPrintView = class ReportPrintView {
 		this.$iframe = this.$preview.find("iframe");
 		this.preview_bar = new frappe.ui.PrintPreviewBar({
 			parent: this.$preview,
-			get_metrics: (doc) => this.get_page_metrics(doc),
+			get_sheet: (doc) => ({
+				sheet: doc.querySelector(".print-format"),
+				breaks: ".page-break:not(:last-child)",
+			}),
 		});
 
 		this.page.set_primary_action(__("Print"), () => this.print(), "printer");
@@ -143,7 +146,8 @@ frappe.views.ReportPrintView = class ReportPrintView {
 			fieldtype: "Select",
 			fieldname: "print_format",
 			label: __("Print Format"),
-			options: [{ label: __("Standard"), value: "" }, ...names],
+			options: ["", ...names],
+			placeholder: __("None"),
 			default:
 				[print_format, this.report.report_doc.default_print_format].find((name) =>
 					names.includes(name)
@@ -159,6 +163,11 @@ frappe.views.ReportPrintView = class ReportPrintView {
 			default: this.default_letter_head(),
 			get_query: () => ({ filters: { letter_head_for: "Report", disabled: 0 } }),
 			change: () => this.refresh(),
+		});
+		this.in_background_field = this.add_control({
+			fieldtype: "Check",
+			fieldname: "in_background",
+			label: __("Generate PDF in background"),
 		});
 
 		const $page = $(`<div class="print-page-settings">
@@ -286,6 +295,7 @@ frappe.views.ReportPrintView = class ReportPrintView {
 		this.format = out.format;
 		this.html = out.html.replace("</body>", `<style>@page { size: ${size}; }</style></body>`);
 		this.include_filters_field.toggle(out.format.type !== "jinja");
+		this.in_background_field.toggle(this.builds_pdf_on_server());
 		this.pick_columns_field.toggle(!print_settings.print_format);
 		this.$columns.toggle(
 			!print_settings.print_format && !!this.pick_columns_field.get_value()
@@ -370,20 +380,6 @@ frappe.views.ReportPrintView = class ReportPrintView {
 		});
 	}
 
-	get_page_metrics(doc) {
-		const sheet = doc.querySelector(".print-format");
-		if (!sheet) return null;
-		return {
-			top: sheet.offsetTop,
-			width: sheet.offsetWidth,
-			starts: frappe.ui.PrintPreviewBar.measure_pages({
-				page: sheet,
-				page_height: parseFloat(getComputedStyle(sheet).minHeight),
-				breaks: ".page-break:not(:last-child)",
-			}),
-		};
-	}
-
 	print() {
 		if (!this.html || this.$preview.hasClass("is-rendering")) return;
 		this.report.make_access_log("Print", "HTML");
@@ -404,12 +400,12 @@ frappe.views.ReportPrintView = class ReportPrintView {
 
 	download_pdf() {
 		if (!this.html) return;
-		if (
-			!this.report.tree_report &&
-			(this.format.type === "jinja" ||
-				(this.format.type === "grid" && !this.report.report_settings.formatter))
-		) {
-			return this.report.download_pdf_from_server(this.print_settings, this.format);
+		if (this.builds_pdf_on_server()) {
+			return this.report.download_pdf_from_server(
+				this.print_settings,
+				this.format,
+				this.in_background_field.get_value()
+			);
 		}
 
 		this.report.make_access_log("Print", "PDF");
@@ -417,5 +413,15 @@ frappe.views.ReportPrintView = class ReportPrintView {
 			...this.print_settings,
 			report_name: this.report.get_pdf_filename(),
 		});
+	}
+
+	builds_pdf_on_server() {
+		return (
+			!this.report.tree_report &&
+			(this.format.type === "jinja" ||
+				(this.format.type === "grid" &&
+					(!this.report.report_settings.formatter ||
+						this.report.report_settings.has_python_formatter)))
+		);
 	}
 };

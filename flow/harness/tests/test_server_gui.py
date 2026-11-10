@@ -215,7 +215,7 @@ def test_patch_config_persists_every_field_or_none(tmp_path, monkeypatch):
 		"tools": ["grep"],
 		"client_tools": tools,
 		"confirm_tools": ["new"],
-		"auto_approve": True,
+		"approval_mode": "auto_approve",
 		"title": "After",
 	}
 
@@ -229,12 +229,12 @@ def test_patch_config_persists_every_field_or_none(tmp_path, monkeypatch):
 
 	monkeypatch.undo()
 	data = c.patch(f"/sessions/{sid}/config", json=patch).json()["config"]
-	expected = (["grep"], tools, ["new"], True, "After")
+	expected = (["grep"], tools, ["new"], "auto_approve", "After")
 	assert (
 		data["tools"],
 		data["client_tools"],
 		data["confirm_tools"],
-		data["auto_approve"],
+		data["approval_mode"],
 		data["title"],
 	) == expected
 	# the live session the loop's tool gate reads changed too, and a cold store sees it
@@ -244,7 +244,7 @@ def test_patch_config_persists_every_field_or_none(tmp_path, monkeypatch):
 			config.tools,
 			config.client_tools,
 			config.confirm_tools,
-			config.auto_approve,
+			config.approval_mode,
 			config.title,
 		) == expected
 		assert set(session.server_tools) == {"grep"}
@@ -252,13 +252,13 @@ def test_patch_config_persists_every_field_or_none(tmp_path, monkeypatch):
 	# an empty patch changes nothing
 	assert c.patch(f"/sessions/{sid}/config", json={}).json()["config"] == data
 	# an invalid field is refused before anything is applied
-	assert c.patch(f"/sessions/{sid}/config", json={"auto_approve": False, "title": " "}).status_code == 400
-	assert store.get(sid).config.auto_approve is True
+	assert c.patch(f"/sessions/{sid}/config", json={"approval_mode": "ask", "title": " "}).status_code == 400
+	assert store.get(sid).config.approval_mode == "auto_approve"
 	assert c.patch(f"/sessions/{sid}/config", json={"client_tools": tools}).status_code == 400
 	# unknown fields and sessions are rejected
 	assert c.patch(f"/sessions/{sid}/config", json={"model": "x"}).status_code == 422
 	assert c.patch(f"/sessions/{sid}/config", json={"system_prompt": "replace"}).status_code == 422
-	assert c.patch("/sessions/nope/config", json={"auto_approve": True}).status_code == 404
+	assert c.patch("/sessions/nope/config", json={"approval_mode": "auto_approve"}).status_code == 404
 
 
 # --- auth, web UI mount, and CORS ------------------------------------------

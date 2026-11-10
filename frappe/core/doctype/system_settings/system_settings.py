@@ -6,7 +6,7 @@ import frappe.defaults
 from frappe import _
 from frappe.model import no_value_fields
 from frappe.model.document import Document
-from frappe.utils import cint, today
+from frappe.utils import cint, today, validate_time_zone
 
 
 class SystemSettings(Document):
@@ -71,7 +71,7 @@ class SystemSettings(Document):
 		float_precision: DF.Literal["", "2", "3", "4", "5", "6", "7", "8", "9"]
 		force_user_to_reset_password: DF.Int
 		force_web_capture_mode_for_uploads: DF.Check
-		frequency: DF.Literal["Hourly", "Daily"]
+		frequency: DF.Literal["Daily", "Weekly"]
 		hide_empty_read_only_fields: DF.Check
 		hide_footer_in_auto_email_reports: DF.Check
 		language: DF.Link
@@ -133,6 +133,9 @@ class SystemSettings(Document):
 		elif not enable_password_policy:
 			self.minimum_password_score = ""
 
+		if self.time_zone and self.has_value_changed("time_zone"):
+			validate_time_zone(self.time_zone)
+
 		if self.session_expiry:
 			parts = self.session_expiry.split(":")
 			if len(parts) != 2 or not (cint(parts[0]) or cint(parts[1])):
@@ -148,9 +151,10 @@ class SystemSettings(Document):
 							)
 						)
 				toggle_two_factor_auth(True, roles=["All"])
-			else:
-				self.bypass_2fa_for_retricted_ip_users = 0
-				self.bypass_restrict_ip_check_if_2fa_enabled = 0
+
+		if not self.enable_two_factor_auth:
+			self.bypass_2fa_for_retricted_ip_users = 0
+			self.bypass_restrict_ip_check_if_2fa_enabled = 0
 
 		frappe.flags.update_last_reset_password_date = False
 		if self.force_user_to_reset_password and not cint(
@@ -295,8 +299,8 @@ def disable_duckdb_cron_job():
 		frappe.db.delete("Scheduler Event", event)
 
 
-def enable_duckdb_cron_job(frequency: str = "Daily"):
-	cron_format = "0 0 * * *" if frequency == "Daily" else "0 * * * *"
+def enable_duckdb_cron_job(frequency: str = "Weekly"):
+	cron_format = "0 0 * * *" if frequency == "Daily" else "0 0 * * 0"
 	method = "frappe.database.duckdb.database.start_duckdb_sync"
 
 	# schedule cron job
@@ -319,7 +323,7 @@ def enable_duckdb_cron_job(frequency: str = "Daily"):
 	).insert()
 
 
-def snapshot_report_scheduler(enable: bool = False, frequency: str = "Daily"):
+def snapshot_report_scheduler(enable: bool = False, frequency: str = "Weekly"):
 	# trash old job and recreate
 	disable_duckdb_cron_job()
 	if enable:

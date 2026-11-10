@@ -134,16 +134,15 @@ export class DaemonClient {
 	gitChanges(cwd) {
 		return this.request("GET", "/fs/git/changes", { params: { cwd } })
 	}
-	gitBranch(cwd) {
-		return this.request("GET", "/fs/git/branch", { params: { cwd } })
-	}
 	gitFileDiff(cwd, path) {
 		return this.request("GET", "/fs/git/file/diff", { params: { cwd, path } })
 	}
 	// session-recorded original + current content: the diff fallback for files
-	// the session changed outside the project repository
-	fileDiff(sid, path) {
-		return this.request("GET", `/sessions/${enc(sid)}/file/diff`, { params: { path } })
+	// the session changed outside the project repository, and a turn's own diff
+	// (only the edits from seq `since` on)
+	fileDiff(sid, path, since = null) {
+		const params = since == null ? { path } : { path, since }
+		return this.request("GET", `/sessions/${enc(sid)}/file/diff`, { params })
 	}
 	createSession(config) {
 		return this.request("POST", "/sessions", { body: config })
