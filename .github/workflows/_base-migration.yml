@@ -23,7 +23,7 @@ on:
 jobs:
   migration-test:
     name: Migrate
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: ${{ inputs.fake-success == false }}
     timeout-minutes: 60
     strategy:

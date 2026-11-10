@@ -39,7 +39,7 @@ jobs:
   ui-test:
     needs: gen-idx-integration
     name: Integration
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: ${{ inputs.fake-success == false }}
     timeout-minutes: 30
     env:

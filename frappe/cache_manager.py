@@ -79,7 +79,6 @@ doctype_cache_keys = (
 	"last_modified",
 	"linked_doctypes",
 	"workflow",
-	"data_import_column_header_map",
 )
 
 wildcard_keys = (

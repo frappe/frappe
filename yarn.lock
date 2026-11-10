@@ -1036,7 +1036,7 @@ debug@^3.2.6:
   dependencies:
     ms "^2.1.1"
 
-debug@^4.3.2, debug@~4.3.1:
+debug@^4.3.2:
   version "4.3.4"
   resolved "https://registry.yarnpkg.com/debug/-/debug-4.3.4.tgz#1319f6579357f2338d3337d2cdd4914bb5dcc865"
   integrity sha512-PRWFHuSU3eDtQJPvnNY7Jcket1j0t5OuOsFzPPzsekD52Zl8qUfFIPEiswXqIvHWGVHOgX+7G/vCNNhehwxfkQ==
@@ -1453,10 +1453,10 @@ frappe-charts@2.0.0-rc27:
   resolved "https://registry.yarnpkg.com/frappe-charts/-/frappe-charts-2.0.0-rc27.tgz#a04737d36bcce5381b25ad48896c43b02eb62852"
   integrity sha512-J4WCrHYB6oR4Dfu28aaCxlUu64C/V+qJlNE1E0xpya2/yCeqDZ8LA6pS63SBMOdV2CTP8cJ6Isk5m+rZi9gElA==
 
-frappe-datatable@1.21.3:
-  version "1.21.3"
-  resolved "https://registry.yarnpkg.com/frappe-datatable/-/frappe-datatable-1.21.3.tgz#a3df1df54f19066c0453df1b27dc5d711d10e51f"
-  integrity sha512-vpLSPKhASYfcvii1tDoTouzC6DbNmchMxjmjh5tF9oNCMqH28D+Vzc97tXQRDyWJIfVxtC1iOt08H17jsVmVAA==
+frappe-datatable@1.22.0:
+  version "1.22.0"
+  resolved "https://registry.yarnpkg.com/frappe-datatable/-/frappe-datatable-1.22.0.tgz#bd0f1d5dc06a3ba7157a053aa6b590f4c96aa37a"
+  integrity sha512-VMLpfK3JM6KGijKVWymqjprGLqsWAo+qq+uIxLMMYETzOlYBZBKOJpe7wY/bTfKWLcYhDVCUSIAMSiwr/1FL8Q==
   dependencies:
     hyperlist "^1.0.0-beta"
     lodash "^4.17.5"
@@ -2979,12 +2979,12 @@ socket.io-client@^4.8.4:
     socket.io-parser "~4.2.4"
 
 socket.io-parser@~4.2.4:
-  version "4.2.4"
-  resolved "https://registry.yarnpkg.com/socket.io-parser/-/socket.io-parser-4.2.4.tgz#c806966cf7270601e47469ddeec30fbdfda44c83"
-  integrity sha512-/GbIKmo8ioc+NIWIhwdecY0ge+qVBSMdgxGygevmdHj24bsfgtCmcUUcQ5ZzcylGFHsN3k4HB4Cgkl96KVnuew==
+  version "4.2.7"
+  resolved "https://registry.yarnpkg.com/socket.io-parser/-/socket.io-parser-4.2.7.tgz#679e51fe24d1c81df90fc5f7efe4a5f432fe99c0"
+  integrity sha512-IH/iSeO9T6gz1KkFleGDWkG9N3dl4jXVYUtMhIqH10Md0ttMer8nUNWiP1DKuNrybD2xBrixLJdCC9J6ECoYkg==
   dependencies:
     "@socket.io/component-emitter" "~3.1.0"
-    debug "~4.3.1"
+    debug "~4.4.1"
 
 socket.io@^4.8.4:
   version "4.8.4"
