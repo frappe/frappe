@@ -374,6 +374,7 @@ class StudioApp(WebsiteGenerator):
 
 	@frappe.whitelist()
 	def enable_app_export(self, target_app: str):
+		frappe.has_permission(self.doctype, "write", self.name, throw=True)
 		validate_installed_app(target_app)
 		if self.is_standard and self.frappe_app and self.frappe_app != target_app:
 			self.move_export_to(target_app)

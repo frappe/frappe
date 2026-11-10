@@ -165,10 +165,11 @@ def get_datetime(
 	if datetime_str is None:
 		return now_datetime()
 
-	elif isinstance(datetime_str, datetime.datetime | datetime.timedelta):
+	# PERF: isinstance with a tuple is much faster than with a union type (`X | Y`)
+	elif isinstance(datetime_str, (datetime.datetime, datetime.timedelta)):
 		return datetime_str
 
-	elif isinstance(datetime_str, list | tuple):
+	elif isinstance(datetime_str, (list, tuple)):
 		return datetime.datetime(datetime_str)
 
 	elif isinstance(datetime_str, datetime.date):

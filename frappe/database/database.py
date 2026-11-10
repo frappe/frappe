@@ -3,6 +3,7 @@
 
 import itertools
 import json
+import logging
 import random
 import re
 import string
@@ -33,6 +34,7 @@ from frappe.database.utils import (
 	is_query_type,
 )
 from frappe.exceptions import DoesNotExistError, ImplicitCommitError
+from frappe.model.utils import is_single_doctype
 from frappe.monitor import TRACE_ID_PATTERN, get_trace_id
 from frappe.query_builder import Case
 from frappe.query_builder.functions import Count
@@ -130,7 +132,9 @@ class Database:
 
 		self.value_cache = recursive_defaultdict()
 		self.logger = frappe.logger("database")
-		self.logger.setLevel("WARNING")
+		# setLevel clears the level cache of all loggers, even when the level does not change.
+		if self.logger.level != logging.WARNING:
+			self.logger.setLevel(logging.WARNING)
 
 		self.before_commit = CallbackManager()
 		self.after_commit = CallbackManager()
@@ -699,8 +703,6 @@ class Database:
 		        user = frappe.db.get_values("User", "test@example.com", "*")[0]
 		"""
 
-		from frappe.model.utils import is_single_doctype
-
 		out = None
 		if isinstance(fieldname, list):
 			fieldname = tuple(fieldname)
@@ -1032,8 +1034,6 @@ class Database:
 		:param update_modified: default True. Set as false, if you don't want to update the timestamp.
 		:param debug: Print the query in the developer / js console.
 		"""
-		from frappe.model.utils import is_single_doctype
-
 		if dn is None or dt == dn:
 			if not is_single_doctype(dt):
 				return

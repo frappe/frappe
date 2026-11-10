@@ -660,7 +660,7 @@ class File(Document):
 		if not ref_doc.meta.protect_attached_files:
 			return
 
-		if ref_doc.docstatus == 2 and ref_doc.has_permission("delete"):
+		if ref_doc.docstatus == 2 and frappe.has_permission(self.attached_to_doctype, "delete", doc=ref_doc):
 			# Deletion must still be possible if users have the permission to delete the linked document
 			return
 
@@ -732,7 +732,7 @@ class File(Document):
 
 	def unzip(self) -> list["File"]:
 		"""Unzip current file and replace it by its children"""
-		from frappe.core.api.file import get_max_extract_size
+		from frappe.core.api.file import get_max_extract_members, get_max_extract_size
 
 		if not self.file_url.endswith(".zip"):
 			frappe.throw(_("{0} is not a zip file").format(self.file_name))
@@ -756,6 +756,13 @@ class File(Document):
 				if not (file.is_dir() or file.filename.startswith("__MACOSX/"))
 				and not os.path.basename(file.filename).startswith(".")
 			]
+
+			if len(members) > get_max_extract_members():
+				frappe.throw(
+					_("Zip file contains more than the maximum allowed {0} files").format(
+						get_max_extract_members()
+					)
+				)
 
 			# Reject on declared (central directory) sizes before reading any member,
 			# so a small, highly compressible archive can't force large reads/writes.
@@ -934,13 +941,14 @@ class File(Document):
 
 	@frappe.whitelist()
 	def optimize_file(self):
+		frappe.has_permission(self.doctype, "write", self.name, throw=True)
 		if self.is_folder:
 			raise TypeError("Folders cannot be optimized")
 
 		self.validate_file_url_matches_record()
 		self.validate_blob_access()
 
-		content_type = mimetypes.guess_type(self.file_name)[0]
+		content_type = mimetypes.guess_type(self.file_name)[0] or ""
 		is_local_image = content_type.startswith("image/") and self.file_size > 0
 		is_svg = content_type == "image/svg+xml"
 		is_local_pdf = content_type == "application/pdf" and self.file_size > 0
@@ -1102,9 +1110,9 @@ def has_permission(doc, ptype=None, user=None, debug=False):
 			return False
 
 		if ptype in ["write", "create", "delete"]:
-			return ref_doc.has_permission("write", debug=debug, user=user)
+			return frappe.has_permission(attached_to_doctype, "write", doc=ref_doc, user=user, debug=debug)
 		else:
-			return ref_doc.has_permission("read", debug=debug, user=user)
+			return frappe.has_permission(attached_to_doctype, "read", doc=ref_doc, user=user, debug=debug)
 
 	return False
 

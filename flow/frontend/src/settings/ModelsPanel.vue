@@ -15,7 +15,7 @@
 		v-else-if="view === 'provider'"
 		:spec="SPECS.providers"
 		:name="editing"
-		:title="editing ? 'Edit provider' : 'Your own server or gateway'"
+		:title="editing ? 'Edit provider' : 'Custom provider'"
 		back="Back to models"
 		@saved="(doc) => (editing = doc.name)"
 		@deleted="leave"
@@ -24,6 +24,7 @@
 	<SettingsPage
 		v-else-if="view === 'connect'"
 		:title="connectTitle"
+		:description="connecting ? '' : 'Pick one, then add the models chats can use.'"
 		back="Back"
 		@back="setup?.back()"
 	>
@@ -45,12 +46,16 @@
 			<Button variant="solid" label="Connect provider" @click="connect(null)" />
 		</template>
 		<LoadingState v-if="!loaded" class="justify-center py-8 text-sm text-ink-gray-5" />
-		<div
-			v-else-if="!services.length && !other.length"
-			class="flex flex-col items-center gap-3 rounded-6 border border-dashed border-outline-gray-2 px-4 py-10 text-center"
-		>
-			<p class="text-sm text-ink-gray-5">No providers yet.</p>
-			<Button v-if="canConnect" variant="solid" label="Connect provider" @click="connect(null)" />
+		<!-- nothing connected: the one way in, in the middle -->
+		<div v-else-if="!services.length && !other.length" class="flex flex-col items-center gap-2 py-16 text-center">
+			<span class="mb-1 grid size-11 place-items-center rounded-7 bg-surface-gray-2 text-ink-gray-7">
+				<span class="lucide-server size-5" aria-hidden="true" />
+			</span>
+			<p class="text-base-medium text-ink-gray-9">No providers yet</p>
+			<p class="mb-2 max-w-[360px] text-balance text-base text-ink-gray-5">
+				{{ canConnect ? "Connect a provider, then add the models chats can use." : "An admin needs to connect a provider first." }}
+			</p>
+			<Button v-if="canConnect" variant="solid" label="Connect provider" icon-left="lucide-plus" @click="connect(null)" />
 		</div>
 		<div v-else class="flex flex-col gap-6">
 			<section v-for="service in services" :key="service.name" class="flex flex-col gap-2">
@@ -90,7 +95,7 @@
 					<span class="lucide-loader-circle size-3.5 animate-spin" aria-hidden="true" />
 					Checking {{ adding[service.name] }}…
 				</p>
-				<ErrorMessage v-else-if="addErrors[service.name]" :message="addErrors[service.name]" />
+				<ErrorMessage v-else-if="addErrors[service.name]" class="break-words" :message="addErrors[service.name]" />
 				<p
 					v-if="!service.models.length"
 					class="rounded-6 border border-dashed border-outline-gray-2 py-6 text-center text-sm text-ink-gray-5"
@@ -150,7 +155,7 @@ import { SPECS } from "./specs.js";
 // one message before it's added, so one that doesn't work is never listed.
 const page = inject("flowPage");
 
-const view = ref(page.takeNewRecord("providers") ? "provider" : "list"); // list | connect | model | provider
+const view = ref("list"); // list | connect | model | provider
 const editing = ref(null); // the model or provider a page is about
 const services = ref([]);
 const other = ref([]);

@@ -15,17 +15,18 @@ import requests
 
 import frappe
 from frappe import _
-from frappe.utils import escape_html, get_fullname, get_url, sbool
+from frappe.utils import escape_html, sbool
 
 # Beside the site, a model server needs no key
 OLLAMA_URL = "http://localhost:11434"
 OLLAMA_PROVIDER = "ollama_chat"
+# a server of one's own, reached at its address through the OpenAI API
+SERVER_PROVIDER = "custom_openai"
 
 # what a service says when the account, not the key, is the problem
 NO_CREDIT = ("credit balance", "insufficient_quota", "billing", "payment required", "quota")
 # and when it has no model by that name
 NO_MODEL = ("not a valid model", "model_not_found", "does not exist", "invalid model", "unknown model")
-ASK_ADMIN_CACHE = "flow_setup_asked"
 # where a key is checked when the models list doesn't need one
 KEY_URLS = {"openrouter": "https://openrouter.ai/api/v1/key"}
 
@@ -38,17 +39,37 @@ def setup_options() -> dict[str, Any]:
 
 
 @frappe.whitelist(methods=["POST"])
-def connect(provider: str, api_key: str | None = None) -> dict[str, Any]:
+def connect(provider: str, api_key: str | None = None, base_url: str | None = None) -> dict[str, Any]:
 	"""Check `api_key` with `provider` by asking for its models, then save the provider. A key the
-	service refuses saves nothing and says why: `wrong_key` or `unreachable`."""
+	service refuses saves nothing and says why: `wrong_key` or `unreachable`. A server of one's own
+	is `custom_openai` at `base_url`, its key optional."""
 	_check_can_connect()
 	provider = (provider or "").strip().lower()
 	api_key = (api_key or "").strip() or None
+	base_url = (base_url or "").strip().rstrip("/") or None
 
 	if provider == "ollama":
 		provider, base_url = OLLAMA_PROVIDER, OLLAMA_URL
 		if not _ollama_models():
 			return _refused("unreachable", _("Ollama isn't answering on this server any more."))
+	elif provider == SERVER_PROVIDER:
+		parsed = urlparse(base_url or "")
+		if parsed.scheme not in ("http", "https") or not parsed.netloc:
+			frappe.throw(_("Enter the server's address, starting with http:// or https://."))
+		base_url = base_url.removesuffix("/models")
+		try:
+			headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
+			requests.get(f"{base_url}/models", headers=headers, timeout=10).raise_for_status()
+		except requests.HTTPError as e:
+			if e.response is not None and e.response.status_code in (401, 403):
+				return _refused(
+					"wrong_key", _("{0} didn't accept this key.").format(_label(provider, base_url))
+				)
+			# a server without a models list: the first model added checks it
+		except requests.RequestException:
+			return _refused(
+				"unreachable", _("Couldn't reach {0} from this server.").format(_label(provider, base_url))
+			)
 	else:
 		from flow_harness.model.discovery import MODEL_ENDPOINTS
 
@@ -126,32 +147,6 @@ def remove_provider(provider: str) -> None:
 	for name in frappe.get_all("Flow Model", {"provider": provider}, pluck="name"):
 		frappe.delete_doc("Flow Model", name)
 	frappe.delete_doc("Flow Provider", provider)
-
-
-@frappe.whitelist(methods=["POST"])
-def ask_admin() -> dict[str, Any]:
-	"""Someone who can't connect a service asks those who can, once a day at most."""
-	frappe.has_permission("Flow Session", "read", throw=True)
-	key = f"{ASK_ADMIN_CACHE}:{frappe.session.user}"
-	admins = _admins()
-	if not frappe.cache.get_value(key):
-		from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification
-
-		emails = [email for email in frappe.get_all("User", {"name": ("in", admins)}, pluck="email") if email]
-		if emails:
-			enqueue_create_notification(
-				emails,
-				{
-					"type": "Alert",
-					"subject": _("{0} would like to use Flow. Connect a model provider to set it up.").format(
-						frappe.bold(escape_html(get_fullname(frappe.session.user)))
-					),
-					"from_user": frappe.session.user,
-					"link": get_url("/flow"),
-				},
-			)
-		frappe.cache.set_value(key, 1, expires_in_sec=24 * 60 * 60)
-	return {"admins": [get_fullname(user) for user in admins[:3]]}
 
 
 def _check_can_connect() -> None:
@@ -282,19 +277,3 @@ def _title(model: str) -> str:
 		head, _sep, rest = name[4:].partition("-")
 		return f"GPT-{head} {rest.replace('-', ' ')}".strip()
 	return " ".join(part if part[:1].isdigit() else part.capitalize() for part in name.split("-"))
-
-
-def _admins() -> list[str]:
-	"""Enabled users who may connect a service."""
-	users = frappe.get_all(
-		"Has Role",
-		filters={"role": "System Manager", "parenttype": "User"},
-		pluck="parent",
-		distinct=True,
-	)
-	return frappe.get_all(
-		"User",
-		filters={"name": ("in", users), "enabled": 1, "user_type": "System User"},
-		pluck="name",
-		order_by="creation asc",
-	)

@@ -19,7 +19,7 @@
 			<slot name="empty" :mark="mark">
 				<!-- the mark over a quiet heading, each a step smaller on a phone -->
 				<BrandMark line :size="32" v-bind="mark" class="min-h-0 shrink max-sm:!h-7 max-sm:!w-7" />
-				<h2 class="text-balance text-2xl text-ink-gray-8 sm:text-4xl">What would you like to build?</h2>
+				<h2 class="text-balance text-2xl text-ink-gray-8 sm:text-[22px]">What would you like to build?</h2>
 			</slot>
 			<!-- the box's place under the mark until the first message -->
 			<div v-if="docked" ref="dock" class="mt-5 w-full shrink-0" :style="{ height: composerHeight + 'px' }" />
@@ -200,6 +200,16 @@ const expandedTurnKeys = ref(new Set())
 const openPanels = reactive(new Set())
 provide("openPanels", openPanels)
 const items = computed(() => buildItems(conversation.value, expandedTurnKeys.value, openPanels))
+// a turn that ends with one of its rows open stays unfolded once the row is closed: only its fold folds it
+watch(
+	() =>
+		items.value
+			.filter((item) => item.kind === "turn-fold" && item.expanded && !expandedTurnKeys.value.has(item.turnKey))
+			.map((item) => item.turnKey),
+	(held) => {
+		if (held.length) expandedTurnKeys.value = new Set([...expandedTurnKeys.value, ...held])
+	},
+)
 
 // nothing to draw yet: the empty state, or a loading line while a session opens
 const blank = computed(() => !items.value.length && !conversation.value.running && !conversation.value.liveLabel)

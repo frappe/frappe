@@ -1,13 +1,13 @@
 // The rail's arrangement, in the editor every navigation surface shares
-// (`frappe.ui.ArrangementEditor`, which holds the layer switch, the list, the eye and the
+// (`frappe.ui.ArrangementEditor`, which holds the layer switch, the list, the panel and the
 // persistence). This file only describes what the dock is: what its entries are, where its three
 // layers live, and the one action it has that a sidebar does not.
 //
-// It arranges the rail for the app you are currently in: one tool, two panes, one gesture per
-// row. Authoring adds a third value to the layer switch, an Add dialog and one action. Every
-// alternative that made the app layer look different (a pool pane, a changed title, a coloured
-// band, ladder tabs) was dropped, as was every alternative that moved authoring out of a dialog
-// and into the list.
+// It arranges the rail for the app you are currently in, on the rail itself: the tiles are the
+// list, dragged into order, and opened for their label and icon in a panel beside the rail, where
+// Remove takes them off. A floating rail stays floating and is held open. The layer, Cancel and
+// Save sit in a small bar in the corner of the screen, which can be dragged out of the way, so the
+// sidebar beside the rail is left as it is.
 //
 // An entry names one destination -- a shell, a workspace or a web address -- and every kind is
 // arranged the same way. A companion's entry is an ordinary entry on the rail, not a fixture.
@@ -17,7 +17,7 @@
 
 // What differs between the three layers, in one place: where the arrangement is read from, where
 // it is written back to, what to call it, and what to say once it lands. Everything else, such as
-// the list, the eye and the shape of a saved row, is the same whichever layer is on screen.
+// the list and the shape of a saved row, is the same whichever layer is on screen.
 const RESET_FOR_EVERYONE = "frappe.desk.doctype.dock.dock.reset_dock_for_everyone";
 const MARK_AS_STANDARD = "frappe.desk.doctype.dock.dock.mark_as_standard";
 
@@ -26,23 +26,24 @@ const DOCK_LAYERS = {
 		read: "frappe.desk.doctype.dock.dock.get_user_dock_layer",
 		save: "frappe.desk.doctype.dock.dock.save_user_dock",
 		label: () => __("Just for me"),
+		phrase: () => __("just for me"),
 		saved: () => __("Dock updated"),
 	},
 	site: {
 		read: "frappe.desk.doctype.dock.dock.get_site_dock_layer",
 		save: "frappe.desk.doctype.dock.dock.save_site_dock",
 		label: () => __("For everyone"),
+		phrase: () => __("for everyone"),
 		condition: () => frappe.user.has_role("Workspace Manager"),
 		saved: () => __("Dock updated for everyone"),
 	},
 	// The third value, which is all the app layer looks like from here. Developer mode only,
 	// because authoring what an app ships writes a file into the app, and only where the app
 	// already ships one, since promoting is `Export to app`, which writes the file in the same
-	// step.
+	// step. Named after the app, which `layers` binds.
 	app: {
 		read: "frappe.desk.doctype.dock.dock.get_app_dock_layer",
 		save: "frappe.desk.doctype.dock.dock.save_app_dock",
-		label: () => __("Ship with the app"),
 		condition: () => !!frappe.boot.developer_mode,
 		saved: () => __("Exported to the app"),
 	},
@@ -50,7 +51,15 @@ const DOCK_LAYERS = {
 
 frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 	get layers() {
-		return DOCK_LAYERS;
+		const app = __(this.app?.app_title || this.app?.app_name || "");
+		return {
+			...DOCK_LAYERS,
+			app: {
+				...DOCK_LAYERS.app,
+				label: () => __("For {0}", [app]),
+				phrase: () => __("for {0}", [app]),
+			},
+		};
 	}
 
 	prepare() {
@@ -60,40 +69,222 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 		this.app = frappe.app.sidebar.get_sidebar_app();
 		this.base_hidden = new Set();
 		this.own_adds = new Set();
+		// Modules Add has put on the rail, created on Save so that Cancel leaves nothing behind.
+		this.new_modules = new Set();
 		// Writing a file into an app is a developer action, so the promotion is offered only where
 		// app content is authored. It is not gated by a role: the two layers above are what a site
 		// rearranges, and neither needs this.
 		this.can_export = !!(frappe.boot.developer_mode && this.app);
 	}
 
-	// One title, whichever layer is on screen. A layer-dependent title was dropped along with the
-	// other alternatives that made the app layer look different: the switch below already says
-	// which layer this is, and repeating it reads as a warning.
+	// One title, whichever layer is on screen: the bar already names the layer.
 	title() {
-		return this.app ? __("Manage {0} Dock", [__(this.app.app_title)]) : __("Manage Dock");
-	}
-
-	extra_actions() {
-		return this.can_export
-			? {
-					secondary_action_label: __("Export to app"),
-					secondary_action: () => this.export_to_app(),
-			  }
-			: {};
+		return this.app ? __("the {0} dock", [__(this.app.app_title)]) : __("the dock");
 	}
 
 	copy() {
 		return {
-			list_head: __("Entries"),
-			add_label: __("Add"),
-			list_sub: __("Drag to reorder. The eye takes an entry off the dock."),
-			reset_title: __("Bring every entry back onto the dock."),
+			add_label: __("New module"),
+			reset_title: __("Brings every entry back."),
 			list_empty: __("This app has nothing to arrange"),
-			preview_head: __("Preview"),
-			preview_sub: __("The dock as this arrangement leaves it."),
-			preview_empty: __("Nothing on the dock"),
 			load_error: __("Could not load the dock. Please try again."),
 		};
+	}
+
+	// The rail is held open while it is arranged and goes back to the person's preference when this
+	// closes. The tiles are drawn by this editor meanwhile, and the controls by a bar of its own.
+	mount() {
+		const sidebar = frappe.app.sidebar;
+		sidebar.watch_editor(this);
+		sidebar.dock.hold_open(true);
+		this.$tiles = sidebar.dock.begin_editing(this);
+		return $(`<div class="ws-bar" role="toolbar"></div>`)
+			.attr("aria-label", __("Arranging the dock"))
+			.appendTo(document.body);
+	}
+
+	unmount() {
+		this.destroy_tooltips();
+		this.add_tooltip?.destroy();
+		const sidebar = frappe.app.sidebar;
+		sidebar.dock.end_editing(this);
+		sidebar.dock.hold_open(false);
+		sidebar.unwatch_editor(this);
+		this.$frame.remove();
+	}
+
+	render_frame() {
+		const dock = frappe.app.sidebar.dock;
+		this.$frame.html(`
+			<span class="ws-bar-grip">${frappe.utils.icon("grip-vertical", "sm")}</span>
+			<span class="ws-bar-title">
+				<span class="ws-bar-name">${__("Dock")}</span>
+				<span class="ws-bar-layer"></span>
+			</span>
+			<div class="ws-foot"></div>
+		`);
+		this.$list = this.$tiles;
+		this.$scroll = this.$tiles;
+		this.$add_slot = dock.$add_slot;
+
+		this.render_layer_switch();
+		this.render_footer();
+		this.bind_keys();
+		this.setup_bar_drag();
+	}
+
+	// The bar starts in the corner and moves by its grip, kept on screen.
+	setup_bar_drag() {
+		const bar = this.$frame[0];
+		const grip = this.$frame.find(".ws-bar-grip")[0];
+		let grab = null;
+		grip.addEventListener("pointerdown", (e) => {
+			const box = bar.getBoundingClientRect();
+			grab = { dx: e.clientX - box.left, dy: e.clientY - box.top };
+			grip.setPointerCapture(e.pointerId);
+		});
+		grip.addEventListener("pointermove", (e) => {
+			if (!grab) return;
+			const left = Math.min(
+				Math.max(8, e.clientX - grab.dx),
+				window.innerWidth - bar.offsetWidth - 8
+			);
+			const top = Math.min(
+				Math.max(8, e.clientY - grab.dy),
+				window.innerHeight - bar.offsetHeight - 8
+			);
+			this.$frame.css({ left, top, bottom: "auto" });
+		});
+		grip.addEventListener("pointerup", () => (grab = null));
+	}
+
+	layer_slot() {
+		return this.$frame?.find(".ws-bar-layer");
+	}
+
+	// The bar sits at the foot of the screen.
+	layer_menu_side() {
+		return "top";
+	}
+
+	// The sidebar is not being edited, so its header keeps its own menu.
+	header_menu_items() {
+		return null;
+	}
+
+	panel_edge() {
+		return frappe.app.sidebar.dock.$dock[0];
+	}
+
+	// The tiles stay as they are while the layer loads, rather than giving way to a loading line
+	// the rail has no room for.
+	render_loading() {}
+
+	// A drag that opened the editor is its first change: the tiles go where they were dropped.
+	// Entries the drop did not show keep their places.
+	on_load() {
+		const dropped = this.opts.order;
+		if (!dropped || this.applied_drop) return;
+		this.applied_drop = true;
+
+		const at = new Map(dropped.map((key, i) => [key, i]));
+		const listed = this.order.filter((key) => this.is_listed(key));
+		const known = listed.filter((key) => at.has(key)).sort((a, b) => at.get(a) - at.get(b));
+		const next = listed.map((key) => (at.has(key) ? known.shift() : key));
+		this.order = this.order.map((key) => (this.is_listed(key) ? next.shift() : key));
+	}
+
+	// Every shell in this app shows this app's rail, so moving between them keeps the editor open.
+	survives_shell(shell) {
+		return frappe.app.sidebar.app_for_sidebar(shell) === this.app?.app_name;
+	}
+
+	// A dock entry is its tile, drawn the way the rail draws it.
+	row_content(key) {
+		const entry = this.entries.get(key);
+		const sidebar = frappe.app.sidebar;
+		const icon = entry.icon
+			? frappe.utils.icon(entry.icon, "rail")
+			: frappe.utils.desktop_icon(entry.label, "gray", "rail");
+		const active = sidebar.is_active_entry(entry) ? "active" : "";
+		return $(`<span class="dock-item ${active}">
+			<span class="dock-item-icon">${icon}</span>
+		</span>`);
+	}
+
+	row_classes() {
+		return "ws-tile";
+	}
+
+	// A tile is named by its tooltip, as on the rail. It carries no control of its own: a tile is
+	// taken off from its panel (see `edit_entry`), which keeps the rail as it looks.
+	// The tile whose panel is open has no tooltip, since the panel beside it names it.
+	list_row(key) {
+		const $row = super.list_row(key).attr("aria-label", this.entries.get(key).label);
+		$row.find(".ws-row-controls").remove();
+		if (this.panel?.key === key) return $row;
+		this.tile_tooltips.push(this.tile_tooltip($row[0], this.entries.get(key).label));
+		return $row;
+	}
+
+	render_list() {
+		this.destroy_tooltips();
+		super.render_list();
+	}
+
+	render_body() {
+		this.add_tooltip?.destroy();
+		super.render_body();
+		if (this.$add) this.add_tooltip = this.tile_tooltip(this.$add[0], this.copy().add_label);
+	}
+
+	tile_tooltip(target, text) {
+		return new frappe.ui.Tooltip(target, {
+			text,
+			side: "right",
+			delay: 0,
+			offset: 10,
+			class: "es-tooltip--plain",
+		});
+	}
+
+	destroy_tooltips() {
+		(this.tile_tooltips || []).forEach((tip) => tip.destroy());
+		this.tile_tooltips = [];
+	}
+
+	// The label and icon a tile reads with. A stored row carries both, and the server blanks the
+	// ones that match what the layer below says, so an untouched tile keeps following it. Remove,
+	// beside the panel's close button, takes the tile off.
+	edit_entry(key) {
+		const entry = this.entries.get(key);
+		this.open_panel({
+			key,
+			title: entry.label,
+			actions: [
+				frappe.ui.button({
+					label: __("Remove"),
+					variant: "ghost",
+					size: "sm",
+					css_class: "ws-remove",
+					onclick: () => this.remove(key),
+				}),
+			],
+			fields: [
+				{
+					fieldtype: "Data",
+					fieldname: "title",
+					label: __("Label"),
+					default: entry.label,
+				},
+				{ fieldtype: "Icon", fieldname: "icon", label: __("Icon"), default: entry.icon },
+			],
+			on_change: (values) => {
+				if (values.title) entry.label = values.title;
+				entry.icon = values.icon || null;
+				this.render_list();
+			},
+		});
 	}
 
 	// Load the layer being edited: its own stored rows, not the resolved rail in
@@ -120,12 +311,13 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 		// What the app itself ships, unfiltered by anyone's reach: the pool the manager offers and
 		// what `unnamed_modules` counts against.
 		this.base_rows = base || [];
-		// Which of these rows this layer added itself, so they carry a cross rather than an eye.
+		// Which of these rows this layer added itself, so Remove drops them rather than hiding them.
 		// Read from the stored layer rather than inferred from the entry: an entry a lower layer
 		// added is a reference from here, and hiding is the right control for it.
 		this.own_adds = new Set(
 			(layer || []).filter((row) => row.added).map((row) => this.key(row))
 		);
+		this.new_modules = new Set();
 		// What the apps ship, so a row the app itself hid can say so. The hidden flag alone does
 		// not say who hid it, and un-hiding an app's deliberate default should be a choice rather
 		// than an accident.
@@ -133,7 +325,7 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 			(base || []).filter((row) => row.hidden).map((row) => this.key(row))
 		);
 		// Only what this layer put on the dock is named. Everything else the app offers follows it
-		// in the app's own order, with the eye off.
+		// in the app's own order, taken off.
 		this.arrange(this.initial_selection());
 	}
 
@@ -151,10 +343,6 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 		});
 	}
 
-	// A read-only count, not a control: how many of the app's modules are on no tier at all,
-	// neither on the rail nor shipped off it, simply never named. No layer can bring those back,
-	// so an author who did not intend it should see the number.
-	//
 	// Counted against the app's own rows rather than the entry set, which is reach-filtered. A
 	// module the record names but this user cannot see is still named, and reporting it as unnamed
 	// would send an author looking for a row that is already there.
@@ -186,7 +374,7 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 		return arranged.length ? arranged : this.unarranged_selection();
 	}
 
-	// One row as a layer stores it, built from the key the panes work in: the whole destination,
+	// One row as a layer stores it, built from the key the list works in: the whole destination,
 	// plus how it reads if this layer overrides that.
 	//
 	// An entry this layer only references still sends its icon and title back. The server
@@ -235,67 +423,82 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 		return shown.length ? shown : this.all_keys();
 	}
 
-	// Every layer may add an entry. The server bounds this by reach, so a user may put on their
-	// rail anything they can already navigate to, and never by base membership, which is what the
-	// old "never add" rule claimed but did not enforce.
+	// Add creates a module, so it is offered to whoever may create one. A module is the site's,
+	// so only the shared layers create one; on "Just for me" Add only puts a tile back.
 	can_add() {
-		return !!this.app;
+		return !!this.app && frappe.model.can_create("Module Def");
+	}
+
+	can_create_module() {
+		return this.layer !== "user";
 	}
 
 	is_own_add(key) {
 		return this.own_adds.has(key);
 	}
 
-	// One control at every layer. The layer switch above says whether hiding is an author setting
-	// a default or a site making a customization. A separate control per meaning was dropped,
-	// because the meaning is already on screen and a second control would say the same thing
-	// twice. The tooltip carries the difference.
-	hide_tooltip(key, hidden) {
-		if (hidden) return __("Show");
-		return this.layer === "app" ? __("Ship this off by default") : __("Hide");
+	// One way to take a tile off, at every layer: Remove in its panel. On a tile a lower layer
+	// holds it stores the row hidden, which on the app's layer ships it off by default. A tile this
+	// layer added is dropped. The tile leaves the rail either way, and adding the same entry again
+	// is how it comes back (see `place`).
+	can_remove(key) {
+		return !this.is_own_add(key);
 	}
 
-	// The two resets sit side by side, because they reach different sets of users and only one of
-	// them can be undone by the user it affects.
-	extra_pane_actions() {
-		if (this.layer !== "site" || !this.can_curate_site) return [];
+	is_listed(key) {
+		return !this.hidden.has(key);
+	}
 
-		return [
-			{
+	remove(key) {
+		if (this.is_own_add(key)) {
+			this.new_modules.delete(this.entries.get(key)?.link_to);
+			return super.remove(key);
+		}
+		if (this.panel?.key === key) this.close_panel();
+		this.hide(key);
+		this.render_list();
+	}
+
+	// The two resets sit side by side in the menu, because they reach different sets of users and
+	// only one of them can be undone by the user it affects.
+	extra_menu_items() {
+		const items = [];
+		if (this.layer === "site" && this.can_curate_site) {
+			items.push({
 				label: __("Reset for everyone"),
-				title: __(
-					"Drops every person's own arrangement of this rail as well as the site's, so everybody is back on what the app ships."
-				),
-				onClick: () => this.reset_for_everyone(),
-			},
-		];
+				icon: "history",
+				theme: "red",
+				description: __("Puts everyone back on the app's dock."),
+				onclick: () => this.reset_for_everyone(),
+			});
+		}
+		if (this.can_export) {
+			items.push({
+				label: __("Export to app"),
+				icon: "package-plus",
+				onclick: () => this.export_to_app(),
+			});
+		}
+		return items;
 	}
 
 	// A read-only count, not a control: the app's modules on no tier at all, neither on the rail
 	// nor shipped off it, simply never named. Nothing above the app layer can bring one back, so
 	// an author who did not intend it should see the number.
-	pane_note() {
+	layer_note() {
 		const unnamed = this.unnamed_modules();
 		if (!unnamed.length) return "";
 
-		return `<span title="${frappe.utils.escape_html(unnamed.join(", "))}">${__(
-			"{0} of this app's modules are on no tier at all",
-			[unnamed.length]
-		)}</span>`;
-	}
-
-	// A row the app ships off says so. The eye still brings it back: off by default is a default,
-	// not a decision made for the user.
-	item_extras(key) {
-		return this.base_hidden.has(key)
-			? `<span class="ws-item-chip">${__("app ships this off")}</span>`
-			: "";
+		return __("{0} of this app's modules are not on the dock, for anyone: {1}", [
+			unnamed.length,
+			unnamed.join(", "),
+		]);
 	}
 
 	// An empty selection is not stored as an empty dock. It is saved as no rows at all, which is
 	// what this layer says when it has nothing to say, so Reset here resets to the layer below,
 	// the site's or the app's own dock, and takes effect on the next Save like every other edit
-	// in the panes.
+	// in the list.
 	//
 	// Rows this layer added are removed too, not just taken off the rail. There is nothing below
 	// them to fall back to, so leaving one hidden would keep a row nobody can see or explain.
@@ -303,7 +506,7 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 		this.own_adds.forEach((key) => this.remove(key));
 		if (!this.selection.length) return;
 		this.hidden = new Set(this.all_keys());
-		this.render_panes();
+		this.render_list();
 	}
 
 	// Drop every non-standard dock for this app, including the site's own layer, so everyone is
@@ -311,7 +514,7 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 	//
 	// This is the one action that reaches past the site layer, which is why it exists: a Workspace
 	// Manager who re-curates the site's rail reaches nobody who has arranged their own. It is
-	// immediate and confirmed rather than a pane edit applied on Save, because it is not an edit
+	// immediate and confirmed rather than an edit applied on Save, because it is not an edit
 	// to the arrangement in front of them but a decision about everyone else's.
 	async reset_for_everyone() {
 		frappe.confirm(
@@ -320,8 +523,9 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 				[frappe.utils.escape_html(this.app.app_title || this.app.app_name)]
 			),
 			async () => {
-				this.apply(await frappe.xcall(RESET_FOR_EVERYONE, { app: this.app.app_name }));
-				this.dialog.hide();
+				const rail = await frappe.xcall(RESET_FOR_EVERYONE, { app: this.app.app_name });
+				this.close();
+				this.apply(rail);
 				frappe.show_alert({
 					message: __("Everyone is back on the dock this app ships"),
 					indicator: "green",
@@ -331,143 +535,95 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 	}
 
 	save_args() {
-		// The layer belongs to this app, so what is on screen is all of it. Carrying other apps'
-		// rows through was needed by the old flat list; now a save touches one document and that
-		// document holds one app's rows.
-		//
 		// Nothing selected means Reset: it stores no row, so the layer below shows through instead
 		// of the app being hidden entry by entry.
 		const mine = this.selection.length
 			? this.arranged_rows((key, hidden) => this.stored_row(key, hidden))
 			: [];
 
-		return { app: this.app.app_name, items: JSON.stringify(mine) };
+		// The modules Add put on the rail are created by the same request, so a save that fails
+		// leaves none behind.
+		const modules = [...this.new_modules];
+		return {
+			app: this.app.app_name,
+			items: JSON.stringify(mine),
+			...(modules.length ? { modules: JSON.stringify(modules) } : {}),
+		};
 	}
 
 	// Both saves return this app's resolved rail, its own dock with the site's arrangement and
 	// this user's on top, so the rail can be redrawn in place whichever layer was written. Only
 	// this app's key is replaced, because only this app's document was saved.
-	apply(rail) {
+	apply(result) {
+		const rail = this.take_new_modules(result);
 		frappe.boot.dock = { ...(frappe.boot.dock || {}), [this.app.app_name]: rail };
 		frappe.app.sidebar.refresh_dock();
 		// The header draws the module's icon from this rail too.
 		frappe.app.sidebar.refresh_header();
 	}
 
-	// Add, kind first: what it opens, then the target, then how it reads.
+	// Add asks for a name and an icon, and puts a new module of that name on the rail. On Save
+	// it becomes a module the site owns, placed in this app, opening on a Home page of its own.
 	//
-	// The pool is never drawn. Anything nameable is an unbounded set, covering every workspace,
-	// every module and any URL, and a pane for it would break the two-pane layout. It lives in the
-	// picker's own search instead.
-	//
-	// Icon and title start empty, with no prefill and no placeholder holding the module's title.
-	// Prefilling would make divergence look like inheritance: a site that renames a module sees
-	// the new name in the sidebar header and the old one on the rail, and a prefilled field gives
-	// the author no reason to suspect the two can differ. The cost is that filling an empty rail
-	// takes a round trip per entry with two fields typed by hand.
+	// A name this app's dock already offers is that tile, not a new module, so it is put back on
+	// the rail instead. Add is how a tile taken off comes back. Any other module of that name is
+	// refused here rather than on Save, where the error would arrive after the panel had gone.
 	add() {
 		if (!this.loaded) return;
 
-		const sidebar = frappe.app.sidebar;
-		const dialog = new frappe.ui.Dialog({
-			title: __("Add to the dock"),
+		const panel = this.open_add_panel({
+			title: __("New item"),
 			fields: [
 				{
-					fieldtype: "Select",
-					fieldname: "opens",
-					label: __("What it opens"),
-					options: [
-						{ value: "Sidebar", label: __("Module") },
-						{ value: "Workspace", label: __("Workspace") },
-						{ value: "URL", label: __("Web address") },
-					],
-					default: "Sidebar",
-					reqd: 1,
-					onchange: () => this.describe_target(dialog),
-				},
-				{
-					fieldtype: "Autocomplete",
-					fieldname: "module",
-					label: __("Module"),
-					depends_on: "eval:doc.opens == 'Sidebar'",
-					// The app's navigable modules, which is what `get_app_modules` returns, rather
-					// than a link query, which would show only the few modules that have a
-					// `Sidebar` document.
-					options: sidebar.navigable_app_modules(this.app).map((shell) => ({
-						value: shell,
-						label: frappe.boot.module_sidebars[shell]?.label || shell,
-					})),
-				},
-				{
-					fieldtype: "Link",
-					fieldname: "workspace",
-					label: __("Workspace"),
-					options: "Workspace",
-					depends_on: "eval:doc.opens == 'Workspace'",
-				},
-				{
 					fieldtype: "Data",
-					fieldname: "url",
-					label: __("Web address"),
-					depends_on: "eval:doc.opens == 'URL'",
+					fieldname: "name",
+					label: __("Name"),
 				},
-				{ fieldtype: "HTML", fieldname: "hint" },
-				{ fieldtype: "Section Break" },
-				{ fieldtype: "Icon", fieldname: "icon", label: __("Icon"), reqd: 1 },
-				{ fieldtype: "Column Break" },
-				{
-					fieldtype: "Data",
-					fieldname: "title",
-					label: __("Title"),
-					reqd: 1,
-					description: __("How it reads on the rail."),
-				},
+				{ fieldtype: "Icon", fieldname: "icon", label: __("Icon") },
 			],
-			primary_action_label: __("Add"),
-			primary_action: (values) => {
-				const entry = this.entry_from(values);
-				if (!entry) return;
-				dialog.hide();
-				this.place(entry);
+			primary: (values) => {
+				const name = (values.name || "").trim();
+				if (panel.flag_missing(name ? [] : ["name"])) return;
+
+				const existing = this.all_keys().find((key) => {
+					const entry = this.entries.get(key);
+					return entry.link_type === "Sidebar" && entry.link_to === name;
+				});
+				if (existing) {
+					this.close_panel();
+					this.hidden.delete(existing);
+					this.render_list();
+					return;
+				}
+				if (frappe.boot.module_sidebars?.[name] || this.new_modules.has(name)) {
+					frappe.throw({
+						message: __("There is already a module called {0}.", [
+							frappe.utils.escape_html(name),
+						]),
+						title: __("Module Exists"),
+					});
+				}
+				if (!this.can_create_module()) {
+					frappe.throw({
+						message: __(
+							"A new module is added for everyone. Switch to For everyone to add {0}.",
+							[frappe.utils.escape_html(name)]
+						),
+						title: __("Not on This Dock"),
+					});
+				}
+
+				this.close_panel();
+				this.new_modules.add(name);
+				this.place({
+					link_type: "Sidebar",
+					link_to: name,
+					module: name,
+					label: name,
+					icon: values.icon || null,
+				});
 			},
 		});
-
-		dialog.show();
-		this.describe_target(dialog);
-	}
-
-	// One line under the target saying what the row will do, because the two common shapes behave
-	// differently and their fields alone do not show that.
-	describe_target(dialog) {
-		const hints = {
-			Sidebar: __("Opens the module's home and shows its sidebar."),
-			Workspace: __("Its sidebar is derived from the module that owns it."),
-			URL: __("Leaves the desk. It has no sidebar."),
-		};
-		$(dialog.fields_dict.hint.$wrapper).html(
-			`<div class="text-muted small">${hints[dialog.get_value("opens")] || ""}</div>`
-		);
-	}
-
-	// The dialog's result as a rail entry, or nothing if it named nothing.
-	entry_from(values) {
-		const row =
-			values.opens === "Sidebar"
-				? { link_type: "Sidebar", link_to: values.module }
-				: values.opens === "Workspace"
-				? { link_type: "Workspace", link_to: values.workspace }
-				: { link_type: "URL", url: values.url };
-
-		if (!(row.link_to || row.url)) {
-			frappe.throw(__("Pick something for it to open."));
-		}
-
-		return {
-			...row,
-			module: row.link_type === "Sidebar" ? row.link_to : null,
-			icon: values.icon,
-			label: values.title,
-		};
 	}
 
 	// Put a newly added entry into the arrangement on screen. Nothing is saved yet; Save does
@@ -478,7 +634,7 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 			// Same destination means the same entry, and adding it again would put a second button
 			// to one place. The existing one is un-hidden instead, which is what the user meant.
 			this.hidden.delete(key);
-			this.render_panes();
+			this.render_list();
 			return;
 		}
 
@@ -486,7 +642,17 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 		this.own_adds.add(key);
 		this.order.push(key);
 		this.hidden.delete(key);
-		this.render_panes();
+		this.render_list();
+	}
+
+	// A save that created modules returns the desk's pages and sidebars with the rail, swapped in
+	// so the new tile resolves on the rail and its Home page routes.
+	take_new_modules(result) {
+		if (!result?.rail) return result;
+
+		this.new_modules.clear();
+		frappe.app.sidebar.take_desk_state(result);
+		return result.rail;
 	}
 
 	// Author's promotion: write this app's dock into the app as a file so git carries it.
@@ -501,12 +667,11 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 		// Save first. Promotion reads what is stored, so exporting with unsaved drags on screen
 		// would silently ship the arrangement the author had before they started, which is the
 		// worst way to be wrong about a file that goes into git.
-		this.sync_order();
-		await frappe.xcall(this.layer_config.save, this.save_args());
+		this.take_new_modules(await frappe.xcall(this.layer_config.save, this.save_args()));
 		await frappe.xcall(MARK_AS_STANDARD, { app: this.app.app_name });
 		// The app now ships a dock, so the third value in the switch has something to write to.
 		this.layer = "app";
-		if (this.$layer) this.$layer.val("app");
+		this.render_layer_switch();
 		this.load();
 	}
 };

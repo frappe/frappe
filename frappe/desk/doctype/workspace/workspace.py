@@ -1392,3 +1392,15 @@ def check_workspace_manager(message: str) -> None:
 	"""Refuse anyone who is not one, with a message saying what they were trying to do."""
 	if not is_workspace_manager():
 		frappe.throw(message, frappe.PermissionError)
+
+
+def check_layer_keeps_its_owner(doc) -> None:
+	"""Refuse moving a `Custom Sidebar` or `Dock` layer to another user, unless the caller is a
+	Workspace Manager.
+
+	Their `has_permission` can only read `user` off the document being saved, so naming yourself
+	would otherwise be enough to pass it and take someone else's layer or the site's.
+	"""
+	before = doc.get_doc_before_save()
+	if before and (before.user or "") != (doc.user or ""):
+		check_workspace_manager(_("You need to be Workspace Manager to move this layer to another user."))
