@@ -440,6 +440,7 @@ after_migrate = [
 	"frappe.desk.doctype.notification_type.notification_type.install_notification_types",
 	"frappe.automation.doctype.automation_trigger_queue.automation_trigger_queue.ensure_dedup_indexes",
 	"frappe.studio.sync.after_migrate",
+	"frappe.shell.settings.check_shipped_records",
 	"frappe.flow.permissions.ensure_flow_role",
 	"frappe.flow.assistant.sync_builtin_assistant",
 	"frappe.flow.lib.agent.sync_agents",
