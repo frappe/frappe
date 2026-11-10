@@ -16,7 +16,7 @@
 			</div>
 		</div>
 		<p v-if="description && !error?.length" class="text-p-sm text-ink-gray-6">
-			{{ description }}
+			<FieldDescription :html="description" />
 		</p>
 		<ErrorMessage :message="error" />
 	</div>
@@ -25,6 +25,7 @@
 <script setup lang="ts">
 import { ErrorMessage, FormLabel } from "frappe-ui";
 import type { FieldError } from "./types";
+import FieldDescription from "./FieldDescription.vue";
 
 defineProps<{
 	text?: string;

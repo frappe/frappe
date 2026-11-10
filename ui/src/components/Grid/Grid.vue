@@ -248,7 +248,9 @@
 
 		<!-- Help text and validation error sit below the control. `showDescription`
 		     hides the description while an error is shown (frappe-ui convention). -->
-		<InputDescription v-if="showDescription" :id="descriptionId" :description="description" />
+		<InputDescription v-if="showDescription" :id="descriptionId" :description="description">
+			<slot name="description">{{ description }}</slot>
+		</InputDescription>
 		<InputError v-if="hasError" :id="errorMessageId" :lines="errorLines" />
 	</div>
 </template>

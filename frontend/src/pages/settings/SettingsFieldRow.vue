@@ -8,7 +8,7 @@
 				<div class="min-w-0 flex-1">
 					<div class="text-base-medium leading-tighter text-ink-gray-8">{{ title }}</div>
 					<div v-if="description" class="mt-1 text-base leading-5 text-ink-gray-6">
-						{{ description }}
+						<FieldDescription :html="description" />
 					</div>
 				</div>
 				<SettingsSaveMark :mark="mark" />
@@ -22,7 +22,7 @@
 				@change="emit('commit')"
 			/>
 		</div>
-		<SettingsRow v-else :title="title" :description="description">
+		<SettingsRow v-else :title="title" :description="descriptionText(description)">
 			<div class="flex items-center gap-2">
 				<SettingsSaveMark :mark="mark" />
 				<Switch
@@ -50,6 +50,7 @@
 import { computed } from "vue";
 import { ErrorMessage, SettingsRow, Switch } from "frappe-ui";
 import { getFieldComponent } from "@framework/ui/FormLayout";
+import { descriptionText, FieldDescription } from "@framework/ui/fields";
 import { fieldnameOfErrorKey } from "@framework/ui/fields/types";
 import type { FieldNode } from "@framework/ui/FormLayout/types";
 import { __ } from "@/i18n";

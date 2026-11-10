@@ -28,6 +28,9 @@
 		@create="linkCreate.create"
 		@redirect="record.open"
 	>
+		<template v-if="field.description && !error?.length" #description>
+			<FieldDescription :html="field.description" />
+		</template>
 		<template #item-create="{ query }">
 			<span class="truncate">{{ linkCreate.label(query) }}</span>
 		</template>
@@ -46,6 +49,7 @@ import type { FieldComponentEmits, FieldComponentProps } from "./types";
 import { useLinkCreate } from "./useLinkCreate";
 import { useRecordLink } from "./useRecordLink";
 import LinkValue from "./LinkValue.vue";
+import FieldDescription from "./FieldDescription.vue";
 
 const props = defineProps<FieldComponentProps>();
 const emit = defineEmits<FieldComponentEmits>();

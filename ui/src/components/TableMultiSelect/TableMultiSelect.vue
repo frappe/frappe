@@ -14,6 +14,9 @@
 		@update:open="onOpen"
 		@update:query="onQuery"
 	>
+		<template v-if="$slots.description" #description>
+			<slot name="description" />
+		</template>
 		<!-- Selected links as white chips, replacing the default "N selected" summary. -->
 		<template #trigger="{ open, selectedOptions, toggleOpen }">
 			<button

@@ -8,13 +8,18 @@
 		:error="error"
 		:disabled="field.readOnly"
 		@change="(e: Event) => emit('change', (e.target as HTMLInputElement).value)"
-	/>
+	>
+		<template v-if="field.description && !error?.length" #description>
+			<FieldDescription :html="field.description" />
+		</template>
+	</Password>
 </template>
 
 <script setup lang="ts">
 import { computed } from "vue";
 import { Password } from "frappe-ui";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
+import FieldDescription from "./FieldDescription.vue";
 
 const props = defineProps<FieldComponentProps>();
 const emit = defineEmits<FieldComponentEmits>();

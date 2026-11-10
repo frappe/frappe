@@ -8,7 +8,11 @@
 		:error="error"
 		:disabled="field.readOnly"
 		v-bind="durationUnits(field)"
-	/>
+	>
+		<template v-if="field.description && !error?.length" #description>
+			<FieldDescription :html="field.description" />
+		</template>
+	</Duration>
 </template>
 
 <script setup lang="ts">
@@ -18,6 +22,7 @@ import { computed } from "vue";
 import { Duration } from "frappe-ui";
 import { durationUnits } from "./durationUnits";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
+import FieldDescription from "./FieldDescription.vue";
 
 const props = defineProps<FieldComponentProps>();
 const emit = defineEmits<FieldComponentEmits>();

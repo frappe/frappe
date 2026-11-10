@@ -13,6 +13,9 @@
 			@keydown="onKeydown"
 			@blur="endEdit"
 		>
+			<template v-if="field.description && !error?.length" #description>
+				<FieldDescription :html="field.description" />
+			</template>
 			<template #prefix>
 				<span
 					v-if="field.readOnly"
@@ -52,6 +55,7 @@ import ColorPicker from "./ColorPicker.vue";
 import { normalizeHex } from "./colorHex";
 import { translate as __ } from "../../utils/translate";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
+import FieldDescription from "./FieldDescription.vue";
 
 const props = defineProps<FieldComponentProps>();
 const emit = defineEmits<FieldComponentEmits>();

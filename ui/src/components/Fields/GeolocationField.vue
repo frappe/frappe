@@ -19,6 +19,9 @@
 			@click="openModal"
 			@keydown.enter.prevent="openModal"
 		>
+			<template v-if="field.description && !error?.length" #description>
+				<FieldDescription :html="field.description" />
+			</template>
 			<template #prefix>
 				<span
 					class="lucide-map-pin pointer-events-none size-3.5 shrink-0"
@@ -107,6 +110,7 @@ import layersIcon2xUrl from "leaflet/dist/images/layers-2x.png?url";
 import drawSpriteUrl from "leaflet-draw/dist/images/spritesheet.png?url";
 import drawSprite2xUrl from "leaflet-draw/dist/images/spritesheet-2x.png?url";
 import drawSpriteSvgUrl from "leaflet-draw/dist/images/spritesheet.svg?url";
+import FieldDescription from "./FieldDescription.vue";
 
 const props = defineProps<FieldComponentProps>();
 const emit = defineEmits<FieldComponentEmits>();
