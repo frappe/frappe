@@ -154,6 +154,7 @@ class TestSubmitFeedback(IntegrationTestCase):
 		frappe.set_user("Administrator")
 		frappe.db.rollback()
 		memory_store.drop_table()
+		super().tearDown()
 
 	def _run(self, status: str = "Completed", agent: str | None = None, **fields) -> str:
 		session = frappe.get_doc({"doctype": "Flow Session", "agent": agent or self.agent.name}).insert(
@@ -262,6 +263,7 @@ class ApiCase(IntegrationTestCase):
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		frappe.db.rollback()
+		super().tearDown()
 
 	def create(self, **fields) -> str:
 		return api.create_session(self.agent.name, **fields)["name"]

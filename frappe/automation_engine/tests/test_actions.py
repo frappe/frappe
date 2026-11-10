@@ -35,6 +35,7 @@ class TestActions(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.rollback()
 		frappe.local.automation_actions = None
+		super().tearDown()
 
 	def test_registry_contains_core_actions(self):
 		registry = get_action_registry()

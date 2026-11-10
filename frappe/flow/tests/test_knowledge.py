@@ -61,6 +61,7 @@ class TestKnowledgeStore(IntegrationTestCase):
 
 	def tearDown(self):
 		store.drop_table()
+		super().tearDown()
 
 	def _seed(self):
 		store.ensure_table_for_dimension(DIM)
@@ -495,6 +496,7 @@ class TestIngest(IntegrationTestCase):
 	def tearDown(self):
 		store.drop_table()
 		frappe.db.rollback()
+		super().tearDown()
 
 	def _make_source(self, **values):
 		values.setdefault("source_type", "Text")
@@ -642,6 +644,7 @@ class TestDoctypeSync(IntegrationTestCase):
 	def tearDown(self):
 		store.drop_table()
 		frappe.db.rollback()
+		super().tearDown()
 
 	def _todo(self, description, **values):
 		return frappe.get_doc({"doctype": "ToDo", "description": description, **values}).insert()
@@ -832,6 +835,7 @@ class TestRetriever(IntegrationTestCase):
 	def tearDown(self):
 		store.drop_table()
 		frappe.db.rollback()
+		super().tearDown()
 
 	def _fake_embed(self, input, **kwargs):
 		return _embedding_response([[0.1, 0.2, 0.3, 0.4]] * len(input))
@@ -904,6 +908,7 @@ class TestKnowledgeBuilder(IntegrationTestCase):
 	def tearDown(self):
 		store.drop_table()
 		frappe.db.rollback()
+		super().tearDown()
 
 	def _fake_embed(self, input, **kwargs):
 		return _embedding_response([[0.1, 0.2, 0.3, 0.4]] * len(input))
@@ -1001,6 +1006,7 @@ class TestAttachmentStore(IntegrationTestCase):
 
 	def tearDown(self):
 		attachment_store.drop_table()
+		super().tearDown()
 
 	def _seed(self):
 		attachment_store.ensure_table(DIM)
@@ -1081,6 +1087,7 @@ class TestRetrieveAttachments(IntegrationTestCase):
 	def tearDown(self):
 		attachment_store.drop_table()
 		frappe.db.rollback()
+		super().tearDown()
 
 	def _fake_embed(self, input, **kwargs):
 		return _embedding_response([[1.0, 0.0, 0.0, 0.0]] * len(input))

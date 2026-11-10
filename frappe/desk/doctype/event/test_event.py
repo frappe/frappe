@@ -19,6 +19,7 @@ class TestEvent(IntegrationTestCase):
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
+		super().tearDown()
 
 	def test_allowed_public(self):
 		frappe.set_user(self.test_user)

@@ -323,6 +323,7 @@ class TestDesktopOnUpgrade(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.set_single_value("Desktop Settings", "desktop_page", self.original)
 		frappe.clear_cache()
+		super().tearDown()
 
 	def test_the_grid_is_emptied_before_the_pin_reads_it(self):
 		"""What makes holding icon rows mean the grid rather than the v12-era desktop: the table is

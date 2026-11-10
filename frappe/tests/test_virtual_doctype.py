@@ -115,6 +115,7 @@ class TestVirtualDoctypes(IntegrationTestCase):
 	def tearDown(self):
 		if os.path.exists(VirtualDoctypeTest.DATA_FILE):
 			os.remove(VirtualDoctypeTest.DATA_FILE)
+		super().tearDown()
 
 	def test_insert_update_and_load_from_desk(self):
 		"""Insert, update, reload and assert changes"""

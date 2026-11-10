@@ -29,6 +29,7 @@ class IntegrationTestDocTypeSettingsMap(IntegrationTestCase):
 		frappe.db.delete("DocType Settings Map", {"applies_to_doctype": "User"})
 		frappe.flags.in_migrate = False
 		frappe.conf.developer_mode = self._developer_mode
+		super().tearDown()
 
 	def make_map(self, is_standard=0, is_active=1):
 		doc = frappe.get_doc(

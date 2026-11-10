@@ -552,6 +552,7 @@ class TestFile(IntegrationTestCase):
 			frappe.get_doc("File", {"file_name": "file_copy.txt"}).delete()
 		except frappe.DoesNotExistError:
 			pass
+		super().tearDown()
 
 	def delete_test_data(self):
 		test_file_data = frappe.get_all(
@@ -1776,6 +1777,7 @@ class TestChildTableAttachments(IntegrationTestCase):
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
+		super().tearDown()
 
 	def make_unattached_file(self, content: bytes, is_private: int = 1):
 		return frappe.get_doc(
@@ -2204,6 +2206,7 @@ class TestAttachmentsAccess(IntegrationTestCase):
 	def tearDown(self) -> None:
 		frappe.set_user("Administrator")
 		frappe.db.rollback()
+		super().tearDown()
 
 
 class TestFileUtils(IntegrationTestCase):
@@ -2625,6 +2628,7 @@ class TestGuestFileAndAttachments(IntegrationTestCase):
 		frappe.set_user("Administrator")
 		frappe.db.rollback()
 		frappe.delete_doc("DocType", "Test For Attachment")
+		super().tearDown()
 
 	def test_attach_unattached_guest_file(self):
 		"""Ensure that unattached files are attached on doc update."""
@@ -2822,6 +2826,7 @@ class TestPublicFileRestriction(IntegrationTestCase):
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
+		super().tearDown()
 
 	@IntegrationTestCase.change_settings(
 		"System Settings", {"only_allow_system_managers_to_upload_public_files": 1}
@@ -2931,6 +2936,7 @@ class TestForcePrivateAttachments(IntegrationTestCase):
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
+		super().tearDown()
 
 	def attach(self, is_private):
 		return frappe.get_doc(
@@ -2986,6 +2992,7 @@ class TestFileListOwnerRestriction(IntegrationTestCase):
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		frappe.db.rollback()
+		super().tearDown()
 
 	def test_other_user_file_count_excludes_owner_restricted_file(self):
 		frappe.set_user(self.OTHER)
@@ -3070,6 +3077,7 @@ class TestFileListUserPermissionRestriction(IntegrationTestCase):
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		frappe.db.rollback()
+		super().tearDown()
 
 	@classmethod
 	def tearDownClass(cls):

@@ -113,6 +113,7 @@ class TestWebFormTableMultiSelect(IntegrationTestCase):
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		frappe.local.request = None
+		super().tearDown()
 
 	def test_form_data_ships_the_child_link_docfield(self):
 		"""The portal has no DocType meta, so the control needs the child's Link field as-is."""

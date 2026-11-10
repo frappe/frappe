@@ -267,3 +267,4 @@ class TestConnectedApp(IntegrationTestCase):
 		delete_if_exists("oauth_client")
 
 		frappe.db.commit()
+		super().tearDown()

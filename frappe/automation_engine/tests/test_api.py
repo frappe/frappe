@@ -30,6 +30,7 @@ class TestApi(IntegrationTestCase):
 		frappe.set_user("Administrator")
 		frappe.db.rollback()
 		clear_automation_cache()
+		super().tearDown()
 
 	def test_capabilities_lists_triggers_actions_fields(self):
 		caps = api.get_automation_capabilities("ToDo")

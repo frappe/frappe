@@ -122,6 +122,7 @@ class TestLinkedWith(IntegrationTestCase):
 		for doctype in ["Parent DocType", "Child DocType1", "Child DocType2"]:
 			frappe.delete_doc("DocType", doctype)
 			frappe.db.commit()
+		super().tearDown()
 
 	def test_get_doctype_references_by_link_field(self):
 		references = linked_with.get_references_across_doctypes_by_link_field(to_doctypes=["Parent DocType"])

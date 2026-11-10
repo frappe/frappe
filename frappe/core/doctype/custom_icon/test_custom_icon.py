@@ -14,6 +14,7 @@ class TestCustomIcon(IntegrationTestCase):
 		frappe.db.rollback()
 		# the cache outlives the rolled back transaction
 		clear_symbol_cache()
+		super().tearDown()
 
 	def test_safe_svg_is_kept(self):
 		icon = frappe.get_doc({"doctype": "Custom Icon", "icon_name": "test-dot", "svg": SAFE_SVG}).insert()

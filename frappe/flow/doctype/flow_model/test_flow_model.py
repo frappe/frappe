@@ -138,6 +138,7 @@ class TestProviderModels(IntegrationTestCase):
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		frappe.db.rollback()
+		super().tearDown()
 
 	def test_a_providers_models_are_asked_live_and_saved_with_its_prefix(self):
 		frappe.get_doc({"doctype": "Flow Provider", "provider": "groq", "api_key": "test-key"}).insert()

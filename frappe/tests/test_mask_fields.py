@@ -159,6 +159,7 @@ class TestMaskFieldsBehaviour(IntegrationTestCase):
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
+		super().tearDown()
 
 	# ------------------------------------------------------------------
 	# Administrator always sees real values
@@ -416,6 +417,7 @@ class TestMaskFieldsInChildTable(IntegrationTestCase):
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
+		super().tearDown()
 
 	def test_child_masked_fields_masked_for_non_admin(self):
 		"""Child masked fields are masked on read; numeric ones survive serialization as the
@@ -677,6 +679,7 @@ class TestMaskFieldsInLinkedDocType(IntegrationTestCase):
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
+		super().tearDown()
 
 	def test_masked_field_selected_through_link_is_masked(self):
 		frappe.set_user(self.TEST_USER)
@@ -789,6 +792,7 @@ class TestMaskFieldsWithUserPermissions(IntegrationTestCase):
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
+		super().tearDown()
 
 	def test_user_can_read_doc_with_masked_link_field(self):
 		"""

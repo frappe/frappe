@@ -67,6 +67,7 @@ class TestAuditTrail(IntegrationTestCase):
 	def tearDown(self):
 		self.child_doctype.delete()
 		self.custom_doctype.delete()
+		super().tearDown()
 
 
 def create_custom_child_doctype():

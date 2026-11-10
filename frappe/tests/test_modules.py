@@ -40,6 +40,7 @@ class TestUtils(IntegrationTestCase):
 		frappe.db.rollback()
 		frappe.local.conf.developer_mode = self._dev_mode
 		frappe.local.flags.pop("in_import", None)
+		super().tearDown()
 
 	def test_export_module_json_no_export(self):
 		frappe.local.flags.in_import = True

@@ -52,6 +52,7 @@ class TestFmtDatetime(IntegrationTestCase):
 		frappe.local.user_date_format = None
 		frappe.local.user_time_format = None
 		frappe.db.rollback()
+		super().tearDown()
 
 	# Test utility functions
 

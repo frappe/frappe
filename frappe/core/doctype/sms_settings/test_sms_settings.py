@@ -18,6 +18,7 @@ class TestSMSSettings(IntegrationTestCase):
 		self.sms_settings.set("allowed_roles", self._allowed_roles)
 		self.sms_settings.flags.ignore_mandatory = True
 		self.sms_settings.save()
+		super().tearDown()
 
 	def test_user_without_allowed_role_is_blocked(self):
 		frappe.set_user("test@example.com")

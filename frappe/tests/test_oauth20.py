@@ -175,6 +175,7 @@ class TestOAuth20(FrappeRequestTestCase):
 		self._start_fresh_database_write()
 		self.oauth_client.delete(force=True)
 		frappe.db.rollback()
+		super().tearDown()
 
 	def test_invalid_login(self):
 		with suppress_stdout():

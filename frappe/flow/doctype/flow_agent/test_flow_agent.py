@@ -435,6 +435,7 @@ class TestFlowAgentAttachmentSearch(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.rollback()
 		frappe.clear_document_cache("Flow Knowledge Settings", "Flow Knowledge Settings")
+		super().tearDown()
 
 	def _search_tool(self, session=None):
 		return next(t for t in self.agent.client_tools(session) if t.name == "search_attachments")
@@ -476,6 +477,7 @@ class TestFlowAgentInstructions(IntegrationTestCase):
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		frappe.db.rollback()
+		super().tearDown()
 
 	def test_tags_are_filled_in_and_other_text_stays_as_written(self):
 		cases = (

@@ -907,6 +907,7 @@ class TestAClaimOnAnAbsentEntityIsInert(IntegrationTestCase):
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
+		super().tearDown()
 
 	def claim_row(self):
 		"""The row an app ships: a link to an entity it does not define, flagged as owned."""

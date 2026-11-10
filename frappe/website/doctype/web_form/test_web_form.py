@@ -32,6 +32,7 @@ class TestWebForm(IntegrationTestCase):
 		frappe.conf.disable_website_cache = False
 		frappe.local.request = None
 		frappe.set_user("Administrator")
+		super().tearDown()
 
 	def make_temp_web_form(self, **kwargs):
 		"""A throwaway Web Form on Event, so field tweaks don't leak into other tests."""

@@ -181,6 +181,7 @@ class TestCommentPermissions(IntegrationTestCase):
 	def tearDown(self):
 		reset_perms("Comment")
 		frappe.clear_cache(doctype="Comment")
+		super().tearDown()
 
 	def visible_comments(self):
 		"""Assert outside `set_user`: a failure inside leaks the user into the next setUp."""

@@ -801,6 +801,7 @@ class TestBackups(BaseTestCommands):
 					os.rmdir(os.path.dirname(file))
 				except OSError:
 					pass
+		super().tearDown()
 
 	def test_backup_no_options(self):
 		"""Take a backup without any options"""

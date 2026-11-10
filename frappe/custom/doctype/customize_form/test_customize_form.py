@@ -40,6 +40,7 @@ class TestCustomizeForm(IntegrationTestCase):
 		frappe.delete_doc("Custom Field", self.field.name)
 		frappe.db.commit()
 		frappe.clear_cache(doctype="Event")
+		super().tearDown()
 
 	def get_customize_form(self, doctype=None):
 		d = frappe.get_doc("Customize Form")

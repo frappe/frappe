@@ -13,6 +13,7 @@ class TestDocPreview(IntegrationTestCase):
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		self.todo.delete()
+		super().tearDown()
 
 	def test_returns_doc_and_permlevels(self):
 		preview = get_preview("ToDo", self.todo.name)

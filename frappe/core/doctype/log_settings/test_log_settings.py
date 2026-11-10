@@ -47,6 +47,7 @@ class TestLogSettings(IntegrationTestCase):
 			log_db.commit()
 			del self.log_fixtures
 			del self.datetime
+		super().tearDown()
 
 	def test_delete_logs(self):
 		# make sure test data is present

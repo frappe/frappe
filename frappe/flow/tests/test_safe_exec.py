@@ -14,6 +14,7 @@ class TestFlowSafeExec(IntegrationTestCase):
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		frappe.db.rollback()
+		super().tearDown()
 
 	def _run(self, code):
 		exec_globals, _ = safe_exec(code, script_filename="test")

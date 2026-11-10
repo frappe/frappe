@@ -12,6 +12,7 @@ class TestDomain(IntegrationTestCase):
 	def tearDown(self):
 		frappe.delete_doc("Email Account", "Test")
 		frappe.delete_doc("Email Domain", "test.com")
+		super().tearDown()
 
 	def test_on_update(self):
 		mail_domain = frappe.get_doc("Email Domain", "test.com")

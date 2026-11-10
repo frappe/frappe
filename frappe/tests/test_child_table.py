@@ -11,6 +11,7 @@ class TestChildTable(IntegrationTestCase):
 			frappe.delete_doc("DocType", self.doctype_name, force=1)
 		except Exception:
 			pass
+		super().tearDown()
 
 	def test_child_table_doctype_creation_and_transitioning(self) -> None:
 		"""

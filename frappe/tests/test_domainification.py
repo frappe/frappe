@@ -21,6 +21,7 @@ class TestDomainification(IntegrationTestCase):
 		frappe.db.delete("Domain", {"name": ("in", ("_Test Domain 1", "_Test Domain 2"))})
 		frappe.delete_doc("DocType", "Test Domainification")
 		self.remove_from_active_domains(remove_all=True)
+		super().tearDown()
 
 	def add_active_domain(self, domain):
 		"""add domain in active domain"""

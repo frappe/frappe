@@ -28,6 +28,7 @@ class DerivedHomeTestCase(IntegrationTestCase):
 
 	def tearDown(self):
 		self.as_user("Administrator")
+		super().tearDown()
 
 	def as_user(self, user: str):
 		"""Switch user, and drop what the previous one cached.

@@ -21,6 +21,7 @@ class TestDashboardConnections(IntegrationTestCase):
 	@patch.dict(frappe.conf, {"developer_mode": 1})
 	def tearDown(self):
 		delete_test_data()
+		super().tearDown()
 
 	def test_internal_link_count(self):
 		earth = frappe.get_doc(

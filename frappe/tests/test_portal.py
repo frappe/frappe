@@ -31,6 +31,7 @@ class TestPortalList(IntegrationTestCase):
 			del frappe.local.path
 		else:
 			frappe.local.path = self.path
+		super().tearDown()
 
 	def test_list_context_is_resolved_once_per_render(self):
 		with patch.object(

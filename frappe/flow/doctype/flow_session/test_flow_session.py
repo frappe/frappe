@@ -596,6 +596,7 @@ class TestFlowSessionModelPermission(IntegrationTestCase):
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		frappe.db.rollback()
+		super().tearDown()
 
 	def model(self, title):
 		return frappe.get_doc(

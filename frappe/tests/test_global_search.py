@@ -36,6 +36,7 @@ class TestGlobalSearch(IntegrationTestCase):
 		frappe.db.delete("__global_search")
 		make_test_objects("Event")
 		frappe.db.commit()
+		super().tearDown()
 
 	def insert_test_events(self):
 		frappe.db.delete("Event")

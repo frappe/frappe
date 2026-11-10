@@ -389,6 +389,7 @@ class TestDockPreferences(DockTestCase):
 		frappe.set_user("Administrator")
 		clear_arrangements()
 		frappe.delete_doc("User", USER, force=True, ignore_missing=True)
+		super().tearDown()
 
 	def test_order_round_trips(self):
 		save_user_dock(APP, payload(GAMMA, ALPHA, BETA))
@@ -505,6 +506,7 @@ class TestDockSiteLayer(DockTestCase):
 		clear_arrangements()
 		for email in (self.MANAGER, self.DESK_USER):
 			frappe.delete_doc("User", email, force=True, ignore_missing=True)
+		super().tearDown()
 
 	def make_user(self, email, roles):
 		if frappe.db.exists("User", email):
@@ -735,6 +737,7 @@ class TestTheAppLayer(DockTestCase):
 		frappe.set_user("Administrator")
 		clear_arrangements()
 		frappe.delete_doc("User", self.USER, force=True, ignore_missing=True)
+		super().tearDown()
 
 	def ship(self, *items, app=None):
 		"""One app's fragment, declared for the length of the `with` block."""
@@ -1045,6 +1048,7 @@ class TestWhatACustomisationMayDo(DockTestCase):
 		clear_arrangements()
 		for email in (self.MANAGER, self.PERSON):
 			frappe.delete_doc("User", email, force=True, ignore_missing=True)
+		super().tearDown()
 
 	def make_workspace(self, title, module, roles=None):
 		doc = frappe.get_doc(
@@ -1286,6 +1290,7 @@ class TestTheRowShape(DockTestCase):
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		clear_arrangements()
+		super().tearDown()
 
 	def make_workspace(self, title, module, public=1):
 		doc = frappe.get_doc(
@@ -1487,6 +1492,7 @@ class TestTheCompanionMount(DockTestCase):
 		frappe.set_user("Administrator")
 		clear_arrangements()
 		frappe.delete_doc("User", self.USER, force=True, ignore_missing=True)
+		super().tearDown()
 
 	def host_and_companion(self, host_rows=None, companion_rows=None, mount_on=None):
 		return shipped_dock(
@@ -1636,6 +1642,7 @@ class TestAnAppWithNoDock(DockTestCase):
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		clear_arrangements()
+		super().tearDown()
 
 	def test_an_app_with_no_record_resolves_to_zero_entries(self):
 		with shipped_dock({self.APP: []}):
@@ -1925,6 +1932,7 @@ class TestTheExportRoad(IntegrationTestCase):
 		clear_arrangements_for(self.APP)
 		self.drop_modules()
 		frappe.db.commit()  # nosemgrep
+		super().tearDown()
 
 	def make_modules(self):
 		self.drop_modules()
@@ -2281,6 +2289,7 @@ class TestAddModule(IntegrationTestCase):
 		frappe.delete_doc("Module Def", self.MODULE, force=True, ignore_missing=True)
 		for email in (self.MANAGER, self.CURATOR, self.DESK_USER):
 			frappe.delete_doc("User", email, force=True, ignore_missing=True)
+		super().tearDown()
 
 	def save(self, icon=None):
 		row = {"link_type": "Sidebar", "link_to": self.MODULE, "title": self.MODULE, "added": 1}

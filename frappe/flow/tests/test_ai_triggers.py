@@ -230,6 +230,7 @@ class TestFire(IntegrationTestCase):
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		frappe.db.rollback()
+		super().tearDown()
 
 	def turns(self):
 		return [call for call in self.daemon.calls if call[0] == "run"]

@@ -14,6 +14,7 @@ class TestTranslation(IntegrationTestCase):
 		from frappe.translate import clear_cache
 
 		clear_cache()
+		super().tearDown()
 
 	def test_doctype(self):
 		doctype = "Translation"

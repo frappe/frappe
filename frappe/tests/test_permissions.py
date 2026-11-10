@@ -69,6 +69,7 @@ class TestPermissions(IntegrationTestCase):
 		clear_user_permissions_for_doctype("Test Blog Category")
 		clear_user_permissions_for_doctype("Test Blog Post")
 		clear_user_permissions_for_doctype("Test Blogger")
+		super().tearDown()
 
 	@staticmethod
 	def set_strict_user_permissions(ignore):

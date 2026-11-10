@@ -1451,6 +1451,7 @@ class TestDDLCommandsMaria(IntegrationTestCase):
 	def tearDown(self) -> None:
 		frappe.db.sql(f"DROP TABLE tab{self.test_table_name};")
 		self.test_table_name = "TestNotes"
+		super().tearDown()
 
 	def test_rename(self) -> None:
 		new_table_name = f"{self.test_table_name}_new"
@@ -1522,6 +1523,7 @@ class TestDDLCommandsSQLite(IntegrationTestCase):
 	def tearDown(self) -> None:
 		for table_name in [self.table_name, self.audit_table, *self.other_tables]:
 			frappe.db.sql_ddl(f"DROP TABLE IF EXISTS `{table_name}`")
+		super().tearDown()
 
 	def create_doctype_table(self, field_definition: str) -> None:
 		frappe.db.sql_ddl(
@@ -2166,6 +2168,7 @@ class TestDDLCommandsPost(IntegrationTestCase):
 	def tearDown(self) -> None:
 		self.test_table_name = "TestNotes"
 		self._drop_test_tables()
+		super().tearDown()
 
 	def _drop_test_tables(self) -> None:
 		for table in ("tabTestNotes", "tabTestNotes_new"):
@@ -2841,6 +2844,7 @@ class TestPostgresSchemaQueryIndependence(ExtIntegrationTestCase):
 
 	def tearDown(self) -> None:
 		self.cleanup()
+		super().tearDown()
 
 	def cleanup(self) -> None:
 		for query in (
@@ -2990,6 +2994,7 @@ class TestDbConnectWithEnvCredentials(IntegrationTestCase):
 	def tearDown(self):
 		frappe.init(self.current_site, force=True)
 		frappe.connect()
+		super().tearDown()
 
 	@unimplemented_for(db_type_is.SQLITE)
 	def test_connect_fails_with_wrong_credentials_by_env(self) -> None:

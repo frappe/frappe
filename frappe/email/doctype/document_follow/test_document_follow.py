@@ -296,6 +296,7 @@ class TestDocumentFollow(IntegrationTestCase):
 		frappe.db.delete("Email Queue Recipient")
 		frappe.db.delete("Document Follow")
 		frappe.db.delete("Event")
+		super().tearDown()
 
 
 def get_events_followed_by_user(event_name, user_name):

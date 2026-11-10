@@ -67,6 +67,7 @@ class TestTranslate(IntegrationTestCase):
 		if self._testMethodName in self.guest_sessions_required:
 			frappe.set_user("Administrator")
 		frappe.local.lang = "en"
+		super().tearDown()
 
 	def test_clear_cache(self):
 		_("Trigger caching")

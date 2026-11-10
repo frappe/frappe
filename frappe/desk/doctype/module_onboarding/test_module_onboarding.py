@@ -30,6 +30,7 @@ class OnboardingTestCase(IntegrationTestCase):
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
+		super().tearDown()
 
 	def make_role(self, name: str) -> str:
 		if not frappe.db.exists("Role", name):

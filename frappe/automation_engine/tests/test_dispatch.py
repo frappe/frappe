@@ -40,6 +40,7 @@ class TestDispatch(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.rollback()
 		clear_automation_cache()
+		super().tearDown()
 
 	def test_doc_created_queues_a_row(self):
 		rule = make_automation("Doc Created")

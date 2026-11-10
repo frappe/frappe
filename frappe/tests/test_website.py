@@ -25,6 +25,7 @@ class TestWebsite(IntegrationTestCase):
 		self._clear_access_logs_created_by_this_test()
 		frappe.set_user("Administrator")
 		self._clearRequest()
+		super().tearDown()
 
 	@staticmethod
 	def _access_log_names() -> set[str]:

@@ -135,6 +135,7 @@ class TestCustomWorkspaceIntegration(IntegrationTestCase):
 	def tearDown(self):
 		frappe.delete_doc_if_exists("Custom Workspace", self.WORKSPACE)
 		frappe.db.delete("Workspace", {"name": self.WORKSPACE})
+		super().tearDown()
 
 	def test_save_page_stores_snapshot_and_leaves_base_untouched(self):
 		from frappe.desk.doctype.workspace.workspace import save_page

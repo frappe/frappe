@@ -61,6 +61,7 @@ class CustomizationTestCase(IntegrationTestCase):
 		frappe.set_user("Administrator")
 		self.wipe()
 		frappe.delete_doc("User", USER, force=True, ignore_missing=True)
+		super().tearDown()
 
 	def wipe(self, module: str = MODULE):
 		for name in frappe.get_all("Custom Sidebar", filters={"module": module}, pluck="name"):
@@ -470,8 +471,9 @@ class TestWhoMayTouchTheSiteLayer(CustomizationTestCase):
 		make_user(MANAGER, ["Desk User", "Workspace Manager"])
 
 	def tearDown(self):
-		super().tearDown()
+		frappe.set_user("Administrator")
 		frappe.delete_doc("User", MANAGER, force=True, ignore_missing=True)
+		super().tearDown()
 
 	def test_a_desk_user_cannot_write_the_site_layer(self):
 		self.as_user()
@@ -555,8 +557,9 @@ class TestALayerKeepsItsOwner(CustomizationTestCase):
 		make_user(OTHER, ["Desk User"])
 
 	def tearDown(self):
-		super().tearDown()
+		frappe.set_user("Administrator")
 		frappe.delete_doc("User", OTHER, force=True, ignore_missing=True)
+		super().tearDown()
 
 	def take(self, name):
 		from frappe.client import set_value
@@ -791,8 +794,9 @@ class TestWhatTheEditorOpensOn(CustomizationTestCase):
 		make_user(MANAGER, ["Desk User", "Workspace Manager"])
 
 	def tearDown(self):
-		super().tearDown()
+		frappe.set_user("Administrator")
 		frappe.delete_doc("User", MANAGER, force=True, ignore_missing=True)
+		super().tearDown()
 
 	def read(self, layer: str, module: str = MODULE):
 		endpoint = get_user_sidebar_layer if layer == "user" else get_site_sidebar_layer
@@ -1093,8 +1097,9 @@ class TestResetToStandard(CustomizationTestCase):
 		make_user(MANAGER, ["Desk User", "Workspace Manager"])
 
 	def tearDown(self):
-		super().tearDown()
+		frappe.set_user("Administrator")
 		frappe.delete_doc("User", MANAGER, force=True, ignore_missing=True)
+		super().tearDown()
 
 	def arrange_every_layer(self):
 		"""A site layer and two people's own, all hiding something."""
@@ -1175,8 +1180,9 @@ class TestAnAddedItemIsStillPermissionChecked(CustomizationTestCase):
 		make_user(MANAGER, ["Desk User", "Workspace Manager"])
 
 	def tearDown(self):
-		super().tearDown()
+		frappe.set_user("Administrator")
 		frappe.delete_doc("User", MANAGER, force=True, ignore_missing=True)
+		super().tearDown()
 
 	def add_to_site_layer(self, **item):
 		save_site_sidebar(MODULE, json.dumps([*self.base_items(), {"added": 1, "type": "Link", **item}]))
@@ -1228,8 +1234,9 @@ class TestTheEditorHidesWhatTheReaderMayNotOpen(CustomizationTestCase):
 		)
 
 	def tearDown(self):
-		super().tearDown()
+		frappe.set_user("Administrator")
 		frappe.delete_doc("User", MANAGER, force=True, ignore_missing=True)
+		super().tearDown()
 
 	def links(self, read):
 		return [item["link_to"] for item in read(MODULE)]

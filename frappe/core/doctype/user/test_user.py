@@ -51,6 +51,7 @@ class TestUser(IntegrationTestCase):
 		frappe.db.set_single_value("System Settings", "minimum_password_score", "")
 		frappe.db.set_single_value("System Settings", "password_reset_limit", 3)
 		frappe.set_user("Administrator")
+		super().tearDown()
 
 	def test_role_listing_requires_role_read(self):
 		desk_user = frappe.get_doc(

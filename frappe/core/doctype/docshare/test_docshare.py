@@ -25,6 +25,7 @@ class TestDocShare(IntegrationTestCase):
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		self.event.delete()
+		super().tearDown()
 
 	def test_add(self):
 		# user not shared

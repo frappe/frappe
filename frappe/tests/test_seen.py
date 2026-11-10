@@ -9,6 +9,7 @@ from frappe.tests import IntegrationTestCase
 class TestSeen(IntegrationTestCase):
 	def tearDown(self):
 		frappe.set_user("Administrator")
+		super().tearDown()
 
 	def test_if_user_is_added(self):
 		ev = frappe.get_doc(

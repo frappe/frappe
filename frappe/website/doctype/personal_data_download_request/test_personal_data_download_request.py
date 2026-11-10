@@ -19,6 +19,7 @@ class TestRequestPersonalData(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.delete("Personal Data Download Request")
 		frappe.set_user("Administrator")
+		super().tearDown()
 
 	def test_user_data_creation(self):
 		user_data = json.loads(get_user_data("test_privacy@example.com"))

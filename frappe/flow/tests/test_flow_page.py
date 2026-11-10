@@ -22,6 +22,7 @@ class TestFlowPage(IntegrationTestCase):
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		frappe.db.rollback()
+		super().tearDown()
 
 	def test_the_page_boots_a_user_and_sends_a_guest_to_login_and_back(self):
 		boot = index.get_context(frappe._dict()).boot

@@ -18,6 +18,7 @@ class TestWorkspace(IntegrationTestCase):
 			frappe.delete_doc("Workspace", name, force=True, ignore_missing=True)
 		frappe.db.delete("DocType", {"module": "Test Module"})
 		frappe.delete_doc("Module Def", "Test Module")
+		super().tearDown()
 
 	def test_workspace_conflicts_with_existing_doctype(self):
 		"""Workspace name should not conflict with existing DocType names."""

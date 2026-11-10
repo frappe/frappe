@@ -17,6 +17,7 @@ class TestMonitor(IntegrationTestCase):
 	def tearDown(self):
 		frappe.conf.monitor = 0
 		frappe.cache.delete_value(MONITOR_REDIS_KEY)
+		super().tearDown()
 
 	def test_enable_monitor(self):
 		set_request(method="GET", path="/api/method/frappe.ping")

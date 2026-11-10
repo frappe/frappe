@@ -42,6 +42,7 @@ class TestWorkflow(IntegrationTestCase):
 		self.patcher.stop()
 
 		frappe.delete_doc("Workflow", "Test ToDo")
+		super().tearDown()
 
 	def test_default_condition(self):
 		"""test default condition is set"""

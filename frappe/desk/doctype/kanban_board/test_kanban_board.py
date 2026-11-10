@@ -472,6 +472,7 @@ class TestKanbanBoardNativePayloads(IntegrationTestCase):
 
 	def tearDown(self):
 		frappe.delete_doc("Kanban Board", self.board.name, force=True)
+		super().tearDown()
 
 	def test_endpoints_accept_native_payloads(self):
 		# update_column_order with a native list (frappe.parse_json passthrough)

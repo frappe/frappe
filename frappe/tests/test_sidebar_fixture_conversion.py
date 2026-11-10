@@ -90,6 +90,7 @@ class TestSidebarFixtureConversion(IntegrationTestCase):
 	def tearDown(self):
 		with no_developer_mode():
 			frappe.delete_doc("Module Def", MODULE, force=True, ignore_missing=True)
+		super().tearDown()
 
 	def test_it_writes_one_export_per_module_where_migrate_will_find_it(self):
 		fixtures = {

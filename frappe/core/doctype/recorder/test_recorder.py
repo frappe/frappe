@@ -31,6 +31,7 @@ class TestRecorder(IntegrationTestCase):
 
 	def tearDown(self) -> None:
 		frappe.recorder.stop()
+		super().tearDown()
 
 	def start_recoder(self):
 		frappe.recorder.stop()

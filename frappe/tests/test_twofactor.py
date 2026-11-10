@@ -39,6 +39,7 @@ class TestTwoFactor(IntegrationTestCase):
 		frappe.local.response["tmp_id"] = None
 		disable_2fa()
 		frappe.clear_cache(user=self.user)
+		super().tearDown()
 
 	def test_should_run_2fa(self):
 		"""Should return true if enabled."""

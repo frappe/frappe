@@ -99,6 +99,7 @@ class TestFindDoctypes(IntegrationTestCase):
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		frappe.db.rollback()
+		super().tearDown()
 
 	def test_searches_by_name_and_module(self):
 		names = {r["name"] for r in find_doctypes(search="Role", limit=200, ctx=CTX)["doctypes"]}
@@ -142,6 +143,7 @@ class TestDescribe(IntegrationTestCase):
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		frappe.db.rollback()
+		super().tearDown()
 
 	def test_returns_fields_and_permissions(self):
 		result = describe(doctype="ToDo", ctx=CTX)
@@ -285,6 +287,7 @@ class TestReadRecords(IntegrationTestCase):
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		frappe.db.rollback()
+		super().tearDown()
 
 	def test_reads_matching_records_newest_first_with_their_total(self):
 		# by name, the older one comes first
@@ -399,6 +402,7 @@ class TestRunReport(IntegrationTestCase):
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		frappe.db.rollback()
+		super().tearDown()
 
 	def test_returns_shown_columns_capped_rows_the_count_and_total(self):
 		result = run_report(report_name=self.report.name, filters={"company": "Acme"}, limit=10, ctx=CTX)
@@ -677,6 +681,7 @@ class TestWriteTools(IntegrationTestCase):
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		frappe.db.rollback()
+		super().tearDown()
 
 	def test_create_update_and_delete_every_record(self):
 		result = create(doctype="ToDo", records=[{"description": "ai create probe"}], ctx=CTX)

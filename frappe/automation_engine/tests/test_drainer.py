@@ -57,6 +57,7 @@ class TestDrainer(IntegrationTestCase):
 		frappe.db.delete(QUEUE)
 		frappe.db.delete("Automation Flow")
 		frappe.db.commit()  # nosemgrep
+		super().tearDown()
 
 	def add_row(self, ref_name, run_after=None, status=None):
 		row = frappe.get_doc(

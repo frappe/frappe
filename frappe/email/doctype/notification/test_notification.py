@@ -98,6 +98,7 @@ class TestNotification(IntegrationTestCase):
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
+		super().tearDown()
 
 	def test_new_and_save(self):
 		"""Check creating a new communication triggers a notification."""

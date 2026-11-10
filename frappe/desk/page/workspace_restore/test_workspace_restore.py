@@ -252,6 +252,7 @@ class TestWorkspaceRestore(IntegrationTestCase):
 		# the parent alone would leave its rows behind for the next test to render
 		for table in frappe.get_meta("Workspace").get_table_fields():
 			frappe.db.delete(table.options, {"parent": self.WORKSPACE, "parenttype": "Workspace"})
+		super().tearDown()
 
 	def clear_request_cache(self):
 		if getattr(frappe.local, "request_cache", None):

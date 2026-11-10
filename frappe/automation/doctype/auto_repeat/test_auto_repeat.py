@@ -479,6 +479,7 @@ class TestAutoRepeat(IntegrationTestCase):
 		frappe.db.delete("DocShare", {"share_doctype": "ToDo", "user": "Guest"})
 		# the leaked shares were committed, so the cleanup must be committed too
 		frappe.db.commit()  # nosemgrep
+		super().tearDown()
 
 
 def make_auto_repeat(**args):

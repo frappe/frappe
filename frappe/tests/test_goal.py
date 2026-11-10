@@ -18,6 +18,7 @@ class TestGoal(IntegrationTestCase):
 
 	def tearDown(self):
 		frappe.db.delete("Event")
+		super().tearDown()
 
 	def test_get_monthly_results(self):
 		"""Test monthly aggregation values of a field"""

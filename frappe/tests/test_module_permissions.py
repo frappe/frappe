@@ -27,6 +27,7 @@ class TestModulePermissions(IntegrationTestCase):
 		self.reset()
 		frappe.delete_doc("Role", ROLE, force=True, ignore_missing=True)
 		frappe.delete_doc("User", USER, force=True, ignore_missing=True)
+		super().tearDown()
 
 	def reset(self):
 		user = frappe.get_doc("User", USER)

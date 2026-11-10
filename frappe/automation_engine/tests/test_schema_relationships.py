@@ -57,6 +57,7 @@ class TestSchemaRelationships(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.rollback()
 		clear_automation_cache()
+		super().tearDown()
 
 	def _names(self, doctype) -> dict:
 		return {item["name"]: item for item in get_relationship_definitions(doctype)}
