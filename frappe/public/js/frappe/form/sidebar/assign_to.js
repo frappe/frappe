@@ -160,7 +160,6 @@ frappe.ui.form.AssignToDialog = class AssignToDialog {
 				.then((response) => {
 					user_group_members = response.map((group_member) => group_member.user);
 					return frappe.db.get_link_options("User", "", {
-						user_type: "System User",
 						enabled: 1,
 						name: ["in", user_group_members],
 					});
@@ -387,7 +386,7 @@ frappe.ui.form.AssignmentDialog = class extends frappe.ui.form.AssignmentClass {
 					fieldname: "user",
 					fieldtype: "Link",
 					options: "User",
-					get_query: () => ({ filters: { user_type: "System User", enabled: 1 } }),
+					get_query: () => ({ filters: { enabled: 1 } }),
 					change: () => {
 						let value = this.dialog.get_value("user");
 						if (value && !this.assigning) {
