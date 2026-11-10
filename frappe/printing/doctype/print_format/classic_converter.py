@@ -89,15 +89,22 @@ def convert_classic_to_beta(format_data, meta, print_format=None) -> tuple[dict,
 
 	Returns (layout, dropped) where dropped lists fieldnames that no longer
 	exist in the doctype and were left out of the converted layout."""
+	from frappe.utils.print_format_generator import layout_page_settings
+
 	dropped = []
 	show_section_headings = cint(print_format.get("show_section_headings")) if print_format else 0
 	line_breaks = cint(print_format.get("line_breaks")) if print_format else 0
+	paper_size = print_format.get("paper_size") if print_format else None
 
 	layout = {
 		"sections": [],
 		"header": {"columns": [{"label": "", "fields": []}]},
 		"footer": {"columns": [{"label": "", "fields": []}]},
 	}
+	from frappe.utils.print_format_generator import layout_page_settings
+
+	if layout_page_settings({"page": {"size": paper_size}}):
+		layout["page"] = {"size": paper_size}
 
 	data = [frappe._dict(df) for df in (format_data or []) if isinstance(df, dict)]
 

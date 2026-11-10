@@ -10,6 +10,7 @@ import frappe
 import frappe.defaults
 import frappe.permissions
 import frappe.share
+import frappe.twofactor
 from frappe import STANDARD_USERS, _, msgprint, throw
 from frappe.apps import get_default_path
 from frappe.auth import MAX_PASSWORD_SIZE
@@ -677,6 +678,8 @@ class User(Document):
 		frappe.db.delete("List Filter", {"for_user": self.name})
 
 		frappe.defaults.clear_default(parent=self.name)
+		frappe.twofactor.clear_default(self.name + "_otplogin")
+		frappe.twofactor.clear_default(self.name + "_otpsecret")
 
 		# Delete the user's own navigation arrangements: their sidebar layers and their dock.
 		# Delete whole documents rather than rows, because they carry a child table and deleting
@@ -747,6 +750,8 @@ class User(Document):
 
 		if not merge:
 			frappe.db.set_value("DefaultValue", {"parent": old_name}, "parent", new_name)
+		frappe.twofactor.clear_default(old_name + "_otplogin")
+		frappe.twofactor.clear_default(old_name + "_otpsecret")
 
 		get_controller("Workspace").rename_private_workspaces(old_name, new_name)
 
