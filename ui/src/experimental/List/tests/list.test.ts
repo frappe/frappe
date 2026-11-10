@@ -104,6 +104,19 @@ describe("List rows", () => {
     expect(rowsOf(root)[0].textContent).toContain("custom");
     expect(rowsOf(root)[0].textContent).not.toContain("Open");
   });
+
+  it("puts cellClass's class on the cell it names, and no wrapper around the text", async () => {
+    const { root } = await mount(List, {
+      columns,
+      rows,
+      cellClass: (row: ListRowData, column: { fieldname: string }) =>
+        row.name === "A" && column.fieldname === "name" ? "dimmed" : "",
+    });
+    const marked = root.querySelectorAll(".dimmed");
+    expect(marked).toHaveLength(1);
+    expect(marked[0].parentElement).toBe(rowsOf(root)[0]);
+    expect(marked[0].textContent).toBe("A");
+  });
 });
 
 describe("List gutter", () => {
