@@ -301,7 +301,9 @@ def add_row_users(doctype: str, rows: list) -> None:
 		fields=["name", "full_name", "user_image"],
 		filters={"name": ("in", sorted(names))},
 	)
-	frappe.response[USERS_PART] = {u.name: {"full_name": u.full_name, "user_image": u.user_image} for u in users}
+	frappe.response[USERS_PART] = {
+		u.name: {"full_name": u.full_name, "user_image": u.user_image} for u in users
+	}
 
 
 def add_comment_counts(doctype: str, rows: list) -> None:
