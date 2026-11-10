@@ -387,6 +387,7 @@ frappe.ui.form.AssignmentDialog = class extends frappe.ui.form.AssignmentClass {
 					fieldname: "user",
 					fieldtype: "Link",
 					options: "User",
+					get_query: () => ({ filters: { user_type: "System User", enabled: 1 } }),
 					change: () => {
 						let value = this.dialog.get_value("user");
 						if (value && !this.assigning) {
