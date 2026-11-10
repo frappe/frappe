@@ -85,4 +85,33 @@ test.describe("Control Phone", () => {
 		await expect(page.locator(".selected-phone > img")).toHaveAttribute("src", /\/in\.svg/);
 		await expect(desk.get_field("phone")).toHaveValue("9823341234");
 	});
+
+	test("number saved without one hyphen shows its country code", async ({ page, desk, api }) => {
+		for (const [title, phone] of [
+			["Test Phone 2", "+91-9823341234"],
+			["Test Phone 3", "+256772123456"],
+			["Test Phone 4", "+1-415-555-2671"],
+		]) {
+			await api.insert_doc("Doctype With Phone", { title, phone }, true);
+		}
+		const open = async (title) => {
+			await desk.click_listview_row_item_with_text(title);
+			await expect(page).toHaveTitle(title);
+		};
+		const expect_phone = async (code, number, stored) => {
+			await expect(page.locator(".selected-phone:visible .country")).toHaveText(code);
+			await expect(desk.get_field("phone")).toHaveValue(number);
+			await expect.poll(() => page.evaluate(() => cur_frm.is_dirty())).toBe(false);
+			expect(await page.evaluate(() => cur_frm.doc.phone)).toBe(stored);
+		};
+
+		await desk.go_to_list("Doctype With Phone");
+		await open("Test Phone 2");
+		await page.goBack();
+		await open("Test Phone 3");
+		await expect_phone("+256", "772123456", "+256772123456");
+		await page.goBack();
+		await open("Test Phone 4");
+		await expect_phone("+1", "415-555-2671", "+1-415-555-2671");
+	});
 });

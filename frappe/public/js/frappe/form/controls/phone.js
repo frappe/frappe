@@ -126,7 +126,6 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 
 		// Default icon when nothing is selected.
 		this.selected_icon = this.$wrapper.find(".selected-phone");
-		let input_value = this.get_input_value();
 		if (!this.selected_icon.length) {
 			this.selected_icon = $(
 				`<div class="selected-phone">${frappe.utils.icon("chevron-down", "sm")}</div>`
@@ -134,9 +133,6 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 			this.selected_icon.insertAfter(this.$input);
 			this.selected_icon.append($(`<span class= "country"></span>`));
 			this.$isd = this.selected_icon.find(".country");
-			if (input_value && input_value.split("-").length == 2) {
-				this.$isd.text(this.value.split("-")[0]);
-			}
 		}
 	}
 
@@ -173,13 +169,20 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 		this.$input.css("padding-left", 30);
 	}
 
+	parse(value) {
+		const { isd, number } = this.split_isd(value);
+		if (isd) return `${isd}-${number}`;
+		const shown_isd = this.$isd?.text().trim();
+		return number && shown_isd && !number.startsWith("+") ? `${shown_isd}-${number}` : value;
+	}
+
 	set_formatted_input(value) {
 		if (!this.selected_icon) return;
-		if (value && value.includes("-") && value.split("-").length == 2) {
+		const { isd, number } = this.split_isd(value);
+		if (isd) {
 			if (!this.selected_icon.find("svg").hasClass("hide")) {
 				this.selected_icon.find("svg").toggleClass("hide");
 			}
-			let isd = this.value.split("-")[0];
 			this.get_country_code_and_change_flag(isd);
 			this.country_code_picker.set_country(isd);
 			this.country_code_picker.refresh();
@@ -190,11 +193,26 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 				this.$isd.length && this.$isd.text(isd);
 			}
 			this.update_padding();
-			this.$input.val(value.split("-").pop());
-		} else if (this.$isd.text().trim() && this.value) {
-			let code_number = this.$isd.text() + "-" + value;
-			this.set_value(code_number);
+		} else if (number) {
+			this.reset_input();
 		}
+		this.$input.val(number);
+	}
+
+	split_isd(value) {
+		value = cstr(value).trim();
+		const isds = Object.values(this.country_codes || {})
+			.map((info) => info.isd)
+			.filter(Boolean);
+		const [before_hyphen, ...after_hyphen] = value.split("-");
+		if (after_hyphen.length && isds.includes(before_hyphen)) {
+			return { isd: before_hyphen, number: after_hyphen.join("-") };
+		}
+		const isd = isds
+			.filter((code) => value.startsWith(code))
+			.sort((a, b) => b.length - a.length)[0];
+		if (isd) return { isd, number: value.slice(isd.length).trim() };
+		return { isd: "", number: value };
 	}
 
 	get_value() {
