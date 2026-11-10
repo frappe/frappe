@@ -31,20 +31,19 @@ def as_dataurl(content: bytes) -> str:
 
 
 class TestGridImport(IntegrationTestCase):
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
+	def setUp(self):
+		super().setUp()
 		create_user(USER, "Translator")
-		cls.other_contact = frappe.get_doc({"doctype": "Contact", "first_name": "Not Yours"}).insert().name
-		frappe.set_user(USER)
-		cls.contact = frappe.get_doc({"doctype": "Contact", "first_name": "Grid Import"}).insert().name
-		cls.library_file = cls.attach_file(cls.contact, content=b"phone\n123\n")
-		frappe.set_user("Administrator")
-		cls.other_library_file = cls.attach_file(cls.other_contact, file_url=cls.library_file.file_url)
+		self.other_contact = frappe.get_doc({"doctype": "Contact", "first_name": "Not Yours"}).insert().name
+		with self.set_user(USER):
+			self.contact = frappe.get_doc({"doctype": "Contact", "first_name": "Grid Import"}).insert().name
+			self.library_file = self.attach_file(self.contact, content=b"phone\n123\n")
+		self.other_library_file = self.attach_file(self.other_contact, file_url=self.library_file.file_url)
+		self.enterContext(self.set_user(USER))
 
-	@classmethod
-	def attach_file(cls, contact, **kwargs):
-		file = frappe.get_doc(
+	@staticmethod
+	def attach_file(contact, **kwargs):
+		return frappe.get_doc(
 			{
 				"doctype": "File",
 				"file_name": f"{frappe.generate_hash(length=10)}.csv",
@@ -54,15 +53,6 @@ class TestGridImport(IntegrationTestCase):
 				**kwargs,
 			}
 		).insert()
-		cls.addClassCleanup(frappe.delete_doc, "File", file.name)
-		return file
-
-	def setUp(self):
-		frappe.set_user(USER)
-
-	def tearDown(self):
-		frappe.set_user("Administrator")
-		super().tearDown()
 
 	def test_download_returns_an_xlsx_binary(self):
 		rows = [HEADER, ["", "+91-9876543210"]]

@@ -95,16 +95,18 @@ class TestV15Upgrade(IntegrationTestCase):
 	PRIVATE = "V15 Private Page"
 	USER = "test-v15-upgrade@example.com"
 
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
+	def setUp(self):
+		super().setUp()
+		# The upgrade builds sidebars for the whole site, so the computed bases cached while
+		# reading the payload are not only this module's, and redis outlives the rollback.
+		self.addCleanup(frappe.clear_cache)
 		frappe.set_user("Administrator")
 
 		with no_developer_mode():
 			frappe.get_doc(
-				{"doctype": "Module Def", "module_name": cls.MODULE, "app_name": "frappe"}
+				{"doctype": "Module Def", "module_name": self.MODULE, "app_name": "frappe"}
 			).insert()
-		clear_computed_base_cache(cls.MODULE)
+		clear_computed_base_cache(self.MODULE)
 
 		# Something in the module for a sidebar item to point at. The backfill does *not* read
 		# the module off it: a v15 workspace declares no module and nothing here is allowed to
@@ -112,10 +114,10 @@ class TestV15Upgrade(IntegrationTestCase):
 		frappe.get_doc(
 			{
 				"doctype": "Report",
-				"report_name": cls.REPORT,
+				"report_name": self.REPORT,
 				"ref_doctype": "ToDo",
 				"report_type": "Report Builder",
-				"module": cls.MODULE,
+				"module": self.MODULE,
 				"is_standard": "No",
 			}
 		).insert()
@@ -123,38 +125,31 @@ class TestV15Upgrade(IntegrationTestCase):
 		frappe.get_doc(
 			{
 				"doctype": "User",
-				"email": cls.USER,
+				"email": self.USER,
 				"first_name": "V15",
 				"send_welcome_email": 0,
 				"roles": [{"role": "System Manager"}],
 			}
 		).insert(ignore_if_duplicate=True)
 
-		cls.seed_workspace(cls.PUBLIC, public=1)
-		cls.seed_workspace(cls.OTHER, public=1)
+		self.seed_workspace(self.PUBLIC, public=1)
+		self.seed_workspace(self.OTHER, public=1)
 
 		# A private page contributes no sidebar of its own: its link is derived on read from the
 		# workspace itself. `for_user` is the only thing about it the backfill reads.
-		cls.seed_workspace(cls.PRIVATE, public=0, for_user=cls.USER, shortcuts=False)
+		self.seed_workspace(self.PRIVATE, public=0, for_user=self.USER, shortcuts=False)
 
 		# Things this upgrade must leave alone, seeded before it runs.
-		frappe.db.set_value("Workspace", cls.PUBLIC, "standard", 1, update_modified=False)
-		cls.customization = frappe.get_doc(
-			{"doctype": "Custom Workspace", "workspace": cls.PUBLIC, "icon": "star"}
+		frappe.db.set_value("Workspace", self.PUBLIC, "standard", 1, update_modified=False)
+		self.customization = frappe.get_doc(
+			{"doctype": "Custom Workspace", "workspace": self.PUBLIC, "icon": "star"}
 		).insert()
 		with no_developer_mode():
-			cls.custom_module = frappe.get_doc(
-				{"doctype": "Module Def", "module_name": cls.CUSTOM_MODULE, "custom": 1}
+			self.custom_module = frappe.get_doc(
+				{"doctype": "Module Def", "module_name": self.CUSTOM_MODULE, "custom": 1}
 			).insert()
 
-		cls.output = run_patches(upgrade_sequence())
-
-	@classmethod
-	def tearDownClass(cls):
-		# The upgrade builds sidebars for the whole site, so the computed bases cached while
-		# reading the payload are not only this module's, and redis outlives the rollback.
-		frappe.clear_cache()
-		super().tearDownClass()
+		self.output = run_patches(upgrade_sequence())
 
 	@classmethod
 	def seed_workspace(cls, title, public, for_user=None, shortcuts=True):

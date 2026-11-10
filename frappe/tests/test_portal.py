@@ -7,11 +7,10 @@ from frappe.www import portal
 
 
 class TestPortalList(IntegrationTestCase):
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
+	def setUp(self):
+		super().setUp()
 		category = frappe.get_doc(doctype="Help Category", category_name="Test Portal Category").insert()
-		cls.article = frappe.get_doc(
+		self.article = frappe.get_doc(
 			doctype="Help Article",
 			title="Test Portal Article",
 			category=category.name,
@@ -19,7 +18,6 @@ class TestPortalList(IntegrationTestCase):
 			published=1,
 		).insert()
 
-	def setUp(self):
 		self.form_dict = frappe.local.form_dict
 		self.path = getattr(frappe.local, "path", None)
 		frappe.local.form_dict = frappe._dict(doctype="Help Article")

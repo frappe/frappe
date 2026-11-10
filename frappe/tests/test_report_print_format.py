@@ -32,14 +32,10 @@ FILTERS = {"status": "Open"}
 
 
 class TestRenderReportJinja(IntegrationTestCase):
-	@classmethod
-	def setUpClass(cls) -> None:
-		super().setUpClass()
-		make_fixtures()
-
 	def setUp(self):
-		frappe.set_user("Administrator")
-		self.addCleanup(frappe.set_user, "Administrator")
+		super().setUp()
+		self.enterContext(self.set_user("Administrator"))
+		make_fixtures()
 
 	def render(self, **kwargs):
 		args = {
@@ -105,23 +101,17 @@ class TestRenderReportJinja(IntegrationTestCase):
 
 
 class TestDownloadReportPdf(IntegrationTestCase):
-	@classmethod
-	def setUpClass(cls) -> None:
-		super().setUpClass()
+	def setUp(self):
+		super().setUp()
 		make_fixtures()
 		make_print_format(PF_TODO, "ToDo", "Jinja")
 		make_report_user()
-		frappe.set_user(REPORT_USER)
+		self.enterContext(self.set_user(REPORT_USER))
 		for priority, description in (
 			("High", "Renew the example.com domain"),
 			("Low", "Archive old invoices"),
 		):
 			frappe.get_doc({"doctype": "ToDo", "priority": priority, "description": description}).insert()
-		frappe.set_user("Administrator")
-
-	def setUp(self):
-		frappe.set_user(REPORT_USER)
-		self.addCleanup(frappe.set_user, "Administrator")
 
 	def printed_html(self, **kwargs):
 		with patch("frappe.utils.print_format.get_pdf", return_value=b"%PDF") as get_pdf:
@@ -159,7 +149,6 @@ class TestDownloadReportPdf(IntegrationTestCase):
 
 	def test_prints_a_datetime_in_the_user_time_zone(self):
 		frappe.db.set_value("User", REPORT_USER, "time_zone", "UTC")
-		self.addCleanup(frappe.db.set_value, "User", REPORT_USER, "time_zone", None)
 		report_run = {
 			"columns": [{"fieldname": "opened_on", "fieldtype": "Datetime"}],
 			"result": [{"opened_on": "2026-10-24 10:00:00"}],
@@ -230,14 +219,10 @@ class TestDownloadReportPdf(IntegrationTestCase):
 
 
 class TestGetPrintFormatData(IntegrationTestCase):
-	@classmethod
-	def setUpClass(cls) -> None:
-		super().setUpClass()
-		make_fixtures()
-
 	def setUp(self):
-		frappe.set_user("Administrator")
-		self.addCleanup(frappe.set_user, "Administrator")
+		super().setUp()
+		self.enterContext(self.set_user("Administrator"))
+		make_fixtures()
 
 	def test_reports_the_print_format_type(self):
 		"""The client picks the jinja vs js flow off this field."""

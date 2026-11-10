@@ -44,9 +44,8 @@ def as_user(user: str):
 
 
 class TestNewNavigationNudge(IntegrationTestCase):
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
+	def setUp(self):
+		super().setUp()
 		for email, roles in ((USER, ["Desk User"]), (MANAGER, ["Workspace Manager"])):
 			frappe.get_doc(
 				{
@@ -140,8 +139,6 @@ class TestNewNavigationNudge(IntegrationTestCase):
 		on the same schedule as the other one-time prompt."""
 		from frappe.sessions import get as get_session
 
-		with unasked():
+		with unasked(), patch.object(frappe.local, "request", None, create=True):
 			frappe.cache.hdel("bootinfo", frappe.session.user)
-			# `get` reads it to decide whether to attach the change log; a test has no request
-			frappe.local.request = None
 			self.assertTrue(get_session().get("show_new_navigation_prompt"))
