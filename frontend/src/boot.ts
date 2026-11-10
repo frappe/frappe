@@ -64,6 +64,8 @@ export type Boot = {
 	// The rail's app tile, present on an app's own prefix only.
 	app_title?: string;
 	app_logo?: string | null;
+	// The tab icon the app's `brand` hook sets for its own prefix, none when it sets no favicon.
+	app_favicon?: string | null;
 
 	// Every active app, not just this one: a link into a foreign app needs that app's shape.
 	prefixes: Record<string, { app: string; modular: boolean }>;

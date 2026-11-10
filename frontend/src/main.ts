@@ -35,6 +35,7 @@ import AppShell from "@/shell/AppShell.vue";
 import { openCreate, registerCreateDialog } from "@/shell/create";
 import { registerRecordDialog } from "@/shell/recordDialog";
 import { registerSettingsBlocks } from "@/shell/settingsBlocks";
+import { applyAppFavicon } from "@/shell/appFavicon";
 import { registerDeskAfterSave } from "@/shell/deskAfterSave";
 import { recentVisits } from "@/shell/recentVisits";
 import { recordRouteHistory } from "@/shell/routeHistory";
@@ -63,6 +64,7 @@ async function start() {
 	setAppPageScripts(appPageScriptSource);
 	setDrawnProps(recordDrawnProps());
 	setFormLayoutApp(boot.app);
+	applyAppFavicon(boot.app_favicon);
 	registerCreateDialog(defineAsyncComponent(() => import("@/pages/create/CreateDialog.vue")));
 	registerRecordDialog(
 		defineAsyncComponent(() => import("@/pages/recordDialog/RecordDialog.vue"))

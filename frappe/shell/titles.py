@@ -6,13 +6,36 @@ from frappe.desk.record_title import RecordTitles
 
 
 def app_screen(app: str, screen: dict | None = None) -> dict:
-	"""The app's title and logo, from its `add_to_apps_screen` entry."""
+	"""The app's title and logo: its `add_to_apps_screen` entry, over what its `brand` hook returns."""
 	if screen is None:
-		screen = (frappe.get_hooks("add_to_apps_screen", app_name=app) or [{}])[0]
+		screen = app_screen_entry(app)
+	brand = app_brand(app, screen)
 	return {
-		"title": _(screen.get("title") or app.replace("_", " ").title()),
-		"logo": screen.get("logo"),
+		"title": brand.get("title") or _(screen.get("title") or app.replace("_", " ").title()),
+		"logo": brand.get("logo") or screen.get("logo"),
 	}
+
+
+def app_favicon(app: str) -> str | None:
+	"""The favicon the app's `brand` hook sets for its own desk, if any."""
+	return app_brand(app, app_screen_entry(app)).get("favicon")
+
+
+def app_screen_entry(app: str) -> dict:
+	return (frappe.get_hooks("add_to_apps_screen", app_name=app) or [{}])[0]
+
+
+def app_brand(app: str, screen: dict) -> dict:
+	"""What the `brand` of the app's `add_to_apps_screen` entry returns; a hook that raises is logged and ignored."""
+	handler = screen.get("brand")
+	if not handler:
+		return {}
+
+	try:
+		return frappe.get_attr(handler)() or {}
+	except Exception:
+		frappe.log_error(title=f"add_to_apps_screen brand failed for {app}")
+		return {}
 
 
 def readable_titles(doctype: str, names: list[str]) -> dict[str, str]:
