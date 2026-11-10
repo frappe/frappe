@@ -1,12 +1,17 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import frappe
+from frappe.cache_manager import clear_defaults_cache
 from frappe.core.doctype.user_permission.test_user_permission import create_user
 from frappe.defaults import *
 from frappe.tests import IntegrationTestCase
 
 
 class TestDefaults(IntegrationTestCase):
+	def setUp(self):
+		super().setUp()
+		self.addCleanup(clear_defaults_cache, frappe.session.user)
+
 	def test_global(self):
 		clear_user_default("key1")
 		set_global_default("key1", "value1")
@@ -49,28 +54,27 @@ class TestDefaults(IntegrationTestCase):
 		self.assertEqual(get_user_default("key6"), None)
 
 	def test_user_permission_on_defaults(self):
-		self.assertEqual(get_global_default("language"), "en")
-		self.assertEqual(get_user_default("language"), "en")
-		self.assertEqual(get_user_default_as_list("language"), ["en"])
+		user = create_user("default-language-permissions@example.com", "Desk User")
+		self.addCleanup(frappe.clear_cache, user=user.name)
+		set_global_default("language", "en")
 
-		old_user = frappe.session.user
-		user = "test@example.com"
-		frappe.set_user(user)
+		with self.set_user(user.name):
+			self.assertEqual(get_global_default("language"), "en")
+			self.assertEqual(get_user_default("language"), "en")
+			self.assertEqual(get_user_default_as_list("language"), ["en"])
 
-		perm_doc = frappe.get_doc(
-			doctype="User Permission", user=frappe.session.user, allow="Language", for_value="en-GB"
-		).insert(ignore_permissions=True)
+			frappe.get_doc(
+				doctype="User Permission", user=user.name, allow="Language", for_value="en-GB"
+			).insert(ignore_permissions=True)
 
-		self.assertEqual(get_global_default("language"), None)
-		self.assertEqual(get_user_default("language"), None)
-		self.assertEqual(get_user_default_as_list("language"), [])
-
-		frappe.delete_doc("User Permission", perm_doc.name)
-		frappe.set_user(old_user)
+			self.assertEqual(get_global_default("language"), None)
+			self.assertEqual(get_user_default("language"), None)
+			self.assertEqual(get_user_default_as_list("language"), [])
 
 	def test_user_permission_defaults(self):
 		user = "user_default_test@example.com"
 		create_user(user, "Website Manager")
+		self.addCleanup(frappe.clear_cache, user=user)
 
 		with self.set_user(user):
 			set_global_default("country", "United States")
