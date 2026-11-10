@@ -124,6 +124,7 @@ import { ResolveFieldKey } from "../FormLayout/types";
 import type { CommitChannel, FieldError, RowAddress } from "./types";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
 import type { FieldNode, FormLayoutSchema } from "../FormLayout/types";
+import { translate as __ } from "../../utils/translate";
 
 // Async to break the module cycle (fieldTypes → TableField → FormLayout → fieldTypes).
 const FormLayout = defineAsyncComponent(() => import("../FormLayout/FormLayout.vue"));
@@ -345,19 +346,20 @@ function cellSummary(field: FieldNode, value: any, row: Record<string, any>): st
 	switch (field.fieldtype) {
 		case "Table": {
 			const n = Array.isArray(value) ? value.length : 0;
-			return n ? `${n} row${n === 1 ? "" : "s"}` : "—";
+			if (!n) return "—";
+			return n === 1 ? __("1 row") : __("{0} rows", [n]);
 		}
 		case "Table MultiSelect": {
 			const n = Array.isArray(value) ? value.length : 0;
-			return n ? `${n} selected` : "—";
+			return n ? __("{0} selected", [n]) : "—";
 		}
 		case "Image": {
 			// Image mirrors the sibling field named in `options` (else its own value).
 			const url = field.options ? row?.[field.options] : value;
-			return url ? "Image" : "—";
+			return url ? __("Image") : "—";
 		}
 		case "Heading":
-			return field.label ?? "";
+			return field.label ? __(field.label) : "";
 		case "HTML": {
 			const text = (field.options ?? "")
 				.replace(/<[^>]*>/g, " ")
@@ -465,9 +467,11 @@ function closeEdit() {
 	openedRow = null;
 }
 
-const dialogTitle = computed(() =>
-	editIndex.value === -1 ? "" : `${props.field.label ?? "Row"} — Row ${editIndex.value + 1}`
-);
+const dialogTitle = computed(() => {
+	if (editIndex.value === -1) return "";
+	const label = props.field.label ? __(props.field.label) : __("Row");
+	return `${label} — ${__("Row {0}", [editIndex.value + 1])}`;
+});
 
 // Dialog renders the child's full form via `childLayout`; fall back to a flat form of
 // the visible columns when absent. A read-only table forces every field read-only.

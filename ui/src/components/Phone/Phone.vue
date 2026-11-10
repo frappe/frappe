@@ -12,8 +12,8 @@
 		:required="required"
 		:class="attrs.class"
 		:style="attrs.style"
-		placeholder="Search country"
-		empty-text="No country found"
+		:placeholder="__('Search country')"
+		:empty-text="__('No country found')"
 	>
 		<template v-if="$slots.label" #label="slotProps">
 			<slot name="label" v-bind="slotProps" />
@@ -38,8 +38,8 @@
 					:disabled="disabled"
 					:aria-label="
 						phoneDetails.country
-							? `Country: ${phoneDetails.country.name}`
-							: 'Select country'
+							? __('Country: {0}', [phoneDetails.country.name])
+							: __('Select country')
 					"
 					aria-haspopup="listbox"
 					:aria-expanded="open"
@@ -131,6 +131,7 @@
 import { Combobox, ItemListRow } from "frappe-ui";
 import { inputFontSizeClasses, useInputLabeling } from "frappe-ui/experimental";
 import { computed, nextTick, onMounted, reactive, ref, useAttrs, useSlots, watch } from "vue";
+import { translate as __ } from "../../utils/translate";
 import type { Country, PhoneProps, PhoneSlots } from "./types";
 import {
 	countries,

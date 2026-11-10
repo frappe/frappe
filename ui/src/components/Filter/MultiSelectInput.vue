@@ -8,7 +8,7 @@
 	<MultiSelect
 		:modelValue="selected"
 		:options="options"
-		:placeholder="placeholder ?? 'Select options'"
+		:placeholder="placeholder ?? __('Select options')"
 		variant="subtle"
 		@update:modelValue="(v) => emit('update:modelValue', v)"
 	/>
@@ -18,6 +18,7 @@
 import { computed } from "vue";
 import { MultiSelect } from "frappe-ui";
 import type { FilterField } from "./types";
+import { translate as __ } from "../../utils/translate";
 
 const props = defineProps<{
 	field: FilterField;

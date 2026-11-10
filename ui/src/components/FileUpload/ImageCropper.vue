@@ -15,30 +15,30 @@
 			<div class="flex items-center gap-1">
 				<Button
 					v-for="preset in presets"
-					:key="preset.label"
+					:key="preset.key"
 					size="sm"
-					:variant="activePreset === preset.label ? 'solid' : 'subtle'"
+					:variant="activePreset === preset.key ? 'solid' : 'subtle'"
 					:label="preset.label"
-					@click="setAspect(preset.label, preset.value)"
+					@click="setAspect(preset.key, preset.value)"
 				/>
 			</div>
 			<Button
 				size="sm"
 				variant="subtle"
 				icon="lucide-rotate-ccw"
-				aria-label="Rotate left"
+				:aria-label="__('Rotate left')"
 				@click="rotate(-90)"
 			/>
 			<Button
 				size="sm"
 				variant="subtle"
 				icon="lucide-rotate-cw"
-				aria-label="Rotate right"
+				:aria-label="__('Rotate right')"
 				@click="rotate(90)"
 			/>
 			<div class="ml-auto flex items-center gap-2">
-				<Button variant="subtle" label="Cancel" @click="emit('cancel')" />
-				<Button variant="solid" label="Apply" @click="apply" />
+				<Button variant="subtle" :label="__('Cancel')" @click="emit('cancel')" />
+				<Button variant="solid" :label="__('Apply')" @click="apply" />
 			</div>
 		</div>
 	</div>
@@ -56,8 +56,9 @@
 // exports the result via `$toCanvas()`; the image element owns rotation. Apply
 // produces a fresh PNG `File`; the queue swaps it in (`replaceFile`). A failed
 // lib load surfaces inline as `loadError` instead of throwing.
-import { onBeforeUnmount, onMounted, ref } from "vue";
+import { onBeforeUnmount, onMounted, computed, ref } from "vue";
 import { Button } from "frappe-ui";
+import { translate as __ } from "../../utils/translate";
 
 const props = defineProps<{ file: File; aspectRatio?: number | null }>();
 const emit = defineEmits<{ cropped: [File]; cancel: [] }>();
@@ -65,15 +66,15 @@ const emit = defineEmits<{ cropped: [File]; cancel: [] }>();
 const image = ref<HTMLImageElement | null>(null);
 const objectUrl = ref<string>("");
 const loadError = ref<string | null>(null);
-const activePreset = ref<string>("Free");
+const activePreset = ref<string>("free");
 
 // NaN aspect ratio = free-form selection in cropperjs v2.
-const presets: { label: string; value: number }[] = [
-	{ label: "Free", value: NaN },
-	{ label: "1:1", value: 1 },
-	{ label: "4:3", value: 4 / 3 },
-	{ label: "16:9", value: 16 / 9 },
-];
+const presets = computed<{ key: string; label: string; value: number }[]>(() => [
+	{ key: "free", label: __("Free"), value: NaN },
+	{ key: "1:1", label: "1:1", value: 1 },
+	{ key: "4:3", label: "4:3", value: 4 / 3 },
+	{ key: "16:9", label: "16:9", value: 16 / 9 },
+]);
 
 let cropper: any = null;
 // The <cropper-selection> element — owns aspect ratio + result export in v2.
@@ -84,7 +85,7 @@ onMounted(async () => {
 	try {
 		await initCropper();
 	} catch {
-		loadError.value = "The image editor failed to load.";
+		loadError.value = __("The image editor failed to load.");
 	}
 });
 
@@ -119,8 +120,8 @@ async function initCropper() {
 	}
 }
 
-function setAspect(label: string, value: number) {
-	activePreset.value = label;
+function setAspect(key: string, value: number) {
+	activePreset.value = key;
 	if (!selection) return;
 	// Set the ratio (NaN = free) and re-initialise the box to honor it.
 	selection.aspectRatio = value;

@@ -71,7 +71,7 @@
 				>
 					<button
 						type="button"
-						aria-label="Replace"
+						:aria-label="__('Replace')"
 						class="grid size-4 shrink-0 place-items-center rounded-1 text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-7 focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
 						@click.stop="openDialog"
 						@pointerdown.stop
@@ -80,7 +80,7 @@
 					</button>
 					<button
 						type="button"
-						aria-label="Clear"
+						:aria-label="__('Clear')"
 						data-slot="clear"
 						class="grid size-4 shrink-0 place-items-center rounded-1 text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-7 focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
 						@click.stop="clear"
@@ -95,7 +95,7 @@
 		<FileUploadDialog
 			v-if="dialogMounted"
 			v-model:open="dialogOpen"
-			:title="imageOnly ? 'Attach image' : 'Attach file'"
+			:title="imageOnly ? __('Attach image') : __('Attach file')"
 			:multiple="false"
 			:imageOnly="imageOnly"
 			:crop="imageOnly"
@@ -119,6 +119,7 @@ import { computed, defineAsyncComponent, ref, watch } from "vue";
 import { HoverCard, TextInput } from "frappe-ui";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
 import type { Restrictions, UploadResult, UploadTransport } from "../FileUpload/types";
+import { translate as __ } from "../../utils/translate";
 
 const FileUploadDialog = defineAsyncComponent(() => import("../FileUpload/FileUploadDialog.vue"));
 
@@ -143,7 +144,9 @@ const dialogOpen = ref(false);
 const busy = ref(false);
 
 const imageOnly = computed(() => props.field.fieldtype === "Attach Image");
-const placeholder = computed(() => (imageOnly.value ? "Attach an image" : "Attach a file"));
+const placeholder = computed(() =>
+	imageOnly.value ? __("Attach an image") : __("Attach a file")
+);
 
 // Show the trailing path segment as a friendly name; full URL stays in the doc.
 const basename = computed(() => {

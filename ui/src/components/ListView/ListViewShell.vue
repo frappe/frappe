@@ -30,7 +30,7 @@
 
 		<!-- Table chrome region — grows to fill and clips; the list scrolls inside it. -->
 		<div class="flex min-h-0 flex-1 flex-col overflow-hidden p-3">
-			<div v-if="loading" class="text-p-sm text-ink-gray-5">Loading meta…</div>
+			<div v-if="loading" class="text-p-sm text-ink-gray-5">{{ __("Loading meta…") }}</div>
 			<div v-else-if="errorMessage" class="text-p-sm text-ink-red-4">
 				{{ errorMessage }}
 			</div>
@@ -44,7 +44,7 @@
 					</span>
 				</div>
 				<div class="flex h-24 items-center justify-center text-p-sm text-ink-gray-4">
-					{{ fieldCount }} fields in meta
+					{{ __("{0} fields in meta", [fieldCount]) }}
 				</div>
 			</slot>
 		</div>
@@ -59,6 +59,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useDoctypeMeta } from "../../composables/useDoctypeMeta";
+import { translate as __ } from "../../utils/translate";
 import type { RawMetaField } from "../FormLayout/types";
 import type { ListViewShellProps, ListViewShellSlots } from "./types";
 

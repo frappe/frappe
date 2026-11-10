@@ -33,7 +33,7 @@
 				/>
 				<button
 					type="button"
-					aria-label="Remove"
+					:aria-label="__('Remove')"
 					class="grid size-5 shrink-0 place-items-center rounded-4 text-ink-gray-5 opacity-0 hover:bg-surface-gray-3 group-hover:opacity-100"
 					@click.prevent="remove(index)"
 				>
@@ -45,17 +45,17 @@
 			v-else
 			class="rounded-6 border border-dashed border-outline-gray-2 p-4 text-center text-p-sm text-ink-gray-5"
 		>
-			No attachments yet.
+			{{ __("No attachments yet.") }}
 		</div>
 
 		<div>
-			<Button icon-left="lucide-paperclip" label="Attach" @click="openDialog" />
+			<Button icon-left="lucide-paperclip" :label="__('Attach')" @click="openDialog" />
 		</div>
 
 		<FileUploadDialog
 			v-if="dialogMounted"
 			v-model:open="dialogOpen"
-			title="Attach files"
+			:title="__('Attach files')"
 			:multiple="true"
 			:imageOnly="imageOnly"
 			:crop="crop"
@@ -78,6 +78,7 @@
 import { defineAsyncComponent, ref, watch } from "vue";
 import { Button } from "frappe-ui";
 import type { AttachmentsListProps, UploadResult } from "./types";
+import { translate as __ } from "../../utils/translate";
 
 const FileUploadDialog = defineAsyncComponent(() => import("./FileUploadDialog.vue"));
 

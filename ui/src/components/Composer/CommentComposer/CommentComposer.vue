@@ -29,10 +29,11 @@
 import { computed, ref } from "vue";
 import ComposerEditor from "../ComposerEditor.vue";
 import type { CommentComposerEmits, CommentComposerProps, CommentComposerSlots } from "../types";
+import { translate as __ } from "../../../utils/translate";
 
 withDefaults(defineProps<CommentComposerProps>(), {
-	placeholder: "This message is only visible to your team.",
-	submitLabel: "Comment",
+	placeholder: () => __("This message is only visible to your team."),
+	submitLabel: () => __("Comment"),
 });
 
 const emit = defineEmits<CommentComposerEmits>();

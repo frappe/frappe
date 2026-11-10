@@ -27,7 +27,7 @@
 		@update:selectedOption="addFilter"
 	>
 		<template #trigger>
-			<Button label="Filter" iconLeft="lucide-list-filter" />
+			<Button :label="__('Filter')" iconLeft="lucide-list-filter" />
 		</template>
 	</Combobox>
 
@@ -36,7 +36,7 @@
 		<template #trigger="{ close }">
 			<div class="flex items-center">
 				<Button
-					label="Filter"
+					:label="__('Filter')"
 					class="relative rounded-r-none focus-visible:z-10"
 					iconLeft="lucide-list-filter"
 				>
@@ -49,8 +49,8 @@
 					</template>
 				</Button>
 				<Button
-					tooltip="Clear All Filters"
-					aria-label="Clear All Filters"
+					:tooltip="__('Clear All Filters')"
+					:aria-label="__('Clear All Filters')"
 					class="relative rounded-l-none border-l focus-visible:z-10"
 					icon="lucide-x"
 					@click.stop="clearAll(close)"
@@ -79,7 +79,7 @@
 								size="md"
 								:modelValue="f.fieldname"
 								:options="allFields"
-								placeholder="Select field"
+								:placeholder="__('Select field')"
 								@update:selectedOption="(o) => updateField(o, i)"
 							/>
 						</div>
@@ -105,13 +105,13 @@
 							class="flex"
 							variant="ghost"
 							icon="lucide-x"
-							aria-label="Remove filter"
+							:aria-label="__('Remove filter')"
 							@click="removeFilter(i)"
 						/>
 					</template>
 				</div>
 				<div v-else class="mb-3 flex h-7 items-center px-3 text-sm text-ink-gray-5">
-					Empty - Choose a field to filter by
+					{{ __("Empty - Choose a field to filter by") }}
 				</div>
 				<div class="flex items-center justify-between gap-2">
 					<!-- A custom #trigger renders the same ghost Button as "Clear All
@@ -127,7 +127,7 @@
 							<Button
 								class="!text-ink-gray-5"
 								variant="ghost"
-								label="Add Filter"
+								:label="__('Add Filter')"
 								iconLeft="lucide-plus"
 							/>
 						</template>
@@ -136,7 +136,7 @@
 						v-if="model.length"
 						class="!text-ink-gray-5"
 						variant="ghost"
-						label="Clear All Filters"
+						:label="__('Clear All Filters')"
 						@click="clearAll(close)"
 					/>
 				</div>
@@ -152,6 +152,7 @@ import { useDoctypeMeta } from "../../composables/useDoctypeMeta";
 import { getFilterableFields, pickFilterFields } from "./getFilterableFields";
 import { getOperators, conditionFor, carryOver, defaultValueFor } from "./operators";
 import type { Filter, FilterField, FilterOperator, FilterProps, FilterValue } from "./types";
+import { translate as __ } from "../../utils/translate";
 // The operator/fieldtype → value-input dispatch. Lives in its own module so the
 // nested ConditionBuilder can render the same value inputs from the same rules
 // without duplicating them; it returns an id, and VALUE_CONTROLS maps that id to

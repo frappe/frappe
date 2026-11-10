@@ -64,18 +64,19 @@
 					<Button
 						class="!text-ink-gray-5"
 						variant="ghost"
-						label="Add Filter"
+						:label="__('Add Filter')"
 						iconLeft="lucide-plus"
 					/>
 				</template>
 			</Combobox>
-			<Button class="ml-auto" variant="solid" label="Done" @click="emit('done')" />
+			<Button class="ml-auto" variant="solid" :label="__('Done')" @click="emit('done')" />
 		</template>
 	</Draggable>
 </template>
 
 <script setup lang="ts">
 import { Button, Combobox } from "frappe-ui";
+import { translate as __ } from "../../utils/translate";
 // @ts-ignore — vuedraggable ships no bundled types
 import Draggable from "vuedraggable";
 import type { FilterField } from "../Filter/types";

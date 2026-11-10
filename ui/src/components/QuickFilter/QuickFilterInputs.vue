@@ -75,7 +75,7 @@
 			v-if="hiddenCount > 0 || expanded"
 			class="shrink-0 whitespace-nowrap"
 			variant="subtle"
-			:label="expanded ? 'Show less' : `${hiddenCount} more`"
+			:label="expanded ? __('Show less') : __('{0} more', [hiddenCount])"
 			@click="expanded = !expanded"
 		>
 			<template #suffix>
@@ -101,6 +101,7 @@ import {
 	quickOperator,
 	quickValue,
 } from "./quickFilters";
+import { translate as __ } from "../../utils/translate";
 import type { Filter, FilterField, FilterOperator, FilterValue } from "../Filter/types";
 // Shared, fieldtype-aware value inputs (ADR-0004), same subset the Filter control
 // mounts. No form-context injections are provided, so deep-injection inputs fall
@@ -260,7 +261,7 @@ function setValue(field: FilterField, value: FilterValue) {
 }
 
 const operatorSymbol = (op: FilterOperator) => (op === "equals" ? "=" : "≈");
-const operatorLabel = (op: FilterOperator) => (op === "equals" ? "Equals" : "Like");
+const operatorLabel = (op: FilterOperator) => (op === "equals" ? __("Equals") : __("Like"));
 
 /** Flip the input's operator like ↔ equals on click (no menu). With a value, the
  *  stored condition flips in place under the new operator (and the override is

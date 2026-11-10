@@ -38,10 +38,10 @@
 			     then the controlled wiring last (so the host can relabel/restyle but
 			     can't hijack the model/options/error binding). -->
 			<MultiEmailInput
-				label="Invite by email"
-				placeholder="Search users or type an email…"
-				empty-text="No matching users"
-				:create-label="(email) => `Invite &quot;${email}&quot;`"
+				:label="__('Invite by email')"
+				:placeholder="__('Search users or type an email…')"
+				:empty-text="__('No matching users')"
+				:create-label="inviteLabel"
 				v-bind="emailProps"
 				v-model="emails"
 				:required="true"
@@ -63,8 +63,8 @@
 			:options="roles"
 		>
 			<MultiSelect
-				label="Roles"
-				placeholder="Select roles"
+				:label="__('Roles')"
+				:placeholder="__('Select roles')"
 				class="w-fit"
 				v-bind="rolesProps"
 				v-model="selectedRoleValues"
@@ -81,7 +81,7 @@
 				:loading="inviting"
 				:disabled="!canSubmit"
 			>
-				Send invites
+				{{ __("Send invites") }}
 			</Button>
 		</slot>
 	</form>
@@ -91,6 +91,7 @@
 import { computed, onMounted, ref } from "vue";
 import { Button, MultiSelect, debounce, toast } from "frappe-ui";
 import { MultiEmailInput } from "frappe-ui/experimental";
+import { translate as __ } from "../../utils/translate";
 import type { InviteResult, InviteUserProps } from "./types";
 
 // MultiEmailInput's `error` prop is `string | FrappeUIError`; the controller error is
@@ -142,21 +143,26 @@ const canSubmit = computed(
 // hitting the controller's user search (the old in-component debounce moved here).
 const onSearch = debounce((query: string) => props.searchUsers?.(query), 250);
 
+function inviteLabel(email: string) {
+	return __('Invite "{0}"', [email]);
+}
+
 function onInvalidEmail(email: string) {
-	toast.error(`Invalid email: ${email}`);
+	toast.error(__("Invalid email: {0}", [email]));
 	emit("invalid", [email]);
 }
 
 /** Standard per-bucket toasts (suppress with `:show-result-toasts="false"` + `@invited`). */
 function showResultToasts(result: InviteResult) {
 	const join = (list: string[]) => list.join(", ");
-	if (result.invited_emails.length) toast.success(`${join(result.invited_emails)} invited`);
+	if (result.invited_emails.length)
+		toast.success(__("{0} invited", [join(result.invited_emails)]));
 	if (result.disabled_user_emails.length)
-		toast.info(`${join(result.disabled_user_emails)} already present and disabled`);
+		toast.info(__("{0} already present and disabled", [join(result.disabled_user_emails)]));
 	if (result.pending_invite_emails.length)
-		toast.info(`${join(result.pending_invite_emails)} already invited`);
+		toast.info(__("{0} already invited", [join(result.pending_invite_emails)]));
 	if (result.accepted_invite_emails.length)
-		toast.info(`${join(result.accepted_invite_emails)} already present`);
+		toast.info(__("{0} already present", [join(result.accepted_invite_emails)]));
 }
 
 async function submit() {

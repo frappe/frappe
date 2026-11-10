@@ -11,7 +11,7 @@
 				class="flex items-center gap-3 rounded-5 bg-surface-base px-4 py-2 text-base shadow-2xl"
 			>
 				<Checkbox :modelValue="true" :disabled="true" aria-hidden="true" />
-				<span class="text-ink-gray-9">{{ selection.length }} selected</span>
+				<span class="text-ink-gray-9">{{ __("{0} selected", [selection.length]) }}</span>
 				<div class="flex items-center gap-1 border-l border-outline-gray-2 ps-3">
 					<Button
 						v-for="action in actions"
@@ -24,7 +24,7 @@
 					<Button
 						variant="ghost"
 						icon="lucide-x"
-						label="Clear selection"
+						:label="__('Clear selection')"
 						@click="selection = []"
 					/>
 				</div>
@@ -35,6 +35,7 @@
 
 <script setup lang="ts">
 import { Button, Checkbox } from "frappe-ui";
+import { translate as __ } from "../../utils/translate";
 import type { BulkAction } from "./types";
 
 withDefaults(defineProps<{ actions?: BulkAction[] }>(), { actions: () => [] });

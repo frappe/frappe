@@ -12,13 +12,13 @@
 			<Button
 				v-if="hasNextPage ?? (hasCounts && rowCount < totalCount)"
 				variant="subtle"
-				label="Load More"
+				:label="__('Load more')"
 				@click="emit('load-more')"
 			/>
 		</div>
 		<div class="flex items-center gap-2">
 			<span v-if="hasCounts" class="text-sm text-ink-gray-5">
-				{{ rowCount }} of {{ totalCount }}{{ totalCapped ? "+" : "" }}
+				{{ __("{0} of {1}", [rowCount, totalCapped ? `${totalCount}+` : totalCount]) }}
 			</span>
 			<Skeleton v-else class="h-3 w-16 rounded-1" />
 		</div>
@@ -28,6 +28,7 @@
 <script setup lang="ts">
 import { Button, Skeleton, TabButtons } from "frappe-ui";
 import { computed } from "vue";
+import { translate as __ } from "../../utils/translate";
 
 const props = withDefaults(
 	defineProps<{

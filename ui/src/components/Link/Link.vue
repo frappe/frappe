@@ -11,7 +11,7 @@
 		:options="linkOptions"
 		:filterable="!idLabels"
 		:disabled="disabled"
-		:placeholder="placeholder ?? `Search ${doctype.toLowerCase()}`"
+		:placeholder="placeholder ?? __('Search {0}', [__(doctype ?? '').toLowerCase()])"
 		:loading="options.loading && !options.data"
 		@update:query="handleInputChange"
 		@focus="() => loadOptions('')"
@@ -27,7 +27,7 @@
 			<button
 				v-if="showClear"
 				type="button"
-				aria-label="Clear"
+				:aria-label="__('Clear')"
 				data-slot="clear"
 				class="group-hover:grid group-focus:grid group-focus-within:grid hidden size-4 place-items-center rounded-1 text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-7 focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
 				@click.stop="clearValue"
@@ -38,7 +38,7 @@
 			<button
 				v-if="showEdit"
 				type="button"
-				aria-label="Edit linked record"
+				:aria-label="__('Edit linked record')"
 				data-slot="edit"
 				class="group-hover:grid group-focus:grid group-focus-within:grid hidden size-4 place-items-center rounded-1 text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-7 focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
 				@click.stop="emit('edit', model!)"
@@ -49,7 +49,7 @@
 			<button
 				v-if="showRedirect"
 				type="button"
-				aria-label="Open linked record"
+				:aria-label="__('Open linked record')"
 				data-slot="redirect"
 				class="group-hover:grid group-focus:grid group-focus-within:grid hidden size-4 place-items-center rounded-1 text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-7 focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
 				@click.stop="emit('redirect', model!)"
@@ -65,7 +65,7 @@
 		<template v-else #item-create="{ query }">
 			<div class="flex">
 				<span class="truncate">
-					Create
+					{{ __("Create") }}
 					<span v-if="query" class="font-medium text-ink-gray-8">
 						{{ query }}
 					</span>
@@ -80,6 +80,7 @@ import { toIdOption, toLinkOption } from "./linkOption";
 import { computed, ref, useSlots, watch } from "vue";
 import { Combobox, createResource, frappeRequest, debounce } from "frappe-ui";
 import type { ComboboxOption, ComboboxCustomOption } from "frappe-ui";
+import { translate as __ } from "../../utils/translate";
 import type { LinkExposed, LinkOption, LinkProps, LinkEmits } from "./types";
 
 const props = withDefaults(defineProps<LinkProps>(), {
@@ -120,7 +121,7 @@ const options = createResource({
 const createNewOption: ComboboxCustomOption = {
 	type: "custom",
 	key: "create",
-	label: "Create New",
+	label: __("Create New"),
 	slot: "create",
 	condition: ({ query }: { query: string }) => Boolean(query.trim()),
 	onClick: ({ query }: { query: string }) => emit("create", query),

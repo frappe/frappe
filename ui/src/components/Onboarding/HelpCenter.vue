@@ -3,7 +3,7 @@
 		<div class="m-1">
 			<TextInput
 				ref="searchInput"
-				:placeholder="'Search articles...'"
+				:placeholder="__('Search articles...')"
 				v-model="search"
 				:debounce="300"
 			>
@@ -13,8 +13,8 @@
 			</TextInput>
 		</div>
 		<div class="flex justify-between items-center text-base text-ink-gray-5 mx-2">
-			<div>All articles</div>
-			<Button variant="ghost" aria-label="Open docs" @click="openDocs">
+			<div>{{ __("All articles") }}</div>
+			<Button variant="ghost" :aria-label="__('Open docs')" @click="openDocs">
 				<LucideArrowUpRight class="size-4 text-ink-gray-5" />
 			</Button>
 		</div>
@@ -61,6 +61,7 @@ import LucideChevronDown from "~icons/lucide/chevron-down";
 import LucideChevronRight from "~icons/lucide/chevron-right";
 import LucideFileText from "~icons/lucide/file-text";
 import LucideSearch from "~icons/lucide/search";
+import { translate as __ } from "../../utils/translate";
 import { ref, computed, onMounted } from "vue";
 import type { HelpArticle, HelpCenterProps } from "./types";
 

@@ -53,7 +53,7 @@
 						>
 							<Checkbox
 								:modelValue="allSelected"
-								aria-label="Select all"
+								:aria-label="__('Select all')"
 								@update:modelValue="
 									(checked: unknown) => toggleAll(checked as boolean)
 								"
@@ -121,7 +121,7 @@
 										>
 											<Checkbox
 												:modelValue="isSelected(row)"
-												:aria-label="`Select row ${rowIndex + 1}`"
+												:aria-label="__('Select row {0}', [rowIndex + 1])"
 												@update:modelValue="
 													(checked: unknown) =>
 														setRow(row, checked as boolean)
@@ -132,7 +132,7 @@
 											class="sticky z-10 flex items-center justify-center border-r border-outline-gray-2 bg-surface-base py-2 text-sm text-ink-gray-7"
 											:class="{ 'grid-drag-handle cursor-grab': !disabled }"
 											:style="{ left: numberColLeft }"
-											:title="disabled ? undefined : 'Drag to reorder'"
+											:title="disabled ? undefined : __('Drag to reorder')"
 										>
 											{{ rowIndex + 1 }}
 										</div>
@@ -232,7 +232,7 @@
 		<div v-if="showActions" class="flex gap-2">
 			<Button
 				v-if="!cannotAddRows"
-				label="Add Row"
+				:label="__('Add Row')"
 				icon-left="lucide-plus"
 				@click="addRow"
 			/>
@@ -240,7 +240,7 @@
 				v-if="canDeleteSelected"
 				theme="red"
 				variant="subtle"
-				:label="`Delete (${selectedCount})`"
+				:label="__('Delete ({0})', [selectedCount])"
 				icon-left="lucide-trash-2"
 				@click="deleteSelected"
 			/>

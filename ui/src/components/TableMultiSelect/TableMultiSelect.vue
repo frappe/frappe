@@ -41,7 +41,7 @@
 					</span>
 
 					<span v-if="!selectedOptions.length" class="px-1 text-base text-ink-gray-4">
-						{{ placeholder ?? "Select" }}
+						{{ placeholder ?? __("Select") }}
 					</span>
 				</div>
 
@@ -69,7 +69,7 @@
 					<template #prefix>
 						<span class="lucide-plus size-4" />
 					</template>
-					Create "{{ query }}"
+					{{ __('Create "{0}"', [query]) }}
 				</Button>
 				<Button
 					v-if="selectedOptions.length"
@@ -78,7 +78,7 @@
 					class="ml-auto"
 					@click="clearAll"
 				>
-					Clear All
+					{{ __("Clear All") }}
 				</Button>
 			</div>
 		</template>
@@ -90,6 +90,7 @@
 // `search_link` resource, the white-chip trigger, and the `creatable` footer.
 import { computed, watch } from "vue";
 import { MultiSelect, Button, createResource, frappeRequest, debounce } from "frappe-ui";
+import { translate as __ } from "../../utils/translate";
 import type {
 	TableMultiSelectEmits,
 	TableMultiSelectOption,

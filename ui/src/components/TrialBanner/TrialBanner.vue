@@ -12,7 +12,7 @@
 				{{ trialMessage }}
 			</div>
 		</div>
-		<Button :label="'Upgrade plan'" theme="blue" @click="upgradePlan">
+		<Button :label="__('Upgrade plan')" theme="blue" @click="upgradePlan">
 			<template #prefix>
 				<LightningIcon class="size-4" />
 			</template>
@@ -20,7 +20,7 @@
 	</div>
 	<Button
 		v-else-if="isSidebarCollapsed && showBanner"
-		aria-label="Upgrade plan"
+		:aria-label="__('Upgrade plan')"
 		@click="upgradePlan"
 	>
 		<LightningIcon class="h-4 my-0.5 shrink-0" />
@@ -30,6 +30,7 @@
 import { Button, createResource } from "frappe-ui";
 import { LightningIcon } from "frappe-ui/icons";
 import { ref, computed } from "vue";
+import { translate as __ } from "../../utils/translate";
 import type { SiteInfo, TrialBannerProps } from "./types";
 
 const props = withDefaults(defineProps<TrialBannerProps>(), {
@@ -44,11 +45,11 @@ const siteName = ref("");
 
 const trialTitle = computed(() => {
 	return trialEndDays.value > 1
-		? "Trial ends in " + trialEndDays.value + " days"
-		: "Trial ends tomorrow";
+		? __("Trial ends in {0} days", [trialEndDays.value])
+		: __("Trial ends tomorrow");
 });
 
-const trialMessage = "Upgrade to a paid plan for uninterrupted services";
+const trialMessage = __("Upgrade to a paid plan for uninterrupted services");
 
 createResource({
 	url: "frappe.integrations.frappe_providers.frappecloud_billing.current_site_info",

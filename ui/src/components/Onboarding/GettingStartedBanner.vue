@@ -7,10 +7,10 @@
 			<StepsIcon class="h-4 my-0.5 shrink-0" />
 			<div class="flex flex-col text-p-sm gap-0.5">
 				<div class="font-medium">
-					{{ "Getting started" }}
+					{{ __("Getting started") }}
 				</div>
 				<div class="text-ink-gray-7">
-					{{ `${stepsCompleted}/${totalSteps} steps` }}
+					{{ __("{0}/{1} steps", [stepsCompleted, totalSteps]) }}
 				</div>
 			</div>
 		</div>
@@ -19,7 +19,7 @@
 				<div class="flex items-center gap-2 shrink-0">
 					<StepsIcon class="h-4 my-0.5" />
 					<div class="text-ink-gray-9 font-medium">
-						{{ "You are all set" }}
+						{{ __("You are all set") }}
 					</div>
 				</div>
 				<LucideX
@@ -33,12 +33,12 @@
 				/>
 			</div>
 			<div class="text-p-sm text-ink-gray-7">
-				{{ "All steps are completed successfully" }}
+				{{ __("All steps are completed successfully") }}
 			</div>
 		</div>
 		<Button
 			v-if="stepsCompleted != totalSteps"
-			:label="stepsCompleted == 0 ? 'Start now' : 'Continue'"
+			:label="stepsCompleted == 0 ? __('Start now') : __('Continue')"
 			theme="blue"
 			@click="openOnboarding"
 		>
@@ -49,7 +49,7 @@
 	</div>
 	<Button
 		v-else-if="stepsCompleted != totalSteps"
-		aria-label="Getting started"
+		:aria-label="__('Getting started')"
 		@click="openOnboarding"
 	>
 		<StepsIcon class="h-4 my-0.5 shrink-0" />
@@ -63,6 +63,7 @@ import { StepsIcon } from "frappe-ui/icons";
 import { useOnboarding } from "./onboarding";
 import { showHelpCenter } from "./helpCenter";
 import { minimize, showHelpModal } from "./help";
+import { translate as __ } from "../../utils/translate";
 import type { GettingStartedBannerProps } from "./types";
 
 const props = withDefaults(defineProps<GettingStartedBannerProps>(), {

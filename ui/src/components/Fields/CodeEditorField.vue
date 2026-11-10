@@ -49,7 +49,7 @@
 					variant="outline"
 					size="sm"
 					:iconLeft="expanded ? 'lucide-chevrons-up' : 'lucide-chevrons-down'"
-					:label="expanded ? 'Collapse' : 'Expand'"
+					:label="expanded ? __('Collapse') : __('Expand')"
 					@click="expanded = !expanded"
 				/>
 			</div>
@@ -84,7 +84,7 @@
 					/>
 					<InputLabel
 						:id="previewLabelId"
-						label="Preview"
+						:label="__('Preview')"
 						class="text-p-sm-medium text-ink-gray-7"
 					/>
 				</button>
@@ -106,7 +106,7 @@
 			<InputLabel
 				v-if="field.label"
 				:id="previewLabelId"
-				label="Preview"
+				:label="__('Preview')"
 				class="text-p-sm-medium text-ink-gray-7"
 			/>
 			<CodePreview
@@ -132,6 +132,7 @@ import { InputDescription, InputLabel } from "frappe-ui/experimental";
 import CodePreview from "./CodePreview.vue";
 import { fieldtypeToLanguage } from "./fieldtypeToLanguage";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
+import { translate as __ } from "../../utils/translate";
 
 const props = withDefaults(
 	defineProps<

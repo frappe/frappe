@@ -10,7 +10,7 @@
 			:modelValue="coordinateSummary"
 			:label="field.label"
 			:description="field.description"
-			:placeholder="field.readOnly ? '—' : field.placeholder || 'Set location'"
+			:placeholder="field.readOnly ? '—' : field.placeholder || __('Set location')"
 			:required="field.reqd"
 			:error="error"
 			readonly
@@ -29,7 +29,7 @@
 			<template v-if="!field.readOnly && modelValue" #suffix>
 				<button
 					type="button"
-					aria-label="Clear"
+					:aria-label="__('Clear')"
 					data-slot="clear"
 					class="group-hover:grid group-focus:grid group-focus-within:grid hidden size-4 place-items-center rounded-1 text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-7 focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
 					@click.stop="clearLocation"
@@ -43,7 +43,7 @@
 		<!-- Map Dialog -->
 		<Dialog
 			v-model:open="showModal"
-			:title="field.readOnly ? 'View Location' : 'Set Location'"
+			:title="field.readOnly ? __('View Location') : __('Set Location')"
 			size="4xl"
 		>
 			<!-- If the map libraries fail to load, show a message instead of an
@@ -59,13 +59,13 @@
 				<div class="flex items-center justify-end gap-2">
 					<Button
 						variant="outline"
-						:label="field.readOnly ? 'Close' : 'Cancel'"
+						:label="field.readOnly ? __('Close') : __('Cancel')"
 						@click="showModal = false"
 					/>
 					<Button
 						v-if="!field.readOnly && !loadError"
 						variant="solid"
-						label="Save"
+						:label="__('Save')"
 						@click="saveLocation"
 					/>
 				</div>
@@ -94,6 +94,7 @@
 import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
 import { Button, Dialog, TextInput } from "frappe-ui";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
+import { translate as __ } from "../../utils/translate";
 
 // Marker icons (Leaflet's default icon paths break under bundlers) plus the
 // layers-control / draw-toolbar sprites that Leaflet CSS references via relative
@@ -154,9 +155,9 @@ const coordinateSummary = computed(() => {
 			return `${latStr}, ${lngStr}`;
 		}
 		const count = features.length;
-		return `${count} ${count === 1 ? "feature" : "features"}`;
+		return count === 1 ? __("1 feature") : __("{0} features", [count]);
 	} catch {
-		return "Invalid GeoJSON";
+		return __("Invalid GeoJSON");
 	}
 });
 
@@ -292,7 +293,7 @@ async function initMap() {
 	try {
 		leafletLocate = await loadLeaflet();
 	} catch {
-		loadError.value = "The map failed to load. Please try again.";
+		loadError.value = __("The map failed to load. Please try again.");
 		return;
 	}
 

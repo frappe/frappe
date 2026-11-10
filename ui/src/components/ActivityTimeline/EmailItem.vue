@@ -8,7 +8,7 @@
 						<!-- sender email is hidden; surfaced on hover via tooltip -->
 						<Tooltip :text="email.data.sender">
 							<span class="min-w-0 truncate text-base font-medium text-ink-gray-6">{{
-								email?.author?.fullname || "Guest"
+								email?.author?.fullname || __("Guest")
 							}}</span>
 						</Tooltip>
 						<div class="flex items-center gap-2">
@@ -77,6 +77,7 @@ import TimeAgo from "./TimeAgo.vue";
 import TimelineCard from "./TimelineCard.vue";
 import type { EmailItemProps } from "./types";
 import { splitRecipients } from "./utils";
+import { translate as __ } from "../../utils/translate";
 
 const props = defineProps<EmailItemProps>();
 

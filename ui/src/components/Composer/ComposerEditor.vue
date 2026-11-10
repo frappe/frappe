@@ -124,7 +124,7 @@
 										variant="ghost"
 										size="sm"
 										:icon="LucidePaperclip"
-										aria-label="Attach file"
+										:aria-label="__('Attach file')"
 										class="shrink-0"
 										:loading="isUploading"
 										:disabled="attachments.length >= maxAttachments"
@@ -173,7 +173,7 @@
 								/>
 							</div>
 							<div class="-mr-2 flex shrink-0 items-center gap-2">
-								<Button v-if="!isEmpty" label="Discard" @click="reset" />
+								<Button v-if="!isEmpty" :label="__('Discard')" @click="reset" />
 								<!-- The spinner trails the label; Button's own `loading` would lead it. -->
 								<Button
 									variant="solid"
@@ -228,6 +228,7 @@ import {
 import { sanitizeHtml } from "../../utils/sanitize";
 import { isAllowedType } from "../FileUpload/useUploader";
 import type { ComposerEditorProps, CoreSubmitPayload, UploadedFile } from "./types";
+import { translate as __ } from "../../utils/translate";
 
 const emailToolbar = [
 	Paragraph,
@@ -255,8 +256,8 @@ const emailToolbar = [
 ];
 
 const props = withDefaults(defineProps<ComposerEditorProps>(), {
-	placeholder: "Type your message…",
-	submitLabel: "Send",
+	placeholder: () => __("Type your message…"),
+	submitLabel: () => __("Send"),
 	maxAttachments: 10,
 });
 
@@ -384,7 +385,7 @@ const ROW_HIDDEN = "!grid-rows-[0fr] opacity-0";
 const isUploading = ref(false);
 function addAttachment(file: UploadedFile) {
 	if (attachments.value.length >= props.maxAttachments) {
-		toast.error(`Attachment limit reached (${props.maxAttachments}).`);
+		toast.error(__("Attachment limit reached ({0}).", [props.maxAttachments]));
 		return;
 	}
 	attachments.value.push(file);
@@ -407,7 +408,7 @@ async function onAttachPicked(event: Event) {
 	if (!file || !props.uploadFunction) return;
 	// `accept` only filters the picker, which the user can switch to all files.
 	if (props.allowedFileTypes && !isAllowedType(file, props.allowedFileTypes)) {
-		toast.error(`"${file.name}" was skipped — file type not allowed.`);
+		toast.error(__('"{0}" was skipped — file type not allowed.', [file.name]));
 		return;
 	}
 	const epoch = uploadEpoch;
@@ -423,7 +424,7 @@ async function onAttachPicked(event: Event) {
 			file_size: uploaded.file_size,
 		});
 	} catch {
-		if (epoch === uploadEpoch) toast.error("Failed to upload the attachment.");
+		if (epoch === uploadEpoch) toast.error(__("Failed to upload the attachment."));
 	} finally {
 		if (epoch === uploadEpoch) isUploading.value = false;
 	}

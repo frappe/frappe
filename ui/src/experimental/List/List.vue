@@ -21,7 +21,7 @@
 					<Checkbox
 						:modelValue="selectAllState === 'all'"
 						:indeterminate="selectAllState === 'some'"
-						aria-label="Select all"
+						:aria-label="__('Select all')"
 						@update:modelValue="toggleSelectAll"
 					/>
 				</div>
@@ -68,7 +68,7 @@
 						<div
 							role="checkbox"
 							:aria-checked="isSelected(rowValue(row))"
-							:aria-label="`Select ${rowValue(row)}`"
+							:aria-label="__('Select {0}', [rowValue(row)])"
 							tabindex="0"
 							@click.stop.prevent="toggle(rowValue(row))"
 							@keydown.enter.stop.prevent="toggle(rowValue(row))"
@@ -110,7 +110,9 @@
 			</template>
 			<slot v-else name="empty">
 				<div class="flex flex-col items-center gap-1 py-16 text-center">
-					<span class="text-base font-medium text-ink-gray-7">No records</span>
+					<span class="text-base font-medium text-ink-gray-7">{{
+						__("No records")
+					}}</span>
 				</div>
 			</slot>
 		</FrappeList>
@@ -128,6 +130,7 @@ import {
 	ListRow,
 } from "frappe-ui/list";
 import { computed, getCurrentInstance, ref, toRef } from "vue";
+import { translate as __ } from "../../utils/translate";
 import type { Sort } from "../../components/SortBy/types";
 import { columnTracks } from "./columnTracks";
 import { directionFor, nextSort } from "./headerSort";

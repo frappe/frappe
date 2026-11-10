@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, watch } from "vue";
 import { Button, TabButtons } from "frappe-ui";
+import { translate as __ } from "../../utils/translate";
 import LucideCheckCheck from "~icons/lucide/check-check";
 import LucideX from "~icons/lucide/x";
 import NotificationItem from "./NotificationItem.vue";
@@ -108,8 +109,8 @@ const activeTabSlot = computed(() => (activeTab.value ? `tab-${activeTab.value}`
 				<span class="text-md font-medium mr-auto">{{ title }}</span>
 				<Button
 					variant="ghost"
-					tooltip="Mark all as read"
-					aria-label="Mark all as read"
+					:tooltip="__('Mark all as read')"
+					:aria-label="__('Mark all as read')"
 					:icon="LucideCheckCheck"
 					size="sm"
 					@click="markAllAsRead"
@@ -117,8 +118,8 @@ const activeTabSlot = computed(() => (activeTab.value ? `tab-${activeTab.value}`
 				<Button
 					variant="ghost"
 					size="sm"
-					tooltip="Close"
-					aria-label="Close"
+					:tooltip="__('Close')"
+					:aria-label="__('Close')"
 					:icon="LucideX"
 					@click="close"
 				/>
@@ -164,14 +165,14 @@ const activeTabSlot = computed(() => (activeTab.value ? `tab-${activeTab.value}`
 					</template>
 
 					<div v-if="hasNextPage" class="p-3 text-center">
-						<Button label="Load more" size="sm" @click="loadMore" />
+						<Button :label="__('Load more')" size="sm" @click="loadMore" />
 					</div>
 				</template>
 
 				<!-- error state (renders only on fetch failure; nothing shows while healthy) -->
 				<slot v-else-if="error" name="error" :error="error">
 					<div class="py-12 text-center text-p-sm text-ink-gray-5">
-						Couldn't load notifications
+						{{ __("Couldn't load notifications") }}
 					</div>
 				</slot>
 
@@ -179,7 +180,7 @@ const activeTabSlot = computed(() => (activeTab.value ? `tab-${activeTab.value}`
 				     flash "No notifications" before rows arrive (reopens render cached rows instantly) -->
 				<slot v-else-if="!loading" name="empty">
 					<div class="py-12 text-center text-p-sm text-ink-gray-5">
-						No notifications to show
+						{{ __("No notifications to show") }}
 					</div>
 				</slot>
 			</template>

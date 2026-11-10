@@ -40,8 +40,8 @@
 			</Editor>
 		</div>
 		<div v-if="editable" class="mt-2 flex justify-end gap-2">
-			<Button variant="outline" label="Discard" @click="emit('discard')" />
-			<Button variant="solid" label="Save" @click="emit('save', editedContent)" />
+			<Button variant="outline" :label="__('Discard')" @click="emit('discard')" />
+			<Button variant="solid" :label="__('Save')" @click="emit('save', editedContent)" />
 		</div>
 		<slot v-else name="footer" :comment="comment">
 			<div v-if="comment.data.attachments?.length" class="mt-2 flex flex-wrap gap-2">
@@ -64,6 +64,7 @@ import AttachmentChip from "./AttachmentChip.vue";
 import TimeAgo from "./TimeAgo.vue";
 import TimelineCard from "./TimelineCard.vue";
 import type { CommentItemProps } from "./types";
+import { translate as __ } from "../../utils/translate";
 
 const props = withDefaults(defineProps<CommentItemProps>(), {
 	editable: false,

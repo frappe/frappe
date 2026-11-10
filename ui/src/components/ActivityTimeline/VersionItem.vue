@@ -12,9 +12,11 @@
 			>
 				<span class="text-ink-gray-5">
 					<span class="font-medium text-ink-gray-8">{{ authorName }}</span>
-					made
-					<span class="font-medium text-ink-gray-8"> {{ changes.length }} changes </span>
-					<span v-if="sessionSpan">over {{ sessionSpan }}</span>
+					{{ __("made") }}
+					<span class="font-medium text-ink-gray-8">
+						{{ __("{0} changes", [changes.length]) }}
+					</span>
+					<span v-if="sessionSpan">{{ __("over {0}", [sessionSpan]) }}</span>
 				</span>
 				<LucideChevronUp v-if="expanded" class="size-3.5" />
 				<LucideChevronDown v-else class="size-3.5" />
@@ -43,7 +45,7 @@
 									v-if="hasHistory(change)"
 									type="button"
 									class="text-ink-gray-5 hover:text-ink-gray-7"
-									aria-label="Show field history"
+									:aria-label="__('Show field history')"
 									:aria-expanded="isOpen(change.name)"
 									@click="toggle(change.name)"
 								>
@@ -102,6 +104,7 @@ import ValueChange from "./ValueChange.vue";
 import { timeValue } from "./grouping";
 import TimeAgo from "./TimeAgo.vue";
 import type { FieldChange, VersionChange, VersionItemProps } from "./types";
+import { translate as __ } from "../../utils/translate";
 
 const props = defineProps<VersionItemProps>();
 
@@ -127,9 +130,11 @@ const sessionSpan = computed(() => {
 	const span = Math.max(...times) - Math.min(...times);
 	if (span < 60_000) return "";
 	const minutes = Math.round(span / 60_000);
-	if (minutes < 60) return `${minutes} minute${minutes === 1 ? "" : "s"}`;
+	if (minutes < 60) {
+		return minutes === 1 ? __("1 minute") : __("{0} minutes", [minutes]);
+	}
 	const hours = Math.round(minutes / 60);
-	return `${hours} hour${hours === 1 ? "" : "s"}`;
+	return hours === 1 ? __("1 hour") : __("{0} hours", [hours]);
 });
 
 // per-change history panels, keyed by change.name

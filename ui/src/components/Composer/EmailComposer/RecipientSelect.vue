@@ -29,7 +29,7 @@
 				</span>
 				<button
 					class="grid size-4 place-items-center rounded-1 text-ink-gray-5 hover:bg-surface-gray-4"
-					aria-label="Remove recipient"
+					:aria-label="__('Remove recipient')"
 					@click.stop="removeTag"
 				>
 					<LucideX class="size-3" />
@@ -59,6 +59,7 @@ import { Avatar, toast } from "frappe-ui";
 import LucideX from "~icons/lucide/x";
 import { MultiEmailInput, type MultiEmailOption } from "frappe-ui/experimental";
 import type { Recipient, RecipientSearch } from "../types";
+import { translate as __ } from "../../../utils/translate";
 
 const props = withDefaults(defineProps<{ placeholder?: string; search?: RecipientSearch }>(), {
 	placeholder: "",
@@ -160,7 +161,7 @@ const searchResults = computedAsync<Recipient[]>(
 	[],
 	{
 		evaluating: loading,
-		onError: () => toast.error("Couldn't load recipients."),
+		onError: () => toast.error(__("Couldn't load recipients.")),
 	}
 );
 </script>

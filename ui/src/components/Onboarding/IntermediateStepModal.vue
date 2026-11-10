@@ -14,7 +14,7 @@
 					muted
 				>
 					<source :src="currentStep.videoURL" type="video/mp4" />
-					Your browser does not support the video tag.
+					{{ __("Your browser does not support the video tag.") }}
 				</video>
 			</div>
 		</slot>
@@ -27,6 +27,7 @@
 </template>
 <script setup lang="ts">
 import { Dialog } from "frappe-ui";
+import { translate as __ } from "../../utils/translate";
 import { computed } from "vue";
 import type { IntermediateStepModalProps } from "./types";
 
@@ -34,10 +35,10 @@ const props = withDefaults(defineProps<IntermediateStepModalProps>(), {
 	// A factory, unlike the object literal the options API version passed —
 	// that shared one object across every instance.
 	currentStep: () => ({
-		title: "Title",
-		message: "Message",
+		title: __("Title"),
+		message: __("Message"),
 		videoURL: "",
-		buttonLabel: "Button Label",
+		buttonLabel: __("Button Label"),
 		onClick: () => {},
 	}),
 	dialogOptions: () => ({}),

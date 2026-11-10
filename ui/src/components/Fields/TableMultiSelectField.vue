@@ -7,7 +7,7 @@
 		:description="
 			targetDoctype
 				? field.description
-				: 'Child table metadata unavailable — picker disabled.'
+				: __('Child table metadata unavailable — picker disabled.')
 		"
 		:placeholder="field.placeholder"
 		:required="field.reqd"
@@ -25,6 +25,7 @@ import { TableMultiSelect } from "../TableMultiSelect";
 import { useChildRowModel } from "../FormLayout/useChildRowModel";
 import { newRowValues } from "../FormLayout/newRowValues";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
+import { translate as __ } from "../../utils/translate";
 
 const props = defineProps<FieldComponentProps>();
 const emit = defineEmits<FieldComponentEmits>();

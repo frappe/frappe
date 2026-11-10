@@ -7,20 +7,20 @@
 			<slot>
 				<div class="inline-flex gap-2 items-center font-medium">
 					<LucideInfo class="size-4" />
-					Loved the demo?
+					{{ __("Loved the demo?") }}
 				</div>
 				<div class="text-ink-gray-7 text-p-sm">
-					{{ `Try ${appName} for free with a 14-day trial.` }}
+					{{ __("Try {0} for free with a 14-day trial.", [appName]) }}
 				</div>
 			</slot>
 		</div>
-		<Button label="Sign up now" theme="blue" @click="signupNow">
+		<Button :label="__('Sign up now')" theme="blue" @click="signupNow">
 			<template #prefix>
 				<LightningIcon class="size-4" />
 			</template>
 		</Button>
 	</div>
-	<Button v-else aria-label="Sign up now" @click="signupNow">
+	<Button v-else :aria-label="__('Sign up now')" @click="signupNow">
 		<LightningIcon class="h-4 my-0.5 shrink-0" />
 	</Button>
 </template>
@@ -28,6 +28,7 @@
 import { Button } from "frappe-ui";
 import LucideInfo from "~icons/lucide/info";
 import { LightningIcon } from "frappe-ui/icons";
+import { translate as __ } from "../../utils/translate";
 import type { SignupBannerProps } from "./types";
 
 const props = withDefaults(defineProps<SignupBannerProps>(), {

@@ -27,10 +27,10 @@
 	>
 		<template #trigger>
 			<Button
-				:label="hideLabel ? undefined : 'Columns'"
+				:label="hideLabel ? undefined : __('Columns')"
 				:icon="hideLabel ? 'lucide-columns-3' : undefined"
 				:iconLeft="!hideLabel ? 'lucide-columns-3' : undefined"
-				aria-label="Columns"
+				:aria-label="__('Columns')"
 			/>
 		</template>
 	</Combobox>
@@ -39,10 +39,10 @@
 	<Popover v-else ref="popoverRef" side="bottom" align="end">
 		<template #trigger>
 			<Button
-				:label="hideLabel ? undefined : 'Columns'"
+				:label="hideLabel ? undefined : __('Columns')"
 				:icon="hideLabel ? 'lucide-columns-3' : undefined"
 				:iconLeft="!hideLabel ? 'lucide-columns-3' : undefined"
-				aria-label="Columns"
+				:aria-label="__('Columns')"
 				@click="confirmingReset = false"
 			/>
 		</template>
@@ -87,7 +87,7 @@
 							<Button
 								variant="ghost"
 								icon="lucide-x"
-								aria-label="Remove column"
+								:aria-label="__('Remove column')"
 								@click="removeColumn(i)"
 							/>
 						</div>
@@ -107,7 +107,7 @@
 						<template #trigger>
 							<Button
 								variant="ghost"
-								label="Add Column"
+								:label="__('Add Column')"
 								iconLeft="lucide-plus"
 								:class="[
 									'!text-ink-gray-5',
@@ -124,7 +124,7 @@
 						:class="confirmingReset ? undefined : '!text-ink-gray-5'"
 						:variant="confirmingReset ? 'subtle' : 'ghost'"
 						:theme="confirmingReset ? 'red' : 'gray'"
-						:label="confirmingReset ? 'Confirm Reset' : 'Reset'"
+						:label="confirmingReset ? __('Confirm reset') : __('Reset')"
 						@click="onResetClick"
 					/>
 				</div>
@@ -141,6 +141,7 @@ import Draggable from "vuedraggable";
 import { useDoctypeMeta } from "../../composables/useDoctypeMeta";
 import { getColumnOptions } from "./getColumnOptions";
 import type { Column, ColumnOption, ColumnSettingsProps } from "./types";
+import { translate as __ } from "../../utils/translate";
 
 const props = withDefaults(defineProps<ColumnSettingsProps>(), {
 	hideLabel: false,

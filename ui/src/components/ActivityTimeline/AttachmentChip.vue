@@ -33,7 +33,7 @@
 		<Dialog v-if="preview && url" v-model:open="previewOpen" :title="label" size="4xl">
 			<template #default>
 				<div v-if="error" class="text-sm text-ink-red-6">
-					Couldn't load this file: {{ error }}
+					{{ __("Couldn't load this file: {0}", [error]) }}
 				</div>
 				<div
 					v-else-if="preview === 'text'"
@@ -71,6 +71,7 @@
 import { Button, Dialog } from "frappe-ui";
 import { Editor, EditorContent, Markdown, RichTextKit } from "frappe-ui/editor";
 import { computed, ref, watch } from "vue";
+import { translate as __ } from "../../utils/translate";
 
 const props = withDefaults(
 	defineProps<{
@@ -125,7 +126,7 @@ watch(previewOpen, async (isOpen) => {
 			if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
 			textContent.value = await res.text();
 		} catch (e) {
-			error.value = e instanceof Error ? e.message : "Failed to load file";
+			error.value = e instanceof Error ? e.message : __("Failed to load file");
 		}
 	}
 });

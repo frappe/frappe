@@ -1,25 +1,25 @@
 <template>
 	<div class="pl-2.5 pr-1">
-		<Row v-if="showFrom" label="From" :items-center="true">
+		<Row v-if="showFrom" :label="__('From')" :items-center="true">
 			<Select
 				v-model="from"
 				:options="senderOptions"
 				variant="ghost"
 				class="from-select -ml-1 min-w-0"
-				aria-label="From"
+				:aria-label="__('From')"
 			/>
 		</Row>
 
-		<Row v-if="showSubject" label="Subject" :items-center="true">
+		<Row v-if="showSubject" :label="__('Subject')" :items-center="true">
 			<input
 				v-model="subject"
 				type="text"
-				aria-label="Subject"
+				:aria-label="__('Subject')"
 				class="flex-1 border-0 bg-transparent p-0 text-base text-ink-gray-8 focus:ring-0"
 			/>
 		</Row>
 
-		<Row v-if="showTo" label="To">
+		<Row v-if="showTo" :label="__('To')">
 			<RecipientSelect
 				v-model="to"
 				class="flex-1"
@@ -31,7 +31,7 @@
 				<Button
 					v-if="showCc"
 					variant="ghost"
-					label="CC"
+					:label="__('CC')"
 					:class="openCc ? '!bg-surface-gray-4' : '!text-ink-gray-5'"
 					size="xs"
 					@click="toggleCc"
@@ -39,7 +39,7 @@
 				<Button
 					v-if="showBcc"
 					variant="ghost"
-					label="BCC"
+					:label="__('BCC')"
 					:class="openBcc ? '!bg-surface-gray-4' : '!text-ink-gray-5'"
 					size="xs"
 					@click="toggleBcc"
@@ -47,7 +47,7 @@
 			</div>
 		</Row>
 
-		<Row v-if="showCc && openCc" label="CC">
+		<Row v-if="showCc && openCc" :label="__('CC')">
 			<RecipientSelect
 				v-model="cc"
 				class="flex-1"
@@ -56,7 +56,7 @@
 				@move="(recipient) => moveRecipient('cc', recipient)"
 			/>
 		</Row>
-		<Row v-if="showBcc && openBcc" label="BCC">
+		<Row v-if="showBcc && openBcc" :label="__('BCC')">
 			<RecipientSelect
 				v-model="bcc"
 				class="flex-1"
@@ -75,6 +75,7 @@ import { Button, Select } from "frappe-ui";
 import RecipientSelect from "./RecipientSelect.vue";
 import Row from "./HeaderRow.vue";
 import type { Recipient, RecipientSearch } from "../types";
+import { translate as __ } from "../../../utils/translate";
 
 // Private to EmailComposer, which always passes every flag; required props
 // keep the defaults in one place (EmailComposerProps).

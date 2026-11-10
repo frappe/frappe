@@ -1,3 +1,4 @@
+import { translate as __ } from "../../utils/translate";
 import type { RawMetaField } from "../FormLayout/types";
 import type { FilterField, FilterFieldDeclaration } from "./types";
 
@@ -28,24 +29,24 @@ const FILTERABLE_FIELDTYPES = new Set([
 const STANDARD_FIELDS: ReadonlyArray<
   Pick<RawMetaField, "fieldname" | "fieldtype" | "label" | "options">
 > = [
-  { fieldname: "name", fieldtype: "Link", label: "Name", options: undefined },
+  { fieldname: "name", fieldtype: "Link", label: __("Name"), options: undefined },
   {
     fieldname: "owner",
     fieldtype: "Link",
-    label: "Created By",
+    label: __("Created By"),
     options: "User",
   },
   {
     fieldname: "modified_by",
     fieldtype: "Link",
-    label: "Last Updated By",
+    label: __("Last Updated By"),
     options: "User",
   },
-  { fieldname: "_user_tags", fieldtype: "Data", label: "Tags" },
-  { fieldname: "_liked_by", fieldtype: "Data", label: "Like" },
-  { fieldname: "_assign", fieldtype: "Text", label: "Assigned To" },
-  { fieldname: "creation", fieldtype: "Datetime", label: "Created On" },
-  { fieldname: "modified", fieldtype: "Datetime", label: "Last Updated On" },
+  { fieldname: "_user_tags", fieldtype: "Data", label: __("Tags") },
+  { fieldname: "_liked_by", fieldtype: "Data", label: __("Like") },
+  { fieldname: "_assign", fieldtype: "Text", label: __("Assigned To") },
+  { fieldname: "creation", fieldtype: "Datetime", label: __("Created On") },
+  { fieldname: "modified", fieldtype: "Datetime", label: __("Last Updated On") },
 ];
 
 const toFilterField = (

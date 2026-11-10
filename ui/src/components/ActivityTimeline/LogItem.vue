@@ -13,9 +13,14 @@
 					<span class="font-medium text-ink-gray-8">{{
 						activity?.author?.fullname
 					}}</span>
-					<span>{{
-						activity.data.action === "removed" ? " removed attachment " : " attached "
-					}}</span>
+					<span>
+						{{ " "
+						}}{{
+							activity.data.action === "removed"
+								? __("removed attachment")
+								: __("attached")
+						}}{{ " " }}
+					</span>
 					<!-- no whitespace between lock and name (condensed away), so they never split lines -->
 					<a
 						v-if="activity.data.fileUrl"
@@ -47,6 +52,7 @@ import LucideLock from "~icons/lucide/lock";
 import TimeAgo from "./TimeAgo.vue";
 import type { LogActivity, LogItemProps } from "./types";
 import { splitBold } from "./utils";
+import { translate as __ } from "../../utils/translate";
 
 defineProps<LogItemProps>();
 
