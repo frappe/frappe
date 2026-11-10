@@ -5,6 +5,7 @@ import { createApp, defineComponent, h, nextTick, type App } from "vue";
 import { createMemoryHistory, createRouter } from "vue-router";
 
 const retitle = vi.hoisted(() => vi.fn());
+const mounted = vi.hoisted(() => vi.fn());
 
 vi.mock("@/shell/PageFrame.vue", async () => {
 	const { defineComponent, h } = await import("vue");
@@ -22,7 +23,10 @@ vi.mock("@/pages/list/ViewPage.vue", async () => {
 	return {
 		default: defineComponent({
 			props: ["doctype", "opened", "replacement"],
-			setup: (props) => () => h("div", { "data-list": props.opened.label, "data-type": props.opened.type }),
+			setup(props) {
+				mounted();
+				return () => h("div", { "data-list": props.opened.label, "data-type": props.opened.type });
+			},
 		}),
 	};
 });
@@ -31,6 +35,7 @@ vi.mock("@/router/routeFor", () => ({
 	routeFor: (doctype: string) => ({ name: "list", params: { doctype: doctype.toLowerCase() } }),
 }));
 
+import { resetSavedViews } from "@/list/savedView";
 import List from "../../List.vue";
 
 const apps: App[] = [];
@@ -40,6 +45,8 @@ afterEach(() => {
 	document.body.innerHTML = "";
 	vi.unstubAllGlobals();
 	retitle.mockReset();
+	mounted.mockReset();
+	resetSavedViews();
 });
 
 function answer(status: number, body: unknown) {
@@ -146,5 +153,23 @@ describe("a saved view's address", () => {
 		await server.send();
 
 		expect(page.type()).toBe("Kanban");
+	});
+
+	it("paints a return visit from the last answer, and mounts the page again when the type changes", async () => {
+		const first = answer(200, { data: { key: "board", label: "Board", type: "List", layer: "own", applies: true } });
+		await mount("/todo/view/board");
+		await first.send();
+		for (const app of apps.splice(0)) app.unmount();
+		document.body.innerHTML = "";
+		mounted.mockClear();
+
+		const again = answer(200, { data: { key: "board", label: "Board", type: "Kanban", layer: "own", applies: true } });
+		const page = await mount("/todo/view/board");
+		expect(page.type()).toBe("List");
+		expect(mounted).toHaveBeenCalledTimes(1);
+
+		await again.send();
+		expect(page.type()).toBe("Kanban");
+		expect(mounted).toHaveBeenCalledTimes(2);
 	});
 });

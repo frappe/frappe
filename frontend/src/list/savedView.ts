@@ -1,6 +1,7 @@
 // The view a list address names, looked up by its doctype and key as the person sees it: a saved
 // view, or a view type's plain view at its type's name.
 import { isApiError, runMethod } from "@framework/ui/api";
+import { currentSession } from "@framework/ui/useSession";
 import { onScopeDispose, shallowRef, watch, type ShallowRef } from "vue";
 
 const FIND = "frappe.desk.doctype.doctype_view.api.find";
@@ -25,6 +26,26 @@ export interface SavedViewHandle {
 	retry: () => Promise<void>;
 }
 
+// The last answer per doctype and key, so a return visit paints at once and looks up again behind it.
+// What one user may open is not what the next may, so another session user starts it empty.
+const found = new Map<string, SavedView>();
+let foundFor: string | undefined;
+
+function remembered(doctype: string, key: string): SavedView | null {
+	const user = currentSession()?.user.name;
+	if (foundFor !== user) {
+		foundFor = user;
+		found.clear();
+	}
+	return found.get(`${doctype}\0${key}`) ?? null;
+}
+
+/** Drops every remembered answer, so one test's views cannot reach the next. */
+export function resetSavedViews(): void {
+	found.clear();
+	foundFor = undefined;
+}
+
 /** Looks the view up again whenever the address names another one; an older answer is dropped. */
 export function useSavedView(doctype: () => string | null, key: () => string | null): SavedViewHandle {
 	const view = shallowRef<SavedView | null>(null);
@@ -33,21 +54,27 @@ export function useSavedView(doctype: () => string | null, key: () => string | n
 
 	async function load() {
 		asking?.abort();
-		view.value = null;
 		failure.value = null;
 		const [doctypeName, viewKey] = [doctype(), key()];
+		view.value = doctypeName && viewKey ? remembered(doctypeName, viewKey) : null;
 		if (!doctypeName || !viewKey) return;
 
 		const current = (asking = new AbortController());
+		const asker = currentSession()?.user.name;
 		try {
 			const { data } = await runMethod<SavedView>(
 				FIND,
 				{ doctype: doctypeName, key: viewKey },
 				{ http: "GET", signal: current.signal }
 			);
-			if (!current.signal.aborted) view.value = data;
+			if (current.signal.aborted) return;
+			if (asker === foundFor) found.set(`${doctypeName}\0${viewKey}`, data);
+			view.value = data;
 		} catch (error) {
-			if (!current.signal.aborted) failure.value = error;
+			if (current.signal.aborted) return;
+			found.delete(`${doctypeName}\0${viewKey}`);
+			view.value = null;
+			failure.value = error;
 		}
 	}
 

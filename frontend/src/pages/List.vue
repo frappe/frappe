@@ -9,7 +9,7 @@
 	<PageFrame v-else-if="!opened" :scroll="false" />
 	<ViewPage
 		v-else
-		:key="`${doctype}/${opened.key}`"
+		:key="`${doctype}/${opened.key}/${opened.type}/${opened.layer}`"
 		:doctype="doctype"
 		:opened="opened"
 		:replacement="replacement"
