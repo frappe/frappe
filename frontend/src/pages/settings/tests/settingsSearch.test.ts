@@ -35,12 +35,19 @@ const REPLY: PanesReply = {
 			icon: "settings",
 			blocks: [{ key: "main", app: "frappe", save_mode: "auto", label: "Walking", binding: WALK }],
 		},
-		{ app: "crm", key: "general", label: "General", icon: "settings", blocks: [] },
+		{
+			app: "crm",
+			key: "general",
+			label: "General",
+			icon: "settings",
+			blocks: [{ key: "verify", app: "crm", save_mode: "button", label: "Verify connection", component: "verify" }],
+		},
 	],
 	index: [
 		{ app: "frappe", pane: "walk", block: "main", fieldname: "greeting", label: "Greeting" },
 		{ app: "frappe", pane: "walk", block: "main", fieldname: "time_zone", label: "Time Zone" },
 		{ app: "crm", pane: "general", block: "main", label: "Zone Routing" },
+		{ app: "crm", pane: "general", block: "verify", label: "Verify connection", keywords: ["company"] },
 	],
 	titles: { frappe: "Frappe", crm: "CRM" },
 };
@@ -191,6 +198,14 @@ describe("settings search", () => {
 			(heading) => heading.textContent === "Walk"
 		)!;
 		expect(flash.mock.contexts).toEqual([title.parentElement!.querySelector(":scope > [data-flash]")]);
+	});
+
+	it("lists a block once with its own declared setting's keywords, as the query is typed letter by letter", async () => {
+		await opened("#settings/desk/profile");
+		for (const query of ["c", "co", "com", "comp", "compa", "compan", "company"]) {
+			await search(query);
+			expect(results(), query).toEqual(["Verify connection | CRM › General"]);
+		}
 	});
 
 	it("clears the query when the dialog closes", async () => {

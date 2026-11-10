@@ -6,6 +6,8 @@ import type { PanesReply, SettingsIndexEntry, SettingsPane } from "./settingsPan
 
 /** One result: a pane, a block, a field or a setting a component block declared. */
 export interface SettingsHit {
+	/** Unique in its search index, so it keys the result row. */
+	id: number;
 	prefix: string;
 	pane: SettingsPane;
 	block?: string;
@@ -25,6 +27,7 @@ export interface SettingsResults {
 const LIMIT = 30;
 
 interface Entry {
+	id: number;
 	prefix: string;
 	pane: SettingsPane;
 	block?: string;
@@ -70,30 +73,43 @@ export class SettingsSearch {
 	}
 
 	private addPane(prefix: string, pane: SettingsPane, indexed: SettingsIndexEntry[]) {
-		this.entries.push({ prefix, pane, label: pane.label, description: pane.description });
+		this.add({ prefix, pane, label: pane.label, description: pane.description });
+		const blocks = new Map<string, Entry>();
 		for (const block of pane.blocks) {
 			if (!block.label) continue;
-			this.entries.push({
+			const entry = this.add({
 				prefix,
 				pane,
 				block: block.key,
 				label: block.label,
 				description: block.description,
 			});
+			blocks.set(block.key, entry);
 		}
 		for (const { block, label, fieldname, description, keywords } of indexed) {
 			const shown = label || fieldname;
 			if (!shown) continue;
-			const blockLabel = pane.blocks.find((one) => one.key === block)?.label;
-			this.entries.push({ prefix, pane, block, blockLabel, fieldname, label: shown, description, keywords });
+			const blockEntry = blocks.get(block);
+			// A setting named as its block is the block itself: two rows would share a label.
+			if (!fieldname && blockEntry?.label === shown) {
+				blockEntry.keywords = [...new Set([...(blockEntry.keywords ?? []), ...(keywords ?? [])])];
+				continue;
+			}
+			this.add({ prefix, pane, block, blockLabel: blockEntry?.label, fieldname, label: shown, description, keywords });
 		}
 	}
 
-	private hit({ prefix, pane, block, blockLabel, fieldname, label }: Entry): SettingsHit {
+	private add(entry: Omit<Entry, "id">): Entry {
+		const added = { ...entry, id: this.entries.length };
+		this.entries.push(added);
+		return added;
+	}
+
+	private hit({ id, prefix, pane, block, blockLabel, fieldname, label }: Entry): SettingsHit {
 		const path = [block ? pane.label : undefined, blockLabel].filter(Boolean).map((one) => __(one!));
 		const app = this.reply.titles[pane.app];
 		const where = this.book.isForeign(prefix) || !path.length ? [app, ...path] : path;
-		return { prefix, pane, block, fieldname, label: __(label), where: where.join(" › ") };
+		return { id, prefix, pane, block, fieldname, label: __(label), where: where.join(" › ") };
 	}
 }
 
