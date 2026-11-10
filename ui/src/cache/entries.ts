@@ -44,7 +44,7 @@ type PartField = { field: string; format: (value: unknown[]) => string };
 const PART_FIELDS: Record<string, PartField> = {
   assignments: { field: "_assign", format: (rows) => pythonJsonList(rows.map(assignedUser)) },
   tags: { field: "_user_tags", format: (tags) => tags.join(",") },
-  seen: { field: "_seen", format: (users) => pythonJsonList(users.map(String)) },
+  seen: { field: "_seen", format: (users) => pythonJsonList(users as string[]) },
 };
 
 /** `frappe.model.optional_fields`: `as_dict` drops them, so only a list read or a part write sets them. */
@@ -123,9 +123,9 @@ export function withListColumns(
   doc: Readonly<DocumentRecord>,
   previous: Readonly<DocumentRecord> | undefined
 ): Readonly<DocumentRecord> {
-  const kept = LIST_ONLY_FIELDS.filter((field) => previous && field in previous && !(field in doc));
-  if (!kept.length) return doc;
-  return Object.freeze({ ...Object.fromEntries(kept.map((field) => [field, previous![field]])), ...doc });
+  const kept: Record<string, unknown> = {};
+  for (const field of LIST_ONLY_FIELDS) if (previous && field in previous) kept[field] = previous[field];
+  return Object.freeze({ ...kept, ...doc });
 }
 
 /** The reply's parts refresh the list-only columns the doc holds; `seen` is no part but always sets its column. */
@@ -134,11 +134,13 @@ export function withPartFields(
   envelope: Readonly<Record<string, unknown>>,
   include: readonly string[]
 ): Readonly<DocumentRecord> {
-  return include.reduce((written, part) => {
+  for (const part of include) {
     const field = PART_FIELDS[part]?.field;
-    const writes = part in envelope && field && (part === "seen" || field in written);
-    return writes ? withPartField(written, part, envelope[part]) : written;
-  }, doc);
+    if (part in envelope && field && (part === "seen" || field in doc)) {
+      doc = withPartField(doc, part, envelope[part]);
+    }
+  }
+  return doc;
 }
 
 /** A deep copy the cache owns: the wrapper hands the reply itself back to its caller. */
