@@ -126,9 +126,25 @@ class SocialLoginKey(Document):
 			(_("End Session Endpoint"), self.get_end_session_endpoint()),
 			(_("Post Logout Redirect URI"), self.post_logout_redirect_uri),
 		):
-			parsed = urlparse(url)
-			if parsed.scheme != "https" or not parsed.netloc:
-				frappe.throw(_("{0} must be an absolute HTTPS URL").format(label))
+			# urlparse() strips some leading controls: reject ambiguous URLs before parsing.
+			invalid = not isinstance(url, str) or not url or any(
+				char.isspace() or ord(char) < 32 or ord(char) == 127 or char == "\\" for char in url
+			)
+			if not invalid:
+				try:
+					parsed = urlparse(url)
+					invalid = not (
+						parsed.scheme == "https"
+						and parsed.netloc
+						and parsed.hostname
+						and parsed.username is None
+						and parsed.password is None
+						and (parsed.port is None or 1 <= parsed.port <= 65535)
+					)
+				except ValueError:
+					invalid = True
+			if invalid:
+				frappe.throw(_("{0} must be a valid absolute HTTPS URL").format(label))
 
 	def get_end_session_endpoint(self) -> str:
 		if self.custom_base_url:
@@ -138,6 +154,8 @@ class SocialLoginKey(Document):
 		return self.end_session_endpoint
 
 	def get_oidc_logout_url(self) -> str:
+		# Revalidate at runtime in case the stored configuration was changed directly.
+		self.validate_oidc_logout()
 		parsed = urlparse(self.get_end_session_endpoint())
 		# Replace identity/redirect parameters instead of duplicating query values.
 		query = [
