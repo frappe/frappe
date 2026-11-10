@@ -2,6 +2,8 @@
 // count and the Favourite star, whose click never follows the row's link.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, nextTick, type Component } from "vue";
+import { seedRowParts } from "@/list/rowParts";
+import { tagColor } from "../../record/panel/people";
 import AvatarStackCell from "../AvatarStackCell.vue";
 import CommentsCell from "../CommentsCell.vue";
 import DocstatusCell from "../DocstatusCell.vue";
@@ -10,6 +12,13 @@ import TagsCell from "../TagsCell.vue";
 
 const api = vi.hoisted(() => ({ addFavourite: vi.fn(), removeFavourite: vi.fn() }));
 vi.mock("@framework/ui/api", () => api);
+vi.mock("frappe-ui", async (actual) => ({
+	...(await actual<typeof import("frappe-ui")>()),
+	Avatar: defineComponent({
+		props: ["label"],
+		setup: (props) => () => h("span", { "data-avatar": props.label }),
+	}),
+}));
 
 const mounted: ReturnType<typeof createApp>[] = [];
 
@@ -33,9 +42,10 @@ async function render(cell: Component, props: Record<string, unknown>, onRowClic
 }
 
 describe("list collaboration cells", () => {
-	it("draws Tags from the comma string, ignoring the leading comma", async () => {
+	it("draws Tags from the comma string in their record colours, ignoring the leading comma", async () => {
 		const root = await render(TagsCell, { value: ",a,b" });
-		expect(root.textContent).toBe("ab");
+		expect(root.textContent?.replace(/\s/g, "")).toBe("ab");
+		expect(root.querySelectorAll("[aria-hidden]")[0].className).toContain(tagColor("a"));
 	});
 
 	it("names Document Status and colours it as v1 does", async () => {
@@ -52,11 +62,19 @@ describe("list collaboration cells", () => {
 		expect(root.textContent?.trim()).toBe("0");
 	});
 
-	it("draws one avatar per user and survives a malformed value", async () => {
-		const two = await render(AvatarStackCell, { value: '["a","b"]' });
+	it("names a lone user beside the avatar; a stack shows three avatars and counts the rest", async () => {
+		seedRowParts("ToDo", { users: { "a@x": { full_name: "Ann Lee" } } }, []);
+		const one = await render(AvatarStackCell, { value: '["a@x"]' });
+		const two = await render(AvatarStackCell, { value: '["a@x","b@x"]' });
+		const five = await render(AvatarStackCell, { value: '["a@x","b","c","d","e"]' });
 		const bad = await render(AvatarStackCell, { value: "{oops" });
-		expect(two.textContent).toBe("ab");
-		expect(bad.textContent).toBe("");
+		expect(one.querySelectorAll("[data-avatar]")).toHaveLength(1);
+		expect(one.textContent).toContain("Ann Lee");
+		expect(two.querySelectorAll("[data-avatar]")).toHaveLength(2);
+		expect(two.textContent).not.toContain("Ann Lee");
+		expect(five.querySelectorAll("[data-avatar]")).toHaveLength(3);
+		expect(five.textContent).toContain("+2");
+		expect(bad.querySelector("[data-avatar]")).toBeNull();
 	});
 
 	it("stars in place and does not let the click reach the row link", async () => {

@@ -19,18 +19,7 @@
 	</div>
 
 	<div v-if="tags.length" class="flex flex-wrap items-center gap-1.5" data-tags>
-		<span
-			v-for="tag in tags"
-			:key="tag"
-			class="group/tag flex items-center gap-1.5 rounded-full border border-outline-gray-2 py-0.5 pl-2 text-sm text-ink-gray-7"
-			:class="canWrite ? 'pr-1' : 'pr-2'"
-		>
-			<span
-				class="size-1.5 shrink-0 rounded-full"
-				:class="tagColor(tag)"
-				aria-hidden="true"
-			/>
-			{{ tag }}
+		<TagChip v-for="tag in tags" :key="tag" :tag="tag" :class="canWrite ? 'pr-1' : 'pr-2'">
 			<button
 				v-if="canWrite"
 				type="button"
@@ -40,7 +29,7 @@
 			>
 				<span class="lucide-x size-3.5" aria-hidden="true" />
 			</button>
-		</span>
+		</TagChip>
 
 		<TagPicker
 			v-if="canWrite"
@@ -56,7 +45,8 @@
 <script setup lang="ts">
 import { computed, inject } from "vue";
 import { PanelContextKey } from "./context";
-import { tagColor, tagsOf } from "./people";
+import { tagsOf } from "./people";
+import TagChip from "./TagChip.vue";
 import { peopleActions } from "./peopleActions";
 import RecordImage from "./RecordImage.vue";
 import TagPicker from "./TagPicker.vue";
