@@ -218,7 +218,7 @@ class GridImportRow(Row):
 
 	def is_valid_phone(self, value, df):
 		try:
-			validate_phone_number_with_country_code(value, _(df.label))
+			validate_phone_number_with_country_code(value, df.fieldname, _(df.label))
 		except frappe.InvalidPhoneNumberError as e:
 			frappe.clear_last_message()
 			message = (

@@ -1,8 +1,11 @@
 <template>
 	<!-- the first run inside the chat itself: a greeting, then the one thing missing and who can
-	     add it. Hung from the top, not centred: what changes below (a picked provider, an error)
-	     never moves the greeting -->
-	<div class="flex w-full flex-1 flex-col items-center gap-8 self-stretch pb-10 pt-[min(18vh,160px)]">
+	     add it. Hung from the top while connecting, so what changes below (a picked provider, an
+	     error) never moves the greeting; centred when there is only a message -->
+	<div
+		class="flex w-full flex-1 flex-col items-center gap-8 self-stretch pb-10"
+		:class="canConnect ? 'pt-[min(18vh,160px)]' : 'justify-center'"
+	>
 		<div class="flex flex-col items-center gap-4 text-center">
 			<BrandMark line :size="28" />
 			<div class="flex flex-col gap-1.5">
@@ -13,21 +16,9 @@
 		<template v-if="canConnect">
 			<!-- connected, a model is picked to start with; nothing is added on its own -->
 			<PickModel v-if="provider && !switching" :provider="provider" @added="added" @switch="switching = true" />
-			<ConnectSetup v-else :connected="connectedIds" @connected="connected" @use="use" @manual="create('providers')" />
+			<ConnectSetup v-else :connected="connectedIds" @connected="connected" @use="use" />
 		</template>
 		<Button v-else-if="hasModels && canEnable" variant="solid" label="Enable an agent" @click="open('agents')" />
-		<div v-else-if="!hasModels" class="flex flex-col items-center gap-3">
-			<Button
-				variant="solid"
-				:label="asked ? 'Asked' : 'Ask an admin to connect Flow'"
-				:icon-left="asked ? 'lucide-check' : 'lucide-bell'"
-				:disabled="Boolean(asked)"
-				@click="ask"
-			/>
-			<p v-if="asked?.length" class="text-p-sm text-ink-gray-5">
-				{{ asked.join(" and ") }} {{ asked.length > 1 ? "have" : "has" }} a note.
-			</p>
-		</div>
 	</div>
 </template>
 
@@ -36,7 +27,6 @@ import { computed, inject, ref } from "vue";
 import { Button, toast } from "frappe-ui";
 import BrandMark from "@flow/ui-core/components/BrandMark.vue";
 
-import { call } from "../api/frappe.js";
 import ConnectSetup from "./setup/ConnectSetup.vue";
 import PickModel from "./setup/PickModel.vue";
 
@@ -93,30 +83,9 @@ function added() {
 	page.changed("Flow Model");
 }
 
-// someone who can't connect asks those who can; the note says who heard
-const asked = ref(null);
-let asking = false;
-async function ask() {
-	if (asking) return;
-	asking = true;
-	try {
-		asked.value = (await call("frappe.flow.api.setup.ask_admin")).admins;
-	} catch (error) {
-		toast.error(error.message);
-	} finally {
-		asking = false;
-	}
-}
-
 // settings on a tab
 function open(tab) {
 	page.state.settingsTab = tab;
-	flow.setSettingsOpen(true);
-}
-
-// a server of one's own opens settings on a blank provider, not the list
-function create(tab) {
-	page.createRecord(tab);
 	flow.setSettingsOpen(true);
 }
 </script>

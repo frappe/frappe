@@ -259,6 +259,14 @@ test("a function call reads by its title, not its dotted path", () => {
 	assert.equal(presentTool("run_action", args, result).subject, "Assign To: Add");
 	assert.equal(presentTool("run_action", args, result).stat, "");
 	assert.equal(presentTool("run_action", { action: "submit", doctype: "Sales Invoice" }).subject, "Sales Invoice");
+	const apiArgs = { method: args.action };
+	assert.equal(presentTool("call_api", apiArgs).subject, "Assign To: Add");
+	assert.equal(presentTool("call_api", apiArgs, json({ title: "Assign a ToDo" })).subject, "Assign a ToDo");
+	assert.equal(presentTool("describe_api", { method: args.action }).subject, "Assign To: Add");
+	assert.equal(
+		presentTool("describe_api", { method: "add_comment", doctype: "ToDo" }).subject,
+		"ToDo: Add Comment"
+	);
 });
 
 test("a function's card shows the server's lines in words, not a records table", (t) => {
@@ -268,6 +276,9 @@ test("a function's card shows the server's lines in words, not a records table",
 	const submit = presentTool("run_action", { action: "submit", doctype: "ToDo", names: ["a"] });
 	assert.equal(submit.argsComponent, submit.resultComponent);
 	const prompt = "Assign To: Add\nToDo: Call the courier about the delayed Pune shipment\nAssign To: Administrator";
+	const api = presentTool("call_api", { method: args.action });
+	assert.equal(api.argsComponent, fn.argsComponent);
+	assert.equal(api.resultComponent, JsonView);
 	const el = mount(t, FunctionCard, { arguments: args, call: { prompt } });
 	const rows = [...el.querySelectorAll("tr")].map((row) => [...row.children].map((cell) => cell.textContent));
 	assert.deepEqual(rows, [
@@ -319,6 +330,8 @@ test("lookups report a count and open nothing", () => {
 			"2 of 52 matches",
 		],
 		["describe", json({ fields: [1, 2, 3] }), "3 fields"],
+		["find_apis", json([{ path: "a.b" }, { path: "a.c" }]), "2 matches"],
+		["describe_api", json({ params: [{ name: "doctype" }] }), "1 argument"],
 		["update_memory", json({ memory_id: "m1", action: "added" }), "added"],
 		["load_skill", { content: "do the thing" }, ""],
 		// a sub-agent row keeps the core's own look

@@ -2322,6 +2322,17 @@ class TestAppSidebarLayer(IntegrationTestCase):
 
 			self.assertTrue(all(row["added"] == 0 for row in get_app_sidebar_layer(MODULE)))
 
+	def test_saving_drops_the_cached_boot(self):
+		"""The desk boots from a cache, so a save that left it would show the old sidebar on the next
+		page load."""
+		with module_resolvable_on_disk(MODULE), developer_mode():
+			self.with_content()
+			rows = json.dumps(get_app_sidebar_layer(MODULE))
+			frappe.cache.hset("bootinfo", "Administrator", {"stale": 1})
+			save_app_sidebar(MODULE, rows)
+
+		self.assertIsNone(frappe.cache.hget("bootinfo", "Administrator"))
+
 	def test_saving_writes_a_standard_document_and_exports_it(self):
 		"""One action. The layer is named after the app, and a document that is not standard is not
 		the app's: no file backs it and no migrate re-imports it."""

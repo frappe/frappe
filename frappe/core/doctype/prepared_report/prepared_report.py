@@ -258,7 +258,7 @@ def stop_prepared_report(report_name: str):
 
 	job_id = prepared_report.job_id
 	if job_id:
-		if not job_id.startswith(frappe.local.site):
+		if not job_id.startswith(f"{frappe.local.site}||"):
 			frappe.throw(f"Invalid job_id: must start with {frappe.local.site}")
 
 		conn = get_redis_conn()
@@ -392,7 +392,7 @@ def create_json_gz_file(data, dt, dn, report_name):
 @frappe.whitelist()
 def download_attachment(dn: str, format: str):
 	pr = frappe.get_doc("Prepared Report", dn)
-	if not pr.has_permission("read"):
+	if not frappe.has_permission("Prepared Report", "read", doc=pr):
 		frappe.throw(frappe._("Cannot Download Report due to insufficient permissions"))
 
 	data, file_name = pr.get_prepared_data(with_file_name=True, format=format)
@@ -435,7 +435,7 @@ def has_permission(doc, user):
 	if "System Manager" in user.roles:
 		return True
 
-	return doc.report_name in user.get_all_reports().keys()
+	return doc.report_name in user.get_all_reports().keys() and doc.owner == user.name
 
 
 @frappe.whitelist()

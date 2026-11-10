@@ -78,8 +78,13 @@
 		<div style="width: 100%">
 			<div
 				v-if="file.error_message"
-				class="mt-2"
-				v-html="frappe.ui.alert.html({ title: file.error_message, theme: 'red' })"
+				class="mt-2 whitespace-pre-wrap"
+				v-html="
+					frappe.ui.alert.html({
+						title: frappe.utils.html2text(file.error_message),
+						theme: 'red',
+					})
+				"
 			></div>
 			<div
 				v-if="!file.private && !file.error_message && !uploaded && !file.failed"

@@ -3,6 +3,7 @@
 
 import deep_equal from "fast-deep-equal";
 import number_systems from "./number_systems";
+import { get_country_flag_url } from "./country_flag_url.js";
 import { CHART_PALETTE, has_unsafe_scheme } from "../ui/components/utils.js";
 
 frappe.provide("frappe.utils");
@@ -1622,7 +1623,9 @@ Object.assign(frappe.utils, {
 	},
 
 	flag(country_code) {
-		return `<img loading="lazy" src="https://flagcdn.com/${country_code}.svg" width="20" height="15">`;
+		return `<img loading="lazy" src="${get_country_flag_url(
+			country_code
+		)}" width="20" height="15" alt="">`;
 	},
 
 	is_emoji(str) {

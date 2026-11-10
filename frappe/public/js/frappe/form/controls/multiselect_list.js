@@ -51,6 +51,9 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 		});
 
 		const $toggle = this.$list_wrapper.find(".form-control");
+		$toggle.on("click", (e) => {
+			if (this.$input.prop("disabled")) e.stopImmediatePropagation();
+		});
 		this.popover = new frappe.ui.Popover({
 			trigger: $toggle,
 			content: () => this.$menu[0],
@@ -80,6 +83,7 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 				focus_triggered_by_mouse = false;
 				return;
 			}
+			if (this.$input.prop("disabled")) return;
 			if (this.$menu.parent()[0]?.contains(e.relatedTarget)) return;
 			this.popover.open();
 		});
@@ -135,7 +139,7 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 			if ($(e.target).is("input")) {
 				return;
 			}
-			if (e.key === "Backspace") {
+			if (e.key === "Backspace" && !this.$input.prop("disabled")) {
 				this.set_value([]);
 			}
 		});

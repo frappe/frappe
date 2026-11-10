@@ -182,7 +182,7 @@ export default class BulkOperations {
 			args: {
 				doctype: "Letter Head",
 				fields: ["name", "is_default"],
-				filters: { disabled: 0 },
+				filters: { disabled: 0, letter_head_for: "DocType" },
 				limit_page_length: 0,
 			},
 			async: false,
@@ -290,7 +290,7 @@ export default class BulkOperations {
 					doctype: this.doctype,
 					docnames: docnames,
 				})
-				.then(() => done());
+				.then((r) => done(r.message));
 		}
 	}
 
@@ -305,6 +305,15 @@ export default class BulkOperations {
 				task_id: task_id,
 			})
 			.then((failed_docnames) => {
+				if (!failed_docnames || failed_docnames.length < docnames.length) {
+					frappe.utils.play_sound(action);
+				}
+				// nothing returned means the server enqueued the batch
+				const queued =
+					!failed_docnames ||
+					(action === "submit" && frappe.get_meta(this.doctype).queue_in_background);
+				if (done) done(queued);
+
 				if (failed_docnames?.length) {
 					const comma_separated_records = frappe.utils.comma_and(failed_docnames);
 					switch (action) {
@@ -317,10 +326,6 @@ export default class BulkOperations {
 						default:
 							frappe.throw(__("Cannot {0} {1}.", [action, comma_separated_records]));
 					}
-				}
-				if (failed_docnames?.length < docnames.length) {
-					frappe.utils.play_sound(action);
-					if (done) done();
 				}
 			});
 	}
@@ -405,7 +410,7 @@ export default class BulkOperations {
 								])
 							);
 						}
-						done();
+						done(!r.message);
 						dialog.hide();
 						frappe.show_alert(__("Updated successfully"));
 					});

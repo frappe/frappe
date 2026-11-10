@@ -120,7 +120,10 @@ class TestFlowSafeExec(IntegrationTestCase):
 		attachments = [{"file_url": file.file_url}, {**print_, "doc": {"doctype": "ToDo", "name": "other"}}]
 		with patch("frappe.sendmail") as sendmail:
 			safe_exec(SENDMAIL, {"attachments": attachments})
-		self.assertEqual(sendmail.call_args.kwargs["attachments"], [{"fid": file.name}, print_])
+		self.assertEqual(
+			sendmail.call_args.kwargs["attachments"],
+			[{"fid": file.name}, {**print_, "print_format": "Standard"}],
+		)
 
 		frappe.set_user("Guest")
 		for attachment in ({"fid": file.name}, {"file_url": file.file_url}, print_):
@@ -128,6 +131,31 @@ class TestFlowSafeExec(IntegrationTestCase):
 				with self.assertRaises(frappe.PermissionError):
 					safe_exec(SENDMAIL, {"attachments": [attachment]})
 				sendmail.assert_not_called()
+
+	def test_sendmail_prints_with_a_format_the_user_may_print_with(self):
+		user = self._desk_user()
+		todo = frappe.get_doc(
+			{"doctype": "ToDo", "description": "Renew the lease", "allocated_to": user}
+		).insert()
+		default = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": "_Test Flow Manager ToDo",
+				"doc_type": "ToDo",
+				"custom_format": 1,
+				"print_format_type": "Jinja",
+				"html": "{{ doc.name }}",
+				"roles": [{"role": "System Manager"}],
+			}
+		).insert()
+		attachments = [{"print_format_attachment": 1, "doctype": "ToDo", "name": todo.name}]
+		frappe.set_user(user)
+		with (
+			patch.object(frappe.get_meta("ToDo"), "default_print_format", default.name),
+			patch("frappe.sendmail") as sendmail,
+		):
+			safe_exec(SENDMAIL, {"attachments": attachments})
+		self.assertEqual(sendmail.call_args.kwargs["attachments"][0]["print_format"], "Standard")
 
 	def _private_file(self):
 		"""A private file on an Administrator's ToDo."""

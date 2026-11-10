@@ -117,15 +117,6 @@ class FileUploader {
 		);
 
 		watch(
-			() => this.uploader.trigger_upload,
-			(trigger_upload) => {
-				if (trigger_upload) {
-					this.upload_files();
-				}
-			}
-		);
-
-		watch(
 			() => this.uploader.close_dialog,
 			(close_dialog) => {
 				if (close_dialog) {
@@ -137,13 +128,9 @@ class FileUploader {
 		watch(
 			() => this.uploader.hide_dialog_footer,
 			(hide_dialog_footer) => {
-				if (hide_dialog_footer) {
-					this.dialog && this.dialog.footer.addClass("hide");
-					this.dialog.set_static_backdrop(true);
-				} else {
-					this.dialog && this.dialog.footer.removeClass("hide");
-					this.dialog.set_static_backdrop(false);
-				}
+				if (!this.dialog) return;
+				this.dialog.footer.toggleClass("hide", hide_dialog_footer);
+				this.dialog.set_static_backdrop(hide_dialog_footer);
 			}
 		);
 

@@ -13,7 +13,12 @@ from frappe.core.doctype.document_share_key.document_share_key import is_expired
 from frappe.printing.doctype.print_format.print_format import can_print_with, check_print_format_roles
 from frappe.utils import cint, escape_html, flt, strip_html
 from frappe.utils.jinja_globals import is_rtl
-from frappe.utils.print_utils import HTML_PDF_GENERATORS, resolve_pdf_generator
+from frappe.utils.print_utils import (
+	HTML_PDF_GENERATORS,
+	convert_uom,
+	parse_float_and_unit,
+	resolve_pdf_generator,
+)
 
 if TYPE_CHECKING:
 	from frappe.core.doctype.docfield.docfield import DocField
@@ -411,9 +416,47 @@ def get_html_and_style(
 
 
 def get_preview_page_css(print_format: "PrintFormat" | None = None) -> str:
+	from bs4 import BeautifulSoup
+
+	from frappe.utils.pdf import get_print_format_styles
+	from frappe.utils.pdf_generator.browser import RECEIPT_WIDTHS
 	from frappe.utils.print_format_generator import page_size_mm
 
-	page_width, page_height = page_size_mm(frappe.get_cached_doc("Print Settings"))
+	css = (print_format and print_format.css) or ""
+	page_options = {
+		style.name: style.value
+		for style in get_print_format_styles(BeautifulSoup(f"<style>{css}</style>", "html.parser"))
+		if style.name in ("page-size", "orientation")
+		or (style.name in ("page-width", "page-height") and re.fullmatch(PAGE_LENGTH, style.value.strip()))
+	}
+	paper_size = print_format and print_format.paper_size
+	if any(page_options.get(key) for key in ("page-size", "page-width", "page-height")):
+		paper_size = None
+	elif not paper_size:
+		page_options = get_page_rule_size(css) | page_options
+	if receipt_width := RECEIPT_WIDTHS.get(paper_size):
+		page_width, page_height = parse_float_and_unit(receipt_width)["value"], 0
+	elif paper_size:
+		page_width, page_height = page_size_mm(
+			{
+				"pdf_page_size": paper_size,
+				"pdf_page_width": print_format.paper_width,
+				"pdf_page_height": print_format.paper_height,
+			}
+		)
+	elif page_options.get("page-width") and page_options.get("page-height"):
+		page_width, page_height = (
+			convert_uom(length["value"], length["unit"], "mm", only_number=True)
+			for length in (parse_float_and_unit(page_options[key]) for key in ("page-width", "page-height"))
+		)
+	else:
+		page_width, page_height = page_size_mm(
+			{"pdf_page_size": page_options["page-size"]}
+			if page_options.get("page-size")
+			else frappe.get_cached_doc("Print Settings")
+		)
+	if cstr(page_options.get("orientation")).lower() == "landscape" and page_width < page_height:
+		page_width, page_height = page_height, page_width
 	return frappe.get_template("templates/print_formats/preview_page.css").render(
 		{"page_width": page_width, "page_height": page_height, "page_margin": get_page_margin(print_format)}
 	)
@@ -556,7 +599,7 @@ def get_letter_head(doc: "Document", no_letterhead: bool, letterhead: str | None
 		return (
 			frappe.db.get_value(
 				"Letter Head",
-				{"is_default": 1},
+				{"is_default": 1, "letter_head_for": "DocType"},
 				["content", "footer", "header_script", "footer_script", "custom_css"],
 				as_dict=True,
 			)
