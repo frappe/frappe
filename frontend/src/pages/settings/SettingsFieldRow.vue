@@ -1,10 +1,7 @@
 <!-- One field as a settings row: the ui control on the right, a Check as a switch, a long field's
      control under its title. A refused value keeps the server's message under the row. -->
 <template>
-	<div
-		:data-fieldname="field.fieldname"
-		class="relative border-b border-outline-gray-1 last:border-b-0"
-	>
+	<div :data-fieldname="field.fieldname" class="relative">
 		<span data-flash aria-hidden="true" :class="FLASH" />
 		<div v-if="isLong(field)" class="py-3.5">
 			<div class="flex items-start gap-2">
@@ -63,7 +60,7 @@ import SettingsSaveMark from "./SettingsSaveMark.vue";
 const props = defineProps<{ field: FieldNode; draft: BindingDraft }>();
 const emit = defineEmits<{ commit: [] }>();
 
-/** A rounded gray layer a little wider than the row, clear of its dividers, behind the block's content. */
+/** A rounded gray layer a little wider than the row, behind the block's content. */
 const FLASH =
 	"pointer-events-none absolute -inset-x-3 inset-y-1 -z-10 rounded-4 bg-surface-gray-3 opacity-0";
 
