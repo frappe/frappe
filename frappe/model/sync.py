@@ -126,6 +126,8 @@ def sync_for(app_name, force=0, reset_permissions=False):
 			"workspace_sidebar",
 			"workspace_sidebar_item",
 			"sidebar_item",
+			# A changed Sidebar record loads its stored rows at import, so its tables come first.
+			"navigation_item",
 			"sidebar",
 		]:
 			files.append(os.path.join(FRAPPE_PATH, "desk", "doctype", desk_module, f"{desk_module}.json"))

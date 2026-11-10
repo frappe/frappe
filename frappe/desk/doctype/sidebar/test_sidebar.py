@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import json
+import os
 import typing
 from contextlib import contextmanager
 from types import SimpleNamespace
@@ -3087,3 +3088,25 @@ class TestPrivateShell(IntegrationTestCase):
 		frappe.clear_cache(user=self.user)
 
 		self.assertIn(page.name, self.links())
+
+
+class TestSidebarSyncOrder(IntegrationTestCase):
+	def test_child_tables_sync_before_any_sidebar_record(self):
+		"""Migrate loads the stored rows of a changed Sidebar record before it writes the new ones,
+		so every child table must exist by then, or a site from v16 fails on the first one."""
+		import frappe.model.sync as sync
+
+		files = []
+		with (
+			patch.object(sync, "import_file_by_path", side_effect=lambda path, **kwargs: files.append(path)),
+			patch.object(sync, "import_desktop_icon_fixtures"),
+			patch.object(sync, "update_progress_bar"),
+		):
+			sync.sync_for("frappe")
+
+		parts = [path.split(os.sep) for path in files]
+		first_record = next(i for i, p in enumerate(parts) if p[-3] == "sidebar" and p[-4] != "doctype")
+		for table_field in frappe.get_meta("Sidebar").get_table_fields():
+			child = frappe.scrub(table_field.options)
+			position = next(i for i, p in enumerate(parts) if p[-3:] == ["doctype", child, f"{child}.json"])
+			self.assertLess(position, first_record, table_field.options)
