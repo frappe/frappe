@@ -1,5 +1,5 @@
 // The record page's three server calls (the load, the re-read of the parts, the save) and its cached read.
-import { readCachedDocument, RECORD_PARTS } from "@framework/ui/cache";
+import { LIST_ONLY_FIELDS, readCachedDocument, RECORD_PARTS } from "@framework/ui/cache";
 import { getDocument, updateDocument } from "@framework/ui/api";
 import type { DocInfo } from "./panel/context";
 
@@ -27,6 +27,8 @@ export function readCachedRecord(doctype: string, name: string): LoadedRecord | 
 	if (!entry?.complete) return null;
 	const doc = { ...entry.doc };
 	for (const alias of Object.keys(entry.joins)) delete doc[alias];
+	// The server's record reply has none of them, so the draft must not hold them either.
+	for (const field of LIST_ONLY_FIELDS) delete doc[field];
 	return JSON.parse(JSON.stringify(loaded(doc, entry.parts)));
 }
 
