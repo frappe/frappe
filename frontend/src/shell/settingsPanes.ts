@@ -47,8 +47,23 @@ export interface SettingsIndexEntry {
 	keywords?: string[];
 }
 
+/** A pane in a sidebar group: its home address `prefix/pane`, and the addresses `prefix/pane/block` of the blocks it shows. */
+export interface SidebarPane {
+	pane: string;
+	blocks: string[];
+}
+
+export interface SidebarGroup {
+	/** Left out for the first group, and for an app's default group, which the app's title heads. */
+	label?: string;
+	app?: string;
+	panes: SidebarPane[];
+}
+
 export interface PanesReply {
 	panes: SettingsPane[];
+	/** The sidebar each prefix's desk draws, after the permission filter; a prefix the user sees nothing in has none. */
+	sidebars: Record<string, { groups: SidebarGroup[] }>;
 	index: SettingsIndexEntry[];
 	/** Each app's title, for the apps the panes come from. */
 	titles: Record<string, string>;

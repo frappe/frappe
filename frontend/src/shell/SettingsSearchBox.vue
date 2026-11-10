@@ -1,5 +1,5 @@
 <!-- The search box above the settings pane list, and its results, which replace the list while a
-     query is typed: the framework's and the current app's matches, then other apps'. -->
+     query is typed: the matches the sidebar places, then those elsewhere. -->
 <template>
 	<div class="-mb-2">
 		<TextInput
@@ -68,15 +68,15 @@ const props = defineProps<{ search?: SettingsSearch }>();
 const emit = defineEmits<{ pick: [hit: SettingsHit] }>();
 const query = defineModel<string>({ required: true });
 
-const results = computed(() => props.search?.find(query.value) ?? { own: [], other: [] });
-const hits = computed(() => [...results.value.own, ...results.value.other]);
+const results = computed(() => props.search?.find(query.value) ?? { own: [], elsewhere: [] });
+const hits = computed(() => [...results.value.own, ...results.value.elsewhere]);
 const lists = computed(() =>
 	[
 		{ key: "own", label: undefined, hits: results.value.own, offset: 0 },
 		{
-			key: "other",
-			label: __("In other apps"),
-			hits: results.value.other,
+			key: "elsewhere",
+			label: __("Elsewhere"),
+			hits: results.value.elsewhere,
 			offset: results.value.own.length,
 		},
 	].filter((list) => list.hits.length)

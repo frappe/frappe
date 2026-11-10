@@ -351,9 +351,7 @@ function creatable(reply: PlacesReply) {
 
 /** Every pane, each with the prefix its address opens under. */
 function everyPane(reply: PanesReply, boot: Boot) {
-	return new SettingsAddressBook(reply, boot)
-		.everyGroup()
-		.flatMap(({ prefix, panes: groupPanes }) => groupPanes.map((pane) => ({ prefix, pane })));
+	return new SettingsAddressBook(reply, boot).everyPane();
 }
 
 function isList(route: RouteLocation) {

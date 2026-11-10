@@ -14,6 +14,7 @@ import { SettingsAddressBook } from "../settingsAddress";
 import { registerSettingsBlocks } from "../settingsBlocks";
 import { fetchPanes, type PanesReply, type SettingsPane } from "../settingsPanes";
 import ShellSettingsDialog from "../ShellSettingsDialog.vue";
+import { defaultSidebars } from "./fixtures/settingsSidebars";
 
 /** The page layer's blocks, as far as the shell relies on them: a section per block, then `loaded`. */
 const Blocks = defineComponent({
@@ -39,14 +40,18 @@ function pane(app: string, key: string, blocks = ["main"]): SettingsPane {
 	};
 }
 
+const PANES = [
+	pane("frappe", "profile", ["details", "notifications"]),
+	pane("frappe", "system"),
+	pane("crm", "general", ["telephony"]),
+	pane("crm", "email-accounts"),
+	pane("helpdesk", "tickets"),
+];
+const APP_PREFIXES = { frappe: "desk", crm: "crm", helpdesk: "helpdesk" };
+
 const REPLY: PanesReply = {
-	panes: [
-		pane("frappe", "profile", ["details", "notifications"]),
-		pane("frappe", "system"),
-		pane("crm", "general", ["telephony"]),
-		pane("crm", "email-accounts"),
-		pane("helpdesk", "tickets"),
-	],
+	panes: PANES,
+	sidebars: defaultSidebars(PANES, APP_PREFIXES),
 	index: [],
 	titles: { frappe: "Frappe", crm: "CRM", helpdesk: "Helpdesk" },
 };
@@ -117,7 +122,7 @@ describe("the address", () => {
 
 describe("the groups", () => {
 	const listed = (groups: ReturnType<SettingsAddressBook["groups"]>) =>
-		groups.map((group) => [group.label, group.panes.map((one) => one.key)]);
+		groups.map((group) => [group.label, group.panes.map((one) => one.pane.key)]);
 
 	it("lists desk's panes alone, unheaded, when opened from desk", () => {
 		expect(listed(book("frappe").groups())).toEqual([[undefined, ["profile", "system"]]]);
@@ -132,13 +137,107 @@ describe("the groups", () => {
 
 	it("adds a visited foreign app's group, and only that one", () => {
 		const crm = book("crm");
-		expect(crm.isForeign("helpdesk")).toBe(true);
-		expect(crm.isForeign("crm")).toBe(false);
 		expect(listed(crm.groups("helpdesk")).map(([label]) => label)).toEqual([
 			undefined,
 			"CRM",
 			"Helpdesk",
 		]);
+	});
+});
+
+/** CRM's desk arranges its own sidebar: Profile's notifications sit in General, System is hidden, `photo` has no place. */
+const ARRANGED_PANES = [
+	pane("frappe", "profile", ["details", "notifications", "photo"]),
+	pane("frappe", "system"),
+	pane("crm", "general", ["telephony"]),
+	pane("crm", "email-accounts"),
+];
+const ARRANGED: PanesReply = {
+	...REPLY,
+	panes: ARRANGED_PANES,
+	sidebars: {
+		...defaultSidebars(ARRANGED_PANES, APP_PREFIXES),
+		crm: {
+			groups: [
+				{
+					panes: [
+						{ pane: "crm/general", blocks: ["crm/general/telephony", "desk/profile/notifications"] },
+						{ pane: "crm/email-accounts", blocks: ["crm/email-accounts/main"] },
+					],
+				},
+				{ label: "Account", panes: [{ pane: "desk/profile", blocks: ["desk/profile/details"] }] },
+			],
+		},
+	},
+};
+
+describe("an arranged sidebar", () => {
+	const arranged = () => new SettingsAddressBook(ARRANGED, boot("crm"));
+	const blocksOf = (resolved: ReturnType<SettingsAddressBook["resolve"]>) =>
+		"pane" in resolved ? resolved.pane.blocks.map((block) => block.key) : [];
+
+	it("draws the resolved groups, with a pane's placed blocks after its own", () => {
+		const groups = arranged().groups();
+		expect(groups.map((group) => [group.label, group.panes.map((one) => one.address)])).toEqual([
+			[undefined, ["crm/general", "crm/email-accounts"]],
+			["Account", ["desk/profile"]],
+		]);
+		expect(groups[0].panes[0].pane.blocks.map((block) => block.key)).toEqual(["telephony", "notifications"]);
+	});
+
+	it("opens a block's home address at its first place, and replaces the hash with that pane", () => {
+		const resolved = arranged().resolve(["desk", "profile", "notifications"]);
+		expect(resolved).toMatchObject({ prefix: "crm", pane: { key: "general" }, block: "notifications" });
+		expect(resolved).toMatchObject({ rewrite: ["crm", "general", "notifications"] });
+		expect(arranged().resolve(["crm", "general", "notifications"])).not.toHaveProperty("rewrite");
+	});
+
+	it("shows a placement address only where that pane holds the block", () => {
+		const elsewhere = arranged().resolve(["crm", "email-accounts", "notifications"]);
+		expect(elsewhere).toMatchObject({ pane: { key: "email-accounts" } });
+		expect(elsewhere).not.toHaveProperty("block");
+	});
+
+	it("keeps a block's home address when that pane places it too", () => {
+		const reply = {
+			...ARRANGED,
+			sidebars: {
+				crm: {
+					groups: [
+						{ panes: [{ pane: "crm/general", blocks: ["crm/general/telephony", "desk/profile/notifications"] }] },
+						{ panes: [{ pane: "desk/profile", blocks: ["desk/profile/notifications"] }] },
+					],
+				},
+			},
+		};
+		const resolved = new SettingsAddressBook(reply, boot("crm")).resolve(["desk", "profile", "notifications"]);
+		expect(resolved).toMatchObject({ prefix: "desk", pane: { key: "profile" }, block: "notifications" });
+		expect(resolved).not.toHaveProperty("rewrite");
+	});
+
+	it("opens the sidebar's first pane for #settings when the app has no pane of its own", () => {
+		const reply = {
+			...ARRANGED,
+			panes: ARRANGED_PANES.slice(0, 2),
+			sidebars: { crm: { groups: [{ panes: [{ pane: "desk/profile", blocks: ["desk/profile/details"] }] }] } },
+		};
+		expect(new SettingsAddressBook(reply, boot("crm")).resolve([])).toMatchObject({ rewrite: ["desk", "profile"] });
+	});
+
+	it("opens a hidden pane at its home for the visit, and lists it under its app", () => {
+		const book = arranged();
+		expect(book.resolve(["desk", "system"])).toMatchObject({ pane: { key: "system" }, home: true });
+		const groups = book.groups("desk");
+		expect(groups.map((group) => group.label)).toEqual([undefined, "Account", "Frappe"]);
+		expect(groups[2].panes.map((one) => one.address)).toEqual(["desk/system"]);
+	});
+
+	it("opens a block with no place at its home pane, which then lists every home block", () => {
+		const resolved = arranged().resolve(["desk", "profile", "photo"]);
+		expect(resolved).toMatchObject({ prefix: "desk", block: "photo", home: true });
+		expect(blocksOf(resolved)).toEqual(["details", "notifications", "photo"]);
+		const drawn = arranged().groups("desk", "desk/profile")[1].panes[0];
+		expect(drawn.pane.blocks.map((block) => block.key)).toEqual(["details", "notifications", "photo"]);
 	});
 });
 
@@ -215,6 +314,15 @@ describe("the dialog", () => {
 		expect(router.currentRoute.value.hash).toBe("#settings/crm/general");
 		expect(nav()).toEqual(["Profile", "System", "General", "Email-accounts"]);
 		expect(content()).toContain("telephony");
+	});
+
+	it("shows the arranged dialog for a home address of a placed block", async () => {
+		fake.runMethod.mockResolvedValue({ data: ARRANGED });
+		const router = await opened("/deals#settings/desk/profile/notifications");
+
+		expect(router.currentRoute.value.hash).toBe("#settings/crm/general/notifications");
+		expect(nav()).toEqual(["General", "Email-accounts", "Profile"]);
+		expect(content()).toContain("notifications");
 	});
 
 	it("shows the one message over the pane list, and keeps the hash, for an address it cannot show", async () => {

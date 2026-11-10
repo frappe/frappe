@@ -27,6 +27,7 @@ import { registerSettingsBlocks } from "@/shell/settingsBlocks";
 import type { Shell } from "@/shell/shellActs";
 import type { PanesReply, SettingsBlock } from "@/shell/settingsPanes";
 import ShellSettingsDialog from "@/shell/ShellSettingsDialog.vue";
+import { defaultSidebars } from "@/shell/tests/fixtures/settingsSidebars";
 import SettingsBlocks from "../SettingsBlocks.vue";
 import { SettingsServer, SYSTEM_SETTINGS } from "./settingsServer";
 
@@ -55,6 +56,7 @@ const BLOCKS: SettingsBlock[] = [
 ];
 
 const REPLY: PanesReply = {
+	sidebars: {},
 	panes: [
 		{ app: "frappe", key: "system", label: "System", icon: "settings", blocks: BLOCKS },
 		{ app: "frappe", key: "profile", label: "Profile", icon: "user", blocks: [] },
@@ -80,6 +82,7 @@ const REPLY: PanesReply = {
 	index: [],
 	titles: { frappe: "Frappe" },
 };
+REPLY.sidebars = defaultSidebars(REPLY.panes, { frappe: "desk" });
 
 let server: SettingsServer;
 let mounted: App | undefined;

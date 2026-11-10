@@ -284,6 +284,35 @@ class TestSettingsFilter(SettingsDialogTestCase):
 
 		self.assertEqual(blocks_of(visible()), {"general": ["mine"]})
 
+	def test_the_reply_holds_each_prefixs_sidebar_cut_to_the_blocks_the_user_may_see(self):
+		with authoring():
+			ship(["general", "system"], [single("mine", doctype=SINGLE), single("smtp", pane="system")])
+
+		groups = visible()["sidebars"]["acme"]["groups"]
+		panes = [entry["pane"] for group in groups for entry in group["panes"]]
+		self.assertIn("acme/general", panes)
+		self.assertNotIn("acme/system", panes)
+		self.assertTrue(all(group["panes"] for group in groups))
+
+	def test_a_sidebar_entry_for_a_pane_the_user_cannot_see_is_not_sent(self):
+		arrangement = {
+			"groups": [{"panes": ["acme/general", "acme/system"]}],
+			"panes": {"acme/system": {"blocks": ["acme/system/smtp", "acme/general/mine"]}},
+		}
+		with authoring():
+			ship(
+				["general", "system"],
+				[single("mine", doctype=SINGLE), single("smtp", pane="system")],
+				arrangement=arrangement,
+			)
+
+		sidebar = visible()["sidebars"]["acme"]
+		entries = [entry for group in sidebar["groups"] for entry in group["panes"]]
+		panes = [entry["pane"] for entry in entries]
+		self.assertIn("acme/general", panes)
+		self.assertNotIn("acme/system", panes)
+		self.assertEqual(list(sidebar), ["groups"])
+
 	# Roles
 
 	def test_a_block_naming_roles_shows_only_to_a_user_holding_one(self):
