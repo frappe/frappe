@@ -3,6 +3,7 @@ import { createApp, h, nextTick } from "vue";
 import type { App, Component } from "vue";
 import CheckField from "../CheckField.vue";
 import DateField from "../DateField.vue";
+import LinkField from "../LinkField.vue";
 import SelectField from "../SelectField.vue";
 import TextField from "../TextField.vue";
 import TextareaField from "../TextareaField.vue";
@@ -42,6 +43,7 @@ describe("field description", () => {
     ["Check", CheckField],
     ["Select", SelectField],
     ["Small Text", TextareaField],
+    ["Link", LinkField],
   ] as const)("draws a %s field's description as sanitized HTML", async (fieldtype, component) => {
     const description = await render(component, fieldtype);
     expect(description?.querySelectorAll("br")).toHaveLength(2);
@@ -52,7 +54,8 @@ describe("field description", () => {
 
   it("hides the description while the field shows an error", async () => {
     const description = await render(TextField, "Data", "Not allowed");
-    expect(description?.textContent ?? "").not.toContain("Example");
+    expect(description).toBeNull();
+    expect(host?.textContent).toContain("Not allowed");
   });
 
   it("gives a date picker, which takes only a string, the text without tags", async () => {
@@ -65,11 +68,13 @@ describe("field description", () => {
     expect(sanitizeHtml).toHaveBeenCalledWith(HTML, {
       FORBID_TAGS: ["style", "form"],
       FORBID_ATTR: ["form", "formaction"],
+      ADD_ATTR: ["target"],
     });
   });
 
   it("passes a description with no markup through as text", () => {
     expect(descriptionText("plain")).toBe("plain");
+    expect(descriptionText("<ul><li>CSV</li><li>JPG</li></ul>")).toBe("CSV JPG");
     expect(descriptionText("")).toBeUndefined();
   });
 });
