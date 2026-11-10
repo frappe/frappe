@@ -44,7 +44,11 @@ type PartField = { field: string; format: (value: unknown[]) => string };
 const PART_FIELDS: Record<string, PartField> = {
   assignments: { field: "_assign", format: (rows) => pythonJsonList(rows.map(assignedUser)) },
   tags: { field: "_user_tags", format: (tags) => tags.join(",") },
+  seen: { field: "_seen", format: (users) => pythonJsonList(users.map(String)) },
 };
+
+/** `frappe.model.optional_fields`: `as_dict` drops them, so only a list read or a part write sets them. */
+export const LIST_ONLY_FIELDS = ["_user_tags", "_assign", "_liked_by", "_seen"];
 
 export function documentKey(doctype: string, name: string): string {
   return `${doctype}\u0000${name}`;
@@ -112,6 +116,29 @@ export function withPartField(
   const partField = PART_FIELDS[part];
   if (!partField || !Array.isArray(value)) return doc;
   return Object.freeze({ ...doc, [partField.field]: partField.format(value) });
+}
+
+/** The doc with the list-only columns it leaves out, taken from the entry it replaces. */
+export function withListColumns(
+  doc: Readonly<DocumentRecord>,
+  previous: Readonly<DocumentRecord> | undefined
+): Readonly<DocumentRecord> {
+  const kept = LIST_ONLY_FIELDS.filter((field) => previous && field in previous && !(field in doc));
+  if (!kept.length) return doc;
+  return Object.freeze({ ...Object.fromEntries(kept.map((field) => [field, previous![field]])), ...doc });
+}
+
+/** The reply's parts refresh the list-only columns the doc holds; `seen` is no part but always sets its column. */
+export function withPartFields(
+  doc: Readonly<DocumentRecord>,
+  envelope: Readonly<Record<string, unknown>>,
+  include: readonly string[]
+): Readonly<DocumentRecord> {
+  return include.reduce((written, part) => {
+    const field = PART_FIELDS[part]?.field;
+    const writes = part in envelope && field && (part === "seen" || field in written);
+    return writes ? withPartField(written, part, envelope[part]) : written;
+  }, doc);
 }
 
 /** A deep copy the cache owns: the wrapper hands the reply itself back to its caller. */

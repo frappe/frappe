@@ -10,7 +10,9 @@ import {
   hasName,
   holdsEveryPart,
   listEntry,
+  withListColumns,
   withPartField,
+  withPartFields,
   withoutName,
   type DocumentEntry,
   type ListEntry,
@@ -93,7 +95,8 @@ export class DataCache {
     const parts = entry && order === 0 ? { ...entry.parts, ...carried } : carried;
     const complete = holdsEveryPart(parts);
     if (!complete && !this.held(key)) return this.dropDocument(key);
-    const joined = carryJoins(frozenCopy(doc), entry);
+    const fresh = withPartFields(withListColumns(frozenCopy(doc), entry?.doc), envelope, include);
+    const joined = carryJoins(fresh, entry);
     this.setDocument(key, documentEntry(doctype, joined.doc, complete, parts, joined.joins), ticket);
     if (!complete) this.readRecords.delete(key);
     else if (!entry?.complete || holdsEveryPart(carried)) this.visitRecord(key, replySize);
@@ -259,7 +262,7 @@ export class DataCache {
   }
 
   private replaceDoc(key: string, entry: DocumentEntry, doc: DocumentRecord, ticket: number) {
-    const joined = carryJoins(frozenCopy(doc), entry);
+    const joined = carryJoins(withListColumns(frozenCopy(doc), entry.doc), entry);
     const replaced = documentEntry(entry.doctype, joined.doc, entry.complete, entry.parts, joined.joins);
     this.setDocument(key, replaced, ticket);
   }
