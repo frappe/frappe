@@ -335,6 +335,30 @@ class TestDocument(IntegrationTestCase):
 		d.sender = "abcde" * 100 + "@user.com"
 		self.assertRaises(frappe.CharacterLengthExceededError, d.save)
 
+	def test_insert_adds_creator_to_seen(self):
+		with self.set_user("test@example.com"):
+			todo = frappe.get_doc({"doctype": "ToDo", "description": "seen creator 46875"}).insert()
+
+		self.assertEqual(frappe.parse_json(todo._seen), ["test@example.com"])
+		self.assertEqual(
+			frappe.parse_json(frappe.db.get_value("ToDo", todo.name, "_seen")), ["test@example.com"]
+		)
+
+	def test_insert_keeps_preset_seen_and_adds_creator(self):
+		preset = frappe.as_json(["a@example.com"])
+		with self.set_user("test@example.com"):
+			todo = frappe.get_doc(
+				{"doctype": "ToDo", "description": "seen preset 46875", "_seen": preset}
+			).insert()
+
+		expected = ["a@example.com", "test@example.com"]
+		self.assertEqual(frappe.parse_json(todo._seen), expected)
+		self.assertEqual(frappe.parse_json(frappe.db.get_value("ToDo", todo.name, "_seen")), expected)
+
+	def test_insert_does_not_write_seen_without_track_seen(self):
+		note = frappe.get_doc({"doctype": "Note", "title": "no seen 46875"}).insert()
+		self.assertFalse(note.get("_seen"))
+
 	def test_varchar_length_after_sanitization(self):
 		unclosed_tag = "<strong>"
 		value = "X" * (140 - len(unclosed_tag)) + unclosed_tag
