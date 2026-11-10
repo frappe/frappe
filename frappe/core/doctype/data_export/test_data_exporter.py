@@ -159,6 +159,3 @@ class TestDataExporter(IntegrationTestCase):
 			self.assertEqual([doc.name for doc in exporter.data], [owned_doc.name])
 			self.assertIn(owned_doc.name, frappe.response["result"])
 			self.assertNotIn(self.doc.name, frappe.response["result"])
-
-	def tearDown(self):
-		pass

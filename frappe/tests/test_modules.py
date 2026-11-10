@@ -37,7 +37,6 @@ class TestUtils(IntegrationTestCase):
 		frappe.local.conf.developer_mode = True
 
 	def tearDown(self):
-		frappe.db.rollback()
 		frappe.local.conf.developer_mode = self._dev_mode
 		frappe.local.flags.pop("in_import", None)
 		super().tearDown()

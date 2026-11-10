@@ -19,9 +19,6 @@ class TestModelConfig(IntegrationTestCase):
 			}
 		).insert()
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def test_the_config_carries_the_models_settings_unless_it_is_disabled(self):
 		self.assertEqual(
 			model_config(self.model.name),

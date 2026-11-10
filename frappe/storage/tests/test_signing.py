@@ -17,10 +17,6 @@ class TestSigning(IntegrationTestCase):
 	Uses only the storage core: blobs come from put_blob under fake(),
 	and File rows are stand-in dicts."""
 
-	def tearDown(self):
-		frappe.db.rollback()
-		super().tearDown()
-
 	@staticmethod
 	def make_blob(content: bytes = b"signing test content"):
 		with frappe.storage.fake():

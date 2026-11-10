@@ -13,7 +13,6 @@ SENDMAIL = 'frappe.sendmail(recipients=["someone@example.com"], attachments=atta
 class TestFlowSafeExec(IntegrationTestCase):
 	def tearDown(self):
 		frappe.set_user("Administrator")
-		frappe.db.rollback()
 		super().tearDown()
 
 	def _run(self, code):

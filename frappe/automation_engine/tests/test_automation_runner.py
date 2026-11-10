@@ -59,7 +59,6 @@ class AutomationRunnerTestCase(IntegrationTestCase):
 		clear_automation_cache()
 
 	def tearDown(self):
-		frappe.db.rollback()
 		frappe.local.automation_actions = None
 		clear_automation_cache()
 		super().tearDown()

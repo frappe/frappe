@@ -64,7 +64,6 @@ class ServerCase(IntegrationTestCase):
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
-		frappe.db.rollback()
 		super().tearDown()
 
 

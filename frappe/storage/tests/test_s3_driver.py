@@ -403,7 +403,6 @@ class TestS3ServesLikeLocal(IntegrationTestCase):
 		frappe.local.form_dict = frappe._dict()
 		if hasattr(frappe.local, "request"):
 			del frappe.local.request
-		frappe.db.rollback()
 		super().tearDown()
 
 	def presigned_params(self) -> dict:

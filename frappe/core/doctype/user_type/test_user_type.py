@@ -43,9 +43,6 @@ class TestUserType(IntegrationTestCase):
 		self.assertTrue(perm.share == 1)
 		self.assertTrue(perm.email == 1)
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 
 def create_user_type(user_type):
 	if frappe.db.exists("User Type", user_type):

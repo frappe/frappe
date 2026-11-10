@@ -80,7 +80,6 @@ def _ensure_user(email):
 class TestLoadAttachment(IntegrationTestCase):
 	def tearDown(self):
 		frappe.set_user("Administrator")
-		frappe.db.rollback()
 		super().tearDown()
 
 	def test_text_is_extracted_and_images_are_left_for_send(self):
@@ -124,7 +123,6 @@ class TestStageAttachment(IntegrationTestCase):
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
-		frappe.db.rollback()
 		super().tearDown()
 
 	def test_an_image_is_ocred_at_upload_only_for_a_text_only_model(self):
@@ -187,7 +185,6 @@ class TestBuildTurn(IntegrationTestCase):
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
-		frappe.db.rollback()
 		super().tearDown()
 
 	def shrink_window(self, tokens: int) -> None:
@@ -459,7 +456,6 @@ class TestReadAttachment(IntegrationTestCase):
 	def tearDown(self):
 		release_sent_files(self.session.name)
 		frappe.set_user("Administrator")
-		frappe.db.rollback()
 		super().tearDown()
 
 	def attached(self, file_name="notes.txt", content="one\ntwo\nthree", session=None):

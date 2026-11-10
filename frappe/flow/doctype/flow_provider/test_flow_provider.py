@@ -26,9 +26,6 @@ def _model(**overrides: Any) -> dict:
 
 
 class TestFlowProviderValidation(IntegrationTestCase):
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def test_a_provider_is_a_known_litellm_name_with_an_http_base_url(self):
 		for overrides, error in (
 			({"provider": "not-a-real-provider"}, "Unknown provider"),
@@ -42,9 +39,6 @@ class TestFlowProviderValidation(IntegrationTestCase):
 
 
 class TestProviderCredentialResolution(IntegrationTestCase):
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def test_a_model_takes_what_it_lacks_from_its_enabled_provider(self):
 		for label, provider, model, key, expected in (
 			("the provider's key", {}, {}, "api_key", "sk-from-provider"),

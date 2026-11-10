@@ -33,6 +33,3 @@ class TestWebsiteRouteMeta(IntegrationTestCase):
 
 		self.assertIn(self.normalize_html("""<meta name="type" content="web_page">"""), html)
 		self.assertIn(self.normalize_html("""<meta property="og:title" content="My Web Page">"""), html)
-
-	def tearDown(self):
-		frappe.db.rollback()

@@ -14,9 +14,6 @@ class TestConditions(IntegrationTestCase):
 		super().setUpClass()
 		cls.enterClassContext(patch("frappe.utils.safe_exec.is_safe_exec_enabled", return_value=True))
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def test_validate_condition_needs_an_expression_or_a_script_setting_result(self):
 		for condition, error in (
 			(None, None),

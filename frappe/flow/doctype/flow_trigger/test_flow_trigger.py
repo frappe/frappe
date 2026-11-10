@@ -66,9 +66,6 @@ class TestFlowTriggerValidation(IntegrationTestCase):
 		self.model = frappe.get_doc(_model()).insert()
 		self.agent = frappe.get_doc(_agent(self.model.name)).insert()
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def test_the_account_a_trigger_runs_as_must_be_enabled_and_able_to_read_the_agent(self):
 		disabled = _user("trigger-disabled@example.com")
 		frappe.db.set_value("User", disabled, "enabled", 0)

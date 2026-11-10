@@ -1409,10 +1409,6 @@ class TestDocsCollection(IntegrationTestCase):
 	controller class that declares `_DOCTYPE_NAME`.
 	"""
 
-	def tearDown(self):
-		frappe.db.rollback()
-		return super().tearDown()
-
 	def test_doctype_resolved_from_controller(self):
 		self.assertEqual(ToDo.docs._doctype, "ToDo")
 

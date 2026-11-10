@@ -42,9 +42,6 @@ class TestNamingSeries(IntegrationTestCase):
 			self.__class__.ns_doctype = self.create_naming_series_doctype()
 		self.dns: DocumentNamingSettings = frappe.get_doc("Document Naming Settings")
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def get_valid_serieses(self):
 		VALID_SERIES = ["SINV-", "SI-.{field}.", "SI-#.###", ""]
 		existing_series = self.dns.get_transactions_and_prefixes()["prefixes"]

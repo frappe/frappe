@@ -27,7 +27,8 @@ class IntegrationTestCase(UnitTestCase):
 	- Lazy loading of test record dependencies
 
 	Note: If you override `setUpClass`, make sure to call `super().setUpClass()`
-	to maintain the functionality of this base class.
+	to maintain the functionality of this base class. Call `super().tearDown()`
+	when overriding `tearDown` to roll back uncommitted changes after each test.
 	"""
 
 	TEST_SITE = "test_site"
@@ -84,8 +85,12 @@ class IntegrationTestCase(UnitTestCase):
 		# Add any per-test setup code here
 
 	def tearDown(self) -> None:
-		# Add any per-test teardown code here
 		super().tearDown()
+		try:
+			self.doCleanups()
+		finally:
+			_rollback_db()
+			frappe.local.request_cache.clear()
 
 	@contextmanager
 	def primary_connection(self) -> AbstractContextManager[None]:

@@ -26,7 +26,6 @@ def make_blob_doc(**overrides):
 class TestFileBlob(IntegrationTestCase):
 	def tearDown(self):
 		frappe.set_user("Administrator")
-		frappe.db.rollback()
 		super().tearDown()
 
 	def test_rows_store_their_fields_and_same_content_may_have_several(self):

@@ -91,9 +91,6 @@ class TestResolveTool(IntegrationTestCase):
 		cls.enterClassContext(patch("frappe.utils.safe_exec.is_safe_exec_enabled", return_value=True))
 		super().setUpClass()
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def test_an_imported_tool_resolves_from_its_import_path(self):
 		doc = frappe.get_doc(_module_doc(background=1)).insert()
 		with self.subTest("a Tool object"):

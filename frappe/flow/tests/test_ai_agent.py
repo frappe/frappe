@@ -119,9 +119,6 @@ class TestAgent(IntegrationTestCase):
 		).insert()
 		self.started = frappe.utils.now()
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def skipped(self, *titles: str) -> list[tuple[str, str]]:
 		"""The Error Logs this test's syncs wrote under these titles, as sorted (title, reason) pairs.
 		They live in the log database, which a rollback does not undo."""

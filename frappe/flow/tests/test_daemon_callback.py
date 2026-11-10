@@ -122,9 +122,6 @@ class TestToolCallback(IntegrationTestCase):
 		self.session = frappe.get_doc({"doctype": "Flow Session", "agent": self.agent.name}).insert()
 		self.session.db_set("owner", OWNER)
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def flow_tool(self, slug: str, **fields) -> None:
 		doc = {
 			"doctype": "Flow Tool",

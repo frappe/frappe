@@ -41,9 +41,6 @@ class TestFlowRun(IntegrationTestCase):
 	def setUp(self):
 		self.agent = _make_agent()
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def test_a_run_keeps_its_status_and_json_invariants(self):
 		session = _new_session(self.agent)
 		for fields, error in (

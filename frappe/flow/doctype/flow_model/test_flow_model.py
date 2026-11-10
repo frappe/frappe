@@ -24,9 +24,6 @@ def _model(**overrides: Any) -> dict:
 
 
 class TestFlowModelValidation(IntegrationTestCase):
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def test_a_valid_model_is_saved_trimmed(self):
 		doc = frappe.get_doc(
 			_model(
@@ -80,9 +77,6 @@ class TestFlowModelProvider(IntegrationTestCase):
 		if not frappe.db.exists("Flow Provider", "anthropic"):
 			frappe.get_doc({"doctype": "Flow Provider", "provider": "anthropic"}).insert()
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def test_a_linked_provider_prefixes_the_model_id_once(self):
 		for i, model_id in enumerate(("claude-sonnet-4-6", "anthropic/claude-sonnet-4-6")):
 			with self.subTest(model_id=model_id):
@@ -95,9 +89,6 @@ class TestFlowModelProvider(IntegrationTestCase):
 
 
 class TestContextWindow(IntegrationTestCase):
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def test_detect_reads_litellms_max_input_tokens(self):
 		catalog = {
 			"anthropic/claude-x": {"max_input_tokens": 200000},
@@ -137,7 +128,6 @@ class TestContextWindow(IntegrationTestCase):
 class TestProviderModels(IntegrationTestCase):
 	def tearDown(self):
 		frappe.set_user("Administrator")
-		frappe.db.rollback()
 		super().tearDown()
 
 	def test_a_providers_models_are_asked_live_and_saved_with_its_prefix(self):

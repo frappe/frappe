@@ -55,7 +55,6 @@ class TestSchemaRelationships(IntegrationTestCase):
 		self.user = self._user()
 
 	def tearDown(self):
-		frappe.db.rollback()
 		clear_automation_cache()
 		super().tearDown()
 

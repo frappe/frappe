@@ -153,9 +153,6 @@ class TestEmbedder(IntegrationTestCase):
 		self.model = _make_model()
 		_set_settings(embedding_model=self.model.name)
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def test_texts_are_embedded_in_order_with_the_models_config(self):
 		self.model.db_set("extra_params", '{"provider": {"zdr": true}}')
 		response = _embedding_response([[1.0, 2.0], [3.0, 4.0]], shuffle=True)
@@ -211,9 +208,6 @@ class TestKnowledgeSettings(IntegrationTestCase):
 		self.model = _make_model()
 		self.alt_model = _make_model(title="Embed Model Alt", model_id="openai/text-embedding-3-large")
 		_set_settings(embedding_model="", embedding_dimension=0)
-
-	def tearDown(self):
-		frappe.db.rollback()
 
 	def _save_settings(self, **values):
 		settings = frappe.get_doc("Flow Knowledge Settings")
@@ -323,9 +317,6 @@ class TestChunker(IntegrationTestCase):
 
 
 class TestExtract(IntegrationTestCase):
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def test_text_and_file_sources_extract_one_document(self):
 		docs = extract(frappe._dict(source_type="Text", content="  some knowledge  "))
 		self.assertEqual(len(docs), 1)
@@ -495,7 +486,6 @@ class TestIngest(IntegrationTestCase):
 
 	def tearDown(self):
 		store.drop_table()
-		frappe.db.rollback()
 		super().tearDown()
 
 	def _make_source(self, **values):
@@ -643,7 +633,6 @@ class TestDoctypeSync(IntegrationTestCase):
 
 	def tearDown(self):
 		store.drop_table()
-		frappe.db.rollback()
 		super().tearDown()
 
 	def _todo(self, description, **values):
@@ -834,7 +823,6 @@ class TestRetriever(IntegrationTestCase):
 
 	def tearDown(self):
 		store.drop_table()
-		frappe.db.rollback()
 		super().tearDown()
 
 	def _fake_embed(self, input, **kwargs):
@@ -907,7 +895,6 @@ class TestKnowledgeBuilder(IntegrationTestCase):
 
 	def tearDown(self):
 		store.drop_table()
-		frappe.db.rollback()
 		super().tearDown()
 
 	def _fake_embed(self, input, **kwargs):
@@ -972,9 +959,6 @@ class TestKnowledgeBuilder(IntegrationTestCase):
 class TestKnowledgeSearchTool(IntegrationTestCase):
 	def setUp(self):
 		_set_settings(embedding_model=_make_model().name)
-
-	def tearDown(self):
-		frappe.db.rollback()
 
 	def _search_tool(self, knowledge):
 		from frappe.flow.tools.builtins import bind_search_knowledge
@@ -1086,7 +1070,6 @@ class TestRetrieveAttachments(IntegrationTestCase):
 
 	def tearDown(self):
 		attachment_store.drop_table()
-		frappe.db.rollback()
 		super().tearDown()
 
 	def _fake_embed(self, input, **kwargs):
@@ -1122,9 +1105,6 @@ class TestSystemGeneratedProtection(IntegrationTestCase):
 	def setUp(self):
 		self.model = _make_model()
 		_set_settings(embedding_model=self.model.name, embedding_dimension=DIM)
-
-	def tearDown(self):
-		frappe.db.rollback()
 
 	def _kb(self, system=True, title="Builtin KB"):
 		return frappe.get_doc(

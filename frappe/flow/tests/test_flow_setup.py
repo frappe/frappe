@@ -17,9 +17,6 @@ class TestFlowSetup(IntegrationTestCase):
 		frappe.db.delete("Flow Model", {"provider": "anthropic"})
 		frappe.db.delete("Flow Provider", {"name": "anthropic"})
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def test_models_are_named_as_people_know_them(self):
 		self.assertEqual(setup._title("claude-sonnet-5-5"), "Claude Sonnet 5.5")
 		self.assertEqual(setup._title("gpt-5.4-mini"), "GPT-5.4 mini")

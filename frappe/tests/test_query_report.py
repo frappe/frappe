@@ -24,9 +24,6 @@ class TestQueryReport(IntegrationTestCase):
 		cls.enterClassContext(cls.enable_safe_exec())
 		return super().setUpClass()
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def test_user_facing_error(self):
 		from frappe.desk.query_report import get_user_facing_error
 

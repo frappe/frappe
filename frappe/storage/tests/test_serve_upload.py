@@ -122,7 +122,6 @@ class TestServeUpload(IntegrationTestCase):
 		if hasattr(frappe.local, "request"):
 			del frappe.local.request
 		frappe.set_user("Administrator")
-		frappe.db.rollback()
 		super().tearDown()
 
 	# ---- helpers ----

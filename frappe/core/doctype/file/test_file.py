@@ -2205,7 +2205,6 @@ class TestAttachmentsAccess(IntegrationTestCase):
 
 	def tearDown(self) -> None:
 		frappe.set_user("Administrator")
-		frappe.db.rollback()
 		super().tearDown()
 
 
@@ -2991,7 +2990,6 @@ class TestFileListOwnerRestriction(IntegrationTestCase):
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
-		frappe.db.rollback()
 		super().tearDown()
 
 	def test_other_user_file_count_excludes_owner_restricted_file(self):
@@ -3076,7 +3074,6 @@ class TestFileListUserPermissionRestriction(IntegrationTestCase):
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
-		frappe.db.rollback()
 		super().tearDown()
 
 	@classmethod

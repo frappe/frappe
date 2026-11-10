@@ -46,9 +46,6 @@ class TestSync(IntegrationTestCase):
 		).insert()
 		self.session = self.new_session()
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def new_session(self, source="Manual"):
 		return frappe.get_doc(
 			{"doctype": "Flow Session", "agent": self.agent.name, "source": source}

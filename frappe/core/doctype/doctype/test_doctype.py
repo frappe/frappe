@@ -36,9 +36,6 @@ from frappe.utils import get_table_name
 
 
 class TestDocType(IntegrationTestCase):
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def test_validate_name(self):
 		self.assertRaises(frappe.NameError, new_doctype("_Some DocType").insert)
 		self.assertRaises(frappe.NameError, new_doctype("8Some DocType").insert)

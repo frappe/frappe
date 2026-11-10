@@ -246,10 +246,6 @@ class TestDriverRegistry(IntegrationTestCase):
 class TestFileManagerSaveFile(IntegrationTestCase):
 	"""frappe.utils.file_manager.save_file on the storage v2 branch."""
 
-	def tearDown(self):
-		frappe.db.rollback()
-		super().tearDown()
-
 	def test_duplicate_insert_returns_the_existing_file(self):
 		"""A racing insert returns the row that won, instead of failing.
 

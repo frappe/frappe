@@ -331,6 +331,3 @@ class TestAccessLog(IntegrationTestCase):
 				new_private_file.delete()
 				# This fixture was published for the web process, so persist its cleanup too.
 				frappe.db.commit()  # nosemgrep
-
-	def tearDown(self):
-		pass

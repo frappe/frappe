@@ -51,9 +51,6 @@ def _server(**overrides: Any) -> dict:
 
 
 class IntegrationTestFlowTool(IntegrationTestCase):
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def test_an_invalid_tool_is_refused(self):
 		cases = [
 			(_module(slug=bad), "Function Name")
@@ -81,9 +78,6 @@ class IntegrationTestFlowTool(IntegrationTestCase):
 
 class TestFlowToolSystemGenerated(IntegrationTestCase):
 	"""Desk edits can't break system-generated tools; the owning app (ignore_permissions) can."""
-
-	def tearDown(self):
-		frappe.db.rollback()
 
 	def test_the_desk_cannot_change_a_system_generated_tool_but_may_disable_it(self):
 		sync_builtin_tools()
@@ -140,9 +134,6 @@ class TestFlowToolSessionWarning(IntegrationTestCase):
 			}
 		).insert()
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def test_only_a_change_the_flow_server_holds_warns_the_sessions_using_the_tool(self):
 		with patch("frappe.msgprint") as msgprint:
 			self.tool.enabled = 0
@@ -173,9 +164,6 @@ class TestSyncServerTools(IntegrationTestCase):
 		folder = TemporaryDirectory()
 		self.addCleanup(folder.cleanup)
 		self.enterContext(patch.object(lifecycle, "site_extensions_dir", return_value=Path(folder.name)))
-
-	def tearDown(self):
-		frappe.db.rollback()
 
 	def sync(self, *rows: dict) -> None:
 		with patch.object(lifecycle, "extension_tools", return_value=list(rows)):

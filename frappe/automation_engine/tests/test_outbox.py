@@ -32,7 +32,6 @@ class TestOutbox(IntegrationTestCase):
 		self.automation = make_automation()
 
 	def tearDown(self):
-		frappe.db.rollback()
 		clear_automation_cache()
 		super().tearDown()
 

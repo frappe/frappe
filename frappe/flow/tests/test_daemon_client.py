@@ -225,9 +225,6 @@ class TestLiveDaemon(IntegrationTestCase):
 			}
 		).insert()
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def config(self, session_id: str) -> dict:
 		"""The real config, pointed at the daemon's keyless mock model."""
 		session = frappe.get_doc(

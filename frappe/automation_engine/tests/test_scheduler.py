@@ -61,9 +61,6 @@ class TestScheduler(IntegrationTestCase):
 	def setUp(self):
 		frappe.set_user("Administrator")
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def rows(self, automation):
 		return frappe.get_all(QUEUE, filters={"automation": automation.name}, fields=["*"])
 
@@ -285,9 +282,6 @@ class TestDateBasedScheduler(IntegrationTestCase):
 	def setUp(self):
 		frappe.set_user("Administrator")
 		self.today = frappe.utils.getdate(frappe.utils.now_datetime())
-
-	def tearDown(self):
-		frappe.db.rollback()
 
 	def rows(self, automation):
 		return frappe.get_all(QUEUE, filters={"automation": automation.name}, fields=["*"])

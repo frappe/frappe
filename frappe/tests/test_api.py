@@ -156,10 +156,6 @@ class FrappeAPITestCase(IntegrationTestCase):
 			target=self.TEST_CLIENT.open, args=(path,), kwargs={"method": "QUERY", "json": data, **kwargs}
 		)
 
-	def tearDown(self) -> None:
-		frappe.db.rollback()
-		return super().tearDown()
-
 
 class TestResourceAPI(FrappeAPITestCase):
 	DOCTYPE = "ToDo"

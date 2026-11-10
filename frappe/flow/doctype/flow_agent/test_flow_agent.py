@@ -60,9 +60,6 @@ class TestFlowAgentValidation(IntegrationTestCase):
 	def setUp(self):
 		self.model_doc = frappe.get_doc(_model()).insert()
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def test_invalid_settings_are_refused(self):
 		agent = frappe.get_doc(_agent(self.model_doc.name)).insert()
 		for field, value, error in (
@@ -83,9 +80,6 @@ class TestFlowAgentKnowledgeSearch(IntegrationTestCase):
 		frappe.db.set_single_value("Flow Knowledge Settings", "embedding_model", self.model_doc.name)
 		frappe.clear_document_cache("Flow Knowledge Settings", "Flow Knowledge Settings")
 		self.kb = frappe.get_doc({"doctype": "Flow Knowledge Base", "title": "Agent KB"}).insert()
-
-	def tearDown(self):
-		frappe.db.rollback()
 
 	def _search_tool(self, kbs, title="Test Agent"):
 		agent = frappe.get_doc(
@@ -139,9 +133,6 @@ class TestFlowAgentRun(IntegrationTestCase):
 		self.enterContext(patch.object(DaemonClient, "for_site", return_value=self.daemon))
 		self.model_doc = frappe.get_doc(_model()).insert()
 		self.agent_doc = frappe.get_doc(_agent(self.model_doc.name)).insert()
-
-	def tearDown(self):
-		frappe.db.rollback()
 
 	def test_a_new_run_starts_a_session_approved_by_its_source(self):
 		for kwargs, source, mode in (
@@ -197,9 +188,6 @@ class TestFlowAgentSystemGenerated(IntegrationTestCase):
 		self.model_doc = frappe.get_doc(_model()).insert()
 		agent = frappe.get_doc(_agent(self.model_doc.name, is_system_generated=1))
 		self.agent = frappe.get_doc("Flow Agent", agent.insert(ignore_permissions=True).name)
-
-	def tearDown(self):
-		frappe.db.rollback()
 
 	def test_the_desk_cannot_change_a_system_generated_agent(self):
 		sync_builtin_assistant(self.model_doc.name)
@@ -279,9 +267,6 @@ class TestFlowAgentClientTools(IntegrationTestCase):
 		self.agent_doc = frappe.get_doc(
 			_agent(self.model_doc.name, tools=[{"tool": "frappe/read_records"}, {"tool": "frappe/execute"}])
 		).insert()
-
-	def tearDown(self):
-		frappe.db.rollback()
 
 	def test_reading_the_page_needs_no_card(self):
 		self.agent_doc.append("tools", {"tool": "frappe/read_screen"})
@@ -395,9 +380,6 @@ class TestFlowAgentSubAgents(IntegrationTestCase):
 			)
 		).insert()
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def test_an_enabled_sub_agent_runs_on_its_own_config_as_itself(self):
 		self.assertEqual(
 			[row.tool for row in self.agent_doc.tools], ["frappe/read_records", "frappe/subagent"]
@@ -433,7 +415,6 @@ class TestFlowAgentAttachmentSearch(IntegrationTestCase):
 		frappe.clear_document_cache("Flow Knowledge Settings", "Flow Knowledge Settings")
 
 	def tearDown(self):
-		frappe.db.rollback()
 		frappe.clear_document_cache("Flow Knowledge Settings", "Flow Knowledge Settings")
 		super().tearDown()
 
@@ -476,7 +457,6 @@ class TestFlowAgentInstructions(IntegrationTestCase):
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
-		frappe.db.rollback()
 		super().tearDown()
 
 	def test_tags_are_filled_in_and_other_text_stays_as_written(self):
@@ -527,9 +507,6 @@ class TestFlowAgentSkillIndex(IntegrationTestCase):
 		sync_builtin_tools()
 		self.model_doc = frappe.get_doc(_model()).insert()
 		self.agent = frappe.get_doc(_agent(self.model_doc.name)).insert()
-
-	def tearDown(self):
-		frappe.db.rollback()
 
 	def _bind(self, *titles: str) -> str:
 		self.agent.set("skills", [{"skill": title} for title in titles])
@@ -608,9 +585,6 @@ class TestFlowAgentInvocableSkills(IntegrationTestCase):
 		self.model_doc = frappe.get_doc(_model()).insert()
 		self.agent = frappe.get_doc(_agent(self.model_doc.name)).insert()
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def test_flagged_bound_and_global_skills_are_listed_with_their_command(self):
 		_skill_row("Expense Approval", user_invocable=1)
 		_skill_row("House Style", is_global=1, user_invocable=1)
@@ -633,9 +607,6 @@ class TestFlowAgentLoadSkill(IntegrationTestCase):
 		sync_builtin_tools()
 		self.model_doc = frappe.get_doc(_model()).insert()
 		self.agent = frappe.get_doc(_agent(self.model_doc.name)).insert()
-
-	def tearDown(self):
-		frappe.db.rollback()
 
 	def _tool(self, agent=None):
 		agent = agent or self.agent

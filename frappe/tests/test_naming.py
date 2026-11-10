@@ -30,9 +30,6 @@ class TestNaming(IntegrationTestCase):
 	def setUp(self):
 		frappe.db.delete("Note")
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def test_append_number_if_name_exists(self):
 		"""
 		Append number to name based on existing values

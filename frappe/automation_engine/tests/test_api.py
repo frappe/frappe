@@ -28,7 +28,6 @@ class TestApi(IntegrationTestCase):
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
-		frappe.db.rollback()
 		clear_automation_cache()
 		super().tearDown()
 

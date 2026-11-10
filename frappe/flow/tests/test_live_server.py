@@ -76,9 +76,6 @@ class LiveServerCase(IntegrationTestCase):
 		)
 		self.enterContext(patch("frappe.flow.lib.model.resolve_provider_credentials", return_value={}))
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def wait_idle(self, session_name: str) -> None:
 		for _ in range(100):
 			if not self.client.get_session(session_name)["running"]:

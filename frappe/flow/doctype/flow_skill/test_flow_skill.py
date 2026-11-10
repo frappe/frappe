@@ -32,9 +32,6 @@ def _skill(**overrides: Any) -> dict:
 
 
 class TestFlowSkill(IntegrationTestCase):
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def test_a_user_invocable_skill_needs_a_typable_command_of_its_own(self):
 		self.assertEqual(skill_command("Expense Approval"), "expense-approval")
 		self.assertEqual(skill_command("  Manager's Sign-off / Q&A  "), "manager-s-sign-off-q-a")
@@ -63,9 +60,6 @@ class TestFlowSkill(IntegrationTestCase):
 
 class TestFlowSkillSystemGenerated(IntegrationTestCase):
 	"""Desk edits can't break system-generated skills; the owning app (ignore_permissions) can."""
-
-	def tearDown(self):
-		frappe.db.rollback()
 
 	def test_the_desk_cannot_change_a_system_generated_skill_but_may_disable_it(self):
 		name = frappe.get_doc(_skill(is_system_generated=1)).insert(ignore_permissions=True).name
@@ -113,9 +107,6 @@ class TestFlowSkillSystemGenerated(IntegrationTestCase):
 
 class TestFlowSkillGlobalLimit(IntegrationTestCase):
 	"""A global skill lands in every agent's prompt, so it is capped tighter than a bound one."""
-
-	def tearDown(self):
-		frappe.db.rollback()
 
 	def test_only_enabled_global_skills_are_capped(self):
 		bound = frappe.db.count("Flow Skill", {"is_global": 0})  # apps ship skills too
@@ -176,9 +167,6 @@ class TestAppSkills(IntegrationTestCase):
 	def setUp(self):
 		self.skills = AppSkills(self)
 		self.started = frappe.utils.now()
-
-	def tearDown(self):
-		frappe.db.rollback()
 
 	def skipped(self, title: str) -> list[str]:
 		"""The reasons this test's syncs logged under `title`. Error Logs live in the log database,

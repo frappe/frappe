@@ -34,9 +34,6 @@ class TestSyncBuiltinAssistant(IntegrationTestCase):
 			}
 		).insert()
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def test_model_insert_auto_creates_a_locked_assistant(self):
 		# Model setUp insert triggers after_insert → sync_builtin_assistant.
 		doc = frappe.get_doc("Flow Agent", ASSISTANT_AGENT_NAME)

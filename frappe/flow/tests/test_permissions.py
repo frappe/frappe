@@ -54,7 +54,6 @@ class TestFlowAccess(IntegrationTestCase):
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
-		frappe.db.rollback()
 		super().tearDown()
 
 	def test_flow_is_open_only_to_the_role_and_system_managers(self):

@@ -53,7 +53,6 @@ class TestBlobCache(IntegrationTestCase):
 	def tearDown(self):
 		for blob in self.blobs:
 			delete_cached(blob)
-		frappe.db.rollback()
 		super().tearDown()
 
 	def put_blob(self, content: bytes = b"", **kwargs):

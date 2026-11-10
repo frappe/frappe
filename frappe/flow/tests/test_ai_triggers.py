@@ -87,9 +87,6 @@ class TestDispatch(IntegrationTestCase):
 		self.agent = frappe.get_doc(_agent(self.model.name)).insert()
 		self.trigger = frappe.get_doc(_trigger(self.agent.name)).insert()
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def test_dispatch_enqueues_matching_triggers_only(self):
 		with patch("frappe.enqueue") as enqueue:
 			dispatch(_Bag(doctype="ToDo", name="todo-x"), "after_insert")
@@ -181,9 +178,6 @@ class TestDispatchScheduled(IntegrationTestCase):
 			)
 		).insert()
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def test_dispatch_scheduled_fires_triggers_that_are_due(self):
 		now = frappe.utils.now_datetime()
 		past = now - timedelta(minutes=5)
@@ -229,7 +223,6 @@ class TestFire(IntegrationTestCase):
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
-		frappe.db.rollback()
 		super().tearDown()
 
 	def turns(self):
@@ -418,9 +411,6 @@ class TestShippedTriggers(IntegrationTestCase):
 		Agent(name="Researcher", model=self.model.name, instructions="Research.").sync()
 		_user(RUNNER, FLOW_USER_ROLE)
 		self.started = frappe.utils.now()
-
-	def tearDown(self):
-		frappe.db.rollback()
 
 	def hooked(self, *functions: str):
 		"""`flow_triggers` lists these functions of this module."""

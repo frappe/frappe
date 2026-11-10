@@ -62,7 +62,6 @@ class TestCacheSweep(IntegrationTestCase):
 	def tearDown(self):
 		for blob in self.blobs:
 			delete_cached(blob)
-		frappe.db.rollback()
 		super().tearDown()
 
 	def cached_blob(self, minutes_old: int, **kwargs):

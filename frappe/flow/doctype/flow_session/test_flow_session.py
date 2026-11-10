@@ -50,9 +50,6 @@ class TestFlowSession(IntegrationTestCase):
 			}
 		).insert()
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def test_session_agent_is_locked_after_creation(self):
 		other_agent = frappe.get_doc(
 			{
@@ -76,9 +73,6 @@ class TestClearOldLogs(IntegrationTestCase):
 	def setUp(self):
 		self.server_delete = self.enterContext(patch(DELETE))
 		self.agent = _insert_agent()
-
-	def tearDown(self):
-		frappe.db.rollback()
 
 	def _session_with_run(self, *, age_days: int) -> tuple[str, str, str]:
 		f = frappe.get_doc({"doctype": "File", "file_name": "f.txt", "content": "x", "is_private": 1}).insert(
@@ -167,9 +161,6 @@ class TestAttachmentCleanup(IntegrationTestCase):
 		self.server_delete = self.enterContext(patch(DELETE))
 		self.agent = _insert_agent()
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def test_deleting_a_session_takes_its_runs_and_chunks(self):
 		s = frappe.get_doc({"doctype": "Flow Session", "agent": self.agent}).insert(ignore_permissions=True)
 		run = frappe.get_doc(
@@ -224,9 +215,6 @@ class TestFlowSessionOnTheServer(IntegrationTestCase):
 			}
 		).insert()
 		self.session = self.agent.new_session()
-
-	def tearDown(self):
-		frappe.db.rollback()
 
 	def runs(self):
 		return frappe.db.count("Flow Run", {"session": self.session.name})
@@ -387,9 +375,6 @@ class TestFlowSessionServerConfig(IntegrationTestCase):
 				"enabled": 1,
 			}
 		).insert()
-
-	def tearDown(self):
-		frappe.db.rollback()
 
 	def session(self, **fields):
 		doc = {"doctype": "Flow Session", "agent": self.agent.name, "title": "Hello", **fields}
@@ -595,7 +580,6 @@ class TestFlowSessionModelPermission(IntegrationTestCase):
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
-		frappe.db.rollback()
 		super().tearDown()
 
 	def model(self, title):

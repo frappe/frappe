@@ -6,9 +6,6 @@ from frappe.tests import IntegrationTestCase
 
 
 class TestPrintSettings(IntegrationTestCase):
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def test_backfill_limits_ignores_stale_pdf_generator(self):
 		# sites that predate the wkhtmltopdf removal still carry the old value
 		frappe.db.set_single_value("Print Settings", "pdf_generator", "wkhtmltopdf")

@@ -21,11 +21,6 @@ class TestPortalSettings(IntegrationTestCase):
 		self.doc.set("menu", [])
 		self.doc.set("custom_menu", [])
 
-	def tearDown(self):
-		# sync_menu() saves when hooks add items; drop that so the site is left untouched
-		frappe.db.rollback()
-		super().tearDown()
-
 	def test_get_all_menu_items_with_both_none(self):
 		self.doc.menu = None
 		self.doc.custom_menu = None
