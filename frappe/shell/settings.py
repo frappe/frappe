@@ -16,7 +16,7 @@ from .boot import report_oversized_keys
 from .doctypes import metadata_version
 from .permissions import may_enter_any_prefix
 from .settings_filter import SettingsFilter
-from .settings_sidebar import Resolved, resolve_sidebars
+from .settings_sidebar import Resolved, filter_sidebar, resolve_sidebars
 from .titles import app_screen
 
 PANES_CACHE_KEY = "shell_settings_panes"
@@ -25,14 +25,21 @@ PANES_CACHE_KEY = "shell_settings_panes"
 @frappe.desk_v2_only
 @frappe.whitelist(methods=["GET"])
 def get_panes() -> dict:
-	"""The panes this user may see, their search label index and their apps' titles, read on first open."""
+	"""The panes this user may see, their sidebars, search label index and apps' titles, read on first open."""
 	if not may_enter_any_prefix():
 		frappe.throw(_("You are not permitted to access this page."), frappe.PermissionError)
 
 	visible = SettingsFilter().filter(get_cached_panes())
+	visible["sidebars"] = visible_sidebars(get_cached_sidebars(), visible["panes"])
 	visible["titles"] = {app: app_screen(app)["title"] for app in {pane["app"] for pane in visible["panes"]}}
 	report_oversized_keys(visible, None, reply="settings")
 	return visible
+
+
+def visible_sidebars(sidebars: dict[str, dict], panes: list[dict]) -> dict[str, dict]:
+	"""Each prefix's sidebar groups cut to the blocks in `panes`; a prefix left with no pane is dropped."""
+	cut = {prefix: filter_sidebar(sidebar, panes)["groups"] for prefix, sidebar in sidebars.items()}
+	return {prefix: {"groups": groups} for prefix, groups in cut.items() if groups}
 
 
 def get_cached_panes() -> list[dict]:

@@ -154,7 +154,7 @@ class SidebarBuilder:
 
 
 def filter_sidebar(sidebar: dict, panes: list[dict]) -> dict:
-	"""The sidebar without the blocks that are not in `panes` (one user's visible panes), and without an emptied pane or group."""
+	"""The sidebar without the blocks that are not in `panes` (one user's visible panes), and without an emptied or unlisted pane or group."""
 	prefixes: dict[str, str] = {}
 	for pane in panes:
 		if pane["app"] not in prefixes:
@@ -163,12 +163,14 @@ def filter_sidebar(sidebar: dict, panes: list[dict]) -> dict:
 	visible = {
 		f"{prefixes[pane['app']]}/{pane['key']}/{block['key']}" for pane in panes for block in pane["blocks"]
 	}
+	listed = {f"{prefixes[pane['app']]}/{pane['key']}" for pane in panes}
 	groups = []
 
 	for group in sidebar["groups"]:
 		entries = [
 			{**entry, "blocks": [block for block in entry["blocks"] if block in visible]}
 			for entry in group["panes"]
+			if entry["pane"] in listed
 		]
 		if entries := [entry for entry in entries if entry["blocks"]]:
 			groups.append({**group, "panes": entries})

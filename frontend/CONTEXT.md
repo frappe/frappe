@@ -507,7 +507,7 @@ collide**).
 
 **Settings address**: <a id="settings-address"></a>
 `#settings/<prefix>/<pane>/<block>`, made of declared kebab-case keys, never labels. A short
-address opens the current prefix's first pane.
+address opens the prefix's first pane in sidebar order, else its first home pane.
 
 **Pane**: <a id="pane"></a>
 One page of the settings dialog: a list of **blocks** under a label. With no

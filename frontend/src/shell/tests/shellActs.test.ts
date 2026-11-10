@@ -190,7 +190,7 @@ describe("the acts the shell holds", () => {
 							titles: { crm: "CRM" },
 							recent: [],
 					  }
-					: { panes: [{ app: "crm", key: "deals", label: "Deals", blocks: [] }], index: [], titles: { crm: "CRM" } },
+					: { panes: [{ app: "crm", key: "deals", label: "Deals", blocks: [] }], sidebars: {}, index: [], titles: { crm: "CRM" } },
 		}));
 
 		expect(await find("shell.create").argument!.options("")).toEqual([

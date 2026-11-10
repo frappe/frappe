@@ -15,7 +15,7 @@ vi.mock("@framework/ui/api", async (original) => ({
 			method === "frappe.shell.palette.places"
 				? { doctypes: [], apps: [], titles: {}, recent: [] }
 				: method === "frappe.shell.settings.get_panes"
-				? { panes: [], index: [], titles: {} }
+				? { panes: [], sidebars: {}, index: [], titles: {} }
 				: [],
 	}),
 }));

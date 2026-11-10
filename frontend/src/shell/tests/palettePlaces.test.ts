@@ -47,6 +47,7 @@ const placesReply = {
 
 const panesReply = {
 	panes: [{ app: "frappe", key: "users", label: "Users", blocks: [] }],
+	sidebars: {},
 	index: [],
 	titles: { frappe: "Desk" },
 };

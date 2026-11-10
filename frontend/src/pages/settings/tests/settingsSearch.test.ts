@@ -10,6 +10,7 @@ import { registerSettingsBlocks } from "@/shell/settingsBlocks";
 import type { PanesReply } from "@/shell/settingsPanes";
 import ShellSettingsDialog from "@/shell/ShellSettingsDialog.vue";
 import SettingsBlocks from "../SettingsBlocks.vue";
+import { defaultSidebars } from "@/shell/tests/fixtures/settingsSidebars";
 import { SettingsServer } from "./settingsServer";
 
 const WALK_SETTINGS = {
@@ -26,6 +27,7 @@ const WALK_SETTINGS = {
 const WALK = { type: "Single", doctype: "Walk Settings" } as const;
 
 const REPLY: PanesReply = {
+	sidebars: {},
 	panes: [
 		{ app: "frappe", key: "profile", label: "Profile", icon: "user", blocks: [] },
 		{
@@ -46,11 +48,12 @@ const REPLY: PanesReply = {
 	index: [
 		{ app: "frappe", pane: "walk", block: "main", fieldname: "greeting", label: "Greeting" },
 		{ app: "frappe", pane: "walk", block: "main", fieldname: "time_zone", label: "Time Zone" },
-		{ app: "crm", pane: "general", block: "main", label: "Zone Routing" },
+		{ app: "crm", pane: "general", block: "verify", label: "Zone Routing" },
 		{ app: "crm", pane: "general", block: "verify", label: "Verify connection", keywords: ["company"] },
 	],
 	titles: { frappe: "Frappe", crm: "CRM" },
 };
+REPLY.sidebars = defaultSidebars(REPLY.panes, { frappe: "desk", crm: "crm" });
 
 let mounted: App | undefined;
 const scroll = vi.fn();
@@ -134,16 +137,16 @@ async function press(key: string) {
 }
 
 describe("settings search", () => {
-	it("replaces the pane list with this app's results, then other apps' under their heading", async () => {
+	it("replaces the pane list with this app's results, then the rest under Elsewhere", async () => {
 		await opened("#settings/desk/profile");
 		expect(navItems().length).toBe(2);
 
 		await search("zone");
 
 		expect(navItems()).toEqual([]);
-		expect(results()).toEqual(["Time Zone | Walk › Walking", "Zone Routing | CRM › General"]);
-		expect(document.body.querySelector("[data-results='other']")?.textContent).toContain(
-			"In other apps"
+		expect(results()).toEqual(["Time Zone | Walk › Walking", "Zone Routing | CRM › General › Verify connection"]);
+		expect(document.body.querySelector("[data-results='elsewhere']")?.textContent).toContain(
+			"Elsewhere"
 		);
 
 		await search("nothing like it");

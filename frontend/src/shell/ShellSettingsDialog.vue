@@ -7,14 +7,14 @@
 			<template v-if="!query.trim()">
 				<SettingsNavGroup
 					v-for="group in groups"
-					:key="group.prefix"
+					:key="group.key"
 					:label="group.label"
-					:data-group="group.prefix"
+					:data-group="group.key"
 				>
 					<SettingsNavItem
-						v-for="pane in group.panes"
-						:key="pane.key"
-						:value="`${group.prefix}/${pane.key}`"
+						v-for="{ address, pane } in group.panes"
+						:key="address"
+						:value="address"
 					>
 						<template #prefix>
 							<Avatar
@@ -37,11 +37,11 @@
 			</div>
 		</SettingsSidebar>
 		<SettingsContent>
-			<template v-for="group in groups" :key="group.prefix">
+			<template v-for="group in groups" :key="group.key">
 				<SettingsPanel
-					v-for="pane in group.panes"
-					:key="pane.key"
-					:value="`${group.prefix}/${pane.key}`"
+					v-for="{ address, pane } in group.panes"
+					:key="address === home ? `${address}:home` : address"
+					:value="address"
 					class="relative min-w-0"
 				>
 					<SettingsPaneView
@@ -123,41 +123,54 @@ function load() {
 }
 load();
 
+/** A pane a search pick asked to show from its home, until the dialog shows another pane. */
+const picked = ref<string>();
 const resolution = computed(() =>
-	hash.open.value ? book.value?.resolve(hash.segments.value) : undefined
+	hash.open.value ? book.value?.resolve(hash.segments.value, picked.value) : undefined
 );
 const shown = computed(() =>
 	resolution.value && !("refused" in resolution.value) ? resolution.value : undefined
 );
 const refused = computed(() => !!resolution.value && "refused" in resolution.value);
 
-// A foreign app's group lists from the address that showed it until the dialog closes.
+// The panes of an app the sidebar does not place list from the address that showed one, until the dialog closes.
 const visiting = ref<string>();
+const home = computed(() =>
+	shown.value?.home ? `${shown.value.prefix}/${shown.value.pane.key}` : undefined
+);
 watch(
 	shown,
 	(address) => {
 		if (address?.rewrite) hash.write(...address.rewrite);
-		else if (address && book.value?.isForeign(address.prefix)) visiting.value = address.prefix;
+		else if (address?.home && !book.value?.isPlaced(`${address.prefix}/${address.pane.key}`)) {
+			visiting.value = address.prefix;
+		}
 	},
 	{ immediate: true }
 );
+const paneAddress = computed(() => hash.segments.value.filter(Boolean).slice(0, 2).join("/"));
+watch(paneAddress, (address) => {
+	if (address !== picked.value) picked.value = undefined;
+});
 watch(shown, (address) => {
 	if (address?.pane !== reveal.value?.pane || address?.block) reveal.value = undefined;
 });
 watch(hash.open, (isOpen) => {
 	if (isOpen) return;
-	visiting.value = undefined;
+	visiting.value = picked.value = undefined;
 	query.value = "";
 });
 
 function pick(hit: SettingsHit) {
 	reveal.value = { ...hit };
+	picked.value = hit.home ? `${hit.prefix}/${hit.pane.key}` : undefined;
 	hash.write(hit.prefix, hit.pane.key).then((failure) => {
-		if (isNavigationFailure(failure, NavigationFailureType.aborted)) reveal.value = undefined;
+		if (isNavigationFailure(failure, NavigationFailureType.aborted))
+			reveal.value = picked.value = undefined;
 	});
 }
 
-const groups = computed(() => book.value?.groups(visiting.value) ?? []);
+const groups = computed(() => book.value?.groups(visiting.value, home.value) ?? []);
 
 const open = computed({
 	get: () => hash.open.value,
