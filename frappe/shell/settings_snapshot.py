@@ -2,8 +2,10 @@
 
 import json
 import os
+from pathlib import Path
 
 import frappe
+from frappe.utils import get_file_json
 
 from .settings import resolve_panes
 
@@ -27,10 +29,8 @@ def check_settings_snapshot(test, app: str, path: str):
 
 	if os.environ.get(UPDATE_VARIABLE):
 		frappe.create_folder(os.path.dirname(path))
-		with open(path, "w") as handle:
-			handle.write(current)
+		Path(path).write_text(current)
 
-	with open(path) as handle:
-		test.assertEqual(
-			json.loads(current), json.load(handle), f"Run with {UPDATE_VARIABLE}=1 to update {path}"
-		)
+	test.assertEqual(
+		json.loads(current), get_file_json(path), f"Run with {UPDATE_VARIABLE}=1 to update {path}"
+	)
