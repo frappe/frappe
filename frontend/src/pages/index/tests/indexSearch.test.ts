@@ -60,7 +60,7 @@ beforeAll(() => import("../indexSearch"), 60000);
 beforeEach(() => {
 	fake.runMethod.mockReset().mockImplementation(async (method: string, args: { txt?: string }) => {
 		if (method === "frappe.shell.palette.places") return { data: PLACES };
-		if (method === "frappe.shell.settings.get_panes") return { data: { panes: [], index: [], titles: {} } };
+		if (method === "frappe.shell.settings.get_panes") return { data: { panes: [], sidebars: {}, index: [], titles: {} } };
 		return { data: args.txt?.toLowerCase().startsWith("palmer") ? [PALMER, PALMER_DEAL] : [] };
 	});
 	assign = vi.fn();
