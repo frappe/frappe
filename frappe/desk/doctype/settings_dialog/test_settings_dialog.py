@@ -29,7 +29,7 @@ def authoring(user: str = AUTHOR, developer: bool = True):
 		frappe.conf.developer_mode = original
 
 
-def ship(panes=(), blocks=(), *, app: str = HOST, extends: str = "", insert: bool = True):
+def ship(panes=(), blocks=(), *, app: str = HOST, extends: str = "", insert: bool = True, arrangement=None):
 	doc = frappe.get_doc(
 		{
 			"doctype": "Settings Dialog",
@@ -38,6 +38,7 @@ def ship(panes=(), blocks=(), *, app: str = HOST, extends: str = "", insert: boo
 			"standard": 1,
 			"panes": [pane(key) if isinstance(key, str) else key for key in panes],
 			"blocks": list(blocks),
+			"arrangement": json.dumps(arrangement) if arrangement else None,
 		}
 	)
 	return doc.insert() if insert else doc
@@ -184,9 +185,6 @@ class TestSettingsDialog(SettingsDialogTestCase):
 			"settings": component("theme", search_entries='"Theme"'),
 			"settings label": component("theme", search_entries='[{"keywords": "dark"}]'),
 			"settings blank label": component("theme", search_entries='[{"label": " ", "keywords": "dark"}]'),
-			"anchors": component("theme", anchors="not json"),
-			"anchor target": component("theme", anchors='[{"after": ["system"]}]'),
-			"anchor parent": component("theme", anchors='[{"after": "system", "parent_key": "x"}]'),
 			"binding doctype": component("theme", bindings='{"u": {"type": "Single", "doctype": ["User"]}}'),
 			"roles": component("theme", roles='"System Manager"'),
 			"role name": component("theme", roles='[["System Manager"]]'),

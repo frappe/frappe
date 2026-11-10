@@ -1,6 +1,8 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # For license information, please see license.txt
 
+import json
+
 import frappe
 from frappe import _
 from frappe.desk.doctype.rail.rail import NO_HOST, SITE_LAYER, SYSTEM_WRITE_FLAGS
@@ -24,6 +26,7 @@ class SettingsDialog(Document):
 		from frappe.types import DF
 
 		app: DF.Autocomplete
+		arrangement: DF.JSON | None
 		blocks: DF.Table[SettingsBlock]
 		extends: DF.Autocomplete
 		panes: DF.Table[SettingsPane]
@@ -109,6 +112,8 @@ class SettingsDialog(Document):
 	def prepare_for_import(docdict):
 		"""Read a file in either shape: the old one (no `kind`, a component's `fields` and `settings`) or native JSON columns."""
 		docdict["blocks"] = [upgrade_row(block) for block in docdict.get("blocks") or []]
+		if isinstance(docdict.get("arrangement"), dict):
+			docdict["arrangement"] = json.dumps(docdict["arrangement"])
 
 	def before_import(self):
 		"""Migrate imports a shipped record without `validate`: check what needs only this record."""
@@ -121,7 +126,11 @@ class SettingsDialog(Document):
 		self.export_settings_dialog()
 
 	def before_export(self, doc_export):
-		"""Write each block's JSON columns as native JSON, which `before_import` turns back into text."""
+		"""Write each block's JSON columns, and the arrangement, as native JSON, which `prepare_for_import` turns back into text."""
+		if arrangement := doc_export.get("arrangement"):
+			doc_export["arrangement"] = (
+				json.loads(arrangement) if isinstance(arrangement, str) else arrangement
+			)
 		doc_export["blocks"] = [native_row(block) for block in doc_export["blocks"]]
 
 	def export_settings_dialog(self):

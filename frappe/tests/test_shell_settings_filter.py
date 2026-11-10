@@ -22,6 +22,7 @@ from frappe.shell.boot import BUDGET_LOG_TITLE, KEY_BUDGET, app_screen
 from frappe.shell.permissions import default_app_permission, has_app_permission
 from frappe.shell.registry import clear_prefix_registry, get_prefix_registry
 from frappe.shell.settings import PANES_CACHE_KEY, get_panes
+from frappe.shell.settings_sidebar import Resolved
 from frappe.tests.classes.context_managers import set_user
 from frappe.tests.test_shell_settings import active
 
@@ -516,12 +517,12 @@ class TestSettingsFilter(SettingsDialogTestCase):
 			ship(["general"], [single("mine", doctype=SINGLE)])
 
 		visible()
-		with patch("frappe.shell.settings.resolve_panes") as merge:
+		with patch("frappe.shell.settings.resolve_settings") as merge:
 			visible()
 			merge.assert_not_called()
 
 			frappe.reset_metadata_version()
-			merge.return_value = []
+			merge.return_value = Resolved()
 			self.assertEqual(blocks_of(visible()), {})
 
 	def test_a_website_user_is_refused(self):

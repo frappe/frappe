@@ -56,7 +56,10 @@ class SettingsRules:
 		self._components: dict[str, set[str]] = {}
 
 	def record_problems(self, record) -> list[Problem]:
-		"""What the pane rows of one record break; its blocks are in `vet`."""
+		"""What the pane rows and the arrangement of one record break; its blocks are in `vet`."""
+		# Imported here: the arrangement check builds on `Problem`, which this module defines.
+		from frappe.desk.settings_arrangement import ArrangementCheck
+
 		problems = []
 		seen = set()
 
@@ -70,6 +73,8 @@ class SettingsRules:
 					),
 				)
 			)
+
+		problems += ArrangementCheck(record).check()
 
 		for pane in record.panes:
 			try:

@@ -3,9 +3,10 @@
 
 import frappe
 from frappe import _
+from frappe.desk.app_prefix import PREFIX_PATTERN
 
 from . import SHELL_ROOT
-from .registry import PREFIX_PATTERN, declared_prefix
+from .registry import declared_prefix
 
 
 class PrefixCollisionError(frappe.ValidationError):

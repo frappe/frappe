@@ -14,7 +14,7 @@ def shipped_records(host: str | None = None, exclude: str | None = None) -> list
 		"Settings Dialog",
 		filters=filters,
 		or_filters={"extends": host, "app": host} if host else None,
-		fields=["name", "app", "extends"],
+		fields=["name", "app", "extends", "arrangement"],
 	)
 	if host:
 		records = [record for record in records if (record.extends or record.app) == host]
