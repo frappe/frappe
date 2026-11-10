@@ -720,7 +720,7 @@ class PrintDesignerConverter:
 			value = PAGE_NUMBER_FIELDS[fieldname]
 		elif item.get("parentField"):
 			value = (
-				f"{{{{ frappe.format(frappe.db.get_value({item.get('doctype')!r}, doc.{item['parentField']}, {fieldname!r}), {item.get('fieldtype')!r}) }}}}"
+				f"{{{{ frappe.format(frappe.db.get_value({item.get('doctype')!r}, doc.{item['parentField']}, {fieldname!r}), {item.get('fieldtype')!r}) or '' }}}}"
 				if item.get("doctype")
 				else f"{{{{ doc.get_formatted({fieldname!r}) }}}}"
 			)
