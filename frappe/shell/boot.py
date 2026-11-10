@@ -27,7 +27,7 @@ from .permissions import has_app_permission, passes_apps_screen_check
 from .registry import get_prefix_registry, prefix_map, shell_base, split_shell_path
 from .route_history import Visit, latest_visits
 from .shell_hooks import shell_hooks
-from .titles import app_favicon, app_screen, readable_titles
+from .titles import app_brand, app_screen, readable_titles
 
 # Bytes one top-level boot key may reach before boot logs it.
 KEY_BUDGET = 100_000
@@ -292,7 +292,7 @@ def get_boot(path: str | None = None) -> dict:
 			# The rail's app tile; the index has these per app under `apps`.
 			"app_title": screen["title"],
 			"app_logo": screen["logo"],
-			"app_favicon": app_favicon(app),
+			"app_favicon": app_brand(app).get("favicon"),
 			# A framework key, not an `app_boot` contribution: apps shape navigation through the rows
 			# they ship. It rides boot because boot is already a blocking pre-mount fetch.
 			"navigation": resolve_navigation(app),
