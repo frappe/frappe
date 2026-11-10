@@ -48,7 +48,7 @@ class FormTour(Document):
 			return
 
 		for step in self.steps:
-			if not step.element_selector:
+			if step.ui_tour and not step.element_selector:
 				frappe.throw(
 					_("Row #{0}: {1} is required").format(
 						step.idx, frappe.bold(_(step.meta.get_label("element_selector")))
