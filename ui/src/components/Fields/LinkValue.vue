@@ -19,7 +19,7 @@
 			<span v-else class="truncate text-ink-gray-5">{{ text }}</span>
 		</div>
 		<p v-if="description && !error?.length" class="text-p-sm text-ink-gray-6">
-			{{ description }}
+			<FieldDescription :html="description" />
 		</p>
 		<ErrorMessage :message="error" />
 	</div>
@@ -30,6 +30,7 @@ import { ErrorMessage, FormLabel } from "frappe-ui";
 import { RecordAnchor } from "../Link";
 import { translate as __ } from "../../utils/translate";
 import type { FieldError } from "./types";
+import FieldDescription from "./FieldDescription.vue";
 
 defineProps<{
 	text: string | null;

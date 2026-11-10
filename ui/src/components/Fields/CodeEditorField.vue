@@ -68,7 +68,9 @@
 				:id="descriptionId"
 				:description="field.description"
 				class="mt-1"
-			/>
+			>
+				<FieldDescription :html="field.description" />
+			</InputDescription>
 			<ErrorMessage :id="errorId" :message="error" class="mt-1" />
 			<!-- Narrow `stacked` layout: a live preview always sits below the editor
 			     (the wide `split` layout shows it as a side column instead). It's
@@ -156,6 +158,7 @@ import { markCodeErrors } from "./codeErrorMarks";
 import { fieldtypeToLanguage } from "./fieldtypeToLanguage";
 import { CodeErrorsKey, ParentDocKey, TemplateNamesKey } from "./types";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
+import FieldDescription from "./FieldDescription.vue";
 
 const props = withDefaults(
 	defineProps<

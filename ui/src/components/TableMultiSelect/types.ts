@@ -29,6 +29,8 @@ export type TableMultiSelectEmits = {
 export interface TableMultiSelectSlots {
   /** The footer Create action's label; receives the typed query. */
   create?: (props: { query: string }) => any;
+  /** Replaces the description text. */
+  description?: () => any;
 }
 
 export type TableMultiSelectExposed = Pick<LinkExposed, "search" | "focus">;

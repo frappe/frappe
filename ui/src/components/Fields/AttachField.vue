@@ -21,6 +21,9 @@
 			@click="onActivate"
 			@keydown.enter.prevent="onActivate"
 		>
+			<template v-if="field.description && !error?.length" #description>
+				<FieldDescription :html="field.description" />
+			</template>
 			<template #prefix>
 				<!-- While the dialog is committing, the spinner wins over the
 				     thumbnail/icon so a Replace mid-upload reads as busy. -->
@@ -119,6 +122,7 @@ import { computed, defineAsyncComponent, ref, watch } from "vue";
 import { HoverCard, TextInput } from "frappe-ui";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
 import type { Restrictions, UploadResult, UploadTransport } from "../FileUpload/types";
+import FieldDescription from "./FieldDescription.vue";
 
 const FileUploadDialog = defineAsyncComponent(() => import("../FileUpload/FileUploadDialog.vue"));
 

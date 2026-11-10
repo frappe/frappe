@@ -15,6 +15,9 @@
 		@focus="onFocus"
 		@blur="focused = false"
 	>
+		<template v-if="field.description && !error?.length" #description>
+			<FieldDescription :html="field.description" />
+		</template>
 		<template v-if="url || phone" #suffix>
 			<FieldActions v-if="phone && !row" :field="field" :value="modelValue" />
 			<DataOpenLink
@@ -33,6 +36,7 @@ import { dataHref, dataInputAttrs, dataOption, groupIban, stripIban } from "./da
 import DataOpenLink from "./DataOpenLink.vue";
 import FieldActions from "./FieldActions.vue";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
+import FieldDescription from "./FieldDescription.vue";
 
 const props = defineProps<FieldComponentProps>();
 const emit = defineEmits<FieldComponentEmits>();

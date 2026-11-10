@@ -9,7 +9,11 @@
 		:error="error"
 		:disabled="field.readOnly"
 		:openOnClick="true"
-	/>
+	>
+		<template v-if="field.description && !error?.length" #description>
+			<FieldDescription :html="field.description" />
+		</template>
+	</Combobox>
 </template>
 
 <script setup lang="ts">
@@ -19,6 +23,7 @@ import { computed } from "vue";
 import { Combobox } from "frappe-ui";
 import { fieldChoices } from "./choices";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
+import FieldDescription from "./FieldDescription.vue";
 
 const props = defineProps<FieldComponentProps>();
 const emit = defineEmits<FieldComponentEmits>();

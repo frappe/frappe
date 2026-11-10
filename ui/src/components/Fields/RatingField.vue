@@ -9,7 +9,11 @@
 		:error="error"
 		:disabled="field.readOnly"
 		@update:modelValue="onUpdate"
-	/>
+	>
+		<template v-if="field.description && !error?.length" #description>
+			<FieldDescription :html="field.description" />
+		</template>
+	</Rating>
 </template>
 
 <script setup lang="ts">
@@ -19,6 +23,7 @@
 import { computed } from "vue";
 import { Rating } from "frappe-ui";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
+import FieldDescription from "./FieldDescription.vue";
 
 const props = defineProps<FieldComponentProps>();
 const emit = defineEmits<FieldComponentEmits>();

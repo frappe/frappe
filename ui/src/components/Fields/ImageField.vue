@@ -32,7 +32,9 @@
 			:id="descriptionId"
 			:description="field.description"
 			class="mt-1.5"
-		/>
+		>
+			<FieldDescription :html="field.description" />
+		</InputDescription>
 	</div>
 </template>
 
@@ -46,6 +48,7 @@ import { computed, inject, ref, useId } from "vue";
 import { InputLabel, InputDescription } from "frappe-ui/experimental";
 import { DocKey } from "./types";
 import type { FieldComponentProps } from "./types";
+import FieldDescription from "./FieldDescription.vue";
 
 const props = defineProps<FieldComponentProps>();
 

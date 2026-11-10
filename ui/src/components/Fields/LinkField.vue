@@ -36,6 +36,9 @@
 		@create="linkCreate.create"
 		@redirect="record.open"
 	>
+		<template v-if="field.description && !error?.length" #description>
+			<FieldDescription :html="field.description" />
+		</template>
 		<template #prefix>
 			<LinkMark
 				class="me-1.5"
@@ -65,6 +68,7 @@ import { useLinkMark } from "./useLinkMark";
 import { useRecordLink } from "./useRecordLink";
 import LinkMark from "./LinkMark.vue";
 import LinkValue from "./LinkValue.vue";
+import FieldDescription from "./FieldDescription.vue";
 
 const props = defineProps<FieldComponentProps>();
 const emit = defineEmits<FieldComponentEmits>();

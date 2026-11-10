@@ -13,7 +13,11 @@
 		@blur="focused = false"
 		@update:modelValue="onInput"
 		@change="onChange"
-	/>
+	>
+		<template v-if="field.description && !error?.length" #description>
+			<FieldDescription :html="field.description" />
+		</template>
+	</TextInput>
 </template>
 
 <script setup lang="ts">
@@ -23,6 +27,7 @@ import { DocKey, ParentDocKey } from "./types";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
 import { parseNumberText } from "./parseText";
 import { useFieldDisplay } from "../FormLayout/useFieldDisplay";
+import FieldDescription from "./FieldDescription.vue";
 
 const props = defineProps<FieldComponentProps>();
 const emit = defineEmits<FieldComponentEmits>();

@@ -7,13 +7,18 @@
 		:required="field.reqd"
 		:error="error"
 		:disabled="field.readOnly"
-	/>
+	>
+		<template v-if="field.description && !error?.length" #description>
+			<FieldDescription :html="field.description" />
+		</template>
+	</TimePicker>
 </template>
 
 <script setup lang="ts">
 import { computed } from "vue";
 import { TimePicker } from "frappe-ui";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
+import FieldDescription from "./FieldDescription.vue";
 
 const props = defineProps<FieldComponentProps>();
 const emit = defineEmits<FieldComponentEmits>();

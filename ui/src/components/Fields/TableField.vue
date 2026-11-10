@@ -18,6 +18,9 @@
 		@remove="onRowRemove"
 		@edit="openEdit"
 	>
+		<template v-if="field.description && !error?.length" #description>
+			<FieldDescription :html="field.description" />
+		</template>
 		<template #cell="{ row, column, value, update, commit }">
 			<!-- Resolve conditionals against THIS row (so per-row conditions match the
 			     row-edit dialog, and `row` lets a cell resolve `options`-to-sibling-field
@@ -134,6 +137,7 @@ import { ResolveFieldKey } from "../FormLayout/types";
 import type { CommitChannel, FieldError, RowAddress } from "./types";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
 import type { FieldNode, FormLayoutSchema } from "../FormLayout/types";
+import FieldDescription from "./FieldDescription.vue";
 
 // Async to break the module cycle (fieldTypes → TableField → FormLayout → fieldTypes).
 const FormLayout = defineAsyncComponent(() => import("../FormLayout/FormLayout.vue"));

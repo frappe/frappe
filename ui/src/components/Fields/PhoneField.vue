@@ -11,6 +11,9 @@
 		@update:modelValue="(value: any) => emit('update:modelValue', value)"
 		@change="(e: Event) => emit('change', (e.target as HTMLInputElement).value)"
 	>
+		<template v-if="field.description && !error?.length" #description>
+			<FieldDescription :html="field.description" />
+		</template>
 		<!-- A grid cell passes its row, and draws no actions. -->
 		<template v-if="!row" #suffix>
 			<FieldActions :field="field" :value="modelValue" />
@@ -24,6 +27,7 @@
 import { TextInput } from "frappe-ui";
 import FieldActions from "./FieldActions.vue";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
+import FieldDescription from "./FieldDescription.vue";
 
 const props = defineProps<FieldComponentProps>();
 const emit = defineEmits<FieldComponentEmits>();

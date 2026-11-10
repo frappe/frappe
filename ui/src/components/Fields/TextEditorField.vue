@@ -23,7 +23,7 @@
 			:id="descriptionId"
 			class="text-p-sm text-ink-gray-6"
 		>
-			{{ field.description }}
+			<FieldDescription :html="field.description" />
 		</p>
 		<ErrorMessage :id="errorId" :message="error" />
 	</div>
@@ -34,6 +34,7 @@ import { computed, defineAsyncComponent, h, useId } from "vue";
 import { ErrorMessage, FormLabel } from "frappe-ui";
 import RichTextView from "../RichText/RichTextView.vue";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
+import FieldDescription from "./FieldDescription.vue";
 
 // The editor chunk loads only when an editable field draws; the empty box holds its place.
 const TextEditorInput = defineAsyncComponent({

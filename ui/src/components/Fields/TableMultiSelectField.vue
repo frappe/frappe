@@ -19,6 +19,9 @@
 		:creatable="linkCreate.creatable.value"
 		@create="linkCreate.create"
 	>
+		<template v-if="targetDoctype && field.description && !error?.length" #description>
+			<FieldDescription :html="field.description" />
+		</template>
 		<template #create="{ query }">{{ linkCreate.label(query) }}</template>
 	</TableMultiSelect>
 </template>
@@ -34,6 +37,7 @@ import { newRowValues } from "../FormLayout/newRowValues";
 import { LinkTitlesKey } from "./types";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
 import { useLinkCreate } from "./useLinkCreate";
+import FieldDescription from "./FieldDescription.vue";
 
 const props = defineProps<FieldComponentProps>();
 const emit = defineEmits<FieldComponentEmits>();

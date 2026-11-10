@@ -2,7 +2,7 @@
 	<DatePicker
 		v-model="value"
 		:label="field.label"
-		:description="field.description"
+		:description="descriptionText(field.description)"
 		:placeholder="field.placeholder"
 		:required="field.reqd"
 		:error="error"
@@ -14,6 +14,7 @@
 import { computed } from "vue";
 import { DatePicker } from "frappe-ui";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
+import { descriptionText } from "./fieldDescription";
 
 const props = defineProps<FieldComponentProps>();
 const emit = defineEmits<FieldComponentEmits>();
