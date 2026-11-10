@@ -128,7 +128,7 @@ const options = useLinkSearch(
 
 // The search labels by title; relabelling its options by ID matches `toIdOption` on the raw rows.
 const searchOptions = computed(() =>
-	props.idLabels ? (options.data.value?.map(toIdOption) ?? null) : options.data.value
+	props.idLabels ? options.data.value?.map(toIdOption) ?? null : options.data.value
 );
 
 const createNewOption: ComboboxCustomOption = {

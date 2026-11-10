@@ -55,7 +55,7 @@ const resource = useLinkSearch(() => props.field.options);
 
 // The search labels by title; relabelling its options by ID matches `toIdOption` on the raw rows.
 const results = computed(() =>
-	isName.value ? (resource.data.value?.map(toIdOption) ?? null) : resource.data.value
+	isName.value ? resource.data.value?.map(toIdOption) ?? null : resource.data.value
 );
 
 watch(results, (data) => {

@@ -112,8 +112,8 @@ const mark = useLinkMark(
 const title = computed(() =>
 	isName.value
 		? undefined
-		: ((props.modelValue
+		: (props.modelValue
 				? titles?.value[`${props.field.options}::${props.modelValue}`]
-				: undefined) ?? linkCreate.title(props.modelValue))
+				: undefined) ?? linkCreate.title(props.modelValue)
 );
 </script>
