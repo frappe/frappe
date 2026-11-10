@@ -127,8 +127,10 @@ class SocialLoginKey(Document):
 			(_("Post Logout Redirect URI"), self.post_logout_redirect_uri),
 		):
 			# urlparse() strips some leading controls: reject ambiguous URLs before parsing.
-			invalid = not isinstance(url, str) or not url or any(
-				char.isspace() or ord(char) < 32 or ord(char) == 127 or char == "\\" for char in url
+			invalid = (
+				not isinstance(url, str)
+				or not url
+				or any(char.isspace() or ord(char) < 32 or ord(char) == 127 or char == "\\" for char in url)
 			)
 			if not invalid:
 				try:
