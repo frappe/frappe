@@ -3485,20 +3485,17 @@ class TestQuery(IntegrationTestCase):
 
 
 class TestJSONFieldQueries(IntegrationTestCase):
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
-		cls.doctype = "Test JSON Field Query"
+	def setUp(self):
+		super().setUp()
+		self.doctype = "Test JSON Field Query"
 		new_doctype(
-			cls.doctype,
+			self.doctype,
 			fields=[
 				{"fieldname": "payload", "label": "Payload", "fieldtype": "JSON"},
 				{"fieldname": "secret", "label": "Secret", "fieldtype": "JSON", "permlevel": 1},
 			],
 		).insert(ignore_if_duplicate=True)
 
-	def setUp(self):
-		super().setUp()
 		self.names = {
 			label: frappe.get_doc(doctype=self.doctype, payload=payload).insert().name
 			for label, payload in (("null", None), ("empty", "[]"), ("filled", '["x"]'))

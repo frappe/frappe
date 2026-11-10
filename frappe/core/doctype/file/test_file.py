@@ -1346,6 +1346,7 @@ class TestAttachment(IntegrationTestCase):
 				},
 			],
 		).insert(ignore_if_duplicate=True)
+		frappe.db.commit()
 
 	@classmethod
 	def tearDownClass(cls):
@@ -1354,6 +1355,7 @@ class TestAttachment(IntegrationTestCase):
 		frappe.delete_doc("DocType", cls.test_child_doctype)
 		frappe.delete_doc("DocType", cls.test_submittable_doctype)
 		frappe.delete_doc("DocType", cls.test_protected_doctype)
+		frappe.db.commit()
 
 	def test_file_attachment_on_update(self):
 		doc = frappe.get_doc(doctype=self.test_doctype, title="test for attachment on update").insert()
@@ -1765,6 +1767,7 @@ class TestChildTableAttachments(IntegrationTestCase):
 				{"role": "All", "read": 1},
 			],
 		).insert(ignore_if_duplicate=True)
+		frappe.db.commit()
 
 	@classmethod
 	def tearDownClass(cls):
@@ -1773,6 +1776,7 @@ class TestChildTableAttachments(IntegrationTestCase):
 		frappe.delete_doc_if_exists("DocType", cls.collision_parent_doctype)
 		frappe.delete_doc_if_exists("DocType", cls.child_doctype)
 		frappe.delete_doc_if_exists("DocType", cls.second_child_doctype)
+		frappe.db.commit()
 		super().tearDownClass()
 
 	def tearDown(self):
@@ -2911,11 +2915,13 @@ class TestForcePrivateAttachments(IntegrationTestCase):
 			force_private_attachments=1,
 			permissions=[{"role": "Website Manager", "read": 1, "write": 1, "create": 1}],
 		).insert(ignore_if_duplicate=True)
+		frappe.db.commit()
 
 	@classmethod
 	def tearDownClass(cls):
 		frappe.db.rollback()
 		frappe.delete_doc_if_exists("DocType", cls.test_doctype)
+		frappe.db.commit()
 
 	def setUp(self):
 		super().setUp()

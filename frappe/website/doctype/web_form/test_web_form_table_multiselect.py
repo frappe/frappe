@@ -88,27 +88,29 @@ class TestWebFormTableMultiSelect(IntegrationTestCase):
 				},
 			],
 		).insert(ignore_if_duplicate=True)
-
-		for title in ("Alpha", "Beta", "Gamma"):
-			frappe.get_doc(doctype=TARGET, title=title).insert(ignore_if_duplicate=True)
-
-		cls.numbered_names = [
-			str(frappe.get_doc(doctype=NUMBERED, title=title).insert().name) for title in ("One", "Two")
-		]
-		cls.untitled_names = [
-			str(frappe.get_doc(doctype=UNTITLED, note=note).insert().name) for note in ("First", "Second")
-		]
+		frappe.db.commit()
 
 	@classmethod
 	def tearDownClass(cls):
 		frappe.db.rollback()
 		for doctype in (PARENT, ROW, TARGET, NUMBERED_ROW, NUMBERED, UNTITLED_ROW, UNTITLED):
 			frappe.delete_doc("DocType", doctype, force=True)
+		frappe.db.commit()
 		super().tearDownClass()
 
 	def setUp(self):
 		frappe.set_user("Administrator")
 		frappe.local.request = None
+
+		for title in ("Alpha", "Beta", "Gamma"):
+			frappe.get_doc(doctype=TARGET, title=title).insert(ignore_if_duplicate=True)
+
+		self.numbered_names = [
+			str(frappe.get_doc(doctype=NUMBERED, title=title).insert().name) for title in ("One", "Two")
+		]
+		self.untitled_names = [
+			str(frappe.get_doc(doctype=UNTITLED, note=note).insert().name) for note in ("First", "Second")
+		]
 
 	def tearDown(self):
 		frappe.set_user("Administrator")

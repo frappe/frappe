@@ -199,6 +199,7 @@ class TestStepCompletion(OnboardingTestCase):
 		super().setUpClass()
 		cls.record_doctype = new_doctype(custom=1).insert(ignore_permissions=True).name
 		cls.submittable_doctype = new_doctype(custom=1, is_submittable=1).insert(ignore_permissions=True).name
+		frappe.db.commit()
 
 	@classmethod
 	def tearDownClass(cls):

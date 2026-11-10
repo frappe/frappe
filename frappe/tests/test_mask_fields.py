@@ -394,6 +394,7 @@ class TestMaskFieldsInChildTable(IntegrationTestCase):
 			.insert()
 			.name
 		)
+		frappe.db.commit()
 
 	def setUp(self):
 		super().setUp()
@@ -415,6 +416,7 @@ class TestMaskFieldsInChildTable(IntegrationTestCase):
 		frappe.delete_doc("DocType", cls.child_dt, force=True)
 		if frappe.db.exists("User", cls.TEST_USER):
 			frappe.db.set_value("User", cls.TEST_USER, "enabled", 0)
+		frappe.db.commit()
 		super().tearDownClass()
 
 	def tearDown(self):
@@ -664,6 +666,7 @@ class TestMaskFieldsInLinkedDocType(IntegrationTestCase):
 			.insert()
 			.name
 		)
+		frappe.db.commit()
 
 	def setUp(self):
 		super().setUp()
@@ -679,6 +682,7 @@ class TestMaskFieldsInLinkedDocType(IntegrationTestCase):
 		frappe.delete_doc("DocType", cls.target_dt, force=True)
 		if frappe.db.exists("User", cls.TEST_USER):
 			frappe.db.set_value("User", cls.TEST_USER, "enabled", 0)
+		frappe.db.commit()
 		super().tearDownClass()
 
 	def tearDown(self):

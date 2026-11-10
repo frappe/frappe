@@ -1328,6 +1328,7 @@ class TestGetDocs(IntegrationTestCase):
 			.insert()
 			.name
 		)
+		frappe.db.commit()
 
 	def setUp(self):
 		super().setUp()
@@ -1349,6 +1350,7 @@ class TestGetDocs(IntegrationTestCase):
 		frappe.db.delete(cls.parent_dt)
 		frappe.delete_doc("DocType", cls.parent_dt, force=True)
 		frappe.delete_doc("DocType", cls.child_dt, force=True)
+		frappe.db.commit()
 		super().tearDownClass()
 
 	def test_returns_document_instances(self):
