@@ -5,6 +5,7 @@ import { ApiError } from "@framework/ui/api";
 import {
 	clearDataCache,
 	feedListRead,
+	feedPartWrite,
 	feedReadError,
 	settleTicket,
 	takeTicket,
@@ -231,5 +232,23 @@ describe("a query the shared cache holds", () => {
 			[0, 20],
 			[20, 19],
 		]);
+	});
+});
+
+describe("a record opened while the list stays mounted", () => {
+	it("shows its row seen from the cache write, with no new read", async () => {
+		cacheList(3, false);
+		const rows = useListRows("ToDo", () => queryOf(20));
+		fake.listDocuments.mockClear();
+		const ticket = takeTicket();
+		feedPartWrite(ticket, "ToDo", "T-1", "seen", ["Administrator"]);
+		settleTicket(ticket);
+		await settle();
+		expect(rows.rows.value.map((row) => row._seen)).toEqual([
+			undefined,
+			'["Administrator"]',
+			undefined,
+		]);
+		expect(fake.listDocuments).not.toHaveBeenCalled();
 	});
 });

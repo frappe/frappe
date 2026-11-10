@@ -127,6 +127,15 @@ export function useListRows(doctype: string, query: () => RowsQuery | null): Lis
 		}
 	);
 
+	// Opening a record marks its cached row seen; a mounted list follows that write with no read.
+	watch(
+		() => {
+			const current = query();
+			return current && readCachedRows(doctype, listQuery(current));
+		},
+		(cached) => cached && followSeen(cached as ListRow[])
+	);
+
 	onScopeDispose(() => clearTimeout(timer));
 
 	/** Undefined while there is no query yet, so the first real one still counts as the first. */
@@ -146,6 +155,19 @@ export function useListRows(doctype: string, query: () => RowsQuery | null): Lis
 		shown.value = 0;
 		total.value = { count: null, capped: false, answered: false };
 		if (current) show(Math.max(target, current.limit));
+	}
+
+	function followSeen(cached: ListRow[]) {
+		const seen = new Map(cached.map((row) => [row.name, row._seen]));
+		const moved = (row: ListRow) => seen.has(row.name) && seen.get(row.name) !== row._seen;
+		if (!pages.value.some((page) => page.data?.some(moved))) return;
+		pages.value = pages.value.map((page) => {
+			if (!page.data?.some(moved)) return page;
+			const data = page.data.map((row) =>
+				moved(row) ? { ...row, _seen: seen.get(row.name) } : row
+			);
+			return landedPage(data, page.hasNextPage, page.span);
+		});
 	}
 
 	/** False when the cache holds no list for the query; otherwise shows every name it lists. */
