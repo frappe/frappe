@@ -109,10 +109,59 @@ def is_valid_http_method(method):
 		frappe.throw_permission_error()
 
 
-@frappe.whitelist(allow_guest=True, methods=["POST"])
+@frappe.whitelist(allow_guest=True, methods=["POST"])  # nosemgrep: guest-whitelisted-method
 def logout():
+	from frappe.utils.oauth import get_oauth2_logout_url
+
+	logout_url = get_oauth2_logout_url()
+	# Only redirects set during this logout's on_logout hooks should be considered.
+	frappe.local.flags.pop("post_logout_redirect", None)
 	frappe.local.login_manager.logout()
+	# Hooks can explicitly override the configured OIDC redirect.
+	hook_redirect = get_post_logout_redirect()
 	frappe.db.commit()
+	return hook_redirect or logout_url
+
+
+def get_post_logout_redirect() -> str | None:
+	"""Return a safe, one-time redirect set by an on_logout hook.
+
+	Apps can set ``frappe.local.flags.post_logout_redirect`` to an absolute HTTPS
+	URL (e.g. an identity provider's logout endpoint) or a site-relative path.
+	A malformed or unsafe redirect is ignored so it cannot prevent logout.
+	"""
+	from urllib.parse import urlsplit
+
+	redirect = frappe.local.flags.pop("post_logout_redirect", None)
+	if not isinstance(redirect, str) or not redirect:
+		return None
+
+	# Reject control characters and backslashes that browsers may interpret as slashes.
+	if any(char.isspace() or ord(char) < 32 or ord(char) == 127 for char in redirect) or "\\" in redirect:
+		return None
+
+	try:
+		parsed = urlsplit(redirect)
+		if (
+			parsed.scheme == "https"
+			and parsed.netloc
+			and parsed.hostname
+			and parsed.username is None
+			and parsed.password is None
+			and (parsed.port is None or 1 <= parsed.port <= 65535)
+		):
+			return redirect
+		if (
+			redirect.startswith("/")
+			and not redirect.startswith("//")
+			and not parsed.scheme
+			and not parsed.netloc
+		):
+			return redirect
+	except ValueError:
+		pass
+
+	return None
 
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])
