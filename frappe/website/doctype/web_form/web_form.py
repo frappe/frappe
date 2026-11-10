@@ -979,6 +979,7 @@ def accept(web_form: str, data: str | dict, web_form_request_key: str | None = N
 		# insert
 		if (
 			web_form.login_required
+			and not web_form.anonymous
 			and not web_form.allow_multiple
 			and not web_form_request
 			and web_form.get_user_response()
