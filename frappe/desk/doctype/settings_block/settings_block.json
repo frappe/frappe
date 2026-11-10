@@ -24,9 +24,7 @@
   "bindings",
   "saves_fields",
   "column_break_component",
-  "search_entries",
-  "placement_section",
-  "anchors"
+  "search_entries"
  ],
  "fields": [
   {
@@ -165,18 +163,6 @@
    "fieldname": "search_entries",
    "fieldtype": "Code",
    "label": "Search Entries",
-   "options": "JSON"
-  },
-  {
-   "fieldname": "placement_section",
-   "fieldtype": "Section Break",
-   "label": "Placement"
-  },
-  {
-   "description": "Extending records only: a JSON list of {after} or {before} a block key.",
-   "fieldname": "anchors",
-   "fieldtype": "Code",
-   "label": "Anchors",
    "options": "JSON"
   }
  ],

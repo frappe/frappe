@@ -8,7 +8,6 @@ import hashlib
 import frappe
 from frappe import _
 from frappe.desk.doctype.rail.rail import NO_HOST, SITE_LAYER
-from frappe.desk.layers import anchor_attempts, place_by_anchors
 from frappe.desk.settings_block import Block
 from frappe.desk.settings_records import shipped_records
 from frappe.desk.settings_rules import Problem, SettingsRules, report
@@ -17,6 +16,7 @@ from .boot import report_oversized_keys
 from .doctypes import metadata_version
 from .permissions import may_enter_any_prefix
 from .settings_filter import SettingsFilter
+from .settings_sidebar import Resolved, resolve_sidebars
 from .titles import app_screen
 
 PANES_CACHE_KEY = "shell_settings_panes"
@@ -37,22 +37,37 @@ def get_panes() -> dict:
 
 def get_cached_panes() -> list[dict]:
 	"""The merged, unfiltered panes, cached on `metadata_version` and a digest of the stored records."""
+	return _cached_merge()["panes"]
+
+
+def get_cached_sidebars() -> dict[str, dict]:
+	"""The resolved sidebar of each prefix, unfiltered, from the same cache entry as the panes."""
+	return _cached_merge()["sidebars"]
+
+
+def _cached_merge() -> dict:
 	# The stamp is read in the merge's transaction and before it, so a merge of old rows never carries
 	# a current stamp, whatever snapshot the request began with.
 	version = f"{metadata_version()}:{_records_stamp()}"
 	cached = frappe.client_cache.get_value(PANES_CACHE_KEY)
 
-	if isinstance(cached, dict) and cached.get("version") == version:
-		return cached["panes"]
+	if isinstance(cached, dict) and cached.get("version") == version and "sidebars" in cached:
+		return cached
 
-	panes = resolve_panes()
-	frappe.client_cache.set_value(PANES_CACHE_KEY, {"version": version, "panes": panes})
-	return panes
+	resolved = resolve_settings()
+	cached = {"version": version, "panes": resolved.panes, "sidebars": resolved.sidebars}
+	frappe.client_cache.set_value(PANES_CACHE_KEY, cached)
+	return cached
 
 
 def check_shipped_records():
-	"""After migrate: report the blocks of every active app that clash with another record's or name a pane the host lacks."""
-	report([problem for problem in merge_shipped()[1] if problem.across])
+	"""After migrate: report the blocks and arrangements of every active app that clash with another record's or name what the site lacks."""
+	resolved = merge_settings()
+	report([problem for problem in resolved.problems if problem.across])
+
+	for notices in resolved.notices.values():
+		for notice in notices:
+			print(f"Settings sidebar notice: {notice}")
 
 
 def _records_stamp() -> str:
@@ -70,17 +85,38 @@ def _records_stamp() -> str:
 
 def resolve_panes(apps: list[str] | None = None) -> list[dict]:
 	"""Every app's panes in run order, each holding its host's blocks and then every extending app's."""
-	resolved, problems = merge_shipped(apps)
+	return resolve_settings(apps).panes
 
-	for problem in problems:
+
+def resolve_settings(apps: list[str] | None = None) -> Resolved:
+	"""The merge with every problem logged: the panes, and the sidebar of each desk."""
+	resolved = merge_settings(apps)
+
+	for problem in resolved.problems:
 		_warn(problem)
 
 	return resolved
 
 
 def merge_shipped(apps: list[str] | None = None) -> tuple[list[dict], list[Problem]]:
-	"""The merged panes and the problems of the blocks it left out."""
-	records = _shipped_records(apps or frappe.get_active_apps(_ensure_on_bench=True))
+	"""The merged panes and the problems of what it left out."""
+	resolved = merge_settings(apps)
+	return resolved.panes, resolved.problems
+
+
+def merge_settings(apps: list[str] | None = None) -> Resolved:
+	"""The merged panes, the sidebars resolved over them, and the problems and notices of both."""
+	apps = apps or frappe.get_active_apps(_ensure_on_bench=True)
+	records = _shipped_records(apps)
+	panes, problems = _merge_panes(records)
+
+	resolved = resolve_sidebars(panes, records, apps)
+	resolved.panes = panes
+	resolved.problems = [*problems, *resolved.problems]
+	return resolved
+
+
+def _merge_panes(records: list) -> tuple[list[dict], list[Problem]]:
 	rules = SettingsRules()
 	resolved, problems = [], []
 
@@ -99,48 +135,16 @@ def merge_shipped(apps: list[str] | None = None) -> tuple[list[dict], list[Probl
 
 
 def _fill(pane_list: list[dict], accepted: list[Block]):
-	"""Put every accepted block in its pane, then move the anchored ones."""
+	"""Put every accepted block in its pane."""
 	by_key = {pane["key"]: pane for pane in pane_list}
-	anchored: dict[str, list[tuple[dict, list[dict]]]] = {}
 
 	for block in accepted:
-		wire = _block(block)
-		by_key[block.pane]["blocks"].append(wire)
-
-		if block.record.extends and (attempts := _placements(block.row.anchors)):
-			anchored.setdefault(block.pane, []).append((wire, attempts))
-
-	for key, placed in anchored.items():
-		_place(by_key[key]["blocks"], placed)
-
-
-def _place(blocks: list[dict], placed: list[tuple[dict, list[dict]]]):
-	"""Move each anchored block to the first `after` or `before` that names a block in the pane."""
-	present = {block["key"] for block in blocks}
-	place_by_anchors(
-		blocks,
-		placed,
-		key=lambda block: block["key"],
-		target_key=lambda _block, name: name if name in present else None,
-	)
-
-	# `place_by_anchors` serves nested lists and stamps the row's parent; a pane is flat.
-	for block in blocks:
-		block.pop("parent_key", None)
-
-
-def _placements(raw) -> list[dict]:
-	"""A block's anchors as `after` or `before` only: a pane's blocks do not nest."""
-	return [
-		{**attempt, "parent_key": None}
-		for attempt in anchor_attempts(raw)
-		if isinstance(attempt["after"] or attempt["before"], str)
-	]
+		by_key[block.pane]["blocks"].append(_block(block))
 
 
 def _warn(problem: Problem):
 	frappe.logger("shell").warning(
-		f"Settings {problem.message}; the block is left out of the settings dialog."
+		f"Settings {problem.message}; it is left out of the settings dialog."
 	)
 
 

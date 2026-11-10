@@ -1,0 +1,18 @@
+Sidebar desk
+
+Group
+  desk/profile
+    desk/profile/photo
+    desk/profile/details
+    desk/profile/locale
+    desk/profile/appearance
+    desk/profile/notifications
+    desk/profile/email
+    desk/profile/session-defaults
+  desk/system
+    desk/system/regional
+    desk/system/login
+    desk/system/password
+    desk/system/two-factor
+    desk/system/email
+    desk/system/files

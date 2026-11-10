@@ -1046,6 +1046,33 @@ def rebuild_global_search(context: CliCtxObj, static_pages=False):
 		raise SiteNotSpecifiedError
 
 
+@click.command("settings-sidebar")
+@click.argument("prefix", required=False)
+@click.option("--json", "output_json", is_flag=True, help="Print the resolver's output as JSON")
+@click.option("--user", help="Show the sidebar as this user sees it")
+@click.option("--write", is_flag=True, help="Rewrite the app's settings_dialog/sidebar.txt for PREFIX")
+@pass_context
+def settings_sidebar(context: CliCtxObj, prefix=None, output_json=False, user=None, write=False):
+	"Print the settings dialog's sidebar of a desk (every desk without PREFIX), or rewrite its sidebar.txt"
+	from frappe.shell.settings_sidebar_text import describe_sidebars, write_settings_sidebar
+
+	if write and not prefix:
+		raise click.UsageError("--write needs a PREFIX.")
+
+	site = get_site(context)
+	with frappe.init_site(site):
+		frappe.connect()
+		try:
+			if write:
+				print(f"Wrote {write_settings_sidebar(prefix)}")
+			else:
+				print(describe_sidebars(prefix, as_json=output_json, user=user))
+		except ValueError as error:
+			raise click.ClickException(str(error)) from None
+		finally:
+			frappe.destroy()
+
+
 @click.command("list-sites")
 @click.option("--json", "output_json", is_flag=True, help="Output in JSON format")
 @pass_context
@@ -1119,5 +1146,6 @@ commands = [
 	add_to_email_queue,
 	rebuild_global_search,
 	list_sites,
+	settings_sidebar,
 	setup_chrome,
 ]

@@ -13,7 +13,6 @@ class SettingsBlock(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-		anchors: DF.Code | None
 		binding_type: DF.Literal["", "Single", "Record"]
 		bindings: DF.Code | None
 		component: DF.Data | None

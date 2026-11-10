@@ -38,10 +38,6 @@ def block_keys(app: str, *apps: str) -> dict[str, list[str]]:
 	return {entry["key"]: [block["key"] for block in entry["blocks"]] for entry in panes_of(app, *apps)}
 
 
-def anchored(key: str, *anchors: dict) -> dict:
-	return component(key, anchors=json.dumps(list(anchors)))
-
-
 def unchecked(doc):
 	"""Insert as install order can leave it: the other record arrived after this one was checked."""
 	doc.flags.ignore_validate = True
@@ -74,42 +70,6 @@ class TestSettingsMerge(SettingsDialogTestCase):
 			keys = [(entry["app"], entry["key"]) for entry in resolve_panes() if entry["app"] != "frappe"]
 
 		self.assertEqual(keys, [(EXTENDER, "telephony"), (HOST, "general"), (HOST, "email")])
-
-	def test_an_anchor_places_an_extending_block_beside_a_host_block(self):
-		with authoring():
-			ship(["general"], [single("system"), component("theme"), component("defaults")])
-			ship(
-				blocks=[anchored("calls", {"before": "theme"}), anchored("dial", {"after": "defaults"})],
-				app=EXTENDER,
-				extends=HOST,
-			)
-
-		self.assertEqual(
-			block_keys(HOST, HOST, EXTENDER), {"general": ["system", "calls", "theme", "defaults", "dial"]}
-		)
-
-	def test_an_anchor_that_does_not_resolve_leaves_the_block_in_run_order(self):
-		with authoring():
-			ship(["general"], [single("system"), component("theme")])
-			unchecked(
-				ship(
-					blocks=[anchored("calls", {"after": "gone"}, {"parent_key": "system"})],
-					app=EXTENDER,
-					extends=HOST,
-					insert=False,
-				)
-			)
-
-		with self.assertLogs(frappe.logger("shell"), "WARNING") as logged:
-			self.assertEqual(block_keys(HOST, HOST, EXTENDER), {"general": ["system", "theme"]})
-
-		self.assertIn("block calls", logged.output[0])
-
-	def test_a_host_blocks_anchor_does_not_move_it(self):
-		with authoring():
-			ship(["general"], [single("system"), anchored("theme", {"before": "system"})])
-
-		self.assertEqual(block_keys(HOST, HOST), {"general": ["system", "theme"]})
 
 	def test_a_duplicate_key_keeps_the_first_block_in_run_order_and_warns(self):
 		with authoring():
@@ -178,28 +138,6 @@ class TestSettingsMerge(SettingsDialogTestCase):
 		self.assertIn("block unlisted", logged.output[0])
 		self.assertIn("block typo", logged.output[1])
 
-	def test_an_anchor_naming_a_parent_leaves_the_block_out_and_warns(self):
-		with authoring():
-			ship(["general"], [single("system"), component("theme"), component("defaults")])
-			unchecked(
-				ship(
-					blocks=[
-						anchored("calls", {"after": "theme", "parent_key": "system"}),
-						anchored("dial", {"after": "system"}),
-					],
-					app=EXTENDER,
-					extends=HOST,
-					insert=False,
-				)
-			)
-
-		with self.assertLogs(frappe.logger("shell"), "WARNING") as logged:
-			self.assertEqual(
-				block_keys(HOST, HOST, EXTENDER), {"general": ["system", "dial", "theme", "defaults"]}
-			)
-
-		self.assertIn("block calls", logged.output[0])
-
 	def test_a_block_imported_with_unreadable_json_is_dropped_and_logged(self):
 		with authoring():
 			unchecked(
@@ -225,23 +163,6 @@ class TestSettingsMerge(SettingsDialogTestCase):
 			self.assertEqual(block_keys(HOST, HOST), {"general": ["system"]})
 
 		self.assertEqual(len(logged.output), 9)
-
-	def test_an_anchor_whose_target_is_not_a_name_leaves_the_block_out_and_warns(self):
-		with authoring():
-			ship(["general"], [single("system"), component("theme")])
-			unchecked(
-				ship(
-					blocks=[anchored("calls", {"after": ["system"]})],
-					app=EXTENDER,
-					extends=HOST,
-					insert=False,
-				)
-			)
-
-		with self.assertLogs(frappe.logger("shell"), "WARNING") as logged:
-			self.assertEqual(block_keys(HOST, HOST, EXTENDER), {"general": ["system", "theme"]})
-
-		self.assertIn("block calls", logged.output[0])
 
 	def test_an_extending_block_naming_a_pane_the_host_lacks_is_dropped_and_warns(self):
 		with authoring():

@@ -15,7 +15,9 @@
   "panes_section",
   "panes",
   "blocks_section",
-  "blocks"
+  "blocks",
+  "arrangement_section",
+  "arrangement"
  ],
  "fields": [
   {
@@ -81,6 +83,17 @@
    "fieldtype": "Table",
    "label": "Blocks",
    "options": "Settings Block"
+  },
+  {
+   "fieldname": "arrangement_section",
+   "fieldtype": "Section Break",
+   "label": "Arrangement"
+  },
+  {
+   "description": "How this app's desk lists the sidebar: groups of pane addresses, hidden panes, and each pane's blocks. Only the app that owns the desk sets it.",
+   "fieldname": "arrangement",
+   "fieldtype": "JSON",
+   "label": "Arrangement"
   }
  ],
  "grid_page_length": 50,

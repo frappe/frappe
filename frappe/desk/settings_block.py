@@ -11,7 +11,7 @@ NAME_RESOLVERS = ("session_user",)
 KINDS = ("Generated", "Component")
 # The columns only a component uses; a generated block shows `fields` and leaves these blank.
 COMPONENT_COLUMNS = ("saves_fields", "bindings", "search_entries")
-JSON_COLUMNS = ("fields", "saves_fields", "bindings", "search_entries", "anchors", "roles")
+JSON_COLUMNS = ("fields", "saves_fields", "bindings", "search_entries", "roles")
 
 
 class Refusal(Exception):
@@ -35,9 +35,9 @@ class Block:
 
 	def read_columns(self):
 		"""Read every JSON column this kind of block uses, so a wrong shape raises here."""
-		columns = ["fields", "anchors", "roles"]
+		columns = ["fields", "roles"]
 		if self.is_component:
-			columns = ["fields", "bindings", "search_entries", "anchors", "roles"]
+			columns = ["fields", "bindings", "search_entries", "roles"]
 		for column in columns:
 			getattr(self, column)
 
@@ -65,16 +65,6 @@ class Block:
 		if not all(role.strip() for role in roles):
 			raise self._bad_json("roles")
 		return roles
-
-	@cached_property
-	def anchors(self) -> list[dict]:
-		anchors = self._column("anchors", list, dict)
-		if any(
-			len(anchor) != 1 or not isinstance(anchor.get("after") or anchor.get("before"), str)
-			for anchor in anchors
-		):
-			raise self._bad_json("anchors")
-		return anchors
 
 	@cached_property
 	def search_entries(self) -> list[dict]:
@@ -129,6 +119,8 @@ def upgrade_row(values: dict) -> dict:
 	its JSON columns as native values; the columns are text in the database.
 	"""
 	row = dict(values)
+	# A file written before anchors were dropped may still hold one; a pane's order is its desk's list.
+	row.pop("anchors", None)
 
 	if not row.get("kind"):
 		row["kind"] = "Component" if row.get("component") else "Generated"
