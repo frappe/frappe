@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import json
+from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 import frappe
 from frappe import _
@@ -51,9 +52,12 @@ class SocialLoginKey(Document):
 		base_url: DF.Data | None
 		client_id: DF.Data | None
 		client_secret: DF.Password | None
+		enable_oidc_logout: DF.Check
 		custom_base_url: DF.Check
+		end_session_endpoint: DF.Data | None
 		enable_social_login: DF.Check
 		icon: DF.Data | None
+		post_logout_redirect_uri: DF.Data | None
 		provider_name: DF.Data
 		redirect_url: DF.Data | None
 		show_in_resource_metadata: DF.Check
@@ -94,6 +98,7 @@ class SocialLoginKey(Document):
 			frappe.throw(
 				_("Please enter Client Secret before social login is enabled"), exc=ClientSecretNotSetError
 			)
+		self.validate_oidc_logout()
 		if self.auth_url_data:
 			try:
 				json.loads(self.auth_url_data)
@@ -105,6 +110,48 @@ class SocialLoginKey(Document):
 				json.loads(self.api_endpoint_args)
 			except json.JSONDecodeError:
 				frappe.throw(_("API Endpoint Args should be valid JSON"))
+
+	def validate_oidc_logout(self):
+		if not self.enable_oidc_logout:
+			return
+
+		if not self.end_session_endpoint:
+			frappe.throw(_("Please enter End Session Endpoint"))
+		if not self.post_logout_redirect_uri:
+			frappe.throw(_("Please enter Post Logout Redirect URI"))
+		if not self.client_id:
+			frappe.throw(_("Please enter Client ID before OIDC logout is enabled"), exc=ClientIDNotSetError)
+
+		for label, url in (
+			(_("End Session Endpoint"), self.get_end_session_endpoint()),
+			(_("Post Logout Redirect URI"), self.post_logout_redirect_uri),
+		):
+			parsed = urlparse(url)
+			if parsed.scheme != "https" or not parsed.netloc:
+				frappe.throw(_("{0} must be an absolute HTTPS URL").format(label))
+
+	def get_end_session_endpoint(self) -> str:
+		if self.custom_base_url:
+			from frappe.utils.oauth import build_oauth_url
+
+			return build_oauth_url(self.base_url, self.end_session_endpoint)
+		return self.end_session_endpoint
+
+	def get_oidc_logout_url(self) -> str:
+		parsed = urlparse(self.get_end_session_endpoint())
+		# Replace identity/redirect parameters instead of duplicating query values.
+		query = [
+			(name, value)
+			for name, value in parse_qsl(parsed.query, keep_blank_values=True)
+			if name not in {"client_id", "post_logout_redirect_uri"}
+		]
+		query.extend(
+			(
+				("client_id", self.client_id),
+				("post_logout_redirect_uri", self.post_logout_redirect_uri),
+			)
+		)
+		return urlunparse(parsed._replace(query=urlencode(query)))
 
 	def set_icon(self):
 		icon_map = {
@@ -240,6 +287,8 @@ class SocialLoginKey(Document):
 			"api_endpoint_args": None,
 			"authorize_url": "/protocol/openid-connect/auth",
 			"access_token_url": "/protocol/openid-connect/token",
+			"enable_oidc_logout": 0,
+			"end_session_endpoint": "/protocol/openid-connect/logout",
 			"user_id_property": "preferred_username",
 			"auth_url_data": json.dumps({"response_type": "code", "scope": "openid"}),
 		}
