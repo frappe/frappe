@@ -1,11 +1,6 @@
 <!-- The person's language and time zone. The time zones come from the server, which a generated row cannot ask for. -->
 <template>
-	<div
-		v-for="field in fields"
-		:key="field.fieldname"
-		:data-fieldname="field.fieldname"
-		class="border-b border-outline-gray-1 last:border-b-0"
-	>
+	<div v-for="field in fields" :key="field.fieldname" :data-fieldname="field.fieldname">
 		<SettingsRow :title="field.label">
 			<Skeleton v-if="user.loading" class="h-7 w-56 rounded-4" />
 			<component

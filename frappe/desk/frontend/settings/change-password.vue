@@ -1,12 +1,7 @@
 <!-- The person's own password: the current one, a new one the site's policy accepts, then a reload. -->
 <template>
 	<form @submit.prevent="change">
-		<div
-			v-for="row in ROWS"
-			:key="row.key"
-			:data-fieldname="row.key"
-			class="border-b border-outline-gray-1 last:border-b-0"
-		>
+		<div v-for="row in ROWS" :key="row.key" :data-fieldname="row.key">
 			<SettingsRow :title="row.title">
 				<TextInput
 					v-model="values[row.key]"

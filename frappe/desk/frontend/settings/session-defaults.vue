@@ -10,13 +10,7 @@
 	<p v-else-if="!fields.length" class="py-3.5 text-base text-ink-gray-6">
 		{{ __("This site sets no session defaults.") }}
 	</p>
-	<div
-		v-for="field in fields"
-		v-else
-		:key="field.fieldname"
-		:data-fieldname="field.fieldname"
-		class="border-b border-outline-gray-1 last:border-b-0"
-	>
+	<div v-for="field in fields" v-else :key="field.fieldname" :data-fieldname="field.fieldname">
 		<SettingsRow :title="field.label">
 			<component
 				:is="getFieldComponent('Link')"
