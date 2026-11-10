@@ -45,6 +45,7 @@ $.extend(frappe.model, {
 		"Text",
 		"Text Editor",
 		"Time",
+		"Vue Component",
 	],
 
 	no_value_type: [
@@ -59,6 +60,7 @@ $.extend(frappe.model, {
 		"Image",
 		"Fold",
 		"Heading",
+		"Vue Component",
 	],
 
 	layout_fields: ["Section Break", "Column Break", "Tab Break", "Fold"],
@@ -138,6 +140,7 @@ $.extend(frappe.model, {
 	],
 
 	numeric_fieldtypes: ["Int", "Float", "Currency", "Percent", "Duration"],
+	plain_text_fieldtypes: ["Data", "Long Text", "Small Text", "Text", "Password", "MultiSelect"],
 
 	std_fields_table: [{ fieldname: "parent", fieldtype: "Data", label: __("Parent") }],
 

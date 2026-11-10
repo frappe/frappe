@@ -111,6 +111,13 @@ companion off the apps screen; declaring your own rail costs nothing.
    Studio app starts with: it is served as `window.boot` before the first navigation, so page scripts
    and bindings read `boot.<key>`. Example: `studio_app_boot = {"helpdesk": "helpdesk.studio.boot.get_boot"}`.
 
+#### Flow
+
+1. `flow_agents` - list of methods that return `frappe.flow.Agent` objects. Flow saves them as Flow Agents
+   after migrate and app installs. Example: `flow_agents = ["myapp.ai.agents"]`.
+1. `flow_tools` - list of `@tool` functions. Flow saves each as a locked Flow Tool that any agent can use.
+   Example: `flow_tools = ["myapp.ai.get_open_todos"]`.
+
 #### Notifications
 
 1. `notification_config` - method to get notification configuration

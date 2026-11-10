@@ -1,0 +1,802 @@
+# Copyright (c) 2026, Frappe Technologies and contributors
+# License: MIT. See LICENSE
+
+import json
+from unittest.mock import patch
+
+import frappe
+from frappe.api import discovery
+from frappe.core.doctype.rq_worker.rq_worker import RQWorker
+from frappe.desk.doctype.todo.todo import ToDo
+from frappe.flow import ToolContext
+from frappe.flow.tools.builtins import (
+	BUILTIN_TOOLS,
+	builtin_name,
+	call_api,
+	create,
+	delete,
+	describe,
+	describe_api,
+	execute,
+	find_apis,
+	find_doctypes,
+	read_records,
+	run_action,
+	run_report,
+	sync_builtin_tools,
+	update,
+)
+from frappe.flow.utils.safe_exec import NeedsApproval
+from frappe.permissions import SYSTEM_USER_ROLE
+from frappe.tests import IntegrationTestCase
+from frappe.tests.utils import whitelist_for_tests
+
+CTX = ToolContext(session_id="test", agent="Test Agent", user="Administrator")
+MODULE = "frappe.flow.tests.test_ai_builtins"
+
+
+@whitelist_for_tests()
+@frappe.read_only()
+def read_only_whoami() -> list:
+	return [frappe.session.user, frappe.db.exists("Role", "System Manager")]
+
+
+@whitelist_for_tests(methods=["POST"])
+@frappe.read_only()
+def read_only_that_commits_then_writes() -> str:
+	frappe.db.commit()  # nosemgrep: frappe-manual-commit
+	frappe.get_doc({"doctype": "ToDo", "description": "read-only-wrote"}).insert()
+	return "wrote"
+
+
+@whitelist_for_tests(methods=["POST"])
+@frappe.read_only()
+def read_only_that_hides_its_write() -> str:
+	try:
+		frappe.get_doc({"doctype": "ToDo", "description": "read-only-wrote"}).insert()
+	except Exception:
+		pass
+	return "hid"
+
+
+@whitelist_for_tests()
+@frappe.read_only()
+def read_only_that_fails() -> None:
+	frappe.throw(frappe._("No such report"))
+
+
+@frappe.read_only()
+def read_only_not_whitelisted() -> str:
+	return "secret"
+
+
+@whitelist_for_tests(methods=["GET"])
+def get_only() -> str:
+	return "get"
+
+
+REPORT_SCRIPT = """
+if not filters.company:
+	frappe.throw("Company is mandatory")
+columns = [
+	{"fieldname": "item", "label": "Item", "fieldtype": "Data"},
+	{"fieldname": "qty", "label": "Qty", "fieldtype": "Int"},
+	{"fieldname": "note", "label": "Note", "fieldtype": "Data", "hidden": 1},
+]
+rows = [{"item": f"Item {i}", "qty": i, "note": "x"} for i in range(1, 26)]
+data = [columns, rows if filters.company == "Acme" else []]
+"""
+
+REPORT_JS = """frappe.query_reports["Flow Report Probe"] = {
+	filters: [
+		{ fieldname: "company", label: __("Company"), fieldtype: "Link", options: "Company", reqd: 1 },
+		{ fieldname: "item", label: __("Item"), fieldtype: "Data" },
+	],
+};"""
+
+
+class TestFindDoctypes(IntegrationTestCase):
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		frappe.db.rollback()
+
+	def test_searches_by_name_and_module(self):
+		names = {r["name"] for r in find_doctypes(search="Role", limit=200, ctx=CTX)["doctypes"]}
+		singles = {r["name"] for r in find_doctypes(search="System Settings", limit=200, ctx=CTX)["doctypes"]}
+		core = find_doctypes(module="Core", limit=200, ctx=CTX)["doctypes"]
+
+		self.assertIn("Role", names)
+		self.assertNotIn("Has Role", names)  # a child table that also matches "Role"
+		self.assertIn("System Settings", singles)
+		self.assertTrue(core)
+		self.assertTrue(all(r["module"] == "Core" for r in core))
+
+	def test_lists_only_doctypes_the_user_can_read(self):
+		user = _user("flow-find-probe@example.com")
+		frappe.get_doc("User", user).add_roles("Flow User")
+
+		frappe.set_user("Guest")
+		guest = {r["name"] for r in find_doctypes(search="User", limit=200, ctx=CTX)["doctypes"]}
+		# the limit counts only readable ones: a Flow User reads some Flow DocTypes, not the ones in
+		# between, like Flow Agent Memory
+		frappe.set_user(user)
+		readable = [r["name"] for r in find_doctypes(search="Flow", limit=200, ctx=CTX)["doctypes"]]
+		first = [r["name"] for r in find_doctypes(search="Flow", limit=4, ctx=CTX)["doctypes"]]
+
+		self.assertNotIn("User", guest)
+		self.assertEqual(first, readable[:4])
+		self.assertEqual(len(first), 4)
+
+	def test_administrator_gets_every_match_and_the_total(self):
+		# as if no role could read anything
+		nothing = frappe._dict(can_read=[], all_read=[], build_permissions=lambda: None)
+		with patch("frappe.get_user", return_value=nothing):
+			everything = find_doctypes(search="Flow", limit=200, ctx=CTX)["doctypes"]
+			result = find_doctypes(search="Flow", limit=2, ctx=CTX)
+
+		self.assertIn("Flow Agent", {r["name"] for r in everything})
+		self.assertEqual(result, {"total": len(everything), "doctypes": everything[:2]})
+
+
+class TestDescribe(IntegrationTestCase):
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		frappe.db.rollback()
+
+	def test_returns_fields_and_permissions(self):
+		result = describe(doctype="ToDo", ctx=CTX)
+
+		self.assertEqual(result["doctype"], "ToDo")
+		self.assertIn("description", {f["fieldname"] for f in result["fields"]})
+		types = {f["type"] for f in result["fields"]}
+		self.assertNotIn("Section Break", types)
+		self.assertNotIn("Column Break", types)
+		self.assertEqual(set(result["permissions"]), {"read", "write", "create", "delete"})
+
+	def test_needs_read_permission_a_child_tables_through_its_parent(self):
+		user = _user("flow-describe-probe@example.com")
+
+		frappe.set_user("Guest")
+		with self.assertRaises(PermissionError):
+			describe(doctype="User", ctx=CTX)
+
+		frappe.set_user(user)
+		result = describe(doctype="Contact Phone", ctx=CTX)
+		self.assertIn("phone", {f["fieldname"] for f in result["fields"]})
+		self.assertTrue(result["permissions"]["read"])
+
+
+class TestFindApis(IntegrationTestCase):
+	def setUp(self):
+		self.enterContext(self.set_user("test@example.com"))
+		self.ctx = ToolContext(session_id="test", agent="Test Agent", user="test@example.com")
+
+	def test_finds_and_describes_python_apis(self):
+		discovery.clear_cache()
+		# a cold index is built by the background job, never inside the tool call
+		with patch("frappe.api.discovery.build_cache_in_background") as queue_build:
+			with self.assertRaisesRegex(discovery.DiscoveryCacheUnavailable, "try again"):
+				find_apis(query="test_ai_builtins read_only_whoami", ctx=self.ctx)
+		queue_build.assert_called_once()
+		discovery.build_cache()
+		found = find_apis(query="test_ai_builtins read_only_whoami", ctx=self.ctx)
+		self.assertEqual([entry["path"] for entry in found], [f"{MODULE}.read_only_whoami"])
+
+		read = describe_api(method=found[0]["path"], ctx=self.ctx)
+		self.assertTrue(read["read_only"])
+		self.assertFalse(describe_api(method=f"{MODULE}.get_only", ctx=self.ctx)["read_only"])
+		self.assertEqual(call_api(method=f"{MODULE}.get_only", ctx=self.ctx)["result"], "get")
+		with self.assertRaisesRegex(frappe.ValidationError, "whitelisted API's path"):
+			call_api(method="submit", ctx=self.ctx)
+		with self.assertRaisesRegex(ValueError, "not whitelisted"):
+			call_api(method=f"{MODULE}.read_only_not_whitelisted", ctx=self.ctx)
+
+		with self.patch_hooks(
+			{"override_whitelisted_methods": {f"{MODULE}.get_only": [f"{MODULE}.read_only_whoami"]}}
+		):
+			found = describe_api(method=f"{MODULE}.get_only", ctx=self.ctx)
+			self.assertEqual(
+				call_api(method=f"{MODULE}.get_only", ctx=self.ctx)["result"][0], "test@example.com"
+			)
+		self.assertEqual(found["path"], f"{MODULE}.read_only_whoami")
+		self.assertTrue(found["read_only"])
+
+	def test_runs_api_server_scripts(self):
+		frappe.get_doc("User", "test@example.com").add_roles("Script Manager")
+		self.addCleanup(frappe.clear_cache, user="test@example.com")
+		self.addCleanup(frappe.client_cache.delete_value, "server_script_map")
+		self.addCleanup(frappe.db.rollback)
+		self.enterContext(self.enable_safe_exec())
+		discovery.build_cache()
+		script = 'frappe.response["message"] = "hello " + frappe.form_dict.who'
+		for api_method in ("flow_api_script_probe", "flow.api_script_probe"):
+			with self.subTest(api_method=api_method):
+				frappe.get_doc(
+					{
+						"doctype": "Server Script",
+						"name": api_method,
+						"script_type": "API",
+						"api_method": api_method,
+						"script": script,
+					}
+				).insert()
+				self.assertIn(api_method, [e.get("path") for e in find_apis(query=api_method, ctx=self.ctx)])
+				# a read-only function overridden by a script must still ask
+				overridden = f"{MODULE}.read_only_whoami"
+				with self.patch_hooks({"override_whitelisted_methods": {overridden: [api_method]}}):
+					for method in (api_method, overridden):
+						found = describe_api(method=method, ctx=self.ctx)
+						self.assertEqual(found["path"], api_method)
+						self.assertEqual(found["source"], script)
+						self.assertFalse(found["read_only"])
+						self.assertTrue(call_api.requires_confirmation({"method": method}))
+						result = call_api(method=method, args={"who": "Flow"}, ctx=self.ctx)["result"]
+						self.assertEqual(result, "hello Flow")
+
+	def test_hides_a_scripts_code_from_users_who_cannot_read_it(self):
+		self.addCleanup(frappe.client_cache.delete_value, "server_script_map")
+		self.addCleanup(frappe.db.rollback)
+		discovery.build_cache()
+		with self.set_user("Administrator"):
+			frappe.get_doc(
+				{
+					"doctype": "Server Script",
+					"name": "flow_shadow_probe",
+					"script_type": "API",
+					"api_method": f"{MODULE}.get_only",
+					"script": 'frappe.response["message"] = "secret"',
+				}
+			).insert()
+			user = frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": "flow-no-scripts@example.com",
+					"first_name": "No Scripts",
+					"roles": [{"role": SYSTEM_USER_ROLE}],
+				}
+			).insert()
+		with self.set_user(user.name):
+			self.assertFalse(frappe.has_permission("Server Script", "read"))
+			found = describe_api(method=f"{MODULE}.get_only", ctx=self.ctx)
+		self.assertNotIn("secret", found.get("source", ""))
+
+	def test_describes_document_actions(self):
+		comment = describe_api(method="add_comment", doctype="ToDo", ctx=self.ctx)
+		self.assertIn("comment_type", {param["name"] for param in comment["params"]})
+
+		self.addCleanup(frappe.db.rollback)
+		role = frappe.get_doc({"doctype": "Role", "role_name": "Flow API Rename Probe"}).insert()
+		found = describe_api(method="rename", doctype="Role", ctx=self.ctx)
+		self.assertEqual([param["name"] for param in found["params"]], ["new_name"])
+		self.assertNotIn("source", found)
+		new_name = "Flow API Renamed Probe"
+		run_action(
+			doctype="Role",
+			names=[role.name],
+			action=found["method"],
+			args={found["params"][0]["name"]: new_name},
+			ctx=self.ctx,
+		)
+		self.assertTrue(frappe.db.exists("Role", new_name))
+		self.assertFalse(frappe.db.exists("Role", role.name))
+
+
+class TestReadRecords(IntegrationTestCase):
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		frappe.db.rollback()
+
+	def test_reads_matching_records_newest_first_with_their_total(self):
+		# by name, the older one comes first
+		older = frappe.get_doc({"doctype": "ToDo", "description": "read probe"}).insert(
+			set_name="flow-read-a"
+		)
+		newer = frappe.get_doc({"doctype": "ToDo", "description": "read probe"}).insert(
+			set_name="flow-read-b"
+		)
+		frappe.db.set_value("ToDo", older.name, "creation", "2020-01-01", update_modified=False)
+		probe = {"description": "read probe"}
+
+		every = read_records(doctype="ToDo", filters=probe, ctx=CTX)
+		first = read_records(doctype="ToDo", filters=probe, fields=["name", "description"], limit=1, ctx=CTX)
+		capped = read_records(doctype="DocType", limit=10_000, ctx=CTX)["records"]
+
+		self.assertEqual(every, {"total": 2, "records": [{"name": newer.name}, {"name": older.name}]})
+		self.assertEqual(first, {"total": 2, "records": [{"name": newer.name, "description": "read probe"}]})
+		self.assertLessEqual(len(capped), 200)
+
+	def test_a_virtual_doctype_is_counted_by_its_controller(self):
+		workers = [{"name": f"worker-{i}"} for i in range(3)]
+		with (
+			patch.object(RQWorker, "get_list", return_value=workers),
+			patch.object(RQWorker, "get_count", return_value=7),
+		):
+			result = read_records(doctype="RQ Worker", limit=2, ctx=CTX)
+
+		self.assertEqual(result, {"total": 7, "records": workers[:2]})
+
+	def test_reads_a_single_when_it_matches_the_filters(self):
+		# CI's site skips the setup wizard, which sets the time zone
+		frappe.db.set_single_value("System Settings", "time_zone", "Asia/Kolkata")
+
+		[values] = read_records(doctype="System Settings", ctx=CTX)["records"]
+		self.assertEqual((values["name"], values["time_zone"]), ("System Settings", "Asia/Kolkata"))
+		for filters, fields, records in (
+			(None, ["time_zone"], [{"time_zone": "Asia/Kolkata"}]),
+			({"time_zone": "Asia/Kolkata"}, ["name"], [{"name": "System Settings"}]),
+			({"time_zone": "UTC"}, None, []),
+		):
+			with self.subTest(filters=filters, fields=fields):
+				result = read_records(doctype="System Settings", filters=filters, fields=fields, ctx=CTX)
+				self.assertEqual(result, {"total": len(records), "records": records})
+
+		frappe.set_user("Guest")
+		with self.assertRaises(frappe.PermissionError):
+			read_records(doctype="System Settings", ctx=CTX)
+
+	def test_reads_child_rows_and_their_total_through_readable_parents(self):
+		user = _user("flow-child-probe@example.com")  # reads only the Contacts they own
+		mine = {_contact_with_phone(owner=user) for _ in range(2)}
+		_contact_with_phone(owner="Administrator")
+		frappe.set_user(user)
+
+		rows = read_records(doctype="Contact Phone", fields=["parent"], ctx=CTX)["records"]
+		result = read_records(doctype="Contact Phone", fields=["parent"], limit=1, ctx=CTX)
+
+		self.assertEqual({r["parent"] for r in rows}, mine)
+		self.assertEqual((result["total"], len(result["records"])), (2, 1))
+
+	def test_a_child_table_of_several_doctypes_reads_through_the_given_one(self):
+		for parent_doctype in (None, "ToDo"):  # none given, or one the table isn't in
+			with (
+				self.subTest(parent_doctype=parent_doctype),
+				self.assertRaisesRegex(ValueError, "pass parent_doctype, one of:.*Role Profile"),
+			):
+				read_records(doctype="Has Role", parent_doctype=parent_doctype, ctx=CTX)
+
+		user = _user("flow-collision-probe@example.com")
+		frappe.get_doc("User", user).add_roles("System Manager")
+		# a Role Profile named like the user, whose role rows match the user by name
+		frappe.get_doc(
+			{"doctype": "Role Profile", "role_profile": user, "roles": [{"role": "System Manager"}]}
+		).insert()
+
+		rows = read_records(
+			doctype="Has Role",
+			filters={"parent": user},
+			fields=["parenttype"],
+			parent_doctype="User",
+			ctx=CTX,
+		)["records"]
+		# execute's sandbox calls the function unchecked, where filters can be a list
+		listed = read_records.func(
+			doctype="Has Role",
+			filters=[["parent", "=", user]],
+			fields=["parenttype"],
+			parent_doctype="User",
+			ctx=CTX,
+		)["records"]
+
+		self.assertEqual({r["parenttype"] for r in rows}, {"User"})
+		self.assertEqual({r["parenttype"] for r in listed}, {"User"})
+
+
+class TestRunReport(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls):
+		cls.enterClassContext(patch("frappe.utils.safe_exec.is_safe_exec_enabled", return_value=True))
+		super().setUpClass()
+
+	def setUp(self):
+		self.report = self.make_report(
+			"Flow Report Probe",
+			"Script Report",
+			report_script=REPORT_SCRIPT,
+			javascript=REPORT_JS,
+			filters=[{"fieldname": "warehouse", "label": "Warehouse", "fieldtype": "Data", "mandatory": 1}],
+		)
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		frappe.db.rollback()
+
+	def test_returns_shown_columns_capped_rows_the_count_and_total(self):
+		result = run_report(report_name=self.report.name, filters={"company": "Acme"}, limit=10, ctx=CTX)
+
+		self.assertEqual(
+			result["columns"], [{"fieldname": "item", "label": "Item"}, {"fieldname": "qty", "label": "Qty"}]
+		)
+		self.assertEqual(result["rows"][0], {"item": "Item 1", "qty": 1})
+		self.assertEqual(len(result["rows"]), 10)
+		self.assertEqual(result["row_count"], 25)
+		self.assertNotIn("total_row", result)
+		self.assertNotIn("available_filters", result)
+
+		self.report.db_set("add_total_row", 1)
+		result = run_report(report_name=self.report.name, filters={"company": "Acme"}, limit=10, ctx=CTX)
+		rows = run_report(report_name=self.report.name, filters={"company": "Acme"}, limit=200, ctx=CTX)[
+			"rows"
+		]
+
+		self.assertEqual(result["total_row"], {"item": "Total", "qty": 325})
+		self.assertEqual(result["row_count"], 25)
+		# a cut keeps the head, so the count and total come before the rows
+		self.assertEqual(list(result), ["columns", "row_count", "total_row", "rows"])
+		self.assertEqual((len(rows), rows[-1]), (25, {"item": "Item 25", "qty": 25}))
+
+	def test_a_failed_run_gives_the_reports_own_error_and_its_filters(self):
+		# frappe's failure log survives the rollback
+		with patch("frappe.log_error"), self.assertRaises(ValueError) as caught:
+			run_report(report_name=self.report.name, ctx=CTX)
+		self.assertIn("Company is mandatory", str(caught.exception))
+		self.assertIn("(* = required) warehouse*, company*, item", str(caught.exception))
+
+		def fail(*args, **kwargs):
+			try:
+				raise KeyError("owner")
+			except KeyError:  # frappe's failure log can't write in the report's read-only transaction
+				raise frappe.InReadOnlyMode("Site is running in read only mode")
+
+		with patch("frappe.desk.query_report.run", side_effect=fail), self.assertRaises(ValueError) as caught:
+			run_report(report_name=self.report.name, filters={"company": "Acme"}, ctx=CTX)
+		self.assertTrue(str(caught.exception).startswith("'owner'\n"))
+
+		self.report.db_set("validate_filters", 1)
+		with patch("frappe.log_error"), self.assertRaises(ValueError) as caught:
+			run_report(report_name=self.report.name, filters={"warehouse": "Main"}, ctx=CTX)
+		self.assertIn("Company is mandatory", str(caught.exception))
+		self.assertTrue(str(caught.exception).endswith("The report's filters (* = required) warehouse*"))
+
+	def test_an_empty_run_lists_the_filters(self):
+		filters = "(* = required) warehouse*, company*, item"
+		result = run_report(report_name=self.report.name, filters={"company": "Other"}, ctx=CTX)
+		self.assertEqual((result["row_count"], result["available_filters"]), (0, filters))
+
+		self.report.db_set("report_script", "pass")  # a report that returns nothing at all
+		result = run_report(report_name=self.report.name, filters={"company": "Acme"}, ctx=CTX)
+		self.assertEqual((result["rows"], result["available_filters"]), ([], filters))
+
+	def test_refuses_a_report_it_cannot_run(self):
+		builder = self.make_report("Flow Builder Probe", "Report Builder")
+		# never run it here: a query report opens its own transaction
+		query = self.make_report(
+			"Flow Query Probe", "Query Report", query="select name from tabToDo where owner = %(owner)s"
+		)
+		for report, error in ((builder.name, "read_records"), (query.name, "^Missing filters: owner$")):
+			with self.subTest(report), self.assertRaisesRegex(ValueError, error):
+				run_report(report_name=report, ctx=CTX)
+
+		frappe.set_user("Guest")
+		with self.assertRaises(frappe.PermissionError):
+			run_report(report_name=self.report.name, filters={"company": "Acme"}, ctx=CTX)
+
+	def test_query_report_runs_with_given_or_saved_filters(self):
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "query report probe"}).insert()
+		query = self.make_report(
+			"Flow Query Probe",
+			"Query Report",
+			query='select name as "ToDo:Link/ToDo:120", description as "Description:Data:200" '
+			"from tabToDo where description = %(description)s",
+		)
+		custom = self.make_report(
+			"Flow Custom Probe",
+			"Custom Report",
+			reference_report=query.name,
+			json=json.dumps({"filters": {"description": "query report probe"}}),
+		)
+
+		# a query report opens its own transaction; keep it in the test's
+		with patch.object(frappe.db, "begin"), patch.object(frappe.db, "rollback"):
+			result = run_report(
+				report_name=query.name, filters={"description": "query report probe"}, ctx=CTX
+			)
+		with patch("frappe.desk.query_report.run", return_value={"columns": [], "result": []}) as ran:
+			run_report(report_name=custom.name, ctx=CTX)
+
+		self.assertEqual(
+			result["columns"],
+			[{"fieldname": "todo", "label": "ToDo"}, {"fieldname": "description", "label": "Description"}],
+		)
+		self.assertEqual(result["rows"], [{"todo": todo.name, "description": "query report probe"}])
+		ran.assert_called_once()
+
+	def test_only_a_prepared_report_runs_in_the_background(self):
+		args = {"report_name": self.report.name}
+		self.assertFalse(run_report.background(args))
+		self.report.db_set("prepared_report", 1)
+		self.assertTrue(run_report.background(args))
+		self.assertFalse(run_report.background({}))
+
+	def make_report(self, name: str, report_type: str, **values):
+		return frappe.get_doc(
+			{
+				"doctype": "Report",
+				"report_name": name,
+				"ref_doctype": "ToDo",
+				"report_type": report_type,
+				"is_standard": "No",
+				**values,
+			}
+		).insert()
+
+
+class TestExecute(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls):
+		cls.enterClassContext(patch("frappe.utils.safe_exec.is_safe_exec_enabled", return_value=True))
+		super().setUpClass()
+
+	def tearDown(self):
+		frappe.db.rollback()
+
+	def test_returns_the_result_variable(self):
+		for code, expected in (("result = 1 + 1", 2), ("x = 5", None)):
+			with self.subTest(code):
+				self.assertEqual(execute(code=code, description="Compute a value", ctx=CTX), expected)
+
+	def test_a_caught_write_failure_still_fails_the_call(self):
+		code = """
+try:
+	create("ToDo", [{"description": "ai execute works"}, {"description": "ai execute fails"}])
+except Exception:
+	pass
+result = "done"
+"""
+		with (
+			_todo_hook_fails("after_insert", "ai execute fails"),
+			self.assertRaisesRegex(ValueError, "Record 2 of 2: hook failed"),
+		):
+			execute(code=code, description="Create two ToDos", ctx=CTX)
+
+
+class TestReadOnlyCalls(IntegrationTestCase):
+	"""Calls that need no card run once, in a read-only transaction. Each test starts with no open
+	writes, as a tool callback does."""
+
+	@classmethod
+	def setUpClass(cls):
+		cls.enterClassContext(patch("frappe.utils.safe_exec.is_safe_exec_enabled", return_value=True))
+		super().setUpClass()
+
+	def setUp(self):
+		frappe.db.rollback()
+		self.enterContext(self.set_user("test@example.com"))
+		self.ctx = ToolContext(session_id="test", agent="Test Agent", user="test@example.com")
+
+	def tearDown(self):
+		frappe.db.rollback()
+
+	def run_function(self, name: str, **args):
+		return run_action(doctype="", names=[], action=f"{MODULE}.{name}", args=args, ctx=self.ctx)
+
+	def assert_nothing_written(self):
+		self.assertFalse(frappe.db.in_read_only_transaction)
+		self.assertFalse(frappe.db.exists("ToDo", {"description": ["like", "%-wrote"]}))
+		frappe.get_doc({"doctype": "ToDo", "description": "after a read"}).insert()
+
+	def test_only_a_function_marked_read_only_skips_the_card(self):
+		for api_tool, key in ((run_action, "action"), (call_api, "method")):
+			needs_card = api_tool.requires_confirmation
+			self.assertFalse(needs_card({key: f"{MODULE}.read_only_whoami"}))
+			for action in (
+				f"{MODULE}.get_only",
+				"frappe.core.doctype.access_log.access_log.make_access_log",
+				f"{MODULE}.read_only_not_whitelisted",
+				"frappe.client.set_value",
+				"submit",
+				None,
+			):
+				with self.subTest(api_tool.name, action=action):
+					self.assertTrue(needs_card({key: action}))
+		self.assertFalse(execute.requires_confirmation({"code": "", "read_only": True}))
+		self.assertTrue(execute.requires_confirmation({"code": ""}))
+
+	def test_a_read_function_runs_once_and_the_database_refuses_its_writes(self):
+		result = self.run_function("read_only_whoami")
+		self.assertEqual(result["result"], ["test@example.com", "System Manager"])
+		self.assertEqual(result["title"], "Test Ai Builtins: Read Only Whoami")
+		for name, error in (
+			("read_only_that_commits_then_writes", "read-only transaction"),
+			("read_only_that_hides_its_write", "tried to write, so it is not a read"),
+		):
+			with self.subTest(name):
+				self.assertRaisesRegex(ValueError, error, self.run_function, name)
+				self.assert_nothing_written()
+				frappe.db.rollback()
+
+	def test_read_only_code_runs_without_a_card_and_stops_at_the_rest(self):
+		run = lambda code: execute(code=code, description="Look", read_only=True, ctx=self.ctx)  # noqa: E731
+		self.assertEqual(run("result = frappe.session.user"), "test@example.com")
+		self.assertEqual(run(f'result = frappe.call("{MODULE}.read_only_whoami")')[0], "test@example.com")
+		self.assertEqual(
+			run(f'result = call_api("{MODULE}.read_only_whoami")')["result"][0], "test@example.com"
+		)
+		self.assertEqual(
+			run(f'result = run_action("", [], "{MODULE}.read_only_whoami")')["result"][1], "System Manager"
+		)
+		self.assertRaisesRegex(NameError, "undefined_name", run, "result = undefined_name")
+		# a read that fails says why, not that the code needs approval
+		with self.assertRaisesRegex(ValueError, "No such report") as failed:
+			run(f'run_action("", [], "{MODULE}.read_only_that_fails")')
+		self.assertNotIn("without read_only", str(failed.exception))
+
+		stopped = {
+			"writes": 'create("ToDo", [{"description": "code-wrote"}])',
+			"hides its write": 'try:\n\tcreate("ToDo", [{"description": "code-wrote"}])\nexcept Exception:\n\tpass',
+			"queues a job": 'frappe.enqueue("frappe.ping")',
+			"sends email": 'frappe.sendmail(recipients=["a@example.com"], subject="x", message="x")',
+			"calls an unmarked function": 'frappe.call("frappe.ping")',
+			"hides that call": 'try:\n\tfrappe.call("frappe.ping")\nexcept Exception:\n\tpass',
+			"runs an unmarked function": 'run_action("", [], "frappe.ping")',
+			"calls an unmarked API": 'call_api("frappe.ping")',
+			"runs a record action": 'run_action("ToDo", ["x"], "submit")',
+			"calls a read that hides its write": f'frappe.call("{MODULE}.read_only_that_hides_its_write")',
+		}
+		for case, code in stopped.items():
+			with self.subTest(case):
+				self.assertRaisesRegex(ValueError, "Call execute again without read_only", run, code)
+				self.assertFalse(self.ctx.read_only)
+				self.assert_nothing_written()
+				frappe.db.rollback()
+
+	def test_approved_code_runs_read_functions_in_its_own_transaction(self):
+		code = f"""
+create("ToDo", [{{"description": "approved code"}}])
+seen = run_action("", [], "{MODULE}.read_only_whoami")
+call_api("{MODULE}.read_only_whoami")
+frappe.call("{MODULE}.read_only_whoami")
+create("ToDo", [{{"description": "approved code, after the read"}}])
+result = seen["result"][0]
+"""
+		self.assertEqual(execute(code=code, description="Write and read", ctx=self.ctx), "test@example.com")
+		self.assertEqual(frappe.db.count("ToDo", {"description": ["like", "approved code%"]}), 2)
+
+	def test_read_only_code_reaches_nothing_outside_the_database(self):
+		from frappe.flow.utils.safe_exec import get_flow_safe_globals
+
+		# what read-only code may call as is; anything else in frappe's namespace must be a stop,
+		# so a new global that reaches outside fails here first
+		pure = {
+			"is_job_queued", "get_doc", "get_last_doc", "get_meta", "get_list", "get_print",
+			"attach_print", "log", "log_error", "msgprint", "throw", "errprint", "bold",
+			"sanitize_html", "get_fullname", "format", "format_value",
+		}  # fmt: skip
+		self.ctx.read_only = True
+		frappe_ns = get_flow_safe_globals(tool_context=self.ctx).frappe
+		for name, value in frappe_ns.items():
+			if not callable(value) or isinstance(value, type) or name in pure:
+				continue
+			with self.subTest(name), self.assertRaises(NeedsApproval):
+				value(f"{MODULE}.get_only")
+
+
+class TestWriteTools(IntegrationTestCase):
+	def setUp(self):
+		self.todo = frappe.get_doc({"doctype": "ToDo", "description": "ai write probe"}).insert()
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		frappe.db.rollback()
+
+	def test_create_update_and_delete_every_record(self):
+		result = create(doctype="ToDo", records=[{"description": "ai create probe"}], ctx=CTX)
+		self.assertEqual(result["doctype"], "ToDo")
+		[name] = result["created"]
+		self.assertEqual(frappe.db.get_value("ToDo", name, "description"), "ai create probe")
+
+		names = [self.todo.name, name]
+		result = update(doctype="ToDo", names=names, values={"status": "Closed"}, ctx=CTX)
+		self.assertEqual(result["updated"], names)
+		self.assertEqual(
+			frappe.get_all("ToDo", {"name": ["in", names]}, pluck="status"), ["Closed", "Closed"]
+		)
+
+		self.assertEqual(delete(doctype="ToDo", names=names, ctx=CTX)["deleted"], names)
+		self.assertFalse(frappe.db.exists("ToDo", {"name": ["in", names]}))
+
+	def test_one_failed_record_changes_none(self):
+		failing = frappe.get_doc({"doctype": "ToDo", "description": "ai write fails"}).insert()
+		names = [self.todo.name, failing.name]
+		todos = {"description": ["in", ["ai write probe", "ai write fails", "ai create works"]]}
+		before = frappe.get_all("ToDo", todos, ["name", "status", "docstatus"], order_by="name")
+		new = [{"description": "ai create works"}, {"description": "ai write fails"}]
+		for tool, hook, args, record in (
+			(create, "after_insert", {"records": new}, "Record 2 of 2"),
+			(update, "on_update", {"names": names, "values": {"status": "Closed"}}, failing.name),
+			(delete, "after_delete", {"names": names}, failing.name),
+			(run_action, "on_discard", {"names": names, "action": "discard"}, failing.name),
+		):
+			with self.subTest(tool.name), _todo_hook_fails(hook, "ai write fails"):
+				with self.assertRaisesRegex(ValueError, f"{record}: hook failed\nNothing was saved."):
+					tool(doctype="ToDo", **args, ctx=CTX)
+				self.assertEqual(
+					frappe.get_all("ToDo", todos, ["name", "status", "docstatus"], order_by="name"), before
+				)
+
+	def test_refuses_missing_and_forbidden_records(self):
+		probe = _user("flow-action-probe@example.com")
+		closed = {"values": {"status": "Closed"}}
+		comment = {"action": "add_comment", "args": {"comment_type": "Comment", "text": "unseen"}}
+		for user, tool, args, error in (
+			("Administrator", update, {"names": ["does-not-exist"], **closed}, "does-not-exist"),
+			("Administrator", delete, {"names": ["does-not-exist"]}, "does-not-exist"),
+			("Guest", update, {"names": [self.todo.name], **closed}, "No permission"),
+			("Guest", delete, {"names": [self.todo.name]}, "No permission"),
+			# every user reads ToDo, but only the ones they own or are assigned
+			(probe, run_action, {"names": [self.todo.name], **comment}, f"{self.todo.name}: PermissionError"),
+		):
+			with self.subTest(tool.name, user=user):
+				frappe.set_user(user)
+				with self.assertRaisesRegex(ValueError, error):
+					tool(doctype="ToDo", **args, ctx=CTX)
+		self.assertFalse(frappe.db.exists("Comment", {"reference_name": self.todo.name}))
+
+		frappe.set_user("Guest")
+		with self.assertRaises(PermissionError):
+			create(doctype="User", records=[{"email": "x@example.com"}], ctx=CTX)
+
+	def test_a_lost_savepoint_is_reported(self):
+		def end_savepoint_then_fail(doc, *args, **kwargs):
+			frappe.db.release_savepoint("flow_batch")
+			raise frappe.ValidationError("after the savepoint")
+
+		with (
+			patch.object(ToDo, "on_update", end_savepoint_then_fail),
+			self.assertRaisesRegex(
+				ValueError, "after the savepoint\nSome earlier changes may already be committed"
+			),
+		):
+			update(doctype="ToDo", names=[self.todo.name], values={"status": "Closed"}, ctx=CTX)
+
+
+class TestSyncBuiltinTools(IntegrationTestCase):
+	def tearDown(self):
+		frappe.db.rollback()
+
+	def test_syncs_one_row_per_builtin_that_resolves_to_the_code(self):
+		sync_builtin_tools()
+		sync_builtin_tools()  # a second run updates the rows in place
+
+		names = [builtin_name(builtin.name) for builtin in BUILTIN_TOOLS]
+		self.assertEqual(
+			sorted(frappe.get_all("Flow Tool", {"name": ["in", names]}, pluck="name")), sorted(names)
+		)
+		runtime = frappe.get_doc("Flow Tool", "frappe/describe").to_tool()
+		self.assertEqual(runtime.name, "describe")
+		self.assertIn("doctype", runtime.parameters["properties"])
+		# writes wait for the user's approval
+		confirmed = frappe.get_all(
+			"Flow Tool", {"name": ["in", names], "requires_confirmation": 1}, pluck="name"
+		)
+		self.assertLessEqual({"frappe/create", "frappe/update", "frappe/delete"}, set(confirmed))
+		# a per-call background rule stays in code
+		report = frappe.get_doc("Flow Tool", "frappe/run_report")
+		self.assertEqual(report.background, 0)
+		self.assertTrue(callable(report.to_tool().background))
+
+
+def _user(email: str) -> str:
+	"""A user with no roles, so permission checks apply."""
+	if not frappe.db.exists("User", email):
+		frappe.get_doc(
+			{"doctype": "User", "email": email, "first_name": "Probe", "send_welcome_email": 0}
+		).insert(ignore_permissions=True)
+	return email
+
+
+def _todo_hook_fails(hook: str, description: str):
+	"""ToDo's `hook` raises for the ToDo with this description, after that record's write."""
+
+	def fail(doc, *args, **kwargs):
+		if doc.description == description:
+			raise frappe.ValidationError("hook failed")
+
+	return patch.object(ToDo, hook, fail, create=True)
+
+
+def _contact_with_phone(owner: str) -> str:
+	contact = frappe.get_doc(
+		{"doctype": "Contact", "first_name": "Flow Probe", "phone_nos": [{"phone": "+1 555 0100"}]}
+	).insert()
+	frappe.db.set_value("Contact", contact.name, "owner", owner)
+	return contact.name

@@ -44,6 +44,7 @@ import LucideMessageSquareMore from "~icons/lucide/message-square-more"
 import LucideListTree from "~icons/lucide/list-tree"
 import LucideCode from "~icons/lucide/code"
 import LucideRepeat from "~icons/lucide/repeat"
+import LucideSplit from "~icons/lucide/split"
 import LucideFrame from "~icons/lucide/frame"
 import LucideImage from "~icons/lucide/image"
 import LucideList from "~icons/lucide/list"
@@ -765,6 +766,22 @@ export const COMPONENTS: FrappeUIComponents = {
 		name: "Repeater",
 		title: "Repeater",
 		icon: LucideRepeat,
+	},
+	Variants: {
+		name: "Variants",
+		title: "Variants",
+		icon: LucideSplit,
+		blockTemplate: "variants",
+		additionalProps: {
+			options: { type: Array },
+		},
+		overrideProps: {
+			options: {
+				type: "array",
+				inputType: "text",
+				editor: defineAsyncComponent(() => import("@/components/VariantOptionsEditor.vue")),
+			},
+		},
 	},
 	HTML: {
 		name: "HTML",

@@ -38,7 +38,24 @@ class TestGridImport(IntegrationTestCase):
 		cls.other_contact = frappe.get_doc({"doctype": "Contact", "first_name": "Not Yours"}).insert().name
 		frappe.set_user(USER)
 		cls.contact = frappe.get_doc({"doctype": "Contact", "first_name": "Grid Import"}).insert().name
+		cls.library_file = cls.attach_file(cls.contact, content=b"phone\n123\n")
 		frappe.set_user("Administrator")
+		cls.other_library_file = cls.attach_file(cls.other_contact, file_url=cls.library_file.file_url)
+
+	@classmethod
+	def attach_file(cls, contact, **kwargs):
+		file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": f"{frappe.generate_hash(length=10)}.csv",
+				"is_private": 1,
+				"attached_to_doctype": "Contact",
+				"attached_to_name": contact,
+				**kwargs,
+			}
+		).insert()
+		cls.addClassCleanup(frappe.delete_doc, "File", file.name)
+		return file
 
 	def setUp(self):
 		frappe.set_user(USER)
@@ -99,6 +116,13 @@ class TestGridImport(IntegrationTestCase):
 	def test_upload_rejects_empty_content(self):
 		with self.assertRaises(frappe.ValidationError):
 			parse_file("Contact", "numbers.csv", "", docname=self.contact)
+
+	def test_library_file_is_read_by_its_name(self):
+		rows = parse_file("Contact", docname=self.contact, library_file_name=self.library_file.name)
+		self.assertEqual(rows, [["phone"], ["123"]])
+
+		with self.assertRaises(frappe.PermissionError):
+			parse_file("Contact", docname=self.contact, library_file_name=self.other_library_file.name)
 
 	def test_dates_round_trip_through_a_spreadsheet(self):
 		rows = [HEADER, [datetime.date(2026, 8, 25), "+91-9876543210"]]

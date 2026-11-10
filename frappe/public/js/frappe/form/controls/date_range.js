@@ -11,26 +11,22 @@ frappe.ui.form.ControlDateRange = class ControlDateRange extends frappe.ui.form.
 	}
 
 	set_date_options() {
-		var me = this;
-
-		let lang = frappe.boot?.user?.language;
+		const to = __("{0} to {1}").replace("{0}", "").replace("{1}", "");
 		this.datepicker_options = {
-			language: $.fn.datepicker.language[lang] ? lang : "en",
+			locale: frappe.ui.form.get_datepicker_locale(),
 			range: true,
 			autoClose: true,
 			toggleSelected: false,
 			minDate: this.df.min_date,
 			maxDate: this.df.max_date,
 			firstDay: frappe.datetime.get_first_day_of_the_week_index(),
-		};
-		this.datepicker_options.dateFormat = frappe.boot.sysdefaults.date_format || "yyyy-mm-dd";
-		this.datepicker_options.onSelect = function () {
-			me.$input.trigger("change");
+			position: frappe.ui.form.position_datepicker,
+			dateFormat: frappe.datetime.get_user_date_fmt().replace("mm", "MM"),
+			multipleDatesSeparator: to,
 		};
 	}
 	set_datepicker() {
-		this.$input.datepicker(this.datepicker_options);
-		this.datepicker = this.$input.data("datepicker");
+		this.datepicker = new AirDatepicker(this.$input[0], this.datepicker_options);
 	}
 	set_input(value, value2) {
 		this.last_value = this.value;

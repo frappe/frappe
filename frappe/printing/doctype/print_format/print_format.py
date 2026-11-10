@@ -34,6 +34,7 @@ BUILDER_DRAFT_FIELDS = (
 	"print_format_builder",
 	"print_format_builder_beta",
 	"pdf_generator",
+	"roles",
 )
 
 
@@ -46,6 +47,7 @@ class PrintFormat(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
+		from frappe.core.doctype.has_role.has_role import HasRole
 		from frappe.types import DF
 
 		absolute_value: DF.Check
@@ -71,6 +73,11 @@ class PrintFormat(Document):
 		page_number: DF.Literal[
 			"Hide", "Top Left", "Top Center", "Top Right", "Bottom Left", "Bottom Center", "Bottom Right"
 		]
+		paper_height: DF.Float
+		paper_size: DF.Literal[
+			"", "A4", "A5", "A3", "Letter", "Legal", "Receipt 80 mm", "Receipt 58 mm", "Custom"
+		]
+		paper_width: DF.Float
 		pdf_generator: DF.Literal["chrome", "PlutoPrint", "Typst"]
 		print_format_builder: DF.Check
 		print_format_builder_beta: DF.Check
@@ -81,6 +88,7 @@ class PrintFormat(Document):
 		raw_commands: DF.Code | None
 		raw_printing: DF.Check
 		report: DF.Link | None
+		roles: DF.TableMultiSelect[HasRole]
 		show_label_colon: DF.Check
 		show_section_headings: DF.Check
 		standard: DF.Literal["No", "Yes"]
@@ -157,6 +165,8 @@ class PrintFormat(Document):
 		if self.html and self.print_format_type != "JS":
 			validate_template(self.html)
 
+		self.validate_paper_size()
+
 		if self.custom_format and self.raw_printing and not self.raw_commands:
 			frappe.throw(_("{0} are required").format(frappe.bold(_("Raw Commands"))), frappe.MandatoryError)
 
@@ -170,6 +180,15 @@ class PrintFormat(Document):
 		self.validate_conditions()
 		self.validate_typst_renderer()
 		self.validate_plutoprint_renderer()
+
+	def validate_paper_size(self):
+		if self.paper_size != "Custom" or self.print_format_builder_beta or self.raw_printing:
+			return
+		if frappe.utils.flt(self.paper_width) <= 0 or frappe.utils.flt(self.paper_height) <= 0:
+			frappe.throw(
+				_("Enter a Paper Width and Paper Height above 0 for a Custom paper size."),
+				title=_("Invalid Paper Size"),
+			)
 
 	def validate_plutoprint_renderer(self):
 		from frappe.utils.pdf_generator.pluto import plutoprint_blockers
@@ -488,7 +507,10 @@ def _check_draft(doc, payload):
 def apply_draft(name: str, modified: str | datetime, data: str | dict | None = None):
 	"""Copy the draft onto the fields that print, then clear it."""
 	doc = _writable_format(name, modified)
-	for field, value in _draft_payload(data if data is not None else doc.draft_data).items():
+	payload = _draft_payload(data if data is not None else doc.draft_data)
+	for row in payload.get("roles") or []:
+		row.pop("name", None)
+	for field, value in payload.items():
 		doc.set(field, value)
 	doc.draft_data = None
 	doc.save()
@@ -643,3 +665,17 @@ def printable_sample(doctype: str) -> str | None:
 	filters = {"docstatus": 1} if frappe.get_meta(doctype).is_submittable else {}
 	sample = frappe.get_list(doctype, filters=filters, limit=1, order_by="modified desc", pluck="name")
 	return sample[0] if sample else None
+
+
+def can_print_with(print_format: "PrintFormat") -> bool:
+	roles = {row.role for row in print_format.get("roles") or []}
+	return not roles or bool(roles.intersection(frappe.get_roles()))
+
+
+def check_print_format_roles(print_format: "PrintFormat") -> None:
+	if not can_print_with(print_format):
+		frappe.throw(
+			_("You are not allowed to print with {0}").format(frappe.bold(print_format.name)),
+			frappe.PermissionError,
+			title=_("Not Permitted"),
+		)

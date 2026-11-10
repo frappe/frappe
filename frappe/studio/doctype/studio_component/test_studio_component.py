@@ -14,6 +14,10 @@ from frappe.tests import IntegrationTestCase
 
 
 class TestStudioComponent(IntegrationTestCase):
+	def test_component_id_must_scrub_to_a_single_file_name(self):
+		component = frappe.get_doc(doctype="Studio Component", component_name="../Outside")
+		self.assertRaises(frappe.ValidationError, component.insert)
+
 	def test_block_round_trip(self):
 		block = {"componentName": "div", "children": [{"componentName": "span"}]}
 		component = frappe.get_doc(

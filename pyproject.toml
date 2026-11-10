@@ -6,16 +6,17 @@ authors = [
 description = "Metadata driven, full-stack low code web framework"
 requires-python = ">=3.14,<3.15"
 readme = "README.md"
+license = "MIT"
 dynamic = ["version"]
 dependencies = [
     # core dependencies
     "Babel~=2.18.0",
     "Click~=8.5.0",
-    "filelock~=4.1.1",
+    "filelock~=4.2.4",
     "filetype~=1.2.0",
     "GitPython~=3.2.0",
     "Jinja2~=3.1.6",
-    "Pillow~=12.3.0",
+    "Pillow~=13.0.0",
     "plutoprint~=0.22.0; (sys_platform == 'linux' and platform_machine == 'x86_64') or (sys_platform == 'darwin' and platform_machine == 'arm64') or sys_platform == 'win32'",
     "PyJWT~=2.15.1",
     "duckdb~=1.4.3",
@@ -23,12 +24,14 @@ dependencies = [
     # We depend on internal attributes,
     # do NOT add loose requirements on PyMySQL versions.
     "PyMySQL==1.1.2",
-    "pypdf==6.20.1",
+    "pypdf==6.21.4",
     "PyPika @ git+https://github.com/frappe/pypika@054ffb18a0a60f3c3f472dcce86116fd86db1188",
     "mysqlclient==2.3.0",
     "PyQRCode~=1.2.1",
+    "python-barcode~=0.16.1",
     "PyYAML~=6.0.3",
     "RestrictedPython~=8.5",
+    "packaging>=24.2",
     "Werkzeug==3.1.9",
     "beautifulsoup4~=4.15.0",
     "bleach-allowlist~=1.0.3",
@@ -36,7 +39,6 @@ dependencies = [
     "croniter~=6.2.4",
     "cryptography~=50.0.2",
     "cssutils~=2.15.0",
-    "distro~=1.9.0",
     "email-reply-parser~=0.5.12",
     "Faker~=40.43.0",
     "gunicorn @ git+https://github.com/frappe/gunicorn@f189de0ec3143581d8826f707343fa36c3fb0184",
@@ -55,7 +57,7 @@ dependencies = [
     "phonenumbers~=9.0.41",
     "premailer~=3.10.0",
     "psutil~=7.2.2",
-    "psycopg2-binary~=2.9.13",
+    "psycopg[binary]~=3.3.6",
     "pyOpenSSL~=26.4.0",
     "pydantic~=2.14.1",
     "pyotp~=2.10.0",
@@ -86,8 +88,15 @@ dependencies = [
     "zxcvbn~=4.5.0",
     "markdownify~=1.2.3",
     # studio
-    "litellm==1.95.1",
+    "litellm==1.103.2",
     "json_repair~=0.59",
+    # flow
+    "frappe-flow==0.1.26",
+    "lancedb~=0.33",
+    "onnxruntime~=1.27",
+    "pdfplumber~=0.11",
+    "python-docx~=1.1",
+    "rapidocr~=3.0",
     # integration dependencies
     "google-api-python-client~=2.201.0",
     "google-auth-oauthlib~=1.5.0",
@@ -134,7 +143,6 @@ dev = [
     "types-openpyxl",
     "types-passlib",
     "types-psutil",
-    "types-psycopg2",
     "types-python-dateutil",
     "types-pytz",
     "types-requests",
@@ -150,7 +158,7 @@ test = [
 ]
 
 [build-system]
-requires = ["flit_core >=3.4,<4"]
+requires = ["flit_core >=3.12,<4"]
 build-backend = "flit_core.buildapi"
 
 [tool.frappe.testing.function_type_validation]
@@ -169,6 +177,15 @@ watchdog = "~=6.0.0"
 hypothesis = "~=6.155.2"
 responses = "==0.23.1"
 freezegun = "~=1.5.5"
+spdx-tools = "~=0.8.5"
+
+# flow: for OpenCV, which rapidocr installs
+[deploy.dependencies.apt]
+packages = ["libgl1", "libglib2.0-0"]
+
+[tool.pilot.processes.flow_server]
+frappe_command = ["flow-server", "serve"]
+env = { FLOW_SERVER_MANAGER = "supervisor" }
 
 [tool.ruff]
 line-length = 110
@@ -229,7 +246,11 @@ nixpkgs-deps = [
 
 [tool.uv]
 exclude-newer = "7 days"
-exclude-newer-package = { sqlparse = false, pyjwt = false, oauthlib = false } # drop sqlparse after 2026-08-20, pyjwt and oauthlib after 2026-10-06
+exclude-newer-package = { pypdf = false, filelock = false } # drop pypdf after 2026-11-04, filelock after 2026-11-10
+
+[tool.uv.sources]
+# Installs through uv (bench, Pilot) take the harness from this checkout, so it ships with frappe. pip installs and frappe's wheel still take the PyPI pin above.
+frappe-flow = { path = "flow/harness", editable = true }
 
 [tool.mypy]
 strict = false

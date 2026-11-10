@@ -261,29 +261,22 @@ frappe.views.Calendar = class Calendar {
 	// popover — picking any date jumps the calendar there in the current view
 	make_date_jumper() {
 		const wrapper = document.createElement("div");
-		let lang = (frappe.boot.user && frappe.boot.user.language) || "en";
-		if (!$.fn.datepicker.language[lang]) lang = "en";
 
 		// match the picker to the view: month view jumps by month,
 		// week/day views by day
 		const month_only = this.fullCalendar.view.type === "dayGridMonth";
 
-		let ready = false;
-		$(wrapper).datepicker({
-			language: lang,
+		new AirDatepicker(wrapper, {
+			locale: frappe.ui.form.get_datepicker_locale(),
 			firstDay: frappe.datetime.get_first_day_of_the_week_index(),
 			...(month_only ? { view: "months", minView: "months" } : {}),
-			onSelect: (fd, date) => {
-				if (!ready || !date) return;
+			selectedDates: [this.fullCalendar.getDate()],
+			onSelect: ({ date }) => {
+				if (!date) return;
 				this.fullCalendar.gotoDate(date);
 				this.date_popover.close();
 			},
 		});
-		// preselect where the calendar currently is; selectDate fires
-		// onSelect synchronously, so the flag keeps it from immediately
-		// re-navigating and closing the popover
-		$(wrapper).data("datepicker").selectDate(this.fullCalendar.getDate());
-		ready = true;
 		return wrapper;
 	}
 	setup_view_mode_button(defaults) {

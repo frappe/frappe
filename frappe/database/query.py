@@ -23,10 +23,17 @@ from frappe.database.utils import (
 	is_order_by_in_select,
 )
 from frappe.model import CORE_DOCTYPES as PERMITTED_CORE_DOCTYPES
-from frappe.model import OPTIONAL_FIELDS, get_permitted_fields, numeric_fieldtypes
+from frappe.model import (
+	DEFAULT_FIELDS,
+	OPTIONAL_FIELDS,
+	child_table_fields,
+	get_permitted_fields,
+	numeric_fieldtypes,
+)
 from frappe.model.document import DOCTYPES_FOR_DOCTYPE, Document
 from frappe.query_builder import Criterion, Field, Order, functions
 from frappe.query_builder.custom import Month, MonthName, Quarter, Year
+from frappe.query_builder.utils import render_criterion
 
 CORE_DOCTYPES = DOCTYPES_FOR_DOCTYPE | frozenset(
 	(
@@ -43,6 +50,7 @@ CORE_DOCTYPES = DOCTYPES_FOR_DOCTYPE | frozenset(
 
 
 TABLES_WITHOUT_DOCTYPE = frozenset(("Singles", "Sessions", "Series"))
+STANDARD_FIELDS = DEFAULT_FIELDS | OPTIONAL_FIELDS | frozenset(child_table_fields)
 
 # What MariaDB coerces `''` to in `is set`; postgres rejects `''` for these columns.
 # No real date equals MariaDB's zero date, so only NULL is empty for dates.
@@ -1009,8 +1017,6 @@ class Engine:
 			else:
 				# Field belongs to the main doctype or doctype wasn't specified differently
 				# If doctype wasn't specified, and the field isn't a standard field and doesn't exist in main doctype, check child tables
-				from frappe.model import child_table_fields, default_fields, optional_fields
-
 				if self.doctype in CORE_DOCTYPES:
 					meta = None
 				else:
@@ -1022,7 +1028,7 @@ class Engine:
 				if (
 					meta
 					and not doctype
-					and target_fieldname not in default_fields + optional_fields + child_table_fields
+					and target_fieldname not in STANDARD_FIELDS
 					and not meta.has_field(target_fieldname)
 				):
 					for df in meta.get_table_fields(include_computed=True):
@@ -1076,6 +1082,17 @@ class Engine:
 		meta = frappe.get_meta(doctype)
 		if not meta.get_permissions(parenttype=parent_doctype):
 			return
+
+		if (
+			not meta.has_field(fieldname)
+			and fieldname not in meta.get_valid_columns()
+			and fieldname not in frappe.db.OPTIONAL_COLUMNS
+		):
+			frappe.throw(
+				_("Field not found: {0}").format(frappe.bold(f"{doctype}.{fieldname}")),
+				frappe.ValidationError,
+				title=_("Invalid Field"),
+			)
 
 		# Don't allow querying child table fields if user has only "select" permission
 		permission_type = self.get_permission_type(doctype, parent_doctype)
@@ -1673,8 +1690,8 @@ class Engine:
 			elif isinstance(field, Field):
 				if field.name == "*":
 					# Expand '*' to include all permitted fields
-					# Avoid reparsing '*' recursively by passing the actual list
-					allowed_fields.extend(self.parse_fields(list(permitted_fields_set)))
+					# Permitted fields are plain fieldnames from meta and need no parsing
+					allowed_fields.extend(self.table[fieldname] for fieldname in permitted_fields_set)
 				# Check if the field name is an optional field (like _user_tags) or in permitted fields
 				elif field.name in OPTIONAL_FIELDS or field.name in permitted_fields_set:
 					allowed_fields.append(field)
@@ -1932,10 +1949,7 @@ class Engine:
 		"""Build permission-based conditions for the doctype."""
 		if as_condition:
 			condition = self.get_permission_conditions(self.doctype, self.table)
-			if condition:
-				quote_char = "`" if self.is_mariadb else '"'
-				return condition.get_sql(with_namespace=True, quote_char=quote_char, subquery=True)
-			return ""
+			return render_criterion(condition) if condition else ""
 
 		if not self.ignore_user_permissions:
 			match_filters = []

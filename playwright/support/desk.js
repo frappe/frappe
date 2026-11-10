@@ -142,10 +142,9 @@ export class Desk {
 		}
 		await input.click();
 		// the picker rewrites the input from its own selection once its show transition ends
-		await expect(this.page.locator(".datepickers-container .datepicker.active")).toHaveCSS(
-			"opacity",
-			"1"
-		);
+		await expect(
+			this.page.locator(".air-datepicker-global-container .air-datepicker.-active-")
+		).toHaveCSS("opacity", "1");
 		if (fieldtype === "Time") {
 			await input.clear();
 		}
@@ -193,13 +192,28 @@ export class Desk {
 		await expect(this.page.locator(".filter-popover")).toBeAttached();
 	}
 
+	// a second click on the Filter button closes the panel
+	async close_list_filter() {
+		await this.page.locator(".filter-section .filter-button").click();
+		await expect(this.page.locator(".filter-popover")).toHaveCount(0);
+	}
+
+	// a filter row's field picker opens as a combobox panel in <body>
+	async pick_filter_field(label) {
+		const input = this.page.locator(
+			".es-combobox__panel[data-state='open'] .es-combobox__input"
+		);
+		await input.fill(label);
+		await input.press("Enter");
+	}
+
 	async clear_filters() {
 		// saved filters are applied before the first refresh, so let that one render first.
 		// A phone's List view hides the paging area for scroll loading, so a row counts too.
 		await expect(
 			this.page
 				.locator(
-					".list-paging-area:visible, .result .list-row:visible, .no-result:visible"
+					".list-paging-area:visible, .result .list-row-container:not(:has(.render-list-checkbox)) .list-row:visible, .no-result:visible"
 				)
 				.first()
 		).toBeVisible();

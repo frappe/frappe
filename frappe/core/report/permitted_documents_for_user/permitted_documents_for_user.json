@@ -1,24 +1,57 @@
 {
- "add_total_row": 0, 
- "creation": "2014-06-03 05:20:35.218263", 
- "disabled": 0, 
- "docstatus": 0, 
- "doctype": "Report", 
+ "add_total_row": 0,
+ "add_translate_data": 0,
+ "columns": [],
+ "creation": "2014-06-03 05:20:35.218263",
+ "disable_prepared_report_automation": 0,
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "doctype_to_sync": [],
  "documentation_url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions",
- "idx": 3, 
- "is_standard": "Yes", 
- "modified": "2018-06-29 15:46:42.805039", 
- "modified_by": "Administrator", 
- "module": "Core", 
- "name": "Permitted Documents For User", 
- "owner": "Administrator", 
- "prepared_report": 0, 
- "ref_doctype": "User", 
- "report_name": "Permitted Documents For User", 
- "report_type": "Script Report", 
+ "filters": [
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "label": "User",
+   "mandatory": 1,
+   "options": "User",
+   "wildcard_filter": 0
+  },
+  {
+   "fieldname": "doctype",
+   "fieldtype": "Link",
+   "label": "DocType",
+   "mandatory": 1,
+   "options": "DocType",
+   "wildcard_filter": 0
+  },
+  {
+   "fieldname": "show_permissions",
+   "fieldtype": "Check",
+   "label": "Show Permissions",
+   "mandatory": 0,
+   "wildcard_filter": 0
+  }
+ ],
+ "generate_csv": 0,
+ "idx": 3,
+ "is_standard": "Yes",
+ "modified": "2026-10-29 06:40:27.789333",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Permitted Documents For User",
+ "owner": "Administrator",
+ "prepared_report": 0,
+ "ref_doctype": "User",
+ "report_name": "Permitted Documents For User",
+ "report_type": "Script Report",
  "roles": [
   {
    "role": "System Manager"
   }
- ]
+ ],
+ "snapshot_report": 0,
+ "timeout": 0,
+ "validate_filters": 1
 }

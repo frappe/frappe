@@ -217,6 +217,12 @@ class RetryBackgroundJobError(Exception):
 	pass
 
 
+class PartiallyCompleteError(ValidationError):
+	"""Raised when a bulk background operation completes with some items failing."""
+
+	pass
+
+
 class DocumentLockedError(ValidationError):
 	pass
 

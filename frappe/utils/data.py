@@ -165,10 +165,11 @@ def get_datetime(
 	if datetime_str is None:
 		return now_datetime()
 
-	elif isinstance(datetime_str, datetime.datetime | datetime.timedelta):
+	# PERF: isinstance with a tuple is much faster than with a union type (`X | Y`)
+	elif isinstance(datetime_str, (datetime.datetime, datetime.timedelta)):
 		return datetime_str
 
-	elif isinstance(datetime_str, list | tuple):
+	elif isinstance(datetime_str, (list, tuple)):
 		return datetime.datetime(datetime_str)
 
 	elif isinstance(datetime_str, datetime.date):
@@ -1584,7 +1585,7 @@ def money_in_words(
 		in_million = False
 
 	def fraction_in_words() -> str:
-		return in_words(float(f"0.{fraction}") * fraction_units, in_million).title()
+		return in_words(Decimal(f"0.{fraction}") * fraction_units, in_million).title()
 
 	# 0.00
 	if main == "0" and fraction in ["0", "00", "000"]:
@@ -1714,8 +1715,8 @@ def get_image_thumbnail_uri(url: str, max_dim: int = 400, quality: int = 80) -> 
 
 	try:
 		if url.startswith("/"):
-			base = os.path.abspath(frappe.get_site_path("public"))
-			path = os.path.abspath(os.path.join(base, url.lstrip("/")))
+			base = os.path.realpath(frappe.get_site_path("public"))
+			path = os.path.realpath(os.path.join(base, url.lstrip("/")))
 			if os.path.commonpath((base, path)) != base or not os.path.isfile(path):
 				return url
 			with open(path, "rb") as f:
@@ -1973,6 +1974,8 @@ def get_url(
 	uri: str | None = None,
 	full_address: bool = False,
 	allow_header_override: bool = True,
+	*,
+	for_dev_server: bool = False,
 ) -> str:
 	"""Get app url from request."""
 	host_name = frappe.local.conf.host_name or frappe.local.conf.hostname
@@ -2016,13 +2019,15 @@ def get_url(
 		uri = frappe.get_request_header("REQUEST_URI", "")
 
 	port = frappe.conf.http_port
-	if not port and frappe.conf.developer_mode:
+	if for_dev_server or (not port and frappe.conf.developer_mode):
 		port = frappe.conf.webserver_port
 
 	if (
 		# XXX: This config is used as proxy for "is production mode enabled?"
-		not frappe.conf.restart_supervisor_on_update
-		and not frappe.conf.restart_systemd_on_update
+		(
+			for_dev_server
+			or (not frappe.conf.restart_supervisor_on_update and not frappe.conf.restart_systemd_on_update)
+		)
 		and host_name
 		and not url_contains_port(host_name)
 		and port
@@ -2316,10 +2321,18 @@ operator_map = {
 
 def evaluate_filters(doc: "Mapping", filters: FilterSignature):
 	"""Return True if doc matches filters."""
+	from frappe.database.query import get_nested_set_hierarchy_result
+	from frappe.database.utils import NestedSetHierarchy
+
 	if not isinstance(filters, Filters):
 		filters = Filters(filters, doctype=doc.get("doctype"))
 	for d in filters:
 		f = get_filter(None, d)
+		if f.operator.lower() in NestedSetHierarchy:
+			hierarchy = f.operator.lower()
+			df = frappe.get_meta(f.doctype).get_field(f.fieldname)
+			f.value = get_nested_set_hierarchy_result(df.options if df else f.doctype, f.value, hierarchy)
+			f.operator = "not in" if hierarchy in ("not ancestors of", "not descendants of") else "in"
 		if not compare(doc.get(f.fieldname), f.operator, f.value, f.fieldtype):
 			return False
 

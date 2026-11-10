@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
+from frappe.core.doctype.user.test_user import delete_contact
 from frappe.core.doctype.user_permission.user_permission import get_applicable_for_doctype_list
 from frappe.database import savepoint
 from frappe.desk.form import linked_with
@@ -50,13 +51,17 @@ def linked_entry_target():
 	try:
 		yield frappe.new_doc("Linked Entry Target").insert(), user.name
 	finally:
+		delete_contact(user.name)
+		frappe.delete_doc("User", user.name)
 		for doctype in ("Linked Entry", "Linked Entry Row", "Linked Entry Target"):
 			frappe.delete_doc("DocType", doctype)
 
 
-def make_linked_entry(target):
+def make_linked_entry(target, name=None):
 	# two rows, so the join repeats the entry for DISTINCT to collapse
-	return frappe.new_doc("Linked Entry", target=target.name, rows=[{"target": target.name}] * 2).insert()
+	return frappe.new_doc("Linked Entry", target=target.name, rows=[{"target": target.name}] * 2).insert(
+		set_name=name
+	)
 
 
 class TestLinkedWith(IntegrationTestCase):
@@ -848,6 +853,8 @@ class TestLinkedWith(IntegrationTestCase):
 
 		with self.set_user(restricted_user.name):
 			docs = linked_with.get_linked_docs_to_delete(parent.doctype, parent.name)["docs"]
+		delete_contact(restricted_user.name)
+		frappe.delete_doc("User", restricted_user.name)
 
 		self.assertEqual(docs, [{"doctype": "Child DocType1", "name": child1.name}])
 
@@ -1152,6 +1159,34 @@ class TestLinkedWith(IntegrationTestCase):
 		)
 		self.assertEqual(bounded["Linked Entry"]["hidden_count"], 0)
 		self.assertEqual(unbounded["Linked Entry"]["hidden_count"], 0)
+
+	def test_get_loads_the_next_page_of_linked_docs(self):
+		with linked_entry_target() as (target, user), self.set_user(user):
+			# names in creation order, so an unsorted query (name order) can't pass by chance
+			entries = [make_linked_entry(target, name=f"{target.name}-{n}") for n in range(1, 4)]
+			next_page = linked_with.get(target.doctype, target.name, limit=2, offset=2)
+
+		self.assertEqual([doc.name for doc in next_page["Linked Entry"]["docs"]], [entries[0].name])
+		self.assertEqual(next_page["Linked Entry"]["hidden_count"], 0)
+
+	def test_get_lists_only_the_requested_linked_doctype(self):
+		with self.set_user("test@example.com"):
+			parent = frappe.new_doc("Parent DocType").insert()
+			frappe.new_doc("Child DocType1", parent_doctype=parent.name).insert()
+			frappe.new_doc("Child DocType2", parent_doctype=parent.name).insert()
+			linked_docs = linked_with.get(parent.doctype, parent.name, linked_doctype="Child DocType1")
+
+		self.assertEqual(list(linked_docs), ["Child DocType1"])
+
+	def test_get_lists_linked_docs_of_a_doctype_sorted_by_several_fields(self):
+		frappe.db.set_value("DocType", "Child DocType1", "sort_field", "idx desc, creation desc")
+		frappe.clear_cache(doctype="Child DocType1")
+		with self.set_user("test@example.com"):
+			parent = frappe.new_doc("Parent DocType").insert()
+			child = frappe.new_doc("Child DocType1", parent_doctype=parent.name).insert()
+			linked_docs = linked_with.get(parent.doctype, parent.name)
+
+		self.assertEqual([doc.name for doc in linked_docs["Child DocType1"]["docs"]], [child.name])
 
 	def test_get_rejects_ordering_by_non_standard_fields(self):
 		with linked_entry_target() as (target, user), self.set_user(user):

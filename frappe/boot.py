@@ -26,11 +26,14 @@ from frappe.email.inbox import get_email_accounts
 from frappe.integrations.frappe_providers.cloud_settings import (
 	get_boot_context as get_cloud_settings_boot_context,
 )
+from frappe.integrations.frappe_providers.cloud_settings import (
+	is_v2_site,
+)
 from frappe.integrations.frappe_providers.frappecloud_billing import current_site_info, is_fc_site
 from frappe.model.document import get_controller
-from frappe.utils import add_user_info, get_system_timezone
+from frappe.utils import add_user_info, cint, get_system_timezone
 from frappe.utils.caching import redis_cache
-from frappe.utils.change_log import get_versions
+from frappe.utils.change_log import get_app_versions
 from frappe.website.doctype.web_form_request.web_form_request import get_request_forms_by_doctype
 from frappe.website.doctype.web_page_view.web_page_view import is_tracking_enabled
 
@@ -114,7 +117,7 @@ def get_bootinfo():
 
 	if bootinfo.lang:
 		bootinfo.lang = str(bootinfo.lang)
-	bootinfo.versions = {k: v["version"] for k, v in get_versions().items()}
+	bootinfo.versions = {k: v["version"] for k, v in get_app_versions().items()}
 
 	bootinfo.error_report_email = frappe.conf.error_report_email
 	bootinfo.calendars = sorted(frappe.get_hooks("calendars"))
@@ -130,12 +133,17 @@ def get_bootinfo():
 	bootinfo.desk_settings = get_desk_settings()
 	bootinfo.app_logo_url = get_app_logo()
 	bootinfo.link_title_doctypes = get_link_title_doctypes()
+	# only needed when the combobox setting is on; the setting comes back as a string
+	bootinfo.link_settings = (
+		get_link_settings() if cint(frappe.get_system_settings("enable_combobox_link_field")) else {}
+	)
 	bootinfo.web_form_request_forms = get_request_forms_by_doctype()
 	bootinfo.translated_doctypes = get_translated_doctypes()
 	bootinfo.doctype_ptype_map = get_doctype_ptype_map()
 	bootinfo.subscription_conf = add_subscription_conf()
 	bootinfo.is_fc_site = is_fc_site()
 	bootinfo.cloud_settings = get_cloud_settings_boot_context()
+	bootinfo.is_v2_site = is_v2_site()
 	bootinfo.enable_address_autocompletion = frappe.db.get_single_value(
 		"Geolocation Settings", "enable_address_autocompletion"
 	)
@@ -251,6 +259,7 @@ def load_desktop_data(bootinfo, desk_views: DeskViews | None = None):
 	"""
 	from frappe.desk.doctype.dock.dock import resolve_dock
 	from frappe.desk.doctype.sidebar.sidebar import build_canonical_shells
+	from frappe.studio.doctype.studio_app.studio_app import get_desktop_apps
 
 	desk_views = desk_views or DeskViews()
 
@@ -296,6 +305,7 @@ def load_desktop_data(bootinfo, desk_views: DeskViews | None = None):
 		bootinfo.desktop_icons = get_desktop_icons(bootinfo=bootinfo)
 
 	bootinfo.app_data = get_app_data()
+	bootinfo.studio_apps = get_desktop_apps()
 
 
 def get_app_data() -> list[dict]:
@@ -342,6 +352,7 @@ def get_app_data() -> list[dict]:
 						or app_name,
 						app_route="",
 						desk_route="",
+						module_icons=[],
 						app_logo_url=app_info.get("logo")
 						or frappe.get_hooks("app_logo_url", app_name=app_name)
 						or frappe.get_hooks("app_logo_url", app_name="frappe"),
@@ -394,6 +405,7 @@ def get_app_data() -> list[dict]:
 				# second link. Passed through exactly as `app_route` is: a literal route the app
 				# author owns, neither resolved nor permission-checked here.
 				desk_route=app_info.get("desk_route") or "",
+				module_icons=get_module_icons(app_info),
 				# Only the app's own logo (from add_to_apps_screen or its app_logo_url hook); left
 				# empty when it declares none, so the desk renders an alphabet icon instead.
 				app_logo_url=app_info.get("logo")
@@ -404,6 +416,20 @@ def get_app_data() -> list[dict]:
 		)
 
 	return app_data
+
+
+def get_module_icons(app_info: dict) -> list[dict]:
+	"""The `module_icons` of an app's `add_to_apps_screen` entry that this user may open.
+
+	The apps screen fans them out behind the app's own icon, each linking to its own route. An
+	icon with a `has_permission` hook is dropped when the hook says no; one without it shows to
+	everyone who can see the app.
+	"""
+	return [
+		{"title": icon.get("title"), "logo": icon.get("logo"), "route": icon.get("route")}
+		for icon in app_info.get("module_icons") or []
+		if not icon.get("has_permission") or frappe.get_attr(icon["has_permission"])()
+	]
 
 
 def get_app_modules(app_name: str) -> list[str]:
@@ -584,6 +610,61 @@ def get_link_title_doctypes():
 		["doc_type as name"],
 	)
 	return filter_out_disabled_doctypes([d.name for d in dts + custom_dts if d])
+
+
+def get_link_settings() -> dict[str, dict]:
+	"""Non-default Link field settings per DocType; Property Setters override."""
+	from frappe.app_state import is_disabled_app_filtering_active, is_module_disabled
+	from frappe.desk.search import get_image_field
+
+	flags: dict[str, dict] = {}
+
+	for d in frappe.get_all(
+		"DocType",
+		or_filters={"link_display_mode": "Select", "show_image_in_link": 1},
+		fields=["name", "link_display_mode", "show_image_in_link"],
+	):
+		flags[d.name] = {
+			"select": d.link_display_mode == "Select",
+			"image": bool(cint(d.show_image_in_link)),
+		}
+
+	# skip the settings of disabled apps and modules, as Meta does
+	hide_disabled = is_disabled_app_filtering_active()
+	for ps in frappe.get_all(
+		"Property Setter",
+		filters={
+			"doctype_or_field": "DocType",
+			"property": ["in", ["link_display_mode", "show_image_in_link"]],
+		},
+		fields=["doc_type", "property", "value", "module", "is_app_disabled"],
+	):
+		if (hide_disabled and ps.is_app_disabled) or is_module_disabled(ps.module):
+			continue
+		entry = flags.setdefault(ps.doc_type, {"select": False, "image": False})
+		if ps.property == "link_display_mode":
+			entry["select"] = ps.value == "Select"
+		else:
+			entry["image"] = bool(cint(ps.value))
+
+	# skip Property Setters of deleted DocTypes
+	names = filter_out_disabled_doctypes([dt for dt, f in flags.items() if f["select"] or f["image"]])
+	existing = set(frappe.get_all("DocType", filters={"name": ["in", names]}, pluck="name"))
+
+	settings: dict[str, dict] = {}
+	for dt in names:
+		if dt not in existing:
+			continue
+		entry = {}
+		if flags[dt]["select"]:
+			entry["display_mode"] = "Select"
+		# image field name, so the client can load images without meta
+		if flags[dt]["image"] and (image_field := get_image_field(dt)):
+			entry["image_field"] = image_field
+		if entry:
+			settings[dt] = entry
+
+	return settings
 
 
 def set_time_zone(bootinfo):

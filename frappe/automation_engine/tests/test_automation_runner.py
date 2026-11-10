@@ -594,6 +594,21 @@ class TestWebhookAndScriptSteps(AutomationRunnerTestCase):
 		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "priority"), "High")
 		self.assertEqual(self.run_result(auto)["steps"][0]["detail"], "linked")
 
+	def test_a_linked_server_script_reads_its_own_variables(self):
+		with enable_safe_exec():
+			todo = make_todo()
+			script = make_server_script(
+				"result['detail'] = frappe.env.API_TOKEN",
+				variables=[{"key": "API_TOKEN", "value": "s3cr3t"}],
+			)
+			auto = make_automation([run_script({"server_script": script.name})], run_as="Triggering User")
+			row = self.queue_row(auto, todo.name)
+			frappe.db.set_value(QUEUE, row, "triggered_by", "test@example.com", update_modified=False)
+			execute_automation(row)
+
+		self.assertEqual(frappe.db.get_value(RUN, {"automation": auto}, "user"), "test@example.com")
+		self.assertEqual(self.run_result(auto)["steps"][0]["detail"], "s3cr3t")
+
 	def test_a_linked_script_is_read_when_the_step_runs_not_when_it_is_saved(self):
 		with enable_safe_exec():
 			todo = make_todo()

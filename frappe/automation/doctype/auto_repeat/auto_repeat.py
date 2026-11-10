@@ -421,13 +421,22 @@ class AutoRepeat(Document):
 		elif "{" in self.subject:
 			subject = frappe.render_template(self.subject, {"doc": new_doc}, restrict_globals=True)
 
-		print_format = self.print_format or "Standard"
+		print_format = self.print_format or frappe.get_meta(new_doc.doctype).default_print_format
 		error_string = None
 
 		try:
 			attachments = [
 				frappe.attach_print(
-					new_doc.doctype, new_doc.name, file_name=new_doc.name, print_format=print_format
+					new_doc.doctype,
+					new_doc.name,
+					file_name=new_doc.name,
+					print_format=print_format,
+					lang=new_doc.get("language")
+					or (
+						frappe.get_cached_value("Print Format", print_format, "default_print_language")
+						if print_format
+						else None
+					),
 				)
 			]
 

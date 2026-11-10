@@ -1,123 +1,68 @@
 // The "datepicker" param keeps this comment textually unique: esbuild's
 // minifier dedupes identical legal comments, which would break begin/end pairing.
 /*!rtl:begin:ignore:datepicker*/
-@import "~air-datepicker/dist/css/datepicker.min";
+@import "~air-datepicker/air-datepicker";
 
-.datepicker {
+.air-datepicker {
+	--adp-font-family: inherit;
+	--adp-font-size: var(--text-base);
+	--adp-z-index: 9999;
+	--adp-background-color: var(--fg-color);
+	--adp-background-color-hover: var(--fg-hover-color);
+	--adp-background-color-active: var(--fg-hover-color);
+	--adp-background-color-in-range: var(--date-range-bg);
+	--adp-background-color-in-range-focused: var(--date-range-bg);
+	--adp-color: var(--text-color);
+	--adp-color-secondary: var(--text-muted);
+	--adp-accent-color: var(--text-color);
+	--adp-color-current-date: var(--text-color);
+	--adp-color-other-month: var(--text-light);
+	--adp-color-other-month-hover: var(--text-muted);
+	--adp-color-disabled: var(--text-light);
+	--adp-day-name-color: var(--text-color);
+	--adp-day-name-color-hover: var(--text-muted);
+	--adp-border-color: var(--border-color);
+	--adp-border-color-inner: var(--border-color);
+	--adp-border-color-inline: var(--border-color);
+	--adp-border-radius: var(--radius-lg);
+	--adp-cell-border-radius: var(--radius-sm);
+	--adp-cell-background-color-hover: var(--fg-hover-color);
+	--adp-cell-background-color-selected: var(--date-active-bg);
+	--adp-cell-background-color-selected-hover: var(--date-active-bg);
+	--adp-cell-background-color-in-range: var(--date-range-bg);
+	--adp-cell-background-color-in-range-hover: var(--date-range-bg);
+	--adp-cell-border-color-in-range: var(--border-color);
+	--adp-background-color-selected-other-month: var(--date-active-bg);
+	--adp-background-color-selected-other-month-focused: var(--date-active-bg);
+	--adp-btn-color: var(--text-color);
+	--adp-btn-color-hover: var(--text-color);
+	--adp-time-track-color: var(--gray-600);
+	--adp-time-track-color-hover: var(--gray-600);
+
 	direction: ltr;
-	font-family: inherit;
-	z-index: 9999 !important;
-	background: var(--fg-color);
-	color: var(--text-color);
-	border-radius: var(--radius-lg);
-	border: 1px solid var(--border-color);
 	box-shadow: var(--shadow-2xl);
-	position: fixed;
 
-	&.active {
-		position: absolute;
+	.air-datepicker--pointer {
+		display: none;
 	}
 
-	&--nav {
-		border-bottom: 1px solid var(--border-color);
+	&.-only-timepicker- {
+		border-top: 1px solid var(--adp-border-color);
 	}
 
-	&--nav-title:hover,
-	&--nav-action:hover {
-		background-color: var(--fg-hover-color);
+	.air-datepicker-time--row:not(:last-child) {
+		margin-bottom: 4px;
+	}
+}
+
+.air-datepicker-cell {
+	&.-current-:not(.-selected-):not(.-in-range-) {
+		font-weight: var(--weight-bold);
 	}
 
-	&--time-current-hours,
-	&--time-current-minutes,
-	&--time-current-seconds {
-		font-family: inherit;
-
-		&:after {
-			color: var(--text-color);
-			background-color: var(--fg-hover-color);
-		}
-	}
-
-	&--day-name {
-		color: var(--text-color);
-	}
-
-	&--cell {
-		&.-current- {
-			color: var(--text-color);
-
-			&:not(.-selected-):not(.-in-range-) {
-				font-weight: var(--weight-bold);
-			}
-
-			&.-in-range- {
-				color: var(--text-color);
-			}
-		}
-
-		&.-range-from-,
-		&.-range-to- {
-			border: 1px solid var(--border-color);
-			background: var(--date-range-bg);
-		}
-
-		&.-selected-,
-		&.-current-.-selected- {
-			color: var(--date-active-text);
-			background: var(--date-active-bg);
-			border-radius: var(--radius-sm);
-		}
-
-		&.-in-range- {
-			color: var(--text-color);
-			background: var(--date-range-bg);
-		}
-
-		&.-in-range-.-focus- {
-			color: var(--date-active-text);
-			background: var(--date-active-bg);
-		}
-
-		&.-focus- {
-			background-color: var(--fg-hover-color);
-		}
-
-		&.-selected-.-focus- {
-			color: var(--date-active-text);
-			background: var(--date-active-bg);
-		}
-	}
-
-	&--time,
-	&--buttons {
-		border-top: 1px solid var(--border-color);
-	}
-
-	&--time-row {
-		background-image: linear-gradient(to right, var(--gray-600), var(--gray-600));
-		background-repeat: no-repeat;
-		background-size: 100% 1px;
-		background-position: left 50%;
-	}
-
-	&--time-row:first-child {
-		margin: 0;
-	}
-
-	&--pointer {
-		background: var(--fg-color);
-		border-top-right-radius: 2px;
-		border: 1px var(--border-color);
-		border-style: solid solid hidden hidden;
-	}
-
-	&--button {
-		color: var(--text-color);
-
-		&:hover {
-			color: var(--text-color);
-			background-color: var(--fg-hover-color);
-		}
+	&.-selected-,
+	&.-selected-.-focus- {
+		color: var(--date-active-text);
 	}
 }
 

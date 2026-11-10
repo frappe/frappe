@@ -64,6 +64,13 @@ class TestSafeExec(IntegrationTestCase):
 	def test_internal_attributes(self):
 		self.assertRaises(SyntaxError, safe_exec, "().__class__.__call__")
 
+	def test_env_outside_server_script(self):
+		with (
+			self.set_user("test@example.com"),
+			self.assertRaisesRegex(frappe.ValidationError, "only available in Server Scripts"),
+		):
+			safe_exec("x = frappe.env.API_TOKEN")
+
 	def test_utils(self):
 		_locals = dict(out=None)
 		safe_exec("""out = frappe.utils.cint("1")""", None, _locals)
@@ -109,6 +116,26 @@ class TestSafeExec(IntegrationTestCase):
 			frappe.PermissionError, safe_exec, 'frappe.db.sql("update tabToDo set description=NULL")'
 		)
 
+	def test_sql_export_blocked_with_comment_separator(self):
+		for separator in ("/**/", "/*!50000 */", "-- x\n", "#x\n", " ", "\n"):
+			for keyword in ("outfile", "dumpfile"):
+				query = f"select 1 into{separator}{keyword} '/tmp/x'"
+				self.assertFalse(safe_exec_utils.check_safe_sql_query(query, throw=False), query)
+
+		self.assertFalse(
+			safe_exec_utils.check_safe_sql_query("select 1 /*! into outfile '/tmp/x' */", throw=False)
+		)
+		self.assertTrue(safe_exec_utils.check_safe_sql_query("select /* note */ 1 -- end", throw=False))
+
+	def test_sql_export_blocked_when_split_by_comment_like_text(self):
+		for query in (
+			"select 1--1 into/**/outfile '/tmp/x'",
+			"select '/*' into/**/outfile '/tmp/x' -- */",
+			"select 1 /*!into*/ /*!outfile*/ '/tmp/x'",
+			"select 1 into/*!50000dumpfile*/'/tmp/x'",
+		):
+			self.assertFalse(safe_exec_utils.check_safe_sql_query(query, throw=False), query)
+
 	def test_query_builder(self):
 		_locals = dict(out=None)
 		safe_exec(
@@ -130,6 +157,19 @@ class TestSafeExec(IntegrationTestCase):
 
 		# Allowed read query
 		frappe.render_template(""" {{ frappe.qb.from_("User").select("*").run() }} """)
+
+	def test_auth_table_not_readable(self):
+		with self.set_user("Guest"):
+			for template in (
+				"""{{ frappe.db.sql("select password from __Auth") }}""",
+				"""{{ frappe.qb.from_("__Auth").select("password").run() }}""",
+				"""{{ frappe.db.exists("__Auth", {"name": "Administrator"}) }}""",
+			):
+				self.assertRaises(frappe.PermissionError, render_template, template)
+
+			self.assertEqual(render_template("""{{ frappe.db.exists("User", "Guest") }}"""), "Guest")
+
+		self.assertRaises(frappe.PermissionError, safe_exec, """frappe.db.sql("select * from `__Auth`")""")
 
 	def test_call(self):
 		# call non whitelisted method

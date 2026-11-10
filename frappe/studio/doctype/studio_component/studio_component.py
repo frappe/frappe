@@ -4,12 +4,13 @@
 import os
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
 from frappe.studio.export import delete_file, parse_json, remove_empty_values, validate_standard_app_change
 from frappe.studio.realtime import publish_doc_change
 from frappe.studio.sync_json import get_studio_folders
-from frappe.studio.utils import walk_blocks
+from frappe.studio.utils import validate_file_name, walk_blocks
 
 
 class StudioComponent(Document):
@@ -47,6 +48,15 @@ class StudioComponent(Document):
 
 	def validate(self):
 		validate_standard_app_change(self)
+		self.validate_component_id()
+
+	def validate_component_id(self):
+		# the scrubbed id names the component's exported file, so it must stay a single path segment
+		validate_file_name(
+			self.name,
+			_("Component ID cannot be empty or contain slashes."),
+			title=_("Invalid Component ID"),
+		)
 
 	def on_update(self):
 		publish_doc_change("Studio Component", self.name)

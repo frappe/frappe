@@ -3,6 +3,7 @@
 
 import json
 from contextlib import contextmanager
+from unittest.mock import patch
 
 import frappe
 import frappe.utils
@@ -22,7 +23,6 @@ def get_test_notification(config):
 		yield notification
 	finally:
 		notification.delete()
-		frappe.db.commit()
 
 
 @contextmanager
@@ -52,7 +52,6 @@ def get_test_doctype_with_attach_field(doctype_name="Test Attach Doctype"):
 	finally:
 		frappe.db.delete(doctype_name)
 		frappe.delete_doc_if_exists("DocType", doctype_name, force=1)
-		frappe.db.commit()
 
 
 @contextmanager
@@ -67,12 +66,11 @@ def create_test_file(file_name="test_attachment.txt", content="Test file content
 
 	finally:
 		frappe.delete_doc_if_exists("File", file_doc.name, force=1)
-		frappe.db.commit()
 
 
 class TestNotification(IntegrationTestCase):
 	def setUp(self):
-		frappe.db.delete("Email Queue")
+		self.enterContext(patch.object(frappe.db, "_disable_transaction_control", 1))
 		frappe.set_user("test@example.com")
 
 		if not frappe.db.exists("Notification", {"name": "ToDo Status Update"}, "name"):
@@ -120,7 +118,9 @@ class TestNotification(IntegrationTestCase):
 				},
 			)
 		)
-		frappe.db.delete("Email Queue")
+		frappe.db.delete(
+			"Email Queue", {"reference_doctype": "Communication", "reference_name": communication.name}
+		)
 
 		communication.reload()
 		communication.content = "test 2"
@@ -379,7 +379,6 @@ class TestNotification(IntegrationTestCase):
 				"recipients": [{"receiver_by_document_field": "owner"}],
 			}
 		).insert()
-		frappe.db.commit()  # nosemgrep
 
 		event = frappe.new_doc("Event")
 		event.subject = "test-2"
@@ -450,8 +449,10 @@ class TestNotification(IntegrationTestCase):
 
 	def test_cc_jinja(self):
 		frappe.db.delete("User", {"email": "test_jinja@example.com"})
-		frappe.db.delete("Email Queue")
-		frappe.db.delete("Email Queue Recipient")
+		frappe.db.delete(
+			"Email Queue", {"reference_doctype": "User", "reference_name": "test_jinja@example.com"}
+		)
+		frappe.db.delete("Email Queue Recipient", {"recipient": "test_jinja@example.com"})
 
 		test_user = frappe.new_doc("User")
 		test_user.name = "test_jinja"
@@ -470,8 +471,10 @@ class TestNotification(IntegrationTestCase):
 		self.assertTrue(frappe.db.get_value("Email Queue Recipient", {"recipient": "test_jinja@example.com"}))
 
 		frappe.db.delete("User", {"email": "test_jinja@example.com"})
-		frappe.db.delete("Email Queue")
-		frappe.db.delete("Email Queue Recipient")
+		frappe.db.delete(
+			"Email Queue", {"reference_doctype": "User", "reference_name": "test_jinja@example.com"}
+		)
+		frappe.db.delete("Email Queue Recipient", {"recipient": "test_jinja@example.com"})
 
 	def test_notification_to_assignee(self):
 		todo = frappe.new_doc("ToDo")
@@ -582,8 +585,6 @@ class TestNotification(IntegrationTestCase):
 
 	def test_attach_files_from_field(self):
 		"""Test notification with 'From Field' attachment option."""
-		frappe.db.delete("Email Queue")
-
 		with get_test_doctype_with_attach_field("Test From Field Doctype") as test_doctype:
 			with create_test_file("from_field_test.txt", "Content from specific field") as test_file:
 				# Create notification with "From Field" attachment
@@ -631,8 +632,6 @@ class TestNotification(IntegrationTestCase):
 
 	def test_attach_files_all(self):
 		"""Test notification with 'All' attachment option."""
-		frappe.db.delete("Email Queue")
-
 		with get_test_doctype_with_attach_field("Test All Attachments Doctype") as test_doctype:
 			with create_test_file("all_test_1.txt", "First file content") as test_file1:
 				# Create notification with "All" attachment option
@@ -697,8 +696,6 @@ class TestNotification(IntegrationTestCase):
 
 	def test_attach_files_empty_option(self):
 		"""Test notification with empty attachment option (no attachments)."""
-		frappe.db.delete("Email Queue")
-
 		# Create notification with empty attach_files option
 		notification_config = {
 			"name": "Test No Attachments",
@@ -737,10 +734,27 @@ class TestNotification(IntegrationTestCase):
 		user = frappe.get_doc("User", "test@example.com")
 		user.language = "de"
 
-		with self.change_settings("Print Settings", allow_print_for_draft=1):
-			attachment = frappe.new_doc("Notification").get_print(user)
+		attachment = frappe.new_doc("Notification").get_print(user)
 
 		self.assertEqual(attachment["lang"], "de")
+
+	def test_attach_print_without_print_format_sets_no_language(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		user = frappe.get_doc("User", "test@example.com")
+		user.language = None
+
+		attachment = frappe.new_doc("Notification").get_print(user)
+
+		self.assertIsNone(attachment["lang"])
+
+	def test_attach_print_of_non_submittable_document(self):
+		user = frappe.get_doc("User", "test@example.com")
+
+		with self.change_settings("Print Settings", allow_print_for_draft=0):
+			attachment = frappe.new_doc("Notification").get_print(user)
+
+		self.assertEqual(attachment["name"], "test@example.com")
 
 	@classmethod
 	def tearDownClass(cls):

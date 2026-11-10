@@ -72,10 +72,16 @@ runs:
       cache-dependency-path: |
         frappe-src/yarn.lock
         frappe-src/studio/frontend/yarn.lock
+        frappe-src/flow/yarn.lock
+
+  - id: os-release
+    shell: bash -e {0}
+    run: echo "version=$(lsb_release -rs)" >> "$GITHUB_OUTPUT"
 
   - uses: astral-sh/setup-uv@v6
     with:
       enable-cache: true
+      cache-suffix: ubuntu-${{ steps.os-release.outputs.version }}
       cache-dependency-glob: |
         **/pyproject.toml
         **/requirements*.txt
@@ -87,7 +93,7 @@ runs:
       # lists, so only the pgdg list needs a refresh; the runner image already
       # has the Ubuntu lists.
       sudo install -d /usr/share/postgresql-common/pgdg
-      sudo curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
+      sudo curl -fsSL --retry 3 --retry-all-errors -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
       echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
       sudo apt-get -qq update \
         -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/pgdg.list \
@@ -206,12 +212,6 @@ runs:
       # build it in the background while the site is being created)
       start_time=$(date +%s)
 
-      build_pid=""
-      if [ "$BUILD_ASSETS" == "true" ]; then
-        CI=Yes bench build --force --production &> ${GITHUB_WORKSPACE}/build_assets.log &
-        build_pid=$!
-      fi
-
       if [ "$DB" == "postgres" ]; then
         DB_ROOT_USER="postgres"
         DB_ROOT_PWD="travis"
@@ -234,6 +234,12 @@ runs:
       bench set-config -g admin_password admin
       if [ "$ENABLE_SERVER_SCRIPTS" == "true" ]; then
         bench set-config -g server_script_enabled 1 --parse
+      fi
+
+      build_pid=""
+      if [ "$BUILD_ASSETS" == "true" ]; then
+        CI=Yes bench build --force --production &> ${GITHUB_WORKSPACE}/build_assets.log &
+        build_pid=$!
       fi
 
       bench new-site test_site \

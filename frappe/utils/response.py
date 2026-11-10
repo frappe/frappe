@@ -335,8 +335,9 @@ def send_private_file(path: str, filename: str | None = None) -> Response:
 	path = os.path.join(frappe.local.conf.get("private_path", "private"), path.strip("/"))
 	filename = filename or os.path.basename(path)
 
-	extension = os.path.splitext(path)[1]
-	as_attachment = extension.lower() in FORCE_DOWNLOAD_EXTENSIONS
+	as_attachment = any(
+		os.path.splitext(name)[1].lower() in FORCE_DOWNLOAD_EXTENSIONS for name in (path, filename)
+	)
 
 	if frappe.local.request.headers.get("X-Use-X-Accel-Redirect"):
 		mime_type = mimetypes.guess_type(filename)[0] or "application/octet-stream"

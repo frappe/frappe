@@ -158,6 +158,9 @@ export class FrappeDataProvider {
 			if (data && data.doctype === doctype) cb(data.name);
 		};
 		frappe.realtime.on("list_update", handler);
-		return () => frappe.realtime.off("list_update", handler);
+		return () => {
+			frappe.realtime.off("list_update", handler);
+			frappe.realtime.doctype_unsubscribe(doctype);
+		};
 	}
 }

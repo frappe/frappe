@@ -12,11 +12,12 @@ from frappe.studio.build import get_editor_assets
 from frappe.studio.export import (
 	can_export,
 	delete_folder,
+	validate_frappe_app,
 	validate_standard_app_change,
 	write_document_file,
 )
 from frappe.studio.realtime import publish_doc_change
-from frappe.studio.utils import get_app_file_path, walk_blocks
+from frappe.studio.utils import get_app_file_path, get_export_folder, validate_installed_app, walk_blocks
 from frappe.utils import get_files_path
 from frappe.website.page_renderers.document_page import DocumentPage
 from frappe.website.utils import cleanup_page_name
@@ -92,6 +93,22 @@ class StudioAppRenderer(DocumentPage):
 		return self.path.startswith("dev/")
 
 
+def get_desktop_apps() -> list[dict]:
+	"""Apps with a published page, which is what makes `/<route>` serve them."""
+	StudioApp = frappe.qb.DocType("Studio App")
+	StudioPage = frappe.qb.DocType("Studio Page")
+	return (
+		frappe.qb.from_(StudioApp)
+		.inner_join(StudioPage)
+		.on(StudioPage.studio_app == StudioApp.name)
+		.select(StudioApp.name, StudioApp.app_title, StudioApp.route, StudioApp.favicon)
+		.where(StudioPage.published == 1)
+		.distinct()
+		.orderby(StudioApp.app_title)
+		.run(as_dict=True)
+	)
+
+
 class StudioApp(WebsiteGenerator):
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
@@ -114,10 +131,11 @@ class StudioApp(WebsiteGenerator):
 	website = frappe._dict(
 		template="templates/generators/app_renderer.html",
 		page_title_field="app_title",
-		condition_field="published",
 	)
 
 	def get_context(self, context):
+		from frappe.studio.api import check_app_permission
+
 		csrf_token = frappe.sessions.get_csrf_token()
 		frappe.db.commit()  # nosemgrep
 		context.csrf_token = csrf_token
@@ -137,6 +155,9 @@ class StudioApp(WebsiteGenerator):
 		context.app_pages = frappe.get_all("Studio Page", page_filters, ["name", "page_title", "route"])
 
 		context.is_developer_mode = frappe.utils.cint(frappe.conf.developer_mode)
+		context.can_edit_app = bool(
+			(context.is_developer_mode or not self.is_standard) and check_app_permission()
+		)
 		context.router_file = self.get_router_file() if context.is_developer_mode else None
 		context.router_script = self.get_router_script()
 
@@ -178,6 +199,9 @@ class StudioApp(WebsiteGenerator):
 	def is_published(self):
 		return frappe.db.exists("Studio Page", dict(studio_app=self.name, published=1))
 
+	def is_website_published(self):
+		return bool(self.is_published)
+
 	@property
 	def pages(self):
 		return frappe.get_all("Studio Page", filters={"studio_app": self.name}, pluck="name")
@@ -198,6 +222,7 @@ class StudioApp(WebsiteGenerator):
 
 	def validate(self):
 		validate_standard_app_change(self)
+		validate_frappe_app(self)
 
 	def on_update(self):
 		self.export_app()
@@ -278,11 +303,16 @@ class StudioApp(WebsiteGenerator):
 	@frappe.whitelist()
 	def publish_app(self):
 		pages = self.pages
+		unresolved_variants = []
 		for page in pages:
 			page_doc = frappe.get_doc("Studio Page", page)
-			page_doc.publish()
+			unresolved_variants += page_doc.publish()["unresolved_variants"]
 
-		return {"published_pages": len(pages), **self.generate_app_build()}
+		return {
+			"published_pages": len(pages),
+			"unresolved_variants": unresolved_variants,
+			**self.generate_app_build(),
+		}
 
 	@frappe.whitelist()
 	def unpublish_app(self):
@@ -344,6 +374,8 @@ class StudioApp(WebsiteGenerator):
 
 	@frappe.whitelist()
 	def enable_app_export(self, target_app: str):
+		frappe.has_permission(self.doctype, "write", self.name, throw=True)
+		validate_installed_app(target_app)
 		if self.is_standard and self.frappe_app and self.frappe_app != target_app:
 			self.move_export_to(target_app)
 
@@ -549,7 +581,7 @@ class StudioApp(WebsiteGenerator):
 		return target
 
 	def get_folder_path(self, name: str | None = None, frappe_app: str | None = None):
-		return frappe.get_app_source_path(frappe_app or self.frappe_app, "studio", name or self.name)
+		return get_export_folder(frappe_app or self.frappe_app, name or self.name)
 
 
 def validate_app_name(name: str):
