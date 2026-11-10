@@ -84,6 +84,7 @@ frappe.views.InteractionComposer = class InteractionComposer {
 				fieldtype: "Link",
 				fieldname: "assigned_to",
 				options: "User",
+				get_query: () => ({ filters: { user_type: "System User", enabled: 1 } }),
 			},
 			{ fieldtype: "Section Break" },
 			{ label: __("Summary"), fieldtype: "Data", fieldname: "summary" },
