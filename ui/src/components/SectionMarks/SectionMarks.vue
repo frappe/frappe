@@ -1,7 +1,5 @@
-<!-- A column of marks centred beside a scroll area, one per section. The marks near the pointer
-     grow towards it and the sections in view draw brighter; the hovered mark's card shows its
-     section's title and description, and a click scrolls to it. It fills its positioned parent's
-     height and draws nothing while the area does not scroll. -->
+<!-- Marks centred beside a scroll area, one per section; a hovered mark shows its section's card
+     and a click scrolls to it. It fills its positioned parent's height. -->
 <template>
 	<nav
 		v-if="tracker?.scrolls.value && sections.length > 1"
@@ -9,20 +7,24 @@
 		class="pointer-events-none absolute inset-y-0 z-10 w-6 select-none"
 	>
 		<div
-			class="pointer-events-auto absolute left-0 top-1/2 -translate-y-1/2"
-			:style="{ height: stripHeight, width: hovered === null ? '1.5rem' : '22rem' }"
+			class="pointer-events-auto absolute left-0 top-1/2 w-6 -translate-y-1/2"
+			:style="{ height: stripHeight }"
+			@mouseleave="focused || (hovered = null)"
 		>
 			<button
 				type="button"
-				class="absolute inset-0 cursor-pointer focus-visible:outline-none"
-				:aria-label="translate('Jump to section: {0}', [(preview ?? sections[0]).label])"
+				class="absolute inset-0 cursor-pointer rounded-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
+				:aria-label="
+					preview
+						? translate('Jump to section: {0}', [preview.label])
+						: translate('Jump to a section')
+				"
 				@mousemove="hovered = indexAt($event)"
-				@mouseleave="hovered = null"
-				@mousedown="onPress"
+				@mousedown.prevent
 				@click="onClick"
-				@wheel.passive="tracker.viewport.scrollBy({ top: $event.deltaY })"
-				@focus="hovered ??= firstInView()"
-				@blur="hovered = null"
+				@wheel.passive="onWheel"
+				@focus="onFocus"
+				@blur="onBlur"
 				@keydown="onKey"
 			>
 				<span
@@ -43,28 +45,28 @@
 						"
 					/>
 				</span>
-				<span
-					v-if="preview"
-					data-section-preview
-					class="absolute left-8 w-80 cursor-text select-text"
-					:style="{ top: `${place(hovered!)}%`, transform: `translateY(${previewShift})` }"
-					@mousemove.stop
-				>
-					<span
-						class="block rounded-6 bg-surface-elevation-2 p-3 text-left shadow-xl ring-1 ring-black ring-opacity-5"
-					>
-						<span class="block truncate text-base font-medium text-ink-gray-8">
-							{{ preview.label }}
-						</span>
-						<span
-							v-if="preview.description"
-							class="mt-1 line-clamp-3 text-base text-ink-gray-5"
-						>
-							{{ preview.description }}
-						</span>
-					</span>
-				</span>
 			</button>
+			<!-- Not HoverCard: one card follows the pointer along the strip, with no open delay. Its
+			     left padding bridges the gap from the marks, so the pointer can reach it. -->
+			<div
+				v-if="preview"
+				class="absolute left-6 w-[21.5rem] cursor-text select-text pl-2"
+				:style="{ top: `${place(hovered!)}%`, transform: `translateY(${previewShift})` }"
+			>
+				<div
+					class="rounded-6 bg-surface-elevation-2 p-3 shadow-xl ring-1 ring-black ring-opacity-5"
+				>
+					<p class="truncate text-base font-medium text-ink-gray-8">
+						{{ preview.label }}
+					</p>
+					<p
+						v-if="preview.description"
+						class="mt-1 line-clamp-3 text-base text-ink-gray-5"
+					>
+						{{ preview.description }}
+					</p>
+				</div>
+			</div>
 		</div>
 	</nav>
 </template>
@@ -82,13 +84,13 @@ const props = defineProps<{
 	find: (key: string) => HTMLElement | null;
 }>();
 
-/** The gap between two marks, as T3 Code's thread minimap spaces them. */
 const GAP = 8;
 /** A mark's width by its distance from the hovered one; the rest stay a third. */
 const SCALES = ["scale-x-100", "scale-x-[0.667]", "scale-x-[0.417]"];
 
 const tracker = shallowRef<SectionTracker>();
 const hovered = ref<number | null>(null);
+const focused = ref(false);
 
 const preview = computed(() => (hovered.value === null ? null : props.sections[hovered.value]));
 const stripHeight = computed(
@@ -137,33 +139,40 @@ function firstInView() {
 	return Math.max(0, index);
 }
 
-function inPreview(event: Event) {
-	return (event.target as Element).closest("[data-section-preview]") !== null;
+function onFocus() {
+	focused.value = true;
+	hovered.value ??= firstInView();
 }
 
-/** A press on a mark does not focus it, so its card does not stay open on focus. */
-function onPress(event: MouseEvent) {
-	if (!inPreview(event)) event.preventDefault();
+function onBlur() {
+	focused.value = false;
+	hovered.value = null;
 }
 
+/** A click from the keyboard or a screen reader has no pointer height: it opens the chosen mark. */
 function onClick(event: MouseEvent) {
-	if (inPreview(event)) return;
-	go(indexAt(event));
-	(event.currentTarget as HTMLElement).blur();
+	go(event.detail ? indexAt(event) : hovered.value ?? firstInView());
+}
+
+function onWheel(event: WheelEvent) {
+	const lines = event.deltaMode === WheelEvent.DOM_DELTA_LINE;
+	tracker.value?.viewport.scrollBy({ top: lines ? event.deltaY * 16 : event.deltaY });
 }
 
 function onKey(event: KeyboardEvent) {
 	const last = props.sections.length - 1;
-	const moves: Record<string, () => number> = {
+	const moves: Record<string, () => number | null> = {
 		ArrowDown: () => Math.min(last, (hovered.value ?? -1) + 1),
 		ArrowUp: () => Math.max(0, (hovered.value ?? 1) - 1),
 		Home: () => 0,
 		End: () => last,
+		Escape: () => null,
 	};
-	if (moves[event.key]) hovered.value = moves[event.key]();
-	else if (event.key === "Enter" || event.key === " ") go(hovered.value ?? 0);
-	else return;
+	if (!moves[event.key] || (event.key === "Escape" && hovered.value === null)) return;
+	hovered.value = moves[event.key]();
 	event.preventDefault();
+	// Escape closes the card only, not the dialog around it.
+	event.stopPropagation();
 }
 
 function go(index: number) {
