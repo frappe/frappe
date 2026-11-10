@@ -9,13 +9,13 @@ import frappe
 from frappe import _
 from frappe.desk.doctype.rail.rail import NO_HOST, SITE_LAYER
 from frappe.desk.layers import anchor_attempts, place_by_anchors
+from frappe.desk.settings_records import shipped_records
+from frappe.desk.settings_rules import Block, Problem, SettingsRules, report
 
 from .boot import report_oversized_keys
 from .doctypes import metadata_version
 from .permissions import may_enter_any_prefix
 from .settings_filter import SettingsFilter
-from .settings_records import shipped_records
-from .settings_rules import Block, Problem, SettingsRules, report
 from .titles import app_screen
 
 PANES_CACHE_KEY = "shell_settings_panes"

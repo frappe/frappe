@@ -14,8 +14,8 @@ from frappe.desk.doctype.settings_dialog.test_settings_dialog import (
 	ship,
 	single,
 )
+from frappe.desk.settings_rules import SettingsRules, is_strict
 from frappe.shell.settings import check_shipped_records, merge_shipped, resolve_panes
-from frappe.shell.settings_rules import SettingsRules, is_strict
 from frappe.shell.settings_snapshot import check_settings_snapshot
 from frappe.tests.test_shell_settings import active, unchecked
 
@@ -66,7 +66,7 @@ class TestSettingsRules(SettingsDialogTestCase):
 			doc = ship(["general"], [component("theme", roles='["No Such Role"]')], insert=False)
 
 		with (
-			patch("frappe.shell.settings_rules.is_strict", return_value=False),
+			patch("frappe.desk.settings_rules.is_strict", return_value=False),
 			patch("builtins.print") as printed,
 			patch("frappe.log_error") as logged,
 		):

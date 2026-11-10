@@ -4,9 +4,9 @@
 import frappe
 from frappe import _
 from frappe.desk.doctype.rail.rail import NO_HOST, SITE_LAYER, SYSTEM_WRITE_FLAGS
+from frappe.desk.settings_records import shipped_records
+from frappe.desk.settings_rules import SettingsRules, report
 from frappe.model.document import Document
-from frappe.shell.settings_records import shipped_records
-from frappe.shell.settings_rules import SettingsRules, report
 
 
 class SettingsDialog(Document):
