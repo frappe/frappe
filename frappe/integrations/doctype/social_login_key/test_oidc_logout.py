@@ -42,6 +42,29 @@ class TestOIDCLogout(IntegrationTestCase):
 		with self.assertRaises(frappe.ValidationError):
 			key.validate()
 
+	def test_oidc_logout_rejects_malformed_https_urls(self):
+		invalid_urls = (
+			" https://id.example.com/logout",
+			"https://@id.example.com/logout",
+			"https://id.example.com:notaport/logout",
+			"https://id.example.com:65536/logout",
+			"https://id.example.com\\@evil.example/logout",
+			"https://id.example.com\n@evil.example/logout",
+		)
+		for invalid_url in invalid_urls:
+			with self.subTest(url=invalid_url):
+				for field in ("end_session_endpoint", "post_logout_redirect_uri"):
+					key = make_oidc_social_login_key(**{field: invalid_url})
+					with self.assertRaises(frappe.ValidationError):
+						key.validate_oidc_logout()
+
+	def test_oidc_logout_revalidates_changed_configuration(self):
+		key = make_oidc_social_login_key()
+		key.validate_oidc_logout()
+		key.post_logout_redirect_uri = "https://@evil.example/logout"
+		with self.assertRaises(frappe.ValidationError):
+			key.get_oidc_logout_url()
+
 	def test_oidc_logout_url_uses_client_id_and_registered_redirect(self):
 		key = make_oidc_social_login_key()
 
