@@ -9,6 +9,7 @@ Group
     desk/profile/notifications
     desk/profile/email
     desk/profile/session-defaults
+    desk/profile/password
   desk/system
     desk/system/regional
     desk/system/login
