@@ -9,25 +9,16 @@ from frappe.desk.doctype.list_filter.list_filter import (
 	delete_list_filter,
 	update_list_filter,
 )
-from frappe.tests import UnitTestCase
-from frappe.tests.utils import toggle_test_mode
+from frappe.tests import IntegrationTestCase
 
 LIST_FILTER_OWNER = "list_filter_owner@example.com"
 LIST_FILTER_OTHER = "list_filter_other@example.com"
 
 
-class TestListFilter(UnitTestCase):
+class TestListFilter(IntegrationTestCase):
 	def setUp(self):
-		toggle_test_mode(True)
-		frappe.set_user("Administrator")
-
-	def tearDown(self):
-		frappe.db.delete("List Filter", {"filter_name": ["like", "_test_filter_%"]})
-		frappe.db.delete("List Filter", {"filter_name": ["like", "_test_layout_%"]})
-		for email in (LIST_FILTER_OWNER, LIST_FILTER_OTHER):
-			if frappe.db.exists("User", email):
-				frappe.delete_doc("User", email, force=True, ignore_permissions=True)
-		frappe.set_user("Administrator")
+		super().setUp()
+		self.enterContext(self.set_user("Administrator"))
 
 	def _create_filter(self, **kwargs):
 		doc = frappe.get_doc(
@@ -56,6 +47,7 @@ class TestListFilter(UnitTestCase):
 		self.assertEqual(updated["sort_order"], "asc")
 
 	def _ensure_desk_user(self, email):
+		self.addCleanup(frappe.clear_cache, user=email)
 		if not frappe.db.exists("User", email):
 			frappe.get_doc(
 				{
