@@ -355,6 +355,23 @@ class TestDocument(IntegrationTestCase):
 		self.assertEqual(frappe.parse_json(todo._seen), expected)
 		self.assertEqual(frappe.parse_json(frappe.db.get_value("ToDo", todo.name, "_seen")), expected)
 
+	def test_insert_ignores_a_malformed_preset_seen(self):
+		cases = {"{": [], "5": [], '{"a": 1}': [], '["a@example.com", 5]': ["a@example.com"]}
+		for preset, kept in cases.items():
+			todo = frappe.get_doc({"doctype": "ToDo", "description": "seen bad 46875", "_seen": preset})
+			todo.insert()
+			self.assertEqual(frappe.parse_json(todo._seen), [*kept, "Administrator"])
+
+	def test_duplicate_insert_keeps_seen_of_existing_row(self):
+		values = {"doctype": "Event", "subject": "seen dup 46875", "starts_on": now_datetime()}
+		event = frappe.get_doc(values).insert()
+		frappe.db.set_value("Event", event.name, "_seen", frappe.as_json(["a@example.com"]))
+
+		frappe.get_doc(values).insert(ignore_if_duplicate=True, set_name=event.name)
+
+		seen = frappe.parse_json(frappe.db.get_value("Event", event.name, "_seen"))
+		self.assertEqual(seen, ["a@example.com"])
+
 	def test_insert_does_not_write_seen_without_track_seen(self):
 		note = frappe.get_doc({"doctype": "Note", "title": "no seen 46875"}).insert()
 		self.assertFalse(note.get("_seen"))
