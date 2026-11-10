@@ -75,7 +75,7 @@ class TestDaemonClient(UnitTestCase):
 				lambda: self.client.patch_config("s1", title="T"),
 				"PATCH",
 				"/sessions/s1/config",
-				{"title": "T", "auto_approve": None},
+				{"title": "T", "approval_mode": None},
 			),
 			(
 				lambda: self.client.patch_config(
@@ -85,7 +85,7 @@ class TestDaemonClient(UnitTestCase):
 				"/sessions/s1/config",
 				{
 					"title": None,
-					"auto_approve": None,
+					"approval_mode": None,
 					"client_tools": [{"function": {"name": "read"}}],
 					"confirm_tools": ["read"],
 				},
@@ -96,7 +96,7 @@ class TestDaemonClient(UnitTestCase):
 				"/sessions/s1/config",
 				{
 					"title": None,
-					"auto_approve": None,
+					"approval_mode": None,
 					"tools": ["grep"],
 				},
 			),

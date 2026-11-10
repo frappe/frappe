@@ -113,7 +113,7 @@ class PrintViewTest(IntegrationTestCase):
 		benign = self._make_doc(doctype.name, ".png")
 		html = get_html_and_style(doc=benign.as_json(), print_format="Standard", no_letterhead=1)["html"]
 		self.assertIn('src="/files/img.png"', html)
-		self.assertIn('data-barcode-value="1234.png"', html)
+		self.assertIn('<img src="data:image/svg+xml;base64,', html)
 
 		evil = self._make_doc(doctype.name, '.png" onerror="alert(1)')
 		html = get_html_and_style(doc=evil.as_json(), print_format="Standard", no_letterhead=1)["html"]
@@ -184,6 +184,44 @@ class PrintViewTest(IntegrationTestCase):
 		# cancelled doc can't be printed by default
 		self.assertRaises(frappe.PermissionError, frappe.attach_print, doc.doctype, doc.name)
 
+	def test_print_format_template_cannot_run_write_queries(self):
+		title = frappe.generate_hash()
+		note = frappe.get_doc(doctype="Note", title=title).insert()
+		print_format = frappe.get_doc(
+			doctype="Print Format",
+			name=frappe.generate_hash(),
+			doc_type="Note",
+			custom_format=1,
+			print_format_type="Jinja",
+			html=(
+				'{% set note = frappe.qb.DocType("Note") %}'
+				'{{ frappe.qb.update(note).set(note.title, "changed").where(note.name == doc.name).run() }}'
+			),
+		).insert()
+
+		with self.assertRaises(frappe.PrintFormatError):
+			get_html_and_style(doc="Note", name=note.name, print_format=print_format.name, no_letterhead=1)
+
+		self.assertEqual(frappe.db.get_value("Note", note.name, "title"), title)
+
+	def test_preview_sheet_uses_the_format_paper_size(self):
+		from frappe.www.printview import get_preview_page_css
+
+		print_format = frappe.get_doc(doctype="Print Format", doc_type="Note", paper_size="A5")
+
+		with self.set_user("test@example.com"):
+			self.assertIn("width: 148mm", get_preview_page_css(print_format))
+
+	def test_preview_sheet_uses_the_print_format_class_page_size(self):
+		from frappe.www.printview import get_preview_page_css
+
+		print_format = frappe.get_doc(
+			doctype="Print Format", doc_type="Note", css=".print-format { page-size: A5; }"
+		)
+
+		with self.set_user("test@example.com"):
+			self.assertIn("width: 148mm", get_preview_page_css(print_format))
+
 	def test_before_print_runs_in_builder_renderer(self):
 		from frappe.utils.print_format_generator import PrintFormatGenerator
 
@@ -236,6 +274,24 @@ class PrintViewTest(IntegrationTestCase):
 		# without a doctype default it still degrades to the built-in format
 		drop_default()
 		self.assertIsNone(get_print_format_doc("None", frappe.get_meta("Note")))
+
+	def test_document_print_skips_the_report_default_letter_head(self):
+		from frappe.www.printview import get_letter_head
+
+		report_letter_head = frappe.get_doc(
+			doctype="Letter Head",
+			letter_head_name="_Test Report Letter Head",
+			letter_head_for="Report",
+			content="<h3>_Test Report Letter Head</h3>",
+			is_default=1,
+		).insert()
+		self.addCleanup(report_letter_head.delete)
+		todo = frappe.get_doc(doctype="ToDo", description="_Test ToDo").insert()
+
+		with self.set_user("test@example.com"):
+			letter_head = get_letter_head(todo, no_letterhead=False)
+
+		self.assertNotEqual(letter_head.get("content"), report_letter_head.content)
 
 	def _make_linked_print_doc(self):
 		linked_doctype = new_doctype(title_field="some_fieldname", show_title_field_in_link=1).insert()

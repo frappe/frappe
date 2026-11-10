@@ -87,7 +87,7 @@ const WATCH_MODE = Boolean(argv.watch);
 const PRODUCTION = Boolean(argv.production);
 const RUN_BUILD_COMMAND = !WATCH_MODE && Boolean(argv["run-build-command"]);
 const ESBUILD_TARGET = argv["esbuild-target"] || "es2020";
-// Allow VERBOSE to be inherited by nested esbuild invocations (per-app yarn
+// Allow VERBOSE to be inherited by nested esbuild invocations (per-app
 // build) via the environment; CLI flag propagation through yarn run breaks
 // chained scripts like `yarn copy && cp`.
 const VERBOSE = Boolean(argv.verbose) || process.env.FRAPPE_BUILD_VERBOSE === "1";
@@ -671,8 +671,7 @@ async function run_build_command_for_apps(apps) {
 		await terminate_build_children();
 		const errors = error instanceof AggregateError ? error.errors : [error];
 		for (const err of errors) {
-			const step_label = err.step === "install" ? "yarn install" : "yarn build";
-			log_error(`${step_label} failed for ${err.app || "an app"}`);
+			log_error(`${err.command} failed for ${err.app || "an app"}`);
 			if (VERBOSE) {
 				// Child output (if any) was already streamed by flush_verbose;
 				// surface the raw error so spawn/ENOENT failures aren't silent.
@@ -705,9 +704,7 @@ async function run_frontend_build(name, frontend_path) {
 		await run_app_build(name, frontend_path);
 	} catch (error) {
 		await terminate_build_children();
-		log_error(
-			`${error.step === "install" ? "yarn install" : "yarn build"} failed for ${name}`
-		);
+		log_error(`${error.command} failed for ${name}`);
 		if (VERBOSE) {
 			log(chalk.dim(error.stack || error.message || String(error)));
 		} else if (error.output) {
@@ -724,20 +721,30 @@ async function run_frontend_build(name, frontend_path) {
 
 async function run_app_build(app, root_app_path) {
 	const started = Date.now();
+	const commands = get_build_commands(root_app_path);
 	// every build, not only on a fresh checkout: an install made before an update lacks what the
-	// new lockfile adds. Yarn returns in under a second when the install is current
-	await run_command("yarn install --frozen-lockfile", {
-		cwd: root_app_path,
-		app,
-		step: "install",
-	});
+	// new lockfile adds. The install returns in under a second when it is current
+	await run_command(commands.install, { cwd: root_app_path, app, step: "install" });
 
-	await run_command("yarn build", { cwd: root_app_path, app, step: "build" });
+	await run_command(commands.build, { cwd: root_app_path, app, step: "build" });
 
 	if (!VERBOSE) {
 		const elapsed = ((Date.now() - started) / 1000).toFixed(1);
 		log(`${chalk.green("✔")} ${chalk.bold(app)} built in ${elapsed}s`);
 	}
+}
+
+// An app with pnpm-lock.yaml installs with pnpm; Yarn 1 cannot read that lockfile or install
+// its workspace: dependencies. Every other app keeps Yarn.
+function get_build_commands(root_app_path) {
+	if (fs.existsSync(path.join(root_app_path, "pnpm-lock.yaml"))) {
+		return {
+			// the build has no terminal, so pnpm must not stop to ask before it recreates node_modules
+			install: "pnpm install --frozen-lockfile --config.confirm-modules-purge=false",
+			build: "pnpm build",
+		};
+	}
+	return { install: "yarn install --frozen-lockfile", build: "yarn build" };
 }
 
 function run_command(command, { cwd, app, step }) {
@@ -770,7 +777,7 @@ function run_command(command, { cwd, app, step }) {
 			BUILD_CHILDREN.delete(child);
 			flush_verbose();
 			error.app = app;
-			error.step = step;
+			error.command = command;
 			error.output = output_buffer.toString();
 			reject(error);
 		});
@@ -792,7 +799,7 @@ function run_command(command, { cwd, app, step }) {
 
 			const error = new Error(`${step} command failed for ${app} (${exit_details})`);
 			error.app = app;
-			error.step = step;
+			error.command = command;
 			error.output = output_buffer.toString();
 			reject(error);
 		});
@@ -897,7 +904,7 @@ async function terminate_build_children({ grace_period_ms = 5000 } = {}) {
 	await wait_for_children_exit(victims, grace_period_ms);
 
 	// Anything still alive after the grace period gets SIGKILL so we don't
-	// leave orphaned yarn/esbuild processes when the parent exits.
+	// leave orphaned package-manager/esbuild processes when the parent exits.
 	for (const child of victims) {
 		if (child.exitCode !== null || child.signalCode !== null) continue;
 		try {
@@ -981,6 +988,9 @@ async function open_in_editor() {
 	} catch (e) {
 		log_warn("Cannot connect to redis_queue for open_in_editor events");
 	}
+	subscriber.on("error", () =>
+		log_warn("Cannot connect to redis_queue for open_in_editor events")
+	);
 	subscriber.subscribe("open_in_editor", (file) => {
 		file = JSON.parse(file);
 		let file_path = path.resolve(file.file);

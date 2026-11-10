@@ -57,9 +57,10 @@ def boot() -> dict[str, Any]:
 		app = agent.name.rpartition("/")[0]
 		agent.title = f"{name} ({app})" if app and short.count(name) > 1 else name
 	agents.sort(key=lambda agent: agent.title.lower())
+	# the chat's models: an embedding model is Knowledge's, not one to chat with
 	models = frappe.get_list(
 		"Flow Model",
-		filters={"enabled": 1},
+		filters={"enabled": 1, "embedding": 0},
 		fields=["name", "title", "model_id", "provider", "context_window"],
 		order_by="title",
 	)
@@ -67,10 +68,13 @@ def boot() -> dict[str, Any]:
 		"agents": agents,
 		"default_agent": next((a.name for a in agents if a.name == ASSISTANT_AGENT_NAME), None),
 		"models": models,
-		"provider": frappe.db.get_value("Flow Provider", {"enabled": 1}),
+		# the providers connected, oldest first: the first run picks a model from one of them
+		"providers": frappe.get_all(
+			"Flow Provider", filters={"enabled": 1}, pluck="name", order_by="creation asc"
+		),
 		"file_types": sorted(FILE_EXTENSIONS),
 		"user": frappe.db.get_value(
-			"User", frappe.session.user, ["name", "full_name", "user_image"], as_dict=True
+			"User", frappe.session.user, ["name", "full_name", "email", "user_image"], as_dict=True
 		),
 		"permissions": {
 			doctype: [
@@ -88,15 +92,15 @@ def create_session(
 	agent: str | None = None,
 	model: str | None = None,
 	title: str | None = None,
-	auto_approve: bool | int | str = False,
+	approval_mode: str | None = None,
 ) -> dict[str, Any]:
-	"""Start a session with `agent` (the Assistant by default)."""
+	"""Start a session with `agent` (the Assistant by default); `approval_mode` defaults to Auto."""
 	frappe.has_permission("Flow Session", "create", throw=True)
 	doc = new_session(
 		agent or None,
 		model=model or None,
 		title=(title or "").strip() or None,
-		auto_approve=cint(auto_approve),
+		approval_mode=approval_mode or None,
 	)
 	return _session_payload(doc)
 
@@ -273,6 +277,15 @@ def entries(session: str, since: int | str = 0, path: str = "active") -> dict[st
 
 
 @frappe.whitelist()
+def system_prompt(session: str) -> str | None:
+	"""The session's system prompt for a System Manager; None for anyone else."""
+	doc = _load_session(session, "read")
+	if "System Manager" not in frappe.get_roles():
+		return None
+	return doc.system_prompt()
+
+
+@frappe.whitelist()
 def set_model(session: str, model: str, reasoning_effort: str | None = None) -> dict[str, Any]:
 	"""Switch the session's model; `reasoning_effort` sets its thinking level, empty for the default."""
 	if not isinstance(model, str) or not model.strip():
@@ -300,11 +313,10 @@ def set_title(session: str, title: str) -> dict[str, str]:
 
 
 @frappe.whitelist()
-def set_auto_approve(session: str, auto_approve: bool | int | str) -> dict[str, bool]:
-	"""Whether confirmation tools run unattended; Trigger sessions cannot turn it off."""
-	flag = bool(cint(auto_approve))
-	_load_session(session, "write").set_auto_approve(flag)
-	return {"auto_approve": flag}
+def set_approval_mode(session: str, mode: str) -> dict[str, str]:
+	"""Ask, Auto or Auto-approve; a Trigger session stays on Auto-approve."""
+	_load_session(session, "write").set_approval_mode(mode)
+	return {"approval_mode": mode}
 
 
 @frappe.whitelist()
@@ -473,7 +485,7 @@ def _session_payload(doc: FlowSession) -> dict[str, Any]:
 		"owner": doc.owner,
 		"owner_name": get_fullname(doc.owner),
 		"general_access": doc.general_access,
-		"auto_approve": bool(doc.auto_approve),
+		"approval_mode": doc.approval_mode,
 		"read_only": not frappe.has_permission("Flow Session", "write", doc),
 		"runs": frappe.get_all(
 			"Flow Run", filters={"session": doc.name}, fields=RUN_FIELDS, order_by="creation asc"

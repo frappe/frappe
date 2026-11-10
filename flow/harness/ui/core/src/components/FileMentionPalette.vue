@@ -7,7 +7,7 @@
 		@close="emit('close')"
 	>
 		<div class="flow-palette-list overflow-y-auto p-1">
-			<div class="-mt-1 flex h-8 items-center px-[11px] text-base font-medium text-ink-gray-5">
+			<div class="-mt-1 flex h-8 items-center px-[11px] text-base-medium text-ink-gray-5">
 				<span class="truncate">{{ title }}</span>
 			</div>
 			<button

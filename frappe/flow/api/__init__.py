@@ -18,7 +18,7 @@ from frappe.flow.api.api import (
 	save_secret,
 	screen_result,
 	session,
-	set_auto_approve,
+	set_approval_mode,
 	set_general_access,
 	set_model,
 	set_title,
@@ -26,6 +26,7 @@ from frappe.flow.api.api import (
 	skills,
 	submit_feedback,
 	sync_session,
+	system_prompt,
 	unshare_session,
 )
 
@@ -48,7 +49,7 @@ __all__ = [
 	"save_secret",
 	"screen_result",
 	"session",
-	"set_auto_approve",
+	"set_approval_mode",
 	"set_general_access",
 	"set_model",
 	"set_title",
@@ -56,5 +57,6 @@ __all__ = [
 	"skills",
 	"submit_feedback",
 	"sync_session",
+	"system_prompt",
 	"unshare_session",
 ]

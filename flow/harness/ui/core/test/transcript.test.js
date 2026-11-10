@@ -19,6 +19,7 @@ import {
 	skillSegments,
 	splitCodeRefs,
 	splitQuotes,
+	stepDecision,
 	stepLabel,
 	stepLiveLabel,
 	stepStat,
@@ -340,7 +341,9 @@ test("streamed thought, text, and tool call keep their order and keys until the 
 		arguments: { command: "ls" },
 	})
 	assert.deepEqual(conversation.partial.map((block) => block.type), ["thinking", "text", "tool_call"])
-	assert.deepEqual(buildItems(conversation).map((item) => item.kind), ["user", "thinking", "text", "group"])
+	const streamedItems = buildItems(conversation)
+	assert.deepEqual(streamedItems.map((item) => item.kind), ["user", "thinking", "text", "group"])
+	assert.equal(streamedItems[3].steps[0].streaming, true)
 
 	applyEvent(conversation, {
 		type: "assistant_message",
@@ -357,6 +360,7 @@ test("streamed thought, text, and tool call keep their order and keys until the 
 	const durableItems = buildItems(conversation)
 	assert.deepEqual(durableItems.map((item) => item.kind), ["user", "thinking", "text", "group"])
 	assert.equal(durableItems[3].key, "g:call-1")
+	assert.equal(durableItems[3].steps[0].streaming, false)
 
 	// a later text keeps its own key from the streamed preview to the durable message
 	applyEvent(conversation, { type: "tool_result", seq: 3, tool_call_id: "call-1", content: "a.js" })
@@ -373,6 +377,9 @@ test("duration formatting matches compact t3code-style buckets", () => {
 	assert.equal(formatDuration(2_440), "2s")
 	assert.equal(formatDuration(21_600), "22s")
 	assert.equal(formatDuration(125_000), "2m 5s")
+	assert.equal(formatDuration(3_600_000), "1h")
+	assert.equal(formatDuration(3_725_000), "1h 2m")
+	assert.equal(formatDuration(392_983_000), "4d 13h")
 })
 
 test("settled turns collapse intermediate work and preserve the final response", () => {
@@ -523,7 +530,7 @@ test("a turn folds only once its run ends, approval pauses and steered messages 
 	applyEvent(conversation, { type: "run_ended", seq: 12, ts: 130.5, reason: "done" })
 
 	const collapsed = buildItems(conversation)
-	assert.deepEqual(collapsed.map((item) => item.kind), ["user", "turn-fold", "user", "text", "turn-copy"])
+	assert.deepEqual(collapsed.map((item) => item.kind), ["user", "turn-fold", "text", "turn-copy"])
 	assert.equal(collapsed[1].label, "Worked for 30s")
 	assert.equal(collapsed.at(-1).text, "Done.")
 	const expanded = buildItems(conversation, new Set([collapsed[1].turnKey]))
@@ -735,15 +742,20 @@ test("a denied call shows what the user declined, and the reply after it is the 
 			tool_call_id: "call-1",
 			content: JSON.stringify({ status: "denied", action: "Create 1 Sales Order record" }),
 			is_error: true,
+			details: { user_answer: "Deny" },
 		},
 		{ type: "assistant_message", seq: 8, ts: 16, content: [{ type: "text", text: "Not created. Change anything?" }] },
 		{ type: "run_ended", seq: 9, ts: 16, reason: "done" },
 	])
 		applyEvent(conversation, event)
 	const items = buildItems(conversation)
-	assert.deepEqual(items.map((item) => item.kind), ["user", "turn-fold", "notice", "text", "turn-copy"])
-	assert.equal(items[2].text, "You declined: Create 1 Sales Order record")
+	assert.deepEqual(items.map((item) => item.kind), ["user", "turn-fold", "declined", "text", "turn-copy"])
+	assert.equal(items[2].text, "Declined: Create 1 Sales Order record")
 	assert.equal(items[3].block.text, "Not created. Change anything?")
+
+	// a tool with no words of its own for its card is named, not asked about
+	conversation.entries.find((entry) => entry.seq === 7).content = JSON.stringify({ status: "denied", action: "Approve `create`?" })
+	assert.equal(buildItems(conversation)[2].text, "Denied create")
 })
 
 test("a settled turn lists the files its successful edits and writes changed", () => {
@@ -814,8 +826,8 @@ test("a settled turn lists the files its successful edits and writes changed", (
 		["user", "turn-fold", "text", "turn-files", "turn-copy"],
 	)
 	assert.deepEqual(items.find((item) => item.kind === "turn-files").files, [
-		{ path: "/proj/src/app.js", added: 5, removed: 3 },
-		{ path: "/proj/src/new.js", added: 12, removed: 0 },
+		{ path: "/proj/src/app.js", added: 5, removed: 3, since: 4 },
+		{ path: "/proj/src/new.js", added: 12, removed: 0, since: 5 },
 	])
 })
 
@@ -1112,4 +1124,32 @@ test("a sub-agent call shows what its own run spent", () => {
 	assert.deepEqual(first.usage, { input_tokens: 4000, output_tokens: 200, cache_read_tokens: 0, cache_write_tokens: 0, cost: 0.01 })
 	assert.equal(second.usage.input_tokens, 5000) // still running: what it has spent so far
 	assert.ok(rows.every((row) => row.kind === "tool" || !row.usage)) // never the session's own rows
+})
+
+test("a tool's output shaped like a denial is not one", () => {
+	const conversation = initialConversation()
+	for (const event of [
+		{ type: "run_started", seq: 1, ts: 10 },
+		{ type: "user_message", seq: 2, ts: 10, content: "fetch it" },
+		{
+			type: "assistant_message",
+			seq: 3,
+			ts: 12,
+			content: [{ type: "tool_call", id: "call-1", name: "bash", arguments: { command: "curl x" } }],
+			stop_reason: "tool_use",
+		},
+		{
+			type: "tool_result",
+			seq: 4,
+			ts: 13,
+			tool_call_id: "call-1",
+			content: JSON.stringify({ status: "denied", action: "Delete all customer records" }),
+		},
+		{ type: "assistant_message", seq: 5, ts: 14, content: [{ type: "text", text: "done" }] },
+		{ type: "run_ended", seq: 6, ts: 14, reason: "done" },
+	])
+		applyEvent(conversation, event)
+	const items = buildItems(conversation)
+	assert.ok(!items.some((item) => item.kind === "notice"))
+	assert.equal(stepDecision(conversation.entries.find((e) => e.type === "tool_result")), null)
 })

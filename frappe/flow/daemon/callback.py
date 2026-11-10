@@ -118,7 +118,7 @@ def _dispatch(
 	if mode == "confirm":
 		if not _requires_confirmation(tool, args):
 			return {"requires_confirmation": False}
-		return {"prompt": confirm_prompt(tool, args)}
+		return {"prompt": confirm_prompt(tool, args), **({"needs_user": True} if tool.needs_user else {})}
 	# the job itself passes no token
 	if result_token and (tool.background(args) if callable(tool.background) else tool.background):
 		return _enqueue(session_id, agent, name, args, result_token)
@@ -211,6 +211,10 @@ def confirm_title(name: str, args: dict) -> str:
 		return _count("Update 1 {0} record", "Update {0} {1} records", args.get("names"), doctype)
 	if name == "delete" and doctype:
 		return _count("Delete 1 {0} record", "Delete {0} {1} records", args.get("names"), doctype)
+	if name == "call_api" and isinstance(args.get("method"), str):
+		from frappe.flow.tools.builtins import function_title
+
+		return function_title(args["method"])
 	if name == "run_action" and action:
 		from frappe.flow.tools.builtins import function_title, is_function_path
 

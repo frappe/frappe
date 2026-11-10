@@ -23,7 +23,7 @@
    "fieldtype": "Link",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Client",
+   "label": "OAuth Client",
    "options": "OAuth Client",
    "read_only": 1
   },
@@ -80,7 +80,7 @@
   }
  ],
  "links": [],
- "modified": "2025-04-17 17:57:52.268893",
+ "modified": "2026-11-02 17:25:47.229787",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "OAuth Bearer Token",

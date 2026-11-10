@@ -418,6 +418,11 @@ class TestFlowSessionServerConfig(IntegrationTestCase):
 		self.assertEqual(config["model"], "openai/gpt-4o-mini")
 		self.assertEqual(config["api_key"], "sk-model")
 		self.assertEqual(config["api_base"], "https://llm.example.com/v1")
+		# Auto by default: the reviewer answers the gates, with a brief about records, not files
+		self.assertEqual(config["approval_mode"], "auto")
+		self.assertIn("Frappe site", config["review_instructions"])
+		self.assertEqual(self.config(approval_mode="Ask")["approval_mode"], "ask")
+		self.assertEqual(self.config(approval_mode="Auto-approve")["approval_mode"], "auto_approve")
 		prompt = config["system_prompt"]
 		self.assertTrue(prompt.startswith("Be terse."))
 		# the agent's skills are indexed after its instructions; load_skill fetches a body on demand
@@ -434,7 +439,7 @@ class TestFlowSessionServerConfig(IntegrationTestCase):
 			["read_records", "execute", "load_skill"],
 		)
 		self.assertEqual(config["confirm_tools"], ["execute"])
-		self.assertFalse(config["auto_approve"])
+		self.assertEqual(config["approval_mode"], "auto")
 		self.assertTrue(config["auto_compact"])
 		self.assertEqual(config["max_turns"], 7)
 		self.assertEqual(config["callback_token"], "site-token")
@@ -670,3 +675,40 @@ class TestFlowSessionModelPermission(IntegrationTestCase):
 		frappe.set_user(self.user.name)
 		with self.assertRaises(frappe.PermissionError):
 			session.chat("hello")
+
+
+class TestFlowServerSessionApprovalModePatch(IntegrationTestCase):
+	"""The patch that moves the server's saved chats off the auto_approve flag."""
+
+	def test_old_chats_load_with_the_approval_mode_their_flag_meant(self):
+		import json
+		import os
+		import tempfile
+		from pathlib import Path
+
+		from frappe.patches.v17_0.flow_server_session_approval_mode import execute
+
+		site = Path(self.enterContext(tempfile.TemporaryDirectory()))
+		sessions = site / "private" / "flow" / "sessions" / "2026-10"
+		sessions.mkdir(parents=True)
+		saved = {
+			"on": {"auto_approve": True},
+			"off": {"auto_approve": False},
+			"new": {"approval_mode": "auto"},
+		}
+		for sid, fields in saved.items():
+			config = SessionConfig(model="mock").model_dump(exclude={"approval_mode"})
+			(sessions / f"{sid}.meta.json").write_text(json.dumps({**config, **fields}))
+
+		with patch("frappe.get_site_path", side_effect=lambda *parts: str(site.joinpath(*parts))):
+			execute()
+
+		for sid, mode in (("on", "auto_approve"), ("off", "ask"), ("new", "auto")):
+			meta = sessions / f"{sid}.meta.json"
+			config = SessionConfig.model_validate(json.loads(meta.read_text()))
+			self.assertEqual(config.approval_mode, mode)
+		self.assertEqual(os.stat(sessions / "on.meta.json").st_mode & 0o777, 0o600)
+		# no temp files left behind
+		self.assertEqual(
+			sorted(p.name for p in sessions.iterdir()), ["new.meta.json", "off.meta.json", "on.meta.json"]
+		)

@@ -83,8 +83,7 @@ class PilotClient:
 			frappe.throw(_("Could not reach your server: {0}").format(exc), frappe.ValidationError)
 
 		payload = self._parse(response)
-		# Some endpoints (e.g. the app registry) return a bare JSON list.
-		if response.ok and (isinstance(payload, list) or not payload.get("error")):
+		if response.ok:
 			return payload
 		frappe.throw(
 			self._error_message(payload) or response.text or _("Request to your server failed."),
@@ -232,9 +231,13 @@ def get_domains() -> dict:
 def get_domain_dns_records(domain: str) -> dict:
 	_assert_access()
 	client = PilotClient()
-	response = client.get(client.domain_path(_clean_domain(domain), "dns-records"))
-	records = (response or {}).get("records") or {}
-	return {"records": [*records.get("cname", []), *records.get("a", [])]}
+	records = client.get(client.domain_path(_clean_domain(domain), "dns-records")) or {}
+	return {
+		# Same records as cname and a, in one list, for Pilot panels older than frappe/pilot#771.
+		"records": [*records.get("cname", []), *records.get("a", [])],
+		"cname": records.get("cname", []),
+		"a": records.get("a", []),
+	}
 
 
 @frappe.whitelist(methods=["POST"])
@@ -464,6 +467,30 @@ def create_topup_checkout(amount: float, redirect_url: str) -> dict:
 	from frappe.integrations.frappe_providers import cloud_billing
 
 	return cloud_billing.create_topup_checkout(PilotClient(), amount, redirect_url)
+
+
+@frappe.whitelist(methods=["GET"])
+def get_invoices() -> list:
+	_assert_access()
+	from frappe.integrations.frappe_providers import cloud_billing
+
+	return cloud_billing.invoices(PilotClient())
+
+
+@frappe.whitelist(methods=["POST"])
+def get_invoice_pdf(invoice: str) -> dict:
+	_assert_access()
+	from frappe.integrations.frappe_providers import cloud_billing
+
+	return cloud_billing.invoice_pdf(PilotClient(), invoice)
+
+
+@frappe.whitelist(methods=["POST"])
+def create_invoice_checkout(invoice: str, redirect_url: str) -> dict:
+	_assert_access()
+	from frappe.integrations.frappe_providers import cloud_billing
+
+	return cloud_billing.create_invoice_checkout(PilotClient(), invoice, redirect_url)
 
 
 @frappe.whitelist(methods=["POST"])

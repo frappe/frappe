@@ -272,7 +272,7 @@ def get_file_name(fname: str, optional_suffix: str | None = None) -> str:
 
 def extract_images_from_doc(doc: "Document", fieldname: str, is_private=True):
 	content = doc.get(fieldname)
-	if doc.meta.make_attachments_public:
+	if doc.meta.make_attachments_public and not doc.meta.force_private_attachments:
 		is_private = False
 	content = extract_images_from_html(doc, content, is_private=is_private)
 	if frappe.flags.has_dataurl:
@@ -462,9 +462,14 @@ def _attach_field_values(doc: "Document", candidates: list[tuple["DocField", Any
 			attached_to_field=df.fieldname,
 			folder="Home/Attachments",
 		)
+		messages = len(frappe.local.message_log)
+		savepoint = "attach_field_value"
+		frappe.db.savepoint(savepoint)
 		try:
 			file.insert(ignore_permissions=True)
 		except Exception:
+			frappe.db.rollback(save_point=savepoint)
+			del frappe.local.message_log[messages:]
 			doc.log_error("Error Attaching File")
 
 

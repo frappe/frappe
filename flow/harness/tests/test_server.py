@@ -273,7 +273,6 @@ def test_allowed_roots_fence_every_path(tmp_path, monkeypatch):
 		("/fs/files", {"cwd": str(repo)}),
 		("/fs/files/search", {"cwd": str(repo), "query": "x"}),
 		("/fs/git/changes", {"cwd": str(repo)}),
-		("/fs/git/branch", {"cwd": str(repo)}),
 		("/fs/git/file/diff", {"cwd": str(allowed), "path": "../outside.txt"}),
 		(f"/sessions/{sid}/file/diff", {"path": "../../outside.txt"}),
 	):
@@ -359,6 +358,25 @@ def test_file_diff_rebuilds_the_original_from_the_sessions_changes(tmp_path):
 			assert r.json() == {"path": str(tmp_path / name), "original": original, "modified": text}, name
 
 
+def test_file_diff_since_undoes_only_the_edits_from_that_seq(tmp_path):
+	c = _client(tmp_path)
+	sid = c.post("/sessions", json={"cwd": str(tmp_path)}).json()["session_id"]
+	path = tmp_path / "app.py"
+	v0, v1, v2 = "a\nb\nc\n", "a\nB\nc\n", "a\nB\nC\n"
+	path.write_text(v2)
+	_append_log_rows(
+		tmp_path, sid, [_edit_result(str(path), v0, v1, "e1"), _edit_result(str(path), v1, v2, "e2")]
+	)
+	log = next((tmp_path / "data" / "sessions").rglob(f"{sid}.jsonl"))
+	e2_seq = next(json.loads(line)["seq"] for line in log.open() if '"e2"' in line)
+
+	r = c.get(f"/sessions/{sid}/file/diff", params={"path": "app.py", "since": e2_seq})
+	assert r.json()["original"] == v1
+	# past the file's last edit there is nothing to show
+	r = c.get(f"/sessions/{sid}/file/diff", params={"path": "app.py", "since": e2_seq + 1})
+	assert r.status_code == 404
+
+
 def _git(cwd, *args):
 	subprocess.run(["git", "-C", str(cwd), *args], check=True, capture_output=True)
 
@@ -404,17 +422,6 @@ def test_git_changes_and_file_diff_serve_uncommitted_files(tmp_path):
 	assert (untracked["original"], untracked["modified"]) == ("", "a\nb\nc")
 	assert (deleted["original"], deleted["modified"]) == ("x\n", "")
 
-	# the branch checked out; a linked worktree says so, on its own branch, the main checkout does not
-	def head(cwd):
-		return c.get("/fs/git/branch", params={"cwd": str(cwd)}).json()
-
-	assert head(repo) == {"branch": "work", "worktree": False}
-	_git(repo, "worktree", "add", "-q", "-b", "side", str(tmp_path / "side"))
-	assert head(tmp_path / "side") == {"branch": "side", "worktree": True}
-	# a detached HEAD has no branch
-	_git(repo, "checkout", "-q", "--detach")
-	assert head(repo)["branch"] is None
-
 	plain = tmp_path / "plain"
 	plain.mkdir()
 	(plain / "f.txt").write_text("x\n")
@@ -422,7 +429,6 @@ def test_git_changes_and_file_diff_serve_uncommitted_files(tmp_path):
 		"root": None,
 		"files": [],
 	}
-	assert head(plain) == {"branch": None, "worktree": False}
 	assert c.get("/fs/git/file/diff", params={"cwd": str(plain), "path": "f.txt"}).status_code == 400
 
 
@@ -519,7 +525,7 @@ async def test_resume_takes_the_exact_current_approval_batch_once(tmp_path, monk
 		sid = (
 			await client.post(
 				"/sessions",
-				json={"cwd": str(tmp_path), "confirm_tools": ["read"]},
+				json={"cwd": str(tmp_path), "confirm_tools": ["read"], "approval_mode": "ask"},
 			)
 		).json()["session_id"]
 		paused = (
@@ -574,7 +580,7 @@ def test_a_paused_run_survives_a_restart_until_cancelled(tmp_path, monkeypatch):
 	c = _client(tmp_path)
 	sid = c.post(
 		"/sessions",
-		json={"cwd": str(tmp_path), "confirm_tools": ["read"]},
+		json={"cwd": str(tmp_path), "confirm_tools": ["read"], "approval_mode": "ask"},
 	).json()["session_id"]
 	paused = c.post(f"/sessions/{sid}/run", params={"wait": "true"}, json={"message": "read"}).json()
 	assert paused["reason"] == "paused"
@@ -629,8 +635,12 @@ async def test_a_running_session_steers_runs_and_refuses_state_changes(tmp_path,
 		assert (await c.post(f"/sessions/{sid}/rewind", json={"target_seq": 1})).status_code == 409
 		assert (await c.delete(f"/sessions/{sid}")).status_code == 409
 		# the loop shares the config object, so the next tool gate skips approval
-		assert (await c.patch(f"/sessions/{sid}/config", json={"auto_approve": True})).status_code == 200
-		assert store.get(sid).config.auto_approve is True
+		assert (
+			await c.patch(f"/sessions/{sid}/config", json={"approval_mode": "auto_approve"})
+		).status_code == 200
+		assert store.get(sid).config.approval_mode == "auto_approve"
+		assert (await c.patch(f"/sessions/{sid}/config", json={"approval_mode": "auto"})).status_code == 200
+		assert store.get(sid).config.approval_mode == "auto"
 
 		model.release.set()
 		assert (await first).json()["reason"] == "done"
@@ -705,7 +715,7 @@ async def test_http_abort_kills_active_bash_process_tree_and_repairs_transcript(
 		sid = (
 			await client.post(
 				"/sessions",
-				json={"cwd": str(tmp_path), "tools": ["bash"], "auto_approve": True},
+				json={"cwd": str(tmp_path), "tools": ["bash"], "approval_mode": "auto_approve"},
 			)
 		).json()["session_id"]
 		run_request = asyncio.create_task(
@@ -856,7 +866,7 @@ async def test_a_posted_tool_result_reaches_the_client_tool_waiting_on_it(tmp_pa
 				}
 			],
 			"callback_url": "https://client.invalid/tools",
-			"auto_approve": True,
+			"approval_mode": "auto_approve",
 		}
 		sid = (await client.post("/sessions", json=config)).json()["session_id"]
 		run = asyncio.create_task(

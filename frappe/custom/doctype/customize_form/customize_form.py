@@ -59,6 +59,7 @@ class CustomizeForm(Document):
 		email_append_to: DF.Check
 		enable_upload_first_workflow: DF.Check
 		fields: DF.Table[CustomizeFormField]
+		force_private_attachments: DF.Check
 		force_re_route_to_default_view: DF.Check
 		grid_page_length: DF.Int
 		image_field: DF.Data | None
@@ -240,6 +241,11 @@ class CustomizeForm(Document):
 
 		validate_series(self, self.autoname, self.doc_type)
 		validate_autoincrement_autoname(self)
+		fieldnames = [df.fieldname for df in self.fields]
+		meta_fieldnames = [df.fieldname for df in frappe.get_meta(self.doc_type).fields]
+		self.flags.field_order_unchanged = [f for f in fieldnames if f in meta_fieldnames] == [
+			f for f in meta_fieldnames if f in fieldnames
+		]
 		self.flags.update_db = False
 		self.flags.rebuild_doctype_for_global_search = False
 		self.update_custom_fields()
@@ -293,6 +299,9 @@ class CustomizeForm(Document):
 		# action and links
 		self.set_property_setters_for_actions_and_links(meta)
 
+		# field order last, with fresh meta, as the changes above can change the default order
+		self.set_property_setter_for_field_order(frappe.get_meta(self.doc_type, cached=False))
+
 	def set_property_setter_for_field_order(self, meta):
 		new_order = [df.fieldname for df in self.fields]
 		existing_order = getattr(meta, "field_order", None)
@@ -307,6 +316,13 @@ class CustomizeForm(Document):
 			return
 
 		if existing_order and new_order == json.loads(existing_order):
+			return
+
+		if (
+			not existing_order
+			and self.flags.field_order_unchanged
+			and new_order == [df.fieldname for df in meta.fields]
+		):
 			return
 
 		frappe.make_property_setter(
@@ -325,8 +341,6 @@ class CustomizeForm(Document):
 		for prop, prop_type in doctype_properties.items():
 			if self.get(prop) != meta.get(prop):
 				self.make_property_setter(prop, self.get(prop), prop_type)
-
-		self.set_property_setter_for_field_order(meta)
 
 	def set_property_setters_for_docfield(self, meta, df, meta_df):
 		for prop, prop_type in docfield_properties.items():
@@ -741,6 +755,7 @@ doctype_properties = {
 	"editable_grid": "Check",
 	"max_attachments": "Int",
 	"make_attachments_public": "Check",
+	"force_private_attachments": "Check",
 	"protect_attached_files": "Check",
 	"enable_upload_first_workflow": "Check",
 	"track_changes": "Check",

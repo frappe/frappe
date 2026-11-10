@@ -1,13 +1,17 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
-"""Adds Flow's launcher to the pages of Desk and the apps-screen apps, which share no script."""
+"""Adds Flow's launcher to the pages of Desk, Studio and the apps-screen apps, which share no script."""
 
 import frappe
 from frappe.utils import get_assets_json
 from frappe.utils.jinja_globals import bundled_asset
 
 ISLAND = "frappe.flow.chat"
+# apps with an integration of their own, where neither the panel nor Cmd/Ctrl+I belongs
+WITHOUT_LAUNCHER = {"raven"}
+# Frappe's own pages that aren't on the apps screen
+OWN_ROOTS = {"studio"}
 
 
 def add_to_page(response, request):
@@ -33,6 +37,6 @@ def add_to_page(response, request):
 
 
 def get_app_roots() -> set[str]:
-	"""The first path segment of each apps screen route; Frappe's own is the Desk."""
+	"""The first path segment of each apps screen route, and of Studio; Frappe's own is the Desk."""
 	routes = (app.get("route") or "" for app in frappe.get_hooks("add_to_apps_screen"))
-	return {route.strip("/").split("/")[0] for route in routes} - {""}
+	return ({route.strip("/").split("/")[0] for route in routes} | OWN_ROOTS) - {""} - WITHOUT_LAUNCHER

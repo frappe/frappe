@@ -1866,9 +1866,7 @@ class Document(_DocumentBase):
 
 		for doc in docs_to_validate:
 			is_submittable = self.meta.is_submittable
-			link_fields = doc.meta.get_link_fields() + doc.meta.get(
-				"fields", {"fieldtype": ("=", "Dynamic Link")}
-			)
+			link_fields = doc.meta.get_link_fields() + doc.meta.get_dynamic_link_fields()
 
 			for df in link_fields:
 				docname = doc.get(df.fieldname)
@@ -3573,7 +3571,7 @@ class Document(_DocumentBase):
 		invalid_links = []
 		cancelled_links = []
 
-		for df in self.meta.get_link_fields() + self.meta.get("fields", {"fieldtype": ("=", "Dynamic Link")}):
+		for df in self.meta.get_link_fields() + self.meta.get_dynamic_link_fields():
 			docname = self.get(df.fieldname)
 			if not docname:
 				continue
@@ -3742,7 +3740,7 @@ class Document(_DocumentBase):
 
 		for phone_field in self.meta.get_phone_fields():
 			phone = self.get(phone_field.fieldname)
-			validate_phone_number_with_country_code(phone, phone_field.fieldname)
+			validate_phone_number_with_country_code(phone, phone_field.fieldname, _(phone_field.label))
 
 		# data_field options defined in frappe.model.data_field_options
 		for data_field in self.meta.get_data_fields():
@@ -4280,9 +4278,11 @@ def _document_values_generator(
 		yield tuple(doc_values.get(col) for col in columns)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def unlock_document(doctype: str, name: str):
-	frappe.get_lazy_doc(doctype, name).unlock()
+	doc = frappe.get_lazy_doc(doctype, name)
+	doc.check_permission("write")
+	doc.unlock()
 	frappe.msgprint(frappe._("Document Unlocked"), alert=True)
 
 
