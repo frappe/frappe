@@ -150,6 +150,8 @@ class CloudSettingsOpener {
 }
 
 const cloud_settings_opener = new CloudSettingsOpener();
+// Either desktop's page object carries it, so cloud_settings_loader.spec.js can drive it.
+frappe.pages["desktop"].cloud_settings = cloud_settings_opener;
 
 // Either desktop opens the dialog from the address; dropped so a reload does not reopen it.
 function open_cloud_settings_from_url() {
