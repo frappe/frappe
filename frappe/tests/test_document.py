@@ -15,8 +15,6 @@ from frappe.tests.utils import FrappeTestCase, timeout
 from frappe.utils import cint, get_datetime, now_datetime, set_request
 from frappe.website.serve import get_response
 
-from . import update_system_settings
-
 
 class CustomTestNote(Note):
 	@property
@@ -601,12 +599,8 @@ class TestDocumentWebView(FrappeTestCase):
 		document_key = todo.get_document_share_key()
 
 		# with old-style signature key
-		update_system_settings({"allow_older_web_view_links": True}, True)
 		old_document_key = todo.get_signature()
 		url = f"/ToDo/{todo.name}?key={old_document_key}"
-		self.assertEqual(self.get(url).status, "200 OK")
-
-		update_system_settings({"allow_older_web_view_links": False}, True)
 		self.assertEqual(self.get(url).status, "403 FORBIDDEN")
 
 		# with valid key
@@ -666,3 +660,21 @@ class TestDocumentWebView(FrappeTestCase):
 		)
 		self.assertEqual(sent_docs - all_docs, set(), "All docs should be inserted")
 		self.assertEqual(sent_child_docs - all_child_docs, set(), "All child docs should be inserted")
+
+	def test_sanitize_content_skips_json_fieldtype(self):
+		"""JSON field values must survive _sanitize_content untouched, even with
+		HTML-like substrings, while ordinary text fields are still sanitized."""
+		doctype = new_doctype(
+			fields=[
+				{"label": "Config", "fieldname": "config", "fieldtype": "JSON"},
+				{"label": "Description", "fieldname": "description", "fieldtype": "Text"},
+			]
+		).insert()
+
+		payload = '{"label": "<b onclick=\\"alert(1)\\">hi</b>"}'
+		doc = frappe.get_doc(
+			doctype=doctype.name, config=payload, description='<b onclick="alert(1)">hi</b>'
+		).insert()
+
+		self.assertEqual(doc.config, payload)
+		self.assertNotIn("onclick", doc.description)

@@ -301,7 +301,8 @@ class EmailServer:
 			if self.retry_count < self.retry_limit:
 				self.connect()
 				self.retry_count += 1
-				self.get_messages(folder)
+				self.imap.select(folder, readonly=self.settings.email_sync_rule != "UNSEEN")
+				return self.retrieve_message(uid, msg_num, folder)
 
 		except Exception as e:
 			if self.has_login_limit_exceeded(e):
@@ -479,7 +480,7 @@ class Email:
 			return
 
 		if _reply_to and not frappe.db.get_value(
-			"Email Account", {"email_id": _reply_to, "enable_incoming": 1}, "email_id"
+			"Email Account", {"email_id": extract_email_id(_reply_to), "enable_incoming": 1}, "email_id"
 		):
 			self.from_email = extract_email_id(_reply_to)
 		else:
@@ -536,7 +537,7 @@ class Email:
 			if part.get_filename():
 				self.get_attachment(part)
 
-		elif content_type == "text/html":
+		elif content_type == "text/html" and part.get_content_disposition() != "attachment":
 			self.html_content += self.get_payload(part)
 
 		elif content_type == "message/rfc822":
@@ -950,7 +951,7 @@ class InboundMail(Email):
 	def clean_subject(subject):
 		"""Remove Prefixes like 'fw', FWD', 're' etc from subject."""
 		# Match strings like "fw:", "re	:" etc.
-		regex = r"(^\s*(fw|fwd|wg)[^:]*:|\s*(re|aw)[^:]*:\s*)*"
+		regex = r"^(\s*(fw|fwd|wg)\b[^:]*:)?(\s*(re|aw)\b[^:]*:\s*)*"
 		return frappe.as_unicode(strip(re.sub(regex, "", subject, count=0, flags=re.IGNORECASE)))
 
 	@staticmethod

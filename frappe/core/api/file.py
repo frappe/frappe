@@ -99,6 +99,10 @@ def get_max_extract_size() -> int:
 	)
 
 
+def get_max_extract_members() -> int:
+	return cint(frappe.conf.get("max_zip_extract_members")) or 1000
+
+
 @frappe.whitelist()
 def create_new_folder(file_name: str, folder: str) -> File:
 	"""create new folder under current parent folder"""

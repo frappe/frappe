@@ -28,7 +28,6 @@
   "permissions",
   "apply_strict_user_permissions",
   "column_break_21",
-  "allow_older_web_view_links",
   "security_tab",
   "security",
   "session_expiry",
@@ -502,12 +501,6 @@
    "label": "Document Share Key Expiry (in Days)"
   },
   {
-   "default": "0",
-   "fieldname": "allow_older_web_view_links",
-   "fieldtype": "Check",
-   "label": "Allow Older Web View Links (Insecure)"
-  },
-  {
    "default": "20",
    "fieldname": "max_auto_email_report_per_user",
    "fieldtype": "Int",
@@ -761,12 +754,12 @@
    "label": "Allowed Doctypes for Guest Uploads"
   },
   {
-   "default": "Daily",
+   "default": "Weekly",
    "depends_on": "eval: doc.enable_snapshot_reports",
    "fieldname": "frequency",
    "fieldtype": "Select",
    "label": "Frequency",
-   "options": "Hourly\nDaily"
+   "options": "Daily\nWeekly"
   },
   {
    "depends_on": "eval: doc.enable_snapshot_reports",
@@ -804,7 +797,7 @@
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2026-08-06 17:22:18.039321",
+ "modified": "2026-11-05 13:09:31.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

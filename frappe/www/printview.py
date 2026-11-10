@@ -390,10 +390,6 @@ def validate_key(key, doc):
 		else:
 			return
 
-	# TODO: Deprecate this! kept it for backward compatibility
-	if frappe.get_system_settings("allow_older_web_view_links") and key == doc.get_signature():
-		return
-
 	return False
 
 

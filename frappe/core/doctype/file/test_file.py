@@ -1,6 +1,7 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import base64
+import io
 import json
 import os
 import shutil
@@ -8,7 +9,7 @@ import tempfile
 import zipfile
 from contextlib import contextmanager
 from typing import TYPE_CHECKING
-from unittest.mock import patch
+from unittest.mock import call, patch
 
 import frappe
 from frappe import _
@@ -664,6 +665,22 @@ class TestFile(FrappeTestCase):
 		).insert(ignore_permissions=True)
 		self.assertRaisesRegex(ValidationError, "not a zip file", test_file.unzip)
 
+	def test_file_unzip_limits_member_count(self):
+		buffer = io.BytesIO()
+		with zipfile.ZipFile(buffer, "w") as archive:
+			for i in range(3):
+				archive.writestr(f"member-{i}.txt", "x")
+		zip_file = frappe.get_doc(
+			doctype="File", file_name="members.zip", content=buffer.getvalue(), is_private=1
+		).insert()
+
+		file_count_before = frappe.db.count("File")
+		with patch.dict(frappe.conf, {"max_zip_extract_members": 2}):
+			self.assertRaisesRegex(ValidationError, "more than the maximum", zip_file.unzip)
+
+		self.assertEqual(frappe.db.count("File"), file_count_before)
+		self.assertEqual(len(zip_file.unzip()), 3)
+
 	def test_file_unzip_respects_dedicated_extract_size_setting(self):
 		file_path = frappe.get_app_path("frappe", "www/_test/assets/file.zip")
 		public_file_path = frappe.get_site_path("public", "files")
@@ -722,6 +739,24 @@ class TestFile(FrappeTestCase):
 			)
 		finally:
 			frappe.set_user("Administrator")
+
+	def test_zip_files_adds_a_repeated_file_once(self):
+		from frappe.core.doctype.file.file import File
+
+		frappe.set_user("test@example.com")
+		try:
+			file = frappe.get_doc(
+				doctype="File", file_name="zip_0.txt", content=b"x" * 600, is_private=1
+			).insert()
+			with patch("frappe.get_doc", wraps=frappe.get_doc) as get_doc:
+				content = File.zip_files([file.name] * 3)
+		finally:
+			frappe.set_user("Administrator")
+			file.delete()
+
+		with zipfile.ZipFile(io.BytesIO(content)) as zf:
+			self.assertEqual(zf.namelist(), ["zip_0.txt"])
+		self.assertEqual(get_doc.call_args_list.count(call("File", file.name)), 1)
 
 	def test_file_unzip_rolls_back_children_on_mid_extraction_failure(self):
 		fixture_dir = tempfile.mkdtemp()
