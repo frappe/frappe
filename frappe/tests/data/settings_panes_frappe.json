@@ -136,6 +136,23 @@
       "label": "Session defaults"
      }
     ]
+   },
+   {
+    "app": "frappe",
+    "component": "change-password",
+    "description": "Never set a password because you sign in another way? Use \u201cForgot password\u201d on the login page.",
+    "key": "password",
+    "label": "Password",
+    "save_mode": "auto",
+    "settings": [
+     {
+      "keywords": [
+       "password",
+       "reset password"
+      ],
+      "label": "Change password"
+     }
+    ]
    }
   ],
   "description": "Your name, photo, language and notifications.",
