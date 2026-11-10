@@ -1,6 +1,7 @@
 import logging
 import time
 from datetime import timedelta
+from unittest import TestResult
 
 import frappe
 from frappe.tests import IntegrationTestCase
@@ -18,6 +19,25 @@ class TestTestUtils(IntegrationTestCase):
 		currency.save()
 
 		self.assertDocumentEqual(currency.as_dict(), currency)
+
+	def test_integration_teardown_rolls_back_test_and_cleanup_writes(self):
+		description = f"Rollback test {frappe.generate_hash()}"
+
+		class RollbackCase(IntegrationTestCase):
+			def runTest(self):
+				frappe.get_doc(doctype="ToDo", description=description).insert()
+				self.addCleanup(frappe.get_doc(doctype="ToDo", description=description).insert)
+				self.assertTrue(frappe.db.exists("ToDo", {"description": description}))
+
+			def tearDown(self):
+				self.assertTrue(frappe.db.exists("ToDo", {"description": description}))
+				super().tearDown()
+
+		with self.set_user("test@example.com"):
+			result = RollbackCase().run(TestResult())
+
+		self.assertTrue(result.wasSuccessful(), result.errors + result.failures)
+		self.assertFalse(frappe.db.exists("ToDo", {"description": description}))
 
 	def test_thread_locals(self):
 		frappe.flags.temp_flag_to_be_discarded = True
