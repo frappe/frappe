@@ -39,7 +39,7 @@
 		>
 			<ItemListRow
 				v-for="(hit, index) in list.hits"
-				:key="[hit.prefix, hit.pane.key, hit.block, hit.fieldname, hit.label].join('/')"
+				:key="hit.id"
 				as="button"
 				type="button"
 				class="text-left"
