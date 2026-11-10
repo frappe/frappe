@@ -510,6 +510,31 @@ describe("the record dialog's body", () => {
 			expect(root.querySelector("[data-dialog]")).toBeTruthy();
 		});
 
+		it("draws no subtitle when the body sets none", async () => {
+			const root = await open();
+
+			expect(root.querySelector("header p")).toBeNull();
+			expect(root.querySelector("[data-record-form]")!.classList.contains("pt-5")).toBe(false);
+		});
+
+		it("draws a subtitle under the title, in the header, and spaces the body below it", async () => {
+			bodyLoader.current = async () => ({
+				default: defineComponent({
+					props: { header: { type: Function, required: true } },
+					setup(props) {
+						props.header(() => ({ title: "Outgoing Call", subtitle: "Wed, Nov 4, 2026 · 10:48 PM", save: false }));
+						return () => h("section");
+					},
+				}),
+			});
+			const root = await open();
+
+			const header = root.querySelector("header")!;
+			expect(header.querySelector("h3")!.textContent!.trim()).toBe("Outgoing Call");
+			expect(header.querySelector("p")!.textContent!.trim()).toBe("Wed, Nov 4, 2026 · 10:48 PM");
+			expect(root.querySelector("[data-record-form]")!.classList.contains("pt-5")).toBe(true);
+		});
+
 		it("gives the form back the record's name, the record's menu and Save on Edit", async () => {
 			const root = await open();
 
