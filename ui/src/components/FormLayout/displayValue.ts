@@ -1,5 +1,5 @@
 /** The string a field shows in a panel row, a read-only form field and a read-only grid cell. */
-import { formatDuration } from "frappe-ui";
+import { dayjs, formatDuration } from "frappe-ui";
 import { NUMBER_FIELDTYPES, formatField, formatRating } from "./formatNumber";
 import type { FormatFieldOptions } from "./formatNumber";
 import type { FieldMeta } from "../Fields/types";
@@ -12,6 +12,9 @@ export interface DisplayOptions extends FormatFieldOptions {
   doc?: Record<string, unknown>;
   /** The record's link titles, keyed `doctype::name`. */
   linkTitles?: Record<string, string>;
+  /** dayjs formats for Date, Time and Datetime; ISO when omitted. */
+  dateFormat?: string;
+  timeFormat?: string;
 }
 
 const CODE = ["Code", "JSON", "Markdown Editor", "HTML Editor"];
@@ -79,6 +82,7 @@ function formatValue(
   options: DisplayOptions,
 ): string {
   const titles = options.linkTitles ?? {};
+  const { dateFormat = "YYYY-MM-DD", timeFormat = "HH:mm:ss" } = options;
   switch (field.fieldtype) {
     case "Link":
       return linkTitle(field.options, value, titles);
@@ -90,10 +94,12 @@ function formatValue(
       return formatRating(Number(value), field.options);
     case "Duration":
       return formatDuration(Number(value), "short", durationUnits(field));
+    case "Date":
+      return formatDateTime(String(value), dateFormat);
     case "Time":
-      return formatTime(String(value));
+      return formatTime(String(value), timeFormat);
     case "Datetime":
-      return formatDatetime(String(value));
+      return formatDateTime(String(value), `${dateFormat} ${timeFormat}`);
     case "Password":
       return PASSWORD_MASK;
     case "Select":
@@ -133,17 +139,19 @@ function sibling(field: FieldMeta, options: DisplayOptions): unknown {
   return field.options ? options.doc?.[field.options] : undefined;
 }
 
-// The server sends `9:15:00`; the form's TimePicker shows `09:15`.
-function formatTime(value: string): string {
-  const match = /^(\d{1,2}):(\d{2})/.exec(value);
-  return match ? `${match[1].padStart(2, "0")}:${match[2]}` : value;
+// The server sends `9:15:00`, `14:05:30.000000` or, unpadded, `14:05:5.123456`. A Time can pass 24 hours
+// (`25:00:00`), which a clock format would roll over, so it keeps its hours.
+function formatTime(value: string, format: string): string {
+  const match = /^(\d{1,2}):\d{2}(:\d{1,2})?/.exec(value);
+  if (!match) return value;
+  if (Number(match[1]) > 23) return match[0];
+  return formatDateTime(`2000-01-01 ${match[0]}`, format);
 }
 
-// The server sends `2026-10-24 09:15:00.123456`; the form's DateTimePicker shows
-// `2026-10-24 09:15:00`.
-function formatDatetime(value: string): string {
-  const match = /^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2}:\d{2})/.exec(value);
-  return match ? `${match[1]} ${match[2]}` : value;
+// The server sends `2026-10-24` or `2026-10-24 09:15:00.123456`.
+function formatDateTime(value: string, format: string): string {
+  const date = dayjs(value);
+  return date.isValid() ? date.format(format) : value;
 }
 
 function firstLine(text: string): string {

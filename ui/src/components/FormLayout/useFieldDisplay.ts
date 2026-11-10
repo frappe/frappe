@@ -1,6 +1,6 @@
 import { inject } from "vue";
 import { displayValue } from "./displayValue";
-import { getFormatDefaults, resolvePrecision } from "./formatDefaults";
+import { dateTimeFormats, getFormatDefaults, resolvePrecision } from "./formatDefaults";
 import { resolveFieldCurrency, useDocValueReader } from "./resolveCurrency";
 import type { RecordContext } from "./pickSiblingValue";
 import { LinkTitlesKey } from "../Fields/types";
@@ -19,6 +19,7 @@ export function useFieldDisplay(): FieldDisplay {
   const getDocValue = useDocValueReader();
   return (field, value, records = {}) => {
     const defaults = getFormatDefaults();
+    const formats = dateTimeFormats();
     return displayValue(value, field, {
       precision: resolvePrecision(field),
       currency:
@@ -31,6 +32,8 @@ export function useFieldDisplay(): FieldDisplay {
           : undefined,
       numberFormat: defaults.number_format,
       roundingMethod: defaults.rounding_method,
+      dateFormat: formats.date,
+      timeFormat: formats.time,
       doc: records.row ?? records.doc ?? undefined,
       linkTitles: titles?.value,
     });

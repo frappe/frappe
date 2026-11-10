@@ -1,6 +1,6 @@
 // A field the user cannot edit draws its formatted value, not a disabled control.
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createApp, defineComponent, h, ref } from "vue";
+import { createApp, defineComponent, h, nextTick, ref } from "vue";
 import type { App } from "vue";
 
 vi.mock("frappe-ui", async (importOriginal) => {
@@ -55,11 +55,11 @@ describe("a field the user cannot edit", () => {
     ["Float", { precision: 2 }, 1234.5, "1,234.50"],
     ["Currency", { options: "" }, 1500.5, "₹ 1,500.50"],
     ["Select", { options: "Open\nClosed" }, "Closed", "Closed"],
-    ["Time", {}, "9:15:00", "09:15"],
+    ["Time", {}, "9:15:00", "09:15:00"],
     ["Password", {}, "secret", "••••••••"],
     ["Duration", {}, 93784, "1d 2h 3m 4s"],
     ["Duration", { hideDays: true, hideSeconds: true }, 93784, "26h 3m"],
-    ["Datetime", {}, "2026-10-24 09:15:00.123456", "2026-10-24 09:15:00"],
+    ["Datetime", {}, "2026-10-24 09:15:00.123456", "24-10-2026 09:15:00"],
     ["Int", {}, null, "0"],
     ["Currency", { options: "" }, null, "₹ 0.00"],
   ];
@@ -234,4 +234,24 @@ describe("a read-only table", () => {
     await vi.waitFor(() => expect(values()).toEqual(["4,200.00", "€ 10.00"]));
     expect(el.querySelector("[data-dialog] input")).toBeNull();
   });
+});
+
+describe("a date or time field", () => {
+  const cases: [string, string, string][] = [
+    ["Date", "2026-11-03", "11/03/2026"],
+    ["Datetime", "2026-11-03 09:15:30", "11/03/2026 09:15:30"],
+    ["Time", "09:15:30", "09:15:30"],
+  ];
+  for (const [fieldtype, value, expected] of cases) {
+    it(`shows a ${fieldtype} the same way, editable or read-only`, async () => {
+      setFormatDefaults({ date_format: "mm/dd/yyyy", time_format: "HH:mm:ss" });
+      const shown = readValue(mount({ fieldtype, readOnly: true }, { f: value }))?.textContent?.trim();
+      app?.unmount();
+      host?.remove();
+      const input = mount({ fieldtype }, { f: value }).querySelector("input");
+      await nextTick();
+      expect(shown).toBe(expected);
+      expect(input?.value).toBe(shown);
+    });
+  }
 });

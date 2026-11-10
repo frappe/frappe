@@ -180,18 +180,49 @@ describe("displayValue", () => {
     ).toBe("26h 3m");
   });
 
-  it("shows a time as the form's picker does", () => {
-    expect(displayValue("9:15:00", field("Time"))).toBe("09:15");
-    expect(displayValue("14:05:30.000000", field("Time"))).toBe("14:05");
-  });
+  describe("dates and times", () => {
+    const dmy = { dateFormat: "DD-MM-YYYY", timeFormat: "HH:mm:ss" };
 
-  it("shows a datetime as the form's picker does, without microseconds", () => {
-    expect(
-      displayValue("2026-10-24 09:15:00.123456", field("Datetime")),
-    ).toBe("2026-10-24 09:15:00");
-    expect(displayValue("2026-10-24 09:15:00", field("Datetime"))).toBe(
-      "2026-10-24 09:15:00",
-    );
+    it("shows a date in the given format, else ISO", () => {
+      expect(displayValue("2026-11-03", field("Date"), dmy)).toBe("03-11-2026");
+      expect(
+        displayValue("2026-11-03", field("Date"), { dateFormat: "MM/DD/YYYY" }),
+      ).toBe("11/03/2026");
+      expect(displayValue("2026-11-03", field("Date"))).toBe("2026-11-03");
+    });
+
+    it("shows a time in the given format, seconds included", () => {
+      expect(displayValue("9:15:30", field("Time"), dmy)).toBe("09:15:30");
+      expect(displayValue("14:05:30.000000", field("Time"), dmy)).toBe(
+        "14:05:30",
+      );
+      expect(displayValue("14:05:5.123456", field("Time"), dmy)).toBe(
+        "14:05:05",
+      );
+      expect(
+        displayValue("9:15:30", field("Time"), { timeFormat: "HH:mm" }),
+      ).toBe("09:15");
+    });
+
+    it("keeps the hours of a time past a day", () => {
+      expect(displayValue("25:00:00", field("Time"), dmy)).toBe("25:00:00");
+    });
+
+    it("shows a datetime in both formats, without microseconds", () => {
+      expect(
+        displayValue("2026-10-24 09:15:00.123456", field("Datetime"), dmy),
+      ).toBe("24-10-2026 09:15:00");
+      expect(
+        displayValue("2026-10-24 09:15:00", field("Datetime"), {
+          timeFormat: "HH:mm",
+        }),
+      ).toBe("2026-10-24 09:15");
+    });
+
+    it("keeps a value it cannot read", () => {
+      expect(displayValue("soon", field("Date"), dmy)).toBe("soon");
+      expect(displayValue("soon", field("Time"), dmy)).toBe("soon");
+    });
   });
 
   it("masks a password, typed or saved", () => {

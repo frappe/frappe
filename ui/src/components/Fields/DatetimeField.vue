@@ -1,6 +1,7 @@
 <template>
 	<DateTimePicker
 		v-model="value"
+		:format="formats.datetime"
 		:label="field.label"
 		:description="descriptionText(field.description)"
 		:placeholder="field.placeholder"
@@ -13,11 +14,14 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { DateTimePicker } from "frappe-ui";
+import { dateTimeFormats } from "../FormLayout/formatDefaults";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
 import { descriptionText } from "./fieldDescription";
 
 const props = defineProps<FieldComponentProps>();
 const emit = defineEmits<FieldComponentEmits>();
+
+const formats = computed(dateTimeFormats);
 
 const value = computed<string | null>({
 	get: () => props.modelValue ?? null,

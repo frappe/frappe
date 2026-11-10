@@ -38,6 +38,8 @@ describe('getFormatDefaults', () => {
     expect(getFormatDefaults()).toEqual({
       number_format: DEFAULT_NUMBER_FORMAT,
       rounding_method: DEFAULT_ROUNDING_METHOD,
+      date_format: 'dd-mm-yyyy',
+      time_format: 'HH:mm:ss',
     })
   })
 

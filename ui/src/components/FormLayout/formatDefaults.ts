@@ -19,10 +19,12 @@ export interface FormatDefaults {
 }
 
 /** Lib fallbacks — what formatting resolves to with no session and no override. */
-const LIB_FALLBACK: FormatDefaults = {
+const LIB_FALLBACK = {
   number_format: DEFAULT_NUMBER_FORMAT,
   rounding_method: DEFAULT_ROUNDING_METHOD,
-};
+  date_format: "dd-mm-yyyy",
+  time_format: "HH:mm:ss",
+} satisfies FormatDefaults;
 
 /**
  * App/test override, layered over the session read. Reactive so a `setFormatDefaults()`
@@ -46,7 +48,7 @@ function readSessionDefaults(): FormatDefaults {
 }
 
 /** Resolve active defaults: lib fallback → session → app override. */
-export function getFormatDefaults(): FormatDefaults {
+export function getFormatDefaults(): FormatDefaults & typeof LIB_FALLBACK {
   // Reading `override.value` registers the reactive dep so callers re-run on override change.
   return {
     ...LIB_FALLBACK,
@@ -67,6 +69,14 @@ export function setFormatDefaults(partial: FormatDefaults): void {
 /** Clear all overrides (test isolation — restores the session/fallback path). */
 export function resetFormatDefaults(): void {
   override.value = {};
+}
+
+/** dayjs display formats for the user's `date_format` and `time_format`, shared by the pickers and `displayValue`. */
+export function dateTimeFormats(): { date: string; time: string; datetime: string } {
+  const d = getFormatDefaults();
+  // Frappe's `dd-mm-yyyy` is dayjs's `DD-MM-YYYY`; a `time_format` is already dayjs.
+  const date = d.date_format.toUpperCase();
+  return { date, time: d.time_format, datetime: `${date} ${d.time_format}` };
 }
 
 /** Decimal places for a numeric field: its own `precision`, else the site's, else `undefined`. */
