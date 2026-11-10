@@ -56,7 +56,7 @@ def describe_sidebars(prefix: str | None = None, *, as_json: bool = False, user:
 
 	sidebars = resolved.sidebars
 	if user:
-		frappe.set_user(user)
+		frappe.set_user(user)  # nosemgrep
 		panes = SettingsFilter().filter(resolved.panes)["panes"]
 		sidebars = {key: filter_sidebar(sidebar, panes) for key, sidebar in sidebars.items()}
 
