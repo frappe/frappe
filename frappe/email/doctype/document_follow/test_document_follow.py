@@ -1,6 +1,7 @@
 # Copyright (c) 2019, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 from dataclasses import dataclass
+from unittest.mock import patch
 
 import frappe
 import frappe.desk.form.document_follow as document_follow
@@ -15,6 +16,10 @@ from frappe.tests import IntegrationTestCase
 
 
 class TestDocumentFollow(IntegrationTestCase):
+	def setUp(self):
+		super().setUp()
+		self.addCleanup(frappe.set_user, "Administrator")
+
 	def test_document_follow_version(self):
 		user = get_user()
 		event_doc = get_event()
@@ -26,7 +31,8 @@ class TestDocumentFollow(IntegrationTestCase):
 		doc = document_follow._follow_document("Event", event_doc.name, user.name)
 		self.assertEqual(doc.user, user.name)
 
-		document_follow.send_hourly_updates()
+		with patch.object(frappe.db, "commit"):
+			document_follow.send_hourly_updates()
 		emails = get_emails(event_doc, "%This is a test description for sending mail%")
 		self.assertIsNotNone(emails)
 
@@ -42,7 +48,8 @@ class TestDocumentFollow(IntegrationTestCase):
 		doc = document_follow._follow_document("Event", event_doc.name, user.name)
 		self.assertEqual(doc.user, user.name)
 
-		document_follow.send_hourly_updates()
+		with patch.object(frappe.db, "commit"):
+			document_follow.send_hourly_updates()
 		emails = get_emails(event_doc, "%This is a test comment%")
 		self.assertIsNotNone(emails)
 
@@ -289,14 +296,6 @@ class TestDocumentFollow(IntegrationTestCase):
 		table_fields = [r["data"]["table_field"] for r in result]
 		self.assertIn("child_table", table_fields)
 		self.assertNotIn("restricted_table", table_fields)
-
-	def tearDown(self):
-		frappe.db.rollback()
-		frappe.db.delete("Email Queue")
-		frappe.db.delete("Email Queue Recipient")
-		frappe.db.delete("Document Follow")
-		frappe.db.delete("Event")
-		super().tearDown()
 
 
 def get_events_followed_by_user(event_name, user_name):

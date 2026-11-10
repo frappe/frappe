@@ -205,12 +205,15 @@ class TestWebhook(IntegrationTestCase):
 		frappe.db.commit()
 
 	def tearDown(self) -> None:
-		self.user.delete()
-		self.test_user.delete()
-
-		self.responses.stop()
-		self.responses.reset()
-		super().tearDown()
+		try:
+			frappe.db.rollback()
+			self.user.delete()
+			self.test_user.delete()
+			frappe.db.commit()
+		finally:
+			self.responses.stop()
+			self.responses.reset()
+			super().tearDown()
 
 	@timeout(5, "Test webhooks should never wait, check mocked responses.")
 	def test_webhook_trigger_with_enabled_webhooks(self):
