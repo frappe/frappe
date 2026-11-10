@@ -76,7 +76,6 @@ class TestOIDCLogout(IntegrationTestCase):
 		self.assertEqual(query["ui_locales"], ["en"])
 
 
-
 def make_social_login_key(**kwargs):
 	kwargs["doctype"] = "Social Login Key"
 	kwargs.setdefault("provider_name", "Test OIDC Provider")
