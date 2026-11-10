@@ -208,8 +208,11 @@ class SQLiteLogDocument(Document):
 		self.set("_seen", json.dumps(seen))
 		commit_after_response(lambda: self._set_log_column("_seen", json.dumps(seen)))
 
-	def reset_seen(self):
+	def reset_seen(self, on_insert=False, ignore_if_duplicate=False):
 		"""Reset `_seen` to just the current user. See :meth:`add_seen` for why this is here."""
+		if on_insert:
+			return super().reset_seen(on_insert, ignore_if_duplicate)
+
 		if not self.meta.track_seen or self.meta.issingle or self.is_new():
 			return
 
