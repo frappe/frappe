@@ -171,9 +171,7 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 
 	parse(value) {
 		const { isd, number } = this.split_isd(value);
-		if (isd) return `${isd}-${number}`;
-		const shown_isd = this.$isd?.text().trim();
-		return number && shown_isd && !number.startsWith("+") ? `${shown_isd}-${number}` : value;
+		return isd ? `${isd}-${number}` : value;
 	}
 
 	set_formatted_input(value) {
@@ -193,6 +191,9 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 				this.$isd.length && this.$isd.text(isd);
 			}
 			this.update_padding();
+		} else if (this.$isd.text().trim() && number && !number.startsWith("+")) {
+			let code_number = this.$isd.text() + "-" + number;
+			this.set_value(code_number);
 		} else if (number) {
 			this.reset_input();
 		}
@@ -209,7 +210,7 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 			return { isd: before_hyphen, number: after_hyphen.join("-") };
 		}
 		const isd = isds
-			.filter((code) => value.startsWith(code))
+			.filter((code) => value.startsWith(code) && value.length > code.length)
 			.sort((a, b) => b.length - a.length)[0];
 		if (isd) return { isd, number: value.slice(isd.length).trim() };
 		return { isd: "", number: value };
