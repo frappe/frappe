@@ -2,36 +2,44 @@
      each component block's own file, and a floating Save bar while a `button` block holds changes. -->
 <template>
 	<div ref="root" class="contents">
-		<SettingsBody>
-			<LoadingStatus v-if="loading" />
-			<section
-				v-for="block in blocks"
-				:key="block.key"
-				:data-block="block.key"
-				class="relative isolate mt-8 scroll-mt-5 first-of-type:mt-5"
-			>
-				<span data-flash aria-hidden="true" :class="FLASH" />
-				<h3 v-if="block.label" class="text-base font-semibold text-ink-gray-8">
-					{{ __(block.label) }}
-				</h3>
-				<p v-if="block.description" class="mt-0.5 text-sm text-ink-gray-5">
-					{{ __(block.description) }}
-				</p>
-				<SettingsBlockRows
-					v-if="drafts.bound.has(block.key)"
-					:bound="drafts.bound.get(block.key)!"
-					:reveal="reveal?.block === block.key ? reveal : undefined"
-					@commit="drafts.commit(drafts.bound.get(block.key)!)"
-				/>
-				<component
-					:is="components.get(block.key)"
-					v-else
-					:bindings="drafts.components.get(block.key) ?? {}"
-					:shell="shell"
-				/>
-			</section>
-			<div v-if="drafts.hasButtons" class="h-16" aria-hidden="true" />
-		</SettingsBody>
+		<div class="relative flex min-h-0 flex-1 flex-col">
+			<SettingsBody ref="body">
+				<LoadingStatus v-if="loading" />
+				<section
+					v-for="block in blocks"
+					:key="block.key"
+					:data-block="block.key"
+					class="relative isolate mt-8 scroll-mt-5 first-of-type:mt-5"
+				>
+					<span data-flash aria-hidden="true" :class="FLASH" />
+					<h3 v-if="block.label" class="text-base font-semibold text-ink-gray-8">
+						{{ __(block.label) }}
+					</h3>
+					<p v-if="block.description" class="mt-0.5 text-sm text-ink-gray-5">
+						{{ __(block.description) }}
+					</p>
+					<SettingsBlockRows
+						v-if="drafts.bound.has(block.key)"
+						:bound="drafts.bound.get(block.key)!"
+						:reveal="reveal?.block === block.key ? reveal : undefined"
+						@commit="drafts.commit(drafts.bound.get(block.key)!)"
+					/>
+					<component
+						:is="components.get(block.key)"
+						v-else
+						:bindings="drafts.components.get(block.key) ?? {}"
+						:shell="shell"
+					/>
+				</section>
+				<div v-if="drafts.hasButtons" class="h-16" aria-hidden="true" />
+			</SettingsBody>
+			<SectionMarks
+				:viewport="viewport"
+				:sections="marks"
+				:find="findBlock"
+				class="left-5"
+			/>
+		</div>
 		<Transition
 			enter-from-class="translate-y-3 opacity-0"
 			leave-to-class="translate-y-3 opacity-0"
@@ -62,9 +70,19 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineAsyncComponent, h, inject, onUnmounted, ref, type Component } from "vue";
+import {
+	computed,
+	defineAsyncComponent,
+	h,
+	inject,
+	onMounted,
+	onUnmounted,
+	ref,
+	type Component,
+} from "vue";
 import { useRouter } from "vue-router";
 import { Button, dialog, SettingsBody } from "frappe-ui";
+import { SectionMarks, type MarkedSection } from "@framework/ui/SectionMarks";
 import type { Boot } from "@/boot";
 import { __ } from "@/i18n";
 import { settingsComponentFor } from "@/contributions/registry";
@@ -108,6 +126,23 @@ const barText = computed(() => {
 });
 
 const root = ref<HTMLElement | null>(null);
+const body = ref<InstanceType<typeof SettingsBody>>();
+const viewport = ref<HTMLElement | null>();
+onMounted(() => (viewport.value = body.value?.viewportElement));
+
+/** The titled blocks, one mark each beside the scrolling body. */
+const marks: MarkedSection[] = blocks
+	.filter((block) => block.label)
+	.map((block) => ({
+		key: block.key,
+		label: __(block.label!),
+		description: block.description && __(block.description),
+	}));
+
+function findBlock(key: string) {
+	return root.value?.querySelector<HTMLElement>(`[data-block="${CSS.escape(key)}"]`) ?? null;
+}
+
 useSaveKeys({
 	save: () => void drafts.saveButtons(),
 	unsaved: () => drafts.unsaved(),
