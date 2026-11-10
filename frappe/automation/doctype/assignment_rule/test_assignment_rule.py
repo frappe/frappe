@@ -18,7 +18,6 @@ class TestAutoAssign(IntegrationTestCase):
 		make_test_records("User")
 		if not frappe.db.exists("DocType", TEST_DOCTYPE):
 			create_test_doctype(TEST_DOCTYPE)
-		frappe.db.delete("Assignment Rule")
 		days = [
 			dict(day="Sunday"),
 			dict(day="Monday"),
