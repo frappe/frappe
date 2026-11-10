@@ -1038,7 +1038,6 @@ class Document(_DocumentBase):
 
 		self.flags.in_insert = True
 		self.run_before_save_methods()
-		preset_seen = self.get("_seen")  # _validate clears optional fields on a new doc
 		self._validate()
 		self.set_docstatus()
 		self.flags.in_insert = False
@@ -1050,7 +1049,7 @@ class Document(_DocumentBase):
 			self.update_single(self.get_valid_dict(ignore_virtual=True))
 		else:
 			self.db_insert(ignore_if_duplicate=ignore_if_duplicate)
-			self.add_creator_to_seen(preset_seen, ignore_if_duplicate)
+			self.add_creator_to_seen(ignore_if_duplicate)
 
 		# children
 		if not getattr(self.meta, "is_virtual", False):
@@ -2307,8 +2306,8 @@ class Document(_DocumentBase):
 				self.doctype, self.name, "_seen", json.dumps([frappe.session.user]), update_modified=False
 			)
 
-	def add_creator_to_seen(self, preset_seen=None, ignore_if_duplicate=False):
-		"""Add the creator to _seen on insert, keeping users already set (db_insert does not write _seen)"""
+	def add_creator_to_seen(self, ignore_if_duplicate=False):
+		"""Set _seen to the creator alone on insert (db_insert does not write _seen)"""
 		if not getattr(self.meta, "track_seen", False) or getattr(self.meta, "is_virtual", False):
 			return
 
@@ -2318,16 +2317,7 @@ class Document(_DocumentBase):
 			if get_datetime(stored_creation) != get_datetime(self.creation):
 				return
 
-		try:
-			_seen = frappe.parse_json(preset_seen or [])
-		except ValueError:
-			_seen = []
-		_seen = [user for user in _seen if isinstance(user, str)] if isinstance(_seen, list) else []
-
-		if frappe.session.user not in _seen:
-			_seen.append(frappe.session.user)
-
-		self._seen = json.dumps(_seen)
+		self._seen = json.dumps([frappe.session.user])
 		frappe.db.set_value(self.doctype, self.name, "_seen", self._seen, update_modified=False)
 
 	def notify_update(self):

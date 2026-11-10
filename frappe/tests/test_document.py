@@ -344,23 +344,16 @@ class TestDocument(IntegrationTestCase):
 			frappe.parse_json(frappe.db.get_value("ToDo", todo.name, "_seen")), ["test@example.com"]
 		)
 
-	def test_insert_keeps_preset_seen_and_adds_creator(self):
+	def test_insert_replaces_a_preset_seen_with_the_creator(self):
 		preset = frappe.as_json(["a@example.com"])
 		with self.set_user("test@example.com"):
-			todo = frappe.get_doc(
-				{"doctype": "ToDo", "description": "seen preset 46875", "_seen": preset}
-			).insert()
-
-		expected = ["a@example.com", "test@example.com"]
-		self.assertEqual(frappe.parse_json(todo._seen), expected)
-		self.assertEqual(frappe.parse_json(frappe.db.get_value("ToDo", todo.name, "_seen")), expected)
-
-	def test_insert_ignores_a_malformed_preset_seen(self):
-		cases = {"{": [], "5": [], '{"a": 1}': [], '["a@example.com", 5]': ["a@example.com"]}
-		for preset, kept in cases.items():
-			todo = frappe.get_doc({"doctype": "ToDo", "description": "seen bad 46875", "_seen": preset})
+			todo = frappe.get_doc({"doctype": "ToDo", "description": "seen preset 46884", "_seen": preset})
 			todo.insert()
-			self.assertEqual(frappe.parse_json(todo._seen), [*kept, "Administrator"])
+
+		self.assertEqual(frappe.parse_json(todo._seen), ["test@example.com"])
+		self.assertEqual(
+			frappe.parse_json(frappe.db.get_value("ToDo", todo.name, "_seen")), ["test@example.com"]
+		)
 
 	def test_duplicate_insert_keeps_seen_of_existing_row(self):
 		values = {"doctype": "Event", "subject": "seen dup 46875", "starts_on": now_datetime()}
