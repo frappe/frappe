@@ -111,7 +111,11 @@ class TestRoleProfile(IntegrationTestCase):
 		)
 
 	def test_update_role_profile(self):
-		role_profile = frappe.get_doc("Role Profile", "_Test Role Profile 1")
+		role_profile = frappe.get_doc(
+			doctype="Role Profile",
+			role_profile="_Test Role Profile Update",
+			roles=[{"role": "_Test Role"}],
+		).insert()
 
 		user = frappe.get_doc(
 			{
@@ -120,12 +124,12 @@ class TestRoleProfile(IntegrationTestCase):
 				"enabled": 1,
 				"first_name": frappe.mock("name"),
 				"new_password": "Eastern_43A1W",
-				"role_profiles": [{"role_profile": "_Test Role Profile 1"}],
+				"role_profiles": [{"role_profile": role_profile.name}],
 			}
 		).insert(ignore_permissions=True, ignore_if_duplicate=True)
 
 		role_profile.update(
-			{"roles": [{"role": "_Test Role 1"}, {"role": "_Test Role 3"}, {"role": "_Test Role 2"}]}
+			{"roles": [{"role": "_Test Role"}, {"role": "_Test Role 3"}, {"role": "_Test Role 2"}]}
 		)
 		role_profile.save()
 
