@@ -86,24 +86,26 @@ runs:
 
   - shell: bash -e {0}
     run: |
-      # Install System Dependencies
-      start_time=$(date +%s)
-      curl -LsS https://r.mariadb.com/downloads/mariadb_repo_setup | sudo bash -s -- --mariadb-server-version="mariadb-11.8.5" --skip-maxscale
+      # Add the PostgreSQL apt repository
+      sudo install -d /usr/share/postgresql-common/pgdg
+      sudo curl -fsSL --retry 3 --retry-all-errors -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
+      echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
+      sudo apt-get -qq update \
+        -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/pgdg.list \
+        -o Dir::Etc::sourceparts=- \
+        -o APT::Get::List-Cleanup=0
 
-      sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
-      wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+  - name: Install System Dependencies
+    uses: awalsh128/cache-apt-pkgs-action@v1.6.3
+    with:
+      packages: libcups2-dev redis-server mariadb-client libmariadb-dev postgresql-client-18 libpq-dev fontconfig libjpeg-turbo8 xfonts-75dpi xfonts-base
 
-      sudo apt -qq update
-      sudo apt -qq remove mysql-server mysql-client
-      sudo apt -qq remove -y postgresql-client postgresql-client-16 postgresql-client-common
-      sudo apt -qq install libcups2-dev redis-server mariadb-client libmariadb-dev postgresql-client-18 libpq-dev
+  - shell: bash -e {0}
+    run: |
+      # Install wkhtmltopdf
       echo "/usr/lib/postgresql/18/bin" >> $GITHUB_PATH
-
-      wget -q -O /tmp/wkhtmltox.deb https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-2/wkhtmltox_0.12.6.1-2.jammy_amd64.deb
-      sudo apt install /tmp/wkhtmltox.deb
-
-      end_time=$(date +%s)
-      echo -e "\033[33mInstall System Dependencies: $((end_time - start_time)) seconds\033[0m"
+      curl -fsSL --retry 3 --retry-all-errors -o /tmp/wkhtmltox.deb https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-2/wkhtmltox_0.12.6.1-2.jammy_amd64.deb
+      sudo apt-get -qq install -y --no-install-recommends /tmp/wkhtmltox.deb
 
   - shell: bash -e {0}
     run: |
