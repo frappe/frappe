@@ -100,7 +100,7 @@ describe("useListRows", () => {
 		answers[0]({ data, has_next_page: true, count: 50 });
 		await settle();
 		rows.next();
-		expect(fake.listDocuments.mock.calls[1][2]).toEqual({ include: undefined });
+		expect(fake.listDocuments.mock.calls[1][2]).toEqual({ include: [] });
 		expect(rows.totalCount.value).toBe(50);
 		expect(rows.totalCapped.value).toBe(false);
 	});

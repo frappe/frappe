@@ -27,8 +27,24 @@
 		@column-reset="resetColumnWidth($event.fieldname)"
 	>
 		<template #cell="{ row, column, value }">
+			<FavouriteCell
+				v-if="column.fieldname === '_favourite'"
+				:doctype="view.doctype"
+				:name="row.name"
+			/>
+			<AvatarStackCell
+				v-else-if="column.fieldname === '_assign' || column.fieldname === '_liked_by'"
+				:value="value"
+			/>
+			<TagsCell v-else-if="column.fieldname === '_user_tags'" :value="value" />
+			<DocstatusCell v-else-if="column.fieldname === 'docstatus'" :value="value" />
+			<CommentsCell
+				v-else-if="column.fieldname === '_comments'"
+				:doctype="view.doctype"
+				:name="row.name"
+			/>
 			<EmailCell
-				v-if="emailFields.has(column.fieldname)"
+				v-else-if="emailFields.has(column.fieldname)"
 				:field="emailFields.get(column.fieldname)!"
 				:value="value"
 				:doctype="view.doctype"
@@ -110,7 +126,12 @@ import type { View } from "@/list/view";
 import { pageGutter } from "@/shell/PageFrame.vue";
 import { failedState } from "@/shell/pageState";
 import PageState from "@/shell/PageState.vue";
+import AvatarStackCell from "./AvatarStackCell.vue";
+import CommentsCell from "./CommentsCell.vue";
 import ConfiguredCell from "./ConfiguredCell.vue";
+import DocstatusCell from "./DocstatusCell.vue";
+import FavouriteCell from "./FavouriteCell.vue";
+import TagsCell from "./TagsCell.vue";
 import DeleteDialog from "./DeleteDialog.vue";
 import EmailCell from "./EmailCell.vue";
 import FieldCell from "./FieldCell.vue";

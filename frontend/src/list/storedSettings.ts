@@ -1,10 +1,16 @@
 // The list's stored shape, fieldnames only, and its conversion to what the controls hold. Labels
 // come from meta, and a fieldname meta no longer has, or the person cannot read, is dropped.
-import { getColumnAlign, getColumnOptions, type Column } from "@framework/ui/ColumnSettings";
+import {
+	getColumnAlign,
+	getColumnOptions,
+	isSortableColumn,
+	type Column,
+} from "@framework/ui/ColumnSettings";
 import type { ListColumn } from "@framework/ui/experimental/List";
 import { getFilterableFields, type FilterField } from "@framework/ui/Filter";
 import type { RawMetaField } from "@framework/ui/FormLayout";
 import { getSortOptions, type Sort } from "@framework/ui/SortBy";
+import type { DoctypeMeta } from "@framework/ui/useDoctypeMeta";
 
 export interface StoredColumn {
 	fieldname: string;
@@ -23,12 +29,18 @@ export type ListSettingsKey = keyof ListSettings;
 /** Whether the person may read this fieldname; a standard field names no meta field and passes. */
 export type Readable = (fieldname: string) => boolean;
 
+/** The meta flags that decide which collaboration columns a doctype offers. */
+export type OptionsMeta = Pick<DoctypeMeta, "is_submittable" | "is_virtual">;
+
 export function columnsFrom(
 	stored: unknown,
 	fields: RawMetaField[],
-	readable: Readable
+	readable: Readable,
+	meta: OptionsMeta = {}
 ): ListColumn[] {
-	const options = new Map(getColumnOptions(fields).map((option) => [option.fieldname, option]));
+	const options = new Map(
+		getColumnOptions(fields, [], meta).map((option) => [option.fieldname, option])
+	);
 	const columns: ListColumn[] = [];
 	for (const entry of asList(stored)) {
 		const fieldname = fieldnameOf(entry);
@@ -37,13 +49,19 @@ export function columnsFrom(
 		const column: ListColumn = { fieldname, label: option.label, align: alignOf(fieldname, fields) };
 		const width = (entry as StoredColumn).width;
 		if (typeof width === "string" && width) column.width = width;
+		if (!isSortableColumn(fieldname)) column.sortable = false;
 		columns.push(column);
 	}
 	return columns;
 }
 
-export function sortFrom(stored: unknown, fields: RawMetaField[], readable: Readable): Sort[] {
-	const sortable = new Set(getSortOptions(fields).map((option) => option.fieldname));
+export function sortFrom(
+	stored: unknown,
+	fields: RawMetaField[],
+	readable: Readable,
+	meta: OptionsMeta = {}
+): Sort[] {
+	const sortable = new Set(getSortOptions(fields, meta).map((option) => option.fieldname));
 	const sort: Sort[] = [];
 	for (const entry of asList(stored)) {
 		const fieldname = fieldnameOf(entry);

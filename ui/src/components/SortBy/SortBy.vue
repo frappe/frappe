@@ -183,7 +183,9 @@ watch(
 );
 
 // Field Options derived client-side from Meta — no CRM endpoint.
-const allOptions = computed<SortOption[]>(() => getSortOptions(meta.value?.fields ?? []));
+const allOptions = computed<SortOption[]>(() =>
+	getSortOptions(meta.value?.fields ?? [], meta.value ?? {})
+);
 
 // Options offered by the "add" pickers: every sortable field not already chosen.
 const addableOptions = computed<SortOption[]>(() => {

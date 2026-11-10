@@ -59,10 +59,18 @@ def add_meta_parts(doctype: str, include: list[str]) -> None:
 def add_list_parts(doctype: str, include: list[str], filters, or_filters, group_by: str | None) -> None:
 	"""Put each named part of a list read on `frappe.response`; an unknown name raises."""
 	for part in include:
-		if part not in LIST_PARTS:
-			raise UnknownPartError(part, LIST_PARTS)
+		if part not in LIST_PARTS and part not in ROW_PARTS:
+			raise UnknownPartError(part, [*LIST_PARTS, *ROW_PARTS])
 	for part in include:
-		LIST_PARTS[part](doctype, filters, or_filters, group_by)
+		if part in LIST_PARTS:
+			LIST_PARTS[part](doctype, filters, or_filters, group_by)
+
+
+def add_row_parts(doctype: str, include: list[str], rows: list) -> None:
+	"""Put each named part that reads the page's rows on `frappe.response`; run after the rows are read."""
+	for part in include:
+		if part in ROW_PARTS:
+			ROW_PARTS[part](doctype, rows)
 
 
 class UnknownPartError(frappe.ValidationError):
@@ -249,3 +257,64 @@ def add_count(doctype: str, filters, or_filters, group_by: str | None) -> None:
 
 
 LIST_PARTS = {"count": add_count}
+
+
+def add_starred(doctype: str, rows: list) -> None:
+	"""`favourites`: the names among the page's rows that the session user starred."""
+	names = [str(row["name"]) for row in rows if isinstance(row, dict) and row.get("name") is not None]
+	starred = (
+		frappe.get_all(
+			"Favourite",
+			filters={
+				"user": frappe.session.user,
+				"reference_doctype": doctype,
+				"reference_name": ("in", names),
+				"view": "",
+			},
+			pluck="reference_name",
+		)
+		if names
+		else []
+	)
+	frappe.response["favourites"] = sorted(starred)
+
+
+def _user_ids(stored) -> list[str]:
+	"""The user ids a `_assign` or `_liked_by` value holds; a malformed value holds none."""
+	try:
+		ids = frappe.parse_json(stored or "[]")
+	except ValueError:
+		return []
+	return [user for user in ids if isinstance(user, str) and user] if isinstance(ids, list) else []
+
+
+def add_row_users(doctype: str, rows: list) -> None:
+	"""`users`: full name and image of each user the page's `_assign` and `_liked_by` columns name."""
+	names: set[str] = set()
+	for row in rows:
+		if not isinstance(row, dict):
+			continue
+		for column in ("_assign", "_liked_by"):
+			names.update(_user_ids(row.get(column)))
+	users = frappe.get_all(
+		"User",
+		fields=["name", "full_name", "user_image"],
+		filters={"name": ("in", sorted(names))},
+	)
+	frappe.response[USERS_PART] = {
+		u.name: {"full_name": u.full_name, "user_image": u.user_image} for u in users
+	}
+
+
+def add_comment_counts(doctype: str, rows: list) -> None:
+	"""`comment_counts`: the comment count of each of the page's rows. `_comments` stays unreadable as a field."""
+	names = [str(row["name"]) for row in rows if isinstance(row, dict) and row.get("name") is not None]
+	if not names or frappe.get_meta(doctype).is_virtual or not frappe.db.has_column(doctype, "_comments"):
+		frappe.response["comment_counts"] = {}
+		return
+	# like desk v1's list: a comment is one "name" key, so counting keys skips parsing the JSON
+	stored = frappe.db.get_values(doctype, {"name": ("in", names)}, ["name", "_comments"])
+	frappe.response["comment_counts"] = {name: (comments or "").count('"name"') for name, comments in stored}
+
+
+ROW_PARTS = {"favourites": add_starred, USERS_PART: add_row_users, "comment_counts": add_comment_counts}

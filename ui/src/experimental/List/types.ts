@@ -4,6 +4,8 @@ import type { Column } from "../../components/ColumnSettings/types";
 /** A shown column: the Column Settings shape plus the alignment a host derives from Meta. */
 export interface ListColumn extends Column {
   align?: "left" | "right";
+  /** False for a column the server cannot order by: its header is a plain label. */
+  sortable?: boolean;
 }
 
 export type ListRowData = Record<string, unknown>;

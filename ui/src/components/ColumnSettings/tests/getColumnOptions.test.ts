@@ -9,7 +9,27 @@ const STANDARD = [
   { label: "Owner", value: "owner", fieldname: "owner" },
 ];
 
+const COLLAB = [
+  { label: "Assigned To", value: "_assign", fieldname: "_assign" },
+  { label: "Favourite", value: "_favourite", fieldname: "_favourite" },
+  { label: "Tags", value: "_user_tags", fieldname: "_user_tags" },
+  { label: "Comments", value: "_comments", fieldname: "_comments" },
+  { label: "Liked By", value: "_liked_by", fieldname: "_liked_by" },
+];
+const DOCSTATUS = { label: "Document Status", value: "docstatus", fieldname: "docstatus" };
+
 describe("getColumnOptions", () => {
+  it("offers Document Status only on a submittable doctype", () => {
+    const names = (meta = {}) => getColumnOptions([], [], meta).map((o) => o.fieldname);
+    expect(names()).not.toContain("docstatus");
+    expect(names({ is_submittable: 1 })).toContain("docstatus");
+  });
+
+  it("offers no collaboration column on a virtual doctype", () => {
+    const options = getColumnOptions([], [], { is_virtual: 1, is_submittable: 1 });
+    expect(options).toEqual(STANDARD);
+  });
+
   it("maps a data field to a {label, value, fieldname} option, then appends the standard fields", () => {
     expect(
       getColumnOptions([
@@ -18,6 +38,7 @@ describe("getColumnOptions", () => {
     ).toEqual([
       { label: "Status", value: "status", fieldname: "status" },
       ...STANDARD,
+      ...COLLAB,
     ]);
   });
 
@@ -39,6 +60,7 @@ describe("getColumnOptions", () => {
     expect(result).toEqual([
       { label: "Title", value: "title", fieldname: "title" },
       ...STANDARD,
+      ...COLLAB,
     ]);
   });
 
@@ -51,6 +73,7 @@ describe("getColumnOptions", () => {
     ).toEqual([
       { label: "Status", value: "status", fieldname: "status" },
       ...STANDARD,
+      ...COLLAB,
       { label: "Status", value: "_indicator", fieldname: "_indicator" },
     ]);
   });

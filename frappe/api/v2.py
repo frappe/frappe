@@ -22,6 +22,7 @@ from frappe.api.include import (
 	add_document_parts,
 	add_list_parts,
 	add_meta_parts,
+	add_row_parts,
 	get_doctype_state_field,
 	get_workflow_state_styles,
 	parse_include,
@@ -147,7 +148,9 @@ def document_list(doctype: str) -> list[dict[str, Any]]:
 		limit: Maximum number of records to fetch (default: 20)
 		group_by: Group by field
 		as_dict: Return results as dictionary (default: True)
-		include: Comma-separated parts to add beside the list; `count` is the only one
+		include: Comma-separated parts to add beside the list: `count`, `favourites` (the page's
+			rows the session user starred), `users` (names of the `_assign`/`_liked_by` users) and
+			`comment_counts` (comments per row of the page)
 
 	Response:
 		frappe.response["data"]: List of document records as dicts
@@ -195,7 +198,8 @@ def document_list(doctype: str) -> list[dict[str, Any]]:
 	if group_by and not isinstance(group_by, str):
 		raise FrappeValueError("'group_by' must be a string")
 
-	add_list_parts(doctype, parse_include(args.get("include")), filters, or_filters, group_by)
+	include = parse_include(args.get("include"))
+	add_list_parts(doctype, include, filters, or_filters, group_by)
 
 	query = frappe.qb.get_query(
 		table=doctype,
@@ -231,7 +235,9 @@ def document_list(doctype: str) -> list[dict[str, Any]]:
 
 	data = query.run(as_dict=as_dict, debug=debug, as_list=not as_dict)
 	frappe.response["has_next_page"] = len(data) > limit
-	return data[:limit]
+	data = data[:limit]
+	add_row_parts(doctype, include, data)
+	return data
 
 
 def count(doctype: str) -> int:

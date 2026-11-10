@@ -16,6 +16,7 @@ export {
   SYNTHETIC_KEY_PREFIX,
 } from "./columns";
 export { getColumnOptions, isColumnFieldtype } from "./getColumnOptions";
+export { isSortableColumn } from "./collabColumns";
 export { getDefaultColumns, foldSyntheticColumns } from "./getDefaultColumns";
 export type {
   Column,

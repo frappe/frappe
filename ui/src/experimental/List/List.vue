@@ -53,7 +53,7 @@
 					:class="alignClass(column)"
 				>
 					<ListHeaderCellSort
-						v-if="sortable"
+						v-if="sortable && column.sortable !== false"
 						class="min-w-0"
 						:direction="directionFor(sort, column.fieldname)"
 						:align="isRight(column) ? 'end' : 'start'"

@@ -18,6 +18,8 @@ import {
 	watch,
 	type ComputedRef,
 } from "vue";
+import { seedFavourites } from "./favouriteStars";
+import { seedRowParts } from "./rowParts";
 
 export type ListRow = { name: string } & Record<string, unknown>;
 
@@ -30,6 +32,8 @@ export interface RowsQuery {
 	filters: Record<string, unknown>;
 	orderBy: string;
 	limit: number;
+	/** Parts the shown columns read beside the rows; no part of the cache key. */
+	include?: string[];
 }
 
 export interface ListRows {
@@ -130,7 +134,7 @@ export function useListRows(doctype: string, query: () => RowsQuery | null): Lis
 		const current = query();
 		if (!current) return undefined;
 		const { fields, filters, orderBy } = current;
-		return JSON.stringify({ fields, filters, orderBy });
+		return JSON.stringify({ fields, filters, orderBy, include: current.include });
 	}
 
 	function reload(target = shown.value) {
@@ -163,12 +167,13 @@ export function useListRows(doctype: string, query: () => RowsQuery | null): Lis
 		const outcome = await listDocuments<ListRow>(
 			doctype,
 			{ ...listQuery(current), start: 0, limit },
-			{ include: ["count"] }
+			{ include: ["count", ...(current.include ?? [])] }
 		).catch((failure: Error) => failure);
 		if (mine !== generation) return;
 		refreshing = -1;
 		if (isLostAccess(outcome)) return showError(outcome);
 		if (!(outcome instanceof Error)) {
+			seedParts(outcome);
 			pages.value = [landedPage(outcome.data, outcome.has_next_page)];
 			total.value = totalOf(outcome);
 		}
@@ -199,6 +204,12 @@ export function useListRows(doctype: string, query: () => RowsQuery | null): Lis
 		show(rowCount.value + current.limit);
 	}
 
+	function seedParts(answer: ListEnvelope<ListRow>) {
+		const names = answer.data.map((row) => row.name);
+		seedFavourites(doctype, answer, names);
+		seedRowParts(doctype, answer, names);
+	}
+
 	// The first page of a query carries the count; a page from an earlier query lands nowhere.
 	async function fetchPage(page: Page, current: RowsQuery, start: number, limit: number) {
 		const mine = generation;
@@ -207,9 +218,10 @@ export function useListRows(doctype: string, query: () => RowsQuery | null): Lis
 			const answer = await listDocuments<ListRow>(
 				doctype,
 				{ ...listQuery(current), start, limit },
-				{ include: first ? ["count"] : undefined }
+				{ include: [...(first ? ["count"] : []), ...(current.include ?? [])] }
 			);
 			if (mine !== generation) return;
+			seedParts(answer);
 			page.hasNextPage = answer.has_next_page;
 			page.data = answer.data;
 			if (first) total.value = totalOf(answer);
