@@ -257,7 +257,7 @@ class TestSidebarValidation(SettingsDialogTestCase):
 				arranged(panes={GENERAL: {"hidden": [f"{PROFILE}/photo"]}}),
 				f'arrangement.panes["{GENERAL}"].hidden[0]',
 				f"{PROFILE}/photo",
-				"leave it out",
+				"leave a placed block out",
 			),
 			"an entry for a hidden pane": (
 				{"groups": [{"panes": [GENERAL, MAIL, PROFILE]}], "hidden": [SYSTEM], "panes": {SYSTEM: {}}},
@@ -292,6 +292,13 @@ class TestSidebarValidation(SettingsDialogTestCase):
 				self.assert_problem(arrangement, path, *words)
 				frappe.db.rollback(save_point="settings_dialog_test")
 				frappe.db.savepoint("settings_dialog_test")
+
+	def test_a_hidden_block_of_another_pane_is_dropped_and_the_panes_own_stays_hidden(self):
+		resolved = resolve(arranged(panes={GENERAL: {"hidden": [f"{PROFILE}/photo", f"{GENERAL}/theme"]}}))
+
+		self.assertEqual([problem.title for problem in resolved.problems], ["Hidden Block Not In Pane"])
+		self.assertEqual(resolved.sidebars[HOST]["hidden_blocks"], [f"{GENERAL}/theme"])
+		self.assertIn(f"{PROFILE}/photo", blocks_of(resolved.sidebars[HOST], PROFILE))
 
 	def test_a_part_that_breaks_a_rule_is_dropped_and_the_rest_stays(self):
 		resolved = resolve(
@@ -333,6 +340,9 @@ class TestSidebarValidation(SettingsDialogTestCase):
 			"a list that is not a list": {"groups": {"panes": []}},
 			"a block listed and hidden": arranged(
 				panes={GENERAL: {"blocks": [f"{GENERAL}/system"], "hidden": [f"{GENERAL}/system"]}}
+			),
+			"a hidden block the pane does not own": arranged(
+				panes={GENERAL: {"hidden": [f"{PROFILE}/photo"]}}
 			),
 		}
 

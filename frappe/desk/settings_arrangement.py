@@ -287,7 +287,15 @@ class ArrangementCheck:
 
 		hidden_blocks = []
 		for index, block in enumerate(self._unique(entry["hidden"])):
-			if block in listed:
+			if not block.startswith(f"{address}/"):
+				self._drop(
+					f"{path}.hidden[{index}]",
+					_("Hidden Block Not In Pane"),
+					_(
+						"{0} is not a block of {1}. Only a pane's own blocks go in hidden; leave a placed block out of blocks instead."
+					).format(block, address),
+				)
+			elif block in listed:
 				self._drop(
 					f"{path}.hidden[{index}]",
 					_("Block Listed and Hidden"),
@@ -320,25 +328,6 @@ class ArrangementCheck:
 			entry = arrangement["panes"][address]
 			for key in PANE_KEYS:
 				entry[key] = self._existing(entry[key], f"{path}.{key}", "block")
-			entry["hidden"] = self._owned(address, entry["hidden"], f"{path}.hidden")
-
-	def _owned(self, pane: str, blocks: list[str], path: str) -> list[str]:
-		"""Keep the blocks `pane` owns: `hidden` is only for a pane's own blocks, a placed one is left out of `blocks`."""
-		owned = []
-		for index, block in enumerate(blocks):
-			if block.startswith(f"{pane}/"):
-				owned.append(block)
-			else:
-				self._drop(
-					f"{path}[{index}]",
-					_("Hidden Block Not In Pane"),
-					_(
-						"{0} is not a block of {1}. To keep a placed block out of a pane, leave it out of that pane's blocks."
-					).format(block, pane),
-					across=True,
-				)
-
-		return owned
 
 	def _existing(self, addresses: list[str], path: str, kind: str, indexed: bool = True) -> list[str]:
 		kept = []
