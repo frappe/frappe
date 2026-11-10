@@ -392,14 +392,9 @@ def get_user_facing_error(traceback: str | None, keep_line_breaks: bool = False)
 		message = re.sub(r"<br\s*/?>", "\n", message, flags=re.IGNORECASE)
 
 	message = re.sub(r"<[^>]*>", " ", message)
-<<<<<<< HEAD
-
-	return unescape(" ".join(message.split()))
-=======
 	message = "\n".join(" ".join(line.split()) for line in message.split("\n"))
 
 	return unescape(message.strip())
->>>>>>> 47b73e8 (fix: show each prepared report error on its own line)
 
 
 def get_prepared_report_result(report, filters, dn="", user=None):
