@@ -593,6 +593,13 @@ class PrintDesignerConverter:
 	def image_node(self, element) -> dict | None:
 		image = element.get("image") or {}
 		if element.get("isDynamic") and image.get("fieldname"):
+			if image.get("parentField") and image.get("doctype"):
+				return self.html_node(
+					f"{{%- set image_url = frappe.db.get_value({image.get('doctype')!r}, doc.{image['parentField']}, {image['fieldname']!r}) -%}}"
+					"{%- if image_url -%}"
+					f'<img src="{{{{ image_url }}}}" style="width: {round(flt(element.get("width")) / PX_PER_MM, 1)}mm; max-width: 100%;">'
+					"{%- endif -%}"
+				)
 			return {
 				"label": image.get("label") or "",
 				"fieldname": image["fieldname"],
@@ -714,7 +721,7 @@ class PrintDesignerConverter:
 			value = PAGE_NUMBER_FIELDS[fieldname]
 		elif item.get("parentField"):
 			value = (
-				f"{{{{ frappe.db.get_value({item.get('doctype')!r}, doc.{item['parentField']}, {fieldname!r}) or '' }}}}"
+				f"{{{{ frappe.format(frappe.db.get_value({item.get('doctype')!r}, doc.{item['parentField']}, {fieldname!r}), {item.get('fieldtype')!r}) or '' }}}}"
 				if item.get("doctype")
 				else f"{{{{ doc.get_formatted({fieldname!r}) }}}}"
 			)
