@@ -27,6 +27,11 @@ export default {
 		join(here, "node_modules/frappe-ui/frappe/**/*.{vue,js,ts,jsx,tsx}"),
 		// Its parts draw with classes nothing else uses: no padding and no active row without it.
 		join(here, "node_modules/frappe-ui/experimental/CommandPalette/**/*.vue"),
+		// A GitHub frappe-ui ships what its npm `files` list leaves out; their classes are not the desk's.
+		`!${join(
+			here,
+			"node_modules/frappe-ui/**/{*.test.*,*.spec.ts,*.cy.ts,*.story.vue,*.playground.vue,stories/**,mocks/**,test-helpers.ts}"
+		)}`,
 		...appContent(manifest),
 	],
 	theme: { extend: {} },
