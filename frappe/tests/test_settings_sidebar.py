@@ -7,6 +7,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import frappe
+from frappe.desk.app_prefix import default_prefix
 from frappe.desk.doctype.settings_dialog.settings_dialog import SettingsDialog
 from frappe.desk.doctype.settings_dialog.test_settings_dialog import (
 	EXTENDER,
@@ -17,7 +18,7 @@ from frappe.desk.doctype.settings_dialog.test_settings_dialog import (
 	ship,
 	single,
 )
-from frappe.shell.registry import default_prefix, get_prefix_registry
+from frappe.shell.registry import get_prefix_registry
 from frappe.shell.settings import check_shipped_records, get_cached_sidebars, merge_settings
 from frappe.shell.settings_sidebar import filter_sidebar
 from frappe.shell.settings_sidebar_text import (

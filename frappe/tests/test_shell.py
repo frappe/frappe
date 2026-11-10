@@ -13,6 +13,7 @@ from unittest.mock import patch
 import frappe
 from frappe.bundler import swap_shell_assets
 from frappe.core.doctype.doctype.test_doctype import new_doctype
+from frappe.desk.app_prefix import default_prefix
 from frappe.shell import SHELL_ROOT
 from frappe.shell.address_clash import page_files
 from frappe.shell.doctypes import DOCTYPES_CACHE_KEY, build_address_table
@@ -35,7 +36,6 @@ from frappe.shell.manifest import (
 from frappe.shell.registry import (
 	clear_prefix_registry,
 	declared_prefix,
-	default_prefix,
 	shell_base,
 	split_shell_path,
 )

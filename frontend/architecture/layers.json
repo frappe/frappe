@@ -196,6 +196,13 @@
       "title": "Move the manifest code out of frappe/shell/ into the build code"
     },
     {
+      "from": "frappe/commands/__init__.py",
+      "to": "frappe/shell/commands.py",
+      "why": "get_commands() collects the settings-sidebar command from the desk server, as it does flow and studio.",
+      "ticket": 46853,
+      "title": "Desk v2: settings sidebar arrangement — the server resolver, validation and the settings-sidebar command"
+    },
+    {
       "from": "frappe/website/page_renderers/shell_page.py",
       "to": "frappe/shell/",
       "why": "The shell page renderer sits in the framework's website code and imports the desk server.",

@@ -8,9 +8,9 @@ import json
 
 import frappe
 from frappe import _
+from frappe.desk.app_prefix import declared_prefix, default_prefix
 from frappe.desk.settings_block import Refusal
 from frappe.desk.settings_rules import Problem
-from frappe.shell.registry import declared_prefix, default_prefix
 
 KEYS = ("groups", "hidden", "panes")
 PANE_KEYS = ("blocks", "hidden")
