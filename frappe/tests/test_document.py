@@ -1328,10 +1328,13 @@ class TestGetDocs(IntegrationTestCase):
 			.insert()
 			.name
 		)
+
+	def setUp(self):
+		super().setUp()
 		for i in range(5):
 			frappe.get_doc(
 				{
-					"doctype": cls.parent_dt,
+					"doctype": self.parent_dt,
 					"title": f"Record {i}",
 					"child_table": [
 						{"some_fieldname": f"child_{i}_0"},

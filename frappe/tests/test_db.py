@@ -1998,11 +1998,10 @@ class TestDDLCommandsSQLite(IntegrationTestCase):
 
 
 class TestDBSetValue(IntegrationTestCase):
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
-		cls.todo1 = frappe.get_doc(doctype="ToDo", description="test_set_value 1").insert()
-		cls.todo2 = frappe.get_doc(doctype="ToDo", description="test_set_value 2").insert()
+	def setUp(self):
+		super().setUp()
+		self.todo1 = frappe.get_doc(doctype="ToDo", description="test_set_value 1").insert()
+		self.todo2 = frappe.get_doc(doctype="ToDo", description="test_set_value 2").insert()
 
 	def test_update_single_doctype_field(self):
 		value = frappe.db.get_single_value("System Settings", "deny_multiple_sessions")

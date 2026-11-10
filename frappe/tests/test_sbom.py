@@ -133,9 +133,8 @@ class TestSPDX(UnitTestCase):
 
 
 class TestGenerateSBOM(IntegrationTestCase):
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
+	def setUp(self):
+		super().setUp()
 		for email, roles in (("sbom-manager@example.com", ["System Manager"]), ("sbom-user@example.com", [])):
 			if not frappe.db.exists("User", email):
 				frappe.get_doc(

@@ -30,17 +30,6 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 	"""
 
 	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
-		user = frappe.new_doc("User")
-		user.first_name = "Test"
-		user.last_name = "123"
-		user.email = emails[0]
-		user.append_roles("System Manager")
-		user.insert()
-		frappe.set_user(emails[0])
-
-	@classmethod
 	def tearDownClass(cls):
 		super().tearDownClass()
 		IntegrationTestUserInvitation.delete_all_invitations()
@@ -70,6 +59,15 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 
 	def setUp(self):
 		super().setUp()
+		frappe.set_user("Administrator")
+		if not frappe.db.exists("User", emails[0]):
+			user = frappe.new_doc("User")
+			user.first_name = "Test"
+			user.last_name = "123"
+			user.email = emails[0]
+			user.append_roles("System Manager")
+			user.insert()
+		self.enterContext(self.set_user(emails[0]))
 		IntegrationTestUserInvitation.delete_all_invitations()
 		IntegrationTestUserInvitation.delete_all_user_roles()
 		frappe.db.delete("Email Queue")

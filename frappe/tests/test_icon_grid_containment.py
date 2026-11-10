@@ -298,9 +298,8 @@ class TestTheGridWorksExactlyAsItDoesToday(IconGridTestCase):
 	model owns visibility and routing. The two gates compose with AND and are never reconciled.
 	"""
 
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
+	def setUp(self):
+		super().setUp()
 		if not frappe.db.exists("User", USER):
 			frappe.get_doc(
 				{

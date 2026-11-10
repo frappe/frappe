@@ -395,14 +395,16 @@ class TestMaskFieldsInChildTable(IntegrationTestCase):
 			.name
 		)
 
+	def setUp(self):
+		super().setUp()
 		doc = frappe.get_doc(
 			{
-				"doctype": cls.dt,
+				"doctype": self.dt,
 				"items": [{"secret_note": "child_secret", "rate": 1234.5, "public_qty": 7}],
 			}
 		).insert()
-		cls.docname = doc.name
-		cls.row_name = doc.items[0].name
+		self.docname = doc.name
+		self.row_name = doc.items[0].name
 
 	@classmethod
 	def tearDownClass(cls):
@@ -663,8 +665,10 @@ class TestMaskFieldsInLinkedDocType(IntegrationTestCase):
 			.name
 		)
 
-		cls.target_name = frappe.get_doc({"doctype": cls.target_dt, "tax_id": "GST12345"}).insert().name
-		cls.docname = frappe.get_doc({"doctype": cls.dt, "customer": cls.target_name}).insert().name
+	def setUp(self):
+		super().setUp()
+		self.target_name = frappe.get_doc({"doctype": self.target_dt, "tax_id": "GST12345"}).insert().name
+		self.docname = frappe.get_doc({"doctype": self.dt, "customer": self.target_name}).insert().name
 
 	@classmethod
 	def tearDownClass(cls):

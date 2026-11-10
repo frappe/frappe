@@ -1227,28 +1227,23 @@ class TestPythonExpressions(IntegrationTestCase):
 
 
 class TestDiffUtils(IntegrationTestCase):
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
-		cls.doc = frappe.get_doc(doctype="Client Script", dt="Client Script", name="test_client_script")
-		cls.doc.insert()
-		cls.doc.script = "2;"
-		cls.doc.save(ignore_version=False)
-		cls.doc.script = "42;"
-		cls.doc.save(ignore_version=False)
+	def setUp(self):
+		super().setUp()
+		self.doc = frappe.get_doc(doctype="Client Script", dt="Client Script", name="test_client_script")
+		self.doc.insert()
+		self.doc.script = "2;"
+		self.doc.save(ignore_version=False)
+		self.doc.script = "42;"
+		self.doc.save(ignore_version=False)
 
-		cls.versions = version_query(
+		self.versions = version_query(
 			doctype="Version",
 			txt="",
 			searchfield="name",
 			start=0,
 			page_len=20,
-			filters={"ref_doctype": cls.doc.doctype, "docname": cls.doc.name},
+			filters={"ref_doctype": self.doc.doctype, "docname": self.doc.name},
 		)
-
-	@classmethod
-	def tearDownClass(cls):
-		cls.doc.delete()
 
 	def test_version_query(self):
 		self.assertGreaterEqual(len(self.versions), 2)

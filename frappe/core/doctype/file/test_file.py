@@ -2808,9 +2808,8 @@ class TestGuestFileAndAttachments(IntegrationTestCase):
 class TestPublicFileRestriction(IntegrationTestCase):
 	"""Test public file upload restriction for non-System Managers."""
 
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
+	def setUp(self):
+		super().setUp()
 		# Create a test user without System Manager role
 		if not frappe.db.exists("User", "test_restricted@example.com"):
 			user = frappe.get_doc(
@@ -2913,23 +2912,23 @@ class TestForcePrivateAttachments(IntegrationTestCase):
 			permissions=[{"role": "Website Manager", "read": 1, "write": 1, "create": 1}],
 		).insert(ignore_if_duplicate=True)
 
-		cls.user = "test_force_private@example.com"
-		if not frappe.db.exists("User", cls.user):
-			frappe.get_doc(
-				{
-					"doctype": "User",
-					"email": cls.user,
-					"first_name": "Test Force Private",
-					"roles": [{"role": "Website Manager"}],
-				}
-			).insert(ignore_permissions=True)
-
 	@classmethod
 	def tearDownClass(cls):
 		frappe.db.rollback()
 		frappe.delete_doc_if_exists("DocType", cls.test_doctype)
 
 	def setUp(self):
+		super().setUp()
+		self.user = "test_force_private@example.com"
+		if not frappe.db.exists("User", self.user):
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": self.user,
+					"first_name": "Test Force Private",
+					"roles": [{"role": "Website Manager"}],
+				}
+			).insert(ignore_permissions=True)
 		frappe.set_user(self.user)
 		self.doc = frappe.get_doc(doctype=self.test_doctype).insert()
 
