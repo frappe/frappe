@@ -84,11 +84,12 @@ jobs:
         if: ${{ !cancelled() }}
         run: node frontend/architecture/diagram.mjs --flows --out desk-architecture.html
 
-      # mysqlclient needs system libraries, and writing the manifest does not import it.
+      # mysqlclient needs system libraries, and frappe-flow installs from its path source (flow/harness),
+      # which `uv pip install -r` ignores. Writing the manifest imports neither.
       - name: Write the build manifest
         if: ${{ !cancelled() }}
         run: |
-          python -c 'import tomllib; print("\n".join(d for d in tomllib.load(open("pyproject.toml", "rb"))["project"]["dependencies"] if not d.startswith("mysqlclient")))' > "$RUNNER_TEMP/requirements.txt"
+          python -c 'import tomllib; print("\n".join(d for d in tomllib.load(open("pyproject.toml", "rb"))["project"]["dependencies"] if not d.startswith(("mysqlclient", "frappe-flow"))))' > "$RUNNER_TEMP/requirements.txt"
           uv pip install --quiet -r "$RUNNER_TEMP/requirements.txt"
           mkdir "$RUNNER_TEMP/sites"
           echo frappe > "$RUNNER_TEMP/sites/apps.txt"
