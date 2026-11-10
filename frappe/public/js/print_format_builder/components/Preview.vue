@@ -1,5 +1,6 @@
 <template>
 	<Teleport to="body">
+		<div class="pfb-overlay-backdrop"></div>
 		<div class="pfb-overlay" @click.self="$emit('close')">
 			<div class="pfb-preview-modal">
 				<div v-if="!docname" class="pfb-preview-empty">
@@ -12,7 +13,7 @@
 					{{ __("This document is a draft and cannot be printed.") }}
 				</div>
 				<div v-else-if="!preview_loaded" class="pfb-preview-empty">
-					<span class="pfb-preview-spinner" aria-hidden="true"></span>
+					<span class="es-spinner" aria-hidden="true"></span>
 					<span>{{ __("Generating preview…") }}</span>
 				</div>
 				<iframe
@@ -105,7 +106,7 @@ async function render() {
 		// keep the browser's own PDF toolbar — page nav, zoom and download come free
 		set_pdf_url(URL.createObjectURL(blob) + "#view=FitH");
 	} catch (e) {
-		if (seq !== render_seq) return;
+		if (seq !== render_seq || e.name === "AbortError") return;
 		set_pdf_url(null);
 		frappe.show_alert({
 			message: e.message || __("Could not render the preview"),
@@ -170,21 +171,6 @@ onUnmounted(() => {
 	border-radius: var(--radius-lg, 8px);
 	font-size: var(--text-sm);
 	color: var(--text-color);
-}
-
-.pfb-preview-spinner {
-	width: 20px;
-	height: 20px;
-	border: 2px solid var(--gray-300);
-	border-top-color: var(--gray-600);
-	border-radius: 50%;
-	animation: pfb-preview-spin 0.7s linear infinite;
-}
-
-@keyframes pfb-preview-spin {
-	to {
-		transform: rotate(360deg);
-	}
 }
 
 .pfb-preview-iframe {

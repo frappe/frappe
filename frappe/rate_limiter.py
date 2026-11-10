@@ -175,10 +175,7 @@ def rate_limit(
 			if not callable(seconds):
 				cache_key += f":{seconds}".encode()
 
-			value = frappe.cache.get(cache_key)
-			if not value:
-				frappe.cache.setex(cache_key, seconds, 0)
-
+			frappe.cache.set(cache_key, 0, ex=seconds, nx=True)  # nosemgrep: frappe-cache-breaks-multitenancy
 			value = frappe.cache.incrby(cache_key, 1)
 			if value > _limit:
 				frappe.throw(

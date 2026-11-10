@@ -2,13 +2,20 @@
 	<div class="pfb-style-body">
 		<span v-if="label" class="pfb-style-label">{{ label }}</span>
 		<textarea
-			class="pfb-insp-input pfb-style-input"
+			class="form-control form-control-sm pfb-style-input"
 			rows="4"
 			spellcheck="false"
 			:placeholder="'border: 1px solid #e5e7eb;\npadding: 6px;'"
 			:value="modelValue"
 			@input="$emit('update:modelValue', $event.target.value)"
 		></textarea>
+		<span v-if="modelValue?.includes('{')" class="pfb-insp-hint text-muted">
+			{{
+				__(
+					"Only CSS properties go here. Put rules with selectors in Print Settings, under Custom CSS."
+				)
+			}}
+		</span>
 	</div>
 </template>
 
@@ -31,9 +38,8 @@ defineEmits(["update:modelValue"]);
 }
 
 .pfb-style-input {
-	width: 100%;
-	font-family: var(--monospace-font-family, monospace);
-	font-size: var(--text-sm);
+	height: auto;
+	font-family: var(--font-family-monospace);
 	line-height: 1.5;
 	resize: vertical;
 	min-height: 60px;

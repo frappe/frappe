@@ -14,6 +14,7 @@ permissions:
 jobs:
   checkrun:
     name: Plan Check
+    if: ${{ !contains(github.event.pull_request.labels.*.name, 'Skip CI') }}
     runs-on: ubuntu-latest
     outputs:
       build: ${{ steps.check-build.outputs.build }}
@@ -27,7 +28,7 @@ jobs:
         run: |
           python "${GITHUB_WORKSPACE}/.github/helper/roulette.py"
         env:
-          TYPE: "ui"
+          TYPE: "bundle"
           PR_NUMBER: ${{ github.event.number }}
           REPO_NAME: ${{ github.repository }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

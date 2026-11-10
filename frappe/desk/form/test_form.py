@@ -3,8 +3,9 @@
 
 import frappe
 from frappe.desk.form.linked_with import get_linked_docs, get_linked_doctypes
-from frappe.desk.form.utils import _sort_field_fallback, get_next
+from frappe.desk.form.utils import _sort_field_fallback, add_comment, get_next
 from frappe.tests import IntegrationTestCase
+from frappe.tests.test_model_utils import set_user
 
 
 class TestForm(IntegrationTestCase):
@@ -12,6 +13,17 @@ class TestForm(IntegrationTestCase):
 		results = get_linked_docs("Role", "System Manager", linkinfo=get_linked_doctypes("Role"))
 		self.assertTrue("User" in results)
 		self.assertTrue("DocType" in results)
+
+	def test_add_comment_ignores_client_supplied_author(self):
+		todo = frappe.get_doc(doctype="ToDo", description="comment author test").insert()
+		user = "test@example.com"
+		with set_user(user):
+			comment = add_comment(
+				"ToDo", todo.name, "spoof attempt", comment_email="Administrator", comment_by="Administrator"
+			)
+
+		self.assertEqual(comment.comment_email, user)
+		self.assertEqual(comment.comment_by, frappe.utils.get_fullname(user))
 
 	def test_savedocs_accepts_native_dict(self):
 		from frappe.desk.form.save import savedocs
@@ -22,6 +34,33 @@ class TestForm(IntegrationTestCase):
 		self.assertTrue(frappe.local.response.docs)
 		self.assertEqual(frappe.local.response.docs[0].description, "via dict")
 		frappe.delete_doc("ToDo", frappe.local.response.docs[0].name)
+
+	def test_savedocs_cancel_keeps_stored_values(self):
+		from frappe.desk.form.save import savedocs
+
+		doc = self.make_submitted_doc()
+		savedocs(doc=doc.as_dict() | {"test": "changed"}, action="Cancel")
+
+		doc.reload()
+		self.assertEqual((doc.docstatus, doc.test), (2, "original"))
+
+	def test_cancel_ignores_non_workflow_field(self):
+		from frappe.desk.form.save import cancel
+
+		doc = self.make_submitted_doc()
+		cancel(doc.doctype, doc.name, workflow_state_fieldname="test", workflow_state="changed")
+
+		doc.reload()
+		self.assertEqual((doc.docstatus, doc.test), (2, "original"))
+
+	def make_submitted_doc(self):
+		from frappe.automation.doctype.auto_repeat.test_auto_repeat import create_submittable_doctype
+
+		create_submittable_doctype("Test Cancel Scope")
+		self.addCleanup(frappe.response.docs.clear)
+		doc = frappe.get_doc(doctype="Test Cancel Scope", test="original").insert()
+		doc.submit()
+		return doc
 
 	def test_sort_field_fallback(self):
 		self.assertIsNone(_sort_field_fallback("Note", "name"))

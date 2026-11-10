@@ -63,10 +63,19 @@ frappe.listview_settings["Print Format"] = {
 				label: __("Start with"),
 				fieldname: "start_with",
 				fieldtype: "Select",
-				options: "Builder\nHTML",
-				default: "Builder",
+				options: "Print Format Editor\nHTML",
+				default: "Print Format Editor",
 				depends_on: 'eval:doc.print_format_for !== "Report"',
-				description: __("Builder is visual. HTML is hand-written."),
+				description: __("The Print Format Editor is visual. HTML is hand-written."),
+			},
+			{
+				label: __("Templating"),
+				fieldname: "print_format_type",
+				fieldtype: "Select",
+				options: "JS\nJinja",
+				default: "JS",
+				depends_on: 'eval:doc.print_format_for === "Report"',
+				description: __("JS renders in the browser. Jinja renders on the server."),
 			},
 		];
 
@@ -109,9 +118,7 @@ frappe.listview_settings["Print Format"] = {
 				if (use_html) {
 					// a custom format can't save with empty HTML, so seed a starter
 					doc.custom_format = 1;
-					// Report formats render from the report's own JS, and the
-					// report selector and default only accept the JS type
-					if (for_report) doc.print_format_type = "JS";
+					if (for_report) doc.print_format_type = values.print_format_type || "JS";
 					doc.html = `<div class="print-format">\n\t<h3>${frappe.utils.escape_html(
 						values.print_format_name
 					)}</h3>\n</div>`;

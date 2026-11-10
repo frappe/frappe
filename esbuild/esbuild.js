@@ -3,6 +3,7 @@ const fs = require("fs");
 const os = require("os");
 const { spawn } = require("child_process");
 const glob = require("fast-glob");
+const { update_assets_json } = require("./assets_json");
 const esbuild = require("esbuild");
 const vue = require("esbuild-plugin-vue3");
 const yargs = require("yargs");
@@ -86,7 +87,7 @@ const WATCH_MODE = Boolean(argv.watch);
 const PRODUCTION = Boolean(argv.production);
 const RUN_BUILD_COMMAND = !WATCH_MODE && Boolean(argv["run-build-command"]);
 const ESBUILD_TARGET = argv["esbuild-target"] || "es2020";
-// Allow VERBOSE to be inherited by nested esbuild invocations (per-app yarn
+// Allow VERBOSE to be inherited by nested esbuild invocations (per-app
 // build) via the environment; CLI flag propagation through yarn run breaks
 // chained scripts like `yarn copy && cp`.
 const VERBOSE = Boolean(argv.verbose) || process.env.FRAPPE_BUILD_VERBOSE === "1";
@@ -154,6 +155,13 @@ async function execute() {
 	}
 	if (RUN_BUILD_COMMAND) {
 		await run_build_command_for_apps(APPS);
+		if (APPS.includes("frappe")) {
+			await run_frontend_build(
+				"studio",
+				path.resolve(__dirname, "..", "studio", "frontend")
+			);
+			await run_frontend_build("flow", path.resolve(__dirname, "..", "flow"));
+		}
 	}
 	if (!WATCH_MODE) {
 		process.exit(0);
@@ -523,13 +531,17 @@ async function write_assets_json(metafile) {
 		}
 	}
 
-	let { obj: assets_json, path: assets_json_path } = await get_assets_json_path_and_obj(rtl);
-	// update with new values
-	let new_assets_json = Object.assign({}, assets_json, out);
+	const assets_json_path = get_assets_json_path(rtl);
+	const { next: new_assets_json } = await update_assets_json(
+		assets_json_path,
+		(assets_json) => ({
+			...assets_json,
+			...out,
+		})
+	);
 	let prev_assets_json = assets_json_history[assets_json_path];
 	assets_json_history[assets_json_path] = new_assets_json;
 
-	await fs.promises.writeFile(assets_json_path, JSON.stringify(new_assets_json, null, 4));
 	await update_assets_json_in_cache();
 	if (argv["save-metafiles"]) {
 		// use current timestamp in readable formate as a suffix for filename
@@ -555,17 +567,19 @@ async function update_assets_json_in_cache() {
 	// handle error event to avoid printing stack traces
 	try {
 		await client.connect();
+		await client.del("assets_json");
+		await client.quit();
 	} catch (e) {
 		log_warn("Cannot connect to redis_cache to update assets_json");
 	}
-	client.del("assets_json", (err) => {
-		client.unref();
-	});
+}
+
+function get_assets_json_path(is_rtl) {
+	return path.resolve(assets_path, is_rtl ? "assets-rtl.json" : "assets.json");
 }
 
 async function get_assets_json_path_and_obj(is_rtl) {
-	const file_name = is_rtl ? "assets-rtl.json" : "assets.json";
-	const assets_json_path = path.resolve(assets_path, file_name);
+	const assets_json_path = get_assets_json_path(is_rtl);
 	let assets_json;
 	try {
 		assets_json = await fs.promises.readFile(assets_json_path, "utf-8");
@@ -657,8 +671,7 @@ async function run_build_command_for_apps(apps) {
 		await terminate_build_children();
 		const errors = error instanceof AggregateError ? error.errors : [error];
 		for (const err of errors) {
-			const step_label = err.step === "install" ? "yarn install" : "yarn build";
-			log_error(`${step_label} failed for ${err.app || "an app"}`);
+			log_error(`${err.command} failed for ${err.app || "an app"}`);
 			if (VERBOSE) {
 				// Child output (if any) was already streamed by flush_verbose;
 				// surface the raw error so spawn/ENOENT failures aren't silent.
@@ -682,23 +695,56 @@ async function run_build_command_for_apps(apps) {
 	log("Build commands finished.");
 }
 
+// The studio editor (studio/frontend/) and the flow page (flow/) are vite apps inside this
+// repo, built like app frontends; their output is part of frappe's assets, so a failure fails
+// the build.
+async function run_frontend_build(name, frontend_path) {
+	const unregister_signal_handlers = register_build_signal_handlers();
+	try {
+		await run_app_build(name, frontend_path);
+	} catch (error) {
+		await terminate_build_children();
+		log_error(`${error.command} failed for ${name}`);
+		if (VERBOSE) {
+			log(chalk.dim(error.stack || error.message || String(error)));
+		} else if (error.output) {
+			log(error.output.trim());
+		} else {
+			log_warn("Run again with --verbose for more details.");
+		}
+		error.reported = true;
+		throw error;
+	} finally {
+		unregister_signal_handlers();
+	}
+}
+
 async function run_app_build(app, root_app_path) {
 	const started = Date.now();
-	let node_modules = path.resolve(root_app_path, "node_modules");
-	if (!fs.existsSync(node_modules)) {
-		await run_command("yarn install --frozen-lockfile", {
-			cwd: root_app_path,
-			app,
-			step: "install",
-		});
-	}
+	const commands = get_build_commands(root_app_path);
+	// every build, not only on a fresh checkout: an install made before an update lacks what the
+	// new lockfile adds. The install returns in under a second when it is current
+	await run_command(commands.install, { cwd: root_app_path, app, step: "install" });
 
-	await run_command("yarn build", { cwd: root_app_path, app, step: "build" });
+	await run_command(commands.build, { cwd: root_app_path, app, step: "build" });
 
 	if (!VERBOSE) {
 		const elapsed = ((Date.now() - started) / 1000).toFixed(1);
 		log(`${chalk.green("✔")} ${chalk.bold(app)} built in ${elapsed}s`);
 	}
+}
+
+// An app with pnpm-lock.yaml installs with pnpm; Yarn 1 cannot read that lockfile or install
+// its workspace: dependencies. Every other app keeps Yarn.
+function get_build_commands(root_app_path) {
+	if (fs.existsSync(path.join(root_app_path, "pnpm-lock.yaml"))) {
+		return {
+			// the build has no terminal, so pnpm must not stop to ask before it recreates node_modules
+			install: "pnpm install --frozen-lockfile --config.confirm-modules-purge=false",
+			build: "pnpm build",
+		};
+	}
+	return { install: "yarn install --frozen-lockfile", build: "yarn build" };
 }
 
 function run_command(command, { cwd, app, step }) {
@@ -731,7 +777,7 @@ function run_command(command, { cwd, app, step }) {
 			BUILD_CHILDREN.delete(child);
 			flush_verbose();
 			error.app = app;
-			error.step = step;
+			error.command = command;
 			error.output = output_buffer.toString();
 			reject(error);
 		});
@@ -753,7 +799,7 @@ function run_command(command, { cwd, app, step }) {
 
 			const error = new Error(`${step} command failed for ${app} (${exit_details})`);
 			error.app = app;
-			error.step = step;
+			error.command = command;
 			error.output = output_buffer.toString();
 			reject(error);
 		});
@@ -858,7 +904,7 @@ async function terminate_build_children({ grace_period_ms = 5000 } = {}) {
 	await wait_for_children_exit(victims, grace_period_ms);
 
 	// Anything still alive after the grace period gets SIGKILL so we don't
-	// leave orphaned yarn/esbuild processes when the parent exits.
+	// leave orphaned package-manager/esbuild processes when the parent exits.
 	for (const child of victims) {
 		if (child.exitCode !== null || child.signalCode !== null) continue;
 		try {
@@ -898,13 +944,6 @@ function wait_for_children_exit(children, timeout_ms) {
 
 async function notify_redis({ error, success, changed_files }) {
 	// notify redis which in turns tells socketio to publish this to browser
-	let subscriber = get_redis_subscriber("redis_queue");
-	try {
-		await subscriber.connect();
-	} catch (e) {
-		log_warn("Cannot connect to redis_queue for browser events");
-	}
-
 	let payload = null;
 	if (error) {
 		let formatted = await esbuild.formatMessages(error.errors, {
@@ -926,13 +965,20 @@ async function notify_redis({ error, success, changed_files }) {
 		};
 	}
 
-	await subscriber.publish(
-		"events",
-		JSON.stringify({
-			event: "build_event",
-			message: payload,
-		})
-	);
+	let subscriber = get_redis_subscriber("redis_queue");
+	try {
+		await subscriber.connect();
+		await subscriber.publish(
+			"events",
+			JSON.stringify({
+				event: "build_event",
+				message: payload,
+			})
+		);
+		await subscriber.quit();
+	} catch (e) {
+		log_warn("Cannot connect to redis_queue for browser events");
+	}
 }
 
 async function open_in_editor() {
@@ -942,6 +988,9 @@ async function open_in_editor() {
 	} catch (e) {
 		log_warn("Cannot connect to redis_queue for open_in_editor events");
 	}
+	subscriber.on("error", () =>
+		log_warn("Cannot connect to redis_queue for open_in_editor events")
+	);
 	subscriber.subscribe("open_in_editor", (file) => {
 		file = JSON.parse(file);
 		let file_path = path.resolve(file.file);

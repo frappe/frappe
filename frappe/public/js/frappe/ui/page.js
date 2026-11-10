@@ -63,13 +63,14 @@ frappe.ui.Page = class Page {
 		// the two are independent, and `hide_sidebar` takes the panel away on a desktop and merely
 		// closes the drawer on a narrow screen (see Sidebar.page_allows_sidebar)
 		if (!Object.keys(opts).includes("hide_dock")) this.hide_dock = false;
+		// and the phone tab bar, the same way (see MobileNav.apply_page_visibility)
+		if (!Object.keys(opts).includes("hide_mobile_nav")) this.hide_mobile_nav = false;
 		frappe.ui.pages[frappe.get_route_str()] = this;
 	}
 
 	make() {
 		this.wrapper = $(this.parent);
 		this.add_main_section();
-		this.setup_main_sidebar_toggle();
 		this.setup_awesomebar();
 	}
 
@@ -166,6 +167,7 @@ frappe.ui.Page = class Page {
 		this.filters = this.wrapper.find(".filters");
 		this.page_head = this.wrapper.find(".page-head");
 		this.btn_primary = this.page_actions.find(".primary-action");
+		this.btn_primary_menu = this.page_actions.find(".primary-action-menu");
 		this.btn_secondary = this.page_actions.find(".secondary-action");
 
 		this.menu = this.page_actions.find(".menu-btn-group .dropdown-menu");
@@ -190,7 +192,7 @@ frappe.ui.Page = class Page {
 		let menu_btn = this.menu_btn_group.find("button");
 		menu_btn
 			.attr("title", __("Menu"))
-			.tooltip({ delay: { show: 600, hide: 100 } })
+			.tooltip({ delay: { show: 600, hide: 100 }, trigger: "hover" })
 			.on("click mousedown", function () {
 				$(this).tooltip("hide");
 			});
@@ -210,6 +212,8 @@ frappe.ui.Page = class Page {
 			trigger: this.actions_btn_group.find("button"),
 			align: "end",
 			options: () => this.build_dropdown_options(this.actions),
+			sheet_on_mobile: true,
+			sheet_title: () => this.actions_sheet_title?.() || __("Actions"),
 		});
 		// the menus body-portal, so one left open would float over the next
 		// page — the container fires "hide" on the page element on switch
@@ -282,14 +286,6 @@ frappe.ui.Page = class Page {
 			.tooltip({ delay: { show: 600, hide: 100 }, trigger: "hover" });
 
 		return button;
-	}
-
-	setup_main_sidebar_toggle() {
-		this.wrapper.find(".sidebar-toggle-btn.navbar-brand").on("click", (event) => {
-			frappe.app.sidebar.set_height();
-			frappe.app.sidebar.toggle_width();
-			frappe.app.sidebar.prevent_scroll();
-		});
 	}
 
 	clear_indicator() {
@@ -378,7 +374,25 @@ frappe.ui.Page = class Page {
 			working_label: working_label,
 			variant: "solid",
 		});
+		this.set_primary_action_options(label?.options);
 		return this.btn_primary;
+	}
+
+	// Other ways to do what the primary action does, in a menu on the chevron beside it.
+	// The header keeps its own buttons (callers hold btn_primary), dressed as an
+	// es-segmented-button, so only the menu is wired here.
+	set_primary_action_options(options) {
+		this.primary_action_dropdown?.destroy();
+		this.primary_action_dropdown = null;
+		this.btn_primary_menu.prop("hidden", !options?.length);
+		if (!options?.length) return;
+
+		this.primary_action_dropdown = new frappe.ui.Dropdown({
+			trigger: this.btn_primary_menu,
+			options,
+			align: "end",
+			sheet_on_mobile: true,
+		});
 	}
 
 	set_secondary_action(label, click, icon, working_label) {
@@ -399,6 +413,7 @@ frappe.ui.Page = class Page {
 
 	clear_primary_action() {
 		this.clear_action_of(this.btn_primary);
+		this.set_primary_action_options(null);
 	}
 
 	clear_secondary_action() {
@@ -494,21 +509,24 @@ frappe.ui.Page = class Page {
 		this.actions_btn_group.addClass("hide");
 	}
 
-	add_action_item(label, click, standard) {
+	add_action_item(label, click, standard, icon = null) {
 		return this.add_dropdown_item({
 			label,
 			click,
 			standard,
+			icon,
 			parent: this.actions,
 		});
 	}
 
-	add_actions_menu_item(label, click, standard, shortcut) {
+	add_actions_menu_item(label, click, standard, shortcut, icon = null, theme = null) {
 		return this.add_dropdown_item({
 			label,
 			click,
 			standard,
 			shortcut,
+			icon,
+			theme,
 			parent: this.actions,
 			show_parent: false,
 		});
@@ -538,6 +556,8 @@ frappe.ui.Page = class Page {
 		shortcut,
 		show_parent = true,
 		icon = null,
+		icon_right = null,
+		theme = null,
 	}) {
 		if (show_parent) {
 			parent.parent().removeClass("hide hidden-xl");
@@ -584,6 +604,8 @@ frappe.ui.Page = class Page {
 		// the snapshot (build_dropdown_options) reads these back
 		$li.data("menu_click", click);
 		if (icon) $li.data("menu_icon", icon);
+		if (icon_right) $li.data("menu_icon_right", icon_right);
+		if (theme) $li.data("menu_theme", theme);
 
 		$link = $li.find("a").on("click", (e) => {
 			if (e.ctrlKey || e.metaKey) {
@@ -621,6 +643,8 @@ frappe.ui.Page = class Page {
 		const responsive_hidden = (el) =>
 			(el.classList.contains("visible-xs") &&
 				window.matchMedia("(min-width: 576px)").matches) ||
+			(el.classList.contains("hidden-xs") &&
+				window.matchMedia("(max-width: 767.98px)").matches) ||
 			(el.classList.contains("hidden-xl") &&
 				window.matchMedia("(min-width: 992px)").matches);
 		const segments = [[]];
@@ -684,6 +708,8 @@ frappe.ui.Page = class Page {
 			segments[segments.length - 1].push({
 				label,
 				icon: $li.data("menu_icon") || undefined,
+				icon_right: $li.data("menu_icon_right") || undefined,
+				theme: $li.data("menu_theme") || undefined,
 				shortcut: $li.data("menu_shortcut") || undefined,
 				disabled: a.classList.contains("disabled"),
 				css_class: css_class || undefined,
@@ -989,24 +1015,73 @@ frappe.ui.Page = class Page {
 		return this.$title_area;
 	}
 
+	/**
+	 * The trail in this page's head. The last item is the page itself, so it carries no `href`.
+	 *
+	 * Each page owns its own items and its own markup. A view can only change the trail of the
+	 * page it was handed, which is why an off-screen form cannot touch the one on screen.
+	 *
+	 * @param {Array<Object>} items espresso breadcrumb items: `label`, `href`, `onclick`,
+	 *   `prefix`, `suffix`, `title`
+	 */
+	set_breadcrumbs(items) {
+		this.breadcrumbs = items || [];
+		// explicit items win over anything `frappe.breadcrumbs.add()` left here
+		this.legacy_breadcrumbs = null;
+		this.render_breadcrumbs();
+	}
+
+	/** @returns {Array<Object>} the trail this page holds, whichever API set it */
+	get_breadcrumbs() {
+		// a legacy `add()` payload is resolved on every read, not at call time, because the old
+		// API let a caller name a document before it had finished loading
+		if (this.legacy_breadcrumbs) return frappe.breadcrumbs.resolve(this.legacy_breadcrumbs);
+		return this.breadcrumbs || [];
+	}
+
+	render_breadcrumbs() {
+		const $nav = this.$title_area?.find(".navbar-breadcrumbs");
+		if (!$nav?.length) return;
+
+		$nav.toggleClass("mobile-no-divider", !!frappe.is_mobile());
+		// the list is refilled rather than replaced, so a reference held by
+		// `frappe.breadcrumbs.$breadcrumbs` stays good across paints
+		this.$breadcrumbs = $nav.children("ol").first();
+		if (!this.$breadcrumbs.length) {
+			this.$breadcrumbs = $("<ol>").appendTo($nav);
+		}
+		// a page inside a dialog has a head of its own but no business drawing a trail in it
+		const items = this.show_breadcrumbs === false ? [] : this.get_breadcrumbs().slice();
+		// the title (last crumb) becomes a button when something sets an action for it
+		const title_action = items.length && frappe.ui.Page.title_action?.();
+		if (title_action) items.push({ ...items.pop(), onclick: title_action });
+		this.$breadcrumbs
+			.empty()
+			.append(frappe.ui.breadcrumbs({ items }).children("ol").children());
+	}
+
 	set_title(title, icon = null, strip = true, tab_title = "", tooltip_label = "") {
 		if (!title) title = "";
 		if (strip) {
 			title = strip_html(title);
 		}
 		this.title = title;
-		frappe.utils.set_title(tab_title || title);
-		if (icon) {
-			title = `${frappe.utils.icon(icon)} ${title}`;
+		if (this.set_document_title) {
+			frappe.utils.set_title(tab_title || title);
 		}
 
-		let title_wrapper = this.$title_area.find(".title-text");
-		title_wrapper.html(title);
-		title_wrapper.attr("title", __(tooltip_label) || this.title);
+		// the title is the last crumb, so there is only ever one node naming the page
+		const items = (this.breadcrumbs || []).slice();
+		const last = { ...(items.pop() || {}) };
+		last.label = title;
+		last.title = __(tooltip_label) || title;
+		// the page is where the reader already is; a link back to it is noise
+		delete last.href;
+		delete last.onclick;
+		if (icon) last.prefix = icon;
+		items.push(last);
 
-		if (tooltip_label) {
-			title_wrapper.tooltip({ delay: { show: 600, hide: 100 }, trigger: "hover" });
-		}
+		this.set_breadcrumbs(items);
 	}
 
 	set_title_sub(txt) {

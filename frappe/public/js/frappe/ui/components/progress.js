@@ -110,6 +110,11 @@ frappe.ui.Progress = class Progress {
 	get_value() {
 		return this.value;
 	}
+
+	/** Change the label text. Only works on a bar built with a `label`. */
+	set_label(label) {
+		if (this.label_el) this.label_el.textContent = label;
+	}
 };
 
 /**

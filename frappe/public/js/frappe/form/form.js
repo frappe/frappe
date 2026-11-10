@@ -21,6 +21,58 @@ frappe.ui.form.Controller = class FormController {
 	}
 };
 
+/**
+ * The trail for a document: its list, the DocType Layout in force, and the document itself.
+ *
+ * Shared by the form view and the print view, because both already hold a `frm`. The print
+ * view's is a plain object rather than a `Form`, so this reads only `doctype`, `doc`, `meta`
+ * and `doctype_layout`.
+ *
+ * The document is the last crumb and carries no link. The print view, which is a page past the
+ * form, puts one back on it.
+ *
+ * @param {Object} frm
+ * @returns {Array<Object>} espresso breadcrumb items
+ */
+frappe.ui.form.get_breadcrumbs = function (frm) {
+	const items = [];
+	const slug = frappe.router.slug(frm.doctype);
+
+	// a single has no list, and a user who cannot manage users cannot open the User list
+	const hide_list =
+		frm.meta.issingle || (frm.doctype === "User" && !frappe.user.has_role("System Manager"));
+
+	if (!hide_list) {
+		// a tree doctype's list opens in whichever view the reader last used
+		const route = frm.meta.is_tree
+			? `${slug}/view/${frappe.model.user_settings[frm.doctype]?.last_view || "Tree"}`
+			: slug;
+		items.push({
+			label: __(frm.doctype),
+			// the layout crumb below filters the list, so the list crumb has to undo that
+			href: `/desk/${route}${frm.doctype_layout ? "?reset_filters=1" : ""}`,
+		});
+	}
+
+	if (frm.doctype_layout) {
+		const filters = frappe.utils.parse_layout_condition_to_filters(
+			frm.doctype_layout.condition
+		);
+		filters._layout = frm.doctype_layout.name;
+		items.push({
+			label: __(frm.doctype_layout.title || frm.doctype_layout.name),
+			href: `/desk/${slug}?${new URLSearchParams(filters)}`,
+		});
+	}
+
+	let title = frappe.model.get_doc_title(frm.doc);
+	title = __(title);
+	if (frappe.utils.is_html(title)) title = strip_html(title);
+	items.push({ label: title });
+
+	return items;
+};
+
 frappe.ui.form.Form = class FrappeForm {
 	constructor(doctype, parent, in_form, doctype_layout_name) {
 		this.docname = "";
@@ -97,6 +149,12 @@ frappe.ui.form.Form = class FrappeForm {
 		});
 		this.page = this.wrapper.page;
 		this.layout_main = this.page.main.get(0);
+
+		// A form in a dialog must not change the underlying page's title or breadcrumbs.
+		if (this.in_dialog) {
+			this.page.set_document_title = false;
+			this.page.show_breadcrumbs = false;
+		}
 
 		this.$wrapper.on("hide", () => {
 			this.script_manager.trigger("on_hide");
@@ -596,8 +654,6 @@ frappe.ui.form.Form = class FrappeForm {
 			frappe.after_ajax(function () {
 				me.trigger_link_fields();
 			});
-
-			frappe.breadcrumbs.add(me.meta.module, me.doctype);
 		});
 
 		// update seen
@@ -641,6 +697,7 @@ frappe.ui.form.Form = class FrappeForm {
 				},
 				() => this.cscript.is_onload && this.is_new() && this.focus_on_first_input(),
 				() => this.run_after_load_hook(),
+				() => this.show_upload_first_review(),
 				() => this.dashboard.after_refresh(),
 				() => (this.cscript.is_onload = false),
 				() => this.configure_breadcrumb_width(),
@@ -776,32 +833,16 @@ frappe.ui.form.Form = class FrappeForm {
 		let el = this.page.page_actions[0];
 		const rect = el.getBoundingClientRect();
 		let is_outside = cint(rect.right) > cint(document.documentElement.clientWidth);
+		if (!is_outside) return;
 
-		if (is_outside) {
-			// check if the default actions are outside of the screen
-			const overflow = Math.max(0, rect.right - document.documentElement.clientWidth);
+		// the page actions have been pushed off screen, so give the trail only the width that is
+		// left. The last crumb is the document title and truncates on its own from there.
+		const overflow = Math.max(0, rect.right - document.documentElement.clientWidth);
+		if (!overflow) return;
 
-			if (!overflow) return;
-			let max_breadcrumb_width = Math.max(
-				290,
-				this.page.$title_area.find("ul").width() - overflow
-			);
-
-			this.page.$title_area.parent().css("max-width", `${max_breadcrumb_width}px`);
-			let breadcrumb = this.page.$title_area.find("ul li.ellipsis");
-
-			if (cint(breadcrumb[0]?.clientWidth) <= 30) {
-				// if workspce sodebar is not visible
-				$(breadcrumb[0]).hide();
-				if (cint(breadcrumb[1]?.clientWidth) <= 30) {
-					// if doctype sodebar is not visible
-					$(breadcrumb[1]).hide();
-
-					// add elipsis to the name/title breadcrumb
-					this.page.$title_area.find(".title-text-form").parent().addClass("ellipsis");
-				}
-			}
-		}
+		const $nav = this.page.$title_area.find(".navbar-breadcrumbs");
+		const max_breadcrumb_width = Math.max(290, $nav.width() - overflow);
+		this.page.$title_area.parent().css("max-width", `${max_breadcrumb_width}px`);
 	}
 
 	focus_on_first_input() {
@@ -826,6 +867,44 @@ frappe.ui.form.Form = class FrappeForm {
 
 			route_callback(this);
 		}
+	}
+
+	show_upload_first_review() {
+		// The entry being reviewed rides in the route until the document's first save.
+		if (!this.meta.enable_upload_first_workflow || this.doc.docstatus !== 0) return;
+
+		// same as the layout param: route_options on a fresh route, the URL after that
+		const from_route_options = frappe.route_options?.attachment_queue;
+		const entry_name =
+			from_route_options ||
+			new URLSearchParams(window.location.search).get("attachment_queue");
+		if (from_route_options) delete frappe.route_options.attachment_queue;
+
+		if (!entry_name) return;
+		// already reviewing this document, including a pane the reader closed
+		if (this.upload_first_review?.docname === this.docname) return;
+		if (this._upload_first_review_docname === this.docname) return;
+		// One Form is shared by every document of its DocType, so this.docname moves on
+		// as the user does: the entry below belongs to the document asked about here.
+		const docname = (this._upload_first_review_docname = this.docname);
+
+		return frappe.db
+			.get_list("Attachment Queue", {
+				fields: ["name", "document_type", "source_file"],
+				filters: { name: entry_name, created_document: ["is", "not set"] },
+				limit: 1,
+			})
+			.then(([entry]) => {
+				if (!entry) return;
+
+				// the review ships as its own on-demand bundle
+				frappe.require("upload_first_review.bundle.js", () => {
+					// the form may have moved to another document while this loaded
+					if (this.docname !== docname) return;
+
+					frappe.ui.form.upload_first_review.open(this, entry);
+				});
+			});
 	}
 
 	refresh_fields() {
@@ -879,7 +958,7 @@ frappe.ui.form.Form = class FrappeForm {
 	refresh_header(switched) {
 		// set title
 		// main title
-		if (!this.meta.in_dialog || this.in_form) {
+		if ((!this.meta.in_dialog || this.in_form) && !this.in_dialog) {
 			frappe.utils.set_title(this.meta.issingle ? this.doctype : this.docname);
 		}
 
@@ -893,12 +972,7 @@ frappe.ui.form.Form = class FrappeForm {
 		this.viewers.refresh();
 
 		this.dashboard.refresh();
-		const _route_key = frappe.breadcrumbs.current_page();
-		const _crumb = frappe.breadcrumbs.all[_route_key];
-		if (_crumb) {
-			_crumb.layout_name = this.doctype_layout?.name || null;
-		}
-		frappe.breadcrumbs.update();
+		this.page.set_breadcrumbs(frappe.ui.form.get_breadcrumbs(this));
 
 		this.show_submit_message();
 		this.clear_custom_buttons();
@@ -951,6 +1025,10 @@ frappe.ui.form.Form = class FrappeForm {
 				}
 
 				me.script_manager.trigger("after_save");
+
+				if (me.upload_first_review) {
+					frappe.ui.form.upload_first_review.file(me);
+				}
 
 				if (frappe.route_hooks.after_save) {
 					let route_callback = frappe.route_hooks.after_save;
@@ -1561,7 +1639,7 @@ frappe.ui.form.Form = class FrappeForm {
 			this.perm[0].submit &&
 			!this.is_dirty() &&
 			!this.is_new() &&
-			!frappe.model.has_workflow(this.doctype) && // show only if no workflow
+			!frappe.workflow.has_workflow(this.doc) && // show only if no workflow
 			this.doc.docstatus === 0
 		) {
 			this.dashboard.add_comment(__("Submit this document to confirm"), "blue", true);
@@ -1645,6 +1723,11 @@ frappe.ui.form.Form = class FrappeForm {
 
 		delete this.opendocs[old];
 		this.opendocs[name] = true;
+
+		if (this.active_tab_map?.[old]) {
+			this.active_tab_map[name] = this.active_tab_map[old];
+			delete this.active_tab_map[old];
+		}
 
 		if (this.meta.in_dialog || !this.in_form) {
 			return;
@@ -1732,8 +1815,9 @@ frappe.ui.form.Form = class FrappeForm {
 		this.shared.show();
 	}
 
-	email_doc(message) {
+	email_doc(message, opts) {
 		return new frappe.views.CommunicationComposer({
+			...opts,
 			doc: this.doc,
 			frm: this,
 			subject: __(this.meta.name) + ": " + this.docname,
@@ -1927,7 +2011,10 @@ frappe.ui.form.Form = class FrappeForm {
 	set_currency_labels(fields_list, currency, parentfield) {
 		// To set the currency in the label
 		// For example Total Cost(INR), Total Cost(USD)
-		if (!currency) return;
+		if (!currency) {
+			this.reset_currency_labels(fields_list, parentfield);
+			return;
+		}
 		var me = this;
 		var doctype = parentfield ? this.fields_dict[parentfield].grid.doctype : this.doc.doctype;
 		var field_label_map = {};

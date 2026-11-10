@@ -9,7 +9,7 @@ from pypika.terms import ValueWrapper
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.database.operator_map import func_in
-from frappe.query_builder import Case, Interval
+from frappe.query_builder import Case, Interval, get_query_builder
 from frappe.query_builder.builder import Function
 from frappe.query_builder.custom import ConstantColumn
 from frappe.query_builder.functions import (
@@ -25,6 +25,7 @@ from frappe.query_builder.functions import (
 	JSONExtract,
 	JSONValue,
 	Match,
+	Max,
 	Month,
 	MonthName,
 	Now,
@@ -311,6 +312,11 @@ class TestCustomFunctionsPostgres(IntegrationTestCase):
 		# .separator() chaining must work on postgres too (STRING_AGG has no native SEPARATOR keyword)
 		self.assertEqual("STRING_AGG('Notes',' | ')", GroupConcat("Notes").separator(" | ").get_sql())
 
+	def test_concat_separator_leaves_original_unchanged(self):
+		comma_separated = GroupConcat("Notes")
+		comma_separated.separator(" | ")
+		self.assertEqual("STRING_AGG('Notes',',')", comma_separated.get_sql())
+
 	def test_concat_with_explicit_empty_separator(self):
 		# must mean the same thing as the MariaDB rendering: no delimiter at all
 		self.assertEqual("STRING_AGG('Notes','')", GroupConcat("Notes", "").get_sql())
@@ -326,6 +332,19 @@ class TestCustomFunctionsPostgres(IntegrationTestCase):
 			"NOT ILIKE",
 			frappe.qb.from_(user).select(user.name).where(user.name.not_like("%admin%")).get_sql(),
 		)
+
+	def test_sqlite_query_keeps_sqlite_operators(self):
+		qb = get_query_builder("sqlite")
+		user = qb.DocType("User")
+		sql = (
+			qb.from_(user)
+			.select(user.name)
+			.where(user.name.like("%a%") & user.name.not_like("%b%") & user.name.regex("c"))
+			.get_sql()
+		)
+		self.assertIn('"name" LIKE', sql)
+		self.assertIn('"name" NOT LIKE', sql)
+		self.assertIn('"name" REGEXP', sql)
 
 	def test_match(self):
 		# 'english' regconfig is pinned so a GIN index over to_tsvector('english', col) can back it
@@ -909,6 +928,18 @@ class TestParameterization(IntegrationTestCase):
 		self.assertEqual(params["param4"], "true_value")
 		self.assertEqual(params["param5"], "Overdue")
 
+	def test_a_term_in_select_and_group_by_keeps_one_parameter(self):
+		ToDo = frappe.qb.DocType("ToDo")
+		status = Coalesce(ToDo.status, "")
+		query = frappe.qb.from_(ToDo).select(status).groupby(status)
+
+		sql, params = query.walk()
+
+		self.assertEqual(params, {"param1": ""})
+		self.assertEqual(sql.count("%(param1)s"), 2)
+		# Postgres matches the GROUP BY expression only when both share the parameter.
+		query.run()
+
 	def test_named_parameter_wrapper(self):
 		from frappe.query_builder.terms import NamedParameterWrapper
 
@@ -1106,6 +1137,13 @@ class TestMisc(IntegrationTestCase):
 		x = ParameterizedFunction("rand", "45")
 		x.schema = frappe.qb.DocType("DocType")
 		self.assertEqual("tabDocType.rand('45')", x.get_sql())
+
+	def test_curdate_inside_aggregate_expression(self):
+		todo = frappe.qb.DocType("ToDo")
+		days_since_last = DateDiff(CurDate(), Max(todo.date)).as_("days")
+		self.assertTrue(days_since_last.is_aggregate)
+		# the default ORDER BY must be aggregated too, or postgres raises GroupingError
+		frappe.get_all("ToDo", fields=[days_since_last])
 
 	def test_util_table(self):
 		from frappe.query_builder.utils import Table

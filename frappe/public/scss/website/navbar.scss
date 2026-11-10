@@ -39,10 +39,6 @@
 .navbar-light {
 	border-bottom: 1px solid $border-color;
 	background: $navbar-bg;
-
-	.navbar-toggler .icon {
-		stroke: none;
-	}
 }
 
 .navbar-primary {
@@ -74,7 +70,7 @@
 		border-color: rgba(255, 255, 255, 0.1);
 
 		.icon {
-			stroke: none;
+			stroke: var(--white);
 		}
 	}
 

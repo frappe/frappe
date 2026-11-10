@@ -25,6 +25,7 @@ from frappe.utils.caching import request_cache
 IGNORED_DOCTYPES = {
 	"Access Log",
 	"Activity Log",
+	"Automation Run",
 	"Background Task",
 	"Comment",
 	"Communication Link",
@@ -209,14 +210,20 @@ def _incoming(source_doctype) -> list[dict]:
 	for doctype, link in (get_linked_fields(source_doctype) or {}).items():
 		if not _is_queryable(doctype):
 			continue
-		for fieldname in link.get("fieldname") or []:
-			yield _incoming_definition(doctype, fieldname, link.get("child_doctype"))
+		for field_link in [*link.get("child_links", []), link]:
+			for fieldname in field_link.get("fieldname") or []:
+				yield _incoming_definition(doctype, fieldname, field_link.get("child_doctype"))
 
 
 def _incoming_definition(doctype, fieldname, child_doctype) -> dict:
+	name = f"{frappe.scrub(doctype)}_via_{fieldname}"
+	label = _("{0} (by {1})").format(_(doctype), fieldname)
+	if child_doctype:
+		name = f"{frappe.scrub(doctype)}_via_{frappe.scrub(child_doctype)}_{fieldname}"
+		label = _("{0} (by {1} on {2})").format(_(doctype), fieldname, _(child_doctype))
 	return {
-		"name": f"{frappe.scrub(doctype)}_via_{fieldname}",
-		"label": _("{0} (by {1})").format(_(doctype), fieldname),
+		"name": name,
+		"label": label,
 		"cardinality": "many",
 		"target_doctype": doctype,
 		"kind": "reverse_child_link" if child_doctype else "reverse_link",

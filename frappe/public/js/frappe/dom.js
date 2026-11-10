@@ -142,14 +142,19 @@ frappe.dom = {
 	freeze: function (msg, css_class) {
 		// blur
 		if (!$("#freeze").length) {
+			// portal pages have no #body, and appendTo() fails silently there
+			const $container = $("#body").length ? $("#body") : $(document.body);
 			var freeze = $('<div id="freeze" class="modal-backdrop fade"></div>')
 				.on("click", function () {
-					if (cur_frm && cur_frm.cur_grid) {
-						cur_frm.cur_grid.toggle_view();
+					// resolve the open row from the DOM rather than cur_frm,
+					// which is null on portal pages
+					const open_grid_row = frappe.ui.form.get_open_grid_form?.();
+					if (open_grid_row) {
+						open_grid_row.toggle_view();
 						return false;
 					}
 				})
-				.appendTo("#body");
+				.appendTo($container);
 
 			freeze.html(
 				repl(
@@ -438,19 +443,25 @@ frappe.create_shadow_element = function (wrapper, html, css, js) {
 	wrapper.innerHTML = `<${random_id}></${random_id}>`;
 };
 
-// bind online/offline events
+// bind online/offline events; they share one toast (see frappe.call), so it updates instead of stacking
 $(window).on("online", function () {
 	if (document.hidden) return;
-	frappe.show_alert({
-		indicator: "green",
+	frappe.ui.toast({
+		id: "connection-status",
+		type: "success",
 		message: __("You are connected to internet."),
+		description: "",
+		duration: 7000,
 	});
 });
 
 $(window).on("offline", function () {
 	if (document.hidden) return;
-	frappe.show_alert({
-		indicator: "orange",
+	frappe.ui.toast({
+		id: "connection-status",
+		type: "warning",
 		message: __("Connection lost. Some features might not work."),
+		description: "",
+		duration: 7000,
 	});
 });

@@ -16,9 +16,6 @@ _KWD_MARK = object()  # sentinel for separating args from kwargs
 
 def __generate_request_cache_key(args: tuple, kwargs: dict) -> tuple:
 	"""Generate a key for the cache."""
-	assert isinstance(args, tuple), "args must be a tuple (from *args)"
-	assert isinstance(kwargs, dict), "kwargs must be a dict (from **kwargs)"
-
 	if not kwargs:
 		return args
 
@@ -198,7 +195,7 @@ def redis_cache(ttl: int | None = 3600, user: str | bool | None = None, shared: 
 			# Edge Case: None can mean two things: cache miss or the result itself is `None`
 			# RedisWrapper doesn't give us any way to handle this cleanly.
 			if frappe.cache.exists(func_call_key, user=user, shared=shared):
-				return None
+				return frappe.cache.get_value(func_call_key, user=user, shared=shared, use_local_cache=False)
 
 			val = func(*args, **kwargs)
 			ttl = getattr(func, "ttl", 3600)

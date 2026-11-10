@@ -1,3 +1,4 @@
+from types import SimpleNamespace
 from typing import ClassVar
 from unittest import TestCase
 from unittest.mock import patch
@@ -10,6 +11,7 @@ from frappe.integrations.frappe_providers.cloud_settings import (
 	get_domain_dns_records,
 	get_domains,
 	is_cloud_settings_enabled,
+	pilot_request,
 	remove_domain,
 	set_primary_domain,
 )
@@ -39,6 +41,82 @@ class _CloudTestCase(TestCase):
 
 	def configure_local(self):
 		pass
+
+
+class TestPilotRequest(_CloudTestCase):
+	def configure_local(self):
+		frappe.local.conf = frappe._dict(PILOT_CONF)
+		frappe.local.session = frappe._dict(user="Administrator")
+		frappe.local.site = "test.local"
+		frappe.local.flags = frappe._dict(mute_messages=True, print_messages=False)
+		frappe.local.message_log = []
+		self.roles = self.enterContext(patch("frappe.get_roles", return_value=["System Manager"]))
+		self.enterContext(patch("frappe.request", SimpleNamespace(method="POST")))
+		self.forward = self.enterContext(
+			patch(
+				"frappe.integrations.frappe_providers.cloud_settings.PilotClient._request",
+				return_value={"task_id": "test-task"},
+			)
+		)
+
+	def test_forwards_only_current_site(self):
+		pilot_request("GET", "monitoring?window=24h")
+		self.forward.assert_called_once_with("GET", "sites/test.local/monitoring?window=24h", None)
+
+	def test_preserves_method_and_path_normalization(self):
+		pilot_request("get", "/storage/")
+		self.forward.assert_called_once_with("GET", "sites/test.local/storage", None)
+
+	def test_rejects_payloads_outside_configuration(self):
+		with self.assertRaises(frappe.ValidationError):
+			pilot_request("GET", "storage", '{"site": "other.local"}')
+		self.forward.assert_not_called()
+
+	def test_rejects_non_manager(self):
+		self.roles.return_value = ["Desk User"]
+		with self.assertRaises(frappe.PermissionError):
+			pilot_request("GET", "storage")
+		self.forward.assert_not_called()
+
+	def test_rejects_cross_site_and_unknown_operations(self):
+		for path in [
+			"../other-site/storage",
+			"https://example.com/storage",
+			"configuration?secret=1",
+			"actions/drop",
+			"storage#fragment",
+			"backups/%2e%2e/download-links",
+		]:
+			with self.subTest(path=path), self.assertRaises(frappe.ValidationError):
+				pilot_request("GET", path)
+		self.forward.assert_not_called()
+
+	def test_rejects_mutation_over_get(self):
+		with (
+			patch("frappe.request", SimpleNamespace(method="GET")),
+			self.assertRaises(frappe.PermissionError),
+		):
+			pilot_request("POST", "actions/clear-cache")
+		self.forward.assert_not_called()
+
+	def test_validates_configuration_payload(self):
+		pilot_request("PATCH", "configuration", '{"maintenance_mode": 1}')
+		self.forward.assert_called_once_with(
+			"PATCH", "sites/test.local/configuration", {"maintenance_mode": 1}
+		)
+		with self.assertRaises(frappe.ValidationError):
+			pilot_request("PATCH", "configuration", '["invalid"]')
+
+	def test_rejects_invalid_time_window(self):
+		for query in [
+			"window=forever",
+			"window=24h&window=1h",
+			"window=24h&site=other.local",
+			"window=24h&unknown",
+		]:
+			with self.subTest(query=query), self.assertRaises(frappe.ValidationError):
+				pilot_request("GET", f"monitoring?{query}")
+		self.forward.assert_not_called()
 
 
 class TestCloudSettings(_CloudTestCase):
@@ -80,6 +158,9 @@ class TestCloudSettings(_CloudTestCase):
 			bundle = get_boot_context()["bundle"]
 
 		self.assertEqual(bundle["js"], "https://pilot.example.com/embed/cloud-settings/cloud-settings.js")
+		self.assertEqual(
+			bundle["module"], "https://pilot.example.com/embed/cloud-settings/esm/cloud-settings.js"
+		)
 
 	def test_bundle_embed_url_overrides_with_version(self):
 		conf = {
@@ -97,8 +178,12 @@ class TestCloudSettings(_CloudTestCase):
 			bundle["js"],
 			"https://cdn.example.com/embed/cloud-settings/cloud-settings.js?v=16.0.1",
 		)
+		self.assertEqual(
+			bundle["module"],
+			"https://cdn.example.com/embed/cloud-settings/esm/cloud-settings.js?v=16.0.1",
+		)
 		# The embed renders in a shadow root and adopts its own styles, so the
-		# bundle is one script with no stylesheet for desk to link.
+		# bundle has no stylesheet for desk to link.
 		self.assertNotIn("css", bundle)
 
 	def test_disabled_without_system_manager_role(self):
@@ -230,6 +315,26 @@ class TestCloudSettings(_CloudTestCase):
 		self.assertTrue(result["domains"][0]["is_default"])
 		self.assertTrue(result["domains"][1]["is_primary"])
 
+	def test_get_domains_flattens_pilot_routes_without_duplicating_site(self):
+		routes = [
+			{"domain": "ravibakes.frappe.cloud", "is_site": True, "tls": False, "public_scheme": "http"},
+			{"domain": "shop.example.com", "tls": True, "public_scheme": "https"},
+		]
+		with (
+			patch.dict(frappe.conf, PILOT_CONF),
+			patch("frappe.get_roles", return_value=["System Manager"]),
+			patch(
+				"requests.request", return_value=Response({"domains": routes, "primary": "shop.example.com"})
+			),
+		):
+			result = get_domains()
+		self.assertEqual(len(result["domains"]), 2)
+		self.assertTrue(result["domains"][0]["is_default"])
+		self.assertEqual(result["domains"][1]["domain"], "shop.example.com")
+		self.assertTrue(result["domains"][1]["is_primary"])
+		self.assertTrue(result["domains"][1]["tls"])
+		self.assertEqual(result["domains"][1]["public_scheme"], "https")
+
 	def test_add_domain_posts_to_pilot(self):
 		with (
 			patch.dict(frappe.conf, PILOT_CONF),
@@ -293,7 +398,7 @@ class TestCloudSettings(_CloudTestCase):
 	def test_dns_records_are_read_from_the_domain_resource(self):
 		result, call = self._pilot_call(
 			lambda: get_domain_dns_records(" Shop.Example.Com "),
-			{"records": {"cname": [{"type": "CNAME"}], "a": [{"type": "A"}]}},
+			{"cname": [{"type": "CNAME"}, {"type": "TXT"}], "a": [{"type": "A"}]},
 		)
 
 		method, url = call.args[:2]
@@ -303,7 +408,21 @@ class TestCloudSettings(_CloudTestCase):
 			"https://pilot.example.com/api/v1/sites/ravibakes.frappe.cloud"
 			"/domains/shop.example.com/dns-records",
 		)
-		self.assertEqual([record["type"] for record in result["records"]], ["CNAME", "A"])
+		self.assertEqual([record["type"] for record in result["records"]], ["CNAME", "TXT", "A"])
+
+	def test_dns_records_keep_pilot_record_sets(self):
+		result, _ = self._pilot_call(
+			lambda: get_domain_dns_records("shop.example.com"),
+			{"cname": [{"type": "CNAME"}], "a": [{"type": "TXT"}, {"type": "A"}]},
+		)
+
+		self.assertEqual(result["cname"], [{"type": "CNAME"}])
+		self.assertEqual(result["a"], [{"type": "TXT"}, {"type": "A"}])
+
+	def test_dns_records_without_record_sets_are_empty(self):
+		result, _ = self._pilot_call(lambda: get_domain_dns_records("shop.example.com"), {})
+
+		self.assertEqual(result, {"records": [], "cname": [], "a": []})
 
 	def test_remove_domain_deletes_the_domain_resource(self):
 		_, call = self._pilot_call(lambda: remove_domain("shop.example.com"), {"ok": True})
@@ -383,6 +502,24 @@ class TestCloudMarketplace(_CloudTestCase):
 		self.assertEqual(result["update_count"], 1)
 		self.assertEqual(set(result["categories"]), {"Applications", "Developer Tools"})
 
+	def test_an_installed_app_names_the_installed_apps_that_require_it(self):
+		from frappe.integrations.frappe_providers import cloud_marketplace
+
+		def get_hooks(hook=None, default=None, app_name=None):
+			return ["frappe/erpnext"] if (hook, app_name) == ("required_apps", "hrms") else []
+
+		client = FakeClient(
+			{
+				"sites/test.localhost/marketplace": self.CATALOG,
+				"sites/test.localhost/apps": {"apps": [{"name": "erpnext"}, {"name": "hrms"}]},
+			}
+		)
+		with patch("frappe.get_hooks", side_effect=get_hooks):
+			apps = {app["name"]: app for app in cloud_marketplace.list_apps(client)["apps"]}
+
+		self.assertEqual(apps["erpnext"]["required_by"], ["hrms"])
+		self.assertEqual(apps["crm"]["required_by"], [])
+
 	def test_installed_apps_sort_first(self):
 		self.assertEqual(self._list()["apps"][0]["name"], "erpnext")
 
@@ -443,6 +580,20 @@ class TestCloudTask(_CloudTestCase):
 		self.assertEqual(url, "https://pilot.example.com/api/v1/sites/ravibakes.frappe.cloud/tasks/task-1")
 		self.assertEqual(result["status"], "success")
 		self.assertEqual(result["task_id"], "task-1")
+
+	def test_get_task_reports_a_failed_task(self):
+		from frappe.integrations.frappe_providers.cloud_settings import get_task
+
+		failed = {"task_id": "task-1", "status": "failed", "exit_code": 1, "error": "Install failed."}
+		with (
+			patch.dict(frappe.conf, PILOT_CONF),
+			patch("frappe.get_roles", return_value=["System Manager"]),
+			patch("requests.request", return_value=Response(failed)),
+		):
+			result = get_task("task-1")
+
+		self.assertEqual(result["status"], "failed")
+		self.assertEqual(result["error"], "Install failed.")
 
 
 class Response:

@@ -191,8 +191,11 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 	def get_db_path(self):
 		return Path(frappe.get_site_path()) / "db" / f"{self.cur_db_name}.db"
 
-	def set_execution_timeout(self, seconds: int):
-		self.sql(f"PRAGMA busy_timeout = {int(seconds) * 1000}")
+	def set_execution_timeout(self, seconds: float):
+		self.sql(f"PRAGMA busy_timeout = {round(seconds * 1000)}")
+
+	def get_execution_timeout(self) -> float:
+		return self.sql("PRAGMA busy_timeout")[0][0] / 1000
 
 	def set_session_time_zone(self, timezone: str):
 		self._session_time_zone = ZoneInfo(timezone)
@@ -618,18 +621,18 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		self.commit()
 
 	def begin(self, *, read_only=False):
-		if read_only or frappe.flags.read_only:
+		if read_only or frappe.flags.read_only or self.in_read_only_transaction:
 			if self._conn:
 				self._conn.close()
 			self._conn = self.get_connection(read_only=True)
 			self._cursor = self._conn.cursor()
-			self.read_only = True
+			self._read_only_connection = True
 
-		elif hasattr(self, "read_only") and self.read_only:
+		elif getattr(self, "_read_only_connection", False):
 			self._conn.close()
 			self._conn = self.get_connection()
 			self._cursor = self._conn.cursor()
-			self.read_only = False
+			self._read_only_connection = False
 
 		try:
 			self.sql("BEGIN")
@@ -641,6 +644,9 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		"""Commit current transaction. Calls SQL `COMMIT`."""
 		if not self._conn:
 			self.connect()
+
+		if self.in_read_only_transaction:
+			return self.rollback()
 
 		if self._disable_transaction_control:
 			warnings.warn(message=TRANSACTION_DISABLED_MSG, stacklevel=2)
@@ -732,6 +738,22 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		table = get_table_name(doctype)
 		self.sql_ddl(f"DELETE FROM `{table}`")
 		self.sql_ddl(f"DELETE FROM sqlite_sequence WHERE name='{table}'")
+
+	def drop_columns(self, doctype: str, columns: list[str]):
+		"""Drop columns one per statement, as SQLite requires, in a single savepoint.
+
+		SQLite refuses to drop an indexed column, so indexes on these columns are dropped first.
+		"""
+		table = get_table_name(doctype)
+		queries = [
+			f"DROP INDEX `{index['name']}`"
+			for index in get_table_indexes(table)
+			# an index backing a UNIQUE or PRIMARY KEY constraint can't be dropped on its own
+			if index["origin"] == "c" and set(columns).intersection(index["columns"])
+		]
+		queries.extend(f"ALTER TABLE `{table}` DROP COLUMN `{column}`" for column in columns)
+		SQLiteTable.run_schema_queries(queries)
+		self.commit()
 
 	def check_implicit_commit(self, query: str, query_type: str):
 		# Unlike MariaDB, SQLite DDL participates in the current transaction. Either the complete replacement and all indexes/triggers succeed, or the original table remains untouched.

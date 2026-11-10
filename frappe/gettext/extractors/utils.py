@@ -1,3 +1,4 @@
+import json
 import re
 
 import frappe
@@ -93,8 +94,16 @@ def add_line_number(messages, code):
 	return ret
 
 
-def extract_messages_from_docfield(doctype: str, field: dict):
+def get_line_number(text: str, key: str, value: str) -> int | None:
+	"""Return the line number of `"key": "value"` in JSON text written by `frappe.as_json`."""
+	index = text.find(f"{json.dumps(key)}: {json.dumps(value)}")
+	return text.count("\n", 0, index) + 1 if index >= 0 else None
+
+
+def extract_messages_from_docfield(doctype: str, field: dict, text: str):
 	"""Extract translatable strings from docfield definition.
+
+	Yields `(lineno, message, comment)`, with `lineno` taken from the JSON `text`.
 
 	`field` should have the following keys:
 
@@ -109,31 +118,41 @@ def extract_messages_from_docfield(doctype: str, field: dict):
 	label = field.get("label")
 
 	if label:
-		yield label, f"Label of the {fieldname} ({fieldtype}) field in DocType '{doctype}'"
+		yield (
+			get_line_number(text, "label", label),
+			label,
+			f"Label of the {fieldname} ({fieldtype}) field in DocType '{doctype}'",
+		)
 		_label = label
 	else:
 		_label = fieldname
 
 	if description := field.get("description"):
-		yield description, f"Description of the '{_label}' ({fieldtype}) field in DocType '{doctype}'"
+		yield (
+			get_line_number(text, "description", description),
+			description,
+			f"Description of the '{_label}' ({fieldtype}) field in DocType '{doctype}'",
+		)
 
 	if message := field.get("options"):
+		lineno = get_line_number(text, "options", message)
 		if fieldtype == "Select" and fieldname not in EXCLUDE_SELECT_OPTIONS:
 			select_options = [option for option in message.split("\n") if option and not option.isdigit()]
 
 			yield from (
 				(
+					lineno,
 					option,
 					f"Option for the '{_label}' ({fieldtype}) field in DocType '{doctype}'",
 				)
 				for option in select_options
 			)
 		elif fieldtype == "HTML":
-			yield message, f"Content of the '{_label}' ({fieldtype}) field in DocType '{doctype}'"
+			yield lineno, message, f"Content of the '{_label}' ({fieldtype}) field in DocType '{doctype}'"
 
 
-def extract_messages_from_links(doctype: str, links: list[dict]):
+def extract_messages_from_links(doctype: str, links: list[dict], text: str):
 	"""Extract translatable strings from a list of link definitions."""
 	for link in links:
 		if group := link.get("group"):
-			yield group, f"Group in {doctype}'s connections"
+			yield get_line_number(text, "group", group), group, f"Group in {doctype}'s connections"

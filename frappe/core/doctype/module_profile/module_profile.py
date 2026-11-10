@@ -24,9 +24,15 @@ class ModuleProfile(Document):
 	# end: auto-generated types
 
 	def onload(self):
-		from frappe.utils.modules import get_modules_from_all_apps
+		from frappe.permissions import has_permission
+		from frappe.utils.modules import get_blockable_module_names
 
-		self.set_onload("all_modules", sorted(m.get("module_name") for m in get_modules_from_all_apps()))
+		if not has_permission(self.doctype, "write", self, print_logs=False):
+			return
+
+		self.set_onload(
+			"all_modules", get_blockable_module_names(blocked=[d.module for d in self.block_modules])
+		)
 
 	def get_permission_log_options(self, event=None):
 		return {"fields": ["block_modules"]}

@@ -414,6 +414,12 @@ def get_events(
 						AND `tabDocShare`.share_name=`tabEvent`.name
 						AND `tabDocShare`.user=%(user)s
 				)
+				OR EXISTS(
+					SELECT ep.name
+					FROM `tabEvent Participants` ep
+					WHERE ep.parent=`tabEvent`.name
+						AND ep.email=%(user)s
+				)
 			)
 		AND `tabEvent`.status='Open'
 		ORDER BY `tabEvent`.starts_on""".format(

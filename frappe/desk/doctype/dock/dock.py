@@ -10,7 +10,11 @@ from frappe import _
 # app content on a site, or is a user editing? Shared rather than copied, so a route added to one
 # list but not the other cannot break one doctype and not the other on customer sites.
 from frappe.desk.doctype.sidebar.sidebar import SYSTEM_WRITE_FLAGS
-from frappe.desk.doctype.workspace.workspace import check_workspace_manager, is_workspace_manager
+from frappe.desk.doctype.workspace.workspace import (
+	check_layer_keeps_its_owner,
+	check_workspace_manager,
+	is_workspace_manager,
+)
 from frappe.desk.layers import resolve_layers
 from frappe.model.document import Document
 
@@ -135,6 +139,7 @@ class Dock(Document):
 			self.name = self.app
 
 	def validate(self):
+		check_layer_keeps_its_owner(self)
 		# One spelling of "not a user's own layer", so the composite index can compare them. The
 		# column is also not-nullable, which is what makes this stick: a blank column in a unique
 		# index is stored as `NULL`, and every NULL is distinct to an index, so one app could
@@ -532,6 +537,23 @@ def rename_sidebar_rows(old_name: str, new_name: str) -> None:
 
 	# Read name and user together: `drop_dock_caches` needs the user, and fetching each layer as
 	# a document would pull all its item rows along for one column.
+	for layer in frappe.get_all("Dock", filters={"name": ["in", layers]}, fields=["name", "user"]):
+		frappe.clear_document_cache("Dock", layer.name)
+		drop_dock_caches(layer.user)
+
+
+def remove_sidebar_rows(name: str) -> None:
+	"""Drop every dock row naming the sidebar `name`, and the caches those rows are read from.
+
+	For `Sidebar.on_trash`. The rows are removed in place for the same reason `rename_sidebar_rows`
+	updates them in place: re-saving each layer would re-run its validation and export.
+	"""
+	named = {"parenttype": "Dock", "link_type": "Sidebar", "link_to": name}
+	layers = frappe.get_all("Dock Item", filters=named, pluck="parent", distinct=True)
+	if not layers:
+		return
+
+	frappe.db.delete("Dock Item", named)
 	for layer in frappe.get_all("Dock", filters={"name": ["in", layers]}, fields=["name", "user"]):
 		frappe.clear_document_cache("Dock", layer.name)
 		drop_dock_caches(layer.user)
@@ -1161,7 +1183,7 @@ def entries_below(app: str, user: str | None) -> dict[str, dict]:
 	With the reach filter on, a Workspace Manager saving the site's rail with one module blocked
 	for them personally would turn that module's row into an add.
 	"""
-	below = resolve_app_dock(app, upto="user" if user else "site", gated=False)
+	below = resolve_app_dock(app, upto="site" if user else "app", gated=False)
 	return {dock_key(entry): entry for entry in below}
 
 
@@ -1182,17 +1204,59 @@ def save_user_dock(app: str, items: list | str):
 
 
 @frappe.whitelist()
-def save_site_dock(app: str, items: list | str):
+def save_site_dock(app: str, items: list | str, modules: list | str | None = None):
 	"""Save the site's arrangement of `app`'s dock, for everyone.
 
 	This is what the site layer is for: "Accounts first, for everyone" cannot be expressed by any
 	number of per-user arrangements. A user's own arrangement still applies on top of it.
 	"""
 	check_workspace_manager(_("You need to be Workspace Manager to change the dock for everyone."))
-	return _save_layer(app, items, user=None, require_visible=False)
+	return _save_layer(app, items, user=None, require_visible=False, modules=modules)
 
 
-def _save_layer(app: str, items: list | str, user: str | None, require_visible: bool):
+def add_modules(app: str, items: list | str, modules: list[str]) -> list:
+	"""Create the modules Add put on `app`'s dock, and return `items` with an icon on each of their
+	rows.
+
+	A new module needs only a name. It opens on a page of its own, which `ModuleDef.after_insert`
+	creates, and its sidebar is computed from what it holds. The row's icon goes on that page,
+	which is where the module's sidebar reads its header icon from, and a row with none takes the
+	icon that sidebar falls back to. The caller needs the right to create a Module Def.
+
+	It runs in the same request as the save that names the modules, so a save that fails creates
+	none of them.
+	"""
+	from frappe.desk.doctype.sidebar.sidebar import DEFAULT_HEADER_ICON
+
+	items = frappe.parse_json(items) or []
+	for row in items:
+		if row.get("link_type") != "Sidebar" or row.get("link_to") not in modules:
+			continue
+
+		doc = frappe.get_doc(
+			{"doctype": "Module Def", "module_name": row["link_to"], "custom": 1, "app_name": app}
+		)
+		doc.flags.page_icon = row.get("icon")
+		doc.insert()
+		row["icon"] = (
+			row.get("icon") or frappe.db.get_value("Workspace", doc.name, "icon") or DEFAULT_HEADER_ICON
+		)
+
+	return items
+
+
+def saved_dock(rail: list, modules: list[str]):
+	"""Return what a dock save sends back: the app's resolved rail, or, when the save created
+	modules, the desk state they change with the rail in it. A new module's page has to be in the
+	desk's list of pages before its tile routes there."""
+	from frappe.desk.doctype.workspace.workspace import workspace_payload
+
+	return workspace_payload(rail=rail) if modules else rail
+
+
+def _save_layer(
+	app: str, items: list | str, user: str | None, require_visible: bool, modules: list | str | None = None
+):
 	"""Replace one layer of one app's dock with `items` and return the resulting rail.
 
 	It replaces the whole layer, not part of it. A `Dock` is per app, so the rows the client sends
@@ -1200,6 +1264,9 @@ def _save_layer(app: str, items: list | str, user: str | None, require_visible: 
 	app's rows through untouched or lose them.
 	"""
 	app = check_docked_app(app)
+	modules = frappe.parse_json(modules) or []
+	if modules:
+		items = add_modules(app, items, modules)
 
 	doc = get_dock(app, user=user)
 	if doc:
@@ -1220,7 +1287,7 @@ def _save_layer(app: str, items: list | str, user: str | None, require_visible: 
 
 	# Both saves return this app's resolved rail, so it can be redrawn in place whichever layer
 	# was written. Only this app's, because the save touched one document.
-	return resolve_app_dock(app)
+	return saved_dock(resolve_app_dock(app), modules)
 
 
 def check_docked_app(app: str | None) -> str:
@@ -1261,7 +1328,7 @@ def get_site_dock_layer(app: str) -> list[dict]:
 
 
 @frappe.whitelist()
-def save_app_dock(app: str, items: list | str):
+def save_app_dock(app: str, items: list | str, modules: list | str | None = None):
 	"""Save the app's own dock, the layer the other two are laid over.
 
 	This is the one save that is authoring rather than arrangement, which is why developer mode is
@@ -1279,6 +1346,10 @@ def save_app_dock(app: str, items: list | str):
 	if not doc:
 		frappe.throw(_("{0} ships no dock yet. Export one to the app first.").format(frappe.bold(app)))
 
+	modules = frappe.parse_json(modules) or []
+	if modules:
+		items = add_modules(app, items, modules)
+
 	doc = frappe.get_doc("Dock", doc.name)
 	doc.set("items", [])
 	# `below` is empty: nothing sits under the app's own dock, so every row adds and every row
@@ -1288,7 +1359,7 @@ def save_app_dock(app: str, items: list | str):
 		doc.append("items", {field: row[field] for field in DOCK_ITEM_FIELDS})
 
 	doc.save()
-	return resolve_app_dock(app)
+	return saved_dock(resolve_app_dock(app), modules)
 
 
 @frappe.whitelist()

@@ -32,7 +32,7 @@
 	</Combobox>
 
 	<!-- Non-empty: the filter popover with its condition rows. -->
-	<Popover v-else ref="popoverRef" side="bottom" align="end">
+	<Popover v-else ref="popoverRef" side="bottom" :align="align ?? 'end'">
 		<template #trigger="{ close }">
 			<div class="flex items-center">
 				<Button
@@ -50,6 +50,7 @@
 				</Button>
 				<Button
 					tooltip="Clear All Filters"
+					aria-label="Clear All Filters"
 					class="relative rounded-l-none border-l focus-visible:z-10"
 					icon="lucide-x"
 					@click.stop="clearAll(close)"
@@ -104,6 +105,7 @@
 							class="flex"
 							variant="ghost"
 							icon="lucide-x"
+							aria-label="Remove filter"
 							@click="removeFilter(i)"
 						/>
 					</template>
@@ -147,7 +149,7 @@
 import { computed, nextTick, ref } from "vue";
 import { Button, Combobox, Popover, Select } from "frappe-ui";
 import { useDoctypeMeta } from "../../composables/useDoctypeMeta";
-import { getFilterableFields } from "./getFilterableFields";
+import { getFilterableFields, pickFilterFields } from "./getFilterableFields";
 import { getOperators, conditionFor, carryOver, defaultValueFor } from "./operators";
 import type { Filter, FilterField, FilterOperator, FilterProps, FilterValue } from "./types";
 // The operator/fieldtype → value-input dispatch. Lives in its own module so the
@@ -172,7 +174,7 @@ const { meta } = useDoctypeMeta(props.doctype);
 
 // Field Options derived client-side from Meta — no CRM endpoint.
 const allFields = computed<FilterField[]>(() =>
-	getFilterableFields(meta.value?.fields ?? [], props.doctype)
+	pickFilterFields(getFilterableFields(meta.value?.fields ?? [], props.doctype), props.fields)
 );
 
 // Both the empty-state picker and the in-row picker offer every filterable field.

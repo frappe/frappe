@@ -96,4 +96,5 @@ def invalidate_distinct_link_doctypes(doctype: str, fieldname: str, linked_docty
 	if linked_doctype not in doctypes:
 		# Note: Do NOT "update" cache because it can lead to concurrency bugs.
 		frappe.cache.delete_value(key)
+		frappe.local.dynamic_link_map = None
 		frappe.db.after_commit.add(lambda: frappe.cache.delete_value(key))

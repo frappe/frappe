@@ -1,0 +1,9 @@
+{
+	"extends": "../tsconfig.json",
+	"compilerOptions": {
+		"baseUrl": ".",
+		"types": ["cypress", "node", "vite/client"],
+		"paths": { "@/*": ["../src/*"] }
+	},
+	"include": ["**/*.ts"]
+}

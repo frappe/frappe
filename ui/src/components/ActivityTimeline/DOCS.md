@@ -346,6 +346,10 @@ bring the row in.
 Only call `resolve` on a response that confirms the write: if no matching row ever arrives,
 the pending one stays on screen.
 
+While a row of that type is in flight, live rows of the same type are not added to the feed:
+one cannot be told apart from the row being waited for, and drawing both is a duplicate. They
+come in on the refetch instead, a few hundred milliseconds later.
+
 **Rendering.** Pending rows carry `pending: true` and render muted and non-interactive.
 Anything keyed by document name (reactions, separately-fetched attachments) has nothing to
 key on yet, so read it off the row while pending:

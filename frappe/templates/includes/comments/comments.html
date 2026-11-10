@@ -19,16 +19,16 @@
 						<div class="user-details row" style="margin-bottom: 15px; display:none;">
 							<div class="comment-by col-sm-6 pb-4">
 								<div class="form-label mb-1">{{ _("Your Name") }}</div>
-								<input class="form-control comment_by" name="comment_by" type="text">
+								<input class="form-control comment_by" name="comment_by" type="text" aria-label="{{ _("Your Name") }}">
 							</div>
 							<div class="col-sm-6">
 								<div class="form-label mb-1">{{ _("Email") }}</div>
-								<input class="form-control comment_email" name="comment_email" type="email">
+								<input class="form-control comment_email" name="comment_email" type="email" aria-label="{{ _("Email") }}">
 							</div>
 						</div>
 						<div class="comment-text-area">
 							<div class="form-label mb-1">{{ _("Add a comment") }}</div>
-							<textarea class="form-control" name="comment" rows=5></textarea>
+							<textarea class="form-control" name="comment" rows=5 aria-label="{{ _("Add a comment") }}"></textarea>
 							<div class="text-muted small mt-1 mb-4">{{ _("Ctrl+Enter to add comment") }}</div>
 						</div>
 						<button class="btn btn-sm btn-primary small" id="submit-comment">{{ _("Comment") }}</button>

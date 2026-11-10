@@ -1,4 +1,5 @@
 import { layout_nodes } from "./layout";
+import { is_printable_docfield } from "./fieldtypes";
 
 export function set_prop(target, key, value, fallback) {
 	if (!target) return;
@@ -88,7 +89,8 @@ export function typst_blockers_client(print_format, layout, letterhead) {
 	const blockers = [];
 	const add = (reason) => !blockers.includes(reason) && blockers.push(reason);
 	if (print_format?.custom_format) return [__("Custom HTML format")];
-	if (!print_format?.print_format_builder_beta) return [__("Not a builder format")];
+	if (!print_format?.print_format_builder_beta)
+		return [__("Not made in the Print Format Editor")];
 	if ((print_format?.css || "").trim()) add(__("Custom CSS in the Style box"));
 	const colors = new Set();
 	for (const key of ["label_color", "value_color"]) {
@@ -103,6 +105,9 @@ export function typst_blockers_client(print_format, layout, letterhead) {
 		const footer_is_image = letterhead.footer_source === "Image" && letterhead.footer_image;
 		if ((letterhead.footer || "").trim() && !footer_is_image)
 			add(__("Letterhead footer with HTML content"));
+	}
+	if (/^(https?:)?\/\//.test(layout?.background?.image || "")) {
+		add(__("Background image loaded from a web address"));
 	}
 	for (const node of layout_nodes(layout)) {
 		if ((node.custom_style || "").trim()) {
@@ -124,15 +129,6 @@ export function typst_blockers_client(print_format, layout, letterhead) {
 		}
 		if (node.fieldtype === "HTML") add(__("HTML block"));
 		if (node.fieldtype === "Field Template") add(__("Field Template block"));
-		if (node.fieldtype === "Barcode") {
-			if (node.custom) {
-				if (node.barcode_format !== "QR") add(__("Barcode that is not a QR code"));
-			} else {
-				const meta_df = frappe.meta.get_docfield(print_format?.doc_type, node.fieldname);
-				if (!meta_df || !is_qr_barcode_options(meta_df.options))
-					add(__("Barcode that is not a QR code"));
-			}
-		}
 		if (node.fieldtype === "Image" && /^https?:\/\//.test(node.image_url || ""))
 			add(__("Image loaded from a web address"));
 		for (const key of ["label_color", "value_color"]) {
@@ -182,7 +178,8 @@ export function create_default_layout(meta, print_format) {
 	};
 
 	let section = null,
-		column = null;
+		column = null,
+		skip = false;
 
 	function set_column(df) {
 		if (!section) {
@@ -225,11 +222,18 @@ export function create_default_layout(meta, print_format) {
 			continue;
 		}
 
-		if (df.fieldtype === "Section Break") {
-			set_section(df);
+		if (df.fieldtype === "Section Break" || df.fieldtype === "Tab Break") {
+			skip = !!df.print_hide;
+			if (skip) {
+				section = column = null;
+			} else {
+				set_section(df.fieldtype === "Section Break" ? df : undefined);
+			}
+		} else if (skip) {
+			continue;
 		} else if (df.fieldtype === "Column Break") {
 			set_column(df);
-		} else if (df.label) {
+		} else if (df.label && is_printable_docfield(df)) {
 			if (!column) set_column();
 
 			if (!df.print_hide) {
@@ -266,14 +270,17 @@ export function create_default_layout(meta, print_format) {
 
 export function get_table_columns(df) {
 	let table_columns = [];
-	let table_fields = frappe.get_meta(df.options).fields;
+	let table_fields = frappe
+		.get_meta(df.options)
+		.fields.filter(
+			(tf) => !["Section Break", "Column Break"].includes(tf.fieldtype) && !tf.print_hide
+		);
+	if (table_fields.some((tf) => tf.in_list_view)) {
+		table_fields = table_fields.filter((tf) => tf.in_list_view);
+	}
 	let total_width = 0;
 	for (let tf of table_fields) {
-		if (
-			!["Section Break", "Column Break"].includes(tf.fieldtype) &&
-			!tf.print_hide &&
-			total_width < 100
-		) {
+		if (total_width < 100) {
 			let width =
 				typeof tf.width == "number" && tf.width < 100 ? tf.width : tf.width ? 20 : 10;
 			table_columns.push({
@@ -337,6 +344,7 @@ const TABLE_COLUMN_PLUCK_KEYS = [
 	"merge_direction",
 	"image_size",
 	"column_condition",
+	"date_format",
 ];
 
 export const FIELD_PLUCK_KEYS = [
@@ -382,6 +390,7 @@ export const FIELD_PLUCK_KEYS = [
 	"show_empty",
 	"hide_colon",
 	"table_min_height",
+	"date_format",
 ];
 
 const ZONE_FIELD_PLUCK_KEYS = FIELD_PLUCK_KEYS.filter(
@@ -434,7 +443,9 @@ export function serialize_layout(layout) {
 export function parse_inline_style(css) {
 	const style = {};
 	if (!css || typeof css !== "string") return style;
-	for (const decl of css.split(";")) {
+	const el = document.createElement("div");
+	el.setAttribute("style", css);
+	for (const decl of split_declarations(el.style.cssText)) {
 		const idx = decl.indexOf(":");
 		if (idx === -1) continue;
 		const prop = decl.slice(0, idx).trim();
@@ -442,6 +453,32 @@ export function parse_inline_style(css) {
 		if (prop && value) style[prop] = value;
 	}
 	return style;
+}
+
+function split_declarations(text) {
+	const decls = [];
+	let quote = null;
+	let depth = 0;
+	let start = 0;
+	for (let i = 0; i < text.length; i++) {
+		const c = text[i];
+		if (c === "\\") {
+			i++;
+		} else if (quote) {
+			if (c === quote) quote = null;
+		} else if (c === '"' || c === "'") {
+			quote = c;
+		} else if (c === "(") {
+			depth++;
+		} else if (c === ")") {
+			depth--;
+		} else if (c === ";" && !depth) {
+			decls.push(text.slice(start, i));
+			start = i + 1;
+		}
+	}
+	decls.push(text.slice(start));
+	return decls;
 }
 
 // Deterministic pastel colour for a merged-cell initials thumbnail, keyed off
@@ -457,14 +494,14 @@ export function thumb_hue(text) {
 	return ((idx < 0 ? 0 : idx) * 37) % 360;
 }
 
-export async function render_jinja_html(html, doctype, docname) {
+export async function render_jinja_html(html, doctype, docname, global_variables) {
 	if (!html) return html;
 	if (!html.includes("{{") && !html.includes("{%")) return html;
 	if (!doctype || !docname) return html;
 	try {
 		const r = await frappe.call({
 			method: "frappe.utils.print_format_generator.render_jinja_template",
-			args: { template: html, doctype, docname },
+			args: { template: html, doctype, docname, global_variables },
 			silent: 1,
 		});
 		return r.message ?? html;
@@ -636,6 +673,20 @@ export function get_image_dimensions(src) {
 }
 
 // Option lists shared by the inspectors
+export function text_field_paths(text, meta) {
+	return [...(text || "").matchAll(/\{([\w.]+)\}/g)]
+		.map((m) => m[1])
+		.filter((path) => {
+			const [fieldname, target] = path.split(".");
+			const df = meta?.fields?.find((f) => f.fieldname === fieldname);
+			if (!target) return !!df || fieldname === "name";
+			return (
+				df?.fieldtype === "Link" &&
+				!!frappe.get_meta(df.options)?.fields?.some((f) => f.fieldname === target)
+			);
+		});
+}
+
 export function value_field_opts(fields) {
 	return (fields || [])
 		.filter((f) => !frappe.model.no_value_type.includes(f.fieldtype))
@@ -646,4 +697,71 @@ export function table_field_opts(fields) {
 	return (fields || [])
 		.filter((f) => f.fieldtype === "Table")
 		.map((f) => ({ label: f.label || f.fieldname, value: f.fieldname }));
+}
+
+export const DATE_FORMATS = [
+	"dd-mm-yyyy",
+	"mm-dd-yyyy",
+	"yyyy-mm-dd",
+	"dd/mm/yyyy",
+	"dd.mm.yyyy",
+	"d MMM yyyy",
+	"d MMMM yyyy",
+	"MMM d, yyyy",
+	"MMMM d, yyyy",
+	"EEE, d MMM yyyy",
+];
+
+const NAME_TOKENS = {
+	MMMM: ["month", "long"],
+	MMM: ["month", "short"],
+	EEEE: ["weekday", "long"],
+	EEE: ["weekday", "short"],
+};
+
+export function format_date_tokens(date, fmt, lang) {
+	const pad = (n) => String(n).padStart(2, "0");
+	const name = (token) => {
+		const [part, style] = NAME_TOKENS[token];
+		const options = { day: "numeric", month: "long", weekday: "short", [part]: style };
+		let formatter;
+		try {
+			formatter = new Intl.DateTimeFormat(lang, options);
+		} catch {
+			formatter = new Intl.DateTimeFormat("en", options);
+		}
+		return formatter.formatToParts(date).find((p) => p.type === part).value;
+	};
+	return fmt.replace(/yyyy|MMMM|MMM|EEEE|EEE|mm|dd|d/g, (t) =>
+		NAME_TOKENS[t]
+			? name(t)
+			: {
+					yyyy: date.getFullYear(),
+					mm: pad(date.getMonth() + 1),
+					dd: pad(date.getDate()),
+					d: date.getDate(),
+			  }[t]
+	);
+}
+
+export const is_date_field = (df) => df?.fieldtype === "Date" || df?.fieldtype === "Datetime";
+
+export function format_date_value(raw, df) {
+	if (!df?.date_format || !is_date_field(df) || !raw) return null;
+	const m = moment(frappe.datetime.str_to_obj(raw));
+	if (!m.isValid()) return null;
+	let out = format_date_tokens(m.toDate(), df.date_format, frappe.boot?.lang || "en");
+	if (df.fieldtype === "Datetime") out += " " + m.format(frappe.datetime.get_user_time_fmt());
+	return out;
+}
+
+export function date_format_opts(sample) {
+	const value = sample || frappe.datetime.now_date();
+	return [
+		{ value: "", label: __("System default") },
+		...DATE_FORMATS.map((f) => ({
+			value: f,
+			label: format_date_value(value, { fieldtype: "Date", date_format: f }),
+		})),
+	];
 }

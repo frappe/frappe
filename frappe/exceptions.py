@@ -174,7 +174,7 @@ class EmptyTableError(ValidationError):
 
 
 class LinkExistsError(ValidationError):
-	pass
+	linked_with = None
 
 
 class InvalidEmailAddressError(ValidationError):
@@ -214,6 +214,12 @@ class ImplicitCommitError(ValidationError):
 
 
 class RetryBackgroundJobError(Exception):
+	pass
+
+
+class PartiallyCompleteError(ValidationError):
+	"""Raised when a bulk background operation completes with some items failing."""
+
 	pass
 
 

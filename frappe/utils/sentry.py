@@ -1,6 +1,9 @@
+import ast
+import json
 import os
 import sys
 from datetime import UTC, datetime
+from urllib.parse import parse_qsl, urlencode
 
 import rq
 import sentry_sdk
@@ -13,6 +16,7 @@ from sentry_sdk.utils import capture_internal_exceptions, event_from_exception
 import frappe
 import frappe.monitor
 from frappe.database.database import Database, EmptyQueryValues
+from frappe.utils.logger import sanitized_dict
 
 
 class FrappeIntegration(Integration):
@@ -89,6 +93,7 @@ def set_sentry_context():
 def before_send(event, hint):
 	if event.get("logger", "") == "CSSUTILS":
 		return None
+	scrub_event(event)
 	return event
 
 
@@ -113,9 +118,9 @@ def capture_exception(message: str | None = None) -> None:
 				evt_processor = _make_wsgi_event_processor(frappe.request.environ, False)
 				scope.add_event_processor(evt_processor)
 				if frappe.request.is_json:
-					scope.set_context("JSON Body", frappe.request.json)
+					scope.set_context("JSON Body", sanitize_body(frappe.request.json))
 				elif frappe.request.form:
-					scope.set_context("Form Data", frappe.request.form)
+					scope.set_context("Form Data", sanitize_body(frappe.request.form.to_dict()))
 
 			client = sentry_sdk.get_client()
 			if client.is_active():
@@ -136,3 +141,66 @@ def capture_exception(message: str | None = None) -> None:
 
 	except Exception:
 		frappe.logger().error("Failed to capture exception", exc_info=True)
+
+
+MASK = "********"
+MAX_BODY_DEPTH = 20
+
+
+def sanitize_body(data, depth=0):
+	"""Mask values of secret-looking keys at any depth, including inside JSON strings (e.g. `doc`)."""
+	if depth > MAX_BODY_DEPTH:
+		return MASK
+	if isinstance(data, str):
+		if data.lstrip()[:1] in ("{", "["):
+			try:
+				return sanitize_body(json.loads(data), depth + 1)
+			except (ValueError, RecursionError):
+				pass
+		return data
+	if isinstance(data, list):
+		return [sanitize_body(d, depth + 1) for d in data]
+	if isinstance(data, dict):
+		return sanitized_dict({k: sanitize_body(v, depth + 1) for k, v in data.items()})
+	return data
+
+
+def scrub_event(event):
+	"""Mask secrets that reach an event outside the request body context:
+	local variables of stack frames and the request query string."""
+	# message events (no active exception) keep their frames under `threads`
+	for key in ("exception", "threads"):
+		for value in event.get(key, {}).get("values", []):
+			for frame in value.get("stacktrace", {}).get("frames", []):
+				if frame.get("vars"):
+					frame["vars"] = _scrub_var(frame["vars"])
+
+	request = event.get("request") or {}
+	if isinstance(request.get("query_string"), str):
+		request["query_string"] = _scrub_query_string(request["query_string"])
+
+
+def _scrub_var(value, depth=0):
+	"""Frame variables are sent as `repr()` strings, so a string holding JSON shows up quoted."""
+	if depth > MAX_BODY_DEPTH:
+		return MASK
+	if isinstance(value, dict):
+		return sanitized_dict({k: _scrub_var(v, depth + 1) for k, v in value.items()})
+	if isinstance(value, list):
+		return [_scrub_var(v, depth + 1) for v in value]
+	if isinstance(value, str):
+		try:
+			raw = ast.literal_eval(value)
+		except (ValueError, SyntaxError, RecursionError, MemoryError):
+			return value
+		if isinstance(raw, str):
+			cleaned = sanitize_body(raw)
+			if not isinstance(cleaned, str) and MASK in json.dumps(cleaned):
+				return repr(json.dumps(cleaned))
+	return value
+
+
+def _scrub_query_string(query_string):
+	pairs = parse_qsl(query_string, keep_blank_values=True)
+	masked = urlencode([(k, sanitized_dict({k: v})[k]) for k, v in pairs])
+	return masked if MASK in sanitized_dict(dict(pairs)).values() else query_string

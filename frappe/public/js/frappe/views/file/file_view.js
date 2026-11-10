@@ -50,11 +50,11 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 		const route = frappe.get_route().slice(0, -1);
 		const at_home_folder = route[route.length - 1] === "File";
 
-		frappe.breadcrumbs.add({
-			type: "Custom",
-			label: at_home_folder ? this.page_title : __("Home"),
-			route: "/desk/file",
-		});
+		this.page.set_breadcrumbs(
+			at_home_folder
+				? [{ label: this.page_title }]
+				: [{ label: __("Home"), href: "/desk/file" }]
+		);
 	}
 
 	setup_defaults() {
@@ -145,14 +145,21 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 			.add_button(__("Paste"), () => frappe.file_manager.paste(this.current_folder))
 			.hide();
 
-		this.page.add_actions_menu_item(__("Export as zip"), () => {
+		const export_zip = () => {
 			let docnames = this.get_checked_items(true);
 			if (docnames.length) {
 				open_url_post("/api/method/frappe.core.api.file.zip_files", {
 					files: JSON.stringify(docnames),
 				});
 			}
-		});
+		};
+		this.page.add_actions_menu_item(
+			__("Export as zip"),
+			export_zip,
+			false,
+			null,
+			"folder-down"
+		);
 	}
 
 	set_fields() {
@@ -325,6 +332,8 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 				${html}
 			</div>`
 		);
+		this.prune_checked_docnames();
+		this.set_rows_as_checked();
 	}
 
 	get_breadcrumbs_html() {

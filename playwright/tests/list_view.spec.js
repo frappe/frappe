@@ -1,0 +1,472 @@
+import { test, expect } from "../support";
+
+const CHECK_ALL = ".list-header-subject .list-subject .list-check-all";
+const PHONE = { width: 375, height: 667 };
+
+test.describe("List View", () => {
+	test.beforeAll(async ({ admin }) => {
+		await admin.call("frappe.tests.ui_test_helpers.setup_workflow");
+	});
+
+	test.afterAll(async ({ admin }) => {
+		await admin.remove_doc("Workflow", "Test ToDo", true);
+	});
+
+	test("Keep checkbox checked after Refresh", async ({ page, desk }) => {
+		await desk.go_to_list("ToDo");
+		await desk.clear_filters();
+		await page.locator(CHECK_ALL).click();
+		await page.locator("button[data-original-title='Reload List']").click();
+		await expect(
+			page.locator(".list-row-container .list-row-checkbox:checked").first()
+		).toBeVisible();
+	});
+
+	test("keeps a Check '= No' standard filter applied", async ({ page, desk }) => {
+		await desk.go_to_list("Web Page");
+		await desk.clear_filters();
+		await page.evaluate(() => {
+			frappe.route_options = { published: ["=", 0] };
+			frappe.set_route("List", "Web Page");
+		});
+		await expect(page.locator(".filter-selector .filter-button .filter-label")).toHaveText(
+			"1"
+		);
+		await expect
+			.poll(() =>
+				page.evaluate(() =>
+					cur_list.filter_area
+						.get()
+						.some((f) => f[1] === "published" && String(f[3]) === "0")
+				)
+			)
+			.toBe(true);
+	});
+
+	test('enables "Actions" button', async ({ page, desk }) => {
+		const actions = [
+			"Approve",
+			"Reject",
+			"Copy to Clipboard",
+			"Export",
+			"Assign To",
+			"Clear Assignment",
+			"Apply Assignment Rule",
+			"Add Tags",
+			"Print",
+		];
+		await desk.go_to_list("ToDo");
+		await desk.clear_filters();
+		const common_actions = page.waitForResponse(
+			(res) =>
+				res.request().method() === "POST" &&
+				res
+					.url()
+					.includes("/api/method/frappe.model.workflow.get_common_transition_actions")
+		);
+		await page.locator(CHECK_ALL).click();
+		// selecting rows triggers the workflow-actions refresh (debounced);
+		// wait for it to hide "Review" (not common to the selected docs)
+		// before opening — the menu snapshots its items at open
+		await common_actions;
+		await expect(
+			page
+				.locator('.actions-btn-group [data-label="Review"]')
+				.locator("xpath=ancestor::li[1]")
+		).toHaveCSS("display", "none");
+		await page.getByRole("button", { name: "Actions", exact: true }).click();
+
+		const menu_items = page.locator('.es-menu [role="menuitem"]');
+		await expect(menu_items).toHaveCount(9);
+		for (const [index, action] of actions.entries()) {
+			await expect(menu_items.nth(index)).toContainText(action);
+		}
+
+		const bulk_approval = page.waitForResponse(
+			(res) =>
+				res.request().method() === "POST" &&
+				res.url().includes("api/method/frappe.model.workflow.bulk_workflow_approval")
+		);
+		await menu_items.filter({ hasText: "Approve" }).first().click();
+		await bulk_approval;
+		await desk.hide_dialog();
+		await page.reload();
+		await desk.clear_filters();
+		await expect(
+			page.locator(".list-row-container:visible", { hasText: "Approved" }).first()
+		).toBeVisible();
+	});
+
+	test("Adds a button to each list view row", async ({ page, desk, api }) => {
+		const r = await api.call("frappe.client.get_value", {
+			doctype: "ToDo",
+			filters: {
+				reference_name: ["is", "set"],
+			},
+			fieldname: "name",
+		});
+		const todo_name = r.message.name;
+		await desk.go_to_list("ToDo");
+
+		const open_button = page.locator(`.btn-default[data-name="${todo_name}"]`);
+		await open_button.scrollIntoViewIfNeeded();
+		await expect(open_button).toBeVisible();
+		await open_button.click();
+
+		await expect.poll(() => page.evaluate(() => window.cur_frm?.doc.doctype)).toBe("ToDo");
+		expect(await page.evaluate(() => cur_frm.doc.name)).not.toBe(todo_name);
+	});
+
+	test("translates field labels in the bulk edit dialog", async ({ page, desk, api }) => {
+		const translations = {
+			Route: "Routen-Pfad",
+			"Web Page": "Webseite",
+			"CSS Class": "CSS-Klasse",
+			"Page Building Blocks": "Seitenbausteine",
+		};
+
+		await api.insert_doc(
+			"Web Page",
+			{ title: "Impressum", route: "impressum", content_type: "Rich Text" },
+			true
+		);
+		await desk.go_to_list("Web Page");
+		await desk.clear_filters();
+		await page.locator(CHECK_ALL).click();
+
+		await page.evaluate(
+			(translations) => Object.assign(frappe._messages, translations),
+			translations
+		);
+		await desk.click_action_button("Edit");
+
+		const field = desk.get_open_dialog().locator('input[data-fieldname="field"]');
+		const suggestions = page.locator(".awesomplete li:visible");
+
+		await field.clear();
+		await field.pressSequentially("Routen-Pfad");
+		await expect(
+			suggestions.filter({ hasText: "Routen-Pfad (Webseite)" }).first()
+		).toBeVisible();
+
+		await field.clear();
+		await field.pressSequentially("CSS-Klasse");
+		await expect(
+			suggestions.filter({ hasText: "CSS-Klasse (Seitenbausteine)" }).first()
+		).toBeVisible();
+
+		await desk.hide_dialog();
+		await api.remove_doc("Web Page", "impressum");
+	});
+
+	test("keeps the selection after a bulk edit", async ({ page, desk, api }) => {
+		const suffix = Date.now().toString(36);
+		const selected = [];
+		for (const route of [`bulk-edit-a-${suffix}`, `bulk-edit-b-${suffix}`]) {
+			const doc = await api.insert_doc("Web Page", {
+				title: route,
+				route,
+				content_type: "Rich Text",
+			});
+			selected.push(doc.name);
+		}
+
+		try {
+			await desk.go_to_list("Web Page");
+			await desk.clear_filters();
+			for (const name of selected) {
+				await page.locator(`.list-row-checkbox[data-name="${name}"]`).click();
+			}
+
+			await desk.click_action_button("Edit");
+			await page.waitForFunction(() => cur_dialog?.display);
+			await page.evaluate(async () => {
+				await cur_dialog.set_value("field", "Text Align (Web Page)");
+				await cur_dialog.set_value("value", "Center");
+			});
+			await desk.click_modal_primary_button("Update 2 records");
+			await expect(page.locator(".modal:visible")).toHaveCount(0);
+
+			await expect
+				.poll(() => page.evaluate(() => Array.from(cur_list.checked_docnames).sort()))
+				.toEqual(selected.sort());
+			await expect(page.locator(".list-row-checkbox:checked")).toHaveCount(2);
+		} finally {
+			for (const name of selected) {
+				await api.remove_doc("Web Page", name);
+			}
+		}
+	});
+
+	test("clears the selection when a bulk action is queued", async ({ page, desk, api }) => {
+		// More than 5 docs makes bulk_apply enqueue instead of running inline.
+		const selected = [];
+		for (let i = 0; i < 6; i++) {
+			const doc = await api.insert_doc("ToDo", { description: `queued bulk ${i}` });
+			selected.push(doc.name);
+		}
+
+		try {
+			await desk.go_to_list("ToDo");
+			await desk.clear_filters();
+			for (const name of selected) {
+				await page.locator(`.list-row-checkbox[data-name="${name}"]`).click();
+			}
+
+			await desk.click_action_button("Apply Assignment Rule");
+
+			await expect.poll(() => page.evaluate(() => cur_list.checked_docnames.size)).toBe(0);
+			await expect(page.locator(".list-row-checkbox:checked")).toHaveCount(0);
+		} finally {
+			for (const name of selected) {
+				await api.remove_doc("ToDo", name);
+			}
+		}
+	});
+
+	test("clears a partial selection from the header checkbox", async ({ page, desk, api }) => {
+		const todos = [];
+		for (let i = 0; i < 2; i++) {
+			const doc = await api.insert_doc("ToDo", { description: `partial selection ${i}` });
+			todos.push(doc.name);
+		}
+
+		try {
+			await desk.go_to_list("ToDo");
+			await desk.clear_filters();
+
+			await page.locator(`.list-row-checkbox[data-name="${todos[0]}"]`).click();
+			const header_check = page.locator(".checkbox-actions .list-check-all");
+			await expect.poll(() => header_check.evaluate((el) => el.indeterminate)).toBe(true);
+
+			await header_check.click();
+			await expect.poll(() => page.evaluate(() => cur_list.checked_docnames.size)).toBe(0);
+			await expect(page.locator(".list-row-checkbox:checked")).toHaveCount(0);
+		} finally {
+			for (const name of todos) {
+				await api.remove_doc("ToDo", name);
+			}
+		}
+	});
+
+	test("keeps selected rows checked after a list rerender", async ({ page, desk }) => {
+		await desk.go_to_list("ToDo");
+		await desk.clear_filters();
+
+		await page.locator(".list-row-checkbox").first().click();
+
+		const selected_docnames = await page.evaluate(() => Array.from(cur_list.checked_docnames));
+		expect(selected_docnames.length).toBe(1);
+
+		const selected_docname = selected_docnames[0];
+		await page.evaluate(() => cur_list.render_list());
+
+		await expect
+			.poll(() =>
+				page.evaluate((docname) => {
+					const $checkbox = cur_list.find_checkbox_by_docname(docname);
+					return { length: $checkbox.length, checked: $checkbox.prop("checked") };
+				}, selected_docname)
+			)
+			.toEqual({ length: 1, checked: true });
+		await expect(page.locator(".list-row-head .checkbox-actions")).toBeVisible();
+	});
+
+	test("preserves select-all across virtualized window rerenders", async ({ page, desk }) => {
+		await desk.go_to_list("ToDo");
+		await desk.clear_filters();
+
+		const data_length = await page.evaluate(() => {
+			cur_list.virtualization_threshold = 1;
+			cur_list.render_list();
+			return cur_list.data.length;
+		});
+		expect(data_length).toBeGreaterThan(0);
+
+		await expect(
+			page.locator('.list-row-container[data-virtual-row="1"]').first()
+		).toBeAttached();
+		await page.locator(CHECK_ALL).click();
+
+		const all_checked = () =>
+			page.evaluate(() => cur_list.checked_docnames.size === cur_list.data.length);
+		expect(await all_checked()).toBe(true);
+
+		await page.locator(".result-container").evaluate((el) => el.scrollTo(0, el.scrollHeight));
+		await page.evaluate(() => cur_list.render_virtual_rows(true));
+
+		expect(await all_checked()).toBe(true);
+
+		await expect(
+			page.locator(".result-container .list-row-checkbox:checked").first()
+		).toBeAttached();
+	});
+
+	test("keeps mobile virtual rows rendered during fast downward scroll", async ({
+		page,
+		desk,
+	}) => {
+		await page.setViewportSize({ width: 375, height: 667 });
+		await desk.go_to_list("ToDo");
+		await desk.clear_filters();
+
+		const data_length = await page.evaluate(() => {
+			cur_list.virtualization_threshold = 1;
+			cur_list.render_list();
+			return cur_list.data.length;
+		});
+		expect(data_length).toBeGreaterThan(0);
+
+		await expect(
+			page.locator('.list-row-container[data-virtual-row="1"]').first()
+		).toBeAttached();
+
+		await page.locator(".result-container").evaluate((el) => el.scrollTo(0, el.scrollHeight));
+		await page.evaluate(() => cur_list.render_virtual_rows(true));
+
+		await expect(
+			page.locator('.list-row-container[data-virtual-row="1"] .list-row')
+		).not.toHaveCount(0);
+
+		const state = await page.evaluate(() => ({
+			start: cur_list.virtualization_state.start,
+			end: cur_list.virtualization_state.end,
+		}));
+		expect(state.end).toBeGreaterThan(state.start);
+	});
+
+	test("flips sort order icon and title", async ({ page, desk }) => {
+		await desk.go_to_list("ToDo");
+		await desk.clear_filters();
+
+		await page.evaluate(() => {
+			const sort_selector = cur_list.sort_selector;
+			sort_selector.set_value(sort_selector.sort_by, "desc");
+		});
+
+		const order = page.locator(".sort-selector .btn-order");
+		await expect(order).toHaveAttribute("title", "descending");
+		await expect(order.locator("use")).toHaveAttribute("href", "#icon-arrow-down-wide-narrow");
+
+		await order.click();
+		await expect(order).toHaveAttribute("data-value", "asc");
+		await expect(order).toHaveAttribute("title", "ascending");
+		await expect(order.locator("use")).toHaveAttribute("href", "#icon-arrow-up-narrow-wide");
+	});
+
+	test("sorts from a sheet on phones", async ({ page, desk }) => {
+		await page.setViewportSize(PHONE);
+		await desk.go_to_list("ToDo");
+		await desk.clear_filters();
+		await page.evaluate(() => cur_list.sort_selector.set_value("creation", "desc"));
+
+		const sort_button = page.getByRole("button", { name: "Sort", exact: true });
+		const sheet = page.locator(".es-bottom-sheet");
+		const option = (name) => sheet.getByRole("button", { name, exact: true });
+
+		await sort_button.click();
+		await expect(option("Descending")).toHaveAttribute("aria-pressed", "true");
+		await expect(option("Created On")).toHaveAttribute("aria-pressed", "true");
+
+		await option("Ascending").click();
+		await expect(sheet).toBeHidden();
+		await expect
+			.poll(() => page.evaluate(() => [cur_list.sort_by, cur_list.sort_order]))
+			.toEqual(["creation", "asc"]);
+
+		await sort_button.click();
+		await option("Last Updated On").click();
+		await expect
+			.poll(() => page.evaluate(() => [cur_list.sort_by, cur_list.sort_order]))
+			.toEqual(["modified", "asc"]);
+		await expect(sort_button.locator("use")).toHaveAttribute(
+			"href",
+			"#icon-arrow-up-narrow-wide"
+		);
+	});
+
+	test.describe("on a touch phone", () => {
+		test.use({ viewport: PHONE, hasTouch: true });
+
+		test("opens a row's actions on a long press", async ({ page, desk }) => {
+			await desk.go_to_list("ToDo");
+			await desk.clear_filters();
+
+			const row = page
+				.locator(".result .list-row-container:has(.list-row-checkbox)")
+				.first();
+			const subject = (await row.locator(".list-subject").innerText()).trim();
+			const box = await row.boundingBox();
+			const point = { x: box.x + box.width - 40, y: box.y + box.height / 2 };
+			const cdp = await page.context().newCDPSession(page);
+			await cdp.send("Input.dispatchTouchEvent", {
+				type: "touchStart",
+				touchPoints: [point],
+			});
+			await page.waitForTimeout(700);
+			await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+
+			await expect(page.locator(".es-bottom-sheet .es-bottom-sheet__title")).toHaveText(
+				subject
+			);
+			await expect
+				.poll(() =>
+					page.evaluate(() => [frappe.get_route()[0], cur_list.checked_docnames.size])
+				)
+				.toEqual(["List", 1]);
+		});
+	});
+});
+
+test.describe("List View bulk submit", () => {
+	const doctype = "Bulk Submit Row";
+
+	test.beforeAll(async ({ admin }) => {
+		await admin.insert_doc(
+			"DocType",
+			{
+				name: doctype,
+				custom: 1,
+				is_submittable: 1,
+				module: "Custom",
+				fields: [{ fieldname: "title", fieldtype: "Data", label: "Title" }],
+				permissions: [
+					{
+						role: "System Manager",
+						read: 1,
+						write: 1,
+						create: 1,
+						delete: 1,
+						submit: 1,
+						cancel: 1,
+					},
+				],
+			},
+			true
+		);
+	});
+
+	test("refreshes the list when a repeated submit fails", async ({ page, desk, api }) => {
+		const selected = [];
+		for (const title of ["first", "second"]) {
+			const doc = await api.insert_doc(doctype, { title });
+			selected.push(doc.name);
+		}
+
+		await desk.go_to_list(doctype);
+		await desk.clear_filters();
+		for (const name of selected) {
+			await page.locator(`.list-row-checkbox[data-name="${name}"]`).click();
+		}
+
+		for (let run = 0; run < 2; run++) {
+			await desk.click_action_button("Submit");
+			await desk.click_modal_primary_button("Yes");
+			await expect.poll(() => page.evaluate(() => cur_list.disable_list_update)).toBe(false);
+		}
+		await expect(page.locator(".modal:visible")).toContainText("Cannot submit");
+		await expect
+			.poll(() => page.evaluate(() => cur_list.checked_docnames.size))
+			.toBe(selected.length);
+	});
+});

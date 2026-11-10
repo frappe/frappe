@@ -6,6 +6,7 @@ import json
 import frappe
 from frappe import _
 from frappe.custom.doctype.property_setter.property_setter import delete_property_setter
+from frappe.database import savepoint
 from frappe.model import core_doctypes_list
 from frappe.model.docfield import supports_translation
 from frappe.model.document import Document
@@ -85,6 +86,7 @@ class CustomField(Document):
 			"Text",
 			"Text Editor",
 			"Time",
+			"Vue Component",
 		]
 		hidden: DF.Check
 		hide_border: DF.Check
@@ -94,6 +96,7 @@ class CustomField(Document):
 		ignore_versioning: DF.Check
 		ignore_xss_filter: DF.Check
 		in_global_search: DF.Check
+		in_import_template: DF.Check
 		in_list_view: DF.Check
 		in_preview: DF.Check
 		in_standard_filter: DF.Check
@@ -104,6 +107,7 @@ class CustomField(Document):
 		label: DF.Data | None
 		length: DF.Int
 		link_filters: DF.JSON | None
+		make_attachment_public: DF.Check
 		mandatory_depends_on: DF.Code | None
 		mask: DF.Check
 		max_value: DF.Float
@@ -120,6 +124,7 @@ class CustomField(Document):
 		print_width: DF.Data | None
 		read_only: DF.Check
 		read_only_depends_on: DF.Code | None
+		remember_last_selected_value: DF.Check
 		report_hide: DF.Check
 		reqd: DF.Check
 		search_index: DF.Check
@@ -364,14 +369,11 @@ def create_custom_fields(custom_fields: dict, ignore_validate=False, update=True
 				for df in fields:
 					field = existing_custom_fields.get((doctype, df["fieldname"]))
 					if not field:
-						try:
+						with savepoint(catch=frappe.exceptions.DuplicateEntryError):
 							df = df.copy()
 							df["owner"] = "Administrator"
 							custom_field = create_custom_field(doctype, df, ignore_validate=ignore_validate)
 							process_field_update(custom_field)
-
-						except frappe.exceptions.DuplicateEntryError:
-							pass
 
 					elif update:
 						custom_field = frappe.get_doc({"doctype": "Custom Field", **field})

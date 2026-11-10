@@ -6,6 +6,7 @@ import frappe
 import frappe.modules.utils
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.desk.form.save import savedocs
+from frappe.model.db_query import DatabaseQuery
 from frappe.model.document import Document
 from frappe.model.virtual_doctype import validate_controller
 from frappe.tests import IntegrationTestCase
@@ -55,7 +56,7 @@ class VirtualDoctypeTest(Document):
 	def load_from_db(self):
 		data = self.get_current_data()
 		d = data.get(self.name)
-		super(Document, self).__init__(d)
+		self.init_from_dict(d)
 
 	def db_update(self, *args, **kwargs):
 		# For this example insert and update are same operation,
@@ -187,6 +188,21 @@ class TestVirtualDoctypes(IntegrationTestCase):
 		listed_docs = {d.name for d in frappe.get_list(TEST_DOCTYPE_NAME)}
 		self.assertIn(doc.name, listed_docs)
 
+	def test_get_list_without_order_by_keeps_controller_default(self):
+		def get_list(order_by="name asc"):
+			return [frappe._dict(order_by=order_by)]
+
+		with patch.object(VirtualDoctypeTest, "get_list", staticmethod(get_list)):
+			self.assertEqual(frappe.get_list(TEST_DOCTYPE_NAME)[0].order_by, "name asc")
+			self.assertEqual(
+				frappe.get_list(TEST_DOCTYPE_NAME, order_by="creation desc")[0].order_by, "creation desc"
+			)
+			self.assertEqual(DatabaseQuery(TEST_DOCTYPE_NAME).execute()[0].order_by, "name asc")
+			self.assertEqual(
+				DatabaseQuery(TEST_DOCTYPE_NAME).execute(order_by="creation desc")[0].order_by,
+				"creation desc",
+			)
+
 	def test_guest_cannot_delete_virtual_doctype(self):
 		doc = frappe.get_doc(doctype=TEST_DOCTYPE_NAME).insert()
 
@@ -204,3 +220,61 @@ class TestVirtualDoctypes(IntegrationTestCase):
 
 		listed_docs = {d.name for d in VirtualDoctypeTest.get_list()}
 		self.assertNotIn(doc.name, listed_docs)
+
+
+class TestVirtualDoctypeValidation(IntegrationTestCase):
+	"""`validate_controller` judges a controller by what it actually implements.
+
+	A controller may inherit the virtual-DocType contract from an intermediate base shared by
+	a family of doctypes -- Frappe's own log doctypes do exactly this. Such a controller
+	overrides nothing itself, and an earlier version of the check compared each method against
+	`controller.mro()[1]`, which saw only one level up and reported it as incomplete. The
+	baseline is `Document`, so inheriting a real implementation counts as implementing it.
+	"""
+
+	@staticmethod
+	def _warnings_for(controller) -> list:
+		"""Run the validator against `controller` and return the warnings it raised."""
+		with (
+			patch("frappe.model.virtual_doctype.get_controller", return_value=controller),
+			patch("frappe.msgprint") as msgprint,
+		):
+			validate_controller("Some Virtual DocType")
+
+		return msgprint.call_args_list
+
+	def test_controller_inheriting_its_implementation_is_accepted(self):
+		class IntermediateBase(Document):
+			@staticmethod
+			def get_list(**kwargs):
+				return []
+
+			@staticmethod
+			def get_count(**kwargs):
+				return 0
+
+			@staticmethod
+			def get_stats(**kwargs):
+				return {}
+
+			def db_insert(self, *args, **kwargs): ...
+
+			def db_update(self, *args, **kwargs): ...
+
+			def load_from_db(self): ...
+
+			def delete(self, *args, **kwargs): ...
+
+		class InheritingController(IntermediateBase):
+			"""Declares nothing; every requirement is satisfied by the base."""
+
+		self.assertEqual(self._warnings_for(InheritingController), [])
+
+	def test_controller_implementing_nothing_is_still_rejected(self):
+		"""The relaxed baseline must not let a controller that implements nothing through."""
+
+		class BareController(Document):
+			pass
+
+		# three static methods plus four instance methods, none of them provided
+		self.assertEqual(len(self._warnings_for(BareController)), 7)

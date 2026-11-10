@@ -8,16 +8,18 @@ on:
     - cron: "0 0 * * *"
 
 concurrency:
-  group: ui-develop-${{ github.event_name }}-${{ github.event.number }}
+  group: ui-develop-${{ github.event_name }}-${{ github.event.number || github.ref_name }}
   cancel-in-progress: true
 
 permissions:
   # Do not change this as GITHUB_TOKEN is being used by roulette
   contents: read
+  actions: read
 
 jobs:
   checkrun:
     name: Plan Tests
+    if: ${{ !contains(github.event.pull_request.labels.*.name, 'Skip CI') || contains(github.event.pull_request.labels.*.name, 'Run UI Tests') || contains(github.event.pull_request.labels.*.name, 'run-full-ci') || contains(github.event.pull_request.labels.*.name, 'fixes-develop') }}
     runs-on: ubuntu-latest
     outputs:
       build: ${{ steps.check-build.outputs.build }}
@@ -30,12 +32,13 @@ jobs:
           python "${GITHUB_WORKSPACE}/.github/helper/roulette.py"
         env:
           TYPE: "ui"
+          SKIP_ON_PRS: "true"
           PR_NUMBER: ${{ github.event.number }}
           REPO_NAME: ${{ github.repository }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   test:
-    name: Integration
+    name: UI Test
     needs: checkrun
     if: ${{ needs.checkrun.outputs.build == 'strawberry' }}
     runs-on: ubuntu-latest
@@ -73,22 +76,31 @@ jobs:
       - name: Verify yarn.lock
         run: |
           cd ${GITHUB_WORKSPACE}/apps/${{ github.event.repository.name }}
-          git diff --exit-code yarn.lock
+          git diff --exit-code yarn.lock studio/frontend/yarn.lock flow/yarn.lock
 
-      - name: Cache cypress binary
+      - name: Cache Playwright browsers
         uses: actions/cache@v6
         with:
-          path: ~/.cache/Cypress
-          key: ${{ runner.os }}-cypress
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('frappe/commands/testing.py') }}
 
       - name: Site Setup
         run: |
-          bench --site test_site execute frappe.utils.install.complete_setup_wizard
-          bench --site test_site execute frappe.tests.ui_test_helpers.create_test_user
+          # a second site, so the shard can run two workers without sharing data
+          echo "127.0.0.1 test_site_2" | sudo tee -a /etc/hosts
+          bench new-site test_site_2 \
+            --db-type ${{ matrix.db }} \
+            --db-host 127.0.0.1 \
+            --db-name test_frappe_2 \
+            --db-password test_frappe
+          jq -s '.[1] + .[0] + {host_name: "http://test_site_2:8000"}' \
+            sites/test_site_2/site_config.json sites/test_site/site_config.json > site_config.json
+          mv site_config.json sites/test_site_2/site_config.json
 
-      - uses: browser-actions/setup-chrome@latest
-      - run: |
-          echo "BROWSER_PATH=$(which chrome)" >> $GITHUB_ENV
+          for site in test_site test_site_2; do
+            bench --site $site execute frappe.utils.install.complete_setup_wizard
+            bench --site $site execute frappe.tests.ui_test_helpers.create_test_user
+          done
 
       - name: Run Tests
         id: ui-tests
@@ -96,26 +108,17 @@ jobs:
           bench --site test_site \
             run-ui-tests ${{ github.event.repository.name }} \
               --headless \
-              --browser ${{ env.BROWSER_PATH }} \
-              --ci-build-id $GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT \
-              --group ui-shard-${{ matrix.index }}
-        env:
-          CYPRESS_RECORD_KEY: 4a48f41c-11b3-425b-aa88-c58048fa69eb
-          SPLIT: 4
-          SPLIT_INDEX: ${{ strategy.job-index }}
+              --parallel-site test_site_2 \
+              --shard=${{ matrix.index }}/4
 
-      - name: Compress Cypress Videos
-        if: always() && steps.ui-tests.outcome == 'failure'
-        run: |
-            if find ./cypressVideos -mindepth 1 | read; then
-              zip -r cypress_recordings.zip ./cypressVideos
-            fi
-      - name: Upload Cypress Videos
+      - name: Upload Playwright Report
         if: always() && steps.ui-tests.outcome == 'failure'
         uses: actions/upload-artifact@v7
         with:
-          name: Cypress CI Video Recordings
-          path: ./cypress_recordings.zip
+          name: playwright-report-${{ matrix.index }}
+          path: |
+            apps/${{ github.event.repository.name }}/playwright-report
+            apps/${{ github.event.repository.name }}/test-results
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
@@ -131,10 +134,95 @@ jobs:
             cat $f
           done
 
+  studio:
+    name: Studio Component Tests
+    needs: checkrun
+    if: ${{ needs.checkrun.outputs.build == 'strawberry' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      # not NODE_ENV=production: yarn would skip the editor's devDependencies, cypress included
+      PYTHONWARNINGS: "ignore"
+      DB_ROOT_PASSWORD: db_root
+    services:
+      mariadb:
+        image: mariadb:11.8
+        ports:
+          - 3306:3306
+        options: --health-cmd="healthcheck.sh --connect --innodb_initialized" --health-interval=5s --health-timeout=2s --health-retries=3 --tmpfs=/var/lib/mysql:rw,noexec,nosuid,size=2g
+        env:
+          MARIADB_ROOT_PASSWORD: ${{ env.DB_ROOT_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Cache Cypress binary
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/Cypress
+          key: ${{ runner.os }}-cypress-${{ hashFiles('studio/frontend/yarn.lock') }}
+
+      - uses: ./.github/actions/setup
+        name: Environment Setup
+        with:
+          python-version: '3.14'
+          node-version: 24
+          build-assets: true
+          disable-socketio: true
+          disable-workers: true
+          db-root-password: ${{ env.DB_ROOT_PASSWORD }}
+          db: mariadb
+
+      - name: Install Cypress binary
+        env:
+          CYPRESS_INSTALL_BINARY: ""
+        run: |
+          cd ${GITHUB_WORKSPACE}/apps/${{ github.event.repository.name }}/studio/frontend
+          yarn cypress install
+
+      # the data-source specs call the test site through the dev server's proxy
+      - name: Run Component Tests
+        run: |
+          cd ${GITHUB_WORKSPACE}/apps/${{ github.event.repository.name }}/studio/frontend
+          yarn test:cypress
+
+      - name: Upload Cypress screenshots
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cypress-screenshots
+          path: apps/${{ github.event.repository.name }}/studio/frontend/cypress/screenshots
+
+      - name: Show bench output
+        if: ${{ always() }}
+        run: |
+          cat bench_start.log || true
+
+  flow:
+    name: Flow Page Tests
+    needs: checkrun
+    if: ${{ needs.checkrun.outputs.build == 'strawberry' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: yarn
+          cache-dependency-path: flow/yarn.lock
+
+      # node --test alone: the page's tests need no site
+      - name: Run Page Tests
+        run: |
+          cd flow
+          yarn install --frozen-lockfile
+          yarn test
+
   # TIP: Require this single check in branch protection, e.g. UI / Success
   success:
     name: UI Success
-    needs: [test]
+    needs: [test, studio, flow]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -143,6 +231,8 @@ jobs:
         run: |
           stati = [
             '${{ needs.test.result }}',
+            '${{ needs.studio.result }}',
+            '${{ needs.flow.result }}',
           ]
 
           nopass = ["failure", "cancelled"]
@@ -152,3 +242,25 @@ jobs:
           if all(r in dopass for r in stati):
             exit(0)
           exit(1)
+
+  develop-status:
+    name: Update Develop Status
+    needs: success
+    if: ${{ always() && github.event_name != 'pull_request' && contains(fromJSON('["refs/heads/develop", "refs/heads/desk-v2"]'), github.ref) }}
+    runs-on: ubuntu-latest
+    concurrency:
+      group: develop-status-all
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      actions: read
+      statuses: write
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          sparse-checkout: .github/helper
+      - run: python .github/helper/develop_status.py refresh
+        env:
+          GH_TOKEN: ${{ github.token }}

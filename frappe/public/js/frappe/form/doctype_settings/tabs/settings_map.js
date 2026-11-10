@@ -12,7 +12,7 @@
 frappe.doctype_settings.register("general", function (panel, doctype) {
 	panel.set_view({
 		title: __("General"),
-		description: __("Settings from across the system that apply to {0}.", [doctype]),
+		description: __("Settings from across the system that apply to {0}.", [__(doctype)]),
 		render: (p) => load(p, doctype),
 	});
 });
@@ -42,7 +42,7 @@ function render(panel, doctype, groups) {
 		frappe.doctype_settings.empty_state($body, {
 			icon: "sliders-horizontal",
 			title: __("No related settings"),
-			description: __("No settings from other areas are linked to {0}.", [doctype]),
+			description: __("No settings from other areas are linked to {0}.", [__(doctype)]),
 		});
 		return;
 	}
@@ -86,7 +86,7 @@ function render_field($body, group, field) {
 	$('<div class="text-base-medium text-ink-gray-8"></div>').text(field.label).appendTo($text);
 	if (field.description) {
 		$('<div class="dts-setting-description text-p-sm text-ink-gray-5"></div>')
-			.text(field.description)
+			.html(field.description)
 			.appendTo($text);
 	}
 
@@ -125,7 +125,8 @@ function render_input($control, group, field) {
 			read_only: field.can_write ? 0 : 1,
 			onchange() {
 				const value = control.get_value();
-				if (value === field.value) return;
+				// the initial set_value fires this too; an unset field is null in the doc but "" here
+				if (same_value(value, field.value)) return;
 				on_change(group, field, value, () => control.set_value(field.value));
 			},
 		},
@@ -137,6 +138,11 @@ function render_input($control, group, field) {
 	control.tooltip && control.tooltip.remove();
 	control.set_value(field.value);
 	control.refresh();
+}
+
+function same_value(a, b) {
+	const norm = (v) => (v === null || v === undefined ? "" : String(v));
+	return norm(a) === norm(b);
 }
 
 // Apply a change optimistically (so dependents react instantly), then persist; on failure

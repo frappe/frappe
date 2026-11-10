@@ -44,7 +44,9 @@ class TestScheduler(IntegrationTestCase):
 	def tearDown(self):
 		purge_pending_jobs()
 
-	def test_enqueue_jobs(self):
+	# a live worker would otherwise run every scheduled job while later tests run
+	@patch("frappe.core.doctype.scheduled_job_type.scheduled_job_type.enqueue")
+	def test_enqueue_jobs(self, _enqueue):
 		frappe.db.sql("update `tabScheduled Job Type` set last_execution = '2010-01-01 00:00:00'")
 
 		enqueued_jobs = enqueue_events()

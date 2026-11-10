@@ -4,7 +4,7 @@ import datetime
 import hashlib
 import hmac
 import re
-from urllib.parse import unquote_plus, urljoin, urlparse
+from urllib.parse import unquote_plus, urljoin
 
 from oauthlib.common import Request
 from oauthlib.openid import RequestValidator
@@ -12,7 +12,7 @@ from oauthlib.openid import RequestValidator
 import frappe
 from frappe.integrations.doctype.oauth_bearer_token.oauth_bearer_token import get_oauth_token_hash
 from frappe.integrations.doctype.oauth_client.oauth_client import OAuthClient
-from frappe.utils.data import cstr, get_system_timezone, now_datetime
+from frappe.utils.data import cstr, get_system_timezone, get_url, now_datetime
 
 
 class OAuthWebRequestValidator(RequestValidator):
@@ -22,6 +22,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		try:
 			client = frappe.get_cached_doc("OAuth Client", client_id)
 		except frappe.DoesNotExistError:
+			frappe.clear_last_message()
 			return False
 
 		if client.user_has_allowed_role():
@@ -123,6 +124,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		try:
 			client: OAuthClient = frappe.get_cached_doc("OAuth Client", client_name)
 		except frappe.DoesNotExistError:
+			frappe.clear_last_message()
 			return False
 
 		if client.token_endpoint_auth_method == "None":
@@ -174,6 +176,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		try:
 			client = frappe.get_cached_doc("OAuth Client", client_id)
 		except frappe.DoesNotExistError:
+			frappe.clear_last_message()
 			return False
 
 		if not client.is_public_client():
@@ -373,9 +376,14 @@ class OAuthWebRequestValidator(RequestValidator):
 		- Refresh Token Grant
 		"""
 
-		otoken = frappe.get_doc(
+		if not refresh_token:
+			return False
+
+		otoken = frappe.db.get_value(
 			"OAuth Bearer Token",
 			{"refresh_token": get_oauth_token_hash(refresh_token), "status": "Active"},
+			("user", "client"),
+			as_dict=True,
 		)
 
 		if not otoken or not client or otoken.client != client.client_id:
@@ -447,24 +455,16 @@ class OAuthWebRequestValidator(RequestValidator):
 		return get_userinfo(user)
 
 	def validate_id_token(self, token, scopes, request):
-		try:
-			id_token = frappe.get_doc("OAuth Bearer Token", {"access_token": get_oauth_token_hash(token)})
-			if id_token.status == "Active":
-				return True
-		except Exception:
-			return False
-
-		return False
+		status = frappe.db.get_value(
+			"OAuth Bearer Token", {"access_token": get_oauth_token_hash(token)}, "status"
+		)
+		return status == "Active"
 
 	def validate_jwt_bearer_token(self, token, scopes, request):
-		try:
-			jwt = frappe.get_doc("OAuth Bearer Token", {"access_token": get_oauth_token_hash(token)})
-			if jwt.status == "Active":
-				return True
-		except Exception:
-			return False
-
-		return False
+		status = frappe.db.get_value(
+			"OAuth Bearer Token", {"access_token": get_oauth_token_hash(token)}, "status"
+		)
+		return status == "Active"
 
 	def validate_silent_authorization(self, request):
 		"""Ensure the logged in user has authorized silent OpenID authorization.
@@ -564,6 +564,9 @@ class OAuthWebRequestValidator(RequestValidator):
 					if verified_payload:
 						return user.name == frappe.session.user
 
+			except frappe.DoesNotExistError:
+				frappe.clear_last_message()
+				return False
 			except Exception:
 				return False
 
@@ -655,6 +658,4 @@ def generate_json_error_response(e):
 
 
 def get_server_url():
-	request_url = urlparse(frappe.request.url)
-	request_url = f"{request_url.scheme}://{request_url.netloc}"
-	return frappe.get_value("Social Login Key", "frappe", "base_url") or request_url
+	return frappe.get_value("Social Login Key", "frappe", "base_url") or get_url()

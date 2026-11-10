@@ -5,6 +5,7 @@ import AutocompleteField from "../AutocompleteField.vue";
 import ButtonField from "../ButtonField.vue";
 import CheckField from "../CheckField.vue";
 import CodeEditorField from "../CodeEditorField.vue";
+import ColorField from "../ColorField.vue";
 import DateField from "../DateField.vue";
 import DatetimeField from "../DatetimeField.vue";
 import DurationField from "../DurationField.vue";
@@ -40,7 +41,7 @@ describe("fieldTypes registry", () => {
   });
 
   it("resolves all number fieldtypes to NumberField", () => {
-    for (const t of ["Int", "Float", "Currency", "Percent"]) {
+    for (const t of ["Int", "Long Int", "Float", "Currency", "Percent"]) {
       expect(getFieldComponent(t)).toBe(NumberField);
     }
   });
@@ -74,6 +75,7 @@ describe("fieldTypes registry", () => {
   it("resolves the picker/selector fieldtypes to their components", () => {
     expect(getFieldComponent("Autocomplete")).toBe(AutocompleteField);
     expect(getFieldComponent("Rating")).toBe(RatingField);
+    expect(getFieldComponent("Color")).toBe(ColorField);
     expect(getFieldComponent("Duration")).toBe(DurationField);
     expect(getFieldComponent("Dynamic Link")).toBe(DynamicLinkField);
     expect(getFieldComponent("Table MultiSelect")).toBe(TableMultiSelectField);

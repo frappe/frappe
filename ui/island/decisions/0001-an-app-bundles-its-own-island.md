@@ -6,7 +6,9 @@ An island is one ES module. It carries its own Vue, its own frappe-ui and every 
 
 Ownership follows the code. The app writes the island, so the app builds it, weighs it and ships it. Framework owns one seam: a name, a URL and the `mount(el, context)` export.
 
-The seam is small enough to state in full. The host reads the island's bundle name from the `ui_islands` hook. It reads `<name>.island.js` and `<name>.island.css` from assets.json. It imports the module and calls `mount` with the host context and the stylesheet URL. Nothing else crosses.
+The seam is small enough to state in full. The host reads `<name>.island.js` and `<name>.island.css` from assets.json. It imports the module and calls `mount` with the host context and the stylesheet URL. Nothing else crosses.
+
+Amended by [0014](0014-assets-json-is-the-island-registry.md). The host read the island's bundle name from a `ui_islands` hook first; the asset key is the name now.
 
 The cost is duplication. Two islands from two apps on one page carry two copies of Vue. Each copy is a few hundred kB. Each copy is correct on its own, because two Vue apps in two shadow roots share no state.
 

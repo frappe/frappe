@@ -24,6 +24,7 @@ import {
 	writeIslandAssets,
 } from "./assets.js";
 import deskFonts from "./desk-fonts.js";
+import { writeInputsStamp } from "./inputs.js";
 import rootToHost from "./root-to-host.js";
 import { bundleSources, unscannedSources } from "./tailwind-scan.js";
 import { writeIslandTailwindConfig } from "./tailwind.js";
@@ -66,6 +67,8 @@ const TAILWIND_ENTRY = "virtual:island.css";
  * @param {import('vite').PluginOption[]} [options.plugins]  extra plugins
  * @param {boolean} [options.production]
  * @param {boolean} [options.watch]
+ * @param {boolean} [options.stampInputs]  record the build's inputs beside its
+ *        output, for `islandsUnchanged` in ./inputs.js
  */
 export async function buildIslands(options) {
 	const context = await islandContext(options);
@@ -191,6 +194,7 @@ export function islandConfig(context) {
 				? [forbiddenImports(context.forbiddenImports)]
 				: []),
 			islandVue(interop(tools.vue)),
+			hoistTransitiveImports(),
 			emitIslands(context),
 			...(context.plugins ?? []),
 		],
@@ -200,7 +204,7 @@ export function islandConfig(context) {
 			// the legacy pipeline's output or another app's islands. An entry
 			// the app dropped leaves in the same build.
 			emptyOutDir: true,
-			minify: context.mode === "production" ? "esbuild" : false,
+			minify: context.mode === "production",
 			sourcemap: false,
 			// One stylesheet for the app, adopted into every island's shadow
 			// root. ../../island/decisions/0004-an-app-ships-one-island-stylesheet.md
@@ -253,6 +257,47 @@ function tailwindEntry(entryPaths) {
 		transform(code, id) {
 			if (!entryPaths.has(id.split("?")[0])) return null;
 			return { code: `import "${TAILWIND_ENTRY}";\n${code}`, map: null };
+		},
+	};
+}
+
+/**
+ * Give every entry a static import of each chunk it loads, as Rollup's
+ * `hoistTransitiveImports` did. Rolldown has no such option. Without it the
+ * browser finds a chunk's own imports only after that chunk arrives, one round
+ * trip per level. Vite's `modulePreload` covers only HTML and dynamic imports.
+ *
+ * The imports go last, so every chunk still runs from its real importer first,
+ * in the same order as before.
+ */
+function hoistTransitiveImports() {
+	return {
+		name: "island-hoist-transitive-imports",
+		// Before hashing, so the entry's hash covers the imports added here.
+		// The file names are still placeholders, which the bundler fills in.
+		renderChunk(code, chunk, _options, { chunks }) {
+			if (!chunk.isEntry) return null;
+
+			const direct = new Set(chunk.imports);
+			const seen = new Set();
+			const queue = [...chunk.imports];
+			while (queue.length) {
+				const fileName = queue.pop();
+				if (seen.has(fileName)) continue;
+				seen.add(fileName);
+				queue.push(...(chunks[fileName]?.imports ?? []));
+			}
+
+			const hoisted = [...seen].filter((fileName) => !direct.has(fileName));
+			if (!hoisted.length) return null;
+
+			const from = path.posix.dirname(chunk.fileName);
+			return (
+				code +
+				hoisted
+					.map((fileName) => `\nimport "./${path.posix.relative(from, fileName)}";`)
+					.join("")
+			);
 		},
 	};
 }
@@ -319,7 +364,9 @@ function emitIslands(context) {
 			}
 
 			assertSheetScannedTheBundle(context, bundle, this);
-			await notifyRebuild(paths, await writeIslandAssets(paths, relMap), context.watch);
+			const urls = await writeIslandAssets(paths, relMap);
+			if (context.stampInputs) writeInputsStamp(context, this.getModuleIds(), urls);
+			await notifyRebuild(paths, urls, context.watch);
 		},
 	};
 }

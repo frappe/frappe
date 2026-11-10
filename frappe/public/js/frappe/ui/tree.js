@@ -20,6 +20,8 @@ frappe.ui.Tree = class {
 		// markers — without actions, menus, or hover cards. For read-only
 		// embedded previews (CoA importer, setup wizard).
 		row_style = false,
+		// "default" (server order), "asc" or "desc" by visible label
+		sort_order = "default",
 
 		args,
 		method,
@@ -29,6 +31,8 @@ frappe.ui.Tree = class {
 		on_node_render,
 	}) {
 		$.extend(this, arguments[0]);
+		// $.extend skips undefined, so the default would never land
+		this.sort_order = sort_order;
 		if (root_value == null) {
 			this.root_value = label;
 		}
@@ -127,6 +131,31 @@ frappe.ui.Tree = class {
 
 	refresh() {
 		this.selected_node.parent_node && this.load_children(this.selected_node.parent_node, true);
+	}
+
+	set_sort_order(sort_order) {
+		this.sort_order = sort_order;
+		Object.values(this.nodes).forEach((node) => this.sort_children(node));
+	}
+
+	sort_children(node) {
+		const $items = node.$ul.children("li.tree-node");
+		if ($items.length < 2) return;
+
+		const collator = new Intl.Collator(undefined, {
+			numeric: true,
+			sensitivity: "base",
+		});
+		const direction = { asc: 1, desc: -1 }[this.sort_order];
+		const items = $items.get().map((li) => ({
+			li,
+			index: $(li).data("tree-index"),
+			label: $(li).children(".tree-link").find(".tree-label").text(),
+		}));
+		items.sort((a, b) =>
+			direction ? direction * collator.compare(a.label, b.label) : a.index - b.index
+		);
+		node.$ul.append(items.map((item) => item.li));
 	}
 
 	/**
@@ -521,7 +550,9 @@ frappe.ui.Tree = class {
 			$.each(data_set, (i, data) => {
 				var child_node = this.add_node(node, data);
 				child_node.$tree_link.data("node-data", data).data("node", child_node);
+				child_node.parent.data("tree-index", i);
 			});
+			if (this.sort_order !== "default") this.sort_children(node);
 		}
 
 		node.expanded = false;

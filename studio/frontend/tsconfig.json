@@ -1,0 +1,51 @@
+{
+	"compilerOptions": {
+	  "target": "ES6",
+	  "module": "esnext",
+	  "strict": true,
+	  "jsx": "preserve",
+	  "importHelpers": true,
+	  "moduleResolution": "bundler",
+	  "experimentalDecorators": true,
+	  "skipLibCheck": true,
+	  "noErrorTruncation": true,
+	  "noEmit": true,
+	  "esModuleInterop": true,
+	  "allowSyntheticDefaultImports": true,
+	  "forceConsistentCasingInFileNames": true,
+	  "useDefineForClassFields": true,
+	  "resolveJsonModule": true,
+	  "sourceMap": true,
+	  "baseUrl": ".",
+	  "types": ["node", "vite/client"],
+	  "allowJs": true,
+	  "paths": {
+		"@/*": ["src/*"],
+		"@framework/ui": ["../../ui/src/index.ts"],
+  		"@framework/ui/*": ["../../ui/src/*"]
+	  },
+	  "lib": [
+		"esnext",
+		"dom",
+		"dom.iterable",
+		"scripthost"
+	  ]
+	},
+	"extends":"frappe-ui/tsconfig.base.json",
+	"include": [
+	  "src/**/*.ts",
+	  "src/**/*.tsx",
+	  "src/**/*.vue",
+	  "tests/**/*.ts",
+	  "tests/**/*.tsx",
+	  "src/scripts/tsToJSONGenerator.ts",
+	  "src/utils/tsToJSON/index.ts",
+	  "src/utils/tsToJSON/customParser.ts",
+	  "src/utils/build.js",
+	  "./auto-imports.d.ts",
+	  "./components.d.ts"
+	],
+	"exclude": [
+	  "node_modules"
+	]
+}

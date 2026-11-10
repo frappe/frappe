@@ -20,7 +20,7 @@
 			<p id="contact-alert" class="alert alert-warning"
 				style="display: none;">&nbsp;</p>
 			<div class="form-group">
-				<select name="subject" class="form-control">
+				<select name="subject" class="form-control" aria-label="{{ _('Subject') }}">
 				{% if query_options %}
 					{% for option in query_options %}
 					<option value="{{ option }}">{{ _(option) }}</option>
@@ -32,10 +32,10 @@
 			</div>
 			<div class="form-group">
 				<input class="form-control" name="email" type="text"
-				placeholder="{{ _('Your email address') }}" />
+				placeholder="{{ _('Your email address') }}" aria-label="{{ _('Your email address') }}" />
 			</div>
 			<div class="form-group">
-				<textarea rows="10" name="message" class="form-control"></textarea>
+				<textarea rows="10" name="message" class="form-control" aria-label="{{ _('Message') }}"></textarea>
 			</div>
 			<div class="form-group">
 				<button class="btn btn-primary btn-send">{{ _("Send") }}</button>

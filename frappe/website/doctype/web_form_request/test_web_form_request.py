@@ -5,8 +5,12 @@ import json
 
 import frappe
 from frappe.tests import IntegrationTestCase
+from frappe.website.doctype.web_form.web_form import get_published_web_forms
 from frappe.website.doctype.web_form_request.web_form_request import (
 	InvalidFieldsInValuesError,
+	create_for_document,
+	get_request_forms_by_doctype,
+	get_requests_for_document,
 	get_web_form_request,
 	get_web_form_request_query,
 )
@@ -19,6 +23,13 @@ IGNORE_TEST_RECORD_DEPENDENCIES = []  # eg. ["User"]
 
 
 class TestWebFormRequest(IntegrationTestCase):
+	def setUp(self):
+		self.user = "test@example.com"
+		user = frappe.get_doc("User", self.user)
+		user.add_roles("Website Manager")
+		self.addCleanup(user.remove_roles, "Website Manager")
+		self.addCleanup(frappe.set_user, "Administrator")
+
 	def test_web_form_values_must_match_web_form_fields(self):
 		with self.assertRaises(InvalidFieldsInValuesError) as ctx:
 			self.create_web_form_request(web_form_values={"invalid_web_form_field": "value"})
@@ -49,6 +60,153 @@ class TestWebFormRequest(IntegrationTestCase):
 			get_web_form_request("manage-events", web_form_request.key).name,
 			web_form_request.name,
 		)
+
+	def test_create_for_document_binds_record_to_edit_link(self):
+		self.set_web_form_settings(published=1, key_required=1, allow_edit=1)
+		frappe.set_user(self.user)
+		event = self.create_event()
+
+		url = create_for_document("manage-events", event.name, expires_on="2099-01-01 00:00:00")
+
+		request = frappe.get_last_doc("Web Form Request", {"web_form": "manage-events"})
+		self.assertTrue(request.has_reference(event.name))
+		self.assertEqual(request.references[0].link_doctype, "Event")
+		self.assertTrue(url.endswith(f"/{event.name}/edit?web_form_request_key={request.key}"))
+
+	def test_create_for_document_needs_a_key_required_editable_form(self):
+		frappe.set_user(self.user)
+		event = self.create_event()
+
+		for settings in ({"key_required": 0, "allow_edit": 1}, {"key_required": 1, "allow_edit": 0}):
+			self.set_web_form_settings(published=1, **settings)
+			with self.assertRaises(frappe.ValidationError):
+				create_for_document("manage-events", event.name)
+
+	def test_create_for_document_needs_write_permission_on_record(self):
+		self.set_web_form_settings(published=1, key_required=1, allow_edit=1)
+		event = self.create_event(event_type="Private")
+		participant_event = self.create_event(
+			event_type="Private",
+			event_participants=[
+				{"reference_doctype": "User", "reference_docname": self.user, "email": self.user}
+			],
+		)
+
+		frappe.set_user(self.user)
+		self.assertTrue(frappe.has_permission("Event", "read", participant_event.name))
+		for name in (event.name, participant_event.name):
+			with self.assertRaises(frappe.PermissionError):
+				create_for_document("manage-events", name)
+
+	def test_create_for_document_rejects_past_expiry(self):
+		self.set_web_form_settings(published=1, key_required=1, allow_edit=1)
+		frappe.set_user(self.user)
+		event = self.create_event()
+
+		with self.assertRaises(frappe.ValidationError):
+			create_for_document("manage-events", event.name, expires_on="2000-01-01 00:00:00")
+
+	def test_requests_for_document_need_write_permission_on_record(self):
+		self.set_web_form_settings(published=1, key_required=1, allow_edit=1)
+		event = self.create_event(
+			event_type="Private",
+			event_participants=[
+				{"reference_doctype": "User", "reference_docname": self.user, "email": self.user}
+			],
+		)
+		create_for_document("manage-events", event.name)
+
+		frappe.set_user(self.user)
+		self.assertTrue(frappe.has_permission("Event", "read", event.name))
+		with self.assertRaises(frappe.PermissionError):
+			get_requests_for_document("Event", event.name)
+
+	def test_request_forms_need_create_permission(self):
+		self.set_web_form_settings(published=1, key_required=1, allow_edit=1)
+
+		frappe.set_user(self.user)
+		title = frappe.db.get_value("Web Form", "manage-events", "title")
+		self.assertIn({"value": "manage-events", "label": title}, get_request_forms_by_doctype()["Event"])
+
+		frappe.set_user("Guest")
+		self.assertEqual(get_request_forms_by_doctype(), {})
+
+	def test_saving_or_deleting_web_form_clears_bootinfo(self):
+		frappe.set_user(self.user)
+		web_form = frappe.get_doc(
+			{"doctype": "Web Form", "title": "Boot Cache Form", "doc_type": "Event", "published": 1}
+		)
+		for action in (web_form.insert, web_form.delete):
+			frappe.cache.hset("bootinfo", self.user, {"cached": 1})
+			action()
+			self.assertIsNone(frappe.cache.hget("bootinfo", self.user))
+
+	def test_requests_for_document_report_status(self):
+		self.set_web_form_settings(published=1, key_required=1, allow_edit=1)
+		frappe.set_user(self.user)
+		event = self.create_event()
+		create_for_document("manage-events", event.name, expires_on="2099-01-01 00:00:00")
+		create_for_document("manage-events", event.name, expires_on="2099-01-01 00:00:00")
+		frappe.get_last_doc("Web Form Request", {"web_form": "manage-events"}).db_set(
+			"expires_on", "2000-01-01 00:00:00"
+		)
+		create_for_document("manage-events", event.name, expires_on="2099-01-01 00:00:00")
+		frappe.get_last_doc("Web Form Request", {"web_form": "manage-events"}).db_set(
+			"first_used_on", frappe.utils.now_datetime()
+		)
+		create_for_document("manage-events", event.name, expires_on="2099-01-01 00:00:00")
+		frappe.get_last_doc("Web Form Request", {"web_form": "manage-events"}).db_set(
+			{"first_used_on": frappe.utils.now_datetime(), "expires_on": "2000-01-01 00:00:00"}
+		)
+
+		requests = get_requests_for_document("Event", event.name)
+
+		self.assertEqual(sorted(r.status for r in requests), ["Expired", "Not Used", "Used", "Used"])
+		self.assertTrue(all("key" not in r for r in requests))
+		not_used = next(r for r in requests if r.status == "Not Used")
+		self.assertIn("web_form_request_key=", not_used.url)
+		used = next(r for r in requests if r.status == "Used" and r.expires_on.year == 2099)
+		self.assertIn("web_form_request_key=", used.url)
+		used_and_expired = next(r for r in requests if r.status == "Used" and r.expires_on.year == 2000)
+		self.assertIsNone(used_and_expired.get("url"))
+		expired = next(r for r in requests if r.status == "Expired")
+		self.assertIsNone(expired.get("url"))
+
+	def test_requests_for_document_are_paged(self):
+		self.set_web_form_settings(published=1, key_required=1, allow_edit=1)
+		frappe.set_user(self.user)
+		event = self.create_event()
+		for _ in range(3):
+			create_for_document("manage-events", event.name, expires_on="2099-01-01 00:00:00")
+		newest_first = [r.name for r in get_requests_for_document("Event", event.name)]
+
+		first = get_requests_for_document("Event", event.name, start=0, page_length=2)
+		second = get_requests_for_document("Event", event.name, start=2, page_length=2)
+
+		self.assertEqual([r.name for r in first + second], newest_first)
+		self.assertEqual(len(first), 2)
+
+	def set_web_form_settings(self, **settings):
+		current = frappe.db.get_value("Web Form", "manage-events", list(settings), as_dict=True)
+
+		def restore():
+			frappe.db.set_value("Web Form", "manage-events", current, update_modified=False)
+			get_published_web_forms.clear_cache()
+
+		self.addCleanup(restore)
+		frappe.db.set_value("Web Form", "manage-events", settings, update_modified=False)
+		get_published_web_forms.clear_cache()
+
+	def create_event(self, event_type="Public", event_participants=None):
+		return frappe.get_doc(
+			{
+				"doctype": "Event",
+				"subject": "_Test Web Form Request Event",
+				"event_type": event_type,
+				"starts_on": "2026-05-10 10:00:00",
+				"event_participants": event_participants or [],
+			}
+		).insert()
 
 	def create_web_form_request(self, web_form_values=None, doc_values=None):
 		return frappe.get_doc(

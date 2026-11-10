@@ -564,7 +564,7 @@ def get_tests_CompatFrappeTestCase():
 	from contextlib import contextmanager
 
 	import frappe
-	from frappe.model.base_document import BaseDocument
+	from frappe.model.document import Document
 	from frappe.utils import cint
 
 	datetime_like_types = (datetime.datetime, datetime.date, datetime.time, datetime.timedelta)
@@ -645,7 +645,7 @@ def get_tests_CompatFrappeTestCase():
 		def assertDocumentEqual(self, expected, actual):
 			"""Compare a (partial) expected document with actual Document."""
 
-			if isinstance(expected, BaseDocument):
+			if isinstance(expected, Document):
 				expected = expected.as_dict()
 
 			for field, value in expected.items():
@@ -657,7 +657,7 @@ def get_tests_CompatFrappeTestCase():
 				else:
 					self._compare_field(value, actual.get(field), actual, field)
 
-		def _compare_field(self, expected, actual, doc: BaseDocument, field: str):
+		def _compare_field(self, expected, actual, doc: Document, field: str):
 			msg = f"{field} should be same."
 
 			if isinstance(expected, float):
@@ -778,7 +778,8 @@ def get_tests_CompatFrappeTestCase():
 				yield
 				self.assertLessEqual(rows_read, count, msg="Queries read more rows than expected")
 			finally:
-				frappe.db.sql = orig_sql
+				# assigning the original back would keep `sql` on the instance and hide patches on the class
+				vars(frappe.db).pop("sql", None)
 
 		@classmethod
 		def enable_safe_exec(cls) -> None:

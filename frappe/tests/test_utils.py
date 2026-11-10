@@ -10,6 +10,7 @@ from decimal import ROUND_HALF_UP, Decimal, localcontext
 from enum import Enum
 from io import StringIO
 from mimetypes import guess_type
+from typing import Literal
 from unittest.mock import patch
 
 from hypothesis import given
@@ -52,6 +53,7 @@ from frappe.utils.change_log import (
 	check_for_update,
 	get_source_url,
 	parse_github_url,
+	parse_latest_non_beta_release,
 )
 from frappe.utils.data import (
 	add_to_date,
@@ -69,6 +71,7 @@ from frappe.utils.data import (
 	format_duration,
 	get_datetime,
 	get_first_day_of_week,
+	get_image_thumbnail_uri,
 	get_time,
 	get_timedelta,
 	get_timespan_date_range,
@@ -442,6 +445,12 @@ class TestMoney(IntegrationTestCase):
 				(0.2, "One Khoums only."),
 				(0, "MRO Zero only."),
 				("Fail", ""),
+			],
+			"USD": [
+				(0.29, "Twenty Nine Cent only."),
+				(0.57, "Fifty Seven Cent only."),
+				(0.58, "Fifty Eight Cent only."),
+				(1.57, "USD One and Fifty Seven Cent only."),
 			],
 		}
 
@@ -867,6 +876,32 @@ class TestImage(IntegrationTestCase):
 		restripped_image_content = strip_exif_data(new_image_content, "image/jpeg")
 		self.assertEqual(restripped_image_content, new_image_content)
 
+	def test_image_thumbnail_does_not_read_outside_public_or_private(self):
+		sample = frappe.get_app_path("frappe", "tests", "data", "exif_sample_image.jpg")
+		secret = frappe.get_site_path("private", "files", "thumbnail_traversal_secret.jpg")
+		os.makedirs(os.path.dirname(secret), exist_ok=True)
+		with open(sample, "rb") as src, open(secret, "wb") as dst:
+			dst.write(src.read())
+		self.addCleanup(os.remove, secret)
+
+		frappe.local._print_thumbnail_cache = {}
+		url = "/../private/files/thumbnail_traversal_secret.jpg"
+		self.assertEqual(get_image_thumbnail_uri(url), url)
+
+		link = frappe.get_site_path("public", "files", "thumbnail_traversal_link.jpg")
+		os.symlink(os.path.abspath(secret), link)
+		self.addCleanup(os.remove, link)
+		self.assertEqual(
+			get_image_thumbnail_uri("/files/thumbnail_traversal_link.jpg"),
+			"/files/thumbnail_traversal_link.jpg",
+		)
+
+		public = frappe.get_site_path("public", "files", "thumbnail_public.jpg")
+		with open(sample, "rb") as src, open(public, "wb") as dst:
+			dst.write(src.read())
+		self.addCleanup(os.remove, public)
+		self.assertTrue(get_image_thumbnail_uri("/files/thumbnail_public.jpg").startswith("data:image/"))
+
 	def test_optimize_image(self):
 		image_file_path = frappe.get_app_path("frappe", "tests", "data", "sample_image_for_optimization.jpg")
 		content_type = guess_type(image_file_path)[0]
@@ -879,6 +914,289 @@ class TestImage(IntegrationTestCase):
 		self.assertLessEqual(width, 500)
 		self.assertLessEqual(height, 500)
 		self.assertLess(len(optimized_content), len(original_content))
+
+	def test_optimize_image_fills_transparency_with_white(self):
+		image_file_path = frappe.get_app_path("frappe", "tests", "data", "sample_image_for_optimization.jpg")
+		image = Image.open(image_file_path).convert("RGBA")
+		image.paste((0, 0, 0, 0), (0, 0, image.width // 2, image.height))
+		content = io.BytesIO()
+		image.save(content, format="PNG")
+
+		with self.set_user("test@example.com"):
+			optimized_content = optimize_image(content.getvalue(), "image/jpeg")
+
+		self.assertEqual(Image.open(io.BytesIO(optimized_content)).getpixel((10, 10)), (255, 255, 255))
+
+	def test_optimize_pdf(self):
+		from pypdf import PdfReader
+
+		from frappe.utils.pdf import optimize_pdf
+
+		image_file_path = frappe.get_app_path("frappe", "tests", "data", "sample_image_for_optimization.jpg")
+		image = Image.open(image_file_path)
+
+		buf = io.BytesIO()
+		image.save(buf, format="PDF")
+		original_content = buf.getvalue()
+
+		optimized_content = optimize_pdf(original_content)
+
+		self.assertLess(len(optimized_content), len(original_content))
+		# still a valid, readable PDF with the image intact
+		reader = PdfReader(io.BytesIO(optimized_content))
+		images = list(reader.pages[0].images)
+		self.assertEqual(len(images), 1)
+
+	@staticmethod
+	def _count_image_objects(content: bytes) -> int:
+		"""Count distinct indirect objects with /Subtype /Image."""
+		from pypdf import PdfReader
+
+		reader = PdfReader(io.BytesIO(content))
+		count = 0
+		for i in range(1, reader.trailer["/Size"]):
+			obj = reader.get_object(i)
+			if obj is not None and hasattr(obj, "get") and obj.get("/Subtype") == "/Image":
+				count += 1
+		return count
+
+	def test_optimize_pdf_deduplicates_repeated_objects(self):
+		from pypdf import PdfReader, PdfWriter
+
+		from frappe.utils.pdf import optimize_pdf
+
+		image = Image.new("RGB", (800, 800), (20, 150, 90))
+		buf = io.BytesIO()
+		image.save(buf, format="PDF")
+		single_page_pdf = buf.getvalue()
+
+		writer = PdfWriter()
+		for _ in range(4):
+			writer.append(PdfReader(io.BytesIO(single_page_pdf)))
+		out = io.BytesIO()
+		writer.write(out)
+		duplicated_content = out.getvalue()
+
+		self.assertEqual(self._count_image_objects(duplicated_content), 4)
+
+		optimized_content = optimize_pdf(duplicated_content)
+
+		# the precise signal that dedup (not just quality recompression) ran:
+		# 4 duplicate image objects merged into 1 shared object
+		self.assertEqual(self._count_image_objects(optimized_content), 1)
+		self.assertLess(len(optimized_content), len(duplicated_content))
+		reader = PdfReader(io.BytesIO(optimized_content))
+		self.assertEqual(len(reader.pages), 4)
+		self.assertEqual(next(iter(reader.pages[0].images)).image.size, (800, 800))
+
+	def test_optimize_pdf_encodes_an_image_shared_by_every_page_once(self):
+		from pypdf import PdfReader, PdfWriter
+		from pypdf._page import ImageFile
+
+		from frappe.utils.pdf import optimize_pdf
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		buf = io.BytesIO()
+		Image.new("RGB", (800, 800), (20, 150, 90)).save(buf, format="PDF")
+		page = PdfReader(buf).pages[0]
+		writer = PdfWriter()
+		for _ in range(4):
+			writer.add_page(page)
+		out = io.BytesIO()
+		writer.write(out)
+
+		with patch.object(ImageFile, "replace", autospec=True, side_effect=ImageFile.replace) as replace:
+			optimize_pdf(out.getvalue())
+
+		replace.assert_called_once()
+
+	def test_optimize_pdf_skips_unprocessable_image_but_optimizes_rest(self):
+		from pypdf import PdfReader, PdfWriter
+
+		from frappe.utils.pdf import optimize_pdf
+
+		# a 1-bit bilevel image (common for pure B&W text scans) is embedded via
+		# CCITT/TIFF, not JPEG, and raises ValueError when passed quality/optimize
+		# kwargs -- that must not abort optimizing the rest of the document
+		large_image = Image.new("RGB", (2200, 1600), (30, 90, 180))
+		rgb_buf = io.BytesIO()
+		large_image.save(rgb_buf, format="PDF")
+
+		bilevel_buf = io.BytesIO()
+		large_image.convert("1").save(bilevel_buf, format="PDF")
+
+		writer = PdfWriter()
+		writer.append(PdfReader(io.BytesIO(rgb_buf.getvalue())))
+		writer.append(PdfReader(io.BytesIO(bilevel_buf.getvalue())))
+		out = io.BytesIO()
+		writer.write(out)
+		mixed_content = out.getvalue()
+
+		optimized_content = optimize_pdf(mixed_content)
+
+		self.assertLess(len(optimized_content), len(mixed_content))
+		reader = PdfReader(io.BytesIO(optimized_content))
+		self.assertEqual(len(reader.pages), 2)
+
+		rgb_result = next(iter(reader.pages[0].images)).image
+		self.assertLessEqual(max(rgb_result.size), 1600)
+
+		bilevel_result = next(iter(reader.pages[1].images)).image
+		self.assertEqual(bilevel_result.size, (2200, 1600))
+		self.assertEqual(bilevel_result.mode, "1")
+
+	def test_optimize_pdf_skips_oversized_image(self):
+		from pypdf import PdfReader, PdfWriter
+		from pypdf.generic import NameObject, NumberObject
+
+		from frappe.utils.pdf import optimize_pdf
+
+		small_image = Image.new("RGB", (10, 10), (10, 90, 200))
+		buf = io.BytesIO()
+		small_image.save(buf, format="PDF")
+
+		reader = PdfReader(buf)
+		writer = PdfWriter(clone_from=reader)
+		xobjects = writer.pages[0]["/Resources"]["/XObject"]
+		for xobj in xobjects.values():
+			xobj = xobj.get_object()
+			if xobj.get("/Subtype") == "/Image":
+				xobj[NameObject("/Width")] = NumberObject(12000)
+				xobj[NameObject("/Height")] = NumberObject(12000)
+
+		out = io.BytesIO()
+		writer.write(out)
+		oversized_pdf = out.getvalue()
+
+		self.assertEqual(optimize_pdf(oversized_pdf), oversized_pdf)
+
+	def test_optimize_pdf_falls_back_on_failure(self):
+		from frappe.utils.pdf import optimize_pdf
+
+		garbage_content = b"not a real pdf"
+
+		with patch("frappe.msgprint") as mock_msgprint:
+			result = optimize_pdf(garbage_content)
+
+		self.assertEqual(result, garbage_content)
+		mock_msgprint.assert_called_once()
+		self.assertIn("Failed to optimize PDF", mock_msgprint.call_args[0][0])
+
+	def test_optimize_pdf_does_not_log_expected_failures(self):
+		from frappe.utils.pdf import optimize_pdf
+
+		# malformed/untrusted PDF content is a routine failure mode, not a bug --
+		# must not spam Error Log for every bad upload
+		with patch("frappe.log_error") as mock_log_error:
+			result = optimize_pdf(b"not a real pdf")
+
+		self.assertEqual(result, b"not a real pdf")
+		mock_log_error.assert_not_called()
+
+	def test_optimize_pdf_logs_unexpected_errors(self):
+		from frappe.utils.pdf import optimize_pdf
+
+		image_file_path = frappe.get_app_path("frappe", "tests", "data", "sample_image_for_optimization.jpg")
+		buf = io.BytesIO()
+		Image.open(image_file_path).save(buf, format="PDF")
+		original_content = buf.getvalue()
+
+		with patch("pypdf.PdfWriter.compress_identical_objects", side_effect=TypeError("simulated bug")):
+			with patch("frappe.log_error") as mock_log_error:
+				result = optimize_pdf(original_content)
+
+		self.assertEqual(result, original_content)
+		mock_log_error.assert_called_once()
+
+	@staticmethod
+	def _build_signed_pdf() -> bytes:
+		"""Build a PDF with a structurally valid (cryptographically fake) signature field."""
+		from pypdf import PdfReader, PdfWriter
+		from pypdf.generic import ArrayObject, DictionaryObject, NameObject, NumberObject, TextStringObject
+
+		buf = io.BytesIO()
+		Image.new("RGB", (300, 300), (0, 120, 255)).save(buf, format="PDF")
+		reader = PdfReader(io.BytesIO(buf.getvalue()))
+		writer = PdfWriter(clone_from=reader)
+		page = writer.pages[0]
+
+		sig_dict = DictionaryObject()
+		sig_dict.update(
+			{
+				NameObject("/Type"): NameObject("/Sig"),
+				NameObject("/ByteRange"): ArrayObject(
+					[NumberObject(0), NumberObject(10), NumberObject(20), NumberObject(30)]
+				),
+				NameObject("/Contents"): TextStringObject("fakebytes"),
+			}
+		)
+		sig_ref = writer._add_object(sig_dict)
+
+		field = DictionaryObject()
+		field.update(
+			{
+				NameObject("/FT"): NameObject("/Sig"),
+				NameObject("/T"): TextStringObject("Signature1"),
+				NameObject("/V"): sig_ref,
+				NameObject("/Rect"): ArrayObject(
+					[NumberObject(0), NumberObject(0), NumberObject(100), NumberObject(20)]
+				),
+				NameObject("/Subtype"): NameObject("/Widget"),
+				NameObject("/Type"): NameObject("/Annot"),
+				NameObject("/P"): page.indirect_reference,
+			}
+		)
+		field_ref = writer._add_object(field)
+		page[NameObject("/Annots")] = ArrayObject([field_ref])
+
+		acroform = DictionaryObject()
+		acroform.update(
+			{NameObject("/Fields"): ArrayObject([field_ref]), NameObject("/SigFlags"): NumberObject(3)}
+		)
+		acroform_ref = writer._add_object(acroform)
+		writer._root_object[NameObject("/AcroForm")] = acroform_ref
+
+		out = io.BytesIO()
+		writer.write(out)
+		return out.getvalue()
+
+	def test_reader_has_signature(self):
+		from pypdf import PdfReader
+
+		from frappe.utils.pdf import _reader_has_signature
+
+		signed_pdf = self._build_signed_pdf()
+		self.assertTrue(_reader_has_signature(PdfReader(io.BytesIO(signed_pdf))))
+
+		image_file_path = frappe.get_app_path("frappe", "tests", "data", "sample_image_for_optimization.jpg")
+		unsigned_buf = io.BytesIO()
+		Image.open(image_file_path).save(unsigned_buf, format="PDF")
+		self.assertFalse(_reader_has_signature(PdfReader(io.BytesIO(unsigned_buf.getvalue()))))
+
+	def test_reader_has_signature_fails_safe_for_encrypted_pdf(self):
+		from pypdf import PdfReader, PdfWriter
+
+		from frappe.utils.pdf import _reader_has_signature
+
+		image_file_path = frappe.get_app_path("frappe", "tests", "data", "sample_image_for_optimization.jpg")
+		buf = io.BytesIO()
+		Image.open(image_file_path).save(buf, format="PDF")
+
+		reader = PdfReader(io.BytesIO(buf.getvalue()))
+		writer = PdfWriter(clone_from=reader)
+		writer.encrypt("secret123")
+		out = io.BytesIO()
+		writer.write(out)
+		encrypted_content = out.getvalue()
+		encrypted_reader = PdfReader(io.BytesIO(encrypted_content))
+		self.assertTrue(_reader_has_signature(encrypted_reader))
+
+	def test_optimize_pdf_skips_signed_pdf(self):
+		from frappe.utils.pdf import optimize_pdf
+
+		signed_pdf = self._build_signed_pdf()
+		self.assertEqual(optimize_pdf(signed_pdf), signed_pdf)
 
 
 class TestPythonExpressions(IntegrationTestCase):
@@ -1096,7 +1414,8 @@ class TestDateUtils(IntegrationTestCase):
 		if is_invalid_date_string(str(original)):
 			return
 		parsed = get_datetime(str(original))
-		self.assertEqual(parsed, original)
+		self.assertEqual(parsed.replace(tzinfo=None), original.replace(tzinfo=None))
+		self.assertEqual(parsed.utcoffset(), original.utcoffset())
 
 	def test_pretty_date(self):
 		from frappe import _
@@ -1263,6 +1582,22 @@ class TestXlsxUtils(IntegrationTestCase):
 		self.assertEqual(rows[1][1].value, 1500.5)
 		self.assertEqual(rows[2][1].data_type, "n")
 		self.assertEqual(rows[2][1].value, -5)
+
+	def test_time_values_get_number_format(self):
+		"""time / timedelta values must not be written as raw day fractions."""
+		from openpyxl import load_workbook
+
+		from frappe.utils.xlsxutils import XLSXStyleBuilder, make_xlsx
+
+		data = [
+			["in_time", "duration"],
+			[time(8, 0), timedelta(hours=9, minutes=30)],
+		]
+		wb = load_workbook(make_xlsx(data, "Test Sheet"))
+		ws = wb.active
+
+		self.assertEqual(ws["A2"].number_format, XLSXStyleBuilder.get_time_format())
+		self.assertEqual(ws["B2"].number_format, "[h]:mm:ss")
 
 
 class TestCsvUtils(IntegrationTestCase):
@@ -1442,6 +1777,48 @@ class TestLinkTitle(IntegrationTestCase):
 
 		prop_setter.delete()
 
+	def test_link_title_without_read_permission(self):
+		"""
+		Test that a link to a document the user cannot read returns the docname without raising
+		"""
+		prop_setter = frappe.get_doc(
+			{
+				"doctype": "Property Setter",
+				"doc_type": "ToDo",
+				"property": "show_title_field_in_link",
+				"property_type": "Check",
+				"doctype_or_field": "DocType",
+				"value": "1",
+			}
+		).insert()
+
+		user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"user_type": "Website User",
+				"email": "arjun.nair@example.com",
+				"send_welcome_email": 0,
+				"first_name": "Arjun",
+			}
+		).insert(ignore_permissions=True)
+
+		todo = frappe.get_doc(
+			{"doctype": "ToDo", "description": "Renew the Contoso support contract"}
+		).insert()
+
+		from frappe.desk.search import get_link_title
+
+		self.assertEqual(get_link_title("ToDo", todo.name), todo.description)
+
+		frappe.clear_messages()
+		with self.set_user(user.name):
+			self.assertEqual(get_link_title("ToDo", todo.name), todo.name)
+		self.assertEqual(frappe.get_message_log(), [])
+
+		todo.delete()
+		user.delete()
+		prop_setter.delete()
+
 
 class TestAppParser(MockedRequestTestCase):
 	def test_app_name_parser(self):
@@ -1580,6 +1957,24 @@ class TestMiscUtils(IntegrationTestCase):
 	def test_get_url_to_form(self):
 		self.assertTrue(get_url_to_form("System Settings").endswith("/desk/system-settings"))
 		self.assertTrue(get_url_to_form("User", "Test User").endswith("/desk/user/Test%20User"))
+
+	@patch.dict(
+		frappe.conf,
+		{
+			"host_name": None,
+			"hostname": None,
+			"http_port": None,
+			"webserver_port": 8000,
+			"developer_mode": 0,
+			"restart_supervisor_on_update": 1,
+		},
+	)
+	def test_get_url_dev(self):
+		self.assertNotIn(":8000", get_url("/desk", allow_header_override=False))
+		self.assertEqual(
+			get_url("/desk", allow_header_override=False, for_dev_server=True),
+			f"http://{frappe.local.site}:8000/desk",
+		)
 
 	def test_safe_json_load(self):
 		self.assertEqual(safe_json_loads("{}"), {})
@@ -1753,6 +2148,21 @@ class TestTBSanitization(IntegrationTestCase):
 				traceback = frappe.get_traceback(with_context=True)
 
 		self.assertIn("should_be_visible", traceback)
+
+	def test_sanitization_hides_object_attributes(self):
+		class Connection:
+			def __init__(self):
+				self.password = "should_not_leak"
+
+		try:
+			connection = Connection()  # noqa: F841
+			raise Exception
+		except Exception:
+			with patch.dict(frappe.conf, {"developer_mode": 1}):
+				traceback = frappe.get_traceback(with_context=True)
+
+		self.assertIn("connection =", traceback)
+		self.assertNotIn("should_not_leak", traceback)
 
 	def test_get_traceback_with_context_only_active_in_developer_mode(self):
 		def boom():
@@ -1929,8 +2339,79 @@ class TestArgumentTypingValidations(IntegrationTestCase):
 		with self.assertRaises(FrappeTypeError):
 			test_mocks(1)
 
+	def test_validate_string_annotations(self):
+		@validate_argument_types
+		def test_strings(name: "str", count: "int | None" = None, other: "Undefined" = None):  # noqa: F821
+			return name, count, other
+
+		self.assertEqual(test_strings("a", "1"), ("a", 1, None))
+		with self.assertRaises(FrappeTypeError):
+			test_strings({"name": ("like", "%")})
+
+		# unresolvable forward refs are not validated
+		obj = object()
+		self.assertEqual(test_strings("a", other=obj), ("a", None, obj))
+
+		@validate_argument_types
+		def test_nested(docs: "str | list[dict | Undefined]"):  # noqa: F821
+			return docs
+
+		self.assertEqual(test_nested([obj]), [obj])
+
+	def test_skip_invalid_string_annotation(self):
+		@validate_argument_types
+		def test_invalid(name: "free text"):
+			return name
+
+		self.assertEqual(test_invalid({"a": 1}), {"a": 1})
+
+	def test_whitelisted_method_validates_string_annotations(self):
+		from frappe.handler import execute_cmd
+
+		# document_follow uses `from __future__ import annotations`, so its annotations are strings
+		form_dict = frappe._dict(doctype="ToDo", doc_name={"owner": "Administrator"})
+		with (
+			self.set_user("test@example.com"),
+			patch.object(frappe.local, "request", frappe._dict(method="POST"), create=True),
+			patch.object(frappe.local, "form_dict", form_dict),
+		):
+			self.assertRaises(
+				FrappeTypeError, execute_cmd, "frappe.desk.form.document_follow.follow_document"
+			)
+
+	def test_validate_literal(self):
+		@validate_argument_types
+		def test_literal(kind: Literal["a", "b"]):
+			return kind
+
+		self.assertEqual(test_literal("a"), "a")
+		with self.assertRaises(FrappeTypeError):
+			test_literal("c")
+
 
 class TestChangeLog(IntegrationTestCase):
+	def test_parse_latest_non_beta_release_skips_invalid_tags(self):
+		from semantic_version import Version
+
+		current_version = Version("16.28.0")
+		self.assertEqual(
+			parse_latest_non_beta_release(
+				[
+					{"tag_name": "v14-baseline"},
+					{"tag_name": "v16.29.0"},
+					{"tag_name": "v16.30.0", "prerelease": True},
+				],
+				current_version,
+			),
+			"16.29.0",
+		)
+		self.assertIsNone(parse_latest_non_beta_release([{"tag_name": "v14-baseline"}], current_version))
+		self.assertEqual(
+			parse_latest_non_beta_release([{"tag_name": "v16.29.0-dev"}], current_version),
+			"16.29.0-dev",
+		)
+		self.assertIsNone(parse_latest_non_beta_release([{"tag_name": "vv16.29.0"}], current_version))
+
 	def test_get_remote_url(self):
 		self.assertIsInstance(get_source_url("frappe"), str)
 
@@ -1964,7 +2445,7 @@ class TestChangeLog(IntegrationTestCase):
 		with (
 			patch("frappe.get_system_settings", return_value=0),
 			patch("frappe.is_setup_complete", return_value=True),
-			patch("frappe.utils.change_log.get_versions", return_value=versions),
+			patch("frappe.utils.change_log.get_app_versions", return_value=versions),
 			patch("frappe.utils.change_log.get_source_url", return_value="https://github.com/frappe/app"),
 			patch(
 				"frappe.utils.change_log.check_release_on_github", return_value=(Version("2.0.0"), "frappe")
@@ -2060,6 +2541,7 @@ class TestDataUtils(UnitTestCase):
 	def test_comma_and(self):
 		self.assertEqual(comma_and(["a", "b", "c"]), "'a', 'b', and 'c'")
 		self.assertEqual(comma_and(["a", "b", "c"], add_quotes=False), "a, b, and c")
+		self.assertEqual(comma_and(["a", "b"]), "'a' and 'b'")
 
 		frappe.local.lang = "pt-BR"
 
@@ -2069,6 +2551,7 @@ class TestDataUtils(UnitTestCase):
 	def test_comma_or(self):
 		self.assertEqual(comma_or(["a", "b", "c"]), "'a', 'b', or 'c'")
 		self.assertEqual(comma_or(["a", "b", "c"], add_quotes=False), "a, b, or c")
+		self.assertEqual(comma_or(["a", "b"]), "'a' or 'b'")
 
 		frappe.local.lang = "pt-BR"
 
@@ -2090,3 +2573,17 @@ class TestMsgPrint(UnitTestCase):
 		frappe.msgprint("<ul><li>abc<li></ul>")
 		message = frappe.get_message_log()[-1]
 		self.assertIn("<ul><li>", message.message)
+
+	def test_raised_message_keeps_html_in_a_terminal(self):
+		with (
+			patch("sys.stdin") as stdin,
+			patch.dict(frappe.local.flags, {"print_messages": True}),
+			patch("builtins.print") as printed,
+		):
+			stdin.isatty.return_value = True
+			with self.assertRaises(frappe.ValidationError) as raised:
+				frappe.throw("first<br>second")  # nosemgrep: frappe-missing-translate-function-python
+
+		self.assertEqual(str(raised.exception), "first<br>second")
+		printed.assert_called_once()
+		self.assertNotIn("<br>", printed.call_args.args[0])

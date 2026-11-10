@@ -13,6 +13,7 @@
 	<MultiSelect
 		:modelValue="selected"
 		:options="options"
+		:filterable="!isName"
 		:loading="resource.loading && !resource.data"
 		:placeholder="placeholder ?? `Search ${(field.options ?? '').toLowerCase()}`"
 		variant="subtle"
@@ -24,6 +25,7 @@
 </template>
 
 <script setup lang="ts">
+import { toIdOption, toLinkOption } from "../Link/linkOption";
 import { computed, ref, watch } from "vue";
 import { MultiSelect, createResource, frappeRequest, debounce } from "frappe-ui";
 import type { FilterField } from "./types";
@@ -35,6 +37,9 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{ "update:modelValue": [value: string[]] }>();
+
+// `name` stores IDs; server search still matches titles, so client filter is off.
+const isName = computed(() => props.field.fieldname === "name");
 
 interface LinkOption {
 	label: string;
@@ -56,11 +61,7 @@ const resource = createResource({
 	method: "POST",
 	resourceFetcher: frappeRequest,
 	transform: (data: { value: string; label?: string; description?: string }[]): LinkOption[] =>
-		data.map((doc) => ({
-			label: doc.label || doc.value,
-			value: doc.value,
-			description: doc.description,
-		})),
+		data.map(isName.value ? toIdOption : toLinkOption),
 });
 
 watch(

@@ -34,6 +34,7 @@ BUILDER_DRAFT_FIELDS = (
 	"print_format_builder",
 	"print_format_builder_beta",
 	"pdf_generator",
+	"roles",
 )
 
 
@@ -46,6 +47,7 @@ class PrintFormat(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
+		from frappe.core.doctype.has_role.has_role import HasRole
 		from frappe.types import DF
 
 		absolute_value: DF.Check
@@ -71,14 +73,22 @@ class PrintFormat(Document):
 		page_number: DF.Literal[
 			"Hide", "Top Left", "Top Center", "Top Right", "Bottom Left", "Bottom Center", "Bottom Right"
 		]
-		pdf_generator: DF.Literal["wkhtmltopdf", "chrome", "Typst"]
+		paper_height: DF.Float
+		paper_size: DF.Literal[
+			"", "A4", "A5", "A3", "Letter", "Legal", "Receipt 80 mm", "Receipt 58 mm", "Custom"
+		]
+		paper_width: DF.Float
+		pdf_generator: DF.Literal["chrome", "PlutoPrint", "Typst"]
 		print_format_builder: DF.Check
 		print_format_builder_beta: DF.Check
 		print_format_for: DF.Literal["DocType", "Report"]
 		print_format_type: DF.Literal["Jinja", "JS"]
+		published_by: DF.Link | None
+		published_on: DF.Datetime | None
 		raw_commands: DF.Code | None
 		raw_printing: DF.Check
 		report: DF.Link | None
+		roles: DF.TableMultiSelect[HasRole]
 		show_label_colon: DF.Check
 		show_section_headings: DF.Check
 		standard: DF.Literal["No", "Yes"]
@@ -97,6 +107,10 @@ class PrintFormat(Document):
 		)
 		self.set_onload("print_templates", templates)
 
+		from frappe.printing.doctype.print_format.classic_converter import renders_from_file
+
+		self.set_onload("renders_from_file", renders_from_file(self))
+
 	def before_save(self):
 		if self.print_format_for == "Report":
 			self.custom_format = 1
@@ -111,8 +125,8 @@ class PrintFormat(Document):
 		):
 			self.print_format_builder_beta = 1
 
-		if self.print_format_builder_beta and not self.custom_format and self.pdf_generator != "Typst":
-			self.pdf_generator = "chrome"
+		self.published_on = self.modified
+		self.published_by = self.modified_by
 
 	def get_html(self, docname, letterhead=None):
 		return get_html(self.doc_type, docname, self.name, letterhead)
@@ -121,6 +135,16 @@ class PrintFormat(Document):
 		return download_pdf(self.doc_type, docname, self.name, letterhead)
 
 	def validate(self):
+		from frappe.utils.print_utils import get_pdf_generators, resolve_pdf_generator
+
+		known = get_pdf_generators()
+		if not self.pdf_generator:
+			generator = resolve_pdf_generator(self)
+			if generator in known:
+				self.pdf_generator = generator
+		elif self.pdf_generator not in known:
+			self.pdf_generator = "chrome"
+
 		if (
 			self.standard == "Yes"
 			and not frappe.local.conf.get("developer_mode")
@@ -141,6 +165,8 @@ class PrintFormat(Document):
 		if self.html and self.print_format_type != "JS":
 			validate_template(self.html)
 
+		self.validate_paper_size()
+
 		if self.custom_format and self.raw_printing and not self.raw_commands:
 			frappe.throw(_("{0} are required").format(frappe.bold(_("Raw Commands"))), frappe.MandatoryError)
 
@@ -153,6 +179,30 @@ class PrintFormat(Document):
 		self.validate_colors()
 		self.validate_conditions()
 		self.validate_typst_renderer()
+		self.validate_plutoprint_renderer()
+
+	def validate_paper_size(self):
+		if self.paper_size != "Custom" or self.print_format_builder_beta or self.raw_printing:
+			return
+		if frappe.utils.flt(self.paper_width) <= 0 or frappe.utils.flt(self.paper_height) <= 0:
+			frappe.throw(
+				_("Enter a Paper Width and Paper Height above 0 for a Custom paper size."),
+				title=_("Invalid Paper Size"),
+			)
+
+	def validate_plutoprint_renderer(self):
+		from frappe.utils.pdf_generator.pluto import plutoprint_blockers
+
+		if self.pdf_generator != "PlutoPrint" or not (blockers := plutoprint_blockers(self)):
+			return
+		if self.is_new():
+			self.pdf_generator = "chrome"
+			frappe.msgprint(_("PDF Generator set to Chromium: {0}").format(", ".join(blockers)), alert=True)
+			return
+		frappe.throw(
+			_("This format cannot use the PlutoPrint renderer: {0}").format(", ".join(blockers)),
+			title=_("PlutoPrint renderer unavailable"),
+		)
 
 	def validate_typst_renderer(self):
 		"""Refuse to save a Typst-flagged format that Typst cannot render — the
@@ -253,7 +303,9 @@ class PrintFormat(Document):
 				compile(condition, "<condition>", "eval")
 			except SyntaxError as e:
 				frappe.throw(
-					_("{0} is not a valid condition: {1}").format(frappe.bold(where), e.msg),
+					_("{0} is not a valid condition: {1}").format(
+						frappe.bold(frappe.utils.escape_html(where)), e.msg
+					),
 					title=_("Invalid Condition"),
 				)
 
@@ -346,20 +398,57 @@ def _condition(holder, label, key):
 		yield label, condition
 
 
+COPIED_PRINT_OPTIONS = (
+	"show_section_headings",
+	"line_breaks",
+	"align_labels_right",
+	"show_label_colon",
+	"margin_top",
+	"margin_bottom",
+	"margin_left",
+	"margin_right",
+	"font",
+	"font_size",
+	"label_color",
+	"value_color",
+	"page_number",
+	"absolute_value",
+	"css",
+	"default_print_language",
+)
+
+
 @frappe.whitelist()
 def create_custom_format(doctype: str, name: str | int, based_on: str = "Standard"):
 	doc = frappe.new_doc("Print Format")
 	doc.doc_type = doctype
 	doc.name = name
 	doc.print_format_builder_beta = 1
+	from frappe.printing.doctype.print_format.classic_converter import (
+		create_default_layout,
+		renders_from_file,
+	)
+
+	source = None
 	if based_on and based_on != "Standard":
 		source = frappe.get_doc("Print Format", based_on)
 		source.check_permission("read")
+		if renders_from_file(source):
+			# "Based On" is fixed to the selected format in the print view, so a
+			# refusal here would be a dead end
+			frappe.msgprint(
+				_("{0} is rendered from an HTML file, so this format starts from the standard layout").format(
+					source.name
+				),
+				alert=True,
+			)
+			source = None
+	if source:
 		doc.format_data = source.format_data
+		for fieldname in COPIED_PRINT_OPTIONS:
+			doc.set(fieldname, source.get(fieldname))
 	else:
 		# seed the layout so the format prints something before its first Save & Apply
-		from frappe.printing.doctype.print_format.classic_converter import create_default_layout
-
 		doc.format_data = frappe.as_json(create_default_layout(frappe.get_meta(doctype)))
 	doc.insert()
 	return doc
@@ -418,7 +507,10 @@ def _check_draft(doc, payload):
 def apply_draft(name: str, modified: str | datetime, data: str | dict | None = None):
 	"""Copy the draft onto the fields that print, then clear it."""
 	doc = _writable_format(name, modified)
-	for field, value in _draft_payload(data if data is not None else doc.draft_data).items():
+	payload = _draft_payload(data if data is not None else doc.draft_data)
+	for row in payload.get("roles") or []:
+		row.pop("name", None)
+	for field, value in payload.items():
 		doc.set(field, value)
 	doc.draft_data = None
 	doc.save()
@@ -430,7 +522,7 @@ VERSION_KEY = "print_format_version"
 
 
 def _record_version(doc, snapshot_type: str, fields: dict, label: str | None = None):
-	comment = _("saved version {0}").format(frappe.bold(label)) if label else _("applied the builder draft")
+	comment = _("saved version {0}").format(frappe.bold(label)) if label else _("applied the editor draft")
 	frappe.get_doc(
 		{
 			"doctype": "Version",
@@ -573,3 +665,17 @@ def printable_sample(doctype: str) -> str | None:
 	filters = {"docstatus": 1} if frappe.get_meta(doctype).is_submittable else {}
 	sample = frappe.get_list(doctype, filters=filters, limit=1, order_by="modified desc", pluck="name")
 	return sample[0] if sample else None
+
+
+def can_print_with(print_format: "PrintFormat") -> bool:
+	roles = {row.role for row in print_format.get("roles") or []}
+	return not roles or bool(roles.intersection(frappe.get_roles()))
+
+
+def check_print_format_roles(print_format: "PrintFormat") -> None:
+	if not can_print_with(print_format):
+		frappe.throw(
+			_("You are not allowed to print with {0}").format(frappe.bold(print_format.name)),
+			frappe.PermissionError,
+			title=_("Not Permitted"),
+		)

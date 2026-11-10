@@ -2,6 +2,7 @@
 	<iframe
 		ref="iframeRef"
 		:srcdoc="htmlContent"
+		title="Email content"
 		sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"
 		referrerpolicy="no-referrer"
 		class="prose-f email-fade block h-10 w-full"

@@ -6,6 +6,9 @@ frappe.ui.form.on("Installed Applications", {
 		frm.add_custom_button(__("Update Hooks Resolution Order"), () => {
 			frm.trigger("show_update_order_dialog");
 		});
+		frm.add_custom_button(__("Generate SBOM"), () => {
+			frappe.call({ method: "frappe.utils.sbom.generate_sbom", freeze: true });
+		});
 	},
 
 	show_update_order_dialog() {
@@ -31,8 +34,8 @@ frappe.ui.form.on("Installed Applications", {
 					],
 				},
 			],
-			primary_action: function () {
-				const new_order = this.get_values()["apps"].map((row) => row.app_name);
+			primary_action: function (values) {
+				const new_order = values["apps"].map((row) => row.app_name);
 				frappe.call({
 					method: "frappe.core.doctype.installed_applications.installed_applications.update_installed_apps_order",
 					freeze: true,

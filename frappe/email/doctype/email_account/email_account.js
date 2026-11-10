@@ -86,9 +86,26 @@ frappe.email_defaults_pop = {
 	},
 };
 
-function oauth_access(frm) {
+function relay_provider(connected_app) {
+	const prefix = "frappe-cloud-relay:";
+	return (
+		connected_app.token_uri?.startsWith(prefix) && connected_app.token_uri.slice(prefix.length)
+	);
+}
+
+function oauth_access(frm, $btn) {
 	frappe.model.with_doc("Connected App", frm.doc.connected_app, () => {
 		const connected_app = frappe.get_doc("Connected App", frm.doc.connected_app);
+		if (relay_provider(connected_app)) {
+			$btn?.attr("aria-busy", "true");
+			return frappe
+				.xcall(
+					"frappe.integrations.frappe_providers.email_oauth.initiate_mailbox_connect",
+					{ email_account: frm.doc.name }
+				)
+				.then((url) => (window.location.href = url))
+				.catch(() => $btn?.removeAttr("aria-busy"));
+		}
 		return frappe.call({
 			doc: connected_app,
 			method: "initiate_web_application_flow",
@@ -117,19 +134,24 @@ function set_default_max_attachment_size(frm) {
 }
 function add_helpful_links(frm) {
 	// For better UX
-	if (frm.doc.service === "GMail") {
-		frm.set_df_property(
-			"password",
-			"description",
-			__("To generate password click {0}", [
-				"<a href='https://knowledge.workspace.google.com/kb/how-to-create-app-passwords-000009237' target='_blank'>" +
-					__("here") +
-					"</a>",
-			])
-		);
-	} else {
-		frm.set_df_property("password", "description", "");
-	}
+	const gmail = frm.doc.service === "GMail";
+	frm.set_df_property(
+		"password",
+		"label",
+		frm.doc.service ? __("App password") : __("Password")
+	);
+	frm.set_df_property(
+		"password",
+		"description",
+		gmail
+			? __(
+					"A 16-character password you create in your Google Account, not your Gmail password. Needs 2-Step Verification."
+			  ) +
+					` <a href="https://support.google.com/accounts/answer/185833" target="_blank" rel="noopener">${__(
+						"How to create one"
+					)}</a>`
+			: ""
+	);
 
 	if (frm.doc.service === "Frappe Mail") {
 		frm.set_df_property(
@@ -191,13 +213,42 @@ frappe.ui.form.on("Email Account", {
 		if (frm.doc.__islocal) {
 			frm.add_child("imap_folder", { folder_name: "INBOX" });
 			frm.refresh_field("imap_folder");
+			// service prefilled (e.g. from the list's Add dialog): apply its server defaults
+			if (frm.doc.service) frm.trigger("service");
 		}
 		set_default_max_attachment_size(frm);
 	},
 
+	before_save: function (frm) {
+		const old_email_id = frm.saved_email_id;
+		const new_email_id = frm.doc.email_id;
+		if (!old_email_id || !new_email_id || old_email_id === new_email_id) return;
+
+		const stale_rows = (frm.doc.reply_to_addresses || []).filter(
+			(row) => row.email?.toLowerCase() === old_email_id.toLowerCase()
+		);
+		if (!stale_rows.length) return;
+
+		return new Promise((resolve) => {
+			frappe.confirm(
+				__("Reply-To Addresses still include {0}. Change it to {1} as well?", [
+					frappe.utils.escape_html(old_email_id).bold(),
+					frappe.utils.escape_html(new_email_id).bold(),
+				]),
+				() => {
+					stale_rows.forEach((row) => (row.email = new_email_id));
+					resolve();
+				},
+				resolve
+			);
+		});
+	},
+
 	refresh: function (frm) {
+		frm.saved_email_id = frm.doc.email_id;
 		frm.events.enable_incoming(frm);
 		frm.events.show_oauth_authorization_message(frm);
+		add_helpful_links(frm);
 
 		if (frappe.route_flags.delete_user_from_locals && frappe.route_flags.linked_user) {
 			delete frappe.route_flags.delete_user_from_locals;
@@ -246,13 +297,31 @@ frappe.ui.form.on("Email Account", {
 					connected_user: frm.doc.connected_user,
 				},
 				callback: (r) => {
-					if (!r.message) {
+					if (r.message) {
+						frm.toggle_display("authorize_api_access", true);
+						return;
+					}
+					frappe.model.with_doc("Connected App", frm.doc.connected_app, () => {
+						const connected_app = frappe.get_doc(
+							"Connected App",
+							frm.doc.connected_app
+						);
+						const relay = relay_provider(connected_app);
+						frm.toggle_display("authorize_api_access", !relay);
 						let msg = __(
 							'OAuth has been enabled but not authorised. Please use "Authorise API Access" button to do the same.'
 						);
+						if (relay) {
+							const $reconnect = frm.add_custom_button(__("Reconnect"), () =>
+								oauth_access(frm, $reconnect)
+							);
+							msg = __(
+								"This mailbox was signed out. Reconnect it to sign in again."
+							);
+						}
 						frm.dashboard.clear_headline();
 						frm.dashboard.set_headline_alert(msg, "yellow");
-					}
+					});
 				},
 			});
 		}

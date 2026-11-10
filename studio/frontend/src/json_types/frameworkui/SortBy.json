@@ -1,0 +1,20 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "SortByProps": {
+      "type": "object",
+      "properties": {
+        "doctype": {
+          "type": "string"
+        },
+        "hideLabel": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "doctype"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

@@ -3,7 +3,7 @@
  "creation": "2026-08-12 13:25:35.869322",
  "docstatus": 0,
  "doctype": "Sidebar",
- "header_icon": "monitor-check",
+ "header_icon": "system-monitor-duotone",
  "idx": 0,
  "items": [
   {
@@ -11,6 +11,7 @@
    "child": 0,
    "collapsible": 1,
    "hidden": 0,
+   "icon": "heart-pulse",
    "indent": 0,
    "is_default_module": 0,
    "keep_closed": 0,
@@ -295,7 +296,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-08-29 15:15:51.498541",
+ "modified": "2026-10-06 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "System",
  "name": "System",

@@ -16,6 +16,7 @@ def _make_page(session):
 	page.session_id = "test_session"
 	page.target_id = "test_target"
 	page.frame_id = "test_frame"
+	page.block_external_requests = False
 	return page
 
 
@@ -77,7 +78,9 @@ class TestChromePDFLocalResourceInterceptor(UnitTestCase):
 		):
 			_fire_request(callback, "req-1", HOST)
 
-		self.session.send.assert_any_call("Fetch.continueRequest", {"requestId": "req-1"}, return_future=True)
+		self.session.send.assert_any_call(
+			"Fetch.continueRequest", {"requestId": "req-1"}, "test_session", True
+		)
 		mock_read.assert_not_called()
 
 	def test_path_traversal_sends_fail(self):
@@ -127,3 +130,14 @@ class TestChromePDFLocalResourceInterceptor(UnitTestCase):
 		self.assertIn("Fetch.continueRequest", sent)
 		self.assertNotIn("Fetch.fulfillRequest", sent)
 		self.assertNotIn("Fetch.failRequest", sent)
+
+	def test_unknown_origin_url_sends_fail_when_external_requests_are_blocked(self):
+		self.page.block_external_requests = True
+		callback = self._register()
+
+		with patch("frappe.utils.chromium.page.get_host_url", return_value=HOST):
+			_fire_request(callback, "req-5", "http://169.254.169.254/latest/meta-data/")
+
+		sent = self._sent_methods()
+		self.assertIn("Fetch.failRequest", sent)
+		self.assertNotIn("Fetch.continueRequest", sent)

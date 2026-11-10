@@ -1,0 +1,324 @@
+import fs from "fs";
+import { test, expect } from "../support";
+
+const REPORT_PAGE = "#page-query-report";
+
+async function click_report_menu_item(page, label) {
+	await page.locator(`${REPORT_PAGE} .page-actions .menu-btn-group > button`).click();
+	await page
+		.locator('.es-menu [role="menuitem"]')
+		.filter({ hasText: new RegExp(label) })
+		.first()
+		.click();
+}
+
+async function select_autocomplete(desk, fieldname, value) {
+	const input = desk
+		.get_open_dialog()
+		.locator(`.control-input > .awesomplete > input[data-fieldname="${fieldname}"]`);
+	await expect(input).toBeVisible();
+	await input.clear();
+	await input.pressSequentially(value, { delay: 150 });
+	await input.press("Enter");
+}
+
+async function save_report(page, desk, report_name) {
+	await click_report_menu_item(page, "Save");
+	await expect(desk.get_open_dialog().locator(".modal-title")).toContainText("Save Report");
+
+	const input = desk.get_open_dialog().locator('input[data-fieldname="report_name"]');
+	await input.press("End");
+	await input.pressSequentially(report_name, { delay: 100 });
+	const saved = page.waitForResponse((res) =>
+		res.url().includes("/api/method/frappe.desk.query_report.save_report")
+	);
+	await desk.get_open_dialog().getByRole("button", { name: "Submit", exact: true }).click();
+	await saved;
+}
+
+test.describe("Query Report", () => {
+	test.beforeAll(async ({ admin }) => {
+		await admin.insert_doc(
+			"Report",
+			{
+				report_name: "Test ToDo Report",
+				ref_doctype: "ToDo",
+				report_type: "Query Report",
+				query: "select * from tabToDo",
+			},
+			true
+		);
+		await admin.create_records({
+			doctype: "ToDo",
+			description: "this is a test todo for query report",
+		});
+	});
+
+	test("add custom column in report", async ({ page, desk }) => {
+		await page.goto("/desk/query-report/Permitted Documents For User");
+
+		await expect(page.locator(".page-form.flex")).toHaveCount(1, { timeout: 60000 });
+
+		// set each filter in one go: typing it out makes the report run with partial values
+		const input_user = page.locator(`${REPORT_PAGE} input[data-fieldname="user"]`);
+		await input_user.fill("test@erpnext.com");
+		await input_user.blur();
+		const input_role = page.locator(`${REPORT_PAGE} input[data-fieldname="doctype"]`);
+		await input_role.fill("Role");
+		await input_role.blur();
+
+		await expect(page.locator(".datatable")).toBeAttached();
+		await click_report_menu_item(page, "Add Column");
+		await expect(desk.get_open_dialog().locator(".modal-title")).toContainText("Add Column");
+		await desk
+			.get_open_dialog()
+			.locator('select[data-fieldname="doctype"]')
+			.selectOption("Role (Name)");
+		await select_autocomplete(desk, "field", "Role Name");
+		await select_autocomplete(desk, "insert_after", "Name");
+		await desk.get_open_dialog().getByRole("button", { name: "Submit", exact: true }).click();
+
+		await save_report(page, desk, "Test Report");
+	});
+
+	test("requires document type and field before adding a custom column", async ({
+		page,
+		desk,
+	}) => {
+		await page.goto("/desk/query-report/Test ToDo Report");
+
+		await expect(page.locator(".datatable")).toBeAttached({ timeout: 60000 });
+		await click_report_menu_item(page, "Add Column");
+		await expect(desk.get_open_dialog().locator(".modal-title")).toContainText("Add Column");
+		await desk.get_open_dialog().getByRole("button", { name: "Submit", exact: true }).click();
+
+		const msgprint = page.locator(".msgprint");
+		await expect(msgprint).toBeVisible();
+		await expect(msgprint).toContainText("From Document Type");
+		await expect(msgprint).toContainText("Field");
+	});
+
+	test("saves resized column widths", async ({ page, desk }) => {
+		await page.goto("/desk/query-report/Test ToDo Report");
+		await expect(page.locator(".datatable")).toBeAttached();
+
+		const column = await page.evaluate(() => {
+			const report = frappe.query_report;
+			return report.datatable.datamanager
+				.getColumns(true)
+				.find((col) => col.id === report.columns[0].id);
+		});
+		const auto_column = await page.evaluate((resized_id) => {
+			return frappe.query_report.columns.find(
+				(col) => col.id !== resized_id && col.width === null
+			)?.id;
+		}, column.id);
+		expect(auto_column).toBeTruthy();
+		const handle = page.locator(
+			`.dt-cell__content--header-${column.colIndex} .dt-cell__resize-handle`
+		);
+		const box = await handle.boundingBox();
+		await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+		await page.mouse.down();
+		await page.mouse.move(box.x + box.width / 2 + 80, box.y + box.height / 2);
+		await page.mouse.up();
+
+		const resized_width = await page.evaluate((id) => {
+			return frappe.query_report.datatable.datamanager
+				.getColumns(true)
+				.find((col) => col.id === id).width;
+		}, column.id);
+		expect(resized_width).toBeGreaterThan(column.width);
+		await page.evaluate(() =>
+			frappe.views.QueryReport.prototype.refresh.call(frappe.query_report)
+		);
+		await expect
+			.poll(() =>
+				page.evaluate((id) => {
+					return frappe.query_report.datatable.datamanager
+						.getColumns(true)
+						.find((col) => col.id === id)?.width;
+				}, column.id)
+			)
+			.toBe(resized_width);
+		await save_report(page, desk, " Width");
+		await page.goto("/desk/query-report/Test ToDo Report Width");
+		await expect(page.locator(".datatable")).toBeAttached();
+		await expect
+			.poll(() =>
+				page.evaluate((id) => {
+					return frappe.query_report.datatable.datamanager
+						.getColumns(true)
+						.find((col) => col.id === id)?.width;
+				}, column.id)
+			)
+			.toBe(parseInt(resized_width));
+		expect(
+			await page.evaluate((id) => {
+				return frappe.query_report.columns.find((col) => col.id === id).width;
+			}, auto_column)
+		).toBeNull();
+	});
+
+	test("restores the filters of a prepared report run", async ({ page, api, admin }) => {
+		await admin.insert_doc(
+			"Report",
+			{
+				report_name: "Test Prepared ToDo Report",
+				ref_doctype: "ToDo",
+				report_type: "Query Report",
+				is_standard: "No",
+				prepared_report: 1,
+				validate_filters: 1,
+				query: "select name, status from tabToDo",
+				filters: [{ fieldname: "status", label: "Status", fieldtype: "MultiSelectList" }],
+			},
+			true
+		);
+		await page.goto("/desk/query-report/Test Prepared ToDo Report");
+		const { message } = await api.call(
+			"frappe.core.doctype.prepared_report.prepared_report.make_prepared_report",
+			{ report_name: "Test Prepared ToDo Report", filters: { status: ["Open"] } }
+		);
+		await expect
+			.poll(async () => (await api.get_doc("Prepared Report", message.name)).data.status, {
+				timeout: 30000,
+			})
+			.toBe("Completed");
+
+		await page.goto(
+			`/desk/query-report/Test Prepared ToDo Report?prepared_report_name=${message.name}`
+		);
+		await expect
+			.poll(() => page.evaluate(() => frappe.query_report.get_filter_value("status")))
+			.toEqual(["Open"]);
+	});
+
+	const save_report_and_open = async (page, desk, report, update_name) => {
+		await save_report(page, desk, update_name);
+
+		await page.goto("/desk/query-report/" + report);
+		await expect(page.locator(".datatable")).toBeAttached();
+	};
+
+	test("test multi level query report", async ({ page, desk }) => {
+		await page.goto("/desk/query-report/Test ToDo Report");
+		await expect(page.locator(".datatable")).toBeAttached();
+
+		await save_report_and_open(page, desk, "Test ToDo Report 1", " 1");
+		await save_report_and_open(page, desk, "Test ToDo Report 11", "1");
+	});
+
+	test("exports rows in the order shown after sorting and filtering", async ({
+		page,
+		desk,
+		admin,
+	}) => {
+		await admin.insert_doc(
+			"Report",
+			{
+				report_name: "Test ToDo Export Order Report",
+				ref_doctype: "ToDo",
+				report_type: "Query Report",
+				query: "select description from tabToDo order by description desc",
+			},
+			true
+		);
+		await admin.create_records([
+			{ doctype: "ToDo", description: "Archive the example.com mailbox" },
+			{ doctype: "ToDo", description: "Renew the example.com domain" },
+		]);
+
+		await page.goto("/desk/query-report/Test ToDo Export Order Report");
+		const header = page.locator(".dt-cell--header.dt-cell--col-1");
+		await header.hover();
+		await header.locator(".dt-dropdown__toggle").click();
+		await page.locator(".dt-dropdown__list-item", { hasText: "Sort Ascending" }).click();
+		await expect(header.locator(".sort-indicator")).toHaveText("↑");
+		await page.locator('.dt-filter[data-col-index="1"]').pressSequentially("the example.com");
+		await expect(page.locator(".dt-scrollable .dt-cell--col-1")).toHaveText([
+			"Archive the example.com mailbox",
+			"Renew the example.com domain",
+		]);
+
+		await click_report_menu_item(page, "Export");
+		await desk
+			.get_open_dialog()
+			.locator('select[data-fieldname="file_format"]')
+			.selectOption("CSV");
+		const download = page.waitForEvent("download");
+		await desk
+			.get_open_dialog()
+			.getByRole("button", { name: "Download", exact: true })
+			.click();
+		const csv = fs.readFileSync(await (await download).path(), "utf8");
+		expect(csv.split(/\r?\n/).slice(1, 3)).toEqual([
+			'"Archive the example.com mailbox"',
+			'"Renew the example.com domain"',
+		]);
+	});
+
+	test.describe("Custom Report", () => {
+		test.beforeAll(async ({ admin }) => {
+			await admin.insert_doc(
+				"Report",
+				{
+					report_name: "Test ToDo Shared Filters Report",
+					ref_doctype: "ToDo",
+					report_type: "Query Report",
+					is_standard: "No",
+					query: "select name from tabToDo",
+					javascript: `
+						window.shared_todo_report ??= { filters: [] };
+						frappe.query_reports["Test ToDo Shared Filters Report"] = $.extend({}, window.shared_todo_report);
+						frappe.query_reports["Test ToDo Shared Filters Report"].filters.push({
+							fieldname: "status",
+							label: "Status",
+							fieldtype: "Data",
+						});
+					`,
+				},
+				true
+			);
+			await admin.insert_doc(
+				"Report",
+				{
+					report_name: "Test ToDo Shared Filters Report 1",
+					ref_doctype: "ToDo",
+					report_type: "Custom Report",
+					is_standard: "No",
+					reference_report: "Test ToDo Shared Filters Report",
+				},
+				true
+			);
+		});
+
+		test("shows filters once after the reference report script ran", async ({ page }) => {
+			await page.goto("/desk/todo");
+			await page.evaluate(() =>
+				frappe.report_utils.get_report_filters("Test ToDo Shared Filters Report")
+			);
+			await page.evaluate(() =>
+				frappe.set_route("query-report", "Test ToDo Shared Filters Report 1")
+			);
+
+			await expect(page.locator(`${REPORT_PAGE} .datatable`)).toBeAttached();
+			await expect(
+				page.locator(`${REPORT_PAGE} .page-form .frappe-control[data-fieldname="status"]`)
+			).toHaveCount(1);
+		});
+
+		test("gets filters from the reference report script", async ({ page }) => {
+			await page.goto("/desk/todo");
+			const fieldnames = await page.evaluate(async () => {
+				await frappe.report_utils.get_report_filters("Test ToDo Shared Filters Report");
+				const filters = await frappe.report_utils.get_report_filters(
+					"Test ToDo Shared Filters Report 1"
+				);
+				return filters?.map((filter) => filter.fieldname);
+			});
+
+			expect(fieldnames).toEqual(["status"]);
+		});
+	});
+});

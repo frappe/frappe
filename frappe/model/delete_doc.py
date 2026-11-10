@@ -18,7 +18,8 @@ from frappe.query_builder import DocType
 from frappe.utils.data import get_link_to_form
 from frappe.utils.file_manager import remove_all
 from frappe.utils.global_search import delete_for_document
-from frappe.utils.password import delete_all_passwords_for
+from frappe.utils.logging import connection_for
+from frappe.utils.password import delete_all_passwords_for, delete_child_row_passwords
 
 
 def delete_doc(
@@ -290,7 +291,9 @@ def delete_from_table(doctype: str, name: str, ignore_doctypes: list[str], doc):
 
 	child_doctypes_to_delete = set(child_doctypes) - set(ignore_doctypes)
 	for child_doctype in child_doctypes_to_delete:
-		frappe.db.delete(child_doctype, {"parenttype": doctype, "parent": name})
+		child_filters = {"parenttype": doctype, "parent": name}
+		delete_child_row_passwords(child_doctype, child_filters)
+		frappe.db.delete(child_doctype, child_filters)
 
 
 def update_flags(doc, flags=None, ignore_permissions=False):
@@ -531,11 +534,13 @@ def raise_link_exists_exception(doc, reference_doctype, reference_docname, row="
 	if reference_doctype == reference_docname:
 		reference_doctype = ""
 
+	exception = frappe.LinkExistsError()
+	exception.linked_with = f"{_(reference_doctype)} {reference_link} {row}"
 	frappe.throw(
 		_("Cannot delete or cancel because {0} {1} is linked with {2} {3} {4}").format(
 			_(doc.doctype), doc_link, _(reference_doctype), reference_link, row
 		),
-		frappe.LinkExistsError,
+		exception,
 	)
 
 
@@ -565,7 +570,9 @@ def delete_references(
 	reference_doctype_field="reference_doctype",
 	reference_name_field="reference_name",
 ):
-	frappe.db.delete(
+	# `connection_for` rather than `frappe.db`: this list mixes ordinary DocTypes with log
+	# DocTypes, whose rows live in the site's SQLite log database.
+	connection_for(doctype).delete(
 		doctype, {reference_doctype_field: reference_doctype, reference_name_field: reference_name}
 	)
 
@@ -577,7 +584,10 @@ def clear_references(
 	reference_doctype_field="reference_doctype",
 	reference_name_field="reference_name",
 ):
-	frappe.db.sql(
+	# Activity Log is a log DocType, so this runs on the log database; Communication is not,
+	# so it runs on the site database. The statement is identical on both -- backtick-quoted
+	# identifiers and `%s` placeholders mean the same thing to each backend.
+	connection_for(doctype).sql(
 		f"""update
 			`tab{doctype}`
 		set

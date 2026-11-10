@@ -32,6 +32,7 @@ var all_perms = standard_perms.concat(custom_perms);
 			<input type="checkbox" name="{%= perm.name %}"
 				{% if(cint(everyone[perm.name])) { %}checked{% } %}
 				{% if (is_disabled) { %}disabled="disabled"{% } %}
+				aria-label="{%= frappe.utils.escape_html(__("{0} for {1}", [perm.label, __("Everyone")])) %}"
 				class="edit-share">
 		</div>
 		{% } %}
@@ -49,6 +50,7 @@ var all_perms = standard_perms.concat(custom_perms);
 				<input type="checkbox" name="{%= perm.name %}"
 					{% if(cint(s[perm.name])) { %}checked{% } %}
 					{% if (is_disabled) { %}disabled="disabled"{% } %}
+					aria-label="{%= frappe.utils.escape_html(__("{0} for {1}", [perm.label, s.user])) %}"
 					class="edit-share">
 			</div>
 			{% } %}
@@ -74,7 +76,8 @@ var all_perms = standard_perms.concat(custom_perms);
 			var is_disabled = perm.disable_check && !frm.perm[0][perm.name]; %}
 		<div style="display: flex; justify-content: center; align-items: flex-start; margin-top: 8px;">
 			<input type="checkbox" class="add-share-{%= perm.name %}" name="{%= perm.name %}"
-				{% if (is_disabled) { %}disabled="disabled"{% } %}>
+				{% if (is_disabled) { %}disabled="disabled"{% } %}
+				aria-label="{%= frappe.utils.escape_html(perm.label) %}">
 		</div>
 		{% } %}
 	</div>

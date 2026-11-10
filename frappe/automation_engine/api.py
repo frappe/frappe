@@ -11,7 +11,7 @@ from frappe.automation_engine.dispatch import kick_drainer, queue_trigger
 from frappe.automation_engine.events import registered_events
 from frappe.automation_engine.queue import QUEUE
 from frappe.automation_engine.relationships import get_relationship_definitions
-from frappe.automation_engine.runner import TASK_METHOD, execute_automation
+from frappe.automation_engine.runner import RUN, execute_automation, run_steps
 from frappe.utils import cint, now
 
 TRIGGER_TYPES = [
@@ -108,34 +108,19 @@ def run_manually(automation: str, docname: str | None = None) -> dict:
 def get_runs(reference_doctype: str, reference_name: str) -> list:
 	"""Return the run history for a document (timeline feed)."""
 	frappe.has_permission(reference_doctype, "read", doc=reference_name, throw=True)
-	tasks = frappe.get_all(
-		"Background Task",
-		filters={"ref_doctype": reference_doctype, "ref_docname": reference_name, "method": TASK_METHOD},
+	return frappe.get_all(
+		RUN,
+		filters={"reference_doctype": reference_doctype, "reference_name": reference_name},
 		fields=[
 			"name",
-			"arguments",
-			"result",
+			"automation",
+			"automation_title",
 			"status",
 			"started_at",
 			"ended_at",
-			"exception",
+			"error_summary",
 		],
 		order_by="creation desc",
-	)
-	return [_serialize_run(task) for task in tasks]
-
-
-def _serialize_run(task) -> frappe._dict:
-	arguments = frappe.parse_json(task.arguments) or {}
-	result = frappe.parse_json(task.result) or {}
-	return frappe._dict(
-		name=task.name,
-		automation=result.get("automation") or arguments.get("automation"),
-		automation_title=result.get("automation_title") or arguments.get("automation_title"),
-		status=result.get("automation_status") or task.status,
-		started_at=task.started_at,
-		ended_at=task.ended_at,
-		error_summary=result.get("error_summary") or task.exception,
 	)
 
 
@@ -309,14 +294,15 @@ def _trial_queue_row(rule, docname) -> str:
 
 
 def _trial_result(row_name: str, docname: str | None) -> dict:
-	result = frappe.db.get_value("Background Task", {"job_id": row_name}, "result")
-	parsed = frappe.parse_json(result) if result else {}
-	steps = parsed.get("steps") or []
-	status = parsed.get("automation_status") or "Failed"
+	name = frappe.db.get_value(RUN, {"queue_row": row_name})
+	if not name:
+		return {"status": "Failed", "document": docname, "steps": [], "branches": {}, "error_summary": None}
+	run = frappe.get_doc(RUN, name)
+	state = frappe.parse_json(run.run_state) if run.run_state else {}
 	return {
-		"status": status,
+		"status": run.status,
 		"document": docname,
-		"steps": steps,
-		"branches": parsed.get("branches") or {},
-		"error_summary": parsed.get("error_summary"),
+		"steps": run_steps(run),
+		"branches": state.get("branches") or {},
+		"error_summary": run.error_summary,
 	}

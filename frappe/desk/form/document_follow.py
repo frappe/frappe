@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 
 @frappe.whitelist()
-def update_follow(doctype: str, doc_name: str, following: bool | str):
+def update_follow(doctype: str, doc_name: str | int, following: bool | str):
 	following = frappe.utils.sbool(following)
 	if following:
 		is_following = follow_document(doctype, doc_name)
@@ -27,7 +27,7 @@ def update_follow(doctype: str, doc_name: str, following: bool | str):
 
 
 @frappe.whitelist()
-def follow_document(doctype: str, doc_name: str) -> Document | bool:
+def follow_document(doctype: str, doc_name: str | int) -> Document | bool:
 	return _follow_document(doctype, doc_name, frappe.session.user)
 
 
@@ -86,7 +86,7 @@ def _follow_document(doctype: str, doc_name: str, user: str) -> Document | bool:
 
 
 @frappe.whitelist()
-def unfollow_document(doctype: str, doc_name: str) -> bool:
+def unfollow_document(doctype: str, doc_name: str | int) -> bool:
 	return _unfollow_document(doctype, doc_name, frappe.session.user)
 
 

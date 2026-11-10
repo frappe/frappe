@@ -2,13 +2,34 @@
 created on Frappe Cloud / Atlas. The site talks to its bench's pilot admin over
 HTTP using a site-scoped token both written into site_config on site creation."""
 
-from urllib.parse import quote
+import re
+from urllib.parse import parse_qs, quote, urlsplit
 
 import frappe
 from frappe import _
 from frappe.utils import cint
 
 CLOUD_SETTINGS_ROLE = "System Manager"
+
+# Site-scoped pilot routes the embed may reach through `pilot_request`.
+PILOT_PASSTHROUGH_ROUTES = {
+	"GET": (
+		r"backups",
+		r"backups/\d{8}_\d{6}/download-links",
+		r"monitoring",
+		r"uptime",
+		r"storage",
+		r"configuration",
+	),
+	"POST": (
+		r"backups",
+		r"actions/refresh-storage",
+		r"actions/clear-cache",
+		r"actions/migrate",
+	),
+	"PATCH": (r"configuration",),
+	"DELETE": (r"backups/\d{8}_\d{6}",),
+}
 
 
 class CloudMigrationConflictError(frappe.ValidationError):
@@ -62,8 +83,7 @@ class PilotClient:
 			frappe.throw(_("Could not reach your server: {0}").format(exc), frappe.ValidationError)
 
 		payload = self._parse(response)
-		# Some endpoints (e.g. the app registry) return a bare JSON list.
-		if response.ok and (isinstance(payload, list) or not payload.get("error")):
+		if response.ok:
 			return payload
 		frappe.throw(
 			self._error_message(payload) or response.text or _("Request to your server failed."),
@@ -102,10 +122,15 @@ class PilotClient:
 # --- access control -------------------------------------------------------
 
 
+def is_v2_site() -> bool:
+	"""A site is cloud-managed (Frappe Cloud V2) when its bench wrote pilot credentials into
+	the site config. Self-hosted and V1 sites never have these."""
+	return bool(frappe.conf.get("pilot_endpoint") and frappe.conf.get("pilot_auth_token"))
+
+
 def is_cloud_settings_enabled() -> bool:
-	"""A site is cloud-managed when its bench wrote pilot credentials into the
-	site config. Self-hosted sites never have these, so the modal stays hidden."""
-	if not (frappe.conf.get("pilot_endpoint") and frappe.conf.get("pilot_auth_token")):
+	"""Self-hosted sites aren't V2 sites, so the modal stays hidden."""
+	if not is_v2_site():
 		return False
 	if frappe.session.user == "Guest":
 		return False
@@ -141,16 +166,18 @@ def _safe_context() -> dict:
 
 
 def _embed_bundle() -> dict:
-	"""Browser-reachable URL for pilot's Cloud Settings embed bundle.
+	"""Browser-reachable URLs for pilot's Cloud Settings UI.
 
-	Pilot builds and serves this bundle from its admin backend; the framework only
+	Pilot builds and serves the UI from its admin backend; the framework only
 	points at it. By default we load it from `pilot_endpoint` — the admin's public
 	URL the site already talks to, which also serves `/embed/cloud-settings/`. Set
 	`cloud_settings_embed_url` only to override that (e.g. a CDN). `embed_version`
 	busts the browser cache when pilot ships an update.
 
-	One script and no stylesheet: the dialog renders inside a shadow root and
-	adopts its own styles, so there is nothing for desk to link."""
+	`module` is the ES runtime, which loads each panel on first use. `js` is the
+	classic script that desk falls back to when pilot does not serve the module.
+	Neither has a stylesheet: the dialog renders inside a shadow root and adopts
+	its own styles, so there is nothing for desk to link."""
 	base = (frappe.conf.get("cloud_settings_embed_url") or frappe.conf.get("pilot_endpoint") or "").rstrip(
 		"/"
 	)
@@ -158,7 +185,10 @@ def _embed_bundle() -> dict:
 		return {}
 	version = frappe.conf.get("cloud_settings_embed_version")
 	query = f"?v={quote(str(version), safe='')}" if version else ""
-	return {"js": f"{base}/embed/cloud-settings/cloud-settings.js{query}"}
+	return {
+		"js": f"{base}/embed/cloud-settings/cloud-settings.js{query}",
+		"module": f"{base}/embed/cloud-settings/esm/cloud-settings.js{query}",
+	}
 
 
 # --- whitelisted endpoints ------------------------------------------------
@@ -185,21 +215,29 @@ def get_domains() -> dict:
 	client = PilotClient()
 	response = client.get(client.site_path("domains"))
 	primary = response.get("primary") or client.site
-	custom = response.get("domains") or []
-	return {
-		"primary": primary,
-		"domains": [_domain_row(client.site, primary, is_default=True)]
-		+ [_domain_row(domain, primary) for domain in custom],
-	}
+	rows = {client.site: _domain_row(client.site, primary, is_default=True)}
+	for route in response.get("domains") or []:
+		domain = route.get("domain") if isinstance(route, dict) else route
+		if not isinstance(domain, str) or not domain:
+			frappe.throw(_("Pilot returned an invalid domain."), frappe.ValidationError)
+		row = _domain_row(domain, primary, is_default=domain == client.site)
+		if isinstance(route, dict):
+			row.update(public_scheme=route.get("public_scheme"), tls=bool(route.get("tls")))
+		rows[domain] = row
+	return {"primary": primary, "domains": list(rows.values())}
 
 
 @frappe.whitelist(methods=["POST"])
 def get_domain_dns_records(domain: str) -> dict:
 	_assert_access()
 	client = PilotClient()
-	response = client.get(client.domain_path(_clean_domain(domain), "dns-records"))
-	records = (response or {}).get("records") or {}
-	return {"records": [*records.get("cname", []), *records.get("a", [])]}
+	records = client.get(client.domain_path(_clean_domain(domain), "dns-records")) or {}
+	return {
+		# Same records as cname and a, in one list, for Pilot panels older than frappe/pilot#771.
+		"records": [*records.get("cname", []), *records.get("a", [])],
+		"cname": records.get("cname", []),
+		"a": records.get("a", []),
+	}
 
 
 @frappe.whitelist(methods=["POST"])
@@ -255,6 +293,48 @@ def update_apps(apps: str | None = None) -> dict:
 	from frappe.integrations.frappe_providers import cloud_marketplace
 
 	return cloud_marketplace.update(PilotClient(), apps)
+
+
+@frappe.whitelist(methods=["GET", "POST"])
+def pilot_request(method: str = "", path: str = "", data: str | dict | None = None) -> dict | list:
+	"""Forward an allowlisted site-scoped request to pilot, so a new Cloud Settings
+	feature needs a pilot route and an entry in PILOT_PASSTHROUGH_ROUTES, not a
+	new method here."""
+	_assert_access()
+	if not isinstance(method, str) or not isinstance(path, str):
+		frappe.throw(_("Invalid Cloud Settings operation."), frappe.ValidationError)
+	method = method.upper()
+	path = path.strip("/")
+	# A GET skips frappe's CSRF check, so it may only forward a GET.
+	if method != "GET" and (not frappe.request or frappe.request.method != "POST"):
+		frappe.throw(_("Use POST for a Cloud Settings action."), frappe.PermissionError)
+	_validate_pilot_path(method, path)
+	payload = frappe.parse_json(data) if data else None
+	if payload is not None and (method != "PATCH" or not isinstance(payload, dict)):
+		frappe.throw(_("Invalid Cloud Settings data."), frappe.ValidationError)
+	client = PilotClient()
+	return client._request(method, client.site_path(path), payload)
+
+
+def _validate_pilot_path(method: str, path: str) -> None:
+	parsed = urlsplit(path)
+	if (
+		parsed.scheme
+		or parsed.netloc
+		or parsed.fragment
+		or not any(re.fullmatch(route, parsed.path) for route in PILOT_PASSTHROUGH_ROUTES.get(method, ()))
+	):
+		frappe.throw(_("Invalid Cloud Settings operation."), frappe.ValidationError)
+	if not parsed.query:
+		return
+	try:
+		query = parse_qs(parsed.query, keep_blank_values=True, strict_parsing=True)
+	except ValueError:
+		frappe.throw(_("Invalid Cloud Settings query."), frappe.ValidationError)
+	if method != "GET" or parsed.path not in {"monitoring", "uptime"} or set(query) != {"window"}:
+		frappe.throw(_("Invalid Cloud Settings query."), frappe.ValidationError)
+	if len(query["window"]) != 1 or query["window"][0] not in {"30m", "1h", "6h", "12h", "24h", "1w"}:
+		frappe.throw(_("Invalid Cloud Settings time window."), frappe.ValidationError)
 
 
 @frappe.whitelist(methods=["GET"])
@@ -387,6 +467,30 @@ def create_topup_checkout(amount: float, redirect_url: str) -> dict:
 	from frappe.integrations.frappe_providers import cloud_billing
 
 	return cloud_billing.create_topup_checkout(PilotClient(), amount, redirect_url)
+
+
+@frappe.whitelist(methods=["GET"])
+def get_invoices() -> list:
+	_assert_access()
+	from frappe.integrations.frappe_providers import cloud_billing
+
+	return cloud_billing.invoices(PilotClient())
+
+
+@frappe.whitelist(methods=["POST"])
+def get_invoice_pdf(invoice: str) -> dict:
+	_assert_access()
+	from frappe.integrations.frappe_providers import cloud_billing
+
+	return cloud_billing.invoice_pdf(PilotClient(), invoice)
+
+
+@frappe.whitelist(methods=["POST"])
+def create_invoice_checkout(invoice: str, redirect_url: str) -> dict:
+	_assert_access()
+	from frappe.integrations.frappe_providers import cloud_billing
+
+	return cloud_billing.create_invoice_checkout(PilotClient(), invoice, redirect_url)
 
 
 @frappe.whitelist(methods=["POST"])

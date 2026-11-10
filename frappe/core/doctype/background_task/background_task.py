@@ -41,6 +41,7 @@ class BackgroundTask(Document):
 		status: DF.Literal["Queued", "Running", "Completed", "Failed", "Cancelled"]
 		task_id: DF.Data
 		task_name: DF.Data
+		timeout: DF.Int
 		user: DF.Link
 	# end: auto-generated types
 
@@ -57,12 +58,11 @@ class BackgroundTask(Document):
 				frappe.throw(_("Reference can only be made to MapReduce Job"))
 
 	def after_insert(self):
-		frappe.publish_realtime(
-			event="task_update",
-			message={"task_id": self.task_id, "task_name": self.task_name, "status": "Queued"},
-			user=self.user,
-			after_commit=True,
-		)
+		message = {"task_id": self.task_id, "task_name": self.task_name, "status": "Queued"}
+		# A silent task still reaches the Background Tasks list, just without a toast for its status.
+		if self.flags.silent:
+			message["silent"] = 1
+		frappe.publish_realtime(event="task_update", message=message, user=self.user, after_commit=True)
 
 	def update_stage(self, stage: str) -> None:
 		"""Publish a stage description without numeric progress"""
@@ -194,11 +194,14 @@ def stop_task(task_id: str):
 	if task.status not in ("Queued", "Running"):
 		raise frappe.InvalidStatusError(frappe._("Task is not queued or running"))
 
+	# special handling for MapReduce Job
 	if frappe.db.get_value("Background Task", task_name, "is_mapreduce"):
 		ref_docname = frappe.db.get_value("Background Task", task_name, "ref_docname")
 		if frappe.db.get_value("MapReduce Job", ref_docname, "docstatus") == 1:
 			frappe.get_doc("MapReduce Job", ref_docname).cancel()
 	else:
+		handle_internal_doctypes(task)
+
 		from rq.command import send_stop_job_command
 		from rq.job import Job, JobStatus
 
@@ -223,7 +226,7 @@ def stop_task(task_id: str):
 	)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def retry_task(task_id: str):
 	task_name = frappe.db.get_value("Background Task", {"task_id": task_id}, "name")
 	if not task_name:
@@ -264,6 +267,7 @@ def retry_task(task_id: str):
 	frappe.enqueue(
 		_execute_task,
 		queue=task.queue or "default",
+		timeout=task.timeout or None,
 		job_id=task.job_id or task.task_id,
 		at_front=False,
 		task_id=task.task_id,
@@ -279,3 +283,10 @@ def retry_task(task_id: str):
 		message={"task_id": task.task_id, "status": "Queued", "task_name": task.task_name},
 		user=task.user,
 	)
+
+
+def handle_internal_doctypes(task):
+	if task.ref_doctype == "Prepared Report" and frappe.db.exists("Prepared Report", task.ref_docname):
+		from frappe.core.doctype.prepared_report.prepared_report import stop_prepared_report
+
+		stop_prepared_report(task.ref_docname)

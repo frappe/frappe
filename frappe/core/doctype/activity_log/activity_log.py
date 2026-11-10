@@ -3,13 +3,12 @@
 
 import frappe
 from frappe.core.utils import set_timeline_doc
-from frappe.model.document import Document
-from frappe.query_builder import DocType, Interval
-from frappe.query_builder.functions import Now
 from frappe.utils import get_fullname, now, strip_html
+from frappe.utils.logging import get_log_db, log_cutoff, log_table
+from frappe.utils.sqlite_document import SQLiteLogDocument
 
 
-class ActivityLog(Document):
+class ActivityLog(SQLiteLogDocument):
 	_DOCTYPE_NAME = "Activity Log"
 
 	# begin: auto-generated types
@@ -61,14 +60,30 @@ class ActivityLog(Document):
 	def clear_old_logs(days=None):
 		if not days:
 			days = 90
-		doctype = DocType("Activity Log")
-		frappe.db.delete(doctype, filters=(doctype.creation < (Now() - Interval(days=days))))
+
+		db = get_log_db()
+		qb, table = log_table("Activity Log")
+
+		db.sql(qb.from_(table).where(table.creation < log_cutoff(days)).delete())
+		db.commit()
 
 
 def on_doctype_update():
-	"""Add indexes in `tabActivity Log`"""
-	frappe.db.add_index("Activity Log", ["reference_doctype", "reference_name"])
-	frappe.db.add_index("Activity Log", ["timeline_doctype", "timeline_name"])
+	"""Add indexes on the log database's `tabActivity Log`.
+
+	The rows live in the site's SQLite log database, so the indexes have to be created on that
+	connection -- `frappe.db.add_index` would try to ALTER a table the site database does not
+	have. `log_table` creates the table first, because this runs during DocType sync, before
+	anything has logged an activity and caused it to be created lazily.
+
+	These are composite indexes, which `ensure_log_table` cannot infer: it builds single-column
+	indexes from each field's `search_index`, and neither pair is indexed field by field.
+	"""
+	log_table("Activity Log")
+
+	db = get_log_db()
+	db.add_index("Activity Log", ["reference_doctype", "reference_name"])
+	db.add_index("Activity Log", ["timeline_doctype", "timeline_name"])
 
 
 def add_authentication_log(subject, user, operation="Login", status="Success"):

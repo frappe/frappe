@@ -311,7 +311,6 @@ def init(
 			"currently_saving": [],
 			"redirect_location": "",
 			"in_install_db": False,
-			"in_install_app": False,
 			"in_import": False,
 			"in_test": in_test,
 			"mute_messages": False,
@@ -643,7 +642,7 @@ def is_whitelisted(method):
 
 		summary = _("You are not permitted to access this resource. Login to access")
 		detail = _("Function {0} is not whitelisted.").format(bold(f"{method.__module__}.{method.__name__}"))
-		msg = f"<details><summary>{summary}</summary>{detail}</details>"
+		msg = f"<p>{summary}</p><div>{detail}</div>"
 		throw(msg, PermissionError, title=_("Method Not Allowed"))
 
 	if is_guest and method not in xss_safe_methods:
@@ -657,6 +656,9 @@ def is_whitelisted(method):
 
 
 def read_only():
+	"""Mark a function as one that never writes, so its reads may go to a replica
+	(`read_from_replica`) and Flow runs it without asking the user, in a read-only transaction."""
+
 	def innfn(fn):
 		@functools.wraps(fn)
 		def wrapper_fn(*args, **kwargs):
@@ -675,6 +677,7 @@ def read_only():
 
 			return retval
 
+		wrapper_fn.read_only = True
 		return wrapper_fn
 
 	return innfn
@@ -1028,10 +1031,6 @@ def _load_app_hooks(app_name: str | None = None):
 		try:
 			app_hooks = get_module(f"{app}.hooks")
 		except ImportError as e:
-			if local.flags.in_install_app:
-				# if app is not installed while restoring
-				# ignore it
-				pass
 			print(f'Could not find app "{app}": \n{e}')
 			raise
 
@@ -1411,6 +1410,8 @@ def logger(
 
 
 def get_desk_link(doctype, name, show_title_with_name=False, open_in_new_tab=False):
+	from urllib.parse import quote
+
 	from frappe.desk.utils import slug
 	from frappe.model.meta import get_meta
 	from frappe.utils.data import quoted
@@ -1428,7 +1429,7 @@ def get_desk_link(doctype, name, show_title_with_name=False, open_in_new_tab=Fal
 	return html.format(
 		doctype=quoted(slug(doctype)),
 		name=name,
-		encoded_name=quoted(name),
+		encoded_name=quote(cstr(name), safe=""),
 		doctype_local=_(doctype),
 		title_local=_(title),
 		target=target_attr,

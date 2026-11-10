@@ -140,22 +140,21 @@ function log(...args) {
 }
 
 function get_redis_subscriber(kind) {
-	// get redis subscriber that aborts after 10 connection attempts
+	// get redis subscriber that aborts after 5 reconnect attempts
 	let retry_strategy;
 	let { get_redis_subscriber: get_redis, get_conf } = require("../node_utils");
 
 	if (process.env.CI == 1 || get_conf().developer_mode == 0) {
-		retry_strategy = () => {};
+		retry_strategy = false;
 	} else {
-		retry_strategy = function (options) {
-			// abort after 5 x 3 connection attempts ~= 3 seconds
-			if (options.attempt > 4) {
-				return undefined;
+		retry_strategy = function (retries) {
+			if (retries > 4) {
+				return false;
 			}
-			return options.attempt * 100;
+			return retries * 100;
 		};
 	}
-	return get_redis(kind, { retry_strategy });
+	return get_redis(kind, { socket: { reconnectStrategy: retry_strategy } });
 }
 
 module.exports = {

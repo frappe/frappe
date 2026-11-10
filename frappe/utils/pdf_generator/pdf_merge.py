@@ -3,7 +3,6 @@ class PDFTransformer:
 		self.browser = browser
 		self.body_pdf = browser.body_pdf
 		self.is_print_designer = browser.is_print_designer
-		self.encrypt_password = self.browser.options.get("password", None)
 		self._set_header_pdf()
 		self._set_footer_pdf()
 		if not self.header_pdf and not self.footer_pdf:
@@ -31,8 +30,16 @@ class PDFTransformer:
 		footer = self.footer_pdf
 
 		if not header and not footer:
-			if self.encrypt_password:
-				return self._encrypt_raw(body)
+			if output:
+				from io import BytesIO
+
+				from pypdf import PdfReader
+
+				reader = PdfReader(BytesIO(body))
+				first_new_page = len(output.pages)
+				output.append_pages_from_reader(reader)
+				self.resolve_internal_links(output, reader, first_new_page)
+				return output
 			return body
 
 		body_height = body.pages[0].mediabox.top
@@ -93,33 +100,51 @@ class PDFTransformer:
 				else:
 					p.merge_page(footer.pages[0])
 
-		if output:
-			output.append_pages_from_reader(body)
-			return output
-
-		writer = PdfWriter()
+		writer = output or PdfWriter()
+		first_new_page = len(writer.pages)
 		writer.append_pages_from_reader(body)
-		if self.encrypt_password:
-			writer.encrypt(self.encrypt_password)
+		for page in writer.pages[first_new_page:]:
+			page.compress_content_streams()
+		self.resolve_internal_links(writer, body, first_new_page, body_transform)
 
-		return self.get_file_data_from_writer(writer)
+		return output or self.get_file_data_from_writer(writer)
 
-	def _encrypt_raw(self, body):
-		from io import BytesIO
+	@staticmethod
+	def resolve_internal_links(writer, reader, first_new_page, ty=0):
+		from pypdf.generic import ArrayObject, FloatObject, NameObject
 
-		from pypdf import PdfReader, PdfWriter
-
-		writer = PdfWriter()
-		writer.append_pages_from_reader(PdfReader(BytesIO(body)))
-		writer.encrypt(self.encrypt_password)
-		return self.get_file_data_from_writer(writer)
+		destinations = reader.named_destinations
+		for page in writer.pages[first_new_page:]:
+			for annotation in page.get("/Annots", []):
+				annotation = annotation.get_object()
+				name = annotation.get("/Dest")
+				if not isinstance(name, str) or name not in destinations:
+					continue
+				destination = destinations[name]
+				target = writer.pages[first_new_page + reader.get_destination_page_number(destination)]
+				annotation[NameObject("/Dest")] = ArrayObject(
+					[
+						target.indirect_reference,
+						destination.typ,
+						destination.left,
+						FloatObject(destination.top + ty),
+						destination.zoom,
+					]
+				)
 
 	def _transform(self, page, page_top, ty):
-		from pypdf import PdfWriter, Transformation
+		from pypdf.generic import FloatObject
 
-		transform = Transformation().translate(ty=ty)
 		page.mediabox.upper_right = (page.mediabox.right, page_top)
-		page.add_transformation(transform)
+		content = page.get_contents()
+		content.set_data(f"q 1 0 0 1 0 {FloatObject(ty)} cm\n".encode() + content.get_data() + b"\nQ")
+		page.replace_contents(content)
+		for annotation in page.get("/Annots", []):
+			annotation = annotation.get_object()
+			for key in ("/Rect", "/QuadPoints"):
+				if key in annotation:
+					points = annotation[key]
+					points[1::2] = [FloatObject(y + ty) for y in points[1::2]]
 		return page
 
 	def get_file_data_from_writer(self, writer_obj):

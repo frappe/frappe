@@ -109,14 +109,14 @@ def func_between(key: Field, value: list | tuple):
 	return key[slice(*value)]
 
 
-def func_is(key, value):
-	"Wrapper for IS"
+def func_is(key, value, empty_value=""):
+	"""Wrapper for IS. `empty_value` also counts as not set; None means only NULL does."""
 
 	match cstr(value).lower():
 		case "set":
-			return key != ""
+			return key.isnotnull() if empty_value is None else key != empty_value
 		case "not set":
-			return key.isnull() | (key == "")
+			return key.isnull() if empty_value is None else key.isnull() | (key == empty_value)
 		case _:
 			raise ValueError("`is` operator only supports `set` and `not set` as value")
 

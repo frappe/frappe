@@ -68,9 +68,15 @@ class WebServer:
 	"""Uvicorn and the ASGI app of frappe."""
 
 	def __init__(self, config: Config, traffic: Traffic):
+		import socket
+
 		import uvicorn
 
 		self.app = TrafficMiddleware.load(config, traffic)
+		# uvicorn closes the socket it serves on. A duplicate keeps systemd's open across a
+		# re-exec, so connections wait in its queue while the runner restarts.
+		fd = systemd_socket_fd()
+		self.sockets = [socket.socket(fileno=os.dup(fd))] if fd is not None else None
 		self.server = uvicorn.Server(
 			uvicorn.Config(
 				self.app,
@@ -86,7 +92,7 @@ class WebServer:
 	def serve(self, on_signal) -> None:
 		"""Run the server until a signal comes. Uvicorn sends its signals to on_signal."""
 		self.server.handle_exit = on_signal
-		self.server.run()
+		self.server.run(sockets=self.sockets)
 
 	def stop(self, sig, frame=None) -> None:
 		self.handle_exit(sig, frame)
@@ -338,16 +344,28 @@ class ThreadedWorker(FrappeWorkerNoFork):
 		pass
 
 
+def systemd_socket_fd() -> int | None:
+	"""The listening socket systemd passed this process, if it passed one."""
+	if os.environ.get("LISTEN_PID") != str(os.getpid()) or os.environ.get("LISTEN_FDS") != "1":
+		return None
+	return 3  # SD_LISTEN_FDS_START
+
+
 def close_inherited_fds() -> None:
-	"""Close the descriptors of this generation, except the standard streams.
+	"""Mark the descriptors of this generation close-on-exec, except the standard streams
+	and the socket systemd passed.
 
 	An exec keeps every descriptor that does not have the close-on-exec flag, and
 	some libraries open a file without it: the import of ctypes leaves one on the
 	interpreter itself. The runner execs on each restart, so those descriptors add
 	up until the process reaches its limit. The supervisor owns the standard
-	streams, thus they stay.
+	streams, thus they stay. macOS kills a process that closes a guarded
+	descriptor, so the exec closes them instead.
 	"""
-	os.closerange(3, os.sysconf("SC_OPEN_MAX"))
+	for name in os.listdir("/dev/fd"):
+		if int(name) > 2 and int(name) != systemd_socket_fd():
+			with suppress(OSError):
+				os.set_inheritable(int(name), False)
 
 
 class Runner:

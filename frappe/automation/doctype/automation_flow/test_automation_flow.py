@@ -58,6 +58,24 @@ class TestAutomationFlow(IntegrationTestCase):
 		doc = make_automation(trigger_type="Field Value Changed", trigger_field=None)
 		self.assertRaises(frappe.ValidationError, doc.insert)
 
+	def test_trigger_field_must_exist_on_document_type(self):
+		doc = make_automation(trigger_type="Field Value Changed", trigger_field="not_a_todo_field")
+		self.assertRaises(frappe.ValidationError, doc.insert)
+
+	def test_date_field_must_be_a_date_on_document_type(self):
+		for date_field in ("not_a_todo_field", "status"):
+			doc = make_automation(
+				trigger_type="Date Based", date_field=date_field, date_offset=1, date_direction="Before"
+			)
+			self.assertRaises(frappe.ValidationError, doc.insert)
+
+	def test_standard_datetime_field_is_a_valid_date_field(self):
+		doc = make_automation(
+			trigger_type="Date Based", date_field="creation", date_offset=1, date_direction="After"
+		)
+		doc.insert()
+		self.assertTrue(doc.name)
+
 	def test_scheduled_requires_valid_cron(self):
 		doc = make_automation(trigger_type="Scheduled", document_type=None, cron_expression="not a cron")
 		self.assertRaises(frappe.ValidationError, doc.insert)

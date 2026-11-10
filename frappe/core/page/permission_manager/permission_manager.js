@@ -6,8 +6,6 @@ frappe.pages["permission-manager"].on_page_load = (wrapper) => {
 		single_column: true,
 	});
 
-	frappe.breadcrumbs.add("Setup");
-
 	$("<div class='perm-engine' style='min-height: 200px; padding: 15px;'></div>").appendTo(
 		page.main
 	);
@@ -536,11 +534,7 @@ frappe.PermissionEngine = class PermissionEngine {
 					d.get_input("role").prop("disabled", true);
 				}
 				d.set_value("permlevel", "0");
-				d.set_primary_action(__("Add"), () => {
-					let args = d.get_values();
-					if (!args) {
-						return;
-					}
+				d.set_primary_action(__("Add"), (args) => {
 					frappe.call({
 						module: "frappe.core",
 						page: "permission_manager",

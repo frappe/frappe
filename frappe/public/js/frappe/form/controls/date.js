@@ -18,8 +18,8 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 		if (this.timepicker_only) return;
 		if (!this.datepicker) return;
 		if (!value) {
-			this.datepicker.clear();
-			this.datepicker.date = this.get_now_date();
+			this.clear_datepicker();
+			this.datepicker.setViewDate(this.get_now_date());
 			return;
 		}
 
@@ -40,49 +40,40 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 		}
 
 		if (should_refresh) {
-			this._suppress_change = true;
-			this.datepicker.selectDate(frappe.datetime.str_to_obj(value));
-			this._suppress_change = false;
+			const date = frappe.datetime.str_to_obj(value);
+			this.select_date_silently(date);
+			this.datepicker.setViewDate(date);
 		}
 	}
+	select_date_silently(date, opts) {
+		this.update_datepicker_silently(() =>
+			this.datepicker.selectDate(date, { silent: true, ...opts })
+		);
+	}
+	clear_datepicker() {
+		if (!this.datepicker.selectedDates.length) return;
+		this.update_datepicker_silently(() => this.datepicker.clear({ silent: true }));
+	}
+	update_datepicker_silently(fn) {
+		this._suppress_change = true;
+		fn();
+		setTimeout(() => (this._suppress_change = false));
+	}
 	set_date_options() {
-		// webformTODO:
-		let sysdefaults = frappe.boot.sysdefaults;
-
-		let lang = "en";
-		frappe.boot.user && (lang = frappe.boot.user.language);
-		if (!$.fn.datepicker.language[lang]) {
-			lang = "en";
-		}
-
-		let date_format =
-			sysdefaults && sysdefaults.date_format ? sysdefaults.date_format : "yyyy-mm-dd";
-
 		this.today_text = __("Today");
 		this.date_format = frappe.defaultDateFormat;
 		this.datepicker_options = {
-			language: lang,
+			locale: frappe.ui.form.get_datepicker_locale(),
 			autoClose: true,
-			todayButton: true,
-			dateFormat: date_format,
+			buttons: [this.get_today_button()],
+			dateFormat: (date) => frappe.datetime.obj_to_user(date),
 			startDate: this.get_start_date(),
 			keyboardNav: false,
 			minDate: this.df.min_date,
 			maxDate: this.df.max_date,
 			firstDay: frappe.datetime.get_first_day_of_the_week_index(),
-			onSelect: () => {
-				if (!this._suppress_change) {
-					this.$input.trigger("change");
-				}
-			},
-			onShow: () => {
-				this.datepicker.$datepicker
-					.find(".datepicker--button:visible")
-					.text(this.today_text);
-
-				this.update_datepicker_position();
-			},
-			onRenderCell: (date, cellType) => {
+			position: frappe.ui.form.position_datepicker,
+			onRenderCell: ({ date, cellType }) => {
 				if (cellType === "day" && this.df.disabled_dates) {
 					const formattedDate = moment(date).format("YYYY-MM-DD");
 					if (this.df.disabled_dates.includes(formattedDate)) {
@@ -97,48 +88,27 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 		};
 	}
 
+	get_today_button() {
+		return {
+			content: () => this.today_text,
+			onClick: (datepicker) => {
+				datepicker.selectDate(this.get_now_date(), { updateTime: true });
+				if (datepicker.visible) datepicker.hide();
+			},
+		};
+	}
+
 	get_start_date() {
 		return this.get_now_date();
 	}
 
 	set_datepicker() {
-		this.$input.datepicker(this.datepicker_options);
-		this.datepicker = this.$input.data("datepicker");
-
-		// today button didn't work as expected,
-		// so explicitly bind the event
-		this.datepicker.$datepicker.find('[data-action="today"]').click(() => {
-			this.datepicker.selectDate(this.get_now_date());
-			this.datepicker.hide();
-		});
-	}
-	update_datepicker_position() {
-		// show datepicker above or below the input
-
-		const $input = this.$input;
-		const $datepicker = this.datepicker.$datepicker;
-
-		const input_offset = $input.offset().top;
-		const input_height = $input.outerHeight();
-		const window_height = $(window).height();
-		const scroll_top = $(window).scrollTop();
-
-		const picker_height = $datepicker.outerHeight() + 12; // Add default offset
-
-		const space_below = window_height - (input_offset - scroll_top + input_height);
-		const space_above = input_offset - scroll_top;
-
-		let position = "bottom left";
-
-		if (space_below < picker_height && space_above > picker_height) {
-			position = "top left";
-			if (this.timepicker_only) this.datepicker.opts["offset"] = -30;
-		} else {
-			position = "bottom left";
-			if (this.timepicker_only) this.datepicker.opts["offset"] = 12;
-		}
-
-		this.datepicker.update("position", position);
+		this.datepicker = new AirDatepicker(this.$input[0], this.datepicker_options);
+		this.$input[0].addEventListener(
+			"change",
+			(e) => this._suppress_change && e.stopImmediatePropagation(),
+			true
+		);
 	}
 	get_now_date() {
 		return frappe.datetime
@@ -275,4 +245,91 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 		}
 		return options;
 	}
+};
+
+frappe.ui.form.add_seconds_slider = (datepicker) => {
+	const time_format = frappe.boot.sysdefaults?.time_format || "HH:mm:ss";
+	if (!datepicker.opts.timepicker || !time_format.includes("ss")) return;
+
+	let render;
+	const add_slider = () => {
+		const { timepicker } = datepicker;
+		if (!timepicker || timepicker.$el.querySelector('[name="seconds"]')) return;
+
+		const minutes_text = timepicker.$minutesText;
+		const colon = minutes_text.previousElementSibling.cloneNode(true);
+		const seconds_text = minutes_text.cloneNode();
+		minutes_text.after(colon, seconds_text);
+
+		const row = timepicker.$minutes.parentElement.cloneNode(true);
+		const slider = row.querySelector("input");
+		Object.assign(slider, { name: "seconds", min: 0, max: 59, step: 1 });
+		timepicker.$minutes.parentElement.after(row);
+
+		const change_time = () =>
+			datepicker.trigger("changeTime", {
+				hours: timepicker.hours,
+				minutes: timepicker.minutes,
+			});
+		slider.addEventListener("input", () => {
+			const seconds = Number(slider.value);
+			if (!datepicker.lastSelectedDate) change_time();
+			datepicker.lastSelectedDate.setSeconds(seconds);
+			change_time();
+			render(datepicker.lastSelectedDate);
+		});
+		for (const event of ["mousedown", "focus"]) {
+			slider.addEventListener(event, () => (datepicker.timepickerIsActive = true));
+		}
+		slider.addEventListener("blur", () => (datepicker.timepickerIsActive = false));
+		for (const event of ["mouseenter", "mouseleave"]) {
+			slider.addEventListener(event, () => seconds_text.classList.toggle("-focus-"));
+		}
+
+		render = (date) => {
+			const seconds = date ? date.getSeconds() : 0;
+			slider.value = seconds;
+			seconds_text.textContent = String(seconds).padStart(2, "0");
+		};
+		render(datepicker.lastSelectedDate);
+	};
+
+	datepicker.on("changeLastSelectedDate", (date) => render?.(date));
+	const show = datepicker.show.bind(datepicker);
+	datepicker.show = () => {
+		show();
+		add_slider();
+	};
+	add_slider();
+};
+
+let positioned_datepicker;
+document.addEventListener(
+	"scroll",
+	() => {
+		if (!positioned_datepicker?.$datepicker.classList.contains("-active-")) return;
+		const { $target } = positioned_datepicker;
+		const input = $target.getBoundingClientRect();
+		if (document.elementFromPoint(input.left + 1, input.top + input.height / 2) !== $target) {
+			$target.blur();
+			return;
+		}
+		frappe.ui.form.position_datepicker(positioned_datepicker);
+	},
+	{ capture: true, passive: true }
+);
+
+frappe.ui.form.position_datepicker = ({ $datepicker, $target }) => {
+	positioned_datepicker = { $datepicker, $target };
+	const offset = 4;
+	const input = $target.getBoundingClientRect();
+	const picker = $datepicker.getBoundingClientRect();
+	const visible_top = document.querySelector(".page-head")?.getBoundingClientRect().bottom || 0;
+	const space_below = window.innerHeight - input.bottom;
+	const space_above = input.top - Math.max(visible_top, 0);
+	const above = space_below < picker.height + offset && space_above > picker.height + offset;
+	const top = above ? input.top - picker.height - offset : input.bottom + offset;
+	const left = frappe.utils.is_rtl() ? input.right - picker.width : input.left;
+	$datepicker.style.top = `${top + window.scrollY}px`;
+	$datepicker.style.left = `${Math.max(left, 0) + window.scrollX}px`;
 };

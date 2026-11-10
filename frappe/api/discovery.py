@@ -9,9 +9,11 @@ from typing import Any
 import frappe
 from frappe import _
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
-from frappe.model.base_document import get_controller
+from frappe.model.document import get_controller
+from frappe.permissions import SYSTEM_USER_ROLE
 
-CACHE_TTL = 60 * 60
+CACHE_TTL = 24 * 60 * 60
+DEVELOPER_MODE_CACHE_TTL = 60 * 60
 DISCOVERY_CACHE_PREFIX = "api:v2:discovery"
 PYTHON_METHOD_CACHE_KEY = f"{DISCOVERY_CACHE_PREFIX}:global:methods:python"
 PYTHON_SEARCH_CACHE_KEY = f"{DISCOVERY_CACHE_PREFIX}:global:methods:python_search"
@@ -26,7 +28,7 @@ class DiscoveryCacheUnavailable(frappe.ValidationError):
 
 
 def root() -> dict[str, Any]:
-	frappe.only_for("System Manager")
+	frappe.only_for(SYSTEM_USER_ROLE)
 	method_index = _method_index()
 	doctype_method_index = _doctype_method_index()
 	return {
@@ -44,7 +46,7 @@ def root() -> dict[str, Any]:
 
 
 def search(q: str | None = None) -> dict[str, Any]:
-	frappe.only_for("System Manager")
+	frappe.only_for(SYSTEM_USER_ROLE)
 	query = (q or "").strip().lower()
 	index = _search_index()
 	entries = [entry for entry, _haystack in index]
@@ -61,23 +63,16 @@ def search(q: str | None = None) -> dict[str, Any]:
 
 
 def methods() -> dict[str, Any]:
-	frappe.only_for("System Manager")
+	frappe.only_for(SYSTEM_USER_ROLE)
 	return {"type": "method_index", "methods": _method_index()}
 
 
 def method(method: str) -> dict[str, Any]:
-	frappe.only_for("System Manager")
+	frappe.only_for(SYSTEM_USER_ROLE)
 	method = frappe.override_whitelisted_method(method)
-	server_script = {
-		path: script
-		for path, script in get_server_script_map().get("_api", {}).items()
-		if isinstance(path, str) and path
-	}.get(method)
-	if server_script:
-		if not frappe.has_permission("Server Script", "read"):
-			frappe.throw(
-				_("Method {0} is not available for discovery").format(method), frappe.PermissionError
-			)
+	server_script = _get_api_server_scripts().get(method)
+	# A different error for hidden scripts would tell the user that the script exists.
+	if server_script and frappe.has_permission("Server Script", "read", doc=server_script):
 		return {
 			"type": "method",
 			"kind": "rpc",
@@ -96,7 +91,7 @@ def method(method: str) -> dict[str, Any]:
 
 
 def doctype_methods(doctype: str) -> dict[str, Any]:
-	frappe.only_for("System Manager")
+	frappe.only_for(SYSTEM_USER_ROLE)
 	methods = [
 		_doctype_method_summary(doctype, name, fn)
 		for name, fn, _defining_class in _get_doctype_methods(doctype)
@@ -105,7 +100,7 @@ def doctype_methods(doctype: str) -> dict[str, Any]:
 
 
 def doctype_method(doctype: str, method: str) -> dict[str, Any]:
-	frappe.only_for("System Manager")
+	frappe.only_for(SYSTEM_USER_ROLE)
 	for name, fn, defining_class in _get_doctype_methods(doctype):
 		if name == method:
 			return _doctype_method_document(doctype, name, fn, defining_class)
@@ -121,7 +116,8 @@ def clear_cache(user: str | None = None):
 
 
 def build_cache() -> None:
-	"""Build API discovery cache from source in a background job."""
+	"""Build API discovery cache from source."""
+	ttl = DEVELOPER_MODE_CACHE_TTL if frappe.conf.developer_mode else CACHE_TTL
 	items = []
 	search_entries = []
 	for path in _discover_whitelisted_method_paths():
@@ -133,8 +129,8 @@ def build_cache() -> None:
 				{"method": method, "haystack": _method_search_text(entry, inspect.getdoc(fn))}
 			)
 
-	frappe.cache.set_value(PYTHON_METHOD_CACHE_KEY, items, expires_in_sec=CACHE_TTL)
-	frappe.cache.set_value(PYTHON_SEARCH_CACHE_KEY, search_entries, expires_in_sec=CACHE_TTL)
+	frappe.cache.set_value(PYTHON_METHOD_CACHE_KEY, items, expires_in_sec=ttl)
+	frappe.cache.set_value(PYTHON_SEARCH_CACHE_KEY, search_entries, expires_in_sec=ttl)
 
 	doctype_items = []
 	doctype_search_entries = []
@@ -148,8 +144,8 @@ def build_cache() -> None:
 			}
 		)
 
-	frappe.cache.set_value(DOCTYPE_METHOD_CACHE_KEY, doctype_items, expires_in_sec=CACHE_TTL)
-	frappe.cache.set_value(DOCTYPE_SEARCH_CACHE_KEY, doctype_search_entries, expires_in_sec=CACHE_TTL)
+	frappe.cache.set_value(DOCTYPE_METHOD_CACHE_KEY, doctype_items, expires_in_sec=ttl)
+	frappe.cache.set_value(DOCTYPE_SEARCH_CACHE_KEY, doctype_search_entries, expires_in_sec=ttl)
 
 
 def _search_index() -> list[tuple[dict[str, Any], str]]:
@@ -225,18 +221,18 @@ def _get_cached_doctype_search_entries() -> list[dict[str, Any]]:
 def _get_required_cache_value(key: str) -> Any:
 	value = frappe.cache.get_value(key, expires=True)
 	if value is None:
-		_trigger_cache_build()
+		build_cache_in_background()
 		frappe.throw(
-			_("API discovery cache is being generated. Please try again in a few seconds."),
+			_("API discovery cache is being generated. Please try again in 10 seconds."),
 			DiscoveryCacheUnavailable,
 		)
 	return value
 
 
-def _trigger_cache_build() -> None:
+def build_cache_in_background() -> None:
 	frappe.enqueue(
 		"frappe.api.discovery.build_cache",
-		queue="long",
+		queue="default",
 		job_id=DISCOVERY_BUILD_JOB_ID,
 		deduplicate=True,
 	)
@@ -335,11 +331,28 @@ def _method_source(fn: Callable) -> str | None:
 def _visible_server_scripts() -> list[tuple[str, str]]:
 	if not frappe.has_permission("Server Script", "read"):
 		return []
-	return sorted(
-		(path, script)
+
+	scripts = _get_api_server_scripts()
+	if not scripts:
+		return []
+
+	# Role permission alone is not sufficient, user permissions can restrict access to specific scripts.
+	paths = {script: path for path, script in scripts.items()}
+	permitted = frappe.get_list(
+		"Server Script",
+		filters={"name": ("in", list(paths))},
+		pluck="name",
+		limit_page_length=0,
+	)
+	return sorted((paths[script], script) for script in permitted)
+
+
+def _get_api_server_scripts() -> dict[str, str]:
+	return {
+		path: script
 		for path, script in get_server_script_map().get("_api", {}).items()
 		if isinstance(path, str) and path
-	)
+	}
 
 
 def _get_whitelisted_method(path: str, ignore_cache: bool = False) -> Callable | None:

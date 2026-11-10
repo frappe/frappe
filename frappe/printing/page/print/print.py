@@ -2,6 +2,11 @@ import frappe
 
 
 @frappe.whitelist()
+def get_print_styles():
+	return frappe.get_all("Print Style", filters={"disabled": 0}, pluck="name", order_by="creation asc")
+
+
+@frappe.whitelist()
 def get_print_settings_to_show(doctype: str, docname: str):
 	doc = frappe.get_doc(doctype, docname)
 	doc.check_permission("read")

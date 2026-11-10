@@ -7,8 +7,8 @@ into `@framework/ui`: the toolbar controls a user manipulates to shape a list
 ## Language
 
 **List View Controls**:
-The four toolbar pieces a user manipulates to shape a doctype list — **SortBy**,
-**Filter**, **Column Settings**, and **Quick Filter**. Each is an independent,
+The toolbar pieces a user manipulates to shape a doctype list — **SortBy**,
+**Filter**, **Column Settings**, **Quick Filter**, and **Group By**. Each is an independent,
 controlled component that owns one slice of view state.
 _Avoid_: "view controls" (CRM's name; it carries the CRM-specific Views concept).
 
@@ -31,6 +31,17 @@ A pre-chosen field surfaced inline in the toolbar for one-tap narrowing. A
 convenience projection over **Filter**s — a Quick Filter and its matching
 **Filter** describe the same underlying condition and stay in sync.
 _Avoid_: inline filter.
+
+**Group By**:
+The fields a list is grouped by, in order, plus its **Aggregate**s. Grouped, the list
+shows one summary row per distinct combination of those fields' values instead of its
+records — desk's report view group by. `null` means ungrouped.
+_Avoid_: group by view (CRM's name for a list whose records sit under group headings).
+
+**Aggregate**:
+A summary column of a grouped list: a function (`count`, `sum`, `avg`, `min`, `max`)
+and, for all but `count`, the field it runs on.
+_Avoid_: total, rollup.
 
 **Column**:
 One shown column in the list: a `fieldname`, a (user-overridable) `label`, and an
@@ -57,7 +68,7 @@ _Avoid_: connected component, smart component.
 
 **View Snapshot**:
 The serialized, persist-able capture of a List View's state — its **Filter**s,
-**Sort**s, **Column**s, and surfaced **Quick Filter** fields. The unit a host's
+**Sort**s, **Column**s, surfaced **Quick Filter** fields, and **Group By**. The unit a host's
 persistence layer is handed. It carries **no identity, ownership, or named-View
 concept** — whether this is a "standard", public, pinned, or named **View**, and
 who owns it, belongs entirely to the consuming app. The library tops out here and
@@ -95,3 +106,51 @@ and refetches."
 — "If I set a **Quick Filter** for Status, does the Status **Filter** update too?"
 — "Yes — a Quick Filter is a projection over Filters; they describe the same
 condition and stay in sync once the shared composable lands."
+
+# Email Accounts (shared @framework/ui)
+
+The settings panel for a site's mailboxes (`EmailAccounts/`), shared so any app can host it.
+
+## Language
+
+**Email Account**:
+A mailbox the site sends from or receives into, as Frappe's Email Account doctype stores it.
+_Avoid_: email config, email setup.
+
+**One-click sign-in**:
+Connecting a mailbox by signing in to its provider through Frappe Cloud
+(`email_oauth.initiate_mailbox_connect`), with no password or OAuth app to set up. Only on
+Frappe Cloud v2 sites. The panel asks the site which services can sign in this way
+(`email_oauth.get_one_click_services`, cached for 10 minutes; empty elsewhere). Picking one of those services signs
+in; any other opens the form. When
+Frappe Cloud can't sign the service in right now, the panel opens the form with a note saying so.
+Gmail asks for the address first: a personal @gmail.com address opens the form for an app
+password, and a company address signs in with Google, with the steps its Google Workspace admin
+takes once to allow Frappe.
+_Avoid_: relay connect, OAuth connect (OAuth also covers an account's own app).
+
+**Auth kind**:
+How an account authenticates: **Password**, **Frappe Mail** (API key), **OAuth** (one-click
+sign-in, whose Connected App's token URI starts with `frappe-cloud-relay:`), or
+**OAuth: custom app** (a Connected App the site set up itself).
+
+**Account status**:
+An account's state, shown on its card in the list. **Needs reconnect**: an OAuth account
+with no token left (Frappe drops the token when the provider rejects its refresh); its card
+has a badge and a Reconnect footer instead of the toggles. Anything else is **Active**, and
+its card's **Receive** and **Send** toggles say which way it works, with a **Disabled** badge
+when both are off.
+
+**Reconnect**:
+Signing an existing OAuth account in again, from its edit screen or its Desk form, which moves
+it to a fresh token without creating a new account. An **OAuth** account runs one-click
+sign-in again, only while its service can sign in in one click; otherwise it is reconnected in Desk. An
+**OAuth: custom app** account runs its own Connected App's flow
+(`initiate_web_application_flow`) as its connected user, on any site; signing in for another
+user needs write access to the Connected App.
+_Avoid_: re-authorize (Desk's name for a custom app's flow).
+
+**Default incoming / Default outgoing**:
+The one account replies come into and the one account mail is sent from, picked once for
+the whole list rather than on each account.
+Turning off a direction on the default account asks first, as nothing is then the default for it.

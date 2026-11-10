@@ -1,6 +1,8 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
+import { preload_island } from "../ui/island/loader.js";
+
 frappe.provide("frappe.views.pageview");
 frappe.provide("frappe.standard_pages");
 
@@ -8,6 +10,16 @@ frappe.provide("frappe.standard_pages");
 // bounded box off this class. The island scrolls its own body, which needs a
 // definite height to scroll in, and desk's page is document-scrolled.
 const ISLAND_PAGE_CLASS = "island-page";
+
+/**
+ * Starts loading a page's island while `getpage` is on its way. A page island is
+ * registered as `<app>.page.<page>`, so boot already names it. A page whose `island`
+ * names an app's own island loads once `getpage` returns, as before.
+ */
+function preload_page_island(name) {
+	const island = frappe.boot.ui_islands?.find((island) => island.endsWith(`.page.${name}`));
+	if (island) preload_island(island);
+}
 
 frappe.views.pageview = {
 	with_page: function (name, callback) {
@@ -31,6 +43,7 @@ frappe.views.pageview = {
 			callback();
 		} else if (name) {
 			// get fresh
+			preload_page_island(name);
 			return frappe.call({
 				method: "frappe.desk.desk_page.getpage",
 				args: { name: name },
@@ -100,17 +113,10 @@ frappe.views.Page = class Page {
 				frappe.dom.eval(this.pagedoc.__script || this.pagedoc.script);
 				frappe.dom.set_style(this.pagedoc.style || "");
 			}
-
-			// set breadcrumbs
-			frappe.breadcrumbs.add(this.pagedoc.module || null);
 		}
 
 		this.trigger_page_event("on_page_load");
-		frappe.breadcrumbs.add({
-			type: "Custom",
-			label: __(this.pagedoc.title),
-			route: frappe.get_route_str(),
-		});
+		this.wrapper.page?.set_breadcrumbs([{ label: __(this.pagedoc.title) }]);
 
 		// set events
 		$(this.wrapper).on("show", function () {
@@ -171,6 +177,15 @@ frappe.views.Page = class Page {
 			return;
 		}
 
+		// The island's own bundle loads first, which on a slow network leaves an empty page.
+		// A failed load replaces the skeleton with its error (show_island_error).
+		const $skeleton = $(
+			`<div class="island-page-skeleton" aria-busy="true">
+				<span class="sr-only">${frappe.utils.escape_html(__("Loading..."))}</span>
+				${"<div></div>".repeat(6)}
+			</div>`
+		).appendTo(this.island_container);
+
 		this.island = frappe.ui.mount_island(this.pagedoc.island, this.island_container[0], {
 			...props,
 			onTitle: (title) => {
@@ -183,15 +198,15 @@ frappe.views.Page = class Page {
 			},
 		});
 
-		this.island.ready.catch((error) => this.show_island_error(error));
+		this.island.ready
+			.then(() => $skeleton.remove())
+			.catch((error) => this.show_island_error(error));
 	}
 
 	/**
 	 * The page head, from what the island reported.
 	 *
-	 * The title goes to the last breadcrumb and to the browser tab, not to
-	 * `page.set_title`: that writes into the `.title-text` crumb, which the next
-	 * `breadcrumbs.update()` overwrites.
+	 * The title is the last breadcrumb, and also names the browser tab.
 	 *
 	 * An action is `{ label, icon? }` plus either an `onClick` or an `href`. An
 	 * `href` leads out of desk, so desk opens it in a new tab. A desk menu row is
@@ -200,14 +215,10 @@ frappe.views.Page = class Page {
 	 */
 	set_island_chrome() {
 		const label = this.island_title || __(this.pagedoc.title) || this.pagedoc.name;
-		frappe.breadcrumbs.add({
-			type: "Custom",
-			label: label,
-			route: frappe.get_route_str(),
-		});
+		const page = this.wrapper.page;
+		page.set_breadcrumbs([{ label: label }]);
 		frappe.utils.set_title(label);
 
-		const page = this.wrapper.page;
 		page.clear_menu();
 		this.island_actions.forEach((action) => {
 			const click = action.href ? () => window.open(action.href, "_blank") : action.onClick;

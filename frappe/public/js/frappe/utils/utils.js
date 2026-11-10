@@ -3,10 +3,13 @@
 
 import deep_equal from "fast-deep-equal";
 import number_systems from "./number_systems";
+import { get_country_flag_url } from "./country_flag_url.js";
+import { CHART_PALETTE, has_unsafe_scheme } from "../ui/components/utils.js";
 
 frappe.provide("frappe.utils");
 
 const eval_function_cache = new Map();
+let haptic_switch = null;
 
 // Array de duplicate
 if (!Array.prototype.uniqBy) {
@@ -275,6 +278,8 @@ Object.assign(frappe.utils, {
 
 		return String(txt).replace(/[&<>"'`=]/g, (char) => escape_html_mapping[char] || char);
 	},
+
+	has_unsafe_url_scheme: has_unsafe_scheme,
 
 	// Escape text and wrap in <strong> — use this instead of String.prototype.bold()
 	// so user-supplied values are safely escaped before being injected into HTML.
@@ -1170,6 +1175,32 @@ Object.assign(frappe.utils, {
 			input.remove();
 		}
 	},
+	/**
+	 * A light tick on a touch screen. iOS has no vibration, so a hidden switch is flipped; iOS 26.5+
+	 * ignores that from a script, and capture-phase click listeners still see the flip.
+	 */
+	haptic() {
+		if (!window.matchMedia("(hover: none)").matches) return;
+		if (navigator.vibrate) {
+			navigator.vibrate(10);
+			return;
+		}
+		if (!haptic_switch) {
+			haptic_switch = document.createElement("label");
+			haptic_switch.hidden = true;
+			haptic_switch.setAttribute("aria-hidden", "true");
+			const input = document.createElement("input");
+			input.type = "checkbox";
+			input.setAttribute("switch", "");
+			haptic_switch.append(input);
+			// keeps the flip from bubbling to the page's handlers
+			for (const type of ["click", "change"]) {
+				haptic_switch.addEventListener(type, (e) => e.stopPropagation());
+			}
+			document.body.append(haptic_switch);
+		}
+		haptic_switch.click();
+	},
 	is_rtl(lang = null) {
 		// Keep this list in sync with rtl_languages in the Python twin at
 		// frappe/utils/jinja_globals.py:is_rtl.
@@ -1428,6 +1459,23 @@ Object.assign(frappe.utils, {
 		return { icon, title };
 	},
 
+	// The apps the desktop screen and the app switcher list: installed apps by `sequence_id`,
+	// then Studio Apps by title, then Framework.
+	get_apps_screen_apps() {
+		const apps = (frappe.boot.app_data || [])
+			.filter((app) => app.on_apps_screen)
+			.sort((a, b) => (a.sequence_id ?? 100) - (b.sequence_id ?? 100));
+		const studio_apps = (frappe.boot.studio_apps || []).map((app) => ({
+			app_name: app.name,
+			app_title: app.app_title,
+			app_route: `/${app.route}`,
+			app_logo_url: app.favicon,
+		}));
+		const framework = apps.findIndex((app) => app.app_name === "frappe");
+		apps.splice(framework === -1 ? apps.length : framework, 0, ...studio_apps);
+		return apps;
+	},
+
 	// The boot entry for a module's own shell, or undefined.
 	//
 	// `frappe.boot.module_sidebars` is keyed by shell: a `Sidebar` document's name, or the module's
@@ -1482,17 +1530,18 @@ Object.assign(frappe.utils, {
 								route = "/desk/private/" + frappe.router.slug(workspaces.title);
 							}
 						}
-
-						if (first_link.route) {
-							route = first_link.route;
-						}
 					} else if (first_link.link_type === "URL") {
 						route = first_link.url;
-					} else if (first_link.link_type == "Page" && first_link.route_options) {
+					} else if (first_link.link_type == "Page") {
 						route = frappe.utils.generate_route({
 							type: first_link.link_type,
 							name: first_link.link_to,
-							route_options: JSON.parse(first_link.route_options),
+							route: first_link.route
+								? `${first_link.link_to}/${first_link.route}`
+								: undefined,
+							route_options: first_link.route_options
+								? JSON.parse(first_link.route_options)
+								: undefined,
 						});
 					} else {
 						route = frappe.utils.generate_route({
@@ -1574,7 +1623,9 @@ Object.assign(frappe.utils, {
 	},
 
 	flag(country_code) {
-		return `<img loading="lazy" src="https://flagcdn.com/${country_code}.svg" width="20" height="15">`;
+		return `<img loading="lazy" src="${get_country_flag_url(
+			country_code
+		)}" width="20" height="15" alt="">`;
 	},
 
 	is_emoji(str) {
@@ -1603,10 +1654,9 @@ Object.assign(frappe.utils, {
 		return exists;
 	},
 
-	make_chart(wrapper, custom_options = {}) {
+	get_chart_args(custom_options = {}) {
 		let chart_args = {
 			type: "bar",
-			colors: ["light-blue"],
 			axisOptions: {
 				xIsSeries: 1,
 				shortenYAxisNumbers: 1,
@@ -1616,6 +1666,7 @@ Object.assign(frappe.utils, {
 		};
 
 		for (let key in custom_options) {
+			if (key === "__proto__") continue;
 			if (typeof chart_args[key] === "object" && typeof custom_options[key] === "object") {
 				chart_args[key] = Object.assign(chart_args[key], custom_options[key]);
 			} else {
@@ -1623,7 +1674,16 @@ Object.assign(frappe.utils, {
 			}
 		}
 		frappe.utils.set_space_label_ratio(chart_args);
-		return new frappe.Chart(wrapper, chart_args);
+		return chart_args;
+	},
+
+	// Espresso's chart colours (CHART_PALETTE) as the current theme defines them: frappe-charts
+	// lightens and blends colours from their literal values, which a CSS variable does not give it
+	get_chart_palette() {
+		const style = getComputedStyle(document.documentElement);
+		return CHART_PALETTE.map(
+			(color) => style.getPropertyValue(color.slice(4, -1)).trim() || color
+		);
 	},
 
 	format_chart_axis_number(label, country) {
@@ -1705,7 +1765,9 @@ Object.assign(frappe.utils, {
 				if (item.public) {
 					route = frappe.router.slug(item.name);
 				} else {
-					route = "private/" + frappe.router.slug(item.name);
+					// By title: a private page's name carries its owner's email, and the only
+					// person who can open the page is that owner. See `router.private_workspace`.
+					route = "private/" + frappe.router.slug(item.title || item.name);
 				}
 			}
 		} else {
@@ -1743,7 +1805,7 @@ Object.assign(frappe.utils, {
 		 */
 
 		// return empty for null, undefined, or empty string
-		if (!number || isNaN(number)) {
+		if (is_null(number) || isNaN(number)) {
 			return "";
 		}
 
@@ -1762,23 +1824,18 @@ Object.assign(frappe.utils, {
 			return x_string;
 		}
 
+		const round = (result) =>
+			this.get_number_of_decimals(result) > max_no_of_decimals
+				? result.toFixed(max_no_of_decimals)
+				: result;
+
 		for (const map of number_system) {
 			if (x >= map.divisor) {
-				let result = number / map.divisor;
-				const no_of_decimals = this.get_number_of_decimals(result);
-				/*
-					If no_of_decimals is greater than max_no_of_decimals,
-					round the number to max_no_of_decimals
-				*/
-				result =
-					no_of_decimals > max_no_of_decimals
-						? result.toFixed(max_no_of_decimals)
-						: result;
-				return result + " " + map.symbol;
+				return round(number / map.divisor) + " " + map.symbol;
 			}
 		}
 
-		return number.toFixed(max_no_of_decimals);
+		return String(round(number));
 	},
 
 	get_number_of_decimals: function (number) {

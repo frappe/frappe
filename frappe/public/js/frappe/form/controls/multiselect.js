@@ -8,6 +8,11 @@ frappe.ui.form.ControlMultiSelect = class ControlMultiSelect extends (
 
 		return Object.assign(settings, {
 			filter: function (text, input) {
+				const selected_labels = input.split(/\s*,\s*/).slice(0, -1);
+				if (selected_labels.includes(text.label)) {
+					return false;
+				}
+
 				let d = this.get_item(text.value);
 				if (!d) {
 					return Awesomplete.FILTER_CONTAINS(text, input.match(/[^,]*$/)[0]);
@@ -95,10 +100,6 @@ frappe.ui.form.ControlMultiSelect = class ControlMultiSelect extends (
 		} else {
 			data = super.get_data();
 		}
-		const values = this.get_values() || [];
-
-		// return values which are not already selected
-		if (data) data.filter((d) => !values.includes(d));
 		return data;
 	}
 

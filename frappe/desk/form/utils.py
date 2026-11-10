@@ -3,6 +3,7 @@
 
 import json
 from typing import TYPE_CHECKING
+from urllib.parse import urlencode
 
 import frappe
 import frappe.desk.form.load
@@ -36,8 +37,8 @@ def add_comment(
 			"comment_type": "Comment",
 			"reference_doctype": reference_doctype,
 			"reference_name": reference_name,
-			"comment_email": comment_email,
-			"comment_by": comment_by,
+			"comment_email": frappe.session.user,
+			"comment_by": frappe.utils.get_fullname(),
 			"content": extract_images_from_html(reference_doc, content, is_private=True),
 		}
 	)
@@ -163,4 +164,7 @@ def _sort_field_fallback(doctype: str, fieldname: str):
 
 
 def get_pdf_link(doctype, docname, print_format="Standard", no_letterhead=0):
-	return f"/api/method/frappe.utils.print_format.download_pdf?doctype={doctype}&name={docname}&format={print_format}&no_letterhead={no_letterhead}"
+	query = urlencode(
+		{"doctype": doctype, "name": docname, "format": print_format, "no_letterhead": no_letterhead}
+	)
+	return f"/api/method/frappe.utils.print_format.download_pdf?{query}"

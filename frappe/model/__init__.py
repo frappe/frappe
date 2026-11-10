@@ -62,6 +62,7 @@ no_value_fields = (
 	"Image",
 	"Fold",
 	"Heading",
+	"Vue Component",
 )
 NO_VALUE_FIELDS = frozenset(no_value_fields)
 
@@ -75,6 +76,7 @@ display_fieldtypes = (
 	"Image",
 	"Fold",
 	"Heading",
+	"Vue Component",
 )
 
 numeric_fieldtypes = ("Currency", "Int", "Long Int", "Float", "Percent", "Check")
@@ -95,7 +97,7 @@ DEFAULT_FIELDS = frozenset(default_fields)
 
 child_table_fields = ("parent", "parentfield", "parenttype")
 
-optional_fields = ("_user_tags", "_comments", "_assign", "_liked_by", "_seen")
+optional_fields = ("_user_tags", "_assign", "_liked_by", "_seen")
 OPTIONAL_FIELDS = frozenset(optional_fields)
 
 table_fields = ("Table", "Table MultiSelect")
@@ -153,7 +155,6 @@ std_fields = [
 	},
 	{"fieldname": "_user_tags", "fieldtype": "Data", "label": "Tags"},
 	{"fieldname": "_liked_by", "fieldtype": "Data", "label": "Liked By"},
-	{"fieldname": "_comments", "fieldtype": "Text", "label": "Comments"},
 	{"fieldname": "_assign", "fieldtype": "Text", "label": "Assigned To"},
 	{"fieldname": "docstatus", "fieldtype": "Int", "label": "Document Status"},
 ]
@@ -245,7 +246,11 @@ def get_permitted_fields(
 	)
 
 	if permission_type == "select":
-		return [*meta.default_fields, *permitted_fields]
+		select_fields = [*meta.default_fields, *permitted_fields]
+		# the User list needs this to show the status; at permlevel 0 it can already be filtered on
+		if doctype == "User" and meta.get_field("enabled").permlevel == 0:
+			select_fields.append("enabled")
+		return select_fields
 
 	valid_columns = set(valid_columns)
 	result = [

@@ -73,7 +73,7 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		"""before_save should set print_format_builder_beta=1 for new non-custom formats."""
 		pf = self._make_print_format()
 		self.assertEqual(pf.print_format_builder_beta, 1)
-		self.assertEqual(pf.pdf_generator, "chrome")
+		self.assertEqual(pf.pdf_generator, "PlutoPrint")
 
 	def test_new_custom_format_does_not_set_builder_beta(self):
 		"""before_save must NOT enable builder beta for custom HTML formats."""
@@ -220,6 +220,7 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 
 		def chrome_options(letterhead=True, **pf_kwargs):
 			pf_kwargs.setdefault("margin_top", 12)
+			pf_kwargs.setdefault("pdf_generator", "chrome")
 			pf = self._make_print_format(**pf_kwargs)
 			generator = PrintFormatGenerator(pf, todo, letterhead=letterhead_doc.name if letterhead else None)
 			with patch("frappe.utils.pdf.get_chrome_pdf", return_value=b"%PDF-") as chrome_pdf:
@@ -257,7 +258,7 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 
 		from frappe.utils.print_format_generator import PrintFormatGenerator
 
-		pf = self._make_print_format()
+		pf = self._make_print_format(pdf_generator="chrome")
 		todo = self._make_todo()
 		generator = PrintFormatGenerator(pf, todo)
 
@@ -268,6 +269,85 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		with patch("frappe.utils.pdf.get_chrome_pdf", return_value=b"%PDF-") as chrome_pdf:
 			generator.render_pdf()
 		self.assertNotIn("password", chrome_pdf.call_args.kwargs["options"])
+
+	def test_bulk_typst_pdf_with_password_is_encrypted(self):
+		import io
+
+		from pypdf import PdfReader
+
+		from frappe.utils.print_format import _download_multi_pdf
+
+		print_format = self._make_print_format(pdf_generator="Typst")
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc(
+			{"doctype": "ToDo", "description": "Send the Q3 price list to Contoso"}
+		).insert()
+
+		_download_multi_pdf(
+			"ToDo", json.dumps([todo.name]), format=print_format.name, options=json.dumps({"password": "qwe"})
+		)
+
+		reader = PdfReader(io.BytesIO(frappe.local.response.filecontent))
+		self.assertTrue(reader.decrypt("qwe"))
+		self.assertEqual(len(reader.pages), 1)
+
+	def test_bulk_pdf_links_stay_in_their_own_document(self):
+		import io
+
+		from pypdf import PdfReader
+
+		from frappe.utils.print_format import _download_multi_pdf
+
+		html = '<a href="#totals">See totals</a>' + "<p>row</p>" * 80 + '<p id="totals">Totals</p>'
+		print_format = self._make_print_format(
+			pdf_generator="chrome",
+			format_data=json.dumps(
+				{
+					"sections": [
+						{
+							"columns": [
+								{"fields": [{"fieldtype": "HTML", "fieldname": "_html1", "html": html}]}
+							]
+						}
+					]
+				}
+			),
+		)
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todos = [
+			frappe.get_doc({"doctype": "ToDo", "description": description}).insert().name
+			for description in ("Send the Q3 price list to Contoso", "Renew the Fabrikam support contract")
+		]
+
+		_download_multi_pdf("ToDo", json.dumps(todos), format=print_format.name, no_letterhead=1)
+
+		reader = PdfReader(io.BytesIO(frappe.local.response.filecontent))
+		(first_page, first_target), (second_page, second_target) = (
+			(number, reader.get_page_number(annotation.get_object()["/Dest"][0].get_object()))
+			for number, page in enumerate(reader.pages)
+			for annotation in page.get("/Annots", [])
+		)
+		self.assertLess(first_page, first_target)
+		self.assertLess(first_target, second_page)
+		self.assertLess(second_page, second_target)
+
+	def test_typst_pdf_with_password_is_encrypted(self):
+		import io
+
+		from pypdf import PdfReader
+
+		print_format = self._make_print_format(pdf_generator="Typst")
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc(
+			{"doctype": "ToDo", "description": "Send the Q3 price list to Contoso"}
+		).insert()
+
+		pdf = frappe.get_print("ToDo", todo.name, print_format=print_format.name, as_pdf=True, password="qwe")
+
+		self.assertTrue(PdfReader(io.BytesIO(pdf)).decrypt("qwe"))
 
 	def test_permlevel_restricted_fields_are_dropped(self):
 		"""A layout may reference permlevel-restricted fields; readers without access
@@ -301,6 +381,33 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 				fieldnames = self._layout_fieldnames(PrintFormatGenerator(pf, todo))
 			self.assertIn("_secret", fieldnames)
 
+	def test_permlevel_restricted_block_sources_are_dropped(self):
+		"""Repeater and Barcode blocks are dropped when the field they print from is restricted."""
+		from unittest.mock import patch
+
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		pf = self._make_print_format()
+		todo = self._make_todo()
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+
+		layout = json.loads(pf.format_data)
+		layout["sections"][0]["columns"][0]["fields"] += [
+			{"fieldtype": "Repeater", "fieldname": "repeater", "source": "_secret"},
+			{"fieldtype": "Barcode", "fieldname": "barcode", "custom": 1, "barcode_field": "_secret"},
+		]
+		pf.format_data = json.dumps(layout)
+		get_field = todo.meta.get_field
+		restricted = frappe._dict(permlevel=1)
+
+		with patch.object(
+			todo.meta, "get_field", side_effect=lambda f: restricted if f == "_secret" else get_field(f)
+		):
+			fieldnames = self._layout_fieldnames(PrintFormatGenerator(pf, todo))
+		self.assertNotIn("repeater", fieldnames)
+		self.assertNotIn("barcode", fieldnames)
+
 	def _layout_fieldnames(self, generator):
 		return [
 			df.get("fieldname")
@@ -318,21 +425,106 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		self.assertIsNone(_print_format_doc_or_none("Standard"))
 		self.assertIsNone(_print_format_doc_or_none(None))
 
-	def test_standard_print_follows_print_settings_pdf_generator(self):
-		"""Standard (no print format) must honour Print Settings, while a beta format
-		stays pinned to chrome — wkhtmltopdf cannot lay out its flexbox columns."""
+	def test_empty_format_name_resolves_to_doctype_default(self):
+		"""With no print_format name, printview renders the doctype's default print format,
+		so the PDF engine must be picked for that format, not for Standard."""
+		from unittest.mock import patch
+
+		from frappe.utils.print_utils import _print_format_doc_or_none, resolve_pdf_generator
+
+		default = self._make_print_format()
+		with patch.object(frappe.get_meta("ToDo"), "default_print_format", default.name):
+			self.assertEqual(_print_format_doc_or_none(None, "ToDo").name, default.name)
+			self.assertEqual(resolve_pdf_generator(_print_format_doc_or_none("", "ToDo")), "PlutoPrint")
+
+	def test_typst_default_format_prints_without_a_format_name(self):
+		"""get_print with no format name hands a Typst default format to the Typst hook."""
+		from unittest.mock import patch
+
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		default = self._make_print_format(pdf_generator="Typst")
+		todo = self._make_todo()
+		with (
+			patch.object(frappe.get_meta("ToDo"), "default_print_format", default.name),
+			patch.object(PrintFormatGenerator, "render_typst_pdf", return_value=b"%PDF-typst"),
+		):
+			self.assertEqual(frappe.get_print("ToDo", todo.name, as_pdf=True), b"%PDF-typst")
+
+	def test_typst_pdf_skips_the_html_print_view(self):
+		from unittest.mock import patch
+
+		from frappe.www import printview
+
+		print_format = self._make_print_format(pdf_generator="Typst")
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc(
+			{"doctype": "ToDo", "description": "Send the Q3 price list to Contoso"}
+		).insert()
+
+		with patch.object(printview, "get_context", wraps=printview.get_context) as get_context:
+			frappe.get_print("ToDo", todo.name, print_format.name, as_pdf=True)
+
+		get_context.assert_not_called()
+
+	def test_unknown_pdf_generator_uses_print_settings_default(self):
+		from unittest.mock import patch
+
+		from frappe.utils.print_utils import _print_format_doc_or_none, resolve_pdf_generator
+
+		jinja = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": f"_Test PFG Jinja {frappe.generate_hash(length=6)}",
+				"doc_type": "ToDo",
+				"custom_format": 1,
+				"print_format_type": "Jinja",
+				"standard": "No",
+				"html": "<p>{{ doc.description }}</p>",
+			}
+		).insert()
+		self.addCleanup(frappe.delete_doc, "Print Format", jinja.name, force=True)
+		self.addCleanup(frappe.set_user, "Administrator")
+
+		for value in ("wkhtmltopdf", "no-such-engine"):
+			frappe.set_user("Administrator")
+			jinja.db_set("pdf_generator", value)
+			frappe.clear_document_cache("Print Format", jinja.name)
+			frappe.set_user("test@example.com")
+			todo = frappe.get_doc({"doctype": "ToDo", "description": "pdf engine fallback"}).insert()
+			self.assertEqual(resolve_pdf_generator(_print_format_doc_or_none(jinja.name)), "PlutoPrint")
+			self.assertEqual(resolve_pdf_generator(None, value), "PlutoPrint")
+			with patch("frappe.utils.pdf.get_plutoprint_pdf", return_value=b"%PDF-") as plutoprint_pdf:
+				frappe.get_print("ToDo", todo.name, print_format=jinja.name, as_pdf=True, pdf_generator=value)
+			self.assertEqual(plutoprint_pdf.call_args.kwargs["pdf_generator"], "PlutoPrint")
+
+		frappe.set_user("Administrator")
+		jinja.reload()
+		jinja.save()
+		self.assertEqual(jinja.pdf_generator, "chrome")
+
+	def test_jinja_variable_starting_with_on_keeps_plutoprint(self):
+		from frappe.utils.print_utils import resolve_pdf_generator
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		jinja = frappe._dict(
+			pdf_generator="PlutoPrint",
+			html='{%- set ongoing = doc.status == "Open" -%}<p>{{ doc.description }}</p>',
+		)
+		script = frappe._dict(
+			pdf_generator="PlutoPrint", html='<p onclick="print()">{{ doc.description }}</p>'
+		)
+		self.assertEqual(resolve_pdf_generator(jinja), "PlutoPrint")
+		self.assertEqual(resolve_pdf_generator(script), "chrome")
+
+	def test_standard_print_uses_print_settings_default(self):
 		from frappe.utils.print_utils import resolve_pdf_generator
 
 		beta = self._make_print_format()
-		original = frappe.db.get_single_value("Print Settings", "pdf_generator")
-		self.addCleanup(frappe.db.set_single_value, "Print Settings", "pdf_generator", original)
-
-		for setting in ("wkhtmltopdf", "chrome"):
-			frappe.db.set_single_value("Print Settings", "pdf_generator", setting)
-			self.assertEqual(resolve_pdf_generator(None), setting)
-			self.assertEqual(resolve_pdf_generator(beta), "chrome")
-
-		frappe.db.set_single_value("Print Settings", "pdf_generator", "wkhtmltopdf")
+		self.assertEqual(resolve_pdf_generator(None), "PlutoPrint")
+		self.assertEqual(resolve_pdf_generator(beta), "PlutoPrint")
 		self.assertEqual(resolve_pdf_generator(None, "chrome"), "chrome")
 
 	# ------------------------------------------------------------------ #
@@ -1162,6 +1354,29 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		self.assertNotIn('document-status="draft"', html)
 		self.assertNotIn('document-status="cancelled"', html)
 
+	def test_typst_draft_heading_rendered(self):
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+		from frappe.utils.typst_emitter import TypstEmitter
+
+		doc = self._make_submittable_doc(0)
+		print_format = self._make_print_format(doc_type=doc.doctype, pdf_generator="Typst")
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		with self.change_settings("Print Settings", add_draft_heading=1):
+			source, _assets = TypstEmitter(PrintFormatGenerator(print_format, doc)).emit()
+		self.assertIn('"DRAFT"', source)
+
+	def test_typst_cancelled_heading_rendered(self):
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+		from frappe.utils.typst_emitter import TypstEmitter
+
+		doc = self._make_submittable_doc(2)
+		print_format = self._make_print_format(doc_type=doc.doctype, pdf_generator="Typst")
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		source, _assets = TypstEmitter(PrintFormatGenerator(print_format, doc)).emit()
+		self.assertIn('"CANCELLED"', source)
+
 	def test_draft_print_blocked_when_not_allowed(self):
 		"""The new renderer enforces the draft-print guard on the beta path."""
 		with self.change_settings("Print Settings", allow_print_for_draft=0):
@@ -1308,6 +1523,26 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		self.assertIn("LETTERHEAD_BOTTOM", gen.context.footer)
 		self.assertEqual(gen.context.chrome_layout_header, "")
 		self.assertEqual(gen.context.chrome_layout_footer, "")
+
+	def test_letterhead_left_open_by_jinja_keeps_the_body(self):
+		from bs4 import BeautifulSoup
+
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		lh = self._make_letterhead()
+		lh.content = (
+			'<div class="pfg-lh">{% if doc.priority == "High" %}<img src="/files/logo.png"></div>{% endif %}'
+		)
+		lh.save(ignore_permissions=True)
+		pf = self._make_print_format()
+		todo = self._make_todo()
+
+		with self.change_settings("Print Settings", repeat_header_footer=1):
+			html = PrintFormatGenerator(pf.name, todo, lh.name)._build_html_for_chrome()
+
+		soup = BeautifulSoup(html, "html5lib")
+		soup.find(id="header-html").extract()
+		self.assertIn("Generator test task", str(soup))
 
 	def test_repeat_header_footer_off_renders_letterhead_once(self):
 		"""With repeat_header_footer disabled, the letterhead header renders inline once
@@ -1531,4 +1766,65 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 				todo, {"repeat_header_footer": 1, "allow_print_for_draft": 1}
 			),
 			{"repeat_header_footer": 1},
+		)
+
+	def test_standard_pdf_keeps_request_settings_and_password(self):
+		import io
+
+		from pypdf import PdfReader
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "settings handoff"}).insert()
+
+		self.addCleanup(lambda: frappe.form_dict.pop("settings", None))
+		frappe.form_dict.settings = json.dumps({"page_orientation": "Landscape"})
+		page = PdfReader(io.BytesIO(frappe.get_print("ToDo", todo.name, as_pdf=True))).pages[0]
+		self.assertGreater(float(page.mediabox.width), float(page.mediabox.height))
+
+		pdf = frappe.get_print("ToDo", todo.name, as_pdf=True, pdf_options={"password": "secret"})
+		self.assertTrue(PdfReader(io.BytesIO(pdf)).is_encrypted)
+
+	def test_standard_attachment_matches_the_pdf_button(self):
+		from unittest.mock import patch
+
+		from frappe.utils.print_utils import attach_print
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "attachment"}).insert()
+
+		with patch("frappe.utils.print_utils._render_builder_pdf", return_value=b"%PDF-") as render:
+			attach_print("ToDo", todo.name, style="Modern", settings={"pdf_page_size": "A5"})
+
+		self.assertEqual(render.call_args.kwargs["style"], "Modern")
+		self.assertEqual(render.call_args.kwargs["settings"], {"pdf_page_size": "A5"})
+
+	def test_print_settings_override_rejects_invalid_values(self):
+		from frappe.www.printview import get_allowed_print_settings_override
+
+		todo = self._make_todo()
+		self.assertEqual(
+			get_allowed_print_settings_override(
+				todo,
+				{
+					"pdf_page_size": "A5",
+					"page_orientation": "Landscape",
+					"print_font": "Open Sans",
+					"pdf_page_width": "210",
+				},
+			),
+			{
+				"pdf_page_size": "A5",
+				"page_orientation": "Landscape",
+				"print_font": "Open Sans",
+				"pdf_page_width": 210.0,
+			},
+		)
+		self.assertEqual(
+			get_allowed_print_settings_override(
+				todo,
+				{"pdf_page_size": "A5; x", "page_orientation": "Sideways", "print_font": "Inter;}"},
+			),
+			{},
 		)

@@ -5,7 +5,7 @@ import frappe
 import frappe.integrations.utils
 import frappe.utils.safe_exec as safe_exec_utils
 from frappe.tests import IntegrationTestCase
-from frappe.utils.jinja import get_jenv, render_template
+from frappe.utils.jinja import get_jenv, get_jinja_hooks, render_template
 from frappe.utils.safe_exec import (
 	SAFE_EXEC_CONFIG_KEY,
 	SafeDoc,
@@ -64,6 +64,13 @@ class TestSafeExec(IntegrationTestCase):
 	def test_internal_attributes(self):
 		self.assertRaises(SyntaxError, safe_exec, "().__class__.__call__")
 
+	def test_env_outside_server_script(self):
+		with (
+			self.set_user("test@example.com"),
+			self.assertRaisesRegex(frappe.ValidationError, "only available in Server Scripts"),
+		):
+			safe_exec("x = frappe.env.API_TOKEN")
+
 	def test_utils(self):
 		_locals = dict(out=None)
 		safe_exec("""out = frappe.utils.cint("1")""", None, _locals)
@@ -109,6 +116,26 @@ class TestSafeExec(IntegrationTestCase):
 			frappe.PermissionError, safe_exec, 'frappe.db.sql("update tabToDo set description=NULL")'
 		)
 
+	def test_sql_export_blocked_with_comment_separator(self):
+		for separator in ("/**/", "/*!50000 */", "-- x\n", "#x\n", " ", "\n"):
+			for keyword in ("outfile", "dumpfile"):
+				query = f"select 1 into{separator}{keyword} '/tmp/x'"
+				self.assertFalse(safe_exec_utils.check_safe_sql_query(query, throw=False), query)
+
+		self.assertFalse(
+			safe_exec_utils.check_safe_sql_query("select 1 /*! into outfile '/tmp/x' */", throw=False)
+		)
+		self.assertTrue(safe_exec_utils.check_safe_sql_query("select /* note */ 1 -- end", throw=False))
+
+	def test_sql_export_blocked_when_split_by_comment_like_text(self):
+		for query in (
+			"select 1--1 into/**/outfile '/tmp/x'",
+			"select '/*' into/**/outfile '/tmp/x' -- */",
+			"select 1 /*!into*/ /*!outfile*/ '/tmp/x'",
+			"select 1 into/*!50000dumpfile*/'/tmp/x'",
+		):
+			self.assertFalse(safe_exec_utils.check_safe_sql_query(query, throw=False), query)
+
 	def test_query_builder(self):
 		_locals = dict(out=None)
 		safe_exec(
@@ -130,6 +157,19 @@ class TestSafeExec(IntegrationTestCase):
 
 		# Allowed read query
 		frappe.render_template(""" {{ frappe.qb.from_("User").select("*").run() }} """)
+
+	def test_auth_table_not_readable(self):
+		with self.set_user("Guest"):
+			for template in (
+				"""{{ frappe.db.sql("select password from __Auth") }}""",
+				"""{{ frappe.qb.from_("__Auth").select("password").run() }}""",
+				"""{{ frappe.db.exists("__Auth", {"name": "Administrator"}) }}""",
+			):
+				self.assertRaises(frappe.PermissionError, render_template, template)
+
+			self.assertEqual(render_template("""{{ frappe.db.exists("User", "Guest") }}"""), "Guest")
+
+		self.assertRaises(frappe.PermissionError, safe_exec, """frappe.db.sql("select * from `__Auth`")""")
 
 	def test_call(self):
 		# call non whitelisted method
@@ -494,3 +534,35 @@ class TestJinjaGlobals(IntegrationTestCase):
 		self.assertIsNot(jenv_restricted.globals, jenv_unrestricted.globals)
 		self.assertIs(get_jenv(restrict_globals=True), jenv_restricted)
 		self.assertIs(get_jenv(restrict_globals=False), jenv_unrestricted)
+
+	def test_module_path_hook_excludes_merely_imported_functions(self):
+		"""Module-path jinja hooks must not expose functions merely imported into that module."""
+		from subprocess import check_output
+
+		fixture = types.ModuleType("frappe_test_jinja_hook_fixture")
+
+		def run_echo(cmd):
+			# uses the module-level import internally; this must keep working
+			return check_output(cmd)
+
+		run_echo.__module__ = fixture.__name__
+		fixture.run_echo = run_echo
+		fixture.check_output = check_output  # imported, not defined here
+
+		with (
+			patch.object(
+				frappe,
+				"get_hooks",
+				return_value={"methods": ["frappe_test_jinja_hook_fixture"], "filters": []},
+			),
+			patch.object(frappe, "get_module", return_value=fixture),
+		):
+			method_dict, _ = get_jinja_hooks()
+
+		self.assertIn("run_echo", method_dict)
+		self.assertIs(method_dict["run_echo"], run_echo)
+		self.assertNotIn("check_output", method_dict)
+
+		# the filter only controls what's exposed to templates; the function's own
+		# internal use of the imported name is completely unaffected
+		self.assertEqual(method_dict["run_echo"](["echo", "ok"]).strip(), b"ok")

@@ -36,7 +36,10 @@ frappe.form.formatters = {
 	Data: function (value, df) {
 		if (df && df.options == "URL") {
 			if (!value) return "";
-			return `<a href="${value}" title="Open Link" target="_blank">${value}</a>`;
+			const plain = frappe.utils.unescape_html(value);
+			const safe = frappe.utils.escape_html(plain);
+			if (frappe.utils.has_unsafe_url_scheme(plain)) return safe;
+			return `<a href="${safe}" title="Open Link" target="_blank">${safe}</a>`;
 		}
 		if (df && df.options == "IBAN") {
 			if (!value) return "";
@@ -380,8 +383,11 @@ frappe.form.formatters = {
 	},
 	TableMultiSelect: function (rows, df, options) {
 		rows = rows || [];
+		// web forms have no doctype meta, so fall back to the child fields sent by the server
 		const meta = frappe.get_meta(df.options);
-		const link_field = meta.fields.find((df) => df.fieldtype === "Link");
+		const fields = meta?.fields?.length ? meta.fields : df.fields || [];
+		const link_field = fields.find((f) => f.fieldtype === "Link");
+		if (!link_field) return "";
 		const formatted_values = rows.map((row) => {
 			const value = row[link_field.fieldname];
 			return `<span class="text-nowrap">
@@ -473,6 +479,6 @@ frappe.get_format_helper = function (doc) {
 };
 
 frappe.form.link_formatters["User"] = function (value, doc, docfield) {
-	let full_name = doc && (doc.full_name || (docfield && doc[`${docfield.fieldname}_full_name`]));
+	let full_name = doc && docfield && doc[`${docfield.fieldname}_full_name`];
 	return full_name || value;
 };

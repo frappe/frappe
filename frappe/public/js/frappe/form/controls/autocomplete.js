@@ -8,6 +8,14 @@ frappe.ui.form.ControlAutocomplete = class ControlAutoComplete extends frappe.ui
 		this.set_options();
 	}
 
+	bind_change_event() {
+		// Firefox fires change when the window loses focus
+		this.$input.on("change", (e) => {
+			if (e.originalEvent && !document.hasFocus()) e.stopImmediatePropagation();
+		});
+		super.bind_change_event();
+	}
+
 	set_options() {
 		if (this.df.options) {
 			let options = this.df.options || [];
@@ -110,6 +118,8 @@ frappe.ui.form.ControlAutocomplete = class ControlAutoComplete extends frappe.ui
 		});
 
 		this.$input.on("blur", () => {
+			if (document.activeElement === this.input) return;
+
 			if (this.selected) {
 				this.selected = false;
 				return;
@@ -161,7 +171,7 @@ frappe.ui.form.ControlAutocomplete = class ControlAutoComplete extends frappe.ui
 
 		options = options.map((o) => {
 			if (typeof o !== "string") {
-				o.label = __(cstr(o.label));
+				o.label = __(cstr(o.label)) || cstr(o.value);
 				o.value = cstr(o.value);
 			}
 			return o;
@@ -209,7 +219,12 @@ frappe.ui.form.ControlAutocomplete = class ControlAutoComplete extends frappe.ui
 			args.query = get_query;
 		} else {
 			// get_query by function
-			var q = get_query((this.frm && this.frm.doc) || this.doc, this.doctype, this.docname);
+			var q = get_query(
+				(this.frm && this.frm.doc) || this.doc,
+				this.doctype,
+				this.docname,
+				this.frm
+			);
 
 			if (typeof q === "string") {
 				// returns a string

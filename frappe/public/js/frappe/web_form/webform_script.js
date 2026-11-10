@@ -57,8 +57,9 @@ frappe.ready(function () {
 	}
 
 	function setup_fields(web_form_doc, doc_data) {
-		web_form_doc.web_form_fields.forEach((df) => {
+		web_form_doc.web_form_fields.forEach((df, index) => {
 			df.is_web_form = true;
+			df.fieldname = df.fieldname || `__field_${index}`;
 			df.read_only = df.read_only || (!web_form_doc.is_new && !web_form_doc.in_edit_mode);
 			if (df.fieldtype === "Table") {
 				df.get_data = () => {
@@ -87,8 +88,13 @@ frappe.ready(function () {
 
 				return df;
 			}
-			if (df.fieldtype === "Link") {
+
+			if (["Link", "Table MultiSelect"].includes(df.fieldtype)) {
 				df.only_select = true;
+			}
+			// validate_link_and_fetch isn't guest-allowed; save still validates links
+			if (df.fieldtype === "Table MultiSelect") {
+				df.ignore_link_validation = true;
 			}
 			if (["Attach", "Attach Image"].includes(df.fieldtype)) {
 				if (typeof df.options !== "object") {

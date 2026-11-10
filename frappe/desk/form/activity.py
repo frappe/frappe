@@ -16,6 +16,7 @@ from frappe.desk.form.load import (
 	get_view_logs,
 )
 from frappe.model.document import Document
+from frappe.utils.html_utils import unescape_html
 
 # Emails and milestones are paged newest-first; the remaining sources load in full.
 EMAIL_PAGE_SIZE = 20
@@ -337,7 +338,7 @@ def get_author_info(owner: str, user_info: dict) -> dict:
 
 
 def activity_text(html: str | None) -> str:
-	return frappe.utils.strip_html(html or "").strip()
+	return unescape_html(frappe.utils.strip_html(html or "")).strip()
 
 
 def assignee_from_assignment(text: str, comment_type: str) -> str | None:

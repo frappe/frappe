@@ -24,9 +24,12 @@ from frappe.core.doctype.doctype.doctype import (
 )
 from frappe.core.doctype.rq_job.test_rq_job import wait_for_completion
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
+from frappe.database.schema import DBTable
 from frappe.desk.form.load import getdoc
 from frappe.model.delete_doc import delete_controllers
+from frappe.model.meta import Meta
 from frappe.model.sync import remove_orphan_doctypes
+from frappe.modules.import_file import import_doc
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
 from frappe.utils import get_table_name
@@ -50,6 +53,21 @@ class TestDocType(IntegrationTestCase):
 
 			doc = new_doctype(name).insert()
 			doc.delete()
+
+	@skipIf(frappe.conf and frappe.conf.db_type != "postgres", "Only for Postgres")
+	def test_validate_name_fits_postgres_identifier(self):
+		self.assertRaises(frappe.NameError, new_doctype("Test " + "x" * 56).insert)
+
+	@skipIf(frappe.conf and frappe.conf.db_type != "postgres", "Only for Postgres")
+	def test_import_rejects_name_longer_than_postgres_identifier(self):
+		doctype = new_doctype("Test " + "x" * 56).as_dict()
+		with patch.dict(frappe.local.flags):
+			self.assertRaises(frappe.NameError, import_doc, doctype)
+
+	@skipIf(frappe.conf and frappe.conf.db_type != "postgres", "Only for Postgres")
+	def test_table_name_check_skips_virtual_doctypes(self):
+		doctype = new_doctype("Test " + "x" * 56, is_virtual=1)
+		DBTable(doctype.name, Meta(doctype)).validate()
 
 	@skipIf(
 		frappe.conf and frappe.conf.db_type == "sqlite",
@@ -385,6 +403,23 @@ class TestDocType(IntegrationTestCase):
 		field_1.search_index = 1
 
 		self.assertRaises(CannotIndexedError, doc.insert)
+
+	def test_no_value_field_resets_column_properties(self):
+		doc = new_doctype("Test No Value Field Reset")
+		field_1 = doc.append("fields", {})
+		field_1.fieldname = "some_fieldname_1"
+		field_1.fieldtype = "HTML"
+		field_1.unique = 1
+		field_1.search_index = 1
+		field_1.not_nullable = 1
+
+		doc.insert()  # would raise NonUniqueError before the reset
+
+		self.assertFalse(field_1.unique)
+		self.assertFalse(field_1.search_index)
+		self.assertFalse(field_1.not_nullable)
+
+		doc.delete()
 
 	def test_cancel_link_doctype(self):
 		import json
@@ -760,6 +795,54 @@ class TestDocType(IntegrationTestCase):
 		)
 
 		self.assertRaises(frappe.ValidationError, doctype.insert)
+
+	def test_vue_component_options_must_name_an_island_on_this_site(self):
+		def new_vue_component_doctype(island):
+			return new_doctype(
+				fields=[
+					{
+						"label": "Summary",
+						"fieldname": "summary",
+						"fieldtype": "Vue Component",
+						"options": island,
+					}
+				]
+			)
+
+		with patch("frappe.utils.island.get_ui_islands", return_value=["frappe.summary"]):
+			self.assertRaises(frappe.ValidationError, new_vue_component_doctype("frappe.missing").insert)
+			self.assertRaises(frappe.ValidationError, new_vue_component_doctype("").insert)
+			new_vue_component_doctype("frappe.summary").insert()
+
+	def test_a_normal_user_saves_and_loads_a_doc_with_a_vue_component_field(self):
+		role = "Vue Component Tester"
+		if not frappe.db.exists("Role", role):
+			frappe.get_doc(doctype="Role", role_name=role, desk_access=1).insert()
+		email = "vue-component-user@example.com"
+		if not frappe.db.exists("User", email):
+			frappe.get_doc(doctype="User", email=email, first_name="Vue", send_welcome_email=0).insert()
+		frappe.get_doc("User", email).add_roles(role)
+
+		with patch("frappe.utils.island.get_ui_islands", return_value=["frappe.summary"]):
+			doctype = new_doctype(
+				fields=[
+					{"label": "Title", "fieldname": "title", "fieldtype": "Data"},
+					{"fieldname": "summary", "fieldtype": "Vue Component", "options": "frappe.summary"},
+				],
+				permissions=[{"role": role, "read": 1, "write": 1, "create": 1}],
+			).insert()
+
+		with self.set_user(email):
+			doc = frappe.get_doc(
+				doctype=doctype.name, title="Invoice at a glance", summary="not stored"
+			).insert()
+			getdoc(doctype.name, doc.name)
+			loaded = frappe.response.docs[0]
+
+		self.assertEqual(loaded.title, "Invoice at a glance")
+		self.assertIsNone(loaded.get("summary"))
+		self.assertFalse(frappe.db.has_column(doctype.name, "summary"))
+		self.assertEqual(frappe.get_meta(doctype.name).get_field("summary").options, "frappe.summary")
 
 	def test_missing_link_filters_field_is_allowed(self):
 		doctype = new_doctype()

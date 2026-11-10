@@ -27,6 +27,7 @@
 				:label="hideLabel ? undefined : 'Sort'"
 				:icon="hideLabel ? 'lucide-arrow-up-down' : undefined"
 				:iconLeft="!hideLabel ? 'lucide-arrow-up-down' : undefined"
+				aria-label="Sort"
 			/>
 		</template>
 	</Combobox>
@@ -34,31 +35,35 @@
 	<!-- Non-empty: the sort popover (single-sort compact / multi-sort badge). -->
 	<Popover v-else side="bottom" align="end">
 		<template #trigger="{ open }">
-			<Button
-				v-if="model.length > 1"
-				:label="'Sort'"
-				:icon="hideLabel ? 'lucide-arrow-up-down' : undefined"
-				:iconLeft="!hideLabel ? 'lucide-arrow-up-down' : undefined"
-			>
-				<template #suffix>
-					<div
-						class="flex h-5 w-5 items-center justify-center rounded-[5px] bg-surface-base pt-px text-xs-medium text-ink-gray-8 shadow-sm"
-					>
-						{{ model.length }}
-					</div>
+			<!-- One root across sort counts: a swapped root strands the popover at 0,0. -->
+			<div class="flex items-center justify-center">
+				<Button
+					v-if="model.length > 1"
+					:label="'Sort'"
+					:icon="hideLabel ? 'lucide-arrow-up-down' : undefined"
+					:iconLeft="!hideLabel ? 'lucide-arrow-up-down' : undefined"
+				>
+					<template #suffix>
+						<div
+							class="flex h-5 w-5 items-center justify-center rounded-[5px] bg-surface-base pt-px text-xs-medium text-ink-gray-8 shadow-sm"
+						>
+							{{ model.length }}
+						</div>
+					</template>
+				</Button>
+				<template v-else>
+					<Button
+						class="relative rounded-r-none border-r focus-visible:z-10"
+						:icon="directionIcon(model[0].direction)"
+						:aria-label="model[0].direction === 'asc' ? 'Ascending' : 'Descending'"
+						@click.stop="toggleDirection(0)"
+					/>
+					<Button
+						:label="firstSortLabel"
+						class="relative shrink-0 rounded-l-none [&_svg]:text-ink-gray-5 focus-visible:z-10"
+						:iconRight="open ? 'lucide-chevron-up' : 'lucide-chevron-down'"
+					/>
 				</template>
-			</Button>
-			<div v-else class="flex items-center justify-center">
-				<Button
-					class="relative rounded-r-none border-r focus-visible:z-10"
-					:icon="directionIcon(model[0].direction)"
-					@click.stop="toggleDirection(0)"
-				/>
-				<Button
-					:label="firstSortLabel"
-					class="relative shrink-0 rounded-l-none [&_svg]:text-ink-gray-5 focus-visible:z-10"
-					:iconRight="open ? 'lucide-chevron-up' : 'lucide-chevron-down'"
-				/>
 			</div>
 		</template>
 		<template #default="{ close }">
@@ -85,6 +90,9 @@
 									size="md"
 									class="relative rounded-r-none border-r focus-visible:z-10"
 									:icon="directionIcon(sort.direction)"
+									:aria-label="
+										sort.direction === 'asc' ? 'Ascending' : 'Descending'
+									"
 									@click="toggleDirection(i)"
 								/>
 								<Combobox
@@ -98,7 +106,12 @@
 									@update:selectedOption="(o) => updateSort(o, i)"
 								/>
 							</div>
-							<Button variant="ghost" icon="lucide-x" @click="removeSort(i)" />
+							<Button
+								variant="ghost"
+								icon="lucide-x"
+								aria-label="Remove sort"
+								@click="removeSort(i)"
+							/>
 						</div>
 					</template>
 				</Draggable>

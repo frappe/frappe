@@ -32,7 +32,6 @@
 				:label="__('Cell padding')"
 				:model-value="table_cell_padding"
 				:base="7"
-				unit="px"
 				:placeholder="__('auto')"
 				allow-empty
 				@update:model-value="set_cell_padding"
@@ -40,7 +39,6 @@
 			<StepperRow
 				:label="__('Radius')"
 				:model-value="table_radius"
-				unit="px"
 				:placeholder="__('none')"
 				allow-empty
 				@update:model-value="set_table_radius"
@@ -50,7 +48,6 @@
 				:model-value="table_min_height"
 				:base="100"
 				:step="10"
-				unit="px"
 				:placeholder="__('auto')"
 				allow-empty
 				@update:model-value="(v) => set_field_prop('table_min_height', v)"
@@ -94,7 +91,11 @@
 									class="pfb-col-label-input"
 									type="text"
 									v-model="col.label"
-									:placeholder="col.fieldname"
+									:placeholder="
+										col.fieldtype === 'Blank'
+											? __('Blank column')
+											: col.fieldname
+									"
 									:title="col.fieldname"
 								/>
 								<button
@@ -133,8 +134,18 @@
 										unit="%"
 										@update:model-value="(v) => set_width(col, v)"
 									/>
+									<DropdownRow
+										v-if="is_date_field(col)"
+										:label="__('Date format')"
+										:options="date_format_opts(column_sample(col))"
+										:model-value="col.date_format || ''"
+										@update:model-value="
+											(v) => set_prop(col, 'date_format', v, '')
+										"
+									/>
 								</div>
 								<draggable
+									v-if="col.merged_fields?.length"
 									:list="col.merged_fields"
 									handle=".pfb-merge-drag"
 									:animation="150"
@@ -158,7 +169,7 @@
 											>
 											<select
 												v-if="!is_image_merge(mf)"
-												class="pfb-insp-select"
+												class="form-control form-control-sm pfb-insp-select"
 												style="width: 104px; flex: none"
 												v-model="mf.style"
 												:title="__('Text style')"
@@ -176,7 +187,6 @@
 													sm
 													:min="16"
 													:value="col.image_size || 40"
-													unit="px"
 													@decrement="adjust_image_size(col, -4)"
 													@increment="adjust_image_size(col, 4)"
 													@input="(v) => set_image_size(col, v)"
@@ -195,7 +205,12 @@
 										</div>
 									</template>
 								</draggable>
-								<div class="pfb-col-add-row" v-if="merge_field_opts(col).length">
+								<div
+									class="pfb-col-add-row"
+									v-if="
+										col.fieldtype !== 'Blank' && merge_field_opts(col).length
+									"
+								>
 									<Autocomplete
 										:options="merge_field_opts(col)"
 										:placeholder="__('Add field...')"
@@ -283,9 +298,9 @@ import ColorField from "./ColorField.vue";
 import VisibilitySection from "./VisibilitySection.vue";
 import { useSelectedField } from "./useSelectedField";
 import { is_merge_image } from "../../fieldtypes";
-import { clamp_column_width } from "../../utils";
+import { clamp_column_width, date_format_opts, is_date_field, set_prop } from "../../utils";
 
-const { selected_field, set_field_prop } = useSelectedField();
+const { selected_field, preview_doc, set_field_prop } = useSelectedField();
 
 let table_style = computed(() => selected_field.value?.table_style ?? "lined");
 let table_bordered = computed(() => selected_field.value?.table_bordered ?? true);
@@ -354,7 +369,8 @@ let available_columns = computed(() => {
 	const standard = [{ label: __("Sr No."), fieldname: "idx", fieldtype: "Data" }];
 	return standard
 		.concat(child_value_fields.value.filter((f) => f.fieldname !== "name"))
-		.filter((f) => !existing.has(f.fieldname));
+		.filter((f) => !existing.has(f.fieldname))
+		.concat({ label: __("Blank column"), fieldname: "__blank", fieldtype: "Blank" });
 });
 
 let available_column_opts = computed(() => to_field_opts(available_columns.value));
@@ -364,6 +380,13 @@ function pick_column(opt) {
 	let entry;
 	if (opt.value === "idx") {
 		entry = { label: __("Sr No."), fieldname: "idx", fieldtype: "Data", width: 10 };
+	} else if (opt.value === "__blank") {
+		entry = {
+			label: "",
+			fieldname: `blank_${frappe.utils.get_random(6)}`,
+			fieldtype: "Blank",
+			width: 10,
+		};
 	} else {
 		const df = meta?.fields.find((f) => f.fieldname === opt.value);
 		if (!df) return;
@@ -377,6 +400,11 @@ function pick_column(opt) {
 	}
 	if (!selected_field.value.table_columns) selected_field.value.table_columns = [];
 	selected_field.value.table_columns = [...selected_field.value.table_columns, entry];
+}
+
+function column_sample(col) {
+	const rows = preview_doc.value?.[selected_field.value.fieldname] || [];
+	return rows.find((r) => r[col.fieldname])?.[col.fieldname];
 }
 
 function remove_table_column(idx) {
@@ -477,7 +505,7 @@ function set_image_size(col, value) {
 .pfb-col-add-row.top {
 	padding: 8px 14px;
 	border-top: none;
-	border-bottom: 1px solid var(--gray-100);
+	border-bottom: 1px solid var(--border-color);
 }
 
 .pfb-col-editor .pfb-merge-drag {
@@ -497,13 +525,13 @@ function set_image_size(col, value) {
 }
 
 .pfb-merge-direction {
-	padding: 8px 14px 10px;
-	border-top: 1px solid var(--gray-100);
+	padding: 8px 16px 10px;
+	border-top: 1px solid var(--border-color);
 }
 
 .pfb-col-cond {
-	padding: 8px 14px 10px;
-	border-top: 1px solid var(--gray-100);
+	padding: 8px 16px 10px;
+	border-top: 1px solid var(--border-color);
 }
 
 .pfb-row-cond {

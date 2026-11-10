@@ -16,17 +16,40 @@ surfaces the desk boots from.
 
 """
 
+import json
+from contextlib import contextmanager
 from unittest.mock import patch
 
 import frappe
-from frappe.desk.doctype.sidebar.sidebar import clear_computed_base_cache, resolve_sidebar
+from frappe.desk.doctype.sidebar.sidebar import clear_computed_base_cache, item_key, resolve_sidebar
 from frappe.desk.doctype.sidebar.test_sidebar import make_sidebar, no_developer_mode
+from frappe.desk.doctype.workspace.workspace import PRIVATE_MODULE
+from frappe.patches.v16_0.sidebar_archive import layer_rows, write_user_layer
 from frappe.tests import IntegrationTestCase
 
-CONVERT = "frappe.patches.v16_0.convert_sidebars"
+# in the order `patches.txt` runs them
+CONVERSION = (
+	"frappe.patches.v16_0.convert_sidebars",
+	"frappe.patches.v16_0.convert_custom_sidebars",
+	"frappe.patches.v16_0.move_custom_sidebar_workspaces",
+	"frappe.patches.v16_0.convert_personal_sidebars",
+	"frappe.patches.v16_0.remove_modules_made_from_generated_sidebars",
+)
 
 
-def archive(title, items, module=None, for_user=None, standard=0, ignore_links=False):
+@contextmanager
+def in_patch():
+	"""Write as the patch handler does. A `Sidebar` is app content, and a customer site only
+	accepts one from the system."""
+	original = frappe.flags.get("in_patch")
+	frappe.flags.in_patch = True
+	try:
+		yield
+	finally:
+		frappe.flags.in_patch = original
+
+
+def archive(title, items, module=None, for_user=None, standard=0, ignore_links=False, app=None):
 	"""A row as v16 left it. It is inserted under `in_patch`, because the archive takes no new
 	entries and a fixture standing in for what a v16 site already holds is the system's own write.
 
@@ -34,9 +57,7 @@ def archive(title, items, module=None, for_user=None, standard=0, ignore_links=F
 	while the target still existed, so there is no way to write one here honestly except to skip
 	the check the site skipped by being older than the deletion.
 	"""
-	original = frappe.flags.get("in_patch")
-	frappe.flags.in_patch = True
-	try:
+	with in_patch():
 		return frappe.get_doc(
 			{
 				"doctype": "Workspace Sidebar",
@@ -44,29 +65,24 @@ def archive(title, items, module=None, for_user=None, standard=0, ignore_links=F
 				"module": module,
 				"for_user": for_user,
 				"standard": standard,
+				"app": app,
 				"items": items,
 			}
 		).insert(ignore_permissions=True, ignore_links=ignore_links)
-	finally:
-		frappe.flags.in_patch = original
 
 
 def run_conversion() -> list[str]:
-	"""Run the patch exactly as `bench migrate` does, returning everything it printed.
+	"""Run the patches exactly as `bench migrate` does, returning everything they printed.
 
-	It runs under `in_patch` because that is what the patch handler sets around every patch, and the
+	They run under `in_patch` because that is what the patch handler sets around every patch, and the
 	conversion writes a `Sidebar`, which is app content that a customer site only accepts from the
 	system (`Sidebar.validate_app_content`).
 
 	"""
 	lines = []
-	original = frappe.flags.get("in_patch")
-	frappe.flags.in_patch = True
-	try:
-		with patch("click.secho", side_effect=lambda message="", **kwargs: lines.append(message)):
-			frappe.get_attr(CONVERT + ".execute")()
-	finally:
-		frappe.flags.in_patch = original
+	with in_patch(), patch("click.secho", side_effect=lambda message="", **kwargs: lines.append(message)):
+		for name in CONVERSION:
+			frappe.get_attr(name + ".execute")()
 	return lines
 
 
@@ -187,6 +203,17 @@ class TestV16Upgrade(IntegrationTestCase):
 			standard=1,
 		)
 
+		# A v16 site carries no `Custom Sidebar` at all: the doctype is new here, and the archive
+		# above is the whole of what that version stored. The private page made for these fixtures
+		# writes rows of its own on insert (`add_private_to_sidebar`), which a real upgrade would
+		# never find, so they are cleared and the conversion starts from what v16 actually left.
+		for name in frappe.get_all(
+			"Custom Sidebar",
+			filters={"module": ["in", [cls.MODULE, cls.QUIET_MODULE, cls.SHIPPED_MODULE, PRIVATE_MODULE]]},
+			pluck="name",
+		):
+			frappe.delete_doc("Custom Sidebar", name, force=True, ignore_permissions=True)
+
 		cls.before = frappe.db.count("Workspace Sidebar"), frappe.db.count("Workspace Sidebar Item")
 		cls.output = run_conversion()
 
@@ -304,6 +331,7 @@ class TestV16Upgrade(IntegrationTestCase):
 			"V16 Late",
 			[{"type": "Link", "link_type": "DocType", "link_to": "ToDo", "label": "Their Todos"}],
 			module=module,
+			standard=1,
 		)
 		run_conversion()
 		converted = frappe.get_doc("Sidebar", "V16 Late")
@@ -579,3 +607,624 @@ class TestALinkThatNoLongerResolves(IntegrationTestCase):
 		"""`write_user_layer` inserts a `Custom Sidebar` off the same rows, so it is exposed the same
 		way and is easy to fix on only one of the two paths."""
 		self.assertTrue(frappe.db.exists("Custom Sidebar", {"module": self.MODULE, "user": self.USER}))
+
+
+class TestRowTypesTheNewSidebarDropped(IntegrationTestCase):
+	"""v16's sidebar editor offered `Spacer` and `Sidebar Item Group` rows. A site that used either
+	must still migrate: spacers carry over, and the report-group button, whose doctype is gone, is
+	left behind.
+	"""
+
+	MODULE = "Test V16 Spacer Module"
+	USER = "test-v16-spacer@example.com"
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		frappe.set_user("Administrator")
+
+		with no_developer_mode():
+			frappe.get_doc(
+				{"doctype": "Module Def", "module_name": cls.MODULE, "app_name": "frappe"}
+			).insert()
+			clear_computed_base_cache(cls.MODULE)
+
+		frappe.get_doc(
+			{"doctype": "User", "email": cls.USER, "first_name": "V16 Spacer", "send_welcome_email": 0}
+		).insert(ignore_if_duplicate=True).add_roles("Desk User")
+
+		items = [
+			{"type": "Link", "link_type": "DocType", "link_to": "ToDo", "label": "Todos"},
+			{"type": "Spacer"},
+			{"type": "Sidebar Item Group", "label": "Reports"},
+			{"type": "Link", "link_type": "DocType", "link_to": "Event", "label": "Events"},
+			{"type": "Spacer"},
+		]
+		archive("V16 Spacers", items, module=cls.MODULE, standard=1)
+		# a second sidebar in the module, merged into the same base, with an unnamed spacer of its own
+		# and a title as long as v16 allowed, which a spacer label must not overflow
+		archive("V16 More Spacers ".ljust(140, "x"), [{"type": "Spacer"}], module=cls.MODULE, standard=1)
+		archive(f"V16 Spacers-{cls.USER}", items, module=cls.MODULE, for_user=cls.USER)
+		cls.output = run_conversion()
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.clear_cache()
+		super().tearDownClass()
+
+	def base_types(self):
+		return [row.type for row in frappe.get_doc("Sidebar", {"module": self.MODULE}).items]
+
+	def test_spacers_carry_over_and_the_group_does_not(self):
+		self.assertEqual(self.base_types()[:4], ["Link", "Spacer", "Link", "Spacer"])
+		self.assertNotIn("Sidebar Item Group", self.base_types())
+
+	def test_spacers_from_two_merged_sidebars_all_survive(self):
+		"""Each sidebar numbers its own spacers, so the merge must not see two of them as one."""
+		self.assertEqual(self.base_types().count("Spacer"), 3)
+
+	def test_a_normal_user_sees_every_spacer(self):
+		"""Spacers link nowhere, so the permission filter must not drop them, and two of them must
+		not collapse into one as duplicates."""
+		shell = frappe.db.get_value("Sidebar", {"module": self.MODULE})
+		items = resolve_sidebar(shell, self.USER).items
+		self.assertEqual([item["type"] for item in items].count("Spacer"), 3)
+
+	def test_a_forks_spacers_refer_to_the_sidebar_it_copied(self):
+		"""Not added again with the originals hidden, which is what a fork-specific name would do."""
+		layer = frappe.get_doc("Custom Sidebar", {"module": self.MODULE, "user": self.USER})
+		spacers = [row for row in layer.sidebar_items if row.type == "Spacer"]
+		self.assertTrue(spacers)
+		self.assertFalse([row for row in spacers if row.added or row.hidden])
+
+
+class TestAnAppThatMovedItsSidebar(IntegrationTestCase):
+	"""polished hrms ships v16's `Expenses` as the sidebar of a new module `Expenses`, while the v16
+	row still says `HR`. A row is matched by title first, so it is not built again under `HR`.
+	"""
+
+	OLD_MODULE = "Test V16 Old Home Module"
+	NEW_MODULE = "Test V16 New Home Module"
+	USER = "test-v16-moved@example.com"
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		frappe.set_user("Administrator")
+
+		with no_developer_mode():
+			for module in (cls.OLD_MODULE, cls.NEW_MODULE):
+				frappe.get_doc(
+					{"doctype": "Module Def", "module_name": module, "app_name": "frappe"}
+				).insert()
+				clear_computed_base_cache(module)
+
+		frappe.get_doc(
+			{"doctype": "User", "email": cls.USER, "first_name": "V16 Moved", "send_welcome_email": 0}
+		).insert(ignore_if_duplicate=True).add_roles("Desk User")
+
+		app_sidebar(cls.NEW_MODULE, "V16 Moved", [link("User", "Users")])
+		items = [{"type": "Link", "link_type": "DocType", "link_to": "ToDo", "label": "Todos"}]
+		archive("V16 Moved", items, module=cls.OLD_MODULE, standard=1)
+		archive(f"V16 Moved-{cls.USER}", items, module=cls.OLD_MODULE, for_user=cls.USER)
+		run_conversion()
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.clear_cache()
+		super().tearDownClass()
+
+	def test_the_old_module_gets_no_second_copy(self):
+		self.assertFalse(frappe.db.exists("Sidebar", {"module": self.OLD_MODULE}))
+
+	def test_a_fork_follows_the_sidebar_to_its_new_module(self):
+		self.assertTrue(frappe.db.exists("Custom Sidebar", {"module": self.NEW_MODULE, "user": self.USER}))
+		self.assertFalse(frappe.db.exists("Custom Sidebar", {"module": self.OLD_MODULE, "user": self.USER}))
+
+
+class TestCustomSidebars(IntegrationTestCase):
+	"""A sidebar the site made in v16 becomes a custom module of its own.
+
+	It cannot stay under the module v16 filed it in, since that module has the app's sidebar now
+	and answers with it.
+	"""
+
+	HOST = "Test V16 Host Module"
+	CLASH = "Test V16 Clash Module"
+	REUSED = "V16 Reused"
+	STALE_PLACEMENT = "V16 Stale Placement"
+	REMOVED_APP = "v16_removed_app"
+	SHOWROOM = "V16 Showroom"
+	FILTERED = "V16 Filtered"
+	GATED = "V16 Gated"
+	OPEN_ICON = "V16 Open Icon"
+	IN_FOLDER = "V16 In Folder"
+	IN_APP = "V16 In App"
+	GENERATED = "V16 Generated"
+	SYSTEM_MANAGER = "test-v16-custom-manager@example.com"
+	GATED_ROLE = "Test V16 Gated Role"
+	USER = "test-v16-custom@example.com"
+	OTHER_USER = "test-v16-custom-other@example.com"
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		frappe.set_user("Administrator")
+
+		with no_developer_mode():
+			for module in (cls.HOST, cls.CLASH):
+				frappe.get_doc(
+					{"doctype": "Module Def", "module_name": module, "app_name": "frappe"}
+				).insert()
+				clear_computed_base_cache(module)
+			frappe.get_doc({"doctype": "Module Def", "module_name": cls.REUSED, "custom": 1}).insert()
+			# placed in an app since removed, as a module left from before placements were cleared
+			frappe.get_doc(
+				{"doctype": "Module Def", "module_name": cls.STALE_PLACEMENT, "custom": 1}
+			).insert()
+			frappe.db.set_value("Module Def", cls.STALE_PLACEMENT, "app_name", cls.REMOVED_APP)
+
+		for user in (cls.USER, cls.OTHER_USER):
+			frappe.get_doc(
+				{"doctype": "User", "email": user, "first_name": "V16 Custom", "send_welcome_email": 0}
+			).insert(ignore_if_duplicate=True).add_roles("Desk User")
+
+		# the app's own sidebar for the module the site filed its sidebars under
+		make_sidebar(cls.HOST)
+
+		frappe.get_doc(
+			{
+				"doctype": "Workspace",
+				"title": cls.SHOWROOM,
+				"label": cls.SHOWROOM,
+				"module": cls.HOST,
+				"public": 1,
+				"content": "[]",
+			}
+		).insert(ignore_permissions=True)
+
+		items = [
+			{"type": "Link", "link_type": "DocType", "link_to": "ToDo", "label": "Todos"},
+			{"type": "Link", "link_type": "DocType", "link_to": "Event", "label": "Events"},
+		]
+		archive(cls.SHOWROOM, items, module=cls.HOST)
+		archive(cls.CLASH, items, module=cls.HOST)
+		archive(cls.REUSED, items, module=cls.HOST)
+		archive(cls.STALE_PLACEMENT, items, module=cls.HOST)
+		archive("??", items, module=cls.HOST)
+		archive(cls.FILTERED, [*items, link("ToDo", "Open Todos", route_options='{"status": "Open"}')])
+
+		# v16 showed a sidebar to whoever its desktop icon showed to: the icon's roles, and those of
+		# the folder it sat in
+		frappe.get_doc({"doctype": "Role", "role_name": cls.GATED_ROLE, "desk_access": 1}).insert(
+			ignore_if_duplicate=True
+		)
+		frappe.get_doc("User", cls.USER).add_roles(cls.GATED_ROLE)
+		for title in (cls.GATED, cls.OPEN_ICON, cls.IN_FOLDER):
+			archive(title, items, module=cls.HOST)
+		desktop_icon(cls.GATED, link_to=cls.GATED, roles=[cls.GATED_ROLE])
+		# one gated icon and one open one: the open one showed it to everyone
+		desktop_icon(f"{cls.OPEN_ICON} Gated", link_to=cls.OPEN_ICON, roles=[cls.GATED_ROLE])
+		desktop_icon(cls.OPEN_ICON, link_to=cls.OPEN_ICON)
+		desktop_icon("V16 Gated Folder", icon_type="Folder", roles=[cls.GATED_ROLE])
+		desktop_icon(cls.IN_FOLDER, link_to=cls.IN_FOLDER, parent_icon="V16 Gated Folder")
+		# frappe's app icon is open to System Managers only
+		frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": cls.SYSTEM_MANAGER,
+				"first_name": "V16 Manager",
+				"send_welcome_email": 0,
+			}
+		).insert(ignore_if_duplicate=True).add_roles("System Manager")
+		archive(cls.IN_APP, items, module=cls.HOST)
+		desktop_icon("V16 App Parent", icon_type="App", app="frappe")
+		desktop_icon(cls.IN_APP, link_to=cls.IN_APP, parent_icon="V16 App Parent")
+
+		# what a conversion that put a site's sidebar into an app module would have left behind
+		old_base = frappe.new_doc("Sidebar")
+		with no_developer_mode():
+			frappe.get_doc(
+				{"doctype": "Module Def", "module_name": "Test V16 Old Base Module", "app_name": "frappe"}
+			).insert()
+		old_base.update(
+			{
+				"module": "Test V16 Old Base Module",
+				"title": "V16 Old Base",
+				"merged_from": json.dumps(["V16 Old Base"]),
+			}
+		)
+		old_base.append(
+			"items", {"type": "Link", "link_type": "DocType", "link_to": "ToDo", "label": "Todos"}
+		)
+		with in_patch():
+			old_base.insert(ignore_permissions=True)
+		archive("V16 Old Base", items, module=cls.HOST)
+		archive(f"{cls.SHOWROOM}-{cls.USER}", items[:1], module=cls.HOST, for_user=cls.USER)
+
+		# what v16 built on its own from an app's workspace: neither flag, and no module. The
+		# app's sidebar is titled after the host, not after the workspace, so a personal copy of
+		# the row has only the workspace to say which module it is laid over.
+		standard_workspace(cls.GENERATED, cls.HOST)
+		archive(cls.GENERATED, [home(cls.GENERATED), *items])
+		archive(f"{cls.GENERATED}-{cls.OTHER_USER}", [home(cls.GENERATED), items[0]], for_user=cls.OTHER_USER)
+
+		cls.output = run_conversion()
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.clear_cache()
+		super().tearDownClass()
+
+	def test_each_becomes_a_custom_module(self):
+		module = frappe.get_doc("Module Def", self.SHOWROOM)
+		self.assertEqual(module.custom, 1)
+		self.assertEqual(frappe.db.get_value("Sidebar", {"module": self.SHOWROOM}), self.SHOWROOM)
+
+	def rail_for(self, user: str) -> list[str]:
+		from frappe.desk.doctype.dock.dock import resolve_app_dock
+
+		frappe.set_user(user)
+		try:
+			return [entry["link_to"] for entry in resolve_app_dock("frappe")]
+		finally:
+			frappe.set_user("Administrator")
+
+	def test_it_is_added_to_its_apps_dock_for_everyone(self):
+		from frappe.desk.doctype.dock.dock import get_app_base
+
+		rail = self.rail_for(self.OTHER_USER)
+		self.assertIn(self.SHOWROOM, rail)
+		# the app's own entries keep their order, ahead of it
+		shipped = [link for link in (entry["link_to"] for entry in get_app_base("frappe")) if link in rail]
+		self.assertEqual(rail[: len(shipped)], shipped)
+		self.assertGreater(rail.index(self.SHOWROOM), len(shipped) - 1)
+		self.assertTrue(
+			frappe.db.exists("Dock", {"app": "frappe", "user": "", "standard": 0}),
+			"the site's own dock layer holds it, not the app's",
+		)
+
+	def test_it_is_listed_with_the_app_v16_filed_it_under(self):
+		self.assertEqual(frappe.db.get_value("Module Def", self.SHOWROOM, "app_name"), "frappe")
+
+	def test_the_apps_sidebar_is_left_alone(self):
+		self.assertEqual(
+			[row.link_to for row in frappe.get_doc("Sidebar", {"module": self.HOST}).items], ["User"]
+		)
+
+	def test_a_normal_user_sees_its_links(self):
+		items = resolve_sidebar(self.SHOWROOM, self.OTHER_USER).items
+		self.assertEqual([item["link_to"] for item in items], ["ToDo", "Event"])
+
+	def test_a_title_taken_by_another_module_is_suffixed(self):
+		self.assertEqual(frappe.db.get_value("Module Def", f"{self.CLASH} (Custom)", "custom"), 1)
+		self.assertEqual(frappe.get_all("Sidebar", filters={"module": self.CLASH}), [])
+
+	def test_a_base_in_an_app_module_is_not_mistaken_for_its_custom_module(self):
+		# the old base still answers to the title's URL, so the module takes the suffix
+		self.assertEqual(frappe.db.get_value("Module Def", "V16 Old Base (Custom)", "custom"), 1)
+
+	def test_a_row_v16_generated_from_an_apps_workspace_is_the_apps(self):
+		"""It names the app's workspace and opens on it, so it is the app's content, and it is the
+		workspace that says which module, not the links after it: the host keeps its own sidebar,
+		and no module is made for the row."""
+		self.assertFalse(frappe.db.exists("Module Def", self.GENERATED))
+		self.assertFalse(frappe.db.exists("Module Def", f"{self.GENERATED} (Custom)"))
+		self.assertFalse(frappe.db.exists("Sidebar", {"merged_from": json.dumps([self.GENERATED])}))
+
+	def test_a_personal_copy_of_it_is_laid_over_the_apps_module(self):
+		self.assertTrue(frappe.db.exists("Custom Sidebar", {"module": self.HOST, "user": self.OTHER_USER}))
+		items = resolve_sidebar(self.HOST, self.OTHER_USER).items
+		self.assertIn("ToDo", [item["link_to"] for item in items])
+
+	def test_a_title_with_nothing_routable_still_gets_a_module(self):
+		self.assertEqual(frappe.db.get_value("Module Def", "Custom Sidebar", "custom"), 1)
+		self.assertTrue(frappe.db.exists("Sidebar", {"module": "Custom Sidebar"}))
+
+	def test_a_link_with_route_options_is_a_link_of_its_own(self):
+		"""v16's `route_options` are filters, and filters are part of what an item is, so a filtered
+		copy of a link stays beside it rather than being merged into it."""
+		todos = [
+			row for row in frappe.get_doc("Sidebar", {"module": self.FILTERED}).items if row.link_to == "ToDo"
+		]
+		self.assertEqual([row.label for row in todos], ["Todos", "Open Todos"])
+		self.assertEqual(json.loads(todos[1].filters), [["ToDo", "status", "=", "Open"]])
+
+	def test_it_is_blocked_for_users_v16_did_not_show_it_to(self):
+		def blocked(user):
+			return frappe.get_doc("User", user).get_blocked_modules()
+
+		for module in (self.GATED, self.IN_FOLDER):
+			self.assertIn(module, blocked(self.OTHER_USER))
+			self.assertNotIn(module, blocked(self.USER))
+			self.assertNotIn(module, blocked("Administrator"))
+		# under an app icon, shown to whoever the app lets in
+		self.assertIn(self.IN_APP, blocked(self.OTHER_USER))
+		self.assertNotIn(self.IN_APP, blocked(self.SYSTEM_MANAGER))
+		# shown to everyone: by an open icon beside a gated one, or by having no icon at all
+		self.assertNotIn(self.OPEN_ICON, blocked(self.OTHER_USER))
+		self.assertNotIn(self.SHOWROOM, blocked(self.OTHER_USER))
+
+		self.assertNotIn(self.GATED, self.rail_for(self.OTHER_USER))
+		self.assertIn(self.GATED, self.rail_for(self.USER))
+
+	def test_running_it_again_blocks_and_docks_nothing_twice(self):
+		run_conversion()
+		self.assertEqual(
+			frappe.db.count("Block Module", {"parent": self.OTHER_USER, "module": self.GATED}), 1
+		)
+		self.assertEqual(self.rail_for(self.USER).count(self.GATED), 1)
+
+	def test_a_custom_module_without_a_sidebar_is_reused(self):
+		self.assertTrue(frappe.db.exists("Sidebar", {"module": self.REUSED}))
+		self.assertFalse(frappe.db.exists("Module Def", f"{self.REUSED} (Custom)"))
+
+	def test_one_placed_in_a_removed_app_goes_on_no_dock(self):
+		self.assertTrue(frappe.db.exists("Sidebar", {"module": self.STALE_PLACEMENT}))
+		self.assertFalse(frappe.db.exists("Dock", {"app": self.REMOVED_APP}))
+
+	def test_its_workspace_moves_with_it(self):
+		"""So the desktop icon linking to that workspace opens this sidebar, not the host's."""
+		from frappe.desk.doctype.desktop_icon.desktop_icon import get_linked_workspace_modules
+
+		self.assertEqual(frappe.db.get_value("Workspace", self.SHOWROOM, "module"), self.SHOWROOM)
+		icon = frappe._dict(name="icon", icon_type="Link", link_to=self.SHOWROOM)
+		self.assertEqual(get_linked_workspace_modules([icon]), {"icon": self.SHOWROOM})
+
+	def test_a_fork_of_it_is_laid_over_it(self):
+		self.assertTrue(frappe.db.exists("Custom Sidebar", {"module": self.SHOWROOM, "user": self.USER}))
+		self.assertFalse(frappe.db.exists("Custom Sidebar", {"module": self.HOST, "user": self.USER}))
+
+		items = resolve_sidebar(self.SHOWROOM, self.USER).items
+		self.assertEqual([item["link_to"] for item in items], ["ToDo"])
+
+	def test_running_it_again_changes_nothing(self):
+		before = frappe.db.count("Module Def"), frappe.db.count("Sidebar"), frappe.db.count("Custom Sidebar")
+		run_conversion()
+		after = frappe.db.count("Module Def"), frappe.db.count("Sidebar"), frappe.db.count("Custom Sidebar")
+		self.assertEqual(before, after)
+
+
+class TestV16GeneratedSidebarCleanup(IntegrationTestCase):
+	"""A site that ran the earlier conversion holds a custom module per sidebar v16 generated from
+	an app's workspace, beside the app's own module. The cleanup takes them out again."""
+
+	HELD = "Test V16 Held Module"
+	BARE = "Test V16 Bare Module"
+	HELD_ROW = "V16 Held Generated"
+	BARE_ROW = "V16 Bare Generated"
+	KEPT_ROW = "V16 Kept Generated"
+	HOMED_ROW = "V16 Homed Generated"
+	ADDED_ROW = "V16 Added Generated"
+	USER = "test-v16-cleanup@example.com"
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		frappe.set_user("Administrator")
+
+		with no_developer_mode():
+			for module in (cls.HELD, cls.BARE):
+				frappe.get_doc(
+					{"doctype": "Module Def", "module_name": module, "app_name": "frappe"}
+				).insert()
+				clear_computed_base_cache(module)
+		# one module the app ships a sidebar for, one it does not
+		make_sidebar(cls.HELD)
+
+		frappe.get_doc(
+			{"doctype": "User", "email": cls.USER, "first_name": "V16 Cleanup", "send_welcome_email": 0}
+		).insert(ignore_if_duplicate=True).add_roles("Desk User")
+
+		rows = (
+			(cls.HELD_ROW, cls.HELD),
+			(cls.BARE_ROW, cls.BARE),
+			(cls.KEPT_ROW, cls.HELD),
+			(cls.HOMED_ROW, cls.HELD),
+			(cls.ADDED_ROW, cls.HELD),
+		)
+		for title, module in rows:
+			standard_workspace(title, module)
+			archive(title, [home(title), link("ToDo", "Todos")], module=module)
+			cls.wrongly_converted(title)
+
+		# where the earlier run put the sidebar, the site added Notes, and the user then hid them,
+		# put Events ahead of the Todos they kept, relabelled those, and named their layer
+		held = f"{cls.HELD_ROW} (Custom)"
+		write_user_layer(
+			held,
+			"",
+			layer_rows([link("ToDo", "Todos"), link("Note", "Notes")], below=[link("ToDo", "Todos")]),
+		)
+		below = [link("ToDo", "Todos"), link("Note", "Notes")]
+		rows = layer_rows(
+			[link("Event", "Events"), link("ToDo", "Todos")], below, dropped={item_key(link("Note", "Notes"))}
+		)
+		next(row for row in rows if row["link_to"] == "ToDo")["label"] = "My Todos"
+		write_user_layer(held, cls.USER, rows)
+		frappe.db.set_value(
+			"Custom Sidebar", {"module": held, "user": cls.USER}, {"label": "Mine", "header_icon": "star"}
+		)
+		# and added a second sidebar under one of the modules
+		added = frappe.new_doc("Sidebar")
+		added.update({"module": f"{cls.ADDED_ROW} (Custom)", "title": "V16 Added Deals"})
+		added.append("items", link("Event", "Deals"))
+		with in_patch():
+			added.insert(ignore_permissions=True)
+		# the site has since filed a report under one of them
+		frappe.get_doc(
+			{
+				"doctype": "Report",
+				"report_name": "V16 Kept Report",
+				"ref_doctype": "ToDo",
+				"report_type": "Report Builder",
+				"module": f"{cls.KEPT_ROW} (Custom)",
+				"is_standard": "No",
+			}
+		).insert()
+		# and made a workspace under another, which no delete would refuse on behalf of
+		frappe.get_doc(
+			{
+				"doctype": "Workspace",
+				"title": "V16 Homed Page",
+				"label": "V16 Homed Page",
+				"module": f"{cls.HOMED_ROW} (Custom)",
+				"public": 1,
+				"content": "[]",
+			}
+		).insert(ignore_permissions=True)
+		frappe.get_doc(
+			{
+				"doctype": "Dock",
+				"app": "frappe",
+				"user": "",
+				"items": [
+					{"link_type": "Sidebar", "link_to": f"{cls.HELD_ROW} (Custom)", "title": cls.HELD_ROW}
+				],
+			}
+		).insert(ignore_permissions=True)
+
+		cls.output = []
+		with (
+			in_patch(),
+			patch("click.secho", side_effect=lambda message="", **kwargs: cls.output.append(message)),
+		):
+			frappe.get_attr(CONVERSION[-1] + ".execute")()
+
+	@classmethod
+	def wrongly_converted(cls, title: str) -> None:
+		"""What `convert_custom_sidebars` made of the row before it told a generated row apart from
+		a site's own: a custom module, its sidebar, and a block for the user v16 did not show it
+		to."""
+		module = f"{title} (Custom)"
+		with no_developer_mode():
+			frappe.get_doc(
+				{"doctype": "Module Def", "module_name": module, "custom": 1, "app_name": "frappe"}
+			).insert()
+		sidebar = frappe.new_doc("Sidebar")
+		sidebar.update({"module": module, "title": module, "merged_from": json.dumps([title])})
+		sidebar.append("items", link("ToDo", "Todos"))
+		with in_patch():
+			sidebar.insert(ignore_permissions=True)
+		user = frappe.get_doc("User", cls.USER)
+		user.append("block_modules", {"module": module})
+		user.save(ignore_permissions=True)
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.clear_cache()
+		super().tearDownClass()
+
+	def test_the_extra_module_goes(self):
+		"""With its sidebar and the page `Module Def.after_insert` made for it."""
+		for title in (self.HELD_ROW, self.BARE_ROW):
+			self.assertFalse(frappe.db.exists("Module Def", f"{title} (Custom)"))
+			self.assertFalse(frappe.db.exists("Sidebar", {"module": f"{title} (Custom)"}))
+			self.assertFalse(frappe.db.exists("Workspace", f"{title} (Custom)"))
+
+	def test_the_apps_sidebar_is_left_alone(self):
+		self.assertEqual(
+			[row.link_to for row in frappe.get_doc("Sidebar", {"module": self.HELD}).items], ["User"]
+		)
+
+	def test_a_module_without_a_sidebar_takes_the_row(self):
+		self.assertEqual(frappe.db.get_value("Sidebar", {"module": self.BARE}), self.BARE_ROW)
+		items = resolve_sidebar(self.BARE_ROW, self.USER).items
+		self.assertEqual([item["link_to"] for item in items if item["link_type"] == "DocType"], ["ToDo"])
+
+	def test_its_dock_entry_and_blocks_go(self):
+		self.assertFalse(
+			frappe.db.exists("Dock Item", {"link_type": "Sidebar", "link_to": f"{self.HELD_ROW} (Custom)"})
+		)
+		self.assertNotIn(f"{self.HELD_ROW} (Custom)", frappe.get_doc("User", self.USER).get_blocked_modules())
+
+	def test_the_sites_arrangement_moves_to_the_apps_module(self):
+		"""What the site added is the site's there too, not every user's own."""
+		self.assertFalse(frappe.db.exists("Custom Sidebar", {"module": f"{self.HELD_ROW} (Custom)"}))
+		site = frappe.get_doc("Custom Sidebar", {"module": self.HELD, "user": ""})
+		self.assertEqual([row.link_to for row in site.sidebar_items if row.added], ["ToDo", "Note"])
+
+	def test_a_users_arrangement_moves_to_the_apps_module(self):
+		"""With their order, what they hid, what they relabelled and what they named the layer: the
+		app's base holds none of these items, so a reference to the old base would name nothing."""
+		layer = frappe.get_doc("Custom Sidebar", {"module": self.HELD, "user": self.USER})
+		self.assertEqual((layer.label, layer.header_icon), ("Mine", "star"))
+		# the site's layer shows Todos and Notes now, so the user's rows stay references to them
+		self.assertEqual([row.link_to for row in layer.sidebar_items if row.added], ["Event"])
+
+		items = resolve_sidebar(self.HELD, self.USER).items
+		links = [item["link_to"] for item in items]
+		self.assertEqual([link for link in links if link in ("ToDo", "Event", "Note")], ["Event", "ToDo"])
+		self.assertEqual(next(item["label"] for item in items if item["link_to"] == "ToDo"), "My Todos")
+
+	def test_a_module_holding_another_sidebar_is_kept(self):
+		module = f"{self.ADDED_ROW} (Custom)"
+		self.assertTrue(frappe.db.exists("Module Def", module))
+		self.assertTrue(frappe.db.exists("Sidebar", "V16 Added Deals"))
+		self.assertIn(f"Module '{module}': kept, Sidebar V16 Added Deals is filed under it", self.output)
+
+	def test_a_module_holding_other_documents_is_kept(self):
+		module = f"{self.KEPT_ROW} (Custom)"
+		self.assertTrue(frappe.db.exists("Module Def", module))
+		self.assertTrue(frappe.db.exists("Sidebar", {"module": module}))
+		self.assertIn(module, frappe.get_doc("User", self.USER).get_blocked_modules())
+		self.assertIn(f"Module '{module}': kept, Report V16 Kept Report is filed under it", self.output)
+
+	def test_a_module_holding_a_workspace_is_kept(self):
+		module = f"{self.HOMED_ROW} (Custom)"
+		self.assertTrue(frappe.db.exists("Module Def", module))
+		self.assertIn(f"Module '{module}': kept, Workspace V16 Homed Page is filed under it", self.output)
+
+
+def standard_workspace(title: str, module: str):
+	"""An app's workspace, as its import leaves it on a site."""
+	with no_developer_mode():
+		return frappe.get_doc(
+			{
+				"doctype": "Workspace",
+				"title": title,
+				"label": title,
+				"module": module,
+				"public": 1,
+				"standard": 1,
+				"content": "[]",
+			}
+		).insert(ignore_permissions=True)
+
+
+def home(workspace: str) -> dict:
+	"""The link v16 put first on every sidebar it generated from a workspace."""
+	return {"type": "Link", "link_type": "Workspace", "link_to": workspace, "label": "Home"}
+
+
+def app_sidebar(module: str, title: str, items: list[dict]):
+	"""A `Sidebar` as an app's file leaves it on a site: standard, and titled as the app titles it."""
+	doc = frappe.new_doc("Sidebar")
+	doc.module = module
+	doc.title = title
+	for item in items:
+		doc.append("items", item)
+	with in_patch():
+		doc.insert(ignore_permissions=True)
+	frappe.db.set_value("Sidebar", doc.name, "standard", 1, update_modified=False)
+	return doc
+
+
+def desktop_icon(label: str, roles: list[str] | None = None, icon_type: str = "Link", **fields):
+	"""A v16 desktop icon, opening the sidebar named in `link_to`."""
+	icon = frappe.get_doc(
+		{
+			"doctype": "Desktop Icon",
+			"label": label,
+			"icon_type": icon_type,
+			"link_type": "Workspace Sidebar" if icon_type == "Link" else None,
+			"roles": [{"role": role} for role in roles or []],
+			**fields,
+		}
+	)
+	icon.flags.in_patch = True
+	return icon.insert(ignore_permissions=True, ignore_links=True)
+
+
+def link(doctype: str, label: str, **extra) -> dict:
+	return {"type": "Link", "link_type": "DocType", "link_to": doctype, "label": label, **extra}

@@ -17,7 +17,12 @@ from frappe.desk.form.document_follow import is_document_followed
 from frappe.desk.link_title import send_link_titles
 from frappe.model.document import Document
 from frappe.model.utils.user_settings import get_user_settings
-from frappe.permissions import check_doctype_permission, get_doc_permissions, has_permission
+from frappe.permissions import (
+	check_doctype_permission,
+	get_doc_permissions,
+	has_permission,
+	validate_desk_user,
+)
 from frappe.utils.data import cstr
 
 
@@ -63,6 +68,7 @@ def getdoc(doctype: str, name: str | int):
 @frappe.whitelist()
 def getdoctype(doctype: str, with_parent: int | bool = False):
 	"""load doctype"""
+	validate_desk_user()
 
 	docs = []
 	parent_dt = None
@@ -292,6 +298,8 @@ def get_versions(doc: "Document") -> list[dict]:
 	if not doc.meta.track_changes:
 		return []
 
+	from frappe.core.doctype.version.version import STANDARD_VERSIONED_FIELDS
+	from frappe.desk.form.activity import readable_permlevels
 	from frappe.model.utils.mask import mask_version_data
 
 	versions = frappe.get_all(
@@ -301,7 +309,72 @@ def get_versions(doc: "Document") -> list[dict]:
 		limit=10,
 		order_by="creation desc",
 	)
-	return mask_version_data(versions, doc.doctype)
+
+	if frappe.session.user == "Administrator":
+		return mask_version_data(versions, doc.doctype)
+
+	# child tables are governed by the parent's permission rows, so one set covers both
+	permitted = readable_permlevels(doc.meta)
+	if permitted is None:
+		return mask_version_data(versions, doc.doctype)
+
+	allowed_parent_fields = {df.fieldname for df in doc.meta.fields if df.permlevel in permitted}
+	allowed_parent_fields.update(STANDARD_VERSIONED_FIELDS)
+	allowed_child_fields = {}
+	for table_field in doc.meta.get_table_fields():
+		# The table field's own permlevel gates the whole table, same as apply_fieldlevel_read_permissions
+		if table_field.fieldname not in allowed_parent_fields:
+			continue
+		allowed_child_fields[table_field.fieldname] = {
+			df.fieldname
+			for df in (frappe.get_meta(table_field.options).fields or [])
+			if df.permlevel in permitted
+		}
+
+	def filter_changed(logs):
+		return [log for log in logs or [] if log and log[0] in allowed_parent_fields]
+
+	def filter_row_changed(logs):
+		out = []
+		for log in logs or []:
+			if len(log) < 4:
+				continue
+			allowed = allowed_child_fields.get(log[0])
+			if allowed is None:
+				continue
+			nested = [entry for entry in (log[3] or []) if entry and entry[0] in allowed]
+			if nested:
+				out.append([log[0], log[1], log[2], nested])
+		return out
+
+	def filter_rows(logs):
+		out = []
+		for log in logs or []:
+			if len(log) < 2:
+				continue
+			allowed = allowed_child_fields.get(log[0])
+			if allowed is None or not isinstance(log[1], dict):
+				continue
+			out.append([log[0], {k: v for k, v in log[1].items() if k in allowed}])
+		return out
+
+	readable_versions = []
+	for version in versions:
+		try:
+			data = frappe.parse_json(version.data or "{}")
+		except ValueError:
+			continue
+		if not isinstance(data, dict):
+			continue
+
+		data["changed"] = filter_changed(data.get("changed"))
+		data["added"] = filter_rows(data.get("added"))
+		data["removed"] = filter_rows(data.get("removed"))
+		data["row_changed"] = filter_row_changed(data.get("row_changed"))
+		version.data = frappe.utils.orjson_dumps(data)
+		readable_versions.append(version)
+
+	return mask_version_data(readable_versions, doc.doctype)
 
 
 @frappe.whitelist()
@@ -595,6 +668,8 @@ def update_user_info(docinfo, doc=None):
 
 @frappe.whitelist()
 def get_user_info_for_viewers(users: str | list):
+	validate_desk_user()
+
 	user_info = {}
 	for user in frappe.parse_json(users):
 		frappe.utils.add_user_info(user, user_info)

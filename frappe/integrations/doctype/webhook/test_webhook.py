@@ -1,11 +1,14 @@
 # Copyright (c) 2017, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import json
+import socket
 from contextlib import contextmanager
+from io import BytesIO
 from unittest.mock import patch
 
 import responses
 from responses.matchers import json_params_matcher
+from urllib3.response import HTTPResponse
 
 import frappe
 from frappe.integrations.doctype.webhook import flush_webhook_execution_queue
@@ -15,10 +18,92 @@ from frappe.integrations.doctype.webhook.webhook import (
 	get_webhook_data,
 	get_webhook_headers,
 	retry_failed_webhooks,
+	retry_webhook_delivery,
+	send_webhook_request,
 )
-from frappe.tests import IntegrationTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.tests.classes.context_managers import timeout
 from frappe.utils import add_to_date, now_datetime
+from frappe.utils.safe_exec import BlockedRequest
+
+EXTRA_TEST_RECORD_DEPENDENCIES = ["User"]
+
+
+class TestWebhookRequest(UnitTestCase):
+	def setUp(self):
+		super().setUp()
+		self.enterContext(self.set_user("webhook@example.com"))
+		self.config = {}
+		self.enterContext(patch("frappe.get_common_site_config", return_value=self.config))
+		self.resolver = self.enterContext(patch("socket.getaddrinfo", side_effect=self.resolve_host))
+		# Keep the real SSRF guard, but never send traffic over the network.
+		self.transport = self.enterContext(patch("urllib3.connectionpool.HTTPConnectionPool._make_request"))
+		self.transport.side_effect = lambda *args, **kwargs: self.response()
+
+	@staticmethod
+	def resolve_host(host, port, *args, **kwargs):
+		address = "93.184.216.34" if host == "example.com" else host
+		return [(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP, "", (address, port))]
+
+	@staticmethod
+	def response(status=200, headers=None):
+		return HTTPResponse(
+			body=BytesIO(b"webhook response"), status=status, headers=headers or {}, preload_content=False
+		)
+
+	def test_public_delivery(self):
+		for scheme in ("http", "https"):
+			with self.subTest(scheme=scheme):
+				response = send_webhook_request("POST", f"{scheme}://example.com/", {}, {}, 5)
+				self.assertEqual(response.status_code, 200)
+				self.assertEqual(response.text, "webhook response")
+		self.assertEqual(self.transport.call_count, 2)
+
+	def test_internal_destinations_are_blocked(self):
+		for url in (
+			"http://169.254.169.254/latest/meta-data/",
+			"http://127.0.0.1/",
+			"http://10.0.0.1/",
+			"http://172.16.0.1/",
+			"http://192.168.0.1/",
+			"http://[::1]/",
+		):
+			with self.subTest(url=url), self.assertRaises(BlockedRequest):
+				send_webhook_request("POST", url, {}, {}, 5)
+		self.transport.assert_not_called()
+
+	def test_hostname_resolving_to_internal_address_is_blocked(self):
+		self.resolver.side_effect = None
+		self.resolver.return_value = self.resolve_host("10.0.0.1", 80)
+		with self.assertRaises(BlockedRequest):
+			send_webhook_request("POST", "http://example.com/", {}, {}, 5)
+		self.transport.assert_not_called()
+
+	def test_redirect_to_internal_destination_is_blocked(self):
+		self.transport.side_effect = lambda *args, **kwargs: self.response(
+			302, {"Location": "http://169.254.169.254/latest/meta-data/"}
+		)
+		with self.assertRaises(BlockedRequest):
+			send_webhook_request("POST", "https://example.com/", {}, {}, 5)
+		self.transport.assert_called_once()
+
+	def test_internal_destination_can_be_allowed_by_operator(self):
+		self.config["allow_internal_webhook_urls"] = True
+		response = send_webhook_request("POST", "http://127.0.0.1/", {}, {}, 5)
+		self.assertEqual(response.status_code, 200)
+		self.transport.assert_called_once()
+
+	def test_failed_delivery_is_not_retried_by_transport(self):
+		self.transport.side_effect = lambda *args, **kwargs: self.response(500)
+		for allow_internal in (False, True):
+			self.config["allow_internal_webhook_urls"] = allow_internal
+			for method in ("POST", "PUT", "DELETE"):
+				with self.subTest(allow_internal=allow_internal, method=method):
+					self.transport.reset_mock()
+					response = send_webhook_request(method, "https://example.com/", {}, {}, 5)
+					self.transport.assert_called_once()
+					self.assertEqual(response.status_code, 500)
+					self.assertEqual(response.text, "webhook response")
 
 
 @contextmanager
@@ -79,6 +164,7 @@ class TestWebhook(IntegrationTestCase):
 		frappe.db.rollback()
 		frappe.db.delete("Webhook")
 		frappe.db.commit()
+		frappe.client_cache.delete_value("webhooks")
 
 	@timeout(5, "Test webhooks should never wait, check mocked responses.")
 	def setUp(self):
@@ -513,6 +599,108 @@ class TestWebhook(IntegrationTestCase):
 			log.reload()
 			self.assertEqual(log.status, "Exhausted")
 			self.assertIsNone(log.next_retry)
+
+	@timeout(5, "Test webhooks should never wait, check mocked responses.")
+	def test_retry_skips_request_already_delivered(self):
+		"""A retry job for a request delivered in the meantime does not send it again"""
+		url = "https://httpbin.org/retry-delivered"
+		self.responses.add(responses.POST, url, status=200, json={})
+
+		with get_test_webhook(self.retry_webhook_config(url)) as wh:
+			doc = frappe.new_doc("Note")
+			doc.title = "Delivered Retry Note"
+			enqueue_webhook(doc, wh)
+
+			log = frappe.get_last_doc("Webhook Request Log", filters={"webhook": wh.name})
+			retry_webhook_delivery(log.name)
+
+			log.reload()
+			self.assertEqual(log.attempt, 1)
+
+	@timeout(5, "Test webhooks should never wait, check mocked responses.")
+	def test_manual_retry_redelivers_exhausted_request(self):
+		"""Retrying an exhausted request re-sends it and marks it delivered on success"""
+		url = "https://httpbin.org/manual-retry"
+		self.responses.add(responses.POST, url, status=500)
+		self.responses.add(responses.POST, url, status=200, json={})
+
+		with get_test_webhook(self.retry_webhook_config(url, max_retries=0)) as wh:
+			doc = frappe.new_doc("Note")
+			doc.title = "Manual Retry Note"
+			enqueue_webhook(doc, wh)
+
+			log = frappe.get_last_doc("Webhook Request Log", filters={"webhook": wh.name})
+			with self.set_user("test@example.com"):
+				log.retry()
+
+			log.reload()
+			self.assertEqual(log.status, "Delivered")
+			self.assertEqual(log.attempt, 2)
+
+	@timeout(5, "Test webhooks should never wait, check mocked responses.")
+	def test_manual_retry_rejects_delivered_request(self):
+		"""A delivered request cannot be retried, even when the caller's copy says it failed"""
+		url = "https://httpbin.org/manual-retry-delivered"
+		self.responses.add(responses.POST, url, status=200, json={})
+
+		with get_test_webhook(self.retry_webhook_config(url)) as wh:
+			doc = frappe.new_doc("Note")
+			doc.title = "Delivered Note"
+			enqueue_webhook(doc, wh)
+
+			log = frappe.get_last_doc("Webhook Request Log", filters={"webhook": wh.name})
+			log.status = "Failed"
+			with self.set_user("test@example.com"):
+				self.assertRaises(frappe.ValidationError, log.retry)
+
+	@timeout(5, "Test webhooks should never wait, check mocked responses.")
+	def test_manual_retry_requires_webhook_write_permission(self):
+		"""A user who cannot edit the webhook cannot retry its requests"""
+		url = "https://httpbin.org/manual-retry-permission"
+		self.responses.add(responses.POST, url, status=500)
+
+		with get_test_webhook(self.retry_webhook_config(url, max_retries=0)) as wh:
+			doc = frappe.new_doc("Note")
+			doc.title = "Permission Note"
+			enqueue_webhook(doc, wh)
+
+			log = frappe.get_last_doc("Webhook Request Log", filters={"webhook": wh.name})
+			with self.set_user("webhook@example.com"):
+				self.assertRaises(frappe.PermissionError, log.retry)
+
+	@timeout(5, "Test webhooks should never wait, check mocked responses.")
+	def test_manual_retry_rejects_disabled_webhook(self):
+		"""A request cannot be retried while its webhook is disabled"""
+		url = "https://httpbin.org/manual-retry-disabled"
+		self.responses.add(responses.POST, url, status=500)
+
+		with get_test_webhook(self.retry_webhook_config(url, max_retries=0)) as wh:
+			doc = frappe.new_doc("Note")
+			doc.title = "Disabled Retry Note"
+			enqueue_webhook(doc, wh)
+
+			log = frappe.get_last_doc("Webhook Request Log", filters={"webhook": wh.name})
+			frappe.db.set_value("Webhook", wh.name, "enabled", 0)
+			with self.set_user("test@example.com"):
+				self.assertRaises(frappe.ValidationError, log.retry)
+
+	@timeout(5, "Test webhooks should never wait, check mocked responses.")
+	def test_manual_retry_rejects_request_already_queued(self):
+		"""A request whose scheduled retry is still queued is not sent again by hand"""
+		url = "https://httpbin.org/manual-retry-queued"
+		self.responses.add(responses.POST, url, status=500)
+
+		with get_test_webhook(self.retry_webhook_config(url, max_retries=3)) as wh:
+			doc = frappe.new_doc("Note")
+			doc.title = "Queued Retry Note"
+			enqueue_webhook(doc, wh)
+
+			log = frappe.get_last_doc("Webhook Request Log", filters={"webhook": wh.name})
+			with (
+				self.set_user("test@example.com"),
+				patch("frappe.integrations.doctype.webhook.webhook.is_job_enqueued", return_value=True),
+			):
+				self.assertRaises(frappe.ValidationError, log.retry)
 
 	def test_secured_webhook_signs_payload_with_string_header(self):
 		"""A secured webhook stores its signature as a string so it survives serialization and replay"""

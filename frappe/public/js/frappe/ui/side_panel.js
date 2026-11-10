@@ -651,26 +651,35 @@ frappe.ui.SidePanel = class SidePanel {
 	make_rows_openable(layout) {
 		for (const field of layout.fields_list || []) {
 			const child_doctype = field.df?.options;
-			if (!child_doctype) continue;
+			const grid = field.grid;
+			if (!child_doctype || !grid) continue;
 
-			for (const row of field.grid?.grid_rows || []) {
-				if (!row.doc || !row.row) continue;
+			this.bind_grid_rows(grid, child_doctype);
 
-				// set_docfields() caches a per-row copy from our read-only clones, keyed by the
-				// real row name — the routed form would inherit it. Track it so close() drops it.
-				if (frappe.meta.docfield_copy[child_doctype]?.[row.doc.name]) {
-					this.cached_child_docfields.push([child_doctype, row.doc.name]);
-				}
+			// Pagination rebuilds rows via render_result_rows; rebind each time it does.
+			if (grid.__side_panel_rows_hook) continue;
+			grid.__side_panel_rows_hook = true;
+			const render = grid.render_result_rows.bind(grid);
+			grid.render_result_rows = ($rows) => {
+				render($rows);
+				this.bind_grid_rows(grid, child_doctype);
+			};
+		}
+	}
 
-				if (row.__side_panel_bound) continue;
-				row.__side_panel_bound = true;
+	bind_grid_rows(grid, child_doctype) {
+		for (const row of grid.grid_rows || []) {
+			if (!row?.doc || !row.row || row.__side_panel_bound) continue;
+			row.__side_panel_bound = true;
 
-				row.row.css("cursor", "pointer").on("click", (e) => {
-					// The row's own links/checkboxes keep their behaviour.
-					if ($(e.target).closest("a, button, input").length) return;
-					this.open_row_dialog(child_doctype, row.doc);
-				});
+			// set_docfields() caches a per-row copy from our read-only clones, keyed by the real
+			// row name — the routed form would inherit it. Track it so close() drops it.
+			if (frappe.meta.docfield_copy[child_doctype]?.[row.doc.name]) {
+				this.cached_child_docfields.push([child_doctype, row.doc.name]);
 			}
+
+			row.toggle_view = () => this.open_row_dialog(child_doctype, row.doc);
+			row.row.css("cursor", "pointer");
 		}
 	}
 

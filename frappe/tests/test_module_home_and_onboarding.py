@@ -169,12 +169,13 @@ class TestHomeIsTheFirstNavigableItem(DerivedHomeTestCase):
 
 	def test_a_deleted_workspace_needs_no_hand_off(self):
 		"""What the stored pointer needed a release step for. An item naming a workspace that is gone
-		fails the same permission filter every other item goes through, so the module opens on the
-		next one, with nothing written when it was deleted.
+		fails the same filter every other item goes through, so the module opens on the next one,
+		with nothing written when it was deleted.
 
-		Administrator bypasses that filter by definition and still sees the dead item. It leads nowhere
-		either way: the server declines to route it rather than handing out a path to a page that is
-		not there.
+		Administrator too. The filter short-circuits to yes for them on every other kind of item, but
+		a workspace row is checked against the pages that exist rather than the pages they may see
+		(`is_item_allowed`), because "is it still there" is not a permission question. Before that,
+		Administrator alone was handed the dead item and the module opened on nothing.
 
 		"""
 		user = self.make_user(roles=[self.make_role()])
@@ -190,7 +191,7 @@ class TestHomeIsTheFirstNavigableItem(DerivedHomeTestCase):
 
 			with self.acting_as(user):
 				self.assertEqual(self.home(module), "/desk/test-derived-home-successor")
-			self.assertIsNone(self.home(module))
+			self.assertEqual(self.home(module), "/desk/test-derived-home-successor")
 
 
 class TestReorderingMovesTheLandingPage(DerivedHomeTestCase):

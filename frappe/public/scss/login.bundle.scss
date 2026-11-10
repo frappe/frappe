@@ -117,6 +117,27 @@ body {
 				}
 			}
 
+			.otp-qr-code {
+				width: 200px;
+				height: 200px;
+				border-radius: var(--radius);
+			}
+
+			.otp-setup-key {
+				padding: var(--input-padding);
+				border-radius: var(--radius);
+				background-color: var(--surface-gray-2);
+				color: var(--ink-gray-8);
+				font-family: var(--font-family-monospace);
+				@include get_textstyle("base", "regular");
+				user-select: all;
+
+				span {
+					display: inline-block;
+					margin-inline-end: 1ch;
+				}
+			}
+
 			.email-field,
 			.password-field {
 				position: relative;

@@ -1,0 +1,92 @@
+{
+ "actions": [],
+ "creation": "2026-06-11 00:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "embedding_model",
+  "embedding_dimension",
+  "column_break_search",
+  "search_type",
+  "section_break_chunking",
+  "chunk_size",
+  "column_break_chunking",
+  "chunk_overlap"
+ ],
+ "fields": [
+  {
+   "description": "Flow Model used to embed chunks and queries. Its Model ID must be an embedding model, e.g. <code>openai/text-embedding-3-small</code>.",
+   "fieldname": "embedding_model",
+   "fieldtype": "Link",
+   "label": "Embedding Model",
+   "options": "Flow Model"
+  },
+  {
+   "description": "Vector width of the embedding model. Detected automatically when the embedding model is saved.",
+   "fieldname": "embedding_dimension",
+   "fieldtype": "Int",
+   "label": "Embedding Dimension",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_search",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Hybrid",
+   "description": "Hybrid fuses vector similarity with keyword matching. Vector uses similarity alone.",
+   "fieldname": "search_type",
+   "fieldtype": "Select",
+   "label": "Search Type",
+   "options": "Hybrid\nVector"
+  },
+  {
+   "fieldname": "section_break_chunking",
+   "fieldtype": "Section Break",
+   "label": "Chunking"
+  },
+  {
+   "default": "1000",
+   "description": "Maximum characters per chunk.",
+   "fieldname": "chunk_size",
+   "fieldtype": "Int",
+   "label": "Chunk Size",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "column_break_chunking",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "200",
+   "description": "Characters shared between consecutive chunks to preserve context across boundaries.",
+   "fieldname": "chunk_overlap",
+   "fieldtype": "Int",
+   "label": "Chunk Overlap",
+   "non_negative": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-06-11 00:00:00",
+ "modified_by": "Administrator",
+ "module": "Flow",
+ "name": "Flow Knowledge Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

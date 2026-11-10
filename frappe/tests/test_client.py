@@ -348,3 +348,71 @@ class TestClient(IntegrationTestCase):
 			self.assertEqual(get_value("Tag", ["name"], "3E002"), {"name": "3E002"})
 		finally:
 			tag.delete()
+
+
+class TestMethodLookupErrors(IntegrationTestCase):
+	"""A method path that cannot be resolved gives the same error whatever the reason."""
+
+	NOT_FOUND = "Method not found"
+	UNRESOLVABLE = (
+		"no_such_app.module.fn",
+		"frappe.no_such_module.fn",
+		"frappe.utils.no_such_fn",
+	)
+
+	def setUp(self):
+		frappe.local.request = frappe._dict(method="GET", files={})
+		frappe.local.form_dict = frappe._dict()
+		patcher = patch.object(frappe, "_dev_server", 0)
+		patcher.start()
+		self.addCleanup(patcher.stop)
+
+	def test_unresolvable_method_gives_one_error(self):
+		from frappe.api.v2 import handle_rpc_call
+		from frappe.desk.treeview import get_all_nodes
+		from frappe.handler import execute_cmd, upload_file
+		from frappe.model.mapper import make_mapped_doc, map_docs
+
+		def upload(path):
+			frappe.local.form_dict = frappe._dict(method=path)
+			upload_file()
+
+		entry_points = {
+			"execute_cmd": execute_cmd,
+			"handle_rpc_call": handle_rpc_call,
+			"upload_file": upload,
+			"get_all_nodes": lambda path: get_all_nodes("ToDo", "ToDo", "", path),
+			"make_mapped_doc": lambda path: make_mapped_doc(path, "x"),
+			"map_docs": lambda path: map_docs(path, "[]", "{}"),
+		}
+		with self.change_settings(
+			"System Settings", allow_guests_to_upload_files=1, allowed_doctypes_for_guest_uploads=""
+		):
+			for name, call in entry_points.items():
+				with self.subTest(name), self.set_user("Guest"):
+					errors = {self.error_of(call, path) for path in self.UNRESOLVABLE}
+
+				self.assertEqual(errors, {(frappe.ValidationError, self.NOT_FOUND, (self.NOT_FOUND,))}, name)
+
+	def test_user_who_can_see_tracebacks_gets_the_reason(self):
+		from frappe.handler import execute_cmd
+
+		with (
+			self.set_user("test@example.com"),
+			self.change_settings("System Settings", allow_error_traceback=1),
+		):
+			with self.assertRaises(frappe.ValidationError) as missing_app:
+				execute_cmd("no_such_app.module.fn")
+			with self.assertRaises(frappe.ValidationError) as missing_module:
+				execute_cmd("frappe.no_such_module.fn")
+
+		self.assertIn("not installed", str(missing_app.exception))
+		self.assertIn("No module named", str(missing_module.exception))
+
+	def error_of(self, call, path):
+		frappe.local.message_log = []
+		with self.assertRaises(frappe.ValidationError) as ctx:
+			call(path)
+
+		shown = tuple(m["message"] for m in frappe.local.message_log)
+		return type(ctx.exception), str(ctx.exception), shown

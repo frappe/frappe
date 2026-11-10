@@ -44,13 +44,16 @@ frappe.pages["dashboard-view"].on_page_load = function (wrapper) {
 		if (!name) return frappe.set_route("List", "Dashboard");
 
 		const route = frappe.get_route_str();
-		const doc = await frappe.model.with_doc("Dashboard", name);
+		// An unknown name resolves empty. A rejection, such as no read permission,
+		// is a request desk already reported.
+		const doc = await frappe.model.with_doc("Dashboard", name).catch(() => false);
 		// The route can move, inside this page or off it, while the fetch is
 		// pending. Two fetches can also land out of order, and the older one would
 		// draw a document the reader left.
 		if (frappe.get_route_str() !== route) return;
 
 		clear();
+		if (doc === false) return;
 		if (!doc) return show_missing(name);
 		// `as_dict` drops an empty `__onload`, so no key at all is the common case.
 		if (doc.__onload?.island) return show_island(doc);
@@ -75,7 +78,10 @@ frappe.pages["dashboard-view"].on_page_load = function (wrapper) {
 
 	/** The missing state, for an unknown dashboard name. It needs only the name. */
 	function show_missing(name) {
-		frappe.breadcrumbs.add({ module: "Desk", doctype: "Dashboard" });
+		page.set_breadcrumbs([
+			{ label: __("Dashboard"), href: "/desk/dashboard" },
+			{ label: name },
+		]);
 		frappe.utils.set_title(__("Dashboard"));
 		content.append(
 			frappe.ui.empty_state({
@@ -124,20 +130,16 @@ frappe.pages["dashboard-view"].on_page_load = function (wrapper) {
 	}
 
 	/**
-	 * The page head has no title slot of its own. `page.set_title` writes into the
-	 * `.title-text` crumb, which is the "Dashboard" list link, and the next
-	 * `breadcrumbs.update()` overwrites it. So the title goes to the last crumb,
-	 * where the legacy renderer puts the document name, and to the browser tab.
-	 * `Dashboard.show` below relies on the same fact.
+	 * The document is the last crumb, and also names the browser tab. An island may title a
+	 * document differently from its name, so the label is what it reported and the route
+	 * segment only reaches the document. `Dashboard.show` below does the same.
 	 */
 	function set_island_title(docname, title) {
-		const label = title || __("Dashboard");
-		frappe.breadcrumbs.add({
-			module: "Desk",
-			doctype: "Dashboard",
-			docname: docname,
-			label: label,
-		});
+		const label = title || docname;
+		page.set_breadcrumbs([
+			{ label: __("Dashboard"), href: "/desk/dashboard" },
+			{ label: label },
+		]);
 		frappe.utils.set_title(label);
 	}
 
@@ -156,7 +158,7 @@ frappe.pages["dashboard-view"].on_page_load = function (wrapper) {
 		page.clear_menu();
 		(actions || []).forEach((action) => {
 			const click = action.href ? () => window.open(action.href, "_blank") : action.onClick;
-			page.add_menu_item(action.label, click);
+			page.add_menu_item(frappe.utils.escape_html(action.label), click);
 		});
 	}
 
@@ -181,6 +183,8 @@ class Dashboard {
 	// the route segment. A link often reaches this page lowercased, and the
 	// crumb and the title would otherwise read `selling`.
 	show(doc) {
+		this.doc = doc;
+		this.permitted_items = 0;
 		this.dashboard_name = doc.name;
 		this.set_breadcrumbs(doc.name);
 
@@ -198,25 +202,50 @@ class Dashboard {
 	}
 
 	// The page drops the nodes. A widget group holds more than its nodes,
-	// because a chart widget can hold a mounted island, so the group releases
-	// itself.
+	// because a chart or number card widget can hold a mounted island, so the
+	// group releases itself.
 	destroy() {
 		this.destroyed = true;
 		this.chart_group?.destroy();
+		this.number_card_group?.destroy();
 	}
 
 	set_breadcrumbs(docname) {
-		frappe.breadcrumbs.add({ module: "Desk", doctype: "Dashboard", docname: docname });
+		this.page.set_breadcrumbs([
+			{ label: __("Dashboard"), href: "/desk/dashboard" },
+			{ label: docname },
+		]);
 	}
 
+	// A reader who may see none of the dashboard's charts and cards would
+	// otherwise get a blank page.
 	refresh() {
-		frappe.run_serially([() => this.render_cards(), () => this.render_charts()]);
+		frappe.run_serially([() => this.render_cards(), () => this.render_charts()]).then(() => {
+			const has_items = this.doc.charts?.length || this.doc.cards?.length;
+			if (!this.destroyed && has_items && !this.permitted_items) {
+				this.show_not_permitted();
+			}
+		});
+	}
+
+	show_not_permitted() {
+		this.refresh_all_item.toggle(false);
+		this.container.append(
+			frappe.ui.empty_state({
+				icon: "lock",
+				title: __("You don't have access to anything on this dashboard"),
+				description: __(
+					"Ask your administrator for access to its reports or document types."
+				),
+			})
+		);
 	}
 
 	render_charts() {
 		return this.get_permitted_items(
 			"frappe.desk.doctype.dashboard.dashboard.get_permitted_charts"
 		).then((charts) => {
+			this.permitted_items += charts.length;
 			if (!charts.length) {
 				return;
 			}
@@ -260,6 +289,7 @@ class Dashboard {
 		return this.get_permitted_items(
 			"frappe.desk.doctype.dashboard.dashboard.get_permitted_cards"
 		).then((cards) => {
+			this.permitted_items += cards.length;
 			// as in render_charts: the page can be gone by now
 			if (this.destroyed || !cards.length) {
 				return;
@@ -308,7 +338,7 @@ class Dashboard {
 			frappe.new_doc("Dashboard");
 		});
 
-		this.page.add_menu_item(__("Refresh All"), () => {
+		this.refresh_all_item = this.page.add_menu_item(__("Refresh All"), () => {
 			this.chart_group && this.chart_group.widgets_list.forEach((chart) => chart.refresh());
 			this.number_card_group &&
 				this.number_card_group.widgets_list.forEach((card) => card.render_card());

@@ -23,8 +23,9 @@ def list_apps(client) -> dict:
 	if not isinstance(catalog, list):
 		catalog = []
 	installed = _installed_versions(client)
+	required_by = _get_required_by(list(installed))
 
-	apps = [_app_row(entry, installed) for entry in catalog if entry.get("name")]
+	apps = [_app_row(entry, installed, required_by) for entry in catalog if entry.get("name")]
 	# the apps also includes Framework. We should not show framework in the catalog.
 	apps = [app for app in apps if app["name"] != "frappe"]
 	apps.sort(key=_sort_key)
@@ -60,7 +61,17 @@ def _installed_versions(client) -> dict:
 	return {app["name"]: app.get("version") or "" for app in apps if app.get("name")}
 
 
-def _app_row(entry: dict, installed: dict) -> dict:
+def _get_required_by(installed_apps: list[str]) -> dict[str, list[str]]:
+	"""The installed apps that list each installed app in `required_apps`. Uninstall refuses an app they need."""
+	from frappe.installer import is_required_by
+
+	return {
+		app: [other for other in installed_apps if other != app and is_required_by(app, other)]
+		for app in installed_apps
+	}
+
+
+def _app_row(entry: dict, installed: dict, required_by: dict) -> dict:
 	name = entry["name"]
 	installed_version = installed.get(name, "")
 	latest_version = entry.get("version") or ""
@@ -84,6 +95,7 @@ def _app_row(entry: dict, installed: dict) -> dict:
 		"nightly": entry.get("channel") == "nightly",
 		"frappe_version": entry.get("frappe_version") or "",
 		"categories": entry.get("categories") or [],
+		"required_by": required_by.get(name, []),
 	}
 
 

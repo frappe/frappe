@@ -1,6 +1,8 @@
 # Copyright (c) 2020, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import frappe
+from frappe.core.doctype.user.test_user import test_user
+from frappe.core.doctype.user.user import get_module_profile
 from frappe.tests import IntegrationTestCase
 
 
@@ -28,6 +30,19 @@ class TestModuleProfile(IntegrationTestCase):
 		new_user.save()
 
 		self.assertEqual(new_user.block_modules[0].module, "Core")
+
+	def test_get_module_profile_requires_read_permission(self):
+		frappe.get_doc(
+			doctype="Module Profile",
+			module_profile_name="_Test Module Profile",
+			block_modules=[{"module": "Core"}],
+		).insert()
+
+		with test_user(roles=["Desk User"]) as user, self.set_user(user.name):
+			self.assertRaises(frappe.PermissionError, get_module_profile, "_Test Module Profile")
+
+		blocked = get_module_profile("_Test Module Profile")
+		self.assertEqual([row.module for row in blocked], ["Core"])
 
 	def test_multiple_block_modules(self):
 		"""Assign multiple blocked modules from profile to user"""
@@ -154,3 +169,55 @@ class TestModuleProfile(IntegrationTestCase):
 		user.module_profile = profile2.name
 		user.save()
 		self.assertEqual([bm.module for bm in user.block_modules], ["Website"])
+
+	def test_onload_lists_custom_modules(self):
+		"""A custom module with no app can still be blocked from the profile form"""
+		from frappe.desk.form.load import getdoc
+
+		module = frappe.get_doc(
+			{"doctype": "Module Def", "module_name": "_Test Site Module", "custom": 1}
+		).insert(ignore_if_duplicate=True)
+		self.assertFalse(module.app_name)
+		profile = frappe.get_doc(
+			{"doctype": "Module Profile", "module_profile_name": "_Test Module Profile"}
+		).insert()
+		frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": "test-module-user1@example.com",
+				"first_name": "Test User",
+				"roles": [{"role": "System Manager"}],
+			}
+		).insert()
+
+		with self.set_user("test-module-user1@example.com"):
+			frappe.response.docs = []
+			getdoc("Module Profile", profile.name)
+			all_modules = frappe.response.docs[0].get("__onload").get("all_modules")
+
+		self.assertIn("_Test Site Module", all_modules)
+		self.assertIn("Core", all_modules)
+
+	def test_onload_hides_modules_from_read_only_user(self):
+		"""A user who can only read the profile gets no module list and no permission message"""
+		from frappe.desk.form.load import getdoc
+
+		profile = frappe.get_doc(
+			{"doctype": "Module Profile", "module_profile_name": "_Test Module Profile"}
+		).insert()
+		frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": "test-module-user1@example.com",
+				"first_name": "Test User",
+				"roles": [{"role": "_Test Role 2"}],
+			}
+		).insert()
+		frappe.share.add("Module Profile", profile.name, "test-module-user1@example.com", read=1)
+
+		with self.set_user("test-module-user1@example.com"):
+			frappe.clear_messages()
+			frappe.response.docs = []
+			getdoc("Module Profile", profile.name)
+			self.assertNotIn("all_modules", frappe.response.docs[0].get("__onload"))
+			self.assertFalse(frappe.message_log)

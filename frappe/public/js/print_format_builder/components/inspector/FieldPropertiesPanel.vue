@@ -56,6 +56,9 @@ const ctx = {
 	get print_format() {
 		return store.print_format.value;
 	},
+	get preview_doc() {
+		return store.preview_doc.value;
+	},
 	inline: (df) => section_of(store.layout.value, df)?.field_orientation === "left-right",
 };
 

@@ -73,31 +73,24 @@
 	min-width: 0;
 }
 
-.pfb-insp-row .pfb-insp-autocomplete .frappe-autocomplete-input-wrap {
-	background: var(--fg-color);
+.builder-root .frappe-autocomplete .frappe-autocomplete-input-wrap {
+	padding-top: 2px;
+	padding-bottom: 2px;
+}
+.builder-root .frappe-autocomplete .frappe-autocomplete-input-wrap:not(.focused) {
+	border-color: transparent;
+}
+.pfb-insp-row .frappe-autocomplete .frappe-autocomplete-dropdown {
+	left: auto;
+	right: 0;
+	width: max-content;
+	min-width: 100%;
+	max-width: 256px;
 }
 
 .pfb-insp-input,
 .pfb-insp-select {
 	width: 100%;
-	padding: 6px 8px;
-	font-size: var(--text-sm);
-	border: 1px solid var(--border-color);
-	border-radius: var(--radius);
-	background: var(--fg-color);
-	color: var(--text-color);
-	outline: none;
-}
-.pfb-insp-input {
-	box-sizing: border-box;
-}
-.pfb-insp-select {
-	padding: 5px 8px;
-	cursor: pointer;
-}
-.pfb-insp-input:focus,
-.pfb-insp-select:focus {
-	border-color: var(--gray-500);
 }
 .pfb-insp-hint {
 	font-size: var(--text-sm);
@@ -189,7 +182,7 @@
 	flex: 1;
 	height: 100%;
 	font-size: 13px;
-	font-family: var(--monospace-font-family, monospace);
+	font-family: var(--font-family-monospace);
 	border: 1px solid var(--border-color);
 	border-radius: var(--radius);
 }
@@ -205,37 +198,19 @@
 
 /* ── Image / Barcode element rows ───────────────────────── */
 .pfb-image-upload {
-	display: flex;
-	flex-direction: column;
-	gap: 6px;
+	position: relative;
 	min-width: 0;
 }
 
-.pfb-image-upload-preview {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	width: 100%;
-	max-height: 120px;
-	padding: 4px;
-	overflow: hidden;
-	border: 1px solid var(--border-color);
-	border-radius: var(--radius);
-	background: var(--surface-gray-1);
-	box-sizing: border-box;
+.pfb-image-upload .pfb-insp-input {
+	padding-right: 28px;
 }
 
-.pfb-image-upload-preview img {
-	display: block;
-	max-width: 100%;
-	max-height: 110px;
-	object-fit: contain;
-}
-
-.pfb-image-upload-actions {
-	display: flex;
-	align-items: center;
-	gap: 4px;
+.pfb-image-upload .es-button {
+	position: absolute;
+	top: 50%;
+	right: 2px;
+	transform: translateY(-50%);
 }
 
 .pfb-size-slider {
@@ -375,13 +350,34 @@ body.pfb-dragging * {
 	margin-bottom: 6px;
 }
 
+.pfb-static-text {
+	position: relative;
+}
+.pfb-tpl-menu {
+	position: absolute;
+	top: calc(100% + 4px);
+	left: 0;
+	right: 0;
+	max-height: 200px;
+	overflow-x: hidden;
+	overflow-y: auto;
+}
+.pfb-tpl-menu .dropdown-item {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.pfb-tpl-menu .dropdown-item.highlighted {
+	background: var(--surface-gray-2);
+}
+
 /* column rows shared by the child table and custom table inspectors */
 .pfb-col-list {
 	padding: 4px 0;
 }
 
 .pfb-col-item {
-	border-bottom: 1px solid var(--gray-100);
+	border-bottom: 1px solid var(--border-color);
 }
 
 .pfb-col-item:last-child {
@@ -408,8 +404,8 @@ body.pfb-dragging * {
 }
 
 .pfb-col-add-row {
-	padding: 6px 14px 10px;
-	border-top: 1px solid var(--gray-100);
+	padding: 6px 16px 10px;
+	border-top: 1px solid var(--border-color);
 }
 
 .pfb-col-editor {
@@ -418,10 +414,20 @@ body.pfb-dragging * {
 	border: 1px solid var(--border-color);
 	border-radius: var(--radius);
 }
+.pfb-col-editor > .pfb-insp-section-body {
+	padding-top: 12px;
+}
 
 .pfb-col-row .pfb-tpl {
 	flex: 1;
 	min-width: 0;
+}
+
+.pfb-overlay-backdrop {
+	position: fixed;
+	inset: 0;
+	z-index: 1034;
+	background: rgba(0, 0, 0, 0.6);
 }
 
 .pfb-overlay {
@@ -432,7 +438,6 @@ body.pfb-dragging * {
 	align-items: center;
 	justify-content: center;
 	padding: 24px;
-	background: rgba(0, 0, 0, 0.6);
 }
 
 body.pfb-col-resizing,

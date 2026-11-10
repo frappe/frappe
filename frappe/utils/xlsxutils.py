@@ -10,7 +10,6 @@ from typing import Any, ClassVar, Literal
 
 import xlrd
 import xlsxwriter
-from openpyxl import load_workbook
 from xlsxwriter.format import Format
 
 import frappe
@@ -550,6 +549,15 @@ def make_xlsx(
 	def get_format(style_ids: tuple[int, ...]) -> Format:
 		return wb.add_format(resolve_style_ids(style_ids))
 
+	# time / duration values need an explicit number format, otherwise Excel shows raw day fractions
+	excel_time_format = XLSXStyleBuilder.get_time_format()
+
+	@functools.cache
+	def get_time_cell_format(style_ids: tuple[int, ...], num_format: str) -> Format:
+		style = dict(resolve_style_ids(style_ids))
+		style.setdefault("num_format", num_format)
+		return wb.add_format(style)
+
 	# set column widths
 	for i, column_width in enumerate(column_widths):
 		if column_width:
@@ -606,6 +614,14 @@ def make_xlsx(
 
 			cell_format = get_cell_format((row_idx, col_idx)) if has_cell_formats else None
 
+			if isinstance(value, datetime.time | datetime.timedelta):
+				cell_format = get_time_cell_format(
+					col_style_ids.get(col_idx, ())
+					+ row_style_ids.get(row_idx, ())
+					+ cell_style_ids.get((row_idx, col_idx), ()),
+					"[h]:mm:ss" if isinstance(value, datetime.timedelta) else excel_time_format,
+				)
+
 			if is_formula_like:
 				# force literal text so the cell isn't parsed as a formula
 				write_string(row_idx, col_idx, value, cell_format)
@@ -644,13 +660,16 @@ def handle_html(data: str) -> str:
 def read_xlsx_file_from_attached_file(file_url=None, fcontent=None, filepath=None, *, read_only=False):
 	if file_url:
 		_file = frappe.get_doc("File", {"file_url": file_url})
-		filename = _file.get_full_path()
+		# read through the File, so a file on another storage driver works too
+		filename = BytesIO(_file.get_content())
 	elif fcontent:
 		filename = BytesIO(fcontent)
 	elif filepath:
 		filename = filepath
 	else:
 		return
+
+	from openpyxl import load_workbook
 
 	rows = []
 	wb1 = load_workbook(filename=filename, data_only=True, read_only=read_only)

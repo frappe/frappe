@@ -68,6 +68,21 @@ class TestNaming(IntegrationTestCase):
 		self.assertEqual(country.name, original_name)
 		self.assertEqual(country.name, country.country_name)
 
+	def test_field_autoname_keeps_fieldtype(self):
+		doctype = new_doctype(
+			autoname="field:number",
+			fields=[{"label": "Number", "fieldname": "number", "fieldtype": "Int", "set_only_once": 1}],
+		).insert()
+
+		doc = frappe.get_doc(doctype=doctype.name, number=3).insert()
+		self.assertEqual(doc.number, 3)
+
+		doc = frappe.get_doc(doctype.name, doc.name)
+		doc.some_fieldname = "changed"
+		doc.save()
+
+		doctype.delete()
+
 	def test_child_table_naming(self):
 		child_dt_with_naming = new_doctype(istable=1, autoname="field:some_fieldname").insert()
 		dt_with_child_autoname = new_doctype(
@@ -134,17 +149,10 @@ class TestNaming(IntegrationTestCase):
 		"""
 		Test if braced params are replaced for consecutive week number in format autoname
 		"""
-		doctype = "ToDo"
+		doctype = new_doctype(autoname="format:TODO-{WW}-{##}").insert()
 
-		todo_doctype = frappe.get_doc("DocType", doctype)
-		todo_doctype.autoname = "format:TODO-{WW}-{##}"
-		todo_doctype.save()
-
-		description = "Format"
-
-		todo = frappe.new_doc(doctype)
-		todo.description = description
-		todo.insert()
+		doc = frappe.new_doc(doctype.name)
+		doc.insert()
 
 		series = getseries("", 2)
 
@@ -155,7 +163,7 @@ class TestNaming(IntegrationTestCase):
 
 		week = determine_consecutive_week_number(now_datetime())
 
-		self.assertEqual(todo.name, f"TODO-{week}-{series}")
+		self.assertEqual(doc.name, f"TODO-{week}-{series}")
 
 	def test_expression_autoname_multiple_fields_pattern_without_dot_before_dash(self):
 		"""
@@ -430,6 +438,15 @@ class TestNaming(IntegrationTestCase):
 		self.assertTrue(
 			name.startswith("KOOH-on_update"), f"incorrect name generated {name}, missing field value"
 		)
+
+	def test_naming_series_counter_using_fields(self):
+		webhook = frappe.new_doc("Webhook")
+		webhook.webhook_docevent = "on_update"
+		series = NamingSeries("KOOH-.{webhook_docevent}.-.####")
+
+		self.assertEqual(series.get_prefix(webhook), "KOOH-on_update-")
+		series.update_counter(7, webhook)
+		self.assertEqual(series.get_current_value(webhook), 7)
 
 	def test_naming_with_empty_part(self):
 		# check naming with empty part (duplicate dots)

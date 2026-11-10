@@ -3,12 +3,13 @@
 		ref="comboboxRef"
 		v-model="model"
 		v-model:open="open"
-		class="group !gap-1"
+		class="group !gap-1 [&_[data-slot=input]:disabled]:text-ink-gray-4"
 		:label="label"
 		:description="description"
 		:error="error"
 		:required="required"
 		:options="linkOptions"
+		:filterable="!idLabels"
 		:disabled="disabled"
 		:placeholder="placeholder ?? `Search ${doctype.toLowerCase()}`"
 		:loading="options.loading && !options.data"
@@ -75,6 +76,7 @@
 </template>
 
 <script setup lang="ts">
+import { toIdOption, toLinkOption } from "./linkOption";
 import { computed, ref, useSlots, watch } from "vue";
 import { Combobox, createResource, frappeRequest, debounce } from "frappe-ui";
 import type { ComboboxOption, ComboboxCustomOption } from "frappe-ui";
@@ -112,11 +114,7 @@ const options = createResource({
 	method: "POST",
 	resourceFetcher: frappeRequest,
 	transform: (data: LinkOption[]): LinkOption[] =>
-		data.map((doc: any) => ({
-			label: doc.label || doc.value,
-			value: doc.value,
-			description: doc.description,
-		})),
+		data.map(props.idLabels ? toIdOption : toLinkOption),
 });
 
 const createNewOption: ComboboxCustomOption = {

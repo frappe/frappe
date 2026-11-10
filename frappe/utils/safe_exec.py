@@ -65,6 +65,19 @@ class NamespaceDict(frappe._dict):
 		return ret
 
 
+class UnavailableEnv:
+	"""`frappe.env` outside a Server Script. Raises on attribute access."""
+
+	def __getattr__(self, key: str):
+		if key.startswith("_"):
+			raise AttributeError(key)
+
+		frappe.throw(
+			_("Environment variables are only available in Server Scripts"),
+			title=_("Environment Variables Unavailable"),
+		)
+
+
 class FrappeTransformer(RestrictingNodeTransformer):
 	def check_name(self, node, name, *args, **kwargs):
 		if name == "_dict":
@@ -99,6 +112,7 @@ def safe_exec(
 	*,
 	restrict_commit_rollback: bool = False,
 	script_filename: str | None = None,
+	env: object | None = None,
 ):
 	if not is_safe_exec_enabled():
 		msg = _("Server Scripts are disabled. Please enable server scripts from bench configuration.")
@@ -116,6 +130,8 @@ def safe_exec(
 		exec_globals.frappe.db.pop("commit", None)
 		exec_globals.frappe.db.pop("rollback", None)
 		exec_globals.frappe.db.pop("add_index", None)
+
+	exec_globals.frappe.env = UnavailableEnv() if env is None else env
 
 	filename = SERVER_SCRIPT_FILE_PREFIX
 	if script_filename:
@@ -858,30 +874,25 @@ def check_safe_sql_query(query: str, throw: bool = True) -> bool:
 
 	Safe queries:
 	        1. Read only 'select' or 'explain' queries
+	        2. That do not read __Auth (password hashes and encrypted secrets)
 	"""
 
 	query = query.strip().lower()
 	whitelisted_statements = ("select", "explain")
 
-	if re.search(r"\binto\s+(outfile|dumpfile)\b", query):
-		if throw:
-			frappe.throw(
-				_("Read-Only queries are allowed"),
-				title=_("Unsafe SQL query"),
-				exc=frappe.PermissionError,
-			)
-		return False
+	# match the keyword alone: comments and executable comments can separate it from INTO
+	if re.search(r"outfile|dumpfile", query) or not query.startswith(whitelisted_statements):
+		return _reject_sql_query(_("Read-Only queries are allowed"), throw)
 
-	if query.startswith(whitelisted_statements):
-		return True
+	if "__auth" in query:
+		return _reject_sql_query(_("Reading passwords is not allowed"), throw)
 
+	return True
+
+
+def _reject_sql_query(message: str, throw: bool) -> bool:
 	if throw:
-		frappe.throw(
-			_("Read-Only queries are allowed"),
-			title=_("Unsafe SQL query"),
-			exc=frappe.PermissionError,
-		)
-
+		frappe.throw(message, title=_("Unsafe SQL query"), exc=frappe.PermissionError)
 	return False
 
 

@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import copy
+import functools
 import json
 import os
 import re
@@ -15,7 +16,11 @@ from frappe.cache_manager import clear_controller_cache, clear_user_cache
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.database import savepoint
-from frappe.database.schema import validate_column_length, validate_column_name
+from frappe.database.schema import (
+	validate_column_length,
+	validate_column_name,
+	validate_table_name_length,
+)
 from frappe.desk.notifications import delete_notification_count_for, get_filters_for
 from frappe.desk.utils import validate_route_conflict
 from frappe.model import (
@@ -25,14 +30,12 @@ from frappe.model import (
 	no_value_fields,
 	table_fields,
 )
-from frappe.model.base_document import RESERVED_KEYWORDS, get_controller
 from frappe.model.docfield import supports_translation
-from frappe.model.document import Document
+from frappe.model.document import RESERVED_KEYWORDS, Document, get_controller
 from frappe.model.meta import Meta
 from frappe.modules import get_doc_path, make_boilerplate
 from frappe.modules.import_file import get_file_path
 from frappe.permissions import ALL_USER_ROLE, AUTOMATIC_ROLES, SYSTEM_USER_ROLE
-from frappe.query_builder.functions import Concat
 from frappe.utils import cint, cstr, flt, get_datetime, is_a_property, random_string
 from frappe.website.utils import clear_cache
 
@@ -122,8 +125,10 @@ class DocType(Document):
 		documentation: DF.Data | None
 		editable_grid: DF.Check
 		email_append_to: DF.Check
+		enable_upload_first_workflow: DF.Check
 		engine: DF.Literal["InnoDB", "MyISAM"]
 		fields: DF.Table[DocField]
+		force_private_attachments: DF.Check
 		force_re_route_to_default_view: DF.Check
 		grid_page_length: DF.Int
 		has_web_view: DF.Check
@@ -131,7 +136,6 @@ class DocType(Document):
 		icon: DF.Icon | None
 		image_field: DF.Data | None
 		in_create: DF.Check
-		index_web_pages_for_search: DF.Check
 		is_calendar_and_gantt: DF.Check
 		is_published_field: DF.Data | None
 		is_submittable: DF.Check
@@ -139,6 +143,7 @@ class DocType(Document):
 		is_virtual: DF.Check
 		issingle: DF.Check
 		istable: DF.Check
+		link_display_mode: DF.Literal["Search", "Select"]
 		links: DF.Table[DocTypeLink]
 		make_attachments_public: DF.Check
 		max_attachments: DF.Int
@@ -170,6 +175,7 @@ class DocType(Document):
 		search_fields: DF.Data | None
 		sender_field: DF.Data | None
 		sender_name_field: DF.Data | None
+		show_image_in_link: DF.Check
 		show_name_in_global_search: DF.Check
 		show_preview_popup: DF.Check
 		show_title_field_in_link: DF.Check
@@ -183,8 +189,26 @@ class DocType(Document):
 		track_seen: DF.Check
 		track_views: DF.Check
 		translated_doctype: DF.Check
-		website_search_field: DF.Data | None
 	# end: auto-generated types
+
+	def before_insert(self):
+		if not self.istable and not self.permissions:
+			self.append(
+				"permissions",
+				{
+					"role": "System Manager",
+					"read": 1,
+					"write": 1,
+					"create": 1,
+					"delete": 1,
+					"report": 1,
+					"export": 1,
+					"share": 1,
+					"print": 1,
+					"email": 1,
+					"submit": 1 if self.is_submittable else 0,
+				},
+			)
 
 	def validate(self):
 		"""Validate DocType before saving.
@@ -523,6 +547,12 @@ class DocType(Document):
 			# unique is automatically an index
 			if d.unique:
 				d.search_index = 0
+
+			# no-value fieldtypes have no column, so these column-only properties don't apply
+			if d.fieldtype in no_value_fields:
+				d.unique = 0
+				d.search_index = 0
+				d.not_nullable = 0
 
 	def get_permission_log_options(self, event=None):
 		if self.custom and event != "after_delete":
@@ -1096,15 +1126,7 @@ class DocType(Document):
 		if not name:
 			name = self.name
 
-		# a Doctype name is the tablename created in database
-		# `tab<Doctype Name>` the length of tablename is limited to 64 characters
-		max_length = frappe.db.MAX_COLUMN_LENGTH - 3
-		if len(name) > max_length:
-			# length(tab + <Doctype Name>) should be equal to 64 characters hence doctype should be 61 characters
-			frappe.throw(
-				_("Doctype name is limited to {0} characters ({1})").format(max_length, name),
-				frappe.NameError,
-			)
+		validate_table_name_length(name)
 
 		# a DocType name should not start or end with an empty space
 		if WHITESPACE_PADDING_PATTERN.search(name):
@@ -1122,7 +1144,7 @@ class DocType(Document):
 				title="Invalid Name",
 			)
 
-		validate_route_conflict(self.doctype, self.name)
+		validate_route_conflict(self.doctype, name, self.name)
 
 	@frappe.whitelist()
 	def check_pending_migration(self) -> bool:
@@ -1211,7 +1233,7 @@ def validate_series(dt, autoname=None, name=None):
 		used_in = (
 			frappe.qb.from_(doctype)
 			.select(doctype.name)
-			.where(doctype.autoname.like(Concat(prefix, ".%")))
+			.where(doctype.autoname.like(f"{prefix}.%"))
 			.where(doctype.name != name)
 		).run()
 		if used_in:
@@ -1641,18 +1663,6 @@ def validate_fields(meta: Meta):
 		if meta.is_published_field not in fieldname_list:
 			frappe.throw(_("Is Published Field must be a valid fieldname"), InvalidFieldNameError)
 
-	def check_website_search_field(meta):
-		if not meta.get("website_search_field"):
-			return
-
-		if meta.website_search_field not in fieldname_list:
-			frappe.throw(_("Website Search Field must be a valid fieldname"), InvalidFieldNameError)
-
-		if "title" not in fieldname_list:
-			frappe.throw(
-				_('Field "title" is mandatory if "Website Search Field" is set.'), title=_("Missing Field")
-			)
-
 	def check_timeline_field(meta):
 		if not meta.timeline_field:
 			return
@@ -1789,6 +1799,34 @@ def validate_fields(meta: Meta):
 		if getattr(docfield, "max_height", None) and (docfield.max_height[-2:] not in ("px", "em")):
 			frappe.throw(f"Max for {frappe.bold(docfield.fieldname)} height must be in px, em, rem")
 
+	@functools.cache
+	def get_islands_on_site():
+		from frappe.utils.island import get_ui_islands
+
+		return set(get_ui_islands())
+
+	def check_vue_component_options(docfield):
+		if (
+			docfield.fieldtype != "Vue Component"
+			or frappe.flags.in_patch
+			or frappe.flags.in_fixtures
+			or frappe.flags.in_install
+		):
+			return
+
+		if not docfield.options:
+			frappe.throw(
+				_("Options required for Vue Component field {0}").format(
+					frappe.bold(docfield.label or docfield.fieldname)
+				),
+				title=_("Missing Island"),
+			)
+		if docfield.options not in get_islands_on_site():
+			frappe.throw(
+				_('Island "{0}" is not on this site.').format(docfield.options),
+				title=_("Missing Island"),
+			)
+
 	def check_no_of_ratings(docfield):
 		if docfield.fieldtype == "Rating":
 			if docfield.options and (int(docfield.options) > 10 or int(docfield.options) < 3):
@@ -1871,6 +1909,7 @@ def validate_fields(meta: Meta):
 			check_child_table_option(d)
 			check_max_height(d)
 			check_no_of_ratings(d)
+			check_vue_component_options(d)
 
 	if not frappe.flags.in_migrate or in_ci:
 		check_fold(fields)
@@ -1878,7 +1917,6 @@ def validate_fields(meta: Meta):
 		check_title_field(meta)
 		check_timeline_field(meta)
 		check_is_published_field(meta)
-		check_website_search_field(meta)
 		check_sort_field(meta)
 		check_image_field(meta)
 

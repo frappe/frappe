@@ -16,10 +16,19 @@ base_template_path = "www/sitemap.xml"
 
 def get_context(context):
 	"""generate the sitemap XML"""
+	disabled_controllers = {
+		controller
+		for controller, settings in {
+			"frappe.www.about": "About Us Settings",
+			"frappe.www.contact": "Contact Us Settings",
+		}.items()
+		if frappe.get_single_value(settings, "is_disabled")
+	}
+
 	links = [
 		{"loc": get_url(quote(page.name.encode("utf-8"))), "lastmod": nowdate()}
 		for route, page in get_pages().items()
-		if page.sitemap
+		if page.sitemap and page.controller not in disabled_controllers
 	]
 
 	links.extend(

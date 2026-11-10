@@ -70,7 +70,7 @@ frappe.ui.form.Control = class BaseControl {
 				if (explain) console.log("By Read Only: Read");
 				status = "Read";
 			} else if (
-				(this.grid && this.grid.display_status == "Read") ||
+				(this.grid && this.grid.control !== this && this.grid.display_status == "Read") ||
 				(this.layout && this.layout.grid && this.layout.grid.display_status == "Read")
 			) {
 				// parent grid is read
@@ -125,9 +125,14 @@ frappe.ui.form.Control = class BaseControl {
 			!this.only_input &&
 			is_null(value) &&
 			frappe.defaults.is_enabled("hide_empty_read_only_fields") &&
-			!["Attachment Gallery", "HTML", "Image", "Button", "Geolocation"].includes(
-				this.df.fieldtype
-			)
+			![
+				"Attachment Gallery",
+				"HTML",
+				"Image",
+				"Button",
+				"Geolocation",
+				"Vue Component",
+			].includes(this.df.fieldtype)
 		) {
 			if (explain) console.log("By Hide Read-only, null fields: None");
 			status = "None";

@@ -350,6 +350,10 @@ class EmailAccount(Document):
 			enable_outgoing=self.enable_outgoing,
 			used_oauth=self.auth_method == "OAuth",
 		)
+		if (before := self.get_doc_before_save()) and before.connected_app != self.connected_app:
+			from frappe.integrations.frappe_providers.email_oauth import delete_relay_app
+
+			delete_relay_app(before.connected_app)
 
 	def clear_cache(self):
 		super().clear_cache()
@@ -358,16 +362,8 @@ class EmailAccount(Document):
 	def there_must_be_only_one_default(self):
 		"""If current Email Account is default, un-default all other accounts."""
 		for field in ("default_incoming", "default_outgoing"):
-			if not self.get(field):
-				continue
-
-			for email_account in frappe.get_all("Email Account", filters={field: 1}):
-				if email_account.name == self.name:
-					continue
-
-				email_account = frappe.get_doc("Email Account", email_account.name)
-				email_account.set(field, 0)
-				email_account.save()
+			if self.get(field):
+				frappe.db.set_value("Email Account", {field: 1, "name": ("!=", self.name)}, field, 0)
 
 	@frappe.whitelist()
 	def get_domain_values(self, domain: str):
@@ -445,7 +441,7 @@ class EmailAccount(Document):
 				error_message = _("Email Account Disabled.") + " " + error_message
 				error_message += "<br>" + _("Message from server: {0}").format(cstr(e))
 				self.handle_incoming_connect_error(description=error_message)
-				return None
+				raise
 
 			elif not is_background_receive and any(t in message for t in auth_error_codes):
 				SMTPServer.throw_invalid_credentials_exception()
@@ -459,7 +455,6 @@ class EmailAccount(Document):
 				self.db_set("no_failed", self.no_failed + 1)
 				if self.no_failed > 2:
 					self.handle_incoming_connect_error(description=description)
-				return
 
 			raise
 
@@ -572,6 +567,7 @@ class EmailAccount(Document):
 			"smtp_server": {"conf_names": ("mail_server",)},
 			"smtp_port": {"conf_names": ("mail_port",)},
 			"use_tls": {"conf_names": ("use_tls", "mail_login")},
+			"use_ssl_for_outgoing": {"conf_names": ("use_ssl",)},
 			"login_id": {"conf_names": ("mail_login",)},
 			"email_id": {
 				"conf_names": ("auto_email_id", "mail_login"),
@@ -613,11 +609,11 @@ class EmailAccount(Document):
 			"server": self.smtp_server,
 			"port": cint(self.smtp_port),
 			"login": getattr(self, "login_id", None) or self.email_id,
-			"password": self._password,
+			"password": None if self.no_smtp_authentication else self._password,
 			"use_ssl": cint(self.use_ssl_for_outgoing),
 			"use_tls": cint(self.use_tls),
-			"use_oauth": self.auth_method == "OAuth",
-			"access_token": self.get_access_token(),
+			"use_oauth": self.auth_method == "OAuth" and not self.no_smtp_authentication,
+			"access_token": None if self.no_smtp_authentication else self.get_access_token(),
 		}
 
 		if self.flags.validate_smtp_connection:
@@ -753,16 +749,20 @@ class EmailAccount(Document):
 				seen_status = messages.get("seen_status", {}).get(uid)
 				if self.email_sync_option != "UNSEEN" or seen_status != "SEEN":
 					# only append the emails with status != 'SEEN' if sync option is set to 'UNSEEN'
-					mails.append(
-						InboundMail(
-							message,
-							self,
-							frappe.safe_decode(uid),
-							seen_status,
-							append_to,
-							imap_folder,
+					try:
+						mails.append(
+							InboundMail(
+								message,
+								self,
+								frappe.safe_decode(uid),
+								1 if seen_status == "SEEN" else 0,
+								append_to,
+								imap_folder,
+							)
 						)
-					)
+					except Exception:
+						self.log_error(title="EmailAccount.receive")
+						self.handle_bad_emails(frappe.safe_decode(uid), message, frappe.get_traceback())
 
 		if not self.enable_incoming:
 			return []
@@ -874,6 +874,13 @@ class EmailAccount(Document):
 
 		remove_user_email_inbox(email_account=self.name)
 
+	def after_delete(self):
+		"""Frappe Cloud's mailbox connect makes one Connected App per mailbox; without the mailbox,
+		its refresh token would stay usable through Central."""
+		from frappe.integrations.frappe_providers.email_oauth import delete_relay_app
+
+		delete_relay_app(self.connected_app)
+
 	def after_rename(self, old, new, merge=False):
 		frappe.db.set_value("Email Account", new, "email_account_name", new)
 
@@ -967,7 +974,7 @@ def notify_unreplied():
 		email_account = frappe.get_doc("Email Account", email_account.name)
 
 		if email_account.use_imap:
-			append_to = [folder.get("append_to") for folder in email_account.imap_folder]
+			append_to = [folder.append_to for folder in email_account.imap_folder if folder.append_to]
 		else:
 			append_to = email_account.append_to
 

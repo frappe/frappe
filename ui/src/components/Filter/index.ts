@@ -5,12 +5,13 @@
 export { default as Filter } from "./Filter.vue";
 export { parseFilters, serializeFilters } from "./filters";
 export type { WireFilter, WireFilters } from "./filters";
-export { getFilterableFields } from "./getFilterableFields";
+export { getFilterableFields, pickFilterFields } from "./getFilterableFields";
 export { getOperators, getDefaultOperator, getDefaultValue } from "./operators";
 export type { OperatorOption } from "./operators";
 export type {
   Filter as FilterCondition,
   FilterField,
+  FilterFieldDeclaration,
   FilterOperator,
   FilterProps,
   FilterValue,

@@ -1,6 +1,6 @@
 import { MenuTree } from "./menu.js";
 import { SIDES, ALIGNS } from "./position.js";
-import { validated } from "./utils.js";
+import { validated, is_group } from "./utils.js";
 
 frappe.provide("frappe.ui");
 
@@ -14,7 +14,9 @@ frappe.provide("frappe.ui");
  * @property {number} [offset=4] Gap between trigger and menu, in px.
  * @property {string} [empty_text] Shown when no items are visible.
  * @property {function} [on_open]
- * @property {function} [on_close] Called with the reason: "activate" | "escape" | "outside" | "tab" | "owner".
+ * @property {function} [on_close] Called with the reason: "activate" | "escape" | "outside" | "tab" | "navigate" | "owner".
+ * @property {boolean} [sheet_on_mobile=false] On a phone, open the items in a frappe.ui.BottomSheet instead; `on_close` then gets the sheet's reasons.
+ * @property {function} [sheet_title] Called on every sheet open; returns the sheet's title.
  */
 
 // TODO: switch/checkbox rows (frappe-ui DropdownSwitchOption) — needs the
@@ -46,10 +48,19 @@ frappe.ui.Dropdown = class Dropdown {
 		this.offset = opts.offset == null ? 4 : opts.offset;
 		this.menu = null;
 
+		const button_opts = { ...opts.button };
+		// icon-only buttons need no fallback label
+		if (
+			!button_opts.label &&
+			!button_opts.icon &&
+			!button_opts.icon_left &&
+			!button_opts.icon_right
+		) {
+			button_opts.label = __("Options");
+		}
 		// the trigger button owns the click that opens the menu, so its own
 		// onclick would double up — drop it (the menu's action lives on the
 		// item rows, not the trigger)
-		const button_opts = { label: __("Options"), ...opts.button };
 		if (button_opts.onclick) {
 			console.warn(
 				"frappe.ui.Dropdown: button.onclick is ignored — put actions on the items"
@@ -99,11 +110,15 @@ frappe.ui.Dropdown = class Dropdown {
 	}
 
 	get is_open() {
-		return !!this.menu;
+		return !!this.menu || !!this.sheet;
 	}
 
 	open({ motion = "animated", focus = null } = {}) {
-		if (this.menu || !this.trigger_el) return;
+		if (this.is_open || !this.trigger_el) return;
+		if (this.opts.sheet_on_mobile && frappe.is_mobile()) {
+			this.open_sheet();
+			return;
+		}
 		this.menu = new MenuTree({
 			options: this.options,
 			empty_text: this.opts.empty_text,
@@ -132,8 +147,51 @@ frappe.ui.Dropdown = class Dropdown {
 		this.opts.on_open && this.opts.on_open();
 	}
 
+	async open_sheet() {
+		// holds the place while the items and the sheet's bundle load: a second tap opens
+		// nothing, and a close cancels the open
+		const pending = (this.sheet = { close: () => (this.sheet = null) });
+		try {
+			const [options] = await Promise.all([
+				typeof this.options === "function" ? this.options() : this.options,
+				frappe.require(["bottom_sheet.bundle.js", "bottom_sheet.bundle.css"]),
+			]);
+			if (this.sheet !== pending) return;
+			this.sheet = new frappe.ui.BottomSheet({
+				title: this.opts.sheet_title?.(),
+				options: this.sheet_options(options),
+				on_close: (reason) => {
+					this.sheet = null;
+					this.trigger_el.setAttribute("aria-expanded", "false");
+					this.opts.on_close && this.opts.on_close(reason);
+				},
+			});
+		} catch (error) {
+			if (this.sheet === pending) this.sheet = null;
+			throw error;
+		}
+		this.sheet.open();
+		this.trigger_el.setAttribute("aria-expanded", "true");
+		this.opts.on_open && this.opts.on_open();
+	}
+
+	// a phone has no keyboard for the shortcuts; and like the menu, the sheet closes after a
+	// click whatever the handler returns
+	sheet_options(items) {
+		return (items || []).map((item) => {
+			if (!item) return item;
+			if (is_group(item)) return { ...item, options: this.sheet_options(item.options) };
+			const submenu = Array.isArray(item.submenu)
+				? this.sheet_options(item.submenu)
+				: item.submenu;
+			const onclick = item.onclick && ((e) => void item.onclick(e));
+			return { ...item, shortcut: undefined, onclick, submenu };
+		});
+	}
+
 	close(reason = "owner") {
 		this.menu && this.menu.close(reason);
+		this.sheet?.close(reason);
 	}
 
 	toggle() {

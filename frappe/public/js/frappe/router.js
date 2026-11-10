@@ -77,6 +77,12 @@ frappe.router = {
 	// writes the shell into a URL yet, so `current_shell` is only ever set by a hand-typed one.
 	shell_routes: {},
 	current_shell: null,
+
+	// Whether the route being resolved was asked for from outside the sidebar, by setting
+	// `frappe.route_flags.jump` before `set_route`. The awesomebar does: what it opens was picked
+	// from the whole desk, not from the shell on screen, so that shell is only kept when it lists
+	// what was picked (see `sidebar.shell_for_route`).
+	is_jump: false,
 	factory_views: ["form", "list", "report", "tree", "print", "dashboard"],
 	list_views: [
 		"list",
@@ -132,13 +138,26 @@ frappe.router = {
 		for (let shell of Object.keys(frappe.boot.module_sidebars || {})) {
 			this.shell_routes[this.shell_slug(shell)] = shell;
 		}
+		// A shell is named after its module unless it was renamed, and `module_app` holds every
+		// module the installed apps ship, so a link naming a shell this user cannot see is still
+		// read as one.
+		this.module_slugs = new Set(
+			Object.keys(frappe.boot.module_app || {}).map((module) =>
+				this.shell_slug(module.replace(/_/g, " "))
+			)
+		);
 
-		// `private` is a segment the desk already spends: `/desk/private/<workspace>` names a
-		// user's own workspace. There is a `Private` module with a shell of its own, so its slug
-		// lands on the same segment, and reading that segment as a shell would turn
-		// `/desk/private/settings` from someone's private workspace into the public one of that
-		// name. The reserved word wins, and the `Private` shell is reached the way it always
-		// was.
+		// `private` is the Private shell's slug and also the word that marks one of this user's
+		// own pages, and the two meanings are told apart by position: `/desk/private/<page>` is
+		// that page in the Private shell, and `/desk/accounts/private/<page>` is the same page in
+		// the Accounts shell.
+		//
+		// So it is taken out of the table a shell prefix is read from. Left in, a leading `private`
+		// would be stripped as a shell whenever the segment after it named anything the desk can
+		// route to on its own, and `/desk/private/settings` would stop being somebody's own page
+		// called Settings and become the public workspace of that name. The private branch of
+		// `convert_to_standard_route` reads the segment instead, and the Private shell is what a
+		// route through it resolves to (`sidebar.shell_for_route`).
 		delete this.shell_routes["private"];
 	},
 
@@ -165,9 +184,15 @@ frappe.router = {
 		}
 		if (this.re_route(sub_path)) return;
 
+		// Read before the parse, which may wait on a doctype, by which time `set_route` has
+		// already cleared the flags.
+		this.is_jump = !!frappe.route_flags.jump;
+
 		this.current_sub_path = sub_path;
 		this.current_route = await this.parse();
+		this.respell_private_workspace();
 		this.write_shell_into_url();
+		this.current_sub_path = this.get_sub_path(this.path_on_screen());
 
 		this.set_history(sub_path);
 		this.render();
@@ -198,16 +223,34 @@ frappe.router = {
 				return ["Workspaces", frappe.workspaces[route[0]].name];
 
 			case "private": {
-				let private_workspace = route[1] && frappe.router.slug(`${route[1]}`);
-				if (!frappe.workspaces[private_workspace]) {
-					frappe.msgprint(
-						__("Workspace <b>{0}</b> does not exist", [
-							frappe.utils.xss_sanitise(route[1]),
-						])
-					);
-					return ["Workspaces"];
+				// `/desk/private` on its own is the Private shell with no page named. The desk
+				// opens the first page in it, or draws its empty state when there is none.
+				if (!route[1]) return ["Workspaces", "private"];
+
+				const page = this.private_workspace(route[1]);
+				if (page) return ["Workspaces", "private", page.name];
+
+				// Not one of this user's pages, so `private` is being read the other way it can
+				// be: as the Private shell's own slug, with an ordinary route inside it.
+				// `/desk/private/query-report/General Ledger` is that report, shown in the
+				// sidebar of the person looking at it, the same as `/desk/accounts/query-report/
+				// General Ledger` is that report in Accounts.
+				//
+				// The shell is adopted here rather than in `take_shell_from`, which would have to
+				// strip the segment before knowing which of the two meanings it has, and would
+				// have turned `/desk/private/settings` into the public workspace called Settings.
+				// A page of this user's wins, which is why it is asked first.
+				if (this.route_names_something(route[1])) {
+					this.current_shell = frappe.ui.PRIVATE_SHELL;
+					return await this.convert_to_standard_route(route.slice(1));
 				}
-				return ["Workspaces", "private", frappe.workspaces[private_workspace].name];
+
+				frappe.msgprint(
+					__("Workspace <b>{0}</b> does not exist", [
+						frappe.utils.xss_sanitise(route[1]),
+					])
+				);
+				return ["Workspaces", "private"];
 			}
 
 			case "doctype":
@@ -256,6 +299,55 @@ frappe.router = {
 		if (frappe.views?.[frappe.utils.to_title_case(segment) + "Factory"]) return "view";
 
 		return null;
+	},
+
+	// One of this user's own private pages, named by the segment that follows `private` in a URL.
+	//
+	// A page is spelled by its title: `/desk/private/stonks`. Only its owner can open it, so the
+	// owner's email that `Workspace.name` carries (`<title>-<user>`) named something the reader
+	// already was, and it is left out. Two of your own pages cannot share a title, since the name
+	// is built from it and names are unique, so a title identifies one page.
+	//
+	// The old spelling, the full name, still resolves: it is in bookmarks and in links the desk
+	// wrote before this. `respell_private_workspace` then corrects the address bar.
+	private_workspace(segment) {
+		const slug = this.slug(`${segment}`);
+		const own = (frappe.boot.allowed_workspaces || []).filter(
+			(page) => !page.public && page.for_user === frappe.session.user
+		);
+
+		return (
+			own.find((page) => this.slug(page.title) === slug) ||
+			own.find((page) => this.slug(page.name) === slug) ||
+			null
+		);
+	},
+
+	// Put the title in the address bar where an old URL named the page by its full name.
+	//
+	// Only the page segment is touched. The shell in front of it, if any, is somebody's statement
+	// about which sidebar they were in and is left exactly as it arrived, so this and
+	// `write_shell_into_url` cannot argue about the same segment.
+	respell_private_workspace() {
+		const route = this.current_route;
+		if (!(route?.[0] === "Workspaces" && route[1] === "private" && route[2])) return;
+
+		const page = frappe.workspaces[this.slug(route[2])];
+		if (!page) return;
+
+		const segments = this.strip_prefix(window.location.pathname).split("/");
+		const at = segments.indexOf("private") + 1;
+		if (!at || segments.length <= at) return;
+
+		const spelling = encodeURIComponent(this.slug(page.title));
+		if (segments[at] === spelling) return;
+
+		segments[at] = spelling;
+		history.replaceState(
+			history.state,
+			"",
+			"/desk/" + segments.join("/") + window.location.search + window.location.hash
+		);
 	},
 
 	doctype_route_exist(route) {
@@ -422,7 +514,7 @@ frappe.router = {
 			if (re_route_val === this.current_sub_path) {
 				window.history.back();
 			} else {
-				frappe.set_route(re_route_val);
+				frappe.set_route(frappe.re_route[sub_path]);
 			}
 
 			return true;
@@ -443,9 +535,10 @@ frappe.router = {
 		let route = Array.from(arguments);
 
 		return new Promise((resolve) => {
-			route = this.get_route_from_arguments(route);
+			let shell;
+			({ route, shell } = this.read_route_arguments(route));
 			route = this.convert_from_standard_route(route);
-			let sub_path = this.make_url(route);
+			let sub_path = this.keep_shell_moved_into(this.make_url(route), shell);
 			sub_path += frappe.route_hash || "";
 			frappe.route_hash = null;
 			if (frappe.open_in_new_tab) {
@@ -480,7 +573,28 @@ frappe.router = {
 		}).finally(() => (frappe.route_flags = {}));
 	},
 
+	// A route naming another shell than the one on screen is a move into that shell: a desktop
+	// icon opens `/desk/people-ops/employee` from a page with no shell at all. Dropped, the shell
+	// would be chosen again by `write_shell_into_url`, which knows only the shell on screen and the
+	// entity's own, so Employee would open in HR Setup. A route naming the shell on screen stays
+	// without it, which keeps a self-link a self-link.
+	//
+	// The sidebar on screen counts only off a system page: the desktop opens in no shell, and the
+	// sidebar still remembers whichever page came before it.
+	keep_shell_moved_into(path, shell) {
+		if (!shell || shell === this.current_shell) return path;
+		const on_system_page = this.page_info_for(this.current_route || [])?.system_page;
+		if (!on_system_page && shell === frappe.app?.sidebar?.current_module) return path;
+
+		return "/desk/" + this.shell_slug(shell) + path.slice("/desk".length);
+	},
+
 	get_route_from_arguments(route) {
+		return this.read_route_arguments(route).route;
+	},
+
+	// The route, and the shell it named in front, if any, which is taken off.
+	read_route_arguments(route) {
 		if (route.length === 1 && $.isArray(route[0])) {
 			// called as frappe.set_route(['a', 'b', 'c']);
 			route = route[0];
@@ -520,8 +634,12 @@ frappe.router = {
 		// Left in, `push_state` compares a path with a shell against `path_on_screen()`, which
 		// has none, reads every self-link as a move, and re-renders the page under it -- throwing
 		// away whatever the render was holding. The form sidebar lost its "Show All" this way.
+		//
+		// It is handed back, though, for `set_route` to keep when it names another shell than the
+		// one on screen (see `keep_shell_moved_into`).
+		let shell = null;
 		if (this.begins_with_shell(route)) {
-			route.shift();
+			shell = this.shell_routes[route.shift()];
 		}
 
 		// Handle cases where "/" is part of the name
@@ -529,7 +647,7 @@ frappe.router = {
 			route = [route[0], route[1], route.slice(2).join("/")];
 		}
 
-		return route;
+		return { route, shell };
 	},
 
 	convert_from_standard_route(route) {
@@ -623,7 +741,23 @@ frappe.router = {
 
 			// now process the route
 			this.route();
+		} else if (frappe.route_flags.jump) {
+			this.choose_shell_again(path + query_params);
 		}
+	},
+
+	// A jump to the route already on screen. There is nothing to render, but the shell was chosen
+	// by whatever brought the user here, and a jump chooses it afresh: ToDo opened from Users and
+	// then picked in the awesomebar belongs in Build.
+	//
+	// The shell is taken out of the URL first, the same as a jump from anywhere else arrives
+	// without one, so the shell that was there cannot answer for itself.
+	choose_shell_again(url) {
+		history.replaceState(history.state, "", url + window.location.hash);
+		this.current_shell = null;
+		this.is_jump = true;
+		this.write_shell_into_url();
+		this.trigger("change", this);
 	},
 
 	// The path on screen, spelled the way `make_url` would have spelled it: without the shell.
@@ -751,7 +885,10 @@ frappe.router = {
 			return route;
 		}
 
-		this.current_shell = this.shell_routes[route[0]];
+		this.current_shell = this.shell_routes[route[0]] || null;
+		// A shell this user cannot see leaves the URL, and `write_shell_into_url` writes in one
+		// they can.
+		if (!this.current_shell) this.drop_shell_from_url();
 		return route.slice(1);
 	},
 
@@ -759,7 +896,8 @@ frappe.router = {
 	// `take_shell_from` describes. Asked separately by `get_route_from_arguments`, which has to
 	// drop a shell without adopting it.
 	begins_with_shell(route) {
-		if (route.length <= 1 || !this.shell_routes?.[route[0]]) return false;
+		if (route.length <= 1) return false;
+		if (!this.shell_routes?.[route[0]] && !this.module_slugs?.has(route[0])) return false;
 		if (this.segment_kind(route[0]) === "doctype") return false;
 		return this.route_names_something(route[1]);
 	},
@@ -792,6 +930,13 @@ frappe.router = {
 	write_shell_into_url() {
 		if (!this.current_route?.length) return;
 
+		// A system page opens in no shell, so one typed in front of it leaves the address bar.
+		// Asked before the sidebar is, which a cold load does not have yet.
+		if (this.page_info_for(this.current_route)?.system_page) {
+			if (this.current_shell) this.drop_shell_from_url();
+			return;
+		}
+
 		const shell = this.shell_for_route(this.current_route);
 		if (!shell || shell === this.current_shell) return;
 
@@ -806,9 +951,10 @@ frappe.router = {
 		// and hrms -- and the ones that are not, such as `Invoicing` under Accounts, are exactly
 		// the ones where the shell is worth saying.
 		//
-		// It falls out of the same rule for the reserved segment: `/desk/private/<workspace>`
-		// under the `Private` shell already begins with `private`, so it is left alone too,
-		// while a private workspace belonging to some other module still gets that module.
+		// The Private shell falls out of the same rule: its slug is `private` and a route to one
+		// of your own pages already begins with that word, so `/desk/private/stonks` is left
+		// alone. The same page reached from a module's sidebar has that module's slug in front of
+		// it, `/desk/accounts/private/stonks`, which is the shell being worth saying.
 		//
 		// "Left alone" means no segment is added, not that the URL is kept. A stale shell has
 		// already been dropped from `rest` above, and it still has to leave the address bar:
@@ -833,6 +979,24 @@ frappe.router = {
 			history.state,
 			"",
 			path + window.location.search + window.location.hash
+		);
+	},
+
+	// The Page a route opens, as the boot describes it, or null when it opens something else.
+	// `system_page` and `shared_page` on it are what the shell rules read.
+	page_info_for(route) {
+		return (route?.[0] && frappe.boot.page_info?.[route[0]]) || null;
+	},
+
+	// `current_shell` is cleared with the segment, since `path_on_screen` strips one whenever it
+	// is set.
+	drop_shell_from_url() {
+		const rest = this.strip_prefix(window.location.pathname).split("/").slice(1).join("/");
+		this.current_shell = null;
+		history.replaceState(
+			history.state,
+			"",
+			"/desk/" + rest + window.location.search + window.location.hash
 		);
 	},
 

@@ -72,6 +72,14 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		this.bind_change_event();
 	}
 
+	bind_change_event() {
+		// Firefox fires change when the window loses focus
+		this.$input.on("change", (e) => {
+			if (e.originalEvent && !document.hasFocus()) e.stopImmediatePropagation();
+		});
+		super.bind_change_event();
+	}
+
 	show_link_and_clear_buttons() {
 		if (this.$input.val() && this.get_options()) {
 			const doctype = this.get_options();
@@ -283,6 +291,13 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		this.$input.on("input", this._debounced_input_handler);
 
 		this.$input.on("blur", function () {
+			if (document.activeElement === me.input) {
+				if (me.autocomplete_open && me.$input.val()) {
+					me.$input.one("focus", () => me.on_input());
+				}
+				return;
+			}
+
 			if (me.selected) {
 				me.selected = false;
 				return;
@@ -389,9 +404,12 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 	 * @returns {boolean} - True if input matches the label, value, or description.
 	 */
 	input_matches_item(input, item) {
-		const item_label = (this.get_translated(item.label || item.value) || "").toLowerCase();
-		const item_description = (item.description || "").toLowerCase();
-		return input && (item_label.includes(input) || item_description.includes(input));
+		return (
+			input &&
+			[this.get_translated(item.label ?? item.value), item.value, item.description].some(
+				(value) => cstr(value).toLowerCase().includes(input)
+			)
+		);
 	}
 
 	/**
@@ -475,7 +493,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			cache: use_get,
 			args: args,
 			callback: async (r) => {
-				if (!window.Cypress && !this.$input.is(":focus")) {
+				if (!navigator.webdriver && !this.$input.is(":focus")) {
 					return;
 				}
 				r.message = this.merge_duplicates(r.message);
@@ -813,7 +831,8 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 				var q = get_query(
 					(this.frm && this.frm.doc) || this.doc,
 					this.doctype,
-					this.docname
+					this.docname,
+					this.frm
 				);
 
 				if (typeof q === "string") {

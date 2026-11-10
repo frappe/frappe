@@ -5,8 +5,7 @@ from typing import Protocol, runtime_checkable
 
 import frappe
 from frappe import _
-from frappe.model.base_document import get_controller
-from frappe.model.document import Document
+from frappe.model.document import Document, get_controller
 from frappe.query_builder import Table
 from frappe.utils import add_days, cint, now_datetime
 from frappe.utils.caching import site_cache
@@ -147,7 +146,7 @@ def get_log_doctypes(doctype: str, txt: str, searchfield: str, start: int, page_
 
 	supported_doctypes = [(d,) for d in doctypes if _supports_log_clearing(d)]
 
-	return supported_doctypes[start:page_len]
+	return supported_doctypes[start : start + page_len]
 
 
 def clear_log_table(doctype, days=90):
@@ -158,9 +157,17 @@ def clear_log_table(doctype, days=90):
 	ref: https://mariadb.com/kb/en/big-deletes/#deleting-more-than-half-a-table
 	"""
 	from frappe.utils import get_table_name
+	from frappe.utils.logging import is_log_doctype
 
 	if doctype not in frappe.get_hooks("default_log_clearing_doctypes", {}):
 		raise frappe.ValidationError(f"Unsupported logging DocType: {doctype}")
+
+	if is_log_doctype(doctype):
+		# The copy-and-rename dance below exists to avoid a huge DELETE on MariaDB. A log
+		# DocType has no table in the primary database to rename, and its rows live in
+		# SQLite, where a bounded DELETE is cheap. Let the controller do its own cleanup.
+		get_controller(doctype).clear_old_logs(days=cint(days))
+		return
 
 	original = get_table_name(doctype)
 	temporary = f"{original} temp_table"

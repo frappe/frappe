@@ -42,6 +42,9 @@
 						/>{{ __("Private") }}</label
 					>
 				</div>
+				<div v-if="show_private_checkbox && private_hint" class="private-hint">
+					{{ private_hint }}
+				</div>
 			</div>
 			<div class="file-actions">
 				<ProgressRing
@@ -73,8 +76,12 @@
 			</div>
 		</div>
 		<div style="width: 100%">
-			<div v-if="file.error_message" class="alert alert-danger mb-0 mt-2" role="alert">
-				{{ file.error_message }}
+			<div
+				v-if="file.error_message"
+				class="alert alert-danger mb-0 mt-2 whitespace-pre-wrap"
+				role="alert"
+			>
+				{{ frappe.utils.html2text(file.error_message) }}
 			</div>
 			<div
 				v-if="!file.private && !file.error_message && !uploaded && !file.failed"
@@ -107,6 +114,9 @@ const props = defineProps({
 	show_private_checkbox: {
 		default: true,
 	},
+	private_hint: {
+		default: null,
+	},
 	allow_toggle_optimize: {
 		default: true,
 	},
@@ -129,12 +139,14 @@ let uploaded = computed(() => {
 let is_image = computed(() => {
 	return props.file.file_obj.type.startsWith("image");
 });
+let is_pdf = computed(() => {
+	return props.file.file_obj.type == "application/pdf";
+});
 let allow_toggle_optimize = computed(() => {
 	let is_svg = props.file.file_obj.type == "image/svg+xml";
 	return (
 		props.allow_toggle_optimize &&
-		is_image.value &&
-		!is_svg &&
+		((is_image.value && !is_svg) || is_pdf.value) &&
 		!uploaded.value &&
 		!props.file.failed
 	);
@@ -277,5 +289,11 @@ onMounted(() => {
 
 .config-area {
 	gap: 0.5rem;
+}
+
+.private-hint {
+	font-size: var(--text-sm);
+	color: var(--text-light);
+	padding-top: 0.25rem;
 }
 </style>

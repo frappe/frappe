@@ -27,15 +27,18 @@ frappe.ui.Slide = class Slide {
 		}
 
 		this.$body = $(`<div class="slide-body">
-			<div class="content text-center">
-				<h1 class="title slide-title">${__(title)}</h1>
+			<div class="content">
+				<h1 class="title slide-title m-0 text-3xl-semibold text-ink-gray-9">${__(title)}</h1>
 			</div>
-			<div class="form-wrapper">
+			<div class="form-wrapper mt-6">
 				<div class="form"></div>
-				<div class="add-more text-center" style="margin-top: 5px;">
-					<button class="form-more-btn hide btn btn-default btn-xs">
-						<span>Add More</span>
-					</button>
+				<div class="add-more mb-4">
+					${frappe.ui.button.html({
+						label: __("Add More"),
+						icon: "plus",
+						variant: "ghost",
+						css_class: "form-more-btn hide",
+					})}
 				</div>
 			</div>
 		</div>`).appendTo(this.$wrapper);
@@ -46,8 +49,11 @@ frappe.ui.Slide = class Slide {
 		this.$form_wrapper = this.$body.find(".form-wrapper");
 
 		if (this.image_src)
-			this.$content.append($(`<img src="${this.image_src}" style="margin: 20px;">`));
-		if (this.help) this.$content.append($(`<p class="slide-help">${__(this.help)}</p>`));
+			this.$content.append($(`<img class="img-fluid mt-4" src="${this.image_src}">`));
+		if (this.help)
+			this.$content.append(
+				$(`<p class="slide-help mt-2 mb-0 text-p-sm text-ink-gray-5">${__(this.help)}</p>`)
+			);
 
 		this.reqd_fields = [];
 
@@ -57,10 +63,14 @@ frappe.ui.Slide = class Slide {
 
 	attach_toggle_theme_btn() {
 		const toggle_icon = frappe.ui.get_current_theme() == "dark" ? "sun" : "moon";
-		this.$toggle_theme_btn =
-			$(`<button class="toggle-theme-btn btn btn-default btn-secondary btn-sm" data-label="Toggle Theme">
-				${frappe.utils.icon(toggle_icon, "sm")}
-			</button>`).appendTo(this.$wrapper);
+		this.$toggle_theme_btn = frappe.ui
+			.button({
+				icon: toggle_icon,
+				variant: "ghost",
+				tooltip: __("Toggle Theme"),
+				css_class: "toggle-theme-btn",
+			})
+			.appendTo(this.$wrapper);
 
 		this.$toggle_theme_btn.on("click", () => {
 			new frappe.ui.ThemeSwitcher().show();
@@ -273,13 +283,13 @@ frappe.ui.Slides = class Slides {
 	}
 
 	make() {
-		this.$slide_progress = $(`<div>`)
-			.addClass(`slides-progress text-center text-extra-muted`)
-			.appendTo(this.parent);
 		this.container = $("<div>")
-			.addClass("slides-wrapper")
+			.addClass("slides-wrapper w-full max-w-lg ms-auto me-auto")
 			.attr({ tabindex: -1 })
 			.appendTo(this.parent);
+		this.$slide_progress = $(`<div>`)
+			.addClass("slides-progress mb-6")
+			.appendTo(this.container);
 		this.$body = $(`<div>`).addClass(`slide-container`).appendTo(this.container);
 		this.$footer = $(`<div>`).addClass(`slide-footer`).appendTo(this.container);
 
@@ -326,30 +336,21 @@ frappe.ui.Slides = class Slides {
 	}
 
 	render_progress_dots() {
-		// Depends on this.unidirectional and this.done_state
 		// Can be called by a slide to update states
 		this.$slide_progress.empty();
 
-		if (this.slides.length <= 1) return;
-
-		this.slides.map((slide, id) => {
-			let $dot = $(`<div class="slide-step">
-				<div class="slide-step-indicator"></div>
-				<div class="slide-step-complete">${frappe.utils.icon("check", "xs")}</div>
-			</div>`).attr({ "data-step-id": id });
-
-			if (
-				this.done_state &&
-				((this.slide_dict[id] && this.slide_dict[id].done) || slide.done)
-			) {
-				$dot.addClass("step-success");
-			}
-			if (this.unidirectional && id === this.current_id) {
-				$dot.addClass("active");
-			}
-			// Add pointer event for non-unidirectional
-			this.$slide_progress.append($dot);
-		});
+		const total = this.slides.length;
+		if (total > 1) {
+			const step = cint(this.current_id) + 1;
+			this.$slide_progress.append(
+				frappe.ui.progress({
+					value: (step / total) * 100,
+					intervals: true,
+					interval_count: total,
+					label: __("Step {0} of {1}", [step, total]),
+				})
+			);
+		}
 
 		this.completed = 0;
 		this.slides.map((slide, i) => {
@@ -360,33 +361,32 @@ frappe.ui.Slides = class Slides {
 			}
 		});
 		if (this.on_update) this.on_update(this.completed, this.slides.length);
-
-		if (!this.unidirectional) this.bind_progress_dots();
 	}
 
 	make_prev_next_complete_buttons() {
 		this.$footer.empty();
 
-		$(`<div class="row">
-			<div class="col-sm-4 text-left prev-div">
-				<button class="prev-btn btn btn-secondary btn-sm" tabindex="0">${__(
-					"Previous",
-					null,
-					"Go to previous slide"
-				)}</button>
-			</div>
-			<div class="col-sm-8 text-right next-div">
-				<button class="complete-btn btn btn-sm primary">${__(
-					"Complete Setup",
-					null,
-					"Finish the setup wizard"
-				)}</button>
-				<button class="next-btn btn btn-default btn-sm" tabindex="0">${__(
-					"Next",
-					null,
-					"Go to next slide"
-				)}</button>
-			</div>
+		$(`<div class="flex gap-2 mt-4">
+			${frappe.ui.button.html({
+				label: __("Back", null, "Go to previous slide"),
+				icon_left: "arrow-left",
+				size: "md",
+				css_class: "prev-btn",
+			})}
+			${frappe.ui.button.html({
+				label: __("Complete Setup", null, "Finish the setup wizard"),
+				icon_right: "check",
+				variant: "solid",
+				size: "md",
+				css_class: "complete-btn primary ms-auto",
+			})}
+			${frappe.ui.button.html({
+				label: __("Continue", null, "Go to next slide"),
+				icon_right: "arrow-right",
+				variant: "solid",
+				size: "md",
+				css_class: "next-btn ms-auto",
+			})}
 		</div>`).appendTo(this.$footer);
 
 		this.$prev_btn = this.$footer
@@ -411,17 +411,6 @@ frappe.ui.Slides = class Slides {
 			});
 
 		this.$complete_btn = this.$footer.find(".complete-btn").attr("tabIndex", 0);
-	}
-
-	bind_progress_dots() {
-		var me = this;
-		this.$slide_progress
-			.find(".fa-circle")
-			.addClass("link")
-			.on("click", function () {
-				let id = $(this).attr("data-step-id");
-				me.show_slide(id);
-			});
 	}
 
 	before_show_slide() {

@@ -207,6 +207,7 @@ frappe.ui.SettingsDialog = class SettingsDialog extends frappe.ui.Dialog {
 		this.$panels = this.$layout.find(".settings-dialog-panels");
 
 		this.render_sidebar();
+		this.$wrapper.on("shown.bs.modal", () => this.scroll_to_active_tab());
 
 		const default_tab = this.default_tab || this.first_tab_id();
 		if (default_tab) this.activate(default_tab);
@@ -283,6 +284,7 @@ frappe.ui.SettingsDialog = class SettingsDialog extends frappe.ui.Dialog {
 		this.$sidebar.find(".settings-dialog-tab-item").each((i, el) => {
 			$(el).toggleClass("active", $(el).data("tab-id") === id);
 		});
+		this.scroll_to_active_tab();
 
 		// Lazy: build the panel controller on first activation, then just toggle so
 		// each panel keeps its own state across tab switches.
@@ -297,6 +299,13 @@ frappe.ui.SettingsDialog = class SettingsDialog extends frappe.ui.Dialog {
 		this._panels[id].$el.removeClass("hide");
 
 		item.on_activate && item.on_activate(this._panels[id]);
+	}
+
+	scroll_to_active_tab() {
+		this.$sidebar
+			.find(".settings-dialog-tab-item.active")
+			.get(0)
+			?.scrollIntoView({ block: "nearest", inline: "nearest" });
 	}
 
 	get_panel(id) {

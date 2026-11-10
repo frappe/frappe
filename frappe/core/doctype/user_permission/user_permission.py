@@ -133,9 +133,12 @@ def get_user_permissions(user: str | None = None):
 			fields=["allow", "for_value", "applicable_for", "is_default", "hide_descendants"],
 			filters=dict(user=user),
 		):
-			meta = frappe.get_meta(perm.allow)
 			add_doc_to_perm(perm, perm.for_value, perm.is_default, perm.hide_descendants)
 
+			if not frappe.db.exists("DocType", perm.allow, cache=True):
+				continue
+
+			meta = frappe.get_meta(perm.allow)
 			if meta.is_nested_set() and not perm.hide_descendants:
 				decendants = frappe.db.get_descendants(perm.allow, perm.for_value)
 				for doc in decendants:
@@ -149,6 +152,25 @@ def get_user_permissions(user: str | None = None):
 			pass
 
 	return out
+
+
+def clear_descendant_user_permissions(doctype: str) -> None:
+	"""Clear the cached permissions that list descendants of `doctype` records, before and after commit."""
+	users = frappe.get_all(
+		"User Permission",
+		filters={"allow": doctype, "hide_descendants": 0},
+		pluck="user",
+		distinct=True,
+	)
+	if not users:
+		return
+
+	def clear():
+		frappe.cache.hdel("user_permissions", users)
+
+	clear()
+	frappe.db.after_commit.add(clear)
+	frappe.db.after_rollback.add(clear)
 
 
 def user_permission_exists(user, allow, for_value, applicable_for=None):
@@ -173,18 +195,18 @@ def get_applicable_for_doctype_list(
 	linked_doctypes = []
 	for linked_doctype, linked_doctype_values in linked_doctypes_map.items():
 		linked_doctypes.append(linked_doctype)
-		child_doctype = linked_doctype_values.get("child_doctype")
-		if child_doctype:
-			linked_doctypes.append(child_doctype)
+		for child_link in linked_doctype_values.get("child_links") or [linked_doctype_values]:
+			if child_doctype := child_link.get("child_doctype"):
+				linked_doctypes.append(child_doctype)
 
 	linked_doctypes += [actual_doctype]
 
 	if txt:
 		linked_doctypes = [d for d in linked_doctypes if txt.lower() in d.lower()]
 
-	linked_doctypes.sort()
+	linked_doctypes = sorted(set(linked_doctypes))
 
-	return [[doctype] for doctype in linked_doctypes[start:page_len]]
+	return [[doctype] for doctype in linked_doctypes[start : start + page_len]]
 
 
 def get_permitted_documents(doctype):

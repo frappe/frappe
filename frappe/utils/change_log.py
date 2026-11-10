@@ -25,7 +25,7 @@ def get_change_log(user=None):
 	last_known_versions = frappe._dict(
 		json.loads(frappe.db.get_value("User", user, "last_known_versions") or "{}")
 	)
-	current_versions = get_versions()
+	current_versions = get_app_versions()
 
 	if not last_known_versions:
 		update_last_known_versions()
@@ -96,13 +96,18 @@ def update_last_known_versions():
 			"User",
 			frappe.session.user,
 			"last_known_versions",
-			json.dumps(get_versions()),
+			json.dumps(get_app_versions()),
 			update_modified=False,
 		)
 
 
 @frappe.whitelist()
 def get_versions(include_disabled: bool = False):
+	frappe.permissions.validate_desk_user()
+	return get_app_versions(include_disabled)
+
+
+def get_app_versions(include_disabled: bool = False):
 	"""Get versions of apps active on this site.
 
 	:param include_disabled: Also return apps that are installed but disabled.
@@ -192,7 +197,7 @@ def check_for_update():
 		return
 
 	updates = frappe._dict(major=[], minor=[], patch=[])
-	apps = get_versions()
+	apps = get_app_versions()
 
 	for app in apps:
 		remote_url = get_source_url(app)
@@ -250,9 +255,18 @@ def parse_latest_non_beta_release(response: list, current_version: Version) -> l
 
 	Return a json object pertaining to the latest non-beta release
 	"""
-	version_list = [
-		release.get("tag_name").strip("v") for release in response if not release.get("prerelease")
-	]
+	version_list = []
+	for release in response:
+		tag = release.get("tag_name")
+		if release.get("prerelease") or not isinstance(tag, str):
+			continue
+
+		version = tag.removeprefix("v")
+		try:
+			Version(version)
+		except ValueError:
+			continue
+		version_list.append(version)
 
 	def prioritize_minor_update(v: str) -> Version:
 		target = Version(v)

@@ -52,8 +52,9 @@ frappe.ui.form.on("Customize Form", {
 		});
 	},
 
-	doc_type: function (frm) {
+	doc_type: async function (frm) {
 		if (frm.doc.doc_type) {
+			await frappe.model.with_doctype(frm.doc.doc_type);
 			return frm.call({
 				method: "fetch_to_customize",
 				doc: frm.doc,
@@ -534,4 +535,4 @@ function render_form_builder(frm) {
 	}
 }
 
-extend_cscript(cur_frm.cscript, new frappe.model.DocTypeController({ frm: cur_frm }));
+frappe.ui.form.set_controller("Customize Form", frappe.model.DocTypeController);

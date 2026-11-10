@@ -1,6 +1,7 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import datetime
 import re
 import string
 from collections.abc import KeysView, ValuesView
@@ -9,7 +10,7 @@ from functools import cached_property, wraps
 import frappe
 from frappe.query_builder.builder import MariaDB, Postgres, SQLite
 from frappe.query_builder.functions import Function
-from frappe.utils import CallbackManager
+from frappe.utils import CallbackManager, get_datetime
 
 Query = str | MariaDB | Postgres | SQLite
 QueryValues = tuple | list | dict | None
@@ -75,6 +76,16 @@ def convert_to_value(o: FilterValue):
 	elif isinstance(o, (KeysView, ValuesView)):
 		return tuple(convert_to_value(item) for item in o)
 	return o
+
+
+def convert_datetime(value: str) -> datetime.datetime | None:
+	"""Convert a DATETIME value read from MariaDB. Same result as `get_datetime`, but faster."""
+	if value.startswith(("0001-01-01", "0000-00-00")):
+		return None
+	try:
+		return datetime.datetime.fromisoformat(value)
+	except ValueError:
+		return get_datetime(value)
 
 
 def is_non_text_field(doctype: str, fieldname: str, df=None) -> bool:
@@ -191,12 +202,16 @@ class LazyDecode(LazyString):
 class LazyMogrify(LazyString):
 	__slots__ = ()
 
-	def __init__(self, query, values) -> None:
+	def __init__(self, query, values, db=None) -> None:
 		self.query = query
 		self.values = values
+		# The connection that produced the query. Without it this falls back to `frappe.db`,
+		# which is only correct while the query came from the primary database -- a replica or
+		# the log database would otherwise be mogrified by the wrong driver.
+		self.db = db
 
 	def _setup(self) -> str:
-		return frappe.db.mogrify(self.query, self.values)
+		return (self.db or frappe.db).mogrify(self.query, self.values)
 
 
 def dangerously_reconnect_on_connection_abort(func):

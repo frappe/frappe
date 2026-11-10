@@ -6,7 +6,8 @@ import unittest
 from contextlib import contextmanager
 
 import frappe
-from frappe.desk.query_report import generate_report_result, get_report_doc
+from frappe.core.doctype.prepared_report.prepared_report import delete_prepared_reports
+from frappe.desk.query_report import generate_report_result, get_prepared_report_result, get_report_doc
 from frappe.tests import IntegrationTestCase, timeout
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
 
@@ -64,6 +65,25 @@ class TestPreparedReport(IntegrationTestCase):
 		self.assertEqual(len(prepared_data["result"]), len(generated_data["result"]))
 		self.assertEqual(len(prepared_data), len(generated_data))
 
+	def test_failed_report_is_surfaced(self):
+		with test_report(report_type="Query Report", query="select * from `tabNoSuchTable`") as report:
+			doc = self.create_prepared_report(report.name)
+			self.wait_for_status(doc, "Error")
+			self.assertTrue(doc.error_message)
+
+			result = get_prepared_report_result(get_report_doc(report.name), {}, dn=doc.name)
+			self.assertEqual("Error", result["doc"].status)
+			# the reader gets the message, the traceback stays on the document
+			self.assertIn("tabNoSuchTable", result["error"])
+			self.assertNotIn("Traceback", result["error"])
+			self.assertIsNone(result["doc"].error_message)
+
+	def test_deleting_unreadable_report_raises(self):
+		doc = self.create_prepared_report(commit=False)
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test1@example.com")
+		self.assertRaises(frappe.PermissionError, delete_prepared_reports, [{"name": doc.name}])
+
 	@unittest.skipIf(
 		frappe.conf.db_type == "sqlite",
 		"This test needs a database sleep function, which SQLite does not provide.",
@@ -81,6 +101,32 @@ class TestPreparedReport(IntegrationTestCase):
 			doc.delete()
 			time.sleep(1)
 			job = frappe.get_doc("RQ Job", job_id)
+			self.assertEqual(job.status, "stopped")
+
+	@unittest.skipIf(
+		frappe.conf.db_type == "sqlite",
+		"This test needs a database sleep function, which SQLite does not provide.",
+	)
+	def test_cancel_from_background_task_sidepanel(self):
+		from frappe.core.doctype.background_task.background_task import stop_task
+
+		if frappe.db.db_type == "postgres":
+			query = "select pg_sleep(5)"
+		elif frappe.db.db_type == "mariadb":
+			query = "select sleep(5)"
+		with test_report(report_type="Query Report", query=query) as report:
+			doc = self.create_prepared_report(report.name)
+			self.wait_for_status(doc, "Started")
+			bg_task = frappe.get_all(
+				"Background Task", {"ref_doctype": "Prepared Report", "ref_docname": doc.name}, pluck="name"
+			)
+			self.assertEqual(len(bg_task), 1)
+
+			stop_task(bg_task[0])
+
+			self.wait_for_status(doc, "Cancelled")
+			time.sleep(1)
+			job = frappe.get_doc("RQ Job", doc.job_id)
 			self.assertEqual(job.status, "stopped")
 
 

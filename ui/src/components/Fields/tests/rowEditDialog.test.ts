@@ -12,6 +12,7 @@ vi.mock("frappe-ui", async (importOriginal) => {
   const real = (await importOriginal()) as Record<string, unknown>;
   return {
     ...real,
+    ...(await import("../../Grid/tests/menuStubs")),
     Dialog: defineComponent({
       props: { open: { type: Boolean, default: false } },
       emits: ["update:open"],
@@ -41,18 +42,19 @@ vi.mock("../../FormLayout/useFieldTypes", () => ({
 
 import TableField from "../TableField.vue";
 import { ResolveFieldKey } from "../../FormLayout/types";
-import { CommitKey } from "../types";
+import { CommitKey, FieldErrorsKey, fieldErrorKey } from "../types";
 import { ROW_ID } from "../rowIdentity";
-import type { CommitChannel, RowAddress } from "../types";
+import type { CommitChannel, FieldError, RowAddress } from "../types";
 
 // Stands in for every fieldtype, in the cell and in the dialog alike.
 const StubField = defineComponent({
-  props: { field: { type: Object, required: true }, modelValue: null },
+  props: { field: { type: Object, required: true }, modelValue: null, error: null },
   emits: ["update:modelValue", "change"],
   setup(props, { emit }) {
     return () =>
       h("input", {
         "data-fieldname": props.field.fieldname,
+        "data-error": props.error,
         value: props.modelValue ?? "",
         onInput: (event: any) => emit("update:modelValue", event.target.value),
         onChange: (event: any) => emit("change", event.target.value),
@@ -77,7 +79,8 @@ const childFields = [
 
 function render(
   initial: Record<string, any>[],
-  onCommit?: (fieldname: string, value: any) => void
+  onCommit?: (fieldname: string, value: any) => void,
+  errors?: Record<string, FieldError>
 ) {
   const rows = ref(initial);
   const emitted: { name: string; value: any }[] = [];
@@ -103,14 +106,15 @@ function render(
   });
   app.provide(ResolveFieldKey, () => StubField);
   app.provide(CommitKey, channel);
+  if (errors) app.provide(FieldErrorsKey, ref(errors));
   app.mount(host);
   return { rows, emitted, committed };
 }
 
-/** The per-row edit button lives in the frozen right-hand column. */
+/** Edit sits in each row's menu, in the frozen right-hand column. */
 function openRow(index: number) {
-  const buttons = host!.querySelectorAll<HTMLElement>(".sticky.right-0 button");
-  buttons[index].dispatchEvent(new Event("click"));
+  const items = host!.querySelectorAll<HTMLElement>('.sticky.right-0 [data-menu-item="Edit"]');
+  items[index].dispatchEvent(new Event("click"));
   // The dialog's FormLayout is an async component (module-cycle break), so the
   // dynamic import has to settle before its fields are in the DOM.
   return flush();
@@ -293,4 +297,23 @@ describe("row-edit dialog", () => {
     await nextTick();
     expect(dialog()).toBeNull();
   });
+
+  it("passes each of its row's errors to its control, and no other's", async () => {
+    const errors = {
+      qty: "The parent's own qty",
+      [fieldErrorKey({ parentfield: "products", key: "name:r2", fieldname: "qty" })]: "Too many",
+    };
+    render([{ name: "r1", qty: "1" }, { name: "r2", qty: "2" }], undefined, errors);
+
+    await openRow(1);
+    expect(errorIn("qty")).toBe("Too many");
+    expect(errorIn("notes")).toBeNull();
+
+    await openRow(0);
+    expect(errorIn("qty")).toBeNull();
+  });
 });
+
+function errorIn(fieldname: string): string | null {
+  return dialog()!.querySelector(`input[data-fieldname="${fieldname}"]`)!.getAttribute("data-error");
+}

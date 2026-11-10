@@ -36,3 +36,7 @@ export const is_merge_image = (df) => MERGE_IMAGE_FIELDTYPES.has(df?.fieldtype);
 export const is_merge_html = (df) => MERGE_HTML_FIELDTYPES.has(df?.fieldtype);
 export const has_align = (df) => !UNALIGNED_FIELDTYPES.has(df?.fieldtype);
 export const always_has_content = (df) => CONTENT_FIELDTYPES.has(df?.fieldtype);
+export const is_printable_docfield = (df) =>
+	!frappe.model.no_value_type.includes(df?.fieldtype) ||
+	df?.fieldtype === "Table" ||
+	df?.fieldtype === "Table MultiSelect";

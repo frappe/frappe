@@ -157,7 +157,7 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 		<img src="{{ doc[df.fieldname]|e }}" class="signature-img img-responsive"
 			{%- if df.print_width %} style="width: {{ get_width(df) }};"{% endif %}>
 	{% elif df.fieldtype=="Barcode" and not doc[df.fieldname].startswith("<svg") %}
-		<svg data-barcode-value="{{ doc[df.fieldname]|e }}" height="80" data-options='{{ df.options|e }}'></svg>
+		<svg data-barcode-value="{{ doc[df.fieldname]|e }}" data-options='{{ df.options|e }}'></svg>
 	{% elif df.fieldtype in ("Attach", "Attach Image") and frappe.utils.is_image(doc[df.fieldname]) %}
 		<img src="{{ doc[df.fieldname]|e }}" class="img-responsive"
 			{%- if df.print_width %} style="width: {{ get_width(df) }};"{% endif %}>
@@ -165,7 +165,7 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 		{{ frappe.render_template(df.options, {"doc":doc}) }}
 	{% elif df.fieldtype=="Currency" %}
 		{{ doc.get_formatted(df.fieldname, parent_doc or doc, translated=df.translatable) }}
-	{% elif df.fieldtype=="Data" %}
+	{% elif df.fieldtype in ("Data", "Code", "JSON") %}
 		{%- set parent = parent_doc or doc -%}
 		{{ doc.get_formatted(df.fieldname, parent, translated=df.translatable, absolute_value=parent.absolute_value) |e }}
 	{% else %}
