@@ -344,6 +344,46 @@ test.describe("List View — Column Widths on a saved layout", () => {
 
 		await expect.poll(() => get_column_width(page, "priority").then(within(200))).toBe(true);
 	});
+
+	test("Add / Remove Fields keeps the widths of the columns already on the layout", async ({
+		page,
+		api,
+	}) => {
+		await drag_resize_column(page, "date", 150);
+		const dragged_date_width = await get_column_width(page, "date");
+
+		const width_box = (fieldname) =>
+			page.locator(
+				`.modal-dialog:visible .layout-column-width[data-fieldname="${fieldname}"]`
+			);
+		await open_edit_layout(page);
+		await width_box("status").fill("");
+		await page.locator(".modal-dialog:visible .add-new-fields").click();
+		const picker = page.locator(".modal-dialog:visible", { hasText: "Select Fields" });
+		await picker.locator('input[type="checkbox"][data-unit="allocated_to"]').check();
+		await picker.getByRole("button", { name: "Save", exact: true }).click();
+		await expect(picker).toHaveCount(0);
+
+		await expect(width_box("status")).toHaveValue("");
+		await expect(width_box("priority")).toHaveValue("120");
+		await expect(width_box("date")).toHaveValue("");
+		await expect(width_box("allocated_to")).not.toHaveValue("");
+		await page.getByRole("button", { name: "Update", exact: true }).click();
+		await expect(
+			page.locator(".modal-dialog:visible", { hasText: "Edit layout" })
+		).toHaveCount(0);
+
+		expect(await get_layout_width(api, "status")).toBeUndefined();
+		expect(await get_layout_width(api, "priority")).toBe(120);
+		expect(await get_layout_width(api, "date")).toBeUndefined();
+		await expect
+			.poll(() =>
+				page
+					.evaluate(() => cur_list.get_user_column_widths().date)
+					.then(within(dragged_date_width))
+			)
+			.toBe(true);
+	});
 });
 
 test.describe("List View — Column Widths without System Manager", () => {
@@ -440,13 +480,13 @@ test.describe("List View — Column resize handle without System Manager", () =>
 		await expect(page.locator(".list-row-head")).toBeVisible();
 	});
 
-	test("hides the handle on the default layout", async ({ page }) => {
-		await expect(page.locator(HANDLE)).toHaveCount(0);
+	test("shows the handle on the default layout", async ({ page }) => {
+		await expect(page.locator(HANDLE).first()).toBeAttached();
 	});
 
-	test("hides the handle on a layout the user cannot edit", async ({ page }) => {
+	test("shows the handle on a layout the user cannot edit", async ({ page }) => {
 		await select_layout(page, global_layout);
-		await expect(page.locator(HANDLE)).toHaveCount(0);
+		await expect(page.locator(HANDLE).first()).toBeAttached();
 	});
 
 	test("shows the handle on the user's own layout", async ({ page }) => {

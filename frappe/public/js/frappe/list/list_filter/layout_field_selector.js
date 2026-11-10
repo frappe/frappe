@@ -33,7 +33,7 @@ export default class LayoutFieldSelector {
 	}
 
 	get_field_width(field, idx) {
-		if (cint(field.width)) return cint(field.width);
+		if (field.width !== undefined) return cint(field.width);
 
 		const preserved = this.preserved_widths.find((col) => col.fieldname === field.fieldname);
 		if (preserved) return cint(preserved.width);
@@ -228,10 +228,9 @@ export default class LayoutFieldSelector {
 			};
 			const type = $el.data("type");
 			if (type) field.type = type;
-			const width = cint(
+			field.width = cint(
 				$el.find(`.layout-column-width[data-fieldname="${fieldname}"]`).val()
 			);
-			if (width) field.width = width;
 			next_fields.push(field);
 		});
 		this.fields = next_fields;
@@ -275,6 +274,7 @@ export default class LayoutFieldSelector {
 
 		d.set_primary_action(__("Save"), (dialog_values) => {
 			const values = dialog_values.fields || [];
+			const existing = Object.fromEntries(this.fields.map((f) => [f.fieldname, f]));
 
 			this.fields = [];
 			this.set_subject_field(this.meta);
@@ -298,7 +298,9 @@ export default class LayoutFieldSelector {
 				}
 			}
 
-			this.fields = this.fields.uniqBy((f) => f.fieldname);
+			this.fields = this.fields
+				.uniqBy((f) => f.fieldname)
+				.map((f) => existing[f.fieldname] || f);
 			this.render();
 			d.hide();
 		});
