@@ -28,7 +28,6 @@ class TestRemoveLink(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
-		create_custom_fields(PRIMARY_FIELDS)
 		cls.addClassCleanup(cls.drop_primary_fields)
 
 	@staticmethod
@@ -38,6 +37,8 @@ class TestRemoveLink(IntegrationTestCase):
 		frappe.clear_cache(doctype="ToDo")
 
 	def setUp(self):
+		super().setUp()
+		create_custom_fields(PRIMARY_FIELDS)
 		self.document = frappe.get_doc({"doctype": "ToDo", "description": "_Test Remove Link"}).insert()
 		self.other_document = frappe.get_doc(
 			{"doctype": "ToDo", "description": "_Test Remove Link Other"}

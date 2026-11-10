@@ -26,11 +26,12 @@ class TestWorkflow(IntegrationTestCase):
 		super().setUpClass()
 		make_test_records("User")
 		cls.enterClassContext(cls.enable_safe_exec())
+
+	def setUp(self):
+		super().setUp()
 		create_workflow_state_field("ToDo")
 		create_workflow_state_field("Domain")
 		create_new_submittable_doctype()
-
-	def setUp(self):
 		self.patcher = patch("frappe.attach_print", return_value={})
 		self.patcher.start()
 		frappe.db.delete("Workflow Action")
@@ -588,18 +589,9 @@ def create_new_webhook():
 
 
 class TestConditionalWorkflow(IntegrationTestCase):
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
-		create_workflow_state_field("ToDo")
-
 	def setUp(self):
-		"""Start from a doctype no workflow governs.
-
-		IntegrationTestCase rolls back once the class is done, not between tests, so a workflow
-		made by an earlier test is still around. Retiring them here is enough: every workflow gets
-		a name of its own, so nothing collides.
-		"""
+		super().setUp()
+		create_workflow_state_field("ToDo")
 		for name in frappe.get_all("Workflow", {"document_type": "ToDo", "is_active": 1}, pluck="name"):
 			frappe.db.set_value("Workflow", name, "is_active", 0)
 

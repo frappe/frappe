@@ -12,19 +12,13 @@ TEST_DOCTYPE = "Assignment Test"
 
 
 class TestAutoAssign(IntegrationTestCase):
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
-		frappe.db.delete("Assignment Rule")
-		create_test_doctype(TEST_DOCTYPE)
-
-	@classmethod
-	def tearDownClass(cls):
-		frappe.db.rollback()
-
 	def setUp(self):
+		super().setUp()
 		frappe.set_user("Administrator")
 		make_test_records("User")
+		if not frappe.db.exists("DocType", TEST_DOCTYPE):
+			create_test_doctype(TEST_DOCTYPE)
+		frappe.db.delete("Assignment Rule")
 		days = [
 			dict(day="Sunday"),
 			dict(day="Monday"),

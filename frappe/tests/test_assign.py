@@ -13,11 +13,6 @@ from frappe.tests import IntegrationTestCase
 
 
 class TestAssign(IntegrationTestCase):
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
-		create_test_doctype(TEST_DOCTYPE)
-
 	def test_assign(self):
 		todo = frappe.get_doc({"doctype": "ToDo", "description": "test"}).insert()
 		if not frappe.db.exists("User", "test@example.com"):
@@ -41,6 +36,7 @@ class TestAssign(IntegrationTestCase):
 		self._test_basic_assign_on_document(c)
 
 	def test_assignment_count(self):
+		create_test_doctype(TEST_DOCTYPE)
 		frappe.db.delete("ToDo")
 
 		if not frappe.db.exists("User", "test_assign1@example.com"):
