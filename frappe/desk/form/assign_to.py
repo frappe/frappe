@@ -91,7 +91,7 @@ def _add(
 
 		if validate_assignees:
 			frappe.share.validate_user_access(assign_to, _("Allocated To"))
-			if not frappe.db.exists("User", {"name": assign_to, "enabled": 1, "user_type": "System User"}):
+			if not frappe.db.exists("User", {"name": assign_to, "enabled": 1, "user_type": ("!=", "Website User")}):
 				frappe.throw(_("{0} is not an enabled System User").format(frappe.bold(assign_to)))
 
 		if frappe.get_all("ToDo", filters=filters):
