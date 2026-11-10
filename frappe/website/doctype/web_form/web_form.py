@@ -119,6 +119,8 @@ class WebForm(WebsiteGenerator):
 			self.allow_multiple = self.allow_edit = self.allow_delete = self.show_list = 0
 		if self.allow_multiple:
 			self.show_list = 1
+		else:
+			self.allow_delete = 0
 
 	def validate_guest_key_link_fields(self):
 		if not is_guest_key_web_form(self):
