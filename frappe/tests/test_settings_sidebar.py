@@ -253,6 +253,12 @@ class TestSidebarValidation(SettingsDialogTestCase):
 				f'arrangement.panes["{GENERAL}"].hidden[0]',
 				f"{GENERAL}/system",
 			),
+			"a hidden block the pane does not own": (
+				arranged(panes={GENERAL: {"hidden": [f"{PROFILE}/photo"]}}),
+				f'arrangement.panes["{GENERAL}"].hidden[0]',
+				f"{PROFILE}/photo",
+				"leave it out",
+			),
 			"an entry for a hidden pane": (
 				{"groups": [{"panes": [GENERAL, MAIL, PROFILE]}], "hidden": [SYSTEM], "panes": {SYSTEM: {}}},
 				f'arrangement.panes["{SYSTEM}"]',
