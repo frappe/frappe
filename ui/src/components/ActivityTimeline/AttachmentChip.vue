@@ -41,15 +41,10 @@
 				>
 					{{ textContent }}
 				</div>
-				<Editor
+				<MarkdownPreview
 					v-else-if="preview === 'markdown' && textContent"
-					:model-value="textContent"
-					format="markdown"
-					:extensions="markdownExtensions"
-					:editable="false"
-				>
-					<EditorContent class="max-w-none" />
-				</Editor>
+					:content="textContent"
+				/>
 				<img
 					v-else-if="preview === 'image'"
 					:src="url"
@@ -69,10 +64,12 @@
 
 <script setup lang="ts">
 import { Button, Dialog } from "frappe-ui";
-import { Editor, EditorContent, Markdown, RichTextKit } from "frappe-ui/editor";
-import { computed, ref, watch } from "vue";
+import { computed, defineAsyncComponent, ref, watch } from "vue";
 import LucideDownload from "~icons/lucide/download";
 import LucidePaperclip from "~icons/lucide/paperclip";
+
+// The editor is heavy and only a markdown preview needs it: load it when one opens.
+const MarkdownPreview = defineAsyncComponent(() => import("./MarkdownPreview.vue"));
 
 const props = withDefaults(
 	defineProps<{
@@ -106,8 +103,6 @@ const wrapper = computed(() =>
 		? { tag: "span", attrs: {} }
 		: { tag: "a", attrs: { href: props.url || undefined, target: "_blank" } }
 );
-
-const markdownExtensions = [RichTextKit, Markdown];
 
 const previewOpen = ref(false);
 function openPreview() {
