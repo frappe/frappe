@@ -267,6 +267,9 @@ const props = defineProps({
 	fieldname: {
 		default: null,
 	},
+	field_doctype: {
+		default: null,
+	},
 	folder: {
 		default: "Home",
 	},
@@ -705,6 +708,7 @@ async function upload_file(file, i) {
 			if (props.doctype) form_data.append("doctype", props.doctype);
 			if (props.docname) form_data.append("docname", props.docname);
 			if (props.fieldname) form_data.append("fieldname", props.fieldname);
+			if (props.field_doctype) form_data.append("field_doctype", props.field_doctype);
 			if (props.method) form_data.append("method", props.method);
 			if (file.optimize) form_data.append("optimize", true);
 			if (props.attach_doc_image) {

@@ -224,7 +224,7 @@ def upload_file():
 			content = optimize_image(**args)
 
 	if doctype and fieldname:
-		df = frappe.get_meta(doctype).get_field(fieldname)
+		df = frappe.get_meta(frappe.form_dict.field_doctype or doctype).get_field(fieldname)
 		file_type = guess_type(filename or file_url or "")[0]
 		if df and df.fieldtype == "Attach Image" and file_type and not file_type.startswith("image/"):
 			from frappe.core.doctype.file.exceptions import FileTypeNotAllowed
