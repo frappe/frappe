@@ -4,13 +4,14 @@
 # request, after this. Only the app layer is read: the site and user layers are not built.
 
 import hashlib
-import json
 
 import frappe
 from frappe import _
 from frappe.desk.doctype.rail.rail import NO_HOST, SITE_LAYER
-from frappe.desk.doctype.settings_dialog.settings_dialog import fields_missing_from
 from frappe.desk.layers import anchor_attempts, place_by_anchors
+from frappe.desk.settings_block import Block
+from frappe.desk.settings_records import shipped_records
+from frappe.desk.settings_rules import Problem, SettingsRules, report
 
 from .boot import report_oversized_keys
 from .doctypes import metadata_version
@@ -49,6 +50,11 @@ def get_cached_panes() -> list[dict]:
 	return panes
 
 
+def check_shipped_records():
+	"""After migrate: report the blocks of every active app that clash with another record's or name a pane the host lacks."""
+	report([problem for problem in merge_shipped()[1] if problem.across])
+
+
 def _records_stamp() -> str:
 	"""A digest of every app-layer record's name and `modified`, which any save or delete of one moves."""
 	# Every record, not the latest `modified`: a save committed after a later one would not move a maximum.
@@ -62,103 +68,50 @@ def _records_stamp() -> str:
 	return hashlib.sha256(repr(records).encode()).hexdigest()
 
 
-def resolve_panes() -> list[dict]:
+def resolve_panes(apps: list[str] | None = None) -> list[dict]:
 	"""Every app's panes in run order, each holding its host's blocks and then every extending app's."""
-	apps = frappe.get_active_apps(_ensure_on_bench=True)
-	records = _shipped_records(apps)
-	panes = _rows_by_parent("Settings Pane", records)
-	blocks = _readable_blocks(records)
-	installed = _installed_doctypes(blocks)
+	resolved, problems = merge_shipped(apps)
 
-	resolved = []
+	for problem in problems:
+		_warn(problem)
+
+	return resolved
+
+
+def merge_shipped(apps: list[str] | None = None) -> tuple[list[dict], list[Problem]]:
+	"""The merged panes and the problems of the blocks it left out."""
+	records = _shipped_records(apps or frappe.get_active_apps(_ensure_on_bench=True))
+	rules = SettingsRules()
+	resolved, problems = [], []
 
 	for host in records:
 		if host.extends:
 			continue
 
 		contributors = [host] + [record for record in records if record.extends == host.app]
-		pane_list = [_pane(host.app, row) for row in panes.get(host.name, [])]
-		_fill(pane_list, contributors, blocks, installed)
+		pane_list = [_pane(host.app, row) for row in host.panes]
+		vetting = rules.vet({pane["key"] for pane in pane_list}, contributors)
+		_fill(pane_list, vetting.accepted)
+		problems += vetting.problems
 		resolved += [pane for pane in pane_list if pane["blocks"]]
 
-	return resolved
+	return resolved, problems
 
 
-def _fill(pane_list: list[dict], contributors: list, blocks: dict[str, list], installed: set[str]):
-	"""Put every contributor's blocks in the host's panes, then move the anchored ones."""
+def _fill(pane_list: list[dict], accepted: list[Block]):
+	"""Put every accepted block in its pane, then move the anchored ones."""
 	by_key = {pane["key"]: pane for pane in pane_list}
 	anchored: dict[str, list[tuple[dict, list[dict]]]] = {}
 
-	for record in contributors:
-		for row, block in blocks.get(record.name, []):
-			pane = by_key.get(row.pane)
-			if pane is None or not all(doctype in installed for doctype in _bound_doctypes(block)):
-				continue
+	for block in accepted:
+		wire = _block(block)
+		by_key[block.pane]["blocks"].append(wire)
 
-			if any(other["key"] == block["key"] for other in pane["blocks"]):
-				_warn(
-					f"block {row.key!r} from {record.app!r} repeats a key in pane {pane['app']}/{pane['key']}"
-				)
-				continue
-
-			if not _lists_its_fields(block):
-				_warn(
-					f"component block {row.key!r} from {record.app!r} lists no fields, or a field its doctypes lack,"
-					f" in pane {pane['app']}/{pane['key']}"
-				)
-				continue
-
-			if _mixes_save_modes(pane, block):
-				_warn(
-					f"block {row.key!r} from {record.app!r} differs in save mode from a component block"
-					f" on the same binding in pane {pane['app']}/{pane['key']}"
-				)
-				continue
-
-			if _claims_a_claimed_field(pane, block):
-				_warn(
-					f"block {row.key!r} from {record.app!r} shares its fields with another component block on the"
-					f" same binding in pane {pane['app']}/{pane['key']}"
-				)
-				continue
-
-			pane["blocks"].append(block)
-
-			if record.extends and (attempts := _placements(row.anchors)):
-				anchored.setdefault(pane["key"], []).append((block, attempts))
+		if block.record.extends and (attempts := _placements(block.row.anchors)):
+			anchored.setdefault(block.pane, []).append((wire, attempts))
 
 	for key, placed in anchored.items():
 		_place(by_key[key]["blocks"], placed)
-
-
-def _mixes_save_modes(pane: dict, block: dict) -> bool:
-	"""Component blocks on one draft can own the same fields, so an `auto` commit would send a `button` block's edits."""
-	addresses = _component_addresses(block)
-	return any(
-		other["save_mode"] != block["save_mode"] and addresses & _component_addresses(other)
-		for other in pane["blocks"]
-	)
-
-
-def _claims_a_claimed_field(pane: dict, block: dict) -> bool:
-	"""A component block saves and shows refusals for the fields it owns, so one field has one owner per draft."""
-	addresses = _component_addresses(block)
-	return any(
-		"component" in other
-		and set(block.get("fields", [])) & set(other.get("fields", []))
-		and addresses & _component_addresses(other)
-		for other in pane["blocks"]
-	)
-
-
-def _lists_its_fields(block: dict) -> bool:
-	"""As `Settings Dialog` checks on save."""
-	fields = block.get("fields")
-	return "bindings" not in block or bool(fields and not fields_missing_from(fields, _bound_doctypes(block)))
-
-
-def _component_addresses(block: dict) -> set[tuple]:
-	return {(binding["doctype"], binding.get("resolver")) for binding in block.get("bindings", {}).values()}
 
 
 def _place(blocks: list[dict], placed: list[tuple[dict, list[dict]]]):
@@ -185,8 +138,10 @@ def _placements(raw) -> list[dict]:
 	]
 
 
-def _warn(problem: str):
-	frappe.logger("shell").warning(f"Settings {problem}; the block is left out of the settings dialog.")
+def _warn(problem: Problem):
+	frappe.logger("shell").warning(
+		f"Settings {problem.message}; the block is left out of the settings dialog."
+	)
 
 
 # The wire shape
@@ -204,81 +159,33 @@ def _pane(app: str, row) -> dict:
 	return pane
 
 
-def _block(app: str, row) -> dict | None:
-	"""One block as the browser gets it, or None when a JSON column will not read."""
-	# Migrate imports a shipped record without `validate`, so a hand-edited file arrives unchecked.
-	block = {"key": row.key, "app": app, "save_mode": row.save_mode or "auto"}
+def _block(block: Block) -> dict:
+	"""One accepted block as the browser gets it."""
+	row = block.row
+	wire = {"key": block.key, "app": block.app, "save_mode": block.save_mode}
 
 	if row.label:
-		block["label"] = row.label
+		wire["label"] = row.label
 	if row.description:
-		block["description"] = row.description
+		wire["description"] = row.description
 
-	block["roles"] = _json(row.roles, list, str)
-	if block["roles"] is None:
-		return None
+	wire["roles"] = block.roles
 
 	if row.binding_type:
-		block["binding"] = _binding(
+		wire["binding"] = _binding(
 			{"type": row.binding_type, "doctype": row.document_type, "resolver": row.name_resolver}
 		)
-		block["fields"] = _json(row.fields, list, str)
-		readable = block["binding"] is not None and block["fields"] is not None
 	else:
-		block["component"] = row.component
-		bindings = _json(row.bindings, dict)
-		block["bindings"] = bindings and {name: _binding(spec) for name, spec in bindings.items()}
-		block["fields"] = _json(row.fields, list, str)
-		block["settings"] = _search_settings(row.settings)
-		readable = (
-			bool(row.component)
-			and bindings is not None
-			and None not in block["bindings"].values()
-			and block["fields"] is not None
-			and block["settings"] is not None
-		)
+		wire["component"] = row.component
+		wire["bindings"] = {name: _binding(spec) for name, spec in block.bindings.items()}
+		wire["settings"] = block.settings
 
-	if not readable:
-		return None
-
-	return {field: value for field, value in block.items() if value or field == "key"}
+	wire["fields"] = block.fields
+	return {field: value for field, value in wire.items() if value or field == "key"}
 
 
-def _binding(spec) -> dict | None:
-	if not isinstance(spec, dict) or not spec.get("type") or not spec.get("doctype"):
-		return None
-
-	binding = {field: spec[field] for field in ("type", "doctype", "resolver") if spec.get(field)}
-	return binding if all(isinstance(value, str) for value in binding.values()) else None
-
-
-def _json(raw, shape: type, item: type | None = None):
-	"""The column's value, its empty shape when blank, or None when it is not that shape of `item`s."""
-	try:
-		value = json.loads(raw) if raw else shape()
-	except (TypeError, ValueError):
-		return None
-
-	if not isinstance(value, shape) or (item and not all(isinstance(entry, item) for entry in value)):
-		return None
-
-	return value
-
-
-def _search_settings(raw) -> list | None:
-	"""A component block's `settings`, each a dict with a string label, as save checks them."""
-	settings = _json(raw, list, dict)
-	if settings is None or not all(isinstance(setting.get("label"), str) for setting in settings):
-		return None
-
-	return settings
-
-
-def _bound_doctypes(block: dict) -> list[str]:
-	if "binding" in block:
-		return [block["binding"]["doctype"]]
-
-	return [binding["doctype"] for binding in block.get("bindings", {}).values()]
+def _binding(spec: dict) -> dict:
+	return {field: spec[field] for field in ("type", "doctype", "resolver") if spec.get(field)}
 
 
 # The stored records
@@ -287,61 +194,12 @@ def _bound_doctypes(block: dict) -> list[str]:
 def _shipped_records(apps: list[str]) -> list:
 	"""The app layer of every active app, in run order; one extending an absent host is skipped."""
 	position = {app: index for index, app in enumerate(apps)}
-	records = frappe.get_all(
-		"Settings Dialog",
-		filters={"standard": 1, "user": SITE_LAYER},
-		fields=["name", "app", "extends"],
-	)
 
 	return sorted(
 		(
 			record
-			for record in records
+			for record in shipped_records()
 			if record.app in position and (record.extends == NO_HOST or record.extends in position)
 		),
 		key=lambda record: position[record.app],
 	)
-
-
-def _readable_blocks(records: list) -> dict[str, list[tuple]]:
-	"""Each record's block rows with their wire shape; a row that will not read is logged and left out."""
-	app_of = {record.name: record.app for record in records}
-	readable: dict[str, list[tuple]] = {}
-
-	for parent, rows in _rows_by_parent("Settings Block", records).items():
-		for row in rows:
-			block = _block(app_of[parent], row)
-			if block is None:
-				_warn(f"block {row.key!r} from {app_of[parent]!r} holds JSON that will not read")
-				continue
-			readable.setdefault(parent, []).append((row, block))
-
-	return readable
-
-
-def _rows_by_parent(doctype: str, records: list) -> dict[str, list]:
-	if not records:
-		return {}
-
-	rows: dict[str, list] = {}
-
-	for row in frappe.get_all(
-		doctype,
-		filters={"parenttype": "Settings Dialog", "parent": ("in", [record.name for record in records])},
-		fields=["*"],
-		order_by="parent asc, idx asc",
-	):
-		rows.setdefault(row.parent, []).append(row)
-
-	return rows
-
-
-def _installed_doctypes(blocks: dict[str, list[tuple]]) -> set[str]:
-	"""Of the doctypes the blocks bind, the ones this site has."""
-	named = {
-		doctype for pairs in blocks.values() for _row, block in pairs for doctype in _bound_doctypes(block)
-	}
-	if not named:
-		return set()
-
-	return set(frappe.get_all("DocType", filters={"name": ("in", list(named))}, pluck="name"))

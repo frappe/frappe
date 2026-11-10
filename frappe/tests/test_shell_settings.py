@@ -100,7 +100,10 @@ class TestSettingsMerge(SettingsDialogTestCase):
 				)
 			)
 
-		self.assertEqual(block_keys(HOST, HOST, EXTENDER), {"general": ["system", "theme", "calls"]})
+		with self.assertLogs(frappe.logger("shell"), "WARNING") as logged:
+			self.assertEqual(block_keys(HOST, HOST, EXTENDER), {"general": ["system", "theme"]})
+
+		self.assertIn("block calls", logged.output[0])
 
 	def test_a_host_blocks_anchor_does_not_move_it(self):
 		with authoring():
@@ -117,7 +120,7 @@ class TestSettingsMerge(SettingsDialogTestCase):
 			merged = panes_of(HOST, HOST, EXTENDER)
 
 		self.assertEqual([(block["key"], block["app"]) for block in merged[0]["blocks"]], [("theme", HOST)])
-		self.assertIn("'theme'", logged.output[0])
+		self.assertIn("block theme", logged.output[0])
 
 	def test_a_component_block_in_another_save_mode_on_the_same_binding_is_dropped_and_warns(self):
 		with authoring():
@@ -133,7 +136,7 @@ class TestSettingsMerge(SettingsDialogTestCase):
 		with self.assertLogs(frappe.logger("shell"), "WARNING") as logged:
 			self.assertEqual(block_keys(HOST, HOST, EXTENDER), {"general": ["photo", "name"]})
 
-		self.assertIn("'calls'", logged.output[0])
+		self.assertIn("block calls", logged.output[0])
 
 	def test_a_component_block_declaring_a_field_already_declared_on_its_binding_is_dropped_and_warns(self):
 		with authoring():
@@ -152,7 +155,7 @@ class TestSettingsMerge(SettingsDialogTestCase):
 		with self.assertLogs(frappe.logger("shell"), "WARNING") as logged:
 			self.assertEqual(block_keys(HOST, HOST, EXTENDER), {"general": ["phone", "photo"]})
 
-		self.assertIn("'calls'", logged.output[0])
+		self.assertIn("block calls", logged.output[0])
 
 	def test_a_bound_component_block_listing_no_fields_or_a_missing_one_is_dropped_and_warns(self):
 		with authoring():
@@ -168,10 +171,10 @@ class TestSettingsMerge(SettingsDialogTestCase):
 			self.assertEqual(block_keys(HOST, HOST), {"general": ["photo"]})
 
 		self.assertEqual(len(logged.output), 2)
-		self.assertIn("'unlisted'", logged.output[0])
-		self.assertIn("'typo'", logged.output[1])
+		self.assertIn("block unlisted", logged.output[0])
+		self.assertIn("block typo", logged.output[1])
 
-	def test_an_anchor_naming_a_parent_does_not_nest_the_block(self):
+	def test_an_anchor_naming_a_parent_leaves_the_block_out_and_warns(self):
 		with authoring():
 			ship(["general"], [single("system"), component("theme"), component("defaults")])
 			unchecked(
@@ -186,9 +189,12 @@ class TestSettingsMerge(SettingsDialogTestCase):
 				)
 			)
 
-		self.assertEqual(
-			block_keys(HOST, HOST, EXTENDER), {"general": ["system", "dial", "theme", "calls", "defaults"]}
-		)
+		with self.assertLogs(frappe.logger("shell"), "WARNING") as logged:
+			self.assertEqual(
+				block_keys(HOST, HOST, EXTENDER), {"general": ["system", "dial", "theme", "defaults"]}
+			)
+
+		self.assertIn("block calls", logged.output[0])
 
 	def test_a_block_imported_with_unreadable_json_is_dropped_and_logged(self):
 		with authoring():
@@ -216,7 +222,7 @@ class TestSettingsMerge(SettingsDialogTestCase):
 
 		self.assertEqual(len(logged.output), 9)
 
-	def test_an_anchor_whose_target_is_not_a_name_leaves_the_block_in_run_order(self):
+	def test_an_anchor_whose_target_is_not_a_name_leaves_the_block_out_and_warns(self):
 		with authoring():
 			ship(["general"], [single("system"), component("theme")])
 			unchecked(
@@ -228,14 +234,22 @@ class TestSettingsMerge(SettingsDialogTestCase):
 				)
 			)
 
-		self.assertEqual(block_keys(HOST, HOST, EXTENDER), {"general": ["system", "theme", "calls"]})
+		with self.assertLogs(frappe.logger("shell"), "WARNING") as logged:
+			self.assertEqual(block_keys(HOST, HOST, EXTENDER), {"general": ["system", "theme"]})
 
-	def test_an_orphan_block_is_dropped(self):
+		self.assertIn("block calls", logged.output[0])
+
+	def test_an_extending_block_naming_a_pane_the_host_lacks_is_dropped_and_warns(self):
 		with authoring():
 			ship(["general"], [single("system")])
-			ship(blocks=[component("calls", pane="gone")], app=EXTENDER, extends=HOST)
+			unchecked(
+				ship(blocks=[component("calls", pane="gone")], app=EXTENDER, extends=HOST, insert=False)
+			)
 
-		self.assertEqual(block_keys(HOST, HOST, EXTENDER), {"general": ["system"]})
+		with self.assertLogs(frappe.logger("shell"), "WARNING") as logged:
+			self.assertEqual(block_keys(HOST, HOST, EXTENDER), {"general": ["system"]})
+
+		self.assertIn("pane gone, block calls", logged.output[0])
 
 	def test_a_block_bound_to_a_doctype_the_site_lacks_is_dropped(self):
 		missing = json.dumps(

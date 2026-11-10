@@ -1,19 +1,12 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-import json
-import re
-
 import frappe
 from frappe import _
 from frappe.desk.doctype.rail.rail import NO_HOST, SITE_LAYER, SYSTEM_WRITE_FLAGS
+from frappe.desk.settings_records import shipped_records
+from frappe.desk.settings_rules import SettingsRules, report
 from frappe.model.document import Document
-
-# The address segment a pane or block is opened by: `#settings/<prefix>/<pane>/<block>`.
-KEBAB_CASE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
-
-BINDING_TYPES = ("Single", "Record")
-NAME_RESOLVERS = ("session_user",)
 
 
 class SettingsDialog(Document):
@@ -53,12 +46,7 @@ class SettingsDialog(Document):
 		self.blank_the_host()
 		self.refuse_extending_itself()
 		self.refuse_a_second_record_at_this_address()
-		self.refuse_panes_on_a_host()
-		self.validate_pane_keys()
-		self.validate_blocks()
-		self.refuse_block_keys_taken_on_the_site()
-		self.refuse_mixed_save_modes_on_a_binding()
-		self.refuse_two_owners_of_a_field()
+		self.refuse_what_breaks_a_rule()
 
 	def validate_app_content(self):
 		"""Only developer mode or a system write may set or clear `standard`, which is app content."""
@@ -101,105 +89,27 @@ class SettingsDialog(Document):
 			title=_("Already Shipped"),
 		)
 
-	def refuse_panes_on_a_host(self):
-		"""An app adds blocks to another app's panes, never a pane to another app's group."""
-		if self.extends and self.panes:
-			frappe.throw(
-				_("{0} extends {1}, so it can add blocks to its panes but no pane of its own.").format(
-					frappe.bold(self.app), frappe.bold(self.extends)
-				),
-				title=_("Pane on a Host"),
-			)
+	def refuse_what_breaks_a_rule(self):
+		"""Check every rule against this record and, for a shipped one, against the others in its host's panes."""
+		rules = SettingsRules()
+		others = shipped_records(self.extends or self.app, exclude=self.name) if self.standard else []
+		host = (
+			self
+			if not self.extends
+			else next((r for r in others if r.app == self.extends and not r.extends), None)
+		)
+		panes = {pane.key for pane in host.panes} if host else None
 
-	def validate_pane_keys(self):
-		seen = set()
+		problems = [*rules.record_problems(self), *rules.vet(panes, [*others, self]).problems]
+		if problem := next((problem for problem in problems if problem.record == self.name), None):
+			frappe.throw(problem.message, title=problem.title)
 
-		for pane in self.panes:
-			validate_key(pane.key, _("Pane"), pane.idx)
-			if pane.key in seen:
-				frappe.throw(
-					_("Pane row {0} repeats the key {1}.").format(pane.idx, frappe.bold(pane.key)),
-					title=_("Duplicate Key"),
-				)
-			seen.add(pane.key)
-
-	def validate_blocks(self):
-		own_panes = {pane.key for pane in self.panes}
-		seen = set()
-
-		for block in self.blocks:
-			validate_key(block.key, _("Block"), block.idx)
-			if not self.extends and block.pane not in own_panes:
-				frappe.throw(
-					_("Block row {0} names the pane {1}, which this record does not have.").format(
-						block.idx, frappe.bold(block.pane)
-					),
-					title=_("Unknown Pane"),
-				)
-			if (block.pane, block.key) in seen:
-				frappe.throw(
-					_("Block row {0} repeats the key {1} in pane {2}.").format(
-						block.idx, frappe.bold(block.key), frappe.bold(block.pane)
-					),
-					title=_("Duplicate Key"),
-				)
-			seen.add((block.pane, block.key))
-			validate_binding_shape(block)
-
-	def refuse_block_keys_taken_on_the_site(self):
-		"""A block key names one block in the merged pane, whichever app ships it."""
-		if not self.standard:
-			return
-
-		host = self.extends or self.app
-		taken = shipped_block_keys(host, exclude=self.name)
-
-		for block in self.blocks:
-			if owner := taken.get((block.pane, block.key)):
-				frappe.throw(
-					_("Block row {0}: {1} already ships a block {2} in pane {3}.").format(
-						block.idx, frappe.bold(owner), frappe.bold(block.key), frappe.bold(block.pane)
-					),
-					title=_("Duplicate Key"),
-				)
-
-	def refuse_mixed_save_modes_on_a_binding(self):
-		"""Component blocks on one draft can own the same fields, so an `auto` commit would send a `button` block's edits."""
-		shipped = shipped_blocks(self.extends or self.app, exclude=self.name) if self.standard else []
-
-		first = {}
-		for block in [*shipped, *self.blocks]:
-			mode = block.save_mode or "auto"
-			for address in component_binding_addresses(block):
-				key, app, other_mode = first.setdefault(
-					address, (block.key, block.get("app") or self.app, mode)
-				)
-				if other_mode != mode:
-					frappe.throw(
-						_(
-							"Component blocks {0} from {1} and {2} in pane {3} both edit {4}, so they need one save mode."
-						).format(
-							frappe.bold(key),
-							frappe.bold(app),
-							frappe.bold(block.key),
-							frappe.bold(block.pane),
-							frappe.bold(address[1]),
-						),
-						title=_("Mixed Save Modes"),
-					)
-
-	def refuse_two_owners_of_a_field(self):
-		"""A component block saves and shows refusals for the fields it owns, so one field has one owner per draft."""
-		shipped = shipped_blocks(self.extends or self.app, exclude=self.name) if self.standard else []
-
-		owners = {}
-		for block in [*shipped, *self.blocks]:
-			owner = (block.key, block.get("app") or self.app)
-			for address in component_binding_addresses(block):
-				for fieldname in owned_fields(block):
-					first = owners.setdefault((address, fieldname), owner)
-					if first != owner and block in self.blocks:
-						refuse_shared_fields(first, owner, block.pane, address[1], fieldname)
+	def before_import(self):
+		"""Migrate imports a shipped record without `validate`: check what needs only this record."""
+		rules = SettingsRules()
+		panes = None if self.extends else {pane.key for pane in self.panes}
+		problems = [*rules.record_problems(self), *rules.vet(panes, [self]).problems]
+		report([problem for problem in problems if not problem.across])
 
 	def on_update(self):
 		self.export_settings_dialog()
@@ -212,234 +122,6 @@ class SettingsDialog(Document):
 			return
 
 		export_to_files(record_list=[[self.doctype, self.name]], record_app=self.app)
-
-
-def refuse_shared_fields(
-	first: tuple[str, str], second: tuple[str, str], pane: str, doctype: str, fieldname: str
-):
-	frappe.throw(
-		_(
-			"Component blocks {0} from {1} and {2} from {3} in pane {4} both declare {6} of {5}. List each field in one block only."
-		).format(*[frappe.bold(part) for part in (*first, *second, pane, doctype, fieldname)]),
-		title=_("Field Declared Twice"),
-	)
-
-
-def validate_key(key: str, kind: str, idx: int):
-	if not KEBAB_CASE.match(key or ""):
-		frappe.throw(
-			_("{0} row {1}: the key {2} must be kebab-case, like {3}.").format(
-				kind, idx, frappe.bold(key), frappe.bold("email-accounts")
-			),
-			title=_("Invalid Key"),
-		)
-
-
-def validate_binding_shape(block):
-	"""A block is a generated binding or a component, and each JSON column holds its own shape."""
-	if block.binding_type and block.component:
-		frappe.throw(
-			_("Block row {0} is either a generated binding or a component, not both.").format(block.idx),
-			title=_("Invalid Block"),
-		)
-
-	if block.binding_type:
-		validate_binding(block.idx, block.binding_type, block.document_type, block.name_resolver)
-		validate_json_list(block, "fields", str)
-	elif block.component:
-		validate_named_bindings(block)
-		validate_json_list(block, "fields", str)
-		validate_component_fields(block)
-		validate_search_settings(block)
-	else:
-		frappe.throw(
-			_("Block row {0} needs a binding type or a component.").format(block.idx),
-			title=_("Invalid Block"),
-		)
-
-	validate_anchors(block)
-	validate_roles(block)
-
-
-def validate_binding(idx: int, binding_type: str, doctype: str, resolver: str | None):
-	if binding_type not in BINDING_TYPES or not doctype or not isinstance(doctype, str):
-		frappe.throw(
-			_("Block row {0}: a binding needs a type ({1}) and a doctype.").format(
-				idx, ", ".join(BINDING_TYPES)
-			),
-			title=_("Invalid Binding"),
-		)
-
-	if binding_type == "Record" and resolver not in NAME_RESOLVERS:
-		frappe.throw(
-			_("Block row {0}: a Record binding names its record with one of: {1}.").format(
-				idx, ", ".join(NAME_RESOLVERS)
-			),
-			title=_("Invalid Binding"),
-		)
-
-	if binding_type == "Single" and resolver:
-		frappe.throw(
-			_("Block row {0}: a Single binding has no name resolver.").format(idx),
-			title=_("Invalid Binding"),
-		)
-
-
-def validate_named_bindings(block):
-	bindings = parse_json(block, "bindings", {})
-	if not isinstance(bindings, dict):
-		refuse_json(block, "bindings")
-
-	for binding in bindings.values():
-		if not isinstance(binding, dict):
-			refuse_json(block, "bindings")
-		validate_binding(block.idx, binding.get("type"), binding.get("doctype"), binding.get("resolver"))
-
-
-def validate_component_fields(block):
-	"""A bound component saves only the fields it lists. Their names go unchecked while a bound doctype is not installed."""
-	doctypes = [binding["doctype"] for binding in parse_json(block, "bindings", {}).values()]
-	fields = parse_json(block, "fields", [])
-	if doctypes and not fields:
-		frappe.throw(
-			_("Block row {0}: component {1} has a binding. List the fields it saves in {2}.").format(
-				block.idx, frappe.bold(block.component), frappe.bold(block.meta.get_label("fields"))
-			),
-			title=_("Fields Not Listed"),
-		)
-
-	if not doctypes or not all(frappe.db.exists("DocType", doctype) for doctype in doctypes):
-		return
-
-	if missing := fields_missing_from(fields, doctypes):
-		frappe.throw(
-			_("Block row {0}: not a field of {1}: {2}.").format(
-				block.idx, frappe.bold(", ".join(doctypes)), frappe.bold(", ".join(missing))
-			),
-			title=_("Unknown Field"),
-		)
-
-
-def fields_missing_from(fields: list[str], doctypes: list[str]) -> list[str]:
-	metas = [frappe.get_meta(doctype) for doctype in doctypes]
-	return [field for field in fields if not any(meta.has_field(field) for meta in metas)]
-
-
-def validate_anchors(block):
-	"""Each anchor names one block to sit `after` or `before`, and nothing else."""
-	validate_json_list(block, "anchors", dict)
-	for anchor in parse_json(block, "anchors", []):
-		if len(anchor) != 1 or not isinstance(anchor.get("after") or anchor.get("before"), str):
-			refuse_json(block, "anchors")
-
-
-def validate_roles(block):
-	validate_json_list(block, "roles", str)
-	roles = set(parse_json(block, "roles", []))
-	if not all(role.strip() for role in roles):
-		refuse_json(block, "roles")
-	if not roles:
-		return
-
-	if unknown := sorted(
-		roles - set(frappe.get_all("Role", filters={"name": ("in", list(roles))}, pluck="name"))
-	):
-		frappe.throw(
-			_("Block row {0}: no role named {1}.").format(block.idx, frappe.bold(", ".join(unknown))),
-			title=_("Unknown Role"),
-		)
-
-
-def validate_search_settings(block):
-	validate_json_list(block, "settings", dict)
-	labels = [entry.get("label") for entry in parse_json(block, "settings", [])]
-	if not all(isinstance(label, str) and label.strip() for label in labels):
-		refuse_json(block, "settings")
-
-
-def validate_json_list(block, fieldname: str, item_type: type):
-	value = parse_json(block, fieldname, [])
-	if not isinstance(value, list) or not all(isinstance(item, item_type) for item in value):
-		refuse_json(block, fieldname)
-
-
-def component_binding_addresses(block) -> list[tuple[str, str, str]]:
-	"""`(pane, doctype, resolver)` per named binding: one draft each. Skips JSON a shipped record holds unvalidated."""
-	if not block.get("component") or not block.get("bindings"):
-		return []
-
-	try:
-		bindings = json.loads(block.bindings)
-	except ValueError:
-		return []
-	if not isinstance(bindings, dict):
-		return []
-
-	return [
-		(block.pane, binding.get("doctype"), binding.get("resolver") or "")
-		for binding in bindings.values()
-		if isinstance(binding, dict)
-	]
-
-
-def owned_fields(block) -> set[str]:
-	"""A component block's `fields`; none for JSON the merge drops."""
-	try:
-		fields = json.loads(block.get("fields") or "[]")
-	except ValueError:
-		return set()
-
-	if not isinstance(fields, list) or not all(isinstance(field, str) for field in fields):
-		return set()
-
-	return set(fields)
-
-
-def parse_json(block, fieldname: str, default):
-	raw = block.get(fieldname)
-	if not raw:
-		return default
-
-	try:
-		return json.loads(raw)
-	except ValueError:
-		refuse_json(block, fieldname)
-
-
-def refuse_json(block, fieldname: str):
-	frappe.throw(
-		_("Block row {0}: {1} does not hold the JSON it should.").format(
-			block.idx, frappe.bold(block.meta.get_label(fieldname))
-		),
-		title=_("Invalid JSON"),
-	)
-
-
-def shipped_block_keys(host: str, exclude: str) -> dict[tuple[str, str], str]:
-	"""`(pane, key) -> app` for every block another shipped record puts in this host's panes."""
-	return {(block.pane, block.key): block.app for block in shipped_blocks(host, exclude)}
-
-
-def shipped_blocks(host: str, exclude: str) -> list[frappe._dict]:
-	"""Every block another shipped record puts in this host's panes, with its record's `app`."""
-	records = frappe.get_all(
-		"Settings Dialog",
-		filters={"standard": 1, "user": SITE_LAYER, "name": ("!=", exclude)},
-		or_filters={"extends": host, "app": host},
-		fields=["name", "app", "extends"],
-	)
-	owners = {record.name: record.app for record in records if (record.extends or record.app) == host}
-	if not owners:
-		return []
-
-	blocks = frappe.get_all(
-		"Settings Block",
-		filters={"parenttype": "Settings Dialog", "parent": ("in", list(owners))},
-		fields=["parent", "pane", "key", "save_mode", "component", "bindings", "fields"],
-	)
-	for block in blocks:
-		block.app = owners[block.parent]
-	return blocks
 
 
 def on_doctype_update():
