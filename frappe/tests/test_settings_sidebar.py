@@ -36,6 +36,7 @@ PROFILE = "desk/profile"
 SYSTEM = "desk/system"
 GENERAL = f"{HOST}/general"
 MAIL = f"{HOST}/email"
+CHAT = f"{HOST}/chat"
 EVERY_PANE = [PROFILE, SYSTEM, GENERAL, MAIL]
 FRAMEWORK_PANES = [PROFILE, SYSTEM]
 
@@ -45,16 +46,21 @@ def arranged(groups=None, **rest) -> dict:
 	return {"groups": groups if groups is not None else [{"panes": EVERY_PANE}], **rest}
 
 
-def resolve(arrangement=None, *, bench: tuple[str, ...] = (), checked: bool = False):
+def resolve(
+	arrangement=None, *, bench: tuple[str, ...] = (), checked: bool = False, lacking: bool = False, extra=()
+):
 	"""The merge over `HOST` and the framework, as `HOST` ships it with this arrangement.
 
 	Unchecked unless `checked`: a file reaches the merge as migrate imports it, with no `validate`.
+	With `lacking`, `HOST` also ships a pane whose only block binds a doctype this site lacks.
 	"""
 	with authoring():
 		record = ship(
-			["general", "email"],
+			["general", "email", *(["chat"] if lacking else [])],
 			[
+				*([single("chat", pane="chat", doctype="Chat Settings Not On This Site")] if lacking else []),
 				single("system"),
+				*extra,
 				component("theme"),
 				single("smtp", pane="email"),
 				component("login", pane="email"),
@@ -63,6 +69,8 @@ def resolve(arrangement=None, *, bench: tuple[str, ...] = (), checked: bool = Fa
 			insert=False,
 		)
 		record.flags.ignore_validate = not checked
+		# The record names a doctype this site lacks.
+		record.flags.ignore_links = lacking
 		record.insert()
 
 	get_prefix_registry()
@@ -201,6 +209,69 @@ class TestSidebarArranged(SettingsDialogTestCase):
 		self.assertEqual(
 			blocks_of(resolved.sidebars[HOST], GENERAL), [f"{GENERAL}/system", f"{GENERAL}/theme"]
 		)
+
+	def test_a_pane_and_a_block_this_site_lacks_the_doctype_for_are_skipped_silently(self):
+		resolved = resolve(
+			arranged(
+				[{"panes": [*EVERY_PANE, CHAT]}],
+				panes={GENERAL: {"blocks": [f"{CHAT}/chat", f"{GENERAL}/system", f"{GENERAL}/theme"]}},
+			),
+			lacking=True,
+		)
+
+		self.assertEqual(resolved.problems, [])
+		self.assertEqual(
+			blocks_of(resolved.sidebars[HOST], GENERAL), [f"{GENERAL}/system", f"{GENERAL}/theme"]
+		)
+		self.assertNotIn(CHAT, resolved.directory.panes)
+
+	def test_a_typo_beside_a_pane_this_site_lacks_is_still_an_unknown_address(self):
+		resolved = resolve(arranged([{"panes": [*EVERY_PANE, CHAT, f"{HOST}/chats"]}]), lacking=True)
+
+		self.assertEqual(len(resolved.problems), 1)
+		self.assertIn("Unknown Address", resolved.problems[0].title)
+		self.assertIn(f"{HOST}/chats", resolved.problems[0].detail)
+
+	def test_a_block_this_site_lacks_the_doctype_for_leaves_its_pane_standing(self):
+		resolved = resolve(
+			arranged(panes={GENERAL: {"blocks": [f"{GENERAL}/system", f"{GENERAL}/wanted"]}}),
+			lacking=True,
+			extra=[single("wanted", doctype="Chat Settings Not On This Site")],
+		)
+
+		self.assertEqual(resolved.problems, [])
+		self.assertIn(GENERAL, resolved.directory.panes)
+
+	def test_a_block_an_extender_ships_for_a_doctype_this_site_lacks_is_skipped_silently(self):
+		with authoring():
+			extender = ship(
+				blocks=[single("gone", doctype="Chat Settings Not On This Site")],
+				app=EXTENDER,
+				extends=HOST,
+				insert=False,
+			)
+			extender.flags.ignore_links = True
+			extender.insert()
+			ship(
+				["general"],
+				[single("system")],
+				arrangement=arranged(
+					[{"panes": [GENERAL]}], panes={GENERAL: {"blocks": [f"{GENERAL}/gone"]}}
+				),
+			)
+
+		get_prefix_registry()
+		with active(HOST, EXTENDER):
+			resolved = merge_settings()
+
+		self.assertEqual(resolved.problems, [])
+		self.assertEqual(blocks_of(resolved.sidebars[HOST], GENERAL), [f"{GENERAL}/system"])
+
+	def test_a_block_key_the_pane_never_declared_is_still_an_unknown_address(self):
+		resolved = resolve(arranged(panes={GENERAL: {"blocks": [f"{CHAT}/chatter"]}}), lacking=True)
+
+		self.assertEqual(len(resolved.problems), 1)
+		self.assertIn(f"{CHAT}/chatter", resolved.problems[0].detail)
 
 
 class TestSidebarValidation(SettingsDialogTestCase):

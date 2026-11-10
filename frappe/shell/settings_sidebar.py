@@ -6,6 +6,7 @@
 from dataclasses import dataclass, field
 
 from frappe.desk.settings_arrangement import ArrangementCheck, Directory, prefix_of
+from frappe.desk.settings_block import Block
 from frappe.desk.settings_rules import Problem
 
 FRAMEWORK = "frappe"
@@ -24,9 +25,11 @@ class Resolved:
 	directory: Directory | None = None
 
 
-def resolve_sidebars(panes: list[dict], records: list, apps: list[str]) -> Resolved:
+def resolve_sidebars(
+	panes: list[dict], records: list, apps: list[str], unavailable: list[Block] | None = None
+) -> Resolved:
 	"""The sidebar of every app that has panes or an arrangement, over the merged `panes` of `apps`."""
-	directory = Directory(panes, apps)
+	directory = Directory(panes, apps, unavailable)
 	hosts = {record.app: record for record in records if not record.extends}
 	resolved = Resolved(directory=directory)
 

@@ -115,17 +115,17 @@ def merge_settings(apps: list[str] | None = None) -> Resolved:
 	"""The merged panes, the sidebars resolved over them, and the problems and notices of both."""
 	apps = apps or frappe.get_active_apps(_ensure_on_bench=True)
 	records = _shipped_records(apps)
-	panes, problems = _merge_panes(records)
+	panes, problems, unavailable = _merge_panes(records)
 
-	resolved = resolve_sidebars(panes, records, apps)
+	resolved = resolve_sidebars(panes, records, apps, unavailable)
 	resolved.panes = panes
 	resolved.problems = [*problems, *resolved.problems]
 	return resolved
 
 
-def _merge_panes(records: list) -> tuple[list[dict], list[Problem]]:
+def _merge_panes(records: list) -> tuple[list[dict], list[Problem], list[Block]]:
 	rules = SettingsRules()
-	resolved, problems = [], []
+	resolved, problems, unavailable = [], [], []
 
 	for host in records:
 		if host.extends:
@@ -136,9 +136,10 @@ def _merge_panes(records: list) -> tuple[list[dict], list[Problem]]:
 		vetting = rules.vet({pane["key"] for pane in pane_list}, contributors)
 		_fill(pane_list, vetting.accepted)
 		problems += vetting.problems
+		unavailable += vetting.unavailable
 		resolved += [pane for pane in pane_list if pane["blocks"]]
 
-	return resolved, problems
+	return resolved, problems, unavailable
 
 
 def _fill(pane_list: list[dict], accepted: list[Block]):

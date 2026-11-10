@@ -8,7 +8,7 @@ import json
 import frappe
 from frappe import _
 from frappe.desk.app_prefix import declared_prefix, default_prefix
-from frappe.desk.settings_block import Refusal
+from frappe.desk.settings_block import Block, Refusal
 from frappe.desk.settings_rules import Problem
 
 KEYS = ("groups", "hidden", "panes")
@@ -24,9 +24,12 @@ def prefix_of(app: str, bench: list[str] | None = None) -> str:
 
 
 class Directory:
-	"""The panes and blocks of the apps in scope by address, and which prefix belongs to which app."""
+	"""The panes and blocks of the apps in scope by address, and which prefix belongs to which app.
 
-	def __init__(self, panes: list[dict], apps: list[str]):
+	`unavailable` holds the blocks this site lacks the doctype for; their addresses are skipped, like an inactive app's.
+	"""
+
+	def __init__(self, panes: list[dict], apps: list[str], unavailable: list[Block] | None = None):
 		bench = frappe.get_all_apps()
 		self.apps = set(apps)
 		self.prefixes = {app: prefix_of(app, bench) for app in dict.fromkeys([*bench, *apps])}
@@ -38,6 +41,12 @@ class Directory:
 			address = self.pane_address(pane)
 			self.panes[address] = pane
 			self.blocks.update({f"{address}/{block['key']}": block for block in pane["blocks"]})
+
+		# One set: a pane address has two parts and a block address three, so the shape check keeps them apart.
+		self.unavailable: set[str] = set()
+		for block in unavailable or []:
+			pane = f"{self.prefixes[block.record.extends or block.app]}/{block.pane}"
+			self.unavailable |= {pane, f"{pane}/{block.key}"}
 
 	def pane_address(self, pane: dict) -> str:
 		return f"{self.prefixes[pane['app']]}/{pane['key']}"
@@ -53,6 +62,9 @@ class Directory:
 			return False
 
 		if address not in (self.panes if kind == "pane" else self.blocks):
+			if address in self.unavailable:
+				return False
+
 			raise Refusal(
 				_("Unknown Address"), _("No {0} has the address {1}.").format(kind, address), across=True
 			)

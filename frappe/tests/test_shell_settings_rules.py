@@ -182,6 +182,9 @@ class TestSettingsRules(SettingsDialogTestCase):
 			)
 
 		self.assertEqual(problems_of(doc, {"general"}), [])
+		self.assertEqual(
+			[block.key for block in SettingsRules().vet({"general"}, [doc]).unavailable], ["gone"]
+		)
 
 	def test_a_json_column_that_is_not_a_string_is_a_problem_not_a_crash(self):
 		with authoring():
