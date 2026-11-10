@@ -84,9 +84,11 @@ class VirtualDoctypeTest(Document):
 
 
 class TestVirtualDoctypes(IntegrationTestCase):
-	def setUp(self):
-		super().setUp()
-		self.enterContext(patch.dict(frappe.flags, allow_doctype_export=True))
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		frappe.flags.allow_doctype_export = True
+		cls.addClassCleanup(frappe.flags.pop, "allow_doctype_export", None)
 
 		cdt = new_doctype(name=TEST_CHILD_DOCTYPE_NAME, is_virtual=1, istable=1, custom=0).insert()
 		vdt = new_doctype(
@@ -102,11 +104,16 @@ class TestVirtualDoctypes(IntegrationTestCase):
 				}
 			],
 		).insert()
-		self.addCleanup(cdt.delete, force=True)
-		self.addCleanup(vdt.delete, force=True)
-		self.enterContext(
-			patch("frappe.controllers", new={frappe.local.site: {TEST_DOCTYPE_NAME: VirtualDoctypeTest}})
+		frappe.db.commit()
+		cls.addClassCleanup(frappe.db.commit)
+		cls.addClassCleanup(cdt.delete, force=True)
+		cls.addClassCleanup(vdt.delete, force=True)
+
+		patch_virtual_doc = patch(
+			"frappe.controllers", new={frappe.local.site: {TEST_DOCTYPE_NAME: VirtualDoctypeTest}}
 		)
+		patch_virtual_doc.start()
+		cls.addClassCleanup(patch_virtual_doc.stop)
 
 	def tearDown(self):
 		if os.path.exists(VirtualDoctypeTest.DATA_FILE):
