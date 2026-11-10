@@ -48,7 +48,7 @@ const PART_FIELDS: Record<string, PartField> = {
 };
 
 /** `frappe.model.optional_fields`: `as_dict` drops them, so only a list read or a part write sets them. */
-export const LIST_ONLY_FIELDS = ["_user_tags", "_assign", "_liked_by", "_seen"];
+export const LIST_ONLY_FIELDS: readonly string[] = ["_user_tags", "_assign", "_liked_by", "_seen"];
 
 export function documentKey(doctype: string, name: string): string {
   return `${doctype}\u0000${name}`;
