@@ -449,6 +449,10 @@ frappe.Application = class Application {
 					}
 
 					me.logged_out = true;
+					if (r.message) {
+						window.location.href = r.message;
+						return;
+					}
 					me.redirect_to_login();
 				},
 			});
