@@ -28,7 +28,7 @@ jobs:
         run: |
           python "${GITHUB_WORKSPACE}/.github/helper/roulette.py"
         env:
-          TYPE: "ui"
+          TYPE: "bundle"
           PR_NUMBER: ${{ github.event.number }}
           REPO_NAME: ${{ github.repository }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

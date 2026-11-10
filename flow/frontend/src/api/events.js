@@ -3,7 +3,7 @@
 // with the files as chips.
 const MEMORY = /\n<memory>\n[\s\S]*?\n<\/memory>$/;
 const EXCERPTS = /\n[^\n]*\n<excerpts>\n[\s\S]*?\n<\/excerpts>/;
-const FILE_BLOCK = /\n<file name="([^"]*)">\n[\s\S]*?\n<\/file>/g;
+const FILE_BLOCK = /\n<file name="([^"]*)"[^>]*>\n[\s\S]*?\n<\/file>/g;
 const FILE_NOTE = /\n\[Attached file: ([^\n]+?) \(large; relevant excerpts follow\)\]/g;
 const XML_ENTITIES = { "&quot;": '"', "&lt;": "<", "&gt;": ">", "&amp;": "&" };
 

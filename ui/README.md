@@ -115,7 +115,7 @@ export const mount = (el, context) =>
   mountVueIsland(el, { ...context, component: Dashboard });
 ```
 
-`mountVueIsland` opens the shadow root, adopts the app's stylesheet, mirrors the host theme, gives frappe-ui's overlays a portal target inside the root, and returns the handle. Pass `configure(app)` to register plugins and global components. Pass `routes` if the island needs navigation of its own.
+`mountVueIsland` opens the shadow root, adopts the app's stylesheet, mirrors the host theme, gives frappe-ui's overlays a portal target inside the root, and returns the handle. Pass `configure(app)` to register plugins and global components. Pass `routes` if the island needs navigation of its own; they run on a memory history, or on the `history` you pass, such as a web history for an island that fills its page.
 
 Inside a component, `useHost()` returns the host context: `locale`, `timezone`, `user`, `theme`, `navigate`. Every field is optional, so a component still renders in a unit test.
 

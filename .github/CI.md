@@ -30,7 +30,7 @@ To re-test develop at any other time: open the **Actions** tab of the repo, clic
 | `run-full-ci`                       | Runs the full server and UI suites on your pull request. Use it for risky changes.                                                                             |
 | `Run Server Tests` / `Run UI Tests` | Runs the full server or UI suite on your pull request.                                                                                                         |
 
-You can add a label any time. Adding `fixes-develop` or `run-full-ci` restarts your tests within a minute, no push needed. `Run Server Tests` and `Run UI Tests` take effect on your next push or re-run.
+You can add a label any time. It restarts your tests within a minute, no push needed.
 
 ## Tests on your pull request
 

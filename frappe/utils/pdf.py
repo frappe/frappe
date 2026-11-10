@@ -39,8 +39,11 @@ def pdf_header_html(soup, head, content, styles, html_id, css, path=None):
 
 
 def pdf_body_html(template, args, **kwargs):
+	from frappe.utils.jinja import safe_render_flags
+
 	try:
-		return template.render(args, filters={"len": len})
+		with safe_render_flags():
+			return template.render(args, filters={"len": len})
 	except Exception as e:
 		# Guess line number ?
 		frappe.throw(
@@ -279,14 +282,7 @@ def _pdf_has_oversized_image(reader: "PdfReader", max_pixels: int) -> bool:
 	Avoid exhausting memory in loading image.
 	"""
 	for page in reader.pages:
-		try:
-			xobjects = page["/Resources"]["/XObject"]
-		except KeyError:
-			continue
-		for xobj in xobjects.values():
-			xobj = xobj.get_object()
-			if xobj.get("/Subtype") != "/Image":
-				continue
+		for _image_id, xobj in _image_xobjects(page):
 			width = int(xobj.get("/Width", 0))
 			height = int(xobj.get("/Height", 0))
 			if width * height > max_pixels:

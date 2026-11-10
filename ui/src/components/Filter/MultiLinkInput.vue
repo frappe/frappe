@@ -13,6 +13,7 @@
 	<MultiSelect
 		:modelValue="selected"
 		:options="options"
+		:filterable="!isName"
 		:loading="resource.loading.value && !resource.data.value"
 		:placeholder="placeholder ?? `Search ${(field.options ?? '').toLowerCase()}`"
 		variant="subtle"
@@ -24,6 +25,7 @@
 </template>
 
 <script setup lang="ts">
+import { toIdOption } from "../Link/linkOption";
 import { computed, ref, watch } from "vue";
 import { MultiSelect, debounce } from "frappe-ui";
 import { useLinkSearch } from "../../composables/useLinkSearch";
@@ -38,6 +40,9 @@ const props = defineProps<{
 
 const emit = defineEmits<{ "update:modelValue": [value: string[]] }>();
 
+// `name` stores IDs; server search still matches titles, so client filter is off.
+const isName = computed(() => props.field.fieldname === "name");
+
 const selected = computed<string[]>(() =>
 	Array.isArray(props.modelValue) ? props.modelValue : []
 );
@@ -48,13 +53,18 @@ const known = ref(new Map<string, LinkOption>());
 
 const resource = useLinkSearch(() => props.field.options);
 
-watch(resource.data, (data) => {
+// The search labels by title; relabelling its options by ID matches `toIdOption` on the raw rows.
+const results = computed(() =>
+	isName.value ? (resource.data.value?.map(toIdOption) ?? null) : resource.data.value
+);
+
+watch(results, (data) => {
 	for (const o of data ?? []) known.value.set(o.value, o);
 });
 
 const options = computed<LinkOption[]>(() => {
 	const byId = new Map<string, LinkOption>();
-	for (const o of resource.data.value ?? []) byId.set(o.value, o);
+	for (const o of results.value ?? []) byId.set(o.value, o);
 	// Merge selected-but-absent values so their chips stay resolvable.
 	for (const v of selected.value) {
 		if (!byId.has(v)) byId.set(v, known.value.get(v) ?? { label: v, value: v });

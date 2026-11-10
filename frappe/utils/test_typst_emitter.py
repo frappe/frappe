@@ -56,11 +56,6 @@ class TestTypstGate(IntegrationTestCase):
 		cases = {
 			"HTML block": {"fieldtype": "HTML", "fieldname": "h", "html": "<b>x</b>"},
 			"Field Template block": {"fieldtype": "Field Template", "field_template": "T"},
-			"Barcode that is not a QR code": {
-				"fieldtype": "Barcode",
-				"custom": 1,
-				"barcode_format": "CODE128",
-			},
 			"Image loaded from a web address": {
 				"fieldtype": "Image",
 				"custom": 1,
@@ -71,9 +66,15 @@ class TestTypstGate(IntegrationTestCase):
 			with self.subTest(reason=reason):
 				self.assertIn(reason, typst_blockers(self.pf(), layout_with(field)))
 
-	def test_qr_barcode_qualifies(self):
-		field = {"fieldtype": "Barcode", "custom": 1, "barcode_format": "QR", "barcode_value": "X"}
-		self.assertEqual(typst_blockers(self.pf(), layout_with(field)), [])
+	def test_barcodes_qualify(self):
+		for barcode_format in ("QR", "CODE128", "CODE39"):
+			field = {
+				"fieldtype": "Barcode",
+				"custom": 1,
+				"barcode_format": barcode_format,
+				"barcode_value": "X",
+			}
+			self.assertEqual(typst_blockers(self.pf(), layout_with(field)), [])
 
 	def test_format_level_blockers(self):
 		self.assertIn("Custom HTML format", typst_blockers(self.pf(custom_format=1), layout_with()))
@@ -462,7 +463,7 @@ class TestTypstGate(IntegrationTestCase):
 		)
 		self.addCleanup(todo.delete, ignore_permissions=True)
 		source, _assets = TypstEmitter(PrintFormatGenerator(pf_doc, frappe.get_doc("ToDo", todo.name))).emit()
-		self.assertIn("column-gutter: 6.0pt", source)
+		self.assertIn("grid(columns: (1fr, 1fr), inset: 6.0pt", source)
 		self.assertIn('stroke: (left: 0.6pt + rgb("#e5e7eb"))', source)
 
 	def test_inline_label_gap_precedence_matches_html(self):
@@ -729,6 +730,88 @@ class TestTypstRender(IntegrationTestCase):
 		frappe.set_user("test@example.com")
 		source, _assets = TypstEmitter(PrintFormatGenerator(pf, todo)).emit()
 		self.assertIn("margin: (top: 0.0mm, bottom: 0.0mm, left: 0.0mm, right: 0.0mm)", source)
+
+	def test_field_alignment_matches_html(self):
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+		from frappe.utils.typst_emitter import TypstEmitter
+
+		pf = self.make(layout_with())
+		todo = self.make_todo()
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		emitter = TypstEmitter(PrintFormatGenerator(pf, todo))
+		df = {"fieldtype": "Data", "fieldname": "description", "label": "Description"}
+		left_right = emitter._data_field({"field_orientation": "left-right"}, {**df, "align": "right"})
+		inline = emitter._data_field({}, {**df, "show_label": "inline", "align": "center"})
+		self.assertTrue(left_right.startswith("#align(right)[#grid(columns: (auto, auto)"))
+		self.assertIn("[#align(center)[#text(", inline)
+
+	def test_bordered_section_padding_pads_edge_columns_like_html(self):
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+		from frappe.utils.typst_emitter import TypstEmitter
+
+		layout = layout_with(
+			section={
+				"field_borders": True,
+				"padding": {"top": 24, "right": 20, "bottom": 8, "left": 40},
+				"columns": [
+					{
+						"label": "",
+						"fields": [{"fieldtype": "Data", "fieldname": "description", "label": "D"}],
+					},
+					{"label": "", "fields": [{"fieldtype": "Data", "fieldname": "status", "label": "S"}]},
+				],
+			}
+		)
+		pf = self.make(layout)
+		todo = self.make_todo()
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		source, _assets = TypstEmitter(PrintFormatGenerator(pf, todo)).emit()
+		self.assertIn("#pad(top: 18.0pt, bottom: 6.0pt)[#pad(left: 30.0pt, right: 0pt)[", source)
+		self.assertIn("#pad(top: 18.0pt, bottom: 6.0pt)[#pad(left: 0pt, right: 15.0pt)[", source)
+
+	def test_plain_columns_space_like_html(self):
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+		from frappe.utils.typst_emitter import TypstEmitter
+
+		layout = layout_with(
+			section={
+				"columns": [
+					{
+						"label": "",
+						"fields": [{"fieldtype": "Data", "fieldname": "description", "label": "D"}],
+					},
+					{"label": "", "fields": [{"fieldtype": "Data", "fieldname": "status", "label": "S"}]},
+				],
+			}
+		)
+		pf = self.make(layout)
+		todo = self.make_todo()
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		source, _assets = TypstEmitter(PrintFormatGenerator(pf, todo)).emit()
+		self.assertIn("column-gutter: 37.5pt", source)
+
+	def test_left_right_field_label_justify_matches_html(self):
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+		from frappe.utils.typst_emitter import TypstEmitter
+
+		pf = self.make(layout_with())
+		todo = self.make_todo()
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		emitter = TypstEmitter(PrintFormatGenerator(pf, todo))
+		df = {"fieldtype": "Data", "fieldname": "description", "label": "Description"}
+		section = {"field_orientation": "left-right"}
+		space_between = emitter._data_field(section, {**df, "label_justify": "space-between"})
+		space_evenly = emitter._data_field(section, {**df, "label_justify": "space-evenly"})
+		self.assertTrue(space_between.startswith("#grid(columns: (auto, 1fr)"))
+		self.assertTrue(space_evenly.startswith("#grid(columns: (1fr, auto, 1fr, auto, 1fr)"))
+		hidden_label = emitter._data_field(
+			section, {**df, "show_label": "hide", "label_justify": "space-evenly"}
+		)
+		self.assertTrue(hidden_label.startswith("#align(center)["))
 
 	@unittest.skipUnless(has_typst(), "typst not installed")
 	def test_image_format_comes_from_its_content(self):

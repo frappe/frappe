@@ -9,6 +9,7 @@
 		:error="error"
 		:required="required"
 		:options="linkOptions"
+		:filterable="!idLabels"
 		:disabled="disabled"
 		:placeholder="placeholder ?? `Search ${doctype.toLowerCase()}`"
 		:loading="options.loading.value && !options.data.value"
@@ -88,6 +89,7 @@
 </template>
 
 <script setup lang="ts">
+import { toIdOption } from "./linkOption";
 import { computed, onBeforeUnmount, ref, useSlots, watch } from "vue";
 import { Combobox, debounce } from "frappe-ui";
 import type { ComboboxOption, ComboboxCustomOption } from "frappe-ui";
@@ -124,6 +126,11 @@ const options = useLinkSearch(
 	() => props.filters
 );
 
+// The search labels by title; relabelling its options by ID matches `toIdOption` on the raw rows.
+const searchOptions = computed(() =>
+	props.idLabels ? (options.data.value?.map(toIdOption) ?? null) : options.data.value
+);
+
 const createNewOption: ComboboxCustomOption = {
 	type: "custom",
 	key: "create",
@@ -135,7 +142,7 @@ const createNewOption: ComboboxCustomOption = {
 };
 
 const linkOptions = computed<ComboboxOption[]>(() => {
-	let _options: ComboboxOption[] = options.data.value || [];
+	let _options: ComboboxOption[] = searchOptions.value || [];
 	const known = model.value && _options.some((option: any) => option.value === model.value);
 	if (props.title && model.value && !known) {
 		_options = [{ label: props.title, value: model.value }, ..._options];

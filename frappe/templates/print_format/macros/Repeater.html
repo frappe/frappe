@@ -16,7 +16,7 @@
 			{%- set _color = col.color if col.color and col.color|length == 7 and col.color[0] == "#" and col.color[1:]|lower|select("in", "0123456789abcdef")|list|length == 6 else None -%}
 			<td class="pfb-repeater-cell" style="text-align: {{ _align }}{% if _color %}; color: {{ _color }}{% endif %}">
 				{%- for tok in (col.template or []) -%}
-					{%- if tok.t == 'f' -%}{{ row.get_formatted(tok.v) }}{%- else -%}{{ tok.v|e }}{%- endif -%}
+					{%- if tok.t == 'f' -%}{{ row.get_formatted(tok.v)|e if row.meta.get_field(tok.v).fieldtype in ("Code", "JSON") else row.get_formatted(tok.v) }}{%- else -%}{{ tok.v|e }}{%- endif -%}
 				{%- endfor -%}
 			</td>
 			{% endfor %}

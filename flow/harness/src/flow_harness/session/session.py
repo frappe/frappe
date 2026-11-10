@@ -54,12 +54,12 @@ from flow_harness.events import (
 	UserMessage,
 	parse_event,
 )
-from flow_harness.model import Model, ProviderError, get_model
+from flow_harness.model import Model, ModelRequest, ProviderError, get_model
 from flow_harness.model.auth import resolve_model_auth
 from flow_harness.model.cancellation import ModelCancelled
 from flow_harness.model.credentials import CredentialStore
 from flow_harness.model.reasoning import reasoning_params
-from flow_harness.session import titling
+from flow_harness.session import suggest_replies, titling
 from flow_harness.session.attachments import (
 	MAX_ATTACHMENTS_PER_MESSAGE,
 	MAX_TEXT_BYTES,
@@ -202,6 +202,7 @@ class Session:
 		allowed_roots: tuple[str, ...] = (),
 		ignore_hidden_files: bool = False,
 		attachment_store: AttachmentStore | None = None,
+		results_dir: str | None = None,
 		skill_catalog: SkillCatalog | None = None,
 		server_tools: dict[str, Tool] | None = None,
 		extension_runtime: ExtensionRuntime | None = None,
@@ -223,6 +224,7 @@ class Session:
 		self.allowed_roots = allowed_roots
 		self.ignore_hidden_files = ignore_hidden_files
 		self.attachment_store = attachment_store
+		self.results_dir = results_dir
 		self.skill_catalog = skill_catalog or SkillCatalog()
 		self.server_tools = server_tools
 		self.extension_runtime = extension_runtime
@@ -240,6 +242,9 @@ class Session:
 		self._operation_lock = asyncio.Lock()
 		self._task: asyncio.Task[None] | None = None
 		self._title_task: asyncio.Task[None] | None = None
+		self._replies_task: asyncio.Task[None] | None = None
+		# a model object the Agent API or a test passed to the latest run; None builds it by name
+		self._run_model: Model | None = None
 		self._operation_type: Literal["run", "compact"] = "run"
 		self._steering_queue: deque[_QueuedSteering] = deque()
 		self._subscribers: set[asyncio.Queue[AnyEvent | None]] = set()
@@ -271,11 +276,11 @@ class Session:
 	@property
 	def in_use(self) -> bool:
 		"""Something in this process still needs the object itself: a run, a live
-		stream, or a title being written. Anything else can be rebuilt from the log."""
+		stream, or a title or replies being written. Anything else can be rebuilt from the log."""
 		return (
 			self.is_running
 			or bool(self._subscribers)
-			or (self._title_task is not None and not self._title_task.done())
+			or any(task is not None and not task.done() for task in (self._title_task, self._replies_task))
 		)
 
 	def _settled(self, _task: asyncio.Task[None] | None = None) -> None:
@@ -337,6 +342,7 @@ class Session:
 				self._on_first_message(self)
 			self._budget = loop.TokenBudget(self.config.token_budget)
 			inputs = self._loop_inputs(model, before_tool_call, after_tool_call)
+			self._run_model = model
 			handle = self._start_operation(loop.run(user_message, inputs))
 			if should_title:
 				self._start_titling(user_message.text)
@@ -365,6 +371,7 @@ class Session:
 			validate_resume(approval, approval_seq, answers)
 			assert approval is not None  # narrowed by validate_resume
 			inputs = self._loop_inputs(model, before_tool_call, after_tool_call)
+			self._run_model = model
 			return self._start_operation(loop.resume(approval, answers, inputs))
 
 	def abort(self) -> bool:
@@ -602,6 +609,7 @@ class Session:
 		late abort of the previous run cannot leak into this one."""
 		self.abort_signal = asyncio.Event()
 		skill_dirs = (skill.base_dir for skill in self.skill_catalog.skills)
+		results_dirs = (self.results_dir,) if self.results_dir else ()
 		return loop.LoopInputs(
 			config=self.config,
 			messages=self.transcript.messages,
@@ -612,7 +620,7 @@ class Session:
 			reasoning_effort=self.reasoning_effort,
 			allowed_roots=self.allowed_roots,
 			ignore_hidden_files=self.ignore_hidden_files,
-			read_only_roots=tuple(dict.fromkeys((*skill_dirs, *doc_roots()))),
+			read_only_roots=tuple(dict.fromkeys((*skill_dirs, *doc_roots(), *results_dirs))),
 			session_id=self.id,
 			model=model,
 			context_tokens=self.transcript.context_tokens,
@@ -622,6 +630,7 @@ class Session:
 			after_tool_call=after_tool_call,
 			resolve_attachment=self.attachment_store.read if self.attachment_store is not None else None,
 			store_image=self._store_tool_image if self.attachment_store is not None else None,
+			results_dir=self.results_dir,
 			run_subagent=self._subagent_runner.run,
 			server_tools=self.server_tools,
 			extension_runtime=self.extension_runtime,
@@ -703,6 +712,15 @@ class Session:
 				if isinstance(event, RunEnded) and event.reason != "paused":
 					self._discard_steering()
 				self._commit(event)
+				if (
+					isinstance(event, RunEnded)
+					and event.subagent_id is None
+					and event.reason == "done"
+					and operation_type == "run"
+					and self.config.suggest_replies
+					and self.model.partition("/")[0] != "mock"  # mock replies are noise, as with titles
+				):
+					self._start_suggesting()
 		except (ModelCancelled, asyncio.CancelledError) as cancelled:
 			self._settle(
 				reason="aborted",
@@ -759,30 +777,38 @@ class Session:
 		task.add_done_callback(self._settled)
 		self._title_task = task
 
-	def cancel_titling(self) -> None:
-		if self._title_task is not None and not self._title_task.done():
-			self._title_task.cancel()
+	def cancel_side_calls(self) -> None:
+		for task in (self._title_task, self._replies_task):
+			if task is not None and not task.done():
+				task.cancel()
 
 	async def _title_session(self, first_message: str) -> None:
 		"""Runs alongside the first turn on its own model instance, so it never blocks
 		or steals the run's stream. Best-effort: any failure leaves the fallback."""
 		try:
+			small = self.config.small_model
+			name = small.model if small else self.model
 			auth = await resolve_model_auth(
-				self.model,
+				name,
 				self.credential_store,
-				provider_id=self.credential_id,
-				api_key=self.config.api_key,
-				api_base=self.config.api_base,
+				provider_id=None if small else self.credential_id,
+				api_key=small.api_key if small else self.config.api_key,
+				api_base=small.api_base if small else self.config.api_base,
 			)
 			model = get_model(
-				self.model,
+				name,
 				api_key=auth.api_key,
 				api_base=auth.base_url,
 				headers=auth.headers,
-				params={**self.config.model_params, **(reasoning_params(self.model, "off") or {})},
+				params={
+					**(small.model_params if small else self.config.model_params),
+					**(reasoning_params(name, "off") or {}),
+				},
 				refresh_auth=auth.refresh,
 			)
-			title = await titling.generate_title(model, first_message)
+			title, usage = await titling.generate_title(model, first_message)
+			if usage is not None:
+				self._commit(usage)
 			if title is None or self.config.title is not None:
 				return
 			self.config.title = title
@@ -795,6 +821,54 @@ class Session:
 			self._commit(TitleChanged(title=title))
 		except Exception:
 			pass  # titling must never disturb the run
+
+	# --- suggested replies ------------------------------------------------
+
+	def _start_suggesting(self) -> None:
+		if self._replies_task is not None:
+			self._replies_task.cancel()  # its replies answer an older turn
+		task = asyncio.create_task(self._suggest_replies(self._run_model))
+		task.add_done_callback(_mark_retrieved)
+		task.add_done_callback(self._settled)
+		self._replies_task = task
+
+	async def _suggest_replies(self, model: Model | None) -> None:
+		"""Uses the chat's own model, prompt and tools, so it reuses the prompt cache.
+		Failures are ignored."""
+		last = self.transcript.messages[-1]
+		try:
+			if model is None:
+				auth = await resolve_model_auth(
+					self.model,
+					self.credential_store,
+					provider_id=self.credential_id,
+					api_key=self.config.api_key,
+					api_base=self.config.api_base,
+				)
+				model = get_model(
+					self.model,
+					api_key=auth.api_key,
+					api_base=auth.base_url,
+					headers=auth.headers,
+					params=self.config.model_params,
+					refresh_auth=auth.refresh,
+				)
+			request = ModelRequest(
+				messages=[*self.transcript.messages, UserMessage(content=suggest_replies.REPLIES_PROMPT)],
+				tools=loop.tool_schemas(self.server_tools or {}, self.config),
+				system_prompt=self.config.system_prompt or "",
+				stream=False,
+				resolve_attachment=self.attachment_store.read if self.attachment_store is not None else None,
+				params=reasoning_params(self.model, self.reasoning_effort),
+			)
+			suggested, usage = await suggest_replies.suggest_replies(model, request)
+			if usage is not None:
+				self._commit(usage)
+			# drop them if the chat moved on meanwhile
+			if suggested is not None and self.transcript.messages and self.transcript.messages[-1] is last:
+				self._commit(suggested)
+		except Exception:
+			pass
 
 
 def _run_error(error: Exception) -> RunError:

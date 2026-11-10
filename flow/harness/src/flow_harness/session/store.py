@@ -11,6 +11,7 @@ import json
 import logging
 import os
 import re
+import shutil
 import uuid
 from collections.abc import Callable, Collection, Iterator, Mapping
 from dataclasses import dataclass
@@ -70,6 +71,7 @@ class _SessionPaths:
 	meta: str
 	skills: str
 	attachments: str
+	results: str
 	run_end_marker: str
 
 
@@ -135,6 +137,13 @@ class SessionStore:
 		self._session_cache = session_cache or SessionCache(server_config.SESSION_CACHE_MB * 1024 * 1024)
 		self._cache = self._session_cache.partition()
 		self.closing = asyncio.Event()  # set when the daemon shuts down; ends every event stream
+
+	def allows_tool(self, name: str) -> bool:
+		"""The cap applies to built-in tools; a tool a loaded extension registers passes,
+		since the operator put its file on this partition's extension paths."""
+		return (
+			self.tool_allowlist is None or name in self.tool_allowlist or name in self.extension_runtime.tools
+		)
 
 	def _load_extensions(self) -> ExtensionRuntime:
 		runtime = ExtensionRuntime()
@@ -233,7 +242,7 @@ class SessionStore:
 		for agent in config.subagents:
 			requested.update(agent.tools or ())
 			requested.update(agent.extension_tools or ())
-		blocked = sorted(requested - self.tool_allowlist)
+		blocked = sorted(name for name in requested if not self.allows_tool(name))
 		if blocked:
 			raise PolicyError(f"tools not allowed by server policy: {', '.join(blocked)}")
 
@@ -288,8 +297,8 @@ class SessionStore:
 		composed = self.extension_runtime.compose_tools(selected, config.extension_tools)
 		if self.tool_allowlist is None:
 			return composed
-		# runs on every load, so old sessions and extension tools are capped too
-		return {name: tool for name, tool in composed.items() if name in self.tool_allowlist}
+		# runs on every load, so old sessions are capped too
+		return {name: tool for name, tool in composed.items() if self.allows_tool(name)}
 
 	def resolve_tools(self, config: SessionConfig) -> dict[str, Tool]:
 		"""Validate and compose the server tools selected by a session config."""
@@ -300,7 +309,7 @@ class SessionStore:
 		if self.tool_allowlist is not None:
 			# persist the effective builtin list, so meta and API echoes tell the truth
 			config = config.model_copy(
-				update={"tools": [name for name in config.tools if name in self.tool_allowlist]}
+				update={"tools": [name for name in config.tools if self.allows_tool(name)]}
 			)
 		# Catalog metadata and the composed prompt are immutable for this session.
 		# Skill files themselves remain live and are read when used, matching Pi.
@@ -409,12 +418,13 @@ class SessionStore:
 		if session is not None and session.is_running:
 			raise SessionConflict("cannot delete a session with an active run")
 		if session is not None:
-			session.cancel_titling()  # a late title write must not resurrect the meta file
+			session.cancel_side_calls()  # a late title write must not resurrect the meta file
 		attachment_store = session.attachment_store if session is not None else None
 		if attachment_store is not None:
 			attachment_store.remove_all()
 		elif os.path.exists(paths.attachments):
 			AttachmentStore(paths.attachments).remove_all()
+		shutil.rmtree(paths.results, ignore_errors=True)
 		for path in (paths.log, paths.meta, paths.skills, paths.run_end_marker):
 			try:
 				os.unlink(path)
@@ -488,7 +498,7 @@ class SessionStore:
 
 	def save_meta(self, session: Session) -> None:
 		"""Write the session's config to its meta file (called at create and on config
-		patches like `auto_approve`; model changes live in the log instead)."""
+		patches like `approval_mode`; model changes live in the log instead)."""
 		paths = _session_paths(os.path.dirname(session.log.path), session.id)
 		path = paths.meta
 		fd, tmp = mkstemp(prefix=f".{os.path.basename(path)}.", dir=paths.directory)
@@ -519,6 +529,7 @@ class SessionStore:
 			allowed_roots=self.allowed_roots,
 			ignore_hidden_files=self.ignore_hidden_files,
 			attachment_store=AttachmentStore(paths.attachments),
+			results_dir=paths.results,
 			skill_catalog=skill_catalog,
 			server_tools=server_tools,
 			extension_runtime=self.extension_runtime,
@@ -643,6 +654,7 @@ def _session_paths(directory: str, sid: str) -> _SessionPaths:
 		meta=os.path.join(directory, f"{sid}.meta.json"),
 		skills=os.path.join(directory, f"{sid}{_SKILLS_SUFFIX}"),
 		attachments=os.path.join(directory, f"{sid}.attachments"),
+		results=os.path.join(directory, f"{sid}.results"),
 		run_end_marker=os.path.join(directory, f"{sid}.run_end_pending"),
 	)
 

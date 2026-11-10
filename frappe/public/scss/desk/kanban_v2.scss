@@ -92,10 +92,12 @@
 	&:active {
 		cursor: grabbing;
 	}
-	/* .border is !important, so overrides need it too */
-	&:not(.kn-selected):hover {
-		border-color: var(--outline-gray-3, #cbd0d6) !important;
-		box-shadow: var(--elevation-sm);
+	/* .border is !important, so overrides need it too; a tap would leave :hover on */
+	&:not(.kn-selected) {
+		@include hover-only-with-pointer {
+			border-color: var(--outline-gray-3, #cbd0d6) !important;
+			box-shadow: var(--elevation-sm);
+		}
 	}
 	&:focus-visible {
 		outline: 2px solid var(--kn-accent);
@@ -376,4 +378,107 @@
 	min-height: 260px;
 	padding-top: 0;
 	width: 100%;
+}
+
+/* the card's preview in a touch sheet */
+.kn-mi-sheet .kn-mi-banner {
+	border-radius: var(--radius-lg);
+}
+
+/* a held touch lifts the card, not its text */
+.kn-touch .kn-card {
+	-webkit-user-select: none;
+	user-select: none;
+	-webkit-touch-callout: none;
+}
+
+/* select mode: a ring on every card, filled on the picked ones */
+.kn-select-mode .kn-card {
+	position: relative;
+
+	.kn-title-row {
+		padding-inline-end: calc(var(--spacing) * 7);
+	}
+
+	&::after {
+		content: "";
+		position: absolute;
+		top: calc(var(--spacing) * 3);
+		inset-inline-end: calc(var(--spacing) * 3);
+		width: calc(var(--spacing) * 5);
+		height: calc(var(--spacing) * 5);
+		border: 1.5px solid var(--outline-gray-3);
+		border-radius: var(--radius-full);
+		background: var(--surface-base);
+	}
+
+	&.kn-selected::after {
+		border: calc(var(--spacing) * 1.5) solid var(--ink-gray-9);
+	}
+}
+
+@include media-breakpoint-down(sm) {
+	/* one column at a time, the next one peeking */
+	.kn-board {
+		scroll-snap-type: x mandatory;
+	}
+	.kn-column {
+		scroll-snap-align: start;
+	}
+
+	.kn-column-chips {
+		scrollbar-width: none;
+
+		&::-webkit-scrollbar {
+			display: none;
+		}
+
+		.es-tab-buttons {
+			flex: none;
+		}
+	}
+
+	/* what the bar and the drag pill float above: the tab bar, or the screen's edge */
+	.kn-selection-bar,
+	.kn-drag-hint {
+		--kn-floor: env(safe-area-inset-bottom);
+	}
+
+	body.has-mobile-nav :is(.kn-selection-bar, .kn-drag-hint) {
+		--kn-floor: var(--desk-mobile-nav-height);
+	}
+
+	/* full width */
+	.kn-selection-bar {
+		left: calc(var(--spacing) * 3);
+		right: calc(var(--spacing) * 3);
+		bottom: calc(var(--kn-floor) + var(--spacing) * 3);
+		transform: none;
+		animation-name: kn-sel-in-phone;
+
+		.kn-sel-count {
+			flex: 1;
+		}
+	}
+
+	.kn-column.kn-drop-column {
+		outline: 2px solid var(--outline-gray-5);
+		outline-offset: -2px;
+	}
+
+	/* names the column a dragged card would land in */
+	.kn-drag-hint {
+		position: fixed;
+		bottom: calc(var(--kn-floor) + var(--spacing) * 3);
+		left: 50%;
+		transform: translateX(-50%);
+		z-index: 2001;
+	}
+}
+
+@keyframes kn-sel-in-phone {
+	from {
+		opacity: 0;
+		transform: translateY(14px);
+	}
 }

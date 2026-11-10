@@ -14,28 +14,45 @@ from frappe.utils.data import format_time, format_timedelta
 class NamedParameterWrapper:
 	"""Utility class to hold parameter values and keys"""
 
-	__slots__ = ("parameters",)
+	__slots__ = ("_term_keys", "parameters")
 
 	def __init__(self) -> None:
 		self.parameters = {}
+		self._term_keys = {}
 
-	def get_sql(self, param_value: Any, **kwargs) -> str:
+	def get_sql(self, param_value: Any, term: Term | None = None, **kwargs) -> str:
 		"""Return SQL for a parameter, while adding the real value in a dict.
+
+		A term rendered twice, like `COALESCE(x, '')` in both SELECT and GROUP BY, keeps
+		one parameter: Postgres binds each separately and would not match the two.
 
 		Args:
 		        param_value (Any): Value of the parameter
+		        term (Term): The term the value belongs to
 
 		Return:
 		        str: parameter used in the SQL query
 		"""
+		if term is not None and id(term) in self._term_keys:
+			return self._term_keys[id(term)][1]
 		param_key = f"%(param{len(self.parameters) + 1})s"
 		assert param_key[2:-2] not in self.parameters, "generated parameter keys must be unique"
 		self.parameters[param_key[2:-2]] = param_value
+		if term is not None:
+			# hold the term, so a term freed mid-render can't pass its id to another
+			self._term_keys[id(term)] = (term, param_key)
 		return param_key
 
 	def get_parameters(self) -> dict[str, Any]:
 		"""Get dict with parameters and values."""
 		return self.parameters
+
+
+class EscapedValueWrapper:
+	"""Parameter wrapper that inlines each value as an escaped SQL literal."""
+
+	def get_sql(self, param_value: Any, **kwargs) -> str:
+		return frappe.db.escape(param_value, percent=False)
 
 
 class ParameterizedValueWrapper(ValueWrapper):
@@ -55,7 +72,7 @@ class ParameterizedValueWrapper(ValueWrapper):
 		if param_wrapper and isinstance(self.value, str):
 			# add quotes if it's a string value
 			value_sql = self.get_value_sql(quote_char=quote_char, **kwargs)
-			sql = param_wrapper.get_sql(param_value=value_sql, **kwargs)
+			sql = param_wrapper.get_sql(param_value=value_sql, term=self, **kwargs)
 		else:
 			# * BUG: pypika doesen't parse timedeltas and datetime.time
 			if isinstance(self.value, timedelta):
@@ -82,6 +99,19 @@ class SQLiteParameterizedValueWrapper(ParameterizedValueWrapper, SQLLiteValueWra
 	pass
 
 
+# postgres can't infer the type of a parameter passed to their variadic "any" arguments
+TEXT_PARAMETER_FUNCTIONS = frozenset(("CONCAT", "CONCAT_WS"))
+
+
+def get_text_parameter_function_sql(function: Function, **kwargs: Any) -> str:
+	args = ",".join(
+		arg.get_sql(with_alias=False, subquery=True, **kwargs)
+		+ ("::text" if isinstance(arg, ValueWrapper) else "")
+		for arg in function.args
+	)
+	return f"{function.name}({args})"
+
+
 class ParameterizedFunction(Function):
 	"""
 	Class to monkey patch pypika.terms.Functions
@@ -96,12 +126,16 @@ class ParameterizedFunction(Function):
 		dialect = kwargs.pop("dialect", None)
 		param_wrapper = kwargs.pop("param_wrapper", None)
 
-		function_sql = self.get_function_sql(
-			with_namespace=with_namespace,
-			quote_char=quote_char,
-			param_wrapper=param_wrapper,
-			dialect=dialect,
-		)
+		function_kwargs = {
+			"with_namespace": with_namespace,
+			"quote_char": quote_char,
+			"param_wrapper": param_wrapper,
+			"dialect": dialect,
+		}
+		if dialect == Dialects.POSTGRESQL and self.name in TEXT_PARAMETER_FUNCTIONS:
+			function_sql = get_text_parameter_function_sql(self, **function_kwargs)
+		else:
+			function_sql = self.get_function_sql(**function_kwargs)
 
 		if self.schema is not None:
 			function_sql = "{schema}.{function}".format(

@@ -26,6 +26,7 @@
 		:doctype="field.options ?? ''"
 		:filters="field.filters"
 		:title="title"
+		:idLabels="isName"
 		:label="field.label"
 		:description="field.description"
 		:placeholder="field.placeholder"
@@ -77,6 +78,9 @@ const titles = inject(LinkTitlesKey, null);
 const link = ref<LinkExposed | null>(null);
 const open = ref(false);
 
+// `name` stores the ID, so show the ID, not the title.
+const isName = computed(() => props.field.fieldname === "name");
+
 const value = computed<string | null>({
 	get: () => props.modelValue ?? null,
 	// A selection is a commit for a picker: sync the value and fire the trigger.
@@ -105,10 +109,11 @@ const mark = useLinkMark(
 	() => props.modelValue
 );
 
-const title = computed(
-	() =>
-		(props.modelValue
-			? titles?.value[`${props.field.options}::${props.modelValue}`]
-			: undefined) ?? linkCreate.title(props.modelValue)
+const title = computed(() =>
+	isName.value
+		? undefined
+		: ((props.modelValue
+				? titles?.value[`${props.field.options}::${props.modelValue}`]
+				: undefined) ?? linkCreate.title(props.modelValue))
 );
 </script>

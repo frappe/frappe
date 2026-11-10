@@ -14,4 +14,5 @@ export const NO_VALUE = new Set([
   "Button",
   "Image",
   "Attachment Gallery",
+  "Vue Component",
 ]);

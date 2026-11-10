@@ -205,7 +205,7 @@ frappe.ui.FilterGroup = class {
 				e.preventDefault();
 				e.stopPropagation();
 				e.target.blur();
-				filter.field.datepicker.hide();
+				if (filter.field.datepicker.visible) filter.field.datepicker.hide();
 				this.pick_date_step(filter);
 			},
 			true
@@ -253,33 +253,34 @@ frappe.ui.FilterGroup = class {
 		const with_time = time_only || field.df.fieldtype === "Datetime";
 		const calendar = document.createElement("div");
 		calendar.className = "filter-calendar";
-		let ready = false;
 		// through the field's own picker, so the value is set as a popup pick sets it
 		const apply = (dates) => {
 			this.sheet.pop();
 			field.datepicker.selectDate(dates);
 		};
-		const picker = $(calendar)
-			.datepicker({
-				...field.datepicker_options,
-				inline: true,
-				onShow: null,
-				onSelect: (formatted, dates) => {
-					if (!ready || with_time || (range && dates.length < 2)) return;
-					apply(dates);
+		const picker = new AirDatepicker(calendar, {
+			...field.datepicker_options,
+			inline: true,
+			position: undefined,
+			// as on the field's own picker, Today (Now) picks; it doesn't only show the month
+			buttons: field.today_text && [
+				{
+					content: field.today_text,
+					onClick: (datepicker) =>
+						datepicker.selectDate(field.get_now_date(), { updateTime: true }),
 				},
-			})
-			.data("datepicker");
-		// as on the field's own picker, Today (Now) picks; it doesn't only show the month
-		const now = () => (time_only ? frappe.datetime.now_time(true) : field.get_now_date());
-		$(calendar)
-			.find('[data-action="today"]')
-			.text(time_only ? __("Now") : field.today_text)
-			.on("click", () => picker.selectDate(now()));
+			],
+			onSelect: ({ date }) => {
+				const dates = [].concat(date);
+				if (with_time || (range && dates.length < 2)) return;
+				apply(dates);
+			},
+		});
+		frappe.ui.form.add_seconds_slider(picker);
 		// the sliders don't say which is which
 		const units = { hours: __("Hours"), minutes: __("Minutes"), seconds: __("Seconds") };
 		$(calendar)
-			.find(".datepicker--time-row input")
+			.find(".air-datepicker-time--row input")
 			.each((i, input) => input.parentElement.setAttribute("data-label", units[input.name]));
 		// the value, not the popup's selection: a value restored on load never went through it
 		const to_date = (value) => {
@@ -291,8 +292,7 @@ frappe.ui.FilterGroup = class {
 			);
 		};
 		const current = [].concat(field.get_value() || []).filter(Boolean);
-		picker.selectDate(current.map(to_date));
-		ready = true;
+		picker.selectDate(current.map(to_date), { silent: true, updateTime: true });
 		const done = () =>
 			frappe.ui.button({
 				label: __("Done"),

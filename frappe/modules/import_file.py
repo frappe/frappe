@@ -33,6 +33,7 @@ ignore_values = {
 	"Module Onboarding": ["is_complete"],
 	"Onboarding Step": ["is_complete", "is_skipped"],
 	"Workspace": ["is_hidden"],
+	"Letter Head": ["is_default", "disabled"],
 }
 
 ignore_doctypes = [""]

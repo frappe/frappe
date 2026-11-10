@@ -15,6 +15,8 @@ export interface LinkProps extends Omit<InputLabelingProps, "error"> {
   placeholder?: string;
   /** What the current value displays as until the search returns it. */
   title?: string;
+  /** Label options by ID, not title; disables client-side filtering. */
+  idLabels?: boolean;
 }
 
 export interface LinkSlots {

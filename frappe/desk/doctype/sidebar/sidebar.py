@@ -508,6 +508,11 @@ class Sidebar(Document, DeskViews):
 
 		validate_item_keys(self.navigation_items)
 
+	def clear_cache(self):
+		super().clear_cache()
+		# Every desk user's boot carries the resolved sidebars.
+		frappe.cache.delete_key("bootinfo")
+
 	def on_trash(self):
 		from frappe.desk.doctype.dock.dock import remove_sidebar_rows
 

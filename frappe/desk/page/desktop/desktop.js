@@ -48,79 +48,104 @@ frappe.pages["desktop"].on_page_show = function (wrapper) {
 
 // Pilot's Cloud Settings dialog, shared by the cloud button and the `?cloud_settings=1` address.
 class CloudSettingsOpener {
+	// Warm the module only; a pilot without it then warms the classic script instead.
 	prefetch(bundle) {
 		if (this._prefetched) return;
 		this._prefetched = true;
-		if (!bundle.js) return;
+
+		if (!bundle.module) {
+			this.preload("prefetch", bundle.js);
+			return;
+		}
+		const link = this.preload("modulepreload", bundle.module);
+		link.onerror = () => this.preload("prefetch", bundle.js);
+	}
+
+	preload(rel, url) {
 		const link = document.createElement("link");
-		link.rel = "prefetch";
-		link.href = bundle.js;
+		link.rel = rel;
+		link.href = this.url(url);
+		link.dataset.cloudSettingsBundle = "1";
 		document.head.appendChild(link);
+		return link;
 	}
 
 	async open(settings) {
+		let runtime;
 		try {
-			await this.load(settings.bundle);
+			runtime = await this.load(settings.bundle);
 		} catch (error) {
 			// Pilot may be unreachable or the origin blocked; let the user retry.
-			console.error("Cloud settings bundle failed to load", error); // eslint-disable-line no-console
+			console.error("Cloud settings failed to load", error); // eslint-disable-line no-console
 			frappe.show_alert({
 				message: __("Couldn't open Cloud settings. Please try again."),
 				indicator: "red",
 			});
 			return;
 		}
-		// A 200 that never registers show() must not stick: clear the promise and
-		// bust the URL so the next click cannot reuse the API-less HTTP response.
-		if (typeof frappe.cloudSettings?.show !== "function") {
-			this.invalidate();
-			frappe.show_alert({
-				message: __("Couldn't open Cloud settings. Please try again."),
-				indicator: "red",
-			});
-			return;
-		}
-		frappe.cloudSettings.show(settings);
+		runtime.mount(settings);
 	}
 
-	invalidate() {
-		this._loaded = null;
-		this._cache_bust = Date.now();
-		// Drop any partial global left by an API-less evaluation so a retry can
-		// re-register cleanly.
-		delete frappe.cloudSettings;
-		document
-			.querySelectorAll("script[data-cloud-settings-bundle]")
-			.forEach((el) => el.remove());
-	}
-
-	bundle_url(bundle) {
-		const base = bundle.js;
-		if (!this._cache_bust) return base;
-		const sep = base.includes("?") ? "&" : "?";
-		return `${base}${sep}_=${this._cache_bust}`;
-	}
-
-	// Load pilot's cross-origin bundle once. It's a classic-script IIFE, so no CORS
-	// is involved, and it carries its own styles (the dialog renders in a shadow
-	// root), so there is no stylesheet to link. A failed load rejects and clears
-	// the cache so a later click can retry.
+	// Load pilot's UI once. The ES runtime loads each panel on first use. A pilot that
+	// predates it, or sends no CORS header, still serves the classic script. A failed
+	// load clears the cache and busts the URLs so a later click can retry.
 	load(bundle) {
-		if (this._loaded) return this._loaded;
+		this._loaded ??= this.import_module(bundle)
+			.catch((error) => {
+				console.warn("Cloud settings module failed, loading the script", error); // eslint-disable-line no-console
+				return this.load_script(bundle);
+			})
+			.catch((error) => {
+				this.invalidate();
+				throw error;
+			});
+		return this._loaded;
+	}
 
-		const src = this.bundle_url(bundle);
-		this._loaded = new Promise((resolve, reject) => {
+	async import_module(bundle) {
+		if (!bundle.module) throw new Error("Pilot serves no Cloud Settings module");
+
+		const module = await import(this.url(bundle.module));
+		if (typeof module.mountCloudSettings !== "function") {
+			throw new Error(`${bundle.module} exports no mountCloudSettings`);
+		}
+		return { mount: (settings) => module.mountCloudSettings(settings, {}) };
+	}
+
+	// The classic script is an IIFE, so no CORS is involved. It carries its own styles
+	// (the dialog renders in a shadow root), so there is no stylesheet to link.
+	load_script(bundle) {
+		const src = this.url(bundle.js);
+		return new Promise((resolve, reject) => {
 			const script = document.createElement("script");
 			script.src = src;
 			script.dataset.cloudSettingsBundle = "1";
 			script.onload = resolve;
 			script.onerror = () => reject(new Error(`Failed to load ${src}`));
 			document.head.appendChild(script);
-		}).catch((error) => {
-			this._loaded = null;
-			throw error;
+		}).then(() => {
+			// A 200 that never registers show() must not stick.
+			if (typeof frappe.cloudSettings?.show !== "function") {
+				throw new Error(`${src} did not register Cloud settings`);
+			}
+			return { mount: (settings) => frappe.cloudSettings.show(settings) };
 		});
-		return this._loaded;
+	}
+
+	invalidate() {
+		this._loaded = null;
+		this._prefetched = false;
+		this._cache_bust = Date.now();
+		// Drop any partial global left by an API-less evaluation so a retry can
+		// re-register cleanly.
+		delete frappe.cloudSettings;
+		document.querySelectorAll("[data-cloud-settings-bundle]").forEach((el) => el.remove());
+	}
+
+	url(url) {
+		if (!this._cache_bust) return url;
+		const sep = url.includes("?") ? "&" : "?";
+		return `${url}${sep}_=${this._cache_bust}`;
 	}
 }
 
@@ -171,10 +196,8 @@ class DesktopPage {
 		this.setup();
 	}
 	render_app_icons() {
-		// the apps screen is powered entirely by the `add_to_apps_screen` hook,
-		// surfaced as `frappe.boot.app_data`; show one icon per opted-in app.
-		// Order by the hook's `sequence_id` (lower first); Framework declares 1000 so it
-		// always trails. Ties keep installed-apps order since sort() is stable.
+		// One icon per app that opts in through the `add_to_apps_screen` hook, plus each Studio
+		// App with a published page, in `get_apps_screen_apps` order.
 		// The destination is the landing ladder (see app_landing_route).
 		//
 		// An app that resolves to none of the three keeps its icon. It used to be filtered out,
@@ -182,13 +205,10 @@ class DesktopPage {
 		// is exactly the record an app ships, a dock-less app would have had no rail and no icon,
 		// so no way in at all. The icon leads to the desk's root, which is somewhere rather than
 		// nowhere.
-		const apps = (frappe.boot.app_data || [])
-			.filter((app) => app.on_apps_screen)
-			.map((app) => ({
-				...app,
-				route: frappe.app.sidebar?.app_landing_route(app) || "/desk",
-			}))
-			.sort((a, b) => (a.sequence_id ?? 100) - (b.sequence_id ?? 100));
+		const apps = frappe.utils.get_apps_screen_apps().map((app) => ({
+			...app,
+			route: frappe.app.sidebar?.app_landing_route(app) || "/desk",
+		}));
 
 		const $container = $(`<div class="icons-container"></div>`).appendTo(this.wrapper);
 		const columns = frappe.is_mobile() ? 3 : null;
@@ -206,6 +226,7 @@ class DesktopPage {
 				// `desk_route` on its `add_to_apps_screen` hook. Empty for a desk-native app,
 				// which renders no subtitle.
 				desk_route: app.desk_route,
+				module_icons: app.module_icons,
 			};
 			this.add_icon($grid, icon_data, app.route);
 		});
@@ -219,6 +240,16 @@ class DesktopPage {
 			$app_links.attr("target", "_blank");
 		}
 		$app_links.attr("href", route);
+		const $module_icons = $icon.find(".module-icon");
+		$module_icons
+			.filter((_, link) => link.getAttribute("href").startsWith("http"))
+			.attr("target", "_blank");
+
+		// The caption names the module icon under the pointer while the stack is fanned out.
+		const $title = $icon.find(".icon-title");
+		$module_icons
+			.on("mouseenter focus", (e) => $title.text(e.currentTarget.dataset.title))
+			.on("mouseleave blur", () => $title.text(__(icon_data.label)));
 		$grid.append($icon);
 	}
 	setup() {
@@ -234,7 +265,7 @@ class DesktopPage {
 	setup_cloud_settings() {
 		const $button = $(".desktop-cloud-settings");
 		const settings = frappe.boot.cloud_settings;
-		// The bundle is hosted by pilot; without its URL there's nothing to open.
+		// The UI is hosted by pilot; without its URL there's nothing to open.
 		if (!settings?.enabled || !settings.bundle?.js) {
 			$button.addClass("hidden");
 			return;
