@@ -173,7 +173,8 @@ class TestWebhook(IntegrationTestCase):
 		self.responses.start()
 		self.addCleanup(self.responses.reset)
 		self.addCleanup(self.responses.stop)
-		self.enterContext(patch.object(frappe.local, "_webhook_queue", None, create=True))
+		frappe.local._webhook_queue = None
+		self.addCleanup(setattr, frappe.local, "_webhook_queue", None)
 
 		self.responses.add(
 			responses.POST,
