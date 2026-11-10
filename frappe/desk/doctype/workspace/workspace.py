@@ -84,6 +84,7 @@ class Workspace(Document, DeskViews):
 
 	def validate(self):
 		self.title = strip_html(self.title)
+		self.validate_links()
 
 		# `with_module` marks a page a module brought with it rather than one a user published. A
 		# module added on the site creates the page it opens on (`ModuleDef.after_insert`), and
@@ -133,6 +134,31 @@ class Workspace(Document, DeskViews):
 		self.validate_duplicate_widget_labels()
 		self.validate_shared_page_has_a_module()
 		self.validate_private_page_is_yours()
+
+	def validate_links(self):
+		for fieldname in {"Link": ("link_type", "link_to"), "URL": ("external_link",)}.get(self.type, ()):
+			if not self.get(fieldname):
+				frappe.throw(
+					_("{0} is required").format(frappe.bold(_(self.meta.get_label(fieldname)))),
+					frappe.MandatoryError,
+				)
+
+		rows = [(link, ("link_type", "link_to")) for link in self.links if link.type == "Link"]
+		for shortcut in self.shortcuts:
+			fieldnames = ["url" if shortcut.type == "URL" else "link_to"]
+			if shortcut.doc_view == "Kanban":
+				fieldnames.append("kanban_board")
+			rows.append((shortcut, fieldnames))
+
+		for row, fieldnames in rows:
+			for fieldname in fieldnames:
+				if not row.get(fieldname):
+					frappe.throw(
+						_("Row #{0}: {1} is required").format(
+							row.idx, frappe.bold(_(row.meta.get_label(fieldname)))
+						),
+						frappe.MandatoryError,
+					)
 
 	def validate_private_page_is_yours(self):
 		"""A private page belongs to the person named in `for_user`, and only they may write one.
@@ -771,8 +797,8 @@ def new_page(new_page: dict):
 	doc.icon = page.get("icon") or "grid"
 	doc.content = page.get("content")
 	doc.parent_page = page.get("parent_page")
-	doc.label = page.get("label")
 	doc.for_user = page.get("for_user")
+	doc.label = f"{doc.title}-{doc.for_user}" if doc.for_user else doc.title
 	doc.public = page.get("public")
 	for role in page.get("roles") or []:
 		if role.get("role"):
@@ -1160,6 +1186,9 @@ def update_workspace_settings(
 			_("You need the Workspace Manager role to edit this workspace."),
 			frappe.PermissionError,
 		)
+
+	if access not in ("private", "group", "public"):
+		frappe.throw(_("Access must be one of private, group or public"))
 
 	role_list = frappe.parse_json(roles) if isinstance(roles, str) else (roles or [])
 	# a row may be a `{role: ...}` dict (from the dialog grid) or a bare role name

@@ -21,6 +21,11 @@ class DiscussionReply(Document):
 		topic: DF.Link | None
 	# end: auto-generated types
 
+	def validate(self):
+		from frappe.desk.form.utils import validate_comment_content
+
+		validate_comment_content(self.reply)
+
 	def on_update(self):
 		from frappe.utils.html_utils import sanitize_html
 
