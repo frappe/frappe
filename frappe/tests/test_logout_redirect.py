@@ -80,6 +80,18 @@ class TestPostLogoutRedirect(IntegrationTestCase):
 			login_manager.logout.assert_called_once()
 			commit.assert_called_once()
 
+	def test_invalid_oidc_configuration_does_not_block_local_logout(self):
+		with (
+			patch("frappe.utils.oauth.get_oauth2_logout_url", side_effect=ValueError("Invalid IdP URL")),
+			patch.object(frappe.local, "login_manager", create=True) as login_manager,
+			patch.object(frappe.db, "commit") as commit,
+			patch("frappe.logger") as logger,
+		):
+			self.assertIsNone(logout())
+			login_manager.logout.assert_called_once()
+			commit.assert_called_once()
+			logger.assert_called_once_with("frappe.auth")
+
 	def test_stale_redirect_is_not_reused(self):
 		frappe.local.flags.post_logout_redirect = "https://old.example.com/logout"
 		with (
