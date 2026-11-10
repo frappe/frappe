@@ -38,7 +38,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: checkrun
     if: ${{ needs.checkrun.outputs.build == 'strawberry' && github.repository_owner == 'frappe' }}
     timeout-minutes: 60
