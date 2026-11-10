@@ -115,4 +115,9 @@ export default [
 		files: ["frontend/src/**/*.{js,ts,vue}"],
 		rules: { "no-restricted-syntax": [...noV1Address, ...noStaleToken, ...noDeepUiPath] },
 	},
+	{
+		// develop's EmailAccounts still fetches through v1; the desk does not use it until it is ported
+		files: ["ui/src/components/EmailAccounts/useEmailAccounts.ts"],
+		rules: { "no-restricted-imports": "off" },
+	},
 ];
