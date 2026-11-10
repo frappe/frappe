@@ -27,6 +27,7 @@ import { readListMemory, recallRows, rememberRows, useRememberedPageSize, writeL
 import { listStatusTheme, type StatusTheme } from "@/statusTheme";
 import { contributedCells, resolveCell, type CellView } from "./cells";
 import { completeFilters, queryFromAddress } from "./query";
+import { partsFor } from "./rowParts";
 import { columnsFrom, toStoredColumns } from "./storedSettings";
 import { useListRows, type ListRow, type ListRows } from "./useListRows";
 import type { View } from "./view";
@@ -93,7 +94,7 @@ export function useListView(view: View): ListView {
 	/** The columns the tiers resolve to: the person's, else the site's, else the app default. */
 	const columns = computed<ListColumn[]>({
 		get: () => {
-			const stored = columnsFrom(view.settings.value.columns, fields.value, readable);
+			const stored = columnsFrom(view.settings.value.columns, fields.value, readable, listMeta.value ?? {});
 			return stored.length ? stored : defaults.value;
 		},
 		// A rename alone, or the app default handed back unchanged, is not the person's change.
@@ -129,6 +130,7 @@ export function useListView(view: View): ListView {
 			filters: filtersDict(view.filters.value),
 			orderBy: serializeOrderBy(view.sort.value),
 			limit: pageSize.value,
+			include: partsFor(columns.value.map((column) => column.fieldname)),
 		};
 	});
 

@@ -191,7 +191,7 @@ const { meta } = useDoctypeMeta(props.doctype);
 // Field Options derived client-side from Meta, unioned with the host's synthetic
 // columns — no CRM endpoint.
 const allOptions = computed<ColumnOption[]>(() =>
-	getColumnOptions(meta.value?.fields ?? [], props.synthetic)
+	getColumnOptions(meta.value?.fields ?? [], props.synthetic, meta.value ?? {})
 );
 
 // The "add" picker offers every column not already shown.

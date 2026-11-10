@@ -253,7 +253,7 @@ component group, with its main names.
 | `SectionMarks` (`@framework/ui/SectionMarks`: `SectionMarks`, `MarkedSection`) | A column of marks centred beside a scroll area, one per section. The marks near the pointer grow towards it and the sections in view draw brighter; the hovered mark's card shows the section's title and description, and a click scrolls to it. It draws nothing while the area does not scroll. The settings dialog puts it beside each pane's blocks |
 | `Filter`, `QuickFilter`, `ConditionBuilder` | Edit list filters, and their address and wire format |
 | `SortBy` | The list sort control and its `order_by` string |
-| `ColumnSettings` (`isColumnFieldtype`) | Pick, order and size list columns. `isColumnFieldtype` tells which fieldtypes can be a column |
+| `ColumnSettings` (`isColumnFieldtype`, `isSortableColumn`) | Pick, order and size list columns. `isColumnFieldtype` tells which fieldtypes can be a column; `isSortableColumn` tells which can be sorted on |
 | `experimental/List` (`List`, `ListFooter`, `ListBulkBar`) | A virtual-scroll list with selection, a bulk bar and an optional end-of-row menu cell (`rowMenu` prop and slot) |
 | `ListView` and `usePagedList` | An app's own paged list: rows a page at a time |
 | `useLinkSearch` | The server's matches for a link picker; the last answer wins. A fresh search skips the browser's cached answer |
@@ -347,6 +347,8 @@ component group, with its main names.
 | `contributedCells`, `resolveCell`, `CellView` | The apps' list `cells` by fieldname (the first app to name a fieldname wins), and what one draws for a value: an icon, a badge theme, or a Date or Datetime in the app's dayjs format. The `cells` are data in `list.js`: no extra chunk, fetch or permission check (the column's field is read as before) |
 | `useListView` (`DeleteOutcome`, `deleteRows`, `filtersDict`) | The List renderer's state: columns, selection, page size, the rows (`useListRows`), delete, row links, column resize and the apps' row actions |
 | `useListRows` (`ListRow`, `ListRows`) | Rows and a total for one query, a page at a time |
+| Row parts (`personOf`, `commentCountOf`) | What the list read's `include` parts say about a row: the named person behind a user id (Assigned To, Liked By) and the row's comment count |
+| Favourite stars (`isStarred`, `toggleStar`) | The Favourite column's own state: which listed rows the person starred, and the click that stars or unstars one in place. Self-contained so the column can go on its own |
 | List defaults (`ListMeta`, `contributedRowActions`) | A doctype's list facts and the apps' row actions, read the same by every renderer |
 | List memory (`readListMemory`, `writeListMemory`, `useRememberedPageSize`) | The page size a history entry keeps, as a ref both renderers share |
 | List settings (`useListSettings`, `markListSettingsStale`, `isFavourite`) | Saved columns, sort and quick filters, per user or site. The same read says which of the list and its saved views (by key) the person starred, and its star toggle (`toggle_favourite` on `DocType` <doctype>, with the view's key on a view) queues with the writes. On `doctype_update` it keeps the old rows on show and reads fresh ones |

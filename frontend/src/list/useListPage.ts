@@ -83,7 +83,7 @@ export function useListPage(doctype: string, opened: SavedView = PLAIN_LIST): Li
 	};
 
 	function resolvedSort(): Sort[] {
-		const stored = sortFrom(settings.stored.value.sort, fields.value, readable);
+		const stored = sortFrom(settings.stored.value.sort, fields.value, readable, listMeta.value ?? {});
 		return stored.length ? stored : defaultSort(listMeta.value!);
 	}
 

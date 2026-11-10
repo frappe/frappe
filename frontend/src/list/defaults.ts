@@ -15,6 +15,8 @@ export interface ListMeta {
 	sort_order?: string;
 	fields?: RawMetaField[];
 	states?: { title?: string; color?: string }[];
+	is_submittable?: 0 | 1;
+	is_virtual?: 0 | 1;
 	workflow_state_field?: string | null;
 	workflow_state_styles?: Record<string, string>;
 }
@@ -45,6 +47,9 @@ export function sameSort(a: Sort[], b: Sort[]): boolean {
 	return JSON.stringify(a) === JSON.stringify(b);
 }
 
+/** Columns the list read gives as parts, not as fields: the server has no such field. */
+const PART_COLUMNS = new Set(["_favourite", "_comments"]);
+
 /** The fields a page of rows needs: `name`, the columns, their marks, currencies and titles, then the row actions'. */
 export function fetchFields(
 	columns: Column[],
@@ -58,7 +63,7 @@ export function fetchFields(
 	);
 	const titles = columns.flatMap((column) => cellTitle(column.fieldname, meta)?.select ?? []);
 	const wanted = [
-		...columns.map((column) => column.fieldname),
+		...columns.map((column) => column.fieldname).filter((fieldname) => !PART_COLUMNS.has(fieldname)),
 		...marks,
 		...currencies,
 		...titles,

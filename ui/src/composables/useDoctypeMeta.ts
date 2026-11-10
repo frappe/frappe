@@ -20,6 +20,8 @@ export interface DoctypeMeta {
   autoname?: string;
   issingle?: 0 | 1;
   istable?: 0 | 1;
+  is_submittable?: 0 | 1;
+  is_virtual?: 0 | 1;
   in_create?: 0 | 1;
   /** Desk v1's "Hide Copy": no duplicate act. */
   allow_copy?: 0 | 1;

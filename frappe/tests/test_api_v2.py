@@ -1614,6 +1614,58 @@ class TestListPartsV2(FrappeAPITestCase):
 		# get_count's own ten-minute cache header must not reach the list response
 		self.assertNotIn("max-age=600", response.headers["Cache-Control"])
 
+	def test_favourites_names_the_starred_rows_of_the_page(self):
+		star = frappe.get_doc(
+			doctype="Favourite",
+			user=frappe.session.user,
+			reference_doctype="ToDo",
+			reference_name=self.todos[1].name,
+			view="",
+		).insert(ignore_permissions=True)
+		frappe.db.commit()  # nosemgrep
+		try:
+			response = self.list(include="favourites", fields=json.dumps(["name"]))
+			self.assertEqual(response.status_code, 200, response.json)
+			self.assertEqual(response.json["favourites"], [self.todos[1].name])
+			other = self.list(include="favourites", fields=json.dumps(["name"]), start=2, limit=1)
+			self.assertEqual(other.json["favourites"], [])
+		finally:
+			frappe.delete_doc("Favourite", star.name, ignore_permissions=True, force=True)
+			frappe.db.commit()  # nosemgrep
+
+	def test_users_names_the_assigned_and_liking_users(self):
+		todo = self.todos[0].name
+		frappe.db.set_value("ToDo", todo, "_assign", json.dumps(["Administrator"]), update_modified=False)
+		frappe.db.set_value("ToDo", todo, "_liked_by", json.dumps(["Guest"]), update_modified=False)
+		frappe.db.commit()  # nosemgrep
+		response = self.list(include="users", fields=json.dumps(["name", "_assign", "_liked_by"]))
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(set(response.json["users"]), {"Administrator", "Guest"})
+		self.assertIn("full_name", response.json["users"]["Administrator"])
+
+	def test_comment_counts_count_the_comments_of_the_page_rows(self):
+		todo = self.todos[0].name
+		frappe.db.set_value(
+			"ToDo",
+			todo,
+			"_comments",
+			json.dumps([{"name": "a", "comment": "x"}, {"name": "b", "comment": "y"}]),
+			update_modified=False,
+		)
+		frappe.db.commit()  # nosemgrep
+		response = self.list(include="comment_counts", fields=json.dumps(["name"]))
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(response.json["comment_counts"][todo], 2)
+		self.assertNotIn("_comments", response.json["data"][0])
+
+	def test_users_skips_a_malformed_assign_value(self):
+		todo = self.todos[0].name
+		frappe.db.set_value("ToDo", todo, "_assign", "not json", update_modified=False)
+		frappe.db.commit()  # nosemgrep
+		response = self.list(include="users", fields=json.dumps(["name", "_assign"]))
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertIn(todo, [row["name"] for row in response.json["data"]])
+
 	def test_count_stops_at_the_cap(self):
 		with patch("frappe.api.include.COUNT_CAP", 2):
 			response = self.list(include="count")
