@@ -25,6 +25,10 @@
   "trust_email_without_verified_claim",
   "trust_any_tenant",
   "tenant_id",
+  "oidc_logout_section",
+  "enable_oidc_logout",
+  "end_session_endpoint",
+  "post_logout_redirect_uri",
   "client_urls",
   "authorize_url",
   "access_token_url",
@@ -187,7 +191,7 @@
   },
   {
    "default": "0",
-   "description": "Only enable this if you trust this provider's user accounts to be legitimate even when it omits the <code>email_verified</code> claim entirely (e.g. a self-hosted identity provider where email verification isn't enforced). This does not override a provider that explicitly sends <code>email_verified: false</code> \u2014 that login is always rejected.",
+   "description": "Only enable this if you trust this provider's user accounts to be legitimate even when it omits the <code>email_verified</code> claim entirely (e.g. a self-hosted identity provider where email verification isn't enforced). This does not override a provider that explicitly sends <code>email_verified: false</code> — that login is always rejected.",
    "fieldname": "trust_email_without_verified_claim",
    "fieldtype": "Check",
    "label": "Trust Email Without Verified Claim"
@@ -206,6 +210,33 @@
    "fieldname": "trust_any_tenant",
    "fieldtype": "Check",
    "label": "Trust Any Tenant (Insecure)"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "oidc_logout_section",
+   "fieldtype": "Section Break",
+   "label": "OIDC Logout"
+  },
+  {
+   "default": "0",
+   "description": "Redirect users to the identity provider after the local Frappe session is cleared.",
+   "fieldname": "enable_oidc_logout",
+   "fieldtype": "Check",
+   "label": "Enable OIDC Logout"
+  },
+  {
+   "depends_on": "eval:doc.enable_oidc_logout",
+   "description": "OIDC end_session_endpoint. Relative paths use Base URL.",
+   "fieldname": "end_session_endpoint",
+   "fieldtype": "Data",
+   "label": "End Session Endpoint"
+  },
+  {
+   "depends_on": "eval:doc.enable_oidc_logout",
+   "description": "Absolute HTTPS URL registered with the identity provider for post-logout redirect.",
+   "fieldname": "post_logout_redirect_uri",
+   "fieldtype": "Data",
+   "label": "Post Logout Redirect URI"
   }
  ],
  "grid_page_length": 50,
