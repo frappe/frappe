@@ -9,8 +9,9 @@ import frappe
 from frappe import _
 from frappe.desk.doctype.rail.rail import NO_HOST, SITE_LAYER
 from frappe.desk.layers import anchor_attempts, place_by_anchors
+from frappe.desk.settings_block import Block
 from frappe.desk.settings_records import shipped_records
-from frappe.desk.settings_rules import Block, Problem, SettingsRules, report
+from frappe.desk.settings_rules import Problem, SettingsRules, report
 
 from .boot import report_oversized_keys
 from .doctypes import metadata_version
