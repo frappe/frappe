@@ -10,6 +10,8 @@ from frappe.desk.settings_arrangement import ArrangementCheck, Directory, prefix
 from frappe.desk.settings_rules import Problem
 
 FRAMEWORK = "frappe"
+# The heading of the last group; the browser translates it as it does every group label.
+LAST_GROUP = "More"
 
 
 @dataclass
@@ -93,19 +95,26 @@ class SidebarBuilder:
 
 		for address in loose:
 			self.notices.append(
-				f"{address} is in no group and not hidden. It goes in a last group, after the others."
+				f"{address} is in no group and not hidden. It goes in the last group, {LAST_GROUP}."
 			)
 
-		return [*groups, *([{"panes": self._entries(loose, self._arranged_blocks)}] if loose else [])]
+		last = {"label": LAST_GROUP, "panes": self._entries(loose, self._arranged_blocks)}
+		return [*groups, *([last] if loose else [])]
 
 	def _arranged_blocks(self, address: str) -> list[str]:
-		"""The pane's listed blocks, then its own that the entry neither lists nor hides."""
+		"""The pane's listed blocks, then its own that the entry neither lists nor hides.
+
+		An entry with no list keeps the default order, and raises no notice.
+		"""
 		home = self._home_blocks(address)
 		entry = self.arrangement["panes"].get(address)
 		if entry is None:
 			return home
 
 		remaining = [block for block in home if block not in entry["hidden"]]
+		if not entry["blocks"]:
+			return remaining
+
 		home_keys = {_key(block) for block in remaining}
 		blocks, placed_keys = [], set()
 
@@ -145,9 +154,7 @@ class SidebarBuilder:
 		return [f"{address}/{block['key']}" for block in self.directory.panes[address]["blocks"]]
 
 	def _panes_of(self, app: str) -> list[str]:
-		return [
-			address for address, pane in self.directory.panes.items() if pane["app"] == app
-		]
+		return [address for address, pane in self.directory.panes.items() if pane["app"] == app]
 
 
 def filter_sidebar(sidebar: dict, panes: list[dict]) -> dict:

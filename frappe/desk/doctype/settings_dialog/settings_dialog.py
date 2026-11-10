@@ -128,7 +128,9 @@ class SettingsDialog(Document):
 	def before_export(self, doc_export):
 		"""Write each block's JSON columns, and the arrangement, as native JSON, which `prepare_for_import` turns back into text."""
 		if arrangement := doc_export.get("arrangement"):
-			doc_export["arrangement"] = json.loads(arrangement) if isinstance(arrangement, str) else arrangement
+			doc_export["arrangement"] = (
+				json.loads(arrangement) if isinstance(arrangement, str) else arrangement
+			)
 		doc_export["blocks"] = [native_row(block) for block in doc_export["blocks"]]
 
 	def export_settings_dialog(self):

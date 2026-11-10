@@ -10,7 +10,7 @@ import frappe
 from frappe import _
 from frappe.desk.settings_block import Refusal
 from frappe.desk.settings_rules import Problem
-from frappe.shell.registry import default_prefix, declared_prefix
+from frappe.shell.registry import declared_prefix, default_prefix
 
 KEYS = ("groups", "hidden", "panes")
 PANE_KEYS = ("blocks", "hidden")
@@ -57,7 +57,9 @@ class Directory:
 			return False
 
 		if address not in (self.panes if kind == "pane" else self.blocks):
-			raise Refusal(_("Unknown Address"), _("No {0} has the address {1}.").format(kind, address), across=True)
+			raise Refusal(
+				_("Unknown Address"), _("No {0} has the address {1}.").format(kind, address), across=True
+			)
 
 		return True
 
@@ -211,7 +213,9 @@ class ArrangementCheck:
 
 	def _unknown_keys(self, entry: dict, known: tuple, path: str):
 		for key in entry.keys() - set(known):
-			self._drop(f"{path}.{key}", _("Unknown Key"), _("The keys here are: {0}.").format(", ".join(known)))
+			self._drop(
+				f"{path}.{key}", _("Unknown Key"), _("The keys here are: {0}.").format(", ".join(known))
+			)
 
 	# Rules that need this record only
 
@@ -226,7 +230,9 @@ class ArrangementCheck:
 			if address in grouped:
 				self._drop(path, _("Pane Placed and Hidden"), _("{0} is also in a group.").format(address))
 			elif address.split("/")[0] == own_prefix:
-				self._drop(path, _("Hiding Own Pane"), _("An app does not hide its own pane {0}.").format(address))
+				self._drop(
+					path, _("Hiding Own Pane"), _("An app does not hide its own pane {0}.").format(address)
+				)
 			else:
 				kept.append(address)
 
@@ -246,7 +252,9 @@ class ArrangementCheck:
 				path = f"arrangement.groups[{g}].panes[{p}]"
 				if address in grouped:
 					self._drop(
-						path, _("Pane in Two Groups"), _("{0} is also at {1}.").format(address, grouped[address])
+						path,
+						_("Pane in Two Groups"),
+						_("{0} is also at {1}.").format(address, grouped[address]),
 					)
 					continue
 				grouped[address] = path
@@ -258,7 +266,11 @@ class ArrangementCheck:
 	def _has_place(self, address: str, grouped: dict, hidden: set) -> bool:
 		path = f'arrangement.panes["{address}"]'
 		if address in hidden:
-			self._drop(path, _("Hidden Pane Arranged"), _("{0} is hidden, so its blocks are not arranged.").format(address))
+			self._drop(
+				path,
+				_("Hidden Pane Arranged"),
+				_("{0} is hidden, so its blocks are not arranged.").format(address),
+			)
 		elif address not in grouped:
 			self._drop(path, _("Ungrouped Pane Arranged"), _("{0} is in no group.").format(address))
 		else:
@@ -273,7 +285,9 @@ class ArrangementCheck:
 		for index, block in enumerate(entry["blocks"]):
 			if block in listed:
 				self._drop(
-					f"{path}.blocks[{index}]", _("Block Listed Twice"), _("{0} is also at {1}.").format(block, listed[block])
+					f"{path}.blocks[{index}]",
+					_("Block Listed Twice"),
+					_("{0} is also at {1}.").format(block, listed[block]),
 				)
 				continue
 			listed[block] = f"{path}.blocks[{index}]"
@@ -283,7 +297,9 @@ class ArrangementCheck:
 		for index, block in enumerate(self._unique(entry["hidden"])):
 			if block in listed:
 				self._drop(
-					f"{path}.hidden[{index}]", _("Block Listed and Hidden"), _("{0} is also at {1}.").format(block, listed[block])
+					f"{path}.hidden[{index}]",
+					_("Block Listed and Hidden"),
+					_("{0} is also at {1}.").format(block, listed[block]),
 				)
 			else:
 				hidden_blocks.append(block)
@@ -320,7 +336,9 @@ class ArrangementCheck:
 				if self.directory.lookup(address, kind):
 					kept.append(address)
 			except Refusal as refusal:
-				self._drop(f"{path}[{index}]" if indexed else path, refusal.title, refusal.detail, across=True)
+				self._drop(
+					f"{path}[{index}]" if indexed else path, refusal.title, refusal.detail, across=True
+				)
 
 		return kept
 

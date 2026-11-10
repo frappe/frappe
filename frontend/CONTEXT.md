@@ -510,11 +510,32 @@ collide**).
 address opens the current prefix's first pane.
 
 **Pane**: <a id="pane"></a>
-One page of the settings dialog: a list of **blocks** under a label. A pane is in its own
-app's group, and an app adds a pane only to its own group. A pane with no block the user may
-see is not shown.
+One page of the settings dialog: a list of **blocks** under a label. With no
+**arrangement**, a pane is in its own app's group. A pane with no block the user may see is not
+shown.
 _Avoid_: section (the glossary's avoid list), panel (the record page's right-hand column),
 tab.
+
+**Group**: <a id="settings-group"></a>
+A sidebar heading with its ordered panes. The framework's top list is a group with no label;
+only the first group may have no label. The label is translated as a pane label is. A group
+with no pane the user may see is not shown.
+_Avoid_: section (the glossary's avoid list).
+
+**Arrangement**: <a id="arrangement"></a>
+The layout part of an app's `Settings Dialog` record: its `groups`, `hidden` panes, and for each
+pane a `blocks` order and `hidden` blocks. Only the app that owns a desk arranges its sidebar.
+A pane or block it names but does not place or hide goes to the end, and migrate prints a notice;
+the panes go in a last group labelled "More". A pane entry with no `blocks` keeps the default
+order and raises no notice. The server resolves it into one **sidebar** per prefix, which
+`settings-sidebar` prints and an app's `sidebar.txt` records.
+_Avoid_: layout, anchor (dropped: a pane's order is the desk app's list).
+
+**Home** and **placement**: <a id="settings-home"></a><a id="settings-placement"></a>
+A block's **home** is the one pane that defines it, with the address `prefix/pane/block`. Where
+else the arrangement shows it, that is a **placement**. A placement shows the whole block. Hiding
+is layout only: a hidden block still opens at its home for that visit.
+_Avoid_: mount, alias.
 
 **Block**: <a id="block"></a>
 One part of a pane, with one **binding**, or a component's named bindings, or none. A
@@ -546,17 +567,18 @@ _Avoid_: tier (that is the Client Script tier).
 **Settings Dialog**: <a id="settings-dialog-doctype"></a>
 The DocType behind the dialog: one app's layer, addressed like `Rail` by `app`, `extends`,
 `user` and `standard`. A record that `extends` a host adds blocks to the host's panes and
-no pane of its own. It ships as `<app>/settings_dialog/<name>/<name>.json`.
+no pane of its own. It ships as `<app>/settings_dialog/<name>/<name>.json`. A host's record may
+hold an **arrangement** in its JSON field `arrangement`.
 
 **Settings Pane** and **Settings Block**: <a id="settings-pane"></a><a id="settings-block"></a>
 The two row types of a `Settings Dialog`: `panes` (key, label, icon, description) and
-`blocks` (key, pane, `kind`, the binding or the component, `anchors`, `save_mode`, `roles`).
+`blocks` (key, pane, `kind`, the binding or the component, `save_mode`, `roles`).
 They share no content field, so they are two tables.
 
 A block's `kind` is `Generated` (a Single or Record `binding_type`, with `fields`: the fields it
 shows) or `Component` (a `component` file, with `bindings`, `saves_fields`: the fields it saves
 and owns, and `search_entries` for search). Each kind leaves the other's columns blank. The file
-holds `fields`, `saves_fields`, `bindings`, `search_entries`, `anchors` and `roles` as native
+holds `fields`, `saves_fields`, `bindings`, `search_entries` and `roles` as native
 JSON; the columns are text, and import reads the old shape (no `kind`, a component's `fields`
 and `settings`) too. `get_panes` still sends a component's `saves_fields` as `fields` and its
 `search_entries` as `settings`.

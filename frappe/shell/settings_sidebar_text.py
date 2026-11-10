@@ -27,7 +27,10 @@ def assert_settings_sidebar(prefix: str):
 	if current != expected:
 		diff = "".join(
 			difflib.unified_diff(
-				expected.splitlines(keepends=True), current.splitlines(keepends=True), "sidebar.txt", "resolved"
+				expected.splitlines(keepends=True),
+				current.splitlines(keepends=True),
+				"sidebar.txt",
+				"resolved",
 			)
 		)
 		raise AssertionError(
@@ -48,7 +51,9 @@ def describe_sidebars(prefix: str | None = None, *, as_json: bool = False, user:
 	"""What the command prints: the sidebar of `prefix` (every prefix when blank), unfiltered or as `user` sees it."""
 	resolved = merge_settings()
 	if prefix and prefix not in resolved.sidebars:
-		raise ValueError(f"No desk has the prefix {prefix}. Desks with a sidebar: {', '.join(resolved.sidebars)}.")
+		raise ValueError(
+			f"No desk has the prefix {prefix}. Desks with a sidebar: {', '.join(resolved.sidebars)}."
+		)
 
 	sidebars = resolved.sidebars
 	if user:

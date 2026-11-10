@@ -143,9 +143,7 @@ def _fill(pane_list: list[dict], accepted: list[Block]):
 
 
 def _warn(problem: Problem):
-	frappe.logger("shell").warning(
-		f"Settings {problem.message}; it is left out of the settings dialog."
-	)
+	frappe.logger("shell").warning(f"Settings {problem.message}; it is left out of the settings dialog.")
 
 
 # The wire shape
