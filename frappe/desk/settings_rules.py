@@ -9,7 +9,7 @@ from dataclasses import dataclass
 
 import frappe
 from frappe import _
-from frappe.desk.settings_block import Block, Refusal, check_binding
+from frappe.desk.settings_block import COMPONENT_COLUMNS, KINDS, Block, Refusal, check_binding, label_of
 
 # The address segment a pane or block is opened by: `#settings/<prefix>/<pane>/<block>`.
 KEBAB_CASE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
@@ -125,15 +125,46 @@ class SettingsRules:
 		row = block.row
 		check_key(block.key, _("Block"))
 
-		if row.binding_type and row.component:
-			raise Refusal(_("Invalid Block"), _("Either a generated binding or a component, not both."))
-		if not row.binding_type and not row.component:
-			raise Refusal(_("Invalid Block"), _("Needs a binding type or a component."))
+		if row.kind not in KINDS:
+			raise Refusal(_("Invalid Block"), _("The kind is one of: {0}.").format(", ".join(KINDS)))
 
-		if row.binding_type:
-			check_binding(row.binding_type, row.document_type, row.name_resolver)
+		if block.is_component:
+			self._check_component_shape(row)
+		else:
+			self._check_generated_shape(row)
 
 		block.read_columns()
+
+	def _check_generated_shape(self, row):
+		check_binding(row.binding_type, row.document_type, row.name_resolver)
+
+		if row.component or any(row.get(column) for column in COMPONENT_COLUMNS):
+			raise Refusal(
+				_("Invalid Block"),
+				_("A generated block has no {0}.").format(
+					", ".join(frappe.bold(label_of(column)) for column in ("component", *COMPONENT_COLUMNS))
+				),
+			)
+
+	def _check_component_shape(self, row):
+		if not row.component:
+			raise Refusal(
+				_("Invalid Block"),
+				_("A component block needs a {0}.").format(frappe.bold(label_of("component"))),
+			)
+
+		if any(row.get(column) for column in ("binding_type", "document_type", "name_resolver", "fields")):
+			raise Refusal(
+				_("Invalid Block"),
+				_("A component block has no {0}. It uses {1} and {2}.").format(
+					", ".join(
+						frappe.bold(label_of(column))
+						for column in ("binding_type", "document_type", "name_resolver", "fields")
+					),
+					frappe.bold(label_of("bindings")),
+					frappe.bold(label_of("saves_fields")),
+				),
+			)
 
 	def _check_site(self, block: Block):
 		"""The rules that need rows of this site, which a migrate may not have made yet when it imports the record."""
@@ -150,7 +181,7 @@ class SettingsRules:
 				_("Fields Not Listed"),
 				_("Component {0} has a binding. List the fields it saves in {1}.").format(
 					frappe.bold(block.row.component),
-					frappe.bold(frappe.get_meta("Settings Block").get_label("fields")),
+					frappe.bold(label_of("saves_fields")),
 				),
 			)
 

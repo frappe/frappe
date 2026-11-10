@@ -171,14 +171,14 @@ def _block(block: Block) -> dict:
 
 	wire["roles"] = block.roles
 
-	if row.binding_type:
+	if not block.is_component:
 		wire["binding"] = _binding(
 			{"type": row.binding_type, "doctype": row.document_type, "resolver": row.name_resolver}
 		)
 	else:
 		wire["component"] = row.component
 		wire["bindings"] = {name: _binding(spec) for name, spec in block.bindings.items()}
-		wire["settings"] = block.settings
+		wire["settings"] = block.search_entries
 
 	wire["fields"] = block.fields
 	return {field: value for field, value in wire.items() if value or field == "key"}

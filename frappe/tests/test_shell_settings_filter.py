@@ -97,7 +97,7 @@ def binding(type_: str, doctype: str) -> dict:
 
 
 def bound(key: str, fields: list[str], **bindings: dict) -> dict:
-	return component(key, bindings=json.dumps(bindings), fields=json.dumps(fields))
+	return component(key, bindings=json.dumps(bindings), saves_fields=json.dumps(fields))
 
 
 def visible(user: str = READER, gate=None) -> dict:
@@ -310,8 +310,12 @@ class TestSettingsFilter(SettingsDialogTestCase):
 			ship(
 				["general"],
 				[
-					component("theme", roles=json.dumps([READER_ROLE]), settings='[{"label": "Theme"}]'),
-					component("dialer", roles=json.dumps([CREATOR_ROLE]), settings='[{"label": "Dialer"}]'),
+					component(
+						"theme", roles=json.dumps([READER_ROLE]), search_entries='[{"label": "Theme"}]'
+					),
+					component(
+						"dialer", roles=json.dumps([CREATOR_ROLE]), search_entries='[{"label": "Dialer"}]'
+					),
 				],
 			)
 
@@ -369,14 +373,14 @@ class TestSettingsFilter(SettingsDialogTestCase):
 				["general", "system"],
 				[
 					single("mine", doctype=SINGLE),
-					component("theme", settings=settings),
+					component("theme", search_entries=settings),
 					single("smtp", pane="system"),
 					component(
 						"mail",
 						pane="system",
-						settings=settings,
+						search_entries=settings,
 						bindings=json.dumps({"smtp": binding("Single", "System Settings")}),
-						fields='["app_name"]',
+						saves_fields='["app_name"]',
 					),
 				],
 			)

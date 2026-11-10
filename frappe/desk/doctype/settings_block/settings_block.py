@@ -21,6 +21,7 @@ class SettingsBlock(Document):
 		document_type: DF.Link | None
 		fields: DF.Code | None
 		key: DF.Data
+		kind: DF.Literal["Generated", "Component"]
 		label: DF.Data | None
 		name_resolver: DF.Literal["", "session_user"]
 		pane: DF.Data
@@ -29,7 +30,8 @@ class SettingsBlock(Document):
 		parenttype: DF.Data
 		roles: DF.Code | None
 		save_mode: DF.Literal["auto", "button"]
-		settings: DF.Code | None
+		saves_fields: DF.Code | None
+		search_entries: DF.Code | None
 	# end: auto-generated types
 
 	_DOCTYPE_NAME = "Settings Block"

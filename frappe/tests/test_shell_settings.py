@@ -125,12 +125,12 @@ class TestSettingsMerge(SettingsDialogTestCase):
 	def test_a_component_block_in_another_save_mode_on_the_same_binding_is_dropped_and_warns(self):
 		with authoring():
 			ship(
-				blocks=[bound("calls", fields='["mobile_no"]', save_mode="button")],
+				blocks=[bound("calls", saves_fields='["mobile_no"]', save_mode="button")],
 				app=EXTENDER,
 				extends=HOST,
 			)
 			unchecked(
-				ship(["general"], [bound("photo"), bound("name", fields='["full_name"]')], insert=False)
+				ship(["general"], [bound("photo"), bound("name", saves_fields='["full_name"]')], insert=False)
 			)
 
 		with self.assertLogs(frappe.logger("shell"), "WARNING") as logged:
@@ -140,13 +140,13 @@ class TestSettingsMerge(SettingsDialogTestCase):
 
 	def test_a_component_block_declaring_a_field_already_declared_on_its_binding_is_dropped_and_warns(self):
 		with authoring():
-			ship(blocks=[bound("calls", fields='["mobile_no"]')], app=EXTENDER, extends=HOST)
+			ship(blocks=[bound("calls", saves_fields='["mobile_no"]')], app=EXTENDER, extends=HOST)
 			unchecked(
 				ship(
 					["general"],
 					[
-						bound("phone", fields='["mobile_no", "phone"]'),
-						bound("photo", fields='["user_image"]'),
+						bound("phone", saves_fields='["mobile_no", "phone"]'),
+						bound("photo", saves_fields='["user_image"]'),
 					],
 					insert=False,
 				)
@@ -162,7 +162,11 @@ class TestSettingsMerge(SettingsDialogTestCase):
 			unchecked(
 				ship(
 					["general"],
-					[bound("unlisted", fields=None), bound("typo", fields='["user_imag"]'), bound("photo")],
+					[
+						bound("unlisted", saves_fields=None),
+						bound("typo", saves_fields='["user_imag"]'),
+						bound("photo"),
+					],
 					insert=False,
 				)
 			)
@@ -205,12 +209,12 @@ class TestSettingsMerge(SettingsDialogTestCase):
 						single("system"),
 						single("listed", fields="not json"),
 						component("theme", bindings='{"user": {"doctype": "User"}}'),
-						component("search", settings='{"label": "Theme"}'),
+						component("search", search_entries='{"label": "Theme"}'),
 						{"key": "empty", "pane": "general"},
 						component("listy", bindings='{"u": {"type": "Single", "doctype": ["User"]}}'),
 						single("nested", fields='[["alpha"]]'),
-						component("unlabelled", settings='[{"keywords": ["dark"]}]'),
-						bound("declared", fields='{"user_image": 1}'),
+						component("unlabelled", search_entries='[{"keywords": ["dark"]}]'),
+						bound("declared", saves_fields='{"user_image": 1}'),
 						component("gated", roles='"System Manager"'),
 					],
 					insert=False,
@@ -262,7 +266,7 @@ class TestSettingsMerge(SettingsDialogTestCase):
 				[
 					single("system"),
 					single("agent", doctype="Telephony Agent"),
-					component("dialer", bindings=missing, fields='["extension"]'),
+					component("dialer", bindings=missing, saves_fields='["extension"]'),
 				],
 				insert=False,
 			)
@@ -326,8 +330,8 @@ class TestSettingsMerge(SettingsDialogTestCase):
 					component(
 						"theme",
 						bindings=json.dumps(bindings),
-						fields='["user_image"]',
-						settings=json.dumps(settings),
+						saves_fields='["user_image"]',
+						search_entries=json.dumps(settings),
 					),
 				],
 			)

@@ -4,6 +4,7 @@
 import frappe
 from frappe import _
 from frappe.desk.doctype.rail.rail import NO_HOST, SITE_LAYER, SYSTEM_WRITE_FLAGS
+from frappe.desk.settings_block import native_row, upgrade_row
 from frappe.desk.settings_records import shipped_records
 from frappe.desk.settings_rules import SettingsRules, report
 from frappe.model.document import Document
@@ -104,6 +105,11 @@ class SettingsDialog(Document):
 		if problem := next((problem for problem in problems if problem.record == self.name), None):
 			frappe.throw(problem.message, title=problem.title)
 
+	@staticmethod
+	def prepare_for_import(docdict):
+		"""Read a file in either shape: the old one (no `kind`, a component's `fields` and `settings`) or native JSON columns."""
+		docdict["blocks"] = [upgrade_row(block) for block in docdict.get("blocks") or []]
+
 	def before_import(self):
 		"""Migrate imports a shipped record without `validate`: check what needs only this record."""
 		rules = SettingsRules()
@@ -113,6 +119,10 @@ class SettingsDialog(Document):
 
 	def on_update(self):
 		self.export_settings_dialog()
+
+	def before_export(self, doc_export):
+		"""Write each block's JSON columns as native JSON, which `before_import` turns back into text."""
+		doc_export["blocks"] = [native_row(block) for block in doc_export["blocks"]]
 
 	def export_settings_dialog(self):
 		"""Write this record to `<app>/settings_dialog/<name>/<name>.json`, rooted at the app as `Rail` is."""
