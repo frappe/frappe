@@ -5,7 +5,7 @@
 
 import os
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import frappe
 from frappe import _
@@ -45,6 +45,8 @@ class Problem:
 class Vetting:
 	accepted: list[Block]
 	problems: list[Problem]
+	# Blocks left out because the site lacks a doctype they bind: no problem, but not a typo either.
+	unavailable: list[Block] = field(default_factory=list)
 
 
 class SettingsRules:
@@ -97,7 +99,7 @@ class SettingsRules:
 		A block bound to a doctype this site lacks is left out with no problem; `panes` is None for an unknown host.
 		"""
 		kept: dict[str, list[Block]] = {}
-		accepted, problems = [], []
+		accepted, problems, unavailable = [], [], []
 
 		for record in contributors:
 			for row in record.blocks:
@@ -113,6 +115,7 @@ class SettingsRules:
 							across=bool(record.extends),
 						)
 					if not all(self._has_doctype(doctype) for doctype in block.doctypes):
+						unavailable.append(block)
 						continue
 					self._check_site(block)
 					check_clash(block, kept.setdefault(block.pane, []))
@@ -123,7 +126,7 @@ class SettingsRules:
 				kept[block.pane].append(block)
 				accepted.append(block)
 
-		return Vetting(accepted, problems)
+		return Vetting(accepted, problems, unavailable)
 
 	def _check_shape(self, block: Block):
 		"""The rules that need this block only."""
