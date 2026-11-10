@@ -15,7 +15,7 @@ from frappe.desk.doctype.settings_dialog.test_settings_dialog import (
 	single,
 )
 from frappe.desk.settings_rules import SettingsRules, is_strict
-from frappe.shell.settings import check_shipped_records, merge_shipped, resolve_panes
+from frappe.shell.settings import check_shipped_records, merge_shipped
 from frappe.shell.settings_snapshot import check_settings_snapshot
 from frappe.tests.test_shell_settings import active, unchecked
 
@@ -29,9 +29,7 @@ def problems_of(doc, panes=None) -> list:
 
 class TestSettingsRules(SettingsDialogTestCase):
 	def test_every_shipped_block_of_every_active_app_survives_the_merge(self):
-		apps = frappe.get_active_apps()
-		with patch("frappe.get_active_apps", return_value=apps):
-			panes, problems = merge_shipped()
+		panes, problems = merge_shipped()
 
 		self.assertEqual([problem.message for problem in problems], [])
 		shipped = frappe.db.count("Settings Block", {"parenttype": "Settings Dialog"})
@@ -56,14 +54,14 @@ class TestSettingsRules(SettingsDialogTestCase):
 
 	def test_import_checks_a_record_that_skips_validate(self):
 		with authoring():
-			doc = ship(["general"], [component("theme", roles='["No Such Role"]')], insert=False)
+			doc = ship(["general"], [single("Bad Key")], insert=False)
 
 		with self.assertRaises(frappe.ValidationError):
 			doc.run_method("before_import")
 
 	def test_a_production_migrate_logs_the_error_and_goes_on(self):
 		with authoring():
-			doc = ship(["general"], [component("theme", roles='["No Such Role"]')], insert=False)
+			doc = ship(["general"], [single("Bad Key")], insert=False)
 
 		with (
 			patch("frappe.desk.settings_rules.is_strict", return_value=False),
@@ -72,8 +70,8 @@ class TestSettingsRules(SettingsDialogTestCase):
 		):
 			doc.run_method("before_import")
 
-		self.assertIn("No Such Role", printed.call_args.args[0])
-		self.assertIn("No Such Role", logged.call_args.kwargs["message"])
+		self.assertIn("Bad Key", printed.call_args.args[0])
+		self.assertIn("Bad Key", logged.call_args.kwargs["message"])
 
 	def test_strict_in_developer_mode_in_tests_and_in_ci(self):
 		with patch.object(frappe, "in_test", False), patch.dict(os.environ, {"CI": ""}):
@@ -138,4 +136,58 @@ class TestSettingsRules(SettingsDialogTestCase):
 			_panes, problems = merge_shipped()
 
 		self.assertEqual([(problem.key, problem.across) for problem in problems], [("calls", True)])
-		self.assertEqual(resolve_panes.__name__, "resolve_panes")
+
+	def test_a_role_a_later_fixture_makes_does_not_stop_the_import(self):
+		with authoring():
+			doc = ship(["general"], [component("theme", roles='["Role From A Fixture"]')], insert=False)
+
+		doc.run_method("before_import")
+
+	def test_after_migrate_finds_a_role_that_still_does_not_exist(self):
+		with authoring():
+			unchecked(ship(["general"], [component("theme", roles='["No Such Role"]')], insert=False))
+
+		with active(HOST), self.assertRaisesRegex(frappe.ValidationError, "No Such Role"):
+			check_shipped_records()
+
+	def test_a_production_migrate_logs_a_missing_role_and_goes_on(self):
+		with authoring():
+			unchecked(ship(["general"], [component("theme", roles='["No Such Role"]')], insert=False))
+
+		with (
+			active(HOST),
+			patch("frappe.desk.settings_rules.is_strict", return_value=False),
+			patch("builtins.print") as printed,
+			patch("frappe.log_error") as logged,
+		):
+			check_shipped_records()
+			panes, _problems = merge_shipped()
+
+		self.assertIn("No Such Role", printed.call_args.args[0])
+		self.assertIn("No Such Role", logged.call_args.kwargs["message"])
+		self.assertNotIn("theme", [block["key"] for pane in panes for block in pane["blocks"]])
+
+	def test_a_block_of_an_uninstalled_doctype_is_left_out_with_no_problem(self):
+		with authoring():
+			doc = ship(
+				["general"],
+				[single("gone", doctype="Not Installed Anywhere", roles='["No Such Role"]')],
+				insert=False,
+			)
+
+		self.assertEqual(problems_of(doc, {"general"}), [])
+
+	def test_a_json_column_that_is_not_a_string_is_a_problem_not_a_crash(self):
+		with authoring():
+			doc = ship(["general"], [component("theme")], insert=False)
+
+		doc.blocks[0].roles = ["System Manager"]
+		(problem,) = problems_of(doc, {"general"})
+		self.assertEqual(problem.title, "Invalid JSON")
+
+	def test_save_refuses_a_block_that_clashes_with_a_shipped_record(self):
+		with authoring():
+			ship(["general"], [single("system")])
+			doc = ship(blocks=[single("system")], app=EXTENDER, extends=HOST, insert=False)
+			with self.assertRaisesRegex(frappe.ValidationError, "already ships a block"):
+				doc.insert()

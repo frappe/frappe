@@ -26,7 +26,7 @@ class Problem:
 	pane: str | None = None
 	key: str | None = None
 	idx: int | None = None
-	# True when only the other records could tell: the pane, or a block it clashes with.
+	# True when only a later check can tell: the other records, or rows the sync has not made yet.
 	across: bool = False
 
 	@property
@@ -89,7 +89,7 @@ class SettingsRules:
 	def vet(self, panes: set[str] | None, contributors: list) -> Vetting:
 		"""The blocks of these records, in order, that may sit in the host's `panes`, and why the rest may not.
 
-		A block bound to a doctype this site lacks is left out with no problem. `panes` is None when the host is not known.
+		A block bound to a doctype this site lacks is left out with no problem; `panes` is None for an unknown host.
 		"""
 		kept: dict[str, list[Block]] = {}
 		accepted, problems = [], []
@@ -98,7 +98,7 @@ class SettingsRules:
 			for row in record.blocks:
 				block = Block(record, row)
 				try:
-					self._check_alone(block)
+					self._check_shape(block)
 					if panes is not None and block.pane not in panes:
 						raise Refusal(
 							_("Unknown Pane"),
@@ -109,6 +109,7 @@ class SettingsRules:
 						)
 					if not all(self._has_doctype(doctype) for doctype in block.doctypes):
 						continue
+					self._check_site(block)
 					check_clash(block, kept.setdefault(block.pane, []))
 				except Refusal as refusal:
 					problems.append(self._problem_for(block, refusal))
@@ -119,8 +120,8 @@ class SettingsRules:
 
 		return Vetting(accepted, problems)
 
-	def _check_alone(self, block: Block):
-		"""Every rule that needs this block and the site only."""
+	def _check_shape(self, block: Block):
+		"""The rules that need this block only."""
 		row = block.row
 		check_key(block.key, _("Block"))
 
@@ -131,17 +132,19 @@ class SettingsRules:
 
 		if row.binding_type:
 			check_binding(row.binding_type, row.document_type, row.name_resolver)
-			block.fields
-		else:
-			block.bindings, block.fields, block.settings
+
+		block.read_columns()
+
+	def _check_site(self, block: Block):
+		"""The rules that need rows of this site, which a migrate may not have made yet when it imports the record."""
+		if block.is_component:
 			self._check_fields(block)
 			self._check_component_file(block)
 
-		block.anchors
 		self._check_roles(block)
 
 	def _check_fields(self, block: Block):
-		"""A bound component saves only the fields it lists. Their names go unchecked while a bound doctype is not installed."""
+		"""A bound component saves only the fields it lists, and a doctype that has them."""
 		if block.bindings and not block.fields:
 			raise Refusal(
 				_("Fields Not Listed"),
@@ -151,7 +154,7 @@ class SettingsRules:
 				),
 			)
 
-		if not block.bindings or not all(self._has_doctype(doctype) for doctype in block.doctypes):
+		if not block.bindings:
 			return
 
 		metas = [frappe.get_meta(doctype) for doctype in block.doctypes]
@@ -161,6 +164,7 @@ class SettingsRules:
 				_("Not a field of {0}: {1}.").format(
 					frappe.bold(", ".join(block.doctypes)), frappe.bold(", ".join(missing))
 				),
+				across=True,
 			)
 
 	def _check_roles(self, block: Block):
@@ -168,7 +172,11 @@ class SettingsRules:
 			self._roles = set(frappe.get_all("Role", pluck="name"))
 
 		if unknown := sorted(set(block.roles) - self._roles):
-			raise Refusal(_("Unknown Role"), _("No role named {0}.").format(frappe.bold(", ".join(unknown))))
+			raise Refusal(
+				_("Unknown Role"),
+				_("No role named {0}.").format(frappe.bold(", ".join(unknown))),
+				across=True,
+			)
 
 	def _check_component_file(self, block: Block):
 		"""The file `frontend/plugin/contributions.js` finds: `<module>/frontend/settings/<name>.vue` in the block's app."""

@@ -29,6 +29,12 @@ class Block:
 		self.pane = row.pane
 		self.save_mode = row.save_mode or "auto"
 
+	def read_columns(self):
+		"""Read every JSON column this kind of block uses, so a wrong shape raises here."""
+		columns = ["fields", "anchors", "roles"] + (["bindings", "settings"] if self.is_component else [])
+		for column in columns:
+			getattr(self, column)
+
 	@property
 	def is_component(self) -> bool:
 		return bool(self.row.component)
@@ -91,7 +97,7 @@ class Block:
 		raw = self.row.get(fieldname)
 		try:
 			value = json.loads(raw) if raw else shape()
-		except ValueError:
+		except (TypeError, ValueError):
 			raise self._bad_json(fieldname) from None
 
 		if not isinstance(value, shape) or (item and not all(isinstance(entry, item) for entry in value)):

@@ -108,7 +108,8 @@ class SettingsDialog(Document):
 		"""Migrate imports a shipped record without `validate`: check what needs only this record."""
 		rules = SettingsRules()
 		panes = None if self.extends else {pane.key for pane in self.panes}
-		report([*rules.record_problems(self), *rules.vet(panes, [self]).problems])
+		problems = [*rules.record_problems(self), *rules.vet(panes, [self]).problems]
+		report([problem for problem in problems if not problem.across])
 
 	def on_update(self):
 		self.export_settings_dialog()
