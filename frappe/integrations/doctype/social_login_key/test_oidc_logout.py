@@ -59,7 +59,6 @@ class TestOIDCLogout(IntegrationTestCase):
 			},
 		)
 
-
 	def test_oidc_logout_replaces_duplicate_configured_parameters(self):
 		key = make_oidc_social_login_key(
 			end_session_endpoint=(
