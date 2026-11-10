@@ -1,8 +1,7 @@
 # SETTINGS ARRANGEMENT — what an app's `arrangement` may hold, and the references it keeps.
 
-# An arrangement names panes and blocks by prefix address: `desk/profile`, `desk/profile/telephony`.
-# `ArrangementCheck` returns the arrangement without the parts that break a rule, so the sidebar
-# resolver in `frappe.shell.settings_sidebar` never meets a bad reference.
+# Panes and blocks are named by prefix address: `desk/profile`, `desk/profile/telephony`.
+# `ArrangementCheck` drops the parts that break a rule, so the resolver never meets one.
 
 import json
 
@@ -44,10 +43,7 @@ class Directory:
 		return f"{self.prefixes[pane['app']]}/{pane['key']}"
 
 	def lookup(self, address: str, kind: str) -> bool:
-		"""Whether `address` names a `kind` here; False for an app on the bench that is not in scope.
-
-		Raises a `Refusal` for an address naming no such pane or block, or an unknown prefix.
-		"""
+		"""Whether `address` names a `kind` here (False for an app out of scope); a `Refusal` if it names nothing."""
 		prefix = address.split("/")[0]
 
 		if prefix not in self.owners:
@@ -72,11 +68,7 @@ class Directory:
 
 
 class ArrangementCheck:
-	"""One record's `arrangement` read, and the problems of what it dropped.
-
-	Without a `Directory` it checks the record alone, as save and import can; with one it also
-	checks every address against the panes and blocks of the site.
-	"""
+	"""One record's `arrangement` read and the problems of what it dropped; a `Directory` adds the address checks."""
 
 	def __init__(self, record, directory: Directory | None = None):
 		self.record = record
@@ -123,7 +115,7 @@ class ArrangementCheck:
 				self._drop("arrangement", _("Invalid JSON"), _("Does not hold the JSON it should."))
 				return None
 
-		return raw or None
+		return None if raw is None or raw == {} else raw
 
 	# The shape
 
@@ -238,9 +230,9 @@ class ArrangementCheck:
 
 		arrangement["hidden"] = kept
 		arrangement["panes"] = {
-			address: self._pane_entry(address, entry, grouped, set(hidden))
+			address: self._pane_entry(address, entry, grouped, set(kept))
 			for address, entry in arrangement["panes"].items()
-			if self._has_place(address, grouped, set(hidden))
+			if self._has_place(address, grouped, set(kept))
 		}
 
 	def _grouped(self, groups: list[dict]) -> dict[str, str]:

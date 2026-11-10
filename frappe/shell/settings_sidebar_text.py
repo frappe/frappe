@@ -1,7 +1,6 @@
 # SETTINGS SIDEBAR TEXT — the sidebar as the text the command prints and an app's `sidebar.txt` holds.
 
-# One format for both, so a sidebar change reads as a short diff and the command cannot disagree
-# with the test. `assert_settings_sidebar` is the one-line call an app's test makes.
+# One format for both, so a change reads as a short diff. An app's test calls `assert_settings_sidebar`.
 
 import difflib
 import json

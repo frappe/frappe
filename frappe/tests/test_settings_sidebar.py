@@ -18,6 +18,7 @@ from frappe.desk.doctype.settings_dialog.test_settings_dialog import (
 	ship,
 	single,
 )
+from frappe.desk.settings_arrangement import ArrangementCheck
 from frappe.shell.registry import get_prefix_registry
 from frappe.shell.settings import check_shipped_records, get_cached_sidebars, merge_settings
 from frappe.shell.settings_sidebar import filter_sidebar
@@ -295,6 +296,22 @@ class TestSidebarValidation(SettingsDialogTestCase):
 		self.assertEqual(sidebar["hidden"], [])
 		self.assertEqual(sidebar["hidden_blocks"], [f"{GENERAL}/theme"])
 		self.assertEqual(len(resolved.problems), 2)
+
+	def test_a_pane_both_grouped_and_hidden_keeps_its_blocks_entry(self):
+		entry = {"blocks": [f"{PROFILE}/photo"]}
+		resolved = resolve(
+			{"groups": [{"panes": [GENERAL, MAIL, PROFILE]}], "hidden": [PROFILE], "panes": {PROFILE: entry}}
+		)
+
+		self.assertEqual([problem.title for problem in resolved.problems], ["Pane Placed and Hidden"])
+		self.assertEqual(blocks_of(resolved.sidebars[HOST], PROFILE)[0], f"{PROFILE}/photo")
+
+	def test_an_array_where_an_object_belongs_is_a_problem_even_when_empty(self):
+		record = frappe._dict(app="acme", name="acme", extends="", arrangement="[]")
+
+		self.assertEqual(
+			[problem.title for problem in ArrangementCheck(record).check()], ["Invalid Arrangement"]
+		)
 
 	def test_a_prefix_slip_is_an_error_and_not_a_silent_skip(self):
 		resolved = resolve(arranged(hidden=["dormant/pane", "frappe/profile"]), bench=("dormant",))

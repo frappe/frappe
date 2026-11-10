@@ -1,8 +1,7 @@
 # SETTINGS SIDEBAR — the sidebar each desk shows, resolved from the apps' arrangements.
 
-# One sidebar per prefix: groups of panes, and under each pane the addresses of the blocks it
-# shows. The sidebar of a desk comes from the arrangement of the app that owns it; an app with
-# none gets the framework's panes, then its own. Unfiltered, so one merge serves every user.
+# One sidebar per prefix, from the arrangement of the app that owns it; an app with none gets
+# the framework's panes, then its own. Unfiltered, so one merge serves every user.
 
 from dataclasses import dataclass, field
 
@@ -16,7 +15,7 @@ LAST_GROUP = "More"
 
 @dataclass
 class Resolved:
-	"""The merged panes, the sidebars by prefix, the problems of what an arrangement dropped, and the notices by prefix."""
+	"""The merged panes, the sidebars, the dropped-arrangement problems and the notices, each by prefix."""
 
 	panes: list[dict] = field(default_factory=list)
 	sidebars: dict[str, dict] = field(default_factory=dict)
@@ -102,10 +101,7 @@ class SidebarBuilder:
 		return [*groups, *([last] if loose else [])]
 
 	def _arranged_blocks(self, address: str) -> list[str]:
-		"""The pane's listed blocks, then its own that the entry neither lists nor hides.
-
-		An entry with no list keeps the default order, and raises no notice.
-		"""
+		"""The pane's listed blocks, then its own that the entry neither lists nor hides (no list: default order)."""
 		home = self._home_blocks(address)
 		entry = self.arrangement["panes"].get(address)
 		if entry is None:
@@ -160,10 +156,12 @@ class SidebarBuilder:
 def filter_sidebar(sidebar: dict, panes: list[dict]) -> dict:
 	"""The sidebar without the blocks that are not in `panes` (one user's visible panes), and without an emptied pane or group."""
 	prefixes: dict[str, str] = {}
+	for pane in panes:
+		if pane["app"] not in prefixes:
+			prefixes[pane["app"]] = prefix_of(pane["app"])
+
 	visible = {
-		f"{prefixes.setdefault(pane['app'], prefix_of(pane['app']))}/{pane['key']}/{block['key']}"
-		for pane in panes
-		for block in pane["blocks"]
+		f"{prefixes[pane['app']]}/{pane['key']}/{block['key']}" for pane in panes for block in pane["blocks"]
 	}
 	groups = []
 
