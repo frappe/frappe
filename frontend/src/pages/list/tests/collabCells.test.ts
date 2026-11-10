@@ -12,6 +12,13 @@ import TagsCell from "../TagsCell.vue";
 
 const api = vi.hoisted(() => ({ addFavourite: vi.fn(), removeFavourite: vi.fn() }));
 vi.mock("@framework/ui/api", () => api);
+vi.mock("frappe-ui", async (actual) => ({
+	...(await actual<typeof import("frappe-ui")>()),
+	Avatar: defineComponent({
+		props: ["label"],
+		setup: (props) => () => h("span", { "data-avatar": props.label }),
+	}),
+}));
 
 const mounted: ReturnType<typeof createApp>[] = [];
 
@@ -55,14 +62,19 @@ describe("list collaboration cells", () => {
 		expect(root.textContent?.trim()).toBe("0");
 	});
 
-	it("names a lone user beside the avatar; a stack shows avatars only", async () => {
+	it("names a lone user beside the avatar; a stack shows three avatars and counts the rest", async () => {
 		seedRowParts("ToDo", { users: { "a@x": { full_name: "Ann Lee" } } }, []);
 		const one = await render(AvatarStackCell, { value: '["a@x"]' });
 		const two = await render(AvatarStackCell, { value: '["a@x","b@x"]' });
+		const five = await render(AvatarStackCell, { value: '["a@x","b","c","d","e"]' });
 		const bad = await render(AvatarStackCell, { value: "{oops" });
+		expect(one.querySelectorAll("[data-avatar]")).toHaveLength(1);
 		expect(one.textContent).toContain("Ann Lee");
+		expect(two.querySelectorAll("[data-avatar]")).toHaveLength(2);
 		expect(two.textContent).not.toContain("Ann Lee");
-		expect(bad.textContent?.trim()).toBe("");
+		expect(five.querySelectorAll("[data-avatar]")).toHaveLength(3);
+		expect(five.textContent).toContain("+2");
+		expect(bad.querySelector("[data-avatar]")).toBeNull();
 	});
 
 	it("stars in place and does not let the click reach the row link", async () => {

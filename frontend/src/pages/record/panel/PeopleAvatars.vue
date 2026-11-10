@@ -2,7 +2,7 @@
 <template>
 	<span v-if="!people.length" class="truncate text-base text-ink-gray-4">{{ placeholder }}</span>
 	<span v-else class="flex min-w-0 items-center gap-1">
-		<span class="flex -space-x-1.5">
+		<span class="isolate flex -space-x-1.5">
 			<Tooltip v-for="person in visible" :key="person.id" :text="person.name">
 				<Avatar
 					class="ring-2 ring-outline-base transition hover:z-10 hover:scale-110"
