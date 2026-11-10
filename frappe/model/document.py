@@ -1049,7 +1049,7 @@ class Document(_DocumentBase):
 			self.update_single(self.get_valid_dict(ignore_virtual=True))
 		else:
 			self.db_insert(ignore_if_duplicate=ignore_if_duplicate)
-			self.add_creator_to_seen(ignore_if_duplicate)
+			self.reset_seen(on_insert=True, ignore_if_duplicate=ignore_if_duplicate)
 
 		# children
 		if not getattr(self.meta, "is_virtual", False):
@@ -2295,30 +2295,24 @@ class Document(_DocumentBase):
 	def clear_cache(self):
 		frappe.clear_document_cache(self.doctype, self.name)
 
-	def reset_seen(self):
-		"""Clear _seen property and set current user as seen"""
-		if (
-			getattr(self.meta, "track_seen", False)
-			and not getattr(self.meta, "issingle", False)
-			and not self.is_new()
-		):
-			frappe.db.set_value(
-				self.doctype, self.name, "_seen", json.dumps([frappe.session.user]), update_modified=False
-			)
-
-	def add_creator_to_seen(self, ignore_if_duplicate=False):
-		"""Set _seen to the creator alone on insert (db_insert does not write _seen)"""
+	def reset_seen(self, on_insert=False, ignore_if_duplicate=False):
+		"""Set `_seen` to the current user alone. On insert `db_insert` does not write `_seen`, so this does."""
 		if not getattr(self.meta, "track_seen", False) or getattr(self.meta, "is_virtual", False):
 			return
 
-		# a skipped duplicate insert must not rewrite the seen list of the row that exists
-		if ignore_if_duplicate:
-			stored_creation = frappe.db.get_value(self.doctype, self.name, "creation")
-			if get_datetime(stored_creation) != get_datetime(self.creation):
-				return
+		if on_insert:
+			# a skipped duplicate insert must not rewrite the seen list of the row that exists
+			if ignore_if_duplicate:
+				stored_creation = frappe.db.get_value(self.doctype, self.name, "creation")
+				if get_datetime(stored_creation) != get_datetime(self.creation):
+					return
+		elif getattr(self.meta, "issingle", False) or self.is_new():
+			return
 
-		self._seen = json.dumps([frappe.session.user])
-		frappe.db.set_value(self.doctype, self.name, "_seen", self._seen, update_modified=False)
+		seen = json.dumps([frappe.session.user])
+		if on_insert:
+			self._seen = seen
+		frappe.db.set_value(self.doctype, self.name, "_seen", seen, update_modified=False)
 
 	def notify_update(self):
 		"""Publish realtime that the current document is modified"""

@@ -2,9 +2,11 @@
 # License: MIT. See LICENSE
 import inspect
 import pickle
+import re
 from contextlib import contextmanager
 from copy import deepcopy
 from datetime import timedelta
+from pathlib import Path
 from unittest.mock import Mock, patch
 
 import frappe
@@ -355,6 +357,23 @@ class TestDocument(IntegrationTestCase):
 			frappe.parse_json(frappe.db.get_value("ToDo", todo.name, "_seen")), ["test@example.com"]
 		)
 
+	def test_save_resets_seen_to_the_saver(self):
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "seen save 46905"}).insert()
+		frappe.db.set_value(
+			"ToDo",
+			todo.name,
+			"_seen",
+			frappe.as_json(["a@example.com", "b@example.com"]),
+			update_modified=False,
+		)
+
+		with self.set_user("test@example.com"):
+			todo.description = "seen save 46905 changed"
+			todo.save(ignore_permissions=True)
+
+		seen = frappe.parse_json(frappe.db.get_value("ToDo", todo.name, "_seen"))
+		self.assertEqual(seen, ["test@example.com"])
+
 	def test_duplicate_insert_keeps_seen_of_existing_row(self):
 		values = {"doctype": "Event", "subject": "seen dup 46875", "starts_on": now_datetime()}
 		event = frappe.get_doc(values).insert()
@@ -368,6 +387,19 @@ class TestDocument(IntegrationTestCase):
 	def test_insert_does_not_write_seen_without_track_seen(self):
 		note = frappe.get_doc({"doctype": "Note", "title": "no seen 46875"}).insert()
 		self.assertFalse(note.get("_seen"))
+
+	def test_frontend_list_only_fields_match_optional_fields(self):
+		entries = Path(frappe.get_app_path("frappe")).parent / "ui/src/cache/entries.ts"
+		if not entries.exists():
+			self.skipTest("the desk v2 frontend source is not shipped")
+
+		source = entries.read_text()
+		declaration = re.search(r"LIST_ONLY_FIELDS[^=]*=\s*\[([^\]]*)\]", source)
+		self.assertIsNotNone(declaration, "LIST_ONLY_FIELDS not found in ui/src/cache/entries.ts")
+
+		self.assertEqual(
+			sorted(re.findall(r'"(\w+)"', declaration.group(1))), sorted(frappe.model.optional_fields)
+		)
 
 	def test_varchar_length_after_sanitization(self):
 		unclosed_tag = "<strong>"
