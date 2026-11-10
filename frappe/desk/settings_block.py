@@ -139,7 +139,7 @@ def upgrade_row(values: dict) -> dict:
 
 	for column in JSON_COLUMNS:
 		if isinstance(row.get(column), list | dict):
-			row[column] = json.dumps(row[column])
+			row[column] = json.dumps(row[column]) if row[column] else None
 
 	return row
 
