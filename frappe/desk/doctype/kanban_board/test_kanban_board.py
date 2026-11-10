@@ -26,14 +26,9 @@ def _decompress_kanban_cards(cards):
 
 
 class TestKanbanBoard(IntegrationTestCase):
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
-		cls.board_name = "_Test Kanban Order Board"
-		if frappe.db.exists("Kanban Board", cls.board_name):
-			frappe.delete_doc("Kanban Board", cls.board_name, force=1)
-
-		cls.todos = []
+	def setUp(self):
+		super().setUp()
+		self.todos = []
 		for i, status in enumerate(["Open", "Open", "Open", "Closed"]):
 			doc = frappe.get_doc(
 				{
@@ -42,47 +37,29 @@ class TestKanbanBoard(IntegrationTestCase):
 					"status": status,
 				}
 			).insert(ignore_permissions=True)
-			cls.todos.append(doc.name)
+			self.todos.append(doc.name)
 
 		board = frappe.get_doc(
 			{
 				"doctype": "Kanban Board",
-				"kanban_board_name": cls.board_name,
+				"kanban_board_name": f"_Test Kanban Order Board {frappe.generate_hash(length=8)}",
 				"reference_doctype": "ToDo",
 				"field_name": "status",
 				"private": 1,
-				"filters": frappe.as_json([["ToDo", "name", "in", cls.todos]]),
+				"filters": frappe.as_json([["ToDo", "name", "in", self.todos]]),
 				"columns": [
 					{
 						"column_name": "Open",
-						"order": frappe.as_json(cls.todos[:3]),
+						"order": frappe.as_json(self.todos[:3]),
 					},
 					{
 						"column_name": "Closed",
-						"order": frappe.as_json(cls.todos[3:]),
+						"order": frappe.as_json(self.todos[3:]),
 					},
 				],
 			}
 		).insert(ignore_permissions=True)
-		cls.board_name = board.name
-
-	@classmethod
-	def tearDownClass(cls):
-		if frappe.db.exists("Kanban Board", cls.board_name):
-			frappe.delete_doc("Kanban Board", cls.board_name, force=1)
-		for name in cls.todos:
-			if frappe.db.exists("ToDo", name):
-				frappe.delete_doc("ToDo", name, force=1)
-		super().tearDownClass()
-
-	def setUp(self):
-		board = frappe.get_doc("Kanban Board", self.board_name)
-		board.filters = frappe.as_json([["ToDo", "name", "in", self.todos]])
-		board.columns[0].order = frappe.as_json(self.todos[:3])
-		board.columns[1].order = frappe.as_json(self.todos[3:])
-		board.save(ignore_permissions=True)
-		for i, status in enumerate(["Open", "Open", "Open", "Closed"]):
-			frappe.db.set_value("ToDo", self.todos[i], "status", status)
+		self.board_name = board.name
 
 	def test_update_order_for_single_card_with_order_arrays_same_column(self):
 		open_order, _ = get_kanban_column_order_and_index(
