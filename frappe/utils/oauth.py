@@ -291,6 +291,19 @@ def get_redirect_uri(provider: str) -> str:
 	return frappe.utils.get_url(redirect_uri)
 
 
+def get_oauth2_logout_url() -> str | None:
+	session = getattr(frappe.local, "session", None)
+	provider = session and session.get("data", {}).get("oauth_provider")
+	if not provider or not frappe.db.exists("Social Login Key", provider):
+		return None
+
+	key = frappe.get_doc("Social Login Key", provider)
+	if not key.enable_oidc_logout:
+		return None
+
+	return key.get_oidc_logout_url()
+
+
 def login_via_oauth2(provider: str, code: str, state: str, decoder: Callable | None = None):
 	info = get_info_via_oauth(provider, code, decoder)
 	login_oauth_user(info, provider=provider, state=state)
@@ -425,6 +438,9 @@ def login_oauth_user(
 		frappe.get_attr(method)(user=user, provider=provider, claims=data)
 
 	frappe.local.login_manager.login_as(user)
+	if provider:
+		frappe.local.session.data.oauth_provider = provider
+		frappe.local.session_obj.update(force=True)
 
 	# because of a GET request!
 	frappe.db.commit()
