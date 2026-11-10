@@ -2,6 +2,7 @@
 // count and the Favourite star, whose click never follows the row's link.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, nextTick, type Component } from "vue";
+import { seedRowParts } from "@/list/rowParts";
 import AvatarStackCell from "../AvatarStackCell.vue";
 import CommentsCell from "../CommentsCell.vue";
 import DocstatusCell from "../DocstatusCell.vue";
@@ -52,11 +53,14 @@ describe("list collaboration cells", () => {
 		expect(root.textContent?.trim()).toBe("0");
 	});
 
-	it("draws one avatar per user and survives a malformed value", async () => {
-		const two = await render(AvatarStackCell, { value: '["a","b"]' });
+	it("names a lone user beside the avatar; a stack shows avatars only", async () => {
+		seedRowParts("ToDo", { users: { "a@x": { full_name: "Ann Lee" } } }, []);
+		const one = await render(AvatarStackCell, { value: '["a@x"]' });
+		const two = await render(AvatarStackCell, { value: '["a@x","b@x"]' });
 		const bad = await render(AvatarStackCell, { value: "{oops" });
-		expect(two.textContent).toBe("ab");
-		expect(bad.textContent).toBe("");
+		expect(one.textContent).toContain("Ann Lee");
+		expect(two.textContent).not.toContain("Ann Lee");
+		expect(bad.textContent?.trim()).toBe("");
 	});
 
 	it("stars in place and does not let the click reach the row link", async () => {
