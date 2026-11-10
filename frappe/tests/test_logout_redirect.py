@@ -52,15 +52,16 @@ class TestPostLogoutRedirect(IntegrationTestCase):
 
 		with (
 			patch("frappe.utils.oauth.get_oauth2_logout_url", return_value="https://oidc.example.com/logout"),
-			patch.object(frappe.local.login_manager, "logout", side_effect=on_logout),
+			patch.object(frappe.local, "login_manager", create=True) as login_manager,
 			patch.object(frappe.db, "commit"),
 		):
+			login_manager.logout.side_effect = on_logout
 			self.assertEqual(logout(), "https://id.example.com/logout")
 
 	def test_oidc_redirect_remains_fallback_when_no_hook_redirect(self):
 		with (
 			patch("frappe.utils.oauth.get_oauth2_logout_url", return_value="https://oidc.example.com/logout"),
-			patch.object(frappe.local.login_manager, "logout"),
+			patch.object(frappe.local, "login_manager", create=True),
 			patch.object(frappe.db, "commit"),
 		):
 			self.assertEqual(logout(), "https://oidc.example.com/logout")
@@ -71,18 +72,19 @@ class TestPostLogoutRedirect(IntegrationTestCase):
 
 		with (
 			patch("frappe.utils.oauth.get_oauth2_logout_url", return_value=None),
-			patch.object(frappe.local.login_manager, "logout", side_effect=on_logout) as manager_logout,
+			patch.object(frappe.local, "login_manager", create=True) as login_manager,
 			patch.object(frappe.db, "commit") as commit,
 		):
+			login_manager.logout.side_effect = on_logout
 			self.assertIsNone(logout())
-			manager_logout.assert_called_once()
+			login_manager.logout.assert_called_once()
 			commit.assert_called_once()
 
 	def test_stale_redirect_is_not_reused(self):
 		frappe.local.flags.post_logout_redirect = "https://old.example.com/logout"
 		with (
 			patch("frappe.utils.oauth.get_oauth2_logout_url", return_value=None),
-			patch.object(frappe.local.login_manager, "logout"),
+			patch.object(frappe.local, "login_manager", create=True),
 			patch.object(frappe.db, "commit"),
 		):
 			self.assertIsNone(logout())
