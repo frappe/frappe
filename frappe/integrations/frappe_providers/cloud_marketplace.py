@@ -88,6 +88,13 @@ def _app_row(entry: dict, installed: dict, required_by: dict) -> dict:
 		"installed_version": installed_version,
 		"latest_version": latest_version,
 		"has_update": bool(installed_version) and _is_newer(latest_version, installed_version),
+		"repo": entry.get("repo") or "",
+		"documentation": entry.get("documentation") or "",
+		"website": entry.get("website") or "",
+		"dependencies": [dep for dep in (entry.get("dependencies") or {}) if dep != "frappe"],
+		"nightly": entry.get("channel") == "nightly",
+		"frappe_version": entry.get("frappe_version") or "",
+		"categories": entry.get("categories") or [],
 		"required_by": required_by.get(name, []),
 	}
 
