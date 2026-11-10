@@ -7,7 +7,7 @@ import LinkField from "../LinkField.vue";
 import SelectField from "../SelectField.vue";
 import TextField from "../TextField.vue";
 import TextareaField from "../TextareaField.vue";
-import { descriptionText } from "../fieldDescription";
+import { descriptionHtml, descriptionText } from "../fieldDescription";
 import { sanitizeHtml } from "../../../utils/sanitize";
 
 // happy-dom breaks DOMPurify (it keeps `onerror`), so this checks the wiring; a walk checks the purge.
@@ -70,6 +70,15 @@ describe("field description", () => {
       FORBID_ATTR: ["form", "formaction"],
       ADD_ATTR: ["target"],
     });
+  });
+
+  it("opens each link in a new tab and leaves a description without links untouched", () => {
+    const html = descriptionHtml('See <a href="https://frappe.io" target="_self" rel="opener">docs</a>.');
+    const link = new DOMParser().parseFromString(html, "text/html").querySelector("a");
+    expect(link?.getAttribute("target")).toBe("_blank");
+    expect(link?.getAttribute("rel")).toBe("noopener noreferrer");
+    expect(descriptionHtml("<address>Main St</address>")).toBe("<address>Main St</address>");
+    expect(descriptionHtml("plain <br>text")).toBe("plain <br>text");
   });
 
   it("passes a description with no markup through as text", () => {

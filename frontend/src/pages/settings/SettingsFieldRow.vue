@@ -22,7 +22,10 @@
 				@change="emit('commit')"
 			/>
 		</div>
-		<SettingsRow v-else :title="title" :description="descriptionText(description)">
+		<SettingsRow v-else :title="title">
+			<template v-if="description" #description>
+				<FieldDescription :html="description" />
+			</template>
 			<div class="flex items-center gap-2">
 				<SettingsSaveMark :mark="mark" />
 				<Switch
@@ -50,7 +53,7 @@
 import { computed } from "vue";
 import { ErrorMessage, SettingsRow, Switch } from "frappe-ui";
 import { getFieldComponent } from "@framework/ui/FormLayout";
-import { descriptionText, FieldDescription } from "@framework/ui/fields";
+import { FieldDescription } from "@framework/ui/fields";
 import { fieldnameOfErrorKey } from "@framework/ui/fields/types";
 import type { FieldNode } from "@framework/ui/FormLayout/types";
 import { __ } from "@/i18n";
