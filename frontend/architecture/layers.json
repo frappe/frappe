@@ -468,9 +468,6 @@
       "Person",
       "tagsOf"
     ],
-    "frontend/src/pages/record/panel/peopleActions.ts": [
-      "mergePart"
-    ],
     "frontend/src/pages/record/panel/RecordPanel.vue": [
       "RecordPanel"
     ],

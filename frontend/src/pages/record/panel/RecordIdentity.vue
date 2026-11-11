@@ -23,7 +23,12 @@
 		<!-- Anchored on the whole row, so both popovers open beside the chips, never over them. -->
 		<TagPicker v-if="canWrite" v-model:open="picking" anchored shortcut :session="session" />
 		<div class="flex flex-wrap items-center gap-1.5" data-tags>
-			<TagChip v-for="tag in split.shown" :key="tag" :tag="tag" :class="{ 'pr-1': canWrite }">
+			<TagChip
+				v-for="tag in split.shown"
+				:key="tag"
+				:tag="tag"
+				:class="{ 'pr-1': canWrite }"
+			>
 				<button
 					v-if="canWrite"
 					type="button"
