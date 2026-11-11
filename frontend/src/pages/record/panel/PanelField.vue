@@ -72,7 +72,7 @@
 				@open="record.open"
 			/>
 			<DataOpenLink
-				v-else-if="address && (address.kind === 'web' || interactive)"
+				v-else-if="address && (address.kind === 'web' || (interactive && !composerEmail))"
 				:address="address"
 				class="ml-auto grid shrink-0 opacity-0 focus-visible:opacity-100 group-hover:opacity-100"
 			/>
@@ -108,6 +108,7 @@ import {
 	ColorSwatch,
 	DataOpenLink,
 	FieldActionButtons,
+	FieldActionsKey,
 	LinkMark,
 	dataHref,
 	focusField,
@@ -192,6 +193,15 @@ const actionRecord = computed(() =>
 		: undefined
 );
 const address = computed(() => dataHref(props.field, doc.value[props.field.fieldname]));
+// The shell's email button already writes to this address, so the row drops its mailto arrow.
+const fieldActions = inject(FieldActionsKey, null);
+const composerEmail = computed(
+	() =>
+		email.value &&
+		!!fieldActions
+			?.for(props.field, doc.value[props.field.fieldname], actionRecord.value)
+			.some((action) => action.act === "shell.email")
+);
 
 const record = useRecordLink(linkedDoctype, () => doc.value[props.field.fieldname] || null);
 const openLabel = computed(() => {

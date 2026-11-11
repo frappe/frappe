@@ -22,6 +22,8 @@ import {
 	UpdateKey,
 } from "@framework/ui/FormLayout/types";
 import type { FieldNode } from "@framework/ui/FormLayout/types";
+import { FieldActionsKey } from "@framework/ui/fields/types";
+import type { FieldAction } from "@framework/ui/fields/types";
 import PanelField from "../PanelField.vue";
 
 const Control = defineComponent({ render: () => h("input", { "data-control": "" }) });
@@ -33,7 +35,7 @@ afterEach(() => {
 	document.body.innerHTML = "";
 });
 
-async function mount(options: string, value: string, readOnly = false) {
+async function mount(options: string, value: string, readOnly = false, actions: FieldAction[] = []) {
 	const field: FieldNode = { fieldname: "f", fieldtype: "Data", label: "F", options, readOnly };
 	const root = document.createElement("div");
 	document.body.appendChild(root);
@@ -42,6 +44,7 @@ async function mount(options: string, value: string, readOnly = false) {
 	app.provide(UpdateKey, vi.fn());
 	app.provide(CommitKey, NO_COMMIT);
 	app.provide(ResolveFieldKey, () => Control);
+	app.provide(FieldActionsKey, { for: () => actions });
 	app.mount(root);
 	mounted.push(app);
 	await nextTick();
@@ -65,6 +68,13 @@ describe("a panel row for a Data option", () => {
 		root.querySelector<HTMLElement>("[data-fieldname='f']")!.click();
 		await nextTick();
 		expect(root.querySelector("[data-control]")).not.toBeNull();
+	});
+
+	it("drops an editable Email's mail arrow when the shell's email button is there", async () => {
+		const email = { act: "shell.email", label: "Email", icon: "lucide-mail", run: vi.fn() };
+		const root = await mount("Email", "a@x.com", false, [email]);
+		expect(root.querySelector("[data-slot='mail-arrow']")).toBeNull();
+		expect(root.querySelector("[data-slot='field-action']")).not.toBeNull();
 	});
 
 	it("does not open the editor when the arrow is clicked", async () => {
