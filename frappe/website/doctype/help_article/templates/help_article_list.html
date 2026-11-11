@@ -32,21 +32,25 @@
 </div>
 <script>
 	frappe.ready(() => {
-		const page_length = 20;
-		const url = new URL(window.location.href);
-		const shown = parseInt(url.searchParams.get("limit")) || page_length;
+		const btn = $(".kb-list-content .btn-more");
+		let next_start = {{ next_start or 0 }};
 
-		// Reload with more rows instead of calling an API.
-		$(".kb-list-content .btn-more").on("click", function () {
-			url.searchParams.set("limit", shown + page_length);
-			window.location.href = url.toString();
+		btn.on("click", () => {
+			const url = new URL(window.location.href);
+			url.searchParams.set("limit_start", next_start);
+			btn.prop("disabled", true);
+
+			fetch(url)
+				.then((r) => r.text())
+				.then((html) => {
+					const page = $(new DOMParser().parseFromString(html, "text/html"));
+					const rows = page.find(".kb-list .portal-row");
+					rows.appendTo(".kb-list");
+					next_start += rows.length;
+					btn.toggleClass("hidden", !page.find(".btn-more:not(.hidden)").length);
+				})
+				.finally(() => btn.prop("disabled", false));
 		});
-
-		// After a reload, scroll to the first row that was added.
-		if (shown > page_length) {
-			const first_new_row = $(".kb-list .portal-row").get(shown - page_length);
-			first_new_row?.scrollIntoView();
-		}
 	});
 </script>
 {% endblock %}
