@@ -22,7 +22,7 @@
 						v-bind="controlProps"
 						:field="controlField"
 						:modelValue="doc[field.fieldname]"
-						:error="error"
+						:error="drawsErrorText ? undefined : error"
 						@update:modelValue="(value: any) => edit(field.fieldname, value)"
 						@change="(value: any) => onCommit(value)"
 						v-on="field.ui?.on ?? {}"
@@ -195,6 +195,20 @@ const summary = computed(
 		isSummaryField(props.field.fieldtype) &&
 		(context?.onDetails(props.field.fieldname) ?? true)
 );
+// Until every control takes `panel`, one that does not still draws its own error text.
+const PANEL_FIELDTYPES = [
+	"Data",
+	"Int",
+	"Float",
+	"Currency",
+	"Percent",
+	"Phone",
+	"Duration",
+	"Password",
+];
+const drawsErrorText = computed(
+	() => !!props.field.ui?.component || !PANEL_FIELDTYPES.includes(props.field.fieldtype)
+);
 const interactive = computed(() => summary.value || !props.field.readOnly);
 const resolved = computed(() => resolveField(props.field.fieldtype));
 
@@ -259,18 +273,18 @@ const POPOVER =
 
 function onFocusout(event: FocusEvent) {
 	const next = event.relatedTarget as HTMLElement | null;
-	if (!next) return;
-	if (cell.value?.contains(next)) return;
-	if (next.closest(POPOVER)) return;
-	editing.value = false;
+	if (next && !isInside(next)) editing.value = false;
 }
 
 // A press on a blank part of the page moves focus nowhere, so `focusout` cannot tell it
 // from a press in a popover.
 function onPressOutside(event: PointerEvent) {
 	const target = event.target as HTMLElement | null;
-	if (!target || cell.value?.contains(target) || target.closest(POPOVER)) return;
-	editing.value = false;
+	if (target && !isInside(target)) editing.value = false;
+}
+
+function isInside(node: HTMLElement) {
+	return !!cell.value?.contains(node) || !!node.closest(POPOVER);
 }
 
 watch(editing, async (on, _previous, onCleanup) => {

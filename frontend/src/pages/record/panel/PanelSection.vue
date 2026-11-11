@@ -57,7 +57,7 @@
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from "vue";
+import { nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import type { FieldNode } from "@framework/ui/FormLayout/types";
 import PanelField from "./PanelField.vue";
 
@@ -65,7 +65,7 @@ import PanelField from "./PanelField.vue";
 // knowable without measuring.
 const HEIGHT = 42;
 
-defineProps<{
+const props = defineProps<{
 	name: string;
 	/** Absent on a built-in, which draws no header and no chevron. */
 	label?: string;
@@ -97,6 +97,10 @@ onMounted(() => {
 	measure();
 });
 onBeforeUnmount(() => scroller?.removeEventListener("scroll", measure));
+watch(
+	() => [props.open, props.fields.length],
+	() => nextTick(measure)
+);
 
 function scrollParent(node: HTMLElement | null): HTMLElement | null {
 	let parent = node?.parentElement ?? null;
