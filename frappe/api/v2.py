@@ -178,8 +178,9 @@ def document_list(doctype: str) -> list[dict[str, Any]]:
 		group_by: Group by field
 		as_dict: Return results as dictionary (default: True)
 		include: Comma-separated parts to add beside the list: `count`, `favourites` (the page's
-			rows the session user starred), `users` (names of the `_assign`/`_liked_by` users) and
-			`comment_counts` (comments per row of the page)
+			rows the session user starred), `users` (names of the `_assign`/`_liked_by` users),
+			`comment_counts` (comments per row of the page) and `tag_colors` (the stored colour of
+			each tag in `_user_tags`)
 
 	Response:
 		frappe.response["data"]: List of document records as dicts

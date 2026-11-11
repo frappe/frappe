@@ -14,9 +14,7 @@
 				<!-- The tag action is the picker's own trigger, so it opens where it was pressed. -->
 				<TagPicker
 					v-if="action.tagging"
-					:doctype="context.doctype"
 					:tags="tags"
-					:call="context.controller.page.call"
 					:vertical="vertical"
 					@add="people.addTag"
 					@remove="people.removeTag"
@@ -74,9 +72,7 @@
 					v-if="taggingOverflowed"
 					v-model:open="picking"
 					anchored
-					:doctype="context.doctype"
 					:tags="tags"
-					:call="context.controller.page.call"
 					@add="people.addTag"
 					@remove="people.removeTag"
 				/>

@@ -1,12 +1,11 @@
 // Options matched on the server as the reader types, for the assign, share and tag pickers.
 import { computed, ref, type Ref } from "vue";
 import { useDebounceFn } from "@vueuse/core";
-import { searchDocuments } from "@framework/ui/api";
+import { listDocuments, searchDocuments } from "@framework/ui/api";
 import { errorMessage } from "@/recordPage";
+import { seedTagColors } from "@/tagColors";
 
 export type SearchOption = { label: string; value: string; image?: string };
-
-type Call = (method: string, params?: Record<string, any>) => Promise<any>;
 
 const PAGE_LENGTH = 10;
 // A dict, not a list: the server hands User searches to a standard query that reads filters by key.
@@ -20,8 +19,8 @@ export function useUserSearch(pinned: Ref<SearchOption[]>) {
 	return useRemoteSearch(searchUsers, pinned);
 }
 
-export function useTagSearch(call: Call, doctype: string, pinned: Ref<SearchOption[]>) {
-	return useRemoteSearch((query) => searchTags(call, doctype, query), pinned);
+export function useTagSearch(pinned: Ref<SearchOption[]>) {
+	return useRemoteSearch(searchTags, pinned);
 }
 
 /** The server's answer with the pinned options filling its gaps; a stale answer is dropped. */
@@ -80,10 +79,14 @@ export async function findUsers(query: string) {
 	return data;
 }
 
-async function searchTags(call: Call, doctype: string, query: string): Promise<SearchOption[]> {
-	const found: string[] = await call("frappe.desk.doctype.tag.tag.get_tags", {
-		doctype,
-		txt: query.trim(),
+async function searchTags(query: string): Promise<SearchOption[]> {
+	const text = query.trim();
+	const { data } = await listDocuments<{ name: string; color?: string | null }>("Tag", {
+		fields: ["name", "color"],
+		filters: text ? [["name", "like", `%${text}%`]] : [],
+		order_by: "name asc",
+		limit: PAGE_LENGTH,
 	});
-	return (found ?? []).map((tag) => ({ label: tag, value: tag }));
+	seedTagColors(Object.fromEntries(data.map((tag) => [tag.name, tag.color])));
+	return data.map((tag) => ({ label: tag.name, value: tag.name }));
 }

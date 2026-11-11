@@ -19,7 +19,7 @@
 	</div>
 
 	<div v-if="tags.length" class="flex flex-wrap items-center gap-1.5" data-tags>
-		<TagChip v-for="tag in tags" :key="tag" :tag="tag" :class="canWrite ? 'pr-1' : 'pr-2'">
+		<TagChip v-for="tag in tags" :key="tag" :tag="tag" :class="{ 'pr-1': canWrite }">
 			<button
 				v-if="canWrite"
 				type="button"
@@ -33,9 +33,7 @@
 
 		<TagPicker
 			v-if="canWrite"
-			:doctype="context.doctype"
 			:tags="tags"
-			:call="context.controller.page.call"
 			@add="actions.addTag"
 			@remove="actions.removeTag"
 		/>

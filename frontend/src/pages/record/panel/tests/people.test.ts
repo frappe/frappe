@@ -6,7 +6,6 @@ import {
 	listDiff,
 	matchingTags,
 	sharedWith,
-	tagColor,
 	tagsOf,
 } from "../people";
 
@@ -60,10 +59,5 @@ describe("picks", () => {
 		expect(canCreateTag(["urgent"], "")).toBe(false);
 		expect(canCreateTag(["urgent"], "a, b")).toBe(false);
 		expect(canCreateTag(["urgent"], "later")).toBe(true);
-	});
-
-	it("colours a tag by its name, the same on every record", () => {
-		expect(tagColor("urgent")).toBe(tagColor("urgent"));
-		expect(tagColor("urgent")).toMatch(/^bg-/);
 	});
 });

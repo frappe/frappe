@@ -54,22 +54,6 @@ export function canCreateTag(known: string[], query: string): boolean {
 	return !known.some((tag) => normalize(tag) === wanted);
 }
 
-const PALETTE = [
-	"bg-blue-500",
-	"bg-green-500",
-	"bg-amber-500",
-	"bg-violet-500",
-	"bg-pink-500",
-	"bg-red-500",
-];
-
-/** Colour follows the tag's name, so the same tag looks the same on every record. */
-export function tagColor(tag: string): string {
-	let hash = 0;
-	for (const character of tag) hash = (hash * 31 + character.charCodeAt(0)) % 997;
-	return PALETTE[hash % PALETTE.length];
-}
-
 function normalize(text: string) {
 	return text.trim().toLowerCase();
 }

@@ -20,6 +20,22 @@ class Tag(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		color: DF.Literal[
+			"",
+			"Gray",
+			"Black",
+			"Blue",
+			"Green",
+			"Red",
+			"Pink",
+			"Orange",
+			"Amber",
+			"Yellow",
+			"Cyan",
+			"Teal",
+			"Violet",
+			"Purple",
+		]
 		description: DF.SmallText | None
 	# end: auto-generated types
 
@@ -39,7 +55,7 @@ def check_user_tags(dt):
 @frappe.whitelist()
 def add_tag(tag: str, dt: str, dn: str, color: str | None = None):
 	"adds a new tag to a record, and creates the Tag master"
-	DocTags(dt).add(dn, tag)
+	DocTags(dt).add(dn, tag, color)
 
 	return tag
 
@@ -55,7 +71,7 @@ def add_tags(tags: str | list[str], dt: str, docs: str | list[str], color: str |
 	docs = frappe.parse_json(docs)
 	for doc in docs:
 		for tag in tags:
-			DocTags(dt).add(doc, tag)
+			DocTags(dt).add(doc, tag, color)
 
 
 @frappe.whitelist()
@@ -93,13 +109,12 @@ class DocTags:
 		"""Return tag for a particular item."""
 		return (frappe.db.get_value(self.dt, dn, "_user_tags", ignore=1) or "").strip()
 
-	def add(self, dn, tag):
+	def add(self, dn, tag, color=None):
 		"""Add a new user tag."""
 		tl = self.get_tags(dn).split(",")
 		if tag not in tl:
 			tl.append(tag)
-			if not frappe.db.exists("Tag", tag):
-				frappe.get_doc({"doctype": "Tag", "name": tag}).insert(ignore_permissions=True)
+			ensure_tag(tag, color)
 			self.update(dn, tl)
 
 	def remove(self, dn, tag):
@@ -139,6 +154,18 @@ class DocTags:
 		from frappe.database.schema import add_column
 
 		add_column(self.dt, "_user_tags", "Data")
+
+
+def ensure_tag(tag: str, color: str | None = None) -> None:
+	"""Create the Tag master with `color`, or fill `color` on one that has none."""
+	stored = frappe.db.get_value("Tag", tag, ["name", "color"], as_dict=True)
+	if not stored:
+		frappe.get_doc({"doctype": "Tag", "name": tag, "color": color}).insert(ignore_permissions=True)
+	# anyone who may tag one record gets here, and a tag is the whole site's: never recolour it
+	elif color and not stored.color:
+		tag_doc = frappe.get_doc("Tag", tag)
+		tag_doc.color = color
+		tag_doc.save(ignore_permissions=True)
 
 
 def delete_tags_for_document(doc):

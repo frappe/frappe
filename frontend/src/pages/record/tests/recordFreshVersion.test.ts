@@ -127,6 +127,7 @@ async function answerData(url: URL, path: string): Promise<unknown> {
       users: {},
       link_titles: {},
       link_marks: {},
+      tag_colors: {},
       attachments: [],
       seen: [],
     };

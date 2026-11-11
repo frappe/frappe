@@ -7,7 +7,14 @@
 import frappe
 import frappe.share
 from frappe import _
-from frappe.api.include import DOCUMENT_PARTS, USER_ROW_KEY, USERS_PART, UnknownPartError, users_named_by
+from frappe.api.include import (
+	DOCUMENT_PARTS,
+	USER_ROW_KEY,
+	USERS_PART,
+	UnknownPartError,
+	colors_of_tags,
+	users_named_by,
+)
 from frappe.core.doctype.file.utils import attach_files, attach_inline_media
 from frappe.desk.doctype.favourite.favourite import toggle_favourite
 from frappe.desk.doctype.tag.tag import add_tag, remove_tag
@@ -102,6 +109,8 @@ def refreshed(doc: Document, part: str) -> dict:
 	response = {part: rows}
 	if part in USER_ROW_KEY:
 		response[USERS_PART] = users_named_by(doc, {part: rows})
+	if part == "tags":
+		response["tag_colors"] = colors_of_tags(rows)
 	return response
 
 
@@ -137,7 +146,7 @@ def share_target(user: str) -> tuple[str | None, int]:
 def add_a_tag(doc: Document, body: dict) -> None:
 	if "," in body["tag"]:
 		raise InvalidRequestError(_("A tag cannot contain a comma"))
-	add_tag(body["tag"], doc.doctype, doc.name)
+	add_tag(body["tag"], doc.doctype, doc.name, body.get("color"))
 
 
 def remove_a_tag(doc: Document, tag: str) -> None:
@@ -212,7 +221,11 @@ PART_RIGHT = {
 	"comments": "read",
 }
 KEYLESS_PARTS = ("favourites", "follows")
-OPTIONAL_BODY = {"assignments": ("description", "priority", "date"), "comments": ("attachments",)}
+OPTIONAL_BODY = {
+	"assignments": ("description", "priority", "date"),
+	"tags": ("color",),
+	"comments": ("attachments",),
+}
 LIST_KEYS = ("attachments",)
 REQUIRED_BODY = {
 	"assignments": ("user",),

@@ -8,6 +8,7 @@ export const RECORD_PARTS = [
   "assignments",
   "shares",
   "tags",
+  "tag_colors",
   "favourites",
   "follows",
   "users",

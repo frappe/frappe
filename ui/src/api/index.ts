@@ -488,13 +488,16 @@ export function removeShare(doctype: string, name: string, user: string, options
   return removePart<PartResponse<"shares", Share[]>>(doctype, name, "shares", user, options);
 }
 
-export function addTag(doctype: string, name: string, tag: string, options?: CallOptions) {
-  return addPart<PartResponse<"tags", string[]>>(doctype, name, "tags", { tag }, options);
+/** A new tag takes `color`; so does one that has none. A tag's set colour never changes here. */
+export function addTag(doctype: string, name: string, tag: string, options?: CallOptions, color?: string) {
+  return addPart<TagsResponse>(doctype, name, "tags", color ? { tag, color } : { tag }, options);
 }
 
 export function removeTag(doctype: string, name: string, tag: string, options?: CallOptions) {
-  return removePart<PartResponse<"tags", string[]>>(doctype, name, "tags", tag, options);
+  return removePart<TagsResponse>(doctype, name, "tags", tag, options);
 }
+
+type TagsResponse = PartResponse<"tags", string[]> & { tag_colors?: Record<string, string> };
 
 export function addFavourite(doctype: string, name: string, options?: CallOptions) {
   return addPart<PartResponse<"favourites", Favourite[]>>(

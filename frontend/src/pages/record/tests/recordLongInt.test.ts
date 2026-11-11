@@ -59,6 +59,7 @@ const PARTS = {
   users: {},
   link_titles: {},
   link_marks: {},
+  tag_colors: {},
   attachments: [],
   seen: [],
 };

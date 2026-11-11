@@ -2,6 +2,7 @@
 import { LIST_ONLY_FIELDS, readCachedDocument, RECORD_PARTS } from "@framework/ui/cache";
 import { getDocument, updateDocument } from "@framework/ui/api";
 import type { DocInfo } from "./panel/context";
+import { seedTagColors } from "@/tagColors";
 
 export { RECORD_PARTS };
 
@@ -62,6 +63,7 @@ async function read(
 }
 
 function loaded(document: Record<string, any>, parts: Readonly<Record<string, unknown>>): LoadedRecord {
+	seedTagColors(parts.tag_colors);
 	return {
 		document,
 		docinfo: {

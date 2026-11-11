@@ -95,6 +95,7 @@ async function answer(url: URL, init?: RequestInit): Promise<unknown> {
       users: {},
       link_titles: {},
       link_marks: {},
+      tag_colors: {},
       attachments: [],
       seen: [],
     };

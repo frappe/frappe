@@ -2,10 +2,14 @@
 import { describe, expect, it, vi } from "vitest";
 import { ref } from "vue";
 import { useRemoteSearch, useTagSearch, useUserSearch, type SearchOption } from "../remoteSearch";
+import { TAG_COLORS, tagColorClass } from "@/tagColors";
 
-const fake = vi.hoisted(() => ({ searchDocuments: vi.fn() }));
+const fake = vi.hoisted(() => ({ searchDocuments: vi.fn(), listDocuments: vi.fn() }));
 
-vi.mock("@framework/ui/api", () => ({ searchDocuments: fake.searchDocuments }));
+vi.mock("@framework/ui/api", () => ({
+	searchDocuments: fake.searchDocuments,
+	listDocuments: fake.listDocuments,
+}));
 
 const option = (value: string): SearchOption => ({ label: value, value });
 
@@ -81,14 +85,21 @@ describe("the searches", () => {
 		]);
 	});
 
-	it("looks tags up for the doctype with the trimmed query", async () => {
-		const call = vi.fn(async () => ["urgent"]);
-		const { options, search } = useTagSearch(call, "CRM Deal", ref([]));
+	it("reads the matching Tags with their colours, by name", async () => {
+		fake.listDocuments.mockResolvedValueOnce({ data: [{ name: "urgent", color: "Red" }, { name: "urge" }] });
+		const { options, search } = useTagSearch(ref([]));
 		await search(" urg ");
-		expect(call).toHaveBeenCalledWith("frappe.desk.doctype.tag.tag.get_tags", {
-			doctype: "CRM Deal",
-			txt: "urg",
+		expect(fake.listDocuments).toHaveBeenCalledWith("Tag", {
+			fields: ["name", "color"],
+			filters: [["name", "like", "%urg%"]],
+			order_by: "name asc",
+			limit: 10,
 		});
-		expect(options.value).toEqual([{ label: "urgent", value: "urgent" }]);
+		expect(options.value).toEqual([
+			{ label: "urgent", value: "urgent" },
+			{ label: "urge", value: "urge" },
+		]);
+		expect(tagColorClass("urgent")).toBe(TAG_COLORS.Red);
+		expect(tagColorClass("urge")).toBe(TAG_COLORS.Gray);
 	});
 });
