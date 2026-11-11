@@ -80,6 +80,16 @@ def remove_tag(tag: str, dt: str, dn: str):
 	DocTags(dt).remove(dn, tag)
 
 
+@frappe.whitelist(methods=["POST"])
+def set_tag_color(tag: str, color: str):
+	"sets the colour of an existing Tag; the Select names are the only colours"
+	tag_doc = frappe.get_doc("Tag", tag)
+	tag_doc.check_permission("write")
+	tag_doc.color = color
+	tag_doc.save()
+	return color
+
+
 @frappe.whitelist()
 def get_tagged_docs(doctype: str, tag: str):
 	frappe.has_permission(doctype, throw=True)

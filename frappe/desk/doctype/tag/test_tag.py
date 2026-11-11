@@ -1,5 +1,5 @@
 import frappe
-from frappe.desk.doctype.tag.tag import DocTags, add_tag, add_tags, ensure_tag
+from frappe.desk.doctype.tag.tag import DocTags, add_tag, add_tags, ensure_tag, set_tag_color
 from frappe.desk.reportview import get_stats
 from frappe.tests import IntegrationTestCase
 
@@ -77,6 +77,19 @@ class TestTag(IntegrationTestCase):
 		with self.assertRaises(frappe.ValidationError):
 			ensure_tag("odd", "Chartreuse")
 		self.assertFalse(frappe.db.exists("Tag", "odd"))
+
+	def test_set_tag_color_recolours_an_existing_tag(self):
+		ensure_tag("repaint", "Red")
+		frappe.set_user("test@example.com")
+		self.addCleanup(frappe.set_user, "Administrator")
+		set_tag_color("repaint", "Blue")
+		self.assertEqual(frappe.db.get_value("Tag", "repaint", "color"), "Blue")
+
+	def test_set_tag_color_rejects_an_unknown_color(self):
+		ensure_tag("stays", "Red")
+		with self.assertRaises(frappe.ValidationError):
+			set_tag_color("stays", "Chartreuse")
+		self.assertEqual(frappe.db.get_value("Tag", "stays", "color"), "Red")
 
 	def test_add_tag_and_add_tags_pass_the_color(self):
 		first = frappe.get_doc({"doctype": "ToDo", "description": "colour test"}).insert()

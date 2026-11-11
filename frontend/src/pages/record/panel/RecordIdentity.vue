@@ -18,36 +18,49 @@
 		</div>
 	</div>
 
-	<div v-if="tags.length" class="flex flex-wrap items-center gap-1.5" data-tags>
-		<TagChip v-for="tag in tags" :key="tag" :tag="tag" :class="{ 'pr-1': canWrite }">
+	<div
+		v-if="session.tags.value.length || canWrite"
+		class="flex flex-wrap items-center gap-1.5"
+		data-tags
+	>
+		<TagChip v-for="tag in shown" :key="tag" :tag="tag" :class="{ 'pr-1': canWrite }">
 			<button
 				v-if="canWrite"
 				type="button"
 				class="grid size-4 place-content-center rounded-full text-ink-gray-4 opacity-0 transition hover:bg-surface-gray-3 hover:text-ink-gray-8 focus-visible:opacity-100 group-hover/tag:opacity-100"
 				:aria-label="`Remove ${tag}`"
-				@click="actions.removeTag(tag)"
+				@click="session.remove(tag)"
 			>
 				<span class="lucide-x size-3.5" aria-hidden="true" />
 			</button>
 		</TagChip>
 
-		<TagPicker
-			v-if="canWrite"
-			:tags="tags"
-			@add="actions.addTag"
-			@remove="actions.removeTag"
-		/>
+		<Tooltip v-if="hidden.length" :text="hidden.join(', ')">
+			<Badge
+				theme="gray"
+				variant="outline"
+				size="lg"
+				class="shrink-0 text-ink-gray-7"
+				data-more-tags
+			>
+				{{ __("+{0} more", [hidden.length]) }}
+			</Badge>
+		</Tooltip>
+
+		<TagPicker v-if="canWrite" :session="session" shortcut />
 	</div>
 </template>
 
 <script setup lang="ts">
 import { computed, inject } from "vue";
 import { PanelContextKey } from "./context";
-import { tagsOf } from "./people";
+import { splitTags } from "./tagSession";
 import TagChip from "./TagChip.vue";
 import { peopleActions } from "./peopleActions";
 import RecordImage from "./RecordImage.vue";
 import TagPicker from "./TagPicker.vue";
+import { Badge, Tooltip } from "frappe-ui";
+import { __ } from "@/i18n";
 import { recordTitle } from "@/recordTitle";
 
 const context = inject(PanelContextKey)!;
@@ -62,7 +75,10 @@ const subtitle = computed(() =>
 
 const hasImage = computed(() => Boolean(context.meta.value?.image_field));
 
-const tags = computed(() => tagsOf(context.docinfo.value));
+const session = actions.tagSession;
+const split = computed(() => splitTags(session.tags.value));
+const shown = computed(() => split.value.shown);
+const hidden = computed(() => split.value.hidden);
 
 const canWrite = computed(() => Boolean(context.docinfo.value?.permissions?.write));
 </script>

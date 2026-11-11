@@ -21,6 +21,7 @@ const api = vi.hoisted(() => {
 			})
 		),
 		removeTag: vi.fn(async (): Promise<{ data: { tags: string[] } }> => ({ data: { tags: [] } })),
+		runMethod: vi.fn(async () => ({ data: null })),
 		listDocuments: vi.fn(async () => ({ data: [] })),
 		searchDocuments: vi.fn(async () => ({ data: [] })),
 	};
@@ -42,6 +43,9 @@ vi.mock("frappe-ui", () => {
 							emit("update:modelValue", stub.nextPick);
 						},
 					}),
+					h("button", { "data-open": "", onClick: () => emit("update:open", true) }),
+					h("button", { "data-close": "", onClick: () => emit("update:open", false) }),
+					slots["item-prefix"]?.({ item: { label: "old", value: "old" } }),
 					slots.footer?.({}),
 				]);
 		},
@@ -55,6 +59,12 @@ vi.mock("frappe-ui", () => {
 			props: ["label"],
 			setup: (props) => () => h("span", { "data-avatar": props.label }),
 		}),
+		Popover: defineComponent({
+			props: ["open"],
+			setup: (props, { slots }) => () => h("div", [slots.trigger?.(), props.open ? slots.default?.() : null]),
+		}),
+		KeyboardShortcut: Plain("kbd"),
+		useKeyboardShortcut: vi.fn(),
 		Tooltip: Plain("span"),
 		Badge: Plain("span"),
 		TooltipProvider: Plain("div"),
@@ -139,6 +149,15 @@ async function pick(root: HTMLElement, values: string[] | string, query = "") {
 	stub.nextPick = values;
 	stub.nextQuery = query;
 	root.querySelector<HTMLElement>("[data-pick]")!.click();
+	await nextTick();
+}
+
+/** A picking session: open the picker, make the picks, close it. */
+async function session(root: HTMLElement, picks: () => Promise<void>) {
+	root.querySelector<HTMLElement>("[data-open]")!.click();
+	await nextTick();
+	await picks();
+	root.querySelector<HTMLElement>("[data-close]")!.click();
 	await nextTick();
 }
 
@@ -260,14 +279,18 @@ describe("the avatar stack", () => {
 });
 
 describe("tags", () => {
-	it("draws no row until the record has a tag; the first comes from the quick action", async () => {
+	it("draws an Add row for a writer with no tags; a session sends one write per tag when it closes", async () => {
 		const bare = setup({ permissions: { write: 1 } }, RecordIdentity);
-		expect(bare.root.querySelector("[data-tags]")).toBeNull();
+		expect(bare.root.querySelector("[data-tags]")!.textContent).toContain("Add");
 
 		quickActions.push({ name: "tags", label: "Tags", icon: "lucide-tag", tagging: true });
 		const { root, docinfo } = setup({ permissions: { write: 1 } }, QuickActions);
 		await vi.waitFor(() => expect(root.textContent).toContain("Tags"));
+		root.querySelector<HTMLElement>("[data-open]")!.click();
+		await nextTick();
 		await pick(root, ["first"], "first");
+		expect(api.addTag).not.toHaveBeenCalled();
+		root.querySelector<HTMLElement>("[data-close]")!.click();
 		await vi.waitFor(() => expect(docinfo.value?.tags).toEqual(["urgent", "later"]));
 		expect(api.addTag).toHaveBeenCalledWith("CRM Deal", "D-1", "first", undefined, undefined);
 	});
@@ -279,23 +302,58 @@ describe("tags", () => {
 		expect(tagged.root.querySelector("[aria-label='Remove urgent']")).toBeNull();
 	});
 
-	it("removes a tag from its chip and adds one the picker created, in the colour picked", async () => {
+	it("shows ticks on the chips at once, and sends the batch when the picker closes", async () => {
 		const { root, docinfo } = setup({ ...info({ write: 1 }), tags: ["urgent", "old"] }, RecordIdentity);
-		api.removeTag.mockResolvedValueOnce({ data: { tags: ["old"] } });
-		root.querySelector<HTMLElement>("[aria-label='Remove urgent']")!.click();
-		await vi.waitFor(() => expect(docinfo.value?.tags).toEqual(["old"]));
-		expect(api.removeTag).toHaveBeenCalledWith("CRM Deal", "D-1", "urgent");
-		expect(docinfo.value?.users).toMatchObject({ "ann@example.com": { full_name: "Ann" } });
-
-		api.addTag.mockResolvedValueOnce({ data: { tags: ["old", "later"], tag_colors: { old: "", later: "Teal" } } });
-		await pick(root, ["old"], "later");
-		root.querySelector<HTMLElement>("[data-create-tag]")!.click();
+		api.addTag.mockResolvedValueOnce({ data: { tags: ["old", "new"] } });
+		api.removeTag.mockResolvedValueOnce({ data: { tags: ["new"] } });
+		root.querySelector<HTMLElement>("[data-open]")!.click();
 		await nextTick();
+		await pick(root, ["old", "new"]);
+		expect(root.querySelector("[data-tags]")!.textContent).toContain("new");
+		expect(root.querySelector("[data-tags]")!.textContent).not.toContain("urgent");
 		expect(api.addTag).not.toHaveBeenCalled();
-		root.querySelector<HTMLElement>("[data-tag-colors] [aria-label='Teal']")!.click();
+		root.querySelector<HTMLElement>("[data-close]")!.click();
+		await vi.waitFor(() => expect(docinfo.value?.tags).toEqual(["new"]));
+		expect(api.addTag).toHaveBeenCalledWith("CRM Deal", "D-1", "new", undefined, undefined);
+		expect(api.removeTag).toHaveBeenCalledWith("CRM Deal", "D-1", "urgent");
+	});
+
+	it("rolls the chips back and toasts when a write fails", async () => {
+		const { root, docinfo } = setup({ ...info({ write: 1 }), tags: ["urgent"] }, RecordIdentity);
+		api.addTag.mockRejectedValueOnce(new Error("no"));
+		root.querySelector<HTMLElement>("[data-open]")!.click();
+		await nextTick();
+		await pick(root, ["urgent", "new"]);
+		root.querySelector<HTMLElement>("[data-close]")!.click();
+		await vi.waitFor(() => expect(root.querySelector("[data-tags]")!.textContent).not.toContain("new"));
+		expect(docinfo.value?.tags).toEqual(["urgent"]);
+	});
+
+	it("creates a tag in the colour picked, and in gray when the step closes unpicked", async () => {
+		const { root, docinfo } = setup({ ...info({ write: 1 }), tags: ["old"] }, RecordIdentity);
+		api.addTag.mockResolvedValueOnce({ data: { tags: ["old", "later"], tag_colors: { old: "", later: "Teal" } } });
+		await session(root, async () => {
+			await pick(root, ["__create__"], "later");
+			expect(api.addTag).not.toHaveBeenCalled();
+			const teal = [...root.querySelectorAll("[data-tag-colors] button")].find((row) => row.textContent?.includes("Teal"));
+			(teal as HTMLElement).click();
+			await nextTick();
+		});
 		await vi.waitFor(() => expect(docinfo.value?.tags).toEqual(["old", "later"]));
 		expect(api.addTag).toHaveBeenCalledWith("CRM Deal", "D-1", "later", undefined, "Teal");
 		expect(tagColorClass("later")).toBe(TAG_COLORS.Teal);
+	});
+
+	it("recolours an existing tag from its dot, saving it on the Tag", async () => {
+		const { root } = setup({ ...info({ write: 1 }), tags: ["old"] }, RecordIdentity);
+		root.querySelector<HTMLElement>("[data-open]")!.click();
+		await nextTick();
+		root.querySelector<HTMLElement>("[data-recolour]")!.click();
+		await nextTick();
+		const blue = [...root.querySelectorAll("[data-tag-colors] button")].find((row) => row.textContent?.includes("Blue"));
+		(blue as HTMLElement).click();
+		await vi.waitFor(() => expect(api.runMethod).toHaveBeenCalledWith(expect.stringContaining("set_tag_color"), { tag: "old", color: "Blue" }));
+		expect(tagColorClass("old")).toBe(TAG_COLORS.Blue);
 	});
 });
 

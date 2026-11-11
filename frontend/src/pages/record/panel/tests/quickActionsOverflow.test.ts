@@ -32,6 +32,12 @@ vi.mock("frappe-ui", () => {
 					),
 				]),
 		}),
+		Popover: defineComponent({
+			props: ["open"],
+			setup: (props, { slots }) => () => h("div", [slots.trigger?.(), props.open ? slots.default?.() : null]),
+		}),
+		KeyboardShortcut: Plain("kbd"),
+		useKeyboardShortcut: vi.fn(),
 		Button: Plain("button"),
 		Tooltip: Plain("span"),
 		TooltipProvider: Plain("div"),
