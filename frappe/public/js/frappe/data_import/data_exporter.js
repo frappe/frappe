@@ -103,7 +103,6 @@ frappe.data_import.DataExporter = class DataExporter {
 
 		this.make_filter_area();
 		this.make_select_all_buttons();
-		this.setup_search_input();
 
 		this.dialog.show();
 	}
@@ -410,26 +409,7 @@ frappe.data_import.DataExporter = class DataExporter {
 			});
 	}
 
-	setup_search_input() {
-		const $wrapper = this.dialog.get_field("select_all_buttons").$wrapper;
-
-		// prevent duplicate search inputs
-		if (this.dialog.$wrapper.find(".filters-search").length) return;
-
-		$wrapper.before(`
-			<div class="filters-search">
-				<input
-					type="text"
-					placeholder="${__("Search")}"
-					data-element="search"
-					class="form-control input-xs"
-				>
-			</div>
-		`);
-	}
-
 	setup_on_page_show() {
-		frappe.utils.setup_search(this.dialog.$body, ".unit-checkbox", ".label-area");
 		if (this.exporting_for) {
 			this.select_mandatory();
 		} else {

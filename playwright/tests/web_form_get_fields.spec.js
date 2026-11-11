@@ -186,7 +186,7 @@ test.describe("Web Form Get Fields", () => {
 
 		const unit = (fieldname) =>
 			picker(desk).locator(`.unit-checkbox:has(.label-area[data-unit='${fieldname}'])`);
-		const search = picker(desk).locator('[data-element="search"]');
+		const search = picker(desk).getByPlaceholder("Search Fields");
 
 		// the search is bound, cleared and focused only once the dialog has finished opening
 		await expect(search).toBeFocused();

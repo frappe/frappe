@@ -3002,15 +3002,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			}, 1500);
 		});
 
-		d.$body.prepend(`
-			<div class="filters-search">
-				<input type="text"
-					placeholder="${__("Search")}"
-					data-element="search" class="form-control input-xs">
-			</div>
-		`);
-
-		frappe.utils.setup_search(d.$body, ".unit-checkbox", ".label-area");
 		d.show();
 	}
 

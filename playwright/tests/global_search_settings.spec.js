@@ -77,7 +77,7 @@ test.describe("Global Search Settings — configure search fields", () => {
 
 		// the modal takes focus when it finishes opening, which would swallow a keyup
 		await page.waitForFunction(() => cur_dialog?.display);
-		const search = dialog.locator('[data-element="search"]');
+		const search = dialog.getByPlaceholder("Search Fields");
 		const visible_options = dialog.locator(".checkbox-options .unit-checkbox:visible");
 		await search.clear();
 		await search.pressSequentially("xyz-nonmatching-global-search-filter-12345");

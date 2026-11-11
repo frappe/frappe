@@ -472,7 +472,7 @@ class GetFieldsDialog {
 			primary_action: () => this.update(),
 			on_page_show: () => {
 				this.freeze_list_height();
-				frappe.utils.setup_search(this.dialog.$body, ".unit-checkbox", ".label-area");
+				this.dialog.get_field("fields").$search.focus();
 			},
 		});
 		this.make_header();
@@ -489,14 +489,6 @@ class GetFieldsDialog {
 
 	make_header() {
 		const $header = $(`
-			<div class="filters-search">
-				<input
-					type="text"
-					placeholder="${__("Search")}"
-					data-element="search"
-					class="form-control input-xs"
-				>
-			</div>
 			<div class="flex flex-wrap gap-2 mt-3 mb-3">
 				<button class="btn btn-default btn-xs" data-action="select_all">${__("Select All")}</button>
 				<button class="btn btn-default btn-xs" data-action="select_mandatory">
