@@ -113,6 +113,7 @@ import { openArgumentStep, paletteOpen } from "./palette";
 import RailColumn from "./RailColumn.vue";
 import { useShellActs, type OpenSettings } from "./shellActs";
 import { useShellHooks } from "./shellHooks";
+import { useStaleBuildNotice } from "./staleBuild";
 import SidebarPanel from "./SidebarPanel.vue";
 import { useHashDialog } from "./useHashDialog";
 import UserMenu from "./UserMenu.vue";
@@ -135,6 +136,7 @@ const ShellPalette = defineAsyncComponent(() =>
 );
 
 const boot = inject<Boot>("boot")!;
+useStaleBuildNotice();
 const addresses = inject<Addresses>("addresses")!;
 const router = useRouter();
 const route = useRoute();
