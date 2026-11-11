@@ -1,9 +1,8 @@
 {
  "actions": [],
- "allow_rename": 0,
  "autoname": "hash",
- "creation": "2026-06-28 00:00:00.000000",
- "description": "A site's overrides on a standard (app-shipped) workspace, or with `user` set, one person's own layout of a shared workspace. The site row is named after its workspace and only a standard workspace has one. A user row carries only `content` and `widgets`, is drawn for that person alone over whatever the site draws, and only they may read or write it. A private workspace has no user row: it is already its owner's to edit directly. The merge is split on purpose. Roles, icon, visibility and sequence are a true diff, so an app's later changes to them keep flowing through. Content is a snapshot, so customizing the layout freezes it against app updates: workspace content is nested editor blocks where headings, paragraphs and spacers carry no key at all, and a delta cannot be written against unkeyed prose. Do not \"fix\" this into one or the other; `reset_workspace_customization` is the escape hatch.",
+ "creation": "2026-06-28 00:00:00",
+ "description": "Site level edits on a workspace are stored here. ",
  "doctype": "DocType",
  "documentation": "https://docs.frappe.io/framework/user/en/desk/workspace",
  "editable_grid": 1,
@@ -147,9 +146,9 @@
    "options": "Workspace Variant"
   }
  ],
- "index_web_pages_for_search": 1,
+ "link_display_mode": "Search",
  "links": [],
- "modified": "2026-11-06 18:19:00.000000",
+ "modified": "2026-11-11 16:23:18.051957",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Custom Workspace",
@@ -181,6 +180,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
