@@ -8,6 +8,12 @@ describe("parseOrderBy", () => {
     ]);
   });
 
+  it("reads the direction in any case, as a DocType's sort_order is upper case", () => {
+    expect(parseOrderBy("modified DESC")).toEqual([
+      { fieldname: "modified", direction: "desc" },
+    ]);
+  });
+
   it("parses multiple comma-joined rules in order", () => {
     expect(parseOrderBy("modified desc, name asc")).toEqual([
       { fieldname: "modified", direction: "desc" },
