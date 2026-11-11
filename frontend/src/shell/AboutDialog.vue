@@ -33,7 +33,7 @@
 				<Button v-if="updatable(header)" v-bind="UPDATE" />
 			</section>
 
-			<div class="flex items-center gap-1" data-about-links>
+			<div class="-ml-2 flex items-center gap-1" data-about-links>
 				<Button
 					v-for="link in LINKS"
 					:key="link.href"
@@ -44,25 +44,32 @@
 				/>
 			</div>
 
-			<ItemListRow
-				v-if="boot.is_fc_site"
-				as="a"
-				href="https://frappecloud.com/support"
-				target="_blank"
-				rel="noopener noreferrer"
-				size="md"
-				data-about-support
-			>
-				<template #label>
-					<span class="block text-base text-ink-gray-8">{{ __("Frappe Support") }}</span>
-					<span class="block text-sm text-ink-gray-5">{{
-						__("Visit Frappe Support Portal")
-					}}</span>
-				</template>
-				<template #suffix>
-					<span class="lucide-external-link size-4 text-ink-gray-5" aria-hidden="true" />
-				</template>
-			</ItemListRow>
+			<!-- Out by the row's own padding, so its text sits on the dialog's content edge. -->
+			<div v-if="boot.is_fc_site" class="-mx-2.5">
+				<ItemListRow
+					as="a"
+					href="https://frappecloud.com/support"
+					target="_blank"
+					rel="noopener noreferrer"
+					size="md"
+					data-about-support
+				>
+					<template #label>
+						<span class="block text-base text-ink-gray-8">{{
+							__("Frappe Support")
+						}}</span>
+						<span class="block text-sm text-ink-gray-5">{{
+							__("Visit Frappe Support Portal")
+						}}</span>
+					</template>
+					<template #suffix>
+						<span
+							class="lucide-external-link mr-2 size-4 text-ink-gray-5"
+							aria-hidden="true"
+						/>
+					</template>
+				</ItemListRow>
+			</div>
 
 			<section class="flex flex-col gap-1">
 				<div class="flex items-center justify-between">
@@ -77,9 +84,13 @@
 					/>
 				</div>
 
-				<ul class="flex flex-col" data-about-apps>
+				<!-- Out by the row's own padding, so a row's logo and version sit on the section's edges. -->
+				<ul class="-mx-3 flex flex-col" data-about-apps>
 					<li v-for="app in apps" :key="app.name" :data-key="app.name">
-						<ItemListRow size="lg" class="group">
+						<ItemListRow
+							size="lg"
+							class="group/row hover:bg-surface-gray-2 has-[:focus-visible]:bg-surface-gray-2"
+						>
 							<template #prefix>
 								<AppLogo :logo="app.logo" :title="app.title" :size="20" />
 							</template>
@@ -96,16 +107,24 @@
 							</template>
 							<template #suffix>
 								<Button v-if="updatable(app)" v-bind="UPDATE" />
-								<span class="shrink-0 text-sm text-ink-gray-6">{{
-									versionText(app)
-								}}</span>
-								<Button
-									variant="ghost"
-									icon="lucide-copy"
-									class="opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
-									:aria-label="__('Copy {0} version', [app.title])"
+								<!-- One grid cell holds both, so the slot keeps the wider and nothing shifts. -->
+								<button
+									type="button"
+									class="group/copy mr-2 grid cursor-pointer justify-items-end rounded-3 outline-none focus-visible:focus-ring"
+									:aria-label="
+										__('Copy {0} version {1}', [app.title, versionText(app)])
+									"
 									@click="copy(appLine(app.name, app))"
-								/>
+								>
+									<span
+										class="col-start-1 row-start-1 text-sm text-ink-gray-6 group-hover/row:invisible group-focus-visible/copy:invisible"
+										>{{ versionText(app) }}</span
+									>
+									<span
+										class="lucide-copy invisible col-start-1 row-start-1 size-4 text-ink-gray-6 group-hover/row:visible group-focus-visible/copy:visible"
+										aria-hidden="true"
+									/>
+								</button>
 							</template>
 						</ItemListRow>
 					</li>

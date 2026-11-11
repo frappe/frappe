@@ -95,6 +95,22 @@ describe("AboutDialog", () => {
 		vi.unstubAllGlobals();
 	});
 
+	it("keeps the version and its copy icon in one button, so a tap on the version copies", async () => {
+		fake.runMethod.mockResolvedValue({ data: VERSIONS });
+		const writeText = vi.fn().mockResolvedValue(undefined);
+		vi.stubGlobal("navigator", { ...navigator, clipboard: { writeText } });
+		await open({});
+
+		const copy = document.body.querySelector<HTMLElement>("[data-key='erpnext'] button[aria-label^='Copy']")!;
+		expect(copy.getAttribute("aria-label")).toBe("Copy ERPNext version 16.0.0");
+		expect(copy.querySelector(".lucide-copy")).not.toBeNull();
+
+		copy.querySelector<HTMLElement>("span")!.click();
+		await nextTick();
+		expect(writeText).toHaveBeenLastCalledWith("erpnext: 16.0.0");
+		vi.unstubAllGlobals();
+	});
+
 	it("says so when the versions do not load", async () => {
 		fake.runMethod.mockRejectedValue(new Error("boom"));
 		await open({});
