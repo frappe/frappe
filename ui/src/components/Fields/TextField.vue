@@ -4,18 +4,16 @@
 		:modelValue="shown"
 		:type="attrs.type"
 		:inputmode="attrs.inputmode"
-		:label="field.label"
-		:description="field.description"
+		v-bind="frame"
 		:placeholder="field.placeholder"
 		:required="field.reqd"
-		:error="error"
 		:disabled="field.readOnly"
 		@update:modelValue="onInput"
 		@change="(e: Event) => onCommit((e.target as HTMLInputElement).value)"
 		@focus="onFocus"
 		@blur="focused = false"
 	>
-		<template v-if="field.description && !error?.length" #description>
+		<template v-if="!panel && field.description && !error?.length" #description>
 			<FieldDescription :html="field.description" />
 		</template>
 		<template v-if="url || phone" #suffix>
@@ -37,9 +35,11 @@ import DataOpenLink from "./DataOpenLink.vue";
 import FieldActions from "./FieldActions.vue";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
 import FieldDescription from "./FieldDescription.vue";
+import { useInputFrame } from "./inputFrame";
 
 const props = defineProps<FieldComponentProps>();
 const emit = defineEmits<FieldComponentEmits>();
+const frame = useInputFrame(props);
 
 const option = computed(() => dataOption(props.field));
 const attrs = computed(() => dataInputAttrs(option.value));

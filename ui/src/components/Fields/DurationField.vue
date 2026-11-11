@@ -1,15 +1,12 @@
 <template>
 	<Duration
 		v-model="value"
-		:label="field.label"
-		:description="field.description"
 		:placeholder="field.placeholder"
 		:required="field.reqd"
-		:error="error"
 		:disabled="field.readOnly"
-		v-bind="durationUnits(field)"
+		v-bind="{ ...frame, ...durationUnits(field) }"
 	>
-		<template v-if="field.description && !error?.length" #description>
+		<template v-if="!panel && field.description && !error?.length" #description>
 			<FieldDescription :html="field.description" />
 		</template>
 	</Duration>
@@ -23,9 +20,11 @@ import { Duration } from "frappe-ui";
 import { durationUnits } from "./durationUnits";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
 import FieldDescription from "./FieldDescription.vue";
+import { useInputFrame } from "./inputFrame";
 
 const props = defineProps<FieldComponentProps>();
 const emit = defineEmits<FieldComponentEmits>();
+const frame = useInputFrame(props);
 
 const value = computed<number | null>({
 	get: () => props.modelValue ?? null,

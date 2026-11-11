@@ -1,4 +1,4 @@
-// A marked panel row at rest: the value in red with the message on one line under it, and
+// A marked panel row at rest: the value in red with the message on one line under its box, and
 // the editor a click opens passes the error to its control.
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, nextTick, ref } from "vue";
@@ -59,7 +59,7 @@ describe("a marked panel row", () => {
 		const root = await mount({ qty: "Quantity must be positive" });
 		const row = root.querySelector<HTMLElement>('[data-fieldname="qty"]')!;
 		const value = row.querySelector("span")!;
-		const message = row.querySelector<HTMLElement>("span[title]")!;
+		const message = root.querySelector<HTMLElement>("span.text-sm[title]")!;
 
 		expect(value.className).toContain("text-ink-red-4");
 		expect(message.textContent!.trim()).toBe("Quantity must be positive");
@@ -82,7 +82,7 @@ describe("a marked panel row", () => {
 		const root = await mount({});
 		const row = root.querySelector<HTMLElement>('[data-fieldname="qty"]')!;
 
-		expect(row.querySelector("span[title]")).toBeNull();
+		expect(root.querySelector("span.text-sm[title]")).toBeNull();
 		expect(row.querySelector("span")!.className).not.toContain("text-ink-red-4");
 	});
 });

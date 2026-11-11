@@ -101,6 +101,8 @@ export interface FieldComponentProps {
   row?: Record<string, any>;
   /** Drawn under the input. Only the host sets it; a control never does. */
   error?: FieldError;
+  /** Drawn in a panel row: ghost, no label, description or error text; the row draws them. */
+  panel?: boolean;
 }
 
 export type FieldError = string | string[];

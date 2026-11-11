@@ -3,18 +3,16 @@
 		ref="inputRef"
 		type="text"
 		:modelValue="display"
-		:label="field.label"
-		:description="field.description"
+		v-bind="frame"
 		:placeholder="field.placeholder"
 		:required="field.reqd"
-		:error="error"
 		:disabled="field.readOnly"
 		@focus="onFocus"
 		@blur="focused = false"
 		@update:modelValue="onInput"
 		@change="onChange"
 	>
-		<template v-if="field.description && !error?.length" #description>
+		<template v-if="!panel && field.description && !error?.length" #description>
 			<FieldDescription :html="field.description" />
 		</template>
 	</TextInput>
@@ -28,9 +26,11 @@ import type { FieldComponentEmits, FieldComponentProps } from "./types";
 import { parseNumberText } from "./parseText";
 import { useFieldDisplay } from "../FormLayout/useFieldDisplay";
 import FieldDescription from "./FieldDescription.vue";
+import { useInputFrame } from "./inputFrame";
 
 const props = defineProps<FieldComponentProps>();
 const emit = defineEmits<FieldComponentEmits>();
+const frame = useInputFrame(props);
 
 // Format-on-blur / raw-on-focus (mirrors Frappe's FormattedInput): override only the
 // displayed string; commit rides TextInput's native `@change`. `type="text"` because
