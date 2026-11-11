@@ -1,7 +1,14 @@
 from unittest.mock import patch
 
 import frappe
-from frappe.desk.doctype.tag.tag import DocTags, add_tag, add_tags, ensure_tag, set_tag_color, update_record_tags
+from frappe.desk.doctype.tag.tag import (
+	DocTags,
+	add_tag,
+	add_tags,
+	ensure_tag,
+	set_tag_color,
+	update_record_tags,
+)
 from frappe.desk.reportview import get_stats
 from frappe.tests import IntegrationTestCase
 
