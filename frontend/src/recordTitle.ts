@@ -1,23 +1,33 @@
 // A record's title as the desk draws it: the title field's value as plain text, else the name.
 
+const HTML_FIELDTYPES = ["Text Editor", "HTML Editor"];
 const BLOCKS = "p, div, li, br, h1, h2, h3, h4, h5, h6, blockquote, pre, tr";
 
-/** The same text the server's `RecordTitles` gives, for a value that may hold HTML. */
+interface TitleMeta {
+	title_field?: string;
+	fields?: { fieldname: string; fieldtype: string }[];
+}
+
+/** Only an HTML field's value is parsed: a Data value such as `A<B` is text as typed. */
 export function recordTitle(
-	meta: { title_field?: string } | null | undefined,
+	meta: TitleMeta | null | undefined,
 	doc: Record<string, unknown>,
-	name: string
+	name: string,
+	fieldname = meta?.title_field
 ): string {
-	const value = meta?.title_field ? doc[meta.title_field] : null;
-	return (value ? plainText(String(value)) : "") || name;
+	const value = fieldname ? doc[fieldname] : null;
+	if (!value) return name;
+	const field = meta?.fields?.find((one) => one.fieldname === fieldname);
+	const text = field && HTML_FIELDTYPES.includes(field.fieldtype) ? htmlText(String(value)) : String(value);
+	return text.replace(/\s+/g, " ").trim() || name;
 }
 
 // A space around each block, so that text on either side does not run into it.
-function plainText(html: string): string {
+function htmlText(html: string): string {
 	const body = new DOMParser().parseFromString(html, "text/html").body;
 	for (const block of body.querySelectorAll(BLOCKS)) {
 		block.before(" ");
 		block.after(" ");
 	}
-	return (body.textContent ?? "").replace(/\s+/g, " ").trim();
+	return body.textContent ?? "";
 }

@@ -312,7 +312,9 @@ watch(controller, (created, _, onCleanup) => created && onCleanup(registerTabRow
 
 watch(
 	() =>
-		saved.value.name === docname.value && recordTitle(meta.value, saved.value, docname.value),
+		saved.value.name === docname.value &&
+		saved.value[meta.value?.title_field] &&
+		recordTitle(meta.value, saved.value, docname.value),
 	(title) => title && recentVisits.retitle(route.path, title)
 );
 
