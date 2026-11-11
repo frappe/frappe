@@ -123,7 +123,7 @@ const ShellSettingsDialog = defineAsyncComponent(() => import("./ShellSettingsDi
 const AboutDialog = defineAsyncComponent(() => import("./AboutDialog.vue"));
 const ShellDialogs = defineAsyncComponent(() => import("./ShellDialogs.vue"));
 const StandingWindows = defineAsyncComponent(() => import("./StandingWindows.vue"));
-// These keys wait for no paint, so their code stays out of the cold-load chunk.
+// Keys wait for no paint, so their code stays out of the cold-load chunk.
 const ActKeys = defineAsyncComponent(() => import("./actKeys").then((module) => module.ActKeys));
 const AppSwitcherKey = defineAsyncComponent(() =>
 	import("./appSwitcherKey").then((module) => module.AppSwitcherKey)

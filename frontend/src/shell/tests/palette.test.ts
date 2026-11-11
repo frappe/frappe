@@ -280,12 +280,13 @@ describe("opening the palette", () => {
 		expect(router.currentRoute.value.fullPath).toBe("/crm-deal");
 	});
 
-	it("opens on a Mod+K pressed before anything has loaded after the mount", async () => {
+	it("binds Mod+K with the mount, before any lazy chunk has loaded", async () => {
 		await shell("/crm-deal", boot, false);
 		const pressed = pressModK();
 
 		expect(pressed.defaultPrevented).toBe(true);
 		expect(paletteOpen.value).toBe(true);
+		// Lets the lazy palette settle before teardown.
 		await flush();
 	});
 
