@@ -1,9 +1,8 @@
 // The toast a list shows after a Create: it names the record by its title, else by its name.
 import type { DoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { __ } from "@/i18n";
+import { recordTitle } from "@/recordTitle";
 
-const HTML_FIELDTYPES = ["Text Editor", "HTML Editor"];
-const BLOCKS = "p, div, li, br, h1, h2, h3, h4, h5, h6, blockquote, pre, tr";
 const TITLE_LIMIT = 60;
 
 /** The toast's message, as the limited HTML a frappe-ui toast renders. */
@@ -16,21 +15,7 @@ export function createdMessage(
 }
 
 function recordLabel(meta: DoctypeMeta | null, doc: Record<string, unknown>): string {
-	const field = meta?.fields?.find((one) => one.fieldname === meta.title_field);
-	if (!field || !doc[field.fieldname]) return String(doc.name);
-	const value = String(doc[field.fieldname]);
-	const text = HTML_FIELDTYPES.includes(field.fieldtype) ? htmlText(value) : value;
-	return shorten(text.replace(/\s+/g, " ").trim()) || String(doc.name);
-}
-
-// A space around each block, so that text on either side does not run into it.
-function htmlText(html: string): string {
-	const body = new DOMParser().parseFromString(html, "text/html").body;
-	for (const block of body.querySelectorAll(BLOCKS)) {
-		block.before(" ");
-		block.after(" ");
-	}
-	return body.textContent ?? "";
+	return shorten(recordTitle(meta, doc, String(doc.name)));
 }
 
 function shorten(text: string): string {

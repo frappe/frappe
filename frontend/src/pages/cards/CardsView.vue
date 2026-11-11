@@ -19,6 +19,7 @@
 				v-for="row in rows"
 				:key="row.name"
 				:row="row"
+				:meta="meta"
 				:titleField="fields.title"
 				:bodyField="fields.body"
 				:bodyIsHtml="fields.bodyIsHtml"

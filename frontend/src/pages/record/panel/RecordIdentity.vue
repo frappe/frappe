@@ -48,14 +48,12 @@ import TagChip from "./TagChip.vue";
 import { peopleActions } from "./peopleActions";
 import RecordImage from "./RecordImage.vue";
 import TagPicker from "./TagPicker.vue";
+import { recordTitle } from "@/recordTitle";
 
 const context = inject(PanelContextKey)!;
 const actions = peopleActions(context);
 
-const title = computed(() => {
-	const field = context.meta.value?.title_field;
-	return String((field && context.doc.value[field]) || context.docname);
-});
+const title = computed(() => recordTitle(context.meta.value, context.doc.value, context.docname));
 
 // The name where the title is something else; the doctype where the name is the title.
 const subtitle = computed(() =>

@@ -49,6 +49,8 @@ import FieldCell from "@/pages/list/FieldCell.vue";
 import RowMenu from "@/pages/list/RowMenu.vue";
 import type { RowMenuOption } from "@/pages/list/rowActions";
 import type { Person } from "./useCardsView";
+import type { ListMeta } from "@/list/defaults";
+import { recordTitle } from "@/recordTitle";
 
 // The footer's time is the list cell's: the same relative text, the exact date on hover.
 const MODIFIED = {
@@ -59,6 +61,7 @@ const MODIFIED = {
 
 const props = defineProps<{
 	row: Record<string, unknown>;
+	meta: ListMeta | null;
 	titleField: string;
 	bodyField: string | null;
 	bodyIsHtml: boolean;
@@ -69,7 +72,9 @@ const props = defineProps<{
 	person?: Person;
 }>();
 
-const title = computed(() => String(props.row[props.titleField] || props.row.name));
+const title = computed(() =>
+	recordTitle(props.meta, props.row, String(props.row.name), props.titleField)
+);
 const body = computed(() => (props.bodyField ? String(props.row[props.bodyField] ?? "") : ""));
 const owner = computed(() => props.person?.name || String(props.row.owner ?? ""));
 const image = computed(() => props.person?.image ?? null);
