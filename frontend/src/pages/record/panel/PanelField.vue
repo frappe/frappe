@@ -341,7 +341,6 @@ const placeholder = computed(() =>
 		: ""
 );
 
-// The row draws the label; the control's one placeholder is the row's.
 const controlField = computed(() => ({
 	...props.field,
 	label: undefined,

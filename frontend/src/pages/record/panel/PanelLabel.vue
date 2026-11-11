@@ -42,7 +42,6 @@ const props = defineProps<{ field: FieldNode }>();
 const coarse = useMediaQuery("(pointer: coarse)");
 const text = ref<HTMLElement | null>(null);
 const truncated = ref(false);
-// A tip shows only when it tells more than the label already does.
 const tipped = computed(() => truncated.value || !!props.field.description);
 
 function measure() {
@@ -50,7 +49,11 @@ function measure() {
 	truncated.value = !!label && label.scrollWidth > label.clientWidth;
 }
 
-onMounted(measure);
+onMounted(() => {
+	measure();
+	// A web font that loads late widens the text without resizing the box.
+	document.fonts?.ready.then(measure);
+});
 useResizeObserver(text, measure);
 watch(
 	() => props.field.label,

@@ -1,7 +1,7 @@
 // The label tip: it shows for a truncated label or a description, never for a short bare one, and
 // a tap shows it in a popover on a touch screen. The `*` marks a required field.
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createApp, defineComponent, h, nextTick } from "vue";
+import { createApp, defineComponent, h, nextTick, ref } from "vue";
 
 vi.mock("frappe-ui", async (importOriginal) => ({
 	...((await importOriginal()) as Record<string, unknown>),
@@ -101,6 +101,34 @@ describe("the label tip", () => {
 	it("waits 500ms before it shows", async () => {
 		const root = await mount({ label: "Name", description: "d" });
 		expect(root.querySelector("[data-tooltip]")!.getAttribute("data-delay")).toBe("500");
+	});
+
+	it("caps the tip at 240 (max-w-56 plus the bubble's padding) and grays the description", async () => {
+		const root = await mount({ label: "Name", description: "Why we ask" });
+		const tip = root.querySelector("[data-tip] > div")!;
+		expect(tip.className).toContain("max-w-56");
+		expect(tip.querySelector("span")!.className).toContain("text-ink-gray-4");
+	});
+
+	it("turns on when the label changes to one that does not fit", async () => {
+		overflowWhenLong();
+		const label = ref("Name");
+		const root = document.createElement("div");
+		document.body.appendChild(root);
+		const app = createApp(
+			defineComponent({
+				render: () => h(PanelLabel, { field: { fieldname: "f", fieldtype: "Data", label: label.value } as FieldNode }),
+			})
+		);
+		app.mount(root);
+		mounted.push(app);
+		await nextTick();
+		expect(root.querySelector("[data-tooltip]")!.getAttribute("data-tooltip")).toBe("off");
+		label.value = "A very long label that does not fit";
+		await nextTick();
+		await nextTick();
+		await nextTick();
+		expect(root.querySelector("[data-tooltip]")!.getAttribute("data-tooltip")).toBe("on");
 	});
 
 	it("moves to a popover on a touch screen, with the same content", async () => {
