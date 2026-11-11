@@ -341,7 +341,8 @@ describe("tags", () => {
 		root.querySelector<HTMLElement>("[data-open]")!.click();
 		await nextTick();
 		await pick(root, []);
-		expect(root.querySelector("[data-tags] [data-open]")).not.toBeNull();
+		expect(root.querySelector("[data-tags]")).not.toBeNull();
+		expect(root.querySelector("[data-picker]")).not.toBeNull();
 		root.querySelector<HTMLElement>("[data-close]")!.click();
 		await vi.waitFor(() => expect(root.querySelector("[data-tags]")).toBeNull());
 	});

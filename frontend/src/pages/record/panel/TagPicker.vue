@@ -1,5 +1,5 @@
-<!-- A tag picker with a create row: a pick adds, an unpick removes. The trigger is the "+" chip,
-     or a bare anchor when something else opens it. -->
+<!-- A tag picker with a create row: a pick adds, an unpick removes. The trigger is the caller's,
+     or a bare anchor over whatever opens it. -->
 <template>
 	<TagColorPopover
 		:open="Boolean(pending)"
@@ -29,27 +29,7 @@
 					class="pointer-events-none absolute inset-0"
 					aria-hidden="true"
 				/>
-				<slot v-else name="trigger">
-					<Tooltip v-if="session.tags.value.length" :text="__('Add')">
-						<button
-							type="button"
-							class="grid size-6 place-content-center rounded-full text-ink-gray-5 transition hover:bg-surface-gray-2 hover:text-ink-gray-7"
-							aria-label="Add tag"
-							data-add-tag
-						>
-							<span class="lucide-plus size-3.5" aria-hidden="true" />
-						</button>
-					</Tooltip>
-					<Tooltip v-else :text="__('Add')">
-						<button
-							type="button"
-							class="text-base text-ink-gray-6 transition hover:text-ink-gray-8"
-							data-add-tag
-						>
-							+ {{ __("Add") }}
-						</button>
-					</Tooltip>
-				</slot>
+				<slot v-else name="trigger" />
 			</template>
 
 			<template #search-suffix>
@@ -88,7 +68,7 @@
 
 <script setup lang="ts">
 import { computed, h, ref, watch } from "vue";
-import { KeyboardShortcut, MultiSelect, Tooltip, useKeyboardShortcut } from "frappe-ui";
+import { KeyboardShortcut, MultiSelect, useKeyboardShortcut } from "frappe-ui";
 import { canCreateTag, matchingTags } from "./people";
 import { useTagSearch, type SearchOption } from "./remoteSearch";
 import TagColorPopover from "./TagColorPopover.vue";
