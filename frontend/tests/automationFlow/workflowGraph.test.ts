@@ -43,7 +43,7 @@ describe('continuing past a condition', () => {
     const node = branchNode({ actions: [condition] })
 
     expect(node.data.canContinue).toBe(false)
-    expect(node.data.arms.map((arm) => arm.branch)).toEqual(['Else'])
+    expect(node.data.arms.map((arm) => arm.key)).toEqual(['Else'])
   })
 
   it('offers it once both arms lead somewhere', () => {

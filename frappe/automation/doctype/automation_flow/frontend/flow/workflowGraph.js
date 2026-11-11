@@ -7,11 +7,12 @@ import { stepIssue, triggerIssue } from "./workflowValidation";
 export { workflowEdges } from "./workflowEdges";
 import { triggerDefinition } from "./workflowTriggers";
 
+/** `errors` maps a step `_id` (or `trigger`) to the server messages for it. */
 export function workflowNodes(doc, errors = {}) {
 	const actions = doc.actions || [];
 	const tails = tailIds(actions);
 	return [
-		triggerNode(doc),
+		triggerNode(doc, errors.trigger),
 		...layoutSteps(actions).map(({ node, position }) =>
 			stepNode(node, position, errors, tails)
 		),
@@ -32,30 +33,31 @@ function tailIds(nodes, ids = new Set()) {
 
 /** An arm only needs its own button while it is empty - after that its last step has one. */
 function openArms(node) {
-	if (!isBranching(node)) return null;
+	if (!isBranching(node)) return undefined;
 	const labels = armLabels(node);
 	return ["If", "Else"]
 		.filter((arm) => !node.children[arm].length)
-		.map((arm) => ({ branch: arm, label: labels[arm] }));
+		.map((arm) => ({ key: arm, label: labels[arm] }));
 }
 
-function triggerNode(doc) {
+function triggerNode(doc, errors) {
 	const trigger = triggerDefinition(doc);
+	const { icon, tone } = trigger || TRIGGER_STYLE;
 	return {
 		id: "trigger",
-		type: "automation",
 		position: { x: 0, y: 0 },
 		data: {
-			...TRIGGER_STYLE,
-			...(trigger || {}),
-			isTrigger: true,
+			icon,
+			tone,
+			start: true,
+			terminal: !doc.actions?.length,
 			empty: !doc.trigger_type,
 			kicker: __("Trigger"),
 			label: trigger?.label || __("Start from scratch"),
 			detail: doc.trigger_type
 				? __("on {0}", [doc.document_type])
 				: __("Pick initial trigger"),
-			incomplete: triggerIssue(doc),
+			issue: issueOf(triggerIssue(doc), errors?.join("\n")),
 		},
 	};
 }
@@ -74,20 +76,23 @@ function stepNode(node, position, errors, tails = new Set()) {
 	const arms = openArms(node);
 	return {
 		id: node._id,
-		type: "automation",
 		position,
 		data: {
-			step: node,
 			...stepPresentation(node),
 			branching: isBranching(node),
 			arms,
 			// Continuing past a branch only makes sense once both arms lead somewhere.
 			canContinue: isBranching(node) && tails.has(node._id) && !arms.length,
-			last: tails.has(node._id),
-			error: Boolean(errors[node._id]?.length),
-			incomplete: stepIssue(node),
+			terminal: tails.has(node._id),
+			issue: issueOf(stepIssue(node), errors[node._id]?.join("\n")),
 		},
 	};
+}
+
+/** A server error outranks a missing setting: the first blocks the save, the second the run. */
+function issueOf(setup, error) {
+	if (error) return { level: "error", message: error };
+	return setup ? { level: "warning", message: setup } : undefined;
 }
 
 function kickerFor(node) {

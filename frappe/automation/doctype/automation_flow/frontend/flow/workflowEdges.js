@@ -29,16 +29,5 @@ function appendBranchEdges(node, edges) {
 }
 
 function edge(source, target, label) {
-	return {
-		id: `${source}->${target}:${label || ""}`,
-		source,
-		target,
-		sourceHandle: "output",
-		targetHandle: "input",
-		label,
-		type: "bezier",
-		labelBgPadding: [14, 2],
-		labelBgBorderRadius: 6,
-		style: { stroke: "#4E4E4E", strokeWidth: 1 },
-	};
+	return { id: `${source}->${target}:${label || ""}`, source, target, label };
 }
