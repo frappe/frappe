@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
   formatJsonFieldValue,
+  isCommittableJson,
+  useFieldRows,
   paramsToRows,
   parseJsonFieldInput,
   rowsToParams,
@@ -79,5 +81,42 @@ describe('field/value rows', () => {
     ]
 
     expect(rowsToParams(rows).values).toEqual({ status: 'Junk' })
+  })
+})
+
+describe('typed JSON', () => {
+  it('commits complete JSON and an empty box, never half-typed text', () => {
+    expect(isCommittableJson('{"status": "Junk"}')).toBe(true)
+    expect(isCommittableJson('  ')).toBe(true)
+    expect(isCommittableJson('{"status": "Ju')).toBe(false)
+  })
+})
+
+describe('field rows kept beside edited params', () => {
+  function rowsOver(initial: object) {
+    let params = initial as Record<string, unknown>
+    const rows = useFieldRows(
+      () => params,
+      (next) => (params = next),
+    )
+    return { rows, edit: (next: object) => (params = next as Record<string, unknown>) }
+  }
+
+  it('picks up params changed by another editor', () => {
+    const { rows, edit } = rowsOver({ values: { status: 'Open' } })
+
+    edit({ values: { status: 'Open', priority: 'High' } })
+    rows.sync()
+
+    expect(rows.rows.value.map((row) => row.field)).toEqual(['status', 'priority'])
+  })
+
+  it('keeps a row the owner has added but not yet filled', () => {
+    const { rows } = rowsOver({ values: { status: 'Open' } })
+
+    rows.addRow()
+    rows.sync()
+
+    expect(rows.rows.value).toHaveLength(2)
   })
 })

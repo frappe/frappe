@@ -35,6 +35,18 @@
 				@pick-start="pickStart"
 				@add-node="addNode"
 			/>
+			<aside
+				class="h-full w-[340px] shrink-0 overflow-hidden border-l bg-surface-base"
+				:aria-label="__('Inspector')"
+			>
+				<FlowInspector
+					:doc="flow.doc"
+					:selected-step="selectedStep"
+					:targets="targetsFor(selectedStep)"
+					@update="patchDoc"
+					@remove="confirmRemoval"
+				/>
+			</aside>
 		</div>
 	</template>
 	<div
@@ -53,20 +65,21 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { onBeforeRouteLeave, onBeforeRouteUpdate, useRouter } from "vue-router";
-import { Button, LoadingIndicator, toast } from "frappe-ui";
+import { Button, LoadingIndicator, dialog, toast } from "frappe-ui";
 import { __ } from "frappe/i18n";
 import { AutomationCanvas } from "@framework/ui/AutomationCanvas";
 import { useDocPermissions } from "@framework/ui/useDocPermissions";
 import { routeFor, useUnloadGuard } from "@shell";
 import FlowHeader from "./FlowHeader.vue";
+import FlowInspector from "./inspector/FlowInspector.vue";
 import { confirmDiscard } from "./flow/confirmDiscard";
 import { FLOW_DOCTYPE, stepById } from "./flow/flowDoc";
 import { failureState, notPermittedState } from "./flow/flowFailure";
 import { handleShortcut } from "./flow/flowShortcuts";
 import { blockGroups } from "./flow/workflowBlocks";
-import { loadCapabilities } from "./flow/workflowCapabilities";
+import { aliasTargets, loadCapabilities } from "./flow/workflowCapabilities";
 import { workflowEdges, workflowNodes } from "./flow/workflowGraph";
-import { insertAfter, newStep } from "./flow/workflowSteps";
+import { insertAfter, newStep, removeStep, stepsBefore } from "./flow/workflowSteps";
 import { triggerFromValue, triggerGroups } from "./flow/workflowTriggers";
 import { useFlowDoc } from "./flow/useFlowDoc";
 
@@ -82,6 +95,8 @@ const permits = useDocPermissions(FLOW_DOCTYPE);
 const header = ref(null);
 const selectedId = ref("");
 
+const selectedStep = computed(() => stepById(flow.doc?.actions || [], selectedId.value));
+const relationships = computed(() => parseList(flow.doc?.relationships));
 const nodes = computed(() => workflowNodes(flow.doc, flow.errors));
 const edges = computed(() => workflowEdges(flow.doc.actions));
 // A new flow needs the create right; the insert checks again.
@@ -95,6 +110,16 @@ watch(
 	(name) => name !== flow.current() && flow.load(name)
 );
 watch(() => flow.doc?.document_type, loadOffers, { immediate: true });
+watch(
+	() => aliasTargets(flow.doc?.document_type, relationships.value, []).map((t) => t.doctype),
+	(doctypes) => doctypes.forEach(loadOffers),
+	{ immediate: true }
+);
+
+watch(
+	() => targetsFor(selectedStep.value).map((target) => target.doctype),
+	(doctypes) => doctypes.forEach(loadOffers)
+);
 
 useUnloadGuard(() => flow.unsaved);
 onBeforeRouteLeave(() => !flow.unsaved || confirmDiscard());
@@ -103,6 +128,7 @@ onMounted(() => window.addEventListener("keydown", onKeydown));
 onBeforeUnmount(() => window.removeEventListener("keydown", onKeydown));
 
 async function loadOffers(doctype) {
+	if (!doctype) return;
 	try {
 		await loadCapabilities(doctype);
 	} catch {
@@ -124,7 +150,40 @@ async function save() {
 }
 
 function pickStart(value) {
-	Object.assign(flow.doc, triggerFromValue(value));
+	patchDoc(triggerFromValue(value));
+	selectedId.value = "trigger";
+}
+
+/** The inspector reports its edits; the page owns the document. */
+function patchDoc(values) {
+	Object.assign(flow.doc, values);
+}
+
+/** Every alias a step can target: the trigger record, relationships and earlier outputs. */
+function targetsFor(step) {
+	if (!step) return [];
+	return aliasTargets(
+		flow.doc.document_type,
+		relationships.value,
+		stepsBefore(flow.doc.actions, step)
+	);
+}
+
+function confirmRemoval() {
+	const trigger = !selectedStep.value;
+	dialog.danger({
+		title: trigger ? __("Delete trigger") : __("Delete step"),
+		message: trigger
+			? __("This removes the trigger and all steps of the flow.")
+			: __("Are you sure you want to delete this step?"),
+		confirmLabel: __("Delete"),
+		onConfirm: ({ close }) => {
+			if (trigger) Object.assign(flow.doc, { ...emptyTrigger(), actions: [] });
+			else removeStep(flow.doc.actions, selectedStep.value);
+			selectedId.value = "trigger";
+			close();
+		},
+	});
 }
 
 function addNode({ afterId, branch, value }) {
@@ -138,5 +197,31 @@ function addNode({ afterId, branch, value }) {
 	else if (after) insertAfter(flow.doc.actions, after, step);
 	else flow.doc.actions.unshift(step);
 	selectedId.value = step._id;
+}
+
+function emptyTrigger() {
+	return {
+		trigger_type: "",
+		trigger_field: "",
+		from_value: "",
+		to_value: "",
+		custom_event: "",
+		date_field: "",
+		date_offset: 0,
+		date_direction: "Before",
+		cron_expression: "",
+		filters: "[]",
+		condition: "",
+		relationships: "[]",
+	};
+}
+
+function parseList(value) {
+	try {
+		const parsed = typeof value === "string" ? JSON.parse(value || "[]") : value;
+		return Array.isArray(parsed) ? parsed : [];
+	} catch {
+		return [];
+	}
 }
 </script>

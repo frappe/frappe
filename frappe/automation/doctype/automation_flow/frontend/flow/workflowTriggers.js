@@ -111,6 +111,31 @@ export function triggerFromValue(value) {
 	return { trigger_type: type, custom_event: event };
 }
 
+const TRIGGER_DETAILS = {
+	"Field Value Changed": ["trigger_field", "from_value", "to_value"],
+	Scheduled: ["cron_expression"],
+	"Date Based": ["date_field", "date_offset", "date_direction"],
+	"Custom Event": ["custom_event"],
+};
+const DOCTYPE_DETAILS = ["trigger_field", "from_value", "to_value", "date_field", "custom_event"];
+
+/** Picking an event drops the details that only belonged to the one it replaces. */
+export function triggerFromPick(value) {
+	const next = triggerFromValue(value);
+	const stale = Object.entries(TRIGGER_DETAILS)
+		.filter(([type]) => type !== next.trigger_type)
+		.flatMap(([, fieldnames]) => fieldnames);
+	return { ...Object.fromEntries(stale.map((fieldname) => [fieldname, null])), ...next };
+}
+
+/** Fields and events belong to a DocType, so a new one empties the picks made on the old. */
+export function docTypeChange(document_type) {
+	return {
+		...Object.fromEntries(DOCTYPE_DETAILS.map((fieldname) => [fieldname, null])),
+		document_type,
+	};
+}
+
 /** Combobox-shaped for the canvas picker; the inspector renders the lists directly. */
 export function triggerGroups(doctype) {
 	const events = eventTriggers(doctype);
