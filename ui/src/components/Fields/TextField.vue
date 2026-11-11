@@ -4,42 +4,53 @@
 		:modelValue="shown"
 		:type="attrs.type"
 		:inputmode="attrs.inputmode"
-		:label="field.label"
-		:description="field.description"
+		v-bind="frame"
 		:placeholder="field.placeholder"
 		:required="field.reqd"
-		:error="error"
 		:disabled="field.readOnly"
 		@update:modelValue="onInput"
 		@change="(e: Event) => onCommit((e.target as HTMLInputElement).value)"
 		@focus="onFocus"
 		@blur="focused = false"
 	>
-		<template v-if="field.description && !error?.length" #description>
+		<template v-if="!panel && field.description && !error?.length" #description>
 			<FieldDescription :html="field.description" />
 		</template>
-		<template v-if="url || phone" #suffix>
-			<FieldActions v-if="phone && !row" :field="field" :value="modelValue" />
+		<template v-if="url || phone || mail" #suffix>
+			<FieldActions
+				v-if="(phone || mail) && !row"
+				:field="field"
+				:value="modelValue"
+				:record="record"
+			/>
 			<DataOpenLink
 				v-if="address?.kind === 'web'"
 				:address="address"
 				class="hidden focus-visible:grid group-focus-within:grid group-hover:grid"
+			/>
+			<DataOpenLink
+				v-else-if="mail && address && !composerEmail"
+				:address="address"
+				class="grid"
 			/>
 		</template>
 	</TextInput>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, inject, ref, watch } from "vue";
 import { TextInput } from "frappe-ui";
 import { dataHref, dataInputAttrs, dataOption, groupIban, stripIban } from "./dataOptions";
 import DataOpenLink from "./DataOpenLink.vue";
 import FieldActions from "./FieldActions.vue";
+import { FieldActionsKey } from "./types";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
 import FieldDescription from "./FieldDescription.vue";
+import { useInputFrame } from "./inputFrame";
 
 const props = defineProps<FieldComponentProps>();
 const emit = defineEmits<FieldComponentEmits>();
+const frame = useInputFrame(props);
 
 const option = computed(() => dataOption(props.field));
 const attrs = computed(() => dataInputAttrs(option.value));
@@ -47,6 +58,16 @@ const iban = computed(() => option.value === "IBAN");
 const url = computed(() => option.value === "URL");
 const phone = computed(() => option.value === "Phone");
 const address = computed(() => dataHref(props.field, props.modelValue));
+
+// A panel row keeps its mail button when it opens: the shell's email action, else the mailto arrow.
+const mail = computed(() => !!props.panel && option.value === "Email");
+const actions = inject(FieldActionsKey, null);
+const composerEmail = computed(
+	() =>
+		!!actions
+			?.for(props.field, props.modelValue, props.record)
+			.some((action) => action.act === "shell.email")
+);
 
 // An IBAN shows grouped, but regrouping while the person types would move the caret.
 const focused = ref(false);

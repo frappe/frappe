@@ -100,3 +100,39 @@ describe("field actions on a phone control", () => {
     expect(root.querySelector("button")).toBeNull();
   });
 });
+
+describe("an Email control in a panel row", () => {
+  const email: FieldMeta = { fieldname: "email_id", fieldtype: "Data", options: "Email", label: "Email" };
+  const record = { doctype: "Lead", name: "L-1", surface: "record" as const };
+  const mailAction: FieldAction = { act: "shell.email", label: "Email", icon: "lucide-mail", run: vi.fn() };
+
+  it("keeps the shell's email button when it opens, for the record it sits on", () => {
+    const calls: unknown[] = [];
+    host = document.createElement("div");
+    document.body.appendChild(host);
+    app = createApp({
+      render: () => h(TextField, { field: email, modelValue: "a@x.com", panel: true, record }),
+    });
+    app.provide(FieldActionsKey, {
+      for: (_field, _value, from) => (calls.push(from), [mailAction]),
+    });
+    app.mount(host);
+
+    expect(host.querySelector('[data-slot="field-action"]')).not.toBeNull();
+    expect(host.querySelector('[data-slot="mail-arrow"]')).toBeNull();
+    expect(calls).toContain(record);
+  });
+
+  it("keeps the mailto arrow when no email action applies", () => {
+    const root = render(TextField, email, "a@x.com", [], { panel: true, record });
+
+    expect(root.querySelector('[data-slot="mail-arrow"]')).not.toBeNull();
+  });
+
+  it("draws no mail button outside a panel row, or for an empty value", () => {
+    expect(render(TextField, email, "a@x.com", [mailAction]).querySelector("button, a")).toBeNull();
+    app?.unmount();
+    host?.remove();
+    expect(render(TextField, email, "", [], { panel: true, record }).querySelector("button, a")).toBeNull();
+  });
+});

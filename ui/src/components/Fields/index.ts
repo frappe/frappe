@@ -12,6 +12,7 @@ export { useRecordLink } from "./useRecordLink";
 export { drawsReadValue } from "./readView";
 export { default as ReadOnlyField } from "./ReadOnlyField.vue";
 export { default as ReadValue } from "./ReadValue.vue";
+export { default as FieldBox } from "./FieldBox.vue";
 export { default as FieldDescription } from "./FieldDescription.vue";
 export { descriptionText } from "./fieldDescription";
 export { dataHref, groupIban, isEmailField, isPhoneField } from "./dataOptions";

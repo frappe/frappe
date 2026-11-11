@@ -13,6 +13,16 @@ describe("buildLayoutFromMeta", () => {
     expect(buildLayoutFromMeta([])).toEqual([]);
   });
 
+  it("carries a field's own placeholder, and none when it has none", () => {
+    const [named, bare] = buildLayoutFromMeta([
+      field({ fieldname: "named", placeholder: "Enter a nickname" }),
+      field({ fieldname: "bare", placeholder: "" }),
+    ])[0].sections[0].columns[0].fields;
+
+    expect(named.placeholder).toBe("Enter a nickname");
+    expect(bare.placeholder).toBeUndefined();
+  });
+
   it("seeds one implicit tab/section/column for a flat list with no breaks", () => {
     const layout = buildLayoutFromMeta([
       field({ fieldname: "a" }),

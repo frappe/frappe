@@ -16,7 +16,7 @@ afterEach(() => {
   host = undefined;
 });
 
-function render(modelValue: number, extra: Partial<FieldMeta> = {}) {
+function render(modelValue: number, extra: Partial<FieldMeta> = {}, props: Record<string, unknown> = {}) {
   const committed: unknown[] = [];
   host = document.createElement("div");
   document.body.appendChild(host);
@@ -25,6 +25,7 @@ function render(modelValue: number, extra: Partial<FieldMeta> = {}) {
       h(DurationField, {
         field: { fieldname: "spent", fieldtype: "Duration", ...extra },
         modelValue,
+        ...props,
         onChange: (value: unknown) => committed.push(value),
       }),
   });
@@ -54,5 +55,21 @@ describe("DurationField", () => {
 
   it("shows zero in the smallest unit it shows", () => {
     expect(render(0, { hideSeconds: true }).input.value).toBe("0m");
+  });
+
+  it("selects its text on focus, but a panel row opens with the caret at the end", async () => {
+    const form = render(5400);
+    form.input.focus();
+    await nextTick();
+    expect([form.input.selectionStart, form.input.selectionEnd]).toEqual([0, 6]);
+    app?.unmount();
+    host?.remove();
+
+    const { input } = render(5400, {}, { panel: true });
+    input.focus();
+    await nextTick();
+    await nextTick();
+    expect(input.value).toBe("1h 30m");
+    expect([input.selectionStart, input.selectionEnd]).toEqual([6, 6]);
   });
 });

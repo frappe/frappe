@@ -2,21 +2,19 @@
 	<TextInput
 		type="tel"
 		:modelValue="modelValue"
-		:label="field.label"
-		:description="field.description"
+		v-bind="frame"
 		:placeholder="field.placeholder"
 		:required="field.reqd"
-		:error="error"
 		:disabled="field.readOnly"
 		@update:modelValue="(value: any) => emit('update:modelValue', value)"
 		@change="(e: Event) => emit('change', (e.target as HTMLInputElement).value)"
 	>
-		<template v-if="field.description && !error?.length" #description>
+		<template v-if="!panel && field.description && !error?.length" #description>
 			<FieldDescription :html="field.description" />
 		</template>
 		<!-- A grid cell passes its row, and draws no actions. -->
 		<template v-if="!row" #suffix>
-			<FieldActions :field="field" :value="modelValue" />
+			<FieldActions :field="field" :value="modelValue" :record="record" />
 		</template>
 	</TextInput>
 </template>
@@ -28,7 +26,9 @@ import { TextInput } from "frappe-ui";
 import FieldActions from "./FieldActions.vue";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
 import FieldDescription from "./FieldDescription.vue";
+import { useInputFrame } from "./inputFrame";
 
 const props = defineProps<FieldComponentProps>();
 const emit = defineEmits<FieldComponentEmits>();
+const frame = useInputFrame(props);
 </script>
