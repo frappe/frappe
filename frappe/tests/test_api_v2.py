@@ -1716,6 +1716,24 @@ class TestIncludePartsV2(FrappeAPITestCase):
 		self.assertEqual(response.json["tags"], ["read"])
 		self.assertEqual(set(response.json["users"]), {"Administrator"})
 
+	def test_tag_colors_maps_each_coloured_tag_of_the_document(self):
+		from frappe.desk.doctype.tag.tag import add_tag, remove_tag
+
+		add_tag("include-red", "ToDo", self.todo.name, "Red")
+		add_tag("include-plain", "ToDo", self.todo.name)
+		frappe.db.commit()  # nosemgrep
+		try:
+			response = self.read("tags,tag_colors")
+			self.assertEqual(response.status_code, 200, response.json)
+			self.assertEqual(set(response.json["tags"]), {"include-red", "include-plain"})
+			self.assertEqual(response.json["tag_colors"], {"include-red": "Red", "include-plain": ""})
+		finally:
+			frappe.set_user("Administrator")
+			for tag in ("include-red", "include-plain"):
+				remove_tag(tag, "ToDo", self.todo.name)
+				frappe.delete_doc_if_exists("Tag", tag, force=True)
+			frappe.db.commit()  # nosemgrep
+
 	def test_users_of_a_never_saved_single(self):
 		frappe.set_user("Administrator")
 		single = new_doctype(issingle=1).insert()
@@ -1944,6 +1962,24 @@ class TestListPartsV2(FrappeAPITestCase):
 		self.assertEqual(response.json["comment_counts"][todo], 2)
 		self.assertNotIn("_comments", response.json["data"][0])
 
+	def test_tag_colors_maps_the_tags_of_the_page_rows(self):
+		from frappe.desk.doctype.tag.tag import add_tag, remove_tag
+
+		add_tag("list-blue", "ToDo", self.todos[0].name, "Blue")
+		add_tag("list-plain", "ToDo", self.todos[1].name)
+		frappe.db.commit()  # nosemgrep
+		try:
+			response = self.list(include="tag_colors", fields=json.dumps(["name", "_user_tags"]))
+			self.assertEqual(response.status_code, 200, response.json)
+			self.assertEqual(response.json["tag_colors"], {"list-blue": "Blue", "list-plain": ""})
+			bare = self.list(include="tag_colors", fields=json.dumps(["name"]))
+			self.assertEqual(bare.json["tag_colors"], {})
+		finally:
+			for todo, tag in ((self.todos[0], "list-blue"), (self.todos[1], "list-plain")):
+				remove_tag(tag, "ToDo", todo.name)
+				frappe.delete_doc_if_exists("Tag", tag, force=True)
+			frappe.db.commit()  # nosemgrep
+
 	def test_users_skips_a_malformed_assign_value(self):
 		todo = self.todos[0].name
 		frappe.db.set_value("ToDo", todo, "_assign", "not json", update_modified=False)
@@ -2103,7 +2139,7 @@ class TestCollaborationWritesV2(FrappeAPITestCase):
 	TEST_USER = "api-collab-user@example.com"
 	PEER = "api-collab-peer@example.com"
 	# adding a tag creates a Tag master that outlives the class; these are the ones the tests add
-	TAGS = ("urgent", "slashed")
+	TAGS = ("urgent", "slashed", "coloured")
 
 	@classmethod
 	def setUpClass(cls):
@@ -2273,9 +2309,19 @@ class TestCollaborationWritesV2(FrappeAPITestCase):
 	def test_tag_add_and_remove(self):
 		response = self.add(self.part("tags"), {"tag": "urgent"})
 		self.assertEqual(response.status_code, 200, response.json)
-		self.assertEqual(response.json["data"], {"tags": ["urgent"]})
+		self.assertEqual(response.json["data"], {"tags": ["urgent"], "tag_colors": {"urgent": ""}})
 		response = self.remove(self.part("tags", "urgent"))
-		self.assertEqual(response.json["data"], {"tags": []})
+		self.assertEqual(response.json["data"], {"tags": [], "tag_colors": {}})
+
+	def test_tag_add_sets_the_color_of_a_new_tag(self):
+		response = self.add(self.part("tags"), {"tag": "coloured", "color": "Red"})
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(response.json["data"], {"tags": ["coloured"], "tag_colors": {"coloured": "Red"}})
+		self.remove(self.part("tags", "coloured"))
+		# a tag is the whole site's: adding it again with another colour keeps the stored one
+		response = self.add(self.part("tags"), {"tag": "coloured", "color": "Blue"})
+		self.assertEqual(response.json["data"]["tag_colors"], {"coloured": "Red"})
+		self.remove(self.part("tags", "coloured"))
 
 	def test_tag_needs_write(self):
 		response = self.add(self.part("tags", doctype="Note", name=self.note.name), {"tag": "urgent"})
@@ -2531,9 +2577,11 @@ class TestCollaborationWritesV2(FrappeAPITestCase):
 		response = self.get(self.resource("ToDo", name), {"sid": self.user_sid, "include": "tags"})
 		self.assertEqual(response.json["data"]["name"], name)
 		response = self.add(self.part("tags", name=name), {"tag": "slashed"})
-		self.assertEqual(response.json["data"], {"tags": ["slashed"]}, response.json)
+		self.assertEqual(
+			response.json["data"], {"tags": ["slashed"], "tag_colors": {"slashed": ""}}, response.json
+		)
 		response = self.remove(self.part("tags", "slashed", name=name))
-		self.assertEqual(response.json["data"], {"tags": []}, response.json)
+		self.assertEqual(response.json["data"], {"tags": [], "tag_colors": {}}, response.json)
 		response = self.add(self.part("favourites", name=name))
 		self.assertEqual(response.json["data"]["favourites"][0]["user"], self.TEST_USER)
 		response = self.remove(self.part("favourites", name=name))

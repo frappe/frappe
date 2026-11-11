@@ -117,6 +117,19 @@ def get_tags(doc: Document) -> list[str]:
 	)
 
 
+def get_tag_colors(doc: Document) -> dict[str, str]:
+	return colors_of_tags(get_tags(doc))
+
+
+def colors_of_tags(tags: Iterable[str]) -> dict[str, str]:
+	"""The stored colour of each named tag; `""` for one without (it draws gray), so a cleared colour clears."""
+	names = sorted(set(tags))
+	if not names:
+		return {}
+	rows = frappe.get_list("Tag", filters={"name": ("in", names)}, fields=["name", "color"])
+	return {row.name: row.color or "" for row in rows}
+
+
 def get_favourites(doc: Document) -> list[dict]:
 	return get_favourite_rows(doc.doctype, doc.name)
 
@@ -186,6 +199,7 @@ DOCUMENT_PARTS = {
 	"assignments": get_assignments,
 	"shares": get_share_rows,
 	"tags": get_tags,
+	"tag_colors": get_tag_colors,
 	"favourites": get_favourites,
 	"follows": get_follows,
 	"comments": lambda doc: get_comments(doc.doctype, doc.name),
@@ -317,4 +331,19 @@ def add_comment_counts(doctype: str, rows: list) -> None:
 	frappe.response["comment_counts"] = {name: (comments or "").count('"name"') for name, comments in stored}
 
 
-ROW_PARTS = {"favourites": add_starred, USERS_PART: add_row_users, "comment_counts": add_comment_counts}
+def add_row_tag_colors(doctype: str, rows: list) -> None:
+	"""`tag_colors`: the stored colour of each tag the page's `_user_tags` column names."""
+	tags: set[str] = set()
+	for row in rows:
+		stored = row.get("_user_tags") if isinstance(row, dict) else None
+		if isinstance(stored, str):
+			tags.update(tag for tag in stored.split(",") if tag)
+	frappe.response["tag_colors"] = colors_of_tags(tags)
+
+
+ROW_PARTS = {
+	"favourites": add_starred,
+	USERS_PART: add_row_users,
+	"comment_counts": add_comment_counts,
+	"tag_colors": add_row_tag_colors,
+}

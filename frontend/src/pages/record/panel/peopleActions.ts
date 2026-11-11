@@ -10,9 +10,10 @@ import {
 	type Users,
 } from "@framework/ui/api";
 import { errorMessage, type RecordPageApi } from "@/recordPage";
+import { seedTagColors } from "@/tagColors";
 import type { DocInfo, PanelContext } from "./context";
 
-type PartAnswer = Partial<DocInfo> & { users?: Users };
+type PartAnswer = Partial<DocInfo> & { users?: Users; tag_colors?: Record<string, string> };
 
 /** What the writes read; the record menu's "Assign to…" hands it the page's own parts. */
 type PeopleSource = Pick<PanelContext, "doctype" | "docname" | "docinfo" | "whileOnRecord"> & {
@@ -27,6 +28,7 @@ export function peopleActions(context: PeopleSource) {
 		const current = whileOnRecord();
 		try {
 			const answer = await write();
+			seedTagColors(answer.data.tag_colors);
 			// An answer that outlived its record would paint the old rows onto the new one.
 			if (current()) docinfo.value = mergePart(docinfo.value, answer.data);
 		} catch (caught) {
@@ -39,7 +41,7 @@ export function peopleActions(context: PeopleSource) {
 		unassign: (user: string) => send(() => removeAssignment(doctype, docname, user)),
 		share: (user: string) => send(() => addShare(doctype, docname, { user, read: 1, write: 1 })),
 		unshare: (user: string) => send(() => removeShare(doctype, docname, user)),
-		addTag: (tag: string) => send(() => addTag(doctype, docname, tag)),
+		addTag: (tag: string, color?: string) => send(() => addTag(doctype, docname, tag, undefined, color)),
 		removeTag: (tag: string) => send(() => removeTag(doctype, docname, tag)),
 	};
 }
@@ -47,6 +49,9 @@ export function peopleActions(context: PeopleSource) {
 export type PeopleActions = ReturnType<typeof peopleActions>;
 
 /** The answer's part over the old one; its `users` join the map, since a removed row keeps its name. */
-export function mergePart(docinfo: DocInfo | null, { users, ...part }: PartAnswer): DocInfo {
+export function mergePart(
+	docinfo: DocInfo | null,
+	{ users, tag_colors: _colors, ...part }: PartAnswer
+): DocInfo {
 	return { ...docinfo, ...part, users: { ...docinfo?.users, ...users } };
 }

@@ -2,6 +2,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { clearDataCache, feedListRead, settleTicket, takeTicket } from "@framework/ui/cache";
 import { loadParts, loadRecord, readCachedRecord, saveRecord } from "../recordSource";
+import { TAG_COLORS, tagColorClass } from "@/tagColors";
 
 const fetchMock = vi.fn<typeof fetch>();
 
@@ -24,6 +25,7 @@ const ENVELOPE = {
 	assignments: [{ user: "bob@example.com", description: "Call back" }],
 	shares: [{ user: "everyone", read: 1 }],
 	tags: ["urgent"],
+	tag_colors: { urgent: "Red" },
 	favourites: [{ user: "ann@example.com" }],
 	follows: true,
 	users: { "ann@example.com": { full_name: "Ann", user_image: "/ann.png" } },
@@ -63,6 +65,7 @@ describe("loadRecord", () => {
 			"assignments",
 			"shares",
 			"tags",
+			"tag_colors",
 			"favourites",
 			"follows",
 			"users",
@@ -84,6 +87,7 @@ describe("loadRecord", () => {
 		});
 		expect(loaded.linkTitles).toEqual(ENVELOPE.link_titles);
 		expect(loaded.linkMarks).toEqual(ENVELOPE.link_marks);
+		expect(tagColorClass("urgent")).toBe(TAG_COLORS.Red);
 	});
 
 	it("throws the wrapper's error for a refused read", async () => {

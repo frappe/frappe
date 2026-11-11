@@ -181,6 +181,7 @@ async function answer(url: URL, init?: RequestInit): Promise<[unknown, number]> 
         users: {},
         link_titles: {},
         link_marks: {},
+        tag_colors: {},
         attachments: [],
         seen: [],
       },

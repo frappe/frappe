@@ -1,6 +1,7 @@
 // What a list read says beside its rows for the collaboration columns: the people named in
-// `_assign`/`_liked_by` and each row's comment count. Module state, so a cell reads it by id.
+// `_assign`/`_liked_by`, each row's comment count and its tags' colours. Module state, read by id.
 import { reactive } from "vue";
+import { seedTagColors } from "@/tagColors";
 
 export interface RowPerson {
 	full_name?: string;
@@ -19,6 +20,7 @@ export function partsFor(fieldnames: string[]): string[] {
 	if (shown.has("_favourite")) parts.push("favourites");
 	if (shown.has("_assign") || shown.has("_liked_by")) parts.push("users");
 	if (shown.has("_comments")) parts.push("comment_counts");
+	if (shown.has("_user_tags")) parts.push("tag_colors");
 	return parts;
 }
 
@@ -27,6 +29,7 @@ export function seedRowParts(doctype: string, answer: Record<string, unknown>, n
 	for (const [id, person] of Object.entries(users ?? {})) people.set(id, person);
 	const counts = answer.comment_counts as Record<string, number> | undefined;
 	if (counts) for (const name of names) commentCounts.set(rowKey(doctype, name), counts[name] ?? 0);
+	seedTagColors(answer.tag_colors);
 }
 
 export function personOf(id: string): { id: string; name: string; image?: string } {

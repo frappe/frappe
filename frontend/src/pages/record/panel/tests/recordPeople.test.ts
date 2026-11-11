@@ -15,8 +15,14 @@ const api = vi.hoisted(() => {
 		removeAssignment: answer("assignments", []),
 		addShare: answer("shares", [{ user: "cy@example.com", read: 1, write: 1 }]),
 		removeShare: answer("shares", []),
-		addTag: vi.fn(async () => ({ data: { tags: ["urgent", "later"] } })),
+		addTag: vi.fn(
+			async (): Promise<{ data: { tags: string[]; tag_colors?: Record<string, string> } }> => ({
+				data: { tags: ["urgent", "later"] },
+			})
+		),
 		removeTag: vi.fn(async (): Promise<{ data: { tags: string[] } }> => ({ data: { tags: [] } })),
+		listDocuments: vi.fn(async () => ({ data: [] })),
+		searchDocuments: vi.fn(async () => ({ data: [] })),
 	};
 });
 
@@ -50,6 +56,7 @@ vi.mock("frappe-ui", () => {
 			setup: (props) => () => h("span", { "data-avatar": props.label }),
 		}),
 		Tooltip: Plain("span"),
+		Badge: Plain("span"),
 		TooltipProvider: Plain("div"),
 		Dropdown: defineComponent({
 			props: ["options"],
@@ -75,6 +82,7 @@ import RecordIdentity from "../RecordIdentity.vue";
 import RecordPeople from "../RecordPeople.vue";
 import { mergePart } from "../peopleActions";
 import ShareDialog from "../ShareDialog.vue";
+import { TAG_COLORS, tagColorClass } from "@/tagColors";
 
 const mounted: ReturnType<typeof createApp>[] = [];
 // What `page.quickActions.visible()` answers; only the tag action's rendering is tested here.
@@ -261,7 +269,7 @@ describe("tags", () => {
 		await vi.waitFor(() => expect(root.textContent).toContain("Tags"));
 		await pick(root, ["first"], "first");
 		await vi.waitFor(() => expect(docinfo.value?.tags).toEqual(["urgent", "later"]));
-		expect(api.addTag).toHaveBeenCalledWith("CRM Deal", "D-1", "first");
+		expect(api.addTag).toHaveBeenCalledWith("CRM Deal", "D-1", "first", undefined, undefined);
 	});
 
 	it("draws the chips read-only for a reader who may not write", () => {
@@ -271,7 +279,7 @@ describe("tags", () => {
 		expect(tagged.root.querySelector("[aria-label='Remove urgent']")).toBeNull();
 	});
 
-	it("removes a tag from its chip and adds one the picker created", async () => {
+	it("removes a tag from its chip and adds one the picker created, in the colour picked", async () => {
 		const { root, docinfo } = setup({ ...info({ write: 1 }), tags: ["urgent", "old"] }, RecordIdentity);
 		api.removeTag.mockResolvedValueOnce({ data: { tags: ["old"] } });
 		root.querySelector<HTMLElement>("[aria-label='Remove urgent']")!.click();
@@ -279,11 +287,15 @@ describe("tags", () => {
 		expect(api.removeTag).toHaveBeenCalledWith("CRM Deal", "D-1", "urgent");
 		expect(docinfo.value?.users).toMatchObject({ "ann@example.com": { full_name: "Ann" } });
 
-		api.addTag.mockResolvedValueOnce({ data: { tags: ["old", "later"] } });
+		api.addTag.mockResolvedValueOnce({ data: { tags: ["old", "later"], tag_colors: { old: "", later: "Teal" } } });
 		await pick(root, ["old"], "later");
 		root.querySelector<HTMLElement>("[data-create-tag]")!.click();
+		await nextTick();
+		expect(api.addTag).not.toHaveBeenCalled();
+		root.querySelector<HTMLElement>("[data-tag-colors] [aria-label='Teal']")!.click();
 		await vi.waitFor(() => expect(docinfo.value?.tags).toEqual(["old", "later"]));
-		expect(api.addTag).toHaveBeenCalledWith("CRM Deal", "D-1", "later");
+		expect(api.addTag).toHaveBeenCalledWith("CRM Deal", "D-1", "later", undefined, "Teal");
+		expect(tagColorClass("later")).toBe(TAG_COLORS.Teal);
 	});
 });
 

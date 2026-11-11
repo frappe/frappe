@@ -1,16 +1,24 @@
-<!-- One tag as a pill with its colour dot; the slot holds what follows the name (Remove). -->
+<!-- One tag as Helpdesk draws it: an outline badge with its colour dot; the slot holds what follows the name (Remove). -->
 <template>
-	<span
-		class="group/tag flex items-center gap-1.5 rounded-full border border-outline-gray-2 py-0.5 pl-2 text-sm text-ink-gray-7"
+	<Badge
+		theme="gray"
+		variant="outline"
+		size="lg"
+		class="group/tag min-w-0 max-w-40 gap-1.5 transition-colors duration-150 hover:bg-surface-gray-2"
 	>
-		<span class="size-1.5 shrink-0 rounded-full" :class="tagColor(tag)" aria-hidden="true" />
-		{{ tag }}
+		<span
+			class="size-2 shrink-0 rounded-full"
+			:class="tagColorClass(tag)"
+			aria-hidden="true"
+		/>
+		<span :title="tag" class="min-w-0 truncate text-ink-gray-7">{{ tag }}</span>
 		<slot />
-	</span>
+	</Badge>
 </template>
 
 <script setup lang="ts">
-import { tagColor } from "./people";
+import { Badge } from "frappe-ui";
+import { tagColorClass } from "@/tagColors";
 
 defineProps<{ tag: string }>();
 </script>

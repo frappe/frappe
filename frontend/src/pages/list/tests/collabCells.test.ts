@@ -3,7 +3,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, nextTick, type Component } from "vue";
 import { seedRowParts } from "@/list/rowParts";
-import { tagColor } from "../../record/panel/people";
+import { TAG_COLORS } from "@/tagColors";
 import AvatarStackCell from "../AvatarStackCell.vue";
 import CommentsCell from "../CommentsCell.vue";
 import DocstatusCell from "../DocstatusCell.vue";
@@ -42,10 +42,21 @@ async function render(cell: Component, props: Record<string, unknown>, onRowClic
 }
 
 describe("list collaboration cells", () => {
-	it("draws Tags from the comma string in their record colours, ignoring the leading comma", async () => {
+	it("draws Tags from the comma string in their stored colours, gray without one", async () => {
+		seedRowParts("ToDo", { tag_colors: { a: "Teal" } }, []);
 		const root = await render(TagsCell, { value: ",a,b" });
 		expect(root.textContent?.replace(/\s/g, "")).toBe("ab");
-		expect(root.querySelectorAll("[aria-hidden]")[0].className).toContain(tagColor("a"));
+		const dots = root.querySelectorAll("[aria-hidden]");
+		expect(dots[0].className).toContain(TAG_COLORS.Teal);
+		expect(dots[1].className).toContain(TAG_COLORS.Gray);
+	});
+
+	it("shows three Tags and the rest as +N more, but never +1 more", async () => {
+		const four = await render(TagsCell, { value: ",a,b,c,d" });
+		expect(four.querySelector("[data-more-tags]")).toBeNull();
+		const five = await render(TagsCell, { value: ",a,b,c,d,e" });
+		expect(five.querySelectorAll("[aria-hidden]")).toHaveLength(3);
+		expect(five.querySelector("[data-more-tags]")?.textContent?.trim()).toBe("+2 more");
 	});
 
 	it("names Document Status and colours it as v1 does", async () => {

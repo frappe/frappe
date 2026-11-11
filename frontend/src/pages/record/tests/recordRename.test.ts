@@ -122,6 +122,7 @@ function record(name: string) {
     users: {},
     link_titles: {},
     link_marks: {},
+    tag_colors: {},
     attachments: [],
     seen: [],
   };

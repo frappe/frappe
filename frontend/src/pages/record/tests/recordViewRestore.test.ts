@@ -159,6 +159,7 @@ function recordEnvelope(doc: Record<string, any>) {
     users: {},
     link_titles: {},
     link_marks: {},
+    tag_colors: {},
     attachments: [],
     seen: [],
   };
