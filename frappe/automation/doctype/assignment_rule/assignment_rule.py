@@ -59,7 +59,7 @@ class AssignmentRule(Document):
 			)
 
 	def validate_users(self):
-		if self.rule in ("Round Robin", "Load Balancing") and not self.users:
+		if not self.disabled and self.rule in ("Round Robin", "Load Balancing") and not self.users:
 			frappe.throw(
 				_("{0} is required").format(frappe.bold(_(self.meta.get_label("users")))),
 				frappe.MandatoryError,
