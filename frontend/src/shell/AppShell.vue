@@ -136,8 +136,8 @@ const ShellPalette = defineAsyncComponent(() =>
 );
 
 const boot = inject<Boot>("boot")!;
-useStaleBuildNotice();
 const addresses = inject<Addresses>("addresses")!;
+useStaleBuildNotice();
 const router = useRouter();
 const route = useRoute();
 
