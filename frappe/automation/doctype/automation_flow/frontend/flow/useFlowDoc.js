@@ -10,7 +10,7 @@ import {
 } from "@framework/ui/api";
 import { htmlToText } from "@framework/ui/RichText";
 import { FlowHistory } from "./FlowHistory";
-import { saveErrors } from "./flowErrors";
+import { saveErrors, withoutEdited } from "./flowErrors";
 import {
 	FLOW_DOCTYPE,
 	copySource,
@@ -19,6 +19,7 @@ import {
 	openingFlow,
 	savedKey,
 	toPayload,
+	withServerFields,
 } from "./flowDoc";
 
 /** The flow a builder page edits; `name` is null before its first save, and `query` is the address's. */
@@ -50,6 +51,8 @@ export function useFlowDoc(name, query = {}) {
 		if (before == null || now == null) return;
 		history.record(before);
 		syncHistory();
+		if (Object.keys(errors.value).length)
+			errors.value = withoutEdited(errors.value, JSON.parse(before), doc.value);
 	}
 
 	function syncHistory() {
@@ -111,8 +114,6 @@ export function useFlowDoc(name, query = {}) {
 			keepStepIds(doc.value.actions, next.actions);
 			adopt(next);
 			current = next.name;
-			history.clear();
-			syncHistory();
 			return true;
 		} catch (error) {
 			refuse(error);
@@ -135,8 +136,9 @@ export function useFlowDoc(name, query = {}) {
 
 	function restore(snapshot) {
 		if (snapshot === null) return;
-		restoring = snapshot;
-		doc.value = JSON.parse(snapshot);
+		const next = withServerFields(JSON.parse(snapshot), doc.value);
+		restoring = JSON.stringify(next);
+		doc.value = next;
 		errors.value = {};
 		syncHistory();
 	}

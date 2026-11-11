@@ -33,6 +33,21 @@ export function mainPageFor(route: Route, addresses: Addresses, app: string | nu
 	return { loader: declared.component, props: { doctype, name, query: route.query } };
 }
 
+type PageProps = { doctype: string; name: string | null };
+
+/** Keys a declared page by its record; `state: { keepsPage: true }` on a new record's save keeps its instance. */
+export function pageKeys() {
+	let last: (PageProps & { key: string }) | null = null;
+	let moves = 0;
+	return (props: PageProps, keepsPage = false) => {
+		if (last && last.doctype === props.doctype && last.name === props.name) return last.key;
+		const adopts = keepsPage && last?.doctype === props.doctype && last.name === null;
+		const key = adopts && last ? last.key : `${props.doctype}/${props.name ?? ""}#${moves++}`;
+		last = { doctype: props.doctype, name: props.name, key };
+		return key;
+	};
+}
+
 /** The page a loader gives: its loading state at once, then the page once its code is in. */
 export function loadedPage(loader: Loader, loading: Component = FrameSkeleton) {
 	let page = pages.get(loader);

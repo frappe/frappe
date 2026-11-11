@@ -1,7 +1,7 @@
 // The builder page mounted with a stubbed canvas and a faked API. Mounted with Vue's own `createApp`.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, nextTick, ref, type App } from "vue";
-import { createMemoryHistory, createRouter, type Router } from "vue-router";
+import { RouterView, createMemoryHistory, createRouter, type Router } from "vue-router";
 
 const fake = vi.hoisted(() => ({
   getDocument: vi.fn(),
@@ -11,7 +11,25 @@ const fake = vi.hoisted(() => ({
   runMethod: vi.fn(),
   fitView: vi.fn(),
   toastError: vi.fn(),
+  confirmDiscard: vi.fn(),
   rights: { loading: false, create: true },
+}));
+
+vi.mock(
+  "../../../frappe/automation/doctype/automation_flow/frontend/flow/confirmDiscard",
+  () => ({ confirmDiscard: fake.confirmDiscard })
+);
+vi.mock("@framework/ui/Link", () => ({
+  Link: defineComponent({
+    props: ["modelValue", "doctype"],
+    emits: ["update:modelValue"],
+    setup: (props, { emit }) => () =>
+      h("input", {
+        "data-link": props.doctype,
+        value: props.modelValue,
+        onChange: (e: Event) => emit("update:modelValue", (e.target as HTMLInputElement).value),
+      }),
+  }),
 }));
 
 vi.mock("@framework/ui/api", async (importOriginal) => ({
@@ -41,13 +59,13 @@ vi.mock("@framework/ui/AutomationCanvas", () => ({
     },
   }),
 }));
-vi.mock("@shell", () => ({
+vi.mock("@shell", async () => ({
   routeFor: (doctype: string, name?: string, options: { query?: object } = {}) => ({
     name: "flow-test",
     params: { doctype, name },
     query: options.query,
   }),
-  useUnloadGuard: () => {},
+  useUnloadGuard: (await import("../../src/unloadGuard")).useUnloadGuard,
 }));
 vi.mock("frappe-ui", async (importOriginal) => {
   const original = await importOriginal<any>();
@@ -195,6 +213,7 @@ describe("Automation Flow builder", () => {
     expect(replace).toHaveBeenCalledWith({
       name: "flow-test",
       params: { doctype: "Automation Flow", name: "AUTO-00009" },
+      state: { keepsPage: true },
     });
   });
 
@@ -458,5 +477,146 @@ describe("Automation Flow builder", () => {
 
       expect(host.querySelector("[data-canvas]")).not.toBeNull();
     });
+  });
+
+  describe("leaving with unsaved changes", () => {
+    async function mountRouted(name: string) {
+      router = createRouter({
+        history: createMemoryHistory(),
+        routes: [
+          {
+            path: "/flow/:name",
+            name: "flow-test",
+            component: FlowBuilder,
+            props: (route) => ({ name: route.params.name }),
+          },
+          { path: "/elsewhere", component: { render: () => h("p", "elsewhere") } },
+        ],
+      });
+      host = document.createElement("div");
+      document.body.appendChild(host);
+      app = createApp({ render: () => h(RouterView) });
+      app.use(router);
+      await router.push(`/flow/${name}`);
+      app.mount(host);
+      await settle();
+    }
+
+    it("asks before a route change and stays when the person keeps editing", async () => {
+      fake.confirmDiscard.mockResolvedValue(false);
+      await mountRouted("AUTO-00001");
+      await typeTitle("Renamed");
+
+      await router.push("/elsewhere");
+
+      expect(fake.confirmDiscard).toHaveBeenCalledOnce();
+      expect(router.currentRoute.value.path).toBe("/flow/AUTO-00001");
+      expect(titleInput().value).toBe("Renamed");
+    });
+
+    it("leaves after the person discards the changes", async () => {
+      fake.confirmDiscard.mockResolvedValue(true);
+      await mountRouted("AUTO-00001");
+      await typeTitle("Renamed");
+
+      await router.push("/elsewhere");
+
+      expect(router.currentRoute.value.path).toBe("/elsewhere");
+    });
+
+    it("asks before the page is pointed at another flow", async () => {
+      fake.confirmDiscard.mockResolvedValue(false);
+      await mountRouted("AUTO-00001");
+      await typeTitle("Renamed");
+
+      await router.push("/flow/AUTO-00002");
+
+      expect(fake.confirmDiscard).toHaveBeenCalledOnce();
+      expect(router.currentRoute.value.path).toBe("/flow/AUTO-00001");
+    });
+
+    it("does not ask when there is nothing unsaved", async () => {
+      await mountRouted("AUTO-00001");
+
+      await router.push("/elsewhere");
+
+      expect(fake.confirmDiscard).not.toHaveBeenCalled();
+      expect(router.currentRoute.value.path).toBe("/elsewhere");
+    });
+
+    it("does not ask after a save", async () => {
+      fake.updateDocument.mockResolvedValue({
+        data: { ...structuredClone(saved), title: "Renamed" },
+      });
+      await mountRouted("AUTO-00001");
+      await typeTitle("Renamed");
+      button("Save").click();
+      await settle();
+
+      await router.push("/elsewhere");
+
+      expect(fake.confirmDiscard).not.toHaveBeenCalled();
+    });
+
+    it("asks the browser to hold a reload only while there are unsaved changes", async () => {
+      await mountRouted("AUTO-00001");
+      const reload = () => {
+        const event = new Event("beforeunload", { cancelable: true });
+        window.dispatchEvent(event);
+        return event.defaultPrevented;
+      };
+      expect(reload()).toBe(false);
+
+      await typeTitle("Renamed");
+
+      expect(reload()).toBe(true);
+    });
+  });
+
+  describe("the capabilities of a DocType", () => {
+  const capabilityCalls = (doctype: string) =>
+    fake.runMethod.mock.calls.filter(
+      ([method, args]) =>
+        method === "frappe.automation_engine.api.get_automation_capabilities" &&
+        args.doctype === doctype
+    ).length;
+
+  it("are fetched again when the DocType changes", async () => {
+    await mount("AUTO-00001");
+    expect(capabilityCalls("ToDo")).toBe(1);
+
+    const link = host.querySelector("[data-link=DocType]") as HTMLInputElement;
+    link.value = "Note";
+    link.dispatchEvent(new Event("change"));
+    await settle();
+    link.value = "ToDo";
+    link.dispatchEvent(new Event("change"));
+    await settle();
+
+    expect(capabilityCalls("Note")).toBe(1);
+    expect(capabilityCalls("ToDo")).toBe(2);
+  });
+
+  it("are fetched again when the page is shown after it was hidden", async () => {
+    await mount("AUTO-00001");
+    const before = capabilityCalls("ToDo");
+
+    document.dispatchEvent(new Event("visibilitychange"));
+    await settle();
+
+    expect(capabilityCalls("ToDo")).toBe(before + 1);
+  });
+
+  it("are not fetched while the page goes hidden", async () => {
+    await mount("AUTO-00001");
+    const before = capabilityCalls("ToDo");
+    const hidden = vi.spyOn(document, "hidden", "get").mockReturnValue(true);
+
+    document.dispatchEvent(new Event("visibilitychange"));
+    await settle();
+    hidden.mockRestore();
+
+    expect(capabilityCalls("ToDo")).toBe(before);
+  });
   });
 });
