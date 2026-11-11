@@ -95,17 +95,20 @@ describe("AboutDialog", () => {
 		vi.unstubAllGlobals();
 	});
 
-	it("keeps the version and its copy icon in one slot, so a tap on the version copies", async () => {
+	it("keeps the version and its copy icon in one button, so a tap on the version copies", async () => {
 		fake.runMethod.mockResolvedValue({ data: VERSIONS });
+		const writeText = vi.fn().mockResolvedValue(undefined);
+		vi.stubGlobal("navigator", { ...navigator, clipboard: { writeText } });
 		await open({});
-		const slots = Array.from(document.body.querySelectorAll("[data-key] [data-slot=item-suffix]"));
-		expect(slots).toHaveLength(2);
-		for (const slot of slots) {
-			const buttons = slot.querySelectorAll("button");
-			expect(buttons).toHaveLength(1);
-			expect(buttons[0].textContent).toMatch(/\d+\.\d+\.\d+/);
-			expect(buttons[0].querySelector(".lucide-copy")).not.toBeNull();
-		}
+
+		const copy = document.body.querySelector<HTMLElement>("[data-key='erpnext'] button[aria-label^='Copy']")!;
+		expect(copy.getAttribute("aria-label")).toBe("Copy ERPNext version 16.0.0");
+		expect(copy.querySelector(".lucide-copy")).not.toBeNull();
+
+		copy.querySelector<HTMLElement>("span")!.click();
+		await nextTick();
+		expect(writeText).toHaveBeenLastCalledWith("erpnext: 16.0.0");
+		vi.unstubAllGlobals();
 	});
 
 	it("says so when the versions do not load", async () => {

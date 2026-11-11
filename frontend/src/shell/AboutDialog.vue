@@ -89,7 +89,7 @@
 					<li v-for="app in apps" :key="app.name" :data-key="app.name">
 						<ItemListRow
 							size="lg"
-							class="group/row hover:bg-surface-gray-2 focus-within:bg-surface-gray-2"
+							class="group/row hover:bg-surface-gray-2 has-[:focus-visible]:bg-surface-gray-2"
 						>
 							<template #prefix>
 								<AppLogo :logo="app.logo" :title="app.title" :size="20" />
@@ -111,7 +111,9 @@
 								<button
 									type="button"
 									class="group/copy mr-2 grid cursor-pointer justify-items-end rounded-3 outline-none focus-visible:focus-ring"
-									:aria-label="__('Copy {0} version', [app.title])"
+									:aria-label="
+										__('Copy {0} version {1}', [app.title, versionText(app)])
+									"
 									@click="copy(appLine(app.name, app))"
 								>
 									<span
