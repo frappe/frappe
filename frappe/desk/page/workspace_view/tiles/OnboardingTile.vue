@@ -14,6 +14,10 @@ const __ = window.__;
 const size = inject("tile_size", ref("Wide"));
 const editing = inject("editing", ref(false));
 const steps = ref(props.widget.steps.map((step) => ({ ...step })));
+watch(
+	() => props.widget.steps,
+	(latest) => (steps.value = latest.map((step) => ({ ...step })))
+);
 
 const is_done = (step) => step.is_complete || step.is_skipped;
 
@@ -25,7 +29,9 @@ const completed = computed(() => counted.value.filter((step) => step.is_complete
 const skipped = computed(
 	() => counted.value.filter((step) => !step.is_complete && step.is_skipped).length
 );
-const all_done = computed(() => completed.value + skipped.value === counted.value.length);
+const all_done = computed(
+	() => counted.value.length > 0 && completed.value + skipped.value === counted.value.length
+);
 const progress_label = computed(() =>
 	skipped.value
 		? __("{0} of {1} done · {2} skipped", [
@@ -301,7 +307,7 @@ function on_description_click(event, step) {
 		<div class="px-4 pb-3">
 			<Progress
 				size="sm"
-				:value="((completed + skipped) / counted.length) * 100"
+				:value="counted.length ? ((completed + skipped) / counted.length) * 100 : 0"
 				:intervals="counted.length"
 				:aria-label="`${widget.title}: ${progress_label}`"
 			/>

@@ -17,14 +17,39 @@ export const TIME_INTERVALS = ["Yearly", "Quarterly", "Monthly", "Weekly", "Dail
 export const TIMESPANS = ["Last Year", "Last Quarter", "Last Month", "Last Week"];
 export const DATE_RANGE = "Select Date Range";
 
-// The chart document and the method its data comes from.
-export async function load_chart(name) {
+export function chart_is_set_up(doc) {
+	if (doc.chart_type === "Report") return Boolean(doc.report_name);
+	if (doc.chart_type === "Custom") return Boolean(doc.source);
+	if (!doc.document_type) return false;
+	if (doc.chart_type === "Group By") {
+		return Boolean(
+			doc.group_by_based_on &&
+				(!["Sum", "Average"].includes(doc.group_by_type) ||
+					doc.aggregate_function_based_on)
+		);
+	}
+	return Boolean(
+		doc.based_on && (!["Sum", "Average"].includes(doc.chart_type) || doc.value_based_on)
+	);
+}
+
+// The chart document and the method its data comes from. `source` is the chart's name, or an
+// edited copy of it to draw instead.
+export async function load_chart(source) {
 	const frappe = window.frappe;
-	const doc = await frappe.model.with_doc("Dashboard Chart", name);
+	const doc =
+		typeof source === "string"
+			? await frappe.model.with_doc("Dashboard Chart", source)
+			: { ...source };
 	if (doc.type === "Heatmap" && !doc.heatmap_year) {
 		doc.heatmap_year = frappe.dashboard_utils.get_year(frappe.datetime.now_date());
 	}
-	return { doc, method: await data_method(doc), island: doc.__onload?.island };
+	return {
+		doc,
+		method: await data_method(doc),
+		island: doc.__onload?.island,
+		edited: typeof source !== "string",
+	};
 }
 
 async function data_method(doc) {
@@ -59,7 +84,7 @@ export async function initial_filters(doc, settings) {
 	return frappe.utils.parse_array(settings.filters) || frappe.utils.parse_array(saved);
 }
 
-export async function fetch_data({ doc, method }, filters, settings) {
+export async function fetch_data({ doc, method, edited }, filters, settings) {
 	if (doc.chart_type === "Report") {
 		const result = await post(method, {
 			report_name: doc.report_name,
@@ -69,9 +94,8 @@ export async function fetch_data({ doc, method }, filters, settings) {
 		return { data: report_chart_data(doc, result), result, summary: result.report_summary };
 	}
 	const data = await post(method, {
-		chart_name: doc.name,
+		...(edited ? { chart: doc, no_cache: 1 } : { chart_name: doc.name, refresh: 1 }),
 		filters,
-		refresh: 1,
 		time_interval: settings.time_interval || null,
 		timespan: settings.timespan || null,
 		from_date: settings.from_date || null,

@@ -9,6 +9,7 @@ import {
 	TIMESPANS,
 	TIME_INTERVALS,
 	chart_config,
+	chart_is_set_up,
 	export_csv,
 	fetch_data,
 	has_data,
@@ -33,26 +34,39 @@ let handle = null;
 
 const doc = computed(() => chart.value?.doc);
 
+// while its record is being edited, a chart shows the record and not the viewer's saved settings
+const shown_settings = computed(() => (props.widget.record_changed ? {} : settings.value));
+let latest = 0;
+
 async function load() {
+	const run = ++latest;
+	const { record, record_changed, chart_name } = props.widget;
+	if (record_changed && !chart_is_set_up(record)) {
+		state.value = { empty: true };
+		return;
+	}
 	state.value = { loading: true };
 	try {
-		chart.value = await load_chart(props.widget.chart_name);
+		const loaded = await load_chart(record_changed ? record : chart_name);
+		if (run !== latest) return;
+		chart.value = loaded;
 		if (chart.value.island) return mount(chart.value.island.name, chart.value.island.props);
-		filters.value = await initial_filters(doc.value, settings.value);
-		await draw();
+		filters.value = await initial_filters(doc.value, shown_settings.value);
+		await draw(run);
 	} catch (e) {
-		state.value = { error: e.message || __("This chart couldn't load") };
+		if (run === latest) state.value = { error: e.message || __("This chart couldn't load") };
 	}
 }
 
-async function draw() {
+async function draw(run = latest) {
 	state.value = { ...state.value, loading: true };
 	try {
 		const { data, result, summary } = await fetch_data(
 			chart.value,
 			filters.value,
-			settings.value
+			shown_settings.value
 		);
+		if (run !== latest) return;
 		refresh_last_synced();
 		if (!has_data(doc.value, data)) {
 			state.value = { empty: true };
@@ -65,7 +79,7 @@ async function draw() {
 			chart.value,
 			data,
 			result,
-			settings.value,
+			shown_settings.value,
 			target.value.clientHeight
 		);
 		mount("frappe.chart", { config });
@@ -234,6 +248,10 @@ function summary_value(item) {
 watch(
 	() => props.widget.chart_name,
 	() => load()
+);
+watch(
+	() => props.widget.record_changed && JSON.stringify(props.widget.record),
+	frappe.utils.debounce((changed) => changed && load(), 400)
 );
 </script>
 

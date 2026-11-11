@@ -2,6 +2,7 @@
 import { computed, ref, watch } from "vue";
 import { attempt, post } from "../api.js";
 import BlockPanel from "./BlockPanel.vue";
+import { RECORDS, blank_record, save_record } from "./records.js";
 import {
 	BLOCK_TYPES,
 	DEFAULT_LAYOUT,
@@ -45,12 +46,15 @@ const dirty = computed(
 );
 
 const selected = computed(() => blocks.value.find((block) => block.id === selected_id.value));
-const selected_widget = computed(() => {
-	const spec = WIDGETS[selected.value?.type];
-	return spec
-		? widgets.value[spec.table][selected.value.data[name_key(selected.value.type)]]
-		: null;
-});
+const selected_widget = computed(() => selected.value && widget_of(selected.value));
+const form_open = ref(false);
+
+const table_of = (type) => (type === "onboarding" ? "onboardings" : WIDGETS[type]?.table);
+
+function widget_of(block) {
+	const table = table_of(block.type);
+	return table ? widgets.value[table][block.data[name_key(block.type)]] : null;
+}
 
 // An onboarding picked here has no steps until the page is saved and loaded again, so they are
 // fetched the way the legacy widget fetches them. Onboardings are not saved with the page.
@@ -73,7 +77,8 @@ watch(
 		for (const name of names) {
 			if (name && !widgets.value.onboardings[name]) load_onboarding(name);
 		}
-	}
+	},
+	{ immediate: true }
 );
 
 function on_move(id, target) {
@@ -114,7 +119,9 @@ function insert(block) {
 function add_block(type) {
 	const { block, widget } = new_block(type, widgets.value, TITLES[type]);
 	if (widget) {
-		widgets.value[WIDGETS[type].table][widget.label] = widget;
+		if (RECORDS[type])
+			Object.assign(widget, { record: blank_record(type), record_changed: true });
+		widgets.value[table_of(type)][widget.label] = widget;
 		touched.value.add(block.id);
 	}
 	insert(block);
@@ -138,6 +145,12 @@ function remove() {
 async function save() {
 	if (!dirty.value) return emit("done");
 	try {
+		for (const block of blocks.value) {
+			const widget = RECORDS[block.type] && widget_of(block);
+			if (!widget) continue;
+			await save_record(block.type, widget);
+			if (block.type === "onboarding") block.data.onboarding_name = widget.name;
+		}
 		const { blocks: saved, new_widgets } = to_save(blocks.value, widgets.value, touched.value);
 		await post("frappe.desk.doctype.workspace.workspace.save_page", {
 			name: props.workspace.name,
@@ -379,6 +392,7 @@ defineExpose({ blocks, widgets, selected_id, previewing, variant, dirty, on_move
 		class="my-4 mr-4 flex min-h-0 w-[21rem] flex-col overflow-hidden rounded-6 border border-outline-gray-2 bg-surface-base"
 	>
 		<section
+			v-if="!form_open"
 			class="flex flex-col gap-2 border-outline-gray-2 px-3 pt-4 pb-2"
 			:class="{ 'border-b': selected }"
 		>
@@ -425,6 +439,7 @@ defineExpose({ blocks, widgets, selected_id, previewing, variant, dirty, on_move
 					@resize="(preset) => set_size(selected, preset)"
 					@remove="remove"
 					@close="selected_id = null"
+					@form="(open) => (form_open = open)"
 				/>
 			</Transition>
 		</div>

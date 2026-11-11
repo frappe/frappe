@@ -10,9 +10,23 @@ const STATS_CAPTIONS = {
 	Yearly: "since last year",
 };
 
-export async function load_card(name) {
+export function card_is_set_up(card) {
+	if (card.type === "Report") return Boolean(card.report_name && card.report_field);
+	if (card.type === "Custom") return Boolean(card.method);
+	return Boolean(
+		card.document_type &&
+			card.function &&
+			(card.function === "Count" || card.aggregate_function_based_on)
+	);
+}
+
+// `source` is the card's name, or an edited copy of it to draw instead.
+export async function load_card(source) {
 	const frappe = window.frappe;
-	const card = await frappe.model.with_doc("Number Card", name);
+	const card =
+		typeof source === "string"
+			? await frappe.model.with_doc("Number Card", source)
+			: { ...source };
 	if (!card.type) card.type = "Document Type";
 	const filters = frappe.dashboard_utils.get_all_filters(card);
 

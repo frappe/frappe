@@ -135,9 +135,11 @@ export function move(blocks, id, target) {
 export function new_block(type, widgets, title) {
 	const block = { id: new_id(), type, data: {} };
 	if (type === "onboarding") {
-		block.data.onboarding_name = "";
+		let label = title;
+		for (let n = 2; widgets.onboardings[label]; n++) label = `${title} ${n}`;
+		block.data.onboarding_name = label;
 		set_size(block, "Wide");
-		return { block };
+		return { block, widget: { label, title: label, is_complete: 0, steps: [] } };
 	}
 
 	const spec = WIDGETS[type];
