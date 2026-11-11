@@ -256,6 +256,7 @@ class SendNotification(AutomationAction):
 		if params.get("channel") == "System":
 			return self._notify_system(doc, recipients, subject, message)
 
+		# send to user emails, and also to plain emails
 		user_emails = get_email_addresses(recipients)
 		emails = []
 
