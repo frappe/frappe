@@ -80,7 +80,7 @@
 						:docname="docname"
 						:controller="painted"
 						:meta="meta"
-						:docinfo="docinfo"
+						v-model:docinfo="docinfo"
 						:sections="sections"
 						:layoutLoading="panelLoading"
 						:disclosure="disclosure"

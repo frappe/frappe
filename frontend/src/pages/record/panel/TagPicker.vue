@@ -9,9 +9,9 @@
 		@select="pickColor"
 		@close="pickColor()"
 	>
-		<!-- `open` is bound only for the anchor: an undefined boolean prop reads as false. -->
+		<!-- `open` is bound only when something else opens the picker: an undefined boolean prop reads as false. -->
 		<MultiSelect
-			v-bind="anchored ? { open } : {}"
+			v-bind="anchored || shortcut ? { open } : {}"
 			:modelValue="session.tags.value"
 			v-model:query="query"
 			:options="options"
