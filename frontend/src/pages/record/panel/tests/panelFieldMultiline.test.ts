@@ -135,7 +135,8 @@ describe("a Table MultiSelect row at rest", () => {
 		const bare = { ...tags, childFields: [] } as FieldNode;
 		const { root } = mount(bare, { tags: [] });
 
-		expect(row(root, "tags").textContent).toContain("Child table metadata unavailable");
+		expect(row(root, "tags").textContent).toBe("Child table metadata unavailable");
+		expect(row(root, "tags").className).not.toContain("pe-[30px]");
 		row(root, "tags").click();
 		await nextTick();
 

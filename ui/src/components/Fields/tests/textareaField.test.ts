@@ -133,11 +133,12 @@ describe("a panel textarea whose width changes", () => {
     observers.length = 0;
   });
 
-  function resize(width: number) {
+  async function resize(width: number) {
     observers[0].callback([{ contentRect: { width } } as ResizeObserverEntry], observers[0] as any);
+    await new Promise((done) => requestAnimationFrame(done));
   }
 
-  it("measures again, so wrapped text takes the lines the new width gives it", () => {
+  it("measures again, so wrapped text takes the lines the new width gives it", async () => {
     // Narrow: each line wraps in two.
     let narrow = false;
     Object.defineProperty(HTMLTextAreaElement.prototype, "scrollHeight", {
@@ -147,22 +148,22 @@ describe("a panel textarea whose width changes", () => {
       },
     });
     const { textarea } = render({ panel: true }, "one line");
-    resize(300);
+    await resize(300);
     expect(textarea.style.height).toBe("28px");
 
     narrow = true;
-    resize(120);
+    await resize(120);
 
     expect(textarea.style.height).toBe("48px");
   });
 
-  it("ignores a change of height alone, which its own sizing causes", () => {
+  it("ignores a change of height alone, which its own sizing causes", async () => {
     stubScrollHeight();
     const { textarea } = render({ panel: true }, "one line");
-    resize(300);
+    await resize(300);
     textarea.style.height = "99px";
 
-    resize(300);
+    await resize(300);
 
     expect(textarea.style.height).toBe("99px");
   });

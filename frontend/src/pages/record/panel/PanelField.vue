@@ -38,7 +38,7 @@
 					class="flex min-h-7 min-w-0 flex-wrap items-center gap-x-1.5"
 					:class="[
 						interactive && pickable ? 'cursor-pointer' : '',
-						chips && interactive ? 'ps-2 pe-[30px]' : 'px-2',
+						chips && interactive && pickable ? 'ps-2 pe-[30px]' : 'px-2',
 					]"
 					:data-fieldname="field.fieldname"
 					:role="imageUrl ? 'button' : undefined"
@@ -56,14 +56,15 @@
 							panel
 						/>
 						<span
-							v-if="!chipList.length"
+							v-if="!chipList.length && pickable"
 							class="text-base leading-5 text-ink-gray-4"
 							>{{ placeholder }}</span
 						>
 						<span
 							v-if="!pickable"
-							class="basis-full text-sm leading-5 text-ink-gray-5"
-							>{{ __("Child table metadata unavailable — picker disabled.") }}</span
+							class="leading-5 text-ink-gray-5"
+							:class="chipList.length ? 'basis-full text-sm' : 'text-base'"
+							>{{ __("Child table metadata unavailable") }}</span
 						>
 					</span>
 					<span v-else-if="multiline" class="min-w-0 flex-1 py-1">

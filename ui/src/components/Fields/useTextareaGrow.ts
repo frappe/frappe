@@ -18,19 +18,22 @@ export function useTextareaGrow(el: Ref<HTMLElement | null>, source: () => unkno
     box.style.height = `${Math.min(box.scrollHeight, MAX_HEIGHT)}px`;
   }
   let width: number | null = null;
-  // Our own height changes also fire the observer: only a width change needs a fit.
+  let frame = 0;
+  // Sizing inside the callback would resize the element it observes, which the browser reports as a loop error.
   const watcher = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(([entry]) => {
     const next = entry.contentRect.width;
     if (next === width) return;
-    const first = width === null;
     width = next;
-    if (!first && enabled()) fit();
+    cancelAnimationFrame(frame);
+    frame = requestAnimationFrame(() => enabled() && fit());
   });
   onMounted(() => {
-    if (!enabled()) return;
-    fit();
+    if (enabled()) fit();
     if (el.value) watcher?.observe(el.value);
   });
-  onBeforeUnmount(() => watcher?.disconnect());
+  onBeforeUnmount(() => {
+    cancelAnimationFrame(frame);
+    watcher?.disconnect();
+  });
   watch(source, () => enabled() && nextTick(fit));
 }
