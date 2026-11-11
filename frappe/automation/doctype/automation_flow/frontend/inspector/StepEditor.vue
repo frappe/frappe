@@ -1,7 +1,8 @@
 <template>
 	<div class="space-y-5">
 		<Combobox
-			v-model="step.step_type"
+			:model-value="step.step_type"
+			@update:model-value="setStepType"
 			variant="outline"
 			side="bottom"
 			:label="__('Step Type')"
@@ -23,8 +24,8 @@
 		<template v-if="step.step_type === 'If'">
 			<ConditionEditor
 				v-model="step.step_condition"
-				:doctype="targetDoctype"
-				:fields="fields"
+				:doctype="doc.document_type"
+				:fields="conditionFields"
 				variant="outline"
 				:label="__('Condition')"
 				:placeholder="__('doc.status == \'Qualified\'')"
@@ -103,7 +104,8 @@
 
 		<template v-else>
 			<Combobox
-				v-model="step.action_type"
+				:model-value="step.action_type"
+				@update:model-value="setAction"
 				variant="outline"
 				side="bottom"
 				:label="__('Action')"
@@ -139,8 +141,8 @@
 		<ConditionEditor
 			v-if="step.step_type !== 'If'"
 			v-model="step.step_condition"
-			:doctype="targetDoctype"
-			:fields="fields"
+			:doctype="doc.document_type"
+			:fields="conditionFields"
 			variant="outline"
 			:label="__('Only run when')"
 			:placeholder="__('doc.status == \'Open\'')"
@@ -244,6 +246,8 @@ const targetDoctype = computed(
 );
 
 const fields = computed(() => capabilitiesFor(targetDoctype.value)?.fields || []);
+// A step condition reads `doc`, which is always the trigger record; only `target` is the step's record.
+const conditionFields = computed(() => capabilitiesFor(props.doc.document_type)?.fields || []);
 
 const actionOptions = computed(() =>
 	groupActionsByApp(availableActions.value, (action) =>
@@ -297,6 +301,19 @@ const outputPaths = computed(() => {
 });
 
 const showAdvancedParams = computed(() => step.value.action_type === "SetFieldValue");
+
+// Params belong to one step or action type; a switch starts from that type's defaults.
+const TYPE_DEFAULT_PARAMS = { Wait: { unit: "Minutes" }, WaitForEvent: { timeout_unit: "Days" } };
+
+function setStepType(value) {
+	step.value.step_type = value;
+	step.value.params = JSON.stringify(TYPE_DEFAULT_PARAMS[value] || {});
+}
+
+function setAction(value) {
+	step.value.action_type = value;
+	step.value.params = "{}";
+}
 
 function setParam(name, value) {
 	step.value.params = JSON.stringify({ ...params.value, [name]: value }, null, 2);

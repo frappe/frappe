@@ -154,6 +154,7 @@ import { __ } from "frappe/i18n";
 import { Link } from "@framework/ui/Link";
 import FieldToken from "./FieldToken.vue";
 import WorkflowUserPicker from "./UserPicker.vue";
+import { stepParams } from "../flow/workflowCapabilities";
 import { formatJsonFieldValue, parseJsonFieldInput, useFieldRows } from "../flow/workflowParams";
 import { Button, Combobox, FormControl, Icon, Tooltip } from "frappe-ui";
 import { computed, watch } from "vue";
@@ -216,13 +217,7 @@ const fieldValuesHelp = __(
 const fieldValuesPlaceholder = '{\n  "status": "Junk"\n}';
 const valuesField = { fieldname: "values", fieldtype: "JSON" };
 
-const params = computed(() => {
-	try {
-		return JSON.parse(action.value.params || "{}");
-	} catch {
-		return {};
-	}
-});
+const params = computed(() => stepParams(action.value));
 
 function optionsFor(field) {
 	if (field.options_source === "doc_fields") {

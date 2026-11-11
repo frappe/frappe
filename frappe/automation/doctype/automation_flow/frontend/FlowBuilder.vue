@@ -116,6 +116,11 @@ watch(
 	{ immediate: true }
 );
 
+watch(
+	() => targetsFor(selectedStep.value).map((target) => target.doctype),
+	(doctypes) => doctypes.forEach(loadOffers)
+);
+
 useUnloadGuard(() => flow.unsaved);
 onBeforeRouteLeave(() => !flow.unsaved || confirmDiscard());
 onBeforeRouteUpdate((to) => to.params.name === props.name || !flow.unsaved || confirmDiscard());

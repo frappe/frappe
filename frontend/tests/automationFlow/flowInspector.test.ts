@@ -124,4 +124,12 @@ describe("the inspector's step view", () => {
     expect(button("Delete trigger")).toBeUndefined();
     expect(events.remove).toEqual([true]);
   });
+
+  it("renders a step whose stored params are JSON null", async () => {
+    const step = reactive({ ...waitStep(), params: "null" });
+
+    await mount({ doc: reactive({ document_type: "ToDo", actions: [step] }), selectedStep: step });
+
+    expect(host.querySelector("input[type=number]")).not.toBeNull();
+  });
 });

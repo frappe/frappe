@@ -109,7 +109,8 @@ function addOutputAlias(targets, step) {
 
 export function stepParams(step) {
 	try {
-		return JSON.parse(step.params || "{}");
+		const params = JSON.parse(step.params || "{}");
+		return params && typeof params === "object" && !Array.isArray(params) ? params : {};
 	} catch {
 		return {};
 	}
