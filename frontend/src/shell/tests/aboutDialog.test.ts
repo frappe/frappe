@@ -95,6 +95,19 @@ describe("AboutDialog", () => {
 		vi.unstubAllGlobals();
 	});
 
+	it("keeps the version and its copy icon in one slot, so a tap on the version copies", async () => {
+		fake.runMethod.mockResolvedValue({ data: VERSIONS });
+		await open({});
+		const slots = Array.from(document.body.querySelectorAll("[data-key] [data-slot=item-suffix]"));
+		expect(slots).toHaveLength(2);
+		for (const slot of slots) {
+			const buttons = slot.querySelectorAll("button");
+			expect(buttons).toHaveLength(1);
+			expect(buttons[0].textContent).toMatch(/\d+\.\d+\.\d+/);
+			expect(buttons[0].querySelector(".lucide-copy")).not.toBeNull();
+		}
+	});
+
 	it("says so when the versions do not load", async () => {
 		fake.runMethod.mockRejectedValue(new Error("boom"));
 		await open({});
