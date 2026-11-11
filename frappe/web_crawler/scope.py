@@ -17,10 +17,10 @@ ROBOTS_MAX_BYTES = 512 * 1024
 
 
 def normalize_url(url: str) -> str:
-	"""One spelling per page: lower-case host, no query or fragment, no trailing slash."""
+	"""The key that tells two spellings of a page apart: lower-case host, no fragment or trailing slash."""
 	parts = urlsplit(url.strip())
 	path = parts.path.rstrip("/") or "/"
-	return urlunsplit((parts.scheme.lower(), parts.netloc.lower(), path, "", ""))
+	return urlunsplit((parts.scheme.lower(), parts.netloc.lower(), path, parts.query, ""))
 
 
 def site_root(url: str) -> str:

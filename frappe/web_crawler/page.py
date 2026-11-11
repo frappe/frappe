@@ -10,7 +10,6 @@ from frappe.utils.data import md_to_html, to_markdown
 from frappe.utils.html_utils import sanitize_html
 from frappe.web_crawler.fetch import Download
 
-MAIN_CONTENT = ("article", "[role=main]", "main")
 NOISE = "nav, footer, aside, script, style, noscript, template, svg"
 DISALLOWED_TAGS = ("form", "input", "button", "select", "textarea", "meta", "link", "html", "head", "body")
 MARKDOWN_TYPES = ("text/markdown", "text/x-markdown")
@@ -112,15 +111,19 @@ class PageParser:
 		)
 
 	def main_content(self, soup: BeautifulSoup) -> Tag:
+		"""The page's only article, else its main element. A listing page has many articles."""
 		for tag in soup.select(NOISE):
 			tag.decompose()
-		return next((main for selector in MAIN_CONTENT if (main := soup.select_one(selector))), None) or (
-			soup.body or soup
-		)
+		articles = soup.select("article")
+		if len(articles) == 1:
+			return articles[0]
+		return soup.select_one("main, [role=main]") or soup.body or soup
 
 	def title(self, soup: BeautifulSoup) -> str:
-		heading = soup.title or soup.find("h1")
-		return heading.get_text(" ", strip=True) if heading else ""
+		for tag in (soup.title, soup.find("h1")):
+			if tag and (title := tag.get_text(" ", strip=True)):
+				return title
+		return ""
 
 	def meta(self, soup: BeautifulSoup) -> dict[str, str]:
 		tags = soup.find_all("meta", content=True)

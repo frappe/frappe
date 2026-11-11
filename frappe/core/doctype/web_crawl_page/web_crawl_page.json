@@ -1,11 +1,8 @@
 {
  "actions": [],
- "allow_bulk_edit": 1,
- "allow_rename": 1,
  "autoname": "hash",
  "creation": "2026-11-11 23:43:20.403646",
  "doctype": "DocType",
- "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
   "web_crawl",
@@ -34,17 +31,15 @@
   },
   {
    "fieldname": "url",
-   "fieldtype": "Data",
+   "fieldtype": "Small Text",
    "in_list_view": 1,
    "label": "URL",
-   "options": "URL",
    "read_only": 1
   },
   {
    "fieldname": "final_url",
-   "fieldtype": "Data",
+   "fieldtype": "Small Text",
    "label": "Final URL",
-   "options": "URL",
    "read_only": 1
   },
   {
@@ -72,7 +67,7 @@
   },
   {
    "fieldname": "title",
-   "fieldtype": "Data",
+   "fieldtype": "Small Text",
    "in_list_view": 1,
    "label": "Title",
    "read_only": 1
@@ -106,7 +101,7 @@
  "in_create": 1,
  "link_display_mode": "Search",
  "links": [],
- "modified": "2026-11-11 23:51:00.827803",
+ "modified": "2026-11-12 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Web Crawl Page",
@@ -123,6 +118,7 @@
    "share": 1
   },
   {
+   "if_owner": 1,
    "read": 1,
    "report": 1,
    "role": "Desk User"

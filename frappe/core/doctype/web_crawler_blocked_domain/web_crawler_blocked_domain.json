@@ -1,7 +1,5 @@
 {
  "actions": [],
- "allow_bulk_edit": 1,
- "allow_rename": 1,
  "creation": "2026-11-11 23:43:11.166066",
  "doctype": "DocType",
  "editable_grid": 1,
@@ -22,7 +20,7 @@
  "istable": 1,
  "link_display_mode": "Search",
  "links": [],
- "modified": "2026-11-11 23:43:11.166066",
+ "modified": "2026-11-12 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Web Crawler Blocked Domain",

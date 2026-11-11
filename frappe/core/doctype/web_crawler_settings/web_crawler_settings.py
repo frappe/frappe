@@ -5,7 +5,14 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
-MUST_BE_POSITIVE = ("max_pages", "page_timeout", "max_page_size", "sitemap_timeout", "max_sitemap_size")
+MUST_BE_POSITIVE = (
+	"max_pages",
+	"max_crawl_time",
+	"page_timeout",
+	"max_page_size",
+	"sitemap_timeout",
+	"max_sitemap_size",
+)
 
 
 class WebCrawlerSettings(Document):
@@ -21,6 +28,7 @@ class WebCrawlerSettings(Document):
 		from frappe.types import DF
 
 		blocked_domains: DF.Table[WebCrawlerBlockedDomain]
+		max_crawl_time: DF.Int
 		max_depth: DF.Int
 		max_page_size: DF.Int
 		max_pages: DF.Int

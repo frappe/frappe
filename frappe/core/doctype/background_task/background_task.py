@@ -290,3 +290,7 @@ def handle_internal_doctypes(task):
 		from frappe.core.doctype.prepared_report.prepared_report import stop_prepared_report
 
 		stop_prepared_report(task.ref_docname)
+	elif task.ref_doctype == "Web Crawl":
+		from frappe.core.doctype.web_crawl.web_crawl import cancel_web_crawl
+
+		cancel_web_crawl(task.ref_docname)

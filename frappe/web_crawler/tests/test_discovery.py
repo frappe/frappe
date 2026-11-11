@@ -28,7 +28,7 @@ class TestScope(UnitTestCase):
 		self.assertFalse(scope.contains("mailto:docs@example.com"))
 
 	def test_normalize_url(self):
-		self.assertEqual(normalize_url("HTTPS://Example.com/a/?b=1#c"), "https://example.com/a")
+		self.assertEqual(normalize_url("HTTPS://Example.com/a/?b=1#c"), "https://example.com/a?b=1")
 		self.assertEqual(normalize_url("https://example.com"), "https://example.com/")
 
 	def test_skip_rules(self):

@@ -1,7 +1,6 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-import frappe
 from frappe.model.document import Document
 
 
@@ -27,17 +26,3 @@ class WebCrawlPage(Document):
 	# end: auto-generated types
 
 	_DOCTYPE_NAME = "Web Crawl Page"
-
-
-def has_permission(doc, ptype, user=None, debug=False) -> bool:
-	from frappe.core.doctype.web_crawl.web_crawl import has_permission as can_access_web_crawl
-
-	web_crawl = frappe.get_cached_doc("Web Crawl", doc.web_crawl)
-	return can_access_web_crawl(web_crawl, ptype, user)
-
-
-def get_permission_query_conditions(user=None) -> str | None:
-	user = user or frappe.session.user
-	if "System Manager" in frappe.get_roles(user):
-		return None
-	return f"`tabWeb Crawl Page`.`owner` = {frappe.db.escape(user)}"

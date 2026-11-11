@@ -1,10 +1,12 @@
+import heapq
 import time
 from collections.abc import Callable, Iterator
 from functools import cached_property
+from urllib.parse import urldefrag
 
 import frappe
 from frappe import _
-from frappe.web_crawler.fetch import Fetcher, FetchError
+from frappe.web_crawler.fetch import TIME_LIMIT, Fetcher, FetchError
 from frappe.web_crawler.limits import CrawlLimits
 from frappe.web_crawler.page import CrawledPage, PageParser
 from frappe.web_crawler.scope import Robots, Scope, SkipRules, normalize_url
@@ -21,6 +23,7 @@ class WebCrawler:
 	With "links", links are followed breadth first from the start URL, with sitemap pages as seeds.
 	`priority(url, anchor_text)` orders pages at the same depth (higher first).
 	`skip_urls(urls)` returns the URLs to drop before they are fetched.
+	The crawl stops with `stopped_reason` "time_limit" once the settings' maximum crawl time has passed.
 	"""
 
 	def __init__(
@@ -53,7 +56,7 @@ class WebCrawler:
 		if not frappe.utils.validate_url(url, valid_schemes=("http", "https")):
 			frappe.throw(_("{0} is not a valid web address").format(url), title=_("Invalid URL"))
 		if self.limits.is_blocked(url):
-			raise BlockedRequest(_("{0} is a blocked domain in Web Crawler Settings").format(url))
+			raise BlockedRequest(_("The domain of {0} is blocked in Web Crawler Settings").format(url))
 		validate_request_url(url)
 		return url
 
@@ -92,8 +95,8 @@ class WebCrawler:
 
 		return WebCrawl.enqueue_crawl(
 			self,
-			on_page=on_page,
-			skip_urls=skip_urls,
+			on_page_method=on_page,
+			skip_urls_method=skip_urls,
 			reference_doctype=reference_doctype,
 			reference_name=reference_name,
 			on_success=on_success,
@@ -102,7 +105,7 @@ class WebCrawler:
 
 	@cached_property
 	def fetcher(self) -> Fetcher:
-		return Fetcher(self.limits)
+		return Fetcher(self.limits, deadline=time.monotonic() + self.limits.max_crawl_time)
 
 	@cached_property
 	def robots(self) -> Robots:
@@ -116,7 +119,8 @@ class WebCrawler:
 	def read_pages(self, urls: list[str]) -> Iterator[CrawledPage]:
 		seen = set()
 		for url in urls:
-			page = self.fetch(url)
+			if not (page := self.read(url)):
+				return
 			if normalize_url(page.final_url or url) in seen:
 				continue
 			seen.add(normalize_url(page.final_url or url))
@@ -126,12 +130,13 @@ class WebCrawler:
 
 	def follow_links(self) -> Iterator[CrawledPage]:
 		frontier = CrawlFrontier(self.url, self.priority)
-		if "sitemap" in self.sources:
-			frontier.add(self.filter_urls(Sitemap(self.fetcher, self.url, self.scope, self.robots).find()), 1)
+		if "sitemap" in self.sources and self.limits.max_depth:
+			frontier.add(self.filter_urls(self.list_source("sitemap").find()), 1)
 		read = 0
 		while read < self.limits.max_pages and (item := frontier.pop()):
 			url, depth = item
-			page = self.fetch(url)
+			if not (page := self.read(url)):
+				return
 			if not frontier.visit(url, page.final_url or url):
 				continue
 			read += 1
@@ -142,28 +147,39 @@ class WebCrawler:
 				frontier.add(self.filter_urls(list(page.links)), depth + 1, page.links)
 
 	def filter_urls(self, urls: list[str]) -> list[str]:
-		"""In-scope URLs that robots.txt and the skip rules allow, minus the caller's skip_urls."""
-		urls = list(
-			dict.fromkeys(
-				normalize_url(url)
-				for url in urls
-				if self.scope.contains(url) and not self.skip_rules.skips(url) and self.robots.allows(url)
-			)
-		)
+		"""In-scope URLs that robots.txt and the skip rules allow, one per page, minus the caller's skip_urls."""
+		allowed = {}
+		for url in urls:
+			url = urldefrag(url).url
+			if normalize_url(url) not in allowed and self.allows(url):
+				allowed[normalize_url(url)] = url
+		urls = list(allowed.values())
 		if not (self.skip_urls and urls):
 			return urls
 		skipped = set(self.skip_urls(urls))
 		return [url for url in urls if url not in skipped]
 
+	def allows(self, url: str) -> bool:
+		return self.scope.contains(url) and not self.skip_rules.skips(url) and self.robots.allows(url)
+
 	def fetch(self, url: str) -> CrawledPage:
-		self.wait()
+		"""One page, wherever its redirects lead."""
 		try:
 			download = self.fetcher.get(url, self.limits.max_page_size, self.limits.page_timeout)
 		except FetchError as e:
 			return CrawledPage(url, e.final_url or url, e.status, e.code)
-		if not self.scope.contains(download.final_url):
-			return CrawledPage(url, download.final_url, download.status, "off_scope")
 		return PageParser(download).parse()
+
+	def read(self, url: str) -> CrawledPage | None:
+		"""The next page of the crawl, or None once the crawl is out of time."""
+		self.wait()
+		page = self.fetch(url)
+		if page.error == TIME_LIMIT:
+			self.stopped_reason = TIME_LIMIT
+			return None
+		if not self.scope.contains(page.final_url):
+			return CrawledPage(url, page.final_url, page.status, "off_scope")
+		return page
 
 	def wait(self):
 		if self.last_request_at:
@@ -179,32 +195,35 @@ class WebCrawler:
 
 
 class CrawlFrontier:
-	"""The queue of a link-following crawl: depth first, then the caller's priority."""
+	"""The queue of a link-following crawl: depth first, then the caller's priority, then the order found."""
 
 	def __init__(self, start_url: str, priority: Callable[[str, str], float] | None):
 		self.priority = priority
-		self.queue: dict[str, tuple[int, float]] = {normalize_url(start_url): (0, 0)}
+		self.queue: list[tuple[int, float, int, str]] = []
+		self.queued: set[str] = set()
 		self.visited: set[str] = set()
+		self.add([start_url], 0)
 
 	def add(self, urls: list[str], depth: int, anchors: dict[str, str] | None = None):
 		anchors = {normalize_url(url): text for url, text in (anchors or {}).items()}
 		for url in urls:
-			if url not in self.visited and url not in self.queue:
-				score = self.priority(url, anchors.get(url, "")) if self.priority else 0
-				self.queue[url] = (depth, -score)
+			key = normalize_url(url)
+			if key in self.visited or key in self.queued:
+				continue
+			score = self.priority(url, anchors.get(key, "")) if self.priority else 0
+			heapq.heappush(self.queue, (depth, -score, len(self.queued), url))
+			self.queued.add(key)
 
 	def pop(self) -> tuple[str, int] | None:
-		if not self.queue:
-			return None
-		url = min(self.queue, key=self.queue.get)
-		depth, _score = self.queue.pop(url)
-		return url, depth
+		while self.queue:
+			depth, _score, _order, url = heapq.heappop(self.queue)
+			if normalize_url(url) not in self.visited:
+				return url, depth
+		return None
 
 	def visit(self, url: str, final_url: str) -> bool:
 		"""Marks a page read; False when a redirect led to a page already read."""
 		final_url = normalize_url(final_url)
 		is_new = final_url not in self.visited
-		for read_url in (normalize_url(url), final_url):
-			self.visited.add(read_url)
-			self.queue.pop(read_url, None)
+		self.visited.update((normalize_url(url), final_url))
 		return is_new

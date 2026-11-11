@@ -6,6 +6,7 @@ import frappe
 MEGABYTE = 1024 * 1024
 # A site asking for a longer wait (Crawl-delay, Retry-After) would stall the job.
 MAX_WAIT_SECONDS = 30
+MAX_RETRIES = 2
 
 
 @dataclass(frozen=True)
@@ -20,6 +21,7 @@ class CrawlLimits:
 	max_sitemap_size: int
 	max_redirects: int
 	request_delay: float
+	max_crawl_time: int
 	user_agent: str
 	respect_robots_txt: bool
 	blocked_domains: frozenset[str]
@@ -30,14 +32,15 @@ class CrawlLimits:
 	) -> "CrawlLimits":
 		settings = frappe.get_cached_doc("Web Crawler Settings")
 		return cls(
-			max_pages=lower(settings.max_pages, max_pages),
-			max_depth=lower(settings.max_depth, max_depth),
+			max_pages=at_most(settings.max_pages, max_pages),
+			max_depth=at_most(settings.max_depth, max_depth),
 			page_timeout=settings.page_timeout,
 			max_page_size=settings.max_page_size * MEGABYTE,
 			sitemap_timeout=settings.sitemap_timeout,
 			max_sitemap_size=settings.max_sitemap_size * MEGABYTE,
 			max_redirects=settings.max_redirects,
 			request_delay=settings.request_delay,
+			max_crawl_time=settings.max_crawl_time * 60,
 			user_agent=user_agent or settings.user_agent,
 			respect_robots_txt=bool(settings.respect_robots_txt),
 			blocked_domains=frozenset(d.domain.strip(".").lower() for d in settings.blocked_domains),
@@ -52,6 +55,12 @@ class CrawlLimits:
 		"""The pause between two requests: the setting or the site's Crawl-delay, whichever is longer."""
 		return min(max(self.request_delay, crawl_delay or 0), MAX_WAIT_SECONDS)
 
+	def job_timeout(self) -> int:
+		"""The crawl time, plus the worst case of the request still running when it ends."""
+		attempts = MAX_RETRIES + 1
+		slowest_request = attempts * (max(self.page_timeout, self.sitemap_timeout) + MAX_WAIT_SECONDS)
+		return self.max_crawl_time + slowest_request + MAX_WAIT_SECONDS + 60
 
-def lower(ceiling: int, requested: int | None) -> int:
+
+def at_most(ceiling: int, requested: int | None) -> int:
 	return ceiling if requested is None else max(min(requested, ceiling), 0)

@@ -1,11 +1,8 @@
 {
  "actions": [],
- "allow_bulk_edit": 1,
- "allow_rename": 1,
  "autoname": "hash",
  "creation": "2026-11-11 23:43:11.936632",
  "doctype": "DocType",
- "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
   "url",
@@ -27,16 +24,15 @@
   "reference_doctype",
   "reference_name",
   "column_break_caller",
-  "on_page",
-  "skip_urls"
+  "on_page_method",
+  "skip_urls_method"
  ],
  "fields": [
   {
    "fieldname": "url",
-   "fieldtype": "Data",
+   "fieldtype": "Small Text",
    "in_list_view": 1,
    "label": "URL",
-   "options": "URL",
    "reqd": 1,
    "set_only_once": 1
   },
@@ -153,22 +149,24 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "on_page",
+   "fieldname": "on_page_method",
    "fieldtype": "Data",
-   "label": "On page",
-   "read_only": 1
+   "label": "On page method",
+   "read_only": 1,
+   "set_only_once": 1
   },
   {
-   "fieldname": "skip_urls",
+   "fieldname": "skip_urls_method",
    "fieldtype": "Data",
-   "label": "Skip URLs",
-   "read_only": 1
+   "label": "Skip URLs method",
+   "read_only": 1,
+   "set_only_once": 1
   }
  ],
  "grid_page_length": 50,
  "link_display_mode": "Search",
  "links": [],
- "modified": "2026-11-11 23:51:00.506217",
+ "modified": "2026-11-12 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Web Crawl",
@@ -187,6 +185,7 @@
    "write": 1
   },
   {
+   "if_owner": 1,
    "read": 1,
    "report": 1,
    "role": "Desk User"

@@ -1,9 +1,7 @@
 {
  "actions": [],
- "allow_bulk_edit": 1,
  "creation": "2026-11-11 23:43:11.839068",
  "doctype": "DocType",
- "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
   "limits_section",
@@ -11,6 +9,7 @@
   "max_depth",
   "max_redirects",
   "request_delay",
+  "max_crawl_time",
   "column_break_limits",
   "page_timeout",
   "max_page_size",
@@ -60,6 +59,14 @@
    "fieldtype": "Float",
    "label": "Delay between requests (seconds)",
    "non_negative": 1
+  },
+  {
+   "default": "30",
+   "fieldname": "max_crawl_time",
+   "fieldtype": "Int",
+   "label": "Maximum crawl time (minutes)",
+   "non_negative": 1,
+   "reqd": 1
   },
   {
    "fieldname": "column_break_limits",
@@ -127,7 +134,7 @@
  "issingle": 1,
  "link_display_mode": "Search",
  "links": [],
- "modified": "2026-11-11 23:43:11.839068",
+ "modified": "2026-11-12 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Web Crawler Settings",

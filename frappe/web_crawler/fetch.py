@@ -7,11 +7,12 @@ import requests
 from urllib3.exceptions import HTTPError, ReadTimeoutError
 from urllib3.util.retry import Retry
 
-from frappe.web_crawler.limits import MAX_WAIT_SECONDS, CrawlLimits
+from frappe.web_crawler.limits import MAX_RETRIES, MAX_WAIT_SECONDS, CrawlLimits
 
 CHUNK_SIZE = 8 * 1024
 RETRY_STATUSES = (429, 500, 502, 503, 504)
 STATUS_ERRORS = {401: "blocked", 403: "blocked", 404: "not_found", 410: "not_found", 429: "blocked"}
+TIME_LIMIT = "time_limit"
 
 
 class FetchError(Exception):
@@ -47,10 +48,12 @@ class Download:
 
 
 class Fetcher:
-	"""GETs URLs through frappe's SSRF-guarded session, within the crawl's size and time limits."""
+	"""GETs URLs through frappe's SSRF-guarded session, within the crawl's size and time limits.
+	Once `deadline` (a `time.monotonic()` value) has passed, every request fails with TIME_LIMIT."""
 
-	def __init__(self, limits: CrawlLimits):
+	def __init__(self, limits: CrawlLimits, deadline: float | None = None):
 		self.limits = limits
+		self.deadline = deadline
 		self.session = self.build_session()
 
 	def build_session(self) -> requests.Session:
@@ -60,7 +63,7 @@ class Fetcher:
 		session.max_redirects = self.limits.max_redirects
 		session.headers["User-Agent"] = self.limits.user_agent
 		retry = CappedRetry(
-			total=2, backoff_factor=0.5, status_forcelist=RETRY_STATUSES, raise_on_status=False
+			total=MAX_RETRIES, backoff_factor=0.5, status_forcelist=RETRY_STATUSES, raise_on_status=False
 		)
 		for adapter in session.adapters.values():
 			adapter.max_retries = retry
@@ -78,6 +81,8 @@ class Fetcher:
 		"""The body of `url`, read within `timeout` seconds in total. Raises FetchError."""
 		if self.limits.is_blocked(url):
 			raise FetchError("blocked")
+		if self.deadline and time.monotonic() > self.deadline:
+			raise FetchError(TIME_LIMIT)
 		deadline = time.monotonic() + timeout
 		response = self.send(url, timeout)
 		try:

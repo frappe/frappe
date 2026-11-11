@@ -45,6 +45,24 @@ class TestFetchPage(IntegrationTestCase):
 		page = fetch_page("https://example.com/plain")
 		self.assertEqual(page.text, "Plain content")
 
+	def test_listing_page_keeps_all_its_articles(self):
+		self.site.page(
+			"https://example.com/blog",
+			"<main><article>First post</article><article>Second post</article></main>",
+		)
+		page = fetch_page("https://example.com/blog")
+		self.assertEqual(page.text, "First post\nSecond post")
+
+	def test_title_falls_back_to_the_heading_when_the_title_tag_is_empty(self):
+		self.site.page("https://example.com/guide", "<h1>Guide</h1><p>Text</p>")
+		self.assertEqual(fetch_page("https://example.com/guide").title, "Guide")
+
+	def test_redirect_to_another_site_is_followed(self):
+		self.site.redirect("https://example.com/", "https://example.org/en/")
+		self.site.page("https://example.org/en/", "<p>Moved</p>")
+		page = fetch_page("https://example.com")
+		self.assertEqual((page.error, page.final_url, page.text), (None, "https://example.org/en/", "Moved"))
+
 	def test_meta_charset_is_used_when_the_header_has_none(self):
 		body = '<html><head><meta charset="utf-8"></head><body><p>Café</p></body></html>'.encode()
 		self.site.add("https://example.com/cafe", body, content_type="text/html")
