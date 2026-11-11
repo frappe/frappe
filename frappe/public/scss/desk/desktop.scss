@@ -1401,3 +1401,11 @@ body {
 		margin-right: 5px;
 	}
 }
+
+// Switching a workspace to the new renderer: the new page is revealed over the old one by
+// `switch_workspace_renderer`, in place of the browser's crossfade.
+html.workspace-renderer-switch::view-transition-old(workspace-page),
+html.workspace-renderer-switch::view-transition-new(workspace-page) {
+	animation: none;
+	mix-blend-mode: normal;
+}

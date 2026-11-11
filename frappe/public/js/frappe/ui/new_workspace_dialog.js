@@ -231,8 +231,9 @@ frappe.ui.new_workspace_dialog = async function () {
 	d.show();
 };
 
-// Draw `page` with the other renderer and land in that renderer's editor at the same URL.
-frappe.ui.switch_workspace_renderer = function (page, renderer) {
+// Draw `page` with the other renderer and land in that renderer's editor at the same URL. Given
+// `from`, a point on screen, the new renderer spreads out over the old one as a circle from there.
+frappe.ui.switch_workspace_renderer = function (page, renderer, from = null) {
 	return frappe
 		.xcall("frappe.desk.doctype.workspace.workspace.set_workspace_renderer", {
 			name: page.name,
@@ -241,9 +242,89 @@ frappe.ui.switch_workspace_renderer = function (page, renderer) {
 		.then((message) => {
 			frappe.ui.update_workspace_pages(message);
 			frappe.ui.open_workspace_editor = page.name;
-			frappe.router.route();
+			if (!from || !document.startViewTransition) return frappe.router.route();
+			return reveal_from(from, () => {
+				const opened = editor_opened(page.name);
+				frappe.router.route();
+				return opened;
+			});
 		});
 };
+
+const REVEAL_MS = 1200;
+const SKIP_REVEAL_ON = ["pointerdown", "keydown", "wheel", "touchstart"];
+
+// The browser holds a picture of the old page until `update` resolves, then the new page grows
+// over it. Any input finishes the reveal at once.
+function reveal_from(from, update) {
+	const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+	const html = document.documentElement;
+	const name_page = (el) => el && (el.style.viewTransitionName = "workspace-page");
+	const unname_page = (el) => el && (el.style.viewTransitionName = "");
+
+	const old_page = frappe.container.page;
+	name_page(old_page);
+	if (!reduce) html.classList.add("workspace-renderer-switch");
+
+	const transition = document.startViewTransition(async () => {
+		await update();
+		unname_page(old_page);
+		name_page(frappe.container.page);
+	});
+	const skip = () => transition.skipTransition();
+	SKIP_REVEAL_ON.forEach((type) => window.addEventListener(type, skip, true));
+
+	transition.ready
+		.then(() => {
+			if (reduce) return;
+			const box = frappe.container.page.getBoundingClientRect();
+			const x = from.x - box.left;
+			const y = from.y - box.top;
+			const height = Math.min(box.height, window.innerHeight - box.top);
+			const radius = Math.hypot(Math.max(x, box.width - x), Math.max(y, height - y));
+			const timing = {
+				duration: REVEAL_MS,
+				easing: "cubic-bezier(0.77, 0, 0.175, 1)",
+				fill: "both",
+			};
+			html.animate(
+				{ opacity: [1, 0.3] },
+				{ ...timing, pseudoElement: "::view-transition-old(workspace-page)" }
+			);
+			html.animate(
+				{
+					clipPath: [
+						`circle(0px at ${x}px ${y}px)`,
+						`circle(${radius}px at ${x}px ${y}px)`,
+					],
+				},
+				{ ...timing, pseudoElement: "::view-transition-new(workspace-page)" }
+			);
+		})
+		.catch(() => {});
+
+	return transition.finished.finally(() => {
+		SKIP_REVEAL_ON.forEach((type) => window.removeEventListener(type, skip, true));
+		html.classList.remove("workspace-renderer-switch");
+		unname_page(old_page);
+		unname_page(frappe.container.page);
+	});
+}
+
+// Resolves once the island has opened `name` in its editor, or after a few seconds regardless,
+// so a slow load never keeps the old page frozen on screen.
+function editor_opened(name) {
+	return new Promise((resolve) => {
+		const done = (e) => {
+			if (e && e.detail !== name) return;
+			window.removeEventListener("workspace-editor-open", done);
+			clearTimeout(timer);
+			resolve();
+		};
+		const timer = setTimeout(done, 2500);
+		window.addEventListener("workspace-editor-open", done);
+	});
+}
 
 function create_workspace(new_page) {
 	return frappe

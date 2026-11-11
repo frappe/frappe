@@ -1037,17 +1037,23 @@ frappe.views.Workspace = class Workspace {
 			frappe.show_alert({ message: __("Customizations Discarded"), indicator: "info" });
 		});
 
-		this.is_editable(page) &&
+		const $switch =
+			this.is_editable(page) &&
 			this.page.add_inner_button(__("Switch to new layout"), () => {
 				frappe.confirm(
 					__("Switch to the new layout? Unsaved changes are lost."),
 					async () => {
+						const button = $switch[0].getBoundingClientRect();
+						const from = {
+							x: button.left + button.width / 2,
+							y: button.top + button.height / 2,
+						};
 						this.body.removeClass("edit-mode");
 						this.clear_page_actions();
 						$("#full-search-button").removeClass("hidden");
 						await this.editor.readOnly.toggle();
 						this.is_read_only = true;
-						frappe.ui.switch_workspace_renderer(page, "Frappe UI");
+						frappe.ui.switch_workspace_renderer(page, "Frappe UI", from);
 					}
 				);
 			});
