@@ -2,15 +2,25 @@
      carries renders its fields, any other item its component. A label gives a header. -->
 <template>
 	<div class="panel-layout">
-		<template v-for="(entry, index) in numbered" :key="entry.name">
+		<!-- A sticky header pins only within its parent: the scrolling group runs to the list's end. -->
+		<div
+			v-for="group in groups"
+			:key="group.pinned ? 'pinned' : 'scrolled'"
+			:ref="group.pinned ? setPinned : undefined"
+			:class="group.pinned && pinnedClass"
+			:data-panel-pinned="group.pinned || undefined"
+		>
 			<PanelSection
+				v-for="entry in group.entries"
+				:key="entry.name"
 				:name="entry.name"
 				:label="entry.label && __(entry.label, null, doctype)"
 				:fields="entry.fields"
-				:index="index"
+				:index="entry.index"
 				:headerIndex="entry.headerIndex"
 				:divided="entry.divided"
 				:open="isOpen(entry.name)"
+				:pinTop="group.pinned ? 0 : pinHeight"
 				@toggle="emit('toggle', entry.name)"
 				@expand="emit('expand', $event)"
 			>
@@ -26,13 +36,13 @@
 					</template>
 				</component>
 			</PanelSection>
-		</template>
+		</div>
 		<PanelSectionsSkeleton v-if="loading" />
 	</div>
 </template>
 
 <script setup lang="ts">
-import { computed, inject, provide } from "vue";
+import { computed, inject, provide, ref } from "vue";
 import { useFieldTypes, warnMissingCommit } from "@framework/ui/FormLayout";
 import { CommitKey, DocKey, ResolveFieldKey, UpdateKey } from "@framework/ui/FormLayout/types";
 import type { FieldNode } from "@framework/ui/FormLayout/types";
@@ -40,6 +50,7 @@ import { __ } from "@/i18n";
 import { BUILTIN, type Surface } from "@/pageEngine/surface";
 import type { PanelSectionItem, RecordPageApi } from "@/recordPage";
 import PanelSectionsSkeleton from "../skeletons/PanelSectionsSkeleton.vue";
+import { PANEL_BUILTINS } from "./builtins";
 import PanelSection from "./PanelSection.vue";
 import {
 	embedQuickActions,
@@ -47,6 +58,9 @@ import {
 	type LayoutSection,
 	type PanelEntry,
 } from "./panelEntries";
+import { usePinnedBlock } from "./pinnedBlock";
+
+const PINNABLE = new Set(PANEL_BUILTINS.map((item) => item.name));
 
 const props = defineProps<{
 	surface: Surface<PanelSectionItem>;
@@ -85,10 +99,34 @@ const numbered = computed(() => {
 	let headerIndex = 0;
 	return entries.value.map((entry, index) => ({
 		...entry,
+		index,
 		headerIndex: entry.label ? headerIndex++ : null,
 		divided: index > 0,
 	}));
 });
+
+// A script that moves, labels or precedes a built-in ends the run, and the rest scrolls.
+const groups = computed(() => {
+	const lead = numbered.value.findIndex((entry) => !PINNABLE.has(entry.name) || entry.label);
+	const split = lead === -1 ? numbered.value.length : lead;
+	return [
+		{ pinned: true, entries: numbered.value.slice(0, split) },
+		{ pinned: false, entries: numbered.value.slice(split) },
+	].filter((group) => group.entries.length);
+});
+
+const pinned = ref<HTMLElement | null>(null);
+const { pinning, height: pinHeight, covering: pinCovering } = usePinnedBlock(pinned);
+
+const pinnedClass = computed(() => [
+	pinning.value &&
+		"sticky top-0 z-[1] bg-surface-base after:pointer-events-none after:absolute after:inset-x-0 after:top-full after:h-2.5 after:bg-gradient-to-b after:from-surface-base after:to-transparent after:content-['']",
+	pinCovering.value ? "after:opacity-100" : "after:opacity-0",
+]);
+
+function setPinned(el: unknown) {
+	pinned.value = el as HTMLElement | null;
+}
 
 function bindings(entry: PanelEntry) {
 	return scripted.value.has(entry.name) ? { ...entry.props, page: props.page } : entry.props;

@@ -70,7 +70,8 @@ beforeEach(() => {
 async function mount(
 	surface: Surface<PanelSectionItem>,
 	opened: Record<string, boolean> = {},
-	doctype?: string
+	doctype?: string,
+	scrolls = false
 ) {
 	const doc = ref({ organization: "Frappe" });
 	const sections = layoutSections(LAYOUT, doc.value);
@@ -82,6 +83,7 @@ async function mount(
 	]);
 	const toggled: string[] = [];
 	const root = document.createElement("div");
+	if (scrolls) root.style.overflowY = "auto";
 	document.body.appendChild(root);
 	const app = createApp(
 		defineComponent({
@@ -180,6 +182,74 @@ describe("one list", () => {
 		const note = root.querySelector<HTMLElement>("[data-note]")!;
 		expect(note.dataset.note).toBe("hi");
 		expect(note.textContent).toBe("Frappe");
+	});
+});
+
+describe("the leading built-ins stay in view", () => {
+	afterEach(() => vi.unstubAllGlobals());
+
+	// jsdom lays nothing out: report the pinned block's height and the column's.
+	async function sized(heights: { block: number; column: number }) {
+		vi.stubGlobal(
+			"ResizeObserver",
+			class {
+				constructor(private callback: ResizeObserverCallback) {}
+				observe(el: HTMLElement) {
+					const blockSize = el.dataset.panelPinned ? heights.block : heights.column;
+					const box = [{ blockSize, inlineSize: 0 }];
+					const entry = { target: el, borderBoxSize: box, contentBoxSize: box };
+					queueMicrotask(() => this.callback([entry as any], this as any));
+				}
+				unobserve() {}
+				disconnect() {}
+			}
+		);
+		const mounted = await mount(new Surface<PanelSectionItem>(), {}, undefined, true);
+		await new Promise((resolve) => setTimeout(resolve));
+		return mounted;
+	}
+
+	const pinnedNames = (root: HTMLElement) =>
+		names(root.querySelector<HTMLElement>("[data-panel-pinned]") ?? document.createElement("div"));
+
+	it("pins the identity, its quick actions and the people, and scrolls the layout's sections", async () => {
+		const { root } = await mount(new Surface<PanelSectionItem>());
+		const pinned = root.querySelector<HTMLElement>("[data-panel-pinned]")!;
+		expect(names(pinned)).toEqual(["identity", "people"]);
+		expect(pinned.querySelector("[data-builtin='quick_actions']")).not.toBeNull();
+		expect(pinned.nextElementSibling!.querySelector("[data-section='organization_section']")).not.toBeNull();
+	});
+
+	it("pins the block when it takes at most half the column, and the headers below it", async () => {
+		const { root } = await sized({ block: 200, column: 400 });
+		expect(root.querySelector("[data-panel-pinned]")!.classList.contains("sticky")).toBe(true);
+		const header = root.querySelector<HTMLElement>("[data-section='organization_section']")!;
+		expect(header.style.top).toBe("200px");
+	});
+
+	it("lets the block scroll on a column too short for it", async () => {
+		const { root } = await sized({ block: 200, column: 399 });
+		expect(root.querySelector("[data-panel-pinned]")!.classList.contains("sticky")).toBe(false);
+		const header = root.querySelector<HTMLElement>("[data-section='organization_section']")!;
+		expect(header.style.top).toBe("0px");
+	});
+
+	it("lets a built-in a script moved below a section scroll", async () => {
+		const surface = new Surface<PanelSectionItem>();
+		surface.move("people", { after: "organization_section" });
+		const { root } = await mount(surface);
+		expect(pinnedNames(root)).toEqual(["identity"]);
+	});
+
+	it("ends the run at a labelled built-in or a script's item", async () => {
+		const labelled = new Surface<PanelSectionItem>();
+		labelled.update("people", { label: "People" });
+		expect(pinnedNames((await mount(labelled)).root)).toEqual(["identity"]);
+
+		const added = new Surface<PanelSectionItem>();
+		added.add({ name: "note", component: Note, props: { text: "hi" } }, { before: "identity" });
+		const { root } = await mount(added);
+		expect(root.querySelector("[data-panel-pinned]")).toBeNull();
 	});
 });
 

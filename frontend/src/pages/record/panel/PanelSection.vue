@@ -4,12 +4,12 @@
 	<div
 		v-if="headerIndex !== null"
 		ref="header"
-		class="group/section sticky flex cursor-pointer select-none items-center gap-1.5 bg-surface-base px-4 after:pointer-events-none after:absolute after:inset-x-0 after:top-[calc(100%+1px)] after:h-2.5 after:bg-gradient-to-b after:from-surface-base after:to-transparent after:content-['']"
+		class="group/section sticky z-[1] flex cursor-pointer select-none items-center gap-1.5 bg-surface-base px-4 after:pointer-events-none after:absolute after:inset-x-0 after:top-[calc(100%+1px)] after:h-2.5 after:bg-gradient-to-b after:from-surface-base after:to-transparent after:content-['']"
 		:class="[
 			index ? 'border-t border-outline-gray-1' : '',
 			covering ? 'after:opacity-100' : 'after:opacity-0',
 		]"
-		:style="{ top: `${headerIndex * HEIGHT}px`, height: `${HEIGHT}px` }"
+		:style="{ top: `${pinTop + headerIndex * HEIGHT}px`, height: `${HEIGHT}px` }"
 		:data-section="name"
 		@click="$emit('toggle')"
 	>
@@ -60,6 +60,7 @@
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import type { FieldNode } from "@framework/ui/FormLayout/types";
 import PanelField from "./PanelField.vue";
+import { scrollParent } from "./scrollParent";
 
 // Headers stack, each pinned below the ones before it; a fixed height makes the offset
 // knowable without measuring.
@@ -76,6 +77,8 @@ const props = defineProps<{
 	/** Whether a headerless body draws a divider above itself. */
 	divided?: boolean;
 	open: boolean;
+	/** The height of the pinned block above, which every header pins below. */
+	pinTop: number;
 }>();
 
 // The fade under a pinned header shows only while rows scroll beneath it; drawn always, it
@@ -101,13 +104,6 @@ watch(
 	() => [props.open, props.fields.length],
 	() => nextTick(measure)
 );
-
-function scrollParent(node: HTMLElement | null): HTMLElement | null {
-	let parent = node?.parentElement ?? null;
-	while (parent && !/(auto|scroll)/.test(getComputedStyle(parent).overflowY))
-		parent = parent.parentElement;
-	return parent;
-}
 
 defineEmits<{ toggle: []; expand: [field: FieldNode] }>();
 </script>
