@@ -8,7 +8,8 @@ import {
 	type Users,
 } from "@framework/ui/api";
 import { errorMessage, type RecordPageApi } from "@/recordPage";
-import { recolourTag, seedTagColors, updateRecordTags } from "@/tagColors";
+import { seedTagColors } from "@/tagColors";
+import { recolourTag, updateRecordTags } from "@/tagApi";
 import { tagsOf } from "./people";
 import { useTagSession, type TagBatch } from "./tagSession";
 import type { DocInfo, PanelContext } from "./context";

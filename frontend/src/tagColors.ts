@@ -1,11 +1,8 @@
 // A tag's colour is stored on its Tag (the `color` Select, Helpdesk's names). Module state, filled
 // by every read that names tags, so a chip anywhere reads it by name.
 import { reactive } from "vue";
-import { runMethod } from "@framework/ui/api";
 
 const GRAY = "bg-surface-gray-5";
-const SET_TAG_COLOR = "frappe.desk.doctype.tag.tag.set_tag_color";
-const UPDATE_RECORD_TAGS = "frappe.desk.doctype.tag.tag.update_record_tags";
 
 // Full class names, so Tailwind's scanner sees each one.
 export const TAG_COLORS: Readonly<Record<string, string>> = {
@@ -50,24 +47,4 @@ export function tagColorName(tag: string): string {
 
 export function colorClass(color: string | undefined): string {
 	return TAG_COLORS[color ?? ""] ?? GRAY;
-}
-
-/** Saves a colour on the Tag itself and repaints every chip of it. */
-export async function recolourTag(tag: string, color: string) {
-	await runMethod(SET_TAG_COLOR, { tag, color });
-	seedTagColors({ [tag]: color });
-}
-
-/** Saves one picker session on a record in one call; answers the record's tags and their colours. */
-export async function updateRecordTags(
-	dt: string,
-	dn: string,
-	{ added, removed }: { added: { tag: string; color?: string }[]; removed: string[] }
-) {
-	const { data } = await runMethod<{ tags: string[]; tag_colors: Record<string, string> }>(
-		UPDATE_RECORD_TAGS,
-		{ dt, dn, added, removed }
-	);
-	seedTagColors(data.tag_colors);
-	return { tags: data.tags };
 }

@@ -1,7 +1,8 @@
 // A tag's dot class comes from the colour stored on its Tag, gray without one.
 import { describe, expect, it, vi } from "vitest";
 import { runMethod } from "@framework/ui/api";
-import { colorClass, recolourTag, seedTagColors, TAG_COLOR_NAMES, TAG_COLORS, tagColorClass } from "@/tagColors";
+import { colorClass, seedTagColors, TAG_COLOR_NAMES, TAG_COLORS, tagColorClass } from "@/tagColors";
+import { recolourTag } from "@/tagApi";
 
 vi.mock("@framework/ui/api", () => ({ runMethod: vi.fn(async () => "Blue") }));
 

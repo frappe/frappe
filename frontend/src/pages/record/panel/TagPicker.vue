@@ -1,99 +1,93 @@
 <!-- A tag picker with a create row: a pick adds, an unpick removes. The trigger is the "+" chip,
      or a bare anchor when something else opens it. -->
 <template>
+	<!-- Bound only when something else opens it: an undefined boolean prop reads as false. -->
+	<MultiSelect
+		ref="picker"
+		v-bind="anchored || shortcut ? { open } : {}"
+		:modelValue="session.tags.value"
+		v-model:query="query"
+		:options="options"
+		:loading="loading"
+		:filterable="false"
+		placeholder="Search or create tags"
+		:side="vertical ? 'left' : 'bottom'"
+		:align="vertical ? 'start' : 'end'"
+		@update:modelValue="onPick"
+		@update:query="searchSoon"
+		@update:open="(opened: boolean) => (open = opened)"
+	>
+		<template #trigger>
+			<!-- It only positions the popover; taking clicks would swallow the trigger it covers. -->
+			<div v-if="anchored" class="pointer-events-none absolute inset-0" aria-hidden="true" />
+			<slot v-else name="trigger">
+				<Tooltip v-if="session.tags.value.length" :text="__('Add')">
+					<button
+						type="button"
+						class="grid size-6 place-content-center rounded-full text-ink-gray-5 transition hover:bg-surface-gray-2 hover:text-ink-gray-7"
+						aria-label="Add tag"
+						data-add-tag
+					>
+						<span class="lucide-plus size-3.5" aria-hidden="true" />
+					</button>
+				</Tooltip>
+				<Tooltip v-else :text="__('Add')">
+					<button
+						type="button"
+						class="text-base text-ink-gray-6 transition hover:text-ink-gray-8"
+						data-add-tag
+					>
+						+ {{ __("Add") }}
+					</button>
+				</Tooltip>
+			</slot>
+		</template>
+
+		<template #search-suffix>
+			<KeyboardShortcut v-if="shortcut && !query" combo="G" class="leading-none" />
+		</template>
+
+		<template #item-prefix="{ item }">
+			<button
+				type="button"
+				tabindex="-1"
+				class="grid size-4 shrink-0 place-content-center rounded-full hover:bg-surface-gray-3"
+				:aria-label="__('Change color of {0}', [item.label])"
+				data-recolour
+				@pointerdown.stop.prevent
+				@click.stop.prevent="startRecolour(String(item.value))"
+			>
+				<span
+					class="size-2 rounded-full"
+					:class="tagColorClass(String(item.value))"
+					aria-hidden="true"
+				/>
+			</button>
+		</template>
+
+		<template #empty>
+			<span class="text-p-sm">{{ error || __("No tags yet, type to create one") }}</span>
+		</template>
+
+		<!-- Marks this picker's popover for the unscoped CSS below; it is portaled out. -->
+		<template #footer><span class="tag-picker-marker hidden" aria-hidden="true" /></template>
+	</MultiSelect>
 	<TagColorPopover
-		:open="Boolean(pending)"
+		v-if="pending"
 		:tag="pending"
 		:current="recolouring ? tagColorName(recolouring) : undefined"
 		:vertical="vertical"
+		:reference="picker?.$el"
 		@select="pickColor"
 		@close="pickColor()"
-	>
-		<!-- Bound only when something else opens it: an undefined boolean prop reads as false. -->
-		<MultiSelect
-			v-bind="anchored || shortcut ? { open } : {}"
-			:modelValue="session.tags.value"
-			v-model:query="query"
-			:options="options"
-			:loading="loading"
-			:filterable="false"
-			placeholder="Search or create tags"
-			:side="vertical ? 'left' : 'bottom'"
-			:align="vertical ? 'start' : 'end'"
-			@update:modelValue="onPick"
-			@update:query="searchSoon"
-			@update:open="(opened: boolean) => (open = opened)"
-		>
-			<template #trigger>
-				<!-- It only positions the popover; taking clicks would swallow the trigger it covers. -->
-				<div
-					v-if="anchored"
-					class="pointer-events-none absolute inset-0"
-					aria-hidden="true"
-				/>
-				<slot v-else name="trigger">
-					<Tooltip v-if="session.tags.value.length" :text="__('Add')">
-						<button
-							type="button"
-							class="grid size-6 place-content-center rounded-full text-ink-gray-5 transition hover:bg-surface-gray-2 hover:text-ink-gray-7"
-							aria-label="Add tag"
-							data-add-tag
-						>
-							<span class="lucide-plus size-3.5" aria-hidden="true" />
-						</button>
-					</Tooltip>
-					<Tooltip v-else :text="__('Add')">
-						<button
-							type="button"
-							class="text-base text-ink-gray-6 transition hover:text-ink-gray-8"
-							data-add-tag
-						>
-							+ {{ __("Add") }}
-						</button>
-					</Tooltip>
-				</slot>
-			</template>
-
-			<template #search-suffix>
-				<KeyboardShortcut v-if="shortcut && !query" combo="G" class="leading-none" />
-			</template>
-
-			<template #item-prefix="{ item }">
-				<button
-					type="button"
-					tabindex="-1"
-					class="grid size-4 shrink-0 place-content-center rounded-full hover:bg-surface-gray-3"
-					:aria-label="__('Change color of {0}', [item.label])"
-					data-recolour
-					@pointerdown.stop.prevent
-					@click.stop.prevent="startRecolour(String(item.value))"
-				>
-					<span
-						class="size-2 rounded-full"
-						:class="tagColorClass(String(item.value))"
-						aria-hidden="true"
-					/>
-				</button>
-			</template>
-
-			<template #empty>
-				<span class="text-p-sm">{{ error || __("No tags yet, type to create one") }}</span>
-			</template>
-
-			<!-- Marks this picker's popover for the unscoped CSS below; it is portaled out. -->
-			<template #footer
-				><span class="tag-picker-marker hidden" aria-hidden="true"
-			/></template>
-		</MultiSelect>
-	</TagColorPopover>
+	/>
 </template>
 
 <script setup lang="ts">
-import { computed, h, ref, watch } from "vue";
+import { computed, defineAsyncComponent, h, ref, watch } from "vue";
 import { KeyboardShortcut, MultiSelect, Tooltip, useKeyboardShortcut } from "frappe-ui";
 import { canCreateTag, matchingTags } from "./people";
 import { useTagSearch, type SearchOption } from "./remoteSearch";
-import TagColorPopover from "./TagColorPopover.vue";
 import { appliedFirst, type TagSession } from "./tagSession";
 import { __ } from "@/i18n";
 import { tagColorClass, tagColorName } from "@/tagColors";
@@ -110,6 +104,10 @@ const props = defineProps<{
 
 // Left undefined, the picker owns its open state.
 const open = defineModel<boolean | undefined>("open", { default: undefined });
+
+// The colour step shows only after a new name or a row dot, so it loads then.
+const TagColorPopover = defineAsyncComponent(() => import("./TagColorPopover.vue"));
+const picker = ref<{ $el: Element } | null>(null);
 
 const CREATE_VALUE = "__create__";
 
