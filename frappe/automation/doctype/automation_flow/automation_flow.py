@@ -92,6 +92,13 @@ class AutomationFlow(Document):
 			self.validate_action_context(action)
 			self.validate_action_params(action, row, targets)
 
+	def throw_row(self, row, fieldname, message):
+		"""Names the row in `field_errors`, so a client finds its step whatever the language."""
+		text = _("Row {0}: {1}").format(row.idx, message)
+		error = frappe.ValidationError(text)
+		error.field_errors = [row._field_error(fieldname, message)]
+		frappe.throw(text, exc=error)
+
 	def validate_action_params(self, action, row, targets):
 		"""An action reports a bad param by raising, which reaches the user as a bare 500;
 		rethrowing it names the row and reads like every other save error."""
@@ -101,7 +108,7 @@ class AutomationFlow(Document):
 		try:
 			action.validate(params, targets.get(row.target))
 		except AutomationParamError as e:
-			frappe.throw(_("Row {0}: {1}").format(row.idx, str(e)))
+			self.throw_row(row, "params", str(e))
 		targets.update(action.output_targets(params, row.output_alias))
 
 	def get_action_targets(self):
@@ -114,15 +121,15 @@ class AutomationFlow(Document):
 
 		row.target = row.target or "trigger"
 		if row.target not in targets:
-			frappe.throw(_("Row {0}: unknown target alias {1}").format(row.idx, row.target))
+			self.throw_row(row, "target", _("unknown target alias {0}").format(row.target))
 		validate_related_condition(row.related_condition, targets)
 		if row.output_alias and row.output_alias in targets:
-			frappe.throw(_("Row {0}: duplicate output alias {1}").format(row.idx, row.output_alias))
+			self.throw_row(row, "output_alias", _("duplicate output alias {0}").format(row.output_alias))
 
 	def set_step_key(self, row, keys):
 		row.step_key = row.step_key or f"step_{row.idx}"
 		if row.step_key in keys:
-			frappe.throw(_("Row {0}: Step Key must be unique").format(row.idx))
+			self.throw_row(row, "step_key", _("Step Key must be unique"))
 		keys.add(row.step_key)
 
 	def validate_execution_identity(self):
@@ -137,14 +144,14 @@ class AutomationFlow(Document):
 		"""A step inside an If must name that If (by idx) and which arm it belongs to."""
 		if not row.parent_step:
 			if row.branch:
-				frappe.throw(_("Row {0}: Branch is only meaningful inside an If step").format(row.idx))
+				self.throw_row(row, "branch", _("Branch is only meaningful inside an If step"))
 			return
 		if row.parent_step >= row.idx:
-			frappe.throw(_("Row {0}: Parent Step must be an earlier row").format(row.idx))
+			self.throw_row(row, "parent_step", _("Parent Step must be an earlier row"))
 		if not self.if_step_at(row.parent_step):
-			frappe.throw(_("Row {0}: Parent Step {1} is not an If step").format(row.idx, row.parent_step))
+			self.throw_row(row, "parent_step", _("Parent Step {0} is not an If step").format(row.parent_step))
 		if row.branch not in ("If", "Else"):
-			frappe.throw(_("Row {0}: choose the If or Else branch").format(row.idx))
+			self.throw_row(row, "branch", _("choose the If or Else branch"))
 
 	def if_step_at(self, idx):
 		return next((r for r in self.actions if r.idx == idx and r.step_type == "If"), None)
@@ -158,11 +165,11 @@ class AutomationFlow(Document):
 	def validate_step(self, row):
 		row.step_type = row.step_type or "Action"
 		if row.step_type not in STEP_TYPES:
-			frappe.throw(_("Row {0}: unsupported Step Type {1}").format(row.idx, row.step_type))
+			self.throw_row(row, "step_type", _("unsupported Step Type {0}").format(row.step_type))
 		if row.step_type == "Action" and not row.action_type:
 			frappe.throw(_("Action Type is required for action steps"))
 		if row.step_type == "If" and not row.step_condition:
-			frappe.throw(_("Row {0}: an If step needs a Step Condition").format(row.idx))
+			self.throw_row(row, "step_condition", _("an If step needs a Step Condition"))
 		if row.step_type == "Wait":
 			self.validate_wait(row)
 		if row.step_type == "WaitForEvent":
@@ -171,9 +178,9 @@ class AutomationFlow(Document):
 	def validate_wait(self, row):
 		params = frappe.parse_json(row.params) if row.params else {}
 		if not params.get("value") or not params.get("unit"):
-			frappe.throw(_("Wait steps require a duration value and unit"))
+			self.throw_row(row, "params", _("Wait steps require a duration value and unit"))
 		if params["unit"] not in WAIT_UNITS:
-			frappe.throw(_("Row {0}: Wait unit must be one of {1}").format(row.idx, ", ".join(WAIT_UNITS)))
+			self.throw_row(row, "params", _("Wait unit must be one of {0}").format(", ".join(WAIT_UNITS)))
 
 	def validate_event_wait(self, row):
 		from frappe.automation_engine.events import validate_wait_params

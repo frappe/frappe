@@ -70,6 +70,16 @@ export function keepStepIds(from, to) {
 	after.forEach(({ node }, index) => (node._id = before[index].node._id));
 }
 
+const SERVER_FIELDS = ["name", "creation", "modified", "owner", "modified_by", "docstatus"];
+
+/** An undone snapshot under the saved document's identity, so undoing past the first save does not insert again. */
+export function withServerFields(snapshot, saved) {
+	const fields = Object.fromEntries(
+		SERVER_FIELDS.filter((f) => f in saved).map((f) => [f, saved[f]])
+	);
+	return { ...snapshot, ...fields };
+}
+
 /** The step a canvas node id names; null for the trigger node. */
 export function stepById(tree, id) {
 	return layoutSteps(tree).find(({ node }) => node._id === id)?.node || null;

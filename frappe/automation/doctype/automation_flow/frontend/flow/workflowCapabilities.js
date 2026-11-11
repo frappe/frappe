@@ -13,8 +13,9 @@ export function capabilitiesFor(doctype) {
 	return doctype ? cache[doctype] || null : null;
 }
 
-export async function loadCapabilities(doctype) {
-	if (!doctype || cache[doctype] || pending.has(doctype)) return;
+/** Fetches a DocType's capabilities; `refresh` fetches again and keeps the cached entry until the answer. */
+export async function loadCapabilities(doctype, { refresh = false } = {}) {
+	if (!doctype || pending.has(doctype) || (cache[doctype] && !refresh)) return;
 	pending.add(doctype);
 	try {
 		const { data } = await runMethod(

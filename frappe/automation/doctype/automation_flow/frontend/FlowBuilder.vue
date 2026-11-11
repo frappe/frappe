@@ -18,7 +18,7 @@
 		/>
 		<div
 			v-if="flow.conflict"
-			class="flex items-center justify-between gap-3 border-b bg-surface-amber-1 px-[--page-gutter] py-2 text-p-sm text-ink-amber-3"
+			class="!flex-none flex items-center justify-between gap-3 border-b bg-surface-amber-1 px-3 py-2 text-p-sm text-ink-amber-8 sm:px-5"
 			role="alert"
 		>
 			<span>{{ __("Someone else saved this flow after you opened it.") }}</span>
@@ -112,7 +112,6 @@ const canvas = ref(null);
 const selectedId = ref("");
 const testing = ref(false);
 const trial = useTrialRun(() => flow.doc);
-
 const selectedStep = computed(() => stepById(flow.doc?.actions || [], selectedId.value));
 const relationships = computed(() => parseList(flow.doc?.relationships));
 const nodes = computed(() => workflowNodes(flow.doc, flow.errors));
@@ -143,31 +142,53 @@ watch(
 		trial.close();
 	}
 );
-watch(() => flow.doc?.document_type, loadOffers, { immediate: true });
+watch(
+	() => flow.doc?.document_type,
+	(doctype) => loadOffers(doctype, { refresh: true }),
+	{ immediate: true }
+);
 watch(
 	() => aliasTargets(flow.doc?.document_type, relationships.value, []).map((t) => t.doctype),
-	(doctypes) => doctypes.forEach(loadOffers),
+	(doctypes) => doctypes.forEach((doctype) => loadOffers(doctype)),
 	{ immediate: true }
 );
 
 watch(
 	() => targetsFor(selectedStep.value).map((target) => target.doctype),
-	(doctypes) => doctypes.forEach(loadOffers)
+	(doctypes) => doctypes.forEach((doctype) => loadOffers(doctype))
 );
 
 useUnloadGuard(() => flow.unsaved);
 onBeforeRouteLeave(() => !flow.unsaved || confirmDiscard());
 onBeforeRouteUpdate((to) => to.params.name === props.name || !flow.unsaved || confirmDiscard());
-onMounted(() => window.addEventListener("keydown", onKeydown));
-onBeforeUnmount(() => window.removeEventListener("keydown", onKeydown));
+onMounted(() => {
+	window.addEventListener("keydown", onKeydown);
+	document.addEventListener("visibilitychange", onVisibility);
+});
+onBeforeUnmount(() => {
+	window.removeEventListener("keydown", onKeydown);
+	document.removeEventListener("visibilitychange", onVisibility);
+});
 
-async function loadOffers(doctype) {
-	if (!doctype) return;
+// A Custom Field or Server Script can change a DocType's capabilities: refetch when its trigger is
+// picked and when the page returns from hidden, where a failure keeps the old answer quietly.
+async function loadOffers(doctype, { refresh = false, quiet = false } = {}) {
 	try {
-		await loadCapabilities(doctype);
+		await loadCapabilities(doctype, { refresh });
 	} catch {
-		toast.error(__("The triggers and actions of {0} could not be loaded", [doctype]));
+		if (!quiet)
+			toast.error(__("The triggers and actions of {0} could not be loaded", [doctype]));
 	}
+}
+
+function onVisibility() {
+	if (document.hidden) return;
+	const shown = [
+		flow.doc?.document_type,
+		...aliasTargets(flow.doc?.document_type, relationships.value, []).map((t) => t.doctype),
+		...targetsFor(selectedStep.value).map((target) => target.doctype),
+	];
+	new Set(shown).forEach((doctype) => loadOffers(doctype, { refresh: true, quiet: true }));
 }
 
 function onKeydown(event) {
@@ -188,7 +209,12 @@ async function save() {
 	const wasNew = flow.isNew;
 	if (!flow.doc.title?.trim()) header.value?.focusTitle();
 	if (await flow.save()) {
-		if (wasNew) router.replace(routeFor(FLOW_DOCTYPE, flow.doc.name));
+		// `keepsPage`: the address changes, the page and its undo history stay.
+		if (wasNew)
+			router.replace({
+				...routeFor(FLOW_DOCTYPE, flow.doc.name),
+				state: { keepsPage: true },
+			});
 	}
 }
 

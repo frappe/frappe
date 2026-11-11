@@ -64,10 +64,14 @@ describe('flow document', () => {
 })
 
 describe('refused saves', () => {
-  it('points a Row N message at the step in that row', () => {
+  it('points a field error of a row at the step in that row', () => {
     const tree = fromServer({ actions: [row(1), row(2)] }).actions
     const { errors, general } = saveErrors(
-      new Error('Row 2: Parameter value is required'),
+      Object.assign(new Error('Row 2: Parameter value is required'), {
+        fieldErrors: [
+          { fieldname: 'params', parentfield: 'actions', idx: 2, message: 'Parameter value is required' },
+        ],
+      }),
       tree,
     )
 
@@ -78,9 +82,22 @@ describe('refused saves', () => {
   it('counts an outcome row a wait gains on save', () => {
     const wait = newStep({ step_type: 'WaitForEvent' })
     wait.children.If.push(newStep())
-    const { errors } = saveErrors(new Error('Row 3: broken'), [wait])
+    const { errors } = saveErrors(
+      Object.assign(new Error('Row 3: broken'), {
+        fieldErrors: [{ fieldname: 'params', parentfield: 'actions', idx: 3, message: 'broken' }],
+      }),
+      [wait],
+    )
 
     expect(Object.keys(errors)).toEqual([wait.children.If[0]._id])
+  })
+
+  it('ignores the words of a message: only the row index maps it', () => {
+    const tree = fromServer({ actions: [row(1), row(2)] }).actions
+    const { errors, general } = saveErrors(new Error('Zeile 2: Wert fehlt'), tree)
+
+    expect(errors).toEqual({})
+    expect(general).toBe('Zeile 2: Wert fehlt')
   })
 
   it('keeps a message with no row for the flow, and field errors for the trigger', () => {
