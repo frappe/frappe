@@ -119,6 +119,8 @@ vi.mock("@/list/useListView", async () => {
 			fieldOf: (fieldname: string) => metaFields.find((field) => field.fieldname === fieldname),
 			markOf: (fieldname: string) =>
 				fieldname === "agent" ? { source: { kind: "image", field: "user_image" }, key: "agent__mark" } : undefined,
+			switchOf: () => false,
+			canWrite: () => true,
 			cellViewOf: (fieldname: string, value: unknown) =>
 				resolveCell(
 					cells[fieldname],

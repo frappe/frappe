@@ -41,6 +41,8 @@ export type ListCell = {
   badge?: Record<string, 'gray' | 'blue' | 'green' | 'orange' | 'red'>
   icon?: string
   format?: string
+  /** A Check column draws a switch that writes the field from the list. */
+  switch?: boolean
 }
 
 export type ListHandlers = {

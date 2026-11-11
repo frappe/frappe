@@ -421,10 +421,11 @@ It is keyed by fieldname, and the first app to name a fieldname wins:
 | `badge` | A value to theme map (`gray`, `blue`, `green`, `orange`, `red`): the value shows as a badge. |
 | `icon` | One icon before any non-empty value. |
 | `format` | A dayjs format for a Date or Datetime, such as `'D MMM, hh:mm a'`. Its tooltip is the full date. |
+| `switch` | `true` on a Check column draws a switch that saves the field in place (a PATCH with the row's `modified`). It is read-only without a level 0 write right, and a refused write leaves it as it was. |
 
 An icon is a name from the icon sprite, with or without the `lucide-` prefix. A key, value or fieldtype
 it does not fit keeps the default cell, and an empty value draws no icon. A Check, Rating, Color, Attach
-or Image column keeps its own cell.
+or Image column keeps its own cell, except a Check column marked `switch`.
 
 ```js
 // crm/fcrm/doctype/crm_task/frontend/list.js

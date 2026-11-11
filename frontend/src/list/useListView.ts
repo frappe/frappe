@@ -26,7 +26,7 @@ import {
 } from "./defaults";
 import { readListMemory, recallRows, rememberRows, useRememberedPageSize, writeListMemory } from "./pageState";
 import { listStatusTheme, type StatusTheme } from "@/statusTheme";
-import { contributedCells, resolveCell, type CellView } from "./cells";
+import { contributedCells, isSwitchCell, resolveCell, type CellView } from "./cells";
 import { completeFilters, queryFromAddress } from "./query";
 import { partsFor } from "./rowParts";
 import { cellSeenClass, isUnseen, seenColumn } from "./seen";
@@ -51,6 +51,10 @@ export interface ListView extends ListRows {
 	statusThemeOf: (fieldname: string, value: unknown) => StatusTheme | null;
 	/** What an app's `cells` draw for a value, or null when they name nothing for it; see `resolveCell`. */
 	cellViewOf: (fieldname: string, value: unknown) => CellView | null;
+	/** Whether a column draws as a switch that writes its field; see `isSwitchCell`. */
+	switchOf: (fieldname: string) => boolean;
+	/** Whether the person may write the field; a switch is read-only without it. */
+	canWrite: (fieldname: string) => boolean;
 	/** Where a Currency column's cell finds its currency in the row; see `cellCurrency`. */
 	currencyOf: (fieldname: string) => RowValue | undefined;
 	/** The titles the rows hold for their Link values, keyed `Target::name` as the form's `link_titles`; see `cellTitle`. */
@@ -82,6 +86,9 @@ export function useListView(view: View): ListView {
 	const contributed = listHandlersFor(doctype).map(({ handlers }) => handlers);
 	const rowActions = contributedRowActions(contributed);
 	const cells = contributedCells(contributed);
+
+	const switchOf = (fieldname: string) =>
+		isSwitchCell(cells[fieldname], fields.value.find((one) => one.fieldname === fieldname)?.fieldtype);
 
 	const readable = (fieldname: string) => {
 		const field = fields.value.find((one) => one.fieldname === fieldname);
@@ -130,7 +137,10 @@ export function useListView(view: View): ListView {
 		if (!view.seeded.value) return null;
 		return {
 			key: stateKey(),
-			fields: fetchFields(columns.value, readableActions(), listMeta.value ?? {}, readable),
+			fields: withModified(
+				fetchFields(columns.value, readableActions(), listMeta.value ?? {}, readable),
+				columns.value.some((column) => switchOf(column.fieldname))
+			),
 			filters: filtersDict(view.filters.value),
 			orderBy: serializeOrderBy(view.sort.value),
 			limit: pageSize.value,
@@ -200,6 +210,16 @@ export function useListView(view: View): ListView {
 				value,
 				fields.value.find((one) => one.fieldname === fieldname)?.fieldtype
 			),
+		switchOf,
+		canWrite: (fieldname) => {
+			const field = fields.value.find((one) => one.fieldname === fieldname);
+			return (
+				Boolean(field) &&
+				!field!.read_only &&
+				permissions.allowedPermlevels("write").includes(0) &&
+				permissions.fieldAccess(field!) === "write"
+			);
+		},
 		currencyOf: (fieldname) => cellCurrency(fieldname, listMeta.value ?? {}, readable),
 		linkTitles,
 		seenClassOf: (row, fieldname) =>
@@ -216,6 +236,10 @@ export function useListView(view: View): ListView {
 		rowLink: (row) => routeFor(doctype, row.name),
 		deleteSelection,
 	};
+}
+
+function withModified(fields: string[], wanted: boolean): string[] {
+	return wanted ? [...new Set([...fields, "modified"])] : fields;
 }
 
 /** The object form `useList` takes; it holds one condition per field, so a second one is lost. */
