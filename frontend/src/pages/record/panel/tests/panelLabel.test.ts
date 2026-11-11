@@ -146,14 +146,14 @@ describe("the label tip", () => {
 
 describe("the required mark", () => {
 	it("draws a red * after a required label", async () => {
-		const root = await mount({ label: "Name", reqd: 1 });
+		const root = await mount({ label: "Name", reqd: true });
 		const mark = [...root.querySelectorAll("span")].find((el) => el.textContent === "*")!;
 		expect(mark.className).toContain("text-ink-red-4");
 		expect(mark.className).toContain("shrink-0");
 	});
 
 	it("keeps the * outside the truncating label text", async () => {
-		const root = await mount({ label: "A very long label that does not fit", reqd: 1 });
+		const root = await mount({ label: "A very long label that does not fit", reqd: true });
 		const text = root.querySelector(".truncate")!;
 		expect(text.textContent).toBe("A very long label that does not fit");
 		expect(root.textContent).toContain("*");
