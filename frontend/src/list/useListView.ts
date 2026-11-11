@@ -53,8 +53,8 @@ export interface ListView extends ListRows {
 	cellViewOf: (fieldname: string, value: unknown) => CellView | null;
 	/** Whether a column draws as a switch that writes its field; see `isSwitchCell`. */
 	switchOf: (fieldname: string) => boolean;
-	/** True when the person may write the doctype's level 0 fields; a switch is read-only without it. */
-	canWrite: ComputedRef<boolean>;
+	/** Whether the person may write the field; a switch is read-only without it. */
+	canWrite: (fieldname: string) => boolean;
 	/** Where a Currency column's cell finds its currency in the row; see `cellCurrency`. */
 	currencyOf: (fieldname: string) => RowValue | undefined;
 	/** The titles the rows hold for their Link values, keyed `Target::name` as the form's `link_titles`; see `cellTitle`. */
@@ -211,7 +211,15 @@ export function useListView(view: View): ListView {
 				fields.value.find((one) => one.fieldname === fieldname)?.fieldtype
 			),
 		switchOf,
-		canWrite: computed(() => permissions.allowedPermlevels("write").includes(0)),
+		canWrite: (fieldname) => {
+			const field = fields.value.find((one) => one.fieldname === fieldname);
+			return (
+				Boolean(field) &&
+				!field!.read_only &&
+				permissions.allowedPermlevels("write").includes(0) &&
+				permissions.fieldAccess(field!) === "write"
+			);
+		},
 		currencyOf: (fieldname) => cellCurrency(fieldname, listMeta.value ?? {}, readable),
 		linkTitles,
 		seenClassOf: (row, fieldname) =>
@@ -230,7 +238,6 @@ export function useListView(view: View): ListView {
 	};
 }
 
-// A switch saves with the row's `modified`, so the server can refuse a write over someone else's.
 function withModified(fields: string[], wanted: boolean): string[] {
 	return wanted ? [...new Set([...fields, "modified"])] : fields;
 }

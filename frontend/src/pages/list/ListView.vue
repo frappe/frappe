@@ -72,7 +72,7 @@
 				:doctype="view.doctype"
 				:field="cellFields.get(column.fieldname)!"
 				:row="row"
-				:writable="canWrite"
+				:writable="canWrite(column.fieldname)"
 			/>
 			<ConfiguredCell
 				v-else-if="cellViewOf(column.fieldname, value) && cellFields.has(column.fieldname)"
