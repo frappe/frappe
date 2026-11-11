@@ -3034,6 +3034,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			fieldname: "group_by_fields",
 			fieldtype: "MultiCheck",
 			search_placeholder: __("Search Fields"),
+			select_all: true,
 			columns: 2,
 			options: fields.map((df) => ({
 				label: __(df.label, null, df.parent),

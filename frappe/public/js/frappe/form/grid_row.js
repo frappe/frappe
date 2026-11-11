@@ -470,13 +470,12 @@ export default class GridRow {
 					fieldtype: "MultiCheck",
 					fieldname: "fields",
 					search_placeholder: __("Search Fields"),
+					select_all: true,
 					options: docfields,
 					columns: 2,
 					sort_options: false,
 				},
 			],
-			secondary_action_label: __("Select All"),
-			secondary_action: () => d.fields_dict.fields.select_all(),
 		});
 
 		d.set_primary_action(__("Add"), (values) => {

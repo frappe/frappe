@@ -73,7 +73,7 @@ test.describe("Web Form", () => {
 		await desk.fill_field("doc_type", "Note", "Link");
 		await desk.fill_field("module", "Website", "Link");
 		await desk.click_custom_action_button("Get Fields");
-		await desk.get_open_dialog().locator('[data-action="select_all"]').click();
+		await desk.get_open_dialog().locator(".bulk-select-options .select-all").click();
 		await desk.click_modal_primary_button("Update");
 		await expect(page.locator('[data-fieldname="web_form_fields"] .grid-row')).not.toHaveCount(
 			0

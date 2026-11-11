@@ -182,6 +182,7 @@ export default class KanbanSettings {
 					fieldtype: "MultiCheck",
 					fieldname: "fields",
 					search_placeholder: __("Search Fields"),
+					select_all: true,
 					options: this.get_multiselect_fields(),
 					columns: 2,
 				},

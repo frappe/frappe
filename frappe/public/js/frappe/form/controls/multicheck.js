@@ -13,6 +13,11 @@ frappe.ui.form.ControlMultiCheck = class ControlMultiCheck extends frappe.ui.for
 		this.$load_state = $(`<div class="load-state text-muted small">${__("Loading")}...</div>`);
 		this.$search = $(`<input type="text" class="form-control input-xs" placeholder="${__(this.df.search_placeholder || "Search")}">`).appendTo(this.wrapper);
 		this.$select_buttons = this.get_select_buttons().appendTo(this.wrapper);
+		if (!this.df.select_all) {
+			this.$select_buttons.hide();
+		}
+		this.$select_buttons.find(".select-all").on("click", () => this.select_all());
+		this.$select_buttons.find(".deselect-all").on("click", () => this.select_all(true));
 		this.$load_state.appendTo(this.wrapper);
 
 		// In your implementation, you may use the 'columns' property to specify either of:
@@ -45,7 +50,6 @@ frappe.ui.form.ControlMultiCheck = class ControlMultiCheck extends frappe.ui.for
 
 	set_options() {
 		this.$load_state.show();
-		this.$select_buttons.hide();
 		this.parse_df_options();
 
 		if (this.df.get_data) {
@@ -125,12 +129,6 @@ frappe.ui.form.ControlMultiCheck = class ControlMultiCheck extends frappe.ui.for
 
 	setup_select_all() {
 		this.$select_buttons.show();
-		this.$select_buttons.find(".select-all").on("click", () => {
-			this.select_all();
-		});
-		this.$select_buttons.find(".deselect-all").on("click", () => {
-			this.select_all(true);
-		});
 	}
 
 	select_all(deselect = false) {

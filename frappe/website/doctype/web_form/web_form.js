@@ -463,6 +463,7 @@ class GetFieldsDialog {
 					fieldname: "fields",
 					fieldtype: "MultiCheck",
 					search_placeholder: __("Search Fields"),
+					select_all: true,
 					columns: 2,
 					sort_options: false,
 					options: this.get_options(),
@@ -490,11 +491,9 @@ class GetFieldsDialog {
 	make_header() {
 		const $header = $(`
 			<div class="flex flex-wrap gap-2 mt-3 mb-3">
-				<button class="btn btn-default btn-xs" data-action="select_all">${__("Select All")}</button>
 				<button class="btn btn-default btn-xs" data-action="select_mandatory">
 					${__("Select Mandatory")}
 				</button>
-				<button class="btn btn-default btn-xs" data-action="unselect_all">${__("Unselect All")}</button>
 			</div>
 		`);
 		frappe.utils.bind_actions_with_object($header, this);
@@ -679,10 +678,6 @@ class GetFieldsDialog {
 		return label ? __(label) : frappe.unscrub(fieldname);
 	}
 
-	select_all() {
-		this.set_all_checked(true);
-	}
-
 	// unlike the exporter, never unticks: an untick deletes that row on Update
 	select_mandatory() {
 		const checkboxes = this.dialog
@@ -690,19 +685,6 @@ class GetFieldsDialog {
 			.options.filter((option) => option.danger)
 			.map((option) => option.$checkbox.find(":checkbox").get(0));
 		$(checkboxes).prop("checked", true).trigger("change");
-	}
-
-	unselect_all() {
-		this.set_all_checked(false);
-	}
-
-	// MultiCheck listens for "change", so its get_value() stays in sync
-	set_all_checked(checked) {
-		this.dialog
-			.get_field("fields")
-			.$wrapper.find(":checkbox")
-			.prop("checked", checked)
-			.trigger("change");
 	}
 
 	// search hides rows, so an unfixed list resizes on every keystroke. Must run after
