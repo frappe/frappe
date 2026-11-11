@@ -51,7 +51,6 @@ def get(
 ):
 	"""Return processed HTML page for a standard listing."""
 	limit_start = cint(limit_start)
-	# limit can come from the URL, so cap it to keep one request cheap.
 	limit = min(cint(limit), 500) if cint(limit) > 0 else 20
 	if list_context is None:
 		list_context = get_list_context(frappe._dict(), doctype, kwargs.get("web_form_name"))
