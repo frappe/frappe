@@ -37,7 +37,7 @@
 					v-else
 					class="flex min-h-7 min-w-0 flex-wrap items-center gap-x-1.5"
 					:class="[
-						interactive ? 'cursor-pointer' : '',
+						interactive && pickable ? 'cursor-pointer' : '',
 						chips && interactive ? 'ps-2 pe-[30px]' : 'px-2',
 					]"
 					:data-fieldname="field.fieldname"
@@ -59,6 +59,11 @@
 							v-if="!chipList.length"
 							class="text-base leading-5 text-ink-gray-4"
 							>{{ placeholder }}</span
+						>
+						<span
+							v-if="!pickable"
+							class="basis-full text-sm leading-5 text-ink-gray-5"
+							>{{ __("Child table metadata unavailable — picker disabled.") }}</span
 						>
 					</span>
 					<span v-else-if="multiline" class="min-w-0 flex-1 py-1">
@@ -253,6 +258,7 @@ let cancelled = false;
 function cancel() {
 	if (!editing.value) return;
 	cancelled = true;
+	commit.discard(props.field.fieldname);
 	update(props.field.fieldname, opening);
 	editing.value = false;
 }
@@ -308,6 +314,10 @@ const bare = computed(() => !!props.field.ui?.component && !!props.field.ui.ownB
 const inPlaceHeavy = computed(() => isSummaryField(props.field.fieldtype) && !summary.value);
 const multiline = computed(() => MULTILINE.includes(props.field.fieldtype));
 const chips = computed(() => props.field.fieldtype === "Table MultiSelect");
+// Without the child table's Link field there is nothing to pick from, so the row stays closed.
+const pickable = computed(
+	() => !chips.value || !!props.field.childFields?.find((f) => f.fieldtype === "Link")?.options
+);
 const chipList = computed(() =>
 	selectedLinks(doc.value[props.field.fieldname], props.field, titles?.value ?? {})
 );
@@ -378,7 +388,7 @@ function open() {
 		return;
 	}
 	if (summary.value) return emit("expand", props.field);
-	if (props.field.readOnly) return;
+	if (props.field.readOnly || !pickable.value) return;
 	opening = doc.value[props.field.fieldname];
 	cancelled = false;
 	editing.value = true;

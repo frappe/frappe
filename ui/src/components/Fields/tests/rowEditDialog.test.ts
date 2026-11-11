@@ -91,6 +91,7 @@ function render(
       committed.push({ fieldname, value, row });
       onCommit?.(fieldname, value);
     },
+    discard: () => {},
     rowChanged: () => {},
   };
   host = document.createElement("div");

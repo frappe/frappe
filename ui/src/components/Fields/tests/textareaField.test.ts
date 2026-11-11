@@ -1,5 +1,5 @@
 // A panel Small Text, Text or Long Text draws no label, description or error text, and grows from 28 to 128 with its lines.
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp, h, nextTick, ref } from "vue";
 import type { App } from "vue";
 import TextareaField from "../TextareaField.vue";
@@ -106,6 +106,74 @@ describe("a panel textarea", () => {
     await typeLines(textarea, 1);
 
     expect(textarea.style.height).toBe("28px");
+  });
+});
+
+describe("a panel textarea whose width changes", () => {
+  const observers: { callback: ResizeObserverCallback; disconnect: () => void; disconnected: boolean }[] = [];
+
+  beforeEach(() => {
+    vi.stubGlobal(
+      "ResizeObserver",
+      class {
+        disconnected = false;
+        constructor(public callback: ResizeObserverCallback) {
+          observers.push(this);
+        }
+        observe() {}
+        disconnect() {
+          this.disconnected = true;
+        }
+      }
+    );
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    observers.length = 0;
+  });
+
+  function resize(width: number) {
+    observers[0].callback([{ contentRect: { width } } as ResizeObserverEntry], observers[0] as any);
+  }
+
+  it("measures again, so wrapped text takes the lines the new width gives it", () => {
+    // Narrow: each line wraps in two.
+    let narrow = false;
+    Object.defineProperty(HTMLTextAreaElement.prototype, "scrollHeight", {
+      configurable: true,
+      get() {
+        return PADDING + LINE_HEIGHT * (narrow ? 2 : 1);
+      },
+    });
+    const { textarea } = render({ panel: true }, "one line");
+    resize(300);
+    expect(textarea.style.height).toBe("28px");
+
+    narrow = true;
+    resize(120);
+
+    expect(textarea.style.height).toBe("48px");
+  });
+
+  it("ignores a change of height alone, which its own sizing causes", () => {
+    stubScrollHeight();
+    const { textarea } = render({ panel: true }, "one line");
+    resize(300);
+    textarea.style.height = "99px";
+
+    resize(300);
+
+    expect(textarea.style.height).toBe("99px");
+  });
+
+  it("stops observing when it unmounts", () => {
+    stubScrollHeight();
+    render({ panel: true });
+
+    app?.unmount();
+
+    expect(observers[0].disconnected).toBe(true);
   });
 });
 

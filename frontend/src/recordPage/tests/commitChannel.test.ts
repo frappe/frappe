@@ -14,6 +14,28 @@ function channel() {
 const row: RowAddress = { parentfield: "products", key: "row-1" };
 
 describe("createCommitChannel", () => {
+  it("drops a discarded edit, so a save fires no handler for the cancelled value", async () => {
+    const { commits, fired } = channel();
+    commits.pending("note", "draft");
+
+    commits.discard("note");
+    await commits.flush();
+
+    expect(fired).toEqual([]);
+  });
+
+  it("discards only the edit of its own field and row", async () => {
+    const { commits, fired } = channel();
+    commits.pending("note", "draft", row);
+
+    commits.discard("note");
+    commits.discard("other", row);
+    commits.discard("note", { ...row, key: "row-2" });
+    await commits.flush();
+
+    expect(fired).toEqual(["products.note"]);
+  });
+
   it("fires a top-level field under its own name", () => {
     const { commits, fired } = channel();
     commits.commit("status", "Won");

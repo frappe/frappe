@@ -49,7 +49,7 @@ function mount(field: FieldNode, doc: Record<string, any>, onDetails = true) {
 	const root = document.createElement("div");
 	document.body.appendChild(root);
 	const update = vi.fn((name: string, value: any) => (docRef.value[name] = value));
-	const commit = { pending: vi.fn(), commit: vi.fn() };
+	const commit = { pending: vi.fn(), commit: vi.fn(), discard: vi.fn() };
 	const docRef = ref(doc);
 	const app = createApp(defineComponent({ render: () => h(PanelField, { field }) }));
 	app.provide(DocKey, docRef);
@@ -130,6 +130,23 @@ describe("a Table MultiSelect row at rest", () => {
 
 		expect(row(root, "tags").textContent).toContain("Add Tags...");
 	});
+
+	it("keeps the child table error visible in the row, and stays closed, when the Link field is missing", async () => {
+		const bare = { ...tags, childFields: [] } as FieldNode;
+		const { root } = mount(bare, { tags: [] });
+
+		expect(row(root, "tags").textContent).toContain("Child table metadata unavailable");
+		row(root, "tags").click();
+		await nextTick();
+
+		expect(root.querySelector("[data-control]")).toBeNull();
+	});
+
+	it("does not show it when the Link field is there", () => {
+		const { root } = mount(tags, { tags: [] });
+
+		expect(row(root, "tags").textContent).not.toContain("metadata unavailable");
+	});
 });
 
 describe("Esc in an open row", () => {
@@ -151,6 +168,22 @@ describe("Esc in an open row", () => {
 		expect(doc.value.note).toBe("before");
 		expect(update).toHaveBeenLastCalledWith("note", "before");
 		expect(commit.commit).not.toHaveBeenCalled();
+	});
+
+	it("drops the commit channel's pending edit, so a save cannot fire the handler with the draft", async () => {
+		const { root, commit } = mount(note, { note: "before" });
+		row(root, "note").click();
+		await nextTick();
+		const control = root.querySelector<HTMLTextAreaElement>("[data-control]")!;
+		control.value = "draft";
+		control.dispatchEvent(new Event("input"));
+		await nextTick();
+		expect(commit.pending).toHaveBeenCalledWith("note", "draft");
+
+		control.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+		await nextTick();
+
+		expect(commit.discard).toHaveBeenCalledWith("note");
 	});
 
 	it("lets the next open edit again", async () => {

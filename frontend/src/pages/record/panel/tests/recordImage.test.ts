@@ -60,7 +60,7 @@ const META = { image_field: "image", fields: [{ fieldname: "image", fieldtype: "
 
 async function mount(doc: Record<string, any>, write = true, meta: any = META) {
 	const docRef = ref(doc);
-	const commit = { pending: vi.fn(), commit: vi.fn(), rowChanged: vi.fn() };
+	const commit = { pending: vi.fn(), commit: vi.fn(), discard: vi.fn(), rowChanged: vi.fn() };
 	const root = document.createElement("div");
 	document.body.appendChild(root);
 	const app = createApp(
