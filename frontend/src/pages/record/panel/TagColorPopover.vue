@@ -1,13 +1,7 @@
 <!-- The colour step: the 13 named colours; the tag's colour shows in the header. -->
 <template>
-	<Popover
-		open
-		:reference="reference"
-		trigger="manual"
-		:side="vertical ? 'left' : 'bottom'"
-		:align="vertical ? 'start' : 'end'"
-		@update:open="onOpen"
-	>
+	<Popover :open="open" trigger="manual" side="left" align="start" @update:open="onOpen">
+		<template #trigger><slot /></template>
 		<div class="flex w-52 flex-col" data-tag-colors>
 			<p
 				class="flex items-center gap-2 border-b border-outline-gray-2 px-3 py-2 text-base text-ink-gray-8"
@@ -44,21 +38,23 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import { useEventListener } from "@vueuse/core";
 import { Popover } from "frappe-ui";
 import { __ } from "@/i18n";
 import { colorClass, TAG_COLOR_NAMES } from "@/tagColors";
 
-const props = defineProps<{
-	tag: string;
-	current?: string;
-	vertical?: boolean;
-	reference?: Element;
-}>();
+const props = defineProps<{ open: boolean; tag: string; current?: string }>();
 const emit = defineEmits<{ select: [color: string]; close: [] }>();
 
-const index = ref(Math.max(TAG_COLOR_NAMES.indexOf(props.current ?? ""), 0));
+const index = ref(0);
+
+watch(
+	() => props.open,
+	(opened) => {
+		if (opened) index.value = Math.max(TAG_COLOR_NAMES.indexOf(props.current ?? ""), 0);
+	}
+);
 
 function onOpen(opened: boolean) {
 	if (!opened) emit("close");
@@ -69,6 +65,7 @@ useEventListener(
 	document,
 	"keydown",
 	(event: KeyboardEvent) => {
+		if (!props.open) return;
 		if (event.key === "ArrowDown" || event.key === "ArrowUp") {
 			event.preventDefault();
 			const step = event.key === "ArrowDown" ? 1 : -1;

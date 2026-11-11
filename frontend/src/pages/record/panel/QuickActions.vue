@@ -12,7 +12,7 @@
 			<!-- Named from the left while the width lasts; the rest keep to their tooltip. -->
 			<template v-for="(action, index) in actions.slice(0, visible)" :key="action.name">
 				<!-- The tag action is the picker's own trigger, so it opens where it was pressed. -->
-				<TagPicker v-if="action.tagging" :session="people.tagSession" :vertical="vertical">
+				<TagPicker v-if="action.tagging" :session="people.tagSession">
 					<template #trigger>
 						<!-- The trigger must own a box: Tooltip drops the attrs the popover anchors on. -->
 						<div class="flex shrink-0">

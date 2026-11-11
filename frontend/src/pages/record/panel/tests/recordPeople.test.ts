@@ -90,7 +90,7 @@ import PeopleAvatars from "../PeopleAvatars.vue";
 import QuickActions from "../QuickActions.vue";
 import RecordIdentity from "../RecordIdentity.vue";
 import RecordPeople from "../RecordPeople.vue";
-import { mergePart } from "../peopleActions";
+import { mergePart } from "../mergePart";
 import ShareDialog from "../ShareDialog.vue";
 import { TAG_COLORS, tagColorClass } from "@/tagColors";
 
@@ -144,6 +144,11 @@ const info = (permissions: Record<string, 0 | 1>): DocInfo => ({
 	users: { "ann@example.com": { full_name: "Ann" }, "bob@example.com": { full_name: "Bob" } },
 	permissions,
 });
+
+// The colour step is a lazy chunk: it mounts a tick after the click that asks for it.
+async function colourStep(root: HTMLElement) {
+	await vi.waitFor(() => expect(root.querySelector("[data-tag-colors]")).not.toBeNull());
+}
 
 async function pick(root: HTMLElement, values: string[] | string, query = "") {
 	stub.nextPick = values;
@@ -357,6 +362,7 @@ describe("tags", () => {
 		await session(root, async () => {
 			await pick(root, ["__create__"], "later");
 			expect(api.runMethod).not.toHaveBeenCalled();
+			await colourStep(root);
 			const teal = [...root.querySelectorAll("[data-tag-colors] button")].find((row) => row.textContent?.includes("Teal"));
 			(teal as HTMLElement).click();
 			await nextTick();
@@ -375,6 +381,7 @@ describe("tags", () => {
 		const { root, docinfo } = setup({ ...info({ write: 1 }), tags: ["old"] }, RecordIdentity);
 		await session(root, async () => {
 			await pick(root, ["__create__"], "later");
+			await colourStep(root);
 			root.querySelector<HTMLElement>("[data-popover-away]")!.click();
 			await nextTick();
 		});
@@ -387,7 +394,7 @@ describe("tags", () => {
 		root.querySelector<HTMLElement>("[data-open]")!.click();
 		await nextTick();
 		root.querySelector<HTMLElement>("[data-recolour]")!.click();
-		await nextTick();
+		await colourStep(root);
 		const blue = [...root.querySelectorAll("[data-tag-colors] button")].find((row) => row.textContent?.includes("Blue"));
 		(blue as HTMLElement).click();
 		await vi.waitFor(() => expect(api.runMethod).toHaveBeenCalledWith(expect.stringContaining("set_tag_color"), { tag: "old", color: "Blue" }));

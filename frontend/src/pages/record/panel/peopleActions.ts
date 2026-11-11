@@ -12,9 +12,8 @@ import { seedTagColors } from "@/tagColors";
 import { recolourTag, updateRecordTags } from "@/tagApi";
 import { tagsOf } from "./people";
 import { useTagSession, type TagBatch } from "./tagSession";
+import { mergePart, type PartAnswer } from "./mergePart";
 import type { DocInfo, PanelContext } from "./context";
-
-type PartAnswer = Partial<DocInfo> & { users?: Users; tag_colors?: Record<string, string> };
 
 /** What the writes read; the record menu's "Assign to…" hands it the page's own parts. */
 type PeopleSource = Pick<PanelContext, "doctype" | "docname" | "docinfo" | "whileOnRecord" | "reloadDocinfo"> & {
@@ -77,11 +76,3 @@ function buildActions(context: PeopleSource) {
 }
 
 export type PeopleActions = ReturnType<typeof buildActions>;
-
-/** The answer's part over the old one; its `users` join the map, since a removed row keeps its name. */
-export function mergePart(
-	docinfo: DocInfo | null,
-	{ users, tag_colors: _colors, ...part }: PartAnswer
-): DocInfo {
-	return { ...docinfo, ...part, users: { ...docinfo?.users, ...users } };
-}
