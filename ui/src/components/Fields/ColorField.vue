@@ -150,6 +150,7 @@ function endEdit() {
 function commitPicked(hex: string) {
 	open.value = false;
 	edit = undefined;
+	adjustFrom = undefined;
 	draft.value = hex;
 	if (sameColor(hex, props.modelValue)) return;
 	setValue(hex);

@@ -11,9 +11,10 @@
 			:aria-valuetext="areaText"
 			class="relative h-32 cursor-crosshair touch-none rounded-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
 			:style="areaStyle"
-			@pointerdown="(e) => drag(e, (x, y) => adjust({ s: x, v: 1 - y }))"
+			@pointerdown="(e) => drag(e, 0, (x, y) => adjust({ s: x, v: 1 - y }))"
 			@keydown="areaKey"
 			@keyup="settle"
+			@blur="settle"
 		>
 			<span
 				class="pointer-events-none absolute size-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow"
@@ -43,14 +44,17 @@
 				:aria-valuenow="Math.round(hsv.h)"
 				class="relative h-3 flex-1 cursor-pointer touch-none rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
 				:style="{ backgroundImage: HUE_GRADIENT }"
-				@pointerdown="(e) => drag(e, (x) => adjust({ h: x * 360 }))"
+				@pointerdown="(e) => drag(e, THUMB_RADIUS, (x) => adjust({ h: x * 360 }))"
 				@keydown="hueKey"
 				@keyup="settle"
+				@blur="settle"
 			>
 				<span
 					class="pointer-events-none absolute top-1/2 size-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow"
 					:style="{
-						left: `calc(7px + (100% - 14px) * ${hsv.h / 360})`,
+						left: `calc(${THUMB_RADIUS}px + (100% - ${2 * THUMB_RADIUS}px) * ${
+							hsv.h / 360
+						})`,
 						backgroundColor: hueHex,
 					}"
 				/>
@@ -65,7 +69,7 @@
 				:aria-label="swatch"
 				:aria-pressed="swatch === selected"
 				class="size-5 rounded-full border border-outline-gray-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
-				:class="swatch === selected && 'ring-2 ring-outline-gray-5 ring-offset-1'"
+				:class="swatch === selected && 'ring-2 ring-outline-gray-4'"
 				:style="{ backgroundColor: swatch }"
 				@click="emit('pick', swatch)"
 			/>
@@ -83,11 +87,12 @@ const props = defineProps<{ modelValue?: string | null }>();
 // `pick` chooses a color and closes; `adjust` follows a drag live and `settle` ends it.
 const emit = defineEmits<{ pick: [hex: string]; adjust: [hex: string]; settle: [hex: string] }>();
 
+const THUMB_RADIUS = 7;
 const HUE_GRADIENT =
 	"linear-gradient(to right, #f00, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00)";
 
 const selected = computed(() => normalizeHex(props.modelValue ?? ""));
-const hsv = ref<Hsv>(hexToHsv(selected.value ?? "#000000"));
+const hsv = ref<Hsv>(selected.value ? hexToHsv(selected.value) : { h: 0, s: 1, v: 1 });
 const hex = computed(() => hsvToHex(hsv.value));
 const hueHex = computed(() => hsvToHex({ h: hsv.value.h, s: 1, v: 1 }));
 const canSample = typeof window !== "undefined" && "EyeDropper" in window;
@@ -118,24 +123,31 @@ function settle() {
 	emit("settle", hex.value);
 }
 
-function drag(event: PointerEvent, move: (x: number, y: number) => void) {
+// `inset` keeps the pointer on the thumb where the track stops short of its ends.
+function drag(event: PointerEvent, inset: number, move: (x: number, y: number) => void) {
+	if (event.button !== 0) return;
+	event.preventDefault();
 	const el = event.currentTarget as HTMLElement;
 	el.focus();
 	el.setPointerCapture?.(event.pointerId);
 	const follow = (e: PointerEvent) => {
+		if (e.pointerId !== event.pointerId) return;
 		const box = el.getBoundingClientRect();
-		move(clamp((e.clientX - box.left) / box.width), clamp((e.clientY - box.top) / box.height));
+		move(
+			clamp((e.clientX - box.left - inset) / (box.width - 2 * inset)),
+			clamp((e.clientY - box.top) / box.height)
+		);
 	};
-	const end = () => {
+	const ends = ["pointerup", "pointercancel", "lostpointercapture"];
+	const end = (e: PointerEvent) => {
+		if (e.pointerId !== event.pointerId) return;
 		el.removeEventListener("pointermove", follow);
-		el.removeEventListener("pointerup", end);
-		el.removeEventListener("pointercancel", end);
+		for (const type of ends) el.removeEventListener(type, end as EventListener);
 		settle();
 	};
 	follow(event);
 	el.addEventListener("pointermove", follow);
-	el.addEventListener("pointerup", end);
-	el.addEventListener("pointercancel", end);
+	for (const type of ends) el.addEventListener(type, end as EventListener);
 }
 
 function areaKey(e: KeyboardEvent) {

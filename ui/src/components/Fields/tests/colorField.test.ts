@@ -236,6 +236,29 @@ describe("ColorField", () => {
     expect(document.querySelector("[data-slot=color-area]")).not.toBeNull();
   });
 
+  it("ignores a right-button press on the area", async () => {
+    const { committed, updates } = render("#ffffff");
+    await openPicker();
+    const area = document.querySelector("[data-slot=color-area]") as HTMLElement;
+    area.getBoundingClientRect = () => ({ left: 0, top: 0, width: 100, height: 100 }) as DOMRect;
+    area.dispatchEvent(new MouseEvent("pointerdown", { button: 2, clientX: 100, clientY: 0 }));
+    area.dispatchEvent(new MouseEvent("pointermove", { clientX: 100, clientY: 50 }));
+    await settle();
+    expect(updates).toEqual([]);
+    expect(committed).toEqual([]);
+  });
+
+  it("starts an empty field at full color, so the hue slider changes it", async () => {
+    const { committed } = render("");
+    await openPicker();
+    const hue = document.querySelector("[data-slot=hue]") as HTMLElement;
+    hue.getBoundingClientRect = () => ({ left: 0, top: 0, width: 154, height: 12 }) as DOMRect;
+    hue.dispatchEvent(new MouseEvent("pointerdown", { clientX: 77, clientY: 6 }));
+    hue.dispatchEvent(new MouseEvent("pointerup", { clientX: 77, clientY: 6 }));
+    await settle();
+    expect(committed).toEqual(["#00ffff"]);
+  });
+
   it("moves the hue with the arrow keys and commits on key up", async () => {
     const { committed } = render("#ff0000");
     await openPicker();
