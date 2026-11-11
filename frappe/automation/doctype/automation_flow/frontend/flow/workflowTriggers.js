@@ -128,10 +128,12 @@ export function triggerFromPick(value) {
 	return { ...Object.fromEntries(stale.map((fieldname) => [fieldname, null])), ...next };
 }
 
-/** Fields and events belong to a DocType, so a new one empties the picks made on the old. */
+/** Fields, events, filters and the condition name the old DocType's fields, so a new one empties them. */
 export function docTypeChange(document_type) {
 	return {
 		...Object.fromEntries(DOCTYPE_DETAILS.map((fieldname) => [fieldname, null])),
+		filters: "",
+		condition: "",
 		document_type,
 	};
 }
