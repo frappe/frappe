@@ -91,6 +91,7 @@ def _event_option(name, schema) -> dict:
 		"value": name,
 		"label": schema.get("label") or _prettify(name),
 		"description": schema.get("description") or "",
+		"icon": schema.get("icon") or None,
 		"correlation_options": schema.get("correlation_options") or [],
 		"subject_doctypes": _subject_doctypes(schema.get("subject")),
 	}

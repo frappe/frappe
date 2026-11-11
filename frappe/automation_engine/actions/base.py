@@ -66,6 +66,7 @@ class AutomationAction:
 	action_type: str = ""
 	label: str = ""
 	description: str = ""
+	icon: str | None = None  # frappe-ui icon name, e.g. "lucide-mail"
 	applicable_doctypes: list | None = None  # None = all doctypes
 	requires_document: bool = True
 	# False when executing reaches past the database, so a rollback cannot undo what the step did
@@ -105,6 +106,7 @@ class AutomationAction:
 			"app": self.app,
 			"app_title": _app_title(self.app),
 			"description": self.description,
+			"icon": self.icon or None,
 			"applicable_doctypes": self.applicable_doctypes,
 			"requires_document": self.requires_document,
 			"transactional": self.transactional,
