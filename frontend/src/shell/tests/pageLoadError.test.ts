@@ -149,3 +149,14 @@ describe("a page that fails to load", () => {
 		expect(host.querySelector("[data-page='list']")).not.toBeNull();
 	});
 });
+
+describe("a lazy chunk that a build deleted", () => {
+	it("tells the reader a new version is available, from the shell's own toast host", async () => {
+		await shell();
+
+		window.dispatchEvent(new Event("vite:preloadError"));
+		await settle();
+
+		expect(document.body.textContent).toContain("A new version is available");
+	});
+});
