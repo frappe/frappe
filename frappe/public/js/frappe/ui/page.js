@@ -328,6 +328,13 @@ frappe.ui.Page = class Page {
 		}
 		frappe.ui.button.dress(btn, dress_opts);
 
+		if (opts.tooltip) {
+			btn.attr("title", opts.tooltip).tooltip({
+				delay: { show: 600, hide: 100 },
+				trigger: "hover",
+			});
+		}
+
 		btn.removeClass("hide")
 			.prop("disabled", false)
 			.attr("data-label", opts.label)
@@ -408,7 +415,7 @@ frappe.ui.Page = class Page {
 	}
 
 	clear_action_of(btn) {
-		btn.addClass("hide").unbind("click").removeAttr("data-working-label");
+		btn.addClass("hide").unbind("click").removeAttr("data-working-label").tooltip("dispose");
 	}
 
 	clear_primary_action() {

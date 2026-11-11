@@ -220,6 +220,7 @@ frappe.views.Page = class Page {
 	 * beside them, or a row of the dropdown button named by `group`.
 	 * "breadcrumb" actions are the rows of a crumb after the title, labelled by
 	 * their `group`, for a choice that sits under the page, such as its layout.
+	 * A "primary" action can also carry a `tooltip`.
 	 */
 	set_island_chrome() {
 		const label = this.island_title || __(this.pagedoc.title) || this.pagedoc.name;
@@ -250,7 +251,11 @@ frappe.views.Page = class Page {
 		this.island_actions.forEach((action) => {
 			const click = action.href ? () => window.open(action.href, "_blank") : action.onClick;
 			if (action.placement === "primary") {
-				page.set_primary_action(action.label, click, action.icon);
+				page.set_primary_action(
+					{ label: action.label, tooltip: action.tooltip },
+					click,
+					action.icon
+				);
 			} else if (action.placement === "secondary") {
 				page.set_secondary_action(action.label, click, action.icon);
 			} else if (action.placement === "breadcrumb") {

@@ -259,9 +259,6 @@ const hint = computed(() => {
 			text: __("Your edits make a layout of your own. Everyone else keeps the shared one."),
 		};
 	}
-	if (target && target.includes("/")) {
-		return { icon: "lucide-file-code", text: __("Save writes to {0}", [target]) };
-	}
 	if (target === "site copy" && !["Site copy", "Site", "New"].includes(layout.value?.source)) {
 		return {
 			icon: "lucide-triangle-alert",
@@ -272,6 +269,11 @@ const hint = computed(() => {
 		};
 	}
 	return null;
+});
+
+const save_tooltip = computed(() => {
+	const target = props.workspace.save_target;
+	return target?.includes("/") ? __("Save writes to {0}", [target]) : null;
 });
 
 function reset_layout() {
@@ -378,7 +380,7 @@ watch(
 			  ]
 			: []),
 		...menu.value,
-		{ label: __("Save"), placement: "primary", onClick: save },
+		{ label: __("Save"), placement: "primary", tooltip: save_tooltip.value, onClick: save },
 	],
 	(actions) => emit("actions", actions),
 	{ immediate: true }
