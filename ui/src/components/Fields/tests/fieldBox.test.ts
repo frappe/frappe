@@ -28,6 +28,12 @@ function mount(component: Component, props: Record<string, unknown>) {
 }
 
 describe("FieldBox", () => {
+  it("marks an errored box for the control text rule, and an unmarked box not", () => {
+    expect(mount(FieldBox, { error: true }).firstElementChild!.hasAttribute("data-error")).toBe(true);
+    app!.unmount();
+    expect(mount(FieldBox, {}).firstElementChild!.hasAttribute("data-error")).toBe(false);
+  });
+
   it("takes the hover fill only when interactive", () => {
     expect(mount(FieldBox, { interactive: true }).firstElementChild!.className).toContain(
       "hover:bg-surface-gray-2"
@@ -87,6 +93,15 @@ describe.each([
     expect(input.className).toContain("border-0");
     expect(input.className).toContain("h-7");
     expect(input.getAttribute("aria-invalid")).toBe("true");
+  });
+
+  it("points at the row's message while it holds an error, and at nothing after", () => {
+    const withId = { ...props, panel: true, errorId: "msg-1" };
+    expect(mount(component, withId).querySelector("input")!.getAttribute("aria-describedby")).toBe("msg-1");
+    app!.unmount();
+    const clear = mount(component, { ...withId, error: undefined }).querySelector("input")!;
+    expect(clear.getAttribute("aria-describedby")).toBeNull();
+    expect(clear.getAttribute("aria-invalid")).toBeNull();
   });
 
   it("still draws its label, description and error text outside a panel", () => {

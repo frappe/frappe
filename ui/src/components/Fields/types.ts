@@ -103,6 +103,8 @@ export interface FieldComponentProps {
   error?: FieldError;
   /** Drawn in a panel row: ghost, no label, description or error text; the row draws them. */
   panel?: boolean;
+  /** The id of the row's error message, so a panel control can point at it with `aria-describedby`. */
+  errorId?: string;
   /** The record the control sits on, for the actions an app placed on a Phone or Email field. */
   record?: FieldRecord;
 }
