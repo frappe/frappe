@@ -5,6 +5,7 @@ import json
 
 import frappe
 from frappe.automation_engine import api
+from frappe.automation_engine.actions.base import AutomationAction
 from frappe.automation_engine.registry import clear_automation_cache
 from frappe.automation_engine.runner import RUN
 from frappe.tests import IntegrationTestCase
@@ -21,15 +22,28 @@ def make_automation():
 	return doc.name
 
 
+class IconAction(AutomationAction):
+	action_type = "TestIconAction"
+	label = "Icon action"
+	icon = "lucide-mail"
+
+
+class PlainAction(AutomationAction):
+	action_type = "TestPlainAction"
+	label = "Plain action"
+
+
 class TestApi(IntegrationTestCase):
 	def setUp(self):
 		frappe.set_user("Administrator")
 		clear_automation_cache()
+		frappe.local.automation_actions = None
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		frappe.db.rollback()
 		clear_automation_cache()
+		frappe.local.automation_actions = None
 
 	def test_capabilities_lists_triggers_actions_fields(self):
 		caps = api.get_automation_capabilities("ToDo")
@@ -37,6 +51,23 @@ class TestApi(IntegrationTestCase):
 		action_types = [a["action_type"] for a in caps["actions"]]
 		self.assertIn("SetFieldValue", action_types)
 		self.assertIn("priority", [f["fieldname"] for f in caps["fields"]])
+
+	def test_capabilities_returns_event_and_action_icons(self):
+		hooks = {
+			"automation_events": [{"tests.with_icon": {"icon": "lucide-bell"}, "tests.no_icon": {}}],
+			"automation_actions": [f"{__name__}.IconAction", f"{__name__}.PlainAction"],
+		}
+		with self.patch_hooks(hooks):
+			clear_automation_cache()
+			frappe.local.automation_actions = None
+			caps = api.get_automation_capabilities("ToDo")
+
+		events = {e["value"]: e["icon"] for e in caps["custom_events"]}
+		actions = {a["action_type"]: a["icon"] for a in caps["actions"]}
+		self.assertEqual(events, {"tests.with_icon": "lucide-bell", "tests.no_icon": None})
+		self.assertEqual(actions["TestIconAction"], "lucide-mail")
+		self.assertIsNone(actions["TestPlainAction"])
+		self.assertIsNone(actions["SetFieldValue"])
 
 	def test_capabilities_requires_config_permission(self):
 		user = frappe.get_doc(
