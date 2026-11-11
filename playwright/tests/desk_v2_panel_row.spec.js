@@ -1052,3 +1052,277 @@ test.describe("Desk v2 side panel row: required label gap", () => {
 		expect(cut.starRight).toBeLessThanOrEqual(cut.labelRight + 0.5);
 	});
 });
+
+
+const PICKER_DOCTYPE = "Panel Picker 46992";
+const PICKER_SLUG = "panel-picker-46992";
+
+const PICKERS = [
+	{ fieldname: "p_link", fieldtype: "Link", options: "Role", label: "Link Field" },
+	{ fieldname: "p_type", fieldtype: "Link", options: "DocType", label: "Type Field" },
+	{
+		fieldname: "p_dynamic",
+		fieldtype: "Dynamic Link",
+		options: "p_type",
+		label: "Dynamic Field",
+	},
+	{
+		fieldname: "p_select",
+		fieldtype: "Select",
+		options: "Draft\nOpen\nClosed",
+		label: "Select Field",
+	},
+	{
+		fieldname: "p_auto",
+		fieldtype: "Autocomplete",
+		options: "Alpha\nBeta\nGamma",
+		label: "Autocomplete Field",
+	},
+	{ fieldname: "p_date", fieldtype: "Date", label: "Date Field" },
+	{ fieldname: "p_datetime", fieldtype: "Datetime", label: "Datetime Field" },
+	{ fieldname: "p_time", fieldtype: "Time", label: "Time Field" },
+];
+// Rows the geometry loop skips: a Link whose target gives a mark, and a read-only Select.
+const PICKER_EXTRAS = [
+	{ fieldname: "p_user", fieldtype: "Link", options: "User", label: "User Link" },
+	{
+		fieldname: "p_ro",
+		fieldtype: "Select",
+		options: "Draft\nOpen",
+		label: "Read Only",
+		read_only: 1,
+	},
+];
+const PICKER_VALUES = {
+	p_user: "Administrator",
+	p_ro: "Open",
+	p_link: "System Manager",
+	p_type: "Role",
+	p_dynamic: "System Manager",
+	p_select: "Open",
+	p_auto: "Beta",
+	p_date: "2026-11-11",
+	p_datetime: "2026-11-11 09:30:00",
+	p_time: "09:30:00",
+};
+const PICKER_LAYOUT = [
+	{
+		name: "tab_1",
+		sections: [
+			{
+				name: "pickers",
+				label: "Pickers",
+				columns: [
+					{
+						name: "column_1",
+						fields: [...PICKERS, ...PICKER_EXTRAS].map((p) => p.fieldname),
+					},
+				],
+			},
+		],
+	},
+];
+const POPOVER = "[data-reka-popper-content-wrapper]";
+const DATE_LIKE = ["p_date", "p_datetime", "p_time"];
+
+// The geometry of one picker row. An open picker has an input to type in, or only a trigger (Select).
+function measurePicker(fieldname) {
+	const cell = document.querySelector(`.field-box [data-fieldname="${fieldname}"]`);
+	const box = cell.closest(".field-box");
+	const rect = box.getBoundingClientRect();
+	const column = box.parentElement.getBoundingClientRect();
+	const input = box.querySelector("input");
+	let textLeft;
+	if (input) {
+		const style = getComputedStyle(input);
+		textLeft =
+			input.getBoundingClientRect().left +
+			parseFloat(style.paddingLeft) +
+			parseFloat(style.borderLeftWidth);
+	} else {
+		const scope = box.querySelector('[data-slot="trigger"]') ?? box;
+		const walker = document.createTreeWalker(scope, NodeFilter.SHOW_TEXT);
+		let node = walker.nextNode();
+		while (node && !node.textContent.trim()) node = walker.nextNode();
+		const range = document.createRange();
+		range.selectNodeContents(node);
+		textLeft = range.getBoundingClientRect().left;
+	}
+	return {
+		height: rect.height,
+		width: rect.width,
+		column: column.width,
+		textX: textLeft - rect.left,
+	};
+}
+
+test.describe("Desk v2 side panel picker rows", () => {
+	let name;
+	let emptyName;
+
+	test.beforeAll(async ({ admin }) => {
+		await admin.call("frappe.tests.ui_test_helpers.set_desk_v2", { enabled: 1 });
+		await admin.insert_doc(
+			"DocType",
+			{
+				name: PICKER_DOCTYPE,
+				module: "Core",
+				custom: 1,
+				autoname: "hash",
+				fields: [...PICKERS, ...PICKER_EXTRAS].map(
+					({ label, fieldname, fieldtype, options, read_only }) => ({
+						label,
+						fieldname,
+						fieldtype,
+						options,
+						read_only,
+					})
+				),
+				permissions: [{ role: "System Manager", read: 1, write: 1, create: 1 }],
+			},
+			true
+		);
+		await admin.insert_doc("Form Layout", {
+			dt: PICKER_DOCTYPE,
+			type: "Side Panel",
+			layout: JSON.stringify(PICKER_LAYOUT),
+		});
+		name = (await admin.insert_doc(PICKER_DOCTYPE, PICKER_VALUES)).name;
+		emptyName = (await admin.insert_doc(PICKER_DOCTYPE, {})).name;
+	});
+
+	test.afterAll(async ({ admin }) => {
+		const layouts = await admin.get_list(
+			"Form Layout",
+			["name"],
+			[["dt", "=", PICKER_DOCTYPE]]
+		);
+		for (const { name: layout } of layouts.data ?? []) {
+			await admin.remove_doc("Form Layout", layout, true);
+		}
+		for (const doc of [name, emptyName]) await admin.remove_doc(PICKER_DOCTYPE, doc, true);
+		await admin.remove_doc("DocType", PICKER_DOCTYPE, true);
+		await admin.call("frappe.tests.ui_test_helpers.set_desk_v2", { enabled: 0 });
+	});
+
+	const cell = (page, fieldname) => page.locator(`.field-box [data-fieldname="${fieldname}"]`);
+
+	test.beforeEach(async ({ page }) => {
+		await page.goto(`/apps/desk/${PICKER_SLUG}/${name}`);
+		await expect(cell(page, "p_link")).toBeVisible();
+	});
+
+	for (const { fieldname, label } of PICKERS) {
+		test(`${label} (${fieldname}) keeps one box and opens its popover on the first click`, async ({
+			page,
+		}) => {
+			await cell(page, fieldname).scrollIntoViewIfNeeded();
+			const rest = await page.evaluate(measurePicker, fieldname);
+			await cell(page, fieldname).hover();
+			const hover = await page.evaluate(measurePicker, fieldname);
+			await cell(page, fieldname).click();
+			await expect(page.locator(POPOVER)).toBeVisible();
+			const focus = await page.evaluate(measurePicker, fieldname);
+
+			for (const state of [rest, hover, focus]) {
+				expect(state.height).toBeCloseTo(28, 1);
+				expect(state.column).toBeGreaterThan(150);
+				expect(state.width).toBeCloseTo(state.column, 1);
+				expect(state.textX).toBeCloseTo(8, 0);
+			}
+			const box = await page
+				.locator(`.field-box:has([data-fieldname="${fieldname}"])`)
+				.boundingBox();
+			const popover = await page.locator(POPOVER).boundingBox();
+			// A date picker keeps its own width; the page edge may shift any popover left.
+			expect(popover.x).toBeGreaterThanOrEqual(box.x - 12);
+			expect(popover.x).toBeLessThanOrEqual(box.x + 1);
+			if (!DATE_LIKE.includes(fieldname)) {
+				expect(popover.width).toBeGreaterThanOrEqual(box.width - 1);
+			}
+		});
+	}
+
+	test("a Dynamic Link with no doctype stays closed and does not throw", async ({ page }) => {
+		const errors = [];
+		page.on("pageerror", (error) => errors.push(error.message));
+		await page.goto(`/apps/desk/${PICKER_SLUG}/${emptyName}`);
+		await expect(cell(page, "p_dynamic")).toBeVisible();
+		await cell(page, "p_dynamic").click();
+		await expect(page.locator(POPOVER)).toHaveCount(0);
+		expect(errors).toEqual([]);
+	});
+
+	test("Esc and a press outside close the open popover", async ({ page }) => {
+		for (const fieldname of ["p_select", "p_link", "p_date"]) {
+			for (const close of [
+				() => page.keyboard.press("Escape"),
+				() => page.mouse.click(5, 450),
+			]) {
+				await cell(page, fieldname).click();
+				await expect(page.locator(POPOVER)).toBeVisible();
+				await close();
+				await expect(page.locator(POPOVER)).toHaveCount(0);
+			}
+		}
+	});
+
+	test("a read-only picker row opens nothing", async ({ page }) => {
+		await cell(page, "p_ro").click();
+		await expect(page.locator(POPOVER)).toHaveCount(0);
+		await expect(
+			page.locator(
+				`.field-box [data-fieldname="p_ro"] input, .field-box [data-fieldname="p_ro"] [data-slot="trigger"]`
+			)
+		).toHaveCount(0);
+	});
+
+	test("a Link's mark hides while typing and returns, and sits 6px before the text", async ({
+		page,
+	}) => {
+		const state = () =>
+			page.evaluate(() => {
+				const box = document
+					.querySelector('.field-box [data-fieldname="p_user"]')
+					.closest(".field-box");
+				const mark = box.querySelector("[data-slot=link-mark]");
+				const input = box.querySelector("input");
+				const origin = box.getBoundingClientRect().left;
+				let text;
+				if (input) {
+					const style = getComputedStyle(input);
+					text =
+						input.getBoundingClientRect().left +
+						parseFloat(style.paddingLeft) +
+						parseFloat(style.borderLeftWidth);
+				} else {
+					const range = document.createRange();
+					range.selectNodeContents(box.querySelector("span.truncate"));
+					text = range.getBoundingClientRect().left;
+				}
+				return {
+					height: box.getBoundingClientRect().height,
+					markRight: mark && mark.getBoundingClientRect().right - origin,
+					markX: mark && mark.getBoundingClientRect().left - origin,
+					textX: text - origin,
+				};
+			});
+		const rest = await state();
+		await cell(page, "p_user").click();
+		await expect(page.locator('.field-box [data-fieldname="p_user"] input')).toBeFocused();
+		const open = await state();
+		await page.keyboard.type("Gue");
+		const typing = await state();
+		await page.keyboard.press("Escape");
+		const back = await state();
+
+		for (const shown of [rest, open, back]) {
+			expect(shown.height).toBeCloseTo(28, 1);
+			expect(shown.markX).toBeCloseTo(8, 0);
+			expect(shown.textX - shown.markRight).toBeCloseTo(6, 0);
+		}
+		expect(typing.markX).toBeNull();
+		expect(typing.textX).toBeCloseTo(8, 0);
+		expect(typing.height).toBeCloseTo(28, 1);
+	});
+});

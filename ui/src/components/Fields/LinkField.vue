@@ -32,17 +32,18 @@
 		:placeholder="field.placeholder"
 		:required="field.reqd"
 		:error="error"
+		:panel="panel"
 		:href="record.href.value"
 		:creatable="linkCreate.creatable.value"
 		@create="linkCreate.create"
 		@redirect="record.open"
 	>
-		<template v-if="field.description && !error?.length" #description>
+		<template v-if="!panel && field.description && !error?.length" #description>
 			<FieldDescription :html="field.description" />
 		</template>
 		<template #prefix>
 			<LinkMark
-				class="me-1.5"
+				:class="panel ? 'me-0.5' : 'me-1.5'"
 				:source="field.linkMark"
 				:value="mark"
 				:text="title ?? value"
@@ -76,7 +77,7 @@ const emit = defineEmits<FieldComponentEmits>();
 
 const titles = inject(LinkTitlesKey, null);
 const link = ref<LinkExposed | null>(null);
-const open = ref(false);
+const open = ref(!!props.openPicker);
 
 // `name` stores the ID, so show the ID, not the title.
 const isName = computed(() => props.field.fieldname === "name");

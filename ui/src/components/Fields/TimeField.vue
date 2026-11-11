@@ -1,29 +1,31 @@
 <template>
 	<TimePicker
 		v-model="value"
+		v-model:open="open"
 		:format="formats.time"
-		:label="field.label"
-		:description="field.description"
+		v-bind="frame"
 		:placeholder="field.placeholder"
 		:required="field.reqd"
-		:error="error"
 		:disabled="field.readOnly"
 	>
-		<template v-if="field.description && !error?.length" #description>
+		<template v-if="!panel && field.description && !error?.length" #description>
 			<FieldDescription :html="field.description" />
 		</template>
 	</TimePicker>
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { TimePicker } from "frappe-ui";
 import { dateTimeFormats } from "../FormLayout/formatDefaults";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
 import FieldDescription from "./FieldDescription.vue";
+import { usePickerFrame } from "./inputFrame";
 
 const props = defineProps<FieldComponentProps>();
 const emit = defineEmits<FieldComponentEmits>();
+const frame = usePickerFrame(props);
+const open = ref(!!props.openPicker);
 
 const formats = computed(dateTimeFormats);
 

@@ -46,6 +46,32 @@ defineProps<{
 .field-box :deep(textarea[data-slot="control"]) {
 	@apply max-h-32 min-h-7 resize-none overflow-y-auto px-2 py-1 text-base leading-5;
 }
+/* Ghost pickers (Select, Combobox) paint a gray fill and focus ring on their trigger; the box owns both. */
+.field-box :deep([data-slot="trigger"]) {
+	background-color: transparent;
+	border-width: 0;
+	box-shadow: none;
+	outline: none;
+	transition: none;
+	/* An inline trigger on a text baseline adds a fraction of a pixel under a mark. */
+	vertical-align: top;
+}
+/* Link's input drops 1px on focus unless its line is the row's 28. */
+.field-box :deep(input[data-slot="input"]) {
+	line-height: 1.75rem;
+}
+.field-box :deep(input[data-slot="input"])::placeholder {
+	color: var(--ink-gray-4);
+}
+/* A chevron shows while the row has focus or its popover is open; it keeps its space, so the text never moves. */
+.field-box :deep([data-slot="chevron"]),
+.field-box :deep([data-slot="chevron"] span) {
+	color: var(--ink-gray-4);
+}
+.field-box:not(:focus-within):not(:has([data-slot="trigger"][data-state="open"]))
+	:deep([data-slot="chevron"]) {
+	visibility: hidden;
+}
 .field-box[data-error] :deep([data-slot="control"]) {
 	color: var(--ink-red-6);
 }

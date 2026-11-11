@@ -4,16 +4,19 @@
 		v-model="model"
 		v-model:open="open"
 		class="group !gap-1 [&_[data-slot=input]:disabled]:text-ink-gray-4"
-		:label="label"
-		:description="description"
-		:error="error"
+		:class="{ 'w-full': panel }"
+		:variant="panel ? 'ghost' : undefined"
+		:size="panel ? 'sm' : undefined"
+		:label="panel ? undefined : label"
+		:description="panel ? undefined : description"
+		:error="panel ? undefined : error"
 		:required="required"
 		:options="linkOptions"
 		:filterable="!idLabels"
 		:disabled="disabled"
 		:placeholder="placeholder ?? `Search ${doctype.toLowerCase()}`"
 		:loading="options.loading.value && !options.data.value"
-		@input="handleInputChange(($event.target as HTMLInputElement).value)"
+		@input="onInput(($event.target as HTMLInputElement).value)"
 		@focus="showAllOptions"
 	>
 		<template v-for="(_, name) in forwardedSlots" #[name]="slotProps" :key="name">
@@ -113,11 +116,17 @@ const comboboxRef = ref<{ focus: () => void } | null>(null);
 
 const emit = defineEmits<LinkEmits>();
 
+// A panel row hides the mark while the user types, so the text starts at the box's padding.
+const typing = ref(false);
+
 const slots = useSlots();
 
 const forwardedSlots = computed(() =>
 	Object.fromEntries(
-		Object.entries(slots).filter(([name]) => name !== "suffix" && name !== "item-create")
+		Object.entries(slots).filter(
+			([name]) =>
+				name !== "suffix" && name !== "item-create" && !(name === "prefix" && typing.value)
+		)
 	)
 );
 
@@ -182,13 +191,26 @@ const handleInputChange = debounce((value: string) => {
 	loadOptions(value || "");
 }, 300);
 
+function onInput(value: string) {
+	typing.value = !!props.panel;
+	handleInputChange(value);
+}
+
 const clearValue = () => {
 	model.value = null;
 	open.value = false;
 	comboboxRef.value?.focus();
 };
 
-watch(open, (isOpen) => isOpen && showAllOptions(), { immediate: true });
+watch(
+	open,
+	(isOpen) => {
+		if (isOpen) showAllOptions();
+		else typing.value = false;
+	},
+	{ immediate: true }
+);
+watch(model, () => (typing.value = false));
 
 watch(
 	[() => props.doctype, () => props.filters],

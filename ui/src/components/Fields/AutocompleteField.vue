@@ -1,16 +1,15 @@
 <template>
 	<Combobox
 		v-model="value"
+		v-model:open="open"
 		:options="options"
-		:label="field.label"
-		:description="field.description"
+		v-bind="frame"
 		:placeholder="field.placeholder"
 		:required="field.reqd"
-		:error="error"
 		:disabled="field.readOnly"
 		:openOnClick="true"
 	>
-		<template v-if="field.description && !error?.length" #description>
+		<template v-if="!panel && field.description && !error?.length" #description>
 			<FieldDescription :html="field.description" />
 		</template>
 	</Combobox>
@@ -19,14 +18,17 @@
 <script setup lang="ts">
 // frappe-ui `Combobox` over newline-joined `field.options`. Combobox emits only
 // `update:modelValue`; a selection is a commit, so we re-emit `change` too.
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { Combobox } from "frappe-ui";
 import { fieldChoices } from "./choices";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
 import FieldDescription from "./FieldDescription.vue";
+import { usePickerFrame } from "./inputFrame";
 
 const props = defineProps<FieldComponentProps>();
 const emit = defineEmits<FieldComponentEmits>();
+const frame = usePickerFrame(props);
+const open = ref(!!props.openPicker);
 
 const value = computed<string | null>({
 	get: () => props.modelValue ?? null,

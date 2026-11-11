@@ -14,3 +14,27 @@ export function useInputFrame(props: FieldComponentProps) {
       : { label: props.field.label, description: props.field.description, error: props.error }
   );
 }
+
+interface PickerFrameOptions {
+  /** Turns the field's description into what the picker shows; the field's own by default. */
+  describe?: (description?: string) => string | undefined;
+}
+
+/**
+ * The input frame of a picker; in a panel row its popover also opens below, left-aligned, and the control fills the box.
+ * It has no `aria-invalid`: frappe-ui's pickers bind their own from `error`, which a panel row withholds.
+ */
+export function usePickerFrame(props: FieldComponentProps, options: PickerFrameOptions = {}) {
+  const { describe = (description) => description } = options;
+  const frame = useInputFrame(props);
+  return computed(() => {
+    if (!props.panel) return { ...frame.value, description: describe(props.field.description) };
+    return {
+      variant: "ghost",
+      size: "sm",
+      side: "bottom",
+      align: "start",
+      class: "w-full",
+    };
+  });
+}
