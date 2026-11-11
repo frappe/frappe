@@ -48,6 +48,39 @@ it("opens the picker on the clicked chip's tag, scrolled to it and highlighted",
 	expect(root.querySelector("[data-tags] .lucide-x")).toBeNull();
 });
 
+it("moves the open picker's highlight to another clicked chip", async () => {
+	const root = await openOnZebra();
+
+	root.querySelector<HTMLElement>('[data-tag-chip="alpha"]')!.click();
+
+	await vi.waitFor(() => expect(highlighted()).toContain("alpha"));
+});
+
+it("lets the user's own key take the highlight from the chip's tag", async () => {
+	await openOnZebra();
+	const key = new KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true });
+	Object.defineProperty(key, "isTrusted", { value: true });
+
+	document.querySelector("[role=combobox], input")!.dispatchEvent(key);
+
+	await vi.waitFor(() => expect(highlighted()).toContain("india"));
+	await new Promise((resolve) => setTimeout(resolve, 50));
+	expect(highlighted()).toContain("india");
+});
+
+async function openOnZebra() {
+	api.listDocuments.mockResolvedValue({ data: [...TAGS].sort().map((name) => ({ name, color: "Gray" })) });
+	vi.spyOn(Element.prototype, "scrollIntoView").mockImplementation(() => {});
+	const root = mountIdentity({ assignments: [], shares: [], tags: TAGS, users: {}, permissions: { write: 1 } });
+	root.querySelector<HTMLElement>('[data-tag-chip="zebra"]')!.click();
+	await vi.waitFor(() => expect(highlighted()).toContain("zebra"));
+	return root;
+}
+
+function highlighted() {
+	return document.querySelector('[role="option"][data-highlighted]')?.textContent?.trim();
+}
+
 function mountIdentity(info: DocInfo) {
 	const context = {
 		doctype: "ToDo",

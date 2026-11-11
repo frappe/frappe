@@ -25,14 +25,16 @@
 		data-tags
 	>
 		<template v-for="tag in split.shown" :key="tag">
-			<!-- Stopped, or the open picker's outside-press closes it before this click moves it. -->
+			<!-- Stopped and kept unfocused, or the open picker's outside press or focus-out closes it first. -->
 			<button
 				v-if="canWrite"
 				type="button"
 				class="min-w-0 rounded-full focus-visible:outline-none focus-visible:ring focus-visible:ring-outline-gray-3"
 				aria-haspopup="listbox"
+				:aria-label="__('Edit tags: {0}', [tag])"
 				:data-tag-chip="tag"
 				@pointerdown.stop
+				@mousedown.prevent
 				@click="picker?.openOn(tag)"
 			>
 				<TagChip :tag="tag" />

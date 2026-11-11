@@ -10,9 +10,9 @@
 		@select="pickColor"
 		@close="pickColor()"
 	>
-		<!-- Bound only when something else opens it: an undefined boolean prop reads as false. -->
+		<!-- Bound once something sets it: an undefined boolean prop reads as false. -->
 		<MultiSelect
-			v-bind="anchored || shortcut ? { open } : {}"
+			v-bind="open === undefined ? {} : { open }"
 			:modelValue="session.tags.value"
 			v-model:query="query"
 			:options="options"
@@ -24,7 +24,7 @@
 			@update:modelValue="onPick"
 			@update:query="searchSoon"
 			@update:open="(opened: boolean) => (open = opened)"
-			@highlight="onHighlight"
+			@highlight="steerHighlight()"
 		>
 			<template #trigger>
 				<!-- It only positions the popover; taking clicks would swallow the trigger it covers. -->
@@ -166,7 +166,7 @@ if (props.shortcut) {
 	});
 }
 
-useEventListener(document, ["keydown", "pointermove"], releaseTarget, { capture: true });
+useEventListener(document, ["keydown", "pointermove"], steerHighlight, { capture: true });
 
 // A refit or a closing panel can drop the picker mid-session; its ticks still save.
 onBeforeUnmount(() => {
@@ -178,31 +178,32 @@ onBeforeUnmount(() => {
 defineExpose({ openOn });
 
 /** Opens the picker scrolled to `tag`, with the highlight on it. */
-function openOn(tag: string) {
+async function openOn(tag: string) {
+	if (pending.value) await pickColor();
 	target.value = tag;
-	if (open.value) highlightTarget();
-	else open.value = true;
+	if (!open.value) return void (open.value = true);
+	if (query.value) {
+		query.value = "";
+		search("");
+	}
+	steerHighlight();
 }
 
-// reka moves the highlight to the first ticked row whenever the options change.
-function onHighlight(option: { value: string | number } | null) {
-	if (target.value && option?.value !== target.value) highlightTarget();
-}
-
-// The user's own key or hover takes the highlight back; reka's synthetic one does not.
-function releaseTarget(event: Event) {
-	const onRow = (event.target as Element | null)?.closest?.('[role="option"]');
-	if (event.isTrusted && (event.type === "keydown" || onRow)) target.value = "";
-}
-
-// reka highlights a row on its pointermove and takes no value from outside MultiSelect.
-function highlightTarget() {
-	const row = [...document.querySelectorAll<HTMLElement>("[data-recolour]")]
-		.find((button) => button.dataset.recolour === target.value)
+// MultiSelect takes no highlighted value (frappe/frappe-ui#1351) and reka resets it on each options
+// change, so a fake hover keeps it on the target until the user's own key or row hover.
+function steerHighlight(event?: Event) {
+	if (!target.value || (event && !event.isTrusted)) return;
+	if (event) {
+		const onRow = (event.target as Element | null)?.closest?.('[role="option"]');
+		if (event.type === "keydown" || onRow) target.value = "";
+		return;
+	}
+	const dot = `[data-recolour="${CSS.escape(target.value)}"]`;
+	const row = document
+		.querySelector(`[data-slot="content"]:has(.tag-picker-marker) ${dot}`)
 		?.closest<HTMLElement>('[role="option"]');
-	if (!row) return;
-	row.dispatchEvent(new PointerEvent("pointermove", { bubbles: true }));
-	row.scrollIntoView({ block: "nearest" });
+	row?.dispatchEvent(new PointerEvent("pointermove", { bubbles: true }));
+	row?.scrollIntoView({ block: "nearest" });
 }
 
 function onPick(picked: (string | number)[]) {
@@ -233,8 +234,8 @@ async function pickColor(color?: string) {
 </script>
 
 <style>
-/* A fixed width keeps the popover off the chips row; checked rows stay plain.
-   min-width 0 drops frappe-ui's trigger-width floor, which is the whole tags row here. */
+/* A fixed width, as in Helpdesk; checked rows stay plain.
+   min-width 0 drops frappe-ui's trigger-width floor, which an anchored picker's overlay can exceed. */
 [data-slot="content"][data-selection]:has(.tag-picker-marker) {
 	width: 13rem;
 	min-width: 0;
