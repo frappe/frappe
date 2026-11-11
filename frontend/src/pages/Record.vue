@@ -233,6 +233,7 @@ import {
 	stripTags,
 } from "./record/saveResponse";
 import { otherStaleRecord, showStaleRecord } from "./record/staleRecord";
+import { recordTitle } from "@/recordTitle";
 import PageFrame from "@/shell/PageFrame.vue";
 import { openArgumentStep } from "@/shell/palette";
 import { failedState, type PageStateValue } from "@/shell/pageState";
@@ -310,8 +311,9 @@ watch(
 watch(controller, (created, _, onCleanup) => created && onCleanup(registerTabRows(created)));
 
 watch(
-	() => saved.value.name === docname.value && saved.value[meta.value?.title_field],
-	(title) => title && recentVisits.retitle(route.path, String(title))
+	() =>
+		saved.value.name === docname.value && recordTitle(meta.value, saved.value, docname.value),
+	(title) => title && recentVisits.retitle(route.path, title)
 );
 
 // Off the sidecar, like the people rows: a favourite is never part of the draft.
@@ -422,13 +424,9 @@ provide(
 provideRecordCommits(() => controller.value);
 const buttonClick = buttonClicks(() => controller.value);
 
-function recordTitle(): string {
-	return String(doc.value[meta.value?.title_field] || docname.value);
-}
-
 // The row's built-ins, re-read on every resolve so the title crumb tracks the draft.
 function headerBuiltins(): HeaderItem[] {
-	const title = recordTitle();
+	const title = recordTitle(meta.value, doc.value, docname.value);
 	const single = addresses.isSingle(doctype.value!);
 	const items: HeaderItem[] = [
 		// A single is its own list: one crumb, no link.
@@ -440,8 +438,7 @@ function headerBuiltins(): HeaderItem[] {
 			href: single ? undefined : router.resolve(routeFor(doctype.value!)).path,
 		},
 	];
-	if (!single)
-		items.push({ name: "record", label: String(title), zone: "left", display: "crumb" });
+	if (!single) items.push({ name: "record", label: title, zone: "left", display: "crumb" });
 	items.push(
 		{
 			name: "favourite",
@@ -903,7 +900,7 @@ function buildController({ visit, target, pointer, details, panel, view }: Openi
 			docstatusChoice = await confirmDocstatus(page, act, {
 				doctype: page.doctype,
 				name: page.docname,
-				title: recordTitle(),
+				title: recordTitle(meta.value, doc.value, docname.value),
 			});
 			return docstatusChoice !== null;
 		},

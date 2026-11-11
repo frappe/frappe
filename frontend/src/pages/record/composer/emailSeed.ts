@@ -20,6 +20,7 @@ import {
 } from "./emailDraft";
 import { prefillEmail, replyFill } from "./emailPrefill";
 import { quoteEmail } from "./emailQuote";
+import { recordTitle } from "@/recordTitle";
 
 type LoadedEmail = { data: EmailActivity["data"]; timestamp?: string };
 
@@ -133,6 +134,5 @@ function loadedEmail(page: RecordPageApi, key: string): LoadedEmail | undefined 
 
 /** The record's title as the header shows it: the title field, else the name. */
 export function titleOf(page: RecordPageApi) {
-	const field = page.meta?.title_field;
-	return String((field && page.doc[field]) || page.docname);
+	return recordTitle(page.meta, page.doc, page.docname);
 }
