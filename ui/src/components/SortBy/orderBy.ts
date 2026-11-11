@@ -6,7 +6,7 @@ export function parseOrderBy(orderBy: string): Sort[] {
   if (!orderBy.trim()) return [];
   return orderBy.split(",").map((rule) => {
     const [fieldname, direction] = rule.trim().split(/\s+/);
-    return { fieldname, direction: direction === "desc" ? "desc" : "asc" };
+    return { fieldname, direction: direction?.toLowerCase() === "desc" ? "desc" : "asc" };
   });
 }
 
