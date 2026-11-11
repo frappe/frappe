@@ -1,6 +1,12 @@
 <!-- The colour step: the 13 named colours; the tag's colour shows in the header. -->
 <template>
-	<Popover :open="open" trigger="manual" side="left" align="start" @update:open="onOpen">
+	<Popover
+		:open="open"
+		trigger="manual"
+		:side="vertical ? 'left' : 'bottom'"
+		:align="vertical ? 'start' : 'end'"
+		@update:open="onOpen"
+	>
 		<template #trigger><slot /></template>
 		<div class="flex w-52 flex-col" data-tag-colors>
 			<p
@@ -44,7 +50,7 @@ import { Popover } from "frappe-ui";
 import { __ } from "@/i18n";
 import { colorClass, TAG_COLOR_NAMES } from "@/tagColors";
 
-const props = defineProps<{ open: boolean; tag: string; current?: string }>();
+const props = defineProps<{ open: boolean; tag: string; current?: string; vertical?: boolean }>();
 const emit = defineEmits<{ select: [color: string]; close: [] }>();
 
 const index = ref(0);

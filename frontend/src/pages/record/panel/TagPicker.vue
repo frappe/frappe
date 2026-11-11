@@ -5,6 +5,7 @@
 		:open="Boolean(pending)"
 		:tag="pending"
 		:current="recolouring ? tagColorName(recolouring) : undefined"
+		:vertical="vertical"
 		@select="pickColor"
 		@close="pickColor()"
 	>
@@ -18,6 +19,7 @@
 			:filterable="false"
 			placeholder="Search or create tags"
 			:side="vertical ? 'left' : 'bottom'"
+			:align="vertical ? 'start' : 'end'"
 			@update:modelValue="onPick"
 			@update:query="searchSoon"
 			@update:open="(opened: boolean) => (open = opened)"
