@@ -23,7 +23,10 @@
 		:creatable="linkCreate.creatable.value"
 		@create="linkCreate.create"
 	>
-		<template v-if="!panel && targetDoctype && field.description && !error?.length" #description>
+		<template
+			v-if="!panel && targetDoctype && field.description && !error?.length"
+			#description
+		>
 			<FieldDescription :html="field.description" />
 		</template>
 		<template #create="{ query }">{{ linkCreate.label(query) }}</template>

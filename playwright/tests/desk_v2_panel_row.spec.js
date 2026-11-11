@@ -593,3 +593,337 @@ test.describe("Desk v2 side panel row: one-click fields", () => {
 		await expect(row(page, "f_color")).toContainText("#ce2c2c");
 	});
 });
+
+const GROW = "Panel Grow 46994";
+const GROW_SLUG = "panel-grow-46994";
+const GROW_TAG = "Panel Grow Tag 46994";
+const TAGS = ["Alpha", "Beta", "Gamma", "A longer tag name", "Delta", "Epsilon", "Zeta"];
+const GROW_FIELDS = [
+	{ fieldname: "f_small", fieldtype: "Small Text", label: "Small Field" },
+	{ fieldname: "f_text", fieldtype: "Text", label: "Text Field" },
+	{ fieldname: "f_long", fieldtype: "Long Text", label: "Long Field" },
+	{
+		fieldname: "f_hint",
+		fieldtype: "Small Text",
+		label: "Notes",
+		placeholder: "Anything to add?",
+	},
+	{ fieldname: "f_tags", fieldtype: "Table MultiSelect", label: "Tags", options: GROW_TAG },
+	{ fieldname: "f_code", fieldtype: "Code", label: "Code Field" },
+	{ fieldname: "f_data", fieldtype: "Data", label: "Data Field" },
+	...Array.from({ length: 22 }, (_, i) => ({
+		fieldname: `fill_${i}`,
+		fieldtype: "Data",
+		label: `Filler ${i}`,
+	})),
+];
+const SECTIONS = [
+	{ name: "s1", label: "Fields A", fields: ["f_small", "f_text", "f_long", "f_hint"] },
+	{
+		name: "s2",
+		label: "Fields B",
+		fields: ["f_tags", "f_code", "f_data", ...GROW_FIELDS.slice(7).map((f) => f.fieldname)],
+	},
+];
+const layoutOf = (sections) => [
+	{
+		name: "tab_1",
+		sections: sections.map(({ name, label, fields }) => ({
+			name,
+			label,
+			columns: [{ name: `${name}_c`, fields }],
+		})),
+	},
+];
+const lines = (count) => Array.from({ length: count }, (_, i) => `line ${i + 1}`).join("\n");
+
+// The box of one panel row, read in the page: its height, and its label's and its neighbours' tops.
+function boxOf(fieldname) {
+	const box = document
+		.querySelector(`.field-box [data-fieldname="${fieldname}"]`)
+		.closest(".field-box");
+	const rect = box.getBoundingClientRect();
+	const boxes = [...document.querySelectorAll(".field-box")];
+	return {
+		height: rect.height,
+		labelTop: box.parentElement.previousElementSibling.getBoundingClientRect().top - rect.top,
+		above: boxes
+			.slice(0, boxes.indexOf(box))
+			.map((other) => other.getBoundingClientRect().top),
+	};
+}
+
+test.describe("Desk v2 side panel rows that grow", () => {
+	let filled, empty, scratch;
+	const grow = (page, fieldname) => page.locator(`.field-box [data-fieldname="${fieldname}"]`);
+	const area = (page, fieldname) => grow(page, fieldname).locator("textarea");
+	const open = async (page, name) => {
+		await page.goto(`/apps/desk/${GROW_SLUG}/${name}`);
+		await expect(grow(page, "f_small")).toBeVisible();
+	};
+
+	test.beforeAll(async ({ admin }) => {
+		await admin.call("frappe.tests.ui_test_helpers.set_desk_v2", { enabled: 1 });
+		const permissions = [{ role: "System Manager", read: 1, write: 1, create: 1 }];
+		await admin.insert_doc(
+			"DocType",
+			{
+				name: "Tag 46994",
+				module: "Core",
+				custom: 1,
+				autoname: "field:title",
+				fields: [
+					{ fieldname: "title", fieldtype: "Data", label: "Title", unique: 1, reqd: 1 },
+				],
+				permissions,
+			},
+			true
+		);
+		for (const title of TAGS) await admin.insert_doc("Tag 46994", { title }, true);
+		await admin.insert_doc(
+			"DocType",
+			{
+				name: GROW_TAG,
+				module: "Core",
+				custom: 1,
+				istable: 1,
+				fields: [
+					{
+						fieldname: "tag",
+						fieldtype: "Link",
+						options: "Tag 46994",
+						label: "Tag",
+						in_list_view: 1,
+					},
+				],
+			},
+			true
+		);
+		await admin.insert_doc(
+			"DocType",
+			{
+				name: GROW,
+				module: "Core",
+				custom: 1,
+				autoname: "hash",
+				fields: GROW_FIELDS.map(
+					({ label, fieldname, fieldtype, options, placeholder }) => ({
+						label,
+						fieldname,
+						fieldtype,
+						options,
+						placeholder,
+					})
+				),
+				permissions,
+			},
+			true
+		);
+		await admin.insert_doc("Form Layout", {
+			dt: GROW,
+			type: "Side Panel",
+			layout: JSON.stringify(layoutOf(SECTIONS)),
+		});
+		// Details draws every field but Code, so Code is the heavy field that edits in place.
+		await admin.insert_doc("Form Layout", {
+			dt: GROW,
+			type: "Details",
+			layout: JSON.stringify(
+				layoutOf([
+					{
+						name: "d1",
+						label: "Main",
+						fields: ["f_small", "f_text", "f_long", "f_hint", "f_tags", "f_data"],
+					},
+				])
+			),
+		});
+		filled = (
+			await admin.insert_doc(GROW, {
+				f_small:
+					"A long sentence that wraps over a few lines inside the narrow value column of the side panel row for the walk.",
+				f_text: lines(3),
+				f_long: lines(9),
+				f_tags: TAGS.slice(0, 5).map((tag) => ({ tag })),
+				f_code: "print('hi')",
+			})
+		).name;
+		empty = (await admin.insert_doc(GROW, { f_data: "empty" })).name;
+		scratch = (await admin.insert_doc(GROW, { f_data: "scratch" })).name;
+	});
+
+	test.afterAll(async ({ admin }) => {
+		const layouts = await admin.get_list("Form Layout", ["name"], [["dt", "=", GROW]]);
+		for (const { name } of layouts.data ?? [])
+			await admin.remove_doc("Form Layout", name, true);
+		for (const name of [filled, empty, scratch]) await admin.remove_doc(GROW, name, true);
+		await admin.remove_doc("DocType", GROW, true);
+		await admin.remove_doc("DocType", GROW_TAG, true);
+		for (const title of TAGS) await admin.remove_doc("Tag 46994", title, true);
+		await admin.remove_doc("DocType", "Tag 46994", true);
+		await admin.call("frappe.tests.ui_test_helpers.set_desk_v2", { enabled: 0 });
+	});
+
+	for (const fieldname of ["f_small", "f_text", "f_long"]) {
+		test(`an empty ${fieldname} row is 28 high in rest, hover and focus, and the label stays on the first line`, async ({
+			page,
+		}) => {
+			await open(page, empty);
+			const rest = await page.evaluate(boxOf, fieldname);
+			await grow(page, fieldname).hover();
+			const hover = await page.evaluate(boxOf, fieldname);
+			await grow(page, fieldname).click();
+			await expect(area(page, fieldname)).toBeFocused();
+			const focus = await page.evaluate(boxOf, fieldname);
+
+			for (const state of [rest, hover, focus]) {
+				expect(state.height).toBeCloseTo(28, 1);
+				expect(state.labelTop).toBeCloseTo(0, 1);
+				state.above.forEach((top, i) => expect(top).toBeCloseTo(rest.above[i], 1));
+			}
+		});
+	}
+
+	test("typing grows the row 20 per line up to 128, then scrolls", async ({ page }) => {
+		await open(page, empty);
+		await grow(page, "f_text").click();
+		const text = area(page, "f_text");
+		await expect(text).toBeFocused();
+		const rest = await page.evaluate(boxOf, "f_text");
+		const heights = [];
+		for (let line = 1; line <= 8; line++) {
+			if (line > 1) await page.keyboard.press("Enter");
+			await page.keyboard.type(`line ${line}`);
+			const state = await page.evaluate(boxOf, "f_text");
+			heights.push(state.height);
+			expect(state.labelTop).toBeCloseTo(0, 1);
+			state.above.forEach((top, i) => expect(top).toBeCloseTo(rest.above[i], 1));
+		}
+
+		expect(heights.map(Math.round)).toEqual([28, 48, 68, 88, 108, 128, 128, 128]);
+		expect(await text.evaluate((el) => el.scrollHeight > el.clientHeight)).toBe(true);
+	});
+
+	for (const [fieldname, height] of [
+		["f_small", 0],
+		["f_text", 68],
+		["f_long", 128],
+	]) {
+		test(`a filled ${fieldname} row keeps its height when it opens`, async ({ page }) => {
+			await open(page, filled);
+			await grow(page, fieldname).scrollIntoViewIfNeeded();
+			const rest = await page.evaluate(boxOf, fieldname);
+			await grow(page, fieldname).click();
+			await expect(area(page, fieldname)).toBeFocused();
+			const opened = await page.evaluate(boxOf, fieldname);
+
+			expect(opened.height).toBeCloseTo(rest.height, 1);
+			expect(opened.labelTop).toBeCloseTo(0, 1);
+			opened.above.forEach((top, i) => expect(top).toBeCloseTo(rest.above[i], 1));
+			if (height) expect(rest.height).toBeCloseTo(height, 1);
+			else expect(rest.height).toBeGreaterThan(28);
+			expect(rest.height).toBeLessThanOrEqual(128);
+		});
+	}
+
+	test("Tab commits the text and closes the row; Esc cancels it", async ({ page }) => {
+		await open(page, scratch);
+		await grow(page, "f_hint").click();
+		await expect(area(page, "f_hint")).toHaveAttribute("placeholder", "Anything to add?");
+		await page.keyboard.type("first");
+		await page.keyboard.press("Enter");
+		await page.keyboard.type("second");
+		await page.keyboard.press("Tab");
+		await expect(page.locator(".field-box textarea")).toHaveCount(0);
+		await expect(grow(page, "f_hint")).toContainText("first");
+		await expect(grow(page, "f_hint")).toContainText("second");
+
+		await grow(page, "f_hint").click();
+		await page.keyboard.type(" gone");
+		await page.keyboard.press("Escape");
+		await expect(page.locator(".field-box textarea")).toHaveCount(0);
+		await expect(grow(page, "f_hint")).not.toContainText("gone");
+		await expect(grow(page, "f_hint")).toContainText("second");
+	});
+
+	test("a Table MultiSelect row keeps its height and its chips in place when it opens", async ({
+		page,
+	}) => {
+		await open(page, filled);
+		await grow(page, "f_tags").scrollIntoViewIfNeeded();
+		const chips = () =>
+			grow(page, "f_tags").evaluate((cell) =>
+				[...cell.querySelectorAll("span.inline-flex.h-5")].map((chip) => {
+					const { x, y, width } = chip.getBoundingClientRect();
+					return [x, y, width].map(Math.round);
+				})
+			);
+		const rest = await page.evaluate(boxOf, "f_tags");
+		const restChips = await chips();
+		await grow(page, "f_tags").click();
+		// Open, each chip's × is live instead of held as space.
+		await expect(
+			grow(page, "f_tags").locator('[role="button"]:not(.invisible)').first()
+		).toBeVisible();
+		const opened = await page.evaluate(boxOf, "f_tags");
+
+		expect(restChips).toHaveLength(5);
+		expect(opened.height).toBeCloseTo(rest.height, 1);
+		expect(await chips()).toEqual(restChips);
+	});
+
+	// Open, each chip's × is live and drawn above static content, so only the header's z-index keeps it under the bar.
+	for (const state of ["at rest", "open"]) {
+		test(`a pinned section header covers a chip row scrolled under it, ${state}`, async ({
+			page,
+		}) => {
+			await open(page, filled);
+			if (state === "open") await grow(page, "f_tags").click();
+			const covered = await page.evaluate(() => {
+				const cell = document.querySelector('.field-box [data-fieldname="f_tags"]');
+				let scroller = cell.parentElement;
+				while (!/(auto|scroll)/.test(getComputedStyle(scroller).overflowY))
+					scroller = scroller.parentElement;
+				scroller.scrollTop +=
+					cell.getBoundingClientRect().top - scroller.getBoundingClientRect().top - 8;
+				return new Promise((resolve) =>
+					requestAnimationFrame(() => {
+						const chips = [...cell.querySelectorAll("span.inline-flex")];
+						const headers = [...document.querySelectorAll("[data-section].sticky")];
+						const checks = headers.flatMap((header) => {
+							const bar = header.getBoundingClientRect();
+							return chips
+								.map((chip) => chip.getBoundingClientRect())
+								.map((chip) => [
+									Math.max(chip.top, bar.top),
+									Math.min(chip.bottom, bar.bottom),
+									chip.left,
+								])
+								.filter(([top, bottom]) => bottom - top >= 2)
+								.map(([top, bottom, left]) => {
+									const at = document.elementFromPoint(
+										left + 8,
+										(top + bottom) / 2
+									);
+									return at?.closest("[data-section]") === header;
+								});
+						});
+						resolve({ headers: headers.length, checks });
+					})
+				);
+			});
+
+			expect(covered.headers).toBe(2);
+			expect(covered.checks.length).toBeGreaterThan(0);
+			expect(covered.checks.every(Boolean)).toBe(true);
+		});
+	}
+
+	test("a heavy field that Details does not draw edits in place", async ({ page }) => {
+		await open(page, filled);
+		await grow(page, "f_code").scrollIntoViewIfNeeded();
+		await grow(page, "f_code").click();
+
+		await expect(grow(page, "f_code").locator(".cm-editor")).toBeVisible();
+	});
+});

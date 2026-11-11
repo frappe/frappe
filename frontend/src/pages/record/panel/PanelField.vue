@@ -36,7 +36,10 @@
 				<div
 					v-else
 					class="flex min-h-7 min-w-0 flex-wrap items-center gap-x-1.5"
-					:class="[interactive ? 'cursor-pointer' : '', chips ? 'ps-2 pe-[30px]' : 'px-2']"
+					:class="[
+						interactive ? 'cursor-pointer' : '',
+						chips ? 'ps-2 pe-[30px]' : 'px-2',
+					]"
 					:data-fieldname="field.fieldname"
 					:role="imageUrl ? 'button' : undefined"
 					:tabindex="imageUrl ? 0 : undefined"
@@ -52,9 +55,11 @@
 							:removable="interactive ? false : undefined"
 							panel
 						/>
-						<span v-if="!chipList.length" class="text-base leading-5 text-ink-gray-4">{{
-							placeholder
-						}}</span>
+						<span
+							v-if="!chipList.length"
+							class="text-base leading-5 text-ink-gray-4"
+							>{{ placeholder }}</span
+						>
 					</span>
 					<span v-else-if="multiline" class="min-w-0 flex-1 py-1">
 						<span
