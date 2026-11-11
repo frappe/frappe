@@ -29,7 +29,8 @@ def tab_icon(app: str | None) -> str:
 	if app:
 		if favicon := app_brand(app).get("favicon"):
 			return favicon
-		if app != "frappe" and (logo := app_screen(app)["logo"]):
+		logo = app_screen(app)["logo"]
+		if app != "frappe" and logo and isinstance(logo, str):
 			return logo
 
 	favicon = frappe.get_website_settings("favicon")

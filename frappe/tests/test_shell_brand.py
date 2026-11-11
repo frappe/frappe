@@ -10,6 +10,7 @@ from frappe.shell.boot import get_boot, index_tiles
 from frappe.shell.titles import DEFAULT_FAVICON, app_brand, app_screen, tab_icon
 from frappe.tests import IntegrationTestCase
 from frappe.utils import set_request
+from frappe.website.page_renderers.shell_page import get_shell_document
 from frappe.website.serve import get_response
 
 BRAND = "frappe.tests.test_shell_brand.brand"
@@ -167,6 +168,10 @@ class TestTabIcon(IntegrationTestCase):
 		with with_website_favicon(None):
 			self.assertEqual(tab_icon(None), DEFAULT_FAVICON)
 
+	def test_a_logo_that_is_not_a_string_falls_through(self):
+		with with_website_favicon("/files/site.png"), logo_entry("acme", {"url": "/files/acme.png"}):
+			self.assertEqual(tab_icon("acme"), "/files/site.png")
+
 	def test_a_brand_that_raises_falls_through(self):
 		with with_website_favicon("/files/site.png"), logo_entry("acme", "/files/acme-logo.png"), branded_app(
 			"acme", RAISE
@@ -209,6 +214,9 @@ class TestShellDocumentIcon(IntegrationTestCase):
 			icon = self.icon_of("/apps")
 
 		self.assertEqual(icon, "/files/a.png?x=&quot;&gt;&lt;script&gt;&amp;b=\\1")
+
+	def test_the_built_document_has_the_icon_link_the_server_replaces(self):
+		self.assertRegex(get_shell_document(), r'<link rel="icon" href="[^"]*"')
 
 	def test_a_brand_that_raises_still_renders_the_document(self):
 		with with_website_favicon("/files/site.png"), branded(RAISE), patch("frappe.log_error"):
