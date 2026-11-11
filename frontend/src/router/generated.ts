@@ -27,8 +27,8 @@ function flatRoutes() {
 		{ path: "/:doctype/view/:key", name: "saved-view", component: loaded("list") },
 		viewRecord("/:doctype/view/record"),
 
-		// /apps/crm/crm-deal/new?status=Open, the standard page whatever an app declared.
-		{ path: "/:doctype/new", name: "new-record", component: loaded("newRecord") },
+		// /apps/crm/crm-deal/new?status=Open, the standard page unless an app declared a record page.
+		{ path: "/:doctype/new", name: "new-record", component: standardPage("main") },
 
 		// /apps/crm/crm-deal/CRM-DEAL-01?view=open-deals&layout=Compact; neither is a path segment.
 		{ path: "/:doctype/:name", name: "record", component: standardPage("main") },
@@ -58,7 +58,7 @@ function modularRoutes() {
 			component: loaded("list"),
 		},
 		viewRecord("/:module/:doctype/view/record"),
-		{ path: "/:module/:doctype/new", name: "new-record", component: loaded("newRecord") },
+		{ path: "/:module/:doctype/new", name: "new-record", component: standardPage("main") },
 		{ path: "/:module/:doctype/:name", name: "record", component: standardPage("main") },
 		{
 			path: "/:module/:doctype/:name/record",

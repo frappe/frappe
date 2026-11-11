@@ -229,6 +229,13 @@ describe.each([
 		expect(setups.attrs).toEqual([{}]);
 	});
 
+	it("opens the declared record page at the new-record address too, with no name", async () => {
+		const { root, router } = await mount(modular, `${prefix}/sales-invoice/new`);
+
+		expect(router.currentRoute.value.name).toBe("new-record");
+		expect(shown(root)).toEqual({ page: "declared", doctype: "Sales Invoice" });
+	});
+
 	it("opens the declared list page at the main address, handing it the doctype and the plain view", async () => {
 		const { root, router } = await mount(modular, `${prefix}/sales-invoice`);
 
