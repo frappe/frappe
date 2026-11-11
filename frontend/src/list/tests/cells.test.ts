@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { resetSession, setSession } from "@framework/ui/useSession";
-import { contributedCells, resolveCell } from "../cells";
+import { contributedCells, isSwitchCell, resolveCell } from "../cells";
 
 afterEach(() => resetSession());
 
@@ -61,5 +61,14 @@ describe("resolveCell", () => {
 		expect(resolveCell({ format: "D MMM" }, "Done", "Select")).toBeNull();
 		expect(resolveCell({ format: "D MMM" }, "not a date", "Date")).toBeNull();
 		expect(resolveCell({ icon: "calendar", format: "D MMM" }, "Done", "Select")).toEqual({ icon: "calendar" });
+	});
+});
+
+describe("isSwitchCell", () => {
+	it("draws only a Check column an app marked as a switch", () => {
+		expect(isSwitchCell({ switch: true }, "Check")).toBe(true);
+		expect(isSwitchCell({ switch: true }, "Data")).toBe(false);
+		expect(isSwitchCell({ icon: "lucide-circle" }, "Check")).toBe(false);
+		expect(isSwitchCell(undefined, "Check")).toBe(false);
 	});
 });

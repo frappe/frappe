@@ -38,6 +38,11 @@ export function resolveCell(cell: ListCell | undefined, value: unknown, fieldtyp
 	return { icon: cell.icon && iconName(cell.icon), ...date };
 }
 
+/** Whether `cell` draws a Check column as a switch. */
+export function isSwitchCell(cell: ListCell | undefined, fieldtype?: string): boolean {
+	return Boolean(cell?.switch) && fieldtype === "Check";
+}
+
 function named<T>(map: Record<string, T> | undefined, key: string): T | undefined {
 	return map && Object.hasOwn(map, key) ? map[key] : undefined;
 }

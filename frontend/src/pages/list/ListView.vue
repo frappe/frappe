@@ -67,6 +67,13 @@
 					{{ markedText(row, column.fieldname) }}
 				</div>
 			</div>
+			<SwitchCell
+				v-else-if="switchOf(column.fieldname) && cellFields.has(column.fieldname)"
+				:doctype="view.doctype"
+				:field="cellFields.get(column.fieldname)!"
+				:row="row"
+				:writable="canWrite"
+			/>
 			<ConfiguredCell
 				v-else-if="cellViewOf(column.fieldname, value) && cellFields.has(column.fieldname)"
 				:field="cellFields.get(column.fieldname)!"
@@ -132,6 +139,7 @@ import CommentsCell from "./CommentsCell.vue";
 import ConfiguredCell from "./ConfiguredCell.vue";
 import DocstatusCell from "./DocstatusCell.vue";
 import FavouriteCell from "./FavouriteCell.vue";
+import SwitchCell from "./SwitchCell.vue";
 import TagsCell from "./TagsCell.vue";
 import DeleteDialog from "./DeleteDialog.vue";
 import EmailCell from "./EmailCell.vue";
@@ -152,6 +160,8 @@ const {
 	markOf,
 	statusThemeOf,
 	cellViewOf,
+	switchOf,
+	canWrite,
 	currencyOf,
 	linkTitles,
 	seenClassOf,
