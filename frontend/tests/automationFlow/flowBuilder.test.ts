@@ -5,18 +5,31 @@ import { createMemoryHistory, createRouter, type Router } from "vue-router";
 
 const fake = vi.hoisted(() => ({
   getDocument: vi.fn(),
+  copyDocument: vi.fn(),
   createDocument: vi.fn(),
   updateDocument: vi.fn(),
   runMethod: vi.fn(),
   toastError: vi.fn(),
+  rights: { loading: false, create: true },
 }));
 
 vi.mock("@framework/ui/api", async (importOriginal) => ({
   ...(await importOriginal<object>()),
   getDocument: fake.getDocument,
+  copyDocument: fake.copyDocument,
   createDocument: fake.createDocument,
   updateDocument: fake.updateDocument,
   runMethod: fake.runMethod,
+}));
+vi.mock("@framework/ui/useDocPermissions", () => ({
+  useDocPermissions: () => ({
+    loading: {
+      get value() {
+        return fake.rights.loading;
+      },
+    },
+    holds: () => fake.rights.create,
+  }),
 }));
 vi.mock("@framework/ui/AutomationCanvas", () => ({
   AutomationCanvas: defineComponent({
@@ -64,7 +77,7 @@ let app: App;
 let router: Router;
 let host: HTMLElement;
 
-async function mount(name: string | null) {
+async function mount(name: string | null, query: Record<string, string> = {}) {
   router = createRouter({
     history: createMemoryHistory(),
     routes: [
@@ -77,7 +90,7 @@ async function mount(name: string | null) {
   });
   host = document.createElement("div");
   document.body.appendChild(host);
-  app = createApp({ render: () => h("div", [h(FlowBuilder, { name })]) });
+  app = createApp({ render: () => h("div", [h(FlowBuilder, { name, query })]) });
   app.use(router);
   app.mount(host);
   await settle();
@@ -104,6 +117,8 @@ async function typeTitle(value: string) {
 
 beforeEach(() => {
   vi.resetAllMocks();
+  fake.rights.loading = false;
+  fake.rights.create = true;
   fake.runMethod.mockResolvedValue({
     data: { actions: [], trigger_events: [] },
   });
@@ -241,5 +256,92 @@ describe("Automation Flow builder", () => {
     expect(host.textContent).toContain("Not permitted");
     expect(host.textContent).toContain("System Manager");
     expect(host.querySelector("[data-canvas]")).toBeNull();
+  });
+
+  describe("a new flow", () => {
+    const source = {
+      title: "Notify",
+      enabled: 1,
+      document_type: "ToDo",
+      trigger_type: "Document Created",
+      actions: saved.actions.map(({ name, ...row }) => row),
+    };
+
+    it("opens prefilled from the flow `__copy_of` names, unsaved until the first Save", async () => {
+      fake.copyDocument.mockResolvedValue({ data: structuredClone(source) });
+      fake.createDocument.mockResolvedValue({
+        data: { ...structuredClone(saved), name: "AUTO-00010" },
+      });
+      await mount(null, { __copy_of: "AUTO-00001" });
+
+      expect(fake.copyDocument).toHaveBeenCalledWith(
+        "Automation Flow",
+        "AUTO-00001"
+      );
+      expect(fake.getDocument).not.toHaveBeenCalled();
+      expect(titleInput().value).toBe("Notify");
+      expect(
+        host.querySelector("[data-canvas]")?.getAttribute("data-canvas")
+      ).toBe("2");
+      expect(host.textContent).toContain("Unsaved");
+      expect(fake.createDocument).not.toHaveBeenCalled();
+
+      button("Save").click();
+      await settle();
+
+      const [doctype, payload] = fake.createDocument.mock.calls[0];
+      expect(doctype).toBe("Automation Flow");
+      expect([payload.name, payload.title, payload.actions.length]).toEqual([
+        undefined,
+        "Notify",
+        1,
+      ]);
+    });
+
+    it("lets the address's values sit over the empty flow", async () => {
+      await mount(null, {
+        title: "From the dialog",
+        document_type: "Lead",
+        enabled: "0",
+      });
+
+      expect(fake.copyDocument).not.toHaveBeenCalled();
+      expect(titleInput().value).toBe("From the dialog");
+    });
+
+    it("says the flow was not found when the copied flow is gone", async () => {
+      fake.copyDocument.mockRejectedValue(
+        new ApiError({ type: "DoesNotExistError", message: "no" }, 404)
+      );
+      await mount(null, { __copy_of: "AUTO-00404" });
+
+      expect(host.textContent).toContain("Flow not found");
+      expect(host.querySelector("[data-canvas]")).toBeNull();
+    });
+
+    it("shows the Not permitted state to a person with no create right", async () => {
+      fake.rights.create = false;
+      await mount(null);
+
+      expect(host.textContent).toContain("Not permitted");
+      expect(host.textContent).toContain("System Manager");
+      expect(host.querySelector("[data-canvas]")).toBeNull();
+      expect(button("Save")).toBeUndefined();
+    });
+
+    it("draws no page while the create right is still loading", async () => {
+      fake.rights.loading = true;
+      await mount(null);
+
+      expect(host.querySelector("[data-canvas]")).toBeNull();
+      expect(host.textContent).not.toContain("Not permitted");
+    });
+
+    it("does not ask for the create right to open a saved flow", async () => {
+      fake.rights.create = false;
+      await mount("AUTO-00001");
+
+      expect(host.querySelector("[data-canvas]")).not.toBeNull();
+    });
   });
 });

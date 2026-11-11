@@ -483,7 +483,7 @@ spelling; the sections below only refer to it.
 ## A new record
 
 `/<doctype>/new` opens a new record on the standard page. A doctype whose record page an app
-replaces opens that page there instead, with no `name` prop: it draws an unsaved record. Its query string sets the first values over the server's defaults:
+replaces opens that page there instead, with no `name` prop and the address's query as a `query` prop: it draws an unsaved record. Its query string sets the first values over the server's defaults:
 `/todo/new?priority=High`. `page.isNew` is true until the first save. Scripts run as on a
 saved record: `onOpen`, the field handlers and the tab events fire. Before the first save the
 record has no name, so the page shows the header and the form only. It has no panel,

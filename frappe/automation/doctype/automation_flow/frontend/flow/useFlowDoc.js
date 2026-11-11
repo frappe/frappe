@@ -1,14 +1,28 @@
 import { computed, reactive, ref, shallowRef, watch } from "vue";
 import { toast } from "frappe-ui";
 import { __ } from "frappe/i18n";
-import { createDocument, getDocument, isApiError, updateDocument } from "@framework/ui/api";
+import {
+	copyDocument,
+	createDocument,
+	getDocument,
+	isApiError,
+	updateDocument,
+} from "@framework/ui/api";
 import { htmlToText } from "@framework/ui/RichText";
 import { FlowHistory } from "./FlowHistory";
 import { saveErrors } from "./flowErrors";
-import { FLOW_DOCTYPE, fromServer, keepStepIds, newFlow, savedKey, toPayload } from "./flowDoc";
+import {
+	FLOW_DOCTYPE,
+	copySource,
+	fromServer,
+	keepStepIds,
+	openingFlow,
+	savedKey,
+	toPayload,
+} from "./flowDoc";
 
-/** The flow a builder page edits; `name` is null before its first save. */
-export function useFlowDoc(name) {
+/** The flow a builder page edits; `name` is null before its first save, and `query` is the address's. */
+export function useFlowDoc(name, query = {}) {
 	const doc = ref(null);
 	const loading = ref(true);
 	const failure = shallowRef(null);
@@ -57,7 +71,7 @@ export function useFlowDoc(name) {
 		try {
 			const next = target
 				? fromServer((await getDocument(FLOW_DOCTYPE, target)).data)
-				: newFlow();
+				: await opening();
 			if (read !== reads) return;
 			adopt(next);
 			conflict.value = false;
@@ -71,6 +85,12 @@ export function useFlowDoc(name) {
 		} finally {
 			if (read === reads) loading.value = false;
 		}
+	}
+
+	async function opening() {
+		const source = copySource(query);
+		const copy = source ? (await copyDocument(FLOW_DOCTYPE, source)).data : null;
+		return openingFlow(copy, query);
 	}
 
 	/** True when the flow is saved; a refusal is shown on the page and returns false. */

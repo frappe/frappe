@@ -1,6 +1,6 @@
 <!-- The Automation Flow builder: the flow's header row over a canvas of its trigger and steps. -->
 <template>
-	<template v-if="flow.doc">
+	<template v-if="flow.doc && !denied && !checking">
 		<FlowHeader
 			ref="header"
 			v-model:title="flow.doc.title"
@@ -37,7 +37,10 @@
 			/>
 		</div>
 	</template>
-	<div v-else-if="flow.failure" class="m-auto flex flex-col items-center gap-3 px-8 text-center">
+	<div
+		v-else-if="denied || flow.failure"
+		class="flex flex-1 flex-col items-center justify-center gap-3 px-8 text-center"
+	>
 		<p class="text-lg font-medium text-ink-gray-8">{{ failure.title }}</p>
 		<p class="text-p-sm text-ink-gray-6">{{ failure.description }}</p>
 		<Button v-if="failure.retry" :label="__('Try again')" @click="flow.load()" />
@@ -53,11 +56,12 @@ import { onBeforeRouteLeave, onBeforeRouteUpdate, useRouter } from "vue-router";
 import { Button, LoadingIndicator, toast } from "frappe-ui";
 import { __ } from "frappe/i18n";
 import { AutomationCanvas } from "@framework/ui/AutomationCanvas";
+import { useDocPermissions } from "@framework/ui/useDocPermissions";
 import { routeFor, useUnloadGuard } from "@shell";
 import FlowHeader from "./FlowHeader.vue";
 import { confirmDiscard } from "./flow/confirmDiscard";
 import { FLOW_DOCTYPE, stepById } from "./flow/flowDoc";
-import { failureState } from "./flow/flowFailure";
+import { failureState, notPermittedState } from "./flow/flowFailure";
 import { handleShortcut } from "./flow/flowShortcuts";
 import { blockGroups } from "./flow/workflowBlocks";
 import { loadCapabilities } from "./flow/workflowCapabilities";
@@ -69,16 +73,21 @@ import { useFlowDoc } from "./flow/useFlowDoc";
 const props = defineProps({
 	doctype: { type: String, default: FLOW_DOCTYPE },
 	name: { type: String, default: null },
+	query: { type: Object, default: () => ({}) },
 });
 
 const router = useRouter();
-const flow = useFlowDoc(props.name);
+const flow = useFlowDoc(props.name, props.query);
+const permits = useDocPermissions(FLOW_DOCTYPE);
 const header = ref(null);
 const selectedId = ref("");
 
 const nodes = computed(() => workflowNodes(flow.doc, flow.errors));
 const edges = computed(() => workflowEdges(flow.doc.actions));
-const failure = computed(() => failureState(flow.failure));
+// A new flow needs the create right; the insert checks again.
+const checking = computed(() => !props.name && permits.loading.value);
+const denied = computed(() => !props.name && !checking.value && !permits.holds("create"));
+const failure = computed(() => (denied.value ? notPermittedState() : failureState(flow.failure)));
 
 flow.load();
 watch(

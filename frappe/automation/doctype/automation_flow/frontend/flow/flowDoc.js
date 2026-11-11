@@ -14,6 +14,27 @@ export function newFlow() {
 	};
 }
 
+/** The query key naming the flow a new flow copies. */
+export const COPY_OF = "__copy_of";
+
+/** The name of the flow the address asks to copy, or null. */
+export function copySource(query) {
+	return [query?.[COPY_OF]].flat()[0] || null;
+}
+
+/**
+ * A flow before its first save: the server's copy of another flow when there is one, under the
+ * values the address carries (what "Edit full form" hands over).
+ */
+export function openingFlow(copy, query = {}) {
+	const flow = copy ? fromServer(copy) : newFlow();
+	for (const field of ["title", "document_type", "trigger_type", "enabled"]) {
+		const given = [query[field]].flat()[0];
+		if (typeof given === "string") flow[field] = field === "enabled" ? Number(given) : given;
+	}
+	return flow;
+}
+
 /** The server's flow with its `actions` rows folded into the tree the builder edits. */
 export function fromServer(data) {
 	const rows = (data.actions || []).map(asText);

@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest'
 import {
   fromServer,
   keepStepIds,
+  copySource,
   newFlow,
+  openingFlow,
   savedKey,
   toPayload,
 } from '../../../frappe/automation/doctype/automation_flow/frontend/flow/flowDoc'
@@ -93,5 +95,28 @@ describe('refused saves', () => {
 
     expect(plain.general).toBe('Enable only after adding an action')
     expect(field.errors.trigger).toEqual(['Required'])
+  })
+})
+
+describe('openingFlow', () => {
+  it('names the flow to copy from the first __copy_of value', () => {
+    expect(copySource({ __copy_of: 'AUTO-1' })).toBe('AUTO-1')
+    expect(copySource({ __copy_of: ['AUTO-2', 'AUTO-3'] })).toBe('AUTO-2')
+    expect(copySource({})).toBeNull()
+  })
+
+  it('is the empty flow with no copy', () => {
+    expect(openingFlow(null)).toEqual(newFlow())
+  })
+
+  it('folds a copy into the tree and keeps it nameless', () => {
+    const flow = openingFlow({ title: 'A', document_type: 'ToDo', actions: [row(1)] })
+    expect(flow.name).toBeUndefined()
+    expect(flow.actions).toHaveLength(1)
+  })
+
+  it('lays the address values over the copy, enabled as a number', () => {
+    const flow = openingFlow({ title: 'A', enabled: 1 }, { title: 'B', enabled: '0', other: 'x' })
+    expect([flow.title, flow.enabled, flow.other]).toEqual(['B', 0, undefined])
   })
 })
