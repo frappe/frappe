@@ -187,9 +187,11 @@ async function pickColor(color?: string) {
 </script>
 
 <style>
-/* A fixed width keeps the popover off the chips row; checked rows stay plain. */
+/* A fixed width keeps the popover off the chips row; checked rows stay plain.
+   min-width 0 drops frappe-ui's trigger-width floor, which is the whole tags row here. */
 [data-slot="content"][data-selection]:has(.tag-picker-marker) {
 	width: 13rem;
+	min-width: 0;
 }
 [data-slot="content"][data-selection]:has(.tag-picker-marker)
 	[role="option"][data-state="checked"] {
