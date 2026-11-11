@@ -6,6 +6,7 @@ from frappe.desk.record_title import RecordTitles
 from frappe.utils.caching import request_cache
 
 BRAND_KEYS = ("title", "logo", "favicon")
+DEFAULT_FAVICON = "/assets/frappe/images/frappe-favicon.svg"
 
 
 def app_screen(app: str, screen: dict | None = None) -> dict:
@@ -17,6 +18,26 @@ def app_screen(app: str, screen: dict | None = None) -> dict:
 		"title": brand.get("title") or _(screen.get("title") or app.replace("_", " ").title()),
 		"logo": brand.get("logo") or screen.get("logo"),
 	}
+
+
+def tab_icon(app: str | None) -> str:
+	"""The tab icon for an app's prefix, or for the index when `app` is None.
+
+	The app's brand favicon, its tile logo (not Frappe's own: that is the grey framework square),
+	the Website Settings favicon, then the framework's.
+	"""
+	if app:
+		if favicon := app_brand(app).get("favicon"):
+			return favicon
+		logo = app_screen(app)["logo"]
+		if app != "frappe" and logo and isinstance(logo, str):
+			return logo
+
+	favicon = frappe.get_website_settings("favicon")
+	if favicon and favicon != "attach_files:":
+		return favicon
+
+	return DEFAULT_FAVICON
 
 
 @request_cache
