@@ -8,8 +8,10 @@ import {
 } from "../../../frappe/automation/doctype/automation_flow/frontend/flow/workflowValidation";
 import { loadCapabilities } from "../../../frappe/automation/doctype/automation_flow/frontend/flow/workflowCapabilities";
 import {
+  docTypeChange,
   eventTriggers,
   triggerDefinition,
+  triggerFromPick,
   triggerFromValue,
   triggerValue,
 } from "../../../frappe/automation/doctype/automation_flow/frontend/flow/workflowTriggers";
@@ -112,6 +114,17 @@ describe("workflow triggers", () => {
       custom_event: "payment_failed",
     });
     expect(triggerValue(picked)).toBe("Custom Event:payment_failed");
+  });
+
+  it("drops the details of the trigger it replaces and those of a changed DocType", () => {
+    expect(triggerFromPick("Doc Created")).toMatchObject({
+      trigger_type: "Doc Created",
+      trigger_field: null,
+      cron_expression: null,
+      date_field: null,
+    });
+    expect(triggerFromPick("Scheduled")).not.toHaveProperty("cron_expression");
+    expect(docTypeChange("Task")).toMatchObject({ document_type: "Task", trigger_field: null });
   });
 
   it("offers the domain events of the DocType and defines the chosen one", () => {

@@ -9,6 +9,17 @@ export function parseJsonFieldInput(value) {
 	}
 }
 
+/** Typed JSON text is only worth saving once it parses: half-typed text stays in the box. */
+export function isCommittableJson(text) {
+	if (!String(text ?? "").trim()) return true;
+	try {
+		JSON.parse(text);
+		return true;
+	} catch {
+		return false;
+	}
+}
+
 export function formatJsonFieldValue(value) {
 	return value && typeof value === "object" ? JSON.stringify(value, null, 2) : value;
 }
@@ -43,6 +54,12 @@ export function useFieldRows(getParams, write) {
 		rows.value = paramsToRows(getParams());
 	}
 
+	// Another editor (the Advanced JSON) may have changed the params under the cached rows.
+	function sync() {
+		const current = JSON.stringify(rowsToParams(paramsToRows(getParams())).values);
+		if (JSON.stringify(rowsToParams(rows.value).values) !== current) reload();
+	}
+
 	function commit(next) {
 		rows.value = next;
 		write({ ...getParams(), ...rowsToParams(next) });
@@ -65,5 +82,5 @@ export function useFieldRows(getParams, write) {
 		commit(rows.value.filter((row, position) => position !== index));
 	}
 
-	return { rows, reload, setRow, addRow, removeRow };
+	return { rows, reload, sync, setRow, addRow, removeRow };
 }

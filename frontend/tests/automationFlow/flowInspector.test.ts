@@ -15,6 +15,7 @@ vi.mock("@framework/ui/Link", () => ({
   }),
 }));
 
+import ParamEditor from "../../../frappe/automation/doctype/automation_flow/frontend/inspector/ParamEditor.vue";
 import FlowInspector from "../../../frappe/automation/doctype/automation_flow/frontend/inspector/FlowInspector.vue";
 
 let app: App;
@@ -60,7 +61,16 @@ describe("the inspector's trigger view", () => {
     link.value = "ToDo";
     link.dispatchEvent(new Event("change"));
 
-    expect(events.update).toEqual([{ document_type: "ToDo" }]);
+    expect(events.update).toEqual([
+      {
+        document_type: "ToDo",
+        trigger_field: null,
+        from_value: null,
+        to_value: null,
+        date_field: null,
+        custom_event: null,
+      },
+    ]);
   });
 
   it("lists the events and patches the trigger the owner picks", async () => {
@@ -112,6 +122,18 @@ describe("the inspector's step view", () => {
     expect(JSON.parse(step.params).value).toBe(9);
   });
 
+  it("clears the wait amount when the box is emptied instead of saving zero", async () => {
+    const step = waitStep();
+    await mount({ doc: reactive({ document_type: "ToDo", actions: [step] }), selectedStep: step });
+
+    const amount = host.querySelector("input[type=number]") as HTMLInputElement;
+    amount.value = "";
+    amount.dispatchEvent(new Event("input"));
+    await settle();
+
+    expect(JSON.parse(step.params).value).toBeNull();
+  });
+
   it("asks to delete the step, not the trigger", async () => {
     const step = waitStep();
     const events = await mount({
@@ -131,5 +153,34 @@ describe("the inspector's step view", () => {
     await mount({ doc: reactive({ document_type: "ToDo", actions: [step] }), selectedStep: step });
 
     expect(host.querySelector("input[type=number]")).not.toBeNull();
+  });
+});
+
+describe("the Advanced Field Values box", () => {
+  async function mountAdvanced(action: object) {
+    host = document.createElement("div");
+    document.body.appendChild(host);
+    app = createApp({ render: () => h(ParamEditor, { action, advanced: true }) });
+    app.mount(host);
+    await settle();
+    return host.querySelector("textarea") as HTMLTextAreaElement;
+  }
+
+  async function type(box: HTMLTextAreaElement, text: string) {
+    box.value = text;
+    box.dispatchEvent(new Event("input"));
+    await settle();
+  }
+
+  it("keeps half-typed JSON in the box and saves it once it parses", async () => {
+    const action = reactive({ action_type: "SetFieldValue", params: "{}" });
+    const box = await mountAdvanced(action);
+
+    await type(box, '{"status": "Ju');
+    expect(JSON.parse(action.params).values).toBeUndefined();
+    expect(box.value).toBe('{"status": "Ju');
+
+    await type(box, '{"status": "Junk"}');
+    expect(JSON.parse(action.params).values).toEqual({ status: "Junk" });
   });
 });

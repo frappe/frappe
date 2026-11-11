@@ -11,15 +11,7 @@
 			<div class="text-base-semibold text-ink-gray-8">{{ title }}</div>
 		</div>
 		<div class="min-h-0 flex-1 space-y-5 overflow-y-auto p-4">
-			<div v-if="loading" class="flex justify-center py-8">
-				<LoadingIndicator class="w-4" />
-			</div>
-			<StepEditor
-				v-else-if="selectedStep"
-				:step="selectedStep"
-				:doc="doc"
-				:targets="targets"
-			/>
+			<StepEditor v-if="selectedStep" :step="selectedStep" :doc="doc" :targets="targets" />
 			<TriggerList
 				v-else-if="choosingTrigger"
 				:sections="triggerSections"
@@ -32,7 +24,7 @@
 					:label="__('DocType')"
 					doctype="DocType"
 					:filters="docTypeFilters"
-					@update:model-value="patch({ document_type: $event })"
+					@update:model-value="patch(docTypeChange($event))"
 				/>
 				<div>
 					<div class="mb-2 text-base text-ink-gray-5">{{ __("Event") }}</div>
@@ -113,18 +105,18 @@ import WorkflowFilters from "./Filters.vue";
 import { capabilitiesFor } from "../flow/workflowCapabilities";
 import {
 	triggerDefinition,
-	triggerFromValue,
+	docTypeChange,
+	triggerFromPick,
 	triggerGroups,
 	triggerValue,
 } from "../flow/workflowTriggers";
-import { Button, FormControl, Icon, ItemListRow, LoadingIndicator } from "frappe-ui";
+import { Button, FormControl, Icon, ItemListRow } from "frappe-ui";
 import { computed, ref, watch } from "vue";
 
 const props = defineProps({
 	doc: { type: Object, required: true },
 	selectedStep: { type: Object, default: null },
 	targets: { type: Array, default: () => [] },
-	loading: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(["update", "remove"]);
@@ -147,7 +139,7 @@ const title = computed(() => {
 });
 
 function pickTrigger(value) {
-	patch(triggerFromValue(value));
+	patch(triggerFromPick(value));
 	choosingTrigger.value = false;
 }
 
@@ -156,7 +148,11 @@ function patch(values) {
 	emit("update", values);
 }
 
-const runAsOptions = ["Triggering User", "Document Owner", "Automation User"];
+const runAsOptions = [
+	{ label: __("Triggering User"), value: "Triggering User" },
+	{ label: __("Document Owner"), value: "Document Owner" },
+	{ label: __("Automation User"), value: "Automation User" },
+];
 const capabilities = computed(() => capabilitiesFor(props.doc.document_type));
 const fields = computed(() => capabilities.value?.fields || []);
 const events = computed(() => capabilities.value?.custom_events || []);

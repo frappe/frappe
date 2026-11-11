@@ -48,14 +48,14 @@
 				variant="outline"
 				type="number"
 				:label="__('Date Offset')"
-				@update:model-value="patch('date_offset', $event)"
+				@update:model-value="patch('date_offset', $event === '' ? null : Number($event))"
 			/>
 			<FormControl
 				:model-value="doc.date_direction"
 				variant="outline"
 				type="select"
 				:label="__('Date Direction')"
-				:options="['Before', 'After']"
+				:options="directionOptions"
 				@update:model-value="patch('date_direction', $event)"
 			/>
 		</template>
@@ -98,6 +98,11 @@ const isNamedEvent = computed(() =>
 		(trigger) => trigger.value === triggerValue(props.doc)
 	)
 );
+
+const directionOptions = [
+	{ label: __("Before"), value: "Before" },
+	{ label: __("After"), value: "After" },
+];
 
 const fieldOptions = computed(() => {
 	return props.fields.map((field) => ({

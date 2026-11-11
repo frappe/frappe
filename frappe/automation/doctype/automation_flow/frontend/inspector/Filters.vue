@@ -130,21 +130,19 @@ function row(entry) {
 </script>
 
 <style scoped>
-/* The panel is a ~310px column. The app's other condition builders stack a row at
-   this width rather than squeezing three controls into it, so this one does too. */
+/* The panel is ~310px wide: stack each row, as the app's other condition builders do. */
 :deep([data-slot="condition-builder"]) {
 	container-type: inline-size;
 }
 
 @container (max-width: 420px) {
-	/* Both grids are set inline, on the row and on the leaf's subgrid. */
+	/* !important: the row and the leaf set their grids inline. */
 	:deep([data-slot="condition-group"] li) {
 		position: relative;
 		grid-template-columns: minmax(0, 1fr) !important;
 	}
 
-	/* Field and operator share the first line, the field taking the wider share;
-     the value gets the line under them. */
+	/* Field and operator share a line; the value takes the line under. */
 	:deep([data-slot="condition-leaf"]) {
 		grid-column: span 1 !important;
 		grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) !important;
@@ -154,20 +152,19 @@ function row(entry) {
 		grid-column: 1 / -1;
 	}
 
-	/* The bracket joins rows that sit side by side; stacked, it is a stray tick. */
+	/* The bracket joins side-by-side rows; stacked, it is a stray tick. */
 	:deep([data-slot="condition-group"] li > :first-child > span) {
 		display: none;
 	}
 
-	/* A group's card opens with its own "Where", so the row's copy above it is noise. */
+	/* A group's card opens with its own "Where"; the row's copy is noise. */
 	:deep([data-slot="condition-group"]
 			li:first-child:has([data-slot="condition-group"])
 			> :first-child) {
 		display: none;
 	}
 
-	/* The cell centres its word for a row that sits beside it; stacked, it leads
-     the row and needs the gap the grid only gives its columns. */
+	/* Stacked, the word leads the row and needs the gap the grid gave its columns. */
 	:deep([data-slot="condition-group"] li > :first-child) {
 		margin-bottom: 0.5rem;
 	}
@@ -176,12 +173,12 @@ function row(entry) {
 		justify-content: flex-start;
 	}
 
-	/* The add button belongs to the rows above it, not a row of its own. */
+	/* The add button belongs to the rows above it. */
 	:deep([data-slot="condition-group"]:has(> ul) > div) {
 		margin-top: -0.5rem;
 	}
 
-	/* A group with nothing in it yet is all button, so the button takes the middle. */
+	/* An empty group is all button: centre it. */
 	:deep([data-slot="condition-group"]:not(:has(> ul)) > div) {
 		justify-content: center;
 	}
@@ -191,17 +188,14 @@ function row(entry) {
 		max-width: 100%;
 	}
 
-	/* The actions cell is a row of the grid, so leaving an empty one below every
-     condition is what put a blank band under each. Lift the cell out of the flow,
-     not just the menu inside it. */
+	/* Lift the whole actions cell out of the flow, or it leaves a blank band under each row. */
 	:deep(li:not(:has([data-slot="condition-group"])) > :nth-child(3)) {
 		position: absolute;
 		right: -0.25rem;
 		top: -0.25rem;
 	}
 
-	/* A group's own menu sits on its card's add-condition line: anywhere above that
-     it lands beside a row's menu and the pair reads as one control. */
+	/* A group's menu sits on its add-condition line, not beside a row's menu. */
 	:deep(li:has([data-slot="condition-group"]) > :nth-child(3)) {
 		position: absolute;
 		right: 0.75rem;

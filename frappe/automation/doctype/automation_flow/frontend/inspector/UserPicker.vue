@@ -25,7 +25,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { watchDebounced } from "@vueuse/core";
 import { Avatar, Icon, MultiSelect } from "frappe-ui";
 import { runMethod } from "@framework/ui/api";
@@ -54,6 +54,11 @@ const options = computed(() => {
 });
 
 watchDebounced(query, loadUsers, { debounce: 250, immediate: true });
+// The candidate users depend on the DocType and on sibling params, so they are asked again.
+watch(
+	() => [props.doctype, props.params],
+	() => loadUsers(query.value)
+);
 
 async function loadUsers(searchText) {
 	const request = ++requestId;

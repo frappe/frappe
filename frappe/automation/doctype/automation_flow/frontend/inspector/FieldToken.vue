@@ -4,6 +4,7 @@
 		v-model="picked"
 		:options="options"
 		:placeholder="__('Search fields')"
+		:aria-label="__('Insert a field')"
 		@update:model-value="insert"
 	>
 		<template #trigger>

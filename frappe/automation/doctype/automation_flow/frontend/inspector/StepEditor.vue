@@ -40,7 +40,7 @@
 					variant="outline"
 					class="w-24 shrink-0"
 					:label="__('Wait')"
-					@update:model-value="setParam('value', Number($event))"
+					@update:model-value="setParam('value', amount($event))"
 				/>
 				<FormControl
 					:model-value="params.unit || 'Minutes'"
@@ -88,7 +88,7 @@
 					variant="outline"
 					class="w-24 shrink-0"
 					:label="__('Timeout')"
-					@update:model-value="setParam('timeout_value', Number($event))"
+					@update:model-value="setParam('timeout_value', amount($event))"
 				/>
 				<FormControl
 					:model-value="params.timeout_unit || 'Days'"
@@ -231,7 +231,12 @@ const stepTypeOptions = [
 	{ label: __("If / Else"), value: "If" },
 ].map((option) => ({ ...option, ...stepTypeIcon(option.value) }));
 
-const waitUnits = ["Seconds", "Minutes", "Hours", "Days"];
+const waitUnits = [
+	{ label: __("Seconds"), value: "Seconds" },
+	{ label: __("Minutes"), value: "Minutes" },
+	{ label: __("Hours"), value: "Hours" },
+	{ label: __("Days"), value: "Days" },
+];
 const correlationPlaceholder = "{{ doc.message_id or doc.name }}";
 
 const step = computed(() => props.step);
@@ -313,6 +318,11 @@ function setStepType(value) {
 function setAction(value) {
 	step.value.action_type = value;
 	step.value.params = "{}";
+}
+
+// An emptied box clears the amount instead of saving a wait of zero.
+function amount(value) {
+	return value === "" || value == null ? null : Number(value);
 }
 
 function setParam(name, value) {

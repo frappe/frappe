@@ -14,6 +14,7 @@
 							:model-value="row.field"
 							:options="availableFieldOptions(row.field)"
 							:placeholder="__('Choose field')"
+							:aria-label="__('Field')"
 							@update:model-value="setRow(index, 'field', $event)"
 						/>
 						<Button
@@ -30,6 +31,7 @@
 						:model-value="row.value"
 						:doctype="fieldFor(row).options"
 						:placeholder="__('Choose {0}', [fieldFor(row).options])"
+						:aria-label="__('Value')"
 						@update:model-value="setRow(index, 'value', $event)"
 					/>
 					<Combobox
@@ -38,6 +40,7 @@
 						:model-value="row.value"
 						:options="choicesFor(row)"
 						:placeholder="__('Choose value')"
+						:aria-label="__('Value')"
 						@update:model-value="setRow(index, 'value', $event)"
 					/>
 					<FormControl
@@ -45,6 +48,7 @@
 						variant="outline"
 						:model-value="row.value"
 						:placeholder="__('Value')"
+						:aria-label="__('Value')"
 						@update:model-value="setRow(index, 'value', $event)"
 					/>
 					<div v-if="!isPicked(row)" class="flex justify-end">
@@ -72,11 +76,12 @@
 					</Tooltip>
 				</div>
 				<FormControl
-					:model-value="valueFor(valuesField)"
+					:model-value="valuesText"
 					type="textarea"
 					variant="outline"
 					:placeholder="fieldValuesPlaceholder"
-					@update:model-value="setParam('values', castJsonField($event))"
+					:aria-label="__('Field Values')"
+					@update:model-value="setValuesText"
 				/>
 				<div class="mt-1 flex justify-end">
 					<FieldToken :fields="fields" @insert="appendValuesToken" />
@@ -155,9 +160,14 @@ import { Link } from "@framework/ui/Link";
 import FieldToken from "./FieldToken.vue";
 import WorkflowUserPicker from "./UserPicker.vue";
 import { stepParams } from "../flow/workflowCapabilities";
-import { formatJsonFieldValue, parseJsonFieldInput, useFieldRows } from "../flow/workflowParams";
+import {
+	formatJsonFieldValue,
+	isCommittableJson,
+	parseJsonFieldInput,
+	useFieldRows,
+} from "../flow/workflowParams";
 import { Button, Combobox, FormControl, Icon, Tooltip } from "frappe-ui";
-import { computed, watch } from "vue";
+import { computed, ref, watch } from "vue";
 
 const props = defineProps({
 	action: { type: Object, required: true },
@@ -215,7 +225,6 @@ const fieldValuesHelp = __(
 	"Set more fields at once as JSON. These are applied together with the Field and Value above, in the same save."
 );
 const fieldValuesPlaceholder = '{\n  "status": "Junk"\n}';
-const valuesField = { fieldname: "values", fieldtype: "JSON" };
 
 const params = computed(() => stepParams(action.value));
 
@@ -246,7 +255,7 @@ const docFieldOptions = computed(() => {
  * Select fields carry theirs in the schema, so offer that instead of a box the user can only
  * get wrong - the run-time validation would reject it anyway.
  */
-const { rows, reload, setRow, addRow, removeRow } = useFieldRows(
+const { rows, reload, sync, setRow, addRow, removeRow } = useFieldRows(
 	() => params.value,
 	(next) => {
 		action.value.params = JSON.stringify(next, null, 2);
@@ -255,6 +264,33 @@ const { rows, reload, setRow, addRow, removeRow } = useFieldRows(
 
 // The inspector reuses this editor across steps, so a new step reloads the rows.
 watch(() => props.action, reload);
+watch(
+	() => props.action.params,
+	() => {
+		sync();
+		followValues();
+	}
+);
+
+const valuesText = ref(formatJsonFieldValue(params.value.values) ?? "");
+watch(
+	() => props.action,
+	() => (valuesText.value = formatJsonFieldValue(params.value.values) ?? "")
+);
+
+// The other editor may have changed `values`; half-typed text of this one is left alone.
+function followValues() {
+	const saved = JSON.stringify(params.value.values ?? "");
+	const typed = JSON.stringify(parseJsonFieldInput(valuesText.value));
+	if (isCommittableJson(valuesText.value) && typed !== saved) {
+		valuesText.value = formatJsonFieldValue(params.value.values) ?? "";
+	}
+}
+
+function setValuesText(text) {
+	valuesText.value = text;
+	if (isCommittableJson(text)) setParam("values", parseJsonFieldInput(text));
+}
 
 const CHOICE_FIELDTYPES = ["Select", "Check"];
 
@@ -343,12 +379,8 @@ function appendToken(field, token) {
 }
 
 function appendValuesToken(token) {
-	const current = params.value.values;
-	const text =
-		current && typeof current === "object"
-			? JSON.stringify(current, null, 2)
-			: String(current || "");
-	setParam("values", `${text}${token}`);
+	valuesText.value = `${valuesText.value}${token}`;
+	setParam("values", valuesText.value);
 }
 
 function setParam(fieldname, value) {
