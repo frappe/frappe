@@ -122,6 +122,8 @@ export interface RawMetaField {
   /** Computed in Python, with no database column to query. */
   is_virtual?: boolean | 0 | 1;
   description?: string;
+  /** What an empty input shows. */
+  placeholder?: string;
   hide_border?: boolean | 0 | 1;
   collapsible?: boolean | 0 | 1;
   default?: string;

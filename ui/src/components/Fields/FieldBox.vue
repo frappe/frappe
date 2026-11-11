@@ -28,6 +28,10 @@ defineProps<{
 .field-box :deep([data-slot="control"])::placeholder {
 	color: var(--ink-gray-4);
 }
+/* Chrome draws a password input's dots 1px above the same dots in text: pad the top to match. */
+.field-box :deep(input[data-slot="control"][type="password"]) {
+	padding-top: 8px;
+}
 .field-box[data-error] :deep([data-slot="control"]) {
 	color: var(--ink-red-4);
 }

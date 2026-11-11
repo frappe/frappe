@@ -14,7 +14,7 @@
 		</template>
 		<!-- A grid cell passes its row, and draws no actions. -->
 		<template v-if="!row" #suffix>
-			<FieldActions :field="field" :value="modelValue" />
+			<FieldActions :field="field" :value="modelValue" :record="record" />
 		</template>
 	</TextInput>
 </template>

@@ -14,6 +14,8 @@ const TYPES = [
 	{ fieldname: "f_phone", fieldtype: "Phone", label: "Phone Field" },
 	{ fieldname: "f_duration", fieldtype: "Duration", label: "Duration Field" },
 	{ fieldname: "f_password", fieldtype: "Password", label: "Password Field" },
+	{ fieldname: "f_email_long", fieldtype: "Data", options: "Email", label: "Long Email" },
+	{ fieldname: "f_ph", fieldtype: "Data", label: "Nickname", placeholder: "Enter a nickname" },
 ];
 const VALUES = {
 	f_data: "hello",
@@ -26,6 +28,8 @@ const VALUES = {
 	f_phone: "+911234567890",
 	f_duration: 5400,
 	f_password: "secret",
+	f_email_long:
+		"a.very.long.email.address.for.the.panel.row.box@a-rather-long-subdomain.example-company.com",
 };
 const LAYOUT = [
 	{
@@ -88,11 +92,12 @@ test.describe("Desk v2 side panel row", () => {
 				module: "Core",
 				custom: 1,
 				autoname: "hash",
-				fields: TYPES.map(({ label, fieldname, fieldtype, options }) => ({
+				fields: TYPES.map(({ label, fieldname, fieldtype, options, placeholder }) => ({
 					label,
 					fieldname,
 					fieldtype,
 					options,
+					placeholder,
 				})),
 				permissions: [{ role: "System Manager", read: 1, write: 1, create: 1 }],
 			},
@@ -121,10 +126,10 @@ test.describe("Desk v2 side panel row", () => {
 		await expect(row(page, "f_data")).toBeVisible();
 	});
 
-	for (const { fieldname, fieldtype, options } of TYPES) {
-		test(`${fieldtype}${
-			options ? ` (${options})` : ""
-		} keeps one box in rest, hover and focus`, async ({ page }) => {
+	for (const { fieldname, label } of TYPES) {
+		test(`${label} (${fieldname}) keeps one box in rest, hover and focus`, async ({
+			page,
+		}) => {
 			await row(page, fieldname).scrollIntoViewIfNeeded();
 			const rest = await page.evaluate(measure, fieldname);
 			await row(page, fieldname).hover();
@@ -158,5 +163,76 @@ test.describe("Desk v2 side panel row", () => {
 		await row(page, "f_float").click();
 		await expect(page.locator(".field-box input")).toHaveCount(1);
 		await expect(page.locator('.field-box [data-fieldname="f_float"] input')).toBeVisible();
+	});
+
+	test("a Password row draws one dot per character, in the same place as the open input", async ({
+		page,
+	}) => {
+		const dots = (state) =>
+			page.evaluate(() => {
+				const cell = document.querySelector('.field-box [data-fieldname="f_password"]');
+				const input = cell.querySelector("input");
+				const text = input ?? cell.querySelector("span.truncate");
+				return {
+					count: input ? input.value.length : text.textContent.length,
+					masked:
+						getComputedStyle(text).webkitTextSecurity === "disc" ||
+						input?.type === "password",
+				};
+			});
+		const rest = await dots();
+		await row(page, "f_password").click();
+		const open = await dots();
+
+		expect(rest).toEqual({ count: 6, masked: true });
+		expect(open).toEqual(rest);
+	});
+
+	test("an Email row keeps its mail button at the same x when it opens, and text stops before it", async ({
+		page,
+	}) => {
+		// The shell's email button when the reader may write an email, else the mailto arrow.
+		const arrow = (fieldname) =>
+			row(page, fieldname).locator('[data-slot="field-action"], [data-slot="mail-arrow"]');
+		await row(page, "f_email_long").scrollIntoViewIfNeeded();
+		await row(page, "f_email_long").hover();
+		const rest = await arrow("f_email_long").boundingBox();
+		await row(page, "f_email_long").click();
+		const input = page.locator('.field-box [data-fieldname="f_email_long"] input');
+		await expect(input).toBeFocused();
+		const open = await arrow("f_email_long").boundingBox();
+		const textRight = await input.evaluate((el) => {
+			const style = getComputedStyle(el);
+			return el.getBoundingClientRect().right - parseFloat(style.paddingRight);
+		});
+
+		expect(open.x).toBeCloseTo(rest.x, 0);
+		expect(textRight).toBeLessThanOrEqual(open.x);
+	});
+
+	test("a Duration row opens with the caret at the end and no selection", async ({ page }) => {
+		await row(page, "f_duration").click();
+		const input = page.locator('.field-box [data-fieldname="f_duration"] input');
+		await expect(input).toBeFocused();
+		await expect
+			.poll(() => input.evaluate((el) => [el.selectionStart, el.selectionEnd]))
+			.toEqual([6, 6]);
+	});
+
+	test("an open row shows the field's own placeholder, else `Add <Label>...`", async ({
+		page,
+	}) => {
+		await row(page, "f_ph").click();
+		await expect(page.locator('.field-box [data-fieldname="f_ph"] input')).toHaveValue("");
+		await expect(page.locator('.field-box [data-fieldname="f_ph"] input')).toHaveAttribute(
+			"placeholder",
+			"Enter a nickname"
+		);
+
+		await row(page, "f_data").click();
+		await expect(page.locator('.field-box [data-fieldname="f_data"] input')).toHaveAttribute(
+			"placeholder",
+			"Add Data Field..."
+		);
 	});
 });

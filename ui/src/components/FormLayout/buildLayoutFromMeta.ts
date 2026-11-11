@@ -166,6 +166,7 @@ export function mapField(
     maxHeight: field.max_height || undefined,
     linkMark: field.link_mark,
     description: field.description,
+    placeholder: field.placeholder || undefined,
     hidden: !!field.hidden,
     permlevel: field.permlevel,
     // Carried, not read here: `resolveLayout` needs it to tell a permlevel

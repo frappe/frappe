@@ -67,7 +67,12 @@
 								:value="mark"
 								:text="display"
 							/>
-							<span class="truncate">{{ display || placeholder }}</span>
+							<span
+								v-if="secret"
+								class="truncate select-none [-webkit-text-security:disc]"
+								>{{ doc[field.fieldname] }}</span
+							>
+							<span v-else class="truncate">{{ display || placeholder }}</span>
 						</template>
 					</span>
 					<span
@@ -155,7 +160,12 @@ const page = inject(ControlPageKey, null);
 // A stock control draws the panel's ghost box, so a `variant` in `ui.props` does not apply.
 const controlProps = computed(() => {
 	const { variant: _variant, ...stockProps } = props.field.ui?.props ?? {};
-	if (!props.field.ui?.component) return { ...stockProps, panel: true };
+	if (!props.field.ui?.component)
+		return {
+			...stockProps,
+			panel: true,
+			...(phone.value || email.value ? { record: actionRecord.value } : {}),
+		};
 	return { ...props.field.ui.props, ...(page?.value ? { page: page.value } : {}) };
 });
 const titles = inject(LinkTitlesKey, null);
@@ -216,18 +226,22 @@ const placeholder = computed(() =>
 	interactive.value && !summary.value ? __("Add {0}...", [props.field.label]) : ""
 );
 
-// The row draws the label and the one placeholder, so the control must not draw its own.
+// The row draws the label; the control's one placeholder is the field's own, else `Add <Label>...`.
 const controlField = computed(() => ({
 	...props.field,
 	label: undefined,
 	description: undefined,
-	placeholder: placeholder.value,
+	placeholder: props.field.placeholder || placeholder.value,
 }));
 
 const display = computed(() =>
 	displayField(props.field, doc.value[props.field.fieldname], { doc: doc.value })
 );
 
+// The row masks the value as the open input does: one dot per character.
+const secret = computed(
+	() => props.field.fieldtype === "Password" && !!doc.value[props.field.fieldname]
+);
 const phone = computed(() => isPhoneField(props.field));
 const email = computed(() => isEmailField(props.field));
 const actionRecord = computed(() =>
