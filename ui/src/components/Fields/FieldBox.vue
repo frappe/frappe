@@ -1,10 +1,13 @@
-<!-- The box every panel row draws in, at rest and open: the hover and focus looks live here. -->
+<!-- The box every panel row draws in, at rest and open: the hover and focus looks live here.
+     An open popover holds the focus in its portal, so `data-state=open` keeps the focus look. -->
 <template>
 	<div
-		class="field-box min-h-7 w-full min-w-0 rounded-4 focus-within:bg-surface-gray-2 focus-within:ring-1 focus-within:ring-inset"
+		class="field-box min-h-7 w-full min-w-0 rounded-4 focus-within:bg-surface-gray-2 focus-within:ring-1 focus-within:ring-inset has-[[data-state=open]]:bg-surface-gray-2 has-[[data-state=open]]:ring-1 has-[[data-state=open]]:ring-inset"
 		:class="[
 			interactive ? 'hover:bg-surface-gray-2' : '',
-			error ? 'focus-within:ring-outline-red-3' : 'focus-within:ring-outline-gray-3',
+			error
+				? 'focus-within:ring-outline-red-3 has-[[data-state=open]]:ring-outline-red-3'
+				: 'focus-within:ring-outline-gray-3 has-[[data-state=open]]:ring-outline-gray-3',
 		]"
 		:data-error="error || undefined"
 	>
