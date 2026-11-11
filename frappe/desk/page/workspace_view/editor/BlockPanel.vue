@@ -331,7 +331,7 @@ function remove_link(index) {
 			<template v-if="widget">
 				<template v-if="form_open">
 					<p
-						v-if="!editable || record.name"
+						v-if="record && (!editable || record.name)"
 						class="col-span-2 text-p-sm text-ink-gray-5"
 					>
 						<template v-if="!editable && record.is_standard">
