@@ -4,18 +4,23 @@
 # errors, so a typo here would silently drop every /apps URL to a 404.
 
 import os
+import re
+from html import escape
 
 import frappe
 from frappe.shell import SHELL_ROOT
 from frappe.shell.permissions import guard_prefix
 from frappe.shell.registry import resolve_prefix, split_shell_path
 from frappe.shell.route_guard import is_reserved
+from frappe.shell.titles import tab_icon
 from frappe.utils.data import is_desk_v2_enabled
 from frappe.website.page_renderers.base_renderer import BaseRenderer
 from frappe.website.page_renderers.redirect_page import RedirectPage
 
 #: Vite's output, under the Python package: `/assets/frappe/` is a symlink to `frappe/public/`.
 SHELL_DOCUMENT = "public/frontend/index.html"
+
+_ICON_LINK = re.compile(r'(<link rel="icon" href=")[^"]*(")')
 
 _document_cache: dict[str, tuple[float, str]] = {}
 
@@ -78,7 +83,13 @@ class ShellPage(BaseRenderer):
 			)
 
 		# Always 200: a 404 would cost the page its asset preloads, and the miss is the router's to report.
-		return self.build_response(document, 200)
+		return self.build_response(self.with_tab_icon(document), 200)
+
+	def with_tab_icon(self, document: str):
+		"""The memoized document with this prefix's icon, so the tab is right before any JS runs."""
+		# A function, not a string: the href may hold backslashes that `re.sub` would read as groups.
+		href = escape(tab_icon(self.app), quote=True)
+		return _ICON_LINK.sub(lambda match: f"{match[1]}{href}{match[2]}", document, count=1)
 
 	def request_path(self):
 		if frappe.local.request:
