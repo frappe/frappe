@@ -377,6 +377,9 @@ test("duration formatting matches compact t3code-style buckets", () => {
 	assert.equal(formatDuration(2_440), "2s")
 	assert.equal(formatDuration(21_600), "22s")
 	assert.equal(formatDuration(125_000), "2m 5s")
+	assert.equal(formatDuration(3_600_000), "1h")
+	assert.equal(formatDuration(3_725_000), "1h 2m")
+	assert.equal(formatDuration(392_983_000), "4d 13h")
 })
 
 test("settled turns collapse intermediate work and preserve the final response", () => {

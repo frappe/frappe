@@ -1207,6 +1207,29 @@ class TestWhatACustomisationMayDo(DockTestCase):
 		self.assertEqual(frappe.get_all("Dock", filters={"app": APP, "standard": 0}), [])
 		self.assertEqual(names(dock_for(self.PERSON)), [ALPHA, BETA, GAMMA])
 
+	def moved_site_layer(self):
+		"""The site layer, naming `PERSON` as its owner and not saved yet."""
+		frappe.set_user(self.MANAGER)
+		save_site_dock(APP, payload(BETA))
+		doc = frappe.get_doc("Dock", frappe.db.get_value("Dock", {"app": APP, "user": ""}))
+		doc.user = self.PERSON
+		return doc
+
+	def test_a_layer_cannot_be_moved_by_naming_a_new_owner(self):
+		"""`has_permission` reads `user` off the document being saved, so it cannot refuse this. The
+		document has to, on any site that grants more than the default read on `Dock`.
+		"""
+		doc = self.moved_site_layer()
+
+		frappe.set_user(self.PERSON)
+		self.assertRaises(frappe.PermissionError, doc.save, ignore_permissions=True)
+
+	def test_a_workspace_manager_may_move_a_layer(self):
+		doc = self.moved_site_layer()
+		doc.save()
+
+		self.assertEqual(frappe.db.get_value("Dock", doc.name, "user"), self.PERSON)
+
 	def test_reset_for_everyone_is_workspace_manager_only(self):
 		from frappe.desk.doctype.dock.dock import reset_dock_for_everyone
 
@@ -2220,6 +2243,96 @@ class TestTheDeskDoor(IntegrationTestCase):
 		`desk_route` off one never gets `undefined`."""
 		with patch.object(frappe, "get_hooks", _with_desk_route("/desk/crm", denied=True)):
 			self.assertEqual(self.app_entry("frappe")["desk_route"], "")
+
+
+class TestAddModule(IntegrationTestCase):
+	"""Add on the dock creates a module the site owns, placed in the app's dock, with a page of its
+	own to open on, so it is on the desk the moment it exists. A module is the site's, so only the
+	dock for everyone creates one."""
+
+	MODULE = "Test Dock Added Module"
+	MANAGER = "test-dock-add-module@example.com"
+	CURATOR = "test-dock-add-module-curator@example.com"
+	DESK_USER = "test-dock-add-module-desk@example.com"
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+		for email, roles in (
+			(self.MANAGER, ["System Manager", "Workspace Manager"]),
+			(self.CURATOR, ["Workspace Manager"]),
+			(self.DESK_USER, []),
+		):
+			if not frappe.db.exists("User", email):
+				frappe.get_doc(
+					{
+						"doctype": "User",
+						"email": email,
+						"first_name": "Dock",
+						"send_welcome_email": 0,
+						"roles": [{"role": role} for role in roles],
+					}
+				).insert()
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		clear_arrangements_for(app="frappe", standard=0)
+		for name in frappe.get_all("Workspace", {"module": self.MODULE}, pluck="name"):
+			frappe.delete_doc("Workspace", name, force=True)
+		frappe.delete_doc("Module Def", self.MODULE, force=True, ignore_missing=True)
+		for email in (self.MANAGER, self.CURATOR, self.DESK_USER):
+			frappe.delete_doc("User", email, force=True, ignore_missing=True)
+
+	def save(self, icon=None):
+		row = {"link_type": "Sidebar", "link_to": self.MODULE, "title": self.MODULE, "added": 1}
+		if icon:
+			row["icon"] = icon
+		return save_site_dock("frappe", json.dumps([row]), json.dumps([self.MODULE]))
+
+	def saved_row(self):
+		return next(row for row in get_site_dock("frappe") if row["link_to"] == self.MODULE)
+
+	def test_creates_a_custom_module_in_the_app_with_a_page_to_open_on(self):
+		frappe.set_user(self.MANAGER)
+		payload = self.save()
+		frappe.set_user("Administrator")
+
+		module = frappe.get_doc("Module Def", self.MODULE)
+		self.assertEqual((module.custom, module.app_name), (1, "frappe"))
+		self.assertTrue(frappe.db.exists("Workspace", {"module": self.MODULE}))
+		# The payload carries the new shell and its page, so the dock can draw the tile and route to
+		# it without a reload.
+		self.assertEqual(payload["module_sidebars"][self.MODULE]["app"], "frappe")
+		self.assertIn(self.MODULE, [page["name"] for page in payload["workspace_pages"]["pages"]])
+		self.assertIn(self.MODULE, [entry.get("link_to") for entry in payload["rail"]])
+
+	def test_puts_the_icon_picked_on_the_tile_and_the_page(self):
+		frappe.set_user(self.MANAGER)
+		self.save(icon="tent")
+		frappe.set_user("Administrator")
+
+		self.assertEqual(self.saved_row()["icon"], "tent")
+		self.assertEqual(frappe.db.get_value("Workspace", {"module": self.MODULE}, "icon"), "tent")
+
+	def test_gives_a_tile_with_no_icon_the_one_its_sidebar_falls_back_to(self):
+		frappe.set_user(self.MANAGER)
+		self.save()
+		frappe.set_user("Administrator")
+
+		self.assertEqual(self.saved_row()["icon"], DEFAULT_HEADER_ICON)
+
+	def test_needs_the_right_to_create_a_module(self):
+		frappe.set_user(self.CURATOR)
+		with self.assertRaises(frappe.PermissionError):
+			self.save()
+		frappe.set_user("Administrator")
+		self.assertFalse(frappe.db.exists("Module Def", self.MODULE))
+
+	def test_a_save_that_is_refused_creates_no_module(self):
+		frappe.set_user(self.DESK_USER)
+		with self.assertRaises(frappe.PermissionError):
+			self.save()
+		frappe.set_user("Administrator")
+		self.assertFalse(frappe.db.exists("Module Def", self.MODULE))
 
 
 class TestModuleIcons(IntegrationTestCase):

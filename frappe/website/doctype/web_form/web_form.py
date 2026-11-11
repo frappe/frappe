@@ -105,12 +105,22 @@ class WebForm(WebsiteGenerator):
 			else:
 				frappe.throw(_("You need to be in developer mode to edit a Standard Web Form"))
 
+		self.set_access_flags()
+
 		if not frappe.flags.in_import:
 			self.validate_fields()
 			self.warn_about_empty_pages()
 
 		self.validate_hidden_and_mandatory()
 		self.validate_guest_key_link_fields()
+
+	def set_access_flags(self):
+		if not (self.login_required or self.key_required):
+			self.allow_multiple = self.allow_edit = self.allow_delete = self.show_list = 0
+		if self.allow_multiple:
+			self.show_list = 1
+		else:
+			self.allow_delete = 0
 
 	def validate_guest_key_link_fields(self):
 		if not is_guest_key_web_form(self):
@@ -313,12 +323,9 @@ def get_context(context):
 			and not frappe.form_dict.is_list
 			and not web_form_request
 		):
-			condition_json = json.loads(self.condition_json) if self.condition_json else []
-			condition_json.append(["owner", "=", frappe.session.user])
-			names = frappe.get_all(self.doc_type, filters=condition_json, pluck="name")
-			if names:
+			if name := self.get_user_response():
 				context.in_view_mode = True
-				self.redirect_to(f"/{self.route}/{names[0]}")
+				self.redirect_to(f"/{self.route}/{name}")
 
 		# Show new form when
 		# - User is Guest
@@ -534,6 +541,12 @@ def get_context(context):
 	def redirect_to(self, path: str):
 		frappe.redirect(path + get_web_form_request_query())
 
+	def get_user_response(self) -> str | None:
+		condition_json = json.loads(self.condition_json) if self.condition_json else []
+		condition_json.append(["owner", "=", frappe.session.user])
+		names = frappe.get_all(self.doc_type, filters=condition_json, pluck="name", limit=1)
+		return names[0] if names else None
+
 	def get_web_form_request(
 		self,
 		key: str | None,
@@ -650,7 +663,7 @@ def get_context(context):
 			if self.allow_comments:
 				context.comment_list = get_comment_list(reference_doc.doctype, reference_doc.name)
 
-			doc_dict = reference_doc.as_dict(no_nulls=True)
+			doc_dict = reference_doc.copy_with_fieldlevel_read_permissions().as_dict(no_nulls=True)
 			# A request key authorises access to the bound document without any
 			# document permission check, so its holder must only ever see the
 			# fields the Web Form itself exposes.
@@ -800,7 +813,7 @@ def get_context(context):
 
 			if field.fieldtype == "Phone":
 				if not (df and df.fieldtype == "Phone"):
-					validate_phone_number_with_country_code(value, field.fieldname)
+					validate_phone_number_with_country_code(value, field.fieldname, _(field.label))
 				continue
 
 			if field.fieldtype != "Data" or not field.options:
@@ -964,6 +977,14 @@ def accept(web_form: str, data: str | dict, web_form_request_key: str | None = N
 		doc = frappe.get_doc(doctype, data.name)
 	else:
 		# insert
+		if (
+			web_form.login_required
+			and not web_form.anonymous
+			and not web_form.allow_multiple
+			and not web_form_request
+			and web_form.get_user_response()
+		):
+			frappe.throw(_("You have already submitted a response to this form"))
 		doc = frappe.new_doc(doctype)
 
 	# Set ignore_mandatory flag if allow_incomplete is enabled
@@ -1064,7 +1085,7 @@ def accept(web_form: str, data: str | dict, web_form_request_key: str | None = N
 		frappe.session.user = user
 
 	frappe.flags.web_form_doc = doc
-	return doc
+	return doc.copy_with_fieldlevel_read_permissions()
 
 
 @frappe.whitelist(methods=["POST", "DELETE"], allow_guest=True)
@@ -1240,7 +1261,7 @@ def get_form_data(
 	if docname:
 		doc = frappe.get_doc(doctype, docname)
 		if web_form.has_web_form_permission(doctype, docname, ptype="read"):
-			out.doc = doc
+			out.doc = doc.copy_with_fieldlevel_read_permissions()
 		else:
 			frappe.throw(_("Not permitted"), frappe.PermissionError)
 

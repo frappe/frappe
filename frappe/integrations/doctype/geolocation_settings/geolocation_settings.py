@@ -1,6 +1,8 @@
 # Copyright (c) 2024, Frappe Technologies and contributors
 # For license information, please see license.txt
 
+import requests
+
 import frappe
 from frappe import _
 from frappe.model.document import Document
@@ -28,7 +30,22 @@ class GeolocationSettings(Document):
 		provider: DF.Literal["Geoapify", "Nomatim", "HERE"]
 	# end: auto-generated types
 
-	pass
+	def validate(self):
+		if not self.enable_address_autocompletion:
+			return
+
+		required = ["provider"]
+		if self.provider in ("Geoapify", "HERE"):
+			required.append("api_key")
+		elif self.provider == "Nomatim":
+			required.append("base_url")
+
+		for fieldname in required:
+			if not self.get(fieldname):
+				frappe.throw(
+					_("{0} is required").format(frappe.bold(_(self.meta.get_label(fieldname)))),
+					frappe.MandatoryError,
+				)
 
 
 @frappe.whitelist()
@@ -53,4 +70,10 @@ def autocomplete(txt: str) -> list[dict]:
 	else:
 		frappe.throw(_("This geolocation provider is not supported yet."))
 
-	return list(provider.autocomplete(txt))
+	try:
+		return list(provider.autocomplete(txt))
+	except requests.RequestException as e:
+		# the exception text carries the provider URL, which includes the API key
+		status = getattr(e.response, "status_code", None)
+		frappe.log_error(title="Address autocomplete failed", message=f"{type(e).__name__} (status {status})")
+		raise frappe.ValidationError(_("Address autocomplete failed")) from None

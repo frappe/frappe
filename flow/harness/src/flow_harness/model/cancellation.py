@@ -48,13 +48,18 @@ async def await_with_cancellation(awaitable: Awaitable[Any], cancellation: async
 
 
 async def iterate_with_cancellation(
-	iterator: AsyncIterator[Any], cancellation: asyncio.Event | None
+	iterator: AsyncIterator[Any], cancellation: asyncio.Event | None, idle_timeout: float | None = None
 ) -> AsyncIterator[Any]:
-	"""Consume and close an async iterator, stopping the moment cancellation is requested."""
+	"""Consume and close an async iterator, stopping the moment cancellation is requested.
+
+	`idle_timeout` raises `TimeoutError` when no item arrives within that many seconds.
+	"""
 	try:
 		while True:
 			try:
-				item = await await_with_cancellation(anext(iterator), cancellation)
+				item = await await_with_cancellation(
+					asyncio.wait_for(anext(iterator), idle_timeout), cancellation
+				)
 			except StopAsyncIteration:
 				return
 			yield item

@@ -28,6 +28,9 @@ class StorageDriver(ABC):
 	# one S3 bucket) sets it to keep each site's objects apart.
 	key_prefix: str = ""
 
+	# A remote driver sets it to keep a copy of each requested blob on local disk.
+	cache_locally: bool = False
+
 	@abstractmethod
 	def write(self, key: str, stream: IO[bytes], *, is_private: bool = False) -> None: ...
 

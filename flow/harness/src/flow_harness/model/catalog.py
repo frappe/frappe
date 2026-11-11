@@ -111,7 +111,8 @@ def model_supports_images(name: str) -> bool | None:
 		from flow_harness.model.providers.opencode import opencode_go_supports_images
 
 		return opencode_go_supports_images(remote)
-	if prefix not in _PROVIDERS_BY_MODEL_PREFIX:
+	provider = _PROVIDERS_BY_MODEL_PREFIX.get(prefix)
+	if provider is None:
 		# A custom gateway may expose a familiar remote model id with different
 		# capabilities; provider metadata cannot safely be borrowed across surfaces.
 		return None
@@ -123,7 +124,8 @@ def model_supports_images(name: str) -> bool | None:
 		# affected by LiteLLM's alias/cache resolution.
 		for candidate in (name, remote):
 			spec = litellm.model_cost.get(candidate)
-			if not isinstance(spec, dict):
+			# a gateway's remote id may be another provider's key, as deepseek/x in openrouter/deepseek/x
+			if not isinstance(spec, dict) or spec.get("litellm_provider") != provider.id:
 				continue
 			return spec.get("supports_vision") is True
 		return None

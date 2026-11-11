@@ -171,6 +171,98 @@ async def test_litellm_cancellation_closes_active_stream(monkeypatch):
 	assert events[0].stop_reason == "aborted"
 
 
+async def test_litellm_retries_a_stream_that_goes_silent(monkeypatch):
+	monkeypatch.setattr("flow_harness.model.litellm.STREAM_IDLE_TIMEOUT_SECONDS", 0.05)
+	monkeypatch.setattr("flow_harness.model.retry._retry_delay_seconds", lambda error, retry_index: 0)
+	attempts = 0
+	closed = []
+
+	class SilentStream:
+		def __aiter__(self):
+			return self
+
+		async def __anext__(self):
+			await asyncio.Event().wait()
+
+		async def aclose(self):
+			closed.append(self)
+
+	async def completion(**kwargs):
+		nonlocal attempts
+		attempts += 1
+		if attempts == 1:
+			await asyncio.Event().wait()
+		if attempts == 2:
+			return SilentStream()
+
+		async def iterator():
+			yield _chunk({"content": "back"}, finish_reason="stop")
+
+		return iterator()
+
+	monkeypatch.setattr("litellm.acompletion", completion)
+	model = LiteLLMModel("openai/test")
+	events = await asyncio.wait_for(
+		_collect(model.run(ModelRequest(messages=[UserMessage(content="hi")]))), timeout=2
+	)
+
+	assert attempts == 3
+	assert len(closed) == 1
+	assert [e.kind for e in events if e.type == "retry" and e.status == "scheduled"] == ["timeout"] * 2
+	message = next(e for e in events if e.type == "assistant_message")
+	assert message.text == "back"
+
+
+async def test_litellm_nonstream_timeout_exhausts_retries(monkeypatch):
+	monkeypatch.setattr("flow_harness.model.litellm.STREAM_IDLE_TIMEOUT_SECONDS", 0.02)
+	monkeypatch.setattr("flow_harness.model.retry._retry_delay_seconds", lambda error, retry_index: 0)
+	attempts = 0
+
+	async def completion(**kwargs):
+		nonlocal attempts
+		attempts += 1
+		await asyncio.Event().wait()
+
+	monkeypatch.setattr("litellm.acompletion", completion)
+	request = ModelRequest(messages=[UserMessage(content="hi")], stream=False)
+	model = LiteLLMModel("openai/test")
+	with pytest.raises(ProviderError) as raised:
+		await asyncio.wait_for(_collect(model.run(request)), timeout=1)
+	assert (raised.value.kind, raised.value.retryable, attempts) == ("timeout", True, 3)
+
+
+@pytest.mark.parametrize("stream", [True, False])
+@pytest.mark.parametrize("source", ["params", "sdk"])
+async def test_litellm_honors_longer_timeouts(monkeypatch, stream, source):
+	monkeypatch.setattr("flow_harness.model.litellm.STREAM_IDLE_TIMEOUT_SECONDS", 0.01)
+	monkeypatch.setattr("flow_harness.model.retry._retry_delay_seconds", lambda error, retry_index: 0)
+	attempts = 0
+
+	async def completion(**kwargs):
+		nonlocal attempts
+		attempts += 1
+		await asyncio.sleep(0.03)
+		if not stream:
+			return {"choices": [{"message": {"content": "done"}, "finish_reason": "stop"}]}
+
+		async def iterator():
+			await asyncio.sleep(0.03)
+			yield _chunk({"content": "done"}, finish_reason="stop")
+
+		return iterator()
+
+	monkeypatch.setattr("litellm.acompletion", completion)
+	params = {"timeout": 1.0} if source == "params" else None
+	if source == "sdk":
+		monkeypatch.setattr("litellm.request_timeout", 1.0)
+	model = LiteLLMModel("openai/test")
+	request = ModelRequest(messages=[UserMessage(content="hi")], stream=stream, params=params)
+	events = await asyncio.wait_for(_collect(model.run(request)), timeout=1)
+	assert attempts == 1
+	assert next(e for e in events if e.type == "assistant_message").text == "done"
+	assert not any(e.type == "retry" for e in events)
+
+
 async def test_litellm_disables_sdk_retries_and_owns_the_attempts(monkeypatch):
 	"""One acompletion call is one provider attempt; the retry budget lives in Flow."""
 	monkeypatch.setattr("flow_harness.model.retry._retry_delay_seconds", lambda error, retry_index: 0)
