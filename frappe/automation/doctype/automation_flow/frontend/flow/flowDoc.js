@@ -1,6 +1,7 @@
 import { layoutSteps, toRows, toTree } from "./workflowSteps";
 
 export const FLOW_DOCTYPE = "Automation Flow";
+export const RUN_DOCTYPE = "Automation Run";
 
 /** A flow before its first save: no DocType and no trigger until the user picks them. */
 export function newFlow() {

@@ -5,11 +5,14 @@
 			ref="header"
 			v-model:title="flow.doc.title"
 			v-model:enabled="flow.doc.enabled"
+			:flow-name="flow.doc.name"
+			:testing="testing"
 			:unsaved="flow.unsaved || flow.isNew"
 			:saving="flow.saving"
 			:can-undo="flow.canUndo"
 			:can-redo="flow.canRedo"
 			@save="save"
+			@toggle-test="toggleTest"
 			@undo="flow.undo"
 			@redo="flow.redo"
 		/>
@@ -21,21 +24,29 @@
 			<span>{{ __("Someone else saved this flow after you opened it.") }}</span>
 			<Button :label="__('Reload and discard my changes')" @click="flow.load()" />
 		</div>
+		<TrialRunBar
+			v-if="testing"
+			:trial="trial"
+			:document-type="flow.doc.document_type"
+			:can-test="canTest"
+		/>
 		<div class="flex min-h-0 flex-1" data-flow-body>
 			<AutomationCanvas
 				ref="canvas"
 				class="min-w-0 flex-1"
-				:nodes="nodes"
-				:edges="edges"
+				:nodes="shown.nodes"
+				:edges="shown.edges"
 				:selected-id="selectedId"
-				:readonly="flow.saving"
+				:readonly="flow.saving || testing"
 				:start-options="triggerGroups(flow.doc.document_type)"
 				:block-options="blockGroups(flow.doc.document_type)"
 				@select="selectedId = $event"
 				@pick-start="pickStart"
 				@add-node="addNode"
+				@run-branch="trial.runBranch"
 			/>
 			<aside
+				v-if="!testing"
 				class="h-full w-[340px] shrink-0 overflow-hidden border-l bg-surface-base"
 				:aria-label="__('Inspector')"
 			>
@@ -71,6 +82,7 @@ import { AutomationCanvas } from "@framework/ui/AutomationCanvas";
 import { useDocPermissions } from "@framework/ui/useDocPermissions";
 import { routeFor, useUnloadGuard } from "@shell";
 import FlowHeader from "./FlowHeader.vue";
+import TrialRunBar from "./TrialRunBar.vue";
 import FlowInspector from "./inspector/FlowInspector.vue";
 import { confirmDiscard } from "./flow/confirmDiscard";
 import { FLOW_DOCTYPE, stepById } from "./flow/flowDoc";
@@ -82,6 +94,7 @@ import { workflowEdges, workflowNodes } from "./flow/workflowGraph";
 import { insertAfter, newStep, removeStep, stepsBefore } from "./flow/workflowSteps";
 import { triggerFromValue, triggerGroups } from "./flow/workflowTriggers";
 import { useFlowDoc } from "./flow/useFlowDoc";
+import { useTrialRun } from "./flow/useTrialRun";
 
 const props = defineProps({
 	doctype: { type: String, default: FLOW_DOCTYPE },
@@ -94,11 +107,20 @@ const flow = useFlowDoc(props.name, props.query);
 const permits = useDocPermissions(FLOW_DOCTYPE);
 const header = ref(null);
 const selectedId = ref("");
+const testing = ref(false);
+const trial = useTrialRun(() => flow.doc);
 
 const selectedStep = computed(() => stepById(flow.doc?.actions || [], selectedId.value));
 const relationships = computed(() => parseList(flow.doc?.relationships));
 const nodes = computed(() => workflowNodes(flow.doc, flow.errors));
 const edges = computed(() => workflowEdges(flow.doc.actions));
+const shown = computed(() =>
+	testing.value
+		? trial.decorate(nodes.value, edges.value)
+		: { nodes: nodes.value, edges: edges.value }
+);
+// A trial runs the saved flow, so unsaved edits would not be what gets tested.
+const canTest = computed(() => !!flow.doc.name && !flow.isNew && !flow.unsaved);
 // A new flow needs the create right; the insert checks again.
 const checking = computed(() => !props.name && permits.loading.value);
 const denied = computed(() => !props.name && !checking.value && !permits.holds("create"));
@@ -108,6 +130,13 @@ flow.load();
 watch(
 	() => props.name,
 	(name) => name !== flow.current() && flow.load(name)
+);
+watch(
+	() => props.name,
+	() => {
+		testing.value = false;
+		trial.close();
+	}
 );
 watch(() => flow.doc?.document_type, loadOffers, { immediate: true });
 watch(
@@ -147,6 +176,11 @@ async function save() {
 	if (await flow.save()) {
 		if (wasNew) router.replace(routeFor(FLOW_DOCTYPE, flow.doc.name));
 	}
+}
+
+function toggleTest() {
+	testing.value = !testing.value;
+	if (!testing.value) trial.close();
 }
 
 function pickStart(value) {
