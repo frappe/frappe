@@ -16,7 +16,7 @@
 			:options="options"
 			:loading="loading"
 			:filterable="false"
-			placeholder="Search or create tags"
+			:placeholder="__('Search or create tags')"
 			side="left"
 			@update:modelValue="onPick"
 			@update:query="searchSoon"
@@ -67,7 +67,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, h, ref, watch } from "vue";
+import { computed, h, onBeforeUnmount, ref, watch } from "vue";
 import { KeyboardShortcut, MultiSelect, useKeyboardShortcut } from "frappe-ui";
 import { canCreateTag, matchingTags } from "./people";
 import { useTagSearch, type SearchOption } from "./remoteSearch";
@@ -147,10 +147,17 @@ watch(open, (opened) => {
 if (props.shortcut) {
 	useKeyboardShortcut({
 		combo: "G",
-		description: "Add tags",
+		description: __("Add tags"),
 		handler: () => (open.value = true),
 	});
 }
+
+// A refit or a closing panel can drop the picker mid-session; its ticks still save.
+onBeforeUnmount(() => {
+	if (!open.value && !pending.value) return;
+	naming.value = recolouring.value = "";
+	void props.session.commit();
+});
 
 function onPick(picked: (string | number)[]) {
 	const next = picked.map(String);

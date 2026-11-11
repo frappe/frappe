@@ -74,7 +74,8 @@ useEventListener(
 			event.preventDefault();
 			emit("select", TAG_COLOR_NAMES[index.value]);
 		}
-		if (event.key !== "Escape" && event.key !== "Tab") event.stopPropagation();
+		const modified = event.ctrlKey || event.metaKey || event.altKey;
+		if (!modified && event.key !== "Escape" && event.key !== "Tab") event.stopPropagation();
 	},
 	{ capture: true }
 );

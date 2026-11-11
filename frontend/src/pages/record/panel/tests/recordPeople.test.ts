@@ -16,6 +16,7 @@ const api = vi.hoisted(() => {
 		addShare: answer("shares", [{ user: "cy@example.com", read: 1, write: 1 }]),
 		removeShare: answer("shares", []),
 		runMethod: vi.fn(async (_method?: string, _args?: unknown): Promise<{ data: unknown }> => ({ data: null })),
+		runPartMethod: vi.fn((method: string, args: unknown) => api.runMethod(method, args)),
 		listDocuments: vi.fn(async () => ({ data: [] })),
 		searchDocuments: vi.fn(async () => ({ data: [] })),
 	};
@@ -306,6 +307,7 @@ describe("tags", () => {
 			added: [{ tag: "first", color: undefined }],
 			removed: [],
 		});
+		expect(api.runPartMethod).toHaveBeenCalledWith(UPDATE, expect.anything(), "CRM Deal", "D-1", "tags");
 	});
 
 	it("draws the chips read-only for a reader who may not write", () => {

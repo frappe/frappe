@@ -110,6 +110,8 @@ def update_record_tags(dt: str, dn: str, added: str | list | None = None, remove
 	if not all(isinstance(tag, str) for tag in removed):
 		frappe.throw(_("removed must be a list of tag names"), frappe.ValidationError)
 
+	# Each add and remove rewrites `_user_tags` from a read; the lock keeps two sessions from losing one.
+	frappe.db.get_value(dt, dn, "name", for_update=True)
 	frappe.db.savepoint("update_record_tags")
 	try:
 		doc_tags = DocTags(dt)

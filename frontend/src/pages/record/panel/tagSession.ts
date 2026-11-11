@@ -64,13 +64,13 @@ export function useTagSession(serverTags: () => string[], write: (batch: TagBatc
 			try {
 				if (batch.added.length || batch.removed.length) await write(batch);
 			} finally {
-				if (draft.value === snapshot) {
-					draft.value = null;
-					base.value = [...serverTags()];
-				}
+				// The server's tags after the write or its rollback, so a reopened session re-diffs against them.
+				if (draft.value === snapshot) draft.value = null;
+				base.value = [...serverTags()];
 			}
 		};
-		queue = queue.then(run, run);
+		// The write toasts its own failure; a rejection kept here would stop every later recolour.
+		queue = queue.then(run).catch(() => {});
 		return queue;
 	}
 

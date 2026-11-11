@@ -8,7 +8,6 @@ import {
 	type Users,
 } from "@framework/ui/api";
 import { errorMessage, type RecordPageApi } from "@/recordPage";
-import { seedTagColors } from "@/tagColors";
 import { recolourTag, updateRecordTags } from "@/tagApi";
 import { tagsOf } from "./people";
 import { useTagSession, type TagBatch } from "./tagSession";
@@ -36,7 +35,6 @@ function buildActions(context: PeopleSource) {
 		const current = whileOnRecord();
 		try {
 			const answer = await write();
-			seedTagColors(answer.data.tag_colors);
 			// An answer that outlived its record would paint the old rows onto the new one.
 			if (current()) docinfo.value = mergePart(docinfo.value, answer.data);
 			return true;

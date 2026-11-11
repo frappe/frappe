@@ -1,5 +1,5 @@
 // The tag writes. Apart from tagColors, which every list row imports, so the list page never loads the API.
-import { runMethod } from "@framework/ui/api";
+import { runMethod, runPartMethod } from "@framework/ui/api";
 import { seedTagColors } from "@/tagColors";
 
 const SET_TAG_COLOR = "frappe.desk.doctype.tag.tag.set_tag_color";
@@ -17,9 +17,13 @@ export async function updateRecordTags(
 	dn: string,
 	{ added, removed }: { added: { tag: string; color?: string }[]; removed: string[] }
 ) {
-	const { data } = await runMethod<{ tags: string[]; tag_colors: Record<string, string> }>(
+	// Fed as the record's `tags` part, so cached list rows and the record show the new tags.
+	const { data } = await runPartMethod<{ tags: string[]; tag_colors: Record<string, string> }>(
 		UPDATE_RECORD_TAGS,
-		{ dt, dn, added, removed }
+		{ dt, dn, added, removed },
+		dt,
+		dn,
+		"tags"
 	);
 	seedTagColors(data.tag_colors);
 	return { tags: data.tags };
