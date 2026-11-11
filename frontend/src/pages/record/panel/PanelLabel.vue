@@ -4,7 +4,11 @@
 		<template #trigger>
 			<span class="flex h-7 min-w-0 text-base leading-7 text-ink-gray-5">
 				<span ref="text" class="truncate">{{ field.label }}</span>
-				<span v-if="field.reqd" class="ms-0.5 shrink-0 text-ink-red-4" aria-hidden="true"
+				<span
+					v-if="field.reqd"
+					class="ms-0.5 shrink-0 text-ink-red-4"
+					role="img"
+					:aria-label="__('Required')"
 					>*</span
 				>
 			</span>
@@ -20,7 +24,11 @@
 	<Tooltip v-else :disabled="!tipped" :hover-delay="500">
 		<span class="flex h-7 min-w-0 text-base leading-7 text-ink-gray-5">
 			<span ref="text" class="truncate">{{ field.label }}</span>
-			<span v-if="field.reqd" class="ms-0.5 shrink-0 text-ink-red-4" aria-hidden="true"
+			<span
+				v-if="field.reqd"
+				class="ms-0.5 shrink-0 text-ink-red-4"
+				role="img"
+				:aria-label="__('Required')"
 				>*</span
 			>
 		</span>
@@ -35,6 +43,7 @@ import { computed, nextTick, onMounted, ref, watch } from "vue";
 import { useMediaQuery, useResizeObserver } from "@vueuse/core";
 import { Popover, Tooltip } from "frappe-ui";
 import type { FieldNode } from "@framework/ui/FormLayout/types";
+import { __ } from "@/i18n";
 import PanelLabelTip from "./PanelLabelTip.vue";
 
 const props = defineProps<{ field: FieldNode }>();

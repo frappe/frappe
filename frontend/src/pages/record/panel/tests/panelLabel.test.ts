@@ -150,6 +150,7 @@ describe("the required mark", () => {
 		const mark = [...root.querySelectorAll("span")].find((el) => el.textContent === "*")!;
 		expect(mark.className).toContain("text-ink-red-4");
 		expect(mark.className).toContain("shrink-0");
+		expect(mark.getAttribute("aria-label")).toBe("Required");
 	});
 
 	it("keeps the * outside the truncating label text", async () => {
