@@ -29,7 +29,6 @@ frappe.RoleEditor = class {
 		this.role_fieldname = role_fieldname;
 		this.child_doctype = child_doctype || configured_child_doctype || "Has Role";
 		let user_roles = this.get_selected_roles();
-		this.$search = $(`<input type="text" class="form-control input-xs" placeholder="${__("Search Roles")}" style="margin-bottom: 10px;">`).prependTo(wrapper);
 		this.multicheck = frappe.ui.form.make_control({
 			parent: wrapper,
 			df: {
@@ -37,6 +36,7 @@ frappe.RoleEditor = class {
 				fieldtype: "MultiCheck",
 				select_all: true,
 				columns: "15rem",
+				search_placeholder: __("Search Roles"),
 				get_data: () => {
 					return frappe
 						.xcall("frappe.core.doctype.user.user.get_all_roles")
@@ -56,12 +56,6 @@ frappe.RoleEditor = class {
 				},
 			},
 			render_input: true,
-		});
-		this.$search.on("input", (e) => {
-			const search_term = e.target.value.toLowerCase();
-			this.multicheck.$wrapper.find(".checkbox").each(function () {
-				$(this).toggle($(this).text().toLowerCase().includes(search_term));
-			});
 		});
 
 		let original_func = this.multicheck.make_checkboxes;

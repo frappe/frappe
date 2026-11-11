@@ -217,6 +217,7 @@ frappe.views.ReportPrintView = class ReportPrintView {
 			{
 				fieldtype: "MultiCheck",
 				fieldname: "columns",
+				search_placeholder: __("Search Columns"),
 				select_all: true,
 				sort_options: false,
 				columns: 1,

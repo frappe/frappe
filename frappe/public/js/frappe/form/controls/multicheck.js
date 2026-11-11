@@ -11,6 +11,7 @@ frappe.ui.form.ControlMultiCheck = class ControlMultiCheck extends frappe.ui.for
 			);
 		}
 		this.$load_state = $(`<div class="load-state text-muted small">${__("Loading")}...</div>`);
+		this.$search = $(`<input type="text" class="form-control input-xs" placeholder="${__(this.df.search_placeholder || "Search")}">`).appendTo(this.wrapper);
 		this.$select_buttons = this.get_select_buttons().appendTo(this.wrapper);
 		this.$load_state.appendTo(this.wrapper);
 
@@ -18,10 +19,18 @@ frappe.ui.form.ControlMultiCheck = class ControlMultiCheck extends frappe.ui.for
 		// - minimum column width, e.g. `"15rem"`
 		// - fixed number of columns, e.g. `3`
 		// - both minimum column width and maximum number of columns, e.g. `"15rem 5"`
+		
 		const columns = this.df.columns;
 		this.$checkbox_area = $('<div class="checkbox-options"></div>').appendTo(this.wrapper);
 		this.$checkbox_area.get(0).style.setProperty("--checkbox-options-columns", columns);
 		this.$checkbox_area.get(0).style.setProperty("padding", "1em");
+
+		this.$search.on("input", (e) => {
+			const search_term = e.target.value.toLowerCase();
+			this.$checkbox_area.find(".checkbox").each(function () {
+				$(this).toggle($(this).text().toLowerCase().includes(search_term));
+			});
+		});
 	}
 
 	refresh() {

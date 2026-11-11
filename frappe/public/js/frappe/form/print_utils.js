@@ -97,6 +97,7 @@ frappe.ui.get_print_settings = function (
 				label: __("Select Columns"),
 				fieldtype: "MultiCheck",
 				fieldname: "columns",
+				search_placeholder: __("Search Columns"),
 				depends_on: "pick_columns",
 				columns: 2,
 				select_all: true,
