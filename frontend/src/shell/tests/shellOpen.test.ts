@@ -55,7 +55,7 @@ beforeEach(async () => {
 	await router.push("/note");
 	scope = effectScope();
 	shell = scope.run(() =>
-		useShellActs({ boot, router, openSettings: () => {}, confirmLogout: () => {} }).shell
+		useShellActs({ boot, router, openSettings: () => {}, openAbout: () => {}, confirmLogout: () => {} }).shell
 	)!;
 });
 

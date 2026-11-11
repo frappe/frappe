@@ -12,9 +12,11 @@ from frappe.desk.doctype.default_view.resolver import DefaultViews
 from frappe.desk.doctype.favourite.favourite import readable_views
 from frappe.desk.doctype.view_type.view_type import view_types
 from frappe.integrations.frappe_providers.cloud_settings import is_cloud_settings_enabled
+from frappe.integrations.frappe_providers.frappecloud_billing import is_fc_site
 from frappe.sessions import get_session_info
 from frappe.translate import get_translation_version
 from frappe.utils import orjson_dumps
+from frappe.utils.change_log import has_app_update_notifications
 
 from . import SHELL_ROOT
 from .doctypes import get_address_table, metadata_version
@@ -67,6 +69,9 @@ def core_boot() -> dict:
 		# Every active app, so a link to a foreign app's doctype knows that app's shape.
 		"prefixes": prefix_map(),
 		"shell_hooks": shell_hooks(app_order),
+		# For the About dialog: the Frappe Support row and the "Update Available" button.
+		"is_fc_site": is_fc_site(),
+		"has_app_updates": has_app_update_notifications(),
 	}
 
 

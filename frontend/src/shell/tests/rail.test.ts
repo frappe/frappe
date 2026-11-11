@@ -25,6 +25,7 @@ const fake = vi.hoisted(() => ({
 	runMethod: vi.fn(),
 	openSettings: vi.fn(),
 	customize: vi.fn(),
+	openAbout: vi.fn(),
 	confirmLogout: vi.fn(),
 	getTranslations: vi.fn(),
 }));
@@ -109,6 +110,7 @@ function mount(
 					boot,
 					router,
 					openSettings: fake.openSettings,
+					openAbout: fake.openAbout,
 					confirmLogout: fake.confirmLogout,
 					rail: {
 						customize: fake.customize,
@@ -424,12 +426,22 @@ describe("the app menu", () => {
 			"Settings",
 			"Customize sidebar",
 			"Copy link",
+			"About",
 		]);
 
 		rows[1].click();
 		await flush();
 		expect(fake.openSettings).toHaveBeenCalledOnce();
 		expect(fake.openSettings).toHaveBeenLastCalledWith();
+	});
+
+	it("opens the About dialog from the last row of the actions", async () => {
+		await opened({});
+		Array.from(document.body.querySelectorAll<HTMLElement>("[role='menuitem']"))
+			.find((row) => row.textContent?.trim() === "About")!
+			.click();
+		await flush();
+		expect(fake.openAbout).toHaveBeenCalledOnce();
 	});
 
 	it("lists the person's apps above All apps, less the current one and the hidden ones", async () => {
@@ -455,7 +467,7 @@ describe("the app menu", () => {
 		await flush();
 
 		const rows = Array.from(document.body.querySelectorAll<HTMLElement>("[role='menuitem']"));
-		expect(rows.map((row) => row.textContent?.trim())).toEqual(["BOOKS", "WIKI", "All apps", "Settings", "Customize sidebar"]);
+		expect(rows.map((row) => row.textContent?.trim())).toEqual(["BOOKS", "WIKI", "All apps", "Settings", "Customize sidebar", "About"]);
 		expect(rows[0].querySelector("[data-app-logo]")).not.toBeNull();
 	});
 

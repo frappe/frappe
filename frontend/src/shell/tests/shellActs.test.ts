@@ -145,6 +145,7 @@ describe("the acts the shell holds", () => {
 			"shell.copy_link",
 			"shell.toggle_sidebar",
 			"shell.open_settings",
+			"shell.about",
 			"shell.my_settings",
 			"shell.theme",
 			"shell.desk_v1",
@@ -158,6 +159,7 @@ describe("the acts the shell holds", () => {
 		await shell(onIndex, "/");
 		expect(shellActNames()).toEqual([
 			"shell.open_settings",
+			"shell.about",
 			"shell.my_settings",
 			"shell.theme",
 			"shell.desk_v1",
@@ -233,6 +235,18 @@ describe("each shell act, run by name", () => {
 		await acts.run("shell.customize_sidebar");
 		await settle();
 		expect(router.currentRoute.value.hash).toBe("#customize/rail");
+	});
+
+	it("about opens the About dialog at #about, and the palette may list it", async () => {
+		fake.runMethod.mockResolvedValue({ data: {} });
+		const { router } = await shell();
+		const about = acts.find("shell.about")!;
+		expect(about).toMatchObject({ label: "About", icon: "lucide-info" });
+		expect(about.palette).not.toBe(false);
+
+		await acts.run("shell.about");
+		await settle();
+		expect(router.currentRoute.value.hash).toBe("#about");
 	});
 
 	it("open_settings writes the settings address it is given, or none", async () => {

@@ -829,6 +829,15 @@ class TestShellBoot(IntegrationTestCase):
 		for moved in ("user", "lang", "sysdefaults", "timezone"):
 			self.assertNotIn(moved, boot)
 
+	def test_boot_carries_the_about_dialog_flags(self):
+		"""The About dialog reads the Frappe Cloud and app-update flags from boot, as booleans."""
+		from frappe.shell.boot import get_boot
+
+		boot = get_boot("/apps/desk")
+
+		self.assertIsInstance(boot["is_fc_site"], bool)
+		self.assertIsInstance(boot["has_app_updates"], bool)
+
 	def test_boot_names_the_app_tile(self):
 		"""The rail's tile reads the app's own screen entry, and falls back to the app's name."""
 		from frappe.shell.boot import get_boot
