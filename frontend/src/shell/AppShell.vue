@@ -110,6 +110,7 @@ import CustomizeSidebarDialog, { type CustomizeTarget } from "./CustomizeSidebar
 import LogoutDialog from "./LogoutDialog.vue";
 import { shellDialogs } from "./dialog";
 import { openArgumentStep, paletteOpen } from "./palette";
+import { PaletteKey } from "./paletteKey";
 import RailColumn from "./RailColumn.vue";
 import { useShellActs, type OpenSettings } from "./shellActs";
 import { useShellHooks } from "./shellHooks";
@@ -122,11 +123,8 @@ const ShellSettingsDialog = defineAsyncComponent(() => import("./ShellSettingsDi
 const AboutDialog = defineAsyncComponent(() => import("./AboutDialog.vue"));
 const ShellDialogs = defineAsyncComponent(() => import("./ShellDialogs.vue"));
 const StandingWindows = defineAsyncComponent(() => import("./StandingWindows.vue"));
-// Keys wait for no paint, so their code stays out of the cold-load chunk.
+// These keys wait for no paint, so their code stays out of the cold-load chunk.
 const ActKeys = defineAsyncComponent(() => import("./actKeys").then((module) => module.ActKeys));
-const PaletteKey = defineAsyncComponent(() =>
-	import("./paletteKey").then((module) => module.PaletteKey)
-);
 const AppSwitcherKey = defineAsyncComponent(() =>
 	import("./appSwitcherKey").then((module) => module.AppSwitcherKey)
 );

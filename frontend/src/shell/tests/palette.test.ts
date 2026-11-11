@@ -127,7 +127,7 @@ async function flush() {
 	}
 }
 
-async function shell(path = "/crm-deal", shellBoot: Boot = boot): Promise<Router> {
+async function shell(path = "/crm-deal", shellBoot: Boot = boot, settled = true): Promise<Router> {
 	const router = createRouter({
 		history: createMemoryHistory(shellBoot.shell_base),
 		// The index has no doctype routes.
@@ -155,9 +155,7 @@ async function shell(path = "/crm-deal", shellBoot: Boot = boot): Promise<Router
 	await router.isReady();
 	app.mount(host);
 	releases.push(() => app.unmount());
-	// Mod+K is bound by a lazy component; a test presses once it is in.
-	await import("../paletteKey");
-	await flush();
+	if (settled) await flush();
 	return router;
 }
 
@@ -280,6 +278,15 @@ describe("opening the palette", () => {
 		expect(pressed.defaultPrevented).toBe(true);
 		expect(paletteOpen.value).toBe(true);
 		expect(router.currentRoute.value.fullPath).toBe("/crm-deal");
+	});
+
+	it("opens on a Mod+K pressed before anything has loaded after the mount", async () => {
+		await shell("/crm-deal", boot, false);
+		const pressed = pressModK();
+
+		expect(pressed.defaultPrevented).toBe(true);
+		expect(paletteOpen.value).toBe(true);
+		await flush();
 	});
 
 	it("opens on Mod+K from inside a field", async () => {
