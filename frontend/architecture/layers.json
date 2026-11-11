@@ -468,9 +468,6 @@
       "Person",
       "tagsOf"
     ],
-    "frontend/src/pages/record/panel/peopleActions.ts": [
-      "mergePart"
-    ],
     "frontend/src/pages/record/panel/RecordPanel.vue": [
       "RecordPanel"
     ],
@@ -626,8 +623,7 @@
       "removeAssignment",
       "removeFavourite",
       "removeFollow",
-      "removeShare",
-      "removeTag"
+      "removeShare"
     ],
     "ui/src/api/upload.ts": [
       "Attachment",

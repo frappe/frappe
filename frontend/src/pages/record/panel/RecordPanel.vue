@@ -37,7 +37,6 @@ const props = defineProps<{
 	docname: string;
 	controller: RecordPageController;
 	meta: any;
-	docinfo: DocInfo | null;
 	sections: LayoutSection[];
 	layoutLoading: boolean;
 	disclosure: Disclosure;
@@ -51,13 +50,15 @@ const props = defineProps<{
 const emit = defineEmits<{ expand: [field: FieldNode] }>();
 
 const doc = defineModel<Record<string, any>>("doc", { required: true });
+// A model: the people writes put the server's answer straight into it.
+const docinfo = defineModel<DocInfo | null>("docinfo", { required: true });
 
 provide(PanelContextKey, {
 	doctype: props.doctype,
 	docname: props.docname,
 	doc,
 	meta: toRef(props, "meta"),
-	docinfo: toRef(props, "docinfo"),
+	docinfo,
 	controller: props.controller,
 	run: props.run,
 	reloadDocinfo: props.reloadDocinfo,

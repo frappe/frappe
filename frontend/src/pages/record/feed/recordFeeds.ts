@@ -14,7 +14,7 @@ import {
 import { removeAttachment, type AttachmentsPart } from "@framework/ui/api";
 import type { ActivityRow, FileRow, RecordPageController } from "@/recordPage";
 import type { DocInfo } from "../panel/context";
-import { mergePart } from "../panel/peopleActions";
+import { mergePart } from "../panel/mergePart";
 import { attachTransport, byTime } from "./files";
 
 export const ACTIVITY_TAB = "activity";

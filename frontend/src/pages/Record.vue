@@ -80,7 +80,7 @@
 						:docname="docname"
 						:controller="painted"
 						:meta="meta"
-						:docinfo="docinfo"
+						v-model:docinfo="docinfo"
 						:sections="sections"
 						:layoutLoading="panelLoading"
 						:disclosure="disclosure"
@@ -205,7 +205,8 @@ import { canFollow, declinedMessage } from "./record/follow";
 import { useLiveDocinfo, warnDocinfoFailed } from "./record/liveDocinfo";
 import { useLiveClientScripts } from "./record/liveClientScripts";
 import { personOf, type DocInfo } from "./record/panel/context";
-import { mergePart, peopleActions } from "./record/panel/peopleActions";
+import { peopleActions } from "./record/panel/peopleActions";
+import { mergePart } from "./record/panel/mergePart";
 import { assigneesOf, tagsOf } from "./record/panel/people";
 import { useDisclosure } from "./record/panel/disclosure";
 import { layoutItems, layoutSections } from "./record/panel/panelEntries";
@@ -544,6 +545,7 @@ function assignUser(page: RecordPageApi, user: string) {
 		docname: page.docname,
 		docinfo,
 		whileOnRecord: visitCheck,
+		reloadDocinfo,
 		controller: { page },
 	};
 	return inPageTurn(page, () => peopleActions(source).assign(user));

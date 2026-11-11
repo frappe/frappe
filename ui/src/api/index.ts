@@ -302,6 +302,18 @@ export function runMethod<T = unknown>(
   return request<T>("POST", path, { body: args, signal, nullable, keepalive });
 }
 
+/** A whitelisted method that answers a record's part under its own key, as a part write does. */
+export function runPartMethod<T>(
+  method: string,
+  args: Args,
+  doctype: string,
+  name: string,
+  part: CollabPart
+): Promise<Envelope<T>> {
+  const path = `/method/${segment(method)}`;
+  return fed<T>("POST", path, { body: args }, feedPartReply(doctype, name, part));
+}
+
 export function runDocumentMethod<T = unknown>(
   doctype: string,
   name: string,

@@ -80,6 +80,54 @@ def remove_tag(tag: str, dt: str, dn: str):
 	DocTags(dt).remove(dn, tag)
 
 
+@frappe.whitelist(methods=["POST"])
+def set_tag_color(tag: str, color: str):
+	"sets the colour of an existing Tag to one of the Select names"
+	tag_doc = frappe.get_doc("Tag", tag)
+	tag_doc.check_permission("write")
+	tag_doc.color = color
+	tag_doc.save()
+
+
+@frappe.whitelist(methods=["POST"])
+def update_record_tags(dt: str, dn: str, added: str | list | None = None, removed: str | list | None = None):
+	"""Applies one picker session to a record: `added` is `[{"tag", "color"}]`, `removed` a list of
+	tag names. All or none; returns the record's tags and their colours."""
+	from frappe.api.include import colors_of_tags, get_tags
+
+	doc = frappe.get_doc(dt, dn)
+	doc.check_permission("write")
+	added, removed = frappe.parse_json(added or []), frappe.parse_json(removed or [])
+	if not isinstance(added, list) or not isinstance(removed, list):
+		frappe.throw(_("added and removed must be lists"), frappe.ValidationError)
+	colors = frappe.get_meta("Tag").get_field("color").options.split("\n")
+	for item in added:
+		name = item.get("tag") if isinstance(item, dict) else None
+		if not isinstance(name, str) or "," in name or not name.strip() or name != name.strip():
+			frappe.throw(_("A tag cannot be empty or contain a comma"), frappe.ValidationError)
+		if item.get("color") and item["color"] not in colors:
+			frappe.throw(_("{0} is not a tag colour").format(item["color"]), frappe.ValidationError)
+	if not all(isinstance(tag, str) for tag in removed):
+		frappe.throw(_("removed must be a list of tag names"), frappe.ValidationError)
+
+	# Each add and remove rewrites `_user_tags` from a read; the lock keeps two sessions from losing one.
+	frappe.db.get_value(dt, dn, "name", for_update=True)
+	frappe.db.savepoint("update_record_tags")
+	try:
+		doc_tags = DocTags(dt)
+		for tag in removed:
+			doc_tags.remove(dn, tag)
+		for item in added:
+			doc_tags.add(dn, item["tag"], item.get("color"))
+	except Exception:
+		frappe.db.rollback(save_point="update_record_tags")
+		raise
+	frappe.db.release_savepoint("update_record_tags")
+
+	tags = get_tags(doc)
+	return {"tags": tags, "tag_colors": colors_of_tags(tags)}
+
+
 @frappe.whitelist()
 def get_tagged_docs(doctype: str, tag: str):
 	frappe.has_permission(doctype, throw=True)

@@ -12,13 +12,7 @@
 			<!-- Named from the left while the width lasts; the rest keep to their tooltip. -->
 			<template v-for="(action, index) in actions.slice(0, visible)" :key="action.name">
 				<!-- The tag action is the picker's own trigger, so it opens where it was pressed. -->
-				<TagPicker
-					v-if="action.tagging"
-					:tags="tags"
-					:vertical="vertical"
-					@add="people.addTag"
-					@remove="people.removeTag"
-				>
+				<TagPicker v-if="action.tagging" :session="people.tagSession">
 					<template #trigger>
 						<!-- The trigger must own a box: Tooltip drops the attrs the popover anchors on. -->
 						<div class="flex shrink-0">
@@ -72,9 +66,7 @@
 					v-if="taggingOverflowed"
 					v-model:open="picking"
 					anchored
-					:tags="tags"
-					@add="people.addTag"
-					@remove="people.removeTag"
+					:session="people.tagSession"
 				/>
 			</div>
 		</div>
@@ -88,7 +80,6 @@ import type { QuickAction } from "@/recordPage";
 import { DEFAULT_ACT_ICON } from "@/shell/palette";
 import { PanelContextKey } from "./context";
 import { useFittedActions } from "./fittedActions";
-import { tagsOf } from "./people";
 import { peopleActions } from "./peopleActions";
 import TagPicker from "./TagPicker.vue";
 
@@ -100,7 +91,6 @@ const people = peopleActions(context);
 const actions = computed(() =>
 	context.controller.quickActions.visible().filter(context.controller.allows)
 );
-const tags = computed(() => tagsOf(context.docinfo.value));
 const placement = computed(() => (props.vertical ? "left" : "top"));
 
 // The strip has no width to spend, so it names nothing and hides nothing.

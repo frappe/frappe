@@ -40,6 +40,11 @@ export function tagColorClass(tag: string): string {
 	return colorClass(stored.get(tag));
 }
 
+/** The stored colour name of a tag, `""` for one without. */
+export function tagColorName(tag: string): string {
+	return stored.get(tag) ?? "";
+}
+
 export function colorClass(color: string | undefined): string {
 	return TAG_COLORS[color ?? ""] ?? GRAY;
 }
