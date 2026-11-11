@@ -4,7 +4,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, isRef, nextTick, ref } from "vue";
 import type { Ref } from "vue";
 
-vi.mock("frappe-ui", () => ({
+vi.mock("frappe-ui", async (importOriginal) => ({
+	...((await importOriginal()) as Record<string, unknown>),
 	call: vi.fn(),
 	toast: { success: vi.fn(), error: vi.fn() },
 	createResource: () => ({ data: null, loading: false, fetch() {}, reload() {} }),

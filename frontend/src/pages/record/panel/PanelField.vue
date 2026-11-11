@@ -1,9 +1,7 @@
 <!-- One panel row: the label in a fixed column, the value in the flexible one. -->
 <template>
 	<div v-if="!hidden" class="grid grid-cols-[130px_1fr] items-start gap-2">
-		<span class="h-7 truncate text-base leading-7 text-ink-gray-5" :title="field.label">
-			{{ field.label }}
-		</span>
+		<PanelLabel :field="field" />
 
 		<div class="min-w-0">
 			<component
@@ -198,6 +196,7 @@ import ImagePreview from "./ImagePreview.vue";
 import { PanelContextKey, PanelFieldsKey } from "./context";
 import { withoutOwnRecordPrefix } from "./ownRecordPrefix";
 import { placeCaret, textOffsetAt } from "./openAtClick";
+import PanelLabel from "./PanelLabel.vue";
 
 const props = defineProps<{ field: FieldNode }>();
 const emit = defineEmits<{ expand: [field: FieldNode] }>();
@@ -335,18 +334,19 @@ const valueColor = computed(() =>
 const interactive = computed(() => summary.value || !props.field.readOnly || !!imageUrl.value);
 const resolved = computed(() => resolveField(props.field.fieldtype));
 
+// The field's own placeholder shows at rest, on hover and in the editor; `Add <Label>...` only without one.
 const placeholder = computed(() =>
 	interactive.value && !summary.value && props.field.fieldtype !== "Image"
-		? __("Add {0}...", [props.field.label])
+		? props.field.placeholder || __("Add {0}...", [props.field.label])
 		: ""
 );
 
-// The row draws the label; the control's one placeholder is the field's own, else `Add <Label>...`.
+// The row draws the label; the control's one placeholder is the row's.
 const controlField = computed(() => ({
 	...props.field,
 	label: undefined,
 	description: undefined,
-	placeholder: props.field.placeholder || placeholder.value,
+	placeholder: placeholder.value,
 }));
 
 const display = computed(() =>
