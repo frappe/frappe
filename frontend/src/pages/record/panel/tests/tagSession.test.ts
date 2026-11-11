@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { appliedFirst, splitTags, tagBatch, useTagSession } from "../tagSession";
+import { appliedFirst, splitTags, tagBatch, useTagSession, type TagBatch } from "../tagSession";
 
 describe("tagBatch", () => {
 	it("adds what the draft gained, with its colour, and drops what it lost", () => {
@@ -47,17 +47,49 @@ describe("useTagSession", () => {
 		expect(session.tags.value).toEqual(["b"]);
 	});
 
-	it("sends nothing when the draft equals the record, and rolls back when the write fails", async () => {
+	it("sends nothing when the draft equals the record, or when no session is open", async () => {
+		const write = vi.fn(async () => {});
+		const session = useTagSession(() => ["a"], write, async () => {});
+		session.begin();
+		await session.commit();
+		await session.commit();
+		expect(write).not.toHaveBeenCalled();
+	});
+
+	it("shows the record's tags again when the write fails", async () => {
 		const write = vi.fn(async () => {
 			throw new Error("no");
 		});
 		const session = useTagSession(() => ["a"], write, async () => {});
 		session.begin();
-		await session.commit();
-		expect(write).not.toHaveBeenCalled();
-		session.begin();
 		session.addNew("n", "Red");
+		expect(session.tags.value).toEqual(["a", "n"]);
 		await session.commit().catch(() => undefined);
+		expect(write).toHaveBeenCalledTimes(1);
 		expect(session.tags.value).toEqual(["a"]);
+	});
+
+	it("keeps a session reopened during a write, and diffs it against what that write sent", async () => {
+		let server = ["a"];
+		let release = () => {};
+		const write = vi.fn(async (batch: TagBatch) => {
+			if (write.mock.calls.length === 1) await new Promise<void>((resolve) => (release = resolve));
+			server = server.filter((tag) => !batch.removed.includes(tag)).concat(batch.added.map((item) => item.tag));
+		});
+		const session = useTagSession(() => server, write, async () => {});
+		session.begin();
+		session.set(["a", "b"]);
+		const first = session.commit();
+		session.begin();
+		session.set(["a", "b", "c"]);
+		const second = session.commit();
+		await vi.waitFor(() => expect(write).toHaveBeenCalledTimes(1));
+		release();
+		await Promise.all([first, second]);
+		expect(write.mock.calls.map(([batch]) => batch)).toEqual([
+			{ added: [{ tag: "b", color: undefined }], removed: [] },
+			{ added: [{ tag: "c", color: undefined }], removed: [] },
+		]);
+		expect(session.tags.value).toEqual(["a", "b", "c"]);
 	});
 });

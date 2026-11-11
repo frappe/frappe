@@ -1,5 +1,5 @@
 <!-- The `identity` built-in: who this record is. Title, subtitle, image and tags; the tags
-     row draws for a writer even with none, so "+ Add" is there for the first. -->
+     row draws once the record has one, and until then the `tags` quick action adds the first. -->
 <template>
 	<div class="flex items-start gap-3">
 		<RecordImage v-if="hasImage" :label="title" />
@@ -18,12 +18,13 @@
 		</div>
 	</div>
 
+	<!-- `base` keeps the row while its picker unticks the last tag, or it would unmount mid-session. -->
 	<div
-		v-if="session.tags.value.length || canWrite"
+		v-if="session.tags.value.length || session.base.value.length"
 		class="flex flex-wrap items-center gap-1.5"
 		data-tags
 	>
-		<TagChip v-for="tag in shown" :key="tag" :tag="tag" :class="{ 'pr-1': canWrite }">
+		<TagChip v-for="tag in split.shown" :key="tag" :tag="tag" :class="{ 'pr-1': canWrite }">
 			<button
 				v-if="canWrite"
 				type="button"
@@ -35,7 +36,7 @@
 			</button>
 		</TagChip>
 
-		<Tooltip v-if="hidden.length" :text="hidden.join(', ')">
+		<Tooltip v-if="split.hidden.length" :text="split.hidden.join(', ')">
 			<Badge
 				theme="gray"
 				variant="outline"
@@ -43,7 +44,7 @@
 				class="shrink-0 text-ink-gray-7"
 				data-more-tags
 			>
-				{{ __("+{0} more", [hidden.length]) }}
+				{{ __("+{0} more", [split.hidden.length]) }}
 			</Badge>
 		</Tooltip>
 
@@ -77,8 +78,6 @@ const hasImage = computed(() => Boolean(context.meta.value?.image_field));
 
 const session = actions.tagSession;
 const split = computed(() => splitTags(session.tags.value));
-const shown = computed(() => split.value.shown);
-const hidden = computed(() => split.value.hidden);
 
 const canWrite = computed(() => Boolean(context.docinfo.value?.permissions?.write));
 </script>

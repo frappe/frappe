@@ -7,13 +7,13 @@ export const VISIBLE_TAGS = 3;
 
 export type TagBatch = { added: { tag: string; color?: string }[]; removed: string[] };
 
-/** What the draft adds and drops against the tags the session opened with; a new tag brings its colour. */
+/** What the draft adds and drops against the base; a new tag brings its colour. */
 export function tagBatch(base: string[], draft: string[], colors: ReadonlyMap<string, string>): TagBatch {
 	const { added, dropped } = listDiff(draft, base);
 	return { added: added.map((tag) => ({ tag, color: colors.get(tag) })), removed: dropped };
 }
 
-/** The chips to draw and the names behind "+N more"; it collapses only past one more than fits, so "+1 more" never hides one chip. */
+/** The chips to draw and the names behind "+N more"; never "+1 more", which would hide one chip. */
 export function splitTags(tags: string[]) {
 	const collapsed = tags.length > VISIBLE_TAGS + 1;
 	const shown = collapsed ? tags.slice(0, VISIBLE_TAGS) : tags;
@@ -33,6 +33,7 @@ export function useTagSession(serverTags: () => string[], write: (batch: TagBatc
 	const draft = ref<string[] | null>(null);
 	const base = ref<string[]>([]);
 	const colors = new Map<string, string>();
+	let queue: Promise<void> = Promise.resolve();
 
 	const tags = computed(() => draft.value ?? serverTags());
 	const listed = computed(() => [...new Set([...base.value, ...tags.value])]);
@@ -52,19 +53,30 @@ export function useTagSession(serverTags: () => string[], write: (batch: TagBatc
 		if (!draft.value?.includes(tag)) draft.value = [...(draft.value ?? []), tag];
 	}
 
-	async function commit() {
-		const batch = tagBatch(base.value, draft.value ?? [], colors);
+	// Writes run one after another; a reopened session diffs against what the last commit sent.
+	function commit(): Promise<void> {
+		const snapshot = draft.value;
+		if (!snapshot) return queue;
+		const batch = tagBatch(base.value, snapshot, colors);
 		colors.clear();
-		try {
-			if (batch.added.length || batch.removed.length) await write(batch);
-		} finally {
-			draft.value = null;
-		}
+		base.value = [...snapshot];
+		const run = async () => {
+			try {
+				if (batch.added.length || batch.removed.length) await write(batch);
+			} finally {
+				if (draft.value === snapshot) {
+					draft.value = null;
+					base.value = [...serverTags()];
+				}
+			}
+		};
+		queue = queue.then(run, run);
+		return queue;
 	}
 
 	async function remove(tag: string) {
 		begin();
-		set((draft.value ?? []).filter((name) => name !== tag));
+		draft.value = (draft.value ?? []).filter((name) => name !== tag);
 		await commit();
 	}
 

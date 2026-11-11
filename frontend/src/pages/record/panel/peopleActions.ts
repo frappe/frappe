@@ -2,15 +2,13 @@
 import {
 	addAssignment,
 	addShare,
-	addTag,
 	removeAssignment,
 	removeShare,
-	removeTag,
 	type Envelope,
 	type Users,
 } from "@framework/ui/api";
 import { errorMessage, type RecordPageApi } from "@/recordPage";
-import { recolourTag, seedTagColors } from "@/tagColors";
+import { recolourTag, seedTagColors, updateRecordTags } from "@/tagColors";
 import { tagsOf } from "./people";
 import { useTagSession, type TagBatch } from "./tagSession";
 import type { DocInfo, PanelContext } from "./context";
@@ -18,7 +16,7 @@ import type { DocInfo, PanelContext } from "./context";
 type PartAnswer = Partial<DocInfo> & { users?: Users; tag_colors?: Record<string, string> };
 
 /** What the writes read; the record menu's "Assign to…" hands it the page's own parts. */
-type PeopleSource = Pick<PanelContext, "doctype" | "docname" | "docinfo" | "whileOnRecord"> & {
+type PeopleSource = Pick<PanelContext, "doctype" | "docname" | "docinfo" | "whileOnRecord" | "reloadDocinfo"> & {
 	controller: { page: Pick<RecordPageApi, "toast"> };
 };
 
@@ -48,9 +46,16 @@ function buildActions(context: PeopleSource) {
 		}
 	}
 
-	async function writeTags({ added, removed }: TagBatch) {
-		for (const { tag, color } of added) if (!(await send(() => addTag(doctype, docname, tag, undefined, color)))) return;
-		for (const tag of removed) if (!(await send(() => removeTag(doctype, docname, tag)))) return;
+	// One call saves the whole session; a failure toasts and shows the server's tags again.
+	async function writeTags(batch: TagBatch) {
+		const current = whileOnRecord();
+		try {
+			const answer = await updateRecordTags(doctype, docname, batch);
+			if (current()) docinfo.value = mergePart(docinfo.value, answer);
+		} catch (caught) {
+			page.toast.error(errorMessage(caught));
+			if (current()) await context.reloadDocinfo();
+		}
 	}
 
 	async function recolour(tag: string, color: string) {

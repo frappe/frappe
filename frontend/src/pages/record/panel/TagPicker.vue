@@ -5,7 +5,7 @@
 	<TagColorPopover
 		:open="Boolean(pending)"
 		:tag="pending"
-		:current="recolouring ? storedColor(recolouring) : undefined"
+		:current="recolouring ? tagColorName(recolouring) : undefined"
 		@select="pickColor"
 		@close="pickColor()"
 	>
@@ -107,11 +107,10 @@ const props = defineProps<{
 	shortcut?: boolean;
 }>();
 
-// Left undefined the picker owns its own open state, which is what every trigger but the anchor wants.
+// Left undefined, the picker owns its open state.
 const open = defineModel<boolean | undefined>("open", { default: undefined });
 
 const CREATE_VALUE = "__create__";
-const DEFAULT_COLOR = "Gray";
 
 const query = ref("");
 // The colour step's subject: a name being created, or an existing tag being recoloured.
@@ -119,7 +118,7 @@ const naming = ref("");
 const recolouring = ref("");
 const pending = computed(() => naming.value || recolouring.value);
 
-// The record's own tags fill the gaps a paged answer leaves, so one already on it is never offered as new.
+// The record's own tags fill a paged answer's gaps, so one already on it is never offered as new.
 const pinned = computed<SearchOption[]>(() =>
 	matchingTags(props.session.listed.value, query.value).map((tag) => ({
 		label: tag,
@@ -135,7 +134,7 @@ const canCreate = computed(() =>
 	)
 );
 
-// Applied tags sort by the opening snapshot, so a tick never moves a row under the pointer.
+// Sorted by the opening snapshot, so a tick never moves a row under the pointer.
 const options = computed<Record<string, unknown>[]>(() => {
 	const rows: Record<string, unknown>[] = appliedFirst(found.value, props.session.base.value);
 	if (canCreate.value) rows.push(createRow(query.value.trim()));
@@ -160,7 +159,7 @@ function createRow(text: string) {
 	return { label: __("Create “{0}”", [text]), value: CREATE_VALUE, slots: { item: row } };
 }
 
-// Watched, not handled: opened from the anchor, the picker never fires update:open.
+// Watched: opened from the anchor, the picker never fires update:open.
 watch(open, (opened) => {
 	if (opened) {
 		query.value = "";
@@ -193,23 +192,19 @@ function startRecolour(tag: string) {
 	open.value = false;
 }
 
-function storedColor(tag: string) {
-	return tagColorName(tag);
-}
-
-// Closing the step with no pick still creates the tag, in gray, and leaves an existing tag's colour alone.
+// Only a picked colour creates the tag; Escape or a click away cancels it.
 async function pickColor(color?: string) {
 	const [tag, recolour] = [naming.value, recolouring.value];
 	if (!tag && !recolour) return;
 	naming.value = recolouring.value = "";
-	if (tag) props.session.addNew(tag, color ?? DEFAULT_COLOR);
+	if (color && tag) props.session.addNew(tag, color);
 	else if (color) await props.session.recolour(recolour, color);
 	if (!open.value) await props.session.commit();
 }
 </script>
 
 <style>
-/* Checked rows stay plain: the checkbox alone carries the state. A fixed width keeps the popover off the chips row. */
+/* A fixed width keeps the popover off the chips row; checked rows stay plain. */
 [data-slot="content"][data-selection]:has(.tag-picker-marker) {
 	width: 13rem;
 }

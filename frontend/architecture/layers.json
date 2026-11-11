@@ -626,8 +626,7 @@
       "removeAssignment",
       "removeFavourite",
       "removeFollow",
-      "removeShare",
-      "removeTag"
+      "removeShare"
     ],
     "ui/src/api/upload.ts": [
       "Attachment",

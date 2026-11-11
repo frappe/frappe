@@ -1,4 +1,4 @@
-<!-- The colour step: a popover of the 13 named colours, with the tag under the pointer's colour in its header. -->
+<!-- The colour step: the 13 named colours; the tag's colour shows in the header. -->
 <template>
 	<Popover :open="open" trigger="manual" side="left" align="start" @update:open="onOpen">
 		<template #trigger><slot /></template>
