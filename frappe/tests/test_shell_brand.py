@@ -132,8 +132,10 @@ class TestTabIcon(IntegrationTestCase):
 		self.addCleanup(frappe.set_user, "Administrator")
 
 	def test_the_brand_favicon_comes_first(self):
-		with with_website_favicon("/files/site.png"), logo_entry("acme", "/files/acme-logo.png"), branded_app(
-			"acme", BRAND
+		with (
+			with_website_favicon("/files/site.png"),
+			logo_entry("acme", "/files/acme-logo.png"),
+			branded_app("acme", BRAND),
 		):
 			self.assertEqual(tab_icon("acme"), "/files/acme-icon.png")
 
@@ -173,9 +175,12 @@ class TestTabIcon(IntegrationTestCase):
 			self.assertEqual(tab_icon("acme"), "/files/site.png")
 
 	def test_a_brand_that_raises_falls_through(self):
-		with with_website_favicon("/files/site.png"), logo_entry("acme", "/files/acme-logo.png"), branded_app(
-			"acme", RAISE
-		), patch("frappe.log_error"):
+		with (
+			with_website_favicon("/files/site.png"),
+			logo_entry("acme", "/files/acme-logo.png"),
+			branded_app("acme", RAISE),
+			patch("frappe.log_error"),
+		):
 			self.assertEqual(tab_icon("acme"), "/files/acme-logo.png")
 
 
