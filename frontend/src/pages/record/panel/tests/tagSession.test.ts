@@ -92,4 +92,25 @@ describe("useTagSession", () => {
 		]);
 		expect(session.tags.value).toEqual(["a", "b", "c"]);
 	});
+
+	it("recolours a tag only after the write that creates it has settled", async () => {
+		const order: string[] = [];
+		let release = () => {};
+		const write = vi.fn(async () => {
+			await new Promise<void>((resolve) => (release = resolve));
+			order.push("write");
+		});
+		const recolour = vi.fn(async () => {
+			order.push("recolour");
+		});
+		const session = useTagSession(() => [], write, recolour);
+		session.begin();
+		session.addNew("n", "Red");
+		void session.commit();
+		const recoloured = session.recolour("n", "Blue");
+		await vi.waitFor(() => expect(write).toHaveBeenCalledTimes(1));
+		release();
+		await recoloured;
+		expect(order).toEqual(["write", "recolour"]);
+	});
 });

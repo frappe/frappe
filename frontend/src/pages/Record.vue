@@ -544,6 +544,7 @@ function assignUser(page: RecordPageApi, user: string) {
 		docname: page.docname,
 		docinfo,
 		whileOnRecord: visitCheck,
+		reloadDocinfo,
 		controller: { page },
 	};
 	return inPageTurn(page, () => peopleActions(source).assign(user));

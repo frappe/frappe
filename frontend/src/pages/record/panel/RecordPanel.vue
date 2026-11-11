@@ -50,7 +50,7 @@ const props = defineProps<{
 const emit = defineEmits<{ expand: [field: FieldNode] }>();
 
 const doc = defineModel<Record<string, any>>("doc", { required: true });
-// A model, not a prop: the people writes put the server's answer straight into it.
+// A model: the people writes put the server's answer straight into it.
 const docinfo = defineModel<DocInfo | null>("docinfo", { required: true });
 
 provide(PanelContextKey, {

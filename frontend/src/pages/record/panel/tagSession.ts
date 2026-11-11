@@ -80,7 +80,13 @@ export function useTagSession(serverTags: () => string[], write: (batch: TagBatc
 		await commit();
 	}
 
-	return { tags, listed, base, begin, set, addNew, commit, remove, recolour };
+	// A tag the last commit is still creating has no Tag row to recolour yet.
+	const recolourAfterWrites = async (tag: string, color: string) => {
+		await queue;
+		await recolour(tag, color);
+	};
+
+	return { tags, listed, base, begin, set, addNew, commit, remove, recolour: recolourAfterWrites };
 }
 
 export type TagSession = ReturnType<typeof useTagSession>;

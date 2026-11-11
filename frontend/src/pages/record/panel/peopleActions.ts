@@ -20,10 +20,10 @@ type PeopleSource = Pick<PanelContext, "doctype" | "docname" | "docinfo" | "whil
 	controller: { page: Pick<RecordPageApi, "toast"> };
 };
 
-const shared = new WeakMap<PeopleSource, PeopleActions>();
+const shared = new WeakMap<PeopleSource, ReturnType<typeof buildActions>>();
 
 /** One set of actions per panel context, so every tag picker on the page edits the same session. */
-export function peopleActions(context: PeopleSource): PeopleActions {
+export function peopleActions(context: PeopleSource) {
 	if (!shared.has(context)) shared.set(context, buildActions(context));
 	return shared.get(context)!;
 }
@@ -75,7 +75,7 @@ function buildActions(context: PeopleSource) {
 	};
 }
 
-export type PeopleActions = ReturnType<typeof peopleActions>;
+export type PeopleActions = ReturnType<typeof buildActions>;
 
 /** The answer's part over the old one; its `users` join the map, since a removed row keeps its name. */
 export function mergePart(

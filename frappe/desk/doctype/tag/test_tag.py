@@ -114,6 +114,22 @@ class TestTag(IntegrationTestCase):
 		self.assertFalse(frappe.db.exists("Tag", "fine"))
 		self.assertFalse(frappe.db.exists("Tag", "odd"))
 
+	def test_update_record_tags_rejects_malformed_input_before_writing(self):
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "bad tags"}).insert()
+		add_tag("kept", "ToDo", todo.name)
+		for added, removed in (
+			([{"tag": "a,b"}], []),
+			([{"tag": "  "}], []),
+			([{"tag": " padded"}], []),
+			([{"color": "Teal"}], []),
+			(["plain"], []),
+			([], '"kept"'),
+			([], [1]),
+		):
+			with self.assertRaises(frappe.ValidationError):
+				update_record_tags("ToDo", todo.name, added, removed)
+		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "_user_tags"), "kept")
+
 	def test_update_record_tags_rolls_back_a_failure_mid_way(self):
 		todo = frappe.get_doc({"doctype": "ToDo", "description": "batch tags"}).insert()
 		add_tag("kept", "ToDo", todo.name)

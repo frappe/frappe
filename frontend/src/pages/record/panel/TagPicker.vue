@@ -1,6 +1,5 @@
-<!-- A tag picker with a create row: a pick adds, an unpick removes. The trigger is the "+"
-     chip among the record's tags, whatever the slot supplies, or a bare anchor when
-     something else does the opening. -->
+<!-- A tag picker with a create row: a pick adds, an unpick removes. The trigger is the "+" chip,
+     or a bare anchor when something else opens it. -->
 <template>
 	<TagColorPopover
 		:open="Boolean(pending)"
@@ -9,7 +8,7 @@
 		@select="pickColor"
 		@close="pickColor()"
 	>
-		<!-- `open` is bound only when something else opens the picker: an undefined boolean prop reads as false. -->
+		<!-- Bound only when something else opens it: an undefined boolean prop reads as false. -->
 		<MultiSelect
 			v-bind="anchored || shortcut ? { open } : {}"
 			:modelValue="session.tags.value"
@@ -79,7 +78,7 @@
 				<span class="text-p-sm">{{ error || __("No tags yet, type to create one") }}</span>
 			</template>
 
-			<!-- The marker scopes this picker's style overrides: the popover is portaled out of reach of scoped CSS. -->
+			<!-- Marks this picker's popover for the unscoped CSS below; it is portaled out. -->
 			<template #footer
 				><span class="tag-picker-marker hidden" aria-hidden="true"
 			/></template>
@@ -113,7 +112,6 @@ const open = defineModel<boolean | undefined>("open", { default: undefined });
 const CREATE_VALUE = "__create__";
 
 const query = ref("");
-// The colour step's subject: a name being created, or an existing tag being recoloured.
 const naming = ref("");
 const recolouring = ref("");
 const pending = computed(() => naming.value || recolouring.value);

@@ -98,12 +98,17 @@ def update_record_tags(dt: str, dn: str, added: str | list | None = None, remove
 	doc = frappe.get_doc(dt, dn)
 	doc.check_permission("write")
 	added, removed = frappe.parse_json(added or []), frappe.parse_json(removed or [])
+	if not isinstance(added, list) or not isinstance(removed, list):
+		frappe.throw(_("added and removed must be lists"), frappe.ValidationError)
 	colors = frappe.get_meta("Tag").get_field("color").options.split("\n")
 	for item in added:
-		if "," in item["tag"] or not item["tag"].strip():
+		name = item.get("tag") if isinstance(item, dict) else None
+		if not isinstance(name, str) or "," in name or not name.strip() or name != name.strip():
 			frappe.throw(_("A tag cannot be empty or contain a comma"), frappe.ValidationError)
 		if item.get("color") and item["color"] not in colors:
 			frappe.throw(_("{0} is not a tag colour").format(item["color"]), frappe.ValidationError)
+	if not all(isinstance(tag, str) for tag in removed):
+		frappe.throw(_("removed must be a list of tag names"), frappe.ValidationError)
 
 	frappe.db.savepoint("update_record_tags")
 	try:
