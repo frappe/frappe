@@ -19,58 +19,70 @@
 	</div>
 
 	<!-- `base` keeps the row while its picker unticks the last tag, or it would unmount mid-session. -->
-	<div v-if="session.tags.value.length || session.base.value.length" class="relative">
-		<!-- Anchored on the whole row, so both popovers open beside the chips, never over them. -->
-		<TagPicker v-if="canWrite" v-model:open="picking" anchored shortcut :session="session" />
-		<div class="flex flex-wrap items-center gap-1.5" data-tags>
-			<TagChip
-				v-for="tag in split.shown"
-				:key="tag"
-				:tag="tag"
-				:class="{ 'pr-1': canWrite }"
+	<div
+		v-if="session.tags.value.length || session.base.value.length"
+		class="flex flex-wrap items-center gap-1.5"
+		data-tags
+	>
+		<template v-for="tag in split.shown" :key="tag">
+			<!-- Stopped and kept unfocused, or the open picker's outside press or focus-out closes it first. -->
+			<button
+				v-if="canWrite"
+				type="button"
+				class="min-w-0 rounded-full focus-visible:outline-none focus-visible:ring focus-visible:ring-outline-gray-3"
+				aria-haspopup="listbox"
+				:aria-label="__('Edit tags: {0}', [tag])"
+				:data-tag-chip="tag"
+				@pointerdown.stop
+				@mousedown.prevent
+				@click="picker?.openOn(tag)"
 			>
-				<button
-					v-if="canWrite"
-					type="button"
-					class="grid size-4 place-content-center rounded-full text-ink-gray-4 opacity-0 transition hover:bg-surface-gray-3 hover:text-ink-gray-8 focus-visible:opacity-100 group-hover/tag:opacity-100"
-					:aria-label="`Remove ${tag}`"
-					@click="session.remove(tag)"
-				>
-					<span class="lucide-x size-3.5" aria-hidden="true" />
-				</button>
-			</TagChip>
+				<TagChip :tag="tag" />
+			</button>
+			<TagChip v-else :tag="tag" />
+		</template>
 
-			<Tooltip v-if="split.hidden.length" :text="split.hidden.join(', ')">
-				<Badge
-					theme="gray"
-					variant="outline"
-					size="lg"
-					class="shrink-0 text-ink-gray-7"
-					data-more-tags
-				>
-					{{ __("+{0} more", [split.hidden.length]) }}
-				</Badge>
-			</Tooltip>
+		<Tooltip v-if="split.hidden.length" :text="split.hidden.join(', ')">
+			<Badge
+				theme="gray"
+				variant="outline"
+				size="lg"
+				class="shrink-0 text-ink-gray-7"
+				data-more-tags
+			>
+				{{ __("+{0} more", [split.hidden.length]) }}
+			</Badge>
+		</Tooltip>
 
-			<Tooltip v-if="canWrite" :text="__('Add')">
-				<!-- Stopped, or the picker's outside-press closes it and this click opens it again. -->
-				<button
-					type="button"
-					class="grid size-6 place-content-center rounded-full text-ink-gray-5 transition hover:bg-surface-gray-2 hover:text-ink-gray-7"
-					aria-label="Add tag"
-					data-add-tag
-					@pointerdown.stop
-					@click="picking = !picking"
-				>
-					<span class="lucide-plus size-3.5" aria-hidden="true" />
-				</button>
-			</Tooltip>
-		</div>
+		<TagPicker
+			v-if="canWrite"
+			ref="picker"
+			shortcut
+			side="bottom"
+			align="end"
+			:session="session"
+		>
+			<template #trigger>
+				<!-- The trigger must own a box: Tooltip drops the attrs the popover anchors on. -->
+				<div class="flex shrink-0">
+					<Tooltip :text="__('Add')">
+						<button
+							type="button"
+							class="grid size-6 place-content-center rounded-full text-ink-gray-5 transition hover:bg-surface-gray-2 hover:text-ink-gray-7"
+							aria-label="Add tag"
+							data-add-tag
+						>
+							<span class="lucide-plus size-3.5" aria-hidden="true" />
+						</button>
+					</Tooltip>
+				</div>
+			</template>
+		</TagPicker>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { computed, inject, ref } from "vue";
+import { computed, inject, useTemplateRef } from "vue";
 import { PanelContextKey } from "./context";
 import { splitTags } from "./tagSession";
 import TagChip from "./TagChip.vue";
@@ -96,7 +108,7 @@ const hasImage = computed(() => Boolean(context.meta.value?.image_field));
 const session = actions.tagSession;
 const split = computed(() => splitTags(session.tags.value));
 
-const picking = ref(false);
+const picker = useTemplateRef<InstanceType<typeof TagPicker>>("picker");
 
 const canWrite = computed(() => Boolean(context.docinfo.value?.permissions?.write));
 </script>
