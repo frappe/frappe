@@ -1,0 +1,201 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "allow_rename": 1,
+ "autoname": "hash",
+ "creation": "2026-11-11 23:43:11.936632",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "url",
+  "sources",
+  "skip_patterns",
+  "column_break_url",
+  "max_pages",
+  "max_depth",
+  "results_section",
+  "status",
+  "stopped_reason",
+  "background_task",
+  "column_break_results",
+  "pages_crawled",
+  "pages_failed",
+  "started_at",
+  "finished_at",
+  "caller_section",
+  "reference_doctype",
+  "reference_name",
+  "column_break_caller",
+  "on_page",
+  "skip_urls"
+ ],
+ "fields": [
+  {
+   "fieldname": "url",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "URL",
+   "options": "URL",
+   "reqd": 1,
+   "set_only_once": 1
+  },
+  {
+   "default": "sitemap, links",
+   "fieldname": "sources",
+   "fieldtype": "Data",
+   "label": "Sources",
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "skip_patterns",
+   "fieldtype": "Small Text",
+   "label": "Skip patterns",
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "column_break_url",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "max_pages",
+   "fieldtype": "Int",
+   "label": "Maximum pages",
+   "non_negative": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "max_depth",
+   "fieldtype": "Int",
+   "label": "Maximum depth",
+   "non_negative": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "results_section",
+   "fieldtype": "Section Break",
+   "label": "Results"
+  },
+  {
+   "default": "Queued",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Queued\nRunning\nCompleted\nFailed\nCancelled",
+   "read_only": 1
+  },
+  {
+   "fieldname": "stopped_reason",
+   "fieldtype": "Data",
+   "label": "Stopped reason",
+   "read_only": 1
+  },
+  {
+   "fieldname": "background_task",
+   "fieldtype": "Link",
+   "label": "Background task",
+   "options": "Background Task",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_results",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "pages_crawled",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Pages crawled",
+   "read_only": 1
+  },
+  {
+   "fieldname": "pages_failed",
+   "fieldtype": "Int",
+   "label": "Pages failed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "started_at",
+   "fieldtype": "Datetime",
+   "label": "Started at",
+   "read_only": 1
+  },
+  {
+   "fieldname": "finished_at",
+   "fieldtype": "Datetime",
+   "label": "Finished at",
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "caller_section",
+   "fieldtype": "Section Break",
+   "label": "Caller"
+  },
+  {
+   "fieldname": "reference_doctype",
+   "fieldtype": "Link",
+   "label": "Reference document type",
+   "options": "DocType",
+   "read_only": 1
+  },
+  {
+   "fieldname": "reference_name",
+   "fieldtype": "Dynamic Link",
+   "label": "Reference name",
+   "options": "reference_doctype",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_caller",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "on_page",
+   "fieldtype": "Data",
+   "label": "On page",
+   "read_only": 1
+  },
+  {
+   "fieldname": "skip_urls",
+   "fieldtype": "Data",
+   "label": "Skip URLs",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "link_display_mode": "Search",
+ "links": [],
+ "modified": "2026-11-11 23:51:00.506217",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Web Crawl",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "Desk User"
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "url"
+}

@@ -76,6 +76,30 @@ class WebCrawler:
 		else:
 			yield from self.read_pages(self.find_pages())
 
+	def enqueue(
+		self,
+		on_page: str | None = None,
+		*,
+		skip_urls: str | None = None,
+		reference_doctype: str | None = None,
+		reference_name: str | None = None,
+		on_success: str | None = None,
+		on_failure: str | None = None,
+	):
+		"""Runs the crawl in a background job and stores it as a Web Crawl, which is returned.
+		`on_page(page, web_crawl)` and `skip_urls(urls)` are dotted paths, called in the job."""
+		from frappe.core.doctype.web_crawl.web_crawl import WebCrawl
+
+		return WebCrawl.enqueue_crawl(
+			self,
+			on_page=on_page,
+			skip_urls=skip_urls,
+			reference_doctype=reference_doctype,
+			reference_name=reference_name,
+			on_success=on_success,
+			on_failure=on_failure,
+		)
+
 	@cached_property
 	def fetcher(self) -> Fetcher:
 		return Fetcher(self.limits)
