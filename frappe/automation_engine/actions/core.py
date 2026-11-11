@@ -520,7 +520,7 @@ def _guard_url(url: str):
 			address = ipaddress.ip_address(record[4][0])
 		except (ValueError, IndexError):
 			continue
-		if not address.is_global:
+		if not address.is_global or address.is_multicast:
 			raise AutomationParamError(
 				_("Requests to internal network addresses are not permitted"), fieldname="url"
 			)
