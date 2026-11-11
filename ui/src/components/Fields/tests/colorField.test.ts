@@ -219,14 +219,51 @@ describe("ColorField", () => {
     expect(input.value).toBe("#171717");
   });
 
-  it("commits the browser color dialog's value", async () => {
-    const { committed } = render(null);
+  it("shows a dragged color live and commits it once on release", async () => {
+    const { doc, committed, updates } = render("#ffffff");
     await openPicker();
-    const dialog = document.querySelector("input[type=color]") as HTMLInputElement;
-    dialog.value = "#123456";
-    dialog.dispatchEvent(new Event("change"));
+    const area = document.querySelector("[data-slot=color-area]") as HTMLElement;
+    area.getBoundingClientRect = () => ({ left: 0, top: 0, width: 100, height: 100 }) as DOMRect;
+    area.dispatchEvent(new MouseEvent("pointerdown", { clientX: 100, clientY: 0, bubbles: true }));
+    area.dispatchEvent(new MouseEvent("pointermove", { clientX: 100, clientY: 50 }));
     await settle();
-    expect(committed).toEqual(["#123456"]);
+    expect(committed).toEqual([]);
+    area.dispatchEvent(new MouseEvent("pointerup", { clientX: 100, clientY: 50 }));
+    await settle();
+    expect(updates).toEqual(["#ff0000", "#800000"]);
+    expect(committed).toEqual(["#800000"]);
+    expect(doc.value).toBe("#800000");
+    expect(document.querySelector("[data-slot=color-area]")).not.toBeNull();
+  });
+
+  it("moves the hue with the arrow keys and commits on key up", async () => {
+    const { committed } = render("#ff0000");
+    await openPicker();
+    const hue = document.querySelector("[data-slot=hue]") as HTMLElement;
+    hue.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", shiftKey: true }));
+    hue.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", shiftKey: true }));
+    hue.dispatchEvent(new KeyboardEvent("keyup", { key: "ArrowRight" }));
+    await settle();
+    expect(committed).toEqual(["#ff5500"]);
+    expect(hue.getAttribute("aria-valuenow")).toBe("20");
+  });
+
+  it("keeps the hue of a gray, so the hue slider does not jump", async () => {
+    const { doc } = render("#0000ff");
+    await openPicker();
+    doc.value = "#7c7c7c";
+    await settle();
+    const hue = document.querySelector("[data-slot=hue]") as HTMLElement;
+    expect(hue.getAttribute("aria-valuenow")).toBe("240");
+  });
+
+  it("does not commit when a key comes up with no change", async () => {
+    const { committed } = render("");
+    await openPicker();
+    const area = document.querySelector("[data-slot=color-area]") as HTMLElement;
+    area.dispatchEvent(new KeyboardEvent("keyup", { key: "Tab" }));
+    await settle();
+    expect(committed).toEqual([]);
   });
 
   it("commits an emptied box as a cleared value", async () => {

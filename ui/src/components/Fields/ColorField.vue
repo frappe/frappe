@@ -41,7 +41,12 @@
 							:style="swatchStyle"
 						/>
 					</template>
-					<ColorPicker :modelValue="modelValue" @pick="commitPicked" />
+					<ColorPicker
+						:modelValue="modelValue"
+						@pick="commitPicked"
+						@adjust="adjustPicked"
+						@settle="settlePicked"
+					/>
 				</Popover>
 			</div>
 		</Teleport>
@@ -65,6 +70,7 @@ const open = ref(false);
 const spacer = ref<HTMLElement | null>(null);
 let edit: { from: string; revertTo: string } | undefined;
 let emitted: string | undefined;
+let adjustFrom: string | undefined;
 
 watch(
 	() => props.modelValue,
@@ -73,6 +79,11 @@ watch(
 		else if (value !== emitted) edit = { from: value ?? "", revertTo: value ?? "" };
 	}
 );
+
+// Closing mid-drag still sends the drag's change.
+watch(open, (isOpen) => {
+	if (!isOpen) settlePicked(props.modelValue ?? "");
+});
 
 watch(
 	() => props.field.readOnly,
@@ -143,6 +154,20 @@ function commitPicked(hex: string) {
 	if (sameColor(hex, props.modelValue)) return;
 	setValue(hex);
 	emit("change", hex);
+}
+
+// A drag shows its color live; one change goes out when it ends.
+function adjustPicked(hex: string) {
+	adjustFrom ??= props.modelValue ?? "";
+	edit = undefined;
+	setValue(hex);
+}
+
+function settlePicked(hex: string) {
+	if (adjustFrom === undefined) return;
+	const from = adjustFrom;
+	adjustFrom = undefined;
+	if (!sameColor(hex, from)) emit("change", hex);
 }
 
 function setValue(value: string) {
