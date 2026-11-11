@@ -9,7 +9,8 @@ export default [
 		},
 		icon: "lucide-copy",
 		right: { doctype: "Automation Flow", ptype: "create" },
-		// The new flow opens unsaved, so the copy never runs before the person saves it.
-		run: (shell, name) => shell.create("Automation Flow", { values: { __copy_of: name } }),
+		// The copy starts disabled and opens unsaved, so it never runs before the person enables and saves it.
+		run: (shell, name) =>
+			shell.create("Automation Flow", { values: { __copy_of: name, enabled: 0 } }),
 	},
 ];
