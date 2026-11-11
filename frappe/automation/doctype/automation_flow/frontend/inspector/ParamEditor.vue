@@ -27,7 +27,6 @@
 					</div>
 					<Link
 						v-if="fieldFor(row)?.fieldtype === 'Link'"
-						variant="outline"
 						:model-value="row.value"
 						:doctype="fieldFor(row).options"
 						:placeholder="__('Choose {0}', [fieldFor(row).options])"
@@ -116,7 +115,6 @@
 						:filters="field.link_filters || {}"
 						:label="field.label"
 						:required="Boolean(field.reqd)"
-						variant="outline"
 						@update:model-value="setParam(field.fieldname, $event)"
 					/>
 					<div v-if="field.templatable" class="mt-1 flex justify-end">
