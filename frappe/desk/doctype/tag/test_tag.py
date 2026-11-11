@@ -1,5 +1,7 @@
+from unittest.mock import patch
+
 import frappe
-from frappe.desk.doctype.tag.tag import DocTags, add_tag, add_tags, ensure_tag, set_tag_color
+from frappe.desk.doctype.tag.tag import DocTags, add_tag, add_tags, ensure_tag, set_tag_color, update_record_tags
 from frappe.desk.reportview import get_stats
 from frappe.tests import IntegrationTestCase
 
@@ -90,6 +92,44 @@ class TestTag(IntegrationTestCase):
 		with self.assertRaises(frappe.ValidationError):
 			set_tag_color("stays", "Chartreuse")
 		self.assertEqual(frappe.db.get_value("Tag", "stays", "color"), "Red")
+
+	def test_update_record_tags_applies_adds_and_removes_in_one_call(self):
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "batch tags"}).insert()
+		add_tag("old", "ToDo", todo.name)
+		answer = update_record_tags(
+			"ToDo", todo.name, [{"tag": "fresh", "color": "Teal"}, {"tag": "plain"}], ["old"]
+		)
+		self.assertEqual(sorted(answer["tags"]), ["fresh", "plain"])
+		self.assertEqual(answer["tag_colors"]["fresh"], "Teal")
+		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "_user_tags"), "fresh,plain")
+
+	def test_update_record_tags_changes_nothing_when_one_add_fails(self):
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "batch tags"}).insert()
+		add_tag("kept", "ToDo", todo.name)
+		with self.assertRaises(frappe.ValidationError):
+			update_record_tags(
+				"ToDo", todo.name, [{"tag": "fine"}, {"tag": "odd", "color": "Chartreuse"}], ["kept"]
+			)
+		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "_user_tags"), "kept")
+		self.assertFalse(frappe.db.exists("Tag", "fine"))
+		self.assertFalse(frappe.db.exists("Tag", "odd"))
+
+	def test_update_record_tags_rolls_back_a_failure_mid_way(self):
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "batch tags"}).insert()
+		add_tag("kept", "ToDo", todo.name)
+		with patch.object(DocTags, "add", side_effect=[None, frappe.ValidationError("boom")]):
+			with self.assertRaises(frappe.ValidationError):
+				update_record_tags("ToDo", todo.name, [{"tag": "a"}, {"tag": "b"}], ["kept"])
+		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "_user_tags"), "kept")
+
+	def test_update_record_tags_needs_write_on_the_record(self):
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "not yours"}).insert()
+		frappe.set_user("Guest")
+		self.addCleanup(frappe.set_user, "Administrator")
+		with self.assertRaises(frappe.PermissionError):
+			update_record_tags("ToDo", todo.name, [{"tag": "sneaky"}], [])
+		frappe.set_user("Administrator")
+		self.assertFalse(frappe.db.exists("Tag", "sneaky"))
 
 	def test_add_tag_and_add_tags_pass_the_color(self):
 		first = frappe.get_doc({"doctype": "ToDo", "description": "colour test"}).insert()

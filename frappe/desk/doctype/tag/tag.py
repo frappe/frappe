@@ -82,12 +82,43 @@ def remove_tag(tag: str, dt: str, dn: str):
 
 @frappe.whitelist(methods=["POST"])
 def set_tag_color(tag: str, color: str):
-	"sets the colour of an existing Tag; the Select names are the only colours"
+	"sets the colour of an existing Tag to one of the Select names"
 	tag_doc = frappe.get_doc("Tag", tag)
 	tag_doc.check_permission("write")
 	tag_doc.color = color
 	tag_doc.save()
-	return color
+
+
+@frappe.whitelist(methods=["POST"])
+def update_record_tags(dt: str, dn: str, added: str | list | None = None, removed: str | list | None = None):
+	"""Applies one picker session to a record: `added` is `[{"tag", "color"}]`, `removed` a list of
+	tag names. All or none; returns the record's tags and their colours."""
+	from frappe.api.include import colors_of_tags, get_tags
+
+	doc = frappe.get_doc(dt, dn)
+	doc.check_permission("write")
+	added, removed = frappe.parse_json(added or []), frappe.parse_json(removed or [])
+	colors = frappe.get_meta("Tag").get_field("color").options.split("\n")
+	for item in added:
+		if "," in item["tag"] or not item["tag"].strip():
+			frappe.throw(_("A tag cannot be empty or contain a comma"), frappe.ValidationError)
+		if item.get("color") and item["color"] not in colors:
+			frappe.throw(_("{0} is not a tag colour").format(item["color"]), frappe.ValidationError)
+
+	frappe.db.savepoint("update_record_tags")
+	try:
+		doc_tags = DocTags(dt)
+		for tag in removed:
+			doc_tags.remove(dn, tag)
+		for item in added:
+			doc_tags.add(dn, item["tag"], item.get("color"))
+	except Exception:
+		frappe.db.rollback(save_point="update_record_tags")
+		raise
+	frappe.db.release_savepoint("update_record_tags")
+
+	tags = get_tags(doc)
+	return {"tags": tags, "tag_colors": colors_of_tags(tags)}
 
 
 @frappe.whitelist()
