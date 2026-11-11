@@ -69,6 +69,8 @@ describe("the inspector's trigger view", () => {
         to_value: null,
         date_field: null,
         custom_event: null,
+        filters: "",
+        condition: "",
       },
     ]);
   });

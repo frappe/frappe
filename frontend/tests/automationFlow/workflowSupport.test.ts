@@ -124,7 +124,12 @@ describe("workflow triggers", () => {
       date_field: null,
     });
     expect(triggerFromPick("Scheduled")).not.toHaveProperty("cron_expression");
-    expect(docTypeChange("Task")).toMatchObject({ document_type: "Task", trigger_field: null });
+    expect(docTypeChange("Task")).toMatchObject({
+      document_type: "Task",
+      trigger_field: null,
+      filters: "",
+      condition: "",
+    });
   });
 
   it("offers the domain events of the DocType and defines the chosen one", () => {
