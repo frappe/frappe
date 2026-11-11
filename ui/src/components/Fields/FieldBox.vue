@@ -42,7 +42,7 @@ defineProps<{
 	box-shadow: none;
 }
 /* frappe-ui's textarea size classes (`py-1.5`, `min-h-9`, `text-p-sm`) are one class deep: a scoped
-   attribute selector outweighs them without `!important`. Six 20px lines fit the 128 cap. */
+   attribute selector outweighs them without `!important`. */
 .field-box :deep(textarea[data-slot="control"]) {
 	@apply max-h-32 min-h-7 resize-none overflow-y-auto px-2 py-1 text-base leading-5;
 }

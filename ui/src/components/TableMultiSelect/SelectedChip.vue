@@ -1,4 +1,3 @@
-<!-- A selected link as a 20px chip. The picker and a panel row at rest both draw it, so the chips wrap the same in both. -->
 <template>
 	<span
 		class="inline-flex max-w-full items-center gap-1 border border-outline-gray-1 bg-surface-base px-1.5 text-sm text-ink-gray-7 transition-colors"
@@ -16,8 +15,8 @@
 			:aria-hidden="!removable"
 			class="-mr-0.5 inline-flex size-4 shrink-0 items-center justify-center rounded-1 opacity-70 hover:opacity-100"
 			:class="removable ? 'cursor-pointer' : 'invisible'"
-			@click.stop="removable && $emit('remove')"
-			@pointerdown.stop
+			@click="onClick"
+			@pointerdown="removable && $event.stopPropagation()"
 		>
 			<span class="lucide-x size-3" />
 		</span>
@@ -25,7 +24,7 @@
 </template>
 
 <script setup lang="ts">
-withDefaults(
+const props = withDefaults(
 	defineProps<{
 		label: string;
 		/** The 20px chip of a panel row; else the 28px one of the form. */
@@ -35,5 +34,12 @@ withDefaults(
 	}>(),
 	{ removable: undefined }
 );
-defineEmits<{ remove: [] }>();
+const emit = defineEmits<{ remove: [] }>();
+
+// A held × is not a button: its click goes on to the row, which opens.
+function onClick(event: MouseEvent) {
+	if (!props.removable) return;
+	event.stopPropagation();
+	emit("remove");
+}
 </script>

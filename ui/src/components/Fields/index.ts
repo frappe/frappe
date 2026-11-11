@@ -15,7 +15,7 @@ export { default as ReadOnlyField } from "./ReadOnlyField.vue";
 export { default as ReadValue } from "./ReadValue.vue";
 export { default as FieldBox } from "./FieldBox.vue";
 export { default as SelectedChip } from "../TableMultiSelect/SelectedChip.vue";
-export { MAX_HEIGHT, MAX_LINES } from "./useTextareaGrow";
+export { LINE_HEIGHT, MAX_HEIGHT, MAX_LINES, PADDING, useTextareaGrow } from "./useTextareaGrow";
 export { default as FieldDescription } from "./FieldDescription.vue";
 export { descriptionText } from "./fieldDescription";
 export { dataHref, groupIban, isEmailField, isPhoneField } from "./dataOptions";

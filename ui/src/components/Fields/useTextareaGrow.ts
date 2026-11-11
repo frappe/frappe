@@ -1,10 +1,9 @@
 import { nextTick, onMounted, watch } from "vue";
 import type { Ref } from "vue";
 
-/** A panel row's text: 20px lines inside 4px of padding above and below, so one line is 28. */
+/** 20px lines inside 4px of padding above and below: one line is 28. */
 export const LINE_HEIGHT = 20;
 export const PADDING = 8;
-/** A multi-line row wraps up to six lines, at rest and open, then scrolls. */
 export const MAX_LINES = 6;
 export const MAX_HEIGHT = PADDING + LINE_HEIGHT * MAX_LINES;
 
@@ -13,7 +12,9 @@ export function useTextareaGrow(el: Ref<HTMLElement | null>, source: () => unkno
   function fit() {
     const box = el.value;
     if (!box) return;
+    const scrolled = box.scrollTop;
     box.style.height = "auto";
+    box.scrollTop = scrolled;
     box.style.height = `${Math.min(box.scrollHeight, MAX_HEIGHT)}px`;
   }
   onMounted(() => enabled() && fit());

@@ -42,6 +42,26 @@ describe("SelectedChip", () => {
     expect(removed).toEqual([]);
   });
 
+  it("lets a click on the held × reach the row, so the row opens", () => {
+    const { cross } = render({ panel: true, removable: false });
+    let reached = false;
+    host!.addEventListener("click", () => (reached = true));
+
+    cross!.click();
+
+    expect(reached).toBe(true);
+  });
+
+  it("keeps a click on the live × from reaching the row", () => {
+    const { cross } = render({ removable: true });
+    let reached = false;
+    host!.addEventListener("click", () => (reached = true));
+
+    cross!.click();
+
+    expect(reached).toBe(false);
+  });
+
   it("removes on a click of the × when removable is true", () => {
     const { cross, removed } = render({ removable: true });
 

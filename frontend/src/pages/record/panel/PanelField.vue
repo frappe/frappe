@@ -38,7 +38,7 @@
 					class="flex min-h-7 min-w-0 flex-wrap items-center gap-x-1.5"
 					:class="[
 						interactive ? 'cursor-pointer' : '',
-						chips ? 'ps-2 pe-[30px]' : 'px-2',
+						chips && interactive ? 'ps-2 pe-[30px]' : 'px-2',
 					]"
 					:data-fieldname="field.fieldname"
 					:role="imageUrl ? 'button' : undefined"
@@ -246,7 +246,7 @@ function onCommit(value: any) {
 const editing = ref(false);
 const cell = ref<HTMLElement | null>(null);
 let opening: any;
-// Removing a focused input fires its `change`, which would write back the draft a cancel just undid.
+// Removing the focused input fires `change`, which would write the cancelled draft back.
 let cancelled = false;
 
 // Every keystroke already wrote the draft, so a cancel has to put the opening value back.
@@ -304,9 +304,8 @@ const drawsErrorText = computed(
 );
 // A bare row is only a script's own: a stock control draws a ghost input that needs the box.
 const bare = computed(() => !!props.field.ui?.component && !!props.field.ui.ownBox);
-// A heavy field that Details does not draw keeps today's editor, with no `panel` look.
+// A heavy field that Details does not draw edits in place with no `panel` look.
 const inPlaceHeavy = computed(() => isSummaryField(props.field.fieldtype) && !summary.value);
-// These two draw their value over several lines, at rest as in the editor, so opening never resizes the row.
 const multiline = computed(() => MULTILINE.includes(props.field.fieldtype));
 const chips = computed(() => props.field.fieldtype === "Table MultiSelect");
 const chipList = computed(() =>
