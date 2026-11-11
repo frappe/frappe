@@ -39,7 +39,11 @@ function remove(index) {
 				</ListHeaderCell>
 				<ListHeaderCell />
 			</ListHeader>
-			<ListRow v-for="(row, index) in rows" :key="row.name || index" class="group py-0.5">
+			<ListRow
+				v-for="(row, index) in rows"
+				:key="row.name || index"
+				class="group/row py-0.5"
+			>
 				<ListCell
 					v-for="df in columns"
 					:key="df.fieldname"
@@ -47,6 +51,7 @@ function remove(index) {
 				>
 					<component
 						:is="getFieldComponent(df.fieldtype)"
+						variant="outline"
 						v-bind="df.ui?.props"
 						:field="{
 							...df,
@@ -61,7 +66,7 @@ function remove(index) {
 				<ListCell>
 					<Button
 						v-if="!field.readOnly"
-						class="opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
+						class="opacity-0 group-hover/row:opacity-100 focus-visible:opacity-100"
 						size="sm"
 						variant="ghost"
 						icon="lucide-x"

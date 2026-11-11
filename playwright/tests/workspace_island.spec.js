@@ -521,6 +521,40 @@ test.describe("Workspace island", () => {
 		await expect(panel.locator(".field[data-fieldname='function']")).toHaveCount(0);
 	});
 
+	test("a card link added in the pane is named after what it opens", async ({ page }) => {
+		await page.goto("/desk/playwright-island");
+		const card = page.locator(".ws-tile", { hasText: "Playwright Links" });
+		await expect(card).toBeVisible();
+		await open_editor(page);
+
+		await card.locator(".ws-pick").click();
+		const panel = page.locator("aside");
+		await panel.getByRole("button", { name: "Add link" }).click();
+		await panel.getByLabel("Opens").last().click();
+		await page.keyboard.type("ToDo");
+		await page.getByRole("option", { name: /^ToDo\b/ }).click();
+		await expect(card.getByText("ToDo", { exact: true })).toBeVisible();
+	});
+
+	test("a card's links reorder from their grips", async ({ page }) => {
+		await page.goto("/desk/playwright-island");
+		const card = page.locator(".ws-tile", { hasText: "Playwright Links" });
+		await expect(card).toBeVisible();
+		await open_editor(page);
+
+		await card.locator(".ws-pick").click();
+		const panel = page.locator("aside");
+		await panel.getByRole("button", { name: "Add link" }).click();
+		await panel.getByLabel("Opens").last().click();
+		await page.keyboard.type("ToDo");
+		await page.getByRole("option", { name: /^ToDo\b/ }).click();
+		await expect(card.locator("li").first()).toHaveText("Notes");
+
+		await panel.getByRole("button", { name: "Move ToDo" }).press("ArrowUp");
+		await expect(card.locator("li").first()).toHaveText("ToDo");
+		await expect(panel.getByRole("button", { name: "Move ToDo" })).toBeFocused();
+	});
+
 	test("an onboarding block shows its form in the pane", async ({ page }) => {
 		await page.goto("/desk/playwright-island");
 		await expect(page.locator(".ws-tile", { hasText: CARD })).toBeVisible();
