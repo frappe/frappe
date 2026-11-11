@@ -22,9 +22,8 @@ import {
 	UpdateKey,
 } from "@framework/ui/FormLayout/types";
 import type { FieldNode } from "@framework/ui/FormLayout/types";
+import { getFieldComponent } from "@framework/ui/fields";
 import PanelField from "../PanelField.vue";
-
-const Control = defineComponent({ render: () => h("input", { "data-control": "" }) });
 
 const mounted: ReturnType<typeof createApp>[] = [];
 
@@ -41,7 +40,7 @@ async function mount(value: string, readOnly = false) {
 	app.provide(DocKey, ref({ f: value }));
 	app.provide(UpdateKey, vi.fn());
 	app.provide(CommitKey, NO_COMMIT);
-	app.provide(ResolveFieldKey, () => Control);
+	app.provide(ResolveFieldKey, () => getFieldComponent("Color"));
 	app.mount(root);
 	mounted.push(app);
 	await nextTick();
