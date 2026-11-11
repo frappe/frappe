@@ -22,8 +22,8 @@ import frappe
 from frappe import _
 from frappe.core.doctype.file.utils import find_file_by_url
 from frappe.core.utils import html2text
-from frappe.printing.doctype.print_format.print_format import check_print_format_roles_by_name
 from frappe.utils.inplacevar import protected_inplacevar
+from frappe.utils.print_utils import _print_format_doc_or_none
 from frappe.utils.safe_exec import (
 	SAFE_DATA_UTILS,
 	SAFE_EXCEPTIONS,
@@ -125,7 +125,8 @@ def _readable_attachment(attachment: dict) -> dict:
 			and frappe.has_permission(doctype, "read", name)
 		):
 			raise frappe.PermissionError(_("No permission to read {0} {1}").format(doctype, name))
-		check_print_format_roles_by_name(attachment.get("print_format"))
+		print_format = _print_format_doc_or_none(attachment.get("print_format"), doctype)
+		attachment["print_format"] = print_format.name if print_format else "Standard"
 		attachment.pop("doc", None)  # print the checked record itself
 	return attachment
 
@@ -209,6 +210,7 @@ def _flow_builtins(tool_context: ToolContext | None = None) -> dict[str, Any]:
 	out = {t.name: bind(t.func) for t in BUILTIN_TOOLS if t.name not in _SKIP_BUILTINS}
 	# the code's own transaction holds its calls, read-only or approved
 	out["run_action"] = bind(_sandbox_run_action)
+	out["call_api"] = bind(_sandbox_call_api)
 	return out
 
 
@@ -230,6 +232,16 @@ def _sandbox_run_action(doctype: str, names: list[str], action: str, args=None, 
 	if ctx is not None and ctx.read_only and not is_read_function(action):
 		_stop(function_title(action) if is_function_path(action) else action, ctx)
 	return _run_action(doctype, names, action, args, ctx=ctx)
+
+
+def _sandbox_call_api(
+	method: str, args: dict[str, Any] | None = None, *, ctx: ToolContext | None
+) -> dict[str, Any]:
+	from frappe.flow.tools.builtins import _call_api, function_title, is_read_function
+
+	if ctx is not None and ctx.read_only and not is_read_function(method):
+		_stop(function_title(method), ctx)
+	return _call_api(method, args, ctx=ctx)
 
 
 def _call_read_function(ctx: ToolContext, function: str, **kwargs: Any) -> Any:

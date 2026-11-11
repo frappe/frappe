@@ -101,7 +101,7 @@ class Report(Document):
 		if self.default_print_format and self.has_value_changed("default_print_format"):
 			self.validate_default_print_format()
 
-		if self.default_letter_head and self.has_value_changed("letter_head"):
+		if self.default_letter_head and self.has_value_changed("default_letter_head"):
 			self.validate_default_letter_head()
 
 		if self.validate_filters:
@@ -543,7 +543,7 @@ class Report(Document):
 
 	@frappe.whitelist()
 	def toggle_disable(self, disable: bool):
-		if not self.has_permission("write"):
+		if not frappe.has_permission(self.doctype, "write", doc=self):
 			frappe.throw(_("You are not allowed to edit the report."))
 
 		self.db_set("disabled", cint(disable))

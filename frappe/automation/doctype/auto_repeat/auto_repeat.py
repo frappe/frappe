@@ -89,6 +89,13 @@ class AutoRepeat(Document):
 		self.update_auto_repeat_id()
 		self.unlink_if_applicable()
 
+		default_message = self.meta.get_field("message").default
+		if self.template and self.has_value_changed("template"):
+			template = frappe.get_cached_doc("Email Template", self.template)
+			self.subject = self.subject or template.subject
+			if not self.message or self.message == default_message:
+				self.message = template.response_
+
 		validate_template(self.subject or "")
 		validate_template(self.message or "")
 
@@ -421,7 +428,7 @@ class AutoRepeat(Document):
 		elif "{" in self.subject:
 			subject = frappe.render_template(self.subject, {"doc": new_doc}, restrict_globals=True)
 
-		print_format = self.print_format or "Standard"
+		print_format = self.print_format or frappe.get_meta(new_doc.doctype).default_print_format
 		error_string = None
 
 		try:
@@ -433,8 +440,8 @@ class AutoRepeat(Document):
 					print_format=print_format,
 					lang=new_doc.get("language")
 					or (
-						frappe.get_cached_value("Print Format", self.print_format, "default_print_language")
-						if self.print_format
+						frappe.get_cached_value("Print Format", print_format, "default_print_language")
+						if print_format
 						else None
 					),
 				)

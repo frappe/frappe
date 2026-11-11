@@ -86,6 +86,21 @@ class TestAutoAssign(IntegrationTestCase):
 			"test@example.com",
 		)
 
+	def test_users_are_required_only_on_an_enabled_rotation(self):
+		rule = frappe.get_doc(
+			doctype="Assignment Rule",
+			name=f"For {TEST_DOCTYPE} without users",
+			document_type=TEST_DOCTYPE,
+			assign_condition="public == 1",
+			rule="Round Robin",
+			priority=2,
+			assignment_days=self.days,
+			disabled=1,
+		).insert()
+
+		rule.disabled = 0
+		self.assertRaises(frappe.MandatoryError, rule.save)
+
 	def test_round_robin_ignores_stale_last_user(self):
 		frappe.db.set_value("Assignment Rule", self.assignment_rule.name, "last_user", "test@example.com")
 

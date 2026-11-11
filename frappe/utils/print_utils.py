@@ -282,7 +282,7 @@ def attach_print(
 					from frappe.core.doctype.access_log.access_log import make_access_log
 					from frappe.www.printview import validate_print_for_docstatus
 
-					doc_obj = doc or frappe.get_cached_doc(doctype, name)
+					doc_obj = doc or frappe.get_doc(doctype, name)
 					validate_print_for_docstatus(doc_obj)
 					_run_print_pdf_hooks(doctype, name, print_format)
 					render_format = pf_doc or get_default_print_format(doc_obj.doctype)

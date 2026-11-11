@@ -129,15 +129,6 @@ export function typst_blockers_client(print_format, layout, letterhead) {
 		}
 		if (node.fieldtype === "HTML") add(__("HTML block"));
 		if (node.fieldtype === "Field Template") add(__("Field Template block"));
-		if (node.fieldtype === "Barcode") {
-			if (node.custom) {
-				if (node.barcode_format !== "QR") add(__("Barcode that is not a QR code"));
-			} else {
-				const meta_df = frappe.meta.get_docfield(print_format?.doc_type, node.fieldname);
-				if (!meta_df || !is_qr_barcode_options(meta_df.options))
-					add(__("Barcode that is not a QR code"));
-			}
-		}
 		if (node.fieldtype === "Image" && /^https?:\/\//.test(node.image_url || ""))
 			add(__("Image loaded from a web address"));
 		for (const key of ["label_color", "value_color"]) {

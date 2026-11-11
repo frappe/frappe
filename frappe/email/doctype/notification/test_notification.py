@@ -3,6 +3,7 @@
 
 import json
 from contextlib import contextmanager
+from unittest.mock import patch
 
 import frappe
 import frappe.utils
@@ -22,7 +23,6 @@ def get_test_notification(config):
 		yield notification
 	finally:
 		notification.delete()
-		frappe.db.commit()
 
 
 @contextmanager
@@ -52,7 +52,6 @@ def get_test_doctype_with_attach_field(doctype_name="Test Attach Doctype"):
 	finally:
 		frappe.db.delete(doctype_name)
 		frappe.delete_doc_if_exists("DocType", doctype_name, force=1)
-		frappe.db.commit()
 
 
 @contextmanager
@@ -67,11 +66,11 @@ def create_test_file(file_name="test_attachment.txt", content="Test file content
 
 	finally:
 		frappe.delete_doc_if_exists("File", file_doc.name, force=1)
-		frappe.db.commit()
 
 
 class TestNotification(IntegrationTestCase):
 	def setUp(self):
+		self.enterContext(patch.object(frappe.db, "_disable_transaction_control", 1))
 		frappe.set_user("test@example.com")
 
 		if not frappe.db.exists("Notification", {"name": "ToDo Status Update"}, "name"):
@@ -208,10 +207,7 @@ class TestNotification(IntegrationTestCase):
 		notification.send_alert_on = "New"
 		notification.message = "test"
 
-		recipent = frappe.new_doc("Notification Recipient")
-		recipent.receiver_by_document_field = "owner"
-
-		notification.recipents = recipent
+		notification.append("recipients", {"receiver_by_document_field": "owner"})
 		notification.condition = "test"
 
 		self.assertRaises(frappe.ValidationError, notification.save)
@@ -348,6 +344,7 @@ class TestNotification(IntegrationTestCase):
 		notification.event = "Minutes Before"
 		notification.datetime_changed = "starts_on"
 		notification.message = "Test message"
+		notification.append("recipients", {"receiver_by_document_field": "owner"})
 
 		# Test negative value
 		notification.minutes_offset = -5
@@ -380,7 +377,6 @@ class TestNotification(IntegrationTestCase):
 				"recipients": [{"receiver_by_document_field": "owner"}],
 			}
 		).insert()
-		frappe.db.commit()  # nosemgrep
 
 		event = frappe.new_doc("Event")
 		event.subject = "test-2"
@@ -880,11 +876,13 @@ class TestNotification(IntegrationTestCase):
 				"doctype": "Email Template",
 				"name": "Test Empty Email Template",
 				"subject": "x",
-				"response": "",
+				"use_html": 1,
+				"response_html": "",
 			}
 		).insert()
 
 		notification = frappe.new_doc("Notification")
+		notification.name = "Test Empty Email Template Notification"
 		notification.document_type = "ToDo"
 		notification.event = "Save"
 		notification.channel = "Email"

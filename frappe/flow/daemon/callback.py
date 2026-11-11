@@ -211,6 +211,10 @@ def confirm_title(name: str, args: dict) -> str:
 		return _count("Update 1 {0} record", "Update {0} {1} records", args.get("names"), doctype)
 	if name == "delete" and doctype:
 		return _count("Delete 1 {0} record", "Delete {0} {1} records", args.get("names"), doctype)
+	if name == "call_api" and isinstance(args.get("method"), str):
+		from frappe.flow.tools.builtins import function_title
+
+		return function_title(args["method"])
 	if name == "run_action" and action:
 		from frappe.flow.tools.builtins import function_title, is_function_path
 

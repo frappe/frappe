@@ -930,6 +930,22 @@ class TestFile(IntegrationTestCase):
 		finally:
 			frappe.set_user("Administrator")
 
+	def test_permission_check_on_file_of_unreadable_document_shows_no_message(self):
+		note = frappe.get_doc(doctype="Note", title="Unreadable note").insert()
+		file = frappe.get_doc(
+			doctype="File",
+			file_name="test_unreadable_note.txt",
+			content="x",
+			is_private=1,
+			attached_to_doctype="Note",
+			attached_to_name=note.name,
+		).insert()
+
+		with self.set_user("test@example.com"):
+			frappe.clear_messages()
+			self.assertFalse(frappe.has_permission("File", "read", doc=file))
+			self.assertFalse(frappe.message_log)
+
 	def insert_case_variant_files(self, **attached_to):
 		files = []
 		for owner, file_url in (
@@ -1274,6 +1290,7 @@ class TestAttachment(IntegrationTestCase):
 	test_doctype = "Test For Attachment"
 	test_child_doctype = "Test For Attachment Child"
 	test_submittable_doctype = "Test For Attachment Submittable"
+	test_protected_doctype = "Test For Attachment Protected"
 
 	@classmethod
 	def setUpClass(cls):
@@ -1304,6 +1321,16 @@ class TestAttachment(IntegrationTestCase):
 		).insert(ignore_if_duplicate=True)
 		frappe.get_doc(
 			doctype="DocType",
+			name=cls.test_protected_doctype,
+			module="Custom",
+			custom=1,
+			is_submittable=1,
+			protect_attached_files=1,
+			fields=[{"label": "Title", "fieldname": "title", "fieldtype": "Data"}],
+			permissions=[{"role": "System Manager", "submit": 1, "cancel": 1, "delete": 0}],
+		).insert(ignore_if_duplicate=True)
+		frappe.get_doc(
+			doctype="DocType",
 			name=cls.test_doctype,
 			module="Custom",
 			custom=1,
@@ -1325,6 +1352,7 @@ class TestAttachment(IntegrationTestCase):
 		frappe.delete_doc("DocType", cls.test_doctype)
 		frappe.delete_doc("DocType", cls.test_child_doctype)
 		frappe.delete_doc("DocType", cls.test_submittable_doctype)
+		frappe.delete_doc("DocType", cls.test_protected_doctype)
 
 	def test_file_attachment_on_update(self):
 		doc = frappe.get_doc(doctype=self.test_doctype, title="test for attachment on update").insert()
@@ -1390,6 +1418,17 @@ class TestAttachment(IntegrationTestCase):
 
 		self.assertFalse(frappe.db.exists("File", {"attached_to_name": doc.name, "file_url": file.file_url}))
 		self.assertFalse(frappe.message_log)
+
+	def test_attachment_failing_after_insert_leaves_no_file(self):
+		doc = frappe.get_doc(doctype=self.test_doctype, title="test attachment failing after insert").insert()
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		doc.attachment = "https://example.com/brochure.pdf"
+		with patch("frappe.core.doctype.file.file.File.after_insert", side_effect=ValidationError):
+			doc.save(ignore_permissions=True)
+
+		self.assertFalse(frappe.db.exists("File", {"attached_to_name": doc.name, "file_url": doc.attachment}))
 
 	def test_url_attachment_is_attached_to_duplicated_document(self):
 		doc = frappe.get_doc(doctype=self.test_doctype, title="test url attachment on duplicate")
@@ -1538,6 +1577,28 @@ class TestAttachment(IntegrationTestCase):
 
 		frappe.delete_doc("File", file.name)
 		self.assertFalse(frappe.db.exists("File", file.name))
+
+	def test_protected_file_delete_shows_only_the_protection_error(self):
+		doc = frappe.get_doc(doctype=self.test_protected_doctype, title="test protected delete").insert()
+		file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "test_protected.txt",
+				"content": "Protected Content",
+				"attached_to_doctype": self.test_protected_doctype,
+				"attached_to_name": doc.name,
+			}
+		).insert()
+		doc.submit()
+		doc.cancel()
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		frappe.clear_messages()
+		with self.assertRaises(frappe.ValidationError):
+			frappe.delete_doc("File", file.name)
+
+		self.assertEqual([message.get("title") for message in frappe.message_log], ["Protected File"])
 
 	def test_document_delete_cascades_referenced_attachment(self):
 		doc = frappe.get_doc(doctype=self.test_doctype, title="test cascade delete").insert()

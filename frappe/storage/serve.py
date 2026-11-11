@@ -17,6 +17,7 @@ import frappe
 from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.storage.blob import served_type
+from frappe.storage.cache import get_cache_key, get_cached_path, is_cacheable, queue_cache
 from frappe.storage.driver import get_driver
 from frappe.storage.url import PRIVATE_PREFIX, native_download_url, parse_blob_url, verify_signature
 from frappe.utils import cint
@@ -148,7 +149,11 @@ def stream_blob(
 	driver = get_driver(blob.driver)
 	is_private = bool(blob.is_private)
 
-	if allow_native_redirect:
+	cached_path = get_cached_path(blob)
+	if cached_path is None:
+		queue_cache(blob)
+
+	if allow_native_redirect and cached_path is None:
 		if response := _native_url_response(blob, filename, as_attachment=as_attachment):
 			return response
 
@@ -163,30 +168,52 @@ def stream_blob(
 		response.set_etag(etag)
 		return response
 
+	if cached_path:
+		return _disk_response(
+			blob,
+			cached_path,
+			x_accel_path(blob, get_cache_key(blob)),
+			filename,
+			request,
+			mime_type,
+			as_attachment,
+		)
+
 	if local_path := getattr(driver, "get_path", None):
 		filepath = local_path(blob.key, is_private)
 		if not os.path.exists(filepath):
 			# checked before X-Accel too: nginx would pass a missing public
 			# file back to Python, which would redirect to it again
 			raise NotFound
-
-		if request.headers.get("X-Use-X-Accel-Redirect"):
-			response = x_accel_response(x_accel_path(blob), filename, mime_type, as_attachment)
-			response.set_etag(etag)
-			return response
-
-		# real file on disk: send_file gets size + mtime, so Range works
-		return werkzeug.utils.send_file(
-			filepath,
-			environ=request.environ,
-			mimetype=mime_type,
-			conditional=True,
-			as_attachment=as_attachment,
-			download_name=filename,
-			etag=etag,
-		)
+		return _disk_response(blob, filepath, x_accel_path(blob), filename, request, mime_type, as_attachment)
 
 	return _stream_driver_response(blob, filename, request, mime_type=mime_type, as_attachment=as_attachment)
+
+
+def _disk_response(
+	blob: "FileBlob",
+	filepath: str,
+	accel_path: str,
+	filename: str,
+	request: Request,
+	mime_type: str,
+	as_attachment: bool,
+) -> Response:
+	if request.headers.get("X-Use-X-Accel-Redirect"):
+		response = x_accel_response(accel_path, filename, mime_type, as_attachment)
+		response.set_etag(blob.checksum)
+		return response
+
+	# real file on disk: send_file gets size + mtime, so Range works
+	return werkzeug.utils.send_file(
+		filepath,
+		environ=request.environ,
+		mimetype=mime_type,
+		conditional=True,
+		as_attachment=as_attachment,
+		download_name=filename,
+		etag=blob.checksum,
+	)
 
 
 def _native_url_response(blob: "FileBlob", filename: str, *, as_attachment: bool = False) -> Response | None:
@@ -195,7 +222,10 @@ def _native_url_response(blob: "FileBlob", filename: str, *, as_attachment: bool
 		return None
 	response = werkzeug.utils.redirect(native, 302)
 	if not blob.is_private:
-		response.headers["Cache-Control"] = f"public, max-age={PUBLIC_NATIVE_URL_TTL // 2}"
+		# a browser that kept this redirect would never reach the server to start the local cache
+		response.headers["Cache-Control"] = (
+			"no-cache" if is_cacheable(blob) else f"public, max-age={PUBLIC_NATIVE_URL_TTL // 2}"
+		)
 	return response
 
 
@@ -250,9 +280,10 @@ def _stream_driver_response(
 	return response
 
 
-def x_accel_path(blob: "FileBlob") -> str:
-	"""nginx-internal path of a local blob."""
+def x_accel_path(blob: "FileBlob", key: str | None = None) -> str:
+	"""nginx-internal path of a local blob, or of the local ``key`` that holds its cached copy."""
+	key = key or blob.key
 	if not blob.is_private:
-		return "/files/" + blob.key
+		return "/files/" + key
 	private_path = frappe.local.conf.get("private_path", "private")
-	return "/protected/" + os.path.join(private_path, "files", blob.key)
+	return "/protected/" + os.path.join(private_path, "files", key)

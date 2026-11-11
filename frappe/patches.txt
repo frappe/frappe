@@ -281,6 +281,7 @@ frappe.patches.v16_0.rename_lucide_workspace_icons
 frappe.patches.v16_0.keep_existing_sites_on_desktop_icons
 frappe.patches.v16_0.repair_converted_print_formats
 frappe.patches.v16_0.repair_converted_print_formats #2026-08-02 section-spacing
+frappe.patches.v16_0.repair_converted_print_formats #2026-11-09 paper-size
 execute:frappe.db.set_single_value("Contact Us Settings", "send_acknowledgement_email", 1)
 frappe.patches.v16_0.seed_sms_settings_allowed_roles
 execute:frappe.db.set_single_value("Website Settings", "max_signups_per_minute", 500)
@@ -326,3 +327,4 @@ frappe.patches.v17_0.mark_flow_embedding_model
 
 [post_fixture_sync]
 frappe.patches.v17_0.add_core_pdf_generators_to_option_overrides
+frappe.patches.v17_0.migrate_s3_blob_keys
