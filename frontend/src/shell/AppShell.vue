@@ -52,6 +52,7 @@
 		/>
 
 		<ShellSettingsDialog v-if="settingsOpened" :shell="shell" />
+		<AboutDialog v-if="aboutOpened" :open="about.open.value" @close="about.close()" />
 
 		<ShellPalette v-if="paletteLoaded" />
 		<LogoutDialog v-model="confirmingLogout" />
@@ -117,6 +118,7 @@ import { useHashDialog } from "./useHashDialog";
 import UserMenu from "./UserMenu.vue";
 
 const ShellSettingsDialog = defineAsyncComponent(() => import("./ShellSettingsDialog.vue"));
+const AboutDialog = defineAsyncComponent(() => import("./AboutDialog.vue"));
 const ShellDialogs = defineAsyncComponent(() => import("./ShellDialogs.vue"));
 const StandingWindows = defineAsyncComponent(() => import("./StandingWindows.vue"));
 // Keys wait for no paint, so their code stays out of the cold-load chunk.
@@ -291,6 +293,10 @@ const openSettings: OpenSettings = (...segments) =>
 const settingsOpened = ref(false);
 watch(settings.open, (isOpen) => isOpen && (settingsOpened.value = true), { immediate: true });
 
+const about = useHashDialog("about");
+const aboutOpened = ref(false);
+watch(about.open, (isOpen) => isOpen && (aboutOpened.value = true), { immediate: true });
+
 const openArgument: OpenArgument = (act) => openArgumentStep(act.name);
 
 // Loaded on the first open, then kept, like the settings dialog.
@@ -317,6 +323,7 @@ const { appActsPending, shell } = useShellActs({
 	boot,
 	router,
 	openSettings,
+	openAbout: () => about.write(),
 	confirmLogout: () => void (confirmingLogout.value = true),
 	rail: boot.app
 		? {

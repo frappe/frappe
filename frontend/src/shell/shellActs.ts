@@ -72,6 +72,7 @@ interface ShellActsHost {
 	boot: Boot;
 	router: Router;
 	openSettings: OpenSettings;
+	openAbout: () => void;
 	confirmLogout: () => void;
 	/** The rail's acts, present only while the rail draws. */
 	rail?: RailActsHost;
@@ -193,6 +194,7 @@ function shellItems(
 	return [
 		...(host.rail ? railItems(host.rail) : []),
 		openSettingsItem(host.boot),
+		{ name: "about", label: __("About"), icon: "lucide-info", run: () => host.openAbout() },
 		...personItems(host, setColorScheme),
 		createItem(),
 		openItem(),

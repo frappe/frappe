@@ -177,7 +177,7 @@ function cellOf(item: NavigationItem): Cell | null {
 		: { ...cell, href: rendering.href, sidebar: rendering.sidebar };
 }
 
-const APP_MENU = ["all_apps", "open_settings", "customize_sidebar", "copy_link"];
+const APP_MENU = ["all_apps", "open_settings", "customize_sidebar", "copy_link", "about"];
 
 // The apps come from `places`, asked for when the tile is reached, so a boot carries none and
 // the palette's chunk stays out of the shell's load.

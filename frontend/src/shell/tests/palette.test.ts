@@ -485,6 +485,8 @@ describe("the groups", () => {
 		expect(drawn()).toEqual([["Desk", "Create"]]);
 		await type("theme");
 		expect(drawn()).toEqual([["Desk", "Theme"]]);
+		await type("about");
+		expect(drawn()).toEqual([["Desk", "About"]]);
 	});
 
 	it("never draws a denied, hidden or opted-out act", async () => {

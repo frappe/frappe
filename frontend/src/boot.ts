@@ -54,6 +54,9 @@ export type Boot = {
 	app_order: string[];
 	// The apps whose `shell.js` this person may run, in `app_order`.
 	shell_hooks: ShellHook[];
+	// A Frappe Cloud site, for a System Manager; and whether the person has app updates to be told of.
+	is_fc_site: boolean;
+	has_app_updates: boolean;
 
 	// --- routing ---
 	//
