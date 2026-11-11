@@ -9,11 +9,7 @@ const TRIGGER_FIELDS = new Set([
 	"cron_expression",
 ]);
 
-/**
- * Splits a refused save into messages for nodes and one for the flow. The server names a failing
- * step as "Row N: ..." and N counts the rows `toRows` wrote, so `nodeAtRow` finds its node.
- * `errors` maps a node id (`trigger` for the start node) to its messages.
- */
+/** Splits a refused save into messages per node id (`trigger` for the start) and a general one. */
 export function saveErrors(error, tree) {
 	const errors = {};
 	const add = (id, message) => (errors[id] ||= []).push(message);

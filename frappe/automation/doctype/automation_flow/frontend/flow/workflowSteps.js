@@ -1,20 +1,14 @@
 import { __ } from "frappe/i18n";
 /**
- * Automation Flow steps are stored flat: a child row points at the `idx` of the `If` row it
- * belongs to (`parent_step`) and which arm it sits in (`branch`). The builder edits a tree
- * instead, and flattens it on save - that is what keeps `parent_step` pointing at an earlier
- * row and every branch child ordered after its `If`.
+ * Steps are stored flat (`parent_step` = `idx` of the `If` row, plus `branch`) and edited as a tree,
+ * flattened on save so each parent precedes its children.
  */
 
 // The canvas runs left to right: each step is a column, an If's arms split vertically.
 const COLUMN_WIDTH = 300;
 const BRANCH_OFFSET = 108;
 
-/**
- * A wait-for-event step is stored as two rows - the wait, then an `If` reading the outcome the
- * runner recorded. That second row is pure plumbing, so the builder shows one node with two
- * arms and writes the pair back out on save. Users never see or type this expression.
- */
+/** A wait-for-event is two rows (the wait, then an `If` on its outcome) shown as one node. */
 export const EVENT_MATCHED = 'context.get("event", {}).get("outcome") == "Matched"';
 
 let uid = 0;
@@ -94,11 +88,7 @@ export function toRows(tree) {
 	return rows;
 }
 
-/**
- * A step key names the step in run logs and in `context.steps.<key>`, so it has to exist and
- * be unique - but nobody should have to invent one. An untitled step gets a name from what it
- * does, and only shows up under Advanced for the rare case where it needs to be pinned.
- */
+/** Step keys name steps in run logs and must be unique; untitled steps get one from their action. */
 export function defaultStepKey(node, taken = new Set()) {
 	const base = scrub(node.action_type || KEY_BASES[node.step_type] || node.step_type);
 	let key = base;
@@ -120,10 +110,7 @@ function scrub(text) {
 		.toLowerCase();
 }
 
-/**
- * Stamp the identity a save handed back onto the tree it came from. A step added in this
- * session has no key until `toRows` invents one, and the run trace is keyed by those names.
- */
+/** Stamp the keys a save handed back onto the tree it came from. */
 export function adoptRowKeys(tree, rows) {
 	takeRowKeys(tree, [...rows]);
 }
@@ -187,10 +174,7 @@ function outcomeRow(node, idx, parentIdx, branch, taken) {
 	};
 }
 
-/**
- * The node a flattened row (1-based `idx`) belongs to. Walks the tree in the order `appendRows`
- * writes it, so the outcome `If` a wait with arms gains on save resolves to that wait.
- */
+/** The node a flattened row (1-based `idx`) belongs to, walked in the order `appendRows` writes. */
 export function nodeAtRow(tree, rowIndex) {
 	return findRow(tree, { next: 1, target: rowIndex });
 }

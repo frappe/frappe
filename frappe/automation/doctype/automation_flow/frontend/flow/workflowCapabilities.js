@@ -2,19 +2,11 @@ import { __ } from "frappe/i18n";
 import { runMethod } from "@framework/ui/api";
 import { reactive } from "vue";
 
-/**
- * Registered triggers, relationships, fields and actions, cached per DocType. A step targeting
- * a relationship alias needs the capabilities of that alias' DocType, not the flow's, so the
- * builder loads one entry per target it can reach.
- */
+/** Capabilities per DocType: a step on a relationship alias needs its target DocType's entry. */
 const cache = reactive({});
 const pending = new Set();
 
-/**
- * What this builder offers of an action's params, where it offers less than the framework
- * defines. A script step is pointed at a Server Script here; Python is written and reviewed
- * in the desk, where the roles that may author it live.
- */
+/** Where this builder offers fewer params than the framework defines: scripts are picked, not written. */
 const OFFERED_PARAMS = { RunScript: ["server_script"] };
 
 export function capabilitiesFor(doctype) {
@@ -77,10 +69,7 @@ function anyActionSchema(actionType) {
 	return null;
 }
 
-/**
- * Every record alias a step may target: the trigger, the flow's predeclared relationship
- * aliases, and the destination aliases of steps that run earlier.
- */
+/** Every alias a step may target: the trigger, the flow's relationships, earlier steps' outputs. */
 export function aliasTargets(documentType, relationships = [], earlierSteps = []) {
 	const targets = [{ alias: "trigger", doctype: documentType, label: __("Trigger record") }];
 	relationships.forEach((item) => addRelationshipAlias(targets, item));
@@ -100,11 +89,7 @@ function addRelationshipAlias(targets, item) {
 	});
 }
 
-/**
- * A relationship may allow several DocTypes (a dynamic reference narrowed to a few). One
- * choice needs no asking; more than one stays unknown until the flow picks, because the
- * builder can't offer actions or fields without knowing which DocType it is dealing with.
- */
+/** One allowed DocType is the answer; several stay unknown until the flow picks. */
 function resolvedTarget(definition) {
 	if (definition?.target_doctype) return definition.target_doctype;
 	const choices = definition?.target_doctypes || [];

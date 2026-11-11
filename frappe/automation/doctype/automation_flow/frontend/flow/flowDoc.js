@@ -40,10 +40,7 @@ function asText(row) {
 	return text;
 }
 
-/**
- * Hand the step ids of the tree a save came from to the tree the server answered with, so the
- * selected step stays selected. The two trees have the same shape unless the server changed it.
- */
+/** Carry step ids onto the tree the server answered with, so the selection survives a save. */
 export function keepStepIds(from, to) {
 	const before = layoutSteps(from);
 	const after = layoutSteps(to);

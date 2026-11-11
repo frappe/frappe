@@ -1,22 +1,14 @@
 import { __ } from "frappe/i18n";
 /**
- * Filter rows <-> the Python expression a step condition is stored as.
- *
- * The engine evaluates `step_condition` with `safe_eval`, so the expression stays the stored
- * form and the filter rows are only a way to write one. Anything this module can't parse back
- * is still a perfectly good condition - the editor just falls back to editing it as text.
- *
- * `safe_eval` exposes no builtins, so the generated code sticks to comparisons, `in` and `or`.
+ * Filter rows <-> the Python expression stored as `step_condition` (run by `safe_eval`: no builtins).
+ * An expression that does not parse back is still valid; the editor falls back to text.
  */
 
 const NUMERIC_FIELDTYPES = ["Int", "Float", "Currency", "Percent"];
 const COMPARISONS = ["==", "!=", ">=", "<=", ">", "<"];
 const OPERATOR_TO_PYTHON = { "=": "==", "!=": "!=" };
 
-/**
- * `conditions` is the list view's builder shape: leaf rows with `and` / `or` between them, and
- * a nested list wherever the user grouped some. Groups become parentheses.
- */
+/** The list view's builder shape: leaf rows with `and` / `or`, nested lists as parentheses. */
 export function toExpression(conditions, fields = []) {
 	const parts = [];
 	withConjunctions(conditions || []).forEach((item) => {
@@ -222,9 +214,7 @@ function splitValues(value) {
 }
 
 // --- parsing -------------------------------------------------------------
-// Deliberately strict: a clause has to be a field, an operator and plain literals. Anything
-// looser would let a hand-written expression half-match, and rewriting it from the filter UI
-// would silently change what the step does.
+// Strict on purpose: a looser parse would half-match a hand-written expression and rewrite it.
 const LITERAL = `"[^"]*"|'[^']*'|-?\\d+(?:\\.\\d+)?`;
 const PRESENCE = /^\(doc\.(\w+) or ""\) (==|!=) ""$/;
 const CONTAINS =

@@ -207,6 +207,31 @@ describe("Automation Flow builder", () => {
     expect(host.textContent).toContain("Unsaved");
   });
 
+  it("keeps the conflict banner when the reload fails", async () => {
+    fake.updateDocument.mockRejectedValue(
+      new ApiError(
+        {
+          type: "TimestampMismatchError",
+          message: "Document has been modified",
+        },
+        417
+      )
+    );
+    await mount("AUTO-00001");
+    await typeTitle("Renamed");
+    button("Save").click();
+    await settle();
+
+    fake.getDocument.mockRejectedValue(
+      new ApiError({ type: "ServerError", message: "down" }, 500)
+    );
+    button("Reload and discard my changes").click();
+    await settle();
+
+    expect(host.querySelector("[role=alert]")).not.toBeNull();
+    expect(fake.toastError).toHaveBeenCalled();
+  });
+
   it("says who may open it when the server answers 403", async () => {
     fake.getDocument.mockRejectedValue(
       new ApiError({ type: "PermissionError", message: "no" }, 403)

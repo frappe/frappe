@@ -28,6 +28,7 @@
 				:nodes="nodes"
 				:edges="edges"
 				:selected-id="selectedId"
+				:readonly="flow.saving"
 				:start-options="triggerGroups(flow.doc.document_type)"
 				:block-options="blockGroups(flow.doc.document_type)"
 				@select="selectedId = $event"
@@ -48,8 +49,8 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
-import { onBeforeRouteLeave, useRouter } from "vue-router";
-import { Button, LoadingIndicator } from "frappe-ui";
+import { onBeforeRouteLeave, onBeforeRouteUpdate, useRouter } from "vue-router";
+import { Button, LoadingIndicator, toast } from "frappe-ui";
 import { __ } from "frappe/i18n";
 import { AutomationCanvas } from "@framework/ui/AutomationCanvas";
 import { routeFor, useUnloadGuard } from "@shell";
@@ -84,18 +85,28 @@ watch(
 	() => props.name,
 	(name) => name !== flow.current() && flow.load(name)
 );
-watch(() => flow.doc?.document_type, loadCapabilities, { immediate: true });
+watch(() => flow.doc?.document_type, loadOffers, { immediate: true });
 
 useUnloadGuard(() => flow.unsaved);
 onBeforeRouteLeave(() => !flow.unsaved || confirmDiscard());
+onBeforeRouteUpdate((to) => to.params.name === props.name || !flow.unsaved || confirmDiscard());
 onMounted(() => window.addEventListener("keydown", onKeydown));
 onBeforeUnmount(() => window.removeEventListener("keydown", onKeydown));
+
+async function loadOffers(doctype) {
+	try {
+		await loadCapabilities(doctype);
+	} catch {
+		toast.error(__("The triggers and actions of {0} could not be loaded", [doctype]));
+	}
+}
 
 function onKeydown(event) {
 	handleShortcut(event, { save, undo: flow.undo, redo: flow.redo });
 }
 
 async function save() {
+	if (!flow.doc) return;
 	const wasNew = flow.isNew;
 	if (!flow.doc.title?.trim()) header.value?.focusTitle();
 	if (await flow.save()) {

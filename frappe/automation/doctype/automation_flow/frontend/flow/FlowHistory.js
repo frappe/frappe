@@ -1,7 +1,4 @@
-/**
- * Undo and redo over whole-document snapshots (strings). Edits that land within `burstMs` of
- * each other, such as typing in a field, share one undo step.
- */
+/** Undo and redo over whole-document snapshots; edits within `burstMs` share one step. */
 export class FlowHistory {
 	constructor({ limit = 100, burstMs = 600 } = {}) {
 		this.limit = limit;

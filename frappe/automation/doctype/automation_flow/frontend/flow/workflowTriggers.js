@@ -88,11 +88,7 @@ export const otherTriggers = [
 	},
 ];
 
-/**
- * Domain events that are *about* this DocType, as triggers in their own right. The flow still
- * stores them as a Custom Event; naming them here just saves picking the event separately.
- * The value carries the event so picker options stay unique.
- */
+/** Domain events about this DocType as triggers; stored as a Custom Event, value carries the event. */
 export function eventTriggers(doctype) {
 	return (capabilitiesFor(doctype)?.trigger_events || []).map((event) => ({
 		...eventIcon(event),

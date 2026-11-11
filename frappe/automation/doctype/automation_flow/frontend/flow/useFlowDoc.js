@@ -7,10 +7,7 @@ import { FlowHistory } from "./FlowHistory";
 import { saveErrors } from "./flowErrors";
 import { FLOW_DOCTYPE, fromServer, keepStepIds, newFlow, savedKey, toPayload } from "./flowDoc";
 
-/**
- * The flow a builder page edits: loading it, saving it, what is unsaved, which steps the server
- * refused, and undo and redo. `name` is null for a flow before its first save.
- */
+/** The flow a builder page edits; `name` is null before its first save. */
 export function useFlowDoc(name) {
 	const doc = ref(null);
 	const loading = ref(true);
@@ -57,18 +54,20 @@ export function useFlowDoc(name) {
 		current = target;
 		loading.value = true;
 		failure.value = null;
-		conflict.value = false;
-		errors.value = {};
 		try {
 			const next = target
 				? fromServer((await getDocument(FLOW_DOCTYPE, target)).data)
 				: newFlow();
 			if (read !== reads) return;
 			adopt(next);
+			conflict.value = false;
+			errors.value = {};
 			history.clear();
 			syncHistory();
 		} catch (error) {
-			if (read === reads) failure.value = error;
+			if (read !== reads) return;
+			if (doc.value) toast.error(__("The flow could not be reloaded"));
+			else failure.value = error;
 		} finally {
 			if (read === reads) loading.value = false;
 		}

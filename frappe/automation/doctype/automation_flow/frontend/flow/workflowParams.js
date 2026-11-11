@@ -13,11 +13,7 @@ export function formatJsonFieldValue(value) {
 	return value && typeof value === "object" ? JSON.stringify(value, null, 2) : value;
 }
 
-/**
- * Set Field Value stores either a single `field`/`value` pair or a `values` map, and the
- * engine applies both. The editor works in rows, so both shapes read in as rows and every
- * row writes back into `values` - one shape to reason about, whatever the flow was saved as.
- */
+/** Set Field Value reads `field`/`value` and `values` alike as rows, and writes only `values`. */
 export function paramsToRows(params) {
 	const rows = [];
 	if (params.field) rows.push({ field: params.field, value: params.value ?? "" });
@@ -39,11 +35,7 @@ export function rowsToParams(rows) {
 	return { field: null, value: null, values };
 }
 
-/**
- * Row editing owns its own list rather than deriving it from the stored params: an empty row
- * has nothing to store, so a list derived from params could never show one and "Add field"
- * would appear to do nothing. Params stay the source of truth for everything already filled.
- */
+/** Rows keep their own list: an empty row has no params to derive it from. */
 export function useFieldRows(getParams, write) {
 	const rows = ref(paramsToRows(getParams()));
 
