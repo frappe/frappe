@@ -10,7 +10,7 @@ const ScheduleIcon = "lucide-clock";
 const SubmitIcon = "lucide-send";
 const UpdatedIcon = "lucide-refresh-cw";
 import { capabilitiesFor } from "./workflowCapabilities";
-import { ICON_TONES } from "./workflowIcons";
+import { ICON_TONES, eventIcon } from "./workflowIcons";
 
 export const documentTriggers = [
 	{
@@ -95,15 +95,11 @@ export const otherTriggers = [
  */
 export function eventTriggers(doctype) {
 	return (capabilitiesFor(doctype)?.trigger_events || []).map((event) => ({
-		...eventStyle(),
+		...eventIcon(event),
 		value: `Custom Event:${event.value}`,
 		label: event.label,
 		description: event.description,
 	}));
-}
-
-function eventStyle() {
-	return { icon: EventIcon, ...ICON_TONES.pink };
 }
 
 /** The picker value a flow currently sits on. */

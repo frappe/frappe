@@ -1,15 +1,10 @@
+import { actionSchema } from "./workflowCapabilities";
+
 const ActionIcon = "lucide-zap";
-const AssignIcon = "lucide-user-plus";
 const BranchIcon = "lucide-git-branch";
-const CreateIcon = "lucide-file-plus";
 const EventIcon = "lucide-webhook";
-const IncrementIcon = "lucide-trending-up";
-const NotifyIcon = "lucide-bell-ring";
-const ScriptIcon = "lucide-code";
-const SetFieldIcon = "lucide-pencil-line";
 const TriggerIcon = "lucide-play";
 const WaitIcon = "lucide-timer";
-const WebhookIcon = "lucide-webhook";
 
 /** `tone` colours a bare glyph on a node card. */
 export const ICON_TONES = {
@@ -26,15 +21,15 @@ export const ICON_TONES = {
 	purple: { tone: "purple" },
 };
 
-/** One icon and tone per action, so a list of them is scannable rather than eleven zaps. */
-const ACTION_STYLES = {
-	SetFieldValue: { icon: SetFieldIcon, ...ICON_TONES.blue },
-	IncrementFieldValue: { icon: IncrementIcon, ...ICON_TONES.cyan },
-	CreateDocument: { icon: CreateIcon, ...ICON_TONES.green },
-	SendNotification: { icon: NotifyIcon, ...ICON_TONES.amber },
-	AssignToUser: { icon: AssignIcon, ...ICON_TONES.violet },
-	CallWebhook: { icon: WebhookIcon, ...ICON_TONES.pink },
-	RunScript: { icon: ScriptIcon, ...ICON_TONES.gray },
+/** An action's glyph comes from the server (its `icon`); only the tone is chosen here. */
+const ACTION_TONES = {
+	SetFieldValue: "blue",
+	IncrementFieldValue: "cyan",
+	CreateDocument: "green",
+	SendNotification: "amber",
+	AssignToUser: "violet",
+	CallWebhook: "pink",
+	RunScript: "gray",
 };
 
 const STEP_STYLES = {
@@ -47,7 +42,13 @@ const STEP_STYLES = {
 export const TRIGGER_STYLE = { icon: TriggerIcon, ...ICON_TONES.blue };
 
 export function actionIcon(actionType) {
-	return ACTION_STYLES[actionType] || STEP_STYLES.Action;
+	const icon = actionSchema(null, actionType)?.icon || ActionIcon;
+	return { icon, ...ICON_TONES[ACTION_TONES[actionType] || "blue"] };
+}
+
+/** An event trigger wears the icon its registrant gave it. */
+export function eventIcon(event) {
+	return { icon: event?.icon || EventIcon, ...ICON_TONES.pink };
 }
 
 export function stepTypeIcon(stepType) {
