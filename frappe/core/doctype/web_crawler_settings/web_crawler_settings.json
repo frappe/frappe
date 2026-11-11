@@ -1,0 +1,152 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "creation": "2026-11-11 23:43:11.839068",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "limits_section",
+  "max_pages",
+  "max_depth",
+  "max_redirects",
+  "request_delay",
+  "column_break_limits",
+  "page_timeout",
+  "max_page_size",
+  "sitemap_timeout",
+  "max_sitemap_size",
+  "access_section",
+  "user_agent",
+  "respect_robots_txt",
+  "blocked_domains"
+ ],
+ "fields": [
+  {
+   "fieldname": "limits_section",
+   "fieldtype": "Section Break",
+   "label": "Limits"
+  },
+  {
+   "default": "50",
+   "fieldname": "max_pages",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Maximum pages",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "default": "2",
+   "fieldname": "max_depth",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Maximum depth",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "default": "5",
+   "fieldname": "max_redirects",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Maximum redirects",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "request_delay",
+   "fieldtype": "Float",
+   "label": "Delay between requests (seconds)",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "column_break_limits",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "10",
+   "fieldname": "page_timeout",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Page timeout (seconds)",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "default": "5",
+   "fieldname": "max_page_size",
+   "fieldtype": "Int",
+   "label": "Maximum page size (MB)",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "default": "30",
+   "fieldname": "sitemap_timeout",
+   "fieldtype": "Int",
+   "label": "Sitemap timeout (seconds)",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "default": "50",
+   "fieldname": "max_sitemap_size",
+   "fieldtype": "Int",
+   "label": "Maximum sitemap size (MB)",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "access_section",
+   "fieldtype": "Section Break",
+   "label": "Access"
+  },
+  {
+   "default": "Frappe Web Crawler",
+   "fieldname": "user_agent",
+   "fieldtype": "Data",
+   "label": "User agent",
+   "reqd": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "respect_robots_txt",
+   "fieldtype": "Check",
+   "label": "Respect robots.txt"
+  },
+  {
+   "fieldname": "blocked_domains",
+   "fieldtype": "Table",
+   "label": "Blocked domains",
+   "options": "Web Crawler Blocked Domain"
+  }
+ ],
+ "grid_page_length": 50,
+ "issingle": 1,
+ "link_display_mode": "Search",
+ "links": [],
+ "modified": "2026-11-11 23:43:11.839068",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Web Crawler Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}
