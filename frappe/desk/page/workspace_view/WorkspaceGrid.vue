@@ -8,6 +8,7 @@ import {
 	onUpdated,
 	provide,
 	ref,
+	watch,
 } from "vue";
 import { block_rects, block_size, glide, split_sections } from "./grid.js";
 import GridTile from "./GridTile.vue";
@@ -184,6 +185,20 @@ onUpdated(() => {
 	if (held.value) follow();
 });
 
+// a block just added, which the editor selects, is scrolled to
+watch(
+	() => props.content.map((block) => block.id),
+	(ids, old_ids) => {
+		const added = ids.filter((id) => !old_ids.includes(id));
+		if (added.length !== 1 || added[0] !== props.selected) return;
+		root.value.querySelector(`[data-block="${added[0]}"]`)?.scrollIntoView({
+			block: "nearest",
+			behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+		});
+	},
+	{ flush: "post" }
+);
+
 // a tile that hides itself for its viewer, like a dismissed onboarding, stays on show to edit
 provide(
 	"editing",
@@ -320,6 +335,10 @@ function tile_for(block) {
 </template>
 
 <style scoped>
+[data-block] {
+	scroll-margin: 1rem;
+}
+
 .ws-pick {
 	position: absolute;
 	inset: 0;
