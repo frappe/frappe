@@ -71,11 +71,12 @@ describe("a panel row's editor placeholder", () => {
 describe("a Password row at rest", () => {
 	const password: FieldNode = { fieldname: "pw", fieldtype: "Password", label: "Password" };
 
-	it("draws one masked character per character of the value, as the open input does", () => {
+	it("draws one dot per character, without the value in the page of the value, as the open input does", () => {
 		const root = mount(password, { pw: "secret" });
 		const secret = root.querySelector<HTMLElement>("[data-fieldname] span.truncate")!;
 
-		expect(secret.textContent).toBe("secret");
+		expect(secret.textContent).toBe("••••••");
+		expect(root.textContent).not.toContain("secret");
 		expect(secret.className).toContain("-webkit-text-security:disc");
 	});
 

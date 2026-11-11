@@ -68,9 +68,9 @@
 								:text="display"
 							/>
 							<span
-								v-if="secret"
+								v-if="secret > 0"
 								class="truncate select-none [-webkit-text-security:disc]"
-								>{{ doc[field.fieldname] }}</span
+								>{{ "•".repeat(secret) }}</span
 							>
 							<span v-else class="truncate">{{ display || placeholder }}</span>
 						</template>
@@ -238,9 +238,11 @@ const display = computed(() =>
 	displayField(props.field, doc.value[props.field.fieldname], { doc: doc.value })
 );
 
-// The row masks the value as the open input does: one dot per character.
-const secret = computed(
-	() => props.field.fieldtype === "Password" && !!doc.value[props.field.fieldname]
+// The row draws one dot per character, as the open input does, and never holds the value in the page.
+const secret = computed(() =>
+	props.field.fieldtype === "Password"
+		? String(doc.value[props.field.fieldname] ?? "").length
+		: 0
 );
 const phone = computed(() => isPhoneField(props.field));
 const email = computed(() => isEmailField(props.field));

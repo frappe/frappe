@@ -29,8 +29,8 @@ const frame = useInputFrame(props);
 
 // Duration selects its text a tick after focus; a panel row opens with the caret at the end instead.
 function onFocusin(event: FocusEvent) {
-	if (!props.panel) return;
-	const input = event.target as HTMLInputElement;
+	const input = event.target;
+	if (!props.panel || !(input instanceof HTMLInputElement)) return;
 	nextTick(() => input.setSelectionRange(input.value.length, input.value.length));
 }
 

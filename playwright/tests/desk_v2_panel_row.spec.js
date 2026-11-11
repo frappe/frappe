@@ -168,7 +168,7 @@ test.describe("Desk v2 side panel row", () => {
 	test("a Password row draws one dot per character, in the same place as the open input", async ({
 		page,
 	}) => {
-		const dots = (state) =>
+		const dots = () =>
 			page.evaluate(() => {
 				const cell = document.querySelector('.field-box [data-fieldname="f_password"]');
 				const input = cell.querySelector("input");
