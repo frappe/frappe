@@ -7,20 +7,20 @@
 		@update:modelValue="onInput"
 	>
 		<div
-			class="flex flex-col rounded-4 border border-outline-gray-2 bg-surface-base hover:border-outline-gray-3 focus-within:border-outline-gray-4 focus-within:shadow-sm"
+			class="text-editor-frame flex flex-col rounded-4 border border-[--surface-gray-2] bg-surface-gray-2 transition-colors focus-within:border-outline-gray-4 focus-within:bg-surface-base focus-within:shadow-sm"
 			data-slot="text-editor"
 			@focusin="onFocusIn"
 			@focusout="onFocusOut"
 		>
 			<div
-				class="flex items-center overflow-x-auto border-b border-outline-gray-1 p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+				class="text-editor-toolbar flex items-center overflow-x-auto border-b border-outline-gray-1 p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
 			>
-				<EditorFixedMenu :items="richTextToolbar" size="sm" />
+				<EditorFixedMenu :key="toolbarKey" :items="richTextToolbar" size="sm" />
 			</div>
 			<EditorTableMenu />
-			<div class="text-editor-body min-h-32 overflow-y-auto px-3">
+			<div class="text-editor-body overflow-y-auto">
 				<EditorContent
-					class="prose-sm max-w-full py-2"
+					class="prose-sm min-h-32 max-w-full px-3 py-2"
 					role="textbox"
 					aria-multiline="true"
 					:aria-labelledby="labelId"
@@ -39,7 +39,7 @@ import { Extension } from "@tiptap/core";
 import { Editor, EditorContent, EditorFixedMenu, EditorTableMenu } from "frappe-ui/editor";
 import type { MediaUploadRequestOptions } from "frappe-ui/editor";
 import { isEmptyHtml } from "../RichText/html";
-import { richTextKit, richTextToolbar } from "../RichText/kit";
+import { richTextKit, richTextToolbar, useToolbarKey } from "../RichText/kit";
 import { uploadMedia } from "../RichText/upload";
 import type { FieldMeta } from "./types";
 
@@ -55,10 +55,13 @@ const emit = defineEmits<{
 	change: [value: string];
 }>();
 
+const { key: toolbarKey, extension: toolbarKeyExtension } = useToolbarKey();
+
 // ProseMirror marks every Esc handled, so a dialog around the field never sees it. Esc leaves
 // the body instead, after any open menu takes it; the next Esc reaches the dialog.
 const extensions = [
 	richTextKit(),
+	toolbarKeyExtension,
 	Extension.create({
 		name: "textEditorEscape",
 		priority: 1,
@@ -122,5 +125,23 @@ const maxHeight = computed(() => {
 <style scoped>
 .text-editor-body {
 	max-height: v-bind(maxHeight);
+}
+
+/* Like frappe-ui's subtle inputs. A plain `hover:` fill would outrank `focus-within:` while typing. */
+.text-editor-frame:not(:focus-within):hover {
+	border-color: var(--outline-elevation-2);
+	background-color: var(--surface-gray-3);
+}
+
+/* At rest the gray fill would swallow the toolbar's gray-3 pressed and hover fills and its lines. */
+.text-editor-frame:not(:focus-within) .text-editor-toolbar :deep([aria-pressed="true"]) {
+	background-color: transparent;
+}
+.text-editor-frame:not(:focus-within) .text-editor-toolbar :deep(button:not(:disabled):hover),
+.text-editor-frame:not(:focus-within) :deep([data-slot="menu-separator"]) {
+	background-color: var(--surface-gray-4);
+}
+.text-editor-frame:not(:focus-within) .text-editor-toolbar {
+	border-color: var(--outline-gray-2);
 }
 </style>
