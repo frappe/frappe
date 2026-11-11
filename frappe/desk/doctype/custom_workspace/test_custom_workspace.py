@@ -402,10 +402,10 @@ class TestSiteLayouts(IntegrationTestCase):
 		self.assertEqual(self.seen_by(self.ONE), ("New One", False))
 		self.assertEqual(self.seen_by(), ("New Default", False))
 
-	def test_a_site_layout_keeps_its_place_and_site_only_ones_come_last(self):
+	def test_a_site_only_layout_reaches_its_role(self):
 		self.save(self.SITE, "Site Only")
 		self.save(self.TWO, "Site Two")
-		self.assertEqual(self.seen_by(self.SITE, self.TWO)[0], "Site Two")
+		self.assertEqual(self.seen_by(self.SITE, self.TWO)[0], "Default")
 		self.assertEqual(self.seen_by(self.SITE)[0], "Site Only")
 
 	def test_reset_one_layout(self):

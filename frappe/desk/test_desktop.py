@@ -300,16 +300,18 @@ class TestRoleLayouts(IntegrationTestCase):
 		payload = get_workspace("GW Layouts", **kwargs)
 		return payload["variant"], payload["content"][0]["data"]["text"]
 
-	def test_first_held_role_in_order_wins(self):
+	def test_the_one_held_layout_wins(self):
 		frappe.set_user(self.ONLY_TWO)
 		self.assertEqual(self.heading(), (self.TWO, "Two"))
-		frappe.set_user(self.BOTH)
-		self.assertEqual(self.heading(), (self.ONE, "One"))
 		frappe.set_user(DESK_USER)
 		self.assertEqual(self.heading(), (None, "Default"))
 
+	def test_holding_two_layouts_gets_the_default(self):
+		frappe.set_user(self.BOTH)
+		self.assertEqual(self.heading(), (None, "Default"))
+
 	def test_administrator_holds_every_role(self):
-		self.assertEqual(self.heading(), (self.ONE, "One"))
+		self.assertEqual(self.heading(), (None, "Default"))
 
 	def test_a_layout_carries_its_own_widgets(self):
 		frappe.set_user("Administrator")

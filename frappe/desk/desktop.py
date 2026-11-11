@@ -110,7 +110,8 @@ class Workspace(DeskViews):
 		return [x["data"]["onboarding_name"] for x in loads(self.doc.content) if x["type"] == "onboarding"]
 
 	def use_layout(self, requested: str | None = None) -> None:
-		"""Draw the first role layout, in the app's order, whose role the session holds.
+		"""Draw the role layout whose role the session holds. Holding the roles of two or more
+		layouts, as Administrator and the user who set up the site do, gets the default.
 
 		`requested` names a layout to draw instead: a role, or `DEFAULT_LAYOUT`. A private
 		workspace has one layout and never walks.
@@ -127,7 +128,8 @@ class Workspace(DeskViews):
 			role = requested if requested in rows else None
 		else:
 			roles = set(frappe.get_roles())
-			role = next((role for role in rows if role in roles), None)
+			held = [role for role in rows if role in roles]
+			role = held[0] if len(held) == 1 else None
 		if not role:
 			return
 
