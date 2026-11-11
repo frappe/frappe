@@ -51,7 +51,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { onBeforeRouteLeave, useRouter } from "vue-router";
 import { Button, LoadingIndicator } from "frappe-ui";
 import { __ } from "frappe/i18n";
-import AutomationCanvas from "@framework/ui/AutomationCanvas";
+import { AutomationCanvas } from "@framework/ui/AutomationCanvas";
 import { routeFor, useUnloadGuard } from "@shell";
 import FlowHeader from "./FlowHeader.vue";
 import { confirmDiscard } from "./flow/confirmDiscard";
