@@ -42,10 +42,10 @@ afterEach(() => {
 
 const qty: FieldNode = { fieldname: "qty", fieldtype: "Int", label: "Qty" };
 
-async function mount(errors: Record<string, string> | Ref<Record<string, any>>) {
+async function mount(errors: Record<string, string> | Ref<Record<string, any>>, fieldtype = "Int") {
 	const root = document.createElement("div");
 	document.body.appendChild(root);
-	const app = createApp(defineComponent({ render: () => h(PanelField, { field: qty }) }));
+	const app = createApp(defineComponent({ render: () => h(PanelField, { field: { ...qty, fieldtype } }) }));
 	app.provide(DocKey, ref({ qty: -2 }));
 	app.provide(UpdateKey, vi.fn());
 	app.provide(CommitKey, NO_COMMIT);
@@ -110,6 +110,15 @@ describe("a marked panel row", () => {
 		expect(root.textContent!.split("Quantity must be positive")).toHaveLength(2);
 		expect(message.id).not.toBe("");
 		expect(root.querySelector("[data-control]")!.getAttribute("aria-describedby")).toBe(message.id);
+	});
+
+	it("gives no error id to a control that still draws its own error text", async () => {
+		const root = await mount({ qty: "Quantity must be positive" }, "Select");
+
+		root.querySelector<HTMLElement>('[data-fieldname="qty"]')!.click();
+		await nextTick();
+
+		expect(root.querySelector("[data-control]")!.getAttribute("aria-describedby")).toBeNull();
 	});
 
 	it("loses the red, the ring and the message on the next edit of the field", async () => {

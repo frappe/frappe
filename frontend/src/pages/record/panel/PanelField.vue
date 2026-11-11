@@ -183,7 +183,7 @@ const controlProps = computed(() => {
 		return {
 			...stockProps,
 			panel: true,
-			errorId: messageId,
+			...(drawsErrorText.value ? {} : { errorId: messageId }),
 			...(phone.value || email.value ? { record: actionRecord.value } : {}),
 		};
 	return { ...props.field.ui.props, ...(page?.value ? { page: page.value } : {}) };

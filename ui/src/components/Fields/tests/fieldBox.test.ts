@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { createApp, h } from "vue";
 import type { App, Component } from "vue";
 import FieldBox from "../FieldBox.vue";
+import fieldBoxSource from "../FieldBox.vue?raw";
 import TextField from "../TextField.vue";
 import NumberField from "../NumberField.vue";
 import PhoneField from "../PhoneField.vue";
@@ -28,6 +29,10 @@ function mount(component: Component, props: Record<string, unknown>) {
 }
 
 describe("FieldBox", () => {
+  it("draws an errored control's text in ink-red-6, the red step that reads 4.5:1 on white", () => {
+    expect(fieldBoxSource).toMatch(/\[data-error\][^{]*\{\s*color: var\(--ink-red-6\)/);
+  });
+
   it("marks an errored box for the control text rule, and an unmarked box not", () => {
     expect(mount(FieldBox, { error: true }).firstElementChild!.hasAttribute("data-error")).toBe(true);
     app!.unmount();
