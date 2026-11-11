@@ -120,7 +120,8 @@ import { fetchMeta } from "./metaSource";
 import { buttonClicks, provideRecordCommits } from "./recordCommits";
 import { saveRecord } from "./recordSource";
 import { projectRecordHeader } from "./recordHeaderProjection";
-import { runSave, useUnloadGuard } from "./recordSave";
+import { runSave } from "./recordSave";
+import { useUnloadGuard } from "@/unloadGuard";
 import { shownInDialog, stripTags } from "./saveResponse";
 
 const props = defineProps<{ doctype: string; query: LocationQuery }>();

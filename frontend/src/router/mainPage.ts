@@ -21,6 +21,8 @@ const pages = new Map<Loader, Component>();
 export function mainPageFor(route: Route, addresses: Addresses, app: string | null) {
 	const key = route.name;
 	const doctype = addresses.doctypeOf(String(route.params.doctype));
+	// The new record page draws the not-found state for a slug that serves no doctype.
+	if (key === "new-record" && !doctype) return { loader: standardPage("newRecord"), props: null };
 	if ((key !== "list" && key !== "record" && key !== "new-record") || !doctype) return null;
 
 	// The list page picks its view's replacement itself: the view is known only there.
