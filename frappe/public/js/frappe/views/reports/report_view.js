@@ -1129,6 +1129,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			label: __(this.doctype),
 			fieldname: this.doctype,
 			fieldtype: "MultiCheck",
+			search_placeholder: __("Search Columns"),
 			columns: 2,
 			options: columns[this.doctype]
 				.filter((df) => {
@@ -1155,6 +1156,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				label: __(label) + ` (${__(cdt)})`,
 				fieldname: df.options,
 				fieldtype: "MultiCheck",
+				search_placeholder: __("Search Columns"),
 				columns: 2,
 				options: columns[cdt]
 					.filter((df) => {

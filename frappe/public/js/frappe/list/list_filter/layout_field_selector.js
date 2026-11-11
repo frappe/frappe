@@ -264,6 +264,7 @@ export default class LayoutFieldSelector {
 					label: __("Select Fields (Up to {0})", [this.max_number_of_fields]),
 					fieldtype: "MultiCheck",
 					fieldname: "fields",
+					search_placeholder: __("Search Fields"),
 					options: this.get_doctype_field_options(selected),
 					columns: 4,
 				},

@@ -89,6 +89,7 @@ frappe.data_import.DataExporter = class DataExporter {
 					label: group.label,
 					fieldname: group.fieldname,
 					fieldtype: "MultiCheck",
+					search_placeholder: __("Search Fields"),
 					columns: 2,
 					on_change: () => this.update_primary_action(),
 					options: this.get_multicheck_options(group),

@@ -166,6 +166,7 @@ const add_doctype_field_multicheck_control = (doctype, parent_wrapper) => {
 			label: __(doctype),
 			fieldname: doctype + "_fields",
 			fieldtype: "MultiCheck",
+			search_placeholder: __("Search Fields"),
 			options: options,
 			columns: 3,
 		},

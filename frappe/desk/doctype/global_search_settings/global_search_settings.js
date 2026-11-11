@@ -22,6 +22,7 @@ function show_configure_search_fields_dialog(doctype, frm) {
 					{
 						fieldname: "search_fields",
 						fieldtype: "MultiCheck",
+						search_placeholder: __("Search Fields"),
 						columns: 2,
 						sort_options: false,
 						options,

@@ -462,6 +462,7 @@ class GetFieldsDialog {
 				{
 					fieldname: "fields",
 					fieldtype: "MultiCheck",
+					search_placeholder: __("Search Fields"),
 					columns: 2,
 					sort_options: false,
 					options: this.get_options(),

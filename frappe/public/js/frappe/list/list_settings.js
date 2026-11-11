@@ -315,6 +315,7 @@ export default class ListSettings {
 					label: __("Select Fields (Up to {0})", [this.max_number_of_fields]),
 					fieldtype: "MultiCheck",
 					fieldname: "fields",
+					search_placeholder: __("Search Fields"),
 					options: me.get_doctype_fields(
 						me.meta,
 						me.fields.map((f) => f.fieldname)

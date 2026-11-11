@@ -469,6 +469,7 @@ export default class GridRow {
 					label: __("Select Fields"),
 					fieldtype: "MultiCheck",
 					fieldname: "fields",
+					search_placeholder: __("Search Fields"),
 					options: docfields,
 					columns: 2,
 					sort_options: false,
