@@ -1,6 +1,6 @@
 // The builder page mounted with a stubbed canvas and a faked API. Mounted with Vue's own `createApp`.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createApp, defineComponent, h, nextTick, type App } from "vue";
+import { createApp, defineComponent, h, nextTick, ref, type App } from "vue";
 import { createMemoryHistory, createRouter, type Router } from "vue-router";
 
 const fake = vi.hoisted(() => ({
@@ -9,6 +9,7 @@ const fake = vi.hoisted(() => ({
   createDocument: vi.fn(),
   updateDocument: vi.fn(),
   runMethod: vi.fn(),
+  fitView: vi.fn(),
   toastError: vi.fn(),
   rights: { loading: false, create: true },
 }));
@@ -34,13 +35,17 @@ vi.mock("@framework/ui/useDocPermissions", () => ({
 vi.mock("@framework/ui/AutomationCanvas", () => ({
   AutomationCanvas: defineComponent({
     props: ["nodes", "edges"],
-    setup: (props) => () => h("div", { "data-canvas": props.nodes.length }),
+    setup: (props, { expose }) => {
+      expose({ fitView: fake.fitView });
+      return () => h("div", { "data-canvas": props.nodes.length });
+    },
   }),
 }));
 vi.mock("@shell", () => ({
-  routeFor: (doctype: string, name?: string) => ({
+  routeFor: (doctype: string, name?: string, options: { query?: object } = {}) => ({
     name: "flow-test",
     params: { doctype, name },
+    query: options.query,
   }),
   useUnloadGuard: () => {},
 }));
@@ -77,6 +82,8 @@ let app: App;
 let router: Router;
 let host: HTMLElement;
 
+const routeName = ref<string | null>(null);
+
 async function mount(name: string | null, query: Record<string, string> = {}) {
   router = createRouter({
     history: createMemoryHistory(),
@@ -90,7 +97,8 @@ async function mount(name: string | null, query: Record<string, string> = {}) {
   });
   host = document.createElement("div");
   document.body.appendChild(host);
-  app = createApp({ render: () => h("div", [h(FlowBuilder, { name, query })]) });
+  routeName.value = name;
+  app = createApp({ render: () => h("div", [h(FlowBuilder, { name: routeName.value, query })]) });
   app.use(router);
   app.mount(host);
   await settle();
@@ -256,6 +264,113 @@ describe("Automation Flow builder", () => {
     expect(host.textContent).toContain("Not permitted");
     expect(host.textContent).toContain("System Manager");
     expect(host.querySelector("[data-canvas]")).toBeNull();
+  });
+
+  describe("the test run", () => {
+    const bar = () => host.querySelector("[data-trial-bar]");
+
+    it("opens a bar with the record picker and hides the inspector while it is open", async () => {
+      await mount("AUTO-00001");
+      expect(bar()).toBeNull();
+      expect(host.querySelector("aside")).not.toBeNull();
+      button("Test run").click();
+      await settle();
+      expect(bar()).not.toBeNull();
+      expect(fake.fitView).toHaveBeenCalled();
+      expect(host.querySelector("aside")).toBeNull();
+      expect(button("Start test run").hasAttribute("disabled")).toBe(true);
+      button("Test run").click();
+      await settle();
+      expect(bar()).toBeNull();
+      expect(host.querySelector("aside")).not.toBeNull();
+    });
+
+    it("asks to save first while the flow has unsaved edits", async () => {
+      await mount("AUTO-00001");
+      await typeTitle("Renamed");
+      button("Test run").click();
+      await settle();
+      expect(bar()?.textContent).toContain("Save the flow before testing it.");
+      expect(button("Start test run").hasAttribute("disabled")).toBe(true);
+    });
+
+    it("keeps the bar through a new flow's first save", async () => {
+      fake.createDocument.mockResolvedValue({
+        data: { ...structuredClone(saved), name: "AUTO-00009", title: "Fresh", actions: [] },
+      });
+      await mount(null);
+      await typeTitle("Fresh");
+      button("Test run").click();
+      await settle();
+      button("Save").click();
+      await settle();
+      routeName.value = "AUTO-00009";
+      await settle();
+      expect(bar()).not.toBeNull();
+    });
+
+    it("closes the bar when another flow is opened", async () => {
+      await mount("AUTO-00001");
+      button("Test run").click();
+      await settle();
+      routeName.value = "AUTO-00002";
+      await settle();
+      expect(bar()).toBeNull();
+    });
+
+    it("leaves undo and redo off while the bar is open", async () => {
+      await mount("AUTO-00001");
+      await typeTitle("Renamed");
+      expect(host.querySelector('[aria-label="Undo"]')?.hasAttribute("disabled")).toBe(false);
+      button("Test run").click();
+      await settle();
+      expect(host.querySelector('[aria-label="Undo"]')?.hasAttribute("disabled")).toBe(true);
+      document.body.dispatchEvent(new KeyboardEvent("keydown", { key: "z", ctrlKey: true, bubbles: true }));
+      await settle();
+      expect(titleInput().value).toBe("Renamed");
+      expect(button("Test run").getAttribute("aria-pressed")).toBe("true");
+    });
+
+    it("has no record picker for a flow that is not about a record", async () => {
+      fake.getDocument.mockResolvedValue({ data: { ...structuredClone(saved), document_type: "" } });
+      await mount("AUTO-00001");
+      button("Test run").click();
+      await settle();
+      expect(bar()?.textContent).toContain("runs on its own");
+      expect(button("Start test run").hasAttribute("disabled")).toBe(false);
+    });
+
+    it("runs the saved flow with POST and shows the result", async () => {
+      fake.getDocument.mockResolvedValue({ data: { ...structuredClone(saved), document_type: "" } });
+      fake.runMethod.mockImplementation(async (method: string) =>
+        method.endsWith("trial_run")
+          ? { data: { status: "Success", steps: [], branches: {}, error_summary: "" } }
+          : { data: { actions: [], trigger_events: [] } }
+      );
+      await mount("AUTO-00001");
+      button("Test run").click();
+      await settle();
+      button("Start test run").click();
+      await settle();
+      const call = fake.runMethod.mock.calls.find(([m]) => m.endsWith("trial_run"));
+      expect(call?.[1]).toEqual({ automation: "AUTO-00001", docname: null, branch_overrides: {} });
+      expect(call?.[2]).toBeUndefined();
+      expect(host.querySelector("[data-trial-summary]")?.textContent).toContain("Success");
+    });
+  });
+
+  describe("the Runs button", () => {
+    it("links to the Automation Run list filtered on the flow", async () => {
+      await mount("AUTO-00001");
+      const runs = [...host.querySelectorAll("a")].find((a) => a.textContent?.trim() === "Runs");
+      expect(runs?.getAttribute("href")).toContain("automation=AUTO-00001");
+    });
+
+    it("is off for a flow that is not saved yet", async () => {
+      await mount(null);
+      expect(button("Runs").hasAttribute("disabled")).toBe(true);
+      expect(host.querySelector('a[href*="automation="]')).toBeNull();
+    });
   });
 
   describe("a new flow", () => {

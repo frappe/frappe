@@ -28,6 +28,21 @@
 				:disabled="!canRedo"
 				@click="$emit('redo')"
 			/>
+			<Button
+				variant="ghost"
+				icon-left="lucide-history"
+				:label="__('Runs')"
+				:route="runsRoute"
+				:disabled="!flowName"
+			/>
+			<Button
+				variant="ghost"
+				icon-left="lucide-play"
+				:label="__('Test run')"
+				:aria-pressed="testing"
+				:data-state="testing ? 'active' : undefined"
+				@click="$emit('toggle-test')"
+			/>
 			<Switch
 				:model-value="!!enabled"
 				:label="__('Enabled')"
@@ -39,23 +54,28 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { Badge, Breadcrumbs, Button, PageHeader, Switch } from "frappe-ui";
 import { __ } from "frappe/i18n";
 import { routeFor } from "@shell";
-import { FLOW_DOCTYPE } from "./flow/flowDoc";
+import { FLOW_DOCTYPE, RUN_DOCTYPE } from "./flow/flowDoc";
 
 const title = defineModel("title", { type: String, default: "" });
 const enabled = defineModel("enabled", { type: Number, default: 0 });
-defineProps({
+const props = defineProps({
+	flowName: { type: String, default: "" },
+	testing: Boolean,
 	unsaved: Boolean,
 	saving: Boolean,
 	canUndo: Boolean,
 	canRedo: Boolean,
 });
-defineEmits(["save", "undo", "redo"]);
+defineEmits(["save", "undo", "redo", "toggle-test"]);
 defineExpose({ focusTitle: () => titleInput.value?.focus() });
 
 const titleInput = ref(null);
+const runsRoute = computed(() =>
+	routeFor(RUN_DOCTYPE, null, { query: { automation: props.flowName } })
+);
 const crumbs = [{ label: __("Automation Flows"), route: routeFor(FLOW_DOCTYPE) }];
 </script>
