@@ -74,7 +74,7 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { onBeforeRouteLeave, onBeforeRouteUpdate, useRouter } from "vue-router";
 import { Button, LoadingIndicator, dialog, toast } from "frappe-ui";
 import { __ } from "frappe/i18n";
@@ -106,6 +106,7 @@ const router = useRouter();
 const flow = useFlowDoc(props.name, props.query);
 const permits = useDocPermissions(FLOW_DOCTYPE);
 const header = ref(null);
+const canvas = ref(null);
 const selectedId = ref("");
 const testing = ref(false);
 const trial = useTrialRun(() => flow.doc);
@@ -182,6 +183,15 @@ function toggleTest() {
 	testing.value = !testing.value;
 	if (!testing.value) trial.close();
 }
+
+// The bar changes the canvas's height, and the view keeps the size it was fitted to.
+watch(
+	() => [testing.value, !!trial.summary || !!trial.error],
+	async () => {
+		await nextTick();
+		canvas.value?.fitView();
+	}
+);
 
 function pickStart(value) {
 	patchDoc(triggerFromValue(value));

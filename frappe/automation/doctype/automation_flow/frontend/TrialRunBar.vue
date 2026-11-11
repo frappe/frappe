@@ -1,9 +1,6 @@
 <!-- The test run's controls: the record to run on, a start button and how the last run went. -->
 <template>
-	<div
-		class="shrink-0 space-y-3 border-b bg-surface-base px-[--page-gutter] py-3"
-		data-trial-bar
-	>
+	<div class="!flex-none space-y-3 border-b bg-surface-base px-5 py-3" data-trial-bar>
 		<div class="flex items-end gap-2">
 			<Link
 				v-if="documentType"

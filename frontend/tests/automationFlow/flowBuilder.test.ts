@@ -9,6 +9,7 @@ const fake = vi.hoisted(() => ({
   createDocument: vi.fn(),
   updateDocument: vi.fn(),
   runMethod: vi.fn(),
+  fitView: vi.fn(),
   toastError: vi.fn(),
   rights: { loading: false, create: true },
 }));
@@ -34,7 +35,10 @@ vi.mock("@framework/ui/useDocPermissions", () => ({
 vi.mock("@framework/ui/AutomationCanvas", () => ({
   AutomationCanvas: defineComponent({
     props: ["nodes", "edges"],
-    setup: (props) => () => h("div", { "data-canvas": props.nodes.length }),
+    setup: (props, { expose }) => {
+      expose({ fitView: fake.fitView });
+      return () => h("div", { "data-canvas": props.nodes.length });
+    },
   }),
 }));
 vi.mock("@shell", () => ({
@@ -269,6 +273,7 @@ describe("Automation Flow builder", () => {
       button("Test run").click();
       await settle();
       expect(bar()).not.toBeNull();
+      expect(fake.fitView).toHaveBeenCalled();
       expect(host.querySelector("aside")).toBeNull();
       expect(button("Start test run").hasAttribute("disabled")).toBe(true);
       button("Test run").click();
