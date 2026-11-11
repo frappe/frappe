@@ -9,8 +9,8 @@
 			:testing="testing"
 			:unsaved="flow.unsaved || flow.isNew"
 			:saving="flow.saving"
-			:can-undo="flow.canUndo"
-			:can-redo="flow.canRedo"
+			:can-undo="flow.canUndo && !testing"
+			:can-redo="flow.canRedo && !testing"
 			@save="save"
 			@toggle-test="toggleTest"
 			@undo="flow.undo"
@@ -24,40 +24,42 @@
 			<span>{{ __("Someone else saved this flow after you opened it.") }}</span>
 			<Button :label="__('Reload and discard my changes')" @click="flow.load()" />
 		</div>
-		<TrialRunBar
-			v-if="testing"
-			:trial="trial"
-			:document-type="flow.doc.document_type"
-			:can-test="canTest"
-		/>
-		<div class="flex min-h-0 flex-1" data-flow-body>
-			<AutomationCanvas
-				ref="canvas"
-				class="min-w-0 flex-1"
-				:nodes="shown.nodes"
-				:edges="shown.edges"
-				:selected-id="selectedId"
-				:readonly="flow.saving || testing"
-				:start-options="triggerGroups(flow.doc.document_type)"
-				:block-options="blockGroups(flow.doc.document_type)"
-				@select="selectedId = $event"
-				@pick-start="pickStart"
-				@add-node="addNode"
-				@run-branch="trial.runBranch"
+		<div class="flex min-h-0 flex-1 flex-col">
+			<TrialRunBar
+				v-if="testing"
+				:trial="trial"
+				:document-type="flow.doc.document_type"
+				:can-test="canTest"
 			/>
-			<aside
-				v-if="!testing"
-				class="h-full w-[340px] shrink-0 overflow-hidden border-l bg-surface-base"
-				:aria-label="__('Inspector')"
-			>
-				<FlowInspector
-					:doc="flow.doc"
-					:selected-step="selectedStep"
-					:targets="targetsFor(selectedStep)"
-					@update="patchDoc"
-					@remove="confirmRemoval"
+			<div class="flex min-h-0 flex-1" data-flow-body>
+				<AutomationCanvas
+					ref="canvas"
+					class="min-w-0 flex-1"
+					:nodes="shown.nodes"
+					:edges="shown.edges"
+					:selected-id="selectedId"
+					:readonly="flow.saving || testing"
+					:start-options="triggerGroups(flow.doc.document_type)"
+					:block-options="blockGroups(flow.doc.document_type)"
+					@select="selectedId = $event"
+					@pick-start="pickStart"
+					@add-node="addNode"
+					@run-branch="runBranch"
 				/>
-			</aside>
+				<aside
+					v-if="!testing"
+					class="h-full w-[340px] shrink-0 overflow-hidden border-l bg-surface-base"
+					:aria-label="__('Inspector')"
+				>
+					<FlowInspector
+						:doc="flow.doc"
+						:selected-step="selectedStep"
+						:targets="targetsFor(selectedStep)"
+						@update="patchDoc"
+						@remove="confirmRemoval"
+					/>
+				</aside>
+			</div>
 		</div>
 	</template>
 	<div
@@ -121,7 +123,7 @@ const shown = computed(() =>
 		: { nodes: nodes.value, edges: edges.value }
 );
 // A trial runs the saved flow, so unsaved edits would not be what gets tested.
-const canTest = computed(() => !!flow.doc.name && !flow.isNew && !flow.unsaved);
+const canTest = computed(() => !!flow.doc?.name && !flow.isNew && !flow.unsaved);
 // A new flow needs the create right; the insert checks again.
 const checking = computed(() => !props.name && permits.loading.value);
 const denied = computed(() => !props.name && !checking.value && !permits.holds("create"));
@@ -134,7 +136,9 @@ watch(
 );
 watch(
 	() => props.name,
-	() => {
+	(name, previous) => {
+		// A new flow keeps its test bar through the first save, which names it.
+		if (!previous) return;
 		testing.value = false;
 		trial.close();
 	}
@@ -167,7 +171,16 @@ async function loadOffers(doctype) {
 }
 
 function onKeydown(event) {
-	handleShortcut(event, { save, undo: flow.undo, redo: flow.redo });
+	handleShortcut(event, { save, undo: whenEditing(flow.undo), redo: whenEditing(flow.redo) });
+}
+
+// The outcomes sit on the nodes the run saw, so an edit mid-test would move them.
+function whenEditing(edit) {
+	return () => !testing.value && edit();
+}
+
+function runBranch(branch) {
+	if (canTest.value) trial.runBranch(branch);
 }
 
 async function save() {
@@ -186,7 +199,7 @@ function toggleTest() {
 
 // The bar changes the canvas's height, and the view keeps the size it was fitted to.
 watch(
-	() => [testing.value, !!trial.summary || !!trial.error],
+	() => [testing.value, canTest.value, !!trial.summary || !!trial.error, trial.detailsOpen],
 	async () => {
 		await nextTick();
 		canvas.value?.fitView();

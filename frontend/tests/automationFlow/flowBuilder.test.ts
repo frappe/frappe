@@ -1,6 +1,6 @@
 // The builder page mounted with a stubbed canvas and a faked API. Mounted with Vue's own `createApp`.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createApp, defineComponent, h, nextTick, type App } from "vue";
+import { createApp, defineComponent, h, nextTick, ref, type App } from "vue";
 import { createMemoryHistory, createRouter, type Router } from "vue-router";
 
 const fake = vi.hoisted(() => ({
@@ -82,6 +82,8 @@ let app: App;
 let router: Router;
 let host: HTMLElement;
 
+const routeName = ref<string | null>(null);
+
 async function mount(name: string | null, query: Record<string, string> = {}) {
   router = createRouter({
     history: createMemoryHistory(),
@@ -95,7 +97,8 @@ async function mount(name: string | null, query: Record<string, string> = {}) {
   });
   host = document.createElement("div");
   document.body.appendChild(host);
-  app = createApp({ render: () => h("div", [h(FlowBuilder, { name, query })]) });
+  routeName.value = name;
+  app = createApp({ render: () => h("div", [h(FlowBuilder, { name: routeName.value, query })]) });
   app.use(router);
   app.mount(host);
   await settle();
@@ -291,6 +294,43 @@ describe("Automation Flow builder", () => {
       expect(button("Start test run").hasAttribute("disabled")).toBe(true);
     });
 
+    it("keeps the bar through a new flow's first save", async () => {
+      fake.createDocument.mockResolvedValue({
+        data: { ...structuredClone(saved), name: "AUTO-00009", title: "Fresh", actions: [] },
+      });
+      await mount(null);
+      await typeTitle("Fresh");
+      button("Test run").click();
+      await settle();
+      button("Save").click();
+      await settle();
+      routeName.value = "AUTO-00009";
+      await settle();
+      expect(bar()).not.toBeNull();
+    });
+
+    it("closes the bar when another flow is opened", async () => {
+      await mount("AUTO-00001");
+      button("Test run").click();
+      await settle();
+      routeName.value = "AUTO-00002";
+      await settle();
+      expect(bar()).toBeNull();
+    });
+
+    it("leaves undo and redo off while the bar is open", async () => {
+      await mount("AUTO-00001");
+      await typeTitle("Renamed");
+      expect(host.querySelector('[aria-label="Undo"]')?.hasAttribute("disabled")).toBe(false);
+      button("Test run").click();
+      await settle();
+      expect(host.querySelector('[aria-label="Undo"]')?.hasAttribute("disabled")).toBe(true);
+      document.body.dispatchEvent(new KeyboardEvent("keydown", { key: "z", ctrlKey: true, bubbles: true }));
+      await settle();
+      expect(titleInput().value).toBe("Renamed");
+      expect(button("Test run").getAttribute("aria-pressed")).toBe("true");
+    });
+
     it("has no record picker for a flow that is not about a record", async () => {
       fake.getDocument.mockResolvedValue({ data: { ...structuredClone(saved), document_type: "" } });
       await mount("AUTO-00001");
@@ -320,22 +360,16 @@ describe("Automation Flow builder", () => {
   });
 
   describe("the Runs button", () => {
-    it("opens the Automation Run list filtered on the flow", async () => {
+    it("links to the Automation Run list filtered on the flow", async () => {
       await mount("AUTO-00001");
-      const push = vi.spyOn(router, "push");
-      button("Runs").click();
-      await settle();
-      expect(push).toHaveBeenCalledWith(
-        expect.objectContaining({
-          params: { doctype: "Automation Run", name: null },
-          query: { automation: "AUTO-00001" },
-        })
-      );
+      const runs = [...host.querySelectorAll("a")].find((a) => a.textContent?.trim() === "Runs");
+      expect(runs?.getAttribute("href")).toContain("automation=AUTO-00001");
     });
 
     it("is off for a flow that is not saved yet", async () => {
       await mount(null);
       expect(button("Runs").hasAttribute("disabled")).toBe(true);
+      expect(host.querySelector('a[href*="automation="]')).toBeNull();
     });
   });
 

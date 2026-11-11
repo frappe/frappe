@@ -195,4 +195,98 @@ describe("a trial run", () => {
     expect(trial.docname).toBe("");
     expect(nodeOf(doc.yes._id).data.run).toBeUndefined();
   });
+  it("drops a response that lands after the bar was closed", async () => {
+    let answer!: (value: { data: typeof TRACE }) => void;
+    fake.runMethod.mockReturnValue(new Promise((resolve) => (answer = resolve)));
+    const running = trial.run();
+    expect(trial.running).toBe(true);
+    trial.close();
+    expect(trial.running).toBe(false);
+    answer({ data: TRACE });
+    await vi.runAllTimersAsync();
+    await running;
+    expect(trial.summary).toBeNull();
+    expect(nodeOf(doc.yes._id).data.run).toBeUndefined();
+  });
+
+  it("drops a response that lands after another record was picked", async () => {
+    let answer!: (value: { data: typeof TRACE }) => void;
+    fake.runMethod.mockReturnValue(new Promise((resolve) => (answer = resolve)));
+    trial.pickDocument("TODO-1");
+    const running = trial.run();
+    trial.pickDocument("TODO-2");
+    answer({ data: TRACE });
+    await vi.runAllTimersAsync();
+    await running;
+    expect(trial.docname).toBe("TODO-2");
+    expect(trial.summary).toBeNull();
+  });
+
+  it("keeps the spinner of the latest run when an earlier one settles", async () => {
+    const answers: Array<(value: { data: typeof TRACE }) => void> = [];
+    fake.runMethod.mockImplementation(() => new Promise((resolve) => answers.push(resolve)));
+    const first = trial.run();
+    const second = trial.run();
+    answers[0]({ data: TRACE });
+    await first;
+    expect(trial.running).toBe(true);
+    expect(trial.summary).toBeNull();
+    answers[1]({ data: TRACE });
+    await vi.runAllTimersAsync();
+    await second;
+    expect(trial.running).toBe(false);
+    expect(trial.summary).toEqual(TRACE);
+  });
+
+  it("starts over when a run is started during playback", async () => {
+    fake.runMethod.mockResolvedValue({ data: TRACE });
+    const first = trial.run();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(trial.playing).toBe(true);
+    const second = trial.run();
+    await vi.runAllTimersAsync();
+    await Promise.all([first, second]);
+    expect(trial.playing).toBe(false);
+    expect(trial.running).toBe(false);
+    expect(nodeOf(doc.yes._id).data.run?.status).toBe("Success");
+    expect(fake.runMethod).toHaveBeenCalledTimes(2);
+  });
+
+  it("shows a failed request and leaves the canvas blank", async () => {
+    fake.runMethod.mockRejectedValue(new Error("Network down"));
+    await trial.run();
+    expect(trial.error).toBe("Network down");
+    expect(trial.running).toBe(false);
+    expect(trial.summary).toBeNull();
+    expect(nodeOf(doc.check._id).data.run).toBeUndefined();
+  });
+
+  it("reads a wait for event's branch from the outcome row folded into it", async () => {
+    const wait = newStep({ step_type: "WaitForEvent", step_key: "wait" });
+    const yes = newStep({ step_key: "yes" });
+    const no = newStep({ step_key: "no" });
+    wait._outcomeKey = "wait_outcome";
+    wait.children.If.push(yes);
+    wait.children.Else.push(no);
+    doc.actions = [wait];
+    fake.runMethod.mockResolvedValue({
+      data: {
+        status: "Success",
+        branches: { "2": "If" },
+        steps: [
+          { step_key: "wait", step_idx: 0, status: "Success", action_type: "WaitForEvent" },
+          { step_key: "wait_outcome", step_idx: 1, status: "Success" },
+          { step_key: "yes", step_idx: 2, status: "Success" },
+        ],
+      },
+    });
+    const running = trial.run();
+    await vi.runAllTimersAsync();
+    await running;
+    const node = (step: typeof yes) =>
+      trial.decorate([{ id: step._id, position: { x: 0, y: 0 }, data: {} }], []).nodes[0];
+    expect(node(yes).data.dimmed).toBe(false);
+    expect(node(no).data.dimmed).toBe(true);
+    expect(node(wait).data.run?.retryArms).toEqual([expect.objectContaining({ key: "Else" })]);
+  });
 });

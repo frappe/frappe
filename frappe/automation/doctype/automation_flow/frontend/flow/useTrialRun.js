@@ -14,6 +14,18 @@ export const STATUS_THEMES = {
 	"Partially Failed": "amber",
 };
 
+/** The server's run status, spelled out so the translation tooling can find each one. */
+export function statusLabel(status) {
+	const labels = {
+		Success: __("Success"),
+		Skipped: __("Skipped"),
+		Waiting: __("Waiting"),
+		Failed: __("Failed"),
+		"Partially Failed": __("Partially Failed"),
+	};
+	return labels[status] || status;
+}
+
 // A wait is reported instantly by the server; the pause is here so the run reads as a sequence.
 const WAIT_HOLD = 5000;
 const MIN_HOLD = 400;
@@ -25,15 +37,17 @@ export function useTrialRun(getDoc) {
 	const running = ref(false);
 	const playing = ref(false);
 	const error = ref("");
+	const detailsOpen = ref(false);
 	const summary = ref(null);
 	const activeKey = ref("");
 	const outcomes = reactive({});
 	const taken = reactive({});
 	const overrides = reactive({});
 	let result = null;
+	let runToken = 0;
 	let playToken = 0;
 
-	onBeforeUnmount(() => (playToken += 1));
+	onBeforeUnmount(reset);
 
 	const finished = computed(() => Boolean(summary.value) && !playing.value);
 	const steps = computed(() => walkSteps(getDoc().actions || [], false, new Map()));
@@ -122,7 +136,10 @@ export function useTrialRun(getDoc) {
 	}
 
 	function offPathEdge(edge) {
-		return { ...edge, style: { ...edge.style, stroke: "#C7C7C7", strokeDasharray: "4 4" } };
+		return {
+			...edge,
+			style: { ...edge.style, stroke: "var(--outline-gray-3)", strokeDasharray: "4 4" },
+		};
 	}
 
 	function pickDocument(value) {
@@ -131,17 +148,19 @@ export function useTrialRun(getDoc) {
 	}
 
 	function reset() {
+		runToken += 1;
 		playToken += 1;
+		running.value = false;
 		playing.value = false;
 		activeKey.value = "";
 		summary.value = null;
 		error.value = "";
+		detailsOpen.value = false;
 		result = null;
 		clear(outcomes);
 		clear(taken);
 	}
 
-	/** Back to a blank canvas, with the picked record forgotten too. */
 	function close() {
 		reset();
 		clear(overrides);
@@ -159,18 +178,20 @@ export function useTrialRun(getDoc) {
 		reset();
 		if (!keepOverrides) clear(overrides);
 		running.value = true;
+		const mine = runToken;
 		try {
 			const { data } = await runMethod("frappe.automation_engine.api.trial_run", {
 				automation: getDoc().name,
 				docname: docname.value || null,
 				branch_overrides: { ...overrides },
 			});
+			if (mine !== runToken) return;
 			result = data;
 			await playback(data);
 		} catch (e) {
-			error.value = isApiError(e) ? htmlToText(e.message) : e.message;
+			if (mine === runToken) error.value = isApiError(e) ? htmlToText(e.message) : e.message;
 		} finally {
-			running.value = false;
+			if (mine === runToken) running.value = false;
 		}
 	}
 
@@ -210,6 +231,7 @@ export function useTrialRun(getDoc) {
 		running,
 		playing,
 		error,
+		detailsOpen,
 		summary,
 		failures,
 		stepCount,

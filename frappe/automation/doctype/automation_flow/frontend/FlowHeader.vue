@@ -32,13 +32,14 @@
 				variant="ghost"
 				icon-left="lucide-history"
 				:label="__('Runs')"
+				:route="runsRoute"
 				:disabled="!flowName"
-				@click="router.push(runsRoute)"
 			/>
 			<Button
 				variant="ghost"
 				icon-left="lucide-play"
 				:label="__('Test run')"
+				:aria-pressed="testing"
 				:data-state="testing ? 'active' : undefined"
 				@click="$emit('toggle-test')"
 			/>
@@ -54,7 +55,6 @@
 
 <script setup>
 import { computed, ref } from "vue";
-import { useRouter } from "vue-router";
 import { Badge, Breadcrumbs, Button, PageHeader, Switch } from "frappe-ui";
 import { __ } from "frappe/i18n";
 import { routeFor } from "@shell";
@@ -74,8 +74,6 @@ defineEmits(["save", "undo", "redo", "toggle-test"]);
 defineExpose({ focusTitle: () => titleInput.value?.focus() });
 
 const titleInput = ref(null);
-const router = useRouter();
-// The generic Automation Run list, filtered on this flow.
 const runsRoute = computed(() =>
 	routeFor(RUN_DOCTYPE, null, { query: { automation: props.flowName } })
 );
