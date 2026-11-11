@@ -5,21 +5,25 @@
 		v-model:open="open"
 		:doctype="targetDoctype"
 		:filters="filters"
-		:label="field.label"
+		:label="panel ? undefined : field.label"
 		:description="
-			targetDoctype
+			panel
+				? undefined
+				: targetDoctype
 				? field.description
 				: 'Child table metadata unavailable — picker disabled.'
 		"
 		:placeholder="field.placeholder"
 		:required="field.reqd"
-		:error="error"
+		:error="panel ? undefined : error"
+		:panel="panel"
+		:aria-invalid="panel && error?.length ? true : undefined"
 		:disabled="field.readOnly || !targetDoctype"
 		:titles="titles"
 		:creatable="linkCreate.creatable.value"
 		@create="linkCreate.create"
 	>
-		<template v-if="targetDoctype && field.description && !error?.length" #description>
+		<template v-if="!panel && targetDoctype && field.description && !error?.length" #description>
 			<FieldDescription :html="field.description" />
 		</template>
 		<template #create="{ query }">{{ linkCreate.label(query) }}</template>

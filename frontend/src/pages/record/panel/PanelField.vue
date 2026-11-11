@@ -35,8 +35,8 @@
 
 				<div
 					v-else
-					class="flex min-h-7 min-w-0 flex-wrap items-center gap-x-1.5 px-2"
-					:class="interactive ? 'cursor-pointer' : ''"
+					class="flex min-h-7 min-w-0 flex-wrap items-center gap-x-1.5"
+					:class="[interactive ? 'cursor-pointer' : '', chips ? 'ps-2 pe-[30px]' : 'px-2']"
 					:data-fieldname="field.fieldname"
 					:role="imageUrl ? 'button' : undefined"
 					:tabindex="imageUrl ? 0 : undefined"
@@ -44,15 +44,29 @@
 					@keydown.enter.self="open"
 					@keydown.space.self.prevent="open"
 				>
+					<span v-if="chips" class="flex min-w-0 flex-1 flex-wrap gap-1 py-1">
+						<SelectedChip
+							v-for="(chip, index) in chipList"
+							:key="index"
+							:label="chip"
+							:removable="interactive ? false : undefined"
+							panel
+						/>
+						<span v-if="!chipList.length" class="text-base leading-5 text-ink-gray-4">{{
+							placeholder
+						}}</span>
+					</span>
+					<span v-else-if="multiline" class="min-w-0 flex-1 py-1">
+						<span
+							class="line-clamp-6 text-base leading-5 break-words whitespace-pre-wrap"
+							:class="valueColor"
+							>{{ display || placeholder }}</span
+						>
+					</span>
 					<span
+						v-else
 						class="flex min-w-0 flex-1 items-center text-base leading-7"
-						:class="
-							error
-								? 'text-ink-red-6'
-								: display
-								? 'text-ink-gray-8'
-								: 'text-ink-gray-4'
-						"
+						:class="valueColor"
 					>
 						<!-- An editable row's click opens its editor, so its address waits on the arrow. -->
 						<a
@@ -156,6 +170,7 @@ import {
 	FieldActionButtons,
 	FieldBox,
 	FieldActionsKey,
+	SelectedChip,
 	LinkMark,
 	dataHref,
 	fileName,
@@ -165,7 +180,7 @@ import {
 	useLinkMark,
 	useRecordLink,
 } from "@framework/ui/fields";
-import { isSummaryField, useFieldDisplay } from "@framework/ui/FormLayout";
+import { isSummaryField, selectedLinks, useFieldDisplay } from "@framework/ui/FormLayout";
 import { __ } from "@/i18n";
 import ImagePreview from "./ImagePreview.vue";
 import { PanelContextKey, PanelFieldsKey } from "./context";
@@ -187,7 +202,7 @@ const controlProps = computed(() => {
 	if (!props.field.ui?.component)
 		return {
 			...stockProps,
-			panel: true,
+			panel: !inPlaceHeavy.value,
 			...(drawsErrorText.value ? {} : { errorId: messageId }),
 			...(phone.value || email.value ? { record: actionRecord.value } : {}),
 		};
@@ -211,12 +226,14 @@ const message = computed(() => {
 const messageId = useId();
 
 function edit(fieldname: string, value: any) {
+	if (cancelled) return;
 	update(fieldname, value);
 	commit.pending(fieldname, value);
 }
 
 // A commit both closes the inline editor and fires the field's handler.
 function onCommit(value: any) {
+	if (cancelled) return;
 	editing.value = false;
 	commit.commit(props.field.fieldname, value);
 }
@@ -224,10 +241,13 @@ function onCommit(value: any) {
 const editing = ref(false);
 const cell = ref<HTMLElement | null>(null);
 let opening: any;
+// Removing a focused input fires its `change`, which would write back the draft a cancel just undid.
+let cancelled = false;
 
 // Every keystroke already wrote the draft, so a cancel has to put the opening value back.
 function cancel() {
 	if (!editing.value) return;
+	cancelled = true;
 	update(props.field.fieldname, opening);
 	editing.value = false;
 }
@@ -258,8 +278,13 @@ const hidden = computed(
 );
 const previewing = ref(false);
 // Until every control takes `panel`, one that does not still draws its own error text.
+const MULTILINE = ["Small Text", "Text", "Long Text"];
 const PANEL_FIELDTYPES = [
 	"Data",
+	"Small Text",
+	"Text",
+	"Long Text",
+	"Table MultiSelect",
 	"Int",
 	"Float",
 	"Currency",
@@ -274,6 +299,17 @@ const drawsErrorText = computed(
 );
 // A bare row is only a script's own: a stock control draws a ghost input that needs the box.
 const bare = computed(() => !!props.field.ui?.component && !!props.field.ui.ownBox);
+// A heavy field that Details does not draw keeps today's editor, with no `panel` look.
+const inPlaceHeavy = computed(() => isSummaryField(props.field.fieldtype) && !summary.value);
+// These two draw their value over several lines, at rest as in the editor, so opening never resizes the row.
+const multiline = computed(() => MULTILINE.includes(props.field.fieldtype));
+const chips = computed(() => props.field.fieldtype === "Table MultiSelect");
+const chipList = computed(() =>
+	selectedLinks(doc.value[props.field.fieldname], props.field, titles?.value ?? {})
+);
+const valueColor = computed(() =>
+	error.value ? "text-ink-red-6" : display.value ? "text-ink-gray-8" : "text-ink-gray-4"
+);
 const interactive = computed(() => summary.value || !props.field.readOnly || !!imageUrl.value);
 const resolved = computed(() => resolveField(props.field.fieldtype));
 
@@ -340,6 +376,7 @@ function open() {
 	if (summary.value) return emit("expand", props.field);
 	if (props.field.readOnly) return;
 	opening = doc.value[props.field.fieldname];
+	cancelled = false;
 	editing.value = true;
 }
 
