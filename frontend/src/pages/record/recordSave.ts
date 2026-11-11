@@ -5,6 +5,7 @@ import { toast } from "frappe-ui";
 import { errorMessage, reportOnce, type RecordPageApi } from "@/recordPage";
 import { overlayOf } from "@/shell/overlay";
 import { shownInDialog } from "./saveResponse";
+import { useUnloadGuard } from "@/unloadGuard";
 
 const toastFailure = reportOnce((exception: unknown) => toast.error(errorMessage(exception)));
 
@@ -35,14 +36,4 @@ export function useSaveKeys(options: {
 	useUnloadGuard(options.unsaved);
 	onMounted(() => window.addEventListener("keydown", onKeydown));
 	onUnmounted(() => window.removeEventListener("keydown", onKeydown));
-}
-
-/** The browser asks before a reload or a tab close while `unsaved` is true. */
-export function useUnloadGuard(unsaved: () => boolean) {
-	function onBeforeUnload(event: BeforeUnloadEvent) {
-		if (unsaved()) event.preventDefault();
-	}
-
-	onMounted(() => window.addEventListener("beforeunload", onBeforeUnload));
-	onUnmounted(() => window.removeEventListener("beforeunload", onBeforeUnload));
 }

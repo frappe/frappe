@@ -9,6 +9,7 @@ export {
 	type RouteOptions,
 } from "@/router/routeFor";
 export type { ContentEntry } from "@/contents";
+export { useUnloadGuard } from "@/unloadGuard";
 export { askReload, type AfterSave, type SavedBinding } from "@/afterSave";
 export { createPageEngine, FIRST_PAINT_LIMIT_MS, Surface } from "@/pageEngine";
 export type {

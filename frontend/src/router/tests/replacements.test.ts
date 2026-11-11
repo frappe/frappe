@@ -30,7 +30,7 @@ const flaky = vi.hoisted(() => ({ failures: 0 }));
 const slow = vi.hoisted(() => ({ load: new Promise<unknown>(() => {}) }));
 
 const DeclaredPage = defineComponent({
-	props: { doctype: String, name: String, view: Object },
+	props: { doctype: String, name: String, view: Object, query: Object },
 	setup(props) {
 		setups.count++;
 		setups.attrs.push({ ...useAttrs() });
@@ -39,6 +39,7 @@ const DeclaredPage = defineComponent({
 				"data-page": "declared",
 				"data-doctype": props.doctype,
 				"data-name": props.name,
+				"data-copy-of": (props.query as Record<string, string> | undefined)?.__copy_of,
 				"data-view": props.view && `${(props.view as { key: string }).key}:${(props.view as { type: string }).type}`,
 			});
 	},
@@ -227,6 +228,19 @@ describe.each([
 		expect(router.currentRoute.value.name).toBe("record");
 		expect(shown(root)).toEqual({ page: "declared", doctype: "Sales Invoice", name: "SI-001" });
 		expect(setups.attrs).toEqual([{}]);
+	});
+
+	it("opens the declared record page at the new-record address too, with no name", async () => {
+		const { root, router } = await mount(modular, `${prefix}/sales-invoice/new`);
+
+		expect(router.currentRoute.value.name).toBe("new-record");
+		expect(shown(root)).toEqual({ page: "declared", doctype: "Sales Invoice" });
+	});
+
+	it("hands the declared page the address's query, so it can copy the record `__copy_of` names", async () => {
+		const { root } = await mount(modular, `${prefix}/sales-invoice/new?__copy_of=SI-001`);
+
+		expect(shown(root)).toEqual({ page: "declared", doctype: "Sales Invoice", copyOf: "SI-001" });
 	});
 
 	it("opens the declared list page at the main address, handing it the doctype and the plain view", async () => {

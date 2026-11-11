@@ -9,21 +9,28 @@ import { failedState } from "@/shell/pageState";
 
 type Loaded = { default?: Component } | Component;
 type Loader = () => Promise<unknown>;
-type Route = Pick<RouteLocationNormalized, "name" | "params">;
+type Route = Pick<RouteLocationNormalized, "name" | "params" | "query">;
 
 // One component per loader, so a render does not create a new component type and remount the page.
 const pages = new Map<Loader, Component>();
 
-/** The loader a main address opens and, for a declared page, its props; null on other routes. */
+/**
+ * The loader a main address opens and, for a declared page, its props; null on other routes.
+ * A `record` page also serves `new-record`, with no name: it opens an unsaved record. It gets the
+ * address's query, which names a record to copy (`__copy_of`) or carries first values.
+ */
 export function mainPageFor(route: Route, addresses: Addresses, app: string | null) {
 	const key = route.name;
 	const doctype = addresses.doctypeOf(String(route.params.doctype));
-	if ((key !== "list" && key !== "record") || !doctype) return null;
+	// The new record page draws the not-found state for a slug that serves no doctype.
+	if (key === "new-record" && !doctype) return { loader: standardPage("newRecord"), props: null };
+	if ((key !== "list" && key !== "record" && key !== "new-record") || !doctype) return null;
 
 	// The list page picks its view's replacement itself: the view is known only there.
-	const declared = key === "record" && replacementFor(doctype, key, app);
-	if (!declared) return { loader: standardPage(key), props: null };
-	return { loader: declared.component, props: { doctype, name: String(route.params.name) } };
+	const declared = key !== "list" && replacementFor(doctype, "record", app);
+	if (!declared) return { loader: standardPage(key === "new-record" ? "newRecord" : key), props: null };
+	const name = key === "record" ? String(route.params.name) : null;
+	return { loader: declared.component, props: { doctype, name, query: route.query } };
 }
 
 /** The page a loader gives: its loading state at once, then the page once its code is in. */

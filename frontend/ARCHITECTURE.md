@@ -278,6 +278,7 @@ component group, with its main names.
 | Module contents (`fetchContents`, `ContentEntry`) | What a module holds, filtered for the user |
 | Translations (`loadTranslations`, `__`, `__n`, `installTranslate`) | Fetch the messages at start, translate a string or a plural, and put `__` and `__n` in every component template and `__` on `globalThis` |
 | Icons (`Icon`, the sprite) | One SVG sprite, loaded once, and the component that draws a symbol or an emoji |
+| Unload guard (`useUnloadGuard`) | The browser asks before a reload or a tab close while a page reports unsaved changes. The record pages and an app page that edits a record use it |
 | Latest reply wins | *New.* One helper for the desk's "only the newest answer counts" guards. `ui/` keeps its own, because it may not use this layer |
 | Status theme (`listStatusTheme`, `workflowTheme`, `StatusTheme`) | The `Badge` theme of a `status` or workflow state value, from the meta alone. A workflow state takes its Workflow State's `style` (`meta.workflow_state_styles`), else gray. `status` takes the matching Document States row (`meta.states`), else desk v1's word map (`guess_style`). The list draws a column of either field as a badge; the record header's workflow badge uses `workflowTheme`. A Link `status` and desk v1's `get_indicator` are not read |
 | Tag colours (`TAG_COLORS`, `TAG_COLOR_NAMES`, `seedTagColors`, `tagColorClass`, `colorClass`) | The dot class of a tag, from the `color` stored on its Tag (Helpdesk's names; gray without one). Filled by each read that names tags: the list's and the record's `tag_colors` part, the tag search, a tag just created |
@@ -514,7 +515,7 @@ the reference for each `page` member.
 | `vue`, `vue-router`, `frappe-ui` | The framework's shared packages |
 | `@framework/ui` | All of `ui/` while the `"./*"` entry stays |
 | `frappe/i18n` | `__` and `__n`. A script imports them. A `template:` string, and every other component template, gets both with no import |
-| Desk names | `routeFor`, `routeForModule`, `urlFor`, `RouteOptions`, `isModular`, `ContentEntry`, the after-save registry's `askReload`, `AfterSave`, `SavedBinding`, and the page engine's `createPageEngine`, `PageApi`, `PageEngine`, `PageEngineSpec`, `CachedProvider`, `Handler`, `Surface`, `SurfaceVerbs`, `Registration`, the item types and `FIRST_PAINT_LIMIT_MS`. App files import them from `@shell` today; stored scripts cannot. The one module name is for Build and publishing to choose |
+| Desk names | `routeFor`, `routeForModule`, `urlFor`, `RouteOptions`, `isModular`, `ContentEntry`, the after-save registry's `askReload`, `AfterSave`, `SavedBinding`, and the page engine's `createPageEngine`, `PageApi`, `PageEngine`, `PageEngineSpec`, `CachedProvider`, `Handler`, `Surface`, `SurfaceVerbs`, `Registration`, the item types, `FIRST_PAINT_LIMIT_MS` and `useUnloadGuard`. App files import them from `@shell` today; stored scripts cannot. The one module name is for Build and publishing to choose |
 | App names | Names an app publishes through its `import_map` hook |
 
 A script reaches the rest of the desk only through the `page` object it is handed.
