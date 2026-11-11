@@ -296,6 +296,27 @@ class TestActions(IntegrationTestCase):
 		self.assertEqual(captured["recipients"], [user.email])
 		self.assertEqual(captured["reference_name"], todo.name)
 
+	def test_send_notification_keeps_plain_email_recipients(self):
+		todo = make_todo()
+		user = make_user()
+		captured = {}
+		original = frappe.sendmail
+		frappe.sendmail = lambda **kwargs: captured.update(kwargs)
+		try:
+			SendNotification().execute(
+				todo,
+				{
+					"channel": "Email",
+					"recipients": [user.name, "outside@example.com", "not_a_user"],
+					"subject": "s",
+					"message": "m",
+				},
+				{},
+			)
+		finally:
+			frappe.sendmail = original
+		self.assertEqual(captured["recipients"], [user.email, "outside@example.com"])
+
 
 class FakeResponse:
 	def __init__(self, status_code=200, text="ok", headers=None):
