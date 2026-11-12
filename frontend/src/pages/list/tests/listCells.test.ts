@@ -97,6 +97,9 @@ const row = {
 };
 
 const original = { ...row };
+const originalCells = { ...cells };
+
+const applyBadgeFilters = vi.hoisted(() => vi.fn());
 
 vi.mock("@/list/useListView", async () => {
 	const { resolveCell } = await import("@/list/cells");
@@ -122,12 +125,14 @@ vi.mock("@/list/useListView", async () => {
 				fieldname === "agent" ? { source: { kind: "image", field: "user_image" }, key: "agent__mark" } : undefined,
 			switchOf: () => false,
 			canWrite: () => true,
-			cellViewOf: (fieldname: string, value: unknown) =>
+			cellViewOf: (fieldname: string, value: unknown, one: Record<string, unknown>) =>
 				resolveCell(
 					cells[fieldname],
 					value,
-					metaFields.find((field) => field.fieldname === fieldname)?.fieldtype
+					metaFields.find((field) => field.fieldname === fieldname)?.fieldtype,
+					one
 				),
+			applyBadgeFilters,
 			statusThemeOf: (fieldname: string, value: unknown) =>
 				fieldname === "status" && value ? "red" : null,
 			currencyOf: (fieldname: string) =>
@@ -208,6 +213,8 @@ function mount(): HTMLElement {
 }
 
 afterEach(() => {
+	Object.assign(cells, originalCells);
+	applyBadgeFilters.mockClear();
 	Object.assign(row, original);
 	vi.unstubAllEnvs();
 	vi.useRealTimers();
@@ -417,5 +424,27 @@ describe("a list's cells", () => {
 
 		expect(root.querySelector("[data-column='priority']")!.textContent).toBe("Low");
 		expect(root.querySelector("[data-column='due_date']")!.querySelector("[data-icon]")).toBeNull();
+	});
+
+	it("draw a badge function's label and theme from the row, and apply its filters on a click", async () => {
+		cells.priority = {
+			badge: (one) => ({ label: `${one.priority} first`, theme: "red", filters: [["priority", "=", "High"]] }),
+		};
+		const root = mount();
+		await nextTick();
+
+		const button = root.querySelector<HTMLButtonElement>("[data-column='priority'] button")!;
+		expect(button.textContent?.trim()).toBe("High first");
+		button.click();
+		expect(applyBadgeFilters).toHaveBeenCalledWith([["priority", "=", "High"]]);
+	});
+
+	it("draw a badge function without filters as a plain badge, not a button", async () => {
+		cells.priority = { badge: () => ({ theme: "blue" }) };
+		const root = mount();
+		await nextTick();
+
+		expect(root.querySelector("[data-column='priority'] button")).toBeNull();
+		expect(root.querySelector("[data-column='priority']")!.textContent?.trim()).toBe("High");
 	});
 });

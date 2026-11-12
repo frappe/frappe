@@ -445,10 +445,16 @@ supplies no component):
 | Key | What it does |
 | --- | --- |
 | `icons` | A value to icon map. The icon draws before the plain label and replaces the default status badge. |
-| `badge` | A value to theme map (`gray`, `blue`, `green`, `orange`, `red`): the value shows as a badge. |
+| `badge` | A value to theme map (`gray`, `blue`, `green`, `orange`, `red`): the value shows as a badge. Or a function `(row) => ({ label, theme, filters })`, which replaces v1's `get_indicator`: see below. |
+| `fields` | The row fields a `badge` function reads besides the column's own, such as `['due_date']`. The list query fetches them; a field the reader may not read is left out. |
 | `icon` | One icon before any non-empty value. |
 | `format` | A dayjs format for a Date or Datetime, such as `'D MMM, hh:mm a'`. Its tooltip is the full date. |
 | `switch` | `true` on a Check column draws a switch that saves the field in place (a PATCH with the row's `modified`). It is read-only without a level 0 write right, and a refused write leaves it as it was. |
+
+A `badge` function gets the row and returns `{ label?, theme?, filters? }`, or nothing to keep the default cell. `label`
+defaults to the field's own text and `theme` to `gray`. It runs for an empty value as well, since it reads the row. With
+`filters`, a list of `[fieldname, operator, value]` triples, the badge is a button: a click adds them to the view's
+filters, in place of its conditions on the same fields. A function that throws leaves the default cell and logs the error.
 
 An icon is a name from the icon sprite, with or without the `lucide-` prefix. A key, value or fieldtype
 it does not fit keeps the default cell, and an empty value draws no icon. A Check, Rating, Color, Attach
@@ -464,6 +470,17 @@ export default {
     page.columns.update('due_date', { icon: 'lucide-calendar', format: 'D MMM, hh:mm a' })
   },
 }
+```
+
+```js
+// A badge that reads another field of the row and filters the list on a click.
+page.columns.update('status', {
+  fields: ['due_date'],
+  badge: (row) =>
+    row.due_date < today() && row.status !== 'Done'
+      ? { label: 'Overdue', theme: 'red', filters: [['status', '!=', 'Done']] }
+      : null,
+})
 ```
 
 An act item takes five more keys, on `page.header`, `page.quickActions` and a tab's `create`:

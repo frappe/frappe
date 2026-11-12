@@ -83,6 +83,19 @@ describe("the list page", () => {
     expect(list.lists.rowActions.visible().map((one) => one.name)).toEqual(["duplicate"]);
   });
 
+  it("keeps a column's badge function and the fields it reads", async () => {
+    const badge = () => ({ theme: "red" as const });
+    const land = addScript((page) => page.columns.update("status", { badge, fields: ["due"], unknown: 1 } as never));
+    const list = makePage();
+
+    list.paint();
+    land();
+    await settle();
+    const column = list.lists.columns.visible().find((one) => one.name === "status");
+    expect(column).toMatchObject({ badge, fields: ["due"] });
+    expect(column).not.toHaveProperty("unknown");
+  });
+
   it("paints at once for a doctype with no list.js", async () => {
     const list = makePage();
     list.paint();

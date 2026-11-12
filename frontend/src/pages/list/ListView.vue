@@ -75,10 +75,13 @@
 				:writable="canWrite(column.fieldname)"
 			/>
 			<ConfiguredCell
-				v-else-if="cellViewOf(column.fieldname, value) && cellFields.has(column.fieldname)"
+				v-else-if="
+					cellViewOf(column.fieldname, value, row) && cellFields.has(column.fieldname)
+				"
 				:field="cellFields.get(column.fieldname)!"
 				:row="row"
-				:view="cellViewOf(column.fieldname, value)!"
+				:view="cellViewOf(column.fieldname, value, row)!"
+				@filter="applyBadgeFilters"
 			/>
 			<StatusCell
 				v-else-if="
@@ -161,6 +164,7 @@ const {
 	markOf,
 	statusThemeOf,
 	cellViewOf,
+	applyBadgeFilters,
 	switchOf,
 	canWrite,
 	currencyOf,

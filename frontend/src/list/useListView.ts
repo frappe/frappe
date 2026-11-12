@@ -3,7 +3,7 @@
 import { bulkDeleteDocuments, isBulkQueued } from "@framework/ui/api";
 import { applyColumnWidth, clearColumnWidth, getColumnAlign } from "@framework/ui/ColumnSettings";
 import type { ListColumn } from "@framework/ui/experimental/List";
-import { getFilterableFields, serializeFilters, type FilterCondition } from "@framework/ui/Filter";
+import { getFilterableFields, parseFilters, serializeFilters, type FilterCondition } from "@framework/ui/Filter";
 import type { RawMetaField } from "@framework/ui/FormLayout";
 import { serializeOrderBy } from "@framework/ui/SortBy";
 import { useDocPermissions } from "@framework/ui/useDocPermissions";
@@ -13,7 +13,7 @@ import { computed, ref, watch, type ComputedRef, type Ref, type WritableComputed
 import type { RouteLocationRaw } from "vue-router";
 import type { ListPageLists } from "@/listPage/createListPage";
 import type { ListPageColumn, ListRowAction } from "@/listPage/types";
-import { rowActionFields } from "@/listPage/types";
+import { columnFields, rowActionFields } from "@/listPage/types";
 import { routeFor } from "@/router/routeFor";
 import {
 	cellCurrency,
@@ -55,7 +55,9 @@ export interface ListView extends ListRows {
 	markOf: (fieldname: string) => CellMark | undefined;
 	statusThemeOf: (fieldname: string, value: unknown) => StatusTheme | null;
 	/** What the column's cell keys draw for a value, or null when they name nothing for it; see `resolveCell`. */
-	cellViewOf: (fieldname: string, value: unknown) => CellView | null;
+	cellViewOf: (fieldname: string, value: unknown, row: ListRow) => CellView | null;
+	/** Applies a badge's filters: they replace the view's conditions on the same fields. */
+	applyBadgeFilters: (wire: NonNullable<CellView["filters"]>) => void;
 	/** Whether a column draws as a switch that writes its field; see `isSwitchCell`. */
 	switchOf: (fieldname: string) => boolean;
 	/** Whether the person may write the field; a switch is read-only without it. */
@@ -149,7 +151,7 @@ export function useListView(view: View, lists: Pick<ListPageLists, "columns" | "
 			fields: withModified(
 				fetchFields(
 					shownColumns.value,
-					rowActionFields(rowActions.value).filter(readable),
+					[...rowActionFields(rowActions.value), ...columnFields([...shownItems.value.values()])].filter(readable),
 					listMeta.value ?? {},
 					readable
 				),
@@ -219,12 +221,21 @@ export function useListView(view: View, lists: Pick<ListPageLists, "columns" | "
 			getFilterableFields([], doctype).find((one) => one.fieldname === fieldname),
 		markOf: (fieldname) => cellMark(fieldname, listMeta.value ?? {}),
 		statusThemeOf: (fieldname, value) => listStatusTheme(listMeta.value, fieldname, value),
-		cellViewOf: (fieldname, value) =>
+		cellViewOf: (fieldname, value, row) =>
 			resolveCell(
 				cellOf(fieldname),
 				value,
-				fields.value.find((one) => one.fieldname === fieldname)?.fieldtype
+				fields.value.find((one) => one.fieldname === fieldname)?.fieldtype,
+				row
 			),
+		applyBadgeFilters: (wire) => {
+			const added = parseFilters(getFilterableFields(fields.value, doctype), wire);
+			const names = new Set(added.map((condition) => condition.fieldname));
+			view.filters.value = [
+				...view.filters.value.filter((condition) => !names.has(condition.fieldname)),
+				...added,
+			];
+		},
 		switchOf,
 		canWrite: (fieldname) => {
 			const field = fields.value.find((one) => one.fieldname === fieldname);

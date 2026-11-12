@@ -1,6 +1,14 @@
-<!-- A cell an app described in its `list.js` `cells`: an icon before the text, or a badge. -->
+<!-- A cell an app described on its column in `list.js`: an icon before the text, or a badge; a badge with filters is a button. -->
 <template>
-	<Badge v-if="view.theme" :label="label" :theme="view.theme" />
+	<button
+		v-if="view.theme && view.filters"
+		type="button"
+		class="rounded-1 focus-visible:ring-2 focus-visible:ring-outline-gray-3"
+		@click.stop.prevent="emit('filter', view.filters)"
+	>
+		<Badge :label="label" :theme="view.theme" class="cursor-pointer" />
+	</button>
+	<Badge v-else-if="view.theme" :label="label" :theme="view.theme" />
 	<div v-else class="flex min-w-0 items-center gap-1.5 text-base text-ink-gray-8">
 		<Icon v-if="view.icon" :name="view.icon" class="text-ink-gray-6" />
 		<Tooltip v-if="view.title" :text="view.title" class="min-w-0">
@@ -24,11 +32,14 @@ const props = defineProps<{
 	view: CellView;
 }>();
 
+const emit = defineEmits<{ filter: [filters: NonNullable<CellView["filters"]>] }>();
+
 const display = useFieldDisplay();
 
 const label = computed(
 	() =>
 		props.view.text ??
+		props.view.label ??
 		display(props.field, props.row[props.field.fieldname], { row: props.row })
 );
 </script>
