@@ -1,5 +1,14 @@
 // What the collaboration dialog sends and says: the calls a kind makes and the records it names. Only the lazy dialog imports it.
-import type { BulkPart } from "@framework/ui/api";
+import {
+	bulkCollaborate,
+	isBulkQueued,
+	type BulkPart,
+	type BulkQueued,
+	type BulkResult,
+	type BulkSelection,
+	type Envelope,
+} from "@framework/ui/api";
+import { followBulkRun } from "@/shell/bulkRuns";
 import { __, __n } from "@/i18n";
 import type { BulkTarget, CollabKind } from "./bulkCollaboration";
 
@@ -57,4 +66,24 @@ export function callsFor(
 		case "mark_unseen":
 			return [{ part: "seen", method: "DELETE", bodies: [{}] }];
 	}
+}
+
+/** Sends every call of a kind over one selection and answers them as one run, so the shell reports it once. */
+export async function sendCollab(
+	doctype: string,
+	calls: CollabCall[],
+	selection: BulkSelection,
+	reload: () => void
+): Promise<Envelope<BulkResult | BulkQueued>> {
+	const replies: Envelope<BulkResult | BulkQueued>[] = [];
+	for (const { part, method, bodies } of calls)
+		for (const body of bodies) replies.push(await bulkCollaborate(doctype, part, method, selection, body));
+	const queued = replies.filter(({ data }) => isBulkQueued(data));
+	// The shell follows the first background run; the others settle on their own and reload the list.
+	for (const { data } of queued.slice(1)) followBulkRun((data as BulkQueued).task_id, reload);
+	if (queued.length) return queued[0];
+	const runs = replies.map(({ data }) => data as BulkResult);
+	const failed = runs.flatMap((run) => run.failed).filter(({ name }, at, all) => all.findIndex((one) => one.name === name) === at);
+	const failedNames = new Set(failed.map(({ name }) => name));
+	return { ...replies[0], data: { ...runs[0], done: runs[0].done.filter((name) => !failedNames.has(name)), failed } };
 }

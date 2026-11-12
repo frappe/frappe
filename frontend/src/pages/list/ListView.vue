@@ -174,6 +174,7 @@
 		:request="bulk.collab.request.value"
 		:doctype="view.doctype"
 		:reload="reload"
+		:select="(names: string[]) => (selection = names)"
 		@close="bulk.collab.request.value = null"
 	/>
 

@@ -1,27 +1,27 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp, h, nextTick, type App } from "vue";
 import BulkCollabDialog from "../BulkCollabDialog.vue";
 import type { CollabRequest } from "../bulkCollaboration";
 
 const fake = vi.hoisted(() => ({
   bulk: vi.fn(),
-  follow: vi.fn(),
-  success: vi.fn(),
-  info: vi.fn(),
+  run: vi.fn(),
 }));
 
 vi.mock("@framework/ui/api", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@framework/ui/api")>()),
   bulkCollaborate: fake.bulk,
 }));
-vi.mock("@/shell/bulkRuns", () => ({ followBulkRun: fake.follow }));
-vi.mock("frappe-ui", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("frappe-ui")>()),
-  toast: { success: fake.success, info: fake.info },
-}));
+vi.mock("@/shell/bulkOutcome", () => ({ runBulk: fake.run }));
 
 let mounted: App | null = null;
 const reload = vi.fn();
+const select = vi.fn();
+
+// The shell's runBulk reports the reply; here it only sends, as a refusal must reach the dialog.
+beforeEach(() => {
+  fake.run.mockImplementation(async ({ send }) => void (await send()));
+});
 
 async function settle() {
   for (let turn = 0; turn < 6; turn++) await nextTick();
@@ -40,7 +40,7 @@ async function open(kind: CollabRequest["kind"], all = false) {
   const host = document.createElement("div");
   document.body.append(host);
   mounted = createApp({
-    render: () => h(BulkCollabDialog, { request, doctype: "ToDo", reload }),
+    render: () => h(BulkCollabDialog, { request, doctype: "ToDo", reload, select }),
   });
   mounted.mount(host);
   await settle();
@@ -80,8 +80,9 @@ describe("BulkCollabDialog", () => {
       { names: ["A", "B"] },
       {},
     );
-    expect(fake.success).toHaveBeenCalledWith("Done on 2 records");
-    expect(reload).toHaveBeenCalled();
+    expect(fake.run).toHaveBeenCalledWith(
+      expect.objectContaining({ label: "Clear assignment", doctype: "ToDo", select, finished: reload }),
+    );
   });
 
   it("sends the filters when all the matching records are chosen", async () => {
@@ -99,26 +100,20 @@ describe("BulkCollabDialog", () => {
     );
   });
 
-  it("follows a queued run in the background", async () => {
+  it("retries the failed names alone", async () => {
+    fake.bulk.mockResolvedValue({ data: { total: 1, done: ["B"], failed: [] } });
+    fake.run.mockImplementation(async ({ send }) => void (await send(["B"])));
+    await open("mark_seen");
+    await press("Mark as seen");
+    expect(fake.bulk).toHaveBeenCalledWith("ToDo", "seen", "POST", { names: ["B"] }, {});
+  });
+
+  it("closes once the shell reports the run", async () => {
     fake.bulk.mockResolvedValue({ data: { task_id: "T1", job_id: "J1" } });
     await open("mark_seen");
     await press("Mark as seen");
-    expect(fake.follow).toHaveBeenCalledWith("T1", reload);
-    expect(fake.info).toHaveBeenCalledWith("Running in the background");
-  });
-
-  it("keeps the dialog open with each failure, one per line", async () => {
-    fake.bulk.mockResolvedValue({
-      data: {
-        total: 2,
-        done: ["A"],
-        failed: [{ name: "B", error: "No rule" }],
-      },
-    });
-    await open("apply_assignment_rule");
-    await press("Apply assignment rule");
-    expect(text()).toContain("B: No rule");
-    expect(text()).toContain("Close");
+    expect(fake.bulk).toHaveBeenCalledTimes(1);
+    expect(text()).not.toContain("Mark as seen");
   });
 
   it("shows why the whole run was refused", async () => {
@@ -128,6 +123,5 @@ describe("BulkCollabDialog", () => {
     await open("apply_assignment_rule");
     await press("Apply assignment rule");
     expect(text()).toContain("No enabled assignment rule for ToDo");
-    expect(fake.success).not.toHaveBeenCalled();
   });
 });

@@ -1,5 +1,5 @@
 <!-- The dialog behind the bar's assign, tag, follow, share and seen actions: it names the records, collects the
-     user or tags, and reports what failed. A run past the async threshold is followed in the background. -->
+     user or tags, and hands the run to the shell, which reports what failed. A refused request shows here. -->
 <template>
 	<Dialog v-model="open" :title="title" size="sm" :actions="actions" :dismissible="!running">
 		<template #default>
@@ -45,11 +45,10 @@
 </template>
 
 <script setup lang="ts">
-import { bulkCollaborate, isBulkQueued } from "@framework/ui/api";
-import { Button, Checkbox, Dialog, toast } from "frappe-ui";
+import { Button, Checkbox, Dialog } from "frappe-ui";
 import { computed, ref, watch } from "vue";
-import { __, __n } from "@/i18n";
-import { followBulkRun } from "@/shell/bulkRuns";
+import { __ } from "@/i18n";
+import { runBulk } from "@/shell/bulkOutcome";
 import AssigneePicker from "@/pages/record/panel/AssigneePicker.vue";
 import type { Person } from "@/pages/record/panel/people";
 import TagChip from "@/pages/record/panel/TagChip.vue";
@@ -57,9 +56,14 @@ import TagPicker from "@/pages/record/panel/TagPicker.vue";
 import { useTagSession } from "@/pages/record/panel/tagSession";
 import { recolourTag } from "@/tagApi";
 import { kindLabel, type CollabRequest } from "./bulkCollaboration";
-import { callsFor, scopeText } from "./collabCalls";
+import { callsFor, scopeText, sendCollab } from "./collabCalls";
 
-const props = defineProps<{ request: CollabRequest; doctype: string; reload: () => void }>();
+const props = defineProps<{
+	request: CollabRequest;
+	doctype: string;
+	reload: () => void;
+	select: (names: string[]) => void;
+}>();
 const emit = defineEmits<{ close: [] }>();
 
 const open = ref(true);
@@ -124,43 +128,32 @@ const actions = computed(() =>
 
 async function confirm() {
 	running.value = true;
-	const failed: string[] = [];
-	let done = 0;
-	let queued = false;
 	try {
-		const input = {
+		const calls = callsFor(kind, {
 			users: people.value.map(({ id }) => id),
 			tags: chosen.value,
 			colors: colors.value,
 			canWrite: canWrite.value,
-		};
-		for (const { part, method, bodies } of callsFor(kind, input)) {
-			for (const body of bodies) {
-				const { data } = await bulkCollaborate(
+		});
+		// The shell reports the run (a toast, the result panel or the tray); a refused request stays in this dialog.
+		await runBulk({
+			label: verb,
+			doctype: props.doctype,
+			send: (names) =>
+				sendCollab(
 					props.doctype,
-					part,
-					method,
-					props.request.selection,
-					body
-				);
-				if (isBulkQueued(data)) {
-					queued = true;
-					followBulkRun(data.task_id, props.reload);
-					continue;
-				}
-				done = Math.max(done, data.done.length);
-				failed.push(...data.failed.map(({ name, error }) => `${name}: ${error}`));
-			}
-		}
+					calls,
+					names ? { names } : props.request.selection,
+					props.reload
+				),
+			select: props.select,
+			finished: props.reload,
+		});
+		open.value = false;
 	} catch (error) {
-		failed.push(error instanceof Error ? error.message : String(error));
+		failure.value = error instanceof Error ? error.message : String(error);
 	} finally {
 		running.value = false;
 	}
-	props.reload();
-	if (queued) toast.info(__("Running in the background"));
-	if (done) toast.success(__n("Done on {0} record", "Done on {0} records", done, [done]));
-	if (!failed.length) return void (open.value = false);
-	failure.value = [...new Set(failed)].join("\n");
 }
 </script>
