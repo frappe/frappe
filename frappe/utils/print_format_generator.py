@@ -176,7 +176,8 @@ def get_barcode(value: str, barcode_format: str = "CODE128", show_text: bool = T
 	from frappe.utils.typst_emitter import _CONTROL_CHARS
 
 	if isinstance(value, str) and value.startswith("<svg"):
-		return "data:image/svg+xml;base64," + base64.b64encode(value.encode()).decode()
+		svg = _CONTROL_CHARS.sub("", value)
+		return "data:image/svg+xml;base64," + base64.b64encode(svg.encode()).decode()
 	if barcode_format == "QR":
 		return get_qr_code(value)
 	if not isinstance(value, str) or len(value) > 2000:
