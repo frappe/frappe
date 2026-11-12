@@ -13,10 +13,15 @@ class IntegrationTestWebCrawlSettings(IntegrationTestCase):
 		settings.page_timeout = 0
 		self.assertRaises(frappe.ValidationError, settings.save)
 
-	def test_concurrent_requests_are_capped(self):
+	def test_warns_about_many_concurrent_requests(self):
 		settings = frappe.get_doc("Web Crawl Settings")
+		frappe.clear_messages()
+		settings.concurrent_requests = 5
+		settings.save()
+		self.assertNotIn("Many concurrent requests", str(frappe.get_message_log()))
 		settings.concurrent_requests = 6
-		self.assertRaises(frappe.ValidationError, settings.save)
+		settings.save()
+		self.assertIn("Many concurrent requests", str(frappe.get_message_log()))
 
 	def test_blocked_domain_covers_its_subdomains(self):
 		block_domain(self, "Blocked.com")

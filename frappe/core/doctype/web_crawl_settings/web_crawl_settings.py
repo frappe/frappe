@@ -4,7 +4,10 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.web_crawler.limits import MAX_CONCURRENT_REQUESTS, CrawlLimits
+from frappe.web_crawler.limits import CrawlLimits
+
+# More parallel requests from one IP risk bot protection blocking it, for every site on the server.
+SAFE_CONCURRENT_REQUESTS = 5
 
 MUST_BE_POSITIVE = (
 	"max_pages",
@@ -53,9 +56,16 @@ class WebCrawlSettings(Document):
 			if self.get(fieldname) <= 0:
 				label = _(self.meta.get_label(fieldname))
 				frappe.throw(_("{0} must be greater than 0.").format(label), title=_("Invalid value"))
-		if self.concurrent_requests > MAX_CONCURRENT_REQUESTS:
-			frappe.throw(
-				_("Concurrent requests can be at most {0}.").format(MAX_CONCURRENT_REQUESTS),
-				title=_("Invalid value"),
-			)
 		CrawlLimits.from_settings(settings=self).warn_if_crawl_may_stop_early()
+		self.warn_if_many_concurrent_requests()
+
+	def warn_if_many_concurrent_requests(self):
+		if self.concurrent_requests <= SAFE_CONCURRENT_REQUESTS:
+			return
+		frappe.msgprint(
+			_(
+				"More than {0} concurrent requests may get this server blocked by a site's bot protection."
+			).format(SAFE_CONCURRENT_REQUESTS),
+			title=_("Many concurrent requests"),
+			indicator="orange",
+		)

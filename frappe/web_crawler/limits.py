@@ -9,8 +9,6 @@ MEGABYTE = 1024 * 1024
 # A site asking for a longer wait (Crawl-delay, Retry-After) would stall the job.
 MAX_WAIT_SECONDS = 30
 MAX_RETRIES = 2
-# More parallel requests from one IP risk bot protection banning it, for every site on the server.
-MAX_CONCURRENT_REQUESTS = 5
 # A rough time to fetch and parse one page, for the crawl time estimate.
 ESTIMATED_PAGE_SECONDS = 1
 

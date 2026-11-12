@@ -64,7 +64,7 @@
   },
   {
    "default": "1",
-   "description": "Number of pages read at the same time, up to 5. Sites that set a Crawl-delay in robots.txt are read one page at a time.",
+   "description": "Number of pages read at the same time. Sites that set a Crawl-delay in robots.txt are read one page at a time.",
    "fieldname": "concurrent_requests",
    "fieldtype": "Int",
    "label": "Concurrent requests",
@@ -192,7 +192,7 @@
  "issingle": 1,
  "link_display_mode": "Search",
  "links": [],
- "modified": "2026-11-12 22:30:00.000000",
+ "modified": "2026-11-12 23:00:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Web Crawl Settings",
