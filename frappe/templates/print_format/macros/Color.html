@@ -3,8 +3,8 @@
 {%- block value -%}
 <div class="value"{% if _val_style %} style="{{ _val_style|e }}"{% endif %}>
     {% if value %}
-    <div class="color-square" style="background-color: {{ value }};"></div>
-    {{ value }}
+    <div class="color-square" style="background-color: {{ value|e }};"></div>
+    {{ value|e }}
     {% endif %}
 </div>
 {%- endblock -%}
