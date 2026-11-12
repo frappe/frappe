@@ -9,7 +9,6 @@
 				class="flex h-full min-w-0 flex-1 items-center gap-2 ps-2 pe-2 text-start text-base focus:outline-none"
 				:class="canOpen ? 'cursor-pointer' : 'cursor-default'"
 				:disabled="!canOpen"
-				:aria-label="field.label"
 				:aria-invalid="error?.length ? true : undefined"
 				:aria-describedby="error?.length ? errorId : undefined"
 				@click="openModal"
@@ -19,6 +18,8 @@
 					:class="modelValue ? 'text-ink-gray-7' : 'text-ink-gray-5'"
 					aria-hidden="true"
 				/>
+				<!-- Named by its label and then its summary, so a screen reader reads both. -->
+				<span v-if="field.label" class="sr-only">{{ `${field.label}: ` }}</span>
 				<span class="truncate" :class="modelValue ? 'text-ink-gray-8' : 'text-ink-gray-4'">
 					{{
 						coordinateSummary ||

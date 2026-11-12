@@ -15,7 +15,11 @@
 			@focusin="onFocusIn"
 			@focusout="onFocusOut"
 		>
-			<EditorBubbleMenu :items="richTextBubble" :options="{ side: 'bottom' }" />
+			<!-- Fixed, or the scrolling body clips a bar below a selection on its last line. -->
+			<EditorBubbleMenu
+				:items="richTextBubble"
+				:options="{ side: 'bottom', strategy: 'fixed' }"
+			/>
 			<EditorTableMenu />
 			<div class="text-editor-body overflow-y-auto">
 				<EditorContent
@@ -133,10 +137,14 @@ function onFocusIn() {
 	atFocus ??= value.value;
 }
 
-// Focus moving within the field, as onto its toolbar, keeps the edit open.
+// The link editor and the table menus are portalled out of the field.
+const OWN_POPUPS = '.editor-popover,[data-slot="table-menu"],[role="menu"]';
+
+// Focus moving within the field, as onto its toolbar or one of its popups, keeps the edit open.
 function onFocusOut(event: FocusEvent) {
 	const field = event.currentTarget as HTMLElement;
-	if (field.contains(event.relatedTarget as Node | null)) return;
+	const next = event.relatedTarget as HTMLElement | null;
+	if (field.contains(next) || next?.closest(OWN_POPUPS)) return;
 	if (atFocus !== null && value.value !== atFocus) emit("change", value.value);
 	atFocus = null;
 }

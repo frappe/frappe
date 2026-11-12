@@ -1710,6 +1710,53 @@ test.describe("Desk v2 side panel rows: Text Editor, Markdown Editor and Geoloca
 		expect((await page.evaluate(boxOf, "f_rich")).height).toBeCloseTo(68, 1);
 	});
 
+	test("the selection bar on the sixth line of a 9-line row draws below it, not clipped by the row", async ({
+		page,
+	}) => {
+		await open(page, tall);
+		const box = await cell(page, "f_rich").boundingBox();
+		await page.mouse.click(box.x + 30, box.y + 4 + 20 * 5.5);
+		await expect(prose(page)).toBeFocused();
+		await page.keyboard.press("Home");
+		await page.keyboard.press("Shift+End");
+		const bar = page.locator('[data-slot="bubble-menu"]');
+		await expect(bar).toBeVisible();
+
+		const drawn = await bar.evaluate((el) => {
+			const rect = el.getBoundingClientRect();
+			const selection = getSelection().getRangeAt(0).getBoundingClientRect();
+			const hit = document.elementFromPoint(
+				rect.x + rect.width / 2,
+				rect.y + rect.height / 2
+			);
+			return { top: rect.top, below: selection.bottom, hit: el.contains(hit) };
+		});
+		expect(drawn.top).toBeGreaterThanOrEqual(drawn.below);
+		expect(drawn.hit).toBe(true);
+	});
+
+	test("a link from the selection bar keeps the row open while its portalled popup has focus", async ({
+		page,
+	}) => {
+		await open(page, short);
+		await cell(page, "f_rich").click();
+		await expect(prose(page)).toBeFocused();
+		await page.keyboard.press("Home");
+		await page.keyboard.press("Shift+End");
+		await page
+			.locator('[data-slot="bubble-menu"]')
+			.getByRole("button", { name: /link/i })
+			.click();
+
+		const input = page.locator(".editor-popover input");
+		await expect(input).toBeFocused();
+		await expect(prose(page)).toBeVisible();
+		await input.fill("https://example.com");
+		await page.keyboard.press("Enter");
+		await expect(prose(page).locator('a[href="https://example.com"]')).toHaveCount(1);
+		await expect(prose(page)).toBeVisible();
+	});
+
 	test("a Geolocation row reads the pin and the Details summary in 28px, clears with ×, has no ↗ and opens the map dialog", async ({
 		page,
 	}) => {

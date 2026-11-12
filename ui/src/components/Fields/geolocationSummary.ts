@@ -1,3 +1,5 @@
+import { translate as __ } from "../../utils/translate";
+
 /** What a Geolocation field reads: `12.97160°N, 77.59460°E` for one point, else `N features`; `""` when unset. */
 export function geolocationSummary(value: string | null | undefined): string {
   if (!value) return "";
@@ -13,8 +15,8 @@ export function geolocationSummary(value: string | null | undefined): string {
       return `${latStr}, ${lngStr}`;
     }
     const count = features.length;
-    return `${count} ${count === 1 ? "feature" : "features"}`;
+    return count === 1 ? __("1 feature") : __("{0} features", [count]);
   } catch {
-    return "Invalid GeoJSON";
+    return __("Invalid GeoJSON");
   }
 }

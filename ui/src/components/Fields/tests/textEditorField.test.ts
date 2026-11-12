@@ -176,6 +176,24 @@ describe("an editable Text Editor", () => {
     expect(onChange.mock.calls).toEqual([["<p>Hello there</p>"]]);
   });
 
+  it("keeps the edit open while focus is in its portalled link editor", async () => {
+    const { root, onChange } = mount("<p>Hello</p>", { panel: true });
+    const editor = await editorIn(root);
+    editor.commands.focus("end");
+    await frame();
+    editor.commands.insertContent(" there");
+    const popup = document.createElement("div");
+    popup.className = "editor-popover";
+    popup.setAttribute("role", "dialog");
+    const input = popup.appendChild(document.createElement("input"));
+    document.body.appendChild(popup);
+    editor.view.dom.dispatchEvent(new FocusEvent("focusout", { relatedTarget: input, bubbles: true }));
+    expect(onChange).not.toHaveBeenCalled();
+    editor.view.dom.dispatchEvent(new FocusEvent("focusin", { bubbles: true }));
+    editor.view.dom.dispatchEvent(new FocusEvent("focusout", { relatedTarget: document.body, bubbles: true }));
+    expect(onChange.mock.calls).toEqual([["<p>Hello there</p>"]]);
+  });
+
   it("commits nothing for a value its host set while it had focus", async () => {
     const { root, value, onChange } = mount("<p>Hello</p>");
     const editor = await editorIn(root);

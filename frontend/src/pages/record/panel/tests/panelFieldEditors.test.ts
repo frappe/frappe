@@ -16,12 +16,13 @@ vi.mock("@framework/ui/api", () => ({
 
 import { CommitKey, DocKey, ResolveFieldKey, UpdateKey } from "@framework/ui/FormLayout/types";
 import type { FieldNode } from "@framework/ui/FormLayout/types";
+import { FieldErrorsKey, fieldErrorKey } from "@framework/ui/fields/types";
 import PanelField from "../PanelField.vue";
 import { PanelContextKey } from "../context";
 
 // Like frappe-ui's input: removing it while focused fires a `change` with its draft.
 const Control = defineComponent({
-	props: { panel: Boolean, modelValue: null },
+	props: { panel: Boolean, modelValue: null, errorId: String },
 	emits: ["update:modelValue", "change"],
 	setup(props, { emit }) {
 		onBeforeUnmount(() => emit("change", draft));
@@ -30,6 +31,7 @@ const Control = defineComponent({
 			h("textarea", {
 				"data-control": "",
 				"data-panel": props.panel,
+				"data-error-id": props.errorId,
 				value: props.modelValue,
 				onInput: (e: Event) => {
 					draft = (e.target as HTMLTextAreaElement).value;
@@ -46,7 +48,13 @@ afterEach(() => {
 	document.body.innerHTML = "";
 });
 
-function mount(field: FieldNode, doc: Record<string, any>, onDetails = true, onExpand = vi.fn()) {
+function mount(
+	field: FieldNode,
+	doc: Record<string, any>,
+	onDetails = true,
+	onExpand = vi.fn(),
+	errors: Record<string, string> = {}
+) {
 	const root = document.createElement("div");
 	document.body.appendChild(root);
 	const update = vi.fn((name: string, value: any) => (docRef.value[name] = value));
@@ -58,6 +66,7 @@ function mount(field: FieldNode, doc: Record<string, any>, onDetails = true, onE
 	app.provide(CommitKey, commit as any);
 	app.provide(ResolveFieldKey, () => Control);
 	app.provide(PanelContextKey, { onDetails: () => onDetails } as any);
+	app.provide(FieldErrorsKey, ref(errors) as any);
 	app.mount(root);
 	mounted.push(app);
 	return { root, update, commit, doc: docRef, onExpand };
@@ -94,6 +103,60 @@ describe("a Text Editor row at rest", () => {
 
 		expect(root.querySelector("[data-control]")!.getAttribute("data-panel")).toBe("true");
 		expect(onExpand).not.toHaveBeenCalled();
+	});
+});
+
+describe("a Text Editor row", () => {
+	const notes: FieldNode = { fieldname: "notes", fieldtype: "Text Editor", label: "Notes" };
+
+	it("reads a value of only an image as Image, not as empty", () => {
+		const { root } = mount(notes, { notes: '<p><img src="/files/a.png"></p>' });
+
+		expect(row(root, "notes").querySelector("span.line-clamp-6")!.textContent).toBe("Image");
+	});
+
+	it("does not open when read-only", async () => {
+		const { root, onExpand } = mount({ ...notes, readOnly: true }, { notes: "<p>x</p>" });
+
+		row(root, "notes").click();
+		await nextTick();
+
+		expect(root.querySelector("[data-control]")).toBeNull();
+		expect(onExpand).not.toHaveBeenCalled();
+	});
+
+	it("puts the opening value back on Esc and commits nothing", async () => {
+		const { root, update, commit } = mount(notes, { notes: "<p>x</p>" });
+		row(root, "notes").click();
+		await nextTick();
+		const control = root.querySelector<HTMLTextAreaElement>("[data-control]")!;
+		control.value = "<p>y</p>";
+		control.dispatchEvent(new Event("input"));
+
+		control.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+		await nextTick();
+
+		expect(update).toHaveBeenLastCalledWith("notes", "<p>x</p>");
+		expect(commit.discard).toHaveBeenCalledWith("notes");
+		expect(commit.commit).not.toHaveBeenCalled();
+		expect(root.querySelector("[data-control]")).toBeNull();
+	});
+});
+
+describe.each(["Text Editor", "Markdown Editor"])("a %s row with an error", (fieldtype) => {
+	const field = { fieldname: "body", fieldtype, label: "Body" } as FieldNode;
+
+	it("shows the message under the row and points the open control at it", async () => {
+		const errors = { [fieldErrorKey("body")]: "Body is required" };
+		const { root } = mount(field, { body: "" }, true, vi.fn(), errors);
+		expect(root.textContent).toContain("Body is required");
+
+		row(root, "body").click();
+		await nextTick();
+
+		const errorId = root.querySelector("[data-control]")!.getAttribute("data-error-id");
+		expect(errorId).toBeTruthy();
+		expect(document.getElementById(errorId!)!.textContent).toContain("Body is required");
 	});
 });
 

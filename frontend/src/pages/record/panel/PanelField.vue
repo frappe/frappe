@@ -193,7 +193,7 @@ import {
 } from "@framework/ui/fields";
 import { isSummaryField, selectedLinks, useFieldDisplay } from "@framework/ui/FormLayout";
 import { __ } from "@/i18n";
-import { htmlToText } from "@framework/ui/RichText";
+import { htmlToText, isEmptyHtml } from "@framework/ui/RichText";
 import ImagePreview from "./ImagePreview.vue";
 import { PanelContextKey, PanelFieldsKey } from "./context";
 import { withoutOwnRecordPrefix } from "./ownRecordPrefix";
@@ -381,10 +381,17 @@ const controlField = computed(() => ({
 // lines the open editor shows; the summary read views show one line.
 const display = computed(() => {
 	const value = doc.value[props.field.fieldname];
-	if (props.field.fieldtype === "Text Editor") return htmlToText(value);
+	if (props.field.fieldtype === "Text Editor") return richTextLine(value);
 	if (props.field.fieldtype === "Markdown Editor") return String(value ?? "");
 	return displayField(props.field, value, { doc: doc.value });
 });
+
+// A value of only an image has no text, yet is not empty.
+function richTextLine(html: string | null | undefined) {
+	const text = htmlToText(html);
+	if (text || isEmptyHtml(html)) return text;
+	return /<img\b/i.test(html ?? "") ? __("Image") : __("Media");
+}
 
 // The row draws one dot per character, as the open input does, and never holds the value in the page.
 const secret = computed(() =>
@@ -456,7 +463,7 @@ function open(event?: MouseEvent) {
 // A picker's popover is portalled out of the cell, so focus landing in it is not the user
 // leaving the field.
 const POPOVER =
-	'[role="dialog"],[role="listbox"],[role="menu"],[data-reka-popper-content-wrapper],[data-slot="bubble-menu"]';
+	'[role="dialog"],[role="listbox"],[role="menu"],[data-reka-popper-content-wrapper],[data-slot="table-menu"]';
 
 function onFocusout(event: FocusEvent) {
 	const next = event.relatedTarget as HTMLElement | null;
