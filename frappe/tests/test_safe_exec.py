@@ -88,16 +88,18 @@ class TestSafeExec(FrappeTestCase):
 		frappe.render_template(""" {{ frappe.qb.from_("User").select("*").run() }} """)
 
 	def test_auth_table_not_readable(self):
-		with self.set_user("Guest"):
-			for template in (
-				"""{{ frappe.db.sql("select password from __Auth") }}""",
-				"""{{ frappe.qb.from_("__Auth").select("password").run() }}""",
-				"""{{ frappe.db.exists("__Auth", {"name": "Administrator"}) }}""",
-			):
-				self.assertRaises(frappe.PermissionError, render_template, template)
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("Guest")
+		for template in (
+			"""{{ frappe.db.sql("select password from __Auth") }}""",
+			"""{{ frappe.qb.from_("__Auth").select("password").run() }}""",
+			"""{{ frappe.db.exists("__Auth", {"name": "Administrator"}) }}""",
+		):
+			self.assertRaises(frappe.PermissionError, render_template, template)
 
-			self.assertEqual(render_template("""{{ frappe.db.exists("User", "Guest") }}"""), "Guest")
+		self.assertEqual(render_template("""{{ frappe.db.exists("User", "Guest") }}"""), "Guest")
 
+		frappe.set_user("Administrator")
 		self.assertRaises(frappe.PermissionError, safe_exec, """frappe.db.sql("select * from `__Auth`")""")
 
 	def test_call(self):
