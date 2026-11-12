@@ -619,7 +619,8 @@ class TypstEmitter:
 			f"right: {self._margin_mm('right')}mm)"
 		)
 		page_width, page_height = self._page_size_mm()
-		args = [f"width: {page_width}mm", f"height: {page_height}mm", f"margin: {margins}"]
+		height = "auto" if self.generator.page_options().get("fit-height") else f"{page_height}mm"
+		args = [f"width: {page_width}mm", f"height: {height}", f"margin: {margins}"]
 		background = self._page_background()
 		if background:
 			args.append(f"background: {background}")
