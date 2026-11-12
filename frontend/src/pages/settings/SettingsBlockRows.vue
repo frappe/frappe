@@ -62,6 +62,7 @@ provide(ResolveFieldKey, getFieldComponent);
 provide(CommitKey, {
 	pending: () => {},
 	commit: () => emit("commit"),
+	discard: () => {},
 	rowChanged: () => emit("commit"),
 });
 provide(FieldErrorsKey, props.bound.draft.fieldErrors.drawn);

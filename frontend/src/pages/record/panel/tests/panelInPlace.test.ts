@@ -47,6 +47,7 @@ async function mount(
 	app.provide(UpdateKey, (name: string, value: unknown) => (doc.value[name] = value));
 	app.provide(CommitKey, {
 		pending: () => {},
+		discard: () => {},
 		commit: (name: string, value: unknown) => commits.push([name, value]),
 		rowChanged: () => {},
 	});

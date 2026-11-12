@@ -118,13 +118,23 @@ function multiSelectTitles(
   field: FieldMeta,
   titles: Record<string, string>,
 ): string {
+  if (!field.childFields?.some((f) => f.fieldtype === "Link") || !Array.isArray(rows))
+    return summarize(rows, field.fieldtype);
+  return selectedLinks(rows, field, titles).join(", ");
+}
+
+/** One title per row of a Table MultiSelect, in order: what each chip reads. */
+export function selectedLinks(
+  rows: unknown,
+  field: FieldMeta,
+  titles: Record<string, string>,
+): string[] {
   const link = field.childFields?.find((f) => f.fieldtype === "Link");
-  if (!link || !Array.isArray(rows)) return summarize(rows, field.fieldtype);
+  if (!link || !Array.isArray(rows)) return [];
   return rows
     .map((row) => row?.[link.fieldname])
     .filter((name) => !isEmptyValue(name))
-    .map((name) => linkTitle(link.options, name, titles))
-    .join(", ");
+    .map((name) => linkTitle(link.options, name, titles));
 }
 
 function linkTitle(

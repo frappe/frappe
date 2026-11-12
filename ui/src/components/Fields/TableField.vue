@@ -164,6 +164,7 @@ const commit = inject(CommitKey, NO_COMMIT);
 const rowChannel: CommitChannel = {
 	pending: (fieldname, value) => withAddress((row) => commit.pending(fieldname, value, row)),
 	commit: (fieldname, value) => withAddress((row) => commit.commit(fieldname, value, row)),
+	discard: (fieldname) => withAddress((row) => commit.discard(fieldname, row)),
 	rowChanged: (row, change) => commit.rowChanged(row, change),
 };
 provide(CommitKey, rowChannel);

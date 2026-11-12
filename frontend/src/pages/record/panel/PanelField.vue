@@ -35,8 +35,11 @@
 
 				<div
 					v-else
-					class="flex min-h-7 min-w-0 flex-wrap items-center gap-x-1.5 px-2"
-					:class="interactive ? 'cursor-pointer' : ''"
+					class="flex min-h-7 min-w-0 flex-wrap items-center gap-x-1.5"
+					:class="[
+						interactive && pickable ? 'cursor-pointer' : '',
+						chips && interactive && pickable ? 'ps-2 pe-[30px]' : 'px-2',
+					]"
 					:data-fieldname="field.fieldname"
 					:role="imageUrl ? 'button' : undefined"
 					:tabindex="imageUrl ? 0 : undefined"
@@ -44,15 +47,38 @@
 					@keydown.enter.self="open"
 					@keydown.space.self.prevent="open"
 				>
+					<span v-if="chips" class="flex min-w-0 flex-1 flex-wrap gap-1 py-1">
+						<SelectedChip
+							v-for="(chip, index) in chipList"
+							:key="index"
+							:label="chip"
+							:removable="interactive ? false : undefined"
+							panel
+						/>
+						<span
+							v-if="!chipList.length && pickable"
+							class="text-base leading-5 text-ink-gray-4"
+							>{{ placeholder }}</span
+						>
+						<span
+							v-if="!pickable"
+							class="leading-5 text-ink-gray-5"
+							:class="chipList.length ? 'basis-full text-sm' : 'text-base'"
+							>{{ __("Child table metadata unavailable") }}</span
+						>
+					</span>
+					<span v-else-if="multiline" class="min-w-0 flex-1 py-1">
+						<span
+							ref="clamped"
+							class="line-clamp-6 text-base leading-5 break-words whitespace-pre-wrap"
+							:class="valueColor"
+							>{{ display || placeholder }}</span
+						>
+					</span>
 					<span
+						v-else
 						class="flex min-w-0 flex-1 items-center text-base leading-7"
-						:class="
-							error
-								? 'text-ink-red-6'
-								: display
-								? 'text-ink-gray-8'
-								: 'text-ink-gray-4'
-						"
+						:class="valueColor"
 					>
 						<!-- An editable row's click opens its editor, so its address waits on the arrow. -->
 						<a
@@ -156,6 +182,7 @@ import {
 	FieldActionButtons,
 	FieldBox,
 	FieldActionsKey,
+	SelectedChip,
 	LinkMark,
 	dataHref,
 	fileName,
@@ -165,11 +192,12 @@ import {
 	useLinkMark,
 	useRecordLink,
 } from "@framework/ui/fields";
-import { isSummaryField, useFieldDisplay } from "@framework/ui/FormLayout";
+import { isSummaryField, selectedLinks, useFieldDisplay } from "@framework/ui/FormLayout";
 import { __ } from "@/i18n";
 import ImagePreview from "./ImagePreview.vue";
 import { PanelContextKey, PanelFieldsKey } from "./context";
 import { withoutOwnRecordPrefix } from "./ownRecordPrefix";
+import { placeCaret, textOffsetAt } from "./openAtClick";
 
 const props = defineProps<{ field: FieldNode }>();
 const emit = defineEmits<{ expand: [field: FieldNode] }>();
@@ -187,7 +215,7 @@ const controlProps = computed(() => {
 	if (!props.field.ui?.component)
 		return {
 			...stockProps,
-			panel: true,
+			panel: !inPlaceHeavy.value,
 			...(drawsErrorText.value ? {} : { errorId: messageId }),
 			...(phone.value || email.value ? { record: actionRecord.value } : {}),
 		};
@@ -211,23 +239,32 @@ const message = computed(() => {
 const messageId = useId();
 
 function edit(fieldname: string, value: any) {
+	if (cancelled) return;
 	update(fieldname, value);
 	commit.pending(fieldname, value);
 }
 
 // A commit both closes the inline editor and fires the field's handler.
 function onCommit(value: any) {
+	if (cancelled) return;
 	editing.value = false;
 	commit.commit(props.field.fieldname, value);
 }
 
 const editing = ref(false);
 const cell = ref<HTMLElement | null>(null);
+const clamped = ref<HTMLElement | null>(null);
 let opening: any;
+// Removing the focused input fires `change`, which would write the cancelled draft back.
+let cancelled = false;
+// Where in the text a click opened a multi-line row, so the caret lands under the pointer.
+let clicked: number | null = null;
 
 // Every keystroke already wrote the draft, so a cancel has to put the opening value back.
 function cancel() {
 	if (!editing.value) return;
+	cancelled = true;
+	commit.discard(props.field.fieldname);
 	update(props.field.fieldname, opening);
 	editing.value = false;
 }
@@ -258,8 +295,13 @@ const hidden = computed(
 );
 const previewing = ref(false);
 // Until every control takes `panel`, one that does not still draws its own error text.
+const MULTILINE = ["Small Text", "Text", "Long Text"];
 const PANEL_FIELDTYPES = [
 	"Data",
+	"Small Text",
+	"Text",
+	"Long Text",
+	"Table MultiSelect",
 	"Int",
 	"Float",
 	"Currency",
@@ -274,6 +316,22 @@ const drawsErrorText = computed(
 );
 // A bare row is only a script's own: a stock control draws a ghost input that needs the box.
 const bare = computed(() => !!props.field.ui?.component && !!props.field.ui.ownBox);
+// A heavy field that Details does not draw edits in place with no `panel` look.
+const inPlaceHeavy = computed(
+	() => isSummaryField(props.field.fieldtype) && !summary.value && !inPlace.value
+);
+const multiline = computed(() => MULTILINE.includes(props.field.fieldtype));
+const chips = computed(() => props.field.fieldtype === "Table MultiSelect");
+// Without the child table's Link field there is nothing to pick from, so the row stays closed.
+const pickable = computed(
+	() => !chips.value || !!props.field.childFields?.find((f) => f.fieldtype === "Link")?.options
+);
+const chipList = computed(() =>
+	selectedLinks(doc.value[props.field.fieldname], props.field, titles?.value ?? {})
+);
+const valueColor = computed(() =>
+	error.value ? "text-ink-red-6" : display.value ? "text-ink-gray-8" : "text-ink-gray-4"
+);
 const interactive = computed(() => summary.value || !props.field.readOnly || !!imageUrl.value);
 const resolved = computed(() => resolveField(props.field.fieldtype));
 
@@ -332,14 +390,26 @@ function linkedDoctype(): string {
 	return "";
 }
 
-function open() {
+function open(event?: MouseEvent) {
 	if (props.field.fieldtype === "Image") {
 		previewing.value = !!imageUrl.value;
 		return;
 	}
 	if (summary.value) return emit("expand", props.field);
-	if (props.field.readOnly) return;
+	if (props.field.readOnly || !pickable.value) return;
 	opening = doc.value[props.field.fieldname];
+	cancelled = false;
+	clicked = null;
+	// The shown text is the value only when no formatting stands between them; a textarea turns
+	// `\r\n` into `\n`, which would shift every offset after it.
+	const shown = String(opening ?? "");
+	if (
+		event instanceof MouseEvent &&
+		clamped.value &&
+		shown === display.value &&
+		!shown.includes("\r")
+	)
+		clicked = textOffsetAt(clamped.value, event.clientX, event.clientY);
 	editing.value = true;
 }
 
@@ -373,6 +443,9 @@ watch(editing, async (on, _previous, onCleanup) => {
 		document.removeEventListener("pointerdown", onPressOutside, true);
 	});
 	await nextTick();
-	if (cell.value) stop = focusField(cell.value);
+	if (!cell.value) return;
+	stop = focusField(cell.value);
+	const area = multiline.value && cell.value.querySelector("textarea");
+	if (area) placeCaret(area, clicked);
 });
 </script>

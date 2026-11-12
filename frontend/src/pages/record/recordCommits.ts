@@ -8,6 +8,7 @@ export function provideRecordCommits(controller: () => RecordPageController | nu
 	provide(CommitKey, {
 		pending: (fieldname, value, row) => controller()?.commits.pending(fieldname, value, row),
 		commit: (fieldname, value, row) => controller()?.commits.commit(fieldname, value, row),
+		discard: (fieldname, row) => controller()?.commits.discard(fieldname, row),
 		rowChanged: (row, change) => controller()?.commits.rowChanged(row, change),
 	});
 	provide(

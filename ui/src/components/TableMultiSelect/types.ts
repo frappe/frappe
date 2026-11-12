@@ -15,6 +15,8 @@ export interface TableMultiSelectProps extends InputLabelingProps {
   filters?: Record<string, unknown>;
   placeholder?: string;
   disabled?: boolean;
+  /** Drawn in a panel row: the trigger has no fill or border, since the row's box draws them. */
+  panel?: boolean;
   /** Show a Create action in the footer; it emits `create` and closes, and the host creates. */
   creatable?: boolean;
   /** What selected values display as until the search returns them. */

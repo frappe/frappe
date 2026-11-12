@@ -63,6 +63,9 @@ export function createCommitChannel(
       return true;
     },
     commit,
+    discard: (fieldname, row) => {
+      if (pending?.event === fieldEvent(fieldname, row) && pending.row?.key === row?.key) pending = null;
+    },
     rowChanged: (row, change) => {
       // A structural edit is itself a commit, and a removed row's pending edit has nowhere to land.
       pending = null;

@@ -24,29 +24,29 @@
 				type="button"
 				:disabled="disabled"
 				:data-state="open ? 'open' : 'closed'"
-				class="flex min-h-7 w-full cursor-pointer items-center gap-1.5 rounded-4 border border-[--surface-gray-2] bg-surface-gray-2 px-1.5 py-1 text-left text-ink-gray-7 outline-none transition-colors hover:border-outline-elevation-2 hover:bg-surface-gray-3 focus-visible:ring-2 data-[state=open]:ring-2 ring-outline-gray-3 disabled:cursor-not-allowed disabled:bg-surface-gray-1 disabled:text-ink-gray-4"
+				class="flex min-h-7 w-full cursor-pointer items-center gap-1.5 text-left text-ink-gray-7 outline-none disabled:cursor-not-allowed disabled:text-ink-gray-4"
+				:class="
+					panel
+						? 'rounded-4 px-2 py-1'
+						: 'rounded-4 border border-[--surface-gray-2] bg-surface-gray-2 px-1.5 py-1 transition-colors hover:border-outline-elevation-2 hover:bg-surface-gray-3 focus-visible:ring-2 data-[state=open]:ring-2 ring-outline-gray-3 disabled:bg-surface-gray-1'
+				"
 				@click="toggleOpen"
 			>
 				<div class="flex min-w-0 flex-1 flex-wrap items-center gap-1">
-					<span
+					<SelectedChip
 						v-for="option in selectedOptions"
 						:key="option.value"
-						class="inline-flex h-7 items-center gap-1 rounded-4 border border-outline-gray-1 bg-surface-base px-1.5 text-sm text-ink-gray-7 transition-colors hover:border-outline-gray-2 hover:bg-surface-gray-1"
-					>
-						{{ option.label }}
-						<span
-							v-if="!disabled"
-							role="button"
-							tabindex="-1"
-							class="-mr-0.5 inline-flex cursor-pointer items-center justify-center rounded-1 p-0.5 opacity-70 hover:opacity-100"
-							@click.stop="removeTag(option.value)"
-							@pointerdown.stop
-						>
-							<span class="lucide-x size-3" />
-						</span>
-					</span>
+						:label="option.label"
+						:panel="panel"
+						:removable="disabled ? undefined : true"
+						@remove="removeTag(option.value)"
+					/>
 
-					<span v-if="!selectedOptions.length" class="px-1 text-base text-ink-gray-4">
+					<span
+						v-if="!selectedOptions.length"
+						class="text-base text-ink-gray-4"
+						:class="panel ? 'leading-5' : 'px-1'"
+					>
 						{{ placeholder ?? "Select" }}
 					</span>
 				</div>
@@ -93,6 +93,7 @@
 // link search, the white-chip trigger, and the `creatable` footer.
 import { computed, ref, useTemplateRef, watch } from "vue";
 import { MultiSelect, Button, debounce } from "frappe-ui";
+import SelectedChip from "./SelectedChip.vue";
 import { useLinkSearch } from "../../composables/useLinkSearch";
 import { translate as __ } from "../../utils/translate";
 import type {

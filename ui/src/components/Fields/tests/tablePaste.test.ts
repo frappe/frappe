@@ -54,6 +54,7 @@ function render(rows: Record<string, any>[]) {
   app.provide(CommitKey, {
     pending: () => {},
     commit: (fieldname: string) => commits.push(fieldname),
+    discard: () => {},
     rowChanged: () => {},
   });
   app.mount(host);
