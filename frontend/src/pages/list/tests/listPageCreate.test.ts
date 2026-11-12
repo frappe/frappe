@@ -82,13 +82,12 @@ beforeEach(async () => {
 	meta = contactMeta([{ role: "Sales User", permlevel: 0, read: 1, write: 1, create: 1 }]);
 	boot = {
 		app: "crm",
-		session: { user: { name: "Administrator" } },
+		session: { user: { name: "jane@example.com" } },
 		shell_base: "/apps/crm",
 		prefixes: { crm: { app: "crm", modular: false } },
 		read_only_mode: false,
 		bulk_actions: true,
 		bulk_operation_limit: 500,
-		session: { user: { name: "jane@example.com" } },
 	} as unknown as Boot;
 	fetchMock.mockReset().mockImplementation(async (url) => {
 		const path = new URL(String(url), "http://x").pathname;

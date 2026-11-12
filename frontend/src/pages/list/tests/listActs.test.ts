@@ -101,13 +101,12 @@ const addresses = new Addresses({
 });
 const boot = {
   app: "crm",
-  session: { user: { name: "Administrator" } },
+  session: { user: { name: "jane@example.com" } },
   shell_base: "/apps/crm",
   prefixes: { crm: { app: "crm", modular: false } },
   read_only_mode: false,
   bulk_actions: true,
   bulk_operation_limit: 500,
-  session: { user: { name: "jane@example.com" } },
 } as unknown as Boot;
 
 const SESSION: Session = {
