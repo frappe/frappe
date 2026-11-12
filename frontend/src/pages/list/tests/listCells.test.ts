@@ -194,6 +194,8 @@ function mount(): HTMLElement {
 	document.body.appendChild(root);
 	const host = {
 		controls: ref(null),
+		bar: ref(null),
+		selecting: ref(false),
 		lists: { bulkActions: { provideBuiltins: () => {}, resolve: () => [], visible: () => [] } },
 		onCreate: vi.fn(),
 		acts: () => ({ drawn: () => null }),
@@ -202,6 +204,7 @@ function mount(): HTMLElement {
 	const app = createApp(
 		defineComponent({ render: () => h(ListView, { view: view as never, host: host as never }) })
 	);
+	app.provide("boot", { bulk_actions: true, bulk_operation_limit: 500 });
 	app.provide(FieldActionsKey, {
 		for: (field, value, record) => [
 			{ act: "a", label: `Call ${field.fieldname} ${value} ${JSON.stringify(record ?? null)}`, run: vi.fn() },

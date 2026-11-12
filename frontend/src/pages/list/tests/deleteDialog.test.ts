@@ -46,14 +46,14 @@ afterEach(() => {
 describe("DeleteDialog", () => {
 	it("warns that a delete cannot be undone", async () => {
 		await open(async () => ({ deleted: [], failed: [] }));
-		expect(text()).toContain("Delete 2 records?");
+		expect(text()).toContain("Delete 2 selected records?");
 		expect(text()).toContain("This cannot be undone.");
 	});
 
 	it("keeps the dialog open with each failure, one per line", async () => {
 		await open(async () => ({ deleted: ["A"], failed: [{ name: "B", error: "linked" }] }));
 		await confirm();
-		expect(fake.success).toHaveBeenCalledWith("Deleted 1 record(s)");
+		expect(fake.success).toHaveBeenCalledWith("Deleted 1 record");
 		expect(text()).toContain("B: linked");
 	});
 

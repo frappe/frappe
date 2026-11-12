@@ -48,6 +48,8 @@ const boot = {
   app_title: "CRM",
   shell_base: "/apps/crm",
   prefixes: { crm: { app: "crm", modular: false } },
+  bulk_actions: true,
+  bulk_operation_limit: 500,
 } as unknown as Boot;
 
 const apps: App[] = [];
@@ -128,9 +130,11 @@ describe("the renderer of a view's type", () => {
     });
     expect(Object.keys(seen.props[0].host).sort()).toEqual([
       "acts",
+      "bar",
       "controls",
       "lists",
       "onCreate",
+      "selecting",
     ]);
   });
 

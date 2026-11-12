@@ -86,6 +86,8 @@ beforeEach(async () => {
 		shell_base: "/apps/crm",
 		prefixes: { crm: { app: "crm", modular: false } },
 		read_only_mode: false,
+		bulk_actions: true,
+		bulk_operation_limit: 500,
 	} as unknown as Boot;
 	fetchMock.mockReset().mockImplementation(async (url) => {
 		const path = new URL(String(url), "http://x").pathname;

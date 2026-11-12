@@ -2,7 +2,7 @@
 <template>
 	<Dialog v-model="open" :title="title" size="sm" :actions="actions">
 		<template #default>
-			<p class="text-base text-ink-gray-6">This cannot be undone.</p>
+			<p class="text-base text-ink-gray-6">{{ __("This cannot be undone.") }}</p>
 			<p v-if="failure" class="mt-2 whitespace-pre-line text-sm text-ink-red-4">
 				{{ failure }}
 			</p>
@@ -13,6 +13,7 @@
 <script setup lang="ts">
 import { Dialog, toast } from "frappe-ui";
 import { computed, ref, watch } from "vue";
+import { __, __n } from "@/i18n";
 import type { DeleteOutcome } from "@/list/useListView";
 
 const props = defineProps<{ count: number; run: () => Promise<DeleteOutcome> }>();
@@ -28,15 +29,15 @@ watch(open, (isOpen) => {
 });
 
 const title = computed(() =>
-	asked.value === 1 ? "Delete 1 record?" : `Delete ${asked.value} records?`
+	__n("Delete {0} selected record?", "Delete {0} selected records?", asked.value, [asked.value])
 );
 
 const actions = computed(() =>
 	failure.value
-		? [{ label: "Close", onClick: () => (open.value = false) }]
+		? [{ label: __("Close"), onClick: () => (open.value = false) }]
 		: [
 				{
-					label: "Delete",
+					label: __("Delete"),
 					variant: "solid",
 					theme: "red",
 					loading: deleting.value,
@@ -57,8 +58,8 @@ async function confirm() {
 }
 
 function report(outcome: DeleteOutcome) {
-	if (outcome.queued) toast.info("Deleting in the background");
-	if (outcome.deleted.length) toast.success(`Deleted ${outcome.deleted.length} record(s)`);
+	if (outcome.queued) toast.info(__("Deleting in the background"));
+	if (outcome.deleted.length) toast.success(__n("Deleted {0} record", "Deleted {0} records", outcome.deleted.length, [outcome.deleted.length]));
 	if (!outcome.failed.length) {
 		open.value = false;
 		return;

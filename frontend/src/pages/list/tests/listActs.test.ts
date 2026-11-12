@@ -30,20 +30,22 @@ vi.mock("@framework/ui/SortBy", () => ({ SortBy: stub("sort") }));
 vi.mock("@framework/ui/ColumnSettings", () => ({
   ColumnSettings: stub("columns"),
 }));
-vi.mock("@framework/ui/experimental/List", async () => {
+vi.mock("@framework/ui/experimental/List", () => ({
+  List: stub("list"),
+  ListFooter: stub("footer"),
+}));
+vi.mock("../BulkBar.vue", async () => {
   const { defineComponent, h } = await import("vue");
   return {
-    List: stub("list"),
-    ListFooter: stub("footer"),
-    ListBulkBar: defineComponent({
-      props: { actions: { type: Array, default: () => [] } },
+    default: defineComponent({
+      props: { layout: { type: Object, required: true } },
       setup: (props) => () =>
         h(
           "div",
           { "data-stub-bulk-bar": "" },
-          (props.actions as { label: string; onClick: () => void }[]).map(
-            (action) => h("button", { onClick: action.onClick }, action.label)
-          )
+          [...props.layout.buttons, props.layout.trash]
+            .filter(Boolean)
+            .map((entry) => h("button", { onClick: entry.onClick }, entry.label))
         ),
     }),
   };
@@ -101,6 +103,8 @@ const boot = {
   shell_base: "/apps/crm",
   prefixes: { crm: { app: "crm", modular: false } },
   read_only_mode: false,
+  bulk_actions: true,
+  bulk_operation_limit: 500,
 } as unknown as Boot;
 
 const SESSION: Session = {
