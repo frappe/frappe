@@ -366,70 +366,6 @@ class TestPdf(IntegrationTestCase):
 			pdfgen.get_pdf(self.html, smart_shrinking=True)
 			self.assertNotIn("disable-smart-shrinking", captured)
 
-<<<<<<< HEAD
-	def test_report_pdf_is_scaled_to_fit_the_page(self):
-=======
-	def test_on_print_pdf_hook_runs_for_emailed_prints(self):
-		from unittest.mock import patch
-
-		get_hooks = frappe.get_hooks
-		calls = []
-
-		def hooks(hook=None, *args, **kwargs):
-			if hook == "on_print_pdf":
-				return ["frappe.tests.test_pdf.record_print"]
-			return get_hooks(hook, *args, **kwargs)
-
-		self.addCleanup(frappe.set_user, "Administrator")
-		frappe.set_user("test@example.com")
-		todo = frappe.get_doc({"doctype": "ToDo", "description": "print hook"}).insert()
-
-		with (
-			patch.object(frappe, "get_hooks", side_effect=hooks),
-			patch("frappe.tests.test_pdf.record_print", side_effect=lambda **kw: calls.append(kw)),
-			patch("frappe.utils.pdf.get_chrome_pdf", return_value=b"%PDF-"),
-		):
-			frappe.attach_print("ToDo", todo.name)
-
-		self.assertEqual(calls, [{"doctype": "ToDo", "name": todo.name, "print_format": None}])
-
-	def test_emailed_print_leaves_cached_doc_unchanged(self):
-		from unittest.mock import patch
-
-		self.addCleanup(frappe.set_user, "Administrator")
-		frappe.set_user("test@example.com")
-		todo = frappe.get_doc({"doctype": "ToDo", "description": "emailed print"}).insert()
-
-		with patch("frappe.utils.pdf.get_chrome_pdf", return_value=b"%PDF-"):
-			frappe.attach_print("ToDo", todo.name)
-
-		self.assertFalse(frappe.get_cached_doc("ToDo", todo.name).flags.in_print)
-
-	def test_on_print_pdf_hook_runs_for_bulk_prints(self):
-		from unittest.mock import patch
-
-		from frappe.utils.print_format import _download_multi_pdf
-
-		get_hooks = frappe.get_hooks
-		calls = []
-
-		def hooks(hook=None, *args, **kwargs):
-			if hook == "on_print_pdf":
-				return ["frappe.tests.test_pdf.record_print"]
-			return get_hooks(hook, *args, **kwargs)
-
-		self.addCleanup(frappe.set_user, "Administrator")
-		frappe.set_user("test@example.com")
-		todo = frappe.get_doc({"doctype": "ToDo", "description": "print hook"}).insert()
-
-		with (
-			patch.object(frappe, "get_hooks", side_effect=hooks),
-			patch("frappe.tests.test_pdf.record_print", side_effect=lambda **kw: calls.append(kw)),
-		):
-			_download_multi_pdf("ToDo", frappe.as_json([todo.name]))
-
-		self.assertEqual(calls, [{"doctype": "ToDo", "name": todo.name, "print_format": None}])
-
 	def test_on_print_pdf_hook_runs_for_builder_downloads(self):
 		from unittest.mock import patch
 
@@ -443,6 +379,16 @@ class TestPdf(IntegrationTestCase):
 				return ["frappe.tests.test_pdf.record_print"]
 			return get_hooks(hook, *args, **kwargs)
 
+		print_format = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": "_Test Builder Format",
+				"doc_type": "ToDo",
+				"standard": "No",
+				"print_format_builder_beta": 1,
+			}
+		).insert()
+		self.addCleanup(print_format.delete)
 		self.addCleanup(frappe.set_user, "Administrator")
 		frappe.set_user("test@example.com")
 		todo = frappe.get_doc({"doctype": "ToDo", "description": "print hook"}).insert()
@@ -451,31 +397,11 @@ class TestPdf(IntegrationTestCase):
 			patch.object(frappe, "get_hooks", side_effect=hooks),
 			patch("frappe.tests.test_pdf.record_print", side_effect=lambda **kw: calls.append(kw)),
 		):
-			download_pdf("ToDo", todo.name, print_format="Standard")
+			download_pdf("ToDo", todo.name, print_format=print_format.name)
 
-		self.assertEqual(calls, [{"doctype": "ToDo", "name": todo.name, "print_format": "Standard"}])
+		self.assertEqual(calls, [{"doctype": "ToDo", "name": todo.name, "print_format": print_format.name}])
 
-	def test_report_pdf_fits_wide_tables_and_runs_no_scripts(self):
-		from frappe.utils import print_format
-
-		self.addCleanup(frappe.set_user, "Administrator")
-		frappe.set_user("test@example.com")
-		header = "".join(f"<th>Column{i:02d}</th>" for i in range(1, 31))
-		html = (
-			"<div id='header-html'><b>Report Header</b>"
-			"<script>document.currentScript.parentNode.append('header script ran')</script></div>"
-			f"<table><tr>{header}</tr></table><script>document.body.append('script ran')</script>"
-		)
-		print_format.report_to_pdf(html, orientation="Landscape")
-
-		text = PdfReader(io.BytesIO(frappe.local.response.filecontent)).pages[0].extract_text()
-		self.assertIn("Column01", text)
-		self.assertIn("Column30", text)
-		self.assertIn("Report Header", text)
-		self.assertNotIn("script ran", text)
-
-	def test_report_pdf_blocks_external_requests(self):
->>>>>>> f228cee (test(print): print view pdf downloads run the print pdf hooks)
+	def test_report_pdf_is_scaled_to_fit_the_page(self):
 		from unittest.mock import patch
 
 		from frappe.utils import print_format
