@@ -122,3 +122,9 @@ def bulk_restore(docnames: str | list[str]):
 			frappe.db.rollback()
 
 	return {"restored": restored, "invalid": invalid, "failed": failed}
+
+
+@frappe.whitelist(methods=["POST"])
+def restore_record(doctype: str, name: str) -> None:
+	"""The list page's Restore, one Deleted Document per call of the bulk runner."""
+	restore(name, alert=False)

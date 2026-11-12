@@ -1,0 +1,3 @@
+{
+ "columns": [{ "fieldname": "reference_doctype" }, { "fieldname": "import_type" }, { "fieldname": "status" }]
+}

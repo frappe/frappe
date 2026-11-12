@@ -1,7 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import frappe
-from frappe.core.doctype.deleted_document.deleted_document import restore
+from frappe.core.doctype.deleted_document.deleted_document import restore, restore_record
 from frappe.tests import IntegrationTestCase
 
 
@@ -28,3 +28,15 @@ class TestDeletedDocument(IntegrationTestCase):
 		self.assertEqual(str(restored_doc.creation), str(orig_creation))
 		self.assertEqual(str(restored_doc.modified), str(orig_modified))
 		self.assertEqual(restored_doc.modified_by, orig_modified_by)
+
+	def test_restore_record_restores_one_deleted_document(self):
+		frappe.set_user("Administrator")
+		doc = frappe.get_doc({"doctype": "Note", "title": "Test Restore Record"}).insert()
+		frappe.delete_doc("Note", doc.name, force=True)
+		log_name = frappe.db.get_value("Deleted Document", {"deleted_name": doc.name, "restored": 0})
+
+		restore_record("Deleted Document", log_name)
+
+		restored, new_name = frappe.db.get_value("Deleted Document", log_name, ["restored", "new_name"])
+		self.assertTrue(restored)
+		self.assertEqual(frappe.db.get_value("Note", new_name, "title"), "Test Restore Record")
