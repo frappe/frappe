@@ -2,6 +2,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, nextTick, ref, type App } from "vue";
 import { acts, type ActEntry } from "@/acts/dispatcher";
+import { useBulkScope } from "@/list/useBulkScope";
 import { createListPageLists } from "@/listPage/createListPage";
 import { useBulkBar } from "../useBulkBar";
 
@@ -16,6 +17,7 @@ function bar({ rights = true, script = true, selected = ["A", "B", "C"], cap = 5
 	// `script: false` leaves the list with Delete only.
 	const lists = createListPageLists();
 	const selection = ref(selected);
+	const loaded: { name: string }[] = [];
 	const askDelete = vi.fn();
 	const seen = vi.fn();
 	let release = () => {};
@@ -45,6 +47,15 @@ function bar({ rights = true, script = true, selected = ["A", "B", "C"], cap = 5
 					host: host as never,
 					doctype: "ToDo",
 					selection,
+					scope: useBulkScope({
+						selection,
+						rows: () => loaded,
+						filters: () => ({}),
+						hasNextPage: () => false,
+						totalCount: () => selection.value.length,
+						totalApprox: () => false,
+						exact: () => true,
+					}),
 					rows: ref([]),
 					rowActions: ref([]),
 					reload: () => {},
