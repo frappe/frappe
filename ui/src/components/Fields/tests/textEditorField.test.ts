@@ -31,7 +31,13 @@ afterEach(() => {
 
 function mount(
   modelValue: string | null,
-  options: { readOnly?: boolean; doc?: Record<string, any>; parentDoc?: Record<string, any> } = {}
+  options: {
+    readOnly?: boolean;
+    panel?: boolean;
+    label?: string;
+    doc?: Record<string, any>;
+    parentDoc?: Record<string, any>;
+  } = {}
 ) {
   const value = ref(modelValue);
   const onInput = vi.fn((next: string) => (value.value = next));
@@ -41,7 +47,8 @@ function mount(
   app = createApp({
     render: () =>
       h(TextEditorField, {
-        field: { ...field, readOnly: options.readOnly },
+        field: { ...field, readOnly: options.readOnly, label: "label" in options ? options.label : field.label },
+        panel: options.panel,
         modelValue: value.value,
         "onUpdate:modelValue": onInput,
         onChange,
@@ -63,6 +70,27 @@ async function editorIn(root: HTMLElement): Promise<TiptapEditor> {
   await nextTick();
   return (root.querySelector(".ProseMirror") as any).editor;
 }
+
+describe("a Text Editor in a panel row", () => {
+  it("has no frame, label or fixed toolbar, and writes like the form editor", async () => {
+    const { root, onInput } = mount("<p>Hello</p>", { panel: true, label: undefined });
+    const editor = await editorIn(root);
+    expect(root.querySelector("label")).toBeNull();
+    expect(root.querySelector(".text-editor-frame")).toBeNull();
+    expect(root.querySelector("[data-slot='fixed-menu']")).toBeNull();
+    editor.commands.focus("end");
+    await frame();
+    editor.commands.insertContent("!");
+    expect(onInput).toHaveBeenLastCalledWith("<p>Hello!</p>");
+  });
+
+  it("keeps the frame and toolbar outside a panel", async () => {
+    const { root } = mount("<p>Hello</p>");
+    await editorIn(root);
+    expect(root.querySelector(".text-editor-frame")).not.toBeNull();
+    expect(root.querySelector("[data-slot='fixed-menu']")).not.toBeNull();
+  });
+});
 
 describe("an editable Text Editor", () => {
   it("writes on every edit and commits once on blur", async () => {
@@ -145,6 +173,24 @@ describe("an editable Text Editor", () => {
     move(editor.view.dom, button);
     expect(onChange).not.toHaveBeenCalled();
     move(button, document.body);
+    expect(onChange.mock.calls).toEqual([["<p>Hello there</p>"]]);
+  });
+
+  it("keeps the edit open while focus is in its portalled link editor", async () => {
+    const { root, onChange } = mount("<p>Hello</p>", { panel: true });
+    const editor = await editorIn(root);
+    editor.commands.focus("end");
+    await frame();
+    editor.commands.insertContent(" there");
+    const popup = document.createElement("div");
+    popup.className = "editor-popover";
+    popup.setAttribute("role", "dialog");
+    const input = popup.appendChild(document.createElement("input"));
+    document.body.appendChild(popup);
+    editor.view.dom.dispatchEvent(new FocusEvent("focusout", { relatedTarget: input, bubbles: true }));
+    expect(onChange).not.toHaveBeenCalled();
+    editor.view.dom.dispatchEvent(new FocusEvent("focusin", { bubbles: true }));
+    editor.view.dom.dispatchEvent(new FocusEvent("focusout", { relatedTarget: document.body, bubbles: true }));
     expect(onChange.mock.calls).toEqual([["<p>Hello there</p>"]]);
   });
 

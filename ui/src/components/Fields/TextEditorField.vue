@@ -1,5 +1,5 @@
 <template>
-	<div class="space-y-1.5">
+	<div :class="panel ? undefined : 'space-y-1.5'">
 		<FormLabel v-if="field.label" :id="labelId" :label="field.label" :required="field.reqd" />
 		<div
 			v-if="field.readOnly"
@@ -13,8 +13,9 @@
 			:modelValue="modelValue"
 			:field="field"
 			:labelId="field.label ? labelId : undefined"
-			:describedBy="describedBy"
+			:describedBy="panel ? (hasError ? errorId : undefined) : describedBy"
 			:invalid="hasError"
+			:panel="panel"
 			@update:modelValue="emit('update:modelValue', $event)"
 			@change="emit('change', $event)"
 		/>
@@ -25,7 +26,7 @@
 		>
 			<FieldDescription :html="field.description" />
 		</p>
-		<ErrorMessage :id="errorId" :message="error" />
+		<ErrorMessage v-if="!panel" :id="ownErrorId" :message="error" />
 	</div>
 </template>
 
@@ -39,7 +40,12 @@ import FieldDescription from "./FieldDescription.vue";
 // The editor chunk loads only when an editable field draws; the empty box holds its place.
 const TextEditorInput = defineAsyncComponent({
 	loader: () => import("./TextEditorInput.vue"),
-	loadingComponent: () => h("div", { class: "h-[10.8rem] rounded-4 bg-surface-gray-2" }),
+	loadingComponent: (props: { panel?: boolean }) =>
+		h("div", {
+			class: props.panel
+				? "min-h-[var(--panel-rest-h,1.75rem)]"
+				: "h-[10.8rem] rounded-4 bg-surface-gray-2",
+		}),
 	delay: 0,
 });
 
@@ -48,12 +54,12 @@ const emit = defineEmits<FieldComponentEmits>();
 
 const labelId = useId();
 const descriptionId = useId();
-const errorId = useId();
+const ownErrorId = useId();
 
 const hasError = computed(() => Boolean(props.error?.length));
 
 const describedBy = computed(() => {
-	if (hasError.value) return errorId;
+	if (hasError.value) return ownErrorId;
 	return props.field.description ? descriptionId : undefined;
 });
 </script>

@@ -1,5 +1,4 @@
-/** The offset into `host`'s text under a click, or null when the click missed the text. */
-export function textOffsetAt(host: HTMLElement, x: number, y: number): number | null {
+function caretAt(x: number, y: number): { node: Node; offset: number } | null {
 	const doc = document as Document & {
 		caretRangeFromPoint?: (x: number, y: number) => Range | null;
 	};
@@ -7,7 +6,21 @@ export function textOffsetAt(host: HTMLElement, x: number, y: number): number | 
 	const node = hit?.offsetNode ?? doc.caretRangeFromPoint?.(x, y)?.startContainer;
 	const offset = hit?.offset ?? doc.caretRangeFromPoint?.(x, y)?.startOffset;
 	if (!node || offset === undefined || node.nodeType !== Node.TEXT_NODE) return null;
-	return host.contains(node) ? offset : null;
+	return { node, offset };
+}
+
+/** The offset into `host`'s text under a click, or null when the click missed the text. */
+export function textOffsetAt(host: HTMLElement, x: number, y: number): number | null {
+	const at = caretAt(x, y);
+	return at && host.contains(at.node) ? at.offset : null;
+}
+
+/** Puts the caret of a focused rich-text body under a click, at the top of its lines; the body lays its text out as the row did at rest. */
+export function placeCaretAtPoint(host: HTMLElement, x: number, y: number) {
+	const at = caretAt(x, y);
+	if (!at || !host.contains(at.node)) return;
+	document.getSelection()?.collapse(at.node, at.offset);
+	for (let el = at.node.parentElement; el && el !== host; el = el.parentElement) el.scrollTop = 0;
 }
 
 /**
