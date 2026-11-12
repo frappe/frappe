@@ -23,6 +23,7 @@ import TableMultiSelectField from "./TableMultiSelectField.vue";
 import TextField from "./TextField.vue";
 import TextareaField from "./TextareaField.vue";
 import TextEditorField from "./TextEditorField.vue";
+import MarkdownEditorField from "./MarkdownEditorField.vue";
 import TimeField from "./TimeField.vue";
 import { NUMBER_FIELDTYPES } from "../FormLayout/formatNumber";
 
@@ -87,9 +88,12 @@ for (const t of ["Small Text", "Text", "Long Text"]) {
 // CodeMirror is heavy, and it's the only field pulling `frappe-ui/code-editor`.
 const CodeEditorField = defineAsyncComponent(() => import("./CodeEditorField.vue"));
 
-for (const t of ["Code", "JSON", "Markdown Editor", "HTML Editor"]) {
+for (const t of ["Code", "JSON", "HTML Editor"]) {
   registerFieldType(t, CodeEditorField);
 }
+
+// Markdown Editor is the same editor in a form and a plain textarea in a panel row.
+registerFieldType("Markdown Editor", MarkdownEditorField);
 
 registerFieldType("Text Editor", TextEditorField);
 

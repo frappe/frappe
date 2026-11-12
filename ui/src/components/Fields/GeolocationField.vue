@@ -1,5 +1,44 @@
 <template>
 	<div>
+		<!-- A panel row draws what Details draws: the pin, the summary or "Set location", and × at the
+		     right edge on hover and focus. It has no edit state: a click opens the map dialog. -->
+		<div v-if="panel" class="group flex h-7 w-full min-w-0 items-center">
+			<button
+				type="button"
+				data-slot="control"
+				class="flex h-full min-w-0 flex-1 items-center gap-2 ps-2 pe-2 text-start text-base focus:outline-none"
+				:class="canOpen ? 'cursor-pointer' : 'cursor-default'"
+				:disabled="!canOpen"
+				:aria-label="field.label"
+				:aria-invalid="error?.length ? true : undefined"
+				:aria-describedby="error?.length ? errorId : undefined"
+				@click="openModal"
+			>
+				<span
+					class="lucide-map-pin pointer-events-none size-3.5 shrink-0"
+					:class="modelValue ? 'text-ink-gray-7' : 'text-ink-gray-5'"
+					aria-hidden="true"
+				/>
+				<span class="truncate" :class="modelValue ? 'text-ink-gray-8' : 'text-ink-gray-4'">
+					{{ coordinateSummary || (field.readOnly ? "" : field.placeholder || "Set location") }}
+				</span>
+			</button>
+			<span
+				v-if="!field.readOnly && modelValue"
+				class="flex shrink-0 items-center pe-2 opacity-0 focus-within:opacity-100 group-focus-within:opacity-100 group-hover:opacity-100"
+			>
+				<button
+					type="button"
+					aria-label="Clear"
+					title="Clear"
+					data-slot="clear"
+					class="grid size-4 place-items-center rounded-1 text-ink-gray-5 hover:text-ink-gray-7 focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
+					@click.stop="clearLocation"
+				>
+					<span class="lucide-x size-3.5" />
+				</button>
+			</span>
+		</div>
 		<!-- A read-only TextInput is the display surface: it gives us the label,
 		     description, required indicator, error, and size variant for free, and
 		     stays consistent with the other FormLayout fields. The value is never
@@ -7,6 +46,7 @@
 		     than `disabled` even in read-only mode so it can still be clicked to
 		     open the View Location dialog (a disabled input swallows clicks). -->
 		<TextInput
+			v-else
 			:modelValue="coordinateSummary"
 			:label="field.label"
 			:description="field.description"
@@ -111,6 +151,7 @@ import drawSpriteUrl from "leaflet-draw/dist/images/spritesheet.png?url";
 import drawSprite2xUrl from "leaflet-draw/dist/images/spritesheet-2x.png?url";
 import drawSpriteSvgUrl from "leaflet-draw/dist/images/spritesheet.svg?url";
 import FieldDescription from "./FieldDescription.vue";
+import { geolocationSummary } from "./geolocationSummary";
 
 const props = defineProps<FieldComponentProps>();
 const emit = defineEmits<FieldComponentEmits>();
@@ -144,25 +185,7 @@ let iconCssInjected = false;
 
 // ─── Computed ────────────────────────────────────────────────────────────────
 
-const coordinateSummary = computed(() => {
-	if (!props.modelValue) return "";
-	try {
-		const geo = JSON.parse(props.modelValue);
-		// Single Point feature or FeatureCollection with one Point.
-		const features = geo.type === "FeatureCollection" ? geo.features : [geo];
-		const points = features.filter((f: any) => f.geometry?.type === "Point");
-		if (features.length === 1 && points.length === 1) {
-			const [lng, lat] = points[0].geometry.coordinates;
-			const latStr = `${Math.abs(lat).toFixed(5)}°${lat >= 0 ? "N" : "S"}`;
-			const lngStr = `${Math.abs(lng).toFixed(5)}°${lng >= 0 ? "E" : "W"}`;
-			return `${latStr}, ${lngStr}`;
-		}
-		const count = features.length;
-		return `${count} ${count === 1 ? "feature" : "features"}`;
-	} catch {
-		return "Invalid GeoJSON";
-	}
-});
+const coordinateSummary = computed(() => geolocationSummary(props.modelValue));
 
 // Open the dialog whenever there is something to do: set a value (editable) or
 // view an existing one (read-only). An empty read-only field has nothing to show.

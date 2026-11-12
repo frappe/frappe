@@ -192,10 +192,11 @@ import {
 } from "@framework/ui/fields";
 import { isSummaryField, selectedLinks, useFieldDisplay } from "@framework/ui/FormLayout";
 import { __ } from "@/i18n";
+import { htmlToText } from "@framework/ui/RichText";
 import ImagePreview from "./ImagePreview.vue";
 import { PanelContextKey, PanelFieldsKey } from "./context";
 import { withoutOwnRecordPrefix } from "./ownRecordPrefix";
-import { placeCaret, textOffsetAt } from "./openAtClick";
+import { placeCaret, placeCaretAtPoint, textOffsetAt } from "./openAtClick";
 import PanelLabel from "./PanelLabel.vue";
 
 const props = defineProps<{ field: FieldNode }>();
@@ -260,6 +261,8 @@ let opening: any;
 let cancelled = false;
 // Where in the text a click opened a multi-line row, so the caret lands under the pointer.
 let clicked: number | null = null;
+// The same for a rich-text row, whose body is not a textarea: the point of the click.
+let clickedAt: { x: number; y: number } | null = null;
 
 // Every keystroke already wrote the draft, so a cancel has to put the opening value back.
 function cancel() {
@@ -271,16 +274,21 @@ function cancel() {
 }
 
 // These act on one click in the box, with no editor to open or leave.
-const IN_PLACE = ["Check", "Rating", "Color", "Attach", "Attach Image"];
+const IN_PLACE = ["Check", "Rating", "Color", "Attach", "Attach Image", "Geolocation"];
 const inPlace = computed(
 	() => !props.field.ui?.component && IN_PLACE.includes(props.field.fieldtype)
 );
+
+// These keep the summary read views, yet edit in their row like Long Text.
+const TEXT_EDITORS = ["Text Editor", "Markdown Editor"];
+const textEditor = computed(() => TEXT_EDITORS.includes(props.field.fieldtype));
 
 // A field that Details does not draw has nowhere to open, so its row edits in place.
 const summary = computed(
 	() =>
 		isSummaryField(props.field.fieldtype) &&
 		!inPlace.value &&
+		!textEditor.value &&
 		props.field.fieldtype !== "Image" &&
 		(context?.onDetails(props.field.fieldname) ?? true)
 );
@@ -296,7 +304,7 @@ const hidden = computed(
 );
 const previewing = ref(false);
 // Until every control takes `panel`, one that does not still draws its own error text.
-const MULTILINE = ["Small Text", "Text", "Long Text"];
+const MULTILINE = ["Small Text", "Text", "Long Text", ...TEXT_EDITORS];
 const PANEL_FIELDTYPES = [
 	"Data",
 	"Small Text",
@@ -310,6 +318,7 @@ const PANEL_FIELDTYPES = [
 	"Phone",
 	"Duration",
 	"Password",
+	...TEXT_EDITORS,
 	...IN_PLACE,
 	"Link",
 	"Dynamic Link",
@@ -326,7 +335,11 @@ const drawsErrorText = computed(
 const bare = computed(() => !!props.field.ui?.component && !!props.field.ui.ownBox);
 // A heavy field that Details does not draw edits in place with no `panel` look.
 const inPlaceHeavy = computed(
-	() => isSummaryField(props.field.fieldtype) && !summary.value && !inPlace.value
+	() =>
+		isSummaryField(props.field.fieldtype) &&
+		!summary.value &&
+		!inPlace.value &&
+		!textEditor.value
 );
 const multiline = computed(() => MULTILINE.includes(props.field.fieldtype));
 const chips = computed(() => props.field.fieldtype === "Table MultiSelect");
@@ -344,8 +357,12 @@ const interactive = computed(() => summary.value || !props.field.readOnly || !!i
 const resolved = computed(() => resolveField(props.field.fieldtype));
 
 // The field's own placeholder shows at rest, on hover and in the editor; `Add <Label>...` only without one.
+// A Geolocation row reads "Set location" when empty, as in Details.
 const placeholder = computed(() =>
-	interactive.value && !summary.value && props.field.fieldtype !== "Image"
+	interactive.value &&
+	!summary.value &&
+	props.field.fieldtype !== "Image" &&
+	props.field.fieldtype !== "Geolocation"
 		? props.field.placeholder || __("Add {0}...", [props.field.label])
 		: ""
 );
@@ -357,9 +374,14 @@ const controlField = computed(() => ({
 	placeholder: placeholder.value,
 }));
 
-const display = computed(() =>
-	displayField(props.field, doc.value[props.field.fieldname], { doc: doc.value })
-);
+// A Text Editor row shows the text of its HTML and a Markdown Editor row its source, over the
+// lines the open editor shows; the summary read views show one line.
+const display = computed(() => {
+	const value = doc.value[props.field.fieldname];
+	if (props.field.fieldtype === "Text Editor") return htmlToText(value);
+	if (props.field.fieldtype === "Markdown Editor") return String(value ?? "");
+	return displayField(props.field, value, { doc: doc.value });
+});
 
 // The row draws one dot per character, as the open input does, and never holds the value in the page.
 const secret = computed(() =>
@@ -409,6 +431,10 @@ function open(event?: MouseEvent) {
 	opening = doc.value[props.field.fieldname];
 	cancelled = false;
 	clicked = null;
+	clickedAt =
+		event instanceof MouseEvent && props.field.fieldtype === "Text Editor"
+			? { x: event.clientX, y: event.clientY }
+			: null;
 	// The shown text is the value only when no formatting stands between them; a textarea turns
 	// `\r\n` into `\n`, which would shift every offset after it.
 	const shown = String(opening ?? "");
@@ -426,7 +452,7 @@ function open(event?: MouseEvent) {
 // A picker's popover is portalled out of the cell, so focus landing in it is not the user
 // leaving the field.
 const POPOVER =
-	'[role="dialog"],[role="listbox"],[role="menu"],[data-reka-popper-content-wrapper]';
+	'[role="dialog"],[role="listbox"],[role="menu"],[data-reka-popper-content-wrapper],[data-slot="bubble-menu"]';
 
 function onFocusout(event: FocusEvent) {
 	const next = event.relatedTarget as HTMLElement | null;
@@ -454,6 +480,14 @@ watch(editing, async (on, _previous, onCleanup) => {
 	});
 	await nextTick();
 	if (!cell.value) return;
+	// The body loads on first use, so the caret waits for the focus it takes.
+	const at = clickedAt;
+	if (at) {
+		const host = cell.value;
+		host.addEventListener("focusin", () => placeCaretAtPoint(host, at.x, at.y), {
+			once: true,
+		});
+	}
 	stop = focusField(cell.value);
 	const area = multiline.value && cell.value.querySelector("textarea");
 	if (area) placeCaret(area, clicked);

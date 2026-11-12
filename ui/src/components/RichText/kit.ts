@@ -78,3 +78,6 @@ export const richTextToolbar = [
   HorizontalRule,
   InsertTable,
 ];
+
+/** The bar that floats over a selection in a panel row: the marks and blocks that fit a short note. */
+export const richTextBubble = [H2, H3, Separator, Bold, Italic, InsertLink, InlineCode, BulletList, OrderedList];
