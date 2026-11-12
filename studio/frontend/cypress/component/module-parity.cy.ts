@@ -79,7 +79,9 @@ describe("DB app modules: browser registry and Vite build", () => {
 		)
 		expect(unresolvable, "importable but unresolvable in a build").to.deep.equal([])
 
-		cy.wrap(Promise.all(IMPORTABLE_MODULES.map(loadImportableModule))).then((modules) => {
+		// The charts load on demand, and the dev server can take longer than the default 4 seconds
+		// to serve that chunk for the first time.
+		cy.wrap(Promise.all(IMPORTABLE_MODULES.map(loadImportableModule)), { timeout: 60000 }).then((modules) => {
 			for (const module of modules) expect(Object.keys(module)).not.to.be.empty
 		})
 	})
