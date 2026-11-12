@@ -1018,9 +1018,11 @@
  },
  "Georgia": {
   "code": "ge",
+  "currency": "GEL",
   "currency_fraction": "Tetri",
   "currency_fraction_units": 100,
-  "currency_symbol": "\u10da",
+  "smallest_currency_fraction_value": 0.01,
+  "currency_symbol": "\u20be",
   "number_format": "#,###.##",
   "timezones": [
    "Asia/Tbilisi"
