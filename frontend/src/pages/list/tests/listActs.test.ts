@@ -546,12 +546,19 @@ describe("a renderer's acts", () => {
     const host = {
       list: {
         page: {},
-        engine: { hold: <T,>(work: () => T) => Promise.resolve(work()) },
+        engine: {
+          hold: <T,>(work: () => T) => Promise.resolve(work()),
+          header: {
+            resolve: () =>
+              ["new", "favourite"].map((name) => ({ item: { name }, hidden: false })),
+          },
+        },
         lists: createListPageLists(),
         attach: () => {},
       } as never,
       permissions: {
         passes: () => true,
+        settled: () => undefined,
         loading: () => false,
         ready: () => Promise.resolve(),
       } as never,

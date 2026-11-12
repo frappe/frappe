@@ -40,6 +40,7 @@ vi.mock("@/list/useListView", async () => ({
 }));
 
 import { Addresses } from "@/addresses";
+import { acts, ActDenied, type ActScope } from "@/acts/dispatcher";
 import type { Boot } from "@/boot";
 import { registerShell } from "@/router/routeFor";
 import { closeCreates, createRequests, registerCreateDialog } from "@/shell/create";
@@ -254,5 +255,135 @@ describe("the list page frame and body", () => {
 		hooks.refresh = (page) => page.frame.hide("body");
 		root = await mount();
 		expect(root.querySelector("[data-body-column]")).toBeNull();
+	});
+});
+
+describe("the list page header acts", () => {
+	const actNames = () => acts.available().map((act) => act.name).filter((name) => name.startsWith("header."));
+	const withStars = () =>
+		fetchMock.mockImplementation(async (url) => {
+			const path = new URL(String(url), "http://x").pathname;
+			if (path === "/api/v2/doctype/Contact/meta") return new Response(JSON.stringify({ data: meta }));
+			return new Response(JSON.stringify({ data: { site: null, user: null, favourites: { list: false, views: [] } } }));
+		});
+	const refused = (name: string) => acts.run(name).then(() => null, (error) => error);
+
+	it("registers a header item with run as header.<name>, with its key, palette and argument", async () => {
+		const run = vi.fn();
+		hooks.refresh = (page) =>
+			page.header.add({
+				name: "sync",
+				label: "Sync",
+				key: "Mod+Shift+Y",
+				palette: false,
+				argument: { label: "Where", options: () => [{ value: "a", label: "A" }] },
+				run,
+			});
+		await mount();
+
+		expect(actNames()).toContain("header.sync");
+		expect(acts.find("header.sync")).toMatchObject({ key: "Mod+Shift+Y", palette: false });
+		expect(acts.find("header.sync")!.argument!.label).toBe("Where");
+		await acts.run("header.sync", "a");
+		expect(run).toHaveBeenCalledWith(expect.objectContaining({ doctype: "Contact" }), "a");
+	});
+
+	it("has the built-in Create as header.new, and no act for a crumb", async () => {
+		await mount();
+		expect(actNames()).toEqual(["header.new"]);
+	});
+
+	it("runs a header act from its button, through the dispatcher", async () => {
+		const run = vi.fn();
+		hooks.refresh = (page) => page.header.add({ name: "sync", label: "Sync", display: "button", run });
+		const root = await mount();
+		button(root, "Sync")!.click();
+		await settle();
+		expect(run).toHaveBeenCalledOnce();
+	});
+
+	it("is shadowed by a record dialog's header surface, and live again when the dialog closes", async () => {
+		const listRun = vi.fn();
+		const dialogRun = vi.fn();
+		hooks.refresh = (page) => page.header.add({ name: "sync", label: "Sync", run: listRun });
+		await mount();
+		const dialog: ActScope = {
+			surfaces: { header: () => [{ item: { name: "save", run: dialogRun }, hidden: false }] },
+			context: () => ({}),
+			passes: () => true,
+			settled: () => undefined,
+			hold: async (work) => work(),
+			failed: () => {},
+		};
+
+		const close = acts.register(dialog);
+		expect(actNames()).toEqual(["header.save"]);
+		expect(await refused("header.sync")).toBeInstanceOf(ActDenied);
+		close();
+
+		expect(actNames()).toContain("header.sync");
+		await acts.run("header.sync");
+		expect(listRun).toHaveBeenCalledOnce();
+		expect(dialogRun).not.toHaveBeenCalled();
+	});
+
+	it("does not run list.create or list.favourite once a script hides new or favourite", async () => {
+		withStars();
+		hooks.refresh = (page) => {
+			page.header.hide("new");
+			page.header.hide("favourite");
+		};
+		await mount();
+
+		for (const name of ["list.create", "list.favourite"])
+			expect(await refused(name)).toMatchObject({ act: name, reason: "hidden" });
+		expect(createRequests.value).toHaveLength(0);
+	});
+
+	it("does not run list.create or list.favourite once a script removes new or favourite", async () => {
+		withStars();
+		hooks.refresh = (page) => {
+			page.header.remove("new");
+			page.header.remove("favourite");
+		};
+		await mount();
+
+		for (const name of ["list.create", "list.favourite"])
+			expect(await refused(name)).toMatchObject({ act: name, reason: "hidden" });
+	});
+
+	it("toasts the error of a header item whose run throws", async () => {
+		hooks.refresh = (page) => {
+			page.header.add({ name: "boom", label: "Boom", display: "button", run: () => { throw new Error("boom 47148"); } });
+		};
+		const root = await mount();
+
+		button(root, "Boom")!.click();
+		await settle();
+
+		expect(toast.error).toHaveBeenCalledWith(expect.stringContaining("boom 47148"));
+	});
+
+	it("runs list.create and offers list.favourite while the script leaves them alone", async () => {
+		withStars();
+		await mount();
+		expect(acts.find("list.favourite")).toBeTruthy();
+		void acts.run("list.create");
+		await settle();
+		expect(createRequests.value).toHaveLength(1);
+	});
+
+	it("takes the object form of right: a header item for another right of the doctype", async () => {
+		hooks.refresh = (page) => {
+			page.header.add({ name: "edit", label: "Edit", display: "button", right: { doctype: "Contact", ptype: "write" }, run: vi.fn() });
+			page.header.add({ name: "purge", label: "Purge", display: "button", right: { doctype: "Contact", ptype: "delete" }, run: vi.fn() });
+		};
+		const root = await mount();
+
+		expect(button(root, "Edit")).not.toBeNull();
+		expect(button(root, "Purge")).toBeNull();
+		expect(actNames()).toContain("header.edit");
+		expect(actNames()).not.toContain("header.purge");
+		expect(await refused("header.purge")).toMatchObject({ reason: "right" });
 	});
 });

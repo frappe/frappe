@@ -104,29 +104,40 @@ interface Found {
 }
 
 export class ActDispatcher {
-	private scopes = shallowReactive(new Map<string, ActScope>());
+	// Each surface name keeps its scopes oldest first; the last one answers.
+	private stacks = shallowReactive(new Map<string, ActScope[]>());
 
-	/** A later scope takes a surface name over; the returned function lets go of only its own. */
+	/** A later scope shadows a surface name; letting go of it restores the one it shadowed. */
 	register(scope: ActScope): () => void {
-		for (const surface of Object.keys(scope.surfaces)) this.scopes.set(surface, scope);
+		for (const surface of Object.keys(scope.surfaces))
+			this.stacks.set(surface, [...(this.stacks.get(surface) ?? []), scope]);
 		return () => {
-			for (const surface of Object.keys(scope.surfaces))
-				if (this.scopes.get(surface) === scope) this.scopes.delete(surface);
+			for (const surface of Object.keys(scope.surfaces)) {
+				const rest = (this.stacks.get(surface) ?? []).filter((held) => held !== scope);
+				if (rest.length) this.stacks.set(surface, rest);
+				else this.stacks.delete(surface);
+			}
 		};
+	}
+
+	private scopeOf(surface: string): ActScope | undefined {
+		return this.stacks.get(surface)?.at(-1);
 	}
 
 	/** What the scope holding `surface` hands its acts, or undefined while no scope holds it. */
 	contextOf(surface: string): unknown {
-		return this.scopes.get(surface)?.context();
+		return this.scopeOf(surface)?.context();
 	}
 
 	/** Every act present, not hidden and allowed now, `palette: false` ones too; `only` narrows them before a right is read. */
 	available(only: (item: ActItem) => boolean = () => true): AvailableAct[] {
 		const listed: AvailableAct[] = [];
-		for (const [surface, scope] of this.scopes)
+		for (const [surface, held] of this.stacks) {
+			const scope = held.at(-1)!;
 			for (const entry of scope.surfaces[surface]())
 				if (isAct(entry.item) && only(entry.item) && isAvailable(scope, entry))
 					listed.push(describe(`${surface}.${entry.item.name}`, entry.item, scope));
+		}
 		return listed;
 	}
 
@@ -164,7 +175,7 @@ export class ActDispatcher {
 	// Synchronous unless a right must settle or the act still loads, so a click's act starts in the click's own tick.
 	private check(name: string): Checked | Promise<Checked> {
 		const found = this.lookup(name);
-		const loading = found ? undefined : this.scopes.get(surfaceOf(name))?.loading?.(name);
+		const loading = found ? undefined : this.scopeOf(surfaceOf(name))?.loading?.(name);
 		if (loading) return loading.then(() => this.check(name));
 		const right = found?.entry.item.right;
 		const settling = found && right ? found.scope.settled(right) : undefined;
@@ -189,7 +200,7 @@ export class ActDispatcher {
 
 	private lookup(name: string): Found | null {
 		const surface = surfaceOf(name);
-		const scope = this.scopes.get(surface);
+		const scope = this.scopeOf(surface);
 		if (!scope) return null;
 		const item = name.slice(surface.length + 1);
 		const entry = scope.surfaces[surface]().find(

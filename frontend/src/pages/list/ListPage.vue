@@ -118,7 +118,7 @@ import { SortBy } from "@framework/ui/SortBy";
 import { useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { computed, defineAsyncComponent, inject, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
-import { passesRight, passesWhen } from "@/acts/dispatcher";
+import { acts } from "@/acts/dispatcher";
 import type { Addresses } from "@/addresses";
 import { isEmptyHeader, projectFrame } from "@/pageEngine";
 import type { HeaderItem } from "@/pageEngine/types";
@@ -133,7 +133,6 @@ import { isFavourite, useListSettings } from "@/list/useListSettings";
 import BodyColumns from "@/pages/record/body/BodyColumns.vue";
 import FrameBands from "@/pages/record/FrameBands.vue";
 import RecordHeader from "@/pages/record/RecordHeader.vue";
-import { errorMessage } from "@/recordPage/errorMessage";
 import { recordDialogWrite } from "@/shell/recordDialog";
 import PageFrame, { pageGutter } from "@/shell/PageFrame.vue";
 import { failedState } from "@/shell/pageState";
@@ -141,7 +140,7 @@ import { LIST_PAGE_TIER } from "@/recordPage/clientScriptTypes";
 import { useLiveClientScripts } from "@/pages/record/liveClientScripts";
 import { createdMessage } from "./createdMessage";
 import { clearDefaultView, setDefaultView } from "./defaultView";
-import { useListActs } from "./listActs";
+import { allowsHeaderItem, useListActs } from "./listActs";
 import { listHeaderItems, projectListHeader } from "./listHeader";
 import { rendererFor, type RendererHost } from "./renderer";
 
@@ -273,21 +272,14 @@ function viewCrumb() {
 	return { label: props.label, href: router.resolve(routeFor(doctype)).path };
 }
 
-const scope = {
-	context: () => list.page,
-	passes: permissions.passes,
-	settled: () => (permissions.loading() ? permissions.ready() : undefined),
-};
-const allows = (item: HeaderItem) => passesWhen(scope, item) && passesRight(scope, item);
-const header = computed(() => projectListHeader(list.engine.header.resolve(), allows));
+const header = computed(() =>
+	projectListHeader(list.engine.header.resolve(), allowsHeaderItem(list, permissions))
+);
 const frame = computed(() => projectFrame(list.engine.frame.resolve()));
 const bodyItems = computed(() => list.engine.body.visible());
 
-// A header item runs as an act, inside a hold so its ops paint once; a throw is a toast.
 function runHeaderItem(item: HeaderItem) {
-	void list.engine
-		.hold(() => item.run?.(list.page))
-		.catch((error) => void toast.error(errorMessage(error)));
+	if (item.run) void acts.perform(`header.${item.name}`);
 }
 
 const controlItems = computed(() => list.lists.controls.visible());
