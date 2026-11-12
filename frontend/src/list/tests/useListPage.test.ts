@@ -362,9 +362,32 @@ describe("the tiers", () => {
 		const title = { field: FIELDS[0], fieldname: "title", operator: "equals", value: "A" };
 		page.filters.value = [title, { field: FIELDS[1], fieldname: "status", operator: "equals", value: "Open" }] as never;
 
-		page.applyBadgeFilters([["status", "=", "Closed"], ["gone", "=", 1]]);
+		page.applyBadgeFilters([["status", "=", "Closed"]]);
 
 		expect(page.filters.value).toEqual([title, { field: expect.objectContaining({ fieldname: "status" }), fieldname: "status", operator: "equals", value: "Closed" }]);
+	});
+
+	it("applies none of a badge's filters when one names an unknown field or operator", async () => {
+		const log = vi.spyOn(console, "error").mockImplementation(() => {});
+		await mount("/lead");
+		await settle();
+
+		page.applyBadgeFilters([["status", "=", "Closed"], ["typo", "=", 1]]);
+		page.applyBadgeFilters([["status", "contains", "x"]] as never);
+
+		expect(page.filters.value).toEqual([]);
+		expect(log).toHaveBeenCalledTimes(2);
+		log.mockRestore();
+	});
+
+	it("reads a Check's 1 as the filter bar's Yes", async () => {
+		fake.meta!.fields = [...FIELDS, { fieldname: "overdue", label: "Overdue", fieldtype: "Check" }];
+		await mount("/lead");
+		await settle();
+
+		page.applyBadgeFilters([["overdue", "=", 1]]);
+
+		expect(page.filters.value).toMatchObject([{ fieldname: "overdue", operator: "equals", value: "Yes" }]);
 	});
 
 	it("asks for a Link column's target title and keys it the way the form's link titles are", async () => {

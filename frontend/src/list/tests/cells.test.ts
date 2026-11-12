@@ -90,6 +90,11 @@ describe("resolveCell with a badge function", () => {
 		expect(resolveCell({ badge: () => ({}) }, "Open", "Select", row)).toEqual({ theme: "gray" });
 	});
 
+	it("falls to gray for an unknown theme and drops malformed filters, keeping the badge", () => {
+		const badge = () => ({ theme: "purple", filters: [["status", "="]] }) as never;
+		expect(resolveCell({ badge }, "Open", "Select", row)).toEqual({ theme: "gray" });
+	});
+
 	it("leaves a field with a cell of its own to that cell", () => {
 		expect(resolveCell({ badge: () => ({ theme: "red" }) }, 1, "Check", row)).toBeNull();
 	});

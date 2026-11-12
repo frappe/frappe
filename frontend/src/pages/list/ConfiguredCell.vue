@@ -3,6 +3,7 @@
 	<button
 		v-if="view.theme && view.filters"
 		type="button"
+		:aria-label="__('Filter by {0}', [label])"
 		class="rounded-1 focus-visible:ring-2 focus-visible:ring-outline-gray-3"
 		@click.stop.prevent="emit('filter', view.filters)"
 	>
@@ -23,6 +24,7 @@ import type { FieldMeta } from "@framework/ui/fields/types";
 import { useFieldDisplay } from "@framework/ui/FormLayout";
 import { Badge, Tooltip } from "frappe-ui";
 import { computed } from "vue";
+import { __ } from "@/i18n";
 import Icon from "@/icons/Icon.vue";
 import type { CellView } from "@/list/cells";
 

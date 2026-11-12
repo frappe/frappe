@@ -60,7 +60,7 @@ export const COLUMN_KEYS: readonly string[] = ["name", "label", "width", "icons"
 
 /** The row fields the columns' badge functions read, for the list query. */
 export function columnFields(columns: ListPageColumn[]): string[] {
-  return columns.flatMap((column) => column.fields ?? []);
+  return columns.flatMap((column) => (Array.isArray(column.fields) ? column.fields.filter((name) => typeof name === "string") : []));
 }
 
 /** The row fields the row actions read, for the list query. */

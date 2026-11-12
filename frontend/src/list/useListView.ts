@@ -229,7 +229,18 @@ export function useListView(view: View, lists: Pick<ListPageLists, "columns" | "
 				row
 			),
 		applyBadgeFilters: (wire) => {
-			const added = parseFilters(getFilterableFields(fields.value, doctype), wire);
+			const filterable = getFilterableFields(fields.value, doctype);
+			// A Check's 1 or 0 is the boolean the filter bar reads.
+			const typed = wire.map(([fieldname, operator, value]) => {
+				const isCheck = filterable.find((one) => one.fieldname === fieldname)?.fieldtype === "Check";
+				return [fieldname, operator, isCheck && (value === 1 || value === 0) ? value === 1 : value] as typeof wire[number];
+			});
+			const added = parseFilters(filterable, typed);
+			// A half-applied badge would show rows its label did not count: apply all of it or none.
+			if (added.length !== wire.length || added.some((condition) => !condition.operator)) {
+				console.error("A badge's filters name an unknown field or operator, none applied:", wire);
+				return;
+			}
 			const names = new Set(added.map((condition) => condition.fieldname));
 			view.filters.value = [
 				...view.filters.value.filter((condition) => !names.has(condition.fieldname)),

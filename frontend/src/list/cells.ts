@@ -48,24 +48,33 @@ export function isSwitchCell(cell: ListCell | undefined, fieldtype?: string): bo
 	return Boolean(cell?.switch) && fieldtype === "Check";
 }
 
+const THEMES = new Set(["gray", "blue", "green", "orange", "red"]);
+
+function isTriple(filter: unknown): boolean {
+	return Array.isArray(filter) && filter.length === 3 && typeof filter[0] === "string" && typeof filter[1] === "string";
+}
+
 // frappe-ui's Badge has no `orange`; its warm theme is `amber`.
 function themeOf(theme: string): BadgeProps["theme"] {
 	return (theme === "orange" ? "amber" : theme) as BadgeProps["theme"];
 }
 
 // A script's function runs in the table's render; its error leaves the default cell, not a blank table.
+const logged = new WeakSet<object>();
+
 function badgeOf(badge: (row: Record<string, any>) => BadgeSpec | null | undefined, row: Record<string, any>): CellView | null {
 	let spec: BadgeSpec | null | undefined;
 	try {
 		spec = badge(row);
 	} catch (error) {
-		console.error("A column's badge function threw:", error);
+		if (!logged.has(badge)) console.error("A column's badge function threw:", error);
+		logged.add(badge);
 		return null;
 	}
 	if (!spec || typeof spec !== "object") return null;
-	const view: CellView = { theme: themeOf(spec.theme ?? "gray") };
+	const view: CellView = { theme: themeOf(THEMES.has(spec.theme as string) ? spec.theme! : "gray") };
 	if (spec.label != null) view.label = String(spec.label);
-	if (Array.isArray(spec.filters) && spec.filters.length) view.filters = spec.filters;
+	if (Array.isArray(spec.filters) && spec.filters.length && spec.filters.every(isTriple)) view.filters = spec.filters;
 	return view;
 }
 
