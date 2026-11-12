@@ -484,6 +484,7 @@ class PrintFormatGenerator:
 		self.settings_override = settings or {}
 		self._header_absorbs_top_margin = False
 		self._logged_conditions = set()
+		self._linked_docs = {}
 		self.letterhead = None
 		self.apply_classic_margin_defaults()
 
@@ -1364,17 +1365,23 @@ class PrintFormatGenerator:
 		if not self.has_field_access(self.doc, self.doc.meta, link_fieldname):
 			return None
 		name = self.doc.get(link_fieldname)
-		if not name or not frappe.has_permission(link_df.options, "read", doc=name):
+		if not name:
+			return None
+		if (link_df.options, name) not in self._linked_docs:
+			linked_doc = frappe.get_lazy_doc(link_df.options, name)
+			self._linked_docs[link_df.options, name] = (
+				linked_doc if frappe.has_permission(link_df.options, "read", doc=linked_doc) else None
+			)
+		linked_doc = self._linked_docs[link_df.options, name]
+		if not linked_doc:
 			return None
 		target_meta = frappe.get_meta(link_df.options)
 		target_df = target_meta.get_field(target_fieldname)
 		if not target_df:
 			return None
-		if target_df.permlevel:
-			target_doc = frappe.get_doc(link_df.options, name)
-			if not target_doc.has_permlevel_access_to(target_fieldname, target_df):
-				return None
-		value = frappe.db.get_value(link_df.options, name, target_fieldname)
+		if target_df.permlevel and not linked_doc.has_permlevel_access_to(target_fieldname, target_df):
+			return None
+		value = linked_doc.get(target_fieldname)
 		if value is None:
 			return None
 		return value, target_df
