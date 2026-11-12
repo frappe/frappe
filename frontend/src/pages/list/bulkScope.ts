@@ -18,5 +18,5 @@ export function bulkScopeOf(selection: Ref<string[]>): BulkScopeView {
 
 /** An act's label with the scope, such as "Delete 3 selected". */
 export function scopedLabel(label: string, scope: BulkScopeView) {
-	return __("{0} {1}", [label, scope.text()]);
+	return __("{0} {1}", [label, scope.text()], "A bulk action's label with its scope");
 }

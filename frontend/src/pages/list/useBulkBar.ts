@@ -77,7 +77,7 @@ export function useBulkBar(options: BulkBarOptions): BulkBar {
 		{ rows: () => options.rows.value, selection: () => selection.value, reload: options.reload }
 	);
 
-	// The palette runs an act with no value, so the wrapper hands it the selection the bar would.
+	// The palette runs an act with no value or an option, so the wrapper always hands `run` the selection, as the bar does.
 	function bulkEntries(): ActEntry[] {
 		const over = selection.value.length > cap;
 		return bulkList
@@ -86,9 +86,10 @@ export function useBulkBar(options: BulkBarOptions): BulkBar {
 			.map(({ item, hidden }) => ({
 				item: {
 					...item,
-					label: scopedLabel(item.label ?? item.name, scope),
+					label: item.label && scopedLabel(item.label, scope),
+					argument: undefined,
 					palette: over ? (false as const) : item.palette,
-					run: (page: ListPageApi, value?: unknown) => item.run!(page, value ?? scope.selected()),
+					run: (page: ListPageApi) => item.run!(page, scope.selected()),
 				},
 				hidden,
 			}));

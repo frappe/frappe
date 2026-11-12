@@ -13,6 +13,7 @@ afterEach(() => {
 });
 
 function bar({ rights = true, script = true, selected = ["A", "B", "C"], cap = 500, locked = false } = {}) {
+	// `script: false` leaves the list with Delete only.
 	const lists = createListPageLists();
 	const selection = ref(selected);
 	const askDelete = vi.fn();
@@ -58,7 +59,7 @@ function bar({ rights = true, script = true, selected = ["A", "B", "C"], cap = 5
 	app.provide("boot", { bulk_actions: !locked, bulk_operation_limit: cap }).mount(document.createElement("div"));
 	mounted = { app, release: () => release() };
 	if (script) lists.bulkActions.add({ name: "restore", label: "Restore", run: (_page, names) => seen(names) });
-	return { result, selection, askDelete, seen };
+	return { result, selection, askDelete, seen, lists };
 }
 
 const paletteLabels = () =>
@@ -89,7 +90,36 @@ describe("the bulk actions in the palette", () => {
 		const { seen, selection } = bar();
 		await acts.perform("list.restore");
 		expect(seen).toHaveBeenCalledWith(["A", "B", "C"]);
+		await acts.perform("list.restore", "an option the palette picked");
+		expect(seen).toHaveBeenLastCalledWith(["A", "B", "C"]);
 		selection.value = ["Z"];
+		expect(seen.mock.calls[0][0]).toEqual(["A", "B", "C"]);
+	});
+
+	it("offers a script's item without a label, a palette flag or an argument as the bar does", async () => {
+		const { lists } = bar();
+		lists.bulkActions.add({ name: "nameless", run: () => {} });
+		lists.bulkActions.add({ name: "quiet", label: "Quiet", palette: false, run: () => {} });
+		lists.bulkActions.add({
+			name: "pick",
+			label: "Pick",
+			argument: { label: "Which", options: () => [] },
+			run: () => {},
+		});
+		await nextTick();
+		expect(paletteLabels()).not.toContain("Quiet 3 selected");
+		expect(paletteLabels().filter((label) => /^nameless/.test(label ?? ""))).toEqual([]);
+		expect(acts.find("list.pick")?.argument).toBeUndefined();
+		expect(paletteLabels()).toContain("Pick 3 selected");
+	});
+
+	it("flips with the selection: at the cap offered, past it left out", async () => {
+		const { selection } = bar({ cap: 3 });
+		await nextTick();
+		expect(paletteLabels()).toContain("Delete 3 selected");
+		selection.value = ["A", "B", "C", "D"];
+		await nextTick();
+		expect(paletteLabels().filter((label) => /selected/.test(label!))).toEqual([]);
 	});
 
 	it("runs Delete from the palette", async () => {
