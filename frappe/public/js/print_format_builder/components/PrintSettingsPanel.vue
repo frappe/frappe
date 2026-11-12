@@ -214,10 +214,12 @@ watch(
 );
 onUnmounted(() => hint_tooltip?.destroy());
 
-const paper_sizes = [
-	{ label: __("Default"), value: "" },
-	...["A4", "A5", "A3", "Letter", "Legal", "Tabloid"].map((s) => ({ label: s, value: s })),
-];
+let paper_sizes = computed(() => {
+	const sizes = ["A4", "A5", "A3", "Letter", "Legal", "Tabloid"];
+	const size = layout.value.page?.size;
+	if (size && !sizes.includes(size)) sizes.push(size);
+	return [{ label: __("Default"), value: "" }, ...sizes.map((s) => ({ label: s, value: s }))];
+});
 
 function set_page(key, value) {
 	const page = { ...layout.value.page, [key]: value };
