@@ -729,6 +729,7 @@ frappe.ui.Combobox = class Combobox {
 		document.addEventListener("pointerdown", this.onoutside, { capture: true });
 		window.addEventListener("resize", this.onreposition);
 		document.addEventListener("scroll", this.onreposition, { capture: true, passive: true });
+		document.addEventListener("animationend", this.onreposition, { capture: true });
 
 		this.load();
 		this.reposition();
@@ -836,6 +837,7 @@ frappe.ui.Combobox = class Combobox {
 		document.removeEventListener("pointerdown", this.onoutside, { capture: true });
 		window.removeEventListener("resize", this.onreposition);
 		document.removeEventListener("scroll", this.onreposition, { capture: true });
+		document.removeEventListener("animationend", this.onreposition, { capture: true });
 
 		this.trigger_el.setAttribute("aria-expanded", "false");
 		this.trigger_el.removeAttribute("aria-controls");
