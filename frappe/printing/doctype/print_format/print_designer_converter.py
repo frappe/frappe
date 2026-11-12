@@ -144,6 +144,7 @@ class PrintDesignerConverter:
 			"header": self.zone(header, flt(self.page.get("headerHeight"))),
 			"sections": self.sections(body),
 			"footer": self.zone(footer, flt(self.page.get("footerHeight"))),
+			"letter_head": "",
 		}
 		if setup := (self.settings.get("userProvidedJinja") or "").strip():
 			layout["global_variables"] = setup
