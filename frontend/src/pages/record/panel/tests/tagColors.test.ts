@@ -35,7 +35,7 @@ describe("tag colours", () => {
 		expect(runMethod).toHaveBeenCalledWith("frappe.desk.doctype.tag.tag.set_tag_color", {
 			tag: "repaint",
 			color: "Blue",
-		});
+		}, { nullable: true });
 		expect(tagColorClass("repaint")).toBe(TAG_COLORS.Blue);
 	});
 });

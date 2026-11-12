@@ -400,7 +400,7 @@ describe("tags", () => {
 		await colourStep(root);
 		const blue = [...root.querySelectorAll("[data-tag-colors] button")].find((row) => row.textContent?.includes("Blue"));
 		(blue as HTMLElement).click();
-		await vi.waitFor(() => expect(api.runMethod).toHaveBeenCalledWith(expect.stringContaining("set_tag_color"), { tag: "old", color: "Blue" }));
+		await vi.waitFor(() => expect(api.runMethod).toHaveBeenCalledWith(expect.stringContaining("set_tag_color"), { tag: "old", color: "Blue" }, { nullable: true }));
 		expect(tagColorClass("old")).toBe(TAG_COLORS.Blue);
 	});
 });
