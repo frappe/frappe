@@ -2,7 +2,14 @@
 
 {%- block value -%}
 <div class="value">
+<<<<<<< HEAD
     <div class="color-square" style="background-color: {{ value }};"></div>
     {{ value }}
+=======
+    {% if value %}
+    <div class="color-square" style="background-color: {{ value|e }};"></div>
+    {{ value|e }}
+    {% endif %}
+>>>>>>> 1c300f9 (fix(print): escape the color value in the color field macro)
 </div>
 {%- endblock -%}
