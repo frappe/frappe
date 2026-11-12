@@ -4,12 +4,13 @@
 	<div
 		v-if="headerIndex !== null"
 		ref="header"
-		class="group/section sticky z-[1] flex cursor-pointer select-none items-center gap-1.5 bg-surface-base px-4 after:pointer-events-none after:absolute after:inset-x-0 after:top-[calc(100%+1px)] after:h-2.5 after:bg-gradient-to-b after:from-surface-base after:to-transparent after:content-['']"
-		:class="[
-			index ? 'border-t border-outline-gray-1' : '',
-			covering ? 'after:opacity-100' : 'after:opacity-0',
-		]"
-		:style="{ top: `${pinTop + headerIndex * HEIGHT}px`, height: `${HEIGHT}px` }"
+		class="group/section sticky z-[1] flex cursor-pointer select-none items-center gap-1.5 bg-surface-base px-4 after:pointer-events-none after:absolute after:inset-x-0 after:top-full after:h-[--fade] after:bg-gradient-to-b after:from-surface-base after:to-transparent after:content-['']"
+		:class="index ? 'border-t border-outline-gray-1' : ''"
+		:style="{
+			top: `${pinTop + headerIndex * HEIGHT}px`,
+			height: `${HEIGHT}px`,
+			'--fade': `${fade}px`,
+		}"
 		:data-section="name"
 		@click="$emit('toggle')"
 	>
@@ -81,17 +82,19 @@ const props = defineProps<{
 	pinTop: number;
 }>();
 
-// The fade under a pinned header shows only while rows scroll beneath it; drawn always, it
-// greys the top of the first row's fill.
+// The fade under a pinned header grows with the rows scrolled beneath it: drawn in full at
+// once, it pales a first row that has not reached the header yet.
+const FADE = 24;
 const header = ref<HTMLElement | null>(null);
 const body = ref<HTMLElement | null>(null);
-const covering = ref(false);
+const fade = ref(0);
 let scroller: HTMLElement | null = null;
 
 function measure() {
-	if (!header.value || !body.value) return (covering.value = false);
-	covering.value =
-		body.value.getBoundingClientRect().top < header.value.getBoundingClientRect().bottom;
+	if (!header.value || !body.value) return (fade.value = 0);
+	const under =
+		header.value.getBoundingClientRect().bottom - body.value.getBoundingClientRect().top;
+	fade.value = Math.min(Math.max(under, 0), FADE);
 }
 
 onMounted(() => {
