@@ -1,4 +1,5 @@
-import { AppModuleRegistry, clearAppStyles } from "@/browserRuntime/moduleRegistry"
+import { clearAppStyles } from "@/browserRuntime/appStyles"
+import { AppModuleRegistry } from "@/browserRuntime/moduleRegistry"
 import { loadImportableModule } from "@/browserRuntime/importableModules"
 import { IMPORTABLE_MODULES } from "@/browserRuntime/importableLibraries.js"
 import { moduleFixtures } from "../fixtures/module-fixtures.mjs"

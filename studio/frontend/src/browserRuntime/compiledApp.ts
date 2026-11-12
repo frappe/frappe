@@ -10,7 +10,8 @@
 
 import { createResource } from "frappe-ui"
 import { parseModule, describeError } from "@/browserRuntime/compiler"
-import { AppModuleRegistry, clearAppStyles } from "@/browserRuntime/moduleRegistry"
+import { clearAppStyles } from "@/browserRuntime/appStyles"
+import { AppModuleRegistry } from "@/browserRuntime/moduleRegistry"
 import { scrub } from "@/utils/helpers"
 import type { RouterConfig } from "@/router/app_router"
 

@@ -19,8 +19,8 @@ import {
 	type ModuleExports,
 	type ModuleImport,
 } from "@/browserRuntime/compiler"
+import { injectAppStyle } from "@/browserRuntime/appStyles"
 import { loadImportableModule } from "@/browserRuntime/importableModules"
-import { isEditor } from "@/utils/helpers"
 
 const EXTENSION_CANDIDATES = ["", ".js", ".json", "/index.js"]
 const AMBIGUOUS_EXPORT = Symbol("ambiguous export")
@@ -34,14 +34,24 @@ export class AppCompileError extends Error {
 	}
 }
 
+/** The state of one .js file. A new version of the file gets a new record. */
+interface ModuleRecord {
+	factory?: ModuleFactory
+	/** The names that the file exports. Not set if the file did not compile. */
+	exportNames?: ModuleExports
+	/** The names that the file imports from the app's own modules. */
+	localImports: ModuleImport[]
+	/** The reasons why the file cannot run. */
+	errors?: CompileError[]
+	/** The exports object, set when execution starts. */
+	loaded?: { exports: any }
+	/** The value that the file threw during execution. */
+	thrown?: { error: unknown }
+}
+
 export class AppModuleRegistry {
 	private files: Record<string, string>
-	private factories: Record<string, ModuleFactory> = {}
-	private modules = new Map<string, { exports: any }>()
-	private executionErrors = new Map<string, unknown>()
-	private failures: Record<string, CompileError[]> = {}
-	private exports: Record<string, ModuleExports> = {}
-	private localImports: Record<string, ModuleImport[]> = {}
+	private records = new Map<string, ModuleRecord>()
 	private bare = new Map<string, any>()
 	private prepared: Promise<void> | null = null
 
@@ -52,26 +62,21 @@ export class AppModuleRegistry {
 	/** Load a module by its exact path relative to the app root, such as stores/catalog.js. */
 	async loadModule(path: string): Promise<any> {
 		await this.prepare()
-		this.throwIfFailed(path)
-		if (!this.factories[path]) throw new Error(`${path} is not a module in this app.`)
-		return this.load(path)
+		return this.load(path, `${path} is not a module in this app.`)
 	}
 
 	/** Add or replace a file and clear only that module's cached exports.
 	 * Other module caches stay unchanged, so cached importers may still hold older exports. */
 	async addFile(path: string, source: string): Promise<void> {
 		await this.prepare()
-		if (this.files[path] !== source || !this.factories[path]) {
+		let record = this.records.get(path)
+		if (this.files[path] !== source || !record?.factory) {
 			this.files[path] = source
-			this.modules.delete(path)
-			this.executionErrors.delete(path)
-			delete this.failures[path]
-			await this.compileInto(path, source)
-			this.throwIfFailed(path)
-			const errors = this.checkLocalExports(path)
-			if (errors.length) this.failures[path] = errors
+			record = await this.compile(path, source)
+			this.records.set(path, record)
+			if (!record.errors) this.checkLocalExports(path, record)
 		}
-		this.throwIfFailed(path)
+		if (record.errors) throw new AppCompileError(record.errors)
 	}
 
 	hasFile(path: string): boolean {
@@ -85,27 +90,27 @@ export class AppModuleRegistry {
 
 	private async compileAll(): Promise<void> {
 		for (const [path, source] of Object.entries(this.files)) {
-			if (!path.endsWith(".js")) continue
-			await this.compileInto(path, source)
+			if (path.endsWith(".js")) this.records.set(path, await this.compile(path, source))
 		}
 		// Every module is compiled by now, so each one's exports are known to the next check.
-		for (const path of Object.keys(this.localImports)) {
-			if (this.failures[path]) continue
-			const errors = this.checkLocalExports(path)
-			if (errors.length) this.failures[path] = errors
+		for (const [path, record] of this.records) {
+			if (!record.errors) this.checkLocalExports(path, record)
 		}
 	}
 
 	/** Validate a file's imports, compile it and create its module factory. */
-	private async compileInto(path: string, source: string): Promise<void> {
+	private async compile(path: string, source: string): Promise<ModuleRecord> {
+		const record: ModuleRecord = { localImports: [] }
 		const parsed = await parseModule(path, source, true)
-		const errors = parsed.errors.length ? parsed.errors : await this.linkImports(path, parsed.imports)
+		const errors = parsed.errors.length
+			? parsed.errors
+			: await this.linkImports(path, parsed.imports, record.localImports)
 		if (!errors.length) {
 			const compiled = await compileFile(path, source)
 			errors.push(...compiled.errors)
 			if (!errors.length) {
 				try {
-					this.factories[path] = new Function(
+					record.factory = new Function(
 						"exports",
 						"require",
 						"module",
@@ -116,28 +121,28 @@ export class AppModuleRegistry {
 					errors.push(importError(path, (error as Error).message))
 				}
 			}
-			if (!errors.length) this.exports[path] = parsed.exports
 		}
-		if (errors.length) {
-			// Drop the last working version, or a module that no longer compiles keeps running.
-			delete this.factories[path]
-			delete this.exports[path]
-			this.failures[path] = errors
-		}
+		if (errors.length) record.errors = errors
+		else record.exportNames = parsed.exports
+		return record
 	}
 
-	/** Validate discovered imports before execution. Local paths must exist in the app.
-	 * Load renderer library modules and check their requested exports. */
-	private async linkImports(path: string, imports: ModuleImport[]): Promise<CompileError[]> {
+	/** Validate discovered imports before execution. Local paths must exist in the app, and their
+	 * named imports go into `localImports`. Load renderer library modules and check their
+	 * requested exports. */
+	private async linkImports(
+		path: string,
+		imports: ModuleImport[],
+		localImports: ModuleImport[],
+	): Promise<CompileError[]> {
 		const errors: CompileError[] = []
-		this.localImports[path] = []
 		for (const { specifier, names } of imports) {
 			if (isLocalSpecifier(specifier)) {
 				const resolved = this.resolve(path, specifier)
 				if (!resolved) {
 					errors.push(importError(path, `Cannot resolve "${specifier}"`))
 				} else if (names.length) {
-					this.localImports[path].push({ specifier: resolved, names })
+					localImports.push({ specifier: resolved, names })
 				}
 				continue
 			}
@@ -160,9 +165,9 @@ export class AppModuleRegistry {
 	}
 
 	/** Check what this file imports from the app's own modules against what they export. */
-	private checkLocalExports(path: string): CompileError[] {
+	private checkLocalExports(path: string, record: ModuleRecord) {
 		const errors: CompileError[] = []
-		for (const { specifier, names } of this.localImports[path] || []) {
+		for (const { specifier, names } of record.localImports) {
 			for (const name of names) {
 				const binding = this.resolveExport(specifier, name, new Set())
 				if (binding === AMBIGUOUS_EXPORT) {
@@ -172,7 +177,7 @@ export class AppModuleRegistry {
 				}
 			}
 		}
-		return errors
+		if (errors.length) record.errors = errors
 	}
 
 	/** Follow re-exports to their original binding: two paths to the same binding are not ambiguous.
@@ -192,7 +197,7 @@ export class AppModuleRegistry {
 			const names = jsonExports(this.files[path])
 			return names === null ? undefined : names.has(name) ? key : null
 		}
-		const own = this.exports[path]
+		const own = this.records.get(path)?.exportNames
 		if (!own) return undefined
 		const binding = own.bindings[name]
 		if (binding) {
@@ -225,36 +230,36 @@ export class AppModuleRegistry {
 		}
 		const resolved = this.resolve(from, specifier)
 		if (!resolved) throw new Error(`Cannot resolve "${specifier}" from ${from}`)
-		if (resolved.endsWith(".css")) return this.injectCSS(resolved)
+		if (resolved.endsWith(".css")) {
+			injectAppStyle(resolved, this.files[resolved])
+			return Object.freeze(Object.defineProperty({}, "__esModule", { value: true }))
+		}
 		if (resolved.endsWith(".json")) return parseJSONModule(this.files[resolved])
-		this.throwIfFailed(resolved)
-		if (!this.factories[resolved]) throw new Error(`Cannot import "${specifier}" from ${from}: not a module`)
-		return this.load(resolved)
+		return this.load(resolved, `Cannot import "${specifier}" from ${from}: not a module`)
 	}
 
-	/** A file that does not compile fails the modules that import it, not every other page. */
-	private throwIfFailed(path: string) {
-		if (this.failures[path]) throw new AppCompileError(this.failures[path])
-	}
-
-	/** Cache the exports object before execution so cycles can read partially initialized exports. */
-	private load(path: string): any {
+	/** Execute a module once and return its exports. Cache the exports object before execution
+	 * so cycles can read partially initialized exports. */
+	private load(path: string, notAModule: string): any {
+		const record = this.records.get(path)
+		// A file that does not compile fails the modules that import it, not every other page.
+		if (record?.errors) throw new AppCompileError(record.errors)
+		if (!record?.factory) throw new Error(notAModule)
 		// A module may throw after side effects; revisiting it must not execute those effects again.
-		if (this.executionErrors.has(path)) throw this.executionErrors.get(path)
-		const existing = this.modules.get(path)
-		if (existing) return existing.exports
+		if (record.thrown) throw record.thrown.error
+		if (record.loaded) return record.loaded.exports
 		const module = { exports: {} }
-		this.modules.set(path, module)
+		record.loaded = module
 		try {
-			this.factories[path].call(
+			record.factory.call(
 				undefined,
 				module.exports,
 				(specifier: string) => this.require(path, specifier),
 				module,
 			)
 		} catch (error) {
-			this.executionErrors.set(path, error)
-			this.modules.delete(path)
+			record.thrown = { error }
+			record.loaded = undefined
 			throw error
 		}
 		return module.exports
@@ -272,19 +277,6 @@ export class AppModuleRegistry {
 			if (this.files[base + extension] !== undefined) return base + extension
 		}
 		return null
-	}
-
-	private injectCSS(path: string): any {
-		let element = styleElements.get(path)
-		if (!element || !element.isConnected) {
-			element = document.createElement("style")
-			element.dataset.studioAppCss = path
-			document.head.append(element)
-			styleElements.set(path, element)
-		}
-		const css = fenceToCanvas(this.files[path])
-		if (element.textContent !== css) element.textContent = css
-		return Object.freeze(Object.defineProperty({}, "__esModule", { value: true }))
 	}
 }
 
@@ -327,31 +319,4 @@ function parseJSONModule(source: string): any {
 
 function importError(path: string, message: string): CompileError {
 	return { file: path, line: null, column: null, message }
-}
-
-// A sheet's document roots, which in the editor mean the canvas copy of the page.
-const DOCUMENT_ROOTS = /(^|[{},]|\*\/)(\s*)(?:html|body|:root)(?=[\s{,.:#[>+~])/g
-// `@import` is only read at the top of a sheet, so it cannot move inside the fence.
-const SHEET_AT_RULES = /@(?:charset|import)\b[^;]*;/gi
-
-/** In the editor the app shares a document with the editor's own chrome, so fence it into the canvas. */
-function fenceToCanvas(css: string): string {
-	if (!isEditor()) return css
-	const imports: string[] = []
-	const rules = css.replace(SHEET_AT_RULES, (rule) => {
-		imports.push(rule)
-		return ""
-	})
-	return `${imports.join("\n")}\n@scope (.canvas) {\n${rules.replace(DOCUMENT_ROOTS, "$1$2:scope")}\n}`
-}
-
-// Keep styles by file path across registry rebuilds, so edits replace styles instead of adding copies.
-const styleElements = new Map<string, HTMLStyleElement>()
-
-export function clearAppStyles(keep: Set<string> = new Set()) {
-	for (const [path, element] of styleElements) {
-		if (keep.has(path)) continue
-		element.remove()
-		styleElements.delete(path)
-	}
 }

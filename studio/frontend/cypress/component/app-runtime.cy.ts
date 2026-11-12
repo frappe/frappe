@@ -1,5 +1,6 @@
 import { isRef } from "vue"
-import { AppModuleRegistry, AppCompileError, clearAppStyles } from "@/browserRuntime/moduleRegistry"
+import { clearAppStyles } from "@/browserRuntime/appStyles"
+import { AppModuleRegistry, AppCompileError } from "@/browserRuntime/moduleRegistry"
 
 // Linking, execution order and export resolution are checked against a real build in
 // module-parity.cy.ts. This spec covers only what the registry itself does.
