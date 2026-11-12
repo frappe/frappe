@@ -25,10 +25,11 @@ vi.mock("@framework/ui/api", async (original) => ({
 	runMethod: fake.runMethod,
 }));
 
-vi.mock("@/contributions/registry", () => ({
-	listHandlersFor: () => fake.contributed.map((handlers) => ({ app: "crm", handlers })),
+vi.mock("@/listPage/scriptLoader", () => ({
+	listScriptsOf: () => fake.contributed.map((script) => ({ source: "crm", handlers: {}, ...script })),
 }));
 
+import { createListPageLists } from "@/listPage/createListPage";
 import { Addresses } from "@/addresses";
 import type { Boot } from "@/boot";
 import { registerShell } from "@/router/routeFor";
@@ -119,7 +120,7 @@ async function mount(path: string) {
 function composed() {
 	const listPage = useListPage("Lead", opened);
 	const { filters, sort, seeded } = listPage.view;
-	return { ...listPage, ...useListView(listPage.view), filters, sort, seeded };
+	return { ...listPage, ...useListView(listPage.view, createListPageLists()), filters, sort, seeded };
 }
 
 async function settle() {

@@ -1,4 +1,5 @@
 // The Cards renderer hands the page its part of the `list` act context: no selection, and its reload.
+import { createListPageLists } from "@/listPage/createListPage";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, nextTick, ref } from "vue";
 import CardsView from "../CardsView.vue";
@@ -8,7 +9,7 @@ const reload = vi.fn();
 vi.mock("../useCardsView", () => ({
 	useCardsView: () => ({
 		fields: { title: "title", body: "content", bodyIsHtml: true },
-		rowActions: [],
+		rowActions: ref([]),
 		people: {},
 		pageSize: ref(20),
 		rows: ref([]),
@@ -43,17 +44,21 @@ afterEach(() => {
 });
 
 describe("CardsView acts", () => {
-	it("passes host.acts its entries and a context with no selection and its reload", async () => {
+	it("passes host.acts its entries and a state with its rows, no selection and its reload", async () => {
 		const acts = vi.fn(() => ({ drawn: () => undefined }));
-		const host = { controls: ref(null), acts, onCreate: () => {} };
+		const host = { controls: ref(null), lists: createListPageLists(), acts, onCreate: () => {} };
 		const app = createApp(CardsView, { view: { doctype: "Note", filters: [], update: () => {} }, host });
 		app.mount(document.createElement("div"));
 		mounted.push(app);
 		await nextTick();
 
 		expect(acts).toHaveBeenCalledTimes(1);
-		const [entries, context] = acts.mock.calls[0] as unknown as [() => { item: { name: string } }[], () => unknown];
+		const [entries, state] = acts.mock.calls[0] as unknown as [
+			() => { item: { name: string } }[],
+			{ rows: () => unknown[]; selection: () => string[]; reload: () => void },
+		];
 		expect(entries().map((entry) => entry.item.name)).toEqual(["delete"]);
-		expect(context()).toEqual({ selection: [], reload });
+		expect(state.selection()).toEqual([]);
+		expect(state.reload).toBe(reload);
 	});
 });

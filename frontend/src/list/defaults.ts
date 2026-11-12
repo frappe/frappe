@@ -5,7 +5,7 @@ import type { ListColumn } from "@framework/ui/experimental/List";
 import type { RawMetaField } from "@framework/ui/FormLayout";
 import { parseOrderBy, type Sort } from "@framework/ui/SortBy";
 import type { LinkMarkSource } from "@framework/ui/fields";
-import type { ListHandlers, RowAction } from "@/contributions/types";
+import type { LoadedListScript } from "@/listPage/scriptLoader";
 
 /** The meta keys the list reads; the meta read sends the whole doctype record. */
 export interface ListMeta {
@@ -29,7 +29,7 @@ const GENERIC_COLUMNS: Column[] = [
 
 export const DEFAULT_SORT: Sort[] = [{ fieldname: "modified", direction: "desc" }];
 
-export function defaultColumns(meta: ListMeta, contributed: ListHandlers[]): ListColumn[] {
+export function defaultColumns(meta: ListMeta, contributed: Pick<LoadedListScript, "columns">[]): ListColumn[] {
 	const fields = meta.fields ?? [];
 	const columns = contributedColumns(fields, contributed) ?? metaColumns(fields, meta.title_field);
 	return columns.map((column) => withAlign(column, fields));
@@ -54,7 +54,7 @@ const PART_COLUMNS = new Set(["_favourite", "_comments"]);
 /** The fields a page of rows needs: `name`, the columns, their marks, currencies and titles, then the row actions' and `_seen` on a Track Seen doctype. */
 export function fetchFields(
 	columns: Column[],
-	rowActions: RowAction[] = [],
+	actionFields: string[] = [],
 	meta: ListMeta = {},
 	readable: (fieldname: string) => boolean = () => true
 ): string[] {
@@ -68,7 +68,7 @@ export function fetchFields(
 		...marks,
 		...currencies,
 		...titles,
-		...rowActions.flatMap((a) => a.fields),
+		...actionFields,
 		...(meta.track_seen ? ["_seen"] : []),
 	];
 	return [...new Set(["name", ...wanted])];
@@ -127,16 +127,8 @@ export function cellTitle(fieldname: string, meta: ListMeta): RowValue | undefin
 	return { key, select: `${fieldname}.${field.link_title} as ${key}` };
 }
 
-/** Every contributing app's row actions in run order; an act named twice is listed once, and a `list` act is refused. */
-export function contributedRowActions(contributed: ListHandlers[]): RowAction[] {
-	const actions = contributed
-		.flatMap((handlers) => handlers.rowActions ?? [])
-		.filter((action) => !action.act.startsWith("list."));
-	return actions.filter((action, index) => actions.findIndex((one) => one.act === action.act) === index);
-}
-
 /** Every contributing app's columns in run order; a fieldname named twice is shown once. */
-function contributedColumns(fields: RawMetaField[], contributed: ListHandlers[]): Column[] | null {
+function contributedColumns(fields: RawMetaField[], contributed: Pick<LoadedListScript, "columns">[]): Column[] | null {
 	const columns: Column[] = [];
 	const seen = new Set<string>();
 	for (const handlers of contributed) {

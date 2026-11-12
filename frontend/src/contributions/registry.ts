@@ -7,7 +7,7 @@ import type {
   ActsContribution,
   FieldActionsContribution,
   DoctypeContribution,
-  ListHandlers,
+  ListScript,
   PageContribution,
   RecordDialogContribution,
   ReplacementContribution,
@@ -23,11 +23,17 @@ export const itemRenderers: Record<string, ItemRenderer> = {}
 /** View type -> its renderer's lazy import, filled by `registerContributions` in the site's app order. */
 export const viewRenderers: Record<string, () => Promise<unknown>> = {}
 
-/** List customizations by doctype; the record-page engine has no registrar for these. */
-const listHandlers = new Map<string, { app: string; handlers: ListHandlers }[]>()
+// Doctype -> its list.js files in run order; the list page loads them on its first visit.
+const listScripts = new Map<string, ListScript[]>()
 
-export function listHandlersFor(doctype: string) {
-  return listHandlers.get(doctype) ?? []
+/** Adds an app's list.js behind the doctype's earlier ones. */
+export function addListScript(doctype: string, script: ListScript) {
+  listScripts.set(doctype, [...(listScripts.get(doctype) ?? []), script])
+}
+
+/** The doctype's list.js files, in run order. */
+export function listScriptsFor(doctype: string): readonly ListScript[] {
+  return listScripts.get(doctype) ?? []
 }
 
 let standard: StandardPages | null = null
@@ -157,9 +163,7 @@ export function registerContributions(appOrder: string[]) {
   for (const [doctype, all] of byDoctype) {
     for (const contribution of ordered(all, appOrder, (c) => c.kind === 'custom' || c.kind === 'customList')) {
       if (contribution.kind === 'list' || contribution.kind === 'customList') {
-        const own = listHandlers.get(doctype) ?? []
-        own.push({ app: contribution.app, handlers: contribution.handlers })
-        listHandlers.set(doctype, own)
+        addListScript(doctype, { app: contribution.app, load: contribution.load })
         continue
       }
 

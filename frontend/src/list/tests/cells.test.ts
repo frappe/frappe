@@ -1,18 +1,8 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { resetSession, setSession } from "@framework/ui/useSession";
-import { contributedCells, isSwitchCell, resolveCell } from "../cells";
+import { isSwitchCell, resolveCell } from "../cells";
 
 afterEach(() => resetSession());
-
-describe("contributedCells", () => {
-	it("keeps the first app's entry for a fieldname", () => {
-		const cells = contributedCells([
-			{ cells: { status: { icons: { Done: "a" } } } },
-			{ cells: { status: { icons: { Done: "b" } }, priority: { badge: { High: "red" } } } },
-		]);
-		expect(cells).toEqual({ status: { icons: { Done: "a" } }, priority: { badge: { High: "red" } } });
-	});
-});
 
 describe("resolveCell", () => {
 	it("picks a value's icon, dropping frappe-ui's prefix, or its badge theme", () => {

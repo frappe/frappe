@@ -103,6 +103,7 @@ vi.mock("@/list/useListView", async () => {
 	return {
 		useListView: () => ({
 			columns: ref(columns),
+			shownColumns: ref(columns),
 			rows: ref([row]),
 			selection: ref([]),
 			pageSize: ref(20),
@@ -115,7 +116,7 @@ vi.mock("@/list/useListView", async () => {
 			totalUnknown: ref(false),
 			hasCounts: ref(true),
 			hasNextPage: ref(false),
-			rowActions: [],
+			rowActions: ref([]),
 			fieldOf: (fieldname: string) => metaFields.find((field) => field.fieldname === fieldname),
 			markOf: (fieldname: string) =>
 				fieldname === "agent" ? { source: { kind: "image", field: "user_image" }, key: "agent__mark" } : undefined,
@@ -186,7 +187,12 @@ const mounted: ReturnType<typeof createApp>[] = [];
 function mount(): HTMLElement {
 	const root = document.createElement("div");
 	document.body.appendChild(root);
-	const host = { controls: ref(null), onCreate: vi.fn(), acts: () => ({ drawn: () => null }) };
+	const host = {
+		controls: ref(null),
+		lists: { bulkActions: { provideBuiltins: () => {}, resolve: () => [], visible: () => [] } },
+		onCreate: vi.fn(),
+		acts: () => ({ drawn: () => null }),
+	};
 	const view = { doctype: "CRM Lead", filters: ref([]), sort: ref([]) };
 	const app = createApp(
 		defineComponent({ render: () => h(ListView, { view: view as never, host: host as never }) })

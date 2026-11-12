@@ -2,26 +2,20 @@
 // A renderer's acts join as `<type>.<act>`, so List's own land on `list` too.
 import { toast } from "frappe-ui";
 import { onScopeDispose, shallowRef } from "vue";
-import { useDocPermissions } from "@framework/ui/useDocPermissions";
-import { useSession } from "@framework/ui/useSession";
-import {
-  acts,
-  type ActEntry,
-  type ActRight,
-  type AvailableAct,
-} from "@/acts/dispatcher";
-import type { ListContext } from "@/contributions/types";
-import { useCreateRight } from "@/createRight";
+import { acts, type ActEntry, type AvailableAct } from "@/acts/dispatcher";
 import { __ } from "@/i18n";
-import { whenLoaded } from "@/acts/doctypeRight";
+import type { ListPageController, ListRendererState } from "@/listPage/createListPage";
+import type { ListPermissions } from "@/listPage/listPermissions";
+import type { ListPageApi } from "@/listPage/types";
 import { favouriteWording } from "@/pages/favourite/favouriteWording";
 import type { DefaultScope } from "./defaultView";
 import { errorMessage } from "@/recordPage/errorMessage";
-import { typeKey, type View } from "@/list/view";
+import { typeKey } from "@/list/view";
 
 export interface ListActsHost {
-  doctype: string;
-  view: View;
+  /** The list page: the acts' context, and its `controls` items that have `run`. */
+  list: ListPageController;
+  permissions: ListPermissions;
   create: () => unknown;
   customizeQuickFilter: () => void;
   customizing: () => boolean;
@@ -36,52 +30,43 @@ export interface ListActsHost {
   clearDefaultView: (scope: DefaultScope) => unknown;
 }
 
-/** What the renderer holds of the list context: the rows it shows and how they load again. */
-export type RendererContext = Pick<ListContext<View>, "selection" | "reload">;
-
 export interface ListActs {
-  /** The context an act's `run` gets now, without a row. */
-  context: () => ListContext<View>;
+  /** The list page, which every act's `run` gets. */
+  context: () => ListPageApi;
   /** The act by its item name while the dispatcher would run it, so the page draws it. */
   drawn: (name: string) => AvailableAct | undefined;
   perform: (act: AvailableAct, value?: unknown) => void;
 }
 
 export interface PageActs extends ListActs {
-  /** Puts a renderer's acts on its type's surface, under the page's rights; they draw from the result. `context` is its part of the list context. */
-  renderer: (entries: () => ActEntry[], context: () => RendererContext) => ListActs;
+  /** Puts a renderer's acts on its type's surface, under the page's rights; they draw from the result. `state` is what the page reads its rows from. */
+  renderer: (entries: () => ActEntry[], state: ListRendererState) => ListActs;
 }
 
 /** Registers the `list` surface for the page's life; the page draws its controls from `drawn`. */
 export function useListActs(host: ListActsHost, type = "List"): PageActs {
-  const passes = useListRight(host.doctype);
-  const { loading } = useDocPermissions(host.doctype);
+  const { list, permissions } = host;
   const surface = typeKey(type);
   const rendered = shallowRef<() => ActEntry[]>(() => []);
-  const renderedContext = shallowRef<() => RendererContext>(() => ({ selection: [], reload: () => {} }));
-  const surfaces: Record<string, () => ActEntry[]> = { list: () => listEntries(host) };
-  if (surface === "list") surfaces.list = () => [...listEntries(host), ...rendered.value()];
+  const pageEntries = () => [...listEntries(host), ...controlEntries(list)];
+  const surfaces: Record<string, () => ActEntry[]> = { list: pageEntries };
+  if (surface === "list") surfaces.list = () => [...pageEntries(), ...rendered.value()];
   else surfaces[surface] = () => rendered.value();
   const release = acts.register({
     surfaces,
-    context: () => ({
-      doctype: host.doctype,
-      view: host.view,
-      ...renderedContext.value(),
-      selection: [...renderedContext.value().selection],
-    }),
-    passes,
-    settled: () => (loading.value ? whenLoaded(loading) : undefined),
-    hold: async (work) => work(),
+    context: () => list.page,
+    passes: permissions.passes,
+    settled: () => (permissions.loading() ? permissions.ready() : undefined),
+    hold: list.engine.hold,
     failed: (error) => void toast.error(errorMessage(error)),
   });
   onScopeDispose(release);
 
   return {
     ...surfaceActs("list"),
-    renderer: (entries, context) => {
+    renderer: (entries, state) => {
       rendered.value = entries;
-      renderedContext.value = context;
+      list.attach(state);
       return surfaceActs(surface);
     },
   };
@@ -89,7 +74,7 @@ export function useListActs(host: ListActsHost, type = "List"): PageActs {
 
 function surfaceActs(surface: string): ListActs {
   return {
-    context: () => acts.contextOf(surface) as ListContext<View>,
+    context: () => acts.contextOf(surface) as ListPageApi,
     drawn: (name) => acts.find(`${surface}.${name}`),
     perform: (act, value) => void acts.perform(act.name, value),
   };
@@ -160,6 +145,14 @@ function listEntries(host: ListActsHost): ActEntry[] {
   ];
 }
 
+/** A script's `controls` item with `run` is an act; a built-in one draws itself. */
+function controlEntries(list: ListPageController): ActEntry[] {
+  return list.lists.controls
+    .resolve()
+    .filter(({ item }) => item.run)
+    .map(({ item, hidden }) => ({ item, hidden }));
+}
+
 function viewKey(value?: { key?: unknown }): string {
   if (typeof value?.key !== "string" || !value.key)
     throw new Error(__("Name the view to open by its key."));
@@ -170,16 +163,4 @@ function defaultScope(value?: { scope?: unknown }): DefaultScope {
   if (value?.scope !== "user" && value?.scope !== "site")
     throw new Error(__("Name the default's layer: user or site."));
   return value.scope;
-}
-
-/** A right on the list's doctype; its create right is the list's Create rule. */
-function useListRight(doctype: string): (right: ActRight) => boolean {
-  const canCreate = useCreateRight(doctype);
-  const { holds } = useDocPermissions(doctype);
-  const { session } = useSession();
-  return (right) => {
-    if (typeof right !== "string") return false;
-    if (right === "create") return canCreate.value;
-    return session.value?.user.name === "Administrator" || holds(right);
-  };
 }

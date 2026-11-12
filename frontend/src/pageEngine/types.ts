@@ -154,5 +154,11 @@ export interface PageApi {
   call(method: string, params?: Record<string, any>): Promise<any>;
   /** Server data for `onRefresh`: the value kept for `key`, fetched once per visit; undefined until a fetch lands. */
   cached<T>(key: string, fetch: () => Promise<T> | T): T | undefined;
+  /** Runs an act by its full name, `<surface>.<item>`; rejects with `ActDenied` or the act's error. */
+  run(name: string, value?: unknown): Promise<unknown>;
+  /** Opens a record, a doctype's list or a saved view, as `shell.open` does. */
+  open(doctype: string, name?: string | null, options?: { view?: string }): Promise<void>;
+  /** Opens Create for a doctype; the saved record, or `null` when nothing was saved in the dialog. */
+  create(doctype: string, options?: { values?: Record<string, any> }): Promise<Record<string, any> | null>;
   router: Router;
 }

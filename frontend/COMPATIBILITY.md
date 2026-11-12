@@ -247,10 +247,12 @@ What `page` is _for_ is a small, closed vocabulary:
   idiom; `page.isNew` is true until the first save, and `page.save()` then inserts;
   a throw in `beforeSave` blocks the save, in `beforeSubmit` or `beforeCancel` that act; a handler that throws is isolated,
   half-applied, and does not take other scripts down with it.
-- **A list act's context**: `run(list, value)` on a `list.*` act, and `value(row, list)` and
-  `when(row, list)` on a `list.js` row action, get one `list` with `doctype`, `view`,
-  `selection` (a copy of the selected names), `reload()` and, in a row act, `row`. These five
-  names are the contract, and of `view` only `key`, `type`, `filters`, `sort` and `settings`; a list-page script surface beyond them is not promised.
+- **The list page**: `run(page, value)` on a `list.*` act, and `run(page, row)` and
+  `when(page, row)` on a `list.js` row action, get the list page. Its base members are the
+  record page's (`doctype`, `perms`, `roles`, `toast`, `dialog`, `run`, `open`, `create`), and its
+  own are `controls`, `columns`, `bulkActions`, `rowActions`, `view` (`key` and `type`), the
+  read-only `rows` and `selection`, `filters`, `sort` and `reload()`. A list.js handler file
+  edits the four lists in `onRefresh`; the page paints once it has run.
 
 These are deliberately small, closed, and shaped like frappe rather than like the
 component library beneath them. They are what we would fight hardest to preserve.

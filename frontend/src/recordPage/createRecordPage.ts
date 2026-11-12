@@ -410,18 +410,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
       rename: (name: string, options?: { merge?: boolean }) =>
         engine.hasLeft() || !host.rename ? Promise.resolve(null) : host.rename(name, Boolean(options?.merge)),
       reload: () => (engine.hasLeft() ? Promise.resolve() : host.reload()),
-      create: (doctype: string, options?: { values?: Record<string, any> }) => {
-        if (engine.hasLeft()) return Promise.resolve(null);
-        const created = acts.run("shell.create", { doctype, values: options?.values });
-        return created as Promise<Record<string, any> | null>;
-      },
-      open: (doctype: string, name?: string | null, options?: { view?: string }) =>
-        engine.hasLeft()
-          ? Promise.resolve()
-          : (acts.run("shell.open", { doctype, name, view: options?.view }) as Promise<void>),
       openSettings: (...address: Parameters<RecordPageApi["openSettings"]>) => openSettings(address),
-      run: (name: string, value?: unknown) =>
-        engine.hasLeft() ? Promise.resolve() : acts.run(name, value),
     };
   }
 

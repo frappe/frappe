@@ -1,4 +1,4 @@
-// One customizable region of a Record page. Verbs record ops; the rendered list
+// One customizable region of a page. Verbs record ops; the rendered list
 // is those ops replayed over the host's built-ins.
 import { markRaw, reactive } from "vue";
 import { runningSource } from "./context";

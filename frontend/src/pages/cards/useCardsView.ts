@@ -8,9 +8,10 @@ import { currentSession } from "@framework/ui/useSession";
 import { computed, inject, reactive, watch, type ComputedRef, type Ref } from "vue";
 import type { RouteLocationRaw } from "vue-router";
 import type { Boot } from "@/boot";
-import { listHandlersFor } from "@/contributions/registry";
-import type { RowAction } from "@/contributions/types";
-import { contributedRowActions, type ListMeta } from "@/list/defaults";
+import type { ListMeta } from "@/list/defaults";
+import type { ListPageLists } from "@/listPage/createListPage";
+import type { ListRowAction } from "@/listPage/types";
+import { rowActionFields } from "@/listPage/types";
 import { useRememberedPageSize } from "@/list/pageState";
 import { queryFromAddress } from "@/list/query";
 import { cardSeenClass, isUnseen } from "@/list/seen";
@@ -40,8 +41,8 @@ function forgetPeopleOf(user: string) {
 
 export interface CardsView extends ListRows {
 	fields: ComputedRef<CardFields>;
-	/** The row actions the apps contributed for this doctype. */
-	rowActions: RowAction[];
+	/** The page's row actions, as its scripts left them. */
+	rowActions: ComputedRef<ListRowAction[]>;
 	/** Who the rows' owners are, as far as they have been read. */
 	people: Record<string, Person>;
 	pageSize: Ref<number>;
@@ -51,14 +52,13 @@ export interface CardsView extends ListRows {
 	deleteOne: (name: string) => Promise<DeleteOutcome>;
 }
 
-export function useCardsView(view: View): CardsView {
+export function useCardsView(view: View, lists: Pick<ListPageLists, "rowActions">): CardsView {
 	const { doctype } = view;
 	forgetPeopleOf(inject<Boot>("boot")!.session.user.name);
 	const { meta } = useDoctypeMeta(doctype);
 	const permissions = useDocPermissions(doctype);
 	const listMeta = computed(() => meta.value as ListMeta | null);
-	const contributed = listHandlersFor(doctype).map(({ handlers }) => handlers);
-	const rowActions = contributedRowActions(contributed);
+	const rowActions = computed(() => lists.rowActions.visible());
 
 	const readable = (fieldname: string) => {
 		const field = listMeta.value?.fields?.find((one) => one.fieldname === fieldname);
@@ -77,7 +77,7 @@ export function useCardsView(view: View): CardsView {
 			"owner",
 			"modified",
 			...(listMeta.value.track_seen ? ["_seen"] : []),
-			...rowActions.flatMap((action) => action.fields.filter(readable)),
+			...rowActionFields(rowActions.value).filter(readable),
 		]);
 		return {
 			key: JSON.stringify(queryFromAddress({ filters: view.filters.value, sort: view.sort.value })),

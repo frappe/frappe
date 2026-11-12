@@ -226,8 +226,8 @@ capability surface. Nothing reaches a script except through it.
 _Avoid_: form, frm, context.
 
 **Surface**: <a id="surface"></a>
-One customizable **region** of a Record page, whose verbs *record ops*; the rendered list
-is those ops replayed over the host's built-ins. Seven are true surfaces —
+One customizable **region** of a page, whose verbs *record ops*; the rendered list
+is those ops replayed over the host's built-ins. On the record page seven are true surfaces —
 `quickActions`, `header`, `tabs`, `panelSections`, `frame`, `body`, `form` — sharing the
 verb set `add`, `hide`, `show`, `update`, `move`, `has`, `order`, `clear`. Two overlays,
 `fields` and `form.tabs`, are counted as surfaces and stage with them but are **not**
@@ -497,6 +497,15 @@ is made, from its label or the app's file name, and never changed, so a rename k
 link, star and sidebar row. Unique per doctype across every layer. A view is identified by
 its doctype and its key.
 _Avoid_: view name, view slug (a **slug** is a doctype's address), view id.
+
+**List page**: <a id="list-page"></a>
+A doctype's list, built on the page engine as the record page is. Its `page` has the base
+members and four surfaces of its own: **controls** (the controls row: quick filter, filter,
+sort, columns and the `⋯` entry), **columns** (the table's columns; a column item also holds
+its cell keys), **bulkActions** (the actions on the selected rows) and **rowActions** (a row's
+menu). Its `page.rows` is the rows loaded now, not the record page's `page.rows(parentfield)`.
+A doctype's `list.js` is its handler file.
+_Avoid_: list context, list engine (the `list/` folder's renderer state).
 
 **Seen / Unseen record**: <a id="seen"></a>
 On a Track Seen doctype, a record is **seen** by a user when the user is in its `_seen` list,

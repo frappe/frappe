@@ -16,25 +16,6 @@ export type ActionItem<Context = unknown> = {
   when?: (context: Context) => boolean
 }
 
-/** What a list act's `run` gets, and a row action's `value` and `when` after the row. `View` is the page's view object. */
-export type ListContext<View = unknown> = {
-  doctype: string
-  view: View
-  /** The selected rows' names now; a copy, so a later selection does not change it. */
-  selection: string[]
-  /** The row a row action was taken on; absent for a bulk or page act. */
-  row?: Record<string, unknown>
-  /** Loads the rows again, as the list does after its own change. */
-  reload: () => void
-}
-
-/** A list row's action; `fields` are read into the list query so `value` finds them on the row. `value` and `when` get the list's context after the row. */
-export type RowAction = Omit<ActionItem, "value" | "when"> & {
-  value?: (row: Record<string, unknown>, list: ListContext) => unknown
-  when?: (row: Record<string, unknown>, list: ListContext) => boolean
-  fields: string[]
-}
-
 /** How a column draws its cells; each key is described in SCRIPTING.md. A key or value it does not name keeps the default cell. */
 export type ListCell = {
   icons?: Record<string, string>
@@ -43,14 +24,6 @@ export type ListCell = {
   format?: string
   /** A Check column draws a switch that writes the field from the list. */
   switch?: boolean
-}
-
-export type ListHandlers = {
-  columns?: { fieldname: string; width?: number }[]
-  /** By fieldname; the first app to name a fieldname wins. */
-  cells?: Record<string, ListCell>
-  rowActions?: RowAction[]
-  [key: string]: unknown
 }
 
 export type PageContribution = {
@@ -62,17 +35,25 @@ export type PageContribution = {
 
 // Fetched when the doctype's record or new-record page first opens, never with the shell.
 export type LoadRecordScript = () => Promise<{ default?: RecordHandlers }>
+// Fetched when the doctype's list page first opens.
+export type LoadListScript = () => Promise<{ default?: Record<string, unknown> }>
+
+/** One app's list.js for a doctype, not yet loaded. */
+export interface ListScript {
+  app: string
+  load: LoadListScript
+}
 
 export type DoctypeContribution =
   // Your own doctype's record page: <module>/doctype/<scrubbed>/frontend/record.js
   | { kind: 'record'; app: string; doctype: string; load: LoadRecordScript }
   // Your own doctype's list: <module>/doctype/<scrubbed>/frontend/list.js
-  | { kind: 'list'; app: string; doctype: string; handlers: ListHandlers }
+  | { kind: 'list'; app: string; doctype: string; load: LoadListScript }
   // A foreign doctype: <module>/custom/<scrubbed>/record.js. Applies globally; it does not
   // move the doctype into your prefix.
   | { kind: 'custom'; app: string; doctype: string; load: LoadRecordScript }
   // A foreign doctype's list: <module>/custom/<scrubbed>/list.js, run after the owner's list.js.
-  | { kind: 'customList'; app: string; doctype: string; handlers: ListHandlers }
+  | { kind: 'customList'; app: string; doctype: string; load: LoadListScript }
 
 // A page in place of a doctype's record or list page: <module>/doctype/<scrubbed>/frontend/
 // pages/<name>.js, named in pages.json beside it; the same under <module>/custom/<scrubbed>/.

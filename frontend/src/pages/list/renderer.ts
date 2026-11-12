@@ -5,14 +5,17 @@ import type { ActEntry } from "@/acts/dispatcher";
 import { viewRenderers } from "@/contributions/registry";
 import { failedState } from "@/shell/pageState";
 import PageState from "@/shell/PageState.vue";
-import type { ListActs, RendererContext } from "./listActs";
+import type { ListPageLists, ListRendererState } from "@/listPage/createListPage";
+import type { ListActs } from "./listActs";
 import ListView from "./ListView.vue";
 
 export interface RendererHost {
 	/** Where the renderer's own controls teleport to, in the controls row; null while it is hidden. */
 	controls: Ref<HTMLElement | null>;
-	/** Puts the renderer's acts on the acts registry as `<type>.<act>`; `context` is the part of their `list` context the renderer holds. */
-	acts: (entries: () => ActEntry[], context: () => RendererContext) => ListActs;
+	/** The list page's lists: the renderer gives `columns` and `bulkActions` their built-ins and draws them, and `rowActions`. */
+	lists: ListPageLists;
+	/** Puts the renderer's acts on the acts registry as `<type>.<act>`; `state` is what `page.rows`, `page.selection` and `page.reload` read. */
+	acts: (entries: () => ActEntry[], state: ListRendererState) => ListActs;
 	/** Runs after the page's Create made a record. */
 	onCreate: (callback: () => void) => void;
 }

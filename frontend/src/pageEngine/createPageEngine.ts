@@ -2,6 +2,7 @@ import type { ComputedRef, Ref } from "vue";
 import type { Router } from "vue-router";
 import { toast } from "frappe-ui";
 import { runMethod } from "@framework/ui/api";
+import { acts } from "@/acts/dispatcher";
 import { BodySurface } from "./body";
 import { appPageScripts } from "./appPageScripts";
 import { runningSource, withRunningSource } from "./context";
@@ -179,6 +180,15 @@ export function createPageEngine<Lists extends PageEngineLists, Extras extends o
       runMethod(method, params).then((envelope) => envelope.data),
     cached: <T>(key: string, fetch: () => Promise<T> | T) =>
       cached.read(runningSource(), key, fetch) as T | undefined,
+    run: (name: string, value?: unknown) => (gate.hasLeft() ? Promise.resolve() : acts.run(name, value)),
+    open: (doctype: string, name?: string | null, options?: { view?: string }) =>
+      gate.hasLeft()
+        ? Promise.resolve()
+        : (acts.run("shell.open", { doctype, name, view: options?.view }) as Promise<void>),
+    create: (doctype: string, options?: { values?: Record<string, any> }) => {
+      if (gate.hasLeft()) return Promise.resolve(null);
+      return acts.run("shell.create", { doctype, values: options?.values }) as Promise<Record<string, any> | null>;
+    },
     // The one member handed straight through, and the only one; see frontend/CLAUDE.md.
     router: spec.router,
   } as EnginePage<Lists, Extras>;

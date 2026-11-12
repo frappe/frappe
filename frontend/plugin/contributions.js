@@ -282,11 +282,6 @@ function recordName(definition) {
 	}
 }
 
-/** A list script is imported eagerly; every other kind loads when its page opens. */
-function isListKind(kind) {
-	return kind === "list" || kind === "customList";
-}
-
 function generate({
 	doctypes,
 	pages,
@@ -311,11 +306,6 @@ function generate({
 	];
 	const imports = [];
 
-	// A record script is fetched when its doctype's page opens; only a list script is eager.
-	doctypes.forEach((entry, index) => {
-		if (isListKind(entry.kind))
-			imports.push(`import d${index} from ${JSON.stringify(entry.file)}`);
-	});
 	pages.forEach((entry, index) => {
 		imports.push(`import p${index} from ${JSON.stringify(entry.file)}`);
 	});
@@ -339,10 +329,9 @@ function generate({
 	lines.push("export default {");
 
 	lines.push("  doctypes: [");
-	doctypes.forEach((entry, index) => {
-		const source = isListKind(entry.kind)
-			? `handlers: d${index}`
-			: `load: () => import(${JSON.stringify(entry.file)})`;
+	// A record or list script is fetched when its doctype's page opens, never with the shell.
+	doctypes.forEach((entry) => {
+		const source = `load: () => import(${JSON.stringify(entry.file)})`;
 		lines.push(
 			`    { kind: ${JSON.stringify(entry.kind)}, ` +
 				`app: ${JSON.stringify(entry.app)}, doctype: ${JSON.stringify(entry.doctype)}, ` +

@@ -89,7 +89,7 @@ const {
 	cardLink,
 	titleClassOf,
 	deleteOne,
-} = useCardsView(props.view);
+} = useCardsView(props.view, props.host.lists);
 
 props.host.onCreate(reload);
 
@@ -104,10 +104,11 @@ const gridStyle = {
 		"repeat(auto-fill, minmax(max(240px, calc((100% - 3 * var(--page-gutter)) / 4)), 1fr))",
 };
 
-const listActs = props.host.acts(
-	() => [deleteEntry(), ...rowActionEntries(rowActions)],
-	() => ({ selection: [], reload })
-);
+const listActs = props.host.acts(() => [deleteEntry(), ...rowActionEntries(rowActions.value)], {
+	rows: () => rows.value,
+	selection: () => [],
+	reload,
+});
 
 function deleteEntry() {
 	return {
@@ -126,7 +127,7 @@ function deleteEntry() {
 }
 
 function menuFor(row: ListRow) {
-	const options = rowMenuOptions(row, rowActions, listActs);
+	const options = rowMenuOptions(row, rowActions.value, listActs);
 	const del = listActs.drawn("delete");
 	return del
 		? [
