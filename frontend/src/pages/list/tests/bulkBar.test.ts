@@ -148,6 +148,8 @@ describe("useBulkBar", () => {
 						rowActions: ref([]),
 						reload: () => {},
 						askDelete,
+						cursor: ref(null),
+						table: () => null,
 					});
 					return () => null;
 				},
