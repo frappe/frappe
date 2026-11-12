@@ -2,10 +2,15 @@
 # See license.txt
 
 import frappe
+<<<<<<< HEAD
+=======
+from frappe.core.doctype.user.test_user import test_user
+>>>>>>> 63905ca (fix: check read permission in custom html block link search)
 from frappe.desk.doctype.custom_html_block.custom_html_block import get_custom_blocks_for_user
 from frappe.tests.utils import FrappeTestCase
 
 
+<<<<<<< HEAD
 class TestCustomHTMLBlock(FrappeTestCase):
 	def test_get_custom_blocks_for_user_accepts_none_filters(self):
 		result = get_custom_blocks_for_user(
@@ -47,3 +52,14 @@ class TestCustomHTMLBlock(FrappeTestCase):
 			query="frappe.desk.doctype.custom_html_block.custom_html_block.get_custom_blocks_for_user",
 		)
 		self.assertIn(block.name, [r["value"] for r in results])
+=======
+class TestCustomHTMLBlock(IntegrationTestCase):
+	def test_query_allows_null_filters(self):
+		result = get_custom_blocks_for_user("Custom HTML Block", "", "name", 0, 20, None)
+		self.assertIsInstance(result, list | tuple)
+
+	def test_query_requires_read_permission(self):
+		with test_user(roles=[], user_type="Website User") as user, self.set_user(user.name):
+			with self.assertRaises(frappe.PermissionError):
+				get_custom_blocks_for_user("Custom HTML Block", "", "name", 0, 20, None)
+>>>>>>> 63905ca (fix: check read permission in custom html block link search)
