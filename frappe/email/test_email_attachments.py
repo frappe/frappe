@@ -5,7 +5,13 @@ import requests
 import frappe
 from frappe.core.doctype.file.file import File
 from frappe.email.receive import InboundMail
+<<<<<<< HEAD
 from frappe.tests.utils import FrappeTestCase
+=======
+from frappe.tests import IntegrationTestCase
+from frappe.tests.test_pdf import pdf_with_document_level_js
+from frappe.tests.utils.test_capabilities import TestService, requires_test_service
+>>>>>>> fb89b19 (test(email): incoming email imports without its unsafe pdf attachment)
 from frappe.utils import get_url
 
 EMAIL_CONTENT = """
@@ -84,3 +90,30 @@ class TestEmailAttachments(FrappeTestCase):
 		make_and_check_file(1, "1test%2542.txt", "1test_2542.txt")
 		make_and_check_file(2, "2test%42.txt", "2test_42.txt")
 		make_and_check_file(3, "3test*.txt", "3test*.txt")
+<<<<<<< HEAD
+=======
+
+	def test_encoded_attachment_filename(self):
+		email_account = frappe._dict({"email_id": "receive@example.com"})
+		filenames = [
+			("Rechnung =?UTF-8?Q?M=C3=BCller?=.txt", "Rechnung Müller.txt"),
+			("=?iso-8859-1?Q?empty_word_=E0=E0=E0=E9.txt?=", "empty word àààé.txt"),
+			("=?ISO-8859-1?Q?Gr=FC=DFe?=\n =?UTF-8?Q?_=E2=84=96_1.txt?=", "Grüße № 1.txt"),
+		]
+
+		for filename, expected in filenames:
+			mail = InboundMail(ENCODED_FILENAME_EMAIL.format(filename=filename), email_account)
+			self.assertEqual(mail.attachments[0]["fname"], expected)
+
+		mail = InboundMail(ENCODED_FILENAME_EMAIL.format(filename="=?UTF-8?Q??="), email_account)
+		self.assertTrue(mail.attachments[0]["fname"].endswith(".txt"))
+
+	def test_email_imported_without_unsafe_pdf_attachment(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		email_account = frappe._dict({"email_id": "receive@example.com"})
+		mail = InboundMail(ENCODED_FILENAME_EMAIL.format(filename="notes.txt"), email_account)
+		mail.attachments.append({"fname": "unsafe.pdf", "fcontent": pdf_with_document_level_js()})
+		communication = mail.process()
+		self.assertEqual([file.file_name for file in communication._attachments], ["notes.txt"])
+>>>>>>> fb89b19 (test(email): incoming email imports without its unsafe pdf attachment)
