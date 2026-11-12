@@ -44,7 +44,7 @@
 						class="flex min-w-0 flex-1 items-center text-base leading-7"
 						:class="
 							error
-								? 'text-ink-red-4'
+								? 'text-ink-red-6'
 								: display
 								? 'text-ink-gray-8'
 								: 'text-ink-gray-4'
@@ -121,7 +121,12 @@
 				:url="imageUrl"
 				:title="field.label"
 			/>
-			<span v-if="message" class="block truncate text-sm text-ink-red-4" :title="message">
+			<span
+				v-if="message"
+				:id="messageId"
+				class="line-clamp-2 px-2 text-sm text-ink-red-6"
+				:title="message"
+			>
 				{{ message }}
 			</span>
 		</div>
@@ -129,7 +134,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, nextTick, ref, watch } from "vue";
+import { computed, inject, nextTick, ref, useId, watch } from "vue";
 import {
 	CommitKey,
 	ControlPageKey,
@@ -160,6 +165,7 @@ import { isSummaryField, useFieldDisplay } from "@framework/ui/FormLayout";
 import { __ } from "@/i18n";
 import ImagePreview from "./ImagePreview.vue";
 import { PanelContextKey, PanelFieldsKey } from "./context";
+import { withoutOwnRecordPrefix } from "./ownRecordPrefix";
 
 const props = defineProps<{ field: FieldNode }>();
 const emit = defineEmits<{ expand: [field: FieldNode] }>();
@@ -178,6 +184,7 @@ const controlProps = computed(() => {
 		return {
 			...stockProps,
 			panel: true,
+			...(drawsErrorText.value ? {} : { errorId: messageId }),
 			...(phone.value || email.value ? { record: actionRecord.value } : {}),
 		};
 	return { ...props.field.ui.props, ...(page?.value ? { page: page.value } : {}) };
@@ -190,7 +197,14 @@ const mark = useLinkMark(
 );
 const errors = inject(FieldErrorsKey, null);
 const error = computed(() => errors?.value[fieldErrorKey(props.field.fieldname)]);
-const message = computed(() => [error.value ?? []].flat().join(" "));
+const message = computed(() => {
+	const { doctype, name } = doc.value;
+	return [error.value ?? []]
+		.flat()
+		.map((one) => withoutOwnRecordPrefix(one, [doctype, __(doctype)], name))
+		.join(" ");
+});
+const messageId = useId();
 
 function edit(fieldname: string, value: any) {
 	update(fieldname, value);

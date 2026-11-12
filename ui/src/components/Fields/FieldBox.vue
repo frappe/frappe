@@ -36,6 +36,6 @@ defineProps<{
 	padding-top: 8px;
 }
 .field-box[data-error] :deep([data-slot="control"]) {
-	color: var(--ink-red-4);
+	color: var(--ink-red-6);
 }
 </style>
