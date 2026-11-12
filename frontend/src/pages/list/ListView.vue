@@ -9,6 +9,7 @@
 			:cap="bulk.cap"
 			:layout="bulk.layout.value"
 			:locked="bulk.locked"
+			v-model:menuOpen="bulk.menuOpen.value"
 			@clear="selection = []"
 		/>
 	</Teleport>
@@ -25,6 +26,7 @@
 		v-else
 		ref="table"
 		v-model:selection="selection"
+		v-model:cursor="cursor"
 		v-model:sort="sort"
 		:columns="shownColumns"
 		:rows="rows"
@@ -214,7 +216,12 @@ props.host.onCreate(reload);
 // A Link cell shows its target's title for the name, as the record's read-only field does.
 provide(LinkTitlesKey, linkTitles);
 
-const table = ref<{ viewportElement: HTMLElement | null } | null>(null);
+const table = ref<{
+	viewportElement: HTMLElement | null;
+	toggle: (name: string) => void;
+	extendTo: (name: string) => void;
+} | null>(null);
+const cursor = ref<string | null>(null);
 const DeleteDialog = defineAsyncComponent({
 	loader: () => import("./DeleteDialog.vue"),
 	onError: (_error, _retry, fail) => {
@@ -268,6 +275,8 @@ const bulk = useBulkBar({
 	rows,
 	rowActions,
 	reload,
+	cursor,
+	table: () => table.value,
 	askDelete: () => {
 		deleteOpened.value = true;
 		confirmingDelete.value = true;

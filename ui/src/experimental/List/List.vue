@@ -83,6 +83,10 @@
 					:key="rowValue(row)"
 					:value="rowValue(row)"
 					:route="rowLink?.(row)"
+					@pointerenter="enter(rowValue(row))"
+					@pointerleave="leave(rowValue(row))"
+					@focusin="focus(rowValue(row))"
+					@focusout="blur(rowValue(row))"
 				>
 					<!-- The molecule's own `selectable` turns a row click into a toggle; the row must stay
 						a link, so the checkbox is drawn here (frappe/frappe-ui#1131). -->
@@ -93,9 +97,10 @@
 							:aria-checked="isSelected(rowValue(row))"
 							:aria-label="`Select ${rowValue(row)}`"
 							tabindex="0"
-							@click.stop.prevent="toggle(rowValue(row))"
-							@keydown.enter.stop.prevent="toggle(rowValue(row))"
-							@keydown.space.stop.prevent="toggle(rowValue(row))"
+							@mousedown.shift.prevent
+							@click.stop.prevent="toggle(rowValue(row), $event.shiftKey)"
+							@keydown.enter.stop.prevent="toggle(rowValue(row), $event.shiftKey)"
+							@keydown.space.stop.prevent="toggle(rowValue(row), $event.shiftKey)"
 						>
 							<Checkbox
 								:modelValue="isSelected(rowValue(row))"
@@ -163,6 +168,7 @@ import type { Sort } from "../../components/SortBy/types";
 import { columnTracks } from "./columnTracks";
 import { directionFor, nextSort } from "./headerSort";
 import { useColumnResize } from "./useColumnResize";
+import { useRowCursor } from "./useRowCursor";
 import { useRowSelection } from "./useRowSelection";
 import { useVirtualRows } from "./useVirtualRows";
 import type { ColumnResize, ListColumn, ListProps, ListRowData } from "./types";
@@ -177,6 +183,8 @@ const props = withDefaults(defineProps<ListProps>(), {
 
 const selection = defineModel<string[]>("selection", { default: () => [] });
 const sort = defineModel<Sort[]>("sort", { default: () => [] });
+/** The row under the pointer or with focus, which the host's bare keys act on. */
+const cursor = defineModel<string | null>("cursor", { default: null });
 
 const emit = defineEmits<{
 	"column-resize": [payload: ColumnResize];
@@ -203,6 +211,8 @@ defineExpose({
 	get viewportElement() {
 		return scroller.value?.viewportElement ?? null;
 	},
+	toggle: (value: string, range = false) => toggle(value, range),
+	extendTo: (value: string) => extendTo(value),
 });
 
 // The gutter is where the checkbox and the last cell's text land, so the row bleeds past it.
@@ -227,10 +237,13 @@ function rowValue(row: ListRowData) {
 	return String(row[props.rowKey]);
 }
 
-const { selectAllState, isSelected, toggle, toggleSelectAll } = useRowSelection(
+const { selectAllState, isSelected, toggle, extendTo, toggleSelectAll } = useRowSelection(
 	selection,
 	rows,
 	toRef(props, "rowKey")
+);
+const { enter, leave, focus, blur } = useRowCursor(cursor, () =>
+	virtualRows.value.map(({ data }) => rowValue(data))
 );
 
 const { drafts, resizingFieldname, startResize, resetColumn } = useColumnResize({

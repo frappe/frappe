@@ -41,11 +41,28 @@
 				/>
 				<Dropdown
 					v-if="layout.menu.length"
+					v-model:open="menuOpen"
 					:options="layout.menu"
 					side="bottom"
 					align="start"
 				>
-					<Button variant="ghost" :label="__('More')" icon-right="lucide-chevron-down" />
+					<!-- The Dropdown trigger needs a plain element: Tooltip drops the trigger's props. -->
+					<div class="flex shrink-0">
+						<Tooltip>
+							<template v-if="!menuOpen" #content>
+								<span
+									class="flex items-center gap-2 [&_[data-slot=key]]:text-ink-gray-4"
+								>
+									{{ __("More actions") }} <KeyboardShortcut combo="Period" />
+								</span>
+							</template>
+							<Button
+								variant="ghost"
+								:label="__('More')"
+								icon-right="lucide-chevron-down"
+							/>
+						</Tooltip>
+					</div>
 				</Dropdown>
 				<Tooltip v-if="layout.trash" :text="layout.trash.label">
 					<Button
@@ -59,23 +76,30 @@
 				</Tooltip>
 			</div>
 		</template>
-		<Button
-			class="ms-auto"
-			variant="ghost"
-			icon="lucide-x"
-			:label="__('Clear selection')"
-			@click="$emit('clear')"
-		/>
+		<Tooltip class="ms-auto">
+			<template #content>
+				<span class="flex items-center gap-2 [&_[data-slot=key]]:text-ink-gray-4">
+					{{ __("Clear selection") }} <KeyboardShortcut combo="Escape" />
+				</span>
+			</template>
+			<Button
+				variant="ghost"
+				icon="lucide-x"
+				:label="__('Clear selection')"
+				@click="$emit('clear')"
+			/>
+		</Tooltip>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { Button, Checkbox, Dropdown, Icon, Tooltip } from "frappe-ui";
+import { Button, Checkbox, Dropdown, Icon, KeyboardShortcut, Tooltip } from "frappe-ui";
 import { computed } from "vue";
 import { __ } from "@/i18n";
 import type { BulkLayout } from "./bulkLayout";
 
 const props = defineProps<{ count: number; cap: number; layout: BulkLayout; locked: boolean }>();
+const menuOpen = defineModel<boolean>("menuOpen", { default: false });
 defineEmits<{ clear: [] }>();
 
 const overCap = computed(() => !props.locked && props.count > props.cap);

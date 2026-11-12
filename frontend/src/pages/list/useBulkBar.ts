@@ -1,9 +1,10 @@
 // The list's bulk actions: the built-ins, the acts that run them on the selection, and the bar's layout.
-import { computed, inject, type ComputedRef, type Ref } from "vue";
+import { computed, inject, ref, type ComputedRef, type Ref } from "vue";
 import type { ActEntry } from "@/acts/dispatcher";
 import type { Boot } from "@/boot";
 import { __ } from "@/i18n";
 import type { ListRow, ListRowAction } from "@/listPage/types";
+import { bulkKeyEntries } from "./bulkKeys";
 import { layoutBulk, type BulkEntry, type BulkLayout } from "./bulkLayout";
 import { rowActionEntries } from "./rowActions";
 import type { ListActs } from "./listActs";
@@ -19,10 +20,15 @@ export interface BulkBarOptions {
 	askDelete: () => void;
 	/** Acts the renderer adds to its own surface beside the bulk and row ones. */
 	extraEntries?: () => ActEntry[];
+	/** The row under the pointer or with focus, and the table's range-aware selection; a surface without a cursor (Cards) gets no bulk keys. */
+	cursor?: Ref<string | null>;
+	table?: () => { toggle: (name: string) => void; extendTo: (name: string) => void } | null;
 }
 
 export interface BulkBar {
 	listActs: ListActs;
+	/** Whether the bar's More menu is open; the `.` key opens it. */
+	menuOpen: Ref<boolean>;
 	layout: ComputedRef<BulkLayout>;
 	/** The most one bulk run takes; the bar disables its actions above it. */
 	cap: number;
@@ -31,7 +37,7 @@ export interface BulkBar {
 }
 
 export function useBulkBar(options: BulkBarOptions): BulkBar {
-	const { host, selection, askDelete } = options;
+	const { host, selection, askDelete, cursor } = options;
 	const boot = inject<Boot>("boot")!;
 	const { bulkActions: bulkList } = host.lists;
 
@@ -46,11 +52,24 @@ export function useBulkBar(options: BulkBarOptions): BulkBar {
 		},
 	]);
 
+	const menuOpen = ref(false);
 	const listActs = host.acts(
 		() => [
 			...(selection.value.length && boot.bulk_actions ? bulkEntries() : []),
 			...rowActionEntries(options.rowActions.value),
 			...(options.extraEntries?.() ?? []),
+			...(cursor
+				? bulkKeyEntries({
+						selection,
+						cursor,
+						shown: (name) => options.rows.value.some((row) => row.name === name),
+						locked: !boot.bulk_actions,
+						hasMenu: () => layout.value.menu.length > 0,
+						menuOpen,
+						toggle: (name) => options.table?.()?.toggle(name),
+						extendTo: (name) => options.table?.()?.extendTo(name),
+					})
+				: []),
 		],
 		{ rows: () => options.rows.value, selection: () => selection.value, reload: options.reload }
 	);
@@ -84,5 +103,6 @@ export function useBulkBar(options: BulkBarOptions): BulkBar {
 			  })
 	);
 
-	return { listActs, layout: computed(() => layoutBulk(entries.value, options.doctype)), cap, locked };
+	const layout = computed(() => layoutBulk(entries.value, options.doctype));
+	return { listActs, menuOpen, layout, cap, locked };
 }
