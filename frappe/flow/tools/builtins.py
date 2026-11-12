@@ -780,10 +780,14 @@ def update(doctype: str, names: list[str], values: dict[str, Any], *, ctx: ToolC
 		try:
 			if not frappe.has_permission(doctype, "write", name):
 				raise frappe.PermissionError(_("No permission to update {0} {1}.").format(doctype, name))
-			doc = frappe.get_doc(doctype, name)
-			doc.update(values or {})
+			if frappe.get_meta(doctype).istable:
+				doc, row = _parent_and_row(doctype, name)
+				row.update(values or {})
+			else:
+				doc = frappe.get_doc(doctype, name)
+				doc.update(values or {})
 			doc.save()
-			updated.append(doc.name)
+			updated.append(name)
 		except Exception as e:
 			_undo_batch(name, e, ctx)
 	return {"doctype": doctype, "updated": updated}
@@ -810,11 +814,26 @@ def delete(doctype: str, names: list[str], *, ctx: ToolContext) -> dict[str, Any
 		try:
 			if not frappe.has_permission(doctype, "delete", name):
 				raise frappe.PermissionError(_("No permission to delete {0} {1}.").format(doctype, name))
-			frappe.delete_doc(doctype, name, ignore_missing=False)
+			if frappe.get_meta(doctype).istable:
+				parent, row = _parent_and_row(doctype, name)
+				parent.remove(row)
+				parent.save()
+			else:
+				frappe.delete_doc(doctype, name, ignore_missing=False)
 			deleted.append(name)
 		except Exception as e:
 			_undo_batch(name, e, ctx)
 	return {"doctype": doctype, "deleted": deleted}
+
+
+def _parent_and_row(doctype: str, name: str) -> tuple[Document, Document]:
+	"""A child row and its parent: changes go through the parent, so its checks run."""
+	parent = frappe.db.get_value(doctype, name, ["name", "parenttype", "parent", "parentfield"], as_dict=True)
+	if not parent:
+		raise frappe.DoesNotExistError(doctype=doctype)
+	doc = frappe.get_doc(parent.parenttype, parent.parent)
+	# the name as stored: an autoincrement row's is an int, not the "5" it was asked by
+	return doc, doc.getone(parent.parentfield, {"name": parent.name})
 
 
 def _call_api_prompt(call: dict[str, Any]) -> str:

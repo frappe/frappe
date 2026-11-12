@@ -697,6 +697,37 @@ class TestWriteTools(IntegrationTestCase):
 		self.assertEqual(delete(doctype="ToDo", names=names, ctx=CTX)["deleted"], names)
 		self.assertFalse(frappe.db.exists("ToDo", {"name": ["in", names]}))
 
+	def test_a_child_row_changes_through_its_parent(self):
+		contact = frappe.get_doc(
+			{
+				"doctype": "Contact",
+				"first_name": "Flow Child Row",
+				"email_ids": [{"email_id": "old@example.com", "is_primary": 1}],
+			}
+		).insert()
+		[row] = contact.email_ids
+		update(doctype="Contact Email", names=[row.name], values={"email_id": "new@example.com"}, ctx=CTX)
+		self.assertEqual(frappe.db.get_value("Contact", contact.name, "email_id"), "new@example.com")
+		self.assertEqual(delete(doctype="Contact Email", names=[row.name], ctx=CTX)["deleted"], [row.name])
+		self.assertFalse(frappe.db.exists("Contact Email", row.name))
+		self.assertFalse(frappe.db.get_value("Contact", contact.name, "email_id"))
+
+	def test_a_numbered_child_row_changes_through_its_parent(self):
+		# Web Form List Column rows are named 1, 2, 3...
+		form = frappe.get_doc(
+			{
+				"doctype": "Web Form",
+				"title": "Flow Child Row Form",
+				"doc_type": "ToDo",
+				"list_columns": [{"fieldname": "description", "label": "Old"}],
+			}
+		).insert()
+		name = str(form.list_columns[0].name)
+		update(doctype="Web Form List Column", names=[name], values={"label": "New"}, ctx=CTX)
+		self.assertEqual(frappe.db.get_value("Web Form List Column", name, "label"), "New")
+		self.assertEqual(delete(doctype="Web Form List Column", names=[name], ctx=CTX)["deleted"], [name])
+		self.assertFalse(frappe.db.exists("Web Form List Column", name))
+
 	def test_one_failed_record_changes_none(self):
 		failing = frappe.get_doc({"doctype": "ToDo", "description": "ai write fails"}).insert()
 		names = [self.todo.name, failing.name]
