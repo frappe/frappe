@@ -1809,6 +1809,7 @@ const WALK_FIELDS = [
 	},
 	{ fieldname: "tw_ro", fieldtype: "Data", label: "Locked", read_only: 1 },
 	{ fieldname: "tw_pick", fieldtype: "Select", label: "Pick", options: "\nOne\nTwo\nThree" },
+	{ fieldname: "tw_link", fieldtype: "Link", label: "Owner", options: "User" },
 	{ fieldname: "tw_b", fieldtype: "Data", label: "Last" },
 ];
 
@@ -1874,11 +1875,11 @@ test.describe("Desk v2 side panel Tab walk", () => {
 		page,
 	}) => {
 		expect(await stop(page)).toBe("tw_a");
-		for (const next of ["tw_pick", "tw_b"]) {
+		for (const next of ["tw_pick", "tw_link", "tw_b"]) {
 			await page.keyboard.press("Tab");
 			expect(await stop(page)).toBe(next);
 		}
-		for (const back of ["tw_pick", "tw_a"]) {
+		for (const back of ["tw_link", "tw_pick", "tw_a"]) {
 			await page.keyboard.press("Shift+Tab");
 			expect(await stop(page)).toBe(back);
 		}
@@ -1893,9 +1894,18 @@ test.describe("Desk v2 side panel Tab walk", () => {
 		await page.keyboard.press("Alt+ArrowDown");
 		await expect(page.locator('[role="listbox"]')).toHaveCount(1);
 		await page.keyboard.press("Tab");
-		expect(await stop(page)).toBe("tw_b");
+		expect(await stop(page)).toBe("tw_link");
 		await expect(page.locator('[role="listbox"]')).toHaveCount(0);
 		await expect(field(page, "tw_a")).toContainText("kept");
+	});
+
+	test("Tab with a Link's list open closes it and walks to the next row", async ({ page }) => {
+		await field(page, "tw_link").focus();
+		await page.keyboard.press("Alt+ArrowDown");
+		await expect(page.locator('[role="listbox"]')).toHaveCount(1);
+		await page.keyboard.press("Tab");
+		expect(await stop(page)).toBe("tw_b");
+		await expect(page.locator('[role="listbox"]')).toHaveCount(0);
 	});
 
 	test("Esc leaves focus on the closed row, and typing there reopens it and keeps the first key", async ({

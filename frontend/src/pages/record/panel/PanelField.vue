@@ -517,6 +517,17 @@ function isTyping(event: KeyboardEvent) {
 }
 function onCellKey(event: KeyboardEvent) {
 	keepFocus = event.key === "Enter" && !(event.target instanceof HTMLTextAreaElement);
+	if (
+		event.key === "Tab" &&
+		!event.shiftKey &&
+		cell.value?.querySelector('[aria-expanded="true"]')
+	)
+		leaveRow();
+}
+// A Link's open list would stay open while Tab walks to the row's × and ↗: start Tab from the row's last control.
+function leaveRow() {
+	const controls = cell.value?.querySelectorAll<HTMLElement>("input, textarea, select, button");
+	controls?.[controls.length - 1]?.focus();
 }
 // Q21: a screen reader reads the label's description with the field that takes focus.
 function describe(event: FocusEvent) {
