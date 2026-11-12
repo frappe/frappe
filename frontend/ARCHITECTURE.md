@@ -392,7 +392,7 @@ component group, with its main names.
 | Concept | What it is |
 | --- | --- |
 | `createListPage` (`createListPageLists`, `ListPageController`, `ListPageLists`, `ListRendererState`, `ListPageHost`) | Builds a doctype's list `page` on `createPageEngine`: the lists `controls`, `columns`, `bulkActions` and `rowActions`, and the members `view`, `rows`, `selection`, `filters`, `sort` and `reload`. The renderer hands in its rows with `attach`; `paint` waits for the list.js files. Cache key: one load per doctype for the session |
-| List scripts (`loadListScripts`, `listScriptsOf`, `listScriptsLoaded`, `ListScriptModule`, `LoadedListScript`) | A doctype's list.js files, loaded on its first list page in run order (the owner, then each `custom/` one). A failed fetch is tried again on the next page. A function key is a handler; the `columns` key is data |
+| List scripts (`loadListScripts`, `listScriptsOf`, `listScriptsLoaded`, `ListScriptModule`, `LoadedListScript`) | A doctype's list.js files, loaded on its first list page in run order (the owner, then each `custom/` one). A failed fetch is tried again on the next page. A function key is a handler; any other key is ignored. Default columns, sort and filters live in the app's `views/list.json`, not here |
 | `useListPermissions` (`ListPermissions`) | The list page's rights: the doctype's standard rights at level 0 from the roles (`page.perms`), the roles, and an act's right check. Create is the list's Create rule |
 | `ListPageApi` (`ListPageAction`, `ListPageColumn`, `ListRowAction`, `ListRow`, `ListPageView`, `rowActionFields`) | The list page's `page` type and its item shapes. `rowActionFields` names the row fields the row actions read, which join the list query |
 

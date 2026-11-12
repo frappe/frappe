@@ -1,11 +1,9 @@
-// What the list shows before anyone touches it: columns from a contributed `list.js`, else from
-// meta's `in_list_view`; sort from meta's `sort_field`, else `modified desc`.
+// What the list shows before anyone touches it: columns from meta's `in_list_view`; sort from meta's `sort_field`, else `modified desc`.
 import { getColumnAlign, getDefaultColumns, isColumnFieldtype, type Column } from "@framework/ui/ColumnSettings";
 import type { ListColumn } from "@framework/ui/experimental/List";
 import type { RawMetaField } from "@framework/ui/FormLayout";
 import { parseOrderBy, type Sort } from "@framework/ui/SortBy";
 import type { LinkMarkSource } from "@framework/ui/fields";
-import type { LoadedListScript } from "@/listPage/scriptLoader";
 
 /** The meta keys the list reads; the meta read sends the whole doctype record. */
 export interface ListMeta {
@@ -29,10 +27,9 @@ const GENERIC_COLUMNS: Column[] = [
 
 export const DEFAULT_SORT: Sort[] = [{ fieldname: "modified", direction: "desc" }];
 
-export function defaultColumns(meta: ListMeta, contributed: Pick<LoadedListScript, "columns">[]): ListColumn[] {
+export function defaultColumns(meta: ListMeta): ListColumn[] {
 	const fields = meta.fields ?? [];
-	const columns = contributedColumns(fields, contributed) ?? metaColumns(fields, meta.title_field);
-	return columns.map((column) => withAlign(column, fields));
+	return metaColumns(fields, meta.title_field).map((column) => withAlign(column, fields));
 }
 
 export function defaultSort(meta: ListMeta): Sort[] {
@@ -127,30 +124,9 @@ export function cellTitle(fieldname: string, meta: ListMeta): RowValue | undefin
 	return { key, select: `${fieldname}.${field.link_title} as ${key}` };
 }
 
-/** Every contributing app's columns in run order; a fieldname named twice is shown once. */
-function contributedColumns(fields: RawMetaField[], contributed: Pick<LoadedListScript, "columns">[]): Column[] | null {
-	const columns: Column[] = [];
-	const seen = new Set<string>();
-	for (const handlers of contributed) {
-		for (const { fieldname, width } of handlers.columns ?? []) {
-			if (seen.has(fieldname)) continue;
-			seen.add(fieldname);
-			const column: Column = { fieldname, label: labelOf(fieldname, fields) };
-			if (width) column.width = `${width}px`;
-			columns.push(column);
-		}
-	}
-	return columns.length ? columns : null;
-}
-
 function metaColumns(fields: RawMetaField[], titleField?: string): Column[] {
 	if (!fields.some((field) => field.in_list_view && isColumnFieldtype(field.fieldtype))) return GENERIC_COLUMNS.map((c) => ({ ...c }));
 	return getDefaultColumns(fields, titleField);
-}
-
-function labelOf(fieldname: string, fields: RawMetaField[]): string {
-	const generic = GENERIC_COLUMNS.find((column) => column.fieldname === fieldname);
-	return fields.find((field) => field.fieldname === fieldname)?.label ?? generic?.label ?? fieldname;
 }
 
 function withAlign(column: Column, fields: RawMetaField[]): ListColumn {

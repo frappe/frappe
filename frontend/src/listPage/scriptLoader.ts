@@ -8,10 +8,8 @@ export interface ListScriptModule {
   default?: Record<string, unknown>;
 }
 
-/** A list.js, loaded: its handlers, and the default columns its `columns` key names. */
-export interface LoadedListScript extends Registration {
-  columns?: { fieldname: string; width?: number }[];
-}
+/** A list.js, loaded: its handlers. */
+export type LoadedListScript = Registration;
 
 // One fetch per doctype at a time; the cache key of the list page's scripts.
 const fetching = new Map<string, Promise<void>>();
@@ -58,6 +56,5 @@ function loadedScript(doctype: string, { app }: ListScript, module: ListScriptMo
   const handlers: Record<string, Handler> = {};
   for (const [key, value] of Object.entries(exported))
     if (typeof value === "function") handlers[key] = value as Handler;
-  const columns = Array.isArray(exported.columns) ? (exported.columns as LoadedListScript["columns"]) : undefined;
-  return [{ source: app, handlers, columns }];
+  return [{ source: app, handlers }];
 }

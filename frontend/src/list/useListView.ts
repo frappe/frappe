@@ -11,7 +11,6 @@ import { currentSession } from "@framework/ui/useSession";
 import { computed, ref, watch, type ComputedRef, type Ref, type WritableComputedRef } from "vue";
 import type { RouteLocationRaw } from "vue-router";
 import type { ListPageLists } from "@/listPage/createListPage";
-import { listScriptsOf } from "@/listPage/scriptLoader";
 import type { ListPageColumn, ListRowAction } from "@/listPage/types";
 import { rowActionFields } from "@/listPage/types";
 import { routeFor } from "@/router/routeFor";
@@ -98,7 +97,7 @@ export function useListView(view: View, lists: Pick<ListPageLists, "columns" | "
 	};
 
 	const defaults = computed(() =>
-		listMeta.value ? defaultColumns(listMeta.value, listScriptsOf(doctype)) : []
+		listMeta.value ? defaultColumns(listMeta.value) : []
 	);
 
 	/** The columns the tiers resolve to: the person's, else the site's, else the app default. */

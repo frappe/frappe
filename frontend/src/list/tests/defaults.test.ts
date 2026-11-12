@@ -1,4 +1,4 @@
-// The seeds: a contributed `list.js` above meta's `in_list_view`, and meta's sort above `modified desc`.
+// The seeds: meta's `in_list_view` columns, and meta's sort above `modified desc`.
 import { describe, expect, it, vi } from "vitest";
 import type { RawMetaField } from "@framework/ui/FormLayout";
 import { clearDataCache, feedListRead, readCachedList, takeTicket } from "@framework/ui/cache";
@@ -14,38 +14,21 @@ const FIELDS: RawMetaField[] = [
 
 describe("defaultColumns", () => {
 	it("puts the title field first, then every in_list_view field, aligned by fieldtype", () => {
-		const columns = defaultColumns({ title_field: "title", fields: FIELDS }, []);
+		const columns = defaultColumns({ title_field: "title", fields: FIELDS });
 		expect(columns.map((c) => c.fieldname)).toEqual(["title", "status", "amount"]);
 		expect(columns.find((c) => c.fieldname === "amount")?.align).toBe("right");
 		expect(columns.find((c) => c.fieldname === "title")?.align).toBe("left");
 	});
 
 	it("falls back to name and modified when no field is flagged", () => {
-		const columns = defaultColumns({ fields: [FIELDS[3]] }, []);
+		const columns = defaultColumns({ fields: [FIELDS[3]] });
 		expect(columns.map((c) => c.fieldname)).toEqual(["name", "modified"]);
 	});
 
 	it("falls back to name and modified when only an Image field is flagged", () => {
 		const photo: RawMetaField = { fieldname: "photo", label: "Photo", fieldtype: "Image", in_list_view: 1 };
-		const columns = defaultColumns({ fields: [photo] }, []);
+		const columns = defaultColumns({ fields: [photo] });
 		expect(columns.map((c) => c.fieldname)).toEqual(["name", "modified"]);
-	});
-
-	it("takes a contributed list.js's columns over meta, in run order, each fieldname once", () => {
-		const columns = defaultColumns({ title_field: "title", fields: FIELDS }, [
-			{ columns: [{ fieldname: "status", width: 120 }, { fieldname: "notes" }] },
-			{ columns: [{ fieldname: "status" }, { fieldname: "amount" }] },
-		]);
-		expect(columns.map((c) => c.fieldname)).toEqual(["status", "notes", "amount"]);
-		expect(columns[0]).toMatchObject({ label: "Status", width: "120px" });
-		expect(columns[1].width).toBeUndefined();
-	});
-
-	it("labels a contributed column from meta, or from its fieldname", () => {
-		const columns = defaultColumns({ fields: FIELDS }, [
-			{ columns: [{ fieldname: "modified" }, { fieldname: "owner" }] },
-		]);
-		expect(columns.map((c) => c.label)).toEqual(["Last Modified", "owner"]);
 	});
 });
 

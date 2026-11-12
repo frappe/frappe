@@ -7,7 +7,6 @@ import { createRouter, createWebHistory, type Router } from "vue-router";
 
 const fake = vi.hoisted(() => ({
 	meta: null as Record<string, unknown> | null,
-	contributed: [] as { columns?: { fieldname: string; width?: number }[] }[],
 	lists: [] as any[],
 	tiers: { site: null, user: null } as { app?: unknown; site: unknown; user: unknown },
 	listDocuments: vi.fn(),
@@ -23,10 +22,6 @@ vi.mock("@framework/ui/api", async (original) => ({
 	countDocuments: fake.countDocuments,
 	deleteDocument: fake.deleteDocument,
 	runMethod: fake.runMethod,
-}));
-
-vi.mock("@/listPage/scriptLoader", () => ({
-	listScriptsOf: () => fake.contributed.map((script) => ({ source: "crm", handlers: {}, ...script })),
 }));
 
 import { createListPageLists } from "@/listPage/createListPage";
@@ -173,7 +168,6 @@ beforeEach(() => {
 	history.replaceState(null, "");
 	fake.meta = { name: "Lead", title_field: "title", sort_field: "amount", sort_order: "ASC", fields: FIELDS };
 	opened = undefined;
-	fake.contributed = [];
 	fake.lists = [];
 	fake.tiers = { site: null, user: null };
 	fake.listDocuments.mockReset().mockImplementation(fakeList);
@@ -211,13 +205,6 @@ describe("seeding", () => {
 		await settle();
 		expect(page.seeded.value).toBe(true);
 		expect(page.sort.value).toEqual([{ fieldname: "amount", direction: "asc" }]);
-	});
-
-	it("takes a contributed list.js's columns over meta", async () => {
-		fake.contributed = [{ columns: [{ fieldname: "status" }, { fieldname: "title" }] }];
-		await mount("/lead");
-		expect(page.columns.value.map((c) => c.fieldname)).toEqual(["status", "title"]);
-		expect(page.columnsCustomized.value).toBe(false);
 	});
 
 	it("builds the list once meta is in, from offset zero, with the count beside it", async () => {
