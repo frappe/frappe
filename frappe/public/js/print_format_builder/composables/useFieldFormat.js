@@ -188,14 +188,16 @@ export function useFieldFormat(props, store, preview_doc) {
 		return val;
 	}
 
-	function row_merges(col, row) {
-		return text_merges(col).filter(
-			(mf) =>
-				!(
-					mf.show_label &&
-					blank(frappe.utils.html2text(String(row[mf.fieldname] ?? "")).trim())
-				)
-		);
+	function row_merges(col, row, i) {
+		return text_merges(col).filter((mf) => !mf.show_label || !blank(merged_text(row, i, mf)));
+	}
+
+	function merged_text(row, i, mf) {
+		const server = store.preview_child_values.value?.[props.df.fieldname]?.[i];
+		if (server && mf.fieldname in server) {
+			return frappe.utils.html2text(String(server[mf.fieldname] ?? "")).trim();
+		}
+		return String(format_merged(row, i, mf) ?? "").trim();
 	}
 
 	function merged_label(mf) {
