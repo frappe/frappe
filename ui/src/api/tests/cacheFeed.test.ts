@@ -7,6 +7,7 @@ import {
   copyDocument,
   countDocuments,
   createDocument,
+  bulkDeleteDocuments,
   deleteDocument,
   getDocument,
   renameDocument,
@@ -191,6 +192,21 @@ describe("writes", () => {
     expect(await deleteDocument("ToDo", "T-1")).toEqual({ data: "ok" });
     expect(cached("T-1")).toBeUndefined();
     expect(readCachedList("ToDo", LIST)).toMatchObject({ names: ["T-2"], count: 1 });
+  });
+
+  it("bulkDeleteDocuments drops each name it deleted and keeps the one that failed", async () => {
+    await readList(["T-1", "T-2", "T-3"], 3);
+    respond({ data: { total: 3, done: ["T-1", "T-3"], failed: [{ name: "T-2", error: "linked" }] } });
+    await bulkDeleteDocuments("ToDo", ["T-1", "T-2", "T-3"]);
+    expect(cached("T-1")).toBeUndefined();
+    expect(readCachedList("ToDo", LIST)).toMatchObject({ names: ["T-2"], count: 1 });
+  });
+
+  it("bulkDeleteDocuments drops nothing when the run went to the background", async () => {
+    await readList(["T-1"], 1);
+    respond({ data: { task_id: "K-1", job_id: "J-1" } });
+    await bulkDeleteDocuments("ToDo", ["T-1"]);
+    expect(readCachedList("ToDo", LIST)).toMatchObject({ names: ["T-1"] });
   });
 
   it("renameDocument posts to rename_doc and drops the old name as a delete does", async () => {

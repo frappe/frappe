@@ -17,7 +17,7 @@ from werkzeug.routing import Rule
 import frappe
 import frappe.client
 from frappe import _, cint, cstr, get_newargs, is_whitelisted
-from frappe.api import activity, collaboration, discovery, files
+from frappe.api import activity, bulk_actions, collaboration, discovery, files
 from frappe.api.include import (
 	add_document_parts,
 	add_list_parts,
@@ -28,6 +28,7 @@ from frappe.api.include import (
 	parse_include,
 	serialize_meta,
 )
+from frappe.api.utils import FrappeValueError, apply_controller_get_list
 from frappe.apps import get_disabled_apps
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 from frappe.database.utils import DefaultOrderBy
@@ -48,21 +49,6 @@ PERMISSION_MAP = {
 	"POST": "write",
 	"QUERY": "read",
 }
-
-
-def get_bulk_operation_async_threshold(doctype: str | None = None) -> int:
-	conf = frappe.conf.get("bulk_operation_async_threshold", 20)
-
-	if isinstance(conf, dict):
-		value = conf.get(doctype, 20) if doctype else conf.get("*", 20)
-	else:
-		value = conf
-
-	return cint(value)
-
-
-class FrappeValueError(ValueError):
-	http_status_code = 417
 
 
 def handle_rpc_call(method: str, doctype: str | None = None):
@@ -205,8 +191,6 @@ def document_list(doctype: str) -> list[dict[str, Any]]:
 						query = query.where(Project.is_private == 0)
 					return query
 	"""
-	from frappe.model.document import get_controller
-
 	args = frappe.form_dict
 	fields: list | None = frappe.parse_json(args.get("fields", None))
 	filters: dict | None = frappe.parse_json(args.get("filters", None))
@@ -260,25 +244,7 @@ def document_list(doctype: str) -> list[dict[str, Any]]:
 		ignore_permissions=False,
 	)
 
-	# Check if the doctype controller has a static get_list method
-	controller = get_controller(doctype)
-	if hasattr(controller, "get_list"):
-		try:
-			return_value = controller.get_list(query)
-
-			if return_value is not None:
-				# Validate that the returned value has a run method (is a QueryBuilder-like object)
-				if not hasattr(return_value, "run"):
-					frappe.throw(
-						_(
-							"Custom get_list method for {0} must return a QueryBuilder object or None, got {1}"
-						).format(doctype, type(return_value).__name__)
-					)
-
-				query = return_value
-
-		except Exception as e:
-			frappe.throw(_("Error in {0}.get_list: {1}").format(doctype, str(e) or type(e).__name__))
+	query = apply_controller_get_list(doctype, query)
 
 	data = query.run(as_dict=as_dict, debug=debug, as_list=not as_dict)
 	frappe.response["has_next_page"] = len(data) > limit
@@ -485,298 +451,6 @@ def whitelisted_doc_function(doc: Document, method: str):
 	return getattr(method_obj, "__func__", method_obj)
 
 
-def bulk_delete_docs(doctype: str):
-	"""Bulk delete multiple documents of the same doctype.
-
-	Request body should contain:
-		names: List of document names to delete
-
-	Returns:
-		deleted: List of successfully deleted document names
-		failed: List of failed deletions with error messages
-		total: Total number of documents attempted
-		success_count: Number of successful deletions
-		failure_count: Number of failed deletions
-	"""
-	names = frappe.form_dict.get("names")
-
-	if not isinstance(names, list):
-		raise FrappeValueError("'names' must be a list")
-
-	if len(names) > get_bulk_operation_async_threshold(doctype):
-		job = frappe.enqueue(
-			"frappe.api.v2.execute_bulk_delete_docs",
-			doctype=doctype,
-			names=names,
-		)
-		frappe.response.http_status_code = 202
-		return {"job_id": job.id}
-
-	return execute_bulk_delete_docs(doctype, names)
-
-
-def execute_bulk_delete_docs(doctype: str, names: list[str | int]):
-	deleted = []
-	failed = []
-
-	for name in names:
-		if not isinstance(name, str | int):
-			failed.append({"name": name, "error": "'name' must be a string or integer"})
-			continue
-
-		if isinstance(name, int):
-			name = str(name)
-
-		savepoint = "bulk_delete_docs"
-		frappe.db.savepoint(savepoint)
-
-		try:
-			frappe.delete_doc(doctype, name, ignore_missing=False)
-			deleted.append(name)
-		except Exception as e:
-			frappe.db.rollback(save_point=savepoint)
-			failed.append({"name": name, "error": str(e)})
-
-	assert len(deleted) + len(failed) == len(names), (
-		"every name must be either deleted or failed exactly once"
-	)
-	return {
-		"deleted": deleted,
-		"failed": failed,
-		"total": len(names),
-		"success_count": len(deleted),
-		"failure_count": len(failed),
-	}
-
-
-def bulk_delete():
-	"""Bulk delete documents across multiple doctypes.
-
-	Request body should contain:
-		docs: List of {"doctype": str, "name": str} objects
-
-	Returns:
-		deleted: List of successfully deleted documents
-		failed: List of failed deletions with error messages
-		total: Total number of documents attempted
-		success_count: Number of successful deletions
-		failure_count: Number of failed deletions
-	"""
-	docs = frappe.form_dict.get("docs", [])
-
-	if not isinstance(docs, list):
-		raise FrappeValueError("'docs' must be a list")
-
-	if len(docs) > get_bulk_operation_async_threshold():
-		job = frappe.enqueue(
-			"frappe.api.v2.execute_bulk_delete",
-			docs=docs,
-		)
-		frappe.response.http_status_code = 202
-		return {"job_id": job.id}
-
-	return execute_bulk_delete(docs)
-
-
-def execute_bulk_delete(docs: list):
-	deleted = []
-	failed = []
-
-	for item in docs:
-		doctype = None
-		name = None
-		savepoint = "bulk_delete"
-		frappe.db.savepoint(savepoint)
-
-		try:
-			if not isinstance(item, dict):
-				raise FrappeValueError("Each document must be a dictionary with 'doctype' and 'name' keys")
-
-			doctype = item.get("doctype")
-			name = item.get("name")
-
-			if not isinstance(doctype, str):
-				raise FrappeValueError("'doctype' must be a string")
-
-			if not isinstance(name, str | int):
-				raise FrappeValueError("'name' must be a string or integer")
-
-			if isinstance(name, int):
-				name = str(name)
-
-			frappe.delete_doc(doctype, name, ignore_missing=False)
-			deleted.append({"doctype": doctype, "name": name})
-		except Exception as e:
-			frappe.db.rollback(save_point=savepoint)
-			failed.append({"doctype": doctype, "name": name, "error": str(e)})
-
-	assert len(deleted) + len(failed) == len(docs), "every doc must be either deleted or failed exactly once"
-	return {
-		"deleted": deleted,
-		"failed": failed,
-		"total": len(docs),
-		"success_count": len(deleted),
-		"failure_count": len(failed),
-	}
-
-
-def bulk_update_docs(doctype: str):
-	"""Bulk update multiple documents of the same doctype.
-
-	Request body should contain:
-		docs: List of {"name": str, ...fields} objects where each object contains
-		      the document name and the fields to update
-
-	Returns:
-		updated: List of successfully updated document names
-		failed: List of failed updates with error messages
-		total: Total number of documents attempted
-		success_count: Number of successful updates
-		failure_count: Number of failed updates
-	"""
-	docs = frappe.form_dict.get("docs")
-
-	if not isinstance(docs, list):
-		raise FrappeValueError("'docs' must be a list")
-
-	if len(docs) > get_bulk_operation_async_threshold(doctype):
-		job = frappe.enqueue(
-			"frappe.api.v2.execute_bulk_update_docs",
-			doctype=doctype,
-			docs=docs,
-		)
-		frappe.response.http_status_code = 202
-		return {"job_id": job.id}
-
-	return execute_bulk_update_docs(doctype, docs)
-
-
-def execute_bulk_update_docs(doctype: str, docs: list):
-	updated = []
-	failed = []
-
-	for item in docs:
-		name = None
-		savepoint = "bulk_update_docs"
-		frappe.db.savepoint(savepoint)
-
-		try:
-			if not isinstance(item, dict):
-				raise FrappeValueError("Each update must be a dictionary with 'name' and field values")
-
-			name = item.get("name")
-			if not isinstance(name, str | int):
-				raise FrappeValueError("'name' must be a string or integer")
-
-			if isinstance(name, int):
-				name = str(name)
-
-			doc = frappe.get_doc(doctype, name, for_update=True)
-			item_copy = item.copy()
-			item_copy.pop("name")
-			item_copy.pop("flags", None)
-
-			doc.update(item_copy)
-			doc.save()
-
-			updated.append(name)
-			frappe.response.docs.append(doc.copy_with_fieldlevel_read_permissions().as_dict())
-		except Exception as e:
-			frappe.db.rollback(save_point=savepoint)
-			failed.append({"name": name, "error": str(e)})
-
-	assert len(updated) + len(failed) == len(docs), "every doc must be either updated or failed exactly once"
-	return {
-		"updated": updated,
-		"failed": failed,
-		"total": len(docs),
-		"success_count": len(updated),
-		"failure_count": len(failed),
-	}
-
-
-def bulk_update():
-	"""Bulk update documents across multiple doctypes.
-
-	Request body should contain:
-		docs: List of {"doctype": str, "name": str, ...fields} objects
-
-	Returns:
-		updated: List of successfully updated documents
-		failed: List of failed updates with error messages
-		total: Total number of documents attempted
-		success_count: Number of successful updates
-		failure_count: Number of failed updates
-	"""
-	docs = frappe.form_dict.get("docs")
-
-	if not isinstance(docs, list):
-		raise FrappeValueError("'docs' must be a list")
-
-	if len(docs) > get_bulk_operation_async_threshold():
-		job = frappe.enqueue(
-			"frappe.api.v2.execute_bulk_update",
-			docs=docs,
-		)
-		frappe.response.http_status_code = 202
-		return {"job_id": job.id}
-
-	return execute_bulk_update(docs)
-
-
-def execute_bulk_update(docs: list):
-	updated = []
-	failed = []
-
-	for item in docs:
-		doctype = None
-		name = None
-		savepoint = "bulk_update"
-		frappe.db.savepoint(savepoint)
-
-		try:
-			if not isinstance(item, dict):
-				raise FrappeValueError(
-					"Each document must be a dictionary with 'doctype', 'name', and field values"
-				)
-
-			doctype = item.get("doctype")
-			name = item.get("name")
-
-			if not isinstance(doctype, str):
-				raise FrappeValueError("'doctype' must be a string")
-
-			if not isinstance(name, str | int):
-				raise FrappeValueError("'name' must be a string or integer")
-
-			if isinstance(name, int):
-				name = str(name)
-
-			doc = frappe.get_doc(doctype, name, for_update=True)
-			item_copy = item.copy()
-			item_copy.pop("doctype")
-			item_copy.pop("name")
-			item_copy.pop("flags", None)
-
-			doc.update(item_copy)
-			doc.save()
-
-			updated.append({"doctype": doctype, "name": name})
-			frappe.response.docs.append(doc.copy_with_fieldlevel_read_permissions().as_dict())
-		except Exception as e:
-			frappe.db.rollback(save_point=savepoint)
-			failed.append({"doctype": doctype, "name": name, "error": str(e)})
-
-	assert len(updated) + len(failed) == len(docs), "every doc must be either updated or failed exactly once"
-	return {
-		"updated": updated,
-		"failed": failed,
-		"total": len(docs),
-		"success_count": len(updated),
-		"failure_count": len(failed),
-	}
-
-
 def run_doc_method(method: str, document: dict[str, Any] | str, kwargs=None):
 	"""run a whitelisted controller method on in-memory document.
 
@@ -863,8 +537,8 @@ url_rules = [
 	Rule("/method/logout", endpoint=logout, methods=["POST"]),
 	Rule("/method/ping", endpoint=frappe.ping),
 	Rule("/method/upload_file", endpoint=upload_file, methods=["POST"]),
-	Rule("/method/bulk_delete", endpoint=bulk_delete, methods=["POST"]),
-	Rule("/method/bulk_update", endpoint=bulk_update, methods=["POST"]),
+	Rule("/method/bulk_delete", endpoint=bulk_actions.bulk_delete, methods=["POST"]),
+	Rule("/method/bulk_update", endpoint=bulk_actions.bulk_update, methods=["POST"]),
 	Rule("/method/<method>", endpoint=handle_rpc_call),
 	Rule(
 		"/method/run_doc_method",
@@ -877,8 +551,8 @@ url_rules = [
 	Rule("/document/<doctype>", methods=["POST"], endpoint=create_doc),
 	# a static rule beats the dynamic one, so an upload of bytes never reaches `create_doc`
 	Rule("/document/File", methods=["POST"], endpoint=files.create_file),
-	Rule("/document/<doctype>/bulk_delete", methods=["POST"], endpoint=bulk_delete_docs),
-	Rule("/document/<doctype>/bulk_update", methods=["POST"], endpoint=bulk_update_docs),
+	Rule("/document/<doctype>/bulk_delete", methods=["POST"], endpoint=bulk_actions.bulk_delete_docs),
+	Rule("/document/<doctype>/bulk_update", methods=["POST"], endpoint=bulk_actions.bulk_update_docs),
 	Rule("/document/<doctype>/<path:name>/", methods=["GET"], endpoint=read_doc),
 	Rule(
 		"/document/<doctype>/<path:name>/copy",

@@ -2,6 +2,7 @@
 
 import frappe
 from frappe import _
+from frappe.api import bulk
 from frappe.boot import DEFAULT_APP_SEQUENCE_ID
 from frappe.core.api.file import get_file_chunk_size, get_max_file_size
 from frappe.core.doctype.installed_applications.installed_applications import (
@@ -72,6 +73,9 @@ def core_boot() -> dict:
 		# For the About dialog: the Frappe Support row and the "Update Available" button.
 		"is_fc_site": is_fc_site(),
 		"has_app_updates": has_app_update_notifications(),
+		# The user's bulk-action switch and the site cap, so the list refuses before it calls.
+		"bulk_actions": bulk.has_gate(),
+		"bulk_operation_limit": bulk.get_limit(),
 	}
 
 

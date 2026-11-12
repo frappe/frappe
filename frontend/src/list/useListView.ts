@@ -1,5 +1,6 @@
 // The List type's rows area: its columns from the view's settings, and the rows the view's filters
 // and sort read, with the selection, the page size and the delete.
+import { bulkDeleteDocuments, isBulkQueued } from "@framework/ui/api";
 import { applyColumnWidth, clearColumnWidth, getColumnAlign } from "@framework/ui/ColumnSettings";
 import type { ListColumn } from "@framework/ui/experimental/List";
 import { getFilterableFields, serializeFilters, type FilterCondition } from "@framework/ui/Filter";
@@ -38,6 +39,8 @@ import type { View } from "./view";
 export interface DeleteOutcome {
 	deleted: string[];
 	failed: { name: string; error: string }[];
+	/** The run went to the background; its result is not known yet. */
+	queued?: boolean;
 }
 
 export interface ListView extends ListRows {
@@ -184,7 +187,7 @@ export function useListView(view: View, lists: Pick<ListPageLists, "columns" | "
 	});
 
 	async function deleteSelection(): Promise<DeleteOutcome> {
-		const outcome = await deleteRows(rows, selection.value);
+		const outcome = await deleteRows(doctype, rows, selection.value);
 		selection.value = [];
 		return outcome;
 	}
@@ -272,22 +275,22 @@ export function filtersDict(filters: FilterCondition[]): Record<string, unknown>
 	return dict;
 }
 
-/** Deletes the rows one by one, then reloads the page; what failed comes back with its message. */
-export async function deleteRows(rows: ListRows, names: string[]): Promise<DeleteOutcome> {
-	const outcome: DeleteOutcome = { deleted: [], failed: [] };
-	for (const name of names) {
-		try {
-			await rows.remove(name);
-			outcome.deleted.push(name);
-		} catch (failure) {
-			outcome.failed.push({ name, error: messageOf(failure) });
-		}
-	}
+/** Deletes the records in one bulk request, then reloads the page; what failed comes back with its message. */
+export async function deleteRows(doctype: string, rows: ListRows, names: string[]): Promise<DeleteOutcome> {
+	const { data } = await bulkDeleteDocuments(doctype, names);
 	rows.reload();
-	return outcome;
+	if (isBulkQueued(data)) return { deleted: [], failed: [], queued: true };
+	return { deleted: data.done, failed: data.failed };
 }
 
-function messageOf(failure: unknown): string {
-	if (failure instanceof Error) return failure.message;
-	return String(failure);
+/** One record keeps the single-document route, which the bulk-actions switch does not gate. */
+export async function deleteRow(rows: ListRows, name: string): Promise<DeleteOutcome> {
+	try {
+		await rows.remove(name);
+		return { deleted: [name], failed: [] };
+	} catch (failure) {
+		return { deleted: [], failed: [{ name, error: failure instanceof Error ? failure.message : String(failure) }] };
+	} finally {
+		rows.reload();
+	}
 }

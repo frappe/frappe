@@ -13,7 +13,7 @@ vi.mock("@framework/ui/useDoctypeMeta", () => ({
 }));
 vi.mock("@framework/ui/useSession", () => ({ currentSession: () => ({ user: { name: "alice@example.com" } }) }));
 vi.mock("@/list/pageState", () => ({ useRememberedPageSize: () => ref(20) }));
-vi.mock("@/list/useListView", () => ({ deleteRows: vi.fn(), filtersDict: () => ({}) }));
+vi.mock("@/list/useListView", () => ({ deleteRow: vi.fn(), filtersDict: () => ({}) }));
 vi.mock("@/list/useListRows", () => ({
 	useListRows: (_doctype: string, query: () => { fields: string[] } | null) => {
 		fake.query = query;

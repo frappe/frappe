@@ -464,13 +464,13 @@ class TestApiV2CreateFieldLevelRead(FrappeAPITestCase):
 
 	def test_bulk_update_docs_omits_fields_without_read_permission(self):
 		response = self.request("post", "bulk_update", data={"docs": [{"name": self.name, "title": "y"}]})
-		self.assertEqual(response["data"]["success_count"], 1)
+		self.assertEqual(len(response["data"]["done"]), 1)
 		self.assertIsNone(response["docs"][0].get("secret"))
 
 	def test_bulk_update_omits_fields_without_read_permission(self):
 		docs = [{"doctype": self.doctype, "name": self.name, "title": "y"}]
 		response = self.request("post", data={"docs": docs}, url=self.method("bulk_update"))
-		self.assertEqual(response["data"]["success_count"], 1)
+		self.assertEqual(len(response["data"]["done"]), 1)
 		self.assertIsNone(response["docs"][0].get("secret"))
 
 	def test_run_doc_method_omits_fields_without_read_permission(self):
@@ -685,10 +685,10 @@ class TestBulkOperationsV2(FrappeAPITestCase):
 		self.assertEqual(response.status_code, 200)
 		data = response.json["data"]
 		self.assertEqual(data["total"], 2)
-		self.assertEqual(data["success_count"], 2)
-		self.assertEqual(data["failure_count"], 0)
-		self.assertIn(doc1.name, data["deleted"])
-		self.assertIn(doc2.name, data["deleted"])
+		self.assertEqual(len(data["done"]), 2)
+		self.assertEqual(len(data["failed"]), 0)
+		self.assertIn(doc1.name, data["done"])
+		self.assertIn(doc2.name, data["done"])
 
 		# Verify deletion
 		self.assertFalse(frappe.db.exists(self.DOCTYPE, doc1.name))
@@ -709,9 +709,9 @@ class TestBulkOperationsV2(FrappeAPITestCase):
 		self.assertEqual(response.status_code, 200)
 		data = response.json["data"]
 		self.assertEqual(data["total"], 2)
-		self.assertEqual(data["success_count"], 1)
-		self.assertEqual(data["failure_count"], 1)
-		self.assertIn(doc.name, data["deleted"])
+		self.assertEqual(len(data["done"]), 1)
+		self.assertEqual(len(data["failed"]), 1)
+		self.assertIn(doc.name, data["done"])
 		self.assertEqual(len(data["failed"]), 1)
 		self.assertEqual(data["failed"][0]["name"], non_existent)
 
@@ -736,8 +736,8 @@ class TestBulkOperationsV2(FrappeAPITestCase):
 		self.assertEqual(response.status_code, 200)
 		data = response.json["data"]
 		self.assertEqual(data["total"], 2)
-		self.assertEqual(data["success_count"], 2)
-		self.assertEqual(data["failure_count"], 0)
+		self.assertEqual(len(data["done"]), 2)
+		self.assertEqual(len(data["failed"]), 0)
 
 		# Verify deletion
 		self.assertFalse(frappe.db.exists("ToDo", todo.name))
@@ -759,7 +759,7 @@ class TestBulkOperationsV2(FrappeAPITestCase):
 		)
 		self.assertEqual(response.status_code, 200)
 		data = response.json["data"]
-		self.assertEqual(data["failure_count"], 1)
+		self.assertEqual(len(data["failed"]), 1)
 		self.assertIn("must be a dictionary", data["failed"][0]["error"])
 
 	def test_bulk_update_docs_single_doctype_v2(self):
@@ -784,10 +784,10 @@ class TestBulkOperationsV2(FrappeAPITestCase):
 			self.assertEqual(response.status_code, 200)
 			data = response.json["data"]
 			self.assertEqual(data["total"], 2)
-			self.assertEqual(data["success_count"], 2)
-			self.assertEqual(data["failure_count"], 0)
-			self.assertIn(doc1.name, data["updated"])
-			self.assertIn(doc2.name, data["updated"])
+			self.assertEqual(len(data["done"]), 2)
+			self.assertEqual(len(data["failed"]), 0)
+			self.assertIn(doc1.name, data["done"])
+			self.assertIn(doc2.name, data["done"])
 
 			# Verify updates
 			updated_doc1 = frappe.get_doc(self.DOCTYPE, doc1.name)
@@ -823,8 +823,8 @@ class TestBulkOperationsV2(FrappeAPITestCase):
 			self.assertEqual(response.status_code, 200)
 			data = response.json["data"]
 			self.assertEqual(data["total"], 2)
-			self.assertEqual(data["success_count"], 2)
-			self.assertEqual(data["failure_count"], 0)
+			self.assertEqual(len(data["done"]), 2)
+			self.assertEqual(len(data["failed"]), 0)
 
 			# Verify updates
 			updated_todo = frappe.get_doc("ToDo", todo.name)
@@ -859,9 +859,9 @@ class TestBulkOperationsV2(FrappeAPITestCase):
 			self.assertEqual(response.status_code, 200)
 			data = response.json["data"]
 			self.assertEqual(data["total"], 2)
-			self.assertEqual(data["success_count"], 1)
-			self.assertEqual(data["failure_count"], 1)
-			self.assertIn(valid_doc, data["updated"])
+			self.assertEqual(len(data["done"]), 1)
+			self.assertEqual(len(data["failed"]), 1)
+			self.assertIn(valid_doc, data["done"])
 			self.assertEqual(len(data["failed"]), 1)
 			self.assertEqual(data["failed"][0]["name"], non_existent)
 
@@ -888,8 +888,35 @@ class TestBulkOperationsV2(FrappeAPITestCase):
 		)
 		self.assertEqual(response.status_code, 200)
 		data = response.json["data"]
-		self.assertEqual(data["failure_count"], 1)
+		self.assertEqual(len(data["failed"]), 1)
 		self.assertIn("'name' must be a string or integer", data["failed"][0]["error"])
+
+	def test_bulk_routes_check_the_bulk_actions_gate_v2(self):
+		frappe.db.set_value("User", "Administrator", "bulk_actions", 0)
+		frappe.clear_document_cache("User", "Administrator")
+
+		def restore():
+			frappe.db.set_value("User", "Administrator", "bulk_actions", 1)
+			frappe.clear_document_cache("User", "Administrator")
+			frappe.db.commit()  # nosemgrep
+
+		self.addCleanup(restore)
+		frappe.db.commit()  # nosemgrep
+
+		for url, body in (
+			(self.resource(self.DOCTYPE, "bulk_delete"), {"names": ["x"]}),
+			(self.resource(self.DOCTYPE, "bulk_update"), {"docs": [{"name": "x"}]}),
+			(self.method("bulk_delete"), {"docs": [{"doctype": self.DOCTYPE, "name": "x"}]}),
+			(self.method("bulk_update"), {"docs": [{"doctype": self.DOCTYPE, "name": "x"}]}),
+		):
+			self.assertEqual(self.post(url, {**body, "sid": self.sid}).status_code, 403, url)
+
+	def test_bulk_routes_refuse_a_run_over_the_cap_v2(self):
+		with patch("frappe.api.bulk.get_limit", return_value=2):
+			response = self.post(
+				self.resource(self.DOCTYPE, "bulk_delete"), {"names": ["a", "b", "c"], "sid": self.sid}
+			)
+		self.assertEqual(response.status_code, 417)
 
 	def test_bulk_enqueue_v2(self):
 		# Create 25 docs
@@ -911,7 +938,7 @@ class TestBulkOperationsV2(FrappeAPITestCase):
 		)
 
 		self.assertEqual(response.status_code, 202)
-		self.assertIn("job_id", response.json["data"])
+		self.assertEqual(response.json["data"]["task_id"], response.json["data"]["job_id"])
 		job_id = response.json["data"]["job_id"]
 
 	def test_bulk_update_enqueue_v2(self):
@@ -934,7 +961,7 @@ class TestBulkOperationsV2(FrappeAPITestCase):
 		)
 
 		self.assertEqual(response.status_code, 202)
-		self.assertIn("job_id", response.json["data"])
+		self.assertEqual(response.json["data"]["task_id"], response.json["data"]["job_id"])
 		job_id = response.json["data"]["job_id"]
 
 

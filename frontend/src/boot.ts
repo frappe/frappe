@@ -57,6 +57,9 @@ export type Boot = {
 	// A Frappe Cloud site, for a System Manager; and whether the person has app updates to be told of.
 	is_fc_site: boolean;
 	has_app_updates: boolean;
+	// The user's bulk-action switch and the site's cap on one bulk run.
+	bulk_actions: boolean;
+	bulk_operation_limit: number;
 
 	// --- routing ---
 	//
