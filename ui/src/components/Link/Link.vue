@@ -23,6 +23,8 @@
 			<slot :name="name" v-bind="slotProps" />
 		</template>
 
+		<template v-if="panel" #footer><PickerListFit /></template>
+
 		<template v-if="slots.suffix" #suffix="suffixProps">
 			<slot name="suffix" v-bind="suffixProps" />
 		</template>
@@ -99,6 +101,7 @@ import type { ComboboxOption, ComboboxCustomOption } from "frappe-ui";
 import { useLinkSearch } from "../../composables/useLinkSearch";
 import { translate as __ } from "../../utils/translate";
 import RecordAnchor from "./RecordAnchor.vue";
+import PickerListFit from "../Fields/PickerListFit.vue";
 import type { LinkExposed, LinkProps, LinkEmits } from "./types";
 
 const props = withDefaults(defineProps<LinkProps>(), {
@@ -125,7 +128,10 @@ const forwardedSlots = computed(() =>
 	Object.fromEntries(
 		Object.entries(slots).filter(
 			([name]) =>
-				name !== "suffix" && name !== "item-create" && !(name === "prefix" && typing.value)
+				name !== "suffix" &&
+				name !== "item-create" &&
+				!(name === "footer" && props.panel) &&
+				!(name === "prefix" && typing.value)
 		)
 	)
 );

@@ -2,6 +2,7 @@
      An open popover holds the focus in its portal, so `data-state=open` keeps the focus look. -->
 <template>
 	<div
+		ref="box"
 		class="field-box min-h-7 w-full min-w-0 rounded-4 focus-within:bg-surface-gray-2 focus-within:ring-1 focus-within:ring-inset has-[[data-state=open]]:bg-surface-gray-2 has-[[data-state=open]]:ring-1 has-[[data-state=open]]:ring-inset"
 		:class="[
 			interactive ? 'hover:bg-surface-gray-2' : '',
@@ -16,11 +17,17 @@
 </template>
 
 <script setup lang="ts">
+import { provide, ref } from "vue";
+import { fieldBoxKey } from "./fieldBox";
+
 defineProps<{
 	error?: boolean;
 	/** Whether the box takes the hover fill: an editable or summary row. */
 	interactive?: boolean;
 }>();
+
+const box = ref<HTMLElement | null>(null);
+provide(fieldBoxKey, box);
 </script>
 
 <style scoped>
@@ -56,6 +63,10 @@ defineProps<{
 	/* An inline trigger on a text baseline adds a fraction of a pixel under a mark. */
 	vertical-align: top;
 }
+/* A placeholder or value too long for the box ends in an ellipsis, not mid-word. */
+.field-box :deep(input) {
+	text-overflow: ellipsis;
+}
 /* Link's input drops 1px on focus unless its line is the row's 28. */
 .field-box :deep(input[data-slot="input"]) {
 	line-height: 1.75rem;
@@ -67,6 +78,12 @@ defineProps<{
 .field-box :deep([data-slot="chevron"]),
 .field-box :deep([data-slot="chevron"] span) {
 	color: var(--ink-gray-4);
+}
+/* Whether the list is open or not, a chevron never turns: Combobox rotates its own by 180deg. */
+.field-box :deep([data-slot="chevron"]) {
+	transform: none;
+	rotate: none;
+	transition: none;
 }
 .field-box:not(:focus-within):not(:has([data-slot="trigger"][data-state="open"]))
 	:deep([data-slot="chevron"]) {

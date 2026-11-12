@@ -1057,6 +1057,9 @@ test.describe("Desk v2 side panel row: required label gap", () => {
 const PICKER_DOCTYPE = "Panel Picker 46992";
 const PICKER_SLUG = "panel-picker-46992";
 
+const LONG_OPTION = "A very long option that cannot fit in the value column of the panel";
+const LONG_ROLE = "Role With A Rather Long Name For The Panel Picker 46992";
+
 const PICKERS = [
 	{ fieldname: "p_link", fieldtype: "Link", options: "Role", label: "Link Field" },
 	{ fieldname: "p_type", fieldtype: "Link", options: "DocType", label: "Type Field" },
@@ -1069,7 +1072,7 @@ const PICKERS = [
 	{
 		fieldname: "p_select",
 		fieldtype: "Select",
-		options: "Draft\nOpen\nClosed",
+		options: `Draft\nOpen\nClosed\n${LONG_OPTION}`,
 		label: "Select Field",
 	},
 	{
@@ -1085,6 +1088,12 @@ const PICKERS = [
 // Rows the geometry loop skips: a Link whose target gives a mark, and a read-only Select.
 const PICKER_EXTRAS = [
 	{ fieldname: "p_user", fieldtype: "Link", options: "User", label: "User Link" },
+	{
+		fieldname: "p_long",
+		fieldtype: "Link",
+		options: "DocType",
+		label: "Dynamic Link target field",
+	},
 	{
 		fieldname: "p_ro",
 		fieldtype: "Select",
@@ -1187,6 +1196,7 @@ test.describe("Desk v2 side panel picker rows", () => {
 			type: "Side Panel",
 			layout: JSON.stringify(PICKER_LAYOUT),
 		});
+		await admin.insert_doc("Role", { role_name: LONG_ROLE }, true);
 		name = (await admin.insert_doc(PICKER_DOCTYPE, PICKER_VALUES)).name;
 		emptyName = (await admin.insert_doc(PICKER_DOCTYPE, {})).name;
 	});
@@ -1202,6 +1212,7 @@ test.describe("Desk v2 side panel picker rows", () => {
 		}
 		for (const doc of [name, emptyName]) await admin.remove_doc(PICKER_DOCTYPE, doc, true);
 		await admin.remove_doc("DocType", PICKER_DOCTYPE, true);
+		await admin.remove_doc("Role", LONG_ROLE, true);
 		await admin.call("frappe.tests.ui_test_helpers.set_desk_v2", { enabled: 0 });
 	});
 
@@ -1234,14 +1245,103 @@ test.describe("Desk v2 side panel picker rows", () => {
 				.locator(`.field-box:has([data-fieldname="${fieldname}"])`)
 				.boundingBox();
 			const popover = await page.locator(POPOVER).boundingBox();
-			// A date picker keeps its own width; the page edge may shift any popover left.
-			expect(popover.x).toBeGreaterThanOrEqual(box.x - 12);
+			// A date picker keeps its own width; the page edge may shift any popover left, but not out of the panel.
+			const panel = await page.locator(".panel-layout").boundingBox();
+			expect(popover.x).toBeGreaterThanOrEqual(Math.min(box.x - 12, panel.x));
 			expect(popover.x).toBeLessThanOrEqual(box.x + 1);
 			if (!DATE_LIKE.includes(fieldname)) {
 				expect(popover.width).toBeGreaterThanOrEqual(box.width - 1);
 			}
 		});
 	}
+
+	for (const [fieldname, search, text] of [
+		["p_link", "Role With A Rather", LONG_ROLE],
+		["p_select", "", LONG_OPTION],
+	]) {
+		test(`${fieldname}'s list stays inside the panel, truncates a long option and titles it`, async ({
+			page,
+		}) => {
+			await cell(page, fieldname).click();
+			if (search) {
+				await page.keyboard.press("Control+A");
+				await page.keyboard.type(search);
+			}
+			const option = page.locator(`${POPOVER} [role="option"]`, { hasText: text });
+			await option.hover();
+			const popover = await page.locator(POPOVER).boundingBox();
+			const panel = await page.locator(".panel-layout").boundingBox();
+			expect(popover.x).toBeGreaterThanOrEqual(panel.x - 0.5);
+			expect(popover.x + popover.width).toBeLessThanOrEqual(panel.x + panel.width + 1);
+			await expect(option).toHaveAttribute("title", text);
+			const truncated = await option
+				.locator(".truncate")
+				.evaluate((label) => label.scrollWidth > label.clientWidth);
+			expect(truncated).toBe(true);
+		});
+	}
+
+	test("a picker's chevron does not turn when its list opens", async ({ page }) => {
+		await cell(page, "p_auto").click();
+		await expect(page.locator(POPOVER)).toBeVisible();
+		const chevron = cell(page, "p_auto").locator('[data-slot="chevron"]');
+		expect(await chevron.evaluate((el) => getComputedStyle(el).transform)).toMatch(
+			/^(none|matrix\(1, 0, 0, 1, 0, 0\))$/
+		);
+	});
+
+	for (const { fieldname, label } of PICKERS) {
+		test(`${label} (${fieldname}) draws one box: its control adds no fill, border or ring inside the row's`, async ({
+			page,
+		}) => {
+			await cell(page, fieldname).click();
+			await expect(page.locator(POPOVER)).toBeVisible();
+			const inner = await page.evaluate((fieldname) => {
+				const box = document
+					.querySelector(`.field-box [data-fieldname="${fieldname}"]`)
+					.closest(".field-box");
+				const width = box.getBoundingClientRect().width;
+				return [
+					...box.querySelectorAll(
+						'[data-slot="trigger"], [data-slot="control"], [data-slot="input"]'
+					),
+				].map((el) => {
+					const style = getComputedStyle(el);
+					const rings = [
+						...style.boxShadow.matchAll(
+							/(-?[\d.]+)px (-?[\d.]+)px (-?[\d.]+)px (-?[\d.]+)px/g
+						),
+					];
+					return {
+						slot: el.dataset.slot,
+						width: el.getBoundingClientRect().width,
+						boxWidth: width,
+						fill: style.backgroundColor,
+						border: style.borderTopWidth,
+						ring: rings.every((m) => m.slice(1).every((n) => parseFloat(n) === 0)),
+						outline:
+							style.outlineStyle === "none" ||
+							style.outlineColor === "rgba(0, 0, 0, 0)",
+					};
+				});
+			}, fieldname);
+			expect(inner.length).toBeGreaterThan(0);
+			for (const el of inner) {
+				expect(el.fill).toBe("rgba(0, 0, 0, 0)");
+				expect(el.border).toBe("0px");
+				expect(el.ring).toBe(true);
+				expect(el.outline).toBe(true);
+				if (el.slot !== "input") expect(el.width).toBeCloseTo(el.boxWidth, 1);
+			}
+		});
+	}
+
+	test("a placeholder too long for the box ends in an ellipsis", async ({ page }) => {
+		await cell(page, "p_long").click();
+		const input = page.locator('.field-box [data-fieldname="p_long"] input');
+		await expect(input).toHaveAttribute("placeholder", "Add Dynamic Link target field...");
+		expect(await input.evaluate((el) => getComputedStyle(el).textOverflow)).toBe("ellipsis");
+	});
 
 	test("a Dynamic Link with no doctype stays closed and does not throw", async ({ page }) => {
 		const errors = [];

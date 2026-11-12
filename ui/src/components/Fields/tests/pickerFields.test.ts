@@ -17,6 +17,8 @@ import DynamicLinkField from "../DynamicLinkField.vue";
 import LinkField from "../LinkField.vue";
 import SelectField from "../SelectField.vue";
 import TimeField from "../TimeField.vue";
+import PickerListFit from "../PickerListFit.vue";
+import { fieldBoxKey } from "../fieldBox";
 import { DocKey } from "../types";
 import type { FieldMeta } from "../types";
 
@@ -135,5 +137,46 @@ describe("Link in panel mode", () => {
     const trigger = host.querySelector("[data-slot=trigger]")!;
     expect(trigger.className).toContain("w-full");
     expect(trigger.getAttribute("data-variant")).toBe("ghost");
+  });
+});
+
+describe("PickerListFit", () => {
+  // jsdom lays nothing out: the panel's rect and a label's overflow are given.
+  function mountList(bound: { left: number; width: number }, overflowing: boolean) {
+    const panel = document.createElement("div");
+    panel.setAttribute("data-picker-bound", "");
+    panel.getBoundingClientRect = () => ({ left: bound.left, width: bound.width }) as DOMRect;
+    const box = document.createElement("div");
+    panel.appendChild(box);
+    const list = document.createElement("div");
+    list.setAttribute("data-slot", "content");
+    list.innerHTML = '<div role="option"><div class="truncate">A long option</div></div><div id="foot"></div>';
+    const label = list.querySelector<HTMLElement>(".truncate")!;
+    Object.defineProperty(label, "scrollWidth", { value: overflowing ? 300 : 50 });
+    Object.defineProperty(label, "clientWidth", { value: 100 });
+    document.body.append(panel, list);
+    const app = createApp(PickerListFit);
+    app.provide(fieldBoxKey, ref(box));
+    app.mount(list.querySelector("#foot")!);
+    apps.push(app);
+    return list;
+  }
+
+  it("caps the list at the panel's width", () => {
+    expect(mountList({ left: 100, width: 380 }, false).style.maxWidth).toBe("380px");
+  });
+
+  it("keeps the list's left edge on the panel's when the viewport edge would shift it", () => {
+    const left = innerWidth - 200;
+    expect(mountList({ left, width: 380 }, false).style.maxWidth).toBe("190px");
+  });
+
+  it("titles an option the list truncates, and none it does not", () => {
+    for (const [overflowing, title] of [[true, "A long option"], [false, ""]] as const) {
+      const list = mountList({ left: 0, width: 380 }, overflowing);
+      const option = list.querySelector<HTMLElement>('[role="option"]')!;
+      option.querySelector(".truncate")!.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+      expect(option.title).toBe(title);
+    }
   });
 });

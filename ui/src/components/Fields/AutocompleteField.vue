@@ -9,6 +9,7 @@
 		:disabled="field.readOnly"
 		:openOnClick="true"
 	>
+		<template v-if="panel" #footer><PickerListFit /></template>
 		<template v-if="!panel && field.description && !error?.length" #description>
 			<FieldDescription :html="field.description" />
 		</template>
@@ -23,6 +24,7 @@ import { Combobox } from "frappe-ui";
 import { fieldChoices } from "./choices";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
 import FieldDescription from "./FieldDescription.vue";
+import PickerListFit from "./PickerListFit.vue";
 import { usePickerFrame } from "./inputFrame";
 
 const props = defineProps<FieldComponentProps>();
