@@ -20,9 +20,9 @@ export interface BulkBarOptions {
 	askDelete: () => void;
 	/** Acts the renderer adds to its own surface beside the bulk and row ones. */
 	extraEntries?: () => ActEntry[];
-	/** The row under the pointer or with focus, and the table's range-aware selection. */
-	cursor: Ref<string | null>;
-	table: () => { toggle: (name: string) => void; extendTo: (name: string) => void } | null;
+	/** The row under the pointer or with focus, and the table's range-aware selection; a surface without a cursor (Cards) gets no bulk keys. */
+	cursor?: Ref<string | null>;
+	table?: () => { toggle: (name: string) => void; extendTo: (name: string) => void } | null;
 }
 
 export interface BulkBar {
@@ -37,7 +37,7 @@ export interface BulkBar {
 }
 
 export function useBulkBar(options: BulkBarOptions): BulkBar {
-	const { host, selection, askDelete } = options;
+	const { host, selection, askDelete, cursor } = options;
 	const boot = inject<Boot>("boot")!;
 	const { bulkActions: bulkList } = host.lists;
 
@@ -58,16 +58,18 @@ export function useBulkBar(options: BulkBarOptions): BulkBar {
 			...(selection.value.length && boot.bulk_actions ? bulkEntries() : []),
 			...rowActionEntries(options.rowActions.value),
 			...(options.extraEntries?.() ?? []),
-			...bulkKeyEntries({
-				selection,
-				cursor: options.cursor,
-				shown: (name) => options.rows.value.some((row) => row.name === name),
-				locked: !boot.bulk_actions,
-				hasMenu: () => layout.value.menu.length > 0,
-				menuOpen,
-				toggle: (name) => options.table()?.toggle(name),
-				extendTo: (name) => options.table()?.extendTo(name),
-			}),
+			...(cursor
+				? bulkKeyEntries({
+						selection,
+						cursor,
+						shown: (name) => options.rows.value.some((row) => row.name === name),
+						locked: !boot.bulk_actions,
+						hasMenu: () => layout.value.menu.length > 0,
+						menuOpen,
+						toggle: (name) => options.table?.()?.toggle(name),
+						extendTo: (name) => options.table?.()?.extendTo(name),
+					})
+				: []),
 		],
 		{ rows: () => options.rows.value, selection: () => selection.value, reload: options.reload }
 	);
