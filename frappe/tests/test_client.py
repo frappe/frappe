@@ -3,8 +3,15 @@
 from unittest.mock import patch
 
 import frappe
+<<<<<<< HEAD
 from frappe.tests.ui_test_helpers import whitelist_for_tests
 from frappe.tests.utils import FrappeTestCase
+=======
+from frappe.core.doctype.user.test_user import test_user
+from frappe.tests import IntegrationTestCase
+from frappe.tests.utils import whitelist_for_tests
+from frappe.tests.utils.test_capabilities import TestService, requires_test_service
+>>>>>>> 16867fb (fix: return empty permissions for unreadable documents in get_doc_permissions)
 from frappe.utils import get_site_url
 
 
@@ -13,7 +20,21 @@ def _get_only_marker():
 	return "executed"
 
 
+<<<<<<< HEAD
 class TestClient(FrappeTestCase):
+=======
+class TestClient(IntegrationTestCase):
+	def test_get_doc_permissions_does_not_reveal_unreadable_documents(self):
+		with test_user(roles=[], user_type="Website User") as user, self.set_user(user.name):
+			existing = frappe.client.get_doc_permissions("User", "Administrator")
+			missing = frappe.client.get_doc_permissions("User", "missing@example.com")
+		self.assertEqual(existing, missing)
+
+	def test_get_doc_permissions_for_readable_document(self):
+		permissions = frappe.client.get_doc_permissions("User", "Administrator")["permissions"]
+		self.assertTrue(permissions["read"])
+
+>>>>>>> 16867fb (fix: return empty permissions for unreadable documents in get_doc_permissions)
 	def test_set_value(self):
 		todo = frappe.get_doc(dict(doctype="ToDo", description="test")).insert()
 		frappe.set_value("ToDo", todo.name, "description", "test 1")
