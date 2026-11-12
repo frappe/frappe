@@ -366,6 +366,41 @@ class TestPdf(IntegrationTestCase):
 			pdfgen.get_pdf(self.html, smart_shrinking=True)
 			self.assertNotIn("disable-smart-shrinking", captured)
 
+	def test_on_print_pdf_hook_runs_for_builder_downloads(self):
+		from unittest.mock import patch
+
+		from frappe.utils.print_format_generator import download_pdf
+
+		get_hooks = frappe.get_hooks
+		calls = []
+
+		def hooks(hook=None, *args, **kwargs):
+			if hook == "on_print_pdf":
+				return ["frappe.tests.test_pdf.record_print"]
+			return get_hooks(hook, *args, **kwargs)
+
+		print_format = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": "_Test Builder Format",
+				"doc_type": "ToDo",
+				"standard": "No",
+				"print_format_builder_beta": 1,
+			}
+		).insert()
+		self.addCleanup(print_format.delete)
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "print hook"}).insert()
+
+		with (
+			patch.object(frappe, "get_hooks", side_effect=hooks),
+			patch("frappe.tests.test_pdf.record_print", side_effect=lambda **kw: calls.append(kw)),
+		):
+			download_pdf("ToDo", todo.name, print_format=print_format.name)
+
+		self.assertEqual(calls, [{"doctype": "ToDo", "name": todo.name, "print_format": print_format.name}])
+
 	def test_report_pdf_is_scaled_to_fit_the_page(self):
 		from unittest.mock import patch
 
