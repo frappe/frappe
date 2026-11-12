@@ -160,7 +160,7 @@ def _add_index(table, column):
 	)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def optimize(recorder_id: str):
 	frappe.only_for("Administrator")
 	frappe.enqueue(_optimize, recorder_id=recorder_id, queue="long")

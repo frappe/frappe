@@ -212,7 +212,7 @@ class ScheduledJobType(Document):
 		frappe.db.delete("Scheduled Job Log", {"scheduled_job_type": self.name})
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def execute_event(doc: str | dict):
 	frappe.only_for("System Manager")
 	doc = frappe.parse_json(doc)
