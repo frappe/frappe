@@ -2,9 +2,27 @@
 
 import frappe
 from frappe import _, cint
-from frappe.api.bulk import BulkAction, Record, Selection, read_selection, run_bulk
+from frappe.api.bulk import (
+	QUEUED,
+	BulkAction,
+	Record,
+	Selection,
+	check_cap,
+	check_gate,
+	get_limit,
+	read_selection,
+	run_bulk,
+)
 from frappe.api.utils import FrappeValueError
-from frappe.model.workflow import get_workflow_name
+from frappe.core.doctype.submission_queue.submission_queue import queue_submission
+from frappe.model.docstatus import DocStatus
+from frappe.model.workflow import (
+	WorkflowStateError,
+	get_transitions,
+	get_workflow_name,
+	has_approval_access,
+	run_workflow_transition,
+)
 from frappe.utils import add_to_date, now_datetime
 from frappe.utils.print_format import (
 	_enforce_multi_pdf_async_rate_limit,
@@ -13,6 +31,7 @@ from frappe.utils.print_format import (
 	get_max_concurrent_bulk_exports,
 	save_pdf_file,
 )
+from frappe.utils.scheduler import is_scheduler_inactive
 from frappe.utils.task_queue import get_current_task
 
 # The body keys an update may not set: they would change which record it is.
@@ -155,8 +174,119 @@ def refuse_workflow_without_allow_edit(doctype: str, params: dict):
 		)
 
 
+def refuse_submit_cancel(doctype: str, params: dict):
+	"""A workflow owns the docstatus of its records: its actions submit and cancel, not the bulk bar."""
+	if not frappe.get_meta(doctype).is_submittable:
+		frappe.throw(_("{0} is not submittable.").format(doctype))
+
+	if get_workflow_name(doctype):
+		frappe.throw(_("{0} has a workflow: apply its actions instead.").format(doctype))
+
+
+def refuse_without_workflow(doctype: str, params: dict):
+	if not get_workflow_name(doctype):
+		frappe.throw(_("{0} has no workflow.").format(doctype))
+
+
+def submit_one(doctype: str, name: str):
+	return submit_or_cancel_one("submit", doctype, name)
+
+
+def cancel_one(doctype: str, name: str):
+	return submit_or_cancel_one("cancel", doctype, name)
+
+
+def submit_or_cancel_one(action: str, doctype: str, name: str):
+	"""Do it now, or through the Submission Queue when the DocType has `queue_in_background`."""
+	doc = frappe.get_doc(doctype, name, for_update=True)
+	doc.check_permission(action)
+
+	from_docstatus = DocStatus.DRAFT if action == "submit" else DocStatus.SUBMITTED
+	if doc.docstatus != from_docstatus:
+		frappe.throw(
+			_("Cannot {0} a document with docstatus {1}").format(action, doc.docstatus),
+			frappe.DocstatusTransitionError,
+		)
+
+	if doc.meta.queue_in_background and not is_scheduler_inactive():
+		queue_submission(doc, action.title(), alert=False)
+		return QUEUED
+
+	getattr(doc, action)()
+	frappe.clear_messages()
+
+
+def workflow_one(doctype: str, name: str, action: str):
+	run_workflow_transition(frappe.get_doc(doctype, name, for_update=True), action)
+	frappe.clear_messages()
+
+	if frappe.db.exists(
+		"Submission Queue", {"ref_doctype": doctype, "ref_docname": name, "status": "Queued"}
+	):
+		return QUEUED
+
+
+def bulk_submit_docs(doctype: str):
+	"""POST /document/<doctype>/bulk_submit
+
+	Body: `names`, or `filters` and `or_filters`. Records of a `queue_in_background` DocType go to the
+	Submission Queue and come back as `queued`. Refused for a workflow DocType.
+	"""
+	return run_bulk(SUBMIT, doctype)
+
+
+def bulk_cancel_docs(doctype: str):
+	"""POST /document/<doctype>/bulk_cancel: the same body and rules as `bulk_submit`."""
+	return run_bulk(CANCEL, doctype)
+
+
+def bulk_workflow_docs(doctype: str):
+	"""POST /document/<doctype>/bulk_workflow
+
+	Body: `action`, the name of a transition, and `names` or `filters` and `or_filters`. Refused for a
+	DocType without a workflow. A record the transition does not apply to fails alone.
+	"""
+	action = frappe.form_dict.get("action")
+	if not isinstance(action, str) or not action:
+		raise FrappeValueError("'action' must be the name of a workflow action")
+
+	return run_bulk(WORKFLOW, doctype, params={"action": action})
+
+
+def bulk_workflow_actions(doctype: str):
+	"""POST /document/<doctype>/bulk_workflow_actions
+
+	Body: `names`, or `filters` and `or_filters`. Returns the workflow actions the user can apply to
+	every selected record.
+	"""
+	check_gate()
+	selection = read_selection(doctype)
+	check_cap(len(selection.records) + len(selection.rejected), get_limit())
+	if selection.rejected:
+		raise FrappeValueError("'names' must hold strings or integers")
+	refuse_without_workflow(doctype, {})
+
+	common = None
+	for record in selection.records:
+		doc = frappe.get_doc(doctype, record.name)
+		try:
+			transitions = get_transitions(doc, raise_exception=True)
+		except WorkflowStateError:
+			return []
+
+		actions = [t.action for t in transitions if has_approval_access(frappe.session.user, doc, t)]
+		common = actions if common is None else [action for action in common if action in actions]
+		if not common:
+			return []
+
+	return common or []
+
+
 DELETE = BulkAction("Delete", delete_one, check=refuse_workflow_without_allow_edit)
 UPDATE = BulkAction("Edit", update_one, check=refuse_workflow_without_allow_edit)
+SUBMIT = BulkAction("Submit", submit_one, check=refuse_submit_cancel)
+CANCEL = BulkAction("Cancel", cancel_one, check=refuse_submit_cancel)
+WORKFLOW = BulkAction("Workflow", workflow_one, check=refuse_without_workflow)
 
 
 def refuse_print_over_the_user_limits(doctype: str, params: dict):
