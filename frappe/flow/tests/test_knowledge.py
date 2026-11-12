@@ -917,6 +917,33 @@ class TestDoctypeSync(IntegrationTestCase):
 			self._sync(source.name)
 		self.assertEqual(self._references(source.name), {todo.name for todo in todos})
 
+	def test_a_retried_first_sync_drops_rows_that_left_the_filter(self):
+		first, second = sorted((self._todo("SYNCTEST one"), self._todo("SYNCTEST two")), key=lambda t: t.name)
+		source = self._source()
+		calls, rollback = [], frappe.db.rollback
+
+		def flaky(input, **kwargs):
+			calls.append(input)
+			if len(calls) == 2:
+				raise Exception("rate limited")
+			return _embedding_response([[0.1, 0.2, 0.3, 0.4]] * len(input))
+
+		with (
+			patch("frappe.flow.knowledge.ingest.BATCH", 1),
+			patch("litellm.embedding", side_effect=flaky),
+			# a failure rolls back to the last commit
+			patch.object(frappe.db, "commit", side_effect=lambda: frappe.db.savepoint("ingest")),
+			patch.object(frappe.db, "rollback", side_effect=lambda: rollback(save_point="ingest")),
+			self.assertRaises(Exception),
+		):
+			ingest_source(source.name)
+		self.assertEqual(self._references(source.name), {first.name})
+
+		first.db_set("description", "no longer a sync row")
+		self._sync(source.name)
+		self.assertEqual(self._references(source.name), {second.name})
+		self._assert_lance_mirrors_chunks(source.name)
+
 	def test_moving_a_source_moves_its_chunks(self):
 		self._todo("SYNCTEST alpha")
 		source = self._source()

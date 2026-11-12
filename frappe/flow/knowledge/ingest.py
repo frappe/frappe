@@ -173,6 +173,8 @@ def _sync_doctype(doc, settings) -> None:
 	watermark = doc.last_synced_at
 	sweep_start = now_datetime()
 	first_run = not watermark
+	# a failed first run, retried, finds the chunks it committed
+	retried_first_run = first_run and bool(frappe.db.exists(CHUNK_DOCTYPE, {"source": doc.name}))
 
 	filters = [make_filter_tuple(ref, key, value) for key, value in user_filters.items()]
 	if not first_run:
@@ -191,13 +193,20 @@ def _sync_doctype(doc, settings) -> None:
 		)
 		if not page:
 			break
-		_upsert_page(doc, settings, meta, fields, page, matched_refs, track_exits=not first_run)
+		_upsert_page(
+			doc, settings, meta, fields, page, matched_refs, track_exits=not first_run or retried_first_run
+		)
 		frappe.db.commit()  # the vector store has no rollback; nosemgrep: frappe-manual-commit
 		last = page[-1]["name"]
 		if len(page) < BATCH:
 			break
 
-	if not first_run:
+	if retried_first_run:
+		# drop rows that left the filter since that attempt
+		matched = {str(name) for name in matched_refs}
+		indexed = frappe.get_all(CHUNK_DOCTYPE, {"source": doc.name}, pluck="reference_name", distinct=True)
+		_purge_refs(doc.name, [name for name in indexed if name not in matched])
+	elif not first_run:
 		_remove_stale(doc, ref, watermark, matched_refs)
 
 	doc.db_set("last_synced_at", sweep_start, update_modified=False)
