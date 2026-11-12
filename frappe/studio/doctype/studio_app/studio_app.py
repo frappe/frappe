@@ -91,10 +91,10 @@ class StudioAppRenderer(DocumentPage):
 				self.context.stylesheets = manifest.get("stylesheets", [])
 				self.context.script = manifest.get("script")
 			else:
-				# The browser renderer can serve a database app without a build.
-				# Warn about missing assets only when the server can build them.
+				# The browser renderer can serve a database app without a build, so warn about its
+				# missing assets only when the server can build them.
 				self.use_studio_renderer()
-				self.context.assets_not_found = can_build_bundle()
+				self.context.assets_not_found = bool(self.context.doc.is_standard or can_build_bundle())
 
 	def use_studio_renderer(self):
 		"""Serve the app with the editor's own renderer instead of its published build."""
