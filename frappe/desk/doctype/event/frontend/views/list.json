@@ -1,0 +1,3 @@
+{
+ "filters": [["status", "=", "Open"]]
+}

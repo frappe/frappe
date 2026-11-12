@@ -1,0 +1,3 @@
+{
+ "columns": [{ "fieldname": "name" }, { "fieldname": "web_form" }, { "fieldname": "first_used_on" }]
+}
