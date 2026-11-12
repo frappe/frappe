@@ -25,6 +25,7 @@ from frappe.flow.knowledge.extract import (
 from frappe.flow.knowledge.ingest import ingest_source, reconcile_source, sync_due_sources
 from frappe.flow.knowledge.retriever import retrieve, retrieve_attachments
 from frappe.tests import IntegrationTestCase
+from frappe.utils import add_to_date
 
 DIM = 4
 CTX = ToolContext(session_id="test", agent="Test Agent", user="Administrator")
@@ -725,6 +726,32 @@ class TestDoctypeSync(IntegrationTestCase):
 		with filelock(f"flow_knowledge_source_{source.name}", timeout=0):
 			pass  # released
 
+	def test_a_failed_rebuild_leaves_both_stores_alike(self):
+		todos = {self._todo("SYNCTEST one").name, self._todo("SYNCTEST two").name}
+		source = self._source()
+		self._sync(source.name)
+		calls, rollback = [], frappe.db.rollback
+
+		def flaky(input, **kwargs):
+			calls.append(input)
+			if len(calls) == 2:
+				raise Exception("rate limited")
+			return _embedding_response([[0.1, 0.2, 0.3, 0.4]] * len(input))
+
+		with (
+			patch("frappe.flow.knowledge.ingest.BATCH", 1),
+			patch("litellm.embedding", side_effect=flaky),
+			# a failure rolls back to the last commit
+			patch.object(frappe.db, "commit", side_effect=lambda: frappe.db.savepoint("ingest")),
+			patch.object(frappe.db, "rollback", side_effect=lambda: rollback(save_point="ingest")),
+			self.assertRaises(Exception),
+		):
+			ingest_source(source.name, rebuild=True)
+		self._assert_lance_mirrors_chunks(source.name)
+		self._sync(source.name)
+		self.assertEqual(self._references(source.name), todos)
+		self._assert_lance_mirrors_chunks(source.name)
+
 	def _chunks(self, source_name, reference_name=None):
 		filters = {"source": source_name}
 		if reference_name:
@@ -846,6 +873,26 @@ class TestDoctypeSync(IntegrationTestCase):
 
 		self._sync(source.name, rebuild=True)
 		self.assertIn("Status: Closed", " ".join(self._content(source.name, todo.name)))
+
+	def test_a_row_edited_mid_sweep_does_not_make_the_next_page_skip_one(self):
+		from frappe.flow.knowledge.ingest import _upsert_page
+
+		todos = [self._todo(f"SYNCTEST row {i}") for i in range(4)]
+		source = self._source()
+		self._sync(source.name)
+		for i, todo in enumerate(todos):  # all changed since that sweep, in this order
+			todo.db_set("modified", add_to_date(None, minutes=i + 1), update_modified=False)
+
+		def edit_the_first_row(*args, **kwargs):
+			_upsert_page(*args, **kwargs)
+			todos[0].db_set("modified", add_to_date(None, minutes=10), update_modified=False)
+
+		with (
+			patch("frappe.flow.knowledge.ingest.BATCH", 2),
+			patch("frappe.flow.knowledge.ingest._upsert_page", side_effect=edit_the_first_row),
+		):
+			self._sync(source.name)
+		self.assertEqual(self._references(source.name), {todo.name for todo in todos})
 
 	def test_moving_a_source_moves_its_chunks(self):
 		self._todo("SYNCTEST alpha")

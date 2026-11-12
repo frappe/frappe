@@ -18,7 +18,7 @@ from __future__ import annotations
 import hashlib
 
 import frappe
-from frappe.utils import cint, now_datetime
+from frappe.utils import cint, make_filter_tuple, now_datetime
 
 CHUNK_DOCTYPE = "Flow Knowledge Chunk"
 BATCH = 500
@@ -79,6 +79,7 @@ def _ingest_source(source: str, rebuild: bool) -> None:
 			if rebuild:
 				purge_source(doc.name)
 				doc.db_set("last_synced_at", None, update_modified=False)
+				frappe.db.commit()  # the vector store has no rollback; nosemgrep: frappe-manual-commit
 			_sync_doctype(doc, settings)
 		else:
 			_rebuild_single(doc, settings)
@@ -120,6 +121,7 @@ def _rebuild_single(doc, settings) -> None:
 
 	vectors = embed_texts(pieces)  # before the purge: a failed call keeps the old chunks searchable
 	purge_source(doc.name)
+	frappe.db.commit()  # the vector store has no rollback; nosemgrep: frappe-manual-commit
 	if not pieces:
 		return
 
@@ -165,22 +167,26 @@ def _sync_doctype(doc, settings) -> None:
 	sweep_start = now_datetime()
 	first_run = not watermark
 
-	delta = {} if first_run else {"modified": [">", watermark]}
+	filters = [make_filter_tuple(ref, key, value) for key, value in user_filters.items()]
+	if not first_run:
+		filters.append([ref, "modified", ">", watermark])
 	matched_refs: set[str] = set()
-	start = 0
+	last = None
 	while True:
+		# page by name: a row edited mid-sweep can't shift the pages after a commit
+		after = [[ref, "name", ">", last]] if last is not None else []
 		page = frappe.get_all(
 			ref,
-			filters={**user_filters, **delta},
+			filters=filters + after,
 			fields=["name", *fields],
-			order_by="modified asc, name asc",
-			limit_start=start,
+			order_by="name asc",
 			limit_page_length=BATCH,
 		)
 		if not page:
 			break
 		_upsert_page(doc, settings, meta, fields, page, matched_refs, track_exits=not first_run)
-		start += BATCH
+		frappe.db.commit()  # the vector store has no rollback; nosemgrep: frappe-manual-commit
+		last = page[-1]["name"]
 		if len(page) < BATCH:
 			break
 
