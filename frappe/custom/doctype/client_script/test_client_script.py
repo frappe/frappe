@@ -240,6 +240,14 @@ class TestClientScriptsForTheListPage(IntegrationTestCase):
 		self.assertNotIn("ToDo", doctypes)
 		self.assertNotIn("Event", doctypes)
 
+	def test_boot_skips_a_script_whose_doctype_is_gone(self):
+		make_script("note-list-script", view="List Page").insert()
+		frappe.db.set_value("Client Script", "note-list-script", "dt", "No Such Doctype")
+		user = make_user("orphan-list-script@example.com", ["Guest"])
+
+		with self.set_user(user):
+			self.assertNotIn("No Such Doctype", list_page_doctypes())
+
 	def test_boot_leaves_out_a_doctype_the_user_cannot_read(self):
 		make_script("note-list-script", view="List Page").insert()
 		user = make_user("no-note-list-access@example.com", ["Guest"])

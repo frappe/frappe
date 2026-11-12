@@ -170,7 +170,8 @@ def list_page_doctypes() -> list[str]:
 	doctypes = frappe.get_all(
 		"Client Script", filters={"view": "List Page", "enabled": 1}, pluck="dt", distinct=True
 	)
-	return sorted(dt for dt in doctypes if frappe.has_permission(dt, "read"))
+	existing = set(frappe.get_all("DocType", filters={"name": ["in", doctypes]}, pluck="name"))
+	return sorted(dt for dt in existing if frappe.has_permission(dt, "read"))
 
 
 def served_scripts(rows) -> list[dict]:
