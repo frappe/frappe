@@ -3,6 +3,7 @@
 from unittest.mock import patch
 
 import frappe
+from frappe.core.doctype.user.test_user import test_user
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import whitelist_for_tests
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
@@ -15,6 +16,16 @@ def _get_only_marker():
 
 
 class TestClient(IntegrationTestCase):
+	def test_get_doc_permissions_does_not_reveal_unreadable_documents(self):
+		with test_user(roles=[], user_type="Website User") as user, self.set_user(user.name):
+			existing = frappe.client.get_doc_permissions("User", "Administrator")
+			missing = frappe.client.get_doc_permissions("User", "missing@example.com")
+		self.assertEqual(existing, missing)
+
+	def test_get_doc_permissions_for_readable_document(self):
+		permissions = frappe.client.get_doc_permissions("User", "Administrator")["permissions"]
+		self.assertTrue(permissions["read"])
+
 	def test_set_value(self):
 		todo = frappe.get_doc(doctype="ToDo", description="test").insert()
 		frappe.set_value("ToDo", todo.name, "description", "test 1")

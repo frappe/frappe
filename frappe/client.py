@@ -343,8 +343,17 @@ def get_doc_permissions(doctype: str, docname: str | int):
 	:param doctype: DocType of the document to be evaluated
 	:param docname: `name` of the document to be evaluated
 	"""
-	doc = frappe.get_lazy_doc(doctype, docname)
-	return {"permissions": frappe.permissions.get_doc_permissions(doc)}
+	try:
+		doc = frappe.get_lazy_doc(doctype, docname)
+	except frappe.DoesNotExistError:
+		return {"permissions": {}}
+
+	permissions = frappe.permissions.get_doc_permissions(doc)
+	if not permissions.get("read"):
+		# same answer for missing and unreadable documents
+		return {"permissions": {}}
+
+	return {"permissions": permissions}
 
 
 @frappe.whitelist()
