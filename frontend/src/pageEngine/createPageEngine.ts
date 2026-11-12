@@ -180,8 +180,9 @@ export function createPageEngine<Lists extends PageEngineLists, Extras extends o
       info: (message: string) => toast.info(message),
     },
     dialog: dialogs.api,
+    // Nullable: most whitelisted actions return nothing, and v1's frappe.call resolved for them.
     call: (method: string, params?: Record<string, any>) =>
-      runMethod(method, params).then((envelope) => envelope.data),
+      runMethod(method, params, { nullable: true }).then((envelope) => envelope.data),
     cached: <T>(key: string, fetch: () => Promise<T> | T) =>
       cached.read(runningSource(), key, fetch) as T | undefined,
     run: (name: string, value?: unknown) => (gate.hasLeft() ? Promise.resolve() : acts.run(name, value)),
