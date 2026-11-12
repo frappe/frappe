@@ -590,6 +590,9 @@ class TestReadOnlyCalls(IntegrationTestCase):
 					self.assertTrue(needs_card({key: action}))
 		self.assertFalse(execute.requires_confirmation({"code": "", "read_only": True}))
 		self.assertTrue(execute.requires_confirmation({"code": ""}))
+		for raw in ("false", "0", "no", "true", 0, 1):
+			with self.subTest(read_only=raw):
+				self.assertTrue(execute.requires_confirmation({"code": "", "read_only": raw}))
 
 	def test_a_read_function_runs_once_and_the_database_refuses_its_writes(self):
 		result = self.run_function("read_only_whoami")

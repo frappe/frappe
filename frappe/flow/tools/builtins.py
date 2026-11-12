@@ -545,7 +545,7 @@ load_skill = bind_load_skill(None)
 
 
 @tool(
-	requires_confirmation=lambda args: not args.get("read_only"),
+	requires_confirmation=lambda args: args.get("read_only") is not True,
 	confirm_prompt=lambda args: args.get("description") or _("Run Python code"),
 )
 def execute(code: str, description: str, read_only: bool = False, *, ctx: ToolContext) -> Any:
