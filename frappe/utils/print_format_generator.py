@@ -28,7 +28,12 @@ def render_jinja_template(
 	# template is rendered inside frappe's SandboxedEnvironment (Jinja2 sandbox).
 	# The caller must hold the "print" permission on the document before reaching this line.
 	try:
-		context = {**global_variables_context(global_variables, doc), "doc": doc, "get_qr_code": get_qr_code}
+		context = {
+			**global_variables_context(global_variables, doc),
+			"doc": doc,
+			"get_qr_code": get_qr_code,
+			"get_barcode": get_barcode,
+		}
 		return frappe.render_template(  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
 			template, context
 		)
@@ -170,6 +175,8 @@ def get_barcode(value: str, barcode_format: str = "CODE128", show_text: bool = T
 
 	from frappe.utils.typst_emitter import _CONTROL_CHARS
 
+	if isinstance(value, str) and value.startswith("<svg"):
+		return "data:image/svg+xml;base64," + base64.b64encode(value.encode()).decode()
 	if barcode_format == "QR":
 		return get_qr_code(value)
 	if not isinstance(value, str) or len(value) > 2000:
@@ -1262,6 +1269,7 @@ class PrintFormatGenerator:
 			**global_variables_context(layout.get("global_variables"), self.doc),
 			"doc": self.doc,
 			"get_qr_code": get_qr_code,
+			"get_barcode": get_barcode,
 		}
 		for section in layout["sections"]:
 			if section.get("visible_if"):
@@ -1310,7 +1318,7 @@ class PrintFormatGenerator:
 		else:
 			value = cstr(self.doc.get(df.get("fieldname")))
 		if value.startswith("<svg"):
-			df["_barcode_data_uri"] = "data:image/svg+xml;base64," + base64.b64encode(value.encode()).decode()
+			df["_barcode_data_uri"] = get_barcode(value)
 			return
 		if not value:
 			return
