@@ -126,6 +126,13 @@ describe("a script's own control", () => {
 		expect(root.querySelector(".field-box")).toBeNull();
 	});
 
+	it("keeps the box when `ownBox` is set on a stock control", async () => {
+		const stock: FieldNode = { ...json, ui: { ownBox: true } } as FieldNode;
+		const { root } = await mount(stock, false);
+		await click(root);
+		expect(root.querySelector("[data-control]")!.closest(".field-box")).not.toBeNull();
+	});
+
 	it("still shows the error text under a bare control", async () => {
 		const { root } = await mount(scripted({ ownBox: true }), false, undefined, {
 			settings: "Bad JSON",

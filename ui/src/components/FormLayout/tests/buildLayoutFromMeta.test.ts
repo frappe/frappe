@@ -472,6 +472,12 @@ describe("buildLayoutFromMeta", () => {
       expect(ui?.on?.click).toBe(click);
     });
 
+    it("keeps `ownBox` from the decorator that sets it", () => {
+      const own = () => ({ ownBox: true });
+      const ui = compose(own, () => ({ props: { size: "sm" } }))(field({ fieldname: "f" }) as any);
+      expect(ui?.ownBox).toBe(true);
+    });
+
     it("returns undefined when every decorator opts out", () => {
       const decorate = compose(
         () => undefined,

@@ -272,8 +272,10 @@ const PANEL_FIELDTYPES = [
 const drawsErrorText = computed(
 	() => !!props.field.ui?.component || !PANEL_FIELDTYPES.includes(props.field.fieldtype)
 );
-// A script control that sets `ui.ownBox` draws its own box once open; the rest row keeps the shared one.
-const bare = computed(() => editing.value && !!props.field.ui?.ownBox);
+// A bare control is only a script's own: a stock one draws a ghost input that needs the box.
+const bare = computed(
+	() => editing.value && !!props.field.ui?.component && !!props.field.ui.ownBox
+);
 const interactive = computed(() => summary.value || !props.field.readOnly || !!imageUrl.value);
 const resolved = computed(() => resolveField(props.field.fieldtype));
 
