@@ -1755,6 +1755,44 @@ test.describe("Desk v2 side panel rows: Text Editor, Markdown Editor and Geoloca
 		expect((await page.evaluate(boxOf, "f_rich")).height).toBeCloseTo(68, 1);
 	});
 
+	test("the selection bar over the first word of a row stops at the box's left edge, inside the panel", async ({
+		page,
+	}) => {
+		await open(page, short);
+		await cell(page, "f_rich").click();
+		await expect(prose(page)).toBeFocused();
+		await page.keyboard.press("Home");
+		await page.keyboard.press("Control+Shift+ArrowRight");
+		const bar = page.locator('[data-slot="bubble-menu"]');
+		await expect(bar).toBeVisible();
+
+		const drawn = await bar.evaluate((el) => {
+			const box = document
+				.querySelector('.field-box [data-fieldname="f_rich"]')
+				.closest(".field-box")
+				.getBoundingClientRect();
+			const panel = document.querySelector("[data-picker-bound]").getBoundingClientRect();
+			const selection = getSelection().getRangeAt(0).getBoundingClientRect();
+			const rect = el.getBoundingClientRect();
+			return {
+				left: rect.left,
+				right: rect.right,
+				centred: (selection.left + selection.right - rect.width) / 2,
+				box: box.left,
+				edge: Math.min(panel.right, document.documentElement.clientWidth),
+			};
+		});
+		// Centred on the first word, the bar would hang into the label column.
+		expect(drawn.centred).toBeLessThan(drawn.box);
+		expect(drawn.left).toBeGreaterThan(drawn.centred + 1);
+		expect(drawn.right).toBeLessThanOrEqual(drawn.edge + 0.5);
+		if (drawn.box + (drawn.right - drawn.left) <= drawn.edge) {
+			expect(drawn.left).toBeCloseTo(drawn.box, 0);
+		} else {
+			expect(drawn.right).toBeCloseTo(drawn.edge, 0);
+		}
+	});
+
 	test("the selection bar on the sixth line of a 9-line row draws below it, not clipped by the row", async ({
 		page,
 	}) => {

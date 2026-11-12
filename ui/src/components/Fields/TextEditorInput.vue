@@ -16,10 +16,7 @@
 			@focusout="onFocusOut"
 		>
 			<!-- Fixed, or the scrolling body clips a bar below a selection on its last line. -->
-			<EditorBubbleMenu
-				:items="richTextBubble"
-				:options="{ side: 'bottom', strategy: 'fixed' }"
-			/>
+			<EditorBubbleMenu :items="richTextBubble" :options="bubbleOptions" />
 			<EditorTableMenu />
 			<div class="text-editor-body overflow-y-auto">
 				<EditorContent
@@ -62,7 +59,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, inject, ref, watch } from "vue";
 import { Extension } from "@tiptap/core";
 import {
 	Editor,
@@ -71,7 +68,9 @@ import {
 	EditorFixedMenu,
 	EditorTableMenu,
 } from "frappe-ui/editor";
-import type { MediaUploadRequestOptions } from "frappe-ui/editor";
+import type { EditorMenuOptions, MediaUploadRequestOptions } from "frappe-ui/editor";
+import { keepBarInBox } from "./bubbleLimiter";
+import { fieldBoxKey } from "./fieldBox";
 import { isEmptyHtml } from "../RichText/html";
 import { richTextBubble, richTextKit, richTextToolbar, useToolbarKey } from "../RichText/kit";
 import { uploadMedia } from "../RichText/upload";
@@ -92,6 +91,14 @@ const emit = defineEmits<{
 }>();
 
 const { key: toolbarKey, extension: toolbarKeyExtension } = useToolbarKey();
+
+const fieldBox = inject(fieldBoxKey, null);
+const bubbleOptions: EditorMenuOptions = {
+	side: "bottom",
+	strategy: "fixed",
+	// frappe-ui types `shift` as a flag; it spreads the options, so TipTap hands this to Floating UI.
+	shift: { limiter: keepBarInBox(() => fieldBox?.value) } as unknown as boolean,
+};
 
 // ProseMirror marks every Esc handled, so a dialog around the field never sees it. Esc leaves
 // the body instead, after any open menu takes it; the next Esc reaches the dialog.
