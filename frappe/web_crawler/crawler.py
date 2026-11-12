@@ -1,7 +1,9 @@
 import heapq
 import time
 from collections.abc import Callable, Iterator
+from concurrent.futures import ThreadPoolExecutor
 from functools import cached_property
+from itertools import batched
 from urllib.parse import urldefrag
 
 import frappe
@@ -18,14 +20,16 @@ SOURCES = (*LIST_SOURCES, "links")
 
 
 class WebCrawler:
-	"""Reads the pages of one site, within the limits in Web Crawler Settings.
+	"""Reads the pages of one site, within the limits in Web Crawl Settings.
 
 	`sources` without "links" lists pages from the first of sitemap / llms.txt that has any.
 	With "links", links are followed breadth first from the start URL, with sitemap pages as seeds.
 	`priority(url, anchor_text)` orders pages at the same depth (higher first).
-	Without `priority` or `skip_patterns`, the tuning in Web Crawler Settings is used.
+	Without `priority` or `skip_patterns`, the tuning in Web Crawl Settings is used.
 	`skip_urls(urls)` returns the URLs to drop before they are fetched.
 	The crawl stops with `stopped_reason` "time_limit" once the settings' maximum crawl time has passed.
+	Pages are read in batches of the settings' concurrent requests, with the request delay between batches.
+	A site whose robots.txt sets a Crawl-delay is read one page at a time.
 	"""
 
 	def __init__(
@@ -61,7 +65,7 @@ class WebCrawler:
 		if not frappe.utils.validate_url(url, valid_schemes=("http", "https")):
 			frappe.throw(_("{0} is not a valid web address").format(url), title=_("Invalid URL"))
 		if self.limits.is_blocked(url):
-			raise BlockedRequest(_("Web Crawler Settings do not allow the domain of {0}").format(url))
+			raise BlockedRequest(_("Web Crawl Settings do not allow the domain of {0}").format(url))
 		validate_request_url(url)
 		return url
 
@@ -123,33 +127,35 @@ class WebCrawler:
 
 	def read_pages(self, urls: list[str]) -> Iterator[CrawledPage]:
 		seen = set()
-		for url in urls:
-			if not (page := self.read(url)):
-				return
-			if normalize_url(page.final_url or url) in seen:
-				continue
-			seen.add(normalize_url(page.final_url or url))
-			yield page
-			if self.should_stop(page):
-				return
+		for batch in batched(urls, self.batch_size(), strict=False):
+			for url, page in zip(batch, self.read_batch(batch), strict=True):
+				if not page:
+					return
+				if normalize_url(page.final_url or url) in seen:
+					continue
+				seen.add(normalize_url(page.final_url or url))
+				yield page
+				if self.should_stop(page):
+					return
 
 	def follow_links(self) -> Iterator[CrawledPage]:
 		frontier = CrawlFrontier(self.url, self.priority)
 		if "sitemap" in self.sources and self.limits.max_depth:
 			frontier.add(self.filter_urls(self.list_source("sitemap").find()), 1)
 		read = 0
-		while read < self.limits.max_pages and (item := frontier.pop()):
-			url, depth = item
-			if not (page := self.read(url)):
-				return
-			if not frontier.visit(url, page.final_url or url):
-				continue
-			read += 1
-			yield page
-			if self.should_stop(page):
-				return
-			if page.ok and depth < self.limits.max_depth:
-				frontier.add(self.filter_urls(list(page.links)), depth + 1, page.links)
+		while batch := frontier.pop_many(min(self.batch_size(), self.limits.max_pages - read)):
+			urls = [url for url, _depth in batch]
+			for (url, depth), page in zip(batch, self.read_batch(urls), strict=True):
+				if not page:
+					return
+				if not frontier.visit(url, page.final_url or url):
+					continue
+				read += 1
+				yield page
+				if self.should_stop(page):
+					return
+				if page.ok and depth < self.limits.max_depth:
+					frontier.add(self.filter_urls(list(page.links)), depth + 1, page.links)
 
 	def filter_urls(self, urls: list[str]) -> list[str]:
 		"""In-scope URLs that robots.txt and the skip rules allow, one per page, minus the caller's skip_urls."""
@@ -175,10 +181,16 @@ class WebCrawler:
 			return CrawledPage(url, e.final_url or url, e.status, e.code)
 		return PageParser(download).parse()
 
-	def read(self, url: str) -> CrawledPage | None:
-		"""The next page of the crawl, or None once the crawl is out of time."""
+	def batch_size(self) -> int:
+		return 1 if self.robots.crawl_delay() else self.limits.concurrent_requests
+
+	def read_batch(self, urls: list[str]) -> list[CrawledPage | None]:
+		"""The pages of `urls`, fetched at the same time. None for each page past the crawl's time limit."""
 		self.wait()
-		page = self.fetch(url)
+		with ThreadPoolExecutor(len(urls)) as pool:
+			return [self.check(url, page) for url, page in zip(urls, pool.map(self.fetch, urls), strict=True)]
+
+	def check(self, url: str, page: CrawledPage) -> CrawledPage | None:
 		if page.error == TIME_LIMIT:
 			self.stopped_reason = TIME_LIMIT
 			return None
@@ -230,6 +242,9 @@ class CrawlFrontier:
 			score = self.priority(url, anchors.get(key, "")) if self.priority else 0
 			heapq.heappush(self.queue, (depth, -score, len(self.queued), url))
 			self.queued.add(key)
+
+	def pop_many(self, count: int) -> list[tuple[str, int]]:
+		return [item for _ in range(count) if (item := self.pop())]
 
 	def pop(self) -> tuple[str, int] | None:
 		while self.queue:

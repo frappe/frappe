@@ -9,13 +9,15 @@ MEGABYTE = 1024 * 1024
 # A site asking for a longer wait (Crawl-delay, Retry-After) would stall the job.
 MAX_WAIT_SECONDS = 30
 MAX_RETRIES = 2
+# More parallel requests from one IP risk bot protection banning it, for every site on the server.
+MAX_CONCURRENT_REQUESTS = 5
 # A rough time to fetch and parse one page, for the crawl time estimate.
 ESTIMATED_PAGE_SECONDS = 1
 
 
 @dataclass(frozen=True)
 class CrawlLimits:
-	"""What one crawl may do, read from Web Crawler Settings. Arguments can only lower the ceilings.
+	"""What one crawl may do, read from Web Crawl Settings. Arguments can only lower the ceilings.
 	`link_priorities` and `skip_patterns` are the tuning for crawls that set none."""
 
 	max_pages: int
@@ -26,6 +28,7 @@ class CrawlLimits:
 	max_sitemap_size: int
 	max_redirects: int
 	request_delay: float
+	concurrent_requests: int
 	max_crawl_time: int
 	user_agent: str
 	respect_robots_txt: bool
@@ -42,7 +45,7 @@ class CrawlLimits:
 		user_agent: str | None = None,
 		settings=None,
 	) -> "CrawlLimits":
-		settings = settings or frappe.get_cached_doc("Web Crawler Settings")
+		settings = settings or frappe.get_cached_doc("Web Crawl Settings")
 		return cls(
 			max_pages=at_most(settings.max_pages, max_pages),
 			max_depth=at_most(settings.max_depth, max_depth),
@@ -52,6 +55,7 @@ class CrawlLimits:
 			max_sitemap_size=settings.max_sitemap_size * MEGABYTE,
 			max_redirects=settings.max_redirects,
 			request_delay=settings.request_delay,
+			concurrent_requests=settings.concurrent_requests,
 			max_crawl_time=settings.max_crawl_time * 60,
 			user_agent=user_agent or settings.user_agent,
 			respect_robots_txt=bool(settings.respect_robots_txt),
@@ -70,19 +74,20 @@ class CrawlLimits:
 		return bool(self.allowed_domains) and not in_domains(host, self.allowed_domains)
 
 	def wait_seconds(self, crawl_delay: float | None) -> float:
-		"""The pause between two requests: the setting or the site's Crawl-delay, whichever is longer."""
+		"""The pause between two batches: the setting or the site's Crawl-delay, whichever is longer."""
 		return min(max(self.request_delay, crawl_delay or 0), MAX_WAIT_SECONDS)
 
 	def estimated_crawl_time(self) -> float:
 		"""Seconds a full crawl likely takes, before any site's Crawl-delay."""
-		return self.max_pages * (self.request_delay + ESTIMATED_PAGE_SECONDS)
+		batches = ceil(self.max_pages / self.concurrent_requests)
+		return batches * (self.request_delay + ESTIMATED_PAGE_SECONDS)
 
 	def warn_if_crawl_may_stop_early(self):
 		if (estimate := self.estimated_crawl_time()) <= self.max_crawl_time:
 			return
 		frappe.msgprint(
 			_(
-				"A crawl of {0} pages likely takes about {1} minutes, longer than the maximum crawl time of {2} minutes. It will stop early unless Maximum crawl time is raised in Web Crawler Settings."
+				"A crawl of {0} pages likely takes about {1} minutes, longer than the maximum crawl time of {2} minutes. It will stop early unless Maximum crawl time is raised in Web Crawl Settings."
 			).format(self.max_pages, ceil(estimate / 60), self.max_crawl_time // 60),
 			title=_("Crawl may stop early"),
 			indicator="orange",

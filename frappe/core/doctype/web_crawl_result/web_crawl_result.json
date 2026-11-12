@@ -37,7 +37,7 @@
    "read_only": 1
   },
   {
-   "description": "Where the URL led after redirects.",
+   "description": "The address the page was read from, after redirects.",
    "fieldname": "final_url",
    "fieldtype": "Small Text",
    "label": "Final URL",
@@ -103,7 +103,7 @@
  "in_create": 1,
  "link_display_mode": "Search",
  "links": [],
- "modified": "2026-11-12 19:00:00.000000",
+ "modified": "2026-11-12 22:30:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Web Crawl Result",

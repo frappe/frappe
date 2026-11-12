@@ -8,6 +8,7 @@
   "max_pages",
   "max_depth",
   "max_redirects",
+  "concurrent_requests",
   "request_delay",
   "max_crawl_time",
   "column_break_limits",
@@ -33,7 +34,7 @@
   },
   {
    "default": "50",
-   "description": "Most pages one crawl may read.",
+   "description": "Maximum number of pages a single crawl can read.",
    "fieldname": "max_pages",
    "fieldtype": "Int",
    "in_list_view": 1,
@@ -43,7 +44,7 @@
   },
   {
    "default": "2",
-   "description": "Most link hops from the start page.",
+   "description": "Maximum number of links followed away from the start page.",
    "fieldname": "max_depth",
    "fieldtype": "Int",
    "in_list_view": 1,
@@ -53,7 +54,7 @@
   },
   {
    "default": "5",
-   "description": "Most redirects followed for one request.",
+   "description": "Maximum number of redirects followed for a single page.",
    "fieldname": "max_redirects",
    "fieldtype": "Int",
    "in_list_view": 1,
@@ -63,15 +64,24 @@
   },
   {
    "default": "1",
-   "description": "Pause between requests. A longer Crawl-delay in robots.txt wins, up to 30 seconds.",
+   "description": "Number of pages read at the same time, up to 5. Sites that set a Crawl-delay in robots.txt are read one page at a time.",
+   "fieldname": "concurrent_requests",
+   "fieldtype": "Int",
+   "label": "Concurrent requests",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "default": "1",
+   "description": "Time to wait before each batch of pages. If a site's robots.txt sets a longer Crawl-delay, that is used instead, up to 30 seconds.",
    "fieldname": "request_delay",
    "fieldtype": "Float",
-   "label": "Delay between requests (seconds)",
+   "label": "Delay between batches (seconds)",
    "non_negative": 1
   },
   {
    "default": "30",
-   "description": "A crawl stops cleanly once this time has passed.",
+   "description": "A crawl stops after running for this long.",
    "fieldname": "max_crawl_time",
    "fieldtype": "Int",
    "label": "Maximum crawl time (minutes)",
@@ -84,7 +94,7 @@
   },
   {
    "default": "10",
-   "description": "Time allowed to download one page.",
+   "description": "Time allowed to download a single page.",
    "fieldname": "page_timeout",
    "fieldtype": "Int",
    "in_list_view": 1,
@@ -94,7 +104,7 @@
   },
   {
    "default": "5",
-   "description": "Larger pages are skipped.",
+   "description": "Pages larger than this are skipped.",
    "fieldname": "max_page_size",
    "fieldtype": "Int",
    "label": "Maximum page size (MB)",
@@ -103,7 +113,7 @@
   },
   {
    "default": "30",
-   "description": "Time allowed to download one sitemap or llms.txt.",
+   "description": "Time allowed to download a single sitemap or llms.txt file.",
    "fieldname": "sitemap_timeout",
    "fieldtype": "Int",
    "label": "Sitemap timeout (seconds)",
@@ -112,7 +122,7 @@
   },
   {
    "default": "50",
-   "description": "Larger sitemaps and llms.txt files are skipped.",
+   "description": "Sitemaps and llms.txt files larger than this are skipped.",
    "fieldname": "max_sitemap_size",
    "fieldtype": "Int",
    "label": "Maximum sitemap size (MB)",
@@ -125,7 +135,7 @@
    "label": "Crawl tuning"
   },
   {
-   "description": "Used by crawls that set none. Links whose URL or anchor text has a keyword are read first.",
+   "description": "Links whose URL or anchor text contains a keyword are read first. Used by crawls that do not set their own.",
    "fieldname": "link_priorities",
    "fieldtype": "Table",
    "label": "Link priority",
@@ -136,7 +146,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "description": "Used by crawls that set none. One regular expression per line.",
+   "description": "URLs that match any of these regular expressions are skipped. Enter one per line. Used by crawls that do not set their own.",
    "fieldname": "skip_patterns",
    "fieldtype": "Small Text",
    "label": "Skip patterns",
@@ -149,7 +159,7 @@
   },
   {
    "default": "Frappe Web Crawler",
-   "description": "Name sent to websites. robots.txt rules are matched against it.",
+   "description": "Name sent to websites with every request. robots.txt rules are matched against it.",
    "fieldname": "user_agent",
    "fieldtype": "Data",
    "label": "User agent",
@@ -158,34 +168,34 @@
   },
   {
    "default": "1",
-   "description": "Skip pages that the site's robots.txt disallows.",
+   "description": "Skip pages that a site's robots.txt does not allow.",
    "fieldname": "respect_robots_txt",
    "fieldtype": "Check",
    "label": "Respect robots.txt"
   },
   {
-   "description": "When set, only these domains and their subdomains can be crawled.",
+   "description": "If set, only these domains and their subdomains can be crawled.",
    "fieldname": "allowed_domains",
    "fieldtype": "Table",
    "label": "Allowed domains",
-   "options": "Web Crawler Domain"
+   "options": "Web Crawl Domain"
   },
   {
-   "description": "These domains and their subdomains are never crawled, even when allowed.",
+   "description": "These domains and their subdomains are never crawled, even if listed in Allowed domains.",
    "fieldname": "blocked_domains",
    "fieldtype": "Table",
    "label": "Blocked domains",
-   "options": "Web Crawler Domain"
+   "options": "Web Crawl Domain"
   }
  ],
  "grid_page_length": 50,
  "issingle": 1,
  "link_display_mode": "Search",
  "links": [],
- "modified": "2026-11-12 20:30:00.000000",
+ "modified": "2026-11-12 22:30:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
- "name": "Web Crawler Settings",
+ "name": "Web Crawl Settings",
  "owner": "Administrator",
  "permissions": [
   {

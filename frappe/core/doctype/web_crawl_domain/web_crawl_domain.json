@@ -9,7 +9,7 @@
  ],
  "fields": [
   {
-   "description": "A domain such as example.com. Its subdomains are included.",
+   "description": "Domain name, such as example.com. Its subdomains are included.",
    "fieldname": "domain",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -22,10 +22,10 @@
  "istable": 1,
  "link_display_mode": "Search",
  "links": [],
- "modified": "2026-11-12 20:30:00.000000",
+ "modified": "2026-11-12 22:30:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
- "name": "Web Crawler Domain",
+ "name": "Web Crawl Domain",
  "owner": "Administrator",
  "permissions": [],
  "row_format": "Dynamic",

@@ -10,7 +10,7 @@
  ],
  "fields": [
   {
-   "description": "Matched in the link's URL or anchor text.",
+   "description": "Matched against the link's URL and anchor text.",
    "fieldname": "keyword",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -20,7 +20,7 @@
   },
   {
    "default": "1",
-   "description": "Higher weights are read first.",
+   "description": "Links with a higher total weight are read first.",
    "fieldname": "weight",
    "fieldtype": "Float",
    "in_list_view": 1,
@@ -31,7 +31,7 @@
  "istable": 1,
  "link_display_mode": "Search",
  "links": [],
- "modified": "2026-11-12 20:30:00.000000",
+ "modified": "2026-11-12 22:30:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Web Crawl Link Priority",

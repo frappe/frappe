@@ -130,7 +130,7 @@ class IntegrationTestWebCrawl(IntegrationTestCase):
 
 	def test_a_crawl_without_tuning_copies_the_settings_tuning(self):
 		add_setting_row(self, "link_priorities", {"keyword": "Docs", "weight": 2})
-		with self.change_settings("Web Crawler Settings", {"skip_patterns": "/private/"}):
+		with self.change_settings("Web Crawl Settings", {"skip_patterns": "/private/"}):
 			default = frappe.get_doc({"doctype": "Web Crawl", "url": "https://example.com"}).insert()
 			tuned = frappe.get_doc(
 				{
@@ -161,7 +161,7 @@ class IntegrationTestWebCrawl(IntegrationTestCase):
 		self.assertRaises(frappe.ValidationError, web_crawl.insert)
 
 	def test_blank_limits_come_from_the_settings(self):
-		with self.change_settings("Web Crawler Settings", {"max_pages": 20, "max_depth": 3}):
+		with self.change_settings("Web Crawl Settings", {"max_pages": 20, "max_depth": 3}):
 			blank = frappe.get_doc({"doctype": "Web Crawl", "url": "https://example.com"}).insert()
 			shallow = frappe.get_doc({"doctype": "Web Crawl", "url": "https://example.com", "max_depth": 0})
 			shallow.insert()

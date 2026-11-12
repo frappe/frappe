@@ -32,7 +32,7 @@
  ],
  "fields": [
   {
-   "description": "The start page, or a sitemap.xml. Only pages under this path are read.",
+   "description": "The page to start from, or a sitemap.xml. Only pages under this path are read.",
    "fieldname": "url",
    "fieldtype": "Small Text",
    "in_list_view": 1,
@@ -42,7 +42,7 @@
    "set_only_once": 1
   },
   {
-   "description": "Links follows links from the start page. Sitemap and llms.txt list pages.",
+   "description": "Where to find pages. Links follows links from the start page. Sitemap and llms.txt read the page lists a site publishes.",
    "fieldname": "sources",
    "fieldtype": "Table MultiSelect",
    "label": "Sources",
@@ -50,7 +50,7 @@
    "set_only_once": 1
   },
   {
-   "description": "One regular expression per line. Leave empty to use Web Crawler Settings.",
+   "description": "URLs that match any of these regular expressions are skipped. Enter one per line. If empty, the patterns in Web Crawl Settings are used.",
    "fieldname": "skip_patterns",
    "fieldtype": "Small Text",
    "label": "Skip patterns",
@@ -62,21 +62,21 @@
    "fieldtype": "Column Break"
   },
   {
-   "description": "Leave empty to use Web Crawler Settings.",
+   "description": "Maximum number of pages to read. If empty or higher than the limit in Web Crawl Settings, that limit is used.",
    "fieldname": "max_pages",
    "fieldtype": "Int",
    "label": "Maximum pages",
    "non_negative": 1,
-   "placeholder": "From Web Crawler Settings",
+   "placeholder": "From Web Crawl Settings",
    "set_only_once": 1
   },
   {
-   "description": "Link hops from the start page. Leave empty to use Web Crawler Settings.",
+   "description": "Maximum number of links followed away from the start page. If empty or higher than the limit in Web Crawl Settings, that limit is used.",
    "fieldname": "max_depth",
    "fieldtype": "Int",
    "label": "Maximum depth",
    "non_negative": 1,
-   "placeholder": "From Web Crawler Settings",
+   "placeholder": "From Web Crawl Settings",
    "set_only_once": 1
   },
   {
@@ -86,7 +86,7 @@
    "label": "Crawl tuning"
   },
   {
-   "description": "Links whose URL or anchor text has a keyword are read first. Leave empty to use Web Crawler Settings.",
+   "description": "Links whose URL or anchor text contains a keyword are read first. If empty, the priorities in Web Crawl Settings are used.",
    "fieldname": "link_priorities",
    "fieldtype": "Table",
    "label": "Link priority",
@@ -113,7 +113,7 @@
    "read_only": 1
   },
   {
-   "description": "Why the crawl ended before reading every page.",
+   "description": "Why the crawl stopped before reading every page.",
    "fieldname": "stopped_reason",
    "fieldtype": "Data",
    "label": "Stopped reason",
@@ -162,7 +162,7 @@
    "label": "Caller"
   },
   {
-   "description": "The document the crawl was started for.",
+   "description": "The document this crawl was started for.",
    "fieldname": "reference_doctype",
    "fieldtype": "Link",
    "label": "Reference document type",
@@ -181,7 +181,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "description": "Set by the app that started the crawl. Runs for each page.",
+   "description": "Set by the app that started the crawl. Runs for each page that is read.",
    "fieldname": "on_page_method",
    "fieldtype": "Data",
    "label": "On page method",
@@ -189,7 +189,7 @@
    "set_only_once": 1
   },
   {
-   "description": "Set by the app that started the crawl. Drops URLs before they are read.",
+   "description": "Set by the app that started the crawl. Removes URLs before they are read.",
    "fieldname": "skip_urls_method",
    "fieldtype": "Data",
    "label": "Skip URLs method",
@@ -200,7 +200,7 @@
  "grid_page_length": 50,
  "link_display_mode": "Search",
  "links": [],
- "modified": "2026-11-12 20:30:00.000000",
+ "modified": "2026-11-12 22:30:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Web Crawl",

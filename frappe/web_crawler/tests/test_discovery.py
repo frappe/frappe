@@ -121,7 +121,7 @@ class TestDiscovery(IntegrationTestCase):
 			XML,
 		)
 		self.assertEqual(self.find("https://example.com"), ["https://example.com/a"])
-		with self.change_settings("Web Crawler Settings", {"respect_robots_txt": 0}):
+		with self.change_settings("Web Crawl Settings", {"respect_robots_txt": 0}):
 			self.assertEqual(len(self.find("https://example.com")), 2)
 
 	def test_skip_urls_runs_before_the_page_limit(self):

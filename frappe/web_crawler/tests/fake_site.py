@@ -11,6 +11,7 @@ PUBLIC_ADDRESS = "93.184.216.34"
 HTML = "text/html; charset=utf-8"
 NEUTRAL_SETTINGS = {
 	"request_delay": 0,
+	"concurrent_requests": 1,
 	"allowed_domains": [],
 	"blocked_domains": [],
 	"link_priorities": [],
@@ -30,11 +31,11 @@ class FakeSite:
 			patch(
 				"urllib3.connectionpool.HTTPConnectionPool._make_request",
 				autospec=True,
-				side_effect=self.respond,
+				side_effect=lambda *args, **kwargs: self.respond(*args, **kwargs),
 			)
 		)
 		test_case.enterContext(patch("urllib3.util.retry.time.sleep"))
-		test_case.enterContext(change_settings("Web Crawler Settings", {**NEUTRAL_SETTINGS, **settings}))
+		test_case.enterContext(change_settings("Web Crawl Settings", {**NEUTRAL_SETTINGS, **settings}))
 
 	def add(self, url: str, body: str | bytes = "", content_type: str = HTML, status: int = 200, **headers):
 		body = body.encode() if isinstance(body, str) else body
@@ -71,14 +72,14 @@ def allow_domain(test_case, domain: str):
 
 
 def add_setting_row(test_case, fieldname: str, row: dict):
-	"""Adds a row to a Web Crawler Settings table until the test ends."""
-	settings = frappe.get_doc("Web Crawler Settings")
+	"""Adds a row to a Web Crawl Settings table until the test ends."""
+	settings = frappe.get_doc("Web Crawl Settings")
 	settings.append(fieldname, row)
 	settings.save()
 	test_case.addCleanup(clear_table, fieldname)
 
 
 def clear_table(fieldname: str):
-	settings = frappe.get_doc("Web Crawler Settings")
+	settings = frappe.get_doc("Web Crawl Settings")
 	settings.set(fieldname, [])
 	settings.save()

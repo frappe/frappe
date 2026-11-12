@@ -8,7 +8,7 @@ frappe.ui.form.on("Web Crawl", {
 		if (frm.doc.stopped_reason === "time_limit") {
 			frm.set_intro(
 				__(
-					"This crawl stopped at the maximum crawl time after {0} pages. Raise Maximum crawl time in Web Crawler Settings to read more.",
+					"This crawl stopped at the maximum crawl time after {0} pages. Raise Maximum crawl time in Web Crawl Settings to read more.",
 					[frm.doc.pages_crawled]
 				),
 				"orange"

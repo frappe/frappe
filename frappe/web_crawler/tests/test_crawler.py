@@ -1,7 +1,9 @@
+import threading
 from unittest.mock import patch
 
 import frappe
 from frappe.tests import IntegrationTestCase
+from frappe.tests.classes.context_managers import change_settings
 from frappe.web_crawler import KeywordPriority, WebCrawler
 from frappe.web_crawler.limits import CrawlLimits
 from frappe.web_crawler.tests.fake_site import FakeSite, add_setting_row
@@ -98,7 +100,7 @@ class TestCrawl(IntegrationTestCase):
 	def test_settings_tuning_is_used_when_the_crawl_sets_none(self):
 		self.site.page("https://example.com/", links("/blog", "/about", "/private/x"))
 		add_setting_row(self, "link_priorities", {"keyword": "about", "weight": 1})
-		with self.change_settings("Web Crawler Settings", {"skip_patterns": "/private/"}):
+		with self.change_settings("Web Crawl Settings", {"skip_patterns": "/private/"}):
 			default = [page.url for page in self.crawl()]
 			tuned = self.crawl(priority=KeywordPriority({"blog": 1}), skip_patterns=("/about",))
 		self.assertEqual(default[1:], ["https://example.com/about", "https://example.com/blog"])
@@ -115,6 +117,28 @@ class TestCrawl(IntegrationTestCase):
 		self.assertEqual([page.status for page in pages], [200, 429])
 		self.assertEqual(crawler.stopped_reason, "rate_limited")
 		self.assertEqual(self.site.requested.count("https://example.com/a"), 3)
+
+	def test_reads_a_batch_of_pages_at_the_same_time(self):
+		self.enterContext(change_settings("Web Crawl Settings", {"concurrent_requests": 3}))
+		self.site.page("https://example.com/", links("/a", "/b", "/c"))
+		together = threading.Barrier(3, timeout=5)
+		respond = self.site.respond
+
+		def respond_together(pool, connection, method, path, *args, **kwargs):
+			if path in ("/a", "/b", "/c"):
+				together.wait()
+			return respond(pool, connection, method, path, *args, **kwargs)
+
+		self.site.respond = respond_together
+		self.assertEqual(len(self.crawl()), 4)
+
+	def test_site_with_a_crawl_delay_is_read_one_page_at_a_time(self):
+		self.enterContext(change_settings("Web Crawl Settings", {"concurrent_requests": 3}))
+		self.site.add("https://example.com/robots.txt", "User-agent: *\nCrawl-delay: 1", "text/plain")
+		self.site.page("https://example.com/", links("/a", "/b", "/c"))
+		with patch("frappe.web_crawler.crawler.time.sleep") as sleep:
+			self.assertEqual(len(self.crawl()), 4)
+		self.assertEqual(sleep.call_count, 3)
 
 	def test_crawl_stops_at_the_time_limit(self):
 		self.site.page("https://example.com/", links("/a", "/b"))
@@ -137,20 +161,20 @@ class TestCrawl(IntegrationTestCase):
 
 class TestCrawlLimits(IntegrationTestCase):
 	def test_arguments_only_lower_the_settings(self):
-		with self.change_settings("Web Crawler Settings", {"max_pages": 20, "max_depth": 2}):
+		with self.change_settings("Web Crawl Settings", {"max_pages": 20, "max_depth": 2}):
 			self.assertEqual(CrawlLimits.from_settings(5, 9).max_pages, 5)
 			self.assertEqual(CrawlLimits.from_settings(50, 9).max_pages, 20)
 			self.assertEqual(CrawlLimits.from_settings(None, 9).max_depth, 2)
 
 	def test_job_outlives_the_crawl_time(self):
-		with self.change_settings("Web Crawler Settings", {"max_crawl_time": 10}):
+		with self.change_settings("Web Crawl Settings", {"max_crawl_time": 10}):
 			limits = CrawlLimits.from_settings()
 		self.assertEqual(limits.max_crawl_time, 600)
 		self.assertGreater(limits.job_timeout(), 600 + 3 * 30)
 
 	def test_warns_when_a_full_crawl_may_outlast_the_crawl_time(self):
 		settings = {"max_pages": 1000, "request_delay": 1, "max_crawl_time": 30}
-		with self.change_settings("Web Crawler Settings", settings):
+		with self.change_settings("Web Crawl Settings", settings):
 			frappe.clear_messages()
 			self.assertEqual(CrawlLimits.from_settings(300).estimated_crawl_time(), 600)
 			CrawlLimits.from_settings(300).warn_if_crawl_may_stop_early()
@@ -159,7 +183,7 @@ class TestCrawlLimits(IntegrationTestCase):
 		self.assertIn("Crawl may stop early", str(frappe.get_message_log()))
 
 	def test_wait_is_capped(self):
-		with self.change_settings("Web Crawler Settings", {"request_delay": 1}):
+		with self.change_settings("Web Crawl Settings", {"request_delay": 1}):
 			limits = CrawlLimits.from_settings()
 			self.assertEqual(limits.wait_seconds(None), 1)
 			self.assertEqual(limits.wait_seconds(5), 5)

@@ -147,7 +147,7 @@ class TestSlowServer(IntegrationTestCase):
 		self.enterContext(patch("frappe.utils.safe_exec.validate_request_url"))
 		self.enterContext(patch("frappe.utils.safe_exec.validate_request_address"))
 		settings = {**NEUTRAL_SETTINGS, "page_timeout": 1}
-		self.enterContext(self.change_settings("Web Crawler Settings", settings))
+		self.enterContext(self.change_settings("Web Crawl Settings", settings))
 
 	def test_slow_body_stops_at_the_deadline(self):
 		started = time.monotonic()
