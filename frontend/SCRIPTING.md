@@ -391,6 +391,9 @@ and on `page.refresh()`, and again when a `List Page` Client Script of the docty
 reordered or deleted. A filter, a sort or Load More change only `page.rows`; they do not run
 `onRefresh`.
 
+To move a desk v1 list script (`frappe.listview_settings`) to a `list.js`, read
+[LIST-SCRIPTS.md](LIST-SCRIPTS.md).
+
 A `Client Script` row with `view = List Page` and `dt` set to the doctype has the same text as
 `list.js` and runs after the doctype's `list.js` files, in `run_order`. The list page fetches the
 rows beside the meta, one request more on a cold load, and paints after they have run. Desk v1
