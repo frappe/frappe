@@ -66,6 +66,22 @@ class TestFlowSafeExec(IntegrationTestCase):
 		self.assertEqual(len(result["created"]), 1)
 		self.assertTrue(frappe.db.exists("ToDo", result["created"][0]))
 
+	def test_get_value_reads_a_single(self):
+		time_zone = frappe.db.get_single_value("System Settings", "time_zone")
+		for code, expected in (
+			('frappe.db.get_value("System Settings", None, "time_zone")', time_zone),
+			('frappe.db.get_value("System Settings", "System Settings", ["time_zone"])', [time_zone]),
+			(
+				'frappe.db.get_value("System Settings", None, "time_zone", as_dict=True)',
+				{"time_zone": time_zone},
+			),
+		):
+			with self.subTest(code):
+				self.assertEqual(self._run(f"result = {code}"), expected)
+		frappe.set_user("Guest")
+		with self.assertRaises(frappe.PermissionError):
+			self._run('result = frappe.db.get_value("System Settings", None, "time_zone")')
+
 	def test_refuses_imports_dunders_and_permission_bypassing_functions(self):
 		for code, error in (
 			("import os", ImportError),

@@ -173,10 +173,13 @@ def _permissioned_get_value(doctype, filters=None, fieldname="name", *, as_dict=
 	if isinstance(filters, str):
 		filters = {"name": filters}
 	fieldnames = fieldname if isinstance(fieldname, (list, tuple)) else [fieldname]
-	rows = _permissioned_get_list(doctype, filters=filters, fields=list(fieldnames), limit=1)
-	if not rows:
+	if frappe.get_meta(doctype).issingle:
+		# a Single has no table for get_list
+		row = frappe._dict({f: _permissioned_get_single_value(doctype, f) for f in fieldnames})
+	elif rows := _permissioned_get_list(doctype, filters=filters, fields=list(fieldnames), limit=1):
+		row = rows[0]
+	else:
 		return None
-	row = rows[0]
 	if as_dict:
 		return row
 	if isinstance(fieldname, (list, tuple)):
