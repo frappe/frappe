@@ -899,6 +899,10 @@ class InboundMail(Email):
 		"""
 		name = self.get_reference_name_from_subject()
 		email_fields = self.get_email_fields(doctype)
+		sender_is_system_user = bool(self.from_email and is_system_user(self.from_email))
+
+		if email_fields.sender_field and not sender_is_system_user:
+			name = frappe.db.get_value(doctype, {"name": name, email_fields.sender_field: self.from_email})
 
 		record = self.get_doc(doctype, name, ignore_error=True) if name else None
 
@@ -914,7 +918,7 @@ class InboundMail(Email):
 			}
 
 			# Sender check is not needed incase mail is from system user.
-			if email_fields.sender_field and not (len(subject) > 10 and is_system_user(self.from_email)):
+			if email_fields.sender_field and not (len(subject) > 10 and sender_is_system_user):
 				filters[email_fields.sender_field] = self.from_email
 
 			name = frappe.db.get_value(self.email_account.append_to, filters=filters)
