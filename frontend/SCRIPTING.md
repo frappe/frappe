@@ -383,8 +383,8 @@ export default [
 
 A doctype's `list.js` is a handler file, as `record.js` is. Its `onRefresh(page)` runs on the list
 page, and the page paints after it has run. The list page loads the doctype's `list.js` files on
-its first visit, one chunk request beside the meta. It runs `onRefresh` again on a return visit,
-on `page.refresh()` and when a Client Script changes. A filter, a sort or Load More change only
+its first visit, one chunk request beside the meta. It runs `onRefresh` again on a return visit
+and on `page.refresh()`. A filter, a sort or Load More change only
 `page.rows`; they do not run `onRefresh`.
 
 The list page has the base page members (`doctype`, `perms`, `roles`, `toast`, `dialog`, `run`,
@@ -406,7 +406,7 @@ The four lists take the seven verbs and `clear`. A `controls` or `bulkActions` i
 item (`name`, `label`, `icon`, `run(page, value)`, `right`, `when`, `palette`). A `rowActions`
 item takes `name`, `label`, `icon`, `right`, `fields` (the row fields it reads, added to the
 list query), `when(page, row)` and `run(page, row)`. A `when` that throws hides the action on
-that row. Each item is an act: `list.<name>` for a control, `list.<name>` for a bulk action and
+that row. A bulk action's `run(page, names)` gets the selected names as they were at the press. Each item is an act: `list.<name>` for a control, `list.<name>` for a bulk action and
 `list.row_<name>` for a row action. A built-in list act, such as `list.create`, gets the page as
 `run(page, value)`.
 

@@ -260,13 +260,18 @@ function bulkEntries() {
 		.map(({ item, hidden }) => ({ item, hidden }));
 }
 
-// Red marks the one that destroys rows; a script's actions take the neutral theme.
 const bulkActions = computed<BulkAction[]>(() =>
 	bulkList.visible().flatMap((item) => {
 		const act = listActs.drawn(item.name);
 		if (!act) return [];
 		const theme = item.name === "delete" ? "red" : "gray";
-		return [{ label: act.label!, theme, onClick: () => listActs.perform(act) }];
+		return [
+			{
+				label: act.label!,
+				theme,
+				onClick: () => listActs.perform(act, [...selection.value]),
+			},
+		];
 	})
 );
 </script>

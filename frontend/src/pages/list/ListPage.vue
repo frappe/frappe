@@ -25,7 +25,10 @@
 			</div>
 		</template>
 
-		<div :class="pageGutter" class="flex shrink-0 items-start justify-between gap-2 pt-3.5">
+		<div
+			:class="[pageGutter, { invisible: !list.engine.ready.value }]"
+			class="flex shrink-0 items-start justify-between gap-2 pt-3.5"
+		>
 			<div class="flex min-w-0 flex-1 flex-col">
 				<QuickFilter
 					v-if="shown.has('quick_filter')"
@@ -186,7 +189,6 @@ const createAct = computed(() => listActs.drawn("create"));
 const favouriteAct = computed(() => listActs.drawn("favourite"));
 const quickFilterAct = computed(() => listActs.drawn("customize_quick_filter"));
 
-// In the order the scripts left them; the quick filter has its own row and its customizing sits in `⋯`.
 const controlItems = computed(() => list.lists.controls.visible());
 const shown = computed(() => new Set(controlItems.value.map((item) => item.name)));
 const rowControls = computed(() =>

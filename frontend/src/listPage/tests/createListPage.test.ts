@@ -127,4 +127,33 @@ describe("the list page", () => {
     expect(list.page.view).toEqual({ key: "list", type: "List" });
     expect(list.page.doctype).toBe(doctype);
   });
+
+  it("replays when the renderer attaches, so onRefresh sees the built-ins it gives", async () => {
+    const seen: boolean[] = [];
+    const land = addScript((page) => void seen.push(page.columns.has("title")));
+    const list = createListPage({ view: makeView(), router: {} as never, meta: () => null, permissions });
+    pages.push(list);
+    list.paint();
+    land();
+    await settle();
+    expect(seen).toEqual([false]);
+
+    list.lists.columns.provideBuiltins(() => [{ name: "title" }]);
+    list.attach({ rows: () => [], selection: () => [], reload: () => {} });
+    await settle();
+    expect(seen).toEqual([false, true]);
+  });
+
+  it("lets a script hide a built-in control and add its own", async () => {
+    const land = addScript((page) => {
+      page.controls.hide("sort");
+      page.controls.add({ name: "export", label: "Export", run: () => {} });
+    });
+    const list = makePage();
+    list.lists.controls.provideBuiltins(() => [{ name: "filter" }, { name: "sort" }]);
+    list.paint();
+    land();
+    await settle();
+    expect(list.lists.controls.visible().map((one) => one.name)).toEqual(["filter", "export"]);
+  });
 });

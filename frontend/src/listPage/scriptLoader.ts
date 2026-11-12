@@ -8,7 +8,7 @@ export interface ListScriptModule {
   default?: Record<string, unknown>;
 }
 
-/** A list.js, loaded: its handlers, and the default columns its `columns` key names until views/list.json does. */
+/** A list.js, loaded: its handlers, and the default columns its `columns` key names. */
 export interface LoadedListScript extends Registration {
   columns?: { fieldname: string; width?: number }[];
 }

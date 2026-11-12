@@ -79,7 +79,11 @@ export function createListPage(host: ListPageHost): ListPageController {
     page,
     engine,
     lists,
-    attach: (state) => void (renderer.value = state),
+    attach: (state) => {
+      renderer.value = state;
+      // The renderer gives the built-in columns and bulk actions; replay so a script's `has` sees them.
+      if (engine.ready.value) void engine.refresh();
+    },
     paint: () => {
       if (!engine.paintNow()) void engine.refresh();
     },
