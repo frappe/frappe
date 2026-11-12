@@ -279,14 +279,14 @@ describe("the list surface", () => {
       "list.set_default_view",
       "list.clear_default_view",
       "list.customize_quick_filter",
-      "list.edit",
-      "list.copy",
-      "list.export",
       "list.assign",
       "list.clear_assignment",
       "list.apply_assignment_rule",
       "list.add_tags",
       "list.remove_tags",
+      "list.edit",
+      "list.copy",
+      "list.export",
       "list.delete",
       "list.open_bulk_menu",
       "list.clear_selection",
@@ -317,7 +317,7 @@ describe("the list surface", () => {
 
     fake.state.selection.value = ["CONT-0001"];
     await nextTick();
-    expect(bulkLabels(root)).toEqual(["Edit", "Delete"]);
+    expect(bulkLabels(root)).toEqual(["Assign to…", "Add tags", "Edit", "Delete"]);
     await acts.run("list.delete");
     await vi.waitFor(() => expect(root.querySelector("[data-delete-dialog]")).not.toBeNull());
   });
