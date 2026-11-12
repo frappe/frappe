@@ -39,8 +39,7 @@ import FieldDescription from "./FieldDescription.vue";
 // The editor chunk loads only when an editable field draws; the empty box holds its place.
 const TextEditorInput = defineAsyncComponent({
 	loader: () => import("./TextEditorInput.vue"),
-	loadingComponent: () =>
-		h("div", { class: "h-[10.8rem] rounded-4 border border-outline-gray-2" }),
+	loadingComponent: () => h("div", { class: "h-[10.8rem] rounded-4 bg-surface-gray-2" }),
 	delay: 0,
 });
 

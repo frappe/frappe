@@ -153,7 +153,11 @@
 											class="mx-1 h-5 w-px shrink-0 bg-surface-gray-3"
 											aria-hidden="true"
 										/>
-										<EditorFixedMenu :items="richTextToolbar" size="sm" />
+										<EditorFixedMenu
+											:key="toolbarKey"
+											:items="richTextToolbar"
+											size="sm"
+										/>
 									</template>
 								</div>
 								<div
@@ -213,7 +217,7 @@ import LucidePaperclip from "~icons/lucide/paperclip";
 import { Editor, EditorContent, EditorFixedMenu, EditorTableMenu } from "frappe-ui/editor";
 import { sanitizeHtml } from "../../utils/sanitize";
 import { isEmptyHtml } from "../RichText/html";
-import { richTextKit, richTextToolbar } from "../RichText/kit";
+import { richTextKit, richTextToolbar, useToolbarKey } from "../RichText/kit";
 import { isAllowedType } from "../FileUpload/useUploader";
 import type { ComposerEditorProps, CoreSubmitPayload, UploadedFile } from "./types";
 
@@ -246,10 +250,13 @@ const mentionItems = computed(() =>
 	}))
 );
 
+const { key: toolbarKey, extension: toolbarKeyExtension } = useToolbarKey();
+
 // Built once so the editor isn't torn down on change; reactive bits thread in via
 // getters. Host extensions land after RichTextKit so they can override its defaults.
 const extensions = [
 	richTextKit(() => mentionItems.value),
+	toolbarKeyExtension,
 	...(props.extensions ?? []),
 	// Lowest priority, so an open suggestion menu takes Esc first; 0 would read as the default.
 	Extension.create({

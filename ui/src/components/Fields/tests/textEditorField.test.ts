@@ -82,6 +82,37 @@ describe("an editable Text Editor", () => {
     expect(onChange.mock.calls).toEqual([["<p>Hello there!</p>"]]);
   });
 
+  it("enables its toolbar before the first focus", async () => {
+    const { root } = mount(null);
+    await editorIn(root);
+    await vi.waitFor(() =>
+      expect(root.querySelectorAll("[data-slot='fixed-menu'] button:disabled")).toHaveLength(0)
+    );
+  });
+
+  it.each(["<h2>Title</h2><p>x</p>", "<p>x</p><hr>"])(
+    "writes nothing on load for %s",
+    async (stored) => {
+      const { root, onInput, onChange } = mount(stored);
+      await editorIn(root);
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      expect(onInput).not.toHaveBeenCalled();
+      expect(onChange).not.toHaveBeenCalled();
+    }
+  );
+
+  it("draws its Paragraph button pressed, not disabled, in a paragraph", async () => {
+    const { root } = mount("<p>Hello</p>");
+    const editor = await editorIn(root);
+    editor.commands.focus("end");
+    await frame();
+    const paragraph = root.querySelector<HTMLButtonElement>(
+      "[data-slot='fixed-menu'] button[aria-label='Paragraph']"
+    )!;
+    expect(paragraph.getAttribute("aria-pressed")).toBe("true");
+    expect(paragraph.disabled).toBe(false);
+  });
+
   it("keeps the edit open across a click on its own toolbar", async () => {
     const { root, onChange } = mount("<p>Hello</p>");
     const editor = await editorIn(root);

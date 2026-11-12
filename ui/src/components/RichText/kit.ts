@@ -1,5 +1,7 @@
 /** The rich-text editor setup the Text Editor field and the composer share. */
+import { ref } from "vue";
 import type { MaybeRefOrGetter } from "vue";
+import { Extension } from "@tiptap/core";
 import {
   RichTextKit,
   Paragraph,
@@ -35,8 +37,25 @@ export function richTextKit(mentions?: MaybeRefOrGetter<MentionSuggestionItem[]>
   });
 }
 
+/** A toolbar key bumped once the view mounts: frappe-ui reads disabled states before the view
+ * exists and then only on a transaction. Do not dispatch one instead: it rewrites stored HTML. */
+export function useToolbarKey() {
+  const key = ref(0);
+  const extension = Extension.create({
+    name: "toolbarKey",
+    onCreate() {
+      key.value++;
+    },
+  });
+  return { key, extension };
+}
+
 export const richTextToolbar = [
-  Paragraph,
+  {
+    ...Paragraph,
+    // `setParagraph` cannot run in a paragraph, where the button is pressed.
+    isDisabled: (editor) => !editor.isActive("paragraph") && Paragraph.isDisabled?.(editor) === true,
+  } satisfies typeof Paragraph,
   H2,
   H3,
   H4,
