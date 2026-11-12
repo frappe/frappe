@@ -1409,6 +1409,7 @@ class PrintFormatGenerator:
 	def static_text_value(self, match) -> str:
 		from html import unescape
 
+		from frappe.model import table_fields
 		from frappe.utils import strip_html
 
 		path = match.group(1)
@@ -1418,7 +1419,7 @@ class PrintFormatGenerator:
 			if not link_df or link_df.fieldtype != "Link" or not link_df.options:
 				return match.group(0)
 			target_df = frappe.get_meta(link_df.options).get_field(target_fieldname)
-			if not target_df:
+			if not target_df or target_df.fieldtype in table_fields:
 				return match.group(0)
 			resolved = self.resolve_linked_path(path)
 			if not resolved:
@@ -1427,7 +1428,7 @@ class PrintFormatGenerator:
 			fieldtype = target_df.fieldtype
 		else:
 			field = self.doc.meta.get_field(path)
-			if not field and path != "name":
+			if (not field and path != "name") or (field and field.fieldtype in table_fields):
 				return match.group(0)
 			if field and not self.has_field_access(self.doc, self.doc.meta, path):
 				return ""
