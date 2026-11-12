@@ -150,7 +150,7 @@ describe("startBulkPrint", () => {
 
 		const settled = fake.followBulkRun.mock.calls[0][1] as (run: BulkRun) => void;
 		const open = vi.spyOn(window, "open").mockReturnValue(null);
-		settled({ result: { total: 1, done: ["A"], failed: [], file_url: "/private/files/T1.pdf" } } as BulkRun);
+		settled({ result: { total: 1, done: ["A"], failed: [], file_url: "/private/files/T1.pdf" } } as unknown as BulkRun);
 		const options = fake.success.mock.calls[0][1];
 		options.action.onClick();
 		expect(open).toHaveBeenCalledWith("/private/files/T1.pdf", "_blank", "noopener");
@@ -160,7 +160,7 @@ describe("startBulkPrint", () => {
 		fake.bulkPrintDocuments.mockResolvedValue({ data: { task_id: "T1", job_id: "J1" } });
 		await startBulkPrint("ToDo", { names: ["A"] });
 		const settled = fake.followBulkRun.mock.calls[0][1] as (run: BulkRun) => void;
-		settled({ result: { total: 1, done: [], failed: [{ name: "A", error: "x" }] } } as BulkRun);
+		settled({ result: { total: 1, done: [], failed: [{ name: "A", error: "x" }] } } as unknown as BulkRun);
 		expect(fake.success).not.toHaveBeenCalled();
 	});
 });
