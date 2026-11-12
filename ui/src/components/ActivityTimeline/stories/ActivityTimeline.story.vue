@@ -13,6 +13,7 @@
 			<Switch v-model="empty" label="Empty" />
 			<Switch v-model="paginated" label="Pagination" />
 			<Switch v-model="withSlots" label="Slots" />
+			<Switch v-model="showSubject" label="Subject" />
 		</div>
 
 		<div class="rounded-6 border border-outline-gray-2 p-4">
@@ -23,7 +24,7 @@
 			>
 				<!-- reuse the built-in email/comment rows, adding an #actions region -->
 				<template #item-email="{ activity }">
-					<EmailItem :email="activity">
+					<EmailItem :email="activity" :show-subject="showSubject">
 						<template v-if="withSlots" #actions>
 							<Button variant="ghost" @click="log('reply', activity.data.name)">
 								<template #icon
@@ -73,6 +74,7 @@ const loading = ref(false);
 const empty = ref(false);
 const paginated = ref(false);
 const withSlots = ref(true);
+const showSubject = ref(false);
 
 const person = (fullname: string, email?: string) => ({ fullname, email, image: "" });
 
