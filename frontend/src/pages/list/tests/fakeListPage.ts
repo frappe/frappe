@@ -3,6 +3,7 @@
 // `fake.state` holds the refs a test moves.
 import { computed, ref, type Ref } from "vue";
 import { vi } from "vitest";
+import type { ListRow } from "@/list/useListRows";
 import type { SavedView } from "@/list/savedView";
 import { useBulkScope } from "@/list/useBulkScope";
 import type { ListPage } from "@/list/useListPage";
@@ -85,11 +86,11 @@ export function useListView(): ListView {
     shownColumns: computed(() => []),
     selection: state.selection,
     scope: useBulkScope({
-      selection: state.selection,
-      rows: () => state.rows.value,
+      selection: state.selection as Ref<string[]>,
+      rows: () => state.rows.value as ListRow[],
       filters: () => ({}),
       hasNextPage: () => false,
-      totalCount: () => state.rows.value.length,
+      totalCount: () => (state.rows.value as ListRow[]).length,
       totalApprox: () => false,
       exact: () => true,
     }),
