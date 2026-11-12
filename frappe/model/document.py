@@ -3742,6 +3742,13 @@ class Document(_DocumentBase):
 			phone = self.get(phone_field.fieldname)
 			validate_phone_number_with_country_code(phone, phone_field.fieldname, _(phone_field.label))
 
+		for attach_field in self.meta.get("fields", {"fieldtype": ["in", ["Attach", "Attach Image"]]}):
+			file_url = self.get(attach_field.fieldname)
+			if isinstance(file_url, str) and has_unsafe_url_scheme(file_url):
+				frappe.throw(
+					_("'{0}' is not a valid URL").format(frappe.bold(file_url)), title=_("Invalid URL")
+				)
+
 		# data_field options defined in frappe.model.data_field_options
 		for data_field in self.meta.get_data_fields():
 			data = self.get(data_field.fieldname)
