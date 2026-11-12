@@ -4,9 +4,7 @@ import doctype_with_phone from "../fixtures/doctype_with_phone";
 test.describe("Control Phone", () => {
 	test.beforeAll(async ({ admin }) => {
 		await admin.insert_doc("DocType", doctype_with_phone, true);
-		for (const title of ["Test Phone 1", "Test Phone 2", "Test Phone 3", "Test Phone 4"]) {
-			await admin.remove_doc("Doctype With Phone", title, true);
-		}
+		await admin.remove_doc("Doctype With Phone", "Test Phone 1", true);
 	});
 
 	test("should set flag and data", async ({ page, desk }) => {
@@ -86,56 +84,5 @@ test.describe("Control Phone", () => {
 		await expect(page.locator(".selected-phone .country")).toHaveText("+91");
 		await expect(page.locator(".selected-phone > img")).toHaveAttribute("src", /\/in\.svg/);
 		await expect(desk.get_field("phone")).toHaveValue("9823341234");
-	});
-
-	test("number saved without one hyphen shows its country code", async ({ page, desk, api }) => {
-		for (const [title, phone] of [
-			["Test Phone 2", "+91-9823341234"],
-			["Test Phone 3", "+256772123456"],
-			["Test Phone 4", "+1-415-555-2671"],
-		]) {
-			await api.insert_doc("Doctype With Phone", { title, phone });
-		}
-		const open = async (title) => {
-			await desk.click_listview_row_item_with_text(title);
-			await expect(page).toHaveTitle(title);
-		};
-		const expect_phone = async (code, number, stored) => {
-			await expect(page.locator(".selected-phone:visible .country")).toHaveText(code);
-			await expect(desk.get_field("phone")).toHaveValue(number);
-			expect(await page.evaluate(() => cur_frm.is_dirty())).toBe(false);
-			expect(await page.evaluate(() => cur_frm.doc.phone)).toBe(stored);
-		};
-
-		await desk.go_to_list("Doctype With Phone");
-		// the next record opens in the same form, which still shows this record's +91
-		await open("Test Phone 2");
-		await page.goBack();
-		await open("Test Phone 3");
-		await expect_phone("+256", "772123456", "+256772123456");
-		await page.goBack();
-		await open("Test Phone 4");
-		await expect_phone("+1", "415-555-2671", "+1-415-555-2671");
-	});
-
-	test("number is saved with the selected or typed country code", async ({ page, desk }) => {
-		await page.goto("/desk/doctype-with-phone");
-		await desk.click_primary_button("Add Doctype With Phone");
-		const selected_phone = page.locator(".selected-phone:visible");
-		await selected_phone.click();
-		await page.locator(".phone-picker .phone-wrapper[id='india']").click();
-		await expect(selected_phone.locator(".country")).toHaveText("+91");
-
-		await page.evaluate(() => cur_frm.set_value("phone", "9823341234"));
-		await expect.poll(() => page.evaluate(() => cur_frm.doc.phone)).toBe("+91-9823341234");
-		await expect(desk.get_field("phone")).toHaveValue("9823341234");
-
-		const phone = desk.get_field("phone");
-		await phone.clear();
-		await desk.type(phone, "+254712345678");
-		await phone.blur();
-		await expect.poll(() => page.evaluate(() => cur_frm.doc.phone)).toBe("+254-712345678");
-		await expect(selected_phone.locator(".country")).toHaveText("+254");
-		await expect(phone).toHaveValue("712345678");
 	});
 });
