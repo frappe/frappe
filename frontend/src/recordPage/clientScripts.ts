@@ -39,6 +39,9 @@ const writable = ref(false);
 const changes = reactive(new Map<string, number>());
 const waits = new Map<string, string>();
 
+// What a tier the server said is empty holds; it carries no answer on write permission.
+const NO_SCRIPTS: ClientScriptsResponse = { scripts: [], can_write: false };
+
 export const canWriteClientScripts = readonly(writable);
 
 /** A count that moves when the tier's stored scripts change; a page on screen watches its own. */
@@ -78,17 +81,22 @@ export function clientScriptWait(doctype: string, page?: string): string | null 
   return waits.get(tierKey(doctype, page)) ?? null;
 }
 
-/** Resolves when the fresh tier has registered; one fetch per tier until it goes stale. */
+/**
+ * Resolves when the fresh tier has registered; one fetch per tier until it goes stale.
+ * `knownEmpty` skips the first fetch of a tier the server said holds no script; a save since then fetches.
+ */
 export function loadClientScripts(
   doctype: string,
   page?: string,
   registerAfter?: Promise<unknown>,
+  knownEmpty = false,
 ): Promise<void> {
   const key = tierKey(doctype, page);
   const current = tiers.get(key);
   if (current && !stale.has(key)) return current;
+  const unchanged = !stale.has(key) && !clientScriptChanges(doctype, page);
   stale.delete(key);
-  const tier = { key, doctype, page };
+  const tier = { key, doctype, page, empty: knownEmpty && unchanged };
   const loading: Promise<void> = buildTier(tier, () => tiers.get(key) === loading, registerAfter);
   tiers.set(key, loading);
   return loading;
@@ -128,6 +136,8 @@ interface Tier {
   doctype: string;
   /** The app page's name, or `LIST_PAGE_TIER`; absent for the record page's tier. */
   page?: string;
+  /** Set when the server said the tier holds no script: nothing to fetch. */
+  empty?: boolean;
 }
 
 interface CompiledScript {
@@ -139,7 +149,7 @@ interface CompiledScript {
 async function buildTier(tier: Tier, current: () => boolean, registerAfter?: Promise<unknown>) {
   const { key, doctype } = tier;
   waits.set(key, `the Client Script list for ${tierLabel(tier)}`);
-  const response = await fetchScripts(tier);
+  const response = await (tier.empty ? NO_SCRIPTS : fetchScripts(tier));
   if (!current()) return;
   if (!response && sources.has(key)) {
     // A failed re-read keeps the registered tier, and the next load tries again.
@@ -149,7 +159,7 @@ async function buildTier(tier: Tier, current: () => boolean, registerAfter?: Pro
   }
   // Only an answer the server actually gave: a failed fetch must not read as
   // "no permission" and retract the editor's entry point.
-  if (response) writable.value = response.can_write;
+  if (response && response !== NO_SCRIPTS) writable.value = response.can_write;
   const compiled: CompiledScript[] = [];
   for (const row of response?.scripts ?? []) {
     if (!current()) return;

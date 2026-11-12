@@ -838,6 +838,26 @@ class TestShellBoot(IntegrationTestCase):
 		self.assertIsInstance(boot["is_fc_site"], bool)
 		self.assertIsInstance(boot["has_app_updates"], bool)
 
+	def test_boot_names_the_doctypes_with_a_list_page_script(self):
+		"""The list skips its List Page Client Script fetch for a doctype boot does not name."""
+		from frappe.shell.boot import get_boot
+
+		frappe.get_doc(
+			{
+				"doctype": "Client Script",
+				"__newname": "boot-list-page-script",
+				"dt": "Note",
+				"view": "List Page",
+				"enabled": 1,
+				"script": "export default {}",
+			}
+		).insert()
+		self.addCleanup(frappe.delete_doc, "Client Script", "boot-list-page-script")
+
+		self.assertIn("Note", get_boot("/apps/desk")["list_script_doctypes"])
+		self.assertNotIn("ToDo", get_boot("/apps/desk")["list_script_doctypes"])
+		self.assertNotIn("list_script_doctypes", get_boot("/apps"))
+
 	def test_boot_names_the_app_tile(self):
 		"""The rail's tile reads the app's own screen entry, and falls back to the app's name."""
 		from frappe.shell.boot import get_boot

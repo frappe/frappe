@@ -152,7 +152,13 @@ const settings = useListSettings(doctype);
 const favourited = computed(() => isFavourite(settings.favourites.value, starKey));
 
 const permissions = useListPermissions(doctype);
-const list = createListPage({ view, router, meta: () => meta.value, permissions });
+const list = createListPage({
+	view,
+	router,
+	meta: () => meta.value,
+	permissions,
+	scripted: boot.list_script_doctypes?.includes(doctype) ?? true,
+});
 list.lists.controls.provideBuiltins(() => [
 	{ name: "quick_filter", label: __("Quick Filter") },
 	{ name: "filter", label: __("Filter") },

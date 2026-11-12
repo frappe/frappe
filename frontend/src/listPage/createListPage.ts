@@ -24,6 +24,8 @@ export interface ListPageHost {
   router: Router;
   meta: () => Record<string, any> | null;
   permissions: ListPermissions;
+  /** False when boot says the doctype has no List Page Client Script; the list then fetches none. */
+  scripted?: boolean;
 }
 
 /** What the view's renderer holds: the rows it shows and how they load again. */
@@ -71,7 +73,7 @@ export function createListPage(host: ListPageHost): ListPageController {
     perms: permissions.perms,
     roles: permissions.roles,
     router: host.router,
-    sourcesReady: () => loadListScripts(doctype),
+    sourcesReady: () => loadListScripts(doctype, host.scripted),
     permissionsReady: permissions.ready,
     loaded: () => listScriptsLoaded(doctype) && !permissions.loading(),
     skippedBeforeSources: () => replacedClientScripts(doctype, LIST_PAGE_TIER),

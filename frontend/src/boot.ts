@@ -81,6 +81,9 @@ export type Boot = {
 	// segment a saved view's key or a view type's name, for each doctype with a default.
 	default_views?: Record<string, string>;
 
+	// Absent on the index. The doctypes with an enabled List Page Client Script; a list of any other fetches none.
+	list_script_doctypes?: string[];
+
 	// Absent on the index. Every `View Type` record, for the view switcher and the router.
 	view_types?: { name: string; label: string; icon: string | null }[];
 

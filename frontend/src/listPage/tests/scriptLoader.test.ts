@@ -179,6 +179,49 @@ describe("the list script loader", () => {
       expect(call).toHaveBeenCalledTimes(2);
     });
 
+    describe("a doctype boot lists as holding no script", () => {
+      it("sends no request, still runs its list.js, and counts as loaded", async () => {
+        addListScript(doctype, { app: "crm", load: script({ onRefresh: () => {} }) });
+        await loadListScripts(doctype, false);
+        expect(call).not.toHaveBeenCalled();
+        expect(listScriptsLoaded(doctype)).toBe(true);
+        expect(sourcesOf()).toEqual(["crm"]);
+      });
+
+      it("reads the tier when a save lands after boot, and runs the new script", async () => {
+        const socket = { handlers: new Map<string, (...args: unknown[]) => void>() } as any;
+        socket.on = (name: string, handler: (...args: unknown[]) => void) => socket.handlers.set(name, handler);
+        socket.off = () => {};
+        watchClientScripts(socket);
+        evaluateClientScript.mockResolvedValue({ onRefresh: () => {} });
+        await loadListScripts(doctype, false);
+
+        rows("saved");
+        socket.handlers.get("client_script_changed")({ dt: doctype, view: "List Page", page: null });
+        expect(listScriptsLoaded(doctype)).toBe(false);
+        await loadListScripts(doctype, false);
+        expect(sourcesOf()).toEqual(["client-script:saved"]);
+        expect(call).toHaveBeenCalledTimes(1);
+      });
+
+      it("keeps reading after a save, however the list is opened again", async () => {
+        await loadListScripts(doctype, false);
+        invalidateClientScripts(doctype, LIST_PAGE_TIER);
+        rows();
+        await loadListScripts(doctype, false);
+        invalidateClientScripts(doctype, LIST_PAGE_TIER);
+        await loadListScripts(doctype, false);
+        expect(call).toHaveBeenCalledTimes(2);
+      });
+
+      it("reads the tier of a save that landed before the first list opened", async () => {
+        invalidateClientScripts(doctype, LIST_PAGE_TIER);
+        rows();
+        await loadListScripts(doctype, false);
+        expect(call).toHaveBeenCalledTimes(1);
+      });
+    });
+
     it("skips a script that fails to evaluate and keeps the rest", async () => {
       rows("broken", "fine");
       evaluateClientScript.mockRejectedValueOnce(new Error("syntax")).mockResolvedValue({ onRefresh: () => {} });

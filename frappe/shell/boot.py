@@ -9,6 +9,7 @@ from frappe.core.doctype.installed_applications.installed_applications import (
 	get_setup_wizard_completed_apps,
 	get_setup_wizard_not_required_apps,
 )
+from frappe.custom.doctype.client_script.client_script import list_page_doctypes
 from frappe.desk.doctype.default_view.resolver import DefaultViews
 from frappe.desk.doctype.favourite.favourite import readable_views
 from frappe.desk.doctype.view_type.view_type import view_types
@@ -313,6 +314,8 @@ def get_boot(path: str | None = None) -> dict:
 			"navigation": resolve_navigation(app),
 			# Addresses only, never a view's settings.
 			"default_views": DefaultViews(app=app).addresses(),
+			# A list of any other doctype skips its List Page Client Script fetch; a save replays through realtime.
+			"list_script_doctypes": list_page_doctypes(),
 			"view_types": [
 				{"name": record.name, "label": _(record.label), "icon": record.icon}
 				for record in view_types().values()
