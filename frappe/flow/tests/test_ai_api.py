@@ -210,6 +210,20 @@ class TestSubmitFeedback(IntegrationTestCase):
 				self.assertEqual(frappe.db.get_value("Flow Run", run, "feedback_rating"), rating)
 				self.assertFalse(frappe.db.exists("Flow Agent Memory", {"agent": agent}))
 
+	def test_a_thumbs_down_is_saved_when_its_memory_fails(self):
+		for failure in (
+			patch("frappe.flow.memory.memory.MAX_ACTIVE_MEMORIES", 0),
+			patch("frappe.flow.memory.store.sync", side_effect=RuntimeError("embedding down")),
+		):
+			run = self._run()
+			with self.subTest(failure.attribute), failure, patch("frappe.log_error"):
+				self.assertEqual(submit_feedback(run, "Down", comment="Wrong total."), {"rating": "Down"})
+				self.assertEqual(
+					frappe.db.get_value("Flow Run", run, ["feedback_rating", "feedback_comment"]),
+					("Down", "Wrong total."),
+				)
+				self.assertFalse(frappe.db.exists("Flow Agent Memory", {"source_run": run}))
+
 	def test_refuses_invalid_feedback(self):
 		for status, rating, comment, error in (
 			("Completed", "Sideways", None, "Rating"),

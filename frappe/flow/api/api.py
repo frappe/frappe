@@ -422,8 +422,18 @@ def submit_feedback(run_name: str, rating: str, comment: str | None = None) -> d
 		run.db_set({"feedback_rating": "", "feedback_comment": None})
 		return {"rating": None, "forgotten": forgotten} if forgotten else {"rating": None}
 
-	memory = save_feedback_memory(run, comment) if rating == "Down" and comment else None
 	run.db_set({"feedback_rating": rating, "feedback_comment": comment or None})
+	memory = None
+	if rating == "Down" and comment:
+		frappe.db.savepoint("flow_feedback_memory")
+		try:
+			memory = save_feedback_memory(run, comment)
+		except Exception:
+			# the rating stands without its memory
+			frappe.db.rollback(save_point="flow_feedback_memory")
+			frappe.log_error(
+				title="Flow feedback memory failed", reference_doctype="Flow Run", reference_name=run.name
+			)
 
 	result: dict[str, Any] = {"rating": rating}
 	if memory:
