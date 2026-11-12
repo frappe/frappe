@@ -35,6 +35,14 @@
   `ListRow` template in its `default` component slot. That slot exposes `item`,
   `index`, and `value`; bind cells with `{{ item.<field> }}` and the row's
   `value` prop with `{{ value }}`.
+- `Variants` renders one of its children. Each child is an option and names itself
+  with a `variantOptionName` key beside `componentName`, not a prop. An unnamed
+  child falls back to "Option N". Copy `variantsTemplate` and `variantOption` from
+  `utils/blockTemplate/familyTemplates.ts` rather than writing the shape by hand.
+  It is a review device, not a runtime switch. Keep collapses the block to one
+  option and deletes the rest. Publishing a page that still holds one ships its
+  first option and warns. For a runtime choice, give each block a
+  `visibilityCondition`, or bind the prop that differs.
 - Icons are plain `lucide-<name>` strings on any `icon`, `iconLeft` or `iconRight`
   prop and on `Icon`; there is no `getIcon()` helper and no `FeatherIcon`.
 - Use the `Icon` component for a standalone lucide icon:

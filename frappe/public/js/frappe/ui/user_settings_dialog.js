@@ -416,20 +416,35 @@ function _save_profile(user_data, values) {
 	});
 }
 
-function _upload_user_image(user, on_success) {
+let _opening_uploader = false;
+
+async function _upload_user_image(user, on_success) {
+	// a second click while the User meta loads opens nothing
+	if (_opening_uploader) return;
+	_opening_uploader = true;
+	try {
+		await frappe.model.with_doctype("User");
+	} finally {
+		_opening_uploader = false;
+	}
 	new frappe.ui.FileUploader({
 		doctype: "User",
 		docname: user,
 		fieldname: "user_image",
 		allow_multiple: false,
+		make_attachments_public:
+			frappe.meta.get_docfield("User", "user_image")?.make_attachment_public ||
+			frappe.get_meta("User")?.make_attachments_public,
 		restrictions: {
 			allowed_file_types: ["image/*"],
 		},
 		on_success: (file) => {
-			if (frappe.boot.user_info?.[user]) {
-				frappe.boot.user_info[user].image = file.file_url;
-			}
-			on_success(file);
+			_save_user("user_image", file.file_url).then(() => {
+				if (frappe.boot.user_info?.[user]) {
+					frappe.boot.user_info[user].image = file.file_url;
+				}
+				on_success(file);
+			});
 		},
 	});
 }

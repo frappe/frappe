@@ -446,6 +446,12 @@ class TestMoney(IntegrationTestCase):
 				(0, "MRO Zero only."),
 				("Fail", ""),
 			],
+			"USD": [
+				(0.29, "Twenty Nine Cent only."),
+				(0.57, "Fifty Seven Cent only."),
+				(0.58, "Fifty Eight Cent only."),
+				(1.57, "USD One and Fifty Seven Cent only."),
+			],
 		}
 
 		for currency, cases in test_cases.items():
@@ -882,6 +888,20 @@ class TestImage(IntegrationTestCase):
 		url = "/../private/files/thumbnail_traversal_secret.jpg"
 		self.assertEqual(get_image_thumbnail_uri(url), url)
 
+		link = frappe.get_site_path("public", "files", "thumbnail_traversal_link.jpg")
+		os.symlink(os.path.abspath(secret), link)
+		self.addCleanup(os.remove, link)
+		self.assertEqual(
+			get_image_thumbnail_uri("/files/thumbnail_traversal_link.jpg"),
+			"/files/thumbnail_traversal_link.jpg",
+		)
+
+		public = frappe.get_site_path("public", "files", "thumbnail_public.jpg")
+		with open(sample, "rb") as src, open(public, "wb") as dst:
+			dst.write(src.read())
+		self.addCleanup(os.remove, public)
+		self.assertTrue(get_image_thumbnail_uri("/files/thumbnail_public.jpg").startswith("data:image/"))
+
 	def test_optimize_image(self):
 		image_file_path = frappe.get_app_path("frappe", "tests", "data", "sample_image_for_optimization.jpg")
 		content_type = guess_type(image_file_path)[0]
@@ -894,6 +914,18 @@ class TestImage(IntegrationTestCase):
 		self.assertLessEqual(width, 500)
 		self.assertLessEqual(height, 500)
 		self.assertLess(len(optimized_content), len(original_content))
+
+	def test_optimize_image_fills_transparency_with_white(self):
+		image_file_path = frappe.get_app_path("frappe", "tests", "data", "sample_image_for_optimization.jpg")
+		image = Image.open(image_file_path).convert("RGBA")
+		image.paste((0, 0, 0, 0), (0, 0, image.width // 2, image.height))
+		content = io.BytesIO()
+		image.save(content, format="PNG")
+
+		with self.set_user("test@example.com"):
+			optimized_content = optimize_image(content.getvalue(), "image/jpeg")
+
+		self.assertEqual(Image.open(io.BytesIO(optimized_content)).getpixel((10, 10)), (255, 255, 255))
 
 	def test_optimize_pdf(self):
 		from pypdf import PdfReader
@@ -956,6 +988,28 @@ class TestImage(IntegrationTestCase):
 		reader = PdfReader(io.BytesIO(optimized_content))
 		self.assertEqual(len(reader.pages), 4)
 		self.assertEqual(next(iter(reader.pages[0].images)).image.size, (800, 800))
+
+	def test_optimize_pdf_encodes_an_image_shared_by_every_page_once(self):
+		from pypdf import PdfReader, PdfWriter
+		from pypdf._page import ImageFile
+
+		from frappe.utils.pdf import optimize_pdf
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		buf = io.BytesIO()
+		Image.new("RGB", (800, 800), (20, 150, 90)).save(buf, format="PDF")
+		page = PdfReader(buf).pages[0]
+		writer = PdfWriter()
+		for _ in range(4):
+			writer.add_page(page)
+		out = io.BytesIO()
+		writer.write(out)
+
+		with patch.object(ImageFile, "replace", autospec=True, side_effect=ImageFile.replace) as replace:
+			optimize_pdf(out.getvalue())
+
+		replace.assert_called_once()
 
 	def test_optimize_pdf_skips_unprocessable_image_but_optimizes_rest(self):
 		from pypdf import PdfReader, PdfWriter
@@ -1528,6 +1582,22 @@ class TestXlsxUtils(IntegrationTestCase):
 		self.assertEqual(rows[1][1].value, 1500.5)
 		self.assertEqual(rows[2][1].data_type, "n")
 		self.assertEqual(rows[2][1].value, -5)
+
+	def test_time_values_get_number_format(self):
+		"""time / timedelta values must not be written as raw day fractions."""
+		from openpyxl import load_workbook
+
+		from frappe.utils.xlsxutils import XLSXStyleBuilder, make_xlsx
+
+		data = [
+			["in_time", "duration"],
+			[time(8, 0), timedelta(hours=9, minutes=30)],
+		]
+		wb = load_workbook(make_xlsx(data, "Test Sheet"))
+		ws = wb.active
+
+		self.assertEqual(ws["A2"].number_format, XLSXStyleBuilder.get_time_format())
+		self.assertEqual(ws["B2"].number_format, "[h]:mm:ss")
 
 
 class TestCsvUtils(IntegrationTestCase):
@@ -2375,7 +2445,7 @@ class TestChangeLog(IntegrationTestCase):
 		with (
 			patch("frappe.get_system_settings", return_value=0),
 			patch("frappe.is_setup_complete", return_value=True),
-			patch("frappe.utils.change_log.get_versions", return_value=versions),
+			patch("frappe.utils.change_log.get_app_versions", return_value=versions),
 			patch("frappe.utils.change_log.get_source_url", return_value="https://github.com/frappe/app"),
 			patch(
 				"frappe.utils.change_log.check_release_on_github", return_value=(Version("2.0.0"), "frappe")
@@ -2503,3 +2573,17 @@ class TestMsgPrint(UnitTestCase):
 		frappe.msgprint("<ul><li>abc<li></ul>")
 		message = frappe.get_message_log()[-1]
 		self.assertIn("<ul><li>", message.message)
+
+	def test_raised_message_keeps_html_in_a_terminal(self):
+		with (
+			patch("sys.stdin") as stdin,
+			patch.dict(frappe.local.flags, {"print_messages": True}),
+			patch("builtins.print") as printed,
+		):
+			stdin.isatty.return_value = True
+			with self.assertRaises(frappe.ValidationError) as raised:
+				frappe.throw("first<br>second")  # nosemgrep: frappe-missing-translate-function-python
+
+		self.assertEqual(str(raised.exception), "first<br>second")
+		printed.assert_called_once()
+		self.assertNotIn("<br>", printed.call_args.args[0])

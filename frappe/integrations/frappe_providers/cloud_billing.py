@@ -78,6 +78,24 @@ def create_topup_checkout(client, amount, redirect_url: str) -> dict:
 	)
 
 
+def invoices(client) -> list:
+	"""This site's server's share of each team invoice, newest first."""
+	return client.get(_path(client, "list_server_invoices"))
+
+
+def invoice_pdf(client, invoice: str) -> dict:
+	"""The PDF of an invoice that covers this site's server alone, as base64."""
+	return client.post(_path(client, "get_server_invoice_pdf"), {"invoice": invoice})
+
+
+def create_invoice_checkout(client, invoice: str, redirect_url: str) -> dict:
+	"""Pay an open invoice via hosted checkout; returns the checkout URL to open."""
+	return client.post(
+		_path(client, "create_invoice_checkout"),
+		{"invoice": invoice, "redirect_url": redirect_url},
+	)
+
+
 def checkout_status(client, reference: str) -> dict:
 	return client.post(_path(client, "get_checkout_status"), {"reference": reference})
 

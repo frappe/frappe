@@ -36,6 +36,14 @@ class TestAutoEmailReport(IntegrationTestCase):
 		data = auto_email_report.get_report_content()
 		PdfReader(stream=BytesIO(data))
 
+	def test_mandatory_filters_come_from_validated_report(self):
+		auto_email_report = get_auto_email_report()
+		auto_email_report.filter_meta = None
+		auto_email_report.filters = json.dumps({"user": "Administrator"})
+
+		with self.assertRaisesRegex(frappe.ValidationError, "DocType.*is mandatory"):
+			auto_email_report.save()
+
 	def test_dynamic_date_filters(self):
 		auto_email_report = get_auto_email_report()
 

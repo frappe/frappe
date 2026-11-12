@@ -10,6 +10,7 @@
 			v-bind="field.ui?.props"
 			:field="field"
 			:modelValue="doc[field.fieldname]"
+			:error="error"
 			@update:modelValue="(value: any) => edit(field.fieldname, value)"
 			@change="(value: any) => onCommit(value)"
 			v-on="field.ui?.on ?? {}"
@@ -21,6 +22,7 @@
 import { computed, inject } from "vue";
 import { CommitKey, DocKey, NO_COMMIT, ResolveFieldKey, UpdateKey } from "./types";
 import { holdsChildRows } from "../Fields/rowIdentity";
+import { FieldErrorsKey, fieldErrorKey } from "../Fields/types";
 import type { FieldNode } from "./types";
 
 const props = defineProps<{ field: FieldNode }>();
@@ -29,6 +31,8 @@ const doc = inject(DocKey)!;
 const update = inject(UpdateKey)!;
 const commit = inject(CommitKey, NO_COMMIT);
 const resolveField = inject(ResolveFieldKey)!;
+const errors = inject(FieldErrorsKey, null);
+const error = computed(() => errors?.value[fieldErrorKey(props.field.fieldname)]);
 
 // A child table commits through its rows, never under its own fieldname, which
 // ticket 45 retired as a handler key.

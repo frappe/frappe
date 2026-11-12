@@ -16,7 +16,7 @@ import frappe.database
 import frappe.utils
 import frappe.utils.user
 from frappe import _
-from frappe.apps import get_default_path
+from frappe.apps import get_default_app, get_default_path
 from frappe.core.doctype.activity_log.activity_log import add_authentication_log
 from frappe.sessions import Session, clear_sessions, delete_session, get_expiry_in_seconds
 from frappe.translate import get_language
@@ -33,7 +33,7 @@ from frappe.utils.password import (
 	is_admin_password_login_disabled,
 	validate_password_size,
 )
-from frappe.website.utils import get_home_page
+from frappe.website.utils import get_home_page, get_role_home_page, get_role_home_page_via_hooks
 
 SAFE_HTTP_METHODS = frozenset(("GET", "HEAD", "OPTIONS", "QUERY"))
 UNSAFE_HTTP_METHODS = frozenset(("POST", "PUT", "DELETE", "PATCH"))
@@ -222,7 +222,14 @@ class LoginManager:
 			frappe.local.cookie_manager.set_cookie("system_user", "yes", deduplicate=True)
 			if not resume:
 				frappe.local.response["message"] = "Logged In"
-				frappe.local.response["home_page"] = get_home_page() or "/desk"
+				home_page = None
+				if get_default_app() and not (
+					get_role_home_page()
+					or get_role_home_page_via_hooks()
+					or frappe.get_user().load_user_default_workspace()
+				):
+					home_page = get_default_path()
+				frappe.local.response["home_page"] = home_page or get_home_page() or "/desk"
 
 		if not resume:
 			frappe.response["full_name"] = self.full_name
@@ -401,9 +408,9 @@ class LoginManager:
 	def logout(self, arg="", user=None):
 		if not user:
 			user = frappe.session.user
-		self.run_trigger("on_logout")
 
 		if user == frappe.session.user:
+			self.run_trigger("on_logout")
 			delete_session(frappe.session.sid, user=user, reason="User Manually Logged Out")
 			self.clear_cookies()
 			if frappe.request:
@@ -507,7 +514,11 @@ def validate_ip_address(user):
 	if request is not None and request.path.startswith("/api/method/frappe.realtime."):
 		return True
 
-	user_info = frappe.get_cached_doc("User", user)
+	try:
+		user_info = frappe.get_cached_doc("User", user)
+	except frappe.DoesNotExistError:
+		return
+
 	ip_list = user_info.get_restricted_ip_list()
 
 	if not ip_list:

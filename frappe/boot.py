@@ -29,12 +29,11 @@ from frappe.integrations.frappe_providers.cloud_settings import (
 from frappe.integrations.frappe_providers.cloud_settings import (
 	is_v2_site,
 )
-from frappe.integrations.frappe_providers.email_oauth import get_one_click_services
 from frappe.integrations.frappe_providers.frappecloud_billing import current_site_info, is_fc_site
 from frappe.model.document import get_controller
 from frappe.utils import add_user_info, cint, get_system_timezone
 from frappe.utils.caching import redis_cache
-from frappe.utils.change_log import get_versions
+from frappe.utils.change_log import get_app_versions
 from frappe.website.doctype.web_form_request.web_form_request import get_request_forms_by_doctype
 from frappe.website.doctype.web_page_view.web_page_view import is_tracking_enabled
 
@@ -118,7 +117,7 @@ def get_bootinfo():
 
 	if bootinfo.lang:
 		bootinfo.lang = str(bootinfo.lang)
-	bootinfo.versions = {k: v["version"] for k, v in get_versions().items()}
+	bootinfo.versions = {k: v["version"] for k, v in get_app_versions().items()}
 
 	bootinfo.error_report_email = frappe.conf.error_report_email
 	bootinfo.calendars = sorted(frappe.get_hooks("calendars"))
@@ -145,7 +144,6 @@ def get_bootinfo():
 	bootinfo.is_fc_site = is_fc_site()
 	bootinfo.cloud_settings = get_cloud_settings_boot_context()
 	bootinfo.is_v2_site = is_v2_site()
-	bootinfo.one_click_email_services = get_one_click_services()
 	bootinfo.enable_address_autocompletion = frappe.db.get_single_value(
 		"Geolocation Settings", "enable_address_autocompletion"
 	)
@@ -261,6 +259,7 @@ def load_desktop_data(bootinfo, desk_views: DeskViews | None = None):
 	"""
 	from frappe.desk.doctype.dock.dock import resolve_dock
 	from frappe.desk.doctype.sidebar.sidebar import build_canonical_shells
+	from frappe.studio.doctype.studio_app.studio_app import get_desktop_apps
 
 	desk_views = desk_views or DeskViews()
 
@@ -306,6 +305,7 @@ def load_desktop_data(bootinfo, desk_views: DeskViews | None = None):
 		bootinfo.desktop_icons = get_desktop_icons(bootinfo=bootinfo)
 
 	bootinfo.app_data = get_app_data()
+	bootinfo.studio_apps = get_desktop_apps()
 
 
 def get_app_data() -> list[dict]:
@@ -352,6 +352,7 @@ def get_app_data() -> list[dict]:
 						or app_name,
 						app_route="",
 						desk_route="",
+						module_icons=[],
 						app_logo_url=app_info.get("logo")
 						or frappe.get_hooks("app_logo_url", app_name=app_name)
 						or frappe.get_hooks("app_logo_url", app_name="frappe"),
@@ -404,6 +405,7 @@ def get_app_data() -> list[dict]:
 				# second link. Passed through exactly as `app_route` is: a literal route the app
 				# author owns, neither resolved nor permission-checked here.
 				desk_route=app_info.get("desk_route") or "",
+				module_icons=get_module_icons(app_info),
 				# Only the app's own logo (from add_to_apps_screen or its app_logo_url hook); left
 				# empty when it declares none, so the desk renders an alphabet icon instead.
 				app_logo_url=app_info.get("logo")
@@ -414,6 +416,20 @@ def get_app_data() -> list[dict]:
 		)
 
 	return app_data
+
+
+def get_module_icons(app_info: dict) -> list[dict]:
+	"""The `module_icons` of an app's `add_to_apps_screen` entry that this user may open.
+
+	The apps screen fans them out behind the app's own icon, each linking to its own route. An
+	icon with a `has_permission` hook is dropped when the hook says no; one without it shows to
+	everyone who can see the app.
+	"""
+	return [
+		{"title": icon.get("title"), "logo": icon.get("logo"), "route": icon.get("route")}
+		for icon in app_info.get("module_icons") or []
+		if not icon.get("has_permission") or frappe.get_attr(icon["has_permission"])()
+	]
 
 
 def get_app_modules(app_name: str) -> list[str]:

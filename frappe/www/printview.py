@@ -10,9 +10,15 @@ import frappe
 from frappe import _, cstr, get_module_path
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.core.doctype.document_share_key.document_share_key import is_expired
+from frappe.printing.doctype.print_format.print_format import can_print_with, check_print_format_roles
 from frappe.utils import cint, escape_html, flt, strip_html
 from frappe.utils.jinja_globals import is_rtl
-from frappe.utils.print_utils import HTML_PDF_GENERATORS, resolve_pdf_generator
+from frappe.utils.print_utils import (
+	HTML_PDF_GENERATORS,
+	convert_uom,
+	parse_float_and_unit,
+	resolve_pdf_generator,
+)
 
 if TYPE_CHECKING:
 	from frappe.core.doctype.docfield.docfield import DocField
@@ -158,18 +164,23 @@ def cast_client_values(document: "Document"):
 
 def get_print_format_doc(print_format_name: str, meta: "Meta") -> "PrintFormat" | None:
 	"""Return print format document."""
-	if not print_format_name:
-		print_format_name = frappe.form_dict.format or meta.default_print_format or "Standard"
+	requested = print_format_name or frappe.form_dict.format
+	print_format_name = requested or meta.default_print_format or "Standard"
 
 	if print_format_name == "Standard":
 		return None
 
 	def fetch(name):
 		try:
-			return frappe.get_doc("Print Format", name)
+			doc = frappe.get_doc("Print Format", name)
 		except frappe.DoesNotExistError:
 			frappe.clear_last_message()
 			return None
+		if can_print_with(doc):
+			return doc
+		if name == requested and name != meta.default_print_format:
+			check_print_format_roles(doc)
+		return None
 
 	# a renamed or deleted format — or a caller interpolating a missing name into
 	# the url — resolves to the doctype's default, like an omitted name does
@@ -209,7 +220,7 @@ def get_rendered_template(
 ) -> str:
 	validate_print_permission(doc)
 
-	print_settings = frappe.get_single("Print Settings").as_dict()
+	print_settings = frappe.get_cached_doc("Print Settings").as_dict()
 	print_settings.update(get_allowed_print_settings_override(doc, settings))
 
 	if isinstance(no_letterhead, str):
@@ -252,7 +263,7 @@ def get_rendered_template(
 		letter_head.content = frappe.utils.jinja.render_template(letter_head.content, {"doc": doc.as_dict()})
 		if letter_head.custom_css:
 			letter_head.content += f"""
-			<style data-letter-head>
+			<style>
 				{letter_head.custom_css}
 			</style>
 			"""
@@ -405,9 +416,47 @@ def get_html_and_style(
 
 
 def get_preview_page_css(print_format: "PrintFormat" | None = None) -> str:
+	from bs4 import BeautifulSoup
+
+	from frappe.utils.pdf import get_print_format_styles
+	from frappe.utils.pdf_generator.browser import RECEIPT_WIDTHS
 	from frappe.utils.print_format_generator import page_size_mm
 
-	page_width, page_height = page_size_mm(frappe.get_cached_doc("Print Settings"))
+	css = (print_format and print_format.css) or ""
+	page_options = {
+		style.name: style.value
+		for style in get_print_format_styles(BeautifulSoup(f"<style>{css}</style>", "html.parser"))
+		if style.name in ("page-size", "orientation")
+		or (style.name in ("page-width", "page-height") and re.fullmatch(PAGE_LENGTH, style.value.strip()))
+	}
+	paper_size = print_format and print_format.paper_size
+	if any(page_options.get(key) for key in ("page-size", "page-width", "page-height")):
+		paper_size = None
+	elif not paper_size:
+		page_options = get_page_rule_size(css) | page_options
+	if receipt_width := RECEIPT_WIDTHS.get(paper_size):
+		page_width, page_height = parse_float_and_unit(receipt_width)["value"], 0
+	elif paper_size:
+		page_width, page_height = page_size_mm(
+			{
+				"pdf_page_size": paper_size,
+				"pdf_page_width": print_format.paper_width,
+				"pdf_page_height": print_format.paper_height,
+			}
+		)
+	elif page_options.get("page-width") and page_options.get("page-height"):
+		page_width, page_height = (
+			convert_uom(length["value"], length["unit"], "mm", only_number=True)
+			for length in (parse_float_and_unit(page_options[key]) for key in ("page-width", "page-height"))
+		)
+	else:
+		page_width, page_height = page_size_mm(
+			{"pdf_page_size": page_options["page-size"]}
+			if page_options.get("page-size")
+			else frappe.get_cached_doc("Print Settings")
+		)
+	if cstr(page_options.get("orientation")).lower() == "landscape" and page_width < page_height:
+		page_width, page_height = page_height, page_width
 	return frappe.get_template("templates/print_formats/preview_page.css").render(
 		{"page_width": page_width, "page_height": page_height, "page_margin": get_page_margin(print_format)}
 	)
@@ -467,7 +516,7 @@ def validate_print_for_docstatus(doc: "Document", print_settings: dict | None = 
 		return
 
 	if print_settings is None:
-		print_settings = frappe.get_single("Print Settings").as_dict()
+		print_settings = frappe.get_cached_doc("Print Settings").as_dict()
 
 	if doc.docstatus.is_draft() and not cint(print_settings.get("allow_print_for_draft")):
 		frappe.throw(_("Not allowed to print draft documents"), frappe.PermissionError)
@@ -550,7 +599,7 @@ def get_letter_head(doc: "Document", no_letterhead: bool, letterhead: str | None
 		return (
 			frappe.db.get_value(
 				"Letter Head",
-				{"is_default": 1},
+				{"is_default": 1, "letter_head_for": "DocType"},
 				["content", "footer", "header_script", "footer_script", "custom_css"],
 				as_dict=True,
 			)
@@ -692,7 +741,7 @@ def has_value(df: "DocField", doc: "Document") -> bool:
 def get_print_style(
 	style: str | None = None, print_format: "PrintFormat" | None = None, for_legacy: bool = False
 ) -> str:
-	print_settings = frappe.get_doc("Print Settings")
+	print_settings = frappe.get_cached_doc("Print Settings")
 
 	if not style:
 		style = print_settings.print_style or ""
@@ -914,7 +963,14 @@ window.print();
 // NOTE: doesn't close if print is cancelled in Chrome
 // Changed timeout to 5s from 1s because it blocked mobile view rendering
 setTimeout(function() {
-	window.close();
+	// mobile browsers return from print() while their print dialog is still open
+	if (document.hasFocus()) {
+		window.close();
+	} else {
+		window.addEventListener("focus", function() {
+			window.close();
+		});
+	}
 }, 5000);
 </script>
 """

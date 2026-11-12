@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock, call
 
-from psycopg2 import sql
+from psycopg import sql
 
 from frappe.database.postgres.setup_db import _drop_database, _set_database_owner
 from frappe.tests import UnitTestCase
@@ -97,7 +97,7 @@ class TestPostgresSetup(UnitTestCase):
 			root_conn.execute_query.call_args_list,
 			[
 				call(grant + sql.SQL(" WITH INHERIT TRUE")),
-				call(sql.SQL("DROP DATABASE IF EXISTS {}").format(sql.Identifier(db_name))),
+				call(sql.SQL("DROP DATABASE IF EXISTS {} WITH (FORCE)").format(sql.Identifier(db_name))),
 				call(sql.SQL("REVOKE {} FROM current_user").format(sql.Identifier("site_user"))),
 			],
 		)
@@ -109,5 +109,5 @@ class TestPostgresSetup(UnitTestCase):
 		_drop_database(root_conn, "site_database", 160000)
 
 		root_conn.execute_query.assert_called_once_with(
-			sql.SQL("DROP DATABASE IF EXISTS {}").format(sql.Identifier("site_database"))
+			sql.SQL("DROP DATABASE IF EXISTS {} WITH (FORCE)").format(sql.Identifier("site_database"))
 		)

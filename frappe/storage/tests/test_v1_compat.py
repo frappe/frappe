@@ -244,6 +244,7 @@ class TestV1LegacyDiskPaths(V1CompatTestCase):
 
 			with hook_methods(delete_file_data_content=delete_file_data_content):
 				file.delete()
+				frappe.db.after_commit.run()
 			self.assertEqual(deletes, [False])
 			self.assertFalse(os.path.exists(path))
 
@@ -292,12 +293,14 @@ class TestV1LegacyDiskPaths(V1CompatTestCase):
 		with storage_v2():
 			# no blob owns the bytes, so they go with the row
 			frappe.get_doc("File", lone.name).delete()
+			frappe.db.after_commit.run()
 			self.assertFalse(os.path.exists(lone_path))
 
 			backfill.run(filters=[["name", "=", first.name]])
 			blob = frappe.db.get_value("File", first.name, "blob")
 			self.delete_later("File Blob", blob)
 			frappe.get_doc("File", copies[0].name).delete()
+			frappe.db.after_commit.run()
 			self.assertTrue(os.path.isfile(path))
 
 			# a new upload of the same bytes reuses the blob under its own URL
@@ -311,6 +314,7 @@ class TestV1LegacyDiskPaths(V1CompatTestCase):
 			# the last unbackfilled row keeps bytes its blob still serves
 			frappe.get_doc("File", first.name).delete()
 			frappe.get_doc("File", copies[1].name).delete()
+			frappe.db.after_commit.run()
 			self.assertTrue(os.path.isfile(path))
 
 

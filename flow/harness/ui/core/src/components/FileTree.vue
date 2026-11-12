@@ -3,7 +3,7 @@
 		role="button"
 		tabindex="0"
 		:aria-expanded="entry.type === 'dir' ? expanded : undefined"
-		class="relative flex cursor-pointer items-center gap-1.5 rounded-4 py-[5px] pr-1.5 text-sm hover:bg-surface-gray-2"
+		class="relative flex cursor-pointer items-center gap-1.5 rounded-4 py-[5px] pr-1.5 text-base hover:bg-surface-gray-2"
 		:class="active ? 'bg-surface-gray-3 font-medium text-ink-gray-9' : 'text-ink-gray-8'"
 		:style="{ paddingLeft: depth * INDENT + 8 + 'px' }"
 		:title="path"
@@ -18,9 +18,10 @@
 			:style="{ left: (level - 1) * INDENT + 16 + 'px' }"
 		/>
 		<span class="grid h-4 w-4 flex-none place-items-center">
-			<FeatherIcon
-				:name="entry.type === 'dir' ? (expanded ? 'chevron-down' : 'chevron-right') : 'file'"
-				class="h-3.5 w-3.5 text-ink-gray-5"
+			<span
+				class="size-3.5 text-ink-gray-5"
+				:class="entry.type === 'dir' ? (expanded ? 'lucide-chevron-down' : 'lucide-chevron-right') : 'lucide-file'"
+				aria-hidden="true"
 			/>
 		</span>
 		<span class="min-w-0 truncate">{{ entry.name }}</span>
@@ -32,7 +33,6 @@
 
 <script setup>
 import { computed, inject, ref } from "vue"
-import FeatherIcon from "./FeatherIcon.vue"
 
 const INDENT = 16
 

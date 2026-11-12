@@ -4,7 +4,7 @@
 			v-if="values.length"
 			class="overflow-x-auto border-b border-outline-gray-1 px-3 py-2.5"
 		>
-			<table class="border-collapse text-left text-xs">
+			<table class="border-collapse text-left text-sm">
 				<tbody class="text-ink-gray-7">
 					<tr v-for="[field, value] in values" :key="field" class="align-top">
 						<td class="whitespace-nowrap py-0.5 pr-3 text-ink-gray-5">
@@ -78,7 +78,11 @@ function amended(outcome, name) {
 	return outcome?.name && outcome.name !== name ? { renamed_to: outcome.name } : {};
 }
 
+// a returned record fills the row's columns, all but the name amended() reads
 function returned(outcome) {
-	return outcome == null ? {} : { returned: outcome };
+	if (outcome == null) return {};
+	if (typeof outcome !== "object" || Array.isArray(outcome)) return { returned: outcome };
+	const { name, ...fields } = outcome;
+	return fields;
 }
 </script>

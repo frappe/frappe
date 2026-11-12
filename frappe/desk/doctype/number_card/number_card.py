@@ -7,10 +7,11 @@ from typing import Any
 import frappe
 from frappe import _
 from frappe.desk.desk_views import DeskViews
+from frappe.model import numeric_fieldtypes
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
 from frappe.modules.export_file import export_to_files
-from frappe.permissions import get_doctypes_with_read
+from frappe.permissions import get_cached_doctypes_with_read, get_doctypes_with_read
 from frappe.query_builder import Criterion
 from frappe.query_builder.utils import DocType
 from frappe.utils import flt
@@ -60,18 +61,32 @@ class NumberCard(Document):
 			self.name = append_number_if_name_exists("Number Card", self.name)
 
 	def validate(self):
+		if not frappe.conf.developer_mode and self.is_standard:
+			frappe.throw(_("Cannot edit Standard Number Cards"))
 		if self.type == "Document Type":
 			if not (self.document_type and self.function):
 				frappe.throw(_("Document Type and Function are required to create a number card"))
 
-			if self.function != "Count" and not self.aggregate_function_based_on:
-				frappe.throw(_("Aggregate Field is required to create a number card"))
+			if frappe.get_meta(self.document_type).issingle:
+				frappe.throw(_("You cannot create a number card from single DocTypes"))
+
+			if self.function != "Count":
+				if not self.aggregate_function_based_on:
+					frappe.throw(_("Aggregate Field is required to create a number card"))
+				df = frappe.get_meta(self.document_type).get_field(self.aggregate_function_based_on)
+				if not df or df.fieldtype not in (*numeric_fieldtypes, "Duration"):
+					frappe.throw(
+						_("{0} is not a valid field for {1}").format(
+							frappe.bold(self.aggregate_function_based_on),
+							_(self.meta.get_label("aggregate_function_based_on")),
+						)
+					)
 
 			if frappe.get_meta(self.document_type).istable and not self.parent_document_type:
 				frappe.throw(_("Parent Document Type is required to create a number card"))
 
 		elif self.type == "Report":
-			if not (self.report_name and self.report_field and self.function):
+			if not (self.report_name and self.report_field and self.report_function):
 				frappe.throw(_("Report Name, Report Field and Fucntion are required to create a number card"))
 
 		elif self.type == "Custom":
@@ -111,13 +126,13 @@ def has_permission(doc, ptype, user):
 	if user == "Administrator" or "System Manager" in frappe.get_roles(user):
 		return True
 
-	if doc.type == "Report" and doc.report_name in DeskViews.get_allowed_report_names(user=user):
+	if doc.type == "Report" and doc.report_name in DeskViews.get_cached_allowed_report_names(user):
 		return True
 
-	if doc.type == "Custom" and doc.document_type in get_doctypes_with_read(user):
+	if doc.type == "Custom" and doc.document_type in get_cached_doctypes_with_read(user):
 		return True
 
-	if doc.type == "Document Type" and doc.document_type in get_doctypes_with_read(user):
+	if doc.type == "Document Type" and doc.document_type in get_cached_doctypes_with_read(user):
 		return True
 
 	return False
@@ -208,10 +223,13 @@ def calculate_previous_result(doc, filters):
 
 @frappe.whitelist()
 def create_number_card(args: str | dict[str, Any]):
+	frappe.has_permission("Number Card", "read", throw=True)
 	args = frappe.parse_json(args)
 	doc = frappe.new_doc("Number Card")
 
 	doc.update(args)
+	if not frappe.has_permission("Number Card", "create"):
+		doc.update({"is_public": 0, "is_standard": 0, "module": None})
 	doc.insert(ignore_permissions=True)
 	return doc
 

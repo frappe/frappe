@@ -105,18 +105,21 @@ def get_default_path():
 	if len(_apps) == 0:
 		return None
 
-	system_default_app = frappe.get_system_settings("default_app")
-	user_default_app = frappe.get_cached_value("User", frappe.session.user, "default_app")
-	if system_default_app and not user_default_app:
-		return get_route(system_default_app)
-	elif user_default_app:
-		return get_route(user_default_app)
+	if default_app := get_default_app():
+		return get_route(default_app)
 
 	if len(_apps) == 1:
 		return _apps[0].get("route") or "/desk"
 	elif is_desk_apps(_apps):
 		return "/desk"
 	return "/apps"
+
+
+def get_default_app() -> str | None:
+	"""Return the default app set for the user, or else the one set in System Settings."""
+	return frappe.get_cached_value("User", frappe.session.user, "default_app") or frappe.get_system_settings(
+		"default_app"
+	)
 
 
 @frappe.whitelist()

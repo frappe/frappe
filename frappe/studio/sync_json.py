@@ -8,6 +8,7 @@ import os
 
 import frappe
 from frappe.modules.import_file import calculate_hash, import_file_by_path
+from frappe.studio.utils import get_studio_folder
 
 # Layout written by the exporters — see StudioApp.get_folder_path and StudioPage.get_folder_path:
 #   <frappe_app>/studio/<studio_app>/<studio_app>.json                -> Studio App
@@ -99,7 +100,7 @@ def get_studio_folders() -> list[str]:
 	"""The `<app>/studio` source path of every installed app that has one."""
 	folders = []
 	for app in frappe.get_installed_apps():
-		path = frappe.get_app_source_path(app, "studio")
+		path = get_studio_folder(app)
 		if os.path.exists(path):
 			folders.append(os.path.abspath(path))
 	return folders

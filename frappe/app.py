@@ -223,7 +223,7 @@ def init_request(request):
 
 	frappe.connect(set_admin_as_user=False)
 	if frappe.local.conf.maintenance_mode:
-		if frappe.local.conf.allow_reads_during_maintenance:
+		if frappe.local.conf.get("allow_reads_during_maintenance", True):
 			setup_read_only_mode()
 		else:
 			raise frappe.SessionStopped("Session Stopped")

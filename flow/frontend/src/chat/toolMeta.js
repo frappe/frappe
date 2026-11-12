@@ -1,10 +1,13 @@
+import CodeCard from "./tools/CodeCard.vue";
 import CodeView from "./tools/CodeView.vue";
 import CreateView from "./tools/CreateView.vue";
+import FunctionCard from "./tools/FunctionCard.vue";
 import JsonView from "./tools/JsonView.vue";
 import NamesView from "./tools/NamesView.vue";
 import ReadView from "./tools/ReadView.vue";
 import ReportView from "./tools/ReportView.vue";
-import { parseResult } from "./tools/result.js";
+import { humanize, parseResult } from "./tools/result.js";
+import SecretView from "./tools/SecretView.vue";
 import SnippetView from "./tools/SnippetView.vue";
 
 // How Flow's tools read in the transcript and approval cards: a present-tense label, an
@@ -14,77 +17,127 @@ import SnippetView from "./tools/SnippetView.vue";
 // to orient itself: one row, no dropdown.
 const TOOLS = {
 	find_doctypes: {
-		icon: "search",
+		icon: "lucide-search",
 		label: "Finding DocTypes",
 		stat: (result) => countOf(result.doctypes.length, result.total, "match", "matches"),
 	},
 	describe: {
-		icon: "layers",
+		icon: "lucide-layers",
 		label: "Reading DocType Meta",
 		stat: (result) => count(result.fields?.length ?? 0, "field"),
 	},
+	find_apis: {
+		icon: "lucide-search-code",
+		label: "Finding APIs",
+		stat: (result) => count(result.length, "match", "matches"),
+	},
+	describe_api: {
+		icon: "lucide-square-function",
+		label: "Reading an API",
+		stat: (result) => count(result.params?.length ?? 0, "argument"),
+		subject: (args) =>
+			[args.doctype, functionTitle(args.method ?? "")].filter(Boolean).join(": "),
+	},
+	call_api: {
+		icon: "lucide-play",
+		label: "Running a Function",
+		view: JsonView,
+		argsView: FunctionCard,
+		asks: true,
+		subject: (args, result) =>
+			parseResult(result)?.title ?? functionTitle(args.method ?? ""),
+	},
 	read_records: {
-		icon: "database",
+		icon: "lucide-database",
 		label: "Reading Records",
 		view: ReadView,
 		stat: (result) => countOf(result.records.length, result.total, "record"),
 	},
 	run_report: {
-		icon: "bar-chart-2",
+		icon: "lucide-chart-column",
 		label: "Running Report",
 		view: ReportView,
 		stat: (result) => countOf(result.rows.length, result.row_count, "row"),
 	},
 	create: {
-		icon: "file-plus",
+		icon: "lucide-file-plus",
 		label: "Creating Records",
 		view: CreateView,
 		asks: true,
 		stat: (result) => outcome(result.created, "created"),
 	},
 	update: {
-		icon: "edit-3",
+		icon: "lucide-pen-line",
 		label: "Updating Records",
 		view: NamesView,
 		asks: true,
 		stat: (result) => outcome(result.updated, "updated"),
 	},
 	delete: {
-		icon: "trash-2",
+		icon: "lucide-trash-2",
 		label: "Deleting Records",
 		view: NamesView,
 		asks: true,
 		stat: (result) => outcome(result.deleted, "deleted"),
 	},
 	run_action: {
-		icon: "play",
-		label: (args) => ACTIONS[args.action] ?? "Running Document Actions",
+		icon: "lucide-play",
+		label: (args) =>
+			ACTIONS[args.action] ??
+			(isFunction(args) ? "Running a Function" : "Running Document Actions"),
 		view: NamesView,
+		argsView: (args) => (isFunction(args) ? FunctionCard : NamesView),
 		asks: true,
 		stat: (result) =>
-			result.action === "rename" ? "renamed" : outcome(result.results, "done"),
+			result.action === "rename"
+				? "renamed"
+				: result.results
+				? outcome(result.results, "done")
+				: "",
+		// a function's dotted path is code: its result names it in words
+		subject: (args, result) =>
+			isFunction(args) ? parseResult(result)?.title ?? functionTitle(args.action) : null,
 	},
-	execute: { icon: "code", label: "Running Code", view: CodeView, asks: true },
+	execute: {
+		icon: "lucide-code",
+		label: "Running Code",
+		view: CodeView,
+		argsView: CodeCard,
+		asks: true,
+	},
+	// its card is a password box that answers the card itself
+	request_secret: {
+		icon: "lucide-key-round",
+		label: "Saving a Password",
+		argsView: SecretView,
+		asks: true,
+		ownAnswers: true,
+	},
 	search_knowledge: {
-		icon: "book-open",
+		icon: "lucide-book-open",
 		label: "Searching Knowledge",
 		view: SnippetView,
 		stat: (result) => count(result.length, "hit"),
 	},
 	search_attachments: {
-		icon: "paperclip",
+		icon: "lucide-paperclip",
 		label: "Searching Attachments",
 		view: SnippetView,
 		stat: (result) => count(result.length, "hit"),
 	},
 	update_memory: {
-		icon: "bookmark",
+		icon: "lucide-bookmark",
 		label: "Saving Memory",
 		stat: (result) => result.action ?? "",
 	},
-	load_skill: { icon: "book", label: "Loading Skill" },
+	load_skill: { icon: "lucide-book", label: "Loading Skill" },
+	read_screen: {
+		icon: "lucide-monitor",
+		label: "Reading Screen",
+		stat: (result) => result.title ?? "",
+	},
 	// the flow server's own tool: its row opens the child's thread in the workspace panel
-	subagent: { icon: "bot", label: "Sub-agent" },
+	subagent: { icon: "lucide-bot", label: "Sub-agent" },
 };
 
 const ACTIONS = {
@@ -105,11 +158,11 @@ const SUBJECT_KEYS = [
 	"content",
 ];
 
-// the flow server's file tools keep the core's own rows, which fold a read's file text
-const FILE_TOOLS = new Set(["read", "grep"]);
+// the flow server's own tools keep the core's rows, which fold a read's file text
+const CORE_TOOLS = new Set(["read", "grep", "web_fetch", "web_search"]);
 
 export function presentTool(name, args = {}, result = null) {
-	if (FILE_TOOLS.has(name)) return {};
+	if (CORE_TOOLS.has(name)) return {};
 	const tool = TOOLS[name];
 	// a custom Imported or Script tool: its return is the point, so always show it
 	if (!tool) return { resultComponent: JsonView };
@@ -122,10 +175,11 @@ export function presentTool(name, args = {}, result = null) {
 	return {
 		icon: tool.icon,
 		label: typeof tool.label === "function" ? tool.label(args) : tool.label,
-		subject: subject(args),
+		subject: tool.subject?.(args, result) ?? subject(args),
 		stat: stat ?? "",
 		expandable: tool.view ? undefined : false,
-		argsComponent: tool.asks ? tool.view : undefined,
+		argsComponent: tool.asks ? argsView(tool, args) : undefined,
+		ownAnswers: tool.ownAnswers,
 		resultComponent: plain ? JsonView : tool.view,
 	};
 }
@@ -137,6 +191,20 @@ function readStat(tool, parsed) {
 	} catch {
 		return null;
 	}
+}
+
+// a whitelisted function is named by its dotted path, as the server reads it (is_function_path)
+function isFunction(args) {
+	return typeof args?.action === "string" && /^\w+(\.\w+)+$/.test(args.action);
+}
+
+function argsView(tool, args) {
+	return typeof tool.argsView === "function" ? tool.argsView(args) : tool.argsView ?? tool.view;
+}
+
+// as the server names it (function_title): the last two parts of its path, in words
+function functionTitle(path) {
+	return path.split(".").slice(-2).map(humanize).join(": ");
 }
 
 function subject(args) {

@@ -17,6 +17,9 @@
   "custom_format",
   "disabled",
   "pdf_generator",
+  "paper_size",
+  "paper_width",
+  "paper_height",
   "section_break_6",
   "print_format_type",
   "raw_printing",
@@ -38,6 +41,8 @@
   "value_color",
   "page_number",
   "show_label_colon",
+  "access_section",
+  "roles",
   "css_section",
   "css",
   "custom_html_help",
@@ -100,6 +105,21 @@
    "fieldtype": "Check",
    "label": "Custom Format",
    "read_only_depends_on": "eval:doc.print_format_for===\"Report\";"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "roles",
+   "depends_on": "eval:doc.print_format_for != \"Report\"",
+   "fieldname": "access_section",
+   "fieldtype": "Section Break",
+   "label": "Access"
+  },
+  {
+   "description": "If set, only users with one of these roles can print with this format.",
+   "fieldname": "roles",
+   "fieldtype": "Table MultiSelect",
+   "label": "Roles",
+   "options": "Has Role"
   },
   {
    "depends_on": "eval:doc.custom_format || doc.print_format_for == \"Report\"",
@@ -314,6 +334,29 @@
    "options": "chrome\nPlutoPrint\nTypst"
   },
   {
+   "depends_on": "eval:!doc.print_format_builder_beta && !doc.raw_printing",
+   "description": "Empty uses the size in Print Settings. A receipt size prints one page as tall as the content.",
+   "fieldname": "paper_size",
+   "fieldtype": "Select",
+   "label": "Paper Size",
+   "options": "\nA4\nA5\nA3\nLetter\nLegal\nReceipt 80 mm\nReceipt 58 mm\nCustom"
+  },
+  {
+   "depends_on": "eval:doc.paper_size == \"Custom\" && !doc.print_format_builder_beta && !doc.raw_printing",
+   "fieldname": "paper_width",
+   "fieldtype": "Float",
+   "label": "Paper Width (in mm)",
+   "mandatory_depends_on": "eval:doc.paper_size == \"Custom\" && !doc.print_format_builder_beta && !doc.raw_printing"
+  },
+  {
+   "depends_on": "eval:doc.paper_size == \"Custom\" && !doc.print_format_builder_beta && !doc.raw_printing",
+   "description": "Small sizes such as labels also need small page margins, for example @page { margin: 2mm; } in Custom CSS.",
+   "fieldname": "paper_height",
+   "fieldtype": "Float",
+   "label": "Paper Height (in mm)",
+   "mandatory_depends_on": "eval:doc.paper_size == \"Custom\" && !doc.print_format_builder_beta && !doc.raw_printing"
+  },
+  {
    "default": "DocType",
    "fieldname": "print_format_for",
    "fieldtype": "Select",
@@ -360,7 +403,7 @@
  "icon": "printer",
  "idx": 1,
  "links": [],
- "modified": "2026-10-18 12:00:00.000000",
+ "modified": "2026-10-27 19:50:52.806105",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Format",

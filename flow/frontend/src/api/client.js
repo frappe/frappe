@@ -1,6 +1,10 @@
 import { presentEvent } from "./events.js";
 import { SessionStream } from "./stream.js";
 
+// the session's Approval Mode, by the shared store's mode id
+const APPROVAL_MODES = { ask: "Ask", auto: "Auto", auto_approve: "Auto-approve" };
+const approvalId = (value) => Object.keys(APPROVAL_MODES).find((key) => APPROVAL_MODES[key] === value) ?? "ask";
+
 const IMAGE_FILE = /\.(png|jpe?g|gif|webp|bmp)$/i;
 const SESSION_PAGE = 100; // frappe.flow.api.LIST_LIMIT: a shorter page would never read as more
 
@@ -89,7 +93,7 @@ export class FrappeClient {
 
 	sessionInfo(data) {
 		const config = {
-			auto_approve: data.auto_approve,
+			approval_mode: approvalId(data.approval_mode),
 			title: data.title,
 			agent: data.agent,
 			model: data.model,
@@ -113,13 +117,18 @@ export class FrappeClient {
 			agent: this.hooks.agent?.() ?? null,
 			// a model the site no longer offers is left out, so the agent's is used
 			model: this.modelRows.some((m) => m.name === config.model) ? config.model : null,
-			auto_approve: config.auto_approve ? 1 : 0,
+			approval_mode: APPROVAL_MODES[config.approval_mode ?? "ask"],
 		});
 		this.hooks.onSession?.(data);
 		return {
 			session_id: data.name,
 			config: { ...this.sessionInfo(data).config, model: data.model },
 		};
+	}
+
+	// the server sends it to a System Manager, null to anyone else
+	systemPrompt(sid) {
+		return this.transport.call("frappe.flow.api.system_prompt", { session: sid });
 	}
 
 	async entries(sid, since = 0, path = "active") {
@@ -209,12 +218,12 @@ export class FrappeClient {
 			});
 			config.title = data.title;
 		}
-		if ("auto_approve" in patch) {
-			const data = await this.transport.call("frappe.flow.api.set_auto_approve", {
+		if ("approval_mode" in patch) {
+			const data = await this.transport.call("frappe.flow.api.set_approval_mode", {
 				session: sid,
-				auto_approve: patch.auto_approve ? 1 : 0,
+				mode: APPROVAL_MODES[patch.approval_mode],
 			});
-			config.auto_approve = data.auto_approve;
+			config.approval_mode = approvalId(data.approval_mode);
 		}
 		this.configs.set(sid, config);
 		return { config };
@@ -301,6 +310,11 @@ export class FrappeClient {
 
 	previewSkills() {
 		return this.transport.call("frappe.flow.api.skills", { agent: this.hooks.agent?.() ?? null });
+	}
+
+	// a request_secret card's password box: the value goes to the field it names, never to the flow server
+	saveSecret(sid, callId, password) {
+		return this.transport.call("frappe.flow.api.save_secret", { session: sid, call_id: callId, password });
 	}
 
 	// --- feedback --------------------------------------------------------------

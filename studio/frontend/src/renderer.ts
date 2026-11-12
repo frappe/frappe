@@ -24,8 +24,8 @@ window.__APP_COMPONENTS__ = app._context.components
 
 declare global {
 	interface Window {
-		is_developer_mode?: boolean
 		is_preview?: boolean
+		can_edit_app?: boolean
 		__APP_COMPONENTS__: any
 		[key: string]: string
 	}
@@ -37,7 +37,10 @@ if (window.is_preview && typeof window.is_preview === "string") {
 
 const frappeApp = (window as any).frappe_app
 const componentsReady = frappeApp
-	? Promise.all([registerCustomVueComponents(frappeApp), registerStudioPageScripts(frappeApp)])
+	? Promise.all([
+			registerCustomVueComponents(frappeApp, (window as any).app_name),
+			registerStudioPageScripts(frappeApp),
+		])
 	: Promise.resolve()
 
 componentsReady

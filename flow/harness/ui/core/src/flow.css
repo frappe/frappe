@@ -11,6 +11,11 @@ body {
 	cursor: auto;
 }
 
+/* the thread and the composer, one width whether the sidebar shows or not */
+.flow-column {
+	max-width: 800px;
+}
+
 /* the composer, and the lists that open over it */
 .flow-composer-surface {
 	background: color-mix(in srgb, var(--surface-base) 90%, var(--surface-gray-1));
@@ -23,12 +28,13 @@ body {
 [data-theme="dark"] .flow-composer-surface.flow-dropdown {
 	background: color-mix(in srgb, var(--surface-gray-1) 50%, var(--surface-gray-2));
 }
-/* the composer box's edge: in light mode half a step under outline-gray-2 */
-.flow-composer-edge {
-	border-color: color-mix(in srgb, var(--outline-gray-1) 50%, var(--outline-gray-2));
+/* a new chat's start bar under the box: a step off the page; in dark mode between the chat and
+   the box */
+.flow-start-surface {
+	background: var(--surface-gray-1);
 }
-[data-theme="dark"] .flow-composer-edge {
-	border-color: var(--outline-gray-1);
+[data-theme="dark"] .flow-start-surface {
+	background: color-mix(in srgb, var(--surface-base) 50%, var(--surface-gray-1));
 }
 
 /* the sidebar, and the frame the chat panel stands on; in dark mode the composer's colour,
@@ -38,6 +44,11 @@ body {
 }
 [data-theme="dark"] .flow-sidebar-surface {
 	background: var(--surface-gray-1);
+}
+
+/* the sidebar's hover peek stands in for the sidebar, which casts no shadow: its edge alone */
+[data-slot="content-body"]:has(> .flow-peek) {
+	--tw-shadow: 0 0 #0000;
 }
 
 /* Long dropdown menus: the page itself never scrolls, so a menu taller than
@@ -52,16 +63,6 @@ body {
    in dark mode is the same color as the menu surface itself — bump one step. */
 [data-theme="dark"] [role="menuitem"][data-highlighted] {
 	background-color: var(--surface-gray-3);
-}
-
-/* frappe-ui menus at the UI's size, a half step over the sidebar's 13.5px rows (their own
-   text-base is 15px) */
-.menu-content [data-slot="item-list-row"] {
-	font-size: 14px;
-}
-.menu-content [data-slot="group-label"] {
-	height: 1.5rem;
-	font-size: 13px;
 }
 
 /* Diff overview ruler: monaco paints the viewport overlay with the scrollbar
@@ -83,11 +84,10 @@ body {
 	border-radius: 8px;
 	background: var(--surface-elevation-2);
 	color: var(--ink-gray-8);
-	font-size: 13px;
+	font-size: theme(fontSize.sm);
 	font-weight: 500;
 	line-height: 16px;
 	white-space: nowrap;
-	box-shadow: var(--elevation-md);
 	cursor: pointer;
 	animation: flow-reveal 0.12s ease-out;
 }
@@ -100,40 +100,30 @@ body {
 	background: var(--surface-gray-3);
 }
 
-.flow-icon-btn {
-	display: grid;
-	place-items: center;
-	width: 28px;
-	height: 28px;
-	flex: none;
-	border: 0;
-	background: transparent;
-	border-radius: 6px;
-	cursor: pointer;
-	color: var(--ink-gray-7);
-}
-.flow-icon-btn:hover {
-	background: var(--surface-gray-2);
-	color: var(--ink-gray-9);
-}
-
-/* A row of the lists over the composer (PalettePanel): 14px on 32px, 2px apart, the active
-   row a pill. The pointer and the keyboard share that one highlight (PalettePanel), so a
-   row has no hover color. A description or other aside takes flow-palette-hint. */
+/* A row of the lists over the composer (PalettePanel): text-base on 32px, 2px apart, the active
+   row rounded as a frappe-ui menu's item. The pointer and the keyboard share that one highlight
+   (PalettePanel), so a row has no hover color. A description or other aside takes flow-palette-hint. */
 .flow-palette-row {
 	display: flex;
 	width: 100%;
-	height: 32px;
+	min-height: 32px; /* a row with a description grows past it */
 	align-items: center;
 	gap: 8px;
 	padding: 0 11px;
-	border-radius: 9999px;
-	font-size: 14px;
+	border-radius: theme(borderRadius.4);
+	font-size: theme(fontSize.base);
 	color: var(--ink-gray-8);
 	text-align: left;
 }
 .flow-palette-row + .flow-palette-row {
 	margin-top: 2px;
+}
+/* a phone's menus and lists at the chat's text size */
+@media (max-width: 767px) and (pointer: coarse) {
+	.menu-content [data-slot="item-list-row"],
+	.flow-palette-row {
+		font-size: theme(fontSize.md);
+	}
 }
 .flow-palette-hint {
 	color: var(--ink-gray-4);
@@ -144,7 +134,7 @@ body {
 	height: 32px;
 	align-items: center;
 	padding: 0 11px;
-	font-size: 14px;
+	font-size: theme(fontSize.base);
 	color: var(--ink-gray-5);
 }
 /* under a header or search field it rises into the gap their row leaves, midway to what follows */
@@ -174,46 +164,6 @@ body {
 	}
 }
 
-.flow-btn-primary,
-.flow-btn-secondary,
-.flow-btn-ghost {
-	flex: none;
-	height: 30px;
-	border-radius: 7px;
-	cursor: pointer;
-	font-size: 13px;
-	font-weight: 500;
-	border: 0;
-}
-.flow-btn-primary {
-	padding: 0 15px;
-	background: var(--surface-gray-10);
-	color: var(--ink-base);
-	box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.1);
-}
-.flow-btn-primary:hover {
-	opacity: 0.88;
-}
-.flow-btn-secondary {
-	padding: 0 13px;
-	border: 1px solid var(--outline-gray-2);
-	background: var(--surface-base);
-	color: var(--ink-gray-7);
-}
-.flow-btn-secondary:hover {
-	background: var(--surface-gray-2);
-	color: var(--ink-gray-9);
-}
-.flow-btn-ghost {
-	padding: 0 10px;
-	background: transparent;
-	color: var(--ink-gray-6);
-}
-.flow-btn-ghost:hover {
-	background: var(--surface-gray-2);
-	color: var(--ink-gray-9);
-}
-
 /* dialog.prompt renders the subtle input variant, whose border matches its own
    background — invisible against the dark modal until focused. Give dialog
    inputs the app's outline field look; their own focus styles still apply.
@@ -237,7 +187,8 @@ body {
 /* Focus rings need Tab (focusRings.js marks the root): focus a script moves after a key
    press, like a dialog's first tab or a closed menu's trigger, matches :focus-visible too.
    Text fields keep their own focus look. */
-:root:not([data-flow-tabbing]) :focus-visible:not(input, textarea, [contenteditable]) {
+:root:not([data-flow-tabbing]) :focus-visible:not(input, textarea, [contenteditable]),
+:host(:not([data-flow-tabbing])) :focus-visible:not(input, textarea, [contenteditable]) {
 	outline: none;
 }
 
@@ -255,6 +206,17 @@ body {
 [data-flow-tabbing] .flow-turn-copy:focus-within {
 	opacity: 1;
 }
+/* the row's time, even in the latest turn's row that stays in view, reveals as the older rows do */
+.flow-turn-time {
+	opacity: 0;
+	transition: opacity 0.12s ease;
+}
+.flow-thread > :hover + * > .flow-turn-time,
+.flow-thread > :hover + .flow-turn-files + * > .flow-turn-time,
+.flow-thread > :hover > .flow-turn-time,
+[data-flow-tabbing] .flow-thread > :focus-within > .flow-turn-time {
+	opacity: 1;
+}
 /* a message's own actions (the user bubble's time, rewind and copy) reveal on hovering it */
 .flow-hover-reveal {
 	opacity: 0;
@@ -267,6 +229,7 @@ body {
 /* touch screens have no hover: everything hover-revealed stays visible */
 @media (hover: none) {
 	.flow-turn-copy,
+	.flow-turn-time,
 	.flow-hover-reveal {
 		opacity: 1;
 	}
@@ -349,39 +312,29 @@ body {
 }
 
 /* Conversation typography. --flow-chat-text and --flow-chat-weight are the chat text
-   settings, set on the chat's root; a host that doesn't set them gets 15px and 450. */
+   settings, set on the chat's root; a host that doesn't set them gets 15px and 420. */
 .flow-prose {
 	/* font-family: Inter; */
 	font-size: var(--flow-chat-text, 15px);
+	/* Raven's letter spacing, a little more room between lines */
 	line-height: 1.6;
-	font-weight: var(--flow-chat-weight, 450);
-	letter-spacing: normal;
+	font-weight: var(--flow-chat-weight, 420);
+	letter-spacing: 0.02em;
 }
-/* the thread's step rows (tools, thinking, folds) sit one step under the chat text */
-.flow-thread .text-sm {
-	font-size: calc(var(--flow-chat-text, 15px) - 1px);
+/* the thread's step rows (tools, thinking, folds) sit one step under the chat text, or at
+   --flow-step-text where a host sets it */
+.flow-thread :is(.text-base, .text-base-medium) {
+	font-size: var(--flow-step-text, calc(var(--flow-chat-text, 15px) - 1px));
 }
-/* the draft (its box and the highlight under it) follows too, its size only from 640px:
-   phones keep the 16px that stops iPhone Safari zooming into the box */
+/* the draft (its box and the highlight under it) follows too, its size only from 640px */
 .flow-draft > textarea,
 .flow-draft > div {
-	font-weight: var(--flow-chat-weight, 450);
+	font-weight: var(--flow-chat-weight, 420);
 }
 @media (min-width: 640px) {
 	.flow-draft > textarea,
 	.flow-draft > div {
 		font-size: var(--flow-chat-text, 15px);
-	}
-}
-/* an iPhone's other fields too (searches, settings forms); only iOS knows -webkit-touch-callout,
-   so other phones keep the fields as drawn */
-@supports (-webkit-touch-callout: none) {
-	@media (max-width: 767px) {
-		input:not([type="checkbox"], [type="radio"], [type="range"]),
-		textarea:not(.flow-draft > *),
-		select {
-			font-size: 16px !important;
-		}
 	}
 }
 
@@ -400,23 +353,40 @@ body {
 	/* frappe-ui's base layer pins bare <p> to 1.5; take the prose leading back */
 	line-height: inherit;
 }
+/* headings on frappe-ui's prose-v3 scale: a section break above, close to their content below */
 .flow-md h1,
 .flow-md h2,
 .flow-md h3,
 .flow-md h4 {
-	margin: 1em 0 0.4em;
+	margin: 24px 0 8px;
 	font-weight: 600;
 	color: var(--ink-gray-9);
 }
+.flow-md :is(h1, h2, h3, h4) + * {
+	margin-top: 0;
+}
+/* bold as the headings, not the browser's 700 */
+.flow-md strong,
+.flow-md b {
+	font-weight: 600;
+}
 .flow-md h1 {
-	font-size: 1.25em;
+	margin-top: 32px;
+	font-size: 1.4286em;
+	line-height: 1.3;
 }
 .flow-md h2 {
-	font-size: 1.15em;
+	margin-top: 32px;
+	font-size: 1.2857em;
+	line-height: 1.35;
 }
-.flow-md h3,
+.flow-md h3 {
+	font-size: 1.1429em;
+	line-height: 1.4;
+}
 .flow-md h4 {
 	font-size: 1em;
+	line-height: 1.45;
 }
 /* Tailwind's preflight strips list markers; restore them for rendered markdown */
 .flow-md ul,
@@ -439,17 +409,17 @@ body {
 .flow-md code {
 	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 	/* monospace reads optically larger; hold it under the surrounding text */
-	font-size: 0.875em;
+	font-size: 0.857em;
 	letter-spacing: 0;
 	padding: 1px 5px;
-	border-radius: 5px;
+	border-radius: 4px;
 	background: var(--surface-gray-2);
 	color: var(--ink-gray-8);
 }
 .flow-md pre {
 	margin: 0.6em 0;
 	padding: 10px 12px;
-	border-radius: 8px;
+	border-radius: 12px;
 	border: 1px solid var(--outline-gray-1);
 	background: var(--surface-gray-1);
 	overflow-x: auto;
@@ -462,17 +432,19 @@ body {
 	color: var(--ink-gray-7);
 }
 .flow-md blockquote {
-	margin: 0.6em 0;
-	padding-left: 12px;
-	border-left: 3px solid var(--outline-gray-2);
+	margin: 16px 0;
+	padding-left: 1em;
+	border-left: 2px solid var(--ink-gray-3);
 	color: var(--ink-gray-6);
 }
 .flow-md a {
-	color: var(--ink-gray-8);
-	text-decoration: underline;
+	color: inherit;
+	text-decoration: none;
+	border-bottom: 1px solid var(--ink-gray-4);
+	transition: border-color 0.08s ease;
 }
 .flow-md a:hover {
-	color: var(--ink-gray-9);
+	border-bottom-color: var(--ink-gray-6);
 }
 /* table wrapper from markdown.js or MarkdownContent.vue — a wide table scrolls here, not the thread */
 .flow-md-table {
@@ -487,17 +459,17 @@ body {
 	border-collapse: collapse;
 	/* the wrapper draws the outer edge; `hidden` wins the collapse against cell borders */
 	border: hidden;
-	font-size: 0.9em;
+	font-size: 0.857em;
 }
 .flow-md th,
 .flow-md td {
 	border: 1px solid var(--outline-gray-2);
-	padding: 4px 10px;
+	padding: 0.5em;
 	text-align: left;
 }
 .flow-md th {
-	background: var(--surface-gray-1);
-	font-weight: 600;
+	background: var(--surface-gray-2);
+	font-weight: 500;
 }
 .flow-md hr {
 	border: 0;

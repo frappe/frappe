@@ -810,7 +810,7 @@
   },
   {
    "default": "0",
-   "description": "Adds a clear (\u00d7) button to Link fields, allowing users to quickly remove the selected value.",
+   "description": "Adds a clear (\u00d7) button to Link fields when Combobox fields are off. Combobox fields always show it.",
    "fieldname": "allow_clearing_link_fields",
    "fieldtype": "Check",
    "label": "Allow Clearing Link Fields"
@@ -830,12 +830,12 @@
    "label": "Allowed Doctypes for Guest Uploads"
   },
   {
-   "default": "Daily",
+   "default": "Weekly",
    "depends_on": "eval: doc.enable_snapshot_reports",
    "fieldname": "frequency",
    "fieldtype": "Select",
    "label": "Frequency",
-   "options": "Hourly\nDaily"
+   "options": "Daily\nWeekly"
   },
   {
    "depends_on": "eval: doc.enable_snapshot_reports",
@@ -917,7 +917,7 @@
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2026-10-23 18:15:17.824128",
+ "modified": "2026-11-04 11:19:08.065028",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

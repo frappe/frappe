@@ -1,30 +1,47 @@
 <template>
 	<span v-if="run && finished && !page.state.readOnly[sid]" class="flex items-center gap-0.5">
-		<button
+		<Button
+			variant="ghost"
+			size="xs"
 			class="flow-feedback-btn"
 			:class="rating === 'Up' ? 'flow-feedback-selected' : ''"
 			:title="rating === 'Up' ? 'Undo rating' : 'Good response'"
 			:disabled="busy"
 			@click="rate(rating === 'Up' ? 'None' : 'Up')"
 		>
-			<FeatherIcon name="thumbs-up" class="h-3.5 w-3.5" />
-		</button>
-		<button
+			<template #icon>
+				<svg class="size-3.5" viewBox="0 0 24 24" aria-hidden="true">
+					<path
+						d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"
+					/>
+					<path d="M7 10v12" />
+				</svg>
+			</template>
+		</Button>
+		<Button
+			variant="ghost"
+			size="xs"
 			class="flow-feedback-btn"
 			:class="rating === 'Down' ? 'flow-feedback-selected' : ''"
 			:title="rating === 'Down' ? 'Undo rating' : 'Bad response'"
 			:disabled="busy"
 			@click="rating === 'Down' ? rate('None') : askWhy()"
 		>
-			<FeatherIcon name="thumbs-down" class="h-3.5 w-3.5" />
-		</button>
+			<template #icon>
+				<svg class="size-3.5" viewBox="0 0 24 24" aria-hidden="true">
+					<path
+						d="M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22a3.13 3.13 0 0 1-3-3.88Z"
+					/>
+					<path d="M17 14V2" />
+				</svg>
+			</template>
+		</Button>
 	</span>
 </template>
 
 <script setup>
-import { computed, inject, ref } from "vue";
-import { dialog, toast } from "frappe-ui";
-import FeatherIcon from "@flow/ui-core/components/FeatherIcon.vue";
+import { computed, getCurrentInstance, inject, ref } from "vue";
+import { Button, dialog, toast } from "frappe-ui";
 
 // Rendered by the core's message list after each finished turn (options.turnActions).
 const props = defineProps({
@@ -35,6 +52,8 @@ const props = defineProps({
 const flow = inject("flow");
 const page = inject("flowPage");
 const busy = ref(false);
+// the island's shadow root, which a document query does not see into
+const self = getCurrentInstance();
 
 const sid = computed(() => flow.state.sessionId);
 const run = computed(() => (sid.value ? page.runForTurn(sid.value, props.turnKey) : null));
@@ -63,7 +82,8 @@ function askWhy() {
 // the prompt hands focus to the dialog's close button; the comment is what it is for,
 // so claim the field once it mounts
 function focusComment(tries = 20) {
-	const field = [...document.querySelectorAll("[role=dialog] textarea")].at(-1);
+	const root = self.proxy.$el?.getRootNode?.() ?? document;
+	const field = [...root.querySelectorAll("[role=dialog] textarea")].at(-1);
 	if (field) field.focus();
 	else if (tries) requestAnimationFrame(() => focusComment(tries - 1));
 }
@@ -80,7 +100,12 @@ async function rate(value, comment = "") {
 			feedback_rating: result.rating ?? "",
 			feedback_comment: value === "Down" ? comment : "",
 		});
-		if (result.memory) toast.success("Saved to agent memory.");
+		if (result.memory)
+			toast.success(
+				result.memory_scope === "User"
+					? "Saved to your memory: the assistant uses it in your chats."
+					: "Saved to agent memory for everyone."
+			);
 		else if (result.forgotten) toast.success("Removed from agent memory.");
 	} catch (error) {
 		toast.error(error?.message ?? "Could not save feedback.");
@@ -91,27 +116,24 @@ async function rate(value, comment = "") {
 </script>
 
 <style scoped>
-.flow-feedback-btn {
-	display: grid;
-	place-items: center;
-	width: 24px;
-	height: 24px;
-	border-radius: 5px;
-	color: var(--ink-gray-4);
-	background: transparent;
+/* Lucide's thumbs, drawn inline: a lucide-* class is a mask, which can't fill once rated. They
+   rest quieter than the button's ink, as the copy button beside them does */
+.flow-feedback-btn svg {
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 1.5;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+	color: var(--ink-gray-5);
 }
-.flow-feedback-btn:hover {
-	background: var(--surface-gray-2);
+.flow-feedback-btn:disabled svg {
+	color: inherit;
+}
+.flow-feedback-btn:not(:disabled):hover svg,
+.flow-feedback-selected svg {
 	color: var(--ink-gray-8);
 }
-.flow-feedback-btn:disabled {
-	opacity: 0.5;
-	pointer-events: none;
-}
-.flow-feedback-selected {
-	color: var(--ink-gray-8);
-}
-.flow-feedback-selected :deep(svg) {
+.flow-feedback-selected svg {
 	fill: currentColor;
 }
 </style>

@@ -155,6 +155,18 @@ class TestAuth(IntegrationTestCase):
 			self.assertIsNone(User.find_by_credentials("unknown_auth@example.com", "wrong_pwd_012"))
 		verify.assert_called_once()
 
+	def test_email_login_ignores_case_and_spaces(self):
+		user = User.find_by_credentials(f" {self.test_user_email.upper()} ", self.test_user_password)
+		self.assertEqual(user.name, self.test_user_email)
+		self.assertTrue(user.is_authenticated)
+
+	def test_administrator_logs_in_by_name_not_email(self):
+		user = User.find_by_credentials("administrator", "", validate_password=False)
+		self.assertEqual(user.name, "Administrator")
+
+		admin_email = frappe.db.get_value("User", "Administrator", "email")
+		self.assertIsNone(User.find_by_credentials(admin_email, "", validate_password=False))
+
 	def test_user_without_a_password_checks_a_password_hash(self):
 		email = "no_password_auth@example.com"
 		frappe.delete_doc("User", email, force=True)
@@ -385,6 +397,55 @@ class TestAuth(IntegrationTestCase):
 
 		self.assertEqual(frappe.local.response.get("message"), "Password Reset")
 
+	def test_login_lands_on_default_app(self):
+		from frappe.auth import LoginManager
+		from frappe.hooks import app_home
+		from frappe.utils import set_request
+
+		def home_page_after_login():
+			frappe.cache.hdel("home_page", self.test_user_email)
+			set_request(method="POST", path="/api/method/login")
+			frappe.form_dict.usr = self.test_user_email
+			frappe.form_dict.pwd = self.test_user_password
+			frappe.local.response = frappe._dict()
+			frappe.local.request_ip = "127.0.0.68"
+			frappe.local.cookie_manager = CookieManager()
+			frappe.local.login_manager = LoginManager()
+			return frappe.local.response.home_page
+
+		self.addCleanup(frappe.form_dict.clear)
+		self.addCleanup(self.set_system_settings, "default_app", "")
+		for doctype, field in (("Website Settings", "home_page"), ("Portal Settings", "default_portal_home")):
+			self.addCleanup(
+				frappe.db.set_single_value, doctype, field, frappe.db.get_single_value(doctype, field)
+			)
+		self.addCleanup(frappe.db.set_value, "Role", "System Manager", "home_page", None)
+		self.addCleanup(frappe.db.set_value, "User", self.test_user_email, "default_workspace", None)
+
+		# only frappe is installed in CI, and the apps screen leaves it out
+		with patch("frappe.apps.get_apps", return_value=[{"name": "test_app", "route": "/desk/test-app"}]):
+			self.assertEqual(home_page_after_login(), "desk")
+
+			self.set_system_settings("default_app", "frappe")
+			self.assertEqual(home_page_after_login(), app_home)
+
+			frappe.db.set_single_value("Website Settings", "home_page", "about")
+			self.assertEqual(home_page_after_login(), app_home)
+
+			frappe.db.set_single_value("Portal Settings", "default_portal_home", "/contact")
+			self.assertEqual(home_page_after_login(), app_home)
+
+			frappe.db.set_value("User", self.test_user_email, "default_workspace", "Users")
+			self.assertEqual(home_page_after_login(), "/desk/users")
+
+			frappe.db.set_value("User", self.test_user_email, "default_workspace", None)
+			frappe.db.set_single_value("Portal Settings", "default_portal_home", None)
+			with self.patch_hooks({"role_home_page": {"System Manager": ["orders"]}}):
+				self.assertEqual(home_page_after_login(), "orders")
+
+			frappe.db.set_value("Role", "System Manager", "home_page", "todo")
+			self.assertEqual(home_page_after_login(), "todo")
+
 	@requires_test_service(TestService.WEB_SERVER)
 	def test_login_with_email_link(self):
 		user = self.test_user_email
@@ -533,6 +594,19 @@ class TestIPRestrictionForAPIAuth(IntegrationTestCase):
 		validate_auth()
 		self.assertEqual(frappe.session.user, self.user_email)
 
+	def test_auth_hook_user_without_user_record(self):
+		frappe.local.request = Request(EnvironBuilder().get_environ())
+		frappe.local.request_ip = "10.0.0.1"
+		frappe.set_user("Guest")
+
+		with patch(
+			"frappe.auth.validate_auth_via_hooks",
+			side_effect=lambda: frappe.set_user("no-such-user@example.com"),
+		):
+			validate_auth()
+
+		self.assertEqual(frappe.session.user, "no-such-user@example.com")
+
 
 class TestAPIKeyAuthFailureLog(IntegrationTestCase):
 	"""Failed API key authentication is written to the Activity Log, a bounded number of times."""
@@ -620,8 +694,10 @@ class TestAPIKeyAuthFailureLog(IntegrationTestCase):
 
 	def test_failed_key_lookup_is_rejected_without_a_log_entry(self):
 		self._request_with(self.api_key, "x")
+		frappe.db.savepoint("failed_key_lookup")
 		with self.assertRaises(frappe.AuthenticationError):
 			validate_api_key_secret(self.api_key, "x", frappe_authorization_source="ToDo")
+		frappe.db.rollback(save_point="failed_key_lookup")
 
 		self.assertEqual(self._entries(), [])
 
@@ -659,7 +735,7 @@ class TestLoginAttemptTracker(IntegrationTestCase):
 		self.assertFalse(tracker.is_user_allowed())
 
 		# Sleep for lock_interval of time, so that next request con unlock the user access.
-		time.sleep(lock_interval)
+		time.sleep(lock_interval + 1)
 
 		tracker.add_failure_attempt()
 		self.assertTrue(tracker.is_user_allowed())

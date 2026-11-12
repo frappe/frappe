@@ -78,7 +78,7 @@
 				:key="tf.fieldname"
 				:title="tf.label || tf.fieldname"
 			>
-				{{ tf.label || tf.fieldname }}
+				{{ tf.label || (tf.fieldtype === "Blank" ? __("Blank column") : tf.fieldname) }}
 			</span>
 			<span
 				v-if="!df.table_columns || !df.table_columns.length"
@@ -168,6 +168,7 @@ function edit_html() {
 		initial_html: props.df.html || "",
 		doctype: store.meta.value?.name,
 		docname: store.preview_doc_name.value,
+		global_variables: store.layout.value?.global_variables,
 		on_save: (html) => (props.df.html = html),
 	});
 }

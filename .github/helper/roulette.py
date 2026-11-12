@@ -18,7 +18,6 @@ Usage:
 This script is intended to be run as part of a CI pipeline, with the necessary environment variables set.
 """
 
-import glob
 import json
 import os
 import re
@@ -28,28 +27,14 @@ import sys
 import time
 import urllib.request
 from functools import cache
-from pathlib import Path
 from urllib.error import HTTPError
 
-import impact_map
-
-# Restored from the nightly run by the workflow; absent means "run everything".
-IMPACT_MAP_FILE = "impact-map.json"
-UI_IMPACT_MAP_FILE = "ui-impact-map.json"
-SPEC_FILE = re.compile(r"^playwright/tests/[\w-]+\.spec\.js$")
-
-# A change to the framework's spine or to test infrastructure can affect any test, so the map's
-# answer is not worth trusting. Test modules under these paths are exempt -- see below.
-CORE_PATHS = (
-	"frappe/__init__.py",
-	"frappe/hooks.py",
-	"frappe/database/",
-	"frappe/model/",
-	"frappe/parallel_test_runner.py",
-	"frappe/tests/",
+FULL_CI_LABEL = "run-full-ci"
+FIX_DEVELOP_LABEL = "fixes-develop"
+BUNDLE_SIZE_FILES = (
+	".github/workflows/default-js-bundle-size.yml",
+	".github/helper/compare_default_js_bundle_size.py",
 )
-
-PATCH_TESTS = {"frappe/tests/test_patches.py"}
 
 
 @cache
@@ -124,13 +109,31 @@ def has_skip_ci_label(pr_number, repo="frappe/frappe"):
 
 
 def has_run_server_tests_label(pr_number, repo="frappe/frappe"):
-	"""Check if the PR has the 'Run Server Tests' label."""
-	return has_label(pr_number, "Run Server Tests", repo)
+	"""Check if the PR has the 'Run Server Tests' or full CI label, or fixes failing server tests on develop."""
+	return any(has_label(pr_number, label, repo) for label in ("Run Server Tests", FULL_CI_LABEL)) or (
+		has_label(pr_number, FIX_DEVELOP_LABEL, repo) and base_failing(pr_number, repo, "server-tests.yml")
+	)
 
 
 def has_run_ui_tests_label(pr_number, repo="frappe/frappe"):
-	"""Check if the PR has the 'Run UI Tests' label."""
-	return has_label(pr_number, "Run UI Tests", repo)
+	"""Check if the PR has the 'Run UI Tests' or full CI label, or fixes failing UI tests on develop."""
+	return any(has_label(pr_number, label, repo) for label in ("Run UI Tests", FULL_CI_LABEL)) or (
+		has_label(pr_number, FIX_DEVELOP_LABEL, repo) and base_failing(pr_number, repo, "ui-tests.yml")
+	)
+
+
+def base_failing(pr_number, repo, workflow):
+	"""Is this suite's latest full run failing on the branch the PR targets, or on develop for other branches?"""
+	from develop_status import BRANCHES, failing_suites
+
+	base = fetch_pr_data(pr_number, repo)["base"]["ref"]
+	return workflow in failing_suites(base if base in BRANCHES else "develop")
+
+
+def skips_test_suites(pr_number, repo="frappe/frappe"):
+	"""Check if the PR targets develop, desk-v2 or a hotfix branch: develop runs the suites every hour, hotfix on the release PR."""
+	base = fetch_pr_data(pr_number, repo)["base"]["ref"]
+	return base in ("develop", "desk-v2") or base.endswith("-hotfix")
 
 
 def has_label(pr_number, label, repo="frappe/frappe"):
@@ -178,134 +181,15 @@ def is_frontend_code(file):
 	)
 
 
+def is_desk_frontend(file):
+	"""The desk-v2 frontend, and the pages, records and settings an app contributes to it."""
+	return file.startswith(("frontend/", "ui/")) or (file.startswith("frappe/") and "/frontend/" in file)
+
+
 def matches_postgres_filenames(files_list):
 	"""Check if any changed files suggest database involvement."""
 	db_keywords = ["database", "query", "schema", "postgres"]
 	return any(any(word in f.lower() for word in db_keywords) for f in files_list)
-
-
-def select_tests(files_list):
-	"""Test modules a pull request needs, according to the impact map. See #42028.
-
-	Returns None for "run the full suite" and prints why; [] when nothing server-side changed.
-	"""
-	patch_files = [f for f in files_list if is_patch(f)]
-	files_list = [f for f in files_list if f not in patch_files]
-
-	# JSON outside the `frappe` package -- `ui/package.json` and the like -- is not schema.
-	relevant_files = [
-		f
-		for f in files_list
-		if f.endswith((".py", ".po")) or (f.endswith(".json") and f.startswith("frappe/"))
-	]
-	# Coverage cannot see dependency bumps and the like, so those force the full suite.
-	ignorable_files = [f for f in files_list if is_docs(f) or is_frontend_code(f)]
-	other_files = [f for f in files_list if f not in relevant_files and f not in ignorable_files]
-	# A doctype's schema is exercised wherever its controller runs.
-	code_files = [doctype_controller(f) or f for f in relevant_files]
-	# A test module's content can only break its own tests and those of modules importing it.
-	core_files = [f for f in code_files if f.startswith(CORE_PATHS) and not impact_map.is_test_module(f)]
-
-	if other_files:
-		print(f"Running full suite, changes coverage cannot see: {other_files}")
-		return None
-	if not code_files and not patch_files:
-		return []
-	if schema_files := [f for f in code_files if not f.endswith(".py")]:
-		print(f"Running full suite, schema/translation changes: {schema_files}")
-		return None
-	if core_files:
-		print(f"Running full suite, core changes: {core_files}")
-		return None
-
-	try:
-		loaded_map = json.loads(Path(IMPACT_MAP_FILE).read_text())
-	except (OSError, ValueError) as exc:
-		if not all(impact_map.is_test_module(f) for f in code_files):
-			print(f"Running full suite, no usable impact map ({exc})")
-			return None
-		selected = sorted(impact_map.importers(set(code_files)) | patch_tests(patch_files))
-		print(f"Running {len(selected)} test modules for {relevant_files + patch_files} (no impact map):")
-	else:
-		if impact_map.is_stale(loaded_map):
-			print(f"Running full suite, map from {loaded_map['generated_at']} is stale")
-			return None
-		if unmapped := impact_map.unmapped(loaded_map, code_files):
-			print(f"Running full suite, no tests attributed to: {unmapped}")
-			return None
-		try:
-			readers = doctype_readers([f for f in relevant_files if doctype_controller(f)])
-		except (OSError, ValueError, KeyError) as exc:
-			print(f"Running full suite, cannot read changed doctypes ({exc})")
-			return None
-		selected = sorted(set(impact_map.select(loaded_map, code_files)) | patch_tests(patch_files) | readers)
-		total = len(impact_map.all_tests(loaded_map))
-		print(f"Running {len(selected)}/{total} test modules for {relevant_files + patch_files}:")
-
-	for test_file in selected:
-		print(f"  {test_file}")
-	return selected
-
-
-def select_specs(files_list):
-	"""Playwright specs a pull request needs, according to the UI impact map. None runs them all."""
-	try:
-		loaded_map = json.loads(Path(UI_IMPACT_MAP_FILE).read_text())
-	except (OSError, ValueError) as exc:
-		print(f"Running all specs, no usable UI impact map ({exc})")
-		return None
-
-	changed_specs = [f for f in files_list if SPEC_FILE.match(f)]
-	code_files = [
-		f for f in files_list if f not in changed_specs and not is_docs(f) and not is_server_side_code(f)
-	]
-
-	if other_files := [
-		f
-		for f in code_files
-		if not (f.startswith("frappe/public/js/") and f.endswith((".js", ".ts", ".vue", ".html")))
-	]:
-		print(f"Running all specs, changes the UI map cannot see: {other_files}")
-	elif impact_map.is_stale(loaded_map):
-		print(f"Running all specs, UI map from {loaded_map['generated_at']} is stale")
-	elif unmapped := impact_map.unmapped(loaded_map, code_files):
-		print(f"Running all specs, no specs attributed to: {unmapped}")
-	else:
-		selected = sorted(set(changed_specs).union(*(loaded_map["map"][f] for f in code_files)))
-		total = len(impact_map.all_tests(loaded_map))
-		print(f"Running {len(selected)}/{total} specs for {changed_specs + code_files}:")
-		for spec in selected:
-			print(f"  {spec}")
-		return selected
-
-	return None
-
-
-def shards(selected, full, per_shard):
-	"""Shard indexes for the test matrix: fewer machines when only a few files run."""
-	count = full if selected is None else max(1, min(full, -(-len(selected) // per_shard)))
-	return list(range(1, count + 1))
-
-
-def doctype_readers(schema_files, root="."):
-	"""Tests that name a changed doctype: they can read its meta without running its controller."""
-	if not schema_files:
-		return set()
-	names = [json.loads(Path(root, f).read_text())["name"] for f in schema_files]
-	pattern = re.compile("|".join(rf"[\"']{re.escape(name)}[\"']" for name in names))
-	return {
-		os.path.relpath(path, root)
-		for path in glob.iglob(os.path.join(root, impact_map.TEST_GLOB), recursive=True)
-		if pattern.search(Path(path).read_text())
-	}
-
-
-def doctype_controller(file):
-	"""`frappe/<module>/doctype/<name>/<name>.json` -> its controller `<name>.py`, else None."""
-	parts = file.split("/")
-	if len(parts) >= 4 and parts[-3] == "doctype" and parts[-1] == f"{parts[-2]}.json":
-		return file[:-5] + ".py"
-	return None
 
 
 def is_docs(file):
@@ -317,132 +201,18 @@ def is_docs(file):
 	return bool(regex.search(file))
 
 
-def patch_tests(patch_files):
-	"""`test_patches.py` plus every test that names a changed patch, or a patch importing one."""
-	if not patch_files:
-		return set()
-	patches = impact_map.importers(
-		{f for f in patch_files if f.endswith(".py")}, pattern="frappe/patches/**/*.py"
-	)
-	return (impact_map.importers(patches) - patches) | PATCH_TESTS
-
-
-def is_patch(file):
-	"""Patches run in the Migration job, their tests are found by `patch_tests`."""
-	return file == "frappe/patches.txt" or file.startswith("frappe/patches/")
-
-
 def _selftest():
-	import tempfile
-	from datetime import UTC, datetime
-
 	assert is_docs("frappe/locale/main.pot"), "translation template alone must skip tests"
 	assert not is_docs("frappe/locale/de.po"), "translations change output, must run tests"
 	assert not is_frontend_code("frappe/templates/print_format/print_format.html"), (
 		"Jinja must run server tests"
 	)
 	assert is_frontend_code("studio/frontend/index.html"), "app pages outside the frappe package are frontend"
-
-	impact = {
-		"generated_at": datetime.now(UTC).isoformat(),
-		"map": {
-			"frappe/a.py": ["frappe/tests/test_a.py"],
-			"frappe/core/doctype/note/note.py": ["frappe/core/doctype/note/test_note.py"],
-		},
-	}
-	cwd = os.getcwd()
-	with tempfile.TemporaryDirectory() as tree:
-		os.chdir(tree)
-		try:
-			with open(IMPACT_MAP_FILE, "w") as f:
-				json.dump(impact, f)
-			assert select_tests(["frappe/locale/main.pot", "frappe/a.py"]) == ["frappe/tests/test_a.py"], (
-				"main.pot must not force the full suite"
-			)
-			assert select_tests(["frappe/locale/de.po", "frappe/a.py"]) is None, (
-				".po must force the full suite"
-			)
-			os.makedirs("frappe/patches/v16_0")
-			os.makedirs("frappe/tests")
-			for path, src in {
-				"frappe/patches/v16_0/base.py": "x = 1\n",
-				"frappe/patches/v16_0/x.py": "from frappe.patches.v16_0.base import x\n",
-				"frappe/tests/test_x.py": 'PATCH = "frappe.patches.v16_0.x"\n',
-			}.items():
-				Path(path).write_text(src)
-			assert select_tests(["frappe/patches.txt", "frappe/patches/v16_0/base.py", "frappe/a.py"]) == [
-				"frappe/tests/test_a.py",
-				"frappe/tests/test_patches.py",
-				"frappe/tests/test_x.py",
-			], "patches must run the tests naming them or a patch importing them, not the full suite"
-			assert select_tests(
-				["frappe/public/images/a.webp", "frappe/public/js/a.html", "frappe/a.py"]
-			) == ["frappe/tests/test_a.py"], "images and client-side templates must not force the full suite"
-			assert select_tests(["frappe/www/a.html", "frappe/a.py"]) is None, (
-				"Jinja templates must force the full suite"
-			)
-			os.makedirs("frappe/core/doctype/note")
-			Path("frappe/core/doctype/note/note.json").write_text('{"name": "Note"}')
-			Path("frappe/tests/test_timeline.py").write_text('meta = frappe.get_meta("Note")\n')
-			assert select_tests(["frappe/core/doctype/note/note.json"]) == [
-				"frappe/core/doctype/note/test_note.py",
-				"frappe/tests/test_timeline.py",
-			], "a doctype schema change must run its controller's tests and the tests naming it"
-			assert select_tests(["frappe/core/doctype/todo/todo.json"]) is None, (
-				"a doctype whose controller has no tests must force the full suite"
-			)
-			assert select_tests(["frappe/core/workspace/a/a.json"]) is None, "other JSON is still schema"
-
-			os.remove(IMPACT_MAP_FILE)
-			assert (
-				select_tests(["frontend/speed-budgets.json", "frontend/src/a.vue", "frontend/README.md"])
-				== []
-			), "no server-side change must skip tests without a map"
-			assert select_tests(["frappe/tests/test_x.py"]) == ["frappe/tests/test_x.py"], (
-				"test-only changes must not need a map"
-			)
-			assert select_tests(["frappe/a.py"]) is None, "code changes without a map must run the full suite"
-			assert select_tests(["frontend/package.base.json"]) is None, (
-				"dependency bumps must run the full suite"
-			)
-
-			Path(UI_IMPACT_MAP_FILE).write_text(
-				json.dumps(
-					{
-						"generated_at": datetime.now(UTC).isoformat(),
-						"map": {
-							"frappe/public/js/ws.js": ["playwright/tests/workspace.spec.js"],
-							"frappe/public/js/pfb/Field.vue": [
-								"playwright/tests/print_format_builder.spec.js"
-							],
-						},
-					},
-				)
-			)
-			assert select_specs(["frappe/public/js/pfb/Field.vue", "README.md"]) == [
-				"playwright/tests/print_format_builder.spec.js"
-			], "a mapped frontend change must run only its specs"
-			assert select_specs(["frappe/public/js/ws.js", "playwright/tests/grid.spec.js"]) == [
-				"playwright/tests/grid.spec.js",
-				"playwright/tests/workspace.spec.js",
-			], "a changed spec must run itself"
-			assert select_specs(["frappe/public/js/new.js"]) is None, "an unmapped file must run all specs"
-			assert select_specs(["frappe/public/js/ws.js", "frappe/a.py"]) == [
-				"playwright/tests/workspace.spec.js"
-			], "Python must not widen the selection, as Python alone skips UI tests"
-			assert select_specs(["frappe/public/js/ws.js", "frappe/core/doctype/note/note.json"]) is None, (
-				"schema changes must run all specs"
-			)
-			assert select_specs(["playwright/support/index.js"]) is None, "test support must run all specs"
-			assert select_specs(["frappe/public/scss/desk.scss"]) is None, "styles must run all specs"
-		finally:
-			os.chdir(cwd)
-
-	assert shards(None, full=4, per_shard=15) == [1, 2, 3, 4]
-	assert shards(["a"], full=4, per_shard=15) == [1], "a few files must run on one machine"
-	assert shards(["a"] * 16, full=4, per_shard=15) == [1, 2]
-	assert shards(["a"] * 500, full=2, per_shard=40) == [1, 2]
-
+	assert is_desk_frontend("ui/src/index.ts"), "desk-v2's server tests read ui/"
+	assert is_desk_frontend("frappe/desk/navigation_item_type/page/frontend/item.js"), (
+		"test_shell.py reads contributions"
+	)
+	assert not is_desk_frontend("frappe/public/js/frappe/ui/dialog.js"), "desk v1 is not desk-v2's frontend"
 	print("roulette selftest OK")
 
 
@@ -468,6 +238,13 @@ if __name__ == "__main__":
 		print("No files' changes detected. Build is shutting")
 		sys.exit(0)
 
+	if build_type == "bundle":
+		if any(is_frontend_code(f) or f in BUNDLE_SIZE_FILES for f in files_list):
+			os.system('echo "build=strawberry" >> $GITHUB_OUTPUT')
+		else:
+			print("No frontend code was updated, stopping bundle size check.")
+		sys.exit(0)
+
 	# Analyze changed files
 	ci_files_changed = any(f for f in files_list if is_ci(f))
 	only_docs_changed = len(list(filter(is_docs, files_list))) == len(files_list)
@@ -475,6 +252,17 @@ if __name__ == "__main__":
 	updated_py_file_count = len(list(filter(is_server_side_code, files_list)))
 	only_py_changed = updated_py_file_count == len(files_list)
 	run_postgres = has_label(pr_number, "postgres", repo)
+
+	if build_type == "server":
+		tests_requested = has_run_server_tests_label(pr_number, repo)
+	else:
+		tests_requested = has_run_ui_tests_label(pr_number, repo)
+
+	if os.environ.get("SKIP_ON_PRS") and skips_test_suites(pr_number, repo) and not tests_requested:
+		print(
+			"Develop and hotfix PRs skip the test suites, they run on the branch instead; stopping build process."
+		)
+		sys.exit(0)
 
 	# Check for Skip CI label and other conditions
 	if has_skip_ci_label(pr_number, repo):
@@ -487,7 +275,7 @@ if __name__ == "__main__":
 			sys.exit(0)
 	elif ci_files_changed:
 		print("CI related files were updated, running all build processes.")
-	elif only_docs_changed:
+	elif only_docs_changed and not tests_requested:
 		print("Only docs were updated, stopping build process.")
 		sys.exit(0)
 	elif (
@@ -502,26 +290,5 @@ if __name__ == "__main__":
 		sys.exit(0)
 
 	# If we reach here, run the build
-	selected_tests = None
-	# An explicit request for server tests gets the full suite.
-	if build_type == "server" and not ci_files_changed and not has_run_server_tests_label(pr_number, repo):
-		selected_tests = select_tests(files_list)
-		if selected_tests == []:
-			print("No server-side changes; Stopping Python build process.")
-			sys.exit(0)
-
-	selected_specs = None
-	if build_type == "ui" and not ci_files_changed and not has_run_ui_tests_label(pr_number, repo):
-		selected_specs = select_specs(files_list)
-
 	os.system('echo "build=strawberry" >> $GITHUB_OUTPUT')
-	# Empty means the full suite. Written without a shell: these are PR-controlled file names.
-	with open(os.environ["GITHUB_OUTPUT"], "a") as f:
-		f.write(f"tests={' '.join(selected_tests or [])}\n")
-		f.write(f"specs={' '.join(selected_specs or [])}\n")
-		if build_type == "server":
-			matrix = shards(None if run_postgres else selected_tests, full=2, per_shard=40)
-		else:
-			matrix = shards(selected_specs, full=4, per_shard=15)
-		f.write(f"shards={json.dumps(matrix)}\nshard_total={len(matrix)}\n")
 	os.system(f'echo "run_postgres={"true" if run_postgres else "false"}" >> $GITHUB_OUTPUT')

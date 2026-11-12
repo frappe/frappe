@@ -153,10 +153,11 @@ const SETTINGS_ROWS = [
 ];
 
 // The sidebar user menu options this page does not list in its first group. Settings is
-// the rows above, the dock is not on a phone to manage, Reload is not a thing a phone user
-// reaches for, and Logout closes the Settings group.
+// the rows above, the dock is not on a phone to manage, and Reload and Logout close the
+// Settings group.
 const MENU_NOT_LISTED = ["settings", "workspace-selector", "reload", "logout"];
 const menu = (frappe.app.sidebar?.user_menu_options() || []).flatMap((group) => group.options);
+const reload = menu.find((option) => option.name === "reload");
 const logout = menu.find((option) => option.name === "logout");
 const MORE = menu.filter(
 	(option) => !MENU_NOT_LISTED.includes(option.name) && (!option.condition || option.condition())
@@ -381,6 +382,13 @@ watch(screen, (name) => emit("title", SCREENS[name] || __("Profile")), { immedia
 						:value="THEMES[theme_mode]?.label"
 						divider
 						@click="cycle_theme"
+					/>
+					<Row
+						v-if="reload"
+						icon="lucide-rotate-ccw"
+						:label="__('Reload')"
+						divider
+						@click="open(reload)"
 					/>
 					<Row
 						v-if="logout"

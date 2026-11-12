@@ -41,7 +41,8 @@ filesystem must change, so it can reuse the components instead of copying them:
 - `workspace` — `false` when the host mounts no workspace panel: a sub-agent's row
   then expands in place instead of opening the child's thread in a tab.
 - `presentTool(name, args)` — `{ icon, label, subject, title, body, argsComponent }`, any
-  subset, for the host's own tools in transcript rows and approval cards.
+  subset, for the host's own tools in transcript rows and approval cards. An `icon` here, as
+  everywhere a host names one, is a `lucide-*` class.
 - `turnActions` — a component rendered after each finished turn's copy button, with
   `turnKey`, `text` and `ts` props (Flow's feedback thumbs).
 - `listedModel` — `true` when a session-list row's `model` is the chat's current one,
@@ -127,8 +128,7 @@ app passes its doctype panels.
   and the `/cwd` folder picker are all served by the daemon (`title` in
   listings, `DELETE /sessions/{sid}`, `context_window`/`context_tokens` on the
   session detail, `/providers/*`, `GET /fs/pick`).
-- The approval-mode picker applies to sessions created from then on;
-  `auto_approve` is fixed at session create.
+- The approval-mode picker sets `approval_mode` on new sessions and patches the current one.
 - The composer supports image uploads and pasted images. PNG, JPEG, GIF, WebP, and BMP
   images are snapshotted into session-scoped attachment storage before the message is sent.
 - Serving the UI from a different origin without a proxy needs

@@ -14,6 +14,8 @@ from oauthlib.oauth2 import WebApplicationClient
 import frappe
 from frappe import _
 from frappe.integrations.frappe_providers.cloud_settings import PilotClient, is_v2_site
+from frappe.integrations.utils import make_get_request
+from frappe.utils.caching import redis_cache
 from frappe.utils.data import get_host_name_from_request
 from frappe.www.login import sanitize_redirect
 
@@ -24,7 +26,7 @@ CALLBACK_PATH = "/api/method/frappe.integrations.frappe_providers.email_oauth.ca
 FRAPPE_CLOUD_RELAY = "frappe-cloud-relay:"
 DEFAULT_LANDING = "/desk/email-account"
 # ONE_CLICK_PROVIDERS' keys; a relay app's Token URI ends in one
-Provider = Literal["microsoft"]
+Provider = Literal["microsoft", "google", "yahoo", "yandex"]
 # Mail settings per provider, keyed like Central's Email OAuth Provider records; Central sends the OAuth side (scopes)
 ONE_CLICK_PROVIDERS: dict[Provider, dict] = {
 	"microsoft": {
@@ -43,16 +45,63 @@ ONE_CLICK_PROVIDERS: dict[Provider, dict] = {
 			},
 		},
 	},
+	"google": {
+		"label": "Gmail",
+		"service": "GMail",
+		"servers": {"email_server": "imap.gmail.com", "smtp_server": "smtp.gmail.com"},
+		# the user can untick mail access on Google's consent screen; the token's scope says what was granted
+		"required_scopes": ("https://mail.google.com/",),
+		"errors": {
+			"sign_in": {"admin_approval": ("admin_policy_enforced",)},
+			"save": {
+				"imap_disabled": ("IMAP access is disabled for your domain", "not enabled for IMAP use")
+			},
+		},
+	},
+	"yahoo": {
+		"label": "Yahoo",
+		"service": "Yahoo Mail",
+		"servers": {"email_server": "imap.mail.yahoo.com", "smtp_server": "smtp.mail.yahoo.com"},
+	},
+	"yandex": {
+		"label": "Yandex",
+		"service": "Yandex.Mail",
+		"servers": {"email_server": "imap.yandex.com", "smtp_server": "smtp.yandex.com"},
+		# not OpenID Connect, so no id_token; the address comes from here
+		"userinfo_url": "https://login.yandex.ru/info?format=json",
+		"errors": {"save": {"imap_disabled": ("IMAP is disabled",)}},
+	},
 }
 
 
-def get_one_click_services() -> dict[str, str]:
-	"""Email Account services this site can add in one click, each with its provider's label; sent
-	in the host app's boot. Frappe Cloud may still have a provider turned off, and
-	initiate_mailbox_connect then returns None."""
-	if not is_v2_site():
+@frappe.whitelist()
+def get_one_click_services() -> dict[str, dict]:
+	"""Email Account services this site can add in one click now, each with its provider's label and
+	client ID (Google's only, for a Workspace admin to allow): the providers Frappe Cloud has turned on
+	that this site knows. Empty when Frappe Cloud can't be reached, so adding a mailbox falls back
+	to the normal form."""
+	if not is_v2_site() or not frappe.has_permission("Email Account", "create"):
 		return {}
-	return {config["service"]: config["label"] for config in ONE_CLICK_PROVIDERS.values()}
+	try:
+		active = get_active_providers()
+	except frappe.ValidationError:
+		frappe.clear_last_message()
+		frappe.log_error("Couldn't get the one-click email providers from Frappe Cloud")
+		return {}
+	if isinstance(active, list):  # Central before it sent client IDs
+		active = dict.fromkeys(active)
+	return {
+		config["service"]: {"label": config["label"], "client_id": active[provider]}
+		for provider, config in ONE_CLICK_PROVIDERS.items()
+		if provider in active
+	}
+
+
+@redis_cache(ttl=10 * 60)
+def get_active_providers() -> dict[str, str | None]:
+	"""The providers Frappe Cloud has turned on, with Google's client ID; Central is asked at most
+	every 10 minutes."""
+	return call_central_method("get_active_providers")
 
 
 @frappe.whitelist(methods=["POST"])
@@ -61,12 +110,14 @@ def initiate_mailbox_connect(
 	redirect_to: str = DEFAULT_LANDING,
 	target_doctype: str | None = None,
 	email_account: str | None = None,
+	email: str | None = None,
 ) -> str | None:
 	"""Start a mailbox Connect; returns the provider's sign-in link, or None when adding a mailbox
 	of `service` can't be done in one click here and needs the normal Email Account form.
 
 	With `email_account`, signing in reconnects that mailbox instead of adding one, with the
-	provider it was connected with; `service` is ignored."""
+	provider it was connected with; `service` is ignored. Otherwise `email` is the address the user
+	means to add: the provider is asked to sign in with it, and another mailbox is refused."""
 	if email_account:
 		frappe.has_permission("Email Account", "write", doc=email_account, throw=True)
 		connected_app, login_hint = frappe.db.get_value(
@@ -83,7 +134,7 @@ def initiate_mailbox_connect(
 				)
 			)
 	else:
-		login_hint = None
+		login_hint = email
 		frappe.has_permission("Email Account", "create", throw=True)
 		provider = next((k for k, v in ONE_CLICK_PROVIDERS.items() if v["service"] == service), None)
 		if not provider or not is_v2_site():
@@ -122,6 +173,7 @@ def initiate_mailbox_connect(
 			"redirect_to": redirect_to,
 			"target_doctype": target_doctype,
 			"email_account": email_account,
+			"email": email,
 		},
 		expires_in_sec=NOTE_TTL,
 	)
@@ -177,7 +229,12 @@ def callback(
 	# the provider can only send the browser back with a GET, which is rolled back unless it commits;
 	# the state note above ties this request to the user's own sign-in
 	frappe.db.commit()  # keeps the mailbox or the Error Log  # nosemgrep
-	land(note["redirect_to"], result, account_email if account_name else email, note["provider"])
+	land(
+		note["redirect_to"],
+		result,
+		account_email if account_name else note.get("email") or email,
+		note["provider"],
+	)
 
 
 def connect_mailbox(
@@ -189,7 +246,7 @@ def connect_mailbox(
 ) -> tuple[str, str | None]:
 	"""Return the result code, and the address signed in to once the provider has given it."""
 	if error:
-		if result := matched_error(note["provider"], "sign_in", error_description):
+		if result := matched_error(note["provider"], "sign_in", f"{error}: {error_description}"):
 			return result, None
 		if error == "access_denied":
 			return "cancelled", None
@@ -212,16 +269,28 @@ def connect_mailbox(
 			raise
 		return "expired", None
 
-	# straight from the token endpoint over TLS, so no signature check (OIDC Core 3.1.3.7)
-	claims = jwt.decode(token["id_token"], options={"verify_signature": False})
-	email = claims.get("email") or claims["preferred_username"]
 	config = ONE_CLICK_PROVIDERS[provider]
+	if "userinfo_url" in config:
+		user = make_get_request(
+			config["userinfo_url"],
+			headers={"Authorization": f"OAuth {token['access_token']}"},
+			timeout=(5, 10),
+		)
+		claims = {"email": user["default_email"]}
+	else:
+		# straight from the token endpoint over TLS, so no signature check (OIDC Core 3.1.3.7)
+		claims = jwt.decode(token["id_token"], options={"verify_signature": False})
+	email = claims.get("email") or claims["preferred_username"]
 	personal = "personal_tenant" in config and claims.get("tid") == config["personal_tenant"]
+	if "scope" in token and not set(config.get("required_scopes", ())) <= set(token["scope"].split()):
+		return "missing_permission", email
 	if account_name := note.get("email_account"):
 		if not account_email:
 			return "failed", email
 		if account_email.casefold() != email.casefold():
 			return "wrong_mailbox", email
+	elif note.get("email") and note["email"].casefold() != email.casefold():
+		return "wrong_mailbox", email
 	elif frappe.db.exists("Email Account", {"email_id": email}):
 		return "already_connected", email
 

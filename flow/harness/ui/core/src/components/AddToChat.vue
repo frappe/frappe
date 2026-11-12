@@ -13,7 +13,7 @@
 			@mousedown.prevent
 			@click="add"
 		>
-			<FeatherIcon name="message-square" class="h-3.5 w-3.5 text-ink-gray-6" />
+			<span class="lucide-message-square size-3.5 text-ink-gray-6" aria-hidden="true" />
 			Add to chat
 		</button>
 	</div>
@@ -21,7 +21,8 @@
 
 <script setup>
 import { inject, onBeforeUnmount, onMounted, ref } from "vue"
-import FeatherIcon from "./FeatherIcon.vue"
+
+import { layout } from "../layout.js"
 
 // Floating "Add to chat" pill over a text selection inside `within`: queues the
 // selected text as a quote for the composer.
@@ -35,12 +36,28 @@ let resizeObserver = null
 
 // the selection, when it is a non-empty one inside the thread
 function selected() {
-	const selection = document.getSelection()
-	if (!selection?.rangeCount || selection.isCollapsed) return null
-	const range = selection.getRangeAt(0)
-	if (!props.within?.contains(range.commonAncestorContainer)) return null
-	const text = selection.toString().trim()
+	const range = selectedRange()
+	if (!range || range.collapsed || !props.within?.contains(range.commonAncestorContainer)) return null
+	const text = range.toString().trim()
 	return text ? { range, text } : null
+}
+
+// In an island the thread sits in a shadow root, where the document's selection reads as
+// collapsed on the host: Chrome keeps the real one on the root, Safari and Firefox give it
+// through getComposedRanges
+function selectedRange() {
+	const root = props.within?.getRootNode()
+	const own = root?.getSelection?.()
+	if (own) return own.rangeCount ? own.getRangeAt(0) : null
+	const selection = document.getSelection()
+	if (!selection?.rangeCount) return null
+	if (!(root instanceof ShadowRoot) || !selection.getComposedRanges) return selection.getRangeAt(0)
+	const [found] = selection.getComposedRanges({ shadowRoots: [root] })
+	if (!found) return null
+	const range = document.createRange()
+	range.setStart(found.startContainer, found.startOffset)
+	range.setEnd(found.endContainer, found.endOffset)
+	return range
 }
 
 // the selection's first (or last) line, measured from its text: the range's own
@@ -82,12 +99,14 @@ function place() {
 	const bottom = Math.min(rect.bottom, box.bottom)
 	if (bottom <= top) return (pill.value = null) // scrolled out of view
 	const first = edgeLine(found.range, false) ?? rect
-	const below = first.top - box.top < 40
+	// the rects are screen pixels, the pill's place CSS ones
+	const z = layout.zoom
+	const below = first.top - box.top < 40 * z
 	const anchor = below ? (edgeLine(found.range, true) ?? rect) : first
 	pill.value = {
 		text: found.text,
-		x: Math.min(Math.max((anchor.left + anchor.right) / 2, box.left + 60), box.right - 60) - box.left,
-		y: (below ? Math.min(bottom, box.bottom - 36) : first.top) - box.top,
+		x: (Math.min(Math.max((anchor.left + anchor.right) / 2, box.left + 60 * z), box.right - 60 * z) - box.left) / z,
+		y: ((below ? Math.min(bottom, box.bottom - 36 * z) : first.top) - box.top) / z,
 		below,
 	}
 }
@@ -101,7 +120,8 @@ function onSelectionChange() {
 
 function add() {
 	flow.addQuote(pill.value.text)
-	document.getSelection()?.removeAllRanges()
+	const selection = props.within?.getRootNode().getSelection?.() ?? document.getSelection()
+	selection?.removeAllRanges()
 	pill.value = null
 }
 
