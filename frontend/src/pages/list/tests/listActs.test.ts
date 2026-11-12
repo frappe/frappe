@@ -351,7 +351,6 @@ describe("the list surface", () => {
       "list.set_default_view",
       "list.clear_default_view",
       "list.customize_quick_filter",
-      "list.open_bulk_menu",
       "list.clear_selection",
     ]);
   });

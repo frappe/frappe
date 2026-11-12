@@ -3,8 +3,9 @@ import { computed, inject, ref, type ComputedRef, type Ref } from "vue";
 import type { ActEntry } from "@/acts/dispatcher";
 import type { Boot } from "@/boot";
 import { __ } from "@/i18n";
-import type { ListRow, ListRowAction } from "@/listPage/types";
+import type { ListPageApi, ListRow, ListRowAction } from "@/listPage/types";
 import { bulkKeyEntries } from "./bulkKeys";
+import { bulkScopeOf, scopedLabel } from "./bulkScope";
 import { layoutBulk, type BulkEntry, type BulkLayout } from "./bulkLayout";
 import { rowActionEntries } from "./rowActions";
 import type { ListActs } from "./listActs";
@@ -52,7 +53,9 @@ export function useBulkBar(options: BulkBarOptions): BulkBar {
 		},
 	]);
 
+	const cap = boot.bulk_operation_limit;
 	const menuOpen = ref(false);
+	const scope = bulkScopeOf(selection);
 	const listActs = host.acts(
 		() => [
 			...(selection.value.length && boot.bulk_actions ? bulkEntries() : []),
@@ -74,14 +77,23 @@ export function useBulkBar(options: BulkBarOptions): BulkBar {
 		{ rows: () => options.rows.value, selection: () => selection.value, reload: options.reload }
 	);
 
-	function bulkEntries() {
+	// The palette runs an act with no value, so the wrapper hands it the selection the bar would.
+	function bulkEntries(): ActEntry[] {
+		const over = selection.value.length > cap;
 		return bulkList
 			.resolve()
 			.filter(({ item }) => item.run)
-			.map(({ item, hidden }) => ({ item, hidden }));
+			.map(({ item, hidden }) => ({
+				item: {
+					...item,
+					label: scopedLabel(item.label ?? item.name, scope),
+					palette: over ? (false as const) : item.palette,
+					run: (page: ListPageApi, value?: unknown) => item.run!(page, value ?? scope.selected()),
+				},
+				hidden,
+			}));
 	}
 
-	const cap = boot.bulk_operation_limit;
 	const locked = !boot.bulk_actions;
 	const entries = computed<BulkEntry[]>(() =>
 		locked
@@ -92,12 +104,12 @@ export function useBulkBar(options: BulkBarOptions): BulkBar {
 					return [
 						{
 							name: item.name,
-							label: act.label!,
+							label: item.label ?? item.name,
 							icon: act.icon,
 							group: item.group,
 							button: item.button,
 							disabled: selection.value.length > cap,
-							onClick: () => listActs.perform(act, [...selection.value]),
+							onClick: () => listActs.perform(act, scope.selected()),
 						},
 					];
 			  })
