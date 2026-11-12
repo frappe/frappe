@@ -90,6 +90,7 @@ describe("useBulkPrint", () => {
 			selection,
 			rows: () => rows,
 			filters: () => filters,
+			rowsQuery: () => null,
 			hasNextPage: () => true,
 			totalCount: () => extra.total ?? names.length,
 			totalApprox: () => extra.approx ?? false,

@@ -78,6 +78,7 @@ function bar({
             selection,
             rows: () => loaded as never,
             filters: () => ({}),
+            rowsQuery: () => null,
             hasNextPage: () => total > loaded.length,
             totalCount: () => total,
             totalApprox: () => approx,

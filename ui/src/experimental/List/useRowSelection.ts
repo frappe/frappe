@@ -23,7 +23,8 @@ export function useRowSelection(
     const selected = allKeys.value.filter((key) =>
       isSelected(key)
     ).length;
-    if (!selected) return "none";
+    // A selected row that a filter hides still counts, so the header never reads empty beside "N selected".
+    if (!selected) return selection.value.length ? "some" : "none";
     return selected === allKeys.value.length ? "all" : "some";
   });
 

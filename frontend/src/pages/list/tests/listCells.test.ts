@@ -117,6 +117,7 @@ vi.mock("@/list/useListView", async () => {
 				selection,
 				rows: () => rows.value as never,
 				filters: () => ({}),
+				rowsQuery: () => null,
 				hasNextPage: () => false,
 				totalCount: () => 1,
 				totalApprox: () => false,

@@ -3,18 +3,6 @@
   the page's controls. The composable holds the state; this lays it out.
 -->
 <template>
-	<Teleport v-if="host.bar.value && selection.length" :to="host.bar.value">
-		<BulkBar
-			:scope="scope"
-			:doctype="view.doctype"
-			:status="bulk.status"
-			:cap="bulk.cap"
-			:layout="bulk.layout.value"
-			:locked="bulk.locked"
-			v-model:menuOpen="bulk.menuOpen.value"
-			@clear="scope.clear()"
-		/>
-	</Teleport>
 	<Teleport v-if="host.controls.value" :to="host.controls.value">
 		<ColumnSettings
 			v-model="columns"
@@ -41,6 +29,18 @@
 		@column-reset="resetColumnWidth($event.fieldname)"
 		@row-contextmenu="menu.open($event.name, $event.event)"
 	>
+		<template v-if="selection.length" #bar>
+			<BulkBar
+				:scope="scope"
+				:doctype="view.doctype"
+				:status="bulk.status"
+				:cap="bulk.cap"
+				:layout="bulk.layout.value"
+				:locked="bulk.locked"
+				v-model:menuOpen="bulk.menuOpen.value"
+				@clear="scope.clear()"
+			/>
+		</template>
 		<template #cell="{ row, column, value }">
 			<FavouriteCell
 				v-if="column.fieldname === '_favourite'"
@@ -197,15 +197,7 @@ import { List, ListFooter } from "@framework/ui/experimental/List";
 import { useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { toast } from "frappe-ui";
 import type { BulkSelection, BulkUpdate } from "@framework/ui/api";
-import {
-	computed,
-	defineAsyncComponent,
-	type Component,
-	onScopeDispose,
-	provide,
-	ref,
-	watchEffect,
-} from "vue";
+import { computed, defineAsyncComponent, type Component, provide, ref } from "vue";
 import { __, __n } from "@/i18n";
 import { useListView } from "@/list/useListView";
 import { useScrollMemory } from "@/list/useScrollMemory";
@@ -410,8 +402,4 @@ const bulk = useBulkBar({
 });
 const { listActs } = bulk;
 const menu = useRowContextMenu(selection);
-
-// The page swaps its controls row for the bar while this is true.
-watchEffect(() => (props.host.selecting.value = selection.value.length > 0));
-onScopeDispose(() => (props.host.selecting.value = false));
 </script>

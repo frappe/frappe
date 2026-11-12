@@ -104,6 +104,7 @@ export function useCardsView(view: View, lists: Pick<ListPageLists, "rowActions"
 		selection,
 		rows: () => rows.rows.value,
 		filters: () => filtersDict(view.filters.value),
+		rowsQuery: () => rows.loadedKey.value,
 		hasNextPage: () => rows.hasNextPage.value,
 		totalCount: () => rows.totalCount.value,
 		totalApprox: () => rows.totalCapped.value,

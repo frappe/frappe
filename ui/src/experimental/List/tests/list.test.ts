@@ -216,6 +216,39 @@ describe("List selection", () => {
   });
 });
 
+describe("List bar", () => {
+  it("draws the bar in place of the column labels, beside the live header checkbox", async () => {
+    const state = reactive({ selection: ["A"] });
+    const { root } = await mount(
+      List,
+      {
+        columns,
+        rows,
+        rowMenu: true,
+        get selection() {
+          return state.selection;
+        },
+        "onUpdate:selection": (value: string[]) => (state.selection = value),
+      },
+      { bar: () => h("div", { "data-bar": "" }, "1 selected") }
+    );
+    const header = root.querySelector<HTMLElement>("[data-slot='list-header']")!;
+    const checkbox = header.querySelector<HTMLInputElement>("input[type='checkbox']")!;
+
+    expect(header.querySelector("[data-slot='list-header-cell']")).toBeNull();
+    expect(header.querySelector("[data-bar]")!.parentElement!.style.gridColumn).toBe("2 / -1");
+    expect(checkbox.indeterminate).toBe(true);
+    checkbox.click();
+    await flush();
+    expect(state.selection).toEqual(["A", "B"]);
+  });
+
+  it("draws the column labels while no bar is given", async () => {
+    const { root } = await mount(List, { columns, rows });
+    expect(root.querySelectorAll("[data-slot='list-header-cell']")).toHaveLength(3);
+  });
+});
+
 describe("List sort", () => {
   it("draws plain headers when no sort model is bound", async () => {
     const { root } = await mount(List, { columns, rows });

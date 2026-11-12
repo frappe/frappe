@@ -1,22 +1,17 @@
-<!-- The bar that takes the controls row's place while rows are selected: the count, the actions, and a clear button. -->
+<!-- The bar that takes the column labels' place while rows are selected: the count, the actions, and a clear button. -->
 <template>
 	<div
 		class="flex h-7 w-full items-center gap-2 text-base"
 		role="toolbar"
 		:aria-label="__('Bulk actions')"
 	>
-		<div class="flex items-center gap-2 ps-px">
-			<Checkbox :modelValue="true" :disabled="true" aria-hidden="true" />
-			<span class="whitespace-nowrap text-ink-gray-9" aria-live="polite">{{
-				countText
-			}}</span>
-			<Button
-				v-if="scope.canSelectAll.value"
-				variant="ghost"
-				:label="__('Select all {0}', [scope.totalText.value])"
-				@click="scope.selectAll()"
-			/>
-		</div>
+		<span class="whitespace-nowrap text-ink-gray-9" aria-live="polite">{{ countText }}</span>
+		<Button
+			v-if="scope.canSelectAll.value"
+			variant="ghost"
+			:label="__('Select all {0}', [scope.totalText.value])"
+			@click="scope.selectAll()"
+		/>
 		<template v-if="overCap">
 			<span
 				class="flex items-center gap-1 whitespace-nowrap text-sm text-ink-gray-5"
@@ -27,7 +22,7 @@
 			</span>
 		</template>
 		<template v-if="shown">
-			<div class="h-4 w-px bg-outline-gray-2" />
+			<div class="h-4 border-s border-outline-gray-2" />
 			<div class="flex items-center gap-1">
 				<Button
 					v-for="entry in layout.transitions"
@@ -38,7 +33,10 @@
 					:disabled="entry.disabled"
 					@click="entry.onClick"
 				/>
-				<div v-if="layout.transitions.length" class="mx-1 h-4 w-px bg-outline-gray-2" />
+				<div
+					v-if="layout.transitions.length"
+					class="mx-1 h-4 border-s border-outline-gray-2"
+				/>
 				<Button
 					v-for="entry in layout.buttons"
 					:key="entry.name"
@@ -85,19 +83,22 @@
 				</Tooltip>
 			</div>
 		</template>
-		<Tooltip class="ms-auto">
-			<template #content>
-				<span class="flex items-center gap-2 [&_[data-slot=key]]:text-ink-gray-4">
-					{{ __("Clear selection") }} <KeyboardShortcut combo="Escape" />
-				</span>
-			</template>
-			<Button
-				variant="ghost"
-				icon="lucide-x"
-				:label="__('Clear selection')"
-				@click="$emit('clear')"
-			/>
-		</Tooltip>
+		<!-- Tooltip drops the class it is given, so this pushes the clear button to the end. -->
+		<div class="ms-auto flex shrink-0">
+			<Tooltip>
+				<template #content>
+					<span class="flex items-center gap-2 [&_[data-slot=key]]:text-ink-gray-4">
+						{{ __("Clear selection") }} <KeyboardShortcut combo="Escape" />
+					</span>
+				</template>
+				<Button
+					variant="ghost"
+					icon="lucide-x"
+					:label="__('Clear selection')"
+					@click="$emit('clear')"
+				/>
+			</Tooltip>
+		</div>
 	</div>
 	<BulkStatusDialog
 		v-if="dialogOpened"
@@ -110,7 +111,7 @@
 </template>
 
 <script setup lang="ts">
-import { Button, Checkbox, Dropdown, Icon, KeyboardShortcut, Tooltip, toast } from "frappe-ui";
+import { Button, Dropdown, Icon, KeyboardShortcut, Tooltip, toast } from "frappe-ui";
 import { computed, defineAsyncComponent, ref, watch } from "vue";
 import { __ } from "@/i18n";
 import type { BulkScope } from "@/list/useBulkScope";

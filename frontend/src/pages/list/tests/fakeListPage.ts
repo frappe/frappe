@@ -89,6 +89,7 @@ export function useListView(): ListView {
       selection: state.selection as Ref<string[]>,
       rows: () => state.rows.value as ListRow[],
       filters: () => ({}),
+      rowsQuery: () => null,
       hasNextPage: () => false,
       totalCount: () => (state.rows.value as ListRow[]).length,
       totalApprox: () => false,
