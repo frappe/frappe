@@ -14,7 +14,11 @@
 							@update:modelValue="(key: string) => pick(row, key)"
 						/>
 					</div>
-					<div class="edit-value flex min-h-7 min-w-0 flex-1 flex-col justify-center">
+					<div
+						class="edit-value flex min-h-7 min-w-0 flex-1 flex-col justify-center"
+						role="group"
+						:aria-label="fieldOf(row.key)?.label"
+					>
 						<FormLayout
 							v-if="row.key"
 							:key="row.key"
@@ -138,11 +142,11 @@ function pick(row: EditRow, key: string) {
 
 function layoutOf(row: EditRow) {
 	const one = fieldOf(row.key)!;
-	// One bare control per row: no label or description line, and no condition that hides or locks it.
+	// Conditions would run against the empty row doc and hide or lock the control.
 	const bare = {
 		...one.field,
 		label: "",
-		placeholder: one.label,
+		placeholder: one.field.placeholder || one.label,
 		description: undefined,
 		reqd: 0,
 		read_only: 0,
@@ -216,11 +220,11 @@ function report(outcome: EditOutcome) {
 </script>
 
 <style scoped>
-/* The picker fills a fixed column: frappe-ui's widest-option sizer would push a long label past its ellipsis. */
+/* frappe-ui's sizer holds the selected label's full width, so a long label would never ellipsize. */
 .edit-picker :deep(.select-trigger-sizer) {
 	display: none;
 }
-/* A control without a label is drawn bare and inline: the field stretches it to the column. */
+/* Without a label, frappe-ui draws the control inline and it would not fill the column. */
 .edit-value :deep(.field) {
 	display: flex;
 	flex-direction: column;
