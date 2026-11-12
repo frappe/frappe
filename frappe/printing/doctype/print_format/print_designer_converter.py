@@ -605,6 +605,7 @@ class PrintDesignerConverter:
 				"fieldname": image["fieldname"],
 				"fieldtype": "Attach Image",
 				"show_label": "hide",
+				"width": f"{round(flt(element.get('width')) / PX_PER_MM, 1)}mm",
 			}
 		url = image.get("file_url")
 		if not url:
@@ -683,7 +684,7 @@ class PrintDesignerConverter:
 			if node["fieldtype"] == "Image":
 				return f'<img src="{escape_html(node["image_url"])}" style="width: {node["width"]}; max-width: 100%;">'
 			if node["fieldtype"] == "Attach Image":
-				return f'{{%- if doc.{node["fieldname"]} -%}}<img src="{{{{ doc.{node["fieldname"]} }}}}" style="max-width: 100%;">{{%- endif -%}}'
+				return f'{{%- if doc.{node["fieldname"]} -%}}<img src="{{{{ doc.{node["fieldname"]} }}}}" style="width: {node["width"]}; max-width: 100%;">{{%- endif -%}}'
 			if node["fieldtype"] == "Table":
 				return self.table_html(element, node)
 			if node["fieldtype"] != "Static Text":
