@@ -853,14 +853,6 @@ describe("deleteSelection", () => {
 		expect(fake.listDocuments).toHaveBeenCalledTimes(2);
 	});
 
-	it("opens the result panel on a failure, and Select failed puts the failed names back in the selection", async () => {
-		const { bulkPanel } = await import("@/shell/bulkOutcome");
-		await mount("/lead");
-		await settle();
-		fake.bulkDelete.mockResolvedValueOnce({
-			data: { total: 2, done: ["LEAD-1"], failed: [{ name: "LEAD-2", error: "Not permitted" }] },
-		});
-		page.selection.value = ["LEAD-1", "LEAD-2"];
 	it("deletes every record the filters show after Select all, not the loaded names", async () => {
 		await mount("/lead");
 		await settle();
@@ -873,6 +865,14 @@ describe("deleteSelection", () => {
 		expect(page.selection.value).toEqual([]);
 	});
 
+	it("opens the result panel on a failure, and Select failed puts the failed names back in the selection", async () => {
+		const { bulkPanel } = await import("@/shell/bulkOutcome");
+		await mount("/lead");
+		await settle();
+		fake.bulkDelete.mockResolvedValueOnce({
+			data: { total: 2, done: ["LEAD-1"], failed: [{ name: "LEAD-2", error: "Not permitted" }] },
+		});
+		page.selection.value = ["LEAD-1", "LEAD-2"];
 		await page.deleteSelection();
 		expect(bulkPanel.value?.failed).toEqual([{ name: "LEAD-2", error: "Not permitted" }]);
 		bulkPanel.value?.select?.(["LEAD-2"]);
