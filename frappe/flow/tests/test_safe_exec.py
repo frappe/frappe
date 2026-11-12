@@ -149,6 +149,12 @@ class TestFlowSafeExec(IntegrationTestCase):
 				for description in ("flow hidden match", "flow no match"):
 					with self.assertRaises(frappe.DoesNotExistError):
 						self._run(f'frappe.{call}("ToDo", {{"description": "{description}"}})')
+		with self.subTest("filters as a tuple"):
+			found = self._run('result = frappe.get_doc("ToDo", ("description", "=", "flow own match"))')
+			self.assertEqual(found["name"], own.name)
+			for description in ("flow hidden match", "flow no match"):
+				with self.assertRaises(frappe.DoesNotExistError):
+					self._run(f'frappe.get_doc("ToDo", ("description", "=", "{description}"))')
 
 	def test_get_doc_hides_fields_above_the_users_permlevel(self):
 		# desk users can read a public Note at permlevels 0 and 1; its seen_by table is permlevel 2

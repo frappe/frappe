@@ -77,9 +77,10 @@ def safe_exec(
 def _gated_get_doc(*args: Any, **kwargs: Any) -> dict:
 	if len(args) == 2:
 		args, kwargs = args[:1], {**kwargs, "name": args[1]}
-	# search by filters only among readable records
-	if args and isinstance(kwargs.get("name"), dict | list):
-		kwargs["name"] = _readable_name(args[0], kwargs["name"])
+	# anything but a name is filters: search them only among readable records
+	name = kwargs.get("name")
+	if args and name is not None and not isinstance(name, str | int):
+		kwargs["name"] = _readable_name(args[0], name)
 	doc = frappe.get_doc(*args, **kwargs)
 	doc.check_permission("read")
 	doc.apply_fieldlevel_read_permissions()
