@@ -81,6 +81,7 @@ export function useListView(): ListView {
   state.selection = ref([...fake.selectedAtMount]);
   return {
     columns: ref([]),
+    shownColumns: computed(() => []),
     selection: state.selection,
     pageSize: ref(20),
     rowsKey: () => "",
@@ -93,7 +94,7 @@ export function useListView(): ListView {
     totalUnknown: ref(false),
     hasCounts: ref(true),
     hasNextPage: ref(false),
-    rowActions: [],
+    rowActions: computed(() => []),
     fieldOf: () => undefined,
     statusThemeOf: () => null,
     columnsCustomized: computed(() => false),

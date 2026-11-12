@@ -96,7 +96,7 @@
 			<div v-else class="truncate text-base text-ink-gray-8">{{ value }}</div>
 		</template>
 		<template v-if="rowActions.length" #rowMenu="{ row }">
-			<RowMenu :options="rowMenuOptions(row, rowActions.value, listActs)" />
+			<RowMenu :options="rowMenuOptions(row, rowActions, listActs)" />
 		</template>
 		<template #empty>
 			<PageState :name="filters.length ? 'filtered' : 'empty'" />

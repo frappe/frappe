@@ -9,7 +9,7 @@ const reload = vi.fn();
 vi.mock("../useCardsView", () => ({
 	useCardsView: () => ({
 		fields: { title: "title", body: "content", bodyIsHtml: true },
-		rowActions: [],
+		rowActions: ref([]),
 		people: {},
 		pageSize: ref(20),
 		rows: ref([]),

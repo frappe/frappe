@@ -129,6 +129,7 @@ describe("the renderer of a view's type", () => {
     expect(Object.keys(seen.props[0].host).sort()).toEqual([
       "acts",
       "controls",
+      "lists",
       "onCreate",
     ]);
   });
