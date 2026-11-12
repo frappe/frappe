@@ -34,6 +34,14 @@ vi.mock("@framework/ui/api", async (importOriginal) => ({
 				{ fieldname: "description", label: "Description", fieldtype: "Data" },
 				{ fieldname: "priority", label: "Priority", fieldtype: "Select", options: "Low\nHigh" },
 				{ fieldname: "locked", label: "Locked", fieldtype: "Data", read_only: 1 },
+				{ fieldname: "done", label: "Done", fieldtype: "Check" },
+				{
+					fieldname: "note",
+					label: "Note",
+					fieldtype: "Data",
+					description: "Shown to the assignee",
+					depends_on: "eval:doc.status == 'Open'",
+				},
 			],
 		},
 		children: {},
@@ -89,6 +97,24 @@ describe("EditDialog", () => {
 		expect(labels).toContain("Priority");
 		expect(labels).not.toContain("Locked");
 		expect(button("Update")!.disabled).toBe(true);
+	});
+
+	it("draws the value as one bare control: no label, description or condition", async () => {
+		await open(async () => ({ updated: [], failed: [] }));
+		await pick("Note");
+		const row = document.body.querySelector("[role='group'][aria-label='Note']")!;
+		expect(row.querySelector("input[placeholder='Note']")).not.toBeNull();
+		expect(row.querySelector("label")).toBeNull();
+		expect(text()).not.toContain("Value");
+		expect(text()).not.toContain("Shown to the assignee");
+	});
+
+	it("draws a Check value as a bare checkbox in a group named for the field", async () => {
+		await open(async () => ({ updated: [], failed: [] }));
+		await pick("Done");
+		const row = document.body.querySelector("[role='group'][aria-label='Done']")!;
+		expect(row.querySelector("input[type='checkbox']")).not.toBeNull();
+		expect(row.querySelector("label")).toBeNull();
 	});
 
 	it("names every matching record when the run takes the filters", async () => {
