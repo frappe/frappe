@@ -741,7 +741,7 @@ class TestOAuth20(FrappeRequestTestCase):
 		query = parse_qs(resp.request.environ["QUERY_STRING"])
 		auth_code = query.get("code")[0]
 
-		frappe.db.commit()  # nosemgrep
+		frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
 
 		self.assertEqual(
 			frappe.db.get_value("OAuth Authorization Code", auth_code, "expiration_time"),
@@ -752,13 +752,12 @@ class TestOAuth20(FrappeRequestTestCase):
 		with self.freeze_time(add_to_date(issued_at, minutes=20)):
 			token_response = self.post(
 				"/api/method/frappe.integrations.oauth2.get_token",
-				headers=self.form_header,
+				headers=self.get_client_auth_headers(),
 				data={
 					"grant_type": "authorization_code",
 					"code": auth_code,
 					"redirect_uri": self.redirect_uri,
 					"client_id": self.client_id,
-					"client_secret": self.client_secret,
 					"scope": self.scope,
 				},
 			)
@@ -769,7 +768,7 @@ class TestOAuth20(FrappeRequestTestCase):
 
 		# Refresh this thread's transaction snapshot again: the get_token request
 		# above ran (and committed the validity flip) on its own thread/connection.
-		frappe.db.commit()  # nosemgrep
+		frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
 
 		# The expired code must also now be marked Invalid, so it can't be
 		# redeemed later even if a client retries after obtaining a fresh clock.
@@ -782,7 +781,7 @@ class TestOAuth20(FrappeRequestTestCase):
 		# for the client in general, but the code is only bound to one.
 		client.redirect_uris = get_url_delimiter().join([self.redirect_uri, other_redirect_uri])
 		client.save()
-		frappe.db.commit()  # nosemgrep
+		frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
 
 		self.TEST_CLIENT.set_cookie(key="sid", value=self.sid)
 		resp = self.get(
@@ -802,13 +801,12 @@ class TestOAuth20(FrappeRequestTestCase):
 		# must fail: the code is bound to the exact URI it was issued for.
 		mismatched_response = self.post(
 			"/api/method/frappe.integrations.oauth2.get_token",
-			headers=self.form_header,
+			headers=self.get_client_auth_headers(),
 			data={
 				"grant_type": "authorization_code",
 				"code": auth_code,
 				"redirect_uri": other_redirect_uri,
 				"client_id": self.client_id,
-				"client_secret": self.client_secret,
 				"scope": self.scope,
 			},
 		)
@@ -818,13 +816,12 @@ class TestOAuth20(FrappeRequestTestCase):
 		# Redeeming with the exact issuing redirect_uri still works.
 		correct_response = self.post(
 			"/api/method/frappe.integrations.oauth2.get_token",
-			headers=self.form_header,
+			headers=self.get_client_auth_headers(),
 			data={
 				"grant_type": "authorization_code",
 				"code": auth_code,
 				"redirect_uri": self.redirect_uri,
 				"client_id": self.client_id,
-				"client_secret": self.client_secret,
 				"scope": self.scope,
 			},
 		)

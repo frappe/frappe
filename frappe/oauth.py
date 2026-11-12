@@ -214,7 +214,7 @@ class OAuthWebRequestValidator(RequestValidator):
 
 		if not code_details.expiration_time or now_datetime() > code_details.expiration_time:
 			frappe.db.set_value("OAuth Authorization Code", code, "validity", "Invalid")
-			frappe.db.commit()
+			frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
 			return False
 
 		request.scopes = code_details.scopes.split(get_url_delimiter())
