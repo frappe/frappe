@@ -1119,6 +1119,12 @@ class TypstEmitter:
 			return None
 
 	def _embed_image(self, src) -> str | None:
+		import io
+		from contextlib import suppress
+		from xml.etree import ElementTree
+
+		from PIL import Image
+
 		if not src:
 			return None
 		src = str(src)
@@ -1128,10 +1134,21 @@ class TypstEmitter:
 		name = None
 		if data is not None:
 			kind = filetype.image_match(data)
-			if kind and kind.extension in ("png", "apng", "jpg", "gif", "webp"):
-				name = self._asset("png" if kind.extension == "apng" else kind.extension, data)
-			elif not kind and src.split("?", 1)[0].lower().endswith(".svg"):
-				name = self._asset("svg", data)
+			with suppress(OSError, SyntaxError, Image.DecompressionBombError):
+				if kind and kind.extension in ("png", "apng", "jpg", "gif", "webp"):
+					with Image.open(io.BytesIO(data)) as image:
+						# Typst rejects a cut GIF, which verify() does not check
+						if kind.extension == "gif":
+							image.load()
+						else:
+							image.verify()
+					name = self._asset("png" if kind.extension == "apng" else kind.extension, data)
+				elif (
+					not kind
+					and src.split("?", 1)[0].lower().endswith(".svg")
+					and ElementTree.fromstring(data).tag.rpartition("}")[2] == "svg"
+				):
+					name = self._asset("svg", data)
 		self._embedded[src] = name
 		return name
 
