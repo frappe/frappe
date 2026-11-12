@@ -2,6 +2,7 @@
 import { shallowRef } from "vue";
 import type { Router } from "vue-router";
 import { createPageEngine, type PageEngine } from "@/pageEngine";
+import type { BodyItem } from "@/pageEngine/types";
 import { Surface } from "@/pageEngine/surface";
 import { clientScriptWait, replacedClientScripts } from "@/recordPage/clientScripts";
 import { LIST_PAGE_TIER } from "@/recordPage/clientScriptTypes";
@@ -53,6 +54,9 @@ export interface ListPageController {
   leave: () => void;
 }
 
+/** The list page's body has one built-in column, the controls row and the rows; a script's go around it. */
+export const LIST_BODY_BUILTINS: readonly BodyItem[] = [{ name: "list", gutter: false }];
+
 const DETACHED: ListRendererState = { rows: () => [], selection: () => [], reload: () => {} };
 
 export function createListPage(host: ListPageHost): ListPageController {
@@ -67,6 +71,7 @@ export function createListPage(host: ListPageHost): ListPageController {
     name: doctype,
     pageName: "list",
     lists,
+    bodyBuiltins: LIST_BODY_BUILTINS,
     sources: () => listScriptsOf(doctype),
     extras: () => listMembers(),
     meta: host.meta,

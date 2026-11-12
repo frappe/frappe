@@ -13,7 +13,7 @@ import { createHeldActs } from "./heldActs";
 import { createPaintGate, type LateRefresh, type RefreshOptions } from "./paintGate";
 import { RouteCachedReads } from "./routeCachedReads";
 import type { Staging } from "./staging";
-import type { Handler, PageApi, Registration } from "./types";
+import type { BodyItem, Handler, PageApi, Registration } from "./types";
 
 /** The events every page fires, whatever its own. */
 const ENGINE_EVENTS = ["onRefresh", "onOpen"];
@@ -36,6 +36,8 @@ export interface PageEngineSpec<Lists extends PageEngineLists, Extras extends ob
   app?: string;
   /** The page's own lists, each on `page` under its name. */
   lists: Lists;
+  /** The body's built-in columns; absent, the record's `form` and `panel`. */
+  bodyBuiltins?: readonly BodyItem[];
   /** Overlays every replay and hold stages that are not on `page` under a name. */
   overlays?: Staging[];
   /** The page's own events, for the default check of handler keys. */
@@ -126,7 +128,7 @@ export function createPageEngine<Lists extends PageEngineLists, Extras extends o
   const cached = spec.cached ?? routeReads!;
   const frame = new FrameSurface();
   const header = new HeaderSurface();
-  const body = new BodySurface();
+  const body = new BodySurface(spec.bodyBuiltins);
   const heldActs = createHeldActs({
     isStaging: () => gate.isStaging(),
     inBackground: () => gate.inBackground(),

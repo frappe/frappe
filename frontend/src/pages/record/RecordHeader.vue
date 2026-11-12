@@ -1,5 +1,5 @@
 <!--
-  The record's header row, drawn from `page.header`: crumbs and the favourite star left;
+  A page's header row, drawn from `page.header`: crumbs and the favourite star left;
   controls, `⋯` and Save right, in the projection's order, with the menu slotted in at Save's
   left hand. A div, not a header: it fills the frame's pinned row, which is the `<header>` element.
 -->
@@ -124,21 +124,26 @@ import { computed } from "vue";
 import { useRouter } from "vue-router";
 import { Breadcrumbs, Button, Dropdown, Tooltip } from "frappe-ui";
 import type { BreadcrumbsProps } from "frappe-ui";
-import type { HeaderControl, HeaderItem, HeaderProjection, RecordPageApi } from "@/recordPage";
+import type { PageApi } from "@/pageEngine/types";
+import type { HeaderControl, HeaderItem, HeaderProjection } from "@/recordPage";
 import { bandRows, menuContent } from "./headerMenuOptions";
 import type { Person } from "./panel/people";
 import RecordFavourite from "./RecordFavourite.vue";
 
-const props = defineProps<{
-	projection: HeaderProjection;
-	/** Handed to a component item beside its own props, as a panel section receives it. */
-	page: RecordPageApi;
-	dirty: boolean;
-	saving: boolean;
-	/** Who favourited the record and whether the reader did, for the `favourite` built-in. */
-	favourites: Person[];
-	favourited: boolean;
-}>();
+const props = withDefaults(
+	defineProps<{
+		projection: HeaderProjection;
+		/** Handed to a component item beside its own props, as a panel section receives it. */
+		page: PageApi;
+		/** The record's draft state, for its `save` control; a page with no Save leaves them out. */
+		dirty?: boolean;
+		saving?: boolean;
+		/** Who favourited the page and whether the reader did, for the `favourite` built-in. */
+		favourites?: Person[];
+		favourited?: boolean;
+	}>(),
+	{ dirty: false, saving: false, favourites: () => [], favourited: false }
+);
 
 const emit = defineEmits<{ run: [item: HeaderItem] }>();
 const router = useRouter();

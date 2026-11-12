@@ -22,14 +22,14 @@ export const BODY_BUILTINS: readonly BodyItem[] = [
 ];
 
 export class BodySurface extends Surface<BodyItem> {
-  constructor() {
+  constructor(private readonly regions: readonly BodyItem[] = BODY_BUILTINS) {
     super({ surface: "body", keys: BODY_ITEM_KEYS });
-    this.provideBuiltins(() => BODY_BUILTINS.map((item) => ({ ...item })));
+    this.provideBuiltins(() => regions.map((item) => ({ ...item })));
   }
 
   add(item: BodyItem | BodyItem[], position?: Position) {
     const columns = (Array.isArray(item) ? item : [item]).filter((one) => {
-      if (!isBuiltin(one.name)) return true;
+      if (!this.regions.some((region) => region.name === one.name)) return true;
       warn(`page.body.add('${one.name}') — '${one.name}' is a built-in column: a column needs a name of its own; nothing was added.`);
       return false;
     });
@@ -141,7 +141,7 @@ function needed(columns: BodyColumn[]) {
 // Outside in: right of the panel, left of the form, the panel, then between the two.
 function dropOrder(columns: BodyColumn[]) {
   const fixed = columns.map((column, at) => (column.bounds ? at : -1)).filter((at) => at >= 0);
-  const anchors = ["form", "panel"]
+  const anchors = ["form", "list", "panel"]
     .map((name) => columns.findIndex((column) => column.item.name === name))
     .filter((at) => at >= 0);
   const low = anchors.length ? Math.min(...anchors) : columns.length;
@@ -202,10 +202,6 @@ export function snapToDefault(width: number, defaultWidth: number) {
 function clamp(width: number, min: number, max: number) {
   if (!Number.isFinite(width)) return min;
   return Math.min(Math.max(width, min), max);
-}
-
-function isBuiltin(name: string) {
-  return BODY_BUILTINS.some((item) => item.name === name);
 }
 
 function warn(message: string) {

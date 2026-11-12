@@ -82,6 +82,7 @@ beforeEach(async () => {
 	meta = contactMeta([{ role: "Sales User", permlevel: 0, read: 1, write: 1, create: 1 }]);
 	boot = {
 		app: "crm",
+		session: { user: { name: "Administrator" } },
 		shell_base: "/apps/crm",
 		prefixes: { crm: { app: "crm", modular: false } },
 		read_only_mode: false,

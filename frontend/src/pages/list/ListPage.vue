@@ -4,100 +4,130 @@
 -->
 <template>
 	<PageFrame :scroll="false" :state="metaError ? failedState(metaError, reloadMeta) : null">
-		<template #header>
-			<div class="flex min-w-0 flex-1 items-center justify-between gap-3">
-				<div class="flex min-w-0 flex-1 items-center gap-1 text-base">
-					<Breadcrumbs class="-ml-0.5" :items="crumbs" />
-					<Tooltip v-if="favouriteAct" :text="favouriteAct.label">
-						<FavouriteStar
-							:favourited="favourited"
-							@click="listActs.perform(favouriteAct)"
-						/>
-					</Tooltip>
-				</div>
-				<Button
-					v-if="createAct"
-					variant="solid"
-					:icon-left="createAct.icon"
-					:label="createAct.label"
-					@click="listActs.perform(createAct)"
-				/>
-			</div>
+		<template #aboveHeader>
+			<FrameBands :bands="frame.before" :page="list.page" />
 		</template>
 
-		<div
-			v-show="!selecting"
-			:class="[pageGutter, { invisible: !list.engine.ready.value }]"
-			class="flex shrink-0 items-start justify-between gap-2 pt-3.5"
-		>
-			<div class="flex min-w-0 flex-1 flex-col">
-				<QuickFilter
-					v-if="shown.has('quick_filter')"
-					v-model:filters="filters"
-					v-model:fields="quickFilterFields"
-					v-model:customizing="customizing"
-					:doctype="doctype"
-				/>
-			</div>
-			<div v-if="!customizing" class="flex shrink-0 items-center gap-2">
-				<template v-for="item in rowControls" :key="item.name">
-					<Filter v-if="item.name === 'filter'" v-model="filters" :doctype="doctype" />
-					<template v-else-if="item.name === 'sort'">
-						<SortBy v-if="seeded" v-model="sort" :doctype="doctype" />
-						<!-- Sized to the default sort: a direction button joined to its field's label. -->
-						<Skeleton v-else class="h-7 w-36 shrink-0 rounded-4" data-sort-skeleton />
-					</template>
-					<div v-else-if="item.name === 'columns'" :ref="setControls" class="contents" />
-					<Button
-						v-else-if="scriptAct(item.name)"
-						:icon-left="scriptAct(item.name)!.icon"
-						:label="scriptAct(item.name)!.label"
-						@click="listActs.perform(scriptAct(item.name)!)"
-					/>
-				</template>
-				<Dropdown
-					v-if="menuOptions.length"
-					:options="menuOptions"
-					side="bottom"
-					align="end"
-				>
-					<div class="flex shrink-0">
-						<Button icon="lucide-ellipsis" label="More" />
-					</div>
-				</Dropdown>
-			</div>
-		</div>
-
-		<div v-show="selecting" :ref="setBar" :class="pageGutter" class="shrink-0 pt-3.5" />
-
-		<div class="relative flex min-h-0 flex-1 flex-col pt-2">
-			<component
-				:is="rendererFor(view.type)"
-				v-if="list.engine.ready.value"
-				:view="view"
-				:host="host"
+		<!-- No slot when a script emptied or hid the row: the frame then draws no row at all. -->
+		<template v-if="frame.header && !isEmptyHeader(header)" #header>
+			<RecordHeader
+				:class="{ invisible: !list.engine.ready.value }"
+				:projection="header"
+				:page="list.page"
+				:favourited="favourited"
+				@run="runHeaderItem"
 			/>
-		</div>
+		</template>
+
+		<FrameBands :bands="frame.between" :page="list.page" />
+
+		<BodyColumns
+			v-if="frame.body"
+			kind="list"
+			:items="bodyItems"
+			:page="list.page"
+			:user="boot.session.user.name"
+		>
+			<template #list>
+				<!-- The column's scroller is a block: this gives the rows area a height to fill. -->
+				<div class="flex h-full min-h-0 flex-col">
+					<div
+						v-show="!selecting"
+						:class="[pageGutter, { invisible: !list.engine.ready.value }]"
+						class="flex shrink-0 items-start justify-between gap-2 pt-3.5"
+					>
+						<div class="flex min-w-0 flex-1 flex-col">
+							<QuickFilter
+								v-if="shown.has('quick_filter')"
+								v-model:filters="filters"
+								v-model:fields="quickFilterFields"
+								v-model:customizing="customizing"
+								:doctype="doctype"
+							/>
+						</div>
+						<div v-if="!customizing" class="flex shrink-0 items-center gap-2">
+							<template v-for="item in rowControls" :key="item.name">
+								<Filter
+									v-if="item.name === 'filter'"
+									v-model="filters"
+									:doctype="doctype"
+								/>
+								<template v-else-if="item.name === 'sort'">
+									<SortBy v-if="seeded" v-model="sort" :doctype="doctype" />
+									<!-- Sized to the default sort: a direction button joined to its field's label. -->
+									<Skeleton
+										v-else
+										class="h-7 w-36 shrink-0 rounded-4"
+										data-sort-skeleton
+									/>
+								</template>
+								<div
+									v-else-if="item.name === 'columns'"
+									:ref="setControls"
+									class="contents"
+								/>
+								<Button
+									v-else-if="scriptAct(item.name)"
+									:icon-left="scriptAct(item.name)!.icon"
+									:label="scriptAct(item.name)!.label"
+									@click="listActs.perform(scriptAct(item.name)!)"
+								/>
+							</template>
+							<Dropdown
+								v-if="menuOptions.length"
+								:options="menuOptions"
+								side="bottom"
+								align="end"
+							>
+								<div class="flex shrink-0">
+									<Button icon="lucide-ellipsis" label="More" />
+								</div>
+							</Dropdown>
+						</div>
+					</div>
+
+					<div v-show="selecting" :ref="setBar" :class="pageGutter" class="shrink-0 pt-3.5" />
+
+					<div class="relative flex min-h-0 flex-1 flex-col pt-2">
+						<component
+							:is="rendererFor(view.type)"
+							v-if="list.engine.ready.value"
+							:view="view"
+							:host="host"
+						/>
+					</div>
+				</div>
+			</template>
+		</BodyColumns>
+
+		<FrameBands :bands="frame.after" :page="list.page" />
 	</PageFrame>
 </template>
 
 <script setup lang="ts">
-import { Breadcrumbs, Button, Dropdown, Skeleton, Tooltip, toast } from "frappe-ui";
+import { Button, Dropdown, Skeleton, toast } from "frappe-ui";
 import { Filter } from "@framework/ui/Filter";
 import { QuickFilter } from "@framework/ui/QuickFilter";
 import { SortBy } from "@framework/ui/SortBy";
 import { useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { computed, inject, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
+import { passesRight, passesWhen } from "@/acts/dispatcher";
+import type { Addresses } from "@/addresses";
+import { isEmptyHeader, projectFrame } from "@/pageEngine";
+import type { HeaderItem } from "@/pageEngine/types";
 import type { Boot } from "@/boot";
 import { __ } from "@/i18n";
-import { routeFor } from "@/router/routeFor";
+import { isModular, routeFor, routeForModule } from "@/router/routeFor";
 import { openCreate } from "@/shell/create";
 import type { ListPage } from "@/list/useListPage";
 import { createListPage } from "@/listPage/createListPage";
 import { useListPermissions } from "@/listPage/listPermissions";
 import { isFavourite, useListSettings } from "@/list/useListSettings";
-import FavouriteStar from "@/pages/favourite/FavouriteStar.vue";
+import BodyColumns from "@/pages/record/body/BodyColumns.vue";
+import FrameBands from "@/pages/record/FrameBands.vue";
+import RecordHeader from "@/pages/record/RecordHeader.vue";
+import { errorMessage } from "@/recordPage/errorMessage";
 import { recordDialogWrite } from "@/shell/recordDialog";
 import PageFrame, { pageGutter } from "@/shell/PageFrame.vue";
 import { failedState } from "@/shell/pageState";
@@ -106,20 +136,16 @@ import { useLiveClientScripts } from "@/pages/record/liveClientScripts";
 import { createdMessage } from "./createdMessage";
 import { clearDefaultView, setDefaultView } from "./defaultView";
 import { useListActs } from "./listActs";
+import { listHeaderItems, projectListHeader } from "./listHeader";
 import { rendererFor, type RendererHost } from "./renderer";
 
 const props = defineProps<{ page: ListPage; label?: string }>();
 
 const router = useRouter();
 const boot = inject<Boot>("boot")!;
+const addresses = inject<Addresses>("addresses")!;
 const { view, quickFilterFields, customizing, metaError, reloadMeta, createValues } = props.page;
 const { doctype, filters, sort, seeded } = view;
-
-const crumbs = computed(() =>
-	props.label
-		? [{ label: doctype, route: routeFor(doctype) }, { label: props.label }]
-		: [{ label: doctype }]
-);
 
 const { meta } = useDoctypeMeta(doctype);
 const created: (() => void)[] = [];
@@ -210,9 +236,48 @@ const host: RendererHost = {
 	onCreate: (callback) => created.push(callback),
 };
 
-const createAct = computed(() => listActs.drawn("create"));
-const favouriteAct = computed(() => listActs.drawn("favourite"));
 const quickFilterAct = computed(() => listActs.drawn("customize_quick_filter"));
+
+list.engine.header.provideBuiltins(() =>
+	listHeaderItems({
+		doctype,
+		module: moduleCrumb,
+		view: viewCrumb,
+		starsLoaded: () => settings.favourites.value !== null,
+		favourited: () => favourited.value,
+		toggleFavourite: () => settings.toggleFavourite(starKey),
+		create,
+	})
+);
+
+function moduleCrumb() {
+	const label = meta.value?.module;
+	if (!label) return null;
+	const slug = isModular(boot) ? addresses.addressOf(doctype)?.[1] : undefined;
+	return { label, href: slug ? router.resolve(routeForModule(slug)).path : undefined };
+}
+
+function viewCrumb() {
+	if (!props.label) return null;
+	return { label: props.label, href: router.resolve(routeFor(doctype)).path };
+}
+
+const scope = {
+	context: () => list.page,
+	passes: permissions.passes,
+	settled: () => (permissions.loading() ? permissions.ready() : undefined),
+};
+const allows = (item: HeaderItem) => passesWhen(scope, item) && passesRight(scope, item);
+const header = computed(() => projectListHeader(list.engine.header.resolve(), allows));
+const frame = computed(() => projectFrame(list.engine.frame.resolve()));
+const bodyItems = computed(() => list.engine.body.visible());
+
+// A header item runs as an act, inside a hold so its ops paint once; a throw is a toast.
+function runHeaderItem(item: HeaderItem) {
+	void list.engine
+		.hold(() => item.run?.(list.page))
+		.catch((error) => void toast.error(errorMessage(error)));
+}
 
 const controlItems = computed(() => list.lists.controls.visible());
 const shown = computed(() => new Set(controlItems.value.map((item) => item.name)));

@@ -2,7 +2,7 @@
      everyone who favourited the record. -->
 <template>
 	<!-- Nobody yet, no card: an empty one would open as a blank panel. -->
-	<Tooltip v-if="!favourites.length" text="Add to favourites">
+	<Tooltip v-if="!favourites.length" :text="favouriteWording(favourited).label">
 		<FavouriteStar :favourited="favourited" @click="emit('toggle')" />
 	</Tooltip>
 	<HoverCard v-else :hover-delay="0.2" :leave-delay="0.2" side="bottom" align="start">
@@ -24,6 +24,7 @@
 <script setup lang="ts">
 import { Avatar, HoverCard, Tooltip } from "frappe-ui";
 import FavouriteStar from "@/pages/favourite/FavouriteStar.vue";
+import { favouriteWording } from "@/pages/favourite/favouriteWording";
 import type { Person } from "./panel/people";
 
 defineProps<{ favourites: Person[]; favourited: boolean }>();

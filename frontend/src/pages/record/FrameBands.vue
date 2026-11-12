@@ -11,12 +11,12 @@
 </template>
 
 <script setup lang="ts">
-import type { FrameItem, RecordPageApi } from "@/recordPage";
+import type { FrameItem, PageApi } from "@/pageEngine/types";
 import { pageGutter } from "@/shell/PageFrame.vue";
 
 defineProps<{
 	bands: FrameItem[];
 	/** Handed to every band beside its own props, as a header component receives it. */
-	page: RecordPageApi;
+	page: PageApi;
 }>();
 </script>

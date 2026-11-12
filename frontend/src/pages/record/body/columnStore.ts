@@ -6,8 +6,9 @@ import type { Remembered } from "@/recordPage";
 
 type Columns = Record<string, Remembered>;
 
-export function useColumnStore(user: string) {
-	const memory = browserMemory("record-body-columns", user, isColumns);
+/** `kind` is the page whose body it is: a column named alike on two pages keeps a width on each. */
+export function useColumnStore(user: string, kind: "record" | "list" = "record") {
+	const memory = browserMemory(`${kind}-body-columns`, user, isColumns);
 	const columns = ref<Columns>(memory.recall() ?? {});
 
 	function remembered(name: string): Remembered | undefined {
