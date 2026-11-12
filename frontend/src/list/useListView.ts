@@ -1,6 +1,7 @@
 // The List type's rows area: its columns from the view's settings, and the rows the view's filters
 // and sort read, with the selection, the page size and the delete.
-import { bulkDeleteDocuments, isBulkQueued, type BulkSelection } from "@framework/ui/api";
+import { __ } from "@/i18n";
+import { bulkDeleteDocuments, type BulkSelection } from "@framework/ui/api";
 import { applyColumnWidth, clearColumnWidth, getColumnAlign } from "@framework/ui/ColumnSettings";
 import type { ListColumn } from "@framework/ui/experimental/List";
 import { getFilterableFields, parseFilters, serializeFilters, type FilterCondition } from "@framework/ui/Filter";
@@ -39,8 +40,6 @@ import type { View } from "./view";
 export interface DeleteOutcome {
 	deleted: string[];
 	failed: { name: string; error: string }[];
-	/** The run went to the background; its result is not known yet. */
-	queued?: boolean;
 }
 
 export interface ListView extends ListRows {
@@ -198,7 +197,10 @@ export function useListView(view: View, lists: Pick<ListPageLists, "columns" | "
 	});
 
 	async function deleteSelection(): Promise<DeleteOutcome> {
-		const outcome = await deleteRows(doctype, rows, scope.selected());
+		const outcome = await deleteRows(doctype, rows, scope.selected(), (names) => {
+			scope.clear();
+			selection.value = names;
+		});
 		scope.clear();
 		return outcome;
 	}
@@ -313,11 +315,22 @@ export function filtersFit(filters: FilterCondition[]): boolean {
 }
 
 /** Deletes the records in one bulk request, then reloads the page; what failed comes back with its message. */
-export async function deleteRows(doctype: string, rows: ListRows, selection: BulkSelection): Promise<DeleteOutcome> {
-	const { data } = await bulkDeleteDocuments(doctype, selection);
-	rows.reload();
-	if (isBulkQueued(data)) return { deleted: [], failed: [], queued: true };
-	return { deleted: data.done, failed: data.failed };
+export async function deleteRows(
+	doctype: string,
+	rows: ListRows,
+	selection: BulkSelection,
+	select?: (names: string[]) => void
+): Promise<DeleteOutcome> {
+	// The shell reports the run (a toast, the result panel or the tray), so the dialog has nothing left to show.
+	const { runBulk } = await import("@/shell/bulkOutcome");
+	await runBulk({
+		label: __("Delete"),
+		doctype,
+		send: (retry) => bulkDeleteDocuments(doctype, retry ? { names: retry } : selection),
+		select,
+		finished: rows.reload,
+	});
+	return { deleted: [], failed: [] };
 }
 
 /** One record keeps the single-document route, which the bulk-actions switch does not gate. */

@@ -105,6 +105,7 @@
 		:doctype="doctype"
 		:action="status.asked.value"
 		:finished="status.finished"
+		:select="status.select"
 	/>
 </template>
 

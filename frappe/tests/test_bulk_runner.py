@@ -310,6 +310,16 @@ class TestBulkRunner(IntegrationTestCase):
 		self.assertEqual(result["done"], [self.names[0]])
 		self.assertEqual(result["failed"][0]["name"], "nope")
 
+	def test_delete_route_gives_a_missing_record_a_reason(self):
+		frappe.form_dict.names = [self.names[0], "ToDo-gone-47082"]
+		result = bulk_actions.bulk_delete_docs("ToDo")
+		self.assertEqual(result["done"], [self.names[0]])
+		self.assertEqual(result["failed"], [{"name": "ToDo-gone-47082", "error": "Not found"}])
+
+	def test_an_error_without_a_message_still_has_a_reason(self):
+		self.assertEqual(bulk.reason_of(frappe.ValidationError()), "Failed without a reason")
+		self.assertEqual(bulk.reason_of(frappe.ValidationError("<b>Bad</b> value")), "Bad value")
+
 	def test_update_route_rejects_an_unknown_child_table(self):
 		frappe.form_dict.update(names=self.names[:1], child_values={"description": {"x": 1}})
 		result = bulk_actions.bulk_update_docs("ToDo")

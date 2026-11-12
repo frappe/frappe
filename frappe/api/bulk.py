@@ -225,6 +225,14 @@ def run_task(
 	)
 
 
+def reason_of(e: Exception) -> str:
+	"""One line for the result panel; a missing record raises with no message."""
+	reason = strip_html_tags(str(e)).strip()
+	if reason:
+		return reason
+	return _("Not found") if isinstance(e, frappe.DoesNotExistError) else _("Failed without a reason")
+
+
 def run_records(
 	run_one: Callable,
 	selection: Selection,
@@ -244,7 +252,7 @@ def run_records(
 		except Exception as e:
 			frappe.db.rollback(save_point="bulk_record")
 			frappe.clear_last_message()
-			failed.append({**identity_of(record, cross_doctype), "error": strip_html_tags(str(e))})
+			failed.append({**identity_of(record, cross_doctype), "error": reason_of(e)})
 		else:
 			(queued if outcome == QUEUED else done).append(ref_of(record, cross_doctype))
 

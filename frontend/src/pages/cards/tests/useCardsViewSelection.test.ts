@@ -49,14 +49,17 @@ describe("cards view selection", () => {
 	});
 
 	it("deletes the selection in one bulk request and clears it", async () => {
-		fake.deleteRows.mockResolvedValue({ deleted: ["A", "B"], failed: [] });
+		fake.deleteRows.mockResolvedValue({ deleted: [], failed: [] });
 		const view = cardsView();
 		view.selection.value = ["A", "B"];
 
 		const outcome = await view.deleteSelection();
 
-		expect(fake.deleteRows).toHaveBeenCalledWith("Lead", expect.anything(), { names: ["A", "B"] });
-		expect(outcome.deleted).toEqual(["A", "B"]);
+		expect(fake.deleteRows).toHaveBeenCalledWith("Lead", expect.anything(), { names: ["A", "B"] }, expect.any(Function));
+		expect(outcome.failed).toEqual([]);
 		expect(view.selection.value).toEqual([]);
+
+		fake.deleteRows.mock.calls[0][3](["B"]);
+		expect(view.selection.value).toEqual(["B"]);
 	});
 });

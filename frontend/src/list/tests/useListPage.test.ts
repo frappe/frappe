@@ -842,16 +842,13 @@ describe("the count", () => {
 });
 
 describe("deleteSelection", () => {
-	it("deletes the selection in one bulk call, reports a failure, clears the selection and reloads", async () => {
+	it("deletes the selection in one bulk call through the shared runner, clears the selection and reloads", async () => {
 		await mount("/lead");
 		await settle();
-		fake.bulkDelete.mockResolvedValueOnce({
-			data: { total: 2, done: ["LEAD-1"], failed: [{ name: "LEAD-2", error: "Not permitted" }] },
-		});
+		fake.bulkDelete.mockResolvedValueOnce({ data: { total: 2, done: ["LEAD-1", "LEAD-2"], failed: [] } });
 		page.selection.value = ["LEAD-1", "LEAD-2"];
-		const outcome = await page.deleteSelection();
+		await page.deleteSelection();
 		expect(fake.bulkDelete.mock.calls).toEqual([["Lead", { names: ["LEAD-1", "LEAD-2"] }]]);
-		expect(outcome).toEqual({ deleted: ["LEAD-1"], failed: [{ name: "LEAD-2", error: "Not permitted" }] });
 		expect(page.selection.value).toEqual([]);
 		expect(fake.listDocuments).toHaveBeenCalledTimes(2);
 	});
@@ -868,12 +865,29 @@ describe("deleteSelection", () => {
 		expect(page.selection.value).toEqual([]);
 	});
 
-	it("reports a run that went to the background as queued", async () => {
+	it("opens the result panel on a failure, and Select failed puts the failed names back in the selection", async () => {
+		const { bulkPanel } = await import("@/shell/bulkOutcome");
+		await mount("/lead");
+		await settle();
+		fake.bulkDelete.mockResolvedValueOnce({
+			data: { total: 2, done: ["LEAD-1"], failed: [{ name: "LEAD-2", error: "Not permitted" }] },
+		});
+		page.selection.value = ["LEAD-1", "LEAD-2"];
+		await page.deleteSelection();
+		expect(bulkPanel.value?.failed).toEqual([{ name: "LEAD-2", error: "Not permitted" }]);
+		bulkPanel.value?.select?.(["LEAD-2"]);
+		expect(page.selection.value).toEqual(["LEAD-2"]);
+		bulkPanel.value = null;
+	});
+
+	it("hands a run that went to the background to the tray", async () => {
+		const { bulkRunMeta } = await import("@/shell/bulkOutcome");
 		await mount("/lead");
 		await settle();
 		fake.bulkDelete.mockResolvedValueOnce({ data: { task_id: "T-1", job_id: "J-1" } });
 		page.selection.value = ["LEAD-1"];
-		expect(await page.deleteSelection()).toEqual({ deleted: [], failed: [], queued: true });
+		await page.deleteSelection();
+		expect(bulkRunMeta.get("T-1")?.label).toBe("Delete");
 	});
 
 	it("keeps the selection when the whole run is refused", async () => {

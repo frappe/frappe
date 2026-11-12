@@ -1,5 +1,5 @@
 // What the bulk-run follower promises: it follows only runs a page asked for, keeps their progress
-// across pages, reads the result from the Background Task once it settles, and toasts the counts.
+// across pages, reads the result from the Background Task once it settles, and leaves the counts to the tray.
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const fake = vi.hoisted(() => ({
@@ -132,7 +132,7 @@ describe("following a run", () => {
 			await vi.runAllTimersAsync();
 
 			expect(run.result?.done).toEqual(["a"]);
-			expect(fake.toast.success).toHaveBeenCalledTimes(1);
+			expect(fake.toast.success).not.toHaveBeenCalled();
 		} finally {
 			vi.useRealTimers();
 		}
@@ -149,7 +149,7 @@ describe("following a run", () => {
 });
 
 describe("a run that settles", () => {
-	it("reads the result and toasts done and failed counts, once", async () => {
+	it("reads the result, once, and leaves the counts to the tray", async () => {
 		const settled = vi.fn();
 		const run = followBulkRun("t1", settled);
 		await settle();
@@ -174,15 +174,12 @@ describe("a run that settles", () => {
 
 		expect(run.status).toBe("Completed");
 		expect(run.result).toEqual(RESULT);
-		expect(fake.toast.warning).toHaveBeenCalledTimes(1);
-		expect(fake.toast.warning).toHaveBeenCalledWith(
-			"Delete ToDo: 2 done, 1 failed"
-		);
+		expect(fake.toast.warning).not.toHaveBeenCalled();
 		expect(settled).toHaveBeenCalledTimes(1);
 		expect(settled).toHaveBeenCalledWith(run);
 	});
 
-	it("toasts success when no record failed, and counts queued ones", async () => {
+	it("keeps queued records in the result", async () => {
 		fake.getDocument.mockResolvedValue(
 			row({
 				status: "Completed",
@@ -197,9 +194,8 @@ describe("a run that settles", () => {
 		followBulkRun("t1");
 		await settle();
 
-		expect(fake.toast.success).toHaveBeenCalledWith(
-			"Delete ToDo: 1 done, 0 failed, 1 queued"
-		);
+		expect(useBulkRuns().value[0].result?.queued).toEqual(["b"]);
+		expect(fake.toast.success).not.toHaveBeenCalled();
 	});
 
 	it("reads a run that had already finished when the page followed it", async () => {
@@ -289,7 +285,7 @@ describe("a run that settles", () => {
 
 			expect(run).toMatchObject({ status: "Completed", error: null });
 			expect(run.result?.done).toEqual(["a"]);
-			expect(fake.toast.success).toHaveBeenCalledTimes(1);
+			expect(fake.toast.success).not.toHaveBeenCalled();
 		} finally {
 			vi.useRealTimers();
 		}

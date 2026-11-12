@@ -115,7 +115,10 @@ export function useCardsView(view: View, lists: Pick<ListPageLists, "rowActions"
 	});
 
 	async function deleteSelection(): Promise<DeleteOutcome> {
-		const outcome = await deleteRows(doctype, rows, scope.selected());
+		const outcome = await deleteRows(doctype, rows, scope.selected(), (names) => {
+			scope.clear();
+			selection.value = names;
+		});
 		scope.clear();
 		return outcome;
 	}
