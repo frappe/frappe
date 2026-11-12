@@ -3,12 +3,8 @@
 
 import deep_equal from "fast-deep-equal";
 import number_systems from "./number_systems";
-<<<<<<< HEAD
-import { CHART_PALETTE } from "../ui/components/utils.js";
-=======
 import { get_country_flag_url } from "./country_flag_url.js";
-import { CHART_PALETTE, has_unsafe_scheme } from "../ui/components/utils.js";
->>>>>>> e70e6ff (refactor(phone): share country flag URL helper across desk and Vue)
+import { CHART_PALETTE } from "../ui/components/utils.js";
 
 frappe.provide("frappe.utils");
 
