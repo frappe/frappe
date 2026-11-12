@@ -71,6 +71,8 @@ export type DoctypeContribution =
   // A foreign doctype: <module>/custom/<scrubbed>/record.js. Applies globally; it does not
   // move the doctype into your prefix.
   | { kind: 'custom'; app: string; doctype: string; load: LoadRecordScript }
+  // A foreign doctype's list: <module>/custom/<scrubbed>/list.js, run after the owner's list.js.
+  | { kind: 'customList'; app: string; doctype: string; handlers: ListHandlers }
 
 // A page in place of a doctype's record or list page: <module>/doctype/<scrubbed>/frontend/
 // pages/<name>.js, named in pages.json beside it; the same under <module>/custom/<scrubbed>/.

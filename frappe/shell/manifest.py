@@ -70,6 +70,7 @@ def contribution_globs(source_dir: str) -> list[str]:
 		os.path.join(source_dir, "*", "doctype", "*", "frontend", "pages.json"),
 		os.path.join(source_dir, "*", "doctype", "*", "frontend", "pages", "*.js"),
 		os.path.join(source_dir, "*", "custom", "*", "record.js"),
+		os.path.join(source_dir, "*", "custom", "*", "list.js"),
 		os.path.join(source_dir, "*", "custom", "*", "pages.json"),
 		os.path.join(source_dir, "*", "custom", "*", "pages", "*.js"),
 		page_glob(source_dir),

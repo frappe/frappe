@@ -398,6 +398,12 @@ A row action in `list.js` names an act and the `fields` it reads. Its `value(row
 or `list.selection` to the act it runs. A row action cannot name a `list.*` act. A `when` that
 throws hides the action on that row.
 
+An app adds to another app's list from `<app>/<module>/custom/<scrubbed>/list.js`, the same file
+shape at the `custom/` path that `record.js` uses. Its `columns`, `cells` and `rowActions` join those of
+the owner's `list.js` and every other app's, the owner first and then the site's app order. As with an
+owner's `list.js`, any `columns` it names replace the doctype's `in_list_view` columns. A new or changed
+file takes effect after the next `bench build`.
+
 ```js
 // crm/fcrm/crm/doctype/crm_call_log/frontend/list.js
 export default {

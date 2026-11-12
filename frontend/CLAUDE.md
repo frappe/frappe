@@ -184,6 +184,7 @@ fall out of the path. Enumerated in both languages, in `frappe/shell/manifest.py
 | `<app>/<module>/doctype/<scrubbed>/frontend/pages.json` | which page replaces the record or list, in every app or the apps an entry names, owning app |
 | `<app>/<module>/doctype/<scrubbed>/frontend/pages/<name>.js` | a replacement page, owning app |
 | `<app>/<module>/custom/<scrubbed>/record.js` | record page, *foreign* doctype |
+| `<app>/<module>/custom/<scrubbed>/list.js` | list, *foreign* doctype |
 | `<app>/<module>/custom/<scrubbed>/pages.json` | which page replaces the record or list, in every app or the apps an entry names, *foreign* doctype |
 | `<app>/<module>/custom/<scrubbed>/pages/<name>.js` | a replacement page, *foreign* doctype |
 | `<app>/<module>/frontend/pages/<slug>.js` | a standalone page |

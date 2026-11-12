@@ -738,6 +738,24 @@ describe("the generated module", () => {
     );
   });
 
+  it("bundles a foreign app's list script as customList, in the doctype's own name", () => {
+    const manifest = bench({
+      helpdesk: owner({}, { [`${TICKET}/frontend/list.js`]: "export default {}" }),
+      crm: { "fcrm/custom/hd_ticket/list.js": "export default {}" },
+    });
+    const [helpdesk, crm] = manifest.map((entry) => entry.source_dir);
+    const list = join(helpdesk, TICKET, "frontend/list.js");
+    const custom = join(crm, "fcrm/custom/hd_ticket/list.js");
+
+    const code = load(contributions(manifest));
+    expect(code).toContain(`import d1 from ${JSON.stringify(list)}`);
+    expect(code).toContain(`import d2 from ${JSON.stringify(custom)}`);
+    expect(code).toContain(
+      `{ kind: "customList", app: "crm", doctype: "HD Ticket", ` +
+        `handlers: d2, __file: ${JSON.stringify(custom)} },`,
+    );
+  });
+
   it("imports each page's handler file and drops one with no default export at runtime", () => {
     const manifest = bench({
       helpdesk: owner(
