@@ -124,6 +124,10 @@ describe("page script host", () => {
 
 	it("runs setup in a component and renders once with its bindings in place", () => {
 		const scope = usePageScope()
+		cy.spy(console, "error").as("consoleError")
+		// the script has not loaded, so a name it will return is not a mistake yet
+		scope.evaluateDynamicValues("{{ title }}")
+		cy.get("@consoleError").should("not.have.been.called")
 		const renders: string[] = []
 		let hadInstance = false
 		let mountedRan = false
@@ -144,7 +148,11 @@ describe("page script host", () => {
 			expect(hadInstance, "setup saw a component instance").to.be.true
 			expect(mountedRan, "onMounted ran").to.be.true
 			expect(renders, "the page rendered before its bindings").to.deep.equal(["now"])
+			expect(scope.evaluateDynamicValues("{{ title }}")).to.equal("now")
+			scope.evaluateDynamicValues("{{ missing }}")
+			scope.evaluateDynamicValues("{{ missing }}")
 		})
+		cy.get("@consoleError").should("have.been.calledOnce")
 	})
 
 	it("holds the page back until an async setup resolves", () => {

@@ -330,6 +330,7 @@ export function createPageScope(
 		stopResourceWatchers()
 		// Changing the setup version unmounts the host and cleans up the script's effects.
 		setPageSetup(null)
+		pageScriptLoaded = false
 	}
 
 	// VARIABLES
@@ -377,12 +378,14 @@ export function createPageScope(
 	// PageScriptHost calls setup() later, during component setup, so Vue lifecycle hooks work.
 	async function loadPageScript(page: StudioPage) {
 		currentPageName.value = page.name
+		pageScriptLoaded = false
 		try {
 			setPageSetup((await loadPageSetupModule(page))?.default)
 		} catch (error) {
 			setPageSetup(null)
 			reportPageScriptError(error)
 		}
+		pageScriptLoaded = true
 	}
 
 	async function loadPageSetupModule(page: StudioPage): Promise<Record<string, any> | null> {
@@ -396,6 +399,7 @@ export function createPageScope(
 		pageSetup.value = typeof setup === "function" ? (setup as Function) : null
 		pageScriptBindings.value = {}
 		pageScriptError.value = null
+		reportedBindingErrors.clear()
 		pageScriptReady.value = false
 		pageScriptVersion.value++
 	}
@@ -581,6 +585,8 @@ export function createPageScope(
 		return value
 	}
 
+	let pageScriptLoaded = false
+	const reportedBindingErrors = new Set<string>()
 	function evaluateExpression(expression: string, localContext: ExpressionEvaluationContext) {
 		try {
 			const context = { ...evalContext.value, ...localContext }
@@ -590,17 +596,20 @@ export function createPageScope(
 			// Create a function that takes the context as an argument
 			const func = new Function('context', `
 				with (context || {}) {
-					try {
-						return ${safeExpression};
-					} catch (e) {
-						return undefined;
-					}
+					return ${safeExpression};
 				}
 			`)
 
 			return func(context)
 		} catch (error) {
-			console.error(`Error evaluating expression: ${expression}`, error)
+			// Bindings also run before the page script has loaded and returned its values, so a
+			// failure then is not a mistake. A binding runs on every render, so report each
+			// failure once.
+			const failure = `${expression}\n${error}`
+			if (pageScriptLoaded && pageScriptReady.value && !reportedBindingErrors.has(failure)) {
+				reportedBindingErrors.add(failure)
+				console.error(`Error evaluating expression: ${expression}`, error)
+			}
 			return undefined
 		}
 	}
