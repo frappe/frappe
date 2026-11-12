@@ -2,7 +2,9 @@
 
 {%- block value -%}
 <div class="value">
+    {% if value %}
     <div class="color-square" style="background-color: {{ value }};"></div>
     {{ value }}
+    {% endif %}
 </div>
 {%- endblock -%}
