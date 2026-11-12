@@ -4,7 +4,8 @@ import type { CommitChannel, RowAddress, RowChange } from "@framework/ui/fields/
 import { ROW_EVENTS } from "./flattenHandlers";
 
 export interface CommitChannelHost {
-  dispatch: (event: string, row?: RowAddress) => Promise<void> | void;
+  /** `edited` is false for a Button's click: it changes no value, so the page need not redraw. */
+  dispatch: (event: string, row: RowAddress | undefined, edited: boolean) => Promise<void> | void;
 }
 
 export interface RecordCommitChannel extends CommitChannel {
@@ -52,7 +53,7 @@ export function createCommitChannel(
     pending = null;
     if (!settles(event, value, row)) return;
     settled = { event, value, row };
-    return track(host.dispatch(event, row));
+    return track(host.dispatch(event, row, true));
   }
 
   return {
@@ -70,15 +71,15 @@ export function createCommitChannel(
       // A structural edit is itself a commit, and a removed row's pending edit has nowhere to land.
       pending = null;
       // A removed row has no address left to hand on; its handle would throw on every access.
-      track(host.dispatch(rowEvent(row, change), change === "add" ? row : undefined));
+      track(host.dispatch(rowEvent(row, change), change === "add" ? row : undefined, true));
     },
-    trigger: (fieldname) => void track(host.dispatch(fieldname)),
+    trigger: (fieldname) => void track(host.dispatch(fieldname, undefined, false)),
     flush: async () => {
       const edit = pending;
       if (edit) {
         pending = null;
         settled = edit;
-        await host.dispatch(edit.event, edit.row);
+        await host.dispatch(edit.event, edit.row, true);
       }
       await Promise.all([...running]);
     },

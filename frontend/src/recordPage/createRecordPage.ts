@@ -334,7 +334,17 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   const cachedReads = new CachedReads(host.doctype, host.docname);
 
   const commits = fieldErrors.clearingOnEdit(
-    createCommitChannel({ dispatch: (event, row) => fireEvent(event, row) }),
+    createCommitChannel({
+      // One hold, so the handler's acts and the `onRefresh` its change calls for paint together.
+      // It keeps the handler's marks across that re-run; the next edit's re-run drops them.
+      dispatch: (event, row, edited) =>
+        edited
+          ? hold(async () => {
+              await engine.dispatch(event, detailOf(row));
+              await engine.refresh();
+            }, true)
+          : fireEvent(event, row),
+    }),
   );
 
   const engine = createPageEngine({
@@ -765,9 +775,12 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   }
 
   async function fireEvent(event: string, row?: RowAddress) {
-    // One handle for the whole dispatch, and the same object `page.rows()` hands back.
-    const detail = row ? rows.handle(row) : undefined;
-    await engine.fire(event, detail);
+    await engine.fire(event, detailOf(row));
+  }
+
+  /** One handle for the whole dispatch, and the same object `page.rows()` hands back. */
+  function detailOf(row?: RowAddress) {
+    return row ? rows.handle(row) : undefined;
   }
 
   function firePost(key: string) {

@@ -7,6 +7,7 @@ import { currentSession } from "@framework/ui/useSession";
 import { runningSource } from "@/pageEngine/context";
 import { readOnly } from "./readOnly";
 import type { HeldAct, TakeResult } from "@/pageEngine/heldActs";
+import { HeldLists, type StageToken } from "@/pageEngine/staging";
 import { BUILTIN, Surface } from "@/pageEngine/surface";
 import { FEED_ITEM_KEYS } from "./types";
 import type {
@@ -126,9 +127,12 @@ abstract class FeedSurface<Row extends Timed> extends Surface<FeedItem> {
   }
 }
 
+type TypesWrite = { source: string; list: VisibleTypes | null };
+
 export class ActivitySurface extends FeedSurface<ActivityItem> implements PageActivity {
   // `types` stages with its source, as an op does; the first entry is what the buffer starts from.
-  private stagedTypes: { source: string; list: VisibleTypes | null }[] = [];
+  private stagedTypes: TypesWrite[] = [];
+  private heldTypes = new HeldLists<TypesWrite>();
   private shown = ref<VisibleTypes | null>(null);
 
   constructor(private readonly host: ActivityHost) {
@@ -152,7 +156,7 @@ export class ActivitySurface extends FeedSurface<ActivityItem> implements PageAc
   }
 
   types(list: VisibleTypes) {
-    if (this.staging) this.stagedTypes.push({ source: runningSource(), list: [...list] });
+    if (this.staging) this.stageTypes({ source: runningSource(), list: [...list] });
     else this.showTypes([...list]);
   }
 
@@ -168,19 +172,19 @@ export class ActivitySurface extends FeedSurface<ActivityItem> implements PageAc
     this.warn("scrollTo", key, `${because}; the reader was not moved`);
   }
 
-  beginReplay() {
+  beginReplay(token?: StageToken) {
     this.stagedTypes = [{ source: BUILTIN, list: null }];
-    super.beginReplay();
+    super.beginReplay(token);
   }
 
   // A hold starts from the types on screen, as its ops start from the drawn list.
-  beginHold() {
+  beginHold(keeps?: boolean, token?: StageToken) {
     if (!this.staging) this.stagedTypes = [{ source: BUILTIN, list: this.shown.value }];
-    super.beginHold();
+    super.beginHold(keeps, token);
   }
 
-  commit() {
-    const last = super.commit();
+  commit(token?: StageToken) {
+    const last = super.commit(token);
     if (last) this.showTypes(this.typesWithout());
     return last;
   }
@@ -200,6 +204,21 @@ export class ActivitySurface extends FeedSurface<ActivityItem> implements PageAc
     } catch (error) {
       console.error(`[record-page] page.activity.scrollTo("${key}") — the host threw`, error);
     }
+  }
+
+  private stageTypes(write: TypesWrite) {
+    this.stagedTypes.push(write);
+    this.heldTypes.add(this.keeper, write);
+  }
+
+  protected restoreHeld(hold: StageToken) {
+    super.restoreHeld(hold);
+    this.stagedTypes.push(...this.heldTypes.of(hold));
+  }
+
+  protected forgetHeld(hold: StageToken) {
+    super.forgetHeld(hold);
+    this.heldTypes.drop(hold);
   }
 
   private typesWithout(except?: ReadonlySet<string>) {

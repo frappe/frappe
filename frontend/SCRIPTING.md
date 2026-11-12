@@ -1406,6 +1406,16 @@ A field handler runs when the reader commits that field: `status(page)` on a sta
 change, before any save. A child table's fields are addressed by the table, `products.qty`.
 A value a return visit's background read brings in fires no handler.
 
+A committed field change then re-runs `onRefresh` once, in the same hold as its handler, so
+the handler's changes and the redraw paint together. So a script does not call `page.refresh()`
+from a field handler to redraw: `onRefresh` already reads the new `page.doc`. The re-run
+follows a field of the form or of a child row, a row added or removed, and the edit a save
+flushes before `beforeSave`. It does not follow a Button's click, a change a script makes to
+`page.doc`, or a value a return visit brings in. What the handler itself draws with
+`page.fields`, `page.header`, `page.activity.types` and the like stays across that re-run: the page
+shows `onRefresh`'s work, then the handler's. The next edit's re-run drops it, as `page.refresh()`
+does. A `page.refresh()` the handler calls itself keeps what it drew before the call, the same way. A mark meant to last across later edits belongs in `onRefresh`, drawn from `page.doc`.
+
 A Button field holds no value: a click on it runs its handler, `authorize_api_access(page)`
 for a Button named `authorize_api_access`, as desk v1's `frm.trigger` does. A read-only
 Button is disabled. A Button in a child table's row runs nothing yet.

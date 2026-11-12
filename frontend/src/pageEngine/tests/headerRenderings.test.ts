@@ -670,6 +670,19 @@ describe("the cross-rendering anchor warning", () => {
     built.commit();
     expect(built.visible().map((item) => item.name)).toEqual(["refresh_quote"]);
   });
+
+  it("keeps the claims a keeping hold made across a replay inside it", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const built = surface([button("refresh_quote"), action("delete")]);
+    built.beginHold(true);
+    built.add(action("escalate"), { after: "refresh_quote" });
+    built.beginReplay();
+    built.commit();
+    built.commit();
+    expect(built.visible().map((item) => item.name)).toEqual(["refresh_quote", "escalate", "delete"]);
+    expect(warn).toHaveBeenCalledTimes(1);
+    warn.mockRestore();
+  });
 });
 
 // An undeclared `group` synthesises an anonymous container, so every shipped

@@ -7,35 +7,107 @@ export const RESTORED_VIEW = "onOpen ran on a view the page restored";
 
 /** What the page opens, closes and publishes on every overlay a replay or a hold stages. */
 export interface Staging {
-  beginReplay(): void;
-  beginHold(): void;
-  commit(): void;
+  /** `token` names this open, so an overlapping close takes its own, not the last opened. */
+  beginReplay(token?: StageToken): void;
+  /** `keeps`: a replay inside this hold puts back what the hold staged, as a field handler's marks must outlast the re-run. */
+  beginHold(keeps?: boolean, token?: StageToken): void;
+  commit(token?: StageToken): void;
   publishStaged(except: ReadonlySet<string>): void;
+}
+
+export type StageToken = object;
+
+/**
+ * The replays and holds open on an overlay, each with its token. A replay inside a keeping
+ * hold rebuilds from built-ins, then puts back what that hold itself staged (a field handler's marks).
+ */
+type OpenKind = "replay" | "hold" | "keeping";
+
+interface Open {
+  kind: OpenKind;
+  token: StageToken;
+}
+
+export class OpenStack {
+  private opens: Open[] = [];
+
+  get depth() {
+    return this.opens.length;
+  }
+
+  /** The keeping hold that owns what a script stages now: the last opened, when it keeps. A replay or a plain hold on top owns nothing. */
+  get keeper(): StageToken | null {
+    const top = this.opens.at(-1);
+    return top?.kind === "keeping" ? top.token : null;
+  }
+
+  open(kind: OpenKind, token: StageToken = {}) {
+    this.opens.push({ kind, token });
+  }
+
+  /**
+   * Closes the open with `token` (the last opened, with none). `restoreFrom` is the keeping hold
+   * opened before a closing replay, whose ops go back on; `last` when none remain.
+   */
+  close(token?: StageToken) {
+    const at = token ? this.opens.findIndex((one) => one.token === token) : this.opens.length - 1;
+    const [closed] = this.opens.splice(at, 1);
+    const below = closed.kind === "replay" ? this.opens.slice(0, at).findLast((one) => one.kind === "keeping") : undefined;
+    return { last: !this.opens.length, closed: closed.token, restoreFrom: below?.token ?? null };
+  }
+}
+
+/** What each keeping hold staged, by its token, for a replay in it to put back. */
+export class HeldLists<T> {
+  private lists = new Map<StageToken, T[]>();
+
+  add(keeper: StageToken | null, item: T) {
+    if (keeper) this.lists.set(keeper, [...this.of(keeper), item]);
+  }
+
+  of(token: StageToken) {
+    return this.lists.get(token) ?? [];
+  }
+
+  drop(token: StageToken) {
+    this.lists.delete(token);
+  }
+
+  removeWhere(drop: (item: T) => boolean) {
+    for (const [token, list] of this.lists) this.lists.set(token, list.filter((item) => !drop(item)));
+  }
+
+  clear() {
+    this.lists.clear();
+  }
 }
 
 export abstract class StagedOverlay<Op extends { source: string }> implements Staging {
   private pending: Op[] | null = null;
-  private depth = 0;
+  private opened = new OpenStack();
+  private held = new HeldLists<Op>();
 
   constructor(private readonly drawn: Op[]) {}
 
-  /** A replay rebuilds from built-ins, so it empties the buffer even inside a hold. */
-  beginReplay() {
+  /** A replay rebuilds from built-ins, so it empties the buffer even inside a hold; a keeping hold's ops go back on at its commit. */
+  beginReplay(token?: StageToken) {
     this.pending = [];
-    this.depth += 1;
+    this.opened.open("replay", token);
   }
 
   /** A hold stacks on what is drawn, or joins the buffer already open. */
-  beginHold() {
-    if (!this.depth) this.pending = [...toRaw(this.drawn)];
-    this.depth += 1;
+  beginHold(keeps = false, token?: StageToken) {
+    if (!this.opened.depth) this.pending = [...toRaw(this.drawn)];
+    this.opened.open(keeps ? "keeping" : "hold", token);
   }
 
   /** Closes a replay or a hold; true when it was the last open, which publishes. */
-  commit() {
-    if (!this.depth) return false;
-    this.depth -= 1;
-    if (this.depth) return false;
+  commit(token?: StageToken) {
+    if (!this.opened.depth) return false;
+    const { last, closed, restoreFrom } = this.opened.close(token);
+    if (restoreFrom) this.restoreHeld(restoreFrom);
+    this.forgetHeld(closed);
+    if (!last) return false;
     const staged = this.pending ?? [];
     this.pending = null;
     this.publish(staged);
@@ -58,11 +130,27 @@ export abstract class StagedOverlay<Op extends { source: string }> implements St
 
   /** True while a replay or a hold is open. */
   protected get staging() {
-    return this.depth > 0;
+    return this.opened.depth > 0;
+  }
+
+  /** The keeping hold that owns what is recorded now, if any. */
+  protected get keeper() {
+    return this.opened.keeper;
   }
 
   protected record(op: Op) {
     this.currentOps.push(op);
+    this.held.add(this.keeper, op);
+  }
+
+  /** Puts a hold's own ops back after a replay inside it rebuilt the buffer. */
+  protected restoreHeld(hold: StageToken) {
+    this.pending!.push(...this.held.of(hold));
+  }
+
+  /** An open closed: its ops are no longer kept. */
+  protected forgetHeld(hold: StageToken) {
+    this.held.drop(hold);
   }
 
   private publish(staged: Op[]) {

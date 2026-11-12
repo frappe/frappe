@@ -18,7 +18,7 @@ const hooks = vi.hoisted(() => ({ afterSave: Promise.resolve() }));
 // Node cannot import a blob-URL module.
 vi.mock("@/recordPage/evaluateClientScript", () => ({
   evaluateClientScript: async () => ({
-    onRefresh: (page: any) => page.quickActions.add({ name: "title", label: `title|${page.doc.title}` }),
+    onRefresh: (page: any) => page.quickActions.add({ name: "title", label: `title|${page.saved.title}` }),
     beforeSave: (page: any) => page.quickActions.add({ name: "before", label: "before|" }),
     afterSave: async (page: any) => {
       await hooks.afterSave;
