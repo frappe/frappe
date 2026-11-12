@@ -88,6 +88,7 @@ beforeEach(async () => {
 		read_only_mode: false,
 		bulk_actions: true,
 		bulk_operation_limit: 500,
+		session: { user: { name: "jane@example.com" } },
 	} as unknown as Boot;
 	fetchMock.mockReset().mockImplementation(async (url) => {
 		const path = new URL(String(url), "http://x").pathname;

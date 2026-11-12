@@ -1,8 +1,8 @@
 // The bulk bar's collaboration actions: the built-in items, and the one request a dialog opens with.
 import { computed, ref, type Ref } from "vue";
-import type { BulkPart, BulkSelection } from "@framework/ui/api";
+import type { BulkSelection } from "@framework/ui/api";
 import { useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
-import { __, __n } from "@/i18n";
+import { __ } from "@/i18n";
 import type { ListPageAction } from "@/listPage/types";
 
 export type CollabKind =
@@ -32,19 +32,12 @@ export interface CollabRequest extends BulkTarget {
 	kind: CollabKind;
 }
 
-export interface CollabCall {
-	part: BulkPart;
-	method: "POST" | "DELETE";
-	/** The body beside the selection, one call per entry. */
-	bodies: Record<string, unknown>[];
-}
-
 interface Spec {
 	label: string;
 	icon: string;
 	right: string;
 	button?: boolean;
-	needs?: "track_changes" | "track_seen";
+	needs?: "follow" | "track_seen";
 }
 
 const SPECS: Record<CollabKind, () => Spec> = {
@@ -57,8 +50,8 @@ const SPECS: Record<CollabKind, () => Spec> = {
 	}),
 	add_tags: () => ({ label: __("Add tags"), icon: "lucide-tag", right: "write", button: true }),
 	remove_tags: () => ({ label: __("Remove tags"), icon: "lucide-tags", right: "write" }),
-	follow: () => ({ label: __("Follow"), icon: "lucide-bell", right: "read", needs: "track_changes" }),
-	unfollow: () => ({ label: __("Unfollow"), icon: "lucide-bell-off", right: "read", needs: "track_changes" }),
+	follow: () => ({ label: __("Follow"), icon: "lucide-bell", right: "read", needs: "follow" }),
+	unfollow: () => ({ label: __("Unfollow"), icon: "lucide-bell-off", right: "read", needs: "follow" }),
 	share: () => ({ label: __("Share"), icon: "lucide-share-2", right: "share" }),
 	mark_seen: () => ({ label: __("Mark as seen"), icon: "lucide-eye", right: "read", needs: "track_seen" }),
 	mark_unseen: () => ({
@@ -73,55 +66,6 @@ export function kindLabel(kind: CollabKind): string {
 	return SPECS[kind]().label;
 }
 
-/** The records a confirmation names: "12 selected records", or "all 340 matching records". */
-export function scopeText({ count, all, approx }: Pick<BulkTarget, "count" | "all" | "approx">): string {
-	const shown = approx ? `${count}+` : String(count);
-	if (all) return __("all {0} matching records", [shown]);
-	return __n("{0} selected record", "{0} selected records", count, [shown]);
-}
-
-/** The calls a kind makes; `users`, `tags`, `colors` and `canWrite` are what its dialog collected. */
-export function callsFor(
-	kind: CollabKind,
-	input: { users?: string[]; tags?: string[]; colors?: Record<string, string>; canWrite?: boolean }
-): CollabCall[] {
-	const { users = [], tags = [], colors = {}, canWrite = false } = input;
-	switch (kind) {
-		case "assign":
-			return [{ part: "assignments", method: "POST", bodies: users.map((user) => ({ user })) }];
-		case "clear_assignment":
-			return [{ part: "assignments", method: "DELETE", bodies: [{}] }];
-		case "apply_assignment_rule":
-			return [{ part: "assignment_rule", method: "POST", bodies: [{}] }];
-		case "add_tags":
-			return [
-				{
-					part: "tags",
-					method: "POST",
-					bodies: tags.map((tag) => ({ tag, ...(colors[tag] ? { color: colors[tag] } : {}) })),
-				},
-			];
-		case "remove_tags":
-			return [{ part: "tags", method: "DELETE", bodies: tags.map((tag) => ({ tag })) }];
-		case "follow":
-			return [{ part: "follows", method: "POST", bodies: [{}] }];
-		case "unfollow":
-			return [{ part: "follows", method: "DELETE", bodies: [{}] }];
-		case "share":
-			return [
-				{
-					part: "shares",
-					method: "POST",
-					bodies: users.map((user) => ({ user, write: canWrite ? 1 : 0 })),
-				},
-			];
-		case "mark_seen":
-			return [{ part: "seen", method: "POST", bodies: [{}] }];
-		case "mark_unseen":
-			return [{ part: "seen", method: "DELETE", bodies: [{}] }];
-	}
-}
-
 export interface BulkCollaboration {
 	/** The built-in items for `provideBuiltins`. */
 	items: () => ListPageAction[];
@@ -131,12 +75,38 @@ export interface BulkCollaboration {
 	takesScope: (run: unknown) => boolean;
 }
 
-export function useBulkCollaboration(doctype: string, target: () => BulkTarget): BulkCollaboration {
+// The doctypes `_follow_document` refuses beside the log types, so Follow is hidden where the server never follows.
+const NEVER_FOLLOWED = new Set([
+	"Communication",
+	"ToDo",
+	"Email Unsubscribe",
+	"File",
+	"Comment",
+	"Email Account",
+	"Email Domain",
+	"Version",
+	"Error Log",
+	"Scheduled Job Log",
+	"Event Sync Log",
+	"Event Update Log",
+	"Access Log",
+	"View Log",
+	"Activity Log",
+	"Energy Point Log",
+	"Notification Log",
+	"Email Queue",
+	"DocShare",
+	"Document Follow",
+	"Console Log",
+]);
+
+/** `user` is the session user: the server does not let Administrator follow. */
+export function useBulkCollaboration(doctype: string, target: () => BulkTarget, user: string): BulkCollaboration {
 	const { meta } = useDoctypeMeta(doctype);
 	const tracks = computed(() => {
 		const tracked = meta.value as { track_changes?: number; track_seen?: number; issingle?: number } | null;
 		return {
-			track_changes: Boolean(tracked?.track_changes),
+			follow: Boolean(tracked?.track_changes) && !NEVER_FOLLOWED.has(doctype) && user !== "Administrator",
 			track_seen: Boolean(tracked?.track_seen) && !tracked?.issingle,
 		};
 	});

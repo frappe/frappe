@@ -58,7 +58,7 @@ afterEach(() => {
 function mountView(acts: ReturnType<typeof vi.fn>) {
 	const host = { controls: ref(null), bar: ref(null), selecting: ref(false), lists: createListPageLists(), acts, onCreate: () => {} };
 	const app = createApp(CardsView, { view: { doctype: "Note", filters: [], update: () => {} }, host });
-	app.provide("boot", { bulk_actions: 1, bulk_operation_limit: 500 });
+	app.provide("boot", { bulk_actions: 1, bulk_operation_limit: 500, session: { user: { name: "jane@example.com" } } });
 	app.mount(document.createElement("div"));
 	mounted.push(app);
 	return nextTick();

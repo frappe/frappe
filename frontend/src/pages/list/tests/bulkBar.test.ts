@@ -211,7 +211,7 @@ describe("useBulkBar", () => {
 				},
 			})
 		);
-		app.provide("boot", boot).mount(root);
+		app.provide("boot", { session: { user: { name: "jane@example.com" } }, ...boot }).mount(root);
 		return { result, lists, selection, scope, perform, askDelete, askPrint, supplied, app };
 	}
 

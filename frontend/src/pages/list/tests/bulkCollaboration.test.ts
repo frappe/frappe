@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { ref } from "vue";
-import { callsFor, scopeText, useBulkCollaboration, type BulkTarget } from "../bulkCollaboration";
+import { useBulkCollaboration, type BulkTarget } from "../bulkCollaboration";
+import { callsFor, scopeText } from "../collabCalls";
 
 const meta = ref<Record<string, unknown> | null>({ track_changes: 1, track_seen: 1 });
 vi.mock("@framework/ui/useDoctypeMeta", () => ({ useDoctypeMeta: () => ({ meta }) }));
@@ -52,7 +53,7 @@ describe("callsFor", () => {
 });
 
 describe("useBulkCollaboration", () => {
-	const items = () => useBulkCollaboration("ToDo", target).items();
+	const items = () => useBulkCollaboration("Note", target, "jane@example.com").items();
 	const shown = (name: string) => {
 		const item = items().find((one) => one.name === name)!;
 		return item.when ? item.when({} as never) : true;
@@ -71,8 +72,24 @@ describe("useBulkCollaboration", () => {
 		expect([shown("follow"), shown("mark_seen")]).toEqual([true, false]);
 	});
 
+	it("hides follow where the server never follows: ToDo, a log type, Administrator", () => {
+		const followShown = (doctype: string, user: string) => {
+			const item = useBulkCollaboration(doctype, target, user)
+				.items()
+				.find((one) => one.name === "follow")!;
+			return item.when!({} as never);
+		};
+		expect(followShown("Note", "jane@example.com")).toBe(true);
+		expect(followShown("ToDo", "jane@example.com")).toBe(false);
+		expect(followShown("Activity Log", "jane@example.com")).toBe(false);
+		expect(followShown("Note", "Administrator")).toBe(false);
+		meta.value = { track_changes: 0, track_seen: 1 };
+		expect(followShown("Note", "jane@example.com")).toBe(false);
+		meta.value = { track_changes: 1, track_seen: 1 };
+	});
+
 	it("asks each item's right and opens the dialog with the target frozen at the click", () => {
-		const collab = useBulkCollaboration("ToDo", target);
+		const collab = useBulkCollaboration("Note", target, "jane@example.com");
 		const rights = Object.fromEntries(collab.items().map((item) => [item.name, item.right]));
 		expect(rights).toMatchObject({ assign: "write", add_tags: "write", share: "share", follow: "read" });
 		collab.items().find((item) => item.name === "share")!.run!({} as never);

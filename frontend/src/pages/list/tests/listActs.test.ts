@@ -107,6 +107,7 @@ const boot = {
   read_only_mode: false,
   bulk_actions: true,
   bulk_operation_limit: 500,
+  session: { user: { name: "jane@example.com" } },
 } as unknown as Boot;
 
 const SESSION: Session = {

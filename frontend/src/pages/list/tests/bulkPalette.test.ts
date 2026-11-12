@@ -96,7 +96,7 @@ function bar({
     }),
   );
   app
-    .provide("boot", { bulk_actions: !locked, bulk_operation_limit: cap })
+    .provide("boot", { bulk_actions: !locked, bulk_operation_limit: cap, session: { user: { name: "jane@example.com" } } })
     .mount(document.createElement("div"));
   mounted = { app, release: () => release() };
   if (script)

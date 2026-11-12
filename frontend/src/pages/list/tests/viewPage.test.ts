@@ -51,6 +51,7 @@ const boot = {
   prefixes: { crm: { app: "crm", modular: false } },
   bulk_actions: true,
   bulk_operation_limit: 500,
+  session: { user: { name: "jane@example.com" } },
 } as unknown as Boot;
 
 const apps: App[] = [];

@@ -56,7 +56,8 @@ import TagChip from "@/pages/record/panel/TagChip.vue";
 import TagPicker from "@/pages/record/panel/TagPicker.vue";
 import { useTagSession } from "@/pages/record/panel/tagSession";
 import { recolourTag } from "@/tagApi";
-import { callsFor, kindLabel, scopeText, type CollabRequest } from "./bulkCollaboration";
+import { kindLabel, type CollabRequest } from "./bulkCollaboration";
+import { callsFor, scopeText } from "./collabCalls";
 
 const props = defineProps<{ request: CollabRequest; doctype: string; reload: () => void }>();
 const emit = defineEmits<{ close: [] }>();

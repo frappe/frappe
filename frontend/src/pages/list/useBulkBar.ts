@@ -70,12 +70,16 @@ export function useBulkBar(options: BulkBarOptions): BulkBar {
     reload: options.reload,
   });
 
-  const collab = useBulkCollaboration(options.doctype, () => ({
-    selection: options.scope.selected(),
-    count: options.scope.count.value,
-    all: options.scope.all.value,
-    approx: options.scope.approx.value,
-  }));
+  const collab = useBulkCollaboration(
+    options.doctype,
+    () => ({
+      selection: options.scope.selected(),
+      count: options.scope.count.value,
+      all: options.scope.all.value,
+      approx: options.scope.approx.value,
+    }),
+    boot.session.user.name,
+  );
 
   bulkList.provideBuiltins(() => [
     ...status.items.value,
