@@ -160,6 +160,27 @@ class TestFlowToolSessionWarning(IntegrationTestCase):
 			self.tool.save()
 		self.assertIn("Existing sessions", msgprint.call_args.args[0])
 
+	def test_what_chats_call_cannot_be_renamed(self):
+		parent = frappe.get_doc(
+			{
+				"doctype": "Flow Agent",
+				"title": "Tool Warning Parent",
+				"model": self.agent.model,
+				"instructions": "x",
+				"sub_agents": [{"agent": self.agent.name}],
+				"enabled": 1,
+			}
+		).insert()
+		frappe.rename_doc("Flow Tool", self.tool.name, "get_weather_now")  # no chats yet
+
+		frappe.get_doc({"doctype": "Flow Session", "agent": parent.name}).insert()
+		for doctype, name, new in (
+			("Flow Tool", "get_weather_now", "get_weather"),
+			("Flow Agent", self.agent.name, "Renamed Agent"),
+		):
+			with self.subTest(doctype), self.assertRaisesRegex(frappe.ValidationError, "would break"):
+				frappe.rename_doc(doctype, name, new)
+
 
 def _listed(name: str, description: str, extension: str = "helpdesk") -> dict:
 	return {"name": name, "description": description, "extension": extension}

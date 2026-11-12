@@ -102,6 +102,15 @@ def warn_existing_sessions(agents: list[str]) -> None:
 		)
 
 
+def block_rename_in_chats(old: str, agents: list[str]) -> None:
+	"""Chats call tools and sub-agents by the names they started with."""
+	if agents and frappe.db.exists("Flow Session", {"agent": ("in", agents)}):
+		frappe.throw(
+			_("Existing chats call {0} by this name, so renaming it would break them.").format(old),
+			title=_("In Use"),
+		)
+
+
 @contextmanager
 def flow_server() -> Generator[DaemonClient]:
 	"""This site's flow server client, whose refusals surface as validation errors."""
