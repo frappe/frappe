@@ -31,7 +31,7 @@ function input(extra: Partial<ContextMenuInput> = {}): ContextMenuInput {
 const shape = (options: ReturnType<typeof contextMenuOptions>) =>
 	options.map((group) => [
 		"group" in group && !group.hideLabel ? group.group : "",
-		"options" in group ? group.options.map((one) => ("label" in one ? one.label : "")) : [],
+		"options" in group ? group.options.map((one: { label?: string }) => one.label ?? "") : [],
 	]);
 
 describe("contextMenuOptions", () => {
