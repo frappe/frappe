@@ -46,7 +46,7 @@ export function useRowSelection(
     const selecting = !isSelected(value);
     const between = range ? rowsBetween(anchor.value, value) : [value];
     setRows(between, selecting);
-    anchor.value = value;
+    anchor.value = selection.value.length ? value : null;
   }
 
   /** Selects the rows from the anchor to `value`; with no anchor, `value` alone. */

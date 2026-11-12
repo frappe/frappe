@@ -115,6 +115,13 @@ describe("BulkBar", () => {
 		expect(clear).toHaveBeenCalledOnce();
 	});
 
+	it("opens More on a click, with its Tooltip around the button", async () => {
+		const { root } = mount({ count: 2, layout: layoutBulk([entry("edit", { label: "Edit" })], "ToDo") });
+		button(root, "More")!.click();
+		await nextTick();
+		expect(document.body.querySelector("[role=menu]")?.textContent).toContain("Edit");
+	});
+
 	it("says it is over the cap", () => {
 		const { root } = mount({ count: 501, layout: layoutBulk([entry("edit", { button: true })], "ToDo") });
 		expect(root.textContent).toContain("Over the 500 cap");

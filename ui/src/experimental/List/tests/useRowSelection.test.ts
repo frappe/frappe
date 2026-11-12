@@ -90,6 +90,14 @@ describe("useRowSelection", () => {
       expect(selection.value).toEqual(["D"]);
     });
 
+    it("forgets the anchor when the toggle itself empties the selection", () => {
+      const { selection, toggle } = five();
+      toggle("A");
+      toggle("A");
+      toggle("D", true);
+      expect(selection.value).toEqual(["D"]);
+    });
+
     it("extends from the anchor and moves it", () => {
       const { selection, toggle, extendTo } = five();
       toggle("B");

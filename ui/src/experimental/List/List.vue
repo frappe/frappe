@@ -84,9 +84,9 @@
 					:value="rowValue(row)"
 					:route="rowLink?.(row)"
 					@pointerenter="enter(rowValue(row))"
-					@pointerleave="leave(rowValue(row), $event)"
-					@focusin="enter(rowValue(row))"
-					@focusout="leave(rowValue(row), $event)"
+					@pointerleave="leave(rowValue(row))"
+					@focusin="focus(rowValue(row))"
+					@focusout="blur(rowValue(row))"
 				>
 					<!-- The molecule's own `selectable` turns a row click into a toggle; the row must stay
 						a link, so the checkbox is drawn here (frappe/frappe-ui#1131). -->
@@ -97,9 +97,10 @@
 							:aria-checked="isSelected(rowValue(row))"
 							:aria-label="`Select ${rowValue(row)}`"
 							tabindex="0"
+							@mousedown.shift.prevent
 							@click.stop.prevent="toggle(rowValue(row), $event.shiftKey)"
-							@keydown.enter.stop.prevent="toggle(rowValue(row))"
-							@keydown.space.stop.prevent="toggle(rowValue(row))"
+							@keydown.enter.stop.prevent="toggle(rowValue(row), $event.shiftKey)"
+							@keydown.space.stop.prevent="toggle(rowValue(row), $event.shiftKey)"
 						>
 							<Checkbox
 								:modelValue="isSelected(rowValue(row))"
@@ -241,7 +242,9 @@ const { selectAllState, isSelected, toggle, extendTo, toggleSelectAll } = useRow
 	rows,
 	toRef(props, "rowKey")
 );
-const { enter, leave } = useRowCursor(cursor);
+const { enter, leave, focus, blur } = useRowCursor(cursor, () =>
+	virtualRows.value.map(({ data }) => rowValue(data))
+);
 
 const { drafts, resizingFieldname, startResize, resetColumn } = useColumnResize({
 	onResize: (fieldname, width) => emit("column-resize", { fieldname, width }),

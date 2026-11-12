@@ -46,14 +46,23 @@
 					side="bottom"
 					align="start"
 				>
-					<Tooltip :disabled="menuOpen">
-						<template #content>
-							<span class="flex items-center gap-2 [&_[data-slot=key]]:text-ink-gray-4">
-								{{ __("More actions") }} <KeyboardShortcut combo="Period" />
-							</span>
-						</template>
-						<Button variant="ghost" :label="__('More')" icon-right="lucide-chevron-down" />
-					</Tooltip>
+					<!-- The Dropdown trigger needs a plain element: Tooltip drops the trigger's props. -->
+					<div class="flex shrink-0">
+						<Tooltip>
+							<template v-if="!menuOpen" #content>
+								<span
+									class="flex items-center gap-2 [&_[data-slot=key]]:text-ink-gray-4"
+								>
+									{{ __("More actions") }} <KeyboardShortcut combo="Period" />
+								</span>
+							</template>
+							<Button
+								variant="ghost"
+								:label="__('More')"
+								icon-right="lucide-chevron-down"
+							/>
+						</Tooltip>
+					</div>
 				</Dropdown>
 				<Tooltip v-if="layout.trash" :text="layout.trash.label">
 					<Button
