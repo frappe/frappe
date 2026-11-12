@@ -86,7 +86,12 @@
 						</div>
 					</div>
 
-					<div v-show="selecting" :ref="setBar" :class="pageGutter" class="shrink-0 pt-3.5" />
+					<div
+						v-show="selecting"
+						:ref="setBar"
+						:class="pageGutter"
+						class="shrink-0 pt-3.5"
+					/>
 
 					<div class="relative flex min-h-0 flex-1 flex-col pt-2">
 						<component
