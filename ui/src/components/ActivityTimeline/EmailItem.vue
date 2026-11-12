@@ -32,22 +32,30 @@
 						<TimeAgo :timestamp="email.timestamp" class="text-sm" />
 					</div>
 					<div
-						v-if="email.data.to || email.data.cc || email.data.bcc"
+						v-if="subject || email.data.to || email.data.cc || email.data.bcc"
 						class="pb-2 text-p-sm text-ink-gray-5"
 					>
-						<template
-							v-for="(val, label) in {
-								To: email.data.to,
-								cc: email.data.cc,
-								bcc: email.data.bcc,
-							}"
-							:key="label"
-						>
-							<span v-if="val" class="me-1.5">
-								<span class="me-1 text-ink-gray-7">{{ label }}:</span>
-								<span>{{ splitRecipients(val).join(", ") }}</span>
-							</span>
-						</template>
+						<div v-if="email.data.to || email.data.cc || email.data.bcc">
+							<template
+								v-for="(val, label) in {
+									To: email.data.to,
+									cc: email.data.cc,
+									bcc: email.data.bcc,
+								}"
+								:key="label"
+							>
+								<span v-if="val" class="me-1.5">
+									<span class="me-1">{{ label }}:</span>
+									<span class="text-ink-gray-7">{{
+										splitRecipients(val).join(", ")
+									}}</span>
+								</span>
+							</template>
+						</div>
+						<div v-if="subject">
+							<span class="me-1">Subject:</span>
+							<span class="text-ink-gray-8">{{ subject }}</span>
+						</div>
 					</div>
 				</slot>
 			</div>
@@ -79,6 +87,8 @@ import type { EmailItemProps } from "./types";
 import { splitRecipients } from "./utils";
 
 const props = defineProps<EmailItemProps>();
+
+const subject = computed(() => (props.showSubject ? props.email.data.subject : ""));
 
 const status = computed(() => {
 	const deliveryStatus = props.email.data.deliveryStatus ?? "";
