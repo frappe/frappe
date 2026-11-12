@@ -61,7 +61,7 @@
 							}"
 						>
 							<div
-								v-for="(mf, mi) in row_merges(col, row)"
+								v-for="(mf, mi) in row_merges(col, row, i)"
 								:key="mi"
 								class="cell-line"
 								:class="`cell-line--${mf.style || 'primary'}`"
