@@ -68,7 +68,7 @@ class TestApi(IntegrationTestCase):
 			app = make_studio_app(
 				app_name="cfg-" + frappe.generate_hash(length=8), is_standard=1, frappe_app="frappe"
 			)
-			for file_path in ("tailwind.config.js", "Tailwind.Config.js"):
+			for file_path in ("tailwind.config.js", "Tailwind.Config.js", "tailwind.config.ts"):
 				for call in (
 					lambda: write_studio_file("frappe", app.name, file_path, "module.exports = {}"),
 					lambda: create_studio_file("frappe", app.name, file_path),
