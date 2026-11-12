@@ -200,7 +200,9 @@ class TestClientScriptsForTheListPage(IntegrationTestCase):
 		self.assertEqual(script_names(), ["note-record-script"])
 
 	def test_is_invisible_to_desk_v1(self):
-		make_script("note-list-page-script", view="List Page", script="export default { onRefresh() {} }").insert()
+		make_script(
+			"note-list-page-script", view="List Page", script="export default { onRefresh() {} }"
+		).insert()
 		frappe.clear_cache(doctype="Note")
 
 		meta = get_meta("Note")
