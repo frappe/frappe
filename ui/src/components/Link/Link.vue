@@ -14,10 +14,10 @@
 		:options="linkOptions"
 		:filterable="!idLabels"
 		:disabled="disabled"
-		:placeholder="placeholder ?? `Search ${doctype.toLowerCase()}`"
+		:placeholder="shownPlaceholder"
 		:loading="options.loading.value && !options.data.value"
 		@input="onInput(($event.target as HTMLInputElement).value)"
-		@focus="showAllOptions"
+		@focus="onFocus"
 	>
 		<template v-for="(_, name) in forwardedSlots" #[name]="slotProps" :key="name">
 			<slot :name="name" v-bind="slotProps" />
@@ -102,6 +102,7 @@ import { useLinkSearch } from "../../composables/useLinkSearch";
 import { translate as __ } from "../../utils/translate";
 import RecordAnchor from "./RecordAnchor.vue";
 import PickerListFit from "../Fields/PickerListFit.vue";
+import { useFittedPlaceholder } from "./fittedPlaceholder";
 import type { LinkExposed, LinkProps, LinkEmits } from "./types";
 
 const props = withDefaults(defineProps<LinkProps>(), {
@@ -116,6 +117,13 @@ const props = withDefaults(defineProps<LinkProps>(), {
 const model = defineModel<string | null>({ default: null });
 const open = defineModel<boolean>("open", { default: false });
 const comboboxRef = ref<{ focus: () => void } | null>(null);
+const placeholderText = computed(
+	() => props.placeholder ?? `Search ${props.doctype.toLowerCase()}`
+);
+const fitted = useFittedPlaceholder(() => placeholderText.value);
+const shownPlaceholder = computed(() =>
+	props.panel ? fitted.placeholder.value : placeholderText.value
+);
 
 const emit = defineEmits<LinkEmits>();
 
@@ -186,6 +194,11 @@ const loadOptions = (txt: string = "", fresh = false) => {
 	searchedAt = Date.now();
 	void options.search(txt, { fresh });
 };
+
+function onFocus(event: FocusEvent) {
+	if (props.panel) fitted.fit(event.target as HTMLInputElement);
+	showAllOptions();
+}
 
 const showAllOptions = () => {
 	const expired = Date.now() - searchedAt > OPTIONS_MAX_AGE_MS;

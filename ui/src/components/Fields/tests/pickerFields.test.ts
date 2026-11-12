@@ -142,15 +142,24 @@ describe("Link in panel mode", () => {
 
 describe("PickerListFit", () => {
   // jsdom lays nothing out: the panel's rect and a label's overflow are given.
-  function mountList(bound: { left: number; width: number }, overflowing: boolean) {
+  function mountList(
+    bound: { left: number; width: number },
+    overflowing: boolean,
+    row: { bottom: number; ownMaxHeight?: string } = { bottom: 0 }
+  ) {
     const panel = document.createElement("div");
     panel.setAttribute("data-picker-bound", "");
     panel.getBoundingClientRect = () => ({ left: bound.left, width: bound.width }) as DOMRect;
     const box = document.createElement("div");
+    box.getBoundingClientRect = () => ({ bottom: row.bottom }) as DOMRect;
     panel.appendChild(box);
     const list = document.createElement("div");
     list.setAttribute("data-slot", "content");
     list.innerHTML = '<div role="option"><div class="truncate">A long option</div></div><div id="foot"></div>';
+    const scroller = document.createElement("div");
+    scroller.setAttribute("role", "presentation");
+    scroller.style.maxHeight = row.ownMaxHeight ?? "";
+    list.prepend(scroller);
     const label = list.querySelector<HTMLElement>(".truncate")!;
     Object.defineProperty(label, "scrollWidth", { value: overflowing ? 300 : 50 });
     Object.defineProperty(label, "clientWidth", { value: 100 });
@@ -169,6 +178,41 @@ describe("PickerListFit", () => {
   it("keeps the list's left edge on the panel's when the viewport edge would shift it", () => {
     const left = innerWidth - 200;
     expect(mountList({ left, width: 380 }, false).style.maxWidth).toBe("190px");
+  });
+
+  it("caps the list's scroller at the room under the row, so the list opens below it", () => {
+    const list = mountList({ left: 0, width: 380 }, false, { bottom: innerHeight - 300 });
+    expect(list.querySelector<HTMLElement>('[role="presentation"]')!.style.maxHeight).toBe("284px");
+  });
+
+  it("keeps the list's own cap when the room under the row is larger", () => {
+    const list = mountList({ left: 0, width: 380 }, false, { bottom: 0, ownMaxHeight: "200px" });
+    expect(list.querySelector<HTMLElement>('[role="presentation"]')!.style.maxHeight).toBe(
+      `min(200px, ${innerHeight - 16}px)`
+    );
+  });
+
+  it("scrolls a row near the window's bottom up, so the list has room", () => {
+    const scrolled = vi.fn();
+    const scroller = document.createElement("div");
+    scroller.style.overflowY = "auto";
+    Object.defineProperty(scroller, "scrollHeight", { value: 900 });
+    Object.defineProperty(scroller, "clientHeight", { value: 400 });
+    scroller.scrollBy = scrolled as never;
+    document.body.append(scroller);
+    const box = document.createElement("div");
+    box.getBoundingClientRect = () => ({ bottom: innerHeight - 14 }) as DOMRect;
+    scroller.append(box);
+    const list = document.createElement("div");
+    list.setAttribute("data-slot", "content");
+    list.innerHTML = '<div id="foot"></div>';
+    document.body.append(list);
+    const app = createApp(PickerListFit);
+    app.provide(fieldBoxKey, ref(box));
+    app.mount(list.querySelector("#foot")!);
+    apps.push(app);
+    // 120px of list and the 16px gap, less the 14px already free.
+    expect(scrolled).toHaveBeenCalledWith({ top: 122, behavior: "instant" });
   });
 
   it("titles an option the list truncates, and none it does not", () => {

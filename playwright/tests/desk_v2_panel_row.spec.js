@@ -1053,7 +1053,6 @@ test.describe("Desk v2 side panel row: required label gap", () => {
 	});
 });
 
-
 const PICKER_DOCTYPE = "Panel Picker 46992";
 const PICKER_SLUG = "panel-picker-46992";
 
@@ -1133,6 +1132,44 @@ const PICKER_LAYOUT = [
 ];
 const POPOVER = "[data-reka-popper-content-wrapper]";
 const DATE_LIKE = ["p_date", "p_datetime", "p_time"];
+
+// What a picker's controls draw inside its row: they must add no fill, border or ring of their own.
+function measureInnerBoxes(fieldname) {
+	const box = document
+		.querySelector(`.field-box [data-fieldname="${fieldname}"]`)
+		.closest(".field-box");
+	const width = box.getBoundingClientRect().width;
+	return [
+		...box.querySelectorAll(
+			'[data-slot="trigger"], [data-slot="control"], [data-slot="input"]'
+		),
+	].map((el) => {
+		const style = getComputedStyle(el);
+		const rings = [
+			...style.boxShadow.matchAll(/(-?[\d.]+)px (-?[\d.]+)px (-?[\d.]+)px (-?[\d.]+)px/g),
+		];
+		return {
+			slot: el.dataset.slot,
+			width: el.getBoundingClientRect().width,
+			boxWidth: width,
+			fill: style.backgroundColor,
+			border: style.borderTopWidth,
+			ring: rings.every((m) => m.slice(1).every((n) => parseFloat(n) === 0)),
+			outline: style.outlineStyle === "none" || style.outlineColor === "rgba(0, 0, 0, 0)",
+		};
+	});
+}
+
+function expectOneBox(inner) {
+	expect(inner.length).toBeGreaterThan(0);
+	for (const el of inner) {
+		expect(el.fill).toBe("rgba(0, 0, 0, 0)");
+		expect(el.border).toBe("0px");
+		expect(el.ring).toBe(true);
+		expect(el.outline).toBe(true);
+		if (el.slot !== "input") expect(el.width).toBeCloseTo(el.boxWidth, 1);
+	}
+}
 
 // The geometry of one picker row. An open picker has an input to type in, or only a trigger (Select).
 function measurePicker(fieldname) {
@@ -1296,52 +1333,84 @@ test.describe("Desk v2 side panel picker rows", () => {
 		}) => {
 			await cell(page, fieldname).click();
 			await expect(page.locator(POPOVER)).toBeVisible();
-			const inner = await page.evaluate((fieldname) => {
-				const box = document
-					.querySelector(`.field-box [data-fieldname="${fieldname}"]`)
-					.closest(".field-box");
-				const width = box.getBoundingClientRect().width;
-				return [
-					...box.querySelectorAll(
-						'[data-slot="trigger"], [data-slot="control"], [data-slot="input"]'
-					),
-				].map((el) => {
-					const style = getComputedStyle(el);
-					const rings = [
-						...style.boxShadow.matchAll(
-							/(-?[\d.]+)px (-?[\d.]+)px (-?[\d.]+)px (-?[\d.]+)px/g
-						),
-					];
-					return {
-						slot: el.dataset.slot,
-						width: el.getBoundingClientRect().width,
-						boxWidth: width,
-						fill: style.backgroundColor,
-						border: style.borderTopWidth,
-						ring: rings.every((m) => m.slice(1).every((n) => parseFloat(n) === 0)),
-						outline:
-							style.outlineStyle === "none" ||
-							style.outlineColor === "rgba(0, 0, 0, 0)",
-					};
-				});
-			}, fieldname);
-			expect(inner.length).toBeGreaterThan(0);
-			for (const el of inner) {
-				expect(el.fill).toBe("rgba(0, 0, 0, 0)");
-				expect(el.border).toBe("0px");
-				expect(el.ring).toBe(true);
-				expect(el.outline).toBe(true);
-				if (el.slot !== "input") expect(el.width).toBeCloseTo(el.boxWidth, 1);
-			}
+			expectOneBox(await page.evaluate(measureInnerBoxes, fieldname));
 		});
 	}
 
-	test("a placeholder too long for the box ends in an ellipsis", async ({ page }) => {
-		await cell(page, "p_long").click();
+	// Closed with focus left in the row, a control used to draw its own ring over the row's. Esc ends an
+	// Autocomplete's edit, so it closes through its chevron; Esc closes only a Select's list.
+	for (const [fieldname, close] of [
+		["p_select", (page) => page.keyboard.press("Escape")],
+		["p_auto", (page) => cell(page, "p_auto").locator("button").last().click()],
+	]) {
+		test(`${fieldname} draws one box when its list is closed and the row has focus`, async ({
+			page,
+		}) => {
+			await cell(page, fieldname).click();
+			await expect(page.locator(POPOVER)).toBeVisible();
+			await close(page);
+			await expect(page.locator(POPOVER)).toHaveCount(0);
+			expectOneBox(await page.evaluate(measureInnerBoxes, fieldname));
+		});
+	}
+
+	test("a placeholder too long for the box ends in an ellipsis, also while the row has focus", async ({
+		page,
+	}) => {
 		const input = page.locator('.field-box [data-fieldname="p_long"] input');
-		await expect(input).toHaveAttribute("placeholder", "Add Dynamic Link target field...");
+		await cell(page, "p_long").click();
+		await expect(input).toHaveAttribute("placeholder", /…$/);
 		expect(await input.evaluate((el) => getComputedStyle(el).textOverflow)).toBe("ellipsis");
+		// Chromium cuts a focused input's placeholder hard, so the text itself must fit and end in "…".
+		const { fits, focused } = await input.evaluate((el) => {
+			const probe = document.createElement("canvas").getContext("2d");
+			const style = getComputedStyle(el);
+			probe.font = `${style.fontStyle} ${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+			const room =
+				el.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+			return {
+				fits: probe.measureText(el.placeholder).width <= room + 0.5,
+				focused: document.activeElement === el,
+			};
+		});
+		expect(focused).toBe(true);
+		expect(fits).toBe(true);
 	});
+
+	for (const [fieldname, label] of [
+		["p_dynamic", "Dynamic Link"],
+		["p_link", "Link"],
+		["p_select", "Select"],
+		["p_auto", "Autocomplete"],
+	]) {
+		for (const below of [60, 14]) {
+			test(`a ${label} list opens below its row and inside the window with ${below}px left under the row`, async ({
+				page,
+			}) => {
+				await cell(page, fieldname).scrollIntoViewIfNeeded();
+				const bottom = await cell(page, fieldname).evaluate(
+					(el) => el.closest(".field-box").getBoundingClientRect().bottom
+				);
+				await page.setViewportSize({ width: 1440, height: Math.round(bottom) + below });
+				await cell(page, fieldname).click();
+				await expect(page.locator(POPOVER)).toBeVisible();
+				await page.waitForTimeout(300);
+				const { row, list } = await page.evaluate((fieldname) => {
+					const rect = (el) => el.getBoundingClientRect();
+					return {
+						row: rect(
+							document
+								.querySelector(`.field-box [data-fieldname="${fieldname}"]`)
+								.closest(".field-box")
+						),
+						list: rect(document.querySelector('[data-slot="content"]')),
+					};
+				}, fieldname);
+				expect(list.top).toBeGreaterThanOrEqual(row.bottom);
+				expect(list.bottom).toBeLessThanOrEqual(page.viewportSize().height);
+			});
+		}
+	}
 
 	test("a Dynamic Link with no doctype stays closed and does not throw", async ({ page }) => {
 		const errors = [];
