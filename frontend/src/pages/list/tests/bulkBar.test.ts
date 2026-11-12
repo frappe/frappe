@@ -72,6 +72,12 @@ describe("layoutBulk", () => {
 		);
 		expect(three.transitions).toEqual([]);
 		expect(labels(three.menu)).toEqual([["Workflow", ["a", "b", "c"]]]);
+
+		const flagged = layoutBulk(
+			["a", "b", "c"].map((name) => entry(name, { group: "workflow", button: true })),
+			"ToDo"
+		);
+		expect(labels(flagged.menu)).toEqual([["Workflow", ["a", "b", "c"]]]);
 	});
 });
 
@@ -128,13 +134,14 @@ describe("useBulkBar", () => {
 		const selection = ref(["A", "B"]);
 		const perform = vi.fn();
 		const askDelete = vi.fn();
+		const supplied: Array<() => Array<{ item: { name: string } }>> = [];
 		let result!: ReturnType<typeof useBulkBar>;
 		const root = document.createElement("div");
 		const app = createApp(
 			defineComponent({
 				setup() {
 					result = useBulkBar({
-						host: { lists, acts: () => ({ drawn, perform }) } as never,
+						host: { lists, acts: (supply: never) => (supplied.push(supply), { drawn, perform }) } as never,
 						doctype: "ToDo",
 						selection,
 						rows: ref([]),
@@ -147,7 +154,7 @@ describe("useBulkBar", () => {
 			})
 		);
 		app.provide("boot", boot).mount(root);
-		return { result, lists, selection, perform, askDelete, app };
+		return { result, lists, selection, perform, askDelete, supplied, app };
 	}
 
 	const open = { bulk_actions: true, bulk_operation_limit: 500 };
@@ -176,6 +183,7 @@ describe("useBulkBar", () => {
 
 		const locked = bar({ bulk_actions: false, bulk_operation_limit: 500 });
 		expect(locked.result.locked).toBe(true);
+		expect(locked.supplied[0]().map(({ item }) => item.name)).not.toContain("delete");
 		expect(locked.result.layout.value.menu).toEqual([]);
 		locked.app.unmount();
 	});

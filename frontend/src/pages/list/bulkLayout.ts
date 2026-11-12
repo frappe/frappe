@@ -64,7 +64,7 @@ function menuGroups(entries: BulkEntry[], doctype: string, workflowInMenu: boole
 			group: label,
 			theme: group === "danger" ? ("red" as const) : undefined,
 			options: entries
-				.filter((entry) => entry.group === group && !entry.button)
+				.filter((entry) => entry.group === group && (!entry.button || group === "workflow"))
 				.map((entry) => menuOption(entry, group === "danger")),
 		}))
 		.filter((group) => group.options.length);

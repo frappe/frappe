@@ -142,7 +142,9 @@ import { LinkMark, LinkTitlesKey, isEmailField, isPhoneField } from "@framework/
 import type { FieldMeta } from "@framework/ui/fields/types";
 import { mapField, type RawMetaField } from "@framework/ui/FormLayout";
 import { List, ListFooter } from "@framework/ui/experimental/List";
+import { toast } from "frappe-ui";
 import { computed, defineAsyncComponent, onScopeDispose, provide, ref, watchEffect } from "vue";
+import { __ } from "@/i18n";
 import { useListView } from "@/list/useListView";
 import { useScrollMemory } from "@/list/useScrollMemory";
 import type { View } from "@/list/view";
@@ -213,7 +215,13 @@ props.host.onCreate(reload);
 provide(LinkTitlesKey, linkTitles);
 
 const table = ref<{ viewportElement: HTMLElement | null } | null>(null);
-const DeleteDialog = defineAsyncComponent(() => import("./DeleteDialog.vue"));
+const DeleteDialog = defineAsyncComponent({
+	loader: () => import("./DeleteDialog.vue"),
+	onError: (_error, _retry, fail) => {
+		toast.error(__("The delete dialog did not load. Reload the page and try again."));
+		fail();
+	},
+});
 const confirmingDelete = ref(false);
 const deleteOpened = ref(false);
 

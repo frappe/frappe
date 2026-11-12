@@ -45,7 +45,7 @@ export function useBulkBar(options: BulkBarOptions): BulkBar {
 
 	const listActs = host.acts(
 		() => [
-			...(selection.value.length ? bulkEntries() : []),
+			...(selection.value.length && boot.bulk_actions ? bulkEntries() : []),
 			...rowActionEntries(options.rowActions.value),
 		],
 		{ rows: () => options.rows.value, selection: () => selection.value, reload: options.reload }
