@@ -18,11 +18,14 @@ const fetching = new Map<string, Promise<void>>();
 // A doctype enters it once its files have loaded, so a failed fetch is tried again.
 const loaded = shallowRef(new Map<string, LoadedListScript[]>());
 
-/** Resolves when the doctype's list.js files and its fresh List Page Client Scripts have loaded. */
-export function loadListScripts(doctype: string): Promise<void> {
+/**
+ * Resolves when the doctype's list.js files and its fresh List Page Client Scripts have loaded.
+ * `scripted` is whether boot lists the doctype as holding a Client Script; false skips the fetch.
+ */
+export function loadListScripts(doctype: string, scripted = true): Promise<void> {
   // The tier is fetched beside the files and registers after them; a failed fetch skips only the files.
   const files = loadListFiles(doctype);
-  return Promise.all([loadClientScripts(doctype, LIST_PAGE_TIER, files), files]).then(() => {});
+  return Promise.all([loadClientScripts(doctype, LIST_PAGE_TIER, files, !scripted), files]).then(() => {});
 }
 
 function loadListFiles(doctype: string): Promise<void> {

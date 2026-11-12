@@ -165,6 +165,15 @@ def get_client_scripts(dt: str, view: str = "Record", page: str | None = None):
 	}
 
 
+def list_page_doctypes() -> list[str]:
+	"""The doctypes the caller can read that have an enabled List Page script; a list of any other skips the fetch."""
+	doctypes = frappe.get_all(
+		"Client Script", filters={"view": "List Page", "enabled": 1}, pluck="dt", distinct=True
+	)
+	existing = set(frappe.get_all("DocType", filters={"name": ["in", doctypes]}, pluck="name"))
+	return sorted(dt for dt in existing if frappe.has_permission(dt, "read"))
+
+
 def served_scripts(rows) -> list[dict]:
 	"""Each row as the page runs it: a script with a `template:` string goes compiled, or with its error and no code."""
 	sources = {row.name: row.script for row in rows if holds_template(row.script)}

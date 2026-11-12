@@ -11,6 +11,7 @@ from frappe.custom.doctype.client_script import client_script
 from frappe.custom.doctype.client_script.client_script import (
 	CompilerUnavailable,
 	get_client_scripts,
+	list_page_doctypes,
 	reorder,
 )
 from frappe.desk.form.meta import get_meta
@@ -228,6 +229,31 @@ class TestClientScriptsForTheListPage(IntegrationTestCase):
 
 		with self.set_user(user), self.assertRaises(frappe.PermissionError):
 			get_client_scripts("Note", "List Page")
+
+	def test_boot_names_the_doctypes_with_an_enabled_list_page_script(self):
+		make_script("note-list-script", view="List Page").insert()
+		make_script("todo-disabled-list-script", view="List Page", dt="ToDo", enabled=0).insert()
+		make_script("event-record-script", dt="Event").insert()
+
+		doctypes = list_page_doctypes()
+		self.assertIn("Note", doctypes)
+		self.assertNotIn("ToDo", doctypes)
+		self.assertNotIn("Event", doctypes)
+
+	def test_boot_skips_a_script_whose_doctype_is_gone(self):
+		make_script("note-list-script", view="List Page").insert()
+		frappe.db.set_value("Client Script", "note-list-script", "dt", "No Such Doctype")
+		user = make_user("orphan-list-script@example.com", ["Guest"])
+
+		with self.set_user(user):
+			self.assertNotIn("No Such Doctype", list_page_doctypes())
+
+	def test_boot_leaves_out_a_doctype_the_user_cannot_read(self):
+		make_script("note-list-script", view="List Page").insert()
+		user = make_user("no-note-list-access@example.com", ["Guest"])
+
+		with self.set_user(user):
+			self.assertNotIn("Note", list_page_doctypes())
 
 	def test_a_save_tells_the_open_list_page(self):
 		with patch("frappe.publish_realtime") as publish:
