@@ -686,6 +686,12 @@ class Email:
 			except frappe.DuplicateEntryError:
 				# same file attached twice??
 				pass
+			except frappe.ValidationError:
+				frappe.log_error(
+					_("Unable to save email attachment {0}").format(attachment["fname"]),
+					reference_doctype=doc.doctype,
+					reference_name=doc.name,
+				)
 
 		return saved_attachments
 
