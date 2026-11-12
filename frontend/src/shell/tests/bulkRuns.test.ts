@@ -77,9 +77,7 @@ beforeEach(() => {
 
 describe("following a run", () => {
 	it("reads the Background Task once, for a run that moved before the page followed it", async () => {
-		fake.getDocument.mockResolvedValue(
-			row({ status: "Running", progress: 40, stage: "2 of 5" })
-		);
+		fake.getDocument.mockResolvedValue(row({ status: "Running" }));
 		const run = followBulkRun("t1");
 		await settle();
 
@@ -87,8 +85,6 @@ describe("following a run", () => {
 		expect(run).toMatchObject({
 			taskName: "Delete ToDo",
 			status: "Running",
-			progress: 40,
-			stage: "2 of 5",
 		});
 	});
 
@@ -115,6 +111,22 @@ describe("following a run", () => {
 			progress: 60,
 			stage: "3 of 5",
 		});
+	});
+
+	it("does not move the status back when a read sent earlier lands after a newer event", async () => {
+		let land: (value: unknown) => void = () => {};
+		fake.getDocument.mockReturnValueOnce(new Promise((resolve) => (land = resolve)));
+		const run = followBulkRun("t1");
+		fake.getDocument.mockResolvedValue(
+			row({ status: "Completed", result: JSON.stringify({ total: 1, done: ["a"], failed: [] }) })
+		);
+		socket.fire("task_update", { task_id: "t1", status: "Completed" });
+		await settle();
+		land(row({ status: "Running" }));
+		await settle();
+
+		expect(run.status).toBe("Completed");
+		expect(fake.toast.success).toHaveBeenCalledTimes(1);
 	});
 
 	it("ignores a task it was not asked to follow", async () => {
@@ -231,6 +243,49 @@ describe("a run that settles", () => {
 		);
 	});
 
+	it("gives a reason when the owner cannot read the traceback", async () => {
+		fake.getDocument.mockResolvedValue(row({ status: "Failed" }));
+		const run = followBulkRun("t1");
+		await settle();
+
+		expect(run.error).toBe("The run stopped before it finished.");
+	});
+
+	it("retries a failed read of a finished run, then settles with the error", async () => {
+		vi.useFakeTimers();
+		try {
+			fake.getDocument.mockRejectedValue(new Error("502"));
+			const run = followBulkRun("t1");
+			socket.fire("task_update", { task_id: "t1", status: "Completed" });
+			await vi.runAllTimersAsync();
+
+			expect(fake.getDocument.mock.calls.length).toBeGreaterThanOrEqual(4);
+			expect(run).toMatchObject({ status: "Completed", result: null, error: "502" });
+			expect(fake.toast.error).toHaveBeenCalledTimes(1);
+		} finally {
+			vi.useRealTimers();
+		}
+	});
+
+	it("settles from the retry when the read recovers", async () => {
+		vi.useFakeTimers();
+		try {
+			fake.getDocument.mockRejectedValueOnce(new Error("502"));
+			fake.getDocument.mockResolvedValue(
+				row({ status: "Completed", result: JSON.stringify({ total: 1, done: ["a"], failed: [] }) })
+			);
+			const run = followBulkRun("t1");
+			socket.fire("task_update", { task_id: "t1", status: "Completed" });
+			await vi.runAllTimersAsync();
+
+			expect(run).toMatchObject({ status: "Completed", error: null });
+			expect(run.result?.done).toEqual(["a"]);
+			expect(fake.toast.success).toHaveBeenCalledTimes(1);
+		} finally {
+			vi.useRealTimers();
+		}
+	});
+
 	it("reports a result it cannot read instead of counting nothing", async () => {
 		fake.getDocument.mockResolvedValue(
 			row({ status: "Completed", result: "not json" })
@@ -273,13 +328,27 @@ describe("the tab's lifetime", () => {
 		]);
 	});
 
+	it("keeps the live progress when a reread lands after a reconnect", async () => {
+		const run = followBulkRun("t1");
+		await settle();
+		socket.fire("task_update", { task_id: "t1", status: "Running", progress: 60, stage: "3 of 5" });
+		fake.getDocument.mockResolvedValue(row({ status: "Running", progress: 0, stage: "" }));
+		socket.fire("connect");
+		await settle();
+
+		expect(run).toMatchObject({ progress: 60, stage: "3 of 5" });
+	});
+
 	it("stops listening when stopped", async () => {
 		const run = followBulkRun("t1");
 		await settle();
 		stop();
 		socket.fire("task_update", { task_id: "t1", progress: 90 });
+		fake.getDocument.mockClear();
+		socket.fire("connect");
 
 		expect(run.progress).toBe(0);
+		expect(fake.getDocument).not.toHaveBeenCalled();
 	});
 
 	it("does nothing without a socket", () => {

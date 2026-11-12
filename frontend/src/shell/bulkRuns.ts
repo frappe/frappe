@@ -7,6 +7,9 @@ import { __ } from "@/i18n";
 
 const TASK_UPDATE = "task_update";
 const BACKGROUND_TASK = "Background Task";
+const STAGE: Record<string, number> = { Queued: 0, Running: 1, Completed: 2, Failed: 2, Cancelled: 2 };
+const READ_ATTEMPTS = 3;
+const READ_RETRY_MS = 1000;
 
 export type BulkRunStatus =
 	| "Queued"
@@ -131,27 +134,32 @@ function applyMessage(message: TaskMessage) {
 	if (typeof message.task_name === "string") run.taskName = message.task_name;
 	if (typeof message.progress === "number") run.progress = message.progress;
 	if (typeof message.stage === "string") run.stage = message.stage;
-	if (isStatus(message.status)) run.status = message.status;
+	advance(run, message.status);
 	if (isFinal(run.status)) void readTask(entry);
 }
 
-async function readTask(entry: Followed) {
+async function readTask(entry: Followed, attempt = 1) {
 	const { run } = entry;
 	try {
 		const { data } = await getDocument(BACKGROUND_TASK, run.taskId);
 		if (entry.settled) return;
 		run.taskName = String(data.task_name ?? run.taskName);
-		run.progress = Number(data.progress ?? run.progress);
-		run.stage = String(data.stage ?? run.stage);
-		if (isStatus(data.status)) run.status = data.status;
-		if (run.status === "Completed") run.result = parseResult(data.result);
-		if (run.status === "Failed") run.error = lastLine(data.exception);
-		if (run.status === "Completed" && !run.result)
-			run.error = __("The result could not be read.");
+		advance(run, data.status);
+		// The row holds progress and stage only at the end; the events carry them while it runs.
+		if (run.status === "Completed") {
+			run.progress = 100;
+			run.result = parseResult(data.result);
+			run.error = run.result ? null : __("The result could not be read.");
+		}
+		// `exception` is for System Managers only, so the owner may get no reason.
+		if (run.status === "Failed") run.error = lastLine(data.exception) ?? __("The run stopped before it finished.");
 	} catch (error) {
-		if (entry.settled) return;
+		if (entry.settled || !isFinal(run.status)) return;
+		if (attempt < READ_ATTEMPTS) {
+			setTimeout(() => void readTask(entry, attempt + 1), READ_RETRY_MS);
+			return;
+		}
 		run.error = error instanceof Error ? error.message : String(error);
-		if (!isFinal(run.status)) return;
 	}
 	if (isFinal(run.status)) settle(entry);
 }
@@ -199,14 +207,16 @@ function lastLine(text: unknown): string | null {
 	return text.trim().split("\n").pop() ?? null;
 }
 
+/** Moves the run's status forward only: a read that was sent earlier may land after a newer event. */
+function advance(run: BulkRun, status: unknown) {
+	if (!isStatus(status) || isFinal(run.status) || STAGE[status] < STAGE[run.status]) return;
+	run.status = status;
+}
+
 function isStatus(value: unknown): value is BulkRunStatus {
-	return ["Queued", "Running", "Completed", "Failed", "Cancelled"].includes(
-		value as string
-	);
+	return typeof value === "string" && value in STAGE;
 }
 
 function isFinal(status: BulkRunStatus) {
-	return (
-		status === "Completed" || status === "Failed" || status === "Cancelled"
-	);
+	return STAGE[status] === STAGE.Completed;
 }
