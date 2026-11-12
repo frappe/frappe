@@ -2,7 +2,7 @@
 
 {%- block value -%}
 <div class="value">
-    <div class="color-square" style="background-color: {{ value }};"></div>
-    {{ value }}
+    <div class="color-square" style="background-color: {{ value|e }};"></div>
+    {{ value|e }}
 </div>
 {%- endblock -%}
