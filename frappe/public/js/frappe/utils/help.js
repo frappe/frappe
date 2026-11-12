@@ -19,7 +19,11 @@ frappe.help.show_video = function (youtube_id, title) {
 	if (frappe.utils.is_url(youtube_id)) {
 		const expression =
 			'(?:youtube.com/(?:[^/]+/.+/|(?:v|e(?:mbed)?)/|.*[?&]v=)|youtu.be/)([^"&?\\s]{11})';
-		youtube_id = youtube_id.match(expression)[1];
+		youtube_id = youtube_id.match(expression)?.[1];
+	}
+
+	if (!/^[\w-]{11}$/.test(youtube_id || "")) {
+		frappe.throw(__("Invalid YouTube video ID"));
 	}
 
 	// (frappe.help_feedback_link || "")
@@ -28,8 +32,9 @@ frappe.help.show_video = function (youtube_id, title) {
 		size: "large",
 	});
 
-	let video = $(
-		`<div class="video-player" data-plyr-provider="youtube" data-plyr-embed-id="${youtube_id}"></div>`
+	let video = $(`<div class="video-player" data-plyr-provider="youtube"></div>`).attr(
+		"data-plyr-embed-id",
+		youtube_id
 	);
 	video.appendTo(dialog.body);
 
