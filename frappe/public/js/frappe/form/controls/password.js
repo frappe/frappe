@@ -7,6 +7,8 @@ frappe.ui.form.ControlPassword = class ControlPassword extends frappe.ui.form.Co
 	make_input() {
 		var me = this;
 		super.make_input();
+		// Stop browsers offering saved logins on the field before this one
+		this.$input.attr("autocomplete", "new-password");
 
 		this.indicator = $(
 			`<div class="password-strength-indicator hidden">
