@@ -18,6 +18,7 @@ import { useRoute, useRouter } from "vue-router";
 import { defaultSort, sameSort, type ListMeta } from "./defaults";
 import {
 	addressFromQuery,
+	completeFilters,
 	createValues,
 	ownedKeys,
 	queryFromAddress,
@@ -182,8 +183,10 @@ export function useListPage(doctype: string, opened: SavedView = PLAIN_LIST): Li
 			Object.entries(route.query).filter(([key]) => !owned.has(key))
 		);
 		const written = sameSort(sort.value, resolvedSort()) ? [] : sort.value;
-		const spelled = sameFilters(filters.value, resolvedFilters()) ? [] : filters.value;
-		return { ...kept, ...queryFromAddress({ filters: spelled, sort: written }) };
+		const differs = !sameFilters(filters.value, resolvedFilters());
+		const cleared = differs && !completeFilters(filters.value).length;
+		const spelled = differs ? filters.value : [];
+		return { ...kept, ...queryFromAddress({ filters: spelled, sort: written, cleared }) };
 	}
 
 	// The person's own acts write; a value the page set itself, from a row or the URL, does not.

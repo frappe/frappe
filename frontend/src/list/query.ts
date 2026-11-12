@@ -14,12 +14,16 @@ import { equalityValues } from "@framework/ui/utils";
 import type { LocationQuery } from "vue-router";
 
 export const SORT_KEY = "_sort";
+/** `none` says the person cleared the filters an app's `views/list.json` starts with. */
+export const FILTERS_KEY = "_filters";
 /** The shell's own query keys on a generated route; never read as a filter. */
-const RESERVED_KEYS = new Set([SORT_KEY, "view", "layout", "from"]);
+const RESERVED_KEYS = new Set([SORT_KEY, FILTERS_KEY, "view", "layout", "from"]);
 
 export interface ListAddress {
 	filters: FilterCondition[];
 	sort: Sort[];
+	/** Write the cleared filters: they differ from the file's, which a bare URL would restore. */
+	cleared?: boolean;
 }
 
 export type Query = Record<string, string>;
@@ -30,6 +34,7 @@ export function queryFromAddress(address: ListAddress): Query {
 	for (const [fieldname, operator, value] of serializeFilters(completeFilters(address.filters))) {
 		query[fieldname] = operator === "=" ? bareValue(value) : JSON.stringify([operator, value]);
 	}
+	if (address.cleared) query[FILTERS_KEY] = "none";
 	const orderBy = serializeOrderBy(address.sort);
 	if (orderBy) query[SORT_KEY] = orderBy;
 	return query;
@@ -51,6 +56,7 @@ export function addressFromQuery(
 	}
 	const address: Partial<ListAddress> = {};
 	if (wire.length) address.filters = parseFilters(filterable, wire).map(bareLike);
+	else if (query[FILTERS_KEY] === "none") address.filters = [];
 	const sort = query[SORT_KEY];
 	if (typeof sort === "string" && sort) address.sort = parseOrderBy(sort);
 	return address;
@@ -58,7 +64,7 @@ export function addressFromQuery(
 
 /** The query keys this list writes; every other key is carried through untouched. */
 export function ownedKeys(doctype: string, fields: RawMetaField[]): Set<string> {
-	const owned = new Set([SORT_KEY]);
+	const owned = new Set([SORT_KEY, FILTERS_KEY]);
 	for (const field of getFilterableFields(fields, doctype)) {
 		if (!RESERVED_KEYS.has(field.fieldname)) owned.add(field.fieldname);
 	}

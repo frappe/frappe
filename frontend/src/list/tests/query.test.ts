@@ -45,6 +45,15 @@ describe("queryFromAddress", () => {
 	});
 });
 
+describe("the cleared filters", () => {
+	it("writes _filters=none for a cleared address and reads it back as no filters", () => {
+		expect(queryFromAddress({ filters: [], sort: [], cleared: true })).toEqual({ _filters: "none" });
+		expect(addressFromQuery({ _filters: "none" }, "Lead", FIELDS).filters).toEqual([]);
+		expect(addressFromQuery({ _filters: "none", status: "Open" }, "Lead", FIELDS).filters).toHaveLength(1);
+		expect(ownedKeys("Lead", FIELDS).has("_filters")).toBe(true);
+	});
+});
+
 describe("addressFromQuery", () => {
 	it("reads a bare value as equals, a pair as its operator, and a like as bare text", () => {
 		const address = addressFromQuery(

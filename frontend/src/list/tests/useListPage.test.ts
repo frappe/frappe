@@ -488,9 +488,23 @@ describe("the app's file", () => {
 		expect(page.view.modified.value).toBe(true);
 		page.filters.value = [];
 		await settle();
-		expect(router.currentRoute.value.query).toEqual({});
+		expect(router.currentRoute.value.query).toEqual({ _filters: "none" });
 		expect(page.filters.value).toEqual([]);
 		expect(page.view.modified.value).toBe(true);
+	});
+
+	it("keeps the filters cleared across a reload of the URL", async () => {
+		fake.tiers = { app: { filters: OPEN }, site: null, user: null };
+		await mount("/lead?_filters=none");
+		expect(page.filters.value).toEqual([]);
+		expect(fake.lists[0].query).not.toHaveProperty("filters.status");
+	});
+
+	it("writes no _filters key when the file has no filters", async () => {
+		await mount("/lead");
+		page.filters.value = [];
+		await settle();
+		expect(router.currentRoute.value.query).toEqual({});
 	});
 
 	it("gives way to the filters a URL names", async () => {
