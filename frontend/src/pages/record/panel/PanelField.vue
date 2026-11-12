@@ -6,7 +6,11 @@
 		</span>
 
 		<div class="min-w-0">
-			<FieldBox class="group" :interactive="interactive" :error="!!message">
+			<component
+				:is="bare ? 'div' : FieldBox"
+				class="group"
+				v-bind="bare ? {} : { interactive, error: !!message }"
+			>
 				<div
 					v-if="editing || inPlace"
 					ref="cell"
@@ -114,7 +118,7 @@
 						/>
 					</span>
 				</div>
-			</FieldBox>
+			</component>
 			<ImagePreview
 				v-if="imageUrl"
 				v-model:open="previewing"
@@ -268,6 +272,8 @@ const PANEL_FIELDTYPES = [
 const drawsErrorText = computed(
 	() => !!props.field.ui?.component || !PANEL_FIELDTYPES.includes(props.field.fieldtype)
 );
+// A script control that sets `ui.ownBox` draws its own box once open; the rest row keeps the shared one.
+const bare = computed(() => editing.value && !!props.field.ui?.ownBox);
 const interactive = computed(() => summary.value || !props.field.readOnly || !!imageUrl.value);
 const resolved = computed(() => resolveField(props.field.fieldtype));
 
