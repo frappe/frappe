@@ -14,12 +14,14 @@ import frappe.exceptions
 from frappe.client import set_value
 from frappe.core.doctype.user.user import (
 	User,
+	add_roles_to_user,
 	bulk_add_roles,
 	bulk_remove_roles,
 	change_password,
 	get_all_roles,
 	get_perm_info,
 	handle_password_test_fail,
+	remove_roles_from_user,
 	reset_password,
 	rewrite_owner_fields,
 	sign_up,
@@ -1133,6 +1135,32 @@ class TestUser(IntegrationTestCase):
 
 			first.reload()
 			self.assertCountEqual([d.role for d in first.roles], ["Website Manager"])
+
+	def test_add_and_remove_roles_from_one_user(self):
+		with test_user(roles=["_Test Role"]) as user:
+			add_roles_to_user("User", user.name, ["_Test Role 4"])
+			user.reload()
+			self.assertCountEqual([d.role for d in user.roles], ["_Test Role", "_Test Role 4"])
+
+			remove_roles_from_user("User", user.name, ["_Test Role"])
+			user.reload()
+			self.assertCountEqual([d.role for d in user.roles], ["_Test Role 4"])
+
+	def test_roles_of_one_user_are_validated_and_permission_checked(self):
+		with test_user(roles=["_Test Role"]) as user, test_user(roles=["Website Manager"]) as editor:
+			with self.assertRaises(frappe.ValidationError):
+				add_roles_to_user("ToDo", user.name, ["Blogger"])
+			with self.assertRaises(frappe.ValidationError):
+				add_roles_to_user("User", user.name, [{"role": ["!=", ""]}])
+
+			frappe.set_user(editor.name)
+			self.addCleanup(frappe.set_user, "Administrator")
+			with self.assertRaises(frappe.PermissionError):
+				add_roles_to_user("User", user.name, ["Blogger"])
+			frappe.set_user("Administrator")
+
+			user.reload()
+			self.assertCountEqual([d.role for d in user.roles], ["_Test Role"])
 
 	def test_bulk_role_endpoints_enqueue_large_batches(self):
 		"""Over 20 users, each endpoint defers to its own background job."""

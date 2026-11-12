@@ -1,6 +1,7 @@
 // A doctype's list page on the page engine: the lists its list.js files edit, and the rows they read.
 import { shallowRef } from "vue";
 import type { Router } from "vue-router";
+import type { BulkSelection } from "@framework/ui/api";
 import { createPageEngine, type PageEngine } from "@/pageEngine";
 import type { BodyItem } from "@/pageEngine/types";
 import { Surface } from "@/pageEngine/surface";
@@ -27,12 +28,23 @@ export interface ListPageHost {
   permissions: ListPermissions;
   /** False when boot says the doctype has no List Page Client Script; the list then fetches none. */
   scripted?: boolean;
+  /** Runs a record function on the selection through the bulk runner; the list's own code, so the page imports no shell code. */
+  callSelected: (run: SelectedRun, method: string, args?: Record<string, unknown>) => Promise<boolean>;
+}
+
+/** What `page.callSelected` hands the host: the doctype, what a bulk request sends for the selection, and how the list loads again. */
+export interface SelectedRun {
+  doctype: string;
+  selected: () => BulkSelection;
+  reload: () => void;
 }
 
 /** What the view's renderer holds: the rows it shows and how they load again. */
 export interface ListRendererState {
   rows: () => readonly ListRow[];
   selection: () => readonly string[];
+  /** What a bulk request sends for the selection: the names, or the filter. */
+  selected: () => BulkSelection;
   reload: () => void;
 }
 
@@ -57,7 +69,7 @@ export interface ListPageController {
 /** The list page's body has one built-in column, the controls row and the rows; a script's go around it. */
 export const LIST_BODY_BUILTINS: readonly BodyItem[] = [{ name: "list", gutter: false }];
 
-const DETACHED: ListRendererState = { rows: () => [], selection: () => [], reload: () => {} };
+const DETACHED: ListRendererState = { rows: () => [], selection: () => [], selected: () => ({ names: [] }), reload: () => {} };
 
 export function createListPage(host: ListPageHost): ListPageController {
   const { doctype } = host.view;
@@ -124,6 +136,12 @@ export function createListPage(host: ListPageHost): ListPageController {
         view.sort.value = value;
       },
       reload: () => (engine.hasLeft() ? undefined : renderer.value.reload()),
+      callSelected: (method: string, args?: Record<string, unknown>) =>
+        host.callSelected(
+          { doctype, selected: () => renderer.value.selected(), reload: () => renderer.value.reload() },
+          method,
+          args
+        ),
     };
   }
 }

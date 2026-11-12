@@ -1866,16 +1866,21 @@ def _validate_bulk_role_args(users: str | list, roles: str | list) -> tuple[list
 	"""Parse and type-check arguments shared by the bulk role endpoints."""
 	if isinstance(users, str):
 		users = frappe.parse_json(users)
-	if isinstance(roles, str):
-		roles = frappe.parse_json(roles)
 
 	if not isinstance(users, list) or not all(isinstance(u, str) for u in users):
 		frappe.throw(_("Users must be a list of string identifiers."))
 
+	return users, _validate_roles(roles)
+
+
+def _validate_roles(roles: str | list) -> list:
+	if isinstance(roles, str):
+		roles = frappe.parse_json(roles)
+
 	if not isinstance(roles, list) or not all(isinstance(r, str) for r in roles):
 		frappe.throw(_("Roles must be a list of string identifiers."))
 
-	return users, roles
+	return roles
 
 
 def _assign_roles(users: list, roles: list) -> None:
@@ -1890,3 +1895,24 @@ def _unassign_roles(users: list, roles: list) -> None:
 	for user_id in users:
 		user_doc = frappe.get_doc("User", user_id)
 		user_doc.remove_roles(*roles)
+
+
+@frappe.whitelist(methods=["POST"])
+def add_roles_to_user(doctype: str, name: str, roles: str | list) -> None:
+	"""Add roles to one user. The User list's Add Roles runs it on each selected user through `bulk_call`."""
+	_get_user_to_change(doctype, name).add_roles(*_validate_roles(roles))
+
+
+@frappe.whitelist(methods=["POST"])
+def remove_roles_from_user(doctype: str, name: str, roles: str | list) -> None:
+	"""Remove roles from one user. The User list's Remove Roles runs it on each selected user."""
+	_get_user_to_change(doctype, name).remove_roles(*_validate_roles(roles))
+
+
+def _get_user_to_change(doctype: str, name: str) -> User:
+	if doctype != "User":
+		frappe.throw(_("Roles can only be changed on a User."))
+
+	user = frappe.get_doc("User", name)
+	user.check_permission("write")
+	return user

@@ -574,6 +574,7 @@ url_rules = [
 	Rule("/document/<doctype>/bulk_seen", methods=["POST"], endpoint=bulk_collaboration.bulk_seen),
 	Rule("/document/<doctype>/bulk_seen", methods=["DELETE"], endpoint=bulk_collaboration.bulk_unseen),
 	Rule("/document/<doctype>/bulk_print", methods=["POST"], endpoint=bulk_actions.bulk_print_docs),
+	Rule("/document/<doctype>/bulk_call", methods=["POST"], endpoint=bulk_actions.bulk_call_docs),
 	Rule("/document/<doctype>/bulk_submit", methods=["POST"], endpoint=bulk_actions.bulk_submit_docs),
 	Rule("/document/<doctype>/bulk_cancel", methods=["POST"], endpoint=bulk_actions.bulk_cancel_docs),
 	Rule("/document/<doctype>/bulk_workflow", methods=["POST"], endpoint=bulk_actions.bulk_workflow_docs),

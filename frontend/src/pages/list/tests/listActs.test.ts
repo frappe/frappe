@@ -571,6 +571,7 @@ describe("a renderer's acts", () => {
           useListActs(host, type).renderer(() => [moveCard], {
             rows: () => [],
             selection: () => [],
+            selected: () => ({ names: [] }),
             reload: () => {},
           });
           return () => null;

@@ -447,6 +447,20 @@ describe("form layout modes", () => {
     expect(field.dependsOn).toBe("eval:doc.status");
   });
 
+  it("gives a table field its columns from child_fields", () => {
+    const layout = layoutFromFields([
+      {
+        fieldname: "roles",
+        fieldtype: "Table MultiSelect",
+        options: "Has Role",
+        child_fields: [{ fieldname: "role", fieldtype: "Link", options: "Role" }],
+      },
+    ]);
+    const field = layout[0].sections[0].columns[0].fields[0];
+
+    expect(field.childFields?.map((child) => child.fieldname)).toEqual(["role"]);
+  });
+
   it("picks meta fields in the order asked for, dropping unknown ones", () => {
     const picked = pickMetaFields(
       [

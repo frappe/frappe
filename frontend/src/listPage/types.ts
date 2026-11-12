@@ -61,6 +61,8 @@ export interface ListPageApi extends PageApi {
   filters: FilterCondition[];
   sort: Sort[];
   reload(): void;
+  /** Runs the whitelisted record function `method(doctype, name, **args)` on the selection through the bulk runner. Resolves `true` when the run was accepted or all passed. */
+  callSelected(method: string, args?: Record<string, unknown>): Promise<boolean>;
 }
 
 export const ACTION_KEYS: readonly string[] = ["name", "label", "icon", "run", ...ACT_KEYS];

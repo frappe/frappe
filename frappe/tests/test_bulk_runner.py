@@ -6,7 +6,9 @@ from unittest.mock import patch
 import frappe
 from frappe.api import bulk, bulk_actions
 from frappe.api.bulk import QUEUED, BulkAction, run_bulk
+from frappe.api.utils import FrappeValueError
 from frappe.tests import IntegrationTestCase
+from frappe.tests.utils import whitelist_for_tests
 from frappe.utils.task_queue import _execute_task
 
 PREFIX = "bulk47062"
@@ -25,6 +27,24 @@ def touch_one(doctype, name, fail=(), queue=(), crash=None, values=None):
 		raise Crash
 	frappe.db.set_value(doctype, name, "description", f"{PREFIX} touched")
 	return QUEUED if name in queue else None
+
+
+@whitelist_for_tests(methods=["POST"])
+def stamp_one(doctype: str, name: str, text: str = "stamped"):
+	"""Test bulk_call method: a whitelisted record function that checks the record's right itself."""
+	doc = frappe.get_doc(doctype, name)
+	doc.check_permission("write")
+	frappe.db.set_value(doctype, name, "description", f"{PREFIX} {text}")
+	frappe.msgprint(frappe._("stamped"))
+
+
+@whitelist_for_tests(methods=["GET"])
+def read_only_one(doctype: str, name: str):
+	frappe.db.set_value(doctype, name, "description", f"{PREFIX} read only")
+
+
+def unlisted_one(doctype: str, name: str):
+	frappe.db.set_value(doctype, name, "description", f"{PREFIX} unlisted")
 
 
 def add_count(params, result):
@@ -50,6 +70,7 @@ class TestBulkRunner(IntegrationTestCase):
 			frappe.delete_doc("ToDo", name, force=True)
 		frappe.db.delete("Background Task", {"task_name": ["like", "Touch%"]})
 		frappe.db.delete("Background Task", {"task_name": ["like", "Count%"]})
+		frappe.db.delete("Background Task", {"task_name": ["like", "Stamp One%"]})
 		frappe.db.commit()  # nosemgrep
 
 	def make_todo(self, index: int, **values) -> str:
@@ -324,6 +345,98 @@ class TestBulkRunner(IntegrationTestCase):
 		frappe.form_dict.update(names=self.names[:1], child_values={"description": {"x": 1}})
 		result = bulk_actions.bulk_update_docs("ToDo")
 		self.assertIn("not a table field", result["failed"][0]["error"])
+
+	# bulk_call: an app's whitelisted record function
+
+	STAMP = "frappe.tests.test_bulk_runner.stamp_one"
+
+	def call(self, **body):
+		frappe.form_dict.update(names=self.names, **{"method": self.STAMP, **body})
+		with self.as_post():
+			return bulk_actions.bulk_call_docs("ToDo")
+
+	def as_post(self):
+		return patch("frappe.local.request", frappe._dict(method="POST"), create=True)
+
+	def stamped(self, text="stamped") -> list[str]:
+		return frappe.get_all("ToDo", {"description": f"{PREFIX} {text}"}, pluck="name")
+
+	def test_call_route_runs_the_method_on_each_record_with_its_args(self):
+		result = self.call(args={"text": "hello"})
+		self.assertCountEqual(result["done"], self.names)
+		self.assertCountEqual(self.stamped("hello"), self.names)
+
+	def test_call_route_keeps_the_methods_messages_out_of_the_response(self):
+		self.call()
+		self.assertFalse(frappe.local.message_log)
+
+	def test_call_route_refuses_a_function_that_is_not_whitelisted(self):
+		with self.assertRaises(frappe.PermissionError):
+			self.call(method="frappe.tests.test_bulk_runner.unlisted_one")
+		self.assertEqual(self.stamped("unlisted"), [])
+
+	def test_call_route_refuses_a_method_that_does_not_take_post(self):
+		with self.assertRaises(frappe.PermissionError):
+			self.call(method="frappe.tests.test_bulk_runner.read_only_one")
+		self.assertEqual(self.stamped("read only"), [])
+
+	def test_call_route_takes_a_filter_for_the_selection(self):
+		frappe.form_dict.update(method=self.STAMP, filters={"description": ["like", f"{PREFIX}%"]})
+		with self.as_post():
+			result = bulk_actions.bulk_call_docs("ToDo")
+		self.assertCountEqual(result["done"], self.names)
+
+	def test_call_route_refuses_a_missing_method(self):
+		with self.assertRaises(frappe.ValidationError):
+			self.call(method="frappe.tests.test_bulk_runner.nope")
+
+	def test_call_route_validates_its_body(self):
+		for body in ({"method": ""}, {"args": ["text"]}, {"args": {"name": "x"}}):
+			frappe.form_dict.clear()
+			with self.assertRaises(FrappeValueError):
+				self.call(**body)
+
+	def test_call_route_fails_a_record_the_method_refuses(self):
+		user = self.make_user()
+		self.set_gate(user, 1)
+		frappe.set_user(user)
+		result = self.call()
+		self.assertEqual(result["done"], [])
+		self.assertEqual(len(result["failed"]), 4)
+		self.assertTrue(all(row["error"] for row in result["failed"]))
+		self.assertEqual(self.stamped(), [])
+
+	def test_call_route_needs_the_bulk_gate(self):
+		user = self.make_user()
+		self.set_gate(user, 0)
+		frappe.set_user(user)
+		with self.assertRaises(frappe.PermissionError):
+			self.call()
+
+	def test_call_route_refuses_above_the_cap(self):
+		with patch.dict(frappe.conf, {"bulk_operation_limit": 2}):
+			with self.assertRaises(frappe.ValidationError):
+				self.call()
+		self.assertEqual(self.stamped(), [])
+
+	def test_call_route_runs_in_the_background_over_the_threshold(self):
+		with patch.dict(frappe.conf, {"bulk_operation_async_threshold": 2}):
+			with patch("frappe.utils.task_queue.frappe.enqueue") as enqueue:
+				response = self.call(args={"text": "later"})
+				frappe.db.commit()  # nosemgrep
+
+		self.assertEqual(frappe.response.http_status_code, 202)
+		self.assertEqual(self.stamped("later"), [])
+		self.assertEqual(
+			frappe.db.get_value("Background Task", response["task_id"], "task_name"), "Stamp One ToDo"
+		)
+
+		with self.as_post():
+			_execute_task(**self.worker_kwargs(enqueue))
+
+		result = frappe.parse_json(frappe.db.get_value("Background Task", response["task_id"], "result"))
+		self.assertCountEqual(result["done"], self.names)
+		self.assertCountEqual(self.stamped("later"), self.names)
 
 	def touched(self) -> list[str]:
 		return frappe.get_all("ToDo", {"description": f"{PREFIX} touched"}, pluck="name")
