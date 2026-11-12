@@ -52,11 +52,14 @@ export interface ListScript {
 export type DoctypeContribution =
   // Your own doctype's record page: <module>/doctype/<scrubbed>/frontend/record.js
   | { kind: 'record'; app: string; doctype: string; load: LoadRecordScript }
-  // Your own doctype's list: <module>/doctype/<scrubbed>/frontend/list.js
-  | { kind: 'list'; app: string; doctype: string; load: LoadListScript }
   // A foreign doctype: <module>/custom/<scrubbed>/record.js. Applies globally; it does not
   // move the doctype into your prefix.
   | { kind: 'custom'; app: string; doctype: string; load: LoadRecordScript }
+
+// `virtual:frappe/list-scripts`, which only the list page imports.
+export type ListScriptContribution =
+  // Your own doctype's list: <module>/doctype/<scrubbed>/frontend/list.js
+  | { kind: 'list'; app: string; doctype: string; load: LoadListScript }
   // A foreign doctype's list: <module>/custom/<scrubbed>/list.js, run after the owner's list.js.
   | { kind: 'customList'; app: string; doctype: string; load: LoadListScript }
 

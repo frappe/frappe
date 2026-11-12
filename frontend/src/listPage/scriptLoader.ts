@@ -1,6 +1,6 @@
 // The one loader the list page asks for a doctype's list.js files: the owning app's, then each `custom/` one.
 import { shallowRef } from "vue";
-import { listScriptsFor } from "@/contributions/registry";
+import { listScriptsFor } from "./listScriptFiles";
 import type { ListScript } from "@/contributions/types";
 import { clientScriptsLoaded, clientScriptsStale, loadClientScripts } from "@/recordPage/clientScripts";
 import { LIST_PAGE_TIER } from "@/recordPage/clientScriptTypes";

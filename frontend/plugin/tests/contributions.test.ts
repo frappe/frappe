@@ -5,6 +5,7 @@ import { afterAll, afterEach, describe, expect, it, vi } from "vitest";
 import contributions, { discover, report } from "../contributions.js";
 
 const RESOLVED_ID = "\0virtual:frappe/contributions";
+const RESOLVED_LIST_SCRIPTS_ID = "\0virtual:frappe/list-scripts";
 const PAGE = "export default { component: () => null }";
 const roots: string[] = [];
 
@@ -528,10 +529,10 @@ describe("one doctype's page replaced by two apps, per app", () => {
 });
 
 /** Runs the plugin's `load` with the one context method it calls. */
-function load(plugin: any, watched: string[] = []) {
+function load(plugin: any, watched: string[] = [], id = RESOLVED_ID) {
   return plugin.load.call(
     { addWatchFile: (file: string) => watched.push(file) },
-    RESOLVED_ID,
+    id,
   );
 }
 
@@ -708,7 +709,7 @@ describe("the generated module", () => {
     );
   });
 
-  it("fetches a record or list script when its page opens, and bundles neither", () => {
+  it("fetches a record script when its page opens, and keeps list scripts out of the shell's module", () => {
     const manifest = bench({
       helpdesk: owner(
         { record: "runner" },
@@ -721,13 +722,18 @@ describe("the generated module", () => {
     const list = join(helpdesk, TICKET, "frontend/list.js");
     const custom = join(crm, "fcrm/custom/hd_ticket/record.js");
 
-    const code = load(contributions(manifest));
+    const plugin = contributions(manifest) as any;
+    const code = load(plugin);
     expect(code).not.toMatch(/import d\d+ from/);
     expect(code).toContain(
       `{ kind: "record", app: "helpdesk", doctype: "HD Ticket", ` +
         `load: () => import(${JSON.stringify(record)}), __file: ${JSON.stringify(record)} },`,
     );
-    expect(code).toContain(
+    expect(code).not.toContain(list);
+    expect(plugin.resolveId("virtual:frappe/list-scripts")).toBe(RESOLVED_LIST_SCRIPTS_ID);
+    const listCode = load(plugin, [], RESOLVED_LIST_SCRIPTS_ID);
+    expect(listCode).not.toContain(record);
+    expect(listCode).toContain(
       `{ kind: "list", app: "helpdesk", doctype: "HD Ticket", ` +
         `load: () => import(${JSON.stringify(list)}), __file: ${JSON.stringify(list)} },`,
     );
@@ -746,7 +752,7 @@ describe("the generated module", () => {
     const list = join(helpdesk, TICKET, "frontend/list.js");
     const custom = join(crm, "fcrm/custom/hd_ticket/list.js");
 
-    const code = load(contributions(manifest));
+    const code = load(contributions(manifest), [], RESOLVED_LIST_SCRIPTS_ID);
     expect(code).not.toMatch(/import d\d+ from/);
     expect(code).toContain(
       `{ kind: "customList", app: "crm", doctype: "HD Ticket", ` +

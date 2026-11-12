@@ -44,7 +44,7 @@ import { acts, ActDenied, type ActScope } from "@/acts/dispatcher";
 import type { Boot } from "@/boot";
 import { registerShell } from "@/router/routeFor";
 import { closeCreates, createRequests, registerCreateDialog } from "@/shell/create";
-import { addListScript } from "@/contributions/registry";
+import { addListScript } from "@/listPage/listScriptFiles";
 import type { ListPageApi } from "@/listPage/types";
 import type { Session } from "@framework/ui/api";
 import { clearDataCache } from "@framework/ui/cache";
