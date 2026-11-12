@@ -174,7 +174,7 @@ describe("BulkBar", () => {
 });
 
 describe("useBulkBar", () => {
-	function bar(
+	async function bar(
 		boot: Record<string, unknown>,
 		drawn: (name: string) => unknown = (name) => ({ name, label: name }),
 		selected?: () => never
@@ -184,7 +184,6 @@ describe("useBulkBar", () => {
 		const scope = selected ? { ...counted, selected } : counted;
 		const perform = vi.fn();
 		const askDelete = vi.fn();
-		const askPrint = vi.fn();
 		const supplied: Array<() => Array<{ item: { name: string } }>> = [];
 		let result!: ReturnType<typeof useBulkBar>;
 		const root = document.createElement("div");
@@ -203,7 +202,6 @@ describe("useBulkBar", () => {
 						askDelete,
 						cursor: ref(null),
 						table: () => null,
-						askPrint,
 						askEdit: vi.fn(),
 						askExport: vi.fn(),
 						copy: vi.fn(),
@@ -213,14 +211,15 @@ describe("useBulkBar", () => {
 			})
 		);
 		app.provide("boot", { session: { user: { name: "jane@example.com" } }, ...boot }).mount(root);
-		return { result, lists, selection, scope, perform, askDelete, askPrint, supplied, app };
+		await result.load();
+		return { result, lists, selection, scope, perform, askDelete, supplied, app };
 	}
 
 	const open = { bulk_actions: true, bulk_operation_limit: 500 };
 	const script = (name: string): ListPageAction => ({ name, label: name, run: () => {} });
 
 	it("draws Delete and a script's item, running each on the frozen selection", async () => {
-		const { result, lists, selection, perform, app } = bar(open);
+		const { result, lists, selection, perform, app } = await bar(open);
 		lists.bulkActions.add(script("restore"));
 		await nextTick();
 		const { layout } = result;
@@ -237,8 +236,8 @@ describe("useBulkBar", () => {
 		app.unmount();
 	});
 
-	it("puts Print in the output group, behind the print right, and asks the dialog to open", () => {
-		const { supplied, askPrint, app } = bar(open);
+	it("puts Print in the output group, behind the print right, and asks the dialog to open", async () => {
+		const { result, supplied, app } = await bar(open);
 		const print = supplied[0]().find(({ item }) => item.name === "print")!.item as unknown as {
 			group: string;
 			right: string;
@@ -246,12 +245,12 @@ describe("useBulkBar", () => {
 		};
 		expect([print.group, print.right]).toEqual(["output", "print"]);
 		print.run();
-		expect(askPrint).toHaveBeenCalledOnce();
+		expect(result.parts.value!.print.open.value).toBe(true);
 		app.unmount();
 	});
 
-	it("draws Edit as a button, Copy to Clipboard and Export in More, each with its own right", () => {
-		const { result, supplied, app } = bar(open);
+	it("draws Edit as a button, Copy to Clipboard and Export in More, each with its own right", async () => {
+		const { result, supplied, app } = await bar(open);
 		const items = supplied[0]()
 			.map(({ item }) => item as ListPageAction)
 			.filter(({ group }) => group);
@@ -280,8 +279,8 @@ describe("useBulkBar", () => {
 	const printGroup = ({ result }: { result: { layout: { value: { menu: { options: any[] }[] } } } }) =>
 		result.layout.value.menu.find(({ options }) => options.some(({ label }) => label === "Print"))!;
 
-	it("keeps Copy to Clipboard and Export enabled over the cap, as they are no bulk run", () => {
-		const over = bar({ bulk_actions: true, bulk_operation_limit: 1 });
+	it("keeps Copy to Clipboard and Export enabled over the cap, as they are no bulk run", async () => {
+		const over = await bar({ bulk_actions: true, bulk_operation_limit: 1 });
 		const { buttons, trash } = over.result.layout.value;
 		expect(buttons.every(({ disabled }) => disabled)).toBe(true);
 		expect(trash?.disabled).toBe(true);
@@ -293,8 +292,8 @@ describe("useBulkBar", () => {
 		over.app.unmount();
 	});
 
-	it("disables Export for a scope with or_filters, which the exporter cannot take", () => {
-		const orScope = bar(open, undefined, () => ({ filters: {}, or_filters: [["status", "=", "Open"]] }) as never);
+	it("disables Export for a scope with or_filters, which the exporter cannot take", async () => {
+		const orScope = await bar(open, undefined, () => ({ filters: {}, or_filters: [["status", "=", "Open"]] }) as never);
 		const exportOption = printGroup(orScope).options[2];
 		expect(exportOption.label).toBe("Export");
 		expect(exportOption.disabled).toBe(true);
@@ -302,12 +301,12 @@ describe("useBulkBar", () => {
 		orScope.app.unmount();
 	});
 
-	it("hides an item the dispatcher does not draw, and all of them without the switch", () => {
-		const refused = bar(open, (name) => (name === "delete" ? undefined : { name, label: name }));
+	it("hides an item the dispatcher does not draw, and all of them without the switch", async () => {
+		const refused = await bar(open, (name) => (name === "delete" ? undefined : { name, label: name }));
 		expect(refused.result.layout.value.trash).toBeUndefined();
 		refused.app.unmount();
 
-		const locked = bar({ bulk_actions: false, bulk_operation_limit: 500 });
+		const locked = await bar({ bulk_actions: false, bulk_operation_limit: 500 });
 		expect(locked.result.locked).toBe(true);
 		expect(locked.supplied[0]().map(({ item }) => item.name)).not.toContain("delete");
 		expect(locked.result.layout.value.menu).toEqual([]);
@@ -315,7 +314,7 @@ describe("useBulkBar", () => {
 	});
 
 	it("leaves an action that takes row names off while Select all is on", async () => {
-		const { result, lists, selection, scope, app } = bar(open);
+		const { result, lists, selection, scope, app } = await bar(open);
 		lists.bulkActions.add(script("restore"));
 		await nextTick();
 		selection.value = ["R0", "R1"];
@@ -326,8 +325,8 @@ describe("useBulkBar", () => {
 		app.unmount();
 	});
 
-	it("keeps Print on while Select all is on, because it takes the whole scope", () => {
-		const { result, selection, scope, app } = bar(open);
+	it("keeps Print on while Select all is on, because it takes the whole scope", async () => {
+		const { result, selection, scope, app } = await bar(open);
 		selection.value = ["R0", "R1"];
 		scope.selectAll();
 		const print = result.layout.value.menu.flatMap((group) => group.options).find(({ label }) => label === "Print");
@@ -335,15 +334,15 @@ describe("useBulkBar", () => {
 		app.unmount();
 	});
 
-	it("leaves Print to its own cap, which the dialog checks", () => {
-		const over = bar({ bulk_actions: true, bulk_operation_limit: 1 });
+	it("leaves Print to its own cap, which the dialog checks", async () => {
+		const over = await bar({ bulk_actions: true, bulk_operation_limit: 1 });
 		const print = over.result.layout.value.menu.flatMap((group) => group.options).find(({ label }) => label === "Print");
 		expect(print?.disabled).toBe(false);
 		over.app.unmount();
 	});
 
 	it("keeps the collaboration actions on while Select all is on, and sends the filters", async () => {
-		const { result, lists, selection, scope, supplied, app } = bar(open);
+		const { result, lists, selection, scope, supplied, app } = await bar(open);
 		lists.bulkActions.add(script("restore"));
 		await nextTick();
 		selection.value = ["R0", "R1"];
@@ -357,7 +356,7 @@ describe("useBulkBar", () => {
 
 		const share = supplied[0]().find(({ item }) => item.name === "share")!.item as ListPageAction;
 		share.run!({} as never);
-		expect(result.collab.request.value).toEqual({
+		expect(result.parts.value!.collab.request.value).toEqual({
 			kind: "share",
 			selection: { filters: expect.anything() },
 			count: 10,
@@ -368,7 +367,7 @@ describe("useBulkBar", () => {
 	});
 
 	it("keeps Edit and Export on while Select all is on, and Copy to Clipboard off", async () => {
-		const { result, selection, scope, app } = bar(open);
+		const { result, selection, scope, app } = await bar(open);
 		await nextTick();
 		selection.value = ["R0", "R1"];
 		scope.selectAll();
@@ -382,8 +381,8 @@ describe("useBulkBar", () => {
 		app.unmount();
 	});
 
-	it("disables the actions over the cap", () => {
-		const over = bar({ bulk_actions: true, bulk_operation_limit: 1 });
+	it("disables the actions over the cap", async () => {
+		const over = await bar({ bulk_actions: true, bulk_operation_limit: 1 });
 		expect(over.result.layout.value.trash?.disabled).toBe(true);
 		over.app.unmount();
 	});
