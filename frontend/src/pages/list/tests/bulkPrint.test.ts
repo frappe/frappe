@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, h, nextTick, ref, type App } from "vue";
-import type { BulkRun } from "@/shell/bulkRuns";
 import { useBulkScope } from "@/list/useBulkScope";
 import { useBulkPrint } from "../bulkPrint";
 import { NO_LETTERHEAD, PAGE_SIZES, printBody, printableFormats } from "../printOptions";
@@ -142,25 +141,11 @@ describe("useBulkPrint", () => {
 });
 
 describe("startBulkPrint", () => {
-	it("follows the run and offers the PDF when it settles with one", async () => {
+	it("sends the print and hands the run to the tray", async () => {
 		fake.bulkPrintDocuments.mockResolvedValue({ data: { task_id: "T1", job_id: "J1" } });
 		await startBulkPrint("ToDo", { names: ["A"] });
 		expect(fake.bulkPrintDocuments).toHaveBeenCalledWith("ToDo", { names: ["A"] });
-		expect(fake.followBulkRun).toHaveBeenCalledWith("T1", expect.any(Function));
-
-		const settled = fake.followBulkRun.mock.calls[0][1] as (run: BulkRun) => void;
-		const open = vi.spyOn(window, "open").mockReturnValue(null);
-		settled({ result: { total: 1, done: ["A"], failed: [], file_url: "/private/files/T1.pdf" } } as unknown as BulkRun);
-		const options = fake.success.mock.calls[0][1];
-		options.action.onClick();
-		expect(open).toHaveBeenCalledWith("/private/files/T1.pdf", "_blank", "noopener");
-	});
-
-	it("offers nothing when every record failed", async () => {
-		fake.bulkPrintDocuments.mockResolvedValue({ data: { task_id: "T1", job_id: "J1" } });
-		await startBulkPrint("ToDo", { names: ["A"] });
-		const settled = fake.followBulkRun.mock.calls[0][1] as (run: BulkRun) => void;
-		settled({ result: { total: 1, done: [], failed: [{ name: "A", error: "x" }] } } as unknown as BulkRun);
+		expect(fake.followBulkRun).toHaveBeenCalledWith("T1");
 		expect(fake.success).not.toHaveBeenCalled();
 	});
 });
