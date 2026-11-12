@@ -826,6 +826,34 @@ test.describe("Desk v2 side panel rows that grow", () => {
 		});
 	}
 
+	test("a Long Text row of 9 lines opens on the lines it showed at rest, the caret where it was clicked", async ({
+		page,
+	}) => {
+		await open(page, filled);
+		const long = grow(page, "f_long");
+		await long.scrollIntoViewIfNeeded();
+		const rest = await long.evaluate((el) => {
+			const text = el.querySelector(".line-clamp-6");
+			const top = text.getBoundingClientRect().top;
+			return { top, first: text.textContent.split("\n")[0] };
+		});
+		const box = await long.boundingBox();
+		await page.mouse.click(box.x + 30, box.y + 4 + 20 * 1.5);
+		const text = area(page, "f_long");
+		await expect(text).toBeFocused();
+
+		const opened = await text.evaluate((el) => ({
+			scrollTop: el.scrollTop,
+			first: el.value.split("\n")[Math.round(el.scrollTop / 20)],
+			caretLine: el.value.slice(0, el.selectionStart).split("\n").length,
+			end: el.selectionStart === el.value.length,
+		}));
+		expect(opened.first).toBe(rest.first);
+		expect(opened.scrollTop).toBe(0);
+		expect(opened.caretLine).toBe(2);
+		expect(opened.end).toBe(false);
+	});
+
 	test("Tab commits the text and closes the row; Esc cancels it", async ({ page }) => {
 		await open(page, scratch);
 		await grow(page, "f_hint").click();
@@ -884,8 +912,13 @@ test.describe("Desk v2 side panel rows that grow", () => {
 				let scroller = cell.parentElement;
 				while (!/(auto|scroll)/.test(getComputedStyle(scroller).overflowY))
 					scroller = scroller.parentElement;
-				scroller.scrollTop +=
-					cell.getBoundingClientRect().top - scroller.getBoundingClientRect().top - 8;
+				// The identity block pins above the section headers, so aim at the first header's edge.
+				const pinned = Math.min(
+					...[...document.querySelectorAll("[data-section].sticky")].map(
+						(header) => header.getBoundingClientRect().bottom
+					)
+				);
+				scroller.scrollTop += cell.getBoundingClientRect().top - pinned + 20;
 				return new Promise((resolve) =>
 					requestAnimationFrame(() => {
 						const chips = [...cell.querySelectorAll("span.inline-flex")];

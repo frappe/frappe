@@ -69,6 +69,7 @@
 					</span>
 					<span v-else-if="multiline" class="min-w-0 flex-1 py-1">
 						<span
+							ref="clamped"
 							class="line-clamp-6 text-base leading-5 break-words whitespace-pre-wrap"
 							:class="valueColor"
 							>{{ display || placeholder }}</span
@@ -196,6 +197,7 @@ import { __ } from "@/i18n";
 import ImagePreview from "./ImagePreview.vue";
 import { PanelContextKey, PanelFieldsKey } from "./context";
 import { withoutOwnRecordPrefix } from "./ownRecordPrefix";
+import { placeCaret, textOffsetAt } from "./openAtClick";
 
 const props = defineProps<{ field: FieldNode }>();
 const emit = defineEmits<{ expand: [field: FieldNode] }>();
@@ -251,9 +253,12 @@ function onCommit(value: any) {
 
 const editing = ref(false);
 const cell = ref<HTMLElement | null>(null);
+const clamped = ref<HTMLElement | null>(null);
 let opening: any;
 // Removing the focused input fires `change`, which would write the cancelled draft back.
 let cancelled = false;
+// Where in the text a click opened a multi-line row, so the caret lands under the pointer.
+let clicked: number | null = null;
 
 // Every keystroke already wrote the draft, so a cancel has to put the opening value back.
 function cancel() {
@@ -312,7 +317,9 @@ const drawsErrorText = computed(
 // A bare row is only a script's own: a stock control draws a ghost input that needs the box.
 const bare = computed(() => !!props.field.ui?.component && !!props.field.ui.ownBox);
 // A heavy field that Details does not draw edits in place with no `panel` look.
-const inPlaceHeavy = computed(() => isSummaryField(props.field.fieldtype) && !summary.value);
+const inPlaceHeavy = computed(
+	() => isSummaryField(props.field.fieldtype) && !summary.value && !inPlace.value
+);
 const multiline = computed(() => MULTILINE.includes(props.field.fieldtype));
 const chips = computed(() => props.field.fieldtype === "Table MultiSelect");
 // Without the child table's Link field there is nothing to pick from, so the row stays closed.
@@ -383,7 +390,7 @@ function linkedDoctype(): string {
 	return "";
 }
 
-function open() {
+function open(event?: MouseEvent) {
 	if (props.field.fieldtype === "Image") {
 		previewing.value = !!imageUrl.value;
 		return;
@@ -392,6 +399,17 @@ function open() {
 	if (props.field.readOnly || !pickable.value) return;
 	opening = doc.value[props.field.fieldname];
 	cancelled = false;
+	clicked = null;
+	// The shown text is the value only when no formatting stands between them; a textarea turns
+	// `\r\n` into `\n`, which would shift every offset after it.
+	const shown = String(opening ?? "");
+	if (
+		event instanceof MouseEvent &&
+		clamped.value &&
+		shown === display.value &&
+		!shown.includes("\r")
+	)
+		clicked = textOffsetAt(clamped.value, event.clientX, event.clientY);
 	editing.value = true;
 }
 
@@ -425,6 +443,9 @@ watch(editing, async (on, _previous, onCleanup) => {
 		document.removeEventListener("pointerdown", onPressOutside, true);
 	});
 	await nextTick();
-	if (cell.value) stop = focusField(cell.value);
+	if (!cell.value) return;
+	stop = focusField(cell.value);
+	const area = multiline.value && cell.value.querySelector("textarea");
+	if (area) placeCaret(area, clicked);
 });
 </script>
