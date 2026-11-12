@@ -92,7 +92,10 @@ export function filtersFrom(
 		(entry): entry is WireFilters[number] =>
 			Array.isArray(entry) && typeof entry[0] === "string" && readable(entry[0])
 	);
-	return parseFilters(getFilterableFields(fields, doctype), wire).map(bareLike);
+	// An app's file is not validated: a condition whose operator the filter UI lacks is dropped.
+	return parseFilters(getFilterableFields(fields, doctype), wire)
+		.filter((condition) => condition.operator)
+		.map(bareLike);
 }
 
 export function quickFilterFieldsFrom(

@@ -338,6 +338,12 @@ class TestPlainView(AppViewCase):
 			self.folders.plain_view(bad)
 			with self.assertLogs(frappe.logger("desk"), "WARNING"):
 				self.assertIsNone(app_plain_settings("ToDo", "List"))
+			with self.assertNoLogs(frappe.logger("desk"), "WARNING"):
+				self.assertIsNone(app_plain_settings("ToDo", "List"))
+
+	def test_the_index_keeps_every_stem_for_the_sites_whose_view_types_differ(self):
+		self.folders.plain_view(PLAIN_SETTINGS, type="probe-type")
+		self.assertIn(("todo", "probe-type"), self.index().plain)
 
 	def test_an_edited_file_is_read_again(self):
 		path = self.folders.plain_view({"sort": []})

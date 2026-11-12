@@ -197,8 +197,10 @@ class ViewIndex:
 		name = self.doctype_name(folder.doctype)
 		plain_keys = type_keys()
 		for path in sorted(view_files(folder.path)):
-			if (key := view_key(path)) in plain_keys:
-				self.plain.setdefault((folder.doctype, key), path)
+			key = view_key(path)
+			# Every stem is a plain view candidate: the index is shared by sites whose View Types differ.
+			self.plain.setdefault((folder.doctype, key), path)
+			if key in plain_keys:
 				continue
 			try:
 				view = read_view(folder.app, name, path)

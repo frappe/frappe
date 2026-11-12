@@ -88,6 +88,11 @@ describe("filtersFrom", () => {
 		]);
 	});
 
+	it("drops a condition whose operator the filter UI lacks, or that has no operator", () => {
+		const stored = [["title", "like", "%x%"], ["title", "Between", [1, 2]], ["title"], ["amount", ">", 5]];
+		expect(filtersFrom(stored, "Lead", FIELDS, readable)).toMatchObject([{ fieldname: "amount", operator: ">" }]);
+	});
+
 	it("reads a shape that is not a list as nothing", () => {
 		expect(filtersFrom({ title: "Acme" }, "Lead", FIELDS, readable)).toEqual([]);
 		expect(filtersFrom(undefined, "Lead", FIELDS, readable)).toEqual([]);
