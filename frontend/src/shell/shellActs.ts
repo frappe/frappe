@@ -329,7 +329,7 @@ function leave(href: string) {
 }
 
 // The menu closes on the click, so the confirmation is a toast.
-async function copyLink(link: string) {
+export async function copyLink(link: string) {
 	try {
 		await navigator.clipboard.writeText(link);
 	} catch {

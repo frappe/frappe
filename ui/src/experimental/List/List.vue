@@ -87,6 +87,7 @@
 					@pointerleave="leave(rowValue(row))"
 					@focusin="focus(rowValue(row))"
 					@focusout="blur(rowValue(row))"
+					@contextmenu="emit('row-contextmenu', { name: rowValue(row), event: $event })"
 				>
 					<!-- The molecule's own `selectable` turns a row click into a toggle; the row must stay
 						a link, so the checkbox is drawn here (frappe/frappe-ui#1131). -->
@@ -189,6 +190,7 @@ const cursor = defineModel<string | null>("cursor", { default: null });
 const emit = defineEmits<{
 	"column-resize": [payload: ColumnResize];
 	"column-reset": [payload: { fieldname: string }];
+	"row-contextmenu": [payload: { name: string; event: MouseEvent }];
 }>();
 
 defineSlots<{
