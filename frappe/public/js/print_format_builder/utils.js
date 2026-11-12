@@ -679,10 +679,12 @@ export function text_field_paths(text, meta) {
 		.filter((path) => {
 			const [fieldname, target] = path.split(".");
 			const df = meta?.fields?.find((f) => f.fieldname === fieldname);
-			if (!target) return !!df || fieldname === "name";
+			if (!target) return (!!df && df.fieldtype !== "Table") || fieldname === "name";
 			return (
 				df?.fieldtype === "Link" &&
-				!!frappe.get_meta(df.options)?.fields?.some((f) => f.fieldname === target)
+				!!frappe
+					.get_meta(df.options)
+					?.fields?.some((f) => f.fieldname === target && f.fieldtype !== "Table")
 			);
 		});
 }
