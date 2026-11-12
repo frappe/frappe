@@ -40,7 +40,7 @@ import { recentVisits } from "@/shell/recentVisits";
 import { recordRouteHistory } from "@/shell/routeHistory";
 import { createSocket } from "@/shell/socket";
 import { watchDoctypeUpdates } from "@/shell/doctypeUpdates";
-import { watchBulkRuns } from "@/shell/bulkRuns";
+import { setBulkSocket } from "@/shell/bulkSocket";
 import Unauthorized from "@/shell/Unauthorized.vue";
 import BootError from "@/shell/BootError.vue";
 
@@ -101,7 +101,7 @@ async function start() {
 	app.config.globalProperties.$socket = createSocket(boot);
 	watchClientScripts(app.config.globalProperties.$socket);
 	watchDoctypeUpdates(app.config.globalProperties.$socket);
-	watchBulkRuns(app.config.globalProperties.$socket);
+	setBulkSocket(app.config.globalProperties.$socket);
 	app.use(router);
 	app.provide("boot", boot);
 	provideSession(app, boot.session);

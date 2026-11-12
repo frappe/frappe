@@ -4,6 +4,7 @@ import { toast } from "frappe-ui";
 import { getDocument } from "@framework/ui/api";
 import type { RealtimeSocket } from "@framework/ui/socket";
 import { __ } from "@/i18n";
+import { bulkSocket } from "@/shell/bulkSocket";
 
 const TASK_UPDATE = "task_update";
 const BACKGROUND_TASK = "Background Task";
@@ -65,6 +66,7 @@ interface TaskMessage {
 	stage?: unknown;
 }
 
+let stopWatching: (() => void) | undefined;
 const followed = reactive(new Map<string, Followed>());
 
 /** Starts following the run behind a `202 {task_id}`; the same id twice follows once. `onSettled` runs once, with the final run. */
@@ -91,6 +93,7 @@ export function followBulkRun(taskId: string, onSettled?: Settled): BulkRun {
 		listeners: onSettled ? [onSettled] : [],
 	};
 	followed.set(taskId, entry);
+	stopWatching ??= watchBulkRuns(bulkSocket());
 	// Reading through the map gives the reactive entry, which the reply must update.
 	const tracked = followed.get(taskId)!;
 	// The run may have moved before this page followed it; the row says where it is.
@@ -108,7 +111,7 @@ export function dismissBulkRun(taskId: string) {
 	followed.delete(taskId);
 }
 
-/** Listens for `task_update` once for the tab; returns the stop. A reconnect rereads the runs that were still moving. */
+/** Listens for `task_update`; the first followed run starts it on the tab's socket. Returns the stop. A reconnect rereads the runs that were still moving. */
 export function watchBulkRuns(socket: RealtimeSocket | undefined): () => void {
 	const onUpdate = (...args: unknown[]) =>
 		applyMessage((args[0] ?? {}) as TaskMessage);

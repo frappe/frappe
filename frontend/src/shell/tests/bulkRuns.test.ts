@@ -354,4 +354,19 @@ describe("the tab's lifetime", () => {
 	it("does nothing without a socket", () => {
 		expect(() => watchBulkRuns(undefined)()).not.toThrow();
 	});
+
+	it("starts listening on the tab's socket with the first followed run", async () => {
+		vi.resetModules();
+		socket.handlers.clear();
+		const { setBulkSocket } = await import("../bulkSocket");
+		const fresh = await import("../bulkRuns");
+		setBulkSocket(socket);
+
+		expect(socket.handlers.size).toBe(0);
+		const run = fresh.followBulkRun("t9");
+		socket.fire("task_update", { task_id: "t9", progress: 40 });
+
+		expect(run.progress).toBe(40);
+		expect(socket.handlers.get("task_update")).toHaveLength(1);
+	});
 });
