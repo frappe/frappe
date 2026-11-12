@@ -8,6 +8,7 @@ from frappe.api import bulk, bulk_actions
 from frappe.api.bulk import QUEUED, BulkAction, run_bulk
 from frappe.api.utils import FrappeValueError
 from frappe.tests import IntegrationTestCase
+from frappe.tests.utils import whitelist_for_tests
 from frappe.utils.task_queue import _execute_task
 
 PREFIX = "bulk47062"
@@ -28,16 +29,16 @@ def touch_one(doctype, name, fail=(), queue=(), crash=None, values=None):
 	return QUEUED if name in queue else None
 
 
-@frappe.whitelist(methods=["POST"])
+@whitelist_for_tests(methods=["POST"])
 def stamp_one(doctype: str, name: str, text: str = "stamped"):
 	"""Test bulk_call method: a whitelisted record function that checks the record's right itself."""
 	doc = frappe.get_doc(doctype, name)
 	doc.check_permission("write")
 	frappe.db.set_value(doctype, name, "description", f"{PREFIX} {text}")
-	frappe.msgprint("stamped")
+	frappe.msgprint(frappe._("stamped"))
 
 
-@frappe.whitelist(methods=["GET"])
+@whitelist_for_tests(methods=["GET"])
 def read_only_one(doctype: str, name: str):
 	frappe.db.set_value(doctype, name, "description", f"{PREFIX} read only")
 

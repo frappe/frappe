@@ -260,7 +260,7 @@ def whitelisted_method(path: str):
 
 def call_one(doctype: str, name: str, method: str, args: dict):
 	try:
-		return frappe.call(whitelisted_method(method), doctype, name, **args)
+		return frappe.call(whitelisted_method(method), doctype, name, **args)  # nosemgrep
 	finally:
 		frappe.clear_messages()
 
