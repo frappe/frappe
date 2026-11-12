@@ -31,6 +31,8 @@ CACHE_PREFIX = "chat_attachment"
 CACHE_TTL = 3600
 
 MAX_ATTACHMENTS = MAX_ATTACHMENTS_PER_MESSAGE
+# OCR runs during the upload, so only on the first pages
+MAX_OCR_PAGES = 20
 # Each turn gets a fixed fraction of the model's total context for attachment text.
 # This deliberately ignores current transcript occupancy: the daemon compacts history.
 # When a set does not fit, the largest files move to retrieval first so only the minimum
@@ -213,7 +215,7 @@ def _extract(file_doc: Document) -> dict[str, Any]:
 	if extension not in FILE_EXTENSIONS:
 		frappe.throw(_("Unsupported file type: .{0}").format(extension or "?"), title=_("Unsupported File"))
 
-	text = None if extension in IMAGE_EXTENSIONS else extract_file(file_doc)
+	text = None if extension in IMAGE_EXTENSIONS else extract_file(file_doc, max_ocr_pages=MAX_OCR_PAGES)
 	if text == "":
 		frappe.throw(_("No readable text found in this file."), title=_("Empty File"))
 

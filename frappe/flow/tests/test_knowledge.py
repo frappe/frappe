@@ -17,6 +17,7 @@ from frappe.flow.knowledge.extract import (
 	_extract_pdf,
 	_extract_pdf_page,
 	_extract_xlsx,
+	_render_page_png,
 	_render_rich_text,
 	_validate_public_url,
 	extract,
@@ -466,6 +467,37 @@ class TestExtract(IntegrationTestCase):
 		self.assertIn("Hello", _extract_by_extension(png, "png"))
 		pdf = scan((600, 200), (30, 80), "Scanned Document", format="PDF", resolution=100)
 		self.assertIn("Scanned", _extract_pdf(pdf))
+
+	def test_a_pdf_cannot_ask_for_a_huge_render_or_ocr_every_page(self):
+		import io
+
+		import pdfplumber
+		from PIL import Image
+		from pypdf import PdfWriter
+
+		writer = PdfWriter()
+		writer.add_blank_page(width=14400, height=7200)  # 200 inches wide: 40000 px at 200 DPI
+		buffer = io.BytesIO()
+		writer.write(buffer)
+		with pdfplumber.open(buffer) as pdf:
+			size = Image.open(io.BytesIO(_render_page_png(pdf.pages[0]))).size
+		self.assertEqual(size, (4000, 2000))
+
+		scans = [Image.new("RGB", (100, 100), "white") for _ in range(3)]
+		buffer = io.BytesIO()
+		scans[0].save(buffer, format="PDF", save_all=True, append_images=scans[1:])
+		with (
+			patch("frappe.flow.knowledge.extract._render_page_png", return_value=b"page"),
+			patch("frappe.flow.knowledge.extract._ocr_image", return_value="text") as ocr,
+		):
+			self.assertTrue(
+				_extract_pdf(buffer.getvalue(), max_ocr_pages=2).endswith(
+					"after page 2 were not read: their text is missing.]"
+				)
+			)
+			self.assertEqual(ocr.call_count, 2)
+			self.assertEqual(_extract_pdf(buffer.getvalue(), max_ocr_pages=3), "text\n\ntext\n\ntext")
+			self.assertEqual(ocr.call_count, 5)
 
 	def test_only_public_http_urls_are_fetched(self):
 		for url, error in (

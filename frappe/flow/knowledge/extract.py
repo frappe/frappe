@@ -18,6 +18,9 @@ IMAGE_EXTENSIONS = {"png", "jpg", "jpeg", "webp", "bmp", "tiff", "tif", "gif"}
 FILE_EXTENSIONS = {"pdf", "xlsx", "docx", "html", "htm"} | TEXT_EXTENSIONS | IMAGE_EXTENSIONS
 
 OCR_DPI = 200
+# a PDF sets its own page size, so cap the render
+MAX_OCR_SIDE = 4000
+OCR_SKIPPED = "[Images after page {0} were not read: their text is missing.]"
 
 CHILD_FIELDTYPES = {"Table", "Table MultiSelect"}
 HTML_FIELDTYPES = {"Text Editor"}
@@ -56,10 +59,11 @@ def _extract_file_source(source) -> list[ExtractedDoc]:
 	return _single(extract_file(file_doc))
 
 
-def extract_file(file_doc) -> str:
-	"""Extract plain text from a File doc by extension. Usable by any caller that holds a File doc."""
+def extract_file(file_doc, max_ocr_pages: int | None = None) -> str:
+	"""Extract plain text from a File doc by extension. Usable by any caller that holds a File doc.
+	Only the first `max_ocr_pages` PDF pages are OCRed."""
 	extension = os.path.splitext(file_doc.file_name or file_doc.file_url or "")[1].lower().lstrip(".")
-	return _extract_by_extension(file_doc.get_content(), extension).strip()
+	return _extract_by_extension(file_doc.get_content(), extension, max_ocr_pages).strip()
 
 
 def _extract_url_source(source) -> list[ExtractedDoc]:
@@ -131,9 +135,9 @@ def _extract_doctype_source(source) -> list[ExtractedDoc]:
 # --- format extractors -------------------------------------------------------
 
 
-def _extract_by_extension(content, extension: str) -> str:
+def _extract_by_extension(content, extension: str, max_ocr_pages: int | None = None) -> str:
 	if extension == "pdf":
-		return _extract_pdf(_as_bytes(content))
+		return _extract_pdf(_as_bytes(content), max_ocr_pages)
 	if extension == "xlsx":
 		return _extract_xlsx(_as_bytes(content))
 	if extension == "docx":
@@ -147,19 +151,24 @@ def _extract_by_extension(content, extension: str) -> str:
 	frappe.throw(_("Unsupported file format: .{0}").format(extension or "?"), title=_("Unsupported Format"))
 
 
-def _extract_pdf(data: bytes) -> str:
+def _extract_pdf(data: bytes, max_ocr_pages: int | None = None) -> str:
 	import pdfplumber
 	from pdfminer.pdfdocument import PDFPasswordIncorrect
 
 	try:
 		with pdfplumber.open(BytesIO(data)) as pdf:
-			pages = [_extract_pdf_page(page) for page in pdf.pages]
+			pages = [
+				_extract_pdf_page(page, ocr=max_ocr_pages is None or i < max_ocr_pages)
+				for i, page in enumerate(pdf.pages)
+			]
+			if max_ocr_pages is not None and any(page.images for page in pdf.pages[max_ocr_pages:]):
+				pages.append(OCR_SKIPPED.format(max_ocr_pages))
 	except PDFPasswordIncorrect:
 		frappe.throw(_("PDF is password protected and cannot be read."), title=_("Cannot Read PDF"))
 	return "\n\n".join(page for page in pages if page)
 
 
-def _extract_pdf_page(page) -> str:
+def _extract_pdf_page(page, ocr: bool = True) -> str:
 	parts = []
 
 	tables = page.find_tables()
@@ -178,7 +187,7 @@ def _extract_pdf_page(page) -> str:
 	# OCR once per page, including embedded scans in otherwise searchable PDFs.
 	# A page can contain many small image objects; OCRing each separately repeats
 	# expensive inference and can turn a one-page attachment into a minute-long wait.
-	if page.images:
+	if ocr and page.images:
 		parts.append(_ocr_image(_render_page_png(page)))
 
 	return "\n\n".join(part for part in parts if part)
@@ -199,7 +208,8 @@ def _table_to_markdown(table) -> str:
 
 def _render_page_png(page) -> bytes:
 	buffer = BytesIO()
-	page.to_image(resolution=OCR_DPI).original.save(buffer, format="PNG")
+	resolution = min(OCR_DPI, MAX_OCR_SIDE * 72 / max(page.width, page.height, 1))
+	page.to_image(resolution=resolution).original.save(buffer, format="PNG")
 	return buffer.getvalue()
 
 
