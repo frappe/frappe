@@ -185,6 +185,11 @@ describe("PickerListFit", () => {
     expect(list.querySelector<HTMLElement>('[role="presentation"]')!.style.maxHeight).toBe("284px");
   });
 
+  it("takes the list's scroller out of the Tab order, so a Tab never lands in the list", () => {
+    const list = mountList({ left: 0, width: 380 }, false);
+    expect(list.querySelector('[role="presentation"]')!.getAttribute("tabindex")).toBe("-1");
+  });
+
   it("keeps the list's own cap when the room under the row is larger", () => {
     const list = mountList({ left: 0, width: 380 }, false, { bottom: 0, ownMaxHeight: "200px" });
     expect(list.querySelector<HTMLElement>('[role="presentation"]')!.style.maxHeight).toBe(
