@@ -206,7 +206,7 @@ def resolve_print_format(print_format_name: "str | None", meta: "Meta") -> tuple
 def get_print_filename(doc: "Document") -> str:
 	from frappe.core.doctype.file.utils import get_safe_file_name
 
-	return get_safe_file_name(doc.name)
+	return get_safe_file_name(cstr(doc.name))
 
 
 def get_rendered_template(
