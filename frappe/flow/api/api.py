@@ -87,7 +87,7 @@ def boot() -> dict[str, Any]:
 	}
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def create_session(
 	agent: str | None = None,
 	model: str | None = None,
@@ -161,7 +161,7 @@ def skills(session: str | None = None, agent: str | None = None) -> dict[str, An
 	}
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def run(session: str, message: str, attachments: list[str] | str | None = None) -> dict[str, Any]:
 	"""Start a turn and answer at once: "started" with its new run, or "steered" with the
 	active run the message joined. `attachments` are File names staged with attach_file;
@@ -179,7 +179,7 @@ def run(session: str, message: str, attachments: list[str] | str | None = None) 
 	return {"run": run.name, "status": "steered" if run.name == active else "started"}
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def resume(
 	session: str, answers: dict[str, Any] | str, approval_seq: int | str | None = None
 ) -> dict[str, Any]:
@@ -243,12 +243,12 @@ def _waiting_call(doc: FlowSession, call_id: str) -> dict[str, Any] | None:
 	return None
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def abort(session: str) -> dict[str, str]:
 	return {"status": _load_session(session, "write").abort()}
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def cancel_pending(session: str) -> dict[str, str]:
 	return {"status": _load_session(session, "write").cancel_pending()}
 
@@ -285,7 +285,7 @@ def system_prompt(session: str) -> str | None:
 	return doc.system_prompt()
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def set_model(session: str, model: str, reasoning_effort: str | None = None) -> dict[str, Any]:
 	"""Switch the session's model; `reasoning_effort` sets its thinking level, empty for the default."""
 	if not isinstance(model, str) or not model.strip():
@@ -303,7 +303,7 @@ def set_model(session: str, model: str, reasoning_effort: str | None = None) -> 
 	}
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def set_title(session: str, title: str) -> dict[str, str]:
 	title = (title or "").strip()[:TITLE_LIMIT]
 	if not title:
@@ -312,14 +312,14 @@ def set_title(session: str, title: str) -> dict[str, str]:
 	return {"title": title}
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def set_approval_mode(session: str, mode: str) -> dict[str, str]:
 	"""Ask, Auto or Auto-approve; a Trigger session stays on Auto-approve."""
 	_load_session(session, "write").set_approval_mode(mode)
 	return {"approval_mode": mode}
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def delete_session(session: str) -> dict[str, str]:
 	_load_session(session, "delete").delete()
 	return {"status": "deleted"}
@@ -387,7 +387,7 @@ def sync_session(session: str) -> dict[str, Any]:
 	return _session_payload(doc)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def submit_feedback(run_name: str, rating: str, comment: str | None = None) -> dict[str, Any]:
 	"""Record thumbs feedback on a finished run, or clear it with rating "None". A
 	thumbs-down comment is stored as agent memory when the agent has memory enabled (a no-op
@@ -430,7 +430,7 @@ def submit_feedback(run_name: str, rating: str, comment: str | None = None) -> d
 	return result
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def attach_file(file: str, model: str | None = None) -> dict[str, Any]:
 	"""Validate and extract an uploaded File for use as a chat attachment. Errors
 	(unsupported type, unreadable, not owned) surface here, at upload time. The
@@ -445,7 +445,7 @@ def attach_file(file: str, model: str | None = None) -> dict[str, Any]:
 	return stage_attachment(file.strip(), model)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def cleanup_attachments(
 	session: str | None = None, attachments: list[str] | str | None = None
 ) -> dict[str, list[str]]:

@@ -980,6 +980,25 @@ class TestSessionEndpoints(ApiCase):
 		self.daemon.running = True
 		self.assertEqual(api.abort(name), {"status": "aborting"})
 
+	def test_methods_that_change_something_refuse_get(self):
+		# GET skips the CSRF check
+		for method in (
+			api.create_session,
+			api.run,
+			api.resume,
+			api.abort,
+			api.cancel_pending,
+			api.set_model,
+			api.set_title,
+			api.set_approval_mode,
+			api.delete_session,
+			api.submit_feedback,
+			api.attach_file,
+			api.cleanup_attachments,
+		):
+			with self.subTest(method.__name__):
+				self.assertEqual(frappe.allowed_http_methods_for_whitelisted_func[method], ("POST",))
+
 	def test_set_model_sends_the_models_credentials_and_reasoning_effort(self):
 		name = self.create()
 		other = frappe.get_doc(
