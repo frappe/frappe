@@ -269,6 +269,10 @@ describe("the bulk actions in the palette", () => {
       );
       const bar_ = result.layout.value.menu.flatMap((group) => group.options);
       expect(bar_.filter((option) => !option.disabled).map((option) => option.label)).toEqual([
+        "Clear assignment",
+        "Apply assignment rule",
+        "Remove tags",
+        "Share",
         "Print",
         "Export",
         "Submit",
