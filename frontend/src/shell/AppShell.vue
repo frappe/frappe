@@ -62,6 +62,7 @@
 		<!-- The open writer, here so a floating one outlives the page it was opened on. -->
 		<ComposerWindow :user="boot.session.user" />
 		<ShellDialogs v-if="shellDialogs.entries.value.length" />
+		<BulkTray v-if="bulkTrayShown" />
 		<StandingWindows v-if="standingWindows.length" :windows="standingWindows" :shell="shell" />
 
 		<component
@@ -110,6 +111,7 @@ import { closeCreates, createDialog, createRequests } from "./create";
 import { closeRecordDialogs, recordDialog, recordDialogRequests } from "./recordDialog";
 import CustomizeSidebarDialog, { type CustomizeTarget } from "./CustomizeSidebarDialog.vue";
 import LogoutDialog from "./LogoutDialog.vue";
+import { bulkTrayShown } from "./bulkTrayFlag";
 import { shellDialogs } from "./dialog";
 import { openArgumentStep, paletteOpen } from "./palette";
 import { PaletteKey } from "./paletteKey";
@@ -124,6 +126,7 @@ import UserMenu from "./UserMenu.vue";
 const ShellSettingsDialog = defineAsyncComponent(() => import("./ShellSettingsDialog.vue"));
 const AboutDialog = defineAsyncComponent(() => import("./AboutDialog.vue"));
 const ShellDialogs = defineAsyncComponent(() => import("./ShellDialogs.vue"));
+const BulkTray = defineAsyncComponent(() => import("./BulkTray.vue"));
 const StandingWindows = defineAsyncComponent(() => import("./StandingWindows.vue"));
 // Keys wait for no paint, so their code stays out of the cold-load chunk.
 const ActKeys = defineAsyncComponent(() => import("./actKeys").then((module) => module.ActKeys));

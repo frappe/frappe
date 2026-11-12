@@ -23,6 +23,8 @@ export interface BulkStatus {
 	refresh: () => void;
 	/** A run ended: re-reads the common actions and reloads the list. */
 	finished: () => void;
+	/** Puts these names in the selection, for the result panel's "Select failed". */
+	select: (names: string[]) => void;
 }
 
 export interface BulkStatusOptions {
@@ -103,5 +105,6 @@ export function useBulkStatus({ doctype, meta, selection, cap, locked, reload }:
 		refresh();
 		reload();
 	};
-	return { items, asked, refresh, finished };
+	const select = (names: string[]) => (selection.value = names);
+	return { items, asked, refresh, finished, select };
 }

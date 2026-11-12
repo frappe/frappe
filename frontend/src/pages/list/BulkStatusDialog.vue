@@ -1,15 +1,8 @@
-<!-- The confirmation before a bulk Submit, Cancel or workflow action; queued records and failures stay in the dialog. -->
+<!-- The confirmation before a bulk Submit, Cancel or workflow action; the outcome goes to the bulk tray and result panel. -->
 <template>
 	<Dialog v-model="open" :title="title" size="sm" :actions="actions">
 		<template #default>
-			<p v-if="!result" class="text-base text-ink-gray-6">{{ hint }}</p>
-			<template v-else>
-				<p class="text-base text-ink-gray-8">{{ summary }}</p>
-				<p v-if="result.queued?.length" class="mt-2 text-sm text-ink-gray-6">
-					{{ __("Queued: {0}", [result.queued.join(", ")]) }}
-				</p>
-				<p class="mt-2 whitespace-pre-line text-sm text-ink-red-3">{{ failures }}</p>
-			</template>
+			<p class="text-base text-ink-gray-6">{{ hint }}</p>
 			<p v-if="failure" class="mt-2 whitespace-pre-line text-sm text-ink-red-3">
 				{{ failure }}
 			</p>
@@ -18,24 +11,24 @@
 </template>
 
 <script setup lang="ts">
-import { bulkStatusDocuments, isBulkQueued, type BulkResult } from "@framework/ui/api";
-import { Dialog, toast } from "frappe-ui";
+import { bulkStatusDocuments } from "@framework/ui/api";
+import { Dialog } from "frappe-ui";
 import { computed, ref, watch } from "vue";
-import { __, __n } from "@/i18n";
-import { followBulkRun } from "@/shell/bulkRuns";
+import { __ } from "@/i18n";
+import { runBulk } from "@/shell/bulkOutcome";
 import type { BulkStatusAction } from "./bulkStatus";
 
 const props = defineProps<{
 	doctype: string;
 	action: BulkStatusAction | null;
 	finished: () => void;
+	select: (names: string[]) => void;
 }>();
 const open = defineModel<boolean>({ default: false });
 
 const asked = computed(() => props.action);
 const running = ref(false);
 const failure = ref("");
-const result = ref<BulkResult | null>(null);
 
 // Immediate: the bar mounts this dialog already open, the first time it asks.
 watch(
@@ -46,7 +39,6 @@ watch(
 			return;
 		}
 		failure.value = "";
-		result.value = null;
 	},
 	{ immediate: true }
 );
@@ -59,19 +51,8 @@ const hint = computed(() => {
 		return __("A cancelled record can no longer be changed.");
 	return __("Each record moves through the workflow on its own; one that cannot fails alone.");
 });
-const summary = computed(() =>
-	__("{0} of {1} done, {2} failed", [
-		result.value!.done.length,
-		result.value!.total,
-		result.value!.failed.length,
-	])
-);
-const failures = computed(() =>
-	result.value!.failed.map(({ name, error }) => `${name}: ${error}`).join("\n")
-);
-
 const actions = computed(() =>
-	result.value || failure.value
+	failure.value
 		? [{ label: __("Close"), onClick: () => (open.value = false) }]
 		: [
 				{
@@ -84,41 +65,26 @@ const actions = computed(() =>
 		  ]
 );
 
+// The outcome (a toast, the result panel, or the tray) is the shell's; the dialog only shows a request that failed.
 async function confirm() {
 	const action = asked.value!;
 	running.value = true;
 	try {
-		const body = action.transition
-			? { ...action.body, action: action.transition }
-			: action.body;
-		const { data } = await bulkStatusDocuments(props.doctype, action.route, body);
-		running.value = false;
-		if (isBulkQueued(data)) {
-			followBulkRun(data.task_id, () => props.finished());
-			toast.info(__("{0} is running in the background", [action.label]));
-			open.value = false;
-			return;
-		}
-		report(data);
+		await runBulk({
+			label: action.label,
+			doctype: props.doctype,
+			send: (names) => {
+				const body = names ? { names } : action.body;
+				return bulkStatusDocuments(props.doctype, action.route, action.transition ? { ...body, action: action.transition } : body);
+			},
+			select: props.select,
+			finished: props.finished,
+		});
+		open.value = false;
 	} catch (error) {
 		failure.value = error instanceof Error ? error.message : String(error);
 	} finally {
 		running.value = false;
 	}
-}
-
-function report(data: BulkResult) {
-	props.finished();
-	const queued = data.queued?.length ?? 0;
-	if (data.failed.length) {
-		result.value = data;
-		return;
-	}
-	if (data.done.length)
-		toast.success(
-			__n("{0} record done", "{0} records done", data.done.length, [data.done.length])
-		);
-	if (queued) toast.info(__n("{0} record queued", "{0} records queued", queued, [queued]));
-	open.value = false;
 }
 </script>

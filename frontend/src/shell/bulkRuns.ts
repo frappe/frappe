@@ -5,6 +5,7 @@ import { getDocument } from "@framework/ui/api";
 import type { RealtimeSocket } from "@framework/ui/socket";
 import { __ } from "@/i18n";
 import { bulkSocket } from "@/shell/bulkSocket";
+import { bulkTrayShown } from "@/shell/bulkTrayFlag";
 
 const TASK_UPDATE = "task_update";
 const BACKGROUND_TASK = "Background Task";
@@ -85,6 +86,7 @@ export function followBulkRun(taskId: string, onSettled?: Settled): BulkRun {
 				: existing.listeners.push(onSettled);
 		return existing.run;
 	}
+	bulkTrayShown.value = true;
 	const entry: Followed = {
 		run: {
 			taskId,
