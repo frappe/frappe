@@ -186,10 +186,13 @@ def cleanup_indexed_files(session: str, files: list[str]) -> None:
 
 
 def load_attachment(file: str) -> tuple[dict[str, Any], Document]:
-	"""A File the caller may read, with its extraction: the one staged at upload, else a
-	fresh one. Raises for an unreadable file or an unsupported type. Whether images
+	"""A File the caller uploaded, with its extraction: the one staged at upload, else a
+	fresh one. Raises for another user's file or an unsupported type. Whether images
 	are sent directly or as OCR text, cached or fresh, is decided on send."""
 	file_doc = _readable_file(file)
+	# the chat takes over a sent file, so only your own
+	if file_doc.owner != frappe.session.user:
+		frappe.throw(_("You can only attach files you uploaded."), frappe.PermissionError)
 	return staged_attachment(file) or _extract(file_doc), file_doc
 
 

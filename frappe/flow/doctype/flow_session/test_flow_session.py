@@ -30,6 +30,16 @@ def _insert_agent() -> str:
 	return agent.name
 
 
+def _txt_file(content: str) -> str:
+	return (
+		frappe.get_doc(
+			{"doctype": "File", "file_name": f"{content}.txt", "content": content, "is_private": 1}
+		)
+		.insert(ignore_permissions=True)
+		.name
+	)
+
+
 class TestFlowSession(IntegrationTestCase):
 	def setUp(self):
 		self.model = frappe.get_doc(
@@ -88,6 +98,13 @@ class TestClearOldLogs(IntegrationTestCase):
 		session.append("messages", {"role": "user", "content": "hi"})
 		session.append("attachments", {"file": f.name, "file_name": "f.txt", "file_size": 1})
 		session.insert(ignore_permissions=True)
+		# attached to the chat, as a send does
+		frappe.db.set_value(
+			"File",
+			f.name,
+			{"attached_to_doctype": "Flow Session", "attached_to_name": session.name},
+			update_modified=False,
+		)
 		run = frappe.get_doc(
 			{"doctype": "Flow Run", "session": session.name, "source": "Manual", "status": "Completed"}
 		).insert(ignore_permissions=True)
@@ -122,6 +139,23 @@ class TestClearOldLogs(IntegrationTestCase):
 		self.assertFalse(frappe.db.exists("Notification Log", {"document_name": old_session}))
 		self.assertFalse(frappe.db.exists("File", old_file))
 		self.server_delete.assert_called_once_with(old_session)
+
+	def test_purge_deletes_only_the_chats_own_files(self):
+		old_session, _, own_file = self._session_with_run(age_days=100)
+		theirs = _txt_file("theirs")
+		frappe.db.set_value("File", theirs, "owner", "test@example.com", update_modified=False)
+		# the owner can put any file in the rows
+		doc = frappe.get_doc("Flow Session", old_session)
+		doc.append("attachments", {"file": theirs, "file_name": "theirs.txt", "file_size": 1})
+		doc.save(ignore_permissions=True)
+		old = frappe.utils.add_days(frappe.utils.now(), -100)
+		frappe.db.set_value("Flow Session", old_session, "modified", old, update_modified=False)
+
+		FlowSession.clear_old_logs(days=30)
+
+		self.assertFalse(frappe.db.exists("Flow Session", old_session))
+		self.assertFalse(frappe.db.exists("File", own_file))
+		self.assertTrue(frappe.db.exists("File", theirs))
 
 	def test_purge_waits_for_the_flow_server_and_keeps_what_is_still_in_use(self):
 		old_session, old_run, _ = self._session_with_run(age_days=100)

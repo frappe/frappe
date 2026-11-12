@@ -569,6 +569,16 @@ class TestSessionEndpoints(ApiCase):
 		api.sync_session(name)
 		self.assertEqual([row.file for row in frappe.get_doc("Flow Session", name).attachments], [notes.name])
 
+	def test_another_users_file_is_refused_even_when_readable(self):
+		theirs = self.upload("theirs.txt", "their body")
+		frappe.db.set_value("File", theirs.name, "owner", OTHER)
+		name = self.create()
+		# attached to the chat, it could be deleted with it
+		for attach in (lambda: api.attach_file(theirs.name), lambda: api.run(name, "read", [theirs.name])):
+			with self.assertRaisesRegex(frappe.PermissionError, "files you uploaded"):
+				attach()
+		self.assertFalse(frappe.db.get_value("File", theirs.name, "attached_to_doctype"))
+
 	def test_blank_or_malformed_input_is_refused(self):
 		name = self.create()
 		with self.assertRaisesRegex(frappe.ValidationError, "Session is required"):

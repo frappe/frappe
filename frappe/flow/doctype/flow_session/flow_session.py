@@ -497,13 +497,13 @@ def _delete_attachment_files(sessions: list[str]) -> None:
 	"""Delete the uploaded File docs attached to these sessions. Per-doc (not bulk SQL)
 	so File.on_trash runs to remove the on-disk content, and best-effort so one failure
 	never aborts the purge."""
-	files = frappe.get_all("Flow Session Attachment", filters={"parent": ["in", sessions]}, pluck="file")
-	for file in {name for name in files if name}:
-		attached = frappe.db.get_value(
-			"File", file, ["attached_to_doctype", "attached_to_name"], as_dict=True
-		)
-		if attached and attached.attached_to_doctype not in (None, "", "Flow Session"):
-			continue
+	# only files attached to these chats: the rows can name any file
+	files = frappe.get_all(
+		"File",
+		filters={"attached_to_doctype": "Flow Session", "attached_to_name": ["in", sessions]},
+		pluck="name",
+	)
+	for file in files:
 		if frappe.db.exists("Flow Session Attachment", {"file": file, "parent": ["not in", sessions]}):
 			continue
 		try:
