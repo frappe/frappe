@@ -354,22 +354,16 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	update_checkbox() {
 		if (!this.$checkbox_actions) return;
 
+		const checked_count = this.$checks?.length || 0;
 		this.$checkbox_actions.find(".list-check-all").prop({
-			checked: this.data.length > 0 && this.checked_docnames.size === this.data.length,
+			checked: this.data.length > 0 && checked_count === this.data.length,
 			indeterminate: this.is_partly_checked(),
 		});
 	}
 
-<<<<<<< HEAD
-		if ($check_all_checkbox.prop("checked") && target && !target.prop("checked")) {
-			$check_all_checkbox.prop("checked", false);
-		}
-
-		$check_all_checkbox.prop("checked", this.$checks.length === this.data.length);
-=======
 	is_partly_checked() {
-		return this.checked_docnames.size > 0 && this.checked_docnames.size < this.data.length;
->>>>>>> b370451 (fix(list): keep selection after bulk actions)
+		const checked_count = this.$checks?.length || 0;
+		return checked_count > 0 && checked_count < this.data.length;
 	}
 
 	setup_freeze_area() {
@@ -662,140 +656,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				this.$result.append(this.get_list_row_html(doc));
 			}
 		}
-<<<<<<< HEAD
-=======
-
-		if (!frappe.is_mobile()) {
-			this.apply_column_widths();
-		}
-		this.update_listview_classes(has_assignto, assign_to_count);
-		// Non-virtual path does not go through finalize_virtual_rows; restore bulk selection here.
-		if (!this.should_use_virtualization()) {
-			this.set_rows_as_checked();
-		}
-	}
-
-	/** Preserve rendered column widths before rows are torn down and re-rendered. */
-	capture_column_widths_from_dom() {
-		if (frappe.is_mobile()) {
-			return;
-		}
-		this.$result
-			.find(".list-row-head .level-left .list-row-col[data-fieldname]")
-			.each((_, el) => {
-				const $el = $(el);
-				const fieldname = $el.attr("data-fieldname");
-				if (!fieldname || fieldname === "undefined") {
-					return;
-				}
-
-				// exact, not rounded: pinning 94.5px as 95px shifts every column after it
-				const width = $el[0].getBoundingClientRect().width;
-				if (!width) {
-					return;
-				}
-
-				const existing = flt(this.column_max_widths[fieldname]) || 0;
-				this.column_max_widths[fieldname] = Math.max(existing, width);
-			});
-	}
-
-	get_assignment_stats() {
-		let has_assignto = false;
-		let assign_to_count = 0;
-
-		for (let doc of this.data) {
-			if (!doc._assign) continue;
-			const assign_to_length = JSON.parse(doc._assign)?.length || 0;
-			assign_to_count = Math.max(
-				assign_to_count,
-				assign_to_length > this.max_number_of_avatars
-					? this.max_number_of_avatars
-					: assign_to_length
-			);
-		}
-		has_assignto = assign_to_count > 0;
-
-		return { has_assignto, assign_to_count };
-	}
-
-	// Virtual row-window logic is lazy-loaded from list_view_virtualization.js.
-
-	/** Turn on virtual scrolling when this page has 2000+ rows. */
-	should_use_virtualization() {
-		if (this.view !== "List") {
-			return false;
-		}
-
-		if (this._virtualization_bundle_failed) {
-			return false;
-		}
-
-		return this.data.length >= this.virtualization_threshold;
-	}
-
-	/** Drop checked rows that left the list after filter/pagination refresh. */
-	prune_checked_docnames() {
-		if (!this.checked_docnames.size) {
-			return;
-		}
-
-		const valid_names = new Set(this.data.map((doc) => doc.name));
-		for (const name of this.checked_docnames) {
-			if (!valid_names.has(name)) {
-				this.checked_docnames.delete(name);
-			}
-		}
-		if (!this.checked_docnames.size) this.on_row_checked();
-	}
-
-	/** Read checkbox docname; tolerates raw names with bare % (not URI-encoded). */
-	get_checkbox_docname($checkbox) {
-		const raw = $checkbox.attr("data-name") ?? $checkbox.data()?.name;
-		if (!raw) {
-			return "";
-		}
-
-		try {
-			return cstr(decodeURIComponent(raw));
-		} catch {
-			return cstr(raw);
-		}
-	}
-
-	find_checkbox_by_docname(docname) {
-		// DOM lookup helper used by shift-select and test assertions.
-		return this.$result.find(".list-row-checkbox").filter((_, el) => {
-			return this.get_checkbox_docname($(el)) === docname;
-		});
-	}
-
-	sync_checked_docname($checkbox) {
-		const name = this.get_checkbox_docname($checkbox);
-		if (!name) {
-			return;
-		}
-
-		// Keep Set in sync with checkbox — selection survives when row scrolls out of the DOM.
-		if ($checkbox.prop("checked")) {
-			this.checked_docnames.add(name);
-		} else {
-			this.checked_docnames.delete(name);
-		}
-	}
-
-	/**
-	 * Mirror header select-all state into the Set source-of-truth.
-	 * This keeps selection stable across virtualization rerenders and pagination changes.
-	 */
-	set_select_all_checked(checked) {
-		if (checked) {
-			this.data.forEach((doc) => this.checked_docnames.add(doc.name));
-			return;
-		}
-
-		this.checked_docnames.clear();
->>>>>>> cae1a61 (fix(list): clear selection when a bulk action is queued)
 	}
 
 	render_count() {
@@ -889,14 +749,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				</div>
 				<div class="level-left checkbox-actions">
 					<div class="level list-subject">
-<<<<<<< HEAD
 						<input class="level-item list-check-all" type="checkbox"
-							title="${__("Select All")}">
-=======
-						<span class="level-item select-like">
-							<input class="list-header-checkbox list-check-all" type="checkbox" title="${__("Unselect All")}">
-						</span>
->>>>>>> b370451 (fix(list): keep selection after bulk actions)
+							title="${__("Unselect All")}">
 						<span class="level-item list-header-meta"></span>
 					</div>
 				</div>
@@ -1533,17 +1387,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				const checked = !this.is_partly_checked() && $target.prop("checked");
 				$target.prop("checked", checked);
 
-<<<<<<< HEAD
-				this.$result.find(".list-row-checkbox").prop("checked", $target.prop("checked"));
-=======
 				const $check = this.$result.find(".list-header-subject .list-check-all");
 				$check.prop("checked", checked);
 
-				this.set_select_all_checked(checked);
 				this.$result.find(".list-row-checkbox").prop("checked", checked);
-			} else if ($target.is(".list-row-checkbox")) {
-				this.sync_checked_docname($target);
->>>>>>> b370451 (fix(list): keep selection after bulk actions)
 			} else if ($target.attr("data-parent")) {
 				this.$result
 					.find(`.${$target.attr("data-parent")}`)
@@ -2062,25 +1909,17 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			return {
 				label: __("Clear Assignment", null, "Button in list view actions menu"),
 				action: () => {
-<<<<<<< HEAD
 					frappe.confirm(
 						"Are you sure you want to clear the assignments?",
 						() => {
 							this.disable_list_update = true;
 							bulk_operations.clear_assignment(this.get_checked_items(true), () => {
 								this.disable_list_update = false;
-								this.clear_checked_items();
 								this.refresh();
 							});
 						},
 						() => {
 							this.clear_checked_items();
-=======
-					frappe.confirm(__("Are you sure you want to clear the assignments?"), () => {
-						this.disable_list_update = true;
-						bulk_operations.clear_assignment(this.get_checked_items(true), () => {
-							this.disable_list_update = false;
->>>>>>> b370451 (fix(list): keep selection after bulk actions)
 							this.refresh();
 						}
 					);

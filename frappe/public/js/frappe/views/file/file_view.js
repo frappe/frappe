@@ -290,7 +290,6 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 				${html}
 			</div>`
 		);
-		this.prune_checked_docnames();
 		this.set_rows_as_checked();
 	}
 
