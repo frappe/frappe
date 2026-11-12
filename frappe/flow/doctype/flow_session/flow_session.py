@@ -59,6 +59,9 @@ class FlowSession(Document):
 	# end: auto-generated types
 
 	def before_insert(self):
+		# REST inserts skip new_session's check
+		if not self.flags.ignore_permissions:
+			frappe.has_permission("Flow Agent", "read", self.agent, throw=True)
 		# the flow server keeps the model a chat starts on, so the chat names it, not the agent
 		self.model = self.model or frappe.db.get_value("Flow Agent", self.agent, "model")
 

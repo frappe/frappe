@@ -710,6 +710,13 @@ class TestFlowSessionModelPermission(IntegrationTestCase):
 		with self.assertRaises(frappe.PermissionError):
 			session.chat("hello")
 
+	def test_a_session_is_not_inserted_for_an_agent_its_user_may_not_read(self):
+		self.agent.append("roles", {"role": "System Manager"})
+		self.agent.save()
+		frappe.set_user(self.user.name)
+		with self.assertRaises(frappe.PermissionError):
+			frappe.get_doc({"doctype": "Flow Session", "agent": self.agent.name}).insert()
+
 
 class TestFlowServerSessionApprovalModePatch(IntegrationTestCase):
 	"""The patch that moves the server's saved chats off the auto_approve flag."""
