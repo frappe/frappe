@@ -318,6 +318,7 @@ describe("the list surface", () => {
       "list.copy",
       "list.export",
       "list.delete",
+      "list.download_vcards",
       "list.open_bulk_menu",
       "list.clear_selection",
     ]);
@@ -466,6 +467,7 @@ describe("the list surface", () => {
       "list.clear_default_view",
       "list.customize_quick_filter",
       "list.copy",
+      "list.download_vcards",
       "list.open_bulk_menu",
       "list.clear_selection",
     ]);
