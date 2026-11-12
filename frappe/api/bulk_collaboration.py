@@ -114,6 +114,7 @@ def clear_assignments_one(doctype: str, name: str):
 
 
 def apply_assignment_rule_one(doctype: str, name: str):
+	collaboration.load(doctype, name, "assignments")
 	apply_assignment_rules(doctype=doctype, name=name)
 
 
@@ -143,14 +144,22 @@ def refuse_without_track_changes(doctype: str, params: dict):
 		frappe.throw(_("{0} does not track changes, so its records cannot be followed.").format(doctype))
 
 
+def refuse_without_assignment_rule(doctype: str, params: dict):
+	if not frappe.db.exists("Assignment Rule", {"document_type": doctype, "disabled": 0}):
+		frappe.throw(_("{0} has no enabled Assignment Rule.").format(doctype))
+
+
 def refuse_without_track_seen(doctype: str, params: dict):
-	if not cint(frappe.get_meta(doctype).track_seen):
+	meta = frappe.get_meta(doctype)
+	if meta.issingle or not cint(meta.track_seen):
 		frappe.throw(_("{0} does not track who has seen a record.").format(doctype))
 
 
 ASSIGN = BulkAction("Assign", add_to_part)
 CLEAR_ASSIGNMENTS = BulkAction("Clear Assignment", clear_assignments_one)
-APPLY_ASSIGNMENT_RULE = BulkAction("Apply Assignment Rule", apply_assignment_rule_one)
+APPLY_ASSIGNMENT_RULE = BulkAction(
+	"Apply Assignment Rule", apply_assignment_rule_one, check=refuse_without_assignment_rule
+)
 ADD_TAG = BulkAction("Add Tag", add_to_part)
 REMOVE_TAG = BulkAction("Remove Tag", remove_from_part)
 FOLLOW = BulkAction("Follow", follow_one, check=refuse_without_track_changes)
