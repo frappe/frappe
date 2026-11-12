@@ -24,7 +24,6 @@ vi.mock("@framework/ui/SortBy", () => ({ SortBy: stub("sort") }));
 vi.mock("@framework/ui/ColumnSettings", () => ({ ColumnSettings: stub("columns") }));
 vi.mock("@framework/ui/experimental/List", () => ({
 	List: stub("list"),
-	ListBulkBar: stub("bulk-bar"),
 	ListFooter: stub("footer"),
 }));
 vi.mock("@/list/useScrollMemory", () => ({ useScrollMemory: () => {} }));
@@ -72,7 +71,7 @@ async function mount() {
 	const root = document.createElement("div");
 	document.body.appendChild(root);
 	const app = createApp(defineComponent({ render: () => h(ViewPage, { doctype: "Contact", opened: PLAIN_LIST }) }));
-	app.use(router).provide("addresses", { moduleName: () => null });
+	app.use(router).provide("boot", { bulk_actions: true, bulk_operation_limit: 500 }).provide("addresses", { moduleName: () => null });
 	app.mount(root);
 	apps.push(app);
 	await settle();

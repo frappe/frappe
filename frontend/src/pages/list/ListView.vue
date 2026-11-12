@@ -3,6 +3,15 @@
   the page's controls. The composable holds the state; this lays it out.
 -->
 <template>
+	<Teleport v-if="host.bar.value && selection.length" :to="host.bar.value">
+		<BulkBar
+			:count="selection.length"
+			:cap="bulk.cap"
+			:layout="bulk.layout.value"
+			:locked="bulk.locked"
+			@clear="selection = []"
+		/>
+	</Teleport>
 	<Teleport v-if="host.controls.value" :to="host.controls.value">
 		<ColumnSettings
 			v-model="columns"
@@ -105,7 +114,6 @@
 			<PageState :name="filters.length ? 'filtered' : 'empty'" />
 		</template>
 	</List>
-	<ListBulkBar v-model:selection="selection" :actions="bulkActions" />
 	<ListFooter
 		v-model:pageSize="pageSize"
 		:class="pageGutter"
@@ -120,7 +128,12 @@
 		@count="countExact"
 	/>
 
-	<DeleteDialog v-model="confirmingDelete" :count="selection.length" :run="deleteSelection" />
+	<DeleteDialog
+		v-if="deleteOpened"
+		v-model="confirmingDelete"
+		:count="selection.length"
+		:run="deleteSelection"
+	/>
 </template>
 
 <script setup lang="ts">
@@ -128,8 +141,9 @@ import { ColumnSettings } from "@framework/ui/ColumnSettings";
 import { LinkMark, LinkTitlesKey, isEmailField, isPhoneField } from "@framework/ui/fields";
 import type { FieldMeta } from "@framework/ui/fields/types";
 import { mapField, type RawMetaField } from "@framework/ui/FormLayout";
-import { List, ListBulkBar, ListFooter, type BulkAction } from "@framework/ui/experimental/List";
-import { computed, provide, ref } from "vue";
+import { List, ListFooter } from "@framework/ui/experimental/List";
+import { toast } from "frappe-ui";
+import { computed, defineAsyncComponent, onScopeDispose, provide, ref, watchEffect } from "vue";
 import { __ } from "@/i18n";
 import { useListView } from "@/list/useListView";
 import { useScrollMemory } from "@/list/useScrollMemory";
@@ -137,6 +151,7 @@ import type { View } from "@/list/view";
 import { pageGutter } from "@/shell/PageFrame.vue";
 import { failedState } from "@/shell/pageState";
 import PageState from "@/shell/PageState.vue";
+import BulkBar from "./BulkBar.vue";
 import AvatarStackCell from "./AvatarStackCell.vue";
 import CommentsCell from "./CommentsCell.vue";
 import ConfiguredCell from "./ConfiguredCell.vue";
@@ -144,14 +159,14 @@ import DocstatusCell from "./DocstatusCell.vue";
 import FavouriteCell from "./FavouriteCell.vue";
 import SwitchCell from "./SwitchCell.vue";
 import TagsCell from "./TagsCell.vue";
-import DeleteDialog from "./DeleteDialog.vue";
 import EmailCell from "./EmailCell.vue";
 import FieldCell from "./FieldCell.vue";
 import PhoneCell from "./PhoneCell.vue";
 import type { RendererHost } from "./renderer";
 import StatusCell from "./StatusCell.vue";
 import RowMenu from "./RowMenu.vue";
-import { rowActionEntries, rowMenuOptions } from "./rowActions";
+import { rowMenuOptions } from "./rowActions";
+import { useBulkBar } from "./useBulkBar";
 
 const props = defineProps<{ view: View; host: RendererHost }>();
 const { filters, sort } = props.view;
@@ -200,7 +215,15 @@ props.host.onCreate(reload);
 provide(LinkTitlesKey, linkTitles);
 
 const table = ref<{ viewportElement: HTMLElement | null } | null>(null);
+const DeleteDialog = defineAsyncComponent({
+	loader: () => import("./DeleteDialog.vue"),
+	onError: (_error, _retry, fail) => {
+		toast.error(__("The delete dialog did not load. Reload the page and try again."));
+		fail();
+	},
+});
 const confirmingDelete = ref(false);
+const deleteOpened = ref(false);
 
 useScrollMemory(
 	() => table.value?.viewportElement ?? null,
@@ -238,44 +261,21 @@ function columnFields(matches: (field: RawMetaField) => boolean) {
 	return fields;
 }
 
-const { bulkActions: bulkList } = props.host.lists;
-bulkList.provideBuiltins(() => [
-	{
-		name: "delete",
-		label: __("Delete"),
-		icon: "lucide-trash-2",
-		right: "delete",
-		run: () => (confirmingDelete.value = true),
+const bulk = useBulkBar({
+	host: props.host,
+	doctype: props.view.doctype,
+	selection,
+	rows,
+	rowActions,
+	reload,
+	askDelete: () => {
+		deleteOpened.value = true;
+		confirmingDelete.value = true;
 	},
-]);
+});
+const { listActs } = bulk;
 
-const listActs = props.host.acts(
-	() => [
-		...(selection.value.length ? bulkEntries() : []),
-		...rowActionEntries(rowActions.value),
-	],
-	{ rows: () => rows.value, selection: () => selection.value, reload }
-);
-
-function bulkEntries() {
-	return bulkList
-		.resolve()
-		.filter(({ item }) => item.run)
-		.map(({ item, hidden }) => ({ item, hidden }));
-}
-
-const bulkActions = computed<BulkAction[]>(() =>
-	bulkList.visible().flatMap((item) => {
-		const act = listActs.drawn(item.name);
-		if (!act) return [];
-		const theme = item.name === "delete" ? "red" : "gray";
-		return [
-			{
-				label: act.label!,
-				theme,
-				onClick: () => listActs.perform(act, [...selection.value]),
-			},
-		];
-	})
-);
+// The page swaps its controls row for the bar while this is true.
+watchEffect(() => (props.host.selecting.value = selection.value.length > 0));
+onScopeDispose(() => (props.host.selecting.value = false));
 </script>

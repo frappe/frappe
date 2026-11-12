@@ -26,6 +26,7 @@
 		</template>
 
 		<div
+			v-show="!selecting"
 			:class="[pageGutter, { invisible: !list.engine.ready.value }]"
 			class="flex shrink-0 items-start justify-between gap-2 pt-3.5"
 		>
@@ -66,6 +67,8 @@
 				</Dropdown>
 			</div>
 		</div>
+
+		<div v-show="selecting" :ref="setBar" :class="pageGutter" class="shrink-0 pt-3.5" />
 
 		<div class="relative flex min-h-0 flex-1 flex-col pt-2">
 			<component
@@ -178,8 +181,13 @@ const listActs = useListActs(
 const controls = ref<HTMLElement | null>(null);
 // A function ref: a plain `ref` inside the `v-for` would collect an array.
 const setControls = (element: unknown) => void (controls.value = element as HTMLElement | null);
+const bar = ref<HTMLElement | null>(null);
+const setBar = (element: unknown) => void (bar.value = element as HTMLElement | null);
+const selecting = ref(false);
 const host: RendererHost = {
 	controls,
+	bar,
+	selecting,
 	lists: list.lists,
 	acts: listActs.renderer,
 	onCreate: (callback) => created.push(callback),

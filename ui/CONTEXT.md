@@ -88,7 +88,7 @@ Distinct from each control's own isolated story.
 
 **List module**:
 The experimental module (`experimental/List/`, subpath `./experimental/List`) that holds
-the table (`List`), the footer (`ListFooter`) and the selection bar (`ListBulkBar`) a
+the table (`List`) and the footer (`ListFooter`) a
 doctype list page composes beside the controls. Experimental: its API can change with
 no deprecation window until the desk list page has settled it. The
 host lays them out, fetches the rows, and binds the same **Column**s and **Sort**s the

@@ -17,9 +17,16 @@ export interface ListPageView {
   sort: Ref<Sort[]>;
 }
 
+/** The bulk bar's More groups a built-in can sit in; a script's item is an app action, in none of them. */
+export type BulkGroup = "workflow" | "collaborate" | "output" | "danger";
+
 /** One item of `controls` or `bulkActions`; a built-in may draw itself and have no `run`. */
 export interface ListPageAction extends SurfaceItem, ActFields<ListPageApi> {
   run?: (page: ListPageApi, value?: unknown) => unknown;
+  /** Host side, set by a built-in only: where the bulk bar groups it in More. */
+  group?: BulkGroup;
+  /** Host side, set by a built-in only: the bulk bar draws it as a button. */
+  button?: boolean;
 }
 
 /** One row action: `run` and `when` get the row as `value`; `fields` names the columns it reads off the row. */

@@ -34,7 +34,6 @@ vi.mock("@framework/ui/experimental/List", async () => {
 		List: defineComponent({
 			setup: (_, { slots }) => () => h("div", { "data-stub-list": "" }, slots.empty?.()),
 		}),
-		ListBulkBar: stub("bulk-bar"),
 		ListFooter: stub("footer"),
 	};
 });
@@ -92,7 +91,7 @@ async function mount(component: Component = ViewPage, doctype: string | null = "
 	const root = document.createElement("div");
 	document.body.appendChild(root);
 	const app = createApp(defineComponent({ render: () => h(component, { doctype, opened: PLAIN_LIST }) }));
-	app.use(router).provide("boot", { app: "crm", app_title: "CRM" }).provide("addresses", {
+	app.use(router).provide("boot", { app: "crm", app_title: "CRM", bulk_actions: true, bulk_operation_limit: 500 }).provide("addresses", {
 		moduleName: () => null,
 		doctypeOf: () => doctype,
 	});

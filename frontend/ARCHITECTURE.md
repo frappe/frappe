@@ -255,7 +255,7 @@ component group, with its main names.
 | `Filter`, `QuickFilter`, `ConditionBuilder` | Edit list filters, and their address and wire format |
 | `SortBy` | The list sort control and its `order_by` string |
 | `ColumnSettings` (`isColumnFieldtype`, `isSortableColumn`) | Pick, order and size list columns. `isColumnFieldtype` tells which fieldtypes can be a column; `isSortableColumn` tells which can be sorted on |
-| `experimental/List` (`List`, `ListFooter`, `ListBulkBar`) | A virtual-scroll list with selection, a bulk bar and an optional end-of-row menu cell (`rowMenu` prop and slot). A `cellClass(row, column)` prop adds a class to a cell. A column with `sortable: false` has no sort header |
+| `experimental/List` (`List`, `ListFooter`) | A virtual-scroll list with selection and an optional end-of-row menu cell (`rowMenu` prop and slot). A `cellClass(row, column)` prop adds a class to a cell. A column with `sortable: false` has no sort header |
 | `ListView` and `usePagedList` | An app's own paged list: rows a page at a time |
 | `useLinkSearch` | The server's matches for a link picker; the last answer wins. A fresh search skips the browser's cached answer |
 | `Notifications` | The notification panel and its data |
@@ -394,7 +394,7 @@ component group, with its main names.
 | `createListPage` (`createListPageLists`, `ListPageController`, `ListPageLists`, `ListRendererState`, `ListPageHost`) | Builds a doctype's list `page` on `createPageEngine`: the lists `controls`, `columns`, `bulkActions` and `rowActions`, and the members `view`, `rows`, `selection`, `filters`, `sort` and `reload`. The renderer hands in its rows with `attach`; `paint` waits for the list.js files. Cache key: one load per doctype for the session |
 | List scripts (`loadListScripts`, `listScriptsOf`, `listScriptsLoaded`, `ListScriptModule`, `LoadedListScript`) | A doctype's list.js files, loaded on its first list page in run order (the owner, then each `custom/` one). A failed fetch is tried again on the next page. A function key is a handler; any other key is ignored. Default columns, sort and filters live in the app's `views/list.json`, not here |
 | `useListPermissions` (`ListPermissions`) | The list page's rights: the doctype's standard rights at level 0 from the roles (`page.perms`), the roles, and an act's right check. Create is the list's Create rule |
-| `ListPageApi` (`ListPageAction`, `ListPageColumn`, `ListRowAction`, `ListRow`, `ListPageView`, `rowActionFields`, `columnFields`) | The list page's `page` type and its item shapes. `rowActionFields` names the row fields the row actions read, which join the list query; `columnFields` does the same for the fields a column's badge function reads |
+| `ListPageApi` (`ListPageAction`, `BulkGroup`, `ListPageColumn`, `ListRowAction`, `ListRow`, `ListPageView`, `rowActionFields`, `columnFields`) | The list page's `page` type and its item shapes. `BulkGroup` is the More-menu group a built-in bulk action names (`workflow`, `collaborate`, `output`, `danger`); a script item has none and lands under the doctype's name. `rowActionFields` names the row fields the row actions read, which join the list query; `columnFields` does the same for the fields a column's badge function reads |
 
 **The record page engine** (`frontend/src/recordPage/`)
 

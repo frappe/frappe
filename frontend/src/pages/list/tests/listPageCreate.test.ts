@@ -26,7 +26,6 @@ vi.mock("@framework/ui/SortBy", () => ({ SortBy: stub("sort") }));
 vi.mock("@framework/ui/ColumnSettings", () => ({ ColumnSettings: stub("columns") }));
 vi.mock("@framework/ui/experimental/List", () => ({
 	List: stub("list"),
-	ListBulkBar: stub("bulk-bar"),
 	ListFooter: stub("footer"),
 }));
 vi.mock("@/list/useScrollMemory", () => ({ useScrollMemory: () => {} }));
@@ -86,6 +85,8 @@ beforeEach(async () => {
 		shell_base: "/apps/crm",
 		prefixes: { crm: { app: "crm", modular: false } },
 		read_only_mode: false,
+		bulk_actions: true,
+		bulk_operation_limit: 500,
 	} as unknown as Boot;
 	fetchMock.mockReset().mockImplementation(async (url) => {
 		const path = new URL(String(url), "http://x").pathname;

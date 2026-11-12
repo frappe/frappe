@@ -33,9 +33,3 @@ export interface ColumnResize {
   fieldname: string;
   width: string;
 }
-
-export interface BulkAction {
-  label: string;
-  theme?: "gray" | "blue" | "green" | "red";
-  onClick: (selection: string[]) => void;
-}

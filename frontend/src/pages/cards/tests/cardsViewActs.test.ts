@@ -46,7 +46,7 @@ afterEach(() => {
 describe("CardsView acts", () => {
 	it("passes host.acts its entries and a state with its rows, no selection and its reload", async () => {
 		const acts = vi.fn(() => ({ drawn: () => undefined }));
-		const host = { controls: ref(null), lists: createListPageLists(), acts, onCreate: () => {} };
+		const host = { controls: ref(null), bar: ref(null), selecting: ref(false), lists: createListPageLists(), acts, onCreate: () => {} };
 		const app = createApp(CardsView, { view: { doctype: "Note", filters: [], update: () => {} }, host });
 		app.mount(document.createElement("div"));
 		mounted.push(app);

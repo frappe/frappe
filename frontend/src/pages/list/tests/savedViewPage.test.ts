@@ -80,7 +80,7 @@ async function mount(path: string) {
 	const root = document.createElement("div");
 	document.body.appendChild(root);
 	const app = createApp(defineComponent({ render: () => h(List) }));
-	app.use(router).provide("boot", { app: "desk", app_title: "Desk", view_types }).provide("addresses", {
+	app.use(router).provide("boot", { app: "desk", app_title: "Desk", view_types, bulk_actions: true, bulk_operation_limit: 500 }).provide("addresses", {
 		moduleName: () => null,
 		doctypeOf: () => "ToDo",
 		slugOf: () => "todo",

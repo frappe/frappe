@@ -18,13 +18,13 @@ async function settle() {
 	await nextTick();
 }
 
-async function open(run: () => Promise<DeleteOutcome>) {
+async function open(run: () => Promise<DeleteOutcome>, mountedOpen = false) {
 	const host = document.createElement("div");
 	document.body.append(host);
-	const shown = ref(false);
+	const shown = ref(mountedOpen);
 	mounted = createApp({ render: () => h(DeleteDialog, { modelValue: shown.value, count: 2, run }) });
 	mounted.mount(host);
-	shown.value = true;
+	if (!mountedOpen) shown.value = true;
 	await settle();
 }
 
@@ -46,14 +46,19 @@ afterEach(() => {
 describe("DeleteDialog", () => {
 	it("warns that a delete cannot be undone", async () => {
 		await open(async () => ({ deleted: [], failed: [] }));
-		expect(text()).toContain("Delete 2 records?");
+		expect(text()).toContain("Delete 2 selected records?");
 		expect(text()).toContain("This cannot be undone.");
+	});
+
+	it("counts the rows when it mounts already open, as the lazy list chunk does", async () => {
+		await open(async () => ({ deleted: [], failed: [] }), true);
+		expect(text()).toContain("Delete 2 selected records?");
 	});
 
 	it("keeps the dialog open with each failure, one per line", async () => {
 		await open(async () => ({ deleted: ["A"], failed: [{ name: "B", error: "linked" }] }));
 		await confirm();
-		expect(fake.success).toHaveBeenCalledWith("Deleted 1 record(s)");
+		expect(fake.success).toHaveBeenCalledWith("Deleted 1 record");
 		expect(text()).toContain("B: linked");
 	});
 
