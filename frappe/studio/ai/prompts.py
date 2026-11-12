@@ -316,6 +316,8 @@ def read_skill_file(file_name: str) -> str:
 	and an agent working outside Studio both follow."""
 	# get_app_source_path scrubs each part it joins, so the hyphenated folder is joined here
 	path = os.path.join(frappe.get_app_source_path("frappe", "skills"), "studio-app-building", file_name)
+	# Callers pass a fixed file name, never user input.
+	# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
 	with open(path, encoding="utf-8") as skill_file:
 		return skill_file.read().strip()
 
