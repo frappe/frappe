@@ -33,6 +33,8 @@ export interface ListRowAction extends SurfaceItem {
 /** One column of the List view; it carries how its cells draw. */
 export interface ListPageColumn extends SurfaceItem, ListCell {
   width?: string;
+  /** The row fields a `badge` function reads besides the column's own; the list query fetches them. */
+  fields?: string[];
 }
 
 export interface ListPageApi extends PageApi {
@@ -54,7 +56,12 @@ export interface ListPageApi extends PageApi {
 
 export const ACTION_KEYS: readonly string[] = ["name", "label", "icon", "run", ...ACT_KEYS];
 export const ROW_ACTION_KEYS: readonly string[] = ["name", "label", "icon", "run", "when", "right", "fields"];
-export const COLUMN_KEYS: readonly string[] = ["name", "label", "width", "icons", "badge", "icon", "format", "switch"];
+export const COLUMN_KEYS: readonly string[] = ["name", "label", "width", "icons", "badge", "icon", "format", "switch", "fields"];
+
+/** The row fields the columns' badge functions read, for the list query. */
+export function columnFields(columns: ListPageColumn[]): string[] {
+  return columns.flatMap((column) => (Array.isArray(column.fields) ? column.fields.filter((name) => typeof name === "string") : []));
+}
 
 /** The row fields the row actions read, for the list query. */
 export function rowActionFields(actions: ListRowAction[]): string[] {

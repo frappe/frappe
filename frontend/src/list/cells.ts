@@ -1,11 +1,15 @@
 // How a column's cell keys draw one cell: the icon, badge theme or date text it picks for a value.
-import type { ListCell } from "@/contributions/types";
+import type { BadgeSpec, ListCell } from "@/contributions/types";
 import { currentSession } from "@framework/ui/useSession";
 import { dayjs, type BadgeProps } from "frappe-ui";
 
 export interface CellView {
 	icon?: string;
 	theme?: BadgeProps["theme"];
+	/** A badge function's own text; absent means the field's own text. */
+	label?: string;
+	/** The `[fieldname, operator, value]` triples a click on the badge applies. */
+	filters?: NonNullable<BadgeSpec["filters"]>;
 	/** A formatted date; absent means the field's own text. */
 	text?: string;
 	/** The full date a formatted one stands for. */
@@ -15,15 +19,25 @@ export interface CellView {
 // `FieldCell` draws these itself, so an app's cell would show their raw value in its place.
 const OWN_CELL_FIELDTYPES = new Set(["Check", "Rating", "Color", "Attach", "Attach Image", "Image"]);
 
-/** What `cell` draws for `value`, or null when it names nothing for it and the default cell shows. */
-export function resolveCell(cell: ListCell | undefined, value: unknown, fieldtype?: string): CellView | null {
-	if (!cell || value == null || value === "" || (fieldtype && OWN_CELL_FIELDTYPES.has(fieldtype))) return null;
+/** What `cell` draws for `value` in `row`, or null when it names nothing for it and the default cell shows. */
+export function resolveCell(
+	cell: ListCell | undefined,
+	value: unknown,
+	fieldtype?: string,
+	row: Record<string, any> = {}
+): CellView | null {
+	if (!cell || (fieldtype && OWN_CELL_FIELDTYPES.has(fieldtype))) return null;
+	// A badge function reads the row, so it answers for an empty value too.
+	if (typeof cell.badge === "function") {
+		const badge = badgeOf(cell.badge, row);
+		if (badge) return badge;
+	}
+	if (value == null || value === "") return null;
 	const key = String(value);
 	const icon = named(cell.icons, key);
 	if (icon) return { icon: iconName(icon) };
-	const theme = named(cell.badge, key);
-	// frappe-ui's Badge has no `orange`; its warm theme is `amber`.
-	if (theme) return { theme: theme === "orange" ? "amber" : theme };
+	const theme = typeof cell.badge === "function" ? undefined : named(cell.badge, key);
+	if (theme) return { theme: themeOf(theme) };
 	const date = cell.format && fieldtype ? formatted(key, fieldtype, cell.format) : null;
 	if (!cell.icon && !date) return null;
 	return { icon: cell.icon && iconName(cell.icon), ...date };
@@ -32,6 +46,36 @@ export function resolveCell(cell: ListCell | undefined, value: unknown, fieldtyp
 /** Whether `cell` draws a Check column as a switch. */
 export function isSwitchCell(cell: ListCell | undefined, fieldtype?: string): boolean {
 	return Boolean(cell?.switch) && fieldtype === "Check";
+}
+
+const THEMES = new Set(["gray", "blue", "green", "orange", "red"]);
+
+function isTriple(filter: unknown): boolean {
+	return Array.isArray(filter) && filter.length === 3 && typeof filter[0] === "string" && typeof filter[1] === "string";
+}
+
+// frappe-ui's Badge has no `orange`; its warm theme is `amber`.
+function themeOf(theme: string): BadgeProps["theme"] {
+	return (theme === "orange" ? "amber" : theme) as BadgeProps["theme"];
+}
+
+// A script's function runs in the table's render; its error leaves the default cell, not a blank table.
+const logged = new WeakSet<object>();
+
+function badgeOf(badge: (row: Record<string, any>) => BadgeSpec | null | undefined, row: Record<string, any>): CellView | null {
+	let spec: BadgeSpec | null | undefined;
+	try {
+		spec = badge(row);
+	} catch (error) {
+		if (!logged.has(badge)) console.error("A column's badge function threw:", error);
+		logged.add(badge);
+		return null;
+	}
+	if (!spec || typeof spec !== "object") return null;
+	const view: CellView = { theme: themeOf(THEMES.has(spec.theme as string) ? spec.theme! : "gray") };
+	if (spec.label != null) view.label = String(spec.label);
+	if (Array.isArray(spec.filters) && spec.filters.length && spec.filters.every(isTriple)) view.filters = spec.filters;
+	return view;
 }
 
 function named<T>(map: Record<string, T> | undefined, key: string): T | undefined {

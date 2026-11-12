@@ -17,9 +17,14 @@ export type ActionItem<Context = unknown> = {
 }
 
 /** How a column draws its cells; each key is described in SCRIPTING.md. A key or value it does not name keeps the default cell. */
+export type BadgeTheme = 'gray' | 'blue' | 'green' | 'orange' | 'red'
+
+/** What a badge function returns for a row; `filters` are `[fieldname, operator, value]` triples a click applies. */
+export type BadgeSpec = { label?: string; theme?: BadgeTheme; filters?: [string, string, unknown][] }
+
 export type ListCell = {
   icons?: Record<string, string>
-  badge?: Record<string, 'gray' | 'blue' | 'green' | 'orange' | 'red'>
+  badge?: Record<string, BadgeTheme> | ((row: Record<string, any>) => BadgeSpec | null | undefined)
   icon?: string
   format?: string
   /** A Check column draws a switch that writes the field from the list. */

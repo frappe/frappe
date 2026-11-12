@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { resetSession, setSession } from "@framework/ui/useSession";
 import { isSwitchCell, resolveCell } from "../cells";
 
@@ -51,6 +51,52 @@ describe("resolveCell", () => {
 		expect(resolveCell({ format: "D MMM" }, "Done", "Select")).toBeNull();
 		expect(resolveCell({ format: "D MMM" }, "not a date", "Date")).toBeNull();
 		expect(resolveCell({ icon: "calendar", format: "D MMM" }, "Done", "Select")).toEqual({ icon: "calendar" });
+	});
+});
+
+describe("resolveCell with a badge function", () => {
+	const row = { status: "Open", overdue: 1 };
+
+	it("draws what the function returns for the row, its label and filters kept", () => {
+		const badge = () => ({ label: "Overdue", theme: "orange" as const, filters: [["overdue", "=", 1]] as [string, string, unknown][] });
+		expect(resolveCell({ badge }, "Open", "Select", row)).toEqual({
+			theme: "amber",
+			label: "Overdue",
+			filters: [["overdue", "=", 1]],
+		});
+		expect(resolveCell({ badge: () => ({ theme: "red" }) }, "Open", "Select", row)).toEqual({ theme: "red" });
+	});
+
+	it("answers for an empty value, since it reads the row", () => {
+		const badge = (one: Record<string, any>) => (one.overdue ? { label: "Overdue", theme: "red" as const } : null);
+		expect(resolveCell({ badge }, "", "Data", row)).toEqual({ theme: "red", label: "Overdue" });
+		expect(resolveCell({ badge }, null, "Data", { overdue: 0 })).toBeNull();
+	});
+
+	it("falls to the default cell when it returns nothing, a non-object, or throws", () => {
+		const log = vi.spyOn(console, "error").mockImplementation(() => {});
+		expect(resolveCell({ badge: () => null }, "Open", "Select", row)).toBeNull();
+		expect(resolveCell({ badge: () => undefined }, "Open", "Select", row)).toBeNull();
+		expect(resolveCell({ badge: () => "red" as never }, "Open", "Select", row)).toBeNull();
+		expect(
+			resolveCell({ badge: () => { throw new Error("boom"); } }, "Open", "Select", row)
+		).toBeNull();
+		expect(log).toHaveBeenCalledTimes(1);
+		log.mockRestore();
+	});
+
+	it("keeps a cell's own icon for a value when the function names nothing, and a gray theme by default", () => {
+		expect(resolveCell({ badge: () => null, icons: { Open: "circle" } }, "Open", "Select", row)).toEqual({ icon: "circle" });
+		expect(resolveCell({ badge: () => ({}) }, "Open", "Select", row)).toEqual({ theme: "gray" });
+	});
+
+	it("falls to gray for an unknown theme and drops malformed filters, keeping the badge", () => {
+		const badge = () => ({ theme: "purple", filters: [["status", "="]] }) as never;
+		expect(resolveCell({ badge }, "Open", "Select", row)).toEqual({ theme: "gray" });
+	});
+
+	it("leaves a field with a cell of its own to that cell", () => {
+		expect(resolveCell({ badge: () => ({ theme: "red" }) }, 1, "Check", row)).toBeNull();
 	});
 });
 
