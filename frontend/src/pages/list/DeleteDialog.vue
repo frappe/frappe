@@ -23,10 +23,15 @@ const deleting = ref(false);
 const failure = ref("");
 const asked = ref(0);
 
-watch(open, (isOpen) => {
-	failure.value = "";
-	if (isOpen) asked.value = props.count;
-});
+// Immediate: the list mounts this dialog already open, the first time it asks.
+watch(
+	open,
+	(isOpen) => {
+		failure.value = "";
+		if (isOpen) asked.value = props.count;
+	},
+	{ immediate: true }
+);
 
 const title = computed(() =>
 	__n("Delete {0} selected record?", "Delete {0} selected records?", asked.value, [asked.value])
