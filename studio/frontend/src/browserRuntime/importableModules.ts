@@ -17,8 +17,6 @@ import * as frappeUI from "frappe-ui"
 import * as frappeUIList from "frappe-ui/list"
 import { IMPORTABLE_MODULES } from "./importableLibraries.js"
 
-export { IMPORTABLE_MODULES }
-
 const modules: Record<string, Record<string, any>> = {
 	vue,
 	"vue-router": vueRouter,

@@ -1,8 +1,8 @@
 <template>
 	<div class="text-sm leading-relaxed text-ink-gray-5">
 		<p>
-			A page script is a TypeScript module. Import what you use, and return the values and handlers
-			this page's bindings and events need.
+			A page script is a module. Import what you use, and return the values and handlers this page's bindings
+			and events need.
 		</p>
 		<ul class="my-2 list-disc space-y-0.5 pl-4">
 			<li>
@@ -27,7 +27,6 @@
 				<code class="rounded-4 bg-surface-gray-2 px-1 text-xs">router</code>
 				.
 			</li>
-			<li>Only what you return is available to props and events.</li>
 		</ul>
 		<pre class="overflow-x-auto rounded-4 bg-surface-gray-2 p-2 text-xs leading-snug text-ink-gray-7">
 import { ref, computed } from "vue"

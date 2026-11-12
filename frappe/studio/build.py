@@ -90,7 +90,9 @@ class StudioAppBuilder:
 			self._run_vite_build()
 		else:
 			with tempfile.TemporaryDirectory() as temp_root:
-				self.app_folder = temp_export_folder(temp_root, self.app_name)
+				# The same `studio/<app>/` layout as an export: the `@app/` resolver finds this
+				# path segment in the importing file's path.
+				self.app_folder = os.path.join(temp_root, "studio", frappe.scrub(self.app_name))
 				self.page_scripts = write_db_files_to_folder(self.app_name, self.app_folder)
 				self.get_app_components()
 				self.router_file = find_router_file(self.app_folder)
@@ -421,14 +423,6 @@ def get_router_file(frappe_app: str, studio_app: str) -> str | None:
 def find_router_file(app_folder: str) -> str | None:
 	path = find_script_file(app_folder, "router")
 	return path if os.path.exists(path) else None
-
-
-def temp_export_folder(root: str, app_name: str) -> str:
-	"""Return a temporary source root with the same `studio/<app>/` layout as an export.
-
-	The `@app/` resolver finds this path segment in the importing file's path.
-	"""
-	return os.path.join(root, "studio", frappe.scrub(app_name))
 
 
 def write_db_files_to_folder(studio_app: str, app_folder: str) -> list[dict]:

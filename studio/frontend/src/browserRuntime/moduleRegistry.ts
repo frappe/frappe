@@ -226,7 +226,7 @@ export class AppModuleRegistry {
 		const resolved = this.resolve(from, specifier)
 		if (!resolved) throw new Error(`Cannot resolve "${specifier}" from ${from}`)
 		if (resolved.endsWith(".css")) return this.injectCSS(resolved)
-		if (resolved.endsWith(".json") && !this.factories[resolved]) return parseJSONModule(this.files[resolved])
+		if (resolved.endsWith(".json")) return parseJSONModule(this.files[resolved])
 		this.throwIfFailed(resolved)
 		if (!this.factories[resolved]) throw new Error(`Cannot import "${specifier}" from ${from}: not a module`)
 		return this.load(resolved)
@@ -309,9 +309,7 @@ function joinRelative(from: string, specifier: string): string | null {
 
 function jsonExports(source: string): Set<string> | null {
 	try {
-		const parsed = JSON.parse(source)
-		const keys = parsed && typeof parsed === "object" && !Array.isArray(parsed) ? Object.keys(parsed) : []
-		return new Set([...keys, "default"])
+		return new Set(Object.keys(parseJSONModule(source)))
 	} catch {
 		return null
 	}

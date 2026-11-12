@@ -76,7 +76,7 @@ def get_exported_docnames() -> tuple[set[str], set[str]]:
 
 
 def sync_pages(app_folder):
-	# each page is a folder holding <stem>.json + <stem>.js; the script lives in the .js (the runtime
+	# each page is a folder holding <stem>.json + a script file; the script lives in that file (the runtime
 	# loads it directly), so the DB `script` field stays empty for exported pages
 	for page_path in get_page_file_paths(app_folder):
 		import_file_by_path(page_path)

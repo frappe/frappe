@@ -634,7 +634,7 @@ const useStudioStore = defineStore("store", () => {
 		if (activePage.value) await pageScope.loadPageScript(activePage.value)
 	}, 300)
 
-	// Register per-page code scripts (<page>.js) for exported apps so the editor can load them.
+	// Register per-page script files for exported apps so the editor can load them.
 	async function setupPageScripts() {
 		unregisterStudioPageScripts()
 		if (activeApp.value?.is_standard) {

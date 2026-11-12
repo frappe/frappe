@@ -44,8 +44,9 @@ returned handler.
   which database apps cannot load. Replace it with a Vue watcher and debounce
   logic with cleanup, or export to a repository with that dependency installed.
 - Page titles must produce different script filenames within an app. Existing
-  conflicting titles are preserved, but source listing, builds, and exports report
-  the conflict. Rename one page and update navigation that uses its title.
+  conflicting titles are preserved, and nothing reports them: the pages share one
+  script path, so one page's script can replace the other's in builds and exports.
+  Rename one page and update navigation that uses its title.
 - Legacy scripts ran in sloppy mode, so assigning an undeclared name, such as
   `total = 0`, created a global. A module is strict, so the same line now throws
   `ReferenceError: total is not defined`. Declare those names with `const` or `let`.

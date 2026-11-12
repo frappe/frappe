@@ -1,5 +1,6 @@
 import { AppModuleRegistry, clearAppStyles } from "@/browserRuntime/moduleRegistry"
-import { IMPORTABLE_MODULES, loadImportableModule } from "@/browserRuntime/importableModules"
+import { loadImportableModule } from "@/browserRuntime/importableModules"
+import { IMPORTABLE_MODULES } from "@/browserRuntime/importableLibraries.js"
 import { moduleFixtures } from "../fixtures/module-fixtures.mjs"
 import { STUDIO_SHARED_DEPS } from "../../vite/sharedDependencyResolver"
 

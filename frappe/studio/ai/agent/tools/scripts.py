@@ -20,20 +20,18 @@ import os
 import frappe
 from frappe.studio.ai.agent.registry import Tool
 from frappe.studio.ai.agent.tools.page import load_page, save_page
-from frappe.studio.export import can_export
-from frappe.studio.utils import find_script_file
 
 
 def run_get_page_script(ctx, args: dict) -> str:
 	page = load_page(ctx)
 	if page is None:
 		return "No page in context."
-	source = _read_script(page)
+	source = page.get_script_source()
 	if not source.strip():
 		return "This page has no script yet."
 	where = (
 		f"code file ({os.path.basename(page.get_script_file_path())})"
-		if can_export(page)
+		if page.has_script_file()
 		else "the page's `script` field (DB)"
 	)
 	return f"Current page script (stored in {where}):\n{source}"
@@ -49,8 +47,8 @@ def run_set_page_script(ctx, args: dict) -> str:
 	if "export default" not in source:
 		return (
 			"FAILED: a page script is an ES module — its default export must be "
-			"`export default function setup(context) { … return { … } }`. Only what you return becomes "
-			"a binding."
+			"`export default function setup(context) { … return { … } }`. Return every script-defined "
+			"value or helper that bindings or events use."
 		)
 	if page.is_standard:
 		return _write_file_script(ctx, page, source)
@@ -90,13 +88,6 @@ def _write_file_script(ctx, page, source: str) -> str:
 	)
 
 
-def _read_script(page) -> str:
-	if can_export(page):
-		path = find_script_file(page.get_folder_path(), page.get_export_docname())
-		return frappe.read_file(path) or "" if os.path.exists(path) else ""
-	return page.script or ""
-
-
 get_page_script = Tool(
 	name="get_page_script",
 	side="server",
@@ -119,7 +110,7 @@ set_page_script = Tool(
 		"app's own files via '@app/*'). `ref`/`computed` are NOT on `context` — never write `context.ref` "
 		"or `const { ref } = context`; import them from 'vue'. The `context` param carries the PAGE's own "
 		"things — its data sources/resources, variables, `route` and `router` (e.g. `context.notes`, "
-		"`context.route`). Only what you RETURN becomes bindings usable in {{ }} and handlers. Pass the "
+		"`context.route`). Return every script-defined value or helper that bindings or events use. Pass the "
 		"ENTIRE module (it replaces the current one; read it first with get_page_script)."
 	),
 	parameters={

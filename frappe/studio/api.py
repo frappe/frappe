@@ -397,7 +397,7 @@ def get_app_files(app_name: str) -> list[dict]:
 	"""
 	if not isinstance(app_name, str):
 		frappe.throw(_("Invalid app name."))
-	validate_app_viewer_access(app_name, allow_guest_pages=True)
+	validate_app_viewer_access(app_name)
 	if not files.is_db_app(app_name):
 		return []
 	return files.get_store_files(app_name)
