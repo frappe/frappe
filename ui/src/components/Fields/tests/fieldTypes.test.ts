@@ -24,6 +24,7 @@ import SelectField from "../SelectField.vue";
 import TableMultiSelectField from "../TableMultiSelectField.vue";
 import TextField from "../TextField.vue";
 import TextareaField from "../TextareaField.vue";
+import MarkdownEditorField from "../MarkdownEditorField.vue";
 import TextEditorField from "../TextEditorField.vue";
 import TimeField from "../TimeField.vue";
 
@@ -58,7 +59,7 @@ describe("fieldTypes registry", () => {
   });
 
   it("resolves the code-family fieldtypes to CodeEditorField", async () => {
-    // JSON / Markdown Editor / HTML Editor / Code share one CodeMirror-backed
+    // JSON / HTML Editor / Code share one CodeMirror-backed
     // field (moved off TextareaField). It's registered lazily, so the registry
     // holds Vue's async wrapper — unwrap it to assert the field it resolves to.
     const lazyCodeEditorField = getFieldComponent("Code") as {
@@ -66,9 +67,13 @@ describe("fieldTypes registry", () => {
     };
     expect(await lazyCodeEditorField.__asyncLoader()).toBe(CodeEditorField);
 
-    for (const t of ["JSON", "Markdown Editor", "HTML Editor"]) {
+    for (const t of ["JSON", "HTML Editor"]) {
       expect(getFieldComponent(t)).toBe(lazyCodeEditorField);
     }
+  });
+
+  it("resolves Markdown Editor to its panel-aware field", () => {
+    expect(getFieldComponent("Markdown Editor")).toBe(MarkdownEditorField);
   });
 
   it("resolves Phone, Heading, and HTML to their components", () => {

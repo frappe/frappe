@@ -42,7 +42,9 @@ const TextEditorInput = defineAsyncComponent({
 	loader: () => import("./TextEditorInput.vue"),
 	loadingComponent: (props: { panel?: boolean }) =>
 		h("div", {
-			class: props.panel ? "min-h-[var(--panel-rest-h,1.75rem)]" : "h-[10.8rem] rounded-4 bg-surface-gray-2",
+			class: props.panel
+				? "min-h-[var(--panel-rest-h,1.75rem)]"
+				: "h-[10.8rem] rounded-4 bg-surface-gray-2",
 		}),
 	delay: 0,
 });

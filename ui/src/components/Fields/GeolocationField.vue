@@ -20,7 +20,10 @@
 					aria-hidden="true"
 				/>
 				<span class="truncate" :class="modelValue ? 'text-ink-gray-8' : 'text-ink-gray-4'">
-					{{ coordinateSummary || (field.readOnly ? "" : field.placeholder || "Set location") }}
+					{{
+						coordinateSummary ||
+						(field.readOnly ? "" : field.placeholder || "Set location")
+					}}
 				</span>
 			</button>
 			<span

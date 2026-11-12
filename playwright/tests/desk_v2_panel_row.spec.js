@@ -1495,3 +1495,258 @@ test.describe("Desk v2 side panel picker rows", () => {
 		expect(typing.height).toBeCloseTo(28, 1);
 	});
 });
+
+// Text Editor and Markdown Editor edit in their row like Long Text; Geolocation draws what Details draws.
+const EDIT = "Panel Editors 47006";
+const EDIT_SLUG = "panel-editors-47006";
+const EDIT_FIELDS = [
+	{ fieldname: "f_rich", fieldtype: "Text Editor", label: "Rich Field" },
+	{ fieldname: "f_md", fieldtype: "Markdown Editor", label: "Markdown Field" },
+	{ fieldname: "f_geo", fieldtype: "Geolocation", label: "Location Field" },
+	{ fieldname: "f_json", fieldtype: "JSON", label: "JSON Field" },
+	{ fieldname: "f_data", fieldtype: "Data", label: "Data Field" },
+];
+const paragraphs = (count) =>
+	Array.from({ length: count }, (_, i) => `<p>line ${i + 1}</p>`).join("");
+const POINT = JSON.stringify({
+	type: "FeatureCollection",
+	features: [
+		{
+			type: "Feature",
+			properties: {},
+			geometry: { type: "Point", coordinates: [77.5946, 12.9716] },
+		},
+	],
+});
+
+test.describe("Desk v2 side panel rows: Text Editor, Markdown Editor and Geolocation", () => {
+	let tall, short, empty;
+	const cell = (page, fieldname) => page.locator(`.field-box [data-fieldname="${fieldname}"]`);
+	const prose = (page) => cell(page, "f_rich").locator(".ProseMirror");
+	const open = async (page, name) => {
+		await page.goto(`/apps/desk/${EDIT_SLUG}/${name}`);
+		await expect(cell(page, "f_data")).toBeVisible();
+	};
+
+	test.beforeAll(async ({ admin }) => {
+		await admin.call("frappe.tests.ui_test_helpers.set_desk_v2", { enabled: 1 });
+		await admin.insert_doc(
+			"DocType",
+			{
+				name: EDIT,
+				module: "Core",
+				custom: 1,
+				autoname: "hash",
+				fields: EDIT_FIELDS,
+				permissions: [{ role: "System Manager", read: 1, write: 1, create: 1 }],
+			},
+			true
+		);
+		const sections = [
+			{ name: "s1", label: "Fields", fields: EDIT_FIELDS.map((f) => f.fieldname) },
+		];
+		await admin.insert_doc("Form Layout", {
+			dt: EDIT,
+			type: "Side Panel",
+			layout: JSON.stringify(layoutOf(sections)),
+		});
+		await admin.insert_doc("Form Layout", {
+			dt: EDIT,
+			type: "Details",
+			layout: JSON.stringify(layoutOf(sections)),
+		});
+		tall = (
+			await admin.insert_doc(EDIT, {
+				f_rich: paragraphs(9),
+				f_md: lines(9),
+				f_geo: POINT,
+				f_json: '{"a": 1}',
+				f_data: "tall",
+			})
+		).name;
+		short = (
+			await admin.insert_doc(EDIT, {
+				f_rich: paragraphs(3),
+				f_md: lines(3),
+				f_data: "short",
+			})
+		).name;
+		empty = (await admin.insert_doc(EDIT, { f_data: "empty" })).name;
+	});
+
+	test.afterAll(async ({ admin }) => {
+		const layouts = await admin.get_list("Form Layout", ["name"], [["dt", "=", EDIT]]);
+		for (const { name } of layouts.data ?? [])
+			await admin.remove_doc("Form Layout", name, true);
+		for (const name of [tall, short, empty]) await admin.remove_doc(EDIT, name, true);
+		await admin.remove_doc("DocType", EDIT, true);
+		await admin.call("frappe.tests.ui_test_helpers.set_desk_v2", { enabled: 0 });
+	});
+
+	for (const fieldname of ["f_rich", "f_md", "f_geo"]) {
+		test(`an empty ${fieldname} row is 28 high in rest and hover${
+			fieldname === "f_geo" ? "" : " and focus"
+		}`, async ({ page }) => {
+			await open(page, empty);
+			const states = [await page.evaluate(boxOf, fieldname)];
+			await cell(page, fieldname).hover();
+			states.push(await page.evaluate(boxOf, fieldname));
+			if (fieldname !== "f_geo") {
+				await cell(page, fieldname).click();
+				await expect(
+					fieldname === "f_rich"
+						? prose(page)
+						: cell(page, fieldname).locator("textarea")
+				).toBeFocused();
+				states.push(await page.evaluate(boxOf, fieldname));
+			}
+
+			for (const state of states) {
+				expect(state.height).toBeCloseTo(28, 1);
+				expect(state.labelTop).toBeCloseTo(0, 1);
+				state.above.forEach((top, i) => expect(top).toBeCloseTo(states[0].above[i], 1));
+			}
+		});
+	}
+
+	for (const [fieldname, input] of [
+		["f_rich", (page) => prose(page)],
+		["f_md", (page) => cell(page, "f_md").locator("textarea")],
+	]) {
+		test(`typing grows an empty ${fieldname} row 20 per line up to 128, then scrolls`, async ({
+			page,
+		}) => {
+			await open(page, empty);
+			await cell(page, fieldname).click();
+			await expect(input(page)).toBeFocused();
+			const heights = [];
+			for (let line = 1; line <= 8; line++) {
+				if (line > 1) await page.keyboard.press("Enter");
+				await page.keyboard.type(`line ${line}`);
+				heights.push((await page.evaluate(boxOf, fieldname)).height);
+			}
+
+			expect(heights.map(Math.round)).toEqual([28, 48, 68, 88, 108, 128, 128, 128]);
+		});
+	}
+
+	for (const [fieldname, rows] of [
+		["f_rich", 3],
+		["f_md", 3],
+		["f_rich", 9],
+		["f_md", 9],
+	]) {
+		test(`a filled ${fieldname} row of ${rows} lines keeps its height when it opens`, async ({
+			page,
+		}) => {
+			await open(page, rows === 3 ? short : tall);
+			const rest = await page.evaluate(boxOf, fieldname);
+			await cell(page, fieldname).click();
+			await expect(
+				fieldname === "f_rich" ? prose(page) : cell(page, fieldname).locator("textarea")
+			).toBeFocused();
+			const opened = await page.evaluate(boxOf, fieldname);
+
+			expect(rest.height).toBeCloseTo(Math.min(rows, 6) * 20 + 8, 1);
+			expect(opened.height).toBeCloseTo(rest.height, 1);
+			opened.above.forEach((top, i) => expect(top).toBeCloseTo(rest.above[i], 1));
+		});
+	}
+
+	test("a Text Editor row of 9 lines opens at the top with the caret under the click, and has no fixed toolbar", async ({
+		page,
+	}) => {
+		await open(page, tall);
+		const box = await cell(page, "f_rich").boundingBox();
+		await page.mouse.click(box.x + 30, box.y + 4 + 20 * 1.5);
+		await expect(prose(page)).toBeFocused();
+
+		const opened = await prose(page).evaluate((el) => ({
+			scrollTop: el.scrollTop,
+			caretIn: getSelection().anchorNode.textContent,
+		}));
+		expect(opened.scrollTop).toBe(0);
+		expect(opened.caretIn).toBe("line 2");
+		await expect(cell(page, "f_rich").locator("label, [data-slot='fixed-menu']")).toHaveCount(
+			0
+		);
+	});
+
+	test("a Markdown row of 9 lines opens at the top with the caret under the click", async ({
+		page,
+	}) => {
+		await open(page, tall);
+		const box = await cell(page, "f_md").boundingBox();
+		await page.mouse.click(box.x + 30, box.y + 4 + 20 * 1.5);
+		const area = cell(page, "f_md").locator("textarea");
+		await expect(area).toBeFocused();
+
+		const opened = await area.evaluate((el) => ({
+			scrollTop: el.scrollTop,
+			caretLine: el.value.slice(0, el.selectionStart).split("\n").length,
+		}));
+		expect(opened.scrollTop).toBe(0);
+		expect(opened.caretLine).toBe(2);
+	});
+
+	test("selecting text floats the formatting bar below the selection, and Bold formats it", async ({
+		page,
+	}) => {
+		await open(page, short);
+		await cell(page, "f_rich").click();
+		await expect(prose(page)).toBeFocused();
+		await page.keyboard.press("Home");
+		await page.keyboard.press("Shift+End");
+		const bar = page.locator('[data-slot="bubble-menu"]');
+		await expect(bar).toBeVisible();
+
+		const selection = await page.evaluate(() =>
+			getSelection().getRangeAt(0).getBoundingClientRect().toJSON()
+		);
+		const barBox = await bar.boundingBox();
+		expect(barBox.y).toBeGreaterThanOrEqual(selection.bottom);
+		await bar.getByRole("button", { name: "Bold" }).click();
+		await expect(prose(page).locator("strong")).toHaveText(/^line \d$/);
+		expect((await page.evaluate(boxOf, "f_rich")).height).toBeCloseTo(68, 1);
+	});
+
+	test("a Geolocation row reads the pin and the Details summary in 28px, clears with ×, has no ↗ and opens the map dialog", async ({
+		page,
+	}) => {
+		await open(page, tall);
+		const geo = cell(page, "f_geo");
+		await expect(geo).toContainText("12.97160°N, 77.59460°E");
+		await expect(geo.locator(".lucide-map-pin")).toBeVisible();
+		await expect(geo.locator(".lucide-arrow-up-right")).toHaveCount(0);
+		expect((await page.evaluate(boxOf, "f_geo")).height).toBeCloseTo(28, 1);
+
+		const clear = geo.locator("[data-slot='clear']");
+		await expect(clear.locator("..")).toHaveCSS("opacity", "0");
+		await geo.hover();
+		await expect(clear.locator("..")).toHaveCSS("opacity", "1");
+		const rowBox = await geo.boundingBox();
+		const clearBox = await clear.boundingBox();
+		expect(rowBox.x + rowBox.width - (clearBox.x + clearBox.width)).toBeCloseTo(8, 0);
+
+		await geo.locator("[data-slot='control']").click();
+		await expect(page.getByRole("dialog")).toBeVisible();
+		await page.keyboard.press("Escape");
+		await expect(page.getByRole("dialog")).toHaveCount(0);
+
+		await geo.hover();
+		await clear.click();
+		await expect(geo).toContainText("Set location");
+		expect((await page.evaluate(boxOf, "f_geo")).height).toBeCloseTo(28, 1);
+	});
+
+	test("an empty Geolocation row reads Set location, and a JSON row keeps its ↗", async ({
+		page,
+	}) => {
+		await open(page, empty);
+		await expect(cell(page, "f_geo")).toContainText("Set location");
+		await expect(cell(page, "f_geo").locator(".lucide-map-pin")).toBeVisible();
+
+		await open(page, tall);
+		await expect(cell(page, "f_json").locator(".lucide-arrow-up-right")).toBeVisible();
+	});
+});
