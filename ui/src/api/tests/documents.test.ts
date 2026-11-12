@@ -205,6 +205,15 @@ describe("create, delete and copy", () => {
     });
   });
 
+  it("bulk deletes every record a list's filters show by posting the filters", async () => {
+    respond({ data: { total: 2, done: ["T-1", "T-2"], failed: [] } });
+    await bulkDeleteDocuments("ToDo", { filters: { status: ["=", "Open"] } });
+    expect(lastCall()).toMatchObject({
+      url: "/api/v2/document/ToDo/bulk_delete",
+      body: { filters: { status: ["=", "Open"] } },
+    });
+  });
+
   it("copies from the copy route", async () => {
     respond({ data: { description: "x" } });
     await copyDocument("ToDo", "T-1");

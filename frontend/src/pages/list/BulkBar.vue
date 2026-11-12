@@ -7,12 +7,21 @@
 	>
 		<div class="flex items-center gap-2 ps-px">
 			<Checkbox :modelValue="true" :disabled="true" aria-hidden="true" />
-			<span class="whitespace-nowrap text-ink-gray-9">{{
-				__("{0} selected", [count])
+			<span class="whitespace-nowrap text-ink-gray-9" aria-live="polite">{{
+				countText
 			}}</span>
+			<Button
+				v-if="scope.canSelectAll.value"
+				variant="ghost"
+				:label="__('Select all {0}', [totalText])"
+				@click="scope.selectAll()"
+			/>
 		</div>
 		<template v-if="overCap">
-			<span class="flex items-center gap-1 whitespace-nowrap text-sm text-ink-gray-5">
+			<span
+				class="flex items-center gap-1 whitespace-nowrap text-sm text-ink-gray-5"
+				role="status"
+			>
 				<Icon name="lucide-circle-alert" class="size-3.5" />
 				{{ __("Over the {0} cap", [cap]) }}
 			</span>
@@ -103,12 +112,13 @@
 import { Button, Checkbox, Dropdown, Icon, KeyboardShortcut, Tooltip, toast } from "frappe-ui";
 import { computed, defineAsyncComponent, ref, watch } from "vue";
 import { __ } from "@/i18n";
+import type { BulkScope } from "@/list/useBulkScope";
 import type { BulkLayout } from "./bulkLayout";
 import type { BulkStatus } from "./bulkStatus";
 
 const props = defineProps<{
+	scope: BulkScope;
 	doctype: string;
-	count: number;
 	cap: number;
 	layout: BulkLayout;
 	locked: boolean;
@@ -117,6 +127,13 @@ const props = defineProps<{
 const menuOpen = defineModel<boolean>("menuOpen", { default: false });
 defineEmits<{ clear: [] }>();
 
+const totalText = computed(() => formatted(props.scope.total.value, props.scope.approx.value));
+const countText = computed(() =>
+	props.scope.all.value
+		? __("All {0} selected", [totalText.value])
+		: __("{0} selected", [props.scope.count.value])
+);
+const formatted = (count: number, approx: boolean) => count.toLocaleString() + (approx ? "+" : "");
 const BulkStatusDialog = defineAsyncComponent({
 	loader: () => import("./BulkStatusDialog.vue"),
 	onError: (_error, _retry, fail) => {
@@ -133,7 +150,7 @@ watch(props.status.asked, (action) => {
 	confirming.value = true;
 });
 
-const overCap = computed(() => !props.locked && props.count > props.cap);
+const overCap = computed(() => !props.locked && props.scope.count.value > props.cap);
 const shown = computed(
 	() =>
 		props.layout.transitions.length ||

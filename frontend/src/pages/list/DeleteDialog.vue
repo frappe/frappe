@@ -16,26 +16,36 @@ import { computed, ref, watch } from "vue";
 import { __, __n } from "@/i18n";
 import type { DeleteOutcome } from "@/list/useListView";
 
-const props = defineProps<{ count: number; run: () => Promise<DeleteOutcome> }>();
+const props = defineProps<{
+	count: number;
+	all?: boolean;
+	approx?: boolean;
+	run: () => Promise<DeleteOutcome>;
+}>();
 const open = defineModel<boolean>({ default: false });
 
 const deleting = ref(false);
 const failure = ref("");
-const asked = ref(0);
+const asked = ref({ count: 0, all: false, approx: false });
 
 // Immediate: the list mounts this dialog already open, the first time it asks.
 watch(
 	open,
 	(isOpen) => {
 		failure.value = "";
-		if (isOpen) asked.value = props.count;
+		if (isOpen) asked.value = { count: props.count, all: !!props.all, approx: !!props.approx };
 	},
 	{ immediate: true }
 );
 
-const title = computed(() =>
-	__n("Delete {0} selected record?", "Delete {0} selected records?", asked.value, [asked.value])
-);
+const title = computed(() => {
+	const { count, all, approx } = asked.value;
+	if (all)
+		return __("Delete all {0} matching records?", [
+			count.toLocaleString() + (approx ? "+" : ""),
+		]);
+	return __n("Delete {0} selected record?", "Delete {0} selected records?", count, [count]);
+});
 
 const actions = computed(() =>
 	failure.value

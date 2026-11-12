@@ -15,7 +15,8 @@ import { rowActionFields } from "@/listPage/types";
 import { useRememberedPageSize } from "@/list/pageState";
 import { queryFromAddress } from "@/list/query";
 import { cardSeenClass, isUnseen } from "@/list/seen";
-import { deleteRow, deleteRows, filtersDict, type DeleteOutcome } from "@/list/useListView";
+import { deleteRow, deleteRows, filtersDict, filtersFit, type DeleteOutcome } from "@/list/useListView";
+import { useBulkScope, type BulkScope } from "@/list/useBulkScope";
 import { useListRows, type ListRow, type ListRows } from "@/list/useListRows";
 import type { View } from "@/list/view";
 import { routeFor } from "@/router/routeFor";
@@ -48,6 +49,7 @@ export interface CardsView extends ListRows {
 	pageSize: Ref<number>;
 	/** The names of the selected cards, in the order they were picked. */
 	selection: Ref<string[]>;
+	scope: BulkScope;
 	cardLink: (row: ListRow) => RouteLocationRaw;
 	/** The title's class for the row's seen state; "" when the doctype does not track seen. */
 	titleClassOf: (row: ListRow) => string;
@@ -72,6 +74,7 @@ export function useCardsView(view: View, lists: Pick<ListPageLists, "rowActions"
 	const fields = computed(() => cardFields(listMeta.value ?? {}, view.settings.value, readable));
 	const pageSize = useRememberedPageSize();
 
+	const stateKey = () => JSON.stringify(queryFromAddress({ filters: view.filters.value, sort: view.sort.value }));
 	const rows = useListRows(doctype, () => {
 		if (!view.seeded.value || !listMeta.value) return null;
 		const wanted = new Set([
@@ -84,7 +87,7 @@ export function useCardsView(view: View, lists: Pick<ListPageLists, "rowActions"
 			...rowActionFields(rowActions.value).filter(readable),
 		]);
 		return {
-			key: JSON.stringify(queryFromAddress({ filters: view.filters.value, sort: view.sort.value })),
+			key: stateKey(),
 			fields: [...wanted],
 			filters: filtersDict(view.filters.value),
 			orderBy: serializeOrderBy(view.sort.value),
@@ -97,15 +100,23 @@ export function useCardsView(view: View, lists: Pick<ListPageLists, "rowActions"
 	const deleteOne = (name: string) => deleteRow(rows, name);
 
 	const selection = ref<string[]>([]);
-	// A card that left the page leaves the selection; the rest stay selected across a load-more.
-	watch(rows.rows, (current) => {
-		const present = new Set(current.map((row) => row.name));
-		selection.value = selection.value.filter((name) => present.has(name));
+	const scope = useBulkScope({
+		selection,
+		rows: () => rows.rows.value,
+		filters: () => filtersDict(view.filters.value),
+		hasNextPage: () => rows.hasNextPage.value,
+		totalCount: () => rows.totalCount.value,
+		totalApprox: () => rows.totalCapped.value,
+		exact: () =>
+			rows.loadedKey.value === stateKey() &&
+			rows.hasCounts.value &&
+			!rows.totalUnknown.value &&
+			filtersFit(view.filters.value),
 	});
 
 	async function deleteSelection(): Promise<DeleteOutcome> {
-		const outcome = await deleteRows(doctype, rows, selection.value);
-		selection.value = [];
+		const outcome = await deleteRows(doctype, rows, scope.selected());
+		scope.clear();
 		return outcome;
 	}
 
@@ -120,6 +131,7 @@ export function useCardsView(view: View, lists: Pick<ListPageLists, "rowActions"
 		people,
 		pageSize,
 		selection,
+		scope,
 		cardLink: (row) => routeFor(doctype, row.name),
 		titleClassOf,
 		deleteOne,

@@ -10,6 +10,15 @@ const picked = vi.hoisted(() => ({ value: [] as string[] }));
 vi.mock("../useCardsView", () => ({
 	useCardsView: () => ({
 		selection: picked,
+		scope: {
+			all: ref(false),
+			count: ref(0),
+			total: ref(0),
+			approx: ref(false),
+			canSelectAll: ref(false),
+			clear: () => {},
+			selected: () => ({ names: [] }),
+		},
 		deleteSelection: () => {},
 		fields: { title: "title", body: "content", bodyIsHtml: true },
 		rowActions: ref([]),

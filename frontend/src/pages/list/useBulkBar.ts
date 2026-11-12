@@ -8,6 +8,7 @@ import { bulkKeyEntries } from "./bulkKeys";
 import { bulkScopeOf } from "./bulkScope";
 import type { ListMeta } from "@/list/defaults";
 import { useBulkStatus, type BulkStatus } from "./bulkStatus";
+import type { BulkScope } from "@/list/useBulkScope";
 import { layoutBulk, type BulkEntry, type BulkLayout } from "./bulkLayout";
 import { rowActionEntries } from "./rowActions";
 import type { ListActs } from "./listActs";
@@ -18,6 +19,7 @@ export interface BulkBarOptions {
   doctype: string;
   meta: Ref<ListMeta | null | undefined>;
   selection: Ref<string[]>;
+  scope: BulkScope;
   rows: Ref<ListRow[]>;
   rowActions: Ref<ListRowAction[]>;
   reload: () => void;
@@ -38,6 +40,8 @@ export interface BulkBar {
   menuOpen: Ref<boolean>;
   status: BulkStatus;
   layout: ComputedRef<BulkLayout>;
+  /** What a run takes: the selected rows, or all the records the filters show. */
+  scope: BulkScope;
   /** The most one bulk run takes; the bar disables its actions above it. */
   cap: number;
   /** The person's `bulk_actions` switch is off: the bar draws no action. */
@@ -100,7 +104,7 @@ export function useBulkBar(options: BulkBarOptions): BulkBar {
 
   // The palette runs an act with no value or an option, so the wrapper always hands `run` the selection, as the bar does.
   function bulkEntries(): ActEntry[] {
-    const over = selection.value.length > cap;
+    const over = options.scope.count.value > cap || options.scope.all.value;
     return bulkList
       .resolve()
       .filter(({ item }) => item.run)
@@ -116,6 +120,7 @@ export function useBulkBar(options: BulkBarOptions): BulkBar {
       }));
   }
 
+  // Only Delete reads the scope; an action that takes row names would run on the loaded rows alone.
   const locked = !boot.bulk_actions;
   const entries = computed<BulkEntry[]>(() =>
     locked
@@ -130,7 +135,7 @@ export function useBulkBar(options: BulkBarOptions): BulkBar {
               icon: act.icon,
               group: item.group,
               button: item.button,
-              disabled: selection.value.length > cap,
+              disabled: options.scope.count.value > cap || (options.scope.all.value && item.run !== askDelete),
               onClick: () => listActs.perform(act, scope.selected()),
             },
           ];
@@ -138,5 +143,5 @@ export function useBulkBar(options: BulkBarOptions): BulkBar {
   );
 
   const layout = computed(() => layoutBulk(entries.value, options.doctype));
-  return { listActs, menuOpen, status, layout, cap, locked };
+  return { listActs, menuOpen, status, layout, scope: options.scope, cap, locked };
 }
