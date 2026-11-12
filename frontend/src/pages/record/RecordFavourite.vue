@@ -2,32 +2,35 @@
      everyone who favourited the record. -->
 <template>
 	<!-- Nobody yet, no card: an empty one would open as a blank panel. -->
-	<Tooltip v-if="!favourites.length" :text="favouriteWording(favourited).label">
+	<Tooltip
+		v-if="!FavouriteCard || !favourites.length"
+		:text="favouriteWording(favourited).label"
+	>
 		<FavouriteStar :favourited="favourited" @click="emit('toggle')" />
 	</Tooltip>
-	<HoverCard v-else :hover-delay="0.2" :leave-delay="0.2" side="bottom" align="start">
-		<template #trigger>
-			<FavouriteStar :favourited="favourited" @click="emit('toggle')" />
-		</template>
-
-		<template #default>
-			<div class="flex min-w-44 max-w-64 flex-col gap-2 p-3" data-favourites>
-				<div v-for="person in favourites" :key="person.id" class="flex items-center gap-2">
-					<Avatar :label="person.name" :image="person.image" size="md" />
-					<span class="truncate text-p-base text-ink-gray-8">{{ person.name }}</span>
-				</div>
-			</div>
-		</template>
-	</HoverCard>
+	<FavouriteCard
+		v-else
+		:favourites="favourites"
+		:favourited="favourited"
+		@toggle="emit('toggle')"
+	/>
 </template>
 
 <script setup lang="ts">
-import { Avatar, HoverCard, Tooltip } from "frappe-ui";
+import { Tooltip } from "frappe-ui";
+import { shallowRef, watchEffect, type Component } from "vue";
 import FavouriteStar from "@/pages/favourite/FavouriteStar.vue";
 import { favouriteWording } from "@/pages/favourite/favouriteWording";
 import type { Person } from "./panel/people";
 
-defineProps<{ favourites: Person[]; favourited: boolean }>();
+const props = defineProps<{ favourites: Person[]; favourited: boolean }>();
 
 const emit = defineEmits<{ toggle: [] }>();
+
+// The card's hover popper is kept out of pages that never show one (a list has no people).
+const FavouriteCard = shallowRef<Component | null>(null);
+watchEffect(async () => {
+	if (props.favourites.length && !FavouriteCard.value)
+		FavouriteCard.value = (await import("./FavouriteCard.vue")).default;
+});
 </script>

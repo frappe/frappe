@@ -41,8 +41,14 @@ async function mount(items: BodyItem[], available = 10_000) {
 	});
 	app.mount(root);
 	mounted.push(app);
-	await nextTick();
+	await settleLazyEdges();
 	return root;
+}
+
+// The drag edge loads on demand: wait for its chunk, then the render it unblocks.
+async function settleLazyEdges() {
+	await import("../body/ColumnEdge.vue");
+	for (let tick = 0; tick < 5; tick++) await nextTick();
 }
 
 const columns = (root: HTMLElement) => [...root.querySelectorAll<HTMLElement>("[data-body-column]")];

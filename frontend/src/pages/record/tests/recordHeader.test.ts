@@ -183,6 +183,9 @@ describe("the favourite built-in", () => {
       { left: [control("favourite")], controls: [control("save")], bands: [] },
       { favourites: [{ id: "me", name: "You" }], favourited: true },
     );
+    await import("../FavouriteCard.vue");
+    await new Promise((resolve) => setTimeout(resolve));
+    await nextTick();
     const star = root.querySelector<HTMLElement>("[data-favourite]")!;
     expect(star.getAttribute("aria-pressed")).toBe("true");
     expect(star.dataset.label).toBe("Remove from favourites");
