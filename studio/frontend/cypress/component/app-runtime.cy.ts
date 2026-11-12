@@ -18,7 +18,9 @@ describe("AppModuleRegistry", () => {
 	afterEach(() => clearAppStyles())
 
 	it("mounts a page script at its repository path and shares the renderer's vue", () => {
-		const registry = new AppModuleRegistry({ "utils/format.js": `export function fmt(n) { return "#" + n }` })
+		const registry = new AppModuleRegistry({
+			"utils/format.js": `export const loaded = {}; export function fmt(n) { return "#" + n }`,
+		})
 		const script = `import { ref } from "vue"
 import { fmt } from "@app/utils/format"
 import { fmt as fmt2 } from "../../utils/format"
@@ -32,6 +34,15 @@ export default function setup(context) { return { label: ref(fmt(7) + fmt2(8)) }
 			const bindings = module.default({})
 			expect(bindings.label.value).to.equal("#7#8")
 			expect(isRef(bindings.label)).to.equal(true)
+		})
+
+		// Saving the page script replaces its module and keeps the modules it imports.
+		cy.then(async () => {
+			const before = (await registry.loadModule("utils/format.js")).loaded
+			await registry.addFile("studio_page/board/board.js", script.replace("fmt(7)", "fmt(9)"))
+			const module = await registry.loadModule("studio_page/board/board.js")
+			expect(module.default({}).label.value).to.equal("#9#8")
+			expect((await registry.loadModule("utils/format.js")).loaded).to.equal(before)
 		})
 	})
 

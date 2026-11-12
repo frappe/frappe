@@ -406,9 +406,10 @@ async function save() {
 		openFile.value.hash = result.hash
 		savedContent.value = editorContent.value
 		toast.success("Saved")
-		// Refresh stored source immediately instead of waiting for its realtime event.
-		if (store.isDbApp) store.refreshAppFiles()
+		// The registry replaces the active page's script on its own, so only a stored file needs
+		// the whole runtime reloaded. Do that now instead of waiting for its realtime event.
 		if (isEditingActivePageScript.value) store.reloadActivePageScript()
+		else if (store.isDbApp) store.refreshAppFiles()
 	} catch (error: any) {
 		toast.error("Failed to save", { description: error?.messages?.join(", ") })
 	} finally {
