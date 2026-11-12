@@ -7,14 +7,6 @@ from frappe import _
 from frappe.model import child_table_fields, display_fieldtypes, no_value_fields, std_fields, table_fields
 from frappe.studio import files
 from frappe.studio.constants import STANDARD_COMPONENT_NAMES
-from frappe.studio.files import (
-	ALLOWED_STORED_FILE_EXTENSIONS,
-	ALLOWED_STUDIO_FILE_EXTENSIONS,
-	file_hash,
-	validate_allowed_extension,
-	validate_editable,
-	validate_folder_removable,
-)
 from frappe.studio.utils import (
 	find_script_file,
 	get_export_folder,
@@ -242,11 +234,11 @@ def read_studio_file(frappe_app: str, studio_app: str, file_path: str, ignore_mi
 	"""Return a file's content plus a hash callers pass back to write_studio_file for conflict checks."""
 	if files.is_db_app(studio_app):
 		_validate_studio_file_access(on_disk=False)
-		validate_allowed_extension(file_path, ALLOWED_STORED_FILE_EXTENSIONS)
+		files.validate_allowed_extension(file_path, files.ALLOWED_STORED_FILE_EXTENSIONS)
 		content = files.read_store_file(studio_app, file_path)
 	else:
 		_validate_studio_file_access()
-		validate_allowed_extension(file_path)
+		files.validate_allowed_extension(file_path)
 		target = _resolve_studio_file(frappe_app, studio_app, file_path)
 		content = None
 		if os.path.isfile(target):
@@ -257,7 +249,7 @@ def read_studio_file(frappe_app: str, studio_app: str, file_path: str, ignore_mi
 		if sbool(ignore_missing):
 			return {"path": file_path, "content": None, "hash": None}
 		frappe.throw(_("File not found: {0}").format(file_path))
-	return {"path": file_path, "content": content, "hash": file_hash(content)}
+	return {"path": file_path, "content": content, "hash": files.file_hash(content)}
 
 
 @frappe.whitelist()
@@ -272,25 +264,25 @@ def write_studio_file(
 	if files.is_db_app(studio_app):
 		_validate_studio_file_access("write", on_disk=False)
 		files.write_store_file(studio_app, file_path, content, known_hash)
-		return {"path": file_path, "hash": file_hash(content)}
+		return {"path": file_path, "hash": files.file_hash(content)}
 
 	_validate_studio_file_access("write")
-	validate_allowed_extension(file_path)
-	validate_editable(studio_app, file_path)
+	files.validate_allowed_extension(file_path)
+	files.validate_editable(studio_app, file_path)
 	target = _resolve_studio_file(frappe_app, studio_app, file_path)
 	validate_one_script_file(os.path.dirname(target), os.path.basename(file_path))
 
 	if known_hash and os.path.isfile(target):
 		# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
 		with open(target, encoding="utf-8") as f:
-			if file_hash(f.read()) != known_hash:
+			if files.file_hash(f.read()) != known_hash:
 				frappe.throw(_("{0} changed on disk since you opened it.").format(file_path))
 
 	os.makedirs(os.path.dirname(target), exist_ok=True)
 	# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
 	with open(target, "w", encoding="utf-8") as f:
 		f.write(content)
-	return {"path": file_path, "hash": file_hash(content)}
+	return {"path": file_path, "hash": files.file_hash(content)}
 
 
 @frappe.whitelist()
@@ -300,11 +292,11 @@ def create_studio_file(frappe_app: str, studio_app: str, file_path: str) -> dict
 	if files.is_db_app(studio_app):
 		_validate_studio_file_access("write", on_disk=False)
 		files.create_store_file(studio_app, file_path)
-		return {"path": file_path, "hash": file_hash("")}
+		return {"path": file_path, "hash": files.file_hash("")}
 
 	_validate_studio_file_access("write")
-	validate_allowed_extension(file_path)
-	validate_editable(studio_app, file_path)
+	files.validate_allowed_extension(file_path)
+	files.validate_editable(studio_app, file_path)
 	target = _resolve_studio_file(frappe_app, studio_app, file_path)
 	if os.path.exists(target):
 		frappe.throw(_("{0} already exists.").format(file_path))
@@ -312,7 +304,7 @@ def create_studio_file(frappe_app: str, studio_app: str, file_path: str) -> dict
 
 	os.makedirs(os.path.dirname(target), exist_ok=True)
 	touch_file(target)
-	return {"path": file_path, "hash": file_hash("")}
+	return {"path": file_path, "hash": files.file_hash("")}
 
 
 @frappe.whitelist()
@@ -350,13 +342,13 @@ def rename_studio_file(frappe_app: str, studio_app: str, file_path: str, new_pat
 	# files keep the editable-extension restriction; folders may be renamed freely, except the ones
 	# the export manages (pages/components)
 	if os.path.isfile(source):
-		validate_allowed_extension(file_path)
-		validate_allowed_extension(new_path)
-		validate_editable(studio_app, file_path)
-		validate_editable(studio_app, new_path)
+		files.validate_allowed_extension(file_path)
+		files.validate_allowed_extension(new_path)
+		files.validate_editable(studio_app, file_path)
+		files.validate_editable(studio_app, new_path)
 		validate_one_script_file(os.path.dirname(destination), os.path.basename(new_path), moved_from=source)
 	else:
-		validate_folder_removable(file_path)
+		files.validate_folder_removable(file_path)
 
 	os.makedirs(os.path.dirname(destination), exist_ok=True)
 	os.rename(source, destination)
@@ -375,12 +367,12 @@ def delete_studio_file(frappe_app: str, studio_app: str, file_path: str) -> None
 	_validate_studio_file_access("write")
 	target = _resolve_studio_file(frappe_app, studio_app, file_path)
 	if os.path.isdir(target):
-		validate_folder_removable(file_path)
+		files.validate_folder_removable(file_path)
 		shutil.rmtree(target)
 		return
 
-	validate_allowed_extension(file_path)
-	validate_editable(studio_app, file_path)
+	files.validate_allowed_extension(file_path)
+	files.validate_editable(studio_app, file_path)
 	if not os.path.isfile(target):
 		frappe.throw(_("Not found: {0}").format(file_path))
 	os.remove(target)
@@ -443,7 +435,7 @@ def _build_studio_file_tree(directory: str, root: str) -> list[dict]:
 		if os.path.isdir(absolute_path):
 			children = _build_studio_file_tree(absolute_path, root)
 			nodes.append({"label": name, "path": relative_path, "is_folder": True, "children": children})
-		elif os.path.splitext(name)[1].lower() in ALLOWED_STUDIO_FILE_EXTENSIONS:
+		elif os.path.splitext(name)[1].lower() in files.ALLOWED_STUDIO_FILE_EXTENSIONS:
 			nodes.append({"label": name, "path": relative_path, "is_folder": False, "children": []})
 
 	nodes.sort(key=lambda node: (not node["is_folder"], node["label"].lower()))
