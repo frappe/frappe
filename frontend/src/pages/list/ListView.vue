@@ -5,6 +5,8 @@
 <template>
 	<Teleport v-if="host.bar.value && selection.length" :to="host.bar.value">
 		<BulkBar
+			:doctype="view.doctype"
+			:status="bulk.status"
 			:count="selection.length"
 			:cap="bulk.cap"
 			:layout="bulk.layout.value"
@@ -144,6 +146,7 @@ import { LinkMark, LinkTitlesKey, isEmailField, isPhoneField } from "@framework/
 import type { FieldMeta } from "@framework/ui/fields/types";
 import { mapField, type RawMetaField } from "@framework/ui/FormLayout";
 import { List, ListFooter } from "@framework/ui/experimental/List";
+import { useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { toast } from "frappe-ui";
 import { computed, defineAsyncComponent, onScopeDispose, provide, ref, watchEffect } from "vue";
 import { __ } from "@/i18n";
@@ -216,6 +219,7 @@ props.host.onCreate(reload);
 // A Link cell shows its target's title for the name, as the record's read-only field does.
 provide(LinkTitlesKey, linkTitles);
 
+const { meta } = useDoctypeMeta(props.view.doctype);
 const table = ref<{
 	viewportElement: HTMLElement | null;
 	toggle: (name: string) => void;
@@ -271,6 +275,7 @@ function columnFields(matches: (field: RawMetaField) => boolean) {
 const bulk = useBulkBar({
 	host: props.host,
 	doctype: props.view.doctype,
+	meta,
 	selection,
 	rows,
 	rowActions,

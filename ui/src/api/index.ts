@@ -247,6 +247,8 @@ export interface BulkResult {
   total: number;
   done: string[];
   failed: { name: string; error: string }[];
+  /** Records a Submission Queue took: they settle later and are not in `done`. */
+  queued?: string[];
 }
 
 /** What a bulk run answers (status 202) when it went to the background. */
@@ -270,6 +272,36 @@ export function bulkDeleteDocuments(
     if (isBulkQueued(data)) return;
     for (const name of data.done) feedDelete(ticket, doctype, name);
   });
+}
+
+/** Who a bulk run takes: the names, or the list's filters. */
+export interface BulkSelection {
+  names?: string[];
+  filters?: unknown;
+  or_filters?: unknown;
+}
+
+export type BulkStatusRoute = "bulk_submit" | "bulk_cancel" | "bulk_workflow";
+
+/** Submits, cancels or applies a workflow `action` to the selection in one request. */
+export function bulkStatusDocuments(
+  doctype: string,
+  route: BulkStatusRoute,
+  body: BulkSelection & { action?: string },
+  { signal }: CallOptions = {}
+): Promise<Envelope<BulkResult | BulkQueued>> {
+  const path = `/document/${segment(doctype)}/${route}`;
+  return fed<BulkResult | BulkQueued>("POST", path, { body, signal }, () => {});
+}
+
+/** The workflow actions the user can apply to every record of the selection; none when they differ. */
+export function bulkWorkflowActions(
+  doctype: string,
+  selection: BulkSelection,
+  { signal }: CallOptions = {}
+): Promise<Envelope<string[]>> {
+  const path = `/document/${segment(doctype)}/bulk_workflow_actions`;
+  return request<string[]>("POST", path, { body: selection, signal });
 }
 
 /** Renames through `frappe.client.rename_doc`; the old name leaves the cache, as a delete's does. */
