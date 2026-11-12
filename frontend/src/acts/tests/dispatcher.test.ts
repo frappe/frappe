@@ -22,6 +22,33 @@ describe("the dispatcher", () => {
     expect(older.ran).toEqual([]);
   });
 
+  it("drops the surface once both scopes have let go, whichever order they release in", async () => {
+    const dispatcher = new ActDispatcher();
+    const releaseOlder = dispatcher.register(scope("older"));
+    const releaseNewer = dispatcher.register(scope("newer"));
+
+    releaseOlder();
+    releaseNewer();
+
+    expect(dispatcher.available()).toEqual([]);
+    await expect(dispatcher.run("header.go")).rejects.toBeInstanceOf(ActDenied);
+  });
+
+  it("gives a surface back to the scope a newer one shadowed when the newer lets go", async () => {
+    const dispatcher = new ActDispatcher();
+    const older = scope("older");
+    const newer = scope("newer");
+    dispatcher.register(older);
+    const releaseNewer = dispatcher.register(newer);
+
+    await dispatcher.run("header.go");
+    releaseNewer();
+    await dispatcher.run("header.go");
+
+    expect(newer.ran).toEqual(["newer"]);
+    expect(older.ran).toEqual(["older"]);
+  });
+
   it("splits a full name at its first dot, so an item name may hold more", async () => {
     const dispatcher = new ActDispatcher();
     const ran: string[] = [];

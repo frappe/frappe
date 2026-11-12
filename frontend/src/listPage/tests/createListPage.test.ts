@@ -42,6 +42,7 @@ const permissions: ListPermissions = {
   perms: () => ({ read: 1 }),
   roles: () => ["System Manager"],
   passes: () => true,
+  settled: () => undefined,
   loading: () => false,
   ready: () => Promise.resolve(),
 };

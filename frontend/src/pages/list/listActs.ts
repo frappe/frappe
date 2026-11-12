@@ -2,14 +2,16 @@
 // A renderer's acts join as `<type>.<act>`, so List's own land on `list` too.
 import { toast } from "frappe-ui";
 import { onScopeDispose, shallowRef } from "vue";
-import { acts, type ActEntry, type AvailableAct } from "@/acts/dispatcher";
+import { acts, passesRight, passesWhen, type ActEntry, type AvailableAct } from "@/acts/dispatcher";
 import { __ } from "@/i18n";
 import type { ListPageController, ListRendererState } from "@/listPage/createListPage";
 import type { ListPermissions } from "@/listPage/listPermissions";
 import type { ListPageApi } from "@/listPage/types";
 import { favouriteWording } from "@/pages/favourite/favouriteWording";
 import type { DefaultScope } from "./defaultView";
+import type { HeaderItem } from "@/pageEngine/types";
 import { errorMessage } from "@/recordPage/errorMessage";
+import { headerEntries } from "@/recordPage/pageActs";
 import { typeKey } from "@/list/view";
 
 export interface ListActsHost {
@@ -43,20 +45,19 @@ export interface PageActs extends ListActs {
   renderer: (entries: () => ActEntry[], state: ListRendererState) => ListActs;
 }
 
-/** Registers the `list` surface for the page's life; the page draws its controls from `drawn`. */
+/** Registers the `list` and `header` surfaces for the page's life; the page draws its controls from `drawn`. */
 export function useListActs(host: ListActsHost, type = "List"): PageActs {
   const { list, permissions } = host;
   const surface = typeKey(type);
   const rendered = shallowRef<() => ActEntry[]>(() => []);
-  const pageEntries = () => [...listEntries(host), ...controlEntries(list)];
-  const surfaces: Record<string, () => ActEntry[]> = { list: pageEntries };
+  const header = () => headerEntries(list.engine.header.resolve(), allowsHeaderItem(list, permissions));
+  const pageEntries = () => [...listEntries(host, header()), ...controlEntries(list)];
+  const surfaces: Record<string, () => ActEntry[]> = { list: pageEntries, header };
   if (surface === "list") surfaces.list = () => [...pageEntries(), ...rendered.value()];
   else surfaces[surface] = () => rendered.value();
   const release = acts.register({
     surfaces,
-    context: () => list.page,
-    passes: permissions.passes,
-    settled: () => (permissions.loading() ? permissions.ready() : undefined),
+    ...listScope(list, permissions),
     hold: list.engine.hold,
     failed: (error) => void toast.error(errorMessage(error)),
   });
@@ -72,6 +73,16 @@ export function useListActs(host: ListActsHost, type = "List"): PageActs {
   };
 }
 
+export function listScope(list: ListPageController, permissions: ListPermissions) {
+  return { context: () => list.page, passes: permissions.passes, settled: permissions.settled };
+}
+
+/** Whether a header item's `when` and `right` let it draw. */
+export function allowsHeaderItem(list: ListPageController, permissions: ListPermissions) {
+  const scope = listScope(list, permissions);
+  return (item: HeaderItem) => passesWhen(scope, item) && passesRight(scope, item);
+}
+
 function surfaceActs(surface: string): ListActs {
   return {
     context: () => acts.contextOf(surface) as ListPageApi,
@@ -80,7 +91,10 @@ function surfaceActs(surface: string): ListActs {
   };
 }
 
-function listEntries(host: ListActsHost): ActEntry[] {
+/** A built-in act mirrors its header item: a script that hides or removes the item hides the act. */
+function listEntries(host: ListActsHost, header: ActEntry[]): ActEntry[] {
+  const hiddenInHeader = (name: string) =>
+    header.find((entry) => entry.item.name === name)?.hidden ?? true;
   return [
     {
       item: {
@@ -90,7 +104,7 @@ function listEntries(host: ListActsHost): ActEntry[] {
         right: "create",
         run: () => host.create(),
       },
-      hidden: false,
+      hidden: hiddenInHeader("new"),
     },
     {
       item: {
@@ -98,7 +112,7 @@ function listEntries(host: ListActsHost): ActEntry[] {
         ...favouriteWording(host.favourited()),
         run: () => host.toggleFavourite(),
       },
-      hidden: !host.starsLoaded(),
+      hidden: !host.starsLoaded() || hiddenInHeader("favourite"),
     },
     {
       item: {

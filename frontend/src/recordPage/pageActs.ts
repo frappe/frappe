@@ -37,7 +37,7 @@ export function registerPageActs(host: PageActsHost): () => void {
 }
 
 /** A container is no act, and a member of a container hidden or denied is hidden with it. */
-function headerEntries(
+export function headerEntries(
   resolved: ResolvedItem<HeaderItem>[],
   allows: (item: HeaderItem) => boolean
 ): ActEntry[] {
