@@ -131,6 +131,7 @@
 										:model-value="col.width"
 										:min="5"
 										:step="5"
+										unit="%"
 										@update:model-value="(v) => set_width(col, v)"
 									/>
 									<DropdownRow
