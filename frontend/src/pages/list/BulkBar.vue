@@ -13,7 +13,7 @@
 			<Button
 				v-if="scope.canSelectAll.value"
 				variant="ghost"
-				:label="__('Select all {0}', [totalText])"
+				:label="__('Select all {0}', [scope.totalText.value])"
 				@click="scope.selectAll()"
 			/>
 		</div>
@@ -128,13 +128,11 @@ const props = defineProps<{
 const menuOpen = defineModel<boolean>("menuOpen", { default: false });
 defineEmits<{ clear: [] }>();
 
-const totalText = computed(() => formatted(props.scope.total.value, props.scope.approx.value));
 const countText = computed(() =>
 	props.scope.all.value
-		? __("All {0} selected", [totalText.value])
+		? __("All {0} selected", [props.scope.totalText.value])
 		: __("{0} selected", [props.scope.count.value])
 );
-const formatted = (count: number, approx: boolean) => count.toLocaleString() + (approx ? "+" : "");
 const BulkStatusDialog = defineAsyncComponent({
 	loader: () => import("./BulkStatusDialog.vue"),
 	onError: (_error, _retry, fail) => {

@@ -3,6 +3,7 @@ import { bulkWorkflowActions, type BulkSelection, type BulkStatusRoute } from "@
 import { computed, onScopeDispose, ref, shallowRef, watch, type ComputedRef, type Ref, type ShallowRef } from "vue";
 import { __, __n } from "@/i18n";
 import type { ListMeta } from "@/list/defaults";
+import type { BulkScope } from "@/list/useBulkScope";
 import type { ListPageAction } from "@/listPage/types";
 
 const TRANSITIONS_DEBOUNCE_MS = 300;
@@ -18,6 +19,8 @@ export interface BulkStatusAction {
 
 export interface BulkStatus {
 	items: ComputedRef<ListPageAction[]>;
+	/** Whether `run` is one of the items' own: they take the whole scope, not the loaded rows. */
+	owns: (run: ListPageAction["run"]) => boolean;
 	asked: ShallowRef<BulkStatusAction | null>;
 	/** Reads the common actions again: a run moves the selection to new states. */
 	refresh: () => void;
@@ -31,20 +34,22 @@ export interface BulkStatusOptions {
 	doctype: string;
 	meta: Ref<ListMeta | null | undefined>;
 	selection: Ref<string[]>;
+	scope: BulkScope;
 	cap: number;
 	locked: boolean;
 	reload: () => void;
 }
 
-export function useBulkStatus({ doctype, meta, selection, cap, locked, reload }: BulkStatusOptions): BulkStatus {
+export function useBulkStatus({ doctype, meta, selection, scope, cap, locked, reload }: BulkStatusOptions): BulkStatus {
 	const asked = shallowRef<BulkStatusAction | null>(null);
 	const transitions = shallowRef<string[]>([]);
 	const refreshed = ref(0);
-	const selected = (): BulkSelection => ({ names: [...selection.value] });
-	const scope = () =>
-		__n("{0} selected record", "{0} selected records", selection.value.length, [selection.value.length]);
 	const ask = (action: Omit<BulkStatusAction, "body" | "scope">) =>
-		(asked.value = { ...action, body: selected(), scope: scope() });
+		(asked.value = { ...action, body: scope.selected(), scope: wording() });
+	const wording = () =>
+		scope.all.value
+			? __n("all {0} matching record", "all {0} matching records", scope.total.value, [scope.totalText.value])
+			: __n("{0} selected record", "{0} selected records", scope.count.value, [scope.count.value]);
 
 	const hasWorkflow = computed(() => Boolean(meta.value?.workflow_state_field));
 	const submittable = computed(() => Boolean(meta.value?.is_submittable) && !hasWorkflow.value);
@@ -84,14 +89,15 @@ export function useBulkStatus({ doctype, meta, selection, cap, locked, reload }:
 		let timer: ReturnType<typeof setTimeout> | undefined;
 		let latest = 0;
 		watch(
-			[() => selection.value.join("\n"), hasWorkflow, refreshed],
+			[() => JSON.stringify(scope.selected()), () => scope.count.value, hasWorkflow, refreshed],
 			() => {
 				clearTimeout(timer);
 				const read = ++latest;
 				transitions.value = [];
-				if (locked || !hasWorkflow.value || !selection.value.length || selection.value.length > cap) return;
+				if (locked || !hasWorkflow.value || !scope.count.value || scope.count.value > cap) return;
+				const body = scope.selected();
 				timer = setTimeout(async () => {
-					const { data } = await bulkWorkflowActions(doctype, selected()).catch(() => ({ data: [] }));
+					const { data } = await bulkWorkflowActions(doctype, body).catch(() => ({ data: [] }));
 					if (read === latest) transitions.value = data;
 				}, TRANSITIONS_DEBOUNCE_MS);
 			},
@@ -101,10 +107,13 @@ export function useBulkStatus({ doctype, meta, selection, cap, locked, reload }:
 	}
 
 	const refresh = () => refreshed.value++;
+	// A run over all matching moves records out of the list, as Delete's does: the scope ends with it.
 	const finished = () => {
+		if (scope.all.value) scope.clear();
 		refresh();
 		reload();
 	};
 	const select = (names: string[]) => (selection.value = names);
-	return { items, asked, refresh, finished, select };
+	const owns = (run: ListPageAction["run"]) => items.value.some((item) => item.run === run);
+	return { items, owns, asked, refresh, finished, select };
 }

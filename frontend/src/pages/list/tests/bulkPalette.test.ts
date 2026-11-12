@@ -2,6 +2,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, nextTick, ref, type App } from "vue";
 import { acts, type ActEntry } from "@/acts/dispatcher";
+import type { ListMeta } from "@/list/defaults";
 import { useBulkScope } from "@/list/useBulkScope";
 import { createListPageLists } from "@/listPage/createListPage";
 import { useBulkBar } from "../useBulkBar";
@@ -13,17 +14,32 @@ afterEach(() => {
   mounted = null;
 });
 
+interface BarOptions {
+  rights?: boolean;
+  script?: boolean;
+  selected?: string[];
+  cap?: number;
+  locked?: boolean;
+  total?: number;
+  approx?: boolean;
+  meta?: ListMeta | null;
+}
+
 function bar({
   rights = true,
   script = true,
   selected = ["A", "B", "C"],
   cap = 500,
   locked = false,
-} = {}) {
+  total = selected.length,
+  approx = false,
+  meta = null,
+}: BarOptions = {}) {
   // `script: false` leaves the list with Delete only.
   const lists = createListPageLists();
   const selection = ref(selected);
-  const loaded: { name: string }[] = [];
+  // A stable array: a rows function that derives a new one each call loops the scope's watcher.
+  const loaded = selected.map((name) => ({ name }));
   const askDelete = vi.fn();
   const seen = vi.fn();
   let release = () => {};
@@ -53,18 +69,18 @@ function bar({
         result = useBulkBar({
           host: host as never,
           doctype: "ToDo",
-          meta: ref(null),
+          meta: ref(meta),
           askEdit: vi.fn(),
           askExport: vi.fn(),
           copy: vi.fn(),
           selection,
           scope: useBulkScope({
             selection,
-            rows: () => loaded,
+            rows: () => loaded as never,
             filters: () => ({}),
-            hasNextPage: () => false,
-            totalCount: () => selection.value.length,
-            totalApprox: () => false,
+            hasNextPage: () => total > loaded.length,
+            totalCount: () => total,
+            totalApprox: () => approx,
             exact: () => true,
           }),
           rows: ref([]),
@@ -89,7 +105,7 @@ function bar({
       label: "Restore",
       run: (_page, names) => seen(names),
     });
-  return { result, selection, askDelete, seen, lists };
+  return { result, selection, askDelete, seen, lists, scope: result.scope };
 }
 
 const paletteLabels = () =>
@@ -213,5 +229,67 @@ describe("the bulk actions in the palette", () => {
     ]);
     expect(acts.find("list.open_bulk_menu")).toBeDefined();
     expect(acts.find("list.clear_selection")).toBeDefined();
+  });
+
+  describe("after Select all", () => {
+    const everything = { total: 1240, cap: 5000, selected: ["A", "B", "C"] };
+
+    it("offers Delete for all the matching records and nothing that takes row names", async () => {
+      const { scope } = bar(everything);
+      scope.selectAll();
+      await nextTick();
+      expect(paletteLabels()).toContain("Delete all 1,240 matching");
+      expect(paletteLabels().filter((label) => /Restore/.test(label!))).toEqual([]);
+      expect(paletteLabels().filter((label) => /selected/.test(label!))).toEqual([]);
+    });
+
+    it("writes a floor total with a plus", async () => {
+      const { scope } = bar({ selected: ["A", "B"], total: 10000, approx: true, cap: 20000 });
+      scope.selectAll();
+      await nextTick();
+      expect(paletteLabels()).toContain("Delete all 10,000+ matching");
+    });
+
+    it("offers Submit, Cancel and the workflow actions on the whole scope", async () => {
+      const { scope, result } = bar({ ...everything, meta: { is_submittable: 1 } });
+      scope.selectAll();
+      await nextTick();
+      expect(paletteLabels()).toEqual(
+        expect.arrayContaining(["Submit all 1,240 matching", "Cancel all 1,240 matching"]),
+      );
+      const bar_ = result.layout.value.menu.flatMap((group) => group.options);
+      expect(bar_.filter((option) => !option.disabled).map((option) => option.label)).toEqual([
+        "Print",
+        "Export",
+        "Submit",
+        "Cancel",
+        "Delete",
+      ]);
+    });
+
+    it("follows the bar's cap rule: at the cap offered, over it every entry is left out", async () => {
+      const { scope } = bar({ ...everything, total: 1240, cap: 1240, meta: { is_submittable: 1 } });
+      scope.selectAll();
+      await nextTick();
+      expect(paletteLabels()).toEqual(
+        expect.arrayContaining(["Delete all 1,240 matching", "Submit all 1,240 matching"]),
+      );
+      mounted!.release();
+      mounted!.app.unmount();
+
+      const over = bar({ ...everything, total: 1241, cap: 1240, meta: { is_submittable: 1 } });
+      over.scope.selectAll();
+      await nextTick();
+      expect(paletteLabels().filter((label) => /matching/.test(label!))).toEqual([]);
+    });
+
+    it("returns to the selection's wording when the scope clears", async () => {
+      const { scope } = bar(everything);
+      scope.selectAll();
+      await nextTick();
+      scope.clear();
+      await nextTick();
+      expect(paletteLabels().filter((label) => /matching/.test(label!))).toEqual([]);
+    });
   });
 });

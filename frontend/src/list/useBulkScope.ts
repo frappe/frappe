@@ -21,6 +21,8 @@ export interface BulkScope {
 	count: ComputedRef<number>;
 	total: ComputedRef<number>;
 	approx: ComputedRef<boolean>;
+	/** The total as people read it: "1,240", or "10,000+" when it is a floor. */
+	totalText: ComputedRef<string>;
 	canSelectAll: ComputedRef<boolean>;
 	selectAll: () => void;
 	clear: () => void;
@@ -35,6 +37,7 @@ export function useBulkScope(options: BulkScopeOptions): BulkScope {
 	const total = computed(() => options.totalCount());
 	const count = computed(() => (all.value ? total.value : selection.value.length));
 	const approx = computed(() => options.totalApprox());
+	const totalText = computed(() => total.value.toLocaleString() + (approx.value ? "+" : ""));
 	const canSelectAll = computed(
 		() =>
 			!all.value &&
@@ -67,6 +70,7 @@ export function useBulkScope(options: BulkScopeOptions): BulkScope {
 		count,
 		total,
 		approx,
+		totalText,
 		canSelectAll,
 		selectAll: () => (all.value = true),
 		clear,

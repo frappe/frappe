@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, nextTick, ref, type App } from "vue";
 import type { ListMeta } from "@/list/defaults";
+import { useBulkScope } from "@/list/useBulkScope";
 import BulkStatusDialog from "../BulkStatusDialog.vue";
 import { useBulkStatus, type BulkStatus, type BulkStatusAction } from "../bulkStatus";
 
@@ -33,19 +34,34 @@ async function settle() {
 
 const reload = vi.fn();
 
-function status(meta: ListMeta | null, names = ["A", "B"], locked = false) {
+function status(
+	meta: ListMeta | null,
+	names = ["A", "B"],
+	locked = false,
+	{ total = names.length, approx = false } = {}
+) {
 	const selection = ref(names);
+	const loaded = names.map((name) => ({ name }));
+	const scope = useBulkScope({
+		selection,
+		rows: () => loaded as never,
+		filters: () => ({ status: "Open" }),
+		hasNextPage: () => total > names.length,
+		totalCount: () => total,
+		totalApprox: () => approx,
+		exact: () => true,
+	});
 	let result!: BulkStatus;
 	mounted = createApp(
 		defineComponent({
 			setup() {
-				result = useBulkStatus({ doctype: "Leave", meta: ref(meta), selection, cap: 500, locked, reload });
+				result = useBulkStatus({ doctype: "Leave", meta: ref(meta), selection, scope, cap: 500, locked, reload });
 				return () => null;
 			},
 		})
 	);
 	mounted.mount(document.createElement("div"));
-	return { status: result, selection };
+	return { status: result, selection, scope };
 }
 
 const named = (bulk: BulkStatus) => bulk.items.value.map(({ name, group, right }) => [name, group, right]);
@@ -147,6 +163,81 @@ describe("useBulkStatus", () => {
 	});
 });
 
+describe("useBulkStatus over \"select all matching\"", () => {
+	it("keeps Submit, Cancel and the workflow items, and owns their runs", async () => {
+		fake.actions.mockResolvedValue({ data: ["Approve"] });
+		const { status: bulk, scope } = status({ is_submittable: 1 }, ["A", "B"], false, { total: 1240 });
+		scope.selectAll();
+		await vi.advanceTimersByTimeAsync(400);
+		expect(bulk.items.value.every((item) => bulk.owns(item.run))).toBe(true);
+		expect(bulk.owns(() => {})).toBe(false);
+	});
+
+	it("asks over the filters and names the matching count", async () => {
+		const { status: bulk, scope } = status({ is_submittable: 1 }, ["A", "B"], false, { total: 1240 });
+		scope.selectAll();
+		(bulk.items.value[0].run as () => void)();
+		expect(bulk.asked.value).toMatchObject({
+			route: "bulk_submit",
+			body: { filters: { status: "Open" } },
+			scope: "all 1,240 matching records",
+		});
+	});
+
+	it("words a floor total with a plus and one match in the singular", () => {
+		const floor = status({ is_submittable: 1 }, ["A"], false, { total: 10000, approx: true });
+		floor.scope.selectAll();
+		(floor.status.items.value[0].run as () => void)();
+		expect(floor.status.asked.value?.scope).toBe("all 10,000+ matching records");
+
+		const one = status({ is_submittable: 1 }, ["A"]);
+		one.scope.selectAll();
+		(one.status.items.value[0].run as () => void)();
+		expect(one.status.asked.value?.scope).toBe("all 1 matching record");
+	});
+
+	it("reads the common transitions with the filters, and again when the filters stay but rows load", async () => {
+		fake.actions.mockResolvedValue({ data: ["Approve", "Reject"] });
+		const { status: bulk, scope, selection } = status(
+			{ workflow_state_field: "workflow_state" },
+			["A", "B"],
+			false,
+			{ total: 400 }
+		);
+		scope.selectAll();
+		await vi.advanceTimersByTimeAsync(400);
+		expect(fake.actions).toHaveBeenLastCalledWith("Leave", { filters: { status: "Open" } });
+		expect(bulk.items.value.map(({ name }) => name)).toEqual(["workflow-approve", "workflow-reject"]);
+		const reads = fake.actions.mock.calls.length;
+		selection.value = ["A", "B"];
+		await vi.advanceTimersByTimeAsync(400);
+		expect(fake.actions).toHaveBeenCalledTimes(reads);
+	});
+
+	it("ends the scope when a run over it finishes", async () => {
+		const { status: bulk, scope, selection } = status({ is_submittable: 1 }, ["A", "B"], false, { total: 1240 });
+		scope.selectAll();
+		bulk.finished();
+		expect(scope.all.value).toBe(false);
+		expect(selection.value).toEqual([]);
+		expect(reload).toHaveBeenCalledTimes(1);
+	});
+
+	it("keeps a plain selection when a run finishes", () => {
+		const { status: bulk, selection } = status({ is_submittable: 1 });
+		bulk.finished();
+		expect(selection.value).toEqual(["A", "B"]);
+	});
+
+	it("reads nothing over the cap", async () => {
+		const { scope } = status({ workflow_state_field: "workflow_state" }, ["A", "B"], false, { total: 501 });
+		scope.selectAll();
+		fake.actions.mockClear();
+		await vi.advanceTimersByTimeAsync(400);
+		expect(fake.actions).not.toHaveBeenCalled();
+	});
+});
+
 describe("BulkStatusDialog", () => {
 	const action = (extra: Partial<BulkStatusAction> = {}): BulkStatusAction => ({
 		route: "bulk_submit",
@@ -182,6 +273,15 @@ describe("BulkStatusDialog", () => {
 		expect(fake.run).toHaveBeenCalledWith("Leave", "bulk_submit", { names: ["A", "B"] });
 		expect(fake.success).toHaveBeenCalledWith("2 records done");
 		expect(done).toHaveBeenCalled();
+	});
+
+	it("names the matching scope and sends the filters", async () => {
+		fake.run.mockResolvedValue({ data: { total: 1240, done: [], failed: [] } });
+		const filters = { status: "Open" };
+		await open(action({ body: { filters }, scope: "all 1,240 matching records" }));
+		expect(text()).toContain("Submit all 1,240 matching records?");
+		await confirm("Submit");
+		expect(fake.run).toHaveBeenCalledWith("Leave", "bulk_submit", { filters });
 	});
 
 	it("sends a transition as the workflow action", async () => {

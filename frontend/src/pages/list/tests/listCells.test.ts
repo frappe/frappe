@@ -103,12 +103,25 @@ const applyBadgeFilters = vi.hoisted(() => vi.fn());
 
 vi.mock("@/list/useListView", async () => {
 	const { resolveCell } = await import("@/list/cells");
+	const { useBulkScope } = await import("@/list/useBulkScope");
 	return {
-		useListView: () => ({
+		useListView: () => {
+			const selection = ref<string[]>([]);
+			const rows = ref([row]);
+			return {
 			columns: ref(columns),
 			shownColumns: ref(columns),
-			rows: ref([row]),
-			selection: ref([]),
+			rows,
+			selection,
+			scope: useBulkScope({
+				selection,
+				rows: () => rows.value as never,
+				filters: () => ({}),
+				hasNextPage: () => false,
+				totalCount: () => 1,
+				totalApprox: () => false,
+				exact: () => true,
+			}),
 			pageSize: ref(20),
 			rowsKey: () => "",
 			loading: ref(false),
@@ -140,7 +153,8 @@ vi.mock("@/list/useListView", async () => {
 			linkTitles: ref({ "CRM Deal::D-1": "Acme", "User::ann@example.com": "Ann Lee" }),
 			columnsCustomized: ref(false),
 			rowLink: () => ({}),
-		}),
+			};
+		},
 	};
 });
 vi.mock("@framework/ui/experimental/List", async () => {
