@@ -202,9 +202,7 @@ describe("useBulkBar", () => {
 						askDelete,
 						cursor: ref(null),
 						table: () => null,
-						askEdit: vi.fn(),
-						askExport: vi.fn(),
-						copy: vi.fn(),
+						copy: { columns: () => [], text: () => "", fields: () => [] },
 					});
 					return () => null;
 				},

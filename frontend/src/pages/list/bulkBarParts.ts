@@ -9,15 +9,16 @@ import { exportFilters } from "@/list/bulkExport";
 import type { ListPageAction, ListPageApi } from "@/listPage/types";
 import { useBulkCollaboration, type BulkCollaboration } from "./bulkCollaboration";
 import { layoutBulk, type BulkEntry, type BulkLayout } from "./bulkLayout";
+import { useBulkOutput, type BulkOutput } from "./bulkOutput";
 import { useBulkPrint, type BulkPrint } from "./bulkPrint";
 import { useBulkStatus, type BulkStatus } from "./bulkStatus";
 import type { ListActs } from "./listActs";
 import type { BulkBarOptions } from "./useBulkBar";
 
 export { default as BulkBar } from "./BulkBar.vue";
+export { default as BulkDialogs } from "./BulkDialogs.vue";
 export { PrintDialog } from "./bulkPrint";
 export { lazyBulkCollabDialog } from "./lazyBulkCollabDialog";
-export { selectionTsv, withHiddenRows } from "@/list/bulkCopy";
 
 export const DeleteDialog = lazyDialog(
   () => import("./DeleteDialog.vue"),
@@ -38,6 +39,8 @@ export interface BulkBarParts {
   collab: BulkCollaboration;
   /** The Print dialog's state; Print asks it to open. */
   print: BulkPrint;
+  /** Edit, Export and Copy: their dialogs' state and runs. */
+  output: BulkOutput;
   /** The items `bulkActions` resolves its built-ins from. */
   builtins: () => ListPageAction[];
   /** The bulk acts on the selection, for the palette. */
@@ -46,7 +49,9 @@ export interface BulkBarParts {
 }
 
 export function bulkBarParts(options: BulkBarOptions, boot: Boot, listActs: ListActs): BulkBarParts {
-  const { selection, askDelete, askEdit, askExport, copy } = options;
+  const { selection, askDelete } = options;
+  const output = useBulkOutput(options);
+  const { askEdit, askExport, copy } = output;
   const { bulkActions: bulkList } = options.host.lists;
   const cap = boot.bulk_operation_limit;
   const locked = !boot.bulk_actions;
@@ -184,7 +189,7 @@ export function bulkBarParts(options: BulkBarOptions, boot: Boot, listActs: List
   );
 
   const layout = computed(() => layoutBulk(drawn.value, options.doctype));
-  return { status, collab, print, builtins, entries, layout };
+  return { status, collab, print, output, builtins, entries, layout };
 }
 
 function lazyDialog(loader: () => Promise<Component>, message: string) {

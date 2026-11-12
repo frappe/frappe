@@ -52,9 +52,10 @@
 							'opacity-0 focus:opacity-100 group-hover:opacity-100',
 					  ]
 			"
-			@click.stop.prevent="emit('toggle')"
-			@keydown.enter.stop.prevent="emit('toggle')"
-			@keydown.space.stop.prevent="emit('toggle')"
+			@mousedown.shift.prevent
+			@click.stop.prevent="emit('toggle', $event.shiftKey)"
+			@keydown.enter.stop.prevent="emit('toggle', $event.shiftKey)"
+			@keydown.space.stop.prevent="emit('toggle', $event.shiftKey)"
 		>
 			<Checkbox
 				:modelValue="selected"
@@ -111,7 +112,8 @@ const props = defineProps<{
 	selecting?: boolean;
 }>();
 
-const emit = defineEmits<{ toggle: [] }>();
+/** `range` is a shift-click: it toggles every card from the last one toggled. */
+const emit = defineEmits<{ toggle: [range: boolean] }>();
 
 const title = computed(() =>
 	recordTitle(props.meta, props.row, String(props.row.name), props.titleField)

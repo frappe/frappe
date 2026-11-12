@@ -147,43 +147,14 @@
 		@close="menu.close"
 	/>
 	<component
-		:is="bulk.parts.value.chunk.PrintDialog"
-		v-if="bulk.parts.value?.print.mounted.value"
-		v-model="bulk.parts.value.print.open.value"
-		:doctype="view.doctype"
-		:count="bulk.parts.value.print.count.value"
-		:all="bulk.parts.value.print.all.value"
-		:approx="bulk.parts.value.print.approx.value"
-		:scope="bulk.parts.value.print.scope.value"
-	/>
-	<component
-		:is="bulk.parts.value.chunk.EditDialog"
-		v-if="editOpened && bulk.parts.value"
-		v-model="editing"
-		:doctype="view.doctype"
-		:count="scope.count.value"
-		:all="scope.all.value"
-		:approx="scope.approx.value"
-		:run="editSelection"
-	/>
-	<component
-		:is="bulk.parts.value.chunk.ExportDialog"
-		v-if="exportOpened && bulk.parts.value"
-		v-model="exporting"
-		:doctype="view.doctype"
-		:selection="exportScope"
-		:count="scope.count.value"
-	/>
-	<component
-		:is="bulk.parts.value.CollabDialog"
-		v-if="bulk.parts.value?.collab.request.value"
-		:request="bulk.parts.value.collab.request.value"
+		:is="bulk.parts.value.chunk.BulkDialogs"
+		v-if="bulk.parts.value"
+		:parts="bulk.parts.value"
+		:scope="scope"
 		:doctype="view.doctype"
 		:reload="reload"
 		:select="(names: string[]) => (selection = names)"
-		@close="bulk.parts.value.collab.request.value = null"
 	/>
-
 	<component
 		:is="bulk.parts.value.chunk.DeleteDialog"
 		v-if="deleteOpened && bulk.parts.value"
@@ -202,11 +173,7 @@ import type { FieldMeta } from "@framework/ui/fields/types";
 import { mapField, type RawMetaField } from "@framework/ui/FormLayout";
 import { List, ListFooter } from "@framework/ui/experimental/List";
 import { useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
-import { toast } from "frappe-ui";
-import type { BulkSelection, BulkUpdate } from "@framework/ui/api";
 import { computed, provide, ref } from "vue";
-import { __, __n } from "@/i18n";
-import { errorMessage } from "@/recordPage/errorMessage";
 import { useListView } from "@/list/useListView";
 import { useScrollMemory } from "@/list/useScrollMemory";
 import type { View } from "@/list/view";
@@ -285,12 +252,6 @@ const table = ref<{
 	extendTo: (name: string) => void;
 } | null>(null);
 const cursor = ref<string | null>(null);
-const editing = ref(false);
-const editOpened = ref(false);
-const exporting = ref(false);
-const exportOpened = ref(false);
-// The export is a download of the selection as it was when it was asked for.
-const exportScope = ref<BulkSelection>({ names: [] });
 const confirmingDelete = ref(false);
 const deleteOpened = ref(false);
 
@@ -330,53 +291,6 @@ function columnFields(matches: (field: RawMetaField) => boolean) {
 	return fields;
 }
 
-async function editSelection(update: BulkUpdate) {
-	const { updateRows } = await import("@/list/bulkEdit");
-	await updateRows(props.view.doctype, { reload }, scope.selected(), update, (names) => {
-		scope.clear();
-		selection.value = names;
-	});
-	scope.clear();
-}
-
-function copySelection() {
-	const names = [...selection.value];
-	const chosen = new Set(names);
-	const loaded = rows.value.filter((row) => chosen.has(row.name));
-	const columns = shownColumns.value.map(({ fieldname, label }) => ({
-		fieldname,
-		label: label ?? fieldname,
-	}));
-	let copied = loaded.length;
-	const tsv = (picked: Record<string, unknown>[]) => {
-		copied = picked.length;
-		return bulk.parts.value!.chunk.selectionTsv(columns, picked, markedText);
-	};
-	let readError: unknown;
-	const withHidden = () =>
-		bulk.parts
-			.value!.chunk.withHiddenRows(props.view.doctype, names, loaded, rowFields())
-			.then((picked) => new Blob([tsv(picked)], { type: "text/plain" }))
-			.catch((error) => {
-				readError = error;
-				throw error;
-			});
-	// `navigator.clipboard` is missing on a non-secure origin; writing in the click keeps its user
-	// activation, and a ClipboardItem holding a promise keeps it across the read of hidden rows.
-	Promise.resolve()
-		.then(() =>
-			loaded.length === names.length
-				? navigator.clipboard.writeText(tsv(loaded))
-				: navigator.clipboard.write([new ClipboardItem({ "text/plain": withHidden() })])
-		)
-		.then(() => toast.success(__n("Copied {0} row", "Copied {0} rows", copied, [copied])))
-		.catch(() =>
-			toast.error(
-				readError ? errorMessage(readError) : __("The browser did not allow copying.")
-			)
-		);
-}
-
 const bulk = useBulkBar({
 	host: props.host,
 	doctype: props.view.doctype,
@@ -388,16 +302,15 @@ const bulk = useBulkBar({
 	reload,
 	cursor,
 	table: () => table.value,
-	askEdit: () => {
-		editOpened.value = true;
-		editing.value = true;
+	copy: {
+		columns: () =>
+			shownColumns.value.map(({ fieldname, label }) => ({
+				fieldname,
+				label: label ?? fieldname,
+			})),
+		text: markedText,
+		fields: rowFields,
 	},
-	askExport: () => {
-		exportScope.value = scope.selected();
-		exportOpened.value = true;
-		exporting.value = true;
-	},
-	copy: copySelection,
 	askDelete: () => {
 		deleteOpened.value = true;
 		confirmingDelete.value = true;
