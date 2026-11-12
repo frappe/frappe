@@ -136,12 +136,10 @@ class TestDispatch(IntegrationTestCase):
 		closed_doc = frappe.get_doc(
 			{"doctype": "ToDo", "description": "closed one", "status": "Closed"}
 		).insert()
-		script = "status = frappe.db.get_value('ToDo', doc.name, 'status')\nresult = status == 'Closed'"
 		for condition, doc, fires in (
 			("doc.status == 'Closed'", open_doc, False),
 			("doc.status == 'Closed'", closed_doc, True),
-			(script, open_doc, False),
-			(script, closed_doc, True),
+			("doc.save()", closed_doc, False),  # a plain dict, so no document methods
 			("doc.status.no_such_method()", closed_doc, False),  # a failing condition skips
 		):
 			with self.subTest(condition=condition, status=doc.status):
@@ -153,11 +151,19 @@ class TestDispatch(IntegrationTestCase):
 
 		# checked as run_as, not as the user whose change fired it
 		self.trigger.run_as = _user("dispatch-service@example.com", "System Manager", FLOW_USER_ROLE)
-		self.trigger.condition = f"frappe.session.user == '{self.trigger.run_as}'"
+		self.trigger.condition = "True"
 		self.trigger.save()
-		with patch("frappe.enqueue") as enqueue:
+		seen = []
+		with (
+			patch("frappe.enqueue") as enqueue,
+			patch(
+				"frappe.flow.triggers.triggers._eval_condition",
+				side_effect=lambda *_: seen.append(frappe.session.user) or True,
+			),
+		):
 			dispatch(closed_doc, "after_insert")
 		enqueue.assert_called_once()
+		self.assertEqual(seen, [self.trigger.run_as])
 		self.assertEqual(frappe.session.user, "Administrator")  # restored afterward
 
 
