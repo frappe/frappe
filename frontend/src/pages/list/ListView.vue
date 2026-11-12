@@ -152,6 +152,23 @@
 		:approx="print.approx.value"
 		:scope="print.scope.value"
 	/>
+	<EditDialog
+		v-if="editOpened"
+		v-model="editing"
+		:doctype="view.doctype"
+		:count="scope.count.value"
+		:all="scope.all.value"
+		:approx="scope.approx.value"
+		:run="editSelection"
+		:follow="followRun"
+	/>
+	<ExportDialog
+		v-if="exportOpened"
+		v-model="exporting"
+		:doctype="view.doctype"
+		:selection="exportScope"
+		:count="scope.count.value"
+	/>
 	<DeleteDialog
 		v-if="deleteOpened"
 		v-model="confirmingDelete"
@@ -170,8 +187,17 @@ import { mapField, type RawMetaField } from "@framework/ui/FormLayout";
 import { List, ListFooter } from "@framework/ui/experimental/List";
 import { useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { toast } from "frappe-ui";
-import { computed, defineAsyncComponent, onScopeDispose, provide, ref, watchEffect } from "vue";
-import { __ } from "@/i18n";
+import type { BulkSelection, BulkUpdate } from "@framework/ui/api";
+import {
+	computed,
+	defineAsyncComponent,
+	type Component,
+	onScopeDispose,
+	provide,
+	ref,
+	watchEffect,
+} from "vue";
+import { __, __n } from "@/i18n";
 import { useListView } from "@/list/useListView";
 import { useScrollMemory } from "@/list/useScrollMemory";
 import type { View } from "@/list/view";
@@ -196,6 +222,7 @@ import { rowMenuOptions } from "./rowActions";
 import { PrintDialog, useBulkPrint } from "./bulkPrint";
 import { useBulkBar } from "./useBulkBar";
 import { RowContextMenu, useRowContextMenu } from "./useRowContextMenu";
+import { selectionTsv } from "@/list/bulkCopy";
 
 const props = defineProps<{ view: View; host: RendererHost }>();
 const { filters, sort } = props.view;
@@ -251,13 +278,35 @@ const table = ref<{
 	extendTo: (name: string) => void;
 } | null>(null);
 const cursor = ref<string | null>(null);
-const DeleteDialog = defineAsyncComponent({
-	loader: () => import("./DeleteDialog.vue"),
-	onError: (_error, _retry, fail) => {
-		toast.error(__("The delete dialog did not load. Reload the page and try again."));
-		fail();
-	},
-});
+function lazyDialog(loader: () => Promise<Component>, message: string) {
+	return defineAsyncComponent({
+		loader,
+		onError: (_error, _retry, fail) => {
+			toast.error(message);
+			fail();
+		},
+	});
+}
+const DeleteDialog = lazyDialog(
+	() => import("./DeleteDialog.vue"),
+	__("The delete dialog did not load. Reload the page and try again.")
+);
+const EditDialog = lazyDialog(
+	() => import("./EditDialog.vue"),
+	__("The edit dialog did not load. Reload the page and try again.")
+);
+const ExportDialog = lazyDialog(
+	() => import("./ExportDialog.vue"),
+	__("The export dialog did not load. Reload the page and try again.")
+);
+const editing = ref(false);
+const editOpened = ref(false);
+const exporting = ref(false);
+const exportOpened = ref(false);
+// The export is a download of the selection as it was when it was asked for.
+const exportScope = ref<BulkSelection>({ names: [] });
+const followRun = (taskId: string) =>
+	void import("@/shell/bulkRuns").then((runs) => runs.followBulkRun(taskId, reload));
 const confirmingDelete = ref(false);
 const deleteOpened = ref(false);
 
@@ -298,6 +347,29 @@ function columnFields(matches: (field: RawMetaField) => boolean) {
 }
 
 const print = useBulkPrint(scope);
+async function editSelection(update: BulkUpdate) {
+	const { updateRows } = await import("@/list/bulkEdit");
+	const outcome = await updateRows(props.view.doctype, { reload }, scope.selected(), update);
+	if (!outcome.failed.length) scope.clear();
+	return outcome;
+}
+
+function copySelection() {
+	const chosen = new Set(selection.value);
+	const loaded = rows.value.filter((row) => chosen.has(row.name));
+	const columns = shownColumns.value.map(({ fieldname, label }) => ({
+		fieldname,
+		label: label ?? fieldname,
+	}));
+	// `navigator.clipboard` is missing on a non-secure origin; writing in the click keeps its user activation.
+	Promise.resolve()
+		.then(() => navigator.clipboard.writeText(selectionTsv(columns, loaded, markedText)))
+		.then(() =>
+			toast.success(__n("Copied {0} row", "Copied {0} rows", loaded.length, [loaded.length]))
+		)
+		.catch(() => toast.error(__("The browser did not allow copying.")));
+}
+
 const bulk = useBulkBar({
 	host: props.host,
 	doctype: props.view.doctype,
@@ -310,6 +382,16 @@ const bulk = useBulkBar({
 	cursor,
 	table: () => table.value,
 	askPrint: print.ask,
+	askEdit: () => {
+		editOpened.value = true;
+		editing.value = true;
+	},
+	askExport: () => {
+		exportScope.value = scope.selected();
+		exportOpened.value = true;
+		exporting.value = true;
+	},
+	copy: copySelection,
 	askDelete: () => {
 		deleteOpened.value = true;
 		confirmingDelete.value = true;

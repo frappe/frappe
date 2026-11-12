@@ -322,6 +322,23 @@ export function bulkPrintDocuments(
   return request<BulkQueued>("POST", `/document/${segment(doctype)}/bulk_print`, { body, signal });
 }
 
+/** What one bulk edit sets on every selected record; `child_values` sets every row of a table field. */
+export interface BulkUpdate {
+  values?: Record<string, unknown>;
+  child_values?: Record<string, Record<string, unknown>>;
+}
+
+/** Sets the same values on the selected records in one request; it answers names, not documents, so the cache is not fed. */
+export function bulkUpdateDocuments(
+  doctype: string,
+  selection: BulkSelection,
+  update: BulkUpdate,
+  { signal }: CallOptions = {}
+): Promise<Envelope<BulkResult | BulkQueued>> {
+  const path = `/document/${segment(doctype)}/bulk_update`;
+  return fed<BulkResult | BulkQueued>("POST", path, { body: { ...selection, ...update }, signal }, () => {});
+}
+
 /** Renames through `frappe.client.rename_doc`; the old name leaves the cache, as a delete's does. */
 export function renameDocument(
   doctype: string,

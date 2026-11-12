@@ -27,6 +27,8 @@ export interface ListPageAction extends SurfaceItem, ActFields<ListPageApi> {
   group?: BulkGroup;
   /** Host side, set by a built-in only: the bulk bar draws it as a button. */
   button?: boolean;
+  /** Host side, set by a built-in only: it is no bulk run, so the cap does not disable it. */
+  uncapped?: boolean;
 }
 
 /** One row action: `run` and `when` get the row as `value`; `fields` names the columns it reads off the row. */

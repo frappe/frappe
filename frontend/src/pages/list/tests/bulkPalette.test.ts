@@ -54,6 +54,9 @@ function bar({
           host: host as never,
           doctype: "ToDo",
           meta: ref(null),
+          askEdit: vi.fn(),
+          askExport: vi.fn(),
+          copy: vi.fn(),
           selection,
           scope: useBulkScope({
             selection,
@@ -116,7 +119,7 @@ describe("the bulk actions in the palette", () => {
     const labels = result.layout.value.menu.flatMap((group) =>
       group.options.map((option) => option.label),
     );
-    expect(labels).toEqual(["Restore", "Print", "Delete"]);
+    expect(labels).toEqual(["Restore", "Print", "Copy to Clipboard", "Export", "Delete"]);
   });
 
   it("runs a script's action from the palette on the selection", async () => {
@@ -153,15 +156,19 @@ describe("the bulk actions in the palette", () => {
     expect(paletteLabels()).toContain("Pick 3 selected");
   });
 
+  // Print, Copy and Export are uncapped, so they stay offered past the cap.
+  const overCap = () =>
+    paletteLabels().filter(
+      (label) => /selected/.test(label!) && !/^(Print|Copy|Export)/.test(label!),
+    );
+
   it("flips with the selection: at the cap offered, past it left out", async () => {
     const { selection } = bar({ cap: 3 });
     await nextTick();
     expect(paletteLabels()).toContain("Delete 3 selected");
     selection.value = ["A", "B", "C", "D"];
     await nextTick();
-    expect(paletteLabels().filter((label) => /selected/.test(label!))).toEqual(
-      [],
-    );
+    expect(overCap()).toEqual([]);
   });
 
   it("runs Delete from the palette", async () => {
@@ -180,9 +187,7 @@ describe("the bulk actions in the palette", () => {
   it("leaves out every action over the cap, and all of them when the switch is off", async () => {
     bar({ cap: 2 });
     await nextTick();
-    expect(paletteLabels().filter((label) => /selected/.test(label!))).toEqual(
-      [],
-    );
+    expect(overCap()).toEqual([]);
     mounted!.release();
     mounted!.app.unmount();
 
@@ -202,8 +207,11 @@ describe("the bulk actions in the palette", () => {
 
     const { result } = bar({ rights: false, script: false });
     await nextTick();
-    expect(result.layout.value.menu).toEqual([]);
-    expect(acts.find("list.open_bulk_menu")).toBeUndefined();
+    // Copy to Clipboard needs no right, so a person with none still has a menu.
+    expect(result.layout.value.menu.flatMap((group) => group.options.map((option) => option.label))).toEqual([
+      "Copy to Clipboard",
+    ]);
+    expect(acts.find("list.open_bulk_menu")).toBeDefined();
     expect(acts.find("list.clear_selection")).toBeDefined();
   });
 });

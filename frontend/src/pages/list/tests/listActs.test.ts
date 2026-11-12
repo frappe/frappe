@@ -130,6 +130,7 @@ const ALL_RIGHTS = {
   write: 1,
   create: 1,
   delete: 1,
+  export: 1,
 };
 const READ_ONLY = { role: "Sales User", permlevel: 0, read: 1 };
 
@@ -268,7 +269,7 @@ async function denial(name: string) {
 }
 
 describe("the list surface", () => {
-  it("lists the five built-ins by name while rows are selected", async () => {
+  it("lists the built-ins by name while rows are selected", async () => {
     fake.selectedAtMount = ["CONT-0001"];
     await mount();
     expect(listActNames()).toEqual([
@@ -278,6 +279,9 @@ describe("the list surface", () => {
       "list.set_default_view",
       "list.clear_default_view",
       "list.customize_quick_filter",
+      "list.edit",
+      "list.copy",
+      "list.export",
       "list.delete",
       "list.open_bulk_menu",
       "list.clear_selection",
@@ -308,7 +312,7 @@ describe("the list surface", () => {
 
     fake.state.selection.value = ["CONT-0001"];
     await nextTick();
-    expect(bulkLabels(root)).toEqual(["Delete"]);
+    expect(bulkLabels(root)).toEqual(["Edit", "Delete"]);
     await acts.run("list.delete");
     await vi.waitFor(() => expect(root.querySelector("[data-delete-dialog]")).not.toBeNull());
   });
@@ -352,6 +356,8 @@ describe("the list surface", () => {
       "list.set_default_view",
       "list.clear_default_view",
       "list.customize_quick_filter",
+      "list.copy",
+      "list.open_bulk_menu",
       "list.clear_selection",
     ]);
   });

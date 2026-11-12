@@ -74,6 +74,10 @@
       "import": "./src/components/QuickFilter/index.ts",
       "types": "./src/components/QuickFilter/index.ts"
     },
+    "./ExportTemplate": {
+      "import": "./src/components/DataImport/exportTemplate.ts",
+      "types": "./src/components/DataImport/exportTemplate.ts"
+    },
     "./ColumnSettings": {
       "import": "./src/components/ColumnSettings/index.ts",
       "types": "./src/components/ColumnSettings/index.ts"
