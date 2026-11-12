@@ -1091,6 +1091,12 @@ class TestDBQuery(FrappeTestCase):
 			self.assertTrue("name" in data[0])
 			self.assertEqual(len(data[0]), 1)
 
+	def test_permlevel_fields_cannot_be_added_to_a_single_field(self):
+		with setup_patched_blog_post(), setup_test_user(set_user=True):
+			for field in ("name`,`published", "`name`,`published`", "name` , published"):
+				with self.subTest(field=field):
+					self.assertRaises(frappe.DataError, frappe.get_list, "Blog Post", fields=[field], limit=1)
+
 	def test_permlevel_fields_in_order_by(self):
 		# A permlevel-protected field must not be usable in order by / group by,
 		# else its value leaks via a sorting side-channel oracle.
