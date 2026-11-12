@@ -25,7 +25,7 @@
 					class="flex items-center ps-[calc(0.5rem+1px)] [&_input]:mt-0"
 					role="columnheader"
 				>
-					<Skeleton v-if="skeletonRows" class="h-3.5 w-3.5 rounded-1" />
+					<Skeleton v-if="skeletonRows && !$slots.bar" class="h-3.5 w-3.5 rounded-1" />
 					<Checkbox
 						v-else
 						:modelValue="selectAllState === 'all'"
@@ -35,7 +35,13 @@
 					/>
 				</div>
 				<!-- Held in view across a horizontal scroll, so the bar's end stays under the controls row's. -->
-				<div v-if="$slots.bar" class="sticky flex items-center" :style="barStyle">
+				<div
+					v-if="$slots.bar"
+					class="sticky flex items-center"
+					role="columnheader"
+					:aria-colspan="columns.length + (rowMenu ? 1 : 0)"
+					:style="barStyle"
+				>
 					<slot name="bar" />
 				</div>
 				<template v-else>
@@ -203,7 +209,7 @@ defineSlots<{
 	cell?: (props: { row: ListRowData; column: ListColumn; value: string }) => unknown;
 	rowMenu?: (props: { row: ListRowData }) => unknown;
 	empty?: () => unknown;
-	/** Takes the column labels' place in the header while it is given: the bulk bar. */
+	/** A bar that takes the column labels' place in the header while it is given. */
 	bar?: () => unknown;
 }>();
 
@@ -227,10 +233,11 @@ defineExpose({
 
 // The gutter is where the checkbox and the last cell's text land, so the row bleeds past it.
 const paddingInline = computed(() =>
-	props.gutter ? `calc(${props.gutter} - ${ROW_PADDING_X})` : undefined
+	props.gutter ? `calc(${props.gutter} - ${ROW_PADDING_X})` : undefined,
 );
 
-// The bar spans the column tracks but is as wide as the viewport shows them; `cqw` reads the viewport.
+// The bar spans the column tracks but is as wide as the viewport shows them; `cqw` reads the viewport,
+// whose container type also makes it the containing block of `position: fixed` children.
 const barStyle = computed(() => {
 	const start = `(${props.gutter ? `${props.gutter} - ${ROW_PADDING_X}` : "0px"})`;
 	const lane = `(${start} + ${CHECKBOX_TRACK} + ${COLUMN_GAP})`;
@@ -261,10 +268,10 @@ function rowValue(row: ListRowData) {
 const { selectAllState, isSelected, toggle, extendTo, toggleSelectAll } = useRowSelection(
 	selection,
 	rows,
-	toRef(props, "rowKey")
+	toRef(props, "rowKey"),
 );
 const { enter, leave, focus, blur } = useRowCursor(cursor, () =>
-	virtualRows.value.map(({ data }) => rowValue(data))
+	virtualRows.value.map(({ data }) => rowValue(data)),
 );
 
 const { drafts, resizingFieldname, startResize, resetColumn } = useColumnResize({
@@ -284,7 +291,7 @@ const skeletonColumns = computed<ListColumn[]>(() => {
 });
 
 const tracks = computed(() =>
-	columnTracks(props.loading ? skeletonColumns.value : columns.value, drafts, props.rowMenu)
+	columnTracks(props.loading ? skeletonColumns.value : columns.value, drafts, props.rowMenu),
 );
 
 function cellText(row: ListRowData, column: ListColumn): string {

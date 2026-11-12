@@ -16,8 +16,7 @@ vi.mock("@/shell/PageFrame.vue", async () => {
     default: defineComponent({
       setup:
         (_, { slots }) =>
-        () =>
-          [h("header", slots.header?.()), slots.default?.()],
+        () => [h("header", slots.header?.()), slots.default?.()],
     }),
     pageGutter: "",
   };
@@ -31,9 +30,11 @@ vi.mock("@framework/ui/ColumnSettings", () => ({
   ColumnSettings: stub("columns"),
 }));
 vi.mock("@framework/ui/experimental/List", () => ({
-  // The bulk bar draws in the table's header, in place of the column labels.
   List: defineComponent({
-    setup: (_, { slots }) => () => h("div", { "data-stub-list": "" }, slots.bar?.()),
+    setup:
+      (_, { slots }) =>
+      () =>
+        h("div", { "data-stub-list": "" }, slots.bar?.()),
   }),
   ListFooter: stub("footer"),
 }));
@@ -48,7 +49,9 @@ vi.mock("../BulkBar.vue", async () => {
           { "data-stub-bulk-bar": "" },
           [...props.layout.buttons, props.layout.trash]
             .filter(Boolean)
-            .map((entry) => h("button", { onClick: entry.onClick }, entry.label))
+            .map((entry) =>
+              h("button", { onClick: entry.onClick }, entry.label),
+            ),
         ),
     }),
   };
@@ -92,11 +95,7 @@ import type { ListPageApi } from "@/listPage/types";
 import { createListPageLists } from "@/listPage/createListPage";
 import { useListActs } from "../listActs";
 import ViewPage from "../ViewPage.vue";
-import {
-  fake,
-  installListRenderer,
-  resetFake,
-} from "./fakeListPage";
+import { fake, installListRenderer, resetFake } from "./fakeListPage";
 
 const addresses = new Addresses({
   doctypes: { Contact: ["contact", "crm"] },
@@ -169,12 +168,16 @@ beforeEach(async () => {
       const path = new URL(String(url), "http://x").pathname;
       if (path === `/api/v2/method/${SETTINGS}`)
         return new Response(
-          JSON.stringify({ data: { site: null, user: null, favourites: starred } })
+          JSON.stringify({
+            data: { site: null, user: null, favourites: starred },
+          }),
         );
       if (path.startsWith(`/api/v2/method/${DEFAULT_VIEW}.`)) {
         const method = path.split(".").pop()!;
         defaultCalls.push({ method, body: JSON.parse(String(init?.body)) });
-        return new Response(defaultAnswer ? JSON.stringify({ data: defaultAnswer }) : "{}");
+        return new Response(
+          defaultAnswer ? JSON.stringify({ data: defaultAnswer }) : "{}",
+        );
       }
       if (path === `/api/v2/method/${TOGGLE}`) {
         toggles.push(JSON.parse(String(init?.body)));
@@ -184,12 +187,12 @@ beforeEach(async () => {
       if (path !== "/api/v2/doctype/Contact/meta")
         return new Response(
           JSON.stringify({ errors: [{ type: "NotFound", message: path }] }),
-          { status: 404 }
+          { status: 404 },
         );
       return new Response(
-        JSON.stringify({ data: { name: "Contact", fields: [], permissions } })
+        JSON.stringify({ data: { name: "Contact", fields: [], permissions } }),
       );
-    })
+    }),
   );
 });
 
@@ -218,7 +221,11 @@ async function mount(whileLoading?: () => void, view: string | null = null) {
     history: createMemoryHistory(),
     routes: [
       { path: "/:doctype", name: "list", component: { render: () => null } },
-      { path: "/:doctype/view/:key", name: "saved-view", component: { render: () => null } },
+      {
+        path: "/:doctype/view/:key",
+        name: "saved-view",
+        component: { render: () => null },
+      },
       {
         path: "/:doctype/:name",
         name: "record",
@@ -238,10 +245,15 @@ async function mount(whileLoading?: () => void, view: string | null = null) {
           key: `Contact/${shownView.value ?? "list"}`,
           doctype: "Contact",
           opened: shownView.value
-            ? { ...PLAIN_LIST, key: shownView.value, label: shownView.value, layer: "user" }
+            ? {
+                ...PLAIN_LIST,
+                key: shownView.value,
+                label: shownView.value,
+                layer: "user",
+              }
             : PLAIN_LIST,
         }),
-    })
+    }),
   );
   app.use(router).provide("addresses", addresses).provide("boot", boot);
   app.mount(root);
@@ -260,14 +272,14 @@ function listActNames() {
 
 function bulkLabels(root: HTMLElement) {
   return [...root.querySelectorAll("[data-stub-bulk-bar] button")].map(
-    (button) => button.textContent
+    (button) => button.textContent,
   );
 }
 
 async function denial(name: string) {
   return acts.run(name).then(
     () => null,
-    (error) => error
+    (error) => error,
   );
 }
 
@@ -320,9 +332,16 @@ describe("the list surface", () => {
 
     fake.state.selection.value = ["CONT-0001"];
     await nextTick();
-    expect(bulkLabels(root)).toEqual(["Assign to…", "Add tags", "Edit", "Delete"]);
+    expect(bulkLabels(root)).toEqual([
+      "Assign to…",
+      "Add tags",
+      "Edit",
+      "Delete",
+    ]);
     await acts.run("list.delete");
-    await vi.waitFor(() => expect(root.querySelector("[data-delete-dialog]")).not.toBeNull());
+    await vi.waitFor(() =>
+      expect(root.querySelector("[data-delete-dialog]")).not.toBeNull(),
+    );
   });
 
   it("gives a list act the list page: doctype, view, the selection as read now and reload", async () => {
@@ -331,7 +350,10 @@ describe("the list surface", () => {
     await nextTick();
 
     const page = acts.contextOf("list") as ListPageApi;
-    expect(page).toMatchObject({ doctype: "Contact", selection: ["CONT-0001"] });
+    expect(page).toMatchObject({
+      doctype: "Contact",
+      selection: ["CONT-0001"],
+    });
     expect(page.view.key).toBe("list");
     expect(Object.isFrozen(page.selection)).toBe(true);
     page.reload();
@@ -354,8 +376,8 @@ describe("the list surface", () => {
     expect(root.querySelector("[data-delete-dialog]")).toBeNull();
     expect(
       [...root.querySelectorAll("header button")].map((button) =>
-        button.textContent?.trim()
-      )
+        button.textContent?.trim(),
+      ),
     ).not.toContain("Create");
     expect(bulkLabels(root)).toEqual([]);
     expect(listActNames()).toEqual([
@@ -377,25 +399,46 @@ describe("the list surface", () => {
 
     await acts.run("list.favourite");
     await settle();
-    expect(toggles).toEqual([{ doctype: "DocType", name: "Contact", add: true }]);
+    expect(toggles).toEqual([
+      { doctype: "DocType", name: "Contact", add: true },
+    ]);
     expect(star().getAttribute("aria-pressed")).toBe("true");
     expect(acts.find("list.favourite")?.label).toBe("Remove from favourites");
 
     (star() as HTMLElement).click();
     await settle();
-    expect(toggles[1]).toEqual({ doctype: "DocType", name: "Contact", add: false });
+    expect(toggles[1]).toEqual({
+      doctype: "DocType",
+      name: "Contact",
+      add: false,
+    });
     expect(star().getAttribute("aria-pressed")).toBe("false");
   });
 
   it("stars the saved view on a saved view's address, and reads its state from the settings read", async () => {
     starred = { list: true, views: ["open-contacts"] };
     const root = await mount(undefined, "open-contacts");
-    expect(root.querySelector("header [data-favourite]")!.getAttribute("aria-pressed")).toBe("true");
+    expect(
+      root
+        .querySelector("header [data-favourite]")!
+        .getAttribute("aria-pressed"),
+    ).toBe("true");
 
     await acts.run("list.favourite");
     await settle();
-    expect(toggles).toEqual([{ doctype: "DocType", name: "Contact", view: "open-contacts", add: false }]);
-    expect(root.querySelector("header [data-favourite]")!.getAttribute("aria-pressed")).toBe("false");
+    expect(toggles).toEqual([
+      {
+        doctype: "DocType",
+        name: "Contact",
+        view: "open-contacts",
+        add: false,
+      },
+    ]);
+    expect(
+      root
+        .querySelector("header [data-favourite]")!
+        .getAttribute("aria-pressed"),
+    ).toBe("false");
   });
 
   it("runs list.open_view to the saved view's address by its key", async () => {
@@ -404,14 +447,20 @@ describe("the list surface", () => {
     await acts.run("list.open_view", { key: "open-contacts" });
     await settle();
 
-    expect(router().currentRoute.value.fullPath).toBe("/contact/view/open-contacts");
-    expect(acts.available().find((act) => act.name === "list.open_view")?.palette).toBe(false);
+    expect(router().currentRoute.value.fullPath).toBe(
+      "/contact/view/open-contacts",
+    );
+    expect(
+      acts.available().find((act) => act.name === "list.open_view")?.palette,
+    ).toBe(false);
   });
 
   it("refuses list.open_view without a key and stays on the list", async () => {
     await mount();
 
-    await expect(acts.run("list.open_view", {})).rejects.toThrow("Name the view to open by its key.");
+    await expect(acts.run("list.open_view", {})).rejects.toThrow(
+      "Name the view to open by its key.",
+    );
     expect(router().currentRoute.value.fullPath).toBe("/contact");
   });
 
@@ -419,13 +468,27 @@ describe("the list surface", () => {
     await mount();
     defaultAnswer = "open-contacts";
 
-    await acts.run("list.set_default_view", { key: "open-contacts", scope: "site" });
+    await acts.run("list.set_default_view", {
+      key: "open-contacts",
+      scope: "site",
+    });
 
     expect(defaultCalls).toEqual([
-      { method: "save", body: { doctype: "Contact", key: "open-contacts", scope: "site", app: "crm" } },
+      {
+        method: "save",
+        body: {
+          doctype: "Contact",
+          key: "open-contacts",
+          scope: "site",
+          app: "crm",
+        },
+      },
     ]);
     expect(boot.default_views).toEqual({ Contact: "open-contacts" });
-    expect(acts.available().find((act) => act.name === "list.set_default_view")?.palette).toBe(false);
+    expect(
+      acts.available().find((act) => act.name === "list.set_default_view")
+        ?.palette,
+    ).toBe(false);
   });
 
   it("runs list.clear_default_view and keeps the default of the layer left, or none", async () => {
@@ -448,14 +511,14 @@ describe("the list surface", () => {
   it("refuses a default view act without a key or a layer, and asks nothing", async () => {
     await mount();
 
-    await expect(acts.run("list.set_default_view", { scope: "user" })).rejects.toThrow(
-      "Name the view to open by its key."
-    );
-    await expect(acts.run("list.set_default_view", { key: "list", scope: "team" })).rejects.toThrow(
-      "Name the default's layer: user or site."
-    );
+    await expect(
+      acts.run("list.set_default_view", { scope: "user" }),
+    ).rejects.toThrow("Name the view to open by its key.");
+    await expect(
+      acts.run("list.set_default_view", { key: "list", scope: "team" }),
+    ).rejects.toThrow("Name the default's layer: user or site.");
     await expect(acts.run("list.clear_default_view", {})).rejects.toThrow(
-      "Name the default's layer: user or site."
+      "Name the default's layer: user or site.",
     );
     expect(defaultCalls).toEqual([]);
   });
@@ -481,7 +544,14 @@ describe("the list surface", () => {
     expect(star().getAttribute("aria-pressed")).toBe("false");
     await acts.run("list.favourite");
     await settle();
-    expect(toggles).toEqual([{ doctype: "DocType", name: "Contact", view: "closed-contacts", add: true }]);
+    expect(toggles).toEqual([
+      {
+        doctype: "DocType",
+        name: "Contact",
+        view: "closed-contacts",
+        add: true,
+      },
+    ]);
   });
 
   it("draws no star until the settings read says what is starred", async () => {
@@ -490,23 +560,40 @@ describe("the list surface", () => {
     vi.mocked(fetch).mockImplementation(async (url, init) =>
       String(url).includes(SETTINGS)
         ? new Promise<Response>((resolve) => (answer = resolve))
-        : real(url, init)
+        : real(url, init),
     );
     const root = await mount();
     expect(root.querySelector("header [data-favourite]")).toBeNull();
     expect(listActNames()).not.toContain("list.favourite");
 
-    answer(new Response(JSON.stringify({ data: { site: null, user: null, favourites: { list: true, views: [] } } })));
+    answer(
+      new Response(
+        JSON.stringify({
+          data: {
+            site: null,
+            user: null,
+            favourites: { list: true, views: [] },
+          },
+        }),
+      ),
+    );
     await settle();
-    expect(root.querySelector("header [data-favourite]")!.getAttribute("aria-pressed")).toBe("true");
+    expect(
+      root
+        .querySelector("header [data-favourite]")!
+        .getAttribute("aria-pressed"),
+    ).toBe("true");
   });
 
   it("draws no star when the settings read fails, since it cannot say what is starred", async () => {
     const real = vi.mocked(fetch).getMockImplementation()!;
     vi.mocked(fetch).mockImplementation(async (url, init) =>
       String(url).includes(SETTINGS)
-        ? new Response(JSON.stringify({ errors: [{ type: "Error", message: "down" }] }), { status: 500 })
-        : real(url, init)
+        ? new Response(
+            JSON.stringify({ errors: [{ type: "Error", message: "down" }] }),
+            { status: 500 },
+          )
+        : real(url, init),
     );
     const root = await mount();
     expect(root.querySelector("header [data-favourite]")).toBeNull();
@@ -522,13 +609,22 @@ describe("the list surface", () => {
     const root = await mount();
     vi.mocked(fetch).mockImplementationOnce(
       async () =>
-        new Response(JSON.stringify({ errors: [{ type: "PermissionError", message: "No" }] }), {
-          status: 403,
-        })
+        new Response(
+          JSON.stringify({
+            errors: [{ type: "PermissionError", message: "No" }],
+          }),
+          {
+            status: 403,
+          },
+        ),
     );
     await expect(acts.run("list.favourite")).rejects.toBeTruthy();
     await settle();
-    expect(root.querySelector("header [data-favourite]")!.getAttribute("aria-pressed")).toBe("false");
+    expect(
+      root
+        .querySelector("header [data-favourite]")!
+        .getAttribute("aria-pressed"),
+    ).toBe("false");
   });
 
   it("waits for the meta before it checks a right", async () => {
@@ -555,10 +651,13 @@ describe("a renderer's acts", () => {
       list: {
         page: {},
         engine: {
-          hold: <T,>(work: () => T) => Promise.resolve(work()),
+          hold: <T>(work: () => T) => Promise.resolve(work()),
           header: {
             resolve: () =>
-              ["new", "favourite"].map((name) => ({ item: { name }, hidden: false })),
+              ["new", "favourite"].map((name) => ({
+                item: { name },
+                hidden: false,
+              })),
           },
         },
         lists: createListPageLists(),
@@ -591,7 +690,7 @@ describe("a renderer's acts", () => {
           });
           return () => null;
         },
-      })
+      }),
     );
     app.provide("boot", boot).provide("addresses", addresses);
     app.mount(document.body.appendChild(document.createElement("div")));
