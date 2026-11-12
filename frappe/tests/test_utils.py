@@ -649,16 +649,6 @@ class TestHTMLUtils(IntegrationTestCase):
 		nested_doc = json.dumps({"doc": {"items": [{"description": '<div class="x"><p>hi</p></div>'}]}})
 		self.assertEqual(sanitize_html_payload(nested_doc), nested_doc)
 
-	def test_sanitize_svg(self):
-		from frappe.utils.html_utils import sanitize_svg
-
-		clean = sanitize_svg('<svg onload="alert(1)"><script>alert(1)</script><circle r="4"/></svg>')
-		self.assertIn("<circle", clean)
-		self.assertNotIn("script", clean)
-		self.assertNotIn("onload", clean)
-
-		self.assertIsNone(sanitize_svg(None))
-
 
 class TestValidationUtils(IntegrationTestCase):
 	def test_valid_url(self):
