@@ -116,6 +116,14 @@ class TestBulkSubmitCancelWorkflow(IntegrationTestCase):
 		result = bulk_actions.bulk_submit_docs(SUBMITTABLE)
 		self.assertCountEqual(result["done"], self.docs)
 
+	def test_cancel_by_filters_takes_what_the_list_shows(self):
+		names = [self.make_doc(i, submit=True) for i in range(10, 12)]
+		frappe.form_dict.clear()
+		frappe.form_dict.filters = [["test_field", "like", f"{PREFIX} 1_"]]
+		result = bulk_actions.bulk_cancel_docs(SUBMITTABLE)
+		self.assertCountEqual(result["done"], names)
+		self.assertEqual(self.docstatuses(names), [2, 2])
+
 	def test_submit_checks_the_submit_permission_of_each_record(self):
 		frappe.set_user(self.make_user())
 		result = self.post("bulk_submit_docs")
@@ -202,6 +210,14 @@ class TestBulkSubmitCancelWorkflow(IntegrationTestCase):
 		self.assertCountEqual(result["done"], todos)
 		self.assertEqual(self.states(todos), ["Approved"] * 3)
 
+	def test_workflow_by_filters_applies_the_transition_to_what_the_list_shows(self):
+		todos = self.make_todos()
+		frappe.form_dict.clear()
+		frappe.form_dict.update(filters=[["description", "like", f"{PREFIX}%"]], action="Approve")
+		result = bulk_actions.bulk_workflow_docs("ToDo")
+		self.assertCountEqual(result["done"], todos)
+		self.assertEqual(self.states(todos), ["Approved"] * 3)
+
 	def test_workflow_fails_a_record_the_transition_does_not_apply_to_alone(self):
 		todos = self.make_todos()
 		self.post("bulk_workflow_docs", "ToDo", names=todos[:1], action="Approve")
@@ -282,6 +298,12 @@ class TestBulkSubmitCancelWorkflow(IntegrationTestCase):
 		self.make_todos(2)
 		frappe.form_dict.clear()
 		frappe.form_dict.filters = [["description", "like", f"{PREFIX}%"]]
+		self.assertCountEqual(bulk_actions.bulk_workflow_actions("ToDo"), ["Approve", "Reject"])
+
+	def test_common_actions_by_dict_filters(self):
+		self.make_todos(2)
+		frappe.form_dict.clear()
+		frappe.form_dict.filters = {"description": ["like", f"{PREFIX}%"]}
 		self.assertCountEqual(bulk_actions.bulk_workflow_actions("ToDo"), ["Approve", "Reject"])
 
 	def test_common_actions_are_refused_on_a_doctype_without_a_workflow(self):

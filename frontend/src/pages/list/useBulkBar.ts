@@ -3,9 +3,8 @@ import { computed, inject, ref, type ComputedRef, type Ref } from "vue";
 import type { ActEntry } from "@/acts/dispatcher";
 import type { Boot } from "@/boot";
 import { __ } from "@/i18n";
-import type { ListPageApi, ListRow, ListRowAction } from "@/listPage/types";
+import type { ListPageAction, ListPageApi, ListRow, ListRowAction } from "@/listPage/types";
 import { bulkKeyEntries } from "./bulkKeys";
-import { bulkScopeOf } from "./bulkScope";
 import type { ListMeta } from "@/list/defaults";
 import { useBulkStatus, type BulkStatus } from "./bulkStatus";
 import type { BulkScope } from "@/list/useBulkScope";
@@ -62,6 +61,7 @@ export function useBulkBar(options: BulkBarOptions): BulkBar {
     doctype: options.doctype,
     meta: options.meta,
     selection,
+    scope: options.scope,
     cap,
     locked: !boot.bulk_actions,
     reload: options.reload,
@@ -115,7 +115,6 @@ export function useBulkBar(options: BulkBarOptions): BulkBar {
   ]);
 
   const menuOpen = ref(false);
-  const scope = bulkScopeOf(selection);
   const listActs = host.acts(
     () => [
       ...(selection.value.length && boot.bulk_actions ? bulkEntries() : []),
@@ -145,30 +144,41 @@ export function useBulkBar(options: BulkBarOptions): BulkBar {
 
   // The palette runs an act with no value or an option, so the wrapper always hands `run` the selection, as the bar does.
   function bulkEntries(): ActEntry[] {
-    const all = options.scope.all.value;
-    const count = options.scope.count.value;
+    const { scope } = options;
+    const count = scope.count.value;
     return bulkList
       .resolve()
       .filter(({ item }) => item.run)
       .map(({ item, hidden }) => ({
         item: {
           ...item,
-          label: item.label && scope.label(item.label),
+          label: item.label && scopedLabel(item.label),
           argument: undefined,
-          palette: all || (count > cap && !item.uncapped) ? (false as const) : item.palette,
-          run: (page: ListPageApi) => item.run!(page, scope.selected()),
+          palette:
+            (scope.all.value && !onScope(item.run)) || (count > cap && !item.uncapped) ? (false as const) : item.palette,
+          run: (page: ListPageApi) => item.run!(page, [...selection.value]),
         },
         hidden,
       }));
   }
 
-  // Select all disables what takes row names: it would run on the loaded rows alone. Delete, Edit, Export and Print read the scope; Print has its own cap, checked when it opens.
-  const readsScope = (run: unknown) => run === askDelete || run === askEdit || run === askExport || run === askPrint;
+  function scopedLabel(label: string) {
+    const { scope } = options;
+    return scope.all.value
+      ? __("{0} all {1} matching", [label, scope.totalText.value])
+      : __("{0} {1} selected", [label, scope.count.value]);
+  }
+
+  // Delete and the status actions run over all matching and show in the palette for it; Edit, Export and Print read the scope in their dialogs only.
+  const onScope = (run: unknown) => run === askDelete || status.owns(run as ListPageAction["run"]);
+  // Select all disables what takes row names: it would run on the loaded rows alone. Print has its own cap, checked when it opens.
+  const readsScope = (run: unknown) => onScope(run) || run === askEdit || run === askExport || run === askPrint;
   // The exporter takes no `or_filters`: it would export more than the filters show.
   const disabled = ({ name, uncapped, run }: { name: string; uncapped?: boolean; run?: unknown }) =>
     (name === "export" && exportFilters(options.scope.selected()) === null) ||
     (options.scope.all.value && !readsScope(run)) ||
     (!uncapped && options.scope.count.value > cap);
+
   const locked = !boot.bulk_actions;
   const entries = computed<BulkEntry[]>(() =>
     locked
@@ -184,7 +194,7 @@ export function useBulkBar(options: BulkBarOptions): BulkBar {
               group: item.group,
               button: item.button,
               disabled: disabled(item),
-              onClick: () => listActs.perform(act, scope.selected()),
+              onClick: () => listActs.perform(act, [...selection.value]),
             },
           ];
         }),
