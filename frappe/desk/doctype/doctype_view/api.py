@@ -10,6 +10,7 @@ from frappe.desk.doctype.view_type.view_type import (
 	view_types,
 )
 
+from .app_views import app_plain_settings
 from .doctype_view import PLAIN_VIEW, SITE_ROW, DuplicateViewError, is_site_administrator
 from .key_space import KeySpace
 from .view_list import ViewList
@@ -20,7 +21,7 @@ SCOPES = ("user", "site")
 @frappe.desk_v2_only
 @frappe.whitelist()
 def get(doctype: str, type: str = "List") -> dict:
-	"""Both scopes' `settings`, either `None` when absent, and which of the list and its saved views the caller starred."""
+	"""The app's `settings` and both scopes', each `None` when absent, and which of the list and its saved views the caller starred."""
 	_check(doctype, type)
 
 	return {**_rows(doctype, type), "favourites": list_favourites(doctype)}
@@ -153,7 +154,11 @@ def _rows(doctype: str, type: str) -> dict:
 	)
 	by_user = {row.user: _parsed(row.settings) for row in rows}
 
-	return {"site": by_user.get(SITE_ROW), "user": by_user.get(frappe.session.user)}
+	return {
+		"app": app_plain_settings(doctype, type),
+		"site": by_user.get(SITE_ROW),
+		"user": by_user.get(frappe.session.user),
+	}
 
 
 def _apply(address: dict, change):

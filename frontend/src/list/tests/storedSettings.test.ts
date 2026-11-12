@@ -2,6 +2,7 @@
 import { describe, expect, it } from "vitest";
 import {
 	columnsFrom,
+	filtersFrom,
 	quickFilterFieldsFrom,
 	sortFrom,
 	toStoredColumns,
@@ -74,6 +75,27 @@ describe("quickFilterFieldsFrom", () => {
 		const fields = quickFilterFieldsFrom(["amount", "name", "secret", "gone", "amount"], "Lead", FIELDS, readable);
 		expect(fields.map((field) => field.fieldname)).toEqual(["amount", "name"]);
 		expect(fields[1]).toMatchObject({ fieldtype: "Link", options: "Lead" });
+	});
+});
+
+describe("filtersFrom", () => {
+	it("reads wire triples of the fields the person may filter, and drops the rest", () => {
+		const stored = [["title", "=", "Acme"], ["secret", "=", "x"], ["gone", "=", "x"], "title", ["amount", ">", 5]];
+		const filters = filtersFrom(stored, "Lead", FIELDS, readable);
+		expect(filters).toMatchObject([
+			{ fieldname: "title", operator: "equals", value: "Acme" },
+			{ fieldname: "amount", operator: ">", value: 5 },
+		]);
+	});
+
+	it("drops a condition whose operator the filter UI lacks, or that has no operator", () => {
+		const stored = [["title", "like", "%x%"], ["title", "Between", [1, 2]], ["title"], ["amount", ">", 5]];
+		expect(filtersFrom(stored, "Lead", FIELDS, readable)).toMatchObject([{ fieldname: "amount", operator: ">" }]);
+	});
+
+	it("reads a shape that is not a list as nothing", () => {
+		expect(filtersFrom({ title: "Acme" }, "Lead", FIELDS, readable)).toEqual([]);
+		expect(filtersFrom(undefined, "Lead", FIELDS, readable)).toEqual([]);
 	});
 });
 

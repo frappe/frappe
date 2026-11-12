@@ -7,10 +7,17 @@ import {
 	type Column,
 } from "@framework/ui/ColumnSettings";
 import type { ListColumn } from "@framework/ui/experimental/List";
-import { getFilterableFields, type FilterField } from "@framework/ui/Filter";
+import {
+	getFilterableFields,
+	parseFilters,
+	type FilterCondition,
+	type FilterField,
+	type WireFilters,
+} from "@framework/ui/Filter";
 import type { RawMetaField } from "@framework/ui/FormLayout";
 import { getSortOptions, type Sort } from "@framework/ui/SortBy";
 import type { DoctypeMeta } from "@framework/ui/useDoctypeMeta";
+import { bareLike } from "./query";
 
 export interface StoredColumn {
 	fieldname: string;
@@ -21,6 +28,8 @@ export interface StoredColumn {
 export interface ListSettings {
 	columns?: StoredColumn[];
 	sort?: Sort[];
+	/** Wire triples, `[fieldname, operator, value]`, as an app ships them in `views/list.json`. */
+	filters?: WireFilters;
 	quick_filter_fields?: string[];
 }
 
@@ -71,6 +80,22 @@ export function sortFrom(
 		sort.push({ fieldname, direction });
 	}
 	return sort;
+}
+
+export function filtersFrom(
+	stored: unknown,
+	doctype: string,
+	fields: RawMetaField[],
+	readable: Readable
+): FilterCondition[] {
+	const wire = asList(stored).filter(
+		(entry): entry is WireFilters[number] =>
+			Array.isArray(entry) && typeof entry[0] === "string" && readable(entry[0])
+	);
+	// An app's file is not validated: a condition whose operator the filter UI lacks is dropped.
+	return parseFilters(getFilterableFields(fields, doctype), wire)
+		.filter((condition) => condition.operator)
+		.map(bareLike);
 }
 
 export function quickFilterFieldsFrom(

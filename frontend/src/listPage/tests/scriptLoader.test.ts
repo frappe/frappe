@@ -62,15 +62,13 @@ describe("the list script loader", () => {
     expect(listScriptsOf(doctype)).toHaveLength(1);
   });
 
-  it("keeps function keys as handlers, the columns key as data, and drops the rest", async () => {
+  it("keeps function keys as handlers and drops the rest", async () => {
     const onRefresh = () => {};
-    const columns = [{ fieldname: "status", width: 10 }];
-    addListScript(doctype, { app: "crm", load: script({ onRefresh, columns, label: "Leads" }) });
+    addListScript(doctype, { app: "crm", load: script({ onRefresh, columns: [], label: "Leads" }) });
 
     await loadListScripts(doctype);
     const [loaded] = listScriptsOf(doctype);
     expect(loaded.handlers).toEqual({ onRefresh });
-    expect(loaded.columns).toEqual(columns);
   });
 
   it("skips a file with no default export", async () => {

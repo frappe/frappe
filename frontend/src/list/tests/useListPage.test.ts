@@ -7,9 +7,8 @@ import { createRouter, createWebHistory, type Router } from "vue-router";
 
 const fake = vi.hoisted(() => ({
 	meta: null as Record<string, unknown> | null,
-	contributed: [] as { columns?: { fieldname: string; width?: number }[] }[],
 	lists: [] as any[],
-	tiers: { site: null, user: null } as { site: unknown; user: unknown },
+	tiers: { site: null, user: null } as { app?: unknown; site: unknown; user: unknown },
 	listDocuments: vi.fn(),
 	countDocuments: vi.fn(),
 	deleteDocument: vi.fn(),
@@ -26,10 +25,6 @@ vi.mock("@framework/ui/api", async (original) => ({
 	countDocuments: fake.countDocuments,
 	deleteDocument: fake.deleteDocument,
 	runMethod: fake.runMethod,
-}));
-
-vi.mock("@/listPage/scriptLoader", () => ({
-	listScriptsOf: () => fake.contributed.map((script) => ({ source: "crm", handlers: {}, ...script })),
 }));
 
 import { createListPageLists } from "@/listPage/createListPage";
@@ -176,7 +171,6 @@ beforeEach(() => {
 	history.replaceState(null, "");
 	fake.meta = { name: "Lead", title_field: "title", sort_field: "amount", sort_order: "ASC", fields: FIELDS };
 	opened = undefined;
-	fake.contributed = [];
 	fake.lists = [];
 	fake.tiers = { site: null, user: null };
 	fake.listDocuments.mockReset().mockImplementation(fakeList);
@@ -215,13 +209,6 @@ describe("seeding", () => {
 		await settle();
 		expect(page.seeded.value).toBe(true);
 		expect(page.sort.value).toEqual([{ fieldname: "amount", direction: "asc" }]);
-	});
-
-	it("takes a contributed list.js's columns over meta", async () => {
-		fake.contributed = [{ columns: [{ fieldname: "status" }, { fieldname: "title" }] }];
-		await mount("/lead");
-		expect(page.columns.value.map((c) => c.fieldname)).toEqual(["status", "title"]);
-		expect(page.columnsCustomized.value).toBe(false);
 	});
 
 	it("builds the list once meta is in, from offset zero, with the count beside it", async () => {
@@ -456,6 +443,71 @@ describe("the tiers", () => {
 		expect(page.columns.value.map((c) => c.fieldname)).toEqual(["title", "status", "amount"]);
 		await useListSettings("Lead").flush();
 		expect(writes()).toHaveLength(3);
+	});
+});
+
+describe("the app's file", () => {
+	const OPEN = [["status", "=", "Open"]];
+
+	it("seeds columns, sort and filters under the site's and the person's rows", async () => {
+		fake.tiers = {
+			app: { columns: [{ fieldname: "amount" }], sort: [{ fieldname: "title", direction: "desc" }], filters: OPEN },
+			site: null,
+			user: { columns: [{ fieldname: "status" }] },
+		};
+		await mount("/lead");
+		expect(page.columns.value.map((column) => column.fieldname)).toEqual(["status"]);
+		expect(page.sort.value).toEqual([{ fieldname: "title", direction: "desc" }]);
+		expect(page.filters.value).toMatchObject([{ fieldname: "status", operator: "equals", value: "Open" }]);
+		expect(fake.lists[0].query).toMatchObject({ filters: { status: ["=", "Open"] } });
+	});
+
+	it("leaves the URL bare and the view unmodified while its filters are the file's", async () => {
+		fake.tiers = { app: { filters: OPEN }, site: null, user: null };
+		await mount("/lead");
+		await settle();
+		expect(router.currentRoute.value.query).toEqual({});
+		expect(page.view.modified.value).toBe(false);
+	});
+
+	it("spells a change of the filters, and lets the person clear them", async () => {
+		fake.tiers = { app: { filters: OPEN }, site: null, user: null };
+		await mount("/lead");
+		page.filters.value = [{ fieldname: "status", operator: "equals", value: "Closed" } as never];
+		await settle();
+		expect(router.currentRoute.value.query).toEqual({ status: "Closed" });
+		expect(page.view.modified.value).toBe(true);
+		page.filters.value = [];
+		await settle();
+		expect(router.currentRoute.value.query).toEqual({ _filters: "none" });
+		expect(page.filters.value).toEqual([]);
+		expect(page.view.modified.value).toBe(true);
+	});
+
+	it("keeps the filters cleared across a reload of the URL", async () => {
+		fake.tiers = { app: { filters: OPEN }, site: null, user: null };
+		await mount("/lead?_filters=none");
+		expect(page.filters.value).toEqual([]);
+		expect(fake.lists[0].query).not.toHaveProperty("filters.status");
+	});
+
+	it("writes no _filters key when the file has no filters", async () => {
+		await mount("/lead");
+		page.filters.value = [];
+		await settle();
+		expect(router.currentRoute.value.query).toEqual({});
+	});
+
+	it("gives way to the filters a URL names", async () => {
+		fake.tiers = { app: { filters: OPEN }, site: null, user: null };
+		await mount("/lead?status=Closed");
+		expect(page.filters.value).toMatchObject([{ fieldname: "status", value: "Closed" }]);
+	});
+
+	it("drops a filter on a field meta lacks", async () => {
+		fake.tiers = { app: { filters: [["gone", "=", "x"]] }, site: null, user: null };
+		await mount("/lead");
+		expect(page.filters.value).toEqual([]);
 	});
 });
 

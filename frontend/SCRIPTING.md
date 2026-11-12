@@ -429,14 +429,15 @@ export default {
 }
 ```
 
-The `columns` key is data, not a handler: it names the default columns in place of the
-doctype's `in_list_view` columns. Any other key that is not a function is ignored. The list page
-does not draw `page.header`, `page.frame` or `page.body` yet (#47102).
+A list.js holds handlers only: a key that is not a function is ignored. An app's default
+columns, sort and filters go in `<doctype>/frontend/views/list.json` beside it, a bare settings
+object: `{ "columns": [{ "fieldname": "title", "width": "200px" }], "sort": [{ "fieldname": "creation",
+"direction": "desc" }], "filters": [["status", "=", "Open"]], "quick_filter_fields": ["status"] }`.
+The site's and the person's saved settings win over it, key by key. The list page does not draw `page.header`, `page.frame` or `page.body` yet (#47102).
 
 An app adds to another app's list from `<app>/<module>/custom/<scrubbed>/list.js`, the same file
 shape at the `custom/` path that `record.js` uses. The owner's `onRefresh` runs first, then each
-other app's in the site's app order. When more than one file names `columns`, their columns join
-in that order. A new or changed file takes effect after the next `bench build`.
+other app's in the site's app order. A new or changed file takes effect after the next `bench build`.
 
 `page.columns.update(fieldname, cell)` describes how a column draws its cells, as data (an app
 supplies no component):

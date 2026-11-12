@@ -15,8 +15,14 @@ import frappe
 from frappe.desk.doctype.default_view import api as default_view_api
 from frappe.desk.doctype.default_view.resolver import DefaultViews
 from frappe.desk.doctype.doctype_view import app_views as app_views_module
-from frappe.desk.doctype.doctype_view.api import find
-from frappe.desk.doctype.doctype_view.app_views import ViewIndex, app_defaults, app_view_settings, app_views
+from frappe.desk.doctype.doctype_view.api import find, get
+from frappe.desk.doctype.doctype_view.app_views import (
+	ViewIndex,
+	app_defaults,
+	app_plain_settings,
+	app_view_settings,
+	app_views,
+)
 from frappe.desk.doctype.doctype_view.doctype_view import SITE_ROW, DoctypeView, DuplicateViewError
 from frappe.desk.doctype.doctype_view.key_space import KeySpace
 from frappe.desk.doctype.favourite.favourite import toggle_favourite
@@ -52,6 +58,14 @@ class AppFolders:
 		return self.write(
 			os.path.join(self.root, app, "custom", doctype, "views", f"{key}.json"), a_file(**file)
 		)
+
+	def plain_view(self, data, app: str = "frappe", type: str = "list") -> str:
+		return self.write(self.view_folder(app, f"{type}.json"), data)
+
+	def view_folder(self, app: str, *parts: str) -> str:
+		if app == "frappe":
+			return self.doctype_folder("frappe", "frontend", "views", *parts)
+		return os.path.join(self.root, app, "custom", "todo", "views", *parts)
 
 	def write(self, path: str, data) -> str:
 		os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -132,14 +146,13 @@ class TestTheIndex(AppViewCase):
 	def test_the_site_leaves_out_a_file_its_view_types_refuse(self):
 		"""The index is per set of apps; which types exist, and the keys they reserve, are per site."""
 		self.folders.own_view("probe-unknown-type", type="Gantt")
-		self.folders.own_view("list")
 		self.folders.own_view("calendar")
 		self.folders.own_view("probe-fine")
 
-		self.assertEqual(len(self.index().views["todo"]), 4)
+		self.assertEqual(len(self.index().views["todo"]), 3)
 		with self.assertLogs(frappe.logger("desk"), level="WARNING") as logged:
 			self.assertEqual(list(app_views("ToDo")), ["probe-fine"])
-		self.assertEqual(len(logged.output), 3)
+		self.assertEqual(len(logged.output), 2)
 
 	def test_a_second_default_of_one_app_is_refused(self):
 		self.folders.own_view("probe-a", default=True)
@@ -290,6 +303,58 @@ class TestAppDefaults(AppViewCase):
 			self.assertEqual(default_view_api.save("ToDo", "probe-acme", "user", app="zeta"), "probe-acme")
 			self.assertEqual(default_view_api.clear("ToDo", "user", app="acme"), "probe-acme")
 			self.assertEqual(default_view_api.clear("ToDo", "user", app="zeta"), "probe-frappe")
+
+
+PLAIN_SETTINGS = {
+	"columns": [{"fieldname": "description"}, {"fieldname": "status"}],
+	"sort": [{"fieldname": "date", "direction": "asc"}],
+	"filters": [["status", "=", "Open"]],
+}
+
+
+class TestPlainView(AppViewCase):
+	def test_the_file_named_after_a_type_is_that_types_plain_view(self):
+		self.folders.plain_view(PLAIN_SETTINGS)
+		self.assertEqual(app_plain_settings("ToDo", "List"), PLAIN_SETTINGS)
+
+	def test_it_is_no_saved_view_and_is_not_refused(self):
+		self.folders.plain_view(PLAIN_SETTINGS)
+		self.folders.own_view("probe-open")
+		index = self.index()
+		self.assertEqual(index.refused, [])
+		self.assertEqual(list(app_views("ToDo")), ["probe-open"])
+
+	def test_no_file_reads_as_none(self):
+		self.assertIsNone(app_plain_settings("ToDo", "List"))
+
+	def test_another_apps_custom_folder_ships_one_and_the_own_app_wins(self):
+		self.folders.plain_view({"sort": []}, app="acme")
+		self.assertEqual(app_plain_settings("ToDo", "List"), {"sort": []})
+		self.folders.plain_view(PLAIN_SETTINGS)
+		self.assertEqual(app_plain_settings("ToDo", "List"), PLAIN_SETTINGS)
+
+	def test_a_bad_file_reads_as_none_and_is_logged_once(self):
+		for bad in ([], "{", {"columns": "x" * 17 * 1024}):
+			self.folders.plain_view(bad)
+			with self.assertLogs(frappe.logger("desk"), "WARNING"):
+				self.assertIsNone(app_plain_settings("ToDo", "List"))
+			with self.assertNoLogs(frappe.logger("desk"), "WARNING"):
+				self.assertIsNone(app_plain_settings("ToDo", "List"))
+
+	def test_the_index_keeps_every_stem_for_the_sites_whose_view_types_differ(self):
+		self.folders.plain_view(PLAIN_SETTINGS, type="probe-type")
+		self.assertIn(("todo", "probe-type"), self.index().plain)
+
+	def test_an_edited_file_is_read_again(self):
+		path = self.folders.plain_view({"sort": []})
+		self.assertEqual(app_plain_settings("ToDo", "List"), {"sort": []})
+		self.folders.write(path, PLAIN_SETTINGS)
+		self.assertEqual(app_plain_settings("ToDo", "List"), PLAIN_SETTINGS)
+
+	def test_get_hands_the_app_tier_beside_the_site_and_user_rows(self):
+		self.folders.plain_view(PLAIN_SETTINGS)
+		result = get("ToDo", "List")
+		self.assertEqual((result["app"], result["site"], result["user"]), (PLAIN_SETTINGS, None, None))
 
 
 class TestInstalledViewFiles(IntegrationTestCase):

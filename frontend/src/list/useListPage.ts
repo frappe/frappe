@@ -16,9 +16,18 @@ import {
 } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { defaultSort, sameSort, type ListMeta } from "./defaults";
-import { addressFromQuery, createValues, ownedKeys, queryFromAddress, sameQuery } from "./query";
+import {
+	addressFromQuery,
+	completeFilters,
+	createValues,
+	ownedKeys,
+	queryFromAddress,
+	sameFilters,
+	sameQuery,
+} from "./query";
 import type { SavedView } from "./savedView";
 import {
+	filtersFrom,
 	quickFilterFieldsFrom,
 	sortFrom,
 	toStoredQuickFilterFields,
@@ -87,6 +96,10 @@ export function useListPage(doctype: string, opened: SavedView = PLAIN_LIST): Li
 		return stored.length ? stored : defaultSort(listMeta.value!);
 	}
 
+	function resolvedFilters(): FilterCondition[] {
+		return filtersFrom(settings.stored.value.filters, doctype, fields.value, readable);
+	}
+
 	function resolvedQuickFilterFields(): FilterField[] | undefined {
 		const stored = settings.stored.value.quick_filter_fields;
 		if (!stored) return undefined;
@@ -107,7 +120,7 @@ export function useListPage(doctype: string, opened: SavedView = PLAIN_LIST): Li
 
 	function readQuery(value: ListMeta) {
 		const address = addressFromQuery(route.query, doctype, value.fields ?? []);
-		filters.value = address.filters ?? [];
+		filters.value = address.filters ?? resolvedFilters();
 		readSort();
 	}
 
@@ -170,7 +183,10 @@ export function useListPage(doctype: string, opened: SavedView = PLAIN_LIST): Li
 			Object.entries(route.query).filter(([key]) => !owned.has(key))
 		);
 		const written = sameSort(sort.value, resolvedSort()) ? [] : sort.value;
-		return { ...kept, ...queryFromAddress({ filters: filters.value, sort: written }) };
+		const differs = !sameFilters(filters.value, resolvedFilters());
+		const cleared = differs && !completeFilters(filters.value).length;
+		const spelled = differs ? filters.value : [];
+		return { ...kept, ...queryFromAddress({ filters: spelled, sort: written, cleared }) };
 	}
 
 	// The person's own acts write; a value the page set itself, from a row or the URL, does not.
@@ -227,7 +243,9 @@ export function useListPage(doctype: string, opened: SavedView = PLAIN_LIST): Li
 		modified: computed(
 			() =>
 				seeded.value &&
-				(filters.value.length > 0 || !sameSort(sort.value, resolvedSort()) || unstored.value)
+				(!sameFilters(filters.value, resolvedFilters()) ||
+					!sameSort(sort.value, resolvedSort()) ||
+					unstored.value)
 		),
 		update,
 		customized: (key) => settings.has("user", key as ListSettingsKey),
