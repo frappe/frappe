@@ -88,7 +88,7 @@ import { splitRecipients } from "./utils";
 
 const props = defineProps<EmailItemProps>();
 
-const subject = computed(() => (props.showSubject ? props.email.data.subject : ""));
+const subject = computed(() => (props.hideSubject ? "" : props.email.data.subject));
 
 const status = computed(() => {
 	const deliveryStatus = props.email.data.deliveryStatus ?? "";
