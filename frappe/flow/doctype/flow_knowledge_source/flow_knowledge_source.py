@@ -68,6 +68,13 @@ class FlowKnowledgeSource(Document):
 			)
 		self._validate_chunking()
 		validate_immutable(self, ("source_type", "knowledge_base"))
+		before = self.get_doc_before_save()
+		# a running ingestion saves its chunks under the old knowledge base
+		if before and before.knowledge_base != self.knowledge_base and before.status == "Processing":
+			frappe.throw(
+				_("{0} is still processing. Move it once it finishes.").format(self.title),
+				title=_("Source Processing"),
+			)
 
 	def _validate_chunking(self):
 		"""0 inherits the global default. Only validate values set on the source itself."""
@@ -87,6 +94,18 @@ class FlowKnowledgeSource(Document):
 		modified since the last one."""
 		if self.flags.in_insert or self.flags.skip_auto_ingest:
 			return
+		# chunks are saved under the knowledge base, so they move with the source
+		if self.has_value_changed("knowledge_base"):
+			from frappe.flow.knowledge import store
+
+			frappe.db.set_value(
+				"Flow Knowledge Chunk",
+				{"source": self.name},
+				"knowledge_base",
+				self.knowledge_base,
+				update_modified=False,
+			)
+			store.move_source(self.name, self.knowledge_base)
 		if any(self.has_value_changed(field) for field in EXTRACTION_INPUTS):
 			self.resync(rebuild=True)
 

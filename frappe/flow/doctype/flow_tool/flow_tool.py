@@ -62,7 +62,16 @@ class FlowTool(Document):
 		block_delete(self, always=self.name in {builtin_name(tool.name) for tool in BUILTIN_TOOLS})
 
 	def before_rename(self, old: str, _new: str, _merge: bool = False) -> None:
+		from frappe.flow.lib.session import block_rename_in_chats
+
 		block_rename(self, old)
+		agents = frappe.get_all("Flow Agent Tool", filters={"tool": old}, pluck="parent")
+		# a sub-agent's tools run in its parent's chats too
+		if agents:
+			agents += frappe.get_all(
+				"Flow Agent Sub Agent", filters={"agent": ("in", agents)}, pluck="parent"
+			)
+		block_rename_in_chats(old, agents)
 
 	def to_tool(self):
 		"""Resolve this row into a runtime Tool the Agent can call."""

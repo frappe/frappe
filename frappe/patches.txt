@@ -307,3 +307,4 @@ frappe.patches.v17_0.make_flow_memories_of_non_managers_personal
 frappe.patches.v17_0.flow_session_approval_mode
 frappe.patches.v17_0.flow_server_session_approval_mode
 frappe.patches.v17_0.mark_flow_embedding_model
+frappe.patches.v17_0.move_flow_lancedb_out_of_files

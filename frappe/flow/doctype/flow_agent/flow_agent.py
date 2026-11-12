@@ -88,8 +88,13 @@ class FlowAgent(Document):
 		block_insert(self)
 
 	def before_rename(self, old: str, new: str, _merge: bool = False) -> None:
+		from frappe.flow.lib.session import block_rename_in_chats
+
 		block_rename(self, old)
 		block_slash_in_name(self, new)
+		block_rename_in_chats(
+			old, frappe.get_all("Flow Agent Sub Agent", filters={"agent": old}, pluck="parent")
+		)
 
 	def after_rename(self, old: str, new: str, _merge: bool = False) -> None:
 		from frappe.flow.memory import store

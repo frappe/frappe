@@ -30,6 +30,16 @@ def _insert_agent() -> str:
 	return agent.name
 
 
+def _txt_file(content: str) -> str:
+	return (
+		frappe.get_doc(
+			{"doctype": "File", "file_name": f"{content}.txt", "content": content, "is_private": 1}
+		)
+		.insert(ignore_permissions=True)
+		.name
+	)
+
+
 class TestFlowSession(IntegrationTestCase):
 	def setUp(self):
 		self.model = frappe.get_doc(
@@ -88,6 +98,13 @@ class TestClearOldLogs(IntegrationTestCase):
 		session.append("messages", {"role": "user", "content": "hi"})
 		session.append("attachments", {"file": f.name, "file_name": "f.txt", "file_size": 1})
 		session.insert(ignore_permissions=True)
+		# attached to the chat, as a send does
+		frappe.db.set_value(
+			"File",
+			f.name,
+			{"attached_to_doctype": "Flow Session", "attached_to_name": session.name},
+			update_modified=False,
+		)
 		run = frappe.get_doc(
 			{"doctype": "Flow Run", "session": session.name, "source": "Manual", "status": "Completed"}
 		).insert(ignore_permissions=True)
@@ -122,6 +139,70 @@ class TestClearOldLogs(IntegrationTestCase):
 		self.assertFalse(frappe.db.exists("Notification Log", {"document_name": old_session}))
 		self.assertFalse(frappe.db.exists("File", old_file))
 		self.server_delete.assert_called_once_with(old_session)
+
+	def test_memories_from_a_deleted_chat_can_still_be_saved(self):
+		self.enterContext(patch("frappe.flow.memory.store.sync"))
+		purged, purged_run, _ = self._session_with_run(age_days=100)
+		deleted, deleted_run, _ = self._session_with_run(age_days=1)
+		memories = [
+			frappe.get_doc(
+				{"doctype": "Flow Agent Memory", "agent": self.agent, "content": "x", "source_run": run}
+			).insert()
+			for run in (purged_run, deleted_run)
+		]
+
+		FlowSession.clear_old_logs(days=30)
+		frappe.delete_doc("Flow Session", deleted, ignore_permissions=True)
+
+		self.assertFalse(frappe.db.exists("Flow Session", purged))
+		for memory in memories:
+			memory.reload()
+			memory.content = "Fiscal year starts in April."
+			memory.save()
+			self.assertIsNone(memory.source_run)
+
+	def test_memory_links_are_cleared_by_name(self):
+		# an update by the unindexed source_run would lock every memory
+		self.enterContext(patch("frappe.flow.memory.store.sync"))
+		session, run, _ = self._session_with_run(age_days=1)
+		memory = frappe.get_doc(
+			{"doctype": "Flow Agent Memory", "agent": self.agent, "content": "x", "source_run": run}
+		).insert()
+		with patch.object(frappe.db, "sql", wraps=frappe.db.sql) as sql:
+			frappe.delete_doc("Flow Session", session, ignore_permissions=True)
+		queries = [str(c.args[0]).lower() for c in sql.call_args_list]
+		[update] = [q for q in queries if q.startswith("update") and "tabflow agent memory" in q]
+		self.assertIn("where `name` in", update)
+		self.assertIsNone(frappe.db.get_value("Flow Agent Memory", memory.name, "source_run"))
+
+	def test_purge_locks_the_chats_before_their_rows(self):
+		# the order a sync takes, else the two can deadlock
+		if frappe.db.db_type == "sqlite":
+			self.skipTest("SQLite has no row locks")
+		self._session_with_run(age_days=100)
+		with patch.object(frappe.db, "sql", wraps=frappe.db.sql) as sql:
+			FlowSession.clear_old_logs(days=30)
+		queries = [str(c.args[0]).lower() for c in sql.call_args_list]
+		lock = next(i for i, q in enumerate(queries) if "for update" in q and "tabflow session" in q)
+		delete = next(i for i, q in enumerate(queries) if q.startswith("delete") and "tabflow run" in q)
+		self.assertLess(lock, delete)
+
+	def test_purge_deletes_only_the_chats_own_files(self):
+		old_session, _, own_file = self._session_with_run(age_days=100)
+		theirs = _txt_file("theirs")
+		frappe.db.set_value("File", theirs, "owner", "test@example.com", update_modified=False)
+		# the owner can put any file in the rows
+		doc = frappe.get_doc("Flow Session", old_session)
+		doc.append("attachments", {"file": theirs, "file_name": "theirs.txt", "file_size": 1})
+		doc.save(ignore_permissions=True)
+		old = frappe.utils.add_days(frappe.utils.now(), -100)
+		frappe.db.set_value("Flow Session", old_session, "modified", old, update_modified=False)
+
+		FlowSession.clear_old_logs(days=30)
+
+		self.assertFalse(frappe.db.exists("Flow Session", old_session))
+		self.assertFalse(frappe.db.exists("File", own_file))
+		self.assertTrue(frappe.db.exists("File", theirs))
 
 	def test_purge_waits_for_the_flow_server_and_keeps_what_is_still_in_use(self):
 		old_session, old_run, _ = self._session_with_run(age_days=100)
@@ -675,6 +756,13 @@ class TestFlowSessionModelPermission(IntegrationTestCase):
 		frappe.set_user(self.user.name)
 		with self.assertRaises(frappe.PermissionError):
 			session.chat("hello")
+
+	def test_a_session_is_not_inserted_for_an_agent_its_user_may_not_read(self):
+		self.agent.append("roles", {"role": "System Manager"})
+		self.agent.save()
+		frappe.set_user(self.user.name)
+		with self.assertRaises(frappe.PermissionError):
+			frappe.get_doc({"doctype": "Flow Session", "agent": self.agent.name}).insert()
 
 
 class TestFlowServerSessionApprovalModePatch(IntegrationTestCase):
