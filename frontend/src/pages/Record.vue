@@ -166,7 +166,7 @@ import { FILES_TAB, recordTabBuiltins } from "./record/tabs/recordTabs";
 import { FORM_CLASSES } from "./record/formClasses";
 import { projectRecordHeader } from "./record/recordHeaderProjection";
 import { discardChanges } from "./record/discardChanges";
-import { runSave } from "./record/recordSave";
+import { reportSaveFailure } from "./record/recordSave";
 import { useUnloadGuard } from "@/unloadGuard";
 import { buttonClicks, provideRecordCommits } from "./record/recordCommits";
 import { landOnField, stopLanding, tabOf } from "./record/landOnField";
@@ -530,7 +530,7 @@ function toggleOnSidecar(
 // Only a key, the palette or a script reaches Save on a clean doc, so it answers with the button's tooltip text.
 function saveFromHeader(page: RecordPageApi) {
 	if (!dirty.value) toast.info(__("No changes to save"));
-	return runSave(page);
+	return page.save();
 }
 
 function toggleFavourite(page: RecordPageApi) {
@@ -917,6 +917,7 @@ function buildController({ visit, target, pointer, details, panel, view }: Openi
 		sourcesReady: () => loadRecordScripts(target.doctype),
 		restoresView: () => view !== null,
 		actFailed,
+		saveFailed: reportSaveFailure,
 		openArgument: openArgumentStep,
 	});
 	created.header.provideBuiltins(headerBuiltins);

@@ -179,7 +179,7 @@ describe("one paint per handler", () => {
     const { controller, page } = makePage();
     await controller.refresh();
 
-    await expect(page.save()).rejects.toMatchObject({ name: SAVE_VETO });
+    expect(await page.save()).toBe(false);
 
     expect(drawn(controller)).toEqual(["kept"]);
   });

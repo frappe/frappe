@@ -244,7 +244,10 @@ What `page` is _for_ is a small, closed vocabulary:
 - **A handful of contracts**: every `page.dialog` verb resolves `null` when the reader
   dismissed the dialog, so `if (!result) return` is always the idiom; `page.create`
   resolves `null` when nothing was saved in its dialog, so `if (!doc) return` is its
-  idiom; `page.isNew` is true until the first save, and `page.save()` then inserts;
+  idiom; `page.save()` resolves `true` when the record is saved (or already clean) and `false`
+  after it has shown the failure itself, as `rename` and `create` do: it never rejects, so a
+  `try`/`catch` around it, or a toast of your own beside it, shows the error twice;
+  `page.isNew` is true until the first save, and `page.save()` then inserts;
   a throw in `beforeSave` blocks the save, in `beforeSubmit` or `beforeCancel` that act; a handler that throws is isolated,
   half-applied, and does not take other scripts down with it.
 - **The list page**: `run(page, value)` on a `list.*` act, and `run(page, row)` and

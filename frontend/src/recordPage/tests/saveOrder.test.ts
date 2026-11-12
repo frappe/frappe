@@ -20,6 +20,7 @@ vi.mock("@framework/ui/api", () => ({
   getMeta: vi.fn(async () => ({ data: null })),
 }));
 
+import { toast } from "frappe-ui";
 import { createRecordPage, SAVE_VETO, type RecordPageHost } from "../createRecordPage";
 import { registerRecordPage, resetRegistry } from "../registry";
 import { cancelledError } from "@/pages/record/saveResponse";
@@ -53,6 +54,7 @@ function makeHost(overrides: Partial<RecordPageHost> = {}) {
 
 beforeEach(() => {
   resetRegistry();
+  vi.mocked(toast.error).mockClear();
   vi.spyOn(console, "warn").mockImplementation(() => {});
 });
 
@@ -82,7 +84,8 @@ describe("page.save()", () => {
     });
     const controller = createRecordPage(host);
 
-    await expect(controller.page.save()).rejects.toThrow("Win chance is a percentage");
+    expect(await controller.page.save()).toBe(false);
+    expect(toast.error).toHaveBeenCalledExactlyOnceWith("Win chance is a percentage");
     expect(order).toEqual([]);
   });
 
@@ -97,7 +100,8 @@ describe("page.save()", () => {
     });
     const controller = createRecordPage(host);
 
-    await expect(controller.page.save()).rejects.toThrow("417");
+    expect(await controller.page.save()).toBe(false);
+    expect(toast.error).toHaveBeenCalledExactlyOnceWith("Save failed with 417");
     expect(order).toEqual([]);
   });
 
@@ -116,8 +120,9 @@ describe("page.save()", () => {
     expect(order).toEqual([]);
   });
 
-  it("a veto rejects under its own name, keeping the script's message", async () => {
-    const { host } = makeHost();
+  it("a veto reaches the host under its own name, keeping the script's message", async () => {
+    const saveFailed = vi.fn();
+    const { host } = makeHost({ saveFailed });
     registerRecordPage("CRM Deal", {
       beforeSave: () => {
         throw new Error("Win chance is a percentage");
@@ -125,10 +130,60 @@ describe("page.save()", () => {
     });
     const controller = createRecordPage(host);
 
-    const rejection = await controller.page.save().catch((e) => e);
+    expect(await controller.page.save()).toBe(false);
 
-    expect(rejection.name).toBe(SAVE_VETO);
-    expect(rejection.message).toBe("Win chance is a percentage");
+    const [reported] = saveFailed.mock.calls[0];
+    expect(reported.name).toBe(SAVE_VETO);
+    expect(reported.message).toBe("Win chance is a percentage");
+    expect(toast.error).not.toHaveBeenCalled();
+  });
+
+  it("resolves true after the write and afterSave", async () => {
+    const { host, order } = makeHost();
+    registerRecordPage("CRM Deal", { afterSave: () => void order.push("afterSave") });
+    const controller = createRecordPage(host);
+
+    expect(await controller.page.save()).toBe(true);
+
+    expect(order).toEqual(["write", "afterSave"]);
+    expect(toast.error).not.toHaveBeenCalled();
+  });
+
+  it("resolves true when afterSave throws: the record is saved and the handler is isolated", async () => {
+    const { host, order } = makeHost();
+    registerRecordPage("CRM Deal", {
+      afterSave: () => {
+        throw new Error("after failed");
+      },
+    });
+    const controller = createRecordPage(host);
+
+    expect(await controller.page.save()).toBe(true);
+
+    expect(order).toEqual(["write"]);
+  });
+
+  it("two callers that joined one failing save both get false and the failure shows once", async () => {
+    let fail!: (error: Error) => void;
+    const { host } = makeHost({ save: () => new Promise<void>((_, reject) => (fail = reject)) });
+    const controller = createRecordPage(host);
+
+    const both = Promise.all([controller.page.save(), controller.page.save()]);
+    await vi.waitFor(() => expect(fail).toBeTypeOf("function"));
+    fail(new Error("Mandatory: Title"));
+
+    expect(await both).toEqual([false, false]);
+    expect(toast.error).toHaveBeenCalledExactlyOnceWith("Mandatory: Title");
+    expect(controller.isSaving.value).toBe(false);
+  });
+
+  it("a page the reader has left resolves false and writes nothing", async () => {
+    const { host, order } = makeHost();
+    const controller = createRecordPage(host);
+    controller.leave();
+
+    expect(await controller.page.save()).toBe(false);
+    expect(order).toEqual([]);
   });
 
   it("two saves mid-flight run the handlers and the write once", async () => {
@@ -148,9 +203,8 @@ describe("page.save()", () => {
     const first = controller.page.save();
     while (!order.includes("write")) await Promise.resolve();
     const second = controller.page.save();
-    expect(second).toBe(first);
     release();
-    await Promise.all([first, second]);
+    expect(await Promise.all([first, second])).toEqual([true, true]);
 
     expect(order).toEqual(["beforeSave", "write", "afterSave"]);
   });
@@ -170,7 +224,7 @@ describe("page.save()", () => {
 
     const failed = controller.page.save();
     expect(controller.isSaving.value).toBe(true);
-    await expect(failed).rejects.toThrow("417");
+    expect(await failed).toBe(false);
     expect(controller.isSaving.value).toBe(false);
     fail = false;
     await controller.page.save();
@@ -261,7 +315,7 @@ describe("page.save()", () => {
       });
       const controller = createRecordPage(host);
 
-      await expect(controller.page.save()).rejects.toBe(cancelled);
+      expect(await controller.page.save()).toBe(false);
       expect(order).toEqual([]);
       expect(doc.value.batch).toBeUndefined();
     });

@@ -120,7 +120,7 @@ import { fetchMeta } from "./metaSource";
 import { buttonClicks, provideRecordCommits } from "./recordCommits";
 import { saveRecord } from "./recordSource";
 import { projectRecordHeader } from "./recordHeaderProjection";
-import { runSave } from "./recordSave";
+import { reportSaveFailure } from "./recordSave";
 import { useUnloadGuard } from "@/unloadGuard";
 import { shownInDialog, stripTags } from "./saveResponse";
 
@@ -287,6 +287,7 @@ function buildController() {
 		childFields: (child) => metas.value[child]?.fields,
 		sourcesReady: () => loadRecordScripts(props.doctype),
 		actFailed,
+		saveFailed: reportSaveFailure,
 		openArgument: openArgumentStep,
 		activityRows: () => [],
 		scrollToActivity: async () => false,
@@ -355,7 +356,7 @@ function actFailed(exception: unknown) {
 
 /** After the insert, Save with no changes only opens the saved record again. */
 function save(page: RecordPageApi) {
-	return insertedName && !dirty.value ? openSaved() : runSave(page);
+	return insertedName && !dirty.value ? openSaved() : page.save();
 }
 
 async function confirmLeave() {

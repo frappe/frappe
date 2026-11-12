@@ -392,7 +392,6 @@ describe("a failing act toasts once, however many callers joined it", () => {
   it.each([
     ["Submit", "header.submit", { submit: failure }, 0],
     ["Cancel", "header.cancel", { cancel: failure }, 1],
-    ["Save", "header.save", { save: async () => failure(), isDirty: () => true }, 0],
   ] as const)("%s: every caller still gets the rejection", async (_act, name, overrides, docstatus) => {
     const { page } = makePage({ ...overrides }, docstatus);
 
@@ -400,6 +399,13 @@ describe("a failing act toasts once, however many callers joined it", () => {
 
     expect(both.map((one) => one.status)).toEqual(["rejected", "rejected"]);
     expect(toast.error).not.toHaveBeenCalled();
+  });
+
+  it("Save: every caller gets false and the failure shows once", async () => {
+    const { page } = makePage({ save: async () => failure(), isDirty: () => true });
+
+    expect(await Promise.all([page.run("header.save"), page.run("header.save")])).toEqual([false, false]);
+    expect(toast.error).toHaveBeenCalledExactlyOnceWith("Insufficient stock");
   });
 
   it("a later failure of the same act toasts again", async () => {
