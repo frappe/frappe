@@ -217,7 +217,7 @@ function mount(): HTMLElement {
 	const app = createApp(
 		defineComponent({ render: () => h(ListView, { view: view as never, host: host as never }) })
 	);
-	app.provide("boot", { bulk_actions: true, bulk_operation_limit: 500 });
+	app.provide("boot", { bulk_actions: true, bulk_operation_limit: 500, session: { user: { name: "jane@example.com" } } });
 	app.provide(FieldActionsKey, {
 		for: (field, value, record) => [
 			{ act: "a", label: `Call ${field.fieldname} ${value} ${JSON.stringify(record ?? null)}`, run: vi.fn() },

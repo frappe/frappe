@@ -169,6 +169,15 @@
 		:selection="exportScope"
 		:count="scope.count.value"
 	/>
+	<BulkCollabDialog
+		v-if="bulk.collab.request.value"
+		:request="bulk.collab.request.value"
+		:doctype="view.doctype"
+		:reload="reload"
+		:select="(names: string[]) => (selection = names)"
+		@close="bulk.collab.request.value = null"
+	/>
+
 	<DeleteDialog
 		v-if="deleteOpened"
 		v-model="confirmingDelete"
@@ -220,6 +229,7 @@ import StatusCell from "./StatusCell.vue";
 import RowMenu from "./RowMenu.vue";
 import { rowMenuOptions } from "./rowActions";
 import { PrintDialog, useBulkPrint } from "./bulkPrint";
+import { lazyBulkCollabDialog } from "./lazyBulkCollabDialog";
 import { useBulkBar } from "./useBulkBar";
 import { RowContextMenu, useRowContextMenu } from "./useRowContextMenu";
 import { selectionTsv } from "@/list/bulkCopy";
@@ -307,6 +317,7 @@ const exportOpened = ref(false);
 const exportScope = ref<BulkSelection>({ names: [] });
 const followRun = (taskId: string) =>
 	void import("@/shell/bulkRuns").then((runs) => runs.followBulkRun(taskId, reload));
+const BulkCollabDialog = lazyBulkCollabDialog(() => (bulk.collab.request.value = null));
 const confirmingDelete = ref(false);
 const deleteOpened = ref(false);
 

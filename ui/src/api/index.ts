@@ -349,6 +349,22 @@ export function bulkUpdateDocuments(
   return fed<BulkResult | BulkQueued>("POST", path, { body: { ...selection, ...update }, signal }, () => {});
 }
 
+/** The collaboration parts a bulk run changes, each at `bulk_<part>`. */
+export type BulkPart = "assignments" | "assignment_rule" | "tags" | "follows" | "shares" | "seen";
+
+/** Runs one collaboration change over the selected records: `POST` adds, `DELETE` removes. The list rereads after it. */
+export function bulkCollaborate(
+  doctype: string,
+  part: BulkPart,
+  method: "POST" | "DELETE",
+  selection: BulkSelection,
+  body: Record<string, unknown> = {},
+  { signal }: CallOptions = {}
+): Promise<Envelope<BulkResult | BulkQueued>> {
+  const path = `/document/${segment(doctype)}/bulk_${part}`;
+  return request<BulkResult | BulkQueued>(method, path, { body: { ...selection, ...body }, signal });
+}
+
 /** Renames through `frappe.client.rename_doc`; the old name leaves the cache, as a delete's does. */
 export function renameDocument(
   doctype: string,

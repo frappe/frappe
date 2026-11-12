@@ -211,7 +211,7 @@ describe("useBulkBar", () => {
 				},
 			})
 		);
-		app.provide("boot", boot).mount(root);
+		app.provide("boot", { session: { user: { name: "jane@example.com" } }, ...boot }).mount(root);
 		return { result, lists, selection, scope, perform, askDelete, askPrint, supplied, app };
 	}
 
@@ -225,6 +225,7 @@ describe("useBulkBar", () => {
 		const { layout } = result;
 		expect(labels(layout.value.menu)).toEqual([
 			["ToDo", ["restore"]],
+			["Assign, tag and share", ["Clear assignment","Apply assignment rule","Remove tags","Follow","Unfollow","Share","Mark as seen","Mark as unseen"]],
 			["Print and export", ["Print", "Copy to Clipboard", "Export"]],
 			["Submit, cancel and delete", ["Delete"]],
 		]);
@@ -254,6 +255,16 @@ describe("useBulkBar", () => {
 			.map(({ item }) => item as ListPageAction)
 			.filter(({ group }) => group);
 		expect(items.map(({ name, group, button, right }) => [name, group, button, right])).toEqual([
+			["assign", "collaborate", true, "write"],
+			["clear_assignment", "collaborate", undefined, "write"],
+			["apply_assignment_rule", "collaborate", undefined, "write"],
+			["add_tags", "collaborate", true, "write"],
+			["remove_tags", "collaborate", undefined, "write"],
+			["follow", "collaborate", undefined, "read"],
+			["unfollow", "collaborate", undefined, "read"],
+			["share", "collaborate", undefined, "share"],
+			["mark_seen", "collaborate", undefined, "read"],
+			["mark_unseen", "collaborate", undefined, "read"],
 			["print", "output", undefined, "print"],
 			["edit", "collaborate", true, "write"],
 			["copy", "output", undefined, undefined],
@@ -261,16 +272,19 @@ describe("useBulkBar", () => {
 			["delete", "danger", undefined, "delete"],
 		]);
 		const { layout } = result;
-		expect(layout.value.buttons.map((one) => one.label)).toEqual(["Edit"]);
+		expect(layout.value.buttons.map((one) => one.label)).toEqual(expect.arrayContaining(["Edit"]));
 		app.unmount();
 	});
 
+	const printGroup = ({ result }: { result: { layout: { value: { menu: { options: any[] }[] } } } }) =>
+		result.layout.value.menu.find(({ options }) => options.some(({ label }) => label === "Print"))!;
+
 	it("keeps Copy to Clipboard and Export enabled over the cap, as they are no bulk run", () => {
 		const over = bar({ bulk_actions: true, bulk_operation_limit: 1 });
-		const { buttons, menu, trash } = over.result.layout.value;
-		expect(buttons[0].disabled).toBe(true);
+		const { buttons, trash } = over.result.layout.value;
+		expect(buttons.every(({ disabled }) => disabled)).toBe(true);
 		expect(trash?.disabled).toBe(true);
-		expect(menu[0].options.map((option) => [option.label, option.disabled])).toEqual([
+		expect(printGroup(over).options.map((option) => [option.label, option.disabled])).toEqual([
 			["Print", false],
 			["Copy to Clipboard", false],
 			["Export", false],
@@ -280,10 +294,10 @@ describe("useBulkBar", () => {
 
 	it("disables Export for a scope with or_filters, which the exporter cannot take", () => {
 		const orScope = bar(open, undefined, () => ({ filters: {}, or_filters: [["status", "=", "Open"]] }) as never);
-		const exportOption = orScope.result.layout.value.menu[0].options[2];
+		const exportOption = printGroup(orScope).options[2];
 		expect(exportOption.label).toBe("Export");
 		expect(exportOption.disabled).toBe(true);
-		expect(orScope.result.layout.value.menu[0].options[1].disabled).toBe(false);
+		expect(printGroup(orScope).options[1].disabled).toBe(false);
 		orScope.app.unmount();
 	});
 
@@ -327,14 +341,39 @@ describe("useBulkBar", () => {
 		over.app.unmount();
 	});
 
+	it("keeps the collaboration actions on while Select all is on, and sends the filters", async () => {
+		const { result, lists, selection, scope, supplied, app } = bar(open);
+		lists.bulkActions.add(script("restore"));
+		await nextTick();
+		selection.value = ["R0", "R1"];
+		scope.selectAll();
+		const { buttons, menu } = result.layout.value;
+		const options = [...buttons, ...menu.flatMap(({ options }) => options)];
+		const collaborate = options.filter(({ label }) => label !== "restore" && label !== "Copy to Clipboard");
+		expect(collaborate.filter(({ disabled }) => disabled)).toEqual([]);
+		expect(collaborate.map(({ label }) => label)).toContain("Assign to…");
+		expect(options.find(({ label }) => label === "restore")?.disabled).toBe(true);
+
+		const share = supplied[0]().find(({ item }) => item.name === "share")!.item as ListPageAction;
+		share.run!({} as never);
+		expect(result.collab.request.value).toEqual({
+			kind: "share",
+			selection: { filters: expect.anything() },
+			count: 10,
+			all: true,
+			approx: false,
+		});
+		app.unmount();
+	});
+
 	it("keeps Edit and Export on while Select all is on, and Copy to Clipboard off", async () => {
 		const { result, selection, scope, app } = bar(open);
 		await nextTick();
 		selection.value = ["R0", "R1"];
 		scope.selectAll();
-		const { buttons, menu } = result.layout.value;
-		expect(buttons[0].disabled).toBe(false);
-		expect(menu[0].options.map((option) => [option.label, option.disabled])).toEqual([
+		const { buttons } = result.layout.value;
+		expect(buttons.find(({ label }) => label === "Edit")?.disabled).toBe(false);
+		expect(printGroup({ result }).options.map((option) => [option.label, option.disabled])).toEqual([
 			["Print", false],
 			["Copy to Clipboard", true],
 			["Export", false],

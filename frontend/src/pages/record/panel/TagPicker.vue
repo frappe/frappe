@@ -18,7 +18,7 @@
 			:options="options"
 			:loading="loading"
 			:filterable="false"
-			:placeholder="__('Search or create tags')"
+			:placeholder="creatable ? __('Search or create tags') : __('Search tags')"
 			:side="side"
 			:align="align"
 			@update:modelValue="onPick"
@@ -59,7 +59,10 @@
 			</template>
 
 			<template #empty>
-				<span class="text-p-sm">{{ error || __("No tags yet, type to create one") }}</span>
+				<span class="text-p-sm">{{
+					error ||
+					(creatable ? __("No tags yet, type to create one") : __("No tags found"))
+				}}</span>
 			</template>
 
 			<!-- Marks this picker's popover for the unscoped CSS below; it is portaled out. -->
@@ -90,8 +93,10 @@ const props = withDefaults(
 		shortcut?: boolean;
 		side?: "top" | "right" | "bottom" | "left";
 		align?: "start" | "center" | "end";
+		/** False hides the create row, for a picker that only chooses among existing tags. */
+		creatable?: boolean;
 	}>(),
-	{ side: "left", align: "start" }
+	{ side: "left", align: "start", creatable: true }
 );
 
 // Left undefined, the picker owns its open state.
@@ -114,11 +119,13 @@ const pinned = computed<SearchOption[]>(() =>
 );
 const { options: found, loading, error, search, searchSoon } = useTagSearch(pinned);
 
-const canCreate = computed(() =>
-	canCreateTag(
-		found.value.map((option) => option.value),
-		query.value
-	)
+const canCreate = computed(
+	() =>
+		props.creatable &&
+		canCreateTag(
+			found.value.map((option) => option.value),
+			query.value
+		)
 );
 
 // Sorted by the opening snapshot, so a tick never moves a row under the pointer.

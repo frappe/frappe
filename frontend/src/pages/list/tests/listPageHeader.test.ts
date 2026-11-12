@@ -71,9 +71,7 @@ async function mount() {
 	const root = document.createElement("div");
 	document.body.appendChild(root);
 	const app = createApp(defineComponent({ render: () => h(ViewPage, { doctype: "Contact", opened: PLAIN_LIST }) }));
-	app.use(router)
-		.provide("boot", { session: { user: { name: "Administrator" } }, bulk_actions: true, bulk_operation_limit: 500 })
-		.provide("addresses", { moduleName: () => null });
+	app.use(router).provide("boot", { bulk_actions: true, bulk_operation_limit: 500, session: { user: { name: "jane@example.com" } } }).provide("addresses", { moduleName: () => null });
 	app.mount(root);
 	apps.push(app);
 	await settle();

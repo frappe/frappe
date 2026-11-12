@@ -46,7 +46,7 @@ const addresses = new Addresses({
 const boot = {
   app: "crm",
   app_title: "CRM",
-  session: { user: { name: "Administrator" } },
+  session: { user: { name: "jane@example.com" } },
   shell_base: "/apps/crm",
   prefixes: { crm: { app: "crm", modular: false } },
   bulk_actions: true,

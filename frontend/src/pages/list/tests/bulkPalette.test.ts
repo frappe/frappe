@@ -96,7 +96,7 @@ function bar({
     }),
   );
   app
-    .provide("boot", { bulk_actions: !locked, bulk_operation_limit: cap })
+    .provide("boot", { bulk_actions: !locked, bulk_operation_limit: cap, session: { user: { name: "jane@example.com" } } })
     .mount(document.createElement("div"));
   mounted = { app, release: () => release() };
   if (script)
@@ -135,7 +135,17 @@ describe("the bulk actions in the palette", () => {
     const labels = result.layout.value.menu.flatMap((group) =>
       group.options.map((option) => option.label),
     );
-    expect(labels).toEqual(["Restore", "Print", "Copy to Clipboard", "Export", "Delete"]);
+    expect(labels).toEqual([
+      "Restore",
+      "Clear assignment",
+      "Apply assignment rule",
+      "Remove tags",
+      "Share",
+      "Print",
+      "Copy to Clipboard",
+      "Export",
+      "Delete",
+    ]);
   });
 
   it("runs a script's action from the palette on the selection", async () => {
@@ -259,6 +269,10 @@ describe("the bulk actions in the palette", () => {
       );
       const bar_ = result.layout.value.menu.flatMap((group) => group.options);
       expect(bar_.filter((option) => !option.disabled).map((option) => option.label)).toEqual([
+        "Clear assignment",
+        "Apply assignment rule",
+        "Remove tags",
+        "Share",
         "Print",
         "Export",
         "Submit",
