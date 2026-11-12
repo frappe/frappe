@@ -69,6 +69,15 @@
 		:rowLink="cardLink"
 		@close="menu.close"
 	/>
+	<PrintDialog
+		v-if="print.mounted.value"
+		v-model="print.open.value"
+		:doctype="view.doctype"
+		:count="print.count.value"
+		:all="print.all.value"
+		:approx="print.approx.value"
+		:scope="print.scope.value"
+	/>
 	<DeleteDialog
 		v-model="confirmingDelete"
 		:count="target ? 1 : scope.count.value"
@@ -92,6 +101,7 @@ import type { RendererHost } from "@/pages/list/renderer";
 import { rowMenuOptions } from "@/pages/list/rowActions";
 import { useBulkBar } from "@/pages/list/useBulkBar";
 import { RowContextMenu, useRowContextMenu } from "@/pages/list/useRowContextMenu";
+import { PrintDialog, useBulkPrint } from "@/pages/list/bulkPrint";
 import { pageGutter } from "@/shell/PageFrame.vue";
 import { failedState } from "@/shell/pageState";
 import PageState from "@/shell/PageState.vue";
@@ -141,6 +151,7 @@ const gridStyle = {
 		"repeat(auto-fill, minmax(max(240px, calc((100% - 3 * var(--page-gutter)) / 4)), 1fr))",
 };
 
+const print = useBulkPrint(scope);
 // The bulk delete is the surface's `delete`; a card's own menu runs `delete_card` on that card.
 const bulk = useBulkBar({
 	host: props.host,
@@ -151,6 +162,7 @@ const bulk = useBulkBar({
 	rows,
 	rowActions,
 	reload,
+	askPrint: print.ask,
 	askDelete: () => ask(""),
 	extraEntries: () => [deleteCardEntry()],
 });

@@ -24,6 +24,7 @@ export interface BulkBarOptions {
   rowActions: Ref<ListRowAction[]>;
   reload: () => void;
   askDelete: () => void;
+  askPrint: () => void;
   /** Acts the renderer adds to its own surface beside the bulk and row ones. */
   extraEntries?: () => ActEntry[];
   /** The row under the pointer or with focus, and the table's range-aware selection; a surface without a cursor (Cards) gets no bulk keys. */
@@ -49,7 +50,7 @@ export interface BulkBar {
 }
 
 export function useBulkBar(options: BulkBarOptions): BulkBar {
-  const { host, selection, askDelete, cursor } = options;
+  const { host, selection, askDelete, askPrint, cursor } = options;
   const boot = inject<Boot>("boot")!;
   const { bulkActions: bulkList } = host.lists;
   const cap = boot.bulk_operation_limit;
@@ -64,6 +65,14 @@ export function useBulkBar(options: BulkBarOptions): BulkBar {
 
   bulkList.provideBuiltins(() => [
     ...status.items.value,
+    {
+      name: "print",
+      label: __("Print"),
+      icon: "lucide-printer",
+      group: "output",
+      right: "print",
+      run: askPrint,
+    },
     {
       name: "delete",
       label: __("Delete"),
@@ -120,7 +129,7 @@ export function useBulkBar(options: BulkBarOptions): BulkBar {
       }));
   }
 
-  // Only Delete reads the scope; an action that takes row names would run on the loaded rows alone.
+  // Only Delete and Print read the scope; an action that takes row names would run on the loaded rows alone. Print has its own cap, checked when it opens.
   const locked = !boot.bulk_actions;
   const entries = computed<BulkEntry[]>(() =>
     locked
@@ -135,7 +144,7 @@ export function useBulkBar(options: BulkBarOptions): BulkBar {
               icon: act.icon,
               group: item.group,
               button: item.button,
-              disabled: options.scope.count.value > cap || (options.scope.all.value && item.run !== askDelete),
+              disabled: item.run === askPrint ? false : options.scope.count.value > cap || (options.scope.all.value && item.run !== askDelete),
               onClick: () => listActs.perform(act, scope.selected()),
             },
           ];

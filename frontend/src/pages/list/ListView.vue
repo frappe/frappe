@@ -143,6 +143,15 @@
 		:rowLink="rowLink"
 		@close="menu.close"
 	/>
+	<PrintDialog
+		v-if="print.mounted.value"
+		v-model="print.open.value"
+		:doctype="view.doctype"
+		:count="print.count.value"
+		:all="print.all.value"
+		:approx="print.approx.value"
+		:scope="print.scope.value"
+	/>
 	<DeleteDialog
 		v-if="deleteOpened"
 		v-model="confirmingDelete"
@@ -184,6 +193,7 @@ import type { RendererHost } from "./renderer";
 import StatusCell from "./StatusCell.vue";
 import RowMenu from "./RowMenu.vue";
 import { rowMenuOptions } from "./rowActions";
+import { PrintDialog, useBulkPrint } from "./bulkPrint";
 import { useBulkBar } from "./useBulkBar";
 import { RowContextMenu, useRowContextMenu } from "./useRowContextMenu";
 
@@ -287,6 +297,7 @@ function columnFields(matches: (field: RawMetaField) => boolean) {
 	return fields;
 }
 
+const print = useBulkPrint(scope);
 const bulk = useBulkBar({
 	host: props.host,
 	doctype: props.view.doctype,
@@ -298,6 +309,7 @@ const bulk = useBulkBar({
 	reload,
 	cursor,
 	table: () => table.value,
+	askPrint: print.ask,
 	askDelete: () => {
 		deleteOpened.value = true;
 		confirmingDelete.value = true;

@@ -68,6 +68,7 @@ function bar({
           rowActions: ref([]),
           reload: () => {},
           askDelete,
+          askPrint: vi.fn(),
           cursor: ref(null),
           table: () => null,
         });
@@ -115,7 +116,7 @@ describe("the bulk actions in the palette", () => {
     const labels = result.layout.value.menu.flatMap((group) =>
       group.options.map((option) => option.label),
     );
-    expect(labels).toEqual(["Restore", "Delete"]);
+    expect(labels).toEqual(["Restore", "Print", "Delete"]);
   });
 
   it("runs a script's action from the palette on the selection", async () => {
