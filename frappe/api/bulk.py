@@ -227,7 +227,8 @@ def run_task(
 
 def reason_of(e: Exception) -> str:
 	"""One line for the result panel; a missing record raises with no message."""
-	reason = strip_html_tags(str(e)).strip()
+	# A PermissionError from check_permission keeps its text in flags, not in the exception.
+	reason = strip_html_tags(str(e) or frappe.flags.error_message or "").strip()
 	if reason:
 		return reason
 	return _("Not found") if isinstance(e, frappe.DoesNotExistError) else _("Failed without a reason")

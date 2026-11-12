@@ -402,6 +402,7 @@ class TestBulkRunner(IntegrationTestCase):
 		result = self.call()
 		self.assertEqual(result["done"], [])
 		self.assertEqual(len(result["failed"]), 4)
+		self.assertTrue(all(row["error"] for row in result["failed"]))
 		self.assertEqual(self.stamped(), [])
 
 	def test_call_route_needs_the_bulk_gate(self):
