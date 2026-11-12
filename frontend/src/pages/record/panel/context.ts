@@ -31,6 +31,9 @@ export interface PanelContext {
 	onDetails: (fieldname: string) => boolean;
 }
 
+/** The fieldnames the panel draws, so a row that reads a sibling field can tell whether it shows it. */
+export const PanelFieldsKey: InjectionKey<Ref<Set<string>>> = Symbol("record-panel-fields");
+
 export const PanelContextKey: InjectionKey<PanelContext> = Symbol("record-panel");
 
 /** A person as the `users` part describes them, or their id when it does not. */

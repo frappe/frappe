@@ -71,10 +71,11 @@ async function mount(
 	surface: Surface<PanelSectionItem>,
 	opened: Record<string, boolean> = {},
 	doctype?: string,
-	scrolls = false
+	scrolls = false,
+	layout: FormLayoutSchema = LAYOUT
 ) {
 	const doc = ref({ organization: "Frappe" });
-	const sections = layoutSections(LAYOUT, doc.value);
+	const sections = layoutSections(layout, doc.value);
 	surface.provideBuiltins(() => [
 		{ name: "identity", component: Identity },
 		{ name: "quick_actions", component: QuickActions },
@@ -108,6 +109,27 @@ async function mount(
 
 const names = (root: HTMLElement) =>
 	[...root.querySelectorAll<HTMLElement>("[data-section]")].map((el) => el.dataset.section);
+
+describe("an Image row beside its Attach Image", () => {
+	const column = (...fields: any[]) => [{ fields }];
+	const photo = { fieldname: "photo", fieldtype: "Attach Image", label: "Photo" };
+	const shown = { fieldname: "pic", fieldtype: "Image", label: "Pic", options: "photo" };
+
+	it("leaves no empty section when it was the only field of its own", async () => {
+		const layout = [
+			{
+				name: "main",
+				sections: [
+					{ name: "a", label: "A", columns: column(photo) },
+					{ name: "b", label: "B", columns: column(shown) },
+				],
+			},
+		] as any;
+		const { root } = await mount(new Surface<PanelSectionItem>(), {}, undefined, false, layout);
+		expect(names(root)).toContain("a");
+		expect(names(root)).not.toContain("b");
+	});
+});
 
 describe("one list", () => {
 	it("draws the built-ins and the layout's sections in the surface's order", async () => {

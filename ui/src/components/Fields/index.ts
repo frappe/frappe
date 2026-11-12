@@ -6,6 +6,7 @@ export { registerFieldType, getFieldComponent } from "./fieldTypes";
 export type { RegisterFieldTypeOptions } from "./fieldTypes";
 
 export { fieldtypeToLanguage } from "./fieldtypeToLanguage";
+export { fileName } from "./fileName";
 export { focusField } from "./focusField";
 export { copyRow, holdsChildRows, identify, ROW_ID, rowKey } from "./rowIdentity";
 export { useRecordLink } from "./useRecordLink";

@@ -60,6 +60,16 @@
 				/>
 			</div>
 		</div>
+		<TextInput
+			v-if="hexInput"
+			size="sm"
+			data-slot="hex"
+			:modelValue="text"
+			:placeholder="__('#rrggbb')"
+			:aria-label="__('Hex color')"
+			@update:modelValue="text = $event"
+			@change="commitText"
+		/>
 		<div class="grid grid-cols-[repeat(7,1.25rem)] justify-between gap-y-2">
 			<button
 				v-for="swatch in SWATCHES"
@@ -78,12 +88,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
-import { Button } from "frappe-ui";
-import { SWATCHES, hexToHsv, hsvToHex, normalizeHex, type Hsv } from "./colorHex";
+import { computed, nextTick, ref, watch } from "vue";
+import { Button, TextInput } from "frappe-ui";
+import { SWATCHES, hexToHsv, hsvToHex, normalizeHex, parseColor, type Hsv } from "./colorHex";
 import { translate as __ } from "../../utils/translate";
 
-const props = defineProps<{ modelValue?: string | null }>();
+const props = defineProps<{ modelValue?: string | null; hexInput?: boolean }>();
 // `pick` chooses a color and closes; `adjust` follows a drag live and `settle` ends it.
 const emit = defineEmits<{ pick: [hex: string]; adjust: [hex: string]; settle: [hex: string] }>();
 
@@ -108,6 +118,17 @@ const areaText = computed(() =>
 		Math.round(hsv.value.v * 100),
 	])
 );
+
+// The hex box follows the color, and a typed color picks it and closes. A bad one resets
+// after the TextInput's own change handler has written it.
+const text = ref(selected.value ?? "");
+watch(selected, (value) => (text.value = value ?? ""));
+
+function commitText() {
+	const typed = parseColor(text.value);
+	if (typed === null) return nextTick(() => (text.value = selected.value ?? ""));
+	emit("pick", typed);
+}
 
 // A value from outside moves the thumbs; our own echo would round the hue away.
 watch(selected, (value) => {

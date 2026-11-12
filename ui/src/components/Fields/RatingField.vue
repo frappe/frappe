@@ -1,13 +1,24 @@
 <template>
+	<!-- A panel row has no edit state: the stars sit at x = 8 and a read-only row mutes them. -->
+	<div
+		v-if="panel"
+		class="flex h-7 w-full items-center ps-2"
+		:class="field.readOnly ? 'opacity-50' : ''"
+	>
+		<Rating
+			v-bind="ratingProps"
+			:aria-label="field.label"
+			:aria-invalid="error?.length ? true : undefined"
+			@update:modelValue="onUpdate"
+		/>
+	</div>
 	<Rating
-		:modelValue="stars"
-		:max="starCount"
-		:step="0.5"
+		v-else
+		v-bind="ratingProps"
 		:label="field.label"
 		:description="field.description"
 		:required="field.reqd"
 		:error="error"
-		:disabled="field.readOnly"
 		@update:modelValue="onUpdate"
 	>
 		<template v-if="field.description && !error?.length" #description>
@@ -31,6 +42,13 @@ const emit = defineEmits<FieldComponentEmits>();
 const starCount = computed(() => Number(props.field.options) || 5);
 
 const stars = computed(() => (Number(props.modelValue) || 0) * starCount.value);
+
+const ratingProps = computed(() => ({
+	modelValue: stars.value,
+	max: starCount.value,
+	step: 0.5,
+	disabled: props.field.readOnly,
+}));
 
 function onUpdate(starValue: number) {
 	const fraction = starValue / starCount.value;

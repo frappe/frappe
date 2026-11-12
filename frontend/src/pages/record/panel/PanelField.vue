@@ -1,6 +1,6 @@
 <!-- One panel row: the label in a fixed column, the value in the flexible one. -->
 <template>
-	<div class="grid grid-cols-[130px_1fr] items-start gap-2">
+	<div v-if="!hidden" class="grid grid-cols-[130px_1fr] items-start gap-2">
 		<span class="h-7 truncate text-base leading-7 text-ink-gray-5" :title="field.label">
 			{{ field.label }}
 		</span>
@@ -8,7 +8,7 @@
 		<div class="min-w-0">
 			<FieldBox class="group" :interactive="interactive" :error="!!message">
 				<div
-					v-if="editing"
+					v-if="editing || inPlace"
 					ref="cell"
 					class="field min-w-0"
 					:data-fieldname="field.fieldname"
@@ -34,7 +34,11 @@
 					class="flex min-h-7 min-w-0 flex-wrap items-center gap-x-1.5 px-2"
 					:class="interactive ? 'cursor-pointer' : ''"
 					:data-fieldname="field.fieldname"
+					:role="imageUrl ? 'button' : undefined"
+					:tabindex="imageUrl ? 0 : undefined"
 					@click="open"
+					@keydown.enter.self="open"
+					@keydown.space.self.prevent="open"
 				>
 					<span
 						class="flex min-w-0 flex-1 items-center text-base leading-7"
@@ -55,12 +59,15 @@
 							@click.stop
 							>{{ display }}</a
 						>
-						<template v-else>
-							<ColorSwatch
-								:field="field"
-								:value="doc[field.fieldname]"
-								class="me-1.5"
+						<template v-else-if="imageUrl">
+							<img
+								:src="imageUrl"
+								alt=""
+								class="me-2 size-5 shrink-0 rounded-2 object-cover"
 							/>
+							<span class="truncate text-ink-gray-8">{{ fileName(imageUrl) }}</span>
+						</template>
+						<template v-else>
 							<LinkMark
 								class="me-1.5"
 								:source="field.linkMark"
@@ -108,6 +115,12 @@
 					</span>
 				</div>
 			</FieldBox>
+			<ImagePreview
+				v-if="imageUrl"
+				v-model:open="previewing"
+				:url="imageUrl"
+				:title="field.label"
+			/>
 			<span v-if="message" class="block truncate text-sm text-ink-red-4" :title="message">
 				{{ message }}
 			</span>
@@ -130,13 +143,13 @@ import { FieldErrorsKey, fieldErrorKey } from "@framework/ui/fields/types";
 import type { FieldNode } from "@framework/ui/FormLayout/types";
 import { RecordAnchor } from "@framework/ui/Link";
 import {
-	ColorSwatch,
 	DataOpenLink,
 	FieldActionButtons,
 	FieldBox,
 	FieldActionsKey,
 	LinkMark,
 	dataHref,
+	fileName,
 	focusField,
 	isEmailField,
 	isPhoneField,
@@ -145,7 +158,8 @@ import {
 } from "@framework/ui/fields";
 import { isSummaryField, useFieldDisplay } from "@framework/ui/FormLayout";
 import { __ } from "@/i18n";
-import { PanelContextKey } from "./context";
+import ImagePreview from "./ImagePreview.vue";
+import { PanelContextKey, PanelFieldsKey } from "./context";
 
 const props = defineProps<{ field: FieldNode }>();
 const emit = defineEmits<{ expand: [field: FieldNode] }>();
@@ -195,16 +209,36 @@ let opening: any;
 
 // Every keystroke already wrote the draft, so a cancel has to put the opening value back.
 function cancel() {
+	if (!editing.value) return;
 	update(props.field.fieldname, opening);
 	editing.value = false;
 }
+
+// These act on one click in the box, with no editor to open or leave.
+const IN_PLACE = ["Check", "Rating", "Color", "Attach", "Attach Image"];
+const inPlace = computed(
+	() => !props.field.ui?.component && IN_PLACE.includes(props.field.fieldtype)
+);
 
 // A field that Details does not draw has nowhere to open, so its row edits in place.
 const summary = computed(
 	() =>
 		isSummaryField(props.field.fieldtype) &&
+		!inPlace.value &&
+		props.field.fieldtype !== "Image" &&
 		(context?.onDetails(props.field.fieldname) ?? true)
 );
+
+// An Image row reads the Attach Image field its options name; it shows nothing when the panel
+// already draws that field with its thumbnail.
+const panelFields = inject(PanelFieldsKey, null);
+const imageUrl = computed(() =>
+	props.field.fieldtype === "Image" ? doc.value[props.field.options ?? ""] || "" : ""
+);
+const hidden = computed(
+	() => props.field.fieldtype === "Image" && !!panelFields?.value.has(props.field.options ?? "")
+);
+const previewing = ref(false);
 // Until every control takes `panel`, one that does not still draws its own error text.
 const PANEL_FIELDTYPES = [
 	"Data",
@@ -215,15 +249,18 @@ const PANEL_FIELDTYPES = [
 	"Phone",
 	"Duration",
 	"Password",
+	...IN_PLACE,
 ];
 const drawsErrorText = computed(
 	() => !!props.field.ui?.component || !PANEL_FIELDTYPES.includes(props.field.fieldtype)
 );
-const interactive = computed(() => summary.value || !props.field.readOnly);
+const interactive = computed(() => summary.value || !props.field.readOnly || !!imageUrl.value);
 const resolved = computed(() => resolveField(props.field.fieldtype));
 
 const placeholder = computed(() =>
-	interactive.value && !summary.value ? __("Add {0}...", [props.field.label]) : ""
+	interactive.value && !summary.value && props.field.fieldtype !== "Image"
+		? __("Add {0}...", [props.field.label])
+		: ""
 );
 
 // The row draws the label; the control's one placeholder is the field's own, else `Add <Label>...`.
@@ -276,6 +313,10 @@ function linkedDoctype(): string {
 }
 
 function open() {
+	if (props.field.fieldtype === "Image") {
+		previewing.value = !!imageUrl.value;
+		return;
+	}
 	if (summary.value) return emit("expand", props.field);
 	if (props.field.readOnly) return;
 	opening = doc.value[props.field.fieldname];

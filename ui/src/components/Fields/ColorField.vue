@@ -1,5 +1,13 @@
 <template>
-	<div>
+	<ColorTrigger
+		v-if="panel"
+		:field="field"
+		:modelValue="modelValue"
+		:error="error"
+		@update:modelValue="emit('update:modelValue', $event)"
+		@change="emit('change', $event)"
+	/>
+	<div v-else>
 		<TextInput
 			:modelValue="draft"
 			:label="field.label"
@@ -57,7 +65,8 @@
 import { computed, ref, watch } from "vue";
 import { Popover, TextInput } from "frappe-ui";
 import ColorPicker from "./ColorPicker.vue";
-import { normalizeHex } from "./colorHex";
+import ColorTrigger from "./ColorTrigger.vue";
+import { normalizeHex, parseColor, sameColor } from "./colorHex";
 import { translate as __ } from "../../utils/translate";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
 import FieldDescription from "./FieldDescription.vue";
@@ -104,14 +113,6 @@ const swatchClass = computed(() =>
 	shown.value ? "border border-outline-gray-2" : "border border-dashed border-outline-gray-3"
 );
 
-function parse(text: string): string | null {
-	return text.trim() === "" ? "" : normalizeHex(text);
-}
-
-function sameColor(a: string | null | undefined, b: string | null | undefined): boolean {
-	return (parse(a ?? "") ?? a) === (parse(b ?? "") ?? b);
-}
-
 // Ctrl+S saves before blur, so a full hex reaches the record as it is typed;
 // `#rgb` waits for change, as typing `#rrggbb` passes through it.
 function onInput(text: string) {
@@ -119,7 +120,7 @@ function onInput(text: string) {
 	draft.value = text;
 	edit ??= { from: props.modelValue ?? "", revertTo: props.modelValue ?? "" };
 	const live = /^#?[0-9a-f]{6}$/i.test(text.trim()) || text.trim() === "";
-	setValue((live ? parse(text) : null) ?? edit.revertTo);
+	setValue((live ? parseColor(text) : null) ?? edit.revertTo);
 }
 
 function commitTyped(input: HTMLInputElement) {
@@ -129,7 +130,7 @@ function commitTyped(input: HTMLInputElement) {
 	};
 	edit = undefined;
 	emitted = undefined;
-	const hex = parse(input.value);
+	const hex = parseColor(input.value);
 	draft.value = input.value = hex ?? revertTo;
 	setValue(hex ?? revertTo);
 	if (hex !== null && !sameColor(hex, from)) emit("change", hex);

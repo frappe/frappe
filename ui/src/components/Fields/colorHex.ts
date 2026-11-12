@@ -46,3 +46,13 @@ export function hexToHsv(hex: string, hue = 0): Hsv {
   const sector = v === r ? (g - b) / d : v === g ? (b - r) / d + 2 : (r - g) / d + 4;
   return { h: (sector * 60 + 360) % 360, s, v };
 }
+
+/** A typed color as the stored value: `''` for blank, the normalized hex, or `null` when it is neither. */
+export function parseColor(text: string): string | null {
+  return text.trim() === "" ? "" : normalizeHex(text);
+}
+
+/** Whether two typed or stored colors are the same color. */
+export function sameColor(a: string | null | undefined, b: string | null | undefined): boolean {
+  return (parseColor(a ?? "") ?? a) === (parseColor(b ?? "") ?? b);
+}

@@ -43,6 +43,12 @@ describe("FieldBox", () => {
     expect(box.className).toContain("focus-within:ring-outline-gray-3");
   });
 
+  it("keeps the focus look while a popover in the row is open", () => {
+    const box = mount(FieldBox, {}).firstElementChild!;
+    expect(box.className).toContain("has-[[data-state=open]]:bg-surface-gray-2");
+    expect(box.className).toContain("has-[[data-state=open]]:ring-outline-gray-3");
+  });
+
   it("rings red on focus when it holds an error", () => {
     const box = mount(FieldBox, { error: true }).firstElementChild!;
     expect(box.className).toContain("focus-within:ring-outline-red-3");

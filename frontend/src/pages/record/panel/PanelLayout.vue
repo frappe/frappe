@@ -52,6 +52,7 @@ import type { PanelSectionItem, RecordPageApi } from "@/recordPage";
 import PanelSectionsSkeleton from "../skeletons/PanelSectionsSkeleton.vue";
 import { PANEL_BUILTINS } from "./builtins";
 import PanelSection from "./PanelSection.vue";
+import { PanelFieldsKey } from "./context";
 import {
 	embedQuickActions,
 	panelEntries,
@@ -79,8 +80,23 @@ const emit = defineEmits<{ toggle: [name: string]; expand: [field: FieldNode] }>
 
 const doc = defineModel<Record<string, any>>("doc", { required: true });
 
-const entries = computed(() =>
+const drawn = computed(() =>
 	embedQuickActions(panelEntries(props.surface.visible(), props.sections))
+);
+const drawnFields = computed(
+	() => new Set(drawn.value.flatMap((entry) => entry.fields.map((f) => f.fieldname)))
+);
+
+// An Image row hides itself beside its Attach Image field; a section of only those has no header.
+const entries = computed(() =>
+	drawn.value.filter(
+		(entry) =>
+			entry.component ||
+			!entry.fields.length ||
+			!entry.fields.every(
+				(f) => f.fieldtype === "Image" && drawnFields.value.has(f.options ?? "")
+			)
+	)
 );
 
 const scripted = computed(
@@ -145,6 +161,7 @@ const { resolve } = useFieldTypes();
 
 warnMissingCommit("PanelLayout", inject(CommitKey, null));
 
+provide(PanelFieldsKey, drawnFields);
 provide(DocKey, doc);
 provide(UpdateKey, update);
 provide(ResolveFieldKey, resolve);
