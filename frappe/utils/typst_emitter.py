@@ -505,6 +505,7 @@ def _text_value(html_ish: str) -> str:
 	value = _list_markers(value)
 	value = re.sub(r"<br\s*/?>[ \t]*\n?", "\n", value, flags=re.I)
 	value = re.sub(r"</(p|div|tr|li|h[1-6])>[ \t]*\n?", "\n", value, flags=re.I)
+	value = re.sub(r"</t[dh]>(?=<t[dh])", " ", value, flags=re.I)
 	value = frappe.utils.strip_html(value)
 	return unescape_html(value).strip()
 
