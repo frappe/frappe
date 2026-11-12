@@ -13,7 +13,10 @@ vi.mock("@framework/ui/useSession", () => ({ currentSession: () => ({ user: { na
 vi.mock("@/list/pageState", () => ({ useRememberedPageSize: () => ref(20) }));
 vi.mock("@/list/useListView", () => ({ deleteRow: vi.fn(), deleteRows: fake.deleteRows, filtersDict: () => ({}) }));
 vi.mock("@/list/useListRows", () => ({
-	useListRows: () => ({ rows: (fake.rows = ref([{ name: "A" }, { name: "B" }, { name: "C" }])) }),
+	useListRows: () => ({
+		rows: (fake.rows = ref([{ name: "A" }, { name: "B" }, { name: "C" }])),
+		loadedKey: ref("q"),
+	}),
 }));
 
 const apps: ReturnType<typeof createApp>[] = [];

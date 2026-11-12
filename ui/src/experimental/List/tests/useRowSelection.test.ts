@@ -27,6 +27,11 @@ describe("useRowSelection", () => {
     expect(selectAllState.value).toBe("all");
   });
 
+  it("reads some while only rows that are not shown are selected", () => {
+    const { selectAllState } = setup(["Z"]);
+    expect(selectAllState.value).toBe("some");
+  });
+
   it("select-all adds every shown row and keeps rows selected elsewhere", () => {
     const { selection, toggleSelectAll } = setup(["Z"]);
     toggleSelectAll();

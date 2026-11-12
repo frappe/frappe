@@ -17,7 +17,7 @@ vi.mock("@/list/useListView", () => ({ deleteRow: vi.fn(), filtersDict: () => ({
 vi.mock("@/list/useListRows", () => ({
 	useListRows: (_doctype: string, query: () => { fields: string[] } | null) => {
 		fake.query = query;
-		return { rows: ref([]) };
+		return { rows: ref([]), loadedKey: ref(null) };
 	},
 }));
 

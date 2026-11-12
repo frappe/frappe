@@ -31,7 +31,10 @@ vi.mock("@framework/ui/ColumnSettings", () => ({
   ColumnSettings: stub("columns"),
 }));
 vi.mock("@framework/ui/experimental/List", () => ({
-  List: stub("list"),
+  // The bulk bar draws in the table's header, in place of the column labels.
+  List: defineComponent({
+    setup: (_, { slots }) => () => h("div", { "data-stub-list": "" }, slots.bar?.()),
+  }),
   ListFooter: stub("footer"),
 }));
 vi.mock("../BulkBar.vue", async () => {

@@ -623,7 +623,7 @@ describe("the rows", () => {
 		expect(page.selection.value).toEqual(["LEAD-2"]);
 	});
 
-	it("rebuilds the list for a changed filter after the typing debounce, with no selection", async () => {
+	it("rebuilds the list for a changed filter after the typing debounce, keeping the rows it hides selected", async () => {
 		await mount("/lead");
 		await settle();
 		fake.lists[0].data = [{ name: "LEAD-1" }];
@@ -635,7 +635,8 @@ describe("the rows", () => {
 		await settleQuery();
 		expect(fake.listDocuments).toHaveBeenCalledTimes(2);
 		expect(fake.lists[1].query.filters).toEqual({ status: ["=", "Open"] });
-		expect(page.selection.value).toEqual([]);
+		expect(page.rows.value).toEqual([]);
+		expect(page.selection.value).toEqual(["LEAD-1"]);
 	});
 
 	it("keeps the page size in the history entry and a bigger one fetches only the missing rows", async () => {

@@ -6,7 +6,7 @@
 	<ScrollArea
 		ref="scroller"
 		orientation="both"
-		viewportClass="overscroll-y-none"
+		viewportClass="overscroll-y-none [container-type:inline-size]"
 		class="min-h-0 flex-1"
 	>
 		<FrappeList
@@ -34,47 +34,53 @@
 						@update:modelValue="toggleSelectAll"
 					/>
 				</div>
-				<!-- A label-sized bar over each placeholder column until the columns are known. -->
-				<template v-if="skeletonHeader">
-					<div
-						v-for="column in skeletonColumns"
-						:key="column.fieldname"
-						class="flex min-w-0 items-center"
-						role="columnheader"
-						data-list-header-skeleton
-					>
-						<Skeleton class="h-2.5 w-16 rounded-1" />
-					</div>
-				</template>
-				<div
-					v-for="column in columns"
-					:key="column.fieldname"
-					class="relative flex min-w-0"
-					:class="alignClass(column)"
-				>
-					<ListHeaderCellSort
-						v-if="sortable && column.sortable !== false"
-						class="min-w-0"
-						:direction="directionFor(sort, column.fieldname)"
-						:align="isRight(column) ? 'end' : 'start'"
-						@click="sort = nextSort(sort, column.fieldname)"
-					>
-						{{ column.label }}
-					</ListHeaderCellSort>
-					<ListHeaderCell v-else class="min-w-0">{{ column.label }}</ListHeaderCell>
-					<!-- The handle sits mid-gap, so a right-aligned label stays clear of it. -->
-					<span
-						class="absolute inset-y-0 -right-3 flex w-2 cursor-col-resize items-center justify-center"
-						@pointerdown.stop.prevent="startResize(column, $event)"
-						@dblclick.stop.prevent="resetColumn(column)"
-					>
-						<span
-							class="h-4 w-[1.5px] rounded-full bg-surface-gray-4 opacity-0 transition-opacity group-hover:opacity-100"
-							:class="{ 'opacity-100': resizingFieldname === column.fieldname }"
-						/>
-					</span>
+				<!-- Held in view across a horizontal scroll, so the bar's end stays under the controls row's. -->
+				<div v-if="$slots.bar" class="sticky flex items-center" :style="barStyle">
+					<slot name="bar" />
 				</div>
-				<div v-if="rowMenu" role="columnheader" aria-hidden="true" />
+				<template v-else>
+					<!-- A label-sized bar over each placeholder column until the columns are known. -->
+					<template v-if="skeletonHeader">
+						<div
+							v-for="column in skeletonColumns"
+							:key="column.fieldname"
+							class="flex min-w-0 items-center"
+							role="columnheader"
+							data-list-header-skeleton
+						>
+							<Skeleton class="h-2.5 w-16 rounded-1" />
+						</div>
+					</template>
+					<div
+						v-for="column in columns"
+						:key="column.fieldname"
+						class="relative flex min-w-0"
+						:class="alignClass(column)"
+					>
+						<ListHeaderCellSort
+							v-if="sortable && column.sortable !== false"
+							class="min-w-0"
+							:direction="directionFor(sort, column.fieldname)"
+							:align="isRight(column) ? 'end' : 'start'"
+							@click="sort = nextSort(sort, column.fieldname)"
+						>
+							{{ column.label }}
+						</ListHeaderCellSort>
+						<ListHeaderCell v-else class="min-w-0">{{ column.label }}</ListHeaderCell>
+						<!-- The handle sits mid-gap, so a right-aligned label stays clear of it. -->
+						<span
+							class="absolute inset-y-0 -right-3 flex w-2 cursor-col-resize items-center justify-center"
+							@pointerdown.stop.prevent="startResize(column, $event)"
+							@dblclick.stop.prevent="resetColumn(column)"
+						>
+							<span
+								class="h-4 w-[1.5px] rounded-full bg-surface-gray-4 opacity-0 transition-opacity group-hover:opacity-100"
+								:class="{ 'opacity-100': resizingFieldname === column.fieldname }"
+							/>
+						</span>
+					</div>
+					<div v-if="rowMenu" role="columnheader" aria-hidden="true" />
+				</template>
 			</ListHeader>
 
 			<div v-if="rows.length" v-bind="wrapperProps" role="presentation">
@@ -166,7 +172,7 @@ import {
 } from "frappe-ui/list";
 import { computed, getCurrentInstance, ref, toRef } from "vue";
 import type { Sort } from "../../components/SortBy/types";
-import { columnTracks } from "./columnTracks";
+import { CHECKBOX_TRACK, columnTracks } from "./columnTracks";
 import { directionFor, nextSort } from "./headerSort";
 import { useColumnResize } from "./useColumnResize";
 import { useRowCursor } from "./useRowCursor";
@@ -197,6 +203,8 @@ defineSlots<{
 	cell?: (props: { row: ListRowData; column: ListColumn; value: string }) => unknown;
 	rowMenu?: (props: { row: ListRowData }) => unknown;
 	empty?: () => unknown;
+	/** Takes the column labels' place in the header while it is given: the bulk bar. */
+	bar?: () => unknown;
 }>();
 
 /** The row's own inset; the checkbox column and the last cell sit this far inside it. The checkbox
@@ -221,6 +229,17 @@ defineExpose({
 const paddingInline = computed(() =>
 	props.gutter ? `calc(${props.gutter} - ${ROW_PADDING_X})` : undefined
 );
+
+// The bar spans the column tracks but is as wide as the viewport shows them; `cqw` reads the viewport.
+const barStyle = computed(() => {
+	const start = `(${props.gutter ? `${props.gutter} - ${ROW_PADDING_X}` : "0px"})`;
+	const lane = `(${start} + ${CHECKBOX_TRACK} + ${COLUMN_GAP})`;
+	return {
+		gridColumn: "2 / -1",
+		insetInlineStart: `calc${lane}`,
+		width: `calc(100cqw - ${lane} - ${start} - ${ROW_PADDING_X})`,
+	};
+});
 
 // Binding the sort model at mount is what makes the headers sortable, as the molecule's `active`.
 const instance = getCurrentInstance();

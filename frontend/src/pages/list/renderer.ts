@@ -12,9 +12,9 @@ import ListView from "./ListView.vue";
 export interface RendererHost {
 	/** Where the renderer's own controls teleport to, in the controls row; null while it is hidden. */
 	controls: Ref<HTMLElement | null>;
-	/** Where the renderer's bulk bar teleports to, in place of the controls row; null until it mounts. */
+	/** Where a renderer with no header row (Cards) teleports its bulk bar, in place of the controls row; null until it mounts. */
 	bar: Ref<HTMLElement | null>;
-	/** The renderer sets it while rows are selected, so the page hides its controls row for the bar. */
+	/** Such a renderer sets it while rows are selected, so the page hides its controls row for the bar. */
 	selecting: Ref<boolean>;
 	/** The list page's lists: the renderer gives `columns` and `bulkActions` their built-ins and draws them, and `rowActions`. */
 	lists: ListPageLists;

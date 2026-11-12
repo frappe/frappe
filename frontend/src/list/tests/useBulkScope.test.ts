@@ -10,18 +10,20 @@ function setup(loaded = ["A", "B", "C"], total = 1240) {
 	const filters = ref<Record<string, unknown>>({ status: ["=", "Open"] });
 	const more = ref(true);
 	const exact = ref(true);
+	const query = ref("open");
 	const scope = effectScope().run(() =>
 		useBulkScope({
 			selection,
 			rows: () => rows.value,
 			filters: () => filters.value,
+			rowsQuery: () => query.value,
 			hasNextPage: () => more.value,
 			totalCount: () => total,
 			totalApprox: () => false,
 			exact: () => exact.value,
 		})
 	)!;
-	return { scope, rows, selection, filters, more, exact };
+	return { scope, rows, selection, filters, more, exact, query };
 }
 
 describe("useBulkScope", () => {
@@ -91,7 +93,7 @@ describe("useBulkScope", () => {
 		expect(selection.value).toEqual(["A", "B", "C", "D"]);
 	});
 
-	it("drops the selection altogether when the filters change", async () => {
+	it("drops all-matching and its selection when the filters change", async () => {
 		const { scope, selection, filters } = setup();
 		selection.value = ["A", "B", "C"];
 		scope.selectAll();
@@ -102,12 +104,36 @@ describe("useBulkScope", () => {
 		expect(selection.value).toEqual([]);
 	});
 
-	it("lets a row that left the page leave the selection", async () => {
+	it("keeps the rows a new filter hides selected and counts them", async () => {
+		const { scope, rows, selection, filters, query } = setup();
+		selection.value = ["A", "B"];
+		filters.value = { status: ["=", "Closed"] };
+		rows.value = named(["B", "C"]);
+		query.value = "closed";
+		await nextTick();
+		expect(selection.value).toEqual(["A", "B"]);
+		expect(scope.count.value).toBe(2);
+		expect(scope.selected()).toEqual({ names: ["A", "B"] });
+	});
+
+	it("lets a row that left under the same query leave the selection", async () => {
 		const { scope, rows, selection } = setup();
 		selection.value = ["A", "B"];
 		rows.value = named(["B", "C"]);
 		await nextTick();
 		expect(selection.value).toEqual(["B"]);
 		expect(scope.all.value).toBe(false);
+	});
+
+	it("holds Select all back while a hidden row is selected, since it would drop it", async () => {
+		const { scope, rows, selection, query } = setup();
+		selection.value = ["A", "B", "C"];
+		rows.value = named(["B", "C", "D"]);
+		query.value = "closed";
+		await nextTick();
+		selection.value = ["A", "B", "C", "D"];
+		expect(scope.canSelectAll.value).toBe(false);
+		selection.value = ["C", "B", "D"];
+		expect(scope.canSelectAll.value).toBe(true);
 	});
 });

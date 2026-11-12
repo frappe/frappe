@@ -8,6 +8,8 @@ export interface BulkScopeOptions {
 	rows: () => ListRow[];
 	/** The list's filters, as the query sends them: the same ones the rows were read with. */
 	filters: () => Record<string, unknown>;
+	/** The query the rows were read with: a selected row that leaves under the same query left the records. */
+	rowsQuery: () => string | null;
 	hasNextPage: () => boolean;
 	totalCount: () => number;
 	/** The total is a floor ("10,000+"). */
@@ -43,22 +45,35 @@ export function useBulkScope(options: BulkScopeOptions): BulkScope {
 			!all.value &&
 			options.exact() &&
 			rows().length > 0 &&
-			selection.value.length === rows().length &&
+			selectsJustTheRows() &&
 			options.hasNextPage()
 	);
 
-	watch(rows, (current) => {
-		if (all.value && !current.length) return;
+	// A row that a new filter or sort hides stays selected; one that left under the same query is gone.
+	watch([rows, options.rowsQuery], ([current, query], [previous, previousQuery]) => {
+		if (all.value) {
+			if (current.length) selection.value = current.map((row) => row.name);
+			return;
+		}
+		if (query !== previousQuery) return;
 		const present = new Set(current.map((row) => row.name));
-		selection.value = all.value ? [...present] : selection.value.filter((name) => present.has(name));
+		const left = new Set(previous.filter((row) => !present.has(row.name)).map((row) => row.name));
+		if (left.size) selection.value = selection.value.filter((name) => !left.has(name));
 	});
 	watch(selection, (names) => {
 		if (names.length !== rows().length) all.value = false;
 	});
+	// All-matching means the filters it was picked under: carried over, it would pick other records.
 	watch(
 		() => JSON.stringify(options.filters()),
-		() => clear()
+		() => all.value && clear()
 	);
+
+	// "Select all N" sends the filters alone, so it is offered only when no hidden row would be lost.
+	function selectsJustTheRows() {
+		const chosen = new Set(selection.value);
+		return chosen.size === rows().length && rows().every((row) => chosen.has(row.name));
+	}
 
 	function clear() {
 		all.value = false;
