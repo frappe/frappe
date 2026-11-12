@@ -1,5 +1,5 @@
 // The seeds: a contributed `list.js` above meta's `in_list_view`, and meta's sort above `modified desc`.
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { RawMetaField } from "@framework/ui/FormLayout";
 import { clearDataCache, feedListRead, readCachedList, takeTicket } from "@framework/ui/cache";
 
@@ -166,6 +166,31 @@ describe("contributedRowActions", () => {
 		expect(contributedRowActions([{ rowActions: [call] }, {}, { rowActions: [mail, again] }])).toEqual([
 			call,
 			mail,
+		]);
+	});
+
+	it("runs a foreign app's row action after the owner's, whatever the site's app order", async () => {
+		vi.resetModules();
+		vi.doMock("virtual:frappe/contributions", () => ({
+			default: {
+				doctypes: [
+					{ kind: "customList", app: "helpdesk", doctype: "CRM Lead", handlers: { rowActions: [{ act: "shell.hd.ticket", fields: ["email"] }] } },
+					{ kind: "list", app: "crm", doctype: "CRM Lead", handlers: { rowActions: [{ act: "shell.crm.call", fields: ["mobile_no"] }] } },
+				],
+				pages: [], itemTypes: [], replacements: [], settings: [], acts: [],
+			},
+		}));
+		vi.doMock("@/recordPage", () => ({ addFileScript: vi.fn(), addPageFile: vi.fn() }));
+		const { listHandlersFor, registerContributions } = await import("@/contributions/registry");
+		registerContributions(["frappe", "helpdesk", "crm"]);
+
+		vi.doUnmock("virtual:frappe/contributions");
+		vi.doUnmock("@/recordPage");
+		const contributed = listHandlersFor("CRM Lead");
+		expect(contributed.map(({ app }) => app)).toEqual(["crm", "helpdesk"]);
+		expect(contributedRowActions(contributed.map(({ handlers }) => handlers)).map((one) => one.act)).toEqual([
+			"shell.crm.call",
+			"shell.hd.ticket",
 		]);
 	});
 

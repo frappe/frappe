@@ -155,8 +155,8 @@ export function registerContributions(appOrder: string[]) {
 
   // Ordering is per doctype: an app can own one and be foreign to the next.
   for (const [doctype, all] of byDoctype) {
-    for (const contribution of ordered(all, appOrder, (c) => c.kind === 'custom')) {
-      if (contribution.kind === 'list') {
+    for (const contribution of ordered(all, appOrder, (c) => c.kind === 'custom' || c.kind === 'customList')) {
+      if (contribution.kind === 'list' || contribution.kind === 'customList') {
         const own = listHandlers.get(doctype) ?? []
         own.push({ app: contribution.app, handlers: contribution.handlers })
         listHandlers.set(doctype, own)

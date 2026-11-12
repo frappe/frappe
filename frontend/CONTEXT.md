@@ -154,6 +154,7 @@ Only ever this. A navigation item's axis is its **type**, and `Record` appears i
 | `<module>/doctype/<scrubbed>/frontend/record.js` | record, owning app |
 | `<module>/doctype/<scrubbed>/frontend/list.js` | list, owning app |
 | `<module>/custom/<scrubbed>/record.js` | `custom` — a **foreign** doctype |
+| `<module>/custom/<scrubbed>/list.js` | `customList` — a **foreign** doctype's list |
 | `<module>/frontend/pages/<slug>.js` | a standalone page |
 | `<module>/doctype/<scrubbed>/frontend/pages.json` | replacement, owning app |
 | `<module>/doctype/<scrubbed>/frontend/pages/<name>.js` | replacement, owning app |

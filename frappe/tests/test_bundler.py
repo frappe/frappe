@@ -18,7 +18,7 @@ from frappe.bundler import (
 	remove_stale_island_toolchain,
 )
 from frappe.commands.utils import build
-from frappe.shell.manifest import frontend_dir, package_name, shaping_apps
+from frappe.shell.manifest import contributes, customised_doctypes, frontend_dir, package_name, shaping_apps
 from frappe.tests import UnitTestCase
 
 
@@ -323,6 +323,15 @@ class TestShapingApps(UnitTestCase):
 
 	def test_app_owning_a_doctype_another_app_customises_shapes_the_shell(self):
 		with bench_of({"frappe": [], "plain": self.PLAIN, "other": ["other_module/custom/thing/record.js"]}):
+			self.assertEqual(shaping_apps(["plain"]), ["plain"])
+
+	def test_app_shipping_a_list_script_for_another_apps_doctype_contributes_and_names_it(self):
+		with bench_of({"frappe": [], "other": ["other_module/custom/thing/list.js"]}) as root:
+			self.assertTrue(contributes(os.path.join(root, "other")))
+			self.assertEqual(customised_doctypes("other"), {"thing"})
+
+	def test_app_owning_a_doctype_another_app_gives_a_list_script_shapes_the_shell(self):
+		with bench_of({"frappe": [], "plain": self.PLAIN, "other": ["other_module/custom/thing/list.js"]}):
 			self.assertEqual(shaping_apps(["plain"]), ["plain"])
 
 

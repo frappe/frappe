@@ -108,13 +108,21 @@ export function discover(manifest, allSourceDirs = manifest.map((entry) => entry
 				if (owned.declaration) declarations.push(owned.declaration);
 			}
 
-			// A foreign doctype: <module>/custom/<scrubbed>/{record.js,pages.json}
+			// A foreign doctype: <module>/custom/<scrubbed>/{record.js,list.js,pages.json}
 			const customRoot = join(modulePath, "custom");
 			for (const scrubbed of directories(customRoot)) {
 				const folder = join(customRoot, scrubbed);
 				const file = join(folder, "record.js");
 				if (isFile(file))
 					doctypes.push({ kind: "custom", app, doctype: unscrub(scrubbed), file });
+				const listFile = join(folder, "list.js");
+				if (isFile(listFile))
+					doctypes.push({
+						kind: "customList",
+						app,
+						doctype: unscrub(scrubbed),
+						file: listFile,
+					});
 
 				const declarer = { app, doctype: unscrub(scrubbed), foreign: true };
 				const custom = declaredPages(folder, declarer, benchApps);
@@ -274,6 +282,11 @@ function recordName(definition) {
 	}
 }
 
+/** A list script is imported eagerly; every other kind loads when its page opens. */
+function isListKind(kind) {
+	return kind === "list" || kind === "customList";
+}
+
 function generate({
 	doctypes,
 	pages,
@@ -300,7 +313,7 @@ function generate({
 
 	// A record script is fetched when its doctype's page opens; only a list script is eager.
 	doctypes.forEach((entry, index) => {
-		if (entry.kind === "list")
+		if (isListKind(entry.kind))
 			imports.push(`import d${index} from ${JSON.stringify(entry.file)}`);
 	});
 	pages.forEach((entry, index) => {
@@ -327,10 +340,9 @@ function generate({
 
 	lines.push("  doctypes: [");
 	doctypes.forEach((entry, index) => {
-		const source =
-			entry.kind === "list"
-				? `handlers: d${index}`
-				: `load: () => import(${JSON.stringify(entry.file)})`;
+		const source = isListKind(entry.kind)
+			? `handlers: d${index}`
+			: `load: () => import(${JSON.stringify(entry.file)})`;
 		lines.push(
 			`    { kind: ${JSON.stringify(entry.kind)}, ` +
 				`app: ${JSON.stringify(entry.app)}, doctype: ${JSON.stringify(entry.doctype)}, ` +
