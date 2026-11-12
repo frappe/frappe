@@ -112,7 +112,7 @@ def _make_script_runner(code: str, slug: str, params: set[str], *, restrict_comm
 		# names go into the script's code, so allow only main's parameters
 		if unknown := sorted(set(kwargs) - params):
 			raise ValueError(
-				f"Unknown argument(s) {', '.join(map(repr, unknown))}; "
+				f"Unknown argument(s) {', '.join(repr(name) for name in unknown)}; "
 				f"expected: {', '.join(sorted(params)) or 'none'}."
 			)
 		injected: dict[str, Any] = {}

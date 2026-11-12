@@ -487,7 +487,7 @@ def _load_session(session: str, ptype: str) -> FlowSession:
 
 def _session_payload(doc: FlowSession) -> dict[str, Any]:
 	model = doc.model or frappe.get_cached_value("Flow Agent", doc.agent, "model")
-	read_only = not frappe.has_permission("Flow Session", "write", doc)
+	can_write = frappe.has_permission("Flow Session", "write", doc)
 	return {
 		"name": doc.name,
 		"title": doc.title,
@@ -498,11 +498,11 @@ def _session_payload(doc: FlowSession) -> dict[str, Any]:
 		"owner_name": get_fullname(doc.owner),
 		"general_access": doc.general_access,
 		"approval_mode": doc.approval_mode,
-		"read_only": read_only,
+		"read_only": not can_write,
 		"runs": frappe.get_all(
 			"Flow Run",
 			filters={"session": doc.name},
-			fields=RUN_FIELDS if read_only else [*RUN_FIELDS, *FEEDBACK_FIELDS],
+			fields=[*RUN_FIELDS, *FEEDBACK_FIELDS] if can_write else RUN_FIELDS,
 			order_by="creation asc",
 		),
 	}
