@@ -90,6 +90,7 @@ function scopeOf(count: number, extra: { total?: number; hasNextPage?: boolean; 
 		selection,
 		rows: () => rows.value,
 		filters: () => filters.value,
+		rowsQuery: () => null,
 		hasNextPage: () => extra.hasNextPage ?? false,
 		totalCount: () => extra.total ?? count,
 		totalApprox: () => extra.approx ?? false,

@@ -46,6 +46,7 @@ function status(
 		selection,
 		rows: () => loaded as never,
 		filters: () => ({ status: "Open" }),
+		rowsQuery: () => null,
 		hasNextPage: () => total > names.length,
 		totalCount: () => total,
 		totalApprox: () => approx,

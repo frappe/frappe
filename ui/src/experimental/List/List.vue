@@ -233,7 +233,7 @@ defineExpose({
 
 // The gutter is where the checkbox and the last cell's text land, so the row bleeds past it.
 const paddingInline = computed(() =>
-	props.gutter ? `calc(${props.gutter} - ${ROW_PADDING_X})` : undefined,
+	props.gutter ? `calc(${props.gutter} - ${ROW_PADDING_X})` : undefined
 );
 
 // The bar spans the column tracks but is as wide as the viewport shows them; `cqw` reads the viewport,
@@ -268,10 +268,10 @@ function rowValue(row: ListRowData) {
 const { selectAllState, isSelected, toggle, extendTo, toggleSelectAll } = useRowSelection(
 	selection,
 	rows,
-	toRef(props, "rowKey"),
+	toRef(props, "rowKey")
 );
 const { enter, leave, focus, blur } = useRowCursor(cursor, () =>
-	virtualRows.value.map(({ data }) => rowValue(data)),
+	virtualRows.value.map(({ data }) => rowValue(data))
 );
 
 const { drafts, resizingFieldname, startResize, resetColumn } = useColumnResize({
@@ -291,7 +291,7 @@ const skeletonColumns = computed<ListColumn[]>(() => {
 });
 
 const tracks = computed(() =>
-	columnTracks(props.loading ? skeletonColumns.value : columns.value, drafts, props.rowMenu),
+	columnTracks(props.loading ? skeletonColumns.value : columns.value, drafts, props.rowMenu)
 );
 
 function cellText(row: ListRowData, column: ListColumn): string {
