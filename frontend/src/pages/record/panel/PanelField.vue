@@ -124,7 +124,7 @@
 			<span
 				v-if="message"
 				:id="messageId"
-				class="line-clamp-2 text-sm text-ink-red-6"
+				class="line-clamp-2 px-2 text-sm text-ink-red-6"
 				:title="message"
 			>
 				{{ message }}
@@ -165,6 +165,7 @@ import { isSummaryField, useFieldDisplay } from "@framework/ui/FormLayout";
 import { __ } from "@/i18n";
 import ImagePreview from "./ImagePreview.vue";
 import { PanelContextKey, PanelFieldsKey } from "./context";
+import { withoutOwnRecordPrefix } from "./ownRecordPrefix";
 
 const props = defineProps<{ field: FieldNode }>();
 const emit = defineEmits<{ expand: [field: FieldNode] }>();
@@ -196,7 +197,13 @@ const mark = useLinkMark(
 );
 const errors = inject(FieldErrorsKey, null);
 const error = computed(() => errors?.value[fieldErrorKey(props.field.fieldname)]);
-const message = computed(() => [error.value ?? []].flat().join(" "));
+const message = computed(() => {
+	const { doctype, name } = doc.value;
+	return [error.value ?? []]
+		.flat()
+		.map((one) => withoutOwnRecordPrefix(one, [doctype, __(doctype)], name))
+		.join(" ");
+});
 const messageId = useId();
 
 function edit(fieldname: string, value: any) {

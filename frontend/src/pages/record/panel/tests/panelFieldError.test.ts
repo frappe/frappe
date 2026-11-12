@@ -42,11 +42,15 @@ afterEach(() => {
 
 const qty: FieldNode = { fieldname: "qty", fieldtype: "Int", label: "Qty" };
 
-async function mount(errors: Record<string, string> | Ref<Record<string, any>>, fieldtype = "Int") {
+async function mount(
+	errors: Record<string, string> | Ref<Record<string, any>>,
+	fieldtype = "Int",
+	record: Record<string, any> = {}
+) {
 	const root = document.createElement("div");
 	document.body.appendChild(root);
 	const app = createApp(defineComponent({ render: () => h(PanelField, { field: { ...qty, fieldtype } }) }));
-	app.provide(DocKey, ref({ qty: -2 }));
+	app.provide(DocKey, ref({ qty: -2, ...record }));
 	app.provide(UpdateKey, vi.fn());
 	app.provide(CommitKey, NO_COMMIT);
 	app.provide(ResolveFieldKey, () => Control);
@@ -71,6 +75,53 @@ describe("a marked panel row", () => {
 		// `block` would override line-clamp's display and show every line.
 		expect(message.className).not.toContain("block");
 		expect(message.title).toBe("Quantity must be positive");
+	});
+
+	it("insets the message to the value's x", async () => {
+		const root = await mount({ qty: "Quantity must be positive" });
+		const row = root.querySelector<HTMLElement>('[data-fieldname="qty"]')!;
+		const message = root.querySelector<HTMLElement>("span.text-sm[title]")!;
+
+		expect(row.className).toContain("px-2");
+		expect(message.className).toContain("px-2");
+	});
+
+	it("drops a leading name of this record from the row's message and from what the control points at", async () => {
+		const stored = ref<Record<string, any>>({ qty: "Task TASK-1: 'Qty' (-2) is too small" });
+		const root = await mount(stored, "Int", { doctype: "Task", name: "TASK-1" });
+
+		const message = root.querySelector<HTMLElement>("span.text-sm[title]")!;
+		expect(message.textContent!.trim()).toBe("'Qty' (-2) is too small");
+		expect(message.title).toBe("'Qty' (-2) is too small");
+		expect(stored.value.qty).toBe("Task TASK-1: 'Qty' (-2) is too small");
+
+		root.querySelector<HTMLElement>('[data-fieldname="qty"]')!.click();
+		await nextTick();
+		const described = root.querySelector("[data-control]")!.getAttribute("aria-describedby");
+		expect(root.querySelector(`[id="${described}"]`)!.textContent!.trim()).toBe(
+			"'Qty' (-2) is too small"
+		);
+	});
+
+	it("drops the prefix from every message of a row", async () => {
+		const root = await mount(
+			{ qty: ["Task TASK-1: first", "Task TASK-1: second"] as any },
+			"Int",
+			{ doctype: "Task", name: "TASK-1" }
+		);
+
+		expect(root.querySelector("span.text-sm[title]")!.textContent!.trim()).toBe("first second");
+	});
+
+	it("keeps a message that names another record", async () => {
+		const root = await mount({ qty: "Task TASK-2: 'Qty' (-2) is too small" }, "Int", {
+			doctype: "Task",
+			name: "TASK-1",
+		});
+
+		expect(root.querySelector("span.text-sm[title]")!.textContent!.trim()).toBe(
+			"Task TASK-2: 'Qty' (-2) is too small"
+		);
 	});
 
 	it("passes the error to the control a click opens", async () => {
