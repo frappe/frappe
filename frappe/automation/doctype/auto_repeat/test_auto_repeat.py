@@ -6,6 +6,7 @@ from unittest.mock import patch
 import frappe
 from frappe.automation.doctype.auto_repeat.auto_repeat import (
 	create_repeated_entries,
+	generate_message_preview,
 	get_auto_repeat_entries,
 	get_auto_repeat_period,
 	update_reference,
@@ -430,6 +431,18 @@ class TestAutoRepeat(IntegrationTestCase):
 		self.assertEqual(
 			email["content"],
 			f"A recurring ToDo {email['name']} has been created for you via Auto Repeat {doc.name}.",
+		)
+
+	def test_message_preview_without_attach_print(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc(doctype="ToDo", description="Test message preview without print").insert()
+		doc = make_auto_repeat(reference_document=todo.name, notify=1, recipients="test@example.com")
+		doc.db_set("attach_print", 0)
+
+		self.assertEqual(
+			generate_message_preview(doc.name)["message"],
+			f"A recurring ToDo {todo.name} has been created for you via Auto Repeat {doc.name}.",
 		)
 
 	def test_attach_print_needs_draft_printing(self):
