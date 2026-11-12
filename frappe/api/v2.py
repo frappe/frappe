@@ -573,6 +573,7 @@ url_rules = [
 	Rule("/document/<doctype>/bulk_shares", methods=["POST"], endpoint=bulk_collaboration.bulk_shares),
 	Rule("/document/<doctype>/bulk_seen", methods=["POST"], endpoint=bulk_collaboration.bulk_seen),
 	Rule("/document/<doctype>/bulk_seen", methods=["DELETE"], endpoint=bulk_collaboration.bulk_unseen),
+	Rule("/document/<doctype>/bulk_print", methods=["POST"], endpoint=bulk_actions.bulk_print_docs),
 	Rule("/document/<doctype>/<path:name>/", methods=["GET"], endpoint=read_doc),
 	Rule(
 		"/document/<doctype>/<path:name>/copy",

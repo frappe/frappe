@@ -36,19 +36,28 @@ class BulkAction:
 
 	`run(doctype, name, **params)` acts on one record and raises to fail it. It must be module-level:
 	the worker imports it by path. `check(doctype, params)` refuses the whole run before any record.
+	`finish(params, result)` runs once after the last record and returns keys to add to the result.
+	`background` skips the inline path: the run always queues.
 	"""
 
 	label: str
 	run: Callable
 	check: Callable[[str, dict], None] | None = None
+	finish: Callable[[dict, dict], dict | None] | None = None
+	background: bool = False
 
 	def __post_init__(self):
-		if "<" in self.run.__qualname__ or "." in self.run.__qualname__:
-			raise ValueError("A bulk action's record function must be a module-level function")
+		for function in (self.run, self.finish):
+			if function and ("<" in function.__qualname__ or "." in function.__qualname__):
+				raise ValueError("A bulk action's functions must be module-level functions")
 
 	@property
 	def path(self) -> str:
-		return f"{self.run.__module__}.{self.run.__qualname__}"
+		return path_of(self.run)
+
+	@property
+	def finish_path(self) -> str | None:
+		return path_of(self.finish) if self.finish else None
 
 
 class Record(NamedTuple):
@@ -70,24 +79,27 @@ def run_bulk(
 	*,
 	selection: Selection | None = None,
 	params: dict | None = None,
+	limit: int | None = None,
 ) -> dict:
 	"""Run `action` on the selection in the request body, inline or as a Background Task.
 
 	`doctype` is None for a run across doctypes, which needs a `selection` of its own. A body with
-	`names` or `filters` and `or_filters` is read when no `selection` is given.
+	`names` or `filters` and `or_filters` is read when no `selection` is given. `limit` replaces the
+	site cap for an action with a cap of its own.
 	"""
 	check_gate()
 	params = params or {}
-	selection = selection or read_selection(doctype)
+	limit = limit or get_limit()
+	selection = selection or read_selection(doctype, limit)
 	total = len(selection.records) + len(selection.rejected)
-	check_cap(total)
+	check_cap(total, limit)
 
 	if action.check:
 		for dt in {doctype, *(record.doctype for record in selection.records)} - {None}:
 			action.check(dt, params)
 
-	if total <= get_async_threshold(doctype):
-		return run_records(action.run, selection, params, cross_doctype=doctype is None)
+	if total <= get_async_threshold(doctype) and not action.background:
+		return run_records(action.run, selection, params, cross_doctype=doctype is None, finish=action.finish)
 
 	return enqueue_run(action, doctype, selection, params)
 
@@ -116,8 +128,7 @@ def get_async_threshold(doctype: str | None = None) -> int:
 	return cint(value)
 
 
-def check_cap(total: int):
-	limit = get_limit()
+def check_cap(total: int, limit: int):
 	if total > limit:
 		frappe.throw(
 			_("Too many documents: a bulk action runs on at most {0} at a time.").format(limit),
@@ -125,7 +136,7 @@ def check_cap(total: int):
 		)
 
 
-def read_selection(doctype: str) -> Selection:
+def read_selection(doctype: str, limit: int | None = None) -> Selection:
 	"""`{names}` or `{filters, or_filters}` from the request body; filters follow the list's rules."""
 	form = frappe.form_dict
 
@@ -139,7 +150,9 @@ def read_selection(doctype: str) -> Selection:
 			if value and not isinstance(value, list | dict):
 				raise FrappeValueError(f"'{key}' must be a list or dictionary")
 
-		return Selection([Record(doctype, name) for name in resolve_names(doctype, filters, or_filters)], [])
+		return Selection(
+			[Record(doctype, name) for name in resolve_names(doctype, filters, or_filters, limit)], []
+		)
 
 	raise FrappeValueError("'names' must be a list")
 
@@ -158,9 +171,9 @@ def selection_from_names(doctype: str, names) -> Selection:
 	return Selection(records, rejected)
 
 
-def resolve_names(doctype: str, filters, or_filters) -> list[str]:
+def resolve_names(doctype: str, filters, or_filters, limit: int | None = None) -> list[str]:
 	"""The names a list with these filters shows the session user, one past the cap so the cap can refuse."""
-	limit = get_limit() + 1
+	limit = (limit or get_limit()) + 1
 
 	if is_virtual_doctype(doctype):
 		rows = frappe.get_list(doctype, fields=["name"], filters=filters, or_filters=or_filters, limit=limit)
@@ -191,19 +204,34 @@ def enqueue_run(action: BulkAction, doctype: str | None, selection: Selection, p
 		rejected=selection.rejected,
 		params=params,
 		cross_doctype=doctype is None,
+		finish=action.finish_path,
 	)
 	frappe.response.http_status_code = 202
 	return {"task_id": task.task_id, "job_id": task.job_id}
 
 
-def run_task(action: str, records: list, rejected: list, params: dict, cross_doctype: bool) -> dict:
+def run_task(
+	action: str, records: list, rejected: list, params: dict, cross_doctype: bool, finish: str | None = None
+) -> dict:
 	"""The worker side of `enqueue_run`; its return value is stored as the Background Task result."""
 	selection = Selection([Record(*record) for record in records], rejected)
-	return run_records(frappe.get_attr(action), selection, params, cross_doctype, task=get_current_task())
+	return run_records(
+		frappe.get_attr(action),
+		selection,
+		params,
+		cross_doctype,
+		task=get_current_task(),
+		finish=frappe.get_attr(finish) if finish else None,
+	)
 
 
 def run_records(
-	run_one: Callable, selection: Selection, params: dict, cross_doctype: bool, task=None
+	run_one: Callable,
+	selection: Selection,
+	params: dict,
+	cross_doctype: bool,
+	task=None,
+	finish: Callable | None = None,
 ) -> dict:
 	"""Run each record under a savepoint. A Background Task commits after every record."""
 	done, queued, failed = [], [], list(selection.rejected)
@@ -228,7 +256,13 @@ def run_records(
 	result = {"total": total, "done": done, "failed": failed}
 	if queued:
 		result["queued"] = queued
+	if finish:
+		result.update(finish(params, result) or {})
 	return result
+
+
+def path_of(function: Callable) -> str:
+	return f"{function.__module__}.{function.__qualname__}"
 
 
 def ref_of(record: Record, cross_doctype: bool) -> str | dict:
