@@ -1374,13 +1374,22 @@ class TypstEmitter:
 				value = _text_value(format_field_value(row, mf))
 				if not value:
 					continue
+				label = ""
 				if mf.get("show_label"):
-					value = f"{_(frappe.get_meta(row.get('doctype')).get_label(fieldname))}: {value}"
+					doctype = row.get("doctype")
+					label = (
+						_(frappe.get_meta(doctype).get_label(fieldname) or fieldname, context=doctype) + ":"
+					)
 				if first_text:
-					lines.append(f"#text(weight: 500, {q(value)})")
+					line = f"#text(weight: 500, {q(value)})"
+					if label:
+						line = f"#text(weight: 600, {q(label)}) {line}"
 					first_text = False
 				else:
-					lines.append(muted_text(value))
+					line = muted_text(value)
+					if label:
+						line = f'#text(size: 0.85em, weight: 600, fill: rgb("{MUTED}"), {q(label)}) {line}'
+				lines.append(line)
 			if not lines:
 				body = ""
 			elif len(lines) == 1:

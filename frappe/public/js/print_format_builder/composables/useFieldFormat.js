@@ -189,7 +189,13 @@ export function useFieldFormat(props, store, preview_doc) {
 	}
 
 	function row_merges(col, row) {
-		return text_merges(col).filter((mf) => !(mf.show_label && blank(row[mf.fieldname])));
+		return text_merges(col).filter(
+			(mf) =>
+				!(
+					mf.show_label &&
+					blank(frappe.utils.html2text(String(row[mf.fieldname] ?? "")).trim())
+				)
+		);
 	}
 
 	function merged_label(mf) {
@@ -253,7 +259,6 @@ export function useFieldFormat(props, store, preview_doc) {
 		format_cell,
 		has_merge,
 		image_merge,
-		text_merges,
 		format_merged,
 		merged_line,
 		row_merges,
