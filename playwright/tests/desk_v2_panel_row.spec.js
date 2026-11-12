@@ -269,6 +269,7 @@ const ONE_CLICK_TYPES = [
 	{ fieldname: "f_rating_ro", fieldtype: "Rating", label: "Read-only Rating", read_only: 1 },
 	{ fieldname: "f_color", fieldtype: "Color", label: "Color Field" },
 	{ fieldname: "f_color_empty", fieldtype: "Color", label: "Empty Color" },
+	{ fieldname: "f_color_ro", fieldtype: "Color", label: "Read-only Color", read_only: 1 },
 	{ fieldname: "f_attach", fieldtype: "Attach", label: "Attach Field" },
 	{ fieldname: "f_attach_empty", fieldtype: "Attach", label: "Empty Attach" },
 	{ fieldname: "f_attach_ro", fieldtype: "Attach", label: "Read-only Attach", read_only: 1 },
@@ -287,6 +288,7 @@ const ONE_CLICK_VALUES = {
 	f_rating: 0.6,
 	f_rating_ro: 0.6,
 	f_color: "#3b82f6",
+	f_color_ro: "#3b82f6",
 	f_attach: LONG_FILE,
 	f_attach_ro: LONG_FILE,
 	f_photo: FILE,
@@ -513,6 +515,64 @@ test.describe("Desk v2 side panel row: one-click fields", () => {
 				return (await res.json()).data.f_check;
 			})
 			.toBe(0);
+	});
+
+	test("a set Color row shows × at the right edge on hover and focus, and a click clears it without opening the picker", async ({
+		page,
+	}) => {
+		const box = row(page, "f_color").locator(
+			"xpath=ancestor::*[contains(@class,'field-box')]"
+		);
+		const clear = box.locator('[data-slot="clear"]');
+		const edge = async () => {
+			const b = await box.boundingBox();
+			const c = await clear.boundingBox();
+			return { right: b.x + b.width - (c.x + c.width), size: c.width };
+		};
+		await expect(clear).toHaveCount(1);
+		await expect(clear.locator("xpath=..")).toHaveCSS("opacity", "0");
+		const hexX = (await row(page, "f_color").locator("span.truncate").boundingBox()).x;
+		await row(page, "f_color").hover();
+		await expect(clear.locator("xpath=..")).toHaveCSS("opacity", "1");
+		expect((await edge()).right).toBeCloseTo(8, 0);
+		expect((await edge()).size).toBeCloseTo(16, 0);
+		expect((await row(page, "f_color").locator("span.truncate").boundingBox()).x).toBe(hexX);
+		await expect(clear).toHaveAttribute("aria-label", "Clear");
+		await expect(clear).toHaveAttribute("title", "Clear");
+		await expect(
+			row(page, "f_color_ro").locator("xpath=..").locator('[data-slot="clear"]')
+		).toHaveCount(0);
+		await expect(
+			row(page, "f_color_empty").locator("xpath=..").locator('[data-slot="clear"]')
+		).toHaveCount(0);
+		await page.mouse.move(5, 5);
+		await box.locator('button[data-slot="control"]').focus();
+		await page.keyboard.press("Tab");
+		await expect(clear).toBeFocused();
+		await expect(clear.locator("xpath=..")).toHaveCSS("opacity", "1");
+		await clear.click();
+		await expect(page.locator('[data-slot="color-area"]')).toHaveCount(0);
+		await expect(row(page, "f_color")).toHaveText("Add Color Field...");
+		await expect(clear).toHaveCount(0);
+		await expect(box.locator('button[data-slot="control"]')).toBeFocused();
+	});
+
+	test("the open Color picker draws no outline around its rounded card, even when it holds focus", async ({
+		page,
+	}) => {
+		await row(page, "f_color").click();
+		await expect(page.locator('[data-slot="color-area"]')).toBeVisible();
+		await page.keyboard.press("Tab");
+		const outline = await page.evaluate(() => {
+			const content = document.querySelector('[data-slot="content"][role="dialog"]');
+			content.focus();
+			return {
+				focused: document.activeElement === content,
+				visible: content.matches(":focus-visible"),
+				style: getComputedStyle(content).outlineStyle,
+			};
+		});
+		expect(outline).toEqual({ focused: true, visible: true, style: "none" });
 	});
 
 	test("a Color row opens its picker below the row and saves when it closes", async ({

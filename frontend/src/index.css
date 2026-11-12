@@ -3,3 +3,11 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* A popover's content holds focus as a container, not a control: frappe-ui's global
+   `:focus-visible` ring would draw a square outline around its rounded card. */
+@layer base {
+	[data-slot="content"][role="dialog"]:focus-visible {
+		outline: none;
+	}
+}

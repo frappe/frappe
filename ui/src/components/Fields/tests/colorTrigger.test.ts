@@ -88,6 +88,39 @@ describe("a panel Color row", () => {
     expect(document.querySelector("[data-slot=color-area]")).toBeNull();
   });
 
+  it("clears a set color with the × and commits at once, opening no picker", async () => {
+    const { doc, committed, updates } = render("#3b82f6");
+    const clear = host!.querySelector("button[data-slot=clear]") as HTMLButtonElement;
+    expect(clear.getAttribute("aria-label")).toBe("Clear");
+    expect(clear.title).toBe("Clear");
+    expect(clear.querySelector(".lucide-x")).not.toBeNull();
+    clear.click();
+    await settle();
+    expect(updates).toEqual([""]);
+    expect(committed).toEqual([""]);
+    expect(doc.value).toBe("");
+    expect(document.querySelector("[data-slot=color-area]")).toBeNull();
+    expect(host!.querySelector("button[data-slot=clear]")).toBeNull();
+  });
+
+  it("hands the focus back to the row when the × that held it goes away", async () => {
+    const { trigger } = render("#3b82f6");
+    const clear = host!.querySelector("button[data-slot=clear]") as HTMLButtonElement;
+    clear.focus();
+    clear.click();
+    await settle();
+    expect(document.activeElement).toBe(trigger);
+  });
+
+  it("draws no × on an empty row or a read-only row", () => {
+    render("");
+    expect(host!.querySelector("button[data-slot=clear]")).toBeNull();
+    app?.unmount();
+    host?.remove();
+    render("#3b82f6", true);
+    expect(host!.querySelector("button[data-slot=clear]")).toBeNull();
+  });
+
   it("commits a swatch once and closes", async () => {
     const { doc, trigger, committed } = render("");
     await open(trigger);
