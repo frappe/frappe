@@ -188,11 +188,17 @@ def update_one(doctype: str, name: str, values: dict | None = None, child_values
 
 
 def refuse_workflow_without_allow_edit(doctype: str, params: dict):
-	"""A workflow owns the states of its records, so Edit and Delete need List View Settings to allow it."""
-	if get_workflow_name(doctype) and not frappe.db.get_value("List View Settings", doctype, "allow_edit"):
+	if not bulk_edit_allowed(doctype):
 		frappe.throw(
 			_("{0} has a workflow: allow bulk edit in its List View Settings first.").format(doctype)
 		)
+
+
+def bulk_edit_allowed(doctype: str) -> bool:
+	"""A workflow owns the states of its records, so Edit and Delete need List View Settings to allow it."""
+	return not get_workflow_name(doctype) or bool(
+		frappe.db.get_value("List View Settings", doctype, "allow_edit")
+	)
 
 
 def refuse_submit_cancel(doctype: str, params: dict):

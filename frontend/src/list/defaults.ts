@@ -17,6 +17,8 @@ export interface ListMeta {
 	is_virtual?: 0 | 1;
 	workflow_state_field?: string | null;
 	workflow_state_styles?: Record<string, string>;
+	/** False on a workflow doctype whose List View Settings do not allow bulk Edit and Delete. */
+	allow_bulk_edit?: boolean;
 	track_seen?: 0 | 1;
 }
 

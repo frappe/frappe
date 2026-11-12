@@ -45,8 +45,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, nextTick, provide, ref, useTemplateRef, watch } from "vue";
+import { computed, inject, nextTick, onUnmounted, provide, ref, useTemplateRef, watch } from "vue";
 import { useRouter } from "vue-router";
+import { acts } from "@/acts/dispatcher";
 import type { Boot } from "@/boot";
 import { opensInDialog } from "@/contributions/registry";
 import { useEventListener } from "@vueuse/core";
@@ -85,6 +86,17 @@ const props = defineProps<{ request: CreateRequest }>();
 const { doctype, values } = props.request;
 
 const router = useRouter();
+// The page's act surfaces stay off behind the dialog, as a record dialog's own take them over.
+onUnmounted(
+	acts.register({
+		surfaces: { header: () => [], quickActions: () => [], tabs: () => [] },
+		context: () => undefined,
+		passes: () => false,
+		settled: () => undefined,
+		hold: async (work) => work(),
+		failed: () => {},
+	})
+);
 // An opted-in doctype has no full page to hand over to: the dialog is its only form.
 const inDialog = opensInDialog(doctype, inject<Boot | null>("boot", null)?.app ?? null);
 const { meta } = useDoctypeMeta(doctype);

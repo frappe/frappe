@@ -6,6 +6,11 @@ vi.mock("@framework/ui/api", async (original) => ({
 	bulkUpdateDocuments: vi.fn(),
 }));
 import { bulkUpdateDocuments } from "@framework/ui/api";
+import { bulkPanel, bulkRunMeta } from "@/shell/bulkOutcome";
+
+const follow = vi.hoisted(() => vi.fn());
+vi.mock("@/shell/bulkRuns", () => ({ followBulkRun: follow }));
+vi.mock("frappe-ui", () => ({ toast: { success: vi.fn(), info: vi.fn() } }));
 
 const field = (fieldname: string, extra: Record<string, unknown> = {}) =>
 	({ fieldname, label: fieldname.toUpperCase(), fieldtype: "Data", ...extra }) as never;
@@ -41,20 +46,27 @@ describe("bulk edit request", () => {
 		expect(updateFrom(picked)).toEqual({ values: { title: null }, child_values: { items: { qty: 3 } } });
 	});
 
-	it("posts the scope, reloads and reports what failed", async () => {
+	it("posts the scope, reloads, and opens the result panel whose Retry sends only the failed names", async () => {
 		const reload = vi.fn();
-		vi.mocked(bulkUpdateDocuments).mockResolvedValueOnce({
-			data: { total: 2, done: ["A"], failed: [{ name: "B", error: "no" }] },
-		} as never);
-		const outcome = await updateRows("Doc", { reload }, { names: ["A", "B"] }, { values: { x: 1 } });
-		expect(bulkUpdateDocuments).toHaveBeenCalledWith("Doc", { names: ["A", "B"] }, { values: { x: 1 } });
+		const select = vi.fn();
+		vi.mocked(bulkUpdateDocuments)
+			.mockResolvedValueOnce({ data: { total: 2, done: ["A"], failed: [{ name: "B", error: "no" }] } } as never)
+			.mockResolvedValueOnce({ data: { total: 1, done: ["B"], failed: [] } } as never);
+		await updateRows("Doc", { reload }, { filters: {} }, { values: { x: 1 } }, select);
+		expect(bulkUpdateDocuments).toHaveBeenCalledWith("Doc", { filters: {} }, { values: { x: 1 } });
 		expect(reload).toHaveBeenCalled();
-		expect(outcome).toEqual({ updated: ["A"], failed: [{ name: "B", error: "no" }] });
+		expect(bulkPanel.value).toMatchObject({ label: "Edit", failed: [{ name: "B", error: "no" }], select });
+		await bulkPanel.value!.retry!(["B"]);
+		expect(bulkUpdateDocuments).toHaveBeenLastCalledWith("Doc", { names: ["B"] }, { values: { x: 1 } });
+		bulkPanel.value = null;
 	});
 
-	it("hands a background run's task to the caller", async () => {
+	it("hands a background run to the tray with its Retry", async () => {
+		const reload = vi.fn();
 		vi.mocked(bulkUpdateDocuments).mockResolvedValueOnce({ data: { task_id: "T", job_id: "J" } } as never);
-		const outcome = await updateRows("Doc", { reload: vi.fn() }, { filters: {} }, { values: { x: 1 } });
-		expect(outcome.queued).toEqual({ task_id: "T" });
+		await updateRows("Doc", { reload }, { filters: {} }, { values: { x: 1 } });
+		expect(bulkRunMeta.get("T")).toMatchObject({ label: "Edit", doctype: "Doc" });
+		expect(bulkRunMeta.get("T")?.retry).toBeTypeOf("function");
+		expect(follow).toHaveBeenCalledWith("T", expect.any(Function));
 	});
 });

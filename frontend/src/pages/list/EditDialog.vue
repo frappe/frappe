@@ -26,6 +26,14 @@
 							:layout="layoutOf(row)"
 							:doctype="fieldOf(row.key)!.doctype"
 						/>
+						<p
+							v-if="row.key && clears(row.doc[fieldOf(row.key)!.field.fieldname])"
+							class="mt-1.5 text-p-sm text-ink-gray-6"
+						>
+							{{
+								__("You have not entered a value. The field will be set to empty.")
+							}}
+						</p>
 					</div>
 					<Button
 						class="shrink-0"
@@ -56,10 +64,10 @@
 import { getMeta } from "@framework/ui/api";
 import { FormLayout, fieldsToLayout, mapField, type RawMetaField } from "@framework/ui/FormLayout";
 import { CommitKey, NO_COMMIT } from "@framework/ui/FormLayout/types";
-import { Button, Dialog, Select, toast } from "frappe-ui";
+import { Button, Dialog, Select } from "frappe-ui";
 import { computed, provide, ref, watch } from "vue";
 import { __, __n } from "@/i18n";
-import { editableFields, updateFrom, type EditOutcome, type EditableField } from "@/list/bulkEdit";
+import { clears, editableFields, updateFrom, type EditableField } from "@/list/bulkEdit";
 import type { BulkUpdate } from "@framework/ui/api";
 
 const props = defineProps<{
@@ -69,9 +77,8 @@ const props = defineProps<{
 	all?: boolean;
 	/** The count is a floor, shown with a "+". */
 	approx?: boolean;
-	run: (update: BulkUpdate) => Promise<EditOutcome>;
-	/** Follows a background run in the shell. */
-	follow: (taskId: string) => void;
+	/** Sends the update; the shell reports how it went. */
+	run: (update: BulkUpdate) => Promise<void>;
 }>();
 const open = defineModel<boolean>({ default: false });
 
@@ -137,7 +144,9 @@ const optionsFor = (current: string) =>
 
 function pick(row: EditRow, key: string) {
 	row.key = key;
-	row.doc = {};
+	const { fieldname, fieldtype } = fieldOf(key)!.field;
+	// An unticked Check shows 0; an empty doc would send null.
+	row.doc = fieldtype === "Check" ? { [fieldname]: 0 } : {};
 }
 
 function layoutOf(row: EditRow) {
@@ -192,30 +201,13 @@ async function confirm() {
 	saving.value = true;
 	failure.value = "";
 	try {
-		report(await props.run(updateFrom(picked.value)));
+		await props.run(updateFrom(picked.value));
+		open.value = false;
 	} catch (error) {
 		failure.value = error instanceof Error ? error.message : String(error);
 	} finally {
 		saving.value = false;
 	}
-}
-
-function report(outcome: EditOutcome) {
-	if (outcome.queued) {
-		toast.info(__("Updating in the background"));
-		props.follow(outcome.queued.task_id);
-	}
-	if (outcome.updated.length)
-		toast.success(
-			__n("Updated {0} record", "Updated {0} records", outcome.updated.length, [
-				outcome.updated.length,
-			])
-		);
-	if (!outcome.failed.length) {
-		open.value = false;
-		return;
-	}
-	failure.value = outcome.failed.map(({ name, error }) => `${name}: ${error}`).join("\n");
 }
 </script>
 

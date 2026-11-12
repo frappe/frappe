@@ -149,7 +149,7 @@ class Exporter:
 
 	def get_data_to_export(self):
 		table_fields = [f for f in self.exportable_fields if f != self.doctype]
-		data = self.get_data_as_docs()
+		data = list(self.get_data_as_docs())
 
 		if not frappe.permissions.can_export(self.doctype):
 			if frappe.permissions.can_export(self.doctype, is_owner=True):

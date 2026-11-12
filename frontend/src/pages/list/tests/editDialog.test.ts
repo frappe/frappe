@@ -1,9 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, h, nextTick, ref, type App } from "vue";
-import type { EditOutcome } from "@/list/bulkEdit";
 import EditDialog from "../EditDialog.vue";
-
-const fake = vi.hoisted(() => ({ success: vi.fn(), info: vi.fn() }));
 
 // Reka's select draws no <select> in jsdom: a native one stands in so a test can pick an option.
 vi.mock("frappe-ui", async (importOriginal) => {
@@ -24,7 +21,7 @@ vi.mock("frappe-ui", async (importOriginal) => {
 					]
 				),
 	});
-	return { ...(await importOriginal<typeof import("frappe-ui")>()), Select, toast: { success: fake.success, info: fake.info } };
+	return { ...(await importOriginal<typeof import("frappe-ui")>()), Select };
 });
 vi.mock("@framework/ui/api", async (importOriginal) => ({
 	...(await importOriginal<object>()),
@@ -56,17 +53,24 @@ async function settle() {
 	await nextTick();
 }
 
-async function open(run: (update: unknown) => Promise<EditOutcome>, scope = {}) {
+async function open(run: (update: unknown) => Promise<void>, scope = {}) {
 	const host = document.createElement("div");
 	document.body.append(host);
 	const shown = ref(true);
-	const follow = vi.fn();
 	mounted = createApp({
-		render: () => h(EditDialog, { modelValue: shown.value, doctype: "ToDo", count: 2, ...scope, run, follow }),
+		render: () =>
+			h(EditDialog, {
+				modelValue: shown.value,
+				"onUpdate:modelValue": (value: boolean) => (shown.value = value),
+				doctype: "ToDo",
+				count: 2,
+				...scope,
+				run,
+			}),
 	});
 	mounted.mount(host);
 	await settle();
-	return follow;
+	return shown;
 }
 
 const text = () => document.body.textContent ?? "";
@@ -90,7 +94,7 @@ afterEach(() => {
 
 describe("EditDialog", () => {
 	it("names the scope and offers only the fields a bulk edit may set", async () => {
-		await open(async () => ({ updated: [], failed: [] }));
+		await open(async () => {});
 		expect(text()).toContain("Edit 2 selected records");
 		const labels = Array.from(document.body.querySelector("select")!.options).map((one) => one.textContent?.trim());
 		expect(labels).toContain("Description");
@@ -100,7 +104,7 @@ describe("EditDialog", () => {
 	});
 
 	it("draws the value as one bare control: no label, description or condition", async () => {
-		await open(async () => ({ updated: [], failed: [] }));
+		await open(async () => {});
 		await pick("Note");
 		const row = document.body.querySelector("[role='group'][aria-label='Note']")!;
 		expect(row.querySelector("input[placeholder='Note']")).not.toBeNull();
@@ -110,7 +114,7 @@ describe("EditDialog", () => {
 	});
 
 	it("draws a Check value as a bare checkbox in a group named for the field", async () => {
-		await open(async () => ({ updated: [], failed: [] }));
+		await open(async () => {});
 		await pick("Done");
 		const row = document.body.querySelector("[role='group'][aria-label='Done']")!;
 		expect(row.querySelector("input[type='checkbox']")).not.toBeNull();
@@ -118,13 +122,13 @@ describe("EditDialog", () => {
 	});
 
 	it("names every matching record when the run takes the filters", async () => {
-		await open(async () => ({ updated: [], failed: [] }), { all: true, count: 10000, approx: true });
+		await open(async () => {}, { all: true, count: 10000, approx: true });
 		expect(text()).toContain("Edit all 10,000+ matching records");
 	});
 
-	it("sends one set of values for the fields picked", async () => {
-		const run = vi.fn(async () => ({ updated: ["A", "B"], failed: [] }));
-		await open(run);
+	it("sends one set of values for the fields picked and closes", async () => {
+		const run = vi.fn(async () => {});
+		const shown = await open(run);
 		await pick("Priority");
 		const priority = document.body.querySelectorAll("select")[1] as HTMLSelectElement;
 		priority.value = "High";
@@ -133,31 +137,38 @@ describe("EditDialog", () => {
 		button("Update")!.click();
 		await settle();
 		expect(run).toHaveBeenCalledWith({ values: { priority: "High" } });
-		expect(fake.success).toHaveBeenCalledWith("Updated 2 records");
+		expect(shown.value).toBe(false);
 	});
 
-	it("keeps the dialog open with each failure, one per line", async () => {
-		await open(async () => ({ updated: ["A"], failed: [{ name: "B", error: "locked" }] }));
-		await pick("Description");
+	it("notes that a picked field with no value is set to empty, and drops the note once it has one", async () => {
+		const note = "You have not entered a value. The field will be set to empty.";
+		await open(async () => {});
+		expect(text()).not.toContain(note);
+		await pick("Priority");
+		expect(text()).toContain(note);
+		const priority = document.body.querySelectorAll("select")[1] as HTMLSelectElement;
+		priority.value = "High";
+		priority.dispatchEvent(new Event("change", { bubbles: true }));
+		await settle();
+		expect(text()).not.toContain(note);
+	});
+
+	it("sends an unticked Check as 0 with no empty note, as v1 does", async () => {
+		const run = vi.fn(async () => {});
+		await open(run);
+		await pick("Done");
+		expect(text()).not.toContain("You have not entered a value");
 		button("Update")!.click();
 		await settle();
-		expect(text()).toContain("B: locked");
+		expect(run).toHaveBeenCalledWith({ values: { done: 0 } });
 	});
 
 	it("shows why the whole run was refused", async () => {
-		await open(async () => Promise.reject(new Error("Edit is off for this workflow")));
+		const shown = await open(async () => Promise.reject(new Error("Edit is off for this workflow")));
 		await pick("Description");
 		button("Update")!.click();
 		await settle();
 		expect(text()).toContain("Edit is off for this workflow");
-	});
-
-	it("follows a run that went to the background", async () => {
-		const follow = await open(async () => ({ updated: [], failed: [], queued: { task_id: "T1" } }));
-		await pick("Description");
-		button("Update")!.click();
-		await settle();
-		expect(fake.info).toHaveBeenCalledWith("Updating in the background");
-		expect(follow).toHaveBeenCalledWith("T1");
+		expect(shown.value).toBe(true);
 	});
 });

@@ -378,6 +378,7 @@ def get_meta(doctype: str):
 	return {
 		**meta,
 		"workflow_state_field": get_doctype_state_field(doctype),
+		"allow_bulk_edit": bulk_actions.bulk_edit_allowed(doctype),
 		"workflow_state_styles": get_workflow_state_styles(doctype),
 	}
 

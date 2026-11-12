@@ -138,6 +138,18 @@ describe("useBulkScope", () => {
     expect(scope.all.value).toBe(false);
   });
 
+  it("keeps selected names that are not on the loaded page across a reload (Select failed)", async () => {
+    const { scope, rows, selection } = setup();
+    selection.value = ["X", "Y"];
+    rows.value = named(["A", "B", "C"]);
+    await nextTick();
+    rows.value = named(["B", "C", "D"]);
+    await nextTick();
+    expect(selection.value).toEqual(["X", "Y"]);
+    expect(scope.count.value).toBe(2);
+    expect(scope.selected()).toEqual({ names: ["X", "Y"] });
+  });
+
   it("holds Select all back while a hidden row is selected, since it would drop it", async () => {
     const { scope, rows, selection, query } = setup();
     selection.value = ["A", "B", "C"];

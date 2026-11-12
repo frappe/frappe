@@ -17,7 +17,7 @@ import type { BulkBarOptions } from "./useBulkBar";
 export { default as BulkBar } from "./BulkBar.vue";
 export { PrintDialog } from "./bulkPrint";
 export { lazyBulkCollabDialog } from "./lazyBulkCollabDialog";
-export { selectionTsv } from "@/list/bulkCopy";
+export { selectionTsv, withHiddenRows } from "@/list/bulkCopy";
 
 export const DeleteDialog = lazyDialog(
   () => import("./DeleteDialog.vue"),
@@ -73,7 +73,14 @@ export function bulkBarParts(options: BulkBarOptions, boot: Boot, listActs: List
   const print = useBulkPrint(options.scope, boot.max_bulk_print_docs);
   const askPrint = print.ask;
 
-  const builtins = (): ListPageAction[] => [
+  const builtins = (): ListPageAction[] => {
+    const all = everyBuiltin();
+    return options.meta.value?.allow_bulk_edit === false
+      ? all.filter(({ name }) => name !== "edit" && name !== "delete")
+      : all;
+  };
+
+  const everyBuiltin = (): ListPageAction[] => [
     ...status.items.value,
     ...collab.items(),
     {
@@ -123,8 +130,6 @@ export function bulkBarParts(options: BulkBarOptions, boot: Boot, listActs: List
 
   // The palette runs an act with no value or an option, so the wrapper always hands `run` the selection, as the bar does.
   function entries(): ActEntry[] {
-    const { scope } = options;
-    const count = scope.count.value;
     return bulkList
       .resolve()
       .filter(({ item }) => item.run)
@@ -133,8 +138,7 @@ export function bulkBarParts(options: BulkBarOptions, boot: Boot, listActs: List
           ...item,
           label: item.label && scopedLabel(item.label),
           argument: undefined,
-          palette:
-            (scope.all.value && !onScope(item.run)) || (count > cap && !item.uncapped) ? (false as const) : item.palette,
+          palette: disabled(item) ? (false as const) : item.palette,
           run: (page: ListPageApi) => item.run!(page, [...selection.value]),
         },
         hidden,
@@ -148,10 +152,11 @@ export function bulkBarParts(options: BulkBarOptions, boot: Boot, listActs: List
       : __("{0} {1} selected", [label, scope.count.value]);
   }
 
-  // Delete, the status actions and the collaboration acts run over all matching and show in the palette for it; Edit, Export and Print read the scope in their dialogs only.
-  const onScope = (run: unknown) => run === askDelete || status.owns(run as ListPageAction["run"]) || collab.takesScope(run);
   // Select all disables what takes row names: it would run on the loaded rows alone. Print has its own cap, checked when it opens.
-  const readsScope = (run: unknown) => onScope(run) || run === askEdit || run === askExport || run === askPrint;
+  const readsScope = (run: unknown) =>
+    [askDelete, askEdit, askExport, askPrint].includes(run as never) ||
+    status.owns(run as ListPageAction["run"]) ||
+    collab.takesScope(run);
   // The exporter takes no `or_filters`: it would export more than the filters show.
   const disabled = ({ name, uncapped, run }: { name: string; uncapped?: boolean; run?: unknown }) =>
     (name === "export" && exportFilters(options.scope.selected()) === null) ||

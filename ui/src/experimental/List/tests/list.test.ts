@@ -214,6 +214,25 @@ describe("List selection", () => {
 
     expect(state.selection).toEqual(["A", "B"]);
   });
+
+  it("Esc on the focused header checkbox clears the selection", async () => {
+    const state = reactive({ selection: ["A"] });
+    const { root } = await mount(List, {
+      columns,
+      rows,
+      get selection() {
+        return state.selection;
+      },
+      "onUpdate:selection": (value: string[]) => (state.selection = value),
+    });
+
+    root
+      .querySelector("[data-slot='list-header'] input[type='checkbox']")!
+      .dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    await flush();
+
+    expect(state.selection).toEqual([]);
+  });
 });
 
 describe("List bar", () => {

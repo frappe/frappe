@@ -96,6 +96,7 @@ vi.mock("@framework/ui/FormLayout", async (importOriginal) => {
 	};
 });
 
+import { acts } from "@/acts/dispatcher";
 import { Addresses } from "@/addresses";
 import type { Boot } from "@/boot";
 import { resetFormLayouts } from "@/recordPage";
@@ -681,5 +682,28 @@ describe("the row and late defaults", () => {
 		answerDefaults();
 		await settle();
 		expect(shownFields(root)).toEqual(["title", "status", "source"]);
+	});
+});
+
+describe("the page's acts behind the dialog", () => {
+	it("keeps the page's header acts off while open, and gives them back once it closes", async () => {
+		const run = vi.fn();
+		const release = acts.register({
+			surfaces: { header: () => [{ item: { name: "print", key: "Alt+P", run }, hidden: false }] },
+			context: () => ({}),
+			passes: () => true,
+			settled: () => undefined,
+			hold: async (work) => work(),
+			failed: () => {},
+		});
+		await open("Lead");
+
+		expect(acts.find("header.print")).toBeUndefined();
+		await acts.perform("header.print");
+		expect(run).not.toHaveBeenCalled();
+
+		apps.pop()!.unmount();
+		expect(acts.find("header.print")).toBeTruthy();
+		release();
 	});
 });
