@@ -767,7 +767,8 @@ Each act fires a pair of events: `beforeSubmit` and `afterSubmit`, `beforeCancel
 confirms; a declined confirm fires no event. A throw in a `before*` event is a veto, as in
 `beforeSave`: nothing is sent, and a click shows the message while `page.run` rejects with it. A
 `before*` handler that leaves unsaved edits also stops the act, because the server acts on the
-saved row: save inside the handler with `await page.save()`. The `after*` event fires only when
+saved row: save inside the handler with `if (!(await page.save())) return`, and a failed save, which
+`page.save()` has already shown, leaves the act to the stale-edit stop. The `after*` event fires only when
 the server accepted.
 
 ### The script this design was judged by
@@ -1371,7 +1372,18 @@ order is fixed:
    child rows included, is marked "{label} is required", and nothing is sent.
 5. The whole document goes to the server. A refusal shows its message and marks each field
    it names.
-6. `afterSave` fires only when the server accepted.
+6. `afterSave` fires only when the server accepted. A handler that throws is isolated, and the
+   save stays saved.
+
+`page.save()` never rejects. It shows a failure itself, with one toast, and resolves `false`: a
+veto, a missing mandatory field, a server refusal, a conflict the reader met in a dialog, or the
+reader cancelling the required-fields dialog. It resolves `true` when the record was saved, and
+on a clean document. Do not show the failure again; branch on the result:
+
+```js
+if (!(await page.save())) return
+// the record is saved here
+```
 
 After a failed save the reader lands on the first marked field in form order, as `focus`
 moves them. A marked row cell lands on its table.

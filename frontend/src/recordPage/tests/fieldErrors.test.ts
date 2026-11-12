@@ -100,12 +100,14 @@ describe("the mandatory check", () => {
   it("marks an empty mandatory field, focuses it, and sends nothing", async () => {
     const { host, doc, landed, writes } = makeHost();
     doc.value.customer = "";
-    const controller = createRecordPage(host);
+    const saveFailed = vi.fn();
+    const controller = createRecordPage({ ...host, saveFailed });
 
-    const refused = controller.page.save();
+    expect(await controller.page.save()).toBe(false);
 
-    await expect(refused).rejects.toThrow("Please fill in Customer");
-    await expect(refused).rejects.toMatchObject({ name: SAVE_VETO });
+    expect(saveFailed).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({ name: SAVE_VETO, message: expect.stringContaining("Please fill in Customer") }),
+    );
     expect(writes).toEqual([]);
     expect(controller.fieldErrors.drawn.value).toEqual({ customer: "Customer is required" });
     expect(landed).toEqual(["customer"]);
@@ -116,7 +118,7 @@ describe("the mandatory check", () => {
     doc.value.items[1].item = "";
     const controller = createRecordPage(host);
 
-    await expect(controller.page.save()).rejects.toThrow("Please fill in Items");
+    expect(await controller.page.save()).toBe(false);
 
     expect(controller.fieldErrors.drawn.value).toEqual({ [ITEM("name:r2")]: "Item is required" });
     expect(landed).toEqual(["items"]);
@@ -156,7 +158,7 @@ describe("a refused save", () => {
       },
     });
 
-    await expect(controller.page.save()).rejects.toThrow("Refused");
+    expect(await controller.page.save()).toBe(false);
 
     expect(controller.fieldErrors.drawn.value).toEqual({
       [ITEM("name:r2")]: "Nut is gone",
@@ -180,7 +182,7 @@ describe("a refused save", () => {
       },
     });
 
-    await expect(controller.page.save()).rejects.toThrow();
+    expect(await controller.page.save()).toBe(false);
 
     expect(controller.fieldErrors.drawn.value).toEqual({ [ITEM("new:row-9")]: "Item is required" });
   });
@@ -219,12 +221,14 @@ describe("page.fields.setError and clearError", () => {
         throw page.fields.setError("qty", "Quantity must be positive");
       },
     });
-    const controller = createRecordPage(host);
+    const saveFailed = vi.fn();
+    const controller = createRecordPage({ ...host, saveFailed });
 
-    const refused = controller.page.save();
+    expect(await controller.page.save()).toBe(false);
 
-    await expect(refused).rejects.toThrow("Quantity must be positive");
-    await expect(refused).rejects.toMatchObject({ name: SAVE_VETO });
+    expect(saveFailed).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({ name: SAVE_VETO, message: "Quantity must be positive" }),
+    );
     expect(writes).toEqual([]);
     expect(controller.fieldErrors.drawn.value).toEqual({ qty: "Quantity must be positive" });
     expect(landed).toEqual(["qty"]);

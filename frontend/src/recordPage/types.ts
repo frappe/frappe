@@ -383,7 +383,8 @@ export interface RecordPageApi extends PageApi {
   composer: PageComposer;
   /** The child table's rows as handles, in array order; a non-table fieldname answers empty. */
   rows(parentfield: string): PageRow[];
-  save(): Promise<void>;
+  /** Saves the draft and shows a failure itself; resolves `true` when saved or already clean, `false` when a veto, the server or the reader refused it. */
+  save(): Promise<boolean>;
   /** Saves a dirty draft, renames the record and opens it at its new name; `null` when refused or not on a saved record. */
   rename(name: string, options?: { merge?: boolean }): Promise<string | null>;
   reload(): Promise<void>;

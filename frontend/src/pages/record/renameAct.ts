@@ -4,7 +4,6 @@ import { renameDocument } from "@framework/ui/api";
 import { __ } from "@/i18n";
 import { errorMessage, type HeaderItem, type RecordPageApi } from "@/recordPage";
 import { routeFor } from "@/router/routeFor";
-import { runSave } from "./recordSave";
 import { stripTags } from "./saveResponse";
 
 export function renameItem(): HeaderItem {
@@ -25,7 +24,7 @@ export async function renameRecord(
   merge: boolean,
   onRecord: () => boolean
 ): Promise<string | null> {
-  if (!(await runSave(page)) || !onRecord()) return null;
+  if (!(await page.save()) || !onRecord()) return null;
   let renamed: string;
   try {
     ({ data: renamed } = await renameDocument(page.doctype, page.docname, name, { merge }));

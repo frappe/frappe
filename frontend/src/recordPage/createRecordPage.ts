@@ -160,6 +160,8 @@ export interface RecordPageHost {
   focusField?: (fieldname: string, cursor: boolean) => void;
   /** Writes the draft; the engine flushes and fires `beforeSave` before it, `afterSave` after. */
   save: () => Promise<void>;
+  /** Shows a failed `page.save()` to the reader; absent, it toasts the message. */
+  saveFailed?: (error: unknown) => void;
   /** Asks the reader to confirm a Submit or Cancel; false when the reader declines. */
   confirmDocstatus?: (act: "submit" | "cancel") => Promise<boolean>;
   /** Submits the saved draft; the engine has already confirmed and fired `beforeSubmit`. Resolves `{ queued: true }` when a job will act, which skips `afterSubmit`. */
@@ -438,10 +440,18 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   // One sequence at a time: a second `page.save()` mid-flight joins it, so no handler fires twice.
   const saving = shallowRef<Promise<void> | null>(null);
 
-  /** The one save path: a clean saved doc resolves at once, a `beforeSave` throw sends nothing, and it paints once. */
-  function save() {
-    if (engine.hasLeft() || (!page.isNew && !host.isDirty())) return Promise.resolve();
-    return saveNow();
+  const reportSave = reportOnce((error) =>
+    host.saveFailed ? host.saveFailed(error) : void toast.error(errorMessage(error)),
+  );
+
+  /** The one save path: a clean saved doc resolves `true` at once, a `beforeSave` throw sends nothing, and it paints once. A failure is shown here and resolves `false`. */
+  function save(): Promise<boolean> {
+    if (engine.hasLeft()) return Promise.resolve(false);
+    if (!page.isNew && !host.isDirty()) return Promise.resolve(true);
+    return saveNow().then(
+      () => true,
+      (error) => (reportSave(error), false),
+    );
   }
 
   function saveNow(submitting = false) {

@@ -97,7 +97,7 @@ import { discardChanges } from "@/pages/record/discardChanges";
 import { landOnField } from "@/pages/record/landOnField";
 import { fetchMeta } from "@/pages/record/metaSource";
 import { buttonClicks, provideRecordCommits } from "@/pages/record/recordCommits";
-import { runSave } from "@/pages/record/recordSave";
+import { reportSaveFailure } from "@/pages/record/recordSave";
 import { useUnloadGuard } from "@/unloadGuard";
 import { loadRecord, saveRecord } from "@/pages/record/recordSource";
 import { conflictError, stripTags } from "@/pages/record/saveResponse";
@@ -264,6 +264,7 @@ function buildController() {
 		childFields: (child) => metas.value[child]?.fields,
 		sourcesReady: () => loadRecordScripts(doctype),
 		actFailed: (exception) => toast.error(errorMessage(exception)),
+		saveFailed: reportSaveFailure,
 		openArgument: openArgumentStep,
 		activityRows: () => [],
 		scrollToActivity: async () => false,
@@ -307,7 +308,7 @@ async function save() {
 	error.value = "";
 	saving.value = true;
 	try {
-		if (await runSave(controller.value.page)) isOpen.value = false;
+		if (await controller.value.page.save()) isOpen.value = false;
 	} finally {
 		saving.value = false;
 	}

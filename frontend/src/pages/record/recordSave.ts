@@ -2,22 +2,14 @@
 // question before a reload or a tab close loses unsaved changes.
 import { onMounted, onUnmounted } from "vue";
 import { toast } from "frappe-ui";
-import { errorMessage, reportOnce, type RecordPageApi } from "@/recordPage";
+import { errorMessage } from "@/recordPage";
 import { overlayOf } from "@/shell/overlay";
 import { shownInDialog } from "./saveResponse";
 import { useUnloadGuard } from "@/unloadGuard";
 
-const toastFailure = reportOnce((exception: unknown) => toast.error(errorMessage(exception)));
-
-/** Not through an action runner: a failed save keeps the draft on screen and toasts, unless a dialog showed it. */
-export async function runSave(page: RecordPageApi | undefined): Promise<boolean> {
-	try {
-		await page?.save();
-		return true;
-	} catch (exception) {
-		if (!shownInDialog(exception)) toastFailure(exception);
-		return false;
-	}
+/** The host's `saveFailed`: a failed save keeps the draft on screen and toasts, unless a dialog showed it. */
+export function reportSaveFailure(exception: unknown) {
+	if (!shownInDialog(exception)) toast.error(errorMessage(exception));
 }
 
 /** Ctrl/Cmd+S from inside `dialog` calls `save` once per press; a reload or a tab close asks while `unsaved` is true. */
