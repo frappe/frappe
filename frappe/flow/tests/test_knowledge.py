@@ -847,6 +847,30 @@ class TestDoctypeSync(IntegrationTestCase):
 		self._sync(source.name, rebuild=True)
 		self.assertIn("Status: Closed", " ".join(self._content(source.name, todo.name)))
 
+	def test_moving_a_source_moves_its_chunks(self):
+		self._todo("SYNCTEST alpha")
+		source = self._source()
+		self._sync(source.name)
+		other = frappe.get_doc({"doctype": "Flow Knowledge Base", "title": "Other Sync KB"}).insert()
+
+		source.knowledge_base = other.name
+		with patch("frappe.flow.knowledge.ingest.enqueue_ingestion") as enqueue:
+			source.save()
+		# moved at once, with nothing to re-chunk that could fail
+		enqueue.assert_not_called()
+
+		query = [0.1, 0.2, 0.3, 0.4]
+		self.assertEqual(store.search(query, kbs=[self.kb.name]), [])
+		self.assertTrue(store.search(query, kbs=[other.name]))
+		chunks = frappe.get_all("Flow Knowledge Chunk", {"source": source.name}, pluck="knowledge_base")
+		self.assertEqual(set(chunks), {other.name})
+
+		with self.subTest("not while processing"):
+			source.db_set("status", "Processing", update_modified=False)
+			source.knowledge_base = self.kb.name
+			with self.assertRaisesRegex(frappe.ValidationError, "still processing"):
+				source.save()
+
 	def test_sync_due_sources_enqueues_only_auto_sync_doctypes(self):
 		auto = self._source()
 		auto.db_set("auto_sync", 1, update_modified=False)

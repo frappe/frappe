@@ -134,6 +134,12 @@ def rename_kb(old: str, new: str) -> None:
 		_open_table().update(where=f"kb = {_quote(old)}", values={"kb": new})
 
 
+def move_source(source: str, kb: str) -> None:
+	"""Move a source's chunks to another knowledge base."""
+	if table_exists():
+		_open_table().update(where=f"source = {_quote(source)}", values={"kb": kb})
+
+
 def search(
 	vector: list[float],
 	*,
