@@ -384,8 +384,15 @@ export default [
 A doctype's `list.js` is a handler file, as `record.js` is. Its `onRefresh(page)` runs on the list
 page, and the page paints after it has run. The list page loads the doctype's `list.js` files on
 its first visit, one chunk request beside the meta. It runs `onRefresh` again on a return visit
-and on `page.refresh()`. A filter, a sort or Load More change only
-`page.rows`; they do not run `onRefresh`.
+and on `page.refresh()`, and again when a `List Page` Client Script of the doctype is saved,
+reordered or deleted. A filter, a sort or Load More change only `page.rows`; they do not run
+`onRefresh`.
+
+A `Client Script` row with `view = List Page` and `dt` set to the doctype has the same text as
+`list.js` and runs after the doctype's `list.js` files, in `run_order`. The list page fetches the
+rows beside the meta, one request more on a cold load, and paints after they have run. Desk v1
+never sees them. The script writer's permission is the record page's: `Client Script` write, and
+read on the doctype to fetch them.
 
 The list page has the base page members (`doctype`, `perms`, `roles`, `toast`, `dialog`, `run`,
 `open`, `create`) and these:

@@ -13,7 +13,7 @@ from frappe.app_state import is_module_disabled
 from frappe.exceptions import TemplateCompileError
 from frappe.model.document import Document
 
-RECORD_PAGE_VIEWS = ("Record", "App Page")
+RECORD_PAGE_VIEWS = ("Record", "App Page", "List Page")
 APP_PAGE = "App Page"
 # The name of a `pages/<name>.js` file.
 PAGE_NAME = re.compile(r"^[\w-]+$")
@@ -64,7 +64,7 @@ class ClientScript(Document):
 		page: DF.Data | None
 		run_order: DF.Int
 		script: DF.Code | None
-		view: DF.Literal["List", "Form", "Record", "App Page"]
+		view: DF.Literal["List", "Form", "Record", "App Page", "List Page"]
 	# end: auto-generated types
 
 	def before_validate(self):
@@ -147,7 +147,7 @@ class ClientScript(Document):
 @frappe.desk_v2_only
 @frappe.whitelist()
 def get_client_scripts(dt: str, view: str = "Record", page: str | None = None):
-	"""Return the enabled scripts a Record page, or the app page `page`, of `dt` runs, in run order."""
+	"""Return the enabled scripts a Record page, a List Page or the app page `page` of `dt` runs, in run order."""
 	validate_target(dt, view, page)
 	frappe.has_permission(dt, "read", throw=True)
 

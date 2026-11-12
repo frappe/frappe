@@ -7,12 +7,16 @@ vi.mock("frappe-ui", () => ({
   toast: { success: vi.fn(), error: vi.fn(), info: vi.fn() },
   dialog: vi.fn(),
 }));
-vi.mock("@framework/ui/api", () => ({ runMethod: vi.fn() }));
+const { call, evaluateClientScript } = vi.hoisted(() => ({ call: vi.fn(), evaluateClientScript: vi.fn() }));
+vi.mock("@framework/ui/api", () => ({ runMethod: call }));
+vi.mock("@/recordPage/evaluateClientScript", () => ({ evaluateClientScript }));
 
 import type { View } from "@/list/view";
 import { createListPage, type ListPageController } from "../createListPage";
 import type { ListPermissions } from "../listPermissions";
 import { addListScript } from "@/contributions/registry";
+import { invalidateClientScripts, resetClientScripts } from "@/recordPage/clientScripts";
+import { LIST_PAGE_TIER } from "@/recordPage/clientScriptTypes";
 import type { ListPageApi } from "../types";
 
 let doctype = "";
@@ -22,6 +26,9 @@ const pages: ListPageController[] = [];
 beforeEach(() => {
   // The loader keeps its scripts for the session; each test takes a doctype of its own.
   doctype = `List Page Doctype ${++count}`;
+  resetClientScripts();
+  call.mockReset();
+  call.mockResolvedValue({ data: { scripts: [], can_write: false } });
   vi.spyOn(console, "warn").mockImplementation(() => {});
 });
 
@@ -94,6 +101,32 @@ describe("the list page", () => {
     const column = list.lists.columns.visible().find((one) => one.name === "status");
     expect(column).toMatchObject({ badge, fields: ["due"] });
     expect(column).not.toHaveProperty("unknown");
+  });
+
+  it("waits for its List Page Client Scripts, runs them after list.js, and replays when one changes", async () => {
+    let answer!: (value: unknown) => void;
+    call.mockReturnValueOnce(new Promise((resolve) => (answer = resolve)));
+    const order: string[] = [];
+    addListScript(doctype, { app: "crm", load: () => Promise.resolve({ default: { onRefresh: () => order.push("file") } }) });
+    evaluateClientScript.mockResolvedValue({ onRefresh: () => order.push("script") });
+    const list = makePage();
+    const rows = { data: { scripts: [{ name: "mine", script: "" }], can_write: false } };
+
+    list.paint();
+    await settle();
+    expect(list.engine.ready.value).toBe(false);
+
+    answer(rows);
+    await settle();
+    expect(list.engine.ready.value).toBe(true);
+    expect(order).toEqual(["file", "script"]);
+
+    call.mockResolvedValue(rows);
+    invalidateClientScripts(doctype, LIST_PAGE_TIER);
+    void list.engine.refresh();
+    await settle();
+    expect(order).toEqual(["file", "script", "file", "script"]);
+    expect(call).toHaveBeenCalledTimes(2);
   });
 
   it("paints at once for a doctype with no list.js", async () => {

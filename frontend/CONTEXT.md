@@ -385,7 +385,7 @@ a child fieldname or one of the two lifecycle events. Flattened at registration 
 **dotted key** (`products.qty`), unambiguous because a fieldname cannot contain a dot.
 
 **Client Script**: <a id="client-script"></a>
-A browser-authored customization stored as a `Client Script` row with `view = Record`,
+A browser-authored customization stored as a `Client Script` row with `view = Record` (or `List Page`, for the list page),
 evaluated as a real ES module through a blob URL — so `export default {…}` is the same
 text as in a file script, and bare imports resolve through the page's import map.
 A script with a `template:` string runs as the server's compiled copy. The stored text

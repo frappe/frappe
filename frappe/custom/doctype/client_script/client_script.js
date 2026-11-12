@@ -75,9 +75,9 @@ frappe.ui.form.on("Client Script", {
 	hide_desk_v2_options(frm) {
 		if (cint(frappe.boot.sysdefaults.enable_desk_v2)) return;
 		frm.toggle_display("run_order", false);
-		// Record and App Page scripts run only in desk v2. Such a doc (say, a duplicate)
+		// Record, App Page and List Page scripts run only in desk v2. Such a doc (say, a duplicate)
 		// keeps its own option so its value shows.
-		const own = ["Record", "App Page"].includes(frm.doc.view) ? [frm.doc.view] : [];
+		const own = V2_VIEWS.includes(frm.doc.view) ? [frm.doc.view] : [];
 		frm.set_df_property("view", "options", ["List", "Form", ...own]);
 	},
 
@@ -104,14 +104,14 @@ frappe.ui.form.on("Client Script", {
 		if (frm.doc.view === "Form" && !has_form_boilerplate) {
 			frm.trigger("dt");
 		}
-		if (frm.doc.view === "Record" && !has_record_boilerplate) {
+		if (HANDLER_VIEWS.includes(frm.doc.view) && !has_record_boilerplate) {
 			frm.set_value("script", RECORD_BOILERPLATE);
 		}
 	},
 
 	add_script_for_doctype(frm, doctype) {
 		if (!doctype) return;
-		if (frm.doc.view === "Record") {
+		if (HANDLER_VIEWS.includes(frm.doc.view)) {
 			frm.set_value("script", RECORD_BOILERPLATE);
 			return;
 		}
@@ -129,6 +129,10 @@ frappe.ui.form.on('${doctype}', {
 		frm.set_value("script", script + boilerplate);
 	},
 });
+
+const V2_VIEWS = ["Record", "App Page", "List Page"];
+// The views whose script is a handlers module.
+const HANDLER_VIEWS = ["Record", "List Page"];
 
 const RECORD_BOILERPLATE = `export default {
 	onRefresh(page) {

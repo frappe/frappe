@@ -67,7 +67,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Apply To",
-   "options": "List\nForm\nRecord\nApp Page",
+   "options": "List\nForm\nRecord\nApp Page\nList Page",
    "set_only_once": 1
   },
   {

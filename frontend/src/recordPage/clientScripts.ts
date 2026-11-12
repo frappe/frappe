@@ -1,4 +1,4 @@
-// The Client Script tier: the stored scripts of a doctype's record page, or of one app page,
+// The Client Script tier: the stored scripts of a doctype's record page or list page, or of one app page,
 // fetched once per tier, evaluated as modules and registered as sources after file scripts.
 import { reactive, readonly, ref } from "vue";
 import { toast } from "frappe-ui";
@@ -7,7 +7,8 @@ import type { RealtimeSocket } from "@framework/ui/socket";
 import { withRegisteringSource } from "@/pageEngine/context";
 import { registerPageScript, unregisterPageSource } from "./pageScripts";
 import { evaluateClientScript } from "./evaluateClientScript";
-import { CLIENT_SCRIPT_CHANGED, GET_CLIENT_SCRIPTS } from "./clientScriptTypes";
+import { registerStoredListScript, unregisterStoredListSource } from "@/pageEngine/storedListScripts";
+import { CLIENT_SCRIPT_CHANGED, GET_CLIENT_SCRIPTS, LIST_PAGE_TIER } from "./clientScriptTypes";
 import type { ClientScriptRow, ClientScriptsResponse } from "./clientScriptTypes";
 import { registerRecordPage, unregisterSource } from "./registry";
 import type { AuthoredHandlers } from "./types";
@@ -58,6 +59,7 @@ export function watchClientScripts(socket: RealtimeSocket | undefined) {
     const { dt, view, page } = (args[0] ?? {}) as { dt?: unknown; view?: unknown; page?: unknown };
     if (typeof dt !== "string" || !dt) return;
     if (view === "Record") invalidateClientScripts(dt);
+    else if (view === LIST_PAGE_TIER) invalidateClientScripts(dt, LIST_PAGE_TIER);
     else if (view === APP_PAGE && typeof page === "string" && page) invalidateClientScripts(dt, page);
   };
   socket?.on(CLIENT_SCRIPT_CHANGED, onChanged);
@@ -97,6 +99,11 @@ export function clientScriptsLoaded(doctype: string, page?: string): boolean {
   return sources.has(tierKey(doctype, page));
 }
 
+/** True when the tier's next load re-reads it: a save landed while no page watched, or the last read failed. */
+export function clientScriptsStale(doctype: string, page?: string): boolean {
+  return stale.has(tierKey(doctype, page));
+}
+
 /** The sources of a registered tier that a build in flight will replace; a replay waiting for it skips them. */
 export function replacedClientScripts(doctype: string, page?: string): ReadonlySet<string> {
   const key = tierKey(doctype, page);
@@ -119,7 +126,7 @@ export function resetClientScripts() {
 interface Tier {
   key: string;
   doctype: string;
-  /** The app page's name; absent for the record page's tier. */
+  /** The app page's name, or `LIST_PAGE_TIER`; absent for the record page's tier. */
   page?: string;
 }
 
@@ -153,13 +160,19 @@ async function buildTier(tier: Tier, current: () => boolean, registerAfter?: Pro
   await registerAfter;
   if (!current()) return;
   swapTier(tier, compiled, response?.can_write ?? false);
+  if (!response) stale.add(key);
   waits.delete(key);
 }
 
 /** Null when the tier could not be fetched — distinct from an empty tier. */
 async function fetchScripts(tier: Tier): Promise<ClientScriptsResponse | null> {
   const { doctype, page } = tier;
-  const params = page ? { dt: doctype, view: APP_PAGE, page } : { dt: doctype, view: "Record" };
+  const params =
+    page === LIST_PAGE_TIER
+      ? { dt: doctype, view: LIST_PAGE_TIER }
+      : page
+        ? { dt: doctype, view: APP_PAGE, page }
+        : { dt: doctype, view: "Record" };
   try {
     const { data } = await runMethod<ClientScriptsResponse>(GET_CLIENT_SCRIPTS, params, {
       http: "GET",
@@ -203,11 +216,11 @@ function swapTier(tier: Tier, compiled: CompiledScript[], canWrite: boolean) {
   for (const { row, handlers } of compiled) {
     const source = sourceName(row.name);
     try {
-      withRegisteringSource(source, () =>
-        page
-          ? registerPageScript(doctype, page, handlers)
-          : registerRecordPage(doctype, handlers),
-      );
+      withRegisteringSource(source, () => {
+        if (page === LIST_PAGE_TIER) registerStoredListScript(doctype, source, handlers);
+        else if (page) registerPageScript(doctype, page, handlers);
+        else registerRecordPage(doctype, handlers);
+      });
       registered.push(source);
     } catch (error) {
       unregisterTierSource(tier, source);
@@ -240,7 +253,8 @@ function clearTier(key: string) {
 }
 
 function unregisterTierSource({ doctype, page }: Tier, source: string) {
-  if (page) unregisterPageSource(source, doctype, page);
+  if (page === LIST_PAGE_TIER) unregisterStoredListSource(doctype, source);
+  else if (page) unregisterPageSource(source, doctype, page);
   else unregisterSource(source);
 }
 
@@ -249,6 +263,7 @@ function tierKey(doctype: string, page?: string) {
 }
 
 function tierLabel({ doctype, page }: Tier) {
+  if (page === LIST_PAGE_TIER) return `the list of ${doctype}`;
   return page ? `the ${page} page of ${doctype}` : doctype;
 }
 

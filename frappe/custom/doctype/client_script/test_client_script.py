@@ -180,6 +180,66 @@ class TestReorder(IntegrationTestCase):
 		self.assertEqual(run_order("a-note-script"), 0)
 
 
+def list_script_names(dt="Note"):
+	return [row["name"] for row in get_client_scripts(dt, "List Page")["scripts"]]
+
+
+class TestClientScriptsForTheListPage(IntegrationTestCase):
+	def tearDown(self):
+		frappe.db.rollback()
+
+	def test_returns_only_the_doctypes_list_page_scripts_in_run_order(self):
+		make_script("first-list-script", view="List Page").insert()
+		make_script("second-list-script", view="List Page").insert()
+		make_script("disabled-list-script", view="List Page", enabled=0).insert()
+		make_script("todo-list-script", view="List Page", dt="ToDo").insert()
+		make_script("note-record-script").insert()
+		reorder("Note", "List Page", ["second-list-script", "first-list-script"])
+
+		self.assertEqual(list_script_names(), ["second-list-script", "first-list-script"])
+		self.assertEqual(script_names(), ["note-record-script"])
+
+	def test_is_invisible_to_desk_v1(self):
+		make_script(
+			"note-list-page-script", view="List Page", script="export default { onRefresh() {} }"
+		).insert()
+		frappe.clear_cache(doctype="Note")
+
+		meta = get_meta("Note")
+		self.assertNotIn("export default", meta.get("__custom_js") or "")
+		self.assertNotIn("export default", meta.get("__custom_list_js") or "")
+
+	def test_needs_no_page_and_drops_one(self):
+		make_script("note-list-script", view="List Page", page="board").insert()
+
+		self.assertIsNone(frappe.db.get_value("Client Script", "note-list-script", "page"))
+		self.assertEqual(list_script_names(), ["note-list-script"])
+
+	def test_reorder_rejects_a_record_script(self):
+		make_script("note-record-script").insert()
+		make_script("note-list-script", view="List Page").insert()
+
+		with self.assertRaises(frappe.ValidationError):
+			reorder("Note", "List Page", ["note-list-script", "note-record-script"])
+
+	def test_reading_needs_read_on_the_doctype(self):
+		make_script("note-list-script", view="List Page").insert()
+		user = make_user("no-note-access@example.com", ["Guest"])
+
+		with self.set_user(user), self.assertRaises(frappe.PermissionError):
+			get_client_scripts("Note", "List Page")
+
+	def test_a_save_tells_the_open_list_page(self):
+		with patch("frappe.publish_realtime") as publish:
+			make_script("note-list-script", view="List Page").insert()
+
+		publish.assert_any_call(
+			client_script.CLIENT_SCRIPT_CHANGED,
+			{"dt": "Note", "view": "List Page", "page": None},
+			after_commit=True,
+		)
+
+
 def page_script_names(page, dt="Note"):
 	return [row["name"] for row in get_client_scripts(dt, "App Page", page)["scripts"]]
 
