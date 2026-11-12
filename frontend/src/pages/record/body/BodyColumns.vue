@@ -48,28 +48,27 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, reactive, ref } from "vue";
-import {
-	isDrawn,
-	projectBody,
-	type BodyColumn as Column,
-	type BodyItem,
-	type RecordPageApi,
-} from "@/recordPage";
+import { computed, defineAsyncComponent, onBeforeUnmount, onMounted, reactive, ref } from "vue";
+import { isDrawn, projectBody, type BodyColumn as Column, type BodyItem } from "@/recordPage";
+import type { PageApi } from "@/pageEngine/types";
 import BodyColumn from "./BodyColumn.vue";
-import ColumnEdge from "./ColumnEdge.vue";
 import { useColumnStore } from "./columnStore";
+
+// A column with an edge is rare (a record's side panel), so the first paint skips its drag code.
+const ColumnEdge = defineAsyncComponent(() => import("./ColumnEdge.vue"));
 
 const props = defineProps<{
 	items: BodyItem[];
 	/** Handed to every script column beside its own props, as a band receives it. */
-	page?: RecordPageApi;
+	page?: PageApi;
 	user: string;
+	/** Whose body this is, for the widths the reader left. */
+	kind?: "record" | "list";
 	/** The row's width in px when the caller knows it; measured from the element otherwise. */
 	available?: number;
 }>();
 
-const { remembered, remember } = useColumnStore(props.user);
+const { remembered, remember } = useColumnStore(props.user, props.kind);
 const root = ref<HTMLElement | null>(null);
 const measured = ref(0);
 const dragging = reactive<Record<string, boolean>>({});

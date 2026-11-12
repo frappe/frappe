@@ -101,6 +101,7 @@ const addresses = new Addresses({
 });
 const boot = {
   app: "crm",
+  session: { user: { name: "Administrator" } },
   shell_base: "/apps/crm",
   prefixes: { crm: { app: "crm", modular: false } },
   read_only_mode: false,
