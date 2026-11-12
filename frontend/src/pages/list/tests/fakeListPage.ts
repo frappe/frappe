@@ -91,6 +91,7 @@ export function useListView(): ListView {
       hasNextPage: () => false,
       totalCount: () => state.rows.value.length,
       totalApprox: () => false,
+      exact: () => true,
     }),
     pageSize: ref(20),
     rowsKey: () => "",

@@ -18,9 +18,7 @@ import type { DeleteOutcome } from "@/list/useListView";
 
 const props = defineProps<{
 	count: number;
-	/** The run takes every record the filters show, not the selected rows. */
 	all?: boolean;
-	/** The count is a floor, shown with a "+". */
 	approx?: boolean;
 	run: () => Promise<DeleteOutcome>;
 }>();

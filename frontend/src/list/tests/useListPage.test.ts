@@ -28,6 +28,7 @@ vi.mock("@framework/ui/api", async (original) => ({
 	runMethod: fake.runMethod,
 }));
 
+import { filtersFit } from "../useListView";
 import { createListPageLists } from "@/listPage/createListPage";
 import { Addresses } from "@/addresses";
 import type { Boot } from "@/boot";
@@ -933,5 +934,14 @@ describe("after a DocType change", () => {
 
 		expect(page.columns.value.map((c) => c.fieldname)).toEqual(["title"]);
 		expect(page.sort.value).toEqual([{ fieldname: "title", direction: "desc" }]);
+	});
+});
+
+describe("filtersFit", () => {
+	const on = (fieldname: string, operator: string, value: unknown) => ({ fieldname, operator, value }) as never;
+
+	it("is false when two conditions share a field, as the dict keeps one", () => {
+		expect(filtersFit([on("status", "equals", "Open"), on("priority", "equals", "High")])).toBe(true);
+		expect(filtersFit([on("amount", ">=", 5), on("amount", "<=", 9)])).toBe(false);
 	});
 });

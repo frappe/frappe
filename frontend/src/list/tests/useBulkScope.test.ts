@@ -9,6 +9,7 @@ function setup(loaded = ["A", "B", "C"], total = 1240) {
 	const selection = ref<string[]>([]);
 	const filters = ref<Record<string, unknown>>({ status: ["=", "Open"] });
 	const more = ref(true);
+	const exact = ref(true);
 	const scope = effectScope().run(() =>
 		useBulkScope({
 			selection,
@@ -17,9 +18,10 @@ function setup(loaded = ["A", "B", "C"], total = 1240) {
 			hasNextPage: () => more.value,
 			totalCount: () => total,
 			totalApprox: () => false,
+			exact: () => exact.value,
 		})
 	)!;
-	return { scope, rows, selection, filters, more };
+	return { scope, rows, selection, filters, more, exact };
 }
 
 describe("useBulkScope", () => {
@@ -32,6 +34,28 @@ describe("useBulkScope", () => {
 		expect(scope.canSelectAll.value).toBe(true);
 		more.value = false;
 		expect(scope.canSelectAll.value).toBe(false);
+	});
+
+	it("holds Select all back while the total or the filters do not match the rows", () => {
+		const { scope, selection, exact } = setup();
+		selection.value = ["A", "B", "C"];
+		exact.value = false;
+		expect(scope.canSelectAll.value).toBe(false);
+		exact.value = true;
+		expect(scope.canSelectAll.value).toBe(true);
+	});
+
+	it("keeps Select all on while a reload empties the rows", async () => {
+		const { scope, rows, selection } = setup();
+		selection.value = ["A", "B", "C"];
+		scope.selectAll();
+		await nextTick();
+		rows.value = [];
+		await nextTick();
+		expect(scope.all.value).toBe(true);
+		rows.value = named(["C", "B"]);
+		await nextTick();
+		expect(selection.value).toEqual(["C", "B"]);
 	});
 
 	it("sends the names until Select all, then the list's filters", () => {

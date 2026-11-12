@@ -10,20 +10,17 @@ export interface BulkScopeOptions {
 	filters: () => Record<string, unknown>;
 	hasNextPage: () => boolean;
 	totalCount: () => number;
-	/** The total is a floor ("10,000+") or unknown. */
+	/** The total is a floor ("10,000+"). */
 	totalApprox: () => boolean;
+	/** The rows, the total and the filters all describe one query; "Select all N" waits for it. */
+	exact: () => boolean;
 }
 
 export interface BulkScope {
-	/** The selection covers every record the filters show, not just the loaded rows. */
 	all: Ref<boolean>;
-	/** How many records a run takes. */
 	count: ComputedRef<number>;
-	/** Every record the filters show: what "Select all N" selects. */
 	total: ComputedRef<number>;
-	/** The total is a floor: shown with a "+". */
 	approx: ComputedRef<boolean>;
-	/** Every loaded row is selected and more match: the bar offers "Select all N". */
 	canSelectAll: ComputedRef<boolean>;
 	selectAll: () => void;
 	clear: () => void;
@@ -41,21 +38,20 @@ export function useBulkScope(options: BulkScopeOptions): BulkScope {
 	const canSelectAll = computed(
 		() =>
 			!all.value &&
+			options.exact() &&
 			rows().length > 0 &&
 			selection.value.length === rows().length &&
 			options.hasNextPage()
 	);
 
-	// A row that left the page leaves the selection; after "Select all N", a loaded page joins it.
 	watch(rows, (current) => {
+		if (all.value && !current.length) return;
 		const present = new Set(current.map((row) => row.name));
 		selection.value = all.value ? [...present] : selection.value.filter((name) => present.has(name));
 	});
-	// Any other change to the selection means it no longer is everything.
 	watch(selection, (names) => {
 		if (names.length !== rows().length) all.value = false;
 	});
-	// A new filter is a new set of records: nothing carries over.
 	watch(
 		() => JSON.stringify(options.filters()),
 		() => clear()

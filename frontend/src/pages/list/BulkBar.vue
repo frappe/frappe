@@ -7,7 +7,9 @@
 	>
 		<div class="flex items-center gap-2 ps-px">
 			<Checkbox :modelValue="true" :disabled="true" aria-hidden="true" />
-			<span class="whitespace-nowrap text-ink-gray-9">{{ countText }}</span>
+			<span class="whitespace-nowrap text-ink-gray-9" aria-live="polite">{{
+				countText
+			}}</span>
 			<Button
 				v-if="scope.canSelectAll.value"
 				variant="ghost"
@@ -16,7 +18,10 @@
 			/>
 		</div>
 		<template v-if="overCap">
-			<span class="flex items-center gap-1 whitespace-nowrap text-sm text-ink-gray-5">
+			<span
+				class="flex items-center gap-1 whitespace-nowrap text-sm text-ink-gray-5"
+				role="status"
+			>
 				<Icon name="lucide-circle-alert" class="size-3.5" />
 				{{ __("Over the {0} cap", [cap]) }}
 			</span>

@@ -68,7 +68,6 @@ export interface ListView extends ListRows {
 	/** The titles the rows hold for their Link values, keyed `Target::name` as the form's `link_titles`; see `cellTitle`. */
 	linkTitles: ComputedRef<Record<string, string>>;
 	selection: Ref<string[]>;
-	/** What a bulk run takes: the selected rows, or all the records the filters show. */
 	scope: BulkScope;
 	/** Kept in the history entry. */
 	pageSize: Ref<number>;
@@ -190,7 +189,12 @@ export function useListView(view: View, lists: Pick<ListPageLists, "columns" | "
 		filters: () => filtersDict(view.filters.value),
 		hasNextPage: () => rows.hasNextPage.value,
 		totalCount: () => rows.totalCount.value,
-		totalApprox: () => rows.totalCapped.value || rows.totalUnknown.value,
+		totalApprox: () => rows.totalCapped.value,
+		exact: () =>
+			rows.loadedKey.value === stateKey() &&
+			rows.hasCounts.value &&
+			!rows.totalUnknown.value &&
+			filtersFit(view.filters.value),
 	});
 
 	async function deleteSelection(): Promise<DeleteOutcome> {
@@ -301,6 +305,11 @@ export function filtersDict(filters: FilterCondition[]): Record<string, unknown>
 		dict[fieldname] = [operator, value];
 	}
 	return dict;
+}
+
+/** The dict holds every condition: none shares a field with another. */
+export function filtersFit(filters: FilterCondition[]): boolean {
+	return serializeFilters(completeFilters(filters)).length === Object.keys(filtersDict(filters)).length;
 }
 
 /** Deletes the records in one bulk request, then reloads the page; what failed comes back with its message. */

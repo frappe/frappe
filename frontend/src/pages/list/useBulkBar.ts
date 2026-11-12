@@ -33,7 +33,6 @@ export interface BulkBar {
 	/** Whether the bar's More menu is open; the `.` key opens it. */
 	menuOpen: Ref<boolean>;
 	layout: ComputedRef<BulkLayout>;
-	/** What a run takes: the selected rows, or all the records the filters show. */
 	scope: BulkScope;
 	/** The most one bulk run takes; the bar disables its actions above it. */
 	cap: number;
@@ -83,7 +82,7 @@ export function useBulkBar(options: BulkBarOptions): BulkBar {
 
 	// The palette runs an act with no value or an option, so the wrapper always hands `run` the selection, as the bar does.
 	function bulkEntries(): ActEntry[] {
-		const over = selection.value.length > cap;
+		const over = options.scope.count.value > cap || options.scope.all.value;
 		return bulkList
 			.resolve()
 			.filter(({ item }) => item.run)
@@ -99,6 +98,7 @@ export function useBulkBar(options: BulkBarOptions): BulkBar {
 			}));
 	}
 
+	// Only Delete reads the scope; an action that takes row names would run on the loaded rows alone.
 	const locked = !boot.bulk_actions;
 	const entries = computed<BulkEntry[]>(() =>
 		locked
@@ -113,7 +113,7 @@ export function useBulkBar(options: BulkBarOptions): BulkBar {
 							icon: act.icon,
 							group: item.group,
 							button: item.button,
-							disabled: options.scope.count.value > cap,
+							disabled: options.scope.count.value > cap || (options.scope.all.value && item.run !== askDelete),
 							onClick: () => listActs.perform(act, scope.selected()),
 						},
 					];

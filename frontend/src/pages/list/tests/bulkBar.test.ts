@@ -82,7 +82,7 @@ describe("layoutBulk", () => {
 	});
 });
 
-function scopeOf(count: number, extra: { total?: number; hasNextPage?: boolean; approx?: boolean } = {}) {
+function scopeOf(count: number, extra: { total?: number; hasNextPage?: boolean; approx?: boolean; exact?: boolean } = {}) {
 	const rows = ref(Array.from({ length: count }, (_, index) => ({ name: `R${index}` })));
 	const selection = ref(rows.value.map((row) => row.name));
 	const filters = ref<Record<string, unknown>>({});
@@ -93,6 +93,7 @@ function scopeOf(count: number, extra: { total?: number; hasNextPage?: boolean; 
 		hasNextPage: () => extra.hasNextPage ?? false,
 		totalCount: () => extra.total ?? count,
 		totalApprox: () => extra.approx ?? false,
+		exact: () => extra.exact ?? true,
 	});
 	return { scope, rows, selection, filters };
 }
@@ -174,7 +175,7 @@ describe("BulkBar", () => {
 describe("useBulkBar", () => {
 	function bar(boot: Record<string, unknown>, drawn: (name: string) => unknown = (name) => ({ name, label: name })) {
 		const lists = createListPageLists();
-		const { scope, selection } = scopeOf(2);
+		const { scope, selection } = scopeOf(2, { total: 10, hasNextPage: true });
 		const perform = vi.fn();
 		const askDelete = vi.fn();
 		const supplied: Array<() => Array<{ item: { name: string } }>> = [];
@@ -200,7 +201,7 @@ describe("useBulkBar", () => {
 			})
 		);
 		app.provide("boot", boot).mount(root);
-		return { result, lists, selection, perform, askDelete, supplied, app };
+		return { result, lists, selection, scope, perform, askDelete, supplied, app };
 	}
 
 	const open = { bulk_actions: true, bulk_operation_limit: 500 };
@@ -232,6 +233,18 @@ describe("useBulkBar", () => {
 		expect(locked.supplied[0]().map(({ item }) => item.name)).not.toContain("delete");
 		expect(locked.result.layout.value.menu).toEqual([]);
 		locked.app.unmount();
+	});
+
+	it("leaves an action that takes row names off while Select all is on", async () => {
+		const { result, lists, selection, scope, app } = bar(open);
+		lists.bulkActions.add(script("restore"));
+		await nextTick();
+		selection.value = ["R0", "R1"];
+		scope.selectAll();
+		const { menu, trash } = result.layout.value;
+		expect(menu[0].options[0].disabled).toBe(true);
+		expect(trash?.disabled).toBe(false);
+		app.unmount();
 	});
 
 	it("disables the actions over the cap", () => {
