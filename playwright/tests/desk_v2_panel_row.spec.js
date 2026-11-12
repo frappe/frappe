@@ -235,6 +235,25 @@ test.describe("Desk v2 side panel row", () => {
 			"Add Data Field..."
 		);
 	});
+
+	test("hides a child control's own focus outline and ring: the box ring is the only mark", async ({
+		page,
+	}) => {
+		await row(page, "f_data").click();
+		const input = page.locator('.field-box [data-fieldname="f_data"] input');
+		await expect(input).toBeFocused();
+		await input.evaluate((el) => {
+			const raw = document.createElement("input");
+			raw.id = "raw-control-46998";
+			el.parentElement.appendChild(raw);
+			raw.focus();
+		});
+		const marks = await page.evaluate(() => {
+			const style = getComputedStyle(document.getElementById("raw-control-46998"));
+			return { outline: style.outlineColor, shadow: style.boxShadow };
+		});
+		expect(marks).toEqual({ outline: "rgba(0, 0, 0, 0)", shadow: "none" });
+	});
 });
 
 // Check, Rating, Color, Attach and Attach Image act on one click: the control is the row at rest.

@@ -118,9 +118,10 @@ describe("a script's own control", () => {
 		expect(box.className).toContain("focus-within:ring-outline-gray-3");
 	});
 
-	it("draws bare once open with `ownBox`, and keeps the box at rest", async () => {
+	it("draws bare with `ownBox` at rest and once open: no box, so no hover fill or focus ring", async () => {
 		const { root } = await mount(scripted({ ownBox: true }), false);
-		expect(root.querySelector(".field-box")).not.toBeNull();
+		expect(root.querySelector(".field-box")).toBeNull();
+		expect(root.querySelector("[data-fieldname]")).not.toBeNull();
 		await click(root);
 		expect(root.querySelector("[data-probe]")).not.toBeNull();
 		expect(root.querySelector(".field-box")).toBeNull();
@@ -129,6 +130,7 @@ describe("a script's own control", () => {
 	it("keeps the box when `ownBox` is set on a stock control", async () => {
 		const stock: FieldNode = { ...json, ui: { ownBox: true } } as FieldNode;
 		const { root } = await mount(stock, false);
+		expect(root.querySelector(".field-box")).not.toBeNull();
 		await click(root);
 		expect(root.querySelector("[data-control]")!.closest(".field-box")).not.toBeNull();
 	});

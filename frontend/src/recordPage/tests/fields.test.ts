@@ -75,6 +75,15 @@ describe("the patch vocabulary", () => {
     expect(fields.get("items")).toMatchObject({ cannot_add_rows: true, cannot_delete_rows: false });
   });
 
+  it("takes `own_box` as a boolean onto the field's ui, and reads it back", () => {
+    const fields = makeSurface();
+    fields.update("qty", { own_box: 1 });
+    expect(fields.resolve().qty.ui).toEqual({ ownBox: true });
+    expect(fields.get("qty")).toMatchObject({ own_box: true });
+    fields.update("qty", { own_box: false });
+    expect(fields.resolve().qty.ui).toEqual({ ownBox: false });
+  });
+
   it("carries a patch's payload through by identity, not deep-proxied", () => {
     // Anything a script puts in `props` reaches `v-bind`; a deep reactive
     // wrapper there breaks a nested component's internal slots.

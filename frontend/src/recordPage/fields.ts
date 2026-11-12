@@ -91,6 +91,7 @@ const PATCH_KEYS: Record<string, Landing> = {
   // The stamp is what tells the outbound read-only wrapper to leave the component alone.
   component: { on: "ui", as: "component", coerce: markRaw, opaque: true },
   props: { on: "ui", as: "props" },
+  own_box: { on: "ui", as: "ownBox", coerce: asBoolean },
 };
 
 /** The reader's keys, derived from the writer's so a key added above is read back from the right slot. */
