@@ -54,7 +54,11 @@ import type { FieldNode } from "@framework/ui/FormLayout/types";
 import { __ } from "@/i18n";
 import PanelLabelTip from "./PanelLabelTip.vue";
 
-const props = defineProps<{ field: FieldNode }>();
+const props = defineProps<{
+	field: FieldNode;
+	/** Shows the tip while the row has keyboard focus. */
+	tip?: boolean;
+}>();
 
 const coarse = useMediaQuery("(pointer: coarse)");
 const row = ref<HTMLElement | null>(null);
@@ -109,6 +113,11 @@ onMounted(() => {
 });
 onBeforeUnmount(() => document.fonts?.removeEventListener("loadingdone", measure));
 useResizeObserver(row, measure);
+// frappe-ui's Tooltip has no controlled `open`, and its trigger opens on `focus` and closes on `blur`.
+watch(
+	() => props.tip,
+	(on) => row.value?.dispatchEvent(new FocusEvent(on ? "focus" : "blur"))
+);
 watch(
 	() => [props.field.label, props.field.reqd],
 	() => nextTick(measure)
