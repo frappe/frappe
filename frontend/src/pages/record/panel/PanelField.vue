@@ -216,6 +216,7 @@ const controlProps = computed(() => {
 			...stockProps,
 			panel: !inPlaceHeavy.value,
 			...(drawsErrorText.value ? {} : { errorId: messageId }),
+			openPicker: pointerOpen.value,
 			...(phone.value || email.value ? { record: actionRecord.value } : {}),
 		};
 	return { ...props.field.ui.props, ...(page?.value ? { page: page.value } : {}) };
@@ -251,6 +252,7 @@ function onCommit(value: any) {
 }
 
 const editing = ref(false);
+const pointerOpen = ref(false);
 const cell = ref<HTMLElement | null>(null);
 const clamped = ref<HTMLElement | null>(null);
 let opening: any;
@@ -309,6 +311,13 @@ const PANEL_FIELDTYPES = [
 	"Duration",
 	"Password",
 	...IN_PLACE,
+	"Link",
+	"Dynamic Link",
+	"Select",
+	"Autocomplete",
+	"Date",
+	"Datetime",
+	"Time",
 ];
 const drawsErrorText = computed(
 	() => !!props.field.ui?.component || !PANEL_FIELDTYPES.includes(props.field.fieldtype)
@@ -389,6 +398,7 @@ function linkedDoctype(): string {
 	return "";
 }
 
+// A pointer open also opens a picker's popover; any other open leaves it closed.
 function open(event?: MouseEvent) {
 	if (props.field.fieldtype === "Image") {
 		previewing.value = !!imageUrl.value;
@@ -409,6 +419,7 @@ function open(event?: MouseEvent) {
 		!shown.includes("\r")
 	)
 		clicked = textOffsetAt(clamped.value, event.clientX, event.clientY);
+	pointerOpen.value = event instanceof MouseEvent;
 	editing.value = true;
 }
 

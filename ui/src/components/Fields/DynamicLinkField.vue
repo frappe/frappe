@@ -22,13 +22,14 @@
 		:placeholder="field.placeholder"
 		:required="field.reqd"
 		:error="error"
+		:panel="panel"
 		:disabled="!doctype"
 		:href="record.href.value"
 		:creatable="linkCreate.creatable.value"
 		@create="linkCreate.create"
 		@redirect="record.open"
 	>
-		<template v-if="field.description && !error?.length" #description>
+		<template v-if="!panel && field.description && !error?.length" #description>
 			<FieldDescription :html="field.description" />
 		</template>
 		<template #item-create="{ query }">
@@ -58,7 +59,6 @@ const doc = inject(DocKey, null);
 const parentDoc = inject(ParentDocKey, null);
 const titles = inject(LinkTitlesKey, null);
 const link = ref<LinkExposed | null>(null);
-const open = ref(false);
 
 const doctype = computed<string>(() => {
 	const sibling = props.field.options;
@@ -70,6 +70,9 @@ const doctype = computed<string>(() => {
 		: null;
 	return typeof dt === "string" ? dt : "";
 });
+
+// A Dynamic Link with no doctype is disabled, so a pointer open leaves it shut.
+const open = ref(!!props.openPicker && !!doctype.value);
 
 const value = computed<string | null>({
 	get: () => props.modelValue ?? null,

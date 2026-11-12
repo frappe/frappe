@@ -1,7 +1,7 @@
 <!-- The panel's one list, drawn from `page.panelSections`: a name the Side Panel layout
      carries renders its fields, any other item its component. A label gives a header. -->
 <template>
-	<div class="panel-layout">
+	<div class="panel-layout" data-picker-bound>
 		<!-- A sticky header pins only within its parent: the scrolling group runs to the list's end. -->
 		<div
 			v-for="group in groups"

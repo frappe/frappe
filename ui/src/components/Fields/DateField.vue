@@ -2,24 +2,26 @@
 	<DatePicker
 		v-model="value"
 		:format="formats.date"
-		:label="field.label"
-		:description="descriptionText(field.description)"
+		v-model:open="open"
+		v-bind="frame"
 		:placeholder="field.placeholder"
 		:required="field.reqd"
-		:error="error"
 		:disabled="field.readOnly"
 	/>
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { DatePicker } from "frappe-ui";
 import { dateTimeFormats } from "../FormLayout/formatDefaults";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
 import { descriptionText } from "./fieldDescription";
+import { usePickerFrame } from "./inputFrame";
 
 const props = defineProps<FieldComponentProps>();
 const emit = defineEmits<FieldComponentEmits>();
+const frame = usePickerFrame(props, { describe: descriptionText });
+const open = ref(!!props.openPicker);
 
 const formats = computed(dateTimeFormats);
 

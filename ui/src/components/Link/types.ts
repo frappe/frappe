@@ -17,6 +17,8 @@ export interface LinkProps extends Omit<InputLabelingProps, "error"> {
   title?: string;
   /** Label options by ID, not title; disables client-side filtering. */
   idLabels?: boolean;
+  /** Drawn in a panel row: ghost, no label, description or error text, the full column wide. */
+  panel?: boolean;
 }
 
 export interface LinkSlots {

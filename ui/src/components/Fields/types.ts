@@ -105,6 +105,8 @@ export interface FieldComponentProps {
   panel?: boolean;
   /** The id of the row's error message, so a panel control can point at it with `aria-describedby`. */
   errorId?: string;
+  /** A picker in a panel row opens its popover when it mounts: the row was opened by a pointer. */
+  openPicker?: boolean;
   /** The record the control sits on, for the actions an app placed on a Phone or Email field. */
   record?: FieldRecord;
 }

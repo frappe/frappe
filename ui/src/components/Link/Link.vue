@@ -4,21 +4,26 @@
 		v-model="model"
 		v-model:open="open"
 		class="group !gap-1 [&_[data-slot=input]:disabled]:text-ink-gray-4"
-		:label="label"
-		:description="description"
-		:error="error"
+		:class="{ 'w-full': panel }"
+		:variant="panel ? 'ghost' : undefined"
+		:size="panel ? 'sm' : undefined"
+		:label="panel ? undefined : label"
+		:description="panel ? undefined : description"
+		:error="panel ? undefined : error"
 		:required="required"
 		:options="linkOptions"
 		:filterable="!idLabels"
 		:disabled="disabled"
-		:placeholder="placeholder ?? `Search ${doctype.toLowerCase()}`"
+		:placeholder="shownPlaceholder"
 		:loading="options.loading.value && !options.data.value"
-		@input="handleInputChange(($event.target as HTMLInputElement).value)"
-		@focus="showAllOptions"
+		@input="onInput(($event.target as HTMLInputElement).value)"
+		@focus="onFocus"
 	>
 		<template v-for="(_, name) in forwardedSlots" #[name]="slotProps" :key="name">
 			<slot :name="name" v-bind="slotProps" />
 		</template>
+
+		<template v-if="panel" #footer><PickerListFit /></template>
 
 		<template v-if="slots.suffix" #suffix="suffixProps">
 			<slot name="suffix" v-bind="suffixProps" />
@@ -96,6 +101,8 @@ import type { ComboboxOption, ComboboxCustomOption } from "frappe-ui";
 import { useLinkSearch } from "../../composables/useLinkSearch";
 import { translate as __ } from "../../utils/translate";
 import RecordAnchor from "./RecordAnchor.vue";
+import PickerListFit from "../Fields/PickerListFit.vue";
+import { useFittedPlaceholder } from "./fittedPlaceholder";
 import type { LinkExposed, LinkProps, LinkEmits } from "./types";
 
 const props = withDefaults(defineProps<LinkProps>(), {
@@ -110,14 +117,30 @@ const props = withDefaults(defineProps<LinkProps>(), {
 const model = defineModel<string | null>({ default: null });
 const open = defineModel<boolean>("open", { default: false });
 const comboboxRef = ref<{ focus: () => void } | null>(null);
+const placeholderText = computed(
+	() => props.placeholder ?? `Search ${props.doctype.toLowerCase()}`
+);
+const fitted = useFittedPlaceholder(() => placeholderText.value);
+const shownPlaceholder = computed(() =>
+	props.panel ? fitted.placeholder.value : placeholderText.value
+);
 
 const emit = defineEmits<LinkEmits>();
+
+// A panel row hides the mark while the user types, so the text starts at the box's padding.
+const typing = ref(false);
 
 const slots = useSlots();
 
 const forwardedSlots = computed(() =>
 	Object.fromEntries(
-		Object.entries(slots).filter(([name]) => name !== "suffix" && name !== "item-create")
+		Object.entries(slots).filter(
+			([name]) =>
+				name !== "suffix" &&
+				name !== "item-create" &&
+				!(name === "footer" && props.panel) &&
+				!(name === "prefix" && typing.value)
+		)
 	)
 );
 
@@ -172,6 +195,11 @@ const loadOptions = (txt: string = "", fresh = false) => {
 	void options.search(txt, { fresh });
 };
 
+function onFocus(event: FocusEvent) {
+	if (props.panel) fitted.fit(event.target as HTMLInputElement);
+	showAllOptions();
+}
+
 const showAllOptions = () => {
 	const expired = Date.now() - searchedAt > OPTIONS_MAX_AGE_MS;
 	if (searched !== "" || expired || options.error.value) loadOptions("");
@@ -182,13 +210,26 @@ const handleInputChange = debounce((value: string) => {
 	loadOptions(value || "");
 }, 300);
 
+function onInput(value: string) {
+	typing.value = !!props.panel;
+	handleInputChange(value);
+}
+
 const clearValue = () => {
 	model.value = null;
 	open.value = false;
 	comboboxRef.value?.focus();
 };
 
-watch(open, (isOpen) => isOpen && showAllOptions(), { immediate: true });
+watch(
+	open,
+	(isOpen) => {
+		if (isOpen) showAllOptions();
+		else typing.value = false;
+	},
+	{ immediate: true }
+);
+watch(model, () => (typing.value = false));
 
 watch(
 	[() => props.doctype, () => props.filters],

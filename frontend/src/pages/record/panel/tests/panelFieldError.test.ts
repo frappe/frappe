@@ -165,7 +165,7 @@ describe("a marked panel row", () => {
 	});
 
 	it("gives no error id to a control that still draws its own error text", async () => {
-		const root = await mount({ qty: "Quantity must be positive" }, "Select");
+		const root = await mount({ qty: "Quantity must be positive" }, "Barcode");
 
 		root.querySelector<HTMLElement>('[data-fieldname="qty"]')!.click();
 		await nextTick();
