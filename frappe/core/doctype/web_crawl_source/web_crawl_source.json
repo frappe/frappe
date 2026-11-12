@@ -1,31 +1,39 @@
 {
  "actions": [],
- "creation": "2026-11-11 23:43:11.166066",
+ "autoname": "field:source",
+ "creation": "2026-11-12 14:00:00.000000",
  "doctype": "DocType",
- "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "domain"
+  "source"
  ],
  "fields": [
   {
-   "fieldname": "domain",
+   "fieldname": "source",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Domain",
-   "reqd": 1
+   "label": "Source",
+   "read_only": 1,
+   "reqd": 1,
+   "unique": 1
   }
  ],
  "grid_page_length": 50,
- "istable": 1,
  "link_display_mode": "Search",
  "links": [],
- "modified": "2026-11-12 12:00:00.000000",
+ "modified": "2026-11-12 14:00:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
- "name": "Web Crawler Blocked Domain",
+ "name": "Web Crawl Source",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
- "permissions": [],
+ "permissions": [
+  {
+   "read": 1,
+   "report": 1,
+   "role": "System Manager"
+  }
+ ],
  "row_format": "Dynamic",
  "rows_threshold_for_grid_search": 20,
  "sort_field": "creation",

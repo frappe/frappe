@@ -14,6 +14,7 @@ from frappe.web_crawler.sources import LlmsTxt, Sitemap, is_sitemap_url
 
 DEFAULT_SOURCES = ("sitemap", "links")
 LIST_SOURCES = ("sitemap", "llms.txt")
+SOURCES = (*LIST_SOURCES, "links")
 
 
 class WebCrawler:
@@ -22,6 +23,7 @@ class WebCrawler:
 	`sources` without "links" lists pages from the first of sitemap / llms.txt that has any.
 	With "links", links are followed breadth first from the start URL, with sitemap pages as seeds.
 	`priority(url, anchor_text)` orders pages at the same depth (higher first).
+	Without `priority` or `skip_patterns`, the tuning in Web Crawler Settings is used.
 	`skip_urls(urls)` returns the URLs to drop before they are fetched.
 	The crawl stops with `stopped_reason` "time_limit" once the settings' maximum crawl time has passed.
 	"""
@@ -41,13 +43,16 @@ class WebCrawler:
 		self.limits = CrawlLimits.from_settings(max_pages, max_depth, user_agent)
 		self.url = self.validate_url(url)
 		self.sources = self.validate_sources(sources)
-		self.skip_patterns = tuple(skip_patterns)
+		self.skip_patterns = tuple(skip_patterns) or self.limits.skip_patterns
 		self.skip_rules = SkipRules(self.skip_patterns)
-		self.priority = priority
+		self.priority = priority or self.settings_priority()
 		self.skip_urls = skip_urls
 		self.scope = Scope(self.url.rsplit("/", 1)[0] if is_sitemap_url(self.url) else self.url)
 		self.stopped_reason: str | None = None
 		self.last_request_at = 0.0
+
+	def settings_priority(self) -> "KeywordPriority | None":
+		return KeywordPriority(self.limits.link_priorities) if self.limits.link_priorities else None
 
 	def validate_url(self, url: str) -> str:
 		from frappe.utils.safe_exec import BlockedRequest, validate_request_url
@@ -56,12 +61,12 @@ class WebCrawler:
 		if not frappe.utils.validate_url(url, valid_schemes=("http", "https")):
 			frappe.throw(_("{0} is not a valid web address").format(url), title=_("Invalid URL"))
 		if self.limits.is_blocked(url):
-			raise BlockedRequest(_("The domain of {0} is blocked in Web Crawler Settings").format(url))
+			raise BlockedRequest(_("Web Crawler Settings do not allow the domain of {0}").format(url))
 		validate_request_url(url)
 		return url
 
 	def validate_sources(self, sources: tuple[str, ...]) -> tuple[str, ...]:
-		if unknown := set(sources) - {*LIST_SOURCES, "links"}:
+		if unknown := set(sources) - set(SOURCES):
 			frappe.throw(_("Unknown crawl sources: {0}").format(", ".join(sorted(unknown))))
 		return tuple(sources)
 
@@ -192,6 +197,18 @@ class WebCrawler:
 		if page.status == 429:
 			self.stopped_reason = "rate_limited"
 		return bool(self.stopped_reason)
+
+
+class KeywordPriority:
+	"""A `priority` that reads links first when their URL or anchor text has a keyword.
+	A link scores the sum of the weights of its keywords. Unlike other callables, it can be enqueued."""
+
+	def __init__(self, weights: dict[str, float]):
+		self.weights = {keyword.lower(): weight for keyword, weight in weights.items()}
+
+	def __call__(self, url: str, anchor_text: str) -> float:
+		text = f"{url} {anchor_text}".lower()
+		return sum(weight for keyword, weight in self.weights.items() if keyword in text)
 
 
 class CrawlFrontier:

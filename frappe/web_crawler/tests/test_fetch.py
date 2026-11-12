@@ -9,7 +9,7 @@ from frappe.tests import IntegrationTestCase
 from frappe.utils.safe_exec import BlockedRequest
 from frappe.web_crawler import fetch_page
 from frappe.web_crawler.fetch import CappedRetry
-from frappe.web_crawler.tests.fake_site import FakeSite, block_domain
+from frappe.web_crawler.tests.fake_site import NEUTRAL_SETTINGS, FakeSite, allow_domain, block_domain
 
 ARTICLE = """
 <head><title>Install | Acme</title><meta name="description" content="How to install">
@@ -120,6 +120,12 @@ class TestFetchPage(IntegrationTestCase):
 		self.assertRaises(BlockedRequest, fetch_page, "https://www.blocked.com/")
 		self.assertEqual(fetch_page("https://example.com/away").error, "blocked")
 
+	def test_allowed_domains(self):
+		self.site.redirect("https://example.com/away", "https://example.org/page")
+		allow_domain(self, "example.com")
+		self.assertRaises(BlockedRequest, fetch_page, "https://example.org/")
+		self.assertEqual(fetch_page("https://example.com/away").error, "blocked")
+
 	def test_internal_and_invalid_addresses_raise(self):
 		self.assertRaises(BlockedRequest, fetch_page, "http://127.0.0.1/")
 		self.assertRaises(frappe.ValidationError, fetch_page, "ftp://example.com/")
@@ -140,7 +146,8 @@ class TestSlowServer(IntegrationTestCase):
 		self.url = f"http://127.0.0.1:{server.server_address[1]}/drip"
 		self.enterContext(patch("frappe.utils.safe_exec.validate_request_url"))
 		self.enterContext(patch("frappe.utils.safe_exec.validate_request_address"))
-		self.enterContext(self.change_settings("Web Crawler Settings", {"page_timeout": 1}))
+		settings = {**NEUTRAL_SETTINGS, "page_timeout": 1}
+		self.enterContext(self.change_settings("Web Crawler Settings", settings))
 
 	def test_slow_body_stops_at_the_deadline(self):
 		started = time.monotonic()

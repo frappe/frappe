@@ -4,7 +4,7 @@
 import frappe
 from frappe.tests import IntegrationTestCase
 from frappe.web_crawler.limits import CrawlLimits
-from frappe.web_crawler.tests.fake_site import block_domain
+from frappe.web_crawler.tests.fake_site import allow_domain, block_domain
 
 
 class IntegrationTestWebCrawlerSettings(IntegrationTestCase):
@@ -19,3 +19,12 @@ class IntegrationTestWebCrawlerSettings(IntegrationTestCase):
 		self.assertTrue(limits.is_blocked("https://blocked.com/"))
 		self.assertTrue(limits.is_blocked("https://docs.blocked.com/page"))
 		self.assertFalse(limits.is_blocked("https://notblocked.com/"))
+
+	def test_allowed_domains_block_every_other_domain(self):
+		allow_domain(self, "example.com")
+		block_domain(self, "private.example.com")
+		limits = CrawlLimits.from_settings()
+		self.assertFalse(limits.is_blocked("https://example.com/"))
+		self.assertFalse(limits.is_blocked("https://docs.example.com/page"))
+		self.assertTrue(limits.is_blocked("https://private.example.com/"))
+		self.assertTrue(limits.is_blocked("https://example.org/"))

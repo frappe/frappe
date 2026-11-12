@@ -15,9 +15,14 @@
   "max_page_size",
   "sitemap_timeout",
   "max_sitemap_size",
+  "tuning_section",
+  "link_priorities",
+  "column_break_tuning",
+  "skip_patterns",
   "access_section",
   "user_agent",
   "respect_robots_txt",
+  "allowed_domains",
   "blocked_domains"
  ],
  "fields": [
@@ -28,6 +33,7 @@
   },
   {
    "default": "50",
+   "description": "Most pages one crawl may read.",
    "fieldname": "max_pages",
    "fieldtype": "Int",
    "in_list_view": 1,
@@ -37,6 +43,7 @@
   },
   {
    "default": "2",
+   "description": "Most link hops from the start page.",
    "fieldname": "max_depth",
    "fieldtype": "Int",
    "in_list_view": 1,
@@ -46,6 +53,7 @@
   },
   {
    "default": "5",
+   "description": "Most redirects followed for one request.",
    "fieldname": "max_redirects",
    "fieldtype": "Int",
    "in_list_view": 1,
@@ -55,6 +63,7 @@
   },
   {
    "default": "1",
+   "description": "Pause between requests. A longer Crawl-delay in robots.txt wins, up to 30 seconds.",
    "fieldname": "request_delay",
    "fieldtype": "Float",
    "label": "Delay between requests (seconds)",
@@ -62,6 +71,7 @@
   },
   {
    "default": "30",
+   "description": "A crawl stops cleanly once this time has passed.",
    "fieldname": "max_crawl_time",
    "fieldtype": "Int",
    "label": "Maximum crawl time (minutes)",
@@ -74,6 +84,7 @@
   },
   {
    "default": "10",
+   "description": "Time allowed to download one page.",
    "fieldname": "page_timeout",
    "fieldtype": "Int",
    "in_list_view": 1,
@@ -83,6 +94,7 @@
   },
   {
    "default": "5",
+   "description": "Larger pages are skipped.",
    "fieldname": "max_page_size",
    "fieldtype": "Int",
    "label": "Maximum page size (MB)",
@@ -91,6 +103,7 @@
   },
   {
    "default": "30",
+   "description": "Time allowed to download one sitemap or llms.txt.",
    "fieldname": "sitemap_timeout",
    "fieldtype": "Int",
    "label": "Sitemap timeout (seconds)",
@@ -99,11 +112,35 @@
   },
   {
    "default": "50",
+   "description": "Larger sitemaps and llms.txt files are skipped.",
    "fieldname": "max_sitemap_size",
    "fieldtype": "Int",
    "label": "Maximum sitemap size (MB)",
    "non_negative": 1,
    "reqd": 1
+  },
+  {
+   "fieldname": "tuning_section",
+   "fieldtype": "Section Break",
+   "label": "Crawl tuning"
+  },
+  {
+   "description": "Used by crawls that set none. Links whose URL or anchor text has a keyword are read first.",
+   "fieldname": "link_priorities",
+   "fieldtype": "Table",
+   "label": "Link priority",
+   "options": "Web Crawl Link Priority"
+  },
+  {
+   "fieldname": "column_break_tuning",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Used by crawls that set none. One regular expression per line.",
+   "fieldname": "skip_patterns",
+   "fieldtype": "Small Text",
+   "label": "Skip patterns",
+   "placeholder": "/blog/\n\\?page="
   },
   {
    "fieldname": "access_section",
@@ -112,29 +149,40 @@
   },
   {
    "default": "Frappe Web Crawler",
+   "description": "Name sent to websites. robots.txt rules are matched against it.",
    "fieldname": "user_agent",
    "fieldtype": "Data",
    "label": "User agent",
+   "placeholder": "Frappe Web Crawler (+https://example.com/bot)",
    "reqd": 1
   },
   {
    "default": "1",
+   "description": "Skip pages that the site's robots.txt disallows.",
    "fieldname": "respect_robots_txt",
    "fieldtype": "Check",
    "label": "Respect robots.txt"
   },
   {
+   "description": "When set, only these domains and their subdomains can be crawled.",
+   "fieldname": "allowed_domains",
+   "fieldtype": "Table",
+   "label": "Allowed domains",
+   "options": "Web Crawler Domain"
+  },
+  {
+   "description": "These domains and their subdomains are never crawled, even when allowed.",
    "fieldname": "blocked_domains",
    "fieldtype": "Table",
    "label": "Blocked domains",
-   "options": "Web Crawler Blocked Domain"
+   "options": "Web Crawler Domain"
   }
  ],
  "grid_page_length": 50,
  "issingle": 1,
  "link_display_mode": "Search",
  "links": [],
- "modified": "2026-11-12 12:00:00.000000",
+ "modified": "2026-11-12 20:30:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Web Crawler Settings",

@@ -1,9 +1,10 @@
 from unittest.mock import patch
 
+import frappe
 from frappe.tests import IntegrationTestCase
-from frappe.web_crawler import WebCrawler
+from frappe.web_crawler import KeywordPriority, WebCrawler
 from frappe.web_crawler.limits import CrawlLimits
-from frappe.web_crawler.tests.fake_site import FakeSite
+from frappe.web_crawler.tests.fake_site import FakeSite, add_setting_row
 from frappe.web_crawler.tests.test_discovery import XML, urlset
 
 
@@ -83,6 +84,28 @@ class TestCrawl(IntegrationTestCase):
 		pages = self.crawl(priority=lambda url, anchor_text: "about" in url)
 		self.assertEqual(pages[1].url, "https://example.com/about")
 
+	def test_keyword_priority_reads_matching_links_first(self):
+		self.site.page(
+			"https://example.com/",
+			'<a href="/blog">Blog</a><a href="/team">About us</a><a href="/contact">Contact</a>',
+		)
+		pages = self.crawl(priority=KeywordPriority({"contact": 1, "About": 2}))
+		self.assertEqual(
+			[page.url for page in pages[1:]],
+			["https://example.com/team", "https://example.com/contact", "https://example.com/blog"],
+		)
+
+	def test_settings_tuning_is_used_when_the_crawl_sets_none(self):
+		self.site.page("https://example.com/", links("/blog", "/about", "/private/x"))
+		add_setting_row(self, "link_priorities", {"keyword": "about", "weight": 1})
+		with self.change_settings("Web Crawler Settings", {"skip_patterns": "/private/"}):
+			default = [page.url for page in self.crawl()]
+			tuned = self.crawl(priority=KeywordPriority({"blog": 1}), skip_patterns=("/about",))
+		self.assertEqual(default[1:], ["https://example.com/about", "https://example.com/blog"])
+		self.assertEqual(
+			[page.url for page in tuned[1:]], ["https://example.com/blog", "https://example.com/private/x"]
+		)
+
 	def test_rate_limit_stops_the_crawl(self):
 		self.site.page("https://example.com/", links("/a", "/b"))
 		self.site.add("https://example.com/a", status=429, **{"Retry-After": "1"})
@@ -124,6 +147,16 @@ class TestCrawlLimits(IntegrationTestCase):
 			limits = CrawlLimits.from_settings()
 		self.assertEqual(limits.max_crawl_time, 600)
 		self.assertGreater(limits.job_timeout(), 600 + 3 * 30)
+
+	def test_warns_when_a_full_crawl_may_outlast_the_crawl_time(self):
+		settings = {"max_pages": 1000, "request_delay": 1, "max_crawl_time": 30}
+		with self.change_settings("Web Crawler Settings", settings):
+			frappe.clear_messages()
+			self.assertEqual(CrawlLimits.from_settings(300).estimated_crawl_time(), 600)
+			CrawlLimits.from_settings(300).warn_if_crawl_may_stop_early()
+			self.assertEqual(frappe.get_message_log(), [])
+			CrawlLimits.from_settings().warn_if_crawl_may_stop_early()
+		self.assertIn("Crawl may stop early", str(frappe.get_message_log()))
 
 	def test_wait_is_capped(self):
 		with self.change_settings("Web Crawler Settings", {"request_delay": 1}):

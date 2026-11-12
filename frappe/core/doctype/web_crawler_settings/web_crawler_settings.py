@@ -4,6 +4,7 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.web_crawler.limits import CrawlLimits
 
 MUST_BE_POSITIVE = (
 	"max_pages",
@@ -22,12 +23,13 @@ class WebCrawlerSettings(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.core.doctype.web_crawler_blocked_domain.web_crawler_blocked_domain import (
-			WebCrawlerBlockedDomain,
-		)
+		from frappe.core.doctype.web_crawl_link_priority.web_crawl_link_priority import WebCrawlLinkPriority
+		from frappe.core.doctype.web_crawler_domain.web_crawler_domain import WebCrawlerDomain
 		from frappe.types import DF
 
-		blocked_domains: DF.Table[WebCrawlerBlockedDomain]
+		allowed_domains: DF.Table[WebCrawlerDomain]
+		blocked_domains: DF.Table[WebCrawlerDomain]
+		link_priorities: DF.Table[WebCrawlLinkPriority]
 		max_crawl_time: DF.Int
 		max_depth: DF.Int
 		max_page_size: DF.Int
@@ -38,6 +40,7 @@ class WebCrawlerSettings(Document):
 		request_delay: DF.Float
 		respect_robots_txt: DF.Check
 		sitemap_timeout: DF.Int
+		skip_patterns: DF.SmallText | None
 		user_agent: DF.Data
 	# end: auto-generated types
 
@@ -48,3 +51,4 @@ class WebCrawlerSettings(Document):
 			if self.get(fieldname) <= 0:
 				label = _(self.meta.get_label(fieldname))
 				frappe.throw(_("{0} must be greater than 0.").format(label), title=_("Invalid value"))
+		CrawlLimits.from_settings(settings=self).warn_if_crawl_may_stop_early()

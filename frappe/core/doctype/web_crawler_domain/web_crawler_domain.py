@@ -4,7 +4,7 @@
 from frappe.model.document import Document
 
 
-class WebCrawlPage(Document):
+class WebCrawlerDomain(Document):
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -13,16 +13,10 @@ class WebCrawlPage(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-		description: DF.SmallText | None
-		error: DF.Data | None
-		final_url: DF.Data | None
-		html: DF.LongText | None
-		meta_tags: DF.JSON | None
-		status_code: DF.Int
-		text: DF.LongText | None
-		title: DF.Data | None
-		url: DF.Data | None
-		web_crawl: DF.Link
+		domain: DF.Data
+		parent: DF.Data
+		parentfield: DF.Data
+		parenttype: DF.Data
 	# end: auto-generated types
 
-	_DOCTYPE_NAME = "Web Crawl Page"
+	_DOCTYPE_NAME = "Web Crawler Domain"

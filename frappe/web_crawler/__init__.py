@@ -1,4 +1,4 @@
-from frappe.web_crawler.crawler import WebCrawler
+from frappe.web_crawler.crawler import KeywordPriority, WebCrawler
 from frappe.web_crawler.page import CrawledPage
 
 
@@ -7,4 +7,4 @@ def fetch_page(url: str, *, user_agent: str | None = None) -> CrawledPage:
 	return WebCrawler(url, sources=(), user_agent=user_agent).fetch(url)
 
 
-__all__ = ["CrawledPage", "WebCrawler", "fetch_page"]
+__all__ = ["CrawledPage", "KeywordPriority", "WebCrawler", "fetch_page"]

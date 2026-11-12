@@ -8,8 +8,8 @@ from frappe.core.doctype.user_permission.test_user_permission import create_user
 from frappe.core.doctype.web_crawl.web_crawl import WebCrawl
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, now_datetime
-from frappe.web_crawler import CrawledPage, WebCrawler
-from frappe.web_crawler.tests.fake_site import FakeSite
+from frappe.web_crawler import CrawledPage, KeywordPriority, WebCrawler
+from frappe.web_crawler.tests.fake_site import FakeSite, add_setting_row
 
 OWNER = "web-crawl-owner@example.com"
 STRANGER = "web-crawl-stranger@example.com"
@@ -75,7 +75,7 @@ class IntegrationTestWebCrawl(IntegrationTestCase):
 			},
 		)
 		self.assertEqual(len(SEEN_PAGES), 2)
-		stored = frappe.get_all("Web Crawl Page", {"web_crawl": web_crawl.name}, pluck="url")
+		stored = frappe.get_all("Web Crawl Result", {"web_crawl": web_crawl.name}, pluck="url")
 		self.assertCountEqual(stored, ["https://example.com", "https://example.com/a"])
 		web_crawl.reload()
 		self.assertEqual(
@@ -101,6 +101,51 @@ class IntegrationTestWebCrawl(IntegrationTestCase):
 			with self.subTest(user=user, reference_name=reference_name):
 				other = self.start_crawl(user, reference_doctype="User", reference_name=reference_name)
 				self.assertNotEqual(other.name, first.name)
+
+	def test_enqueue_starts_a_new_crawl_for_other_sources(self):
+		first = self.start_crawl()
+		with self.set_user(OWNER):
+			crawler = WebCrawler("https://example.com", sources=("sitemap", "links"))
+			other = crawler.enqueue(on_page=f"{__name__}.record_page")
+		self.assertNotEqual(other.name, first.name)
+		self.assertEqual(other.source_names(), ("sitemap", "links"))
+
+	def test_enqueued_keyword_priority_is_stored_and_used(self):
+		with self.set_user(OWNER):
+			crawler = WebCrawler(
+				"https://example.com", sources=("links",), priority=KeywordPriority({"Broken": 5})
+			)
+			web_crawl = crawler.enqueue()
+			web_crawl.run()
+		self.assertEqual(web_crawl.keyword_weights(), {"broken": 5})
+		urls = frappe.get_all(
+			"Web Crawl Result", {"web_crawl": web_crawl.name}, pluck="url", order_by="creation asc"
+		)
+		self.assertEqual(urls, ["https://example.com", "https://example.com/broken", "https://example.com/a"])
+
+	def test_enqueue_refuses_a_priority_it_cannot_store(self):
+		with self.set_user(OWNER):
+			crawler = WebCrawler("https://example.com", sources=("links",), priority=lambda url, text: 1)
+			self.assertRaises(frappe.ValidationError, crawler.enqueue)
+
+	def test_a_crawl_without_tuning_copies_the_settings_tuning(self):
+		add_setting_row(self, "link_priorities", {"keyword": "Docs", "weight": 2})
+		with self.change_settings("Web Crawler Settings", {"skip_patterns": "/private/"}):
+			default = frappe.get_doc({"doctype": "Web Crawl", "url": "https://example.com"}).insert()
+			tuned = frappe.get_doc(
+				{
+					"doctype": "Web Crawl",
+					"url": "https://example.com",
+					"skip_patterns": "/blog/",
+					"link_priorities": [{"keyword": "api", "weight": 1}],
+				}
+			).insert()
+		self.assertEqual((default.keyword_weights(), default.skip_patterns), ({"docs": 2}, "/private/"))
+		self.assertEqual((tuned.keyword_weights(), tuned.skip_patterns), ({"api": 1}, "/blog/"))
+
+	def test_sources_default_to_sitemap_then_links(self):
+		web_crawl = frappe.get_doc({"doctype": "Web Crawl", "url": "https://example.com"}).insert()
+		self.assertEqual(web_crawl.source_names(), ("sitemap", "links"))
 
 	def test_enqueue_ignores_a_crawl_older_than_its_job_timeout(self):
 		first = self.start_crawl()
@@ -131,34 +176,36 @@ class IntegrationTestWebCrawl(IntegrationTestCase):
 				)
 				self.assertRaises(frappe.PermissionError, web_crawl.insert)
 
-	def test_a_retried_run_replaces_the_pages(self):
+	def test_a_retried_run_replaces_the_results(self):
 		web_crawl = self.start_crawl()
 		with self.set_user(OWNER):
 			web_crawl.run()
 			web_crawl.run()
-		self.assertEqual(frappe.db.count("Web Crawl Page", {"web_crawl": web_crawl.name}), 2)
+		self.assertEqual(frappe.db.count("Web Crawl Result", {"web_crawl": web_crawl.name}), 2)
 
-	def test_only_the_owner_reads_a_crawl_and_its_pages(self):
+	def test_only_the_owner_reads_a_crawl_and_its_results(self):
 		web_crawl = self.start_crawl()
 		with self.set_user(OWNER):
 			web_crawl.run()
-		page_name = frappe.get_all("Web Crawl Page", {"web_crawl": web_crawl.name}, pluck="name")[0]
+		result_name = frappe.get_all("Web Crawl Result", {"web_crawl": web_crawl.name}, pluck="name")[0]
 
 		for user, can_read in ((OWNER, True), (STRANGER, False)):
 			with self.subTest(user=user), self.set_user(user):
 				self.assertEqual(bool(frappe.has_permission("Web Crawl", "read", web_crawl.name)), can_read)
-				self.assertEqual(bool(frappe.has_permission("Web Crawl Page", "read", page_name)), can_read)
+				self.assertEqual(
+					bool(frappe.has_permission("Web Crawl Result", "read", result_name)), can_read
+				)
 				self.assertFalse(frappe.has_permission("Web Crawl", "write", web_crawl.name))
 
-	def test_lists_show_only_own_crawls_and_pages(self):
+	def test_lists_show_only_own_crawls_and_results(self):
 		web_crawl = self.start_crawl()
 		with self.set_user(OWNER):
 			web_crawl.run()
 		for user, expected in ((OWNER, [web_crawl.name]), (STRANGER, [])):
 			with self.subTest(user=user), self.set_user(user):
 				self.assertEqual(frappe.get_list("Web Crawl", pluck="name"), expected)
-				pages = frappe.get_list("Web Crawl Page", {"web_crawl": web_crawl.name}, pluck="name")
-				self.assertEqual(bool(pages), bool(expected))
+				results = frappe.get_list("Web Crawl Result", {"web_crawl": web_crawl.name}, pluck="name")
+				self.assertEqual(bool(results), bool(expected))
 
 	def test_only_the_owner_can_stop(self):
 		self.enterContext(patch("rq.job.Job.fetch"))
@@ -181,7 +228,7 @@ class IntegrationTestWebCrawl(IntegrationTestCase):
 		web_crawl.reload()
 		self.assertEqual(web_crawl.status, "Cancelled")
 
-	def test_old_crawls_are_cleared_with_their_pages(self):
+	def test_old_crawls_are_cleared_with_their_results(self):
 		web_crawl = self.start_crawl()
 		with self.set_user(OWNER):
 			web_crawl.run()
@@ -189,4 +236,4 @@ class IntegrationTestWebCrawl(IntegrationTestCase):
 
 		WebCrawl.clear_old_logs(days=30)
 		self.assertFalse(frappe.db.exists("Web Crawl", web_crawl.name))
-		self.assertFalse(frappe.db.exists("Web Crawl Page", {"web_crawl": web_crawl.name}))
+		self.assertFalse(frappe.db.exists("Web Crawl Result", {"web_crawl": web_crawl.name}))

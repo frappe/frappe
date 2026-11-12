@@ -205,6 +205,7 @@ frappe.patches.v16_0.set_user_email_from_name
 frappe.patches.v16_0.migrate_slack_notifications
 execute:frappe.get_doc('Role', 'Guest').save() # remove desk access
 frappe.core.doctype.role.patches.v13_set_default_desk_properties
+frappe.patches.v17_0.create_web_crawl_sources
 frappe.patches.v14_0.update_workspace2 # 06.06.2023
 frappe.patches.v14_0.drop_data_import_legacy
 frappe.patches.v14_0.copy_mail_data #08.03.21

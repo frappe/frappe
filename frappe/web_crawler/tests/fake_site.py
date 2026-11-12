@@ -9,6 +9,13 @@ from frappe.tests.classes.context_managers import change_settings
 
 PUBLIC_ADDRESS = "93.184.216.34"
 HTML = "text/html; charset=utf-8"
+NEUTRAL_SETTINGS = {
+	"request_delay": 0,
+	"allowed_domains": [],
+	"blocked_domains": [],
+	"link_priorities": [],
+	"skip_patterns": None,
+}
 
 
 class FakeSite:
@@ -27,7 +34,7 @@ class FakeSite:
 			)
 		)
 		test_case.enterContext(patch("urllib3.util.retry.time.sleep"))
-		test_case.enterContext(change_settings("Web Crawler Settings", {"request_delay": 0, **settings}))
+		test_case.enterContext(change_settings("Web Crawler Settings", {**NEUTRAL_SETTINGS, **settings}))
 
 	def add(self, url: str, body: str | bytes = "", content_type: str = HTML, status: int = 200, **headers):
 		body = body.encode() if isinstance(body, str) else body
@@ -56,14 +63,22 @@ def resolve(host, port, *args, **kwargs):
 
 
 def block_domain(test_case, domain: str):
-	"""Adds a blocked domain to Web Crawler Settings until the test ends."""
+	add_setting_row(test_case, "blocked_domains", {"domain": domain})
+
+
+def allow_domain(test_case, domain: str):
+	add_setting_row(test_case, "allowed_domains", {"domain": domain})
+
+
+def add_setting_row(test_case, fieldname: str, row: dict):
+	"""Adds a row to a Web Crawler Settings table until the test ends."""
 	settings = frappe.get_doc("Web Crawler Settings")
-	settings.append("blocked_domains", {"domain": domain})
+	settings.append(fieldname, row)
 	settings.save()
-	test_case.addCleanup(clear_blocked_domains)
+	test_case.addCleanup(clear_table, fieldname)
 
 
-def clear_blocked_domains():
+def clear_table(fieldname: str):
 	settings = frappe.get_doc("Web Crawler Settings")
-	settings.blocked_domains = []
+	settings.set(fieldname, [])
 	settings.save()
