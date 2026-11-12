@@ -1,11 +1,8 @@
-// A list row's actions from the apps: each is one item on the `list` surface, named for its act,
-// and the row's menu draws the ones that pass the target act's right and the item's own `when`.
+// A list row's actions from `page.rowActions`: each is an act `row_<name>` on the renderer's surface,
+// and the row's menu draws the ones that pass the act's right and the item's own `when`.
 import type { ActEntry } from "@/acts/dispatcher";
-import { acts } from "@/acts/dispatcher";
-import type { ListContext, RowAction } from "@/contributions/types";
+import type { ListPageApi, ListRow, ListRowAction } from "@/listPage/types";
 import type { ListActs } from "./listActs";
-
-type Row = Record<string, unknown>;
 
 export interface RowMenuOption {
 	label: string;
@@ -13,25 +10,22 @@ export interface RowMenuOption {
 	onClick: () => void;
 }
 
-export function rowActionEntries(actions: RowAction[]): ActEntry[] {
-	return actions.map((action) => {
-		const target = acts.find(action.act);
-		return {
-			item: {
-				name: itemName(action),
-				label: action.label ?? target?.label ?? action.act,
-				icon: action.icon ?? target?.icon,
-				palette: false,
-				run: (list: ListContext, row: Row) =>
-					acts.perform(action.act, action.value?.(row, { ...list, row })),
-			},
-			hidden: !target,
-		};
-	});
+export function rowActionEntries(actions: ListRowAction[]): ActEntry[] {
+	return actions.map((action) => ({
+		item: {
+			name: itemName(action),
+			label: action.label ?? action.name,
+			icon: action.icon,
+			right: action.right,
+			palette: false,
+			run: (page: ListPageApi, row: ListRow) => action.run(page, row),
+		},
+		hidden: false,
+	}));
 }
 
 /** The menu for one row: the actions drawn now whose `when` holds for it. */
-export function rowMenuOptions(row: Row, actions: RowAction[], listActs: ListActs): RowMenuOption[] {
+export function rowMenuOptions(row: ListRow, actions: ListRowAction[], listActs: ListActs): RowMenuOption[] {
 	return actions.flatMap((action) => {
 		const drawn = listActs.drawn(itemName(action));
 		if (!drawn || !applies(action, row, listActs.context())) return [];
@@ -39,14 +33,19 @@ export function rowMenuOptions(row: Row, actions: RowAction[], listActs: ListAct
 	});
 }
 
-function itemName(action: RowAction) {
-	return `row_${action.act}`;
+/** The row fields the actions read, for the list query. */
+export function rowActionFields(actions: ListRowAction[]): string[] {
+	return actions.flatMap((action) => action.fields ?? []);
+}
+
+function itemName(action: ListRowAction) {
+	return `row_${action.name}`;
 }
 
 // A `when` that throws on a row hides the action there; it must not break the list's render.
-function applies(action: RowAction, row: Row, list: ListContext) {
+function applies(action: ListRowAction, row: ListRow, page: ListPageApi) {
 	try {
-		return action.when?.(row, { ...list, row }) !== false;
+		return action.when?.(page, row) !== false;
 	} catch {
 		return false;
 	}

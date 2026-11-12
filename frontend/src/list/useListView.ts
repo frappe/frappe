@@ -1,6 +1,6 @@
 // The List type's rows area: its columns from the view's settings, and the rows the view's filters
 // and sort read, with the selection, the page size and the delete.
-import { applyColumnWidth, clearColumnWidth } from "@framework/ui/ColumnSettings";
+import { applyColumnWidth, clearColumnWidth, getColumnAlign } from "@framework/ui/ColumnSettings";
 import type { ListColumn } from "@framework/ui/experimental/List";
 import { getFilterableFields, serializeFilters, type FilterCondition } from "@framework/ui/Filter";
 import type { RawMetaField } from "@framework/ui/FormLayout";
@@ -10,15 +10,16 @@ import { useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { currentSession } from "@framework/ui/useSession";
 import { computed, ref, watch, type ComputedRef, type Ref, type WritableComputedRef } from "vue";
 import type { RouteLocationRaw } from "vue-router";
-import { listHandlersFor } from "@/contributions/registry";
-import type { RowAction } from "@/contributions/types";
+import type { ListPageLists } from "@/listPage/createListPage";
+import { listScriptsOf } from "@/listPage/scriptLoader";
+import type { ListPageColumn, ListRowAction } from "@/listPage/types";
+import { rowActionFields } from "@/pages/list/rowActions";
 import { routeFor } from "@/router/routeFor";
 import {
 	cellCurrency,
 	cellMark,
 	cellTitle,
 	type CellMark,
-	contributedRowActions,
 	defaultColumns,
 	fetchFields,
 	type ListMeta,
@@ -26,7 +27,7 @@ import {
 } from "./defaults";
 import { readListMemory, recallRows, rememberRows, useRememberedPageSize, writeListMemory } from "./pageState";
 import { listStatusTheme, type StatusTheme } from "@/statusTheme";
-import { contributedCells, isSwitchCell, resolveCell, type CellView } from "./cells";
+import { isSwitchCell, resolveCell, type CellView } from "./cells";
 import { completeFilters, queryFromAddress } from "./query";
 import { partsFor } from "./rowParts";
 import { cellSeenClass, isUnseen, seenColumn } from "./seen";
@@ -42,14 +43,16 @@ export interface DeleteOutcome {
 export interface ListView extends ListRows {
 	/** The view's `columns` key, else the app default; a change is written to the view. */
 	columns: WritableComputedRef<ListColumn[]>;
-	/** The row actions the apps contributed for this doctype. */
-	rowActions: RowAction[];
+	/** What the table draws: `columns` as the page's scripts left them on `page.columns`. */
+	shownColumns: ComputedRef<ListColumn[]>;
+	/** The page's row actions, as its scripts left them. */
+	rowActions: ComputedRef<ListRowAction[]>;
 	/** The field a column shows, a standard one such as `creation` included. */
 	fieldOf: (fieldname: string) => RawMetaField | undefined;
 	/** What a column's cell shows before its text; see `cellMark`. */
 	markOf: (fieldname: string) => CellMark | undefined;
 	statusThemeOf: (fieldname: string, value: unknown) => StatusTheme | null;
-	/** What an app's `cells` draw for a value, or null when they name nothing for it; see `resolveCell`. */
+	/** What the column's cell keys draw for a value, or null when they name nothing for it; see `resolveCell`. */
 	cellViewOf: (fieldname: string, value: unknown) => CellView | null;
 	/** Whether a column draws as a switch that writes its field; see `isSwitchCell`. */
 	switchOf: (fieldname: string) => boolean;
@@ -77,29 +80,25 @@ export interface ListView extends ListRows {
 	deleteSelection: () => Promise<DeleteOutcome>;
 }
 
-export function useListView(view: View): ListView {
+export function useListView(view: View, lists: Pick<ListPageLists, "columns" | "rowActions">): ListView {
 	const { doctype } = view;
 	const { meta } = useDoctypeMeta(doctype);
 	const permissions = useDocPermissions(doctype);
 	const listMeta = computed(() => meta.value as ListMeta | null);
 	const fields = computed(() => listMeta.value?.fields ?? []);
-	const contributed = listHandlersFor(doctype).map(({ handlers }) => handlers);
-	const rowActions = contributedRowActions(contributed);
-	const cells = contributedCells(contributed);
+	const rowActions = computed(() => lists.rowActions.visible());
+	const cellOf = (fieldname: string) => shownItems.value.get(fieldname);
 
 	const switchOf = (fieldname: string) =>
-		isSwitchCell(cells[fieldname], fields.value.find((one) => one.fieldname === fieldname)?.fieldtype);
+		isSwitchCell(cellOf(fieldname), fields.value.find((one) => one.fieldname === fieldname)?.fieldtype);
 
 	const readable = (fieldname: string) => {
 		const field = fields.value.find((one) => one.fieldname === fieldname);
 		return !field || permissions.fieldAccess(field) !== "none";
 	};
 
-	const readableActions = () =>
-		rowActions.map((action) => ({ ...action, fields: action.fields.filter(readable) }));
-
 	const defaults = computed(() =>
-		listMeta.value ? defaultColumns(listMeta.value, contributed) : []
+		listMeta.value ? defaultColumns(listMeta.value, listScriptsOf(doctype)) : []
 	);
 
 	/** The columns the tiers resolve to: the person's, else the site's, else the app default. */
@@ -115,6 +114,14 @@ export function useListView(view: View): ListView {
 				view.update({ columns: stored });
 		},
 	});
+
+	lists.columns.provideBuiltins(() =>
+		columns.value.map((column) => ({ name: column.fieldname, label: column.label, width: column.width }))
+	);
+	const shownItems = computed(() => new Map(lists.columns.visible().map((item) => [item.name, item])));
+	const shownColumns = computed(() =>
+		[...shownItems.value.values()].map((item) => shownColumn(item, columns.value, fields.value))
+	);
 
 	const selection = ref<string[]>([]);
 	const pageSize = useRememberedPageSize();
@@ -138,13 +145,18 @@ export function useListView(view: View): ListView {
 		return {
 			key: stateKey(),
 			fields: withModified(
-				fetchFields(columns.value, readableActions(), listMeta.value ?? {}, readable),
-				columns.value.some((column) => switchOf(column.fieldname))
+				fetchFields(
+					shownColumns.value,
+					rowActionFields(rowActions.value).filter(readable),
+					listMeta.value ?? {},
+					readable
+				),
+				shownColumns.value.some((column) => switchOf(column.fieldname))
 			),
 			filters: filtersDict(view.filters.value),
 			orderBy: serializeOrderBy(view.sort.value),
 			limit: pageSize.value,
-			include: partsFor(columns.value.map((column) => column.fieldname)),
+			include: partsFor(shownColumns.value.map((column) => column.fieldname)),
 		};
 	});
 
@@ -179,7 +191,7 @@ export function useListView(view: View): ListView {
 
 	const linkTitles = computed(() => {
 		const titles: Record<string, string> = {};
-		for (const { fieldname } of columns.value) {
+		for (const { fieldname } of shownColumns.value) {
 			const title = cellTitle(fieldname, listMeta.value ?? {});
 			if (!title) continue;
 			const target = fields.value.find((one) => one.fieldname === fieldname)?.options;
@@ -192,12 +204,13 @@ export function useListView(view: View): ListView {
 
 	const user = currentSession()?.user.name ?? null;
 	const seenField = computed(() =>
-		seenColumn(listMeta.value, columns.value.map((column) => column.fieldname))
+		seenColumn(listMeta.value, shownColumns.value.map((column) => column.fieldname))
 	);
 
 	return {
 		...rows,
 		columns,
+		shownColumns,
 		rowActions,
 		fieldOf: (fieldname) =>
 			fields.value.find((one) => one.fieldname === fieldname) ??
@@ -206,7 +219,7 @@ export function useListView(view: View): ListView {
 		statusThemeOf: (fieldname, value) => listStatusTheme(listMeta.value, fieldname, value),
 		cellViewOf: (fieldname, value) =>
 			resolveCell(
-				cells[fieldname],
+				cellOf(fieldname),
 				value,
 				fields.value.find((one) => one.fieldname === fieldname)?.fieldtype
 			),
@@ -236,6 +249,14 @@ export function useListView(view: View): ListView {
 		rowLink: (row) => routeFor(doctype, row.name),
 		deleteSelection,
 	};
+}
+
+// A script's own column has no stored entry: it takes its field's alignment.
+function shownColumn(item: ListPageColumn, columns: ListColumn[], fields: RawMetaField[]): ListColumn {
+	const stored = columns.find((column) => column.fieldname === item.name);
+	const fieldtype = fields.find((field) => field.fieldname === item.name)?.fieldtype;
+	const column: ListColumn = stored ?? { fieldname: item.name, label: item.name, align: getColumnAlign(fieldtype ?? "Data") };
+	return { ...column, label: item.label ?? column.label, width: item.width ?? column.width };
 }
 
 function withModified(fields: string[], wanted: boolean): string[] {

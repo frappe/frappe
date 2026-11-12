@@ -1,5 +1,5 @@
-// How a contributed `cells` entry draws one cell: the icon, badge theme or date text it picks for a value.
-import type { ListCell, ListHandlers } from "@/contributions/types";
+// How a column's cell keys draw one cell: the icon, badge theme or date text it picks for a value.
+import type { ListCell } from "@/contributions/types";
 import { currentSession } from "@framework/ui/useSession";
 import { dayjs, type BadgeProps } from "frappe-ui";
 
@@ -14,15 +14,6 @@ export interface CellView {
 
 // `FieldCell` draws these itself, so an app's cell would show their raw value in its place.
 const OWN_CELL_FIELDTYPES = new Set(["Check", "Rating", "Color", "Attach", "Attach Image", "Image"]);
-
-/** Every contributing app's `cells` by fieldname; the first app to name a fieldname wins. */
-export function contributedCells(contributed: ListHandlers[]): Record<string, ListCell> {
-	const cells: Record<string, ListCell> = {};
-	for (const handlers of contributed) {
-		for (const [fieldname, cell] of Object.entries(handlers.cells ?? {})) cells[fieldname] ??= cell;
-	}
-	return cells;
-}
 
 /** What `cell` draws for `value`, or null when it names nothing for it and the default cell shows. */
 export function resolveCell(cell: ListCell | undefined, value: unknown, fieldtype?: string): CellView | null {

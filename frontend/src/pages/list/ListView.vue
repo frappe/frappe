@@ -17,7 +17,7 @@
 		ref="table"
 		v-model:selection="selection"
 		v-model:sort="sort"
-		:columns="columns"
+		:columns="shownColumns"
 		:rows="rows"
 		:loading="loading"
 		:rowLink="rowLink"
@@ -96,7 +96,7 @@
 			<div v-else class="truncate text-base text-ink-gray-8">{{ value }}</div>
 		</template>
 		<template v-if="rowActions.length" #rowMenu="{ row }">
-			<RowMenu :options="rowMenuOptions(row, rowActions, listActs)" />
+			<RowMenu :options="rowMenuOptions(row, rowActions.value, listActs)" />
 		</template>
 		<template #empty>
 			<PageState :name="filters.length ? 'filtered' : 'empty'" />
@@ -155,6 +155,7 @@ const { filters, sort } = props.view;
 
 const {
 	columns,
+	shownColumns,
 	rowActions,
 	fieldOf,
 	markOf,
@@ -187,7 +188,7 @@ const {
 	rowLink,
 	reload,
 	deleteSelection,
-} = useListView(props.view);
+} = useListView(props.view, props.host.lists);
 
 props.host.onCreate(reload);
 
@@ -226,35 +227,40 @@ function markedText(row: Record<string, unknown>, fieldname: string): string {
 
 function columnFields(matches: (field: RawMetaField) => boolean) {
 	const fields = new Map<string, RawMetaField>();
-	for (const { fieldname } of columns.value) {
+	for (const { fieldname } of shownColumns.value) {
 		const field = fieldOf(fieldname);
 		if (field && matches(field)) fields.set(fieldname, field);
 	}
 	return fields;
 }
 
+const { bulkActions: bulkList } = props.host.lists;
+bulkList.provideBuiltins(() => [
+	{ name: "delete", label: __("Delete"), icon: "lucide-trash-2", right: "delete", run: () => (confirmingDelete.value = true) },
+]);
+
 const listActs = props.host.acts(
-	() => [...(selection.value.length ? [deleteEntry()] : []), ...rowActionEntries(rowActions)],
-	() => ({ selection: selection.value, reload })
+	() => [
+		...(selection.value.length ? bulkEntries() : []),
+		...rowActionEntries(rowActions.value),
+	],
+	{ rows: () => rows.value, selection: () => selection.value, reload }
 );
 
-function deleteEntry() {
-	return {
-		item: {
-			name: "delete",
-			label: __("Delete"),
-			icon: "lucide-trash-2",
-			right: "delete",
-			run: () => (confirmingDelete.value = true),
-		},
-		hidden: false,
-	};
+function bulkEntries() {
+	return bulkList
+		.resolve()
+		.filter(({ item }) => item.run)
+		.map(({ item, hidden }) => ({ item, hidden }));
 }
 
-const deleteAct = computed(() => listActs.drawn("delete"));
-
-const bulkActions = computed<BulkAction[]>(() => {
-	const act = deleteAct.value;
-	return act ? [{ label: act.label!, theme: "red", onClick: () => listActs.perform(act) }] : [];
-});
+// Red marks the one that destroys rows; a script's actions take the neutral theme.
+const bulkActions = computed<BulkAction[]>(() =>
+	bulkList.visible().flatMap((item) => {
+		const act = listActs.drawn(item.name);
+		if (!act) return [];
+		const theme = item.name === "delete" ? "red" : "gray";
+		return [{ label: act.label!, theme, onClick: () => listActs.perform(act) }];
+	})
+);
 </script>

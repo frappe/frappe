@@ -1,4 +1,5 @@
 // Track Seen on the cards view: `_seen` joins the read, and the title class follows the row's seen state.
+import { createListPageLists } from "@/listPage/createListPage";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, ref } from "vue";
 import { useCardsView, type CardsView } from "../useCardsView";
@@ -11,7 +12,6 @@ vi.mock("@framework/ui/useDoctypeMeta", () => ({
 	useDoctypeMeta: () => ({ meta: ref({ title_field: "title", track_seen: fake.track, fields: [] }) }),
 }));
 vi.mock("@framework/ui/useSession", () => ({ currentSession: () => ({ user: { name: "alice@example.com" } }) }));
-vi.mock("@/contributions/registry", () => ({ listHandlersFor: () => [] }));
 vi.mock("@/list/pageState", () => ({ useRememberedPageSize: () => ref(20) }));
 vi.mock("@/list/useListView", () => ({ deleteRows: vi.fn(), filtersDict: () => ({}) }));
 vi.mock("@/list/useListRows", () => ({
@@ -28,7 +28,7 @@ function cardsView(): CardsView {
 	const view = { doctype: "Lead", seeded: ref(true), filters: ref([]), sort: ref([]), settings: ref({}) };
 	const app = createApp({
 		setup() {
-			result = useCardsView(view as never);
+			result = useCardsView(view as never, createListPageLists());
 			return () => null;
 		},
 	});

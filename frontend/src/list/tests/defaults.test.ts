@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { RawMetaField } from "@framework/ui/FormLayout";
 import { clearDataCache, feedListRead, readCachedList, takeTicket } from "@framework/ui/cache";
 
-import { DEFAULT_SORT, cellCurrency, contributedRowActions, defaultColumns, defaultSort, fetchFields, cellMark, cellTitle } from "../defaults";
+import { DEFAULT_SORT, cellCurrency, defaultColumns, defaultSort, fetchFields, cellMark, cellTitle } from "../defaults";
 
 const FIELDS: RawMetaField[] = [
 	{ fieldname: "title", label: "Title", fieldtype: "Data", in_list_view: 1 },
@@ -81,11 +81,8 @@ describe("fetchFields", () => {
 
 	it("adds each row action's fields after the columns, once", () => {
 		const columns = [{ fieldname: "status", label: "Status" }];
-		const actions = [
-			{ act: "shell.crm.call", fields: ["mobile_no", "status"] },
-			{ act: "shell.crm.mail", fields: ["mobile_no", "email_id"] },
-		];
-		expect(fetchFields(columns, actions)).toEqual(["name", "status", "mobile_no", "email_id"]);
+		const actionFields = ["mobile_no", "status", "mobile_no", "email_id"];
+		expect(fetchFields(columns, actionFields)).toEqual(["name", "status", "mobile_no", "email_id"]);
 	});
 
 	it("asks for _seen on a Track Seen doctype, and only then", () => {
@@ -155,48 +152,6 @@ describe("fetchFields and the shared cache", () => {
 		clearDataCache();
 		feedListRead(takeTicket(), "Order", { fields }, { data: [{ name: "A", modified: "2026-11-01" }], has_next_page: false });
 		expect(readCachedList("Order", { fields })).toBeDefined();
-	});
-});
-
-describe("contributedRowActions", () => {
-	it("joins every app's row actions in run order and lists an act named twice once", () => {
-		const call = { act: "shell.crm.call", fields: ["mobile_no"] };
-		const mail = { act: "shell.crm.mail", fields: ["email_id"] };
-		const again = { act: "shell.crm.call", fields: ["phone"] };
-		expect(contributedRowActions([{ rowActions: [call] }, {}, { rowActions: [mail, again] }])).toEqual([
-			call,
-			mail,
-		]);
-	});
-
-	it("runs a foreign app's row action after the owner's, whatever the site's app order", async () => {
-		vi.resetModules();
-		vi.doMock("virtual:frappe/contributions", () => ({
-			default: {
-				doctypes: [
-					{ kind: "customList", app: "helpdesk", doctype: "CRM Lead", handlers: { rowActions: [{ act: "shell.hd.ticket", fields: ["email"] }] } },
-					{ kind: "list", app: "crm", doctype: "CRM Lead", handlers: { rowActions: [{ act: "shell.crm.call", fields: ["mobile_no"] }] } },
-				],
-				pages: [], itemTypes: [], replacements: [], settings: [], acts: [],
-			},
-		}));
-		vi.doMock("@/recordPage", () => ({ addFileScript: vi.fn(), addPageFile: vi.fn() }));
-		const { listHandlersFor, registerContributions } = await import("@/contributions/registry");
-		registerContributions(["frappe", "helpdesk", "crm"]);
-
-		vi.doUnmock("virtual:frappe/contributions");
-		vi.doUnmock("@/recordPage");
-		const contributed = listHandlersFor("CRM Lead");
-		expect(contributed.map(({ app }) => app)).toEqual(["crm", "helpdesk"]);
-		expect(contributedRowActions(contributed.map(({ handlers }) => handlers)).map((one) => one.act)).toEqual([
-			"shell.crm.call",
-			"shell.hd.ticket",
-		]);
-	});
-
-	it("refuses an act on the list surface, which would ask itself whether it is available", () => {
-		const own = { act: "list.create", fields: [] };
-		expect(contributedRowActions([{ rowActions: [own] }])).toEqual([]);
 	});
 });
 
