@@ -11,6 +11,7 @@ permissions. Functions that bypass permissions — raw SQL, the query builder,
 
 from __future__ import annotations
 
+import inspect
 import json
 import mimetypes
 from typing import TYPE_CHECKING, Any, NoReturn
@@ -22,6 +23,7 @@ import frappe
 from frappe import _
 from frappe.core.doctype.file.utils import find_file_by_url
 from frappe.core.utils import html2text
+from frappe.utils.background_jobs import enqueue
 from frappe.utils.inplacevar import protected_inplacevar
 from frappe.utils.print_utils import _print_format_doc_or_none
 from frappe.utils.safe_exec import (
@@ -102,6 +104,20 @@ def _gated_attach_print(doctype: str, name: str, *args: Any, **kwargs: Any):
 	if not frappe.has_permission(doctype, "read", name):
 		raise frappe.PermissionError(_("No permission to read {0} {1}").format(doctype, name))
 	return frappe.attach_print(doctype, name, *args, **kwargs)
+
+
+# job options: the queues are shared by every site on the bench
+_ENQUEUE_OPTIONS = frozenset(inspect.signature(enqueue).parameters) - {"method", "kwargs"}
+
+
+def _gated_enqueue(function: str, **kwargs: Any):
+	if options := sorted(_ENQUEUE_OPTIONS & set(kwargs)):
+		frappe.throw(
+			_("frappe.enqueue takes only the function and its arguments here, not {0}.").format(
+				", ".join(options)
+			)
+		)
+	return safe_enqueue(function, **kwargs)
 
 
 def _gated_sendmail(*args: Any, attachments: list | None = None, **kwargs: Any):
@@ -273,7 +289,7 @@ def get_flow_safe_globals(*, tool_context: ToolContext | None = None) -> Namespa
 			call=(lambda function, **kwargs: _call_read_function(tool_context, function, **kwargs))
 			if read_only
 			else call_whitelisted_function,
-			enqueue=(lambda *a, **k: _stop("frappe.enqueue", tool_context)) if read_only else safe_enqueue,
+			enqueue=(lambda *a, **k: _stop("frappe.enqueue", tool_context)) if read_only else _gated_enqueue,
 			is_job_queued=is_job_queued,
 			user=user,
 			session=frappe._dict(user=user),

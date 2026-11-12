@@ -78,6 +78,24 @@ class TestFlowSafeExec(IntegrationTestCase):
 			with self.subTest(code), self.assertRaises(error):
 				safe_exec(code)
 
+	def test_enqueue_takes_only_the_function_and_its_arguments(self):
+		with patch("frappe.flow.utils.safe_exec.safe_enqueue") as queued:
+			self._run('frappe.enqueue("frappe.ping", note="x")')
+			queued.assert_called_once_with("frappe.ping", note="x")
+			for option in (
+				'queue="long"',
+				"timeout=86400",
+				"at_front=True",
+				'job_id="x"',
+				'on_success="os.getcwd"',
+			):
+				with (
+					self.subTest(option),
+					self.assertRaisesRegex(frappe.ValidationError, "only the function"),
+				):
+					self._run(f'frappe.enqueue("frappe.ping", {option})')
+			queued.assert_called_once()
+
 	def test_enforces_the_users_permissions(self):
 		todo = frappe.get_doc({"doctype": "ToDo", "description": "secret", "status": "Open"}).insert()
 		frappe.set_user("Guest")
