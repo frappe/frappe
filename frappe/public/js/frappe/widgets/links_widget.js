@@ -73,7 +73,9 @@ export default class LinksWidget extends Widget {
 
 			if (item.youtube_id)
 				return `
-					<span class="link-content help-video-link ellipsis" data-youtubeid="${item.youtube_id}">
+					<span class="link-content help-video-link ellipsis" data-youtubeid="${frappe.utils.escape_html(
+						item.youtube_id
+					)}">
 						${item.link_title}
 					</span>
 				`;
