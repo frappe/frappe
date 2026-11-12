@@ -170,6 +170,46 @@ class TestExporter(IntegrationTestCase):
 		self.assertNotIn("Child Description (Table Field 1)", export[0])
 		self.assertNotIn("Restricted Value", str(export))
 
+	def test_owner_only_export_refuses_records_of_others(self):
+		user, own, others = "owner-export@example.com", "_Test Own Export", "_Test Others Export"
+		for name in (own, others):
+			frappe.delete_doc_if_exists(doctype_name, name)
+			self.addCleanup(frappe.delete_doc_if_exists, doctype_name, name)
+		frappe.delete_doc_if_exists("User", user, force=True)
+		self.addCleanup(frappe.delete_doc_if_exists, "User", user, force=True)
+		frappe.get_doc(doctype="User", email=user, first_name="Owner Export", send_welcome_email=0).insert()
+		self.addCleanup(reset, doctype_name)
+		add(doctype_name, "All", 0)
+		update(doctype_name, "All", 0, "read", 1)
+		update(doctype_name, "All", 0, "export", 0)
+		frappe.get_doc(
+			doctype="Custom DocPerm",
+			parent=doctype_name,
+			parenttype="DocType",
+			parentfield="permissions",
+			role="All",
+			permlevel=0,
+			if_owner=1,
+			read=1,
+			export=1,
+		).insert()
+		frappe.clear_cache(doctype=doctype_name)
+		for name in (own, others):
+			frappe.get_doc(doctype=doctype_name, title=name).insert()
+		frappe.db.set_value(doctype_name, own, "owner", user)
+
+		def export(name):
+			return Exporter(
+				doctype_name,
+				export_fields={doctype_name: ["title"]},
+				export_data=True,
+				export_filters={"name": name},
+			)
+
+		with self.set_user(user):
+			self.assertIn(own, str(export(own).get_csv_array()))
+			self.assertRaises(frappe.PermissionError, export, others)
+
 	def test_template_includes_import_provider_tables(self):
 		test_doc = "_Test Provider Export"
 		frappe.delete_doc_if_exists(doctype_name, test_doc)
