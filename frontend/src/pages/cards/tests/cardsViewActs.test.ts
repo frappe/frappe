@@ -1,13 +1,16 @@
-// The Cards renderer hands the page its part of the `list` act context: no selection, and its reload.
+// The Cards renderer hands the page its part of the `list` act context: its rows, selection and reload.
 import { createListPageLists } from "@/listPage/createListPage";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, nextTick, ref } from "vue";
 import CardsView from "../CardsView.vue";
 
 const reload = vi.fn();
+const picked = vi.hoisted(() => ({ value: [] as string[] }));
 
 vi.mock("../useCardsView", () => ({
 	useCardsView: () => ({
+		selection: picked,
+		deleteSelection: () => {},
 		fields: { title: "title", body: "content", bodyIsHtml: true },
 		rowActions: ref([]),
 		people: {},
@@ -43,22 +46,37 @@ afterEach(() => {
 	for (const app of mounted.splice(0)) app.unmount();
 });
 
+function mountView(acts: ReturnType<typeof vi.fn>) {
+	const host = { controls: ref(null), bar: ref(null), selecting: ref(false), lists: createListPageLists(), acts, onCreate: () => {} };
+	const app = createApp(CardsView, { view: { doctype: "Note", filters: [], update: () => {} }, host });
+	app.provide("boot", { bulk_actions: 1, bulk_operation_limit: 500 });
+	app.mount(document.createElement("div"));
+	mounted.push(app);
+	return nextTick();
+}
+
+type Entries = () => { item: { name: string } }[];
+type State = { rows: () => unknown[]; selection: () => string[]; reload: () => void };
+
 describe("CardsView acts", () => {
-	it("passes host.acts its entries and a state with its rows, no selection and its reload", async () => {
+	it("passes host.acts its entries and a state with its rows, selection and reload", async () => {
+		picked.value = ["NOTE-1"];
 		const acts = vi.fn(() => ({ drawn: () => undefined }));
-		const host = { controls: ref(null), bar: ref(null), selecting: ref(false), lists: createListPageLists(), acts, onCreate: () => {} };
-		const app = createApp(CardsView, { view: { doctype: "Note", filters: [], update: () => {} }, host });
-		app.mount(document.createElement("div"));
-		mounted.push(app);
-		await nextTick();
+		await mountView(acts);
 
 		expect(acts).toHaveBeenCalledTimes(1);
-		const [entries, state] = acts.mock.calls[0] as unknown as [
-			() => { item: { name: string } }[],
-			{ rows: () => unknown[]; selection: () => string[]; reload: () => void },
-		];
-		expect(entries().map((entry) => entry.item.name)).toEqual(["delete"]);
-		expect(state.selection()).toEqual([]);
+		const [entries, state] = acts.mock.calls[0] as unknown as [Entries, State];
+		expect(entries().map((entry) => entry.item.name)).toEqual(["delete", "delete_card"]);
+		expect(state.selection()).toEqual(["NOTE-1"]);
 		expect(state.reload).toBe(reload);
+	});
+
+	it("offers the bulk actions only while cards are selected, and a card's own delete always", async () => {
+		picked.value = [];
+		const acts = vi.fn(() => ({ drawn: () => undefined }));
+		await mountView(acts);
+
+		const [entries] = acts.mock.calls[0] as unknown as [Entries];
+		expect(entries().map((entry) => entry.item.name)).toEqual(["delete_card"]);
 	});
 });
