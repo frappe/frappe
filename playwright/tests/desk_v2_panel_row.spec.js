@@ -960,3 +960,95 @@ test.describe("Desk v2 side panel rows that grow", () => {
 		await expect(grow(page, "f_code").locator(".cm-editor")).toBeVisible();
 	});
 });
+
+// A required mark sits 2px after the label, a cut-off one included.
+const LABEL_DOCTYPE = "Panel Label 46995";
+const LABEL_SLUG = "panel-label-46995";
+const LONG_LABEL = "Preferred communication channel for billing address";
+const LABEL_TYPES = [
+	{ fieldname: "f_short", fieldtype: "Data", label: "Title", reqd: 1 },
+	{ fieldname: "f_long", fieldtype: "Data", label: LONG_LABEL, reqd: 1 },
+];
+const LABEL_LAYOUT = [
+	{
+		name: "tab_1",
+		sections: [
+			{
+				name: "labels",
+				label: "Labels",
+				columns: [{ name: "column_1", fields: LABEL_TYPES.map((t) => t.fieldname) }],
+			},
+		],
+	},
+];
+
+function measureLabelGap(fieldname) {
+	const box = document
+		.querySelector(`.field-box [data-fieldname="${fieldname}"]`)
+		.closest(".field-box");
+	const label = box.parentElement.previousElementSibling;
+	const text = label.firstElementChild;
+	const star = label.querySelector('[role="img"]');
+	const range = document.createRange();
+	range.selectNodeContents(text);
+	return {
+		text: text.textContent,
+		gap: star.getBoundingClientRect().left - range.getBoundingClientRect().right,
+		labelRight: label.getBoundingClientRect().right,
+		starRight: star.getBoundingClientRect().right,
+	};
+}
+
+test.describe("Desk v2 side panel row: required label gap", () => {
+	let name;
+
+	test.beforeAll(async ({ admin }) => {
+		await admin.call("frappe.tests.ui_test_helpers.set_desk_v2", { enabled: 1 });
+		await admin.insert_doc(
+			"DocType",
+			{
+				name: LABEL_DOCTYPE,
+				module: "Core",
+				custom: 1,
+				autoname: "hash",
+				fields: LABEL_TYPES,
+				permissions: [{ role: "System Manager", read: 1, write: 1, create: 1 }],
+			},
+			true
+		);
+		await admin.insert_doc("Form Layout", {
+			dt: LABEL_DOCTYPE,
+			type: "Side Panel",
+			layout: JSON.stringify(LABEL_LAYOUT),
+		});
+		name = (await admin.insert_doc(LABEL_DOCTYPE, { f_short: "a", f_long: "b" })).name;
+	});
+
+	test.afterAll(async ({ admin }) => {
+		const layouts = await admin.get_list(
+			"Form Layout",
+			["name"],
+			[["dt", "=", LABEL_DOCTYPE]]
+		);
+		for (const { name: layout } of layouts.data ?? []) {
+			await admin.remove_doc("Form Layout", layout, true);
+		}
+		await admin.remove_doc(LABEL_DOCTYPE, name, true);
+		await admin.remove_doc("DocType", LABEL_DOCTYPE, true);
+		await admin.call("frappe.tests.ui_test_helpers.set_desk_v2", { enabled: 0 });
+	});
+
+	test("the mark is 2px after a full label and after a cut-off one", async ({ page }) => {
+		await page.goto(`/apps/desk/${LABEL_SLUG}/${name}`);
+		await expect(row(page, "f_short")).toBeVisible();
+		const full = await page.evaluate(measureLabelGap, "f_short");
+		const cut = await page.evaluate(measureLabelGap, "f_long");
+		expect(full.text).toBe("Title");
+		expect(cut.text.endsWith("…")).toBe(true);
+		expect(cut.text.length).toBeLessThan(LONG_LABEL.length);
+		expect(full.gap).toBeCloseTo(2, 1);
+		expect(cut.gap).toBeCloseTo(2, 1);
+		// The mark stays inside the label column when the text is cut.
+		expect(cut.starRight).toBeLessThanOrEqual(cut.labelRight + 0.5);
+	});
+});
