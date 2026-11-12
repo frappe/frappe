@@ -214,12 +214,13 @@ watch(
 );
 onUnmounted(() => hint_tooltip?.destroy());
 
-let paper_sizes = computed(() => {
-	const sizes = ["A4", "A5", "A3", "Letter", "Legal", "Tabloid"];
-	const size = layout.value.page?.size;
-	if (size && !sizes.includes(size)) sizes.push(size);
-	return [{ label: __("Default"), value: "" }, ...sizes.map((s) => ({ label: s, value: s }))];
-});
+const paper_sizes = [
+	{ label: __("Default"), value: "" },
+	...frappe.meta
+		.get_print_sizes()
+		.filter((s) => s !== "Custom")
+		.map((s) => ({ label: s, value: s })),
+];
 
 function set_page(key, value) {
 	const page = { ...layout.value.page, [key]: value };
