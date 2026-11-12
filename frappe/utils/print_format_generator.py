@@ -36,6 +36,7 @@ def render_jinja_template(template: str, doctype: str, docname: str) -> str:
 
 
 @frappe.whitelist()
+@frappe.concurrent_limit()
 def download_pdf(
 	doctype: str,
 	name: str | int,
@@ -43,6 +44,8 @@ def download_pdf(
 	letterhead: str | None = None,
 	settings: str | dict | None = None,
 ):
+	from frappe.core.doctype.access_log.access_log import make_access_log
+	from frappe.utils.print_utils import _run_print_pdf_hooks
 	from frappe.www.printview import resolve_print_format, validate_print
 
 	doc = frappe.get_doc(doctype, name)
@@ -51,6 +54,7 @@ def download_pdf(
 	if not is_beta:
 		from frappe.utils.print_format import download_pdf as download_jinja_pdf
 
+<<<<<<< HEAD
 		return download_jinja_pdf(
 			doctype, name, format=print_format.name if print_format else None, letterhead=letterhead
 		)
@@ -61,6 +65,21 @@ def download_pdf(
 	else:
 		generator = PrintFormatGenerator(print_format, doc, letterhead, settings=frappe.parse_json(settings))
 		pdf = generator.render_pdf()
+=======
+		return download_jinja_pdf(doctype, name, format=print_format.name, letterhead=letterhead)
+	_run_print_pdf_hooks(doctype, name, print_format.name)
+	generator = PrintFormatGenerator(
+		print_format, doc, letterhead, style=style, settings=frappe.parse_json(settings)
+	)
+	pdf = generator.render_pdf()
+	make_access_log(
+		doctype=doc.doctype,
+		document=doc.name,
+		file_type="PDF",
+		method="Print",
+		page=f"Print Format: {print_format.name}",
+	)
+>>>>>>> 67caba6 (fix(print): print view pdf downloads skip the access log and print hooks)
 
 	frappe.local.response.filename = "{name}.pdf".format(name=name.replace(" ", "-").replace("/", "-"))
 	frappe.local.response.filecontent = pdf
