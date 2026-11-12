@@ -183,7 +183,7 @@ class IntegrationTestWebCrawl(IntegrationTestCase):
 			web_crawl.run()
 		self.assertEqual(frappe.db.count("Web Crawl Result", {"web_crawl": web_crawl.name}), 2)
 
-	def test_only_the_owner_reads_a_crawl_and_its_results(self):
+	def test_only_the_owner_reads_a_crawl_without_a_reference(self):
 		web_crawl = self.start_crawl()
 		with self.set_user(OWNER):
 			web_crawl.run()
@@ -191,6 +191,22 @@ class IntegrationTestWebCrawl(IntegrationTestCase):
 
 		for user, can_read in ((OWNER, True), (STRANGER, False)):
 			with self.subTest(user=user), self.set_user(user):
+				self.assertEqual(bool(frappe.has_permission("Web Crawl", "read", web_crawl.name)), can_read)
+				self.assertEqual(
+					bool(frappe.has_permission("Web Crawl Result", "read", result_name)), can_read
+				)
+				self.assertFalse(frappe.has_permission("Web Crawl", "write", web_crawl.name))
+
+	def test_reference_document_readers_can_read_a_crawl_and_its_results(self):
+		for allocated_to, can_read in ((STRANGER, True), (OWNER, False)):
+			todo = frappe.get_doc({"doctype": "ToDo", "description": "Crawl", "allocated_to": allocated_to})
+			todo.insert(ignore_permissions=True)
+			web_crawl = self.start_crawl(reference_doctype="ToDo", reference_name=todo.name)
+			with self.set_user(OWNER):
+				web_crawl.run()
+			result_name = frappe.get_all("Web Crawl Result", {"web_crawl": web_crawl.name}, pluck="name")[0]
+
+			with self.subTest(allocated_to=allocated_to), self.set_user(STRANGER):
 				self.assertEqual(bool(frappe.has_permission("Web Crawl", "read", web_crawl.name)), can_read)
 				self.assertEqual(
 					bool(frappe.has_permission("Web Crawl Result", "read", result_name)), can_read

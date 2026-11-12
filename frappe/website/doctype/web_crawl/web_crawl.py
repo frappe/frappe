@@ -294,3 +294,25 @@ def run_web_crawl(web_crawl: str) -> dict:
 
 def cancel_web_crawl(web_crawl: str):
 	frappe.db.set_value("Web Crawl", web_crawl, {"status": "Cancelled", "finished_at": now_datetime()})
+
+
+def has_permission(doc: WebCrawl, ptype: str | None = None, user: str | None = None, debug=False) -> bool:
+	"""Others' crawls are readable through read access to the crawl's reference document."""
+	user = user or frappe.session.user
+	if doc.owner == user or "System Manager" in frappe.get_roles(user):
+		return True
+	if ptype not in ("read", "select") or not (doc.reference_doctype and doc.reference_name):
+		return False
+	return bool(frappe.has_permission(doc.reference_doctype, "read", doc.reference_name, user=user))
+
+
+def get_permission_query_conditions(user: str | None = None) -> str | None:
+	return owner_condition("Web Crawl", user)
+
+
+def owner_condition(doctype: str, user: str | None = None) -> str | None:
+	"""Lists show only the user's own crawls, because reference access can't be a query condition."""
+	user = user or frappe.session.user
+	if "System Manager" in frappe.get_roles(user):
+		return None
+	return f"`tab{doctype}`.`owner` = {frappe.db.escape(user)}"

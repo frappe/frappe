@@ -189,6 +189,8 @@ permission_query_conditions = {
 	"Flow Agent": "frappe.flow.permissions.role_query_conditions",
 	"Flow Model": "frappe.flow.permissions.role_query_conditions",
 	"Flow Skill": "frappe.flow.permissions.skill_query_conditions",
+	"Web Crawl": "frappe.website.doctype.web_crawl.web_crawl.get_permission_query_conditions",
+	"Web Crawl Result": "frappe.website.doctype.web_crawl_result.web_crawl_result.get_permission_query_conditions",
 }
 
 has_permission = {
@@ -224,6 +226,8 @@ has_permission = {
 	"Flow Agent": "frappe.flow.permissions.has_role_permission",
 	"Flow Model": "frappe.flow.permissions.has_role_permission",
 	"Flow Skill": "frappe.flow.permissions.has_skill_permission",
+	"Web Crawl": "frappe.website.doctype.web_crawl.web_crawl.has_permission",
+	"Web Crawl Result": "frappe.website.doctype.web_crawl_result.web_crawl_result.has_permission",
 }
 
 has_website_permission = {"Address": "frappe.contacts.doctype.address.address.has_website_permission"}
