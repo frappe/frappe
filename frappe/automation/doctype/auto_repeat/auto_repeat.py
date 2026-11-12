@@ -454,9 +454,6 @@ class AutoRepeat(Document):
 
 		attachments = None
 		error_string = None
-		created_message = _("A recurring {0} {1} has been created for you via Auto Repeat {2}.").format(
-			new_doc.doctype, new_doc.name, self.name
-		)
 
 		if self.attach_print:
 			print_format = self.print_format or frappe.get_meta(new_doc.doctype).default_print_format
@@ -480,7 +477,11 @@ class AutoRepeat(Document):
 				]
 
 			except frappe.PermissionError:
-				error_string = created_message + "<br><br>"
+				error_string = _("A recurring {0} {1} has been created for you via Auto Repeat {2}.").format(
+					new_doc.doctype, new_doc.name, self.name
+				)
+				error_string += "<br><br>"
+
 				error_string += _(
 					"{0}: Failed to attach new recurring document. To enable attaching document in the auto repeat notification email, enable {1} in Print Settings"
 				).format(frappe.bold(_("Note")), frappe.bold(_("Allow Print for Draft")))
@@ -489,10 +490,8 @@ class AutoRepeat(Document):
 
 		if error_string:
 			message = error_string
-		elif not self.attach_print and (
-			not self.message or self.message == self.meta.get_field("message").default
-		):
-			message = created_message
+		elif message_without_print := self.get_message_without_print(new_doc):
+			message = message_without_print
 		elif not self.message:
 			message = _("Please find attached {0}: {1}").format(new_doc.doctype, new_doc.name)
 		elif "{" in self.message:
@@ -506,6 +505,13 @@ class AutoRepeat(Document):
 			content=message,
 			attachments=attachments,
 			send_email=1,
+		)
+
+	def get_message_without_print(self, doc):
+		if self.attach_print or (self.message and self.message != self.meta.get_field("message").default):
+			return None
+		return _("A recurring {0} {1} has been created for you via Auto Repeat {2}.").format(
+			doc.doctype, doc.name, self.name
 		)
 
 	@frappe.whitelist()
@@ -687,7 +693,9 @@ def generate_message_preview(name: str):
 	doc = frappe.get_doc(auto_repeat.reference_doctype, auto_repeat.reference_document)
 	doc.check_permission()
 	subject_preview = _("Please add a subject to your email")
-	msg_preview = frappe.render_template(auto_repeat.message, {"doc": doc}, restrict_globals=True)
+	msg_preview = auto_repeat.get_message_without_print(doc)
+	if not msg_preview:
+		msg_preview = frappe.render_template(auto_repeat.message, {"doc": doc}, restrict_globals=True)
 	if auto_repeat.subject:
 		subject_preview = frappe.render_template(auto_repeat.subject, {"doc": doc}, restrict_globals=True)
 
