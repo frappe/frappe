@@ -259,8 +259,10 @@ class PrintDesignerConverter:
 			inner = "".join(self.element_html(e) for e in self.flatten([child]))
 			nested = child.get("childrens") if child.get("layoutType") == "column" else None
 			offset = min(flt(c.get("startY")) for c in nested) if nested else flt(child.get("startY")) - top
+			fits_content = child.get("type") == "text" and not child.get("isFixedSize")
+			basis = "auto" if fits_content else f"{round(flt(child.get('width')) / total * 100, 1)}%"
 			parts.append(
-				f'<div style="flex: 0 1 {round(flt(child.get("width")) / total * 100, 1)}%; min-width: 0; '
+				f'<div style="flex: 0 1 {basis}; min-width: 0; '
 				f'overflow-wrap: anywhere; padding-top: {round(max(offset, 0))}px;">{inner}</div>'
 			)
 		return (
