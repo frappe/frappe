@@ -43,7 +43,7 @@ export interface BulkBarOptions {
 }
 
 export interface LoadedBulkBar extends BulkBarParts {
-  /** The chunk's components and helpers: the bar, its dialogs and the copy's TSV. */
+  /** The chunk's components and helpers: the bar, its dialogs and the Edit, Export and Copy state (`output`). */
   chunk: typeof import("./bulkBarParts");
   CollabDialog: Component;
 }

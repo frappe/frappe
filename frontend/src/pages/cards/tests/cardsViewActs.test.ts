@@ -22,7 +22,7 @@ vi.mock("../useCardsView", () => ({
 			approx: ref(false),
 			canSelectAll: ref(false),
 			clear: () => {},
-			selected: () => ({ names: [] }),
+			selected: () => ({ names: [...fake.selection!.value] }),
 		},
 		deleteSelection: () => {},
 		fields: { title: "title", body: "content", bodyIsHtml: true },
@@ -54,6 +54,10 @@ vi.mock("@framework/ui/experimental/List", async (original) => ({
 	ListFooter: { template: "<div />" },
 }));
 vi.mock("@/pages/list/DeleteDialog.vue", () => ({ default: { template: "<div />" } }));
+vi.mock("@/pages/list/ExportDialog.vue", () => ({
+	__esModule: true,
+	default: { props: ["selection"], template: `<div class="export">{{ selection.names.join(",") }}</div>` },
+}));
 vi.mock("@/shell/PageFrame.vue", () => ({ pageGutter: "" }));
 vi.mock("@/shell/PageState.vue", () => ({ default: { template: "<div />" } }));
 vi.mock("../CardSettings.vue", () => ({ default: { template: "<div />" } }));
@@ -65,6 +69,8 @@ const mounted: ReturnType<typeof createApp>[] = [];
 
 afterEach(() => {
 	for (const app of mounted.splice(0)) app.unmount();
+	fake.picked = [];
+	fake.rows = [];
 });
 
 async function mountView(acts: ReturnType<typeof vi.fn>) {
@@ -139,7 +145,18 @@ describe("CardsView acts", () => {
 		cards[3].dispatchEvent(new PointerEvent("pointerenter"));
 		run("extend_row");
 		expect(fake.selection!.value).toEqual(["NOTE-1", "NOTE-2", "NOTE-3", "NOTE-4"]);
-		fake.rows = [];
+	});
+
+	it("opens Export from the bar with the selected cards", async () => {
+		fake.picked = ["NOTE-1", "NOTE-2"];
+		const acts = vi.fn(() => ({ drawn: () => undefined }));
+		const root = await mountView(acts);
+		const [entries] = acts.mock.calls[0] as unknown as [Entries];
+
+		entries().find((entry) => entry.item.name === "export")!.item.run!();
+		await vi.dynamicImportSettled();
+		await nextTick();
+		expect(root.querySelector(".export")?.textContent).toBe("NOTE-1,NOTE-2");
 	});
 });
 
