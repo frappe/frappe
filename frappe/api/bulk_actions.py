@@ -1,5 +1,7 @@
 """The bulk actions API v2 routes through `frappe.api.bulk`: each is a record function and its route."""
 
+from dataclasses import replace
+
 import frappe
 from frappe import _, cint
 from frappe.api.bulk import (
@@ -15,6 +17,7 @@ from frappe.api.bulk import (
 )
 from frappe.api.utils import FrappeValueError
 from frappe.core.doctype.submission_queue.submission_queue import queue_submission
+from frappe.handler import is_valid_http_method, resolve_method
 from frappe.model.docstatus import DocStatus
 from frappe.model.workflow import (
 	WorkflowStateError,
@@ -106,6 +109,24 @@ def bulk_print_docs(doctype: str):
 		"language": frappe.local.lang,
 	}
 	return run_bulk(PRINT, doctype, params=params, limit=get_max_bulk_print_docs())
+
+
+def bulk_call_docs(doctype: str):
+	"""POST /document/<doctype>/bulk_call
+
+	Body: `method`, a whitelisted function `method(doctype, name, **args)` that acts on one record and
+	checks that record's right itself; `args`; and `names`, or `filters` and `or_filters`. The task is
+	named after the method and the doctype: `app.api.add_roles` on User runs as "Add Roles User".
+	"""
+	form = frappe.form_dict
+	method, args = form.get("method"), form.get("args") or {}
+	if not isinstance(method, str) or not method:
+		raise FrappeValueError("'method' must be the dotted path of a whitelisted function")
+	if not isinstance(args, dict) or {"doctype", "name"} & args.keys():
+		raise FrappeValueError("'args' must be a dictionary without 'doctype' or 'name'")
+
+	label = method.rsplit(".", 1)[-1].replace("_", " ").title()
+	return run_bulk(replace(CALL, label=label), doctype, params={"method": method, "args": args})
 
 
 def selection_from_docs(docs, doctype: str | None = None, with_values: bool = True) -> Selection:
@@ -226,6 +247,24 @@ def workflow_one(doctype: str, name: str, action: str):
 		return QUEUED
 
 
+def refuse_unwhitelisted_method(doctype: str, params: dict):
+	whitelisted_method(params["method"])
+
+
+def whitelisted_method(path: str):
+	method = resolve_method(frappe.override_whitelisted_method(path))
+	frappe.is_whitelisted(method)
+	is_valid_http_method(method)
+	return method
+
+
+def call_one(doctype: str, name: str, method: str, args: dict):
+	try:
+		return frappe.call(whitelisted_method(method), doctype, name, **args)
+	finally:
+		frappe.clear_messages()
+
+
 def bulk_submit_docs(doctype: str):
 	"""POST /document/<doctype>/bulk_submit
 
@@ -287,6 +326,7 @@ UPDATE = BulkAction("Edit", update_one, check=refuse_workflow_without_allow_edit
 SUBMIT = BulkAction("Submit", submit_one, check=refuse_submit_cancel)
 CANCEL = BulkAction("Cancel", cancel_one, check=refuse_submit_cancel)
 WORKFLOW = BulkAction("Workflow", workflow_one, check=refuse_without_workflow)
+CALL = BulkAction("Call", call_one, check=refuse_unwhitelisted_method)
 
 
 def refuse_print_over_the_user_limits(doctype: str, params: dict):

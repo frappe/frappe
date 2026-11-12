@@ -247,7 +247,10 @@ reader may create the linked doctype. The typed text and the field's equality `l
 fill the new record. After a save the field takes the new name and runs its change handler,
 as a pick does.
 `page.dialog.form({ doctype })` is the other tool: it always shows a dialog and only returns
-the values, and it never inserts.
+the values, and it never inserts. A table field (`Table MultiSelect`) names its columns in
+`child_fields`, in a doctype field's vocabulary: `{ fieldname: 'roles', fieldtype: 'Table MultiSelect',
+options: 'Has Role', child_fields: [{ fieldname: 'role', fieldtype: 'Link', options: 'Role' }] }`
+returns `{ roles: [{ role }] }`. A list page draws the dialog too.
 
 ```js
 page.header.add({
@@ -408,6 +411,7 @@ The list page has the base page members (`doctype`, `perms`, `roles`, `toast`, `
 | `page.selection` | The names of the selected rows now; read only. |
 | `page.filters`, `page.sort` | The view's filters and sort. Set them to load the rows again. |
 | `page.reload()` | Loads the rows again, as the list does after its own change. |
+| `page.callSelected(method, args)` | Runs a whitelisted record function on the selected rows through the bulk runner. See below. |
 
 The four lists take the seven verbs and `clear`. A `controls` or `bulkActions` item is an act
 item (`name`, `label`, `icon`, `run(page, value)`, `right`, `when`, `palette`). A `rowActions`
@@ -453,6 +457,53 @@ or after it, or hide it. A `frame` band draws before the header, between the hea
 An app adds to another app's list from `<app>/<module>/custom/<scrubbed>/list.js`, the same file
 shape at the `custom/` path that `record.js` uses. The owner's `onRefresh` runs first, then each
 other app's in the site's app order. A new or changed file takes effect after the next `bench build`.
+
+#### A bulk action that runs on the server: `page.callSelected(method, args)`
+
+A bulk action that changes records on the server writes one **record function** and calls it with
+`page.callSelected`. The function takes the doctype and the name of one record, then the `args`
+the script sends:
+
+```py
+# my_app/api.py
+@frappe.whitelist(methods=["POST"])
+def add_roles_to_user(doctype: str, name: str, roles: list) -> None:
+    user = frappe.get_doc(doctype, name)
+    user.check_permission("write")
+    user.add_roles(*roles)
+```
+
+```js
+// my_app/.../user/frontend/list.js
+page.bulkActions.add({
+  name: 'add_roles',
+  label: __('Add Roles'),
+  right: 'write',
+  run: async (page) => {
+    const values = await page.dialog.form({ title: __('Add Roles'), fields: [/* ... */] })
+    if (values) await page.callSelected('my_app.api.add_roles_to_user', { roles: values.roles })
+  },
+})
+```
+
+The runner calls the function once for each selected record, each under its own savepoint, so a
+record that raises fails alone and its error shows in the result. The runner owns everything
+around it: the person's `bulk_actions` switch, the cap (`bulk_operation_limit`), running inline
+or as a Background Task above the threshold, progress, and the result. The function owns the
+right: **check the record's right in the function** (`check_permission`, or a save that checks
+it). The runner only checks that the method is whitelisted and that its HTTP method is `POST`.
+
+- The function is `method(doctype, name, **args)`. `args` is a dictionary and never holds `doctype` or `name`. An argument the function does not take is dropped, as a normal call does.
+- Type every argument: `frappe.whitelist` refuses a function that lacks annotations.
+- It returns nothing. It may return `"queued"` (`frappe.api.bulk.QUEUED`) when the work is queued elsewhere, and the result lists the record as queued, not done.
+- Its messages (`frappe.msgprint`) are dropped. Raise to fail the record.
+- The runner checks the whitelist, the HTTP method and the bulk right, then calls the function as a direct request would. The function owns every other check.
+- The method is a dotted path to a whitelisted function. A Server Script API is not supported.
+- The Background Task is named after the function: `add_roles_to_user` runs as "Add Roles To User User" (function name, then doctype).
+
+`page.callSelected` resolves `true` when the run went to the background or every record passed,
+and `false` after a toast that says why when the runner refused it or a record failed. It
+reloads the list when the run ends. With no row selected it sends nothing.
 
 `page.columns.update(fieldname, cell)` describes how a column draws its cells, as data (an app
 supplies no component):

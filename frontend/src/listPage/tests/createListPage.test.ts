@@ -10,6 +10,7 @@ vi.mock("frappe-ui", () => ({
 const { call, evaluateClientScript } = vi.hoisted(() => ({ call: vi.fn(), evaluateClientScript: vi.fn() }));
 vi.mock("@framework/ui/api", () => ({ runMethod: call }));
 vi.mock("@/recordPage/evaluateClientScript", () => ({ evaluateClientScript }));
+const { callSelected } = vi.hoisted(() => ({ callSelected: vi.fn() }));
 
 import type { View } from "@/list/view";
 import { createListPage, type ListPageController } from "../createListPage";
@@ -56,7 +57,7 @@ function makeView(): View {
 }
 
 function makePage(view = makeView()) {
-  const list = createListPage({ view, router: {} as never, meta: () => null, permissions });
+  const list = createListPage({ view, router: {} as never, meta: () => null, permissions, callSelected });
   list.lists.columns.provideBuiltins(() => [{ name: "status" }, { name: "enabled", label: "Enabled" }]);
   pages.push(list);
   return list;
@@ -141,17 +142,33 @@ describe("the list page", () => {
     expect(list.page.rows).toEqual([]);
 
     const rows = [{ name: "R-1" }, { name: "R-2" }];
-    list.attach({ rows: () => rows, selection: () => ["R-2"], reload: () => {} });
+    list.attach({ rows: () => rows, selection: () => ["R-2"], selected: () => ({ names: ["R-2"] }), reload: () => {} });
     expect(list.page.rows).toEqual(rows);
     expect(list.page.selection).toEqual(["R-2"]);
     expect(Object.isFrozen(list.page.rows)).toBe(true);
     expect(Object.isFrozen(list.page.selection)).toBe(true);
   });
 
+  it("hands callSelected the doctype, the renderer's selection body and its reload", async () => {
+    callSelected.mockResolvedValue(true);
+    const reload = vi.fn();
+    const list = makePage();
+    list.attach({ rows: () => [], selection: () => ["R-2"], selected: () => ({ names: ["R-2"] }), reload });
+
+    expect(await list.page.callSelected("my_app.api.act", { a: 1 })).toBe(true);
+
+    const [host, method, args] = callSelected.mock.calls[0];
+    expect(host.doctype).toBe(doctype);
+    expect(host.selected()).toEqual({ names: ["R-2"] });
+    expect([method, args]).toEqual(["my_app.api.act", { a: 1 }]);
+    host.reload();
+    expect(reload).toHaveBeenCalledTimes(1);
+  });
+
   it("reloads through the renderer, and not once the reader has left", () => {
     const reload = vi.fn();
     const list = makePage();
-    list.attach({ rows: () => [], selection: () => [], reload });
+    list.attach({ rows: () => [], selection: () => [], selected: () => ({ names: [] }), reload });
 
     list.page.reload();
     expect(reload).toHaveBeenCalledTimes(1);
@@ -177,7 +194,7 @@ describe("the list page", () => {
   it("replays when the renderer attaches, so onRefresh sees the built-ins it gives", async () => {
     const seen: boolean[] = [];
     const land = addScript((page) => void seen.push(page.columns.has("title")));
-    const list = createListPage({ view: makeView(), router: {} as never, meta: () => null, permissions });
+    const list = createListPage({ view: makeView(), router: {} as never, meta: () => null, permissions, callSelected });
     pages.push(list);
     list.paint();
     land();
@@ -185,7 +202,7 @@ describe("the list page", () => {
     expect(seen).toEqual([false]);
 
     list.lists.columns.provideBuiltins(() => [{ name: "title" }]);
-    list.attach({ rows: () => [], selection: () => [], reload: () => {} });
+    list.attach({ rows: () => [], selection: () => [], selected: () => ({ names: [] }), reload: () => {} });
     await settle();
     expect(seen).toEqual([false, true]);
   });

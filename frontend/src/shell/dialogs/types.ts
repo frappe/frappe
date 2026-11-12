@@ -20,6 +20,8 @@ export interface PageDialogField {
   mandatory_depends_on?: string;
   read_only_depends_on?: string;
   description?: string;
+  /** A table field's child columns, in a doctype field's vocabulary: a Table MultiSelect needs the Link column it picks by. */
+  child_fields?: PageDialogField[];
   /** Closed on purpose: it agrees with `PageFieldPatch` on what a script may write. */
 }
 

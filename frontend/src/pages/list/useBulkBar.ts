@@ -138,6 +138,7 @@ export function useBulkBar(options: BulkBarOptions): BulkBar {
     {
       rows: () => options.rows.value,
       selection: () => selection.value,
+      selected: () => options.scope.selected(),
       reload: options.reload,
     },
   );

@@ -133,9 +133,10 @@ function toSection(section: PageDialogSection): Section {
 }
 
 // `mapField` is the meta path's reading of DocField vocabulary, so both tiers agree
-// on what a field means. No child metas: a dialog field list cannot describe a grid.
+// on what a field means. A table field brings its columns in `child_fields`: no grid is described otherwise.
 function toFieldNode(field: PageDialogField): FieldNode {
-  return mapField(field, {});
+  const children = field.child_fields && field.options ? { [field.options]: field.child_fields } : {};
+  return mapField(field, children);
 }
 
 function mapFields(

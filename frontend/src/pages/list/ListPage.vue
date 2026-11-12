@@ -106,6 +106,7 @@
 		</BodyColumns>
 
 		<FrameBands :bands="frame.after" :page="list.page" />
+		<PageDialogs v-if="list.engine.dialogs.value.length" :controller="list.engine" />
 	</PageFrame>
 </template>
 
@@ -115,7 +116,7 @@ import { Filter } from "@framework/ui/Filter";
 import { QuickFilter } from "@framework/ui/QuickFilter";
 import { SortBy } from "@framework/ui/SortBy";
 import { useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
-import { computed, inject, onMounted, onUnmounted, ref, watch } from "vue";
+import { computed, defineAsyncComponent, inject, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { passesRight, passesWhen } from "@/acts/dispatcher";
 import type { Addresses } from "@/addresses";
@@ -143,6 +144,9 @@ import { clearDefaultView, setDefaultView } from "./defaultView";
 import { useListActs } from "./listActs";
 import { listHeaderItems, projectListHeader } from "./listHeader";
 import { rendererFor, type RendererHost } from "./renderer";
+
+// A script's `page.dialog.form` needs a host; the stack loads only when one is open.
+const PageDialogs = defineAsyncComponent(() => import("@/pages/record/dialogs/PageDialogs.vue"));
 
 const props = defineProps<{ page: ListPage; label?: string }>();
 
@@ -189,6 +193,8 @@ const list = createListPage({
 	meta: () => meta.value,
 	permissions,
 	scripted: boot.list_script_doctypes?.includes(doctype) ?? true,
+	callSelected: (...run) =>
+		import("./callSelected").then((module) => module.callSelected(...run)),
 });
 list.lists.controls.provideBuiltins(() => [
 	{ name: "quick_filter", label: __("Quick Filter") },

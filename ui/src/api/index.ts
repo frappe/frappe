@@ -295,6 +295,16 @@ export function bulkStatusDocuments(
   return fed<BulkResult | BulkQueued>("POST", path, { body, signal }, () => {});
 }
 
+/** Runs the whitelisted record function `method(doctype, name, **args)` on the selection in one request. */
+export function bulkCallDocuments(
+  doctype: string,
+  body: BulkSelection & { method: string; args?: Record<string, unknown> },
+  { signal }: CallOptions = {}
+): Promise<Envelope<BulkResult | BulkQueued>> {
+  const path = `/document/${segment(doctype)}/bulk_call`;
+  return fed<BulkResult | BulkQueued>("POST", path, { body, signal }, () => {});
+}
+
 /** The workflow actions the user can apply to every record of the selection; none when they differ. */
 export function bulkWorkflowActions(
   doctype: string,
