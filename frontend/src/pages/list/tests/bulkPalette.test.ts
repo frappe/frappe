@@ -23,6 +23,8 @@ interface BarOptions {
   total?: number;
   approx?: boolean;
   meta?: ListMeta | null;
+  /** Runs on the list before the bar's chunk loads. */
+  before?: (lists: ReturnType<typeof createListPageLists>) => void;
 }
 
 async function bar({
@@ -34,6 +36,7 @@ async function bar({
   total = selected.length,
   approx = false,
   meta = null,
+  before,
 }: BarOptions = {}) {
   // `script: false` leaves the list with Delete only.
   const lists = createListPageLists();
@@ -105,6 +108,7 @@ async function bar({
       label: "Restore",
       run: (_page, names) => seen(names),
     });
+  before?.(lists);
   await result.load();
   return { result, selection, askDelete, seen, lists, scope: result.scope };
 }
@@ -242,6 +246,39 @@ describe("the bulk actions in the palette", () => {
     expect(acts.find("list.clear_selection")).toBeDefined();
   });
 
+  it("leaves Edit and Delete out on a workflow doctype whose List View Settings do not allow bulk edit", async () => {
+    const { result } = await bar({ meta: { allow_bulk_edit: false } });
+    await nextTick();
+    const { buttons, menu, trash } = result.layout.value;
+    const drawn = [...buttons, ...menu.flatMap((group) => group.options)].map((option) => option.label);
+    expect(drawn).not.toContain("Edit");
+    expect(drawn).not.toContain("Delete");
+    expect(trash).toBeFalsy();
+    expect(paletteLabels()).not.toContain("Edit 3 selected");
+    expect(paletteLabels()).not.toContain("Delete 3 selected");
+    expect(paletteLabels()).toContain("Print 3 selected");
+    mounted!.release();
+    mounted!.app.unmount();
+
+    await bar({ meta: { allow_bulk_edit: true } });
+    await nextTick();
+    expect(paletteLabels()).toEqual(expect.arrayContaining(["Edit 3 selected", "Delete 3 selected"]));
+  });
+
+  it("finds no built-in before the chunk loads, and applies a script's edits to it once it does", async () => {
+    const seen: unknown[] = [];
+    const { lists } = await bar({
+      before: (lists) => {
+        seen.push(lists.bulkActions.has("edit"));
+        lists.bulkActions.update("edit", { label: "Change" });
+        lists.bulkActions.hide("export");
+      },
+    });
+    expect(seen).toEqual([false]);
+    expect(lists.bulkActions.find("edit")?.label).toBe("Change");
+    expect(lists.bulkActions.isDrawn("export")).toBe(false);
+  });
+
   describe("after Select all", () => {
     const everything = { total: 1240, cap: 5000, selected: ["A", "B", "C"] };
 
@@ -252,6 +289,22 @@ describe("the bulk actions in the palette", () => {
       expect(paletteLabels()).toContain("Delete all 1,240 matching");
       expect(paletteLabels().filter((label) => /Restore/.test(label!))).toEqual([]);
       expect(paletteLabels().filter((label) => /selected/.test(label!))).toEqual([]);
+    });
+
+    it("offers exactly what the bar enables, Print, Edit and Export among them", async () => {
+      const { scope, result } = await bar(everything);
+      scope.selectAll();
+      await nextTick();
+      const { buttons, menu } = result.layout.value;
+      const enabled = [...buttons, ...menu.flatMap((group) => group.options)]
+        .filter((option) => !option.disabled)
+        .map((option) => option.label);
+      const offered = paletteLabels()
+        .filter((label) => / all 1,240 matching$/.test(label!))
+        .map((label) => label!.replace(" all 1,240 matching", ""));
+      expect(offered.sort()).toEqual(enabled.sort());
+      expect(offered).toEqual(expect.arrayContaining(["Print", "Edit", "Export"]));
+      expect(offered).not.toContain("Copy to Clipboard");
     });
 
     it("writes a floor total with a plus", async () => {
@@ -282,7 +335,7 @@ describe("the bulk actions in the palette", () => {
       ]);
     });
 
-    it("follows the bar's cap rule: at the cap offered, over it every entry is left out", async () => {
+    it("follows the bar's cap rule: at the cap offered, over it every capped entry is left out", async () => {
       const { scope } = await bar({ ...everything, total: 1240, cap: 1240, meta: { is_submittable: 1 } });
       scope.selectAll();
       await nextTick();
@@ -295,7 +348,10 @@ describe("the bulk actions in the palette", () => {
       const over = await bar({ ...everything, total: 1241, cap: 1240, meta: { is_submittable: 1 } });
       over.scope.selectAll();
       await nextTick();
-      expect(paletteLabels().filter((label) => /matching/.test(label!))).toEqual([]);
+      expect(paletteLabels().filter((label) => /matching/.test(label!))).toEqual([
+        "Print all 1,241 matching",
+        "Export all 1,241 matching",
+      ]);
     });
 
     it("returns to the selection's wording when the scope clears", async () => {

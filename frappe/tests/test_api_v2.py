@@ -1822,6 +1822,7 @@ class TestIncludePartsV2(FrappeAPITestCase):
 		response = self.get(path, {"sid": self.user_sid})
 		self.assertIsNone(response.json["data"]["workflow_state_field"])
 		self.assertEqual(response.json["data"]["workflow_state_styles"], {})
+		self.assertTrue(response.json["data"]["allow_bulk_edit"])
 
 		self.addCleanup(frappe.set_user, frappe.session.user)
 		frappe.set_user("Administrator")
@@ -1859,6 +1860,25 @@ class TestIncludePartsV2(FrappeAPITestCase):
 		response = self.get(path, {"sid": self.user_sid})
 		self.assertEqual(response.json["data"]["workflow_state_field"], "workflow_state")
 		self.assertEqual(response.json["data"]["workflow_state_styles"], {"Done": "Success"})
+		self.assertFalse(response.json["data"]["allow_bulk_edit"])
+
+		self.allow_bulk_edit("ToDo")
+		response = self.get(path, {"sid": self.user_sid})
+		self.assertTrue(response.json["data"]["allow_bulk_edit"])
+
+	def allow_bulk_edit(self, doctype):
+		if frappe.db.exists("List View Settings", doctype):
+			allowed = frappe.db.get_value("List View Settings", doctype, "allow_edit")
+			frappe.db.set_value("List View Settings", doctype, "allow_edit", 1)
+			self.addCleanup(frappe.db.commit)
+			self.addCleanup(frappe.db.set_value, "List View Settings", doctype, "allow_edit", allowed)
+		else:
+			frappe.get_doc({"doctype": "List View Settings", "name": doctype, "allow_edit": 1}).insert(
+				ignore_permissions=True
+			)
+			self.addCleanup(frappe.db.commit)
+			self.addCleanup(frappe.delete_doc, "List View Settings", doctype, force=True)
+		frappe.db.commit()
 
 	@staticmethod
 	def restore_state_styles(styles):

@@ -122,6 +122,30 @@ describe("settleQueued", () => {
 		});
 	});
 
+	it("reads twice the queued names' rows, newest first, and takes each name's newest row", async () => {
+		fake.listDocuments.mockResolvedValue({
+			data: [
+				{ ref_docname: "A", status: "Finished" },
+				{ ref_docname: "B", status: "Queued" },
+				{ ref_docname: "A", status: "Failed", exception: "ValidationError: Old" },
+				{ ref_docname: "B", status: "Failed", exception: "ValidationError: Old" },
+			],
+		});
+		const open = { ...report(), queued: [{ name: "A" }, { name: "B" }] };
+		bulkPanel.value = open;
+		expect(await settleQueued(open)).toBe(true);
+		expect(bulkPanel.value).toMatchObject({ done: [{ name: "A" }], failed: [], queued: [{ name: "B" }] });
+		expect(fake.listDocuments.mock.calls[0]).toEqual([
+			"Submission Queue",
+			{
+				fields: ["ref_docname", "status", "exception"],
+				filters: { ref_doctype: "Leave", ref_docname: ["in", ["A", "B"]] },
+				order_by: "creation desc",
+				limit: 4,
+			},
+		]);
+	});
+
 	it("leaves a closed panel closed", async () => {
 		fake.listDocuments.mockResolvedValue({ data: [{ ref_docname: "A", status: "Finished" }] });
 		bulkPanel.value = null;

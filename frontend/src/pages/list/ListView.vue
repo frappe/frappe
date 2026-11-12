@@ -165,7 +165,6 @@
 		:all="scope.all.value"
 		:approx="scope.approx.value"
 		:run="editSelection"
-		:follow="followRun"
 	/>
 	<component
 		:is="bulk.parts.value.chunk.ExportDialog"
@@ -207,6 +206,7 @@ import { toast } from "frappe-ui";
 import type { BulkSelection, BulkUpdate } from "@framework/ui/api";
 import { computed, provide, ref } from "vue";
 import { __, __n } from "@/i18n";
+import { errorMessage } from "@/recordPage/errorMessage";
 import { useListView } from "@/list/useListView";
 import { useScrollMemory } from "@/list/useScrollMemory";
 import type { View } from "@/list/view";
@@ -252,6 +252,7 @@ const {
 	pageSize,
 	rowsKey,
 	rows,
+	readFields: rowFields,
 	loading,
 	error,
 	rowCount,
@@ -290,8 +291,6 @@ const exporting = ref(false);
 const exportOpened = ref(false);
 // The export is a download of the selection as it was when it was asked for.
 const exportScope = ref<BulkSelection>({ names: [] });
-const followRun = (taskId: string) =>
-	void import("@/shell/bulkRuns").then((runs) => runs.followBulkRun(taskId, reload));
 const confirmingDelete = ref(false);
 const deleteOpened = ref(false);
 
@@ -333,29 +332,49 @@ function columnFields(matches: (field: RawMetaField) => boolean) {
 
 async function editSelection(update: BulkUpdate) {
 	const { updateRows } = await import("@/list/bulkEdit");
-	const outcome = await updateRows(props.view.doctype, { reload }, scope.selected(), update);
-	if (!outcome.failed.length) scope.clear();
-	return outcome;
+	await updateRows(props.view.doctype, { reload }, scope.selected(), update, (names) => {
+		scope.clear();
+		selection.value = names;
+	});
+	scope.clear();
 }
 
 function copySelection() {
-	const chosen = new Set(selection.value);
+	const names = [...selection.value];
+	const chosen = new Set(names);
 	const loaded = rows.value.filter((row) => chosen.has(row.name));
 	const columns = shownColumns.value.map(({ fieldname, label }) => ({
 		fieldname,
 		label: label ?? fieldname,
 	}));
-	// `navigator.clipboard` is missing on a non-secure origin; writing in the click keeps its user activation.
+	let copied = loaded.length;
+	const tsv = (picked: Record<string, unknown>[]) => {
+		copied = picked.length;
+		return bulk.parts.value!.chunk.selectionTsv(columns, picked, markedText);
+	};
+	let readError: unknown;
+	const withHidden = () =>
+		bulk.parts
+			.value!.chunk.withHiddenRows(props.view.doctype, names, loaded, rowFields())
+			.then((picked) => new Blob([tsv(picked)], { type: "text/plain" }))
+			.catch((error) => {
+				readError = error;
+				throw error;
+			});
+	// `navigator.clipboard` is missing on a non-secure origin; writing in the click keeps its user
+	// activation, and a ClipboardItem holding a promise keeps it across the read of hidden rows.
 	Promise.resolve()
 		.then(() =>
-			navigator.clipboard.writeText(
-				bulk.parts.value!.chunk.selectionTsv(columns, loaded, markedText)
+			loaded.length === names.length
+				? navigator.clipboard.writeText(tsv(loaded))
+				: navigator.clipboard.write([new ClipboardItem({ "text/plain": withHidden() })])
+		)
+		.then(() => toast.success(__n("Copied {0} row", "Copied {0} rows", copied, [copied])))
+		.catch(() =>
+			toast.error(
+				readError ? errorMessage(readError) : __("The browser did not allow copying.")
 			)
-		)
-		.then(() =>
-			toast.success(__n("Copied {0} row", "Copied {0} rows", loaded.length, [loaded.length]))
-		)
-		.catch(() => toast.error(__("The browser did not allow copying.")));
+		);
 }
 
 const bulk = useBulkBar({

@@ -21,9 +21,11 @@
 			class="flex w-max min-w-full flex-col"
 		>
 			<ListHeader class="group sticky top-0 z-10 bg-surface-base">
+				<!-- Esc keys skip a focused input, and select-all is one. -->
 				<div
 					class="flex items-center ps-[calc(0.5rem+1px)] [&_input]:mt-0"
 					role="columnheader"
+					@keydown="$event.key === 'Escape' && (selection = [])"
 				>
 					<Skeleton v-if="skeletonRows && !$slots.bar" class="h-3.5 w-3.5 rounded-1" />
 					<Checkbox

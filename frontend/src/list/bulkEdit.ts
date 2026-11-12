@@ -1,20 +1,9 @@
 // The bulk Edit: which fields it can set, and the one request that sets them on the selection.
-import {
-	bulkUpdateDocuments,
-	isBulkQueued,
-	type BulkSelection,
-	type BulkUpdate,
-} from "@framework/ui/api";
+import { bulkUpdateDocuments, type BulkSelection, type BulkUpdate } from "@framework/ui/api";
 import type { RawMetaField } from "@framework/ui/FormLayout";
 import { NO_VALUE } from "@framework/ui/FormLayout";
+import { __ } from "@/i18n";
 import type { ListRows } from "./useListRows";
-
-export interface EditOutcome {
-	updated: string[];
-	failed: { name: string; error: string }[];
-	/** The run went to the background; its result is not known yet. */
-	queued?: { task_id: string };
-}
 
 /** A field the Edit can set; a child field sets every row of its table. */
 export interface EditableField {
@@ -69,7 +58,7 @@ export function editableFields(
 export function updateFrom(picked: { field: EditableField; value: unknown }[]): BulkUpdate {
 	const update: BulkUpdate = {};
 	for (const { field, value } of picked) {
-		const set = value === "" || value === undefined ? null : value;
+		const set = clears(value) ? null : value;
 		if (field.table) {
 			update.child_values = {
 				...update.child_values,
@@ -82,14 +71,24 @@ export function updateFrom(picked: { field: EditableField; value: unknown }[]): 
 	return update;
 }
 
+/** The shell reports the run: a toast, the result panel on any failure, or the tray for a background run. */
 export async function updateRows(
 	doctype: string,
 	rows: Pick<ListRows, "reload">,
 	selection: BulkSelection,
-	update: BulkUpdate
-): Promise<EditOutcome> {
-	const { data } = await bulkUpdateDocuments(doctype, selection, update);
-	rows.reload();
-	if (isBulkQueued(data)) return { updated: [], failed: [], queued: { task_id: data.task_id } };
-	return { updated: data.done, failed: data.failed };
+	update: BulkUpdate,
+	select?: (names: string[]) => void
+): Promise<void> {
+	const { runBulk } = await import("@/shell/bulkOutcome");
+	await runBulk({
+		label: __("Edit"),
+		doctype,
+		send: (retry) => bulkUpdateDocuments(doctype, retry ? { names: retry } : selection, update),
+		select,
+		finished: rows.reload,
+	});
+}
+
+export function clears(value: unknown): boolean {
+	return value === "" || value == null;
 }
