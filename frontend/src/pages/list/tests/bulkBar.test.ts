@@ -133,7 +133,7 @@ describe("BulkBar", () => {
 	});
 
 	it("opens More on a click, with its Tooltip around the button", async () => {
-		const { root } = mount({ count: 2, layout: layoutBulk([entry("edit", { label: "Edit" })], "ToDo") });
+		const { root } = mount({ scope: scopeOf(2).scope, layout: layoutBulk([entry("edit", { label: "Edit" })], "ToDo") });
 		button(root, "More")!.click();
 		await nextTick();
 		expect(document.body.querySelector("[role=menu]")?.textContent).toContain("Edit");

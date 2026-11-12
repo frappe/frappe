@@ -120,12 +120,6 @@ export function useBulkBar(options: BulkBarOptions): BulkBar {
 			  })
 	);
 
-	return {
-		listActs,
-		menuOpen,
-		layout: computed(() => layoutBulk(entries.value, options.doctype)),
-		scope: options.scope,
-		cap,
-		locked,
-	};
+	const layout = computed(() => layoutBulk(entries.value, options.doctype));
+	return { listActs, menuOpen, layout, scope: options.scope, cap, locked };
 }
