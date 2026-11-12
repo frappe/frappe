@@ -1,4 +1,4 @@
-// One doctype's stored list settings: the site row and the person's own, fetched beside meta once
+// One doctype's list settings: the app's file, the site row and the person's own, fetched beside meta once
 // and again after a DocType change, written back silently. A write's response replaces both rows.
 // The same read says which of the list and its saved views the person starred; a star toggles in turn with the writes.
 import { runMethod } from "@framework/ui/api";
@@ -22,7 +22,7 @@ export interface ListFavourites {
 
 export interface ListSettingsHandle {
 	loaded: ComputedRef<boolean>;
-	/** The site row under the person's own, key by key. */
+	/** The app's file under the site row under the person's own, key by key. */
 	stored: ComputedRef<ListSettings>;
 	has: (scope: Scope, key: ListSettingsKey) => boolean;
 	/** Debounced; a later patch in the window joins the same write. */
@@ -43,6 +43,7 @@ export interface ListSettingsHandle {
 }
 
 interface Tiers {
+	app: ListSettings | null;
 	site: ListSettings | null;
 	user: ListSettings | null;
 }
@@ -96,7 +97,10 @@ export function useListSettings(doctype: string): ListSettingsHandle {
 
 	return {
 		loaded: computed(() => entry.loaded.value),
-		stored: computed(() => ({ ...entry.tiers.value.site, ...entry.tiers.value.user })),
+		stored: computed(() => {
+			const { app, site, user } = entry.tiers.value;
+			return { ...app, ...site, ...user };
+		}),
 		has: (scope, key) => {
 			if (scope === "user" && entry.pending && key in entry.pending) return true;
 			const row = entry.tiers.value[scope];
@@ -133,7 +137,7 @@ function entryFor(doctype: string): Entry {
 	if (existing && !existing.stale) return existing;
 	const seeded = existing?.loaded.value ?? false;
 	const entry: Entry = {
-		tiers: ref(seeded ? existing!.tiers.value : { site: null, user: null }),
+		tiers: ref(seeded ? existing!.tiers.value : { app: null, site: null, user: null }),
 		favourites: ref(seeded ? existing!.favourites.value : null),
 		loaded: ref(seeded),
 		pending: null,
@@ -249,8 +253,8 @@ async function send(method: string, args: Record<string, unknown>): Promise<unkn
 }
 
 function tiersOf(response: unknown): Tiers {
-	const rows = (response ?? {}) as { site?: unknown; user?: unknown };
-	return { site: settingsOf(rows.site), user: settingsOf(rows.user) };
+	const rows = (response ?? {}) as { app?: unknown; site?: unknown; user?: unknown };
+	return { app: settingsOf(rows.app), site: settingsOf(rows.site), user: settingsOf(rows.user) };
 }
 
 function favouritesOf(response: unknown): ListFavourites {

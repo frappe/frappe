@@ -1,6 +1,6 @@
 # Copyright (c) 2026, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
-"""The app layer of `Doctype View`: one JSON file per saved view, named by its key."""
+"""The app layer of `Doctype View`: one JSON file per saved view, named by its key, and one per view type's plain view."""
 
 import contextlib
 import functools
@@ -9,7 +9,13 @@ import os
 from typing import NamedTuple
 
 import frappe
-from frappe.desk.doctype.view_type.view_type import applies_to, rules, validate_settings, view_types
+from frappe.desk.doctype.view_type.view_type import (
+	applies_to,
+	rules,
+	type_keys,
+	validate_settings,
+	view_types,
+)
 from frappe.modules.utils import get_module_list
 from frappe.utils.caching import request_cache
 
@@ -76,10 +82,14 @@ def mute_messages():
 
 
 def refused(view: AppView, reason: str) -> bool:
-	if (frappe.local.site, view.path, reason) not in reported:
-		reported.add((frappe.local.site, view.path, reason))
-		frappe.logger("desk").warning(f"App view file {view.path} is refused: {reason}")
+	report(view.path, reason)
 	return False
+
+
+def report(path: str, reason: str):
+	if (frappe.local.site, path, reason) not in reported:
+		reported.add((frappe.local.site, path, reason))
+		frappe.logger("desk").warning(f"App view file {path} is refused: {reason}")
 
 
 def app_view_settings(doctype: str, key: str) -> dict | None:
@@ -91,6 +101,24 @@ def app_view_settings(doctype: str, key: str) -> dict | None:
 		stat = os.stat(view.path)
 		return json.loads(load_settings(view.path, stat.st_mtime_ns, stat.st_size))
 	except (OSError, ViewFileError):
+		return None
+
+
+def app_plain_settings(doctype: str, view_type: str) -> dict | None:
+	"""The settings an app ships for the plain view of `view_type` in `<doctype>/frontend/views/<type>.json`; `None` when none is usable."""
+	path = current_index().plain.get((frappe.scrub(doctype), view_type.lower()))
+	if not path:
+		return None
+	try:
+		with mute_messages():
+			if not applies_to(view_type, doctype):
+				return None
+			stat = os.stat(path)
+			settings = json.loads(load_settings(path, stat.st_mtime_ns, stat.st_size, plain=True))
+			validate_settings(view_type, doctype, settings)
+		return settings
+	except Exception as error:
+		report(path, f"{type(error).__name__}: {error}")
 		return None
 
 
@@ -152,6 +180,7 @@ class ViewIndex:
 		self.clashes: list[str] = []
 		self.views: dict[str, dict[str, AppView]] = {}
 		self.defaults: dict[tuple[str, str], AppView] = {}
+		self.plain: dict[tuple[str, str], str] = {}
 		for folder in sorted(view_folders(apps), key=self.precedence):
 			self.add_folder(folder)
 		for problem in (*self.refused, *self.clashes):
@@ -166,7 +195,11 @@ class ViewIndex:
 
 	def add_folder(self, folder: ViewFolder):
 		name = self.doctype_name(folder.doctype)
+		plain_keys = type_keys()
 		for path in sorted(view_files(folder.path)):
+			if (key := view_key(path)) in plain_keys:
+				self.plain.setdefault((folder.doctype, key), path)
+				continue
 			try:
 				view = read_view(folder.app, name, path)
 			except (OSError, ViewFileError) as error:
@@ -240,10 +273,10 @@ def load_head(path: str, mtime_ns: int, size: int) -> tuple[str, str, bool]:
 
 
 @functools.lru_cache(maxsize=256)
-def load_settings(path: str, mtime_ns: int, size: int) -> str:
-	"""The file's settings, checked again: the file may have changed since the index read it."""
+def load_settings(path: str, mtime_ns: int, size: int, plain: bool = False) -> str:
+	"""The file's settings, checked again: the file may have changed since the index read it. A plain view's file is its settings."""
 	data = load_file(path)
-	settings = data.get("settings", {}) if isinstance(data, dict) else None
+	settings = data if plain else data.get("settings", {}) if isinstance(data, dict) else None
 	check_settings(settings)
 	return json.dumps(settings)
 

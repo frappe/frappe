@@ -1,7 +1,6 @@
 import { __ } from "frappe/i18n";
 
 export default {
-	columns: [{ fieldname: "title" }, { fieldname: "document_type" }, { fieldname: "enabled" }],
 	onRefresh(page) {
 		page.columns.update("enabled", { switch: true });
 		page.rowActions.add({

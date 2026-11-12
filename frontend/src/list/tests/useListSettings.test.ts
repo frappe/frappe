@@ -13,7 +13,7 @@ import { markListSettingsStale, resetListSettings, useListSettings, WRITE_DEBOUN
 const API = "frappe.desk.doctype.doctype_view.api";
 const ADDRESS = { doctype: "Lead", type: "List" };
 
-let tiers: { site: unknown; user: unknown };
+let tiers: { app?: unknown; site: unknown; user: unknown };
 
 function respond(method: string, args: { settings?: Record<string, unknown>; key?: string; scope?: string }) {
 	if (method.endsWith(".save")) {
@@ -68,6 +68,25 @@ describe("reading", () => {
 		expect(handle.loaded.value).toBe(true);
 		expect(handle.stored.value).toEqual({});
 		warn.mockRestore();
+	});
+});
+
+describe("the app tier", () => {
+	it("shows through under the site's row and the person's, key by key", async () => {
+		tiers = {
+			app: { columns: [{ fieldname: "title" }], sort: [{ fieldname: "name", direction: "asc" }], filters: [["status", "=", "Open"]] },
+			site: { sort: [{ fieldname: "title", direction: "asc" }] },
+			user: { columns: [{ fieldname: "status" }] },
+		};
+		const settings = useListSettings("Lead");
+		await settle();
+		expect(settings.stored.value).toEqual({
+			columns: [{ fieldname: "status" }],
+			sort: [{ fieldname: "title", direction: "asc" }],
+			filters: [["status", "=", "Open"]],
+		});
+		expect(settings.has("site", "columns")).toBe(false);
+		expect(settings.has("user", "filters")).toBe(false);
 	});
 });
 

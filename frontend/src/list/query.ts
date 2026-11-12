@@ -69,6 +69,10 @@ export function sameQuery(a: LocationQuery, b: LocationQuery): boolean {
 	return stableQuery(a) === stableQuery(b);
 }
 
+export function sameFilters(a: FilterCondition[], b: FilterCondition[]): boolean {
+	return JSON.stringify(serializeFilters(completeFilters(a))) === JSON.stringify(serializeFilters(completeFilters(b)));
+}
+
 /** A condition with no value is still being typed and is not sent. */
 export function completeFilters(filters: FilterCondition[]): FilterCondition[] {
 	return filters.filter((condition) => {
@@ -109,7 +113,7 @@ function wirePair(field: FilterField, raw: string): [string, unknown] {
 }
 
 /** The wire wraps a `like` value in `%`; the control shows the bare text. */
-function bareLike(condition: FilterCondition): FilterCondition {
+export function bareLike(condition: FilterCondition): FilterCondition {
 	const { operator, value } = condition;
 	if (!operator.includes("like") || typeof value !== "string") return condition;
 	if (!value.startsWith("%") || !value.endsWith("%")) return condition;

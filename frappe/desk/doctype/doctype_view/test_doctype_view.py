@@ -107,7 +107,8 @@ class TestApi(DoctypeViewTestCase):
 	def test_nothing_stored_reads_as_two_absences(self):
 		with set_user(self.person):
 			self.assertEqual(
-				get(DOCTYPE), {"site": None, "user": None, "favourites": {"list": False, "views": []}}
+				get(DOCTYPE),
+				{"app": None, "site": None, "user": None, "favourites": {"list": False, "views": []}},
 			)
 
 	def test_a_save_patches_keys_on_the_caller_s_own_row(self):
@@ -175,7 +176,8 @@ class TestApi(DoctypeViewTestCase):
 
 		with set_user(self.other):
 			self.assertEqual(
-				get(DOCTYPE), {"site": {"sort": []}, "user": None, "favourites": {"list": False, "views": []}}
+				get(DOCTYPE),
+				{"app": None, "site": {"sort": []}, "user": None, "favourites": {"list": False, "views": []}},
 			)
 
 	def test_a_doctype_the_caller_cannot_read_is_refused(self):
