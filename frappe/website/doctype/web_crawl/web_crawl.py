@@ -19,9 +19,11 @@ class WebCrawl(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.core.doctype.web_crawl_link_priority.web_crawl_link_priority import WebCrawlLinkPriority
-		from frappe.core.doctype.web_crawl_source_item.web_crawl_source_item import WebCrawlSourceItem
 		from frappe.types import DF
+		from frappe.website.doctype.web_crawl_link_priority.web_crawl_link_priority import (
+			WebCrawlLinkPriority,
+		)
+		from frappe.website.doctype.web_crawl_source_item.web_crawl_source_item import WebCrawlSourceItem
 
 		background_task: DF.Link | None
 		finished_at: DF.Datetime | None
@@ -157,7 +159,7 @@ class WebCrawl(Document):
 
 	def enqueue_job(self, on_success=None, on_failure=None):
 		task = frappe.enqueue_task(
-			"frappe.core.doctype.web_crawl.web_crawl.run_web_crawl",
+			"frappe.website.doctype.web_crawl.web_crawl.run_web_crawl",
 			task_name=_("Web crawl of {0}").format(self.url),
 			queue="long",
 			timeout=CrawlLimits.from_settings(self.max_pages or None).job_timeout(),

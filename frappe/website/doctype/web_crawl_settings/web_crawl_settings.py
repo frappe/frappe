@@ -27,9 +27,11 @@ class WebCrawlSettings(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.core.doctype.web_crawl_domain.web_crawl_domain import WebCrawlDomain
-		from frappe.core.doctype.web_crawl_link_priority.web_crawl_link_priority import WebCrawlLinkPriority
 		from frappe.types import DF
+		from frappe.website.doctype.web_crawl_domain.web_crawl_domain import WebCrawlDomain
+		from frappe.website.doctype.web_crawl_link_priority.web_crawl_link_priority import (
+			WebCrawlLinkPriority,
+		)
 
 		allowed_domains: DF.Table[WebCrawlDomain]
 		blocked_domains: DF.Table[WebCrawlDomain]

@@ -74,7 +74,7 @@ def create_user_type():
 
 
 def install_basic_docs():
-	from frappe.core.doctype.web_crawl_source.web_crawl_source import create_web_crawl_sources
+	from frappe.website.doctype.web_crawl_source.web_crawl_source import create_web_crawl_sources
 
 	# core users / roles
 	install_docs = [

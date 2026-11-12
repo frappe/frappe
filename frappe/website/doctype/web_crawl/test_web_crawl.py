@@ -5,11 +5,11 @@ from unittest.mock import patch
 
 import frappe
 from frappe.core.doctype.user_permission.test_user_permission import create_user
-from frappe.core.doctype.web_crawl.web_crawl import WebCrawl
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, now_datetime
 from frappe.web_crawler import CrawledPage, KeywordPriority, WebCrawler
 from frappe.web_crawler.tests.fake_site import FakeSite, add_setting_row
+from frappe.website.doctype.web_crawl.web_crawl import WebCrawl
 
 OWNER = "web-crawl-owner@example.com"
 STRANGER = "web-crawl-stranger@example.com"

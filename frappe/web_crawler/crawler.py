@@ -100,7 +100,7 @@ class WebCrawler:
 	):
 		"""Runs the crawl in a background job and stores it as a Web Crawl, which is returned.
 		`on_page(page, web_crawl)` and `skip_urls(urls)` are dotted paths, called in the job."""
-		from frappe.core.doctype.web_crawl.web_crawl import WebCrawl
+		from frappe.website.doctype.web_crawl.web_crawl import WebCrawl
 
 		return WebCrawl.enqueue_crawl(
 			self,

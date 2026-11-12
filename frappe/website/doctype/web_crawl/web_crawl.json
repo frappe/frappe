@@ -62,21 +62,19 @@
    "fieldtype": "Column Break"
   },
   {
-   "description": "Maximum number of pages to read. If empty or higher than the limit in Web Crawl Settings, that limit is used.",
+   "description": "Maximum number of pages to read.",
    "fieldname": "max_pages",
    "fieldtype": "Int",
    "label": "Maximum pages",
    "non_negative": 1,
-   "placeholder": "From Web Crawl Settings",
    "set_only_once": 1
   },
   {
-   "description": "Maximum number of links followed away from the start page. If empty or higher than the limit in Web Crawl Settings, that limit is used.",
+   "description": "Maximum number of links followed away from the start page.",
    "fieldname": "max_depth",
    "fieldtype": "Int",
    "label": "Maximum depth",
    "non_negative": 1,
-   "placeholder": "From Web Crawl Settings",
    "set_only_once": 1
   },
   {
@@ -98,6 +96,7 @@
    "fieldtype": "Column Break"
   },
   {
+   "depends_on": "eval:!doc.__islocal",
    "fieldname": "results_section",
    "fieldtype": "Section Break",
    "label": "Results"
@@ -200,9 +199,9 @@
  "grid_page_length": 50,
  "link_display_mode": "Search",
  "links": [],
- "modified": "2026-11-12 22:30:00.000000",
+ "modified": "2026-11-12 23:45:00.000000",
  "modified_by": "Administrator",
- "module": "Core",
+ "module": "Website",
  "name": "Web Crawl",
  "owner": "Administrator",
  "permissions": [
