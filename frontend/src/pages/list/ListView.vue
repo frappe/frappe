@@ -236,7 +236,13 @@ function columnFields(matches: (field: RawMetaField) => boolean) {
 
 const { bulkActions: bulkList } = props.host.lists;
 bulkList.provideBuiltins(() => [
-	{ name: "delete", label: __("Delete"), icon: "lucide-trash-2", right: "delete", run: () => (confirmingDelete.value = true) },
+	{
+		name: "delete",
+		label: __("Delete"),
+		icon: "lucide-trash-2",
+		right: "delete",
+		run: () => (confirmingDelete.value = true),
+	},
 ]);
 
 const listActs = props.host.acts(

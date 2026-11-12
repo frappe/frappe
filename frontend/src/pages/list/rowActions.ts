@@ -33,11 +33,6 @@ export function rowMenuOptions(row: ListRow, actions: ListRowAction[], listActs:
 	});
 }
 
-/** The row fields the actions read, for the list query. */
-export function rowActionFields(actions: ListRowAction[]): string[] {
-	return actions.flatMap((action) => action.fields ?? []);
-}
-
 function itemName(action: ListRowAction) {
 	return `row_${action.name}`;
 }

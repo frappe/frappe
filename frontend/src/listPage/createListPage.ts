@@ -3,7 +3,6 @@ import { shallowRef } from "vue";
 import type { Router } from "vue-router";
 import { createPageEngine, type PageEngine } from "@/pageEngine";
 import { Surface } from "@/pageEngine/surface";
-import type { View } from "@/list/view";
 import type { ListPermissions } from "./listPermissions";
 import { listScriptsLoaded, listScriptsOf, loadListScripts } from "./scriptLoader";
 import {
@@ -13,12 +12,13 @@ import {
   type ListPageAction,
   type ListPageApi,
   type ListPageColumn,
+  type ListPageView,
   type ListRow,
   type ListRowAction,
 } from "./types";
 
 export interface ListPageHost {
-  view: View;
+  view: ListPageView;
   router: Router;
   meta: () => Record<string, any> | null;
   permissions: ListPermissions;

@@ -38,6 +38,12 @@ export type LoadRecordScript = () => Promise<{ default?: RecordHandlers }>
 // Fetched when the doctype's list page first opens.
 export type LoadListScript = () => Promise<{ default?: Record<string, unknown> }>
 
+/** One app's list.js for a doctype, not yet loaded. */
+export interface ListScript {
+  app: string
+  load: LoadListScript
+}
+
 export type DoctypeContribution =
   // Your own doctype's record page: <module>/doctype/<scrubbed>/frontend/record.js
   | { kind: 'record'; app: string; doctype: string; load: LoadRecordScript }

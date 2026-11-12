@@ -1,6 +1,7 @@
 // A doctype's list.js files load once, on its first list page, in run order: the owning app's, then each custom one.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { addListScript, listScriptsLoaded, listScriptsOf, loadListScripts } from "../scriptLoader";
+import { addListScript } from "@/contributions/registry";
+import { listScriptsLoaded, listScriptsOf, loadListScripts } from "../scriptLoader";
 
 let doctype = "";
 let count = 0;

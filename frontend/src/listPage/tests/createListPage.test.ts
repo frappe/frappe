@@ -12,7 +12,7 @@ vi.mock("@framework/ui/api", () => ({ runMethod: vi.fn() }));
 import type { View } from "@/list/view";
 import { createListPage, type ListPageController } from "../createListPage";
 import type { ListPermissions } from "../listPermissions";
-import { addListScript } from "../scriptLoader";
+import { addListScript } from "@/contributions/registry";
 import type { ListPageApi } from "../types";
 
 let doctype = "";

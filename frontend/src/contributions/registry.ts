@@ -2,12 +2,12 @@
 
 import contributions from 'virtual:frappe/contributions'
 import { addFileScript, addPageFile } from '@/recordPage'
-import { addListScript } from '@/listPage/scriptLoader'
 import type { ItemRenderer } from '@/navigation/types'
 import type {
   ActsContribution,
   FieldActionsContribution,
   DoctypeContribution,
+  ListScript,
   PageContribution,
   RecordDialogContribution,
   ReplacementContribution,
@@ -22,6 +22,19 @@ export const itemRenderers: Record<string, ItemRenderer> = {}
 
 /** View type -> its renderer's lazy import, filled by `registerContributions` in the site's app order. */
 export const viewRenderers: Record<string, () => Promise<unknown>> = {}
+
+// Doctype -> its list.js files in run order; the list page loads them on its first visit.
+const listScripts = new Map<string, ListScript[]>()
+
+/** Adds an app's list.js behind the doctype's earlier ones. */
+export function addListScript(doctype: string, script: ListScript) {
+  listScripts.set(doctype, [...(listScripts.get(doctype) ?? []), script])
+}
+
+/** The doctype's list.js files, in run order. */
+export function listScriptsFor(doctype: string): readonly ListScript[] {
+  return listScripts.get(doctype) ?? []
+}
 
 let standard: StandardPages | null = null
 

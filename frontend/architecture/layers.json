@@ -59,7 +59,8 @@
       "paths": [
         "frontend/src/pageEngine/",
         "frontend/src/recordPage/",
-        "frontend/src/list/"
+        "frontend/src/list/",
+        "frontend/src/listPage/"
       ],
       "mayUse": [
         "6",
@@ -342,7 +343,6 @@
       "dropOn"
     ],
     "frontend/src/contributions/types.ts": [
-      "ListHandlers",
       "PageContribution"
     ],
     "frontend/src/icons/sprite.ts": [

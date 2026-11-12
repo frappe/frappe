@@ -104,10 +104,11 @@ const gridStyle = {
 		"repeat(auto-fill, minmax(max(240px, calc((100% - 3 * var(--page-gutter)) / 4)), 1fr))",
 };
 
-const listActs = props.host.acts(
-	() => [deleteEntry(), ...rowActionEntries(rowActions.value)],
-	{ rows: () => rows.value, selection: () => [], reload }
-);
+const listActs = props.host.acts(() => [deleteEntry(), ...rowActionEntries(rowActions.value)], {
+	rows: () => rows.value,
+	selection: () => [],
+	reload,
+});
 
 function deleteEntry() {
 	return {

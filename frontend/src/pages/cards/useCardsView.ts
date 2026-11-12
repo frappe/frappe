@@ -11,7 +11,7 @@ import type { Boot } from "@/boot";
 import type { ListMeta } from "@/list/defaults";
 import type { ListPageLists } from "@/listPage/createListPage";
 import type { ListRowAction } from "@/listPage/types";
-import { rowActionFields } from "@/pages/list/rowActions";
+import { rowActionFields } from "@/listPage/types";
 import { useRememberedPageSize } from "@/list/pageState";
 import { queryFromAddress } from "@/list/query";
 import { cardSeenClass, isUnseen } from "@/list/seen";

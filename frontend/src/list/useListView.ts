@@ -13,7 +13,7 @@ import type { RouteLocationRaw } from "vue-router";
 import type { ListPageLists } from "@/listPage/createListPage";
 import { listScriptsOf } from "@/listPage/scriptLoader";
 import type { ListPageColumn, ListRowAction } from "@/listPage/types";
-import { rowActionFields } from "@/pages/list/rowActions";
+import { rowActionFields } from "@/listPage/types";
 import { routeFor } from "@/router/routeFor";
 import {
 	cellCurrency,

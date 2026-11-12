@@ -379,47 +379,67 @@ export default [
 ]
 ```
 
-### List acts
+### The list page: `list.js`
 
-A list's own acts are named `list.<item>`: the built-in `list.create` and `list.delete`, and one
-`list.row_<act>` for each row action an app names in `list.js`. Their `run` receives
-`(list, value)`, one shape for a row act and a bulk act:
+A doctype's `list.js` is a handler file, as `record.js` is. Its `onRefresh(page)` runs on the list
+page, and the page paints after it has run. The list page loads the doctype's `list.js` files on
+its first visit, one chunk request beside the meta. It runs `onRefresh` again on a return visit,
+on `page.refresh()` and when a Client Script changes. A filter, a sort or Load More change only
+`page.rows`; they do not run `onRefresh`.
 
-| Key | What it holds |
+The list page has the base page members (`doctype`, `perms`, `roles`, `toast`, `dialog`, `run`,
+`open`, `create`) and these:
+
+| Member | What it holds |
 | --- | --- |
-| `list.doctype` | The doctype the list shows. |
-| `list.view` | The view object: `key`, `type`, and `filters`, `sort` and `settings`, which are refs (read `.value`). |
-| `list.selection` | The names of the selected rows now, a copy. |
-| `list.row` | The row, in a row act only; it holds the `fields` the action names. |
-| `list.reload()` | Loads the rows again, as the list does after its own change. |
+| `page.controls` | The controls row, as one list. Built-ins: `quick_filter`, `filter`, `sort`, `columns` and `customize_quick_filter` (the `⋯` entry). An item with `run` draws as a button. |
+| `page.columns` | The table's columns, as one list. Built-ins: the default columns, one per fieldname. `update` sets how a column draws its cells (the cell keys below). |
+| `page.bulkActions` | The actions on the selected rows. Built-in: `delete`. They draw while one or more rows are selected. |
+| `page.rowActions` | The actions in a row's menu. No built-ins. |
+| `page.view` | The view: `key` and `type`. |
+| `page.rows` | The rows loaded now; read only. This is not the record page's `page.rows(parentfield)`. |
+| `page.selection` | The names of the selected rows now; read only. |
+| `page.filters`, `page.sort` | The view's filters and sort. Set them to load the rows again. |
+| `page.reload()` | Loads the rows again, as the list does after its own change. |
 
-A row action in `list.js` names an act and the `fields` it reads. Its `value(row, list)` and
-`when(row, list)` receive the same `list` with `row` set, so a row action can pass `list.reload`
-or `list.selection` to the act it runs. A row action cannot name a `list.*` act. A `when` that
-throws hides the action on that row.
-
-An app adds to another app's list from `<app>/<module>/custom/<scrubbed>/list.js`, the same file
-shape at the `custom/` path that `record.js` uses. Its `columns`, `cells` and `rowActions` join those of
-the owner's `list.js` and every other app's, the owner first and then the site's app order. As with an
-owner's `list.js`, any `columns` it names replace the doctype's `in_list_view` columns. A new or changed
-file takes effect after the next `bench build`.
+The four lists take the seven verbs and `clear`. A `controls` or `bulkActions` item is an act
+item (`name`, `label`, `icon`, `run(page, value)`, `right`, `when`, `palette`). A `rowActions`
+item takes `name`, `label`, `icon`, `right`, `fields` (the row fields it reads, added to the
+list query), `when(page, row)` and `run(page, row)`. A `when` that throws hides the action on
+that row. Each item is an act: `list.<name>` for a control, `list.<name>` for a bulk action and
+`list.row_<name>` for a row action. A built-in list act, such as `list.create`, gets the page as
+`run(page, value)`.
 
 ```js
-// crm/fcrm/crm/doctype/crm_call_log/frontend/list.js
+// frappe/automation/doctype/automation_flow/frontend/list.js
+import { __ } from 'frappe/i18n'
+
 export default {
-  rowActions: [
-    {
-      act: 'shell.crm.open_call_log',
-      fields: ['name', 'status'],
-      when: (row) => row.status !== 'Ringing',
-      value: (row, list) => ({ name: row.name, reload: list.reload }),
-    },
-  ],
+  columns: [{ fieldname: 'title' }, { fieldname: 'document_type' }, { fieldname: 'enabled' }],
+  onRefresh(page) {
+    page.columns.update('enabled', { switch: true })
+    page.rowActions.add({
+      name: 'duplicate',
+      label: __('Duplicate'),
+      icon: 'lucide-copy',
+      right: 'create',
+      run: (page, row) => page.run('shell.frappe.duplicate_automation_flow', row.name),
+    })
+  },
 }
 ```
 
-A list's `cells` key describes how a column draws its cells, as data (an app supplies no component).
-It is keyed by fieldname, and the first app to name a fieldname wins:
+The `columns` key is data, not a handler: it names the default columns in place of the
+doctype's `in_list_view` columns. Any other key that is not a function is ignored. The list page
+does not draw `page.header`, `page.frame` or `page.body` yet (#47102).
+
+An app adds to another app's list from `<app>/<module>/custom/<scrubbed>/list.js`, the same file
+shape at the `custom/` path that `record.js` uses. The owner's `onRefresh` runs first, then each
+other app's in the site's app order. When more than one file names `columns`, their columns join
+in that order. A new or changed file takes effect after the next `bench build`.
+
+`page.columns.update(fieldname, cell)` describes how a column draws its cells, as data (an app
+supplies no component):
 
 | Key | What it does |
 | --- | --- |
@@ -437,10 +457,10 @@ or Image column keeps its own cell, except a Check column marked `switch`.
 // crm/fcrm/doctype/crm_task/frontend/list.js
 export default {
   columns: [{ fieldname: 'title' }, { fieldname: 'status' }, { fieldname: 'priority' }, { fieldname: 'due_date' }],
-  cells: {
-    status: { icons: { Todo: 'lucide-circle', Done: 'lucide-circle-check' } },
-    priority: { badge: { High: 'red', Medium: 'orange', Low: 'gray' } },
-    due_date: { icon: 'lucide-calendar', format: 'D MMM, hh:mm a' },
+  onRefresh(page) {
+    page.columns.update('status', { icons: { Todo: 'lucide-circle', Done: 'lucide-circle-check' } })
+    page.columns.update('priority', { badge: { High: 'red', Medium: 'orange', Low: 'gray' } })
+    page.columns.update('due_date', { icon: 'lucide-calendar', format: 'D MMM, hh:mm a' })
   },
 }
 ```

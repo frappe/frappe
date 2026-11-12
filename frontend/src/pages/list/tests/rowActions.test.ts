@@ -3,7 +3,8 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { acts } from "@/acts/dispatcher";
 import type { ListPageApi, ListRow, ListRowAction } from "@/listPage/types";
-import { rowActionEntries, rowActionFields, rowMenuOptions } from "../rowActions";
+import { rowActionFields } from "@/listPage/types";
+import { rowActionEntries, rowMenuOptions } from "../rowActions";
 import type { ListActs } from "../listActs";
 
 vi.mock("frappe-ui", () => ({ toast: { error: vi.fn() } }));

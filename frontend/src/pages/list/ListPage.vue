@@ -51,7 +51,12 @@
 						@click="listActs.perform(scriptAct(item.name)!)"
 					/>
 				</template>
-				<Dropdown v-if="menuOptions.length" :options="menuOptions" side="bottom" align="end">
+				<Dropdown
+					v-if="menuOptions.length"
+					:options="menuOptions"
+					side="bottom"
+					align="end"
+				>
 					<div class="flex shrink-0">
 						<Button icon="lucide-ellipsis" label="More" />
 					</div>
@@ -60,7 +65,12 @@
 		</div>
 
 		<div class="relative flex min-h-0 flex-1 flex-col pt-2">
-			<component :is="rendererFor(view.type)" v-if="list.engine.ready.value" :view="view" :host="host" />
+			<component
+				:is="rendererFor(view.type)"
+				v-if="list.engine.ready.value"
+				:view="view"
+				:host="host"
+			/>
 		</div>
 	</PageFrame>
 </template>
@@ -180,13 +190,16 @@ const quickFilterAct = computed(() => listActs.drawn("customize_quick_filter"));
 const controlItems = computed(() => list.lists.controls.visible());
 const shown = computed(() => new Set(controlItems.value.map((item) => item.name)));
 const rowControls = computed(() =>
-	controlItems.value.filter((item) => !["quick_filter", "customize_quick_filter"].includes(item.name))
+	controlItems.value.filter(
+		(item) => !["quick_filter", "customize_quick_filter"].includes(item.name)
+	)
 );
 const scriptAct = (name: string) => listActs.drawn(name);
 
 const menuOptions = computed(() => {
 	const act = quickFilterAct.value;
-	if (!act || !shown.value.has("customize_quick_filter") || !shown.value.has("quick_filter")) return [];
+	if (!act || !shown.value.has("customize_quick_filter") || !shown.value.has("quick_filter"))
+		return [];
 	return [{ label: act.label, icon: act.icon, onClick: () => listActs.perform(act) }];
 });
 </script>
