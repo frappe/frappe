@@ -3,6 +3,8 @@
 	<Teleport v-if="host.bar.value && selection.length" :to="host.bar.value">
 		<BulkBar
 			:scope="scope"
+			:doctype="view.doctype"
+			:status="bulk.status"
 			:cap="bulk.cap"
 			:layout="bulk.layout.value"
 			:locked="bulk.locked"
@@ -131,6 +133,7 @@ const gridStyle = {
 const bulk = useBulkBar({
 	host: props.host,
 	doctype: props.view.doctype,
+	meta,
 	selection,
 	scope,
 	rows,

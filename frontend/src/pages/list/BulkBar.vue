@@ -99,20 +99,30 @@
 			/>
 		</Tooltip>
 	</div>
+	<BulkStatusDialog
+		v-if="dialogOpened"
+		v-model="confirming"
+		:doctype="doctype"
+		:action="status.asked.value"
+		:finished="status.finished"
+	/>
 </template>
 
 <script setup lang="ts">
-import { Button, Checkbox, Dropdown, Icon, KeyboardShortcut, Tooltip } from "frappe-ui";
-import { computed } from "vue";
+import { Button, Checkbox, Dropdown, Icon, KeyboardShortcut, Tooltip, toast } from "frappe-ui";
+import { computed, defineAsyncComponent, ref, watch } from "vue";
 import { __ } from "@/i18n";
 import type { BulkScope } from "@/list/useBulkScope";
 import type { BulkLayout } from "./bulkLayout";
+import type { BulkStatus } from "./bulkStatus";
 
 const props = defineProps<{
 	scope: BulkScope;
+	doctype: string;
 	cap: number;
 	layout: BulkLayout;
 	locked: boolean;
+	status: BulkStatus;
 }>();
 const menuOpen = defineModel<boolean>("menuOpen", { default: false });
 defineEmits<{ clear: [] }>();
@@ -124,6 +134,22 @@ const countText = computed(() =>
 		: __("{0} selected", [props.scope.count.value])
 );
 const formatted = (count: number, approx: boolean) => count.toLocaleString() + (approx ? "+" : "");
+const BulkStatusDialog = defineAsyncComponent({
+	loader: () => import("./BulkStatusDialog.vue"),
+	onError: (_error, _retry, fail) => {
+		dialogOpened.value = false;
+		toast.error(__("The dialog did not load. Reload the page and try again."));
+		fail();
+	},
+});
+const dialogOpened = ref(false);
+const confirming = ref(false);
+watch(props.status.asked, (action) => {
+	if (!action) return;
+	dialogOpened.value = true;
+	confirming.value = true;
+});
+
 const overCap = computed(() => !props.locked && props.scope.count.value > props.cap);
 const shown = computed(
 	() =>

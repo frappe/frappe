@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createApp, defineComponent, h, nextTick, ref, type App } from "vue";
+import { createApp, defineComponent, h, nextTick, ref, shallowRef, type App } from "vue";
 import { createListPageLists } from "@/listPage/createListPage";
 import type { ListPageAction } from "@/listPage/types";
 import { useBulkScope } from "@/list/useBulkScope";
@@ -109,7 +109,7 @@ describe("BulkBar", () => {
 		const root = document.createElement("div");
 		document.body.append(root);
 		const clear = vi.fn();
-		app = createApp(defineComponent({ render: () => h(BulkBar, { cap: 500, locked: false, ...props, onClear: clear } as never) }));
+		app = createApp(defineComponent({ render: () => h(BulkBar, { doctype: "ToDo", status: { asked: shallowRef(null) }, cap: 500, locked: false, ...props, onClear: clear } as never) }));
 		app.mount(root);
 		return { root, clear };
 	}
@@ -189,6 +189,7 @@ describe("useBulkBar", () => {
 						doctype: "ToDo",
 						selection,
 						scope,
+						meta: ref(null),
 						rows: ref([]),
 						rowActions: ref([]),
 						reload: () => {},
