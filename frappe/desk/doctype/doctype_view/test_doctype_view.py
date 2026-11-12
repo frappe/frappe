@@ -171,7 +171,12 @@ class TestApi(DoctypeViewTestCase):
 			save(DOCTYPE, "List", "user", {"columns": []})
 			self.assertEqual(
 				get(DOCTYPE),
-				{"site": {"sort": []}, "user": {"columns": []}, "favourites": {"list": False, "views": []}},
+				{
+					"app": None,
+					"site": {"sort": []},
+					"user": {"columns": []},
+					"favourites": {"list": False, "views": []},
+				},
 			)
 
 		with set_user(self.other):

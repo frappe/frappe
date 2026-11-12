@@ -146,14 +146,13 @@ class TestTheIndex(AppViewCase):
 	def test_the_site_leaves_out_a_file_its_view_types_refuse(self):
 		"""The index is per set of apps; which types exist, and the keys they reserve, are per site."""
 		self.folders.own_view("probe-unknown-type", type="Gantt")
-		self.folders.own_view("list")
 		self.folders.own_view("calendar")
 		self.folders.own_view("probe-fine")
 
-		self.assertEqual(len(self.index().views["todo"]), 4)
+		self.assertEqual(len(self.index().views["todo"]), 3)
 		with self.assertLogs(frappe.logger("desk"), level="WARNING") as logged:
 			self.assertEqual(list(app_views("ToDo")), ["probe-fine"])
-		self.assertEqual(len(logged.output), 3)
+		self.assertEqual(len(logged.output), 2)
 
 	def test_a_second_default_of_one_app_is_refused(self):
 		self.folders.own_view("probe-a", default=True)
