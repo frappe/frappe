@@ -38,7 +38,7 @@
 				</div>
 				<div>
 					<Button
-						variant="ghost"
+						variant="subtle"
 						icon-left="lucide-plus"
 						:label="__('Add field')"
 						@click="add"
