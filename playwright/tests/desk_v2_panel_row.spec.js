@@ -1565,7 +1565,7 @@ const POINT = JSON.stringify({
 });
 
 test.describe("Desk v2 side panel rows: Text Editor, Markdown Editor and Geolocation", () => {
-	let tall, short, empty;
+	let tall, short, empty, words;
 	const cell = (page, fieldname) => page.locator(`.field-box [data-fieldname="${fieldname}"]`);
 	const prose = (page) => cell(page, "f_rich").locator(".ProseMirror");
 	const open = async (page, name) => {
@@ -1617,6 +1617,12 @@ test.describe("Desk v2 side panel rows: Text Editor, Markdown Editor and Geoloca
 			})
 		).name;
 		empty = (await admin.insert_doc(EDIT, { f_data: "empty" })).name;
+		words = (
+			await admin.insert_doc(EDIT, {
+				f_rich: "<p>Hello bold world again</p>",
+				f_data: "words",
+			})
+		).name;
 	});
 
 	test.afterAll(async ({ admin }) => {
@@ -1755,42 +1761,58 @@ test.describe("Desk v2 side panel rows: Text Editor, Markdown Editor and Geoloca
 		expect((await page.evaluate(boxOf, "f_rich")).height).toBeCloseTo(68, 1);
 	});
 
-	test("the selection bar over the first word of a row stops at the box's left edge, inside the panel", async ({
-		page,
-	}) => {
-		await open(page, short);
+	// Selects `word` in the Text Editor row and reads the bar, the selection and the box.
+	async function selectWord(page, word) {
+		await open(page, words);
 		await cell(page, "f_rich").click();
 		await expect(prose(page)).toBeFocused();
-		await page.keyboard.press("Home");
-		await page.keyboard.press("Control+Shift+ArrowRight");
+		await prose(page).evaluate((el, word) => {
+			const text = el.querySelector("p").firstChild;
+			const range = document.createRange();
+			range.setStart(text, text.data.indexOf(word));
+			range.setEnd(text, text.data.indexOf(word) + word.length);
+			getSelection().removeAllRanges();
+			getSelection().addRange(range);
+		}, word);
 		const bar = page.locator('[data-slot="bubble-menu"]');
 		await expect(bar).toBeVisible();
-
-		const drawn = await bar.evaluate((el) => {
+		await expect(bar.getByRole("button", { name: "Bold" })).toBeVisible();
+		return bar.evaluate((el) => {
 			const box = document
 				.querySelector('.field-box [data-fieldname="f_rich"]')
 				.closest(".field-box")
 				.getBoundingClientRect();
-			const panel = document.querySelector("[data-picker-bound]").getBoundingClientRect();
 			const selection = getSelection().getRangeAt(0).getBoundingClientRect();
 			const rect = el.getBoundingClientRect();
 			return {
 				left: rect.left,
 				right: rect.right,
 				centred: (selection.left + selection.right - rect.width) / 2,
-				box: box.left,
-				edge: Math.min(panel.right, document.documentElement.clientWidth),
+				box: { left: box.left, right: box.right },
+				buttons: el.querySelectorAll("button").length,
 			};
 		});
+	}
+
+	test("the selection bar over the first word of a row starts at the box's left edge", async ({
+		page,
+	}) => {
+		const drawn = await selectWord(page, "Hello");
 		// Centred on the first word, the bar would hang into the label column.
-		expect(drawn.centred).toBeLessThan(drawn.box);
-		expect(drawn.left).toBeGreaterThan(drawn.centred + 1);
-		expect(drawn.right).toBeLessThanOrEqual(drawn.edge + 0.5);
-		if (drawn.box + (drawn.right - drawn.left) <= drawn.edge) {
-			expect(drawn.left).toBeCloseTo(drawn.box, 0);
-		} else {
-			expect(drawn.right).toBeCloseTo(drawn.edge, 0);
-		}
+		expect(drawn.centred).toBeLessThan(drawn.box.left);
+		expect(drawn.left).toBeCloseTo(drawn.box.left, 0);
+		expect(drawn.right).toBeLessThanOrEqual(drawn.box.right + 0.5);
+		// Bold, Italic, Link, Code and the two lists: no headings, so the bar fits the box.
+		expect(drawn.buttons).toBe(6);
+	});
+
+	test("the selection bar over a word mid-line centres on it, inside the box", async ({
+		page,
+	}) => {
+		const drawn = await selectWord(page, "world");
+		expect(drawn.centred).toBeGreaterThan(drawn.box.left);
+		expect(drawn.left).toBeCloseTo(drawn.centred, 0);
+		expect(drawn.right).toBeLessThanOrEqual(drawn.box.right + 0.5);
 	});
 
 	test("the selection bar on the sixth line of a 9-line row draws below it, not clipped by the row", async ({

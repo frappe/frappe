@@ -15,7 +15,6 @@
 			@focusin="onFocusIn"
 			@focusout="onFocusOut"
 		>
-			<!-- Fixed, or the scrolling body clips a bar below a selection on its last line. -->
 			<EditorBubbleMenu :items="richTextBubble" :options="bubbleOptions" />
 			<EditorTableMenu />
 			<div class="text-editor-body overflow-y-auto">
@@ -95,6 +94,7 @@ const { key: toolbarKey, extension: toolbarKeyExtension } = useToolbarKey();
 const fieldBox = inject(fieldBoxKey, null);
 const bubbleOptions: EditorMenuOptions = {
 	side: "bottom",
+	// Fixed, or the scrolling body clips a bar below a selection on its last line.
 	strategy: "fixed",
 	// frappe-ui types `shift` as a flag; it spreads the options, so TipTap hands this to Floating UI.
 	shift: { limiter: keepBarInBox(() => fieldBox?.value) } as unknown as boolean,
