@@ -464,4 +464,26 @@ describe("a list's cells", () => {
 		expect(root.querySelector("[data-column='priority'] button")).toBeNull();
 		expect(root.querySelector("[data-column='priority']")!.textContent?.trim()).toBe("High");
 	});
+
+	it("draw a badge function's badge over a marked Link, and the mark where it gives none", async () => {
+		try {
+			cells.agent = {
+				badge: (one) => (one.agent === "ann@example.com" ? { label: "Owner", theme: "blue" } : null),
+			};
+			const root = mount();
+			await nextTick();
+
+			expect(root.querySelector("[data-column='agent']")!.textContent?.trim()).toBe("Owner");
+			expect(root.querySelector("[data-column='agent'] img")).toBeNull();
+
+			cells.agent = { badge: () => null };
+			const plain = mount();
+			await nextTick();
+			expect(plain.querySelector("[data-column='agent'] img")?.getAttribute("alt")).toBe(
+				"Ann Lee",
+			);
+		} finally {
+			delete cells.agent;
+		}
+	});
 });
