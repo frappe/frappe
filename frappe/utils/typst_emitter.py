@@ -1354,7 +1354,8 @@ class TypstEmitter:
 				fieldname = mf.get("fieldname")
 				if not fieldname or mf.get("fieldtype") in MERGE_IMAGE_FIELDTYPES:
 					continue
-				value = _text_value(format_field_value(row, mf))
+				raw = format_field_value(row, mf)
+				value = _text_value("" if raw is None else str(raw))
 				if not value.strip():
 					continue
 				label = ""
