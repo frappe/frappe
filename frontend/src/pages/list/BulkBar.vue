@@ -46,9 +46,14 @@
 					side="bottom"
 					align="start"
 				>
-					<Button variant="ghost" :label="__('More')" icon-right="lucide-chevron-down">
-						<template #suffix><KeyboardShortcut combo="Period" /></template>
-					</Button>
+					<Tooltip :disabled="menuOpen">
+						<template #content>
+							<span class="flex items-center gap-2 [&_[data-slot=key]]:text-ink-gray-4">
+								{{ __("More actions") }} <KeyboardShortcut combo="Period" />
+							</span>
+						</template>
+						<Button variant="ghost" :label="__('More')" icon-right="lucide-chevron-down" />
+					</Tooltip>
 				</Dropdown>
 				<Tooltip v-if="layout.trash" :text="layout.trash.label">
 					<Button
