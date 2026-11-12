@@ -49,22 +49,32 @@ class BaseTimeline {
 		this.doc_info = (this.frm && this.frm.get_docinfo()) || {};
 		let response = this.prepare_timeline_contents();
 		if (response instanceof Promise) {
-			response.then(() => {
-				this.timeline_items.sort(
-					(item1, item2) => new Date(item2.creation) - new Date(item1.creation)
-				);
-				this.timeline_items.forEach(this.add_timeline_item.bind(this));
-			});
+			response.then(() => this.add_sorted_timeline_items());
 		} else {
-			this.timeline_items.sort(
-				(item1, item2) => new Date(item2.creation) - new Date(item1.creation)
-			);
-			this.timeline_items.forEach(this.add_timeline_item.bind(this));
+			this.add_sorted_timeline_items();
 		}
+	}
+
+	add_sorted_timeline_items() {
+		this.timeline_items.sort(
+			(item1, item2) => new Date(item2.creation) - new Date(item1.creation)
+		);
+		this.group_timeline_items(this.timeline_items).forEach(this.add_timeline_item.bind(this));
 	}
 
 	prepare_timeline_contents() {
 		//
+	}
+
+	group_timeline_items(items) {
+		return items;
+	}
+
+	get_timestamp_text(creation) {
+		return cint(frappe.boot.user.show_absolute_datetime_in_timeline) ||
+			frappe.defaults.is_enabled("show_absolute_datetime_in_timeline")
+			? frappe.datetime.str_to_user(creation)
+			: comment_when(creation);
 	}
 
 	add_timeline_item(item, append_at_the_end = false) {
@@ -83,20 +93,23 @@ class BaseTimeline {
 
 	add_timeline_items_based_on_creation(items) {
 		items.forEach((item) => {
-			this.timeline_items_wrapper.find(".timeline-item").each((i, el) => {
-				let creation = $(el).attr("data-timestamp");
-				if (creation && new Date(creation) < new Date(item.creation)) {
-					$(el).before(this.get_timeline_item(item));
-					return false;
-				}
-			});
+			const older = this.timeline_items_wrapper
+				.children(".timeline-item")
+				.toArray()
+				.find((el) => {
+					const creation = el.dataset.timestamp;
+					return creation && new Date(creation) < new Date(item.creation);
+				});
+			older
+				? $(older).before(this.get_timeline_item(item))
+				: this.timeline_items_wrapper.append(this.get_timeline_item(item));
 		});
 	}
 
 	get_timeline_item(item) {
 		// item can have content*, creation*,
-		// timeline_badge, icon, icon_size,
-		// hide_timestamp, is_card
+		// user, timeline_badge, icon, icon_size,
+		// hide_timestamp, show_timestamp, is_card
 		const timeline_item = $(`<div class="timeline-item">`);
 
 		if (item.name == "load-more") {
@@ -120,7 +133,9 @@ class BaseTimeline {
 			"data-name": item.name,
 			"data-timestamp": item.creation,
 		});
-		if (item.icon) {
+		if (item.user) {
+			timeline_item.append(this.get_timeline_avatar(item));
+		} else if (item.icon) {
 			timeline_item.append(`
 				<div class="timeline-badge" title='${item.title || frappe.utils.to_title_case(item.icon)}'>
 					${frappe.utils.icon(item.icon, item.icon_size || "md", item.icon_class || "")}
@@ -132,26 +147,38 @@ class BaseTimeline {
 			timeline_item.append(`<div class="timeline-dot">`);
 		}
 
-		timeline_item.append(
+		const timeline_body = $(`<div class="timeline-body">`).appendTo(timeline_item);
+		const timeline_content = $(
 			`<div class="timeline-content ${item.is_card ? "frappe-card" : ""}">`
-		);
-		let timeline_content = timeline_item.find(".timeline-content");
+		).appendTo(timeline_body);
 		timeline_content.append(item.content);
-		if (!item.hide_timestamp && !item.is_card) {
-			timeline_content.append(
-				`<span> · ${
-					cint(frappe.boot.user.show_absolute_datetime_in_timeline) ||
-					frappe.defaults.is_enabled("show_absolute_datetime_in_timeline")
-						? frappe.datetime.str_to_user(item.creation)
-						: comment_when(item.creation)
-				}</span>`
+
+		const show_timestamp = item.show_timestamp ?? (!item.hide_timestamp && !item.is_card);
+		if (show_timestamp && item.creation) {
+			const exact_time = moment(frappe.datetime.convert_to_user_tz(item.creation)).format(
+				"lll"
+			);
+			timeline_body.append(
+				`<div class="timeline-timestamp" title="${exact_time}">${this.get_timestamp_text(
+					item.creation
+				)}</div>`
 			);
 		}
+
 		if (item.id) {
 			timeline_content.attr("id", item.id);
 		}
 
 		return timeline_item;
+	}
+
+	get_timeline_avatar(item) {
+		if (item.icon) {
+			return `<div class="timeline-badge" title="${
+				item.title || frappe.utils.to_title_case(item.icon)
+			}">${frappe.utils.icon(item.icon, "md", item.icon_class || "")}</div>`;
+		}
+		return `<div class="timeline-avatar">${frappe.avatar(item.user, "avatar-small")}</div>`;
 	}
 }
 

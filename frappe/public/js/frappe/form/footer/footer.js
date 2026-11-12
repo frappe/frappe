@@ -55,7 +55,7 @@ frappe.ui.form.Footer = class FormFooter {
 			on_submit: (comment) => {
 				if (strip_html(comment).trim() != "" || comment.includes("img")) {
 					this.frm.comment_box.disable();
-					frappe
+					return frappe
 						.xcall("frappe.desk.form.utils.add_comment", {
 							reference_doctype: this.frm.doctype,
 							reference_name: this.frm.docname,
@@ -65,6 +65,7 @@ frappe.ui.form.Footer = class FormFooter {
 						})
 						.then(() => {
 							this.frm.comment_box.set_value("");
+							this.frm.timeline?.toggle_comment_box?.(false);
 							frappe.utils.play_sound("click");
 						})
 						.finally(() => {
