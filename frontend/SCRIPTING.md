@@ -440,7 +440,15 @@ A list.js holds handlers only: a key that is not a function is ignored. An app's
 columns, sort and filters go in `<doctype>/frontend/views/list.json` beside it, a bare settings
 object: `{ "columns": [{ "fieldname": "title", "width": "200px" }], "sort": [{ "fieldname": "creation",
 "direction": "desc" }], "filters": [["status", "=", "Open"]], "quick_filter_fields": ["status"] }`.
-The site's and the person's saved settings win over it, key by key. The list page does not draw `page.header`, `page.frame` or `page.body` yet (#47102).
+The site's and the person's saved settings win over it, key by key.
+
+The list page draws `page.header`, `page.frame` and `page.body` as the record page does, and an
+`onRefresh` edits them with the same verbs. The header's left holds the `module` crumb, the
+`doctype` crumb, the `view` crumb on a saved view, and the `favourite` star. Its right holds the
+`new` button (label "Create"), shown only with the create right, and the `⋯` menu, which has no
+built-ins and shows once a script adds an entry. A header item's `run(page)` gets the list page.
+The body's one built-in is `list`, the controls row and the rows; add a `component` item before
+or after it, or hide it. A `frame` band draws before the header, between the header and the body, or after the body.
 
 An app adds to another app's list from `<app>/<module>/custom/<scrubbed>/list.js`, the same file
 shape at the `custom/` path that `record.js` uses. The owner's `onRefresh` runs first, then each
