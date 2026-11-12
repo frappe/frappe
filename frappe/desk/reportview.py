@@ -533,6 +533,9 @@ def export_query():
 	export_in_background = int(form_params.pop("export_in_background", 0))
 
 	if export_in_background:
+		if frappe.request and frappe.request.method != "POST":
+			frappe.throw_permission_error()
+
 		user = frappe.session.user
 		user_email = frappe.get_cached_value("User", user, "email")
 		frappe.enqueue(

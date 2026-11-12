@@ -140,7 +140,7 @@ def serialize_request(request):
 	return request
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def add_indexes(indexes: str | list[dict]):
 	frappe.only_for("Administrator")
 	indexes = frappe.parse_json(indexes)
