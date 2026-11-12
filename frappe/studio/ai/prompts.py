@@ -1,3 +1,6 @@
+import os
+
+import frappe
 from frappe.studio.ai.prompt_fragments import ON_ERROR_RULE, ON_SUCCESS_RULE, TRANSFORM_RULE
 
 COMPONENT_CATALOG = """AVAILABLE COMPONENTS:
@@ -158,8 +161,8 @@ BUILD_RULES = """BUILDING BLOCKS RULES:
 """
 
 
-# Plain string (not an f-string) so `{{ }}` binding tokens survive; interpolated into
-# SYSTEM_PROMPT so one-shot generation can bake live-data bindings into props.
+# Plain string (not an f-string) so `{{ }}` binding tokens survive; interpolated into the
+# generation prompt so one-shot generation can bake live-data bindings into props.
 BINDING_CONTRACT = """DATA BINDING — when the page shows live data or a variable, a block prop's VALUE is a `{{ }}` expression (bound at render):
 - list of records → a Repeater with props {"data":"{{ <source>.data }}","dataKey":"name"} whose ONE row-template child uses {{ dataItem.<field> }} in its props; or the List family with ListRows props {"items":"{{ <source>.data }}","rowKey":"name"} and ONE ListRow in slots.default whose cells use {{ item.<field> }}.
 - a single Document's field → {{ <source>.doc.<field> }}; a count → {{ <source>.data.length }}.
@@ -168,7 +171,7 @@ BINDING_CONTRACT = """DATA BINDING — when the page shows live data or a variab
 Bind ONLY to the data sources / variables listed as available on the page, and only to fields a source actually fetches. Do NOT invent a data source in the JSON — sources are created separately; here you only bind to ones that already exist."""
 
 
-# SYSTEM_PROMPT (one-shot generation) and the agent prompt so every place that writes executable JS
+# The generation prompt and the agent prompt, so every place that writes executable JS
 # — a block's events, a handler prop (Button/Dialog/Dropdown onClick), a page script — uses the real
 # runtime scope instead of inventing `frappe.db.*`.
 SCRIPTING_RULES = """WRITING SCRIPT LOGIC (page script, a block's `events`, a handler prop like a Button/Dialog/Dropdown onClick, or the page script):
@@ -188,7 +191,11 @@ CRUD example — a Dialog "Save" action that creates a Note via the `notes` sour
 """
 
 
-SYSTEM_PROMPT = f"""You are an expert UI Web developer & designer specializing in creating responsive app pages for Frappe Studio, a Vue.js-based low-code app builder. Your task is to generate a compact JSON block tree that Studio will render as a live Vue application. Each block in the tree maps to a Vue component (from frappe-ui or Studio) or native html element (div).
+def get_generation_prompt() -> str:
+	"""The one-shot prompt behind generate_page, which writes a whole page tree in one call."""
+	runtime_rules = read_skill_file("RULES.md")
+	design_language = read_skill_file("DESIGN.md")
+	return f"""You are an expert UI Web developer & designer specializing in creating responsive app pages for Frappe Studio, a Vue.js-based low-code app builder. Your task is to generate a compact JSON block tree that Studio will render as a live Vue application. Each block in the tree maps to a Vue component (from frappe-ui or Studio) or native html element (div).
 
 {BLOCK_SCHEMA}
 
@@ -198,7 +205,11 @@ SYSTEM_PROMPT = f"""You are an expert UI Web developer & designer specializing i
 
 {SCRIPTING_RULES}
 
+{runtime_rules}
+
 {STYLING_RULES}
+
+{design_language}
 
 {COMPONENT_CATALOG}
 
@@ -250,27 +261,8 @@ Interactivity (events & visibility) — same new-vs-existing rule as bindings:
 )
 
 
-# Plain string (NOT an f-string) so `{ }` in the examples survive. Shared by both agents; each mode's
-# section below says where the router config lives and which tool edits it.
-ROUTING = """# Navigation & app-wide routing
-Studio creates the router: one route per published page, `name` = the page TITLE, so navigate with `router.push({ name: "Ticket", params: { name } })`. A new screen is a NEW PAGE; a custom 404 is a page with route `/:pathMatch(.*)*`.
-App-wide routing (aliases, redirects, guards) goes in the app's router config, not a page script (a page script runs after the route already matched). It is plain vue-router: `router` is a vue-router Router, `route` a route record, and guards, aliases and options behave as in the vue-router docs. Studio only adds three optional keys:
-{
-  routerOptions: { scrollBehavior: () => ({ top: 0 }) }, // createRouter options, minus routes/history
-  extendRoute(route) {
-    // each page record before the router exists; mutate it
-    if (route.name === "Tasks") route.alias = "/todo"
-  },
-  setup(router) {
-    // the live router: guards, and redirects with router.addRoute
-    router.beforeEach((to) => {
-      if (boot.onboarding_complete === false && to.name !== "Onboarding") return { name: "Onboarding" }
-    })
-  },
-}"""
-
 # Use plain strings for these state and logic sections so `{{ }}` tokens stay unchanged.
-PAGE_SCRIPT_MODULE = """Reactive state & page logic — author the page's setup() MODULE with set_page_script. It is a REAL ES module, so you MUST `import` framework APIs at the TOP — Vue reactivity `import { ref, computed, watch } from 'vue'`; and as needed `import { call, toast } from 'frappe-ui'`, `import { defineStore, storeToRefs } from 'pinia'`, and the app's own files via '@app/*'. `ref`/`computed`/`watch` are NOT on `context` — NEVER write `context.ref` or `const { ref } = context`; import them from 'vue'. The `context` PARAM carries the PAGE's own things: its data sources/resources, its variables, `route` and `router` (e.g. `context.notes`, `context.route`). Only what you RETURN becomes bindings usable in {{ }} and handlers."""
+PAGE_SCRIPT_MODULE = """Reactive state & page logic — author the page's setup() MODULE with set_page_script. It is a REAL ES module, so you MUST `import` framework APIs at the TOP — Vue reactivity `import { ref, computed, watch } from 'vue'`; and as needed `import { call, toast } from 'frappe-ui'`, `import { defineStore, storeToRefs } from 'pinia'`, and the app's own files via '@app/*'. `ref`/`computed`/`watch` are NOT on `context` — NEVER write `context.ref` or `const { ref } = context`; import them from 'vue'. The `context` PARAM carries the PAGE's own things: its data sources/resources, its variables, `route` and `router` (e.g. `context.notes`, `context.route`). Return every script-defined value or helper that bindings or events use."""
 
 CUSTOM_PAGE_CODE = (
 	"""# State & logic
@@ -319,7 +311,18 @@ Router config — list_app_files and use the existing `router.ts` or `router.js`
 )
 
 
+def read_skill_file(file_name: str) -> str:
+	"""Read one file of the studio-app-building skill, the single source for the rules this agent
+	and an agent working outside Studio both follow."""
+	# get_app_source_path scrubs each part it joins, so the hyphenated folder is joined here
+	path = os.path.join(frappe.get_app_source_path("frappe", "skills"), "studio-app-building", file_name)
+	with open(path, encoding="utf-8") as skill_file:
+		return skill_file.read().strip()
+
+
 def get_agent_system(data_and_code_wiring: str) -> str:
+	runtime_rules = read_skill_file("RULES.md")
+	design_language = read_skill_file("DESIGN.md")
 	return f"""You are an expert UI developer & designer working inside Frappe Studio, a Vue.js low-code app builder. You build and edit pages by CALLING TOOLS — never by describing changes in prose.
 
 # How you work
@@ -355,6 +358,8 @@ When the user attaches an image (a screenshot or design mock), treat it as the s
 
 {SCRIPTING_RULES}
 
+{runtime_rules}
+
 # Asking vs proceeding
 - Small, targeted edits to an existing page (colour, text, spacing, a single block): make a reasonable decision and proceed with the tools. Do NOT ask.
 - NEW page or major redesign — before planning, infer everything the request already implies and use ask_clarification only for what it genuinely leaves open (e.g. brand/name, the overall design direction). Ask ONE focused question per turn; as few as possible.
@@ -362,18 +367,13 @@ When the user attaches an image (a screenshot or design mock), treat it as the s
 
 {STYLING_RULES}
 
+{design_language}
+
 {COMPONENT_CATALOG}
 """
 
 
-AGENT_SYSTEM_CUSTOM = get_agent_system(DATA_WIRING + "\n\n" + CUSTOM_PAGE_CODE + "\n\n" + ROUTING)
-AGENT_SYSTEM_STANDARD = get_agent_system(DATA_WIRING + "\n\n" + STANDARD_PAGE_CODE + "\n\n" + ROUTING)
-
-
 def get_system_prompt_for_mode(is_standard: bool) -> str:
-	return AGENT_SYSTEM_STANDARD if is_standard else AGENT_SYSTEM_CUSTOM
-
-
-# Used by the generate_page artifact generator — reuse the one-shot JSON system prompt
-# (catalog + styling + output rules + examples) that already produces a full page tree.
-GENERATION = SYSTEM_PROMPT
+	page_code = STANDARD_PAGE_CODE if is_standard else CUSTOM_PAGE_CODE
+	routing = read_skill_file("ROUTING.md")
+	return get_agent_system(f"{DATA_WIRING}\n\n{page_code}\n\n{routing}")
