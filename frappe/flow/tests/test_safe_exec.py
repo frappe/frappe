@@ -66,6 +66,22 @@ class TestFlowSafeExec(IntegrationTestCase):
 		self.assertEqual(len(result["created"]), 1)
 		self.assertTrue(frappe.db.exists("ToDo", result["created"][0]))
 
+	def test_get_value_reads_a_single(self):
+		time_zone = frappe.db.get_single_value("System Settings", "time_zone")
+		for code, expected in (
+			('frappe.db.get_value("System Settings", None, "time_zone")', time_zone),
+			('frappe.db.get_value("System Settings", "System Settings", ["time_zone"])', [time_zone]),
+			(
+				'frappe.db.get_value("System Settings", None, "time_zone", as_dict=True)',
+				{"time_zone": time_zone},
+			),
+		):
+			with self.subTest(code):
+				self.assertEqual(self._run(f"result = {code}"), expected)
+		frappe.set_user("Guest")
+		with self.assertRaises(frappe.PermissionError):
+			self._run('result = frappe.db.get_value("System Settings", None, "time_zone")')
+
 	def test_refuses_imports_dunders_and_permission_bypassing_functions(self):
 		for code, error in (
 			("import os", ImportError),
@@ -77,6 +93,24 @@ class TestFlowSafeExec(IntegrationTestCase):
 		):
 			with self.subTest(code), self.assertRaises(error):
 				safe_exec(code)
+
+	def test_enqueue_takes_only_the_function_and_its_arguments(self):
+		with patch("frappe.flow.utils.safe_exec.safe_enqueue") as queued:
+			self._run('frappe.enqueue("frappe.ping", note="x")')
+			queued.assert_called_once_with("frappe.ping", note="x")
+			for option in (
+				'queue="long"',
+				"timeout=86400",
+				"at_front=True",
+				'job_id="x"',
+				'on_success="os.getcwd"',
+			):
+				with (
+					self.subTest(option),
+					self.assertRaisesRegex(frappe.ValidationError, "only the function"),
+				):
+					self._run(f'frappe.enqueue("frappe.ping", {option})')
+			queued.assert_called_once()
 
 	def test_enforces_the_users_permissions(self):
 		todo = frappe.get_doc({"doctype": "ToDo", "description": "secret", "status": "Open"}).insert()
@@ -93,6 +127,34 @@ class TestFlowSafeExec(IntegrationTestCase):
 		):
 			with self.subTest(code), self.assertRaises(frappe.PermissionError):
 				safe_exec(f"result = {code}")
+
+	def test_a_lookup_by_filters_does_not_tell_that_a_hidden_record_matches(self):
+		frappe.get_doc({"doctype": "ToDo", "description": "flow hidden match"}).insert()
+		user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": "flow-sandbox-lookup@example.com",
+				"first_name": "Lookup",
+				"send_welcome_email": 0,
+				"roles": [{"role": "Flow User"}],
+			}
+		).insert(ignore_permissions=True)
+		frappe.set_user(user.name)
+		own = frappe.get_doc({"doctype": "ToDo", "description": "flow own match"}).insert()
+		for call in ("get_doc", "get_last_doc"):
+			with self.subTest(call):
+				found = self._run(f'result = frappe.{call}("ToDo", {{"description": "flow own match"}})')
+				self.assertEqual(found["name"], own.name)
+				# hidden or missing: both are not found
+				for description in ("flow hidden match", "flow no match"):
+					with self.assertRaises(frappe.DoesNotExistError):
+						self._run(f'frappe.{call}("ToDo", {{"description": "{description}"}})')
+		with self.subTest("filters as a tuple"):
+			found = self._run('result = frappe.get_doc("ToDo", ("description", "=", "flow own match"))')
+			self.assertEqual(found["name"], own.name)
+			for description in ("flow hidden match", "flow no match"):
+				with self.assertRaises(frappe.DoesNotExistError):
+					self._run(f'frappe.get_doc("ToDo", ("description", "=", "{description}"))')
 
 	def test_get_doc_hides_fields_above_the_users_permlevel(self):
 		# desk users can read a public Note at permlevels 0 and 1; its seen_by table is permlevel 2

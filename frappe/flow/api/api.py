@@ -23,7 +23,8 @@ if TYPE_CHECKING:
 FEEDBACK_COMMENT_LIMIT = 500
 TITLE_LIMIT = 140
 LIST_LIMIT = 100
-RUN_FIELDS = ["name", "daemon_run_id", "status", "error", "feedback_rating", "feedback_comment"]
+RUN_FIELDS = ["name", "daemon_run_id", "status", "error"]
+FEEDBACK_FIELDS = ["feedback_rating", "feedback_comment"]
 REASONING_EFFORTS = ("off", "minimal", "low", "medium", "high", "xhigh", "max")
 # What the /flow page's settings manage; boot reports the caller's rights on each.
 SETTINGS_DOCTYPES = (
@@ -87,7 +88,7 @@ def boot() -> dict[str, Any]:
 	}
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def create_session(
 	agent: str | None = None,
 	model: str | None = None,
@@ -161,7 +162,7 @@ def skills(session: str | None = None, agent: str | None = None) -> dict[str, An
 	}
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def run(session: str, message: str, attachments: list[str] | str | None = None) -> dict[str, Any]:
 	"""Start a turn and answer at once: "started" with its new run, or "steered" with the
 	active run the message joined. `attachments` are File names staged with attach_file;
@@ -179,7 +180,7 @@ def run(session: str, message: str, attachments: list[str] | str | None = None) 
 	return {"run": run.name, "status": "steered" if run.name == active else "started"}
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def resume(
 	session: str, answers: dict[str, Any] | str, approval_seq: int | str | None = None
 ) -> dict[str, Any]:
@@ -243,12 +244,12 @@ def _waiting_call(doc: FlowSession, call_id: str) -> dict[str, Any] | None:
 	return None
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def abort(session: str) -> dict[str, str]:
 	return {"status": _load_session(session, "write").abort()}
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def cancel_pending(session: str) -> dict[str, str]:
 	return {"status": _load_session(session, "write").cancel_pending()}
 
@@ -285,7 +286,7 @@ def system_prompt(session: str) -> str | None:
 	return doc.system_prompt()
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def set_model(session: str, model: str, reasoning_effort: str | None = None) -> dict[str, Any]:
 	"""Switch the session's model; `reasoning_effort` sets its thinking level, empty for the default."""
 	if not isinstance(model, str) or not model.strip():
@@ -303,7 +304,7 @@ def set_model(session: str, model: str, reasoning_effort: str | None = None) -> 
 	}
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def set_title(session: str, title: str) -> dict[str, str]:
 	title = (title or "").strip()[:TITLE_LIMIT]
 	if not title:
@@ -312,14 +313,14 @@ def set_title(session: str, title: str) -> dict[str, str]:
 	return {"title": title}
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def set_approval_mode(session: str, mode: str) -> dict[str, str]:
 	"""Ask, Auto or Auto-approve; a Trigger session stays on Auto-approve."""
 	_load_session(session, "write").set_approval_mode(mode)
 	return {"approval_mode": mode}
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def delete_session(session: str) -> dict[str, str]:
 	_load_session(session, "delete").delete()
 	return {"status": "deleted"}
@@ -387,7 +388,7 @@ def sync_session(session: str) -> dict[str, Any]:
 	return _session_payload(doc)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def submit_feedback(run_name: str, rating: str, comment: str | None = None) -> dict[str, Any]:
 	"""Record thumbs feedback on a finished run, or clear it with rating "None". A
 	thumbs-down comment is stored as agent memory when the agent has memory enabled (a no-op
@@ -421,8 +422,18 @@ def submit_feedback(run_name: str, rating: str, comment: str | None = None) -> d
 		run.db_set({"feedback_rating": "", "feedback_comment": None})
 		return {"rating": None, "forgotten": forgotten} if forgotten else {"rating": None}
 
-	memory = save_feedback_memory(run, comment) if rating == "Down" and comment else None
 	run.db_set({"feedback_rating": rating, "feedback_comment": comment or None})
+	memory = None
+	if rating == "Down" and comment:
+		frappe.db.savepoint("flow_feedback_memory")
+		try:
+			memory = save_feedback_memory(run, comment)
+		except Exception:
+			# the rating stands without its memory
+			frappe.db.rollback(save_point="flow_feedback_memory")
+			frappe.log_error(
+				title="Flow feedback memory failed", reference_doctype="Flow Run", reference_name=run.name
+			)
 
 	result: dict[str, Any] = {"rating": rating}
 	if memory:
@@ -430,7 +441,7 @@ def submit_feedback(run_name: str, rating: str, comment: str | None = None) -> d
 	return result
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def attach_file(file: str, model: str | None = None) -> dict[str, Any]:
 	"""Validate and extract an uploaded File for use as a chat attachment. Errors
 	(unsupported type, unreadable, not owned) surface here, at upload time. The
@@ -445,7 +456,7 @@ def attach_file(file: str, model: str | None = None) -> dict[str, Any]:
 	return stage_attachment(file.strip(), model)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def cleanup_attachments(
 	session: str | None = None, attachments: list[str] | str | None = None
 ) -> dict[str, list[str]]:
@@ -476,6 +487,7 @@ def _load_session(session: str, ptype: str) -> FlowSession:
 
 def _session_payload(doc: FlowSession) -> dict[str, Any]:
 	model = doc.model or frappe.get_cached_value("Flow Agent", doc.agent, "model")
+	can_write = frappe.has_permission("Flow Session", "write", doc)
 	return {
 		"name": doc.name,
 		"title": doc.title,
@@ -486,9 +498,12 @@ def _session_payload(doc: FlowSession) -> dict[str, Any]:
 		"owner_name": get_fullname(doc.owner),
 		"general_access": doc.general_access,
 		"approval_mode": doc.approval_mode,
-		"read_only": not frappe.has_permission("Flow Session", "write", doc),
+		"read_only": not can_write,
 		"runs": frappe.get_all(
-			"Flow Run", filters={"session": doc.name}, fields=RUN_FIELDS, order_by="creation asc"
+			"Flow Run",
+			filters={"session": doc.name},
+			fields=[*RUN_FIELDS, *FEEDBACK_FIELDS] if can_write else RUN_FIELDS,
+			order_by="creation asc",
 		),
 	}
 
