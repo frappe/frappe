@@ -7,9 +7,13 @@
 	>
 		<div class="flex items-center gap-2 ps-px">
 			<Checkbox :modelValue="true" :disabled="true" aria-hidden="true" />
-			<span class="whitespace-nowrap text-ink-gray-9">{{
-				__("{0} selected", [count])
-			}}</span>
+			<span class="whitespace-nowrap text-ink-gray-9">{{ countText }}</span>
+			<Button
+				v-if="scope.canSelectAll.value"
+				variant="ghost"
+				:label="__('Select all {0}', [totalText])"
+				@click="scope.selectAll()"
+			/>
 		</div>
 		<template v-if="overCap">
 			<span class="flex items-center gap-1 whitespace-nowrap text-sm text-ink-gray-5">
@@ -96,13 +100,26 @@
 import { Button, Checkbox, Dropdown, Icon, KeyboardShortcut, Tooltip } from "frappe-ui";
 import { computed } from "vue";
 import { __ } from "@/i18n";
+import type { BulkScope } from "@/list/useBulkScope";
 import type { BulkLayout } from "./bulkLayout";
 
-const props = defineProps<{ count: number; cap: number; layout: BulkLayout; locked: boolean }>();
+const props = defineProps<{
+	scope: BulkScope;
+	cap: number;
+	layout: BulkLayout;
+	locked: boolean;
+}>();
 const menuOpen = defineModel<boolean>("menuOpen", { default: false });
 defineEmits<{ clear: [] }>();
 
-const overCap = computed(() => !props.locked && props.count > props.cap);
+const totalText = computed(() => formatted(props.scope.total.value, props.scope.approx.value));
+const countText = computed(() =>
+	props.scope.all.value
+		? __("All {0} selected", [totalText.value])
+		: __("{0} selected", [props.scope.count.value])
+);
+const formatted = (count: number, approx: boolean) => count.toLocaleString() + (approx ? "+" : "");
+const overCap = computed(() => !props.locked && props.scope.count.value > props.cap);
 const shown = computed(
 	() =>
 		props.layout.transitions.length ||

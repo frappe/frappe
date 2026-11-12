@@ -1,6 +1,6 @@
 // The List type's rows area: its columns from the view's settings, and the rows the view's filters
 // and sort read, with the selection, the page size and the delete.
-import { bulkDeleteDocuments, isBulkQueued } from "@framework/ui/api";
+import { bulkDeleteDocuments, isBulkQueued, type BulkSelection } from "@framework/ui/api";
 import { applyColumnWidth, clearColumnWidth, getColumnAlign } from "@framework/ui/ColumnSettings";
 import type { ListColumn } from "@framework/ui/experimental/List";
 import { getFilterableFields, parseFilters, serializeFilters, type FilterCondition } from "@framework/ui/Filter";
@@ -32,6 +32,7 @@ import { completeFilters, queryFromAddress } from "./query";
 import { partsFor } from "./rowParts";
 import { cellSeenClass, isUnseen, seenColumn } from "./seen";
 import { columnsFrom, toStoredColumns } from "./storedSettings";
+import { useBulkScope, type BulkScope } from "./useBulkScope";
 import { useListRows, type ListRow, type ListRows } from "./useListRows";
 import type { View } from "./view";
 
@@ -67,6 +68,8 @@ export interface ListView extends ListRows {
 	/** The titles the rows hold for their Link values, keyed `Target::name` as the form's `link_titles`; see `cellTitle`. */
 	linkTitles: ComputedRef<Record<string, string>>;
 	selection: Ref<string[]>;
+	/** What a bulk run takes: the selected rows, or all the records the filters show. */
+	scope: BulkScope;
 	/** Kept in the history entry. */
 	pageSize: Ref<number>;
 	/** The filters and sort the rows belong to, as one string: the session memory's key. */
@@ -80,7 +83,7 @@ export interface ListView extends ListRows {
 	resizeColumn: (fieldname: string, width: string) => void;
 	resetColumnWidth: (fieldname: string) => void;
 	rowLink: (row: ListRow) => RouteLocationRaw;
-	/** Deletes the selection one row at a time; the page confirms first. */
+	/** Deletes the selection, or all the records the filters show; the page confirms first. */
 	deleteSelection: () => Promise<DeleteOutcome>;
 }
 
@@ -181,15 +184,18 @@ export function useListView(view: View, lists: Pick<ListPageLists, "columns" | "
 		{ immediate: true }
 	);
 
-	// A row that left the page leaves the selection; the rest stay selected across a load-more.
-	watch(rows.rows, (current) => {
-		const present = new Set(current.map((row) => row.name));
-		selection.value = selection.value.filter((name) => present.has(name));
+	const scope = useBulkScope({
+		selection,
+		rows: () => rows.rows.value,
+		filters: () => filtersDict(view.filters.value),
+		hasNextPage: () => rows.hasNextPage.value,
+		totalCount: () => rows.totalCount.value,
+		totalApprox: () => rows.totalCapped.value || rows.totalUnknown.value,
 	});
 
 	async function deleteSelection(): Promise<DeleteOutcome> {
-		const outcome = await deleteRows(doctype, rows, selection.value);
-		selection.value = [];
+		const outcome = await deleteRows(doctype, rows, scope.selected());
+		scope.clear();
 		return outcome;
 	}
 
@@ -262,6 +268,7 @@ export function useListView(view: View, lists: Pick<ListPageLists, "columns" | "
 		seenClassOf: (row, fieldname) =>
 			fieldname === seenField.value ? cellSeenClass(isUnseen(row, user)) : "",
 		selection,
+		scope,
 		pageSize,
 		rowsKey,
 		columnsCustomized: computed(() => view.customized("columns")),
@@ -297,8 +304,8 @@ export function filtersDict(filters: FilterCondition[]): Record<string, unknown>
 }
 
 /** Deletes the records in one bulk request, then reloads the page; what failed comes back with its message. */
-export async function deleteRows(doctype: string, rows: ListRows, names: string[]): Promise<DeleteOutcome> {
-	const { data } = await bulkDeleteDocuments(doctype, names);
+export async function deleteRows(doctype: string, rows: ListRows, selection: BulkSelection): Promise<DeleteOutcome> {
+	const { data } = await bulkDeleteDocuments(doctype, selection);
 	rows.reload();
 	if (isBulkQueued(data)) return { deleted: [], failed: [], queued: true };
 	return { deleted: data.done, failed: data.failed };

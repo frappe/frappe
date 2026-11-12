@@ -18,11 +18,11 @@ async function settle() {
 	await nextTick();
 }
 
-async function open(run: () => Promise<DeleteOutcome>, mountedOpen = false) {
+async function open(run: () => Promise<DeleteOutcome>, mountedOpen = false, scope = {}) {
 	const host = document.createElement("div");
 	document.body.append(host);
 	const shown = ref(mountedOpen);
-	mounted = createApp({ render: () => h(DeleteDialog, { modelValue: shown.value, count: 2, run }) });
+	mounted = createApp({ render: () => h(DeleteDialog, { modelValue: shown.value, count: 2, ...scope, run }) });
 	mounted.mount(host);
 	if (!mountedOpen) shown.value = true;
 	await settle();
@@ -48,6 +48,14 @@ describe("DeleteDialog", () => {
 		await open(async () => ({ deleted: [], failed: [] }));
 		expect(text()).toContain("Delete 2 selected records?");
 		expect(text()).toContain("This cannot be undone.");
+	});
+
+	it("names the scope when the run takes every record the filters show", async () => {
+		await open(async () => ({ deleted: [], failed: [] }), false, { all: true, count: 1240 });
+		expect(text()).toContain("Delete all 1,240 matching records?");
+		mounted?.unmount();
+		await open(async () => ({ deleted: [], failed: [] }), false, { all: true, count: 10000, approx: true });
+		expect(text()).toContain("Delete all 10,000+ matching records?");
 	});
 
 	it("counts the rows when it mounts already open, as the lazy list chunk does", async () => {

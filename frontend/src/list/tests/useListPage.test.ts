@@ -849,10 +849,22 @@ describe("deleteSelection", () => {
 		});
 		page.selection.value = ["LEAD-1", "LEAD-2"];
 		const outcome = await page.deleteSelection();
-		expect(fake.bulkDelete.mock.calls).toEqual([["Lead", ["LEAD-1", "LEAD-2"]]]);
+		expect(fake.bulkDelete.mock.calls).toEqual([["Lead", { names: ["LEAD-1", "LEAD-2"] }]]);
 		expect(outcome).toEqual({ deleted: ["LEAD-1"], failed: [{ name: "LEAD-2", error: "Not permitted" }] });
 		expect(page.selection.value).toEqual([]);
 		expect(fake.listDocuments).toHaveBeenCalledTimes(2);
+	});
+
+	it("deletes every record the filters show after Select all, not the loaded names", async () => {
+		await mount("/lead");
+		await settle();
+		fake.bulkDelete.mockResolvedValueOnce({ data: { total: 600, done: ["LEAD-1"], failed: [] } });
+		page.selection.value = ["LEAD-1"];
+		page.scope.selectAll();
+		await page.deleteSelection();
+		expect(fake.bulkDelete.mock.calls).toEqual([["Lead", { filters: {} }]]);
+		expect(page.scope.all.value).toBe(false);
+		expect(page.selection.value).toEqual([]);
 	});
 
 	it("reports a run that went to the background as queued", async () => {

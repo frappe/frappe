@@ -259,14 +259,18 @@ export function isBulkQueued(result: BulkResult | BulkQueued): result is BulkQue
   return "task_id" in result;
 }
 
-/** Deletes the named records in one request; each name in `done` leaves the cache. */
+/** Which records a bulk run takes: the named ones, or every record a list's filters show. */
+export type BulkSelection = { names: string[] } | { filters: Record<string, unknown>; or_filters?: unknown };
+
+/** Deletes the selected records in one request; each name in `done` leaves the cache. */
 export function bulkDeleteDocuments(
   doctype: string,
-  names: string[],
+  selection: string[] | BulkSelection,
   { signal }: CallOptions = {}
 ): Promise<Envelope<BulkResult | BulkQueued>> {
   const path = `/document/${segment(doctype)}/bulk_delete`;
-  return fed<BulkResult | BulkQueued>("POST", path, { body: { names }, signal }, (ticket, { data }) => {
+  const body = Array.isArray(selection) ? { names: selection } : selection;
+  return fed<BulkResult | BulkQueued>("POST", path, { body, signal }, (ticket, { data }) => {
     if (isBulkQueued(data)) return;
     for (const name of data.done) feedDelete(ticket, doctype, name);
   });

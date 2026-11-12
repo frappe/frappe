@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, nextTick, ref, type App } from "vue";
 import { createListPageLists } from "@/listPage/createListPage";
 import type { ListPageAction } from "@/listPage/types";
+import { useBulkScope } from "@/list/useBulkScope";
 import BulkBar from "../BulkBar.vue";
 import { layoutBulk, type BulkEntry } from "../bulkLayout";
 import { useBulkBar } from "../useBulkBar";
@@ -81,6 +82,21 @@ describe("layoutBulk", () => {
 	});
 });
 
+function scopeOf(count: number, extra: { total?: number; hasNextPage?: boolean; approx?: boolean } = {}) {
+	const rows = ref(Array.from({ length: count }, (_, index) => ({ name: `R${index}` })));
+	const selection = ref(rows.value.map((row) => row.name));
+	const filters = ref<Record<string, unknown>>({});
+	const scope = useBulkScope({
+		selection,
+		rows: () => rows.value,
+		filters: () => filters.value,
+		hasNextPage: () => extra.hasNextPage ?? false,
+		totalCount: () => extra.total ?? count,
+		totalApprox: () => extra.approx ?? false,
+	});
+	return { scope, rows, selection, filters };
+}
+
 describe("BulkBar", () => {
 	let app: App | null = null;
 	afterEach(() => {
@@ -104,7 +120,7 @@ describe("BulkBar", () => {
 	it("shows the count, runs a button and the trash icon, and clears", async () => {
 		const edit = entry("edit", { label: "Edit", button: true });
 		const trash = entry("delete", { label: "Delete", icon: "lucide-trash-2", group: "danger" });
-		const { root, clear } = mount({ count: 3, layout: layoutBulk([edit, trash], "ToDo") });
+		const { root, clear } = mount({ scope: scopeOf(3).scope, layout: layoutBulk([edit, trash], "ToDo") });
 		expect(root.textContent).toContain("3 selected");
 
 		button(root, "Edit")!.click();
@@ -123,12 +139,32 @@ describe("BulkBar", () => {
 	});
 
 	it("says it is over the cap", () => {
-		const { root } = mount({ count: 501, layout: layoutBulk([entry("edit", { button: true })], "ToDo") });
+		const { root } = mount({ scope: scopeOf(501).scope, layout: layoutBulk([entry("edit", { button: true })], "ToDo") });
 		expect(root.textContent).toContain("Over the 500 cap");
 	});
 
+	it("offers Select all N when every loaded row is selected and more match", async () => {
+		const { scope, selection } = scopeOf(3, { total: 1240, hasNextPage: true });
+		const { root } = mount({ scope, layout: layoutBulk([], "ToDo") });
+		expect(button(root, "Select all 1,240")).toBeTruthy();
+
+		button(root, "Select all 1,240")!.click();
+		await nextTick();
+		expect(root.textContent).toContain("All 1,240 selected");
+		expect(root.textContent).toContain("Over the 500 cap");
+		expect(button(root, "Select all 1,240")).toBeUndefined();
+		expect(selection.value).toHaveLength(3);
+	});
+
+	it("does not offer Select all N when nothing more matches or a row is unchecked", () => {
+		expect(button(mount({ scope: scopeOf(3).scope, layout: layoutBulk([], "ToDo") }).root, "Select all 3")).toBeUndefined();
+		const partial = scopeOf(3, { total: 9, hasNextPage: true });
+		partial.selection.value = ["R0"];
+		expect(partial.scope.canSelectAll.value).toBe(false);
+	});
+
 	it("draws no action when the person's bulk actions switch is off", () => {
-		const { root } = mount({ count: 2, locked: true, layout: layoutBulk([], "ToDo") });
+		const { root } = mount({ scope: scopeOf(2).scope, locked: true, layout: layoutBulk([], "ToDo") });
 		expect(root.textContent).toContain("2 selected");
 		expect(root.textContent).not.toContain("More");
 		expect(root.textContent).not.toContain("Over the");
@@ -138,7 +174,7 @@ describe("BulkBar", () => {
 describe("useBulkBar", () => {
 	function bar(boot: Record<string, unknown>, drawn: (name: string) => unknown = (name) => ({ name, label: name })) {
 		const lists = createListPageLists();
-		const selection = ref(["A", "B"]);
+		const { scope, selection } = scopeOf(2);
 		const perform = vi.fn();
 		const askDelete = vi.fn();
 		const supplied: Array<() => Array<{ item: { name: string } }>> = [];
@@ -151,6 +187,7 @@ describe("useBulkBar", () => {
 						host: { lists, acts: (supply: never) => (supplied.push(supply), { drawn, perform }) } as never,
 						doctype: "ToDo",
 						selection,
+						scope,
 						rows: ref([]),
 						rowActions: ref([]),
 						reload: () => {},
@@ -181,7 +218,7 @@ describe("useBulkBar", () => {
 
 		layout.value.menu[0].options[0].onClick();
 		selection.value = ["C"];
-		expect(perform).toHaveBeenCalledWith(expect.objectContaining({ name: "restore" }), ["A", "B"]);
+		expect(perform).toHaveBeenCalledWith(expect.objectContaining({ name: "restore" }), ["R0", "R1"]);
 		app.unmount();
 	});
 

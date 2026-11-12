@@ -7,6 +7,7 @@ import type { ListPageApi, ListRow, ListRowAction } from "@/listPage/types";
 import { bulkKeyEntries } from "./bulkKeys";
 import { bulkScopeOf } from "./bulkScope";
 import { layoutBulk, type BulkEntry, type BulkLayout } from "./bulkLayout";
+import type { BulkScope } from "@/list/useBulkScope";
 import { rowActionEntries } from "./rowActions";
 import type { ListActs } from "./listActs";
 import type { RendererHost } from "./renderer";
@@ -15,6 +16,7 @@ export interface BulkBarOptions {
 	host: RendererHost;
 	doctype: string;
 	selection: Ref<string[]>;
+	scope: BulkScope;
 	rows: Ref<ListRow[]>;
 	rowActions: Ref<ListRowAction[]>;
 	reload: () => void;
@@ -31,6 +33,8 @@ export interface BulkBar {
 	/** Whether the bar's More menu is open; the `.` key opens it. */
 	menuOpen: Ref<boolean>;
 	layout: ComputedRef<BulkLayout>;
+	/** What a run takes: the selected rows, or all the records the filters show. */
+	scope: BulkScope;
 	/** The most one bulk run takes; the bar disables its actions above it. */
 	cap: number;
 	/** The person's `bulk_actions` switch is off: the bar draws no action. */
@@ -109,13 +113,19 @@ export function useBulkBar(options: BulkBarOptions): BulkBar {
 							icon: act.icon,
 							group: item.group,
 							button: item.button,
-							disabled: selection.value.length > cap,
+							disabled: options.scope.count.value > cap,
 							onClick: () => listActs.perform(act, scope.selected()),
 						},
 					];
 			  })
 	);
 
-	const layout = computed(() => layoutBulk(entries.value, options.doctype));
-	return { listActs, menuOpen, layout, cap, locked };
+	return {
+		listActs,
+		menuOpen,
+		layout: computed(() => layoutBulk(entries.value, options.doctype)),
+		scope: options.scope,
+		cap,
+		locked,
+	};
 }

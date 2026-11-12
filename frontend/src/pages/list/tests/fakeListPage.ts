@@ -4,6 +4,7 @@
 import { computed, ref, type Ref } from "vue";
 import { vi } from "vitest";
 import type { SavedView } from "@/list/savedView";
+import { useBulkScope } from "@/list/useBulkScope";
 import type { ListPage } from "@/list/useListPage";
 import type { ListView } from "@/list/useListView";
 import type { View } from "@/list/view";
@@ -83,6 +84,14 @@ export function useListView(): ListView {
     columns: ref([]),
     shownColumns: computed(() => []),
     selection: state.selection,
+    scope: useBulkScope({
+      selection: state.selection,
+      rows: () => state.rows.value,
+      filters: () => ({}),
+      hasNextPage: () => false,
+      totalCount: () => state.rows.value.length,
+      totalApprox: () => false,
+    }),
     pageSize: ref(20),
     rowsKey: () => "",
     rows: state.rows,
