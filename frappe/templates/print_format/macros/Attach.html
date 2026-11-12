@@ -7,7 +7,7 @@
 </div>
 {%- else -%}
 <div class="value">
-    {% if value %}<a href="{{ value|e }}">{{ value.rsplit('/', 1)[1]|e }}</a>{% endif %}
+    {% if value %}<a href="{{ value|e }}">{{ value.rsplit('/', 1)[-1]|e }}</a>{% endif %}
 </div>
 {%- endif -%}
 {%- endblock -%}
