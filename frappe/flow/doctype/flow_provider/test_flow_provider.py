@@ -40,6 +40,12 @@ class TestFlowProviderValidation(IntegrationTestCase):
 			doc = frappe.get_doc(_provider(provider="OpenRouter")).insert()
 			self.assertEqual((doc.name, doc.provider), ("openrouter", "openrouter"))
 
+	def test_a_provider_cannot_be_renamed(self):
+		# its models' ids start with its name
+		doc = frappe.get_doc(_provider()).insert()
+		with self.assertRaisesRegex(frappe.ValidationError, "not allowed to be renamed"):
+			frappe.rename_doc("Flow Provider", doc.name, "openai")
+
 
 class TestProviderCredentialResolution(IntegrationTestCase):
 	def tearDown(self):

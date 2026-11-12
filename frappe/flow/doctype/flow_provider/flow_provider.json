@@ -1,6 +1,5 @@
 {
  "actions": [],
- "allow_rename": 1,
  "autoname": "field:provider",
  "creation": "2026-05-30 00:00:00",
  "doctype": "DocType",
@@ -47,7 +46,7 @@
   }
  ],
  "links": [],
- "modified": "2026-05-30 00:00:00.000000",
+ "modified": "2026-11-12 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Flow",
  "name": "Flow Provider",
