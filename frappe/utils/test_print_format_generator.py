@@ -408,6 +408,20 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		self.assertNotIn("repeater", fieldnames)
 		self.assertNotIn("barcode", fieldnames)
 
+	def test_linked_fields_load_the_linked_document_once(self):
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		pf = self._make_print_format()
+		todo = self._make_todo()
+		todo.allocated_to = "test@example.com"
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		generator = PrintFormatGenerator(pf, todo)
+
+		self.assertEqual(generator.resolve_linked_path("allocated_to.email")[0], "test@example.com")
+		with self.assertQueryCount(0):
+			self.assertEqual(generator.resolve_linked_path("allocated_to.enabled")[0], 1)
+
 	def _layout_fieldnames(self, generator):
 		return [
 			df.get("fieldname")
