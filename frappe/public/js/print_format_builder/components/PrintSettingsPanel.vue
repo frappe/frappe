@@ -216,7 +216,10 @@ onUnmounted(() => hint_tooltip?.destroy());
 
 const paper_sizes = [
 	{ label: __("Default"), value: "" },
-	...["A4", "A5", "A3", "Letter", "Legal", "Tabloid"].map((s) => ({ label: s, value: s })),
+	...frappe.meta
+		.get_print_sizes()
+		.filter((s) => s !== "Custom")
+		.map((s) => ({ label: s, value: s })),
 ];
 
 function set_page(key, value) {
