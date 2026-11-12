@@ -501,9 +501,9 @@ it). The runner only checks that the method is whitelisted and that its HTTP met
 - The method is a dotted path to a whitelisted function. A Server Script API is not supported.
 - The Background Task is named after the function: `add_roles_to_user` runs as "Add Roles To User User" (function name, then doctype).
 
-`page.callSelected` resolves `true` when the run went to the background or every record passed,
-and `false` after a toast that says why when the runner refused it or a record failed. It
-reloads the list when the run ends. With no row selected it sends nothing.
+`page.callSelected` resolves `true` once the runner took the request and `false` after a toast
+when it refused it. The shell reports the outcome: a toast, the bulk tray for a background run,
+or the result panel with Retry when a record failed. It reloads the list when the run ends. With no row selected it sends nothing.
 
 `page.columns.update(fieldname, cell)` describes how a column draws its cells, as data (an app
 supplies no component):

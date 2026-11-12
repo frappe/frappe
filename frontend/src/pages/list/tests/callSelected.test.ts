@@ -1,16 +1,13 @@
-// page.callSelected: the request the runner takes, and what the person sees when it answers.
+// page.callSelected: the request the runner takes, and who reports the outcome.
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { bulkCallDocuments, followBulkRun, toast } = vi.hoisted(() => ({
+const { bulkCallDocuments, runBulk, toast } = vi.hoisted(() => ({
   bulkCallDocuments: vi.fn(),
-  followBulkRun: vi.fn(),
+  runBulk: vi.fn(),
   toast: { success: vi.fn(), error: vi.fn(), info: vi.fn() },
 }));
-vi.mock("@framework/ui/api", () => ({
-  bulkCallDocuments,
-  isBulkQueued: (result: object) => "task_id" in result,
-}));
-vi.mock("@/shell/bulkRuns", () => ({ followBulkRun }));
+vi.mock("@framework/ui/api", () => ({ bulkCallDocuments }));
+vi.mock("@/shell/bulkOutcome", () => ({ runBulk }));
 vi.mock("frappe-ui", () => ({ toast }));
 
 import { callSelected } from "../callSelected";
@@ -22,72 +19,55 @@ const host = (selected: object = { names: ["a@example.com", "b@example.com"] }) 
   reload,
 });
 
-beforeEach(() => vi.clearAllMocks());
+beforeEach(() => {
+  vi.clearAllMocks();
+  runBulk.mockImplementation(async (options) => {
+    await options.send();
+  });
+});
 
 describe("callSelected", () => {
-  it("sends the method, its args and the selection to the runner", async () => {
-    bulkCallDocuments.mockResolvedValue({ data: { total: 2, done: ["a@example.com", "b@example.com"], failed: [] } });
+  it("hands the runner a labelled act that sends the method, its args and the selection", async () => {
     const ok = await callSelected(host(), "my_app.api.add_roles", { roles: ["Blogger"] });
 
+    expect(ok).toBe(true);
+    expect(runBulk.mock.calls[0][0]).toMatchObject({ label: "Add Roles", doctype: "User", finished: reload });
     expect(bulkCallDocuments).toHaveBeenCalledWith("User", {
       names: ["a@example.com", "b@example.com"],
       method: "my_app.api.add_roles",
       args: { roles: ["Blogger"] },
     });
-    expect(ok).toBe(true);
-    expect(reload).toHaveBeenCalledTimes(1);
-    expect(toast.success).toHaveBeenCalledTimes(1);
   });
 
   it("sends the filter when the selection is a filter", async () => {
-    bulkCallDocuments.mockResolvedValue({ data: { total: 1, done: ["a"], failed: [] } });
-    await callSelected(host({ filters: [["enabled", "=", 1]] }), "my_app.api.add_roles");
+    await callSelected(host({ filters: { status: "Open" } }), "my_app.api.close");
 
     expect(bulkCallDocuments).toHaveBeenCalledWith("User", {
-      filters: [["enabled", "=", 1]],
-      method: "my_app.api.add_roles",
+      filters: { status: "Open" },
+      method: "my_app.api.close",
       args: undefined,
     });
   });
 
-  it("follows a background run and reloads when it settles", async () => {
-    bulkCallDocuments.mockResolvedValue({ data: { task_id: "T-1", job_id: "T-1" } });
-    const ok = await callSelected(host(), "my_app.api.add_roles");
-
-    expect(ok).toBe(true);
-    expect(followBulkRun).toHaveBeenCalledWith("T-1", reload);
-    expect(reload).not.toHaveBeenCalled();
-    expect(toast.info).toHaveBeenCalledTimes(1);
-  });
-
-  it("says how many records the method queued elsewhere", async () => {
-    bulkCallDocuments.mockResolvedValue({ data: { total: 2, done: [], failed: [], queued: ["a", "b"] } });
-
-    expect(await callSelected(host(), "my_app.api.add_roles")).toBe(true);
-    expect(toast.info.mock.calls[0][0]).toBe("2 records queued");
-  });
-
-  it("resolves false and names the first failure when a record fails", async () => {
-    bulkCallDocuments.mockResolvedValue({
-      data: { total: 2, done: ["a"], failed: [{ name: "b", error: "Not permitted" }] },
+  it("sends only the failed names on a retry", async () => {
+    runBulk.mockImplementation(async (options) => {
+      await options.send(["b@example.com"]);
     });
+    await callSelected(host(), "my_app.api.add_roles");
 
-    expect(await callSelected(host(), "my_app.api.add_roles")).toBe(false);
-    expect(toast.error.mock.calls[0][0]).toContain("b: Not permitted");
-    expect(reload).toHaveBeenCalledTimes(1);
+    expect(bulkCallDocuments.mock.calls[0][1].names).toEqual(["b@example.com"]);
   });
 
   it("resolves false with the server's message when the runner refuses", async () => {
-    bulkCallDocuments.mockRejectedValue(new Error("You are not allowed to run bulk actions."));
+    runBulk.mockRejectedValue(new Error("Too many records"));
 
     expect(await callSelected(host(), "my_app.api.add_roles")).toBe(false);
-    expect(toast.error).toHaveBeenCalledWith("You are not allowed to run bulk actions.");
-    expect(reload).not.toHaveBeenCalled();
+    expect(toast.error).toHaveBeenCalledWith(expect.stringContaining("Too many records"));
   });
 
   it("sends nothing while no row is selected", async () => {
     expect(await callSelected(host({ names: [] }), "my_app.api.add_roles")).toBe(false);
-    expect(bulkCallDocuments).not.toHaveBeenCalled();
+    expect(runBulk).not.toHaveBeenCalled();
     expect(toast.error).toHaveBeenCalledTimes(1);
   });
 });
