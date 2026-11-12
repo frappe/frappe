@@ -445,6 +445,10 @@
 	color: var(--gray-600);
 }
 
+.print-format-doc .child-table .cell-line-label {
+	font-weight: 600;
+}
+
 .print-format-doc .child-table .cell-line * {
 	margin: 0;
 }

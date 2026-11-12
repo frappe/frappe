@@ -189,6 +189,24 @@
 												/>
 											</div>
 											<button
+												v-if="!is_image_merge(mf)"
+												class="es-button"
+												data-size="xs"
+												:data-variant="mf.show_label ? 'subtle' : 'ghost'"
+												data-icon-button="true"
+												:aria-pressed="mf.show_label ? 'true' : 'false'"
+												:title="__('Show label')"
+												@click="
+													set_prop(
+														mf,
+														'show_label',
+														mf.show_label ? 0 : 1,
+														0
+													)
+												"
+												v-html="frappe.utils.icon('tag', 'xs')"
+											></button>
+											<button
 												class="es-button"
 												data-size="xs"
 												data-variant="ghost"

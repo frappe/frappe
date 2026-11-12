@@ -1357,6 +1357,8 @@ class TypstEmitter:
 				value = _text_value(format_field_value(row, mf))
 				if not value:
 					continue
+				if mf.get("show_label"):
+					value = f"{_(frappe.get_meta(row.get('doctype')).get_label(fieldname))}: {value}"
 				if first_text:
 					lines.append(f"#text(weight: 500, {q(value)})")
 					first_text = False
