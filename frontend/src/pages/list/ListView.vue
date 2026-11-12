@@ -39,6 +39,7 @@
 		gutter="var(--page-gutter)"
 		@column-resize="resizeColumn($event.fieldname, $event.width)"
 		@column-reset="resetColumnWidth($event.fieldname)"
+		@row-contextmenu="menu.open($event.name, $event.event)"
 	>
 		<template #cell="{ row, column, value }">
 			<FavouriteCell
@@ -132,6 +133,16 @@
 		@count="countExact"
 	/>
 
+	<RowContextMenu
+		v-if="menu.loaded.value"
+		:at="menu.at.value"
+		:rows="rows"
+		:selection="selection"
+		:rowMenu="(row) => rowMenuOptions(row, rowActions, listActs)"
+		:bulk="bulk"
+		:rowLink="rowLink"
+		@close="menu.close"
+	/>
 	<DeleteDialog
 		v-if="deleteOpened"
 		v-model="confirmingDelete"
@@ -174,6 +185,7 @@ import StatusCell from "./StatusCell.vue";
 import RowMenu from "./RowMenu.vue";
 import { rowMenuOptions } from "./rowActions";
 import { useBulkBar } from "./useBulkBar";
+import { RowContextMenu, useRowContextMenu } from "./useRowContextMenu";
 
 const props = defineProps<{ view: View; host: RendererHost }>();
 const { filters, sort } = props.view;
@@ -292,6 +304,7 @@ const bulk = useBulkBar({
 	},
 });
 const { listActs } = bulk;
+const menu = useRowContextMenu(selection);
 
 // The page swaps its controls row for the bar while this is true.
 watchEffect(() => (props.host.selecting.value = selection.value.length > 0));

@@ -41,6 +41,7 @@
 				:selected="selection.includes(row.name)"
 				:selecting="selection.length > 0"
 				@toggle="toggle(row.name)"
+				@contextmenu="menu.open(row.name, $event)"
 			/>
 		</div>
 	</div>
@@ -58,6 +59,16 @@
 		@count="countExact"
 	/>
 
+	<RowContextMenu
+		v-if="menu.loaded.value"
+		:at="menu.at.value"
+		:rows="rows"
+		:selection="selection"
+		:rowMenu="(row) => menuFor(row, bulk.locked)"
+		:bulk="bulk"
+		:rowLink="cardLink"
+		@close="menu.close"
+	/>
 	<DeleteDialog
 		v-model="confirmingDelete"
 		:count="target ? 1 : scope.count.value"
@@ -80,6 +91,7 @@ import DeleteDialog from "@/pages/list/DeleteDialog.vue";
 import type { RendererHost } from "@/pages/list/renderer";
 import { rowMenuOptions } from "@/pages/list/rowActions";
 import { useBulkBar } from "@/pages/list/useBulkBar";
+import { RowContextMenu, useRowContextMenu } from "@/pages/list/useRowContextMenu";
 import { pageGutter } from "@/shell/PageFrame.vue";
 import { failedState } from "@/shell/pageState";
 import PageState from "@/shell/PageState.vue";
@@ -143,6 +155,7 @@ const bulk = useBulkBar({
 	extraEntries: () => [deleteCardEntry()],
 });
 const { listActs } = bulk;
+const menu = useRowContextMenu(selection);
 
 // The page swaps its controls row for the bar while this is true.
 watchEffect(() => (props.host.selecting.value = selection.value.length > 0));
@@ -173,9 +186,10 @@ function deleteCardEntry() {
 	};
 }
 
-function menuFor(row: ListRow) {
+// The right-click menu has the bulk Delete for one card, so it takes the card's own Delete only when the bar is locked.
+function menuFor(row: ListRow, ownDelete = true) {
 	const options = rowMenuOptions(row, rowActions.value, listActs);
-	const del = listActs.drawn("delete_card");
+	const del = ownDelete && listActs.drawn("delete_card");
 	return del
 		? [
 				...options,

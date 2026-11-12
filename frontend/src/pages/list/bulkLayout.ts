@@ -24,6 +24,7 @@ export interface BulkMenuOption {
 export interface BulkMenuGroup {
 	group: string;
 	theme?: "red";
+	hideLabel?: boolean;
 	options: BulkMenuOption[];
 }
 
