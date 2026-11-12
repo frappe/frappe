@@ -101,6 +101,8 @@ import FavouriteStar from "@/pages/favourite/FavouriteStar.vue";
 import { recordDialogWrite } from "@/shell/recordDialog";
 import PageFrame, { pageGutter } from "@/shell/PageFrame.vue";
 import { failedState } from "@/shell/pageState";
+import { LIST_PAGE_TIER } from "@/recordPage/clientScriptTypes";
+import { useLiveClientScripts } from "@/pages/record/liveClientScripts";
 import { createdMessage } from "./createdMessage";
 import { clearDefaultView, setDefaultView } from "./defaultView";
 import { useListActs } from "./listActs";
@@ -160,6 +162,15 @@ list.lists.controls.provideBuiltins(() => [
 ]);
 onMounted(list.paint);
 onUnmounted(list.leave);
+// A list holds no unsaved edits, so a changed List Page Client Script re-runs at once.
+useLiveClientScripts({
+	doctype: ref(doctype),
+	tier: LIST_PAGE_TIER,
+	dirty: () => false,
+	ready: () => list.engine.ready.value,
+	replaying: () => list.engine.isReplaying.value,
+	refresh: () => list.engine.refresh(),
+});
 
 const listActs = useListActs(
 	{

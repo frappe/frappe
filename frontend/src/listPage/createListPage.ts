@@ -3,6 +3,8 @@ import { shallowRef } from "vue";
 import type { Router } from "vue-router";
 import { createPageEngine, type PageEngine } from "@/pageEngine";
 import { Surface } from "@/pageEngine/surface";
+import { clientScriptWait, replacedClientScripts } from "@/recordPage/clientScripts";
+import { LIST_PAGE_TIER } from "@/recordPage/clientScriptTypes";
 import type { ListPermissions } from "./listPermissions";
 import { listScriptsLoaded, listScriptsOf, loadListScripts } from "./scriptLoader";
 import {
@@ -72,6 +74,8 @@ export function createListPage(host: ListPageHost): ListPageController {
     sourcesReady: () => loadListScripts(doctype),
     permissionsReady: permissions.ready,
     loaded: () => listScriptsLoaded(doctype) && !permissions.loading(),
+    skippedBeforeSources: () => replacedClientScripts(doctype, LIST_PAGE_TIER),
+    lateLabel: () => clientScriptWait(doctype, LIST_PAGE_TIER) ?? "the list's scripts",
   });
   const page = engine.page as unknown as ListPageApi;
 

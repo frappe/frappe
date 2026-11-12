@@ -15,3 +15,6 @@ export interface ClientScriptsResponse {
 export const CLIENT_SCRIPT_CHANGED = "client_script_changed";
 export const GET_CLIENT_SCRIPTS =
   "frappe.custom.doctype.client_script.client_script.get_client_scripts";
+
+/** The `page` a list page's tier goes by: no app page's file name holds a space. */
+export const LIST_PAGE_TIER = "List Page";

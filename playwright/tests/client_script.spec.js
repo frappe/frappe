@@ -172,11 +172,11 @@ test.describe("Client Script Apply To", () => {
 		);
 	});
 
-	test("offers Record and App Page while desk v2 is on", async ({ page, admin }) => {
+	test("offers Record, App Page and List Page while desk v2 is on", async ({ page, admin }) => {
 		await admin.call("frappe.tests.ui_test_helpers.set_desk_v2", { enabled: 1 });
 		await page.goto("/desk/client-script/new");
 		await expect
 			.poll(() => apply_to_options(page))
-			.toEqual(["List", "Form", "Record", "App Page"]);
+			.toEqual(["List", "Form", "Record", "App Page", "List Page"]);
 	});
 });
