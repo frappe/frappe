@@ -214,6 +214,7 @@ class TestEmailQueue(IntegrationTestCase):
 
 		self.assertEqual(email_record.attachments_list[0]["lang"], "de")
 
+	@IntegrationTestCase.change_settings("System Settings", store_attached_pdf_document=0)
 	def test_communication_print_attachment_renders_as_sender(self):
 		from frappe.core.doctype.communication.email import make
 
