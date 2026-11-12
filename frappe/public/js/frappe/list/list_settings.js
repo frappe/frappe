@@ -416,11 +416,13 @@ export default class ListSettings {
 	 * A width equal to the default is not saved, so a later change to the default still shows.
 	 */
 	get_user_widths() {
-		const user_widths = {};
+		const user_widths = { ...this.listview.get_user_column_widths() };
 
 		for (const field of this.fields) {
 			if (field.width && field.width !== this.get_default_width(field)) {
 				user_widths[field.fieldname] = field.width;
+			} else {
+				delete user_widths[field.fieldname];
 			}
 			delete field.width;
 		}
