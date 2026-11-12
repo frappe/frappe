@@ -81,7 +81,7 @@ class FlowSession(Document):
 			_delete_server_session(self.name)
 		except DaemonError as exc:
 			frappe.throw(str(exc), title=_("Flow Server"))
-		frappe.db.delete("Flow Run", {"session": self.name})
+		_delete_runs([self.name])
 		_purge_attachment_chunks(self.name)
 
 	def validate_share(self, docshare):
@@ -129,7 +129,7 @@ class FlowSession(Document):
 			except DaemonError:
 				frappe.log_error(title="Flow Session purge stopped: the flow server refused")
 				return
-			frappe.db.delete("Flow Run", {"session": ["in", batch]})
+			_delete_runs(batch)
 			frappe.db.delete("Flow Session Message", {"parent": ["in", batch]})
 			_delete_attachment_files(batch)
 			frappe.db.delete("Flow Session Attachment", {"parent": ["in", batch]})
@@ -480,6 +480,18 @@ def _delete_server_session(name: str) -> None:
 		except DaemonError as exc:
 			if exc.status != 404:
 				raise
+
+
+def _delete_runs(sessions: list[str]) -> None:
+	runs = frappe.get_all("Flow Run", filters={"session": ["in", sessions]}, pluck="name")
+	# memories outlive the run that saved them. Found first, then cleared by name:
+	# source_run has no index, so an update by it would lock every memory
+	memories = runs and frappe.get_all("Flow Agent Memory", {"source_run": ["in", runs]}, pluck="name")
+	if memories:
+		frappe.db.set_value(
+			"Flow Agent Memory", {"name": ["in", memories]}, "source_run", None, update_modified=False
+		)
+	frappe.db.delete("Flow Run", {"session": ["in", sessions]})
 
 
 def _claim_attachment_file(session: str, file: str) -> None:

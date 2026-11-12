@@ -140,6 +140,41 @@ class TestClearOldLogs(IntegrationTestCase):
 		self.assertFalse(frappe.db.exists("File", old_file))
 		self.server_delete.assert_called_once_with(old_session)
 
+	def test_memories_from_a_deleted_chat_can_still_be_saved(self):
+		self.enterContext(patch("frappe.flow.memory.store.sync"))
+		purged, purged_run, _ = self._session_with_run(age_days=100)
+		deleted, deleted_run, _ = self._session_with_run(age_days=1)
+		memories = [
+			frappe.get_doc(
+				{"doctype": "Flow Agent Memory", "agent": self.agent, "content": "x", "source_run": run}
+			).insert()
+			for run in (purged_run, deleted_run)
+		]
+
+		FlowSession.clear_old_logs(days=30)
+		frappe.delete_doc("Flow Session", deleted, ignore_permissions=True)
+
+		self.assertFalse(frappe.db.exists("Flow Session", purged))
+		for memory in memories:
+			memory.reload()
+			memory.content = "Fiscal year starts in April."
+			memory.save()
+			self.assertIsNone(memory.source_run)
+
+	def test_memory_links_are_cleared_by_name(self):
+		# an update by the unindexed source_run would lock every memory
+		self.enterContext(patch("frappe.flow.memory.store.sync"))
+		session, run, _ = self._session_with_run(age_days=1)
+		memory = frappe.get_doc(
+			{"doctype": "Flow Agent Memory", "agent": self.agent, "content": "x", "source_run": run}
+		).insert()
+		with patch.object(frappe.db, "sql", wraps=frappe.db.sql) as sql:
+			frappe.delete_doc("Flow Session", session, ignore_permissions=True)
+		queries = [str(c.args[0]).lower() for c in sql.call_args_list]
+		[update] = [q for q in queries if q.startswith("update") and "tabflow agent memory" in q]
+		self.assertIn("where `name` in", update)
+		self.assertIsNone(frappe.db.get_value("Flow Agent Memory", memory.name, "source_run"))
+
 	def test_purge_locks_the_chats_before_their_rows(self):
 		# the order a sync takes, else the two can deadlock
 		if frappe.db.db_type == "sqlite":
