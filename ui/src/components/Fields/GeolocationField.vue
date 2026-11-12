@@ -22,7 +22,7 @@
 				<span class="truncate" :class="modelValue ? 'text-ink-gray-8' : 'text-ink-gray-4'">
 					{{
 						coordinateSummary ||
-						(field.readOnly ? "" : field.placeholder || "Set location")
+						(field.readOnly ? "—" : field.placeholder || __("Set location"))
 					}}
 				</span>
 			</button>
@@ -32,8 +32,8 @@
 			>
 				<button
 					type="button"
-					aria-label="Clear"
-					title="Clear"
+					:aria-label="__('Clear')"
+					:title="__('Clear')"
 					data-slot="clear"
 					class="grid size-4 place-items-center rounded-1 text-ink-gray-5 hover:text-ink-gray-7 focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
 					@click.stop="clearLocation"
@@ -154,6 +154,7 @@ import drawSpriteUrl from "leaflet-draw/dist/images/spritesheet.png?url";
 import drawSprite2xUrl from "leaflet-draw/dist/images/spritesheet-2x.png?url";
 import drawSpriteSvgUrl from "leaflet-draw/dist/images/spritesheet.svg?url";
 import FieldDescription from "./FieldDescription.vue";
+import { translate as __ } from "../../utils/translate";
 import { geolocationSummary } from "./geolocationSummary";
 
 const props = defineProps<FieldComponentProps>();

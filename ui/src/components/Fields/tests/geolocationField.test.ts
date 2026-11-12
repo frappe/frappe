@@ -72,8 +72,8 @@ describe("a Geolocation panel row", () => {
     await vi.waitFor(() => expect(document.body.querySelector("[role=dialog]")).not.toBeNull());
   });
 
-  it("keeps a read-only row without a ×, and reads nothing when empty", () => {
-    expect(text(mount(null, { readOnly: true }).root)).toBe("");
+  it("keeps a read-only row without a ×, and reads a dash when empty", () => {
+    expect(text(mount(null, { readOnly: true }).root)).toBe("—");
     expect(mount(ONE_POINT, { readOnly: true }).root.querySelector("[data-slot=clear]")).toBeNull();
   });
 

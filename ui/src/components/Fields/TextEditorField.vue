@@ -13,7 +13,7 @@
 			:modelValue="modelValue"
 			:field="field"
 			:labelId="field.label ? labelId : undefined"
-			:describedBy="panel ? errorId : describedBy"
+			:describedBy="panel ? (hasError ? errorId : undefined) : describedBy"
 			:invalid="hasError"
 			:panel="panel"
 			@update:modelValue="emit('update:modelValue', $event)"
