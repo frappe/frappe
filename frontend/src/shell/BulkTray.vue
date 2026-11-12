@@ -2,7 +2,7 @@
 <template>
 	<div
 		v-if="runs.length"
-		class="fixed bottom-16 end-4 z-20 flex w-80 flex-col overflow-hidden rounded-5 bg-surface-base shadow-2xl"
+		class="fixed bottom-24 end-4 z-20 flex w-80 flex-col overflow-hidden rounded-5 bg-surface-base shadow-2xl"
 	>
 		<div
 			class="flex h-10 items-center justify-between border-b border-outline-gray-1 ps-3 pe-1"
