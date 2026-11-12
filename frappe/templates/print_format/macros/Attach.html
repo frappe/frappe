@@ -3,7 +3,7 @@
 {%- block value -%}
 {%- if legacy -%}
 <div class="value">
-    <a href="{{ value }}">{{ value.rsplit('/', 1)[1] }}</a>
+    <a href="{{ value }}">{{ value.rsplit('/', 1)[-1] }}</a>
 </div>
 {%- else -%}
 <div class="value">
