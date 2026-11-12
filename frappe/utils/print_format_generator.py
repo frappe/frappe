@@ -13,7 +13,7 @@ from frappe import _
 from frappe.printing.doctype.print_format.classic_converter import uses_legacy_weasyprint
 from frappe.printing.fieldtypes import CONTENT_FIELDTYPES
 from frappe.printing.layout import iter_fields, iter_layout_columns, iter_zones
-from frappe.utils.data import cint
+from frappe.utils.data import cint, cstr
 from frappe.utils.jinja_globals import is_rtl
 
 
@@ -52,7 +52,7 @@ def download_pdf(
 		from frappe.utils.print_format import download_pdf as download_jinja_pdf
 
 		return download_jinja_pdf(
-			doctype, name, format=print_format.name if print_format else None, letterhead=letterhead
+			doctype, cstr(name), format=print_format.name if print_format else None, letterhead=letterhead
 		)
 	if uses_legacy_weasyprint(print_format):
 		from frappe.utils.weasyprint import legacy_generator
@@ -62,7 +62,7 @@ def download_pdf(
 		generator = PrintFormatGenerator(print_format, doc, letterhead, settings=frappe.parse_json(settings))
 		pdf = generator.render_pdf()
 
-	frappe.local.response.filename = "{name}.pdf".format(name=name.replace(" ", "-").replace("/", "-"))
+	frappe.local.response.filename = "{name}.pdf".format(name=cstr(name).replace(" ", "-").replace("/", "-"))
 	frappe.local.response.filecontent = pdf
 	frappe.local.response.type = "pdf"
 
