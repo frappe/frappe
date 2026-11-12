@@ -3,9 +3,11 @@
   because a save replaces the whole `{rail, sidebars}`, and the open sidebar is a fact about the address.
 -->
 <template>
+	<!-- Clipped: an sr-only span in a pane can have the shell as its containing block; unclipped, it makes
+	     the page taller than the window and the page itself scrolls. -->
 	<DesktopShell
 		:scroll="false"
-		class="relative h-screen w-screen bg-surface-base text-ink-gray-9"
+		class="relative h-screen w-screen overflow-clip bg-surface-base text-ink-gray-9"
 		:class="{ 'desk-shell': boot.app }"
 	>
 		<template v-if="boot.app" #rail>

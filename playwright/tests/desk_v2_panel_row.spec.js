@@ -1457,6 +1457,37 @@ test.describe("Desk v2 side panel picker rows", () => {
 		}
 	}
 
+	test("a wheel past the panel's end and a list opened on its last row leave the page in place", async ({
+		page,
+	}) => {
+		await page.setViewportSize({ width: 1440, height: 400 });
+		await cell(page, "p_long").scrollIntoViewIfNeeded();
+		await cell(page, "p_long").hover();
+		for (let i = 0; i < 6; i++) await page.mouse.wheel(0, 600);
+		await cell(page, "p_long").click();
+		await expect(page.locator(POPOVER)).toBeVisible();
+		await page.waitForTimeout(300);
+		const drawn = await page.evaluate(() => {
+			const rect = (el) => el.getBoundingClientRect();
+			return {
+				scrolled: document.scrollingElement.scrollTop,
+				tall: document.scrollingElement.scrollHeight - innerHeight,
+				app: rect(document.getElementById("app")).top,
+				row: rect(
+					document
+						.querySelector('.field-box [data-fieldname="p_long"]')
+						.closest(".field-box")
+				),
+				list: rect(document.querySelector('[data-slot="content"]')),
+			};
+		});
+		expect(drawn.scrolled).toBe(0);
+		expect(drawn.tall).toBeLessThanOrEqual(0);
+		expect(drawn.app).toBe(0);
+		expect(drawn.list.top).toBeGreaterThanOrEqual(drawn.row.bottom);
+		expect(drawn.list.bottom).toBeLessThanOrEqual(400);
+	});
+
 	test("a Dynamic Link with no doctype stays closed and does not throw", async ({ page }) => {
 		const errors = [];
 		page.on("pageerror", (error) => errors.push(error.message));
