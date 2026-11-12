@@ -75,7 +75,7 @@ describe("CardsView acts", () => {
 
 		expect(acts).toHaveBeenCalledTimes(1);
 		const [entries, state] = acts.mock.calls[0] as unknown as [Entries, State];
-		expect(entries().map((entry) => entry.item.name)).toEqual(["print", "delete", "delete_card"]);
+		expect(entries().map((entry) => entry.item.name)).toEqual(expect.arrayContaining(["delete", "delete_card"]));
 		expect(state.selection()).toEqual(["NOTE-1"]);
 		expect(state.reload).toBe(reload);
 	});

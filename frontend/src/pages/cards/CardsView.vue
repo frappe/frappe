@@ -78,6 +78,14 @@
 		:approx="print.approx.value"
 		:scope="print.scope.value"
 	/>
+	<BulkCollabDialog
+		v-if="bulk.collab.request.value"
+		:request="bulk.collab.request.value"
+		:doctype="view.doctype"
+		:reload="reload"
+		@close="bulk.collab.request.value = null"
+	/>
+
 	<DeleteDialog
 		v-model="confirmingDelete"
 		:count="target ? 1 : scope.count.value"
@@ -99,6 +107,7 @@ import BulkBar from "@/pages/list/BulkBar.vue";
 import DeleteDialog from "@/pages/list/DeleteDialog.vue";
 import type { RendererHost } from "@/pages/list/renderer";
 import { rowMenuOptions } from "@/pages/list/rowActions";
+import { lazyBulkCollabDialog } from "@/pages/list/lazyBulkCollabDialog";
 import { useBulkBar } from "@/pages/list/useBulkBar";
 import { RowContextMenu, useRowContextMenu } from "@/pages/list/useRowContextMenu";
 import { PrintDialog, useBulkPrint } from "@/pages/list/bulkPrint";
@@ -168,6 +177,8 @@ const bulk = useBulkBar({
 });
 const { listActs } = bulk;
 const menu = useRowContextMenu(selection);
+
+const BulkCollabDialog = lazyBulkCollabDialog(() => (bulk.collab.request.value = null));
 
 // The page swaps its controls row for the bar while this is true.
 watchEffect(() => (props.host.selecting.value = selection.value.length > 0));

@@ -4,6 +4,7 @@ import type { ActEntry } from "@/acts/dispatcher";
 import type { Boot } from "@/boot";
 import { __ } from "@/i18n";
 import type { ListPageAction, ListPageApi, ListRow, ListRowAction } from "@/listPage/types";
+import { useBulkCollaboration, type BulkCollaboration } from "./bulkCollaboration";
 import { bulkKeyEntries } from "./bulkKeys";
 import type { ListMeta } from "@/list/defaults";
 import { useBulkStatus, type BulkStatus } from "./bulkStatus";
@@ -43,6 +44,8 @@ export interface BulkBar {
   /** Whether the bar's More menu is open; the `.` key opens it. */
   menuOpen: Ref<boolean>;
   status: BulkStatus;
+  /** The assign, tag, follow, share and seen actions: their dialog's request. */
+  collab: BulkCollaboration;
   layout: ComputedRef<BulkLayout>;
   /** What a run takes: the selected rows, or all the records the filters show. */
   scope: BulkScope;
@@ -67,8 +70,16 @@ export function useBulkBar(options: BulkBarOptions): BulkBar {
     reload: options.reload,
   });
 
+  const collab = useBulkCollaboration(options.doctype, () => ({
+    selection: options.scope.selected(),
+    count: options.scope.count.value,
+    all: options.scope.all.value,
+    approx: options.scope.approx.value,
+  }));
+
   bulkList.provideBuiltins(() => [
     ...status.items.value,
+    ...collab.items(),
     {
       name: "print",
       label: __("Print"),
@@ -169,8 +180,8 @@ export function useBulkBar(options: BulkBarOptions): BulkBar {
       : __("{0} {1} selected", [label, scope.count.value]);
   }
 
-  // Delete and the status actions run over all matching and show in the palette for it; Edit, Export and Print read the scope in their dialogs only.
-  const onScope = (run: unknown) => run === askDelete || status.owns(run as ListPageAction["run"]);
+  // Delete, the status actions and the collaboration acts run over all matching and show in the palette for it; Edit, Export and Print read the scope in their dialogs only.
+  const onScope = (run: unknown) => run === askDelete || status.owns(run as ListPageAction["run"]) || collab.takesScope(run);
   // Select all disables what takes row names: it would run on the loaded rows alone. Print has its own cap, checked when it opens.
   const readsScope = (run: unknown) => onScope(run) || run === askEdit || run === askExport || run === askPrint;
   // The exporter takes no `or_filters`: it would export more than the filters show.
@@ -201,5 +212,5 @@ export function useBulkBar(options: BulkBarOptions): BulkBar {
   );
 
   const layout = computed(() => layoutBulk(entries.value, options.doctype));
-  return { listActs, menuOpen, status, layout, scope: options.scope, cap, locked };
+  return { listActs, menuOpen, status, collab, layout, scope: options.scope, cap, locked };
 }

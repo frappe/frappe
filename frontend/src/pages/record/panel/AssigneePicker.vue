@@ -46,7 +46,7 @@ import { useUserSearch, type SearchOption } from "./remoteSearch";
 
 const props = defineProps<{ assignees: Person[] }>();
 
-const emit = defineEmits<{ assign: [string]; unassign: [string] }>();
+const emit = defineEmits<{ assign: [string, Person?]; unassign: [string] }>();
 
 const assigned = computed(() => props.assignees.map(({ id }) => id));
 
@@ -76,10 +76,13 @@ const summary = computed(() =>
 		: "Assign to…"
 );
 
-// The selection is server state: each pick fires one write and the re-read repaints it.
+// A pick is reported, not kept: the caller writes it, or keeps its own list from the person given.
 function reassign(picked: (string | number)[]) {
 	const { added, dropped } = listDiff(picked.map(String), assigned.value);
-	added.forEach((user) => emit("assign", user));
+	added.forEach((user) => {
+		const found = options.value.find((option) => option.value === user);
+		emit("assign", user, { id: user, name: found?.label ?? user, image: found?.image });
+	});
 	dropped.forEach((user) => emit("unassign", user));
 }
 </script>

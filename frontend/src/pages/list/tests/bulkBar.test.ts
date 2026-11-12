@@ -225,6 +225,7 @@ describe("useBulkBar", () => {
 		const { layout } = result;
 		expect(labels(layout.value.menu)).toEqual([
 			["ToDo", ["restore"]],
+			["Assign, tag and share", ["Clear assignment","Apply assignment rule","Remove tags","Follow","Unfollow","Share","Mark as seen","Mark as unseen"]],
 			["Print and export", ["Print", "Copy to Clipboard", "Export"]],
 			["Submit, cancel and delete", ["Delete"]],
 		]);
@@ -325,6 +326,31 @@ describe("useBulkBar", () => {
 		const print = over.result.layout.value.menu.flatMap((group) => group.options).find(({ label }) => label === "Print");
 		expect(print?.disabled).toBe(false);
 		over.app.unmount();
+	});
+
+	it("keeps the collaboration actions on while Select all is on, and sends the filters", async () => {
+		const { result, lists, selection, scope, supplied, app } = bar(open);
+		lists.bulkActions.add(script("restore"));
+		await nextTick();
+		selection.value = ["R0", "R1"];
+		scope.selectAll();
+		const { buttons, menu } = result.layout.value;
+		const options = [...buttons, ...menu.flatMap(({ options }) => options)];
+		const collaborate = options.filter(({ label }) => label !== "restore");
+		expect(collaborate.filter(({ disabled }) => disabled)).toEqual([]);
+		expect(collaborate.map(({ label }) => label)).toContain("Assign to…");
+		expect(options.find(({ label }) => label === "restore")?.disabled).toBe(true);
+
+		const share = supplied[0]().find(({ item }) => item.name === "share")!.item as ListPageAction;
+		share.run!({} as never);
+		expect(result.collab.request.value).toEqual({
+			kind: "share",
+			selection: { filters: expect.anything() },
+			count: 10,
+			all: true,
+			approx: false,
+		});
+		app.unmount();
 	});
 
 	it("keeps Edit and Export on while Select all is on, and Copy to Clipboard off", async () => {
