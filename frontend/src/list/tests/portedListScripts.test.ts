@@ -7,6 +7,10 @@ import autoRepeat from "../../../../frappe/automation/doctype/auto_repeat/fronte
 import triggerQueue from "../../../../frappe/automation/doctype/automation_trigger_queue/frontend/list.js";
 import customSidebar from "../../../../frappe/desk/doctype/custom_sidebar/frontend/list.js";
 import todo from "../../../../frappe/desk/doctype/todo/frontend/list.js";
+import communication from "../../../../frappe/core/doctype/communication/frontend/list.js";
+import dataImport from "../../../../frappe/core/doctype/data_import/frontend/list.js";
+import deletedDocument from "../../../../frappe/core/doctype/deleted_document/frontend/list.js";
+import emailQueue from "../../../../frappe/email/doctype/email_queue/frontend/list.js";
 import webFormRequest from "../../../../frappe/website/doctype/web_form_request/frontend/list.js";
 
 afterEach(() => resetSession());
@@ -23,10 +27,20 @@ function systemTime(offsetHours: number) {
 function fakePage() {
 	const columns: Record<string, any> = {};
 	const rowActions: any[] = [];
+	const bulk: any[] = [];
+	const header: any[] = [];
 	return {
 		columns: { update: (field: string, cell: any) => (columns[field] = cell) },
 		rowActions: { add: (item: any) => rowActions.push(item) },
+		bulkActions: { add: (item: any) => bulk.push(item) },
+		header: { add: (item: any) => header.push(item) },
+		roles: ["System Manager"],
 		open: vi.fn(),
+		call: vi.fn(),
+		callSelected: vi.fn(),
+		toast: { success: vi.fn() },
+		bulk,
+		headerItems: header,
 		cells: columns,
 		actions: rowActions,
 	};
@@ -110,5 +124,44 @@ describe("ported list scripts", () => {
 		expect(action.when(page, { reference_type: "Note" })).toBe(false);
 		action.run(page, { reference_type: "Note", reference_name: "N-1" });
 		expect(page.open).toHaveBeenCalledWith("Note", "N-1");
+	});
+
+	it("Data Import and Email Queue colour a status and filter by it", () => {
+		const imported = cellOf(dataImport, "status").badge;
+		expect(imported({ status: "Partial Success" })).toEqual({
+			label: "Partial Success",
+			theme: "orange",
+			filters: [["status", "=", "Partial Success"]],
+		});
+		expect(imported({ status: "" })).toBeFalsy();
+		const queued = cellOf(emailQueue, "status").badge;
+		expect(queued({ status: "Expired" }).theme).toBe("orange");
+		expect(queued({ status: "Error" }).theme).toBe("red");
+	});
+
+	it("bulk actions run a record function on each selected row", () => {
+		const page = fakePage();
+		communication.onRefresh(page);
+		deletedDocument.onRefresh(page);
+		emailQueue.onRefresh(page);
+		for (const action of page.bulk) action.run(page);
+		expect(page.callSelected.mock.calls).toEqual([
+			["frappe.email.inbox.mark_read_unread", { action: "Read" }],
+			["frappe.email.inbox.mark_read_unread", { action: "Unread" }],
+			["frappe.core.doctype.deleted_document.deleted_document.restore_record"],
+			["frappe.email.doctype.email_queue.email_queue.retry_record"],
+		]);
+	});
+
+	it("Email Queue offers Suspend or Resume from the session's default, then flips it", async () => {
+		setSession({ user: {}, roles: [], lang: "en", timezone: "UTC", defaults: { suspend_email_queue: "1" } } as never);
+		const page = fakePage();
+		emailQueue.onRefresh(page);
+		const [suspend, resume] = page.headerItems;
+		expect([suspend.when(page), resume.when(page)]).toEqual([false, true]);
+		await resume.run(page);
+		expect(page.call).toHaveBeenCalledWith(expect.stringMatching(/toggle_sending$/), { enable: 1 });
+		expect([suspend.when(page), resume.when(page)]).toEqual([true, false]);
+		expect(suspend.when({ roles: ["Desk User"] })).toBe(false);
 	});
 });

@@ -4,7 +4,12 @@
 from unittest.mock import patch
 
 import frappe
-from frappe.email.inbox import create_email_flag_queue, get_outgoing_senders, get_own_email_accounts
+from frappe.email.inbox import (
+	create_email_flag_queue,
+	get_outgoing_senders,
+	get_own_email_accounts,
+	mark_read_unread,
+)
 from frappe.tests import IntegrationTestCase
 
 
@@ -22,6 +27,21 @@ class TestInbox(IntegrationTestCase):
 		# the communication has no uid so it is skipped, but the parse_json loop is exercised
 		create_email_flag_queue([comm.name], "Read")
 		comm.delete()
+
+	def test_mark_read_unread_queues_a_flag_for_one_communication(self):
+		comm = frappe.get_doc(
+			doctype="Communication",
+			communication_type="Communication",
+			content="test mark read",
+			subject="test mark read",
+			sent_or_received="Received",
+			uid=7,
+		).insert(ignore_permissions=True)
+
+		mark_read_unread("Communication", comm.name, "Read")
+
+		self.assertEqual(frappe.db.get_value("Communication", comm.name, "seen"), 1)
+		self.assertTrue(frappe.db.exists("Email Flag Queue", {"communication": comm.name, "action": "Read"}))
 
 
 class TestOutgoingSenders(IntegrationTestCase):

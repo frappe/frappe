@@ -7,6 +7,7 @@ vi.mock("frappe-ui", () => ({
 }));
 vi.mock("@framework/ui/api", () => ({ runMethod: vi.fn() }));
 
+import { runMethod } from "@framework/ui/api";
 import { toast } from "frappe-ui";
 import { createPageEngine } from "../createPageEngine";
 import { FIRST_PAINT_LIMIT_MS } from "../paintGate";
@@ -63,6 +64,13 @@ afterEach(() => {
 });
 
 describe("a page made with the builder", () => {
+  it("resolves page.call to null for a method that returns nothing", async () => {
+    vi.mocked(runMethod).mockResolvedValueOnce({ data: null } as never);
+    const { page } = makeEngine();
+    await expect(page.call("app.api.flush", { all: 1 })).resolves.toBeNull();
+    expect(runMethod).toHaveBeenCalledWith("app.api.flush", { all: 1 }, { nullable: true });
+  });
+
   it("shows frappe-ui's toasts through page.toast, info included", () => {
     const { page } = makeEngine();
     page.toast.info("Invitation sent");
