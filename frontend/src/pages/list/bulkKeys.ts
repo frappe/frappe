@@ -51,6 +51,8 @@ export function bulkKeyEntries(options: BulkKeysOptions): ActEntry[] {
 				label: __("Open Bulk Actions"),
 				icon: "lucide-ellipsis",
 				key: "Period",
+				// `when`, not `hidden`: the menu is the bar's layout, which reads these entries.
+				when: options.hasMenu,
 				run: () => (menuOpen.value = options.hasMenu()),
 			},
 			hidden: !selection.value.length || options.locked,

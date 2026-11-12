@@ -176,7 +176,7 @@ describe("useBulkBar", () => {
 		const { layout } = result;
 		expect(labels(layout.value.menu)).toEqual([
 			["ToDo", ["restore"]],
-			["Submit, cancel and delete", ["delete"]],
+			["Submit, cancel and delete", ["Delete"]],
 		]);
 
 		layout.value.menu[0].options[0].onClick();
