@@ -1797,3 +1797,173 @@ test.describe("Desk v2 side panel rows: Text Editor, Markdown Editor and Geoloca
 		await expect(cell(page, "f_json").locator(".lucide-arrow-up-right")).toBeVisible();
 	});
 });
+
+const WALK_DOCTYPE = "Panel Tab Walk 46997";
+const WALK_SLUG = "panel-tab-walk-46997";
+const WALK_FIELDS = [
+	{
+		fieldname: "tw_a",
+		fieldtype: "Data",
+		label: "First",
+		description: "Says what First holds.",
+	},
+	{ fieldname: "tw_ro", fieldtype: "Data", label: "Locked", read_only: 1 },
+	{ fieldname: "tw_pick", fieldtype: "Select", label: "Pick", options: "\nOne\nTwo\nThree" },
+	{ fieldname: "tw_link", fieldtype: "Link", label: "Owner", options: "User" },
+	{ fieldname: "tw_b", fieldtype: "Data", label: "Last" },
+	{ fieldname: "tw_owner", fieldtype: "Link", label: "Assigned", options: "User" },
+];
+
+test.describe("Desk v2 side panel Tab walk", () => {
+	let name;
+
+	test.beforeAll(async ({ admin }) => {
+		await admin.call("frappe.tests.ui_test_helpers.set_desk_v2", { enabled: 1 });
+		await admin.insert_doc(
+			"DocType",
+			{
+				name: WALK_DOCTYPE,
+				module: "Core",
+				custom: 1,
+				autoname: "hash",
+				fields: WALK_FIELDS,
+				permissions: [{ role: "System Manager", read: 1, write: 1, create: 1 }],
+			},
+			true
+		);
+		await admin.insert_doc("Form Layout", {
+			dt: WALK_DOCTYPE,
+			type: "Side Panel",
+			layout: JSON.stringify([
+				{
+					name: "tab_1",
+					sections: [
+						{
+							name: "walk",
+							label: "Walk",
+							columns: [
+								{ name: "column_1", fields: WALK_FIELDS.map((f) => f.fieldname) },
+							],
+						},
+					],
+				},
+			]),
+		});
+		name = (
+			await admin.insert_doc(WALK_DOCTYPE, { tw_ro: "fixed", tw_owner: "Administrator" })
+		).name;
+	});
+
+	test.afterAll(async ({ admin }) => {
+		const layouts = await admin.get_list("Form Layout", ["name"], [["dt", "=", WALK_DOCTYPE]]);
+		for (const { name: layout } of layouts.data ?? []) {
+			await admin.remove_doc("Form Layout", layout, true);
+		}
+		await admin.remove_doc(WALK_DOCTYPE, name, true);
+		await admin.remove_doc("DocType", WALK_DOCTYPE, true);
+		await admin.call("frappe.tests.ui_test_helpers.set_desk_v2", { enabled: 0 });
+	});
+
+	const stop = (page) =>
+		page.evaluate(() => document.activeElement.closest("[data-fieldname]")?.dataset.fieldname);
+	const field = (page, fieldname) => page.locator(`.field-box [data-fieldname="${fieldname}"]`);
+
+	test.beforeEach(async ({ page }) => {
+		await page.goto(`/apps/desk/${WALK_SLUG}/${name}`);
+		await expect(field(page, "tw_a")).toBeVisible();
+		await field(page, "tw_a").focus();
+	});
+
+	test("Tab and Shift+Tab walk the rows in page order and skip a read-only row", async ({
+		page,
+	}) => {
+		expect(await stop(page)).toBe("tw_a");
+		for (const next of ["tw_pick", "tw_link", "tw_b"]) {
+			await page.keyboard.press("Tab");
+			expect(await stop(page)).toBe(next);
+		}
+		for (const back of ["tw_link", "tw_pick", "tw_a"]) {
+			await page.keyboard.press("Shift+Tab");
+			expect(await stop(page)).toBe(back);
+		}
+	});
+
+	test("a Tab opens no popover, Enter or Alt+ArrowDown opens one, and Tab saves the value", async ({
+		page,
+	}) => {
+		await page.keyboard.type("kept");
+		await page.keyboard.press("Tab");
+		await expect(page.locator('[role="listbox"]')).toHaveCount(0);
+		await page.keyboard.press("Alt+ArrowDown");
+		await expect(page.locator('[role="listbox"]')).toHaveCount(1);
+		await page.keyboard.press("Tab");
+		expect(await stop(page)).toBe("tw_link");
+		await expect(page.locator('[role="listbox"]')).toHaveCount(0);
+		await expect(field(page, "tw_a")).toContainText("kept");
+	});
+
+	test("Enter opens a Select's list, and Enter on an option leaves focus on the closed row", async ({
+		page,
+	}) => {
+		await field(page, "tw_pick").focus();
+		await page.keyboard.press("Escape");
+		await page.keyboard.press("Enter");
+		await expect(page.locator('[role="listbox"]')).toHaveCount(1);
+		await page.locator('[role="option"]', { hasText: "Two" }).hover();
+		await page.keyboard.press("Enter");
+		await expect(field(page, "tw_pick")).toContainText("Two");
+		await expect(page.locator('[role="listbox"]')).toHaveCount(0);
+		expect(await stop(page)).toBe("tw_pick");
+		await expect(field(page, "tw_pick")).toBeFocused();
+	});
+
+	test("Tab with a Link's list open closes it and walks to the next row", async ({ page }) => {
+		await field(page, "tw_link").focus();
+		await page.keyboard.press("Alt+ArrowDown");
+		await expect(page.locator('[role="listbox"]')).toHaveCount(1);
+		await page.keyboard.press("Tab");
+		expect(await stop(page)).toBe("tw_b");
+		await expect(page.locator('[role="listbox"]')).toHaveCount(0);
+	});
+
+	test("Tab with the list open on a Link that has a value skips its × and ↗", async ({
+		page,
+	}) => {
+		await field(page, "tw_owner").focus();
+		await page.keyboard.press("Alt+ArrowDown");
+		await expect(page.locator('[role="listbox"]')).toHaveCount(1);
+		await page.keyboard.press("Tab");
+		expect(await stop(page)).not.toBe("tw_owner");
+		await expect(page.locator('[role="listbox"]')).toHaveCount(0);
+	});
+
+	test("Esc leaves focus on the closed row, and typing there reopens it and keeps the first key", async ({
+		page,
+	}) => {
+		await page.keyboard.press("Escape");
+		await expect(page.locator(".field-box input")).toHaveCount(0);
+		expect(await stop(page)).toBe("tw_a");
+		await page.keyboard.type("ab");
+		await expect(page.locator(".field-box input")).toHaveValue("ab");
+	});
+
+	test("the first key typed straight after a Tab is kept", async ({ page }) => {
+		await page.keyboard.press("Tab");
+		await page.keyboard.press("Tab");
+		await page.keyboard.type("zq");
+		await expect(page.locator(".field-box input")).toHaveValue("zq");
+	});
+
+	test("a row with keyboard focus shows its label tip and is described by the description", async ({
+		page,
+	}) => {
+		await expect(page.locator('[data-slot="bubble"]')).toContainText("Says what First holds.");
+		const described = await page.evaluate(() => {
+			const id = document.activeElement.getAttribute("aria-describedby");
+			return document.getElementById(id)?.textContent;
+		});
+		expect(described).toBe("Says what First holds.");
+		await page.keyboard.press("Tab");
+		await expect(page.locator('[data-slot="bubble"]')).toHaveCount(0);
+	});
+});

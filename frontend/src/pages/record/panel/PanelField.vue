@@ -1,9 +1,21 @@
 <!-- One panel row: the label in a fixed column, the value in the flexible one. -->
 <template>
 	<div v-if="!hidden" class="grid grid-cols-[130px_1fr] items-start gap-2">
-		<PanelLabel :field="field" />
+		<PanelLabel :field="field" :tip="tip" />
+		<FieldDescription
+			v-if="field.description"
+			:id="descriptionId"
+			:html="field.description"
+			class="sr-only"
+		/>
 
-		<div class="min-w-0">
+		<div
+			ref="wrapper"
+			class="min-w-0"
+			@pointerdown.capture="press"
+			@focusin="onRowFocusin"
+			@focusout="onRowFocusout"
+		>
 			<component
 				:is="bare ? 'div' : FieldBox"
 				class="group"
@@ -15,7 +27,9 @@
 					class="field min-w-0"
 					:style="restHeight ? { '--panel-rest-h': `${restHeight}px` } : undefined"
 					:data-fieldname="field.fieldname"
+					@focusin="describe"
 					@focusout="onFocusout"
+					@keydown.capture="onCellKey"
 					@keydown.escape="cancel"
 				>
 					<!-- `ui.props` binds first so it cannot clobber `field` or `modelValue`; Vue merges
@@ -40,11 +54,13 @@
 						chips && interactive && pickable ? 'ps-2 pe-[30px]' : 'px-2',
 					]"
 					:data-fieldname="field.fieldname"
+					ref="rest"
 					:role="imageUrl ? 'button' : undefined"
-					:tabindex="imageUrl ? 0 : undefined"
+					:tabindex="focusable ? 0 : undefined"
+					:aria-describedby="field.description ? descriptionId : undefined"
 					@click="open"
-					@keydown.enter.self="open"
-					@keydown.space.self.prevent="open"
+					@focus="onRestFocus"
+					@keydown.self="onRestKey"
 				>
 					<span v-if="chips" class="flex min-w-0 flex-1 flex-wrap gap-1 py-1">
 						<SelectedChip
@@ -163,7 +179,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, nextTick, ref, useId, watch } from "vue";
+import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, useId, watch } from "vue";
 import {
 	CommitKey,
 	ControlPageKey,
@@ -180,6 +196,7 @@ import {
 	DataOpenLink,
 	FieldActionButtons,
 	FieldBox,
+	FieldDescription,
 	FieldActionsKey,
 	SelectedChip,
 	LinkMark,
@@ -239,6 +256,7 @@ const message = computed(() => {
 		.join(" ");
 });
 const messageId = useId();
+const descriptionId = useId();
 
 function edit(fieldname: string, value: any) {
 	if (cancelled) return;
@@ -270,6 +288,7 @@ const restHeight = ref(0);
 // Every keystroke already wrote the draft, so a cancel has to put the opening value back.
 function cancel() {
 	if (!editing.value) return;
+	keepFocus = true;
 	cancelled = true;
 	commit.discard(props.field.fieldname);
 	update(props.field.fieldname, opening);
@@ -431,7 +450,7 @@ function linkedDoctype(): string {
 }
 
 // A pointer open also opens a picker's popover; any other open leaves it closed.
-function open(event?: MouseEvent) {
+function open(event?: Event, picker = event instanceof MouseEvent) {
 	if (props.field.fieldtype === "Image") {
 		previewing.value = !!imageUrl.value;
 		return;
@@ -456,8 +475,101 @@ function open(event?: MouseEvent) {
 		!shown.includes("\r")
 	)
 		clicked = textOffsetAt(clamped.value, event.clientX, event.clientY);
-	pointerOpen.value = event instanceof MouseEvent;
+	pointerOpen.value = picker;
 	editing.value = true;
+}
+
+// Each editable row is one tab stop: a focus that is not a press opens its editor with no popover.
+// Enter and Alt+↓ open it, and so does typing, which keeps the key that opened it.
+const rest = ref<HTMLElement | null>(null);
+const wrapper = ref<HTMLElement | null>(null);
+const tip = ref(false);
+const focusable = computed(() => interactive.value && pickable.value);
+// A press focuses the row before its click opens the editor; the focus must not open it too.
+let pressed = false;
+// Enter or Esc closed the editor: the closed row keeps focus and stays shut.
+let keepFocus = false;
+let restoring = false;
+// Keys typed before the editor has focus, typed into it once it has.
+let typed = "";
+
+function onRestFocus() {
+	if (pressed || restoring || summary.value || imageUrl.value) return;
+	open();
+}
+function onRestKey(event: KeyboardEvent) {
+	const opensOnly = summary.value || !!imageUrl.value;
+	if ((event.altKey && event.key === "ArrowDown") || event.key === "Enter") {
+		event.preventDefault();
+		return open(undefined, true);
+	}
+	if (opensOnly && event.key === " ") {
+		event.preventDefault();
+		return open();
+	}
+	if (opensOnly || !focusable.value || !isTyping(event)) return;
+	event.preventDefault();
+	typed += event.key;
+	open();
+}
+function isTyping(event: KeyboardEvent) {
+	return event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey;
+}
+// A Select's list is portalled out of the cell, so its Enter is seen on the document.
+function rememberEnter(event: KeyboardEvent) {
+	keepFocus = event.key === "Enter" && !(event.target instanceof HTMLTextAreaElement);
+}
+function onCellKey(event: KeyboardEvent) {
+	if (
+		event.key === "Tab" &&
+		!event.shiftKey &&
+		cell.value?.querySelector('[aria-expanded="true"]')
+	)
+		leaveRow();
+}
+// A Link's open list would stay open while Tab walks to the row's × and ↗: start Tab from the row's last control.
+function leaveRow() {
+	const controls = cell.value?.querySelectorAll<HTMLElement>(
+		"input, textarea, select, button, a[href]"
+	);
+	controls?.[controls.length - 1]?.focus();
+}
+// Q21: a screen reader reads the label's description with the field that takes focus.
+function describe(event: FocusEvent) {
+	const target = event.target as HTMLElement;
+	if (!props.field.description || cell.value?.contains(event.relatedTarget as Node)) return;
+	const ids = new Set(target.getAttribute("aria-describedby")?.split(" "));
+	target.setAttribute("aria-describedby", [...ids, descriptionId].join(" ").trim());
+}
+// The label's tip shows while a key, not a press, holds focus in the row.
+function onRowFocusin() {
+	if (!pressed) tip.value = true;
+}
+function onRowFocusout() {
+	setTimeout(() => {
+		if (!wrapper.value?.contains(document.activeElement)) tip.value = false;
+	});
+}
+function press() {
+	pressed = true;
+}
+function releasePress() {
+	setTimeout(() => (pressed = false));
+}
+onMounted(() => {
+	document.addEventListener("pointerup", releasePress, true);
+	document.addEventListener("pointercancel", releasePress, true);
+});
+onBeforeUnmount(() => {
+	document.removeEventListener("pointerup", releasePress, true);
+	document.removeEventListener("pointercancel", releasePress, true);
+});
+async function keepFocusOnRow() {
+	keepFocus = false;
+	await nextTick();
+	restoring = true;
+	rest.value?.focus();
+	restoring = false;
 }
 
 // A picker's popover is portalled out of the cell, so focus landing in it is not the user
@@ -473,6 +585,7 @@ function onFocusout(event: FocusEvent) {
 // A press on a blank part of the page moves focus nowhere, so `focusout` cannot tell it
 // from a press in a popover.
 function onPressOutside(event: PointerEvent) {
+	keepFocus = false;
 	const target = event.target as HTMLElement | null;
 	if (target && !isInside(target)) editing.value = false;
 }
@@ -481,13 +594,39 @@ function isInside(node: HTMLElement) {
 	return !!cell.value?.contains(node) || !!node.closest(POPOVER);
 }
 
+// reka's Select keeps Tab inside its portalled list; moving focus to the row's control first lets the Tab walk on.
+function leaveList(event: KeyboardEvent) {
+	if (event.key !== "Tab" || !(event.target as HTMLElement).closest('[role="listbox"]')) return;
+	const control = cell.value?.querySelector<HTMLElement>("input, textarea, select, button");
+	if (!control) return;
+	event.stopPropagation();
+	control.focus();
+}
+function holdTyping(event: KeyboardEvent) {
+	const active = document.activeElement;
+	const onRow = active === document.body || !!wrapper.value?.contains(active);
+	if (!isTyping(event) || !onRow || cell.value?.contains(active)) return;
+	event.preventDefault();
+	typed += event.key;
+}
+function typeHeld() {
+	if (typed) document.execCommand("insertText", false, typed);
+	typed = "";
+}
 watch(editing, async (on, _previous, onCleanup) => {
-	if (!on) return;
+	if (!on) return keepFocus ? keepFocusOnRow() : undefined;
 	let stop = () => {};
 	document.addEventListener("pointerdown", onPressOutside, true);
+	document.addEventListener("keydown", holdTyping, true);
+	document.addEventListener("keydown", leaveList, true);
+	document.addEventListener("keydown", rememberEnter, true);
 	onCleanup(() => {
+		typed = "";
+		document.removeEventListener("keydown", rememberEnter, true);
+		document.removeEventListener("keydown", leaveList, true);
 		stop();
 		document.removeEventListener("pointerdown", onPressOutside, true);
+		document.removeEventListener("keydown", holdTyping, true);
 	});
 	await nextTick();
 	if (!cell.value) return;
@@ -502,5 +641,7 @@ watch(editing, async (on, _previous, onCleanup) => {
 	stop = focusField(cell.value);
 	const area = multiline.value && cell.value.querySelector("textarea");
 	if (area) placeCaret(area, clicked);
+	if (cell.value.contains(document.activeElement)) return typeHeld();
+	cell.value.addEventListener("focusin", typeHeld, { once: true });
 });
 </script>
