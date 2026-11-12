@@ -73,6 +73,15 @@
 				:field="phoneFields.get(column.fieldname)!"
 				:value="value"
 			/>
+			<ConfiguredCell
+				v-else-if="
+					cellViewOf(column.fieldname, value, row) && cellFields.has(column.fieldname)
+				"
+				:field="cellFields.get(column.fieldname)!"
+				:row="row"
+				:view="cellViewOf(column.fieldname, value, row)!"
+				@filter="applyBadgeFilters"
+			/>
 			<div v-else-if="markOf(column.fieldname)" class="flex min-w-0 items-center">
 				<LinkMark
 					class="me-1.5"
@@ -90,15 +99,6 @@
 				:field="cellFields.get(column.fieldname)!"
 				:row="row"
 				:writable="canWrite(column.fieldname)"
-			/>
-			<ConfiguredCell
-				v-else-if="
-					cellViewOf(column.fieldname, value, row) && cellFields.has(column.fieldname)
-				"
-				:field="cellFields.get(column.fieldname)!"
-				:row="row"
-				:view="cellViewOf(column.fieldname, value, row)!"
-				@filter="applyBadgeFilters"
 			/>
 			<StatusCell
 				v-else-if="
