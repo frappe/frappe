@@ -75,17 +75,26 @@ def safe_exec(
 
 
 def _gated_get_doc(*args: Any, **kwargs: Any) -> dict:
+	if len(args) == 2:
+		args, kwargs = args[:1], {**kwargs, "name": args[1]}
+	# search by filters only among readable records
+	if args and isinstance(kwargs.get("name"), dict | list):
+		kwargs["name"] = _readable_name(args[0], kwargs["name"])
 	doc = frappe.get_doc(*args, **kwargs)
 	doc.check_permission("read")
 	doc.apply_fieldlevel_read_permissions()
 	return doc.as_dict()
 
 
-def _gated_get_last_doc(*args: Any, **kwargs: Any) -> dict:
-	doc = frappe.get_last_doc(*args, **kwargs)
-	doc.check_permission("read")
-	doc.apply_fieldlevel_read_permissions()
-	return doc.as_dict()
+def _gated_get_last_doc(doctype: str, filters=None, order_by: str = "creation desc", **kwargs: Any) -> dict:
+	return _gated_get_doc(doctype, _readable_name(doctype, filters, order_by), **kwargs)
+
+
+def _readable_name(doctype: str, filters, order_by: str = "creation desc") -> str:
+	names = frappe.get_list(doctype, filters=filters, order_by=order_by, limit=1, pluck="name")
+	if not names:
+		raise frappe.DoesNotExistError(doctype=doctype)
+	return names[0]
 
 
 def _gated_get_meta(doctype: str, cached: bool = True) -> dict | None:

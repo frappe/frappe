@@ -112,6 +112,28 @@ class TestFlowSafeExec(IntegrationTestCase):
 			with self.subTest(code), self.assertRaises(frappe.PermissionError):
 				safe_exec(f"result = {code}")
 
+	def test_a_lookup_by_filters_does_not_tell_that_a_hidden_record_matches(self):
+		frappe.get_doc({"doctype": "ToDo", "description": "flow hidden match"}).insert()
+		user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": "flow-sandbox-lookup@example.com",
+				"first_name": "Lookup",
+				"send_welcome_email": 0,
+				"roles": [{"role": "Flow User"}],
+			}
+		).insert(ignore_permissions=True)
+		frappe.set_user(user.name)
+		own = frappe.get_doc({"doctype": "ToDo", "description": "flow own match"}).insert()
+		for call in ("get_doc", "get_last_doc"):
+			with self.subTest(call):
+				found = self._run(f'result = frappe.{call}("ToDo", {{"description": "flow own match"}})')
+				self.assertEqual(found["name"], own.name)
+				# hidden or missing: both are not found
+				for description in ("flow hidden match", "flow no match"):
+					with self.assertRaises(frappe.DoesNotExistError):
+						self._run(f'frappe.{call}("ToDo", {{"description": "{description}"}})')
+
 	def test_get_doc_hides_fields_above_the_users_permlevel(self):
 		# desk users can read a public Note at permlevels 0 and 1; its seen_by table is permlevel 2
 		note = frappe.get_doc(
