@@ -446,7 +446,7 @@ The list page draws `page.header`, `page.frame` and `page.body` as the record pa
 `onRefresh` edits them with the same verbs. The header's left holds the `module` crumb, the
 `doctype` crumb, the `view` crumb on a saved view, and the `favourite` star. Its right holds the
 `new` button (label "Create"), shown only with the create right, and the `⋯` menu, which has no
-built-ins and shows once a script adds an entry. A header item's `run(page)` gets the list page.
+built-ins and shows once a script adds an entry. A header item's `run(page)` gets the list page. On the list, a header item is a button to click, not an act: `key`, `palette` and `argument` do nothing, `page.run('header.<name>')` is not there, and `right` is a right name, not a `{ doctype, ptype }` object.
 The body's one built-in is `list`, the controls row and the rows; add a `component` item before
 or after it, or hide it. A `frame` band draws before the header, between the header and the body, or after the body.
 

@@ -158,6 +158,18 @@ describe("the list page header", () => {
 		expect(button(root, "More actions")).toBeNull();
 	});
 
+	it("draws Create solid, as the list's primary action", async () => {
+		const root = await mount();
+		expect(createButton(root)?.className).toMatch(/bg-surface-gray-10/);
+	});
+
+	it("draws no Create for a reader without the create right", async () => {
+		meta = contactMeta([{ role: "Sales User", permlevel: 0, read: 1 }]);
+		const root = await mount();
+		expect(root.querySelector("header [data-crumbs]")).toBeTruthy();
+		expect(createButton(root)).toBeUndefined();
+	});
+
 	it("draws the saved view's name after the doctype, which then links to the list", async () => {
 		const root = await mount("My Contacts");
 		const links = [...root.querySelectorAll<HTMLAnchorElement>("header [data-crumbs] a")];

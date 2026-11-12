@@ -52,6 +52,7 @@ export function listHeaderItems(host: ListHeaderHost): HeaderItem[] {
 		label: __("Create"),
 		icon: "lucide-plus",
 		display: "button",
+		props: { variant: "solid" },
 		right: "create",
 		palette: false,
 		run: () => host.create(),
