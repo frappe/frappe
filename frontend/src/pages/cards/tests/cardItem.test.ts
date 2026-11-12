@@ -88,6 +88,7 @@ describe("CardItem", () => {
 		const link = root.querySelector("a")!;
 
 		expect(link.className).toContain("ring-outline-gray-5");
+		expect(link.className).not.toContain("border-outline-gray-2");
 		expect(root.querySelector("[role=checkbox]")!.getAttribute("aria-checked")).toBe("true");
 	});
 

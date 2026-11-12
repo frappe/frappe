@@ -2,7 +2,7 @@
 <template>
 	<RouterLink
 		:to="link"
-		class="group relative flex h-56 min-w-0 flex-col gap-2 overflow-hidden rounded-5 border border-outline-gray-2 bg-surface-base p-3"
+		class="group relative flex h-56 min-w-0 flex-col gap-2 overflow-hidden rounded-5 border bg-surface-base p-3"
 		:class="
 			selected
 				? 'border-outline-gray-5 ring-1 ring-outline-gray-5'
@@ -40,7 +40,7 @@
 		<!-- Beside the menu on hover; on every card once one is selected, when the menu is gone. -->
 		<div
 			role="checkbox"
-			:aria-checked="selected"
+			:aria-checked="!!selected"
 			:aria-label="__('Select {0}', [row.name])"
 			tabindex="0"
 			class="absolute top-2 flex size-7 items-center justify-center rounded-3 [&_input]:mt-0"
