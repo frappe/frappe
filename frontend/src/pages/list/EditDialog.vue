@@ -5,15 +5,16 @@
 			<p v-if="loading" class="text-sm text-ink-gray-5">{{ __("Loading fields…") }}</p>
 			<div v-else class="flex flex-col gap-3">
 				<div v-for="(row, index) in rows" :key="row.id" class="flex items-start gap-2">
-					<div class="w-48 shrink-0">
+					<div class="edit-picker w-48 shrink-0">
 						<Select
+							class="w-full"
 							:aria-label="__('Field')"
 							:modelValue="row.key"
 							:options="optionsFor(row.key)"
 							@update:modelValue="(key: string) => pick(row, key)"
 						/>
 					</div>
-					<div class="min-w-0 flex-1">
+					<div class="edit-value flex min-h-7 min-w-0 flex-1 flex-col justify-center">
 						<FormLayout
 							v-if="row.key"
 							:key="row.key"
@@ -23,6 +24,7 @@
 						/>
 					</div>
 					<Button
+						class="shrink-0"
 						variant="ghost"
 						icon="lucide-x"
 						:aria-label="__('Remove field')"
@@ -50,7 +52,6 @@
 import { getMeta } from "@framework/ui/api";
 import { FormLayout, fieldsToLayout, mapField, type RawMetaField } from "@framework/ui/FormLayout";
 import { CommitKey, NO_COMMIT } from "@framework/ui/FormLayout/types";
-import type { FieldMeta } from "@framework/ui/fields/types";
 import { Button, Dialog, Select, toast } from "frappe-ui";
 import { computed, provide, ref, watch } from "vue";
 import { __, __n } from "@/i18n";
@@ -137,10 +138,20 @@ function pick(row: EditRow, key: string) {
 
 function layoutOf(row: EditRow) {
 	const one = fieldOf(row.key)!;
-	const meta = mapField(one.field, {}) as unknown as FieldMeta;
-	return fieldsToLayout([
-		{ ...meta, label: __("Value"), reqd: 0, read_only: 0, hidden: 0 } as FieldMeta,
-	]);
+	// One bare control per row: no label or description line, and no condition that hides or locks it.
+	const bare = {
+		...one.field,
+		label: "",
+		placeholder: one.label,
+		description: undefined,
+		reqd: 0,
+		read_only: 0,
+		hidden: 0,
+		depends_on: undefined,
+		mandatory_depends_on: undefined,
+		read_only_depends_on: undefined,
+	};
+	return fieldsToLayout([mapField(bare, {})]);
 }
 
 const scope = computed(() => {
@@ -203,3 +214,23 @@ function report(outcome: EditOutcome) {
 	failure.value = outcome.failed.map(({ name, error }) => `${name}: ${error}`).join("\n");
 }
 </script>
+
+<style scoped>
+/* The picker fills a fixed column: frappe-ui's widest-option sizer would push a long label past its ellipsis. */
+.edit-picker :deep(.select-trigger-sizer) {
+	display: none;
+}
+/* A control without a label is drawn bare and inline: the field stretches it to the column. */
+.edit-value :deep(.field) {
+	display: flex;
+	flex-direction: column;
+}
+/* The checkbox's 1px nudge lines it up with a label it no longer has. */
+.edit-value :deep(input[type="checkbox"]) {
+	margin-top: 0;
+}
+/* Link and Date draw a darker chevron than Select: every row takes the picker's. */
+.edit-value :deep(.lucide-chevron-down) {
+	color: var(--ink-gray-4);
+}
+</style>

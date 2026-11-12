@@ -34,6 +34,13 @@ vi.mock("@framework/ui/api", async (importOriginal) => ({
 				{ fieldname: "description", label: "Description", fieldtype: "Data" },
 				{ fieldname: "priority", label: "Priority", fieldtype: "Select", options: "Low\nHigh" },
 				{ fieldname: "locked", label: "Locked", fieldtype: "Data", read_only: 1 },
+				{
+					fieldname: "note",
+					label: "Note",
+					fieldtype: "Data",
+					description: "Shown to the assignee",
+					depends_on: "eval:doc.status == 'Open'",
+				},
 			],
 		},
 		children: {},
@@ -89,6 +96,16 @@ describe("EditDialog", () => {
 		expect(labels).toContain("Priority");
 		expect(labels).not.toContain("Locked");
 		expect(button("Update")!.disabled).toBe(true);
+	});
+
+	it("draws the value as one bare control: no label, description or condition", async () => {
+		await open(async () => ({ updated: [], failed: [] }));
+		await pick("Note");
+		const value = document.body.querySelector<HTMLInputElement>("input[placeholder='Note']");
+		expect(value).not.toBeNull();
+		expect(document.body.querySelector("label")).toBeNull();
+		expect(text()).not.toContain("Value");
+		expect(text()).not.toContain("Shown to the assignee");
 	});
 
 	it("names every matching record when the run takes the filters", async () => {
