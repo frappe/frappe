@@ -2,11 +2,11 @@
 <template>
 	<Teleport v-if="host.bar.value && selection.length" :to="host.bar.value">
 		<BulkBar
-			:count="selection.length"
+			:scope="scope"
 			:cap="bulk.cap"
 			:layout="bulk.layout.value"
 			:locked="bulk.locked"
-			@clear="selection = []"
+			@clear="scope.clear()"
 		/>
 	</Teleport>
 	<Teleport v-if="host.controls.value" :to="host.controls.value">
@@ -58,7 +58,9 @@
 
 	<DeleteDialog
 		v-model="confirmingDelete"
-		:count="target ? 1 : selection.length"
+		:count="target ? 1 : scope.count.value"
+		:all="!target && scope.all.value"
+		:approx="!target && scope.approx.value"
 		:run="() => (target ? deleteOne(target) : deleteSelection())"
 	/>
 </template>
@@ -92,6 +94,7 @@ const {
 	people,
 	pageSize,
 	selection,
+	scope,
 	rows,
 	loading,
 	error,
@@ -129,6 +132,7 @@ const bulk = useBulkBar({
 	host: props.host,
 	doctype: props.view.doctype,
 	selection,
+	scope,
 	rows,
 	rowActions,
 	reload,

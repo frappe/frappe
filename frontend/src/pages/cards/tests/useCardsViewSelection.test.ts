@@ -55,7 +55,7 @@ describe("cards view selection", () => {
 
 		const outcome = await view.deleteSelection();
 
-		expect(fake.deleteRows).toHaveBeenCalledWith("Lead", expect.anything(), ["A", "B"]);
+		expect(fake.deleteRows).toHaveBeenCalledWith("Lead", expect.anything(), { names: ["A", "B"] });
 		expect(outcome.deleted).toEqual(["A", "B"]);
 		expect(view.selection.value).toEqual([]);
 	});
