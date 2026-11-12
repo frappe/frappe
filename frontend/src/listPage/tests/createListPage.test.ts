@@ -15,7 +15,7 @@ const { callSelected } = vi.hoisted(() => ({ callSelected: vi.fn() }));
 import type { View } from "@/list/view";
 import { createListPage, type ListPageController } from "../createListPage";
 import type { ListPermissions } from "../listPermissions";
-import { addListScript } from "@/contributions/registry";
+import { addListScript } from "@/listPage/listScriptFiles";
 import { invalidateClientScripts, resetClientScripts } from "@/recordPage/clientScripts";
 import { LIST_PAGE_TIER } from "@/recordPage/clientScriptTypes";
 import type { ListPageApi } from "../types";

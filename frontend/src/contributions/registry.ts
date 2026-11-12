@@ -7,7 +7,7 @@ import type {
   ActsContribution,
   FieldActionsContribution,
   DoctypeContribution,
-  ListScript,
+  ListScriptContribution,
   PageContribution,
   RecordDialogContribution,
   ReplacementContribution,
@@ -23,17 +23,11 @@ export const itemRenderers: Record<string, ItemRenderer> = {}
 /** View type -> its renderer's lazy import, filled by `registerContributions` in the site's app order. */
 export const viewRenderers: Record<string, () => Promise<unknown>> = {}
 
-// Doctype -> its list.js files in run order; the list page loads them on its first visit.
-const listScripts = new Map<string, ListScript[]>()
+let siteAppOrder: string[] = []
 
-/** Adds an app's list.js behind the doctype's earlier ones. */
-export function addListScript(doctype: string, script: ListScript) {
-  listScripts.set(doctype, [...(listScripts.get(doctype) ?? []), script])
-}
-
-/** The doctype's list.js files, in run order. */
-export function listScriptsFor(doctype: string): readonly ListScript[] {
-  return listScripts.get(doctype) ?? []
+/** List.js loaders in run order: the owning app's first, then each `custom/` one, in the site's app order. */
+export function listScriptsInRunOrder<T extends ListScriptContribution>(all: readonly T[]): T[] {
+  return ordered([...all], siteAppOrder, (c) => c.kind === 'customList')
 }
 
 let standard: StandardPages | null = null
@@ -143,6 +137,7 @@ function ordered<T extends { app: string }>(
  * module, never from a path inspected at runtime.
  */
 export function registerContributions(appOrder: string[]) {
+  siteAppOrder = appOrder
   registerItemTypes(appOrder)
   registerViewTypes(appOrder)
   registerReplacements(appOrder)
@@ -161,12 +156,7 @@ export function registerContributions(appOrder: string[]) {
 
   // Ordering is per doctype: an app can own one and be foreign to the next.
   for (const [doctype, all] of byDoctype) {
-    for (const contribution of ordered(all, appOrder, (c) => c.kind === 'custom' || c.kind === 'customList')) {
-      if (contribution.kind === 'list' || contribution.kind === 'customList') {
-        addListScript(doctype, { app: contribution.app, load: contribution.load })
-        continue
-      }
-
+    for (const contribution of ordered(all, appOrder, (c) => c.kind === 'custom')) {
       addFileScript(doctype, { app: contribution.app, load: contribution.load })
     }
   }

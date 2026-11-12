@@ -8,7 +8,7 @@ vi.mock("frappe-ui", () => ({ toast: { success: vi.fn(), error: vi.fn() }, dialo
 vi.mock("@framework/ui/api", () => ({ runMethod: call }));
 vi.mock("@/recordPage/evaluateClientScript", () => ({ evaluateClientScript }));
 
-import { addListScript } from "@/contributions/registry";
+import { addListScript } from "@/listPage/listScriptFiles";
 import { invalidateClientScripts, resetClientScripts, watchClientScripts } from "@/recordPage/clientScripts";
 import { LIST_PAGE_TIER } from "@/recordPage/clientScriptTypes";
 import { listScriptsLoaded, listScriptsOf, loadListScripts } from "../scriptLoader";
