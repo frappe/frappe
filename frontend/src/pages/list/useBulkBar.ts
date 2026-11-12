@@ -5,7 +5,7 @@ import type { Boot } from "@/boot";
 import { __ } from "@/i18n";
 import type { ListPageApi, ListRow, ListRowAction } from "@/listPage/types";
 import { bulkKeyEntries } from "./bulkKeys";
-import { bulkScopeOf, scopedLabel } from "./bulkScope";
+import { bulkScopeOf } from "./bulkScope";
 import { layoutBulk, type BulkEntry, type BulkLayout } from "./bulkLayout";
 import { rowActionEntries } from "./rowActions";
 import type { ListActs } from "./listActs";
@@ -86,7 +86,7 @@ export function useBulkBar(options: BulkBarOptions): BulkBar {
 			.map(({ item, hidden }) => ({
 				item: {
 					...item,
-					label: item.label && scopedLabel(item.label, scope),
+					label: item.label && scope.label(item.label),
 					argument: undefined,
 					palette: over ? (false as const) : item.palette,
 					run: (page: ListPageApi) => item.run!(page, scope.selected()),
