@@ -44,6 +44,7 @@ class FlowTool(Document):
 		self._validate_type_fields()
 		if self.type == "Script":
 			self._validate_code()
+			self._warn_if_server_scripts_disabled()
 		validate_immutable(
 			self, ("type", "import_path", "description", "requires_confirmation", "background")
 		)
@@ -144,6 +145,16 @@ class FlowTool(Document):
 				)
 		else:
 			frappe.throw(_("Type must be Imported, Script or Server."), title=_("Invalid Type"))
+
+	def _warn_if_server_scripts_disabled(self):
+		from frappe.utils.safe_exec import is_safe_exec_enabled
+
+		if not is_safe_exec_enabled():
+			frappe.msgprint(
+				_("Server Scripts are disabled, so this tool won't run until they are enabled."),
+				title=_("Server Scripts Disabled"),
+				indicator="orange",
+			)
 
 	def _validate_code(self):
 		try:

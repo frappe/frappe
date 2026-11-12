@@ -78,6 +78,16 @@ class IntegrationTestFlowTool(IntegrationTestCase):
 			with self.subTest(doc=doc), self.assertRaisesRegex(frappe.ValidationError, error):
 				frappe.get_doc(doc).insert()
 
+	def test_a_script_tool_saves_with_a_warning_while_server_scripts_are_off(self):
+		for enabled in (False, True):
+			with (
+				self.subTest(enabled=enabled),
+				patch("frappe.utils.safe_exec.is_safe_exec_enabled", return_value=enabled),
+				patch("frappe.msgprint") as msgprint,
+			):
+				frappe.get_doc(_script(slug=f"script_weather_{int(enabled)}")).insert()
+				self.assertEqual(msgprint.called, not enabled)
+
 
 class TestFlowToolSystemGenerated(IntegrationTestCase):
 	"""Desk edits can't break system-generated tools; the owning app (ignore_permissions) can."""
