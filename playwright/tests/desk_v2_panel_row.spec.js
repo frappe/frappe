@@ -241,6 +241,7 @@ test.describe("Desk v2 side panel row", () => {
 const ONE_CLICK_DOCTYPE = "Panel Row 46993";
 const ONE_CLICK_SLUG = "panel-row-46993";
 const FILE = "/assets/frappe/images/frappe-favicon.svg";
+const LONG_FILE = "/assets/frappe/images/ui-states/notification-empty-state.svg";
 
 const ONE_CLICK_TYPES = [
 	{ fieldname: "f_check", fieldtype: "Check", label: "Check Field" },
@@ -267,8 +268,8 @@ const ONE_CLICK_VALUES = {
 	f_rating: 0.6,
 	f_rating_ro: 0.6,
 	f_color: "#3b82f6",
-	f_attach: FILE,
-	f_attach_ro: FILE,
+	f_attach: LONG_FILE,
+	f_attach_ro: LONG_FILE,
 	f_photo: FILE,
 	f_orphan: FILE,
 };
@@ -320,6 +321,17 @@ function measureOneClick({ fieldname, fieldtype, lead }) {
 		linkShown: visible(link?.parentElement),
 		clearShown: visible(clear?.parentElement),
 		clearRight: clear ? rect.right - clear.getBoundingClientRect().right : null,
+		linkRight: link ? rect.right - link.getBoundingClientRect().right : null,
+		clearBeforeLink:
+			clear && link
+				? clear.getBoundingClientRect().right <= link.getBoundingClientRect().left
+				: null,
+		nameTruncated: text ? text.scrollWidth > text.clientWidth : null,
+		nameGap:
+			link && text
+				? link.parentElement.getBoundingClientRect().left -
+				  text.getBoundingClientRect().right
+				: null,
 		labelTop: label.top - rect.top,
 		others: [...document.querySelectorAll(".field-box")]
 			.filter((other) => other !== box)
@@ -415,7 +427,7 @@ test.describe("Desk v2 side panel row: one-click fields", () => {
 		});
 	}
 
-	test("Attach and Attach Image show ↗ and × on hover, inside the box, and a read-only Attach only ↗", async ({
+	test("Attach and Attach Image keep ↗ at the right edge with × before it on hover, and a read-only Attach only ↗ at the same x", async ({
 		page,
 	}) => {
 		const args = (fieldname, fieldtype) => ({ fieldname, fieldtype, lead: LEADS[fieldtype] });
@@ -427,12 +439,18 @@ test.describe("Desk v2 side panel row: one-click fields", () => {
 			const after = await page.evaluate(measureOneClick, args(fieldname, fieldtype));
 			expect(after.linkShown).toBe(true);
 			expect(after.clearShown).toBe(true);
-			expect(after.clearRight).toBeCloseTo(8, 0);
+			expect(after.linkRight).toBeCloseTo(8, 0);
+			expect(after.clearBeforeLink).toBe(true);
+			expect(after.nameGap).toBeGreaterThanOrEqual(8);
+			if (after.nameTruncated) expect(after.nameGap).toBeCloseTo(8, 0);
 			expect(after.height).toBeCloseTo(28, 1);
 		}
 		const readOnly = await page.evaluate(measureOneClick, args("f_attach_ro", "Attach"));
 		expect(readOnly.linkShown).toBe(true);
 		expect(readOnly.clearRight).toBeNull();
+		expect(readOnly.linkRight).toBeCloseTo(8, 0);
+		expect(readOnly.nameTruncated).toBe(true);
+		expect(readOnly.nameGap).toBeCloseTo(8, 0);
 	});
 
 	test("an empty Attach and Attach Image read `Add <Label>...`", async ({ page }) => {

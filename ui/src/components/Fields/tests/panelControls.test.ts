@@ -102,6 +102,15 @@ describe("a panel Attach", () => {
     expect(root.querySelector("button[data-slot=control]")?.textContent?.trim()).toBe("cover.png");
   });
 
+  it("puts × before ↗ in DOM order, so ↗ keeps the right-edge slot", () => {
+    const { root } = render(AttachField, "Attach", "/files/report.pdf");
+    const clear = root.querySelector("[data-slot=clear]") as HTMLElement;
+    const link = root.querySelector("a") as HTMLElement;
+    expect(clear.compareDocumentPosition(link) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(link.parentElement).toBe(clear.parentElement);
+    expect(clear.parentElement?.lastElementChild).toBe(link);
+  });
+
   it("keeps ↗ but no × for a read-only row", () => {
     const { root } = render(AttachField, "Attach", "/files/report.pdf", { readOnly: 1 });
     expect(root.querySelector("a")).not.toBeNull();

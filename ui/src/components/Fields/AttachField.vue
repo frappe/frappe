@@ -9,12 +9,13 @@
 		     activating opens the uploader. Read-only keeps preview but hides the
 		     Replace/Clear affordances. -->
 		<!-- A panel row has no edit state: a click anywhere in the box attaches or replaces,
-		     the name is the file's, and ↗ and × show on hover and focus. -->
+		     the name is the file's. ↗ keeps the right-edge slot in every row; × sits before it and
+		     shows on hover and focus, on editable rows only. -->
 		<div v-if="panel" class="group flex h-7 w-full min-w-0 items-center">
 			<button
 				type="button"
 				data-slot="control"
-				class="flex h-full min-w-0 flex-1 items-center gap-2 ps-2 text-start text-base focus:outline-none"
+				class="flex h-full min-w-0 flex-1 items-center gap-2 ps-2 pe-2 text-start text-base focus:outline-none"
 				:class="field.readOnly ? 'cursor-default' : 'cursor-pointer'"
 				:disabled="field.readOnly && !modelValue"
 				:aria-label="field.label"
@@ -45,16 +46,6 @@
 						: 'opacity-0 focus-within:opacity-100 group-focus-within:opacity-100 group-hover:opacity-100'
 				"
 			>
-				<a
-					:href="modelValue"
-					target="_blank"
-					rel="noopener"
-					:aria-label="__('Open file')"
-					:title="__('Open file')"
-					class="grid size-4 place-items-center rounded-1 text-ink-gray-5 hover:text-ink-gray-7 focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
-				>
-					<span class="lucide-arrow-up-right size-3.5" />
-				</a>
 				<button
 					v-if="!field.readOnly"
 					type="button"
@@ -66,6 +57,16 @@
 				>
 					<span class="lucide-x size-3.5" />
 				</button>
+				<a
+					:href="modelValue"
+					target="_blank"
+					rel="noopener"
+					:aria-label="__('Open file')"
+					:title="__('Open file')"
+					class="grid size-4 place-items-center rounded-1 text-ink-gray-5 hover:text-ink-gray-7 focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
+				>
+					<span class="lucide-arrow-up-right size-3.5" />
+				</a>
 			</span>
 		</div>
 		<TextInput
