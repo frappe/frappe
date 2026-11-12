@@ -327,6 +327,8 @@ async function initMap() {
 		loadError.value = "The map failed to load. Please try again.";
 		return;
 	}
+	// The dialog may have closed, or the field gone, while Leaflet loaded.
+	if (!document.getElementById(mapId)) return;
 
 	// Dialog uses v-if internally — the map div is destroyed on close and
 	// recreated on open. destroyMap() on close ensures mapInstance is null here.
