@@ -952,6 +952,51 @@ test.describe("Desk v2 side panel rows that grow", () => {
 		});
 	}
 
+	test("the fade under a pinned header starts at its edge and grows with the rows under it, up to 24px", async ({
+		page,
+	}) => {
+		await open(page, filled);
+		const fadeAt = (under) =>
+			page.evaluate((under) => {
+				const header = document.querySelector('[data-section="s2"].sticky');
+				const body = header.nextElementSibling;
+				let scroller = header.parentElement;
+				while (!/(auto|scroll)/.test(getComputedStyle(scroller).overflowY))
+					scroller = scroller.parentElement;
+				const pinnedTop =
+					scroller.getBoundingClientRect().top + parseFloat(header.style.top);
+				scroller.scrollTop += header.getBoundingClientRect().top - pinnedTop + under;
+				return new Promise((resolve) =>
+					requestAnimationFrame(() =>
+						requestAnimationFrame(() => {
+							const bar = header.getBoundingClientRect();
+							const fade = getComputedStyle(header, "::after");
+							resolve({
+								covered: bar.bottom - body.getBoundingClientRect().top,
+								gap:
+									bar.top + header.clientTop + parseFloat(fade.top) - bar.bottom,
+								height: parseFloat(fade.height) || 0,
+							});
+						})
+					)
+				);
+			}, under);
+
+		const resting = await fadeAt(-20);
+		expect(resting.covered).toBeLessThanOrEqual(0);
+		expect(resting.height).toBe(0);
+
+		const entering = await fadeAt(9);
+		expect(entering.covered).toBeGreaterThan(0);
+		expect(entering.height).toBeCloseTo(entering.covered, 1);
+		expect(entering.gap).toBeCloseTo(0, 1);
+
+		const scrolled = await fadeAt(40);
+		expect(scrolled.covered).toBeGreaterThanOrEqual(24);
+		expect(scrolled.height).toBe(24);
+		expect(scrolled.gap).toBeCloseTo(0, 1);
+	});
+
 	test("a heavy field that Details does not draw edits in place", async ({ page }) => {
 		await open(page, filled);
 		await grow(page, "f_code").scrollIntoViewIfNeeded();
