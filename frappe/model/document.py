@@ -2149,7 +2149,11 @@ class Document(_DocumentBase):
 				elif df.fieldtype in float_like_fields and not isinstance(value, float):
 					value = flt(value)
 
+<<<<<<< HEAD
 				elif df.fieldtype == "Read Only" and not isinstance(value, str):
+=======
+				elif fieldtype == "Read Only" and value is not None and not isinstance(value, str):
+>>>>>>> 66e2104 (fix: do not log empty Read Only fields as changed in version)
 					value = cstr(value)
 
 				elif (df.fieldtype in datetime_fields and value == "") or (
