@@ -459,12 +459,14 @@ function ensure_merged(col) {
 function add_merged_field(col, fieldname) {
 	const f = find_field(fieldname);
 	const mf = ensure_merged(col);
-	if (f)
-		mf.push({
-			fieldname: f.fieldname,
-			fieldtype: f.fieldtype,
-			style: mf.length ? "muted-sm" : "secondary",
-		});
+	if (!f) return;
+	const entry = {
+		fieldname: f.fieldname,
+		fieldtype: f.fieldtype,
+		style: mf.length ? "muted-sm" : "secondary",
+	};
+	if (!is_merge_image(entry) && !is_merge_html(entry)) entry.show_label = 1;
+	mf.push(entry);
 }
 
 function remove_merged_field(col, mi) {
