@@ -189,7 +189,7 @@
 												/>
 											</div>
 											<button
-												v-if="!is_image_merge(mf)"
+												v-if="!is_image_merge(mf) && !is_merge_html(mf)"
 												class="es-button"
 												data-size="xs"
 												:data-variant="mf.show_label ? 'subtle' : 'ghost'"
@@ -306,7 +306,7 @@ import StyleSection from "./StyleSection.vue";
 import ColorField from "./ColorField.vue";
 import VisibilitySection from "./VisibilitySection.vue";
 import { useSelectedField } from "./useSelectedField";
-import { is_merge_image } from "../../fieldtypes";
+import { is_merge_html, is_merge_image } from "../../fieldtypes";
 import { clamp_column_width, date_format_opts, is_date_field, set_prop } from "../../utils";
 
 const { selected_field, preview_doc, set_field_prop } = useSelectedField();
