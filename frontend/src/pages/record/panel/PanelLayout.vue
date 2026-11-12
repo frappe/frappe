@@ -60,6 +60,7 @@ import {
 	type PanelEntry,
 } from "./panelEntries";
 import { usePinnedBlock } from "./pinnedBlock";
+import { LINE_UNDER } from "./pinnedCover";
 
 const PINNABLE = new Set(PANEL_BUILTINS.map((item) => item.name));
 
@@ -135,9 +136,8 @@ const pinned = ref<HTMLElement | null>(null);
 const { pinning, height: pinHeight, covering: pinCovering } = usePinnedBlock(pinned);
 
 const pinnedClass = computed(() => [
-	pinning.value &&
-		"sticky top-0 z-[1] bg-surface-base after:pointer-events-none after:absolute after:inset-x-0 after:top-full after:h-2.5 after:bg-gradient-to-b after:from-surface-base after:to-transparent after:content-['']",
-	pinCovering.value ? "after:opacity-100" : "after:opacity-0",
+	pinning.value && "sticky top-0 z-[1] bg-surface-base",
+	pinCovering.value && LINE_UNDER,
 ]);
 
 function setPinned(el: unknown) {

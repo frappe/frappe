@@ -1,4 +1,4 @@
-// The fade under a pinned section header grows with the rows scrolled beneath it.
+// A pinned section header draws a line along its bottom edge only while rows are beneath it.
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, nextTick } from "vue";
 
@@ -27,18 +27,20 @@ function stubTop(element: Element, top: number) {
 	element.getBoundingClientRect = () => ({ top, bottom: top + 42 }) as DOMRect;
 }
 
-async function mountSection() {
+async function mountSection(open = true) {
 	const scroller = document.createElement("div");
 	scroller.style.overflowY = "auto";
 	document.body.appendChild(scroller);
 	const app = createApp(
 		defineComponent({
-			render: () =>
+			render: () => [
 				h(
 					PanelSection,
-					{ name: "fields_b", label: "Fields B", fields: [], index: 1, headerIndex: 0, open: true, pinTop: 0 },
+					{ name: "fields_b", label: "Fields B", fields: [], index: 1, headerIndex: 0, open, pinTop: 0 },
 					{ default: () => h("p", "row") }
 				),
+				h("p", "the next section"),
+			],
 		})
 	);
 	mounted.push(app);
@@ -55,22 +57,37 @@ async function mountSection() {
 	return { header, scrollTo };
 }
 
-describe("the pinned header's fade", () => {
-	const fadeOf = (header: HTMLElement) => header.style.getPropertyValue("--fade");
+describe("the pinned header's line", () => {
+	const lined = (header: HTMLElement) => header.classList.contains("after:border-outline-gray-1");
 
-	it("is drawn at no height while the rows start below the header", async () => {
+	it("is not drawn while the rows start below the header", async () => {
 		const { header, scrollTo } = await mountSection();
 		await scrollTo(42);
-		expect(fadeOf(header)).toBe("0px");
+		expect(lined(header)).toBe(false);
 	});
 
-	it("grows with the rows scrolled under the header, up to 24px, and goes when they scroll back", async () => {
+	it("shows, 1px high and with no fade, while rows are under the header, and goes when they scroll back", async () => {
 		const { header, scrollTo } = await mountSection();
-		await scrollTo(33);
-		expect(fadeOf(header)).toBe("9px");
+		await scrollTo(41);
+		expect(lined(header)).toBe(true);
+		expect(header.classList.contains("after:h-px")).toBe(true);
+		expect(header.className).not.toContain("gradient");
 		await scrollTo(-200);
-		expect(fadeOf(header)).toBe("24px");
+		expect(lined(header)).toBe(true);
 		await scrollTo(50);
-		expect(fadeOf(header)).toBe("0px");
+		expect(lined(header)).toBe(false);
+	});
+
+	it("is not drawn for a sub-pixel overlap", async () => {
+		const { header, scrollTo } = await mountSection();
+		await scrollTo(41.5);
+		expect(lined(header)).toBe(false);
+	});
+
+	it("shows while the next section scrolls under a collapsed header", async () => {
+		const { header, scrollTo } = await mountSection(false);
+		expect(header.nextElementSibling!.textContent).toBe("the next section");
+		await scrollTo(30);
+		expect(lined(header)).toBe(true);
 	});
 });

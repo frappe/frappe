@@ -952,50 +952,39 @@ test.describe("Desk v2 side panel rows that grow", () => {
 		});
 	}
 
-	test("the fade under a pinned header starts at its edge and grows with the rows under it, up to 24px", async ({
-		page,
-	}) => {
-		await open(page, filled);
-		const fadeAt = (under) =>
-			page.evaluate((under) => {
-				const header = document.querySelector('[data-section="s2"].sticky');
-				const body = header.nextElementSibling;
-				let scroller = header.parentElement;
-				while (!/(auto|scroll)/.test(getComputedStyle(scroller).overflowY))
-					scroller = scroller.parentElement;
-				const pinnedTop =
-					scroller.getBoundingClientRect().top + parseFloat(header.style.top);
-				scroller.scrollTop += header.getBoundingClientRect().top - pinnedTop + under;
-				return new Promise((resolve) =>
-					requestAnimationFrame(() =>
-						requestAnimationFrame(() => {
-							const bar = header.getBoundingClientRect();
-							const fade = getComputedStyle(header, "::after");
-							resolve({
-								covered: bar.bottom - body.getBoundingClientRect().top,
-								gap:
-									bar.top + header.clientTop + parseFloat(fade.top) - bar.bottom,
-								height: parseFloat(fade.height) || 0,
-							});
-						})
-					)
-				);
-			}, under);
+	for (const [bar, selector] of [
+		["a pinned header", '[data-section="s2"].sticky'],
+		["the pinned identity block", "[data-panel-pinned]"],
+	]) {
+		test(`${bar} draws a 1px outline line along its bottom edge only while rows are under it`, async ({
+			page,
+		}) => {
+			await open(page, filled);
+			await expect(page.locator(selector)).toHaveClass(/sticky/);
+			const lineAt = (under) => page.evaluate(lineUnder, { selector, under });
 
-		const resting = await fadeAt(-20);
-		expect(resting.covered).toBeLessThanOrEqual(0);
-		expect(resting.height).toBe(0);
+			const resting = await lineAt(-20);
+			expect(resting.covered).toBeLessThanOrEqual(0);
+			expect(resting.content).toBe("none");
+			expect(resting.image).toBe("none");
 
-		const entering = await fadeAt(9);
-		expect(entering.covered).toBeGreaterThan(0);
-		expect(entering.height).toBeCloseTo(entering.covered, 1);
-		expect(entering.gap).toBeCloseTo(0, 1);
-
-		const scrolled = await fadeAt(40);
-		expect(scrolled.covered).toBeGreaterThanOrEqual(24);
-		expect(scrolled.height).toBe(24);
-		expect(scrolled.gap).toBeCloseTo(0, 1);
-	});
+			let line;
+			for (const under of [9, 40]) {
+				line = await lineAt(under);
+				expect(line.covered).toBeGreaterThan(0);
+				expect(line.height).toBe(1);
+				expect(line.border).toBe("1px");
+				expect(line.gap).toBeCloseTo(0, 1);
+				expect(line.color).toBe(line.outline);
+				expect(line.image).toBe("none");
+			}
+			// A header pinned right below draws the one line where the two meet.
+			if (selector === "[data-panel-pinned]") {
+				expect(line.meeting.top).toBeCloseTo(0, 1);
+				expect(line.meeting).toMatchObject({ border: "1px", color: line.outline });
+			}
+		});
+	}
 
 	test("a heavy field that Details does not draw edits in place", async ({ page }) => {
 		await open(page, filled);
@@ -1026,6 +1015,52 @@ const LABEL_LAYOUT = [
 		],
 	},
 ];
+
+function lineUnder({ selector, under }) {
+	const bar = document.querySelector(selector);
+	const rows = bar.nextElementSibling;
+	let scroller = bar.parentElement;
+	while (!/(auto|scroll)/.test(getComputedStyle(scroller).overflowY))
+		scroller = scroller.parentElement;
+	const pinnedBottom =
+		scroller.getBoundingClientRect().top + (parseFloat(bar.style.top) || 0) + bar.offsetHeight;
+	scroller.scrollTop += rows.getBoundingClientRect().top - pinnedBottom + under;
+	const probe = document.body.appendChild(document.createElement("div"));
+	probe.className = "border-t border-outline-gray-1";
+	const outline = getComputedStyle(probe).borderTopColor;
+	probe.remove();
+	return new Promise((resolve) =>
+		requestAnimationFrame(() =>
+			requestAnimationFrame(() => {
+				const box = bar.getBoundingClientRect();
+				const line = getComputedStyle(bar, "::after");
+				const below = document.elementFromPoint(
+					box.left + box.width / 2,
+					box.bottom + 0.5
+				);
+				const meeting = below?.closest("[data-section].sticky");
+				resolve({
+					meeting:
+						meeting && meeting !== bar
+							? {
+									top: meeting.getBoundingClientRect().top - box.bottom,
+									border: getComputedStyle(meeting).borderTopWidth,
+									color: getComputedStyle(meeting).borderTopColor,
+							  }
+							: null,
+					covered: box.bottom - rows.getBoundingClientRect().top,
+					content: line.content,
+					gap: box.top + bar.clientTop + parseFloat(line.top) - box.bottom,
+					height: parseFloat(line.height) || 0,
+					border: line.borderBottomWidth,
+					color: line.borderBottomColor,
+					image: line.backgroundImage,
+					outline,
+				});
+			})
+		)
+	);
+}
 
 function measureLabelGap(fieldname) {
 	const box = document

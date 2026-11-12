@@ -1,7 +1,8 @@
 // The leading built-ins stay in view above the scrolling sections: their height is where the
-// section headers pin, and their fade shows once rows pass beneath them.
+// section headers pin, and their line shows while rows pass beneath them.
 import { computed, ref, watch, type Ref } from "vue";
 import { useElementSize, useEventListener } from "@vueuse/core";
+import { rowsUnder } from "./pinnedCover";
 import { scrollParent } from "./scrollParent";
 
 export function usePinnedBlock(block: Ref<HTMLElement | null>) {
@@ -13,9 +14,9 @@ export function usePinnedBlock(block: Ref<HTMLElement | null>) {
 	const height = computed(() => (pinning.value ? blockHeight.value : 0));
 	const covering = ref(false);
 
-	// A header pinned right below sits on the same layer, later, so it hides this fade.
+	// A header pinned right below sits on the same layer, later, so it draws over this line.
 	function measure() {
-		covering.value = pinning.value && (scroller.value?.scrollTop ?? 0) > 0;
+		covering.value = pinning.value && !!block.value && rowsUnder(block.value);
 	}
 
 	useEventListener(scroller, "scroll", measure, { passive: true });
