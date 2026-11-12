@@ -2,6 +2,6 @@
 
 {%- block value -%}
 <div class="value">
-    {% if value %}<a href="{{ value|e }}">{{ value.rsplit('/', 1)[-1]|e }}</a>{% endif %}
+    {% if value %}<a href="{{ value|e }}"{% if _val_style %} style="{{ _val_style|e }}"{% endif %}>{{ value.rsplit('/', 1)[-1]|e }}</a>{% endif %}
 </div>
 {%- endblock -%}
