@@ -1106,7 +1106,7 @@ class TypstEmitter:
 		from contextlib import suppress
 		from xml.etree import ElementTree
 
-		from PIL import Image
+		from PIL import Image, ImageFile
 
 		if not src:
 			return None
@@ -1119,19 +1119,21 @@ class TypstEmitter:
 			kind = filetype.image_match(data)
 			with suppress(OSError, SyntaxError, Image.DecompressionBombError):
 				if kind and kind.extension in ("png", "apng", "jpg", "gif", "webp"):
-					with Image.open(io.BytesIO(data)) as image:
-						# Typst rejects a cut GIF, which verify() does not check
-						if kind.extension == "gif":
-							image.load()
-						else:
+					# Typst rejects a cut GIF; verify() skips GIFs, and load() passes one once
+					# frappe.utils.image sets LOAD_TRUNCATED_IMAGES, which Parser does not read
+					if kind.extension == "gif":
+						parser = ImageFile.Parser()
+						parser.feed(data)
+						parser.close()
+					else:
+						with Image.open(io.BytesIO(data)) as image:
 							image.verify()
 					name = self._asset("png" if kind.extension == "apng" else kind.extension, data)
-				elif (
-					not kind
-					and src.split("?", 1)[0].lower().endswith(".svg")
-					and ElementTree.fromstring(data).tag.rpartition("}")[2] == "svg"
-				):
-					name = self._asset("svg", data)
+				elif not kind and src.split("?", 1)[0].lower().endswith(".svg"):
+					# Typst reads every SVG as UTF-8, whatever encoding its XML declaration names
+					root = ElementTree.fromstring(data, ElementTree.XMLParser(encoding="utf-8"))
+					if root.tag.rpartition("}")[2] == "svg":
+						name = self._asset("svg", data)
 		self._embedded[src] = name
 		return name
 
