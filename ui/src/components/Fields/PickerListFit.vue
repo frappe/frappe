@@ -60,7 +60,7 @@ function makeRoom() {
 // flipping it above; a list taller than that scrolls.
 function fitBelow() {
 	const row = box.value?.getBoundingClientRect();
-	scroller ??= list?.querySelector<HTMLElement>('[role="presentation"]') ?? null;
+	const scroller = findScroller();
 	if (!row || !scroller) return;
 	if (ownMaxHeight === null) ownMaxHeight = getComputedStyle(scroller).maxHeight;
 	const room = `${Math.max(innerHeight - row.bottom - BELOW_GAP, 0)}px`;
@@ -68,10 +68,21 @@ function fitBelow() {
 		!ownMaxHeight || ownMaxHeight === "none" ? room : `min(${ownMaxHeight}, ${room})`;
 }
 
+// Chrome makes a list that overflows a Tab stop. A Tab from the last row would land in it, not leave the row.
+function leaveTabOrder() {
+	findScroller()?.setAttribute("tabindex", "-1");
+}
+
+function findScroller() {
+	scroller ??= list?.querySelector<HTMLElement>('[role="presentation"]') ?? null;
+	return scroller;
+}
+
 onMounted(() => {
 	list = marker.value?.closest<HTMLElement>('[data-slot="content"]') ?? null;
 	makeRoom();
 	fitBelow();
+	leaveTabOrder();
 	addEventListener("resize", fitBelow);
 	addEventListener("scroll", fitBelow, true);
 	const bound = box.value?.closest<HTMLElement>("[data-picker-bound]")?.getBoundingClientRect();
