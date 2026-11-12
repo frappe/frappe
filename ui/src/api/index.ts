@@ -305,6 +305,23 @@ export function bulkWorkflowActions(
   return request<string[]>("POST", path, { body: selection, signal });
 }
 
+/** What a bulk print asks for: the records (`names`, or `filters`) and how to print them. */
+export type BulkPrintBody = BulkSelection & {
+  print_format?: string;
+  letterhead?: string;
+  no_letterhead?: boolean;
+  page_size?: string;
+};
+
+/** Starts one merged PDF of the records; it always runs in the background. */
+export function bulkPrintDocuments(
+  doctype: string,
+  body: BulkPrintBody,
+  { signal }: CallOptions = {}
+): Promise<Envelope<BulkQueued>> {
+  return request<BulkQueued>("POST", `/document/${segment(doctype)}/bulk_print`, { body, signal });
+}
+
 /** Renames through `frappe.client.rename_doc`; the old name leaves the cache, as a delete's does. */
 export function renameDocument(
   doctype: string,

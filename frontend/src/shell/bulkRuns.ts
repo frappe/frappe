@@ -34,6 +34,8 @@ export interface BulkResult {
 	done: BulkRecordRef[];
 	failed: BulkFailure[];
 	queued?: BulkRecordRef[];
+	/** A bulk print's merged PDF; absent when every record failed. */
+	file_url?: string;
 }
 
 export interface BulkRun {

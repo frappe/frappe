@@ -178,6 +178,7 @@ describe("useBulkBar", () => {
 		const { scope, selection } = scopeOf(2, { total: 10, hasNextPage: true });
 		const perform = vi.fn();
 		const askDelete = vi.fn();
+		const askPrint = vi.fn();
 		const supplied: Array<() => Array<{ item: { name: string } }>> = [];
 		let result!: ReturnType<typeof useBulkBar>;
 		const root = document.createElement("div");
@@ -196,13 +197,14 @@ describe("useBulkBar", () => {
 						askDelete,
 						cursor: ref(null),
 						table: () => null,
+						askPrint,
 					});
 					return () => null;
 				},
 			})
 		);
 		app.provide("boot", boot).mount(root);
-		return { result, lists, selection, scope, perform, askDelete, supplied, app };
+		return { result, lists, selection, scope, perform, askDelete, askPrint, supplied, app };
 	}
 
 	const open = { bulk_actions: true, bulk_operation_limit: 500 };
@@ -215,12 +217,26 @@ describe("useBulkBar", () => {
 		const { layout } = result;
 		expect(labels(layout.value.menu)).toEqual([
 			["ToDo", ["restore"]],
+			["Print and export", ["Print"]],
 			["Submit, cancel and delete", ["Delete"]],
 		]);
 
 		layout.value.menu[0].options[0].onClick();
 		selection.value = ["C"];
 		expect(perform).toHaveBeenCalledWith(expect.objectContaining({ name: "restore" }), ["R0", "R1"]);
+		app.unmount();
+	});
+
+	it("puts Print in the output group, behind the print right, and asks the dialog to open", () => {
+		const { supplied, askPrint, app } = bar(open);
+		const print = supplied[0]().find(({ item }) => item.name === "print")!.item as unknown as {
+			group: string;
+			right: string;
+			run: () => void;
+		};
+		expect([print.group, print.right]).toEqual(["output", "print"]);
+		print.run();
+		expect(askPrint).toHaveBeenCalledOnce();
 		app.unmount();
 	});
 
@@ -246,6 +262,22 @@ describe("useBulkBar", () => {
 		expect(menu[0].options[0].disabled).toBe(true);
 		expect(trash?.disabled).toBe(false);
 		app.unmount();
+	});
+
+	it("keeps Print on while Select all is on, because it takes the whole scope", () => {
+		const { result, selection, scope, app } = bar(open);
+		selection.value = ["R0", "R1"];
+		scope.selectAll();
+		const print = result.layout.value.menu.flatMap((group) => group.options).find(({ label }) => label === "Print");
+		expect(print?.disabled).toBe(false);
+		app.unmount();
+	});
+
+	it("leaves Print to its own cap, which the dialog checks", () => {
+		const over = bar({ bulk_actions: true, bulk_operation_limit: 1 });
+		const print = over.result.layout.value.menu.flatMap((group) => group.options).find(({ label }) => label === "Print");
+		expect(print?.disabled).toBe(false);
+		over.app.unmount();
 	});
 
 	it("disables the actions over the cap", () => {

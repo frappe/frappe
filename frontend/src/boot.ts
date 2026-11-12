@@ -60,6 +60,8 @@ export type Boot = {
 	// The user's bulk-action switch and the site's cap on one bulk run.
 	bulk_actions: boolean;
 	bulk_operation_limit: number;
+	// Print Settings' cap on the records one bulk print takes.
+	max_bulk_print_docs: number;
 
 	// --- routing ---
 	//
