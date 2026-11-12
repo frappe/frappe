@@ -242,6 +242,15 @@ class TestSubmitFeedback(IntegrationTestCase):
 			with self.subTest(user), self.assertRaises(frappe.PermissionError):
 				submit_feedback(name, rating, comment=comment)
 
+	def test_a_viewer_of_a_shared_chat_does_not_see_its_feedback(self):
+		run = self._run(feedback_rating="Down", feedback_comment="My manager is slow.")
+		session = frappe.db.get_value("Flow Run", run, "session")
+		self.assertEqual(api.session(session)["runs"][0]["feedback_comment"], "My manager is slow.")
+		viewer = _ensure_user("feedback-chat-viewer@example.com")
+		frappe.share.add("Flow Session", session, viewer)
+		frappe.set_user(viewer)
+		self.assertEqual(api.session(session)["runs"][0].keys(), {"name", "daemon_run_id", "status", "error"})
+
 
 class ApiCase(IntegrationTestCase):
 	"""A model, an agent and a scripted flow server behind the endpoints."""

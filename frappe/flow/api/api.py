@@ -23,7 +23,8 @@ if TYPE_CHECKING:
 FEEDBACK_COMMENT_LIMIT = 500
 TITLE_LIMIT = 140
 LIST_LIMIT = 100
-RUN_FIELDS = ["name", "daemon_run_id", "status", "error", "feedback_rating", "feedback_comment"]
+RUN_FIELDS = ["name", "daemon_run_id", "status", "error"]
+FEEDBACK_FIELDS = ["feedback_rating", "feedback_comment"]
 REASONING_EFFORTS = ("off", "minimal", "low", "medium", "high", "xhigh", "max")
 # What the /flow page's settings manage; boot reports the caller's rights on each.
 SETTINGS_DOCTYPES = (
@@ -476,6 +477,7 @@ def _load_session(session: str, ptype: str) -> FlowSession:
 
 def _session_payload(doc: FlowSession) -> dict[str, Any]:
 	model = doc.model or frappe.get_cached_value("Flow Agent", doc.agent, "model")
+	read_only = not frappe.has_permission("Flow Session", "write", doc)
 	return {
 		"name": doc.name,
 		"title": doc.title,
@@ -486,9 +488,12 @@ def _session_payload(doc: FlowSession) -> dict[str, Any]:
 		"owner_name": get_fullname(doc.owner),
 		"general_access": doc.general_access,
 		"approval_mode": doc.approval_mode,
-		"read_only": not frappe.has_permission("Flow Session", "write", doc),
+		"read_only": read_only,
 		"runs": frappe.get_all(
-			"Flow Run", filters={"session": doc.name}, fields=RUN_FIELDS, order_by="creation asc"
+			"Flow Run",
+			filters={"session": doc.name},
+			fields=RUN_FIELDS if read_only else [*RUN_FIELDS, *FEEDBACK_FIELDS],
+			order_by="creation asc",
 		),
 	}
 
