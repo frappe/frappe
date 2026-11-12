@@ -29,7 +29,7 @@
 			<button
 				v-if="canWrite"
 				type="button"
-				class="min-w-0 rounded-full focus-visible:outline-none focus-visible:ring focus-visible:ring-outline-gray-3"
+				class="flex min-w-0 rounded-full focus-visible:outline-none focus-visible:ring focus-visible:ring-outline-gray-3"
 				aria-haspopup="listbox"
 				:aria-label="__('Edit tags: {0}', [tag])"
 				:data-tag-chip="tag"
