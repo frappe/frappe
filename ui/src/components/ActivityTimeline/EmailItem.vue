@@ -33,7 +33,7 @@
 					</div>
 					<div
 						v-if="subject || email.data.to || email.data.cc || email.data.bcc"
-						class="pb-2 text-p-sm text-ink-gray-5"
+						class="flex flex-col gap-1 pb-3 text-p-base text-ink-gray-5"
 					>
 						<div v-if="email.data.to || email.data.cc || email.data.bcc">
 							<template
