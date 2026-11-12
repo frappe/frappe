@@ -5,7 +5,7 @@ import { serializeOrderBy } from "@framework/ui/SortBy";
 import { useDocPermissions } from "@framework/ui/useDocPermissions";
 import { useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { currentSession } from "@framework/ui/useSession";
-import { computed, inject, reactive, watch, type ComputedRef, type Ref } from "vue";
+import { computed, inject, reactive, ref, watch, type ComputedRef, type Ref } from "vue";
 import type { RouteLocationRaw } from "vue-router";
 import type { Boot } from "@/boot";
 import type { ListMeta } from "@/list/defaults";
@@ -15,7 +15,7 @@ import { rowActionFields } from "@/listPage/types";
 import { useRememberedPageSize } from "@/list/pageState";
 import { queryFromAddress } from "@/list/query";
 import { cardSeenClass, isUnseen } from "@/list/seen";
-import { deleteRow, filtersDict, type DeleteOutcome } from "@/list/useListView";
+import { deleteRow, deleteRows, filtersDict, type DeleteOutcome } from "@/list/useListView";
 import { useListRows, type ListRow, type ListRows } from "@/list/useListRows";
 import type { View } from "@/list/view";
 import { routeFor } from "@/router/routeFor";
@@ -46,10 +46,14 @@ export interface CardsView extends ListRows {
 	/** Who the rows' owners are, as far as they have been read. */
 	people: Record<string, Person>;
 	pageSize: Ref<number>;
+	/** The names of the selected cards, in the order they were picked. */
+	selection: Ref<string[]>;
 	cardLink: (row: ListRow) => RouteLocationRaw;
 	/** The title's class for the row's seen state; "" when the doctype does not track seen. */
 	titleClassOf: (row: ListRow) => string;
 	deleteOne: (name: string) => Promise<DeleteOutcome>;
+	/** Deletes the selection in one bulk request; the page confirms first. */
+	deleteSelection: () => Promise<DeleteOutcome>;
 }
 
 export function useCardsView(view: View, lists: Pick<ListPageLists, "rowActions">): CardsView {
@@ -92,6 +96,19 @@ export function useCardsView(view: View, lists: Pick<ListPageLists, "rowActions"
 
 	const deleteOne = (name: string) => deleteRow(rows, name);
 
+	const selection = ref<string[]>([]);
+	// A card that left the page leaves the selection; the rest stay selected across a load-more.
+	watch(rows.rows, (current) => {
+		const present = new Set(current.map((row) => row.name));
+		selection.value = selection.value.filter((name) => present.has(name));
+	});
+
+	async function deleteSelection(): Promise<DeleteOutcome> {
+		const outcome = await deleteRows(doctype, rows, selection.value);
+		selection.value = [];
+		return outcome;
+	}
+
 	const user = currentSession()?.user.name ?? null;
 	const titleClassOf = (row: ListRow) =>
 		listMeta.value?.track_seen ? cardSeenClass(isUnseen(row, user)) : "";
@@ -102,9 +119,11 @@ export function useCardsView(view: View, lists: Pick<ListPageLists, "rowActions"
 		rowActions,
 		people,
 		pageSize,
+		selection,
 		cardLink: (row) => routeFor(doctype, row.name),
 		titleClassOf,
 		deleteOne,
+		deleteSelection,
 	};
 }
 

@@ -1,5 +1,14 @@
 <!-- The Cards type's renderer: a grid of cards, the List's footer, and the card settings among the controls. -->
 <template>
+	<Teleport v-if="host.bar.value && selection.length" :to="host.bar.value">
+		<BulkBar
+			:count="selection.length"
+			:cap="bulk.cap"
+			:layout="bulk.layout.value"
+			:locked="bulk.locked"
+			@clear="selection = []"
+		/>
+	</Teleport>
 	<Teleport v-if="host.controls.value" :to="host.controls.value">
 		<CardSettings
 			:meta="meta"
@@ -27,6 +36,9 @@
 				:titleClass="titleClassOf(row)"
 				:menu="menuFor(row)"
 				:person="people[String(row.owner)]"
+				:selected="selection.includes(row.name)"
+				:selecting="selection.length > 0"
+				@toggle="toggle(row.name)"
 			/>
 		</div>
 	</div>
@@ -44,20 +56,26 @@
 		@count="countExact"
 	/>
 
-	<DeleteDialog v-model="confirmingDelete" :count="1" :run="() => deleteOne(target)" />
+	<DeleteDialog
+		v-model="confirmingDelete"
+		:count="target ? 1 : selection.length"
+		:run="() => (target ? deleteOne(target) : deleteSelection())"
+	/>
 </template>
 
 <script setup lang="ts">
 import { ListFooter } from "@framework/ui/experimental/List";
 import { useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { Skeleton } from "frappe-ui";
-import { computed, ref } from "vue";
+import { onScopeDispose, ref, watchEffect } from "vue";
 import { __ } from "@/i18n";
 import type { ListRow } from "@/list/useListRows";
 import type { View } from "@/list/view";
+import BulkBar from "@/pages/list/BulkBar.vue";
 import DeleteDialog from "@/pages/list/DeleteDialog.vue";
 import type { RendererHost } from "@/pages/list/renderer";
-import { rowActionEntries, rowMenuOptions } from "@/pages/list/rowActions";
+import { rowMenuOptions } from "@/pages/list/rowActions";
+import { useBulkBar } from "@/pages/list/useBulkBar";
 import { pageGutter } from "@/shell/PageFrame.vue";
 import { failedState } from "@/shell/pageState";
 import PageState from "@/shell/PageState.vue";
@@ -73,6 +91,7 @@ const {
 	rowActions,
 	people,
 	pageSize,
+	selection,
 	rows,
 	loading,
 	error,
@@ -89,6 +108,7 @@ const {
 	cardLink,
 	titleClassOf,
 	deleteOne,
+	deleteSelection,
 } = useCardsView(props.view, props.host.lists);
 
 props.host.onCreate(reload);
@@ -104,23 +124,43 @@ const gridStyle = {
 		"repeat(auto-fill, minmax(max(240px, calc((100% - 3 * var(--page-gutter)) / 4)), 1fr))",
 };
 
-const listActs = props.host.acts(() => [deleteEntry(), ...rowActionEntries(rowActions.value)], {
-	rows: () => rows.value,
-	selection: () => [],
+// The bulk delete is the surface's `delete`; a card's own menu runs `delete_card` on that card.
+const bulk = useBulkBar({
+	host: props.host,
+	doctype: props.view.doctype,
+	selection,
+	rows,
+	rowActions,
 	reload,
+	askDelete: () => ask(""),
+	extraEntries: () => [deleteCardEntry()],
 });
+const { listActs } = bulk;
 
-function deleteEntry() {
+// The page swaps its controls row for the bar while this is true.
+watchEffect(() => (props.host.selecting.value = selection.value.length > 0));
+onScopeDispose(() => (props.host.selecting.value = false));
+
+function ask(name: string) {
+	target.value = name;
+	confirmingDelete.value = true;
+}
+
+function toggle(name: string) {
+	selection.value = selection.value.includes(name)
+		? selection.value.filter((key) => key !== name)
+		: [...selection.value, name];
+}
+
+function deleteCardEntry() {
 	return {
 		item: {
-			name: "delete",
+			name: "delete_card",
 			label: __("Delete"),
 			icon: "lucide-trash-2",
 			right: "delete",
-			run: (_context: unknown, row: ListRow) => {
-				target.value = row.name;
-				confirmingDelete.value = true;
-			},
+			palette: false,
+			run: (_context: unknown, row: ListRow) => ask(row.name),
 		},
 		hidden: false,
 	};
@@ -128,7 +168,7 @@ function deleteEntry() {
 
 function menuFor(row: ListRow) {
 	const options = rowMenuOptions(row, rowActions.value, listActs);
-	const del = listActs.drawn("delete");
+	const del = listActs.drawn("delete_card");
 	return del
 		? [
 				...options,

@@ -1,5 +1,6 @@
 // The list's bulk actions: the built-ins, the acts that run them on the selection, and the bar's layout.
 import { computed, inject, type ComputedRef, type Ref } from "vue";
+import type { ActEntry } from "@/acts/dispatcher";
 import type { Boot } from "@/boot";
 import { __ } from "@/i18n";
 import type { ListRow, ListRowAction } from "@/listPage/types";
@@ -16,6 +17,8 @@ export interface BulkBarOptions {
 	rowActions: Ref<ListRowAction[]>;
 	reload: () => void;
 	askDelete: () => void;
+	/** Acts the renderer adds to its own surface beside the bulk and row ones. */
+	extraEntries?: () => ActEntry[];
 }
 
 export interface BulkBar {
@@ -47,6 +50,7 @@ export function useBulkBar(options: BulkBarOptions): BulkBar {
 		() => [
 			...(selection.value.length && boot.bulk_actions ? bulkEntries() : []),
 			...rowActionEntries(options.rowActions.value),
+			...(options.extraEntries?.() ?? []),
 		],
 		{ rows: () => options.rows.value, selection: () => selection.value, reload: options.reload }
 	);
