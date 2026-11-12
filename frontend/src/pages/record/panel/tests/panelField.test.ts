@@ -22,6 +22,7 @@ import {
 	UpdateKey,
 } from "@framework/ui/FormLayout/types";
 import type { FieldNode } from "@framework/ui/FormLayout/types";
+import { FieldErrorsKey } from "@framework/ui/fields/types";
 import { PanelContextKey } from "../context";
 import PanelField from "../PanelField.vue";
 
@@ -34,7 +35,12 @@ afterEach(() => {
 	document.body.innerHTML = "";
 });
 
-async function mount(field: FieldNode, onDetails: boolean, page?: unknown) {
+async function mount(
+	field: FieldNode,
+	onDetails: boolean,
+	page?: unknown,
+	errors: Record<string, string> = {}
+) {
 	const expanded: FieldNode[] = [];
 	const root = document.createElement("div");
 	document.body.appendChild(root);
@@ -49,6 +55,7 @@ async function mount(field: FieldNode, onDetails: boolean, page?: unknown) {
 	app.provide(ResolveFieldKey, () => Control);
 	app.provide(PanelContextKey, { onDetails: () => onDetails } as any);
 	app.provide(ControlPageKey, ref(page));
+	app.provide(FieldErrorsKey, ref(errors));
 	app.mount(root);
 	mounted.push(app);
 	await nextTick();
@@ -93,5 +100,47 @@ describe("a summary row", () => {
 		const stock = await mount(json, false, { name: "the-page" });
 		await click(stock.root);
 		expect(stock.root.querySelector("[data-control]")!.hasAttribute("page")).toBe(false);
+	});
+});
+
+describe("a script's own control", () => {
+	const Probe = defineComponent({ render: () => h("input", { "data-probe": "" }) });
+	const scripted = (ui: object): FieldNode =>
+		({ ...json, ui: { component: Probe, ...ui } } as FieldNode);
+
+	it("sits in the row box, which draws the hover fill and the focus look on :focus-within", async () => {
+		const { root } = await mount(scripted({}), false);
+		await click(root);
+		const box = root.querySelector("[data-probe]")!.closest<HTMLElement>(".field-box")!;
+		expect(box).not.toBeNull();
+		expect(box.className).toContain("hover:bg-surface-gray-2");
+		expect(box.className).toContain("focus-within:bg-surface-gray-2");
+		expect(box.className).toContain("focus-within:ring-outline-gray-3");
+	});
+
+	it("draws bare with `ownBox` at rest and once open: no box, so no hover fill or focus ring", async () => {
+		const { root } = await mount(scripted({ ownBox: true }), false);
+		expect(root.querySelector(".field-box")).toBeNull();
+		expect(root.querySelector("[data-fieldname]")).not.toBeNull();
+		await click(root);
+		expect(root.querySelector("[data-probe]")).not.toBeNull();
+		expect(root.querySelector(".field-box")).toBeNull();
+	});
+
+	it("keeps the box when `ownBox` is set on a stock control", async () => {
+		const stock: FieldNode = { ...json, ui: { ownBox: true } } as FieldNode;
+		const { root } = await mount(stock, false);
+		expect(root.querySelector(".field-box")).not.toBeNull();
+		await click(root);
+		expect(root.querySelector("[data-control]")!.closest(".field-box")).not.toBeNull();
+	});
+
+	it("still shows the error text under a bare control", async () => {
+		const { root } = await mount(scripted({ ownBox: true }), false, undefined, {
+			settings: "Bad JSON",
+		});
+		await click(root);
+		expect(root.querySelector(".field-box")).toBeNull();
+		expect(root.textContent).toContain("Bad JSON");
 	});
 });

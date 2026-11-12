@@ -1289,6 +1289,7 @@ both. A part beside a field is `page.form`'s to add, above.
 | `precision` | Decimal places for a numeric field. |
 | `cannot_add_rows`, `cannot_delete_rows` | Booleans, or `0`/`1`. A Table field's grid hides every way to add a row (Add Row, insert, duplicate, a paste past the last row), or to delete one. A script can still add or remove rows. |
 | `component`, `props` | Another control in the field's slot, and what to bind onto it. The control also receives `page`, the record's `page`, as a prop; a stock control does not. |
+| `own_box` | Boolean, or `0`/`1`. With `component`, the side panel draws the row bare in every state (no hover fill, no box on focus), and your control draws its own box and focus look. Without `component` it does nothing. |
 
 A key not named here is dropped with a development warning. `get(fieldname)` answers the
 field as it resolves now, post-override and post-`depends_on`, and is read-only.

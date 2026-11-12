@@ -35,6 +35,12 @@ defineProps<{
 .field-box :deep(input[data-slot="control"][type="password"]) {
 	padding-top: 8px;
 }
+/* The box ring is the only focus mark: hide a control's own outline (kept transparent for forced colors) and the forms plugin's ring, not a row button's. */
+.field-box :deep(:focus-visible:not(button, a, [role="button"])),
+.field-box :deep(:is(input, textarea, select):focus) {
+	outline: 2px solid transparent;
+	box-shadow: none;
+}
 .field-box[data-error] :deep([data-slot="control"]) {
 	color: var(--ink-red-6);
 }

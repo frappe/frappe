@@ -49,7 +49,7 @@ export interface BuildLayoutOptions {
 
 /**
  * Compose several decorators into one. Each is run against the field meta and
- * their returned overlays are merged: `component` is last-wins, `props` shallow-
+ * their returned overlays are merged: `component` and `ownBox` are last-wins, `props` shallow-
  * merge, and `on` handlers **concat per event into an array so every handler
  * fires** (Vue's `v-on` accepts a handler array) — styling and scripting can
  * both contribute a `change`/`click` without one clobbering the other.
@@ -62,6 +62,7 @@ export function compose(...decorators: Decorator[]): Decorator {
       if (!ui) continue;
       merged ??= {};
       if (ui.component) merged.component = ui.component;
+      if (ui.ownBox !== undefined) merged.ownBox = ui.ownBox;
       if (ui.props) merged.props = { ...merged.props, ...ui.props };
       if (ui.on) {
         const on = (merged.on ??= {});

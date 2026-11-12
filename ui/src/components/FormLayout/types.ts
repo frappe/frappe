@@ -33,6 +33,8 @@ export type {
 export interface FieldUI {
   /** Structural swap for THIS node only (e.g. a themed Button). */
   component?: Component;
+  /** With `component`, the side panel draws the open control bare: it draws its own box and error look. */
+  ownBox?: boolean;
   /** Presentation props v-bound onto the control (variant / theme / size …). */
   props?: Record<string, unknown>;
   /**

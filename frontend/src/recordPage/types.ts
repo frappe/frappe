@@ -262,6 +262,8 @@ export interface PageFieldPatch {
   component?: Component;
   /** Props bound onto whichever component renders the field. */
   props?: Record<string, any>;
+  /** With `component`, the side panel draws the control bare, and the control draws its own box. */
+  own_box?: boolean | 0 | 1;
 }
 
 /** One choice of a `Select` or `Autocomplete`: the value saved and the label shown. */
@@ -277,6 +279,7 @@ export interface PageField extends PageFieldPatch {
   reqd?: boolean;
   cannot_add_rows?: boolean;
   cannot_delete_rows?: boolean;
+  own_box?: boolean;
 }
 
 /**
