@@ -248,6 +248,7 @@ def run_records(
 
 	for index, record in enumerate(selection.records, start=1):
 		frappe.db.savepoint("bulk_record")
+		frappe.flags.error_message = None  # reason_of reads it: it must be this record's
 		try:
 			outcome = run_one(record.doctype, record.name, **{**params, **(record.kwargs or {})})
 		except Exception as e:
