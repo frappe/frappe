@@ -17,7 +17,7 @@ from werkzeug.routing import Rule
 import frappe
 import frappe.client
 from frappe import _, cint, cstr, get_newargs, is_whitelisted
-from frappe.api import activity, bulk_actions, collaboration, discovery, files
+from frappe.api import activity, bulk_actions, bulk_collaboration, collaboration, discovery, files
 from frappe.api.include import (
 	add_document_parts,
 	add_list_parts,
@@ -553,6 +553,26 @@ url_rules = [
 	Rule("/document/File", methods=["POST"], endpoint=files.create_file),
 	Rule("/document/<doctype>/bulk_delete", methods=["POST"], endpoint=bulk_actions.bulk_delete_docs),
 	Rule("/document/<doctype>/bulk_update", methods=["POST"], endpoint=bulk_actions.bulk_update_docs),
+	Rule(
+		"/document/<doctype>/bulk_assignments", methods=["POST"], endpoint=bulk_collaboration.bulk_assignments
+	),
+	Rule(
+		"/document/<doctype>/bulk_assignments",
+		methods=["DELETE"],
+		endpoint=bulk_collaboration.bulk_clear_assignments,
+	),
+	Rule(
+		"/document/<doctype>/bulk_assignment_rule",
+		methods=["POST"],
+		endpoint=bulk_collaboration.bulk_assignment_rule,
+	),
+	Rule("/document/<doctype>/bulk_tags", methods=["POST"], endpoint=bulk_collaboration.bulk_tags),
+	Rule("/document/<doctype>/bulk_tags", methods=["DELETE"], endpoint=bulk_collaboration.bulk_remove_tags),
+	Rule("/document/<doctype>/bulk_follows", methods=["POST"], endpoint=bulk_collaboration.bulk_follows),
+	Rule("/document/<doctype>/bulk_follows", methods=["DELETE"], endpoint=bulk_collaboration.bulk_unfollows),
+	Rule("/document/<doctype>/bulk_shares", methods=["POST"], endpoint=bulk_collaboration.bulk_shares),
+	Rule("/document/<doctype>/bulk_seen", methods=["POST"], endpoint=bulk_collaboration.bulk_seen),
+	Rule("/document/<doctype>/bulk_seen", methods=["DELETE"], endpoint=bulk_collaboration.bulk_unseen),
 	Rule("/document/<doctype>/<path:name>/", methods=["GET"], endpoint=read_doc),
 	Rule(
 		"/document/<doctype>/<path:name>/copy",
