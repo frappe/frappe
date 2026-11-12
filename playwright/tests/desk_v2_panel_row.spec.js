@@ -1966,4 +1966,42 @@ test.describe("Desk v2 side panel Tab walk", () => {
 		await page.keyboard.press("Tab");
 		await expect(page.locator('[data-slot="bubble"]')).toHaveCount(0);
 	});
+
+	test("a focused section header button grows its ring outward and its text does not move", async ({
+		page,
+	}) => {
+		const button = page.locator('[data-section="walk"] button[aria-expanded]');
+		const measure = () =>
+			button.evaluate((el) => {
+				const range = document.createRange();
+				range.selectNodeContents(el.firstChild);
+				const text = range.getBoundingClientRect();
+				const box = el.getBoundingClientRect();
+				const style = getComputedStyle(el);
+				return {
+					textX: text.x,
+					textY: text.y,
+					chevronX: el.lastElementChild.getBoundingClientRect().x,
+					roomLeft: text.x - box.x,
+					ring: style.boxShadow,
+					radius: style.borderTopLeftRadius,
+				};
+			});
+		const rest = await measure();
+		await page.keyboard.press("Shift+Tab");
+		await button.focus();
+		await expect(button).toBeFocused();
+		const focused = await measure();
+		expect(focused.textX).toBe(rest.textX);
+		expect(focused.textY).toBe(rest.textY);
+		expect(focused.chevronX).toBe(rest.chevronX);
+		expect(focused.roomLeft).toBeCloseTo(6, 0);
+		const rowRadius = await page
+			.locator(".field-box")
+			.first()
+			.evaluate((el) => getComputedStyle(el).borderTopLeftRadius);
+		expect(focused.radius).toBe(rowRadius);
+		expect(rest.ring).toBe("none");
+		expect(focused.ring).toContain("inset");
+	});
 });

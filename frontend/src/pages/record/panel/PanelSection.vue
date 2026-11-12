@@ -15,7 +15,7 @@
 	>
 		<button
 			type="button"
-			class="flex items-center gap-1 rounded-4 py-1 text-base font-semibold text-ink-gray-8"
+			class="-mx-1.5 flex items-center gap-1 rounded-4 px-1.5 py-1 text-base font-semibold text-ink-gray-8 focus-visible:bg-surface-gray-2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-outline-gray-3"
 			:aria-expanded="open"
 			@click.stop="$emit('toggle')"
 		>
