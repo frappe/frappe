@@ -711,7 +711,7 @@ class PrintFormatGenerator:
 			ensure_typst_fonts,
 			letterhead_blockers,
 			typst_blockers,
-			typst_font_paths,
+			typst_fonts,
 		)
 
 		blockers = typst_blockers(self.print_format, self.layout)
@@ -755,7 +755,7 @@ class PrintFormatGenerator:
 				measure_path = write("measure.typ", emitter.measure_source())
 				for label in list(heights):
 					found = json.loads(
-						typst.query(measure_path, f"<{label}>", root=tmp, font_paths=typst_font_paths())
+						typst.query(measure_path, f"<{label}>", root=tmp, font_paths=typst_fonts())
 					)
 					if found:
 						heights[label] = float(found[0].get("value") or 0)
@@ -769,7 +769,7 @@ class PrintFormatGenerator:
 			write_assets(assets)
 			# root pins file access to the tempdir — matters once formats can
 			# carry raw Typst markup (Typst blocks)
-			pdf = typst.compile(path, root=tmp, font_paths=typst_font_paths())
+			pdf = typst.compile(path, root=tmp, font_paths=typst_fonts())
 		if password:
 			pdf = encrypt_pdf(pdf, password)
 		return pdf

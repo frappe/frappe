@@ -275,6 +275,29 @@ def typst_font_paths() -> list[str]:
 	return [os.path.abspath(path)] if os.path.isdir(path) else []
 
 
+_typst_fonts = {}
+
+
+def typst_fonts():
+	"""The fonts Typst prints with. Scanning every system font costs more than the
+	compile itself, so one set is kept per process and rebuilt when the site or its
+	cached families change."""
+	import os
+
+	import typst
+
+	paths = typst_font_paths()
+	# family dirs never hold a dot; dotted entries are fetch sentinels and scratch dirs
+	families = sorted(name for name in os.listdir(paths[0]) if "." not in name) if paths else []
+	key = (*paths, *families)
+	fonts = _typst_fonts.get(key)
+	if fonts is None:
+		fonts = typst.Fonts(font_paths=paths)
+		_typst_fonts.clear()
+		_typst_fonts[key] = fonts
+	return fonts
+
+
 def compile_typst_source(source: str) -> bytes:
 	"""Compile standalone Typst markup in a confined tempdir, against the same
 	font set prints use."""
@@ -288,7 +311,7 @@ def compile_typst_source(source: str) -> bytes:
 		# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
 		with open(path, "w") as f:
 			f.write(source)
-		return typst.compile(path, root=tmp, font_paths=typst_font_paths())
+		return typst.compile(path, root=tmp, font_paths=typst_fonts())
 
 
 def font_family(font: str | None) -> str:
