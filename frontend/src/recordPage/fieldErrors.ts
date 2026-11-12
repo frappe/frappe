@@ -13,7 +13,7 @@ import {
 } from "@framework/ui/fields/types";
 import type { FormLayoutSchema } from "@framework/ui/FormLayout/types";
 import { shownFields } from "./requiredFields";
-import type { Staging } from "@/pageEngine/staging";
+import { HeldLists, OpenStack, type StageToken, type Staging } from "@/pageEngine/staging";
 
 interface Mark {
   message: FieldError;
@@ -28,17 +28,24 @@ export class FieldErrors implements Staging {
   readonly drawn = shallowRef<Readonly<Record<string, FieldError>>>({});
   private shown: Marks = new Map();
   private staged: Marks | null = null;
-  private depth = 0;
+  private opened = new OpenStack();
+  /** The marks and unmarks staged while a keeping hold was open, which a replay in it puts back. */
+  private held = new HeldLists<[key: string, mark: Mark | null]>();
 
   mark(address: FieldAddress, message: FieldError, source = "") {
     const marks = this.staged ?? new Map(this.shown);
-    marks.set(fieldErrorKey(address), { message, source });
+    const key = fieldErrorKey(address);
+    const mark = { message, source };
+    marks.set(key, mark);
+    this.keep(key, mark);
     if (!this.staged) this.draw(marks);
   }
 
   unmark(address: FieldAddress) {
     const marks = this.staged ?? new Map(this.shown);
-    marks.delete(fieldErrorKey(address));
+    const key = fieldErrorKey(address);
+    marks.delete(key);
+    this.keep(key, null);
     if (!this.staged) this.draw(marks);
   }
 
@@ -46,6 +53,7 @@ export class FieldErrors implements Staging {
   clear(address: FieldAddress) {
     const key = fieldErrorKey(address);
     this.staged?.delete(key);
+    this.held.removeWhere(([one]) => one === key);
     if (!this.shown.has(key)) return;
     const marks = new Map(this.shown);
     marks.delete(key);
@@ -55,6 +63,7 @@ export class FieldErrors implements Staging {
   /** A save's start: every mark goes, drawn or staged. */
   clearAll() {
     this.staged?.clear();
+    this.held.clear();
     if (this.shown.size) this.draw(new Map());
   }
 
@@ -99,21 +108,23 @@ export class FieldErrors implements Staging {
     };
   }
 
-  /** A replay rebuilds every mark, so it starts empty. */
-  beginReplay() {
+  /** A replay rebuilds every mark, so it starts empty; the marks a hold set are put back at its commit. */
+  beginReplay(token?: StageToken) {
     this.staged = new Map();
-    this.depth += 1;
+    this.opened.open("replay", token);
   }
 
-  beginHold() {
-    if (!this.depth) this.staged = new Map(this.shown);
-    this.depth += 1;
+  beginHold(keeps = false, token?: StageToken) {
+    if (!this.opened.depth) this.staged = new Map(this.shown);
+    this.opened.open(keeps ? "keeping" : "hold", token);
   }
 
-  commit() {
-    if (!this.depth) return;
-    this.depth -= 1;
-    if (this.depth) return;
+  commit(token?: StageToken) {
+    if (!this.opened.depth) return;
+    const { last, closed, restoreFrom } = this.opened.close(token);
+    if (restoreFrom) this.restoreHeld(restoreFrom);
+    this.held.drop(closed);
+    if (!last) return;
     const staged = this.staged!;
     this.staged = null;
     this.draw(staged);
@@ -122,6 +133,17 @@ export class FieldErrors implements Staging {
   publishStaged(except: ReadonlySet<string>) {
     if (!this.staged) return;
     this.draw(new Map([...this.staged].filter(([, mark]) => !except.has(mark.source))));
+  }
+
+  private keep(key: string, mark: Mark | null) {
+    if (this.staged) this.held.add(this.opened.keeper, [key, mark]);
+  }
+
+  private restoreHeld(hold: StageToken) {
+    for (const [key, mark] of this.held.of(hold)) {
+      if (mark) this.staged!.set(key, mark);
+      else this.staged!.delete(key);
+    }
   }
 
   /** A removed row's cells: their marks have nowhere left to draw. */

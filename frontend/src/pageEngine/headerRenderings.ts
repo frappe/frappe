@@ -1,6 +1,7 @@
 // How the header's one flat list becomes its two zones, and what happens when the
 // right zone asks for more top-level controls than fit.
 import { forwardedProps } from "./drawnProps";
+import { HeldLists, type StageToken } from "./staging";
 import { Surface, type ResolvedItem } from "./surface";
 import { HEADER_ITEM_KEYS } from "./types";
 import type { HeaderItem, HeaderZone, Position } from "./types";
@@ -384,6 +385,8 @@ type AnchorClaim = { verb: string; name: string; anchor: string };
  */
 export class HeaderSurface extends Surface<HeaderItem> {
   private claims: AnchorClaim[] = [];
+  /** The claims a keeping hold made, which a replay in it puts back. */
+  private heldClaims = new HeldLists<AnchorClaim>();
   private said = new Set<string>();
 
   constructor() {
@@ -403,9 +406,19 @@ export class HeaderSurface extends Surface<HeaderItem> {
   }
 
   // Claims are staged with the ops they belong to; a replay rebuilds the list from built-ins.
-  beginReplay() {
+  beginReplay(token?: StageToken) {
     this.claims = [];
-    super.beginReplay();
+    super.beginReplay(token);
+  }
+
+  protected restoreHeld(hold: StageToken) {
+    super.restoreHeld(hold);
+    this.claims.push(...this.heldClaims.of(hold));
+  }
+
+  protected forgetHeld(hold: StageToken) {
+    super.forgetHeld(hold);
+    this.heldClaims.drop(hold);
   }
 
   resolve() {
@@ -417,7 +430,9 @@ export class HeaderSurface extends Surface<HeaderItem> {
 
   private claim(verb: string, name: string, position?: Position) {
     const anchor = position?.before ?? position?.after;
-    if (anchor) this.claims.push({ verb, name, anchor });
+    if (!anchor) return;
+    this.claims.push({ verb, name, anchor });
+    this.heldClaims.add(this.keeper, { verb, name, anchor });
   }
 
   private warnCrossRendering(items: HeaderItem[]) {

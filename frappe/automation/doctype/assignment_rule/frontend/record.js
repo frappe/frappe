@@ -13,8 +13,6 @@ export default {
 		offerTargetFields(page);
 		addDayPresets(page);
 	},
-	document_type: (page) => page.refresh(),
-	rule: (page) => page.refresh(),
 };
 
 function describeRule(page) {

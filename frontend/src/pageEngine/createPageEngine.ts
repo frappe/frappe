@@ -80,6 +80,8 @@ export interface PageEngine<Lists extends PageEngineLists, Extras extends object
   heldActs: ReturnType<typeof createHeldActs>;
   /** Runs every source's handler for `event` in one hold, so its ops paint once. */
   fire: (event: string, detail?: unknown) => Promise<void>;
+  /** `fire` with no hold of its own, for a caller already in one: a nested hold would not be that hold's. */
+  dispatch: (event: string, detail?: unknown) => Promise<void>;
   /** The replay: rebuilds every list from built-ins, then runs every source's `onRefresh`. */
   refresh: (options?: RefreshOptions) => Promise<void>;
   /** Replays and commits before it returns true; false, having run nothing, while sources or permissions load. */
@@ -87,7 +89,7 @@ export interface PageEngine<Lists extends PageEngineLists, Extras extends object
   /** Fetches the `page.cached` keys `paintNow` read; answers when they land or at the late limit. */
   fetchCached: () => Promise<void>;
   /** Runs code outside an event, so its ops paint once, when it finishes. */
-  hold: <T>(work: () => Promise<T> | T) => Promise<T>;
+  hold: <T>(work: () => Promise<T> | T, keeps?: boolean) => Promise<T>;
   /** True once the first replay has painted, or the first paint went ahead without a late source. */
   ready: Ref<boolean>;
   isReplaying: ComputedRef<boolean>;
@@ -204,6 +206,7 @@ export function createPageEngine<Lists extends PageEngineLists, Extras extends o
     lists: spec.lists,
     heldActs,
     fire,
+    dispatch,
     refresh: gate.refresh,
     paintNow: gate.paintNow,
     fetchCached: gate.fetchCached,

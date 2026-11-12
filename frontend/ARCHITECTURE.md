@@ -380,7 +380,7 @@ component group, with its main names.
 | Item schemas (`SurfaceItem`, `Position`, `HeaderItem`, `HeaderZone`, `FrameItem`, `BodyItem`, `ACT_KEYS`, `HEADER_ITEM_KEYS`, `FRAME_ITEM_KEYS`, `BODY_ITEM_KEYS`) | The items the three built-in lists take, and the keys each list reads |
 | [Source](./CONTEXT.md#source) context (`HOST_SOURCE`, `registeringSource`, `runningSource`, `withRegisteringSource`, `withRunningSource`, `Registration`, `Handler`) | Which source is registering or running now, and a source's handlers |
 | [`Surface`](./CONTEXT.md#surface) (`SurfaceVerbs`, `ResolvedItem`, `BUILTIN`) | The class behind each list surface |
-| Staging (`Staging`, `StagedOverlay`, `RESTORED_VIEW`) | Acts wait during a replay and appear at one commit |
+| Staging (`Staging`, `StagedOverlay`, `OpenStack`, `HeldLists`, `StageToken`, `RESTORED_VIEW`) | Acts wait during a replay and appear at one commit; each hold closes by its own token, and a replay in a field edit's hold puts back what that handler drew |
 | Paint gate (`FIRST_PAINT_LIMIT_MS`, `LATE_LIMIT_MS`, `LateRefresh`, `RefreshOptions`) | When the page first paints, how a late `onRefresh` or a first visit's `page.cached` fetch lands, when `onOpen` runs, and the one repaint for background reads on a return visit. `FIRST_PAINT_LIMIT_MS` (500 ms) is the longest the first paint waits for a source. `LATE_LIMIT_MS` (5 s) is the longest it waits for a late part |
 | Held acts (`createHeldActs`, `HeldAct`, `TakeResult`) | One queue for the acts a script asks for during a replay (tab move, panel section open or close, field focus, feed scroll, composer open, settings open). They run after the commit |
 | Header projection (`HeaderSurface`, `projectHeader`, `isEmptyHeader`, `zoneOf`, `containerDisplay`, `surviving`, `hidingDenied`, `HeaderBand`, `HeaderControl`, `HeaderNode`, `HeaderProjection`) | Turns the header list into two zones, nesting and overflow. `hidingDenied` hides each item whose right fails, so a container takes its members with it; the header's draw and the dispatcher's `header` surface both read it |
@@ -415,7 +415,7 @@ component group, with its main names.
 | Page permissions | Rights, roles and field access, ready before handlers run |
 | Read-only guard | The proxy behind the [read-only view](./CONTEXT.md#read-only-view) |
 | Error reports | One Error Log row per script failure, by tier |
-| Field errors (`FieldErrors`) | The marks on a form's fields and row cells, from the mandatory check, a refused save's `fieldErrors` and `page.fields.setError`. A mark clears on its field's edit, at a save's start and on a replay. One made during a replay or a hold lands at its commit |
+| Field errors (`FieldErrors`) | The marks on a form's fields and row cells, from the mandatory check, a refused save's `fieldErrors` and `page.fields.setError`. A mark clears on its field's edit, at a save's start and on a replay, except the marks a field handler set in its edit's hold, which that edit's re-run keeps. One made during a replay or a hold lands at its commit |
 | Mandatory check (`missingRequired`) | Each mandatory field shown after `depends_on` and still empty, child rows included. A save and both form dialogs run it before they send |
 | [Row handles](./CONTEXT.md#row-handle) | Refuse once their row is gone |
 | Feed surfaces | The engine behind `page.activity` and `page.files` |

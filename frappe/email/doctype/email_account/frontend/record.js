@@ -30,10 +30,7 @@ export default {
 		}
 	},
 	beforeSave: (page) => moveReplyTo(page),
-	service: (page) => {
-		applyService(page);
-		return page.refresh();
-	},
+	service: (page) => applyService(page),
 	use_imap: (page) => {
 		const defaults = page.doc.use_imap ? IMAP_DEFAULTS : POP_DEFAULTS;
 		Object.assign(page.doc, defaults[page.doc.service]);
@@ -42,10 +39,6 @@ export default {
 	enable_incoming: (page) => warnAutoReply(page),
 	enable_auto_reply: (page) => warnAutoReply(page),
 	email_sync_option: (page) => confirmSyncAll(page),
-	auth_method: (page) => page.refresh(),
-	connected_app: (page) => page.refresh(),
-	connected_user: (page) => page.refresh(),
-	backend_app_flow: (page) => page.refresh(),
 };
 
 function describeSecrets(page) {

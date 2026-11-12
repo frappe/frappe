@@ -1,7 +1,7 @@
 // When a page paints: replays and holds stage every overlay, and the first
 // paint lifts the skeletons once, or goes ahead without a late script.
 import { computed, ref, type ComputedRef, type Ref } from "vue";
-import type { Staging } from "./staging";
+import type { StageToken, Staging } from "./staging";
 import type { Registration } from "./types";
 
 /** How long the first paint waits for the page's scripts before it goes ahead without a late one. */
@@ -49,7 +49,7 @@ export interface PaintGate {
   /** The `page.cached` fetches `paintNow` left to the host's background reads; answers when they land, or at the late limit. */
   fetchCached: () => Promise<void>;
   /** One paint for the work's ops, and its acts delivered after it. */
-  hold: <T>(work: () => Promise<T> | T) => Promise<T>;
+  hold: <T>(work: () => Promise<T> | T, keeps?: boolean) => Promise<T>;
   /** Runs a handler under its source's name; the early paint leaves out every running source. */
   asSource: (source: string, work: () => Promise<void>) => Promise<void>;
   /** True while a replay or a hold is open, so an act waits for the commit. */
@@ -120,7 +120,7 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
       holdCached(true);
       return;
     }
-    openReplay();
+    const replay = openReplay();
     // Filled by `runSources`, so the first pass's late parts are still held when the second pass throws.
     const late: LateRefresh[] = [];
     const ran = new Set<Registration>();
@@ -128,7 +128,7 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
       await runSources(everything, late, ran);
     } finally {
       // In `finally` so a throwing handler cannot leave the page staged for good.
-      closeReplay();
+      closeReplay(replay);
       runOnOpen(ran, [...holdLate(late, false), ...holdCached(false)]);
     }
   }
@@ -155,7 +155,7 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
 
   /** The whole replay in one step, once nothing is left to wait for. */
   function replayNow(background: boolean) {
-    openReplay();
+    const replay = openReplay();
     if (background) state.background += 1;
     let late: LateRefresh[] = [];
     const ran = new Set<Registration>();
@@ -164,7 +164,7 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
       late = host.runRefresh(ran);
     } finally {
       if (background) state.background -= 1;
-      closeReplay();
+      closeReplay(replay);
     }
     const landed = holdLate(late, background);
     if (!background) runOnOpen(ran, landed);
@@ -228,11 +228,11 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
   /** A synchronous hold: the acts land in this step, with the paint before them. */
   function runOnOpenNow(registrations: Registration[]) {
     if (state.left) return;
-    openHold();
+    const token = openHold();
     try {
       host.runOpen(registrations);
     } finally {
-      closeHold();
+      closeHold(token);
     }
   }
 
@@ -260,15 +260,17 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
   }
 
   function openReplay() {
+    const token = {};
     // Counted, not a boolean: a script's own `page.refresh()` re-enters this.
     replaying.value += 1;
     // Staged, not cleared: clearing here and re-adding a microtask later tears the
     // rendered strip down between the two, and the reader's place in it with them.
-    for (const surface of host.surfaces) surface.beginReplay();
+    for (const surface of host.surfaces) surface.beginReplay(token);
+    return token;
   }
 
-  function closeReplay() {
-    for (const surface of host.surfaces) surface.commit();
+  function closeReplay(token: StageToken) {
+    for (const surface of host.surfaces) surface.commit(token);
     replaying.value -= 1;
     // After the commit, so the strip the reader lands on is the one on screen.
     releaseActs();
@@ -314,22 +316,24 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
     return host.lateLabel();
   }
 
-  async function hold<T>(work: () => Promise<T> | T): Promise<T> {
-    openHold();
+  async function hold<T>(work: () => Promise<T> | T, keeps = false): Promise<T> {
+    const token = openHold(keeps);
     try {
       return await work();
     } finally {
-      closeHold();
+      closeHold(token);
     }
   }
 
-  function openHold() {
+  function openHold(keeps = false) {
+    const token = {};
     state.holding += 1;
-    for (const surface of host.surfaces) surface.beginHold();
+    for (const surface of host.surfaces) surface.beginHold(keeps, token);
+    return token;
   }
 
-  function closeHold() {
-    for (const surface of host.surfaces) surface.commit();
+  function closeHold(token: StageToken) {
+    for (const surface of host.surfaces) surface.commit(token);
     state.holding -= 1;
     releaseActs();
     settleReady();
