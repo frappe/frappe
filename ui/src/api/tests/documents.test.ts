@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   bulkDeleteDocuments,
+  bulkUpdateDocuments,
   copyDocument,
   countDocuments,
   createDocument,
@@ -211,6 +212,16 @@ describe("create, delete and copy", () => {
     expect(lastCall()).toMatchObject({
       url: "/api/v2/document/ToDo/bulk_delete",
       body: { filters: { status: ["=", "Open"] } },
+    });
+  });
+
+  it("bulk edits one set of values and child values over the selection", async () => {
+    respond({ data: { total: 2, done: ["T-1", "T-2"], failed: [] } });
+    await bulkUpdateDocuments("ToDo", { names: ["T-1", "T-2"] }, { values: { status: "Closed" }, child_values: { items: { qty: 2 } } });
+    expect(lastCall()).toMatchObject({
+      url: "/api/v2/document/ToDo/bulk_update",
+      method: "POST",
+      body: { names: ["T-1", "T-2"], values: { status: "Closed" }, child_values: { items: { qty: 2 } } },
     });
   });
 

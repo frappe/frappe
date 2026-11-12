@@ -173,9 +173,14 @@ describe("BulkBar", () => {
 });
 
 describe("useBulkBar", () => {
-	function bar(boot: Record<string, unknown>, drawn: (name: string) => unknown = (name) => ({ name, label: name })) {
+	function bar(
+		boot: Record<string, unknown>,
+		drawn: (name: string) => unknown = (name) => ({ name, label: name }),
+		selected?: () => never
+	) {
 		const lists = createListPageLists();
-		const { scope, selection } = scopeOf(2, { total: 10, hasNextPage: true });
+		const { scope: counted, selection } = scopeOf(2, { total: 10, hasNextPage: true });
+		const scope = selected ? { ...counted, selected } : counted;
 		const perform = vi.fn();
 		const askDelete = vi.fn();
 		const askPrint = vi.fn();
@@ -198,6 +203,9 @@ describe("useBulkBar", () => {
 						cursor: ref(null),
 						table: () => null,
 						askPrint,
+						askEdit: vi.fn(),
+						askExport: vi.fn(),
+						copy: vi.fn(),
 					});
 					return () => null;
 				},
@@ -217,7 +225,7 @@ describe("useBulkBar", () => {
 		const { layout } = result;
 		expect(labels(layout.value.menu)).toEqual([
 			["ToDo", ["restore"]],
-			["Print and export", ["Print"]],
+			["Print and export", ["Print", "Copy to Clipboard", "Export"]],
 			["Submit, cancel and delete", ["Delete"]],
 		]);
 
@@ -238,6 +246,45 @@ describe("useBulkBar", () => {
 		print.run();
 		expect(askPrint).toHaveBeenCalledOnce();
 		app.unmount();
+	});
+
+	it("draws Edit as a button, Copy to Clipboard and Export in More, each with its own right", () => {
+		const { result, supplied, app } = bar(open);
+		const items = supplied[0]()
+			.map(({ item }) => item as ListPageAction)
+			.filter(({ group }) => group);
+		expect(items.map(({ name, group, button, right }) => [name, group, button, right])).toEqual([
+			["print", "output", undefined, "print"],
+			["edit", "collaborate", true, "write"],
+			["copy", "output", undefined, undefined],
+			["export", "output", undefined, "export"],
+			["delete", "danger", undefined, "delete"],
+		]);
+		const { layout } = result;
+		expect(layout.value.buttons.map((one) => one.label)).toEqual(["Edit"]);
+		app.unmount();
+	});
+
+	it("keeps Copy to Clipboard and Export enabled over the cap, as they are no bulk run", () => {
+		const over = bar({ bulk_actions: true, bulk_operation_limit: 1 });
+		const { buttons, menu, trash } = over.result.layout.value;
+		expect(buttons[0].disabled).toBe(true);
+		expect(trash?.disabled).toBe(true);
+		expect(menu[0].options.map((option) => [option.label, option.disabled])).toEqual([
+			["Print", false],
+			["Copy to Clipboard", false],
+			["Export", false],
+		]);
+		over.app.unmount();
+	});
+
+	it("disables Export for a scope with or_filters, which the exporter cannot take", () => {
+		const orScope = bar(open, undefined, () => ({ filters: {}, or_filters: [["status", "=", "Open"]] }) as never);
+		const exportOption = orScope.result.layout.value.menu[0].options[2];
+		expect(exportOption.label).toBe("Export");
+		expect(exportOption.disabled).toBe(true);
+		expect(orScope.result.layout.value.menu[0].options[1].disabled).toBe(false);
+		orScope.app.unmount();
 	});
 
 	it("hides an item the dispatcher does not draw, and all of them without the switch", () => {
@@ -278,6 +325,21 @@ describe("useBulkBar", () => {
 		const print = over.result.layout.value.menu.flatMap((group) => group.options).find(({ label }) => label === "Print");
 		expect(print?.disabled).toBe(false);
 		over.app.unmount();
+	});
+
+	it("keeps Edit and Export on while Select all is on, and Copy to Clipboard off", async () => {
+		const { result, selection, scope, app } = bar(open);
+		await nextTick();
+		selection.value = ["R0", "R1"];
+		scope.selectAll();
+		const { buttons, menu } = result.layout.value;
+		expect(buttons[0].disabled).toBe(false);
+		expect(menu[0].options.map((option) => [option.label, option.disabled])).toEqual([
+			["Print", false],
+			["Copy to Clipboard", true],
+			["Export", false],
+		]);
+		app.unmount();
 	});
 
 	it("disables the actions over the cap", () => {

@@ -4,13 +4,17 @@
 			<div class="grid grid-cols-2 gap-4">
 				<Select v-model="fileType" :label="t('File Type')" :options="fileTypeOptions" />
 				<Select
+					v-if="!pinned"
 					v-model="exportRecords"
 					:label="t('Export Type')"
 					:options="exportRecordOptions"
 					:description="countMessage"
 				/>
+				<div v-else class="self-end pb-1.5 text-sm text-ink-gray-6">
+					{{ countMessage }}
+				</div>
 			</div>
-			<div v-if="exportRecords === 'by_filter'">
+			<div v-if="exportRecords === 'by_filter' && !pinned">
 				<Filter v-model="filters" :doctype="doctype" align="start" />
 			</div>
 
@@ -119,6 +123,8 @@ const props = defineProps<{
 	importType: DataImportType;
 	providerSchema: ImportProviderSchema | null;
 	doctypeMeta: DocType[] | null;
+	/** The records to export, as `download_template` filters: the dialog exports exactly these. */
+	pinned?: { filters: Record<string, unknown>; count: number };
 }>();
 
 const open = defineModel<boolean>("open", { default: false });
@@ -284,7 +290,8 @@ let countRequest = 0;
 async function updateRecordCount() {
 	const request = ++countRequest;
 	let count: number;
-	if (exportRecords.value === "blank_template") count = 0;
+	if (props.pinned) count = props.pinned.count;
+	else if (exportRecords.value === "blank_template") count = 0;
 	else if (exportRecords.value === "5_records") count = 5;
 	else
 		count = await countDocuments(props.doctype, {
@@ -317,7 +324,8 @@ function exportRecordsNow() {
 		file_type: fileType.value,
 		export_records: exportRecords.value,
 		export_fields: exportFields,
-		export_filters: exportRecords.value === "by_filter" ? wireFilters() : null,
+		export_filters:
+			exportRecords.value === "by_filter" ? props.pinned?.filters ?? wireFilters() : null,
 	});
 }
 
@@ -328,7 +336,11 @@ watch(
 		search.value = "";
 		filters.value = [];
 		fileType.value = "CSV";
-		exportRecords.value = forInsert.value ? "blank_template" : "all";
+		exportRecords.value = props.pinned
+			? "by_filter"
+			: forInsert.value
+			? "blank_template"
+			: "all";
 		updateRecordCount();
 	},
 	{ immediate: true }

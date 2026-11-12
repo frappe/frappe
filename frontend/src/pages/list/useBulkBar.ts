@@ -9,6 +9,7 @@ import { bulkScopeOf } from "./bulkScope";
 import type { ListMeta } from "@/list/defaults";
 import { useBulkStatus, type BulkStatus } from "./bulkStatus";
 import type { BulkScope } from "@/list/useBulkScope";
+import { exportFilters } from "@/list/bulkExport";
 import { layoutBulk, type BulkEntry, type BulkLayout } from "./bulkLayout";
 import { rowActionEntries } from "./rowActions";
 import type { ListActs } from "./listActs";
@@ -25,6 +26,9 @@ export interface BulkBarOptions {
   reload: () => void;
   askDelete: () => void;
   askPrint: () => void;
+  askEdit: () => void;
+  askExport: () => void;
+  copy: () => void;
   /** Acts the renderer adds to its own surface beside the bulk and row ones. */
   extraEntries?: () => ActEntry[];
   /** The row under the pointer or with focus, and the table's range-aware selection; a surface without a cursor (Cards) gets no bulk keys. */
@@ -50,7 +54,7 @@ export interface BulkBar {
 }
 
 export function useBulkBar(options: BulkBarOptions): BulkBar {
-  const { host, selection, askDelete, askPrint, cursor } = options;
+  const { host, selection, askDelete, askEdit, askExport, askPrint, copy, cursor } = options;
   const boot = inject<Boot>("boot")!;
   const { bulkActions: bulkList } = host.lists;
   const cap = boot.bulk_operation_limit;
@@ -71,7 +75,34 @@ export function useBulkBar(options: BulkBarOptions): BulkBar {
       icon: "lucide-printer",
       group: "output",
       right: "print",
+      uncapped: true,
       run: askPrint,
+    },
+    {
+      name: "edit",
+      label: __("Edit"),
+      icon: "lucide-pencil",
+      group: "collaborate",
+      button: true,
+      right: "write",
+      run: askEdit,
+    },
+    {
+      name: "copy",
+      label: __("Copy to Clipboard"),
+      icon: "lucide-copy",
+      group: "output",
+      uncapped: true,
+      run: copy,
+    },
+    {
+      name: "export",
+      label: __("Export"),
+      icon: "lucide-download",
+      group: "output",
+      right: "export",
+      uncapped: true,
+      run: askExport,
     },
     {
       name: "delete",
@@ -113,7 +144,8 @@ export function useBulkBar(options: BulkBarOptions): BulkBar {
 
   // The palette runs an act with no value or an option, so the wrapper always hands `run` the selection, as the bar does.
   function bulkEntries(): ActEntry[] {
-    const over = options.scope.count.value > cap || options.scope.all.value;
+    const all = options.scope.all.value;
+    const count = options.scope.count.value;
     return bulkList
       .resolve()
       .filter(({ item }) => item.run)
@@ -122,14 +154,20 @@ export function useBulkBar(options: BulkBarOptions): BulkBar {
           ...item,
           label: item.label && scope.label(item.label),
           argument: undefined,
-          palette: over ? (false as const) : item.palette,
+          palette: all || (count > cap && !item.uncapped) ? (false as const) : item.palette,
           run: (page: ListPageApi) => item.run!(page, scope.selected()),
         },
         hidden,
       }));
   }
 
-  // Only Delete and Print read the scope; an action that takes row names would run on the loaded rows alone. Print has its own cap, checked when it opens.
+  // Select all disables what takes row names: it would run on the loaded rows alone. Delete, Edit, Export and Print read the scope; Print has its own cap, checked when it opens.
+  const readsScope = (run: unknown) => run === askDelete || run === askEdit || run === askExport || run === askPrint;
+  // The exporter takes no `or_filters`: it would export more than the filters show.
+  const disabled = ({ name, uncapped, run }: { name: string; uncapped?: boolean; run?: unknown }) =>
+    (name === "export" && exportFilters(options.scope.selected()) === null) ||
+    (options.scope.all.value && !readsScope(run)) ||
+    (!uncapped && options.scope.count.value > cap);
   const locked = !boot.bulk_actions;
   const entries = computed<BulkEntry[]>(() =>
     locked
@@ -144,7 +182,7 @@ export function useBulkBar(options: BulkBarOptions): BulkBar {
               icon: act.icon,
               group: item.group,
               button: item.button,
-              disabled: item.run === askPrint ? false : options.scope.count.value > cap || (options.scope.all.value && item.run !== askDelete),
+              disabled: disabled(item),
               onClick: () => listActs.perform(act, scope.selected()),
             },
           ];
