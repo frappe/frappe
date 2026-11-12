@@ -60,6 +60,15 @@ def ingest_source(source: str, rebuild: bool = False) -> None:
 	rebuild forces a full re-chunk of a DocType source (purge + reset watermark) so
 	new chunk settings apply to rows whose content is otherwise unchanged. Single-doc
 	sources rebuild on every run regardless."""
+	from frappe.utils.background_jobs import get_queues_timeout
+	from frappe.utils.synchronization import filelock
+
+	# one job per source at a time, else chunks get duplicated
+	with filelock(f"flow_knowledge_source_{source}", timeout=get_queues_timeout()["long"]):
+		_ingest_source(source, rebuild)
+
+
+def _ingest_source(source: str, rebuild: bool) -> None:
 	doc = frappe.get_doc("Flow Knowledge Source", source)
 	doc.db_set("status", "Processing", update_modified=False)
 	frappe.db.commit()  # the status shows while the job runs; nosemgrep: frappe-manual-commit

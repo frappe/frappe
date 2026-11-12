@@ -702,6 +702,29 @@ class TestDoctypeSync(IntegrationTestCase):
 			ingest_source(source_name, rebuild=rebuild)
 		return mock
 
+	def test_a_source_syncs_under_its_own_lock(self):
+		from frappe.utils.file_lock import LockTimeoutError
+		from frappe.utils.synchronization import filelock
+
+		source = self._source()
+
+		def sync(doc, settings):
+			# a second job can't take the lock
+			with (
+				self.assertRaises(LockTimeoutError),
+				filelock(f"flow_knowledge_source_{doc.name}", timeout=0),
+			):
+				pass
+
+		with (
+			patch("frappe.flow.knowledge.ingest._sync_doctype", side_effect=sync) as synced,
+			patch("frappe.log_error"),
+		):
+			self._sync(source.name)
+		synced.assert_called_once()
+		with filelock(f"flow_knowledge_source_{source.name}", timeout=0):
+			pass  # released
+
 	def _chunks(self, source_name, reference_name=None):
 		filters = {"source": source_name}
 		if reference_name:
