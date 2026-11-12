@@ -1007,6 +1007,8 @@ class TypstEmitter:
 			return ""
 		if df.get("fieldtype") == "Check":
 			return _("Yes") if frappe.utils.cint(value) else _("No")
+		if df.get("fieldtype") == "Attach":
+			return frappe.utils.cstr(value).rsplit("/", 1)[-1]
 		return _text_value(self.doc.get_formatted(fieldname))
 
 	def _label_color(self, df=None) -> str:
