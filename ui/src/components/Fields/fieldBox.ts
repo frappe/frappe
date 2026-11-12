@@ -1,4 +1,4 @@
 import type { InjectionKey, Ref } from "vue";
 
-/** The element a picker's list stays inside: a row's box looks up `[data-picker-bound]` from here. */
+/** A row's box: the selection bar stays inside it; a picker's list looks up `[data-picker-bound]`. */
 export const fieldBoxKey: InjectionKey<Ref<HTMLElement | null>> = Symbol("fieldBox");
