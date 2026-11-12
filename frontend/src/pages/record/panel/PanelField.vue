@@ -13,6 +13,7 @@
 					v-if="editing || inPlace"
 					ref="cell"
 					class="field min-w-0"
+					:style="restHeight ? { '--panel-rest-h': `${restHeight}px` } : undefined"
 					:data-fieldname="field.fieldname"
 					@focusout="onFocusout"
 					@keydown.escape="cancel"
@@ -263,6 +264,8 @@ let cancelled = false;
 let clicked: number | null = null;
 // The same for a rich-text row, whose body is not a textarea: the point of the click.
 let clickedAt: { x: number; y: number } | null = null;
+// The row's height at rest: an editor that loads lazily holds this much space until it draws.
+const restHeight = ref(0);
 
 // Every keystroke already wrote the draft, so a cancel has to put the opening value back.
 function cancel() {
@@ -431,6 +434,7 @@ function open(event?: MouseEvent) {
 	opening = doc.value[props.field.fieldname];
 	cancelled = false;
 	clicked = null;
+	restHeight.value = clamped.value?.closest<HTMLElement>("[data-fieldname]")?.offsetHeight ?? 0;
 	clickedAt =
 		event instanceof MouseEvent && props.field.fieldtype === "Text Editor"
 			? { x: event.clientX, y: event.clientY }
