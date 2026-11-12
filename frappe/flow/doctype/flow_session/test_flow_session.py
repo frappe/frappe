@@ -140,6 +140,18 @@ class TestClearOldLogs(IntegrationTestCase):
 		self.assertFalse(frappe.db.exists("File", old_file))
 		self.server_delete.assert_called_once_with(old_session)
 
+	def test_purge_locks_the_chats_before_their_rows(self):
+		# the order a sync takes, else the two can deadlock
+		if frappe.db.db_type == "sqlite":
+			self.skipTest("SQLite has no row locks")
+		self._session_with_run(age_days=100)
+		with patch.object(frappe.db, "sql", wraps=frappe.db.sql) as sql:
+			FlowSession.clear_old_logs(days=30)
+		queries = [str(c.args[0]).lower() for c in sql.call_args_list]
+		lock = next(i for i, q in enumerate(queries) if "for update" in q and "tabflow session" in q)
+		delete = next(i for i, q in enumerate(queries) if q.startswith("delete") and "tabflow run" in q)
+		self.assertLess(lock, delete)
+
 	def test_purge_deletes_only_the_chats_own_files(self):
 		old_session, _, own_file = self._session_with_run(age_days=100)
 		theirs = _txt_file("theirs")

@@ -121,6 +121,8 @@ class FlowSession(Document):
 		cutoff = frappe.utils.add_days(frappe.utils.now(), -days)
 		sessions = frappe.get_all("Flow Session", filters={"modified": ["<", cutoff]}, pluck="name")
 		for batch in frappe.utils.create_batch(sessions, 100):
+			# lock the chats before their rows, the order a sync takes
+			frappe.db.get_values("Flow Session", {"name": ["in", batch]}, "name", for_update=True)
 			try:
 				for name in batch:
 					_delete_server_session(name)
