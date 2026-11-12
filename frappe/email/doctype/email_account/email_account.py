@@ -944,7 +944,7 @@ def notify_unreplied():
 		email_account = frappe.get_doc("Email Account", email_account.name)
 
 		if email_account.use_imap:
-			append_to = [folder.get("append_to") for folder in email_account.imap_folder]
+			append_to = [folder.append_to for folder in email_account.imap_folder if folder.append_to]
 		else:
 			append_to = email_account.append_to
 

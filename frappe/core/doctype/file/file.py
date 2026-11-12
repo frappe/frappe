@@ -10,6 +10,8 @@ import shutil
 import zipfile
 from urllib.parse import quote, unquote
 
+import filetype
+
 import frappe
 from frappe import _
 from frappe.database.schema import SPECIAL_CHAR_PATTERN
@@ -780,7 +782,9 @@ class File(Document):
 			encodings = FILE_ENCODING_OPTIONS
 		with open(file_path, mode="rb") as f:
 			self._content = f.read()
-			if not self._content.startswith(OLE_FILE_SIGNATURE):
+			# Only decode if not a binary file
+			kind = filetype.guess(self._content)
+			if not kind and not self._content.startswith(OLE_FILE_SIGNATURE):
 				# looping will not result in slowdown, as the content is usually utf-8 or utf-8-sig
 				# encoded so the first iteration will be enough most of the time
 				for encoding in encodings:
@@ -888,7 +892,7 @@ class File(Document):
 		self.content_hash = get_content_hash(self._content)
 
 		# check if a file exists with the same content hash and is also in the same folder (public or private)
-		if not ignore_existing_file_check:
+		if not ignore_existing_file_check and not overwrite:
 			duplicate_file = frappe.get_value(
 				"File",
 				{"content_hash": self.content_hash, "is_private": self.is_private},
@@ -914,6 +918,7 @@ class File(Document):
 				and not frappe.db.exists("File", {"file_url": self.file_url, "name": ("!=", self.name)})
 			)
 			if not in_place:
+				self.flags.pop("original_content", None)
 				self.file_name = generate_file_name(
 					name=self.file_name,
 					suffix=self.content_hash[-6:],
@@ -1011,6 +1016,7 @@ class File(Document):
 
 	@frappe.whitelist()
 	def optimize_file(self):
+		frappe.has_permission(self.doctype, "write", self.name, throw=True)
 		if self.is_folder:
 			raise TypeError("Folders cannot be optimized")
 
