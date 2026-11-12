@@ -5,18 +5,30 @@
 			<div class="flex flex-col gap-3">
 				<TabButtons v-model="tab" :options="tabs" />
 				<div class="-mx-2 flex max-h-80 flex-col overflow-y-auto">
-					<ItemListRow v-for="record in shown" :key="record.name" size="md" class="shrink-0 !items-start">
+					<ItemListRow
+						v-for="record in shown"
+						:key="record.name"
+						size="md"
+						class="shrink-0 !items-start"
+					>
 						<template #prefix>
-							<Icon :name="icons[tab]" class="mt-0.5 size-4 shrink-0 text-ink-gray-5" />
+							<Icon
+								:name="icons[tab]"
+								class="mt-0.5 size-4 shrink-0 text-ink-gray-5"
+							/>
 						</template>
 						<template #label>
 							<div class="flex min-w-0 flex-1 flex-col gap-1">
-								<span class="truncate font-mono text-base text-ink-gray-8">{{ record.name }}</span>
+								<span class="truncate font-mono text-base text-ink-gray-8">{{
+									record.name
+								}}</span>
 								<span v-if="'error' in record" class="text-sm text-ink-gray-6">
 									{{ record.error || __("No reason was given.") }}
 								</span>
 								<span v-else-if="tab === 'queued'" class="text-sm text-ink-gray-6">
-									{{ __("In the Submission Queue; it settles here when it runs") }}
+									{{
+										__("In the Submission Queue; it settles here when it runs")
+									}}
 								</span>
 							</div>
 						</template>
@@ -33,7 +45,11 @@
 					<Button :label="__('Open PDF')" icon-left="lucide-file-text" />
 				</a>
 				<div class="ms-auto flex items-center gap-2">
-					<Button v-if="failedNames.length && report.select" :label="__('Select failed')" @click="selectFailed" />
+					<Button
+						v-if="failedNames.length && report.select"
+						:label="__('Select failed')"
+						@click="selectFailed"
+					/>
 					<Button
 						v-if="failedNames.length && report.retry"
 						variant="solid"
@@ -41,7 +57,12 @@
 						:loading="retrying"
 						@click="retryFailed"
 					/>
-					<Button v-else-if="!failedNames.length" variant="solid" :label="__('Done')" @click="open = false" />
+					<Button
+						v-else-if="!failedNames.length"
+						variant="solid"
+						:label="__('Done')"
+						@click="open = false"
+					/>
 				</div>
 			</div>
 		</template>
@@ -67,7 +88,9 @@ const title = computed(() => `${props.report.label} · ${__("{0} records", [prop
 const failedNames = computed(() => props.report.failed.map(({ name }) => name));
 const tabs = computed(() => [
 	{ value: "failed", label: `${__("Failed")} ${props.report.failed.length}` },
-	...(props.report.queued.length ? [{ value: "queued", label: `${__("Queued")} ${props.report.queued.length}` }] : []),
+	...(props.report.queued.length
+		? [{ value: "queued", label: `${__("Queued")} ${props.report.queued.length}` }]
+		: []),
 	{ value: "done", label: `${__("Done")} ${props.report.done.length}` },
 ]);
 const shown = computed(() => props.report[tab.value]);

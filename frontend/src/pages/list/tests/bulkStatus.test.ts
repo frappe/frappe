@@ -191,15 +191,22 @@ describe("BulkStatusDialog", () => {
 		expect(fake.run).toHaveBeenCalledWith("Leave", "bulk_workflow", { names: ["A", "B"], action: "Approve" });
 	});
 
-	it("shows queued records as queued and keeps the failures in the dialog", async () => {
+	it("opens the result panel with the failures and the queued records", async () => {
+		const { bulkPanel } = await import("@/shell/bulkOutcome");
 		fake.run.mockResolvedValue({
 			data: { total: 3, done: ["A"], queued: ["B"], failed: [{ name: "C", error: "Not saved" }] },
 		});
 		await open(action());
 		await confirm("Submit");
-		expect(text()).toContain("1 of 3 done, 1 failed");
-		expect(text()).toContain("Queued: B");
-		expect(text()).toContain("C: Not saved");
+		expect(bulkPanel.value).toMatchObject({
+			label: "Submit",
+			doctype: "Leave",
+			total: 3,
+			done: [{ name: "A" }],
+			queued: [{ name: "B" }],
+			failed: [{ name: "C", error: "Not saved" }],
+		});
+		bulkPanel.value = null;
 	});
 
 	it("toasts queued records when nothing failed", async () => {

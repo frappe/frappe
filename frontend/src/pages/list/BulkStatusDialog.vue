@@ -75,7 +75,11 @@ async function confirm() {
 			doctype: props.doctype,
 			send: (names) => {
 				const body = names ? { names } : action.body;
-				return bulkStatusDocuments(props.doctype, action.route, action.transition ? { ...body, action: action.transition } : body);
+				return bulkStatusDocuments(
+					props.doctype,
+					action.route,
+					action.transition ? { ...body, action: action.transition } : body
+				);
 			},
 			select: props.select,
 			finished: props.finished,

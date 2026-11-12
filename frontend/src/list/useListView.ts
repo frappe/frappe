@@ -40,8 +40,6 @@ import type { View } from "./view";
 export interface DeleteOutcome {
 	deleted: string[];
 	failed: { name: string; error: string }[];
-	/** The run went to the background; its result is not known yet. */
-	queued?: boolean;
 }
 
 export interface ListView extends ListRows {

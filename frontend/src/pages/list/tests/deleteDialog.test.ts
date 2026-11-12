@@ -77,10 +77,10 @@ describe("DeleteDialog", () => {
 		expect(fake.success).not.toHaveBeenCalled();
 	});
 
-	it("toasts a run that went to the background and closes", async () => {
-		await open(async () => ({ deleted: [], failed: [], queued: true }));
+	it("closes without a toast when the shell reports the run", async () => {
+		await open(async () => ({ deleted: [], failed: [] }));
 		await confirm();
-		expect(fake.info).toHaveBeenCalledWith("Deleting in the background");
+		expect(fake.success).not.toHaveBeenCalled();
 		expect(text()).not.toContain("This cannot be undone.");
 	});
 });
