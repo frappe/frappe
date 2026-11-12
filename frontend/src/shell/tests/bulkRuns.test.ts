@@ -113,20 +113,29 @@ describe("following a run", () => {
 		});
 	});
 
-	it("does not move the status back when a read sent earlier lands after a newer event", async () => {
-		let land: (value: unknown) => void = () => {};
-		fake.getDocument.mockReturnValueOnce(new Promise((resolve) => (land = resolve)));
-		const run = followBulkRun("t1");
-		fake.getDocument.mockResolvedValue(
-			row({ status: "Completed", result: JSON.stringify({ total: 1, done: ["a"], failed: [] }) })
-		);
-		socket.fire("task_update", { task_id: "t1", status: "Completed" });
-		await settle();
-		land(row({ status: "Running" }));
-		await settle();
+	it("waits for the final row when a read sent earlier lands behind a newer event", async () => {
+		vi.useFakeTimers();
+		try {
+			let land: (value: unknown) => void = () => {};
+			fake.getDocument.mockReturnValueOnce(new Promise((resolve) => (land = resolve)));
+			const run = followBulkRun("t1");
+			fake.getDocument.mockResolvedValue(
+				row({ status: "Completed", result: JSON.stringify({ total: 1, done: ["a"], failed: [] }) })
+			);
+			socket.fire("task_update", { task_id: "t1", status: "Completed" });
+			land(row({ status: "Running" }));
+			await vi.advanceTimersByTimeAsync(0);
 
-		expect(run.status).toBe("Completed");
-		expect(fake.toast.success).toHaveBeenCalledTimes(1);
+			expect(run).toMatchObject({ status: "Completed", result: null });
+			expect(fake.toast.error).not.toHaveBeenCalled();
+
+			await vi.runAllTimersAsync();
+
+			expect(run.result?.done).toEqual(["a"]);
+			expect(fake.toast.success).toHaveBeenCalledTimes(1);
+		} finally {
+			vi.useRealTimers();
+		}
 	});
 
 	it("ignores a task it was not asked to follow", async () => {
@@ -251,7 +260,7 @@ describe("a run that settles", () => {
 		expect(run.error).toBe("The run stopped before it finished.");
 	});
 
-	it("retries a failed read of a finished run, then settles with the error", async () => {
+	it("retries a failed read three times, then settles a finished run with the error", async () => {
 		vi.useFakeTimers();
 		try {
 			fake.getDocument.mockRejectedValue(new Error("502"));
@@ -259,7 +268,7 @@ describe("a run that settles", () => {
 			socket.fire("task_update", { task_id: "t1", status: "Completed" });
 			await vi.runAllTimersAsync();
 
-			expect(fake.getDocument.mock.calls.length).toBeGreaterThanOrEqual(4);
+			expect(fake.getDocument).toHaveBeenCalledTimes(3);
 			expect(run).toMatchObject({ status: "Completed", result: null, error: "502" });
 			expect(fake.toast.error).toHaveBeenCalledTimes(1);
 		} finally {
@@ -368,5 +377,71 @@ describe("the tab's lifetime", () => {
 
 		expect(run.progress).toBe(40);
 		expect(socket.handlers.get("task_update")).toHaveLength(1);
+	});
+
+	it("keeps one listener however many runs are followed", () => {
+		vi.resetModules();
+		return Promise.all([import("../bulkSocket"), import("../bulkRuns")]).then(([{ setBulkSocket }, fresh]) => {
+			socket.handlers.clear();
+			setBulkSocket(socket);
+			fresh.followBulkRun("a");
+			fresh.followBulkRun("b");
+
+			expect(socket.handlers.get("task_update")).toHaveLength(1);
+			expect(socket.handlers.get("connect")).toHaveLength(1);
+		});
+	});
+});
+
+describe("a run that is not final", () => {
+	it("retries a failed read, then waits for the next event", async () => {
+		vi.useFakeTimers();
+		try {
+			fake.getDocument.mockRejectedValue(new Error("502"));
+			const run = followBulkRun("t1");
+			await vi.runAllTimersAsync();
+
+			expect(fake.getDocument).toHaveBeenCalledTimes(3);
+			expect(run).toMatchObject({ status: "Queued", error: null });
+			expect(fake.toast.error).not.toHaveBeenCalled();
+		} finally {
+			vi.useRealTimers();
+		}
+	});
+
+	it("stops announcing and listening once dismissed", async () => {
+		const onSettled = vi.fn();
+		const run = followBulkRun("t1", onSettled);
+		dismissBulkRun("t1");
+		socket.fire("task_update", { task_id: "t1", status: "Completed" });
+		await settle();
+
+		expect(run.status).toBe("Queued");
+		expect(fake.toast.success).not.toHaveBeenCalled();
+		expect(onSettled).not.toHaveBeenCalled();
+	});
+
+	it("settles on a Failed event whose row has no reason", async () => {
+		fake.getDocument.mockResolvedValue(row({ status: "Failed" }));
+		const onSettled = vi.fn();
+		followBulkRun("t1", onSettled);
+		socket.fire("task_update", { task_id: "t1", status: "Failed" });
+		await settle();
+
+		expect(onSettled).toHaveBeenCalledTimes(1);
+	});
+
+	it("runs the other listeners when one throws", async () => {
+		const error = vi.spyOn(console, "error").mockImplementation(() => {});
+		const later = vi.fn();
+		fake.getDocument.mockResolvedValue(row({ status: "Failed" }));
+		followBulkRun("t1", () => {
+			throw new Error("bad listener");
+		});
+		followBulkRun("t1", later);
+		await settle();
+
+		expect(later).toHaveBeenCalledTimes(1);
+		error.mockRestore();
 	});
 });

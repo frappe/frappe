@@ -1,4 +1,4 @@
-// The tab's socket for the bulk run follower, set at boot so the follower's code loads with the first run a page follows.
+// The tab's socket for the bulk run follower, kept apart so its code loads with the first run.
 import type { RealtimeSocket } from "@framework/ui/socket";
 
 let socket: RealtimeSocket | undefined;

@@ -55,6 +55,10 @@ type Settled = (run: BulkRun) => void;
 interface Followed {
 	run: BulkRun;
 	settled: boolean;
+	dismissed: boolean;
+	/** A read loop is running; an event that lands meanwhile asks it to read once more. */
+	reading: boolean;
+	reread: boolean;
 	listeners: Settled[];
 }
 
@@ -69,7 +73,7 @@ interface TaskMessage {
 let stopWatching: (() => void) | undefined;
 const followed = reactive(new Map<string, Followed>());
 
-/** Starts following the run behind a `202 {task_id}`; the same id twice follows once. `onSettled` runs once, with the final run. */
+/** Starts following the run behind a `202 {task_id}`; the same id twice follows once. */
 export function followBulkRun(taskId: string, onSettled?: Settled): BulkRun {
 	const existing = followed.get(taskId);
 	if (existing) {
@@ -90,13 +94,16 @@ export function followBulkRun(taskId: string, onSettled?: Settled): BulkRun {
 			error: null,
 		},
 		settled: false,
+		dismissed: false,
+		reading: false,
+		reread: false,
 		listeners: onSettled ? [onSettled] : [],
 	};
 	followed.set(taskId, entry);
-	stopWatching ??= watchBulkRuns(bulkSocket());
+	const socket = bulkSocket();
+	if (!stopWatching && socket) stopWatching = watchBulkRuns(socket);
 	// Reading through the map gives the reactive entry, which the reply must update.
 	const tracked = followed.get(taskId)!;
-	// The run may have moved before this page followed it; the row says where it is.
 	void readTask(tracked);
 	return tracked.run;
 }
@@ -108,16 +115,18 @@ export function useBulkRuns() {
 
 /** Drops a run from the list; a settled run stays until its reader says so. */
 export function dismissBulkRun(taskId: string) {
+	const entry = followed.get(taskId);
+	if (entry) entry.dismissed = true;
 	followed.delete(taskId);
 }
 
-/** Listens for `task_update`; the first followed run starts it on the tab's socket. Returns the stop. A reconnect rereads the runs that were still moving. */
+/** Listens for `task_update` and rereads the runs still moving on a reconnect; returns the stop. */
 export function watchBulkRuns(socket: RealtimeSocket | undefined): () => void {
 	const onUpdate = (...args: unknown[]) =>
 		applyMessage((args[0] ?? {}) as TaskMessage);
 	const onReconnect = () => {
 		for (const entry of followed.values())
-			if (!entry.settled) void readTask(entry);
+			if (isLive(entry)) void readTask(entry);
 	};
 	socket?.on(TASK_UPDATE, onUpdate);
 	socket?.on("connect", onReconnect);
@@ -132,7 +141,7 @@ function applyMessage(message: TaskMessage) {
 		typeof message.task_id === "string"
 			? followed.get(message.task_id)
 			: undefined;
-	if (!entry || entry.settled) return;
+	if (!entry || !isLive(entry)) return;
 	const { run } = entry;
 	if (typeof message.task_name === "string") run.taskName = message.task_name;
 	if (typeof message.progress === "number") run.progress = message.progress;
@@ -141,36 +150,78 @@ function applyMessage(message: TaskMessage) {
 	if (isFinal(run.status)) void readTask(entry);
 }
 
-async function readTask(entry: Followed, attempt = 1) {
-	const { run } = entry;
-	try {
-		const { data } = await getDocument(BACKGROUND_TASK, run.taskId);
-		if (entry.settled) return;
-		run.taskName = String(data.task_name ?? run.taskName);
-		advance(run, data.status);
-		// The row holds progress and stage only at the end; the events carry them while it runs.
-		if (run.status === "Completed") {
-			run.progress = 100;
-			run.result = parseResult(data.result);
-			run.error = run.result ? null : __("The result could not be read.");
-		}
-		// `exception` is for System Managers only, so the owner may get no reason.
-		if (run.status === "Failed") run.error = lastLine(data.exception) ?? __("The run stopped before it finished.");
-	} catch (error) {
-		if (entry.settled || !isFinal(run.status)) return;
-		if (attempt < READ_ATTEMPTS) {
-			setTimeout(() => void readTask(entry, attempt + 1), READ_RETRY_MS);
-			return;
-		}
-		run.error = error instanceof Error ? error.message : String(error);
+/** Reads the row until it agrees with the run: the final row, or any row while no event said final. */
+async function readTask(entry: Followed) {
+	if (entry.reading) {
+		entry.reread = true;
+		return;
 	}
-	if (isFinal(run.status)) settle(entry);
+	entry.reading = true;
+	let failure: unknown;
+	let caughtUp = false;
+	for (let attempt = 1; attempt <= READ_ATTEMPTS && isLive(entry); attempt++) {
+		if (attempt > 1) await new Promise((resolve) => setTimeout(resolve, READ_RETRY_MS));
+		try {
+			caughtUp = await applyRow(entry);
+			failure = undefined;
+		} catch (error) {
+			failure = error;
+		}
+		if (caughtUp) break;
+	}
+	entry.reading = false;
+	if (!isLive(entry)) return;
+	if (!caughtUp && isFinal(entry.run.status)) {
+		entry.run.error = failure ? errorText(failure) : unreadable(entry.run.status);
+		settle(entry);
+	} else if (entry.reread) {
+		entry.reread = false;
+		void readTask(entry);
+	}
+}
+
+/** True when nothing is left to wait for. A row behind a final event is not caught up. */
+async function applyRow(entry: Followed): Promise<boolean> {
+	const { run } = entry;
+	const { data } = await getDocument(BACKGROUND_TASK, run.taskId);
+	if (!isLive(entry)) return true;
+	run.taskName = String(data.task_name ?? run.taskName);
+	advance(run, data.status);
+	if (!isStatus(data.status) || !isFinal(data.status)) return !isFinal(run.status);
+	// The row holds progress and stage only at the end; the events carry them while it runs.
+	if (run.status === "Completed") {
+		run.progress = 100;
+		run.result = parseResult(data.result);
+		run.error = run.result ? null : unreadable(run.status);
+	}
+	// `exception` is for System Managers only, so the owner may get no reason.
+	if (run.status === "Failed") run.error = lastLine(data.exception) ?? unreadable(run.status);
+	settle(entry);
+	return true;
+}
+
+function unreadable(status: BulkRunStatus) {
+	return status === "Completed" ? __("The result could not be read.") : __("The run stopped before it finished.");
+}
+
+function errorText(error: unknown) {
+	return error instanceof Error ? error.message : String(error);
+}
+
+function isLive(entry: Followed) {
+	return !entry.settled && !entry.dismissed;
 }
 
 function settle(entry: Followed) {
 	entry.settled = true;
 	announce(entry.run);
-	for (const listener of entry.listeners.splice(0)) listener(entry.run);
+	for (const listener of entry.listeners.splice(0)) {
+		try {
+			listener(entry.run);
+		} catch (error) {
+			console.error(error);
+		}
+	}
 }
 
 function announce(run: BulkRun) {
