@@ -689,6 +689,17 @@ class PrintDesignerConverter:
 				return f'{{%- if doc.{node["fieldname"]} -%}}<img src="{{{{ doc.{node["fieldname"]} }}}}" style="width: {node["width"]}; max-width: 100%;">{{%- endif -%}}'
 			if node["fieldtype"] == "Table":
 				return self.table_html(element, node)
+			if node["fieldtype"] == "Barcode":
+				value = (
+					f"doc.get({node['barcode_field']!r})"
+					if node.get("barcode_field")
+					else repr(node["barcode_value"])
+				)
+				return (
+					f"{{%- set barcode_value = ({value} or '') | string -%}}"
+					f"{{%- set barcode = get_barcode(barcode_value, {node['barcode_format']!r}) if barcode_value -%}}"
+					f'{{%- if barcode -%}}<img src="{{{{ barcode }}}}" style="width: {node["width"]}; max-width: 100%;">{{%- endif -%}}'
+				)
 			if node["fieldtype"] != "Static Text":
 				return f"{{{{ doc.get_formatted({node['fieldname']!r}) }}}}"
 			inner = node.get("text") or ""
