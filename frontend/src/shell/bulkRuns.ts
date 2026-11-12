@@ -1,4 +1,4 @@
-// The shell's follower of bulk runs: one `task_update` listener, the state of each run a page asked for, and a toast when it settles.
+// The shell's follower of bulk runs: one `task_update` listener, the state of each run a page asked for, and an error toast when a run ends without a result; the tray shows the counts.
 import { computed, reactive } from "vue";
 import { toast } from "frappe-ui";
 import { getDocument } from "@framework/ui/api";
@@ -230,22 +230,8 @@ function settle(entry: Followed) {
 
 function announce(run: BulkRun) {
 	const name = run.taskName || __("Bulk action");
-	const { result } = run;
-	if (!result) {
-		toast.error(
-			run.error ? `${name}: ${run.error}` : `${name}: ${__(run.status)}`
-		);
-		return;
-	}
-	const counts = [
-		__("{0} done", [result.done.length]),
-		__("{0} failed", [result.failed.length]),
-	];
-	if (result.queued?.length)
-		counts.push(__("{0} queued", [result.queued.length]));
-	const message = `${name}: ${counts.join(", ")}`;
-	if (result.failed.length) toast.warning(message);
-	else toast.success(message);
+	if (run.result) return;
+	toast.error(run.error ? `${name}: ${run.error}` : `${name}: ${__(run.status)}`);
 }
 
 function parseResult(raw: unknown): BulkResult | null {

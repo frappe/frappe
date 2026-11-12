@@ -132,6 +132,7 @@ export async function settleQueued(report: BulkReport): Promise<boolean> {
 			failed.push({ ...record, error: row.exception?.trim().split("\n").pop() || __("The submission failed.") });
 		else stillQueued.push(record);
 	}
+	if (bulkPanel.value !== report) return false;
 	bulkPanel.value = { ...report, done, failed, queued: stillQueued };
 	return stillQueued.length > 0;
 }

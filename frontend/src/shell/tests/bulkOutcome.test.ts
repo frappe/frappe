@@ -107,7 +107,9 @@ describe("settleQueued", () => {
 				{ ref_docname: "C", status: "Queued" },
 			],
 		});
-		const more = await settleQueued(report());
+		const open = report();
+		bulkPanel.value = open;
+		const more = await settleQueued(open);
 		expect(more).toBe(true);
 		expect(bulkPanel.value).toMatchObject({
 			done: [{ name: "A" }],
@@ -120,9 +122,18 @@ describe("settleQueued", () => {
 		});
 	});
 
+	it("leaves a closed panel closed", async () => {
+		fake.listDocuments.mockResolvedValue({ data: [{ ref_docname: "A", status: "Finished" }] });
+		bulkPanel.value = null;
+		expect(await settleQueued(report())).toBe(false);
+		expect(bulkPanel.value).toBeNull();
+	});
+
 	it("stops asking once nothing is queued", async () => {
 		fake.listDocuments.mockResolvedValue({ data: [{ ref_docname: "A", status: "Finished" }] });
-		expect(await settleQueued({ ...report(), queued: [{ name: "A" }] })).toBe(false);
+		const one = { ...report(), queued: [{ name: "A" }] };
+		bulkPanel.value = one;
+		expect(await settleQueued(one)).toBe(false);
 		expect(await settleQueued({ ...report(), queued: [] })).toBe(false);
 		expect(fake.listDocuments).toHaveBeenCalledTimes(1);
 	});

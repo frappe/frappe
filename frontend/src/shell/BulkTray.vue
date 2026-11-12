@@ -73,7 +73,7 @@ const timers = new Set<string>();
 // A run that passed in full leaves by itself; one with failures, queued records or a file stays until dismissed.
 watchEffect(() => {
 	for (const run of runs.value) {
-		if (live(run) || hasDetails(run) || timers.has(run.taskId)) continue;
+		if (live(run) || !run.result || hasDetails(run) || timers.has(run.taskId)) continue;
 		timers.add(run.taskId);
 		setTimeout(() => dismiss(run), CLEAN_DISMISS_MS);
 	}

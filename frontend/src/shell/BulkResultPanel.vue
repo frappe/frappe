@@ -97,15 +97,18 @@ const shown = computed(() => props.report[tab.value]);
 
 watch(open, (isOpen) => !isOpen && emit("close"));
 
-// A queued submit settles into Done or Failed while the panel is open.
+// A queued submit settles into Done or Failed while the panel is open; each settle swaps the report, which re-arms the poll.
 let timer: ReturnType<typeof setTimeout> | undefined;
-function pollQueued() {
-	timer = setTimeout(async () => {
-		const more = await settleQueued(props.report).catch(() => true);
-		if (more) pollQueued();
-	}, SETTLE_POLL_MS);
-}
-if (props.report.queued.length) pollQueued();
+watch(
+	() => props.report,
+	(report) => {
+		clearTimeout(timer);
+		if (!tabs.value.some(({ value }) => value === tab.value)) tab.value = firstTab(report);
+		if (!report.queued.length) return;
+		timer = setTimeout(() => settleQueued(report).catch(() => false), SETTLE_POLL_MS);
+	},
+	{ immediate: true }
+);
 onBeforeUnmount(() => clearTimeout(timer));
 
 function firstTab({ failed, queued }: BulkReport): Tab {

@@ -108,6 +108,13 @@ describe("BulkTray", () => {
 		expect(fake.dismiss).not.toHaveBeenCalled();
 	});
 
+	it("keeps a run that ended without a result", async () => {
+		fake.runs.push(run({ status: "Failed", error: "Worker lost" }));
+		await mount(BulkTray);
+		await vi.advanceTimersByTimeAsync(6100);
+		expect(fake.dismiss).not.toHaveBeenCalled();
+	});
+
 	it("offers a print run's PDF", async () => {
 		fake.runs.push(run({ status: "Completed", result: { total: 1, done: ["A"], failed: [], file_url: "/files/p.pdf" } }));
 		await mount(BulkTray);
