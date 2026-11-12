@@ -10,6 +10,8 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+    concurrency:
+      group: release-${{ github.ref_name }}
     steps:
       - name: Checkout Entire Repository
         uses: actions/checkout@v4
@@ -41,7 +43,25 @@ jobs:
           GIT_COMMITTER_NAME: "frappe-release-bot[bot]"
           GIT_COMMITTER_EMAIL: "346168705+frappe-release-bot[bot]@users.noreply.github.com"
         run: npx semantic-release
+      - name: Sync release into hotfix branch
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          HEAD: ${{ github.ref_name }}
+          BASE: ${{ github.ref_name }}-hotfix
+        run: |
+          git fetch origin "$HEAD" "$BASE"
+          if [ "$(git rev-list --count "origin/$BASE..origin/$HEAD")" = "0" ]; then
+            exit 0
+          fi
+          if [ "$(gh pr list --repo "$GITHUB_REPOSITORY" --base "$BASE" --head "$HEAD" --state open --json number --jq length)" != "0" ]; then
+            exit 0
+          fi
+          url=$(gh pr create --repo "$GITHUB_REPOSITORY" --base "$BASE" --head "$HEAD" \
+            --title "chore: sync $HEAD into $BASE" \
+            --body "Carries the release version bump back to the hotfix branch.")
+          gh pr merge --repo "$GITHUB_REPOSITORY" --merge --auto "$url"
       - name: Comment on released pull requests
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
@@ -61,20 +81,3 @@ jobs:
                 gh api "repos/$GITHUB_REPOSITORY/issues/$pr/labels" -f "labels[]=released" > /dev/null
                 sleep 2
               done
-      - name: Sync release into hotfix branch
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-          HEAD: ${{ github.ref_name }}
-          BASE: ${{ github.ref_name }}-hotfix
-        run: |
-          git fetch origin "$HEAD" "$BASE"
-          if [ "$(git rev-list --count "origin/$BASE..origin/$HEAD")" = "0" ]; then
-            exit 0
-          fi
-          if [ "$(gh pr list --repo "$GITHUB_REPOSITORY" --base "$BASE" --head "$HEAD" --state open --json number --jq length)" != "0" ]; then
-            exit 0
-          fi
-          url=$(gh pr create --repo "$GITHUB_REPOSITORY" --base "$BASE" --head "$HEAD" \
-            --title "chore: sync $HEAD into $BASE" \
-            --body "Carries the release version bump back to the hotfix branch.")
-          gh pr merge --repo "$GITHUB_REPOSITORY" --merge --auto "$url"
