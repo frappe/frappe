@@ -9,6 +9,7 @@ import type { ListRow, ListRowAction } from "@/listPage/types";
 import { bulkKeyEntries } from "./bulkKeys";
 import type { ListMeta } from "@/list/defaults";
 import type { BulkScope } from "@/list/useBulkScope";
+import type { CopyColumn } from "@/list/bulkCopy";
 import type { BulkLayout } from "./bulkLayout";
 import type { BulkBarParts } from "./bulkBarParts";
 import { rowActionEntries } from "./rowActions";
@@ -25,12 +26,15 @@ export interface BulkBarOptions {
   rowActions: Ref<ListRowAction[]>;
   reload: () => void;
   askDelete: () => void;
-  askEdit: () => void;
-  askExport: () => void;
-  copy: () => void;
+  /** What Copy to Clipboard writes: its columns, a cell's text, and the fields a hidden selected row is read with. */
+  copy: {
+    columns: () => CopyColumn[];
+    text: (row: Record<string, unknown>, fieldname: string) => string;
+    fields: () => string[];
+  };
   /** Acts the renderer adds to its own surface beside the bulk and row ones. */
   extraEntries?: () => ActEntry[];
-  /** The row under the pointer or with focus, and the table's range-aware selection; a surface without a cursor (Cards) gets no bulk keys. */
+  /** The row under the pointer or with focus, and the range-aware selection; a surface without a cursor gets no bulk keys. */
   cursor?: Ref<string | null>;
   table?: () => {
     toggle: (name: string) => void;

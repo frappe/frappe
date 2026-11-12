@@ -4,6 +4,8 @@ export { default as List } from "./List.vue";
 export { default as ListFooter } from "./ListFooter.vue";
 export { columnTracks } from "./columnTracks";
 export { directionFor, nextSort } from "./headerSort";
+export { useRowCursor } from "./useRowCursor";
+export { useRowSelection } from "./useRowSelection";
 export type {
   ColumnResize,
   ListColumn,

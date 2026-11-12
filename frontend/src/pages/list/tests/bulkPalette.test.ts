@@ -73,9 +73,7 @@ async function bar({
           host: host as never,
           doctype: "ToDo",
           meta: ref(meta),
-          askEdit: vi.fn(),
-          askExport: vi.fn(),
-          copy: vi.fn(),
+          copy: { columns: () => [], text: () => "", fields: () => [] },
           selection,
           scope: useBulkScope({
             selection,

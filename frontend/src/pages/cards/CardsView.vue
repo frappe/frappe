@@ -9,6 +9,7 @@
 			:cap="bulk.cap"
 			:layout="bulk.layout.value"
 			:locked="bulk.locked"
+			v-model:menuOpen="bulk.menuOpen.value"
 			@clear="scope.clear()"
 		/>
 	</Teleport>
@@ -47,8 +48,12 @@
 				:person="people[String(row.owner)]"
 				:selected="selection.includes(row.name)"
 				:selecting="selection.length > 0"
-				@toggle="toggle(row.name)"
+				@toggle="toggle(row.name, $event)"
 				@contextmenu="menu.open(row.name, $event)"
+				@pointerenter="enter(row.name)"
+				@pointerleave="leave(row.name)"
+				@focusin="focus(row.name)"
+				@focusout="blur(row.name)"
 			/>
 		</div>
 	</div>
@@ -77,25 +82,14 @@
 		@close="menu.close"
 	/>
 	<component
-		:is="bulk.parts.value.chunk.PrintDialog"
-		v-if="bulk.parts.value?.print.mounted.value"
-		v-model="bulk.parts.value.print.open.value"
-		:doctype="view.doctype"
-		:count="bulk.parts.value.print.count.value"
-		:all="bulk.parts.value.print.all.value"
-		:approx="bulk.parts.value.print.approx.value"
-		:scope="bulk.parts.value.print.scope.value"
-	/>
-	<component
-		:is="bulk.parts.value.CollabDialog"
-		v-if="bulk.parts.value?.collab.request.value"
-		:request="bulk.parts.value.collab.request.value"
+		:is="bulk.parts.value.chunk.BulkDialogs"
+		v-if="bulk.parts.value"
+		:parts="bulk.parts.value"
+		:scope="scope"
 		:doctype="view.doctype"
 		:reload="reload"
 		:select="(names: string[]) => (selection = names)"
-		@close="bulk.parts.value.collab.request.value = null"
 	/>
-
 	<DeleteDialog
 		v-model="confirmingDelete"
 		:count="target ? 1 : scope.count.value"
@@ -106,7 +100,7 @@
 </template>
 
 <script setup lang="ts">
-import { ListFooter } from "@framework/ui/experimental/List";
+import { ListFooter, useRowCursor, useRowSelection } from "@framework/ui/experimental/List";
 import { useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { Skeleton } from "frappe-ui";
 import { onScopeDispose, ref, watchEffect } from "vue";
@@ -148,6 +142,7 @@ const {
 	show,
 	countExact,
 	reload,
+	readFields,
 	cardLink,
 	titleClassOf,
 	deleteOne,
@@ -167,6 +162,12 @@ const gridStyle = {
 		"repeat(auto-fill, minmax(max(240px, calc((100% - 3 * var(--page-gutter)) / 4)), 1fr))",
 };
 
+const { toggle, extendTo } = useRowSelection(selection, rows, ref("name"));
+const cursor = ref<string | null>(null);
+const { enter, leave, focus, blur } = useRowCursor(cursor, () =>
+	rows.value.map((row) => row.name)
+);
+
 // The bulk delete is the surface's `delete`; a card's own menu runs `delete_card` on that card.
 const bulk = useBulkBar({
 	host: props.host,
@@ -178,6 +179,13 @@ const bulk = useBulkBar({
 	rowActions,
 	reload,
 	askDelete: () => ask(""),
+	copy: {
+		columns: copyColumns,
+		text: (row, fieldname) => String(row[fieldname] ?? ""),
+		fields: readFields,
+	},
+	cursor,
+	table: () => ({ toggle, extendTo }),
 	extraEntries: () => [deleteCardEntry()],
 });
 const { listActs } = bulk;
@@ -192,10 +200,15 @@ function ask(name: string) {
 	confirmingDelete.value = true;
 }
 
-function toggle(name: string) {
-	selection.value = selection.value.includes(name)
-		? selection.value.filter((key) => key !== name)
-		: [...selection.value, name];
+// Copy writes what a card shows: its title and body, after the name when the title is another field.
+function copyColumns() {
+	const { title, body } = fields.value;
+	const labelOf = (fieldname: string) =>
+		meta.value?.fields?.find((field) => field.fieldname === fieldname)?.label ?? fieldname;
+	return [...new Set(["name", title, ...(body ? [body] : [])])].map((fieldname) => ({
+		fieldname,
+		label: fieldname === "name" ? __("ID") : labelOf(fieldname),
+	}));
 }
 
 function deleteCardEntry() {
