@@ -7,7 +7,8 @@ const UPDATE_RECORD_TAGS = "frappe.desk.doctype.tag.tag.update_record_tags";
 
 /** Saves a colour on the Tag itself and repaints every chip of it. */
 export async function recolourTag(tag: string, color: string) {
-	await runMethod(SET_TAG_COLOR, { tag, color });
+	// set_tag_color returns nothing, so the reply has no `data`.
+	await runMethod(SET_TAG_COLOR, { tag, color }, { nullable: true });
 	seedTagColors({ [tag]: color });
 }
 
