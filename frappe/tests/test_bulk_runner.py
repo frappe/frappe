@@ -27,7 +27,13 @@ def touch_one(doctype, name, fail=(), queue=(), crash=None, values=None):
 	return QUEUED if name in queue else None
 
 
+def add_count(params, result):
+	return {"count": len(result["done"])}
+
+
 TOUCH = BulkAction("Touch", touch_one)
+COUNT = BulkAction("Count", touch_one, finish=add_count)
+BACKGROUND = BulkAction("Touch", touch_one, background=True)
 
 
 class TestBulkRunner(IntegrationTestCase):
@@ -43,6 +49,7 @@ class TestBulkRunner(IntegrationTestCase):
 		for name in frappe.get_all("ToDo", {"description": ["like", f"{PREFIX}%"]}, pluck="name"):
 			frappe.delete_doc("ToDo", name, force=True)
 		frappe.db.delete("Background Task", {"task_name": ["like", "Touch%"]})
+		frappe.db.delete("Background Task", {"task_name": ["like", "Count%"]})
 		frappe.db.commit()  # nosemgrep
 
 	def make_todo(self, index: int, **values) -> str:
@@ -225,6 +232,42 @@ class TestBulkRunner(IntegrationTestCase):
 			"rq_retry",
 		)
 		return {key: value for key, value in enqueue.call_args.kwargs.items() if key not in options}
+
+	# Limit, finish and background
+
+	def test_limit_replaces_the_site_cap(self):
+		frappe.form_dict.names = self.names
+		with self.assertRaises(frappe.ValidationError):
+			run_bulk(TOUCH, "ToDo", limit=3)
+		self.assertEqual(self.touched(), [])
+
+	def test_limit_bounds_a_filter_selection(self):
+		frappe.form_dict.filters = {"description": ["like", f"{PREFIX}%"]}
+		with self.assertRaises(frappe.ValidationError):
+			run_bulk(TOUCH, "ToDo", limit=3)
+
+	def test_finish_adds_keys_to_an_inline_result(self):
+		frappe.form_dict.names = self.names
+		self.assertEqual(run_bulk(COUNT, "ToDo")["count"], 4)
+
+	def test_finish_adds_keys_to_a_background_result(self):
+		frappe.form_dict.names = self.names
+		with patch.dict(frappe.conf, {"bulk_operation_async_threshold": 2}):
+			with patch("frappe.utils.task_queue.frappe.enqueue") as enqueue:
+				response = run_bulk(COUNT, "ToDo")
+				frappe.db.commit()  # nosemgrep
+
+		_execute_task(**self.worker_kwargs(enqueue))
+		result = frappe.db.get_value("Background Task", response["task_id"], "result")
+		self.assertEqual(frappe.parse_json(result)["count"], 4)
+
+	def test_background_action_queues_below_the_threshold(self):
+		frappe.form_dict.names = self.names[:1]
+		with patch("frappe.utils.task_queue.frappe.enqueue"):
+			response = run_bulk(BACKGROUND, "ToDo")
+
+		self.assertEqual(frappe.response.http_status_code, 202)
+		self.assertIn("task_id", response)
 
 	# Doctype preconditions
 

@@ -1,10 +1,18 @@
 """The bulk actions API v2 routes through `frappe.api.bulk`: each is a record function and its route."""
 
 import frappe
-from frappe import _
+from frappe import _, cint
 from frappe.api.bulk import BulkAction, Record, Selection, read_selection, run_bulk
 from frappe.api.utils import FrappeValueError
 from frappe.model.workflow import get_workflow_name
+from frappe.utils import add_to_date, now_datetime
+from frappe.utils.print_format import (
+	_enforce_multi_pdf_async_rate_limit,
+	append_to_pdf,
+	get_max_bulk_print_docs,
+	get_max_concurrent_bulk_exports,
+	save_pdf_file,
+)
 from frappe.utils.task_queue import get_current_task
 
 # The body keys an update may not set: they would change which record it is.
@@ -57,6 +65,28 @@ def bulk_update_docs(doctype: str):
 def bulk_update():
 	"""POST /method/bulk_update: `docs` across doctypes, a list of `{doctype, name, ...fields}`."""
 	return run_bulk(UPDATE, selection=selection_from_docs(frappe.form_dict.get("docs")))
+
+
+def bulk_print_docs(doctype: str):
+	"""POST /document/<doctype>/bulk_print
+
+	Body: `names`, or `filters` and `or_filters`; `print_format`, `letterhead`, `no_letterhead` and
+	`page_size`. At most Print Settings `max_bulk_print_docs` records. Always `202 {task_id, job_id}`:
+	the Background Task result adds `file_url` of the merged PDF to `{total, done, failed}`.
+	"""
+	form = frappe.form_dict
+	for key in ("print_format", "letterhead", "page_size"):
+		if form.get(key) is not None and not isinstance(form.get(key), str):
+			raise FrappeValueError(f"'{key}' must be a string")
+
+	params = {
+		"print_format": form.get("print_format") or None,
+		"letterhead": form.get("letterhead") or None,
+		"no_letterhead": bool(cint(form.get("no_letterhead"))),
+		"page_size": form.get("page_size") or None,
+		"language": frappe.local.lang,
+	}
+	return run_bulk(PRINT, doctype, params=params, limit=get_max_bulk_print_docs())
 
 
 def selection_from_docs(docs, doctype: str | None = None, with_values: bool = True) -> Selection:
@@ -127,3 +157,69 @@ def refuse_workflow_without_allow_edit(doctype: str, params: dict):
 
 DELETE = BulkAction("Delete", delete_one, check=refuse_workflow_without_allow_edit)
 UPDATE = BulkAction("Edit", update_one, check=refuse_workflow_without_allow_edit)
+
+
+def refuse_print_over_the_user_limits(doctype: str, params: dict):
+	"""Print keeps v1's request pacing and its per-user cap on exports in progress."""
+	_enforce_multi_pdf_async_rate_limit()
+
+	running = frappe.db.count(
+		"Background Task",
+		{
+			"user": frappe.session.user,
+			"status": ["in", ("Queued", "Running")],
+			"task_name": ["like", f"{PRINT.label} %"],
+			# A lost worker leaves its row behind; it must not hold a slot for good.
+			"creation": [">", add_to_date(now_datetime(), hours=-1)],
+		},
+	)
+	if running >= get_max_concurrent_bulk_exports():
+		frappe.throw(
+			_(
+				"You already have the maximum number of bulk PDF exports in progress. Please wait for one to finish."
+			),
+			frappe.RateLimitExceededError,
+		)
+
+
+def print_one(doctype: str, name: str, **params):
+	"""Add one record's pages to the run's PDF, kept on `frappe.local` until `save_print`."""
+	writer = getattr(frappe.local, "bulk_print_writer", None)
+	if writer is None:
+		from pypdf import PdfWriter
+
+		writer = frappe.local.bulk_print_writer = PdfWriter()
+
+	append_to_pdf(
+		writer,
+		doctype,
+		name,
+		params["print_format"],
+		params["no_letterhead"],
+		params["letterhead"],
+		print_options(params),
+		params["language"],
+	)
+
+
+def save_print(params: dict, result: dict) -> dict:
+	writer = getattr(frappe.local, "bulk_print_writer", None)
+	frappe.local.bulk_print_writer = None
+	if writer is None or not writer.pages:
+		return {}
+
+	file = save_pdf_file(writer, print_options(params), f"{get_current_task().task_id}.pdf")
+	return {"file_url": file.unique_url}
+
+
+def print_options(params: dict) -> dict:
+	return {"page-size": params["page_size"]} if params["page_size"] else {}
+
+
+PRINT = BulkAction(
+	"Print",
+	print_one,
+	check=refuse_print_over_the_user_limits,
+	finish=save_print,
+	background=True,
+)

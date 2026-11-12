@@ -76,7 +76,14 @@ def core_boot() -> dict:
 		# The user's bulk-action switch and the site cap, so the list refuses before it calls.
 		"bulk_actions": bulk.has_gate(),
 		"bulk_operation_limit": bulk.get_limit(),
+		"max_bulk_print_docs": max_bulk_print_docs(),
 	}
+
+
+def max_bulk_print_docs() -> int:
+	from frappe.utils.print_format import get_max_bulk_print_docs
+
+	return get_max_bulk_print_docs()
 
 
 def app_boot(app: str) -> dict:
