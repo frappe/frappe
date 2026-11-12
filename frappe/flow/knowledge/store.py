@@ -31,7 +31,8 @@ MAX_SEARCH_LIMIT = 100
 def db_path() -> str:
 	if frappe.flags.in_test:
 		return _test_db_path()
-	return frappe.get_site_path("private", "files", "lancedb")
+	# outside private/files, so no File row can expose it
+	return frappe.get_site_path("private", "lancedb")
 
 
 _test_db: str | None = None

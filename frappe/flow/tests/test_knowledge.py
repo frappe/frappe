@@ -2,6 +2,8 @@
 # License: MIT. See LICENSE
 
 import json
+import os
+import tempfile
 from types import SimpleNamespace
 from unittest.mock import patch
 
@@ -25,7 +27,7 @@ from frappe.flow.knowledge.extract import (
 from frappe.flow.knowledge.ingest import ingest_source, reconcile_source, sync_due_sources
 from frappe.flow.knowledge.retriever import retrieve, retrieve_attachments
 from frappe.tests import IntegrationTestCase
-from frappe.utils import add_to_date
+from frappe.utils import add_to_date, get_files_path
 
 DIM = 4
 CTX = ToolContext(session_id="test", agent="Test Agent", user="Administrator")
@@ -67,6 +69,27 @@ class TestKnowledgeStore(IntegrationTestCase):
 	def _seed(self):
 		store.ensure_table_for_dimension(DIM)
 		store.add(_rows())
+
+	def test_the_store_is_outside_the_files_folder(self):
+		# any user can add a File row for a file there and download it
+		with patch.dict(frappe.flags, {"in_test": False}):
+			path = os.path.realpath(store.db_path())
+		files = os.path.realpath(get_files_path(is_private=1))
+		self.assertNotEqual(os.path.commonpath([files, path]), files)
+
+	def test_the_move_keeps_the_old_store_over_a_new_empty_one(self):
+		from frappe.patches.v17_0 import move_flow_lancedb_out_of_files as move
+
+		with tempfile.TemporaryDirectory() as site:
+			old = os.path.join(site, "private", "files", "lancedb")
+			new = os.path.join(site, "private", "lancedb")
+			os.makedirs(old)
+			os.makedirs(new)
+			open(os.path.join(old, "chunks"), "w").close()
+			with patch("frappe.get_site_path", side_effect=lambda *parts: os.path.join(site, *parts)):
+				move.execute()
+			self.assertEqual(os.listdir(new), ["chunks"])
+			self.assertFalse(os.path.exists(old))
 
 	def test_the_table_is_created_once_for_one_dimension(self):
 		self.assertEqual(store.search([1.0, 0.0, 0.0, 0.0]), [])
@@ -941,6 +964,16 @@ class TestDoctypeSync(IntegrationTestCase):
 		self.assertIn(auto.name, enqueued)
 		self.assertNotIn(manual.name, enqueued)
 		self.assertNotIn(text.name, enqueued)
+
+	def test_a_restored_site_rebuilds_every_source(self):
+		self._todo("SYNCTEST alpha")
+		source = self._source()
+		self._sync(source.name)
+		store.drop_table()  # a restore brings back the chunk rows, not the store
+
+		with patch("frappe.flow.knowledge.ingest.enqueue_ingestion") as mock:
+			sync_due_sources()
+		mock.assert_called_once_with(source.name, rebuild=True)
 
 
 class TestRetriever(IntegrationTestCase):

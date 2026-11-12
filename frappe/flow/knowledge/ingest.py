@@ -36,6 +36,13 @@ def enqueue_ingestion(source: str, rebuild: bool = False) -> None:
 
 def sync_due_sources() -> None:
 	"""Daily scheduler: enqueue an incremental sweep for every auto-sync DocType source."""
+	from frappe.flow.knowledge import store
+
+	# backups leave out the vector store, so a restored site has chunks but no table
+	if not store.table_exists() and frappe.db.exists(CHUNK_DOCTYPE, {}):
+		for source in frappe.get_all("Flow Knowledge Source", pluck="name"):
+			enqueue_ingestion(source, rebuild=True)
+		return
 	sources = frappe.get_all(
 		"Flow Knowledge Source",
 		filters={"source_type": "DocType", "auto_sync": 1},
