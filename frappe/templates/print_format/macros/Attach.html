@@ -2,6 +2,10 @@
 
 {%- block value -%}
 <div class="value">
+<<<<<<< HEAD
     <a href="{{ value }}">{{ value.rsplit('/', 1)[1] }}</a>
+=======
+    {% if value %}<a href="{{ value|e }}">{{ value.rsplit('/', 1)[-1]|e }}</a>{% endif %}
+>>>>>>> abb7c08 (fix(print): attach field shows a template error for a bare file name)
 </div>
 {%- endblock -%}
