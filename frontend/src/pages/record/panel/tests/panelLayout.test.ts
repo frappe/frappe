@@ -250,6 +250,25 @@ describe("the leading built-ins stay in view", () => {
 		expect(header.style.top).toBe("200px");
 	});
 
+	it("draws a 1px line under the pinned block only while rows are under it", async () => {
+		const { root } = await sized({ block: 200, column: 400 });
+		const block = root.querySelector<HTMLElement>("[data-panel-pinned]")!;
+		const rows = block.nextElementSibling as HTMLElement;
+		block.getBoundingClientRect = () => ({ top: 0, bottom: 200 }) as DOMRect;
+		const scrollTo = async (rowsTop: number) => {
+			rows.getBoundingClientRect = () => ({ top: rowsTop, bottom: rowsTop + 400 }) as DOMRect;
+			root.dispatchEvent(new Event("scroll"));
+			await nextTick();
+			return block.classList.contains("after:border-outline-gray-1");
+		};
+		expect(await scrollTo(200)).toBe(false);
+		expect(await scrollTo(199)).toBe(true);
+		expect(block.classList.contains("after:h-px")).toBe(true);
+		expect(block.className).not.toContain("gradient");
+		expect(await scrollTo(-100)).toBe(true);
+		expect(await scrollTo(200)).toBe(false);
+	});
+
 	it("lets the block scroll on a column too short for it", async () => {
 		const { root } = await sized({ block: 200, column: 399 });
 		expect(root.querySelector("[data-panel-pinned]")!.classList.contains("sticky")).toBe(false);

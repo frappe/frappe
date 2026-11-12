@@ -4,12 +4,11 @@
 	<div
 		v-if="headerIndex !== null"
 		ref="header"
-		class="group/section sticky z-[1] flex cursor-pointer select-none items-center gap-1.5 bg-surface-base px-4 after:pointer-events-none after:absolute after:inset-x-0 after:top-full after:h-[--fade] after:bg-gradient-to-b after:from-surface-base after:to-transparent after:content-['']"
-		:class="index ? 'border-t border-outline-gray-1' : ''"
+		class="group/section sticky z-[1] flex cursor-pointer select-none items-center gap-1.5 bg-surface-base px-4"
+		:class="[index && 'border-t border-outline-gray-1', covering && LINE_UNDER]"
 		:style="{
 			top: `${pinTop + headerIndex * HEIGHT}px`,
 			height: `${HEIGHT}px`,
-			'--fade': `${fade}px`,
 		}"
 		:data-section="name"
 		@click="$emit('toggle')"
@@ -38,7 +37,6 @@
 
 	<div
 		v-if="headerIndex === null || open"
-		ref="body"
 		class="flex flex-col gap-2.5 px-4 empty:hidden"
 		:class="[
 			headerIndex === null ? 'py-3' : 'pt-1 pb-3',
@@ -61,6 +59,7 @@
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import type { FieldNode } from "@framework/ui/FormLayout/types";
 import PanelField from "./PanelField.vue";
+import { LINE_UNDER, rowsUnder } from "./pinnedCover";
 import { scrollParent } from "./scrollParent";
 
 // Headers stack, each pinned below the ones before it; a fixed height makes the offset
@@ -82,19 +81,12 @@ const props = defineProps<{
 	pinTop: number;
 }>();
 
-// The fade under a pinned header grows with the rows scrolled beneath it: drawn in full at
-// once, it pales a first row that has not reached the header yet.
-const FADE = 24;
 const header = ref<HTMLElement | null>(null);
-const body = ref<HTMLElement | null>(null);
-const fade = ref(0);
+const covering = ref(false);
 let scroller: HTMLElement | null = null;
 
 function measure() {
-	if (!header.value || !body.value) return (fade.value = 0);
-	const under =
-		header.value.getBoundingClientRect().bottom - body.value.getBoundingClientRect().top;
-	fade.value = Math.min(Math.max(under, 0), FADE);
+	covering.value = !!header.value && rowsUnder(header.value);
 }
 
 onMounted(() => {
@@ -104,7 +96,7 @@ onMounted(() => {
 });
 onBeforeUnmount(() => scroller?.removeEventListener("scroll", measure));
 watch(
-	() => [props.open, props.fields.length],
+	() => [props.open, props.fields.length, props.pinTop],
 	() => nextTick(measure)
 );
 
