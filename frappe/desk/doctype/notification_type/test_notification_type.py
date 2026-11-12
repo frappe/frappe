@@ -2,8 +2,10 @@
 # License: MIT. See LICENSE
 
 import frappe
+from frappe.core.doctype.user.test_user import test_user
 from frappe.desk.doctype.notification_type.notification_type import (
 	BUILTIN_NOTIFICATION_TYPES,
+	get_notification_types,
 	install_notification_types,
 )
 from frappe.tests import IntegrationTestCase
@@ -48,3 +50,8 @@ class TestNotificationType(IntegrationTestCase):
 		self.assertIn("Mention", types)
 		self.assertEqual(types["Mention"]["type_name"], "Mention")
 		self.assertTrue(types["Mention"]["enabled"])
+
+	def test_get_notification_types_requires_desk_access(self):
+		with test_user(roles=[], user_type="Website User") as user, self.set_user(user.name):
+			with self.assertRaises(frappe.PermissionError):
+				get_notification_types()
