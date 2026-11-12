@@ -708,7 +708,7 @@ describe("the generated module", () => {
     );
   });
 
-  it("fetches a record script when its page opens, and bundles only a list script", () => {
+  it("fetches a record or list script when its page opens, and bundles neither", () => {
     const manifest = bench({
       helpdesk: owner(
         { record: "runner" },
@@ -722,15 +722,14 @@ describe("the generated module", () => {
     const custom = join(crm, "fcrm/custom/hd_ticket/record.js");
 
     const code = load(contributions(manifest));
-    expect(code).not.toContain(`import d0 from`);
-    expect(code).toContain(`import d1 from ${JSON.stringify(list)}`);
+    expect(code).not.toMatch(/import d\d+ from/);
     expect(code).toContain(
       `{ kind: "record", app: "helpdesk", doctype: "HD Ticket", ` +
         `load: () => import(${JSON.stringify(record)}), __file: ${JSON.stringify(record)} },`,
     );
     expect(code).toContain(
       `{ kind: "list", app: "helpdesk", doctype: "HD Ticket", ` +
-        `handlers: d1, __file: ${JSON.stringify(list)} },`,
+        `load: () => import(${JSON.stringify(list)}), __file: ${JSON.stringify(list)} },`,
     );
     expect(code).toContain(
       `{ kind: "custom", app: "crm", doctype: "HD Ticket", ` +
@@ -738,7 +737,7 @@ describe("the generated module", () => {
     );
   });
 
-  it("bundles a foreign app's list script as customList, in the doctype's own name", () => {
+  it("fetches a foreign app's list script as customList, in the doctype's own name", () => {
     const manifest = bench({
       helpdesk: owner({}, { [`${TICKET}/frontend/list.js`]: "export default {}" }),
       crm: { "fcrm/custom/hd_ticket/list.js": "export default {}" },
@@ -748,11 +747,10 @@ describe("the generated module", () => {
     const custom = join(crm, "fcrm/custom/hd_ticket/list.js");
 
     const code = load(contributions(manifest));
-    expect(code).toContain(`import d1 from ${JSON.stringify(list)}`);
-    expect(code).toContain(`import d2 from ${JSON.stringify(custom)}`);
+    expect(code).not.toMatch(/import d\d+ from/);
     expect(code).toContain(
       `{ kind: "customList", app: "crm", doctype: "HD Ticket", ` +
-        `handlers: d2, __file: ${JSON.stringify(custom)} },`,
+        `load: () => import(${JSON.stringify(custom)}), __file: ${JSON.stringify(custom)} },`,
     );
   });
 

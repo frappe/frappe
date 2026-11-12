@@ -6,6 +6,7 @@ import type { RawMetaField } from "@framework/ui/FormLayout";
 import { parseOrderBy, type Sort } from "@framework/ui/SortBy";
 import type { LinkMarkSource } from "@framework/ui/fields";
 import type { ListHandlers, RowAction } from "@/contributions/types";
+import type { LoadedListScript } from "@/listPage/scriptLoader";
 
 /** The meta keys the list reads; the meta read sends the whole doctype record. */
 export interface ListMeta {
@@ -29,7 +30,7 @@ const GENERIC_COLUMNS: Column[] = [
 
 export const DEFAULT_SORT: Sort[] = [{ fieldname: "modified", direction: "desc" }];
 
-export function defaultColumns(meta: ListMeta, contributed: ListHandlers[]): ListColumn[] {
+export function defaultColumns(meta: ListMeta, contributed: Pick<LoadedListScript, "columns">[]): ListColumn[] {
 	const fields = meta.fields ?? [];
 	const columns = contributedColumns(fields, contributed) ?? metaColumns(fields, meta.title_field);
 	return columns.map((column) => withAlign(column, fields));
@@ -136,7 +137,7 @@ export function contributedRowActions(contributed: ListHandlers[]): RowAction[] 
 }
 
 /** Every contributing app's columns in run order; a fieldname named twice is shown once. */
-function contributedColumns(fields: RawMetaField[], contributed: ListHandlers[]): Column[] | null {
+function contributedColumns(fields: RawMetaField[], contributed: Pick<LoadedListScript, "columns">[]): Column[] | null {
 	const columns: Column[] = [];
 	const seen = new Set<string>();
 	for (const handlers of contributed) {

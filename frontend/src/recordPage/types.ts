@@ -387,17 +387,8 @@ export interface RecordPageApi extends PageApi {
   /** Saves a dirty draft, renames the record and opens it at its new name; `null` when refused or not on a saved record. */
   rename(name: string, options?: { merge?: boolean }): Promise<string | null>;
   reload(): Promise<void>;
-  /** Opens Create for a doctype; the saved record, or `null` when nothing was saved in the dialog. */
-  create(
-    doctype: string,
-    options?: { values?: Record<string, any> },
-  ): Promise<Record<string, any> | null>;
-  /** Opens a record, a doctype's list or a saved view, as `shell.open` does. */
-  open(doctype: string, name?: string | null, options?: { view?: string }): Promise<void>;
   /** Opens the settings dialog at `#settings/<prefix>/<pane>/<block>`; each segment is optional. */
   openSettings(prefix?: string, pane?: string, block?: string): void;
-  /** Runs an act by its full name, `<surface>.<item>`, in a hold; rejects with `ActDenied` or the act's error. */
-  run(name: string, value?: unknown): Promise<unknown>;
 }
 
 export type { FieldAccess, VisibleTypes };

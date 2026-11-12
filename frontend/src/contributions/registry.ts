@@ -2,12 +2,12 @@
 
 import contributions from 'virtual:frappe/contributions'
 import { addFileScript, addPageFile } from '@/recordPage'
+import { addListScript } from '@/listPage/scriptLoader'
 import type { ItemRenderer } from '@/navigation/types'
 import type {
   ActsContribution,
   FieldActionsContribution,
   DoctypeContribution,
-  ListHandlers,
   PageContribution,
   RecordDialogContribution,
   ReplacementContribution,
@@ -22,13 +22,6 @@ export const itemRenderers: Record<string, ItemRenderer> = {}
 
 /** View type -> its renderer's lazy import, filled by `registerContributions` in the site's app order. */
 export const viewRenderers: Record<string, () => Promise<unknown>> = {}
-
-/** List customizations by doctype; the record-page engine has no registrar for these. */
-const listHandlers = new Map<string, { app: string; handlers: ListHandlers }[]>()
-
-export function listHandlersFor(doctype: string) {
-  return listHandlers.get(doctype) ?? []
-}
 
 let standard: StandardPages | null = null
 
@@ -157,9 +150,7 @@ export function registerContributions(appOrder: string[]) {
   for (const [doctype, all] of byDoctype) {
     for (const contribution of ordered(all, appOrder, (c) => c.kind === 'custom' || c.kind === 'customList')) {
       if (contribution.kind === 'list' || contribution.kind === 'customList') {
-        const own = listHandlers.get(doctype) ?? []
-        own.push({ app: contribution.app, handlers: contribution.handlers })
-        listHandlers.set(doctype, own)
+        addListScript(doctype, { app: contribution.app, load: contribution.load })
         continue
       }
 

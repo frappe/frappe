@@ -62,17 +62,19 @@ export type PageContribution = {
 
 // Fetched when the doctype's record or new-record page first opens, never with the shell.
 export type LoadRecordScript = () => Promise<{ default?: RecordHandlers }>
+// Fetched when the doctype's list page first opens.
+export type LoadListScript = () => Promise<{ default?: Record<string, unknown> }>
 
 export type DoctypeContribution =
   // Your own doctype's record page: <module>/doctype/<scrubbed>/frontend/record.js
   | { kind: 'record'; app: string; doctype: string; load: LoadRecordScript }
   // Your own doctype's list: <module>/doctype/<scrubbed>/frontend/list.js
-  | { kind: 'list'; app: string; doctype: string; handlers: ListHandlers }
+  | { kind: 'list'; app: string; doctype: string; load: LoadListScript }
   // A foreign doctype: <module>/custom/<scrubbed>/record.js. Applies globally; it does not
   // move the doctype into your prefix.
   | { kind: 'custom'; app: string; doctype: string; load: LoadRecordScript }
   // A foreign doctype's list: <module>/custom/<scrubbed>/list.js, run after the owner's list.js.
-  | { kind: 'customList'; app: string; doctype: string; handlers: ListHandlers }
+  | { kind: 'customList'; app: string; doctype: string; load: LoadListScript }
 
 // A page in place of a doctype's record or list page: <module>/doctype/<scrubbed>/frontend/
 // pages/<name>.js, named in pages.json beside it; the same under <module>/custom/<scrubbed>/.
