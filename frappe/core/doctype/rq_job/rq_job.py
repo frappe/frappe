@@ -186,7 +186,8 @@ def serialize_job(job: Job) -> frappe._dict:
 		job_id=job.id,
 		queue=job.origin.rsplit(":", 1)[1],
 		job_name=job_name,
-		status=job.get_status(),
+		# Use the fetched status: a re-read raises if the job expired after the fetch.
+		status=job.get_status(refresh=False),
 		started_at=convert_utc_to_system_timezone(job.started_at) if job.started_at else "",
 		ended_at=convert_utc_to_system_timezone(job.ended_at) if job.ended_at else "",
 		time_taken=(job.ended_at - job.started_at).total_seconds() if job.ended_at else "",
