@@ -13,11 +13,14 @@ const fake = vi.hoisted(() => ({
 	listDocuments: vi.fn(),
 	countDocuments: vi.fn(),
 	deleteDocument: vi.fn(),
+	bulkDelete: vi.fn(),
 	runMethod: vi.fn(),
 }));
 
 vi.mock("@framework/ui/api", async (original) => ({
 	isApiError: (await original<typeof import("@framework/ui/api")>()).isApiError,
+	isBulkQueued: (await original<typeof import("@framework/ui/api")>()).isBulkQueued,
+	bulkDeleteDocuments: fake.bulkDelete,
 	getMeta: vi.fn(async () => ({ data: fake.meta, children: [] })),
 	listDocuments: fake.listDocuments,
 	countDocuments: fake.countDocuments,
@@ -180,6 +183,7 @@ beforeEach(() => {
 	fake.runMethod.mockReset().mockImplementation(answer);
 	fake.countDocuments.mockReset().mockResolvedValue({ data: 1234 });
 	fake.deleteDocument.mockReset().mockResolvedValue({ data: "ok" });
+	fake.bulkDelete.mockReset().mockResolvedValue({ data: { total: 0, done: [], failed: [] } });
 });
 
 afterEach(() => {
@@ -739,19 +743,35 @@ describe("the count", () => {
 });
 
 describe("deleteSelection", () => {
-	it("deletes each selected name, reports a failure, clears the selection and reloads", async () => {
+	it("deletes the selection in one bulk call, reports a failure, clears the selection and reloads", async () => {
 		await mount("/lead");
 		await settle();
-		fake.deleteDocument.mockResolvedValueOnce({ data: "ok" }).mockRejectedValueOnce(new Error("Not permitted"));
+		fake.bulkDelete.mockResolvedValueOnce({
+			data: { total: 2, done: ["LEAD-1"], failed: [{ name: "LEAD-2", error: "Not permitted" }] },
+		});
 		page.selection.value = ["LEAD-1", "LEAD-2"];
 		const outcome = await page.deleteSelection();
-		expect(fake.deleteDocument.mock.calls).toEqual([
-			["Lead", "LEAD-1"],
-			["Lead", "LEAD-2"],
-		]);
+		expect(fake.bulkDelete.mock.calls).toEqual([["Lead", ["LEAD-1", "LEAD-2"]]]);
 		expect(outcome).toEqual({ deleted: ["LEAD-1"], failed: [{ name: "LEAD-2", error: "Not permitted" }] });
 		expect(page.selection.value).toEqual([]);
 		expect(fake.listDocuments).toHaveBeenCalledTimes(2);
+	});
+
+	it("reports a run that went to the background as queued", async () => {
+		await mount("/lead");
+		await settle();
+		fake.bulkDelete.mockResolvedValueOnce({ data: { task_id: "T-1", job_id: "J-1" } });
+		page.selection.value = ["LEAD-1"];
+		expect(await page.deleteSelection()).toEqual({ deleted: [], failed: [], queued: true });
+	});
+
+	it("keeps the selection when the whole run is refused", async () => {
+		await mount("/lead");
+		await settle();
+		fake.bulkDelete.mockRejectedValueOnce(new Error("Bulk actions are off"));
+		page.selection.value = ["LEAD-1"];
+		await expect(page.deleteSelection()).rejects.toThrow("Bulk actions are off");
+		expect(page.selection.value).toEqual(["LEAD-1"]);
 	});
 });
 

@@ -15,7 +15,7 @@ import { rowActionFields } from "@/listPage/types";
 import { useRememberedPageSize } from "@/list/pageState";
 import { queryFromAddress } from "@/list/query";
 import { cardSeenClass, isUnseen } from "@/list/seen";
-import { deleteRows, filtersDict, type DeleteOutcome } from "@/list/useListView";
+import { deleteRow, filtersDict, type DeleteOutcome } from "@/list/useListView";
 import { useListRows, type ListRow, type ListRows } from "@/list/useListRows";
 import type { View } from "@/list/view";
 import { routeFor } from "@/router/routeFor";
@@ -90,7 +90,7 @@ export function useCardsView(view: View, lists: Pick<ListPageLists, "rowActions"
 
 	watch(rows.rows, (current) => readPeople(current.map((row) => String(row.owner ?? ""))), { immediate: true });
 
-	const deleteOne = (name: string) => deleteRows(rows, [name]);
+	const deleteOne = (name: string) => deleteRow(rows, name);
 
 	const user = currentSession()?.user.name ?? null;
 	const titleClassOf = (row: ListRow) =>

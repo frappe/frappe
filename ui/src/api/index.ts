@@ -242,6 +242,36 @@ export function deleteDocument(
   );
 }
 
+/** What a bulk run answers when it ran inline: `done` holds the names it finished. */
+export interface BulkResult {
+  total: number;
+  done: string[];
+  failed: { name: string; error: string }[];
+}
+
+/** What a bulk run answers (status 202) when it went to the background. */
+export interface BulkQueued {
+  task_id: string;
+  job_id: string;
+}
+
+export function isBulkQueued(result: BulkResult | BulkQueued): result is BulkQueued {
+  return "task_id" in result;
+}
+
+/** Deletes the named records in one request; each name in `done` leaves the cache. */
+export function bulkDeleteDocuments(
+  doctype: string,
+  names: string[],
+  { signal }: CallOptions = {}
+): Promise<Envelope<BulkResult | BulkQueued>> {
+  const path = `/document/${segment(doctype)}/bulk_delete`;
+  return fed<BulkResult | BulkQueued>("POST", path, { body: { names }, signal }, (ticket, { data }) => {
+    if (isBulkQueued(data)) return;
+    for (const name of data.done) feedDelete(ticket, doctype, name);
+  });
+}
+
 /** Renames through `frappe.client.rename_doc`; the old name leaves the cache, as a delete's does. */
 export function renameDocument(
   doctype: string,

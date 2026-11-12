@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  bulkDeleteDocuments,
   copyDocument,
   countDocuments,
   createDocument,
@@ -192,6 +193,16 @@ describe("create, delete and copy", () => {
     respond({ data: "ok" }, 202);
     expect((await deleteDocument("ToDo", "T-1")).data).toBe("ok");
     expect(lastCall()).toMatchObject({ url: "/api/v2/document/ToDo/T-1", method: "DELETE" });
+  });
+
+  it("bulk deletes by posting the names to the bulk_delete route", async () => {
+    respond({ data: { total: 1, done: ["T-1"], failed: [] } });
+    expect((await bulkDeleteDocuments("ToDo", ["T-1"])).data).toMatchObject({ done: ["T-1"] });
+    expect(lastCall()).toMatchObject({
+      url: "/api/v2/document/ToDo/bulk_delete",
+      method: "POST",
+      body: { names: ["T-1"] },
+    });
   });
 
   it("copies from the copy route", async () => {
