@@ -1,6 +1,7 @@
 # Copyright (c) 2018, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 from typing import TYPE_CHECKING
+from unittest.mock import patch
 
 import frappe
 from frappe.automation.doctype.auto_repeat.auto_repeat import (
@@ -391,6 +392,26 @@ class TestAutoRepeat(IntegrationTestCase):
 
 		self.assertFalse(frappe.db.exists("ToDo", {"auto_repeat": doc.name, "name": ("!=", todo.name)}))
 		self.assertFalse(frappe.db.get_value("Auto Repeat", doc.name, "disabled"))
+
+	def test_notification_print_renders_as_owner(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc(doctype="ToDo", description="Test recurring notification print").insert()
+		frappe.set_user("Administrator")
+		doc = make_auto_repeat(reference_document=todo.name, notify=1, recipients="test@example.com")
+		frappe.db.set_value("Auto Repeat", doc.name, "owner", "test@example.com")
+		doc.reload()
+		rendered_as = []
+
+		def attach_print(*args, **kwargs):
+			rendered_as.append(frappe.session.user)
+			return {"fname": "test.pdf", "fcontent": b"%PDF"}
+
+		with patch("frappe.attach_print", side_effect=attach_print):
+			doc.create_documents()
+
+		self.assertEqual(rendered_as, ["test@example.com"])
+		self.assertEqual(frappe.session.user, "Administrator")
 
 	def test_reference_document_write_permission_on_update_reference(self):
 		todo = frappe.get_doc(

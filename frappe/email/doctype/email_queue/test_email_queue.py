@@ -213,3 +213,32 @@ class TestEmailQueue(IntegrationTestCase):
 			)
 
 		self.assertEqual(email_record.attachments_list[0]["lang"], "de")
+
+	def test_communication_print_attachment_renders_as_sender(self):
+		from frappe.core.doctype.communication.email import make
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "Print attachment"}).insert()
+		communication = make(
+			doctype="ToDo",
+			name=todo.name,
+			recipients="test_to@example.com",
+			subject="Print attachment",
+			content="Test message",
+			send_email=True,
+			print_format="Standard",
+		)
+		email_queue = frappe.get_doc("Email Queue", {"communication": communication["name"]})
+		rendered_as = []
+
+		def attach_print(**kwargs):
+			rendered_as.append(frappe.session.user)
+			return {"fname": "test.pdf", "fcontent": b"%PDF"}
+
+		frappe.set_user("Administrator")
+		with patch("frappe.attach_print", side_effect=attach_print):
+			email_queue.send()
+
+		self.assertEqual(rendered_as, ["test@example.com"])
+		self.assertEqual(frappe.session.user, "Administrator")
