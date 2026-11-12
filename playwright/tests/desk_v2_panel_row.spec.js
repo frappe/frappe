@@ -1811,6 +1811,7 @@ const WALK_FIELDS = [
 	{ fieldname: "tw_pick", fieldtype: "Select", label: "Pick", options: "\nOne\nTwo\nThree" },
 	{ fieldname: "tw_link", fieldtype: "Link", label: "Owner", options: "User" },
 	{ fieldname: "tw_b", fieldtype: "Data", label: "Last" },
+	{ fieldname: "tw_owner", fieldtype: "Link", label: "Assigned", options: "User" },
 ];
 
 test.describe("Desk v2 side panel Tab walk", () => {
@@ -1848,7 +1849,9 @@ test.describe("Desk v2 side panel Tab walk", () => {
 				},
 			]),
 		});
-		name = (await admin.insert_doc(WALK_DOCTYPE, { tw_ro: "fixed" })).name;
+		name = (
+			await admin.insert_doc(WALK_DOCTYPE, { tw_ro: "fixed", tw_owner: "Administrator" })
+		).name;
 	});
 
 	test.afterAll(async ({ admin }) => {
@@ -1899,12 +1902,38 @@ test.describe("Desk v2 side panel Tab walk", () => {
 		await expect(field(page, "tw_a")).toContainText("kept");
 	});
 
+	test("Enter opens a Select's list, and Enter on an option leaves focus on the closed row", async ({
+		page,
+	}) => {
+		await field(page, "tw_pick").focus();
+		await page.keyboard.press("Escape");
+		await page.keyboard.press("Enter");
+		await expect(page.locator('[role="listbox"]')).toHaveCount(1);
+		await page.locator('[role="option"]', { hasText: "Two" }).hover();
+		await page.keyboard.press("Enter");
+		await expect(field(page, "tw_pick")).toContainText("Two");
+		await expect(page.locator('[role="listbox"]')).toHaveCount(0);
+		expect(await stop(page)).toBe("tw_pick");
+		await expect(field(page, "tw_pick")).toBeFocused();
+	});
+
 	test("Tab with a Link's list open closes it and walks to the next row", async ({ page }) => {
 		await field(page, "tw_link").focus();
 		await page.keyboard.press("Alt+ArrowDown");
 		await expect(page.locator('[role="listbox"]')).toHaveCount(1);
 		await page.keyboard.press("Tab");
 		expect(await stop(page)).toBe("tw_b");
+		await expect(page.locator('[role="listbox"]')).toHaveCount(0);
+	});
+
+	test("Tab with the list open on a Link that has a value skips its × and ↗", async ({
+		page,
+	}) => {
+		await field(page, "tw_owner").focus();
+		await page.keyboard.press("Alt+ArrowDown");
+		await expect(page.locator('[role="listbox"]')).toHaveCount(1);
+		await page.keyboard.press("Tab");
+		expect(await stop(page)).not.toBe("tw_owner");
 		await expect(page.locator('[role="listbox"]')).toHaveCount(0);
 	});
 
@@ -1934,5 +1963,7 @@ test.describe("Desk v2 side panel Tab walk", () => {
 			return document.getElementById(id)?.textContent;
 		});
 		expect(described).toBe("Says what First holds.");
+		await page.keyboard.press("Tab");
+		await expect(page.locator('[data-slot="bubble"]')).toHaveCount(0);
 	});
 });

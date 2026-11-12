@@ -499,11 +499,11 @@ function onRestFocus() {
 }
 function onRestKey(event: KeyboardEvent) {
 	const opensOnly = summary.value || !!imageUrl.value;
-	if (event.altKey && event.key === "ArrowDown") {
+	if ((event.altKey && event.key === "ArrowDown") || event.key === "Enter") {
 		event.preventDefault();
 		return open(undefined, true);
 	}
-	if (event.key === "Enter" || (opensOnly && event.key === " ")) {
+	if (opensOnly && event.key === " ") {
 		event.preventDefault();
 		return open();
 	}
@@ -515,8 +515,11 @@ function onRestKey(event: KeyboardEvent) {
 function isTyping(event: KeyboardEvent) {
 	return event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey;
 }
-function onCellKey(event: KeyboardEvent) {
+// A Select's list is portalled out of the cell, so its Enter is seen on the document.
+function rememberEnter(event: KeyboardEvent) {
 	keepFocus = event.key === "Enter" && !(event.target instanceof HTMLTextAreaElement);
+}
+function onCellKey(event: KeyboardEvent) {
 	if (
 		event.key === "Tab" &&
 		!event.shiftKey &&
@@ -526,7 +529,9 @@ function onCellKey(event: KeyboardEvent) {
 }
 // A Link's open list would stay open while Tab walks to the row's × and ↗: start Tab from the row's last control.
 function leaveRow() {
-	const controls = cell.value?.querySelectorAll<HTMLElement>("input, textarea, select, button");
+	const controls = cell.value?.querySelectorAll<HTMLElement>(
+		"input, textarea, select, button, a[href]"
+	);
 	controls?.[controls.length - 1]?.focus();
 }
 // Q21: a screen reader reads the label's description with the field that takes focus.
@@ -551,8 +556,14 @@ function press() {
 function releasePress() {
 	setTimeout(() => (pressed = false));
 }
-onMounted(() => document.addEventListener("pointerup", releasePress, true));
-onBeforeUnmount(() => document.removeEventListener("pointerup", releasePress, true));
+onMounted(() => {
+	document.addEventListener("pointerup", releasePress, true);
+	document.addEventListener("pointercancel", releasePress, true);
+});
+onBeforeUnmount(() => {
+	document.removeEventListener("pointerup", releasePress, true);
+	document.removeEventListener("pointercancel", releasePress, true);
+});
 async function keepFocusOnRow() {
 	keepFocus = false;
 	await nextTick();
@@ -574,6 +585,7 @@ function onFocusout(event: FocusEvent) {
 // A press on a blank part of the page moves focus nowhere, so `focusout` cannot tell it
 // from a press in a popover.
 function onPressOutside(event: PointerEvent) {
+	keepFocus = false;
 	const target = event.target as HTMLElement | null;
 	if (target && !isInside(target)) editing.value = false;
 }
@@ -584,14 +596,16 @@ function isInside(node: HTMLElement) {
 
 // reka's Select keeps Tab inside its portalled list; moving focus to the row's control first lets the Tab walk on.
 function leaveList(event: KeyboardEvent) {
-	if (event.key !== "Tab" || !(event.target as HTMLElement).closest(POPOVER)) return;
+	if (event.key !== "Tab" || !(event.target as HTMLElement).closest('[role="listbox"]')) return;
 	const control = cell.value?.querySelector<HTMLElement>("input, textarea, select, button");
 	if (!control) return;
 	event.stopPropagation();
 	control.focus();
 }
 function holdTyping(event: KeyboardEvent) {
-	if (!isTyping(event) || cell.value?.contains(document.activeElement)) return;
+	const active = document.activeElement;
+	const onRow = active === document.body || !!wrapper.value?.contains(active);
+	if (!isTyping(event) || !onRow || cell.value?.contains(active)) return;
 	event.preventDefault();
 	typed += event.key;
 }
@@ -605,7 +619,10 @@ watch(editing, async (on, _previous, onCleanup) => {
 	document.addEventListener("pointerdown", onPressOutside, true);
 	document.addEventListener("keydown", holdTyping, true);
 	document.addEventListener("keydown", leaveList, true);
+	document.addEventListener("keydown", rememberEnter, true);
 	onCleanup(() => {
+		typed = "";
+		document.removeEventListener("keydown", rememberEnter, true);
 		document.removeEventListener("keydown", leaveList, true);
 		stop();
 		document.removeEventListener("pointerdown", onPressOutside, true);

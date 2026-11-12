@@ -75,7 +75,7 @@ const key = (target: Element, init: KeyboardEventInit) =>
   target.dispatchEvent(
     new KeyboardEvent("keydown", { bubbles: true, cancelable: true, ...init })
   );
-const settle = () => new Promise((done) => setTimeout(done));
+const settle = () => new Promise((done) => setTimeout(done, 30));
 
 describe("a panel row on the keyboard", () => {
   it("is one tab stop that opens its editor on focus", async () => {
@@ -125,11 +125,20 @@ describe("a panel row on the keyboard", () => {
     await settle();
     key(root.querySelector("[data-control]")!, { key: "Escape" });
     await settle();
+    expect(root.querySelector("[data-control]")).toBeNull();
 
+    key(rest(root), { key: "Enter" });
+    await settle();
+    expect(root.querySelector("[data-control]")).not.toBeNull();
+    key(root.querySelector("[data-control]")!, { key: "Escape" });
+    await settle();
+
+    const original = document.execCommand;
     const typed = vi.fn(() => true);
     document.execCommand = typed;
     const event = key(rest(root), { key: "x" });
     await settle();
+    document.execCommand = original;
 
     expect(event).toBe(false);
     expect(typed).toHaveBeenCalledWith("insertText", false, "x");
