@@ -34,7 +34,6 @@ vi.mock("@framework/ui/experimental/List", async () => {
 		List: defineComponent({
 			setup: (_, { slots }) => () => h("div", { "data-stub-list": "" }, slots.empty?.()),
 		}),
-		ListBulkBar: stub("bulk-bar"),
 		ListFooter: stub("footer"),
 	};
 });

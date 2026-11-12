@@ -53,6 +53,7 @@ vi.mock("../BulkBar.vue", async () => {
 vi.mock("../DeleteDialog.vue", async () => {
   const { defineComponent, h } = await import("vue");
   return {
+    __esModule: true,
     default: defineComponent({
       props: { modelValue: Boolean },
       setup: (props) => () =>
@@ -306,8 +307,7 @@ describe("the list surface", () => {
     await nextTick();
     expect(bulkLabels(root)).toEqual(["Delete"]);
     await acts.run("list.delete");
-    await nextTick();
-    expect(root.querySelector("[data-delete-dialog]")).not.toBeNull();
+    await vi.waitFor(() => expect(root.querySelector("[data-delete-dialog]")).not.toBeNull());
   });
 
   it("gives a list act the list page: doctype, view, the selection as read now and reload", async () => {

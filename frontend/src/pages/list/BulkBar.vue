@@ -1,9 +1,15 @@
 <!-- The bar that takes the controls row's place while rows are selected: the count, the actions, and a clear button. -->
 <template>
-	<div class="flex h-7 w-full items-center gap-2 text-base" role="toolbar" :aria-label="__('Bulk actions')">
+	<div
+		class="flex h-7 w-full items-center gap-2 text-base"
+		role="toolbar"
+		:aria-label="__('Bulk actions')"
+	>
 		<div class="flex items-center gap-2 ps-px">
 			<Checkbox :modelValue="true" :disabled="true" aria-hidden="true" />
-			<span class="whitespace-nowrap text-ink-gray-9">{{ __("{0} selected", [count]) }}</span>
+			<span class="whitespace-nowrap text-ink-gray-9">{{
+				__("{0} selected", [count])
+			}}</span>
 		</div>
 		<template v-if="overCap">
 			<span class="flex items-center gap-1 whitespace-nowrap text-sm text-ink-gray-5">
@@ -33,7 +39,12 @@
 					:disabled="entry.disabled"
 					@click="entry.onClick"
 				/>
-				<Dropdown v-if="layout.menu.length" :options="layout.menu" side="bottom" align="start">
+				<Dropdown
+					v-if="layout.menu.length"
+					:options="layout.menu"
+					side="bottom"
+					align="start"
+				>
 					<Button variant="ghost" :label="__('More')" icon-right="lucide-chevron-down" />
 				</Dropdown>
 				<Tooltip v-if="layout.trash" :text="layout.trash.label">
@@ -48,7 +59,13 @@
 				</Tooltip>
 			</div>
 		</template>
-		<Button class="ms-auto" variant="ghost" icon="lucide-x" :label="__('Clear selection')" @click="$emit('clear')" />
+		<Button
+			class="ms-auto"
+			variant="ghost"
+			icon="lucide-x"
+			:label="__('Clear selection')"
+			@click="$emit('clear')"
+		/>
 	</div>
 </template>
 

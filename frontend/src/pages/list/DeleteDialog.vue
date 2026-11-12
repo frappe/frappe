@@ -59,7 +59,12 @@ async function confirm() {
 
 function report(outcome: DeleteOutcome) {
 	if (outcome.queued) toast.info(__("Deleting in the background"));
-	if (outcome.deleted.length) toast.success(__n("Deleted {0} record", "Deleted {0} records", outcome.deleted.length, [outcome.deleted.length]));
+	if (outcome.deleted.length)
+		toast.success(
+			__n("Deleted {0} record", "Deleted {0} records", outcome.deleted.length, [
+				outcome.deleted.length,
+			])
+		);
 	if (!outcome.failed.length) {
 		open.value = false;
 		return;

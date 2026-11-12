@@ -1038,7 +1038,6 @@
       "UseSession"
     ],
     "ui/src/experimental/List/types.ts": [
-      "BulkAction",
       "ListColumn"
     ],
     "ui/src/telemetry/pulse.ts": [

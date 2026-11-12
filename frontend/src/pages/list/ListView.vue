@@ -128,7 +128,12 @@
 		@count="countExact"
 	/>
 
-	<DeleteDialog v-model="confirmingDelete" :count="selection.length" :run="deleteSelection" />
+	<DeleteDialog
+		v-if="deleteOpened"
+		v-model="confirmingDelete"
+		:count="selection.length"
+		:run="deleteSelection"
+	/>
 </template>
 
 <script setup lang="ts">
@@ -137,7 +142,7 @@ import { LinkMark, LinkTitlesKey, isEmailField, isPhoneField } from "@framework/
 import type { FieldMeta } from "@framework/ui/fields/types";
 import { mapField, type RawMetaField } from "@framework/ui/FormLayout";
 import { List, ListFooter } from "@framework/ui/experimental/List";
-import { computed, onScopeDispose, provide, ref, watchEffect } from "vue";
+import { computed, defineAsyncComponent, onScopeDispose, provide, ref, watchEffect } from "vue";
 import { useListView } from "@/list/useListView";
 import { useScrollMemory } from "@/list/useScrollMemory";
 import type { View } from "@/list/view";
@@ -152,7 +157,6 @@ import DocstatusCell from "./DocstatusCell.vue";
 import FavouriteCell from "./FavouriteCell.vue";
 import SwitchCell from "./SwitchCell.vue";
 import TagsCell from "./TagsCell.vue";
-import DeleteDialog from "./DeleteDialog.vue";
 import EmailCell from "./EmailCell.vue";
 import FieldCell from "./FieldCell.vue";
 import PhoneCell from "./PhoneCell.vue";
@@ -209,7 +213,9 @@ props.host.onCreate(reload);
 provide(LinkTitlesKey, linkTitles);
 
 const table = ref<{ viewportElement: HTMLElement | null } | null>(null);
+const DeleteDialog = defineAsyncComponent(() => import("./DeleteDialog.vue"));
 const confirmingDelete = ref(false);
+const deleteOpened = ref(false);
 
 useScrollMemory(
 	() => table.value?.viewportElement ?? null,
@@ -254,7 +260,10 @@ const bulk = useBulkBar({
 	rows,
 	rowActions,
 	reload,
-	askDelete: () => (confirmingDelete.value = true),
+	askDelete: () => {
+		deleteOpened.value = true;
+		confirmingDelete.value = true;
+	},
 });
 const { listActs } = bulk;
 

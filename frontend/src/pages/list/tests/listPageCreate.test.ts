@@ -26,7 +26,6 @@ vi.mock("@framework/ui/SortBy", () => ({ SortBy: stub("sort") }));
 vi.mock("@framework/ui/ColumnSettings", () => ({ ColumnSettings: stub("columns") }));
 vi.mock("@framework/ui/experimental/List", () => ({
 	List: stub("list"),
-	ListBulkBar: stub("bulk-bar"),
 	ListFooter: stub("footer"),
 }));
 vi.mock("@/list/useScrollMemory", () => ({ useScrollMemory: () => {} }));

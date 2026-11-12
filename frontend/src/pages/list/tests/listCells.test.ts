@@ -147,7 +147,6 @@ vi.mock("@framework/ui/experimental/List", async () => {
 	const { defineComponent, h } = await import("vue");
 	const stub = () => defineComponent({ setup: () => () => null });
 	return {
-		ListBulkBar: stub(),
 		ListFooter: stub(),
 		// Draws the `cell` slot once per column, the way the table does per row.
 		List: defineComponent({
