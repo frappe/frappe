@@ -28,12 +28,15 @@
 		@column-resize="resizeColumn($event.fieldname, $event.width)"
 		@column-reset="resetColumnWidth($event.fieldname)"
 		@row-contextmenu="menu.open($event.name, $event.event)"
+		@pointerover="bulk.prefetch"
+		@focusin="bulk.prefetch"
 	>
-		<template v-if="selection.length" #bar>
-			<BulkBar
+		<template v-if="selection.length && bulk.parts.value" #bar>
+			<component
+				:is="bulk.parts.value.chunk.BulkBar"
 				:scope="scope"
 				:doctype="view.doctype"
-				:status="bulk.status"
+				:status="bulk.parts.value.status"
 				:cap="bulk.cap"
 				:layout="bulk.layout.value"
 				:locked="bulk.locked"
@@ -143,17 +146,19 @@
 		:rowLink="rowLink"
 		@close="menu.close"
 	/>
-	<PrintDialog
-		v-if="print.mounted.value"
-		v-model="print.open.value"
+	<component
+		:is="bulk.parts.value.chunk.PrintDialog"
+		v-if="bulk.parts.value?.print.mounted.value"
+		v-model="bulk.parts.value.print.open.value"
 		:doctype="view.doctype"
-		:count="print.count.value"
-		:all="print.all.value"
-		:approx="print.approx.value"
-		:scope="print.scope.value"
+		:count="bulk.parts.value.print.count.value"
+		:all="bulk.parts.value.print.all.value"
+		:approx="bulk.parts.value.print.approx.value"
+		:scope="bulk.parts.value.print.scope.value"
 	/>
-	<EditDialog
-		v-if="editOpened"
+	<component
+		:is="bulk.parts.value.chunk.EditDialog"
+		v-if="editOpened && bulk.parts.value"
 		v-model="editing"
 		:doctype="view.doctype"
 		:count="scope.count.value"
@@ -162,24 +167,27 @@
 		:run="editSelection"
 		:follow="followRun"
 	/>
-	<ExportDialog
-		v-if="exportOpened"
+	<component
+		:is="bulk.parts.value.chunk.ExportDialog"
+		v-if="exportOpened && bulk.parts.value"
 		v-model="exporting"
 		:doctype="view.doctype"
 		:selection="exportScope"
 		:count="scope.count.value"
 	/>
-	<BulkCollabDialog
-		v-if="bulk.collab.request.value"
-		:request="bulk.collab.request.value"
+	<component
+		:is="bulk.parts.value.CollabDialog"
+		v-if="bulk.parts.value?.collab.request.value"
+		:request="bulk.parts.value.collab.request.value"
 		:doctype="view.doctype"
 		:reload="reload"
 		:select="(names: string[]) => (selection = names)"
-		@close="bulk.collab.request.value = null"
+		@close="bulk.parts.value.collab.request.value = null"
 	/>
 
-	<DeleteDialog
-		v-if="deleteOpened"
+	<component
+		:is="bulk.parts.value.chunk.DeleteDialog"
+		v-if="deleteOpened && bulk.parts.value"
 		v-model="confirmingDelete"
 		:count="scope.count.value"
 		:all="scope.all.value"
@@ -197,7 +205,7 @@ import { List, ListFooter } from "@framework/ui/experimental/List";
 import { useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { toast } from "frappe-ui";
 import type { BulkSelection, BulkUpdate } from "@framework/ui/api";
-import { computed, defineAsyncComponent, type Component, provide, ref } from "vue";
+import { computed, provide, ref } from "vue";
 import { __, __n } from "@/i18n";
 import { useListView } from "@/list/useListView";
 import { useScrollMemory } from "@/list/useScrollMemory";
@@ -205,7 +213,6 @@ import type { View } from "@/list/view";
 import { pageGutter } from "@/shell/PageFrame.vue";
 import { failedState } from "@/shell/pageState";
 import PageState from "@/shell/PageState.vue";
-import BulkBar from "./BulkBar.vue";
 import AvatarStackCell from "./AvatarStackCell.vue";
 import CommentsCell from "./CommentsCell.vue";
 import ConfiguredCell from "./ConfiguredCell.vue";
@@ -220,11 +227,8 @@ import type { RendererHost } from "./renderer";
 import StatusCell from "./StatusCell.vue";
 import RowMenu from "./RowMenu.vue";
 import { rowMenuOptions } from "./rowActions";
-import { PrintDialog, useBulkPrint } from "./bulkPrint";
-import { lazyBulkCollabDialog } from "./lazyBulkCollabDialog";
 import { useBulkBar } from "./useBulkBar";
 import { RowContextMenu, useRowContextMenu } from "./useRowContextMenu";
-import { selectionTsv } from "@/list/bulkCopy";
 
 const props = defineProps<{ view: View; host: RendererHost }>();
 const { filters, sort } = props.view;
@@ -280,27 +284,6 @@ const table = ref<{
 	extendTo: (name: string) => void;
 } | null>(null);
 const cursor = ref<string | null>(null);
-function lazyDialog(loader: () => Promise<Component>, message: string) {
-	return defineAsyncComponent({
-		loader,
-		onError: (_error, _retry, fail) => {
-			toast.error(message);
-			fail();
-		},
-	});
-}
-const DeleteDialog = lazyDialog(
-	() => import("./DeleteDialog.vue"),
-	__("The delete dialog did not load. Reload the page and try again.")
-);
-const EditDialog = lazyDialog(
-	() => import("./EditDialog.vue"),
-	__("The edit dialog did not load. Reload the page and try again.")
-);
-const ExportDialog = lazyDialog(
-	() => import("./ExportDialog.vue"),
-	__("The export dialog did not load. Reload the page and try again.")
-);
 const editing = ref(false);
 const editOpened = ref(false);
 const exporting = ref(false);
@@ -309,7 +292,6 @@ const exportOpened = ref(false);
 const exportScope = ref<BulkSelection>({ names: [] });
 const followRun = (taskId: string) =>
 	void import("@/shell/bulkRuns").then((runs) => runs.followBulkRun(taskId, reload));
-const BulkCollabDialog = lazyBulkCollabDialog(() => (bulk.collab.request.value = null));
 const confirmingDelete = ref(false);
 const deleteOpened = ref(false);
 
@@ -349,7 +331,6 @@ function columnFields(matches: (field: RawMetaField) => boolean) {
 	return fields;
 }
 
-const print = useBulkPrint(scope);
 async function editSelection(update: BulkUpdate) {
 	const { updateRows } = await import("@/list/bulkEdit");
 	const outcome = await updateRows(props.view.doctype, { reload }, scope.selected(), update);
@@ -366,7 +347,11 @@ function copySelection() {
 	}));
 	// `navigator.clipboard` is missing on a non-secure origin; writing in the click keeps its user activation.
 	Promise.resolve()
-		.then(() => navigator.clipboard.writeText(selectionTsv(columns, loaded, markedText)))
+		.then(() =>
+			navigator.clipboard.writeText(
+				bulk.parts.value!.chunk.selectionTsv(columns, loaded, markedText)
+			)
+		)
 		.then(() =>
 			toast.success(__n("Copied {0} row", "Copied {0} rows", loaded.length, [loaded.length]))
 		)
@@ -384,7 +369,6 @@ const bulk = useBulkBar({
 	reload,
 	cursor,
 	table: () => table.value,
-	askPrint: print.ask,
 	askEdit: () => {
 		editOpened.value = true;
 		editing.value = true;

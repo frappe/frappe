@@ -56,6 +56,18 @@ vi.mock("../BulkBar.vue", async () => {
     }),
   };
 });
+const bulkChunk = vi.hoisted(() => ({ setups: 0, failures: 0 }));
+vi.mock("../bulkBarParts", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../bulkBarParts")>();
+  return {
+    ...actual,
+    bulkBarParts: (...args: Parameters<typeof actual.bulkBarParts>) => {
+      bulkChunk.setups++;
+      if (bulkChunk.failures && bulkChunk.failures--) throw new Error("chunk failed");
+      return actual.bulkBarParts(...args);
+    },
+  };
+});
 vi.mock("../DeleteDialog.vue", async () => {
   const { defineComponent, h } = await import("vue");
   return {
@@ -93,6 +105,7 @@ import { resetListSettings } from "@/list/useListSettings";
 import { PLAIN_LIST } from "@/list/useListPage";
 import type { ListPageApi } from "@/listPage/types";
 import { createListPageLists } from "@/listPage/createListPage";
+import { toast } from "frappe-ui";
 import { useListActs } from "../listActs";
 import ViewPage from "../ViewPage.vue";
 import { fake, installListRenderer, resetFake } from "./fakeListPage";
@@ -202,10 +215,12 @@ afterEach(() => {
   closeCreates();
   resetSession();
   vi.unstubAllGlobals();
+  vi.restoreAllMocks();
 });
 
 async function settle() {
   for (let turn = 0; turn < 3; turn++) {
+    await vi.dynamicImportSettled();
     await new Promise((resolve) => setTimeout(resolve, 0));
     await nextTick();
   }
@@ -326,12 +341,76 @@ describe("the list surface", () => {
     });
   });
 
+  it("loads the bulk bar on the first selection, not on a cold load", async () => {
+    bulkChunk.setups = 0;
+    const root = await mount();
+    expect(bulkChunk.setups).toBe(0);
+    expect(root.querySelector("[data-stub-bulk-bar]")).toBeNull();
+
+    fake.state.selection.value = ["CONT-0001"];
+    await settle();
+    expect(bulkChunk.setups).toBe(1);
+    expect(bulkLabels(root)).toContain("Delete");
+
+    fake.state.selection.value = [];
+    await nextTick();
+    fake.state.selection.value = ["CONT-0002"];
+    await nextTick();
+    expect(bulkChunk.setups).toBe(1);
+    expect(bulkLabels(root)).toContain("Delete");
+  });
+
+  it("loads the bulk bar early when the pointer enters the list", async () => {
+    bulkChunk.setups = 0;
+    const root = await mount();
+    root.querySelector("[data-stub-list]")!.dispatchEvent(new Event("pointerover", { bubbles: true }));
+    await settle();
+    expect(bulkChunk.setups).toBe(1);
+
+    fake.state.selection.value = ["CONT-0001"];
+    await nextTick();
+    expect(bulkLabels(root)).toContain("Delete");
+  });
+
+  it("does not retry a failed prefetch on each pointer move, and retries on the next selection", async () => {
+    bulkChunk.setups = 0;
+    bulkChunk.failures = 1;
+    const errors = vi.spyOn(toast, "error").mockImplementation(() => "");
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const root = await mount();
+    const list = root.querySelector("[data-stub-list]")!;
+    list.dispatchEvent(new Event("pointerover", { bubbles: true }));
+    await settle();
+    list.dispatchEvent(new Event("pointerover", { bubbles: true }));
+    await settle();
+    expect(bulkChunk.setups).toBe(1);
+    expect(errors).not.toHaveBeenCalled();
+
+    fake.state.selection.value = ["CONT-0001"];
+    await settle();
+    expect(bulkChunk.setups).toBe(2);
+    expect(bulkLabels(root)).toContain("Delete");
+    expect(errors).not.toHaveBeenCalled();
+  });
+
+  it("says so when the bulk bar fails to load on a selection", async () => {
+    bulkChunk.setups = 0;
+    bulkChunk.failures = 1;
+    const errors = vi.spyOn(toast, "error").mockImplementation(() => "");
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const root = await mount();
+    fake.state.selection.value = ["CONT-0001"];
+    await settle();
+    expect(errors).toHaveBeenCalledTimes(1);
+    expect(root.querySelector("[data-stub-bulk-bar]")).toBeNull();
+  });
+
   it("runs list.delete into the delete question while rows are selected, and draws it in the bulk bar", async () => {
     const root = await mount();
     expect(await denial("list.delete")).toMatchObject({ reason: "missing" });
 
     fake.state.selection.value = ["CONT-0001"];
-    await nextTick();
+    await settle();
     expect(bulkLabels(root)).toEqual([
       "Assign to…",
       "Add tags",

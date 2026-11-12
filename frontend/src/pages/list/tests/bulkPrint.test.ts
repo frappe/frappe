@@ -99,11 +99,11 @@ describe("useBulkPrint", () => {
 		const root = document.createElement("div");
 		mounted = createApp({
 			setup() {
-				print = useBulkPrint(scope);
+				print = useBulkPrint(scope, cap);
 				return () => null;
 			},
 		});
-		mounted.provide("boot", { max_bulk_print_docs: cap }).mount(root);
+		mounted.mount(root);
 		return { print, selection, scope };
 	}
 

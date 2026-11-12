@@ -1,8 +1,7 @@
 // The list's bulk Print: the cap check, the dialog (a lazy chunk) and the records it prints behind one seam.
 import type { BulkPrintBody } from "@framework/ui/api";
 import { toast } from "frappe-ui";
-import { defineAsyncComponent, inject, ref, type Ref } from "vue";
-import type { Boot } from "@/boot";
+import { defineAsyncComponent, ref, type Ref } from "vue";
 import type { BulkScope } from "@/list/useBulkScope";
 import { __, __n } from "@/i18n";
 
@@ -26,8 +25,8 @@ export interface BulkPrint {
 	ask: () => void;
 }
 
-export function useBulkPrint(bulk: BulkScope): BulkPrint {
-	const boot = inject<Boot>("boot")!;
+/** `cap` is the boot's `max_bulk_print_docs`; 0 is no cap. */
+export function useBulkPrint(bulk: BulkScope, cap: number): BulkPrint {
 	const mounted = ref(false);
 	const open = ref(false);
 	const scope = ref<BulkPrintBody>({});
@@ -36,7 +35,6 @@ export function useBulkPrint(bulk: BulkScope): BulkPrint {
 	const approx = ref(false);
 
 	function ask() {
-		const cap = boot.max_bulk_print_docs;
 		if (cap && bulk.count.value > cap) {
 			toast.error(
 				__n("You can print up to {0} record at a time", "You can print up to {0} records at a time", cap, [cap])

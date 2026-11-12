@@ -25,7 +25,7 @@ interface BarOptions {
   meta?: ListMeta | null;
 }
 
-function bar({
+async function bar({
   rights = true,
   script = true,
   selected = ["A", "B", "C"],
@@ -88,7 +88,6 @@ function bar({
           rowActions: ref([]),
           reload: () => {},
           askDelete,
-          askPrint: vi.fn(),
           cursor: ref(null),
           table: () => null,
         });
@@ -106,6 +105,7 @@ function bar({
       label: "Restore",
       run: (_page, names) => seen(names),
     });
+  await result.load();
   return { result, selection, askDelete, seen, lists, scope: result.scope };
 }
 
@@ -117,7 +117,7 @@ const paletteLabels = () =>
 
 describe("the bulk actions in the palette", () => {
   it("offers each bulk action with the selection's scope, and none without a selection", async () => {
-    const { selection } = bar();
+    const { selection } = await bar();
     await nextTick();
     expect(paletteLabels()).toEqual(
       expect.arrayContaining(["Restore 3 selected", "Delete 3 selected"]),
@@ -131,7 +131,7 @@ describe("the bulk actions in the palette", () => {
   });
 
   it("keeps the bar's own labels unscoped", async () => {
-    const { result } = bar();
+    const { result } = await bar();
     await nextTick();
     const labels = result.layout.value.menu.flatMap((group) =>
       group.options.map((option) => option.label),
@@ -150,7 +150,7 @@ describe("the bulk actions in the palette", () => {
   });
 
   it("runs a script's action from the palette on the selection", async () => {
-    const { seen, selection } = bar();
+    const { seen, selection } = await bar();
     await acts.perform("list.restore");
     expect(seen).toHaveBeenCalledWith(["A", "B", "C"]);
     await acts.perform("list.restore", "an option the palette picked");
@@ -160,7 +160,7 @@ describe("the bulk actions in the palette", () => {
   });
 
   it("offers a script's item without a label, a palette flag or an argument as the bar does", async () => {
-    const { lists } = bar();
+    const { lists } = await bar();
     lists.bulkActions.add({ name: "nameless", run: () => {} });
     lists.bulkActions.add({
       name: "quiet",
@@ -190,7 +190,7 @@ describe("the bulk actions in the palette", () => {
     );
 
   it("flips with the selection: at the cap offered, past it left out", async () => {
-    const { selection } = bar({ cap: 3 });
+    const { selection } = await bar({ cap: 3 });
     await nextTick();
     expect(paletteLabels()).toContain("Delete 3 selected");
     selection.value = ["A", "B", "C", "D"];
@@ -199,26 +199,26 @@ describe("the bulk actions in the palette", () => {
   });
 
   it("runs Delete from the palette", async () => {
-    const { askDelete } = bar();
+    const { askDelete } = await bar();
     await acts.perform("list.delete");
     expect(askDelete).toHaveBeenCalledOnce();
   });
 
   it("keeps Delete's right: a person without it gets no Delete", async () => {
-    bar({ rights: false });
+    await bar({ rights: false });
     await nextTick();
     expect(paletteLabels()).not.toContain("Delete 3 selected");
     expect(paletteLabels()).toContain("Restore 3 selected");
   });
 
   it("leaves out every action over the cap, and all of them when the switch is off", async () => {
-    bar({ cap: 2 });
+    await bar({ cap: 2 });
     await nextTick();
     expect(overCap()).toEqual([]);
     mounted!.release();
     mounted!.app.unmount();
 
-    bar({ locked: true });
+    await bar({ locked: true });
     await nextTick();
     expect(paletteLabels().filter((label) => /selected/.test(label!))).toEqual(
       [],
@@ -226,13 +226,13 @@ describe("the bulk actions in the palette", () => {
   });
 
   it("shows Open Bulk Actions only while the More menu has something in it", async () => {
-    bar();
+    await bar();
     await nextTick();
     expect(acts.find("list.open_bulk_menu")).toBeDefined();
     mounted!.release();
     mounted!.app.unmount();
 
-    const { result } = bar({ rights: false, script: false });
+    const { result } = await bar({ rights: false, script: false });
     await nextTick();
     // Copy to Clipboard needs no right, so a person with none still has a menu.
     expect(result.layout.value.menu.flatMap((group) => group.options.map((option) => option.label))).toEqual([
@@ -246,7 +246,7 @@ describe("the bulk actions in the palette", () => {
     const everything = { total: 1240, cap: 5000, selected: ["A", "B", "C"] };
 
     it("offers Delete for all the matching records and nothing that takes row names", async () => {
-      const { scope } = bar(everything);
+      const { scope } = await bar(everything);
       scope.selectAll();
       await nextTick();
       expect(paletteLabels()).toContain("Delete all 1,240 matching");
@@ -255,14 +255,14 @@ describe("the bulk actions in the palette", () => {
     });
 
     it("writes a floor total with a plus", async () => {
-      const { scope } = bar({ selected: ["A", "B"], total: 10000, approx: true, cap: 20000 });
+      const { scope } = await bar({ selected: ["A", "B"], total: 10000, approx: true, cap: 20000 });
       scope.selectAll();
       await nextTick();
       expect(paletteLabels()).toContain("Delete all 10,000+ matching");
     });
 
     it("offers Submit, Cancel and the workflow actions on the whole scope", async () => {
-      const { scope, result } = bar({ ...everything, meta: { is_submittable: 1 } });
+      const { scope, result } = await bar({ ...everything, meta: { is_submittable: 1 } });
       scope.selectAll();
       await nextTick();
       expect(paletteLabels()).toEqual(
@@ -283,7 +283,7 @@ describe("the bulk actions in the palette", () => {
     });
 
     it("follows the bar's cap rule: at the cap offered, over it every entry is left out", async () => {
-      const { scope } = bar({ ...everything, total: 1240, cap: 1240, meta: { is_submittable: 1 } });
+      const { scope } = await bar({ ...everything, total: 1240, cap: 1240, meta: { is_submittable: 1 } });
       scope.selectAll();
       await nextTick();
       expect(paletteLabels()).toEqual(
@@ -292,14 +292,14 @@ describe("the bulk actions in the palette", () => {
       mounted!.release();
       mounted!.app.unmount();
 
-      const over = bar({ ...everything, total: 1241, cap: 1240, meta: { is_submittable: 1 } });
+      const over = await bar({ ...everything, total: 1241, cap: 1240, meta: { is_submittable: 1 } });
       over.scope.selectAll();
       await nextTick();
       expect(paletteLabels().filter((label) => /matching/.test(label!))).toEqual([]);
     });
 
     it("returns to the selection's wording when the scope clears", async () => {
-      const { scope } = bar(everything);
+      const { scope } = await bar(everything);
       scope.selectAll();
       await nextTick();
       scope.clear();

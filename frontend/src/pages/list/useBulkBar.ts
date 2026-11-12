@@ -1,16 +1,16 @@
-// The list's bulk actions: the built-ins, the acts that run them on the selection, and the bar's layout.
-import { computed, inject, ref, type ComputedRef, type Ref } from "vue";
+// The list's acts (bulk, row and keys) and the bulk bar. The bar's actions, layout and dialogs are a lazy chunk
+// (`bulkBarParts`), so a list that is never selected does not load them.
+import { toast } from "frappe-ui";
+import { computed, effectScope, inject, ref, shallowRef, watch, type Component, type ComputedRef, type Ref, type ShallowRef } from "vue";
 import type { ActEntry } from "@/acts/dispatcher";
 import type { Boot } from "@/boot";
 import { __ } from "@/i18n";
-import type { ListPageAction, ListPageApi, ListRow, ListRowAction } from "@/listPage/types";
-import { useBulkCollaboration, type BulkCollaboration } from "./bulkCollaboration";
+import type { ListRow, ListRowAction } from "@/listPage/types";
 import { bulkKeyEntries } from "./bulkKeys";
 import type { ListMeta } from "@/list/defaults";
-import { useBulkStatus, type BulkStatus } from "./bulkStatus";
 import type { BulkScope } from "@/list/useBulkScope";
-import { exportFilters } from "@/list/bulkExport";
-import { layoutBulk, type BulkEntry, type BulkLayout } from "./bulkLayout";
+import type { BulkLayout } from "./bulkLayout";
+import type { BulkBarParts } from "./bulkBarParts";
 import { rowActionEntries } from "./rowActions";
 import type { ListActs } from "./listActs";
 import type { RendererHost } from "./renderer";
@@ -25,7 +25,6 @@ export interface BulkBarOptions {
   rowActions: Ref<ListRowAction[]>;
   reload: () => void;
   askDelete: () => void;
-  askPrint: () => void;
   askEdit: () => void;
   askExport: () => void;
   copy: () => void;
@@ -39,14 +38,24 @@ export interface BulkBarOptions {
   } | null;
 }
 
+export interface LoadedBulkBar extends BulkBarParts {
+  /** The chunk's components and helpers: the bar, its dialogs and the copy's TSV. */
+  chunk: typeof import("./bulkBarParts");
+  CollabDialog: Component;
+}
+
 export interface BulkBar {
   listActs: ListActs;
   /** Whether the bar's More menu is open; the `.` key opens it. */
   menuOpen: Ref<boolean>;
-  status: BulkStatus;
-  /** The assign, tag, follow, share and seen actions: their dialog's request. */
-  collab: BulkCollaboration;
+  /** The bar, its status and collaboration actions; null until the lazy chunk loads. */
+  parts: ShallowRef<LoadedBulkBar | null>;
+  /** The bar's layout; empty until the lazy chunk loads. */
   layout: ComputedRef<BulkLayout>;
+  /** Loads the lazy chunk once and resolves whether it loaded; the first selection calls it. */
+  load: () => Promise<boolean>;
+  /** Loads the chunk early, on pointer or focus, unless a load already failed. */
+  prefetch: () => void;
   /** What a run takes: the selected rows, or all the records the filters show. */
   scope: BulkScope;
   /** The most one bulk run takes; the bar disables its actions above it. */
@@ -55,84 +64,19 @@ export interface BulkBar {
   locked: boolean;
 }
 
+const NO_LAYOUT: BulkLayout = { transitions: [], buttons: [], menu: [] };
+
 export function useBulkBar(options: BulkBarOptions): BulkBar {
-  const { host, selection, askDelete, askEdit, askExport, askPrint, copy, cursor } = options;
+  const { host, selection, cursor } = options;
   const boot = inject<Boot>("boot")!;
-  const { bulkActions: bulkList } = host.lists;
-  const cap = boot.bulk_operation_limit;
-  const status = useBulkStatus({
-    doctype: options.doctype,
-    meta: options.meta,
-    selection,
-    scope: options.scope,
-    cap,
-    locked: !boot.bulk_actions,
-    reload: options.reload,
-  });
-
-  const collab = useBulkCollaboration(
-    options.doctype,
-    () => ({
-      selection: options.scope.selected(),
-      count: options.scope.count.value,
-      all: options.scope.all.value,
-      approx: options.scope.approx.value,
-    }),
-    boot.session.user.name,
-  );
-
-  bulkList.provideBuiltins(() => [
-    ...status.items.value,
-    ...collab.items(),
-    {
-      name: "print",
-      label: __("Print"),
-      icon: "lucide-printer",
-      group: "output",
-      right: "print",
-      uncapped: true,
-      run: askPrint,
-    },
-    {
-      name: "edit",
-      label: __("Edit"),
-      icon: "lucide-pencil",
-      group: "collaborate",
-      button: true,
-      right: "write",
-      run: askEdit,
-    },
-    {
-      name: "copy",
-      label: __("Copy to Clipboard"),
-      icon: "lucide-copy",
-      group: "output",
-      uncapped: true,
-      run: copy,
-    },
-    {
-      name: "export",
-      label: __("Export"),
-      icon: "lucide-download",
-      group: "output",
-      right: "export",
-      uncapped: true,
-      run: askExport,
-    },
-    {
-      name: "delete",
-      label: __("Delete"),
-      icon: "lucide-trash-2",
-      group: "danger",
-      right: "delete",
-      run: askDelete,
-    },
-  ]);
+  const parts = shallowRef<LoadedBulkBar | null>(null);
+  const layout = computed(() => parts.value?.layout.value ?? NO_LAYOUT);
+  host.lists.bulkActions.provideBuiltins(() => parts.value?.builtins() ?? []);
 
   const menuOpen = ref(false);
   const listActs = host.acts(
     () => [
-      ...(selection.value.length && boot.bulk_actions ? bulkEntries() : []),
+      ...(selection.value.length && boot.bulk_actions ? parts.value?.entries() ?? [] : []),
       ...rowActionEntries(options.rowActions.value),
       ...(options.extraEntries?.() ?? []),
       ...(cursor
@@ -157,64 +101,49 @@ export function useBulkBar(options: BulkBarOptions): BulkBar {
     },
   );
 
-  // The palette runs an act with no value or an option, so the wrapper always hands `run` the selection, as the bar does.
-  function bulkEntries(): ActEntry[] {
-    const { scope } = options;
-    const count = scope.count.value;
-    return bulkList
-      .resolve()
-      .filter(({ item }) => item.run)
-      .map(({ item, hidden }) => ({
-        item: {
-          ...item,
-          label: item.label && scopedLabel(item.label),
-          argument: undefined,
-          palette:
-            (scope.all.value && !onScope(item.run)) || (count > cap && !item.uncapped) ? (false as const) : item.palette,
-          run: (page: ListPageApi) => item.run!(page, [...selection.value]),
-        },
-        hidden,
-      }));
+  // The parts' watchers must stop with this component, though they start after an await.
+  const partsScope = effectScope();
+  let loading: Promise<boolean> | null = null;
+  let failed = false;
+  function load() {
+    loading ??= import("./bulkBarParts")
+      .then((chunk) => {
+        if (!partsScope.active) return true;
+        const made = partsScope.run(() => chunk.bulkBarParts(options, boot, listActs))!;
+        const dismiss = () => (made.collab.request.value = null);
+        parts.value = { ...made, chunk, CollabDialog: chunk.lazyBulkCollabDialog(dismiss) };
+        return true;
+      })
+      .catch((error) => {
+        console.error(error);
+        loading = null;
+        failed = true;
+        return false;
+      });
+    return loading;
   }
-
-  function scopedLabel(label: string) {
-    const { scope } = options;
-    return scope.all.value
-      ? __("{0} all {1} matching", [label, scope.totalText.value])
-      : __("{0} {1} selected", [label, scope.count.value]);
+  // A failed prefetch does not retry on each pointer move; the next selection does.
+  function prefetch() {
+    if (!failed) void load();
   }
-
-  // Delete, the status actions and the collaboration acts run over all matching and show in the palette for it; Edit, Export and Print read the scope in their dialogs only.
-  const onScope = (run: unknown) => run === askDelete || status.owns(run as ListPageAction["run"]) || collab.takesScope(run);
-  // Select all disables what takes row names: it would run on the loaded rows alone. Print has its own cap, checked when it opens.
-  const readsScope = (run: unknown) => onScope(run) || run === askEdit || run === askExport || run === askPrint;
-  // The exporter takes no `or_filters`: it would export more than the filters show.
-  const disabled = ({ name, uncapped, run }: { name: string; uncapped?: boolean; run?: unknown }) =>
-    (name === "export" && exportFilters(options.scope.selected()) === null) ||
-    (options.scope.all.value && !readsScope(run)) ||
-    (!uncapped && options.scope.count.value > cap);
-
-  const locked = !boot.bulk_actions;
-  const entries = computed<BulkEntry[]>(() =>
-    locked
-      ? []
-      : bulkList.visible().flatMap((item) => {
-          const act = listActs.drawn(item.name);
-          if (!act) return [];
-          return [
-            {
-              name: item.name,
-              label: item.label ?? item.name,
-              icon: act.icon,
-              group: item.group,
-              button: item.button,
-              disabled: disabled(item),
-              onClick: () => listActs.perform(act, [...selection.value]),
-            },
-          ];
-        }),
+  watch(
+    () => selection.value.length > 0,
+    async (selected) => {
+      if (selected && !(await load()))
+        toast.error(__("The bulk actions did not load. Reload the page and try again."));
+    },
+    { immediate: true },
   );
 
-  const layout = computed(() => layoutBulk(entries.value, options.doctype));
-  return { listActs, menuOpen, status, collab, layout, scope: options.scope, cap, locked };
+  return {
+    listActs,
+    menuOpen,
+    parts,
+    layout,
+    load,
+    prefetch,
+    scope: options.scope,
+    cap: boot.bulk_operation_limit,
+    locked: !boot.bulk_actions,
+  };
 }

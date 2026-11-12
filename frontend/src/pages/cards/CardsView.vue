@@ -1,10 +1,11 @@
 <!-- The Cards type's renderer: a grid of cards, the List's footer, and the card settings among the controls. -->
 <template>
-	<Teleport v-if="host.bar.value && selection.length" :to="host.bar.value">
-		<BulkBar
+	<Teleport v-if="host.bar.value && selection.length && bulk.parts.value" :to="host.bar.value">
+		<component
+			:is="bulk.parts.value.chunk.BulkBar"
 			:scope="scope"
 			:doctype="view.doctype"
-			:status="bulk.status"
+			:status="bulk.parts.value.status"
 			:cap="bulk.cap"
 			:layout="bulk.layout.value"
 			:locked="bulk.locked"
@@ -20,7 +21,13 @@
 		/>
 	</Teleport>
 	<PageState v-if="error" v-bind="failedState(error, reload)" />
-	<div v-else class="min-h-0 flex-1 overflow-y-auto py-2" :class="pageGutter">
+	<div
+		v-else
+		class="min-h-0 flex-1 overflow-y-auto py-2"
+		:class="pageGutter"
+		@pointerover="bulk.prefetch"
+		@focusin="bulk.prefetch"
+	>
 		<div v-if="loading" :style="gridStyle" class="grid">
 			<Skeleton v-for="n in 8" :key="n" class="h-56 rounded-5" />
 		</div>
@@ -69,22 +76,24 @@
 		:rowLink="cardLink"
 		@close="menu.close"
 	/>
-	<PrintDialog
-		v-if="print.mounted.value"
-		v-model="print.open.value"
+	<component
+		:is="bulk.parts.value.chunk.PrintDialog"
+		v-if="bulk.parts.value?.print.mounted.value"
+		v-model="bulk.parts.value.print.open.value"
 		:doctype="view.doctype"
-		:count="print.count.value"
-		:all="print.all.value"
-		:approx="print.approx.value"
-		:scope="print.scope.value"
+		:count="bulk.parts.value.print.count.value"
+		:all="bulk.parts.value.print.all.value"
+		:approx="bulk.parts.value.print.approx.value"
+		:scope="bulk.parts.value.print.scope.value"
 	/>
-	<BulkCollabDialog
-		v-if="bulk.collab.request.value"
-		:request="bulk.collab.request.value"
+	<component
+		:is="bulk.parts.value.CollabDialog"
+		v-if="bulk.parts.value?.collab.request.value"
+		:request="bulk.parts.value.collab.request.value"
 		:doctype="view.doctype"
 		:reload="reload"
 		:select="(names: string[]) => (selection = names)"
-		@close="bulk.collab.request.value = null"
+		@close="bulk.parts.value.collab.request.value = null"
 	/>
 
 	<DeleteDialog
@@ -104,14 +113,11 @@ import { onScopeDispose, ref, watchEffect } from "vue";
 import { __ } from "@/i18n";
 import type { ListRow } from "@/list/useListRows";
 import type { View } from "@/list/view";
-import BulkBar from "@/pages/list/BulkBar.vue";
 import DeleteDialog from "@/pages/list/DeleteDialog.vue";
 import type { RendererHost } from "@/pages/list/renderer";
 import { rowMenuOptions } from "@/pages/list/rowActions";
-import { lazyBulkCollabDialog } from "@/pages/list/lazyBulkCollabDialog";
 import { useBulkBar } from "@/pages/list/useBulkBar";
 import { RowContextMenu, useRowContextMenu } from "@/pages/list/useRowContextMenu";
-import { PrintDialog, useBulkPrint } from "@/pages/list/bulkPrint";
 import { pageGutter } from "@/shell/PageFrame.vue";
 import { failedState } from "@/shell/pageState";
 import PageState from "@/shell/PageState.vue";
@@ -161,7 +167,6 @@ const gridStyle = {
 		"repeat(auto-fill, minmax(max(240px, calc((100% - 3 * var(--page-gutter)) / 4)), 1fr))",
 };
 
-const print = useBulkPrint(scope);
 // The bulk delete is the surface's `delete`; a card's own menu runs `delete_card` on that card.
 const bulk = useBulkBar({
 	host: props.host,
@@ -172,17 +177,14 @@ const bulk = useBulkBar({
 	rows,
 	rowActions,
 	reload,
-	askPrint: print.ask,
 	askDelete: () => ask(""),
 	extraEntries: () => [deleteCardEntry()],
 });
 const { listActs } = bulk;
 const menu = useRowContextMenu(selection);
 
-const BulkCollabDialog = lazyBulkCollabDialog(() => (bulk.collab.request.value = null));
-
 // The page swaps its controls row for the bar while this is true.
-watchEffect(() => (props.host.selecting.value = selection.value.length > 0));
+watchEffect(() => (props.host.selecting.value = selection.value.length > 0 && !!bulk.parts.value));
 onScopeDispose(() => (props.host.selecting.value = false));
 
 function ask(name: string) {
