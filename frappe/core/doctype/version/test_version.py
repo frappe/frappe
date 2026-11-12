@@ -107,6 +107,18 @@ class TestVersion(FrappeTestCase):
 		t.save(ignore_version=False)
 		self.assertTrue(get_versions(t))
 
+	def test_empty_read_only_field_not_logged_as_changed(self):
+		from frappe.desk.form.load import get_versions
+
+		todo = frappe.get_doc(doctype="ToDo", description="something").insert()
+		self.assertIsNone(todo.assigned_by_full_name)
+
+		todo.description = "changed"
+		todo.save(ignore_version=False)
+
+		changed = frappe.parse_json(get_versions(todo)[0].data).changed
+		self.assertEqual(get_fieldnames(changed), ["description"])
+
 
 def get_fieldnames(change_array):
 	return [d[0] for d in change_array]
