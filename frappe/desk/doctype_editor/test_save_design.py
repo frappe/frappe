@@ -860,7 +860,8 @@ class TestSaveDesign(IntegrationTestCase):
 		self.assertEqual(result["errors"][0]["target"], target)
 
 	def test_a_save_tells_open_desks_once(self):
-		frappe.db.commit()  # nosemgrep: flush the setUp insert's own message
+		# Flush the setUp insert's own message.
+		frappe.db.commit()  # nosemgrep
 		with patch("frappe.realtime.emit_via_redis") as emit:
 			result = self.save(
 				[
