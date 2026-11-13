@@ -325,6 +325,7 @@ frappe.patches.v17_0.flow_server_session_approval_mode
 frappe.patches.v17_0.mark_flow_embedding_model
 frappe.patches.v10_0.reload_countries_and_currencies # 2026-11-12
 frappe.patches.v17_0.move_flow_lancedb_out_of_files
+execute:frappe.db.get_single_value("System Settings", "submission_queue_timeout") or frappe.db.set_single_value("System Settings", "submission_queue_timeout", 600)
 
 
 [post_fixture_sync]
