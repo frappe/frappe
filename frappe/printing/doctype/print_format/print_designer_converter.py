@@ -70,7 +70,7 @@ def converted_values(doc) -> tuple[dict, list[str]]:
 @frappe.whitelist(methods=["POST"])
 def convert(print_format: str) -> dict:
 	"""Turn a Print Designer format into an editor format under the same name. The
-	Print Designer fields stay, so undo_conversion can bring it back. A standard format
+	Print Designer fields stay on the record, like classic_format_data. A standard format
 	belongs to its app, so it gets an editor copy instead."""
 	frappe.only_for("System Manager")
 	doc = frappe.get_doc("Print Format", print_format)
@@ -97,26 +97,6 @@ def convert(print_format: str) -> dict:
 
 
 @frappe.whitelist(methods=["POST"])
-def undo_conversion(print_format: str) -> None:
-	"""Turn a converted format back into the Print Designer format it was. For a
-	standard format, move everything back from its editor copy and delete the copy."""
-	frappe.only_for("System Manager")
-	doc = frappe.get_doc("Print Format", print_format)
-	if doc.standard == "Yes" and (copy := editor_copy(doc)):
-		move_print_format_usage(copy.name, doc.name)
-		frappe.delete_doc("Print Format", copy.name)
-		return
-	if not was_print_designer_format(doc):
-		frappe.throw(_("{0} was not converted from Print Designer.").format(frappe.bold(print_format)))
-	frappe.db.set_value(
-		"Print Format",
-		doc.name,
-		{"print_designer": 1, "print_format_builder_beta": 0, "format_data": None, "draft_data": None},
-	)
-	frappe.clear_cache(doctype=doc.doc_type)
-
-
-@frappe.whitelist(methods=["POST"])
 def use_editor_copy(print_format: str) -> None:
 	"""Point the doctype defaults and every link to a standard format at its editor copy."""
 	frappe.only_for("System Manager")
@@ -124,14 +104,6 @@ def use_editor_copy(print_format: str) -> None:
 	if not copy:
 		frappe.throw(_("{0} has no editor copy.").format(frappe.bold(print_format)))
 	move_print_format_usage(print_format, copy.name)
-
-
-def was_print_designer_format(doc) -> bool:
-	return bool(
-		not doc.get("print_designer")
-		and doc.print_format_builder_beta
-		and (doc.get("print_designer_print_format") or doc.get("print_designer_body"))
-	)
 
 
 def editor_copy(doc):
