@@ -139,6 +139,29 @@ class TestCompleteAppSetup(IntegrationTestCase):
 			enqueue_after_commit=True,
 		)
 
+	def test_a_site_without_a_region_still_gets_the_site_defaults(self):
+		frappe.db.set_single_value("System Settings", "backup_limit", 1)
+
+		setup_wizard.update_system_settings({})
+
+		self.assertEqual(frappe.db.get_single_value("System Settings", "backup_limit"), 3)
+		self.assertEqual(
+			frappe.db.get_single_value("System Settings", "rounding_method"), "Banker's Rounding"
+		)
+
+	def test_a_failed_prefilled_setup_is_not_tried_again(self):
+		with (
+			patch.object(setup_wizard, "get_prefilled_setup_args", return_value={"country": "India"}),
+			patch.object(setup_wizard, "complete_app_setup", side_effect=RuntimeError("boom")),
+			patch.object(frappe.db, "commit"),
+			patch.object(frappe, "log_error"),
+		):
+			setup_wizard.complete_prefilled_setup()
+		self.addCleanup(frappe.defaults.clear_default, setup_wizard.PREFILLED_SETUP_FAILED)
+
+		self.assertTrue(frappe.db.get_default(setup_wizard.PREFILLED_SETUP_FAILED))
+		self.assertIsNone(setup_wizard.get_prefilled_setup_args())
+
 	def test_post_setup_does_not_commit_before_completion_marker(self):
 		with (
 			patch.object(setup_wizard, "disable_future_access"),
