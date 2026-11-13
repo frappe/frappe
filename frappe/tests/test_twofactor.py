@@ -270,9 +270,13 @@ def create_http_request():
 	"""Get http request object."""
 	set_request(method="POST", path="/api/method/login")
 	enable_2fa()
-	frappe.form_dict["usr"] = "test@example.com"
-	frappe.form_dict["pwd"] = "Eastern_43A1W"
-	return HTTPRequest()
+	user = frappe.session.user
+	credentials = {"usr": "test@example.com", "pwd": "Eastern_43A1W"}
+	frappe.form_dict.update(credentials)
+	http_request = HTTPRequest()
+	frappe.set_user(user)
+	frappe.form_dict.update(credentials)
+	return http_request
 
 
 def enable_2fa(bypass_two_factor_auth=0, bypass_restrict_ip_check=0):
