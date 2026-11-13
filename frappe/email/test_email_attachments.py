@@ -6,6 +6,7 @@ import requests
 import frappe
 from frappe.email.receive import InboundMail
 from frappe.tests import IntegrationTestCase
+from frappe.tests.test_pdf import pdf_with_document_level_js
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
 from frappe.utils import get_url
 
@@ -120,3 +121,12 @@ class TestEmailAttachments(IntegrationTestCase):
 
 		mail = InboundMail(ENCODED_FILENAME_EMAIL.format(filename="=?UTF-8?Q??="), email_account)
 		self.assertTrue(mail.attachments[0]["fname"].endswith(".txt"))
+
+	def test_email_imported_without_unsafe_pdf_attachment(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		email_account = frappe._dict({"email_id": "receive@example.com"})
+		mail = InboundMail(ENCODED_FILENAME_EMAIL.format(filename="notes.txt"), email_account)
+		mail.attachments.append({"fname": "unsafe.pdf", "fcontent": pdf_with_document_level_js()})
+		communication = mail.process()
+		self.assertEqual([file.file_name for file in communication._attachments], ["notes.txt"])

@@ -1,0 +1,79 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "beta": 1,
+ "creation": "2026-10-30 12:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "studio_app",
+  "file_path",
+  "content"
+ ],
+ "fields": [
+  {
+   "fieldname": "studio_app",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Studio App",
+   "options": "Studio App",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "file_path",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "File Path",
+   "length": 255,
+   "reqd": 1
+  },
+  {
+   "fieldname": "content",
+   "fieldtype": "Code",
+   "ignore_xss_filter": 1,
+   "label": "Content"
+  }
+ ],
+ "grid_page_length": 50,
+ "link_display_mode": "Search",
+ "links": [],
+ "modified": "2026-11-07 12:02:51.593567",
+ "modified_by": "Administrator",
+ "module": "Studio",
+ "name": "Studio App File",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Studio User",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "file_path",
+ "track_changes": 1
+}

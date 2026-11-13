@@ -19,7 +19,7 @@ from frappe.studio.ai import llm
 from frappe.studio.ai.agent.tools.introspect import describe_page_data
 from frappe.studio.ai.block_codec import BlockCodec
 from frappe.studio.ai.models import ModelRegistry
-from frappe.studio.ai.prompts import GENERATION
+from frappe.studio.ai.prompts import get_generation_prompt
 from frappe.studio.ai.session import AISession
 
 logger = frappe.logger("frappe.studio.ai.agent.artifact")
@@ -38,7 +38,7 @@ def generate_page_json(ctx, args: dict) -> list[dict]:
 	brief = (args.get("brief") or "").strip()
 
 	messages: list[dict] = [
-		{"role": "system", "content": GENERATION, "cache_control": {"type": "ephemeral"}},
+		{"role": "system", "content": get_generation_prompt(), "cache_control": {"type": "ephemeral"}},
 	]
 	# Prior conversation (incl. the approved plan) as proper role-tagged turns.
 	messages.extend(AISession.build_context_messages_from_id(ctx.session_id))

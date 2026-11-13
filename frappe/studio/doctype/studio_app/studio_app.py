@@ -4,11 +4,12 @@ import json
 import os
 import re
 import shutil
+from collections.abc import Callable
 from urllib.parse import quote
 
 import frappe
 from frappe import _
-from frappe.studio.build import get_editor_assets
+from frappe.studio.build import can_build_bundle, get_editor_assets
 from frappe.studio.export import (
 	can_export,
 	delete_folder,
@@ -16,15 +17,24 @@ from frappe.studio.export import (
 	validate_standard_app_change,
 	write_document_file,
 )
+from frappe.studio.files import (
+	discarded_export_files,
+	export_db_files_to_disk,
+	get_db_files,
+	restore_db_files_from_disk,
+	write_db_files,
+)
 from frappe.studio.realtime import publish_doc_change
 from frappe.studio.utils import get_app_file_path, get_export_folder, validate_installed_app, walk_blocks
-from frappe.utils import get_files_path
+from frappe.utils import get_files_path, sbool
 from frappe.website.page_renderers.document_page import DocumentPage
 from frappe.website.utils import cleanup_page_name
 from frappe.website.website_generator import WebsiteGenerator
 
 IMPORT_RE = re.compile(r"""(?:from|import)\s*\(?\s*['"]((?:@app/|\.\.?/)[^'"]+)['"]""")
 EXTENSIONS = (".ts", ".js", ".vue", ".json", ".css")
+# Read one of an app's source files by its app-relative path, or None when the app has no such file.
+ReadFile = Callable[[str], str | None]
 
 
 class StudioAppRenderer(DocumentPage):
@@ -81,8 +91,10 @@ class StudioAppRenderer(DocumentPage):
 				self.context.stylesheets = manifest.get("stylesheets", [])
 				self.context.script = manifest.get("script")
 			else:
+				# The browser renderer can serve a database app without a build, so warn about its
+				# missing assets only when the server can build them.
 				self.use_studio_renderer()
-				self.context.assets_not_found = True
+				self.context.assets_not_found = bool(self.context.doc.is_standard or can_build_bundle())
 
 	def use_studio_renderer(self):
 		"""Serve the app with the editor's own renderer instead of its published build."""
@@ -125,7 +137,6 @@ class StudioApp(WebsiteGenerator):
 		frappe_app: DF.Literal[None]
 		is_standard: DF.Check
 		route: DF.Data | None
-		router_script: DF.Code | None
 	# end: auto-generated types
 
 	website = frappe._dict(
@@ -158,8 +169,8 @@ class StudioApp(WebsiteGenerator):
 		context.can_edit_app = bool(
 			(context.is_developer_mode or not self.is_standard) and check_app_permission()
 		)
+		context.is_db_app = not self.is_standard
 		context.router_file = self.get_router_file() if context.is_developer_mode else None
-		context.router_script = self.get_router_script()
 
 		context.base_url = frappe.utils.get_url(self.route)
 		context.boot = self.get_boot()
@@ -171,12 +182,6 @@ class StudioApp(WebsiteGenerator):
 		from frappe.studio.build import get_router_file
 
 		return get_router_file(self.frappe_app, self.name)
-
-	def get_router_script(self) -> str | None:
-		"""A custom app's router config, kept in the DB; a standard app has it in router.ts"""
-		if self.is_standard:
-			return None
-		return self.router_script or None
 
 	def get_boot(self) -> dict:
 		"""Get the boot data for this Studio app"""
@@ -234,6 +239,8 @@ class StudioApp(WebsiteGenerator):
 		validate_standard_app_change(self)
 		for page in self.pages:
 			frappe.delete_doc("Studio Page", page, force=True)
+		frappe.db.delete("Studio App File", {"studio_app": self.name})
+		self.delete_app_build()
 
 		if can_export(self):
 			self.delete_app_folder()
@@ -241,6 +248,18 @@ class StudioApp(WebsiteGenerator):
 	def delete_app_folder(self):
 		path = self.get_folder_path()
 		delete_folder(path)
+
+	def delete_app_build(self):
+		"""Delete the bundle so the renderer loads the current source instead of an older build."""
+		if path := self.get_build_path():
+			delete_folder(path)
+
+	def get_build_path(self) -> str | None:
+		if not self.is_standard:
+			return os.path.abspath(get_files_path("app_builds", self.name))
+		if not self.frappe_app:
+			return None
+		return frappe.get_app_path(self.frappe_app, "public", "app_builds", self.name)
 
 	def before_rename(self, old, new, merge=False):
 		validate_app_name(new)
@@ -254,7 +273,6 @@ class StudioApp(WebsiteGenerator):
 		if not can_export(self):
 			return
 
-		# carry every exported file (page scripts, router.ts, components) over to the new folder
 		move_folder(self.get_folder_path(old), self.get_folder_path())
 		# the app JSON is keyed by the scrubbed name (my-app and my_app share my_app.json)
 		old_file = os.path.join(self.get_folder_path(), f"{frappe.scrub(old)}.json")
@@ -264,7 +282,7 @@ class StudioApp(WebsiteGenerator):
 
 	def move_export_to(self, target_app: str):
 		"""Carry the export folder, files and all, into another Frappe app. Exported page scripts
-		and router.ts live only in these files, so re-exporting from the DB would lose them."""
+		and the router file live only in these files, so re-exporting from the DB would lose them."""
 		old_path = self.get_folder_path()
 		new_path = self.get_folder_path(frappe_app=target_app)
 		if os.path.exists(new_path):
@@ -282,7 +300,11 @@ class StudioApp(WebsiteGenerator):
 			self.build_app_bundle()
 			return {"build_error": None}
 		except Exception as e:
-			return {"build_error": self._log_build_failure(e)}
+			error_log = frappe.log_error(
+				title=f"Studio app build failed: {self.name}",
+				message=getattr(e, "output", None) or frappe.get_traceback(),
+			)
+			return {"build_error": {"error_log": error_log.name}}
 
 	def build_app_bundle(self):
 		"""Build the app bundle, raising on failure — background jobs enqueue this
@@ -292,13 +314,6 @@ class StudioApp(WebsiteGenerator):
 		StudioAppBuilder(
 			studio_app=self.name, is_standard=self.is_standard, frappe_app=self.frappe_app
 		).build()
-
-	def _log_build_failure(self, exception: Exception) -> dict:
-		error_log = frappe.log_error(
-			title=f"Studio app build failed: {self.name}",
-			message=getattr(exception, "output", None) or frappe.get_traceback(),
-		)
-		return {"error_log": error_log.name}
 
 	@frappe.whitelist()
 	def publish_app(self):
@@ -327,22 +342,13 @@ class StudioApp(WebsiteGenerator):
 		"""
 		try:
 			if self.is_standard:
-				manifest_path = os.path.join(
-					frappe.get_app_path(self.frappe_app),
-					"public",
-					"app_builds",
-					self.name,
-					".vite",
-					"manifest.json",
-				)
 				base_path = f"/assets/{self.frappe_app}/app_builds/{self.name}/"
 			else:
-				manifest_path = os.path.join(
-					get_files_path("app_builds", self.name),
-					".vite",
-					"manifest.json",
-				)
 				base_path = f"/files/app_builds/{self.name}/"
+			build_path = self.get_build_path()
+			if not build_path:
+				return None
+			manifest_path = os.path.join(build_path, ".vite", "manifest.json")
 
 			if not os.path.exists(manifest_path):
 				return None
@@ -393,24 +399,33 @@ class StudioApp(WebsiteGenerator):
 
 		for page_name in self.standard_pages:
 			frappe.get_doc("Studio Page", page_name).export_script_to_file()
-		self.export_router_script_to_file()
+		export_db_files_to_disk(self)
 
 	@frappe.whitelist()
-	def disable_app_export(self) -> str | None:
-		"""Returns a notice for the user when router.ts was copied back, since it may not run as a script"""
+	def get_discarded_export_files(self) -> list[str]:
+		"""List export files that disabling export cannot preserve in the database."""
+		self.check_permission("write")
+		return discarded_export_files(self)
+
+	@frappe.whitelist()
+	def disable_app_export(self, confirm_discarded: bool = False):
+		discarded = discarded_export_files(self)
+		if discarded and not sbool(confirm_discarded):
+			frappe.throw(
+				_("The database cannot store these files, so they would be deleted with {0}: {1}").format(
+					self.get_folder_path(), ", ".join(discarded)
+				)
+			)
+
 		for page_name in self.standard_pages:
 			frappe.get_doc("Studio Page", page_name).restore_script_from_file()
-		router_restored = self.restore_router_script_from_file()
+		# Preserve source files before save() deletes the export folder.
+		restore_db_files_from_disk(self)
 
 		frappe.db.set_value("Studio Page", {"studio_app": self.name}, "is_standard", 0)
 
 		self.is_standard = 0
 		self.save()
-
-		if router_restored:
-			return _(
-				"Router Script restored from router.ts. Custom apps run it as plain JavaScript object. Remove import statements and TypeScript types if present."
-			)
 
 	def export_app(self):
 		if not can_export(self):
@@ -427,8 +442,7 @@ class StudioApp(WebsiteGenerator):
 		if os.path.isdir(app_path) and not os.path.isfile(get_app_file_path(app_path)):
 			frappe.throw(_("Folder {0} exists and is not a Studio app.").format(app_path))
 		frappe.create_folder(app_path)
-		# the router config lives in router.ts, so keep it out of the JSON
-		write_document_file(self, folder=app_path, exclude_fields=["router_script"])
+		write_document_file(self, folder=app_path)
 		self.write_tsconfig(app_path)
 		return app_path
 
@@ -460,49 +474,46 @@ class StudioApp(WebsiteGenerator):
 			page_doc = frappe.get_doc("Studio Page", page)
 			page_doc.export_page()
 
-	def get_router_file_path(self) -> str:
-		return os.path.join(self.get_folder_path(), "router.ts")
-
-	def export_router_script_to_file(self):
-		"""Move the router script into router.ts and clear the DB field. Called on enabling exports"""
-		if not self.router_script:
-			return
-		if not os.path.exists(self.get_router_file_path()):
-			# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
-			with open(self.get_router_file_path(), "w") as f:
-				f.write(f"export default {self.router_script.strip()}\n")
-		self.db_set("router_script", None, update_modified=False)
-
-	def restore_router_script_from_file(self) -> bool:
-		"""Load router.ts back into the `router_script` field, so the config survives in DB-only
-		mode (called before the export folder is deleted on un-export)."""
-		if not os.path.exists(self.get_router_file_path()):
-			return False
-		source = frappe.read_file(self.get_router_file_path())
-		self.router_script = re.sub(r"^\s*export\s+default\s+", "", source, count=1).strip()
-		return True
-
 	def collect_files(self, script: str, script_dir: str, blocks) -> list[dict]:
 		"""The custom Vue components `blocks` use and everything the script and those files import."""
-		files = {}
-		pending = [
-			path for name in custom_vue_component_names(blocks) if (path := self.find_vue_component(name))
-		]
-		pending += self.resolve_imports(script, script_dir)
+		if self.is_standard:
+			read = self.read_exported_file
+			pending = [
+				path for name in custom_vue_component_names(blocks) if (path := self.find_vue_component(name))
+			]
+		else:
+			stored = {file["path"]: file["content"] for file in get_db_files(self.name)}
+			read = stored.get
+			pending = []
 
+		files = {}
+		pending += resolve_imports(script, script_dir, read)
 		while pending:
 			path = pending.pop()
 			if path in files:
 				continue
-			# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
-			with open(self.resolve_file_path(path), encoding="utf-8") as f:
-				files[path] = f.read()
-			pending += self.resolve_imports(files[path], os.path.dirname(path))
+			files[path] = read(path)
+			pending += resolve_imports(files[path], os.path.dirname(path), read)
 
 		return [{"path": path, "content": files[path]} for path in sorted(files)]
 
+	def read_exported_file(self, path: str) -> str | None:
+		target = self.resolve_file_path(path)
+		if not os.path.isfile(target):
+			return None
+		# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
+		with open(target, encoding="utf-8") as f:
+			return f.read()
+
 	def write_files(self, files: list[dict]):
-		"""Add copied files without replacing incompatible files already in the app."""
+		"""Put copied files where this app keeps its source."""
+		if not self.is_standard:
+			write_db_files(self.name, files)
+		elif can_export(self):
+			self.write_exported_files(files)
+
+	def write_exported_files(self, files: list[dict]):
+		"""Add copied files without replacing incompatible files already in the export folder."""
 		targets = {}
 		for file in files:
 			if (
@@ -551,28 +562,6 @@ class StudioApp(WebsiteGenerator):
 			)
 		return matches[0] if matches else None
 
-	def resolve_imports(self, source: str, from_dir: str) -> list[str]:
-		paths = []
-		for spec in IMPORT_RE.findall(source or ""):
-			base = spec[len("@app/") :] if spec.startswith("@app/") else os.path.join(from_dir, spec)
-			if path := self.resolve_module(os.path.normpath(base)):
-				paths.append(path)
-		return paths
-
-	def resolve_module(self, base: str) -> str | None:
-		"""Vite's lookup: the path itself, then with an extension, then an index file."""
-		if os.path.isabs(base) or base == ".." or base.startswith(f"..{os.sep}"):
-			return None
-		candidates = [
-			base,
-			*(base + ext for ext in EXTENSIONS),
-			*(os.path.join(base, f"index{ext}") for ext in (".ts", ".js")),
-		]
-		for candidate in candidates:
-			if os.path.isfile(self.resolve_file_path(candidate)):
-				return candidate
-		return None
-
 	def resolve_file_path(self, path: str) -> str:
 		root = os.path.realpath(self.get_folder_path())
 		target = os.path.realpath(os.path.join(root, path))
@@ -595,6 +584,27 @@ def move_folder(source: str, destination: str):
 		return
 	frappe.create_folder(os.path.dirname(destination))
 	shutil.move(source, destination)
+
+
+def resolve_imports(source: str, from_dir: str, read: ReadFile) -> list[str]:
+	paths = []
+	for spec in IMPORT_RE.findall(source or ""):
+		base = spec[len("@app/") :] if spec.startswith("@app/") else os.path.join(from_dir, spec)
+		if path := resolve_module(os.path.normpath(base), read):
+			paths.append(path)
+	return paths
+
+
+def resolve_module(base: str, read: ReadFile) -> str | None:
+	"""Vite's lookup: the path itself, then with an extension, then an index file."""
+	if os.path.isabs(base) or base == ".." or base.startswith(f"..{os.sep}"):
+		return None
+	candidates = [
+		base,
+		*(base + ext for ext in EXTENSIONS),
+		*(os.path.join(base, f"index{ext}") for ext in (".ts", ".js")),
+	]
+	return next((path for path in candidates if read(path) is not None), None)
 
 
 def custom_vue_component_names(blocks) -> set[str]:

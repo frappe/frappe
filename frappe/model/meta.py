@@ -197,7 +197,7 @@ class Meta(Document):
 	def get_masked_fields(self, parenttype=None):
 		import copy
 
-		if frappe.session.user == "Administrator":
+		if frappe.session.user == "Administrator" or not self._has_mask_fields:
 			return []
 		cache_key = f"masked_fields::{self.name}::{parenttype or ''}::{frappe.session.user}"
 		masked_fields = frappe.cache.get_value(cache_key)
@@ -214,6 +214,10 @@ class Meta(Document):
 			frappe.cache.set_value(cache_key, masked_fields)
 
 		return masked_fields
+
+	@cached_property
+	def _has_mask_fields(self) -> bool:
+		return any(df.get("mask") for df in self.fields)
 
 	@cached_property
 	def _link_fields(self):
@@ -958,16 +962,13 @@ def get_field_currency(df, doc=None):
 			if doc.get("parenttype"):
 				if currency:
 					ref_docname = doc.name
-				else:
-					if frappe.get_meta(doc.parenttype).has_field(df.get("options")):
-						# only get_value if parent has currency field
+				elif frappe.get_meta(doc.parenttype).has_field(df.get("options")):
+					# The in-memory parent is current and may not be in the database yet
+					parent = getattr(doc, "parent_doc", None)
+					if parent:
+						currency = parent.get(df.get("options"))
+					if not currency:
 						currency = frappe.db.get_value(doc.parenttype, doc.parent, df.get("options"))
-						if not currency:
-							# Parent may not be in DB yet (new document being saved).
-							# Use the in-memory parent document reference if available.
-							parent = getattr(doc, "parent_doc", None)
-							if parent:
-								currency = parent.get(df.get("options"))
 
 		if currency:
 			frappe.local.field_currency.setdefault((doc.doctype, ref_docname), frappe._dict()).setdefault(

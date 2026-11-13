@@ -44,6 +44,7 @@ class FlowTool(Document):
 		self._validate_type_fields()
 		if self.type == "Script":
 			self._validate_code()
+			self._warn_if_server_scripts_disabled()
 		validate_immutable(
 			self, ("type", "import_path", "description", "requires_confirmation", "background")
 		)
@@ -62,7 +63,16 @@ class FlowTool(Document):
 		block_delete(self, always=self.name in {builtin_name(tool.name) for tool in BUILTIN_TOOLS})
 
 	def before_rename(self, old: str, _new: str, _merge: bool = False) -> None:
+		from frappe.flow.lib.session import block_rename_in_chats
+
 		block_rename(self, old)
+		agents = frappe.get_all("Flow Agent Tool", filters={"tool": old}, pluck="parent")
+		# a sub-agent's tools run in its parent's chats too
+		if agents:
+			agents += frappe.get_all(
+				"Flow Agent Sub Agent", filters={"agent": ("in", agents)}, pluck="parent"
+			)
+		block_rename_in_chats(old, agents)
 
 	def to_tool(self):
 		"""Resolve this row into a runtime Tool the Agent can call."""
@@ -135,6 +145,16 @@ class FlowTool(Document):
 				)
 		else:
 			frappe.throw(_("Type must be Imported, Script or Server."), title=_("Invalid Type"))
+
+	def _warn_if_server_scripts_disabled(self):
+		from frappe.utils.safe_exec import is_safe_exec_enabled
+
+		if not is_safe_exec_enabled():
+			frappe.msgprint(
+				_("Server Scripts are disabled, so this tool won't run until they are enabled."),
+				title=_("Server Scripts Disabled"),
+				indicator="orange",
+			)
 
 	def _validate_code(self):
 		try:
@@ -209,3 +229,24 @@ def sync_server_tools() -> None:
 					"is_system_generated": 1,
 				}
 			).insert(ignore_permissions=True)
+
+
+@frappe.whitelist()
+def unavailable_tools() -> list[str]:
+	"""The tools that cannot run while server scripts are off: execute and every Script tool.
+	A user who cannot read tools gets those on the agents they can read."""
+	from frappe.flow.tools.builtins import EXECUTE_SLUG, builtin_name
+	from frappe.utils.safe_exec import is_safe_exec_enabled
+
+	if is_safe_exec_enabled():
+		return []
+	tools = [builtin_name(EXECUTE_SLUG), *frappe.get_all("Flow Tool", {"type": "Script"}, pluck="name")]
+	if frappe.has_permission("Flow Tool", "read"):
+		return tools
+	agents = frappe.get_list("Flow Agent", pluck="name")
+	return frappe.get_all(
+		"Flow Agent Tool",
+		filters={"parent": ["in", agents], "tool": ["in", tools]},
+		pluck="tool",
+		distinct=True,
+	)

@@ -52,6 +52,7 @@ class KanbanBoard(Document):
 	def validate(self):
 		if self.is_standard == "Yes" or self._was_standard():
 			self.validate_standard()
+		self.validate_field_name()
 		self.validate_column_name()
 
 	def validate_standard(self):
@@ -175,6 +176,19 @@ class KanbanBoard(Document):
 				tablefield,
 				{"fieldname": fieldname, "label": df.label if df else fieldname},
 			)
+
+	def validate_field_name(self):
+		df = frappe.get_meta(self.reference_doctype).get_field(self.field_name)
+		if not df or df.fieldtype != "Select":
+			frappe.throw(
+				_("{0} is not a Select field in {1}").format(
+					frappe.bold(self.field_name), self.reference_doctype
+				)
+			)
+		if not self.columns:
+			for option in (df.options or "").split("\n"):
+				if option.strip():
+					self.append("columns", {"column_name": option.strip()})
 
 	def validate_column_name(self):
 		for column in self.columns:
@@ -702,7 +716,7 @@ def quick_kanban_board(
 	doc.field_name = field_name
 
 	if project:
-		doc.filters = f'[["Task","project","=","{project}"]]'
+		doc.filters = json.dumps([["Task", "project", "=", project]])
 
 	options = ""
 	for field in meta.fields:

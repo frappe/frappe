@@ -19,18 +19,18 @@ def execute():
 		filters={"print_format_builder_beta": 1, "classic_format_data": ("is", "set")},
 		pluck="name",
 	)
-	fields = ["format_data", "paper_size", *NUMERIC_DEFAULT_FIELDS]
+	fields = ["format_data", "paper_size", "paper_width", "paper_height", *NUMERIC_DEFAULT_FIELDS]
 	for name in names:
 		row = frappe.db.get_value("Print Format", name, fields, as_dict=True)
 		values = missing_numeric_defaults(row)
-		repaired = repair_layout(row.format_data, row.paper_size)
+		repaired = repair_layout(row.format_data, row.paper_size, row.paper_width, row.paper_height)
 		if repaired:
 			values["format_data"] = repaired
 		if values:
 			frappe.db.set_value("Print Format", name, values, update_modified=False)
 
 
-def repair_layout(format_data, paper_size):
+def repair_layout(format_data, paper_size, paper_width=None, paper_height=None):
 	try:
 		layout = json.loads(format_data)
 	except (TypeError, ValueError):
@@ -47,16 +47,19 @@ def repair_layout(format_data, paper_size):
 					changed = True
 	if add_section_spacing(layout):
 		changed = True
-	if add_page_size(layout, paper_size):
+	if add_page_size(layout, paper_size, paper_width, paper_height):
 		changed = True
 	return json.dumps(layout, indent=1) if changed else None
 
 
-def add_page_size(layout, paper_size):
+def add_page_size(layout, paper_size, paper_width=None, paper_height=None):
 	page = layout.get("page") or {}
-	if page.get("size") or not layout_page_settings({"page": {"size": paper_size}}):
+	size = {"size": paper_size}
+	if paper_size == "Custom":
+		size.update(width=paper_width, height=paper_height)
+	if page.get("size") or not layout_page_settings({"page": size}):
 		return False
-	layout["page"] = {**page, "size": paper_size}
+	layout["page"] = {**page, **size}
 	return True
 
 

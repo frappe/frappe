@@ -34,6 +34,7 @@ class UserPermission(Document):
 	# end: auto-generated types
 
 	def validate(self):
+		self.apply_to_all_doctypes = 0 if self.applicable_for else 1
 		self.validate_user_permission()
 		self.validate_default_permission()
 

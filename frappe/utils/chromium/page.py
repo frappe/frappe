@@ -40,7 +40,7 @@ def read_blob_for_url(clean_path: str, fid: str | None = None) -> tuple[str, str
 def read_file_for_url(clean_path: str, fid: str | None = None) -> tuple[str, str] | None:
 	"""Return the base64 body and Content-Type of a File the session user can
 	read whose ``file_url`` is this path, else None."""
-	if not (file := find_file_by_url("/" + clean_path, name=fid)):
+	if not clean_path or not (file := find_file_by_url("/" + clean_path, name=fid)):
 		return None
 	try:
 		content = file.get_content(encodings=[])

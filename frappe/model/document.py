@@ -437,6 +437,16 @@ def get_doc_from_dict(data: dict[str, Any], **kwargs) -> "Document":
 	raise ImportError(data["doctype"])
 
 
+def _get_cached_link_value(doctype: str, name, field_tuple: tuple) -> dict | None:
+	"""Row an earlier link validation or `get_value(cache=True)` cached in this transaction."""
+	if not isinstance(name, str):
+		return None
+	rows = frappe.db.value_cache[doctype][name].get(field_tuple)
+	# get_value caches tuples too, under the same key
+	if rows and isinstance(rows[0], dict):
+		return rows[0]
+
+
 def get_lazy_doc(
 	doctype: str, name: str, *, for_update=None, check_permission: str | bool | None = None
 ) -> "Document":
@@ -1930,8 +1940,14 @@ class Document(_DocumentBase):
 				# Regular doctypes: bulk fetch with chunking
 				result_dict = {}
 				field_tuple = tuple(fields)
+				uncached_names = []
+				for name in names:
+					if row := _get_cached_link_value(doctype, name, field_tuple):
+						result_dict[name] = row
+					else:
+						uncached_names.append(name)
 
-				for name_chunk in _chunk(names, 1000):
+				for name_chunk in _chunk(uncached_names, 1000):
 					results = frappe.db.get_all(
 						doctype,
 						filters={"name": ("in", name_chunk)},
@@ -2374,9 +2390,11 @@ class Document(_DocumentBase):
 		if not doc_to_compare and (amended_from := self.get("amended_from")):
 			doc_to_compare = frappe.get_doc(self.doctype, amended_from)
 
+		from frappe.core.doctype.version.version import has_agent
+
 		version = frappe.new_doc("Version")
 
-		if not doc_to_compare and not self.flags.updater_reference:
+		if not doc_to_compare and not (self.flags.updater_reference or has_agent()):
 			return
 
 		if version.update_version_info(doc_to_compare, self):
@@ -3741,6 +3759,13 @@ class Document(_DocumentBase):
 		for phone_field in self.meta.get_phone_fields():
 			phone = self.get(phone_field.fieldname)
 			validate_phone_number_with_country_code(phone, phone_field.fieldname, _(phone_field.label))
+
+		for attach_field in self.meta.get("fields", {"fieldtype": ["in", ["Attach", "Attach Image"]]}):
+			file_url = self.get(attach_field.fieldname)
+			if isinstance(file_url, str) and has_unsafe_url_scheme(file_url):
+				frappe.throw(
+					_("'{0}' is not a valid URL").format(frappe.bold(file_url)), title=_("Invalid URL")
+				)
 
 		# data_field options defined in frappe.model.data_field_options
 		for data_field in self.meta.get_data_fields():

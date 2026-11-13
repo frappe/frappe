@@ -945,6 +945,66 @@ class TestPrintDesignerConverter(IntegrationTestCase):
 		self.assertEqual([c["fields"][0]["barcode_format"] for c in columns], ["CODE39", "CODE128"])
 		self.assertIn("The EAN13 barcode type was changed to CODE128.", notes)
 
+	def test_print_designer_linked_image_prints_the_linked_document_image(self):
+		from frappe.printing.doctype.print_format.print_designer_converter import (
+			convert_print_designer_format,
+		)
+
+		user_image = frappe.db.get_value("User", "Administrator", "user_image")
+		frappe.db.set_value("User", "Administrator", "user_image", "/files/admin.png")
+		self.addCleanup(frappe.db.set_value, "User", "Administrator", "user_image", user_image)
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		image = {
+			"type": "image",
+			"isDynamic": True,
+			"image": {"doctype": "User", "fieldname": "user_image", "parentField": "allocated_to"},
+		}
+		doc = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"doc_type": "ToDo",
+				"print_designer_body": frappe.as_json([{"childrens": [image]}]),
+			}
+		)
+
+		layout, _notes = convert_print_designer_format(doc)
+
+		html = layout["sections"][0]["columns"][0]["fields"][0]["html"]
+		todo = frappe.get_doc({"doctype": "ToDo", "allocated_to": "Administrator"})
+		self.assertIn("/files/admin.png", frappe.render_template(html, {"doc": todo}))
+
+	def test_print_designer_barcode_beside_text_prints_an_image(self):
+		from frappe.printing.doctype.print_format.print_designer_converter import (
+			convert_print_designer_format,
+		)
+		from frappe.utils.print_format_generator import get_barcode
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		box = {
+			"type": "rectangle",
+			"childrens": [
+				{"type": "text", "content": "Shelf"},
+				{"type": "barcode", "barcodeFormat": "code128", "value": "{{ doc.title }}"},
+			],
+		}
+		doc = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"doc_type": "Note",
+				"print_designer_body": frappe.as_json([{"childrens": [box]}]),
+			}
+		)
+
+		layout, _notes = convert_print_designer_format(doc)
+
+		html = layout["sections"][0]["columns"][0]["fields"][0]["html"]
+		note = frappe.get_doc({"doctype": "Note", "title": "_Test Note"})
+		self.assertIn(
+			"data:image/svg+xml", frappe.render_template(html, {"doc": note, "get_barcode": get_barcode})
+		)
+
 
 class TestPrintFormatChildTableVisibility(IntegrationTestCase):
 	"""Per-row and per-column conditional visibility for child Table fields."""

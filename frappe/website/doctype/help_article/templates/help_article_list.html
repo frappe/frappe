@@ -14,14 +14,14 @@
 	</div>
 </div>
 
-<div class="blog-list-content">
+<div class="kb-list-content">
 	<div data-doctype="{{ doctype }}" data-txt="{{ (txt or '') | e }}">
 		{% if not result -%}
 		<div class="text-muted" style="min-height: 300px;">
 			{{ no_result_message or _("Nothing to show") }}
 		</div>
 		{% else %}
-		<div id="blog-list" class="blog-list result col">
+		<div class="kb-list result col">
 			{% for item in result %}
 			{{ item }}
 			{% endfor %}
@@ -30,4 +30,27 @@
 		<button class="es-button btn-more my-4 {% if not show_more -%} hidden {%- endif %}">{{ _("Load More") }}</button>
 	</div>
 </div>
+<script>
+	frappe.ready(() => {
+		const btn = $(".kb-list-content .btn-more");
+		let next_start = {{ next_start or 0 }};
+
+		btn.on("click", () => {
+			const url = new URL(window.location.href);
+			url.searchParams.set("limit_start", next_start);
+			btn.prop("disabled", true);
+
+			fetch(url)
+				.then((r) => r.text())
+				.then((html) => {
+					const page = $(new DOMParser().parseFromString(html, "text/html"));
+					const rows = page.find(".kb-list .portal-row");
+					rows.appendTo(".kb-list");
+					next_start += rows.length;
+					btn.toggleClass("hidden", !page.find(".btn-more:not(.hidden)").length);
+				})
+				.finally(() => btn.prop("disabled", false));
+		});
+	});
+</script>
 {% endblock %}

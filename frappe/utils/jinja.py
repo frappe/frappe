@@ -123,7 +123,7 @@ def render_template(template, context=None, is_path=None, safe_render=True, *, r
 	from jinja2 import TemplateError
 	from jinja2.sandbox import SandboxedEnvironment
 
-	from frappe import _, get_traceback, throw
+	from frappe import _, throw
 
 	if context is None:
 		context = {}
@@ -138,12 +138,7 @@ def render_template(template, context=None, is_path=None, safe_render=True, *, r
 				throw(_("Illegal template"))
 			compiled_template = jenv.from_string(template)
 	except TemplateError:
-		import html
-
-		throw(
-			title="Jinja Template Error",
-			msg=f"<pre>{template}</pre><pre>{html.escape(get_traceback())}</pre>",
-		)
+		_throw_render_error(_("Jinja Template Error"), template=template)
 
 	import time
 
@@ -155,14 +150,30 @@ def render_template(template, context=None, is_path=None, safe_render=True, *, r
 		with safe_render_flags():
 			return compiled_template.render(context)
 	except Exception as e:
-		import html
-
-		throw(title="Context Error", msg=f"<pre>{html.escape(get_traceback())}</pre>", exc=e)
+		_throw_render_error(_("Context Error"), exc=e)
 	finally:
 		if is_path:
 			logger.debug(f"Rendering time: {time.monotonic() - start_time:.6f} seconds ({template})")
 		else:
 			logger.debug(f"Rendering time: {time.monotonic() - start_time:.6f} seconds")
+
+
+def _throw_render_error(title, template=None, exc=frappe.ValidationError):
+	"""Show the traceback only to users allowed to see it; log it for everyone else."""
+	import html
+
+	from frappe.utils.logger import get_logger
+	from frappe.utils.response import is_traceback_allowed
+
+	traceback = frappe.get_traceback()
+	if is_traceback_allowed():
+		source = f"<pre>{html.escape(template)}</pre>" if template else ""
+		msg = f"{source}<pre>{html.escape(traceback)}</pre>"
+	else:
+		get_logger("render-template").error(f"{title}\n{traceback}")
+		msg = frappe._("There was an error while rendering this template.")
+
+	frappe.throw(msg, title=title, exc=exc)
 
 
 def guess_is_path(template):

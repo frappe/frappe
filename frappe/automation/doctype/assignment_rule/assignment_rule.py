@@ -45,6 +45,7 @@ class AssignmentRule(Document):
 	def validate(self):
 		self.validate_document_types()
 		self.validate_assignment_days()
+		self.validate_users()
 
 	def clear_cache(self):
 		super().clear_cache()
@@ -55,6 +56,13 @@ class AssignmentRule(Document):
 		if self.document_type == "ToDo":
 			frappe.throw(
 				_("Assignment Rule is not allowed on document type {0}").format(frappe.bold(_("ToDo")))
+			)
+
+	def validate_users(self):
+		if not self.disabled and self.rule in ("Round Robin", "Load Balancing") and not self.users:
+			frappe.throw(
+				_("{0} is required").format(frappe.bold(_(self.meta.get_label("users")))),
+				frappe.MandatoryError,
 			)
 
 	def validate_assignment_days(self):
