@@ -549,7 +549,7 @@ def get_context(context):
 			if self.allow_comments:
 				context.comment_list = get_comment_list(reference_doc.doctype, reference_doc.name)
 
-			doc_dict = reference_doc.as_dict(no_nulls=True)
+			doc_dict = reference_doc.copy_with_fieldlevel_read_permissions().as_dict(no_nulls=True)
 			# A request key authorises access to the bound document without any
 			# document permission check, so its holder must only ever see the
 			# fields the Web Form itself exposes.
@@ -831,7 +831,7 @@ def accept(web_form: str, data: str | dict, web_form_request_key: str | None = N
 		frappe.session.user = user
 
 	frappe.flags.web_form_doc = doc
-	return doc
+	return doc.copy_with_fieldlevel_read_permissions()
 
 
 @frappe.whitelist(methods=["POST", "DELETE"], allow_guest=True)
@@ -1005,7 +1005,7 @@ def get_form_data(
 	if docname:
 		doc = frappe.get_doc(doctype, docname)
 		if web_form.has_web_form_permission(doctype, docname, ptype="read"):
-			out.doc = doc
+			out.doc = doc.copy_with_fieldlevel_read_permissions()
 		else:
 			frappe.throw(_("Not permitted"), frappe.PermissionError)
 
