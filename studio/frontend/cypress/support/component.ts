@@ -22,3 +22,12 @@ declare global {
 }
 
 Cypress.Commands.add("mount", mount)
+
+// The data modules fetch their resources on import, before a spec can log in, and a component
+// can leave a request behind when its test ends. Nothing awaits these requests. When one fails,
+// its rejection is not an error of the test that runs at that moment.
+Cypress.on(
+	"uncaught:exception",
+	(error, _runnable, promise) =>
+		!(promise && /frappe-ui\/src\/(utils\/request|resources)/.test(error.stack || "")),
+)

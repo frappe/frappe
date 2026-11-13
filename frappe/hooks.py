@@ -115,6 +115,7 @@ calendars = ["Event"]
 on_session_creation = [
 	"frappe.core.doctype.activity_log.feed.login_feed",
 	"frappe.core.doctype.user.user.notify_admin_access_to_system_manager",
+	"frappe.desk.page.setup_wizard.setup_wizard.complete_prefilled_setup",
 ]
 
 on_login = "frappe.desk.doctype.note.note._get_unseen_notes"

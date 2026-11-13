@@ -42,6 +42,7 @@ from frappe.utils.html_utils import sanitize_html
 from frappe.utils.password import (
 	check_password,
 	get_password_reset_limit,
+	has_password,
 	is_password_reused,
 	verify_against_placeholder,
 )
@@ -1405,6 +1406,51 @@ def sign_up(email: str, full_name: str, redirect_to: str) -> tuple[int, str]:
 		return 2, _("Please ask your administrator to verify your sign-up")
 
 
+def needs_password_setup(user: str | None = None) -> bool:
+	"""Whether the user was given a session without ever having a password, like a Frappe Cloud
+	site owner, and so cannot get back in once it ends. False for users who sign in without one."""
+	from frappe.integrations.frappe_providers.cloud_settings import is_v2_site
+
+	user = user or frappe.session.user
+	if user in STANDARD_USERS or has_password(user):
+		return False
+	if is_v2_site() or frappe.get_system_settings("disable_user_pass_login"):
+		return False
+	if frappe.get_system_settings("login_with_email_link"):
+		return False
+	if frappe.db.get_single_value("LDAP Settings", "enabled"):
+		return False
+	return not frappe.db.exists(
+		"User Social Login",
+		{"parenttype": "User", "parent": user, "provider": ["!=", "frappe"], "userid": ["is", "set"]},
+	)
+
+
+@frappe.whitelist(methods=["POST"])
+@rate_limit(limit=5, seconds=60)
+def set_first_password(new_password: str) -> None:
+	"""A signed-in user who never had a password (a new Frappe Cloud site owner) sets one, from an
+	app's setup flow, without a reset link. Anyone else changes theirs the usual way."""
+	from frappe.utils.password import validate_password_size
+
+	if frappe.request and frappe.get_request_header("Authorization"):
+		frappe.throw(_("Set your first password from a signed-in browser."), frappe.PermissionError)
+	if not new_password or not new_password.strip():
+		frappe.throw(_("Enter a password."), title=_("Invalid Password"))
+	validate_password_size(new_password, _("New Password"))
+	if not needs_password_setup():
+		frappe.throw(_("You already have a password. Change it from your settings."), frappe.PermissionError)
+	user = frappe.get_doc("User", frappe.session.user)
+	feedback = test_password_strength(
+		new_password,
+		user_data=(user.first_name, user.middle_name, user.last_name, user.email, user.birth_date),
+	)
+	if feedback and not feedback.get("feedback", {}).get("password_policy_validation_passed", False):
+		handle_password_test_fail(feedback)
+	_update_password(user.name, new_password)
+	frappe.db.set_value("User", user.name, {"last_password_reset_date": today(), "reset_password_key": ""})
+
+
 @frappe.whitelist(allow_guest=True, methods=["POST"])
 @rate_limit(limit=get_password_reset_limit, seconds=60 * 60)
 def reset_password(user: str) -> None:
@@ -1728,7 +1774,7 @@ def get_enabled_users():
 
 @frappe.whitelist(methods=["POST"])
 def impersonate(user: str, reason: str):
-	frappe.has_permission("User", "impersonate", throw=True)
+	frappe.has_permission("User", "impersonate", doc=user, throw=True)
 
 	impersonator = frappe.session.user
 	frappe.get_doc(

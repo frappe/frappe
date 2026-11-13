@@ -106,6 +106,33 @@ def converted_font(doc) -> str | None:
 	return text.get("fontFamily") or None
 
 
+def custom_page_size(width_mm: float, height_mm: float, sizes: list[str]) -> dict:
+	from frappe.utils.pdf_generator.browser import PageSize
+
+	short, long = sorted((width_mm, height_mm))
+	for name in sizes:
+		w, h = PageSize.page_sizes.get(name) or (0, 0)
+		if abs(w - short) < 1 and abs(h - long) < 1:
+			return {"size": name, **({"orientation": "Landscape"} if width_mm > height_mm else {})}
+	return {"size": "Custom", "width": round(width_mm, 1), "height": round(height_mm, 1)}
+
+
+def has_side_by_side_overlap(elements: list[dict]) -> bool:
+	"""Two elements share some height but sit next to each other, like text beside a tall image."""
+	for i, a in enumerate(elements):
+		for b in elements[i + 1 :]:
+			a_top, b_top = flt(a.get("startY")), flt(b.get("startY"))
+			a_left, b_left = flt(a.get("startX")), flt(b.get("startX"))
+			if (
+				a_top < b_top + flt(b.get("height")) - 2
+				and b_top < a_top + flt(a.get("height")) - 2
+				and (a_left + flt(a.get("width")) <= b_left + 2 or b_left + flt(b.get("width")) <= a_left + 2)
+				and abs(a_top - b_top) > 6
+			):
+				return True
+	return False
+
+
 def load_json(value):
 	if not value:
 		return None
@@ -167,11 +194,12 @@ class PrintDesignerConverter:
 		page = {}
 		size = (self.settings.get("currentPageSize") or "").lower()
 		sizes = frappe.get_meta("Print Settings").get_field("pdf_page_size").options.split("\n")
+		width, height = flt(self.page.get("width")), flt(self.page.get("height"))
 		if match := next((s for s in sizes if s.lower() == size and s != "Custom"), None):
 			page["size"] = match
-		elif size == "custom":
-			self.notes.append(_("The custom paper size was not kept; set the paper size in the editor."))
-		width, height = flt(self.page.get("width")), flt(self.page.get("height"))
+		elif size == "custom" and width and height:
+			page.update(custom_page_size(width / PX_PER_MM, height / PX_PER_MM, sizes))
+			return page
 		if width and height and width > height:
 			page["orientation"] = "Landscape"
 		return page or None
@@ -225,10 +253,18 @@ class PrintDesignerConverter:
 		if len(sections) == 1:
 			columns = sections[0]["columns"]
 		elif all(len(s["columns"]) == 1 for s in sections):
-			columns = [{"label": "", "fields": [f for s in sections for f in s["columns"][0]["fields"]]}]
+			fields = []
+			for section in sections:
+				section_fields = section["columns"][0]["fields"]
+				if section_fields and (margin := section.get("margin")):
+					add_gap(section_fields[0], flt(margin.get("top")))
+				fields.extend(section_fields)
+			columns = [{"label": "", "fields": fields}]
 		else:
 			del self.notes[earlier_notes:]
-			rows = self.rows(sorted(elements, key=lambda e: (flt(e.get("startY")), flt(e.get("startX")))))
+			rows = self.overlapping_rows(
+				sorted(elements, key=lambda e: (flt(e.get("startY")), flt(e.get("startX"))))
+			)
 			html = "".join(self.row_html(row) for row in rows)
 			columns = [{"label": "", "fields": [self.html_node(html)]}]
 		bottom = max((flt(e.get("startY")) + flt(e.get("height")) for e in elements), default=0)
@@ -245,8 +281,8 @@ class PrintDesignerConverter:
 				)
 		return {"columns": columns}
 
-	def row_html(self, row) -> str:
-		total = self.content_width()
+	def row_html(self, row: list[dict], total: float = 0) -> str:
+		total = total or self.content_width()
 		compiled = len(row) == 1 and row[0].get("layoutType") == "row"
 		children = row[0].get("childrens") or [] if compiled else row
 		top = 0 if compiled else min(flt(e.get("startY")) for e in row)
@@ -256,6 +292,28 @@ class PrintDesignerConverter:
 			else max(flt(e.get("startY")) + flt(e.get("height")) for e in row) - top
 		)
 		parts = []
+		if not compiled:
+			children = []
+			for stack in self.stacks(row):
+				if len(stack) == 1:
+					children.append(stack[0])
+					continue
+				left = min(flt(e.get("startX")) for e in stack)
+				right = max(flt(e.get("startX")) + flt(e.get("width")) for e in stack)
+				inner, cursor = "", top
+				for start, end, html, fixed in self.stack_pieces(stack, right - left):
+					style = f"margin-top: {round(max(start - cursor, 0))}px;"
+					if fixed and end > max(start, cursor):
+						style += f" min-height: {round(end - max(start, cursor))}px;"
+					inner += f'<div style="{style}">{html}</div>'
+					cursor = max(cursor, end)
+				parts.append(
+					(
+						left,
+						f'<div style="flex: 0 1 {round((right - left) / total * 100, 1)}%; min-width: 0; '
+						f'overflow-wrap: anywhere;">{inner}</div>',
+					)
+				)
 		for child in sorted(children, key=lambda c: flt(c.get("startX"))):
 			inner = "".join(self.element_html(e) for e in self.flatten([child]))
 			nested = child.get("childrens") if child.get("layoutType") == "column" else None
@@ -263,21 +321,53 @@ class PrintDesignerConverter:
 			fits_content = child.get("type") == "text" and not child.get("isFixedSize")
 			basis = "auto" if fits_content else f"{round(flt(child.get('width')) / total * 100, 1)}%"
 			parts.append(
-				f'<div style="flex: 0 1 {basis}; min-width: 0; '
-				f'overflow-wrap: anywhere; padding-top: {round(max(offset, 0))}px;">{inner}</div>'
+				(
+					flt(child.get("startX")),
+					f'<div style="flex: 0 1 {basis}; min-width: 0; '
+					f'overflow-wrap: anywhere; padding-top: {round(max(offset, 0))}px;">{inner}</div>',
+				)
 			)
 		return (
 			f'<div style="display: flex; justify-content: space-between; min-height: {round(height)}px;">'
-			+ "".join(parts)
+			+ "".join(part for _left, part in sorted(parts, key=lambda p: p[0]))
 			+ "</div>"
 		)
+
+	def stack_pieces(self, stack: list[dict], width: float) -> list[tuple[float, float, str, bool]]:
+		pieces = []
+		for band in self.overlapping_rows(
+			sorted(stack, key=lambda e: (flt(e.get("startY")), flt(e.get("startX"))))
+		):
+			if len(self.stacks(band)) > 1:
+				start = min(flt(e.get("startY")) for e in band)
+				end = max(flt(e.get("startY")) + flt(e.get("height")) for e in band)
+				pieces.append((start, end, self.row_html(band, width), False))
+				continue
+			for element in sorted(band, key=lambda e: flt(e.get("startY"))):
+				start, height = flt(element.get("startY")), flt(element.get("height"))
+				html = "".join(self.element_html(e) for e in self.flatten([element]))
+				fixed = element.get("type") in ("text", "rectangle") and not element.get("isDynamicHeight")
+				pieces.append((start, start + height, html, fixed))
+		return pieces
+
+	def stacks(self, elements: list[dict]) -> list[list[dict]]:
+		"""Elements that overlap horizontally, so they print one under the other."""
+		stacks = []
+		for element in sorted(elements, key=lambda e: flt(e.get("startX"))):
+			left = flt(element.get("startX"))
+			if stacks and left < stacks[-1][1] - 2:
+				stacks[-1][0].append(element)
+				stacks[-1][1] = max(stacks[-1][1], left + flt(element.get("width")))
+			else:
+				stacks.append([[element], left + flt(element.get("width"))])
+		return [stack for stack, _right in stacks]
 
 	def sections(self, elements) -> list[dict]:
 		elements = sorted(elements or [], key=lambda e: (flt(e.get("startY")), flt(e.get("startX"))))
 		sections, previous_bottom = [], 0
-		for row in self.rows(elements):
+		for row in self.overlapping_rows(elements):
 			top = min(flt(e.get("startY")) for e in row)
-			section = {"label": "", "columns": self.columns(row)}
+			section = {"label": "", "columns": self.columns(row, top if sections else 0)}
 			gap = top - previous_bottom
 			if sections and gap > 4:
 				section["margin"] = {"top": round(gap), "right": 0, "bottom": 0, "left": 0}
@@ -285,6 +375,24 @@ class PrintDesignerConverter:
 				sections.append(section)
 			previous_bottom = max(flt(e.get("startY")) + flt(e.get("height")) for e in row)
 		return sections
+
+	def overlapping_rows(self, elements: list[dict]) -> list[list[dict]]:
+		"""Rows that a tall element spans are one band, so the elements beside it
+		stay next to it instead of starting below it."""
+		bands, bottom = [], 0
+		for band in self.rows(elements):
+			top = min(flt(e.get("startY")) for e in band)
+			if (
+				bands
+				and top < bottom - 2
+				and band[0].get("layoutType") != "row"
+				and bands[-1][0].get("layoutType") != "row"
+			):
+				bands[-1].extend(band)
+			else:
+				bands.append(list(band))
+			bottom = max(bottom, *(flt(e.get("startY")) + flt(e.get("height")) for e in band))
+		return bands
 
 	def rows(self, elements) -> list[list[dict]]:
 		"""Group elements into horizontal bands: a compiled row rectangle is one band,
@@ -304,7 +412,7 @@ class PrintDesignerConverter:
 			bands.append([element])
 		return bands
 
-	def columns(self, row) -> list[dict]:
+	def columns(self, row, top=0) -> list[dict]:
 		total = self.content_width()
 		if len(row) == 1 and row[0].get("layoutType") == "row":
 			children = row[0].get("childrens") or []
@@ -320,11 +428,16 @@ class PrintDesignerConverter:
 					for c in sorted(children, key=lambda c: flt(c.get("startX")))
 				]
 			row = children
-		if any(flt(e.get("width")) > 0.6 * total for e in row) and len(row) > 1:
-			return [{"label": "", "fields": self.free_layout(row, total)}]
-		return self.columns_by_position(row, total)
+			top = 0
+		if (
+			any(flt(e.get("width")) > 0.6 * total for e in row)
+			and len(row) > 1
+			and not has_side_by_side_overlap(row)
+		):
+			return [{"label": "", "fields": self.free_layout(row, total, top=top)}]
+		return self.columns_by_position(row, total, top)
 
-	def columns_by_position(self, elements, total) -> list[dict]:
+	def columns_by_position(self, elements, total, top=0) -> list[dict]:
 		groups = []
 		for element in sorted(elements, key=lambda e: flt(e.get("startX"))):
 			left = flt(element.get("startX"))
@@ -347,7 +460,7 @@ class PrintDesignerConverter:
 				{
 					"label": "",
 					"width": round(width / total * 100, 1),
-					"fields": self.free_layout(group["items"], width, group["left"]),
+					"fields": self.free_layout(group["items"], width, group["left"], top),
 				}
 			)
 			cursor = group["right"]
@@ -382,10 +495,10 @@ class PrintDesignerConverter:
 			return self.free_layout(children, flt(element.get("width")) or width)
 		return self.free_layout(children, width)
 
-	def free_layout(self, elements, width, offset=0) -> list[dict]:
+	def free_layout(self, elements, width, offset=0, top=0) -> list[dict]:
 		"""Elements placed freely inside a box: a band holding several of them side by
 		side becomes one flex row, a band holding one keeps its own block."""
-		fields, bottom = [], 0
+		fields, bottom = [], top
 		width = width or self.content_width()
 		for band in self.rows(sorted(elements, key=lambda e: (flt(e.get("startY")), flt(e.get("startX"))))):
 			top = min(flt(e.get("startY")) for e in band)
@@ -409,7 +522,15 @@ class PrintDesignerConverter:
 						f'padding-top: {round(flt(element.get("startY")) - top)}px;">{inner}</div>'
 					)
 					cursor = left + flt(element.get("width"))
-				produced = [self.html_node('<div style="display: flex;">' + "".join(parts) + "</div>")]
+				fixed = [
+					flt(e.get("startY")) - top + flt(e.get("height"))
+					for e in band
+					if e.get("type") in ("text", "rectangle") and not e.get("isDynamicHeight")
+				]
+				row_style = (
+					f"display: flex; min-height: {round(max(fixed))}px;" if fixed else "display: flex;"
+				)
+				produced = [self.html_node(f'<div style="{row_style}">' + "".join(parts) + "</div>")]
 			if produced:
 				add_gap(produced[0], top - bottom)
 				fields.extend(produced)
@@ -417,13 +538,20 @@ class PrintDesignerConverter:
 		return fields
 
 	def side_by_side(self, columns) -> dict:
-		parts = []
+		parts, fixed = [], []
 		for column in sorted(columns, key=lambda c: flt(c.get("startX"))):
-			inner = "".join(self.element_html(e) for e in self.flatten(column.get("childrens") or []))
+			children = column.get("childrens") or []
+			inner = "".join(self.element_html(e) for e in self.flatten(children))
 			parts.append(
 				f'<div style="flex: {round(flt(column.get("width")))} 1 0; min-width: 0; overflow-wrap: anywhere;">{inner}</div>'
 			)
-		return self.html_node('<div style="display: flex;">' + "".join(parts) + "</div>")
+			fixed += [
+				flt(c.get("startY")) + flt(c.get("height"))
+				for c in children
+				if c.get("type") in ("text", "rectangle") and not c.get("isDynamicHeight")
+			]
+		row_style = f"display: flex; min-height: {round(max(fixed))}px;" if fixed else "display: flex;"
+		return self.html_node(f'<div style="{row_style}">' + "".join(parts) + "</div>")
 
 	def flatten(self, elements) -> list[dict]:
 		flat = []
@@ -538,7 +666,7 @@ class PrintDesignerConverter:
 				"label": column.get("label") or first.get("label") or "",
 				"fieldname": first["fieldname"],
 				"fieldtype": first.get("fieldtype") or "Data",
-				"width": round(flt(column.get("width")) or 10, 1),
+				"width": round(flt(column.get("width")), 1),
 			}
 			if len(fields) > 1:
 				col["merged_fields"] = [
@@ -550,6 +678,11 @@ class PrintDesignerConverter:
 					for f in fields[1:]
 				]
 			columns.append(col)
+		unsized = [col for col in columns if not col["width"]]
+		if unsized:
+			rest = max(100 - sum(col["width"] for col in columns), 5 * len(unsized))
+			for col in unsized:
+				col["width"] = round(rest / len(unsized), 1)
 		style = self.styled(element)
 		header = self.styled(element, "headerStyle")
 		bordered = (
@@ -577,6 +710,8 @@ class PrintDesignerConverter:
 			for k, v in style.items()
 			if k in ("fontSize", "fontFamily", "color", "lineHeight", "letterSpacing")
 		}
+		if style.get("textAlign") in ("center", "right"):
+			text["textAlign"] = style["textAlign"]
 		if size := flt(re.sub(r"[^\d.]", "", str(text.get("fontSize") or "")) or 0):
 			text["fontSize"] = f"{round(size / TABLE_TEXT_SCALE, 2)}px"
 		if text:
@@ -713,13 +848,13 @@ class PrintDesignerConverter:
 			if node.get("table_header") == "none"
 			else "<tr>"
 			+ "".join(
-				f'<th style="{css(self.styled(element, "headerStyle"))}">{escape_html(c["label"])}</th>'
+				f'<th width="{c["width"]}%" style="{css(self.styled(element, "headerStyle"))}">{escape_html(c["label"])}</th>'
 				for c in node["table_columns"]
 			)
 			+ "</tr>"
 		)
 		cells = "".join(
-			f'<td style="{cell}">{{{{ row.get_formatted({c["fieldname"]!r}, doc) }}}}</td>'
+			f'<td width="{c["width"]}%" style="{cell}">{{{{ row.get_formatted({c["fieldname"]!r}, doc) }}}}</td>'
 			for c in node["table_columns"]
 		)
 		return (
@@ -763,7 +898,14 @@ class PrintDesignerConverter:
 
 def add_gap(node, gap):
 	if gap > 3:
-		node["custom_style"] = f"margin-top: {round(gap)}px; " + (node.get("custom_style") or "")
+		style = node.get("custom_style") or ""
+		shorthand = re.compile(r"(^|;)(\s*margin\s*:\s*)(\d+(?:\.\d+)?)px")
+		if shorthand.search(style):
+			node["custom_style"] = shorthand.sub(
+				lambda m: f"{m[1]}{m[2]}{round(flt(m[3]) + gap)}px", style, count=1
+			)
+		else:
+			node["custom_style"] = f"margin-top: {round(gap)}px; " + style
 
 
 def is_white(color) -> bool:
