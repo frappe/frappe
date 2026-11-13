@@ -27,7 +27,7 @@ from werkzeug.test import Client
 # utility functions like cint, int, flt, etc.
 from frappe.utils.data import *
 from frappe.utils.deprecations import deprecated
-from frappe.utils.html_utils import sanitize_html
+from frappe.utils.html_utils import sanitize_html, sanitize_html_payload
 
 EMAIL_NAME_PATTERN = re.compile(r"[^A-Za-z0-9\u00C0-\u024F\/\_\' ]+")
 EMAIL_STRING_PATTERN = re.compile(r"([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)")
