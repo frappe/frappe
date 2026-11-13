@@ -184,6 +184,9 @@ class DesignReplay {
 		const field = this.field(fieldname);
 		if (this.state.customize) {
 			refuseStandard(this.state.customize, fieldname, "Only a custom field this site added can be renamed.");
+			if (!new_fieldname?.startsWith("custom_")) {
+				throw new EditRefused("A custom field's fieldname starts with custom_.");
+			}
 		}
 		if (!new_fieldname) throw new EditRefused("A field needs a fieldname.");
 		const saved = savedName(this.state, fieldname);

@@ -137,6 +137,13 @@ class TestSaveCustomize(IntegrationTestCase):
 		)
 		self.assertIsNone(custom_field(NOTE, "custom_t47273_new"))
 
+	def test_a_custom_field_keeps_its_custom_prefix_on_rename(self):
+		save(NOTE, [add_field("T47273 Prefix")])
+		result = save(NOTE, [rename("custom_t47273_prefix", "t47273_prefix")])
+		self.assertFalse(result["saved"])
+		self.assertEqual(result["errors"][0]["target"]["fieldname"], "custom_t47273_prefix")
+		self.assertIsNotNone(custom_field(NOTE, "custom_t47273_prefix"))
+
 	def test_a_rename_or_delete_moves_the_anchors_on_it(self):
 		save(NOTE, [add_field("T47273 A"), add_field("T47273 B")])
 		frappe.db.set_value(

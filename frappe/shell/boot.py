@@ -55,7 +55,6 @@ def core_boot() -> dict:
 		"site_name": frappe.local.site,
 		"socketio_port": frappe.conf.socketio_port,
 		"dev_server": bool(frappe._dev_server),
-		# The editor's entry acts offer Design on a standard DocType only in developer mode.
 		"developer_mode": bool(frappe.conf.developer_mode),
 		"read_only_mode": frappe.flags.read_only,
 		"csrf_token": frappe.sessions.get_csrf_token(),

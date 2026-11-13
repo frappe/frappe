@@ -1,7 +1,7 @@
 // What Customize shows on the canvas and the panel: only what the site changed, and what it may not.
 import type { ComputedRef } from "vue";
 import type { RawMetaField } from "@framework/ui/FormLayout/types";
-import { appValue, siteSetters } from "./customizeRules";
+import { appValue, sameValue, siteSetters } from "./customizeRules";
 import type { FlatEdit, WorkingState } from "./editorModel";
 import type { EditorState } from "./editorSource";
 
@@ -75,22 +75,37 @@ export class CustomizeView {
 		return this.isStandard(fieldname);
 	}
 
-	/** The saved setters' properties, then each staged change; a staged reset takes one away. */
+	/** The save writes nothing for a property staged back to its loaded value. */
+	unchanged(fieldname: string, property: string): boolean {
+		const loaded = this.base.fields.find((field) => field.fieldname === fieldname);
+		return sameValue(value(this.field(fieldname), property), value(loaded, property));
+	}
+
+	/** The saved setters' properties and the staged ones, wherever they differ from the app's value. */
 	private changed(fieldname: string): string[] {
-		const changed = new Set(
+		const properties = new Set(
 			siteSetters(this.state)
 				.filter((setter) => setter.field_name === fieldname)
 				.map((setter) => setter.property),
 		);
-		for (const edit of this.staged()) {
-			if (edit.fieldname !== fieldname) continue;
-			if (edit.act === "fields.set_field_property") changed.add(edit.property as string);
-			if (edit.act === "fields.reset_field_property") changed.delete(edit.property as string);
-		}
-		return [...changed];
+		for (const edit of this.staged())
+			if (edit.fieldname === fieldname && edit.act === "fields.set_field_property")
+				for (const property of editedProperties(edit)) properties.add(property);
+		const field = this.field(fieldname);
+		return [...properties].filter((property) => !sameValue(value(field, property), this.appValue(fieldname, property)));
 	}
 
 	private field(fieldname: string): RawMetaField | undefined {
 		return this.working.value.fields.find((field) => field.fieldname === fieldname);
 	}
+}
+
+export function editedProperties(edit: FlatEdit): string[] {
+	if (edit.act === "fields.reset_field_property") return [edit.property as string];
+	if (edit.act !== "fields.set_field_property") return [];
+	return edit.properties ? Object.keys(edit.properties as object) : [edit.property as string];
+}
+
+function value(field: RawMetaField | undefined, property: string): unknown {
+	return (field as unknown as Record<string, unknown> | undefined)?.[property];
 }

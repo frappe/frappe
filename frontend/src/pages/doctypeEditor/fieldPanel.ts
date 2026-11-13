@@ -12,8 +12,7 @@ export interface TypeGroup {
 	types: { name: string; disabled: boolean }[];
 }
 
-/** A saved field whose column holds values keeps to the types that keep them; the rest show disabled.
- * In Customize a standard field keeps to the types Customize Form allows. */
+/** A saved field keeps to the types its values survive; in Customize a standard field, to Customize Form's. */
 export function typeGroups(canvas: DesignCanvas, fieldname: string): { groups: TypeGroup[]; more: TypeGroup[] } {
 	const saved = canvas.savedField(fieldname);
 	const standardTypes = canvas.customize?.fieldtypes(fieldname);

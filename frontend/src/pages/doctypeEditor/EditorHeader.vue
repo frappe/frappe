@@ -117,7 +117,6 @@ const tab = defineModel<EditorTab>("tab", { required: true });
 
 const modeOptions = computed(() => props.modes.map((mode) => ({ label: __(mode), value: mode })));
 
-// A manager reaches Customize from the DocType's own pages, so its crumbs lead back there.
 const crumbs = computed(() => [
 	...(props.mode === "Customize"
 		? [{ label: props.doctype, route: listRoute() }, { label: __("Customize") }]

@@ -218,8 +218,7 @@ const listActs = useListActs(
 			editorEntries(doctype, {
 				roles: boot.session.roles ?? [],
 				developerMode: boot.developer_mode,
-				custom: Boolean(meta.value?.custom),
-				single: Boolean(meta.value?.issingle),
+				meta: meta.value,
 			}),
 		openEditor: (entry) => router.push(editorRoute(doctype, entry.mode)),
 		starsLoaded: () => settings.favourites.value !== null,

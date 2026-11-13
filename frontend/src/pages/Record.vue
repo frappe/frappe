@@ -477,8 +477,7 @@ function headerBuiltins(): HeaderItem[] {
 					editorEntries: editorEntries(doctype.value!, {
 						roles: boot.session.roles ?? [],
 						developerMode: boot.developer_mode,
-						custom: Boolean(meta.value?.custom),
-						single,
+						meta: meta.value,
 					}),
 				}
 			),

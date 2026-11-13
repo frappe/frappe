@@ -61,6 +61,17 @@ describe("the canvas marks in Customize", () => {
 		expect(view.marks("notes")).toEqual({ custom: false, changed: [], hidden: false });
 	});
 
+	it("drop the dot when a property is set back to the app's value", async () => {
+		const { canvas } = mount();
+		await acts.run("fields.set_field_property", { fieldname: "status", property: "hidden", value: 1 });
+		await acts.run("fields.set_field_property", { fieldname: "status", property: "hidden", value: 0 });
+		await acts.run("fields.set_field_property", { fieldname: "subject", property: "label", value: "Subject" });
+		expect(canvas.customize!.marks("status").changed).toEqual([]);
+		expect(canvas.customize!.marks("subject").changed).toEqual([]);
+		expect(canvas.customize!.unchanged("status", "hidden")).toBe(true);
+		expect(canvas.customize!.unchanged("subject", "label")).toBe(false);
+	});
+
 	it("a new field is a custom field named custom_ and its label", async () => {
 		const { canvas } = mount();
 		await acts.run("fields.add_field", { label: "Due On", fieldtype: "Date", section: "main", column: "column_1" });
@@ -116,7 +127,7 @@ describe("the panel in Customize", () => {
 describe("the panel rows in Customize", () => {
 	it("lock a property with its reason, and offer a changed one's reset to the app's value", async () => {
 		const { canvas } = mount();
-		await acts.run("fields.set_field_property", { fieldname: "status", property: "bold", value: 0 });
+		await acts.run("fields.set_field_property", { fieldname: "status", property: "bold", value: 1 });
 		expect(rowMark(canvas, "notes", "reqd")).toEqual({ lock: "The app makes this field mandatory." });
 		expect(rowMark(canvas, "subject", "label")).toEqual({ changed: true, resetText: "Reset to ERPNext's value (Subject)" });
 		expect(rowMark(canvas, "status", "bold")).toEqual({ changed: true, resetText: "Reset to ERPNext's value (off)" });
@@ -158,6 +169,15 @@ describe("the panel rows in Customize", () => {
 		expect(fieldnameMode(canvas, "subject")).toBe("locked");
 		expect(fieldnameMode(canvas, "region")).toBe("locked");
 		expect(fieldnameMode(canvas, "custom_rating")).toBe("renamable");
+	});
+
+	it("keep a custom field's custom_ prefix on rename", async () => {
+		const { canvas, edits } = mount();
+		await acts.perform("fields.rename_field", { fieldname: "custom_rating", new_fieldname: "rating" });
+		expect(edits.staged.value).toEqual([]);
+		expect(toast.error).toHaveBeenCalledWith("A custom field's fieldname starts with custom_.");
+		await acts.perform("fields.rename_field", { fieldname: "custom_rating", new_fieldname: "custom_score" });
+		expect(canvas.field("custom_score")).toBeTruthy();
 	});
 
 	it("hide or show a standard field in place of remove", async () => {

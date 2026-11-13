@@ -30,4 +30,15 @@ describe("the Customize save toast", () => {
 			]),
 		).toBe("Saved 1 custom field.");
 	});
+
+	it("leaves out what the server skipped and what was set back", () => {
+		const edits = [
+			{ act: "fields.set_field_property", fieldname: "subject", property: "label", value: "Topic" },
+			{ act: "fields.set_field_property", fieldname: "status", property: "in_list_view", value: 1 },
+			{ act: "fields.set_field_property", fieldname: "notes", property: "bold", value: 0 },
+		];
+		const skipped = [{ target: { kind: "field" as const, fieldname: "status", property: "in_list_view" }, message: "No." }];
+		const unchanged = (fieldname: string) => fieldname === "notes";
+		expect(saveSummary(edits, { skipped, unchanged })).toBe("Saved 1 property change.");
+	});
 });

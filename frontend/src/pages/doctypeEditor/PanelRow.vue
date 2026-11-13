@@ -1,6 +1,4 @@
-<!-- A label-left row of the field panel, as frappe/crm#3419's PanelRow. `box` wraps a ghost control
-     the way desk's FieldBox does. In Customize the label ends in a lock (the control goes inert) or
-     a changed dot, which turns into a reset arrow while the row is hovered. -->
+<!-- `box` wraps a ghost control the way desk's FieldBox does. -->
 <template>
 	<div class="group/row grid grid-cols-[130px_1fr] items-start gap-2">
 		<div class="flex h-7 min-w-0 items-center gap-1">

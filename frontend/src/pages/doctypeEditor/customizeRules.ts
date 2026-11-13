@@ -59,3 +59,12 @@ export function appValue(rules: CustomizeRules, loaded: RawMetaField, property: 
 	if (values && property in values) return values[property];
 	return (loaded as unknown as Record<string, unknown>)[property];
 }
+
+/** Setter values are text and unset checks are absent, so "0", 0 and undefined read the same. */
+export function sameValue(a: unknown, b: unknown): boolean {
+	return blankAsEmpty(a) === blankAsEmpty(b);
+}
+
+function blankAsEmpty(value: unknown): string {
+	return value == null || value === false || value === 0 || value === "0" ? "" : String(value);
+}

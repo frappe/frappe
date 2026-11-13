@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { confirmModeSwitch, type ModeSwitchAnswer } from "../modeSwitch";
+import { confirmModeSwitch, guardRouteUpdate, type ModeSwitchAnswer } from "../modeSwitch";
 
 function prompt(answer: ModeSwitchAnswer, { dirty = true, saves = true } = {}) {
 	const ask = vi.fn(async () => answer);
@@ -35,5 +35,31 @@ describe("the Design | Customize switch with pending edits", () => {
 		const { save, switches } = prompt(null);
 		expect(await switches()).toBe(false);
 		expect(save).not.toHaveBeenCalled();
+	});
+});
+
+describe("the editor's route update", () => {
+	const route = (name: string, mode: string) => ({ params: { name }, query: { mode } });
+	const confirm = () => ({ leave: vi.fn(async () => true), switchMode: vi.fn(async () => false) });
+
+	it("asks the switch prompt on a mode change", async () => {
+		const asks = confirm();
+		expect(await guardRouteUpdate(route("ToDo", "customize"), route("ToDo", "design"), asks)).toBe(false);
+		expect(asks.switchMode).toHaveBeenCalledOnce();
+		expect(asks.leave).not.toHaveBeenCalled();
+	});
+
+	it("asks the leave prompt for another DocType", async () => {
+		const asks = confirm();
+		expect(await guardRouteUpdate(route("Note", "customize"), route("ToDo", "customize"), asks)).toBe(true);
+		expect(asks.leave).toHaveBeenCalledOnce();
+		expect(asks.switchMode).not.toHaveBeenCalled();
+	});
+
+	it("lets any other query change through", () => {
+		const asks = confirm();
+		const to = { params: { name: "ToDo" }, query: { mode: "customize", table: "items" } };
+		expect(guardRouteUpdate(to, route("ToDo", "customize"), asks)).toBe(true);
+		expect(asks.leave).not.toHaveBeenCalled();
 	});
 });

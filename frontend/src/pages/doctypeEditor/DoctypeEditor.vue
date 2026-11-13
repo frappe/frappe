@@ -120,7 +120,7 @@ import {
 	type PendingEditsPayload,
 } from "./pendingEdits";
 import PreviewTab from "./PreviewTab.vue";
-import { confirmModeSwitch } from "./modeSwitch";
+import { confirmModeSwitch, guardRouteUpdate } from "./modeSwitch";
 import ModeSwitchDialog from "./ModeSwitchDialog.vue";
 import RowDialogPreview from "./RowDialogPreview.vue";
 import SettingsTab from "./SettingsTab.vue";
@@ -348,9 +348,8 @@ socket?.on("doctype_export", onExport);
 onBeforeUnmount(() => socket?.off("doctype_export", onExport));
 
 onBeforeRouteLeave(confirmLeave);
-onBeforeRouteUpdate((to, from) => {
-	if (to.params.name !== from.params.name) return confirmLeave();
-	return to.query.mode === from.query.mode || confirmSwitch();
-});
+onBeforeRouteUpdate((to, from) =>
+	guardRouteUpdate(to, from, { leave: confirmLeave, switchMode: confirmSwitch })
+);
 useUnloadGuard(() => dirty.value);
 </script>

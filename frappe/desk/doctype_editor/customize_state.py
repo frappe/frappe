@@ -132,6 +132,8 @@ class CustomizeState(DesignState):
 
 	def rename_field(self, old: str, new: str):
 		self.refuse_standard(old, _("Only a custom field this site added can be renamed."))
+		if not (new or "").startswith("custom_"):
+			raise field_error(_("A custom field's fieldname starts with custom_."), old)
 		super().rename_field(old, new)
 
 	def delete_field(self, fieldname: str):

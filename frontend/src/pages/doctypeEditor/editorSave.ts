@@ -222,7 +222,13 @@ export class EditorSave {
 	}
 
 	private async saved(canvas: DesignCanvas, result: SaveResult) {
-		const summary = canvas.customize ? saveSummary(this.host.edits.staged.value) : __("Saved");
+		const customize = canvas.customize;
+		const summary = customize
+			? saveSummary(this.host.edits.staged.value, {
+					skipped: result.skipped,
+					unchanged: (fieldname, property) => customize.unchanged(fieldname, property),
+				})
+			: __("Saved");
 		const asked = fieldsOffLayout(canvas.working.value)
 			.filter(({ field }) => field.reqd)
 			.map(({ field }) => field.fieldname);
