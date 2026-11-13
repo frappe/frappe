@@ -286,6 +286,28 @@ class TestSaveDesign(IntegrationTestCase):
 		[row] = details_rows()
 		self.assertEqual(placed(row), ["title", "due_on"])
 
+	def test_a_saved_field_renamed_twice_moves_its_data_once(self):
+		record = frappe.get_doc({"doctype": DOCTYPE, "title": "Kept"}).insert()
+		result = self.save(
+			[
+				{"act": "fields.rename_field", "fieldname": "title", "new_fieldname": "subject"},
+				{"act": "fields.rename_field", "fieldname": "subject", "new_fieldname": "headline"},
+			]
+		)
+		self.assertTrue(result["saved"], result.get("errors"))
+		self.assertEqual(frappe.db.get_value(DOCTYPE, record.name, "headline"), "Kept")
+
+	def test_a_saved_field_renamed_back_keeps_its_name(self):
+		record = frappe.get_doc({"doctype": DOCTYPE, "title": "Kept"}).insert()
+		result = self.save(
+			[
+				{"act": "fields.rename_field", "fieldname": "title", "new_fieldname": "subject"},
+				{"act": "fields.rename_field", "fieldname": "subject", "new_fieldname": "title"},
+			]
+		)
+		self.assertTrue(result["saved"], result.get("errors"))
+		self.assertEqual(frappe.db.get_value(DOCTYPE, record.name, "title"), "Kept")
+
 	def test_renaming_a_saved_standard_field_is_refused(self):
 		with patch.dict(frappe.conf, {"developer_mode": 1}):
 			result = self.save(

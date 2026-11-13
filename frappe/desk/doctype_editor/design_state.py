@@ -178,11 +178,13 @@ class DesignState:
 		field = self.field(old)
 		if not new:
 			raise field_error(_("A field needs a fieldname."), old)
-		self.refuse_taken_fieldname(new, old)
-		if old in self.saved_fieldnames:
+		saved = self.saved_name(old)
+		if new != saved:
+			self.refuse_taken_fieldname(new, old)
+		if saved:
 			if self.standard:
 				raise field_error(_("Renaming a saved field of a standard DocType needs a patch."), old)
-			self.note_rename(old, new)
+			self.note_rename(saved, new)
 		field.fieldname = new
 		self.load_every_layout()
 		for layout in self.all_layouts():
@@ -201,13 +203,18 @@ class DesignState:
 			message = _("{0} still holds the data of a deleted field. Choose another fieldname.")
 			raise field_error(message.format(fieldname), key or fieldname)
 
-	def note_rename(self, old: str, new: str):
+	def saved_name(self, fieldname: str) -> str | None:
+		"""The fieldname this field has in the database; None for a field added in this save."""
+		for saved, renamed in self.renames:
+			if renamed == fieldname:
+				return saved
+		return fieldname if fieldname in self.saved_fieldnames else None
+
+	def note_rename(self, saved: str, new: str):
 		"""Fold a chain of renames, so the data moves once from the saved column."""
-		for index, (saved, renamed) in enumerate(self.renames):
-			if renamed == old:
-				self.renames[index] = (saved, new)
-				return
-		self.renames.append((old, new))
+		self.renames = [pair for pair in self.renames if pair[0] != saved]
+		if new != saved:
+			self.renames.append((saved, new))
 
 	def delete_field(self, fieldname: str):
 		"""Drop the field and every layout's mention of it; its column and data stay."""
