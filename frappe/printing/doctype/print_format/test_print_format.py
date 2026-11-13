@@ -222,6 +222,14 @@ class TestPrintFormatBuilderElements(IntegrationTestCase):
 		# no value -> block is skipped entirely
 		self.assertNotIn('class="field print-barcode', self.render(df | {"barcode_value": ""}))
 
+	def test_ean_barcode_rejects_a_wrong_check_digit(self):
+		from frappe.utils.print_format_generator import get_barcode
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		self.assertTrue(get_barcode("5901234123457", "EAN13"))
+		self.assertIsNone(get_barcode("5901234123450", "EAN13"))
+
 	def test_qr_code(self):
 		import base64
 
