@@ -1,6 +1,7 @@
 // What the field panel shows for one field: its type choices, the notes under Type and
 // Fieldname, the remove question and the property groups. The panel's .vue draws these.
 import type { RawMetaField } from "@framework/ui/FormLayout/types";
+import { acts } from "@/acts/dispatcher";
 import { __, __n } from "@/i18n";
 import type { DesignCanvas } from "./designCanvas";
 import { reqdInConditional } from "./editorModel";
@@ -12,9 +13,17 @@ export interface TypeGroup {
 	types: { name: string; disabled: boolean }[];
 }
 
-/** A saved field whose column holds values keeps to the types that keep them; the rest show disabled. */
+/** A saved field keeps to the types its values survive; in Customize a standard field, to Customize Form's. */
 export function typeGroups(canvas: DesignCanvas, fieldname: string): { groups: TypeGroup[]; more: TypeGroup[] } {
 	const saved = canvas.savedField(fieldname);
+	const standardTypes = canvas.customize?.fieldtypes(fieldname);
+	if (saved && standardTypes) {
+		return guarded(
+			[saved.fieldtype, ...standardTypes],
+			__("A standard {0} field can become", [__(saved.fieldtype)]),
+			__("Not on a standard field"),
+		);
+	}
 	const count = canvas.valueCount(fieldname);
 	const allowed = saved ? allowedFieldtypes(saved, true, count) : "any";
 	if (allowed === "any") {
@@ -24,19 +33,11 @@ export function typeGroups(canvas: DesignCanvas, fieldname: string): { groups: T
 		}));
 		return { groups: [{ label: "", types: COMMON_TYPES.map(enabled) }], more };
 	}
-	const keeps = [saved!.fieldtype, ...allowed];
-	if (keeps.includes("Data")) keeps.splice(keeps.indexOf("Data") + 1, 0, "Email");
-	const others = COMMON_TYPES.filter((name) => !keeps.includes(name));
-	return {
-		groups: [
-			{ label: __n("Keeps its {0} value", "Keeps its {0} values", count, [count]), types: keeps.map(enabled) },
-			{
-				label: __n("Not while {0} record holds a value", "Not while {0} records hold a value", count, [count]),
-				types: others.map((name) => ({ name, disabled: true })),
-			},
-		],
-		more: [],
-	};
+	return guarded(
+		[saved!.fieldtype, ...allowed],
+		__n("Keeps its {0} value", "Keeps its {0} values", count, [count]),
+		__n("Not while {0} record holds a value", "Not while {0} records hold a value", count, [count]),
+	);
 }
 
 /** What a type pick sets, as one step; "Email" is Data's `Email` option, so it never carries over. */
@@ -69,13 +70,47 @@ export function subtitle(canvas: DesignCanvas, field: RawMetaField): string {
 	const type = __(typeName(field.fieldtype, field.options));
 	if (!canvas.savedName(field.fieldname)) return `${type} · ${field.fieldname}`;
 	const count = canvas.valueCount(field.fieldname);
-	return `${type} · ${__n("{0} value", "{0} values", count, [count])}`;
+	return [type, origin(canvas, field.fieldname), __n("{0} value", "{0} values", count, [count])]
+		.filter(Boolean)
+		.join(" · ");
 }
 
 /** A new field's fieldname follows its label; a saved one renames on a custom DocType only. */
 export function fieldnameMode(canvas: DesignCanvas, fieldname: string): "follows" | "renamable" | "locked" {
 	if (!canvas.savedName(fieldname)) return "follows";
+	if (canvas.customize) return canvas.customize.isStandard(fieldname) ? "locked" : "renamable";
 	return canvas.base.standard ? "locked" : "renamable";
+}
+
+/** Customize's mark at the end of a row's label: a lock with its reason, or a changed property's reset. */
+export function rowMark(
+	canvas: DesignCanvas,
+	fieldname: string,
+	property: string,
+): { lock?: string; changed?: boolean; resetText?: string } {
+	const customize = canvas.customize;
+	if (!customize) return {};
+	const lock = customize.lock(fieldname, property);
+	if (lock) return { lock };
+	if (!customize.marks(fieldname).changed.includes(property)) return {};
+	const shown = shownValue(property, customize.appValue(fieldname, property));
+	return { changed: true, resetText: __("Reset to {0}'s value ({1})", [appTitle(canvas), shown]) };
+}
+
+/** A panel row's Customize mark, with its reset as one staged edit. */
+export function panelMark(canvas: DesignCanvas, fieldname: string, property: string) {
+	return {
+		...rowMark(canvas, fieldname, property),
+		onReset: () => void acts.perform("fields.reset_field_property", { fieldname, property }),
+	};
+}
+
+/** In Customize a standard field cannot go: the panel's remove hides or shows it instead. */
+export function removeAction(canvas: DesignCanvas, field: RawMetaField): { label: string; icon: string } {
+	if (!canvas.customize?.hidesOnRemove(field.fieldname)) return { label: __("Remove field"), icon: "lucide-trash-2" };
+	return field.hidden
+		? { label: __("Show field"), icon: "lucide-eye" }
+		: { label: __("Hide field"), icon: "lucide-eye-off" };
 }
 
 /** The confirm a remove asks; none for a field added since the save, which has no column. */
@@ -173,6 +208,60 @@ export const PROPERTY_GROUPS: { label: string; properties: PanelProperty[] }[] =
 		],
 	},
 ];
+
+const CHECK_PROPERTIES = new Set([
+	"reqd",
+	...PROPERTY_GROUPS.flatMap((group) => group.properties).filter((one) => one.type === "check").map((one) => one.key),
+]);
+
+export function isCheckProperty(property: string): boolean {
+	return CHECK_PROPERTIES.has(property);
+}
+
+const FIELD_ROW_LABELS: Record<string, string> = {
+	label: "Label",
+	fieldtype: "Type",
+	options: "Options",
+	reqd: "Required",
+	default: "Default",
+	placeholder: "Placeholder",
+	description: "Help text",
+};
+
+/** The panel's name for a property, for the canvas mark's tooltip. */
+export function propertyLabel(property: string): string {
+	const grouped = PROPERTY_GROUPS.flatMap((group) => group.properties).find((one) => one.key === property);
+	return __(grouped?.label ?? FIELD_ROW_LABELS[property] ?? property);
+}
+
+function guarded(types: string[], allowedLabel: string, refusedLabel: string) {
+	const keeps = [...new Set(types)];
+	if (keeps.includes("Data")) keeps.splice(keeps.indexOf("Data") + 1, 0, "Email");
+	const others = COMMON_TYPES.filter((name) => !keeps.includes(name));
+	return {
+		groups: [
+			{ label: allowedLabel, types: keeps.map(enabled) },
+			{ label: refusedLabel, types: others.map((name) => ({ name, disabled: true })) },
+		],
+		more: [],
+	};
+}
+
+function origin(canvas: DesignCanvas, fieldname: string): string {
+	const customize = canvas.customize;
+	if (!customize) return "";
+	if (customize.fromApp(fieldname)) return __("From {0}", [appTitle(canvas)]);
+	return customize.isStandard(fieldname) ? __("Standard") : __("Custom");
+}
+
+function appTitle(canvas: DesignCanvas): string {
+	return canvas.state.app_title || __("the app");
+}
+
+function shownValue(property: string, value: unknown): string {
+	if (CHECK_PROPERTIES.has(property)) return value && value !== "0" ? __("on") : __("off");
+	return value === undefined || value === null || value === "" ? __("empty") : String(value);
+}
 
 function enabled(name: string) {
 	return { name, disabled: false };

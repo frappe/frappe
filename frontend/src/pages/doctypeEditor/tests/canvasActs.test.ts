@@ -11,6 +11,7 @@ import { useEditorActs } from "../editorActs";
 import { EditorSave } from "../editorSave";
 import type { EditorState } from "../editorSource";
 import { PendingEdits, type EditorTab } from "../pendingEdits";
+import { NO_CUSTOMIZE } from "./editorFixture";
 
 function state(mode: "Design" | "Customize" = "Design"): EditorState {
 	return {
@@ -85,6 +86,7 @@ function mount(mode: "Design" | "Customize" = "Design") {
 			recordOptions: async () => [],
 			save: new EditorSave({ edits, canvas: () => canvas, reload: async () => canvas, created: async () => canvas }),
 			openList: () => undefined,
+			customize: NO_CUSTOMIZE,
 		}),
 	);
 	stop = () => scope.stop();
@@ -167,7 +169,7 @@ describe("the canvas acts", () => {
 		expect(edits.staged.value).toHaveLength(1);
 	});
 
-	it("stay off every surface outside the Editor tab and in Customize", () => {
+	it("stay off every surface outside the Editor tab, and edit in Customize too", () => {
 		const { tab } = mount();
 		expect(acts.find("canvas.add_section")).toBeDefined();
 		tab.value = "preview";
@@ -175,8 +177,8 @@ describe("the canvas acts", () => {
 		expect(acts.find("fields.add_field")).toBeUndefined();
 		stop();
 		mount("Customize");
-		expect(acts.find("canvas.move_field")).toBeUndefined();
-		expect(acts.find("canvas.select")).toBeDefined();
+		expect(acts.find("canvas.move_field")).toBeDefined();
+		expect(acts.find("fields.reset_field_property")).toBeDefined();
 	});
 });
 

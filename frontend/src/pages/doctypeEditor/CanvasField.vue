@@ -11,10 +11,10 @@
 		:data-canvas-selected="selected || undefined"
 		@click.stop="acts.perform('canvas.select', { kind: 'field', fieldname })"
 	>
-		<div v-if="table" class="pointer-events-none" inert>
+		<div v-if="table" class="pointer-events-none" :class="{ 'opacity-50': hidden }" inert>
 			<CanvasTable :field="table" />
 		</div>
-		<div v-else-if="node" class="pointer-events-none" inert>
+		<div v-else-if="node" class="pointer-events-none" :class="{ 'opacity-50': hidden }" inert>
 			<FormLayoutField :field="node" />
 		</div>
 		<div v-else class="flex h-7 items-center text-base text-ink-gray-5">{{ fieldname }}</div>
@@ -26,32 +26,30 @@
 		>
 			{{ error }}
 		</p>
-		<RuleMark
-			class="absolute right-12 top-0.5"
-			:canvas="canvas"
-			kind="field"
-			:node="canvas.field(fieldname)"
-		/>
-		<div
-			v-if="editable"
-			class="absolute right-1 top-0.5 flex h-5 items-center gap-0.5 rounded-4 bg-surface-base opacity-0 group-hover/field:opacity-100"
-			:class="{ '!opacity-100': selected }"
-			data-canvas-controls
-		>
-			<Dropdown :options="menu" side="bottom" align="end">
-				<Button
-					variant="ghost"
-					size="sm"
-					class="!h-5 !w-5"
-					icon="lucide-ellipsis"
-					:aria-label="__('Field actions')"
+		<div class="absolute right-1 top-0.5 flex h-5 items-center gap-1">
+			<RuleMark :canvas="canvas" kind="field" :node="canvas.field(fieldname)" />
+			<div
+				v-if="editable"
+				class="flex items-center gap-0.5 rounded-4 bg-surface-base opacity-0 group-hover/field:opacity-100"
+				:class="{ '!opacity-100': selected }"
+				data-canvas-controls
+			>
+				<Dropdown :options="menu" side="bottom" align="end">
+					<Button
+						variant="ghost"
+						size="sm"
+						class="!h-5 !w-5"
+						icon="lucide-ellipsis"
+						:aria-label="__('Field actions')"
+					/>
+				</Dropdown>
+				<span
+					class="lucide-grip-vertical size-4 text-ink-gray-4"
+					:title="__('Drag to move the field')"
+					aria-hidden="true"
 				/>
-			</Dropdown>
-			<span
-				class="lucide-grip-vertical size-4 text-ink-gray-4"
-				:title="__('Drag to move the field')"
-				aria-hidden="true"
-			/>
+			</div>
+			<CustomizeMarks :canvas="canvas" :fieldname="fieldname" />
 		</div>
 	</div>
 </template>
@@ -64,6 +62,7 @@ import { acts } from "@/acts/dispatcher";
 import { __ } from "@/i18n";
 import CanvasTable from "./CanvasTable.vue";
 import { canvasMenu } from "./canvasMenu";
+import CustomizeMarks from "./CustomizeMarks.vue";
 import type { DesignCanvas } from "./designCanvas";
 import RuleMark from "./RuleMark.vue";
 
@@ -74,6 +73,7 @@ const selected = computed(() => {
 	const selection = props.canvas.selection.value;
 	return selection?.kind === "field" && selection.fieldname === props.fieldname;
 });
+const hidden = computed(() => Boolean(props.canvas.customize?.marks(props.fieldname).hidden));
 const node = computed(() => {
 	const field = props.canvas.field(props.fieldname);
 	return field ? mapField(field, {}) : null;

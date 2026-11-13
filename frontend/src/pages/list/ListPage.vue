@@ -117,6 +117,7 @@ import type { HeaderItem } from "@/pageEngine/types";
 import type { Boot } from "@/boot";
 import { __ } from "@/i18n";
 import { isModular, routeFor, routeForModule } from "@/router/routeFor";
+import { editorEntries, editorRoute } from "@/pages/doctypeEditor/entries/editorEntries";
 import { openCreate } from "@/shell/create";
 import type { ListPage } from "@/list/useListPage";
 import { createListPage } from "@/listPage/createListPage";
@@ -213,6 +214,13 @@ const listActs = useListActs(
 		create,
 		customizeQuickFilter: () => (customizing.value = true),
 		customizing: () => customizing.value,
+		editorEntries: () =>
+			editorEntries(doctype, {
+				roles: boot.session.roles ?? [],
+				developerMode: boot.developer_mode,
+				meta: meta.value,
+			}),
+		openEditor: (entry) => router.push(editorRoute(doctype, entry.mode)),
 		starsLoaded: () => settings.favourites.value !== null,
 		favourited: () => favourited.value,
 		toggleFavourite: () => settings.toggleFavourite(starKey),
@@ -280,8 +288,17 @@ const scriptAct = (name: string) => listActs.drawn(name);
 
 const menuOptions = computed(() => {
 	const act = quickFilterAct.value;
-	if (!act || !shown.value.has("customize_quick_filter") || !shown.value.has("quick_filter"))
-		return [];
-	return [{ label: act.label, icon: act.icon, onClick: () => listActs.perform(act) }];
+	const quickFilter =
+		act && shown.value.has("customize_quick_filter") && shown.value.has("quick_filter")
+			? [act]
+			: [];
+	const editor = ["customize_form", "edit_doctype"].map(listActs.drawn);
+	return [...quickFilter, ...editor]
+		.filter((each): each is NonNullable<typeof each> => Boolean(each))
+		.map((each) => ({
+			label: each.label,
+			icon: each.icon,
+			onClick: () => listActs.perform(each),
+		}));
 });
 </script>

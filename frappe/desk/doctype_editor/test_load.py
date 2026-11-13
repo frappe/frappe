@@ -128,8 +128,7 @@ class TestDoctypeEditor(IntegrationTestCase):
 		)
 		editor = self.open(self.customizer, "ToDo")
 		self.assertIn("reqd", editor["locks"]["description"])
-		self.assertIn("options", editor["locks"]["status"])
-		self.assertNotIn("options", editor["locks"].get("sender", {}))
+		self.assertNotIn("options", editor["locks"]["status"])
 		self.assertEqual(
 			editor["fieldtype_changes"]["description"], ["Code", "HTML Editor", "Signature", "Text"]
 		)

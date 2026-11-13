@@ -6,7 +6,6 @@ from frappe import _
 from frappe.core.doctype.doctype.doctype import get_fields_not_allowed_in_list_view
 from frappe.custom.doctype.customize_form.customize_form import (
 	ALLOWED_FIELDTYPE_CHANGE,
-	ALLOWED_OPTIONS_CHANGE,
 	is_standard_or_system_generated_field,
 )
 from frappe.model.docfield import supports_translation
@@ -37,7 +36,9 @@ def get_customizations(meta: Meta) -> dict:
 			],
 			order_by="creation",
 		),
-		"property_setters": property_setters(meta.name, app_doc, app_fields),
+		"property_setters": property_setters(
+			meta.name, app_doc, {**app_custom_fields(meta.name), **app_fields}
+		),
 		"locks": {
 			df.fieldname: field_locks(df, app_fields.get(df.fieldname), not_in_list_view) for df in standard
 		},
@@ -69,6 +70,12 @@ def property_setters(doctype: str, app_doc, app_fields: dict) -> list[dict]:
 	return rows
 
 
+def app_custom_fields(doctype: str) -> dict:
+	"""An app's Custom Fields, whose rows hold the values a site's Property Setter overrides."""
+	rows = frappe.get_all("Custom Field", filters={"dt": doctype, "is_system_generated": 1}, fields=["*"])
+	return {row.fieldname: row for row in rows}
+
+
 def setter_owner(row, app_doc, app_fields: dict):
 	"""The app's DocType, field, link, action or state that a Property Setter row overrides."""
 	if row.doctype_or_field == "DocType":
@@ -79,7 +86,8 @@ def setter_owner(row, app_doc, app_fields: dict):
 
 
 def field_locks(df, app_field, not_in_list_view: list) -> dict[str, str]:
-	"""Mirrors `CustomizeForm.check_property_change`: `property -> reason` for each refused change."""
+	"""Mirrors `CustomizeForm.check_property_change`: `property -> reason` for each refused change.
+	Options are left out: the save checks them against the field's new type, so the client does too."""
 	locks = {}
 	if app_field and app_field.reqd:
 		locks["reqd"] = _("The app makes this field mandatory.")
@@ -89,8 +97,6 @@ def field_locks(df, app_field, not_in_list_view: list) -> dict[str, str]:
 		locks["allow_on_submit"] = _("The app does not allow this field to change after submit.")
 	if app_field and not app_field.is_virtual:
 		locks["is_virtual"] = _("A standard field cannot become virtual.")
-	if df.fieldtype not in ALLOWED_OPTIONS_CHANGE:
-		locks["options"] = _("Options of a {0} field cannot be changed.").format(_(df.fieldtype))
 	if not supports_translation(df.fieldtype):
 		locks["translatable"] = _("A {0} field cannot be translated.").format(_(df.fieldtype))
 	if df.fieldtype in not_in_list_view:

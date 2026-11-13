@@ -9,6 +9,7 @@ import {
 	type FlatEdit,
 	type WorkingState,
 } from "./editorModel";
+import { CustomizeView } from "./customizeView";
 import type { EditorState } from "./editorSource";
 import { LayoutTreeEditor } from "./layoutTree";
 import type { EditStage } from "./pendingEdits";
@@ -70,15 +71,18 @@ export class DesignCanvas {
 		if (selected?.kind !== "field") return null;
 		return this.field(selected.fieldname) ?? null;
 	});
-	/** Customize draws the same canvas, read-only, until its own slice. */
 	readonly editable: boolean;
+	/** `null` in Design. */
+	readonly customize: CustomizeView | null;
 
 	constructor(
 		readonly state: EditorState,
 		private edits: EditStage,
 	) {
 		this.base = editorBase(state);
-		this.editable = state.mode === "Design";
+		this.editable = state.modes.includes(state.mode);
+		this.customize =
+			state.mode === "Customize" ? new CustomizeView(state, this.base, this.working, () => this.edits.staged.value) : null;
 	}
 
 	/** Stages the edits as one undo step; throws `EditRefused`, and stages nothing, when the replay refuses one. */

@@ -44,6 +44,7 @@ export type Boot = {
 	socketio_port: number;
 	// `bench start` serves the realtime server on its own port; nginx puts it behind the origin.
 	dev_server: boolean;
+	developer_mode: boolean;
 	read_only_mode: boolean;
 	csrf_token: string;
 	setup_complete: boolean;

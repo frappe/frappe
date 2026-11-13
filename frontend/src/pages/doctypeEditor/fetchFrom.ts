@@ -47,9 +47,10 @@ export function parseFetchFrom(value: string | null | undefined): FetchPath | nu
 }
 
 /** The source's label as a fieldname, `_1`, `_2`… added while another field has it. */
-export function fetchedFieldname(source: FetchSource, taken: readonly string[]): string {
+export function fetchedFieldname(source: FetchSource, taken: readonly string[], prefix = ""): string {
 	const spelled = fieldnameFromLabel(source.label ?? "");
-	const base = validFieldname(spelled) ? spelled : source.fieldname;
+	const name = validFieldname(spelled) ? spelled : source.fieldname;
+	const base = name.startsWith(prefix) ? name : `${prefix}${name}`;
 	let fieldname = base;
 	for (let n = 1; taken.includes(fieldname); n++) fieldname = `${base}_${n}`;
 	return fieldname;

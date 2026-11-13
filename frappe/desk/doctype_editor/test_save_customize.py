@@ -8,6 +8,7 @@ import frappe
 from frappe.custom.doctype.customize_form.customize_form import CustomizeForm
 from frappe.desk.doctype.form_layout.app_layout import read_app_layouts
 from frappe.desk.doctype.form_layout.form_layout import parse_layout, source_fingerprint
+from frappe.desk.doctype_editor.customize import get_customizations
 from frappe.desk.doctype_editor.customize_acts import customization_rows, export, reset_all
 from frappe.desk.doctype_editor.save import save_doctype_editor
 from frappe.desk.doctype_editor.versions import base_version
@@ -137,6 +138,13 @@ class TestSaveCustomize(IntegrationTestCase):
 		)
 		self.assertIsNone(custom_field(NOTE, "custom_t47273_new"))
 
+	def test_a_custom_field_keeps_its_custom_prefix_on_rename(self):
+		save(NOTE, [add_field("T47273 Prefix")])
+		result = save(NOTE, [rename("custom_t47273_prefix", "t47273_prefix")])
+		self.assertFalse(result["saved"])
+		self.assertEqual(result["errors"][0]["target"]["fieldname"], "custom_t47273_prefix")
+		self.assertIsNotNone(custom_field(NOTE, "custom_t47273_prefix"))
+
 	def test_a_rename_or_delete_moves_the_anchors_on_it(self):
 		save(NOTE, [add_field("T47273 A"), add_field("T47273 B")])
 		frappe.db.set_value(
@@ -224,6 +232,20 @@ class TestSaveCustomize(IntegrationTestCase):
 		self.assertTrue(result["saved"], result)
 		self.assertEqual(result["skipped"][0]["target"]["property"], "in_list_view")
 		self.assertIsNone(property_value(NOTE, "seen_by_section", "in_list_view"))
+
+	def test_a_select_turned_data_takes_new_options(self):
+		edit = {"act": "fields.set_field_property", "fieldname": "status"}
+		result = save(
+			CONTACT,
+			[
+				{**edit, "property": "fieldtype", "value": "Data"},
+				{**edit, "property": "options", "value": ""},
+			],
+		)
+		self.assertTrue(result["saved"], result)
+		self.assertFalse(result.get("skipped"))
+		self.assertEqual(property_value(CONTACT, "status", "fieldtype"), "Data")
+		self.assertEqual(property_value(CONTACT, "status", "options"), "")
 
 	def test_a_system_manager_saves_and_only_a_system_manager_renames(self):
 		with self.set_user("test@example.com"):
@@ -400,6 +422,36 @@ class TestSaveCustomize(IntegrationTestCase):
 		reset = {"act": "fields.reset_field_property", "fieldname": "title", "property": "bold"}
 		self.assertTrue(save(NOTE, [reset])["saved"])
 		self.assertEqual(property_value(NOTE, "title", "bold"), "1")
+
+	def test_a_reset_on_an_app_custom_field_restores_its_own_value(self):
+		app_field = frappe.get_doc(
+			{"doctype": "Custom Field", "dt": NOTE, "label": "T47273 App Made", "fieldtype": "Data"}
+		)
+		app_field.is_system_generated = 1
+		app_field.insert()
+		edit = {"act": "fields.set_field_property", "fieldname": app_field.fieldname, "property": "label"}
+		self.assertTrue(save(NOTE, [{**edit, "value": "T47273 Site Label"}])["saved"])
+		self.assertEqual(property_value(NOTE, app_field.fieldname, "label"), "T47273 Site Label")
+		setters = get_customizations(frappe.get_meta(NOTE))["property_setters"]
+		setter = next(row for row in setters if row.field_name == app_field.fieldname)
+		self.assertEqual(setter.app_value, "T47273 App Made")
+		reset = {"act": "fields.reset_field_property", "fieldname": app_field.fieldname, "property": "label"}
+		self.assertTrue(save(NOTE, [reset])["saved"])
+		self.assertIsNone(property_value(NOTE, app_field.fieldname, "label"))
+		self.assertEqual(frappe.get_meta(NOTE).get_field(app_field.fieldname).label, "T47273 App Made")
+
+	def test_an_edit_after_a_reset_on_an_app_custom_field_wins(self):
+		app_field = frappe.get_doc(
+			{"doctype": "Custom Field", "dt": NOTE, "label": "T47274 App Made", "fieldtype": "Data"}
+		)
+		app_field.is_system_generated = 1
+		app_field.insert()
+		edit = {"act": "fields.set_field_property", "fieldname": app_field.fieldname, "property": "label"}
+		self.assertTrue(save(NOTE, [{**edit, "value": "T47274 Site Label"}])["saved"])
+		reset = {"act": "fields.reset_field_property", "fieldname": app_field.fieldname, "property": "label"}
+		self.assertTrue(save(NOTE, [reset, {**edit, "value": "T47274 Later Label"}])["saved"])
+		self.assertEqual(property_value(NOTE, app_field.fieldname, "label"), "T47274 Later Label")
+		self.assertEqual(frappe.get_meta(NOTE).get_field(app_field.fieldname).label, "T47274 Later Label")
 
 	def test_reset_all_keeps_the_fields_only_administrator_may_delete(self):
 		save(NOTE, [add_field("T47273 Admin")])

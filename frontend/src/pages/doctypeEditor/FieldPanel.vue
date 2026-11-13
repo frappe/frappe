@@ -5,7 +5,8 @@
 		:icon="typeIcon(currentType)"
 		:title="field.label || field.fieldname"
 		:subtitle="subtitle(canvas, field)"
-		:remove-label="__('Remove field')"
+		:remove-label="removal.label"
+		:remove-icon="removal.icon"
 		@remove="remove"
 		@close="acts.perform('canvas.select', null)"
 	/>
@@ -22,7 +23,7 @@
 		/>
 	</div>
 	<PanelSection :label="__('Field')">
-		<PanelRow :label="__('Label')">
+		<PanelRow :label="__('Label')" v-bind="mark('label')">
 			<TextInput
 				variant="ghost"
 				:model-value="field.label ?? ''"
@@ -31,7 +32,7 @@
 				@change="set('label', text($event))"
 			/>
 		</PanelRow>
-		<PanelRow :label="__('Type')" :box="false">
+		<PanelRow :label="__('Type')" :box="false" v-bind="mark('fieldtype')">
 			<div class="rounded-4 hover:bg-surface-gray-2">
 				<Dropdown :options="typeMenu" side="bottom" align="start">
 					<button
@@ -55,7 +56,25 @@
 				{{ note }}
 			</p>
 		</PanelRow>
-		<PanelRow v-if="field.fieldtype === 'Link'" :label="__('Links to')">
+		<PanelRow v-if="anchor !== undefined" :label="__('Placed after')" :box="false">
+			<div class="flex min-h-7 flex-col justify-center px-2" data-panel-anchor>
+				<p class="flex h-7 items-center truncate text-base text-ink-gray-8">
+					{{ anchor ? anchor.label || anchor.fieldname : __("The start of the form") }}
+				</p>
+				<p class="pb-1 text-p-sm text-ink-gray-5">
+					{{
+						__("Drag it to move it. It keeps this place when {0} adds fields.", [
+							appTitle,
+						])
+					}}
+				</p>
+			</div>
+		</PanelRow>
+		<PanelRow
+			v-if="field.fieldtype === 'Link'"
+			:label="__('Links to')"
+			v-bind="mark('options')"
+		>
 			<Combobox
 				variant="ghost"
 				:model-value="field.options ?? ''"
@@ -65,7 +84,11 @@
 			/>
 		</PanelRow>
 		<TableFieldRows v-else-if="field.fieldtype === 'Table'" :canvas="canvas" :field="field" />
-		<PanelRow v-else-if="field.fieldtype === 'Select'" :label="__('Options')">
+		<PanelRow
+			v-else-if="field.fieldtype === 'Select'"
+			:label="__('Options')"
+			v-bind="mark('options')"
+		>
 			<Textarea
 				variant="ghost"
 				:rows="3"
@@ -75,7 +98,11 @@
 				@change="set('options', text($event))"
 			/>
 		</PanelRow>
-		<PanelRow v-else-if="field.fieldtype === 'Dynamic Link'" :label="__('DocType from')">
+		<PanelRow
+			v-else-if="field.fieldtype === 'Dynamic Link'"
+			:label="__('DocType from')"
+			v-bind="mark('options')"
+		>
 			<TextInput
 				variant="ghost"
 				:model-value="field.options ?? ''"
@@ -88,8 +115,9 @@
 			:key="field.options"
 			:canvas="canvas"
 			:field="field"
+			v-bind="mark('link_filters')"
 		/>
-		<PanelRow :label="__('Required')" :box="false">
+		<PanelRow :label="__('Required')" :box="false" v-bind="mark('reqd')">
 			<div class="flex h-7 items-center px-2">
 				<Switch
 					size="sm"
@@ -98,7 +126,7 @@
 				/>
 			</div>
 		</PanelRow>
-		<PanelRow :label="__('Default')">
+		<PanelRow :label="__('Default')" v-bind="mark('default')">
 			<TextInput
 				variant="ghost"
 				:model-value="field.default ?? ''"
@@ -106,10 +134,20 @@
 				@change="set('default', text($event))"
 			/>
 		</PanelRow>
-		<PanelRow v-if="fetchable(field)" :label="__('Fetch from')" :box="false">
+		<PanelRow
+			v-if="fetchable(field)"
+			:label="__('Fetch from')"
+			:box="false"
+			v-bind="mark('fetch_from')"
+		>
 			<FetchFromRow :canvas="canvas" :field="field" />
 		</PanelRow>
-		<PanelRow v-if="field.fetch_from" :label="__('Only when empty')" :box="false">
+		<PanelRow
+			v-if="field.fetch_from"
+			:label="__('Only when empty')"
+			:box="false"
+			v-bind="mark('fetch_if_empty')"
+		>
 			<div class="flex h-7 items-center px-2">
 				<Switch
 					size="sm"
@@ -122,7 +160,11 @@
 		<PanelRow v-if="field.fieldtype === 'Link' && field.options" label="" :box="false">
 			<FetchAddButton :link="field" />
 		</PanelRow>
-		<PanelRow v-if="field.fieldtype !== 'Check'" :label="__('Placeholder')">
+		<PanelRow
+			v-if="field.fieldtype !== 'Check'"
+			:label="__('Placeholder')"
+			v-bind="mark('placeholder')"
+		>
 			<TextInput
 				variant="ghost"
 				:model-value="field.placeholder ?? ''"
@@ -130,7 +172,7 @@
 				@change="set('placeholder', text($event))"
 			/>
 		</PanelRow>
-		<PanelRow :label="__('Help text')">
+		<PanelRow :label="__('Help text')" v-bind="mark('description')">
 			<Textarea
 				variant="ghost"
 				:rows="1"
@@ -160,8 +202,10 @@ import { fetchable } from "./fetchFrom";
 import FetchFromRow from "./FetchFromRow.vue";
 import FieldnameRow from "./FieldnameRow.vue";
 import {
+	removeAction,
 	removeQuestion,
 	reqdWarning,
+	panelMark,
 	subtitle,
 	typeChange,
 	typeGroups,
@@ -184,6 +228,9 @@ const currentType = computed(() => typeName(props.field.fieldtype, props.field.o
 const note = computed(() => typeNote(props.canvas, props.field));
 const errors = computed(() => props.canvas.errorsAt("field", props.field.fieldname));
 const warning = computed(() => reqdWarning(props.canvas, props.field.fieldname));
+const removal = computed(() => removeAction(props.canvas, props.field));
+const anchor = computed(() => props.canvas.customize?.anchor(props.field.fieldname));
+const appTitle = computed(() => props.canvas.state.app_title || __("the app"));
 
 const typeMenu = computed(() => {
 	const { groups, more } = typeGroups(props.canvas, props.field.fieldname);
@@ -231,6 +278,10 @@ function setTarget(doctype: string) {
 	});
 }
 
+function mark(property: string) {
+	return panelMark(props.canvas, props.field.fieldname, property);
+}
+
 function pickType(name: string) {
 	if (name === currentType.value) return;
 	void acts.perform("fields.set_field_property", {
@@ -241,6 +292,8 @@ function pickType(name: string) {
 
 async function remove() {
 	const { fieldname, label } = props.field;
+	if (props.canvas.customize?.hidesOnRemove(fieldname))
+		return set("hidden", props.field.hidden ? 0 : 1);
 	const question = removeQuestion(props.canvas, props.field);
 	if (question) {
 		const confirmed = await shellDialog().danger({

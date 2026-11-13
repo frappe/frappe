@@ -12,9 +12,11 @@
 				:can-redo="edits.canRedo.value"
 				:can-save="canSave({ canvas: () => canvas, edits, save })"
 				:saving="save.saving.value"
-				:switch-to="switchTo"
+				:mode="state.mode"
+				:modes="state.modes"
+				:developer-mode="boot.developer_mode"
 				:child-crumbs="child.crumbs.value"
-				@act="(name) => acts.perform(name)"
+				@act="(name, value) => acts.perform(name, value)"
 			/>
 		</template>
 		<NewDoctypeDialog
@@ -75,13 +77,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, reactive, ref, shallowRef, watch } from "vue";
+import { computed, inject, onBeforeUnmount, reactive, ref, shallowRef, watch } from "vue";
 import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute, useRouter } from "vue-router";
 import { ScrollArea, toast } from "frappe-ui";
 import { listDocuments } from "@framework/ui/api";
 import { getSocketInstance } from "@framework/ui/socket";
 import { acts } from "@/acts/dispatcher";
-import { __ } from "@/i18n";
+import type { Boot } from "@/boot";
+import { __, __n } from "@/i18n";
 import { COPY_OF } from "@/newRecordValues";
 import { discardChanges } from "@/pages/record/discardChanges";
 import { errorMessage } from "@/recordPage/errorMessage";
@@ -94,6 +97,7 @@ import ChildSettings from "./ChildSettings.vue";
 import EditorCanvas from "./EditorCanvas.vue";
 import EditorHeader from "./EditorHeader.vue";
 import EditorPanel from "./EditorPanel.vue";
+import { customizeHost } from "./customizeHost";
 import { DesignCanvas } from "./designCanvas";
 import { canSave, useEditorActs } from "./editorActs";
 import { EditorSave, type ExportResult } from "./editorSave";
@@ -115,12 +119,15 @@ import {
 	type PendingEditsPayload,
 } from "./pendingEdits";
 import PreviewTab from "./PreviewTab.vue";
+import { confirmModeSwitch, guardRouteUpdate } from "./modeSwitch";
+import ModeSwitchDialog from "./ModeSwitchDialog.vue";
 import RowDialogPreview from "./RowDialogPreview.vue";
 import SettingsTab from "./SettingsTab.vue";
 import { useChildTables } from "./useChildTables";
 
 const route = useRoute();
 const router = useRouter();
+const boot = inject<Boot>("boot")!;
 const name = computed(() => String(route.params.name));
 
 const state = shallowRef<EditorState | null>(null);
@@ -163,6 +170,12 @@ useEditorActs({
 	save,
 	openList,
 	openChild: child.open,
+	customize: customizeHost({
+		dirty: () => dirty.value,
+		developerMode: boot.developer_mode,
+		setMode: (mode) => router.push({ query: { ...route.query, mode: mode.toLowerCase() } }),
+		reload,
+	}),
 	recordOptions: async (query) =>
 		[null, ...latest.value]
 			.filter(
@@ -180,16 +193,6 @@ const customizeRoute = computed(() =>
 		? { query: { ...route.query, mode: "customize" } }
 		: null
 );
-
-const switchTo = computed(() => {
-	const other = state.value?.modes.find((mode) => mode !== state.value?.mode);
-	if (!other) return null;
-	const label = other === "Customize" ? __("Customize form") : __("Edit DocType");
-	return {
-		label,
-		onClick: () => router.push({ query: { ...route.query, mode: other.toLowerCase() } }),
-	};
-});
 
 let loading = 0;
 watch([name, () => route.query.mode, () => route.query[COPY_OF]], load, { immediate: true });
@@ -320,6 +323,22 @@ async function confirmLeave() {
 	);
 }
 
+function confirmSwitch() {
+	return confirmModeSwitch({
+		dirty: dirty.value,
+		ask: () =>
+			shellDialog().open(
+				ModeSwitchDialog,
+				{ message: __("This DocType has changes that are not saved.") },
+				{ title: __("Save before you switch?") }
+			),
+		save: async () => {
+			await save.save();
+			return !dirty.value;
+		},
+	});
+}
+
 const socket = getSocketInstance();
 const onExport = (...args: unknown[]) =>
 	save.exported(args[0] as ExportResult).catch((error) => toast.error(errorMessage(error)));
@@ -328,9 +347,7 @@ onBeforeUnmount(() => socket?.off("doctype_export", onExport));
 
 onBeforeRouteLeave(confirmLeave);
 onBeforeRouteUpdate((to, from) =>
-	to.params.name === from.params.name && to.query.mode === from.query.mode
-		? true
-		: confirmLeave()
+	guardRouteUpdate(to, from, { leave: confirmLeave, switchMode: confirmSwitch })
 );
 useUnloadGuard(() => dirty.value);
 </script>

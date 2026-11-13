@@ -19,7 +19,7 @@
 			<Tooltip v-if="removeLabel" :text="removeLabel">
 				<Button
 					variant="ghost"
-					icon="lucide-trash-2"
+					:icon="removeIcon"
 					:label="removeLabel"
 					@click="$emit('remove')"
 				/>
@@ -40,6 +40,15 @@
 import { Button, Tooltip } from "frappe-ui";
 import { __ } from "@/i18n";
 
-defineProps<{ icon: string; title: string; subtitle: string; removeLabel?: string }>();
+withDefaults(
+	defineProps<{
+		icon: string;
+		title: string;
+		subtitle: string;
+		removeLabel?: string;
+		removeIcon?: string;
+	}>(),
+	{ removeLabel: "", removeIcon: "lucide-trash-2" }
+);
 defineEmits<{ remove: []; close: [] }>();
 </script>

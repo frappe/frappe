@@ -196,6 +196,7 @@ import {
 } from "./record/docstatusActs";
 import { DocstatusMover, queueFailureMessage, type QueueFailure } from "./record/queuedDocstatus";
 import { headerMenuBuiltins, quickActionBuiltins } from "./record/builtinActions";
+import { editorEntries } from "./doctypeEditor/entries/editorEntries";
 import { fieldActionQuickActions, fieldActionRows } from "./record/fieldActionEntries";
 import { fieldActionItems } from "@/shell/fieldActions";
 import { renameRecord } from "./record/renameAct";
@@ -473,6 +474,11 @@ function headerBuiltins(): HeaderItem[] {
 					rename: Boolean(meta.value?.allow_rename),
 					submitted: saved.value.docstatus === 1,
 					fieldActions: fieldActionRows(fieldActionItems.list()),
+					editorEntries: editorEntries(doctype.value!, {
+						roles: boot.session.roles ?? [],
+						developerMode: boot.developer_mode,
+						meta: meta.value,
+					}),
 				}
 			),
 			saved.value.name === docname.value

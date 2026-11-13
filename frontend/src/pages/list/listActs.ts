@@ -13,6 +13,7 @@ import type { HeaderItem } from "@/pageEngine/types";
 import { errorMessage } from "@/recordPage/errorMessage";
 import { headerEntries } from "@/recordPage/pageActs";
 import { typeKey } from "@/list/view";
+import type { EditorEntry } from "@/pages/doctypeEditor/entries/editorEntries";
 
 export interface ListActsHost {
   /** The list page: the acts' context, and its `controls` items that have `run`. */
@@ -21,6 +22,9 @@ export interface ListActsHost {
   create: () => unknown;
   customizeQuickFilter: () => void;
   customizing: () => boolean;
+  /** The DocType editor's entries this reader may open; each opens the editor in its mode. */
+  editorEntries: () => EditorEntry[];
+  openEditor: (entry: EditorEntry) => unknown;
   /** False until a list settings read says what is starred. */
   starsLoaded: () => boolean;
   favourited: () => boolean;
@@ -156,6 +160,10 @@ function listEntries(host: ListActsHost, header: ActEntry[]): ActEntry[] {
       },
       hidden: host.customizing(),
     },
+    ...host.editorEntries().map((entry) => ({
+      item: { name: entry.name, label: __(entry.label), icon: entry.icon, run: () => host.openEditor(entry) },
+      hidden: false,
+    })),
   ];
 }
 

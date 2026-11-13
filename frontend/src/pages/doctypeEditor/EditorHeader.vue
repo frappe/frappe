@@ -1,5 +1,4 @@
-<!-- The editor's header row: crumbs that end in the layout crumb, Undo and Redo, the menu and Save,
-     and the Editor, Settings and Preview tabs under them. -->
+<!-- The layout crumb stays last: its layout popover hangs on it. -->
 <template>
 	<div class="flex w-full flex-col">
 		<div class="flex h-12 items-center justify-between gap-3">
@@ -11,25 +10,34 @@
 				</Breadcrumbs>
 				<NotSavedBadge v-if="dirty" class="shrink-0" />
 			</div>
-			<div class="hidden shrink-0 items-center lg:flex">
-				<Tooltip :text="__('Undo')">
-					<Button
-						variant="ghost"
-						icon="lucide-corner-up-left"
-						:label="__('Undo')"
-						:disabled="!canUndo"
-						@click="emit('act', 'editor.undo')"
-					/>
-				</Tooltip>
-				<Tooltip :text="__('Redo')">
-					<Button
-						variant="ghost"
-						icon="lucide-corner-up-right"
-						:label="__('Redo')"
-						:disabled="!canRedo"
-						@click="emit('act', 'editor.redo')"
-					/>
-				</Tooltip>
+			<div class="flex shrink-0 items-center gap-2">
+				<TabButtons
+					v-if="modes.length > 1"
+					:options="modeOptions"
+					:model-value="mode"
+					data-mode-switch
+					@update:model-value="(next) => emit('act', 'editor.set_mode', next as EditorMode)"
+				/>
+				<div class="hidden items-center lg:flex">
+					<Tooltip :text="__('Undo')">
+						<Button
+							variant="ghost"
+							icon="lucide-corner-up-left"
+							:label="__('Undo')"
+							:disabled="!canUndo"
+							@click="emit('act', 'editor.undo')"
+						/>
+					</Tooltip>
+					<Tooltip :text="__('Redo')">
+						<Button
+							variant="ghost"
+							icon="lucide-corner-up-right"
+							:label="__('Redo')"
+							:disabled="!canRedo"
+							@click="emit('act', 'editor.redo')"
+						/>
+					</Tooltip>
+				</div>
 			</div>
 			<Dropdown v-if="menu.length" :options="menu" side="bottom" align="end">
 				<Button variant="ghost" icon="lucide-ellipsis" :label="__('More')" />
@@ -63,6 +71,7 @@ import {
 	Button,
 	Dropdown,
 	Icon,
+	TabButtons,
 	TabList,
 	Tabs,
 	TabTrigger,
@@ -70,9 +79,9 @@ import {
 } from "frappe-ui";
 import { __ } from "@/i18n";
 import NotSavedBadge from "@/pages/record/NotSavedBadge.vue";
-import { routeFor } from "@/router/routeFor";
+import { canRoute, routeFor } from "@/router/routeFor";
 import { EDITOR_TABS } from "./editorActs";
-import type { EditorTab } from "./pendingEdits";
+import type { EditorMode, EditorTab } from "./pendingEdits";
 
 const props = defineProps<{
 	doctype: string;
@@ -82,22 +91,40 @@ const props = defineProps<{
 	canRedo: boolean;
 	canSave: boolean;
 	saving: boolean;
-	/** The other mode the user may open, if any. */
-	switchTo: { label: string; onClick: () => void } | null;
+	mode: EditorMode;
+	modes: EditorMode[];
+	/** The app the DocType comes from; `null` for a custom DocType. */
+	developerMode: boolean;
 	/** The open child table's crumbs, between the DocType's and the layout's. */
 	childCrumbs?: { label: string; onClick?: () => void }[];
 }>();
-const emit = defineEmits<{ act: [name: string] }>();
+const emit = defineEmits<{ act: [name: string, value?: unknown] }>();
 const tab = defineModel<EditorTab>("tab", { required: true });
 
+const modeOptions = computed(() => props.modes.map((mode) => ({ label: __(mode), value: mode })));
+
 const crumbs = computed(() => [
-	{ label: __("DocType"), route: routeFor("DocType") },
-	{ label: props.doctype },
+	...(props.mode === "Customize"
+		? [{ label: props.doctype, route: listRoute() }, { label: __("Customize") }]
+		: [{ label: __("DocType"), route: routeFor("DocType") }, { label: props.doctype }]),
 	...(props.childCrumbs ?? []),
 	{ label: props.layoutTitle, menu: true, onClick: () => (tab.value = "editor") },
 ]);
 
-const menu = computed(() =>
-	props.switchTo ? [{ label: props.switchTo.label, onClick: props.switchTo.onClick }] : []
-);
+const menu = computed(() => {
+	if (props.mode !== "Customize") return [];
+	const reset = { label: __("Reset all customizations"), icon: "lucide-rotate-ccw" };
+	const exported = { label: __("Export customizations"), icon: "lucide-package" };
+	return [
+		{ ...reset, onClick: () => emit("act", "customize.reset_all") },
+		...(props.developerMode
+			? [{ ...exported, onClick: () => emit("act", "customize.export") }]
+			: []),
+	];
+});
+
+// A child table has no list to go back to.
+function listRoute() {
+	return canRoute(props.doctype) ? routeFor(props.doctype) : undefined;
+}
 </script>

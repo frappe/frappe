@@ -15,6 +15,7 @@
 			:fields="words.scope.fields"
 			:referable="words.referable()"
 			:commit="row.commit"
+			v-bind="panelMark(canvas, field.fieldname, row.rule.key)"
 		/>
 	</PanelSection>
 </template>
@@ -25,6 +26,7 @@ import type { RawMetaField } from "@framework/ui/FormLayout/types";
 import { acts } from "@/acts/dispatcher";
 import { __ } from "@/i18n";
 import type { DesignCanvas } from "./designCanvas";
+import { panelMark } from "./fieldPanel";
 import PanelSection from "./PanelSection.vue";
 import { FIELD_RULES, ruleValue } from "./ruleRows";
 import RuleRow from "./RuleRow.vue";

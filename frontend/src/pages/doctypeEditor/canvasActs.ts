@@ -3,8 +3,8 @@
 import type { ActItem } from "@/acts/dispatcher";
 import { __ } from "@/i18n";
 import { DETAILS, type CanvasSelection, type DesignCanvas } from "./designCanvas";
-import type { FlatEdit } from "./editorModel";
-import { fieldnameFromLabel, validFieldname } from "./fieldRules";
+import { newFieldname, type FlatEdit } from "./editorModel";
+import { validFieldname } from "./fieldRules";
 import type { EditorActsHost } from "./editorActs";
 import { fetchedFieldname, type FetchSource } from "./fetchFrom";
 
@@ -87,7 +87,7 @@ export function fieldItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
 				const canvas = host.canvas()!;
 				if (!keys) return void (canvas.adding.value = canvas.targetSection());
 				canvas.stage(placedOn(DETAILS, { ...keys, act: "fields.add_field" }));
-				canvas.select({ kind: "field", fieldname: keys.fieldname || fieldnameFromLabel(keys.label) });
+				canvas.select({ kind: "field", fieldname: keys.fieldname || newFieldname(canvas.working.value, keys.label) });
 			},
 		},
 		{
@@ -103,6 +103,14 @@ export function fieldItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
 			palette: false,
 			when,
 			run: (_context, keys: { link: string; source: FetchSource }) => fetchField(host.canvas()!, keys),
+		},
+		{
+			name: "reset_field_property",
+			label: __("Reset a field property"),
+			palette: false,
+			when: () => editing(host) && Boolean(host.canvas()?.customize),
+			run: (_context, keys: { fieldname: string; property: string }) =>
+				host.canvas()!.stage({ ...keys, act: "fields.reset_field_property" }),
 		},
 		{
 			name: "rename_field",
@@ -137,7 +145,8 @@ function placedOn(layout: { type: string; id?: string }, edit: FlatEdit): FlatEd
 
 /** A read-only field filled from the Link's record, right after the Link, then selected. */
 function fetchField(canvas: DesignCanvas, { link, source }: { link: string; source: FetchSource }) {
-	const fieldname = fetchedFieldname(source, canvas.working.value.fields.map((field) => field.fieldname));
+	const taken = canvas.working.value.fields.map((field) => field.fieldname);
+	const fieldname = fetchedFieldname(source, taken, canvas.customize ? "custom_" : "");
 	const place = canvas.place(link);
 	const at = place ? { section: place.section, column: place.column, index: place.index + 1 } : {};
 	const options = source.options ? { options: source.options } : {};
@@ -166,7 +175,7 @@ function setFieldProperties(canvas: DesignCanvas, keys: PropertyKeys) {
 /** The fieldname a new field's label spells, unless it is the same, invalid or another field's. */
 function followedName(canvas: DesignCanvas, fieldname: string, label: string): string | null {
 	if (canvas.savedName(fieldname)) return null;
-	const next = fieldnameFromLabel(label);
+	const next = newFieldname(canvas.working.value, label);
 	if (next === fieldname || !validFieldname(next) || canvas.field(next)) return null;
 	return next;
 }
