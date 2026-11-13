@@ -6,6 +6,7 @@ import copy
 
 import frappe
 from frappe import _
+from frappe.database.schema import SPECIAL_CHAR_PATTERN
 from frappe.desk.doctype.form_layout.app_layout import read_app_layouts
 from frappe.desk.doctype.form_layout.form_layout import (
 	FORM_LAYOUT_TYPES,
@@ -215,6 +216,9 @@ class DesignState:
 
 	def refuse_taken_fieldname(self, fieldname: str, key: str | None = None):
 		"""A deleted field keeps its column and data, so its name stays taken."""
+		if fieldname != fieldname.lower() or SPECIAL_CHAR_PATTERN.search(fieldname):
+			message = _("{0} is not a valid fieldname. Use lowercase letters, digits and underscores.")
+			raise field_error(message.format(fieldname), key or fieldname)
 		if any(field.fieldname == fieldname for field in self.doc.fields):
 			raise field_error(
 				_("{0} already has a field {1}.").format(self.name, fieldname), key or fieldname

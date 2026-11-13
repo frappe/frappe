@@ -4,6 +4,7 @@
 
 import frappe
 from frappe import _
+from frappe.database.schema import SPECIAL_CHAR_PATTERN
 from frappe.desk.doctype.form_layout.form_layout import LAYOUT_BREAKS
 from frappe.desk.doctype_editor.design_state import DesignState
 from frappe.desk.doctype_editor.errors import EditError, field_error
@@ -54,7 +55,7 @@ class DesignEdits:
 		label, fieldtype = edit.get("label"), edit.get("fieldtype")
 		if not label or not fieldtype:
 			raise EditError(_("A new field needs a label and a type."))
-		fieldname = edit.get("fieldname") or frappe.scrub(label)
+		fieldname = edit.get("fieldname") or SPECIAL_CHAR_PATTERN.sub("", frappe.scrub(label))
 		self.state.refuse_taken_fieldname(fieldname)
 		properties = edit.get("properties") or {}
 		for property in properties:

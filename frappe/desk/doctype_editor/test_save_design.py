@@ -768,6 +768,32 @@ class TestSaveDesign(IntegrationTestCase):
 		self.assertFalse(again["saved"])
 		self.assertEqual(again["errors"][0]["target"], {"kind": "field", "fieldname": "heading"})
 
+	def test_a_fieldname_the_doctype_would_change_is_refused(self):
+		for edit in (
+			{"act": "fields.add_field", "label": "Zed", "fieldtype": "Data", "fieldname": "zed(x)"},
+			{"act": "fields.rename_field", "fieldname": "title", "new_fieldname": "title.v2"},
+			{"act": "fields.rename_field", "fieldname": "title", "new_fieldname": "Heading"},
+		):
+			with self.subTest(edit):
+				result = self.save([edit])
+				self.assertFalse(result["saved"])
+				self.assertEqual(result["errors"][0]["target"]["kind"], "field", result["errors"])
+
+	def test_a_fieldname_from_a_label_drops_special_characters(self):
+		result = self.save(
+			[
+				{"act": "fields.add_field", "label": "Zed (x)", "fieldtype": "Data"},
+				{
+					"act": "canvas.place_field",
+					"layout": {"type": "Details"},
+					"fieldname": "zed_x",
+					"column": "column_1",
+				},
+			]
+		)
+		self.assertTrue(result["saved"], result.get("errors"))
+		self.assertIn("zed_x", placed(details_rows()[0]))
+
 	def test_a_new_field_takes_only_field_properties(self):
 		result = self.save(
 			[
