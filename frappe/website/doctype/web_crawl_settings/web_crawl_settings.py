@@ -1,6 +1,8 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # For license information, please see license.txt
 
+from math import ceil
+
 import frappe
 from frappe import _
 from frappe.model.document import Document
@@ -58,7 +60,7 @@ class WebCrawlSettings(Document):
 			if self.get(fieldname) <= 0:
 				label = _(self.meta.get_label(fieldname))
 				frappe.throw(_("{0} must be greater than 0.").format(label), title=_("Invalid value"))
-		CrawlLimits.from_settings(settings=self).warn_if_crawl_may_stop_early()
+		warn_if_crawl_may_stop_early(CrawlLimits.from_settings(settings=self))
 		self.warn_if_many_concurrent_requests()
 
 	def warn_if_many_concurrent_requests(self):
@@ -71,3 +73,15 @@ class WebCrawlSettings(Document):
 			title=_("Many concurrent requests"),
 			indicator="orange",
 		)
+
+
+def warn_if_crawl_may_stop_early(limits: CrawlLimits):
+	if (estimate := limits.estimated_crawl_time()) <= limits.max_crawl_time:
+		return
+	frappe.msgprint(
+		_(
+			"A crawl of {0} pages likely takes about {1} minutes, longer than the maximum crawl time of {2} minutes. It will stop early unless Maximum crawl time is raised in Web Crawl Settings."
+		).format(limits.max_pages, ceil(estimate / 60), limits.max_crawl_time // 60),
+		title=_("Crawl may stop early"),
+		indicator="orange",
+	)

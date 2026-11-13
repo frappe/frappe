@@ -19,7 +19,19 @@ class WebCrawlResult(Document):
 		change_status: DF.Literal["", "New", "Changed", "Unchanged"]
 		content_hash: DF.Data | None
 		description: DF.SmallText | None
-		error: DF.Data | None
+		error: DF.Literal[
+			"",
+			"Blocked",
+			"Empty",
+			"Failed",
+			"Not found",
+			"Not HTML",
+			"Outside the start URL",
+			"Server error",
+			"Timed out",
+			"Too large",
+			"Too many redirects",
+		]
 		final_url: DF.SmallText | None
 		html: DF.LongText | None
 		meta_tags: DF.JSON | None
@@ -36,7 +48,10 @@ class WebCrawlResult(Document):
 def has_permission(
 	doc: WebCrawlResult, ptype: str | None = None, user: str | None = None, debug=False
 ) -> bool:
-	return can_read_web_crawl(frappe.get_doc("Web Crawl", doc.web_crawl), ptype, user)
+	web_crawl = frappe.db.get_value(
+		"Web Crawl", doc.web_crawl, ["owner", "reference_doctype", "reference_name"], as_dict=True
+	)
+	return can_read_web_crawl(web_crawl, ptype, user)
 
 
 def get_permission_query_conditions(user: str | None = None) -> str | None:

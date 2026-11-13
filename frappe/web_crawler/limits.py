@@ -3,7 +3,6 @@ from math import ceil
 from urllib.parse import urlsplit
 
 import frappe
-from frappe import _
 
 MEGABYTE = 1024 * 1024
 # A site asking for a longer wait (Crawl-delay, Retry-After) would stall the job.
@@ -59,7 +58,7 @@ class CrawlLimits:
 			respect_robots_txt=bool(settings.respect_robots_txt),
 			allowed_domains=domain_set(settings.allowed_domains),
 			blocked_domains=domain_set(settings.blocked_domains),
-			link_priorities={row.keyword.lower(): row.weight for row in settings.link_priorities},
+			link_priorities={row.keyword: row.weight for row in settings.link_priorities},
 			skip_patterns=tuple((settings.skip_patterns or "").split()),
 		)
 
@@ -79,17 +78,6 @@ class CrawlLimits:
 		"""Seconds a full crawl likely takes, before any site's Crawl-delay."""
 		batches = ceil(self.max_pages / self.concurrent_requests)
 		return batches * (self.request_delay + ESTIMATED_PAGE_SECONDS)
-
-	def warn_if_crawl_may_stop_early(self):
-		if (estimate := self.estimated_crawl_time()) <= self.max_crawl_time:
-			return
-		frappe.msgprint(
-			_(
-				"A crawl of {0} pages likely takes about {1} minutes, longer than the maximum crawl time of {2} minutes. It will stop early unless Maximum crawl time is raised in Web Crawl Settings."
-			).format(self.max_pages, ceil(estimate / 60), self.max_crawl_time // 60),
-			title=_("Crawl may stop early"),
-			indicator="orange",
-		)
 
 	def job_timeout(self) -> int:
 		"""The crawl time, plus the worst case of the request still running when it ends."""

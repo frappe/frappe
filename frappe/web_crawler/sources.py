@@ -64,22 +64,25 @@ class Sitemap(Source):
 		return list(dict.fromkeys([f"{self.start_url}/sitemap.xml", f"{root}/sitemap.xml", *named]))
 
 	def locs(self, url: str) -> list[str]:
-		download = self.read(url)
-		if not download or "<!DOCTYPE" in download.text or "<!ENTITY" in download.text:
-			return []
-		text = download.text.replace("<![CDATA[", "").replace("]]>", "")
-		locs = [unescape(loc.strip()) for loc in LOC.findall(text)]
-		if "<sitemapindex" in text:
-			return self.child_locs(locs)
-		return locs if "<urlset" in text else []
+		kind, locs = parse_sitemap(self.read(url))
+		return self.child_locs(locs) if kind == "sitemapindex" else locs
 
 	def child_locs(self, children: list[str]) -> list[str]:
 		locs = []
 		for child in [url for url in children if bare_host(url) == self.scope.host][:MAX_CHILDREN]:
-			download = self.read(child)
-			if download and "<urlset" in download.text and "<!DOCTYPE" not in download.text:
-				locs += [unescape(loc.strip()) for loc in LOC.findall(download.text)]
+			kind, child_locs = parse_sitemap(self.read(child))
+			locs += child_locs if kind == "urlset" else []
 		return locs
+
+
+def parse_sitemap(download: Download | None) -> tuple[str | None, list[str]]:
+	"""A sitemap's kind (`urlset` or `sitemapindex`) and its locations. A DOCTYPE is refused, as it can
+	declare entities."""
+	if not download or "<!DOCTYPE" in download.text:
+		return None, []
+	text = download.text.replace("<![CDATA[", "").replace("]]>", "")
+	kind = next((kind for kind in ("sitemapindex", "urlset") if f"<{kind}" in text), None)
+	return kind, [unescape(loc.strip()) for loc in LOC.findall(text)] if kind else []
 
 
 class LlmsTxt(Source):

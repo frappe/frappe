@@ -1,14 +1,40 @@
-# Copyright (c) 2026, Frappe Technologies and contributors
-# For license information, please see license.txt
+from collections import defaultdict
 
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import add_to_date, now_datetime
+from frappe.utils import add_to_date, get_link_to_form, now_datetime
 from frappe.web_crawler import CrawledPage, KeywordPriority, WebCrawler
 from frappe.web_crawler.limits import CrawlLimits
+from frappe.website.doctype.web_crawl_settings.web_crawl_settings import warn_if_crawl_may_stop_early
 
 ACTIVE_STATUSES = ("Queued", "Running")
+# The fields that make two crawls the same crawl.
+CRAWL_FIELDS = (
+	"url",
+	"index_files",
+	"follow_links",
+	"max_pages",
+	"max_depth",
+	"skip_patterns",
+	"on_page_method",
+	"skip_urls_method",
+	"reference_doctype",
+	"reference_name",
+)
+STOPPED_REASONS = {"time_limit": "Time limit", "rate_limited": "Rate limited"}
+ERRORS = {
+	"blocked": "Blocked",
+	"empty": "Empty",
+	"failed": "Failed",
+	"not_found": "Not found",
+	"not_html": "Not HTML",
+	"off_scope": "Outside the start URL",
+	"server_error": "Server error",
+	"timed_out": "Timed out",
+	"too_large": "Too large",
+	"too_many_redirects": "Too many redirects",
+}
 
 
 class WebCrawl(Document):
@@ -39,48 +65,62 @@ class WebCrawl(Document):
 		skip_urls_method: DF.Data | None
 		started_at: DF.Datetime | None
 		status: DF.Literal["Queued", "Running", "Completed", "Failed", "Cancelled"]
-		stopped_reason: DF.Data | None
+		stopped_reason: DF.Literal["", "Time limit", "Rate limited"]
 		url: DF.SmallText
 	# end: auto-generated types
 
 	_DOCTYPE_NAME = "Web Crawl"
 
 	def validate(self):
+		if self.is_new():
+			self.validate_new()
+
+	def validate_new(self):
 		self.validate_methods()
 		crawler = self.crawler()
-		if self.is_new():
-			self.max_pages, self.max_depth = crawler.limits.max_pages, crawler.limits.max_depth
-			self.copy_tuning(crawler)
-			if not self.flags.ignore_permissions:
-				crawler.limits.warn_if_crawl_may_stop_early()
-
-	def copy_tuning(self, crawler: WebCrawler):
-		"""Stores the settings' tuning on a crawl that sets none, so the crawl shows what it uses."""
-		if not self.link_priorities:
-			for keyword, weight in stored_keyword_weights(crawler).items():
-				self.append("link_priorities", {"keyword": keyword, "weight": weight})
-		self.skip_patterns = "\n".join(crawler.skip_patterns) or None
+		self.validate_limits(crawler.limits)
+		self.apply_settings(crawler)
+		if not self.flags.ignore_permissions:
+			warn_if_crawl_may_stop_early(crawler.limits)
 
 	def validate_methods(self):
 		"""The methods run in the background job, so only server code may set them."""
-		if (
-			self.is_new()
-			and not self.flags.ignore_permissions
-			and (self.on_page_method or self.skip_urls_method)
-		):
+		if not self.flags.ignore_permissions and (self.on_page_method or self.skip_urls_method):
 			frappe.throw(
 				_("On page method and Skip URLs method can only be set from code."),
 				frappe.PermissionError,
 				title=_("Not permitted"),
 			)
 
+	def validate_limits(self, limits: CrawlLimits):
+		"""Only an admin can raise the limits, in Web Crawl Settings."""
+		for fieldname in ("max_pages", "max_depth"):
+			if (self.get(fieldname) or 0) > getattr(limits, fieldname):
+				frappe.throw(
+					_("{0} can be at most {1}. To read more, raise it in {2}.").format(
+						_(self.meta.get_label(fieldname)),
+						getattr(limits, fieldname),
+						get_link_to_form("Web Crawl Settings"),
+					),
+					title=_("Limit too high"),
+				)
+
+	def apply_settings(self, crawler: WebCrawler):
+		"""Fills what the crawl leaves blank from Web Crawl Settings, so the crawl shows what it uses."""
+		self.max_pages, self.max_depth = crawler.limits.max_pages, crawler.limits.max_depth
+		self.skip_patterns = "\n".join(crawler.skip_patterns) or None
+		if not self.link_priorities:
+			for keyword, weight in crawler.limits.link_priorities.items():
+				self.append("link_priorities", {"keyword": keyword, "weight": weight})
+
 	def crawler(self, skip_urls=None, previous_hashes=None) -> WebCrawler:
+		"""Blank limits mean the Web Crawl Settings ones; a max depth of 0 reads the start page only."""
 		return WebCrawler(
 			self.url,
 			index_files=bool(self.index_files),
 			follow_links=bool(self.follow_links),
 			priority=KeywordPriority(self.keyword_weights()) if self.link_priorities else None,
-			max_pages=self.max_pages or None,
+			max_pages=self.max_pages,
 			max_depth=self.max_depth,
 			skip_patterns=tuple((self.skip_patterns or "").split()),
 			skip_urls=skip_urls,
@@ -108,52 +148,33 @@ class WebCrawl(Document):
 		return {result.final_url or result.url: result.content_hash for result in results}
 
 	def keyword_weights(self) -> dict[str, float]:
-		return {row.keyword.lower(): row.weight for row in self.link_priorities}
+		return {row.keyword: row.weight for row in self.link_priorities}
 
-	@classmethod
-	def enqueue_crawl(cls, crawler: WebCrawler, on_success=None, on_failure=None, **caller) -> "WebCrawl":
-		"""The Web Crawl for `crawler`, started in a background job.
-		Returns the user's running crawl instead when it has the same settings and caller."""
-		values = {
-			"url": crawler.url,
-			"index_files": int(crawler.index_files),
-			"follow_links": int(crawler.follow_links),
-			"max_pages": crawler.limits.max_pages,
-			"max_depth": crawler.limits.max_depth,
-			"skip_patterns": "\n".join(crawler.skip_patterns) or None,
-			**caller,
-		}
-		if running := cls.find_running(values, crawler):
-			return running
-		web_crawl = frappe.get_doc(
-			{
-				"doctype": "Web Crawl",
-				"link_priorities": [
-					{"keyword": keyword, "weight": weight}
-					for keyword, weight in stored_keyword_weights(crawler).items()
-				],
-				**values,
-			}
-		)
-		web_crawl.insert(ignore_permissions=True)
-		web_crawl.enqueue_job(on_success, on_failure)
-		return web_crawl
-
-	@staticmethod
-	def find_running(values: dict, crawler: WebCrawler) -> "WebCrawl | None":
-		"""A crawl older than its job timeout is not running, whatever its status says."""
+	def find_running(self) -> "WebCrawl | None":
+		"""The user's crawl with the same settings that is still running.
+		A crawl older than its job timeout is not running, whatever its status says."""
 		filters = {
-			**values,
+			**{fieldname: self.get(fieldname) for fieldname in CRAWL_FIELDS},
 			"owner": frappe.session.user,
 			"status": ("in", ACTIVE_STATUSES),
 			"background_task": ("is", "set"),
-			"creation": (">", add_to_date(now_datetime(), seconds=-crawler.limits.job_timeout())),
+			"creation": (
+				">",
+				add_to_date(now_datetime(), seconds=-CrawlLimits.from_settings().job_timeout()),
+			),
 		}
-		for name in frappe.get_all("Web Crawl", filters=filters, pluck="name"):
-			web_crawl = frappe.get_doc("Web Crawl", name)
-			if web_crawl.keyword_weights() == stored_keyword_weights(crawler):
-				return web_crawl
-		return None
+		names = frappe.get_all("Web Crawl", filters, pluck="name")
+		if not names:
+			return None
+		weights = defaultdict(dict)
+		for row in frappe.get_all(
+			"Web Crawl Link Priority",
+			{"parenttype": "Web Crawl", "parent": ("in", names)},
+			["parent", "keyword", "weight"],
+		):
+			weights[row.parent][row.keyword] = row.weight
+		name = next((name for name in names if weights[name] == self.keyword_weights()), None)
+		return frappe.get_doc("Web Crawl", name) if name else None
 
 	@frappe.whitelist()
 	def start(self):
@@ -166,6 +187,8 @@ class WebCrawl(Document):
 	def stop(self):
 		from frappe.core.doctype.background_task.background_task import stop_task
 
+		if self.owner != frappe.session.user:
+			self.check_permission("write")
 		if self.status not in ACTIVE_STATUSES or not self.background_task:
 			frappe.throw(_("This crawl is not running."), title=_("Cannot stop"))
 		stop_task(self.background_task)
@@ -176,7 +199,7 @@ class WebCrawl(Document):
 			"frappe.website.doctype.web_crawl.web_crawl.run_web_crawl",
 			task_name=_("Web crawl of {0}").format(self.url),
 			queue="long",
-			timeout=CrawlLimits.from_settings(self.max_pages or None).job_timeout(),
+			timeout=CrawlLimits.from_settings().job_timeout(),
 			ref_doctype=self.doctype,
 			ref_docname=self.name,
 			on_success=on_success,
@@ -201,9 +224,13 @@ class WebCrawl(Document):
 			self.db_set({"status": "Failed", "finished_at": now_datetime()}, commit=True)
 			raise
 		self.db_set(
-			{"status": "Completed", "finished_at": now_datetime(), "stopped_reason": crawler.stopped_reason}
+			{
+				"status": "Completed",
+				"finished_at": now_datetime(),
+				"stopped_reason": STOPPED_REASONS.get(crawler.stopped_reason),
+			}
 		)
-		return self.summary(errors)
+		return self.summary(errors, crawler.stopped_reason)
 
 	def reset_results(self):
 		frappe.db.delete("Web Crawl Result", {"web_crawl": self.name})
@@ -245,7 +272,7 @@ class WebCrawl(Document):
 				"final_url": page.final_url,
 				"status_code": page.status,
 				"content_hash": page.content_hash,
-				"error": page.error,
+				"error": ERRORS[page.error] if page.error else None,
 				"change_status": page.change_status,
 				"title": page.title,
 				"description": page.description,
@@ -261,13 +288,13 @@ class WebCrawl(Document):
 		if task := get_current_task():
 			task.publish_progress(min(self.pages_crawled / max(max_pages, 1) * 100, 99))
 
-	def summary(self, errors: dict) -> dict:
+	def summary(self, errors: dict, stopped_reason: str | None) -> dict:
 		return {
 			"pages": self.pages_crawled,
 			"ok": self.pages_crawled - self.pages_failed,
 			"failed": self.pages_failed,
 			"errors": errors,
-			"stopped": self.stopped_reason,
+			"stopped": stopped_reason,
 		}
 
 	def on_trash(self):
@@ -285,19 +312,33 @@ class WebCrawl(Document):
 			.where(web_crawl.creation < (Now() - Interval(days=days)))
 			.run(pluck=True)
 		)
-		for name in old_crawls:
-			frappe.delete_doc("Web Crawl", name, ignore_permissions=True)
+		if not old_crawls:
+			return
+		frappe.db.delete("Web Crawl Result", {"web_crawl": ("in", old_crawls)})
+		frappe.db.delete("Web Crawl Link Priority", {"parenttype": "Web Crawl", "parent": ("in", old_crawls)})
+		frappe.db.delete("Web Crawl", {"name": ("in", old_crawls)})
 
 
-def stored_keyword_weights(crawler: WebCrawler) -> dict[str, float]:
-	"""The crawler's keyword weights. Only a KeywordPriority can be stored with an enqueued crawl."""
-	if crawler.priority is None:
-		return {}
-	if not isinstance(crawler.priority, KeywordPriority):
-		frappe.throw(
-			_("An enqueued crawl can only use a KeywordPriority as its priority."), title=_("Cannot enqueue")
-		)
-	return crawler.priority.weights
+def enqueue_crawl(
+	url: str,
+	*,
+	on_page: str | None = None,
+	skip_urls: str | None = None,
+	on_success: str | None = None,
+	on_failure: str | None = None,
+	**fields,
+) -> WebCrawl:
+	"""Crawls `url` in a background job and returns its Web Crawl, or the user's running one with
+	the same fields. `on_page(page, web_crawl)` and `skip_urls(urls)` are dotted paths, called in the job.
+	`fields` are other Web Crawl fields, such as `follow_links`, `max_pages` or `reference_name`."""
+	web_crawl = frappe.new_doc("Web Crawl")
+	web_crawl.update({"url": url, "on_page_method": on_page, "skip_urls_method": skip_urls, **fields})
+	web_crawl.apply_settings(web_crawl.crawler())
+	if running := web_crawl.find_running():
+		return running
+	web_crawl.insert(ignore_permissions=True)
+	web_crawl.enqueue_job(on_success, on_failure)
+	return web_crawl
 
 
 def get_method(path: str | None):
@@ -312,10 +353,10 @@ def cancel_web_crawl(web_crawl: str):
 	frappe.db.set_value("Web Crawl", web_crawl, {"status": "Cancelled", "finished_at": now_datetime()})
 
 
-def has_permission(doc: WebCrawl, ptype: str | None = None, user: str | None = None, debug=False) -> bool:
+def has_permission(doc, ptype: str | None = None, user: str | None = None, debug=False) -> bool:
 	"""Others' crawls are readable through read access to the crawl's reference document."""
 	user = user or frappe.session.user
-	if doc.owner == user or "System Manager" in frappe.get_roles(user):
+	if doc.owner == user or can_manage_crawls(user):
 		return True
 	if ptype not in ("read", "select") or not (doc.reference_doctype and doc.reference_name):
 		return False
@@ -329,6 +370,11 @@ def get_permission_query_conditions(user: str | None = None) -> str | None:
 def owner_condition(doctype: str, user: str | None = None) -> str | None:
 	"""Lists show only the user's own crawls, because reference access can't be a query condition."""
 	user = user or frappe.session.user
-	if "System Manager" in frappe.get_roles(user):
+	if can_manage_crawls(user):
 		return None
 	return f"`tab{doctype}`.`owner` = {frappe.db.escape(user)}"
+
+
+def can_manage_crawls(user: str) -> bool:
+	"""Users whose roles can write any Web Crawl see every crawl."""
+	return frappe.has_permission("Web Crawl", "write", user=user, ignore_share_permissions=True)

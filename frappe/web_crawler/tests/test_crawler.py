@@ -46,6 +46,21 @@ class TestCrawl(IntegrationTestCase):
 		pages = list(WebCrawler("https://example.com", max_depth=0).crawl())
 		self.assertEqual([page.url for page in pages], ["https://example.com"])
 
+	def test_without_following_links_only_the_listed_pages_are_read(self):
+		self.site.page("https://example.com/", links("/a"))
+		self.site.page("https://example.com/listed", links("/b"))
+		self.site.redirect("https://example.com/moved", "https://example.com/listed")
+		self.site.page("https://example.com/other", "<p>Other</p>")
+		listed = urlset(*(f"https://example.com/{path}" for path in ("listed", "moved", "other")))
+		self.site.add("https://example.com/sitemap.xml", listed, XML)
+
+		pages = list(WebCrawler("https://example.com", follow_links=False).crawl())
+		self.assertEqual(
+			[page.url for page in pages], ["https://example.com/listed", "https://example.com/other"]
+		)
+		pages = list(WebCrawler("https://example.com", follow_links=False, max_pages=1).crawl())
+		self.assertEqual([page.url for page in pages], ["https://example.com/listed"])
+
 	def test_redirect_to_a_page_already_read_costs_no_budget(self):
 		self.site.page("https://example.com/", links("/old", "/new", "/other"))
 		self.site.redirect("https://example.com/old", "https://example.com/")
@@ -206,16 +221,6 @@ class TestCrawlLimits(IntegrationTestCase):
 			limits = CrawlLimits.from_settings()
 		self.assertEqual(limits.max_crawl_time, 600)
 		self.assertGreater(limits.job_timeout(), 600 + 3 * 30)
-
-	def test_warns_when_a_full_crawl_may_outlast_the_crawl_time(self):
-		settings = {"max_pages": 1000, "request_delay": 1, "max_crawl_time": 30}
-		with self.change_settings("Web Crawl Settings", settings):
-			frappe.clear_messages()
-			self.assertEqual(CrawlLimits.from_settings(300).estimated_crawl_time(), 600)
-			CrawlLimits.from_settings(300).warn_if_crawl_may_stop_early()
-			self.assertEqual(frappe.get_message_log(), [])
-			CrawlLimits.from_settings().warn_if_crawl_may_stop_early()
-		self.assertIn("Crawl may stop early", str(frappe.get_message_log()))
 
 	def test_wait_is_capped(self):
 		with self.change_settings("Web Crawl Settings", {"request_delay": 1}):

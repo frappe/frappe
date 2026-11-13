@@ -5,10 +5,19 @@ frappe.ui.form.on("Web Crawl", {
 	refresh(frm) {
 		if (frm.is_new()) return;
 
-		if (frm.doc.stopped_reason === "time_limit") {
+		if (frm.doc.stopped_reason === "Time limit") {
 			frm.set_intro(
 				__(
 					"This crawl stopped at the maximum crawl time after {0} pages. Raise Maximum crawl time in Web Crawl Settings to read more.",
+					[frm.doc.pages_crawled]
+				),
+				"orange"
+			);
+		}
+		if (frm.doc.stopped_reason === "Rate limited") {
+			frm.set_intro(
+				__(
+					"This crawl stopped after {0} pages because the site asked for fewer requests. Try again later, or lower Concurrent requests in Web Crawl Settings.",
 					[frm.doc.pages_crawled]
 				),
 				"orange"

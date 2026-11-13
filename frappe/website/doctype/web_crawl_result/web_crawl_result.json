@@ -66,10 +66,11 @@
   {
    "description": "Why the page could not be read.",
    "fieldname": "error",
-   "fieldtype": "Data",
+   "fieldtype": "Select",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Error",
+   "options": "\nBlocked\nEmpty\nFailed\nNot found\nNot HTML\nOutside the start URL\nServer error\nTimed out\nToo large\nToo many redirects",
    "read_only": 1
   },
   {
@@ -122,7 +123,7 @@
  "in_create": 1,
  "link_display_mode": "Search",
  "links": [],
- "modified": "2026-11-13 16:30:00.000000",
+ "modified": "2026-11-13 18:00:00.000000",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Crawl Result",

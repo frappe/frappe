@@ -1,4 +1,3 @@
-import hashlib
 import re
 from dataclasses import dataclass, field
 from functools import cached_property
@@ -7,6 +6,7 @@ from urllib.parse import urljoin, urlsplit
 import yaml
 from bs4 import BeautifulSoup, Tag
 
+from frappe.core.doctype.file.utils import get_content_hash
 from frappe.utils.data import md_to_html, to_markdown
 from frappe.utils.html_utils import sanitize_html
 from frappe.web_crawler.fetch import Download
@@ -43,7 +43,7 @@ class CrawledPage:
 	@cached_property
 	def content_hash(self) -> str | None:
 		"""Changes only when the page's main content changes."""
-		return hashlib.sha256(self.text.encode()).hexdigest() if self.ok else None
+		return get_content_hash(self.text) if self.ok else None
 
 	def compare(self, previous_hash: str | None):
 		"""Sets `change_status` to New, Changed or Unchanged against an earlier crawl's hash."""

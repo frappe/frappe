@@ -89,6 +89,15 @@ class TestDiscovery(IntegrationTestCase):
 		self.site.add("https://other.com/pages.xml", urlset("https://example.com/b"), XML)
 		self.assertEqual(self.find("https://example.com"), ["https://example.com/a"])
 
+	def test_cdata_locations_are_read_in_child_sitemaps_too(self):
+		self.site.add("https://example.com/sitemap.xml", sitemap_index("https://example.com/pages.xml"), XML)
+		self.site.add(
+			"https://example.com/pages.xml",
+			"<urlset><url><loc><![CDATA[https://example.com/a?x=1&amp;y=2]]></loc></url></urlset>",
+			XML,
+		)
+		self.assertEqual(self.find("https://example.com"), ["https://example.com/a?x=1&y=2"])
+
 	def test_unsafe_or_unrelated_sitemaps_are_ignored(self):
 		for body in (
 			'<!DOCTYPE x [<!ENTITY a "a">]>' + urlset("https://example.com/a"),

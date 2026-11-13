@@ -7,9 +7,9 @@ import frappe
 from frappe.core.doctype.user_permission.test_user_permission import create_user
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, now_datetime
-from frappe.web_crawler import CrawledPage, KeywordPriority, WebCrawler
+from frappe.web_crawler import CrawledPage
 from frappe.web_crawler.tests.fake_site import FakeSite, add_setting_row
-from frappe.website.doctype.web_crawl.web_crawl import WebCrawl
+from frappe.website.doctype.web_crawl.web_crawl import WebCrawl, enqueue_crawl
 
 OWNER = "web-crawl-owner@example.com"
 STRANGER = "web-crawl-stranger@example.com"
@@ -42,8 +42,9 @@ class IntegrationTestWebCrawl(IntegrationTestCase):
 
 	def start_crawl(self, user=OWNER, **caller) -> WebCrawl:
 		with self.set_user(user):
-			crawler = WebCrawler("https://example.com", index_files=False)
-			return crawler.enqueue(on_page=f"{__name__}.record_page", **caller)
+			return enqueue_crawl(
+				"https://example.com", on_page=f"{__name__}.record_page", index_files=0, **caller
+			)
 
 	def insert_background_task(self):
 		frappe.get_doc(
@@ -105,27 +106,37 @@ class IntegrationTestWebCrawl(IntegrationTestCase):
 	def test_enqueue_starts_a_new_crawl_for_other_options(self):
 		first = self.start_crawl()
 		with self.set_user(OWNER):
-			other = WebCrawler("https://example.com").enqueue(on_page=f"{__name__}.record_page")
+			other = enqueue_crawl("https://example.com", on_page=f"{__name__}.record_page")
 		self.assertNotEqual(other.name, first.name)
 		self.assertEqual(other.index_files, 1)
+		tuned = self.start_crawl(link_priorities=[{"keyword": "Broken", "weight": 5}])
+		self.assertNotEqual(tuned.name, first.name)
+		self.assertEqual(
+			self.start_crawl(link_priorities=[{"keyword": "Broken", "weight": 5}]).name, tuned.name
+		)
 
-	def test_enqueued_keyword_priority_is_stored_and_used(self):
+	def test_enqueued_link_priorities_are_stored_and_used(self):
 		with self.set_user(OWNER):
-			crawler = WebCrawler(
-				"https://example.com", index_files=False, priority=KeywordPriority({"Broken": 5})
+			web_crawl = enqueue_crawl(
+				"https://example.com", index_files=0, link_priorities=[{"keyword": "Broken", "weight": 5}]
 			)
-			web_crawl = crawler.enqueue()
 			web_crawl.run()
-		self.assertEqual(web_crawl.keyword_weights(), {"broken": 5})
+		self.assertEqual(web_crawl.keyword_weights(), {"Broken": 5})
 		urls = frappe.get_all(
 			"Web Crawl Result", {"web_crawl": web_crawl.name}, pluck="url", order_by="creation asc"
 		)
 		self.assertEqual(urls, ["https://example.com", "https://example.com/broken", "https://example.com/a"])
 
-	def test_enqueue_refuses_a_priority_it_cannot_store(self):
+	def test_results_and_stops_show_readable_reasons(self):
+		self.site.page("https://example.com/", '<a href="/missing">Missing</a><a href="/busy">Busy</a>')
+		self.site.add("https://example.com/busy", status=429)
+		web_crawl = self.start_crawl()
 		with self.set_user(OWNER):
-			crawler = WebCrawler("https://example.com", index_files=False, priority=lambda url, text: 1)
-			self.assertRaises(frappe.ValidationError, crawler.enqueue)
+			summary = web_crawl.run()
+		self.assertEqual(summary["stopped"], "rate_limited")
+		self.assertEqual(frappe.db.get_value("Web Crawl", web_crawl.name, "stopped_reason"), "Rate limited")
+		errors = frappe.get_all("Web Crawl Result", {"web_crawl": web_crawl.name}, pluck="error")
+		self.assertCountEqual(errors, ["", "Not found", "Blocked"])
 
 	def test_a_crawl_without_tuning_copies_the_settings_tuning(self):
 		add_setting_row(self, "link_priorities", {"keyword": "Docs", "weight": 2})
@@ -139,7 +150,7 @@ class IntegrationTestWebCrawl(IntegrationTestCase):
 					"link_priorities": [{"keyword": "api", "weight": 1}],
 				}
 			).insert()
-		self.assertEqual((default.keyword_weights(), default.skip_patterns), ({"docs": 2}, "/private/"))
+		self.assertEqual((default.keyword_weights(), default.skip_patterns), ({"Docs": 2}, "/private/"))
 		self.assertEqual((tuned.keyword_weights(), tuned.skip_patterns), ({"api": 1}, "/blog/"))
 
 	def test_a_new_crawl_reads_index_files_and_follows_links(self):
@@ -184,6 +195,15 @@ class IntegrationTestWebCrawl(IntegrationTestCase):
 			shallow.insert()
 		self.assertEqual((blank.max_pages, blank.max_depth), (20, 3))
 		self.assertEqual(shallow.max_depth, 0)
+
+	def test_limits_above_the_settings_are_refused(self):
+		with self.change_settings("Web Crawl Settings", {"max_pages": 20, "max_depth": 2}):
+			for fieldname, value in (("max_pages", 21), ("max_depth", 3)):
+				with self.subTest(fieldname=fieldname):
+					web_crawl = frappe.get_doc(
+						{"doctype": "Web Crawl", "url": "https://example.com", fieldname: value}
+					)
+					self.assertRaises(frappe.ValidationError, web_crawl.insert)
 
 	def test_methods_can_only_be_set_from_code(self):
 		for fieldname in ("on_page_method", "skip_urls_method"):
@@ -249,6 +269,17 @@ class IntegrationTestWebCrawl(IntegrationTestCase):
 		with self.set_user(OWNER):
 			web_crawl.stop()
 		self.assertEqual(web_crawl.status, "Cancelled")
+
+	def test_reference_document_readers_cannot_stop_a_crawl(self):
+		self.enterContext(patch("rq.job.Job.fetch"))
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "Crawl", "allocated_to": STRANGER})
+		todo.insert(ignore_permissions=True)
+		web_crawl = self.start_crawl(reference_doctype="ToDo", reference_name=todo.name)
+		self.insert_background_task()
+		with self.set_user(STRANGER):
+			self.assertTrue(frappe.has_permission("Web Crawl", "read", web_crawl.name))
+			self.assertRaises(frappe.PermissionError, web_crawl.stop)
+		self.assertEqual(web_crawl.status, "Queued")
 
 	def test_stopping_the_background_task_cancels_the_crawl(self):
 		from frappe.core.doctype.background_task.background_task import stop_task
