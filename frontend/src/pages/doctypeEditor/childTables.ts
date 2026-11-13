@@ -25,7 +25,10 @@ export class ChildTables {
 	/** The DocType whose Table field opened the child editor shown now. */
 	readonly parentDoctype = computed(() => (this.open.value ? (this.parent()?.state.doctype ?? null) : null));
 	private sessions = shallowRef(new Map<string, ChildSession>());
-	private wanted: string | null = null;
+	/** The latest `show`; an older one whose load lands after it opens nothing. */
+	private wanted: object | null = null;
+	/** Bumped by `reset`: a load that started for an earlier parent keeps nothing. */
+	private generation = 0;
 
 	constructor(
 		private edits: PendingEdits,
@@ -34,11 +37,11 @@ export class ChildTables {
 
 	/** Opens the child of the parent's Table field `table`; `null`, or a field with no child yet, shows the parent. */
 	async show(table: string | null) {
-		this.wanted = table;
+		const wanted = (this.wanted = {});
 		const doctype = table ? this.childOf(table) : null;
 		if (!table || !doctype) return void (this.open.value = null);
 		const session = this.sessions.value.get(doctype) ?? (await this.load(doctype));
-		if (this.wanted === table) this.open.value = { ...session, table };
+		if (this.wanted === wanted) this.open.value = { ...session, table };
 	}
 
 	/** The parent's Table field that holds `doctype`, for an undo that reopens its editor. */
@@ -99,6 +102,8 @@ export class ChildTables {
 
 	/** Drops every child editor, for a parent that loads again. */
 	reset() {
+		this.generation++;
+		this.wanted = null;
 		this.sessions.value = new Map();
 		this.open.value = null;
 	}
@@ -123,10 +128,11 @@ export class ChildTables {
 
 	private async load(doctype: string): Promise<ChildSession> {
 		const parent = this.parent()!.state;
+		const generation = this.generation;
 		const state = this.added().includes(doctype) ? pendingChild(doctype, parent) : await loadEditor(doctype, parent.mode);
 		const edits = new ChildEdits(this.edits, state);
 		const session = { table: "", state, edits, canvas: new DesignCanvas(state, edits) };
-		this.sessions.value = new Map(this.sessions.value).set(doctype, session);
+		if (generation === this.generation) this.sessions.value = new Map(this.sessions.value).set(doctype, session);
 		return session;
 	}
 }

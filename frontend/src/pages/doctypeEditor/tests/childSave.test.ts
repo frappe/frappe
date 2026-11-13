@@ -282,4 +282,19 @@ describe("a save with child tables", () => {
 		expect(runMethod).toHaveBeenLastCalledWith(WRITE_FILES_METHOD, { doctype: "Task Note Line" }, { nullable: true });
 		expect([save.banner.value, edits.payload().base_version]).toEqual([null, VERSION]);
 	});
+
+	it("drops a child load that a switch to another parent outran", async () => {
+		const { children } = mount();
+		let first!: (value: unknown) => void;
+		runMethod.mockReturnValueOnce(new Promise((resolve) => (first = resolve)));
+		const stale = children.show("lines");
+		children.reset();
+		const fresh = { ...LINE_VERSION, doctype: "2026-11-13 11:00:00" };
+		answers(line("Task Note Line", fresh));
+		await children.show("lines");
+		first({ data: line() });
+		await stale;
+		expect(children.open.value?.state.base_version).toEqual(fresh);
+		expect(children.canvasOf("Task Note Line")?.state.base_version).toEqual(fresh);
+	});
 });
