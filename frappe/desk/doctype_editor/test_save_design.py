@@ -121,3 +121,24 @@ class TestSaveDesign(IntegrationTestCase):
 		[error] = result["errors"]
 		self.assertEqual(error["edit"], 2)
 		self.assertEqual(error["target"]["kind"], "container")
+
+	def test_field_properties_are_set_and_fields_reordered(self):
+		result = self.save(
+			[
+				{"act": "fields.add_field", "label": "Status", "fieldtype": "Data"},
+				{"act": "fields.set_field_property", "fieldname": "title", "property": "reqd", "value": 1},
+				{"act": "fields.reorder_field", "fieldname": "status", "index": 0},
+			]
+		)
+		self.assertTrue(result["saved"], result.get("errors"))
+		meta = frappe.get_meta(DOCTYPE)
+		self.assertEqual(meta.get_field("title").reqd, 1)
+		self.assertEqual([field.fieldname for field in meta.fields], ["status", "title"])
+
+	def test_a_fieldname_is_changed_only_by_renaming(self):
+		result = self.save(
+			[{"act": "fields.set_field_property", "fieldname": "title", "property": "fieldname", "value": "x"}]
+		)
+		self.assertFalse(result["saved"])
+		[error] = result["errors"]
+		self.assertEqual(error["target"], {"kind": "field", "fieldname": "title", "property": "fieldname"})

@@ -58,3 +58,23 @@ class DesignEdits:
 		)
 		if edit.get("layout"):
 			self.canvas({**edit, "fieldname": fieldname}, "place_field", PLACE_KEYS)
+
+	def fields_set_field_property(self, edit: dict):
+		fieldname, property = edit.get("fieldname"), edit.get("property")
+		field = self.state.field(fieldname)
+		if property == "fieldname":
+			raise field_error(_("Rename the field to change its fieldname."), fieldname, property)
+		if property in ("name", "parent", "parenttype", "parentfield", "idx", "doctype") or not field.meta.has_field(
+			property
+		):
+			raise field_error(_("{0} is not a field property.").format(property), fieldname, property)
+		field.set(property, edit.get("value"))
+
+	def fields_reorder_field(self, edit: dict):
+		field = self.state.field(edit.get("fieldname"))
+		fields = self.state.doc.fields
+		fields.remove(field)
+		index = edit.get("index")
+		fields.insert(len(fields) if index is None else index, field)
+		for idx, each in enumerate(fields, start=1):
+			each.idx = idx
