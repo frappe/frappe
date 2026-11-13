@@ -733,9 +733,14 @@ def check_safe_sql_query(query: str, throw: bool = True) -> bool:
 	"""Check if SQL query is safe for running in restricted context.
 
 	Safe queries:
+<<<<<<< HEAD
 	        1. Read only 'select' or 'explain' queries
 			2. CTE on mariadb where writes are not allowed.
 	        3. That do not read __Auth (password hashes and encrypted secrets)
+=======
+	        1. Read only 'select' or 'explain' (without analyze) queries
+	        2. That do not read __Auth (password hashes and encrypted secrets)
+>>>>>>> a2479f5 (fix(safe_exec): reject EXPLAIN ANALYZE in the read-only query check)
 	"""
 
 	query = query.strip().lower()
@@ -745,6 +750,10 @@ def check_safe_sql_query(query: str, throw: bool = True) -> bool:
 		query.startswith(whitelisted_statements)
 		or (query.startswith("with") and frappe.db.db_type == "mariadb")
 	):
+		return _reject_sql_query(_("Read-Only queries are allowed"), throw)
+
+	# postgres runs the statement that EXPLAIN ANALYZE explains
+	if query.startswith("explain") and re.search(r"analy[sz]e", query):
 		return _reject_sql_query(_("Read-Only queries are allowed"), throw)
 
 	if "__auth" in query:

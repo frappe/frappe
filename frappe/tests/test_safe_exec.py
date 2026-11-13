@@ -65,6 +65,41 @@ class TestSafeExec(FrappeTestCase):
 			frappe.PermissionError, safe_exec, 'frappe.db.sql("update tabToDo set description=NULL")'
 		)
 
+<<<<<<< HEAD
+=======
+	def test_sql_export_blocked_with_comment_separator(self):
+		for separator in ("/**/", "/*!50000 */", "-- x\n", "#x\n", " ", "\n"):
+			for keyword in ("outfile", "dumpfile"):
+				query = f"select 1 into{separator}{keyword} '/tmp/x'"
+				self.assertFalse(safe_exec_utils.check_safe_sql_query(query, throw=False), query)
+
+		self.assertFalse(
+			safe_exec_utils.check_safe_sql_query("select 1 /*! into outfile '/tmp/x' */", throw=False)
+		)
+		self.assertTrue(safe_exec_utils.check_safe_sql_query("select /* note */ 1 -- end", throw=False))
+
+	def test_sql_export_blocked_when_split_by_comment_like_text(self):
+		for query in (
+			"select 1--1 into/**/outfile '/tmp/x'",
+			"select '/*' into/**/outfile '/tmp/x' -- */",
+			"select 1 /*!into*/ /*!outfile*/ '/tmp/x'",
+			"select 1 into/*!50000dumpfile*/'/tmp/x'",
+		):
+			self.assertFalse(safe_exec_utils.check_safe_sql_query(query, throw=False), query)
+
+	def test_sql_explain_analyze_blocked(self):
+		for query in (
+			"explain analyze update tabToDo set description=null",
+			"EXPLAIN ANALYSE delete from tabToDo",
+			"explain (analyze) update tabToDo set description=null",
+			"explain (costs off, analyze true) update tabToDo set description=null",
+			"explain/**/analyze update tabToDo set description=null",
+		):
+			self.assertFalse(safe_exec_utils.check_safe_sql_query(query, throw=False), query)
+
+		self.assertTrue(safe_exec_utils.check_safe_sql_query("explain select name from tabToDo", throw=False))
+
+>>>>>>> d4d722a (test(safe_exec): EXPLAIN ANALYZE is rejected)
 	def test_query_builder(self):
 		_locals = dict(out=None)
 		safe_exec(
