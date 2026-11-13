@@ -118,6 +118,8 @@ export interface RawMetaField {
   perm_denied?: boolean | 0 | 1;
   /** Whether a child-table field shows as a grid column. */
   in_list_view?: boolean | 0 | 1;
+  /** A child-table field's grid width, 1–10; 0 is Auto. */
+  columns?: number;
   /** Whether the field is surfaced as a default Quick Filter input (the
    *  `in_standard_filter` flag CRM's `get_quick_filters` reads). */
   in_standard_filter?: boolean | 0 | 1;

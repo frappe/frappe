@@ -23,6 +23,16 @@ describe("buildLayoutFromMeta", () => {
     expect(bare.placeholder).toBeUndefined();
   });
 
+  it("carries a field's grid `columns`, and none when it is Auto", () => {
+    const [sized, auto] = buildLayoutFromMeta([
+      field({ fieldname: "sized", columns: 4 }),
+      field({ fieldname: "auto", columns: 0 }),
+    ])[0].sections[0].columns[0].fields;
+
+    expect(sized.gridColumns).toBe(4);
+    expect(auto).not.toHaveProperty("gridColumns");
+  });
+
   it("seeds one implicit tab/section/column for a flat list with no breaks", () => {
     const layout = buildLayoutFromMeta([
       field({ fieldname: "a" }),

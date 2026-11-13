@@ -186,6 +186,7 @@ export function mapField(
     ...(holdsChildRows(field.fieldtype)
       ? { childFields: resolveChildFields(field, childMetas, decorate) }
       : {}),
+    ...(field.columns ? { gridColumns: field.columns } : {}),
     ...(field.fieldtype === "Duration"
       ? { hideDays: !!field.hide_days, hideSeconds: !!field.hide_seconds }
       : {}),
