@@ -45,6 +45,67 @@ afterEach(() => {
 });
 
 describe("SetupFlow", () => {
+  it("stops at a required step when setup is skipped, and will not skip past it", async () => {
+    const { el, finished, slot } = await mountFlow([
+      { name: "goal" },
+      { name: "password", required: true },
+      { name: "invite" },
+    ]);
+
+    // The header's Skip setup opens a dialog whose last button confirms it.
+    (el.querySelector("button") as HTMLButtonElement | null)?.click();
+    await nextTick();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    const confirm = [...document.querySelectorAll("button")]
+      .filter((b) => b.textContent?.trim() === "Skip setup")
+      .at(-1);
+    confirm?.click();
+    await nextTick();
+    expect(finished).toEqual([]);
+    expect(el.textContent).toContain("password");
+
+    slot().skip();
+    await nextTick();
+    expect(el.textContent).toContain("password");
+
+    slot().done();
+    await nextTick();
+    expect(finished).toEqual([
+      { skipped: true, completed: ["password"], skippedSteps: [] },
+    ]);
+    expect(capture).toHaveBeenCalledWith("setup_skipped", { step: "goal" });
+  });
+
+  it("forgets Skip setup when the user goes back to continue", async () => {
+    const { el, finished, slot } = await mountFlow([
+      { name: "goal" },
+      { name: "password", required: true },
+      { name: "invite" },
+    ]);
+    (el.querySelector("button") as HTMLButtonElement | null)?.click();
+    await nextTick();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    [...document.querySelectorAll("button")]
+      .filter((b) => b.textContent?.trim() === "Skip setup")
+      .at(-1)
+      ?.click();
+    await nextTick();
+    expect(el.textContent).toContain("password");
+
+    [...el.querySelectorAll("button")]
+      .find((b) => b.textContent?.includes("Back"))
+      ?.click();
+    await nextTick();
+    expect(el.textContent).toContain("goal");
+
+    slot().done();
+    await nextTick();
+    slot().done();
+    await nextTick();
+    expect(el.textContent).toContain("invite");
+    expect(finished).toEqual([]);
+  });
+
   it("walks the steps and reports what was done and skipped", async () => {
     const { el, finished, slot } = await mountFlow();
     expect(el.textContent).toContain("goal");
