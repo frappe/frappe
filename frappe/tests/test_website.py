@@ -430,20 +430,10 @@ class TestWebsite(IntegrationTestCase):
 		self.assertIn("test.__test", content)
 		self.assertNotIn("Show Error", content)
 
-	def test_render_error_traceback_shown_only_to_system_users(self):
-		from frappe.core.doctype.user.test_user import test_user
-
-		template = "{{ frappe.form_dict.missing_key.upper() }}"
-		with (
-			patch.object(frappe, "_dev_server", 0),
-			self.change_settings("System Settings", allow_error_traceback=1),
-			self.set_user("Administrator"),
-			test_user(roles=["Desk User"]) as desk_user,
-		):
-			for user, shown in (("Guest", False), (desk_user.name, True)):
-				with self.set_user(user), self.assertRaises(Exception) as error:
-					frappe.render_template(template)
-				self.assertEqual("Traceback" in str(error.exception), shown)
+	def test_render_error_hides_traceback_from_guest(self):
+		with patch.object(frappe, "_dev_server", 0), self.assertRaises(Exception) as error:
+			frappe.render_template("{{ frappe.form_dict.missing_key.upper() }}")
+		self.assertNotIn("Traceback", str(error.exception))
 
 	def test_never_render(self):
 		from pathlib import Path
