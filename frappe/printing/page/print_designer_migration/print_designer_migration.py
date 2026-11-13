@@ -66,5 +66,5 @@ def preview_conversion(print_format: str, name: str | None = None) -> None:
 	if not is_print_designer_format(doc):
 		frappe.throw(_("{0} is not a Print Designer format.").format(frappe.bold(print_format)))
 	converted = doc.as_dict()
-	converted.update(converted_values(doc)[0])
+	converted.update(converted_values(doc)[0], name=None)
 	download_builder_preview_pdf(converted, doc.doc_type, name)
