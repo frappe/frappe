@@ -56,7 +56,24 @@ class DesignChecks:
 				errors.append(
 					EditError(message.format(_(type)), kind="layout", layout=defaults[-1].id).as_dict()
 				)
-		return errors
+		return errors + self.new_name_errors()
+
+	def new_name_errors(self) -> list[dict]:
+		"""A field the save adds or renames must not take a name a layout it leaves alone uses."""
+		fieldnames = {field.fieldname for field in self.state.doc.fields}
+		if not fieldnames - self.state.saved_fieldnames:
+			return []
+		self.state.load_every_layout()
+		untouched = [
+			layout
+			for layout in self.state.all_layouts()
+			if layout.type not in self.state.touched and not layout.deleted
+		]
+		return [
+			error
+			for layout in untouched
+			if (error := self.keyed_error(layout, self.refuse_names_of_fields, self.refuse_inline_fields))
+		]
 
 	def layout_error(self, layout: EditorLayout) -> dict | None:
 		"""The Form Layout checks, with the fields as this save leaves them."""
@@ -69,10 +86,17 @@ class DesignChecks:
 				"omitted": frappe.as_json(layout.omitted),
 			}
 		)
+		return self.keyed_error(
+			layout,
+			lambda _layout: row.validate_layout(),
+			self.refuse_names_of_fields,
+			self.refuse_inline_fields,
+		)
+
+	def keyed_error(self, layout: EditorLayout, *checks) -> dict | None:
 		try:
-			row.validate_layout()
-			self.refuse_names_of_fields(layout)
-			self.refuse_inline_fields(layout)
+			for check in checks:
+				check(layout)
 		except frappe.ValidationError as e:
 			return EditError(str(e), kind="layout", layout=layout.id).as_dict()
 

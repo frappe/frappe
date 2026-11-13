@@ -698,6 +698,25 @@ class TestSaveDesign(IntegrationTestCase):
 		self.assertFalse(frappe.db.exists("DocField", {"parent": DOCTYPE, "fieldname": "notes"}))
 		self.assertFalse(frappe.get_meta(DOCTYPE).get_field("notes"), "the check leaves no unsaved meta")
 
+	def test_a_new_name_is_checked_against_layouts_the_save_leaves_alone(self):
+		inline = {"fieldname": "customer_note", "label": "Customer Note", "fieldtype": "Data"}
+		trees = {
+			"Quick Entry": [{"sections": [{"columns": [{"fields": ["title", inline]}]}]}],
+			"Side Panel": [{"sections": [{"name": "overview", "columns": [{"fields": []}]}]}],
+		}
+		for type, tree in trees.items():
+			frappe.get_doc(
+				{"doctype": "Form Layout", "dt": DOCTYPE, "type": type, "layout": json.dumps(tree)}
+			).insert()
+		for edit in (
+			{"act": "fields.rename_field", "fieldname": "title", "new_fieldname": "overview"},
+			{"act": "fields.add_field", "label": "Customer Note", "fieldtype": "Data"},
+		):
+			with self.subTest(edit["act"]):
+				result = self.save([edit])
+				self.assertFalse(result["saved"])
+				self.assertEqual(result["errors"][0]["target"]["kind"], "layout", result["errors"])
+
 	def test_a_doctype_save_failing_after_its_ddl_keeps_renamed_data(self):
 		record = frappe.get_doc({"doctype": DOCTYPE, "title": "Hello"}).insert()
 		with patch(
