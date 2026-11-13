@@ -22,7 +22,7 @@
 						/>
 					</span>
 				</p>
-				<p class="mt-0.5 text-p-sm text-ink-gray-5">
+				<p class="mt-0.5 text-pretty text-p-sm text-ink-gray-5">
 					<slot name="help">{{ __(row.help) }}</slot>
 				</p>
 			</div>

@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { autonameOf, namingProperties, patternRefusal, ruleOf, ruleRefusal } from "../namingRules";
 import { columns, moreRights, rightRefusal } from "../permissionColumns";
 import type { PermissionRow, SettingsState } from "../settingsModel";
-import { kindProperties, settingRows, settingSections, type DoctypeKind } from "../settingsRows";
+import { kindProperties, settingRows, settingSections, type DangerScope, type DoctypeKind } from "../settingsRows";
 
 function settings(overrides: Partial<SettingsState> = {}): SettingsState {
 	return {
@@ -41,6 +41,44 @@ describe("the rows each kind shows", () => {
 
 	it("hides the kind row on a new child table its parent made", () => {
 		expect(keys(settings({ properties: kindProperties("child"), pending: true, kindFixed: true }))).not.toContain("kind");
+	});
+});
+
+describe("the Danger zone's rows", () => {
+	const ALL = ["change_kind", "rename_doctype", "move_doctype", "make_standard", "delete_doctype"];
+	const custom = settings({ properties: { custom: 1 } });
+	const danger = (state: SettingsState, scope: DangerScope | null = { developerMode: true, administrator: true }) =>
+		settingRows(state, scope)
+			.filter((row) => row.section === "danger")
+			.map((row) => row.key);
+
+	it("shows on a saved DocType in Design, with its own section", () => {
+		expect(danger(custom)).toEqual(ALL);
+		expect(settingSections(custom, { developerMode: true, administrator: true }).map((section) => section.key)).toContain("danger");
+		expect(sections(custom)).not.toContain("danger");
+	});
+
+	it("hides before the first save, in Customize, and on a child table opened from its parent", () => {
+		expect(danger(settings({ properties: { custom: 1 }, pending: true, kindFixed: false }))).toEqual([]);
+		expect(danger(settings({ app: { properties: {}, permissions: [] } }))).toEqual([]);
+		expect(danger(custom, null)).toEqual([]);
+	});
+
+	it("moves and makes standard only in developer mode, and makes only a custom DocType standard", () => {
+		expect(danger(custom, { developerMode: false, administrator: true })).toEqual(["change_kind", "rename_doctype", "delete_doctype"]);
+		expect(danger(settings({ properties: { custom: 0 } }))).not.toContain("make_standard");
+		expect(danger(settings({ properties: { custom: 0 } }))).toContain("move_doctype");
+	});
+
+	it("renames and deletes a standard DocType only for Administrator", () => {
+		const manager = { developerMode: true, administrator: false };
+		expect(danger(settings({ properties: { custom: 0 } }), manager)).toEqual(["change_kind", "move_doctype"]);
+		expect(danger(custom, manager)).toEqual(ALL);
+	});
+
+	it("gives a Single no Change kind", () => {
+		expect(danger(settings({ properties: { custom: 1, ...kindProperties("single") } }))).not.toContain("change_kind");
+		expect(danger(settings({ properties: { custom: 1, ...kindProperties("child") } }))).toContain("change_kind");
 	});
 });
 

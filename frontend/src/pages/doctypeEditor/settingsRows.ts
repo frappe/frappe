@@ -2,9 +2,9 @@
 // draws from it, and Mod+J finds a setting in it.
 import type { SettingsState } from "./settingsModel";
 
-export type SettingsSection = "naming" | "form" | "list" | "permissions";
+export type SettingsSection = "naming" | "form" | "list" | "permissions" | "danger";
 export type DoctypeKind = "regular" | "submittable" | "tree" | "child" | "single";
-export type RowControl = "naming" | "kind" | "switch" | "number" | "field" | "fields" | "sort" | "permissions";
+export type RowControl = "naming" | "kind" | "switch" | "number" | "field" | "fields" | "sort" | "permissions" | "danger";
 
 export interface SettingRow {
 	key: string;
@@ -23,6 +23,20 @@ export interface SettingRow {
 	kinds?: DoctypeKind[];
 	/** Only while the DocType's kind can still change. */
 	pending?: boolean;
+	/** Danger zone: the button that runs the act `danger.<key>`. */
+	button?: string;
+	/** Danger zone: only in developer mode. */
+	developer?: boolean;
+	/** Danger zone: only on a custom DocType. */
+	custom?: boolean;
+	/** Danger zone: on a standard DocType, only for Administrator (as v1's rename and delete). */
+	administrator?: boolean;
+}
+
+/** What the Danger zone needs beyond the settings; `null` while a child table opened from the DocType shows. */
+export interface DangerScope {
+	developerMode: boolean;
+	administrator: boolean;
 }
 
 export const SECTIONS: { key: SettingsSection; label: string; icon: string }[] = [
@@ -30,6 +44,7 @@ export const SECTIONS: { key: SettingsSection; label: string; icon: string }[] =
 	{ key: "form", label: "Form", icon: "lucide-file-text" },
 	{ key: "list", label: "List and search", icon: "lucide-list" },
 	{ key: "permissions", label: "Permissions", icon: "lucide-shield" },
+	{ key: "danger", label: "Danger zone", icon: "lucide-triangle-alert" },
 ];
 
 export const KINDS: { value: DoctypeKind; label: string; description: string }[] = [
@@ -55,6 +70,18 @@ const flag = (section: SettingsSection, group: string, prop: string, label: stri
 	control: "switch",
 	props: [prop],
 	kinds,
+});
+
+const danger = (key: string, label: string, help: string, button: string, more: Partial<SettingRow>): SettingRow => ({
+	key,
+	section: "danger",
+	group: "",
+	label,
+	help,
+	control: "danger",
+	props: [],
+	button,
+	...more,
 });
 
 export const SETTING_ROWS: SettingRow[] = [
@@ -158,6 +185,27 @@ export const SETTING_ROWS: SettingRow[] = [
 		keywords: "permission rules role roles rights access level custom docperm",
 		kinds: NOT_CHILD,
 	},
+	danger("change_kind", "Change kind", "Changing it adds or removes fields and rights.", "Change kind…", {
+		keywords: "kind regular submittable tree child table istable is_submittable is_tree",
+		kinds: NOT_SINGLE,
+	}),
+	danger("rename_doctype", "Rename DocType", "Renames its table and every Link and Table field that points to it.", "Rename…", {
+		keywords: "name",
+		administrator: true,
+	}),
+	danger("move_doctype", "Move to another module", "Moves it to another module, and its files with it.", "Move…", {
+		keywords: "module app folder",
+		developer: true,
+	}),
+	danger("make_standard", "Make it standard", "Writes its files into a module's app, so the app ships it.", "Make standard…", {
+		keywords: "custom module app developer",
+		developer: true,
+		custom: true,
+	}),
+	danger("delete_doctype", "Delete DocType", "Deletes it, its records and its table.", "Delete…", {
+		keywords: "remove drop",
+		administrator: true,
+	}),
 ];
 
 export function kindOf(properties: Record<string, unknown>): DoctypeKind {
@@ -177,15 +225,27 @@ export function kindProperties(kind: DoctypeKind): Record<string, 0 | 1> {
 	};
 }
 
-/** The rows this DocType shows. */
-export function settingRows(settings: SettingsState): SettingRow[] {
+/** The rows this DocType shows; the Danger zone's only with a `danger` scope. */
+export function settingRows(settings: SettingsState, danger: DangerScope | null = null): SettingRow[] {
 	const kind = kindOf(settings.properties);
-	return SETTING_ROWS.filter((row) => (!row.kinds || row.kinds.includes(kind)) && (!row.pending || !settings.kindFixed));
+	return SETTING_ROWS.filter(
+		(row) =>
+			(!row.kinds || row.kinds.includes(kind)) &&
+			(!row.pending || !settings.kindFixed) &&
+			(row.control !== "danger" || dangerShows(row, settings, danger)),
+	);
+}
+
+/** On a saved DocType in Design (`app` is Customize's alone). */
+function dangerShows(row: SettingRow, settings: SettingsState, danger: DangerScope | null): boolean {
+	if (!danger || settings.pending || settings.app) return false;
+	const custom = Boolean(Number(settings.properties.custom));
+	return (!row.developer || danger.developerMode) && (!row.custom || custom) && (!row.administrator || custom || danger.administrator);
 }
 
 /** The sections with at least one row: a child table has no Naming or Permissions, a Single no Naming. */
-export function settingSections(settings: SettingsState) {
-	const rows = settingRows(settings);
+export function settingSections(settings: SettingsState, danger: DangerScope | null = null) {
+	const rows = settingRows(settings, danger);
 	return SECTIONS.filter((section) => rows.some((row) => row.section === section.key));
 }
 

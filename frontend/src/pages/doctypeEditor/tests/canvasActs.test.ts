@@ -11,7 +11,7 @@ import { useEditorActs } from "../editorActs";
 import { EditorSave } from "../editorSave";
 import type { EditorState } from "../editorSource";
 import { PendingEdits, type EditorTab } from "../pendingEdits";
-import { NO_CUSTOMIZE } from "./editorFixture";
+import { NO_CUSTOMIZE, NO_DANGER } from "./editorFixture";
 
 function state(mode: "Design" | "Customize" = "Design"): EditorState {
 	return {
@@ -88,6 +88,7 @@ function mount(mode: "Design" | "Customize" = "Design") {
 			save: new EditorSave({ edits, canvas: () => canvas, reload: async () => canvas, created: async () => canvas, findSetting: () => undefined }),
 			openList: () => undefined,
 			customize: NO_CUSTOMIZE,
+			danger: NO_DANGER,
 		}),
 	);
 	stop = () => scope.stop();

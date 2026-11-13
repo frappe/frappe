@@ -17,9 +17,19 @@
 				@click="place = { section: one.key, found: null }"
 			>
 				<template #prefix
-					><span class="size-4 text-ink-gray-5" :class="one.icon" aria-hidden="true"
+					><span
+						class="size-4"
+						:class="[
+							one.icon,
+							one.key === 'danger' ? 'text-ink-red-4' : 'text-ink-gray-5',
+						]"
+						aria-hidden="true"
 				/></template>
-				<span class="block truncate text-ink-gray-8">{{ __(one.label) }}</span>
+				<span
+					class="block truncate"
+					:class="one.key === 'danger' ? 'text-ink-red-6' : 'text-ink-gray-8'"
+					>{{ __(one.label) }}</span
+				>
 			</ItemListRow>
 		</nav>
 		<div v-if="current" ref="pane" class="min-w-0 max-w-[728px] flex-1">
@@ -38,20 +48,25 @@ import { ItemListRow } from "frappe-ui";
 import { __ } from "@/i18n";
 import type { DesignCanvas } from "./designCanvas";
 import SettingsSection from "./SettingsSection.vue";
-import { settingSections } from "./settingsRows";
+import { settingSections, type DangerScope } from "./settingsRows";
 import { SettingsView, SettingsViewKey, type SettingsPlace } from "./settingsView";
 
-const props = defineProps<{ canvas: DesignCanvas; customize: RouteLocationRaw | null }>();
+const props = defineProps<{
+	canvas: DesignCanvas;
+	customize: RouteLocationRaw | null;
+	danger: DangerScope | null;
+}>();
 const place = defineModel<SettingsPlace>("place", { required: true });
 
 const view = new SettingsView(
 	() => props.canvas,
 	place,
-	() => props.customize
+	() => props.customize,
+	() => props.danger
 );
 provide(SettingsViewKey, view);
 
-const sections = computed(() => settingSections(view.settings));
+const sections = computed(() => settingSections(view.settings, view.danger()));
 // A section the DocType no longer has (a new one turned into a child table) falls back to the first.
 const current = computed(
 	() => sections.value.find((one) => one.key === place.value.section) ?? sections.value[0]

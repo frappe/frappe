@@ -2,6 +2,7 @@
 import { effectScope, ref } from "vue";
 import { ChildTables } from "../childTables";
 import type { CustomizeHost } from "../customizeActs";
+import type { DangerHost } from "../dangerActs";
 import { DesignCanvas } from "../designCanvas";
 import { useEditorActs, type EditorActsHost } from "../editorActs";
 import { EditorSave } from "../editorSave";
@@ -15,6 +16,20 @@ export const NO_CUSTOMIZE: CustomizeHost = {
 	askReset: async () => null,
 	askExport: async () => null,
 	reload: async () => undefined,
+};
+
+/** A host for tests that do not reach the Danger zone: it shows nowhere. */
+export const NO_DANGER: DangerHost = {
+	scope: () => null,
+	settle: async () => false,
+	askKind: async () => null,
+	askName: async () => null,
+	askModule: async () => null,
+	askDelete: async () => null,
+	renamed: async () => undefined,
+	deleted: async () => undefined,
+	reload: async () => undefined,
+	showing: () => false,
 };
 
 export const VERSION: BaseVersion = { doctype: "2026-11-13 10:00:00", layouts: {}, app_layouts: {} };
@@ -64,7 +79,7 @@ export function taskNote(overrides: Partial<EditorState> = {}): EditorState {
 /** Mounts the acts on `initial`; a reload opens `reloaded()` (default: `initial` again) with no edits. */
 export function mountEditor(
 	initial: EditorState,
-	options: { reloaded?: () => EditorState; openList?: () => void; customize?: CustomizeHost } = {},
+	options: { reloaded?: () => EditorState; openList?: () => void; customize?: CustomizeHost; danger?: DangerHost } = {},
 ) {
 	const tab = ref<EditorTab>("editor");
 	const head = { doctype: initial.doctype, mode: initial.mode, base_version: initial.base_version };
@@ -114,6 +129,7 @@ export function mountEditor(
 		openList: options.openList ?? (() => undefined),
 		openChild: (table) => void children.show(table),
 		customize: options.customize ?? NO_CUSTOMIZE,
+		danger: options.danger ?? NO_DANGER,
 	};
 	const scope = effectScope();
 	scope.run(() => useEditorActs(host));

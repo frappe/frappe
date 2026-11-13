@@ -55,6 +55,7 @@
 						v-model:place="settingsPlace"
 						:canvas="shown"
 						:customize="customizeRoute"
+						:danger="dangerScope"
 					/>
 					<RowDialogPreview
 						v-else-if="openChild"
@@ -108,6 +109,7 @@ import EditorCanvas from "./EditorCanvas.vue";
 import EditorHeader from "./EditorHeader.vue";
 import EditorPanel from "./EditorPanel.vue";
 import { customizeHost } from "./customizeHost";
+import { dangerHost } from "./dangerHost";
 import { DesignCanvas } from "./designCanvas";
 import { canSave, useEditorActs } from "./editorActs";
 import { EditorSave, type ExportResult } from "./editorSave";
@@ -175,6 +177,8 @@ const save = new EditorSave({
 });
 // The DocType a first save just made: its editor is already open when the route moves to it.
 let justCreated: string | null = null;
+// Set as the page goes: a Danger zone act still running skips its follow-up.
+let left = false;
 
 useEditorActs({
 	edits,
@@ -192,6 +196,19 @@ useEditorActs({
 		setMode: (mode) => router.push({ query: { ...route.query, mode: mode.toLowerCase() } }),
 		reload,
 	}),
+	danger: dangerHost({
+		scope: () => dangerScope.value,
+		dirty: () => dirty.value,
+		save: saveFirst,
+		discard: () => edits.clear(),
+		reload,
+		// The new name opens as a first save's does: loaded, then the address follows.
+		renamed: created,
+		// Each act settles pending edits first, so the leave guard has nothing to ask.
+		deleted: () => router.push(routeFor("DocType")),
+		// Another DocType or page since the act began: its follow-up must not pull the reader back.
+		showing: (doctype) => !left && state.value?.doctype === doctype,
+	}),
 	recordOptions: async (query) =>
 		[null, ...latest.value]
 			.filter(
@@ -201,6 +218,15 @@ useEditorActs({
 });
 
 const layout = computed(() => (state.value ? detailsLayout(state.value) : null));
+// The Danger zone acts on the page's DocType, not on a child table opened from it.
+const dangerScope = computed(() =>
+	openChild.value
+		? null
+		: {
+				developerMode: boot.developer_mode,
+				administrator: boot.session.user.name === "Administrator",
+		  }
+);
 // A new DocType is not saved until its first save, even with no edits staged.
 const dirty = computed(() => edits.dirty.value || Boolean(state.value?.pending));
 
@@ -276,13 +302,14 @@ async function created(doctype: string): Promise<DesignCanvas | null> {
 	return canvas.value!;
 }
 
-/** Loads for the editor open now; null once the page moved on to another DocType or mode. */
+/** Loads for the editor open now; null once the page moved on to another DocType or mode, or was left. */
 async function loadFor(request: number, doctype: string, mode: EditorMode) {
+	const current = () => request === loading && !left;
 	try {
 		const loaded = await loadEditor(doctype, mode);
-		return request === loading ? loaded : null;
+		return current() ? loaded : null;
 	} catch (error) {
-		if (request === loading) throw error;
+		if (current()) throw error;
 		return null;
 	}
 }
@@ -355,18 +382,23 @@ function confirmSwitch() {
 				{ message: __("This DocType has changes that are not saved.") },
 				{ title: __("Save before you switch?") }
 			),
-		save: async () => {
-			await save.save();
-			return !dirty.value;
-		},
+		save: saveFirst,
 	});
+}
+
+async function saveFirst() {
+	await save.save();
+	return !dirty.value;
 }
 
 const socket = getSocketInstance();
 const onExport = (...args: unknown[]) =>
 	save.exported(args[0] as ExportResult).catch((error) => toast.error(errorMessage(error)));
 socket?.on("doctype_export", onExport);
-onBeforeUnmount(() => socket?.off("doctype_export", onExport));
+onBeforeUnmount(() => {
+	left = true;
+	socket?.off("doctype_export", onExport);
+});
 
 onBeforeRouteLeave(confirmLeave);
 onBeforeRouteUpdate((to, from) =>

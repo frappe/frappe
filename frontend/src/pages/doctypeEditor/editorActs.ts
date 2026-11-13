@@ -1,5 +1,5 @@
-// The DocType editor's act surfaces. Every act is `<surface>.<item>` and takes one value; later
-// slices add `layouts` and `danger` here.
+// The DocType editor's act surfaces. Every act is `<surface>.<item>` and takes one value; a later
+// slice adds `layouts` here.
 import { toast } from "frappe-ui";
 import { onScopeDispose, type Ref } from "vue";
 import { acts, type ActEntry, type ActItem, type ActOption } from "@/acts/dispatcher";
@@ -8,6 +8,7 @@ import { errorMessage } from "@/recordPage/errorMessage";
 import { canvasItems, fieldItems } from "./canvasActs";
 import { childFieldItems } from "./childActs";
 import { customizeItems, modeItems, type CustomizeHost } from "./customizeActs";
+import { dangerItems, type DangerHost } from "./dangerActs";
 import type { DesignCanvas } from "./designCanvas";
 import { EditRefused, type FlatEdit } from "./editorModel";
 import type { EditorSave } from "./editorSave";
@@ -34,6 +35,7 @@ export interface EditorActsHost {
 	/** Opens the child table of the parent's Table field, by its fieldname. */
 	openChild?: (table: string) => void;
 	customize: CustomizeHost;
+	danger: DangerHost;
 }
 
 export const EDITOR_TABS: { value: EditorTab; label: string }[] = [
@@ -51,6 +53,7 @@ export function useEditorActs(host: EditorActsHost) {
 			fields: () => entries([...fieldItems(host), ...childFieldItems(host)]),
 			settings: () => entries(settingsItems(host)),
 			customize: () => entries(customizeItems(host)),
+			danger: () => entries(dangerItems(host)),
 		},
 		context: () => host,
 		passes: () => true,
@@ -228,7 +231,7 @@ function settingOptions(host: EditorActsHost, query: string): ActOption[] {
 	if (!canvas) return [];
 	const typed = query.toLowerCase();
 	const sections = new Map(SECTIONS.map((section) => [section.key, section]));
-	return settingRows(canvas.working.value.settings)
+	return settingRows(canvas.working.value.settings, host.danger.scope())
 		.filter((row) => [__(row.label), row.label, row.help, row.keywords ?? ""].join(" ").toLowerCase().includes(typed))
 		.map((row) => ({
 			value: { setting: row.key },
