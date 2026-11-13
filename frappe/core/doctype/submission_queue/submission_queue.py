@@ -79,7 +79,7 @@ class SubmissionQueue(Document):
 			"background_submission",
 			to_be_queued_doc=self.queued_doc,
 			action_for_queuing=self.action_for_queuing,
-			timeout=600,
+			timeout=frappe.get_system_settings("submission_queue_timeout") or 600,
 			enqueue_after_commit=True,
 		)
 
