@@ -280,6 +280,8 @@ class TestUser(IntegrationTestCase):
 			).run()
 			user.enabled = 0
 			user.save()
+			self.assertEqual(frappe.db.count("Sessions", {"user": user.name}), 1)
+			frappe.db.after_commit.run()
 			self.assertEqual(frappe.db.count("Sessions", {"user": user.name}), 0)
 
 	def test_get_value(self):

@@ -3,7 +3,7 @@
 
 from collections.abc import Iterable
 from datetime import timedelta
-from functools import cached_property, lru_cache
+from functools import cached_property, lru_cache, partial
 from typing import Any
 
 import frappe
@@ -418,7 +418,8 @@ class User(Document):
 		if login_manager := getattr(frappe.local, "login_manager", None):
 			login_manager.logout(user=self.name)
 		else:
-			clear_sessions(user=self.name, force=True)
+			# after commit: `delete_session` commits, and a rolled back disable must keep the sessions
+			frappe.db.after_commit.add(partial(clear_sessions, user=self.name, force=True))
 
 	def set_new_password(self, new_password=None):
 		"""Set New Password for user"""
