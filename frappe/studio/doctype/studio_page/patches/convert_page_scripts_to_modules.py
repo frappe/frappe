@@ -125,6 +125,10 @@ def to_setup_module(script: str, context_names: list[str]) -> str:
 	declared = set(bindings)
 	from_context = [name for name in dict.fromkeys(context_names) if name in used and name not in declared]
 	taken = declared | set(from_context)
+	# A script can declare `context`, or read a page variable with that name.
+	parameter = "context"
+	while parameter in taken:
+		parameter = "_" + parameter
 
 	lines = []
 	for module, names in IMPORTED_APIS.items():
@@ -134,9 +138,9 @@ def to_setup_module(script: str, context_names: list[str]) -> str:
 	if lines:
 		lines.append("")
 
-	lines.append("export default function setup(context) {")
+	lines.append(f"export default function setup({parameter}) {{")
 	if from_context:
-		lines.append(f"\tconst {{ {', '.join(from_context)} }} = context")
+		lines.append(f"\tconst {{ {', '.join(from_context)} }} = {parameter}")
 		lines.append("")
 	lines.append(indent_code(script.strip("\n")))
 	lines.append("")

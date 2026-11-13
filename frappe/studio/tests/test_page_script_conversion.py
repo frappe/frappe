@@ -63,6 +63,10 @@ class TestPageScriptConversion(IntegrationTestCase):
 		self.assertNotIn("= context", module)
 		self.assertIn("return { filter }", module)
 
+		module = to_setup_module("const context = ref(0)\nfilter.value = 1\n", ["filter"])
+		self.assertIn("export default function setup(_context) {", module)
+		self.assertIn("const { filter } = _context", module)
+
 	def test_a_template_literal_keeps_its_own_indentation(self):
 		module = to_setup_module("const html = `<p>\nhello\n</p>`\n", [])
 		self.assertIn("\tconst html = `<p>\nhello\n</p>`", module)
