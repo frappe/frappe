@@ -110,7 +110,7 @@ def complete_prefilled_setup(login_manager=None):
 	if not args:
 		return
 	# A failed setup rolls back; the login's own rows must already be in.
-	frappe.db.commit()
+	frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
 	try:
 		complete_app_setup(**args)
 	except Exception:
