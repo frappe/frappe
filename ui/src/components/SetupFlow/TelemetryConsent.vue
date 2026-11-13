@@ -7,8 +7,8 @@
 
 <script setup lang="ts">
 import { Checkbox, ErrorMessage, call } from "frappe-ui";
-import { getCurrentInstance, onMounted, ref } from "vue";
-import { telemetryPlugin, useTelemetry } from "../../telemetry";
+import { onMounted, ref } from "vue";
+import { useTelemetry } from "../../telemetry";
 
 // The desk wizard asks this on its first slide; an app that skips the wizard asks here.
 const props = withDefaults(
@@ -20,7 +20,6 @@ const props = withDefaults(
 );
 
 const telemetry = useTelemetry();
-const app = getCurrentInstance()!.appContext.app;
 const enabled = ref(true);
 const saving = ref(false);
 const error = ref("");
@@ -53,7 +52,7 @@ async function save(share: boolean) {
 	} finally {
 		saving.value = false;
 	}
-	if (share) telemetryPlugin.install(app, { app_name: props.appName });
+	if (share) telemetry.enable({ app_name: props.appName });
 	else telemetry.disable();
 }
 </script>
