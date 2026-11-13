@@ -60,7 +60,7 @@ class DesignEdits:
 		properties = edit.get("properties") or {}
 		for property in properties:
 			refuse_property(fieldname, property)
-		self.state.doc.append(
+		field = self.state.doc.append(
 			"fields",
 			{
 				**properties,
@@ -70,6 +70,7 @@ class DesignEdits:
 				"options": edit.get("options"),
 			},
 		)
+		self.state.refuse_deleted_table_rows(field, fieldname)
 		if edit.get("layout"):
 			self.canvas({**edit, "fieldname": fieldname}, "place_field", PLACE_KEYS)
 		elif fieldtype not in LAYOUT_BREAKS:

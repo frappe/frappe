@@ -239,6 +239,8 @@ class DesignState:
 		"""A deleted Table field keeps its rows, and a table of that name would show them again."""
 		if field.fieldtype not in table_fields or self.doc.is_new() or not field.options:
 			return
+		if field.options in self.children:
+			return
 		if frappe.db.exists(field.options, {"parenttype": self.name, "parentfield": fieldname}):
 			message = _("{0} still holds the rows of a deleted table. Choose another fieldname.")
 			raise field_error(message.format(fieldname), field.fieldname)

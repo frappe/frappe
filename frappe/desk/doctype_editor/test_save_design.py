@@ -466,6 +466,37 @@ class TestSaveDesign(IntegrationTestCase):
 		self.assertFalse(result["saved"])
 		self.assertEqual(result["errors"][0]["target"], {"kind": "field", "fieldname": "items"})
 
+	def test_a_new_table_field_does_not_bring_back_a_deleted_table_s_rows(self):
+		child = f"{DOCTYPE} Item"
+		self.addCleanup(delete_committed, "DocType", child)
+		table = {"act": "fields.add_field", "label": "Items", "fieldtype": "Table", "options": child}
+		added = self.save(
+			{
+				DOCTYPE: [{"act": "fields.add_child_table", "table_field": "items", "name": child}],
+				child: [{"act": "fields.add_field", "label": "Qty", "fieldtype": "Int"}],
+			}
+		)
+		self.assertTrue(added["saved"], added.get("errors"))
+		frappe.get_doc({"doctype": DOCTYPE, "title": "Old", "items": [{"qty": 1}]}).insert()
+		self.assertTrue(self.save([{"act": "fields.delete_field", "fieldname": "items"}])["saved"])
+
+		result = self.save([table])
+		self.assertFalse(result["saved"])
+		self.assertEqual(result["errors"][0]["target"], {"kind": "field", "fieldname": "items"})
+
+	def test_a_new_child_table_renamed_in_its_save_queries_no_missing_table(self):
+		child = f"{DOCTYPE} Item"
+		self.addCleanup(delete_committed, "DocType", child)
+		with patch.dict(frappe.conf, {"developer_mode": 1}), patch("frappe.log") as log:
+			result = self.save(
+				[
+					{"act": "fields.add_child_table", "table_field": "lines", "name": child},
+					{"act": "fields.rename_field", "fieldname": "lines", "new_fieldname": "order_lines"},
+				]
+			)
+		self.assertTrue(result["saved"], result.get("errors"))
+		self.assertFalse([call for call in log.call_args_list if "Error in query" in str(call)])
+
 	def test_a_renamed_table_field_leaves_other_parents_rows_alone(self):
 		child, other = f"{DOCTYPE} Item", f"{DOCTYPE} Other"
 		self.addCleanup(delete_committed, "DocType", child)
