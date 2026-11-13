@@ -1,7 +1,7 @@
 <!-- The DocType's description, light text typed in place under its name. It stages when left. -->
 <template>
 	<textarea
-		v-if="canvas.editable"
+		v-if="canvas.editable && !canvas.customize"
 		ref="input"
 		:value="description"
 		:placeholder="__('Add a description of what one record holds')"
