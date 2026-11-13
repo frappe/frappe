@@ -544,6 +544,9 @@ def bind_load_skill(agent: str | None) -> Tool:
 load_skill = bind_load_skill(None)
 
 
+EXECUTE_SLUG = "execute"
+
+
 @tool(
 	requires_confirmation=lambda args: args.get("read_only") is not True,
 	confirm_prompt=lambda args: args.get("description") or _("Run Python code"),

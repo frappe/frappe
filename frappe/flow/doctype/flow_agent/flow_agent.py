@@ -192,7 +192,8 @@ class FlowAgent(Document):
 
 	def client_tools(self, session: str | None = None) -> list[Tool]:
 		"""This agent's enabled tools, bound to `session` where needed. Attachment search is left
-		out until an embedding model is set, since nothing is indexed without one."""
+		out until an embedding model is set, since nothing is indexed without one, and execute
+		and Script tools while server scripts are off."""
 		from frappe.flow.doctype.flow_knowledge_settings.flow_knowledge_settings import (
 			embeddings_configured,
 		)
@@ -200,6 +201,7 @@ class FlowAgent(Document):
 		from frappe.flow.tools.builtins import (
 			ATTACHMENT_READ_SLUG,
 			ATTACHMENT_SEARCH_SLUG,
+			EXECUTE_SLUG,
 			KNOWLEDGE_SEARCH_SLUG,
 			SERVER_TOOL_SLUGS,
 			SKILL_TOOL_SLUG,
@@ -210,11 +212,15 @@ class FlowAgent(Document):
 			bind_update_memory,
 			builtin_name,
 		)
+		from frappe.utils.safe_exec import is_safe_exec_enabled
 
 		daemon_builtins = {builtin_name(slug) for slug in SERVER_TOOL_SLUGS}
+		scripts_off = not is_safe_exec_enabled()
 		resolved: list[Tool] = []
 		for tool_doc in self._enabled_tool_docs():
 			if tool_doc.name in daemon_builtins or tool_doc.type == "Server":
+				continue
+			if scripts_off and (tool_doc.type == "Script" or tool_doc.name == builtin_name(EXECUTE_SLUG)):
 				continue
 			if tool_doc.name == builtin_name(KNOWLEDGE_SEARCH_SLUG):
 				resolved.append(bind_search_knowledge([kb.knowledge_base for kb in self.knowledge_bases]))
