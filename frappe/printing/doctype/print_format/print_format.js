@@ -98,6 +98,59 @@ frappe.ui.form.on("Print Format", {
 					})
 				)
 		);
+		if (!frm.doc.disabled) {
+			frm.add_custom_button(__("Replace with Editor Format"), () =>
+				frm.trigger("replace_with_editor_format")
+			);
+		}
+	},
+	replace_with_editor_format: async function (frm) {
+		const suggested = __("{0} (Editor)", [frm.doc.name]);
+		const exists = await frappe.db.exists("Print Format", suggested);
+		const dialog = new frappe.ui.Dialog({
+			title: __("Replace with Editor Format"),
+			fields: [
+				{
+					fieldname: "editor_format",
+					fieldtype: "Link",
+					options: "Print Format",
+					label: __("Editor Format"),
+					reqd: 1,
+					default: exists ? suggested : "",
+					get_query: () => ({
+						filters: {
+							doc_type: frm.doc.doc_type,
+							print_format_builder_beta: 1,
+							disabled: 0,
+						},
+					}),
+				},
+				{
+					fieldtype: "HTML",
+					options: `<p class="text-muted">${__(
+						"Everything that prints with {0}, like the default format, notifications and auto repeat, will use the selected format instead, and {0} will be disabled.",
+						[frappe.utils.escape_html(frm.doc.name)]
+					)}</p>`,
+				},
+			],
+			primary_action_label: __("Replace"),
+			primary_action: ({ editor_format }) =>
+				frappe
+					.call({
+						method: "frappe.printing.doctype.print_format.print_designer_converter.replace_with_editor_format",
+						args: { print_format: frm.doc.name, editor_format },
+						freeze: true,
+					})
+					.then(() => {
+						dialog.hide();
+						frappe.show_alert({
+							message: __("Replaced with {0}", [editor_format]),
+							indicator: "green",
+						});
+						frm.reload_doc();
+					}),
+		});
+		dialog.show();
 	},
 	custom_format: function (frm) {
 		var value = frm.doc.custom_format ? 0 : 1;
