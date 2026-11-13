@@ -4,6 +4,7 @@ import type { RawMetaField } from "@framework/ui/FormLayout/types";
 import type { FormLayoutType, LayoutTree } from "@/recordPage/formLayoutSource/types";
 import type { DoctypeDefinition, EditorLayout, EditorState, LayoutSource } from "./editorSource";
 import { LAYOUT_BREAKS } from "./fieldRules";
+import { layoutFromFields } from "./fieldsLayout";
 import { EditRefused } from "./layoutTree";
 import type { EditorMode } from "./pendingEdits";
 
@@ -115,7 +116,8 @@ export function fallbackTabs(working: LayoutsHolder, type: FormLayoutType): Layo
 	if (type === "New Record") return structuredClone(tabsOf(working, { type: "Details" }));
 	if (type === "Quick Entry") return quickEntryLayout(fallbackFields(working));
 	if (type === "Side Panel") return sidePanelTabs();
-	return structuredClone(working.layouts.Details?.empty?.tabs ?? []);
+	const empty = working.layouts.Details?.empty;
+	return empty ? structuredClone(empty.tabs) : layoutFromFields(fallbackFields(working));
 }
 
 /** `side_panel_tabs`: the record panel draws a section's header, and its open state, only from a label. */

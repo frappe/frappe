@@ -34,6 +34,43 @@ describe("the layouts a load gives", () => {
 		expect(ids(design, "Side Panel")).toEqual([]);
 	});
 
+	it("an app file with only conditional Details layouts gets a default drawn from the fields, as the record draws it", () => {
+		const fields = [
+			{ fieldname: "subject", label: "Subject", fieldtype: "Small Text" },
+			{ fieldname: "more", label: "More", fieldtype: "Section Break", depends_on: "eval:doc.status" },
+			{ fieldname: "status", label: "Status", fieldtype: "Select" },
+			{ fieldname: "side", fieldtype: "Column Break" },
+			{ fieldname: "notes", label: "Notes", fieldtype: "Text" },
+		];
+		const done = { name: null, source: "app" as const, title: "Done", condition: "doc.done", omitted: [], layout: tabs("subject") };
+		const lead = leadNote();
+		const working = editorBase(
+			leadNote({
+				layouts: { ...lead.layouts, Details: [done] },
+				definition: { ...lead.definition, fields } as never,
+			}),
+		);
+		const drawn = [
+			{
+				name: "first_tab",
+				sections: [
+					{ name: "section_1", columns: [{ name: "column_1", fields: ["subject"] }] },
+					{
+						name: "more",
+						label: "More",
+						dependsOn: "eval:doc.status",
+						columns: [
+							{ name: "column_1", fields: ["status"] },
+							{ name: "side", fields: ["notes"] },
+						],
+					},
+				],
+			},
+		];
+		expect(layoutOf(working, DETAILS)).toMatchObject({ source: "fallback", tabs: drawn });
+		expect(tabsOf(working, { type: "New Record" })).toEqual(drawn);
+	});
+
 	it("a child table has Details only, a Single Details and Side Panel", () => {
 		const child = editorBase(taskNote({ definition: { ...taskNote().definition, istable: 1 } }));
 		const single = editorBase(taskNote({ definition: { ...taskNote().definition, issingle: 1 } }));

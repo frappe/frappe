@@ -108,9 +108,12 @@ describe("editorBase", () => {
 		expect(base.settings.properties.description).toBe("Notes on tasks");
 	});
 
-	it("starts with no tabs when the DocType has no Details layout", () => {
+	it("draws the fields when the DocType has no Details layout", () => {
 		const bare = { ...state(), layouts: {} };
-		expect(details(editorBase(bare))).toEqual([]);
+		const fields = ["subject", "status", "due", "notes", "spare"];
+		expect(details(editorBase(bare))).toEqual([
+			{ name: "first_tab", sections: [{ name: "section_1", columns: [{ name: "column_1", fields }] }] },
+		]);
 	});
 });
 
