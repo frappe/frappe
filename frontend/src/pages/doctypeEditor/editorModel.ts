@@ -164,7 +164,7 @@ class DesignReplay {
 	setFieldProperty({ fieldname, property, value }: { fieldname: string; property: string; value: unknown }) {
 		const field = this.field(fieldname);
 		refuseProperty(property);
-		if (this.state.customize) refuseLocked(this.state.customize, fieldname, property);
+		if (this.state.customize) refuseLocked(this.state.customize, field, property);
 		(field as unknown as Record<string, unknown>)[property] = value;
 	}
 

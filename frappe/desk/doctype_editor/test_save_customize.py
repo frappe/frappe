@@ -232,6 +232,20 @@ class TestSaveCustomize(IntegrationTestCase):
 		self.assertEqual(result["skipped"][0]["target"]["property"], "in_list_view")
 		self.assertIsNone(property_value(NOTE, "seen_by_section", "in_list_view"))
 
+	def test_a_select_turned_data_takes_new_options(self):
+		edit = {"act": "fields.set_field_property", "fieldname": "status"}
+		result = save(
+			CONTACT,
+			[
+				{**edit, "property": "fieldtype", "value": "Data"},
+				{**edit, "property": "options", "value": ""},
+			],
+		)
+		self.assertTrue(result["saved"], result)
+		self.assertFalse(result.get("skipped"))
+		self.assertEqual(property_value(CONTACT, "status", "fieldtype"), "Data")
+		self.assertEqual(property_value(CONTACT, "status", "options"), "")
+
 	def test_a_system_manager_saves_and_only_a_system_manager_renames(self):
 		with self.set_user("test@example.com"):
 			self.assertTrue(save(NOTE, [add_field("T47273 Mine")])["saved"])

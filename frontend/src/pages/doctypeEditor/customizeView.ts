@@ -1,7 +1,8 @@
 // What Customize shows on the canvas and the panel: only what the site changed, and what it may not.
 import type { ComputedRef } from "vue";
 import type { RawMetaField } from "@framework/ui/FormLayout/types";
-import { appValue, sameValue, siteSetters } from "./customizeRules";
+import { appValue, lockOf, sameValue, siteSetters } from "./customizeRules";
+import { isCheckProperty } from "./fieldPanel";
 import type { FlatEdit, WorkingState } from "./editorModel";
 import type { EditorState } from "./editorSource";
 
@@ -40,7 +41,9 @@ export class CustomizeView {
 	}
 
 	lock(fieldname: string, property: string): string | undefined {
-		return this.state.locks?.[fieldname]?.[property];
+		const field = this.field(fieldname);
+		const rules = this.base.customize;
+		return rules && field ? lockOf(rules, field, property) : undefined;
 	}
 
 	/** The types Customize Form lets a standard field become; `null` when any type goes. */
@@ -78,7 +81,7 @@ export class CustomizeView {
 	/** The save writes nothing for a property staged back to its loaded value. */
 	unchanged(fieldname: string, property: string): boolean {
 		const loaded = this.base.fields.find((field) => field.fieldname === fieldname);
-		return sameValue(value(this.field(fieldname), property), value(loaded, property));
+		return sameValue(value(this.field(fieldname), property), value(loaded, property), isCheckProperty(property));
 	}
 
 	/** The saved setters' properties and the staged ones, wherever they differ from the app's value. */
@@ -92,7 +95,9 @@ export class CustomizeView {
 			if (edit.fieldname === fieldname && edit.act === "fields.set_field_property")
 				for (const property of editedProperties(edit)) properties.add(property);
 		const field = this.field(fieldname);
-		return [...properties].filter((property) => !sameValue(value(field, property), this.appValue(fieldname, property)));
+		return [...properties].filter(
+			(property) => !sameValue(value(field, property), this.appValue(fieldname, property), isCheckProperty(property)),
+		);
 	}
 
 	private field(fieldname: string): RawMetaField | undefined {

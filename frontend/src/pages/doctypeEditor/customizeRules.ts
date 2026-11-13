@@ -1,6 +1,7 @@
 // What Customize allows on top of the Design replay, as `customize_edits.py` and `customize_state.py`
 // check it on save. Plain data, so the working state still clones.
 import type { RawMetaField } from "@framework/ui/FormLayout/types";
+import { __ } from "@/i18n";
 import type { EditorState } from "./editorSource";
 import { fieldnameFromLabel } from "./fieldRules";
 import { EditRefused } from "./layoutTree";
@@ -44,8 +45,17 @@ export function customFieldname(label: string): string {
 	return fieldname.startsWith("custom_") ? fieldname : `custom_${fieldname}`;
 }
 
-export function refuseLocked(rules: CustomizeRules, fieldname: string, property: string) {
-	const reason = rules.locks[fieldname]?.[property];
+/** Customize Form checks options against the field's type at save, so a Select turned Data takes new ones. */
+const OPTIONS_CHANGE = ["Read Only", "HTML", "Data"];
+
+export function lockOf(rules: CustomizeRules, field: RawMetaField, property: string): string | undefined {
+	if (property !== "options") return rules.locks[field.fieldname]?.[property];
+	if (!rules.standard.includes(field.fieldname) || OPTIONS_CHANGE.includes(field.fieldtype)) return undefined;
+	return __("Options of a {0} field cannot be changed.", [__(field.fieldtype)]);
+}
+
+export function refuseLocked(rules: CustomizeRules, field: RawMetaField, property: string) {
+	const reason = lockOf(rules, field, property);
 	if (reason) throw new EditRefused(reason);
 }
 
@@ -60,11 +70,12 @@ export function appValue(rules: CustomizeRules, loaded: RawMetaField, property: 
 	return (loaded as unknown as Record<string, unknown>)[property];
 }
 
-/** Setter values are text and unset checks are absent, so "0", 0 and undefined read the same. */
-export function sameValue(a: unknown, b: unknown): boolean {
-	return blankAsEmpty(a) === blankAsEmpty(b);
+/** Setter values are text and unset checks are absent, so a check's "0", 0 and undefined read the same. */
+export function sameValue(a: unknown, b: unknown, check: boolean): boolean {
+	return blankAsEmpty(a, check) === blankAsEmpty(b, check);
 }
 
-function blankAsEmpty(value: unknown): string {
-	return value == null || value === false || value === 0 || value === "0" ? "" : String(value);
+function blankAsEmpty(value: unknown, check: boolean): string {
+	if (value == null || (check && (value === false || value === 0 || value === "0"))) return "";
+	return String(value);
 }

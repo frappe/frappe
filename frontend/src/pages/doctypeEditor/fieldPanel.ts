@@ -205,6 +205,10 @@ const CHECK_PROPERTIES = new Set([
 	...PROPERTY_GROUPS.flatMap((group) => group.properties).filter((one) => one.type === "check").map((one) => one.key),
 ]);
 
+export function isCheckProperty(property: string): boolean {
+	return CHECK_PROPERTIES.has(property);
+}
+
 const FIELD_ROW_LABELS: Record<string, string> = {
 	label: "Label",
 	fieldtype: "Type",

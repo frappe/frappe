@@ -72,6 +72,15 @@ describe("the canvas marks in Customize", () => {
 		expect(canvas.customize!.unchanged("subject", "label")).toBe(false);
 	});
 
+	it("mark a property set to zero, unless it is a check", async () => {
+		const { canvas } = mount();
+		await acts.run("fields.set_field_property", { fieldname: "notes", property: "precision", value: "0" });
+		await acts.run("fields.set_field_property", { fieldname: "notes", property: "bold", value: 0 });
+		expect(canvas.customize!.marks("notes").changed).toEqual(["precision"]);
+		expect(canvas.customize!.unchanged("notes", "precision")).toBe(false);
+		expect(canvas.customize!.unchanged("notes", "bold")).toBe(true);
+	});
+
 	it("a new field is a custom field named custom_ and its label", async () => {
 		const { canvas } = mount();
 		await acts.run("fields.add_field", { label: "Due On", fieldtype: "Date", section: "main", column: "column_1" });
@@ -96,6 +105,16 @@ describe("the panel in Customize", () => {
 		await acts.perform("fields.set_field_property", { fieldname: "notes", property: "reqd", value: 0 });
 		expect(edits.staged.value).toEqual([]);
 		expect(toast.error).toHaveBeenCalledWith("The app makes this field mandatory.");
+	});
+
+	it("locks a Select's options until its type becomes Data, as the save checks them", async () => {
+		const { canvas, edits } = mount();
+		expect(canvas.customize!.lock("status", "options")).toBe("Options of a Select field cannot be changed.");
+		expect(canvas.customize!.lock("spare", "options")).toBeUndefined();
+		await acts.perform("fields.set_field_property", { fieldname: "status", properties: { fieldtype: "Data", options: "" } });
+		expect(edits.staged.value.map((edit) => edit.property)).toEqual(["fieldtype", "options"]);
+		expect(canvas.customize!.lock("status", "options")).toBeUndefined();
+		expect(toast.error).not.toHaveBeenCalled();
 	});
 
 	it("resets one changed property to the app's value and keeps the others", async () => {

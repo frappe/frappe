@@ -6,7 +6,6 @@ from frappe import _
 from frappe.core.doctype.doctype.doctype import get_fields_not_allowed_in_list_view
 from frappe.custom.doctype.customize_form.customize_form import (
 	ALLOWED_FIELDTYPE_CHANGE,
-	ALLOWED_OPTIONS_CHANGE,
 	is_standard_or_system_generated_field,
 )
 from frappe.model.docfield import supports_translation
@@ -79,7 +78,8 @@ def setter_owner(row, app_doc, app_fields: dict):
 
 
 def field_locks(df, app_field, not_in_list_view: list) -> dict[str, str]:
-	"""Mirrors `CustomizeForm.check_property_change`: `property -> reason` for each refused change."""
+	"""Mirrors `CustomizeForm.check_property_change`: `property -> reason` for each refused change.
+	Options are left out: the save checks them against the field's new type, so the client does too."""
 	locks = {}
 	if app_field and app_field.reqd:
 		locks["reqd"] = _("The app makes this field mandatory.")
@@ -89,8 +89,6 @@ def field_locks(df, app_field, not_in_list_view: list) -> dict[str, str]:
 		locks["allow_on_submit"] = _("The app does not allow this field to change after submit.")
 	if app_field and not app_field.is_virtual:
 		locks["is_virtual"] = _("A standard field cannot become virtual.")
-	if df.fieldtype not in ALLOWED_OPTIONS_CHANGE:
-		locks["options"] = _("Options of a {0} field cannot be changed.").format(_(df.fieldtype))
 	if not supports_translation(df.fieldtype):
 		locks["translatable"] = _("A {0} field cannot be translated.").format(_(df.fieldtype))
 	if df.fieldtype in not_in_list_view:
