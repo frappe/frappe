@@ -1603,7 +1603,7 @@ def get_enabled_users():
 
 @frappe.whitelist(methods=["POST"])
 def impersonate(user: str, reason: str):
-	frappe.has_permission("User", "impersonate", throw=True)
+	frappe.has_permission("User", "impersonate", doc=user, throw=True)
 
 	impersonator = frappe.session.user
 	frappe.get_doc(
