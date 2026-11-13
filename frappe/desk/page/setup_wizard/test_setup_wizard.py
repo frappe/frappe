@@ -178,3 +178,57 @@ class TestCompleteAppSetup(IntegrationTestCase):
 				self.assertRaises(frappe.ValidationError, setup_wizard.complete_app_setup)
 			with patch.object(frappe, "is_setup_complete", return_value=True):
 				self.assertEqual(setup_wizard.complete_app_setup(), {"status": "ok"})
+
+
+class TestPrefilledSetup(IntegrationTestCase):
+	def setUp(self):
+		patcher = patch.object(frappe, "is_setup_complete", return_value=False)
+		patcher.start()
+		self.addCleanup(patcher.stop)
+
+	def args(self, apps=None):
+		apps = apps or {"frappe": {}}
+		with (
+			patch.object(frappe, "get_active_apps", return_value=list(apps)),
+			patch.object(frappe, "get_hooks", side_effect=fake_hooks(apps)),
+		):
+			return setup_wizard.get_prefilled_setup_args()
+
+	@IntegrationTestCase.change_settings(
+		"System Settings", country="India", time_zone="Asia/Kolkata", currency="INR"
+	)
+	def test_uses_the_region_frappe_cloud_saved(self):
+		args = self.args()
+		self.assertEqual(
+			(args["country"], args["timezone"], args["currency"]), ("India", "Asia/Kolkata", "INR")
+		)
+
+	@IntegrationTestCase.change_settings("System Settings", country=None)
+	def test_a_site_without_a_saved_region_keeps_the_wizard(self):
+		self.assertIsNone(self.args())
+
+	@IntegrationTestCase.change_settings("System Settings", country=None)
+	def test_frappe_cloud_v2_saves_no_region(self):
+		with patch.dict(
+			frappe.conf, {"pilot_endpoint": "https://pilot.example.com", "pilot_auth_token": "t"}
+		):
+			self.assertIsNotNone(self.args())
+
+	@IntegrationTestCase.change_settings(
+		"System Settings", country="India", time_zone="Asia/Kolkata", currency="INR"
+	)
+	def test_an_app_with_wizard_stages_keeps_the_wizard(self):
+		self.assertIsNone(self.args({"erpnext": {"setup_wizard_stages": ["erpnext.setup.stages"]}}))
+
+	@IntegrationTestCase.change_settings(
+		"System Settings", country="India", time_zone="Asia/Kolkata", currency="INR"
+	)
+	def test_an_app_with_its_own_setup_page_keeps_it(self):
+		self.assertIsNone(self.args({"suite": {"setup_wizard_url": ["/suite/setup"]}}))
+
+	@IntegrationTestCase.change_settings(
+		"System Settings", country="India", time_zone="Asia/Kolkata", currency="INR"
+	)
+	def test_only_a_system_manager_login_finishes_setup(self):
+		with set_user("Guest"):
+			self.assertIsNone(self.args())

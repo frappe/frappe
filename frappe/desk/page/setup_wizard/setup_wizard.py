@@ -99,6 +99,47 @@ def setup_complete(args: str | dict[str, Any]):
 		return {"status": "ok"}
 
 
+def complete_prefilled_setup(login_manager=None):
+	"""On login, finish setup with the region Frappe Cloud saved at sign-up, so the site owner
+	skips the desk wizard. A site set up any other way keeps the wizard."""
+	args = get_prefilled_setup_args()
+	if not args:
+		return
+	try:
+		complete_app_setup(**args)
+	except Exception:
+		frappe.log_error(title="Setup from the saved region failed")
+		# The login still succeeded; keep the wizard's failure out of its response.
+		frappe.clear_messages()
+		frappe.response.pop("setup_wizard_failure_message", None)
+
+
+def get_prefilled_setup_args() -> dict | None:
+	from frappe.core.doctype.installed_applications.installed_applications import has_non_admin_user
+	from frappe.integrations.frappe_providers.cloud_settings import is_v2_site
+
+	if frappe.is_setup_complete() or frappe.conf.skip_setup_wizard:
+		return None
+	if "System Manager" not in frappe.get_roles():
+		return None
+	if frappe.get_hooks("setup_wizard_url") or site_requires_builtin_wizard():
+		return None
+
+	settings = frappe.get_single("System Settings")
+	prefilled = settings.country and settings.time_zone and settings.currency
+	# Frappe Cloud v2 creates the owner but saves no region.
+	if not has_non_admin_user() or not (prefilled or is_v2_site()):
+		return None
+
+	return {
+		"country": settings.country,
+		"currency": settings.currency,
+		"timezone": settings.time_zone,
+		"language": frappe.db.get_value("Language", settings.language, "language_name") or "English",
+		"enable_telemetry": settings.enable_telemetry,
+	}
+
+
 @frappe.whitelist(methods=["POST"])
 def complete_app_setup(
 	country: str | None = None,
@@ -259,7 +300,7 @@ def enable_setup_wizard_complete(app_name):
 
 def update_global_settings(args):  # nosemgrep
 	if args.language and args.language != "English":
-		set_default_language(get_language_code(args.lang))
+		set_default_language(get_language_code(args.language))
 	frappe.clear_cache()
 
 	update_system_settings(args)

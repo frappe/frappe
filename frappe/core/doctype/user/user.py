@@ -40,6 +40,7 @@ from frappe.utils.html_utils import sanitize_html
 from frappe.utils.password import (
 	check_password,
 	get_password_reset_limit,
+	has_password,
 	is_password_reused,
 	verify_against_placeholder,
 )
@@ -1395,6 +1396,65 @@ def sign_up(email: str, full_name: str, redirect_to: str) -> tuple[int, str]:
 		return 1, _("Please check your email for verification")
 	else:
 		return 2, _("Please ask your administrator to verify your sign-up")
+
+
+def needs_password_setup(user: str | None = None) -> bool:
+	"""Whether the user was given a session without ever having a password, like a Frappe Cloud
+	site owner, and so cannot get back in once it ends. False for users who sign in without one."""
+	from frappe.integrations.frappe_providers.cloud_settings import is_v2_site
+
+	user = user or frappe.session.user
+	if user in STANDARD_USERS or has_password(user):
+		return False
+	if is_v2_site() or frappe.get_system_settings("disable_user_pass_login"):
+		return False
+	if frappe.get_system_settings("login_with_email_link"):
+		return False
+	if frappe.db.get_single_value("LDAP Settings", "enabled"):
+		return False
+	return not frappe.db.exists(
+		"User Social Login",
+		{"parenttype": "User", "parent": user, "provider": ["!=", "frappe"], "userid": ["is", "set"]},
+	)
+
+
+def redirect_to_password_setup() -> None:
+	"""For an app's page controller: send a user who `needs_password_setup` to set one."""
+	if not needs_password_setup():
+		return
+
+	link = frappe.get_doc("User", frappe.session.user)._reset_password()
+	frappe.local.flags.commit = True
+	frappe.local.flags.redirect_location = link
+	# A cached permanent redirect would keep sending them to the spent key.
+	raise frappe.Redirect(302)
+
+
+@frappe.whitelist()
+def password_setup_needed() -> bool:
+	"""For an app's setup flow: whether the signed-in user still has to set a first password."""
+	return needs_password_setup()
+
+
+@frappe.whitelist(methods=["POST"])
+@rate_limit(limit=5, seconds=60)
+def set_first_password(new_password: str) -> None:
+	"""A signed-in user who never had a password (a new Frappe Cloud site owner) sets one, from an
+	app's setup flow, without a reset link. Anyone else changes theirs the usual way."""
+	from frappe.utils.password import validate_password_size
+
+	validate_password_size(new_password, _("New Password"))
+	if not needs_password_setup():
+		frappe.throw(_("You already have a password. Change it from your settings."), frappe.PermissionError)
+	user = frappe.get_doc("User", frappe.session.user)
+	feedback = test_password_strength(
+		new_password,
+		user_data=(user.first_name, user.middle_name, user.last_name, user.email, user.birth_date),
+	)
+	if feedback and not feedback.get("feedback", {}).get("password_policy_validation_passed", False):
+		handle_password_test_fail(feedback)
+	_update_password(user.name, new_password)
+	frappe.db.set_value("User", user.name, {"last_password_reset_date": today(), "reset_password_key": ""})
 
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])
