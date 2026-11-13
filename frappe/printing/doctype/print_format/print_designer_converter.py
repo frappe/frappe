@@ -323,11 +323,19 @@ class PrintDesignerConverter:
 
 	def stack_pieces(self, stack: list[dict]) -> list[tuple[float, float, str, bool]]:
 		pieces = []
-		for element in sorted(stack, key=lambda e: flt(e.get("startY"))):
-			start, height = flt(element.get("startY")), flt(element.get("height"))
-			html = "".join(self.element_html(e) for e in self.flatten([element]))
-			fixed = element.get("type") in ("text", "rectangle") and not element.get("isDynamicHeight")
-			pieces.append((start, start + height, html, fixed))
+		for band in self.overlapping_rows(
+			sorted(stack, key=lambda e: (flt(e.get("startY")), flt(e.get("startX"))))
+		):
+			if len(self.stacks(band)) > 1:
+				start = min(flt(e.get("startY")) for e in band)
+				end = max(flt(e.get("startY")) + flt(e.get("height")) for e in band)
+				pieces.append((start, end, self.row_html(band), False))
+				continue
+			for element in sorted(band, key=lambda e: flt(e.get("startY"))):
+				start, height = flt(element.get("startY")), flt(element.get("height"))
+				html = "".join(self.element_html(e) for e in self.flatten([element]))
+				fixed = element.get("type") in ("text", "rectangle") and not element.get("isDynamicHeight")
+				pieces.append((start, start + height, html, fixed))
 		return pieces
 
 	def stacks(self, elements: list[dict]) -> list[list[dict]]:
