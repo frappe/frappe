@@ -5,8 +5,8 @@ import {
 import { createDocumentResource, createListResource, createResource, call } from "frappe-ui"
 import { studioPageResources } from "@/data/studioResources"
 import { studioVariables } from "@/data/studioVariables"
-import { hasPageScript, loadPageScriptModule } from "@/data/studioPageScripts"
-import { loadAppPageScriptModule } from "@/browserRuntime/appRuntime"
+import { hasBuiltPageScript, loadBuiltPageScript } from "@/data/studioPageScripts"
+import { compilePageScript } from "@/browserRuntime/appRuntime"
 import * as globalUtils from "@/utils/globalUtils"
 import { useSocket } from "@/socket"
 import { getInitialVariableValue, getValueFromObject, setValueInObject } from "@/utils/helpers"
@@ -389,9 +389,9 @@ export function createPageScope(
 	}
 
 	async function loadPageSetupModule(page: StudioPage): Promise<Record<string, any> | null> {
-		if (hasPageScript(page.name)) return loadPageScriptModule(page.name)
+		if (hasBuiltPageScript(page.name)) return loadBuiltPageScript(page.name)
 		if (!page.script?.trim()) return null
-		return loadAppPageScriptModule(page)
+		return compilePageScript(page)
 	}
 
 	// Changing the version remounts the host, cleaning up the previous script before running the new one.

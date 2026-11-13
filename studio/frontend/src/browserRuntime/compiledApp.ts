@@ -67,7 +67,7 @@ export async function loadAppRouterConfig(): Promise<RouterConfig | undefined> {
 }
 
 /** Load a page script at the path used by repository apps. Its default export is setup(). */
-export async function loadAppPageScriptModule(page: {
+export async function compilePageScript(page: {
 	page_title?: string
 	script?: string | null
 }): Promise<Record<string, any> | null> {

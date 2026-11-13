@@ -33,11 +33,11 @@ export async function loadAppRouterConfig(): Promise<RouterConfig | undefined> {
 	return (await compiledApp()).loadAppRouterConfig()
 }
 
-export async function loadAppPageScriptModule(page: {
+export async function compilePageScript(page: {
 	page_title?: string
 	script?: string | null
 }): Promise<Record<string, any> | null> {
-	return (await compiledApp()).loadAppPageScriptModule(page)
+	return (await compiledApp()).compilePageScript(page)
 }
 
 /** Return a page script's syntax error, or null if the module parses. */

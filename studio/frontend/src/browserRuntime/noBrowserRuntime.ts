@@ -11,7 +11,7 @@ function notBuiltForThisApp(): never {
 
 export const loadAppRuntime = notBuiltForThisApp
 export const loadAppRouterConfig = notBuiltForThisApp
-export const loadAppPageScriptModule = notBuiltForThisApp
+export const compilePageScript = notBuiltForThisApp
 export const checkAppScript = notBuiltForThisApp
 
 export async function reloadAppRuntime(): Promise<void> {}
