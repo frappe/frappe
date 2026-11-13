@@ -29,7 +29,11 @@ def get_print_designer_formats() -> list[dict]:
 		fields=["name", "doc_type", "disabled", "standard", "print_designer", "print_format_builder_beta"],
 		order_by="doc_type asc, name asc",
 	)
-	rows = [row for row in rows if row.print_designer or row.print_format_builder_beta]
+	rows = [
+		row
+		for row in rows
+		if (row.print_designer or row.print_format_builder_beta) and frappe.db.exists("DocType", row.doc_type)
+	]
 	samples = {}
 	for row in rows:
 		row.converted = not row.print_designer
