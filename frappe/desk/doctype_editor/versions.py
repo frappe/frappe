@@ -2,6 +2,8 @@
 # License: MIT. See LICENSE
 """What the editor loaded, so a save can refuse when someone else changed it since."""
 
+import hashlib
+
 import frappe
 from frappe import _
 from frappe.desk.doctype.form_layout.app_layout import read_app_layouts
@@ -16,7 +18,18 @@ def base_version(doctype: str) -> dict:
 		"doctype": str(frappe.db.get_value("DocType", doctype, "modified")),
 		"layouts": {row.name: str(row.modified) for row in rows},
 		"app_layouts": {type: found.version for type, found in app_layouts.items() if found},
+		"customizations": customizations_version(doctype),
 	}
+
+
+def customizations_version(doctype: str) -> str:
+	"""Custom Field and Property Setter writes leave the DocType's `modified` alone; names count deletes."""
+	rows = [
+		*frappe.get_all("Custom Field", filters={"dt": doctype}, fields=["name", "modified"]),
+		*frappe.get_all("Property Setter", filters={"doc_type": doctype}, fields=["name", "modified"]),
+	]
+	pairs = sorted((row.name, str(row.modified)) for row in rows)
+	return hashlib.sha256(frappe.as_json(pairs).encode()).hexdigest()
 
 
 def stale_error(doctype: str, loaded: dict, rows: list[str], app_types: list[str]) -> dict | None:

@@ -28,21 +28,25 @@ from frappe.model.utils.rename_field import (
 @frappe.whitelist(methods=["POST"])
 def save_doctype_editor(doctype: str, mode: str, base_version: dict | str, edits: list | dict) -> dict:
 	check_mode(doctype, mode)
-	if mode != "Design":
-		frappe.throw(_("The Customize save is not built yet."))
-	return DesignSave(doctype, frappe.parse_json(base_version), frappe.parse_json(edits)).run()
+	# CustomizeSave subclasses DesignSave, so it imports this module.
+	from frappe.desk.doctype_editor.customize_save import CustomizeSave
+
+	save = CustomizeSave if mode == "Customize" else DesignSave
+	return save(doctype, frappe.parse_json(base_version), frappe.parse_json(edits)).run()
 
 
 WRITE_SAVEPOINT = "doctype_editor_write"
 
 
 class DesignSave:
+	State, Edits, Checks = DesignState, DesignEdits, DesignChecks
+
 	def __init__(self, doctype: str, base_version: dict, edits: list | dict):
 		"""`edits` is the parent's list, or `{doctype: [edits]}` for the parent and the child tables it adds."""
 		self.doctype = doctype
 		self.base_version = base_version
 		self.edits = edits if isinstance(edits, dict) else {doctype: edits}
-		self.state = DesignState(doctype)
+		self.state = self.State(doctype)
 		self.errors: list[dict] = []
 
 	def run(self) -> dict:
@@ -70,7 +74,8 @@ class DesignSave:
 				self.errors.append({**EditError(message).as_dict(), "doctype": doctype})
 
 	def apply(self, state: DesignState, edits: list, doctype: str | None = None):
-		applier = DesignEdits(state)
+		# A child table this save adds is a new DocType, so it takes Design's edits in either mode.
+		applier = DesignEdits(state) if doctype else self.Edits(state)
 		for index, edit in enumerate(edits):
 			try:
 				applier.apply(edit)
@@ -92,7 +97,8 @@ class DesignSave:
 		if stale := stale_error(self.doctype, self.base_version, rows, self.written_app_types()):
 			self.errors.insert(0, stale)
 		if not self.errors:
-			self.errors = DesignChecks(self.state).errors()
+			self.checks = self.Checks(self.state)
+			self.errors = self.checks.errors()
 
 	def written_app_types(self) -> list[str]:
 		return sorted(self.state.touched) if self.state.standard else []
@@ -207,9 +213,13 @@ def move_field_data(doctype: str, old: str, new: str):
 	if not field or field.fieldtype not in table_fields:
 		rename_field(doctype, old, new)
 		return
-	child = frappe.qb.DocType(field.options)
+	move_table_rows(doctype, field.options, old, new)
+	update_property_setters(doctype, old, new)
+	update_user_settings(doctype, old, new)
+
+
+def move_table_rows(doctype: str, child_doctype: str, old: str, new: str):
+	child = frappe.qb.DocType(child_doctype)
 	frappe.qb.update(child).set(child.parentfield, new).where(
 		(child.parenttype == doctype) & (child.parentfield == old)
 	).run()
-	update_property_setters(doctype, old, new)
-	update_user_settings(doctype, old, new)

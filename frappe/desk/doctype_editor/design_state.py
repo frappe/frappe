@@ -63,15 +63,17 @@ class DesignState:
 		doc = frappe.new_doc("DocType")
 		doc.update(
 			{
+				**self.child_defaults(),
 				"name": name,
-				"module": self.doc.module,
-				"custom": self.doc.custom,
 				"istable": 1,
 				"editable_grid": 1,
 			}
 		)
 		self.children[name] = DesignState(name, doc)
 		return self.children[name]
+
+	def child_defaults(self) -> dict:
+		return {"module": self.doc.module, "custom": self.doc.custom}
 
 	@property
 	def standard(self) -> bool:
@@ -92,20 +94,24 @@ class DesignState:
 		return layout_type_refusal(self.name, type)
 
 	def load_layouts(self, type: str) -> list[EditorLayout]:
-		if self.standard:
-			app_layouts = read_app_layouts(self.name, type)
-			return [
-				EditorLayout(
-					f"app:{index}",
-					type,
-					parse_layout(entry.layout),
-					entry.title,
-					entry.condition,
-					size=entry.size,
-					omitted=list(entry.omitted),
-				)
-				for index, entry in enumerate(app_layouts.entries if app_layouts else ())
-			]
+		return self.app_file_layouts(type) if self.standard else self.site_layouts(type)
+
+	def app_file_layouts(self, type: str) -> list[EditorLayout]:
+		app_layouts = read_app_layouts(self.name, type)
+		return [
+			EditorLayout(
+				f"app:{index}",
+				type,
+				parse_layout(entry.layout),
+				entry.title,
+				entry.condition,
+				size=entry.size,
+				omitted=list(entry.omitted),
+			)
+			for index, entry in enumerate(app_layouts.entries if app_layouts else ())
+		]
+
+	def site_layouts(self, type: str) -> list[EditorLayout]:
 		rows = frappe.get_all(
 			"Form Layout",
 			filters={"dt": self.name, "type": type, "app": ("is", "not set")},
