@@ -99,9 +99,12 @@ class TestDoctypeEditor(IntegrationTestCase):
 	def test_a_custom_doctype_opens_in_design_without_developer_mode(self):
 		doctype = new_doctype(custom=1).insert().name
 		with developer_mode(False):
-			self.assertEqual(self.open(self.manager, doctype)["mode"], "Design")
+			editor = self.open(self.manager, doctype)
+			self.assertEqual((editor["mode"], editor["modes"]), ("Design", ["Design"]))
 			with self.assertRaises(frappe.PermissionError):
 				self.open(self.customizer, doctype, "Design")
+			with self.assertRaises(frappe.PermissionError):
+				self.open(self.customizer, doctype)
 
 	def test_design_hides_site_custom_fields_and_counts_them(self):
 		create_custom_field("ToDo", {"fieldname": "editor_47270", "label": "Editor", "fieldtype": "Data"})
