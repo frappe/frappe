@@ -7,7 +7,6 @@ import re
 
 import frappe
 from frappe import _
-from frappe.model.naming import append_number_if_name_exists
 from frappe.utils import cint, escape_html, flt
 
 PX_PER_MM = 96 / 25.4
@@ -52,37 +51,58 @@ def convert_print_designer_format(doc) -> tuple[dict, list[str]]:
 	return PrintDesignerConverter(doc).convert()
 
 
-@frappe.whitelist()
-def create_editor_format(print_format: str, name: str | None = None) -> dict:
-	"""Save a converted copy of a Print Designer format as a new editor format."""
+def converted_values(doc) -> tuple[dict, list[str]]:
+	"""The fields that make a Print Designer format an editor format, and notes on
+	what could not be carried over exactly."""
+	layout, notes = convert_print_designer_format(doc)
+	values = {
+		"print_designer": 0,
+		"print_format_builder_beta": 1,
+		"format_data": json.dumps(layout),
+		"font": converted_font(doc),
+		**converted_margins(doc),
+	}
+	return values, notes
+
+
+@frappe.whitelist(methods=["POST"])
+def convert_in_place(print_format: str) -> dict:
+	"""Turn a Print Designer format into an editor format under the same name. The
+	Print Designer fields stay as they are, so undo_conversion can bring it back."""
 	frappe.only_for("System Manager")
-	source = frappe.get_doc("Print Format", print_format)
-	if not is_print_designer_format(source):
+	doc = frappe.get_doc("Print Format", print_format)
+	if not is_print_designer_format(doc):
 		frappe.throw(_("{0} is not a Print Designer format.").format(frappe.bold(print_format)))
-	layout, notes = convert_print_designer_format(source)
-	target = frappe.new_doc("Print Format")
-	target.__newname = append_number_if_name_exists(
-		"Print Format", name or _("{0} (Editor)").format(source.name), separator=" "
-	)
-	target.update(
-		{
-			"doc_type": source.doc_type,
-			"module": source.module,
-			"standard": "No",
-			"print_format_builder_beta": 1,
-			"format_data": json.dumps(layout),
-			"default_print_language": source.default_print_language,
-			"pdf_generator": "chrome",
-			"page_number": source.page_number,
-			"absolute_value": source.absolute_value,
-			"font": converted_font(source),
-			**converted_margins(source),
-		}
-	)
-	target.insert()
+	values, notes = converted_values(doc)
+	frappe.db.set_value("Print Format", doc.name, values, update_modified=doc.standard != "Yes")
 	if notes:
-		target.add_comment("Comment", "<br>".join(escape_html(n) for n in notes))
-	return {"name": target.name, "notes": notes}
+		doc.add_comment("Comment", "<br>".join(escape_html(n) for n in notes))
+	frappe.clear_cache(doctype=doc.doc_type)
+	return {"notes": notes}
+
+
+@frappe.whitelist(methods=["POST"])
+def undo_conversion(print_format: str) -> None:
+	"""Turn a converted format back into the Print Designer format it was."""
+	frappe.only_for("System Manager")
+	doc = frappe.get_doc("Print Format", print_format)
+	if not was_print_designer_format(doc):
+		frappe.throw(_("{0} was not converted from Print Designer.").format(frappe.bold(print_format)))
+	frappe.db.set_value(
+		"Print Format",
+		doc.name,
+		{"print_designer": 1, "print_format_builder_beta": 0, "format_data": None, "draft_data": None},
+		update_modified=doc.standard != "Yes",
+	)
+	frappe.clear_cache(doctype=doc.doc_type)
+
+
+def was_print_designer_format(doc) -> bool:
+	return bool(
+		not doc.get("print_designer")
+		and doc.print_format_builder_beta
+		and (doc.get("print_designer_print_format") or doc.get("print_designer_body"))
+	)
 
 
 def converted_margins(doc) -> dict:
