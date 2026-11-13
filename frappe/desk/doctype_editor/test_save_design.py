@@ -347,6 +347,7 @@ class TestSaveDesignAppFiles(IntegrationTestCase):
 		frappe.get_doc(
 			{"doctype": "Custom Field", "dt": "ToDo", "fieldname": fieldname, "label": "Editor 47271", "fieldtype": "Data"}
 		).insert()
+		self.addCleanup(frappe.db.sql_ddl, f"alter table `tabToDo` drop column if exists {fieldname}")
 		self.addCleanup(delete_committed, "Custom Field", f"ToDo-{fieldname}")
 		result = save_doctype_editor(
 			"ToDo",
