@@ -8,7 +8,7 @@ vi.mock("frappe-ui", () => ({ toast }));
 vi.mock("@framework/ui/api", () => ({ runMethod }));
 
 import { acts } from "@/acts/dispatcher";
-import { CREATE_METHOD, SAVE_METHOD } from "../editorSave";
+import { CREATE_METHOD, SAVE_METHOD, WRITE_FILES_METHOD } from "../editorSave";
 import type { EditorState } from "../editorSource";
 import { mountEditor, taskNote, VERSION } from "./editorFixture";
 
@@ -35,6 +35,15 @@ beforeEach(() => {
 	runMethod.mockReset();
 	toast.success.mockReset();
 });
+
+/** Edits the saved child "Task Note Line", then the parent, back on the parent's editor. */
+async function editChildAndParent(children: ReturnType<typeof mount>["children"]) {
+	answers(line());
+	await children.show("lines");
+	await acts.run("fields.set_field_property", bold("qty"));
+	await children.show(null);
+	await acts.run("fields.set_field_property", bold("subject"));
+}
 afterEach(() => stop());
 
 function mount(initial: EditorState = parent()) {
@@ -220,5 +229,57 @@ describe("a save with child tables", () => {
 		answers(saved);
 		await acts.run("editor.save");
 		expect(step.errors.value).toEqual([]);
+	});
+
+	it("sends the parent's call with the modified a saved child moved it to, unless someone else moved it first", async () => {
+		for (const [was, sent] of [
+			[VERSION.doctype, "2026-11-13 10:05:00"],
+			["2026-11-13 09:59:00", VERSION.doctype],
+		]) {
+			runMethod.mockReset();
+			const { children } = mount();
+			await editChildAndParent(children);
+			answers({ ...saved, parents: { "Task Note": { was, now: "2026-11-13 10:05:00" } } }, saved);
+			await acts.run("editor.save");
+			expect(runMethod.mock.calls[2][1].base_version).toEqual({ ...VERSION, doctype: sent });
+			stop();
+		}
+		stop = () => undefined;
+	});
+
+	it("drops a saved child's steps when a later call fails, so a retry sends the parent only", async () => {
+		const { children, edits } = mount();
+		await editChildAndParent(children);
+		answers({ ...saved, parents: { "Task Note": { was: VERSION.doctype, now: "2026-11-13 10:05:00" } } });
+		runMethod.mockRejectedValueOnce(new Error("offline"));
+		await expect(acts.run("editor.save")).rejects.toThrow("offline");
+		expect([edits.childDoctypes(), edits.staged.value.length]).toEqual([[], 1]);
+		answers(saved);
+		await acts.run("editor.save");
+		expect(runMethod.mock.calls[3][1]).toMatchObject({ doctype: "Task Note", base_version: { doctype: "2026-11-13 10:05:00" } });
+	});
+
+	it("keeps a new child's column order, which its field order is", async () => {
+		const { children } = mount();
+		await acts.run("fields.add_child_table", { name: "Task Note Step", table_field: "steps" });
+		await children.show("steps");
+		await acts.run("fields.add_field", { label: "Done", fieldtype: "Check" });
+		await acts.run("fields.add_field", { label: "Note", fieldtype: "Data" });
+		children.open.value!.canvas.stage({ act: "fields.reorder_field", fieldname: "note", index: 0 });
+		expect(children.open.value!.canvas.working.value.fields.map((field) => field.fieldname)).toEqual(["note", "done"]);
+		expect(children.saves()[0].edits.at(-1)).toEqual({ act: "fields.reorder_field", fieldname: "note", index: 0 });
+	});
+
+	it("shows a saved child's failed export on the parent's editor, and writes that child's files again", async () => {
+		const { children, save, edits } = mount();
+		await editChildAndParent(children);
+		answers(saved, saved);
+		await acts.run("editor.save");
+		await save.exported({ doctype: "Task Note Line", ok: false, error: "Disk full" });
+		expect(save.banner.value).toMatchObject({ doctype: "Task Note", files: "Task Note Line", messages: ["Disk full"] });
+		answers({ Details: "def" });
+		await acts.run("editor.write_files_again");
+		expect(runMethod).toHaveBeenLastCalledWith(WRITE_FILES_METHOD, { doctype: "Task Note Line" }, { nullable: true });
+		expect([save.banner.value, edits.payload().base_version]).toEqual([null, VERSION]);
 	});
 });

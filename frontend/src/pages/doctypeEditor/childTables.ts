@@ -85,6 +85,14 @@ export class ChildTables {
 		if (open?.state.doctype === doctype) await this.show(open.table);
 	}
 
+	/** A child's export wrote its app layout files after its editor loaded them: its next save compares to these. */
+	rebaseAppLayouts(doctype: string, appLayouts: Record<string, string>) {
+		const session = this.sessions.value.get(doctype);
+		if (!session) return;
+		const { base_version } = session.state;
+		session.state = { ...session.state, base_version: { ...base_version, app_layouts: { ...base_version.app_layouts, ...appLayouts } } };
+	}
+
 	clearErrors() {
 		for (const session of this.sessions.value.values()) session.canvas.errors.value = [];
 	}

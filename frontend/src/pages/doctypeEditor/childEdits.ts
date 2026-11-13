@@ -48,6 +48,7 @@ export class ChildEdits implements EditStage {
 		if (edit.act.startsWith("canvas.")) {
 			throw new EditRefused("Save the new child table {0} before you lay it out.", [this.doctype]);
 		}
+		if (edit.act === "fields.reorder_field") return edit.value;
 		return Object.fromEntries(Object.entries(edit.value).filter(([key]) => !PLACE_KEYS.includes(key)));
 	}
 

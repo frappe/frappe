@@ -592,6 +592,22 @@ class TestSaveDesign(IntegrationTestCase):
 		self.assertTrue(result["saved"], result.get("errors"))
 		self.assertEqual(frappe.get_meta(child).get_field("qty").columns, 2)
 
+	def test_a_saved_child_tables_save_moves_its_parents_version_for_the_parents_next_save(self):
+		child = f"{DOCTYPE} Row"
+		self.addCleanup(delete_committed, "DocType", child)
+		make_custom_doctype(child, [{"fieldname": "qty", "label": "Qty", "fieldtype": "Int"}], istable=1)
+		table = {"act": "fields.add_field", "label": "Rows", "fieldtype": "Table", "options": child}
+		self.assertTrue(self.save([table])["saved"])
+		version = json.loads(frappe.as_json(base_version(DOCTYPE)))
+		columns = {"act": "fields.set_field_property", "fieldname": "qty", "property": "columns", "value": 2}
+		result = self.save([columns], child)
+		moved = result["parents"][DOCTYPE]
+		self.assertEqual(moved["was"], version["doctype"])
+		bold = {"act": "fields.set_field_property", "fieldname": "title", "property": "bold", "value": 1}
+		self.assertEqual(self.save([bold], version=version)["errors"][0]["code"], "stale")
+		parent = self.save([bold], version={**version, "doctype": moved["now"]})
+		self.assertTrue(parent["saved"], parent.get("errors"))
+
 	def test_a_table_field_with_rows_keeps_its_child_table(self):
 		child, other, new = f"{DOCTYPE} Item", f"{DOCTYPE} Other", f"{DOCTYPE} New"
 		for name in (child, other, new):

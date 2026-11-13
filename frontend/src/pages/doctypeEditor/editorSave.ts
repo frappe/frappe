@@ -18,6 +18,8 @@ export interface SaveBanner {
 	messages: string[];
 	offers: SaveOffer[];
 	failed: boolean;
+	/** The child table whose files "Write files again" writes; absent for the parent. */
+	files?: string;
 }
 
 interface SaveResult {
@@ -27,6 +29,8 @@ interface SaveResult {
 	/** The DocTypes a failed save had already written. */
 	written?: string[];
 	doctype?: string;
+	/** A child table's save moves its parents' `modified`: each one's value before and after it. */
+	parents?: Record<string, { was: string; now: string }>;
 }
 
 /** The realtime `doctype_export` message: how the file export after a save went. */
@@ -45,7 +49,7 @@ export interface SaveHost {
 	/** A new DocType's first save made it: its own editor opens in place of `/doctype/new`, unless the page moved on. */
 	created: (doctype: string) => Promise<DesignCanvas | null>;
 	/** The page's child tables, whose staged edits save with the parent's. */
-	children?: Pick<ChildTables, "saves" | "saved" | "loaded" | "canvasOf" | "clearErrors">;
+	children?: Pick<ChildTables, "saves" | "saved" | "loaded" | "canvasOf" | "clearErrors" | "rebaseAppLayouts">;
 	/** Opens a child table's editor, to mark its refused edits there. */
 	showChild?: (doctype: string) => Promise<DesignCanvas | null>;
 }
@@ -56,8 +60,10 @@ export const WRITE_FILES_METHOD = "frappe.core.doctype.doctype.doctype.write_doc
 export class EditorSave {
 	readonly saving = ref(false);
 	readonly banner = shallowRef<SaveBanner | null>(null);
-	/** An export that lands while a save or reload runs waits for it: that reload would race this one. */
-	private lateExport: ExportResult | null = null;
+	/** The exports that land while a save or reload runs wait for it: that reload would race them. */
+	private lateExports: ExportResult[] = [];
+	/** The child tables the last save wrote, whose exports report here too. */
+	private writtenChildren: string[] = [];
 
 	constructor(private host: SaveHost) {}
 
@@ -121,12 +127,11 @@ export class EditorSave {
 	async writeFilesAgain() {
 		const canvas = this.host.canvas();
 		if (!canvas) return;
-		const { data } = await runMethod<Record<string, string>>(
-			WRITE_FILES_METHOD,
-			{ doctype: canvas.state.doctype },
-			{ nullable: true },
-		);
-		if (data) this.rebaseAppLayouts(data);
+		const child = this.banner.value?.files;
+		const doctype = child ?? canvas.state.doctype;
+		const { data } = await runMethod<Record<string, string>>(WRITE_FILES_METHOD, { doctype }, { nullable: true });
+		if (data && child) this.host.children?.rebaseAppLayouts(child, data);
+		else if (data) this.rebaseAppLayouts(data);
 		this.banner.value = null;
 		toast.success(__("Files written"));
 	}
@@ -134,15 +139,20 @@ export class EditorSave {
 	/** The export runs after the save's response, so its outcome comes later, by realtime. */
 	async exported(result: ExportResult) {
 		const canvas = this.host.canvas();
-		if (!canvas || result.doctype !== canvas.state.doctype) return;
-		if (this.saving.value) return void (this.lateExport = result);
+		const child = this.writtenChildren.includes(result.doctype);
+		if (!canvas || (result.doctype !== canvas.state.doctype && !child)) return;
+		if (this.saving.value) return void this.lateExports.push(result);
+		if (result.ok && child) return this.host.children?.rebaseAppLayouts(result.doctype, result.app_layouts ?? {});
 		if (result.ok) return this.reloadExported(result);
 		this.banner.value = {
-			doctype: result.doctype,
-			title: __("Saved, but the DocType's files were not written"),
+			doctype: canvas.state.doctype,
+			title: child
+				? __("Saved, but the files of {0} were not written", [result.doctype])
+				: __("Saved, but the DocType's files were not written"),
 			messages: result.error ? [result.error] : [],
 			offers: ["editor.write_files_again"],
 			failed: true,
+			files: child ? result.doctype : undefined,
 		};
 	}
 
@@ -161,26 +171,51 @@ export class EditorSave {
 		} finally {
 			this.saving.value = false;
 			this.host.edits.locked.value = false;
-			const late = this.lateExport;
-			this.lateExport = null;
-			if (late) void this.exported(late).catch((error) => toast.error(errorMessage(error)));
+			const late = this.lateExports;
+			this.lateExports = [];
+			for (const result of late) void this.exported(result).catch((error) => toast.error(errorMessage(error)));
 		}
 	}
 
-	/** Sends each call in order and stops at the first refused one; the children saved before it leave the stack. */
+	/** Sends each call in order and stops at the first refused or failed one; the children saved before it leave the stack. */
 	private async send(canvas: DesignCanvas): Promise<{ result: SaveResult; call?: SaveCall }> {
 		const parent = { state: canvas.state, payload: this.host.edits.payload(), layout: canvas.base.layout };
 		const written: string[] = [];
+		this.writtenChildren = written;
 		let result: SaveResult = { saved: true };
-		for (const call of saveCalls(parent, this.host.children?.saves() ?? [])) {
-			({ data: result } = await runMethod<SaveResult>(call.method, call.args));
-			if (!result.saved) {
-				for (const child of written) await this.host.children?.saved(child);
-				return { result: { ...result, written: [...written, ...(result.written ?? [])] }, call };
+		try {
+			for (const call of saveCalls(parent, this.host.children?.saves() ?? [])) {
+				({ data: result } = await runMethod<SaveResult>(call.method, this.argsOf(call)));
+				if (!result.saved) {
+					await this.dropSaved(written);
+					return { result: { ...result, written: [...written, ...(result.written ?? [])] }, call };
+				}
+				if (!call.child) continue;
+				written.push(call.child);
+				this.parentMoved(canvas.state.doctype, result);
 			}
-			if (call.child) written.push(call.child);
+		} catch (error) {
+			await this.dropSaved(written);
+			throw error;
 		}
 		return { result };
+	}
+
+	/** The parent's call takes its base version as the saved children before it left it. */
+	private argsOf(call: SaveCall): Record<string, unknown> {
+		if (call.child || call.method !== SAVE_METHOD) return call.args;
+		return { ...call.args, base_version: this.host.edits.payload().base_version };
+	}
+
+	/** A child's save moved the parent's `modified`; only when it moved it from the loaded one, else the parent's save stays stale. */
+	private parentMoved(parent: string, result: SaveResult) {
+		const moved = result.parents?.[parent];
+		const { base_version } = this.host.edits.payload();
+		if (moved && moved.was === base_version.doctype) this.host.edits.rebase({ ...base_version, doctype: moved.now });
+	}
+
+	private async dropSaved(children: string[]) {
+		for (const child of children) await this.host.children?.saved(child);
 	}
 
 	private async saved(canvas: DesignCanvas, result: SaveResult) {
