@@ -69,6 +69,13 @@ class CustomizeEdits(DesignEdits):
 		if not edit.get("layout") and self.state.layouts_of("Details"):
 			self.state.anchors[fieldname] = None
 
+	def fields_set_field_property(self, edit: dict):
+		super().fields_set_field_property(edit)
+		# A queued reset deletes its setter after the save, so a later edit must cancel it.
+		key = (edit.get("fieldname"), edit.get("property"))
+		if key in self.state.property_deletes:
+			self.state.property_deletes.remove(key)
+
 	def fields_reset_field_property(self, edit: dict):
 		"""Back to the app's value, so Customize Form deletes that one Property Setter; an app's setter stays."""
 		fieldname, property = edit.get("fieldname"), edit.get("property")
@@ -82,6 +89,9 @@ class CustomizeEdits(DesignEdits):
 			return
 		if not field.meta.has_field(property) or field.is_custom_field:
 			# An app's Custom Field keeps its value on its own row; the setter is what overrides it.
+			if field.meta.has_field(property):
+				filters = {"dt": self.state.name, "fieldname": fieldname}
+				field.set(property, frappe.db.get_value("Custom Field", filters, property))
 			self.state.property_deletes.append((fieldname, property))
 			return
 		filters = {"parent": self.state.name, "fieldname": fieldname}

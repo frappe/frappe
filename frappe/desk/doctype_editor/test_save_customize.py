@@ -440,6 +440,19 @@ class TestSaveCustomize(IntegrationTestCase):
 		self.assertIsNone(property_value(NOTE, app_field.fieldname, "label"))
 		self.assertEqual(frappe.get_meta(NOTE).get_field(app_field.fieldname).label, "T47273 App Made")
 
+	def test_an_edit_after_a_reset_on_an_app_custom_field_wins(self):
+		app_field = frappe.get_doc(
+			{"doctype": "Custom Field", "dt": NOTE, "label": "T47274 App Made", "fieldtype": "Data"}
+		)
+		app_field.is_system_generated = 1
+		app_field.insert()
+		edit = {"act": "fields.set_field_property", "fieldname": app_field.fieldname, "property": "label"}
+		self.assertTrue(save(NOTE, [{**edit, "value": "T47274 Site Label"}])["saved"])
+		reset = {"act": "fields.reset_field_property", "fieldname": app_field.fieldname, "property": "label"}
+		self.assertTrue(save(NOTE, [reset, {**edit, "value": "T47274 Later Label"}])["saved"])
+		self.assertEqual(property_value(NOTE, app_field.fieldname, "label"), "T47274 Later Label")
+		self.assertEqual(frappe.get_meta(NOTE).get_field(app_field.fieldname).label, "T47274 Later Label")
+
 	def test_reset_all_keeps_the_fields_only_administrator_may_delete(self):
 		save(NOTE, [add_field("T47273 Admin")])
 		name = custom_field(NOTE, "custom_t47273_admin").name
