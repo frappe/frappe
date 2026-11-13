@@ -49,6 +49,7 @@ def boot() -> dict[str, Any]:
 	signed in and what they may manage."""
 	frappe.has_permission("Flow Session", "read", throw=True)
 	from frappe.flow.assistant.assistant import ASSISTANT_AGENT_NAME
+	from frappe.flow.doctype.flow_tool.flow_tool import unavailable_tools
 	from frappe.flow.knowledge.extract import FILE_EXTENSIONS
 
 	agents = frappe.get_list("Flow Agent", filters={"enabled": 1}, fields=["name", "title", "model"])
@@ -74,6 +75,7 @@ def boot() -> dict[str, Any]:
 			"Flow Provider", filters={"enabled": 1}, pluck="name", order_by="creation asc"
 		),
 		"file_types": sorted(FILE_EXTENSIONS),
+		"unavailable_tools": unavailable_tools(),
 		"user": frappe.db.get_value(
 			"User", frappe.session.user, ["name", "full_name", "email", "user_image"], as_dict=True
 		),

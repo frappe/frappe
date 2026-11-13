@@ -6,11 +6,15 @@ from unittest.mock import patch
 import frappe
 from frappe.flow.utils.safe_exec import get_flow_safe_globals, safe_exec
 from frappe.tests import IntegrationTestCase
+from frappe.utils.safe_exec import ServerScriptNotEnabled
 
 SENDMAIL = 'frappe.sendmail(recipients=["someone@example.com"], attachments=attachments)'
 
 
 class TestFlowSafeExec(IntegrationTestCase):
+	def setUp(self):
+		self.enterContext(patch("frappe.utils.safe_exec.is_safe_exec_enabled", return_value=True))
+
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		frappe.db.rollback()
@@ -18,6 +22,13 @@ class TestFlowSafeExec(IntegrationTestCase):
 	def _run(self, code):
 		exec_globals, _ = safe_exec(code, script_filename="test")
 		return exec_globals.get("result")
+
+	def test_runs_nothing_while_server_scripts_are_off(self):
+		with (
+			patch("frappe.utils.safe_exec.is_safe_exec_enabled", return_value=False),
+			self.assertRaises(ServerScriptNotEnabled),
+		):
+			self._run("result = 1")
 
 	def test_namespace_offers_only_permission_respecting_functions(self):
 		g = get_flow_safe_globals()

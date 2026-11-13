@@ -57,6 +57,15 @@ def safe_exec(
 	script_filename: str | None = None,
 	tool_context: ToolContext | None = None,
 ):
+	from frappe.utils.safe_exec import ServerScriptNotEnabled, is_safe_exec_enabled
+
+	if not is_safe_exec_enabled():
+		frappe.throw(
+			_("Server Scripts are disabled on this bench, so code cannot run here."),
+			ServerScriptNotEnabled,
+			title=_("Server Scripts Disabled"),
+		)
+
 	exec_globals = get_flow_safe_globals(tool_context=tool_context)
 	if _globals:
 		exec_globals.update(_globals)
