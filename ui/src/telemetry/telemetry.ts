@@ -25,12 +25,10 @@ export function useTelemetry() {
       isEnabled.value = false;
       client?.stop();
     },
-    // Installs again with what the app passed, minus `enabled`: the backend's
-    // answer now reflects the choice just saved.
-    enable: (options: TelemetryPluginOptions) => {
-      const { enabled: _enabled, ...installed } = lastOptions ?? options;
-      return telemetryPlugin.install(undefined, { ...installed, ...options });
-    },
+    // Installs again with what the app passed, enabled: the user just said yes, and an
+    // install with its own host and key never asks the backend.
+    enable: (options: TelemetryPluginOptions) =>
+      telemetryPlugin.install(undefined, { ...(lastOptions ?? {}), ...options, enabled: true }),
     capture: (event_name: string, data: Record<string, any> = {}) => {
       if (!isEnabled.value || !appName.value) return;
       client?.capture(event_name, appName.value, data);
