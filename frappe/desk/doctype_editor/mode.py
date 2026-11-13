@@ -4,6 +4,7 @@
 
 import frappe
 from frappe import _
+from frappe.model import core_doctypes_list
 
 MODES = ("Design", "Customize")
 
@@ -21,7 +22,11 @@ def mode_refusal(doctype: str, mode: str) -> str | None:
 	if custom is None:
 		return _("{0} is not a DocType.").format(frappe.bold(doctype))
 	if mode == "Customize":
-		if issingle and not custom:
+		if custom:
+			return _("{0} is a custom DocType: it always opens in Design mode.").format(frappe.bold(doctype))
+		if doctype in core_doctypes_list:
+			return _("{0} is a core DocType and cannot be customized.").format(frappe.bold(doctype))
+		if issingle:
 			return _("A standard Single opens only in Design mode.")
 		if not frappe.has_permission("Customize Form", "write"):
 			return _("Customize mode needs write access to Customize Form.")
