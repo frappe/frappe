@@ -203,6 +203,12 @@ class TestDoctypeEditor(IntegrationTestCase):
 		self.assertGreater(managed, 0)
 		self.assertLessEqual(managed, everything - hidden)
 
+	def test_a_child_table_names_the_parents_the_user_reads(self):
+		with developer_mode(True):
+			parents = self.open(self.manager, "Has Role", "Design")["parents"]
+		self.assertIn("User", parents)
+		self.assertNotIn("parents", self.open(self.manager, "ToDo"))
+
 	def test_counts_of_masked_fields_stay_numbers(self):
 		masked = [
 			{"label": "Email", "fieldname": "email", "fieldtype": "Data", "options": "Email", "mask": 1},

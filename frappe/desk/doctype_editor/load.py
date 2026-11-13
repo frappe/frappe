@@ -36,6 +36,8 @@ def get_doctype_editor(doctype: str, mode: str | None = None) -> dict:
 		"layouts": get_editor_layouts(doctype, custom=mode == "Customize"),
 	}
 	editor.update(design_state(doctype) if mode == "Design" else get_customizations(meta))
+	if meta.istable:
+		editor["parents"] = readable_parents(meta)
 	return editor
 
 
