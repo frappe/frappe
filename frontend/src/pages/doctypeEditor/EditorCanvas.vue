@@ -1,5 +1,5 @@
 <!-- The canvas, read-only for now: the Details layout's tabs, sections, columns and field labels.
-     #47272 makes it editable; the record page's own FormLayout draws the Preview tab instead. -->
+     The record page's own FormLayout draws the Preview tab instead. -->
 <template>
 	<div class="mx-auto w-full max-w-3xl py-6" data-editor-canvas>
 		<h1 class="text-xl font-semibold text-ink-gray-9">{{ state.doctype }}</h1>

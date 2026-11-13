@@ -22,7 +22,7 @@ import NotFound from "@/shell/NotFound.vue";
 const RECORD_ROUTES = new Set(["record", "standard-record"]);
 const VIEW_ROUTES = new Set(["list", "standard-list", "saved-view"]);
 
-// Fixed by #45862: the static segment outranks `/:doctype/:name` and `/:module/:doctype`, so a
+// The static segment outranks `/:doctype/:name` and `/:module/:doctype`, so a
 // DocType's record page moves to `/doctype/<name>/record`; the list keeps `/doctype`.
 function doctypeEditorRoute() {
 	return { path: "/doctype/:name", name: "doctype-editor", component: standardPage("doctypeEditor") };

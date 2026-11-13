@@ -7,7 +7,7 @@
 				v-model:tab="tab"
 				:doctype="state.doctype"
 				:layout-title="layout?.title || __('Details')"
-				:dirty="edits.dirty.value"
+				:dirty="dirty"
 				:can-undo="edits.canUndo.value"
 				:can-redo="edits.canRedo.value"
 				:switch-to="switchTo"
@@ -115,6 +115,8 @@ useEditorActs({
 });
 
 const layout = computed(() => (state.value ? detailsLayout(state.value) : null));
+// A new DocType is not saved until its first save, even with no edits staged.
+const dirty = computed(() => edits.dirty.value || Boolean(state.value?.pending));
 
 const metaLine = computed(() => {
 	const one = state.value;
@@ -190,7 +192,7 @@ async function loadLatest(loaded: EditorState, request: number) {
 }
 
 async function confirmLeave() {
-	if (!edits.dirty.value) return true;
+	if (!dirty.value) return true;
 	return discardChanges(
 		shellDialog().confirm,
 		__("This DocType has changes that are not saved.")
@@ -203,5 +205,5 @@ onBeforeRouteUpdate((to, from) =>
 		? true
 		: confirmLeave()
 );
-useUnloadGuard(() => edits.dirty.value);
+useUnloadGuard(() => dirty.value);
 </script>

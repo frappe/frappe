@@ -1,7 +1,7 @@
 import { computed, shallowRef } from "vue";
 
 export type EditorTab = "editor" | "settings" | "preview";
-/** The server's mode names; the address spells Customize `?mode=customize` (#45862). */
+/** The server's mode names; the address spells Customize `?mode=customize`. */
 export type EditorMode = "Design" | "Customize";
 
 /** What the editor loaded, as `versions.base_version` returns it; a save compares it to refuse stale edits. */
