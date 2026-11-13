@@ -1,0 +1,50 @@
+/**
+ * Load the browser source compiler and module registry on demand.
+ *
+ * Keep the compilers and available library namespaces out of the initial editor and renderer
+ * bundles. Compilation or syntax checking loads them when needed. Reloading or unloading an
+ * unused runtime does not load them. App builds use noBrowserRuntime.ts instead.
+ */
+
+import type { RouterConfig } from "@/router/app_router"
+
+let loaded = false
+
+function appRegistry() {
+	loaded = true
+	return import("@/browserRuntime/appRegistry")
+}
+
+export async function loadAppRuntime(appName: string): Promise<void> {
+	return (await appRegistry()).loadAppRuntime(appName)
+}
+
+export async function reloadAppRuntime(): Promise<void> {
+	if (!loaded) return
+	return (await appRegistry()).reloadAppRuntime()
+}
+
+export async function unloadAppRuntime(): Promise<void> {
+	if (!loaded) return
+	return (await appRegistry()).unloadAppRuntime()
+}
+
+export async function loadAppRouterConfig(): Promise<RouterConfig | undefined> {
+	return (await appRegistry()).loadAppRouterConfig()
+}
+
+export async function compilePageScript(page: {
+	page_title?: string
+	script?: string | null
+}): Promise<Record<string, any> | null> {
+	return (await appRegistry()).compilePageScript(page)
+}
+
+/** Return a page script's syntax error, or null if the module parses. */
+export async function checkAppScript(
+	source: string,
+	filename = "page_script.js",
+	databaseApp = false,
+): Promise<string | null> {
+	return (await import("@/browserRuntime/compiler")).checkAppScript(source, filename, databaseApp)
+}

@@ -758,9 +758,21 @@ class Block implements BlockOptions {
 	// component slots
 	initializeSlots() {
 		Object.entries(this.componentSlots).forEach(([slotName, slot]) => {
-			if (!slot.slotId) {
-				slot.slotId = this.generateSlotId(slotName)
+			if (Array.isArray(slot)) {
+				// Agents often write { slotName: [...] } instead of the expected { slotName, slotContent } format
+				console.warn(
+					`Slot "${slotName}" on ${this.componentName} is an array. ` +
+						"Studio stores a slot as { slotName, slotContent }.",
+				)
+				slot = {
+					slotName,
+					slotId: this.generateSlotId(slotName),
+					slotContent: slot,
+					parentBlockId: this.componentId,
+				}
+				this.componentSlots[slotName] = slot
 			}
+			slot.slotId ||= this.generateSlotId(slotName)
 			slot.parentBlockId = this.componentId
 
 			slot.slotContent = (Array.isArray(slot.slotContent) ? slot.slotContent : []).map((block) => {

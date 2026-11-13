@@ -111,6 +111,12 @@ jobs:
           cd ${GITHUB_WORKSPACE}/apps/${{ github.event.repository.name }}/studio/frontend
           yarn cypress install
 
+      # node --test alone: the vite plugins run in node and need no site
+      - name: Run Vite Plugin Tests
+        run: |
+          cd ${GITHUB_WORKSPACE}/apps/${{ github.event.repository.name }}/studio/frontend
+          yarn test:node
+
       # the data-source specs call the test site through the dev server's proxy
       - name: Run Component Tests
         run: |
