@@ -36,8 +36,7 @@ TAILWIND_CONFIG_FILES = ("tailwind.config.ts", "tailwind.config.js")
 
 def is_db_app(studio_app: str) -> bool:
 	"""Return whether the app uses database source storage. Return False for a missing app."""
-	is_standard = frappe.db.get_value("Studio App", studio_app, "is_standard")
-	return is_standard == 0
+	return frappe.db.get_value("Studio App", studio_app, "is_standard") == 0
 
 
 def is_page_script_path(path: str) -> bool:
