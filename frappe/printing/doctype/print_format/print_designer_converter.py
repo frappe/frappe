@@ -412,7 +412,7 @@ class PrintDesignerConverter:
 				fixed = [
 					flt(e.get("startY")) - top + flt(e.get("height"))
 					for e in band
-					if e.get("type") == "text" and not e.get("isDynamicHeight")
+					if e.get("type") in ("text", "rectangle") and not e.get("isDynamicHeight")
 				]
 				row_style = (
 					f"display: flex; min-height: {round(max(fixed))}px;" if fixed else "display: flex;"
@@ -435,7 +435,7 @@ class PrintDesignerConverter:
 			fixed += [
 				flt(c.get("startY")) + flt(c.get("height"))
 				for c in children
-				if c.get("type") == "text" and not c.get("isDynamicHeight")
+				if c.get("type") in ("text", "rectangle") and not c.get("isDynamicHeight")
 			]
 		row_style = f"display: flex; min-height: {round(max(fixed))}px;" if fixed else "display: flex;"
 		return self.html_node(f'<div style="{row_style}">' + "".join(parts) + "</div>")
