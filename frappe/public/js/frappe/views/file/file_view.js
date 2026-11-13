@@ -290,6 +290,7 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 				${html}
 			</div>`
 		);
+		this.set_rows_as_checked();
 	}
 
 	get_breadcrumbs_html() {
