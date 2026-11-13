@@ -8,6 +8,7 @@ import re
 import frappe
 from frappe import _
 from frappe.desk.doctype.form_layout.app_layout import read_app_layout
+from frappe.desk.form.linked_with import get_parent_doctypes
 from frappe.model import child_table_fields, data_fieldtypes, default_fields, optional_fields
 from frappe.model.document import Document
 from frappe.model.meta import Meta
@@ -191,9 +192,23 @@ def save_form_layout(
 
 
 def check_layout_access(dt: str, type: str) -> None:
+	if frappe.is_table(dt):
+		return check_child_layout_access(dt)
 	if type in CREATE_LAYOUT_TYPES and frappe.has_permission(dt, "create"):
 		return
 	frappe.has_permission(dt, "read", throw=True)
+
+
+def check_child_layout_access(dt: str) -> None:
+	"""A child DocType has no rights of its own: its row dialog is read through a parent's."""
+	if frappe.has_permission("DocType", "read") or frappe.has_permission("Form Layout", "read"):
+		return
+	if any(frappe.has_permission(parent, "read") for parent in get_parent_doctypes([dt])[dt]):
+		return
+	frappe.throw(
+		_("You need read access to a DocType that has {0} as a table.").format(frappe.bold(dt)),
+		frappe.PermissionError,
+	)
 
 
 def refuse_layout_type(dt: str, type: str) -> bool:

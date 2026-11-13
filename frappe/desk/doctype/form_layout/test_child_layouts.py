@@ -24,6 +24,8 @@ TAG_DT = "Test Layout Tag 45901"
 SINGLE_DT = "Test Layout Single 45901"
 PARENT_ROLE = "Test Layout Parent Reader 45901"
 PARENT_READER = "test_layout_parent_reader_45901@example.com"
+STRANGER_ROLE = "Test Layout Stranger 47263"
+STRANGER = "test_layout_stranger_47263@example.com"
 
 
 def a_tree(fieldname: str) -> str:
@@ -35,6 +37,7 @@ class TestChildLayouts(IntegrationTestCase):
 	def setUpClass(cls):
 		super().setUpClass()
 		a_user_with_role(PARENT_READER, PARENT_ROLE)
+		a_user_with_role(STRANGER, STRANGER_ROLE)
 		new_doctype(ROW_DT, istable=1, fields=[data("item"), data("note")]).insert(ignore_if_duplicate=True)
 		new_doctype(
 			TAG_DT,
@@ -60,8 +63,10 @@ class TestChildLayouts(IntegrationTestCase):
 		frappe.db.rollback()
 		for dt in (PARENT_DT, ROW_DT, TAG_DT, SINGLE_DT):
 			frappe.delete_doc_if_exists("DocType", dt)
-		frappe.delete_doc_if_exists("User", PARENT_READER)
-		frappe.delete_doc_if_exists("Role", PARENT_ROLE)
+		for user in (PARENT_READER, STRANGER):
+			frappe.delete_doc_if_exists("User", user)
+		for role in (PARENT_ROLE, STRANGER_ROLE):
+			frappe.delete_doc_if_exists("Role", role)
 		frappe.db.commit()  # nosemgrep
 		super().tearDownClass()
 
@@ -109,6 +114,21 @@ class TestChildLayouts(IntegrationTestCase):
 			self.assertFalse(frappe.has_permission(ROW_DT, "read"))
 			self.assertFalse(frappe.has_permission("Form Layout", "read"))
 		self.assertEqual([one["name"] for one in self.children()[ROW_DT]], [row.name])
+
+	def test_a_reader_of_the_parent_gets_the_childs_own_rows(self):
+		row = make_layout(dt=ROW_DT, layout=a_tree("item")).insert()
+		with set_user(PARENT_READER):
+			layouts = get_form_layouts(ROW_DT, "Details")
+		self.assertEqual([one["name"] for one in layouts["layouts"]], [row.name])
+
+	def test_a_user_who_reads_no_parent_cannot_read_a_childs_rows(self):
+		with set_user(STRANGER), self.assertRaises(frappe.PermissionError):
+			get_form_layouts(ROW_DT, "Details")
+
+	def test_a_doctype_reader_gets_a_childs_rows_without_reading_a_parent(self):
+		with set_user(a_manager()):
+			self.assertFalse(frappe.has_permission(PARENT_DT, "read"))
+			self.assertEqual(get_form_layouts(ROW_DT, "Details")["layouts"], [])
 
 	def test_a_doctype_with_no_table_has_no_children(self):
 		with set_user(a_manager()):
