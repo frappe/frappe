@@ -57,7 +57,9 @@ class CustomizeEdits(DesignEdits):
 		return tree
 
 	def fields_add_field(self, edit: dict):
-		fieldname = edit.get("fieldname") or SPECIAL_CHAR_PATTERN.sub("", frappe.scrub(edit.get("label") or ""))
+		fieldname = edit.get("fieldname") or SPECIAL_CHAR_PATTERN.sub(
+			"", frappe.scrub(edit.get("label") or "")
+		)
 		if not fieldname.startswith("custom_"):
 			fieldname = f"custom_{fieldname}"
 		super().fields_add_field({**edit, "fieldname": fieldname})

@@ -69,15 +69,31 @@ class TestSaveCustomize(IntegrationTestCase):
 		frappe.db.commit()  # nosemgrep
 
 	def test_add_field_anchors_after_the_field_drawn_before_it(self):
-		result = save(NOTE, [add_field("T47273 Code", layout={"type": "Details"}, section="section_1", column="column_1", index=1)])
+		result = save(
+			NOTE,
+			[
+				add_field(
+					"T47273 Code", layout={"type": "Details"}, section="section_1", column="column_1", index=1
+				)
+			],
+		)
 		self.assertTrue(result["saved"], result)
 		self.assertEqual(custom_field(NOTE, "custom_t47273_code").insert_after, "title")
 		self.assertFalse(site_layouts(NOTE))
 
 	def test_add_field_first_in_a_column_anchors_on_the_column(self):
-		save(NOTE, [add_field("T47273 Top", layout={"type": "Details"}, section="section_1", column="column_1", index=0)])
+		save(
+			NOTE,
+			[
+				add_field(
+					"T47273 Top", layout={"type": "Details"}, section="section_1", column="column_1", index=0
+				)
+			],
+		)
 		self.assertEqual(custom_field(NOTE, "custom_t47273_top").insert_after, "column_1")
-		save(NOTE, [{"act": "fields.set_field_property", "fieldname": "title", "property": "bold", "value": 1}])
+		save(
+			NOTE, [{"act": "fields.set_field_property", "fieldname": "title", "property": "bold", "value": 1}]
+		)
 		self.assertEqual(custom_field(NOTE, "custom_t47273_top").insert_after, "column_1")
 
 	def test_property_change_makes_a_property_setter_and_its_reset_deletes_it(self):
@@ -100,11 +116,17 @@ class TestSaveCustomize(IntegrationTestCase):
 
 	def test_a_site_custom_field_renames_and_deletes(self):
 		save(NOTE, [add_field("T47273 Old")])
-		rename = {"act": "fields.rename_field", "fieldname": "custom_t47273_old", "new_fieldname": "custom_t47273_new"}
+		rename = {
+			"act": "fields.rename_field",
+			"fieldname": "custom_t47273_old",
+			"new_fieldname": "custom_t47273_new",
+		}
 		self.assertTrue(save(NOTE, [rename])["saved"])
 		self.assertIsNone(custom_field(NOTE, "custom_t47273_old"))
 		self.assertEqual(custom_field(NOTE, "custom_t47273_new").label, "T47273 Old")
-		self.assertTrue(save(NOTE, [{"act": "fields.delete_field", "fieldname": "custom_t47273_new"}])["saved"])
+		self.assertTrue(
+			save(NOTE, [{"act": "fields.delete_field", "fieldname": "custom_t47273_new"}])["saved"]
+		)
 		self.assertIsNone(custom_field(NOTE, "custom_t47273_new"))
 
 	def test_a_standard_field_cannot_be_renamed(self):
@@ -115,12 +137,19 @@ class TestSaveCustomize(IntegrationTestCase):
 
 	def test_a_standard_move_on_a_break_rendered_doctype_writes_field_order(self):
 		move = {"act": "canvas.move_field", "fieldname": "content", "layout": {"type": "Details"}}
-		self.assertTrue(save(NOTE, [{**move, "section": "section_1", "column": "column_1", "index": 0}])["saved"])
+		self.assertTrue(
+			save(NOTE, [{**move, "section": "section_1", "column": "column_1", "index": 0}])["saved"]
+		)
 		self.assertEqual(json.loads(property_value(NOTE, None, "field_order"))[:2], ["content", "title"])
 		self.assertFalse(site_layouts(NOTE))
 
 	def test_a_container_edit_forks_a_site_layout_with_its_fingerprint(self):
-		add = {"act": "canvas.add_section", "layout": {"type": "Details"}, "tab": "first_tab", "name": "t47273"}
+		add = {
+			"act": "canvas.add_section",
+			"layout": {"type": "Details"},
+			"tab": "first_tab",
+			"name": "t47273",
+		}
 		self.assertTrue(save(NOTE, [add])["saved"])
 		(row,) = site_layouts(NOTE)
 		self.assertEqual(row.fingerprint, source_fingerprint(NOTE, "Details"))
@@ -145,7 +174,12 @@ class TestSaveCustomize(IntegrationTestCase):
 		self.assertFalse(site_layouts(CONTACT, "New Record"))
 
 	def test_reset_to_app_removes_every_site_row_of_the_type(self):
-		add = {"act": "canvas.add_section", "layout": {"type": "Details"}, "tab": "first_tab", "name": "t47273"}
+		add = {
+			"act": "canvas.add_section",
+			"layout": {"type": "Details"},
+			"tab": "first_tab",
+			"name": "t47273",
+		}
 		save(NOTE, [add, {"act": "layouts.add", "type": "Details", "id": "new", "condition": "doc.public"}])
 		self.assertEqual(len(site_layouts(NOTE)), 2)
 		self.assertTrue(save(NOTE, [{"act": "layouts.reset_to_app", "type": "Details"}])["saved"])
@@ -169,7 +203,9 @@ class TestSaveCustomize(IntegrationTestCase):
 
 	def test_a_changed_customization_makes_the_save_stale(self):
 		version = base_version(NOTE)
-		save(NOTE, [{"act": "fields.set_field_property", "fieldname": "title", "property": "bold", "value": 1}])
+		save(
+			NOTE, [{"act": "fields.set_field_property", "fieldname": "title", "property": "bold", "value": 1}]
+		)
 		result = save(NOTE, [add_field("T47273 Late")], version)
 		self.assertEqual(result["errors"][0]["code"], "stale")
 		self.assertIsNone(custom_field(NOTE, "custom_t47273_late"))
@@ -178,7 +214,9 @@ class TestSaveCustomize(IntegrationTestCase):
 		if any(self.before[(doctype, NOTE)] for doctype in SITE_ROWS):
 			self.skipTest("Reset all would delete this site's own Note customizations.")
 		save(NOTE, [add_field("T47273 Gone")])
-		save(NOTE, [{"act": "fields.set_field_property", "fieldname": "title", "property": "bold", "value": 1}])
+		save(
+			NOTE, [{"act": "fields.set_field_property", "fieldname": "title", "property": "bold", "value": 1}]
+		)
 		kept = frappe.get_doc(
 			{"doctype": "Custom Field", "dt": NOTE, "label": "T47273 Kept", "fieldtype": "Data"}
 		)

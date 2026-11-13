@@ -95,4 +95,3 @@ class CustomizeSave(DesignSave):
 
 	def custom_field_name(self, fieldname: str) -> str | None:
 		return frappe.db.get_value("Custom Field", {"dt": self.doctype, "fieldname": fieldname})
-
